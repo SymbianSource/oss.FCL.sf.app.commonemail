@@ -1,0 +1,6 @@
+EXPORTS
+	?NewL@CFsMtmClient@@SAPAV1@AAVCRegisteredMtmDll@@AAVCMsvSession@@@Z @ 1 NONAME ; class CFsMtmClient * CFsMtmClient::NewL(class CRegisteredMtmDll &, class CMsvSession &)
+	?DeleteEmailAsAttachmentL@CFsMtmClient@@QAEHJ@Z @ 2 NONAME ; int CFsMtmClient::DeleteEmailAsAttachmentL(long)
+	?RemoveRedundantAccountsL@CFsMtmClient@@QAEHAAV?$RArray@VTFSMailMsgId@@@@@Z @ 3 NONAME ; int CFsMtmClient::RemoveRedundantAccountsL(class RArray<class TFSMailMsgId> &)
+	?AddEmailAsAttachmentL@CFsMtmClient@@QAEHABIABVTDesC16@@AAJ@Z @ 4 NONAME ; int CFsMtmClient::AddEmailAsAttachmentL(unsigned int const &, class TDesC16 const &, long &)
+

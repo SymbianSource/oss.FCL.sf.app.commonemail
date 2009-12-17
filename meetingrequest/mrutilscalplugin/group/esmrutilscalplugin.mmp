@@ -1,0 +1,62 @@
+/*
+* Copyright (c) 2005 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description: Project definition file for esmrutilscalplugin.dll.
+*
+*/
+
+
+#include "../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
+#include "../../inc/esmrinternaluid.h"
+#include <data_caging_paths.hrh>
+#include <platform_paths.hrh>
+
+TARGET          esmrutilscalplugin.dll
+TARGETTYPE      PLUGIN
+
+UID             KEComRecognitionUID2 KESMRUtilsCalPluginDllUid3
+CAPABILITY      CAP_ECOM_PLUGIN
+VENDORID        VID_DEFAULT
+DEFFILE         ESMRUtilsCalPlugin.def
+
+VERSION         KEmailBinaryVersionNumber
+KEmailBinaryDemandPaging
+
+SOURCEPATH      ../src
+SOURCE          esmrutilsmain.cpp
+SOURCE          cesmrutilsimpl.cpp
+
+USERINCLUDE     .
+USERINCLUDE     ../inc
+USERINCLUDE     ../../inc
+APP_LAYER_SYSTEMINCLUDE
+
+USERINCLUDE   ../../../inc
+
+SOURCEPATH      ../data
+START RESOURCE  2001E27F.rss // <cmail>
+TARGET          esmrutilscalplugin.rsc
+END
+
+// ESMR libraries
+LIBRARY         esmrutils.lib
+LIBRARY         esmrdb.lib
+LIBRARY         esmrtasks.lib
+LIBRARY         esmrservices.lib
+
+// System libraries
+LIBRARY         euser.lib
+LIBRARY         ecom.lib
+LIBRARY         cmaillogger.lib
+
+// End of file

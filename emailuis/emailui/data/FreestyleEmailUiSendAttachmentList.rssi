@@ -1,0 +1,95 @@
+/*
+* Copyright (c) 2005-2007 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Freestyle Email settings list resources
+*
+*/
+
+#include "FreestyleEmailUi.hrh"
+#include <freestyleemailui.loc>
+
+RESOURCE AVKON_VIEW r_fsemailui_sendattachments_view
+	{
+	//cba = r_freestyle_emauil_ui_sk_options_back__open;
+	menubar = r_fs_emailui_sendattachments_options_menu;
+	cba = R_AVKON_SOFTKEYS_OPTIONS_BACK;
+	}
+
+RESOURCE MENU_BAR r_fs_emailui_sendattachments_options_menu
+	{
+	titles =
+		{
+		MENU_TITLE
+			{
+			menu_pane = r_fs_emailui_sendattachments_menu_pane;
+			}
+		};
+
+	}
+
+RESOURCE MENU_PANE r_fs_emailui_sendattachments_menu_pane
+	{
+	items =
+		{
+		MENU_ITEM
+			{
+			command = ESendAttachmentMenuOpen;
+			txt = qtn_options_open;
+			},
+		MENU_ITEM
+			{
+			command = ESendAttachmentMenuAddAttachment;
+			txt = qtn_fse_editor_attachment_list_options_add;
+			},
+		MENU_ITEM
+			{
+			command = ESendAttachmentMenuRemoveAttachment;
+			txt = qtn_fse_editor_attachment_list_options_remove;
+			},
+		MENU_ITEM
+			{
+			command = ESendAttachmentMenuRemoveAllAttachments;
+			txt = qtn_fse_editor_attachment_list_options_remove_all;
+			},
+		MENU_ITEM
+			{
+			command = ESendAttachmentMenuHelp;
+			txt = qtn_options_help;
+			},
+		MENU_ITEM
+			{
+			command = ESendAttachmentMenuExit;
+			txt = qtn_options_exit;
+			}
+		};
+	}
+
+RESOURCE TBUF r_fs_emailui_sendattachments_heading_txt_row1
+{
+	buf = qtn_fse_editor_attachments_header_attachments;
+}
+
+RESOURCE TBUF r_fs_emailui_sendattachments_heading_txt_row2
+{
+	buf = qtn_fse_editor_attachments_header_total_size;
+}
+
+RESOURCE TBUF r_fs_emailui_sendattachments_itemsize_txt
+{
+	buf = qtn_fse_editor_attachments_list_size;
+}
+
+RESOURCE TBUF r_fs_emailui_sendattachments_item_drm_protected_txt
+{
+	buf = qtn_fse_error_general_drm_file_error;
+}

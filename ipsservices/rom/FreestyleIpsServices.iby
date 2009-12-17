@@ -1,0 +1,55 @@
+/*
+* Copyright (c) 2007 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Image description file for project FreestyleIpsServices
+*
+*/
+
+
+#ifndef FREESTYLEIPSSERVICES_IBY
+#define FREESTYLEIPSSERVICES_IBY
+
+#include <data_caging_paths_for_iby.hrh>
+
+//<cmail>
+//#ifdef FF_ES_EMAIL_IPS_SERVICES
+//</cmail>
+
+//<cmail>
+#ifdef FF_EMAIL_FRAMEWORK
+//</cmail>
+ECOM_PLUGIN( ipssosplugin.dll, ipssosplugin.rsc )
+ECOM_PLUGIN( ipssossettings.dll, ipssossettings.rsc )
+ECOM_PLUGIN( IPSSosAOPlugin.dll, IPSSosAOPlugin.rsc )
+
+//<cmail>
+//#endif // FF_ES_EMAIL_IPS_SERVICES
+//</cmail>
+
+//<cmail> per component stubs are removed and replaced by one stub under emailui.
+// stub sis-file is included even if FF_ES_EMAIL_IPS_SERVICES flag is not defined.
+//data=DATAZ_\system\install\freestyleipsservices_stub.sis  system\install\freestyleipsservices_stub.sis
+//</cmail>
+
+// <cmail> backup registration
+data=DATAZ_\private\2000E53C\backup_registration.xml    private\2000E53C\backup_registration.xml
+// </cmail>
+
+//<cmail>
+#endif //FF_EMAIL_FRAMEWORK
+//</cmail>
+
+//<cmail>
+//</cmail>
+
+#endif // FREESTYLEIPSSERVICES_IBY

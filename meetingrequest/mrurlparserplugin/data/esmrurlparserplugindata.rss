@@ -1,0 +1,53 @@
+/*
+* Copyright (c) 2008-2008 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Non localizable resource for ESMR URL Parser Plugin.
+*
+*/
+
+
+NAME URLP
+
+#include <eikon.rh>
+#include <eikon.rsg>
+#include <badef.rh>
+
+RESOURCE RSS_SIGNATURE { }
+
+RESOURCE EIK_APP_INFO { }
+
+//For location URL, not localized texts
+RESOURCE LBUF r_qtn_location_url
+    {
+    txt = "http://www.ovi.com/maps/";
+    }
+
+RESOURCE LBUF r_qtn_location_url_latitude
+    {
+    txt = "lat=";
+    }
+
+RESOURCE LBUF r_qtn_location_url_param_separator
+    {
+    txt = "&";
+    }
+
+RESOURCE LBUF r_qtn_location_url_longitude
+    {
+    txt = "lon=";
+    }
+
+RESOURCE LBUF r_qtn_location_sieve_url
+    {
+    txt = "http://www.ovi.com/maps/lat=*&lon=*";
+    }

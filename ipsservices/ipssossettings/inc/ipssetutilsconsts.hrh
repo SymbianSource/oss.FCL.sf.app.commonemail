@@ -1,0 +1,149 @@
+/*
+* Copyright (c) 2007 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Id's and constants used in the settings UI.
+*
+*/
+
+
+#ifndef IPSSETUTILSCONSTS_HRH
+#define IPSSETUTILSCONSTS_HRH
+
+/**
+ * Dialog Id's
+ */
+enum TIpsSetUiSettingId
+    {
+    EIpsSetUiIdListBox = 0x666,
+    EIpsSetUiIdFolderListBox
+    };
+
+/**
+ * Definitions for list item types.
+ */
+enum TIpsSetUiSettingsType
+    {
+    /** The item is defined dynamically. */
+    EIpsSetUiUndefined = 0x00,
+    /** Menuarray, which contains subitems. */
+    EIpsSetUiMenuArray,
+    /** Multiline item. */
+    EIpsSetUiItemMultiLine,
+    /** Radiobutton editor. */
+    EIpsSetUiRadioButtonArray,
+    /** Checkbox editor. */
+    EIpsSetUiCheckBoxArray,
+    /** Text editor. */
+    EIpsSetUiItemText,
+    /** Number editor. */
+    EIpsSetUiItemValue,
+    /** Number editor, which content is stored in text format. */
+    EIpsSetUiItemScValue,
+    /** Time editor. */
+    EIpsSetUiItemTime,
+    /** Checkbox item. */
+    EIpsSetUiItemCheckBox,
+    /** Radiobutton item. */
+    EIpsSetUiItemRadioButton,
+    /** Access point editor. */
+    EIpsSetUiItemAccessPoint,
+
+    /** Keep this last. */
+    EIpsSetUiItemLastUnusedItem
+    };
+
+/**
+ * Button id's for folder subscription.
+ */
+enum TIpsSetUiSubscriptionDialogButtons
+    {
+    /** Subscribe option. */
+    EIpsSetUiFolderSubscribe = 1,
+    /** Unsubscribe option. */
+    EIpsSetUiFolderUnsubscribe,
+    /** Open folder option. */
+    EIpsSetUiFolderOpenFolder,
+    /** Close folder option. */
+    EIpsSetUiFolderCloseFolder,
+    /** Refresh folder list option. */
+    EIpsSetUiRefreshFolderList
+    };
+
+// Item Flags
+
+// Indicates if the item is checked or not (Radiobutton/Checkbox)
+#define KIpsSetUiFlagChecked                     0x00000001 // << 32
+// Allows drawing the item but not editing
+#define KIpsSetUiFlagReadOnly                    0x00000002 // << 33
+// Determines if item is drawn or not (for dynamic hiding)
+#define KIpsSetUiFlagHidden                      0x00000004 // << 34
+// Determines if item is drawn or not (can be used with variation)
+#define KIpsSetUiFlagPermanentlyHidden           0x00000008 // << 35
+// Allows changing the state between two values without editor
+#define KIpsSetUiFlagEnterPressed                0x00000010 // << 36
+// Item is critical setting
+#define KIpsSetUiFlagCompulsory                  0x00000020 // << 37
+// Setting has to be filled before exiting the settings
+#define KIpsSetUiFlagMustFill                    0x00000040 // << 38
+// When set, the ok button is hidden from the page, when field is empty
+#define KIpsSetUiFlagForceMustFill               0x00000080 // << 39
+// Use text editor instead of number editor to edit value
+#define KIpsSetUiFlagTextEditorToValue           0x00000100 // << 40
+// Should number conversion be used with item
+#define KIpsSetUiFlagLangSpecificNumConv         0x00000200 // << 41
+// The text written in field should be masked with special character
+#define KIpsSetUiFlagPassword                    0x00000400 // << 42
+// Determines, does the changing value automatically update the setting
+#define KIpsSetUiFlagUpdateOnChange              0x00000800 // << 43
+// Item status is approved, when the flag is set
+#define KIpsSetUiFlagValidated                   0x00001000 // << 44
+// Flag to prevent selection of the text, when starting edit
+#define KIpsSetUiFlagNoInitialSelection          0x00002000 // << 45
+// Flag to move the cursor in the beginning of the line
+#define KIpsSetUiFlagEditorCursorAtBeginning     0x00004000 // << 46
+// Flag to inform that the page should be acquired from the client
+#define KIpsSetUiFlagAcquireCustomPage           0x00008000 // << 47
+// One time flag to indicate, if the view needs to be opened
+#define KIpsSetUiFlagOneTimeForceViewOpen        0x00010000 // << 48
+// Indicates the current initialization state of the item
+#define KIpsSetUiFlagIsInitialized               0x00020000 // << 49
+// Indicates that the typing language needs to be restricted to latin
+#define KIpsSetUiFlagLatinOnly                   0x00040000 // << 50
+// The item is only visible for Imap4 protocol
+#define KIpsSetUiFlagImap4Only                   0x00080000 // << 51
+// The item is only visible for Pop3 protocol
+#define KIpsSetUiFlagPop3Only                    0x00100000 // << 52
+// Another editor should be tried to be opened after this
+#define KIpsSetUiFlagFindEditor                  0x00200000 // << 53
+
+// Common constants
+
+#define KIpsSetUiSettingsTextLengthDefault  20
+#define KIpsSetUiMaxSettingsTextWidth       12
+#define KIpsSetUiMaxSettingsLongTextLength  500
+#define KIpsSetUiMaxSettingsSignatureLength 4096
+#define KIpsSetUiMaxSettingsTextLength      100
+#define KIPsSetUiMaxSettingsUsrNameLength   1024
+#define KIpsSetUiMaxSettingsValueLength     3
+#define KIpsSetUiMaxSettingsTimeLength      4
+#define KIpsSetUiArrayGranularity           5
+#define KIpsSetUiMaxPasswordLength          50
+#define KIpsSetUiNumberMinValue             1
+#define KIpsSetUiNumberMaxValue             999
+#define KIpsSetUiNumberMaxPortValue         65535
+#define KIpsSetUiMaxPortValueLength         5
+
+
+#endif /* IPSSETUTILSCONSTS_HRH */
+
+// End of file

@@ -1,0 +1,205 @@
+/*
+* Copyright (c) 2008 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Localization strings for project Emailserver
+*
+*/
+
+
+// d:Email application title, shown in notifier dialog header
+// l:heading_pane_t1
+// r:TB9.1
+//
+#define qtn_fse_app_name                                        "Nokia Email"
+
+// d:Password prompt
+// l:popup_query_data_window
+// r:TB9.1
+//
+#define qtn_fse_auth_query_password                             "Type password:"
+
+// d:Mailbox name set by user, shown in password prompt dialog heading
+// l:heading_pane_t1
+// r:TB9.1
+//
+#define qtn_fse_auth_mailbox_name                               "%U"
+
+// d:Left soft key in password prompt
+// l:control_pane_t1
+// r:TB9.1
+//
+#define qtn_fse_softkey_log_in                                  "Log in"
+
+// d:Wait note for authentication
+// l:popup_note_wait_window
+// r:TB9.1
+//
+#define qtn_fse_login_wait_note_authenticating                  "Authenticating..."
+
+// d:Out of memory notification.
+// d:Shown if out of memory occurs during a mail box synchronization.
+// d:%U stands for the name of the mail box.
+// l:popup_info_list_pane_t1
+// r:TB9.1
+//
+#define qtn_fs_mserver_synch_not_enough_memory                   "Not enough memory to sync mailbox '%U'. Delete some data first."
+
+// d:Error message
+// l:popup_note_window
+// r:TB9.1
+//
+#define qtn_fse_login_info_note_login_unsuccessful              "Login unsuccessful. Please try again."
+
+// d:Error message
+// l:popup_note_window
+// r:TB9.1
+//
+#define qtn_fse_login_info_note_password_expired                "Password expired. New security credentials must be created on your computer."
+
+// d:Error message
+// l:popup_note_window
+// r:TB9.1
+//
+#define qtn_fse_login_info_note_password_changed                "Password has been changed on the server. Enter the new password."
+
+// d:Error message
+// l:popup_note_window
+// r:TB9.1
+//
+#define qtn_fse_login_info_note_auth_canceled_try_again         "Authentication canceled. Try again."
+
+// d:Error message
+// l:popup_note_window
+// r:TB9.1
+//
+#define qtn_fse_login_info_note_server_not_found_try_again      "Server not available. Try again."
+
+// d:Error message
+// l:popup_note_window
+// r:TB9.1
+//
+#define qtn_fse_info_note_network_unavailable_try_again         "Network currently unavailable. Try again."
+
+// d:Error message
+// l:popup_note_window
+// r:TB9.1
+//
+#define qtn_fse_login_info_note_server_currently_busy_try_again "Server is currently busy or not responding. Try again."
+
+// d:Error message
+// l:popup_note_window
+// r:TB9.1
+//
+#define qtn_fse_login_info_note_unable_to_connect_try_again     "Unable to connect to server. Try again."
+
+// d:Error message
+// l:popup_note_window
+// r:TB9.1
+//
+#define qtn_fse_login_info_note_account_disabled                "Account disabled due to security issues. Contact your system administrator."
+
+// d:Error message
+// l:popup_note_window
+// r:TB9.1
+//
+#define qtn_fse_login_info_note_invalid_email_address_and_password_try_again    "E-mail address and password do not match. Try again?"
+
+// d:Error message
+// l:popup_note_window
+// r:TB9.1
+//
+#define qtn_fse_info_note_invalid_email_address                 "Invalid e-mail address. Check the address and enter again."
+
+// d:Error message
+// l:popup_note_window
+// r:TB9.1
+//
+#define qtn_fse_info_note_server_offline                        "Server offline. Outgoing messages will be sent when server is back online."
+
+// d:Error message
+// l:popup_note_window
+// r:TB9.1
+//
+#define qtn_fse_login_info_note_sync_failed_try_again           "Synchronization with server failed. Try again?"
+
+// d:Error message
+// l:popup_note_window
+// r:TB9.1
+//
+#define qtn_fse_login_info_note_data_deleted                    "Specific data has been deleted to protect against theft/loss. Contact your system administrator."
+
+// d:Error message
+// l:popup_note_window
+// r:TB9.1
+//
+#define qtn_fse_settings_note_roaming_turned_on                 "Additional roaming charges may be incurred if your device operates outside home network."
+
+// d:Error message
+// l:popup_note_window
+// r:TB9.1
+//
+#define qtn_fse_general_note_roaming_costs                      "Device operating outside your home service network. Turn off e-mail sync when roaming setting to avoid roaming costs."
+
+// d:Error message
+// l:popup_note_window
+// r:TB9.1
+//
+#define qtn_fse_error_general_unable_to_complete                "Unable to complete command."
+
+// d:Error message
+// l:popup_note_window
+// r:TB9.1
+//
+#define qtn_fse_error_general_connection_error                  "Connection error has occurred. Please check your connection settings."
+
+// d:Error message
+// l:popup_note_window
+// r:TB9.1
+//
+#define qtn_fse_error_general_unable_to_connect                 "Unable to connect."
+
+// d:Error message
+// l:popup_note_window
+// r:TB9.1
+//
+#define qtn_fse_error_general_multiple_sync_errors              "Multiple sync errors have occurred. Please check the sync log."
+
+// d:Error message
+// l:popup_note_window
+// r:TB9.1
+//
+#define gtn_fse_login_info_note_login_failed                    "Login failed"
+
+// d:Error message
+// l:popup_note_window
+// r:TB9.1
+//
+#define gtn_fse_login_info_note_server_cannot_found_check_settings  "Email server cannot be found. Check server settings."
+
+// d:Error message
+// l:popup_note_window
+// r:TB9.1
+//
+#define gtn_fse_login_info_note_unable_to_connect               "Unable to connect to server"
+
+// d:Error message
+// l:popup_note_window
+// r:TB9.1
+//
+#define gtn_fse_info_note_disconnected                          "Disconnected"
+
+// d:Error message
+// l:popup_note_window
+// r:TB9.1
+//
+#define gtn_fse_info_note_server_error_try_again                "Server error. Try again later."

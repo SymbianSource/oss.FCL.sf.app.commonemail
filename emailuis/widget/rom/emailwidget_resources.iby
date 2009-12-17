@@ -1,0 +1,39 @@
+/*
+* Copyright (c) 2008 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Emailwidget HSPS-plugin language specific IBY file.
+*
+*/
+
+
+#ifndef __EMAILWIDGET_RESOURCES_IBY__
+#define __EMAILWIDGET_RESOURCES_IBY__
+
+#ifndef FF_CMAIL_INTEGRATION
+#ifdef FF_EMAIL_FRAMEWORK
+
+// Enabled by DTD-localization tools, language specific
+
+// Following export is used only for fully localised widget
+//data=ZPRIVATE\200159c0\install\emailwidget\xuikon\00\EW.o0000 \private\200159c0\install\emailwidget\xuikon\00\EW.o0000
+
+// For partially localised widget add exports here for those languages which require different css file
+// ( add exports behind language specific flags )
+// ...
+
+data=ZPRIVATE\200159c0\install\emailwidget\hsps\00\emailwidgetconfiguration.dtd \private\200159c0\install\emailwidget\hsps\00\emailwidgetconfiguration.dtd
+
+#endif //FF_EMAIL_FRAMEWORK
+#endif //FF_CMAIL_INTEGRATION
+
+#endif // __EMAILWIDGET_RESOURCES_IBY__

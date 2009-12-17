@@ -1,0 +1,83 @@
+/*
+* Copyright (c) 2006 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Freestyle email framework implementation
+ *
+*/
+
+#include <platform_paths.hrh>
+#include <data_caging_paths.hrh>
+
+#include "../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
+
+TARGET        FSMailFramework.dll
+TARGETTYPE    dll
+UID           0x1000008d 0x2001E279
+
+CAPABILITY    CAP_GENERAL_DLL
+
+VENDORID      VID_DEFAULT
+
+VERSION       KEmailBinaryVersionNumber
+KEmailBinaryDemandPaging
+
+USERINCLUDE ../../../inc
+APP_LAYER_SYSTEMINCLUDE
+SYSTEMINCLUDE 	/epoc32/include/variant
+
+
+USERINCLUDE   	../inc
+USERINCLUDE   	../commonlib/inc
+SOURCEPATH    	../src
+SOURCE        	CFSFWImplementation.cpp
+SOURCE        	CFSMailClient.cpp
+SOURCE        	CFSMailPluginManager.cpp
+SOURCE        	CFSMailBrand.cpp
+SOURCE          CFSMailBrandManagerImpl.cpp
+SOURCE          CFSClientAPIRequestHandler.cpp 
+SOURCE          CFSClientAPI.cpp
+
+LIBRARY 		bafl.lib
+LIBRARY  		euser.lib
+LIBRARY	 		estor.lib 
+LIBRARY  		efsrv.lib
+LIBRARY  		ecom.lib
+LIBRARY     	gdi.lib
+LIBRARY     	egul.lib
+LIBRARY     	aknicon.lib
+
+LIBRARY        	FSFWCommonLib.lib
+LIBRARY			centralrepository.lib  
+
+// <gmail_brand_issue>
+LIBRARY         ETel.lib   // RTelServer
+LIBRARY         ETelMM.lib // RMobilePhone
+
+LIBRARY         timezonelocalization.lib
+// </gmail_brand_issue>
+LIBRARY         cmaillogger.lib
+
+
+
+SOURCEPATH      ../data
+START RESOURCE fsmailbrandmanager.rss
+HEADER
+targetpath RESOURCE_FILES_DIR
+LANGUAGE_IDS
+end
+
+#ifdef DEBUGLOGGER_BUILD_CONFIG_DEBUG
+MACRO DEBUGLOGGER_LOG_TRACE
+MACRO DEBUGLOGGER_LOG_DEBUG
+MACRO DEBUGLOGGER_DEBUG_ASSERTS
+#endif

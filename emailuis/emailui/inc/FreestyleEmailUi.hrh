@@ -1,0 +1,356 @@
+/*
+* Copyright (c) 2007 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  FreestyleEmailUi enumeration definitions
+*
+*/
+
+
+#ifndef __FreestyleEmailUi_HRH__
+#define __FreestyleEmailUi_HRH__
+
+enum TSendAttachmentViewCommands
+    {	
+    ESendAttachmentMenuActions = 0x6000,
+    ESendAttachmentMenuOpen,
+    ESendAttachmentMenuAddAttachment,
+    ESendAttachmentMenuRemoveAttachment,
+    ESendAttachmentMenuRemoveAllAttachments,
+    ESendAttachmentMenuHelp,
+    ESendAttachmentMenuExit
+    };
+
+// NCS enumerate command codes
+enum TNcsCommandIds
+    {
+    ENcsCmdSend = 1,  // start value must not be 0
+    ENcsCmdAddAttachment,
+    ENcsCmdRemoveAttachment,
+    ENcsCmdRemoveAllAttachments,
+    ENcsCmdPriority,
+    ENcsCmdPriorityHigh,
+    ENcsCmdPriorityNormal,
+    ENcsCmdPriorityLow,
+    ENcsCmdMore,
+    ENcsCmdShowCc,
+    ENcsCmdHideCc,
+    ENcsCmdShowBcc,
+    ENcsCmdHideBcc,
+    ENcsCmdActions,
+    ENcsCmdFlag,
+    ENcsCmdQuickText,
+    ENcsCmdInsertContact,
+    ENcsCmdSaveDraft,
+    ENcsCmdHelp,
+    ENcsCmdLanguage,
+    ENcsCmdExit,
+    ENcsSoftkeySelect,
+    ENcsSoftkeyCancel,
+    ENcsInsertContact
+    };
+
+enum
+    {
+    EMenuFolder = 0,
+    EMenuFolderOffice = 1
+  };
+
+/** Bitmap/texture identifiers for Grid. */
+enum
+    {
+    // Note that using texture id 0 is not allowed
+    EImageGridSelector = 100,
+	EWatermarkBackgroundQvgaPort,
+	EWatermarkBackgroundQvgaLand,
+	EWatermarkBackgroundDrPort,
+	EWatermarkBackgroundDrLand,
+	EWatermarkBackgroundWide,
+	ENormalBackgroundQvgaPort,
+	ENormalBackgroundQvgaLand,
+	ENormalBackgroundDrPort,
+	ENormalBackgroundDrLand,
+	ENormalBackgroundWide,
+	EBackgroundViewerHeading,
+	EBackgroundBar,
+	EBackgroundThumb,
+	EGridSelector,
+	EListSelector,	
+	EIconSettings,
+	EIconSettingsAccount,
+	EIconSettingsAdvanced,
+	EIconSettingsEmail,
+	EIconSettingsFolders,
+	EIconSettingsSecurity,
+	EIconSettingsWhatSync,
+	EIconSettingsWhenSync,
+	EIconSettingsText,	
+	EListHeading,
+	EListHeadingBottom,
+	EListTopHeading,
+	EListSeparatorBackground,
+	EDefaultButtonBg,
+	EImageInbox,
+	EImageOutbox,
+	EImageDrafts,
+	EImageSent,
+	EImageDeleted,
+	EImageCompose,
+	EImageFolders,
+	EImageDirectory,
+	EImageContacts,
+	EImageCalendar,
+	EImageTasks,
+	EImageTeams,
+	EImageAbout,
+	EImageMsgRead,
+	EImageMsgReadPrioHigh,
+	EImageMsgReadPrioLow	
+    };
+
+enum
+    {
+	EFsEmailUiCmdOpen = 2000,
+	EFsEmailUiCmdDeleteMailbox,
+	EFsEmailUiCmdExit,
+	EFsEmailUiCmdSync,
+	EFsEmailUiCmdSyncAll,
+	EFsEmailUiCmdCancelSync,
+	EFsEmailUiCmdCompose,
+	EFsEmailUiCmdComposeTo,
+	EFsEmailUiCmdGoOffline,
+	EFsEmailUiCmdGoOfflineAll,
+	EFsEmailUiCmdGoOnline,
+	EFsEmailUiCmdGoOnlineAll,
+	EFsEmailUiCmdReadEmail,
+	EFsEmailUiCmdSettings,
+	EFsEmailUiCmdSettingsGlobal,
+	EFsEmailUiCmdSettingsMailbox,
+	EFsEmailUiCmdSettingsService,
+	EFsEmailUiCmdAbout,
+	EFsEmailUiCmdHelp,
+	EFsEmailUiCmdZoomText,
+	EFsEmailUiCmdZoomTextSmall,
+	EFsEmailUiCmdZoomTextNormal,
+	EFsEmailUiCmdZoomTextLarge,
+	EFsEmailUiCmdMessageDetails,
+	EFsEmailUiCmdGoTo,
+	EFsEmailUiCmdGoToTop,
+	EFsEmailUiCmdGoToBottom,
+	EFsEmailUiCmdGoToSwitchFolder,
+	EFsEmailUiCmdGoToSwitchSorting,
+	EFsEmailUiCmdGoToActionMenu,
+	EFsEmailUiCmdMark,
+	EFsEmailUiCmdMarkMark,
+	EFsEmailUiCmdMarkMarkAll,
+	EFsEmailUiCmdMarkUnmark,
+	EFsEmailUiCmdMarkUnmarkAll,		
+	EFsEmailUiCmdMarkUnmarkToggle,
+	EFsEmailUiCmdMailActions,
+	EFsEmailUiCmdMore,
+	EFsEmailUiCmdSearch,
+	EFsEmailUiCmdNewSearch,
+	EFsEmailUiCmdStopSearch,		
+	EFsEmailUiCmdConnInfo,
+	EFsEmailUiCmdActionsOpen,
+	EFsEmailUiCmdActionsMoveToDrafts,
+	EFsEmailUiCmdActionsEmptyDeleted,
+	EFsEmailUiCmdActionsCopy,
+	EFsEmailUiCmdActionsMove,
+	EFsEmailUiCmdActionsCopyMessage,
+	EFsEmailUiCmdActionsMoveMessage,
+	EFsEmailUiCmdActionsCreateMeeting,
+	EFsEmailUiCmdActionsCreateMessage,
+	EFsEmailUiCmdActionsCreateMail,	    
+	EFsEmailUiCmdActionsReply,
+	EFsEmailUiCmdActionsReplyAll,
+	EFsEmailUiCmdActionsForward,
+	EFsEmailUiCmdActionsForward2,
+	EFsEmailUiCmdActionsDelete,
+	EFsEmailUiCmdActionsDeleteCalEvent,
+	EFsEmailUiCmdActionsCall,
+    // <cmail> video call
+    EFsEmailUiCmdActionsCallVideo,
+    // </cmail>
+	EFsEmailUiCmdActionsRemoteLookup,	
+	EFsEmailUiCmdActionsOpenWeb,
+	EFsEmailUiCmdActionsOpenHtmlViewer,
+	EFsEmailUiCmdActionsOpenInIntranetMenu,
+	EFsEmailUiCmdActionsOpenInIntranetBase,
+	EFsEmailUiCmdActionsAddBookmark,
+	EFsEmailUiCmdActionsCopyToClipboard,
+	EFsEmailUiCmdActionsCopyText,
+	EFsEmailUiCmdViewerFetchRestOfMessage,
+	EFsEmailUiCmdPreviousMessage,
+	EFsEmailUiCmdNextMessage,
+	EFsEmailUiCmdActionsCallSender,
+	EFsEmailUiCmdActionsAddContact,
+	EFsEmailUiCmdActionsAddContact2,
+	EFsEmailUiCmdActionsCollapseAll,
+	EFsEmailUiCmdActionsExpandAll,
+	EFsEmailUiCmdActionsCollapseExpandAllToggle,	
+	EFsEmailUiCmdActionsFlag,
+	EFsEmailUiCmdActionsContactDetails,
+	EFsEmailUiCmdMoreNewFolder,
+// <cmail> Prevent Download Manager opening with attachments
+//	EFsEmailUiCmdDownloadManager,
+// </cmail>
+	EFsEmailUiCmdCalActions,
+	EFsEmailUiCmdCalActionsAccept,
+	EFsEmailUiCmdCalActionsTentative,
+	EFsEmailUiCmdCalActionsDecline,
+	EFsEmailUiCmdCalRemoveFromCalendar,
+	EFsEmailUiCmdOpenCalendar,
+	EFsEmailUiCmdCalActionsReplyAsMail,
+	EFsEmailUiCmdCalActionsForwardAsMail,
+	EFsEmailUiCmdSort,
+	EFsEmailUiCmdSortByDate,
+	EFsEmailUiCmdSortBySender,
+	EFsEmailUiCmdSortByPriority,
+	EFsEmailUiCmdView,
+	EFsEmailUiCmdViewAll,
+	EFsEmailUiCmdViewSender,
+	EFsEmailUiCmdViewSubject,
+	EFsEmailUiCmdMarkAsRead,
+	EFsEmailUiCmdMarkAsUnread,
+	EFsEmailUiCmdMarkAsReadUnreadToggle,
+	EFsEmailUiCmdAttacments,
+	EFsEmailUiCmdEditorSendMail,
+	EFsEmailUiCmdEditorAddTo,
+	EFsEmailUiCmdEditorFontSize,
+	EFsEmailUiCmdEditorFontColor,
+	EFsEmailUiCmdEditorAddAttacments,
+	EFsEmailUiCmdEditorAddAttacmentsImage,
+	EFsEmailUiCmdEditorAddAttacmentsFile,
+	EFsEmailUiCmdEditorFontSizeIncrease,
+	EFsEmailUiCmdEditorFontSizeNormal,
+	EFsEmailUiCmdEditorFontSizeDecrease,
+	EFsEmailUiCmdEditorFontColorBlack,
+	EFsEmailUiCmdEditorFontColorBlue,
+	EFsEmailUiCmdEditorFontColorRed,
+	EFsEmailUiCmdEditorFontColorYellow,
+	EFsEmailUiCmdEditorFontStyle,
+	EFsEmailUiCmdEditorFontStyleNormal,
+	EFsEmailUiCmdEditorFontStyleItalic,
+	EFsEmailUiCmdEditorFontStyleBold,
+	EFsEmailUiCmdEditorFontStyleUnderlined,
+	EFsEmailUiCmdEditorSetPriority,
+	EFsEmailUiCmdEditorSetPriorityHigh,
+	EFsEmailUiCmdEditorSetPriorityNormal,
+	EFsEmailUiCmdEditorSetPriorityLow,
+	EFsEmailUiCmdOpenAttachment,
+	EFsEmailUiCmdOpenAttachmentList,
+	EFsEmailUiCmdDownload,
+	EFsEmailUiCmdDownloadAll,
+	EFsEmailUiCmdCancelDownload,
+	EFsEmailUiCmdCancelAllDownloads,
+	EFsEmailUiCmdSave,
+	EFsEmailUiCmdSaveAll,
+	EFsEmailUiCmdClearFetchedAttachment,
+	EFsEmailUiCmdRemoveAttachment,
+	EFsEmailUiCmdRemoveAllAttachments,
+	EFsEmailUiCmdOpenDownloadManagerView,
+	EFSEmailUICmdViewMessage,
+	EFsEmailUiCmdMsgDetails,
+	EFsEmailUiCmdMsgEmptyTempFolder,
+	EFsEmailUiCmdAiwMenuPlaceHolder,
+	EFsEmailUiCmdPageUp,
+	EFsEmailUiCmdPageDown,
+	EFsEmailUiCmdSelect,
+	EFsEmailUiCmdSetup,
+	EFsEmailUiCmdScrollUp,
+	EFsEmailUiCmdScrollDown,
+	EFsEmailUiCmdCloseHtmlViewer,
+	EFsEmailUiCmdHide,
+	EFsEmailUiCmdAdd,
+	EFsEmailUiCmdChange,
+	EFsEmailUiCmdSettingsAddAccount,
+	EFsEmailUiCmdSettingsRemoveAccount,
+	EFsEmailUiCmdCollapse,
+	EFsEmailUiCmdExpand,
+	EFsEmailUiCmdEmpty,
+	EFsEmailUiCmdZoomIn,
+	EFsEmailUiCmdZoomOut,
+	EFsEmailUiCmdZoomLevel,
+	
+	// Zoom level indexes must remain last in the enumeration to enable adding new zoom levels
+	EFsEmailUiCmdZoomSmallest,
+	EFsEmailUiCmdZoomSmall,
+	EFsEmailUiCmdZoomNormal,
+	EFsEmailUiCmdZoomLarge,
+	
+    // <cmail> Toolbar
+	EFsEmailUiTbCmdSend,
+	EFsEmailUiTbCmdAddRecipient,
+	EFsEmailUiTbCmdExpandInsert,
+    EFsEmailUiTbCmdInsertImage,
+    EFsEmailUiTbCmdInsertVideo,
+    EFsEmailUiTbCmdInsertAudio,
+    EFsEmailUiTbCmdInsertTemplate,
+    EFsEmailUiTbCmdInsertNote,
+    EFsEmailUiTbCmdInsertPresentation,
+    EFsEmailUiTbCmdInsertOther,
+    EFsEmailUiTbCmdReply,
+    EFsEmailUiTbCmdNewEmail,
+    EFsEmailUiTbCmdDelete,
+    EFsEmailUiTbCmdSelect,
+    EFsEmailUiTbCmdExpandAll,
+    EFsEmailUiTbCmdCollapseAll,
+    EFsEmailUiTbCmdForward,
+    EFsEmailUiTbCmdDownloadAll,
+    EFsEmailUiTbCmdCancelDownload,
+    EFsEmailUiTbCmdSaveAll,
+    
+    EFsEmailUiTbCmdActions,
+    EFsEmailUiTbCmdReplyAll
+	// </cmail> Toolbar
+  	};
+
+enum TFsEmailUiViewerOpenInIntranetCmds
+	{
+	EFsEmailUiViewerOpenInIntranetCmdId = 201
+	};
+
+// needed for dynamic menu loading for mail list settings
+enum TFsEmailUiMailListSettingsOptions
+    {
+    EFsEmailUiCmdSettingsBaseCommandId = 12000,
+    EFsEmailUiCmdSettingsBaseCommandIdMax = 12010
+    };
+	
+enum TFsEmailUiLauncherGridIds
+    {
+    EDefaultMailboxItem = 1,
+    EOtherMailboxItems,
+    EDirectoryItem,
+    ESettingsItem,
+    EAddNewMailboxItem,
+    EInfoItem,
+    EHelpItem,
+    EIntellisyncFileSyncItem = 1001,
+    EIntellisyncTravelInfoItem = 1002,
+    EIntellisyncBackupItem = 1003,
+    EIntellisyncRestoreItem = 1004,
+    EIntellisyncUpgradeItem = 1005,
+    EIntellisyncRemoteControlItem = 1006
+    };
+
+enum TFieldToCommit 
+    {
+    EAllFields = 0,
+    EToField,
+    ECcField,
+    EBccField,
+    ESubjectField,
+    EBodyField
+    };
+#endif // __FreestyleEmailUi_HRH__

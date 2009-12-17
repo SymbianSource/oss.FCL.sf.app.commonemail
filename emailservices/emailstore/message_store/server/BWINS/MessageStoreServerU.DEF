@@ -1,0 +1,6 @@
+EXPORTS
+	?MessageStoreServerThreadFunction@@YAHPAX@Z @ 1 NONAME ; int MessageStoreServerThreadFunction(void *)
+	?SetSymmetricKey@CCryptoBase@@QAEXABVTDesC8@@@Z @ 2 NONAME ABSENT ; void CCryptoBase::SetSymmetricKey(class TDesC8 const &)
+	?Sha1HashL@CCryptoAPI@@SAXABVTDesC8@@AAPAVHBufC8@@@Z @ 3 NONAME ABSENT ; void CCryptoAPI::Sha1HashL(class TDesC8 const &, class HBufC8 * &)
+	?Sha1HashL@CCryptoAPI@@SAXABVTDesC8@@AAVRBuf8@@@Z @ 4 NONAME ABSENT ; void CCryptoAPI::Sha1HashL(class TDesC8 const &, class RBuf8 &)
+

@@ -1,0 +1,117 @@
+/*
+* Copyright (c) 2008 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Contactactionservice localisation file.
+ *
+*/
+
+
+//d:Note text when calling to an entry with no phone numbers and name
+//d:%U presentation name for memory entry to be called (qtn_phob_entry_name)
+//l:popup_note_window
+//r:TB9.1
+//
+#define qtn_phob_note_no_number_to_name	"No phone numbers to %U"
+
+//d:Note text when calling to an entry with no voip numbers and name
+//d:%U presentation name for memory entry to be called
+//l:popup_note_window
+//r:TB9.1
+//
+#define qtn_phob_note_no_voip_to_name	"No valid VOIP address for %U"
+
+//d:Note text when calling to an entry with no voip numbers.
+//l:popup_note_window
+//r:TB9.1
+//
+#define qtn_phob_note_no_voip	"No valid VOIP address"
+
+//d:Note text when calling to an entry with no poc numbers.
+//l:popup_note_window
+//r:TB9.1
+//
+#define qtn_phob_note_no_poc	"No phone number or PTT address"
+
+//d:Note text when calling to an entry with no poc numbers and name
+//d:%U presentation name for memory entry to be called (qtn_fs_entry_name)
+//l:popup_note_window
+//r:TB9.1
+//
+#define qtn_phob_note_no_poc_to_name	"No phone number or PTT address for %U"
+
+//d:Note text when calling to an entry with no phone numbers and no name
+//l:popup_note_window
+//r:TB9.1
+//
+#define qtn_phob_note_no_number	"No phone number"
+
+//d:Note text when sending a Email message to a entry with no e-mail addresses
+//d:%U presentation name for memory entry to send Email (qtn_phob_entry_name)
+//l:popup_note_window
+//r:TB9.1
+//
+#define qtn_phob_note_no_email_to_name	"No e-mail address for %U"
+
+//d:Note text when sending an Email message to a entry with no e-mail addresses and no name
+//l:popup_note_window
+//r:TB9.1
+//
+#define qtn_phob_note_no_email	"No e-mail address"
+
+//d:Note text when sending message to an entry with no phone number or e-mail addresses for name
+//l:popup_note_window
+//r:TB9.1
+//
+#define qtn_phob_note_no_msg_to_name	"No message address for %U"
+
+//d:Note text when sending message to an entry with no phone number or e-mail addresses
+//l:popup_note_window
+//r:TB9.1
+//
+#define qtn_phob_note_no_msg	"No message address"
+
+//d:Note text when contact is unnamed
+//l:title_pane_t2/opt9
+//r:TB9.1
+//
+#define qtn_phob_unnamed	"Unnamed"
+
+//d:Synchronization popup list option "Private"
+//l:list_form_graphic_pane_t1
+//r:TB9.1
+//
+#define qtn_cale_confident_private	"Private"
+
+//d:Synchronization popup list option "Public"
+//l:list_form_graphic_pane_t1
+//r:TB9.1
+//
+#define qtn_cale_confident_public	"Public"
+
+//d:Synchronization popup list option "None"
+//l:list_form_graphic_pane_t1
+//r:TB9.1
+//
+#define qtn_cale_confident_none	"None"
+
+// d: Note is displayed if to many contacts selected
+// l: popup_note_window
+// r:TB9.1
+//
+#define qtn_msg_query_remove_recipient	"Too many recipients. Remove 1 recipient"
+
+// d: Note is displayed if to many contacts selected
+// l: popup_note_window
+// r:TB9.1
+//
+#define qtn_msg_query_remove_recipients	"Too many recipients. Remove %N recipients"

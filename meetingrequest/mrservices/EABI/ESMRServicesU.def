@@ -1,0 +1,56 @@
+EXPORTS
+	_ZN15CESMRAttachment17SetAttachmentSizeEi @ 1 NONAME
+	_ZN15CESMRAttachment18SetAttachmentNameLERK6TDes16 @ 2 NONAME
+	_ZN15CESMRAttachment18SetAttachmentStateENS_20TESMRAttachmentStateE @ 3 NONAME
+	_ZN15CESMRAttachment4NewLERK7TDesC16iNS_20TESMRAttachmentStateE @ 4 NONAME
+	_ZN15CESMRAttachment4NewLEv @ 5 NONAME
+	_ZN15CESMRAttachmentD0Ev @ 6 NONAME
+	_ZN15CESMRAttachmentD1Ev @ 7 NONAME
+	_ZN15CESMRAttachmentD2Ev @ 8 NONAME
+	_ZN16CESMRCalUserUtil4NewLER9CCalEntry @ 9 NONAME
+	_ZN16CESMRCalUserUtil5NewLCER9CCalEntry @ 10 NONAME
+	_ZN16CESMRCalUserUtilD0Ev @ 11 NONAME
+	_ZN16CESMRCalUserUtilD1Ev @ 12 NONAME
+	_ZN16CESMRCalUserUtilD2Ev @ 13 NONAME
+	_ZN19CESMRAttachmentInfo18AddAttachmentInfoLEP15CESMRAttachment @ 14 NONAME
+	_ZN19CESMRAttachmentInfo18AddAttachmentInfoLERK7TDesC16iN15CESMRAttachment20TESMRAttachmentStateE @ 15 NONAME
+	_ZN19CESMRAttachmentInfo19RemoveAttachmentAtLEi @ 16 NONAME
+	_ZN19CESMRAttachmentInfo4NewLEv @ 17 NONAME
+	_ZN19CESMRAttachmentInfoD0Ev @ 18 NONAME
+	_ZN19CESMRAttachmentInfoD1Ev @ 19 NONAME
+	_ZN19CESMRAttachmentInfoD2Ev @ 20 NONAME
+	_ZN21CESMRAlarmInfoHandler17ReadFromResourceLERK7TDesC16i @ 21 NONAME
+	_ZN21CESMRAlarmInfoHandler19GetAlarmInfoObjectLERK9CCalEntryR14TESMRAlarmInfo @ 22 NONAME
+	_ZN21CESMRAlarmInfoHandler21GetAbsoluteAlarmTimeLER9CCalEntryR5TTime @ 23 NONAME
+	_ZN21CESMRAlarmInfoHandler4NewLEv @ 24 NONAME
+	_ZN21CESMRAlarmInfoHandler5NewLCEv @ 25 NONAME
+	_ZN21CESMRAlarmInfoHandlerD0Ev @ 26 NONAME
+	_ZN21CESMRAlarmInfoHandlerD1Ev @ 27 NONAME
+	_ZN21CESMRAlarmInfoHandlerD2Ev @ 28 NONAME
+	_ZN22CESMRCalImportExporter4NewLEv @ 29 NONAME
+	_ZN22CESMRCalImportExporter5NewLCEv @ 30 NONAME
+	_ZN22CESMRCalImportExporterD0Ev @ 31 NONAME
+	_ZN22CESMRCalImportExporterD1Ev @ 32 NONAME
+	_ZN22CESMRCalImportExporterD2Ev @ 33 NONAME
+	_ZN26CESMRRecurrenceInfoHandler13AddExceptionLE8TCalTimeS0_ @ 34 NONAME
+	_ZN26CESMRRecurrenceInfoHandler14SetRecurrenceLE20TESMRRecurrenceValue5TTime @ 35 NONAME
+	_ZN26CESMRRecurrenceInfoHandler15RemoveInstanceLE8TCalTime @ 36 NONAME
+	_ZN26CESMRRecurrenceInfoHandler21GetFirstInstanceTimeLER8TCalTimeS1_ @ 37 NONAME
+	_ZN26CESMRRecurrenceInfoHandler28CopyRecurrenceInformationToLER9CCalEntry @ 38 NONAME
+	_ZN26CESMRRecurrenceInfoHandler30CopyRecurrenceInformationFromLERK9CCalEntry @ 39 NONAME
+	_ZN26CESMRRecurrenceInfoHandler4NewLER9CCalEntry @ 40 NONAME
+	_ZN26CESMRRecurrenceInfoHandler5NewLCER9CCalEntry @ 41 NONAME
+	_ZN26CESMRRecurrenceInfoHandlerD0Ev @ 42 NONAME
+	_ZN26CESMRRecurrenceInfoHandlerD1Ev @ 43 NONAME
+	_ZN26CESMRRecurrenceInfoHandlerD2Ev @ 44 NONAME
+	_ZNK15CESMRAttachment14AttachmenStateEv @ 45 NONAME
+	_ZNK15CESMRAttachment14AttachmentNameEv @ 46 NONAME
+	_ZNK15CESMRAttachment21AttachmentSizeInBytesEv @ 47 NONAME
+	_ZNK16CESMRCalUserUtil13GetAttendeesLER6RArrayIP12CCalAttendeeEj @ 48 NONAME
+	_ZNK16CESMRCalUserUtil15PhoneOwnerRoleLEv @ 49 NONAME
+	_ZNK19CESMRAttachmentInfo11AttachmentLEi @ 50 NONAME
+	_ZNK19CESMRAttachmentInfo15AttachmentCountEv @ 51 NONAME
+	_ZNK26CESMRRecurrenceInfoHandler14GetRecurrenceLER20TESMRRecurrenceValueR5TTime @ 52 NONAME
+	_ZThn4_N22CESMRCalImportExporterD0Ev @ 53 NONAME ; #<thunk>#
+	_ZThn4_N22CESMRCalImportExporterD1Ev @ 54 NONAME ; #<thunk>#
+

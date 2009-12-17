@@ -1,0 +1,52 @@
+/*
+* Copyright (c) 2008 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Build information file for Remote Contact Lookup Service
+*
+*/
+
+
+PRJ_PLATFORMS
+WINSCW ARMV5
+
+// <cmail> SF path
+#include <platform_paths.hrh>
+// </cmail>
+#include "../engine/group/bld.inf"
+#include "../settingplugin/group/bld.inf"
+
+PRJ_EXPORTS
+../inc/cpbkxremotecontactlookupenv.h                    |../../../inc/cpbkxremotecontactlookupenv.h
+../inc/cpbkxremotecontactlookupenv.inl                  |../../../inc/cpbkxremotecontactlookupenv.inl
+../inc/pbkxremotecontactlookupuid.hrh                   |../../../inc/pbkxremotecontactlookupuid.hrh
+// <cmail> Removed other exports or moved into subcomponents
+// </cmail>
+
+//<cmail> per component stubs are removed and replaced by one stub under emailui.
+//../data/pbkxremotecontactlookupstub.sis  /epoc32/data/z/system/install/pbkxremotecontactlookupstub.sis
+//</cmail>
+//<cmail>
+../rom/pbkxremotecontactlookup.iby          CORE_APP_LAYER_IBY_EXPORT_PATH(pbkxremotecontactlookup.iby)
+../rom/pbkxremotecontactlookupresources.iby CORE_APP_LAYER_IBY_EXPORT_PATH(pbkxremotecontactlookupresources.iby)
+../rom/fscrclsetting.iby                    CORE_APP_LAYER_IBY_EXPORT_PATH(fscrclsetting.iby)
+
+// Generic configuration interface for component cenrep settings  
+// component_1000292B implementation specifics for cenrep data
+../conf/fscremotecontactlookup.confml       	APP_LAYER_CONFML(fscremotecontactlookup.confml)
+// <cmail> S60 UID update
+../conf/fscremotecontactlookup_2001F3FE.crml 	APP_LAYER_CRML(fscremotecontactlookup_2001F3FE.crml)
+// </cmail> S60 UID update
+
+PRJ_MMPFILES
+pbkxrclservice.mmp
+

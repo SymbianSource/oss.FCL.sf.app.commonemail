@@ -1,0 +1,157 @@
+/*
+* Copyright (c) 2006 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description: 
+*     This file contains all the resources of folder subscription
+*     for the module Imum.
+*
+*
+*/
+
+
+RESOURCE MENU_BAR r_ips_set_settings_subscribe_menu
+    {
+    titles=
+        {
+        MENU_TITLE
+            {
+            menu_pane=r_ips_set_settings_subscribe_menupane ;
+            txt="";
+            }
+        };
+    }
+
+RESOURCE MENU_PANE r_ips_set_settings_subscribe_menupane
+    {
+    items=
+        {
+        MENU_ITEM
+            {
+            command = EIpsSetUiFolderOpenFolder;
+            txt = qtn_fse_settings_mail_open;
+            },
+        MENU_ITEM
+            {
+            command = EIpsSetUiFolderSubscribe;
+            txt = qtn_fse_settings_mail_subscr;
+            },
+        MENU_ITEM
+            {
+            command = EIpsSetUiFolderUnsubscribe;
+            txt = qtn_fse_settings_mail_unsubscr;
+            },
+        MENU_ITEM
+            {
+            command = EIpsSetUiRefreshFolderList;
+            txt = qtn_fse_settings_mail_update;
+            },
+        MENU_ITEM
+            {
+            command = EAknCmdHelp;
+            txt = qtn_options_help;
+            },
+        MENU_ITEM
+            {
+            command = EEikCmdExit;
+            txt = qtn_options_exit;
+            }
+        };
+    }
+
+RESOURCE DIALOG r_ips_set_folder_subsrciption_dialog
+    {
+    flags = ( EEikDialogFlagNoDrag | 
+        EEikDialogFlagNoTitleBar | 
+        EEikDialogFlagFillAppClientRect | 
+        EEikDialogFlagCbaButtons );
+    buttons=r_ips_set_settings_dialog_softkeys;
+    items=
+        {
+        DLG_LINE
+            {
+            type = EAknCtSingleGraphicListBox;
+            id = EIpsSetUiIdFolderListBox;
+            itemflags =
+                EEikDlgItemTakesEnterKey | 
+                EEikDlgItemOfferAllHotKeys;
+            control=LISTBOX
+                {
+                flags = EAknListBoxSelectionList;
+                height = 8;
+                };
+            }
+        };
+    }
+
+RESOURCE DIALOG r_ips_set_do_subs_for_subfolders
+    {
+    flags = EGeneralQueryFlags;
+    buttons=R_AVKON_SOFTKEYS_YES_NO__YES;
+    items=
+        {
+        DLG_LINE
+            {
+            type=EAknCtQuery;
+            id=EGeneralQuery;
+            control = AVKON_CONFIRMATION_QUERY
+                {
+                layout = EConfirmationQueryLayout;
+                label = qtn_fse_settings_mail_query_subscr;
+                animation = R_QGN_NOTE_QUERY_ANIM;
+                };
+            }
+        };
+    }
+
+RESOURCE DIALOG r_ips_set_do_unsubs_for_subfolders
+    {
+    flags = EGeneralQueryFlags;
+    buttons=R_AVKON_SOFTKEYS_YES_NO__YES;
+    items=
+        {
+        DLG_LINE
+            {
+            type=EAknCtQuery;
+            id=EGeneralQuery;
+            control = AVKON_CONFIRMATION_QUERY
+                {
+                layout = EConfirmationQueryLayout;
+                label = qtn_fse_settings_mail_query_unsubscr;
+                animation = R_QGN_NOTE_QUERY_ANIM;
+                };
+            }
+        };
+    }
+
+RESOURCE DIALOG r_ips_set_connect_for_update
+    {
+    flags = EGeneralQueryFlags;
+    buttons=R_AVKON_SOFTKEYS_YES_NO__YES;
+    items=
+        {
+        DLG_LINE
+            {
+            type=EAknCtQuery;
+            id=EGeneralQuery;
+            control = AVKON_CONFIRMATION_QUERY
+                {
+                layout = EConfirmationQueryLayout;
+                label = qtn_fse_settings_mail_query_update_now;
+                animation = R_QGN_NOTE_QUERY_ANIM;
+                };
+            }
+        };
+    }
+
+// End of file
+

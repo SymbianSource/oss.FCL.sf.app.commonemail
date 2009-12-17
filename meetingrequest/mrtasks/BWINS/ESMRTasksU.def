@@ -1,0 +1,5 @@
+EXPORTS
+	??1CESMRTaskExtenstionImpl@@UAE@XZ @ 1 NONAME ; CESMRTaskExtenstionImpl::~CESMRTaskExtenstionImpl(void)
+	?NewL@CESMRTaskExtenstionImpl@@SAPAV1@AAVMESMRCalDbMgr@@AAVCMRMailboxUtils@@AAVCESMRPolicyManager@@AAVCESMREntryProcessor@@AAVMESMRTaskFactory@@@Z @ 2 NONAME ; class CESMRTaskExtenstionImpl * CESMRTaskExtenstionImpl::NewL(class MESMRCalDbMgr &, class CMRMailboxUtils &, class CESMRPolicyManager &, class CESMREntryProcessor &, class MESMRTaskFactory &)
+	?NewL@CESMRTaskFactory@@SAPAV1@AAVMESMRCalDbMgr@@AAVCMRMailboxUtils@@@Z @ 3 NONAME ; class CESMRTaskFactory * CESMRTaskFactory::NewL(class MESMRCalDbMgr &, class CMRMailboxUtils &)
+

@@ -1,0 +1,6 @@
+EXPORTS
+	?ImplementationGroupProxy@@YAPBUTImplementationProxy@@AAH@Z @ 1 NONAME ABSENT ; struct TImplementationProxy const * ImplementationGroupProxy(int &)
+	??1CESMRViewerController@@UAE@XZ @ 2 NONAME ; CESMRViewerController::~CESMRViewerController(void)
+	?ExecuteL@CESMRViewerController@@QAEXXZ @ 3 NONAME ; void CESMRViewerController::ExecuteL(void)
+	?NewL@CESMRViewerController@@SAPAV1@ABVTDesC8@@AAV?$RPointerArray@VCCalEntry@@@@ABVTAgnEntryUiInParams@MAgnEntryUi@@AAVTAgnEntryUiOutParams@5@AAVMAgnEntryUiCallback@@@Z @ 4 NONAME ; class CESMRViewerController * CESMRViewerController::NewL(class TDesC8 const &, class RPointerArray<class CCalEntry> &, class MAgnEntryUi::TAgnEntryUiInParams const &, class MAgnEntryUi::TAgnEntryUiOutParams &, class MAgnEntryUiCallback &)
+

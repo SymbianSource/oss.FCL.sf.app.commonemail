@@ -1,0 +1,37 @@
+/*
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  (ROM) Image description file for NokiaEmail CS help 
+*
+*/
+
+
+//<cmail>
+//#ifdef FF_ES_EMAIL
+
+#ifndef __EMAILHELPHELPS_VARIANT_IBY__
+#define __EMAILHELPHELPS_VARIANT_IBY__
+
+#include <data_caging_paths_for_iby.hrh>
+
+#if defined(FF_S60_HELPS_IN_USE) && defined(FF_EMAIL_FRAMEWORK)
+    data=LOCALISE(DATAZ_\resource\xhtml\%02d\0x2001E277\contents.zip, RESOURCE_FILES_DIR\xhtml\%02d\0x2001E277\contents.zip)
+    data=LOCALISE(DATAZ_\resource\xhtml\%02d\0x2001E277\index.xml, RESOURCE_FILES_DIR\xhtml\%02d\0x2001E277\index.xml)
+    data=LOCALISE(DATAZ_\resource\xhtml\%02d\0x2001E277\keywords.xml, RESOURCE_FILES_DIR\xhtml\%02d\0x2001E277\keywords.xml)
+    data=LOCALISE(DATAZ_\resource\xhtml\%02d\0x2001E277\meta.xml, RESOURCE_FILES_DIR\xhtml\%02d\0x2001E277\meta.xml)
+#endif
+
+#endif // __EMAILHELPHELPS_VARIANT_IBY__
+
+//#endif // FF_ES_EMAIL
+//</cmail>

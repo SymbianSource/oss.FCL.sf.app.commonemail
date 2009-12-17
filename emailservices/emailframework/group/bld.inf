@@ -1,0 +1,80 @@
+/*
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description: Build information file for email project emailframework.
+*
+*/
+
+#include <platform_paths.hrh>
+
+PRJ_EXPORTS
+../inc/MFSMailIterator.h |../../../inc/MFSMailIterator.h
+../inc/MFSMailEventObserver.h |../../../inc/MFSMailEventObserver.h
+../inc/MFSMailRequestObserver.h |../../../inc/MFSMailRequestObserver.h
+../inc/MFSMailBoxSearchObserver.h |../../../inc/MFSMailBoxSearchObserver.h
+../inc/MFSMailBrandManager.h |../../../inc/MFSMailBrandManager.h
+../inc/MailBrandManager.hrh |../../../inc/MailBrandManager.hrh
+../inc/CFSMailClient.h |../../../inc/CFSMailClient.h
+../inc/CFSClientAPI.h |../../../inc/CFSClientAPI.h
+../inc/CFSMailPlugin.h |../../../inc/CFSMailPlugin.h
+../inc/CFSMailPlugin.inl |../../../inc/CFSMailPlugin.inl
+../inc/CFSMailPlugin.hrh |../../../inc/CFSMailPlugin.hrh
+../inc/CFSMailClient.hrh |../../../inc/CFSMailClient.hrh
+
+../inc/emailversionnumbers.hrh |../../../inc/emailversionnumbers.hrh
+
+../rom/FSEmailFramework.iby             CORE_APP_LAYER_IBY_EXPORT_PATH(FSEmailFramework.iby)
+
+
+PRJ_MMPFILES
+
+#include "../commonlib/group/bld.inf"
+
+FSMailFramework.mmp
+
+PRJ_EXTENSIONS
+
+START EXTENSION s60/mifconv
+OPTION TARGETFILE aol_brand_graphics.mif
+OPTION HEADERFILE aol_brand_graphics.mbg
+OPTION SOURCEDIR ../data
+OPTION SOURCES -c16,8 aol.svg
+END
+
+START EXTENSION s60/mifconv
+OPTION TARGETFILE google_brand_graphics.mif
+OPTION HEADERFILE google_brand_graphics.mbg
+OPTION SOURCEDIR ../data
+OPTION SOURCES -c16,8 gmail44svgtest4.svg
+END
+
+START EXTENSION s60/mifconv
+OPTION TARGETFILE microsoft_brand_graphics.mif
+OPTION HEADERFILE microsoft_brand_graphics.mbg
+OPTION SOURCEDIR ../data
+OPTION SOURCES -c16,8 microsoft.svg
+END
+
+START EXTENSION s60/mifconv
+OPTION TARGETFILE ovi_brand_graphics.mif
+OPTION HEADERFILE ovi_brand_graphics.mbg
+OPTION SOURCEDIR ../data
+OPTION SOURCES -c16,8 ovi.svg
+END
+
+START EXTENSION s60/mifconv
+OPTION TARGETFILE yahoo_brand_graphics.mif
+OPTION HEADERFILE yahoo_brand_graphics.mbg
+OPTION SOURCEDIR ../data
+OPTION SOURCES -c16,8 yahoo.svg
+END

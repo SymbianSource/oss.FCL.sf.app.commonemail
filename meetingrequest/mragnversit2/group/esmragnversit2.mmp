@@ -1,0 +1,81 @@
+/*
+* Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Project definition file.
+*
+*
+*/
+
+#include <platform_paths.hrh>
+#include <data_caging_paths.hrh>
+
+#include "../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
+#include "../../inc/esmrinternaluid.h"
+
+TARGET          esmragnversit2.dll
+TARGETTYPE      PLUGIN
+UID             KEComRecognitionUID2 KESMRIcalConversionDllUid
+CAPABILITY      CAP_ECOM_PLUGIN
+
+VENDORID        VID_DEFAULT
+
+VERSION         KEmailBinaryVersionNumber
+KEmailBinaryDemandPaging
+
+SOURCEPATH 		../src
+SOURCE          cesmragnversit2.cpp
+SOURCE          cesmragnversit2importer.cpp
+SOURCE          cesmragnversit2exporter.cpp
+SOURCE          esmragnextintlib.cpp
+
+//RRule importer
+SOURCE          cesmragnversit2stringprovider.cpp
+SOURCE          cesmragnrruleimporter.cpp
+SOURCE          cesmragnparserrule.cpp
+SOURCE          cesmragnparserruleyearly.cpp
+SOURCE          cesmragnparserrulemonthly.cpp
+SOURCE          cesmragnparserruleweekly.cpp
+SOURCE          cesmragnparserruledaily.cpp
+
+//user include
+USERINCLUDE	  ../inc
+USERINCLUDE   ../../inc
+USERINCLUDE   ../../../inc
+
+//system include
+APP_LAYER_SYSTEMINCLUDE
+
+
+SOURCEPATH              ../data
+START RESOURCE          2001846E.rss
+TARGET                  esmragnversit2.rsc
+END
+
+// Resources
+START RESOURCE          ../data/esmragnversit2strings.rss
+HEADER
+TARGET                  esmragnversit2strings
+TARGETPATH              RESOURCE_FILES_DIR
+END
+
+LIBRARY bafl.LIB
+LIBRARY euser.lib
+LIBRARY ECom.lib
+LIBRARY esmrversit2.lib
+LIBRARY CalInterimAPI.lib
+LIBRARY tzclient.lib
+LIBRARY efsrv.lib
+LIBRARY esmrcommon.lib
+LIBRARY cmaillogger.lib
+
+// End of file

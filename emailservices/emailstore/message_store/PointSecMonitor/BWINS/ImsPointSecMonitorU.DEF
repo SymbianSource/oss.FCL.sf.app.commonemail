@@ -1,0 +1,4 @@
+EXPORTS
+	?NewL@CImsPointsecMonitor@@SAPAV1@AAVMImsPointsecObserver@@@Z @ 1 NONAME ; class CImsPointsecMonitor * CImsPointsecMonitor::NewL(class MImsPointsecObserver &)
+	?IsServiceAllowed@CImsPointsecMonitor@@QBEHXZ @ 2 NONAME ; int CImsPointsecMonitor::IsServiceAllowed(void) const
+

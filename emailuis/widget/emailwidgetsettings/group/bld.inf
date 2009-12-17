@@ -1,0 +1,32 @@
+/*
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  This file provides the information required for building the
+*               Email Widget Settings.
+*
+*/
+
+#include <platform_paths.hrh>
+
+PRJ_PLATFORMS
+DEFAULT
+
+PRJ_EXPORTS
+../rom/emailwidgetsettings.iby          CORE_APP_LAYER_IBY_EXPORT_PATH(emailwidgetsettings.iby)
+../loc/emailwidgetsettings.loc          APP_LAYER_LOC_EXPORT_PATH(emailwidgetsettings.loc)
+
+../conf/cmailwidget.confml              APP_LAYER_CONFML(cmailwidget.confml)
+../conf/cmailwidget_2001E272.crml       APP_LAYER_CRML(cmailwidget_2001E272.crml)
+
+PRJ_MMPFILES
+emailwidgetsettings.mmp

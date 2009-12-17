@@ -1,0 +1,171 @@
+EXPORTS
+	_ZN15CMsgStoreFolder8IsLocalLEv @ 1 NONAME
+	_ZN16CMsgStoreAccount4NewLElRK7TDesC16 @ 2 NONAME
+	_ZN16CMsgStoreAccount5NewLCElRK7TDesC16 @ 3 NONAME
+	_ZN16CMsgStoreAccount8SetNameLERK7TDesC16 @ 4 NONAME
+	_ZN16CMsgStoreAccount8SetOwnerEl @ 5 NONAME
+	_ZN16CMsgStoreAddress11DisplayNameEv @ 6 NONAME
+	_ZN16CMsgStoreAddress12EmailAddressEv @ 7 NONAME
+	_ZN16CMsgStoreAddress4NewLERK7TDesC16S2_ @ 8 NONAME
+	_ZN16CMsgStoreAddressD0Ev @ 9 NONAME
+	_ZN16CMsgStoreAddressD1Ev @ 10 NONAME
+	_ZN16CMsgStoreAddressD2Ev @ 11 NONAME
+	_ZN16CMsgStoreMailBox11MessageIdsLEjR6RArrayIjE @ 12 NONAME
+	_ZN16CMsgStoreMailBox11MoveFolderLEjjj @ 13 NONAME
+	_ZN16CMsgStoreMailBox12AddObserverLEP24MMsgStoreMailBoxObserver @ 14 NONAME
+	_ZN16CMsgStoreMailBox12CancelSearchEv @ 15 NONAME
+	_ZN16CMsgStoreMailBox12CopyMessageLEjjj @ 16 NONAME
+	_ZN16CMsgStoreMailBox12MoveMessageLEjjj @ 17 NONAME
+	_ZN16CMsgStoreMailBox13CreateFolderLEjR26CMsgStorePropertyContaineri @ 18 NONAME
+	_ZN16CMsgStoreMailBox13DeleteFolderLEj @ 19 NONAME
+	_ZN16CMsgStoreMailBox13FetchMessageLEjj @ 20 NONAME
+	_ZN16CMsgStoreMailBox13MruAddressesLER13RPointerArrayI16CMsgStoreAddressE @ 21 NONAME
+	_ZN16CMsgStoreMailBox14CreateMessageLEjRK26CMsgStorePropertyContainer @ 22 NONAME
+	_ZN16CMsgStoreMailBox14DeleteMessageLEjj @ 23 NONAME
+	_ZN16CMsgStoreMailBox14MessageCountsLEjRjS0_ @ 24 NONAME
+	_ZN16CMsgStoreMailBox15RemoveObserverLEP24MMsgStoreMailBoxObserver @ 25 NONAME
+	_ZN16CMsgStoreMailBox16AddMruAddressesLER13RPointerArrayI16CMsgStoreAddressE @ 26 NONAME
+	_ZN16CMsgStoreMailBox16FetchPropertiesLERK6RArrayIjERK13RPointerArrayI6TDesC8ERS4_I26CMsgStorePropertyContainerE @ 27 NONAME
+	_ZN16CMsgStoreMailBox16FetchPropertiesLEj @ 28 NONAME
+	_ZN16CMsgStoreMailBox17ContainerTypeByIdEj @ 29 NONAME
+	_ZN16CMsgStoreMailBox18IsCorporateMailboxEv @ 30 NONAME
+	_ZN16CMsgStoreMailBox19TotalMessageCountsLERjS0_ @ 31 NONAME
+	_ZN16CMsgStoreMailBox22ClearSearchResultCacheEv @ 32 NONAME
+	_ZN16CMsgStoreMailBox5SortLER21RMsgStoreSortCriteriai @ 33 NONAME
+	_ZN16CMsgStoreMailBox7FolderLEj @ 34 NONAME
+	_ZN16CMsgStoreMailBox7SearchLER23RMsgStoreSearchCriteriaR21MMsgStoreSearchClient @ 35 NONAME
+	_ZN16CMsgStoreMailBox8FoldersLER13RPointerArrayI15CMsgStoreFolderE @ 36 NONAME
+	_ZN16CMsgStoreMailBox8FoldersLEjR13RPointerArrayI15CMsgStoreFolderEi @ 37 NONAME
+	_ZN16CMsgStoreMessage7CommitLEv @ 38 NONAME
+	_ZN16CMsgStoreMessage8AbandonLEv @ 39 NONAME
+	_ZN16RMsgStoreAddress5CloseEv @ 40 NONAME
+	_ZN19MsgStoreFolderUtils15GetRootFoldersLER16CMsgStoreMailBoxR20TMsgStoreRootFolders @ 41 NONAME
+	_ZN19MsgStoreFolderUtils22InitializeRootFoldersLER16CMsgStoreMailBoxR20TMsgStoreRootFolders @ 42 NONAME
+	_ZN20CMsgStoreMessagePart10ChildPartLEji @ 43 NONAME
+	_ZN20CMsgStoreMessagePart11ChildPartsLER13RPointerArrayIS_E @ 44 NONAME
+	_ZN20CMsgStoreMessagePart13AddChildPartLERK26CMsgStorePropertyContainerR5RFile @ 45 NONAME
+	_ZN20CMsgStoreMessagePart13AddChildPartLERK26CMsgStorePropertyContainerRK7TDesC16 @ 46 NONAME
+	_ZN20CMsgStoreMessagePart14CopyChildPartLEjj @ 47 NONAME
+	_ZN20CMsgStoreMessagePart16AddChildMessageLER26CMsgStorePropertyContainer @ 48 NONAME
+	_ZN20CMsgStoreMessagePart16RemoveChildPartLEji @ 49 NONAME
+	_ZN20CMsgStoreMessagePart18IsEmbeddedMessageLEv @ 50 NONAME
+	_ZN21RMsgStoreSortCriteria18AddResultPropertyLERK6TDesC8 @ 51 NONAME
+	_ZN21RMsgStoreSortCriteria5CloseEv @ 52 NONAME
+	_ZN23RMsgStoreSearchCriteria11AddFolderIdEj @ 53 NONAME
+	_ZN23RMsgStoreSearchCriteria16AddSearchStringLERK7TDesC16 @ 54 NONAME
+	_ZN23RMsgStoreSearchCriteria18AddResultPropertyLERK6TDesC8 @ 55 NONAME
+	_ZN23RMsgStoreSearchCriteria5CloseEv @ 56 NONAME
+	_ZN23RMsgStoreSearchCriteriaC1Ev @ 57 NONAME
+	_ZN23RMsgStoreSearchCriteriaC2Ev @ 58 NONAME
+	_ZN26CMsgStorePropertyContainer12AddPropertyLERK6TDesC8RK16RMsgStoreAddress @ 59 NONAME
+	_ZN26CMsgStorePropertyContainer12AddPropertyLERK6TDesC8RK5TTime @ 60 NONAME
+	_ZN26CMsgStorePropertyContainer12AddPropertyLERK6TDesC8RK7TDesC16 @ 61 NONAME
+	_ZN26CMsgStorePropertyContainer12AddPropertyLERK6TDesC8RKS_ @ 62 NONAME
+	_ZN26CMsgStorePropertyContainer12AddPropertyLERK6TDesC8S2_ @ 63 NONAME
+	_ZN26CMsgStorePropertyContainer12AddPropertyLERK6TDesC8i @ 64 NONAME
+	_ZN26CMsgStorePropertyContainer12AddPropertyLERK6TDesC8m @ 65 NONAME
+	_ZN26CMsgStorePropertyContainer15RemovePropertyLEj @ 66 NONAME
+	_ZN26CMsgStorePropertyContainer15UpdatePropertyLEjRK16RMsgStoreAddress @ 67 NONAME
+	_ZN26CMsgStorePropertyContainer15UpdatePropertyLEjRK5TTime @ 68 NONAME
+	_ZN26CMsgStorePropertyContainer15UpdatePropertyLEjRK6TDesC8 @ 69 NONAME
+	_ZN26CMsgStorePropertyContainer15UpdatePropertyLEjRK7TDesC16 @ 70 NONAME
+	_ZN26CMsgStorePropertyContainer15UpdatePropertyLEjRKS_ @ 71 NONAME
+	_ZN26CMsgStorePropertyContainer15UpdatePropertyLEji @ 72 NONAME
+	_ZN26CMsgStorePropertyContainer15UpdatePropertyLEjm @ 73 NONAME
+	_ZN26CMsgStorePropertyContainer20AddOrUpdatePropertyLERK6TDesC8RK16RMsgStoreAddress @ 74 NONAME
+	_ZN26CMsgStorePropertyContainer20AddOrUpdatePropertyLERK6TDesC8RK5TTime @ 75 NONAME
+	_ZN26CMsgStorePropertyContainer20AddOrUpdatePropertyLERK6TDesC8RK7TDesC16 @ 76 NONAME
+	_ZN26CMsgStorePropertyContainer20AddOrUpdatePropertyLERK6TDesC8RKS_ @ 77 NONAME
+	_ZN26CMsgStorePropertyContainer20AddOrUpdatePropertyLERK6TDesC8S2_ @ 78 NONAME
+	_ZN26CMsgStorePropertyContainer20AddOrUpdatePropertyLERK6TDesC8i @ 79 NONAME
+	_ZN26CMsgStorePropertyContainer20AddOrUpdatePropertyLERK6TDesC8m @ 80 NONAME
+	_ZN26CMsgStorePropertyContainer4NewLEv @ 81 NONAME
+	_ZN27CMsgStoreSortResultIterator11GroupCountLER6RArrayIjE @ 82 NONAME
+	_ZN27CMsgStoreSortResultIterator11MessageIdsLER6RArrayIjE @ 83 NONAME
+	_ZN27CMsgStoreSortResultIterator12IdsAndFlagsLER6RArrayI18TMsgStoreIdAndFlagE @ 84 NONAME
+	_ZN27CMsgStoreSortResultIterator12SkipAndNextLEjjR13RPointerArrayI26CMsgStorePropertyContainerE @ 85 NONAME
+	_ZN27CMsgStoreSortResultIterator16SkipAndPreviousLEjjR13RPointerArrayI26CMsgStorePropertyContainerE @ 86 NONAME
+	_ZN27CMsgStoreSortResultIterator17IdsAndGroupCountLER6RArrayIjES2_ @ 87 NONAME
+	_ZN27CMsgStoreSortResultIterator5NextLERK7TDesC16jR13RPointerArrayI26CMsgStorePropertyContainerE @ 88 NONAME
+	_ZN27CMsgStoreSortResultIterator5NextLEjjR13RPointerArrayI26CMsgStorePropertyContainerE @ 89 NONAME
+	_ZN27CMsgStoreSortResultIterator8IndexOfLEj @ 90 NONAME
+	_ZN27CMsgStoreSortResultIterator9PreviousLERK7TDesC16jR13RPointerArrayI26CMsgStorePropertyContainerE @ 91 NONAME
+	_ZN27CMsgStoreSortResultIterator9PreviousLEjjR13RPointerArrayI26CMsgStorePropertyContainerE @ 92 NONAME
+	_ZN34CMsgStoreWritablePropertyContainer14StorePropertyLEj @ 93 NONAME
+	_ZN34CMsgStoreWritablePropertyContainer16StorePropertiesLEv @ 94 NONAME
+	_ZN37CMsgStorePropertyContainerWithContent14ContentLengthLEv @ 95 NONAME
+	_ZN37CMsgStorePropertyContainerWithContent14RemoveContentLEv @ 96 NONAME
+	_ZN37CMsgStorePropertyContainerWithContent15ReplaceContentLERK6TDesC8 @ 97 NONAME
+	_ZN37CMsgStorePropertyContainerWithContent16AppendToContentLERK6TDesC8 @ 98 NONAME
+	_ZN37CMsgStorePropertyContainerWithContent19FetchContentToFileLERK7TDesC16 @ 99 NONAME
+	_ZN37CMsgStorePropertyContainerWithContent21FetchContentToBufferLER5TDes8j @ 100 NONAME
+	_ZN37CMsgStorePropertyContainerWithContent23ReplaceContentWithFileLERK7TDesC16 @ 101 NONAME
+	_ZN37CMsgStorePropertyContainerWithContent24OpenOriginalContentFileLER5RFile @ 102 NONAME
+	_ZN9CMsgStore12AddObserverLEP17MMsgStoreObserver @ 103 NONAME
+	_ZN9CMsgStore12HasPasswordLEv @ 104 NONAME
+	_ZN9CMsgStore12OpenAccountLERK16CMsgStoreAccount @ 105 NONAME
+	_ZN9CMsgStore12OpenAccountLEj @ 106 NONAME
+	_ZN9CMsgStore12SetPasswordLERK7TDesC16 @ 107 NONAME
+	_ZN9CMsgStore13AuthenticateLERK7TDesC16 @ 108 NONAME
+	_ZN9CMsgStore14AuthenticatedLEv @ 109 NONAME
+	_ZN9CMsgStore14CreateAccountLERK16CMsgStoreAccountPK26CMsgStorePropertyContainer @ 110 NONAME
+	_ZN9CMsgStore14DeleteAccountLERK16CMsgStoreAccount @ 111 NONAME
+	_ZN9CMsgStore14RenameAccountLElRK7TDesC16S2_ @ 112 NONAME
+	_ZN9CMsgStore15ChangePasswordLERK7TDesC16S2_ @ 113 NONAME
+	_ZN9CMsgStore15DefaultMailboxLEv @ 114 NONAME
+	_ZN9CMsgStore15RemoveObserverLEP17MMsgStoreObserver @ 115 NONAME
+	_ZN9CMsgStore15WipeEverythingLEv @ 116 NONAME
+	_ZN9CMsgStore17EnableEncryptionLEv @ 117 NONAME
+	_ZN9CMsgStore18DisableEncryptionLEv @ 118 NONAME
+	_ZN9CMsgStore18SetDefaultMailboxLEj @ 119 NONAME
+	_ZN9CMsgStore20ClearAuthenticationLEv @ 120 NONAME
+	_ZN9CMsgStore22SetMaxMruAddressCountLEi @ 121 NONAME
+	_ZN9CMsgStore4NewLEi @ 122 NONAME
+	_ZN9CMsgStore9AccountsLER13RPointerArrayI16CMsgStoreAccountE @ 123 NONAME
+	_ZNK16CMsgStoreAccount4NameEv @ 124 NONAME
+	_ZNK16CMsgStoreAccount5OwnerEv @ 125 NONAME
+	_ZNK26CMsgStorePropertyContainer12FindPropertyERK6TDesC8Rjj @ 126 NONAME
+	_ZNK26CMsgStorePropertyContainer13PropertyCountEv @ 127 NONAME
+	_ZNK26CMsgStorePropertyContainer13PropertyNameLEj @ 128 NONAME
+	_ZNK26CMsgStorePropertyContainer13PropertyTypeLEj @ 129 NONAME
+	_ZNK26CMsgStorePropertyContainer17PropertyValueDesLEj @ 130 NONAME
+	_ZNK26CMsgStorePropertyContainer18PropertyValueBoolLEj @ 131 NONAME
+	_ZNK26CMsgStorePropertyContainer18PropertyValueDes8LEj @ 132 NONAME
+	_ZNK26CMsgStorePropertyContainer18PropertyValueTimeLEjR5TTime @ 133 NONAME
+	_ZNK26CMsgStorePropertyContainer20PropertyValueUint32LEj @ 134 NONAME
+	_ZNK26CMsgStorePropertyContainer21PropertyValueAddressLEjR16RMsgStoreAddress @ 135 NONAME
+	_ZNK26CMsgStorePropertyContainer23PropertyValueContainerLEj @ 136 NONAME
+	_ZNK26CMsgStorePropertyContainer2IdEv @ 137 NONAME
+	_ZNK26CMsgStorePropertyContainer8ParentIdEv @ 138 NONAME
+	_ZTI11TPartsArray @ 139 NONAME ; #<TI>#
+	_ZTI13TFoldersArray @ 140 NONAME ; #<TI>#
+	_ZTI16CMsgStoreAccount @ 141 NONAME ; #<TI>#
+	_ZTI16CMsgStoreAddress @ 142 NONAME ; #<TI>#
+	_ZTI16CMsgStoreMailBox @ 143 NONAME ; #<TI>#
+	_ZTI16CMsgStoreMessage @ 144 NONAME ; #<TI>#
+	_ZTI19CAccountsSerializer @ 145 NONAME ; #<TI>#
+	_ZTI22CMsgStoreSearchHandler @ 146 NONAME ; #<TI>#
+	_ZTI23CMsgStoreSessionContext @ 147 NONAME ; #<TI>#
+	_ZTI24CMsgStoreObserverHandler @ 148 NONAME ; #<TI>#
+	_ZTI26CMsgStorePropertyContainer @ 149 NONAME ; #<TI>#
+	_ZTI27CMsgStoreSortResultIterator @ 150 NONAME ; #<TI>#
+	_ZTI32TMsgStorePropertyContainersArray @ 151 NONAME ; #<TI>#
+	_ZTI9CMsgStore @ 152 NONAME ; #<TI>#
+	_ZTV11TPartsArray @ 153 NONAME ; #<VT>#
+	_ZTV13TFoldersArray @ 154 NONAME ; #<VT>#
+	_ZTV16CMsgStoreAccount @ 155 NONAME ; #<VT>#
+	_ZTV16CMsgStoreAddress @ 156 NONAME ; #<VT>#
+	_ZTV16CMsgStoreMailBox @ 157 NONAME ; #<VT>#
+	_ZTV16CMsgStoreMessage @ 158 NONAME ; #<VT>#
+	_ZTV19CAccountsSerializer @ 159 NONAME ; #<VT>#
+	_ZTV22CMsgStoreSearchHandler @ 160 NONAME ; #<VT>#
+	_ZTV23CMsgStoreSessionContext @ 161 NONAME ; #<VT>#
+	_ZTV24CMsgStoreObserverHandler @ 162 NONAME ; #<VT>#
+	_ZTV26CMsgStorePropertyContainer @ 163 NONAME ; #<VT>#
+	_ZTV27CMsgStoreSortResultIterator @ 164 NONAME ; #<VT>#
+	_ZTV32TMsgStorePropertyContainersArray @ 165 NONAME ; #<VT>#
+	_ZTV9CMsgStore @ 166 NONAME ; #<VT>#
+	_ZN37CMsgStorePropertyContainerWithContent17PrependToContentLERK6TDesC8 @ 167 NONAME
+	_ZN16CMsgStoreMailBox17BeginBatchInsertLEv @ 168 NONAME
+	_ZN16CMsgStoreMailBox18FinishBatchInsertLEv @ 169 NONAME
+

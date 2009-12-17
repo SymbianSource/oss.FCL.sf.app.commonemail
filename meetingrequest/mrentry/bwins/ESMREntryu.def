@@ -1,0 +1,15 @@
+EXPORTS
+	??1CESMREntryProcessor@@UAE@XZ @ 1 NONAME ; CESMREntryProcessor::~CESMREntryProcessor(void)
+	?ESMREntryL@CESMREntryProcessor@@QAEAAVMESMRMeetingRequestEntry@@XZ @ 2 NONAME ; class MESMRMeetingRequestEntry & CESMREntryProcessor::ESMREntryL(void)
+	?ExtensionUid@CESMREntryProcessor@@SA?AVTUid@@XZ @ 3 NONAME ; class TUid CESMREntryProcessor::ExtensionUid(void)
+	?NewL@CESMREntryProcessor@@SAPAV1@AAVCMRMailboxUtils@@AAVMESMRCalDbMgr@@@Z @ 4 NONAME ; class CESMREntryProcessor * CESMREntryProcessor::NewL(class CMRMailboxUtils &, class MESMRCalDbMgr &)
+	?ProcessL@CESMREntryProcessor@@QAEXAAVCCalInstance@@@Z @ 5 NONAME ; void CESMREntryProcessor::ProcessL(class CCalInstance &)
+	?ProcessL@CESMREntryProcessor@@QAEXPAV?$RPointerArray@VCCalEntry@@@@@Z @ 6 NONAME ; void CESMREntryProcessor::ProcessL(class RPointerArray<class CCalEntry> *)
+	?ProcessL@CESMREntryProcessor@@QAEXPBVTAgnEntryUiInParams@MAgnEntryUi@@PAV?$RPointerArray@VCCalEntry@@@@@Z @ 7 NONAME ; void CESMREntryProcessor::ProcessL(class MAgnEntryUi::TAgnEntryUiInParams const *, class RPointerArray<class CCalEntry> *)
+	?ProcessOutputParametersL@CESMREntryProcessor@@QAEXAAVTAgnEntryUiOutParams@MAgnEntryUi@@W4TESMRCommand@@@Z @ 8 NONAME ; void CESMREntryProcessor::ProcessOutputParametersL(class MAgnEntryUi::TAgnEntryUiOutParams &, enum TESMRCommand)
+	?ResetL@CESMREntryProcessor@@QAEXXZ @ 9 NONAME ; void CESMREntryProcessor::ResetL(void)
+	?SwitchToEditL@CESMREntryProcessor@@QAEXXZ @ 10 NONAME ; void CESMREntryProcessor::SwitchToEditL(void)
+	?SwitchToForwardL@CESMREntryProcessor@@QAEXXZ @ 11 NONAME ; void CESMREntryProcessor::SwitchToForwardL(void)
+	?SwitchToViewL@CESMREntryProcessor@@QAEXXZ @ 12 NONAME ; void CESMREntryProcessor::SwitchToViewL(void)
+	?SwitchToTrackL@CESMREntryProcessor@@QAEXXZ @ 13 NONAME ; void CESMREntryProcessor::SwitchToTrackL(void)
+

@@ -1,0 +1,63 @@
+/*
+* Copyright (c) 2005 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Build information file for project esmrgui
+*
+*/
+
+
+#include <bldvariant.hrh>
+// <cmail>
+#include <platform_paths.hrh>
+// </cmail>
+
+#include "../mrfieldbuildercommon/group/bld.inf"
+#include "../mrfieldbuilderplugin/group/bld.inf"
+#include "../mrfieldbuilderpluginextension/group/bld.inf"
+#include "../mrlocationplugin/group/bld.inf"
+#include "../mrfieldevent/group/bld.inf"
+
+PRJ_EXPORTS
+../inc/mesmruifactory.h          	|../../inc/mesmruifactory.h
+../inc/cesmruifactory.h          	|../../inc/cesmruifactory.h
+../inc/mesmruibase.h             	|../../inc/mesmruibase.h
+../inc/tesmrentryfield.h            |../../inc/tesmrentryfield.h
+../inc/cesmrconfirmationquery.h     |../../inc/cesmrconfirmationquery.h
+../inc/cesmrlistquery.h             |../../inc/cesmrlistquery.h
+../inc/cesmrresponsedialog.h        |../../inc/cesmrresponsedialog.h
+../inc/cesmrguilistquery.h          |../../inc/cesmrguilistquery.h
+../loc/mrui.loc                     APP_LAYER_LOC_EXPORT_PATH(mrui.loc)
+
+//../inc/mesmrfieldeventobserver.h     |../../inc/mesmrfieldeventobserver.h
+
+//Export stub sis file
+//<cmail>
+//../data/mrui_stub.sis   /epoc32/data/z/system/install/mrui_stub.sis
+../data/meetingrequeststub.sis   /epoc32/data/z/system/install/meetingrequeststub.sis
+//</cmail>
+
+PRJ_MMPFILES
+// <cmail>
+//gnumakefile icons.mk
+// </cmail>
+esmrgui.mmp
+
+PRJ_EXTENSIONS
+
+START EXTENSION s60/mifconv
+OPTION TARGETFILE esmrgui.mif
+OPTION HEADERFILE esmrgui.mbg
+OPTION SOURCEDIR ../data
+OPTION SOURCEFILE ../data/iconlist.txt
+END
+

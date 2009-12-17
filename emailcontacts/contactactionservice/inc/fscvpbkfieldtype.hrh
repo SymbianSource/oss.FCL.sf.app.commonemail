@@ -1,0 +1,35 @@
+/*
+* Copyright (c) 2008 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Virtual Phonebook Field Type Additions.
+ *
+*/
+
+
+/**
+ * Field type ordering items.
+ */
+enum TFscVPkbNonVersitFieldType
+    {
+    // This is the base offset for new types. DO NOT USE!!
+    EFscVPbkNonVersitTypeOffsetBase = EVPbkNonVersitTypeCodText,
+    // Here are the newly defined field types
+    // Keep this order similar with the VPbk changes done by FreeStyle
+    // Contacts 2.0 project in 
+    // /s60/mw/contactservices/contactsrv_dom/virtual_phonebook_engine_api/inc/VPbkFieldType.hrh
+    EFscVPbkNonVersitTypeConfServiceNumber,
+    EFscVPbkNonVersitTypeConfServiceId,
+    EFscVPbkNonVersitTypeConfServicePin
+    };
+
+// End of File

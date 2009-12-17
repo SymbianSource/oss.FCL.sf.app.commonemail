@@ -1,0 +1,43 @@
+/*
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description: Build information file for email FSFWCommonLib.dll.
+*
+*/
+
+
+PRJ_EXPORTS
+
+../inc/CFSMailCommon.h |../../../../inc/CFSMailCommon.h
+../inc/CFSMailBox.h |../../../../inc/CFSMailBox.h
+../inc/CFSMailBoxBase.h |../../../../inc/CFSMailBoxBase.h
+../inc/CFSMailFolder.h |../../../../inc/CFSMailFolder.h
+../inc/CFSMailFolderBase.h |../../../../inc/CFSMailFolderBase.h
+../inc/CFSMailMessage.h |../../../../inc/CFSMailMessage.h
+../inc/CFSMailMessageBase.h |../../../../inc/CFSMailMessageBase.h
+../inc/CFSMailMessagePart.h |../../../../inc/CFSMailMessagePart.h
+../inc/CFSMailAddress.h |../../../../inc/CFSMailAddress.h
+../inc/cemailextensionbase.h |../../../../inc/cemailextensionbase.h
+../inc/cmrcalendarinfo.h |../../../../inc/cmrcalendarinfo.h
+../inc/cmailmessageext.h |../../../../inc/cmailmessageext.h
+
+../inc/mmrattachment.h |../../../../inc/mmrattachment.h
+../inc/mmrattendee.h |../../../../inc/mmrattendee.h
+../inc/mmrinfoobject.h |../../../../inc/mmrinfoobject.h
+../inc/mmrinfoprocessor.h |../../../../inc/mmrinfoprocessor.h
+../inc/mmrorganizer.h |../../../../inc/mmrorganizer.h
+../inc/mmrrecurrencerule.h |../../../../inc/mmrrecurrencerule.h
+
+PRJ_MMPFILES
+FSFWCommonLib.mmp
+

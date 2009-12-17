@@ -1,0 +1,615 @@
+/*
+* Copyright (c) 2001 - 2009 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Resource file for email branding.
+*
+*/
+
+NAME FSMB
+
+#include <eikon.rh>
+#include <data_caging_paths_strings.hrh>
+#include <google_brand_graphics.mbg>
+#include <yahoo_brand_graphics.mbg>
+#include <microsoft_brand_graphics.mbg>
+#include <ovi_brand_graphics.mbg>
+#include <aol_brand_graphics.mbg>
+
+#include "MailBrandManager.hrh"
+#include "MailBrandManager.rh"
+
+// ---------------------------------------------------------
+//   
+//    Define the resource file signature 
+//    This resource should be empty.
+//
+// ---------------------------------------------------------
+//
+RESOURCE RSS_SIGNATURE { }
+
+RESOURCE BRANDING_DATA r_branding_data
+    {
+    list_of_brands =
+        {
+        BRAND {
+
+            // Definition of Google Mail brand   
+            graphics_file_path = APP_BITMAP_DIR"\\google_brand_graphics.mif";
+
+            brand_id_match_strings =
+                {
+                BRAND_MATCH_STRING { text = "googlemail.com"; }
+                };
+            
+            graphics = 
+                {              		     		
+                BRANDABLE_GRAPHIC { id = EFSMailboxIcon; 
+                icon_id = EMbmGoogle_brand_graphicsGmail44svgtest4;
+                mask_id = EMbmGoogle_brand_graphicsGmail44svgtest4_mask; }                    
+                };
+                
+            texts = 
+                {
+                BRANDABLE_TEXT { id = EFSMailboxName; text = "Google Mail"; }
+                };
+                
+            colors =
+            	{
+            	BRANDABLE_COLOR { id = EFSMailboxNameColor; red = 0xff; green = 0x30; blue = 0x20; alpha = 0xff; }
+            	};
+             },
+             
+             BRAND {
+
+                 // Definition of GMail brand   
+                 graphics_file_path = APP_BITMAP_DIR"\\google_brand_graphics.mif";
+                 brand_id_match_strings =
+                     {
+                     BRAND_MATCH_STRING { text = "gmail.com"; }
+                     };
+                 graphics = 
+                     {                               
+                      BRANDABLE_GRAPHIC { id = EFSMailboxIcon; 
+                      icon_id = EMbmGoogle_brand_graphicsGmail44svgtest4;
+                      mask_id = EMbmGoogle_brand_graphicsGmail44svgtest4_mask; }                    
+                     };
+                     
+                 texts = 
+                     {
+                     BRANDABLE_TEXT { id = EFSMailboxName; text = "Gmail"; }
+                     };
+                     
+                 colors =
+                     {
+                     BRANDABLE_COLOR { id = EFSMailboxNameColor; red = 0xff; green = 0x30; blue = 0x20; alpha = 0xff; }
+                     };
+                  },
+            
+            BRAND {
+                // Definition of Yahoo! Mail brand   
+                graphics_file_path = APP_BITMAP_DIR"\\yahoo_brand_graphics.mif";
+
+                brand_id_match_strings =
+                    {
+                    BRAND_MATCH_STRING { text = "*ymail.com"; },
+                    BRAND_MATCH_STRING { text = "*kimo.com"; },
+                    BRAND_MATCH_STRING { text = "*geocities.com"; },
+                    BRAND_MATCH_STRING { text = "*rocketmail.com"; },
+                    BRAND_MATCH_STRING { text = "*wans.net"; },
+                    BRAND_MATCH_STRING { text = "*wans.net"; },
+                    BRAND_MATCH_STRING { text = "*yahoo.ca"; },
+                    BRAND_MATCH_STRING { text = "*yahoo.cn"; },
+                    BRAND_MATCH_STRING { text = "*yahoo.co.in"; },
+                    BRAND_MATCH_STRING { text = "*yahoo.in"; },
+                    BRAND_MATCH_STRING { text = "*yahoo.co.kr"; },
+                    BRAND_MATCH_STRING { text = "*yahoo.co.uk"; },
+                    BRAND_MATCH_STRING { text = "*yahoo.com"; },
+                    BRAND_MATCH_STRING { text = "*yahoo.com.ar"; },
+                    BRAND_MATCH_STRING { text = "*yahoo.com.br"; },
+                    BRAND_MATCH_STRING { text = "*yahoo.com.cn"; },
+                    BRAND_MATCH_STRING { text = "*yahoo.com.hk"; },
+                    BRAND_MATCH_STRING { text = "*yahoo.com.mx"; },
+                    BRAND_MATCH_STRING { text = "*yahoo.com.sg"; },
+                    BRAND_MATCH_STRING { text = "*yahoo.com.tw"; },
+                    BRAND_MATCH_STRING { text = "*yahoo.com.my"; },
+                    BRAND_MATCH_STRING { text = "*yahoo.com.vn"; },
+                    BRAND_MATCH_STRING { text = "*yahoo.com.ph"; },
+                    BRAND_MATCH_STRING { text = "*yahoo.com.tr"; },
+                    BRAND_MATCH_STRING { text = "*yahoo.com.co"; },
+                    BRAND_MATCH_STRING { text = "*yahoo.com.pe"; },
+                    BRAND_MATCH_STRING { text = "*yahoo.com.ve"; },
+                    BRAND_MATCH_STRING { text = "*yahoo.de"; },
+                    BRAND_MATCH_STRING { text = "*yahoo.dk"; },
+                    BRAND_MATCH_STRING { text = "*yahoo.es"; },
+                    BRAND_MATCH_STRING { text = "*yahoo.fr"; },
+                    BRAND_MATCH_STRING { text = "*yahoo.gr"; },
+                    BRAND_MATCH_STRING { text = "*yahoo.ie"; },
+                    BRAND_MATCH_STRING { text = "*yahoo.it"; },
+                    BRAND_MATCH_STRING { text = "*yahoo.no"; },
+                    BRAND_MATCH_STRING { text = "*yahoo.se"; },
+                    BRAND_MATCH_STRING { text = "*yahoo.co.id"; },
+                    BRAND_MATCH_STRING { text = "*yahoo.co.th"; },
+                    BRAND_MATCH_STRING { text = "*yahoo.pl"; },
+                    BRAND_MATCH_STRING { text = "*yahoo.cl"; }
+                    };
+                
+                graphics = 
+                    {
+                    BRANDABLE_GRAPHIC { id = EFSMailboxIcon;
+                    icon_id = EMbmYahoo_brand_graphicsYahoo;
+                    mask_id = EMbmYahoo_brand_graphicsYahoo_mask; }                    
+                    };
+                    
+                texts = 
+                    {
+                    BRANDABLE_TEXT { id = EFSMailboxName; text = "Yahoo! Mail"; }
+                    };
+                    
+                colors =
+                	{
+                	BRANDABLE_COLOR { id = EFSMailboxNameColor;
+                	red = 0xff; green = 0x30; blue = 0x20; alpha = 0xff; }
+                	};
+                },
+                
+          BRAND {
+                // Definition of Aol Mail brand   
+                graphics_file_path = APP_BITMAP_DIR"\\aol_brand_graphics.mif";
+
+                brand_id_match_strings =
+                {
+                    BRAND_MATCH_STRING { text = "*aol.com"; },
+                    BRAND_MATCH_STRING { text = "*aolchina.com"; },
+                    BRAND_MATCH_STRING { text = "*myaol.jp"; },
+                    BRAND_MATCH_STRING { text = "*aol.cz"; },
+                    BRAND_MATCH_STRING { text = "*aol.ch"; },
+                    BRAND_MATCH_STRING { text = "*aol.be"; },
+                    BRAND_MATCH_STRING { text = "*aol.co.nz"; },
+                    BRAND_MATCH_STRING { text = "*aol.cl"; },
+                    BRAND_MATCH_STRING { text = "*aol.kr"; },
+                    BRAND_MATCH_STRING { text = "*aol.co.uk"; },
+                    BRAND_MATCH_STRING { text = "*aol.ru"; },
+                    BRAND_MATCH_STRING { text = "*aol.com.au"; },
+                    BRAND_MATCH_STRING { text = "*aol.com.ar"; },
+                    BRAND_MATCH_STRING { text = "*aol.com.co"; },
+                    BRAND_MATCH_STRING { text = "*aol.com.ve"; },
+                    BRAND_MATCH_STRING { text = "*aol.com.mx"; },
+                    BRAND_MATCH_STRING { text = "*aol.com.tr"; },
+                    BRAND_MATCH_STRING { text = "*aol.com.br"; },
+                    BRAND_MATCH_STRING { text = "*aol.de"; },
+                    BRAND_MATCH_STRING { text = "*aol.nl"; },
+                    BRAND_MATCH_STRING { text = "*aol.es"; },
+                    BRAND_MATCH_STRING { text = "*aol.fr"; },
+                    BRAND_MATCH_STRING { text = "*aol.dk"; },
+                    BRAND_MATCH_STRING { text = "*aol.at"; },
+                    BRAND_MATCH_STRING { text = "*aol.it"; },
+                    BRAND_MATCH_STRING { text = "*aol.hk"; },
+                    BRAND_MATCH_STRING { text = "*aol.se"; },
+                    BRAND_MATCH_STRING { text = "*aol.tw"; },
+                    BRAND_MATCH_STRING { text = "*aol.jp"; }
+                    };
+                    
+                graphics = 
+                    {
+                    BRANDABLE_GRAPHIC { id = EFSMailboxIcon;
+                    icon_id = EMbmAol_brand_graphicsAol;
+                    mask_id = EMbmAol_brand_graphicsAol_mask; }                    
+                    };
+                        
+                texts = 
+                    {
+                    BRANDABLE_TEXT { id = EFSMailboxName; text = "AOL Mail"; }
+                    };
+                        
+                colors =
+                    {
+                    BRANDABLE_COLOR { id = EFSMailboxNameColor;
+                    red = 0xff; green = 0x30; blue = 0x20; alpha = 0xff; }
+                    };
+                },
+                    
+          BRAND {
+                    // Definition of Aol Mail brand   
+                    graphics_file_path = APP_BITMAP_DIR"\\aol_brand_graphics.mif";
+
+                    brand_id_match_strings =
+                    {
+                       BRAND_MATCH_STRING { text = "*aim.com"; }
+                    };
+                        
+                    graphics = 
+                    {
+                        BRANDABLE_GRAPHIC { id = EFSMailboxIcon;
+                        icon_id = EMbmAol_brand_graphicsAol;
+                        mask_id = EMbmAol_brand_graphicsAol_mask; }                    
+                    };
+                            
+                    texts = 
+                    {
+                        BRANDABLE_TEXT { id = EFSMailboxName; text = "AIM Mail"; }
+                    };
+                            
+                    colors =
+                    {
+                        BRANDABLE_COLOR { id = EFSMailboxNameColor;
+                        red = 0xff; green = 0x30; blue = 0x20; alpha = 0xff; }
+                    };
+                },
+                        
+                BRAND {
+                      // Definition of Aol Mail brand   
+                      graphics_file_path = APP_BITMAP_DIR"\\aol_brand_graphics.mif";
+
+                      brand_id_match_strings =
+                      {
+                          BRAND_MATCH_STRING { text = "*aol.pl"; }
+                      };
+                            
+                      graphics = 
+                      {
+                          BRANDABLE_GRAPHIC { id = EFSMailboxIcon;
+                          icon_id = EMbmAol_brand_graphicsAol;
+                          mask_id = EMbmAol_brand_graphicsAol_mask; }                    
+                      };
+                                
+                      texts = 
+                      {
+                          BRANDABLE_TEXT { id = EFSMailboxName; text = "AOL Poczta"; }
+                      };
+                                
+                      colors =
+                      {
+                          BRANDABLE_COLOR { id = EFSMailboxNameColor;
+                          red = 0xff; green = 0x30; blue = 0x20; alpha = 0xff; }
+                      };
+                  },
+                  BRAND {
+                          // Definition of Aol Mail brand   
+                          graphics_file_path = APP_BITMAP_DIR"\\aol_brand_graphics.mif";
+
+                          brand_id_match_strings =
+                          {
+                              BRAND_MATCH_STRING { text = "*aol.no"; }
+                          };
+                                
+                          graphics = 
+                          {
+                              BRANDABLE_GRAPHIC { id = EFSMailboxIcon;
+                              icon_id = EMbmAol_brand_graphicsAol;
+                              mask_id = EMbmAol_brand_graphicsAol_mask; }                    
+                          };
+                                    
+                          texts = 
+                          {
+                              BRANDABLE_TEXT { id = EFSMailboxName; text = "AOL epost"; }
+                          };
+                                    
+                          colors =
+                          {
+                              BRANDABLE_COLOR { id = EFSMailboxNameColor;
+                              red = 0xff; green = 0x30; blue = 0x20; alpha = 0xff; }
+                          };
+                      },
+                                
+                      BRAND {
+                            // Definition of Aol Mail brand   
+                            graphics_file_path = APP_BITMAP_DIR"\\aol_brand_graphics.mif";
+
+                            brand_id_match_strings =
+                            {
+                                BRAND_MATCH_STRING { text = "*aol.fi"; }
+                            };
+                                    
+                            graphics = 
+                            {
+                                BRANDABLE_GRAPHIC { id = EFSMailboxIcon;
+                                icon_id = EMbmAol_brand_graphicsAol;
+                                mask_id = EMbmAol_brand_graphicsAol_mask; }                    
+                            };
+                                        
+                            texts = 
+                            {
+                                BRANDABLE_TEXT { id = EFSMailboxName; text = "AOL Sähköposti"; }
+                            };
+                                        
+                            colors =
+                            {
+                                BRANDABLE_COLOR { id = EFSMailboxNameColor;
+                                red = 0xff; green = 0x30; blue = 0x20; alpha = 0xff; }
+                            };
+                      },
+
+                BRAND {
+                    // Definition of Yahoo!7 Mail brand   
+                    graphics_file_path = APP_BITMAP_DIR"\\yahoo_brand_graphics.mif";
+
+                    brand_id_match_strings =
+                        {
+                        BRAND_MATCH_STRING { text = "*y7mail.com"; },
+                        BRAND_MATCH_STRING { text = "*yahoo.com.au"; }
+                        };
+                    
+                    graphics = 
+                        {
+                        BRANDABLE_GRAPHIC { id = EFSMailboxIcon;
+                        icon_id = EMbmYahoo_brand_graphicsYahoo;
+                        mask_id = EMbmYahoo_brand_graphicsYahoo_mask; }                    
+                        };
+                        
+                    texts = 
+                        {
+                        BRANDABLE_TEXT { id = EFSMailboxName; text = "Yahoo!7 Mail"; }
+                        };
+                        
+                    colors =
+                        {
+                        BRANDABLE_COLOR { id = EFSMailboxNameColor;
+                        red = 0xff; green = 0x30; blue = 0x20; alpha = 0xff; }
+                        };
+                    },
+                    
+                    BRAND {
+                        // Definition of AT&T Yahoo! Mail brand   
+                        graphics_file_path = APP_BITMAP_DIR"\\yahoo_brand_graphics.mif";
+
+                        brand_id_match_strings =
+                            {
+                            BRAND_MATCH_STRING { text = "ameritech.net"; },
+                            BRAND_MATCH_STRING { text = "flash.net"; },
+                            BRAND_MATCH_STRING { text = "nvbell.net"; },
+                            BRAND_MATCH_STRING { text = "pacbell.net"; },
+                            BRAND_MATCH_STRING { text = "prodigy.net"; },
+                            BRAND_MATCH_STRING { text = "sbcglobal.net"; },
+                            BRAND_MATCH_STRING { text = "bellsouth.net"; },
+                            BRAND_MATCH_STRING { text = "snet.net"; },
+                            BRAND_MATCH_STRING { text = "swbell.net"; }
+                            };
+                        
+                        graphics = 
+                            {
+                            BRANDABLE_GRAPHIC { id = EFSMailboxIcon;
+                            icon_id = EMbmYahoo_brand_graphicsYahoo;
+                            mask_id = EMbmYahoo_brand_graphicsYahoo_mask; }                    
+                            };
+                            
+                        texts = 
+                            {
+                            BRANDABLE_TEXT { id = EFSMailboxName; text = "AT&T Yahoo! Mail"; }
+                            };
+                            
+                        colors =
+                            {
+                            BRANDABLE_COLOR { id = EFSMailboxNameColor;
+                            red = 0xff; green = 0x30; blue = 0x20; alpha = 0xff; }
+                            };
+                        },
+                        
+                        BRAND {
+                            // Definition of BT Yahoo! Mail brand   
+                            graphics_file_path = APP_BITMAP_DIR"\\yahoo_brand_graphics.mif";
+
+                            brand_id_match_strings =
+                                {
+                                BRAND_MATCH_STRING { text = "btinternet.com"; },
+                                BRAND_MATCH_STRING { text = "btopenworld.com"; },
+                                BRAND_MATCH_STRING { text = "talk21.com"; }
+                                };
+                            
+                            graphics = 
+                                {
+                                BRANDABLE_GRAPHIC { id = EFSMailboxIcon;
+                                icon_id = EMbmYahoo_brand_graphicsYahoo;
+                                mask_id = EMbmYahoo_brand_graphicsYahoo_mask; }                    
+                                };
+                                
+                            texts = 
+                                {
+                                BRANDABLE_TEXT { id = EFSMailboxName; text = "BT Yahoo! Mail"; }
+                                };
+                                
+                            colors =
+                                {
+                                BRANDABLE_COLOR { id = EFSMailboxNameColor;
+                                red = 0xff; green = 0x30; blue = 0x20; alpha = 0xff; }
+                                };
+                            },
+
+                            BRAND {
+                                // Definition of Rogers Yahoo! Mail brand   
+                                graphics_file_path = APP_BITMAP_DIR"\\yahoo_brand_graphics.mif";
+
+                                brand_id_match_strings =
+                                    {
+                                    BRAND_MATCH_STRING { text = "ort.rogers.com"; },
+                                    BRAND_MATCH_STRING { text = "nl.rogers.com"; },
+                                    BRAND_MATCH_STRING { text = "rogers.com"; },
+                                    BRAND_MATCH_STRING { text = "uat.rogers.com"; }
+                                    };
+                                
+                                graphics = 
+                                    {
+                                    BRANDABLE_GRAPHIC { id = EFSMailboxIcon;
+                                    icon_id = EMbmYahoo_brand_graphicsYahoo;
+                                    mask_id = EMbmYahoo_brand_graphicsYahoo_mask; }                    
+                                    };
+                                    
+                                texts = 
+                                    {
+                                    BRANDABLE_TEXT { id = EFSMailboxName; text = "Rogers Yahoo! Mail"; }
+                                    };
+                                    
+                                colors =
+                                    {
+                                    BRANDABLE_COLOR { id = EFSMailboxNameColor;
+                                    red = 0xff; green = 0x30; blue = 0x20; alpha = 0xff; }
+                                    };
+                                },
+                                
+                                BRAND {
+                                    // Definition of Verizon Yahoo! Mail brand   
+                                    graphics_file_path = APP_BITMAP_DIR"\\yahoo_brand_graphics.mif";
+
+                                    brand_id_match_strings =
+                                        {
+                                        BRAND_MATCH_STRING { text = "verizon.net"; }
+                                        };
+                                    
+                                    graphics = 
+                                        {
+                                        BRANDABLE_GRAPHIC { id = EFSMailboxIcon;
+                                        icon_id = EMbmYahoo_brand_graphicsYahoo;
+                                        mask_id = EMbmYahoo_brand_graphicsYahoo_mask; }                    
+                                        };
+                                        
+                                    texts = 
+                                        {
+                                        BRANDABLE_TEXT { id = EFSMailboxName; text = "Verizon Yahoo! Mail"; }
+                                        };
+                                        
+                                    colors =
+                                        {
+                                        BRANDABLE_COLOR { id = EFSMailboxNameColor;
+                                        red = 0xff; green = 0x30; blue = 0x20; alpha = 0xff; }
+                                        };
+                                    },
+                                    
+                                    BRAND {
+                                        // Definition of Yahoo!Xtra Mail brand   
+                                        graphics_file_path = APP_BITMAP_DIR"\\yahoo_brand_graphics.mif";
+
+                                        brand_id_match_strings =
+                                            {
+                                            BRAND_MATCH_STRING { text = "yahoo.co.nz"; }
+                                            };
+                                        
+                                        graphics = 
+                                            {
+                                            BRANDABLE_GRAPHIC { id = EFSMailboxIcon;
+                                            icon_id = EMbmYahoo_brand_graphicsYahoo;
+                                            mask_id = EMbmYahoo_brand_graphicsYahoo_mask; }                    
+                                            };
+                                            
+                                        texts = 
+                                            {
+                                            BRANDABLE_TEXT { id = EFSMailboxName; text = "Yahoo!Xtra Mail"; }
+                                            };
+                                            
+                                        colors =
+                                            {
+                                            BRANDABLE_COLOR { id = EFSMailboxNameColor;
+                                            red = 0xff; green = 0x30; blue = 0x20; alpha = 0xff; }
+                                            };
+                                        },
+                    
+            BRAND {
+                // Definition of Hotmail brand   
+                graphics_file_path = APP_BITMAP_DIR"\\microsoft_brand_graphics.mif";
+
+                brand_id_match_strings =
+                        {
+                        BRAND_MATCH_STRING { text = "*msn.com"; },
+                        BRAND_MATCH_STRING { text = "*hotmail.com"; },
+                        BRAND_MATCH_STRING { text = "*hotmail.co.uk"; },
+                        BRAND_MATCH_STRING { text = "*hotmail.co.jp"; },
+                        BRAND_MATCH_STRING { text = "*hotmail-int.com"; },
+                        BRAND_MATCH_STRING { text = "*hotmail.de"; },
+                        BRAND_MATCH_STRING { text = "*hotmail.fr"; },
+                        BRAND_MATCH_STRING { text = "*hotmail.it"; },
+                        BRAND_MATCH_STRING { text = "*hotmail.nl"; },
+                        BRAND_MATCH_STRING { text = "*hotmail.es"; },
+                        BRAND_MATCH_STRING { text = "*live.com"; },
+                        BRAND_MATCH_STRING { text = "*live.at"; },
+                        BRAND_MATCH_STRING { text = "*live.be"; },
+                        BRAND_MATCH_STRING { text = "*live.ca"; },
+                        BRAND_MATCH_STRING { text = "*live.cl"; },
+                        BRAND_MATCH_STRING { text = "*live.cn"; },
+                        BRAND_MATCH_STRING { text = "*live.de"; },
+                        BRAND_MATCH_STRING { text = "*live.dk"; },
+                        BRAND_MATCH_STRING { text = "*live.fr"; },
+                        BRAND_MATCH_STRING { text = "*live.hk"; },
+                        BRAND_MATCH_STRING { text = "*live.it"; },
+                        BRAND_MATCH_STRING { text = "*live.jp"; },
+                        BRAND_MATCH_STRING { text = "*live.nl"; },
+                        BRAND_MATCH_STRING { text = "*live.no"; },
+                        BRAND_MATCH_STRING { text = "*live.ph"; },
+                        BRAND_MATCH_STRING { text = "*live.ru"; },
+                        BRAND_MATCH_STRING { text = "*live.se"; },
+                        BRAND_MATCH_STRING { text = "*live.ie"; },
+                        BRAND_MATCH_STRING { text = "*live.in"; },
+                        BRAND_MATCH_STRING { text = "*live.co.kr"; },
+                        BRAND_MATCH_STRING { text = "*live.co.uk"; },
+                        BRAND_MATCH_STRING { text = "*live.co.za"; },
+                        BRAND_MATCH_STRING { text = "*live.com.ar"; },
+                        BRAND_MATCH_STRING { text = "*live.com.au"; },
+                        BRAND_MATCH_STRING { text = "*live.com.mx"; },
+                        BRAND_MATCH_STRING { text = "*live.com.my"; },
+                        BRAND_MATCH_STRING { text = "*live.com.pe"; },
+                        BRAND_MATCH_STRING { text = "*live.com.pk"; },
+                        BRAND_MATCH_STRING { text = "*live.com.pt"; },
+                        BRAND_MATCH_STRING { text = "*live.com.sg"; },
+                        BRAND_MATCH_STRING { text = "*live.com.ve"; },
+                        BRAND_MATCH_STRING { text = "*live.com.ph"; },
+                        BRAND_MATCH_STRING { text = "*livemail.com.br"; },
+                        BRAND_MATCH_STRING { text = "*livemail.tw"; },
+                        BRAND_MATCH_STRING { text = "*mibli.com"; },
+                        BRAND_MATCH_STRING { text = "*oxicash.in"; },
+                        BRAND_MATCH_STRING { text = "*windowslive.com"; },
+                        BRAND_MATCH_STRING { text = "*windowslive.es"; }
+                        };
+                
+                graphics = 
+                        {
+                        BRANDABLE_GRAPHIC { id = EFSMailboxIcon; 
+                        icon_id = EMbmMicrosoft_brand_graphicsMicrosoft;
+                        mask_id = EMbmMicrosoft_brand_graphicsMicrosoft_mask; }                    
+                        };
+                    
+                texts = 
+                        {
+                        BRANDABLE_TEXT { id = EFSMailboxName; text = "Hotmail"; }
+                        };
+                    
+                colors =
+                        {
+                        BRANDABLE_COLOR { id = EFSMailboxNameColor; red = 0xff; green = 0x30; blue = 0x20; alpha = 0xff; }
+                        };
+                },
+                
+                BRAND {
+        	    // definition of OVI brand
+        	    graphics_file_path = APP_BITMAP_DIR"\\ovi_brand_graphics.mif";
+
+        	    brand_id_match_strings =
+                    {
+                    BRAND_MATCH_STRING { text = "*ovi.com"; }
+                    };
+            
+        	    graphics = 
+                    {
+                    BRANDABLE_GRAPHIC { id = EFSMailboxIcon;
+                    icon_id = EMbmOvi_brand_graphicsOvi;
+                    mask_id = EMbmOvi_brand_graphicsOvi_mask; }                    
+                    };
+                
+        	    texts = 
+                    {
+                    BRANDABLE_TEXT { id = EFSMailboxName; text = "Ovi Mail"; }
+                    };
+                
+        	    colors =
+                    {
+                    BRANDABLE_COLOR { id = EFSMailboxNameColor; red = 0xff; green = 0x30; blue = 0x20; alpha = 0xff; }
+                    };
+            }
+        };
+    }

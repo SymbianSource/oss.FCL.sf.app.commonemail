@@ -1,0 +1,87 @@
+/*
+* Copyright (c)  Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Project definition file for project esmricalviewer
+*
+*/
+
+
+#include "../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
+#include "../../inc/esmrinternaluid.h"
+#include <data_caging_paths.hrh>
+#include <platform_paths.hrh>
+
+TARGET                  esmricalviewer.dll
+TARGETTYPE              PLUGIN
+UID                     KEComRecognitionUID2 KESMRIcalViewerDllUid
+
+CAPABILITY              CAP_ECOM_PLUGIN
+VENDORID                VID_DEFAULT
+
+VERSION                 KEmailBinaryVersionNumber
+KEmailBinaryDemandPaging
+
+SOURCEPATH              ../data
+START RESOURCE          2001846B.rss // <cmail>
+TARGET                  esmricalviewer.rsc
+END
+
+SOURCEPATH              ../src
+SOURCE                  cesmricalviewermain.cpp
+SOURCE                  cesmricalviewerimpl.cpp
+SOURCE                  cesmricalviewercmdhandler.cpp
+SOURCE                  cesmricalviewercommandbase.cpp
+SOURCE                  cesmricalviewerasynccommand.cpp
+SOURCE                  cesmricalviewerloadmrdatacmd.cpp
+SOURCE                  cesmrmrinfoicalretriever.cpp
+SOURCE                  cesmrinforecurrencehandler.cpp
+SOURCE                  cesmrimapicalretriever.cpp
+SOURCE                  cesmrimapmailfetcher.cpp
+SOURCE                  cesmricalvieweropenmrcmd.cpp
+SOURCE                  cesmruilauncher.cpp
+SOURCE                  cesmricalviewercanviewmr.cpp
+SOURCE                  cesmricalviewerresolvemrmethodsync.cpp
+SOURCE                  cesmricalviewerresolvemrmethodasync.cpp
+SOURCE                  cesmricalviewerresponsetomrcmd.cpp
+SOURCE                  cesmricalviewerremovemrfromcalcmd.cpp
+SOURCE                  cesmricalvieweremailasynccmd.cpp
+SOURCE                  cesmricalvieweremailsynccmd.cpp
+SOURCE                  esmricalviewerutils.cpp
+
+USERINCLUDE             .
+USERINCLUDE             ../inc
+USERINCLUDE             ../../inc
+
+APP_LAYER_SYSTEMINCLUDE
+
+USERINCLUDE             ../../../inc
+SYSTEMINCLUDE           /epoc32/include/ecom
+
+LIBRARY                 euser.lib
+LIBRARY                 fsmailframework.lib
+LIBRARY                 fsfwcommonlib.lib
+LIBRARY                 esmrservices.lib
+LIBRARY                 esmrviewer.lib
+
+LIBRARY                 calinterimapi.lib
+LIBRARY                 caleninterimutils2.lib
+LIBRARY                 ecom.lib
+LIBRARY                 eikcore.lib
+LIBRARY                 cone.lib
+LIBRARY                 charconv.lib
+LIBRARY                 estor.lib
+LIBRARY                 efsrv.lib
+LIBRARY                 esmrcommon.lib             
+LIBRARY                 cmaillogger.lib
+
+// end of file

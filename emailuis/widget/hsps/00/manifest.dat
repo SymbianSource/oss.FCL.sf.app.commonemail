@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<package version="1.0">
+
+   <family>qhd_tch</family>
+
+   <type>widget</type>
+
+   <!-- interface uid -->
+   <interfaceuid>0x2001f48a</interfaceuid>
+
+    <!-- vendor uid  -->
+    <provideruid>0x101fb657</provideruid>
+
+    <!-- uid -->
+    <configurationuid>0x2001E272</configurationuid>
+
+    <!-- description -->
+    <fullname>&amp;qtn_hscr_email;</fullname>
+    <shortname>EW</shortname>
+    <version>1.0</version>
+
+    <!-- configuration -->
+    <filexml>widgetconfiguration.xml</filexml>
+	
+    <!-- Name of the localization files -->
+    <filedtd>emailwidgetconfiguration.dtd</filedtd>
+
+    <!-- Locale specific resources -->
+    <localization>
+        <fileresource>EW.o0000</fileresource>
+    </localization>
+
+    <!-- Instances of widget per one homescreen -->	
+    <multiinstance>3</multiinstance>
+	
+</package>

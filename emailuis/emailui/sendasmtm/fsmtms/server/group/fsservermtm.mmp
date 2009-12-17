@@ -1,0 +1,56 @@
+/*
+* Copyright (c) 2007 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Project definition file for Freestyle Server MTM implementation
+*
+*/
+
+
+#include <platform_paths.hrh>
+#include <msvstd.hrh>                      // KUidMtmServerComponentVal
+
+#include "../../../inc/fsmtmsuids.h"           // KUidFsServerMtmVal
+#include "../../../../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
+
+TARGET               fsservermtm.dll
+TARGETTYPE           dll
+
+UID                  KUidMtmServerComponentVal KUidFsServerMtmVal
+
+VENDORID             VID_DEFAULT
+CAPABILITY           CAP_ECOM_PLUGIN
+
+VERSION              KEmailBinaryVersionNumber
+KEmailBinaryDemandPaging
+
+SOURCEPATH           ../src
+SOURCE               cfsservermtm.cpp
+
+USERINCLUDE          ../inc
+USERINCLUDE          ../../../inc
+
+
+APP_LAYER_SYSTEMINCLUDE
+
+
+
+USERINCLUDE ../../../../../../inc
+
+LANGUAGE_IDS
+
+
+LIBRARY               	euser.lib
+LIBRARY               	msgs.lib        // for CBaseServerMtm
+LIBRARY			centralrepository.lib
+LIBRARY                 cmaillogger.lib
+

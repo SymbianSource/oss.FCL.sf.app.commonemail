@@ -1,0 +1,244 @@
+/*
+* Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Freestyle Email settings list resources
+*
+*/
+
+#include "FreestyleEmailUiSettings.hrh"
+#include <freestyleemailui.loc>
+
+RESOURCE AVKON_VIEW r_fs_email_settings_list_view
+	{
+	cba = r_freestyle_emauil_ui_settings_list_options_back__open;
+	menubar = r_fs_email_settings_list_options_menu;
+	
+	}
+RESOURCE CBA r_freestyle_emauil_ui_settings_list_options_back__open
+     {
+     buttons =
+         {
+         CBA_BUTTON 
+             {
+             id = EAknSoftkeyOptions; 
+             txt = text_softkey_option;
+             },
+             
+         CBA_BUTTON
+             {
+             id = EAknSoftkeyBack;
+             txt = text_softkey_back;
+             },
+        
+         CBA_BUTTON 
+           {
+            id=EAknSoftkeyOpen;
+             txt=qtn_options_open;
+                    
+           }
+             
+         };
+     }
+
+RESOURCE MENU_BAR r_fs_email_settings_list_options_menu
+	{
+	titles =
+		{
+		MENU_TITLE
+			{
+			menu_pane = r_fs_email_settings_list_menu_pane;
+			}
+		};
+
+	}
+
+RESOURCE MENU_PANE r_fs_email_settings_list_menu_pane
+	{
+	items =
+		{
+		MENU_ITEM
+			{
+			command = EFsEmailUiCmdOpen;
+			txt = qtn_options_open;
+			},
+		MENU_ITEM
+			{
+			command = EFsEmailUiCmdSettingsAddAccount;
+			txt = qtn_fse_launcher_settings_view_options_add_new_mailbox;
+			},
+		MENU_ITEM
+			{
+			command = EFsEmailUiCmdSettingsRemoveAccount;
+			txt = qtn_fse_launcher_settings_view_options_remove_mailbox;
+			},
+		MENU_ITEM
+			{
+			command = EFsEmailUiCmdHelp;
+			txt = qtn_options_help;
+			},
+		MENU_ITEM
+			{
+			command = EFsEmailUiCmdExit;
+			txt = qtn_options_exit;
+			}
+		};
+	}
+
+
+RESOURCE LISTBOX r_fs_email_settings_list_list_box
+	{
+	flags = EAknListBoxSelectionList;
+	}
+
+
+RESOURCE TBUF r_fs_email_settings_list_global_settings_txt
+{
+	buf = qtn_fse_launcher_global_settings;
+}
+
+RESOURCE TBUF r_fs_email_settings_list_pim_settings_txt
+{
+	buf = qtn_fse_launcher_personal_information_management_settings;
+}
+
+RESOURCE TBUF r_fs_email_settings_title
+{
+	buf = qtn_fse_launcher_settings_view_title;
+}
+
+RESOURCE TBUF r_fs_email_pim_settings_title
+{
+    buf = qtn_fse_settings_pim_settings_title;
+}
+
+RESOURCE TBUF r_fs_email_settings_remove_mailbox_txt
+{
+	buf = qtn_fse_launcher_settings_remove_mailbox_query;
+}
+
+RESOURCE TBUF r_fs_email_settings_add_mailbox_txt
+{
+	buf = qtn_fse_query_no_mailbox;
+}
+
+RESOURCE TBUF r_fs_email_settings_pim_service_txt
+{
+	buf = qtn_fse_settings_pim_settings_pim_service;
+}
+
+RESOURCE DIALOG r_fs_wait_note_removing_mailbox
+	{
+	flags = EAknWaitNoteFlags | EEikDialogFlagNotifyEsc;
+	buttons = R_AVKON_SOFTKEYS_EMPTY;
+	items =
+	    {
+	    DLG_LINE
+	        {
+	        type = EAknCtNote;
+	        id = EFSMailBoxDeleteWaitNoteId;
+	        control= AVKON_NOTE 
+	            { 
+	            layout = EWaitLayout;
+	            singular_label = qtn_fse_wait_note_removing_mailbox;
+	            animation = R_QGN_GRAF_WAIT_BAR_ANIM;
+	            };
+	        }
+	    };
+	}
+
+// SETTINGS DIALOG
+RESOURCE DIALOG r_fs_pimsettingitemlist_dialog
+	{
+	flags = EEikDialogFlagNoDrag | EEikDialogFlagFillAppClientRect |
+	EEikDialogFlagWait | EEikDialogFlagCbaButtons | EEikDialogFlagNoTitleBar;
+	buttons = r_fse_customdialog_cba;
+	items =
+		{
+		DLG_LINE
+			{
+			type = EAknCtLastControlId;
+			id = 4;
+			control = AVKON_SETTING_ITEM_LIST
+				{
+				flags = EAknSettingItemNumberedStyle;
+				title = qtn_fse_settings_pim_settings_title;
+				items =
+					{
+					AVKON_SETTING_ITEM
+						{
+						identifier = 0;
+						name = qtn_fse_settings_pim_settings_pim_service;
+						setting_page_resource = r_fs_pimpopup;
+						associated_resource = r_fse_settings_pim;
+						}
+					};
+				};
+			}
+		};
+	}
+
+RESOURCE CBA r_fse_customdialog_cba
+	{
+	buttons = 
+		{
+		CBA_BUTTON
+			{
+			id = EFSEmailUiPIMDialogChange;
+			txt = qtn_options_change;
+			},
+		CBA_BUTTON
+			{
+			id = EFSEmailUiPIMDialogBack;
+			txt = text_softkey_back;
+			}
+		};
+	}
+
+RESOURCE AVKON_SETTING_PAGE r_fs_pimpopup
+	{
+	number = 1;
+	hint_text = qtn_fse_settings_pim_settings_pim_service;
+	label = qtn_fse_settings_pim_settings_pim_service;
+	type = EAknCtPopupSettingList;
+	editor_resource_id = r_fse_settings_pim_editor_resource;
+	}
+
+RESOURCE POPUP_SETTING_LIST r_fse_settings_pim_editor_resource
+	{
+	}
+
+RESOURCE AVKON_POPUP_SETTING_TEXTS r_fse_settings_pim
+	{
+	setting_texts_resource = r_fse_settings_pim_texts_resource;
+	popped_up_texts_resource = r_fse_settings_pim_popped_up_texts_resource;
+	}
+
+RESOURCE ARRAY r_fse_settings_pim_texts_resource
+	{
+	items =
+		{
+		AVKON_ENUMERATED_TEXT
+			{
+			value = 0;
+			}
+		};
+	}
+
+RESOURCE ARRAY r_fse_settings_pim_popped_up_texts_resource
+	{
+	items =
+		{
+		LBUF
+			{}
+		};
+	}

@@ -1,0 +1,30 @@
+/*
+* Copyright (c) 2008 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Localization strings for meeting request action service plugin
+*
+*/
+
+
+// d:Send meeting request contact action menu text
+// l:fs_action_menu_text
+// r:TB9.1
+//
+#define qtn_fs_action_meeting	"Send meeting request"
+
+// d:Note is displayed if some of the selected contacts
+// d:have no email defined for meeting request actions
+// l:popup_note_window
+// r:TB9.1
+//
+#define qtn_fs_query_info_missing	"Email missing from %0N/%1N contacts. Continue anyway?"

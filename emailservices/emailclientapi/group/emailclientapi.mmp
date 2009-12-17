@@ -1,0 +1,66 @@
+/*
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Project definition file.
+*
+*
+*/
+
+#include <platform_paths.hrh>
+#include "../inc/emailclientapiimpl.hrh"
+
+TARGET          emailclientapi.dll
+TARGETTYPE      PLUGIN
+UID             0x10009D8D KEmailClientApiDllUid
+CAPABILITY      CAP_ECOM_PLUGIN
+
+VENDORID        VID_DEFAULT
+
+SOURCEPATH 		../src
+SOURCE          emailclientapiimpl.cpp
+SOURCE          emailinterfacefactoryimpl.cpp
+SOURCE          implproxy.cpp
+SOURCE          emailapiutils.cpp
+SOURCE          emailmailbox.cpp
+SOURCE          emailaddress.cpp
+SOURCE          emailfolder.cpp
+SOURCE          emailmessage.cpp
+SOURCE          emailmailboxcache.cpp
+SOURCE          messageiterator.cpp
+SOURCE 			emailcontent.cpp
+SOURCE 			emailmessagesearch.cpp 
+SOURCE 			emailattachment.cpp 
+SOURCE			emailtextcontent.cpp
+SOURCE 			emailmultipart.cpp
+
+//user include
+USERINCLUDE	  ../inc
+USERINCLUDE   ../../../inc
+
+//system include
+
+APP_LAYER_SYSTEMINCLUDE
+
+
+SOURCEPATH              ../data
+START RESOURCE          emailclientapi.rss
+END
+
+
+LIBRARY bafl.lib
+LIBRARY euser.lib
+LIBRARY ECom.lib
+LIBRARY FSFWCommonLib.lib
+LIBRARY FSMailFramework.lib
+LIBRARY efsrv.lib viewcli.lib
+

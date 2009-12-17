@@ -1,0 +1,19 @@
+EXPORTS
+	?NewL@CESMRPolicy@@SAPAV1@AAVRResourceFile@@AAVTResourceReader@@@Z @ 1 NONAME ; class CESMRPolicy * CESMRPolicy::NewL(class RResourceFile &, class TResourceReader &)
+	?IsRoleIncluded@CESMRPolicy@@QBEHW4TESMRRole@@@Z @ 2 NONAME ; int CESMRPolicy::IsRoleIncluded(enum TESMRRole) const
+	??1CESMRPolicyManager@@UAE@XZ @ 3 NONAME ; CESMRPolicyManager::~CESMRPolicyManager(void)
+	?ReadPolicyFromResourceL@CESMRPolicyManager@@QAEXABVTDesC16@@H@Z @ 4 NONAME ; void CESMRPolicyManager::ReadPolicyFromResourceL(class TDesC16 const &, int)
+	?EventType@CESMRPolicy@@QBE?AW4TESMRCalendarEventType@@XZ @ 5 NONAME ; enum TESMRCalendarEventType CESMRPolicy::EventType(void) const
+	?ResolvePolicyL@CESMRPolicyManager@@QAEXABVTESMRScenarioData@@AAVMESMRCalEntry@@PAVMESMRPolicyChecker@@@Z @ 6 NONAME ; void CESMRPolicyManager::ResolvePolicyL(class TESMRScenarioData const &, class MESMRCalEntry &, class MESMRPolicyChecker *)
+	?IsFieldIncluded@CESMRPolicy@@QBEHW4TESMREntryFieldId@@@Z @ 7 NONAME ; int CESMRPolicy::IsFieldIncluded(enum TESMREntryFieldId) const
+	?FieldL@CESMRPolicy@@QBEABVTESMREntryField@@W4TESMREntryFieldId@@@Z @ 8 NONAME ; class TESMREntryField const & CESMRPolicy::FieldL(enum TESMREntryFieldId) const
+	?PushPolicyL@CESMRPolicyManager@@QAEXXZ @ 9 NONAME ; void CESMRPolicyManager::PushPolicyL(void)
+	?PopPolicy@CESMRPolicyManager@@QAEPAVCESMRPolicy@@XZ @ 10 NONAME ; class CESMRPolicy * CESMRPolicyManager::PopPolicy(void)
+	?ExtensionUid@CESMRPolicyManager@@SA?AVTUid@@XZ @ 11 NONAME ; class TUid CESMRPolicyManager::ExtensionUid(void)
+	?NewL@CESMRPolicyManager@@SAPAV1@XZ @ 12 NONAME ; class CESMRPolicyManager * CESMRPolicyManager::NewL(void)
+	??1CESMRPolicy@@UAE@XZ @ 13 NONAME ; CESMRPolicy::~CESMRPolicy(void)
+	?IsAdditionalCommand@CESMRPolicy@@QBEHH@Z @ 14 NONAME ; int CESMRPolicy::IsAdditionalCommand(int) const
+	?IsDefaultCommand@CESMRPolicy@@QBEHH@Z @ 15 NONAME ; int CESMRPolicy::IsDefaultCommand(int) const
+	?ReadFromResourceL@CESMRPolicy@@QAEXAAVRResourceFile@@AAVTResourceReader@@@Z @ 16 NONAME ; void CESMRPolicy::ReadFromResourceL(class RResourceFile &, class TResourceReader &)
+	?NewL@CESMRPolicy@@SAPAV1@XZ @ 17 NONAME ; class CESMRPolicy * CESMRPolicy::NewL(void)
+

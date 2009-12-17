@@ -1,0 +1,6 @@
+EXPORTS
+	?NewL@CPbkxRclSearchEngine@@SAPAV1@XZ @ 1 NONAME ; class CPbkxRclSearchEngine * CPbkxRclSearchEngine::NewL(void)
+	?NewL@CPbkxRclSettingsEngine@@SAPAV1@XZ @ 2 NONAME ; class CPbkxRclSettingsEngine * CPbkxRclSettingsEngine::NewL(void)
+	?NewLC@CPbkxRclSearchEngine@@SAPAV1@XZ @ 3 NONAME ; class CPbkxRclSearchEngine * CPbkxRclSearchEngine::NewLC(void)
+	?NewLC@CPbkxRclSettingsEngine@@SAPAV1@XZ @ 4 NONAME ; class CPbkxRclSettingsEngine * CPbkxRclSettingsEngine::NewLC(void)
+

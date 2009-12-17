@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!--
+============================================================================
+<FileName: "emailwidgetconfiguration.dtd">
+<PartOf  : "CMail / Email Widget">
+
+<FileDescription: "Localization strings for Email Widget">
+<FileVersion    : >
+
+<Copyright:
+"Copyright © 2008 Nokia Corporation.
+This material, including documentation and any related
+computer programs, is protected by copyright controlled by
+Nokia Corporation. All rights are reserved. Copying,
+including reproducing, storing,  adapting or translating, any
+or all of this material requires the prior written consent of
+Nokia Corporation. This material also contains confidential
+information which may not be disclosed to others without the
+prior written consent of Nokia Corporation.">
+============================================================================
+-->
+
+<!--
+qtn_hscr_email.attributes
+qtn_hscr_email.layout "ai_gene_pane_1_t1"
+qtn_hscr_email.release "TB9.1"
+qtn_hscr_email.description "Email widget"
+qtn_hscr_email.parents "ai_gene_pane_1"
+-->
+<!ENTITY qtn_hscr_email "Cmail widget">
+
+<!-- End of File -->

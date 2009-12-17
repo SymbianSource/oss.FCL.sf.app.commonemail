@@ -1,0 +1,78 @@
+EXPORTS
+	?AddComponentL@CESMRICalBase@@QAEAAVCESMRICalComponent@@W4TICalComponentType@1@@Z @ 1 NONAME ; class CESMRICalComponent & CESMRICalBase::AddComponentL(enum CESMRICalBase::TICalComponentType)
+	?AddPropertyL@CESMRICalBase@@QAEAAVCESMRICalProperty@@ABVTDesC16@@0@Z @ 2 NONAME ; class CESMRICalProperty & CESMRICalBase::AddPropertyL(class TDesC16 const &, class TDesC16 const &)
+	?AddPropertyL@CESMRICalBase@@QAEAAVCESMRICalProperty@@ABVTDesC16@@PAVCESMRICalValue@@@Z @ 3 NONAME ; class CESMRICalProperty & CESMRICalBase::AddPropertyL(class TDesC16 const &, class CESMRICalValue *)
+	?AddPropertyParamL@CESMRICalProperty@@QAEAAVCESMRICalPropertyParam@@ABVTDesC16@@0@Z @ 4 NONAME ; class CESMRICalPropertyParam & CESMRICalProperty::AddPropertyParamL(class TDesC16 const &, class TDesC16 const &)
+	?AddPropertyParamL@CESMRICalProperty@@QAEAAVCESMRICalPropertyParam@@ABVTDesC16@@PAVCESMRICalValue@@@Z @ 5 NONAME ; class CESMRICalPropertyParam & CESMRICalProperty::AddPropertyParamL(class TDesC16 const &, class CESMRICalValue *)
+	?AddValueL@CESMRICalProperty@@QAEXABVTDesC16@@@Z @ 6 NONAME ; void CESMRICalProperty::AddValueL(class TDesC16 const &)
+	?AddValueL@CESMRICalProperty@@QAEXPAVCESMRICalValue@@@Z @ 7 NONAME ; void CESMRICalProperty::AddValueL(class CESMRICalValue *)
+	?AddValueL@CESMRICalPropertyParam@@QAEXABVTDesC16@@@Z @ 8 NONAME ; void CESMRICalPropertyParam::AddValueL(class TDesC16 const &)
+	?AddValueL@CESMRICalPropertyParam@@QAEXPAVCESMRICalValue@@@Z @ 9 NONAME ; void CESMRICalPropertyParam::AddValueL(class CESMRICalValue *)
+	?BinaryLC@CESMRICalValue@@QBEPAVHBufC8@@XZ @ 10 NONAME ; class HBufC8 * CESMRICalValue::BinaryLC(void) const
+	?BooleanL@CESMRICalValue@@QBEHXZ @ 11 NONAME ; int CESMRICalValue::BooleanL(void) const
+	?Cal@CESMRICalParser@@QAEAAVCESMRICal@@H@Z @ 12 NONAME ; class CESMRICal & CESMRICalParser::Cal(int)
+	?CalCount@CESMRICalParser@@QBEHXZ @ 13 NONAME ; int CESMRICalParser::CalCount(void) const
+	?ComponentExists@CESMRICalBase@@QBEHW4TICalComponentType@1@@Z @ 14 NONAME ; int CESMRICalBase::ComponentExists(enum CESMRICalBase::TICalComponentType) const
+	?Components@CESMRICalBase@@QBEABV?$RPointerArray@VCESMRICalComponent@@@@XZ @ 15 NONAME ; class RPointerArray<class CESMRICalComponent> const & CESMRICalBase::Components(void) const
+	?CreateICalComponentL@CESMRICalComponent@@SAPAV1@ABVTDesC16@@W4TICalMethod@CESMRICalBase@@@Z @ 16 NONAME ; class CESMRICalComponent * CESMRICalComponent::CreateICalComponentL(class TDesC16 const &, enum CESMRICalBase::TICalMethod)
+	?CreateICalComponentL@CESMRICalComponent@@SAPAV1@W4TICalComponentType@CESMRICalBase@@W4TICalMethod@3@@Z @ 17 NONAME ; class CESMRICalComponent * CESMRICalComponent::CreateICalComponentL(enum CESMRICalBase::TICalComponentType, enum CESMRICalBase::TICalMethod)
+	?CreateICalComponentLC@CESMRICalComponent@@SAPAV1@ABVTDesC16@@W4TICalMethod@CESMRICalBase@@@Z @ 18 NONAME ; class CESMRICalComponent * CESMRICalComponent::CreateICalComponentLC(class TDesC16 const &, enum CESMRICalBase::TICalMethod)
+	?CreateICalComponentLC@CESMRICalComponent@@SAPAV1@W4TICalComponentType@CESMRICalBase@@W4TICalMethod@3@@Z @ 19 NONAME ; class CESMRICalComponent * CESMRICalComponent::CreateICalComponentLC(enum CESMRICalBase::TICalComponentType, enum CESMRICalBase::TICalMethod)
+	?DurationL@CESMRICalValue@@QBE?AVTTimeIntervalSeconds@@XZ @ 20 NONAME ; class TTimeIntervalSeconds CESMRICalValue::DurationL(void) const
+	?ExternalizeL@CESMRICal@@QAEXAAVRWriteStream@@@Z @ 21 NONAME ; void CESMRICal::ExternalizeL(class RWriteStream &)
+	?FindParam@CESMRICalProperty@@QBEPBVCESMRICalPropertyParam@@ABVTDesC16@@@Z @ 22 NONAME ; class CESMRICalPropertyParam const * CESMRICalProperty::FindParam(class TDesC16 const &) const
+	?FindProperty@CESMRICalBase@@QBEPBVCESMRICalProperty@@ABVTDesC16@@@Z @ 23 NONAME ; class CESMRICalProperty const * CESMRICalBase::FindProperty(class TDesC16 const &) const
+	?FreqL@CESMRICalRuleSegment@@QBE?AW4TFreq@1@XZ @ 24 NONAME ; enum CESMRICalRuleSegment::TFreq CESMRICalRuleSegment::FreqL(void) const
+	?GetDateL@CESMRICalValue@@QBEXAAVTTime@@@Z @ 25 NONAME ; void CESMRICalValue::GetDateL(class TTime &) const
+	?GetDateTimeL@CESMRICalValue@@QBEXAAVTTime@@AAW4TTimeZoneType@1@H@Z @ 26 NONAME ; void CESMRICalValue::GetDateTimeL(class TTime &, enum CESMRICalValue::TTimeZoneType &, int) const
+	?GetDayL@CESMRICalValue@@QBEXAAW4TDay@@AAH@Z @ 27 NONAME ; void CESMRICalValue::GetDayL(enum TDay &, int &) const
+	?GetFloatL@CESMRICalValue@@QBEXAAN@Z @ 28 NONAME ; void CESMRICalValue::GetFloatL(double &) const
+	?GetPeriodL@CESMRICalValue@@QBEXAAVTTime@@AAW4TTimeZoneType@1@01@Z @ 29 NONAME ; void CESMRICalValue::GetPeriodL(class TTime &, enum CESMRICalValue::TTimeZoneType &, class TTime &, enum CESMRICalValue::TTimeZoneType &) const
+	?GetRecurrenceRuleL@CESMRICalValue@@QBEXAAV?$RPointerArray@VCESMRICalRuleSegment@@@@@Z @ 30 NONAME ; void CESMRICalValue::GetRecurrenceRuleL(class RPointerArray<class CESMRICalRuleSegment> &) const
+	?GetTimeL@CESMRICalValue@@QBEXAAVTTime@@AAW4TTimeZoneType@1@@Z @ 31 NONAME ; void CESMRICalValue::GetTimeL(class TTime &, enum CESMRICalValue::TTimeZoneType &) const
+	?IntegerL@CESMRICalValue@@QBEHXZ @ 32 NONAME ; int CESMRICalValue::IntegerL(void) const
+	?InternalizeL@CESMRICalParser@@QAEXAAVRReadStream@@@Z @ 33 NONAME ; void CESMRICalParser::InternalizeL(class RReadStream &)
+	?MonthL@CESMRICalValue@@QBE?AW4TMonth@@XZ @ 34 NONAME ; enum TMonth CESMRICalValue::MonthL(void) const
+	?NewL@CESMRICal@@SAPAV1@XZ @ 35 NONAME ; class CESMRICal * CESMRICal::NewL(void)
+	?NewL@CESMRICalParser@@SAPAV1@XZ @ 36 NONAME ; class CESMRICalParser * CESMRICalParser::NewL(void)
+	?NewL@CESMRICalProperty@@SAPAV1@ABVTDesC16@@0@Z @ 37 NONAME ; class CESMRICalProperty * CESMRICalProperty::NewL(class TDesC16 const &, class TDesC16 const &)
+	?NewL@CESMRICalProperty@@SAPAV1@ABVTDesC16@@PAVCESMRICalValue@@@Z @ 38 NONAME ; class CESMRICalProperty * CESMRICalProperty::NewL(class TDesC16 const &, class CESMRICalValue *)
+	?NewL@CESMRICalPropertyParam@@SAPAV1@ABVTDesC16@@0@Z @ 39 NONAME ; class CESMRICalPropertyParam * CESMRICalPropertyParam::NewL(class TDesC16 const &, class TDesC16 const &)
+	?NewL@CESMRICalPropertyParam@@SAPAV1@ABVTDesC16@@PAVCESMRICalValue@@@Z @ 40 NONAME ; class CESMRICalPropertyParam * CESMRICalPropertyParam::NewL(class TDesC16 const &, class CESMRICalValue *)
+	?NewL@CESMRICalValue@@SAPAV1@XZ @ 41 NONAME ; class CESMRICalValue * CESMRICalValue::NewL(void)
+	?NewLC@CESMRICal@@SAPAV1@XZ @ 42 NONAME ; class CESMRICal * CESMRICal::NewLC(void)
+	?NewLC@CESMRICalParser@@SAPAV1@XZ @ 43 NONAME ; class CESMRICalParser * CESMRICalParser::NewLC(void)
+	?NewLC@CESMRICalProperty@@SAPAV1@ABVTDesC16@@0@Z @ 44 NONAME ; class CESMRICalProperty * CESMRICalProperty::NewLC(class TDesC16 const &, class TDesC16 const &)
+	?NewLC@CESMRICalProperty@@SAPAV1@ABVTDesC16@@PAVCESMRICalValue@@@Z @ 45 NONAME ; class CESMRICalProperty * CESMRICalProperty::NewLC(class TDesC16 const &, class CESMRICalValue *)
+	?NewLC@CESMRICalPropertyParam@@SAPAV1@ABVTDesC16@@0@Z @ 46 NONAME ; class CESMRICalPropertyParam * CESMRICalPropertyParam::NewLC(class TDesC16 const &, class TDesC16 const &)
+	?NewLC@CESMRICalPropertyParam@@SAPAV1@ABVTDesC16@@PAVCESMRICalValue@@@Z @ 47 NONAME ; class CESMRICalPropertyParam * CESMRICalPropertyParam::NewLC(class TDesC16 const &, class CESMRICalValue *)
+	?NewLC@CESMRICalValue@@SAPAV1@XZ @ 48 NONAME ; class CESMRICalValue * CESMRICalValue::NewLC(void)
+	?Parameters@CESMRICalProperty@@QBEABV?$RPointerArray@VCESMRICalPropertyParam@@@@XZ @ 49 NONAME ; class RPointerArray<class CESMRICalPropertyParam> const & CESMRICalProperty::Parameters(void) const
+	?Properties@CESMRICalBase@@QBEABV?$RPointerArray@VCESMRICalProperty@@@@XZ @ 50 NONAME ; class RPointerArray<class CESMRICalProperty> const & CESMRICalBase::Properties(void) const
+	?SetBinaryL@CESMRICalValue@@QAEXABVTDesC8@@@Z @ 51 NONAME ; void CESMRICalValue::SetBinaryL(class TDesC8 const &)
+	?SetBooleanL@CESMRICalValue@@QAEXH@Z @ 52 NONAME ; void CESMRICalValue::SetBooleanL(int)
+	?SetDateL@CESMRICalValue@@QAEXABVTTime@@@Z @ 53 NONAME ; void CESMRICalValue::SetDateL(class TTime const &)
+	?SetDateTimeL@CESMRICalValue@@QAEXABVTTime@@W4TTimeZoneType@1@@Z @ 54 NONAME ; void CESMRICalValue::SetDateTimeL(class TTime const &, enum CESMRICalValue::TTimeZoneType)
+	?SetDayL@CESMRICalValue@@QAEXW4TDay@@H@Z @ 55 NONAME ; void CESMRICalValue::SetDayL(enum TDay, int)
+	?SetDurationL@CESMRICalValue@@QAEXVTTimeIntervalSeconds@@@Z @ 56 NONAME ; void CESMRICalValue::SetDurationL(class TTimeIntervalSeconds)
+	?SetFloatL@CESMRICalValue@@QAEXABN@Z @ 57 NONAME ; void CESMRICalValue::SetFloatL(double const &)
+	?SetIntegerL@CESMRICalValue@@QAEXH@Z @ 58 NONAME ; void CESMRICalValue::SetIntegerL(int)
+	?SetMethodL@CESMRICal@@QAEXW4TICalMethod@CESMRICalBase@@@Z @ 59 NONAME ; void CESMRICal::SetMethodL(enum CESMRICalBase::TICalMethod)
+	?SetMonthL@CESMRICalValue@@QAEXW4TMonth@@@Z @ 60 NONAME ; void CESMRICalValue::SetMonthL(enum TMonth)
+	?SetPeriodL@CESMRICalValue@@QAEXABVTTime@@W4TTimeZoneType@1@01@Z @ 61 NONAME ; void CESMRICalValue::SetPeriodL(class TTime const &, enum CESMRICalValue::TTimeZoneType, class TTime const &, enum CESMRICalValue::TTimeZoneType)
+	?SetRecurrenceRuleL@CESMRICalValue@@QAEXABVTDesC16@@@Z @ 62 NONAME ; void CESMRICalValue::SetRecurrenceRuleL(class TDesC16 const &)
+	?SetTextL@CESMRICalValue@@QAEXABVTDesC16@@@Z @ 63 NONAME ; void CESMRICalValue::SetTextL(class TDesC16 const &)
+	?SetTimeL@CESMRICalValue@@QAEXABVTTime@@W4TTimeZoneType@1@@Z @ 64 NONAME ; void CESMRICalValue::SetTimeL(class TTime const &, enum CESMRICalValue::TTimeZoneType)
+	?SetUtcOffsetL@CESMRICalValue@@QAEXVTTimeIntervalSeconds@@@Z @ 65 NONAME ; void CESMRICalValue::SetUtcOffsetL(class TTimeIntervalSeconds)
+	?TextL@CESMRICalValue@@QBEABVTDesC16@@XZ @ 66 NONAME ; class TDesC16 const & CESMRICalValue::TextL(void) const
+	?Type@CESMRICalBase@@QBE?AW4TICalComponentType@1@XZ @ 67 NONAME ; enum CESMRICalBase::TICalComponentType CESMRICalBase::Type(void) const
+	?Type@CESMRICalProperty@@QBEABVTDesC16@@XZ @ 68 NONAME ; class TDesC16 const & CESMRICalProperty::Type(void) const
+	?Type@CESMRICalPropertyParam@@QBEABVTDesC16@@XZ @ 69 NONAME ; class TDesC16 const & CESMRICalPropertyParam::Type(void) const
+	?Type@CESMRICalRuleSegment@@QBE?AW4TSegmentType@1@XZ @ 70 NONAME ; enum CESMRICalRuleSegment::TSegmentType CESMRICalRuleSegment::Type(void) const
+	?TypeName@CESMRICalRuleSegment@@QBEABVTDesC16@@XZ @ 71 NONAME ; class TDesC16 const & CESMRICalRuleSegment::TypeName(void) const
+	?TypeStringL@CESMRICalBase@@QBEABVTDesC16@@XZ @ 72 NONAME ; class TDesC16 const & CESMRICalBase::TypeStringL(void) const
+	?UtcOffsetL@CESMRICalValue@@QBE?AVTTimeIntervalSeconds@@XZ @ 73 NONAME ; class TTimeIntervalSeconds CESMRICalValue::UtcOffsetL(void) const
+	?Values@CESMRICalProperty@@QBEABV?$RPointerArray@VCESMRICalValue@@@@XZ @ 74 NONAME ; class RPointerArray<class CESMRICalValue> const & CESMRICalProperty::Values(void) const
+	?Values@CESMRICalPropertyParam@@QBEABV?$RPointerArray@VCESMRICalValue@@@@XZ @ 75 NONAME ; class RPointerArray<class CESMRICalValue> const & CESMRICalPropertyParam::Values(void) const
+	?Values@CESMRICalRuleSegment@@QBEABV?$RPointerArray@VCESMRICalValue@@@@XZ @ 76 NONAME ; class RPointerArray<class CESMRICalValue> const & CESMRICalRuleSegment::Values(void) const
+

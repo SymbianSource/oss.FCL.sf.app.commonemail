@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- locale\ -->
+<!DOCTYPE xmluiml SYSTEM "emailwidget.dtd">
+<xmluiml xmlns="http://www.series60.com/xml/xmluiml/1" version="1.0">
+
+    <widget id="EmailWidget"> 
+        <contentsource class="ContentSource" name="0x2001F413:CMailWidget" value="0x20019594"/>
+        <configuration name="service" value="Service.ContentPublishing"/>
+        <configuration name="interface" value="IContentPublishing"/>
+        <configuration name="command" value="GetList"/>		
+        <configuration name="publisher" value="0x2001F413:CMailWidget"/>
+		
+        <!-- SETUP VIEW -->
+        <box id="SetupContainer" focusable="true" _s60-initial-focus="1">
+            <actions>
+                <action>
+                    <trigger name="stylus">
+                        <property name="eventtype" value="up" />
+                    </trigger>
+                    <trigger name="activate"/>
+                    <trigger name="keyevent">
+                        <property name="scancode" value="3"/>
+                        <property name="eventtype" value="1"/>
+                    </trigger>
+                    <event name="0x2001F413:CMailWidget/ct_setup_text(trigger_wizard)"/>
+                </action>
+            </actions>
+            <box id="SetupRowContainer" class="row_container">
+                <box id="ImageField1" class="image_container">
+                    <image id="connstatus_id" sizeaware="true">
+                        <configuration name="content_type" value="ct_setup_icon"/>
+                        <property class="0x2001F413:CMailWidget/key_setup_icon"/>
+                    </image>
+                </box>
+                <box id="Setuptext" class="text_field_container">
+                    <text id="setup">
+                        <configuration name="content_type" value="ct_setup_text"/>
+                        <property class="0x2001F413:CMailWidget/key_setup_text"/>						
+                    </text>
+                </box>                             
+            </box>
+        </box>
+
+        <!-- MAILS VIEW -->
+        <box id="MailsContainer" focusable="true" _s60-initial-focus="1">
+        
+            <actions>
+                <action>
+                    <trigger name="stylus">
+                        <property name="eventtype" value="up" />
+                    </trigger>
+                    <trigger name="activate"/>
+                    <trigger name="keyevent">
+                        <property name="scancode" value="3"/> <!-- enter key / EStdKeyEnter -->
+                        <property name="eventtype" value="1"/>
+                    </trigger>
+                    <event name="0x2001F413:CMailWidget/ct_body_text_1(trigger_emailui)"/>
+                </action>
+            </actions>
+            
+            <!-- Widget row 1 -->
+            <box id="MailViewRow1" class="row_container">
+                <box id="ImageField1" class="image_container">
+                    <image id="mailboxicons_id1" sizeaware="true">
+                        <configuration name="content_type" value="ct_mailbox_icons_1"/>
+                        <property class="0x2001F413:CMailWidget/key_mailbox_icons_1"/>                        
+                    </image>
+                </box>            
+                <box id="TextField1" class="text_field_container">
+                    <text id="Text" class="text">
+                        <configuration name="content_type" value="ct_body_text_1"/>
+                        <property class="0x2001F413:CMailWidget/key_body_text_1"/>                                               
+                        <!-- Display SETUP or MAILS container -->
+                        <property class="policy/emptyContent" name="MailsContainer" value="display: none;"/>
+                        <property class="policy/emptyContent" name="SetupContainer" value="display: block;"/>
+                        <property class="policy/Content" name="MailsContainer" value="display: block;"/>
+                        <property class="policy/Content" name="SetupContainer" value="display: none;"/>
+                    </text>
+                </box>
+                <!-- Display unseen or outbox icon -->
+                <box id="IndicatorImageField1" class="indicator_image_container">
+                    <image id="indicator_image_id1" sizeaware="true">
+                        <configuration name="content_type" value="ct_indicator_icon_1"/>
+                        <property class="0x2001F413:CMailWidget/key_indicator_icon_1"/>
+                    </image>
+                </box>
+            </box>
+
+            <!-- Widget row 2 -->
+            <box id="MailViewRow2" class="row_container">
+                <box id="ImageField2" class="image_container">
+                    <image id="mailboxicons_id2" sizeaware="true">
+                        <configuration name="content_type" value="ct_mailbox_icons_2"/>
+                        <property class="0x2001F413:CMailWidget/key_mailbox_icons_2"/>                        
+                    </image>
+                </box>            
+                <box id="TextField2" class="text_field_container">
+                    <text id="Text2" class="text">
+                        <configuration name="content_type" value="ct_body_text_2"/>
+                        <property class="0x2001F413:CMailWidget/key_body_text_2"/>                        
+                    </text>
+                </box>
+                <box id="MailboxTime2" class="mail_time_container">
+                    <text id="time_id_2" class="time_text">
+                        <configuration name="content_type" value="ct_time_2"/>
+                        <property class="0x2001F413:CMailWidget/key_time_2"/>                        
+                    </text>
+                </box>                
+            </box>
+            
+            <!-- Widget row 3 -->
+            <box id="MailViewRow3" class="row_container">
+                <box id="ImageField3" class="image_container">
+                    <image id="mailboxicons_id3" sizeaware="true">
+                        <configuration name="content_type" value="ct_mailbox_icons_3"/>
+                        <property class="0x2001F413:CMailWidget/key_mailbox_icons_3"/>                        
+                    </image>
+                </box>            
+                <box id="TextField3" class="text_field_container">
+                    <text id="Text3" class="text">
+                        <configuration name="content_type" value="ct_body_text_3"/>
+                        <property class="0x2001F413:CMailWidget/key_body_text_3"/>                        
+                    </text>
+                </box>
+                <box id="MailboxTime3" class="mail_time_container">
+                    <text id="time_id_3" class="time_text">
+                        <configuration name="content_type" value="ct_time_3"/>
+                        <property class="0x2001F413:CMailWidget/key_time_3"/>                        
+                    </text>
+                </box>                
+            </box>            
+        </box>
+        
+        <menuextension>
+            <menuitem target="hs_widget_menuitem_settings">
+                <actions>
+                    <action>
+                        <trigger name="activate"/>
+                        <event name="0x2001F413:CMailWidget/ShowSettings(settings)"/>                        
+                    </action>
+                </actions>
+            </menuitem>
+        </menuextension>         
+    </widget>
+</xmluiml>

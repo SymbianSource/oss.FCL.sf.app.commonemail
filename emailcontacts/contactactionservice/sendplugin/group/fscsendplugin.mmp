@@ -1,0 +1,74 @@
+/*
+* Copyright (c) 2007 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Project definition file for project Contact Action Service Core
+*
+*/
+
+
+#include <platform_paths.hrh>
+#include <data_caging_paths.hrh>
+
+#include "../../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
+#include "../../inc/fsccontactactionserviceuids.hrh"
+
+
+TARGET                  fscsendplugin.dll
+EPOCSTACKSIZE   0x5000
+TARGETTYPE              PLUGIN
+UID                     0x10009D8D KFscSendPluginImplDllUid
+
+CAPABILITY              CAP_ECOM_PLUGIN
+
+VENDORID                VID_DEFAULT
+
+VERSION                 KEmailBinaryVersionNumber
+KEmailBinaryDemandPaging
+
+USERINCLUDE             ../inc
+USERINCLUDE             ../../inc
+
+APP_LAYER_SYSTEMINCLUDE
+
+USERINCLUDE             ../../../../inc
+
+LIBRARY                 aknicon.lib eikcore.lib avkon.lib
+LIBRARY                 efsrv.lib 
+LIBRARY                 euser.lib 
+LIBRARY                 ecom.lib
+LIBRARY                 egul.lib
+LIBRARY                 commonengine.lib
+LIBRARY                 bafl.lib
+LIBRARY                 cone.lib 
+LIBRARY                 fbscli.lib
+LIBRARY                 ws32.lib
+LIBRARY                 sendui.lib 
+LIBRARY                 sysutil.lib
+LIBRARY                 featmgr.lib 
+LIBRARY                 centralrepository.lib
+LIBRARY                 vpbkeng.lib
+LIBRARY cmaillogger.lib
+
+SOURCEPATH              ../data
+START RESOURCE	        200025AC.rss
+TARGET                  fscsendplugin.rsc
+END
+
+START RESOURCE fscsendplugin.rss
+	HEADER
+	TARGETPATH APP_RESOURCE_DIR
+	LANGUAGE_IDS
+END
+
+SOURCEPATH ../src
+SOURCE cfscsendpluginimpl.cpp cfscattachmentfile.cpp

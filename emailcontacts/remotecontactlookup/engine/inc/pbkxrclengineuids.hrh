@@ -1,0 +1,29 @@
+/*
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description: UID definition for remotecontactlookup engine pbkxrclengine.dll.
+*
+*/
+#ifndef PBKXRCLENGINEUIDS_HRH
+
+#define PBKXRCLENGINEUIDS_HRH
+
+
+
+// <cmail> S60 UID update
+#define KPbkxRclEngineUid 0x2001FE20 //Old FS 1.0 uid: 0x2000264F
+// </cmail> S60 UID update
+
+
+
+#endif

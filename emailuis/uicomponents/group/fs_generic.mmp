@@ -1,0 +1,140 @@
+/*
+* Copyright (c) 2007 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Project definition file for project fs_generic
+*
+*/
+
+#include <platform_paths.hrh>
+
+#include "../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
+
+TARGET                fs_generic.dll
+TARGETTYPE            dll
+UID                   0x1000008d 0x2001E278
+
+CAPABILITY            CAP_GENERAL_DLL
+
+VENDORID              VID_DEFAULT
+
+VERSION               KEmailBinaryVersionNumber
+KEmailBinaryDemandPaging
+
+SOURCEPATH            ../src
+
+SOURCE                fsgenericpanic.cpp
+SOURCE                fsalfscrollbarlayout.cpp
+SOURCE                fstexture.cpp
+SOURCE                fstextureloader.cpp
+SOURCE                fsbitmapprovider.cpp
+SOURCE                fsrichtext.cpp
+SOURCE                fstextstylemanager.cpp
+SOURCE 			      fswatermark.cpp
+SOURCE 				  fsalftextstylemanager.cpp //daro
+SOURCE                fslayoutmanager.cpp
+SOURCE                fscontrolbar.cpp
+SOURCE                fscontrolbarmodel.cpp
+SOURCE                fscontrolbarvisualiser.cpp
+SOURCE                fscontrolbutton.cpp
+SOURCE                fscontrolbuttonmodel.cpp
+SOURCE                fscontrolbuttonvisualiser.cpp
+SOURCE                fsrichtextobject.cpp
+SOURCE                fsrichtextpicture.cpp
+SOURCE                fsrichtexttext.cpp
+SOURCE                fsrichtextnewline.cpp
+SOURCE                fstextparser.cpp
+SOURCE                fstextviewer.cpp
+SOURCE                fsrichtextfields.cpp
+SOURCE                fstextviewercontrol.cpp
+SOURCE                fstextviewercoordinator.cpp
+SOURCE                fstextviewervisualizer.cpp
+SOURCE                fssmileydictionary.cpp
+SOURCE                fssmileyparser.cpp
+SOURCE                fsrichtextsmiley.cpp
+SOURCE                fstextviewervisualizerdata.cpp
+SOURCE                fstextviewerselectsmanager.cpp
+SOURCE                fstextviewerselect.cpp
+SOURCE                fstextviewerselecthotspot.cpp
+SOURCE                fstextviewerselectembed.cpp
+SOURCE                fstextviewerselectline.cpp
+SOURCE                fstextviewermarkfacility.cpp
+SOURCE                fstextviewerskindata.cpp
+SOURCE                fstextviewerkeys.cpp
+SOURCE                fstextviewerwatermark.cpp
+SOURCE                fstextviewervisualizersettings.cpp
+SOURCE                fstextviewerlayouter.cpp
+SOURCE                fstree.cpp
+SOURCE                fstreecontrol.cpp
+SOURCE                fstreeitem.cpp
+SOURCE                fstreeiterator.cpp
+SOURCE                fstreelist.cpp
+SOURCE                fstreenode.cpp
+SOURCE                fstreevisualizerbase.cpp
+SOURCE                fsfadeeffect.cpp
+SOURCE                fsslideeffect.cpp
+SOURCE                fsinteractioninterval.cpp
+SOURCE                fstreeplainonelineitemdata.cpp
+SOURCE                fstreeplainonelineitemvisualizer.cpp
+SOURCE                fstreeplainrootvisualizer.cpp
+SOURCE                fstreeplainonelinenodedata.cpp
+SOURCE                fstreeplainonelinenodevisualizer.cpp
+SOURCE                fstreeplaintwolineitemdata.cpp
+SOURCE                fstreeplaintwolineitemvisualizer.cpp
+SOURCE                fstreerichitemdata.cpp
+SOURCE                fstreerichitemvisualizer.cpp
+SOURCE                fstreeitemvisualizerbase.cpp
+SOURCE                fstreenodevisualizerbase.cpp
+SOURCE                fsmultilineitemdata.cpp
+SOURCE                fsmultilineitemvisualizer.cpp
+SOURCE                fsmarqueeclet.cpp
+SOURCE                fsseparatordata.cpp
+SOURCE                fsseparatorvisualizer.cpp
+SOURCE                fsactionmenu.cpp
+SOURCE                fsactionmenucontrol.cpp
+SOURCE                fsalfwatermark.cpp
+
+APP_LAYER_SYSTEMINCLUDE
+SYSTEMINCLUDE         /epoc32/include/icl
+
+USERINCLUDE ../inc
+USERINCLUDE ../../inc
+USERINCLUDE ../../../inc
+
+
+LIBRARY               alfclient.lib
+LIBRARY               euser.lib
+LIBRARY               avkon.lib
+LIBRARY               eikcoctl.lib
+LIBRARY               eikctl.lib
+LIBRARY               cone.lib
+LIBRARY               ws32.lib
+LIBRARY               eikcore.lib
+LIBRARY               apparc.lib
+LIBRARY               aknlayout2scalable.lib
+LIBRARY               cdlengine.lib
+LIBRARY               gdi.lib
+LIBRARY               fbscli.lib
+LIBRARY               imageconversion.lib // TFrameInfo
+LIBRARY               etext.lib
+LIBRARY               field.lib
+LIBRARY               bitgdi.lib
+LIBRARY               apgrfx.lib
+LIBRARY               efsrv.lib
+LIBRARY               estor.lib
+LIBRARY               commonengine.lib // StringLoader
+LIBRARY               aknskins.lib
+LIBRARY               centralrepository.lib
+LIBRARY               flogger.lib
+LIBRARY               aknphysics.lib
+LIBRARY               cmaillogger.lib
+DEFFILE               fs_generic_alf.def

@@ -1,0 +1,247 @@
+/*
+* Copyright (c) 2008 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Localization strings for project Remote Contact Lookup
+*
+*/
+
+
+// d:Search query editor prompt.
+// d:%U stands for name of the account from which search is done.
+// l:popup_query_data_window
+// r:TB9.1
+#define qtn_rcl_search "Search from '%U'"
+
+// d:Wait note text while doing remote search.
+// d:%U stands for the user entered search string.
+// l:popup_note_wait_window
+// r:TB9.1
+#define qtn_rcl_search_wait_note "Searching \"%U\""
+
+// d:Wait note text while opening result information view.
+// l:popup_note_wait_window
+// r:TB9.1
+#define qtn_rcl_opening_wait_note "Opening details"
+
+// d:Wait note text while retrieving details before exiting RCL.
+// l:popup_note_wait_window
+// r:TB9.1
+#define qtn_rcl_retrieval_wait_note "Retrieving details"
+
+// d:Wait note text while retrieving details and saving contact.
+// l:popup_note_wait_window
+// r:TB9.1
+#define qtn_rcl_saving_wait_note "Saving contact"
+
+// d:Confirmation note shown to user when contact details is updated
+// d:but there is already existing detail.
+// d:%U stands for the name of the detail being replaced.
+// l:popup_note_window
+// r:TB9.1
+#define qtn_rcl_replace_existing_detail_note "Do you want to replace existing %U?"
+
+// d:Search result view navipane text.
+// d:%N stands for the number of results found.
+// l:navi_text_pane_t1
+// r:TB9.1
+#define qtn_rcl_result_navi "%N results"
+
+// d:Search result view navipane text when one result found.
+// l:navi_text_pane_t1
+// r:TB9.1
+#define qtn_rcl_one_result_navi "1 result"
+
+// d:Result information view navipane text.
+// d:%0N stands for the ordinal number of the result being shown.
+// d:%1N stands for the total number of the results.
+// l:navi_text_pane_t1
+// r:TB9.1
+#define qtn_rcl_info_navi "%0N/%1N"
+
+// d:Menu option view details.
+// d:Opens result information view. 
+// l:list_single_pane_t1_cp2
+// r:TB9.1
+#define qtn_rcl_opt_details "View details"
+
+// d:Menu option add recipient.
+// d:Return to the calling application with selected contact.
+// l:list_single_pane_t1_cp2
+// r:TB9.1
+#define qtn_rcl_opt_add_recipient "Add as recipient"
+
+// d:Menu option add to contacts.
+// d:Opens sub menu. 
+// l:list_single_pane_t1_cp2/opt3
+// r:TB9.1
+#define qtn_rcl_opt_add_contacts "Add to Contacts"
+
+// d:Menu option save to contacts.
+// d:Saves selected contact in to contact database.
+// l:list_single_pane_t1_cp2
+// r:TB9.1
+#define qtn_rcl_opt_save_contact "Save to contacts"
+
+// d:Menu option new search.
+// d:Starts new remote search.
+// l:list_single_pane_t1_cp2
+// r:TB9.1
+#define qtn_rcl_opt_new_search "New search"
+
+// d:Menu option call.
+// d:Opens sub menu.
+// l:list_single_pane_t1_cp2/opt3
+// r:TB9.1
+#define qtn_rcl_opt_call "Call"
+
+// d:Menu option send.
+// d:Opens sub menu.
+// l:list_single_pane_t1_cp2/opt3
+// r:TB9.1
+#define qtn_rcl_opt_send "Send"
+
+// d:Menu option talk.
+// d:Opens sub menu.
+// l:list_single_pane_t1_cp2/opt3
+// r:TB9.1
+#define qtn_rcl_opt_talk "Talk"
+
+// d:Menu option to contact.
+// d:Part of Talk sub menu.
+// l:list_single_popup_submenu_pane_t1
+// r:TB9.1
+#define qtn_rcl_opt_talk_1to1 "To contact"
+
+// d:Menu option send callback request.
+// d:Part of Talk sub menu.
+// l:list_single_popup_submenu_pane_t1
+// r:TB9.1
+#define qtn_rcl_opt_talk_cbr "Send callback request"
+
+// d:Menu option create new.
+// d:Part of Save to contacts sub menu.
+// d:Creates new contact to contacts database from selected contact.
+// l:list_single_popup_submenu_pane_t1
+// r:TB9.1
+#define qtn_rcl_opt_create_new "Create new"
+
+// d:Menu option update existing.
+// d:Part of Save to contacts sub menu.
+// d:Updates existing contact from selected contact data.
+// l:list_single_popup_submenu_pane_t1
+// r:TB9.1
+#define qtn_rcl_opt_update_existing "Update existing"
+
+// d:Menu option voice call.
+// d:Part of Call sub menu.
+// l:list_single_popup_submenu_pane_t1
+// r:TB9.1
+#define qtn_rcl_opt_voice_call "Voice call"
+
+// d:Menu option Video call.
+// d:Part of Call sub menu.
+// l:list_single_popup_submenu_pane_t1
+// r:TB9.1
+#define qtn_rcl_opt_video_call "Video call"
+
+// d:Menu option voip call.
+// d:Part of Call sub menu.
+// l:list_single_popup_submenu_pane_t1
+// r:TB9.1
+#define qtn_rcl_opt_voip "Internet call"
+
+// d:Menu option message.
+// d:Part of Send sub menu.
+// l:list_single_popup_submenu_pane_t1
+// r:TB9.1
+#define qtn_rcl_opt_msg "Message"
+
+// d:Menu option email.
+// d:Part of Send sub menu.
+// l:list_single_popup_submenu_pane_t1
+// r:TB9.1
+#define qtn_rcl_opt_email "Email"
+
+// d:Menu option meeting request.
+// d:Part of Send sub menu.
+// l:list_single_popup_submenu_pane_t1
+// r:TB9.1
+#define qtn_rcl_opt_mreq "Meeting request"
+
+// d:Menu option business card.
+// d:Part of Send sub menu.
+// l:list_single_popup_submenu_pane_t1
+// r:TB9.1
+#define qtn_rcl_opt_bcard "Business card"
+
+// d:Menu option audio message.
+// d:Part of Send sub menu.
+// l:list_single_popup_submenu_pane_t1
+// r:TB9.1
+#define qtn_rcl_opt_audio "Audio message"
+
+// d:Softkey text.
+// l:control_pane_t1
+// r:TB9.1
+#define qtn_rcl_softkey_search "Search"
+
+// d:Softkey text
+// l:control_pane_t2
+// r:TB9.1
+#define qtn_rcl_softkey_refine "Refine"
+
+// d:No item text in search result view.
+// d:Shown when search produced zero results.
+// l:main_list_empty_pane
+// r:TB9.1
+#define qtn_rcl_no_results "No results"
+
+// d:Too many results note text.
+// d:Shown when remote search produced too many results.
+// d:%N stands for the maximum number of results.
+// l:popup_note_window
+// r:TB9.1
+#define qtn_rcl_too_many_results_note "Too many search results, only %N can be displayed. Use refine to search again."
+
+// d:General RCL error note text.
+// d:Shown when there is no better error message available from CTextResolver.
+// l:popup_note_window
+// r:TB9.1
+#define qtn_rcl_error_note "Remote contact lookup failed. Try again later."
+
+// d:Note text shown when contact information is updated.
+// d:%0U stands for the name of the detail that is added
+// d:%1U stands for the name of contact for which detail is added
+// l:popup_note_window
+// r:TB9.1
+#define qtn_rcl_update_note "%0U successfully added to %1U"
+
+// d:Action menu text for add as recipient action.
+// l:fs_action_menu_text
+// r:TB9.1
+#define qtn_fs_action_recipient "Add as recipient"
+
+// d:Heading for RCL account setting item.
+// l:list_setting_pane_t1
+// r:TB9.1
+#define qtn_fs_setting_rcl_server "Remote Contact Lookup server"
+
+// d:Selection text for no account selection.
+// l:list_set_graphic_pane_t1
+// r:TB9.1
+#define qtn_fs_setting_rcl_server_none "None"
+
+// d:Value shown in setting item when no account is defined.
+// l:set_value_pane_t1
+// r:TB9.1
+#define qtn_fs_setting_rcl_not_defined "Not defined"

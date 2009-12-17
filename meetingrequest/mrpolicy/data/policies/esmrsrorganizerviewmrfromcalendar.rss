@@ -1,0 +1,143 @@
+/*
+* Copyright (c)  Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Resource definitions for editing MR from calendar
+*
+*/
+
+#ifndef ESMRSRV_ORGANIZERVIEWFROMCALENDARPOLICY
+#define ESMRSRV_ORGANIZERVIEWFROMCALENDARPOLICY
+
+// ---------------------------------------------------------------------------
+// r_esmr_organizer_view_from_calendar
+// ES MR Policy for viewing MR from calendar application
+// ---------------------------------------------------------------------------
+//
+RESOURCE ESMR_POLICY r_esmr_organizer_view_from_calendar
+    {
+    event_type           = EESMREventTypeAppt;
+    policy_id            = EESMRPolicyOrganizerViewMRFromCal;
+    policy_mode          = EESMRViewMR;
+    role_flags           = KEESMRFlagOrganizer;
+    allowed_app          = KEESMRFlagAppEsCalendar;
+    field_ids            = r_esmr_organizer_view_from_calendar_fields;
+    default_commands     = r_esmr_organizer_view_from_calendar_def_commands;
+    additional_commands  = 0;
+    }
+
+// ---------------------------------------------------------------------------
+// r_esmr_organizer_view_from_calendar_fields
+//
+// ---------------------------------------------------------------------------
+//
+RESOURCE ESMR_ID_TABLE r_esmr_organizer_view_from_calendar_fields
+    {
+    id_table =
+        {
+        ESMR_FIELD
+            {
+            field_id   = EESMRFieldAttendee;
+            field_type = EESMRFieldTypeAdditional;
+            field_mode = EESMRFieldModeView;
+            },
+        ESMR_FIELD
+            {
+            field_id   = EESMRFieldOptAttendee;
+            field_type = EESMRFieldTypeAdditional;
+            field_mode = EESMRFieldModeView;
+            },
+        ESMR_FIELD
+            {
+            field_id   = EESMRFieldDetailedSubject;
+            field_type = EESMRFieldTypeDefault;
+            field_mode = EESMRFieldModeView;
+            },
+        ESMR_FIELD
+            {
+            field_id   = EESMRFieldMeetingTime;
+            field_type = EESMRFieldTypeDefault;
+            field_mode = EESMRFieldModeView;
+            },
+        ESMR_FIELD
+            {
+            field_id   = EESMRFieldStartDate;
+            field_type = EESMRFieldTypeDefault;
+            field_mode = EESMRFieldModeView;
+            },
+        ESMR_FIELD
+            {
+            field_id   = EESMRFieldStopDate;
+            field_type = EESMRFieldTypeDefault;
+            field_mode = EESMRFieldModeView;
+            },
+        ESMR_FIELD
+            {
+            field_id   = EESMRFieldLocation;
+            field_type = EESMRFieldTypeDefault;
+            field_mode = EESMRFieldModeView;
+            },
+        ESMR_FIELD
+            {
+            field_id   = EESMRFieldAlarm;
+            field_type = EESMRFieldTypeDefault;
+            field_mode = EESMRFieldModeView;
+            },
+        ESMR_FIELD
+            {
+            field_id   = EESMRFieldRecurrence;
+            field_type = EESMRFieldTypeDefault;
+            field_mode = EESMRFieldModeView;
+            },
+        ESMR_FIELD
+            {
+            field_id   = EESMRFieldRecurrenceDate;
+            field_type = EESMRFieldTypeDefault;
+            field_mode = EESMRFieldModeView;
+            },
+        ESMR_FIELD
+            {
+            field_id   = EESMRFieldSync;
+            field_type = EESMRFieldTypeDefault;
+            field_mode = EESMRFieldModeView;
+            },
+        ESMR_FIELD
+            {
+            field_id   = EESMRFieldDescription;
+            field_type = EESMRFieldTypeDefault;
+            field_mode = EESMRFieldModeView;
+            }
+        };
+    }
+
+// ---------------------------------------------------------------------------
+// r_esmr_organizer_view_from_calendar_def_commands
+//
+// ---------------------------------------------------------------------------
+//
+RESOURCE ESMR_ID_TABLE r_esmr_organizer_view_from_calendar_def_commands
+    {
+    id_table =
+        {
+        ESMR_ID { id = EESMRCmdEdit;},
+        ESMR_ID { id = EESMRCmdForward; },
+        ESMR_ID { id = EESMRCmdViewTrack; },
+        ESMR_ID { id = EESMRCmdDeleteMR;},
+        ESMR_ID { id = EESMRCmdPrint; },
+        ESMR_ID { id = EAknCmdHelp;},
+        ESMR_ID { id = EAknCmdExit;}
+        };
+    }
+
+#endif // ESMRSRV_ORGANIZERVIEWFROMCALENDARPOLICY
+
+// EOF

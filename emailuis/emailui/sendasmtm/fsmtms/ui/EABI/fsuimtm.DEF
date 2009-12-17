@@ -1,0 +1,5 @@
+EXPORTS
+	_ZN8CFsMtmUi4NewLER8CBaseMtmR17CRegisteredMtmDll @ 1 NONAME
+	_ZTI8CFsMtmUi @ 2 NONAME ; #<TI>#
+	_ZTV8CFsMtmUi @ 3 NONAME ; #<VT>#
+

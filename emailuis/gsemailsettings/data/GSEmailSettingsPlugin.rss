@@ -1,0 +1,90 @@
+/*
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Email plugin for s60 general settings
+*
+*/
+
+
+NAME GSES
+
+#include <eikon.rh>
+#include <eikon.rsg>
+#include <avkon.rh>
+#include <avkon.loc>
+#include <avkon.rsg>
+#include <appinfo.rh>
+#include "GSEmailSettings.hrh"
+#include <freestyleemailui.loc>
+
+
+// ---------------------------------------------------------
+//   
+//    Define the resource file signature 
+//    This resource should be empty.
+//
+// ---------------------------------------------------------
+//
+RESOURCE RSS_SIGNATURE { }
+
+// ---------------------------------------------------------
+//   
+//    Default Document Name
+//
+// ---------------------------------------------------------
+//
+RESOURCE TBUF r_default_document_name { buf=""; }
+
+RESOURCE EIK_APP_INFO
+	{
+	}
+
+RESOURCE AVKON_VIEW R_EMAIL_GS_SETTING_LIST_VIEW
+    {
+    menubar = r_mysettings_gs_settings_menubar;
+    cba = r_ms_softkeys_gs_options_back_change;    
+    }
+
+RESOURCE MENU_BAR r_mysettings_gs_settings_menubar
+	{
+	titles=
+		{
+		MENU_TITLE { menu_pane = r_mysettings_gs_settings_menupane; }
+		};
+	}
+	
+RESOURCE MENU_PANE r_mysettings_gs_settings_menupane
+	{
+	items=
+		{
+		MENU_ITEM { command = ECmdOk; txt = text_softkey_exit; }
+		};
+	}
+	
+	
+RESOURCE CBA r_ms_softkeys_gs_options_back_change
+	{
+	buttons = 
+		{
+		CBA_BUTTON { id = EAknSoftkeyOptions; txt = text_softkey_option; },
+		CBA_BUTTON { id = ECmdCancel; txt = text_softkey_back;}
+		};
+	}
+	
+RESOURCE TBUF r_fs_email_gs_app_short_name
+	{
+	buf = qtn_fse_short_app_name;
+	}
+	
+// End of File
+

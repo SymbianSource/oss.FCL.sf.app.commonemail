@@ -1,0 +1,57 @@
+/*
+* Copyright (c) 2008-2008 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  ECom registration resource for ESMR URL Parser Plugin
+*
+*/
+
+
+
+#include <ecom/registryinfov2.rh>
+#include "../../../inc/emailversionnumbers.hrh" // KEmailEcomVersionNumber
+#include "esmrinternaluid.h"
+
+
+// ---------------------------------------------------------------------------
+// ?resource_name
+// ?description
+// ---------------------------------------------------------------------------
+//
+RESOURCE REGISTRY_INFO r_registry
+    {
+    // Resource format version 2 for ROM-only plugins
+    resource_format_version = RESOURCE_FORMAT_VERSION_2;
+    dll_uid = KESMRURLParserPluginDllUid;
+    interfaces =
+        {
+        INTERFACE_INFO
+            {
+            interface_uid = KESMRURLParserPluginInterfaceUid;
+            implementations =
+                {
+                IMPLEMENTATION_INFO
+                    {
+                    implementation_uid = KESMRURLParserPluginImplementationUid;
+                    version_no = KEmailEcomVersionNumber;
+                    display_name = 
+                        "ESMR URL Parser Plugin";// codescanner::codereview
+                    default_data = "";
+                    opaque_data = "";
+                    rom_only = 0;
+                    }
+                };
+            }
+        };
+    }
+
+

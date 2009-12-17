@@ -1,0 +1,33 @@
+/*
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description: Resource headers for project gsemailsettings
+*
+*/
+#ifndef _FSEMAILUIGSPLUGINUIDS_HRH_
+#define _FSEMAILUIGSPLUGINUIDS_HRH_
+
+// UID of this plugins parent. In this case "General"
+#define KGsParentPluginUid "0x10207237"  
+
+// General settings plugin framework interface UID
+#define KGsPluginInterfaceUid 0x10207236  
+
+// Dll UID of this plugin
+// <cmail> S60 UID update
+#define KFSEmailUiGsPluginDllUid 0x2001F40C 
+// </cmail> S60 UID update
+
+#endif // _FSEMAILUIGSPLUGINUIDS_HRH_
+
+//End of File

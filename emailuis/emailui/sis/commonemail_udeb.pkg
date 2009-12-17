@@ -1,0 +1,236 @@
+;
+; Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+; All rights reserved.
+; This component and the accompanying materials are made available
+; under the terms of "Eclipse Public License v1.0"
+; which accompanies this distribution, and is available
+; at the URL "http://www.eclipse.org/legal/epl-v10.html".
+;
+; Initial Contributors:
+; Nokia Corporation - initial contribution.
+;
+; Contributors:
+;
+; Description: Package file for commonemail
+;
+; commonemail.pkg
+;
+;Language - standard language definitions
+&EN
+
+; standard SIS file header 
+#{"Email"},(0x2001E277), 3,0,1, TYPE=SA,RU
+
+;Localized Vendor Name 
+%{"Symbian"}
+
+;Unique Vendor name 
+:"Symbian"
+
+;Supports S60 v 5.0
+[0x1028315F], 0, 0, 0, {"S60ProductID"}
+
+;-----------------------------------------------------------------------------
+; Email installation initiator, need to be as a separate embedded sis-package
+; to get it run as first. Initiates process shutdown and holds installation
+; until all processes have been closed.
+;-------------------------
+@"..\..\..\emailservices\emailinstallationinitiator\sis\emailinstallationinitiator_udeb.sisx",(0x20026FF4)
+
+;-----------------------------------------------------------------------------
+; MfE plugin installed as embedded sisx-package
+;-------------------------
+@"..\..\..\..\..\complementary\eas\sis\eas_engine_udeb.sisx",(0x20012BE9)
+
+;-----------------------------------------------------------------------------
+; Actual common email files to be installed
+;-------------------------
+
+; Emailuis / emailui 
+"\epoc32\release\armv5\udeb\FreestyleEmailUi.exe"                - "c:\sys\bin\FreestyleEmailUi.exe"
+"\epoc32\data\z\private\10003a3f\apps\FreestyleEmailUi_reg.rsc"  - "c:\private\10003a3f\import\apps\FreestyleEmailUi_reg.rsc"
+"\epoc32\data\z\resource\apps\FreestyleEmailUi.rsc"              - "c:\resource\apps\FreestyleEmailUi.rsc"
+"\epoc32\data\z\resource\apps\FreestyleEmailUi_aif.mif"          - "c:\resource\apps\freestyleemailui_aif.mif"
+"\epoc32\data\z\resource\apps\FreestyleEmailUi.mif"              - "c:\resource\apps\freestyleemailui.mif"
+"\epoc32\data\Z\private\10202BE9\2001E277.txt"                   - "c:\private\10202be9\2001E277.txt"
+"\epoc32\data\Z\private\2001E277\backup_registration.xml"        - "c:\private\2001E277\backup_registration.xml"
+
+"\epoc32\data\z\private\2001E277\HtmlFile\attachment.gif"        - "c:\private\2001E277\HtmlFile\attachment.gif"
+"\epoc32\data\z\private\2001E277\HtmlFile\email.html"            - "c:\private\2001E277\HtmlFile\email.html"
+"\epoc32\data\z\private\2001E277\HtmlFile\header.js"             - "c:\private\2001E277\HtmlFile\header.js"
+"\epoc32\data\z\private\2001E277\HtmlFile\plus.gif"              - "c:\private\2001E277\HtmlFile\plus.gif"
+"\epoc32\data\z\private\2001E277\HtmlFile\minus.gif"             - "c:\private\2001E277\HtmlFile\minus.gif"
+
+; Emailuis / gsemailsettings
+"\epoc32\release\armv5\udeb\GSEmailSettingsPluginDll.dll"        - "c:\sys\bin\GSEmailSettingsPluginDll.dll"
+"\epoc32\data\z\resource\apps\GSEmailSettingsPlugin.rsc"         - "c:\resource\apps\GSEmailSettingsPlugin.rsc"
+"\epoc32\data\Z\Resource\Plugins\GSEmailSettingsPluginDll.rsc"   - "c:\resource\plugins\GSEmailSettingsPluginDll.rsc"
+               
+; Emailuis / uicomponents
+"\epoc32\release\armv5\udeb\fs_generic.dll"                      - "c:\sys\bin\fs_generic.dll"
+"\epoc32\release\armv5\udeb\fsscrollbarplugin.dll"               - "c:\sys\bin\fsscrollbarplugin.dll"
+"\epoc32\data\Z\Resource\Plugins\fsscrollbarplugin.rsc"          - "c:\resource\plugins\fsscrollbarplugin.rsc"
+"\epoc32\data\Z\private\10202BE9\2001E280.txt"                   - "c:\private\10202be9\2001E280.txt"
+
+; Emailuis / emailui / sendasmtm
+"\epoc32\release\armv5\udeb\fssendashelper.dll"                  - "c:\sys\bin\fssendashelper.dll"
+"\epoc32\data\z\resource\messaging\mtm\fsmtms.rsc"               - "c:\resource\messaging\mtm\fsmtms.rsc"
+"\epoc32\release\armv5\udeb\fsclientmtm.dll"                     - "c:\sys\bin\fsclientmtm.dll"
+"\epoc32\release\armv5\udeb\fsservermtm.dll"                     - "c:\sys\bin\fsservermtm.dll"
+"\epoc32\release\armv5\udeb\fsuimtm.dll"                         - "c:\sys\bin\fsuimtm.dll"
+"\epoc32\data\z\resource\messaging\fsuidatamtm.rsc"              - "c:\resource\messaging\fsuimtm.rsc"
+"\epoc32\release\armv5\udeb\fsuidatamtm.dll"                     - "c:\sys\bin\fsuidatamtm.dll"
+"\epoc32\data\Z\resource\messaging\fsuidatamtm.rsc"              - "c:\resource\messaging\fsuidatamtm.rsc"
+"\epoc32\data\z\resource\apps\fsuidatamtm.mif"                   - "c:\resource\apps\fsuidatamtm.mif"
+
+; Emailuis / widget
+; Only for TB 9.2, add after 5250+ branched:
+;"\epoc32\data\Z\private\200159c0\install\emailwidget\xuikon\00\EW.o0000"                   - "c:\private\200159c0\install\emailwidget\xuikon\00\EW.o0000"
+;"\epoc32\data\Z\private\200159c0\install\emailwidget\hsps\00\emailwidgetconfiguration.dtd" - "c:\private\200159c0\install\emailwidget\hsps\00\emailwidgetconfiguration.dtd"
+;"\epoc32\data\Z\private\200159c0\install\emailwidget\hsps\00\widgetconfiguration.xml"      - "c:\private\200159c0\install\emailwidget\hsps\00\widgetconfiguration.xml"
+;"\epoc32\data\Z\private\200159c0\install\emailwidget\hsps\00\manifest.dat"                 - "c:\private\200159c0\install\emailwidget\hsps\00\manifest.dat"
+; + CenRep
+
+; emailservices / emailframework
+"\epoc32\release\armv5\udeb\FSMailFramework.dll"                 - "c:\sys\bin\FSMailFramework.dll"
+"\epoc32\release\armv5\udeb\FSFWCommonLib.dll"                   - "c:\sys\bin\FSFWCommonLib.dll"
+"\epoc32\data\z\resource\fsmailbrandmanager.rsc"                 - "c:\resource\fsmailbrandmanager.rsc"
+"\epoc32\data\z\resource\apps\aol_brand_graphics.mif"            - "c:\resource\apps\aol_brand_graphics.mif"
+"\epoc32\data\z\resource\apps\google_brand_graphics.mif"         - "c:\resource\apps\google_brand_graphics.mif"
+"\epoc32\data\z\resource\apps\microsoft_brand_graphics.mif"      - "c:\resource\apps\microsoft_brand_graphics.mif"
+"\epoc32\data\z\resource\apps\ovi_brand_graphics.mif"            - "c:\resource\apps\ovi_brand_graphics.mif"
+"\epoc32\data\z\resource\apps\yahoo_brand_graphics.mif"          - "c:\resource\apps\yahoo_brand_graphics.mif"
+
+; emailservices / psmruadapter
+"\epoc32\release\armv5\udeb\PsMruAdapter.dll"                    - "c:\sys\bin\PsMruAdapter.dll"
+"\epoc32\data\z\resource\plugins\PsMruAdapter.rsc"               - "c:\resource\plugins\PsMruAdapter.rsc"
+
+; emailstore
+"\epoc32\release\armv5\udeb\baseplugin.dll"                      - "c:\sys\bin\baseplugin.dll"
+"\epoc32\release\armv5\udeb\MessageStoreClient.dll"              - "c:\sys\bin\MessageStoreClient.dll"
+"\epoc32\release\armv5\udeb\MessageStoreServer.dll"              - "c:\sys\bin\MessageStoreServer.dll"
+"\epoc32\release\armv5\udeb\MessageStoreExe.exe"                 - "c:\sys\bin\MessageStoreExe.exe"
+"\epoc32\release\armv5\udeb\ImsPointSecMonitor.dll"              - "c:\sys\bin\ImsPointSecMonitor.dll"
+"\epoc32\release\armv5\udeb\DebugLog.dll"                        - "c:\sys\bin\DebugLog.dll"
+
+; emailserver
+"\epoc32\data\z\resource\apps\fsmailserver.rsc"                  - "c:\resource\apps\fsmailserver.rsc"
+"\epoc32\release\armv5\udeb\fsmailserver.exe"                    - "c:\sys\bin\fsmailserver.exe"
+"\epoc32\data\z\private\10003a3f\apps\fsmailserver_reg.rsc"      - "c:\private\10003a3f\import\apps\fsmailserver_reg.rsc"
+"\epoc32\release\armv5\udeb\cmailhandlerplugin.dll"              - "c:\sys\bin\cmailhandlerplugin.dll"
+"\epoc32\data\Z\Resource\Plugins\cmailhandlerplugin.rsc"         - "c:\resource\plugins\cmailhandlerplugin.rsc"
+"\epoc32\data\z\resource\apps\cmailhandlerplugin.mif"            - "c:\resource\apps\cmailhandlerplugin.mif"
+
+; Change path to normal resource path (not ECom res) when fixed in cmailhandlerplugin code
+; Uncomment in TB 9.2 branch after 5250+ branched
+;"\epoc32\data\Z\Resource\Plugins\emailwidget.rsc"                - "c:\resource\plugins\emailwidget.rsc"
+
+; ipservices
+"\epoc32\release\armv5\udeb\ipssosplugin.dll"                    - "c:\sys\bin\ipssosplugin.dll"
+"\epoc32\release\armv5\udeb\ipssossettings.dll"                  - "c:\sys\bin\ipssossettings.dll"
+"\epoc32\release\armv5\udeb\IPSSosAOPlugin.dll"                  - "c:\sys\bin\IpsSosAOPlugin.dll"
+"\epoc32\data\z\resource\plugins\ipssosplugin.rsc"               - "c:\resource\plugins\ipssosplugin.rsc"
+"\epoc32\data\z\resource\plugins\IPSSosAOPlugin.rsc"             - "c:\resource\plugins\IpsSosAOPlugin.rsc"
+"\epoc32\data\z\resource\plugins\IpsSosSettings.rsc"             - "c:\resource\plugins\ipssossettings.rsc"
+"\epoc32\data\z\resource\IpsSosSettings.rsc"                     - "c:\resource\ipssossettings.rsc"
+"\epoc32\data\Z\private\10202BE9\20010128.txt"                   - "c:\private\10202be9\20010128.txt"
+"\epoc32\data\Z\private\2000E53C\backup_registration.xml"        - "c:\private\2000E53C\backup_registration.xml"
+
+; emailcontacts / contactactionservice
+"\epoc32\release\armv5\udeb\fsccontactactionmenu.dll"            - "c:\sys\bin\fsccontactactionmenu.dll"
+"\epoc32\data\Z\Resource\Plugins\fsccontactactionmenu.rsc"       - "c:\resource\plugins\fsccontactactionmenu.rsc"
+"\epoc32\release\armv5\udeb\fsccontactactionservice.dll"         - "c:\sys\bin\fsccontactactionservice.dll"
+"\epoc32\data\Z\Resource\Plugins\fsccontactactionservice.rsc"    - "c:\resource\plugins\fsccontactactionservice.rsc"
+"\epoc32\data\z\resource\FscActionUtils.rsc"                     - "c:\resource\plugins\fscactionutils.rsc"
+"\epoc32\data\Z\private\10202BE9\2001FE0E.txt"                   - "c:\private\10202be9\2001FE0E.txt"
+
+; emailcontacts / contactactionservice / pocplugin
+"\epoc32\release\armv5\udeb\fscpocplugin.dll"                    - "c:\sys\bin\fscpocplugin.dll"
+"\epoc32\data\Z\Resource\Plugins\fscpocplugin.rsc"               - "c:\resource\plugins\fscpocplugin.rsc"
+"\epoc32\data\z\resource\apps\fscpocplugin.rsc"                  - "c:\resource\apps\fscpocplugin.rsc"
+"\epoc32\data\z\resource\apps\fscpocplugin.mif"                  - "c:\resource\apps\fscpocplugin.mif"
+
+; emailcontacts / contactactionservice / callplugin
+"\epoc32\release\armv5\udeb\fsccallplugin.dll"                   - "c:\sys\bin\fsccallplugin.dll"
+"\epoc32\data\z\resource\plugins\fsccallplugin.rsc"              - "c:\resource\plugins\fsccallplugin.rsc"
+"\epoc32\data\z\resource\apps\fsccallplugin.rsc"                 - "c:\resource\apps\fsccallplugin.rsc"
+"\epoc32\data\z\resource\apps\fsccallplugin.mif"                 - "c:\resource\apps\fsccallplugin.mif"
+
+; emailcontacts / contactactionservice / saveascontactplugin
+"\epoc32\release\armv5\udeb\fscsaveascontactplugin.dll"          - "c:\sys\bin\fscsaveascontactplugin.dll"
+"\epoc32\data\z\resource\plugins\fscsaveascontactplugin.rsc"     - "c:\resource\plugins\fscsaveascontactplugin.rsc"
+"\epoc32\data\z\resource\apps\fscsaveascontactplugin.rsc"        - "c:\resource\apps\fscsaveascontactplugin.rsc"
+"\epoc32\data\z\resource\apps\fscsaveascontactplugin.mif"        - "c:\resource\apps\fscsaveascontactplugin.mif"
+
+; emailcontacts / contactactionservice / sendplugin
+"\epoc32\release\armv5\udeb\fscsendplugin.dll"                   - "c:\sys\bin\fscsendplugin.dll"
+"\epoc32\data\Z\Resource\Plugins\fscsendplugin.rsc"              - "c:\resource\plugins\fscsendplugin.rsc"
+"\epoc32\data\z\resource\apps\fscsendplugin.rsc"                 - "c:\resource\apps\fscsendplugin.rsc"
+"\epoc32\data\z\resource\apps\fscsendplugin.mif"                 - "c:\resource\apps\fscsendplugin.mif"
+
+; emailcontacts / remotecontactlookup
+"\epoc32\release\armv5\udeb\pbkxrclservice.dll"                  - "c:\sys\bin\pbkxrclservice.dll"
+"\epoc32\data\Z\Resource\Plugins\pbkxrclservice.rsc"             - "c:\resource\plugins\pbkxrclservice.rsc"
+"\epoc32\release\armv5\udeb\pbkxrclengine.dll"                   - "c:\sys\bin\pbkxrclengine.dll"
+"\epoc32\data\z\resource\apps\pbkxrclengine.rsc"                 - "c:\resource\apps\pbkxrclengine.rsc"
+"\epoc32\data\z\resource\apps\pbkxrclengine.mif"                 - "c:\resource\apps\pbkxrclengine.mif"
+"\epoc32\data\Z\private\10202BE9\2001F3FE.txt"                   - "c:\private\10202be9\2001F3FE.txt"
+
+; meetingrequest
+"\epoc32\data\z\resource\esmrgui.rsc"                            - "c:\resource\esmrgui.rsc"
+"\epoc32\data\z\resource\esmrtasks.rsc"                          - "c:\resource\esmrtasks.rsc"
+"\epoc32\data\z\resource\esmrpolicies.rsc"                       - "c:\resource\esmrpolicies.rsc"
+"\epoc32\data\z\resource\esmralarminfo.rsc"                      - "c:\resource\esmralarminfo.rsc"
+"\epoc32\data\z\resource\esmragnversit2strings.rsc"              - "c:\resource\esmragnversit2strings.rsc"
+"\epoc32\data\z\resource\esmrcasplugindata.rsc"                  - "c:\resource\esmrcasplugindata.rsc"
+"\epoc32\release\armv5\udeb\esmragnversit2.dll"                  - "c:\sys\bin\esmragnversit2.dll"
+"\epoc32\data\Z\Resource\Plugins\esmragnversit2.rsc"             - "c:\resource\plugins\esmragnversit2.rsc"
+"\epoc32\data\Z\Resource\Plugins\esmricalviewer.rsc"             - "c:\resource\plugins\esmricalviewer.rsc"
+"\epoc32\release\armv5\udeb\esmrfieldbuilderplugin.dll"          - "c:\sys\bin\esmrfieldbuilderplugin.dll"
+"\epoc32\data\Z\Resource\Plugins\esmrfieldbuilderplugin.rsc"     - "c:\resource\plugins\esmrfieldbuilderplugin.rsc"
+"\epoc32\release\armv5\udeb\esmrfieldbuilderpluginextension.dll" - "c:\sys\bin\esmrfieldbuilderpluginextension.dll"
+"\epoc32\data\Z\Resource\Plugins\esmrfieldbuilderpluginextension.rsc" - "c:\resource\plugins\esmrfieldbuilderpluginextension.rsc"
+"\epoc32\release\armv5\udeb\esmrcasplugin.dll"                   - "c:\sys\bin\esmrcasplugin.dll"
+"\epoc32\data\Z\Resource\Plugins\esmrcasplugin.rsc"              - "c:\resource\plugins\esmrcasplugin.rsc"
+"\epoc32\release\armv5\udeb\esmricalviewer.dll"                  - "c:\sys\bin\esmricalviewer.dll"
+"\epoc32\release\armv5\udeb\esmrviewer.dll"                      - "c:\sys\bin\esmrviewer.dll"
+"\epoc32\release\armv5\udeb\esmrutils.dll"                       - "c:\sys\bin\esmrutils.dll"
+"\epoc32\release\armv5\udeb\esmrentry.dll"                       - "c:\sys\bin\esmrentry.dll"
+"\epoc32\release\armv5\udeb\esmrpolicy.dll"                      - "c:\sys\bin\esmrpolicy.dll"
+"\epoc32\release\armv5\udeb\esmrcommon.dll"                      - "c:\sys\bin\esmrcommon.dll"
+"\epoc32\release\armv5\udeb\esmrdb.dll"                          - "c:\sys\bin\esmrdb.dll"
+"\epoc32\release\armv5\udeb\esmrservices.dll"                    - "c:\sys\bin\esmrservices.dll"
+"\epoc32\release\armv5\udeb\esmrgui.dll"                         - "c:\sys\bin\esmrgui.dll"
+"\epoc32\release\armv5\udeb\esmrtasks.dll"                       - "c:\sys\bin\esmrtasks.dll"
+"\epoc32\release\armv5\udeb\esmrversit2.dll"                     - "c:\sys\bin\esmrversit2.dll"
+"\epoc32\release\armv5\udeb\esmrfieldbuildercommon.dll"          - "c:\sys\bin\esmrfieldbuildercommon.dll"
+"\epoc32\release\armv5\udeb\esmrfieldevent.dll"                  - "c:\sys\bin\esmrfieldevent.dll"
+"\epoc32\data\z\resource\apps\esmrgui.mif"                       - "c:\resource\apps\esmrgui.mif"
+"\epoc32\data\z\resource\apps\esmrcasplugin.mif"                 - "c:\resource\apps\esmrcasplugin.mif"
+
+; meetingrequest / esmrviewer calendar plug-in 
+"\epoc32\release\armv5\udeb\esmrviewercalplugin.dll"             - "c:\sys\bin\esmrviewercalplugin.dll"
+"\epoc32\data\Z\Resource\Plugins\esmrviewercalplugin.rsc"        - "c:\resource\plugins\esmrviewercalplugin.rsc"
+
+; meetingrequest / esmrutils calendar plug-in 
+"\epoc32\release\armv5\udeb\esmrutilscalplugin.dll"              - "c:\sys\bin\esmrutilscalplugin.dll"
+"\epoc32\data\Z\Resource\Plugins\esmrutilscalplugin.rsc"         - "c:\resource\plugins\esmrutilscalplugin.rsc"
+
+; meetingrequest / location integration plugin
+"\epoc32\release\armv5\udeb\esmrlocationplugin.dll"              - "c:\sys\bin\esmrlocationplugin.dll"
+"\epoc32\data\Z\Resource\Plugins\esmrlocationplugin.rsc"         - "c:\resource\plugins\esmrlocationplugin.rsc"
+
+; meetingrequest / location url parser plugin
+"\epoc32\release\armv5\udeb\esmrurlparserplugin.dll"             - "c:\sys\bin\esmrurlparserplugin.dll"
+"\epoc32\data\Z\resource\Plugins\esmrurlparserplugin.rsc"        - "c:\resource\plugins\esmrurlparserplugin.rsc"
+"\epoc32\data\z\resource\esmrurlparserplugindata.rsc"            - "c:\resource\esmrurlparserplugindata.rsc"
+
+; meetingrequest / cenrep
+"\epoc32\data\Z\private\10202BE9\2001E610.txt"                   - "c:\private\10202be9\2001E610.txt"
+"\epoc32\data\Z\private\10202BE9\2001E611.txt"                   - "c:\private\10202be9\2001E611.txt"
+
+; HomeScreen widget still missing from here
+
+; emailservices / emailservermonitor
+"\epoc32\release\armv5\udeb\emailservermonitor.exe"              - "c:\sys\bin\emailservermonitor.exe"
+"\epoc32\release\armv5\udeb\fsmailserverautostart.exe"           - "c:\sys\bin\fsmailserverautostart.exe", FILERUN, RUNBOTH

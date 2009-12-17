@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+============================================================================
+<FileName: "emailwidget.dtd">
+<PartOf  : "CMail / Email Widget">
+
+<FileDescription: "Localization strings for Email Widget">
+<FileVersion    : >
+
+<Copyright:
+"Copyright ? 2008 Nokia Corporation.
+This material, including documentation and any related
+computer programs, is protected by copyright controlled by
+Nokia Corporation. All rights are reserved. Copying,
+including reproducing, storing,  adapting or translating, any
+or all of this material requires the prior written consent of
+Nokia Corporation. This material also contains confidential
+information which may not be disclosed to others without the
+prior written consent of Nokia Corporation.">
+============================================================================
+-->
+
+<!--
+qtn_hscr_ew_configure_email.attributes
+qtn_hscr_ew_configure_email.layout "ai_gene_pane_1_t1/opt1"
+qtn_hscr_ew_configure_email.release "TB9.1"
+qtn_hscr_ew_configure_email.description "setup"
+qtn_hscr_ew_configure_email.parents "ai_gene_pane_1_t1"
+-->
+<!ENTITY qtn_hscr_ew_configure_email "Email Set-up">
+
+<!--
+qtn_hscr_ew_email_count.attributes
+qtn_hscr_ew_email_count.layout "ai_gene_pane_1_t1/opt3"
+qtn_hscr_ew_email_count.release "TB9.1"
+qtn_hscr_ew_email_count.description "name of the mailbox and number of new emails in brackets"
+qtn_hscr_ew_email_count.parents "ai_gene_pane_1_t1/opt1"
+-->
+<!ENTITY qtn_hscr_ew_email_count "%0U (%1N)">
+
+<!--
+qtn_hscr_ew_time.attributes
+qtn_hscr_ew_time.layout "ai_gene_pane_1_t2/opt3"
+qtn_hscr_ew_time.release "TB9.1"
+qtn_hscr_ew_time.description "%U is replaced by qtn_time_usual_with_zero"
+qtn_hscr_ew_time.parents "ai_gene_pane_1_t1"
+-->
+<!ENTITY qtn_hscr_ew_time "%U">
+
+<!--
+qtn_hscr_ew_date.attributes
+qtn_hscr_ew_date.layout "ai_gene_pane_1_t2/opt3"
+qtn_hscr_ew_date.release "TB9.1"
+qtn_hscr_ew_date.description "%U is replaced by qtn_date_usual_with_zero"
+qtn_hscr_ew_date.parents "ai_gene_pane_1_t1"
+-->
+<!ENTITY qtn_hscr_ew_date "%U">
+

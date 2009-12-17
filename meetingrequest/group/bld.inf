@@ -1,0 +1,70 @@
+/*
+* Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Build information file for project mrui
+*
+*/
+
+
+#include <platform_paths.hrh>
+#include <bldvariant.hrh>
+
+// <cmail>
+#include "../mrcommon/group/bld.inf"
+#include "../mrdb/group/bld.inf"
+#include "../mrpolicy/group/bld.inf"
+#include "../mrservices/group/bld.inf"
+#include "../mrgui/group/bld.inf"
+#include "../mrentry/group/bld.inf"
+#include "../mrtasks/group/bld.inf"
+#include "../mrutils/group/bld.inf"
+#include "../mrutilscalplugin/group/bld.inf"
+#include "../mrviewer/group/bld.inf"
+#include "../mrviewercalplugin/group/bld.inf"
+#include "../mricalviewer/group/bld.inf"
+#include "../mrversit2/group/bld.inf"
+#include "../mragnversit2/group/bld.inf"
+#include "../mrcasplugin/group/bld.inf"
+#include "../mrurlparserplugin/group/bld.inf"
+//</cmail>
+
+PRJ_PLATFORMS
+DEFAULT
+
+PRJ_MMPFILES
+// <cmail> dir name changes
+// <cmail> Mifconv extension taken into use.
+// Keep the PRJ_EXTENSIONS defintions below update with the mk-files.
+// Also keep updating the mk-files to enable "going back option". 
+//gnumakefile ../mrgui/group/icons.mk
+//gnumakefile ../mrcasplugin/group/esmrcaspluginicons.mk
+// </cmail>
+
+//<cmail> Exports moved to under subsystems (due to code policy) 
+PRJ_EXPORTS
+// </cmail>
+
+// <cmail> Export macros taken into use
+../rom/mrui.iby                         CORE_APP_LAYER_IBY_EXPORT_PATH(mrui.iby)
+../rom/mruiresources.iby                LANGUAGE_APP_LAYER_IBY_EXPORT_PATH(mruiresources.iby)
+// </cmail>
+
+// CenRep exports
+// <cmail> Cenrep exports corrected and removed platform export
+../conf/mrui.confml                   APP_LAYER_CONFML(mrui.confml)
+../conf/mrui_2001E610.crml              APP_LAYER_CRML(mrui_2001E610.crml)
+../conf/mrui_2001E611.crml              APP_LAYER_CRML(mrui_2001E611.crml)				
+//../inc/mruidomaincrkeys.h               APP_LAYER_PLATFORM_EXPORT_PATH(mruidomaincrkeys.h)
+// </cmail>
+
+// End of file

@@ -1,0 +1,74 @@
+/*
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description: Project definition file for project fsscrollbarplugin
+*
+*/
+
+#include <platform_paths.hrh>
+#include <data_caging_paths.hrh>
+#include <bldvariant.hrh>
+
+#include "../../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
+
+TARGET          fsscrollbarplugin.dll
+TARGETTYPE     	PLUGIN
+UID             0x10009d8d 0x2001E281
+
+CAPABILITY      CAP_ECOM_PLUGIN
+VENDORID        VID_DEFAULT
+
+VERSION         KEmailBinaryVersionNumber
+KEmailBinaryDemandPaging
+
+USERINCLUDE     ../inc
+USERINCLUDE     ../../inc
+USERINCLUDE     ../../../../inc
+
+APP_LAYER_SYSTEMINCLUDE
+
+SYSTEMINCLUDE   /epoc32/include/ecom
+
+SOURCEPATH		../data
+START RESOURCE 2001E281.rss
+TARGET fsscrollbarplugin.rsc
+END
+
+SOURCEPATH      ../src
+
+SOURCE          fsscrollbarfactory.cpp
+SOURCE          fsscrollbarlayouthandler.cpp
+SOURCE          fshuiscrollbarlayout.cpp
+SOURCE          fsscrollbarclet.cpp
+
+
+LIBRARY         euser.lib
+LIBRARY         alfappservercore.lib
+LIBRARY         hitchcock.lib
+LIBRARY         fbscli.lib
+LIBRARY         bitgdi.lib
+LIBRARY         aknskins.lib
+LIBRARY         avkon.lib
+LIBRARY         aknlayout2scalable.lib
+LIBRARY         aknicon.lib
+LIBRARY         cdlengine.lib
+LIBRARY         fs_generic.lib
+
+LIBRARY         alfclient.lib // alftimedvalue
+LIBRARY         cmaillogger.lib
+
+DEFFILE         fs_scrollbarpugin.def
+
+START WINS
+    BASEADDRESS 0x7ddb0000
+END

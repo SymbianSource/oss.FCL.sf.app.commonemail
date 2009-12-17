@@ -1,0 +1,47 @@
+/*
+* Copyright (c) 2007 Nokia Corporation and/or its subsidiary(-ies).
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description: Build information file for project ipsservices.
+*
+*/
+
+
+#include <platform_paths.hrh>
+
+#include "../ipssossettings/group/bld.inf"
+#include "../ipssosplugin/group/bld.inf"
+#include "../ipssosaoplugin/group/bld.inf"
+
+PRJ_PLATFORMS
+DEFAULT
+
+PRJ_EXPORTS
+//<cmail>
+// per component stubs are removed and replaced by one stub under emailui.
+//../data/freestyleipsservices_stub.sis /epoc32/data/z/system/install/freestyleipsservices_stub.sis
+//../data/StubForAllIPSSosRelated.sis /epoc32/data/z/system/install/StubForAllIPSSosRelated.sis
+
+// Generic configuration interface for component cenrep settings
+../conf/FreestyleIpsServices.confml APP_LAYER_CONFML(freestyleipsservices.confml)
+// <cmail> S60 UID update
+// freestyleemailui_2001E277 implementation specifics for cenrep data
+// </cmail> S60 UID update
+../conf/FreestyleIpsServices_20010128.crml APP_LAYER_CRML(freestyleipsservices_20010128.crml)
+
+// Export macros taken into use
+../rom/FreestyleIpsServices.iby CORE_APP_LAYER_IBY_EXPORT_PATH(FreestyleIpsServices.iby)
+../rom/FreestyleIpsServicesResources.iby LANGUAGE_APP_LAYER_IBY_EXPORT_PATH(FreestyleIpsServicesResources.iby)
+// </cmail>
+
+
+PRJ_MMPFILES

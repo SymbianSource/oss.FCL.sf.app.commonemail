@@ -1,0 +1,38 @@
+/*
+* Copyright (c) 2008 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  IBY file for PsMruAdapter.
+*
+*/
+
+
+#ifndef PSMRUADAPTER_IBY
+#define PSMRUADAPTER_IBY
+
+
+#include <data_caging_paths_for_iby.hrh>
+
+//<cmail>
+#ifdef FF_EMAIL_FRAMEWORK
+//</cmail>
+
+//<cmail> per component stubs are removed and replaced by one stub under emailui.
+//data=DATAZ_\system\install\PsMruAdapter_stub.SIS 		system\install\PsMruAdapter_stub.SIS
+//</cmail>
+ECOM_PLUGIN( PsMruAdapter.dll, PsMruAdapter.rsc )
+
+//<cmail>
+#endif //FF_EMAIL_FRAMEWORK
+//</cmail>
+
+#endif  // PSMRUADAPTER_IBY

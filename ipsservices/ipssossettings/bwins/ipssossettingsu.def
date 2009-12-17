@@ -1,0 +1,76 @@
+EXPORTS
+	?ImplementationGroupProxy@@YAPBUTImplementationProxy@@AAH@Z @ 1 NONAME ; struct TImplementationProxy const * ImplementationGroupProxy(int &)
+	?SaveSyncStatusL@CIpsSetDataApi@@QAEXVTMsvEntry@@H@Z @ 2 NONAME ; void CIpsSetDataApi::SaveSyncStatusL(class TMsvEntry, int)
+	?SetNewPasswordL@CIpsSetDataApi@@QAEXAAVCMsvEntry@@ABVTDesC16@@@Z @ 3 NONAME ; void CIpsSetDataApi::SetNewPasswordL(class CMsvEntry &, class TDesC16 const &)
+	?RoamHomeOnlyFlag@CIpsSetDataExtension@@QAEHXZ @ 4 NONAME ; int CIpsSetDataExtension::RoamHomeOnlyFlag(void)
+	?SetSyncStatus@CIpsSetDataExtension@@QAEXH@Z @ 5 NONAME ; void CIpsSetDataExtension::SetSyncStatus(int)
+	?Protocol@CIpsSetDataExtension@@QBE?AVTUid@@XZ @ 6 NONAME ; class TUid CIpsSetDataExtension::Protocol(void) const
+	?OutgoingLogin@CIpsSetDataExtension@@QBEHXZ @ 7 NONAME ; int CIpsSetDataExtension::OutgoingLogin(void) const
+	?GetMailboxAddressL@CIpsSetDataApi@@QAEXABVTMsvEntry@@AAPAVHBufC16@@@Z @ 8 NONAME ; void CIpsSetDataApi::GetMailboxAddressL(class TMsvEntry const &, class HBufC16 * &)
+	?NewL@CIpsSetDataExtension@@SAPAV1@XZ @ 9 NONAME ; class CIpsSetDataExtension * CIpsSetDataExtension::NewL(void)
+	?IsValidEmailAddressL@IpsSetUtils@@SAHABVTDesC16@@@Z @ 10 NONAME ; int IpsSetUtils::IsValidEmailAddressL(class TDesC16 const &)
+	?GetLastSyncStatusL@CIpsSetDataApi@@QAEHVTMsvEntry@@@Z @ 11 NONAME ; int CIpsSetDataApi::GetLastSyncStatusL(class TMsvEntry)
+	?HandleMailboxCreation@CIpsSetDataApi@@QAEHVTUid@@AAVCMsvSession@@@Z @ 12 NONAME ; int CIpsSetDataApi::HandleMailboxCreation(class TUid, class CMsvSession &)
+	?LaunchSettingsL@CIpsSetDataApi@@SAHJ@Z @ 13 NONAME ; int CIpsSetDataApi::LaunchSettingsL(long)
+	?SelectedTimeStart@CIpsSetDataExtension@@QBE?AVTTime@@XZ @ 14 NONAME ; class TTime CIpsSetDataExtension::SelectedTimeStart(void) const
+	?GetSubscribedImapFoldersL@CIpsSetDataApi@@QAEXJAAV?$RArray@J@@@Z @ 15 NONAME ; void CIpsSetDataApi::GetSubscribedImapFoldersL(long, class RArray<long> &)
+	?NewL@CIpsSetDataApi@@SAPAV1@AAVCMsvSession@@@Z @ 16 NONAME ; class CIpsSetDataApi * CIpsSetDataApi::NewL(class CMsvSession &)
+	?StatusFlags@CIpsSetDataExtension@@QBE_KXZ @ 17 NONAME ; unsigned long long CIpsSetDataExtension::StatusFlags(void) const
+	?SetStatusFlags@CIpsSetDataExtension@@QAEX_K@Z @ 18 NONAME ; void CIpsSetDataExtension::SetStatusFlags(unsigned long long)
+	?IsSettingsValid@CIpsSetDataExtension@@QBEHXZ @ 19 NONAME ; int CIpsSetDataExtension::IsSettingsValid(void) const
+	?SetRoamHomeOnlyFlag@CIpsSetDataExtension@@QAEXH@Z @ 20 NONAME ; void CIpsSetDataExtension::SetRoamHomeOnlyFlag(int)
+	?SetSelectedWeekDays@CIpsSetDataExtension@@QAEXI@Z @ 21 NONAME ; void CIpsSetDataExtension::SetSelectedWeekDays(unsigned int)
+	?SetProtocol@CIpsSetDataExtension@@QAEXABVTUid@@@Z @ 22 NONAME ; void CIpsSetDataExtension::SetProtocol(class TUid const &)
+	?SetHideMsgs@CIpsSetDataExtension@@QAEXH@Z @ 23 NONAME ; void CIpsSetDataExtension::SetHideMsgs(int)
+	?LoadExtendedSettingsL@CIpsSetDataApi@@QAEXJAAVCIpsSetDataExtension@@@Z @ 24 NONAME ; void CIpsSetDataApi::LoadExtendedSettingsL(long, class CIpsSetDataExtension &)
+	?SetLastModified@CIpsSetDataExtension@@QAEXVTTime@@@Z @ 25 NONAME ; void CIpsSetDataExtension::SetLastModified(class TTime)
+	?RemoveAccountL@CIpsSetDataApi@@QAEXABVTMsvEntry@@AAVCMsvSession@@@Z @ 26 NONAME ; void CIpsSetDataApi::RemoveAccountL(class TMsvEntry const &, class CMsvSession &)
+	?SetSelectedTimeStart@CIpsSetDataExtension@@QAEXVTTime@@@Z @ 27 NONAME ; void CIpsSetDataExtension::SetSelectedTimeStart(class TTime)
+	?SetOutgoingLogin@CIpsSetDataExtension@@QAEXH@Z @ 28 NONAME ; void CIpsSetDataExtension::SetOutgoingLogin(int)
+	?SetEmailNotificationState@CIpsSetDataExtension@@QAEXW4TIpsSetDataEmnStates@@@Z @ 29 NONAME ; void CIpsSetDataExtension::SetEmailNotificationState(enum TIpsSetDataEmnStates)
+	?AlwaysOnlineState@CIpsSetDataExtension@@QBE?AW4TIpsSetDataAoStates@@XZ @ 30 NONAME ; enum TIpsSetDataAoStates CIpsSetDataExtension::AlwaysOnlineState(void) const
+	?SetEmnReceivedButNotSyncedFlag@CIpsSetDataExtension@@QAEXH@Z @ 31 NONAME ; void CIpsSetDataExtension::SetEmnReceivedButNotSyncedFlag(int)
+	?CreateCenRepKeyL@CIpsSetDataApi@@QAEKKABVTUid@@K@Z @ 32 NONAME ; unsigned long CIpsSetDataApi::CreateCenRepKeyL(unsigned long, class TUid const &, unsigned long)
+	?SetNewMailIndicators@CIpsSetDataExtension@@QAEXH@Z @ 33 NONAME ; void CIpsSetDataExtension::SetNewMailIndicators(int)
+	?ExtensionId@CIpsSetDataExtension@@QBEKXZ @ 34 NONAME ; unsigned long CIpsSetDataExtension::ExtensionId(void) const
+	?SetMailboxNameL@CIpsSetDataApi@@QAEXAAVTMsvEntry@@ABVTDesC16@@@Z @ 35 NONAME ; void CIpsSetDataApi::SetMailboxNameL(class TMsvEntry &, class TDesC16 const &)
+	?PopulateDefaults@CIpsSetDataExtension@@QAEXXZ @ 36 NONAME ; void CIpsSetDataExtension::PopulateDefaults(void)
+	?OpenHtmlMail@CIpsSetDataExtension@@QBEHXZ @ 37 NONAME ; int CIpsSetDataExtension::OpenHtmlMail(void) const
+	?SelectedTimeStop@CIpsSetDataExtension@@QBE?AVTTime@@XZ @ 38 NONAME ; class TTime CIpsSetDataExtension::SelectedTimeStop(void) const
+	?AccountId@CIpsSetDataExtension@@QBEKXZ @ 39 NONAME ; unsigned long CIpsSetDataExtension::AccountId(void) const
+	?GetServerAddressL@CIpsSetDataApi@@QAEAAVTDesC16@@ABVCMsvEntry@@@Z @ 40 NONAME ; class TDesC16 & CIpsSetDataApi::GetServerAddressL(class CMsvEntry const &)
+	?GetIMEIFromThePhoneL@CIpsSetDataApi@@QAEXAAV?$TBuf@$0DC@@@@Z @ 41 NONAME ; void CIpsSetDataApi::GetIMEIFromThePhoneL(class TBuf<50> &)
+	?EmailAddress@CIpsSetDataExtension@@QBEABVTDesC16@@XZ @ 42 NONAME ; class TDesC16 const & CIpsSetDataExtension::EmailAddress(void) const
+	?SetEmailAddress@CIpsSetDataExtension@@QAEXABVTDesC16@@@Z @ 43 NONAME ; void CIpsSetDataExtension::SetEmailAddress(class TDesC16 const &)
+	?DataHidden@CIpsSetDataExtension@@QBEHXZ @ 44 NONAME ; int CIpsSetDataExtension::DataHidden(void) const
+	?NewLC@CIpsSetDataExtension@@SAPAV1@XZ @ 45 NONAME ; class CIpsSetDataExtension * CIpsSetDataExtension::NewLC(void)
+	?SetDataHidden@CIpsSetDataExtension@@QAEXH@Z @ 46 NONAME ; void CIpsSetDataExtension::SetDataHidden(int)
+	?SetLastUpdateInfo@CIpsSetDataExtension@@QAEXABUTAOInfo@@@Z @ 47 NONAME ; void CIpsSetDataExtension::SetLastUpdateInfo(struct TAOInfo const &)
+	?SetSelectedTimeStop@CIpsSetDataExtension@@QAEXVTTime@@@Z @ 48 NONAME ; void CIpsSetDataExtension::SetSelectedTimeStop(class TTime)
+	?CopyL@CIpsSetDataExtension@@QAEXABV1@@Z @ 49 NONAME ; void CIpsSetDataExtension::CopyL(class CIpsSetDataExtension const &)
+	?SetOpenHtmlMail@CIpsSetDataExtension@@QAEXH@Z @ 50 NONAME ; void CIpsSetDataExtension::SetOpenHtmlMail(int)
+	?NewMailIndicators@CIpsSetDataExtension@@QBEHXZ @ 51 NONAME ; int CIpsSetDataExtension::NewMailIndicators(void) const
+	?SelectedWeekDays@CIpsSetDataExtension@@QBEIXZ @ 52 NONAME ; unsigned int CIpsSetDataExtension::SelectedWeekDays(void) const
+	?SetMailboxId@CIpsSetDataExtension@@QAEXJ@Z @ 53 NONAME ; void CIpsSetDataExtension::SetMailboxId(long)
+	?ConstructImapPartialFetchInfo@CIpsSetDataApi@@SAXAAVTImImap4GetPartialMailInfo@@AAVCImImap4Settings@@@Z @ 54 NONAME ; void CIpsSetDataApi::ConstructImapPartialFetchInfo(class TImImap4GetPartialMailInfo &, class CImImap4Settings &)
+	?HideMsgs@CIpsSetDataExtension@@QBEHXZ @ 55 NONAME ; int CIpsSetDataExtension::HideMsgs(void) const
+	?SetInboxRefreshTime@CIpsSetDataExtension@@QAEXH@Z @ 56 NONAME ; void CIpsSetDataExtension::SetInboxRefreshTime(int)
+	?SetAlwaysOnlineState@CIpsSetDataExtension@@QAEXW4TIpsSetDataAoStates@@H@Z @ 57 NONAME ; void CIpsSetDataExtension::SetAlwaysOnlineState(enum TIpsSetDataAoStates, int)
+	?SetAccountId@CIpsSetDataExtension@@QAEXK@Z @ 58 NONAME ; void CIpsSetDataExtension::SetAccountId(unsigned long)
+	?Version@CIpsSetDataExtension@@QBEHXZ @ 59 NONAME ; int CIpsSetDataExtension::Version(void) const
+	?GoOnlineL@CIpsSetDataApi@@QAEXVTMsvEntry@@@Z @ 60 NONAME ; void CIpsSetDataApi::GoOnlineL(class TMsvEntry)
+	?InboxRefreshTime@CIpsSetDataExtension@@QBEHXZ @ 61 NONAME ; int CIpsSetDataExtension::InboxRefreshTime(void) const
+	?LastUpdateInfo@CIpsSetDataExtension@@QBE?AUTAOInfo@@XZ @ 62 NONAME ; struct TAOInfo CIpsSetDataExtension::LastUpdateInfo(void) const
+	?EmnReceivedButNotSyncedFlag@CIpsSetDataExtension@@QBEHXZ @ 63 NONAME ; int CIpsSetDataExtension::EmnReceivedButNotSyncedFlag(void) const
+	?SetExtensionId@CIpsSetDataExtension@@QAEXK@Z @ 64 NONAME ; void CIpsSetDataExtension::SetExtensionId(unsigned long)
+	?GoOfflineL@CIpsSetDataApi@@QAEXVTMsvEntry@@@Z @ 65 NONAME ; void CIpsSetDataApi::GoOfflineL(class TMsvEntry)
+	?MailboxId@CIpsSetDataExtension@@QBEJXZ @ 66 NONAME ; long CIpsSetDataExtension::MailboxId(void) const
+	?UpdateMode@CIpsSetDataExtension@@QBE?AW4TIpsSetDataAoUpdateModes@@XZ @ 67 NONAME ; enum TIpsSetDataAoUpdateModes CIpsSetDataExtension::UpdateMode(void) const
+	?SaveExtendedSettingsL@CIpsSetDataApi@@QAEXABVCIpsSetDataExtension@@@Z @ 68 NONAME ; void CIpsSetDataApi::SaveExtendedSettingsL(class CIpsSetDataExtension const &)
+	?LastSyncStatus@CIpsSetDataExtension@@QBEHXZ @ 69 NONAME ; int CIpsSetDataExtension::LastSyncStatus(void) const
+	?LastModified@CIpsSetDataExtension@@QBE?AVTTime@@XZ @ 70 NONAME ; class TTime CIpsSetDataExtension::LastModified(void) const
+	?SetUpdateMode@CIpsSetDataExtension@@QAEXW4TIpsSetDataAoUpdateModes@@@Z @ 71 NONAME ; void CIpsSetDataExtension::SetUpdateMode(enum TIpsSetDataAoUpdateModes)
+	?EmailNotificationState@CIpsSetDataExtension@@QBE?AW4TIpsSetDataEmnStates@@XZ @ 72 NONAME ; enum TIpsSetDataEmnStates CIpsSetDataExtension::EmailNotificationState(void) const
+	?FirstEmnReceived@CIpsSetDataExtension@@QBEHXZ @ 73 NONAME ; int CIpsSetDataExtension::FirstEmnReceived(void) const
+	?SetFirstEmnReceived@CIpsSetDataExtension@@QAEXH@Z @ 74 NONAME ; void CIpsSetDataExtension::SetFirstEmnReceived(int)
+

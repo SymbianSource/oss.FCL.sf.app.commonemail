@@ -1,0 +1,173 @@
+/*
+* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Project definition file for project esmrgui
+*
+*/
+
+
+#include "../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
+#include "../../inc/esmrinternaluid.h"
+#include <data_caging_paths.hrh>
+#include <platform_paths.hrh>
+
+// Target information
+TARGET          esmrgui.dll
+TARGETTYPE      dll
+UID             KEPOCStaticDllUID2 KESMRDllUid3
+DEFFILE         ESMRGUI.def
+
+CAPABILITY      CAP_GENERAL_DLL
+
+VERSION         KEmailBinaryVersionNumber
+KEmailBinaryDemandPaging
+
+SOURCEPATH      ../src
+
+//the following contain dll exports
+SOURCE          cesmruifactory.cpp
+SOURCE          cesmrglobalnote.cpp
+SOURCE          cesmrconfirmationquery.cpp
+SOURCE          cesmrlistquery.cpp
+SOURCE          cesmrsendui.cpp
+SOURCE          esmrvcalexport.cpp
+SOURCE          cesmrguilistquery.cpp
+SOURCE          cmrimage.cpp
+SOURCE          cmrlabel.cpp
+
+//internal classes
+SOURCE          cesmrcontactlinkiterator.cpp
+SOURCE          cesmrcontactmenuurlhandler.cpp
+SOURCE          cesmrcontactmenuattachmenthandler.cpp
+SOURCE          cesmrcontactmanagerhandler.cpp
+SOURCE          cesmrview.cpp
+SOURCE          cesmrlistcomponent.cpp
+SOURCE          cesmrtitlepane.cpp
+
+SOURCE          cesmrfieldstorage.cpp
+SOURCE          cesmreditorfieldstorage.cpp
+SOURCE          cesmrviewerfieldstorage.cpp
+SOURCE          cesmrmixedfieldstorage.cpp
+
+SOURCE          cesmreditordialog.cpp
+SOURCE          cesmrviewerdialog.cpp
+SOURCE          cesmrresponsedialog.cpp
+SOURCE          cmrresponsedialogview.cpp
+SOURCE          cesmrtrackingviewdialog.cpp
+
+SOURCE          cesmrvalidatorfactory.cpp
+SOURCE          cesmrmeetingtimevalidator.cpp
+SOURCE          cesmrtodotimevalidator.cpp
+SOURCE          cesmrmemotimevalidator.cpp
+SOURCE          cesmrannivtimevalidator.cpp
+SOURCE          cesmrtitlepanehandler.cpp
+SOURCE          cesmrlocationpluginhandler.cpp
+SOURCE          cesmrdynamicitemselectionlist.cpp
+SOURCE          cesmraddressinfohandler.cpp
+
+SOURCE          cesmrlocationhistoryitem.cpp
+SOURCE          cesmrlocationhistoryitemfactory.cpp
+SOURCE          cesmrlocationhistorymanager.cpp
+
+SOURCE          cesmrfieldeventqueue.cpp
+
+SOURCE          cmrlistpane.cpp
+
+//the following also contain dll exports (only used by fieldbuilder)
+SOURCE          cesmrrecurrence.cpp
+SOURCE          cesmrlayoutmgr.cpp
+SOURCE          cesmralarm.cpp
+SOURCE          resmrstatic.cpp
+SOURCE          cesmrcontactmenuhandler.cpp
+SOURCE          nmrlayoutmanager.cpp
+SOURCE          nmrbitmapmanager.cpp
+
+// Resources
+SOURCEPATH      ../data
+START RESOURCE  esmrgui.rss
+HEADER
+TARGETPATH      RESOURCE_FILES_DIR
+LANGUAGE_IDS
+END
+
+APP_LAYER_SYSTEMINCLUDE
+SYSTEMINCLUDE     /epoc32/include/ecom
+
+// Include paths
+USERINCLUDE     ../inc
+USERINCLUDE     ../../inc
+USERINCLUDE     ../../../inc
+
+// Dependencies to esmrui libraries
+LIBRARY esmrpolicy.lib
+LIBRARY esmrcommon.lib //esmrhelper::locateresourcefile()
+LIBRARY esmrfieldevent.lib
+LIBRARY esmrservices.lib
+
+// Dependencies to Symbian/S60 OS components
+LIBRARY apparc.lib
+LIBRARY ecom.lib
+LIBRARY euser.lib
+LIBRARY apgrfx.lib
+LIBRARY cone.lib
+LIBRARY eikcoctl.lib
+LIBRARY egul.lib
+LIBRARY eikdlg.lib
+LIBRARY estor.lib
+LIBRARY eikctl.lib
+LIBRARY bafl.lib
+LIBRARY eikcore.lib
+LIBRARY efsrv.lib
+LIBRARY featmgr.lib
+LIBRARY pbkeng.lib
+LIBRARY vpbkeng.lib
+LIBRARY sendui.lib
+LIBRARY fontutils.lib
+LIBRARY aknskins.lib
+LIBRARY cenrepnotifhandler.lib
+LIBRARY centralrepository.lib
+LIBRARY aknnotify.lib
+LIBRARY favouritesengine.lib
+LIBRARY aknicon.lib
+LIBRARY sysutil.lib
+LIBRARY etext.lib
+LIBRARY calinterimapi.lib
+LIBRARY hlplch.lib
+LIBRARY commonengine.lib
+LIBRARY fbscli.lib
+LIBRARY avkon.lib
+LIBRARY calenimp.lib
+LIBRARY caleninterimutils2.lib
+LIBRARY lmkcommonui.lib 
+LIBRARY eposlandmarks.lib
+LIBRARY platformenv.lib
+LIBRARY gdi.lib
+LIBRARY msgs.lib
+
+// fsemail framework
+LIBRARY fsfwcommonlib.lib
+LIBRARY fsmailframework.lib
+
+//needed by XML based LAF components
+LIBRARY         cdlengine.lib
+LIBRARY         aknlayout2.lib
+LIBRARY         aknlayout2scalable.lib
+
+// AIW
+LIBRARY ServiceHandler.lib //__PRINTING_FRAMEWORK_CALENDAR_PLUGIN
+
+LIBRARY touchfeedback.lib
+LIBRARY aknphysics.lib
+LIBRARY cmaillogger.lib
+
+// End of File

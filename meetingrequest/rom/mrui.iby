@@ -1,0 +1,95 @@
+/*
+* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Image description file for project mrui
+*
+*/
+
+
+#ifndef MRUI_IBY
+#define MRUI_IBY
+
+#include <bldvariant.hrh>
+#include <data_caging_paths_for_iby.hrh>
+
+//<cmail>
+#ifdef FF_EMAIL_FRAMEWORK
+//</cmail>
+
+// Common MRUI & CalEntryUI Components:
+file=ABI_DIR\BUILD_DIR\esmrpolicy.dll            SHARED_LIB_DIR\esmrpolicy.dll
+file=ABI_DIR\BUILD_DIR\esmrservices.dll          SHARED_LIB_DIR\esmrservices.dll
+file=ABI_DIR\BUILD_DIR\esmrgui.dll               SHARED_LIB_DIR\esmrgui.dll
+file=ABI_DIR\BUILD_DIR\esmrcommon.dll            SHARED_LIB_DIR\esmrcommon.dll
+file=ABI_DIR\BUILD_DIR\esmrdb.dll                SHARED_LIB_DIR\esmrdb.dll
+
+ECOM_PLUGIN( esmrfieldbuilderplugin.dll, esmrfieldbuilderplugin.rsc )
+file=ABI_DIR\BUILD_DIR\esmrfieldbuildercommon.dll  SHARED_LIB_DIR\esmrfieldbuildercommon.dll
+// <cmail>
+file=ABI_DIR\BUILD_DIR\esmrfieldevent.dll  SHARED_LIB_DIR\esmrfieldevent.dll
+// </cmail>
+
+// Location integration plugin
+ECOM_PLUGIN( esmrlocationplugin.dll, esmrlocationplugin.rsc )
+
+// Location URL Parser plugin
+ECOM_PLUGIN( esmrurlparserplugin.dll, esmrurlparserplugin.rsc )
+
+data=DATAZ_\RESOURCE_FILES_DIR\esmrurlparserplugindata.rsc   RESOURCE_FILES_DIR\esmrurlparserplugindata.rsc
+
+// Common Icon files:
+data=DATAZ_\BITMAP_DIR\esmrgui.mif                BITMAP_DIR\esmrgui.mif
+
+// Common Resource files
+data=DATAZ_\RESOURCE_FILES_DIR\esmrpolicies.rsc        RESOURCE_FILES_DIR\esmrpolicies.rsc
+data=DATAZ_\RESOURCE_FILES_DIR\esmralarminfo.rsc       RESOURCE_FILES_DIR\esmralarminfo.rsc
+
+// <cmail> use common feature flags
+#if defined(__MEETING_REQUEST_ENABLER) && defined(FF_MEETING_REQUEST_UI)
+// </cmail>
+
+// *** ECOM plugin
+// <cmail> remove FF_ES_CAL_MEETING_REQUEST_UI
+ECOM_PLUGIN( esmrviewercalplugin.dll, esmrviewercalplugin.rsc )
+ECOM_PLUGIN( esmrutilscalplugin.dll,  esmrutilscalplugin.rsc )
+// </cmail>
+ 
+ECOM_PLUGIN( esmricalviewer.dll, esmricalviewer.rsc )
+ECOM_PLUGIN( esmragnversit2.dll, esmragnversit2.rsc )
+ECOM_PLUGIN( esmrfieldbuilderpluginextension.dll, esmrfieldbuilderpluginextension.rsc )
+ECOM_PLUGIN( esmrcasplugin.dll,  esmrcasplugin.rsc )
+
+// MRUI dlls that are also part of the plugins
+file=ABI_DIR\BUILD_DIR\esmrentry.dll             SHARED_LIB_DIR\esmrentry.dll
+file=ABI_DIR\BUILD_DIR\esmrutils.dll             SHARED_LIB_DIR\esmrutils.dll
+file=ABI_DIR\BUILD_DIR\esmrviewer.dll            SHARED_LIB_DIR\esmrviewer.dll
+file=ABI_DIR\BUILD_DIR\esmrtasks.dll             SHARED_LIB_DIR\esmrtasks.dll
+file=ABI_DIR\BUILD_DIR\esmrversit2.dll           SHARED_LIB_DIR\esmrversit2.dll
+
+data=DATAZ_\RESOURCE_FILES_DIR\esmragnversit2strings.rsc   RESOURCE_FILES_DIR\esmragnversit2strings.rsc
+
+// Icon files
+data=DATAZ_\BITMAP_DIR\esmrcasplugin.mif          BITMAP_DIR\esmrcasplugin.mif
+
+#endif // __MEETING_REQUEST_ENABLER && FF_MEETING_REQUEST_UI
+
+//<cmail>
+// Stub sis
+//data=ZSYSTEM\install\mrui_stub.sis    System\Install\mrui_stub.sis
+data=ZSYSTEM\install\meetingrequeststub.sis   System\Install\meetingrequeststub.sis
+//</cmail>
+//<cmail>
+#endif //FF_EMAIL_FRAMEWORK
+//</cmail>
+
+#endif // MRUI_IBY

@@ -1,0 +1,6 @@
+EXPORTS
+	_Z18NewMtmUiDataLayerLR17CRegisteredMtmDll @ 1 NONAME
+	_ZN12CFsUiDataMtm4NewLER17CRegisteredMtmDll @ 2 NONAME
+	_ZTI12CFsUiDataMtm @ 3 NONAME ; #<TI>#
+	_ZTV12CFsUiDataMtm @ 4 NONAME ; #<VT>#
+

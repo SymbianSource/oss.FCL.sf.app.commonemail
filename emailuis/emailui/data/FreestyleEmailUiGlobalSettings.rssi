@@ -1,0 +1,576 @@
+/*
+* Copyright (c) 2005-2007 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Freestyle Email global settings view resources
+*
+*/
+
+#include "FreestyleEmailUiGlobalSettings.hrh"
+#include "FreestyleEmailUi.hrh"
+#include <freestyleemailui.loc>
+
+RESOURCE AVKON_VIEW r_global_settings_list_view
+	{
+	cba = r_freestyle_emauil_ui_sk_options_back__change;
+	menubar = r_global_settings_options_menu;
+	}
+
+RESOURCE MENU_BAR r_global_settings_options_menu
+	{
+	titles =
+		{
+		MENU_TITLE
+			{
+			menu_pane = r_global_settings_menu_pane;
+			}
+		};
+	}
+
+RESOURCE MENU_PANE r_global_settings_menu_pane
+	{
+	items =
+		{
+		MENU_ITEM
+			{
+			command = EFsEmailUiCmdChange;
+			txt = qtn_options_change;
+			},
+		MENU_ITEM
+			{
+			command = EFsEmailUiCmdOpen;
+			txt = qtn_options_open;
+			},
+		MENU_ITEM
+			{
+			command = EFsEmailUiCmdHelp;
+			txt = qtn_options_help;
+			},
+		MENU_ITEM
+			{
+			command = EFsEmailUiCmdExit;
+			txt = qtn_options_exit;
+			}
+		};
+	}
+
+// TITLE
+RESOURCE STATUS_PANE_APP_MODEL r_global_settings_status_pane
+	{
+	panes =
+		{
+		SPANE_PANE
+			{
+			id = EEikStatusPaneUidTitle;
+			type = EAknCtTitlePane;
+			resource = r_global_settings_title_resource;
+			}
+		};
+	}
+
+RESOURCE TITLE_PANE r_global_settings_title_resource
+	{
+	txt = qtn_fse_settings_global_title;
+	}
+
+
+/**
+ * ----------------------------------------------------------------
+ * SETTINGS ITEMS
+ * 
+ */
+RESOURCE AVKON_SETTING_ITEM_LIST r_global_settings_item_list
+	{
+	flags = EAknSettingPageNoOrdinalDisplayed;
+	items =
+		{
+		AVKON_SETTING_ITEM
+			{
+			name = qtn_fse_settings_message_header;
+			identifier = EGlobalSettingsMessageHeader;
+			setting_page_resource = r_global_settings_message_header_setting_page_resource;
+			associated_resource = r_global_settings_message_header;
+			},
+		AVKON_SETTING_ITEM
+			{
+			name = qtn_fse_settings_title_dividers;
+			identifier = EGlobalSettingsTitleDividers;
+			setting_page_resource = r_global_settings_title_dividers_setting_page_resource;
+			associated_resource = r_global_settings_title_dividers;
+			},
+		AVKON_SETTING_ITEM
+			{
+			name = qtn_fse_settings_download_notifications;
+			identifier = EGlobalSettingsDownloadNotifications;
+			setting_page_resource = r_global_settings_download_notifications_setting_page_resource;
+			associated_resource = r_global_settings_download_notifications;
+			},
+		AVKON_SETTING_ITEM
+			{
+			name = qtn_fse_settings_warn_before_delete;
+			identifier = EGlobalSettingsWarnBeforeDelete;
+			setting_page_resource = r_global_settings_warn_before_delete_resource;
+			associated_resource = r_global_settings_warn_before_delete;
+			},
+		AVKON_SETTING_ITEM
+			{
+			name = qtn_fse_settings_download_html_images;
+			identifier = EGlobalSettingsDownloadHTMLImages;
+			setting_page_resource = r_global_settings_download_html_images_setting_page_resource;
+			associated_resource = r_global_settings_download_html_images;
+			},
+		AVKON_SETTING_ITEM
+			{
+			name = qtn_fse_settings_active_idle;
+			identifier = EGlobalSettingsActiveIdle;
+			}
+		};
+	}
+
+
+/**
+ * ----------------------------------------------------------------
+ * WARN BEFORE DELETE SETTING ITEM
+ * 
+ */
+RESOURCE AVKON_SETTING_PAGE r_global_settings_warn_before_delete_resource
+	{
+	number = -16380;
+	label = qtn_fse_settings_warn_before_delete;
+	type = EAknCtPopupSettingList;
+	editor_resource_id = r_global_settings_warn_before_delete_editor_resource_id;
+	}
+
+RESOURCE POPUP_SETTING_LIST r_global_settings_warn_before_delete_editor_resource_id
+	{
+	}
+
+RESOURCE AVKON_POPUP_SETTING_TEXTS r_global_settings_warn_before_delete
+	{
+	setting_texts_resource = r_global_settings_warn_before_delete_setting_texts_resource;
+	popped_up_texts_resource = r_global_settings_warn_before_delete_popped_up_texts_resource;
+	}
+
+RESOURCE ARRAY r_global_settings_warn_before_delete_setting_texts_resource
+	{
+	items =
+		{
+		AVKON_ENUMERATED_TEXT
+			{
+			text = qtn_fse_settings_list_warn_before_delete_yes;
+			value = 1;
+			},
+		AVKON_ENUMERATED_TEXT
+			{
+			text = qtn_fse_settings_list_warn_before_delete_no;
+			value = 0;
+			}
+		};
+	}
+
+RESOURCE ARRAY r_global_settings_warn_before_delete_popped_up_texts_resource
+	{
+	items =
+		{
+		LBUF
+			{
+			txt = qtn_fse_settings_list_warn_before_delete_yes;
+			},
+		LBUF
+			{
+			txt = qtn_fse_settings_list_warn_before_delete_no;
+			}
+		};
+	}
+
+/**
+ * ----------------------------------------------------------------
+ * MESSAGE HEADER SETTING ITEM
+ * 
+ */
+RESOURCE AVKON_SETTING_PAGE r_global_settings_message_header_setting_page_resource
+	{
+	number = -16380;
+	label = qtn_fse_settings_message_header;
+	type = EAknCtPopupSettingList;
+	editor_resource_id = r_global_settings_message_header_editor_resource_id;
+	}
+
+RESOURCE POPUP_SETTING_LIST r_global_settings_message_header_editor_resource_id
+	{
+	}
+
+RESOURCE AVKON_POPUP_SETTING_TEXTS r_global_settings_message_header
+	{
+	setting_texts_resource = r_global_settings_message_header_setting_texts_resource;
+	popped_up_texts_resource = r_global_settings_message_header_popped_up_texts_resource;
+	}
+
+RESOURCE ARRAY r_global_settings_message_header_setting_texts_resource
+	{
+	items =
+		{
+		AVKON_ENUMERATED_TEXT
+			{
+			text = qtn_fse_settings_list_message_header_on_screen;
+			value = 1;
+			},
+		AVKON_ENUMERATED_TEXT
+			{
+			text = qtn_fse_settings_list_message_header_off_screen;
+			value = 0;
+			}
+		};
+	}
+
+RESOURCE ARRAY r_global_settings_message_header_popped_up_texts_resource
+	{
+	items =
+		{
+		LBUF
+			{
+			txt = qtn_fse_settings_list_message_header_on_screen;
+			},
+		LBUF
+			{
+			txt = qtn_fse_settings_list_message_header_off_screen;
+			}
+		};
+	}
+
+
+RESOURCE POPUP_SETTING_LIST r_global_settings_message_list_layout_editor_resource_id
+	{
+	}
+
+RESOURCE AVKON_POPUP_SETTING_TEXTS r_global_settings_message_list_layout
+	{
+	setting_texts_resource = r_global_settings_message_list_layout_setting_texts_resource;
+	popped_up_texts_resource = r_global_settings_message_list_layout_popped_up_texts_resource;
+	}
+
+RESOURCE ARRAY r_global_settings_message_list_layout_setting_texts_resource
+	{
+	items =
+		{
+		AVKON_ENUMERATED_TEXT
+			{
+			text = qtn_fse_settings_list_message_list_layout_one_line;
+			value = 1;
+			},
+		AVKON_ENUMERATED_TEXT
+			{
+			text = qtn_fse_settings_list_message_list_layout_two_lines;
+			value = 0;
+			}
+		};
+	}
+
+RESOURCE ARRAY r_global_settings_message_list_layout_popped_up_texts_resource
+	{
+	items =
+		{
+		LBUF
+			{
+			txt = qtn_fse_settings_list_message_list_layout_one_line;
+			},
+		LBUF
+			{
+			txt = qtn_fse_settings_list_message_list_layout_two_lines;
+			}
+		};
+	}
+
+RESOURCE POPUP_SETTING_LIST r_global_settings_body_preview_editor_resource_id
+	{
+	}
+
+RESOURCE AVKON_POPUP_SETTING_TEXTS r_global_settings_body_preview
+	{
+	setting_texts_resource = r_global_settings_body_preview_setting_texts_resource;
+	popped_up_texts_resource = r_global_settings_body_preview_popped_up_texts_resource;
+	}
+
+RESOURCE ARRAY r_global_settings_body_preview_setting_texts_resource
+	{
+	items =
+		{
+		AVKON_ENUMERATED_TEXT
+			{
+			text = qtn_fse_settings_preview_pane_on;
+			value = 1;
+			},
+		AVKON_ENUMERATED_TEXT
+			{
+			text = qtn_fse_settings_preview_pane_off;
+			value = 0;
+			}
+		};
+	}
+
+RESOURCE ARRAY r_global_settings_body_preview_popped_up_texts_resource
+	{
+	items =
+		{
+		LBUF
+			{
+			txt = qtn_fse_settings_preview_pane_on;
+			},
+		LBUF
+			{
+			txt = qtn_fse_settings_preview_pane_off;
+			}
+		};
+	}
+
+/**
+ * ----------------------------------------------------------------
+ * TITLE DIVIDERS SETTING ITEM
+ * 
+ */
+RESOURCE AVKON_SETTING_PAGE r_global_settings_title_dividers_setting_page_resource
+	{
+	number = -16380;
+	label = qtn_fse_settings_title_dividers;
+	type = EAknCtPopupSettingList;
+	editor_resource_id = r_global_settings_title_dividers_editor_resource_id;
+	}
+
+RESOURCE POPUP_SETTING_LIST r_global_settings_title_dividers_editor_resource_id
+	{
+	}
+
+RESOURCE AVKON_POPUP_SETTING_TEXTS r_global_settings_title_dividers
+	{
+	setting_texts_resource = r_global_settings_title_dividers_setting_texts_resource;
+	popped_up_texts_resource = r_global_settings_title_dividers_popped_up_texts_resource;
+	}
+
+RESOURCE ARRAY r_global_settings_title_dividers_setting_texts_resource
+	{
+	items =
+		{
+		AVKON_ENUMERATED_TEXT
+			{
+			text = qtn_fse_settings_list_view_dividers_on;
+			value = 1;
+			},
+		AVKON_ENUMERATED_TEXT
+			{
+			text = qtn_fse_settings_list_view_dividers_off;
+			value = 0;
+			}
+		};
+	}
+
+RESOURCE ARRAY r_global_settings_title_dividers_popped_up_texts_resource
+	{
+	items =
+		{
+		LBUF
+			{
+			txt = qtn_fse_settings_list_view_dividers_on;
+			},
+		LBUF
+			{
+			txt = qtn_fse_settings_list_view_dividers_off;
+			}
+		};
+	}
+
+
+
+/**
+ * ----------------------------------------------------------------
+ * DOWNLOAD NOTIFICATIONS SETTING ITEM
+ * 
+ */
+RESOURCE AVKON_SETTING_PAGE r_global_settings_download_notifications_setting_page_resource
+	{
+	number = -16380;
+	label = qtn_fse_settings_download_notifications;
+	type = EAknCtPopupSettingList;
+	editor_resource_id = r_global_settings_download_notifications_editor_resource_id;
+	}
+
+RESOURCE POPUP_SETTING_LIST r_global_settings_download_notifications_editor_resource_id
+	{
+	}
+
+RESOURCE AVKON_POPUP_SETTING_TEXTS r_global_settings_download_notifications
+	{
+	setting_texts_resource = r_global_settings_download_notifications_setting_texts_resource;
+	popped_up_texts_resource = r_global_settings_download_notifications_popped_up_texts_resource;
+	}
+
+RESOURCE ARRAY r_global_settings_download_notifications_setting_texts_resource
+	{
+	items =
+		{
+		AVKON_ENUMERATED_TEXT
+			{
+			text = qtn_fse_settings_download_notifications_on;
+			value = 1;
+			},
+		AVKON_ENUMERATED_TEXT
+			{
+			text = qtn_fse_settings_download_notifications_off;
+			value = 0;
+			}
+		};
+	}
+
+RESOURCE ARRAY r_global_settings_download_notifications_popped_up_texts_resource
+	{
+	items =
+		{
+		LBUF
+			{
+			txt = qtn_fse_settings_download_notifications_on;
+			},
+		LBUF
+			{
+			txt = qtn_fse_settings_download_notifications_off;
+			}
+		};
+	}
+
+/**
+ * ----------------------------------------------------------------
+ * ACTIVE IDLE SETTING ITEM
+ * 
+ */
+RESOURCE AVKON_SETTING_PAGE r_global_settings_active_idle_setting_page_resource
+	{
+	number = -16380;
+	label = qtn_fse_settings_default_access_point;
+	type = EAknCtPopupSettingList;
+	editor_resource_id = r_global_settings_active_idle_editor_resource_id;
+	}
+
+RESOURCE POPUP_SETTING_LIST r_global_settings_active_idle_editor_resource_id
+	{
+	}
+
+RESOURCE AVKON_POPUP_SETTING_TEXTS r_global_settings_active_idle
+	{
+	setting_texts_resource = r_global_settings_active_idle_setting_texts_resource;
+	popped_up_texts_resource = r_global_settings_active_idle_popped_up_texts_resource;
+	}
+
+RESOURCE ARRAY r_global_settings_active_idle_setting_texts_resource
+	{
+	items =
+		{
+		AVKON_ENUMERATED_TEXT
+			{
+			text = qtn_fse_settings_list_active_idle_off;
+			value = 0;
+			},
+		AVKON_ENUMERATED_TEXT
+			{
+			text = qtn_fse_settings_list_active_idle_one_line;
+			value = 1;
+			},
+		AVKON_ENUMERATED_TEXT
+			{
+			text = qtn_fse_settings_list_active_idle_two_lines;
+			value = 2;
+			},
+		AVKON_ENUMERATED_TEXT
+			{
+			text = qtn_fse_settings_list_active_idle_pop_up;
+			value = 5;
+			}
+		};
+	}
+
+RESOURCE ARRAY r_global_settings_active_idle_popped_up_texts_resource
+	{
+	items =
+		{
+		LBUF
+			{
+			txt = qtn_fse_settings_list_active_idle_off;
+			},
+		LBUF
+			{
+			txt = qtn_fse_settings_list_active_idle_one_line;
+			},
+		LBUF
+			{
+			txt = qtn_fse_settings_list_active_idle_two_lines;
+			},
+		LBUF
+			{
+			txt = qtn_fse_settings_list_active_idle_pop_up;
+			}
+		};
+	}
+
+
+/**
+ * ----------------------------------------------------------------
+ * DOWNLOAD HTML IMAGES SETTING ITEM
+ * 
+ */
+RESOURCE AVKON_SETTING_PAGE r_global_settings_download_html_images_setting_page_resource
+    {
+    number = -16380;
+    label = qtn_fse_settings_download_html_images;
+    type = EAknCtPopupSettingList;
+    editor_resource_id = r_global_settings_download_html_images_editor_resource_id;
+    }
+
+RESOURCE POPUP_SETTING_LIST r_global_settings_download_html_images_editor_resource_id
+    {
+    }
+
+RESOURCE AVKON_POPUP_SETTING_TEXTS r_global_settings_download_html_images
+    {
+    setting_texts_resource = r_global_settings_download_html_images_setting_texts_resource;
+    popped_up_texts_resource = r_global_settings_download_html_images_popped_up_texts_resource;
+    }
+
+RESOURCE ARRAY r_global_settings_download_html_images_setting_texts_resource
+    {
+    items =
+        {
+        AVKON_ENUMERATED_TEXT
+            {
+            text = qtn_fse_settings_download_html_images_always_ask;
+            value = 1;
+            },
+        AVKON_ENUMERATED_TEXT
+            {
+            text = qtn_fse_settings_download_html_images_automatic;
+            value = 0;
+            }
+        };
+    }
+
+RESOURCE ARRAY r_global_settings_download_html_images_popped_up_texts_resource
+    {
+    items =
+        {
+        LBUF
+            {
+            txt = qtn_fse_settings_download_html_images_always_ask;
+            },
+        LBUF
+            {
+            txt = qtn_fse_settings_download_html_images_automatic;
+            }
+        };
+    }
+
+

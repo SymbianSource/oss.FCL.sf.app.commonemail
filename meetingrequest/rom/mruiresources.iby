@@ -1,0 +1,48 @@
+/*
+* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Image description file for project mrui
+*
+*/
+
+
+#ifndef MRUIRESOURCES_IBY
+#define MRUIRESOURCES_IBY
+
+#include <bldvariant.hrh>
+#include <data_caging_paths_for_iby.hrh>
+
+//<cmail>
+#ifdef FF_EMAIL_FRAMEWORK
+//</cmail>
+
+// Common Resources for MRUI and CalEntryUI:
+data=DATAZ_\RESOURCE_FILES_DIR\esmrgui.rsc            RESOURCE_FILES_DIR\esmrgui.rsc
+
+//<cmail>
+//#if defined(__MEETING_REQUEST_ENABLER) && defined(FF_ES_MEETING_REQUEST_UI)
+//</cmail>
+
+// Resource files
+data=DATAZ_\RESOURCE_FILES_DIR\esmrtasks.rsc               RESOURCE_FILES_DIR\esmrtasks.rsc
+data=DATAZ_\RESOURCE_FILES_DIR\esmrcasplugindata.rsc       RESOURCE_FILES_DIR\esmrcasplugindata.rsc
+
+//<cmail>
+//#endif // __MEETING_REQUEST_ENABLER && FF_ES_MEETING_REQUEST_UI
+//</cmail>
+
+//<cmail>
+#endif //FF_EMAIL_FRAMEWORK
+//</cmail>
+
+#endif // MRUIRESOURCES_IBY
