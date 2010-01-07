@@ -23,5 +23,6 @@
 file=ABI_DIR\BUILD_DIR\emailwidgetsettings.exe                          PROGRAMS_DIR\emailwidgetsettings.exe
 data=\epoc32\data\z\private\10003a3f\apps\emailwidgetsettings_reg.rsc   private\10003a3f\apps\emailwidgetsettings_reg.rsc
 data=DATAZ_\APP_RESOURCE_DIR\emailwidgetsettings.rsc                    APP_RESOURCE_DIR\emailwidgetsettings.rsc
+SCALABLE_IMAGE(APP_BITMAP_DIR,APP_BITMAP_DIR,emailwidgetsettings)
 
 #endif // EMAILWIDGETSETTINGS_IBY

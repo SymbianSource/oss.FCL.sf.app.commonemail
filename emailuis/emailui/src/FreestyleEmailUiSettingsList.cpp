@@ -558,6 +558,10 @@ void CFsEmailSettingsList::HandleUserSelectionsL()
             iPIMListActivation = ETrue;
             SetSelectedMainListIndex( index );
             CreatePluginPIMListL( iSelectedPluginSettings );
+            // Update the title pane, needed for touch support
+            HBufC* text = CreateTitlePaneTextLC();
+            iAppUi.SetTitlePaneTextL( *text );
+            CleanupStack::PopAndDestroy( text );
             }
         else // index < 0; this should never happen
             {
@@ -1292,7 +1296,6 @@ void CFsEmailSettingsList::CreatePluginPIMListL( const TUid& aPluginId )
                 {
                 // get mailbox name and insert it to listBox
                 CFSMailBox* mailBox = mailBoxes[i];
-                TDesC& name = mailBox->GetName();
                 // Does mailbox have settings plugin
                 if ( mailBox->GetSettingsUid() != TUid::Null() )
                     {

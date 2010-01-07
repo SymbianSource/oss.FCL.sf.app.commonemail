@@ -12,7 +12,7 @@
 * Contributors:
 *
 *  Description : FreestyleEmailUi message details view implementation
-*  Version     : %version: 44 %
+*  Version     : %version: 45 %
 *
 */
 
@@ -1030,6 +1030,7 @@ void CFSEmailUiMsgDetailsVisualiser::CreateOneLinePlainItemLC2( const TDesC& aIt
     aItemVisualizer = CFsTreePlainOneLineItemVisualizer::NewL(*iTreeList->TreeControl());
     CleanupStack::PushL( aItemVisualizer );
 	aItemVisualizer->SetExtendable( EFalse ); // One line items are obviously not extendable
+	aItemVisualizer->SetLayoutHints( CFsTreeItemVisualizerBase::EFolderLayout );
 
     SetItemVisualizerCommonProperties( *aItemVisualizer );
 	}
@@ -1049,6 +1050,7 @@ void CFSEmailUiMsgDetailsVisualiser::CreateTwoLinePlainItemLC2( const TDesC& aPr
     CleanupStack::PushL( aItemVisualizer );
 	aItemVisualizer->SetExtendable( ETrue ); // All two line items are extendable
 	aItemVisualizer->SetMenu( NULL );
+	aItemVisualizer->SetLayoutHints( CFsTreeItemVisualizerBase::EFolderLayout );
 
     SetItemVisualizerCommonProperties( *aItemVisualizer );
 	}
@@ -1056,17 +1058,14 @@ void CFSEmailUiMsgDetailsVisualiser::CreateTwoLinePlainItemLC2( const TDesC& aPr
 void CFSEmailUiMsgDetailsVisualiser::SetItemVisualizerCommonProperties( MFsTreeItemVisualizer& aItemVisualizer )
 	{
     FUNC_LOG;
-    aItemVisualizer.SetSize(TSize(iScreenRect.Width(), iListItemHeight));
-	aItemVisualizer.SetExtendedSize(TSize(iScreenRect.Width(), 2*iListItemHeight));
+    aItemVisualizer.SetSize(TSize(iScreenRect.Width(), iAppUi.LayoutHandler()->OneLineListItemHeight()));
+	aItemVisualizer.SetExtendedSize(TSize(iScreenRect.Width(), iAppUi.LayoutHandler()->TwoLineListItemHeight()));
 
   	// Set correct skin text colors for the list items  
    	TRgb focusedColor = iAppUi.LayoutHandler()->ListFocusedStateTextSkinColor();
    	TRgb normalColor = iAppUi.LayoutHandler()->ListNormalStateTextSkinColor();
     aItemVisualizer.SetFocusedStateTextColor( focusedColor );
-    aItemVisualizer.SetNormalStateTextColor( normalColor );
-
-	// Set font size
-	aItemVisualizer.SetFontHeight( iAppUi.LayoutHandler()->ListItemFontHeightInTwips() );		
+    aItemVisualizer.SetNormalStateTextColor( normalColor );	
 	}
 
 void CFSEmailUiMsgDetailsVisualiser::CreatePlainNodeLC2( const TDesC& aItemDataBuff,
@@ -1109,7 +1108,7 @@ void CFSEmailUiMsgDetailsVisualiser::SetNodeVisualizerProperties( MFsTreeItemVis
 	
 	// Temporary fix for EASV-7GJFVD
 	//aNodeVisualizer.SetBackgroundColorL( iAppUi.LayoutHandler()->ListNodeBackgroundColor() );
-	
+		
 	}
 
 TFsTreeItemId CFSEmailUiMsgDetailsVisualiser::AppendHeadingToListL( TInt aResourceId )
@@ -1586,7 +1585,7 @@ void CFSEmailUiMsgDetailsVisualiser::UpdateListSizeAttributes()
         AknLayoutUtils::LayoutMetricsRect( AknLayoutUtils::EMainPane, iScreenRect );
         iScreenRect.SetRect( 0, 0, iScreenRect.Width(), iScreenRect.Height() );
 
-        iListItemHeight = iAppUi.LayoutHandler()->OneLineListItemHeight();
+
         iListNodeHeight = iAppUi.LayoutHandler()->OneLineListNodeHeight();        
         }
 	}

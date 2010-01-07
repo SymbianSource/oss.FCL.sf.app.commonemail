@@ -1,0 +1,2 @@
+-c16,8 qgn_indi_cmail_drop_email_account.svg
+-c16,8 qgn_prop_cmail_new_mailbox.svg

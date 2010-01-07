@@ -35,6 +35,7 @@ PRJ_EXPORTS
 ../xuikon/00/emailwidget.xml            /epoc32/data/Z/resource/homescreen/emailwidget/xuikon/emailwidget.xml
 // Variant creation still disabled (see also emailwidget.dat file)
 //../xuikon/00/emailwidget.dtd            /epoc32/data/Z/resource/homescreen/emailwidget/xuikon/emailwidget.dtd
+/epoc32/s60/icons/qgn_menu_cmail.svg    /epoc32/data/Z/resource/homescreen/emailwidget/hsps/qgn_menu_cmail.svg
 
 // Support for S60 localization
 //*****************************

@@ -213,13 +213,14 @@ void CFsEmailUiHtmlViewerContainer::LoadContentFromMailMessageL(
     // insert email header into email.html file
     // CFreestyleMessageHeaderHTML will replace contents of email.html
     // So, no need to clear the contents
-    CFreestyleMessageHeaderHTML::ExportL( *iMessage, iFs, headerHtmlFile );
+    CFreestyleMessageHeaderHTML::ExportL( *iMessage, iFs, headerHtmlFile, iAppUi.ClientRect().Width() );
     
     // Remove all previously created files from temporary HTML folder
     EmptyTempHtmlFolderL();
 
     CFSMailMessagePart* htmlBodyPart = iMessage->HtmlBodyPartL();
 
+    TBool bodyPartAvailable( EFalse );
     if ( htmlBodyPart )
         {
         CleanupStack::PushL( htmlBodyPart );
@@ -229,6 +230,7 @@ void CFsEmailUiHtmlViewerContainer::LoadContentFromMailMessageL(
         
         // Copy html body part to email html file
         CopyFileToHtmlFileL( htmlFile, KBodyHtmlFile, *htmlBodyPart );
+        bodyPartAvailable = ETrue;
         
         CleanupStack::PopAndDestroy( &htmlFile );
         CleanupStack::PopAndDestroy( htmlBodyPart );
@@ -254,6 +256,7 @@ void CFsEmailUiHtmlViewerContainer::LoadContentFromMailMessageL(
             
             contentBuffer8->Des().Copy(*contentBuffer);         
             CopyFileToHtmlFileL( *contentBuffer8, KBodyHtmlFile, *textBodyPart );
+            bodyPartAvailable = ETrue;
             
             CleanupStack::PopAndDestroy( contentBuffer8 );
             CleanupStack::PopAndDestroy( contentBuffer );
@@ -262,10 +265,13 @@ void CFsEmailUiHtmlViewerContainer::LoadContentFromMailMessageL(
 
         }
     // pass the emailHtmlFile to the browser for it to load
-    TPath emailHtmlFile;
-    emailHtmlFile.Copy( iHtmlFolderPath );
-    emailHtmlFile.Append( KMessageHtmlFile );
-    LoadContentFromFileL( emailHtmlFile );
+    if ( bodyPartAvailable )
+        {
+        TPath emailHtmlFile;
+        emailHtmlFile.Copy( iHtmlFolderPath );
+        emailHtmlFile.Append( KMessageHtmlFile );
+        LoadContentFromFileL( emailHtmlFile );
+        }
     }
 
 // ---------------------------------------------------------------------------
@@ -996,7 +1002,7 @@ void CFsEmailUiHtmlViewerContainer::ConvertToHTML( const TDesC8& aContent,
 
         User::LeaveIfError( targetFile.Replace( iFs, aFileName, EFileWrite ) );
         
-	    	HBufC8* charSet = GetCharacterSetL( aHtmlBodyPart );
+        HBufC8* charSet = GetCharacterSetL( aHtmlBodyPart );
         CleanupStack::PushL( charSet );
         
         User::LeaveIfError( targetFile.Write( KHtmlHeader1 ) );
@@ -1008,24 +1014,24 @@ void CFsEmailUiHtmlViewerContainer::ConvertToHTML( const TDesC8& aContent,
         // Write the original content
         for(int i=0;i<aContent.Length();i++)
             {
-        	if( i==aContent.Length()-1 )
-        		{
-        		aContent.Mid( i,1 ).CompareC( _L8("\x01" ) )==0 ? 
-        		User::LeaveIfError( targetFile.Write( _L8("<br>") ) ):
-        		User::LeaveIfError( targetFile.Write( aContent.Mid(i,1) ) );
-        		}
-        	else
-        		{
-        		if(aContent.Mid( i,1 ).CompareC( _L8("\x01" ) )==0 ||
-        		aContent.Mid( i,2 ).CompareC( _L8("\x0D\x0A" ) )==0 ) 
-        			{
-        			User::LeaveIfError( targetFile.Write( _L8("<br>") ));
-        			}
-        		else
-      				{
-					User::LeaveIfError( targetFile.Write( aContent.Mid(i,1) ) );				                
-            		}
-          		}
+          if( i==aContent.Length()-1 )
+            {
+            aContent.Mid( i,1 ).CompareC( _L8("\x01" ) )==0 ? 
+            User::LeaveIfError( targetFile.Write( _L8("<br>") ) ):
+            User::LeaveIfError( targetFile.Write( aContent.Mid(i,1) ) );
+            }
+          else
+            {
+            if(aContent.Mid( i,1 ).CompareC( _L8("\x01" ) )==0 ||
+            aContent.Mid( i,2 ).CompareC( _L8("\x0D\x0A" ) )==0 ) 
+              {
+              User::LeaveIfError( targetFile.Write( _L8("<br>") ));
+              }
+            else
+              {
+          User::LeaveIfError( targetFile.Write( aContent.Mid(i,1) ) );                        
+                }
+              }
             }
         INFO("Add end tags");
         User::LeaveIfError( targetFile.Write( KHtmlEndTags ) );
@@ -1102,3 +1108,30 @@ void CFsEmailUiHtmlViewerContainer::ClearCacheAndLoadEmptyContent()
         TRAP_IGNORE( iBrCtlInterface->LoadDataL(KHTMLDataScheme, KHTMLEmptyContent, _L8("text/html"), uid) );
         }   
     }
+
+void CFsEmailUiHtmlViewerContainer::HandleResourceChange( TInt aType )
+	{
+	CCoeControl::HandleResourceChange( aType );
+	
+	if ( aType == CFsEmailUiViewBase::EScreenLayoutChanged )
+		{
+	    // only update header if we get a layout change from email ui
+		if ( iMessage )
+            {
+            // update the width in header part and reload
+            TPath headerHtmlFile;
+            headerHtmlFile.Copy( iHtmlFolderPath );
+            headerHtmlFile.Append( KHeaderHtmlFile );
+            
+            TRAP_IGNORE( CFreestyleMessageHeaderHTML::ExportL( *iMessage, iFs, headerHtmlFile, iAppUi.ClientRect().Width() ) )
+            
+            TPath emailHtmlFile;
+            emailHtmlFile.Copy( iHtmlFolderPath );
+            emailHtmlFile.Append( KMessageHtmlFile );
+            
+            TRAP_IGNORE( LoadContentFromFileL( emailHtmlFile ) )
+            
+            SetRect( iAppUi.ClientRect() );
+            }
+		}
+	}

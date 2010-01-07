@@ -359,7 +359,7 @@ void CIpsPlgImap4Plugin::MoveMessagesL(
         TPckgBuf<TImImap4GetMailInfo> optionsBuf;
         TImImap4GetMailInfo& options = optionsBuf();
         options.iMaxEmailSize = KMaxTInt32;
-        options.iGetMailBodyParts = EGetImap4EmailBodyTextAndAttachments;
+        options.iGetMailBodyParts = EGetImap4EmailHeaders;
         options.iDestinationFolder = aDestinationFolderId.Id();
 
         CIpsPlgImap4MoveRemoteOpObserver* observer =

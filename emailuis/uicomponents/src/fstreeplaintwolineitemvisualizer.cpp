@@ -12,7 +12,7 @@
 * Contributors:
 *
 *  Description : A visualizer for data items with plain text.
-*  Version     : %version: tr1sido#12 %
+*  Version     : %version: tr1sido#14 %
 *
 */
 
@@ -305,7 +305,7 @@ void CFsTreePlainTwoLineItemVisualizer::UpdateLayout(
     TInt exSizeVariety( 1 );
     TInt preSizeVariety( 2 );
     TInt flagIconVariety( 0 );
-    TInt flagIconRow( 0 );
+    TInt flagIconRow( 1 );
 
     
     CFsLayoutManager::TFsLayoutMetrics firstLineTextParentMetrics = 
@@ -1439,8 +1439,11 @@ void CFsTreePlainTwoLineItemVisualizer::UpdateLayout(
         }
     else
         {
-        opacity.SetValueNow(0.0f);
-        iIconMarked->SetOpacity(opacity);
+        if (iIconMarked)
+        	{
+        	opacity.SetValueNow(0.0f);
+        	iIconMarked->SetOpacity(opacity);
+        	}
         }
 
     if ( iPreviewPaneTextVisual )

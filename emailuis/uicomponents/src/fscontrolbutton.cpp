@@ -614,8 +614,7 @@ TBool CFsControlButton::OfferEventL( const TAlfEvent& aEvent )
                 if ( aEvent.KeyEvent().iScanCode == EStdKeyDevice3 )
                     {
                     iParent.HandleButtonEvent(
-                        MFsControlButtonObserver::EEventButtonPressed,
-                        -1 );
+                        MFsControlButtonObserver::EEventButtonPressed, -1 );
                     result = ETrue;
                     }
                 break;
@@ -643,8 +642,7 @@ TBool CFsControlButton::OfferEventL( const TAlfEvent& aEvent )
                 if ( aEvent.KeyEvent().iScanCode == EStdKeyDevice3 )
                     {
                     iParent.HandleButtonEvent(
-                        MFsControlButtonObserver::EEventButtonReleased,
-                        -1 );
+                        MFsControlButtonObserver::EEventButtonReleased, -1 );
                     result = ETrue;
                     }
                 break;

@@ -18,8 +18,13 @@
 
 
 // d: Email widget
-// l: ai_gene_pane_1_t1
+// l: listrow_wgtman_pane_t1
 // w:
-// r: TB9.1
+// r: TB9.2
 #define qtn_hscr_email "Cmail widget"
 
+// d: Email widget
+// l: listrow_wgtman_pane_t2
+// w:
+// r: TB9.2
+#define qtn_hs_widget_mail_description "Informs of incoming mail messages"

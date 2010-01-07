@@ -112,7 +112,8 @@ public: // from CFsEmailUiViewBase
     TBool IsPreviousMsgAvailable( TFSMailMsgId aCurrentMsgId, TFSMailMsgId& aFoundPreviousMsgId, TFSMailMsgId& aFoundPrevMsgFolder ) const;
     TInt MoveToNextMsgL( TFSMailMsgId aCurrentMsgId, TFSMailMsgId& aFoundNextMsgId );
     TInt MoveToPreviousMsgL( TFSMailMsgId aCurrentMsgId, TFSMailMsgId& aFoundPreviousMsgId );
-
+    TInt MoveToPreviousMsgAfterDeleteL( TFSMailMsgId aFoundPreviousMsgId );
+    
 public: // from MFSMailBoxSearchObserver
     void MatchFoundL( CFSMailMessage* aMatchMessage );
     void SearchCompletedL();
@@ -176,9 +177,9 @@ private: // from
 
     /**
      * Handles the focus state changes
-     * @param aShow Indicates if focus should become visible or removed
+     * @param aVisible Indicates if focus should become visible or removed
      */
-    void HandleTimerFocusStateChange( TBool aShow );
+    void FocusVisibilityChange( TBool aVisible );
     
 private:
 	CFSEmailUiSearchListVisualiser( CFreestyleEmailUiAppUi* aAppUi, CAlfEnv& aEnv, CAlfControlGroup& aSearchListControlGroup );

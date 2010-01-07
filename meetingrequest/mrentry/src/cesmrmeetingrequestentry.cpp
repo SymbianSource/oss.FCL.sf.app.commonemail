@@ -200,6 +200,7 @@ CESMRMeetingRequestEntry::~CESMRMeetingRequestEntry()
     delete iForwardEntry;
     delete iOrginalEntry;
     delete iParameterEntry;
+    delete iBackupEntry;
     }
 
 // ---------------------------------------------------------------------------
@@ -242,7 +243,10 @@ void CESMRMeetingRequestEntry::ConstructL(
         aEntry,
         aEntry.MethodL(),
         ESMRHelper::ECopyFull );    
-    
+    iBackupEntry=ESMRHelper::CopyEntryL(
+            aEntry,
+            aEntry.MethodL(),
+            ESMRHelper::ECopyFull ); 
     iEntry = ESMRHelper::CopyEntryL(
         aEntry,
         aEntry.MethodL(),
@@ -450,7 +454,7 @@ TBool CESMRMeetingRequestEntry::IsRecurrentEventL() const
         // Ownership is transferred
         CCalInstance* instance = NULL;
         TRAPD(err, instance = InstanceL() );
-        if ( KErrNotFound != err )
+        if ( KErrNotFound != err&&err!=KErrNone )
             {
             User::LeaveIfError( err );
             }
@@ -607,7 +611,10 @@ void CESMRMeetingRequestEntry::SetModifyingRuleL(
             CleanupStack::PushL( instance );
 
             CCalEntry::TMethod entryMethod( iEntry->MethodL() );
-           
+            CCalEntry* iBackupEntry=ESMRHelper::CopyEntryL(
+                    *iEntry,
+                    entryMethod,
+                    ESMRHelper::ECopyFull);
             delete iEntry; 
             iEntry = NULL;
             
@@ -649,7 +656,7 @@ void CESMRMeetingRequestEntry::SetModifyingRuleL(
                     CESMRFsMailboxUtils::NewL( iMRMailboxUtils );
             CleanupStack::PushL( fsMbUtils );
             
-            fsMbUtils->SetPhoneOwnerL( *iEntry );
+            fsMbUtils->SetPhoneOwnerL( *iBackupEntry );
             CleanupStack::PopAndDestroy( fsMbUtils );
             fsMbUtils = NULL;
             
@@ -679,6 +686,7 @@ void CESMRMeetingRequestEntry::SetModifyingRuleL(
 
             iEntry->SetDescriptionL( description );
             iOrginalEntry->SetDescriptionL( description );
+            iEntry=ESMRHelper::CopyEntryL(*iBackupEntry,iBackupEntry->MethodL(),ESMRHelper::ECopyFull);
             
             CleanupStack::PopAndDestroy(); // entries
             CleanupStack::PopAndDestroy( instance );

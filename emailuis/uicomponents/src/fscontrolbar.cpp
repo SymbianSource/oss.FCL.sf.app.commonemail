@@ -336,6 +336,15 @@ EXPORT_C void CFsControlBar::SetWidthL( TInt aWidth )
     iVisualiser->UpdateSizeL();
     }
 
+// ---------------------------------------------------------------------------
+// Set rect for control bar
+// ---------------------------------------------------------------------------
+//
+void CFsControlBar::SetRectL( const TRect& aRect )
+    {
+    iModel->SetRect( aRect );
+    iVisualiser->UpdateSizeL();
+    }
 
 // ---------------------------------------------------------------------------
 // Retrieves width of the bar in pixels.
@@ -616,6 +625,8 @@ TBool CFsControlBar::OfferEventL( const TAlfEvent& aEvent )
                         {
                         button = iModel->PrevButton( iSelectedButton );
                         ChangeFocusL( button );
+                        // Always after keypress focus needs to be shown.
+                        MakeSelectorVisible( ETrue );
                         eventHandled = ETrue;
                         break;
                         }
@@ -624,6 +635,8 @@ TBool CFsControlBar::OfferEventL( const TAlfEvent& aEvent )
                         {
                         button = iModel->NextButton( iSelectedButton );
                         ChangeFocusL( button );
+                        // Always after keypress focus needs to be shown.
+                        MakeSelectorVisible( ETrue );
                         eventHandled = ETrue;
                         break;
                         }
@@ -631,7 +644,7 @@ TBool CFsControlBar::OfferEventL( const TAlfEvent& aEvent )
                     case EStdKeyDownArrow:
                         {
                         LooseFocus(
-                            MFsControlBarObserver::EEventFocusLostAtBottom );
+                                MFsControlBarObserver::EEventFocusLostAtBottom );
                         eventHandled = ETrue;
                         break;
                         }
@@ -713,6 +726,9 @@ TBool CFsControlBar::HandleButtonEvent(
         // <cmail> Touch
         case EEventButtonTouchReleased:
             {
+            // Notify that button is released, focus can be hidden.
+            NotifyObservers( MFsControlBarObserver::EEventFocusVisibilityChanged );
+
             if (iTouchEnabled && iTouchWasEnabled)
                 {
                 if( aButtonId > KErrNotFound )

@@ -28,5 +28,6 @@ qtn_hscr_email.description "Email widget"
 qtn_hscr_email.parents "ai_gene_pane_1"
 -->
 <!ENTITY qtn_hscr_email "Cmail widget">
+<!ENTITY qtn_hs_widget_mail_description "Informs of incoming mail messages">
 
 <!-- End of File -->

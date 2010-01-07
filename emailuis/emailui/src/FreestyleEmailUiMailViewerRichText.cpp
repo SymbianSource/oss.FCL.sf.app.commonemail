@@ -12,7 +12,7 @@
 * Contributors:
 *
 * Description: FreestyleEmailUi mail viewer rich text implementation
-* Version    : %version: 47 %
+* Version    : %version: 48 %
 *
 */
 
@@ -423,8 +423,8 @@ void CFSEmailUiMailViewerRichText::UpdateIconL( TViewerIconType aViewerIconType 
                 imageImage,
                 mask,
                 iconFile,
-                EMbmFreestyleemailuiQgn_indi_cmail_viewer_follow_up,
-                EMbmFreestyleemailuiQgn_indi_cmail_viewer_follow_up_mask,
+                EMbmFreestyleemailuiQgn_indi_navi_follow_up,
+                EMbmFreestyleemailuiQgn_indi_navi_follow_up_mask,
                 KRgbBlack );
 	        AknIconUtils::DisableCompression( imageImage );
 	        AknIconUtils::DisableCompression( mask );
@@ -441,8 +441,8 @@ void CFSEmailUiMailViewerRichText::UpdateIconL( TViewerIconType aViewerIconType 
                 imageImage,
                 mask,
                 iconFile,
-                EMbmFreestyleemailuiQgn_indi_cmail_viewer_follow_up_complete,
-                EMbmFreestyleemailuiQgn_indi_cmail_viewer_follow_up_complete_mask,
+                EMbmFreestyleemailuiQgn_indi_navi_follow_up_complete,
+                EMbmFreestyleemailuiQgn_indi_navi_follow_up_complete_mask,
                 KRgbBlack );
 	        AknIconUtils::DisableCompression( imageImage );
 	        AknIconUtils::DisableCompression( mask );

@@ -386,11 +386,7 @@ void CESMRViewerAttachmentsField::SetOutlineFocusL( TBool aFocus )
         {
         iRichTextViewer->SetFocus( aFocus );
         }
-    else
-        {
-        //need to tell action menu that focus has changed
-        iRichTextViewer->ResetActionMenuL();
-        }
+
     if ( aFocus && aFocus != iFocused )
         {
         // <cmail>

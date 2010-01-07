@@ -239,8 +239,8 @@ TBool CIpsSetUiFinder::ContinueSearch(
 
     // Check if the item is found, and that it's enough
     if ( iSearchFlags & EFinderItemFound &&
-         !iSearchFlags & EFinderSearchAll &&
-         !iSearchFlags & EFinderResourceSearch )
+         !( iSearchFlags & EFinderSearchAll ) &&
+         !( iSearchFlags & EFinderResourceSearch ) )
         {
         return EFalse;
         }
@@ -251,7 +251,7 @@ TBool CIpsSetUiFinder::ContinueSearch(
     // Check if the last item is in progress
     if ( iCurrentItem >= aMaxItems )
         {
-        if ( !iSearchFlags & EFinderItemFound )
+        if ( !( iSearchFlags & EFinderItemFound ) )
             {
             iSearchFlags |= EFinderItemFindError;
             }
@@ -411,7 +411,7 @@ TBool CIpsSetUiFinder::ItemSubArrayCheck()
         }
 
     // Check if the subfolders need to be searched
-    if ( !iSearchFlags & EFinderSearchSubFolders )
+    if ( !( iSearchFlags & EFinderSearchSubFolders ) )
         {
         return EFalse;
         }

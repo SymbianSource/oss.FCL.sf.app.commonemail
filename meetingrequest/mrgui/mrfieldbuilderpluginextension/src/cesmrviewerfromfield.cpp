@@ -330,16 +330,17 @@ void CESMRViewerFromField::SetOutlineFocusL( TBool aFocus )
     if ( iRichTextViewer )
         {
         iRichTextViewer->SetFocus( aFocus );
-        }
-    if ( aFocus )
-        {
-        SetMiddleSoftKeyVisible( ETrue );
-        }
-    else
-        {
-        //need to tell action menu that focus has changed
-        iRichTextViewer->ResetActionMenuL();
-        }
+    
+		if ( aFocus )
+			{
+			SetMiddleSoftKeyVisible( ETrue );
+			}
+		else
+			{
+			//need to tell action menu that focus has changed
+			iRichTextViewer->ResetActionMenuL();
+			}
+        }    
     }
 
 // ---------------------------------------------------------------------------

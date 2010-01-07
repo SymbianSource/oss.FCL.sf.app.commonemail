@@ -78,10 +78,10 @@ class CFSEmailUiLayoutHandler : public CBase
 		// One line node and item height
 		TInt OneLineListNodeHeight() const;
 		TInt OneLineListItemHeight() const;
+		TInt TwoLineListItemHeight() const;
     	// <cmail>
 		// Folder list item heigh
 		TInt FolderListOneLineItemHeight( const TBool& aFullscreen ) const;
-	    // </cmail>
 		
 		// Mail icon size
 		TSize MailIconSizeInThisResolution() const;
@@ -98,9 +98,8 @@ class CFSEmailUiLayoutHandler : public CBase
 		// Scroll pane list item size
 		TSize FolderListItemSizeInThisResolution( const TRect& aParent ) const;
 		
-	    // <cmail>
         // Drop down menu rect
-		TRect DropDownMenuListRect( const TDropDownMenuSide aSide ) const;
+		TRect DropDownMenuListRect( const TDropDownMenuSide aSide, TBool aStretch = ETrue ) const;
     	// </cmail>
 
 		// Folder list pane indentation in pixels
@@ -111,7 +110,7 @@ class CFSEmailUiLayoutHandler : public CBase
 
 		// FS Email UI fonts, returns font style. Calling
 		// View may set text visual style using SetTextStyle( CAlfTextStyle.Id() )
-		CAlfTextStyle* FSTextStyleFromIdL( TFSEmailFont aFontId ); // <cmail> const removed due to changes in method
+		CAlfTextStyle* FSTextStyleFromIdL( TFSEmailFont aFontId );
 		
 		// Control bar list padding
 		TPoint ControlBarListPadding() const;
@@ -125,11 +124,6 @@ class CFSEmailUiLayoutHandler : public CBase
 
 		// Control bar height
 		TInt ControlBarHeight() const;
-
-		// <cmail> Platform layout change
-		// Control bar text height
-		//TInt ControlBarTextHeight() const;
-		// </cmail> Platform layout change
 
 		// List fade effect times
         TInt ListFadeInEffectTime() const;
@@ -187,8 +181,7 @@ class CFSEmailUiLayoutHandler : public CBase
 		// List items font heigjht in twips global zoom level
 		TInt ListItemFontHeightInTwips( const TBool aPopup = EFalse ) const;
 		
- 
-		// Logical font id's for viewer fonts 		
+ 		// Logical font id's for viewer fonts 		
 		TAknLogicalFontId ViewerTitleFontAknLogicalFontId() const;
 		TAknLogicalFontId ViewerTextFontAknLogicalFontId() const;
 
@@ -272,26 +265,15 @@ class CFSEmailUiLayoutHandler : public CBase
 		TInt ControlBarArrowTextureXSize() const;
 		TInt ControlBarArrowTextureYSize() const;
 
-// <cmail> Use layout data instead of hardcoded values
 		TRect GetControlBarMailboxIconRect() const;
-		TPoint GetControlBarMailboxIconPos() const;
-		TSize GetControlBarMailboxIconSize() const;
-
+		TRect GetControlBarNewEmailButtonRect() const;
 		TRect GetControlBarFolderListButtonRect() const;
-		TPoint GetControlBarFolderListButtonPos() const;
-		TSize GetControlBarFolderListButtonSize() const;
-
         TRect GetControlBarSortButtonRect() const;
-        TPoint GetControlBarSortButtonPos() const;
-        TSize GetControlBarSortButtonSize() const;
-
         TRect GetControlBarConnectionIconRect() const;
-        TPoint GetControlBarConnectionIconPos() const;
-        TSize GetControlBarConnectionIconSize() const;
 
         TRect GetControlBarRect() const;
 
-        TRect GetListRect() const;
+        TRect GetListRect( TBool aControlsOnTop = EFalse ) const;
 
 		CAlfTextStyle& FSTextStyleFromLayoutL( const TAknTextComponentLayout& aLayout  );
 //<cmail>

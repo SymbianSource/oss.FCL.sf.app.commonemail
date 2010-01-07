@@ -208,6 +208,9 @@ static const TInt KListTextMarqueeSpeed = 25;		 // Pixels per second.
 static const TInt KListTextMarqueeStartDelay = 1500; // Milliseconds
 static const TInt KListTextMarqueeSpeedRepeats = 0;  // repeats
 
+// Border widths.
+const TInt KSelectorBorderWidth( 8 );
+
 // Compose screen specific layout constants
 // these are constants for all zoom levels
 const TInt KAifLabelMarginHorizontal = 9;
@@ -223,7 +226,8 @@ const TInt KIconHeightFollowUp = 20;
 const TInt KIconWidthAttachment = 14;
 const TInt KIconHeightAttachment = 17;
 const TInt KInputFieldRoundingRadius = 3;
-const TSize KInputFieldRoundingSize( KInputFieldRoundingRadius*2, KInputFieldRoundingRadius*2 );
+const TSize KInputFieldRoundingSize( KInputFieldRoundingRadius * 2,
+									 KInputFieldRoundingRadius * 2 );
 
 // these are defined for each zoom level
 // normal zoom level
@@ -238,6 +242,7 @@ const TInt KIconMarginFollowUpVertical = KIconMarginPriorityVertical + KIconHeig
 const TInt KIconMarginAttachmentVertical = KIconMarginPriorityVertical;
 const TInt KLabelFontHeightPx = 14;
 const TInt KEditorFontHeightPx = 17;
+
 // small zoom level
 const TInt KAifHeightSmall = 40;
 const TInt KAifLabelMarginVerticalSmall = 3;
@@ -250,6 +255,7 @@ const TInt KIconMarginFollowUpVerticalSmall = KIconMarginPriorityVerticalSmall +
 const TInt KIconMarginAttachmentVerticalSmall = KIconMarginPriorityVerticalSmall;
 const TInt KLabelFontHeightPxSmall = 13;
 const TInt KEditorFontHeightPxSmall = 15;
+
 // large zoom level
 const TInt KAifHeightLarge = 52;
 const TInt KAifLabelMarginVerticalLarge = 5;
@@ -333,6 +339,7 @@ static const TInt KViewerMaxSubjectLineCount = 10;
 // Maximum number of contacts included in the Predictive contact search popup.
 // Number is limited to enhance performance in case of large contact DB.
 static const TInt KMaxPcsMatches = 50;
+
 // Predictive contact search popup colors
 static const TRgb KPcsPopupHighlightColor( 0,200,200 );
 static const TRgb KPcsPopupDimmedFontColor( 192,192,192 );
@@ -349,7 +356,8 @@ static const TInt KAttachmentIconSize = 20;
 static const TInt KViewerHighlightTextureSize = 1;
 static const TInt KControlBarArrowTextureXSize = 12;
 static const TInt KControlBarArrowTextureYSize = 17;
-#endif // __FREESTYLEEMAILUI_LAYOUTDATA_H__     
 
+
+#endif // __FREESTYLEEMAILUI_LAYOUTDATA_H__     
 
 // End of File

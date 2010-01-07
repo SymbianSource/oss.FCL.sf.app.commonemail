@@ -175,9 +175,10 @@ TBool CESMRLocationPluginHandler::HandleCommandL( TInt aCommand,
 		    TPtrC locationUrl;
 		    TInt position = iUrlParser->FindLocationUrl( description,
 		                                                 locationUrl );
+		    const TDesC& location = aEntry.Entry().LocationL();
 		    if ( position >= 0 )
 		        {
-		        LocationPluginL().ShowOnMapL( locationUrl );
+		        LocationPluginL().ShowOnMapL( location, locationUrl );
 		        }
 		    break;
 		    }

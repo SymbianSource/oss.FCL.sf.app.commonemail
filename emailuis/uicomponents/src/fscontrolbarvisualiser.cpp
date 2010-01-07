@@ -289,6 +289,7 @@ void CFsControlBarVisualiser::UpdateSizeL()
     {
     FUNC_LOG;
     iBarLayout->SetSize( iModel.Size() );
+    iBarLayout->SetPos( iModel.Pos() );
     RefreshL();
     }
 
@@ -334,7 +335,6 @@ void CFsControlBarVisualiser::SetSelectorImageL(
             {
             iSelector->Brushes()->Remove( iSelector->Brushes()->Count() - 1 );
             }
-
         iSelector->Brushes()->AppendL(
             aSelectorBrush, EAlfDoesNotHaveOwnership );
         iSelector->SetOpacity( aOpacity );
@@ -395,11 +395,10 @@ void CFsControlBarVisualiser::MakeSelectorVisible(
         TBool aShow, TBool aFromTouch )
     {
     FUNC_LOG;
-
     TReal32 opacity( 0 );
     if( aShow )
         {
-        opacity = 1;
+        opacity = KFsSelectorOpacity;
         }
     if( iSelector )
         {
@@ -429,7 +428,7 @@ void CFsControlBarVisualiser::DrawSelectorL(
     TBool aFastDraw )
     {
     FUNC_LOG;
-    CFsControlButtonVisualiser* vis( NULL );
+    CFsControlButtonVisualiser* vis = NULL;
 
     // set selector's delay
     TInt transitionTime( aFastDraw ? 0 : iModel.SelectorTransitionTime() );
@@ -483,6 +482,7 @@ void CFsControlBarVisualiser::DrawSelectorL(
     size += TSize( KFsSelectorPaddingLeft + KFsSelectorPaddingRight,
         KFsSelectorPaddingTop + KFsSelectorPaddingBottom );
 
+    // Hides transition when item selected via touch
     if( iTouchPressed )
         {
         transitionTime = 0;
@@ -529,7 +529,7 @@ void CFsControlBarVisualiser::DrawSelectorL(
 void CFsControlBarVisualiser::HideSelector()
     {
     FUNC_LOG;
-    iLastSelectedButton = -1;
+    iLastSelectedButton = KErrNotFound;
     if ( iSelector )
         {
         // Flags used because otherwise it would generate a callback here

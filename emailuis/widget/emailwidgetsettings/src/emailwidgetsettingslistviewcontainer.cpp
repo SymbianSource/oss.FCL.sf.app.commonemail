@@ -20,11 +20,14 @@
 #include <eikmop.h>
 #include <bacline.h>
 #include <StringLoader.h>
+#include <akniconarray.h>
 #include <emailwidgetsettings.rsg>
+#include <emailwidgetsettings.mbg>
 
 #include "emailtrace.h"
 #include "emailwidgetsettingslistview.h"
 #include "cmailwidgetcenrepkeys.h"
+#include "CFSMailClient.h"
 
 using namespace AknLayout;
 
@@ -33,6 +36,7 @@ _LIT( KDissociated,"0");
 const TInt KMaxDescLen = 256;
 const TUid KUidWizardApp = { 0x10281c96 };
 const TUid KUidEmailWizardView = { 0x10281C9A };
+_LIT( KMifPath, "z:\\resource\\apps\\emailwidgetsettings.mif");
 
 // ======== MEMBER FUNCTIONS ========
 
@@ -42,6 +46,7 @@ const TUid KUidEmailWizardView = { 0x10281C9A };
 //
 CEmailWidgetSettingsListViewContainer::CEmailWidgetSettingsListViewContainer()
     {
+    FUNC_LOG;        
     }
 
 // ---------------------------------------------------------------------------
@@ -69,23 +74,28 @@ void CEmailWidgetSettingsListViewContainer::ConstructL(CEmailWidgetSettingsListV
 //
 void CEmailWidgetSettingsListViewContainer::CreateListBoxL(MEikListBoxObserver* aObserver)
     {
+    FUNC_LOG;        
     TInt count = iMailboxes->MailboxCount();
 
-    iListBox = new(ELeave) CAknSingleStyleListBox;
+    iListBox = new(ELeave) CAknSingleGraphicStyleListBox;
     iListBox->SetContainerWindowL( *this);
     iListBox->ConstructL( this, EAknListBoxSelectionList );
     iAccountNames = new (ELeave) CDesCArrayFlat(count + 1);
+    iDomains = new (ELeave) CDesCArrayFlat(count);
     if (count)
         {
 		iAccountIds = new ( ELeave ) CArrayFixFlat<TFSMailMsgId>(count);
 		}
     for (TInt i = 0; i < count; i++)
         {
-        TBuf<KMaxDescLen> name;        
+        TBuf<KMaxDescLen> name;
+        TBuf<KMaxDescLen> domain;        
         TFSMailMsgId id;
         iMailboxes->GetMailboxNameL(i, name);
+        iMailboxes->GetDomainL(i, domain);
         iMailboxes->GetMailboxIdL(i, id);
         iAccountNames->AppendL(name);
+        iDomains->AppendL(domain);
         iAccountIds->AppendL(id);
         }
     HBufC* createNewMailbox = StringLoader::LoadLC(R_EMAILWIDGETSETTINGS_CREATE_NEW_MAILBOX);
@@ -93,12 +103,85 @@ void CEmailWidgetSettingsListViewContainer::CreateListBoxL(MEikListBoxObserver* 
     CleanupStack::PopAndDestroy(createNewMailbox);
     iListBox->Model()->SetItemTextArray(iAccountNames);
     
-    iListBox->Model()->SetOwnershipType(ELbmDoesNotOwnItemArray);
+    iListBox->Model()->SetOwnershipType(ELbmDoesNotOwnItemArray);   
     iListBox->ItemDrawer()->ColumnData()->EnableMarqueeL(ETrue);
     iListBox->SetBorder(TGulBorder::ESingleBlack);
     iListBox->CreateScrollBarFrameL(ETrue);
     iListBox->ScrollBarFrame()->SetScrollBarVisibilityL(CEikScrollBarFrame::EOff, CEikScrollBarFrame::EAuto);
     iListBox->SetListBoxObserver(aObserver);
+    
+    SetupListIconsL();
+    }
+
+// ---------------------------------------------------------------------------
+// 
+// ---------------------------------------------------------------------------
+//
+void CEmailWidgetSettingsListViewContainer::SetupListIconsL()
+    {
+    FUNC_LOG;        
+    CFSMailClient* mailClient = CFSMailClient::NewL();
+    CleanupClosePushL(*mailClient);
+    MFSMailBrandManager& brandManager = mailClient->GetBrandManagerL();
+    
+    TInt count = iMailboxes->MailboxCount();
+    CArrayPtr<CGulIcon>* icons = new(ELeave) CArrayPtrFlat<CGulIcon>( count + 1 );
+    CleanupStack::PushL( icons );
+   
+    AppendIconL(icons, EMbmEmailwidgetsettingsQgn_prop_cmail_new_mailbox, 
+                       EMbmEmailwidgetsettingsQgn_prop_cmail_new_mailbox_mask);
+
+    for (TInt i = 0; i < count; i++)
+        {
+        CGulIcon* brandIcon;
+        brandIcon = brandManager.GetGraphicL( EFSMailboxIcon, iDomains->MdcaPoint(i) );
+        
+        if (brandIcon)
+            {
+            icons->AppendL(brandIcon);
+            }
+        else
+            {
+            AppendIconL(icons, EMbmEmailwidgetsettingsQgn_indi_cmail_drop_email_account, 
+                               EMbmEmailwidgetsettingsQgn_indi_cmail_drop_email_account_mask);
+            }
+        }
+
+    // clear any previous icon array
+    CAknIconArray* oldIconArray = static_cast<CAknIconArray*>(iListBox->ItemDrawer()->ColumnData()->IconArray());
+    if (oldIconArray)
+        delete oldIconArray;
+    
+    iListBox->ItemDrawer()->ColumnData()->SetIconArray(icons);
+    CleanupStack::Pop(icons);
+    CleanupStack::PopAndDestroy( mailClient );
+    }
+
+// -----------------------------------------------------------------------------
+// CFeedsTopicContainer::AppendIconL
+//
+// Loads and appends an icon to the icon array.
+// -----------------------------------------------------------------------------
+//
+
+void CEmailWidgetSettingsListViewContainer::AppendIconL(
+        CArrayPtr<CGulIcon>* aIcons,
+        const TInt aFileBitmapId, 
+        const TInt aFileMaskId)
+    {
+    FUNC_LOG;
+    CGulIcon*    newIcon;
+    CFbsBitmap*  newIconBmp;
+    CFbsBitmap*  newIconMaskBmp;
+    AknIconUtils::CreateIconLC( newIconBmp, newIconMaskBmp, KMifPath,
+            aFileBitmapId,
+            aFileMaskId );   
+    newIcon = CGulIcon::NewL(newIconBmp, newIconMaskBmp);
+    CleanupStack::Pop(newIconMaskBmp);
+    CleanupStack::Pop(newIconBmp);
+    CleanupStack::PushL(newIcon);
+    aIcons->AppendL(newIcon);
+    CleanupStack::Pop(newIcon);
     }
 
 // ---------------------------------------------------------------------------
@@ -107,6 +190,7 @@ void CEmailWidgetSettingsListViewContainer::CreateListBoxL(MEikListBoxObserver* 
 //
 void CEmailWidgetSettingsListViewContainer::CreateCbaL( MEikCommandObserver* aObserver )
     {
+    FUNC_LOG;        
     const TSize screenSize= iCoeEnv->ScreenDevice()->SizeInPixels();
           iPopoutCba = CEikButtonGroupContainer::NewL(CEikButtonGroupContainer::ECba,
             CEikButtonGroupContainer::EHorizontal, aObserver, R_AVKON_SOFTKEYS_SELECT_CANCEL);
@@ -119,10 +203,12 @@ void CEmailWidgetSettingsListViewContainer::CreateCbaL( MEikCommandObserver* aOb
 //
 CEmailWidgetSettingsListViewContainer::~CEmailWidgetSettingsListViewContainer()
     {
+    FUNC_LOG;        
     delete iMailboxes;    
     delete iPopoutCba;
     delete iListBox;
     delete iAccountNames;
+    delete iDomains;
     delete iAccountIds;
     }
 
@@ -132,6 +218,7 @@ CEmailWidgetSettingsListViewContainer::~CEmailWidgetSettingsListViewContainer()
 //
 void CEmailWidgetSettingsListViewContainer::SizeChanged()
     {
+    FUNC_LOG;        
     TRect mainPaneRect;
 		AknLayoutUtils::LayoutMetricsRect(AknLayoutUtils::EMainPane, mainPaneRect);
 		TRect listBoxRect(mainPaneRect.Size());
@@ -144,6 +231,7 @@ void CEmailWidgetSettingsListViewContainer::SizeChanged()
 //
 TInt CEmailWidgetSettingsListViewContainer::CountComponentControls() const
     {
+    FUNC_LOG;        
     return iListBox ? 1 : 0;
     }
 
@@ -153,6 +241,7 @@ TInt CEmailWidgetSettingsListViewContainer::CountComponentControls() const
 //
 CCoeControl* CEmailWidgetSettingsListViewContainer::ComponentControl(TInt /*aIndex*/) const
     {
+    FUNC_LOG;        
     return iListBox;
     }
 
@@ -162,6 +251,7 @@ CCoeControl* CEmailWidgetSettingsListViewContainer::ComponentControl(TInt /*aInd
 //
 TKeyResponse CEmailWidgetSettingsListViewContainer::OfferKeyEventL(const TKeyEvent& aKeyEvent,TEventCode aType)
     {
+    FUNC_LOG;        
     return iListBox->OfferKeyEventL(aKeyEvent, aType);
     }
 
@@ -171,6 +261,7 @@ TKeyResponse CEmailWidgetSettingsListViewContainer::OfferKeyEventL(const TKeyEve
 //
 TSize CEmailWidgetSettingsListViewContainer::MinimumSize()
     {
+    FUNC_LOG;        
     return iEikonEnv->EikAppUi()->ClientRect().Size();
     }
 
@@ -180,6 +271,7 @@ TSize CEmailWidgetSettingsListViewContainer::MinimumSize()
 //
 TInt CEmailWidgetSettingsListViewContainer::CurrentIndex() const
     {
+    FUNC_LOG;        
     return iListBox->CurrentItemIndex();
     }
 
@@ -189,6 +281,7 @@ TInt CEmailWidgetSettingsListViewContainer::CurrentIndex() const
 //
 TTypeUid::Ptr CEmailWidgetSettingsListViewContainer::MopSupplyObject(TTypeUid aId)
     {
+    FUNC_LOG;        
     return SupplyMopObject(aId, iPopoutCba);
     }
 
@@ -198,6 +291,7 @@ TTypeUid::Ptr CEmailWidgetSettingsListViewContainer::MopSupplyObject(TTypeUid aI
 //
 void CEmailWidgetSettingsListViewContainer::SaveSelectedL()
     {
+    FUNC_LOG;        
     if (CurrentIndex() == iAccountNames->Count() - 1)
         {
         LaunchEmailWizardL();
@@ -280,6 +374,7 @@ TInt CEmailWidgetSettingsListViewContainer::GetSettingToAssociateL(const TDesC& 
 //
 void CEmailWidgetSettingsListViewContainer::LaunchEmailWizardL()
     {
+    FUNC_LOG;        
     if ( iEnv )
         {
         CCoeAppUi* appui = iEnv-> EikAppUi( );

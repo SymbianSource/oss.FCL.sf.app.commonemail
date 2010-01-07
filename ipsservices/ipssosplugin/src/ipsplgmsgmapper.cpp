@@ -190,25 +190,28 @@ CFSMailMessage* CIpsPlgMsgMapper::GetMailMessageL(
             CMsvEntry* cEntry = iSession.GetEntryL( aEntry.Id() );
             CleanupStack::PushL( cEntry );
 
-            if ( cEntry && cEntry->HasStoreL() )
-                {
-                store = cEntry->ReadStoreL();
-                CleanupStack::PushL( store );
-                }
+            if ( cEntry )
+            	{
+            	if ( cEntry->HasStoreL() )
+					{
+					store = cEntry->ReadStoreL();
+					CleanupStack::PushL( store );
+					}
 
-            SetEnvelopeL( cEntry, store, *result );
-
-            // Apparently, this should be done only with
-            // EFSMsgDataStructure, but EFSMsgDataEnvelope is currently
-            // used by assuming that it reads also the content-type of
-            // the message
-            SetStructureL( cEntry, *result );
-
-            if ( store )
-                {
-                CleanupStack::PopAndDestroy( store );
-                }
-            CleanupStack::PopAndDestroy( cEntry );
+				SetEnvelopeL( cEntry, store, *result );
+	
+				// Apparently, this should be done only with
+				// EFSMsgDataStructure, but EFSMsgDataEnvelope is currently
+				// used by assuming that it reads also the content-type of
+				// the message
+				SetStructureL( cEntry, *result );
+	
+				if ( store )
+					{
+					CleanupStack::PopAndDestroy( store );
+					}
+				CleanupStack::PopAndDestroy( cEntry );
+            	}
             break;
             }
         case EFSMsgDataIdOnly:
@@ -1361,9 +1364,10 @@ CFSMailMessagePart* CIpsPlgMsgMapper::ConvertAttachmentEntry2MessagePartL(
             }
         result->SetMailBoxId( aMailBoxId );
         CleanupStack::PopAndDestroy(store);
+        
+        SetFetchStateL( aEntry, aMessageId.Id(), ETrue, *result );
         CleanupStack::Pop( result );
         }
-    SetFetchStateL( aEntry, aMessageId.Id(), ETrue, *result );
     CleanupStack::PopAndDestroy( cEntry );
 
     return result;

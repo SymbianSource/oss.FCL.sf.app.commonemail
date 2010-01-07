@@ -91,6 +91,13 @@ public:
      */
     void DeleteMailboxL();
 
+    /**
+     * Deletes the given mailbox. Displays also a confirmation dialog.
+     * @param aMailboxId The ID of the mail box to delete.
+     */
+    void DeleteMailboxL( const TFSMailMsgId& aMailboxId );
+
+
 protected: // from MProgressDialogCallback
 
     void DialogDismissedL( TInt aButtonId );
@@ -107,7 +114,15 @@ protected:
                               MFSEmailUiMailboxDeleteObserver& aObserver  );
 
 private:
-    
+
+	/**
+	 * Returns the mailboxes that can be deleted. Note that the given array is
+	 * left in the clean up stack.
+	 * @param aMailboxes The array where the mailboxes are added to.
+	 * @return The number of deletable mailboxes found.
+	 */
+	TInt GetDeletableMailboxesLC( RPointerArray<CFSMailBox>& aMailboxes );
+
     /**
      * Deletes a single mailbox.
      * @param aMailboxes Array containing the mailbox to be deleted.
@@ -121,6 +136,12 @@ private:
      * @return ETrue if user confirmed the deletion, EFalse if not.
      */
     TBool DeleteMultipleMailboxesL( const RPointerArray<CFSMailBox>& aMailboxes );
+    
+    /**
+     * Deletes the selected mailboxes i.e. those of which IDs are in the
+     * iMailboxesToDelete array.
+     */
+    void DoDeleteSelectedMailboxesL();
     
     /**
      *  Confirms mailbox deletion. Behavior depends on the number of mailboxes

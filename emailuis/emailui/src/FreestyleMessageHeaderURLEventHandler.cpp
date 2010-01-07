@@ -191,7 +191,22 @@ const TAttachmentData& CFreestyleMessageHeaderURLEventHandler::FindAttachmentL(
     
     if ( found == KErrNotFound )
         {
-        User::Leave( KErrNotFound );
+        // Probably, only the headers were downloaded. Check if attachments 
+        // were downloaded later.
+        iAttachmentsListModel->UpdateListL( iMailMessage );
+        for (TInt i=0; i<iAttachmentsListModel->GetModel().Count(); i++)
+            {
+            if ( iAttachmentsListModel->GetModel()[i].partData.iMessagePartId.Id() == id )
+                {
+                found = i;
+                break;
+                }
+            }
+
+        if ( found == KErrNotFound )
+            {
+            User::Leave( KErrNotFound );
+            }
         }
     
     return iAttachmentsListModel->GetModel()[found];
@@ -217,7 +232,7 @@ void CFreestyleMessageHeaderURLEventHandler::LaunchAttachmentMenuL(
             if ( iView.IsEmbeddedMsgSavingAllowed() || !iAttachmentsListModel->IsMessage( aAttachment ) )
                 {
                 CFSEmailUiActionMenu::AddCustomItemL( FsEActionAttachmentSave );    
-                }
+                } 
              
             }
         else

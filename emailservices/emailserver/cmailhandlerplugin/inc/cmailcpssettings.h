@@ -126,7 +126,7 @@ public:
     /**
      * 
      */
-    void GetContentId( TInt aId, TDes16& aValue );
+    TInt GetContentId( TInt aMailboxId, TInt aId, TDes16& aValue );
     
     /**
      * 

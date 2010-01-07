@@ -76,5 +76,6 @@ LIBRARY          FSFWCommonLib.lib
 LIBRARY          centralrepository.lib
 LIBRARY          commonengine.lib
 LIBRARY          cmaillogger.lib
+LIBRARY          egul.lib
 
 // End of file

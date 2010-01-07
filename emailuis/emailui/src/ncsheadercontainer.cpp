@@ -364,14 +364,19 @@ void CNcsHeaderContainer::HandlePointerEventL( const TPointerEvent& aPointerEven
             CCoeControl* pNewCtrl= clicked;
             
             if (pOldCtrl != pNewCtrl)
-                {           
+                {
                 // Unfocus the control
                 if ( pOldCtrl )
                     {
-                    CommitFieldL( pOldCtrl );
                     pOldCtrl->SetFocus( EFalse, ENoDrawNow );
                     }
                 pNewCtrl->SetFocus( ETrue, ENoDrawNow );
+
+                // Commit changes to previously focused field.
+                if ( pOldCtrl )
+                    {
+                    CommitFieldL( pOldCtrl );
+                    }
 
                 // If the attachments label has changed focus
                 if ( pOldCtrl == iAttachmentField || pNewCtrl == iAttachmentField )

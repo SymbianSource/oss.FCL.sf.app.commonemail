@@ -1019,7 +1019,11 @@ EXPORT_C void CFsTreeList::TreeVisualizerEventL(
         break;
         }
     // </cmail>
-
+    case MFsTreeVisualizerObserver::EFsChangeFocusVisibility:
+        {
+        listEvent = MFsTreeListObserver::EFsFocusVisibilityChange;
+        break;
+        }
     default:
         {
         return;

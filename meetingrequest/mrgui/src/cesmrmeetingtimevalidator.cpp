@@ -397,7 +397,8 @@ MESMRFieldValidator::TESMRFieldValidatorError
 
         TTime until;
         if ( iRecurrenceValue != ERecurrenceNot &&
-             iRecurrenceValue != ERecurrenceUnknown )
+             iRecurrenceValue != ERecurrenceUnknown &&
+             iRecurrenceUntilDate && iRecurrenceUntilDate->IsVisible() )
             {
             until = RecurrenceUntilTime();
 

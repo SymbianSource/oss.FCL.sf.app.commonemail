@@ -37,6 +37,7 @@ CFSMailPluginData::~CFSMailPluginData()
 	if(iPlugin)
 		{
 		delete iPlugin;
+		iPlugin = NULL;
 		CFSMailPlugin::Close();
 		}
 }

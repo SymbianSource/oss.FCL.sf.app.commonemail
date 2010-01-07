@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2008 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2007-2008 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -15,12 +15,12 @@
 *
 */
 
- 
-    
+
+
 #ifndef __FREESTYLEEMAILUI_FOLDERLISTVISUALISER_H__
 #define __FREESTYLEEMAILUI_FOLDERLISTVISUALISER_H__
 
-    
+
 #include <e32base.h>
 
 //<cmail>
@@ -37,6 +37,7 @@
 class CAlfTextVisual;
 class CAlfGridLayout;
 class CAlfImageVisual;
+class CAlfShadowBorderBrush;
 class CAlfDeckLayout;
 class CAlfAnchorLayout;
 class CFSEmailUiFolderListControl;
@@ -65,11 +66,8 @@ class CFSMailFolder;
 
 class CAlfFrameBrush;
 
-//REMOVE WHEN DONE TESTING
-//class CSimpleAOTest;
-// <cmail> Touch
-class CFSEmailUiFolderListVisualiser : public CFsEmailUiViewBase, public MFsTreeListObserver
-// </cmail>
+class CFSEmailUiFolderListVisualiser : public CFsEmailUiViewBase,
+                                       public MFsTreeListObserver
 	{
 public: // Data types
     enum TExpandCollapseType
@@ -78,7 +76,7 @@ public: // Data types
         EFolderListCollapse,
         EFolderListAutomatic
         };
-    
+
 public: // Construction and destruction
     /**
      * Destructor
@@ -98,26 +96,20 @@ public: // Construction and destruction
                                                  CFreestyleEmailUiAppUi& aAppUi );
 	static CFSEmailUiFolderListVisualiser* NewLC( CAlfEnv& aEnv,
                                                   CAlfControlGroup& aControlGroup,
-                                                  CFreestyleEmailUiAppUi& aAppUi );				
+                                                  CFreestyleEmailUiAppUi& aAppUi );
 
 public: // From base class CAknView
 	void DynInitMenuPaneL(TInt aResourceId, CEikMenuPane* aMenuPane);
 	void HandleCommandL( TInt aCommand );
     TUid Id() const;
-    // <cmail> Toolbar
-    /*
-    void ChildDoActivateL( const TVwsViewId& aPrevViewId,
-            TUid aCustomMessageId,
-            const TDesC8& aCustomMessage );*/            
-    // </cmail> Toolbar
-    void ChildDoDeactivate();                
+    void ChildDoDeactivate();
     void DoTransitionEffect( TBool aDirectionOut );
     void GetParentLayoutsL( RPointerArray<CAlfVisual>& aLayoutArray ) const;
 
 public: // Own public functions
-    
+
     virtual TBool HandleWsEventL( const TWsEvent& aEvent );
-    
+
     // Handle foreground event (called by FreestyleEmailUiMailListVisualiser)
     void HandleForegroundEventL();
 
@@ -133,17 +125,15 @@ public: // Own public functions
      * @return ETrue if event was consumed, otherwise EFalse
      */
 	TBool OfferEventL( const TAlfEvent& aEvent );
-	
-	// <cmail> Touch
+
     /**
-     * Handling pointer events. 
+     * Handling pointer events.
      *
      * @param aEvent Event forwarded from control
      * @return ETrue if event was consumed, otherwise EFalse
      */
 	TBool HandlePointerEventL(const TAlfEvent& aEvent);
-	// </cmail>
-	
+
 	/**
 	 * Expands or collpases the currently highlighted folder
 	 */
@@ -166,23 +156,23 @@ public: // Own public functions
     void ShowInPopupL( const TFSMailMsgId aFolderId,
                        MFSEmailUiFolderListCallback* aCallback,
     				   MFsControlButtonInterface* aButton = NULL );
-	
+
     /**
 	 * Quick and dirty solution to show the sort list with the same list.
 	 * Could be changed to some more elegant implementation (e.g. folder list
 	 * and sort list derive from some generic control base class that
 	 * implements the common operations), if time permits.
 	 *
-	 * @param aCurrentSortOrder Current sort order in mail list
+	 * @param aCurrentSortCriteria Current sort criteria in mail list
      * @param aFolderType Folder type of the currently visible folder in mail list
      * @param aCallback Call back to inform the result of the sort order query
      * @param aButton Control bar button from where the popup is opened
 	 */
-    void ShowSortListPopupL( const TFSMailSortField aCurrentSortOrder,
+    void ShowSortListPopupL( const TFSMailSortCriteria aCurrentSortCriteria,
                              const TFSFolderType aFolderType,
     						 MFSEmailUiSortListCallback* aCallback,
     						 MFsControlButtonInterface* aButton  = NULL );
-    
+
     /**
      * Does a horizontal scroll for the list if needed
      *
@@ -194,37 +184,42 @@ public: // Own public functions
 
     /**
      * Function to check whether folder list is displaying popup
-     */ 
+     */
     TBool IsPopupShown();
 
     /**
      * Function to hide popup
-     */ 
+     */
     void HidePopupL();
-    
+
     /**
      * From MFsTreeListObserver
      */
-// <cmail> Touch
-    void TreeListEventL( const TFsTreeListEvent aEvent, 
+    void TreeListEventL( const TFsTreeListEvent aEvent,
                                     const TFsTreeItemId aId = KFsTreeNoneID );
-// </cmail>
 
 // <cmail> Receiving online/offline events
     void HandleMailBoxEventL( TFSMailEvent aEvent, TFSMailMsgId aMailbox,
         TAny* aParam1, TAny* aParam2, TAny* aParam3 );
 // </cmail>
-// <cmail> Toolbar    
+
+    /**
+     * From CFsEmailUiViewBase
+     * This method is called from the appui when the focus state is changed.
+     *
+     * @param aVisible Indicates if focus should become visible or removed
+     */
+    void FocusVisibilityChange( TBool aVisible );
 
 private: // from
-    
+
     /**
      * @see CFsEmailUiViewBase::ChildDoActivateL
      */
     void ChildDoActivateL( const TVwsViewId& aPrevViewId,
             TUid aCustomMessageId,
             const TDesC8& aCustomMessage );
-    
+
     /**
      *  @see CFsEmailUiViewBase::OfferToolbarEventL
      */
@@ -234,9 +229,7 @@ private: // from
      * @see CFsEmailUiViewBase::ToolbarResourceId
      */
     TInt ToolbarResourceId() const;
-   
-// </cmail> Toolbar    
-    
+
 private: // Private functions
 
     /**
@@ -249,19 +242,17 @@ private: // Private functions
      *         positive if first parameter is greater than second
      */
     static TInt CompareFolders( const CFSMailFolder& aFirst, const CFSMailFolder& aSecond );
-       
+
 	// Construction
 	CFSEmailUiFolderListVisualiser( CAlfEnv& aEnv, CFreestyleEmailUiAppUi &aAppUi, CAlfControlGroup& aControlGroup );
 	void ConstructL();
 	void LoadIconsL();
 
 	// Internal functions used when showing and hiding the list
-	// <cmail>
 	//void DoShowInPopupL();
 	void DoShowInPopupL( MFsControlButtonInterface* aButton,
 	        MFSEmailUiFolderListCallback* aFolderCallback,
 	        MFSEmailUiSortListCallback* aSortCallback );
-	// </cmail>
 	void PrepareFolderListL();
     void PopulateFolderListL();
     void PopulateFolderListDeferred();
@@ -270,15 +261,13 @@ private: // Private functions
 	// Recreate list content
 	void UpdateFolderListL();
 	void UpdateSortListL();
-	
+
 	// View layout handling and item position calculation
 	void UpdateListSizeAttributes();
 	void ResizeListIcons();
 	void ResizeListItemsL();
 	void AdaptScreenRectToListContent();
-	// <cmail>
 	void AdjustWidthByContent( TRect& aRect ) const;
-	// </cmail>
 	void SetAnchors();
 	void SetItemVisualizerPropertiesL( MFsTreeItemVisualizer* aItemVisualizer );
 
@@ -287,9 +276,6 @@ private: // Private functions
 	TRect RightListRectInThisResolution();
 	TRect FolderListRectInThisResolution();
 	TRect SortListRectInThisResolution();
-	// <cmail>
-	//void PopupListWidthHeightInThisResolution( TInt& aWidth, TInt& aHeight );
-	// </cmail>
 
 	// Handle the selection or cancelation of the list
 	void HandleSelectionL( TFSEmailUiCtrlBarResponse aSelection );
@@ -303,7 +289,7 @@ private: // Private functions
 	void AppendMoreFoldersL();
 	void AppendMailboxesL();
 	void AppendSeparatorLineL();
-	
+
 	// Append sort list data
 	void AppendSortListItemsL();
 
@@ -313,29 +299,29 @@ private: // Private functions
 	                        TBool aRefreshLastItem );
 	TFsTreeItemId AppendNodeFolderL( CFSMailFolder* aFolder, TFsTreeItemId aParentNode );
 	TFsTreeItemId AppendLeafFolderL( CFSMailFolder* aFolder, TFsTreeItemId aParentNode, TBool aAllowRefresh );
-	
+
 	TFsTreeItemId AppendNodeToListFromResourceL( TInt aResourceId,
 												 TFsTreeItemId aParentNode,
 												 CAlfTexture* aIcon,
 												 TUint aUnreadCnt = 0);
-	
+
 	TFsTreeItemId AppendNodeToListL( TDesC* aItemData,
 									 TFsTreeItemId aParentNode,
 									 CAlfTexture* aIcon,
 									 TUint aUnreadCnt);
 
-	TFsTreeItemId AppendItemToListFromResourceL( TInt aResourceId, 
+	TFsTreeItemId AppendItemToListFromResourceL( TInt aResourceId,
 												 TFsTreeItemId aParentNode,
 												 CAlfTexture* aIcon,
                                                  TBool aAllowRefresh,
                                                  TUint aUnreadCnt = 0);
-	
-	TFsTreeItemId AppendItemToListL( TDesC* aItemData, 
+
+	TFsTreeItemId AppendItemToListL( TDesC* aItemData,
 									 TFsTreeItemId aParentNode,
 									 CAlfTexture* aIcon,
                                      TBool aAllowRefresh,
                                      TUint aUnreadCnt = 0);
-														
+
 	void CreatePlainItemLC2( const TDesC* aItemDataBuff,
                              CFsTreePlainOneLineItemData* &aItemData,
                              CFsTreePlainOneLineItemVisualizer* &aItemVisualizer,
@@ -371,28 +357,28 @@ private: // Private functions
 	// Check wheter all list nodes are expanded or collapsed
 	TBool AllNodesCollapsed() const;
 	TBool AllNodesExpanded( TFsTreeItemId aParentNodeId = KFsTreeRootID ) const;
-	
+
 	// Recursive function to get item's root level parent
 	TFsTreeItemId GetRootParent( const TFsTreeItemId aItemId ) const;
-	
+
     void DoFirstStartL();
-    //<cmail>
     void SetHeaderTextAttributesL();
     void ConnectToMailboxL();
     void DisconnectFromMailboxL();
     TBool CbaButtonPressed( TPoint aPosition );
     void GetCbaRects( TRect& aLeftCbaRect, TRect&  aRightCbaRect );
     TBool IsAreaSideRightPaneActive();
-    //</cmail>
-	
+
 private:
-    
+
     // Array of list item infos
     RPointerArray< CFsTreePlainOneLineItemData > iListItemDatas;
-    
+
 private: // Typedefs and member variables
 	// Array type for the list icons
 	typedef RPointerArray<CAlfTexture> TFsEmailFolderListIconArray;
+	// Array type for the sort list icons
+	typedef RPointerArray<CAlfTexture> TFsEmailSortListIconArray;
 
 	// ALF environment
     CAlfEnv& iEnv;
@@ -407,15 +393,11 @@ private: // Typedefs and member variables
 	CAlfImageVisual* iListBgImageVisual;
 	CAlfImageVisual* iHeaderImageVisual;
     CAlfTextVisual* iHeaderTextVisual;
-	// <cmail>
-    //CAlfImageBrush* iBackgroundBrush;
     CAlfFrameBrush* iBackgroundBrush;
-	// </cmail>
-	
-// <cmail> Touch
+    CAlfShadowBorderBrush* iShadowBrush;
+
 	// ALF visual for background
 	CAlfVisual* iFaderVisual;
-// </cmail>
 
 	// Pointers to control and model
     CFSEmailUiFolderListControl* iControl;	// not owned (owned by ALF env)
@@ -424,13 +406,13 @@ private: // Typedefs and member variables
 	// Callback pointers
 	MFSEmailUiFolderListCallback* iCallback;
 	MFSEmailUiSortListCallback* iSortListCallback;
-	
+
 	// Type of the currently visible folder in mail list
 	TFSFolderType iCurrentFolderType;
-	
+
 	// Custom message ID passed in view activation
 	TUid iCustomMessageId;
-	
+
 	// List/view size attributes
    	TRect iScreenRect;
 	TRect iCtrlButtonRect;
@@ -440,12 +422,12 @@ private: // Typedefs and member variables
     TInt iListSeparatorHeight;
 	TSize iListIconSize;
 	TSize iPreviousListIconSize;
-	
+
 	TPoint iPadding;
-	
+
 	// ETrue if list shown in fullscreen
 	TBool iFullScreen;
-	
+
 	// List id of the "More folders" item in folder list
 	TFsTreeItemId iMoreFoldersItemId;
 
@@ -460,20 +442,23 @@ private: // Typedefs and member variables
 
 	// Folder list icons, items not owned (are owned by texture manager)
 	TFsEmailFolderListIconArray iIconArray;
+
+	// Sort list icons, items not owned (are owned by texture manager)
+	TFsEmailSortListIconArray iSortIconArray;
 	
 	// Previously selected items
 	TFSMailMsgId iLatestSelectedMoveFolderId;
     TFSMailMsgId iCurrentFolderId;
-	TFSMailSortField iCurrentSortOrder;
-	
+	TFSMailSortCriteria iCurrentSortCriteria;
+
 	// Pointers to list items (and nodes)
 	RPointerArray<MFsTreeItemVisualizer> iListItemVisulizers;
-	
+
     // Previous level in list, used in horizontal scrolling
 	TInt iPreviousListLevel;
-	
+
 	TBool iFirstStartCompleted;
-	
+
 	TBool iPopupListShown;
 
 	//For header text caption
@@ -485,12 +470,12 @@ private: // Typedefs and member variables
   	TBool iWaitingToGoOnline;
     // Do we need to connect the mailbox before showing the folder list
     TBool iNoConnectNeeded;
-	
+
 	// Should we use expansion animation for the next transition effect
 	TBool iAnimateNextActivation;
-	
+
 	CAsyncCallBack* iAsyncCallback;
-	
+
 	TBool iConsumeUntilNextUpEvent;
 	};
 

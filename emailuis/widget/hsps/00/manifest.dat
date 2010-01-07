@@ -15,7 +15,9 @@
     <configurationuid>0x2001E272</configurationuid>
 
     <!-- description -->
+    <filelogo>qgn_menu_cmail.svg</filelogo>
     <fullname>&amp;qtn_hscr_email;</fullname>
+    <description>&amp;qtn_hs_widget_mail_description;</description>
     <shortname>EW</shortname>
     <version>1.0</version>
 
@@ -27,7 +29,7 @@
 
     <!-- Locale specific resources -->
     <localization>
-        <fileresource>EW.o0000</fileresource>
+        <fileresource tag="xuikon">EW.o0000</fileresource>
     </localization>
 
     <!-- Instances of widget per one homescreen -->	

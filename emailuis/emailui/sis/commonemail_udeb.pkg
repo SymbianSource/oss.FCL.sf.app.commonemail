@@ -40,7 +40,7 @@
 ;-----------------------------------------------------------------------------
 ; MfE plugin installed as embedded sisx-package
 ;-------------------------
-@"..\..\..\..\..\complementary\eas\sis\eas_engine_udeb.sisx",(0x20012BE9)
+@"\ext\app\eas\sis\eas_engine_udeb.sisx",(0x20012BE9)
 
 ;-----------------------------------------------------------------------------
 ; Actual common email files to be installed
@@ -120,10 +120,7 @@
 "\epoc32\release\armv5\udeb\cmailhandlerplugin.dll"              - "c:\sys\bin\cmailhandlerplugin.dll"
 "\epoc32\data\Z\Resource\Plugins\cmailhandlerplugin.rsc"         - "c:\resource\plugins\cmailhandlerplugin.rsc"
 "\epoc32\data\z\resource\apps\cmailhandlerplugin.mif"            - "c:\resource\apps\cmailhandlerplugin.mif"
-
-; Change path to normal resource path (not ECom res) when fixed in cmailhandlerplugin code
-; Uncomment in TB 9.2 branch after 5250+ branched
-;"\epoc32\data\Z\Resource\Plugins\emailwidget.rsc"                - "c:\resource\plugins\emailwidget.rsc"
+"\epoc32\data\Z\resource\apps\emailwidget.rsc"                   - "c:\resource\apps\emailwidget.rsc"
 
 ; ipservices
 "\epoc32\release\armv5\udeb\ipssosplugin.dll"                    - "c:\sys\bin\ipssosplugin.dll"

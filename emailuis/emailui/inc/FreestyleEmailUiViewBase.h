@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2008 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2008 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -15,7 +15,7 @@
 *                The class is not intended for instantation.
 *
 */
- 
+
 
 #ifndef __FREESTYLEEMAILUI_VIEWBASE_H__
 #define __FREESTYLEEMAILUI_VIEWBASE_H__
@@ -42,7 +42,7 @@ public: // types
         EScreenLayoutChanged,
         EOther
         };
-    
+
 public: // from CAknView
     // dummy implementation for the base class abstact functions are needed to be able to define a constructor
     TUid Id() const;
@@ -50,17 +50,17 @@ public: // from CAknView
 
 // <cmail> Toolbar
 private:
-    
+
     virtual void DoActivateL( const TVwsViewId& aPrevViewId,
         TUid aCustomMessageId,
         const TDesC8& aCustomMessage );
 // </cmail> Toolbar
-	
+
     /**
     * Inherited classes should NOT override this. The should override ChildDoDeactivate() instead.
     */
     void DoDeactivate();
-    
+
 public: // new functions
     /**
     * Returns a handle to the control group assosiated to this view, as given in the class constructor.
@@ -94,7 +94,7 @@ public: // new functions
     virtual TBool IsPreviousMsgAvailable( TFSMailMsgId aCurrentMsgId, TFSMailMsgId& aFoundPreviousMsgId, TFSMailMsgId& aFoundPrevMsgFolder ) const;
     virtual TInt MoveToNextMsgL( TFSMailMsgId aCurrentMsgId, TFSMailMsgId& aFoundNextMsgId );
     virtual TInt MoveToPreviousMsgL( TFSMailMsgId aCurrentMsgId, TFSMailMsgId& aFoundPreviousMsgId );
-
+    virtual TInt MoveToPreviousMsgAfterDeleteL( TFSMailMsgId aFoundPreviousMsgId );
     /**
      * Do the transition effect for the view if effects are enabled.
      */
@@ -104,19 +104,19 @@ public: // new functions
      * Prepares application exit. This is called by AppUi during cleanup before AppUi's destructor
      */
 	virtual void PrepareExitL();
-	
+
 	/**
 	 * Called when flip state changes.
 	 */
 	virtual void FlipStateChangedL( TBool aKeyboardFlipOpen );
 
 	/**
-	* This method is called from the appui when the focus removal timer expires.
-	* Each inherited view should implement own method for focus removal
-	* @param aShow Indicates if focus should become visible or removed
+	* This method is called from the appui when the focus state is changed.
+	* Each inherited view should implement own method for focus handling
+	* @param aVisible Indicates if focus should become visible or removed
 	*/
-	virtual void HandleTimerFocusStateChange( TBool aShow);
-	
+	virtual void FocusVisibilityChange( TBool aVisible );
+
 protected: // methods
 
     /**
@@ -126,7 +126,7 @@ protected: // methods
     virtual void HandleForegroundEventL();
 
     /**
-    * Inherited classes should override this instead of DoDeactivate() 
+    * Inherited classes should override this instead of DoDeactivate()
     * to do the view deactivation
     */
     virtual void ChildDoDeactivate() = 0;
@@ -135,7 +135,7 @@ protected: // methods
      * Make control group of the view visible and set to accept input.
      */
     virtual void ActivateControlGroup( TInt aDelay = 0 );
-    
+
     /**
      * Make control group of the view invisible and set to ignore input.
      */
@@ -146,7 +146,7 @@ protected: // methods
     * some special tricks for transition effects
     */
     virtual void DoTransitionEffect( TBool aDirectionOut );
-    
+
     /**
     * Inheriting Alfred views should override this and return their parent
     * layout(s) in array given as parameter. Default implementation
@@ -166,7 +166,7 @@ protected: // methods
     * (some long opening view is to be opened next)
     */
     void SetNextTransitionOutLong( TBool aLongTransitionOut );
-    
+
     TBool IsNextTransitionOutLong();
 
     /**
@@ -175,14 +175,14 @@ protected: // methods
      * It doesn't hurt to call this also from views which cannot be externally activated.
      */
     void ViewEntered( const TVwsViewId& aPrevViewId );
-    
+
     /**
      * Derived classes should call this to do backwards navigation e.g. when user
      * presses "Back" button. This returns to the previous view, and in case the view
      * was activated externally, takes FsEmail to background and brings the previous
      * application to foreground.
      */
-    virtual void NavigateBackL();    
+    virtual void NavigateBackL();
 
     /**
      * Derived classes can call this utility function to set the middle soft key
@@ -191,23 +191,23 @@ protected: // methods
     void ChangeMskCommandL( TInt aLabelResourceId );
 
 // <cmail> Toolbar
-protected: // toobar changes    
-    
+protected: // toobar changes
+
     /**
      * @see CAknView::DoActivateL
      */
-    virtual void ChildDoActivateL( 
+    virtual void ChildDoActivateL(
             const TVwsViewId& aPrevViewId,
             TUid aCustomMessageId,
             const TDesC8& aCustomMessage ) = 0;
-    
+
     /**
      * Return view's toolbar resource id.
      */
     virtual TInt ToolbarResourceId() const;
-   
+
     /**
-     * Called when whole toolbar needs to be updated. Creates and sets new 
+     * Called when whole toolbar needs to be updated. Creates and sets new
      * toolbar by calling ToolbarResourceId() method.
      */
     void UpdateToolbarL();
@@ -217,10 +217,10 @@ protected: // toobar changes
      * view.
      * @param aResourceId Resource ID of the toolbar.
      * @param aDimmedItems Array of items that will be dimmed.
-     */   
+     */
     virtual void GetInitiallyDimmedItemsL( const TInt aResourceId,
             RArray<TInt>& aDimmedItems ) const;
-    
+
     /**
      * Replaces single toolbar item with item from resource file. Control
      * must be of AVKON_BUTTON type.
@@ -236,7 +236,7 @@ protected: // toobar changes
      * Removes single toolbar item from toolbar.
      */
     void RemoveToolbarItem( const TInt aRemoveId );
-    
+
     /**
      * Hides toolbar.
      */
@@ -251,13 +251,13 @@ protected: // toobar changes
      * Dim/undim toolbar item.
      */
     void SetToolbarItemDimmed( const TInt aCommandId, const TBool aDimmed );
-    
+
     /**
      * Returns ETrue if view has toolbar.
      */
     virtual TBool HasToolbar() const;
-    
-protected: // Single click changes   
+
+protected: // Single click changes
     /**
      * Return current state of the focus visibility
      * @return ETrue if the focus should be shown
@@ -269,34 +269,34 @@ protected: // Single click changes
 	 * Inherited classes can override this and set desired status bar layout.
 	 */
 	virtual void SetStatusBarLayout();
-	            
+
 protected: // from MAknToolbarObserver
-    
+
     /**
      * @see MAknToolbarObserver::OfferToolbarEventL
      */
     void OfferToolbarEventL( TInt aCommand );
 
 // </cmail> Toolbar
-    
+
 protected: // construction
-    
+
     CFsEmailUiViewBase( CAlfControlGroup& aControlGroup, CFreestyleEmailUiAppUi& aAppUi );
-   
+
     /**
      * Return view active status. ETrue if the view is currently activated, EFalse otherwise.
      */
     TBool IsViewActive() const;
-   
+
 private:
 
     /**
      * Sets view's active status. Private to protect calling from inherited classes.
      */
     void SetViewActive( const TBool aActive );
-           
+
 protected: // data
-    
+
     CAlfControlGroup& iControlGroup;
     CFreestyleEmailUiAppUi& iAppUi;
 
@@ -305,9 +305,9 @@ protected: // data
 
     // Is focus visible
     TBool iFocusVisible;
-    
+
 private: // data
-    
+
     TUid iPreviousAppUid;
     // ID of the mailbox which was active before this view was activated from an external application
     TFSMailMsgId iActiveMailboxBeforeExternalActivation;

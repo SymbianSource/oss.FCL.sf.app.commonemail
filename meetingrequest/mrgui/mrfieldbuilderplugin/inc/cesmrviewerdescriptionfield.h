@@ -98,6 +98,12 @@ private:
      * Own.
      */
     CESMRFeatureSettings* iFeatures;
+    
+    /**
+     * Location title.
+     * Own.
+     */
+    HBufC* iLocation;
     };
 
 #endif /* CESMRVIEWERDESCRIPTIONFIELD_H */

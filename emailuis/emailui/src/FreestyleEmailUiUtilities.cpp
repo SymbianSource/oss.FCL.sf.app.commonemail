@@ -1014,8 +1014,8 @@ TBool TFsEmailUiUtility::RunFollowUpListDialogL( TFollowUpNewState& aSelectedOpt
         iconBitmap,
         iconMaskBitmap,
         iconFileName,
-        EMbmFreestyleemailuiQgn_indi_cmail_viewer_follow_up,
-        EMbmFreestyleemailuiQgn_indi_cmail_viewer_follow_up_mask,
+        EMbmFreestyleemailuiQgn_indi_navi_follow_up,
+        EMbmFreestyleemailuiQgn_indi_navi_follow_up_mask,
         KRgbBlack );
 	AknIconUtils::SetSize(iconBitmap, defaultIconSize );
     AknIconUtils::SetSize(iconMaskBitmap, defaultIconSize);
@@ -1034,8 +1034,8 @@ TBool TFsEmailUiUtility::RunFollowUpListDialogL( TFollowUpNewState& aSelectedOpt
         iconBitmap,
         iconMaskBitmap,
         iconFileName,
-        EMbmFreestyleemailuiQgn_indi_cmail_viewer_follow_up_complete,
-        EMbmFreestyleemailuiQgn_indi_cmail_viewer_follow_up_complete_mask,
+        EMbmFreestyleemailuiQgn_indi_navi_follow_up_complete,
+        EMbmFreestyleemailuiQgn_indi_navi_follow_up_complete_mask,
         KRgbBlack );
 	AknIconUtils::SetSize(iconBitmap, defaultIconSize );
     AknIconUtils::SetSize(iconMaskBitmap, defaultIconSize);

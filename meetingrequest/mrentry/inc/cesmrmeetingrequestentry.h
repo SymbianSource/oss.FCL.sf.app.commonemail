@@ -152,6 +152,7 @@ private: // Implementaton
 private: // Data
     /// Own: Calendar entry
     CCalEntry* iEntry;
+    CCalEntry* iBackupEntry;
     /// Own: Forward calendar entry
     CCalEntry* iForwardEntry;
     /// Ref: Reference to mailbox utilities

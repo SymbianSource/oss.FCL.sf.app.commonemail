@@ -88,7 +88,7 @@ RESOURCE LOCALISABLE_APP_INFO r_emailwidgetsettings_loc_app_info
 
 RESOURCE TBUF r_emailwidgetsettings_create_new_mailbox
     {
-    buf = "\t"qtn_hs_widget_setting_new_mailbox"\t\t";
+    buf = "0\t"qtn_hs_widget_setting_new_mailbox"\t\t";
     }
 
 // End of File

@@ -95,11 +95,12 @@ void CNcsAddressInputField::ConstructL( TInt aLabelTextId )
 	// Create label
 	//Load the label string
 	HBufC* aTextBuf = StringLoader::LoadLC( aLabelTextId );
-	//<cmail>
-	CreateControlsL( aTextBuf ? aTextBuf->Des() : TPtrC() );
-	//</cmail>
+
+	TPtrC captionText = aTextBuf ? aTextBuf->Des() : TPtrC();
+	CreateControlsL( captionText );
 	
-	iTextEditor = new ( ELeave ) CNcsAifEditor( iSizeObserver );
+	iTextEditor = new ( ELeave ) CNcsAifEditor( iSizeObserver,
+                                                captionText );
     // iTextEditor is not completely constructed until in SetContainerWindowL()
 
 	iTextEditor->SetPopupList(iAddressPopupList);

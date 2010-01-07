@@ -34,14 +34,15 @@ class CNcsEditorCustomDraw;
 /**
 *  CNcsEditor
 */
-class CNcsEditor : public CEikRichTextEditor, public MNcsControl
+class CNcsEditor : public CEikRichTextEditor, public MNcsControl, public MCoeCaptionRetrieverForFep
     {
 public: // construction and destruction
     
     CNcsEditor(
         MNcsFieldSizeObserver* aSizeObserver = NULL,
         TBool aHeaderField = ETrue,
-        TNcsEditorUsage aEditorUsage = ENcsEditorDefault );
+        TNcsEditorUsage aEditorUsage = ENcsEditorDefault,
+        const TDesC& aCaptionText = TPtrC() );
     
     void ConstructL( const CCoeControl* aParent,
                      TInt aNumberOfLines,
@@ -136,8 +137,12 @@ protected: // from MEditObserver
 
     virtual void EditObserver( TInt aStart, TInt aExtent );
     
-private: // methods used internally
-    
+public: // CEikEdwin
+    TCoeInputCapabilities InputCapabilities() const;  
+public: // MCoeCaptionRetrieverForFep
+    void GetCaptionForFep(TDes& aCaption) const;
+
+private: // methods used internally    
 	// <cmail> Platform layout change 
     void UpdateFontL();
     // </cmail> Platform layout change 
@@ -181,6 +186,9 @@ private: // data
     
     // Real screen rectangle
     TRect iRealRect;
+
+	// Caption text for virtual ITU-T
+    HBufC*   iCaptionText; 
     };
 
 

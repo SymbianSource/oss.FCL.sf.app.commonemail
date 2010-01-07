@@ -50,6 +50,11 @@ public:
 private:
 	void CreateCbaL(MEikCommandObserver* aObserver);
 	void CreateListBoxL(MEikListBoxObserver* aObserver);
+    void SetupListIconsL();
+    void AppendIconL(
+            CArrayPtr<CGulIcon>* aIcons,
+            const TInt aFileBitmapId, 
+            const TInt aFileMaskId);
 	TInt GetSettingToAssociateL(const TDesC& aCid);
 	void LaunchEmailWizardL();
 	
@@ -60,6 +65,7 @@ public:
 	CEikButtonGroupContainer*       iPopoutCba;
 	CEikColumnListBox*	            iListBox;
 	CDesCArrayFlat*                 iAccountNames;
+	CDesCArrayFlat*                 iDomains;
     CArrayFixFlat<TFSMailMsgId>*    iAccountIds;
 	CEmailWidgetSettingsMailboxes*  iMailboxes;
     CEikonEnv*                      iEnv;	

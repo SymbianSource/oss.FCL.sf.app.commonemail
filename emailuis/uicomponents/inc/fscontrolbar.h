@@ -137,6 +137,11 @@ public:
     IMPORT_C MFsControlButtonInterface* GetFocusedButton() const;
 
     /**
+     * Set position and size
+     */
+    virtual void SetRectL( const TRect& aRect );
+    
+    /**
      * Sets height of the bar in pixels.
      *
      * @param aHeight new height of the bar.

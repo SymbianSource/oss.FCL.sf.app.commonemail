@@ -300,9 +300,8 @@ private:
     CFSEmailUiMsgDetailsControl* iControl;	// Not owned, owned by ALF env
     CFSEmailUiMsgDetailsModel* iModel;		// Owned
 
-	// Lists screen rect and item/node heights
+	// Lists screen rect and node heights
     TRect iScreenRect;
-	TInt iListItemHeight;
 	TInt iListNodeHeight;
 
 	// Nodes that can be focused at startup

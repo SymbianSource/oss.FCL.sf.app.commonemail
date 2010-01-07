@@ -29,6 +29,8 @@
 class CAlfControl;
 class CAlfVisual;
 class CAlfLayout;
+class CAlfBrush;
+class CAlfFrameBrush;
 class CAlfTextVisual;
 class CAlfGridLayout;
 class CAlfDeckLayout;
@@ -39,6 +41,7 @@ class TAlfTimedPoint;
 class CAlfTexture;
 class CAlfGradientBrush;
 class CAlfImageBrush;
+class CAlfShadowBorderBrush;
 class CFsControlButtonModel;
 class CFsControlButtonLayoutData;
 class CFsTextStyleManager;
@@ -79,6 +82,11 @@ public:
      */
     IMPORT_C virtual void InitializeL( CFsControlButtonModel& aButtonModel );
 
+    /**
+     * Called when the colors etc should be refreshed
+     */
+    virtual void UpdateVisualThemeL();
+    
     /**
      * Refreshes button on the display.
      */
@@ -455,7 +463,23 @@ protected: // data
      * Brush with background image.
      * Owned.
      */
-    CAlfImageBrush* iBgBrush;
+    CAlfBrush* iBgBrush;
+
+    /**
+     * Default brush for background. Owned.
+     */
+    CAlfFrameBrush* iDefaultBgBrush;
+
+	/**
+	 * ETrue if default theme background is used
+	 */
+    TBool iUseDefaultBackground;
+    
+    /**
+     * Brush for shadowed button borders.
+     * Owned.
+     */
+    CAlfShadowBorderBrush* iShadowBorderBrush;
 
     /**
      * Layout of the parent control.
@@ -520,6 +544,10 @@ protected: // data
      */
     TBool iDrawFocus;
 
+    /**
+     * Show dropdown shadow for buttons  
+     */
+    TBool iShowShadow;
     };
 
 

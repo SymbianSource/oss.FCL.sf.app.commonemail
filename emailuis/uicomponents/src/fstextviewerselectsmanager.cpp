@@ -107,9 +107,13 @@ void CFsTextViewerSelectsManager::AppendSelectVisL( TFsRangedVisual* aVisual,
                 }
 
             }
-            select->SetId( aId );
-            select->AppendVisualL( aVisual );
-            iSelects.AppendL( select );
+        
+			if (select)
+				{
+				select->SetId( aId );
+				select->AppendVisualL( aVisual );
+				iSelects.AppendL( select );
+				}
         }
     else
         {

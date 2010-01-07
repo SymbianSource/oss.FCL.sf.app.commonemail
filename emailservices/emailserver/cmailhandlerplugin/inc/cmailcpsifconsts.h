@@ -34,9 +34,11 @@ _LIT( KLessThan,"<");
 _LIT( KAt,"@");
 _LIT( KDot,".");
 _LIT( KMifPrefix, "mif(");
-_LIT( KMifPath, "z:\\resource\\apps\\cmailhandlerplugin.mif");
+// Mif file name and path, drive letter need to be parsed run time
+_LIT( KMifPath, "\\resource\\apps\\cmailhandlerplugin.mif");
 _LIT( KSpace, " ");
-_LIT( KResourceFile, "z:emailwidget.rsc" );
+// Resource file name and path, drive letter need to be parsed run time
+_LIT( KResourceFile, "\\resource\\apps\\emailwidget.rsc" );
 _LIT( KDissociated,"0");
 
 //

@@ -37,9 +37,11 @@
 #include <apgcli.h>
 #include <AknQueryDialog.h>
 #include <aknnotewrappers.h>
+#include <FeatMgr.h>
 // for intranet application opening
 #include <AiwServiceHandler.h>
 #include <data_caging_path_literals.hrh>
+#include <publicruntimeids.hrh>
 
 
 // DEBUG
@@ -240,7 +242,8 @@ void CESMRContactMenuUrlHandler::InitOptionsMenuL(
     		data.iText, R_QTN_MEET_REQ_VIEWER_OPTIONS_OPEN_IN_WEB );
     aActionMenuPane->AddMenuItemL( data );
 
-    if(IsServiceAvailableL(R_INTRANET_AIW_INTEREST))
+    if(IsServiceAvailableL(R_INTRANET_AIW_INTEREST) &&
+       FeatureManager::FeatureSupported( KFeatureIdFfIntranetBrowsing ) )
         {
         data.iCommandId = command;
         command++;//dynamic command ids
@@ -294,7 +297,8 @@ void CESMRContactMenuUrlHandler::ExecuteOptionsMenuL( TInt aCommand )
         }
     command++;//next item in the dynamic list
 
-    if(IsServiceAvailableL(R_INTRANET_AIW_INTEREST))
+    if(IsServiceAvailableL(R_INTRANET_AIW_INTEREST) &&
+       FeatureManager::FeatureSupported( KFeatureIdFfIntranetBrowsing ) )
         {
         if( (aCommand == KUidOpenInIntranet.iUid) || (aCommand == command))
             {
@@ -324,7 +328,8 @@ void CESMRContactMenuUrlHandler::ShowActionMenuL( )
     CreateMenuItemL( R_QTN_MEET_REQ_VIEWER_OPTIONS_OPEN_IN_WEB, 
 					 KUidOpenInBrowser);
 
-    if(IsServiceAvailableL(R_INTRANET_AIW_INTEREST))
+    if(IsServiceAvailableL(R_INTRANET_AIW_INTEREST) &&
+       FeatureManager::FeatureSupported( KFeatureIdFfIntranetBrowsing ) )
         {
         CreateMenuItemL( R_QTN_MEET_REQ_FSOPTIONS_OPEN_IN_INTRA, 
 						 KUidOpenInIntranet);

@@ -2593,4 +2593,22 @@ CHARACTER_SET UTF8
 // l:main_sp_fs_ctrlbar_ddmenu_pane_t1 
 // r:TB9.2
 //
-#define gtn_cmail_command_area_select_folders "Select folders"
+#define qtn_cmail_command_area_select_folders "Select folders"
+
+// d:Create a new email from command area button
+// l:main_sp_fs_ctrlbar_ddmenu_pane_t1
+// r:TB9.2
+//
+#define qtn_cmail_command_area_new "New"
+
+// d:Submenu option for the 150% zoom level in HTML viewer
+// l:list_single_popup_submenu_pane_t1/opt1
+// r:5250+
+//
+#define qtn_fse_zoom_level_150_percent         "150%"
+
+// d:Mail deleted notification
+// l:popup_note_window
+// r:TB9.2
+//
+#define qtn_fse_mail_deleted_note "Mail deleted"

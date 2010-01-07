@@ -240,11 +240,11 @@ class TFSMailMsgId
     public:
 
     inline TFSMailMsgId( ) // constructs NULL id
-    { iPluginId.iUid = 0; iId = 0; iNullId = ETrue; };
+    { iPluginId.iUid = 0; iId = 0; iNullId = ETrue; iSeparator = EFalse; };
     inline TFSMailMsgId(TUid aPluginId, TUint aId)
-    { iPluginId = aPluginId; iId = aId; iNullId = EFalse; };
+    { iPluginId = aPluginId; iId = aId; iNullId = EFalse; iSeparator = EFalse; };
     inline TFSMailMsgId(TUint aPluginId, TUint aId)
-    { iPluginId.iUid = aPluginId; iId = aId; iNullId = EFalse; };
+    { iPluginId.iUid = aPluginId; iId = aId; iNullId = EFalse; iSeparator = EFalse; };
     inline TBool operator==(TFSMailMsgId aId) const
     { if(iNullId != aId.IsNullId()) return EFalse;
       if(iPluginId.iUid != aId.PluginId().iUid) return EFalse;
@@ -259,12 +259,14 @@ class TFSMailMsgId
     inline TUint Id() const { return iId; };
     inline void  SetPluginId(TUid aPluginId) { iPluginId = aPluginId; iNullId = EFalse; };
     inline void  SetId(TUint aId) { iId = aId; iNullId = EFalse; };
-
+    inline void SetSeparator( TBool aSeparator ) { iSeparator = aSeparator; }
+    inline TBool IsSeparator() const { return iSeparator; }
     protected:
 
     TBool   iNullId;
     TUid    iPluginId;      // ecom implementation id
     TUint   iId;            // message, folder, mailbox id
+    TBool   iSeparator;     // if object is separator
     };
 
 /* Predefined constants for ContentTypes and parameters for ContentType and ContentDisposition */

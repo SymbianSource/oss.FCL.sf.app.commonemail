@@ -54,18 +54,18 @@ const TUid KApplicationsToClose[] =
 // Non-UI clients that need to be closed
 const TUid KOtherClientsToClose[] =
     {
-    { FSMailServerUidAsTInt },     // FSMailServer
-    { KPcsServerProcessUidAsTInt } // PCS server
+    { KPcsServerProcessUidAsTInt }, // PCS server
+    { FSMailServerUidAsTInt },      // FSMailServer
     };
 
 // Plugin processes that need to be closed
 const TUid KPluginProcessesToClose[] =
     {
     // MfE plugin
-    { 0x10206961 },      // KUidEasServer
-    { 0x10206970 },      // KUidEasTarmAccess
-    { 0x10206972 },      // KUidEasStartup
+    { 0x20012BEE },      // KUidEasStartup
+    { 0x20012BEC },      // KUidEasTarmAccess
     { 0x20012BD4 },      // KEasLogSenderServer
+    { 0x20012BE6 },      // KUidEasServer
     // Oz plugin
     { 0x2002136A },      // monitor
     { 0x20021367 },      // server

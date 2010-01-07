@@ -58,7 +58,7 @@ public:// from base CESMRLocationPlugin ecom interface
 public:// from base class MESMRLocationPlugin
     void SelectFromMapL( const TDesC& aSearchQuery, const TDesC& aLocationUrl );
     void SearchFromMapL( const TDesC& aSearchQuery );
-    void ShowOnMapL( const TDesC& aLocationUrl );
+    void ShowOnMapL( const TDesC& aLocation, const TDesC& aLocationUrl );
 
 protected: // from base class CActive
 	void DoCancel();

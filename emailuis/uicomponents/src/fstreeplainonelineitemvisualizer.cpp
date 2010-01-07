@@ -223,6 +223,10 @@ void CFsTreePlainOneLineItemVisualizer::UpdateLayout(
         }
 
     TRect currentSize = iSize;
+    if ( !IsLayoutHintSet( EFolderLayout ) )
+        {
+        CFsLayoutManager::LayoutMetricsRect(currentSize, CFsLayoutManager::EFsLmListSingleDycRowPane, currentSize);
+        }
     if (CFsLayoutManager::IsMirrored())
         {
         currentSize.iBr = currentSize.iBr - TPoint(aIndentation, 0);
@@ -572,8 +576,12 @@ void CFsTreePlainOneLineItemVisualizer::UpdateL( const MFsTreeItemData& aData,
                 }
                 }
 
-            iTextMarquee->StopScrolling();           
-            iTextVisual->SetWrapping(CAlfTextVisual::ELineWrapTruncate);
+            iTextMarquee->StopScrolling();    
+            
+            if ( iTextVisual )
+            	{
+            	iTextVisual->SetWrapping(CAlfTextVisual::ELineWrapTruncate);
+            	}
             }
         }
     }

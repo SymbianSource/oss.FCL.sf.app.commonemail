@@ -530,15 +530,11 @@ void CESMRViewerAttendeesField::UpdateAttendeesListL()
                 text.Set( name );
                 }
             
-            HBufC* clippedTextHBufC = ClipTextLC( text, *font, maxLineWidth );
-            TPtr clippedText = clippedTextHBufC->Des();
-            clippedText.Trim();
-            
-            if ( clippedText.Length() > 0 )
+            if ( text.Length() > 0 )
                 {
                 CESMRRichTextLink* link = CESMRRichTextLink::NewL(
                         buffer.Length(), 
-                        clippedText.Length() + 
+                        text.Length() + 
                             KAddressDelimeterSemiColon().Length(), 
                         addr,
                         CESMRRichTextLink::ETypeEmail,
@@ -549,15 +545,13 @@ void CESMRViewerAttendeesField::UpdateAttendeesListL()
         
                 // Append text and semicolon to buffer.
                 buffer.ReAllocL( buffer.Length() +
-                                 clippedText.Length() +
+                                 text.Length() +
                                  KAddressDelimeterSemiColon().Length() + 
                                  KNewLine().Length() );
-                buffer.Append( clippedText );
+                buffer.Append( text );
                 buffer.Append( KAddressDelimeterSemiColon );
                 buffer.Append( KNewLine );
-                }
-            
-            CleanupStack::PopAndDestroy( clippedTextHBufC );
+                }            
             }
         
         // If there are more lines in use than KMaxLineCount and

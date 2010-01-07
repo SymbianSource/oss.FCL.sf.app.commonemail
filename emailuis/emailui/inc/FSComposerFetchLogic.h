@@ -48,7 +48,9 @@ enum TComposerFetchState
 class MComposerFetchLogicCallback
 	{
 public:
-    virtual void FetchLogicComplete( TComposerFetchState aState, TInt aError ) = 0;
+    // Returns ETrue if the corresponding CFsComposerFetchLogic object has
+    // been deleted.
+    virtual TBool FetchLogicComplete( TComposerFetchState aState, TInt aError ) = 0;
 	};
 	
 	

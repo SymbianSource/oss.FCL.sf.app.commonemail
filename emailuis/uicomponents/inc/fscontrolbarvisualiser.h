@@ -54,8 +54,7 @@ public:
      * @param aModel Model of control bar.
      */
     static CFsControlBarVisualiser* NewL(
-        CFsControlBar& aParentControl,
-        CFsControlBarModel& aModel );
+        CFsControlBar& aParentControl, CFsControlBarModel& aModel );
 
     /**
      * Destructor

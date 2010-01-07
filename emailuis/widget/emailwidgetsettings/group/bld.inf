@@ -21,12 +21,19 @@
 PRJ_PLATFORMS
 DEFAULT
 
+PRJ_MMPFILES
+emailwidgetsettings.mmp
+
+PRJ_EXTENSIONS
+START EXTENSION s60/mifconv
+OPTION TARGETFILE emailwidgetsettings.mif
+OPTION HEADERFILE emailwidgetsettings.mbg
+OPTION SOURCEFILE ../data/iconlist.txt
+END
+
 PRJ_EXPORTS
 ../rom/emailwidgetsettings.iby          CORE_APP_LAYER_IBY_EXPORT_PATH(emailwidgetsettings.iby)
 ../loc/emailwidgetsettings.loc          APP_LAYER_LOC_EXPORT_PATH(emailwidgetsettings.loc)
 
 ../conf/cmailwidget.confml              APP_LAYER_CONFML(cmailwidget.confml)
 ../conf/cmailwidget_2001E272.crml       APP_LAYER_CRML(cmailwidget_2001E272.crml)
-
-PRJ_MMPFILES
-emailwidgetsettings.mmp

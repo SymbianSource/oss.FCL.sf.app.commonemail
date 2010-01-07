@@ -55,6 +55,8 @@ LIBRARY    euser.lib
 LIBRARY    ecom.lib
 LIBRARY    efsrv.lib
 LIBRARY    platformenv.lib
+LIBRARY	   bafl.lib
+LIBRARY    estor.lib
 
 // END FILE RfsMsgStorePlugin.mmp
 

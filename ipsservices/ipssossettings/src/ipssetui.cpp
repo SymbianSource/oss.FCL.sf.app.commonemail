@@ -36,7 +36,8 @@
 #include "ipsplgsosbaseplugin.hrh"
 
 const TInt KIpsSetOptionsMenuItemCount = 4;
-_LIT( KIpsSetUiResourceFile,"z:IpsSosSettings.rsc" );
+// Resource file name and path, drive letter need to be parsed run time
+_LIT( KIpsSetUiResourceFile, "\\resource\\IpsSosSettings.rsc" );
 
 // ============================ LOCAL FUNCTIONS ===============================
 
@@ -488,11 +489,15 @@ void CIpsSetUi::HandleSessionEventL(
 void CIpsSetUi::LoadResourceL()
     {
     FUNC_LOG;
-    TFileName fileName;
-    TParse parse;
-    parse.Set( KIpsSetUiResourceFile, &KDC_RESOURCE_FILES_DIR, NULL );
-    fileName.Copy( parse.FullName() );
 
+    // Load resource file from the same drive where this dll is loaded from
+    TFileName dllFileName;
+    Dll::FileName( dllFileName );
+
+    TParse parse;
+    parse.Set( KIpsSetUiResourceFile, &dllFileName, NULL );
+    TFileName fileName( parse.FullName() );
+    
     // Attempt to load the resource
     iResourceLoader.OpenL( fileName );
     }

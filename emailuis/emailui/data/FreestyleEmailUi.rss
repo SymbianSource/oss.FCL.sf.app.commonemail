@@ -304,10 +304,9 @@ RESOURCE AVKON_TOOLBAR r_freestyle_email_ui_toolbar_folder_list
                     AVKON_BUTTON_STATE
                         {
                         helptxt = qtn_fse_message_list_options_expand_all;
-                        txt = qtn_fse_message_list_options_expand_all;
-//                        bmpfile = EMAILUI_ICON_FILE;
-//                        bmpid=EMbmFreestyleemailuiQgn_indi_tb_expand_all;
-//                        bmpmask=EMbmFreestyleemailuiQgn_indi_tb_expand_all_mask;
+                        bmpfile = EMAILUI_ICON_FILE;
+                        bmpid=EMbmFreestyleemailuiQgn_indi_tb_expand_all;
+                        bmpmask=EMbmFreestyleemailuiQgn_indi_tb_expand_all_mask;
                         }
                     };            
                 };
@@ -324,10 +323,9 @@ RESOURCE AVKON_TOOLBAR r_freestyle_email_ui_toolbar_folder_list
                     AVKON_BUTTON_STATE
                         {
                         helptxt = qtn_fse_message_list_options_collapse_all;
-                        txt = qtn_fse_message_list_options_collapse_all;
-//                        bmpfile = EMAILUI_ICON_FILE;
-//                        bmpid=EMbmFreestyleemailuiQgn_indi_tb_collapse_all;
-//                        bmpmask=EMbmFreestyleemailuiQgn_indi_tb_collapse_all_mask;
+                        bmpfile = EMAILUI_ICON_FILE;
+                        bmpid=EMbmFreestyleemailuiQgn_indi_tb_collapse_all;
+                        bmpmask=EMbmFreestyleemailuiQgn_indi_tb_collapse_all_mask;
                         }
                     };            
                 };
@@ -496,39 +494,25 @@ RESOURCE AVKON_TOOLBAR r_freestyle_email_ui_toolbar_html_message_viewer
                                     }  
                                 };            
                             };
-                        },                                    
-                    TBAR_CTRL
-                        {
-                        type = EAknCtButton;
-                        id = EFsEmailUiTbCmdForward;
-                        control = AVKON_BUTTON
-                            {
-                            flags = KAknButtonRequestExitOnButtonUpEvent;
-                            states =
-                                {
-                                AVKON_BUTTON_STATE
-                                    {
-                                    txt = qtn_fse_tb_ext_forward;
-                                    bmpfile = EMAILUI_ICON_FILE;
-                                    bmpid=EMbmFreestyleemailuiQgn_indi_tb_email_forward;
-                                    bmpmask=EMbmFreestyleemailuiQgn_indi_tb_email_forward_mask;                        
-                                    }  
-                                };            
-                            };
-                        } 
+                        }
                     }; // eof extension items
                 }; // eof AVKON_TOOLBAR_EXTENSION control
             },
         TBAR_CTRL
             {
             type = EAknCtButton;
+            id = EFsEmailUiTbCmdForward;
             control = AVKON_BUTTON
                 {
-                flags = KAknButtonSizeFitText;
+                flags = KAknButtonRequestExitOnButtonUpEvent;
                 states =
                     {
                     AVKON_BUTTON_STATE
                         {
+                        helptxt = qtn_fse_tb_ext_forward;
+                        bmpfile = EMAILUI_ICON_FILE;
+                        bmpid=EMbmFreestyleemailuiQgn_indi_tb_email_forward;
+                        bmpmask=EMbmFreestyleemailuiQgn_indi_tb_email_forward_mask;                        
                         }  
                     };            
                 };
@@ -567,60 +551,8 @@ RESOURCE AVKON_TOOLBAR r_freestyle_email_ui_toolbar_html_message_viewer_no_reply
         {
         TBAR_CTRL
             {
-            type = EAknCtToolbarExtension;
-            id = EFsEmailUiTbCmdActions;
-            control = AVKON_TOOLBAR_EXTENSION
-                {
-                helptxt = qtn_fse_tb_actions;
-                bmpFile = EMAILUI_ICON_FILE;
-                bmpId = EMbmFreestyleemailuiQgn_indi_tb_email_extend;
-                bmpMask = EMbmFreestyleemailuiQgn_indi_tb_email_extend_mask;
-                items =
-                    {
-                    TBAR_CTRL
-                        {
-                        type = EAknCtButton;
-                        id = EFsEmailUiTbCmdReply;
-                        control = AVKON_BUTTON
-                            {
-                            flags = KAknButtonSizeFitText;
-                            states =
-                                {
-                                AVKON_BUTTON_STATE
-                                    {
-                                    txt = qtn_fse_tb_ext_reply;
-                                    bmpfile = EMAILUI_ICON_FILE;
-                                    bmpid=EMbmFreestyleemailuiQgn_indi_tb_email_reply;
-                                    bmpmask=EMbmFreestyleemailuiQgn_indi_tb_email_reply_mask;                        
-                                    }  
-                                };            
-                            };
-                        },
-                    TBAR_CTRL
-                        {
-                        type = EAknCtButton;
-                        id = EFsEmailUiTbCmdForward;
-                        control = AVKON_BUTTON
-                            {
-                            flags = KAknButtonRequestExitOnButtonUpEvent;
-                            states =
-                                {
-                                AVKON_BUTTON_STATE
-                                    {
-                                    txt = qtn_fse_tb_ext_forward;
-                                    bmpfile = EMAILUI_ICON_FILE;
-                                    bmpid=EMbmFreestyleemailuiQgn_indi_tb_email_forward;
-                                    bmpmask=EMbmFreestyleemailuiQgn_indi_tb_email_forward_mask;                        
-                                    }  
-                                };            
-                            };
-                        } 
-                    }; // eof extension items
-                }; // eof AVKON_TOOLBAR_EXTENSION control
-            },
-        TBAR_CTRL
-            {
             type = EAknCtButton;
+            id = EFsEmailUiTbCmdReply;
             control = AVKON_BUTTON
                 {
                 flags = KAknButtonSizeFitText;
@@ -628,6 +560,29 @@ RESOURCE AVKON_TOOLBAR r_freestyle_email_ui_toolbar_html_message_viewer_no_reply
                     {
                     AVKON_BUTTON_STATE
                         {
+                        helptxt = qtn_fse_tb_ext_reply;
+                        bmpfile = EMAILUI_ICON_FILE;
+                        bmpid=EMbmFreestyleemailuiQgn_indi_tb_email_reply;
+                        bmpmask=EMbmFreestyleemailuiQgn_indi_tb_email_reply_mask;                        
+                        }  
+                    };            
+                };
+            },        
+        TBAR_CTRL
+            {
+            type = EAknCtButton;
+            id = EFsEmailUiTbCmdForward;
+            control = AVKON_BUTTON
+                {
+                flags = KAknButtonRequestExitOnButtonUpEvent;
+                states =
+                    {
+                    AVKON_BUTTON_STATE
+                        {
+                        helptxt = qtn_fse_tb_ext_forward;
+                        bmpfile = EMAILUI_ICON_FILE;
+                        bmpid=EMbmFreestyleemailuiQgn_indi_tb_email_forward;
+                        bmpmask=EMbmFreestyleemailuiQgn_indi_tb_email_forward_mask;                        
                         }  
                     };            
                 };
@@ -1002,6 +957,7 @@ RESOURCE TBUF r_freestyle_email_call_sender_query				{ buf=qtn_fse_viewer_call_s
 RESOURCE TBUF r_freestyle_email_fetch_from_remote_query	{ buf=qtn_fse_query_no_phone_number_found_search_server; }
 RESOURCE TBUF r_freestyle_email_query_sync_status_go_online	{ buf=qtn_fse_launcher_options_go_online; }
 RESOURCE TBUF r_freestyle_email_query_sync_status_go_offline	{ buf=qtn_fse_launcher_options_go_offline; }
+RESOURCE TBUF r_freestyle_email_mail_deleted                    { buf=qtn_fse_mail_deleted_note; }
 // ** Added 26.2.2008 **
 RESOURCE TBUF r_freestyle_email_confirm_note_sending_queued		{ buf=qtn_fse_confirm_note_sending_queued; }
 RESOURCE TBUF r_freestyle_email_confirm_note_queued_until_online	{ buf=qtn_fse_confirm_note_queued_until_online; }
@@ -1157,7 +1113,7 @@ RESOURCE TBUF r_freestyle_email_ui_dropdown_list_outbox				{ buf=qtn_fse_message
 RESOURCE TBUF r_freestyle_email_ui_dropdown_list_drafts				{ buf=qtn_fse_message_list_draft; }
 RESOURCE TBUF r_freestyle_email_ui_dropdown_list_sent				{ buf=qtn_fse_message_list_sent; }
 RESOURCE TBUF r_freestyle_email_ui_dropdown_list_deleted			{ buf=qtn_fse_message_list_deleted_items; }
-RESOURCE TBUF r_freestyle_email_ui_dropdown_list_more_folders		{ buf=gtn_cmail_command_area_select_folders; }
+RESOURCE TBUF r_freestyle_email_ui_dropdown_list_more_folders		{ buf=qtn_cmail_command_area_select_folders; }
 
 RESOURCE TBUF r_freestyle_email_ui_folder_list_message_count		{ buf=qtn_fse_folder_list_message_count; }
 RESOURCE TBUF r_freestyle_email_ui_folder_list_message_count_with_unread	{ buf=qtn_fse_folder_list_message_count_with_unread; }
@@ -2756,6 +2712,11 @@ RESOURCE TBUF r_delete_multiple_mailboxes_query
     {
     buf = qtn_mail_launcher_settings_delete_multiple_mailboxes_query;
     }
+    
+RESOURCE TBUF r_command_area_new_email
+    {
+    buf = qtn_cmail_command_area_new;
+    }
 
 // -----------------------------------------------------------------------------
 //   r_delete_mailboxes_multi_selection_query
@@ -2831,6 +2792,24 @@ RESOURCE STYLUS_POPUP_MENU r_stylus_popup_menu_message_list_view
             }
         };
     }
+
+//-----------------------------------------------------------------------------
+// Stylus long tap pop-up menu in launcher grid view.
+//-----------------------------------------------------------------------------
+//
+RESOURCE STYLUS_POPUP_MENU r_stylus_popup_menu_launcher_grid_view
+    {
+    items =
+		{
+        STYLUS_POPUP_MENU_ITEM
+            {
+				// Delete mailbox.
+                txt = qtn_mail_options_delete_mailbox;
+                command = EFsEmailUiCmdDeleteSelectedMailbox; 
+            }
+        };
+    }
+
 #include "FreestyleEmailUiGlobalSettings.rssi"
 #include "FreestyleEmailUiSettingsList.rssi"
 #include "FreestyleEmailUiSendAttachmentList.rssi"

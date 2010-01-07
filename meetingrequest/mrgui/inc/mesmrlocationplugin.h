@@ -54,9 +54,10 @@ public:
     /**
      * Shows map on the screen focused on the given location.
      *
+     * @param aLocation containing name for landmark
      * @param aLocationUrl URL containing coordinates for maps focus
      */
-    virtual void ShowOnMapL( const TDesC& aLocationUrl ) = 0;
+    virtual void ShowOnMapL( const TDesC& aLocation, const TDesC& aLocationUrl ) = 0;
 
 protected:
 

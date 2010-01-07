@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2007 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -14,11 +14,11 @@
 * Description:  FreestyleEmailUiAppUi class definition
 *
 */
- 
+
 
 #ifndef __FREESTYLEEMAILUI_APPUI_H__
 #define __FREESTYLEEMAILUI_APPUI_H__
-  
+
 // SYSTEM INCLUDES
 #include <aknViewAppUi.h>
 //<cmail> SF
@@ -48,7 +48,7 @@
 #include "FreestyleEmailUiPropertySubscriber.h"
 #include "FreestyleEmailUiConstants.h"
 
-enum TForcedStatus 
+enum TForcedStatus
 	{
     ENoForce = 0,
     EForceToSync,
@@ -142,7 +142,7 @@ public:
     void ProcessCommandL( TInt aCommand );
 	// </cmail>
 	void HandleCommandL( TInt aCommand );
-	
+
 	// View switching functions
 	void EnterFsEmailViewL( TUid aViewId );
 	void EnterFsEmailViewL( TUid aViewId, TUid aCustomMessageId, const TDesC8& aCustomMessage );
@@ -157,12 +157,12 @@ public:
 	 * Tries to activate the local view where the current view was navigated from.
 	 * Activates the grid view if no other previous view available.
 	 * @return UID of the view to be activated
-	 */ 
+	 */
 	TUid ReturnToPreviousViewL( const TDesC8& aCustomMessage = KNullDesC8 );
 
 	void ReturnFromHtmlViewerL( TBool aMessageWasDeleted = EFalse );
 
-    // Clears the navigation history used with Back functionality. 
+    // Clears the navigation history used with Back functionality.
     // Thus, next call to ReturnToPreviousViewL() will return to the main grid.
     void EraseViewHistory();
 
@@ -175,7 +175,7 @@ public:
     CFsEmailUiViewBase* PreviousActiveView();
     // Tells if plugin settings view is currently open
     TBool IsPluginSettingsViewActive();
-	
+
 	// getter to generic components
 	CFSEmailUiLayoutHandler* LayoutHandler();
 	CFreestyleEmailUiTextureManager* FsTextureManager();
@@ -183,9 +183,9 @@ public:
 
 	// Functions used by grid and viewer
 	TInt NewEmailsInModelL();
-	TInt EmailsInModelL();	  
+	TInt EmailsInModelL();
 	TInt EmailIndexInModel();
-		
+
     /**
     * LaunchEditorL
     * Launch editor with the given address in TO-field and focus in MSG-field
@@ -193,7 +193,7 @@ public:
     * is not transferred.
     */
 	void LaunchEditorL( CFSMailAddress* aToAddress );
-	
+
     /**
     * LaunchEditorL
     * Launch editor
@@ -201,10 +201,10 @@ public:
     * @param aParams Editor launch parameters
     */
 	void LaunchEditorL( TEditorLaunchMode aMode, const TEditorLaunchParams& aParams );
-	
+
 	CFSMailClient* GetMailClient();
 	CFSEmailCRHandler* GetCRHandler();
-	
+
 	// Gets active mailbox pointer from the UI
 	// Ownership IS NOT transferred to the callers
 	CFSMailBox* GetActiveMailbox();
@@ -215,11 +215,11 @@ public:
 
 	TFSMailMsgId GetActiveBoxInboxId();
 	TFSMailMsgId GetActiveMailboxId();
-	
+
     /**
     * Show folder list or sort list as control bar popup list.
-    * 
-    * @param aCurrentSortOrder Current sort order in mail list
+    *
+    * @param aCurrentSortCriteria Current sort criteria in mail list
     * @param aFolderId/Type Folder id/type of the currently active mail folder
     * @param aCallback Callback pointer to use when reporting user selection
     * @param aButton Selected control bar button, used when positioning the list
@@ -227,21 +227,21 @@ public:
 	void ShowFolderListInPopupL( const TFSMailMsgId aFolderType,
                                  MFSEmailUiFolderListCallback* aCallback,
 								 MFsControlButtonInterface* aButton );
-	void ShowSortListInPopupL( const TFSMailSortField aCurrentSortOrder,
+	void ShowSortListInPopupL( const TFSMailSortCriteria aCurrentSortCriteria,
 	                           const TFSFolderType aFolderType,
 							   MFSEmailUiSortListCallback* aCallback,
 							   MFsControlButtonInterface* aButton );
 	void FolderPopupClosed();
-	
+
 	// Transition effects for Alf layouts, call these in doactivate and dodeactivate.
 	TBool ViewSwitchingOngoing();
-	
+
 	// Force Sync on active mailbox.
 	void SyncActiveMailBoxL();
-	
+
 	// Stop mailbox sync
 	void StopActiveMailBoxSyncL();
-	
+
 	// From sync observer
 	void RequestResponseL( TFSProgress aEvent, TInt aRequestId );
 
@@ -249,19 +249,20 @@ public:
      * Helper method to be called from Settings. Launches mailbox setup wizard.
      */
      void LaunchWizardL();
-    
+
     // Overriden exit
     void Exit();
 
     void ExitNow();
 
     const CFSEmailUiShortcutBinding& ShortcutBinding() const;
-   
+
     // Navigation functions, used mainly from viewer
     TBool IsNextMsgAvailable( TFSMailMsgId aCurrentMsgId, TFSMailMsgId& aFoundNextMsgId, TFSMailMsgId& aFoundNextMsgFolder );
     TBool IsPreviousMsgAvailable( TFSMailMsgId aCurrentMsgId, TFSMailMsgId& aFoundPreviousMsgId, TFSMailMsgId& aFoundPrevMsgFolder );
     TInt MoveToNextMsgL( TFSMailMsgId aCurrentMsgId, TFSMailMsgId& aFoundNextMsgId );
     TInt MoveToPreviousMsgL( TFSMailMsgId aCurrentMsgId, TFSMailMsgId& aFoundPreviousMsgId );
+    TInt MoveToPreviousMsgAfterDeleteL( TFSMailMsgId aFoundPreviousMsgId );
 
     /** Returns document handler. */
     CDocumentHandler& DocumentHandler();
@@ -300,41 +301,41 @@ public:
     // MessageReader implementation
     void StartReadingEmailsL();
     TBool MessageReaderSupportsFreestyle();
-    
+
     static TBool AppUiExitOngoing();
 
-    // Meeting request viewer instance, owned by the appui	
-    CESMRIcalViewer* MrViewerInstanceL();	
+    // Meeting request viewer instance, owned by the appui
+    CESMRIcalViewer* MrViewerInstanceL();
 
     // Get Mail viewer instance, owned by the AppUi
-    CFsEmailUiHtmlViewerView& MailViewer(); 
-    
+    CFsEmailUiHtmlViewerView& MailViewer();
+
     // Get Folder list instance, owned by the AppUi
     CFSEmailUiFolderListVisualiser& FolderList();
-    
+
     // Get Launcher grid instance, owned by the AppUi
     CFSEmailUiLauncherGridVisualiser& LauncherGrid();
-    
+
     // View loading in idle
     TInt ViewLoadIdleCallbackFunctionL();
-    
+
     /**
-     * Sets the manual mailbox syncronisation/connection flag if the    
+     * Sets the manual mailbox syncronisation/connection flag if the
      * user chose to synchorise/connect mail boxes from the menu
      */
     void ManualMailBoxSync( TBool aManualMailBoxSync );
     void ManualMailBoxSyncAll( TBool aManualMailBoxSyncAll );
     void ManualMailBoxConnectAll( TBool aManualMailBoxConnectAll );
     void ManualMailBoxDisconnectAll( TBool aManualMailBoxConnectAll );
-	
-	// For showing mailbox query    
+
+	// For showing mailbox query
 	void GridStarted( TBool aStartedFromOds );
     void ShowMailboxQueryL();
-    
+
     void DoAutoConnectL();
-    
+
     CFSEmailDownloadInfoMediator* DownloadInfoMediator();
-    
+
     // <cmail>
     TDisplayMode DisplayMode() const;
     // </cmail>
@@ -348,7 +349,7 @@ public:
 
 public: //from MFSMailEventObserver
     /**
-     * Framework event message. 
+     * Framework event message.
      * Used here to catch the events thrown from new mailbox creation process.
      *
      * @param aEvent One of pre-defined events in TFSMailEvent
@@ -357,10 +358,10 @@ public: //from MFSMailEventObserver
      * @param aParam2 intepretation is event specific (see TFSMailEvent descriptions)
      * @param aParam3 intepretation is event specific (see TFSMailEvent descriptions)
      */
-    void EventL( TFSMailEvent aEvent, TFSMailMsgId aMailbox, 
+    void EventL( TFSMailEvent aEvent, TFSMailMsgId aMailbox,
                  TAny* aParam1, TAny* aParam2, TAny* aParam3);
-                 
-public:              
+
+public:
 	void HandleSessionEventL( TMsvSessionEvent aEvent, TAny* aArg1, TAny* aArg2, TAny* aArg3 );
 
 public: // MIAUpdateObserver
@@ -368,7 +369,7 @@ public: // MIAUpdateObserver
     virtual void UpdateQueryComplete( TInt aErrorCode, TBool aUpdateNow );
     virtual void UpdateComplete( TInt aErrorCode, CIAUpdateResult* aResultDetails );
 
-public:	
+public:
 
     /**
     * StartEndKeyCapture
@@ -389,30 +390,29 @@ public:
      * @return instance of correct navidecorator. NULL if aView doesn't match.
      */
     CAknNavigationDecorator* NaviDecoratorL( const TUid aViewId );
-    
+
 public:
-    
+
+    /**
+     * From MFSEmailUiGenericTimerCallback.
+     * Generic timer event callback.
+     */
     virtual void TimerEventL( CFSEmailUiGenericTimer* aTriggeredTimer );
-    
+
     /**
-    * CancelFocusRemovalTimer
-    * Cancels focus removal timer
+    * Sets visibility for focus.
+    *
+    * @param aVisible EFalse if focus should be hidden.
+    * @return whether or not focus was already visible.
     */
-    void CancelFocusRemovalTimer();
-    
+    TBool SetFocusVisibility( TBool aVisible );
+
     /**
-    * StartFocusRemovalTimer
-    * Starts focus removal timer
-    * @return whether or not timer was active already.
+    * IsFocusShown
+    * Used for finding out if focus is visible.
+    * @return whether or not the focus is visible.
     */
-    TBool StartFocusRemovalTimer();
-    
-    /**
-    * IsTimerFocusShown
-    * Used for finding out if the timer focus is already visible
-    * @return whether or not the timer focus is visible.
-    */
-    TBool IsTimerFocusShown() const;
+    TBool IsFocusShown() const;
 
 
 public: // From MFreestyleEmailUiPropertyChangedObserver.
@@ -420,45 +420,45 @@ public: // From MFreestyleEmailUiPropertyChangedObserver.
 	void PropertyChangedL( TInt aValue );
 
 
-protected: 
+protected:
 	TKeyResponse HandleKeyEventL( const TKeyEvent& aKeyEvent, TEventCode aType );
     void HandleResourceChangeL(TInt aType);
-	void HandleWsEventL(const TWsEvent &aEvent, 
+	void HandleWsEventL(const TWsEvent &aEvent,
  	                    CCoeControl *aDestination);
- 	
+
  	void HandleForegroundEventL( TBool aForeground );
     MCoeMessageObserver::TMessageResponse HandleMessageL( TUint32 aClientHandleOfTargetWindowGroup,
                                                           TUid aMessageUid,
                                                           const TDesC8& aMessageParameters );
- 
+
 private:
     void DoHandleResourceChangeL(TInt aType);
 	void UpdateSettingsListModelL();
 	CAlfTexture& LoadItemIconL( TInt aUid );
-    void ProvideBitmapL(TInt aId, CFbsBitmap*& aBitmap, 
+    void ProvideBitmapL(TInt aId, CFbsBitmap*& aBitmap,
                                   CFbsBitmap*& aMaskBitmap);
-    
+
     /**
      * Helper method for launching a setup wizard, or handling data received from one.
      */
     void DoWizardStartupActionsL();
-        
+
     TBool IsViewInHistoryStack( TUid aViewId ) const;
-    
+
     void ReturnToViewL( TUid aViewId, TUid aCustomMessageId = TUid::Null(), const TDesC8& aCustomMessage = KNullDesC8 );
-    
+
     // Checks updates from IAD client
     void CheckUpdatesL();
     void AllUpdateActivitiesCompleted();
 
 	// This async callback functionality is needed because UI and app construction
-	// cannot jam while the new mailbox query has been displayed     
+	// cannot jam while the new mailbox query has been displayed
    	static TInt DisplayCreateQueryL( TAny* aSelfPtr );
    	void DisplayCreateMailboxQueryL();
-   	
+
    	// Send self to background.
    	void SendToBackground();
-    
+
    	/*
    	 * Called from ConstructL during start of application.
    	 * Constructs navipane(s) that are used by different views.
@@ -469,32 +469,26 @@ private:
     void CreateStatusPaneIndicatorsL();
     // Delete custom status pane indicators
     void DeleteStatusPaneIndicators();
-    
-   	/*
-   	 * FocusTimerCallBack
-   	 * Called when focus removal timer expires
-   	 */
-    static TInt FocusTimerCallBack(TAny* aAny);
-    
-   	/*
-   	 * DoFocusTimerCallBack
-   	 * Called when focus removal timer expires
-   	 */
-    TInt DoFocusTimerCallBack();
-    
-   	
+
+    // Load specified resource file, file name may (and should) contain wild
+    // cards. aFilePath should contain drive letter if some specific drive
+    // is wanted to be searched first. Returns the resource file offset of the
+    // found file. Leaves if resource file not found.
+    TInt LoadResourceFileL( const TDesC& aFileName,
+                            const TDesC& aFilePath );
+
 private:
 	// ALF environment NOTE: Display removed from Alfred version
     CAlfEnv* iEnv;
-     
+
     // Pointers to current and previous active views
     CFsEmailUiViewBase* iCurrentActiveView; // not owned
     CFsEmailUiViewBase* iPreviousActiveView; // not owned
     CStack<CFsEmailUiViewBase, EFalse>* iNavigationHistory; // items not owned
- 
+
  	CFSEmailDownloadInfoMediator* iDwnldMediator;
- 
-     // Pointers to actual display control groups containing UI elements      
+
+     // Pointers to actual display control groups containing UI elements
     CAlfControlGroup* iGridControlGroup;
   	CAlfControlGroup* iMailListControlGroup;
     CAlfControlGroup* iEmailViewerControlGroup;
@@ -508,7 +502,7 @@ private:
   	CAlfControlGroup* iSearchResultControlGroup;
   	CAlfControlGroup* iStatusIndicatorControlGroup;
   	CAlfControlGroup* iHtmlViewerControlGroup;
-  
+
  	// FS Email UI specific layout handler object
     CFSEmailUiLayoutHandler* iLayoutHandler;
 
@@ -516,13 +510,13 @@ private:
         //<cmail> layout manager doesn't exists in cmail
 	//CFsLayoutManager* iLayoutManager;
         //</cmail>
-	
+
 	// FS Email UI specific texture mngr object
  	CFreestyleEmailUiTextureManager* iFsTextureManager;
 
 	// Main UI grid control and view
   	CFSEmailUiLauncherGrid* iMainUiGrid;
-    CFSEmailUiLauncherGridVisualiser* iMainUiGridVisualiser;	
+    CFSEmailUiLauncherGridVisualiser* iMainUiGridVisualiser;
 
 	// Mail view
 	CFSEmailUiMailListVisualiser* iMailListVisualiser;
@@ -541,11 +535,11 @@ private:
 
 	// Folder list view
 	CFSEmailUiFolderListVisualiser* iFolderListVisualiser;
-	
+
 	// Attachment list
 	CFSEmailUiAttachmentsListVisualiser* iAttachmentListVisualiser;
 	CFreestyleEmailUiAttachmentsListControl* iAttachmentHanlerControl;
-	
+
     // Download manager removed.
 
 	// Search result list view
@@ -557,74 +551,74 @@ private:
     // Mailclient, list of mailboxes, active mailbox and
     // latest opened folder
     CFSMailClient* iMailClient;
- 
+
  	// Active mailbox, pointer owned by the APP UI!
  	CFSMailBox* iActiveMailbox;
 
 	TFSMailMsgId iActiveBoxInboxId;
 	TFSMailMsgId iActiveMailboxId;
- 
+
 	// Mail sending progress dialog
 	CAknProgressDialog* iSendingProgressDialog;
 	CEikProgressInfo* iSendingProgressInfo;
-	
+
 	// Phonebook engine and resource handle
 	TInt iPhCltResHandle;
-	
+
 	// Central repository handler
 	CFSEmailCRHandler*	iCRHandler;
-	
+
 	// End key capture handles
 	TInt32 iEndCaptureHandle;
 	TInt32 iEndUpDownCaptureHandle;
-	
+
     CMsvSession* iMsvSession;
 
     CFSEmailUiActionMenu* iActionMenuHandler;
-    
+
 	RArray<TFSMailMsgId> iSubscribedMailBoxes;
 	RArray<TUint> iSubscribedMailBoxesIds;
-	
+
 
 	// Helper class for keyboard shortcut handling
 	CFSEmailUiShortcutBinding* iShortcutBinder;
-	
+
 	CFSEmailUiWizardObserver* iWizardObserver;
 
     CDocumentHandler* iDocumentHandler;
     CFsEmailFileHandleShutter* iFileHandleShutter;
 
 	TBool iConstructComplete;
-	
+
 	TInt iSyncStatusReqId;
-	
+
 	TBool iIsForeground;
-	
+
   	CIdle* iViewLoadIdle;
 	TCallBack* iViewLoadIdleCallback;
 	TBool iIsCaptured;
-	
-    CVPbkContactManager* iVpkContactManager; 
-    
+
+    CVPbkContactManager* iVpkContactManager;
+
     //This is used to pass needed information to messagereader
 	HBufC8* iCustomMessageToMessageReader;
-	
-	// Meeting request viewer instance	
-  	CESMRIcalViewer* iMRViewer;	
-  	
-  	// Flag to be used to disable online/offline note in automated 
+
+	// Meeting request viewer instance
+  	CESMRIcalViewer* iMRViewer;
+
+  	// Flag to be used to disable online/offline note in automated
   	// Mailbob online
   	TBool iAutomatedMailBoxOnline;
-  	
+
 	// Value indicating that msg reader is supported, KErrNone if supported.
   	TInt iMsgReaderIsSupported;
   	// For IAD
     CIAUpdate* iUpdateClient;
     CIAUpdateParameters* iUpdateParameters;
-    
+
     // For feature manager
     TBool iFeatureManagerInitialized;
-    
+
     //ETrue if user started the sync/connect all
     TBool iManualMailBoxSync;
     TBool iManualMailBoxSyncAll;
@@ -633,33 +627,33 @@ private:
 
     // ETrue if the screen layout has chaged while the application was on background
     TBool iPendingLayoutSwitch;
-    
+
     // Startup mailbox creation query flag.
-    TBool iStartupQueryShown;	
+    TBool iStartupQueryShown;
     TBool iGridStarted;
-    TBool iGridFirstStartFromOds; 
+    TBool iGridFirstStartFromOds;
     TBool iSettingsViewActive;
     TBool iIADUpdateCompleted;
-    
-    CFSEmailUiAutosyncMonitor* iAutoSyncMonitor; 
- 
+
+    CFSEmailUiAutosyncMonitor* iAutoSyncMonitor;
+
     // Async callback for create mailbox query
-    // This is needed because query can not stop execution of UI construction      	
+    // This is needed because query can not stop execution of UI construction
     CAsyncCallBack* iNewBoxQueryAsyncCallback;
 
-    // Exit guardian. 
+    // Exit guardian.
     CEUiExitGuardian* iExitGuardian;
 
     // navipane decorator
     // (used at least in mail viewer)
     CAknNavigationDecorator* iNaviDecorator2MailViewer;
-    
+
     // Resource file offset for message editor external resources
     TInt iMsgEditorResourceOffset;
-    
+
     // Resource file offset for FSMailServer external resources
     TInt iFSMailServerResourceOffset;
-    
+
     // Custom status pane indicators
     CCustomStatuspaneIndicators* iStatusPaneIndicators;
     TBool iConnectionStatusVisible;
@@ -676,10 +670,9 @@ private:
     // For handling the flip state.
     CFreestyleEmailUiPropertySubscriber* iPropertySubscriber;
     TBool iFlipOpen;
-    
-    // Timer for focus removal purposes. Owned
-    CPeriodic* iFocusTimer;
 
+    /// Focus visibility state
+    TBool iFocusVisible;
     };
 
 
@@ -690,7 +683,7 @@ private:
 class CFSEmailUiAutosyncMonitor : public CActive
     {
     public:
-        enum TNetworkStatus 
+        enum TNetworkStatus
             {
             EStatusUnknown = 0,
             EHomenetwork,
@@ -704,24 +697,24 @@ class CFSEmailUiAutosyncMonitor : public CActive
             ERequestingNetworkStatus,
             EDone
             };
-            
+
         static CFSEmailUiAutosyncMonitor* NewL( CFreestyleEmailUiAppUi& aAppUi );
         ~CFSEmailUiAutosyncMonitor();
 
-    public: 
+    public:
         void StartMonitoring( );
         void StopMonitoring( );
 
-    private: 
+    private:
         void RunL();
         void DoCancel();
         TInt RunError( TInt aError );
-        
+
     private:
         CFSEmailUiAutosyncMonitor( CFreestyleEmailUiAppUi& aAppUi );
-        void ConstructL();     
+        void ConstructL();
 
-    private:  
+    private:
         TMonitoringStatus iMonitoringStatus;
         CFreestyleEmailUiAppUi& iAppUi;
         RTelServer iServer;

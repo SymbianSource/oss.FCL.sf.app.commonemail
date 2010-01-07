@@ -90,8 +90,6 @@ LOCAL_C CApaApplication* NewApplication()
 //
 GLDEF_C TInt E32Main()
     {
-
-    
     TInt error = KErrNone;
     
     // First check that the server isn't already running

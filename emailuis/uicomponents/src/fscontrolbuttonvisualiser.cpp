@@ -15,8 +15,6 @@
 *
 */
 
-
-//<cmail> SF
 #include "emailtrace.h"
 #include <alf/alfcontrol.h>
 #include <alf/alfdecklayout.h>
@@ -29,9 +27,9 @@
 #include <alf/alfgradientbrush.h>
 #include <alf/alfframebrush.h>
 #include <alf/alfimagebrush.h>
+#include <alf/alfshadowborderbrush.h>
 #include <alf/alfbrusharray.h>
 #include <alf/alftextstyle.h>
-//</cmail>
 #include <AknsConstants.h>
 #include <AknUtils.h>
 #include <touchlogicalfeedback.h>
@@ -44,6 +42,9 @@
 #include "fscontrolbar.h"
 
 const TInt KFsDefaultFontStyle = EAlfTextStyleNormal;
+const TInt KDefaultShadowBorderWidth( 8 );
+const TReal KShadowBorderOpacity( 0.08 );
+const TInt KButtonBorderSize( 8 );
 
 
 // ======== MEMBER FUNCTIONS ========
@@ -148,6 +149,7 @@ EXPORT_C CFsControlButtonVisualiser::~CFsControlButtonVisualiser()
         }
 
     delete iBgColorBrush;
+    delete iShadowBorderBrush;
     delete iTextFontSpec;
     }
 
@@ -168,18 +170,62 @@ EXPORT_C void CFsControlButtonVisualiser::InitializeL(
     if ( !iBgColorBrush )
         {
         iBgColorBrush = CAlfGradientBrush::NewL( iParent->Env() );
-        SetBackgroundColor( iButtonModel->TextColor(
-            CFsControlButtonModel::EButtonBackground ) );
-        iButtonLayout->Brushes()->AppendL(
-            iBgColorBrush, EAlfDoesNotHaveOwnership );
+        if( iShowShadow )
+            {
+            iBgColorBrush->SetOpacity( KShadowBorderOpacity ); 
+            iBgColorBrush->SetColor(KRgbBlack);
+            }
+        else
+            {
+            iBgColorBrush->SetOpacity( 0 );
+            }
+
+        iBgColorBrush->SetLayer( EAlfBrushLayerBackground );
+        iButtonLayout->Brushes()->AppendL( iBgColorBrush,
+										   EAlfDoesNotHaveOwnership );
         }
 
+    iUseDefaultBackground = ETrue;
+    
+    // Add a shadow border brush to outline the buttons with a shadowed border.
+    if ( iShowShadow && !iShadowBorderBrush )
+    	{
+    	iShadowBorderBrush = CAlfShadowBorderBrush::NewL( 
+    		iParent->Env(), TAlfMetric( KDefaultShadowBorderWidth ) );
+    	iShadowBorderBrush->SetOpacity( KShadowBorderOpacity );
+    	iShadowBorderBrush->SetLayer( EAlfBrushLayerBackground );
+    	iButtonLayout->Brushes()->AppendL( iShadowBorderBrush,
+										   EAlfDoesNotHaveOwnership );
+    	}
+
+    UpdateVisualThemeL();
+    
     // create needed visuals
     CreateButtonVisualsL();
 
     UpdateBarLayout();
     }
 
+// ---------------------------------------------------------------------------
+// CFsControlButtonVisualiser::UpdateVisualThemeL
+// ---------------------------------------------------------------------------
+//
+void CFsControlButtonVisualiser::UpdateVisualThemeL()
+    {
+    if( iUseDefaultBackground )
+        {
+        ClearBackgroundImage();
+        iDefaultBgBrush = CAlfFrameBrush::NewL( iParent->Env(), KAknsIIDQsnFrButtonTb );  
+        iBgBrush = iDefaultBgBrush;
+        iButtonLayout->Brushes()->AppendL( iBgBrush, EAlfDoesNotHaveOwnership );
+        UpdateBarLayout();
+        }
+    else if ( iBgColorBrush )
+        {
+        SetBackgroundColor( iButtonModel->TextColor(
+            CFsControlButtonModel::EButtonBackground ) );
+        }
+    }
 
 // ---------------------------------------------------------------------------
 // From class CFsControlButtonVisualiserBase.
@@ -338,9 +384,10 @@ EXPORT_C void CFsControlButtonVisualiser::SetBackgroundImageL(
 
     // As the ownership of the new brush is gained the pointer can't be lost.
     CleanupStack::PushL( aImage );
-    iButtonLayout->Brushes()->AppendL( aImage, EAlfDoesNotHaveOwnership );
+    iButtonLayout->Brushes()->InsertL( 0, aImage, EAlfDoesNotHaveOwnership );
     CleanupStack::Pop( aImage );
 
+    iUseDefaultBackground = EFalse;
     iBgBrush = aImage;
     }
 
@@ -365,7 +412,10 @@ EXPORT_C void CFsControlButtonVisualiser::SetBackgroundColor(
 EXPORT_C void CFsControlButtonVisualiser::ClearBackgroundColor()
     {
     FUNC_LOG;
-    iBgColorBrush->SetOpacity( 0 );
+    if( iBgColorBrush )
+        {
+        iBgColorBrush->SetOpacity( 0 );
+        }
     }
 
 
@@ -389,6 +439,7 @@ EXPORT_C void CFsControlButtonVisualiser::ClearBackgroundImage()
             }
         delete iBgBrush;
         iBgBrush = NULL;
+        iDefaultBgBrush = NULL;
         }
     }
 
@@ -631,6 +682,16 @@ EXPORT_C void CFsControlButtonVisualiser::UpdateButtonSize()
     // Same size for the content
     iButtonContentLayout->SetSize( iButtonModel->Size() );
 
+    if( iDefaultBgBrush )
+        {
+        TSize size =  iButtonModel->Size();
+        TRect fullRect = TRect( size );
+        TRect innerRect = fullRect;
+        innerRect.Shrink( KButtonBorderSize,KButtonBorderSize );
+        TRAP_IGNORE(
+                iDefaultBgBrush->SetFrameRectsL( innerRect, fullRect ); );
+        }
+    
     if ( iLabelFirstLine )
         {
         iLabelFirstLine->SetWrapping( textWrapping );
@@ -828,7 +889,7 @@ EXPORT_C void CFsControlButtonVisualiser::PrepareDrawNormal()
         if ( iTextStyleManager )
             {
             ResolveCharFormat( charFormat, iLabelFirstLine );
-            charFormat.iFontPresentation.iUnderline = EUnderlineOn;
+            charFormat.iFontPresentation.iUnderline = EUnderlineOff;
             TRAPD( leaveErr,
                 styleId = iTextStyleManager->GetStyleIDL( charFormat ) );
             // Use modified style if possible, otherwise use the default
@@ -850,7 +911,7 @@ EXPORT_C void CFsControlButtonVisualiser::PrepareDrawNormal()
         if ( iTextStyleManager )
             {
             ResolveCharFormat( charFormat, iLabelSecondLine );
-            charFormat.iFontPresentation.iUnderline = EUnderlineOn;
+            charFormat.iFontPresentation.iUnderline = EUnderlineOff;
             TRAPD( leaveErr,
                 styleId = iTextStyleManager->GetStyleIDL( charFormat ) );
             // Use modified style if possible, otherwise use the default
@@ -954,10 +1015,7 @@ EXPORT_C void CFsControlButtonVisualiser::CreateButtonVisualsL()
         iIconAContainer =
             CAlfLayout::AddNewL( *iParent, iButtonContentLayout );
         iIconA = CAlfImageVisual::AddNewL( *iParent, iIconAContainer );
-        // <cmail> Platform layout change
-        //iIconA->SetScaleMode( CAlfImageVisual::EScaleNormal );
-        iIconA->SetScaleMode( CAlfImageVisual::EScaleFit );
-        // </cmail> Platform layout change
+        iIconA->SetScaleMode( CAlfImageVisual::EScaleFitInside );
         iIconAContainer->SetClipping( ETrue );
         }
 
@@ -1008,6 +1066,7 @@ EXPORT_C void CFsControlButtonVisualiser::CreateButtonVisualsL()
 EXPORT_C TInt CFsControlButtonVisualiser::CalculateButtonSize()
     {
     FUNC_LOG;
+
     if ( iButtonModel->ContainsElement( ECBElemLabelFirstLine ) )
         {
         // to get correct value from ExpandRectWithContent method
@@ -1021,7 +1080,7 @@ EXPORT_C TInt CFsControlButtonVisualiser::CalculateButtonSize()
         TRect textRect( 0, 0,
             padding.iTl.iX + padding.iBr.iX + size.iWidth,
             padding.iTl.iY + padding.iBr.iY + size.iHeight );
-
+        
         if ( iButtonModel->ContainsElement( ECBElemLabelSndLine ) )
             {
             // to get correct value from ExpandRectWithContent method
@@ -1096,7 +1155,7 @@ EXPORT_C TInt CFsControlButtonVisualiser::CalculateButtonSize()
         return iIconBContainer->Size().Target().iX;
         }
 
-    return iButtonContentLayout->Size().Target().iX;;
+    return iButtonContentLayout->Size().Target().iX;
     }
 
 
@@ -1171,40 +1230,26 @@ EXPORT_C void CFsControlButtonVisualiser::UpdateElementsSizeL(
                 CFsLayoutManager::EFsLmMainSpFsCtrlbarDdmenuPaneG1,
                 iconB, 1 );
             break;
-
-        //<CMAIL> As a device user, I want Message List items to follow platform layouts to be consistent with other apps
-
-        /*
-        REMOVED, Not needed anymore.
-
-        case ECBTypeTwoLinesLabelOnly:
-            text1 = TRect(0,0,60,20);
-            text2 = TRect(0,0,60,20);
-            break;
-        case ECBTypeTwoLinesLabelIconA:
-            iconA = TRect(0,0,16,16);
-            text1 = TRect(0,0,60,20);
-            text2 = TRect(0,0,60,20);
-            break;
-        case ECBTypeTwoLinesLabelIconB:
-            text1 = TRect(0,0,60,20);
-            text2 = TRect(0,0,60,20);
-            iconB = TRect(0,0,16,16);
-            break;
-        case ECBTypeTwoLinesLabelTwoIcons:
-            iconA = TRect(0,0,16,16);
-            text1 = TRect(0,0,60,20);
-            text2 = TRect(0,0,60,20);
-            iconB = TRect(0,0,16,16);
-            break;
-        */
-        //<CMAIL>
-
         default:
             break;
         }
-
-    // <cmail> Platform layout changes
+    
+    // Buttons have different sizes so adapt the used rectangle dynamically
+    TSize buttonSize = iButtonModel->Size();
+    buttonSize -= TPoint( KButtonBorderSize, KButtonBorderSize ); // shrink frame border size
+    
+    // If there is no text in the button, center the icon to the button
+    if( !iLabelFirstLine || iLabelFirstLine->Text().Length() == 0 )
+        {
+        TSize oldIconSize = iconA.Size();
+        iconA.SetRect( TPoint( 
+                iconA.iTl .iX + ( buttonSize.iWidth - oldIconSize.iWidth ) / 2, 
+                iconA.iTl .iY + ( buttonSize.iHeight - oldIconSize.iHeight ) / 2 ),
+                oldIconSize );
+        }
+    iconA.SetHeight( buttonSize.iHeight );
+    text1.SetHeight( buttonSize.iHeight );
+    
     if ( iButtonModel->ContainsElement( ECBElemIconA ) )
         {
         const TSize& size( iconA.Size() );

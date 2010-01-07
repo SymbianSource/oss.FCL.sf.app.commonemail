@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2007 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -14,7 +14,6 @@
 * Description:  FreestyleEmailUi folder list view implementation
 *
 */
-
 
 // SYSTEM INCLUDES
 #include "emailtrace.h"
@@ -32,6 +31,7 @@
 #include <alf/alftextvisual.h>
 #include <alf/alfcontrolgroup.h>
 #include <alf/alfbrusharray.h>
+#include <alf/alfshadowborderbrush.h>
 #include <alf/alfevent.h>
 #include <alf/alfframebrush.h>
 #include <alf/alfstatic.h>
@@ -75,9 +75,6 @@
 #include "ESMailSettingsPlugin.h"
 #include "FreestyleEmailUiStatusIndicator.h"
 
-// REMOVE WHEN DONE TESTING:
-//#include "CSimpleAOTest.h"
-
 // Defines the order of the folders in UI
 enum TFSEmailUiFolderListPriorities
 	{
@@ -103,10 +100,32 @@ enum TFsEmailUiFolderListIcons
     EFolderListIconEmailAccount
 	};
 
+// Defines the order of the sort list icons in the sort icon array
+enum TFsEmailUiSortListIcons
+	{
+	ESortListAttachmentAscIcon = 0,
+	ESortListAttachmentDescIcon,
+	ESortListDateAscIcon,
+	ESortListDateDescIcon,
+	ESortListFollowAscIcon,
+	ESortListFollowDescIcon,
+	ESortListPriorityAscIcon,
+	ESortListPriorityDescIcon,
+	ESortListSenderAscIcon,
+	ESortListSenderDescIcon,
+	ESortListSubjectAscIcon,
+	ESortListSubjectDescIcon,
+	ESortListUnreadAscIcon,
+	ESortListUnreadDescIcon
+	};
+
 // List level for the root folders
 static const TInt KListRootLevel( 1 );
 // List supports three levels, so basically root folder + two levels of subfolders
 static const TInt KListLastBasicLevel( KListRootLevel + 2 );
+
+const TInt KDefaultShadowBorderWidth( 15 );
+const TReal KShadowBorderOpacity( 0.08 );
 
 // Constants for drawing header text
 const TReal KFSHeaderTextBackgroundOpacity = 0.3f;
@@ -149,8 +168,8 @@ CFSEmailUiFolderListVisualiser* CFSEmailUiFolderListVisualiser::NewLC( CAlfEnv& 
 // Constructor
 // ---------------------------------------------------------------------------
 //
-CFSEmailUiFolderListVisualiser::CFSEmailUiFolderListVisualiser( CAlfEnv& aEnv, 
-                                                                CFreestyleEmailUiAppUi& aAppUi, 
+CFSEmailUiFolderListVisualiser::CFSEmailUiFolderListVisualiser( CAlfEnv& aEnv,
+                                                                CFreestyleEmailUiAppUi& aAppUi,
                                                                 CAlfControlGroup& aControlGroup )
     : CFsEmailUiViewBase( aControlGroup, aAppUi ),
       iEnv( aEnv ),
@@ -162,7 +181,7 @@ CFSEmailUiFolderListVisualiser::CFSEmailUiFolderListVisualiser( CAlfEnv& aEnv,
 	{
     FUNC_LOG;
 	}
-	
+
 // ---------------------------------------------------------------------------
 // Destructor
 // ---------------------------------------------------------------------------
@@ -176,15 +195,18 @@ CFSEmailUiFolderListVisualiser::~CFSEmailUiFolderListVisualiser()
 	delete iBackgroundBrush;
 	iBackgroundBrush = NULL;
 
+	delete iShadowBrush;
+	
 	// No need for ResetAndDestroy because list items are owned by generic list
 	iListItemVisulizers.Close();
-	
+
     //delete iNotifierTest;
-    
+
     delete iTreeList;
     iTreeList = NULL;
-    
+
     iIconArray.Close();
+    iSortIconArray.Close();
     
     if ( iAsyncCallback )
         {
@@ -218,19 +240,19 @@ void CFSEmailUiFolderListVisualiser::DoFirstStartL()
     FUNC_LOG;
     iControl = CFSEmailUiFolderListControl::NewL( iEnv, *this );
     iModel = new (ELeave) CFSEmailUiFolderListModel();
-     
+
     UpdateListSizeAttributes();
     //LoadIconsL();
-   
+
     TRect mainPaneRect;
     AknLayoutUtils::LayoutMetricsRect(AknLayoutUtils::EMainPane, mainPaneRect);
     iFaderLayout = CAlfDeckLayout::AddNewL( *iControl );
     iFaderLayout->SetRect( mainPaneRect );
-    
+
     iParentLayout = CAlfAnchorLayout::AddNewL( *iControl );
     iParentLayout->SetRect( iScreenRect );
     iParentLayout->SetFlags( EAlfVisualFlagManualLayout );
-    
+
     iParentLayout->EnableBrushesL();
     SetAnchors();
 
@@ -238,13 +260,13 @@ void CFSEmailUiFolderListVisualiser::DoFirstStartL()
 
     iHeaderLayout = CAlfDeckLayout::AddNewL( *iControl, iParentLayout );
     iHeaderLayout->SetFlags( EAlfVisualFlagAutomaticLocaleMirroringEnabled );
-     
+
     iHeaderTextVisual = CAlfTextVisual::AddNewL( *iControl, iHeaderLayout );
     iHeaderTextVisual->SetWrapping( CAlfTextVisual::ELineWrapTruncate );
     iHeaderTextVisual->SetTextL( KNullDesC );
-     
+
     TRgb headerTextColor( KRgbBlack );
-    AknsUtils::GetCachedColor( AknsUtils::SkinInstance(), 
+    AknsUtils::GetCachedColor( AknsUtils::SkinInstance(),
                                headerTextColor, KAknsIIDFsTextColors, EAknsCIFsTextColorsCG10 );
     iHeaderTextVisual->SetColor( headerTextColor );
     iHeaderTextVisual->SetTextStyle( iAppUi.LayoutHandler()->
@@ -261,7 +283,7 @@ void CFSEmailUiFolderListVisualiser::DoFirstStartL()
 
 	iHeaderTextVisual->SetOpacity( KFSInvisible );
 	iHeaderLayout->SetOpacity( KFSInvisible );
-	
+
     iListLayout = CAlfDeckLayout::AddNewL( *iControl, iParentLayout );
     iListLayout->SetFlags(EAlfVisualFlagLayoutUpdateNotification|EAlfVisualFlagAutomaticLocaleMirroringEnabled);
 
@@ -272,14 +294,14 @@ void CFSEmailUiFolderListVisualiser::DoFirstStartL()
     iTreeVisualizer->SetFadeOutEffectTime( iAppUi.LayoutHandler()->CtrlBarListFadeEffectTime() );
     iTreeVisualizer->SetItemSeparatorSize( TSize(0, 0) );
     iTreeVisualizer->SetExpandCollapseAllOnLongTap( EFalse );
-     
+
     iTreeList = CFsTreeList::NewL( *iTreeVisualizer, iEnv );
-    
+
     // Compared to S60 3.2.3 in S60 5.0 Alf offers the key events in
     // opposite order.
     ControlGroup().AppendL( iControl );
-    ControlGroup().AppendL( iTreeList->TreeControl() ); 
-    
+    ControlGroup().AppendL( iTreeList->TreeControl() );
+
     iTreeList->AddObserverL(*this);
 
     iTreeList->SetLoopingType( EFsTreeListLoopingJumpToFirstLast );
@@ -296,9 +318,9 @@ void CFSEmailUiFolderListVisualiser::DoFirstStartL()
     iTreeVisualizer->SetSelectorPropertiesL(
             iAppUi.FsTextureManager()->NewListSelectorBrushL(), 1.0,
             CFsTreeVisualizerBase::EFsSelectorMoveSmoothly );
-    
+
     iAsyncCallback = new (ELeave) CAsyncCallBack( CActive::EPriorityStandard );
-    
+
     //iNotifierTest = CSimpleAOTest::NewL();
     iFirstStartCompleted = ETrue;
     }
@@ -312,7 +334,7 @@ TUid CFSEmailUiFolderListVisualiser::Id() const
 	{
     FUNC_LOG;
 	return FolderListId;
-	}			   
+	}
 
 // ---------------------------------------------------------------------------
 // CFSEmailUiFolderListVisualiser::PrepareFolderListL
@@ -335,16 +357,16 @@ void CFSEmailUiFolderListVisualiser::PrepareFolderListL()
 
     // Show empty screen when offline
     CEikButtonGroupContainer* cba = CEikButtonGroupContainer::Current();
-            
+
     if( iModel->Count() == 0 )
         {
         cba->SetCommandSetL( R_FREESTYLE_EMAUIL_UI_SK_OPTIONS_BACK );
         }
-        
+
     if( iMoveOrCopyInitiated )
         {
-        iTreeVisualizer->SetEmptyListTextL( KNullDesC );    
-        iTreeVisualizer->RefreshListViewL();    
+        iTreeVisualizer->SetEmptyListTextL( KNullDesC );
+        iTreeVisualizer->RefreshListViewL();
         }
 	}
 
@@ -377,19 +399,19 @@ void CFSEmailUiFolderListVisualiser::PopulateFolderListL()
   	iParentLayout->SetRect(iScreenRect);
 
     CEikButtonGroupContainer* cba = CEikButtonGroupContainer::Current();
-    
+
   	if( iModel->Count() > 0 )
   	    {
         cba->SetCommandSetL( R_FREESTYLE_EMAUIL_UI_SK_OPTIONS_BACK__SELECT );
   	    }
-  	    
+
     if( iMoveOrCopyInitiated )
         {
-        HBufC* emptyListText = StringLoader::LoadLC( 
+        HBufC* emptyListText = StringLoader::LoadLC(
                R_FREESTYLE_EMAIL_UI_FOLDER_LIST_NO_FOLDERS_AVAILABLE );
         iTreeVisualizer->SetEmptyListTextL( *emptyListText );
         CleanupStack::PopAndDestroy( emptyListText );
-    
+
         iTreeVisualizer->RefreshListViewL();
         }
 	}
@@ -418,7 +440,7 @@ TInt CFSEmailUiFolderListVisualiser::DoPopulateFolderList( TAny* aSelfPtr )
     FUNC_LOG;
     CFSEmailUiFolderListVisualiser* self =
         static_cast< CFSEmailUiFolderListVisualiser* >( aSelfPtr );
-    TRAPD( err, 
+    TRAPD( err,
         self->PopulateFolderListL();
         if ( self->iCustomMessageId == KFolderListMoveMessage ||
              self->iCustomMessageId == KFolderListMoveMessages ||
@@ -448,7 +470,7 @@ TBool CFSEmailUiFolderListVisualiser::IsPopupShown()
 void CFSEmailUiFolderListVisualiser::HidePopupL()
 	{
     FUNC_LOG;
-    
+
     iParentLayout->SetRect( iCtrlButtonRect, iAppUi.LayoutHandler()->CtrlBarListFadeEffectTime() );
 
     TAlfTimedValue bgOpacity;
@@ -511,36 +533,36 @@ void CFSEmailUiFolderListVisualiser::ClearPopupSoftkeys()
 // CFSEmailUiFolderListVisualiser::DoShowInPopupL
 // ---------------------------------------------------------------------------
 //
-/*void CFSEmailUiFolderListVisualiser::DoShowInPopupL()*/
 void CFSEmailUiFolderListVisualiser::DoShowInPopupL(
         MFsControlButtonInterface* aButton,
         MFSEmailUiFolderListCallback* aFolderCallback,
         MFSEmailUiSortListCallback* aSortCallback )
 	{
     FUNC_LOG;
-        
+
     if ( ( aFolderCallback == NULL && aSortCallback == NULL ) ||
             aButton == NULL )
         {
         return;
         }
-    
+
     // In case of popup we are not moving or copying messages,
     // so there's no need to connect the mailbox
     iNoConnectNeeded = ETrue;
-    
+
     iCallback = aFolderCallback;
     iSortListCallback = aSortCallback;
     const TPoint buttonPos( aButton->Pos().Target() );
     const TSize buttonSize( aButton->Size().Target().AsSize() );
 
     // TRect from where to start the transformation effect
-    iCtrlButtonRect.SetRect( buttonPos, buttonSize );
+    TRect cbr = iAppUi.LayoutHandler()->GetControlBarRect();
+    iCtrlButtonRect.SetRect( buttonPos + cbr.iTl, buttonSize );
 
     iFullScreen = EFalse;
 
     LoadIconsL();
-    
+
     if ( !iFirstStartCompleted )
         {
         DoFirstStartL();
@@ -561,7 +583,7 @@ void CFSEmailUiFolderListVisualiser::DoShowInPopupL(
 	PrepareFolderListL();
     PopulateFolderListL();
 
-    const TInt paddingValue( 
+    const TInt paddingValue(
             iAppUi.LayoutHandler()->DropDownMenuListPadding() );
     const TAlfMetric paddingMetric( paddingValue );
     iParentLayout->SetPadding( paddingMetric );
@@ -576,23 +598,32 @@ void CFSEmailUiFolderListVisualiser::DoShowInPopupL(
         iBackgroundBrush->SetFrameRectsL( outerRect, iScreenRect );
 		}
 
-	// Append brush if it's not yet appended. Currently this is our only
-	// brush so if brush count is more than zero, this brush is already
-	// appended. If other brush(es) are added later, this implementation
-	// need to be changed.
-    if ( iParentLayout->Brushes()->Count() == 0 )
-        {
-    	// Keep the ownership of the brush to avoid unneeded object
-    	// deletion / reconstruction
-    	iParentLayout->Brushes()->AppendL( iBackgroundBrush, EAlfDoesNotHaveOwnership );
-        }
+	   // Append brush if it's not yet appended. Currently this is our only
+	    // brush so if brush count is more than zero, this brush is already
+	    // appended. If other brush(es) are added later, this implementation
+	    // need to be changed.
+	    if ( iParentLayout->Brushes()->Count() == 0 )
+	        {
+	        // Keep the ownership of the brush to avoid unneeded object
+	        // deletion / reconstruction
+	        iParentLayout->Brushes()->AppendL( iBackgroundBrush, EAlfDoesNotHaveOwnership );
+	        }
 	
+	if( !iShadowBrush )
+	    {
+        iShadowBrush = CAlfShadowBorderBrush::NewL( 
+            iEnv, TAlfMetric( KDefaultShadowBorderWidth ) );
+        iShadowBrush->SetOpacity( KShadowBorderOpacity );
+        iShadowBrush->SetLayer( EAlfBrushLayerBackground );
+        iParentLayout->Brushes()->AppendL( iShadowBrush,
+                                           EAlfDoesNotHaveOwnership );
+	    }
+
 	SetPopupSoftkeysL();
 	// SetRect need to be called also here, otherwise the list layout might
 	// be wrong in mirrored layout
-    //iParentLayout->SetRect( iScreenRect );
     iParentLayout->SetRect( iCtrlButtonRect );
-    
+
     opacity.SetValueNow( 1 );
     //opacity.SetTarget( 1, iAppUi.LayoutHandler()->CtrlBarListFadeEffectTime() );
     iParentLayout->SetOpacity( opacity );
@@ -601,6 +632,8 @@ void CFSEmailUiFolderListVisualiser::DoShowInPopupL(
     iTreeList->DisableKineticScrolling( ETrue );
     iTreeList->ShowListL( ETrue );
     iTreeList->SetFocusedL( ETrue );
+    iFocusVisible = iAppUi.IsFocusShown();
+    iTreeVisualizer->SetFocusVisibility( iFocusVisible );
     iPopupListShown = ETrue;
 	}
 
@@ -624,13 +657,13 @@ void CFSEmailUiFolderListVisualiser::ShowInPopupL(
 // ---------------------------------------------------------------------------
 //
 void CFSEmailUiFolderListVisualiser::ShowSortListPopupL(
-    const TFSMailSortField aCurrentSortOrder,
+    const TFSMailSortCriteria aCurrentSortCriteria,
 	const TFSFolderType aFolderType,
 	MFSEmailUiSortListCallback* aCallback,
 	MFsControlButtonInterface* aButton )
 	{
     FUNC_LOG;
-    iCurrentSortOrder = aCurrentSortOrder;
+    iCurrentSortCriteria = aCurrentSortCriteria;
     iCurrentFolderType = aFolderType;
     DoShowInPopupL( aButton, NULL, aCallback );
 	}
@@ -647,7 +680,7 @@ void CFSEmailUiFolderListVisualiser::ChildDoActivateL(const TVwsViewId& /*aPrevV
     iFullScreen = ETrue;
 
     LoadIconsL();
-    
+
     if ( !iFirstStartCompleted )
 	    {
 	    DoFirstStartL();
@@ -655,7 +688,7 @@ void CFSEmailUiFolderListVisualiser::ChildDoActivateL(const TVwsViewId& /*aPrevV
 
 	// Set title pane text
 	iAppUi.SetActiveMailboxNameToStatusPaneL();
-    
+
     // Different effect is used when opening folder selection list
     iAnimateNextActivation = ( aCustomMessageId == KFolderListSelectFolder );
 
@@ -736,7 +769,7 @@ void CFSEmailUiFolderListVisualiser::ChildDoActivateL(const TVwsViewId& /*aPrevV
             iTitleCaptionVisible = EFalse;
             iHeaderTextVisual->SetOpacity( KFSInvisible );
             }
-    
+
         // Set flag for moving or copying
         iMoveOrCopyInitiated = (aCustomMessageId == KFolderListMoveMessage ||
                                 aCustomMessageId == KFolderListMoveMessages ||
@@ -749,16 +782,16 @@ void CFSEmailUiFolderListVisualiser::ChildDoActivateL(const TVwsViewId& /*aPrevV
         viewData.Copy( aCustomMessage );
         iCallback = viewData().iCallback;
         iCurrentFolderType = viewData().iSourceFolderType;
-    
+
        	iTreeList->HideListL();
-    
+
     	// Clear padding when shown in full screen
        	const TAlfMetric padding( 0 );
     	iParentLayout->SetPadding( padding );
     	iListLayout->SetPadding( padding );
-    
+
         PrepareFolderListL();
-    
+
         // Remove need to be called for all brushes before Reset, otherwise the
         // brush resources are not completely freed from server side -> brushes
         // keep "hanging" there and make future drawing slower.
@@ -767,19 +800,19 @@ void CFSEmailUiFolderListVisualiser::ChildDoActivateL(const TVwsViewId& /*aPrevV
             iParentLayout->Brushes()->Remove( 0 );
             }
     	iParentLayout->Brushes()->Reset();
-    	
+
     	TAlfTimedValue layoutOpacity = iHeaderLayout->Opacity();
     	layoutOpacity.SetTarget( 1, iAppUi.LayoutHandler()->CtrlBarListFadeEffectTime()/2 );
     	iHeaderLayout->SetOpacity( layoutOpacity );
-    	
+
     	TAlfTimedValue bgImageOpacity = iListBgImageVisual->Opacity();
     	bgImageOpacity.SetTarget( 1, iAppUi.LayoutHandler()->CtrlBarListFadeEffectTime()/2 );
     	iListBgImageVisual->SetOpacity( bgImageOpacity );
-    
+
     	// Reset the variables used in horizontal scrolling
     	iPreviousListRect = iListLayout->DisplayRectTarget();
         iPreviousListLevel = KListRootLevel;
-    
+
         iParentLayout->SetRect( iScreenRect );
         iTreeList->ShowListL();
 
@@ -792,7 +825,7 @@ void CFSEmailUiFolderListVisualiser::ChildDoActivateL(const TVwsViewId& /*aPrevV
     CFSMailBox* mb = iAppUi.GetActiveMailbox();
     // Just in case, shouldn't happen
     User::LeaveIfNull( mb );
-    
+
     TFSMailBoxStatus onlineStatus = mb->GetMailBoxStatus();
 
     // If we are not moving or copying messages, there's no need to connect
@@ -825,6 +858,7 @@ void CFSEmailUiFolderListVisualiser::ChildDoActivateL(const TVwsViewId& /*aPrevV
         // is needed for this operation, so we need to connect first
         ConnectToMailboxL();
         }
+    FocusVisibilityChange( iAppUi.IsFocusShown() );
 	}
 
 // ---------------------------------------------------------------------------
@@ -858,7 +892,7 @@ TInt CFSEmailUiFolderListVisualiser::ToolbarResourceId() const
     {
     return R_FREESTYLE_EMAIL_UI_TOOLBAR_FOLDER_LIST;
     }
-	
+
 // ---------------------------------------------------------------------------
 // Deactivate this view
 // ---------------------------------------------------------------------------
@@ -883,15 +917,27 @@ void CFSEmailUiFolderListVisualiser::SetFocusToCurrentSortItemL()
     FUNC_LOG;
     if ( iFirstStartCompleted ) // Safety
         {
-        for ( TInt i=0; i < iModel->Count() ; i++ )
-            {
-            CFSEmailUiFolderListItem* modelItem = iModel->ItemByIndex( i );
-            if ( modelItem && ( modelItem->iSortField == iCurrentSortOrder ) )
-                {
-                iTreeVisualizer->SetFocusedItemL( modelItem->iListId, EFalse );
-                break;          
-                }
-            }
+        for ( TInt i = 0; i < iModel->Count(); i++ )
+        	{
+        	CFSEmailUiFolderListItem* modelItem = iModel->ItemByIndex( i );
+        	if ( modelItem && ( modelItem->iSortField == iCurrentSortCriteria.iField ) )
+        		{
+        		iTreeVisualizer->SetFocusedItemL( modelItem->iListId, EFalse );
+        		break;
+        		}
+        	}
+	
+		// Bold the focused item's text
+		TInt arraySize = iListItemVisulizers.Count();
+		for( TInt i = 0; i < arraySize; i++ )
+			{
+			TFsTreeItemId id = iTreeList->FocusedItem();
+			if ( iListItemVisulizers[ i ] == &( iTreeList->ItemVisualizer( id ) ) )
+				{
+				iListItemVisulizers[i]->SetTextBold( ETrue );
+				break;
+				}
+			}
         }
     }
 
@@ -913,7 +959,7 @@ void CFSEmailUiFolderListVisualiser::SetFocusToCurrentFolderL()
             if ( modelItem && ( modelItem->iFolderId == iCurrentFolderId ) )
                 {
                 itemToFocus = modelItem->iListId;
-                break;          
+                break;
                 }
             }
         iTreeVisualizer->SetFocusedItemL( itemToFocus, EFalse );
@@ -939,7 +985,7 @@ void CFSEmailUiFolderListVisualiser::SetFocusToLatestMovedFolderL()
 	             {
 	             match = ETrue;
 	             iTreeVisualizer->SetFocusedItemL( modelItem->iListId );
-	             break;          
+	             break;
 	             }
 	         }
 
@@ -963,17 +1009,39 @@ void CFSEmailUiFolderListVisualiser::SetFocusToLatestMovedFolderL()
 TBool CFSEmailUiFolderListVisualiser::OfferEventL(const TAlfEvent& aEvent)
     {
     FUNC_LOG;
-    TBool result( EFalse ); 
+    TBool result( EFalse );
     if ( aEvent.IsKeyEvent() && aEvent.Code() == EEventKey )
         {
         // Swap left and right with mirrored layout
-        TInt scanCode = aEvent.KeyEvent().iScanCode;
+        TInt scanCode( aEvent.KeyEvent().iScanCode );
         if ( AknLayoutUtils::LayoutMirrored() )
             {
-            if ( scanCode == EStdKeyLeftArrow ) scanCode = EStdKeyRightArrow;
-            else if ( scanCode == EStdKeyRightArrow ) scanCode = EStdKeyLeftArrow;
+            if( scanCode == EStdKeyLeftArrow )
+                {
+                scanCode = EStdKeyRightArrow;
+                }
+            else if( scanCode == EStdKeyRightArrow )
+                {
+                scanCode = EStdKeyLeftArrow;
+                }
             }
-        
+
+        // Handle possible focus visibility change
+        if( ( scanCode == EStdKeyRightArrow ) ||
+            ( scanCode == EStdKeyLeftArrow ) ||
+            ( scanCode == EStdKeyUpArrow ) ||
+            ( scanCode == EStdKeyDownArrow ) ||
+            ( scanCode == EStdKeyEnter ) ||
+            ( scanCode == EStdKeyDeviceA ) ||
+            ( scanCode == EStdKeyDevice3 ) )
+            {
+            // If the focus was not active already, ignore the key press
+            if( !iAppUi.SetFocusVisibility( ETrue ) )
+                {
+                return ETrue;
+                }
+            }
+
         switch ( scanCode )
             {
             case EStdKeyDevice3:	// CENTER CLICK
@@ -997,7 +1065,7 @@ TBool CFSEmailUiFolderListVisualiser::OfferEventL(const TAlfEvent& aEvent)
             		{
             		HandleSelectionL( EFSEmailUiCtrlBarResponseSwitchList );
             		}
- 	           	}            
+ 	           	}
                 break;
 
 	        case EStdKeyRightArrow:
@@ -1017,7 +1085,7 @@ TBool CFSEmailUiFolderListVisualiser::OfferEventL(const TAlfEvent& aEvent)
 
              default:
 	       	    // Check keyboard shortcuts.
-	       	    TInt shortcutCommand = 
+	       	    TInt shortcutCommand =
 	       	        iAppUi.ShortcutBinding().CommandForShortcutKey( aEvent.KeyEvent(),
 	       	                                                         CFSEmailUiShortcutBinding::EContextFolderList );
 	       	    if ( shortcutCommand != KErrNotFound )
@@ -1027,27 +1095,43 @@ TBool CFSEmailUiFolderListVisualiser::OfferEventL(const TAlfEvent& aEvent)
 	       	        }
                 break;
             }
-        }      
+        }
     return result;
     }
 
 // ---------------------------------------------------------------------------
 // CFSEmailUiFolderListVisualiser::HandlePointerEventL
 // ---------------------------------------------------------------------------
-//      
+//
 TBool CFSEmailUiFolderListVisualiser::HandlePointerEventL(const TAlfEvent& aEvent)
     {
-    // Handle pointer events to fadervisual. If the list is shown in popup, then
-    // the popup will be closed.
-    if ((aEvent.Visual() == iFaderVisual || aEvent.Visual() == iFaderLayout) && aEvent.PointerEvent().iType == TPointerEvent::EButton1Down && iPopupListShown)
+    TBool eventHandled( EFalse );
+
+    if( ( aEvent.Visual() == iFaderVisual || aEvent.Visual() == iFaderLayout ) &&
+        ( aEvent.PointerEvent().iType == TPointerEvent::EButton1Down  ) &&
+        ( iPopupListShown ) )
         {
+        iAppUi.SetFocusVisibility( EFalse );
         HandleSelectionL( EFSEmailUiCtrlBarResponseCancel );
+        eventHandled = ETrue;
         }
     else
         {
-        return iTreeList->TreeControl()->OfferEventL(aEvent);
+        // Handle pointer events to fadervisual. If the list is shown in popup,
+        // then the popup will be closed.
+        if( ( aEvent.IsPointerEvent() ) &&
+            ( aEvent.PointerEvent().iType == TPointerEvent::EButton1Up ) )
+            {
+            eventHandled = iTreeList->TreeControl()->OfferEventL(aEvent);
+            // Hide focus visibility always after pointer up event.
+            iAppUi.SetFocusVisibility( EFalse );
+            }
+        else 
+        	{
+        	eventHandled = iTreeList->TreeControl()->OfferEventL(aEvent);
+        	}
         }
-    return ETrue;     
+    return eventHandled;
     }
 
 // ---------------------------------------------------------------------------
@@ -1065,20 +1149,20 @@ void CFSEmailUiFolderListVisualiser::DynInitMenuPaneL(TInt aResourceId, CEikMenu
             if ( FeatureManager::FeatureSupported( KFeatureIdFfCmailIntegration ) )
         	   {
         	   // remove help support in pf5250
-        	   aMenuPane->SetItemDimmed( EFsEmailUiCmdHelp, ETrue);      
+        	   aMenuPane->SetItemDimmed( EFsEmailUiCmdHelp, ETrue);
         	   }
-            
+
             // OFFLINE/ONLINE MENU SELECTION
             if( iMoveOrCopyInitiated )
                 {
                 TFSMailBoxStatus onlineStatus = iAppUi.GetActiveMailbox()->GetMailBoxStatus();
-                aMenuPane->SetItemDimmed( EFsEmailUiCmdGoOnline, onlineStatus == EFSMailBoxOnline );                            
-                aMenuPane->SetItemDimmed( EFsEmailUiCmdGoOffline, onlineStatus == EFSMailBoxOffline );      
+                aMenuPane->SetItemDimmed( EFsEmailUiCmdGoOnline, onlineStatus == EFSMailBoxOnline );
+                aMenuPane->SetItemDimmed( EFsEmailUiCmdGoOffline, onlineStatus == EFSMailBoxOffline );
                 }
             else
                 {
-                aMenuPane->SetItemDimmed( EFsEmailUiCmdGoOnline, ETrue );                            
-                aMenuPane->SetItemDimmed( EFsEmailUiCmdGoOffline, ETrue );      
+                aMenuPane->SetItemDimmed( EFsEmailUiCmdGoOnline, ETrue );
+                aMenuPane->SetItemDimmed( EFsEmailUiCmdGoOffline, ETrue );
                 }
 
             // select option
@@ -1087,16 +1171,16 @@ void CFSEmailUiFolderListVisualiser::DynInitMenuPaneL(TInt aResourceId, CEikMenu
             aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsCollapseAll, AllNodesCollapsed() );
             aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsExpandAll, AllNodesExpanded() );
             }
-         
+
         // Add shortcut hints
-        iAppUi.ShortcutBinding().AppendShortcutHintsL( *aMenuPane, 
+        iAppUi.ShortcutBinding().AppendShortcutHintsL( *aMenuPane,
                                     CFSEmailUiShortcutBinding::EContextFolderList );
         }
 	}
 
 
 // ---------------------------------------------------------------------------
-// 
+//
 // ---------------------------------------------------------------------------
 //
 void CFSEmailUiFolderListVisualiser::HandleSelectionL( TFSEmailUiCtrlBarResponse aSelection )
@@ -1107,7 +1191,7 @@ void CFSEmailUiFolderListVisualiser::HandleSelectionL( TFSEmailUiCtrlBarResponse
         {
         return;
         }
-    
+
     TBool popupHiddenAlready(EFalse);
     switch( aSelection )
         {
@@ -1144,7 +1228,7 @@ void CFSEmailUiFolderListVisualiser::HandleSelectionL( TFSEmailUiCtrlBarResponse
 
                 iAppUi.FolderPopupClosed();
                 }
-                
+
             if ( !iFullScreen && iSortListCallback )
                 {
                 iSortListCallback->SortOrderChangedL( EFSMailDontCare, aSelection );
@@ -1184,7 +1268,7 @@ TFsTreeItemId CFSEmailUiFolderListVisualiser::GetRootParent( const TFsTreeItemId
 	}
 
 // ---------------------------------------------------------------------------
-// Override the default transition effect in case full screen mode is launched 
+// Override the default transition effect in case full screen mode is launched
 // from popup mode.
 // ---------------------------------------------------------------------------
 //
@@ -1195,12 +1279,12 @@ void CFSEmailUiFolderListVisualiser::DoTransitionEffect( TBool aDirectionOut )
         {
         TInt rectTransitionTime = iAppUi.LayoutHandler()->CtrlBarListFadeEffectTime();
         TInt opacityTransitionTime = iAppUi.LayoutHandler()->CtrlBarListFadeEffectTime() / 2;
-        
+
         TAlfTimedValue opacity;
         opacity.SetValueNow( 0 );
         opacity.SetTarget( 1, opacityTransitionTime );
         iParentLayout->SetOpacity( opacity );
-        
+
         // Do animated enlargening from popup window rect to full screen rect
         iParentLayout->SetRect( FolderListRectInThisResolution() );
         iParentLayout->SetRect( iScreenRect, rectTransitionTime );
@@ -1236,6 +1320,15 @@ void CFSEmailUiFolderListVisualiser::HandleCommandL( TInt aCommand )
               {
               // Key presses
               case EAknSoftkeySelect:
+                  {
+                  // If focus is not visible, make it visible
+                  // otherwise fall through ( call HandleSelectionL )
+                  if( !iFocusVisible )
+                      {
+                      iAppUi.SetFocusVisibility( ETrue );
+                      break;
+                      }
+                  }
               case EAknSoftkeyOpen:
               case EFsEmailUiCmdOpen:
               case EFsEmailUiCmdSelect:
@@ -1243,7 +1336,7 @@ void CFSEmailUiFolderListVisualiser::HandleCommandL( TInt aCommand )
                   HandleSelectionL( EFSEmailUiCtrlBarResponseSelect );
                   }
                   break;
-                  
+
               case EAknSoftkeyBack:
               case EEikBidCancel:
                   {
@@ -1282,7 +1375,7 @@ void CFSEmailUiFolderListVisualiser::HandleCommandL( TInt aCommand )
 
               case EFsEmailUiCmdActionsExpandAll:
                   {
-                  TFsTreeItemId prevId = iTreeList->FocusedItem();    
+                  TFsTreeItemId prevId = iTreeList->FocusedItem();
                   iTreeVisualizer->ExpandAllL();
                   if ( prevId != KFsTreeRootID && prevId != KFsTreeNoneID )
                       {
@@ -1297,7 +1390,7 @@ void CFSEmailUiFolderListVisualiser::HandleCommandL( TInt aCommand )
                   activationData.iAccount = iAppUi.GetActiveMailbox()->GetId();
                   activationData.iSubviewId = 1;
                   activationData.iLaunchFolderSettings = ETrue;
-                  
+
                   TUid pluginUid = iAppUi.GetActiveMailbox()->GetSettingsUid();
                   // register plugin view if not exists so that activation can be made
                   if ( !iAppUi.View( pluginUid ) )
@@ -1305,12 +1398,12 @@ void CFSEmailUiFolderListVisualiser::HandleCommandL( TInt aCommand )
                       CESMailSettingsPlugin* plugin = CESMailSettingsPlugin::NewL( pluginUid );
                       CleanupStack::PushL( plugin );
                       iAppUi.AddViewL( plugin );
-                      CleanupStack::Pop( plugin );        
+                      CleanupStack::Pop( plugin );
                       }
                   TUid messageId = TUid::Uid( CESMailSettingsPlugin::EActivateMailSettingsSubview );
                   const TPckgBuf<CESMailSettingsPlugin::TSubViewActivationData> pluginMessagePkg( activationData );
                   iAppUi.EnterPluginSettingsViewL( pluginUid, messageId, pluginMessagePkg );
-                  
+
                   // Hide list to avoid it flashing when returning back
                   iTreeList->HideListL();
                   }
@@ -1324,7 +1417,7 @@ void CFSEmailUiFolderListVisualiser::HandleCommandL( TInt aCommand )
 
               case EFsEmailUiCmdExit:
                   {
-                  iAppUi.Exit();      
+                  iAppUi.Exit();
                   }
                   break;
 
@@ -1333,20 +1426,20 @@ void CFSEmailUiFolderListVisualiser::HandleCommandL( TInt aCommand )
                   GoToTopL();
                   }
                   break;
-                  
+
               case EFsEmailUiCmdGoToBottom:
                   {
                   GoToBottomL();
                   }
                   break;
-              
+
               case EFsEmailUiCmdPageUp:
                   {
                   TKeyEvent simEvent = { EKeyPageUp, EStdKeyPageUp, 0, 0 };
                   iCoeEnv->SimulateKeyEventL( simEvent, EEventKey );
                   }
                   break;
-                  
+
               case EFsEmailUiCmdPageDown:
                   {
                   TKeyEvent simEvent = { EKeyPageDown, EStdKeyPageDown, 0, 0 };
@@ -1361,15 +1454,15 @@ void CFSEmailUiFolderListVisualiser::HandleCommandL( TInt aCommand )
                       HandleCommandL( EFsEmailUiCmdActionsCollapseAll );
                       }
                   else
-                      {       
+                      {
                       HandleCommandL( EFsEmailUiCmdActionsExpandAll );
                       }
                   }
                   break;
-                  
+
               default:
                   break;
-              }        
+              }
          }
     }
 
@@ -1386,18 +1479,18 @@ TBool CFSEmailUiFolderListVisualiser::HandleCallbackL()
     	{
     	return ETrue;
     	}
-    
+
     if( focusedItem == iMoreFoldersItemId )
     	{
         //HidePopupL();
         iFullScreen = ETrue;
 
-		TFolderListActivationData tmp;	
+		TFolderListActivationData tmp;
 	    tmp.iCallback = iCallback;
 		const TPckgBuf<TFolderListActivationData> pkgOut( tmp );
 
 		iAppUi.EnterFsEmailViewL( FolderListId, KFolderListSelectFolder, pkgOut );
-		
+
         return EFalse;
     	}
 
@@ -1406,20 +1499,20 @@ TBool CFSEmailUiFolderListVisualiser::HandleCallbackL()
 		{
 		return EFalse;
 		}
-		
+
 	if( iCallback )
 		{
 		const TFSMailMsgId& selectedFolderId = modelItem->iFolderId;
 		const TFSMailMsgId& selectedMailboxId = modelItem->iMailboxId;
         if( !selectedFolderId.IsNullId() )
         	{
-    		if ( iCustomMessageId == KFolderListMoveMessage || 
+    		if ( iCustomMessageId == KFolderListMoveMessage ||
     			 iCustomMessageId == KFolderListMoveMessages ||
     		     iCustomMessageId == KFolderListCopyMessage ||
     		     iCustomMessageId == KFolderListCopyMessages )
     			{
     			iLatestSelectedMoveFolderId = selectedFolderId;
-    			}		        	
+    			}
   	       	iCallback->FolderSelectedL( selectedFolderId, EFSEmailUiCtrlBarResponseSelect );
         	}
         else if( !selectedMailboxId.IsNullId() )
@@ -1437,7 +1530,7 @@ TBool CFSEmailUiFolderListVisualiser::HandleCallbackL()
         // same callback is not reused unintentionally.
         iSortListCallback = NULL;
 		}
-		
+
     return ETrue;
 	}
 
@@ -1446,12 +1539,12 @@ TBool CFSEmailUiFolderListVisualiser::HandleCallbackL()
 // Append node to list by getting the item data from resource
 // ---------------------------------------------------------------------------
 //
-void CFSEmailUiFolderListVisualiser::SetHeaderTextByResourceIdL( 
+void CFSEmailUiFolderListVisualiser::SetHeaderTextByResourceIdL(
         TInt aResourceId )
 	{
     FUNC_LOG;
     if ( iFirstStartCompleted ) // Safety
-        {	
+        {
         HBufC* headingText = StringLoader::LoadLC( aResourceId );
         SetHeaderTextAttributesL();
         iHeaderTextVisual->SetTextL( *headingText );
@@ -1469,12 +1562,12 @@ void CFSEmailUiFolderListVisualiser::SetHeaderTextByResourceIdL(
 void CFSEmailUiFolderListVisualiser::SetHeaderTextAttributesL()
     {
     iHeaderTextVisual->SetOpacity( KFSVisible );
-    CAlfTextStyle* textStyle = iAppUi.LayoutHandler()->FSTextStyleFromIdL( 
+    CAlfTextStyle* textStyle = iAppUi.LayoutHandler()->FSTextStyleFromIdL(
             EFSFontTypeNormalBold );
     iHeaderTextVisual->SetTextStyle ( textStyle->Id() );
     iHeaderTextVisual->SetColor( iAppUi.LayoutHandler()->
             ListNormalStateTextSkinColor() );
-    iHeaderTextVisual->SetPadding( 
+    iHeaderTextVisual->SetPadding(
             iAppUi.LayoutHandler()->TitleCaptionPadding() );
 
     if( iHeaderTextVisual->Brushes() )
@@ -1496,11 +1589,8 @@ void CFSEmailUiFolderListVisualiser::SetHeaderTextAttributesL()
 //
 void CFSEmailUiFolderListVisualiser::ConnectToMailboxL()
     {
-	CFSMailBox* mb = iAppUi.GetActiveMailbox();	
-	TDesC* mbName = &mb->GetName();
-    
+	CFSMailBox* mb = iAppUi.GetActiveMailbox();
     iWaitingToGoOnline = ETrue;
-		
     mb->GoOnlineL();
     }
 
@@ -1512,7 +1602,6 @@ void CFSEmailUiFolderListVisualiser::ConnectToMailboxL()
 void CFSEmailUiFolderListVisualiser::DisconnectFromMailboxL()
     {
     iAppUi.GetActiveMailbox()->GoOfflineL();
-    
     iWaitingToGoOnline = EFalse;
     }
 
@@ -1533,22 +1622,22 @@ void CFSEmailUiFolderListVisualiser::UpdateFolderListL()
             {
             // Append lines to the model
             AppendActiveMailboxFoldersL();
-            
+
             // Update toolbar button statuses.
             UpdateToolbarButtons();
             }
         else
-            {    
+            {
             //Mailboxes needed to be at the top followed by seperator
-            AppendMailboxesL();   
-            
+            AppendMailboxesL();
+
             // Append lines to the model followed by seperator
             AppendActiveMailboxFoldersL();
             AppendSeparatorLineL();
-            
-            // Append the folder list view selector            
-            AppendMoreFoldersL();            
-            }	        
+
+            // Append the folder list view selector
+            AppendMoreFoldersL();
+            }
         }
   	}
 
@@ -1567,7 +1656,7 @@ void CFSEmailUiFolderListVisualiser::UpdateSortListL()
         iModel->RemoveAll();
         iMoreFoldersItemId = KFsTreeNoneID;
         // Append lines to the model
-        AppendSortListItemsL();	        
+        AppendSortListItemsL();
         }
 	}
 
@@ -1584,7 +1673,7 @@ void CFSEmailUiFolderListVisualiser::AppendActiveMailboxFoldersL()
         if( iActiveMailbox )
             {
             AppendSubfoldersL( TFSMailMsgId(), KFsTreeRootID, ETrue );
-            }     
+            }
         }
 	}
 
@@ -1608,7 +1697,7 @@ TInt CFSEmailUiFolderListVisualiser::CompareFolders( const CFSMailFolder& aFirst
 		{
 		TDesC& nameOfFirst = aFirst.GetFolderName();
 		TDesC& nameOfSecond = aSecond.GetFolderName();
-		
+
 		return nameOfFirst.CompareC( nameOfSecond );
 		}
 	}
@@ -1646,50 +1735,99 @@ TInt CFSEmailUiFolderListVisualiser::GetFolderPriorityByType( const CFSMailFolde
 void CFSEmailUiFolderListVisualiser::AppendSortListItemsL()
 	{
     FUNC_LOG;
-	TFsTreeItemId itemId = AppendItemToListFromResourceL( R_FREESTYLE_EMAIL_UI_SORT_BY_DATE, KFsTreeRootID, NULL, EFalse );
+
+    // Select correct icon depending on the selected sort criteria
+    CAlfTexture* icon( NULL );
+    icon = iCurrentSortCriteria.iField == EFSMailSortByDate ? 
+    	   iCurrentSortCriteria.iOrder == EFSMailAscending ? 
+		   iSortIconArray[ ESortListDateDescIcon ] : 
+		   iSortIconArray[ ESortListDateAscIcon ] : 
+		   iSortIconArray[ ESortListDateDescIcon ];
+		   
+	TFsTreeItemId itemId = AppendItemToListFromResourceL( R_FREESTYLE_EMAIL_UI_SORT_BY_DATE, KFsTreeRootID, icon, EFalse );
 	iModel->AppendL( itemId, EFSMailSortByDate );
-	
+
 	switch( iCurrentFolderType )
 		{
 		case EFSSentFolder:
 		case EFSDraftsFolder:
 		case EFSOutbox:
 			{
-			itemId = AppendItemToListFromResourceL( R_FREESTYLE_EMAIL_UI_SORT_BY_RECIPIENT, KFsTreeRootID, NULL, EFalse );
+		    icon = iCurrentSortCriteria.iField == EFSMailSortByRecipient ? 
+		    	   iCurrentSortCriteria.iOrder == EFSMailAscending ? 
+				   iSortIconArray[ ESortListSenderDescIcon ] : 
+				   iSortIconArray[ ESortListSenderAscIcon ] : 
+				   iSortIconArray[ ESortListSenderDescIcon ];
+			itemId = AppendItemToListFromResourceL( R_FREESTYLE_EMAIL_UI_SORT_BY_RECIPIENT, KFsTreeRootID, icon, EFalse );
 			iModel->AppendL( itemId, EFSMailSortByRecipient );
 			}
 			break;
-			
+
 		default:
 			{
-			itemId = AppendItemToListFromResourceL( R_FREESTYLE_EMAIL_UI_SORT_BY_SENDER, KFsTreeRootID, NULL, EFalse );
+		    icon = iCurrentSortCriteria.iField == EFSMailSortBySender ? 
+		    	   iCurrentSortCriteria.iOrder == EFSMailAscending ? 
+				   iSortIconArray[ ESortListSenderDescIcon ] : 
+				   iSortIconArray[ ESortListSenderAscIcon ] : 
+				   iSortIconArray[ ESortListSenderDescIcon ];
+			itemId = AppendItemToListFromResourceL( R_FREESTYLE_EMAIL_UI_SORT_BY_SENDER, KFsTreeRootID, icon, EFalse );
 			iModel->AppendL( itemId, EFSMailSortBySender );
 			}
 			break;
 		}
 
-	itemId = AppendItemToListFromResourceL( R_FREESTYLE_EMAIL_UI_SORT_BY_SUBJECT, KFsTreeRootID, NULL, EFalse );
+	icon = iCurrentSortCriteria.iField == EFSMailSortBySubject ? 
+		   iCurrentSortCriteria.iOrder == EFSMailAscending ? 
+		   iSortIconArray[ ESortListSubjectDescIcon ] : 
+		   iSortIconArray[ ESortListSubjectAscIcon ] : 
+		   iSortIconArray[ ESortListSubjectDescIcon ];
+	
+	itemId = AppendItemToListFromResourceL( R_FREESTYLE_EMAIL_UI_SORT_BY_SUBJECT, KFsTreeRootID, icon, EFalse );
 	iModel->AppendL( itemId, EFSMailSortBySubject );
 
 	if ( TFsEmailUiUtility::IsFollowUpSupported( *iAppUi.GetActiveMailbox() ) )
 		{
-		itemId = AppendItemToListFromResourceL( R_FREESTYLE_EMAIL_UI_SORT_BY_FLAG, KFsTreeRootID, NULL, EFalse );
+		icon = iCurrentSortCriteria.iField == EFSMailSortByFlagStatus ? 
+			   iCurrentSortCriteria.iOrder == EFSMailAscending ? 
+			   iSortIconArray[ ESortListFollowDescIcon ] : 
+			   iSortIconArray[ ESortListFollowAscIcon ] : 
+			   iSortIconArray[ ESortListFollowDescIcon ];
+			   
+		itemId = AppendItemToListFromResourceL( R_FREESTYLE_EMAIL_UI_SORT_BY_FLAG, KFsTreeRootID, icon, EFalse );
 		iModel->AppendL( itemId, EFSMailSortByFlagStatus );
 		}
 
-	itemId = AppendItemToListFromResourceL( R_FREESTYLE_EMAIL_UI_SORT_BY_PRIORITY, KFsTreeRootID, NULL, EFalse );
+	icon = iCurrentSortCriteria.iField == EFSMailSortByPriority ? 
+		   iCurrentSortCriteria.iOrder == EFSMailAscending ? 
+		   iSortIconArray[ ESortListPriorityDescIcon ] : 
+		   iSortIconArray[ ESortListPriorityAscIcon ] : 
+		   iSortIconArray[ ESortListPriorityDescIcon ];
+	
+	itemId = AppendItemToListFromResourceL( R_FREESTYLE_EMAIL_UI_SORT_BY_PRIORITY, KFsTreeRootID, icon, EFalse );
 	iModel->AppendL( itemId, EFSMailSortByPriority );
 
 	if ( iCurrentFolderType != EFSSentFolder &&
 		 iCurrentFolderType != EFSDraftsFolder &&
 		 iCurrentFolderType != EFSOutbox )
 		{
-		itemId = AppendItemToListFromResourceL( R_FREESTYLE_EMAIL_UI_SORT_BY_UNREAD, KFsTreeRootID, NULL, EFalse );
+		icon = iCurrentSortCriteria.iField == EFSMailSortByUnread ? 
+			   iCurrentSortCriteria.iOrder == EFSMailAscending ? 
+			   iSortIconArray[ ESortListUnreadDescIcon ] : 
+			   iSortIconArray[ ESortListUnreadAscIcon ] : 
+			   iSortIconArray[ ESortListUnreadDescIcon ];
+		
+		itemId = AppendItemToListFromResourceL( R_FREESTYLE_EMAIL_UI_SORT_BY_UNREAD, KFsTreeRootID, icon, EFalse );
 		iModel->AppendL( itemId, EFSMailSortByUnread );
 		}
 
 	// Allow scroll bar refresh only for the last item
-	itemId = AppendItemToListFromResourceL( R_FREESTYLE_EMAIL_UI_SORT_BY_ATTACHMENT, KFsTreeRootID, NULL, ETrue );
+	icon = iCurrentSortCriteria.iField == EFSMailSortByAttachment ? 
+		   iCurrentSortCriteria.iOrder == EFSMailAscending ? 
+		   iSortIconArray[ ESortListAttachmentDescIcon ] : 
+		   iSortIconArray[ ESortListAttachmentAscIcon ] : 
+		   iSortIconArray[ ESortListAttachmentDescIcon ];
+		   
+	itemId = AppendItemToListFromResourceL( R_FREESTYLE_EMAIL_UI_SORT_BY_ATTACHMENT, KFsTreeRootID, icon, ETrue );
 	iModel->AppendL( itemId, EFSMailSortByAttachment );
 	}
 
@@ -1705,7 +1843,7 @@ void CFSEmailUiFolderListVisualiser::AppendSubfoldersL(
     CleanupResetAndDestroyClosePushL( folders );
 
 	iActiveMailbox->ListFolders( aFolder, folders );
-	
+
 	TLinearOrder<CFSMailFolder> order(
 		CFSEmailUiFolderListVisualiser::CompareFolders );
 	folders.Sort( order );
@@ -1723,7 +1861,7 @@ void CFSEmailUiFolderListVisualiser::AppendSubfoldersL(
             folders.Remove(i);
             }
 	    }
-	
+
 	TBool allowItemRefresh = EFalse;
 	while( folders.Count() > 0 )
 		{
@@ -1796,12 +1934,12 @@ TBool CFSEmailUiFolderListVisualiser::GetStandardFolderResouceIdAndIconL( const 
 			}
 		else
 			{
-			aResourceId = R_FREESTYLE_EMAIL_UI_DROPDOWN_LIST_INBOX;								
+			aResourceId = R_FREESTYLE_EMAIL_UI_DROPDOWN_LIST_INBOX;
 			// Get branded mailbox icon
 			aIcon = &iAppUi.FsTextureManager()->TextureByMailboxIdL( iActiveMailbox->GetId().PluginId(),
 																	 iActiveMailbox->GetId().Id(),
-																     iListIconSize);	
-			}		
+																     iListIconSize);
+			}
 		found = ETrue;
 		}
 	else if( aFolderType == EFSOutbox )
@@ -1814,7 +1952,7 @@ TBool CFSEmailUiFolderListVisualiser::GetStandardFolderResouceIdAndIconL( const 
 		else
 			{
 			aResourceId = R_FREESTYLE_EMAIL_UI_DROPDOWN_LIST_OUTBOX;
-			}		
+			}
 		found = ETrue;
 		}
 	else if( aFolderType == EFSDraftsFolder )
@@ -1827,7 +1965,7 @@ TBool CFSEmailUiFolderListVisualiser::GetStandardFolderResouceIdAndIconL( const 
 		else
 			{
 			aResourceId = R_FREESTYLE_EMAIL_UI_DROPDOWN_LIST_DRAFTS;
-			}		
+			}
 		found = ETrue;
 		}
 	else if( aFolderType == EFSSentFolder )
@@ -1853,7 +1991,7 @@ TBool CFSEmailUiFolderListVisualiser::GetStandardFolderResouceIdAndIconL( const 
 		else
 			{
 			aResourceId = R_FREESTYLE_EMAIL_UI_DROPDOWN_LIST_DELETED;
-			}		
+			}
 		found = ETrue;
 		}
 	return found;
@@ -1867,7 +2005,7 @@ TBool CFSEmailUiFolderListVisualiser::ShowThisTypeOfFolderL(
 	CFSMailFolder* aFolder ) const
 	{
     FUNC_LOG;
-	if( iCustomMessageId == KFolderListMoveMessage || 
+	if( iCustomMessageId == KFolderListMoveMessage ||
     	iCustomMessageId == KFolderListMoveMessages )
 		{
 		// When moving or copying message(s), hide Outbox from list
@@ -1926,7 +2064,7 @@ TFsTreeItemId CFSEmailUiFolderListVisualiser::AppendNodeFolderL(
 		if( iFullScreen )
 			{
 			// For other folders get the name from the folder object
-			
+
 			nodeId = AppendNodeToListL(
 			        &aFolder->GetFolderName(),
 			        aParentNode,
@@ -1983,25 +2121,25 @@ void CFSEmailUiFolderListVisualiser::AppendMailboxesL()
     CleanupResetAndDestroyClosePushL( mailboxes );
 	TFSMailMsgId id;
     iAppUi.GetMailClient()->ListMailBoxes( id, mailboxes );
-    
+
     TInt count = mailboxes.Count();
 
 	while( mailboxes.Count() > 0 )
-		{		
+		{
 		if( !( mailboxes[0]->GetId() == iAppUi.GetActiveMailboxId() ) )
 			{
 			MFSMailBrandManager& brandManager = iAppUi.GetMailClient()->GetBrandManagerL();
-			
+
 			CAlfTexture* mailBoxTexture;
 			CGulIcon* mailboxIcon( NULL );
-			TRAPD( err, mailboxIcon = brandManager.GetGraphicL( EFSMailboxIcon, mailboxes[0]->GetId() ) ); 
+			TRAPD( err, mailboxIcon = brandManager.GetGraphicL( EFSMailboxIcon, mailboxes[0]->GetId() ) );
 			if ( err == KErrNone && mailboxIcon )
 				{
 				CleanupStack::PushL( mailboxIcon );
 				AknIconUtils::SetSize(mailboxIcon->Bitmap(), iListIconSize);
-			    AknIconUtils::SetSize(mailboxIcon->Mask(), iListIconSize);				
-			    
-			    // Create texture into TextureManager, If not already existing			    
+			    AknIconUtils::SetSize(mailboxIcon->Mask(), iListIconSize);
+
+			    // Create texture into TextureManager, If not already existing
 			    iAppUi.FsTextureManager()->CreateBrandedMailboxTexture( mailboxIcon,
 			    		                                                mailboxes[0]->GetId().PluginId(),
 			    		                                                mailboxes[0]->GetId().Id(),
@@ -2009,8 +2147,8 @@ void CFSEmailUiFolderListVisualiser::AppendMailboxesL()
 			    // Get branded mailbox icon
 			    mailBoxTexture = &iAppUi.FsTextureManager()->TextureByMailboxIdL( mailboxes[0]->GetId().PluginId(),
 			    		                                                          mailboxes[0]->GetId().Id(),
-			    		                                                          iListIconSize);	
-			    
+			    		                                                          iListIconSize);
+
 				CleanupStack::PopAndDestroy( mailboxIcon );
 				}
 			else
@@ -2037,9 +2175,9 @@ void CFSEmailUiFolderListVisualiser::AppendMailboxesL()
                 // to model anymore, so we need to delete it here in all cases
                 iModel->AppendL( itemId, mailboxes[0] );
                 }
-				
+
 			}
-		
+
 		delete mailboxes[0];
         mailboxes.Remove(0);
 		}
@@ -2047,8 +2185,8 @@ void CFSEmailUiFolderListVisualiser::AppendMailboxesL()
 	if( count > 1 )
 		{
 		AppendSeparatorLineL();
-		}		
-	
+		}
+
     CleanupStack::PopAndDestroy( &mailboxes );
 	}
 
@@ -2064,14 +2202,14 @@ void CFSEmailUiFolderListVisualiser::AppendSeparatorLineL()
 
 	CFsSeparatorVisualizer* visualizer( NULL );
     visualizer = CFsSeparatorVisualizer::NewL(*iTreeList->TreeControl());
-    
+
     // We use the default size of the separator, but we need to save it
     // here to have it available later when calculating the list height
     iListSeparatorHeight = visualizer->Size().iHeight;
-    
+
     // This should never be the last item in the list, so disable the refresh
     iTreeList->InsertItemL( *data, *visualizer, KFsTreeRootID, KErrNotFound, EFalse);
-    
+
     iModel->IncreaseSeparatorCount();
 	}
 
@@ -2114,7 +2252,7 @@ TFsTreeItemId CFSEmailUiFolderListVisualiser::AppendNodeToListL( TDesC* aItemDat
     FUNC_LOG;
     CFsTreePlainOneLineNodeData* plainItemData;
     CFsTreePlainOneLineNodeVisualizer* plainNodeVisualizer;
-    
+
     HBufC* itemDispName = HBufC::NewLC(aItemData->Length() + KFmtUnRdCntMaxLength);
     itemDispName->Des().Copy(*aItemData);
     if( aUnreadCnt > 0 )
@@ -2122,7 +2260,7 @@ TFsTreeItemId CFSEmailUiFolderListVisualiser::AppendNodeToListL( TDesC* aItemDat
         itemDispName->Des().AppendFormat(KFormatUnreadCnt, aUnreadCnt);
         }
 	CreatePlainNodeLC2( itemDispName, plainItemData, plainNodeVisualizer, aIcon );
-	
+
 	// We assume that node can never be the last item to be drawn, there will
 	// always be leaf folder under it. So we can always deny scroll bar update.
     TFsTreeItemId nodeId = iTreeList->InsertNodeL( *plainItemData, *plainNodeVisualizer, aParentNode, KErrNotFound, EFalse);
@@ -2141,7 +2279,7 @@ TFsTreeItemId CFSEmailUiFolderListVisualiser::AppendNodeToListL( TDesC* aItemDat
 // Append leaf to list by getting the item data from resource
 // ---------------------------------------------------------------------------
 //
-TFsTreeItemId CFSEmailUiFolderListVisualiser::AppendItemToListFromResourceL( TInt aResourceId, 
+TFsTreeItemId CFSEmailUiFolderListVisualiser::AppendItemToListFromResourceL( TInt aResourceId,
 																			 TFsTreeItemId aParentNode,
 																			 CAlfTexture* aIcon,
 																			 TBool aAllowRefresh,
@@ -2149,7 +2287,7 @@ TFsTreeItemId CFSEmailUiFolderListVisualiser::AppendItemToListFromResourceL( TIn
 	{
     FUNC_LOG;
  	HBufC* headingText = StringLoader::LoadLC( aResourceId );
-
+ 	
 	TFsTreeItemId itemId = AppendItemToListL( headingText, aParentNode, aIcon, aAllowRefresh,  aUnreadCnt);
 
    	CleanupStack::PopAndDestroy( headingText );
@@ -2161,7 +2299,7 @@ TFsTreeItemId CFSEmailUiFolderListVisualiser::AppendItemToListFromResourceL( TIn
 // Append leaf to list
 // ---------------------------------------------------------------------------
 //
-TFsTreeItemId CFSEmailUiFolderListVisualiser::AppendItemToListL( TDesC* aItemData, 
+TFsTreeItemId CFSEmailUiFolderListVisualiser::AppendItemToListL( TDesC* aItemData,
 																 TFsTreeItemId aParentNode,
 																 CAlfTexture* aIcon,
                                                                  TBool aAllowRefresh,
@@ -2170,7 +2308,7 @@ TFsTreeItemId CFSEmailUiFolderListVisualiser::AppendItemToListL( TDesC* aItemDat
     FUNC_LOG;
     CFsTreePlainOneLineItemData* plainItemData;
     CFsTreePlainOneLineItemVisualizer* plainItemVisualizer;
-    
+
     HBufC* itemDispName = HBufC::NewLC(aItemData->Length() + KFmtUnRdCntMaxLength);
     itemDispName->Des().Copy(*aItemData);
     if( aUnreadCnt > 0 )
@@ -2178,8 +2316,8 @@ TFsTreeItemId CFSEmailUiFolderListVisualiser::AppendItemToListL( TDesC* aItemDat
         itemDispName->Des().AppendFormat(KFormatUnreadCnt, aUnreadCnt);
         }
     CreatePlainItemLC2( itemDispName, plainItemData, plainItemVisualizer, aIcon );
-    
-    
+
+
     TFsTreeItemId itemId = iTreeList->InsertItemL( *plainItemData, *plainItemVisualizer, aParentNode, KErrNotFound, aAllowRefresh);
     CleanupStack::Pop( 2 ); // plainItemData & plainItemVisualizer
 	CleanupStack::PopAndDestroy( itemDispName );
@@ -2187,7 +2325,7 @@ TFsTreeItemId CFSEmailUiFolderListVisualiser::AppendItemToListL( TDesC* aItemDat
 		{
 		iListItemVisulizers.Append( plainItemVisualizer );
 		}
-    
+
 	return itemId;
 	}
 
@@ -2203,7 +2341,7 @@ void CFSEmailUiFolderListVisualiser::CreatePlainItemLC2( const TDesC* aItemDataB
     FUNC_LOG;
     aItemData = CFsTreePlainOneLineItemData::NewL();
     CleanupStack::PushL( aItemData );
-    
+
     aItemData->SetDataL( *aItemDataBuff );
     if( aIcon )
     	{
@@ -2220,8 +2358,9 @@ void CFSEmailUiFolderListVisualiser::CreatePlainItemLC2( const TDesC* aItemDataB
         }
     else
         {
-        aItemVisualizer->SetLayoutHints( CFsTreeItemVisualizerBase::EPopupLayout );        
+        aItemVisualizer->SetLayoutHints( CFsTreeItemVisualizerBase::EPopupLayout );
         }
+
     SetItemVisualizerPropertiesL( aItemVisualizer );
 	}
 
@@ -2237,17 +2376,17 @@ void CFSEmailUiFolderListVisualiser::CreatePlainNodeLC2( TDesC* aItemDataBuff,
     FUNC_LOG;
     aItemData = CFsTreePlainOneLineNodeData::NewL();
     CleanupStack::PushL( aItemData );
-    
+
     aItemData->SetDataL( *aItemDataBuff );
     if( aIcon )
     	{
 		aItemData->SetIconExpanded( *aIcon );
 		aItemData->SetIconCollapsed( *aIcon );
     	}
-	
+
     aNodeVisualizer = CFsTreePlainOneLineNodeVisualizer::NewL( *iTreeList->TreeControl() );
     CleanupStack::PushL( aNodeVisualizer );
-     
+
     // Set folder view specific layouts to be used
     if ( iFullScreen )
         {
@@ -2255,11 +2394,11 @@ void CFSEmailUiFolderListVisualiser::CreatePlainNodeLC2( TDesC* aItemDataBuff,
         }
     else
         {
-        aNodeVisualizer->SetLayoutHints( CFsTreeItemVisualizerBase::EPopupLayout );        
+        aNodeVisualizer->SetLayoutHints( CFsTreeItemVisualizerBase::EPopupLayout );
         }
     SetItemVisualizerPropertiesL( aNodeVisualizer );
 	}
-    
+
 void CFSEmailUiFolderListVisualiser::SetItemVisualizerPropertiesL( MFsTreeItemVisualizer* aItemVisualizer )
 	{
     FUNC_LOG;
@@ -2276,7 +2415,7 @@ void CFSEmailUiFolderListVisualiser::SetItemVisualizerPropertiesL( MFsTreeItemVi
 
     aItemVisualizer->SetExtendable( EFalse );
 
-  	// Set correct skin text colors for the list items  
+  	// Set correct skin text colors for the list items
    	TRgb focusedColor = iAppUi.LayoutHandler()->ListFocusedStateTextSkinColor();
 	// If list is in full screen, it has general list background, so we use
 	// general list text color. If it's not in full screen, we use dropdown
@@ -2290,10 +2429,10 @@ void CFSEmailUiFolderListVisualiser::SetItemVisualizerPropertiesL( MFsTreeItemVi
 		{
 		normalColor = iAppUi.LayoutHandler()->DropdownMenuTextColor();
 		}
-	
+
     aItemVisualizer->SetFocusedStateTextColor( focusedColor );
     aItemVisualizer->SetNormalStateTextColor( normalColor );
-	
+
 	// Set font size
     aItemVisualizer->SetFontHeight( iAppUi.LayoutHandler()->ListItemFontHeightInTwips( !iFullScreen ) );
 	// Set node bolded
@@ -2323,7 +2462,7 @@ TBool CFSEmailUiFolderListVisualiser::HandleWsEventL( const TWsEvent& aEvent )
                 TRect popupRect( iScreenRect );
                 // translate to screen coorinates
                 popupRect.Move( iEnv.PrimaryDisplay().VisibleArea().iTl );
-                // check if the event happened outside of the popup   
+                // check if the event happened outside of the popup
                 if ( !popupRect.Contains( position ) )
                     {
                     HandleSelectionL( EFSEmailUiCtrlBarResponseCancel );
@@ -2339,7 +2478,7 @@ TBool CFSEmailUiFolderListVisualiser::HandleWsEventL( const TWsEvent& aEvent )
                 }
             eventHandled = ETrue;
             }
-        }    
+        }
     return eventHandled;
     }
 
@@ -2457,19 +2596,22 @@ void CFSEmailUiFolderListVisualiser::UpdateListSizeAttributes()
         }
 	else
 		{
+        TRect cbr = iAppUi.LayoutHandler()->GetControlBarRect();
 		if( iCallback )
 			{
 			iCtrlButtonRect = iCallback->FolderButtonRect();
+            iCtrlButtonRect.Move( cbr.iTl );
 			iScreenRect = FolderListRectInThisResolution();
 			}
 		else if ( iSortListCallback )
 			{
             iCtrlButtonRect = iSortListCallback->SortButtonRect();
-			iScreenRect = SortListRectInThisResolution();
+            iCtrlButtonRect.Move( cbr.iTl );
+            iScreenRect = SortListRectInThisResolution();
 			}
 		else
 		    {
-		    // Do nothing. This happens if HandleDynamicVariantSwitch() is called while the popup list is not visible. 
+		    // Do nothing. This happens if HandleDynamicVariantSwitch() is called while the popup list is not visible.
 		    }
 		}
 	iListIconSize = iAppUi.LayoutHandler()->FolderListIconSize( !iFullScreen );
@@ -2511,8 +2653,8 @@ void CFSEmailUiFolderListVisualiser::LoadIconsL()
     FUNC_LOG;
 	iIconArray.Reset();
 	if ( iFullScreen )
-	    {	
-        // NOTE: Must be appended same order as are in TFsEmailUiFolderListIcons!	
+	    {
+        // NOTE: Must be appended same order as are in TFsEmailUiFolderListIcons!
         iIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( EFolderListInboxTexture ) );   			// EFolderListIconInbox
         iIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( EFolderListInboxSubfoldersTexture ) );	// EFolderListIconInboxSubfolders
         iIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( EFolderListOutboxTexture ) );  			// EFolderListIconOutbox
@@ -2525,7 +2667,7 @@ void CFSEmailUiFolderListVisualiser::LoadIconsL()
 	    }
 	else
 	    {
-        // NOTE: Must be appended same order as are in TFsEmailUiFolderListIcons!   
+        // NOTE: Must be appended same order as are in TFsEmailUiFolderListIcons!
         iIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( EFolderListInboxTexturePopup ) );            // EFolderListIconInbox
         iIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( EFolderListInboxSubfoldersTexturePopup ) );  // EFolderListIconInboxSubfolders
         iIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( EFolderListOutboxTexturePopup ) );           // EFolderListIconOutbox
@@ -2534,7 +2676,23 @@ void CFSEmailUiFolderListVisualiser::LoadIconsL()
         iIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( EFolderListDeletedItemsTexturePopup ) );     // EFolderListIconDeleted
         iIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( EFolderListServerFoldersTexturePopup ) );    // EFolderListIconServerFolders
         iIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( EFolderListMoreFoldersTexturePopup ) );      // EFolderListIconMoreFolders
-        iIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( EFolderListEmailAccountTexturePopup ) );     // EFolderListIconEmailAccount	    
+        iIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( EFolderListEmailAccountTexturePopup ) );     // EFolderListIconEmailAccount
+	    
+	    // NOTE: Must be appended same order as are in TFsEmailUiSortListIcons!
+        iSortIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( ESortListAttachmentAscTexture ) );       // ESortListAttachmentAscIcon
+        iSortIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( ESortListAttachmentDescTexture ) );      // ESortListAttachmentDescIcon
+        iSortIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( ESortListDateAscTexture ) );       		 // ESortListDateAscIcon
+        iSortIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( ESortListDateDescTexture ) );       	 // ESortListDateDescIcon
+        iSortIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( ESortListFollowAscTexture ) );       	 // ESortListFollowAscIcon
+        iSortIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( ESortListFollowDescTexture ) );        	 // ESortListFollowDescIcon
+        iSortIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( ESortListPriorityAscTexture ) );         // ESortListPriorityAscIcon
+        iSortIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( ESortListPriorityDescTexture ) );        // ESortListPriorityDescIcon
+        iSortIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( ESortListSenderAscTexture ) );       	 // ESortListSenderAscIcon
+        iSortIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( ESortListSenderDescTexture ) );       	 // ESortListSenderDescIcon
+        iSortIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( ESortListSubjectAscTexture ) );       	 // ESortListSubjectAscIcon
+        iSortIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( ESortListSubjectDescTexture ) );       	 // ESortListSubjectDescIcon
+        iSortIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( ESortListUnreadAscTexture ) );       	 // ESortListUnreadAscIcon
+        iSortIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( ESortListUnreadDescTexture ) );       	 // ESortListUnreadDescIcon
 	    }
 	}
 
@@ -2561,6 +2719,13 @@ void CFSEmailUiFolderListVisualiser::ResizeListIcons()
 		//       array, instead those are owned by texture manager. So
 		//       those should be resized by other means. But currently
 		//       there is no way to do it (see above comment).
+		
+		// Then resize sort list icons
+		TInt arraySizeSort = iSortIconArray.Count();
+		for( TInt i = 0; i < arraySizeSort; i++ )
+			{
+			iSortIconArray[i]->Size().SetSize( iListIconSize.iWidth, iListIconSize.iHeight );
+			}
 		}
 	}
 
@@ -2586,15 +2751,15 @@ void CFSEmailUiFolderListVisualiser::AdaptScreenRectToListContent()
 	{
     FUNC_LOG;
     const TInt popupHeight( iScreenRect.Height() );
-    const TInt separatorHeight( iListSeparatorHeight * 
+    const TInt separatorHeight( iListSeparatorHeight *
             iModel->SeparatorCount() );
-    const TInt itemCount( iTreeList->Count() - iModel->SeparatorCount() );    
-    TInt visibleItemCount( ( popupHeight - separatorHeight ) / 
-            iListItemHeight );    
-    visibleItemCount = Min( visibleItemCount, itemCount );   
-    iScreenRect.SetHeight( visibleItemCount * iListItemHeight + 
-            separatorHeight + 
-            iAppUi.LayoutHandler()->DropDownMenuListPadding() * 2 + 
+    const TInt itemCount( iTreeList->Count() - iModel->SeparatorCount() );
+    TInt visibleItemCount( ( popupHeight - separatorHeight ) /
+            iListItemHeight );
+    visibleItemCount = Min( visibleItemCount, itemCount );
+    iScreenRect.SetHeight( visibleItemCount * iListItemHeight +
+            separatorHeight +
+            iAppUi.LayoutHandler()->DropDownMenuListPadding() * 2 +
             iAppUi.LayoutHandler()->ControlBarListPadding().iY );
 	AdjustWidthByContent( iScreenRect );
 	}
@@ -2605,17 +2770,19 @@ void CFSEmailUiFolderListVisualiser::AdaptScreenRectToListContent()
 //
 void CFSEmailUiFolderListVisualiser::AdjustWidthByContent( TRect& aRect ) const
     {
+    const TRect oldButtonRect( iScreenRect );
     const TInt buttonWidth( iCtrlButtonRect.Width() );
     const TInt currentWidth( aRect.Width() );
 
     // only do adjusting if the buttonWidth is smaller than current popup width
     if ( buttonWidth < currentWidth )
         {
+        TBool landscape( Layout_Meta_Data::IsLandscapeOrientation() );
         TAknLayoutRect scrollPane;
         scrollPane.LayoutRect( aRect,
                 AknLayoutScalable_Apps::sp_fs_scroll_pane_cp01( 6 ) );
         const TInt scrollPaneWidth( scrollPane.Rect().Width() );
-        
+
         TAknLayoutText textLayout;
         textLayout.LayoutText( aRect,
                 AknLayoutScalable_Apps::list_single_dyc_row_text_pane_t1( 0 ) );
@@ -2674,6 +2841,12 @@ void CFSEmailUiFolderListVisualiser::AdjustWidthByContent( TRect& aRect ) const
                         aRect.Move( -aRect.iTl.iX + iCtrlButtonRect.iTl.iX, 0 );
                         }
                     }
+                
+                // Keep the right edge position unchanged
+                if( landscape )
+                    {
+                    aRect.Move( oldButtonRect.iBr.iX - aRect.iBr.iX, 0 );
+                    }
                 }
             }
         }
@@ -2698,10 +2871,10 @@ void CFSEmailUiFolderListVisualiser::SetAnchors()
         {
         iListHeaderHeight = 0;
         }
-    
+
     TSize mainPaneSize;
     AknLayoutUtils::LayoutMetricsSize(AknLayoutUtils::EMainPane, mainPaneSize);
-    
+
     // Set anchor for background visual
     iParentLayout->SetAnchor(EAlfAnchorTopLeft,
                     0,
@@ -2717,7 +2890,7 @@ void CFSEmailUiFolderListVisualiser::SetAnchors()
                     EAlfAnchorMetricAbsolute,
                     EAlfAnchorMetricAbsolute,
                     TAlfTimedPoint(mainPaneSize.iWidth,mainPaneSize.iHeight));
-    
+
 	// Set anchor for header text visual
 	iParentLayout->SetAnchor(EAlfAnchorTopLeft,
 					1,
@@ -2764,7 +2937,7 @@ void CFSEmailUiFolderListVisualiser::GoToTopL()
     if ( topLevelCount )
         {
         TFsTreeItemId topId = iTreeList->Child(KFsTreeRootID, 0);
-        iTreeVisualizer->SetFocusedItemL( topId );            
+        iTreeVisualizer->SetFocusedItemL( topId );
         }
     }
 
@@ -2778,17 +2951,17 @@ void CFSEmailUiFolderListVisualiser::GoToBottomL()
     // There may be arbitrary number of nested sub folders. Make sure we focus
     // the bottommost visible subfolder.
     TFsTreeItemId bottomId = KFsTreeRootID;
-    
-    while ( iTreeList->IsNode(bottomId) && 
+
+    while ( iTreeList->IsNode(bottomId) &&
             iTreeList->IsExpanded(bottomId) &&
             iTreeList->CountChildren(bottomId) )
         {
         bottomId = iTreeList->Child( bottomId, iTreeList->CountChildren(bottomId)-1 );
         }
-    
+
     if ( bottomId != KFsTreeRootID )
         {
-        iTreeVisualizer->SetFocusedItemL( bottomId );            
+        iTreeVisualizer->SetFocusedItemL( bottomId );
         }
     }
 
@@ -2813,7 +2986,7 @@ TBool CFSEmailUiFolderListVisualiser::AllNodesCollapsed() const
     FUNC_LOG;
     TFsTreeItemId itemId = KFsTreeNoneID;
     TInt count = iTreeList->CountChildren(KFsTreeRootID);
-	
+
 	// If top level is collapsed, then everything is collapsed. There's no need
 	// to crawl any deeper in the tree hierarchy.
 	for ( TInt i=0 ; i<count ; ++i )
@@ -2825,7 +2998,7 @@ TBool CFSEmailUiFolderListVisualiser::AllNodesCollapsed() const
 	        return EFalse;
 	        }
 	    }
-	
+
 	return ETrue;
     }
 
@@ -2838,10 +3011,10 @@ TBool CFSEmailUiFolderListVisualiser::AllNodesExpanded( TFsTreeItemId aParentNod
     FUNC_LOG;
     // We must crawl through the whole tree to see, if there are any collapsed nodes
     // at any level. We do this with recursive depth-first-search.
-    
+
     TFsTreeItemId itemId = KFsTreeNoneID;
     TInt count = iTreeList->CountChildren(aParentNodeId);
-    
+
     for ( TInt i=0 ; i<count ; ++i )
         {
         itemId = iTreeList->Child( aParentNodeId, i );
@@ -2854,7 +3027,7 @@ TBool CFSEmailUiFolderListVisualiser::AllNodesExpanded( TFsTreeItemId aParentNod
                 }
             }
         }
-	
+
 	return ETrue;
     }
 
@@ -2875,27 +3048,27 @@ void CFSEmailUiFolderListVisualiser::DoHorizontalScrollL( TBool aForceRecalculat
             {
             // Get the list level
             TUint level = iTreeList->Level( focusedId );
-            
+
             // Little optimisation, handle all levels up to KListLastBasicLevel
             // as root level because horizontal scroll amount is same for all
             if( level <= KListLastBasicLevel )
                 {
                 level = KListRootLevel;
                 }
-            
+
             // Recalculate the list rect only if level has changed or if
             // recalculation is forced by parameter (e.g. in case of
             // dynamic variant switch)
             if( ( level != iPreviousListLevel ) || aForceRecalculation )
                 {
                 TRect listRect = iListLayout->DisplayRectTarget();
-                
+
                 // Calulate list rect by taking x-coordinates from iScreenRect
                 // and y-coordinates from list layouts target rect (to take
                 // into account the list header)
                 listRect.SetRect( iScreenRect.iTl.iX, listRect.iTl.iY,
                                   iScreenRect.iBr.iX, listRect.iBr.iY );
-                
+
                 if( level > KListLastBasicLevel )
                     {
                     // Calculate rect according to current level
@@ -2903,7 +3076,7 @@ void CFSEmailUiFolderListVisualiser::DoHorizontalScrollL( TBool aForceRecalculat
                     listRect.SetWidth( iScreenRect.Width() + rectChange );
                     listRect.Move( -rectChange, 0 );
                     }
-    
+
                 // Set the list rect only if it has changed from previous
                 // (because list refresh causes a little twitch)
                 if( listRect != iPreviousListRect )
@@ -2912,7 +3085,7 @@ void CFSEmailUiFolderListVisualiser::DoHorizontalScrollL( TBool aForceRecalculat
                     iTreeVisualizer->RefreshListViewL();
                     iPreviousListRect = listRect;
                     }
-                
+
                 iPreviousListLevel = level;
                 }
             }
@@ -2977,6 +3150,16 @@ void CFSEmailUiFolderListVisualiser::TreeListEventL( const TFsTreeListEvent aEve
             Toolbar()->SetItemDimmed( EFsEmailUiTbCmdExpandAll, ETrue, ETrue );
             break;
             }
+        case EFsFocusVisibilityChange:
+            {
+            iAppUi.SetFocusVisibility( EFalse );
+            break;
+            }
+        default:
+            {
+            // No need to handle other events.
+            break;
+            }
         }
     }
 
@@ -2989,24 +3172,26 @@ void CFSEmailUiFolderListVisualiser::HandleMailBoxEventL( TFSMailEvent aEvent,
     TFSMailMsgId aMailboxId, TAny* /*aParam1*/, TAny* /*aParam2*/, TAny* /*aParam3*/ )
     {
     FUNC_LOG;
-    
+
     // Handle the event
-    if ( iMoveOrCopyInitiated && 
-         iFirstStartCompleted && 
+    if ( iMoveOrCopyInitiated &&
+         iFirstStartCompleted &&
          aMailboxId == iAppUi.GetActiveMailboxId() &&
-         iAppUi.CurrentActiveView() == this ) 
+         iAppUi.CurrentActiveView() == this )
         {
-		if ( aEvent == TFSEventMailboxOnline ) 
+		if ( aEvent == TFSEventMailboxOnline )
 			{
             if( iWaitingToGoOnline )
                 {
                 PrepareFolderListL();
                 PopulateFolderListL();
-                
+
                 if ( iModel->Count() )
                     {
-                    SetFocusToLatestMovedFolderL(); 
+                    SetFocusToLatestMovedFolderL();
                     }
+                iTreeList->SetFocusedL( ETrue );
+                iWaitingToGoOnline = EFalse;
                 }
 			}
    		else if ( aEvent == TFSEventMailboxOffline )
@@ -3022,6 +3207,17 @@ void CFSEmailUiFolderListVisualiser::HandleMailBoxEventL( TFSMailEvent aEvent,
     }
 
 // ---------------------------------------------------------------------------
+//
+// ---------------------------------------------------------------------------
+//
+void CFSEmailUiFolderListVisualiser::FocusVisibilityChange( TBool aVisible )
+    {
+    FUNC_LOG;
+    CFsEmailUiViewBase::FocusVisibilityChange( aVisible );
+    iTreeVisualizer->SetFocusVisibility( aVisible );
+    }
+
+// ---------------------------------------------------------------------------
 // CbaButtonPressed
 // Check if aPosition is on CBA touch area
 // ---------------------------------------------------------------------------
@@ -3029,7 +3225,7 @@ void CFSEmailUiFolderListVisualiser::HandleMailBoxEventL( TFSMailEvent aEvent,
 TBool CFSEmailUiFolderListVisualiser::CbaButtonPressed( TPoint aPosition )
     {
     TBool cbaPressed( EFalse );
-    
+
     TRect leftCbaRect = TRect();
     TRect rightCbaRect = TRect();
     GetCbaRects( leftCbaRect, rightCbaRect );
@@ -3049,7 +3245,7 @@ TBool CFSEmailUiFolderListVisualiser::CbaButtonPressed( TPoint aPosition )
 //
 void CFSEmailUiFolderListVisualiser::GetCbaRects( TRect& aLeftCbaRect, TRect& aRightCbaRect )
     {
-    TBool rightPaneActive( IsAreaSideRightPaneActive() );    
+    TBool rightPaneActive( IsAreaSideRightPaneActive() );
     TBool bskLandscape( Layout_Meta_Data::IsLandscapeOrientation() &&
                         !rightPaneActive );
     TRect screen;
@@ -3058,9 +3254,9 @@ void CFSEmailUiFolderListVisualiser::GetCbaRects( TRect& aLeftCbaRect, TRect& aR
         {
         TAknWindowComponentLayout rightAreaLayout(
             AknLayoutScalable_Avkon::area_side_right_pane( 0 ) );
-            
+
         TAknLayoutRect layoutRect;
-        // Read right (top in landscape) softkey layout.      
+        // Read right (top in landscape) softkey layout.
         layoutRect.LayoutRect(
                 screen,
                 TAknWindowComponentLayout::Compose(
@@ -3068,7 +3264,7 @@ void CFSEmailUiFolderListVisualiser::GetCbaRects( TRect& aLeftCbaRect, TRect& aR
                 AknLayoutScalable_Avkon::sctrl_sk_bottom_pane() ).LayoutLine() );
         TRect bottomSKRect( layoutRect.Rect() );
 
-        // Read left (bottom in landscape) softkey layout.       
+        // Read left (bottom in landscape) softkey layout.
         layoutRect.LayoutRect(
                 screen,
                 TAknWindowComponentLayout::Compose(
@@ -3084,10 +3280,10 @@ void CFSEmailUiFolderListVisualiser::GetCbaRects( TRect& aLeftCbaRect, TRect& aR
         layoutRect.LayoutRect(
             topSKRect,
             AknLayoutScalable_Avkon::aid_touch_sctrl_top().LayoutLine() );
-        aRightCbaRect = layoutRect.Rect();        
+        aRightCbaRect = layoutRect.Rect();
         }
     else
-        {          
+        {
         TAknWindowComponentLayout applicationWindow(
             AknLayoutScalable_Avkon::application_window( 0 ) );
         TAknLayoutRect cbarect;
@@ -3099,7 +3295,7 @@ void CFSEmailUiFolderListVisualiser::GetCbaRects( TRect& aLeftCbaRect, TRect& aR
                     AknLayoutScalable_Avkon::area_bottom_pane( bskLandscape ? 2 : 1 ),
                     AknLayoutScalable_Avkon::control_pane() ) ).LayoutLine() );
         aLeftCbaRect = cbarect.Rect();
-        }    
+        }
     }
 
 // ---------------------------------------------------------------------------
@@ -3112,8 +3308,8 @@ TBool CFSEmailUiFolderListVisualiser::IsAreaSideRightPaneActive()
     // Currently the widescreen status pane layout is in use only
     // when pen input (touch) is enabled.
     TBool result = EFalse;
-    
-    if ( Layout_Meta_Data::IsLandscapeOrientation() && 
+
+    if ( Layout_Meta_Data::IsLandscapeOrientation() &&
          Layout_Meta_Data::IsPenEnabled() )
         {
         if ( iAvkonEnv->StatusPaneResIdForCurrentLayout(

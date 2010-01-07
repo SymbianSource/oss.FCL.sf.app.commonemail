@@ -224,7 +224,7 @@ void CESMRLocationPluginImpl::SearchFromMapL( const TDesC& aSearchQuery )
 // From class MESMRLocationPlugin.
 // ---------------------------------------------------------------------------
 //
-void CESMRLocationPluginImpl::ShowOnMapL( const TDesC& aLocationUrl )
+void CESMRLocationPluginImpl::ShowOnMapL( const TDesC& aLocation, const TDesC& aLocationUrl )
 	{
     FUNC_LOG;
 	CreateMapViewL();
@@ -233,6 +233,7 @@ void CESMRLocationPluginImpl::ShowOnMapL( const TDesC& aLocationUrl )
     RCPointerArray<CPosLandmark> landmarks;
     CleanupClosePushL( landmarks );
     CPosLandmark* landmark = iUrlParser->CreateLandmarkFromUrlL( aLocationUrl );
+    landmark->SetLandmarkNameL(aLocation);    
     CleanupStack::PushL( landmark ); 
     landmarks.AppendL( landmark );
     CleanupStack::Pop( landmark );

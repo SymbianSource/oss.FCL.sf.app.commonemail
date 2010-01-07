@@ -137,8 +137,36 @@ void SetRecurrenceModRuleL(
         }
     else
         {
-        aEntry.SetModifyingRuleL(
-                MESMRMeetingRequestEntry::EESMRThisOnly );
+        TInt result =
+                    CESMRListQuery::ExecuteL( aQueryType );
+
+                if( KErrCancel == result )
+                    {
+                    // User has cancelled selecting opening the instance
+                    User::Leave( KErrCancel );
+                    }
+
+                TESMRThisOccurenceOrSeriesQuery recurrenceModRule =
+                    static_cast<TESMRThisOccurenceOrSeriesQuery>( result );
+
+                switch( recurrenceModRule )
+                    {
+                    case EESMRThisOccurence:
+                        {
+                        aEntry.SetModifyingRuleL(
+                                MESMRMeetingRequestEntry::EESMRThisOnly );
+                        }
+                        break;
+                    case EESMRSeries:
+                        {
+                        aEntry.SetModifyingRuleL(
+                                MESMRMeetingRequestEntry::EESMRAllInSeries );
+                        }
+                        break;
+                    default:
+                        __ASSERT_DEBUG( EFalse, Panic(EESMREditDlgInvalidSeriesResult));
+                        break;
+                    }
         }
     }
 
@@ -612,7 +640,8 @@ void CESMREditorDialog::ProcessCommandL(
     TRAPD( err, DoProcessCommandL( aCommand ) );
     if ( err != KErrNone &&
          err != KErrCancel &&
-         err != KErrArgument )
+         err != KErrArgument&&
+         err !=EESMRCmdSendMR)
         {
         User::Leave(err);
         }           
@@ -673,8 +702,13 @@ void CESMREditorDialog::DoProcessCommandL(
         case EESMRCmdCalEntryUIAddParticipants:
             {
             iView->ExternalizeL (); // no force validation
-            User::LeaveIfError( 
-            		iCallback.ProcessCommandWithResultL ( aCommand ));
+            TInt result;
+            TRAPD(err,result=iCallback.ProcessCommandWithResultL ( aCommand ))
+			if (err != EESMRCmdSendMR&&err!=KErrNone)
+				{
+				User::Leave(err);
+				}
+			User::LeaveIfError(result);
             TryExitL ( EESMRCmdForceExit );
             break;
             }

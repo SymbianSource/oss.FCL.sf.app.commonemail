@@ -67,6 +67,7 @@ public:
     void Draw( const TRect& aRect ) const;
     void SizeChanged();
     TKeyResponse OfferKeyEventL( const TKeyEvent& aKeyEvent, TEventCode aType );
+    void HandleResourceChange(TInt aType);
 
 // from base class MBrCtlSpecialLoadObserver
 

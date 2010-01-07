@@ -2671,9 +2671,10 @@ void CNcsComposeView::SaveToDraftsL( TBool aParseAddresses )
 // CNcsComposeView::FetchLogicComplete
 // -----------------------------------------------------------------------------
 //
-void CNcsComposeView::FetchLogicComplete( TComposerFetchState /*aState*/, TInt aError )
+TBool CNcsComposeView::FetchLogicComplete( TComposerFetchState /*aState*/, TInt aError )
 	{
     FUNC_LOG;
+    TBool result = EFalse;
     if ( iFirstStartCompleted ) // Safety
         {
         if ( !aError )
@@ -2686,6 +2687,7 @@ void CNcsComposeView::FetchLogicComplete( TComposerFetchState /*aState*/, TInt a
             // something went wrong
             DoSafeExit(ENoSave);
             iMailFetchingErrCode = aError;
+            result = ETrue;
             }
         }
     if ( iFetchWaitDialog && !iFetchDialogCancelled )
@@ -2693,6 +2695,7 @@ void CNcsComposeView::FetchLogicComplete( TComposerFetchState /*aState*/, TInt a
         TRAP_IGNORE(iFetchWaitDialog->ProcessFinishedL());
         iFetchWaitDialog = NULL;
         }
+    return result;
 	}
 
 // -----------------------------------------------------------------------------

@@ -87,7 +87,6 @@ CIpsPlgImap4MoveRemoteOp::CIpsPlgImap4MoveRemoteOp(
 CIpsPlgImap4MoveRemoteOp::~CIpsPlgImap4MoveRemoteOp()
     {
     FUNC_LOG;
-    delete iLocalSel;
     delete iRemoteSel;
     }
 
@@ -209,7 +208,7 @@ void CIpsPlgImap4MoveRemoteOp::DoRunL()
                 CompleteObserver( KErrCouldNotConnect );
                 return;
                 }
-            DoMoveLocalL();
+            DoMoveRemoteL();
             }
             break;
         case ELocalMsgs:
@@ -253,7 +252,6 @@ void CIpsPlgImap4MoveRemoteOp::SortMessageSelectionL(const CMsvEntrySelection& a
         User::Leave( KErrNotSupported );
         }
     // Sort messages into complete and incomplete selections.
-    iLocalSel = new(ELeave) CMsvEntrySelection;
     iRemoteSel = new(ELeave) CMsvEntrySelection;
 
     TInt err;
@@ -267,17 +265,6 @@ void CIpsPlgImap4MoveRemoteOp::SortMessageSelectionL(const CMsvEntrySelection& a
         err = iMsvSession.GetEntry( id, service, tEntry );
         if( KErrNone == err )
             {
-            // local move is not needed, if the message is not fetched
-            if( tEntry.Complete() )
-                {
-                if ( 0 < count )
-                    {
-                    // service id is not added to local, 
-                    // service is already
-                    // added in MoveMessagesL
-                    iLocalSel->AppendL( id );
-                    }
-                }
                 iRemoteSel->AppendL( id );
                 }
             }
@@ -290,38 +277,6 @@ void CIpsPlgImap4MoveRemoteOp::Complete()
     FUNC_LOG;
     TRequestStatus* observer = &iObserverRequestStatus;
     User::RequestComplete( observer, KErrNone );
-    }
-    
-// ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
-void CIpsPlgImap4MoveRemoteOp::DoMoveLocalL()
-    {
-    FUNC_LOG;
-    iState = ELocalMsgs;
-    iStatus = KRequestPending;
-    if( iLocalSel->Count() )
-        {
-        // this gets the first msg to be moved
-        CMsvEntry* cEntry = iMsvSession.GetEntryL( (*iLocalSel)[0] );
-        CleanupStack::PushL( cEntry );
-        // find the parent of the moved message...
-        TMsvId parent = cEntry->Entry().Parent();
-        // and use it as a context
-        cEntry->SetEntryL( parent );
-
-        delete iOperation;
-        iOperation = NULL;
-        iOperation = cEntry->MoveL( *iLocalSel, 
-                                    iGetMailInfo.iDestinationFolder, 
-                                    iStatus );
-        CleanupStack::PopAndDestroy( cEntry ); 
-        SetActive();
-        }
-    else
-        {
-        SetActive();
-        CompleteThis();
-        }
     }
 
 // ----------------------------------------------------------------------------

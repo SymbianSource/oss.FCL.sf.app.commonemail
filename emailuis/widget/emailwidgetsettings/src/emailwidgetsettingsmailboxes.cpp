@@ -110,12 +110,38 @@ void CEmailWidgetSettingsMailboxes::GetMailboxNameL(TInt aNum,
 
     TDesC& mailboxName( mailBoxes[aNum]->GetName() );
 
+    TBuf<3>iconIndex;
+    iconIndex.AppendNum(aNum+1);
+    
+    aMailboxName.Append(iconIndex);
     aMailboxName.Append(_L("\t"));
     aMailboxName.Append(mailboxName);
     aMailboxName.Append(_L("\t"));
     aMailboxName.Append(_L("\t"));    
        
-    // Release allocated memory
+    mailBoxes.ResetAndDestroy();
+    }
+
+// ---------------------------------------------------------------------------
+// CEmailWidgetSettingsMailboxes::GetDomainL
+// ---------------------------------------------------------------------------
+//
+void CEmailWidgetSettingsMailboxes::GetDomainL(TInt aNum, TDes& aDomain)
+    {
+    FUNC_LOG;
+    // Mailboxes will be fetched to this array
+    RPointerArray<CFSMailBox> mailBoxes;
+
+    // List all mailboxes
+    TFSMailMsgId plugin;
+    iMailClient->ListMailBoxes( plugin, mailBoxes );
+
+    CFSMailAddress& ownMailAddress( mailBoxes[aNum]->OwnMailAddress( ) );
+    TDesC& mailAddress( ownMailAddress.GetEmailAddress());
+
+    aDomain.Append(mailAddress.Right(mailAddress.Length() - 
+                                     mailAddress.FindC(_L("@"))-1));
+
     mailBoxes.ResetAndDestroy();
     }
 

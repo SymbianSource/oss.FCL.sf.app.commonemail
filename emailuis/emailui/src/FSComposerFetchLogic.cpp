@@ -205,33 +205,35 @@ void CFsComposerFetchLogic::RequestResponseL( const TFSProgress& aEvent, const T
 	{
     FUNC_LOG;
 
-    if ( !iError && aEvent.iError )
+    // Ignore all responses when cancelling is in progress.
+    if ( !iFetchingCancelGoingOn )
         {
-        // Cancel all fetching when first error occurs
-        iError = aEvent.iError;
-        if(!iFetchingCancelGoingOn) //<cmail> if cancelling not going on, start now
-            CancelFetchings();
-        }
-
-    if ( TFsEmailUiUtility::IsCompleteOrCancelEvent( aEvent ) )
-    	{
-    	// Remove the completed/failed download item
-    	for ( TInt i=0; i<iParts.Count(); i++ )
-    	    {
-    	    if ( iParts[i] == aPart )
-    	        {
-    	        iParts.Remove( i );
-    	        break;
-    	        }
-    	    }
-
-        // If last part just got removed, then move on
-        if ( !iParts.Count() )
+        if ( !iError && aEvent.iError )
             {
-            Complete();
+            // Cancel all fetching when first error occurs
+            iError = aEvent.iError;
+            CancelFetchings();
+            }
+        else if ( TFsEmailUiUtility::IsCompleteOrCancelEvent( aEvent ) )
+            {
+            // Remove the completed/failed download item
+            for ( TInt i=0; i<iParts.Count(); i++ )
+                {
+                if ( iParts[i] == aPart )
+                    {
+                    iParts.Remove( i );
+                    break;
+                    }
+                }
+
+            // If last part just got removed, then move on
+            if ( !iParts.Count() )
+                {
+                Complete();
+                }
             }
         }
-	}
+    }
 
 
 // -----------------------------------------------------------------------------
@@ -578,32 +580,28 @@ void CFsComposerFetchLogic::CancelFetchings()
         }
 
     // message part downloads
-    //<cmail> during consecutive calls to CancelDownloadL, iParts contents don't remain same.
-    // changing this so that it works even with varying contents in iParts
-    TInt count = iParts.Count();
-    TInt currentCount = count;
-    while (count)
+    if ( iAppUi.DownloadInfoMediator() )
         {
-        TInt error( KErrNone );
-        if ( iAppUi.DownloadInfoMediator() )
-        	{
- 	        TRAP( error, iAppUi.DownloadInfoMediator()->CancelDownloadL( iParts[0].iMessagePartId ) );
- 	        currentCount = iParts.Count();
- 	        if(currentCount>=count)
- 	            iParts.Remove(0);
- 	       count = currentCount;
- 	//</cmail>
-        	}
-        if ( error )
+        // Note that we don't bother removing anything from iParts now; they
+        // will be cleaned up later.
+        for ( TInt i = iParts.Count() - 1; i >= 0; i-- )
             {
+            TRAP_IGNORE( iAppUi.DownloadInfoMediator()->CancelDownloadL( iParts[i].iMessagePartId ) );
             }
         }
+
     //<cmail>
-    if(!iRequestCompleted)
+    if( !iRequestCompleted )
         {
-        iObserver.FetchLogicComplete( iState, KErrCancel );
+        if ( iObserver.FetchLogicComplete( iState, KErrCancel ))
+            {
+            // If the observer deleted this object, don't try to do anything
+            // else.
+            return;
+            }
         iRequestCompleted = ETrue; //so that no stray events from plugins can cause panic
         }
+
     iFetchingCancelGoingOn = EFalse;
     //</cmail>
     }

@@ -121,6 +121,7 @@ enum
     {
 	EFsEmailUiCmdOpen = 2000,
 	EFsEmailUiCmdDeleteMailbox,
+	EFsEmailUiCmdDeleteSelectedMailbox,
 	EFsEmailUiCmdExit,
 	EFsEmailUiCmdSync,
 	EFsEmailUiCmdSyncAll,

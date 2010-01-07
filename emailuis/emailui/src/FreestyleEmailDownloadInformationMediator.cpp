@@ -730,7 +730,7 @@ void CFSEmailDownloadInfoMediator::NotifyObserversL( const TFSProgress& aEvent, 
     {
 	FUNC_LOG;
 	// go through all observers
-	for ( TInt j=0; j<iObserverArray.Count(); j++)
+    for ( TInt j=iObserverArray.Count()-1; j>=0; j--)
 		{
 		// if observer is observing this message
 		if ( iObserverArray[j].iMessageId == aPart.iMessageId )

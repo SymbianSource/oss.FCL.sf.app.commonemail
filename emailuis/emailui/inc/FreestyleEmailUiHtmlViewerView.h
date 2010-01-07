@@ -291,6 +291,12 @@ private: // data for moving message to different folder action
 
     TFetchedType iStartAsyncFetchType;
 
+    // <cmail>
+    // Email forwarding initiated (so don't cancel fetch of message parts
+    // during deactivation).
+    TBool iForwardingMessage;
+    // </cmail>
+
     // Wait note stuff
     //<cmail>
     //CAknWaitNoteWrapper* iAsyncWaitNote;

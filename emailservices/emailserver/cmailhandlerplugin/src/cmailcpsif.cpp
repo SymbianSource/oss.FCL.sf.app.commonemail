@@ -106,11 +106,12 @@ void CMailCpsIf::AllocateResourcesL()
     // create resourcefile 
     CCoeEnv* env = CCoeEnv::Static();
     
-    TFileName resourceFile;
+    // Load resource file from the same drive where this dll is loaded from
+    TFileName dllFileName;
+    Dll::FileName( dllFileName );
     TParse parse;
-    
-    parse.Set( KResourceFile, &KDC_ECOM_RESOURCE_DIR, NULL ); 
-    resourceFile = parse.FullName();
+    User::LeaveIfError( parse.Set( KResourceFile, &dllFileName, NULL ) );
+    TFileName resourceFile( parse.FullName() );
     
     BaflUtils::NearestLanguageFile( env->FsSession(), resourceFile );
     iResourceFileOffset = env->AddResourceFileL( resourceFile );
@@ -474,47 +475,53 @@ void CMailCpsIf::PublishImageL(
             }
         }
 
+    // Parse mif file full path by own dll drive letter
+    TFileName dllFileName;
+    Dll::FileName( dllFileName );
+    TParse mifParse;
+    User::LeaveIfError( mifParse.Set( KMifPath, &dllFileName, NULL ) );
+
     if (!iconIds.Length())
         {
         TBuf<KMaxDescLen> id;
-        iconIds.Copy(KMifPrefix);
-        iconIds.Append(KMifPath);
-        iconIds.Append(KSpace);
-        id.Num(aBitmapId);
-        iconIds.Append(id);     
-        iconIds.Append(KSpace);
-        id.Num(aBitmapMaskId);
-        iconIds.Append(id);        
+        iconIds.Copy( KMifPrefix );
+        iconIds.Append( mifParse.FullName() );
+        iconIds.Append( KSpace );
+        id.Num( aBitmapId );
+        iconIds.Append( id );
+        iconIds.Append( KSpace );
+        id.Num( aBitmapMaskId );
+        iconIds.Append( id );
         }
 
     // The actual image publishing part starts here   
     CLiwGenericParamList* inparam = &(iServiceHandler->InParamListL());
     CLiwGenericParamList* outparam = &(iServiceHandler->OutParamListL());
 
-    TLiwGenericParam type( KType, TLiwVariant(KCpData));
+    TLiwGenericParam type( KType, TLiwVariant( KCpData ) );
     inparam->AppendL( type );
 
     CLiwDefaultMap* pdatamap = CLiwDefaultMap::NewLC();
     CLiwDefaultMap* datamap = CLiwDefaultMap::NewLC();
 
-    pdatamap->InsertL( KPublisherId, TLiwVariant( KPubId ));
-    pdatamap->InsertL( KContentType, TLiwVariant( aContentType ));
-    pdatamap->InsertL( KContentId, TLiwVariant( aContentId ));
+    pdatamap->InsertL( KPublisherId, TLiwVariant( KPubId ) );
+    pdatamap->InsertL( KContentType, TLiwVariant( aContentType ) );
+    pdatamap->InsertL( KContentId, TLiwVariant( aContentId ) );
     
-    datamap->InsertL(aKey, TLiwVariant(iconIds));
+    datamap->InsertL( aKey, TLiwVariant(iconIds) );
 
     pdatamap->InsertL( KDataMap, TLiwVariant(datamap) );
-    TLiwGenericParam item( KItem, TLiwVariant( pdatamap ));       
+    TLiwGenericParam item( KItem, TLiwVariant( pdatamap ) );       
     inparam->AppendL( item );
     
     // Publish icon ( or remove it from widget when no id provided )
     if ( aBitmapId == KNullIcon )
         {
-        iMsgInterface->ExecuteCmdL( KDelete, *inparam, *outparam);    
+        iMsgInterface->ExecuteCmdL( KDelete, *inparam, *outparam );    
         }
     else
         {
-        iMsgInterface->ExecuteCmdL( KAdd, *inparam, *outparam);
+        iMsgInterface->ExecuteCmdL( KAdd, *inparam, *outparam );
         }
     
     CleanupStack::PopAndDestroy( datamap );

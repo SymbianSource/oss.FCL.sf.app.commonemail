@@ -376,6 +376,15 @@ RESOURCE VPBK_FIELD_TYPE_SELECTOR r_fsc_voip_selector
                 EVPbkVersitParamVOIP
                 };
             extensionName = "X-SIP";
+            },
+        VBK_FIELD_VERSIT_PROPERTY
+            {
+            name = EVPbkVersitNameX;
+            extensionName = "X-SIP";
+            },
+        VBK_FIELD_VERSIT_PROPERTY		
+            {
+            name = EVPbkVersitNameTEL;
             }
         };
     }

@@ -42,7 +42,8 @@
 //
 CNcsEditor::CNcsEditor( MNcsFieldSizeObserver* aSizeObserver,
                         TBool aHeaderField,
-                        TNcsEditorUsage aEditorUsage ) :
+                        TNcsEditorUsage aEditorUsage,
+                        const TDesC& aCaptionText ) :
     MNcsControl( aSizeObserver ),
     iPreviousFontHeight( -1 ),
     iPreviousLineSpacingInTwips( -1 ),
@@ -50,7 +51,8 @@ CNcsEditor::CNcsEditor( MNcsFieldSizeObserver* aSizeObserver,
     iHeaderField( aHeaderField ),
     iNcsFontType ( NcsUtility::ENcsHeaderDetailFont ),
     iEditorUsage( aEditorUsage ),
-    iRealRect( 0, 0, 0, 0 )
+    iRealRect( 0, 0, 0, 0 ),
+    iCaptionText( aCaptionText.Alloc() )
     {
     FUNC_LOG;
     }
@@ -90,6 +92,7 @@ CNcsEditor::~CNcsEditor()
         {
         delete iEditorCustomDrawer;        
         }
+    delete iCaptionText;
     }
 
 // -----------------------------------------------------------------------------
@@ -686,4 +689,22 @@ void CNcsEditor::UpdateCustomDrawer()
         {
         iEditorCustomDrawer->UpdateLayout( GetLayout() );
         }
+    }
+
+void CNcsEditor::GetCaptionForFep(TDes& aCaption) const
+    {
+    const TInt maximumLength = aCaption.MaxLength();    
+    if ( iCaptionText && (iCaptionText->Length() < maximumLength) )
+        {
+        TPtr ptr = iCaptionText->Des();
+        aCaption.Copy( ptr ); 
+        }                   
+    }
+ 
+TCoeInputCapabilities CNcsEditor::InputCapabilities() const
+    {
+    TCoeInputCapabilities caps = CEikEdwin::InputCapabilities();
+    TCoeInputCapabilities caps2 = TCoeInputCapabilities(TCoeInputCapabilities::ENone, NULL, const_cast<CNcsEditor*>(this));
+    caps.MergeWith(caps2);
+    return caps;
     }

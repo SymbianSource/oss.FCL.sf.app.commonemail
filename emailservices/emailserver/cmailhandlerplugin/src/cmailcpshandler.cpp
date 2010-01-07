@@ -115,18 +115,18 @@ void CMailCpsHandler::InitializeL()
     // and pass it on to actual publisher interface
     iLiwIf->SetConfiguration( iSettings->Configuration() );
     
-    const TInt iiMax( iSettings->Mailboxes().Count() );
+    TInt iiMax( iSettings->Mailboxes().Count() );
     for ( TInt ii = 0; ii < iiMax; ii++ )
         {
         CFSMailBox* mailbox( NULL );
         mailbox = MailClient().GetMailBoxByUidL( iSettings->Mailboxes()[ii] );
 
-        TInt id(0);
+        TInt mailboxId(0);
         if (mailbox)
             {
-            id = mailbox->GetId().Id();
+            mailboxId = mailbox->GetId().Id();
             }
-        if ( !id )
+        if ( !mailboxId )
             {
             // Remove box from settings
             iSettings->RemoveMailboxL( ii );
@@ -136,13 +136,24 @@ void CMailCpsHandler::InitializeL()
         else
             {
             CleanupStack::PushL( mailbox );
-            CMailMailboxDetails* mailboxDetails = CreateMailboxDetailsL( *mailbox );
-            CleanupStack::PushL( mailboxDetails );
-            TBuf<KMaxDescLen> cid;
-            iSettings->GetContentId(id, cid);
-            mailboxDetails->SetWidgetInstance(cid);
-            iAccountsArray.AppendL( mailboxDetails );
-            CleanupStack::Pop( mailboxDetails );
+            TInt id(1);
+            while (id)
+                {
+                CMailMailboxDetails* mailboxDetails = CreateMailboxDetailsL( *mailbox );
+                CleanupStack::PushL( mailboxDetails );
+            
+                if (id > 1)
+                    {
+                    iiMax = iiMax - 1;
+                    }
+                TBuf<KMaxDescLen> cid;
+                id = iSettings->GetContentId(mailboxId, id, cid);
+                mailboxDetails->SetWidgetInstance(cid);
+                iAccountsArray.AppendL( mailboxDetails );
+    
+                CleanupStack::Pop( mailboxDetails );                
+                }
+            
             CleanupStack::PopAndDestroy( mailbox );            
             }
         }

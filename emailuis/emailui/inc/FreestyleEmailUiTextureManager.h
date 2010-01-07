@@ -49,6 +49,7 @@ enum TFSEmailUiTextures
 	EListTextureNodeCollapsed,
 	EListTextureControlButton,
 	EListTextureMailboxDefaultIcon,
+	EListTextureNewEmailDefaultIcon,
 	EListControlBarMailboxDefaultIcon,
 	EBackgroundTextureViewerHeading,
 	EBackgroundTextureBar,
@@ -156,8 +157,21 @@ enum TFSEmailUiTextures
     EFolderListDeletedItemsTexturePopup,
     EFolderListServerFoldersTexturePopup,
     EFolderListEmailAccountTexturePopup,
-         
-    
+    // SORT LIST ICONS
+    ESortListAttachmentAscTexture,
+    ESortListAttachmentDescTexture,
+    ESortListDateAscTexture,
+    ESortListDateDescTexture,
+    ESortListFollowAscTexture,
+    ESortListFollowDescTexture,
+    ESortListPriorityAscTexture,
+    ESortListPriorityDescTexture,
+    ESortListSenderAscTexture,
+    ESortListSenderDescTexture,
+    ESortListSubjectAscTexture,
+    ESortListSubjectDescTexture,
+    ESortListUnreadAscTexture,
+    ESortListUnreadDescTexture,
 
 	// STATUS INDICATOR ICONS
 	ETextureStatusFirst, // non-texture

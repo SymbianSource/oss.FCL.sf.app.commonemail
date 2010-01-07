@@ -81,68 +81,127 @@ CFSEmailUiMailboxDeleter::~CFSEmailUiMailboxDeleter()
 // allows the user to mark multiple mailboxes for deletion if aId is NullId.
 // ---------------------------------------------------------------------------
 //
-
 void CFSEmailUiMailboxDeleter::DeleteMailboxL()
     {
-    // Make sure that FSMailServer is running so that the mailboxes will also 
-    // be removed from MCE.
-    TFsEmailUiUtility::EnsureFsMailServerIsRunning( CCoeEnv::Static()->WsSession() );
-
     iMailboxesToDelete.Reset();
 
-    // Get mailbox count
+    // Get the deletable mailboxes.
     RPointerArray<CFSMailBox> mailboxes;
-    CleanupResetAndDestroyClosePushL( mailboxes );
-    
-    TFSMailMsgId id; 
-    User::LeaveIfError( iMailClient.ListMailBoxes( id, mailboxes ) );
-       
-    CFSMailBox* mailBox = NULL;
-    
-    // Filter out mailboxes that can't be deleted.
-    for( TInt i(0); i < mailboxes.Count(); )
-        {
-        mailBox = mailboxes[i];
-        if( !mailBox->HasCapability( EFSMBoxCapaCanBeDeleted ) )
-            {
-            delete mailBox;
-            mailboxes.Remove( i );
-            }
-        else
-            {
-            ++i;
-            }
-        }
+    const TInt mailboxCount = GetDeletableMailboxesLC( mailboxes );
     
     TBool res( EFalse );    
     
-    if( mailboxes.Count() == 1 )
+    if( mailboxCount == 1 )
         {
         res = DeleteSingleMailboxL( mailboxes );
         }
-    else if( mailboxes.Count() > 1 )
+    else if( mailboxCount > 1 )
         {
         res = DeleteMultipleMailboxesL( mailboxes );
         }
 
     CleanupStack::PopAndDestroy(); // mailboxes
     
-    if( res && ( iMailboxesToDelete.Count() > 0 ) )
+    if ( res )
         {
-        // Start wait note.
-        iWaitDialog = new (ELeave) CAknWaitDialog( 
-                    (REINTERPRET_CAST(CEikDialog**, &iWaitDialog)), EFalse );
-        iWaitDialog->PrepareLC( R_FS_WAIT_NOTE_REMOVING_MAILBOX );
-        iWaitDialog->SetCallback( this );
-        iWaitDialog->RunLD();
-
-        // Set email indicator off.
-        TFsEmailUiUtility::ToggleEmailIconL(EFalse);
-        
-        // Delete first mailbox in queue.
-        DoDeleteNextMailboxL();        
+        DoDeleteSelectedMailboxesL();
         }
     }
+
+// ---------------------------------------------------------------------------
+// DeleteMailboxL()
+// Deletes the given mailbox. Displays also a confirmation dialog.
+// ---------------------------------------------------------------------------
+//
+void CFSEmailUiMailboxDeleter::DeleteMailboxL( const TFSMailMsgId& aMailboxId )
+	{
+    iMailboxesToDelete.Reset();
+
+    // Get the deletable mailboxes.
+    RPointerArray<CFSMailBox> mailboxes;
+    const TInt mailboxCount = GetDeletableMailboxesLC( mailboxes );
+
+    // Make sure that it is allowed to delete the mailbox with the given ID.
+    CFSMailBox* mailbox = NULL;
+
+    for ( TInt i( 0 ); i < mailboxCount; ++i )
+    	{
+    	mailbox = mailboxes[i];
+
+    	if ( mailbox && mailbox->GetId() == aMailboxId )
+    		{
+    		// The mailbox can be deleted.
+    		break;
+    		}
+
+    	mailbox = NULL;
+    	}
+
+    if ( !mailbox )
+    	{
+    	// Either no mailbox with the given ID exist or it is not allowed to
+    	// be deleted.
+    	// TODO Display an error message?
+    	CleanupStack::PopAndDestroy(); // mailboxes
+    	return;
+    	}
+
+    TBool response = ConfirmMailboxDeletionL( 1, mailbox->GetName() );
+    CleanupStack::PopAndDestroy(); // mailboxes
+
+    if ( !response )
+    	{
+    	// User did not confirm the deletion.
+    	return;
+    	}
+    
+    iMailboxesToDelete.AppendL( aMailboxId );
+    DoDeleteSelectedMailboxesL();
+	}
+
+
+// ---------------------------------------------------------------------------
+// GetDeletableMailboxesLC()
+// Returns the mailboxes that can be deleted.
+// ---------------------------------------------------------------------------
+//
+TInt CFSEmailUiMailboxDeleter::GetDeletableMailboxesLC(
+	RPointerArray<CFSMailBox>& aMailboxes )
+	{
+    // Make sure that FSMailServer is running so that the mailboxes will also
+    // be removed from MCE.
+    TFsEmailUiUtility::EnsureFsMailServerIsRunning(
+    	CCoeEnv::Static()->WsSession() );
+
+    CleanupResetAndDestroyClosePushL( aMailboxes );
+
+    // Get the mailboxes.
+    TFSMailMsgId id; 
+    User::LeaveIfError( iMailClient.ListMailBoxes( id, aMailboxes ) );
+
+    CFSMailBox* mailbox = NULL;
+    
+    // Filter out mailboxes that can't be deleted.
+    const TInt mailboxCount( aMailboxes.Count() );
+
+    for( TInt i( 0 ); i < mailboxCount; )
+        {
+        mailbox = aMailboxes[i];
+
+        if( !mailbox->HasCapability( EFSMBoxCapaCanBeDeleted ) )
+            {
+            delete mailbox;
+            aMailboxes.Remove( i );
+            }
+        else
+            {
+            ++i;
+            }
+        }
+
+    return aMailboxes.Count();
+	}
+
 
 // ---------------------------------------------------------------------------
 // DeleteSingleMailboxL
@@ -162,6 +221,7 @@ TBool CFSEmailUiMailboxDeleter::DeleteSingleMailboxL(
     
     return res;
     }
+
 // ---------------------------------------------------------------------------
 // DeleteMultipleMailboxesL
 // ---------------------------------------------------------------------------
@@ -215,6 +275,36 @@ TBool CFSEmailUiMailboxDeleter::DeleteMultipleMailboxesL(
 
     return res;
     }
+
+
+// ---------------------------------------------------------------------------
+// DoDeleteSelectedMailboxesL()
+// Deletes the selected mailboxes i.e. those of which IDs are in the
+// iMailboxesToDelete array.
+// ---------------------------------------------------------------------------
+//
+void CFSEmailUiMailboxDeleter::DoDeleteSelectedMailboxesL()
+	{
+    if ( iMailboxesToDelete.Count() < 1 )
+    	{
+    	// Nothing to delete!
+    	return;
+    	}
+    
+    // Start wait note.
+    iWaitDialog = new ( ELeave ) CAknWaitDialog(
+        ( REINTERPRET_CAST( CEikDialog**, &iWaitDialog ) ), EFalse );
+    iWaitDialog->PrepareLC( R_FS_WAIT_NOTE_REMOVING_MAILBOX );
+    iWaitDialog->SetCallback( this );
+    iWaitDialog->RunLD();
+
+    // Set email indicator off.
+    TFsEmailUiUtility::ToggleEmailIconL( EFalse );
+        
+    // Delete first mailbox in queue.
+	DoDeleteNextMailboxL();
+	}
+
 
 // ---------------------------------------------------------------------------
 // CreateMarkIconLC

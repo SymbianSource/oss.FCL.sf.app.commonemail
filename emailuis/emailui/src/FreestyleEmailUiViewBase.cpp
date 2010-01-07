@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2008 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2008 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -15,7 +15,7 @@
 *                The class is not intended for instantation.
 *
 */
- 
+
 
 // <cmail> SF
 #include "emailtrace.h"
@@ -41,7 +41,7 @@
 
 // ---------------------------------------------------------------------------
 //
-CFsEmailUiViewBase::CFsEmailUiViewBase( CAlfControlGroup& aControlGroup, 
+CFsEmailUiViewBase::CFsEmailUiViewBase( CAlfControlGroup& aControlGroup,
         CFreestyleEmailUiAppUi& aAppUi )
     : iControlGroup( aControlGroup ), iAppUi( aAppUi )
     {
@@ -67,13 +67,12 @@ void CFsEmailUiViewBase::DoActivateL( const TVwsViewId& aPrevViewId,
 	                                  TUid aCustomMessageId,
 	                                  const TDesC8& aCustomMessage )
     {
-    FUNC_LOG;    
+    FUNC_LOG;
     SetViewActive( ETrue );
-    //<cmail>
+    SetStatusBarLayout();
     iAppUi.StatusPane()->DrawNow();
-    //</cmail>
-    iFocusVisible = iAppUi.IsTimerFocusShown();
-    
+    iFocusVisible = iAppUi.IsFocusShown();
+
     // fix view stack in case of external activation
     if ( aPrevViewId.iAppUid != KFSEmailUiUid )
         {
@@ -98,20 +97,18 @@ void CFsEmailUiViewBase::DoActivateL( const TVwsViewId& aPrevViewId,
             }
         previousView->DoTransition( ETrue ); // fade out prev view
         }
-    
+
     // Clear the flag of long transition effect
     SetNextTransitionOutLong( EFalse );
     UpdateToolbarL();
-
-    SetStatusBarLayout();
 
     // Make sure Alfred display is of correct size (there is some problems with toolbar)
     TRect metricsRect;
     AknLayoutUtils::LayoutMetricsRect(AknLayoutUtils::EMainPane, metricsRect);
     CAlfEnv::Static()->PrimaryDisplay().ForceSetVisibleArea(metricsRect);
-    
+
     // Finally call child classes activation method
-    TRAPD( error, ChildDoActivateL(aPrevViewId, aCustomMessageId, aCustomMessage) );    
+    TRAPD( error, ChildDoActivateL(aPrevViewId, aCustomMessageId, aCustomMessage) );
     if ( !error )
         {
         // View activated succesfully. Change visible control group, but not
@@ -162,7 +159,7 @@ void CFsEmailUiViewBase::UpdateToolbarL()
 
 // ---------------------------------------------------------------------------
 //
-void CFsEmailUiViewBase::GetInitiallyDimmedItemsL( 
+void CFsEmailUiViewBase::GetInitiallyDimmedItemsL(
         const TInt /*aResourceId*/, RArray<TInt>& aDimmedItems ) const
     {
     FUNC_LOG;
@@ -222,21 +219,21 @@ void CFsEmailUiViewBase::SetToolbarItemDimmed( const TInt aCommandId, const TBoo
 void CFsEmailUiViewBase::DoDeactivate()
     {
     FUNC_LOG;
-    SetViewActive( EFalse );    
+    SetViewActive( EFalse );
 
     HideToolbar();
-   
+
     // Make control group ignore input and hide it if it's not already fading out.
     DeactivateControlGroup();
 
     // do view specific deactivation
     ChildDoDeactivate();
-    
+
     // Return to another app in case this view was activated externally
     if ( iSendToBackgroundOnDeactivation )
         {
         iSendToBackgroundOnDeactivation = EFalse;
-        
+
         // Try to bring calling external app into foreground if found
         TApaTaskList taskList( iEikonEnv->WsSession() );
         TApaTask prevAppTask = taskList.FindApp( iPreviousAppUid );
@@ -271,11 +268,11 @@ void CFsEmailUiViewBase::DoTransition( TBool aDirectionOut )
 // some special tricks for transition effects
 //
 void CFsEmailUiViewBase::DoTransitionEffect( TBool aDirectionOut )
-    {  
+    {
     FUNC_LOG;
     RPointerArray<CAlfVisual> layoutArray;
     TRAP_IGNORE( GetParentLayoutsL( layoutArray ) );
-    
+
     // For views that return valid parent layout(s), use the fade effect,
     // for all other views, use the showing/hiding of control groups
     for ( TInt i = 0 ; i < layoutArray.Count() ; i++ )
@@ -290,7 +287,7 @@ void CFsEmailUiViewBase::DoTransitionEffect( TBool aDirectionOut )
                 {
                 FadeVisual( layoutArray[i], ETrue, ETrue );
                 }
-            
+
             FadeVisual( layoutArray[i], aDirectionOut );
             }
         }
@@ -315,13 +312,13 @@ void CFsEmailUiViewBase::FadeVisual(
         CAlfVisual* aVisual,
         TBool aFadeDirectionOut,
         TBool aImmediate /*= EFalse*/)
-    {   
+    {
     FUNC_LOG;
     // Check that we are not exiting and is fade effect activated
     if ( !iAppUi.AppUiExitOngoing() )
         {
         TInt effectTime = 0;
-        
+
         if ( !aImmediate && iAppUi.LayoutHandler() )
             {
             if( aFadeDirectionOut )
@@ -333,18 +330,18 @@ void CFsEmailUiViewBase::FadeVisual(
                 effectTime = iAppUi.LayoutHandler()->ViewFadeInEffectTime();
                 }
             }
-        
+
         if ( aFadeDirectionOut && IsNextTransitionOutLong() )
             {
             effectTime = effectTime * 2;
             }
-    
+
         // Initialize for out fading
         TAlfTimedValue timedValue( 0, effectTime );
         // Check value and initialze for in fading if set
         if ( !aFadeDirectionOut )
             {
-            timedValue.SetTarget( 1, effectTime ); 
+            timedValue.SetTarget( 1, effectTime );
             }
         aVisual->SetOpacity( timedValue );
         }
@@ -376,16 +373,16 @@ void CFsEmailUiViewBase::ActivateControlGroup( TInt aDelay /*= 0*/ )
     if ( !iAppUi.AppUiExitOngoing() )
         {
         TAlfGroupCommand showCmd( ControlGroup(), EAlfOpShow, &iAppUi.Display() );
-        iAppUi.AlfEnv().Send( showCmd, aDelay );            
+        iAppUi.AlfEnv().Send( showCmd, aDelay );
         ControlGroup().SetAcceptInput( ETrue );
-    
+
         // Status indicator is "always on top" while visible
         /*if ( iAppUi.StatusIndicator() && iAppUi.StatusIndicator()->IsVisible() )
             {
             CAlfControlGroup& indicatorGroup = iAppUi.AlfEnv().ControlGroup( KStatusIndicatorDisplayGroup );
             TAlfGroupCommand indicShowCmd( indicatorGroup, EAlfOpShow, &iAppUi.Display() );
-            iAppUi.AlfEnv().Send( indicShowCmd, 0 );        
-            indicatorGroup.SetAcceptInput( EFalse ); 
+            iAppUi.AlfEnv().Send( indicShowCmd, 0 );
+            indicatorGroup.SetAcceptInput( EFalse );
             }*/
         }
     }
@@ -396,12 +393,12 @@ void CFsEmailUiViewBase::DeactivateControlGroup( TInt aDelay /*= 0*/ )
     {
     FUNC_LOG;
     const TReal32 KDelta = 0.01; // floating point comparison tolerance
-    
+
     if ( !iAppUi.AppUiExitOngoing() )
         {
         ControlGroup().SetAcceptInput( EFalse );
-    
-        // Hide the control group immediately only if it's not already faded or 
+
+        // Hide the control group immediately only if it's not already faded or
         // fading out. This is to not interfere with the cross fading effect.
         RPointerArray<CAlfVisual> layoutArray;
         TRAP_IGNORE( GetParentLayoutsL( layoutArray ) );
@@ -409,14 +406,14 @@ void CFsEmailUiViewBase::DeactivateControlGroup( TInt aDelay /*= 0*/ )
         TInt fadingCount = 0;
         for ( TInt i = 0 ; i < layoutCount ; ++i )
             {
-            CAlfVisual* layout = layoutArray[i]; 
+            CAlfVisual* layout = layoutArray[i];
             if ( layout && layout->Opacity().Target() < KDelta )
                 {
                 fadingCount++;
                 }
             }
         layoutArray.Close();
-        
+
         if ( !layoutCount || fadingCount != layoutCount )
             {
             iAppUi.AlfEnv().CancelCommands( &ControlGroup(), EAlfOpShow );
@@ -458,16 +455,16 @@ void CFsEmailUiViewBase::HandleAppForegroundEventL( TBool aForeground )
 void CFsEmailUiViewBase::HandleDynamicVariantSwitchL( TDynamicSwitchType aType )
     {
     FUNC_LOG;
-// <cmail> Toolbar    
+// <cmail> Toolbar
     switch (aType)
         {
         case EScreenLayoutChanged:
-            UpdateToolbarL();           
+            UpdateToolbarL();
             break;
         }
-// </cmail> Toolbar    
+// </cmail> Toolbar
     // Inherited classes should override this to react to skin and layout changes
-    
+
 #ifdef __WINSCW__
     // For emulator testing: landscape mode is "flip open"
     FlipStateChangedL(  Layout_Meta_Data::IsLandscapeOrientation() );
@@ -481,7 +478,7 @@ void CFsEmailUiViewBase::HandleDynamicVariantSwitchOnBackgroundL( TDynamicSwitch
     FUNC_LOG;
     // Inherited classes should override this to react to skin and layout changes
     // which happen while the view is on background
-    
+
 #ifdef __WINSCW__
     // For emulator testing: landscape mode is "flip open"
     FlipStateChangedL(  Layout_Meta_Data::IsLandscapeOrientation() );
@@ -490,7 +487,7 @@ void CFsEmailUiViewBase::HandleDynamicVariantSwitchOnBackgroundL( TDynamicSwitch
 
 // ---------------------------------------------------------------------------
 //
-TBool CFsEmailUiViewBase::IsNextMsgAvailable( TFSMailMsgId /*aCurrentMsgId*/, 
+TBool CFsEmailUiViewBase::IsNextMsgAvailable( TFSMailMsgId /*aCurrentMsgId*/,
                                               TFSMailMsgId& /*aFoundNextMsgId*/,
                                               TFSMailMsgId& /*aFoundNextMsgFolderId*/ ) const
     {
@@ -500,7 +497,7 @@ TBool CFsEmailUiViewBase::IsNextMsgAvailable( TFSMailMsgId /*aCurrentMsgId*/,
 
 // ---------------------------------------------------------------------------
 //
-TBool CFsEmailUiViewBase::IsPreviousMsgAvailable( TFSMailMsgId /*aCurrentMsgId*/, 
+TBool CFsEmailUiViewBase::IsPreviousMsgAvailable( TFSMailMsgId /*aCurrentMsgId*/,
                                                   TFSMailMsgId& /*aFoundPreviousMsgId*/,
                                                   TFSMailMsgId& /*aFoundPrevMsgFolderId*/ ) const
     {
@@ -519,8 +516,16 @@ TInt CFsEmailUiViewBase::MoveToNextMsgL( TFSMailMsgId /*aCurrentMsgId*/,
 
 // ---------------------------------------------------------------------------
 //
-TInt CFsEmailUiViewBase::MoveToPreviousMsgL( TFSMailMsgId /*aCurrentMsgId*/, 
+TInt CFsEmailUiViewBase::MoveToPreviousMsgL( TFSMailMsgId /*aCurrentMsgId*/,
                                              TFSMailMsgId& /*aFoundPreviousMsgId*/ )
+    {
+    FUNC_LOG;
+    return KErrNotFound;
+    }
+
+// ---------------------------------------------------------------------------
+//
+TInt CFsEmailUiViewBase::MoveToPreviousMsgAfterDeleteL( TFSMailMsgId /*aFoundPreviousMsgId*/ )
     {
     FUNC_LOG;
     return KErrNotFound;
@@ -599,9 +604,9 @@ void CFsEmailUiViewBase::ChangeMskCommandL( TInt aLabelResourceId )
     {
     FUNC_LOG;
     CEikButtonGroupContainer* cba = Cba();
-    if ( cba ) 
+    if ( cba )
         {
-        cba->SetCommandL( CEikButtonGroupContainer::EMiddleSoftkeyPosition, 
+        cba->SetCommandL( CEikButtonGroupContainer::EMiddleSoftkeyPosition,
                             aLabelResourceId );
         cba->DrawDeferred();
         }
@@ -619,11 +624,11 @@ TBool CFsEmailUiViewBase::HasToolbar() const
 
 // -----------------------------------------------------------------------------
 // CFsEmailUiViewBase::ToolbarResourceId
-// 
+//
 // -----------------------------------------------------------------------------
 TInt CFsEmailUiViewBase::ToolbarResourceId() const
     {
-    FUNC_LOG;    
+    FUNC_LOG;
     return R_FREESTYLE_EMAIL_UI_TOOLBAR_BLANK;
     }
 
@@ -675,11 +680,9 @@ void CFsEmailUiViewBase::SetStatusBarLayout()
 // -----------------------------------------------------------------------------
 // CFsEmailUiViewBase::HandleTimerFocusStateChange
 // -----------------------------------------------------------------------------
-void CFsEmailUiViewBase::HandleTimerFocusStateChange(TBool aShow)
+void CFsEmailUiViewBase::FocusVisibilityChange( TBool aVisible )
 	{
-    iFocusVisible = aShow;
+    iFocusVisible = aVisible;
 	}
 
-
 // end of file
-

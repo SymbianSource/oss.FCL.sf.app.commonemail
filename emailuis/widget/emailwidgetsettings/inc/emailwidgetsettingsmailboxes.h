@@ -43,16 +43,25 @@ public:
 
     /**
      * 
+     * @param
      * @param 
      */
     void GetMailboxIdL(TInt aNum, TFSMailMsgId& aId );
     
     /**
      * 
+     * @param
      * @param 
      */	
     void GetMailboxNameL( TInt aNum, TDes& aMailboxName );
 
+    /**
+     * 
+     * @param
+     * @param  
+     */
+    void GetDomainL(TInt aNum, TDes& aDomain);
+    
     /**
      * 
      */

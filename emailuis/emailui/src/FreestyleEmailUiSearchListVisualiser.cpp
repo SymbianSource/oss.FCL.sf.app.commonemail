@@ -53,6 +53,7 @@
 #include <alf/alfcommand.h>
 #include <aknnotewrappers.h>
 // <cmail>
+#include <layoutmetadata.cdl.h>
 #include <aknlayoutscalable_apps.cdl.h>
 // </cmail>
 #include <featmgr.h>
@@ -431,6 +432,7 @@ void CFSEmailUiSearchListVisualiser::ChildDoActivateL(const TVwsViewId& aPrevVie
 
 	// <cmail> Touch
 	iSearchList->SetFocusedL(ETrue);
+	FocusVisibilityChange( iAppUi.IsFocusShown() );
 	// </cmail>
  	}
 
@@ -734,6 +736,11 @@ void CFSEmailUiSearchListVisualiser::HandleDynamicVariantSwitchL( CFsEmailUiView
     CFsEmailUiViewBase::HandleDynamicVariantSwitchL( aType );
     if ( iFirstStartCompleted ) // Safety
         {
+        if ( aType == EScreenLayoutChanged )
+            {
+            SetStatusBarLayout();
+            }
+    
         if ( iSearchTreeListVisualizer )
             {
             TRgb normalColor = iAppUi.LayoutHandler()->ListNormalStateTextSkinColor();
@@ -760,13 +767,14 @@ void CFSEmailUiSearchListVisualiser::FlipStateChangedL( TBool aKeyboardFlipOpen 
     }
 
 // -----------------------------------------------------------------------------
-//  CFSEmailUiSearchListVisualiser::HandleTimerFocusStateChange
+//  CFSEmailUiSearchListVisualiser::FocusVisibilityChange
 // -----------------------------------------------------------------------------
 //
-void CFSEmailUiSearchListVisualiser::HandleTimerFocusStateChange( TBool aShow )
+void CFSEmailUiSearchListVisualiser::FocusVisibilityChange(
+        TBool aVisible )
     {
-    CFsEmailUiViewBase::HandleTimerFocusStateChange( aShow );
-    iSearchTreeListVisualizer->SetFocusVisibility( aShow );
+    CFsEmailUiViewBase::FocusVisibilityChange( aVisible );
+    iSearchTreeListVisualizer->SetFocusVisibility( aVisible );
     }
 
 // ---------------------------------------------------------------------------
@@ -776,11 +784,18 @@ void CFSEmailUiSearchListVisualiser::HandleTimerFocusStateChange( TBool aShow )
 //
 void CFSEmailUiSearchListVisualiser::SetStatusBarLayout()
 	{
-	if ( StatusPane()->CurrentLayoutResId() != R_AVKON_STATUS_PANE_LAYOUT_USUAL_FLAT )
-		{
-		TRAP_IGNORE(
-			StatusPane()->SwitchLayoutL( R_AVKON_STATUS_PANE_LAYOUT_USUAL_FLAT ));
-		}
+    TInt res = R_AVKON_STATUS_PANE_LAYOUT_USUAL_FLAT;
+    if( Layout_Meta_Data::IsLandscapeOrientation() )
+        {
+        // landscape must use different layout
+        res = R_AVKON_STATUS_PANE_LAYOUT_IDLE_FLAT;
+        }
+    
+    if ( StatusPane()->CurrentLayoutResId() !=  res )
+        {
+        TRAP_IGNORE(
+            StatusPane()->SwitchLayoutL( res ));
+        }
 	}
 
 void CFSEmailUiSearchListVisualiser::HandleCommandL( TInt aCommand )
@@ -909,6 +924,11 @@ void CFSEmailUiSearchListVisualiser::HandleCommandL( TInt aCommand )
 			}
             break;
         case EAknSoftkeyOpen:
+    		if (!iAppUi.IsFocusShown())
+    			{
+    			iAppUi.SetFocusVisibility( ETrue);
+    			break;
+    			}
         case EFsEmailUiCmdOpen:
         	{
  			if ( iSearchList->Count() )
@@ -1152,7 +1172,22 @@ TBool CFSEmailUiSearchListVisualiser::OfferEventL(const TAlfEvent& aEvent)
             if ( scanCode == EStdKeyRightArrow ) scanCode = EStdKeyLeftArrow;
             else if ( scanCode == EStdKeyLeftArrow ) scanCode = EStdKeyRightArrow;
             }
-        
+        // Handle possible focus visibility change
+		if ((scanCode == EStdKeyRightArrow)
+			|| (scanCode == EStdKeyLeftArrow)
+			|| (scanCode == EStdKeyUpArrow)
+			|| (scanCode == EStdKeyDownArrow)
+			|| (scanCode == EStdKeyEnter)
+			|| (scanCode == EStdKeyDeviceA)
+			|| (scanCode == EStdKeyDevice3))
+			{
+            // If the focus was not active already, ignore the key press
+            if( !iAppUi.SetFocusVisibility( ETrue ) )
+                {
+                return ETrue;
+                }
+            
+			}
         switch ( scanCode )
             {
             case EStdKeyDevice3: // CENTER CLICK
@@ -1242,7 +1277,6 @@ void CFSEmailUiSearchListVisualiser::SetSearchListLayoutAnchors()
 	// There's no need to mirror anything manually here.
 	
 	// BAR BACGROUND IMAGE
-    //<cmail> platform layout changes
     TRect contBarRect = iAppUi.LayoutHandler()->GetControlBarRect();
     TPoint& tl( contBarRect.iTl );
     iScreenAnchorLayout->SetAnchor(EAlfAnchorTopLeft, 0, 
@@ -1254,23 +1288,8 @@ void CFSEmailUiSearchListVisualiser::SetSearchListLayoutAnchors()
         EAlfAnchorOriginLeft, EAlfAnchorOriginTop,
         EAlfAnchorMetricAbsolute, EAlfAnchorMetricAbsolute,
         TAlfTimedPoint( br.iX, br.iY ));
-    //</cmail>
-
-	// LOOKING GLASS IMAGE
-    //<cmail> search magnifier icon removed from cmail
-    /*TRect searchIconRect( iAppUi.LayoutHandler()->GetControlBarMailboxIconRect() );
-    const TPoint& tl( searchIconRect.iTl );
-    iScreenAnchorLayout->SetAnchor(EAlfAnchorTopLeft, 1, 
-        EAlfAnchorOriginLeft, EAlfAnchorOriginTop,
-        EAlfAnchorMetricRelativeToSize, EAlfAnchorMetricRelativeToSize,
-        TAlfTimedPoint(0, 0 ));
-    iScreenAnchorLayout->SetAnchor(EAlfAnchorBottomRight, 1, 
-        EAlfAnchorOriginLeft, EAlfAnchorOriginTop,
-        EAlfAnchorMetricAbsolute, EAlfAnchorMetricAbsolute,
-        TAlfTimedPoint(KSearchIconWidth, iAppUi.LayoutHandler()->ControlBarHeight()));*/	
         
 	// TEXT
-    //<cmail> platform layout changes
     TRect textRect =  iAppUi.LayoutHandler()->GetSearchListHeaderTextLayout().TextRect();
     tl = textRect.iTl;
     iScreenAnchorLayout->SetAnchor(EAlfAnchorTopLeft, 1, 
@@ -1282,10 +1301,8 @@ void CFSEmailUiSearchListVisualiser::SetSearchListLayoutAnchors()
         EAlfAnchorOriginLeft, EAlfAnchorOriginTop,
         EAlfAnchorMetricAbsolute, EAlfAnchorMetricAbsolute,
         TAlfTimedPoint( br.iX, br.iY ));
-    //</cmail>
 
-    //<cmail> platform layout changes
-    TRect listRect = iAppUi.LayoutHandler()->GetListRect();
+    TRect listRect = iAppUi.LayoutHandler()->GetListRect( ETrue );
     iScreenAnchorLayout->SetAnchor(EAlfAnchorTopLeft, 2, 
         EAlfAnchorOriginLeft, EAlfAnchorOriginTop,
         EAlfAnchorMetricAbsolute, EAlfAnchorMetricAbsolute,
@@ -1294,7 +1311,6 @@ void CFSEmailUiSearchListVisualiser::SetSearchListLayoutAnchors()
         EAlfAnchorOriginLeft, EAlfAnchorOriginTop,
         EAlfAnchorMetricAbsolute, EAlfAnchorMetricAbsolute,
         TAlfTimedPoint(listRect.iBr.iX, listRect.iBr.iY));
-    //</cmail>
 	}
 
 
@@ -2282,6 +2298,7 @@ TInt CFSEmailUiSearchListVisualiser::MoveToPreviousMsgL( TFSMailMsgId aCurrentMs
         aFoundPreviousMsgId = MsgIdFromIndex( prevIdx );
 	    ret = KErrNone;
 	    }
+	
 	if ( ret == KErrNone )
 		{
 		OpenHighlightedMailL();
@@ -2289,6 +2306,27 @@ TInt CFSEmailUiSearchListVisualiser::MoveToPreviousMsgL( TFSMailMsgId aCurrentMs
 	return ret;
 	}
 
+TInt CFSEmailUiSearchListVisualiser::MoveToPreviousMsgAfterDeleteL( TFSMailMsgId aFoundPreviousMsgId )
+	{
+	FUNC_LOG;
+	TInt ret(KErrNotFound);	
+	
+	TInt idx = ItemIndexFromMessageId( aFoundPreviousMsgId );	
+	if ( idx >= 0 )
+		{		
+		// Focus the previous message
+		iSearchTreeListVisualizer->SetFocusedItemL( iSearchListItemArray[idx].iSearchListItemId );
+		ChangeReadStatusOfHighlightedL( ETrue );
+		ret = KErrNone;		
+		}
+
+	if ( ret == KErrNone )
+		{
+		OpenHighlightedMailL();
+		}
+	
+	return ret;
+	}
 
 	// Helper functions to get highlighted message id and folder id
 TFSMailMsgId CFSEmailUiSearchListVisualiser::HighlightedMessageFolderId()
@@ -2348,6 +2386,11 @@ void CFSEmailUiSearchListVisualiser::TreeListEventL( const TFsTreeListEvent aEve
             SetMskL(); 
             break;
             }            
+        case MFsTreeListObserver::EFsFocusVisibilityChange:
+        	{
+        	iAppUi.SetFocusVisibility( EFalse );
+        	break;
+        	}
         case MFsTreeListObserver::EFsTreeListItemTouchFocused:
         default:
             //Just ignore rest of events

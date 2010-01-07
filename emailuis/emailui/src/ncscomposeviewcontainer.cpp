@@ -760,6 +760,8 @@ void CNcsComposeViewContainer::SizeChanged()
         iMessageEditorMinHeigth = messageLineHeigth;
         }
 
+    UpdateFieldPosition( NULL );
+    
     TRAP_IGNORE( UpdateScrollBarL() );
     DrawNow();
     
@@ -1100,9 +1102,17 @@ void CNcsComposeViewContainer::AddQuickTextL( const TDesC& aText )
     {
     FUNC_LOG;
 
+    // If in 'To' field, go to msg. field
+    if(!iMessageField->IsFocused())
+    	{
+    	SetFocusToMessageFieldL();
+    	}
 	TInt pos = iMessageField->CursorPos();
 	TCursorSelection selIns( pos, pos );
 	iMessageField->InsertDeleteCharsL( pos, aText, selIns );
+	//Fix for error EFTG-7Y63XG, moving cursor to the end of inserted text
+	pos += aText.Length();
+	iMessageField->SetCursorPosL(pos,EFalse);
 	DrawDeferred();
 
     }
@@ -1762,20 +1772,12 @@ void CNcsComposeViewContainer::DoPopupSelectL()
 void CNcsComposeViewContainer::HandleLayoutChangeL()
     {
     FUNC_LOG;
-    // <cmail> Platform layout change
-    const TRect rect( NcsUtility::ListscrollPaneRect() );
+    TRect rect = iView.ClientRect();
     SetRect( rect );
-    // </cmail> Platform layout change
     if ( iHeader )
         {
         iHeader->HandleDynamicVariantSwitchL();
         }
-    // <cmail> Platform layout change
-    //TRect rect = iView.ClientRect();
-    //SetApplicationRect( rect );
-    //SetRect( rect );
-	//UpdateScreenPositionL();
-    // </cmail> Platform layout change
     UpdateScrollBarL();
     }
 

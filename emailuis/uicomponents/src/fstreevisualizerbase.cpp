@@ -19,9 +19,6 @@
 //////SYSTEM INCLUDES
 #include "emailtrace.h"
 #include <AknUtils.h>
-//<cmail> removed __FS_ALFRED_SUPPORT flag
-//#include <fsconfig.h>
-//</cmail> removed __FS_ALFRED_SUPPORT flag
 #include <StringLoader.h>
 #include <avkon.rsg> // R_AVKON_EMPTY_POPUP_LIST_TEXT
 #include <centralrepository.h>
@@ -1526,12 +1523,12 @@ void CFsTreeVisualizerBase::SetFlipState( TBool aOpen )
 //
 void CFsTreeVisualizerBase::SetFocusVisibility( TBool aShow )
     {
-    if( iFocusVisible != aShow )
+    if ( iFocusVisible != aShow )
         {
         iFocusVisible = aShow;
         TRAP_IGNORE(
-            MakeSelectorVisibleL(aShow);
-            UpdateItemL(iFocusedItem); );
+            MakeSelectorVisibleL( aShow );
+            UpdateItemL( iFocusedItem ); );
         }
     }
 
@@ -1578,18 +1575,15 @@ TBool CFsTreeVisualizerBase::HandlePointerEventL(const TAlfEvent& aEvent)
                         {
                         eventHandled = ETrue;
                         iTouchPressed = EFalse;
-                        UpdateItemL( iFocusedItem );
-                        if( !IsFocusShown() )
-                            {
-                            MakeSelectorVisibleL( EFalse );
-                            }
+                        iVisualizerObserver->TreeVisualizerEventL(
+                            MFsTreeVisualizerObserver::EFsChangeFocusVisibility );
                         INFO_2( "EButton1Up (%d, %d)", pos.iX, pos.iY );
-                        if( !iDragHandler->IsFlicking() )
-                            {
-                            iPhysics->StopPhysics();
-                            }
-                        iDragHandler->PointerUp( aEvent.PointerEvent(), id );
                         }
+                    if( !iDragHandler->IsFlicking() )
+                        {
+                        iPhysics->StopPhysics();
+                        }
+                    iDragHandler->PointerUp( aEvent.PointerEvent(), id );
                     break;
                     }
                 case TPointerEvent::EDrag:
@@ -1623,6 +1617,11 @@ TBool CFsTreeVisualizerBase::HandlePointerEventL(const TAlfEvent& aEvent)
                     }
                 }
             }
+        else
+        	{
+        	iVisualizerObserver->TreeVisualizerEventL(
+					MFsTreeVisualizerObserver::EFsChangeFocusVisibility );
+        	}
         }
     return eventHandled;
     }
@@ -1682,34 +1681,41 @@ TFsTreeItemId CFsTreeVisualizerBase::VisualItemId(const CAlfVisual* aVisual) con
 // Sets the specified item as focused.
 // ---------------------------------------------------------------------------
 //
-void CFsTreeVisualizerBase::SetFocusedItemL(const TFsTreeItemId aItemId,
-        TBool /*aCheckFocus*/)
+void CFsTreeVisualizerBase::SetFocusedItemL( const TFsTreeItemId aItemId,
+		TBool /*aCheckFocus*/ )
     {
     FUNC_LOG;
     MFsTreeItemVisualizer* visualizer = NULL;
-    if (aItemId != iFocusedItem)
+
+    if ( aItemId != iFocusedItem )
         {
-        visualizer = iTreeData->ItemVisualizer(iFocusedItem);
-        if (visualizer)
+        visualizer = iTreeData->ItemVisualizer( iFocusedItem );
+
+        if ( visualizer )
             {
-            visualizer->UpdateL(iTreeData->ItemData(iFocusedItem), EFalse,
-                    iTreeData->Level(iFocusedItem), iMarkIcon, iMenuIcon, 0);
+            visualizer->UpdateL( iTreeData->ItemData( iFocusedItem ), EFalse,
+            		iTreeData->Level( iFocusedItem ), iMarkIcon, iMenuIcon, 0 );
             }
+
         iFocusedItem = aItemId;
         }
-    visualizer = iTreeData->ItemVisualizer(iFocusedItem);
-    if (visualizer)
+
+    visualizer = iTreeData->ItemVisualizer( iFocusedItem );
+
+    if ( visualizer )
         {
         TBool focused = IsFocusShown();    
-        visualizer->UpdateL(iTreeData->ItemData(iFocusedItem), focused,
-                iTreeData->Level(iFocusedItem), iMarkIcon, iMenuIcon, 0);
+        visualizer->UpdateL( iTreeData->ItemData( iFocusedItem ), focused,
+                iTreeData->Level( iFocusedItem ), iMarkIcon, iMenuIcon, 0 );
         }
-    if (iFocusedItem != KFsTreeNoneID)
+
+    if ( iFocusedItem != KFsTreeNoneID )
         {
         UpdateSelectorVisualL();
-        if (!iViewPort.ItemFullyVisible(iFocusedItem))
+
+        if ( !iViewPort.ItemFullyVisible( iFocusedItem ) )
             {
-            iViewPort.ScrollItemToViewL(iFocusedItem);
+            iViewPort.ScrollItemToViewL( iFocusedItem );
             }
         }
     }
@@ -2558,7 +2564,6 @@ EXPORT_C void CFsTreeVisualizerBase::SetBackgroundColorL(TRgb aColor)
             iWatermarkLayout->Brushes()->Reset();
             iWatermarkLayout->SetFlag(EAlfVisualChanged);
             }
-        }
 
     CAlfGradientBrush* backgroundBrush = CAlfGradientBrush::NewL(
             iOwnerControl->Env());
@@ -2566,6 +2571,7 @@ EXPORT_C void CFsTreeVisualizerBase::SetBackgroundColorL(TRgb aColor)
     backgroundBrush->SetColor(aColor);
 
     iWatermarkLayout->Brushes()->AppendL(backgroundBrush, EAlfHasOwnership);
+        }    
     }
 
 // ---------------------------------------------------------------------------
@@ -3616,6 +3622,7 @@ void CFsTreeVisualizerBase::UpdateScrollBarIfNeededL()
         {
         iScrollbarModel.SetFocusPosition(iViewPort.Position().iY);
         iScrollBar->SetModelL(&iScrollbarModel);
+        iScrollBar->DrawNow();
         }
     }
 
@@ -3642,6 +3649,7 @@ void CFsTreeVisualizerBase::UpdateScrollBarL(const TInt /*aTimeout*/)
     iScrollbarModel.SetWindowSize(pageSize);
     iScrollbarModel.SetFocusPosition(iViewPort.Position().iY);
     iScrollBar->SetModelL(&iScrollbarModel);
+    iScrollBar->DrawNow();
 
     RArray<TInt> columns;
     CleanupClosePushL(columns);
@@ -3650,15 +3658,32 @@ void CFsTreeVisualizerBase::UpdateScrollBarL(const TInt /*aTimeout*/)
             == EFsTreeVisible)
         {
         iScrollBar->SetRect(scrollPane);
-        columns.AppendL(listPane.Width());
-        columns.AppendL(scrollPane.Width());
+        if (AknLayoutUtils::LayoutMirrored())
+            {
+            columns.AppendL(scrollPane.Width());
+            columns.AppendL(listPane.Width());
+            }
+        else
+            {
+            columns.AppendL(listPane.Width());
+            columns.AppendL(scrollPane.Width());
+            }
         iComponentLayout->SetColumnsL(columns);
         iScrollBar->MakeVisible(ETrue);
         updateLayouts = ETrue;
         }
     else if (!iViewPort.IsScrollBarNeeded())
         {
-        columns.AppendL(listPane.Width());
+        if (AknLayoutUtils::LayoutMirrored())
+            {
+            columns.AppendL(0);
+            columns.AppendL(listPane.Width());
+            }
+        else
+            {
+            columns.AppendL(listPane.Width());
+            columns.AppendL(0);
+            }
         iComponentLayout->SetColumnsL(columns);
         iScrollBar->MakeVisible(EFalse);
         updateLayouts = ETrue;
@@ -3922,59 +3947,64 @@ void CFsTreeVisualizerBase::MakeSelectorVisibleL(TBool aVisible, TInt aDelay)
 void CFsTreeVisualizerBase::UpdateSelectorVisualL(TInt /*aTime*/)
     {
     FUNC_LOG;
-    if (iSelectorVisual)
+
+    if ( iSelectorVisual )
         {
-        if (iFocusedItem == KFsTreeNoneID || !iFlags.IsSet(EListFocused) || !IsFocusShown())
+        if ( iFocusedItem == KFsTreeNoneID ||
+        	 !iFlags.IsSet( EListFocused ) || !IsFocusShown() )
             {
             TAlfTimedValue opacity;
-            opacity.SetValueNow(0.0f);
-            iSelectorVisual->SetOpacity(opacity);
+            opacity.SetValueNow( 0.0f );
+            iSelectorVisual->SetOpacity( opacity );
             }
         else
             {
             //check if item is visible
-            MFsTreeItemVisualizer* vis(NULL);
+            MFsTreeItemVisualizer* vis( NULL );
 
-            iListLayout->SetFlag(EAlfVisualFlagFreezeLayout);
-            iListItemBackgroundLayout->SetFlag(EAlfVisualFlagFreezeLayout);
+            iListLayout->SetFlag( EAlfVisualFlagFreezeLayout );
+            iListItemBackgroundLayout->SetFlag( EAlfVisualFlagFreezeLayout );
 
-            TRect itemRect(iViewPort.ItemRect(iFocusedItem));
-            if (itemRect.Height())
+            TRect itemRect( iViewPort.ItemRect( iFocusedItem ) );
+
+            if ( itemRect.Height() )
                 {
                 TSize currSize;
                 currSize.iWidth = iListLayout->Size().iX.Target() - 2
                         * iListLayout->PaddingInPixels().iTl.iX;
                 currSize.iHeight = itemRect.Height();
-                iSelectorVisual->SetSize(currSize, 0);
+                iSelectorVisual->SetSize( currSize, 0 );
                 TAlfRealPoint pNow;
                 pNow.iY = itemRect.iTl.iY;
                 pNow.iX = iListLayout->PaddingInPixels().iTl.iX;
-                iSelectorVisual->SetPos(pNow, 0);
+                iSelectorVisual->SetPos( pNow, 0 );
 
-                TAlfTimedValue opacity(iSelectorOpacity, 0);
-                iSelectorVisual->SetOpacity(opacity);
-                if (iMarqueeType != EFsTextMarqueeNone)
+                TAlfTimedValue opacity( iSelectorOpacity, 0 );
+                iSelectorVisual->SetOpacity( opacity );
+                iFocusVisible = ETrue;
+
+                if ( iMarqueeType != EFsTextMarqueeNone )
                     {
-                    vis = iTreeData->ItemVisualizer(iFocusedItem);
-                    vis->MarqueeL(iMarqueeType, iMarqueeSpeed,
-                            iMarqueStartDelay, iMarqueCycleStartDelay,
-                            iMarqueeRepetitions);
+                    vis = iTreeData->ItemVisualizer( iFocusedItem );
+                    vis->MarqueeL( iMarqueeType, iMarqueeSpeed,
+                    		iMarqueStartDelay, iMarqueCycleStartDelay,
+                            iMarqueeRepetitions );
                     }
                 }
             else
                 {
                 TAlfTimedValue opacity;
-                opacity.SetValueNow(0.0f);
-                iSelectorVisual->SetOpacity(opacity);
+                opacity.SetValueNow( 0.0f );
+                iSelectorVisual->SetOpacity( opacity );
                 }
 
-            iListLayout->ClearFlag(EAlfVisualFlagFreezeLayout);
-            iListItemBackgroundLayout->ClearFlag(EAlfVisualFlagFreezeLayout);
+            iListLayout->ClearFlag( EAlfVisualFlagFreezeLayout );
+            iListItemBackgroundLayout->ClearFlag( EAlfVisualFlagFreezeLayout );
             }
         }
-    else if (iFocusedItem != KFsTreeNoneID && iFlags.IsSet(EListFocused))
+    else if ( iFocusedItem != KFsTreeNoneID && iFlags.IsSet( EListFocused ) )
         {
-        MakeSelectorVisibleL(ETrue);
+        MakeSelectorVisibleL( ETrue );
         }
     }
 
@@ -4622,8 +4652,18 @@ void CFsTreeVisualizerBase::ConstructL()
     iComponentLayout->EnableBrushesL();
     iComponentLayout->UpdateChildrenLayout();
 
-    iListDeck = CAlfDeckLayout::AddNewL(*iOwnerControl, iComponentLayout);
-
+    if (AknLayoutUtils::LayoutMirrored())
+        {
+        iDummyScrollbar = CAlfImageVisual::AddNewL(*iOwnerControl);
+        iComponentLayout->Append(iDummyScrollbar);
+        iListDeck = CAlfDeckLayout::AddNewL(*iOwnerControl, iComponentLayout);
+        }
+    else
+        {
+        iListDeck = CAlfDeckLayout::AddNewL(*iOwnerControl, iComponentLayout);
+        iDummyScrollbar = CAlfImageVisual::AddNewL(*iOwnerControl);
+        iComponentLayout->Append(iDummyScrollbar);
+        }
     iListItemBackgroundLayout = CAlfFlowLayout::AddNewL(*iOwnerControl,
             iListDeck);
     iListItemBackgroundLayout->SetFlowDirection(CAlfFlowLayout::EFlowVertical);
@@ -4666,9 +4706,6 @@ void CFsTreeVisualizerBase::ConstructL()
 
     iScrollBar->MakeVisible(EFalse);
     iScrollBar->SetModelL(&iScrollbarModel);
-
-    iDummyScrollbar = CAlfImageVisual::AddNewL(*iOwnerControl);
-    iComponentLayout->Append(iDummyScrollbar);
 
     // </cmail>
 
@@ -5270,6 +5307,7 @@ TBool CFsTreeVisualizerBase::IsFocusShown()
         {
         return ETrue;
         }
+
     return EFalse;
     }
 

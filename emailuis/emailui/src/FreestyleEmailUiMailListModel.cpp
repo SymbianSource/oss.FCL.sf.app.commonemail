@@ -467,11 +467,11 @@ TInt CFSEmailUiMailListModel::CompareMessagesL( const CFSMailMessage& aMessage1,
             break;
         case EFSMailSortByUnread:
             {
-            TInt compVal1 = 1;
-            if ( message1.IsFlagSet(EFSMsgFlag_Read) ) { compVal1 = 0; }
+            TInt compVal1 = 0;
+            if ( message1.IsFlagSet(EFSMsgFlag_Read) ) { compVal1 = 1; }
 
-            TInt compVal2 = 1;
-            if ( message2.IsFlagSet(EFSMsgFlag_Read) ) { compVal2 = 0; }
+            TInt compVal2 = 0;
+            if ( message2.IsFlagSet(EFSMsgFlag_Read) ) { compVal2 = 1; }
 
             retVal = compVal1 - compVal2;
             }

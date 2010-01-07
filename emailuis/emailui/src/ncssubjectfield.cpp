@@ -80,13 +80,16 @@ void CNcsSubjectField::ConstructL( TInt aLabelTextId )
     FUNC_LOG;
     // Create label
 	HBufC* aTextBuf = StringLoader::LoadLC( aLabelTextId );
+    TPtrC captionText = aTextBuf ? aTextBuf->Des() : TPtrC();
     iLabel = new ( ELeave ) CNcsLabel( *this, NULL );
-    iLabel->SetTextL( aTextBuf->Des() );
-	CleanupStack::PopAndDestroy( aTextBuf );
-	// S60 Skin support
+    iLabel->SetTextL( captionText );
+
+    // S60 Skin support
 	iLabel->SetBrushStyle(CWindowGc::ENullBrush);
 
-    iTextEditor = new ( ELeave ) CNcsEditor( iSizeObserver, ETrue, ENcsEditorSubject );
+    iTextEditor = new ( ELeave ) CNcsEditor( iSizeObserver, ETrue, ENcsEditorSubject, captionText );
+    CleanupStack::PopAndDestroy( aTextBuf );
+
     // iTextEditor is not completely constructed until in SetContainerWindowL()
     iFocusChangeHandler = new (ELeave) CAsyncCallBack( CActive::EPriorityStandard );
     }

@@ -106,8 +106,8 @@ RESOURCE :
 	/c16,8 $(SOURCEDIR)\qgn_indi_cmail_unread_replied_high_prio.svg \
 	/c16,8 $(SOURCEDIR)\qgn_indi_cmail_unread_replied_low_prio.svg \
 	/c16,8 $(SOURCEDIR)\qgn_indi_cmail_attachment.svg \
-	/c16,8 $(SOURCEDIR)\qgn_indi_cmail_viewer_follow_up_complete.svg \
-	/c16,8 $(SOURCEDIR)\qgn_indi_cmail_viewer_follow_up.svg \
+	/c16,8 $(SOURCEDIR)\qgn_indi_navi_follow_up_complete.svg \
+	/c16,8 $(SOURCEDIR)\qgn_indi_navi_follow_up.svg \
 	/c16,8 $(SOURCEDIR)\qgn_indi_cmail_launcher_info.svg \
 	/c16,8 $(SOURCEDIR)\qgn_indi_cmail_launcher_remote_lookup.svg \
 	/c16,8 $(SOURCEDIR)\qgn_indi_cmail_launcher_inbox.svg \

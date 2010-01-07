@@ -32,6 +32,7 @@
 // ...
 
 data=ZPRIVATE\200159c0\install\emailwidget\hsps\00\emailwidgetconfiguration.dtd \private\200159c0\install\emailwidget\hsps\00\emailwidgetconfiguration.dtd
+data=ZPRIVATE\200159c0\install\emailwidget\hsps\00\qgn_menu_cmail.svg \private\200159c0\install\emailwidget\hsps\00\qgn_menu_cmail.svg
 
 #endif //FF_EMAIL_FRAMEWORK
 #endif //FF_CMAIL_INTEGRATION

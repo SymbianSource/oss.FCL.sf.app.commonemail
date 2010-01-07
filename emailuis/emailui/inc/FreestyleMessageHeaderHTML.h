@@ -32,11 +32,11 @@ class RFile;
 class CFreestyleMessageHeaderHTML : public CBase
     {
 public:
-    IMPORT_C static void ExportL( CFSMailMessage& aMailMessage, RWriteStream& aWriteStream );
-    IMPORT_C static void ExportL( CFSMailMessage& aMailMessage, RFile& aFile );
-    IMPORT_C static void ExportL( CFSMailMessage& aMailMessage, RFs& aFs, const TPath& aFilePath);
+    IMPORT_C static void ExportL( CFSMailMessage& aMailMessage, RWriteStream& aWriteStream, TInt aVisibleWidth  );
+    IMPORT_C static void ExportL( CFSMailMessage& aMailMessage, RFile& aFile, TInt aVisibleWidth   );
+    IMPORT_C static void ExportL( CFSMailMessage& aMailMessage, RFs& aFs, const TPath& aFilePath, TInt aVisibleWidth  );
     
-    IMPORT_C static CFreestyleMessageHeaderHTML* NewL( CFSMailMessage& aMailMessage );
+    IMPORT_C static CFreestyleMessageHeaderHTML* NewL( CFSMailMessage& aMailMessage, TInt aVisibleWidth   );
     
     ~CFreestyleMessageHeaderHTML();
     
@@ -45,7 +45,7 @@ public:
     IMPORT_C void ExportL( RFs& aFs, const TPath& aFilePath) const;
     
 private:
-    CFreestyleMessageHeaderHTML( CFSMailMessage& aMailMessage );
+    CFreestyleMessageHeaderHTML( CFSMailMessage& aMailMessage, TInt aVisibleWidth   );
     void ConstructL();
     
     void HTMLStartL( RWriteStream& aWriteStream ) const;
@@ -70,7 +70,10 @@ private:
     
     void ExportEmailAddressesL( RWriteStream& aWriteStream, 
                                 FreestyleMessageHeaderURLFactory::TEmailAddressType aEmailAddressType, 
-                                const RPointerArray<CFSMailAddress>& aEmailAddresses ) const;
+                                const RPointerArray<CFSMailAddress>& aEmailAddresses,
+                                const TDesC8& aRowId,
+                                const TDesC8& aTableId,
+                                TInt aHeaderTextResourceId ) const;
     
     void AddEmailAddressL( RWriteStream& aWriteStream, 
                            FreestyleMessageHeaderURLFactory::TEmailAddressType aEmailAddressType, 
@@ -107,6 +110,7 @@ private:
     
 private:
     CFSMailMessage& iMailMessage; 
+    TInt            iVisibleWidth;
     
     RPointerArray<CFSMailMessagePart> iAttachments;
 };

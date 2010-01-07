@@ -114,8 +114,12 @@ public:
         /**
          * Event generated when all nodes are expanded.
          */
-        EFsTreeListExpandedAll
+        EFsTreeListExpandedAll,
         // </cmail>
+        /**
+         * Change focus visibility
+         */
+        EFsChangeFocusVisibility
         };    
 
 public:

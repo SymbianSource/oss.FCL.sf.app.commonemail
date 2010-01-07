@@ -119,11 +119,6 @@ class CIpsPlgImap4MoveRemoteOp :
         */
 
         void Complete();
-        
-        /**
-        *
-        */
-        void DoMoveLocalL();
 
         /**
         *
@@ -144,7 +139,6 @@ class CIpsPlgImap4MoveRemoteOp :
         TDesC8*                             iMoveErrorProgress;
         TImImap4GetMailInfo                 iGetMailInfo;
         CMsvEntrySelection*                 iSelection;
-        CMsvEntrySelection*                 iLocalSel;      // Complete messages
         CMsvEntrySelection*                 iRemoteSel;     // Incomplete messages to be fetched.
         TPckgBuf<TImap4CompoundProgress>    iProgressBuf;
         TPckgBuf<TImap4SyncProgress>        iSyncProgress;

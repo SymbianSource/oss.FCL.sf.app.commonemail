@@ -36,7 +36,7 @@ class CNcsAifEditor: public CNcsEditor, public MEikEdwinObserver
     {
 public: // constructors/destructor
     
-    CNcsAifEditor( MNcsFieldSizeObserver* aSizeObserver );
+    CNcsAifEditor( MNcsFieldSizeObserver* aSizeObserver, const TDesC& aCaptionText );
     	
     void ConstructL( const CCoeControl* aParent,
                      TInt aNumberOfLines,
@@ -47,6 +47,7 @@ public: // constructors/destructor
 public: // from CoeControl
     
     TKeyResponse OfferKeyEventL( const TKeyEvent& aKeyEvent, TEventCode aType );
+    void HandlePointerEventL( const TPointerEvent& aPointerEvent );
 
 public: // from MEikEdwinObserver
     
@@ -178,7 +179,8 @@ private: // new functions
             const CNcsAifEntry* aEntry,
             TInt& aNrOfMatchesInText,
             TInt& aNrOfMatchesInEntryArray );
-    
+    void CompleteEntryL();
+
 private: // data
 
     RPointerArray<CNcsAifEntry> iArray;
@@ -193,6 +195,8 @@ private: // data
     
     // Flag indicating whether add the leftover text to the end of the field
     TBool iAddLeftover;
+    TCursorSelection  iTextSelection;
+    TBool             iPartialRemove;
 	};
 
 

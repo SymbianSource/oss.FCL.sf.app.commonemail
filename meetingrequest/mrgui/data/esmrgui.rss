@@ -789,7 +789,7 @@ RESOURCE CBA r_mr_editor_softkeys
         CBA_BUTTON
             {
             id=EAknSoftkeyDone;
-            txt = text_softkey_done;
+            txt = text_softkey_cancel;
             },
         AVKON_CBA_BUTTON
             {

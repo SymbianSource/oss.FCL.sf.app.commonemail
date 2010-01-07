@@ -429,20 +429,35 @@ void CMailCpsSettings::DissociateWidgetFromSetting( const TDesC& aContentId )
 // CMailCpsSettings::GetContentId
 // ---------------------------------------------------------------------------
 //
-void CMailCpsSettings::GetContentId( TInt aId, TDes16& aValue )
+TInt CMailCpsSettings::GetContentId( TInt aMailboxId, TInt aId, TDes16& aValue )
     {
-    FUNC_LOG;    
+    FUNC_LOG;
+    TBool cidFound(EFalse);
+    TInt ret(0);
+    TInt found(0);
     for (TInt i = 0; i < KMaxMailboxCount; i++)
         {       
         TInt value;
         TUint32 mailboxKey(KCMailMailboxIdBase+i);
-        iCenRep->Get( mailboxKey, value );
-        if (aId == value)
+        iCenRep->Get( mailboxKey, value );     
+        if (aMailboxId == value)
             {
-            iCenRep->Get( KCMailWidgetContentIdBase+i, aValue );
-            break;
+            found++;
+            if ( !cidFound && found == aId )
+                {
+                iCenRep->Get( KCMailWidgetContentIdBase+i, aValue );
+                cidFound = ETrue;
+                }            
+            else if ( cidFound && found == aId + 1 )
+                {
+                // There is more widgets with same mailbox accounts. 
+                ret = aId + 1;
+                break;
+                }
             }
-        }    
+        }
+    // if there is more than one mailbox with different cid return id of next mailbox
+    return ret;
     }
 
 // ---------------------------------------------------------------------------

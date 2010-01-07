@@ -41,11 +41,11 @@
 #include "FSEmailLauncherItem.h"
 #include "freestyleemailuimailboxdeleter.h"
 
-// FORWARD DECLARATIONS
-// <cmail> 
+// FORWARD DECLARATIONS 
 class CBrushAnimation;
-// </cmail> 
 class CFsAlfScrollbarLayout;
+class CAknStylusPopUpMenu;
+
 
 class TFSLauncherGridMailboxStatus
     {
@@ -199,7 +199,8 @@ private: // from MFSEmailUiMailboxDeleteObserver
     void MailboxDeletionComplete();
     
     
-private: // methods
+private: // New methods.
+
     CFSEmailUiLauncherGridVisualiser(CAlfEnv& aEnv, 
     					 CFSEmailUiLauncherGrid* aControl,
     					 CFreestyleEmailUiAppUi* aAppUi,
@@ -234,12 +235,19 @@ private: // methods
      * Reduces item's icon size.
      */
     void ResizeItemIcon( TBool aReduce );
-	
+
     /**
-     * Handles the focus removal of CFSEmailUiLauncherGridVisualiser
-     * @param aShow Indicates if focus should become visible or removed
+     * Handles the focus state changes of CFSEmailUiLauncherGridVisualiser
+     * @param aVisible Indicates if focus should become visible or removed
      */
-	void HandleTimerFocusStateChange( TBool aShow );
+	void FocusVisibilityChange( TBool aVisible );
+
+	/**
+	 * Launches and displays the pop-up menu invoked by a long tap event.
+	 * @param aItemId The ID of the item for which to open the menu.
+	 */
+	void LaunchStylusPopupMenu( const TInt aItemId );
+
 
 private: // data types
 
@@ -384,6 +392,15 @@ private: // data
 
     // Mailbox deleter - handles deletion of one or more mailboxes.
     CFSEmailUiMailboxDeleter* iMailboxDeleter;
+
+    // A pop-up menu that is invoked by long tap events. Used for e.g.
+    // deleting mail boxes.
+    CAknStylusPopUpMenu* iStylusPopUpMenu;
+    TBool iStylusPopUpMenuLaunched;
+
+    // Contains the ID of a selected mailbox. Used for deleting mailboxes
+    // with long tap pop-up menu.
+    TFSMailMsgId iMailboxToDelete;
     };
 
 #endif // __FREESTYLEEMAILUI_MAINGRIDUIVISUALISER_H__

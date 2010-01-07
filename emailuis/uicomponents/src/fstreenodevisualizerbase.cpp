@@ -258,7 +258,7 @@ TSize CFsTreeNodeVisualizerBase::Size() const
     FUNC_LOG;
     if ( iFlags & KFsTreeListItemManagedLayout )
         {
-        CFsLayoutManager::TFsLayoutMetrics normalSizeMetrics (CFsLayoutManager::EFsLmListSingleDycRowPane);
+        CFsLayoutManager::TFsLayoutMetrics normalSizeMetrics (CFsLayoutManager::EFsLmListSingleFsDycPane);
         TRect parentLayoutRect(0,0,0,0);
         TSize size(0,0);
         TBool retVal(EFalse);

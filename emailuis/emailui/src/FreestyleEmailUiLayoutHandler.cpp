@@ -18,29 +18,24 @@
 
 // SYSTEM INCLUDE FILES
 #include "emailtrace.h"
-//#include <aknutils.h> <cmail>
-// <cmail> SF
 #include <alf/alftextstylemanager.h>
 #include <AknsUtils.h>
 #include <AknsSkinInstance.h>
 #include <alf/alfstatic.h>
 
-// <cmail> Platform layout change
 #include <aknlayoutscalable_apps.cdl.h>
 #include <aknlayoutscalable_avkon.cdl.h>
 #include <layoutmetadata.cdl.h>
-// </cmail>
 
 // For generic treelist layout data setting
-//<cmail>
 #include "fstreelist.h"
-//</cmail>
 
 // INTERNAL INCLUDE FILES
 #include "FreestyleEmailUiLayoutHandler.h"
 #include "FreestyleEmailUiLayoutData.h"
 
-// <cmail> Platform layout change
+const TInt KPopupMargin = 8;
+
 template< typename T >
 TUint32 GeneralHash( const T& aValue )
     {
@@ -52,7 +47,6 @@ TBool GeneralPtrIdentity( const T& aP1, const T& aP2 )
     {
     return TPckgC< T >( aP1 ) == TPckgC< T >( aP2 );
     }
-// </cmail> Platform layout change
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiLayoutHandler::CFSEmailUiLayoutHandler
@@ -106,10 +100,7 @@ void CFSEmailUiLayoutHandler::ConstructL()
 CFSEmailUiLayoutHandler::~CFSEmailUiLayoutHandler()
     {
     FUNC_LOG;
-// <cmail> Platform layout change
     DeleteTextStyles();
-// </cmail> Platform layout change
-    // <cmail>
     if ( iNormalTextStyle != KErrNotFound )
         {
         CAlfStatic::Env().TextStyleManager().DeleteTextStyle( 
@@ -125,7 +116,6 @@ CFSEmailUiLayoutHandler::~CFSEmailUiLayoutHandler()
         CAlfStatic::Env().TextStyleManager().DeleteTextStyle( 
                 iSmallTextStyle );
         }
-    // </cmail>
     }
 
 // -----------------------------------------------------------------------------
@@ -147,29 +137,6 @@ TScreenResolution CFSEmailUiLayoutHandler::ScreenResolution() const
 TScreenOrientation CFSEmailUiLayoutHandler::ScreenOrientation() const
     {
     FUNC_LOG;
-    /*
-    TScreenOrientation orientation = EPortrait;
-    switch ( iScreenResolution )
-        {
-        case ELowResLandscape:
-        case EQvgaLandscape:
-        case EDrLandscape:
-        case EVgaLandscape:
-        case EHvgaLandscape:
-        case EWideLandscape:
-            orientation = ELandscape;
-            break;
-        case ELowResPortrait:
-        case EQvgaPortrait:
-        case EDrPortrait:
-        case EVgaPortrait:
-        case EHvgaPortrait:
-        default:
-            orientation = EPortrait;
-            break;
-        }
-        
-    return orientation;*/
     return Layout_Meta_Data::IsLandscapeOrientation() ? ELandscape : EPortrait;
     }
 
@@ -315,14 +282,6 @@ TRgb CFSEmailUiLayoutHandler::GridNormalStateTextSkinColor() const
         {
         textColor = KRgbBlack;
         }
- /*
-    // Should use EAknsCIFsTextColorsCG3 if background is white
-     if ( AknsUtils::GetCachedColor( skin, textColor,
-            KAknsIIDFsTextColors, EAknsCIFsTextColorsCG3 ) != KErrNone )
-        {
-        textColor = KRgbBlack;
-        }
-*/
     return textColor;	
 	}
 
@@ -351,104 +310,16 @@ TSize CFSEmailUiLayoutHandler::GridIconSize() const
     gridIconLRect.LayoutRect( itemRect.Rect(), AknLayoutScalable_Apps::cell_cmail_l_pane_g1( 0 ) );
     TSize iconSize = gridIconLRect.Rect().Size();
     return iconSize;
-/*    
-	TInt iconSize(0);
-	switch ( iScreenResolution )
-		{
-		case EQvgaPortrait:
-			iconSize = KGridIconSizeInQvgaPort;
-	 		break;
- 		case EQvgaLandscape:
-			iconSize = KGridIconSizeInQvgaLand;
-		 	break;
- 		case EVgaPortrait:
- 			iconSize = KGridIconSizeInVgaPort;
- 			break;
-		case EVgaLandscape:
-			iconSize = KGridIconSizeInVgaLand;
-			break;
-  		case EHvgaPortrait:
- 			iconSize = KGridIconSizeInHvgaPort;
- 			break;
-		case EHvgaLandscape:
-			iconSize = KGridIconSizeInHvgaLand;
-			break;
- 		case EWideLandscape:
-			iconSize = KGridIconSizeInWideLand;
- 			break;
- 		case EDrPortrait:
-			iconSize = KGridIconSizeInDoubleResPort;
- 			break;
- 		case EDrLandscape:
-		default:
-			iconSize = KGridIconSizeInDoubleResLand;
-			break;
-		}
-	return iconSize;*/
-// </cmail>    
 	}
 
 	
 TSize CFSEmailUiLayoutHandler::MailIconSizeInThisResolution() const
 	{
     FUNC_LOG;
-// <cmail> Use layout data instead of hard-coded values
 	TAknLayoutRect rect;
 	rect.LayoutRect( TRect( 0, 0, 0, 0 ),
 	                AknLayoutScalable_Apps::list_single_dyc_row_pane_g1( 0 ).LayoutLine() );
 	return rect.Rect().Size();
-	/*TSize mailListIconSize(0,0);
-	switch ( iScreenResolution )
-		{
-		case EQvgaPortrait:
-			mailListIconSize = KMailListIconSizeInQvgaPort;
-	 		break;
- 		case EQvgaLandscape:
-			mailListIconSize = KMailListIconSizeInQvgaLand;
-		 	break;
- 		case EVgaPortrait:
- 			mailListIconSize = KMailListIconSizeInVgaPort;
- 			break;
-		case EVgaLandscape:
-			mailListIconSize = KMailListIconSizeInVgaLand;
-			break;
-  		case EHvgaPortrait:
- 			mailListIconSize = KMailListIconSizeInHvgaPort;
- 			break;
-		case EHvgaLandscape:
-			mailListIconSize = KMailListIconSizeInHvgaLand;
-			break;
- 		case EWideLandscape:
-			mailListIconSize = KMailListIconSizeInWideLand;
- 			break;
- 		case EDrPortrait:
-			mailListIconSize = KMailListIconSizeInDoubleResPort;
- 			break;
- 		case EDrLandscape:
-		default:
-			mailListIconSize = KMailListIconSizeInDoubleResLand;
-			break;
-		}
-	TAknUiZoom zoomLevel(EAknUiZoomNormal);
-    CAknEnv::Static()->GetCurrentGlobalUiZoom( zoomLevel );
- 	switch ( zoomLevel )
-		{
-		// Make icon a little bit smaller in small zoom
-		case EAknUiZoomSmall:
-			{
-			mailListIconSize.iHeight-=2;
-			mailListIconSize.iWidth-=2;
-			}
-			break;
-		case EAknUiZoomLarge:
-		case EAknUiZoomNormal:
-		default:
-			{
-			}
-			break;
-		}
-	return mailListIconSize;*/
-// </cmail> Use layout data instead of hard-coded values
 	}
 
 
@@ -483,7 +354,7 @@ TSize CFSEmailUiLayoutHandler::FolderListIconSize( const TBool aPopup ) const
                 AknLayoutScalable_Apps::list_single_dyc_row_pane( 0 ),
                 AknLayoutScalable_Apps::list_single_dyc_row_pane_g1( 0 ) ) );
         TAknLayoutRect paneG1;
-        paneG1.LayoutRect( DropDownMenuListRect( ELeft ), g1Layout.LayoutLine() );
+        paneG1.LayoutRect( DropDownMenuListRect( ELeft, EFalse ), g1Layout.LayoutLine() );
         return paneG1.Rect().Size();        
         }
     else
@@ -503,7 +374,6 @@ TSize CFSEmailUiLayoutHandler::FolderListIconSize( const TBool aPopup ) const
         }
     }      
 
-// <cmail>
 // -----------------------------------------------------------------------------
 // CFSEmailUiLayoutHandler::FolderListPaneRectInThisResolution
 // Folder list pane rect, taken from Avkon layouts
@@ -516,7 +386,6 @@ TRect CFSEmailUiLayoutHandler::FolderListPaneRectInThisResolution( const TRect& 
     itemRect.LayoutRect(aParent, AknLayoutScalable_Avkon::listscroll_gen_pane(0,0,0));
     return itemRect.Rect();
     }
-// </cmail>
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiLayoutHandler::FolderListIndentation
@@ -547,14 +416,13 @@ TSize CFSEmailUiLayoutHandler::FolderListItemSizeInThisResolution( const TRect& 
     return itemRect.Rect().Size();
 	}
 
-// <cmail>
 // -----------------------------------------------------------------------------
 // CFSEmailUiLayoutHandler::DropDownMenuListRect
 // Selector ring image visual size
 // -----------------------------------------------------------------------------
 //
 TRect CFSEmailUiLayoutHandler::DropDownMenuListRect(
-        const TDropDownMenuSide aSide ) const
+        const TDropDownMenuSide aSide, TBool aStretch ) const
     {
     FUNC_LOG;
     TRect mainPaneRect;
@@ -562,7 +430,8 @@ TRect CFSEmailUiLayoutHandler::DropDownMenuListRect(
             mainPaneRect );
     mainPaneRect.Move( 0, -mainPaneRect.iTl.iY );
     TInt variety( aSide == ELeft ? 0 : 1 );
-    if ( Layout_Meta_Data::IsLandscapeOrientation() )
+    TBool landscape = Layout_Meta_Data::IsLandscapeOrientation();
+    if ( landscape )
         {
         // landscape orientation variety is portrait + 2
         variety += 2;
@@ -576,10 +445,62 @@ TRect CFSEmailUiLayoutHandler::DropDownMenuListRect(
     
     TAknLayoutRect menuPane;
     menuPane.LayoutRect( mainPaneRect, ddMenuPane.LayoutLine() );
-    return menuPane.Rect();
+    TRect rect = menuPane.Rect();
+    if ( aStretch )
+        {
+        rect.iBr.iY = mainPaneRect.iBr.iY;
+        
+        if( !landscape ) // landscape layout occupy the right side of the display
+            {
+            rect.iBr.iY -= ControlBarHeight();
+            }
+        }
     
+    // Calculate the placement next to the button (below or left side)
+    TRect buttonRect;
+    TRect cbr = GetControlBarRect();
+    if( aSide == ELeft )
+        {
+        buttonRect = GetControlBarFolderListButtonRect();
+        }
+    else
+        {
+        buttonRect = GetControlBarSortButtonRect();
+        }
+    buttonRect.Move( cbr.iTl ); // relative to control bar
+    
+    if( landscape )
+        {
+        TSize menuSize = rect.Size();
+
+        // position left from the button
+        rect.SetRect( TPoint( buttonRect.iTl.iX - menuSize.iWidth, 
+                buttonRect.Center().iY - menuSize.iHeight / 2 ), menuSize );
+        }
+    else
+        {
+        // position below the button
+        rect.Move( 0, buttonRect.iBr.iY - rect.iTl.iY );
+        }
+    
+    // keep the popup menu inside the screen area
+    if( landscape )
+        {
+        if( rect.iTl.iX < KPopupMargin )
+            {
+            rect.Move( KPopupMargin - rect.iTl.iX , 0 );
+            }
+        if( rect.iBr.iY > mainPaneRect.iBr.iY - KPopupMargin )
+            {
+            rect.Move( 0, mainPaneRect.iBr.iY - rect.iBr.iY - KPopupMargin );
+            }
+        }
+    if( rect.iTl.iY < KPopupMargin )
+        {
+        rect.iTl.iY = KPopupMargin;
+        }
+    return rect;
     }
-// </cmail>
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiLayoutHandler::SelectorVisualSizeInThisResolution
@@ -637,7 +558,7 @@ TInt CFSEmailUiLayoutHandler::OneLineListNodeHeight() const
     TRect mainPaneRect;
     TAknLayoutRect listItem;
     AknLayoutUtils::LayoutMetricsRect( AknLayoutUtils::EMainPane, mainPaneRect );
-    listItem.LayoutRect( mainPaneRect, AknLayoutScalable_Apps::list_single_dyc_row_pane( 0 ) );
+    listItem.LayoutRect( mainPaneRect, AknLayoutScalable_Apps::list_single_fs_dyc_pane( 0 ) );
     return listItem.Rect().Height();
     //</cmail>
 	}
@@ -651,14 +572,21 @@ TInt CFSEmailUiLayoutHandler::OneLineListNodeHeight() const
 TInt CFSEmailUiLayoutHandler::OneLineListItemHeight() const
 	{
     FUNC_LOG;
-	//<cmail>
     TRect mainPaneRect;
     TAknLayoutRect listItem;
     AknLayoutUtils::LayoutMetricsRect( AknLayoutUtils::EMainPane, mainPaneRect );
-    listItem.LayoutRect( mainPaneRect, AknLayoutScalable_Apps::list_single_dyc_row_pane( 0 ) );
+    listItem.LayoutRect( mainPaneRect, AknLayoutScalable_Apps::list_single_fs_dyc_pane( 0 ) );
     return listItem.Rect().Height();
-    //</cmail>
 	}
+
+TInt CFSEmailUiLayoutHandler::TwoLineListItemHeight() const
+    {
+    TRect mainPaneRect;
+    TAknLayoutRect listItem;
+    AknLayoutUtils::LayoutMetricsRect( AknLayoutUtils::EMainPane, mainPaneRect );
+    listItem.LayoutRect( mainPaneRect, AknLayoutScalable_Apps::list_single_fs_dyc_pane( 1 ) );
+    return listItem.Rect().Height();
+    }
 
 //<cmail>
 // -----------------------------------------------------------------------------
@@ -693,32 +621,12 @@ TInt CFSEmailUiLayoutHandler::FolderListOneLineItemHeight(
 TInt CFSEmailUiLayoutHandler::ControlBarHeight() const
 	{
     FUNC_LOG;
-	//<cmail>
 	TRect mainPaneRect;
     TAknLayoutRect ctrlBarRect;
     AknLayoutUtils::LayoutMetricsRect( AknLayoutUtils::EMainPane, mainPaneRect );
     ctrlBarRect.LayoutRect( mainPaneRect, AknLayoutScalable_Apps::main_sp_fs_ctrlbar_pane( 0 ) );
     return ctrlBarRect.Rect().Height();
-	//</cmail>
 	}
-
-// -----------------------------------------------------------------------------
-// CFSEmailUiLayoutHandler::ControlBarHeight
-// Control bar text height in twips
-// -----------------------------------------------------------------------------
-//
-/*
-TInt CFSEmailUiLayoutHandler::ControlBarTextHeight() const
-	{
-    TRect mainPaneRect;
-    TAknLayoutText ctrlBarText;
-    TInt orientation( Layout_Meta_Data::IsLandscapeOrientation() ? 1 : 0 );
-    AknLayoutUtils::LayoutMetricsRect( AknLayoutUtils::EMainPane, mainPaneRect );
-    ctrlBarText.LayoutText( mainPaneRect, AknLayoutScalable_Apps::main_sp_fs_ctrlbar_pane_t1( orientation ) );
-    return ctrlBarText.Font()->FontSpecInTwips().iHeight;
-	}
-*/
-//</cmail>  Platform layout change
 
 // <cmail> changes to avoid unnecessary creating new text styles objects.
 CAlfTextStyle* CFSEmailUiLayoutHandler::FSTextStyleFromIdL( TFSEmailFont aFontId )
@@ -1515,16 +1423,13 @@ TSize CFSEmailUiLayoutHandler::ViewerActionMenuIconSize() const
     return layoutRect.Rect().Size();
     // </cmail> Platform layout changes
     }
+
 // -----------------------------------------------------------------------------
 // CFSEmailUiLayoutHandler::ViewerActionMenuIconMargin
 // -----------------------------------------------------------------------------
 TInt CFSEmailUiLayoutHandler::ViewerActionMenuIconMargin() const
     {
 	FUNC_LOG;
-    // <cmail> Platform layout changes
-    /*
-    return KViewerActionMenuIconMargin;
-    */
 	if (AknLayoutUtils::LayoutMirrored())
 	    {
 	    TAknLayoutRect layoutRect;
@@ -1541,8 +1446,8 @@ TInt CFSEmailUiLayoutHandler::ViewerActionMenuIconMargin() const
         layoutRect.LayoutRect( layoutRect.Rect(), AknLayoutScalable_Apps::list_single_cmail_header_detail_pane_g2( 0 ) );
         return Abs( x - layoutRect.Rect().iBr.iX );
 	    }
-    // </cmail> Platform layout changes
     }
+
 // -----------------------------------------------------------------------------
 // CFSEmailUiLayoutHandler::ViewerSelectorOpacity
 // -----------------------------------------------------------------------------
@@ -1551,30 +1456,19 @@ TReal CFSEmailUiLayoutHandler::ViewerSelectorOpacity() const
     FUNC_LOG;
     return KViewerSelectorOpacity;
     }
+
 // -----------------------------------------------------------------------------
 // CFSEmailUiLayoutHandler::ViewerRightMarginInPixels
 // -----------------------------------------------------------------------------
 TInt CFSEmailUiLayoutHandler::ViewerRightMarginInPixels() const
 	{
 	FUNC_LOG;
-    // <cmail> Platform layout changes
-    /*
-    if ( AknLayoutUtils::LayoutMirrored() )
-        {
-        return KViewerLeftMarginWidthInPixels;
-        }
-    else
-        {
-        return KViewerRightMarginWidthInPixels;
-        }
-    */
     const TRect cmailPaneRect( ListCmailPaneRect() );
     TAknLayoutRect layoutRect;
     layoutRect.LayoutRect( cmailPaneRect, AknLayoutScalable_Apps::list_single_cmail_header_caption_pane() );
     TAknLayoutText captionTextRect;
     captionTextRect.LayoutText( layoutRect.Rect(), AknLayoutScalable_Apps::list_single_cmail_header_caption_pane_t1() );
     return Abs( cmailPaneRect.iBr.iX - captionTextRect.TextRect().iBr.iX );
-    // </cmail> Platform layout changes
     }
 
 // -----------------------------------------------------------------------------
@@ -1583,24 +1477,12 @@ TInt CFSEmailUiLayoutHandler::ViewerRightMarginInPixels() const
 TInt CFSEmailUiLayoutHandler::ViewerLeftMarginInPixels() const
 	{
 	FUNC_LOG;
-    // <cmail> Platform layout changes
-    /*
-    if ( AknLayoutUtils::LayoutMirrored() )
-        {
-        return KViewerRightMarginWidthInPixels;
-        }
-    else
-        {
-        return KViewerLeftMarginWidthInPixels;
-        }
-    */
     const TRect cmailPaneRect( ListCmailPaneRect() );
     TAknLayoutRect layoutRect;
     layoutRect.LayoutRect( cmailPaneRect, AknLayoutScalable_Apps::list_single_cmail_header_caption_pane() );
     TAknLayoutText captionTextRect;
     captionTextRect.LayoutText( layoutRect.Rect(), AknLayoutScalable_Apps::list_single_cmail_header_caption_pane_t1() );
     return Abs( cmailPaneRect.iTl.iX - captionTextRect.TextRect().iTl.iX );
-    // </cmail> Platform layout changes
     }
 
 // -----------------------------------------------------------------------------
@@ -1630,6 +1512,7 @@ TSize CFSEmailUiLayoutHandler::ViewerWaterMarkSizeInThisResolution() const
 		}
 	return sizeWithCurrentResolution;
 	}
+
 // -----------------------------------------------------------------------------
 // CFSEmailUiLayoutHandler::ViewerWaterMarkPositionFromBottomRightCornerInThisResolution
 // -----------------------------------------------------------------------------
@@ -1657,6 +1540,7 @@ TPoint CFSEmailUiLayoutHandler::ViewerWaterMarkPlaceFromBottomRightCornerInThisR
 		}
 	return placeFromBottomRightCorner;
 	}
+
 // -----------------------------------------------------------------------------
 // CFSEmailUiLayoutHandler::ComposerFieldBorderColor
 // -----------------------------------------------------------------------------
@@ -1673,6 +1557,7 @@ TRgb CFSEmailUiLayoutHandler::ComposerFieldBackgroundColor() const
     FUNC_LOG;
     return GetSkinColor( KAknsIIDFsOtherColors, EAknsCIFsOtherColorsCG12, KRgbWhite );
     }
+
 // -----------------------------------------------------------------------------
 // CFSEmailUiLayoutHandler::ComposerHeaderFieldTextColor
 // -----------------------------------------------------------------------------
@@ -1681,6 +1566,7 @@ TRgb CFSEmailUiLayoutHandler::ComposerHeaderFieldTextColor() const
     FUNC_LOG;
     return GetSkinColor( KAknsIIDFsTextColors, EAknsCIFsTextColorsCG4, KRgbBlack );
         }
+
 // -----------------------------------------------------------------------------
 // CFSEmailUiLayoutHandler::ComposerBodyFieldTextColor
 // -----------------------------------------------------------------------------
@@ -1689,6 +1575,7 @@ TRgb CFSEmailUiLayoutHandler::ComposerBodyFieldTextColor() const
     FUNC_LOG;
     return GetSkinColor( KAknsIIDFsTextColors, EAknsCIFsTextColorsCG3, KRgbBlack );
     }
+
 // -----------------------------------------------------------------------------
 // CFSEmailUiLayoutHandler::ComposerDimmedTextColor
 // -----------------------------------------------------------------------------
@@ -1697,6 +1584,7 @@ TRgb CFSEmailUiLayoutHandler::ComposerDimmedTextColor() const
     FUNC_LOG;
     return GetSkinColor( KAknsIIDFsTextColors, EAknsCIFsTextColorsCG18, KRgbGray );
     }
+
 // -----------------------------------------------------------------------------
 // CFSEmailUiLayoutHandler::MaxPcsMatches
 // -----------------------------------------------------------------------------
@@ -1705,6 +1593,7 @@ TInt CFSEmailUiLayoutHandler::MaxPcsMatches() const
     FUNC_LOG;
     return KMaxPcsMatches;
     }
+
 // -----------------------------------------------------------------------------
 // CFSEmailUiLayoutHandler::PcsPopupHighlightColor
 // -----------------------------------------------------------------------------
@@ -1713,6 +1602,7 @@ TRgb CFSEmailUiLayoutHandler::PcsPopupHighlightColor() const
     FUNC_LOG;
     return KPcsPopupHighlightColor;
     }
+
 // -----------------------------------------------------------------------------
 // CFSEmailUiLayoutHandler::PcsPopupDimmedFontColor
 // -----------------------------------------------------------------------------
@@ -1721,20 +1611,18 @@ TRgb CFSEmailUiLayoutHandler::PcsPopupDimmedFontColor() const
     FUNC_LOG;
     return KPcsPopupDimmedFontColor;
     }
+
 // -----------------------------------------------------------------------------
 // CFSEmailUiLayoutHandler::ListTextureNodeExpandedSize
 // -----------------------------------------------------------------------------
 TInt CFSEmailUiLayoutHandler::ListTextureNodeExpandedSize() const
     {
     FUNC_LOG;
-    //<cmail>
     TRect mainPaneRect;
     TAknLayoutRect listItem;
     AknLayoutUtils::LayoutMetricsRect( AknLayoutUtils::EMainPane, mainPaneRect );
     listItem.LayoutRect( mainPaneRect, AknLayoutScalable_Apps::list_single_dyc_row_pane_g1( 0 ) );
     return listItem.Rect().Height();
-    //return KListTextureNodeExpandedSize;
-    //</cmail>
     }
 
 // -----------------------------------------------------------------------------
@@ -1765,22 +1653,18 @@ TSize CFSEmailUiLayoutHandler::statusPaneIconSize() const
 TInt CFSEmailUiLayoutHandler::ListControlBarMailboxDefaultIconSize() const
     {
     FUNC_LOG;
-    // <cmail> Platform layout change
-    //return KListControlBarMailboxDefaultIconSize;
-    return GetControlBarMailboxIconSize().iWidth;
-    // </cmail> Platform layout change
+    return GetControlBarMailboxIconRect().Size().iWidth;
     }
+
 // -----------------------------------------------------------------------------
 // CFSEmailUiLayoutHandler::EMailListBarBgIconSize
 // -----------------------------------------------------------------------------
 TInt CFSEmailUiLayoutHandler::EMailListBarBgIconSize() const
     {
     FUNC_LOG;
-    // <cmail> Platform layout change
     return GetControlBarRect().Size().iHeight;
-    //return KEMailListBarBgIconSize;
-    // </cmail>
     }
+
 // -----------------------------------------------------------------------------
 // CFSEmailUiLayoutHandler::ListTextureMailboxDefaultIconSize
 // -----------------------------------------------------------------------------
@@ -1789,24 +1673,22 @@ TInt CFSEmailUiLayoutHandler::ListTextureMailboxDefaultIconSize() const
     FUNC_LOG;
     return KListTextureMailboxDefaultIconSize;
     }
+
 // -----------------------------------------------------------------------------
 // CFSEmailUiLayoutHandler::EListTextureSelectorSize
 // -----------------------------------------------------------------------------
 TInt CFSEmailUiLayoutHandler::EListTextureSelectorSize() const
     {
     FUNC_LOG;
-    // <cmail> Platform layout change
     return OneLineListItemHeight();
-    //return KEListTextureSelectorSize;
-    // </cmail>
     }
+
 // -----------------------------------------------------------------------------
 // CFSEmailUiLayoutHandler::ListControlMenuIconSize
 // -----------------------------------------------------------------------------
 TInt CFSEmailUiLayoutHandler::ListControlMenuIconSize() const
     {
     FUNC_LOG;
-    // <cmail> Platform layout change
     TRect mainPaneRect;
     AknLayoutUtils::LayoutMetricsRect(AknLayoutUtils::EMainPane, mainPaneRect);
     mainPaneRect.Move(-mainPaneRect.iTl);
@@ -1815,13 +1697,11 @@ TInt CFSEmailUiLayoutHandler::ListControlMenuIconSize() const
     TAknLayoutRect iconRect;
     iconRect.LayoutRect(controlBarRect.Rect(), AknLayoutScalable_Apps::main_sp_fs_ctrlbar_pane_g1(0));
     return iconRect.Rect().Height();
-    //return KListControlMenuIconSize;
-    // </cmail>
     }
+
 // -----------------------------------------------------------------------------
 // CFSEmailUiLayoutHandler::AttachmentIconSize
 // -----------------------------------------------------------------------------
-// <cmail>
 TSize CFSEmailUiLayoutHandler::AttachmentIconSize() const
     {
     FUNC_LOG;
@@ -1829,9 +1709,8 @@ TSize CFSEmailUiLayoutHandler::AttachmentIconSize() const
     rect.LayoutRect( TRect(0,0,0,0),
                     AknLayoutScalable_Apps::list_single_dyc_row_pane_g1( 0 ).LayoutLine() );
     return rect.Rect().Size();
-    //return KAttachmentIconSize;
-// </cmail>    
     }
+
 // -----------------------------------------------------------------------------
 // CFSEmailUiLayoutHandler::ViewerHighlightTextureSize
 // -----------------------------------------------------------------------------
@@ -1840,6 +1719,7 @@ TInt CFSEmailUiLayoutHandler::ViewerHighlightTextureSize() const
     FUNC_LOG;
     return KViewerHighlightTextureSize;
     }
+
 // -----------------------------------------------------------------------------
 // CFSEmailUiLayoutHandler::ControlBarArrowTextureXSize
 // -----------------------------------------------------------------------------
@@ -1848,6 +1728,7 @@ TInt CFSEmailUiLayoutHandler::ControlBarArrowTextureXSize() const
     FUNC_LOG;
     return KControlBarArrowTextureXSize;
     }
+
 // -----------------------------------------------------------------------------
 // CFSEmailUiLayoutHandler::ControlBarArrowTextureYSize
 // -----------------------------------------------------------------------------
@@ -1856,6 +1737,7 @@ TInt CFSEmailUiLayoutHandler::ControlBarArrowTextureYSize() const
     FUNC_LOG;
     return KControlBarArrowTextureYSize;
     }
+
 // -----------------------------------------------------------------------------
 // CFSEmailUiLayoutHandler::GetSkinColor
 // -----------------------------------------------------------------------------
@@ -1879,8 +1761,6 @@ TRgb CFSEmailUiLayoutHandler::GetSkinColor( const TAknsItemID& aId,
     return color;    
     }
 
-// <cmail> Use layout data instead of hardcoded values
-
 // -----------------------------------------------------------------------------
 // CFSEmailUiLayoutHandler::GetControlBarMailboxIconRect
 // -----------------------------------------------------------------------------
@@ -1901,25 +1781,38 @@ TRect CFSEmailUiLayoutHandler::GetControlBarMailboxIconRect() const
         {
         iconRect.LayoutRect(controlBarRect.Rect(), AknLayoutScalable_Apps::main_sp_fs_ctrlbar_pane_g1(0));
         }
+    
     return iconRect.Rect();
     }
 
 // -----------------------------------------------------------------------------
-// CFSEmailUiLayoutHandler::GetControlBarMailboxIconPos
-// -----------------------------------------------------------------------------
-TPoint CFSEmailUiLayoutHandler::GetControlBarMailboxIconPos() const
+TRect CFSEmailUiLayoutHandler::GetControlBarNewEmailButtonRect() const
     {
     FUNC_LOG;
-    return GetControlBarMailboxIconRect().iTl;
-    }
-
-// -----------------------------------------------------------------------------
-// CFSEmailUiLayoutHandler::GetControlBarMailboxIconSize
-// -----------------------------------------------------------------------------
-TSize CFSEmailUiLayoutHandler::GetControlBarMailboxIconSize() const
-    {
-    FUNC_LOG;
-    return GetControlBarMailboxIconRect().Size();
+    TAknLayoutRect iconRect;
+    TRect cbr = GetControlBarRect();
+    if( Layout_Meta_Data::IsLandscapeOrientation() )
+        {
+        iconRect.LayoutRect( cbr, 
+                     AknLayoutScalable_Apps::cmail_ddmenu_btn02_pane(3) );
+        }
+    else
+        {
+        if ( AknLayoutUtils::LayoutMirrored() )
+            {
+            iconRect.LayoutRect( cbr, 
+                             AknLayoutScalable_Apps::cmail_ddmenu_btn03_pane(2) );
+            }
+        else
+            {
+            iconRect.LayoutRect( cbr, 
+                             AknLayoutScalable_Apps::cmail_ddmenu_btn01_pane(2) );
+            }
+        }
+    
+    TRect rect = iconRect.Rect();
+    rect.Move( -cbr.iTl );
+    return rect;
     }
 
 // -----------------------------------------------------------------------------
@@ -1928,39 +1821,23 @@ TSize CFSEmailUiLayoutHandler::GetControlBarMailboxIconSize() const
 TRect CFSEmailUiLayoutHandler::GetControlBarFolderListButtonRect() const
     {
     FUNC_LOG;
-    TRect mainPaneRect;
-    AknLayoutUtils::LayoutMetricsRect(AknLayoutUtils::EMainPane, mainPaneRect);
-    mainPaneRect.Move(-mainPaneRect.iTl);
-    TAknLayoutRect controlBarRect;
-    controlBarRect.LayoutRect(mainPaneRect, AknLayoutScalable_Apps::main_sp_fs_ctrlbar_pane(0));
+
     TAknLayoutRect folderListButtonRect;
-    if ( AknLayoutUtils::LayoutMirrored() )
+    TRect cbr = GetControlBarRect();
+    if( Layout_Meta_Data::IsLandscapeOrientation() )
         {
-        folderListButtonRect.LayoutRect(controlBarRect.Rect(), AknLayoutScalable_Apps::main_sp_fs_ctrlbar_button_pane_cp01(0));        
+        folderListButtonRect.LayoutRect( cbr, 
+                         AknLayoutScalable_Apps::cmail_ddmenu_btn02_pane_cp1(3) );
         }
     else
         {
-        folderListButtonRect.LayoutRect(controlBarRect.Rect(), AknLayoutScalable_Apps::main_sp_fs_ctrlbar_ddmenu_pane(0));
+        folderListButtonRect.LayoutRect( cbr, 
+                             AknLayoutScalable_Apps::cmail_ddmenu_btn02_pane(2) );
         }
-    return folderListButtonRect.Rect();
-    }
-
-// -----------------------------------------------------------------------------
-// CFSEmailUiLayoutHandler::GetControlBarFolderListButtonPos
-// -----------------------------------------------------------------------------
-TPoint CFSEmailUiLayoutHandler::GetControlBarFolderListButtonPos() const
-    {
-    FUNC_LOG;
-    return GetControlBarFolderListButtonRect().iTl;
-    }
-
-// -----------------------------------------------------------------------------
-// CFSEmailUiLayoutHandler::GetControlBarFolderListButtonSize
-// -----------------------------------------------------------------------------
-TSize CFSEmailUiLayoutHandler::GetControlBarFolderListButtonSize() const
-    {
-    FUNC_LOG;
-    return GetControlBarFolderListButtonRect().Size();
+    
+    TRect rect = folderListButtonRect.Rect();
+    rect.Move( -cbr.iTl );
+    return rect;
     }
 
 // -----------------------------------------------------------------------------
@@ -1969,39 +1846,31 @@ TSize CFSEmailUiLayoutHandler::GetControlBarFolderListButtonSize() const
 TRect CFSEmailUiLayoutHandler::GetControlBarSortButtonRect() const
     {
     FUNC_LOG;
-    TRect mainPaneRect;
-    AknLayoutUtils::LayoutMetricsRect(AknLayoutUtils::EMainPane, mainPaneRect);
-    mainPaneRect.Move(-mainPaneRect.iTl);
-    TAknLayoutRect controlBarRect;
-    controlBarRect.LayoutRect(mainPaneRect, AknLayoutScalable_Apps::main_sp_fs_ctrlbar_pane(0));
+
     TAknLayoutRect sortButtonRect;
-    if ( AknLayoutUtils::LayoutMirrored() )
+    TRect cbr = GetControlBarRect();
+    if( Layout_Meta_Data::IsLandscapeOrientation() )
         {
-        sortButtonRect.LayoutRect(controlBarRect.Rect(), AknLayoutScalable_Apps::main_sp_fs_ctrlbar_ddmenu_pane(0));        
+        sortButtonRect.LayoutRect( cbr, 
+                     AknLayoutScalable_Apps::cmail_ddmenu_btn02_pane_cp2(3) );
         }
     else
         {
-        sortButtonRect.LayoutRect(controlBarRect.Rect(), AknLayoutScalable_Apps::main_sp_fs_ctrlbar_button_pane_cp01(0));
-        }    
-    return sortButtonRect.Rect();
-    }
-
-// -----------------------------------------------------------------------------
-// CFSEmailUiLayoutHandler::GetControlBarSortButtonPos
-// -----------------------------------------------------------------------------
-TPoint CFSEmailUiLayoutHandler::GetControlBarSortButtonPos() const
-    {
-    FUNC_LOG;
-    return GetControlBarSortButtonRect().iTl;
-    }
-
-// -----------------------------------------------------------------------------
-// CFSEmailUiLayoutHandler::GetControlBarSortButtonSize
-// -----------------------------------------------------------------------------
-TSize CFSEmailUiLayoutHandler::GetControlBarSortButtonSize() const
-    {
-    FUNC_LOG;
-    return GetControlBarSortButtonRect().Size();
+        if ( AknLayoutUtils::LayoutMirrored() )
+            {
+            sortButtonRect.LayoutRect( cbr, 
+                             AknLayoutScalable_Apps::cmail_ddmenu_btn01_pane(2) );
+            }
+        else
+            {
+            sortButtonRect.LayoutRect( cbr, 
+                             AknLayoutScalable_Apps::cmail_ddmenu_btn03_pane(2) );
+            }
+        }
+    
+    TRect r = sortButtonRect.Rect();
+    r.Move( -cbr.iTl );
+    return r;
     }
 
 // -----------------------------------------------------------------------------
@@ -2016,7 +1885,7 @@ TRect CFSEmailUiLayoutHandler::GetControlBarConnectionIconRect() const
     TAknLayoutRect controlBarRect;
     controlBarRect.LayoutRect( mainPaneRect, AknLayoutScalable_Apps::main_sp_fs_ctrlbar_pane(0 ) );
     TAknLayoutRect iconRect;
-    // <cmail>
+    
     if ( AknLayoutUtils::LayoutMirrored() )
         {        
         iconRect.LayoutRect( controlBarRect.Rect(), AknLayoutScalable_Apps::main_sp_fs_ctrlbar_pane_g1( 0 ) );
@@ -2025,26 +1894,8 @@ TRect CFSEmailUiLayoutHandler::GetControlBarConnectionIconRect() const
         {
         iconRect.LayoutRect( controlBarRect.Rect(), AknLayoutScalable_Apps::main_sp_fs_ctrlbar_pane_g2( 0 ) );
         }
-    // </cmail>
+    
     return iconRect.Rect();
-    }
-
-// -----------------------------------------------------------------------------
-// CFSEmailUiLayoutHandler::GetControlBarConnectionIconPos
-// -----------------------------------------------------------------------------
-TPoint CFSEmailUiLayoutHandler::GetControlBarConnectionIconPos() const
-    {
-    FUNC_LOG;
-    return GetControlBarConnectionIconRect().iTl;
-    }
-
-// -----------------------------------------------------------------------------
-// CFSEmailUiLayoutHandler::GetControlBarConnectionIconSize
-// -----------------------------------------------------------------------------
-TSize CFSEmailUiLayoutHandler::GetControlBarConnectionIconSize() const
-    {
-    FUNC_LOG;
-    return GetControlBarConnectionIconRect().Size();
     }
 
 // -----------------------------------------------------------------------------
@@ -2053,27 +1904,54 @@ TSize CFSEmailUiLayoutHandler::GetControlBarConnectionIconSize() const
 TRect CFSEmailUiLayoutHandler::GetControlBarRect() const
     {
     FUNC_LOG;
-    //TInt var = Layout_Meta_Data::IsLandscapeOrientation() ? 1 : 0; //<cmail>
+    TInt var = Layout_Meta_Data::IsLandscapeOrientation() ? 3 : 2;
+    
     TRect mainPaneRect;
     AknLayoutUtils::LayoutMetricsRect(AknLayoutUtils::EMainPane, mainPaneRect);
     mainPaneRect.Move(-mainPaneRect.iTl);
+    
+    TRect emailRect = mainPaneRect;
+    TAknLayoutRect emailPaneRect;
+    emailPaneRect.LayoutRect(mainPaneRect, 
+                    AknLayoutScalable_Apps::main_sp_fs_email_pane());
+    emailRect = emailPaneRect.Rect();
+   
     TAknLayoutRect controlBarRect;
-    controlBarRect.LayoutRect(mainPaneRect, AknLayoutScalable_Apps::main_sp_fs_ctrlbar_pane(0)); //<cmail>
-    return controlBarRect.Rect();
+    controlBarRect.LayoutRect( emailRect, 
+                    AknLayoutScalable_Apps::main_sp_fs_ctrlbar_pane(var));
+    TRect rect = controlBarRect.Rect();
+    
+    return rect;
     }
 
 // -----------------------------------------------------------------------------
-// CFSEmailUiLayoutHandler::GetControlBarRect
+// CFSEmailUiLayoutHandler::GetListRect
 // -----------------------------------------------------------------------------
-TRect CFSEmailUiLayoutHandler::GetListRect() const
+TRect CFSEmailUiLayoutHandler::GetListRect( TBool aControlsOnTop ) const
     {
     FUNC_LOG;
+    TBool landscape = Layout_Meta_Data::IsLandscapeOrientation();
+    TInt var = Layout_Meta_Data::IsLandscapeOrientation() ? 3 : 2;
+    
     TRect mainPaneRect;
     AknLayoutUtils::LayoutMetricsRect(AknLayoutUtils::EMainPane, mainPaneRect);
     mainPaneRect.Move(-mainPaneRect.iTl);
+    
     TAknLayoutRect listRect;
-    listRect.LayoutRect( mainPaneRect, AknLayoutScalable_Apps::main_sp_fs_listscroll_pane_te_cp01( 0 ) );
-    return listRect.Rect();
+    listRect.LayoutRect( mainPaneRect, 
+                        AknLayoutScalable_Apps::main_sp_fs_listscroll_pane_te_cp01( var ));
+    TRect rect = listRect.Rect();
+
+    // if control bar is required, reserve space on top of the listbox  
+    if( aControlsOnTop && landscape )
+        {
+        TAknLayoutRect listRect2;
+        listRect2.LayoutRect( mainPaneRect, 
+                        AknLayoutScalable_Apps::main_sp_fs_listscroll_pane_te_cp01( 0 ));
+        rect.Intersection(listRect2.Rect());
+        }
+    
+    return rect;
     }
 
 // -----------------------------------------------------------------------------
@@ -2082,7 +1960,6 @@ TRect CFSEmailUiLayoutHandler::GetListRect() const
 TAknLayoutText CFSEmailUiLayoutHandler::GetSearchListHeaderTextLayout() const
     {
     FUNC_LOG;
-    //TInt var = Layout_Meta_Data::IsLandscapeOrientation() ? 1 : 0;
     TRect mainPaneRect;
     AknLayoutUtils::LayoutMetricsRect(AknLayoutUtils::EMainPane, mainPaneRect);
     mainPaneRect.Move(-mainPaneRect.iTl);
@@ -2158,10 +2035,6 @@ TRect CFSEmailUiLayoutHandler::ListCmailPaneRect() const
     layoutRect.LayoutRect( layoutRect.Rect(), AknLayoutScalable_Apps::list_cmail_pane() );
     return layoutRect.Rect();
     }
-
-// </cmail> Platform layout change
-
-// <cmail> new methods
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiLayoutHandler::TitleCaptionPadding
@@ -2243,8 +2116,6 @@ TInt CFSEmailUiLayoutHandler::DropDownMenuListPadding() const
            
     return Abs( menuListPaneRect.iTl.iY - menuPaneRect.iTl.iY );
     }
-
-// </cmail> 
 
 // End of file
 

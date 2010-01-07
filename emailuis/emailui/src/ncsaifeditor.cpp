@@ -219,8 +219,8 @@ TBool CNcsAifEntry::IsSameDN( const CNcsAifEntry& entry ) const
 // ---------------------------------------------------------------------------
 //
 CNcsAifEditor::CNcsAifEditor(
-    MNcsFieldSizeObserver* aSizeObserver ) 
-    : CNcsEditor( aSizeObserver, ETrue, ENcsEditorAddress ), iAddressPopupList( NULL ),
+    MNcsFieldSizeObserver* aSizeObserver, const TDesC& aCaptionText ) 
+    : CNcsEditor( aSizeObserver, ETrue, ENcsEditorAddress, aCaptionText ), iAddressPopupList( NULL ),
     iAddLeftover( ETrue )
     {
     FUNC_LOG;
@@ -346,7 +346,7 @@ TKeyResponse CNcsAifEditor::OfferKeyEventL( const TKeyEvent& aKeyEvent,
             
             CleanupStack::PopAndDestroy( text );            
         	}
-        
+        iTextSelection = Selection();        
         ret = CNcsEditor::OfferKeyEventL( aKeyEvent, aType );
         }
     return ret;
@@ -375,6 +375,7 @@ void CNcsAifEditor::HandleEdwinEventL( CEikEdwin* /*aEdwin*/,
         }
     else if ( aEventType == MEikEdwinObserver::EEventNavigation )
         {
+        iTextSelection = Selection();
         HandleNavigationEventL();
         }
     }
@@ -396,31 +397,7 @@ TKeyResponse CNcsAifEditor::SetEditorSelectionL( const TKeyEvent& aKeyEvent,
     // move the cursor for us.  Then we check if it's in an entry.
     if ( aKeyEvent.iCode == EKeyUpArrow || aKeyEvent.iCode == EKeyDownArrow )
         {
-    	// make sure there is really some text inputted 
-        TInt cursorPos( CursorPos() );
-    	
-        TCursorSelection selection = NonEntryTextAtPos( cursorPos );
-        
-        TInt length( selection.Length() );
-        
-        HBufC* text = HBufC::NewLC( length );
-        TPtr ptr = text->Des();
-        
-        if( selection.LowerPos() >= 0 )
-        	{
-			Text()->Extract( ptr, selection.LowerPos(), length );
-			ptr.Trim();
-			
-			// complete the entry
-			if( ptr.Length() > 0 )
-				{
-				Text()->InsertL( selection.HigherPos(), KCharAddressDelimeterSemiColon );
-				HandleTextChangedL();
-				HandleTextUpdateL( TCursorSelection(selection.LowerPos(), selection.HigherPos() + 1) );
-				}
-        	}
-		
-		CleanupStack::PopAndDestroy( text );
+        CompleteEntryL();
 		
         response = CNcsEditor::OfferKeyEventL( aKeyEvent,aType );
         if ( response == EKeyWasConsumed ) 
@@ -1063,8 +1040,9 @@ void CNcsAifEditor::CheckAndRemoveInvalidEntriesL()
         {
         TInt matchesInText;
         TInt matchesInArray;
-        TInt arrayItemCurPos( iArray[i]->LowerPos() );
-        
+        TInt arrayItemLowPos( iArray[i]->LowerPos() );
+        TInt arrayItemHighPos( iArray[i]->HigherPos());
+
         GetMatchingEntryCountsL( iArray[i], matchesInText, matchesInArray );
 
         // Entry is removed if:
@@ -1074,13 +1052,18 @@ void CNcsAifEditor::CheckAndRemoveInvalidEntriesL()
         // In b) case the correct duplicate is the one that is in current
         // cursor position (or one off due to possible whitespace).
         if ( 0 == matchesInText ||
-             ( matchesInText < matchesInArray &&
-               ( currentCursorPos == arrayItemCurPos || 
-                 (1 + currentCursorPos) == arrayItemCurPos ) ) )
+             ( matchesInText < matchesInArray ) &&
+               ( currentCursorPos >= arrayItemLowPos && 
+                 currentCursorPos <= arrayItemHighPos )) 
             {
             delete iArray[i];
             iArray.Remove(i);
             removedEntryIndex = i;
+            if ( iTextSelection.iAnchorPos != iTextSelection.iCursorPos &&
+                 iTextSelection.HigherPos() < arrayItemHighPos )
+                {
+                iPartialRemove = ETrue;
+                }
             }
         }
     
@@ -1270,16 +1253,19 @@ void CNcsAifEditor::UpdateDuplicateEntryMarkingsL()
     const TInt entryCount = iArray.Count();
     for ( TInt ii = entryCount - 1; ii >= 0; --ii )
         {
-        TBool duplicateFound = EFalse;
-        for ( TInt jj = ii - 1; jj >= 0; --jj )
+        if ( ii > 0 )
             {
-            if ( iArray[ii]->IsSameDN( *iArray[jj] ) )
+            TBool duplicateFound = EFalse;
+            for ( TInt jj = ii - 1; jj >= 0; --jj )
                 {
-                duplicateFound = ETrue;
-                iArray[jj]->SetDupL( ETrue );
+                if ( iArray[ii]->IsSameDN( *iArray[jj] ) )
+                    {
+                    duplicateFound = ETrue;
+                    iArray[jj]->SetDupL( ETrue );
+                    }
                 }
+            iArray[ii]->SetDupL( duplicateFound );
             }
-        iArray[ii]->SetDupL( duplicateFound );
         }
     }
 
@@ -1332,9 +1318,13 @@ void CNcsAifEditor::HandleTextUpdateL()
         
         // add line feed after new entry
         TInt cursorPos( CursorPos() );
-        Text()->InsertL( cursorPos, TChar(CEditableText::ELineBreak) );
+        if ( !iPartialRemove )
+            {
+            Text()->InsertL( cursorPos, TChar(CEditableText::ELineBreak) );
+            }
         HandleTextChangedL();
-    	SetCursorPosL( cursorPos + 1, EFalse );
+        SetCursorPosL( cursorPos + 1, EFalse );
+        iPartialRemove = EFalse;
         }
     else
         {
@@ -1604,5 +1594,78 @@ void CNcsAifEditor::GetMatchingEntryCountsL(  const CNcsAifEntry* aEntry,
         }
     }
 
+// -----------------------------------------------------------------------------
+// CNcsAifEditor::HandlePointerEventL()
+// Handles pointer events
+// -----------------------------------------------------------------------------
+//
+void CNcsAifEditor::HandlePointerEventL( const TPointerEvent& aPointerEvent )
+    {
+    FUNC_LOG;
+    
+    if ( aPointerEvent.iType == TPointerEvent::EButton1Down )
+        {
+        CTextLayout* textLayout = TextLayout();
+        TInt cursorPos = CursorPos();
+        TPoint touchPoint( aPointerEvent.iPosition );
+
+        //adjust touch point to mach editor coordinates
+        touchPoint.iX -= Position().iX;
+        
+        TInt pointerLineNbr = textLayout->GetLineNumber( textLayout->XyPosToDocPosL( touchPoint ));
+        TInt cursorLineNbr = textLayout->GetLineNumber( cursorPos );
+        
+        
+        if ( pointerLineNbr != cursorLineNbr )
+            {
+            CompleteEntryL();
+            
+            // We're moving to a new line.
+            CNcsAifEntry* entry = NULL;
+            entry = GetEntryAt( CursorPos() );
+            if ( entry )
+                {
+                SetSelectionL( entry->iCursorPos, entry->iAnchorPos );
+                }
+            }    
+        }
+            
+    CEikEdwin::HandlePointerEventL( aPointerEvent );
+    }
+
+
+// -----------------------------------------------------------------------------
+// CNcsAifEditor::CompleteEntryL()
+// Adds semicolol to the of the entry
+// -----------------------------------------------------------------------------
+//
+void CNcsAifEditor::CompleteEntryL()
+    {
+    // make sure there is really some text inputted 
+    TInt cursorPos( CursorPos() );
+
+    TCursorSelection selection = NonEntryTextAtPos( cursorPos );
+
+    TInt length( selection.Length() );
+
+    HBufC* text = HBufC::NewLC( length );
+    TPtr ptr = text->Des();
+
+    if( selection.LowerPos() >= 0 )
+        {
+        Text()->Extract( ptr, selection.LowerPos(), length );
+        ptr.Trim();
+        
+        // complete the entry
+        if( ptr.Length() > 0 )
+            {
+            Text()->InsertL( selection.HigherPos(), KCharAddressDelimeterSemiColon );
+            HandleTextChangedL();
+            HandleTextUpdateL( TCursorSelection(selection.LowerPos(), selection.HigherPos() + 1) );
+            }
+        }
+
+    CleanupStack::PopAndDestroy( text );
+    }
 // End of File
 

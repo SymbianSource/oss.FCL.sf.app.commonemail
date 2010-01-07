@@ -163,7 +163,7 @@ public: // from MAlfActionObserver
 
 public: // from MComposerFetchLogicCallback
 
-    void FetchLogicComplete( TComposerFetchState aState, TInt aError );
+    TBool FetchLogicComplete( TComposerFetchState aState, TInt aError );
 
 public: // new functions
 

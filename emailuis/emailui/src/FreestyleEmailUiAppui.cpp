@@ -134,10 +134,10 @@ _LIT( KETelCallEngPhCltResourceFile, "PhoneClient.rsc" );
 _LIT( KMsgReaderFsDll,"freestylemessagescanner.dll"); // DLL provided by msg reader.
 _LIT( KPhoneModuleName, "Phonetsy.tsy");
 _LIT( KPhoneName, "DefaultPhone");
-// Message editor resources
-_LIT( KMsgEditorAppUiResourceFileName, "z:msgeditorappui.rsc" );
-// FSMailServer resources
-_LIT( KFSMailServerResourceFileName, "z:fsmailserver.rsc" );
+// Message editor resource file with wild cards
+_LIT( KMsgEditorAppUiResourceFileName, "msgeditorappui.r*" );
+// FSMailServer resource file with path and wild cards
+_LIT( KFSMailServerResourceFileNameWithPath, "\\resource\\apps\\fsmailserver.r*" );
 
 // 6 seconds
 const TTimeIntervalMicroSeconds32 KIdleTimeInterval = 6000000;
@@ -152,6 +152,8 @@ TInt DelayedViewLoaderCallBackL( TAny* aObject )
 
 const TUint KConnectionStatusIconRotationInterval = 100;
 const TInt KConnectionStatusIconRotationAmount = 18;
+// Length of the drive letter descriptor (e.g. "c:")
+const TInt KDriveDescLength = 2;
 
 // ---------------------------------------------------------------------------
 // C++ constructor.
@@ -170,6 +172,44 @@ CFreestyleEmailUiAppUi::CFreestyleEmailUiAppUi( CAlfEnv& aEnv )
     }
 
 // ---------------------------------------------------------------------------
+// Load specified resource file, file name may (and should) contain wild cards
+// ---------------------------------------------------------------------------
+//
+TInt CFreestyleEmailUiAppUi::LoadResourceFileL(
+    const TDesC& aFileName, 
+    const TDesC& aFilePath )
+    {
+    FUNC_LOG;
+
+    TFindFile search( iCoeEnv->FsSession() );
+    CDir* dirList = NULL;
+    TInt err = search.FindWildByDir( aFileName, aFilePath, dirList );
+
+    if ( err == KErrNone )
+        {
+        // After succesfull FindWildByDir; dirList contains list of found file
+        // names and search.File() returns the drive and path of the file(s)
+        if ( dirList->Count() > 0 )
+            {
+            TParse parse;
+            parse.Set( (*dirList)[0].iName, &search.File(), NULL );
+            TFileName nearestFile( parse.FullName() );
+            BaflUtils::NearestLanguageFile( iCoeEnv->FsSession(), nearestFile );
+            delete dirList;
+            
+            INFO_1( "Load resource: %S", &nearestFile );
+            // Return the resource file offset if file loaded succesfully
+            return iEikonEnv->AddResourceFileL( nearestFile );
+            }
+        delete dirList;
+        }
+	
+    // Leave if resource file is not found
+    User::Leave( err );
+    return 0; // To avoid compiler warnings
+    }
+    
+// ---------------------------------------------------------------------------
 // ConstructL is called by the application framework
 // ---------------------------------------------------------------------------
 //
@@ -177,23 +217,19 @@ void CFreestyleEmailUiAppUi::ConstructL()
     {
     FUNC_LOG;
 
-    // for debug builds create log file directory automatically
-#ifdef _DEBUG
-    _LIT( KDebugLogDir, "c:\\logs\\FreestyleEmailUi\\" );
-    BaflUtils::EnsurePathExistsL( iEikonEnv->FsSession(), KDebugLogDir );
-#endif
-
-    // Add message editor resources (needed for ENote fetch)
-    TParse parse;
-    parse.Set( KMsgEditorAppUiResourceFileName, &KDC_RESOURCE_FILES_DIR, NULL );
-    TFileName fileName( parse.FullName() );
-    BaflUtils::NearestLanguageFile( iCoeEnv->FsSession(), fileName );
-    iMsgEditorResourceOffset = iEikonEnv->AddResourceFileL( fileName );
-    // Add FSMailServer resources
-    parse.Set( KFSMailServerResourceFileName, &KDC_APP_RESOURCE_DIR, NULL );
-    fileName = parse.FullName();
-    BaflUtils::NearestLanguageFile( iCoeEnv->FsSession(), fileName );
-    iFSMailServerResourceOffset = iEikonEnv->AddResourceFileL( fileName );
+    // Load message editor resources (needed for ENote fetch)
+    iMsgEditorResourceOffset = LoadResourceFileL(
+                                   KMsgEditorAppUiResourceFileName,
+                                   KDC_RESOURCE_FILES_DIR );
+    
+    // Load FSMailServer resource file, search first the same drive from where
+    // our process is loaded as FSMailServer should be installed in same drive
+    RProcess ownProcess;
+    TFileName ownProcessName( ownProcess.FileName() );
+    ownProcess.Close();
+    iFSMailServerResourceOffset = LoadResourceFileL(
+                                      KFSMailServerResourceFileNameWithPath,
+                                      ownProcessName.LeftTPtr( KDriveDescLength ) );
     
 	// flag indicating whether we are in AppUi::ConstructL
 	// workaround for compose view loadbackgroundcontext sending skin changed events
@@ -216,7 +252,7 @@ void CFreestyleEmailUiAppUi::ConstructL()
     // state changed events. The initial state will be reported in construction
     iPropertySubscriber =
         CFreestyleEmailUiPropertySubscriber::NewL( KPSUidHWRM, KHWRMFlipStatus, *this );
-    
+
     // Create Document Handler instance
     iDocumentHandler = CDocumentHandler::NewL();
     iFileHandleShutter = CFsEmailFileHandleShutter::NewL(*iDocumentHandler);
@@ -235,7 +271,7 @@ void CFreestyleEmailUiAppUi::ConstructL()
     // Set up layouthandler
     iLayoutHandler = CFSEmailUiLayoutHandler::NewL( *iEnv );
 	iLayoutHandler->ScreenResolutionChanged();
-    
+
     // Create mail client, list mailboxes
     iMailClient = CFSMailClient::NewL();
 
@@ -248,7 +284,7 @@ void CFreestyleEmailUiAppUi::ConstructL()
 
 	// New mailbox query async callback
  	iNewBoxQueryAsyncCallback = new (ELeave) CAsyncCallBack( CActive::EPriorityStandard );
-	iNewBoxQueryAsyncCallback->Set( TCallBack( DisplayCreateQueryL, this ) ); 
+	iNewBoxQueryAsyncCallback->Set( TCallBack( DisplayCreateQueryL, this ) );
 
     iActionMenuHandler = CFSEmailUiActionMenu::NewL( this );
 
@@ -334,19 +370,18 @@ void CFreestyleEmailUiAppUi::ConstructL()
 	iWizardObserver = CFSEmailUiWizardObserver::NewL( this, iMainUiGridVisualiser );
 	iConstructComplete = ETrue;
 
-    // this includes a wait note where code running will be pending
-    // until a certain callback event is received
-    // -> thus keep this last in this method!
-    iWizardObserver->DoWizardStartupActionsL();
-
     iExitGuardian = CEUiExitGuardian::NewL( *this );
-    
+
     iConnectionStatusVisible = ETrue;
     // Create custom statuspane indicators object, which shows priority and followup flags
     CreateStatusPaneIndicatorsL();
     iConnectionStatusIconAnimTimer = CFSEmailUiGenericTimer::NewL(this, CActive::EPriorityLow);
-    iFocusTimer = CPeriodic::New(CActive::EPriorityIdle);
-   	}
+
+    // this includes a wait note where code running will be pending
+    // until a certain callback event is received
+    // -> thus keep this last in this method!
+    iWizardObserver->DoWizardStartupActionsL();
+    }
 
 // Functions loads some views as delayed to reduce startup time
 TInt CFreestyleEmailUiAppUi::ViewLoadIdleCallbackFunctionL()
@@ -389,7 +424,7 @@ TInt CFreestyleEmailUiAppUi::ViewLoadIdleCallbackFunctionL()
 CFreestyleEmailUiAppUi::~CFreestyleEmailUiAppUi()
     {
     FUNC_LOG;
-    
+
     if ( iMsgEditorResourceOffset )
         {
         iEikonEnv->DeleteResourceFile( iMsgEditorResourceOffset );
@@ -409,7 +444,7 @@ CFreestyleEmailUiAppUi::~CFreestyleEmailUiAppUi()
 	delete iPropertySubscriber;
 
     DeleteStatusPaneIndicators();
-    
+
 	if ( iAutoSyncMonitor )
 		{
 		iAutoSyncMonitor->StopMonitoring();
@@ -492,17 +527,10 @@ CFreestyleEmailUiAppUi::~CFreestyleEmailUiAppUi()
     // destroys the Download Information mediator
     // Destruction must be done here as other Tls data depends on it.
     CFSEmailDownloadInfoMediator::Destroy();
-    
+
     delete iNaviDecorator2MailViewer;
-    
+
     delete iConnectionStatusIconAnimTimer;
-    
-    if (iFocusTimer)
-    	{
-		CancelFocusRemovalTimer();
-		delete iFocusTimer;
-    	}
-    
     }
 
 
@@ -590,10 +618,10 @@ void CFreestyleEmailUiAppUi::ReturnFromPluginSettingsView()
     FUNC_LOG;
     // Check if we just returned from a plugin settings view. In that case, the current active view
     // and view history must be updated here (because RetrunToPreviousViewL() has not been used).
-    if ( iSettingsViewActive ) 
+    if ( iSettingsViewActive )
         {
         iSettingsViewActive = EFalse;
-        
+
         // Set the iCurrentActiveView pointer
         if ( iNavigationHistory->IsEmpty() )
             {
@@ -662,7 +690,7 @@ void CFreestyleEmailUiAppUi::ReturnFromHtmlViewerL( TBool aMessageWasDeleted )
 	    {
         // Message deleted, remove mail viewer from the stack
         // => view returns directly mail list (or any other view where the viewer was started from)
-        
+
 		TMailListActivationData tmp;
 		tmp.iRequestRefresh = ETrue;
 		const TPckgBuf<TMailListActivationData> pkgOut( tmp );
@@ -677,7 +705,7 @@ void CFreestyleEmailUiAppUi::ReturnFromHtmlViewerL( TBool aMessageWasDeleted )
 TUid CFreestyleEmailUiAppUi::ReturnToPreviousViewL( const TDesC8& aCustomMessage /*= KNullDesC8*/ )
     {
     FUNC_LOG;
-    iPreviousActiveView = iCurrentActiveView;  
+    iPreviousActiveView = iCurrentActiveView;
     CFsDelayedLoader::InstanceL()->GetContactHandlerL()->Reset();
     // Set the iCurrentActiveView pointer
     if ( iNavigationHistory->IsEmpty() )
@@ -812,13 +840,13 @@ void CFreestyleEmailUiAppUi::ShowFolderListInPopupL(
     }
 
 void CFreestyleEmailUiAppUi::ShowSortListInPopupL(
-        const TFSMailSortField aCurrentSortOrder,
+        const TFSMailSortCriteria aCurrentSortCriteria,
         const TFSFolderType aFolderType,
         MFSEmailUiSortListCallback* aCallback,
         MFsControlButtonInterface* aButton )
     {
     FUNC_LOG;
-    iFolderListVisualiser->ShowSortListPopupL( aCurrentSortOrder, aFolderType, aCallback, aButton );
+    iFolderListVisualiser->ShowSortListPopupL( aCurrentSortCriteria, aFolderType, aCallback, aButton );
 
     iCurrentActiveView->ControlGroup().SetAcceptInput( EFalse );
     iEnv->Send( TAlfGroupCommand(*iFolderListControlGroup, EAlfOpShow, &Display()), 0 );
@@ -836,15 +864,15 @@ void CFreestyleEmailUiAppUi::FolderPopupClosed()
 void CFreestyleEmailUiAppUi::ProcessCommandL( TInt aCommand )
     {
     FUNC_LOG;
-    
+
     // For a reason unknown compose view propagates a leave when the options
     // menu open -command is sent to it during the time when it has started
     // the view deactivation but not yet completed that. It causes unnecessay
-    // leave notes in a complete normal use cases in the emulator. To remove 
+    // leave notes in a complete normal use cases in the emulator. To remove
     // the notes but keep the regression risk at minimum (ie. not do any major
     // refactoring) trap the leave here. Propagate other leaves normally.
     TRAPD( err, CAknViewAppUi::ProcessCommandL( aCommand ) );
-    
+
     if ( err != KErrNcsComposeViewNotReady )
         {
         User::LeaveIfError( err );
@@ -899,7 +927,7 @@ void CFreestyleEmailUiAppUi::ExitNow()
 
     // First, prepare viewer, search list and composer for exit, destroys mailbox object before
     // This exit preparation should be moved to base class in the future.
-    if ( iMsgDetailsVisualiser ) 
+    if ( iMsgDetailsVisualiser )
         {
         iMsgDetailsVisualiser->PrepareForExit();
         }
@@ -949,7 +977,7 @@ void CFreestyleEmailUiAppUi::ExitNow()
         }
     iSubscribedMailBoxesIds.Reset();
     iSubscribedMailBoxes.Reset();
-	
+
 	if ( iMailClient )
         {
         iMailClient->RemoveObserver( *this );
@@ -1042,9 +1070,9 @@ void CFreestyleEmailUiAppUi::HandleWsEventL(const TWsEvent &aEvent, CCoeControl*
 	const TInt KAknFullOrPartialForegroundGained = 0x10281F36;
 	const TInt KAknFullOrPartialForegroundLost   = 0x10281F37;
 	#endif
-    
+
     TBool closeMenu = EFalse;
-    
+
 	// Let folder list visualizer to handle event first because if the popup
 	// is showed, that needs to be closed when pointer click happens outside of the
 	// popup rect and also following pointer up event has to be consumed
@@ -1052,7 +1080,7 @@ void CFreestyleEmailUiAppUi::HandleWsEventL(const TWsEvent &aEvent, CCoeControl*
         {
         return;
         }
-	
+
 	TInt key = aEvent.Key()->iScanCode;
     // <cmail>
     // to disable voice commands during creating new mail message
@@ -1079,16 +1107,16 @@ void CFreestyleEmailUiAppUi::HandleWsEventL(const TWsEvent &aEvent, CCoeControl*
             }
 		    //} //<cmail>
 		}
-    
+
     TInt keyCode = aEvent.Key()->iCode;
-    
-    if ( EKeyQwertyOn == keyCode || 
+
+    if ( EKeyQwertyOn == keyCode ||
          EKeyQwertyOff == keyCode )
         {
-        // Close menu when keyboard is opened or closed.  
+        // Close menu when keyboard is opened or closed.
         closeMenu = ETrue;
         }
-    
+
     switch ( aEvent.Type() )
         {
         case KAknFullOrPartialForegroundLost:
@@ -1115,12 +1143,12 @@ void CFreestyleEmailUiAppUi::HandleWsEventL(const TWsEvent &aEvent, CCoeControl*
         default:
             break;
     	}
-    
+
     // Close menu
     if ( closeMenu && iCurrentActiveView != NULL )
         {
         CEikMenuBar* menu = iCurrentActiveView->MenuBar();
-        
+
         if ( menu != NULL )
             {
             if ( menu->IsDisplayed() )
@@ -1129,7 +1157,7 @@ void CFreestyleEmailUiAppUi::HandleWsEventL(const TWsEvent &aEvent, CCoeControl*
                 }
             }
         }
-    
+
     CAknAppUi::HandleWsEventL(aEvent, aDestination);
 	}
 
@@ -1185,8 +1213,8 @@ void CFreestyleEmailUiAppUi::DoHandleResourceChangeL( TInt aType )
     //    {
     //    CAlfEnv::Static()->NotifySkinChangedL();
     //    }
-    
-    
+
+
     if( aType == KEikDynamicLayoutVariantSwitch || aType == KAknsMessageSkinChange)
         {
 	  	TRect screenRect;
@@ -1489,17 +1517,17 @@ void CFreestyleEmailUiAppUi::SetActiveMailboxL( TFSMailMsgId aActiveMailboxId, T
     FUNC_LOG;
  	// Set flag
 	iAutomatedMailBoxOnline = EFalse;
-	
+
 	// Try to get the mailbox
 	CFSMailBox* newActiveBox = iMailClient->GetMailBoxByUidL( aActiveMailboxId );
 	User::LeaveIfNull( newActiveBox );
-	
+
     // Replace active mailbox of the application if getting the mailbox was succesful
     delete iActiveMailbox;
     iActiveMailbox = newActiveBox;
 
-    iActiveMailboxId = iActiveMailbox->GetId();                 
-    iActiveBoxInboxId = iActiveMailbox->GetStandardFolderId( EFSInbox ); 
+    iActiveMailboxId = iActiveMailbox->GetId();
+    iActiveBoxInboxId = iActiveMailbox->GetStandardFolderId( EFSInbox );
 
 	SubscribeMailboxL( iActiveMailboxId );
 
@@ -1567,7 +1595,7 @@ TBool CFreestyleEmailUiAppUi::AppUiExitOngoing()
 TBool CFreestyleEmailUiAppUi::MessageReaderSupportsFreestyle()
 	{
     FUNC_LOG;
-	// Check availability of Reader if necessary. Msg reader cannot be installed 
+	// Check availability of Reader if necessary. Msg reader cannot be installed
 	// from sisx so checking is done only once. KErrGeneral at startup.
 	if ( iMsgReaderIsSupported == KErrGeneral )
 		{
@@ -1766,7 +1794,7 @@ void CFreestyleEmailUiAppUi::EventL( TFSMailEvent aEvent, TFSMailMsgId aMailbox,
                                      TAny* aParam1, TAny* aParam2, TAny* aParam3 )
     {
     FUNC_LOG;
-    
+
     if (iExitGuardian)
         {
         iExitGuardian->EnterLC();
@@ -1844,17 +1872,8 @@ void CFreestyleEmailUiAppUi::EventL( TFSMailEvent aEvent, TFSMailMsgId aMailbox,
                             {
                             ManualMailBoxSyncAll(EFalse);
                             }
-                        else if (iManualMailBoxSync)
-                            {
-                            TDesC* mbName(0);
-                            CFSMailBox* mb = GetActiveMailbox();
-                            if ( mb )
-                                {
-                                mbName = &mb->GetName();
-                                }
-                            }
                         }
-                        break;                      
+                        break;
                     case SyncError:
                         {
                         // error occured during "Connect" or "Send and receive" operation
@@ -1870,7 +1889,7 @@ void CFreestyleEmailUiAppUi::EventL( TFSMailEvent aEvent, TFSMailMsgId aMailbox,
                             ManualMailBoxSync( EFalse );
                             }
                         }
-                        break;                      
+                        break;
                     case FinishedSuccessfully:
                     case SyncCancelled:
                     case Idle:
@@ -1881,10 +1900,6 @@ void CFreestyleEmailUiAppUi::EventL( TFSMailEvent aEvent, TFSMailMsgId aMailbox,
 
        				case PushChannelOffBecauseBatteryIsLow:
     					{
-     					CFSMailBox* mb = iMailClient->GetMailBoxByUidL( aMailbox );
-    					CleanupStack::PushL( mb );
-    					TDesC* mbName = &mb->GetName();
-    		  			CleanupStack::PopAndDestroy( mb );
     					}
     					break;
         			} //switch
@@ -2054,7 +2069,19 @@ TInt CFreestyleEmailUiAppUi::MoveToPreviousMsgL( TFSMailMsgId aCurrentMsgId,
 	    }
 	return ret;
 	}
-
+	
+// Move to previous message when the current message is deleted in viewer
+TInt CFreestyleEmailUiAppUi::MoveToPreviousMsgAfterDeleteL( TFSMailMsgId aFoundPreviousMsgId )
+	{
+	FUNC_LOG;
+	TInt ret(KErrNotFound);
+	if ( !iNavigationHistory->IsEmpty() )
+		{
+		iNavigationHistory->Head()->MoveToPreviousMsgAfterDeleteL( aFoundPreviousMsgId );
+		}
+	return ret;		
+	}
+	
 CDocumentHandler& CFreestyleEmailUiAppUi::DocumentHandler()
 	{
     FUNC_LOG;
@@ -2172,7 +2199,7 @@ void CFreestyleEmailUiAppUi::UpdateTitlePaneConnectionStatus(
     {
     FUNC_LOG;
     iForcedConnectionStatus = aForcedStatus;
-        
+
     if ( iConnectionStatusVisible )
     	{
     	// Get connection status of the current mailbox
@@ -2193,7 +2220,7 @@ void CFreestyleEmailUiAppUi::UpdateTitlePaneConnectionStatus(
 			CAknTitlePane* titlePane = NULL;
 			TRAP_IGNORE( titlePane =
 				(CAknTitlePane*)StatusPane()->ControlL( titlePaneUid ) );
-		
+
 			// Set connection icon
 			iConnectionStatusIconAnimTimer->Stop();
 			iConnectionIconBitmap = 0;
@@ -2217,14 +2244,14 @@ void CFreestyleEmailUiAppUi::UpdateTitlePaneConnectionStatus(
 				    {
 				    TRAP_IGNORE( FsTextureManager()->ProvideBitmapL(
                         EStatusTextureConnected, iConnectionIconBitmap, iConnectionIconMask ) );
-				    }				
+				    }
 				}
 			else // EFSMailBoxOffline
 				{
 				TRAP_IGNORE( FsTextureManager()->ProvideBitmapL(
 						EStatusTextureDisconnectedGeneral, iConnectionIconBitmap, iConnectionIconMask ) );
 				}
-		
+
 			if ( iConnectionIconBitmap )
 				{
 				AknIconUtils::SetSize( iConnectionIconBitmap, iconSize, EAspectRatioNotPreserved );
@@ -2444,7 +2471,7 @@ TInt CFreestyleEmailUiAppUi::DisplayCreateQueryL( TAny* aSelfPtr )
     {
     FUNC_LOG;
     CFreestyleEmailUiAppUi* self = static_cast<CFreestyleEmailUiAppUi*>( aSelfPtr );
-    
+
     if (self->AppUiExitOngoing())
         {
         return KErrNone;
@@ -2457,14 +2484,14 @@ TInt CFreestyleEmailUiAppUi::DisplayCreateQueryL( TAny* aSelfPtr )
             return KErrNone;
             }
         }
-    
+
     TRAPD( err, self->DisplayCreateMailboxQueryL() );
-    
+
     if (err == KLeaveExit)
         {
         User::Leave(err);
         }
-    
+
     return err;
     }
 
@@ -2491,21 +2518,21 @@ void CFreestyleEmailUiAppUi::SendToBackground()
     if ( task.Exists() )
         {
         // Send self to background
-        task.SendToBackground(); 
+        task.SendToBackground();
         }
 
     iSwitchingToBackground = EFalse;
     }
 
 // -----------------------------------------------------------------------------
-// 
+//
 // -----------------------------------------------------------------------------
 void CFreestyleEmailUiAppUi::ConstructNaviPaneL()
     {
     FUNC_LOG;
 
-    CAknNavigationControlContainer* naviPaneContainer = 
-        static_cast<CAknNavigationControlContainer*>( 
+    CAknNavigationControlContainer* naviPaneContainer =
+        static_cast<CAknNavigationControlContainer*>(
         StatusPane()->ControlL( TUid::Uid( EEikStatusPaneUidNavi ) ) );
 
     // Following navipane is for mailviewer view
@@ -2513,27 +2540,27 @@ void CFreestyleEmailUiAppUi::ConstructNaviPaneL()
         {
         // Constructing a decorator with own decorated control,
         // which is (currently an empty) container.
-        CFreestyleEmailUiNaviPaneControlContainer2MailViewer* c = 
+        CFreestyleEmailUiNaviPaneControlContainer2MailViewer* c =
             CFreestyleEmailUiNaviPaneControlContainer2MailViewer::NewL();
         c->SetContainerWindowL( *naviPaneContainer );
         iNaviDecorator2MailViewer = CAknNavigationDecorator::NewL(
             naviPaneContainer,
-            c, 
+            c,
             CAknNavigationDecorator::ENotSpecified );
-        
+
         // In order to get navi arrows visible, they must be set visible AND not dimmed...
         iNaviDecorator2MailViewer->SetContainerWindowL( *naviPaneContainer );
         iNaviDecorator2MailViewer->MakeScrollButtonVisible( ETrue );
         iNaviDecorator2MailViewer->SetScrollButtonDimmed( CAknNavigationDecorator::ELeftButton, EFalse );
         iNaviDecorator2MailViewer->SetScrollButtonDimmed( CAknNavigationDecorator::ERightButton, EFalse );
-        
+
         iNaviDecorator2MailViewer->SetComponentsToInheritVisibility( ETrue );
         naviPaneContainer->PushL( *iNaviDecorator2MailViewer );
         }
     }
 
 // -----------------------------------------------------------------------------
-// 
+//
 // -----------------------------------------------------------------------------
 CAknNavigationDecorator* CFreestyleEmailUiAppUi::NaviDecoratorL(  const TUid aViewId  )
     {
@@ -2566,7 +2593,7 @@ void CFreestyleEmailUiAppUi::TimerEventL( CFSEmailUiGenericTimer* aTriggeredTime
                 CAknTitlePane* titlePane = NULL;
                 TRAP_IGNORE( titlePane =
                     (CAknTitlePane*)StatusPane()->ControlL( titlePaneUid ) );
-                
+
                 TSize iconSize = LayoutHandler()->statusPaneIconSize();
                 iConnectionStatusIconAngle += KConnectionStatusIconRotationAmount;
                 AknIconUtils::SetSizeAndRotation(iConnectionIconBitmap, iconSize, EAspectRatioNotPreserved, iConnectionStatusIconAngle);
@@ -2578,80 +2605,37 @@ void CFreestyleEmailUiAppUi::TimerEventL( CFSEmailUiGenericTimer* aTriggeredTime
     }
 
 // -----------------------------------------------------------------------------
-// CFreestyleEmailUiAppUi::CancelFocusRemovalTimer
+// CFreestyleEmailUiAppUi::SetFocusVisibility
 // -----------------------------------------------------------------------------
 
-void CFreestyleEmailUiAppUi::CancelFocusRemovalTimer()
+TBool CFreestyleEmailUiAppUi::SetFocusVisibility( TBool aVisible )
 	{
-	TBool wasActive = iFocusTimer->IsActive();
-	iFocusTimer->Cancel();
-
+	FUNC_LOG;
+	TBool oldFocusState( iFocusVisible );
+	iFocusVisible = aVisible;
 	CFsEmailUiViewBase* activeView = CurrentActiveView();
-	if( wasActive && activeView )
+	if ( /*oldFocusState != aVisible &&*/ activeView )
 		{
-		activeView->HandleTimerFocusStateChange( EFalse );
+		activeView->FocusVisibilityChange( aVisible );
 		}
+	// If popup is visible inform it also.
+	if( iFolderListVisualiser && iFolderListVisualiser->IsPopupShown() )
+	    {
+	    iFolderListVisualiser->FocusVisibilityChange( aVisible );
+	    }
+	return oldFocusState;
 	}
 
 // -----------------------------------------------------------------------------
-// CFreestyleEmailUiAppUi::StartFocusRemovalTimer
+//
 // -----------------------------------------------------------------------------
-
-TBool CFreestyleEmailUiAppUi::StartFocusRemovalTimer()
+TBool CFreestyleEmailUiAppUi::IsFocusShown() const
 	{
-	TBool wasActive = iFocusTimer->IsActive();
-	iFocusTimer->Cancel();
-	// Start the timer and calls FocusTimerCallBack when the timer expires
-	iFocusTimer->Start(KIdleTimeInterval, KIdleTimeInterval,
-			TCallBack(FocusTimerCallBack, this));
-	
-	CFsEmailUiViewBase* activeView = CurrentActiveView();
-	if ( !wasActive && activeView )
-		{
-		activeView->HandleTimerFocusStateChange( ETrue );
-		}
-	
-	return wasActive;
+	FUNC_LOG;
+	return iFocusVisible;
 	}
 
-// -----------------------------------------------------------------------------
-// 
-// -----------------------------------------------------------------------------
-TInt CFreestyleEmailUiAppUi::FocusTimerCallBack(TAny* aAny)
-	{
-	CFreestyleEmailUiAppUi* self = 
-		static_cast<CFreestyleEmailUiAppUi*>( aAny );
- 
-	return self->DoFocusTimerCallBack();
-	}
-// -----------------------------------------------------------------------------
-// 
-// -----------------------------------------------------------------------------
-TInt CFreestyleEmailUiAppUi::DoFocusTimerCallBack()
-	{
-	iFocusTimer->Cancel();
-	CFsEmailUiViewBase* activeView = CurrentActiveView();
-		
-	// Call the HandleTimerFocusStateChange of currently active so that it hides
-	// its focus.
-	if ( activeView )
-		{
-		activeView->HandleTimerFocusStateChange( EFalse );
-		}
-	
-	return KErrNone;
-	}
-
-// -----------------------------------------------------------------------------
-// 
-// -----------------------------------------------------------------------------
-TBool CFreestyleEmailUiAppUi::IsTimerFocusShown() const
-	{
-	return iFocusTimer->IsActive();
-	}
-
-
-// PUBLIC METHODS FROM MFREESTYLEEMAILUIPROPERTYCHANGEDOBSERVER 
+// PUBLIC METHODS FROM MFREESTYLEEMAILUIPROPERTYCHANGEDOBSERVER
 
 // -----------------------------------------------------------------------------
 // From MFreestyleEmailUiPropertyChangedObserver.
@@ -2669,7 +2653,7 @@ void CFreestyleEmailUiAppUi::PropertyChangedL( TInt aValue )
          {
          iFlipOpen = EFalse;
          }
-	
+
 	CFsEmailUiViewBase* activeView = CurrentActiveView();
 	if ( activeView )
 		{

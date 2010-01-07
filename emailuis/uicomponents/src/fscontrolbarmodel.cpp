@@ -496,6 +496,26 @@ void CFsControlBarModel::UpdateButtonsPositions()
         }
     }
 
+// ---------------------------------------------------------------------------
+// Set new position and size
+// ---------------------------------------------------------------------------
+//
+void CFsControlBarModel::SetRect( const TRect& aRect )
+    {
+    iSize = aRect.Size();
+    iWidthUseDefault = EFalse;
+    iHeightUseDefault = EFalse;
+    iTl = aRect.iTl;
+    }
+
+// ---------------------------------------------------------------------------
+// Get top-left position of the bar
+// ---------------------------------------------------------------------------
+//
+TPoint CFsControlBarModel::Pos() const
+    {
+    return iTl;
+    }
 
 // ---------------------------------------------------------------------------
 // Sets width in pixels of controlbar and refreshes control.

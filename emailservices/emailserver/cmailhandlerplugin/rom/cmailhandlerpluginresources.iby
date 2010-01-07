@@ -24,7 +24,7 @@
 
 #ifdef FF_EMAIL_FRAMEWORK
 
-data=DATAZ_\ECOM_RESOURCE_DIR\emailwidget.rsc ECOM_RESOURCE_DIR\emailwidget.rsc
+data=DATAZ_\APP_RESOURCE_DIR\emailwidget.rsc APP_RESOURCE_DIR\emailwidget.rsc
 
 #endif //FF_EMAIL_FRAMEWORK
 

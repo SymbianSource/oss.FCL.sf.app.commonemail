@@ -407,13 +407,17 @@ void CFsTreePlainOneLineNodeVisualizer::UpdateLayout(
                 iSize );*/
         CFsLayoutManager::LayoutMetricsSize(
                 parentLayoutRect,
-                CFsLayoutManager::EFsLmListSingleDycRowPane,
+                CFsLayoutManager::EFsLmListSingleFsDycPane,
                 iSize );
         // </cmail> Platform layout change
         }
 
     //one line node is not extendable
     TRect currentSize = iSize;
+    if ( !IsLayoutHintSet( EFolderLayout ) )
+        {
+        CFsLayoutManager::LayoutMetricsRect(currentSize, CFsLayoutManager::EFsLmListSingleDycRowPane, currentSize);
+        }
     if (CFsLayoutManager::IsMirrored())
         {
         currentSize.iBr = currentSize.iBr - TPoint(aIndentation, 0);
@@ -788,7 +792,11 @@ void CFsTreePlainOneLineNodeVisualizer::UpdateL( const MFsTreeItemData& aData,
                 }
 
             iTextMarquee->StopScrolling();
-            iTextVisual->SetWrapping(CAlfTextVisual::ELineWrapTruncate);
+            
+            if ( iTextVisual )
+            	{
+            	iTextVisual->SetWrapping(CAlfTextVisual::ELineWrapTruncate);
+            	}
             }
         }
     }

@@ -2,9 +2,9 @@
 * Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
-* under the terms of "Eclipse Public License v1.0"
+* under the terms of the License "Symbian Foundation License v1.0"
 * which accompanies this distribution, and is available
-* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+* at the URL "http://www.symbianfoundation.org/legal/sfl-v10.html".
 *
 * Initial Contributors:
 * Nokia Corporation - initial contribution.
@@ -71,6 +71,7 @@ CESMRViewerDescriptionField::~CESMRViewerDescriptionField( )
     FUNC_LOG;
     delete iLocationPlugin;
     delete iFeatures;
+    delete iLocation;
     }
 
 // ---------------------------------------------------------------------------
@@ -311,7 +312,7 @@ void CESMRViewerDescriptionField::ExecuteGenericCommandL( TInt aCommand )
                 {
                 const CESMRRichTextLink* link =
                     iRichTextViewer->GetSelectedLink();
-                LocationPluginL().ShowOnMapL( link->Value() );
+                LocationPluginL().ShowOnMapL( *iLocation, link->Value() );
                 }
             break;
             }
@@ -396,6 +397,11 @@ void CESMRViewerDescriptionField::AddShowOnMapLinkL( MESMRCalEntry& aEntry )
         CleanupStack::PopAndDestroy( description );
         CleanupStack::PopAndDestroy( showOnMapBuf );
         command = EESMRCmdEnableWaypointIcon;
+        
+        const TDesC& location = aEntry.Entry().LocationL();
+        delete iLocation;
+        iLocation = NULL; 
+        iLocation = location.AllocL();     
         }
     // No location url found. Other description text is added to field.
     else

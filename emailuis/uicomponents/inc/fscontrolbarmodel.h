@@ -193,12 +193,22 @@ public:
     void SetHeight( TInt aHeight );
 
     /**
+     * Set bar's rect
+     */
+    void SetRect( const TRect& aRect );
+    
+    /**
      * Get size of the controlbar.
      *
      * @return Size of the controlbar.
      */
     TSize Size() const;
 
+    /**
+     * Get top-left position
+     */
+    TPoint Pos() const;
+    
 private:
 
     /**
@@ -249,6 +259,10 @@ private: // data
      */
     TBool iHeightUseDefault;
 
+    /**
+     * Top-left position 
+     */
+    TPoint iTl;
     };
 
 

@@ -20,6 +20,8 @@
 
 #include "RfsMsgStorePlugin.h"
 #include "EmailStoreUids.hrh"
+#include <bautils.h>  
+#include <s32file.h>
 
 // -----------------------------------------------------------------------------
 // CRfsMsgStorePlugin::NewL()
@@ -53,27 +55,25 @@ void CRfsMsgStorePlugin::RestoreFactorySettingsL( const TRfsReason aType )
     if ( aType == ENormalRfs || aType == EDeepRfs || aType == EInitRfs )
         {
         TUint driveStatus( 0 );
-
-        if ( DriveInfo::GetDriveStatus( iFs, EDriveE, driveStatus ) == KErrNone )
+				TDriveNumber drive( EDriveC );
+     		GetDriveL( drive );
+        if ( DriveInfo::GetDriveStatus( iFs, drive, driveStatus ) == KErrNone )
             {
-            // check if internal E: drive is exists on the device
-            if ( ( driveStatus & DriveInfo::EDriveUserVisible ) &&
-                    ( driveStatus & DriveInfo::EDriveInternal )  &&
-                    ( driveStatus & DriveInfo::EDrivePresent ) )
-                {
-                // since we are dealing with internal E: drive only,
-                // it is ok to hardcoded the E: in the string
-                _LIT( KMsgStoreEDrivePrivate, "E:\\Private\\" );
-
-                TFileName msgStorePath( KMsgStoreEDrivePrivate );
-                msgStorePath.AppendNum( KUidMessageStoreExe, EHex );
-                msgStorePath.Append( KPathDelimiter );
-                CFileMan* fileManager = CFileMan::NewL( iFs );
-                // this will recursively delete all files in all directories under the msgStorePath
-                // but directories under the msgStorePath are not deleted
-                fileManager->Delete( msgStorePath, CFileMan::ERecurse );
-                delete fileManager;
-                }
+            _LIT( KPrivate, ":\\Private\\" );    
+            TChar driveChar;
+            RFs::DriveToChar(drive, driveChar);
+            TFileName msgStorePath;
+            TBuf<5> driveLetter;
+            driveLetter.Append(driveChar);
+            msgStorePath.Append(driveLetter);
+            msgStorePath.Append(KPrivate);                
+            msgStorePath.AppendNum( KUidMessageStoreExe, EHex );
+            msgStorePath.Append( KPathDelimiter );
+            CFileMan* fileManager = CFileMan::NewL( iFs );
+            // this will recursively delete all files in all directories under the msgStorePath
+            // but directories under the msgStorePath are not deleted
+            fileManager->Delete( msgStorePath, CFileMan::ERecurse );
+            delete fileManager;
             }
         }
     }
@@ -114,6 +114,48 @@ CRfsMsgStorePlugin::CRfsMsgStorePlugin()
 void CRfsMsgStorePlugin::ConstructL()
     {
     User::LeaveIfError( iFs.Connect() );
+    }
+    
+// -----------------------------------------------------------------------------
+// CRfsMsgStorePlugin::GetDriveL(TDriveNumber&)
+// -----------------------------------------------------------------------------
+//
+TInt CRfsMsgStorePlugin::GetDriveL( TDriveNumber& aDrive )
+    {
+    _LIT16( KDriveToUseFile, "db_drive.cfg" );
+    TInt ret( KErrNotFound );
+    RFs fs;
+    if( fs.Connect() == KErrNone )
+        {
+        CleanupClosePushL( fs );               //+fs
+        TFileName fileName;
+        _LIT( KCDrive, "C:" );
+        _LIT( KPrivate, "Private" );   
+        fileName.Append(KCDrive());
+        fileName.Append( KPathDelimiter ); 
+        fileName.Append(KPrivate);
+        fileName.Append( KPathDelimiter );                 
+        fileName.AppendNum( KUidMessageStoreExe, EHex );
+        fileName.Append( KPathDelimiter );        
+        fileName.Append( KDriveToUseFile );
+        if( BaflUtils::FileExists( fs, fileName ) )
+            {
+            RFileReadStream reader;
+            if ( reader.Open( fs, fileName, EFileRead ) == KErrNone )
+          		{
+           		CleanupClosePushL( reader );             //+reader
+           		TUint drive = reader.ReadUint32L();
+              CleanupStack::PopAndDestroy( &reader );  //-reader
+              if(drive <=EDriveZ)
+	              {
+	           		aDrive = static_cast<TDriveNumber>( drive );
+           			ret = KErrNone;
+           			}
+           		}
+            }
+        CleanupStack::PopAndDestroy( &fs );    //-fs
+        } // end if
+    return ret;
     }
 
 // END FILE RfsMsgStorePlugin.cpp

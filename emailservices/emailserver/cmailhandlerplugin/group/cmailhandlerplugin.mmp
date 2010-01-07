@@ -16,7 +16,7 @@
 */
 
 #include <platform_paths.hrh>
-#include <data_caging_paths.hrh> // Needed for ECOM_RESOURCE_DIR
+#include <data_caging_paths.hrh> // Needed for APP_RESOURCE_DIR
 
 #include "../../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
 
@@ -69,7 +69,7 @@ END
 #if !defined(FF_CMAIL_INTEGRATION)
 START RESOURCE                  ../data/emailwidget.rss
 HEADER
-TARGETPATH                      ECOM_RESOURCE_DIR
+TARGETPATH                      APP_RESOURCE_DIR
 LANGUAGE_IDS
 END
 #endif // FF_CMAIL_INTEGRATION

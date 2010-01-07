@@ -12,7 +12,7 @@
 * Contributors:
 *
 *  Description : ESMR entry processor implementation
-*  Version     : %version: tr1sido#12 %
+*  Version     : %version: e003sa40#13 %
 *
 */
 
@@ -290,7 +290,7 @@ EXPORT_C void CESMREntryProcessor::ProcessL(
         }
 
     // Check mail parameters
-    if ( iParams && iParams->iSpare )
+    if ( iParams )
         {
         CCalEntry* entry = &iESMREntry->Entry();
         if(entry)
