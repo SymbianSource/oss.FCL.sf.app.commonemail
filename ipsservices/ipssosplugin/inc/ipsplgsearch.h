@@ -163,6 +163,10 @@ public:
      */
     void CollectMessagesL();
 
+    /**
+     * server asks client if to change the search priority (when calling)
+     */
+    void ClientRequiredSearchPriority( TInt *apRequiredSearchPriority );
     
 protected:
 

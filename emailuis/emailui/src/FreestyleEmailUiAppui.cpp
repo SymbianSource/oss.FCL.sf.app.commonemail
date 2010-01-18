@@ -176,7 +176,7 @@ CFreestyleEmailUiAppUi::CFreestyleEmailUiAppUi( CAlfEnv& aEnv )
 // ---------------------------------------------------------------------------
 //
 TInt CFreestyleEmailUiAppUi::LoadResourceFileL(
-    const TDesC& aFileName, 
+    const TDesC& aFileName,
     const TDesC& aFilePath )
     {
     FUNC_LOG;
@@ -196,19 +196,19 @@ TInt CFreestyleEmailUiAppUi::LoadResourceFileL(
             TFileName nearestFile( parse.FullName() );
             BaflUtils::NearestLanguageFile( iCoeEnv->FsSession(), nearestFile );
             delete dirList;
-            
+
             INFO_1( "Load resource: %S", &nearestFile );
             // Return the resource file offset if file loaded succesfully
             return iEikonEnv->AddResourceFileL( nearestFile );
             }
         delete dirList;
         }
-	
+
     // Leave if resource file is not found
     User::Leave( err );
     return 0; // To avoid compiler warnings
     }
-    
+
 // ---------------------------------------------------------------------------
 // ConstructL is called by the application framework
 // ---------------------------------------------------------------------------
@@ -221,7 +221,7 @@ void CFreestyleEmailUiAppUi::ConstructL()
     iMsgEditorResourceOffset = LoadResourceFileL(
                                    KMsgEditorAppUiResourceFileName,
                                    KDC_RESOURCE_FILES_DIR );
-    
+
     // Load FSMailServer resource file, search first the same drive from where
     // our process is loaded as FSMailServer should be installed in same drive
     RProcess ownProcess;
@@ -230,7 +230,7 @@ void CFreestyleEmailUiAppUi::ConstructL()
     iFSMailServerResourceOffset = LoadResourceFileL(
                                       KFSMailServerResourceFileNameWithPath,
                                       ownProcessName.LeftTPtr( KDriveDescLength ) );
-    
+
 	// flag indicating whether we are in AppUi::ConstructL
 	// workaround for compose view loadbackgroundcontext sending skin changed events
 	// and causing texture manager to be reconstructed many times
@@ -1120,7 +1120,13 @@ void CFreestyleEmailUiAppUi::HandleWsEventL(const TWsEvent &aEvent, CCoeControl*
     switch ( aEvent.Type() )
         {
         case KAknFullOrPartialForegroundLost:
+            {
+            if( iCurrentActiveView )
+                {
+                iCurrentActiveView->HandleAppForegroundEventL( EFalse );
+                }
             break;
+            }
         case KAknFullOrPartialForegroundGained:
             {
             if ( iCurrentActiveView && !iSettingsViewActive )
@@ -2069,7 +2075,7 @@ TInt CFreestyleEmailUiAppUi::MoveToPreviousMsgL( TFSMailMsgId aCurrentMsgId,
 	    }
 	return ret;
 	}
-	
+
 // Move to previous message when the current message is deleted in viewer
 TInt CFreestyleEmailUiAppUi::MoveToPreviousMsgAfterDeleteL( TFSMailMsgId aFoundPreviousMsgId )
 	{
@@ -2079,9 +2085,9 @@ TInt CFreestyleEmailUiAppUi::MoveToPreviousMsgAfterDeleteL( TFSMailMsgId aFoundP
 		{
 		iNavigationHistory->Head()->MoveToPreviousMsgAfterDeleteL( aFoundPreviousMsgId );
 		}
-	return ret;		
+	return ret;
 	}
-	
+
 CDocumentHandler& CFreestyleEmailUiAppUi::DocumentHandler()
 	{
     FUNC_LOG;
@@ -2614,7 +2620,7 @@ TBool CFreestyleEmailUiAppUi::SetFocusVisibility( TBool aVisible )
 	TBool oldFocusState( iFocusVisible );
 	iFocusVisible = aVisible;
 	CFsEmailUiViewBase* activeView = CurrentActiveView();
-	if ( /*oldFocusState != aVisible &&*/ activeView )
+	if ( activeView )
 		{
 		activeView->FocusVisibilityChange( aVisible );
 		}

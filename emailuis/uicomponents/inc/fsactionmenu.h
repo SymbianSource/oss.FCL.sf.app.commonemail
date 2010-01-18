@@ -131,7 +131,9 @@ protected: //From MFsTreeListObserver
      * through this function.
      */
     // <cmail> Touch
-    virtual void TreeListEventL( const TFsTreeListEvent aEvent, const TFsTreeItemId aId = KFsTreeNoneID );
+    virtual void TreeListEventL( const TFsTreeListEvent aEvent, 
+                                 const TFsTreeItemId aId,
+                                 const TPoint& aPoint );
     // </cmail>
     
 public: //used by Action Menu's control

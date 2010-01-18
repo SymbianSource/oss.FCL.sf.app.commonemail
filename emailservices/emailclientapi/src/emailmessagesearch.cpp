@@ -354,3 +354,13 @@ void CEmailMessageSearchAsync::MatchFoundL( CFSMailMessage* aMatchMessage )
     // Search is now complete, release gate.
     iGate.Signal();
 }
+
+//
+    /**
+    * Asks client if search engine should change search priority 
+  	*/
+void CEmailMessageSearchAsync::ClientRequiredSearchPriority(TInt *apRequiredSearchPriority)
+    {
+    return;
+    } 
+//

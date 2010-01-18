@@ -27,6 +27,8 @@ class CFSMailMessage;
 class CFsEmailUiHtmlViewerView;
 class CFreestyleMessageHeaderURL;
 class TAttachmentData;
+class CAknStylusPopUpMenu;
+class CFSHtmlReloadAO;
 
 enum TLinkType
     {
@@ -43,7 +45,8 @@ public:
     };
 
 class CFreestyleMessageHeaderURLEventHandler : public CBase, 
-                                               public MFreestyleMessageViewEventHandler
+                                               public MFreestyleMessageViewEventHandler,
+                                               public MEikMenuObserver
     {
 public:
     IMPORT_C static CFreestyleMessageHeaderURLEventHandler * NewL( 
@@ -52,6 +55,12 @@ public:
     ~CFreestyleMessageHeaderURLEventHandler ();
     
     IMPORT_C TBool HandleEventL( const TDesC& aUri );
+    void DismissMenuAndReload();
+    TBool IsMenuVisible();
+    
+public: //From MEikMenuObserver
+	void ProcessCommandL(TInt aCommandId);
+	void SetEmphasis(CCoeControl* /*aMenuControl*/,TBool /*aEmphasis*/);
     
 protected:
     CFreestyleMessageHeaderURLEventHandler( CFreestyleEmailUiAppUi& aAppUi, 
@@ -62,13 +71,9 @@ private:
     const TAttachmentData& FindAttachmentL( const CFreestyleMessageHeaderURL& aAttachmentUrl );
     void LaunchAttachmentMenuL( const TAttachmentData& aAttachment );
     void HandAttachmentActionMenuCommandL( TActionMenuCustomItemId aSelectedActionMenuItem,
-                                           const TAttachmentData& aAttachment );
-    
-    void LaunchEmailAddressMenuL( const CFreestyleMessageHeaderURL& iMessageHeaderURL );    
-    void HandleEmailAddressActionMenuCommandL( TActionMenuCustomItemId aSelectedActionMenuItem, 
-                                               const CFreestyleMessageHeaderURL& iMessageHeaderURL );
-    
-    void SaveEmailAsContactL( const TDesC& aEmailAddress );
+                                           const TAttachmentData& aAttachment );    
+    void LaunchEmailAddressMenuL( );
+    void LaunchWebAddressMenu( );
     
 private:
     CFreestyleMessageHeaderURL*     iMessageHeaderURL;
@@ -76,6 +81,13 @@ private:
     CFsEmailUiHtmlViewerView&       iView;
     CFSMailMessage*                 iMailMessage;
     CFSEmailUiAttachmentsListModel* iAttachmentsListModel;
+    CAknStylusPopUpMenu*			iEmailAddressStylusPopup;  
+    CAknStylusPopUpMenu*			iAttachmentStylusPopup;
+    CAknStylusPopUpMenu*			iWebAddressStylusPopup;
+    HBufC* 							iUrl;
+    TBool                          iMenuVisible;
+    TBool                           iPendingReload;
+    CFSHtmlReloadAO*                iHTMLReloadAO; 
     };
 
 #endif //__CFREESTYLE_MESSAGE_HEADER_EVENTHANDLER_URL_H__

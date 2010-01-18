@@ -196,7 +196,8 @@ public: // Own public functions
      * From MFsTreeListObserver
      */
     void TreeListEventL( const TFsTreeListEvent aEvent,
-                                    const TFsTreeItemId aId = KFsTreeNoneID );
+                         const TFsTreeItemId aId,
+                         const TPoint& aPoint );
 
 // <cmail> Receiving online/offline events
     void HandleMailBoxEventL( TFSMailEvent aEvent, TFSMailMsgId aMailbox,

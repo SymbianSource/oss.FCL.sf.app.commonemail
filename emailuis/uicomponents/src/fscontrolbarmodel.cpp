@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2007 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -276,10 +276,11 @@ TInt CFsControlBarModel::IndexById( TInt aButtonId )
 // Retrieves next focusable button.
 // ---------------------------------------------------------------------------
 //
-CFsControlButton* CFsControlBarModel::NextButton( TInt aButtonId )
+CFsControlButton* CFsControlBarModel::NextButton(
+        TInt aButtonId, TBool aLandscape )
     {
     FUNC_LOG;
-    TInt index( -1 );
+    TInt index( KErrNotFound );
     CFsControlButton* currentBtn( ButtonById( aButtonId ) );
 
     // Find current button's id.
@@ -294,7 +295,13 @@ CFsControlButton* CFsControlBarModel::NextButton( TInt aButtonId )
         }
 
     // Find the next button on right.
-    TInt curPos( currentBtn->Visualiser()->Pos().Target().iX );
+    TAlfRealPoint curPosTarget( currentBtn->Visualiser()->Pos().Target() );
+    TInt curPos( curPosTarget.iX );
+    if( aLandscape )
+        {
+        curPos = curPosTarget.iY;
+        }
+
     TBool candidate( EFalse );
     TInt next( 0 );
     for ( TInt i( 0 ); iButtons.Count() > i; i++ )
@@ -305,7 +312,12 @@ CFsControlButton* CFsControlBarModel::NextButton( TInt aButtonId )
             {
             continue;
             }
-        TInt btnPos( iButtons[i]->Visualiser()->Pos().Target().iX );
+        TAlfRealPoint btnPosTarget( iButtons[i]->Visualiser()->Pos().Target() );
+        TInt btnPos( btnPosTarget.iX );
+        if( aLandscape )
+            {
+            btnPos = btnPosTarget.iY;
+            }
         if ( btnPos >= curPos )
             {
             if ( btnPos == curPos )
@@ -342,10 +354,11 @@ CFsControlButton* CFsControlBarModel::NextButton( TInt aButtonId )
 // Retrieves previous focusable button.
 // ---------------------------------------------------------------------------
 //
-CFsControlButton* CFsControlBarModel::PrevButton( TInt aButtonId )
+CFsControlButton* CFsControlBarModel::PrevButton(
+        TInt aButtonId, TBool aLandscape )
     {
     FUNC_LOG;
-    TInt index( -1 );
+    TInt index( KErrNotFound );
     CFsControlButton* currentBtn( ButtonById( aButtonId ) );
 
     // Find current button's id.
@@ -359,19 +372,30 @@ CFsControlButton* CFsControlBarModel::PrevButton( TInt aButtonId )
         buttonId++;
         }
 
-    // Find the next button on left.
-    TInt curPos( currentBtn->Visualiser()->Pos().Target().iX );
+    // Find the next button on left or up.
+    TAlfRealPoint curPosTaget( currentBtn->Visualiser()->Pos().Target() );
+
+    TInt curPos( curPosTaget.iX );
+    if( aLandscape )
+        {
+        curPos = curPosTaget.iY;
+        }
     TBool candidate( EFalse );
     TInt next( 0 );
     for ( TInt i( iButtons.Count() - 1 ); 0 <= i; i-- )
         {
-        if ( i == buttonId
-            || !iButtons[i]->IsVisible()
-            || iButtons[i]->IsDimmed() )
+        if ( ( i == buttonId ) ||
+             ( !iButtons[i]->IsVisible() ) ||
+             ( iButtons[i]->IsDimmed() ) )
             {
             continue;
             }
-        TInt btnPos( iButtons[i]->Visualiser()->Pos().Target().iX );
+        TAlfRealPoint btnPosTarget( iButtons[i]->Visualiser()->Pos().Target() );
+        TInt btnPos( btnPosTarget.iX );
+        if( aLandscape )
+            {
+            btnPos = btnPosTarget.iY;
+            }
         if ( btnPos <= curPos )
             {
             if ( btnPos == curPos )

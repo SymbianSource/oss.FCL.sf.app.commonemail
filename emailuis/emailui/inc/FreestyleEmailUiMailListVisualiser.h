@@ -122,8 +122,7 @@ class CFSEmailUiMailListVisualiser : public CFsEmailUiViewBase,
 									 public MFSEmailUiFolderListCallback,
 									 public MFSEmailUiSortListCallback,
 									 public MFsTreeListObserver,
-									 public MFSEmailUiContactHandlerObserver,
-									 public MFsActionMenuPositionGiver
+									 public MFSEmailUiContactHandlerObserver
 // </cmail>
 	{
 friend class CMailListUpdater;
@@ -181,7 +180,7 @@ public:
      * Open action menu.
      * (Touchwork: Called from touch manager)
      */
-	void DoHandleListItemLongTapL();
+	void DoHandleListItemLongTapL( const TPoint& aPoint );
 
     /**
      * Get control which is currently focused.
@@ -245,7 +244,7 @@ public:
 	TInt MoveToNextMsgL( TFSMailMsgId aCurrentMsgId, TFSMailMsgId& aFoundNextMsgId );
 	TInt MoveToPreviousMsgL( TFSMailMsgId aCurrentMsgId, TFSMailMsgId& aFoundPreviousMsgId );
 	TInt MoveToPreviousMsgAfterDeleteL( TFSMailMsgId aFoundPreviousMsgId );
-	
+
 	/**
      * Sets the manual mailbox syncronisation flag if the user chose
      * to synchorise mail box from the menu
@@ -267,7 +266,9 @@ public:
 
     /** Handles tree list events. */
     // <cmail> Touch
-    void TreeListEventL( const TFsTreeListEvent aEvent, const TFsTreeItemId aId );
+    void TreeListEventL( const TFsTreeListEvent aEvent,
+                         const TFsTreeItemId aId,
+                         const TPoint& aPoint );
     // </cmail>
 
 // from base class MFSEmailUiContactHandlerObserver
@@ -283,9 +284,6 @@ public:
     * time stamp texts in emails and nodes are up-to-date.
     */
     void NotifyDateChangedL();
-// <cmail>
-    TPoint ActionMenuPosition();
-// </cmail>
 
 private: // from
 
@@ -412,10 +410,8 @@ private: // Private functions
 	// The list contains either marked entries or the focused message entry or is empty.
 	void GetActionsTargetEntriesL( RFsTreeItemIdList& aListItems ) const;
 
-	// Action menu specific functions
-	void LaunchActionMenuL();
-	void HandleActionMenuCommandL( TActionMenuCustomItemId itemId );
-	void LaunchStylusPopupMenuL();
+	// Stylus menu specific functions
+	void LaunchStylusPopupMenuL( const TPoint& aPoint );
 
 	// Compose, reply, reply all and forward
 	void CreateNewMsgL();
@@ -514,6 +510,29 @@ private: // Private functions
      */
     TBool HitTest( const CAlfControl& aControl, const TPoint& aPoint ) const;
 
+    /**
+     * Handles arrow events in portrait mode.
+     *
+     * @param aScancode Standard scan code.
+     * @param aEvent Event.
+     * @param aShiftState Shift state.
+     *
+     * @return <code>ETrue</code>, if consumed, <code>EFalse</code> otherwise.
+     */
+    TBool HandleArrowEventInPortraitL( const TInt aScancode,
+            const TAlfEvent& aEvent, const TBool aShiftState );
+    /**
+     * Handles arrow events in landscape mode.
+     *
+     * @param aScancode Standard scan code.
+     * @param aEvent Event.
+     * @param aShiftState Shift state.
+     *
+     * @return <code>ETrue</code>, if consumed, <code>EFalse</code> otherwise.
+     */
+    TBool HandleArrowEventInLandscapeL( const TInt aScancode,
+            const TAlfEvent& aEvent, const TBool aShiftState );
+
 private: // data types
 
 
@@ -591,9 +610,13 @@ private: // Private objects
 
     CEUiEmailListTouchManager* iTouchManager;
     CAknStylusPopUpMenu* iStylusPopUpMenu;
-    TBool iStylusPopUpMenuLaunched;
+    TBool iStylusPopUpMenuVisible;
 
     TBool iShowReplyAll;
+    // Was focus visible in the ListView.
+    TBool iLastFocus;
+    //used to prevent Call application execution (on keyup of call button) when call to contact required
+    TBool iConsumeStdKeyYes_KeyUp; 
   	};
 
 

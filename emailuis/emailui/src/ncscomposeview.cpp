@@ -21,9 +21,8 @@
 #include <NpdApi.h>
 #include <StringLoader.h>
 #include <txtrich.h>
-#include <AknWaitDialog.h> //<cmail>
-#include <MsgAttachmentUtils.h>//<cmail>
-//<cmail>
+#include <AknWaitDialog.h>
+#include <MsgAttachmentUtils.h>
 #include <featmgr.h>
 #include "CFSMailBox.h"
 #include "CFSMailMessage.h"
@@ -31,14 +30,12 @@
 #include "CFSMailClient.h"
 #include "CFSMailCommon.h"
 #include <csxhelp/cmail.hlp.hrh>
-//</cmail>
-//<cmail> Touch
 #include <akntoolbar.h>
 #include <akntoolbarextension.h>
 #include <AknUtils.h>
-//</cmail> Touch
 #include <FreestyleEmailUi.rsg>
 #include <freestyleemailui.mbg>
+#include <aknstyluspopupmenu.h>
 
 #include "ncscomposeview.h"
 #include "ncscomposeviewcontainer.h"
@@ -85,8 +82,9 @@ CNcsComposeView::CNcsComposeView( CFreestyleEmailUiAppUi& aAppUi,
     CFSMailClient& aMailClient, CMsvSession& aMsvSession )
     : CFsEmailUiViewBase( aSendAttachmentControlGroup, aAppUi ),
      iMailClient( aMailClient ), iOrigMessage( NULL ), iNewMessage( NULL ),
-     iMsvSession( aMsvSession ), iEnv( aEnv )
-     ,iFakeSyncGoingOn(EFalse), iFetchDialogCancelled(EFalse),iExecutingDoExitL(EFalse)//<cmail>
+     iMsvSession( aMsvSession ), iEnv( aEnv ),
+     iFakeSyncGoingOn(EFalse), iFetchDialogCancelled(EFalse),
+     iExecutingDoExitL( EFalse )
     {
     FUNC_LOG;
 
@@ -99,14 +97,16 @@ CNcsComposeView::CNcsComposeView( CFreestyleEmailUiAppUi& aAppUi,
 // Two-phased constructor.
 // -----------------------------------------------------------------------------
 //
-CNcsComposeView* CNcsComposeView::NewL( CFSMailClient& aMailClient, CAlfEnv& aEnv,
-                                        CFreestyleEmailUiAppUi* aAppUi, CAlfControlGroup& aControlGroup,
-                                        CMsvSession& aMsvSession )
+CNcsComposeView* CNcsComposeView::NewL( 
+        CFSMailClient& aMailClient, CAlfEnv& aEnv,
+        CFreestyleEmailUiAppUi* aAppUi, CAlfControlGroup& aControlGroup,
+        CMsvSession& aMsvSession )
     {
     FUNC_LOG;
 
-    CNcsComposeView* self = CNcsComposeView::NewLC( aMailClient, aEnv, 	aAppUi,
-                                                    aControlGroup, aMsvSession );
+    CNcsComposeView* self = 
+        CNcsComposeView::NewLC( aMailClient, aEnv, 	aAppUi,
+                                aControlGroup, aMsvSession );
     CleanupStack::Pop( self );
 
     return self;
@@ -126,7 +126,8 @@ CNcsComposeView* CNcsComposeView::NewLC(
     {
     FUNC_LOG;
 
-    CNcsComposeView* self = new ( ELeave ) CNcsComposeView( *aAppUi, aEnv, aControlGroup, aMailClient, aMsvSession );
+    CNcsComposeView* self = new ( ELeave ) CNcsComposeView( 
+            *aAppUi, aEnv, aControlGroup, aMailClient, aMsvSession );
     CleanupStack::PushL( self );
     self->ConstructL();
 
@@ -146,14 +147,18 @@ void CNcsComposeView::ConstructL()
     iFirstStartCompleted = EFalse;
     }
 
-// CFSEmailUiMsgDetailsVisualiser::DoFirstStartL()
+// -----------------------------------------------------------------------------
+// CNcsComposeView::DoFirstStartL()
 // Purpose of this function is to do first start only when msg details is
 // really needed to be shown. Implemented to make app startuo faster.
+// -----------------------------------------------------------------------------
+//
 void CNcsComposeView::DoFirstStartL()
     {
     FUNC_LOG;
-    // Attachment list for compose screen
-    CAlfControlGroup& attListControlGroup = iEnv.NewControlGroupL( KSendAttachmentManagerDisplayGroup ); // owned by AlfEnv
+    // Attachment list for compose screen, owned by AlfEnv
+    CAlfControlGroup& attListControlGroup = 
+        iEnv.NewControlGroupL( KSendAttachmentManagerDisplayGroup );
     CFSEmailUiSendAttachmentsListVisualiser* sendAttachmentVisualiser =
 		CFSEmailUiSendAttachmentsListVisualiser::NewLC(
             iEnv, &iAppUi, attListControlGroup );
@@ -171,9 +176,22 @@ void CNcsComposeView::DoFirstStartL()
     iAsyncCallback = new (ELeave) CAsyncCallBack( CActive::EPriorityLow );
     // msk context menu added into composer
     MenuBar()->SetContextMenuTitleResourceId( R_NCS_COMPOSE_BODY_MSK_MENUBAR );
-    iActiveHelper = CActiveHelper::NewL(this);
+    iActiveHelper = CActiveHelper::NewL( this );
 
-    iAsyncAttachmentAdd = new (ELeave) CAsyncCallBack( CActive::EPriorityStandard );
+    iAsyncAttachmentAdd = 
+        new (ELeave) CAsyncCallBack( CActive::EPriorityStandard );
+    
+    // Initializing the default stylus long tap popup menu
+	if( !iStylusPopUpMenu )
+		{
+		TPoint point( 0, 0 );
+		iStylusPopUpMenu = CAknStylusPopUpMenu::NewL( this, point );
+		TResourceReader reader;
+		iCoeEnv->CreateResourceReaderLC( reader,
+				R_STYLUS_POPUP_MENU_COMPOSE_VIEW_ATTACHMENT );
+		iStylusPopUpMenu->ConstructFromResourceL( reader );
+		CleanupStack::PopAndDestroy(); // reader
+		}
     }
 
 // -----------------------------------------------------------------------------
@@ -191,16 +209,17 @@ CNcsComposeView::~CNcsComposeView()
 	    delete iAsyncCallback;
 	    }
     delete iFetchLogic;
-    if(iActiveHelper)
+    if( iActiveHelper )
         {
         iActiveHelper->Cancel();
         delete iActiveHelper;
         }
-    if (iAsyncAttachmentAdd)
+    if ( iAsyncAttachmentAdd )
         {
         iAsyncAttachmentAdd->Cancel();
         delete iAsyncAttachmentAdd;
         }
+    delete iStylusPopUpMenu;
     }
 
 void CNcsComposeView::PrepareForExit()
@@ -212,27 +231,25 @@ void CNcsComposeView::PrepareForExit()
         TRAP_IGNORE( iDlg->OfferKeyEventL( check, EEventKey ) );
         iDlg = NULL;
 
-        iAsyncCallback->Cancel(); // cancel any outstanding callback just to be safe
+        iAsyncCallback->Cancel(); // cancel any outstanding callback
         iAsyncCallback->Set( TCallBack( AsyncExit, this ) );
         iAsyncCallback->CallBack();
         }
-    else if(iFakeSyncGoingOn || iExecutingDoExitL) //we starts this low priority active obj so that iwait in plugins finish
+    else if( iFakeSyncGoingOn || iExecutingDoExitL )
         {
+        // low priority active obj so that iwait in plugins finish
         iActiveHelper->Cancel();
         iActiveHelper->Start();
         }
     else
         {
         DoSafeExit( ESaveDraft );
-        //iAppUi.Exit();
         }
 
-    if(iFetchLogic)
+    if( iFetchLogic )
         {
         iFetchLogic->CancelFetchings();
         }
-
-    //ResetComposer(); // already done in DoExitL
     }
 
 // -----------------------------------------------------------------------------
@@ -251,24 +268,21 @@ TUid CNcsComposeView::Id() const
 // Activate the Compose view
 // -----------------------------------------------------------------------------
 //
-// <cmail> Toolbar
-/*void CNcsComposeView::DoActivateL( const TVwsViewId& aPrevViewId,
-    TUid aCustomMessageId, const TDesC8& aCustomMessage )*/
 void CNcsComposeView::ChildDoActivateL( const TVwsViewId& aPrevViewId,
     TUid aCustomMessageId, const TDesC8& aCustomMessage )
-// </cmail> Toolbar
     {
     FUNC_LOG;
     if ( !iFirstStartCompleted )
         {
         DoFirstStartL();
         }
-    Toolbar()->SetDimmed(ETrue);
+    Toolbar()->SetDimmed( ETrue );
     // Set status pane indicators
     iStatusPaneIndicators = iAppUi.GetStatusPaneIndicatorContainer();
     iStatusPaneIndicators->ShowStatusPaneIndicators();
 
-    // Notify base class about view being entered unless we returned from another view
+    // Notify base class about view being entered unless 
+    // returned from another view
     if ( aCustomMessageId.iUid != KEditorCmdReturnToPrevious )
         {
         ViewEntered( aPrevViewId );
@@ -280,7 +294,8 @@ void CNcsComposeView::ChildDoActivateL( const TVwsViewId& aPrevViewId,
     // Get the launch parameters
     if ( aCustomMessageId.iUid == KEditorCmdReturnToPrevious )
         {
-        // Use previous launch parameters when returning to previously open message
+        // Use previous launch parameters when returning to previously 
+        // opened message
         iMailBox = iMailClient.GetMailBoxByUidL( iLaunchParams.iMailboxId );
         }
     else if ( aCustomMessage.Length() > 0 )
@@ -297,10 +312,11 @@ void CNcsComposeView::ChildDoActivateL( const TVwsViewId& aPrevViewId,
         iLaunchParams.iActivatedExternally = ETrue;
         }
 
-    // Inform the AppUi about external view activation to fix the view stack. Normally
-    // this happens based on the previous view AppUid in the BaseView but in case
-    // contacts action menu was used within FsEmail, this doesn' work. It doesn't
-    // hurt to call this again even if it was already called once from BaseView.
+    // Inform the AppUi about external view activation to fix the view stack.
+    // Normally this happens based on the previous view AppUid in the BaseView
+    // but in case contacts action menu was used within FsEmail, this doesn' 
+    // work. It doesn't hurt to call this again even if it was already called
+    // once from BaseView.
     if ( iLaunchParams.iActivatedExternally )
         {
         iAppUi.ViewActivatedExternallyL( Id() );
@@ -315,7 +331,8 @@ void CNcsComposeView::ChildDoActivateL( const TVwsViewId& aPrevViewId,
         // MSV id is passed to us when account is defined email key settings
         if ( aCustomMessageId != TUid::Null() )
             {
-            TRAP( error, iMailBox = TFsEmailUiUtility::GetMailboxForMtmIdL( iMailClient, iMsvSession, aCustomMessageId.iUid ) );
+            TRAP( error, iMailBox = TFsEmailUiUtility::GetMailboxForMtmIdL( 
+                    iMailClient, iMsvSession, aCustomMessageId.iUid ) );
             }
 
         error = KErrNone;
@@ -323,7 +340,8 @@ void CNcsComposeView::ChildDoActivateL( const TVwsViewId& aPrevViewId,
         // try to use mailbox set as default in MCE
         if ( !iMailBox )
             {
-            TRAP( error, iMailBox = TFsEmailUiUtility::GetMceDefaultMailboxL( iMailClient, iMsvSession ) );
+            TRAP( error, iMailBox = TFsEmailUiUtility::GetMceDefaultMailboxL(
+                    iMailClient, iMsvSession ) );
             }
 
         // use first mail account from the list
@@ -335,7 +353,8 @@ void CNcsComposeView::ChildDoActivateL( const TVwsViewId& aPrevViewId,
             iMailClient.ListMailBoxes( id, mailboxes );
             if ( mailboxes.Count() > 0 )
                 {
-                iMailBox = iMailClient.GetMailBoxByUidL( mailboxes[0]->GetId() );
+                iMailBox = 
+                    iMailClient.GetMailBoxByUidL( mailboxes[0]->GetId() );
                 }
             CleanupStack::PopAndDestroy( &mailboxes );
             }
@@ -362,17 +381,21 @@ void CNcsComposeView::ChildDoActivateL( const TVwsViewId& aPrevViewId,
         err = iMailFetchingErrCode;
         }
 
-    if ( err == KErrCancel || err == KErrCouldNotConnect || err == KErrConnectionTerminated )
+    if ( err == KErrCancel || 
+         err == KErrCouldNotConnect || 
+         err == KErrConnectionTerminated )
         {
-        // Just close composer without any notes if operation was cancelled. For connection
-        // errors, DownloadInfoMediator already shows error message, so no need to show another one.
+        // Just close composer without any notes if operation was cancelled.
+        // For connection errors, DownloadInfoMediator already shows error 
+        // message, so no need to show another one.
         ExitComposer();
         }
     else if ( err )
         {
         // some other error => show generic error note and close composer
-        if(!iAppUi.AppUiExitOngoing()) //<cmail>
-            TFsEmailUiUtility::ShowErrorNoteL( R_FREESTYLE_EMAIL_ERROR_GENERAL_UNABLE_TO_COMPLETE, ETrue );
+        if( !iAppUi.AppUiExitOngoing() )
+            TFsEmailUiUtility::ShowErrorNoteL( 
+                R_FREESTYLE_EMAIL_ERROR_GENERAL_UNABLE_TO_COMPLETE, ETrue );
         ExitComposer();
         }
     else
@@ -382,7 +405,7 @@ void CNcsComposeView::ChildDoActivateL( const TVwsViewId& aPrevViewId,
         iAppUi.StartEndKeyCapture();
         iContainer->SetMskL();
         iViewReady = ETrue;
-        Toolbar()->SetDimmed(EFalse);
+        Toolbar()->SetDimmed( EFalse );
         RefreshToolbar();
         }
     }
@@ -395,10 +418,10 @@ void CNcsComposeView::OfferToolbarEventL( TInt aCommand )
     {
     FUNC_LOG;
     bool attachmentAddition = EFalse;
-    switch (aCommand)
+    switch ( aCommand )
         {
         case EFsEmailUiTbCmdSend:
-            if (iContainer && iContainer->AreAddressFieldsEmpty())
+            if ( iContainer && iContainer->AreAddressFieldsEmpty() )
                 {
                 RefreshToolbar();
                 }
@@ -408,7 +431,7 @@ void CNcsComposeView::OfferToolbarEventL( TInt aCommand )
                 }
             break;
         case EFsEmailUiTbCmdAddRecipient:
-            if (iContainer)
+            if ( iContainer )
                 {
                 iContainer->AppendAddressesL();
                 }
@@ -440,15 +463,14 @@ void CNcsComposeView::OfferToolbarEventL( TInt aCommand )
         default:
             break;
         }
-    if (attachmentAddition)
+    if ( attachmentAddition )
         {
-        iAsyncAttachmentAdd->Cancel(); // cancel any outstanding callback just to be safe
+        iAsyncAttachmentAdd->Cancel(); // cancel any outstanding callback
         iAsyncAttachmentAdd->Set( TCallBack( AsyncAddAttachment, this ) );
         iAsyncAttachmentAdd->CallBack();
         }
     }
 
-// <cmail> Toolbar
 // -----------------------------------------------------------------------------
 // CNcsComposeView::ToolbarResourceId()
 // -----------------------------------------------------------------------------
@@ -468,10 +490,10 @@ void CNcsComposeView::GetInitiallyDimmedItemsL( const TInt aResourceId,
     {
     FUNC_LOG;
     aDimmedItems.Reset();
-    switch (aResourceId)
+    switch ( aResourceId )
         {
         case R_FREESTYLE_EMAIL_UI_TOOLBAR_MESSAGE_EDITOR:
-            aDimmedItems.AppendL(EFsEmailUiTbCmdSend);
+            aDimmedItems.AppendL( EFsEmailUiTbCmdSend );
             break;
         default:
             break;
@@ -485,14 +507,17 @@ void CNcsComposeView::GetInitiallyDimmedItemsL( const TInt aResourceId,
 void CNcsComposeView::RefreshToolbar()
     {
     FUNC_LOG;
-    if (iContainer)
+    if ( iContainer )
         {
-        // DimAllOptions if remotesearch is in progress, cos it takes you in a different view
+        // DimAllOptions if remotesearch is in progress, 
+        // because it takes you into a different view
         TBool dimAllOptions = iContainer->IsRemoteSearchInprogress();
         SetToolbarItemDimmed( EFsEmailUiTbCmdExpandInsert, dimAllOptions );
         SetToolbarItemDimmed( EFsEmailUiTbCmdSend,
                 iContainer->AreAddressFieldsEmpty() );
-        if ( (iContainer->IsFocusBcc() || iContainer->IsFocusCc() || iContainer->IsFocusTo()) && !dimAllOptions )
+        if ( (iContainer->IsFocusBcc() || 
+              iContainer->IsFocusCc() || 
+              iContainer->IsFocusTo() ) && !dimAllOptions )
             {
             SetToolbarItemDimmed( EFsEmailUiTbCmdAddRecipient, EFalse );
             }
@@ -502,7 +527,6 @@ void CNcsComposeView::RefreshToolbar()
             }
         }
     }
-// </cmail> Toolbar
 
 
 // -----------------------------------------------------------------------------
@@ -547,14 +571,13 @@ void CNcsComposeView::DynInitMenuPaneL( TInt aResourceId,
     __ASSERT_DEBUG( iMailBox, Panic( ENcsBasicUi ) );
     __ASSERT_DEBUG( iNewMessage, Panic( ENcsBasicUi ) );
 
-    //<cmail>
-    //we are forbiding to change MSK label, cause popup will be opend 
-    iContainer->SwitchChangeMskOff(ETrue);
-    //</cmail>
+    //we are forbiding to change MSK label, because popup will be opened 
+    iContainer->SwitchChangeMskOff( ETrue );
     
     if ( aResourceId == R_NCS_COMPOSE_MENU )
         {
-	    if (FeatureManager::FeatureSupported( KFeatureIdFfCmailIntegration ))
+	    if ( FeatureManager::FeatureSupported( 
+	            KFeatureIdFfCmailIntegration ) )
 		   {
 		   // remove help support in pf5250
 		   aMenuPane->SetItemDimmed( EAknCmdHelp, ETrue);      
@@ -566,13 +589,15 @@ void CNcsComposeView::DynInitMenuPaneL( TInt aResourceId,
 	    	aMenuPane->DeleteMenuItem( ENcsCmdSend );
 		    }
 
-	    // If no attachments currently, delete the remove attachments menu item
+	    // If no attachments, delete the remove attachments menu item
 		CFreestyleEmailUiSendAttachmentsListControl* attachmentControl;
 		attachmentControl = AttachmentsListControl();
 		TInt count = attachmentControl->Model()->Count();
 
-        // if mail has remote attachments then attachments can't be removed via options menu
-		if ( count <= 0 || AttachmentsListControl()->Model()->HasReadOnlyAttachments() )
+        // if mail has remote attachments then attachments can't be 
+		// removed via options menu
+		if ( count <= 0 || 
+		     AttachmentsListControl()->Model()->HasReadOnlyAttachments() )
 	    	{
     		aMenuPane->DeleteMenuItem( ENcsCmdRemoveAttachment );
     		aMenuPane->DeleteMenuItem( ENcsCmdRemoveAllAttachments );
@@ -659,7 +684,8 @@ void CNcsComposeView::HandleCommandL( TInt aCommand )
     {
     FUNC_LOG;
 
-    // Attempt to handle commands only after view is fully activated and exit has not yet been initiated.
+    // Attempt to handle commands only after view is fully activated and exit
+    // has not yet been initiated.
     if ( iViewReady && !iAppUi.ViewSwitchingOngoing() )
         {
         __ASSERT_DEBUG( iContainer, Panic( ENcsBasicUi ) );
@@ -670,13 +696,15 @@ void CNcsComposeView::HandleCommandL( TInt aCommand )
             {
             case ENcsCmdSend:
                 {
-                // Show query if the Subject field is empty (default text is as subject)
+                // Show query if the Subject field is empty
                 if ( iContainer->IsSubjectFieldEmpty() )
                     {
-                    TInt answer = TFsEmailUiUtility::ShowConfirmationQueryL( R_FREESTYLE_EMAIL_QUERY_NO_SUBJECT );
+                    TInt answer = TFsEmailUiUtility::ShowConfirmationQueryL(
+                            R_FREESTYLE_EMAIL_QUERY_NO_SUBJECT );
                     if ( !answer )
                         {
-                        // user didn't want to send yet -> go back to the message
+                        // user didn't want to send yet
+                        // -> go back to the message
                         return;
                         }
                     }
@@ -689,14 +717,17 @@ void CNcsComposeView::HandleCommandL( TInt aCommand )
                     if ( !TFsEmailUiUtility::IsOfflineModeL() )
                         {
                         // when sync status is currently ONLINE
-                        confMessage = StringLoader::LoadLC( R_FREESTYLE_EMAIL_CONFIRM_NOTE_SENDING_QUEUED );
+                        confMessage = StringLoader::LoadLC( 
+                                R_FREESTYLE_EMAIL_CONFIRM_NOTE_SENDING_QUEUED );
                         }
                     else
                         {
                         // when sync status is currently OFFLINE
-                        confMessage = StringLoader::LoadLC( R_FREESTYLE_EMAIL_CONFIRM_NOTE_QUEUED_UNTIL_ONLINE );
+                        confMessage = StringLoader::LoadLC( 
+                                R_FREESTYLE_EMAIL_CONFIRM_NOTE_QUEUED_UNTIL_ONLINE );
                         }
-                    CAknConfirmationNote* note = new (ELeave) CAknConfirmationNote( ETrue ); //waiting
+                    CAknConfirmationNote* note = 
+                        new (ELeave) CAknConfirmationNote( ETrue ); //waiting
                     note->SetTimeout( CAknNoteDialog::ELongTimeout );
                     note->ExecuteLD( *confMessage );
                     CleanupStack::PopAndDestroy( confMessage );
@@ -705,19 +736,24 @@ void CNcsComposeView::HandleCommandL( TInt aCommand )
                 else if ( error == KErrBadName )
                 	{
                   	// sending failed because recipient address was invalid
-                	TFsEmailUiUtility::ShowErrorNoteL( R_FREESTYLE_EMAIL_CONFIRM_NOTE_INVALID_EMAIL_ADDRESS, ETrue );
+                	TFsEmailUiUtility::ShowErrorNoteL( 
+                        R_FREESTYLE_EMAIL_CONFIRM_NOTE_INVALID_EMAIL_ADDRESS,
+                        ETrue );
                 	}
                 else
                 	{
                 	// sending failed for some other reason
-                    TFsEmailUiUtility::ShowErrorNoteL( R_FREESTYLE_EMAIL_CONFIRM_NOTE_MESSAGE_NOT_SENT, ETrue );
-                	DoSafeExit(); // Exit after sending failed for other reason than KErrBadName
+                    TFsEmailUiUtility::ShowErrorNoteL( 
+                        R_FREESTYLE_EMAIL_CONFIRM_NOTE_MESSAGE_NOT_SENT,
+                        ETrue );
+                    // Exit after sending failed for other reason for other
+                    // reason than KErrBadName
+                	DoSafeExit();
                 	}
                 }
                 break;
             case ENcsCmdAddAttachment:
            	 	{
-           	 	//<cmail> Touch
                 if ( AknLayoutUtils::PenEnabled() )
                     {
                     // show the toolbar
@@ -729,15 +765,13 @@ void CNcsComposeView::HandleCommandL( TInt aCommand )
                     }
                 else
                     {
-                    //</cmail>
                     iAttachmentAddType = MsgAttachmentUtils::EUnknown;
-                    iAsyncAttachmentAdd->Cancel(); // cancel any outstanding callback just to be safe
-                    iAsyncAttachmentAdd->Set( TCallBack( AsyncAddAttachment, this ) );
+                    iAsyncAttachmentAdd->Cancel();
+                    iAsyncAttachmentAdd->Set( 
+                            TCallBack( AsyncAddAttachment, this ) );
                     iAsyncAttachmentAdd->CallBack();
                     iContainer->SetMskL();
-                    //<cmail> Touch
                     }                
-                //</cmail>
            	 	}
                 break;
             case EFsEmailUiCmdOpenAttachment:
@@ -746,10 +780,27 @@ void CNcsComposeView::HandleCommandL( TInt aCommand )
                 DoOpenAttachmentListL();
                 }
                 break;
-            case ENcsCmdRemoveAttachment: // remove one and only attachment
+            case ENcsCmdRemoveAttachment:
+            case EFsEmailUiCmdRemoveAttachment:
+                {
+                TInt index( iContainer->FocusedAttachmentLabelIndex() );
+                CFreestyleEmailUiSendAttachmentsListControl* ctrl =
+                    AttachmentsListControl();
+                if ( ctrl && KNoAttachmentLabelFocused != index )
+                    {
+                    ctrl->RemoveAttachmentFromListL( index );
+                    }
+                SetAttachmentLabelContentL();
+                }
+                break;
             case ENcsCmdRemoveAllAttachments:
            	 	{
-           	 	AttachmentsListControl()->RemoveAllAttachmentsL();
+           	 	CFreestyleEmailUiSendAttachmentsListControl* ctrl =
+                    AttachmentsListControl();
+           	 	if ( ctrl )
+           	 	    {
+           	 	    ctrl->RemoveAllAttachmentsL();
+           	 	    }
            	 	SetAttachmentLabelContentL();
             	}
                 break;
@@ -758,7 +809,7 @@ void CNcsComposeView::HandleCommandL( TInt aCommand )
             	iNewMessage->ResetFlag( EFSMsgFlag_Low );
             	iNewMessage->SetFlag( EFSMsgFlag_Important );
             	iNewMessage->SaveMessageL();
-            	iStatusPaneIndicators->SetPriorityFlag(EMsgPriorityHigh);
+            	iStatusPaneIndicators->SetPriorityFlag( EMsgPriorityHigh );
             	}
                 break;
         	case ENcsCmdPriorityNormal:
@@ -766,7 +817,7 @@ void CNcsComposeView::HandleCommandL( TInt aCommand )
             	iNewMessage->ResetFlag( EFSMsgFlag_Low );
             	iNewMessage->ResetFlag( EFSMsgFlag_Important );
             	iNewMessage->SaveMessageL();
-            	iStatusPaneIndicators->SetPriorityFlag(EMsgPriorityNormal);
+            	iStatusPaneIndicators->SetPriorityFlag( EMsgPriorityNormal );
     	    	}
                 break;
         	case ENcsCmdPriorityLow:
@@ -774,7 +825,7 @@ void CNcsComposeView::HandleCommandL( TInt aCommand )
             	iNewMessage->ResetFlag( EFSMsgFlag_Important );
             	iNewMessage->SetFlag( EFSMsgFlag_Low );
             	iNewMessage->SaveMessageL();
-            	iStatusPaneIndicators->SetPriorityFlag(EMsgPriorityLow);
+            	iStatusPaneIndicators->SetPriorityFlag( EMsgPriorityLow );
     	    	}
                 break;
             case ENcsCmdShowCc:
@@ -827,14 +878,18 @@ void CNcsComposeView::HandleCommandL( TInt aCommand )
                 if ( saveDraftError == KErrNone )
                 	{
                     // Saving successful
-                	if(!iAppUi.AppUiExitOngoing()) //<cmail>
-                	TFsEmailUiUtility::ShowInfoNoteL( R_FREESTYLE_EMAIL_CONFIRM_NOTE_SAVED_TO_DRAFTS, ETrue );
+                	if( !iAppUi.AppUiExitOngoing() )
+                	TFsEmailUiUtility::ShowInfoNoteL( 
+                        R_FREESTYLE_EMAIL_CONFIRM_NOTE_SAVED_TO_DRAFTS,
+                        ETrue );
                     }
             	else
                     {
                     // error occured in saving -> show an error message
-                    if(!iAppUi.AppUiExitOngoing()) //<cmail>
-                        TFsEmailUiUtility::ShowErrorNoteL( R_FREESTYLE_EMAIL_ERROR_GENERAL_UNABLE_TO_COMPLETE, ETrue );
+                    if( !iAppUi.AppUiExitOngoing() )
+                        TFsEmailUiUtility::ShowErrorNoteL( 
+                            R_FREESTYLE_EMAIL_ERROR_GENERAL_UNABLE_TO_COMPLETE,
+                            ETrue );
                     }
 
             	DoSafeExit( ENoSave );
@@ -862,27 +917,7 @@ void CNcsComposeView::HandleCommandL( TInt aCommand )
                 break;
             case ENcsCmdExit:
                 {
-                // This is for a special case when SaveDeleteQuery appears and user presses immediately End key
-                // we are first checking if Queryexists ,if yes then we forward event to iDlg->offerkeyEventL and
-                // then call Asynchronously Exit method so that iDlg->OfferkeyEventL gets some time before calling
-                // Async Exit method
-                // <cmail> these things are now handeled in prepare for exit
-                /*if ( iCheckQuery )
-                    {
-                    TKeyEvent check = { EKeyEscape, EStdKeyNull, 0, 0 };
-                    TKeyResponse ret = iDlg->OfferKeyEventL(check, EEventKey );
-                    iDlg = NULL;
-
-                    iAsyncCallback->Cancel(); // cancel any outstanding callback just to be safe
-                    iAsyncCallback->Set( TCallBack( AsyncExit, this ) );
-                    iAsyncCallback->CallBack();
-                    }
-                else
-                    {
-                    DoSafeExit( ESaveDraft );*/
-                    iAppUi.Exit();
-                    //}
-                 //</cmail>
+                iAppUi.Exit();
                 }
                 break;
             default:
@@ -920,7 +955,7 @@ void CNcsComposeView::DoSendL()
         User::Leave( r );
         }
 
-    // <cmail> prevent sending failure if original message is
+    // prevent sending failure if original message is
     // removed from server while replying/forwarding
 	TRAPD( flagError, SetReplyForwardFlagL() );
 
@@ -929,7 +964,6 @@ void CNcsComposeView::DoSendL()
         iMailSendFailed = ETrue;
         User::Leave( flagError );
         }
-    // </cmail>
 
     iMailSent = ETrue;
 
@@ -967,18 +1001,17 @@ TBool CNcsComposeView::DoSaveDraftL( TBool aAskUser )
 
 		iDlg = new (ELeave) CAknListQueryDialog( &selectedOption );
     	iDlg->PrepareLC( R_DRAFT_QUERY_DIALOG );
-    	// CleanupStack::Pop(iDlg);
     	iDlg->SetItemTextArray( array );
     	iDlg->SetOwnershipType( ELbmDoesNotOwnItemArray );
 
         iCheckQuery = ETrue;
         //we are forbiding to change MSK label, cause popup will be opend 
-        iContainer->SwitchChangeMskOff(ETrue);
+        iContainer->SwitchChangeMskOff( ETrue );
         TInt ret = iDlg->RunLD();
         iDlg = NULL;
 
         iCheckQuery = EFalse; 
-        iContainer->SwitchChangeMskOff(EFalse);
+        iContainer->SwitchChangeMskOff( EFalse );
 
     	if ( !ret )
     	    {
@@ -994,18 +1027,23 @@ TBool CNcsComposeView::DoSaveDraftL( TBool aAskUser )
 				if ( saveError == KErrNone )
 				    {
 				    // User wanted to save to Drafts and saving was successful
-				    if(!iAppUi.AppUiExitOngoing()) //<cmail>
-				        TFsEmailUiUtility::ShowInfoNoteL( R_FREESTYLE_EMAIL_CONFIRM_NOTE_SAVED_TO_DRAFTS, ETrue );
+				    if( !iAppUi.AppUiExitOngoing() )
+				        TFsEmailUiUtility::ShowInfoNoteL( 
+                            R_FREESTYLE_EMAIL_CONFIRM_NOTE_SAVED_TO_DRAFTS, 
+                            ETrue );
 				    }
 				else
 				    {
 
 				    // error occured in saving -> show an error message
-				    if(!iAppUi.AppUiExitOngoing()) //<cmail>
-				        TFsEmailUiUtility::ShowErrorNoteL( R_FREESTYLE_EMAIL_ERROR_GENERAL_UNABLE_TO_COMPLETE, ETrue );
+				    if( !iAppUi.AppUiExitOngoing() )
+				        TFsEmailUiUtility::ShowErrorNoteL( 
+                            R_FREESTYLE_EMAIL_ERROR_GENERAL_UNABLE_TO_COMPLETE,
+                            ETrue );
 
 				    // let's return EFalse so after completing this query
-				    // so the focus would stay in compose view (same behaviour as if Cancel was pressed )
+				    // so the focus would stay in compose view (same behaviour
+				    // as if Cancel was pressed )
 				    result = EFalse;
 				    }
 				}
@@ -1016,20 +1054,23 @@ TBool CNcsComposeView::DoSaveDraftL( TBool aAskUser )
     			if ( KErrNone != error )
     			    {
     			    }
-    	        iFakeSyncGoingOn = ETrue; //<cmail> for delete messages fake sync callscalls
+    			// for delete messages fake sync calls
+    	        iFakeSyncGoingOn = ETrue;
                 error = NcsUtility::DeleteMessage( iMailClient,
             		iMailBox->GetId(),
             		iNewMessage->GetFolderId(),
             		iNewMessage->GetMessageId() );
 
-    			if ( KErrNone == error && iMailBox->HasCapability( EFSMBoxCapaSupportsDeletedItemsFolder ) )
+    			if ( KErrNone == error && 
+    			     iMailBox->HasCapability( 
+    			             EFSMBoxCapaSupportsDeletedItemsFolder ) )
     			    {
                     error = NcsUtility::DeleteMessage( iMailClient,
                 		iMailBox->GetId(),
                 		iMailBox->GetStandardFolderId( EFSDeleted ),
                 		iNewMessage->GetMessageId() );
     			    }
-    		     iFakeSyncGoingOn = EFalse; //<cmail>
+    		     iFakeSyncGoingOn = EFalse;
 
                 if( !iAppUi.AppUiExitOngoing() )
                     {
@@ -1037,7 +1078,8 @@ TBool CNcsComposeView::DoSaveDraftL( TBool aAskUser )
                         {
                         // error occured in saving -> show an error message
                         TFsEmailUiUtility::ShowErrorNoteL( 
-                            R_FREESTYLE_EMAIL_ERROR_GENERAL_UNABLE_TO_COMPLETE, ETrue );
+                            R_FREESTYLE_EMAIL_ERROR_GENERAL_UNABLE_TO_COMPLETE,
+                            ETrue );
                         }
                     else
                         {
@@ -1061,8 +1103,6 @@ TBool CNcsComposeView::DoSaveDraftL( TBool aAskUser )
     			}
                 break;
     		}
-
-    	//iCheckQuery = EFalse; //<cmail>
     	CleanupStack::PopAndDestroy( array );
         }
     else  // no question from user
@@ -1093,7 +1133,7 @@ TInt CNcsComposeView::AsyncAddAttachment( TAny* aSelfPtr )
     {
     FUNC_LOG;
 
-    CNcsComposeView* self = static_cast<CNcsComposeView*>(aSelfPtr);
+    CNcsComposeView* self = static_cast<CNcsComposeView*>( aSelfPtr );
 
     // get pointer to attachment list view
 	CFreestyleEmailUiSendAttachmentsListControl* attachmentControl;
@@ -1101,7 +1141,8 @@ TInt CNcsComposeView::AsyncAddAttachment( TAny* aSelfPtr )
 
    	// show file dialog and get file name
 	TBool ok = EFalse;
-	TRAPD( error, ok = attachmentControl->AppendAttachmentToListL(self->iAttachmentAddType) );
+	TRAPD( error, ok = attachmentControl->AppendAttachmentToListL(
+                self->iAttachmentAddType) );
 	if ( ok && error == KErrNone )
 	    {
 	    TRAPD( error, self->SetAttachmentLabelContentL() );
@@ -1121,23 +1162,27 @@ void CNcsComposeView::RunFollowUpFlagDlgL()
     if ( iNewMessage && TFsEmailUiUtility::IsFollowUpSupported( *iMailBox ) )
         {
         TFollowUpNewState newState =
-            TFsEmailUiUtility::SetMessageFollowupFlagL( *iNewMessage, EFalse );
+            TFsEmailUiUtility::SetMessageFollowupFlagL( 
+                    *iNewMessage, EFalse );
 
         switch ( newState )
             {
             case EFollowUp:
                 {
-                iStatusPaneIndicators->SetFollowUpFlag( CCustomStatuspaneIndicators::EFollowUp );
+                iStatusPaneIndicators->SetFollowUpFlag( 
+                        CCustomStatuspaneIndicators::EFollowUp );
                 }
                 break;
             case EFollowUpComplete:
                 {
-                iStatusPaneIndicators->SetFollowUpFlag( CCustomStatuspaneIndicators::EFollowUpComplete );
+                iStatusPaneIndicators->SetFollowUpFlag( 
+                        CCustomStatuspaneIndicators::EFollowUpComplete );
                 }
                 break;
             case EFollowUpClear:
                 {
-                iStatusPaneIndicators->SetFollowUpFlag( CCustomStatuspaneIndicators::EFollowUpNone );
+                iStatusPaneIndicators->SetFollowUpFlag( 
+                        CCustomStatuspaneIndicators::EFollowUpNone );
                 }
                 break;
             default:
@@ -1157,48 +1202,52 @@ void CNcsComposeView::RunFollowUpFlagDlgL()
 void CNcsComposeView::SetAttachmentLabelContentL()
     {
     FUNC_LOG;
-    if ( iFirstStartCompleted ) // Safety
+    if ( iFirstStartCompleted && iContainer )
         {
-        CFreestyleEmailUiSendAttachmentsListControl* attachmentControl;
-        attachmentControl = AttachmentsListControl();
-
+        CFreestyleEmailUiSendAttachmentsListControl* 
+            attachmentControl = AttachmentsListControl();
+        if ( !( attachmentControl && attachmentControl->Model() ) )
+            {
+            return;
+            }
+        
         // read number of attachments
         TInt count = attachmentControl->Model()->Count();
-
-        if ( count > 1 )
+        if ( count > 0 )
             {
-            TInt totalSizeInBytes = attachmentControl->Model()->TotalAttachmentSize();
-            HBufC* stringBuf = NULL;
+            // Fill in the name and size descriptor arrays
+            CDesCArrayFlat* nameArray = new (ELeave) CDesCArrayFlat( count );
+            CleanupStack::PushL( nameArray );
+            CDesCArrayFlat* sizeArray = new (ELeave) CDesCArrayFlat( count );
+            CleanupStack::PushL( sizeArray );
 
-            HBufC* sizeDesc = TFsEmailUiUtility::CreateSizeDescLC( totalSizeInBytes );
-            stringBuf = StringLoader::LoadL( R_NCS_ATTACHMENTS_FIELD_TEXT,
-                                             *sizeDesc, count );
-            CleanupStack::PopAndDestroy( sizeDesc );
-
-            CleanupStack::PushL( stringBuf );
-            iContainer->SetAttachmentLabelTextL( *stringBuf );
-            CleanupStack::PopAndDestroy( stringBuf );
+            for ( TInt i(0); i<count; ++i )
+                {
+                CFSEmailUiSendAttachmentsListModelItem* item =
+                    static_cast<CFSEmailUiSendAttachmentsListModelItem*>
+                    ( attachmentControl->Model()->Item( i ) );
+                if ( item )
+                    {
+                    nameArray->AppendL( item->FileName() );
+                    HBufC* sizeDesc = 
+                        TFsEmailUiUtility::CreateSizeDescLC( 
+                                item->FileSize() );
+                    sizeArray->AppendL( *sizeDesc );
+                    CleanupStack::PopAndDestroy( sizeDesc );
+                    }
+                }
+            iContainer->SetAttachmentLabelTextsLD( nameArray, sizeArray );
             iContainer->SetFocusToAttachmentField();
-            }
-        else if ( count == 1 )
-            {
-            CFSEmailUiSendAttachmentsListModelItem* item =
-                static_cast<CFSEmailUiSendAttachmentsListModelItem*>(
-                    attachmentControl->Model()->Item( 0 ) );
-
-            HBufC* sizeBuf = TFsEmailUiUtility::CreateSizeDescLC( item->FileSize() );
-            iContainer->SetAttachmentLabelTextL( item->FileName(), *sizeBuf );
-            CleanupStack::PopAndDestroy( sizeBuf );
-
-            iContainer->SetFocusToAttachmentField();
+            
+            CleanupStack::Pop( sizeArray );
+            CleanupStack::Pop( nameArray );
             }
         else
             {
-            iContainer->SetAttachmentLabelTextL( KNullDesC );
+            iContainer->SetAttachmentLabelTextsLD( NULL, NULL );
             iContainer->HideAttachmentLabel();
             }
         }
-
     }
 
 
@@ -1207,17 +1256,22 @@ void CNcsComposeView::SetAttachmentLabelContentL()
 //
 // -----------------------------------------------------------------------------
 //
-CFreestyleEmailUiSendAttachmentsListControl* CNcsComposeView::AttachmentsListControl()
+CFreestyleEmailUiSendAttachmentsListControl* 
+CNcsComposeView::AttachmentsListControl()
 	{
     FUNC_LOG;
-    CFreestyleEmailUiSendAttachmentsListControl* attachmentControl(0);
+    CFreestyleEmailUiSendAttachmentsListControl* attachmentControl( NULL );
     if ( iFirstStartCompleted ) // Safety
         {
         CFSEmailUiSendAttachmentsListVisualiser* attachmentView =
             static_cast<CFSEmailUiSendAttachmentsListVisualiser*>(
                 iAvkonViewAppUi->View( SendAttachmentMngrViewId ) );
-        attachmentControl = static_cast<CFreestyleEmailUiSendAttachmentsListControl*>(
-            attachmentView->ViewerControl() );
+        if ( attachmentView )
+            {
+            attachmentControl = 
+                static_cast<CFreestyleEmailUiSendAttachmentsListControl*>(
+                    attachmentView->ViewerControl() );
+            }
         }
 	return attachmentControl;
 	}
@@ -1251,7 +1305,7 @@ void CNcsComposeView::HandleActivationCommandL( TUid aCustomMessageId )
     if ( aCustomMessageId == TUid::Uid( KEditorCmdCreateNew ) )
         {
         iOrigMessage = NULL;
-        iFakeSyncGoingOn = ETrue;//<cmail> this is actually a waited async method
+        iFakeSyncGoingOn = ETrue;
         iNewMessage = iMailBox->CreateMessageToSend();
         iFakeSyncGoingOn = EFalse;
         if ( !iNewMessage )
@@ -1260,15 +1314,17 @@ void CNcsComposeView::HandleActivationCommandL( TUid aCustomMessageId )
             }
         iFakeSyncGoingOn = ETrue;
         TFsEmailUiUtility::MoveMessageToDraftsL( *iMailBox, *iNewMessage );
-        iFakeSyncGoingOn = EFalse;//<cmail>
+        iFakeSyncGoingOn = EFalse;
         
-        if ( iNewMessage->GetContentType() != KFSMailContentTypeMultipartMixed )
+        if ( iNewMessage->GetContentType() != 
+             KFSMailContentTypeMultipartMixed )
             {
             iNewMessage->SetContentType( KFSMailContentTypeMultipartMixed );
             iNewMessage->SaveMessageL();
             }
         
-        TFsEmailUiUtility::CreatePlainTextPartL( *iNewMessage, iNewMessageTextPart );
+        TFsEmailUiUtility::CreatePlainTextPartL( 
+                *iNewMessage, iNewMessageTextPart );
         IncludeMessageTextL( ETrue );
         AttachmentsListControl()->Model()->Clear();
         iContainer->SelectAllToFieldTextL();
@@ -1277,15 +1333,19 @@ void CNcsComposeView::HandleActivationCommandL( TUid aCustomMessageId )
               aCustomMessageId == TUid::Uid( KEditorCmdReplyAll ) )
         {
 
-        iOrigMessage = iMailClient.GetMessageByUidL( iLaunchParams.iMailboxId, iLaunchParams.iFolderId, iLaunchParams.iMsgId, EFSMsgDataStructure );
+        iOrigMessage = iMailClient.GetMessageByUidL( 
+                iLaunchParams.iMailboxId, iLaunchParams.iFolderId,
+                iLaunchParams.iMsgId, EFSMsgDataStructure );
         if ( !iOrigMessage )
             {
             User::Leave( KErrNotFound );
             }
 
         SafeDelete( iFetchLogic );
-        iFetchLogic = CFsComposerFetchLogic::NewL( iMailClient, iLaunchParams.iMailboxId,
-                iOrigMessage->GetFolderId(), iLaunchParams.iMsgId, *this, iAppUi );
+        iFetchLogic = CFsComposerFetchLogic::NewL( 
+                iMailClient, iLaunchParams.iMailboxId,
+                iOrigMessage->GetFolderId(), iLaunchParams.iMsgId, 
+                *this, iAppUi );
         ShowFetchingWaitNoteL();
         iFetchLogic->RunReplyLogicL();
 
@@ -1295,15 +1355,19 @@ void CNcsComposeView::HandleActivationCommandL( TUid aCustomMessageId )
     else if ( aCustomMessageId == TUid::Uid( KEditorCmdForward ) )
         {
 
-        iOrigMessage = iMailClient.GetMessageByUidL( iLaunchParams.iMailboxId, iLaunchParams.iFolderId, iLaunchParams.iMsgId, EFSMsgDataStructure );
+        iOrigMessage = iMailClient.GetMessageByUidL( 
+                iLaunchParams.iMailboxId, iLaunchParams.iFolderId, 
+                iLaunchParams.iMsgId, EFSMsgDataStructure );
         if ( !iOrigMessage )
             {
             User::Leave( KErrNotFound );
             }
 
         SafeDelete( iFetchLogic );
-        iFetchLogic = CFsComposerFetchLogic::NewL( iMailClient, iLaunchParams.iMailboxId,
-                                                   iOrigMessage->GetFolderId(), iLaunchParams.iMsgId, *this, iAppUi );
+        iFetchLogic = CFsComposerFetchLogic::NewL( 
+                iMailClient, iLaunchParams.iMailboxId,
+                iOrigMessage->GetFolderId(), iLaunchParams.iMsgId, 
+                *this, iAppUi );
         ShowFetchingWaitNoteL();
         iFetchLogic->RunForwardLogicL();
 
@@ -1311,10 +1375,13 @@ void CNcsComposeView::HandleActivationCommandL( TUid aCustomMessageId )
         // to CNcsComposeView::FetchLogicComplete when it is finished
         }
     else if ( aCustomMessageId == TUid::Uid( KEditorCmdOpen ) ||
-              aCustomMessageId == TUid::Uid( KEditorCmdReturnToPrevious ) ) // for now, we handle returning from attachments list just like any message opening
+              aCustomMessageId == TUid::Uid( KEditorCmdReturnToPrevious ) )
         {
-
-        iNewMessage = iMailClient.GetMessageByUidL( iLaunchParams.iMailboxId, iLaunchParams.iFolderId, iLaunchParams.iMsgId, EFSMsgDataStructure );
+        // for now, we handle returning from attachments list just like 
+        // any message opening
+        iNewMessage = iMailClient.GetMessageByUidL( 
+                iLaunchParams.iMailboxId, iLaunchParams.iFolderId, 
+                iLaunchParams.iMsgId, EFSMsgDataStructure );
         if ( !iNewMessage )
             {
             User::Leave( KErrNotFound );
@@ -1324,13 +1391,15 @@ void CNcsComposeView::HandleActivationCommandL( TUid aCustomMessageId )
         TInt waitNoteId = KErrNotFound;
         if ( TFsEmailUiUtility::IsMessageBodyLargeL(iNewMessage) )
             {
-            waitNoteId = TFsEmailUiUtility::ShowGlobalWaitNoteLC( R_FSE_WAIT_OPENING_TEXT );
+            waitNoteId = TFsEmailUiUtility::ShowGlobalWaitNoteLC( 
+                    R_FSE_WAIT_OPENING_TEXT );
             }
 
         iOrigMessage = NULL;
         iNewMessage->SetContentType( KFSMailContentTypeMultipartMixed );
         iNewMessage->SaveMessageL();
-        TFsEmailUiUtility::CreatePlainTextPartL( *iNewMessage, iNewMessageTextPart );
+        TFsEmailUiUtility::CreatePlainTextPartL( 
+                *iNewMessage, iNewMessageTextPart );
         InitFieldsL();
         IncludeMessageTextL();
         AttachmentsListControl()->Model()->Clear();
@@ -1349,11 +1418,9 @@ void CNcsComposeView::HandleActivationCommandL( TUid aCustomMessageId )
         FUNC_LOG;
 
         iOrigMessage = NULL;
-        //<cmail> this is actually a waited async method
         iFakeSyncGoingOn = ETrue;
         iNewMessage = iMailBox->CreateMessageToSend();
         iFakeSyncGoingOn = EFalse;
-        //</cmail>
         if ( !iNewMessage )
             {
             User::Leave( KErrGeneral );
@@ -1361,14 +1428,17 @@ void CNcsComposeView::HandleActivationCommandL( TUid aCustomMessageId )
         iNewMessage->SetContentType( KFSMailContentTypeMultipartMixed );
         iNewMessage->SaveMessageL();
 
-        TFsEmailUiUtility::CreatePlainTextPartL( *iNewMessage, iNewMessageTextPart );
+        TFsEmailUiUtility::CreatePlainTextPartL( 
+                *iNewMessage, iNewMessageTextPart );
 
         IncludeMessageTextL( ETrue );
 
-        CFSMailAddress* toAddress = static_cast<CFSMailAddress*>( iLaunchParams.iExtra ); // not owned
+        CFSMailAddress* toAddress = 
+            static_cast<CFSMailAddress*>( iLaunchParams.iExtra ); // not owned
         RPointerArray<CNcsEmailAddressObject> toRecipients;
         CleanupResetAndDestroyClosePushL( toRecipients );
-        CNcsEmailAddressObject* ncsToAddress = NcsUtility::CreateNcsAddressL( *toAddress );
+        CNcsEmailAddressObject* ncsToAddress = 
+            NcsUtility::CreateNcsAddressL( *toAddress );
         CleanupStack::PushL( ncsToAddress );
         toRecipients.AppendL( ncsToAddress );
         CleanupStack::Pop( ncsToAddress ); // owned by toRecipients now
@@ -1390,15 +1460,17 @@ void CNcsComposeView::DoQuickTextL()
 
     __ASSERT_DEBUG( iContainer, Panic( ENcsBasicUi ) );
 
-	HBufC* title = iEikonEnv->AllocReadResourceLC( R_NCS_QUICK_TEXT_TITLE_TEXT );
-	HBufC* buf(0);
+	HBufC* title = 
+        iEikonEnv->AllocReadResourceLC( R_NCS_QUICK_TEXT_TITLE_TEXT );
+	HBufC* buf( 0 );
 	TRAPD( err, buf = CNotepadApi::FetchTemplateL( title ) );
-	if (err == KLeaveExit)
-		{ //If end key was pressed the dialog leaves with the above error code.
-			//In that case we must leave as well or the application will become stuck
-			//as the exit will be incomplete.
-			User::Leave(err);
-		}
+	if ( err == KLeaveExit )
+	    { 
+		// If end key was pressed the dialog leaves with the above error code.
+	    // In that case we must leave as well or the application will become
+	    // stuck as the exit will be incomplete.
+	    User::Leave( err );
+	    }
 		
 	if ( buf && err == KErrNone ) // Safety check, 0 if user cancel
 		{
@@ -1449,7 +1521,8 @@ void CNcsComposeView::InitReplyFieldsL( TBool /*aReplyAll*/ )
     __ASSERT_DEBUG( iContainer, Panic( ENcsBasicUi ) );
 
     // Get TO recipients
-    RPointerArray<CFSMailAddress>& toRecipients = iNewMessage->GetToRecipients();
+    RPointerArray<CFSMailAddress>& toRecipients = 
+        iNewMessage->GetToRecipients();
     RPointerArray<CNcsEmailAddressObject> recipients;
     CleanupResetAndDestroyClosePushL( recipients );
     NcsUtility::ConvertAddressArrayL( toRecipients, recipients );
@@ -1457,13 +1530,15 @@ void CNcsComposeView::InitReplyFieldsL( TBool /*aReplyAll*/ )
     CleanupStack::PopAndDestroy( &recipients );
 
     // Get CC recipients
-    RPointerArray<CFSMailAddress>& ccRecipients = iNewMessage->GetCCRecipients();
+    RPointerArray<CFSMailAddress>& ccRecipients = 
+        iNewMessage->GetCCRecipients();
     NcsUtility::ConvertAddressArrayL( ccRecipients, recipients );
     iContainer->SetCcFieldAddressesL( recipients );
     recipients.ResetAndDestroy();
 
     // Get BCC recipients
-    RPointerArray<CFSMailAddress>& bccRecipients = iNewMessage->GetBCCRecipients();
+    RPointerArray<CFSMailAddress>& bccRecipients = 
+        iNewMessage->GetBCCRecipients();
     NcsUtility::ConvertAddressArrayL( bccRecipients, recipients );
     iContainer->SetBccFieldAddressesL( recipients );
     recipients.ResetAndDestroy();
@@ -1487,7 +1562,8 @@ void CNcsComposeView::InitReplyFieldsL( TBool /*aReplyAll*/ )
 //
 // -----------------------------------------------------------------------------
 //
-void CNcsComposeView::RemoveOwnAddress( RPointerArray<CNcsEmailAddressObject>& aAddressList )
+void CNcsComposeView::RemoveOwnAddress( 
+        RPointerArray<CNcsEmailAddressObject>& aAddressList )
     {
     FUNC_LOG;
     TInt index = 0;
@@ -1509,7 +1585,8 @@ void CNcsComposeView::RemoveOwnAddress( RPointerArray<CNcsEmailAddressObject>& a
 //
 // -----------------------------------------------------------------------------
 //
-void CNcsComposeView::IncludeMessageTextL( TBool aEnsureSpaceInBegin /*= EFalse*/ )
+void CNcsComposeView::IncludeMessageTextL( 
+        TBool aEnsureSpaceInBegin /*= EFalse*/ )
 	{
     FUNC_LOG;
 
@@ -1536,30 +1613,38 @@ void CNcsComposeView::IncludeMessageTextL( TBool aEnsureSpaceInBegin /*= EFalse*
             CleanupStack::PushL( body );
             }
         }
-    // If no modifications were needed, then just set body pointer to point the rawBody
+    // If no modifications were needed, then just set body pointer to point
+    // the rawBody
     if ( !body )
         {
         body = rawBody;
         rawBody = NULL;
         }
-    // Now we have possibly decorated message text in body pointer and in cleanup stack
+    // Now we have possibly decorated message text in body pointer and
+    // in cleanup stack
 
-    // Divide the contents into normal body field and the read-only quote field
-    TInt readOnlyLength = iNewMessageTextPart->ReadOnlyPartSize() / 2; // convert bytes to words
-    TInt modifiableLength = body->Length() - readOnlyLength;
-
-    // Remove one newline from the end of the modifiable body if there's read-only quote present.
-    // This is because the field boundary appears as newline on the screen. This newline
-    // is added back when saving the message.
-    TInt lfLength = KIMSLineFeed().Length();
-    if ( readOnlyLength && modifiableLength >= lfLength &&
-         body->Mid( modifiableLength-lfLength, lfLength ) == KIMSLineFeed )
-        {
-        modifiableLength -= lfLength;
-        }
-
-    iContainer->SetBodyContentL( body->Left( modifiableLength ),
-        body->Right( readOnlyLength ) );
+    // Divide the contents into normal body and the read-only quote fields
+    // Convert bytes length to words length
+    TInt readOnlyLength = iNewMessageTextPart->ReadOnlyPartSize() / 2;
+    if ( body )
+    	{
+		TInt modifiableLength = body->Length() - readOnlyLength;
+	
+		// Remove one newline from the end of the modifiable body if there's
+		// read-only quote present. This is because the field boundary appears
+		// as newline on the screen. This newline is added back when saving
+		// the message.
+		TInt lfLength = KIMSLineFeed().Length();
+		if ( readOnlyLength && modifiableLength >= lfLength &&
+			 body->Mid( modifiableLength-lfLength, lfLength ) == 
+			 KIMSLineFeed )
+			{
+			modifiableLength -= lfLength;
+			}
+	
+		iContainer->SetBodyContentL( body->Left( modifiableLength ),
+			body->Right( readOnlyLength ) );
+    	}
 
     CleanupStack::PopAndDestroy( body );
     }
@@ -1577,7 +1662,8 @@ void CNcsComposeView::InitForwardFieldsL()
 
 	// set subject
 	HBufC* prefix = StringLoader::LoadLC( R_NCS_ENGINE_EMAIL_FORWARD_PREFIX );
-	HBufC* formattedSubject = NcsUtility::FormatSubjectLineL( iOrigMessage->GetSubject(), *prefix );
+	HBufC* formattedSubject = NcsUtility::FormatSubjectLineL( 
+	        iOrigMessage->GetSubject(), *prefix );
 	CleanupStack::PushL( formattedSubject );
 	iContainer->SetSubjectL( *formattedSubject );
 	CleanupStack::PopAndDestroy( formattedSubject );
@@ -1647,7 +1733,8 @@ void CNcsComposeView::InitFieldsL()
     __ASSERT_DEBUG( iContainer, Panic( ENcsBasicUi ) );
 
 	// to
- 	RPointerArray<CFSMailAddress>& toRecipients = iNewMessage->GetToRecipients();
+ 	RPointerArray<CFSMailAddress>& toRecipients = 
+        iNewMessage->GetToRecipients();
 	RPointerArray<CNcsEmailAddressObject> ncsToRecipients;
 	CleanupResetAndDestroyClosePushL( ncsToRecipients );
 	NcsUtility::ConvertAddressArrayL( toRecipients, ncsToRecipients );
@@ -1655,7 +1742,8 @@ void CNcsComposeView::InitFieldsL()
     CleanupStack::PopAndDestroy( &ncsToRecipients );
 
 	// cc
- 	RPointerArray<CFSMailAddress>& ccRecipients = iNewMessage->GetCCRecipients();
+ 	RPointerArray<CFSMailAddress>& ccRecipients = 
+        iNewMessage->GetCCRecipients();
 	RPointerArray<CNcsEmailAddressObject> ncsCcRecipients;
     CleanupResetAndDestroyClosePushL( ncsCcRecipients );
 	NcsUtility::ConvertAddressArrayL( ccRecipients, ncsCcRecipients );
@@ -1663,7 +1751,8 @@ void CNcsComposeView::InitFieldsL()
     CleanupStack::PopAndDestroy( &ncsCcRecipients );
 
 	// bcc
- 	RPointerArray<CFSMailAddress>& bccRecipients = iNewMessage->GetBCCRecipients();
+ 	RPointerArray<CFSMailAddress>& bccRecipients = 
+        iNewMessage->GetBCCRecipients();
 	RPointerArray<CNcsEmailAddressObject> ncsBccRecipients;
     CleanupResetAndDestroyClosePushL( ncsBccRecipients );
 	NcsUtility::ConvertAddressArrayL( bccRecipients, ncsBccRecipients );
@@ -1711,7 +1800,8 @@ HBufC* CNcsComposeView::GetMessageBodyL()
 //
 // -----------------------------------------------------------------------------
 //
-void CNcsComposeView::CommitL( TBool aParseAddresses, TFieldToCommit aFieldToCommit )
+void CNcsComposeView::CommitL( 
+        TBool aParseAddresses, TFieldToCommit aFieldToCommit )
     {
     FUNC_LOG;
     __ASSERT_DEBUG( iNewMessage, Panic( ENcsBasicUi ) );
@@ -1756,12 +1846,15 @@ void CNcsComposeView::CommitL( TBool aParseAddresses, TFieldToCommit aFieldToCom
 	    // get addresses from UI to MSG object
 	    RPointerArray<CFSMailAddress> toAddresses;
 	    CleanupResetAndDestroyClosePushL( toAddresses );
-	    NcsUtility::ConvertAddressArrayL( iContainer->GetToFieldAddressesL( aParseAddresses ), toAddresses );
+	    NcsUtility::ConvertAddressArrayL( 
+	            iContainer->GetToFieldAddressesL( aParseAddresses ), 
+	            toAddresses );
 	    iNewMessage->GetToRecipients().ResetAndDestroy();
 	    for ( TInt i = 0 ; i < toAddresses.Count() ; i++ )
 	    	{
 	    	iNewMessage->AppendToRecipient( toAddresses[i] );
-	        // Ownership of the message pointer was transferred from our array to iNewMessage
+	        // Ownership of the message pointer was transferred from our array
+	    	// to iNewMessage
 	        toAddresses[i] = NULL;
 	    	}
 	    CleanupStack::PopAndDestroy( &toAddresses );
@@ -1771,12 +1864,15 @@ void CNcsComposeView::CommitL( TBool aParseAddresses, TFieldToCommit aFieldToCom
 		{
 	    RPointerArray<CFSMailAddress> ccAddresses;
 	    CleanupResetAndDestroyClosePushL( ccAddresses );
-	    NcsUtility::ConvertAddressArrayL( iContainer->GetCcFieldAddressesL( aParseAddresses ), ccAddresses );
+	    NcsUtility::ConvertAddressArrayL( 
+	            iContainer->GetCcFieldAddressesL( aParseAddresses ), 
+	            ccAddresses );
 	    iNewMessage->GetCCRecipients().ResetAndDestroy();
 	    for ( TInt i = 0 ; i < ccAddresses.Count() ; i++ )
 	    	{
 	    	iNewMessage->AppendCCRecipient( ccAddresses[i] );
-	        // Ownership of the message pointer was transferred from our array to iNewMessage
+	        // Ownership of the message pointer was transferred from 
+	    	// our array to iNewMessage
 	        ccAddresses[i] = NULL;
 	    	}
 	    CleanupStack::PopAndDestroy( &ccAddresses );
@@ -1786,12 +1882,15 @@ void CNcsComposeView::CommitL( TBool aParseAddresses, TFieldToCommit aFieldToCom
 		{
 	    RPointerArray<CFSMailAddress> bccAddresses;
 	    CleanupResetAndDestroyClosePushL( bccAddresses );
-	    NcsUtility::ConvertAddressArrayL( iContainer->GetBccFieldAddressesL( aParseAddresses ), bccAddresses );
+	    NcsUtility::ConvertAddressArrayL( 
+	            iContainer->GetBccFieldAddressesL( aParseAddresses ), 
+	            bccAddresses );
 	    iNewMessage->GetBCCRecipients().ResetAndDestroy();
 	    for ( TInt i = 0; i < bccAddresses.Count() ; i++ )
 	    	{
 	    	iNewMessage->AppendBCCRecipient( bccAddresses[i] );
-	        // Ownership of the message pointer was transferred from our array to iNewMessage
+	        // Ownership of the message pointer was transferred from 
+	    	// our array to iNewMessage
 	        bccAddresses[i] = NULL;
 	    	}
 	    CleanupStack::PopAndDestroy( &bccAddresses );
@@ -1802,8 +1901,10 @@ void CNcsComposeView::CommitL( TBool aParseAddresses, TFieldToCommit aFieldToCom
 	    // get subject from UI to MSG object
 	    HBufC* subject = iContainer->GetSubjectLC();
 	    TPtr ptr = subject->Des();
-		// replace new line characters with spaces as Subject is normally one line only
-	    AknTextUtils::ReplaceCharacters( ptr, KLineSeparators, KReplacementChar );
+		// replace new line characters with spaces as Subject is normally
+	    // one line only
+	    AknTextUtils::ReplaceCharacters( 
+	            ptr, KLineSeparators, KReplacementChar );
 	    iNewMessage->SetSubject( *subject );
 	    CleanupStack::PopAndDestroy( subject );
 	    }
@@ -1811,7 +1912,8 @@ void CNcsComposeView::CommitL( TBool aParseAddresses, TFieldToCommit aFieldToCom
     if ( commitBodyField )
         {
         HBufC* body = iContainer->GetBodyContentLC();
-        TPtr bodyPtr = body->Des(); // this TPtr is needed only because of incorrect argument type in FW API, can be removed when API fixed
+        TPtr bodyPtr = body->Des(); // this TPtr is needed only because of
+        // incorrect argument type in FW API, can be removed when API fixed
         iNewMessageTextPart->SetContent( bodyPtr );
         CleanupStack::PopAndDestroy( body );
 
@@ -1855,21 +1957,19 @@ void CNcsComposeView::DoExitL( TExitMode aMode )
     {
     FUNC_LOG;
 
-    //<cmail>
     TBool emptyMessage = ETrue;
 
     if ( iAutoSaver && iContainer )
         {
         iAutoSaver->Enable( EFalse );
 
-        // check that there's some user input in some header field or in message body
+        // check for some user input in some header field or in message body
     	TInt attaCount = AttachmentsListControl()->Model()->Count();
         emptyMessage =  iContainer->AreAddressFieldsEmpty() &&
             iContainer->IsSubjectFieldEmpty() &&
             iContainer->GetMessageFieldLength() < 1 &&
             attaCount <= 0;
 	    }
-    //</cmail>
 
     // Consider saving the draft if the message is not completely empty
     if ( !emptyMessage )
@@ -1878,13 +1978,15 @@ void CNcsComposeView::DoExitL( TExitMode aMode )
             {
             TBool actionSucceeded = EFalse;
 
-            // DoSaveDraftL returns EFalse if the user query was cancelled or saving to Drafts failed
+            // DoSaveDraftL returns EFalse if the user query was cancelled
+            // or saving to Drafts failed
             TRAPD( saveDraftError, actionSucceeded = DoSaveDraftL( ETrue ) );
             if ( saveDraftError == KErrNone )
                 {
                 if ( !actionSucceeded )
                     {
-                    // return to normal action (cancel was pressed in the query)
+                    // return to normal action 
+                    // (cancel was pressed in the query)
                     iAutoSaver->Enable( ETrue );
                     return;
                     }
@@ -1898,11 +2000,13 @@ void CNcsComposeView::DoExitL( TExitMode aMode )
             DoSaveDraftL( EFalse );
             }
         }
-    else if ( iNewMessage ) // <cmail> message is empty; delete the draft if it has been already saved earlier
+    else if ( iNewMessage ) // message is empty 
         {
+        // delete the draft if it has been already saved earlier
         TInt err = NcsUtility::DeleteMessage( iMailClient, iMailBox->GetId(),
             iNewMessage->GetFolderId(), iNewMessage->GetMessageId() );
-        if ( !err && iMailBox->HasCapability( EFSMBoxCapaSupportsDeletedItemsFolder ) )
+        if ( !err && iMailBox->HasCapability( 
+                EFSMBoxCapaSupportsDeletedItemsFolder ) )
             {
             err = NcsUtility::DeleteMessage( iMailClient, iMailBox->GetId(),
                 iMailBox->GetStandardFolderId( EFSDeleted ),
@@ -1924,7 +2028,6 @@ void CNcsComposeView::DoExitL( TExitMode aMode )
             }
         }
 
-    // <cmail>
     // Clear attachment control now that message has been sent
     // othewise this will kind of leak memory by leaving attachments
     // in the list, even if they have been sent.
@@ -1934,15 +2037,12 @@ void CNcsComposeView::DoExitL( TExitMode aMode )
         {
         attachmentControl->Model()->Clear();
         }
-    // </cmail>
-
     ExitComposer();
-
     }
 
 // -----------------------------------------------------------------------------
 // CNcsComposeView::DoOpenAttachmentList
-// Saves current editor message to drafts and opens attachment list view
+// Opens the currently focused attachment
 // -----------------------------------------------------------------------------
 void CNcsComposeView::DoOpenAttachmentListL()
 	{
@@ -1951,138 +2051,66 @@ void CNcsComposeView::DoOpenAttachmentListL()
     CFreestyleEmailUiSendAttachmentsListControl* attachmentControl
    		= AttachmentsListControl();
 
-   	if ( attachmentControl->Model()->Count() == 1 )
-   		{
-		CFSEmailUiSendAttachmentsListModelItem* item =
-			static_cast<CFSEmailUiSendAttachmentsListModelItem*>(
-					attachmentControl->Model()->Item( 0 ) );
-		if ( !item->IsRemote() ) // we cannot open remote attachments
-		    {
-    		CFSMailMessagePart* msgPart = iNewMessage->ChildPartL( item->MailMsgPartId() );
-    		CleanupStack::PushL( msgPart );
+    TInt index( iContainer ? iContainer->FocusedAttachmentLabelIndex() 
+            : KNoAttachmentLabelFocused );
+    if ( KNoAttachmentLabelFocused != index && 
+         attachmentControl && attachmentControl->Model() )
+        {
+        CFSEmailUiSendAttachmentsListModelItem* item =
+            static_cast<CFSEmailUiSendAttachmentsListModelItem*>(
+                    attachmentControl->Model()->Item( index ) );
+            
+        if ( item && !item->IsRemote() ) // cannot open remote attachments
+            {
+            CFSMailMessagePart* msgPart = 
+                iNewMessage->ChildPartL( item->MailMsgPartId() );
+            CleanupStack::PushL( msgPart );
             TFsEmailUiUtility::OpenAttachmentL( *msgPart );
-    		CleanupStack::PopAndDestroy( msgPart );
-		    }
-   		}
-   	// open attachment list
-   	else
-   		{
-   		// set current email parameters to package buffer
-   		TEditorLaunchParams editorParams;
-   		editorParams.iMailboxId = iNewMessage->GetMailBoxId();
-   		editorParams.iMsgId = iNewMessage->GetMessageId();
-   		editorParams.iFolderId = iNewMessage->GetFolderId();
-   		editorParams.iActivatedExternally = EFalse;
-   		TPckgBuf<TEditorLaunchParams> buf( editorParams );
-
-   		// save email to drafts
-   		iAttachmentListSaveDraft = ETrue;
-   		TRAPD( saveDraftError, DoSaveDraftL( EFalse ) );
-   		if ( saveDraftError != KErrNone )
-   		    {
-   		    // error occured in saving -> show an error message
-   		    if ( !iAppUi.AppUiExitOngoing() ) //<cmail>
-   		        TFsEmailUiUtility::ShowErrorNoteL( R_FREESTYLE_EMAIL_ERROR_GENERAL_UNABLE_TO_COMPLETE, ETrue );
-   		    return;
-   		    }
-
-   		// open attachment list view
-   		iAppUi.EnterFsEmailViewL(
-            SendAttachmentMngrViewId,
-            TUid::Uid( KEditorCmdOpenAttachmentsList ),
-            buf );
-   		}
-
+            CleanupStack::PopAndDestroy( msgPart );
+            }
+        }
 	}
 
 // -----------------------------------------------------------------------------
-// CNcsComposeView::LaunchAttachmentActionMenuL
-// Show action menu for the attachments line
+// CNcsComposeView::LaunchStylusPopupMenu
+// Show stylus popup menu for the attachments line
 // -----------------------------------------------------------------------------
 //
-void CNcsComposeView::LaunchAttachmentActionMenuL()
+void CNcsComposeView::LaunchStylusPopupMenu( const TPoint& aPenEventScreenLocation )
     {
     FUNC_LOG;
-
-    // Remove old items from action menu
-    CFSEmailUiActionMenu::RemoveAllL();
-
-    // Construct item list
-    RFsEActionMenuIdList itemList;
-    CleanupClosePushL( itemList );
-
-    CFreestyleEmailUiSendAttachmentsListControl* attachmentControl =
-        AttachmentsListControl();
-    TInt count = attachmentControl->Model()->Count();
-    TBool remoteAtt = AttachmentsListControl()->Model()->HasRemoteAttachments();
-    TBool readOnlyAtt = AttachmentsListControl()->Model()->HasReadOnlyAttachments();
-
-    // Open/View all
-    if ( count == 1 && !remoteAtt )
+    
+    CFSEmailUiSendAttachmentsListModel* attachmentModel =
+        ( AttachmentsListControl() ? 
+                AttachmentsListControl()->Model() : NULL ); 
+    TInt count( attachmentModel ? attachmentModel->Count() : 0 );
+    TBool attachmentsInModel( count > 0 );
+    CFSEmailUiSendAttachmentsListModelItem* item( NULL );
+   
+    if ( attachmentsInModel )
         {
-        itemList.AppendL( FsEActionAttachmentOpen );
-        }
-    else if ( count > 1 )
-        {
-        itemList.AppendL( FsEActionAttachmentViewAll );
-        }
-
-    // Add
-    itemList.AppendL( FsEActionAttachmentAdd );
-
-    // Remove/Remove all
-    if ( !readOnlyAtt )
-        {
-        if ( count == 1 )
+        item = static_cast<CFSEmailUiSendAttachmentsListModelItem*>( 
+                attachmentModel->Item( 
+                    iContainer->FocusedAttachmentLabelIndex() ) );
+        if ( !item || item->IsRemote() )
             {
-            itemList.AppendL( FsEActionAttachmentRemove );
-            }
-        else if ( count > 1 )
-            {
-            itemList.AppendL( FsEActionAttachmentRemoveAll );
+            // Only non-remote attachments can be opened
+            iStylusPopUpMenu->SetItemDimmed( EFsEmailUiCmdOpenAttachment, ETrue );
             }
         }
 
-    // Execute action list
-    TActionMenuCustomItemId itemId = CFSEmailUiActionMenu::ExecuteL( itemList );
-    CleanupStack::PopAndDestroy( &itemList );
-
-    // Handle action menu selection
-    switch ( itemId )
+    if ( !item || item->IsReadOnly() )
         {
-        case FsEActionAttachmentOpen:
-            HandleCommandL( EFsEmailUiCmdOpenAttachment );
-            break;
-        case FsEActionAttachmentViewAll:
-            HandleCommandL( EFsEmailUiCmdOpenAttachmentList );
-            break;
-        case FsEActionAttachmentRemove:
-            HandleCommandL( ENcsCmdRemoveAttachment );
-            break;
-        case FsEActionAttachmentRemoveAll:
-            HandleCommandL( ENcsCmdRemoveAllAttachments );
-            break;
-        case FsEActionAttachmentAdd:
-            HandleCommandL( ENcsCmdAddAttachment );
-            break;
-        default:
-            break;
+        // Only non-readonly attachments can be removed
+        iStylusPopUpMenu->SetItemDimmed( EFsEmailUiCmdRemoveAttachment, ETrue );
         }
 
-    }
+    // Set the position for the popup
+	iStylusPopUpMenu->SetPosition( aPenEventScreenLocation );
 
-//<cmail>
-// -----------------------------------------------------------------------------
-// CNcsComposeView::DismissAttachmentActionMenuL
-//
-// -----------------------------------------------------------------------------
-//
-void CNcsComposeView::DismissAttachmentActionMenuL()
-    {
-    FUNC_LOG;
-    CFSEmailUiActionMenu::Dismiss( ETrue );
+	// Display the popup.
+	iStylusPopUpMenu->ShowMenu();
     }
-//</cmail>
 
 // -----------------------------------------------------------------------------
 // CNcsComposeView::GetAttachmentsFromMail
@@ -2100,13 +2128,15 @@ void CNcsComposeView::GetAttachmentsFromMailL()
 
 	for ( TInt i=0; i<attachments.Count(); ++i )
 		{
-        TFileType fileType = TFsEmailUiUtility::GetFileType( attachments[i]->AttachmentNameL(),
-                                                             attachments[i]->GetContentType() );
+        TFileType fileType = TFsEmailUiUtility::GetFileType( 
+                attachments[i]->AttachmentNameL(),
+                attachments[i]->GetContentType() );
 
         TBool isReadOnly = ( attachments[i]->ReadOnlyPartSize() > 0 );
         TBool isRemote = EFalse;
 
-		if ( attachments[i]->FetchedContentSize() < attachments[i]->ContentSize() )
+		if ( attachments[i]->FetchedContentSize() < 
+		     attachments[i]->ContentSize() )
 			{
 			if ( iMailBox->HasCapability( EFSMBoxCapaSmartForward ) )
 			    {
@@ -2166,7 +2196,8 @@ HBufC* CNcsComposeView::GenerateReplyHeaderLC()
     __ASSERT_DEBUG( iOrigMessage, Panic( ENcsBasicUi ) );
 
 	// separator line
-	HBufC* separator = StringLoader::LoadLC( R_NCS_ENGINE_EMAIL_MESSAGE_LINE_SEPARATOR ); //1
+	HBufC* separator = 
+        StringLoader::LoadLC( R_NCS_ENGINE_EMAIL_MESSAGE_LINE_SEPARATOR ); //1
 
 	// from line
 	RPointerArray<CNcsEmailAddressObject> senderArray;
@@ -2174,30 +2205,36 @@ HBufC* CNcsComposeView::GenerateReplyHeaderLC()
     CFSMailAddress* sender = iOrigMessage->GetSender();
     if ( sender )
         {
-    	CNcsEmailAddressObject* ncsSender = NcsUtility::CreateNcsAddressL( *sender );
+    	CNcsEmailAddressObject* ncsSender = 
+            NcsUtility::CreateNcsAddressL( *sender );
     	CleanupStack::PushL( ncsSender );
 	    senderArray.AppendL( ncsSender );
 	    CleanupStack::Pop( ncsSender ); // now owned by senderArray
         }
-	HBufC* fromLine = NcsUtility::GenerateFromLineToMessageBodyL( senderArray );
+	HBufC* fromLine = 
+        NcsUtility::GenerateFromLineToMessageBodyL( senderArray );
 	CleanupStack::PopAndDestroy( &senderArray );
 	CleanupStack::PushL( fromLine ); //2
 
 	// sent line
-	HBufC* sentLine = NcsUtility::GenerateSentLineToMessageBodyL( *iOrigMessage );
+	HBufC* sentLine = 
+        NcsUtility::GenerateSentLineToMessageBodyL( *iOrigMessage );
 	CleanupStack::PushL( sentLine ); //3
 
 	// to line
 	RPointerArray<CNcsEmailAddressObject> ncsToRecipients;
 	CleanupResetAndDestroyClosePushL( ncsToRecipients );
-	RPointerArray<CFSMailAddress>& toRecipients = iOrigMessage->GetToRecipients();
+	RPointerArray<CFSMailAddress>& toRecipients = 
+        iOrigMessage->GetToRecipients();
 	NcsUtility::ConvertAddressArrayL( toRecipients, ncsToRecipients );
-	HBufC* toLine = NcsUtility::GenerateAddressLineToMessageBodyL( ncsToRecipients, NcsUtility::ERecipientTypeTo );
+	HBufC* toLine = NcsUtility::GenerateAddressLineToMessageBodyL( 
+                ncsToRecipients, NcsUtility::ERecipientTypeTo );
     CleanupStack::PopAndDestroy( &ncsToRecipients );
 	CleanupStack::PushL( toLine ); //4
 
 	// cc line
-	RPointerArray<CFSMailAddress>& ccRecipients = iOrigMessage->GetCCRecipients();
+	RPointerArray<CFSMailAddress>& ccRecipients = 
+        iOrigMessage->GetCCRecipients();
 	TBool hasCcLine = ( ccRecipients.Count() > 0 );
     HBufC* ccLine = NULL;
 	if ( hasCcLine )
@@ -2205,13 +2242,15 @@ HBufC* CNcsComposeView::GenerateReplyHeaderLC()
 	    RPointerArray<CNcsEmailAddressObject> ncsCcRecipients;
 	    CleanupResetAndDestroyClosePushL( ncsCcRecipients );
 		NcsUtility::ConvertAddressArrayL( ccRecipients, ncsCcRecipients );
-		ccLine = NcsUtility::GenerateAddressLineToMessageBodyL( ncsCcRecipients, NcsUtility::ERecipientTypeCc );
+		ccLine = NcsUtility::GenerateAddressLineToMessageBodyL( 
+		        ncsCcRecipients, NcsUtility::ERecipientTypeCc );
 	    CleanupStack::PopAndDestroy( &ncsCcRecipients );
 		CleanupStack::PushL( ccLine ); //5
 		}
 
 	// subject line
-	HBufC* subjectLine = NcsUtility::GenerateSubjectLineToMessageBodyL( iOrigMessage->GetSubject() );
+	HBufC* subjectLine = NcsUtility::GenerateSubjectLineToMessageBodyL( 
+	        iOrigMessage->GetSubject() );
 	CleanupStack::PushL( subjectLine ); //6
 
     // Body
@@ -2232,7 +2271,8 @@ HBufC* CNcsComposeView::GenerateReplyHeaderLC()
             {
             CleanupStack::PushL( htmlBodyPart );
 
-            HBufC* htmlData = HBufC::NewLC( htmlBodyPart->FetchedContentSize() );
+            HBufC* htmlData = 
+                HBufC::NewLC( htmlBodyPart->FetchedContentSize() );
             TPtr pointer = htmlData->Des();
             htmlBodyPart->GetContentToBufferL( pointer, 0 );
 
@@ -2338,7 +2378,8 @@ void CNcsComposeView::InitReplyOrForwardUiL()
     TInt waitNoteId = KErrNotFound;
     if ( TFsEmailUiUtility::IsMessageBodyLargeL(iOrigMessage) )
         {
-        waitNoteId = TFsEmailUiUtility::ShowGlobalWaitNoteLC( R_FSE_WAIT_OPENING_TEXT );
+        waitNoteId = TFsEmailUiUtility::ShowGlobalWaitNoteLC( 
+                R_FSE_WAIT_OPENING_TEXT );
         }
 
     if ( iCustomMessageId == TUid::Uid( KEditorCmdReply ) )
@@ -2388,7 +2429,8 @@ void CNcsComposeView::GenerateReplyMessageL( TBool aReplyAll )
 
 	//<cmail> this is actually a waited async method
 	iFakeSyncGoingOn = ETrue;
-    iNewMessage = iMailBox->CreateReplyMessage( iLaunchParams.iMsgId, aReplyAll, *temp );
+    iNewMessage = iMailBox->CreateReplyMessage( 
+            iLaunchParams.iMsgId, aReplyAll, *temp );
     iFakeSyncGoingOn = EFalse;
     //</cmail>
    	// Compose screen does not send cal messages, make sure
@@ -2405,7 +2447,8 @@ void CNcsComposeView::GenerateReplyMessageL( TBool aReplyAll )
     	User::Leave( KErrGeneral );
     	}
     iFakeSyncGoingOn = ETrue; //<cmail>
-    TRAPD( error, TFsEmailUiUtility::MoveMessageToDraftsL( *iMailBox, *iNewMessage ) );
+    TRAPD( error, TFsEmailUiUtility::MoveMessageToDraftsL( 
+            *iMailBox, *iNewMessage ) );
     iFakeSyncGoingOn = EFalse; //</cmail>
     User::LeaveIfError( error );
 
@@ -2455,7 +2498,8 @@ void CNcsComposeView::GenerateForwardMessageL()
     	User::Leave( KErrGeneral );
     	}
     iFakeSyncGoingOn = ETrue; //<cmail>
-    TRAPD( error, TFsEmailUiUtility::MoveMessageToDraftsL( *iMailBox, *iNewMessage ) );
+    TRAPD( error, TFsEmailUiUtility::MoveMessageToDraftsL( 
+            *iMailBox, *iNewMessage ) );
     iFakeSyncGoingOn = EFalse; //<cmail>
     User::LeaveIfError( error );
 
@@ -2465,7 +2509,8 @@ void CNcsComposeView::GenerateForwardMessageL()
         iNewMessage->SaveMessageL();
 	    }
     
-	TFsEmailUiUtility::CreatePlainTextPartL( *iNewMessage, iNewMessageTextPart );
+	TFsEmailUiUtility::CreatePlainTextPartL( 
+	        *iNewMessage, iNewMessageTextPart );
 
     }
 
@@ -2495,14 +2540,6 @@ void CNcsComposeView::InitUiGeneralL()
         {
         AppUi()->AddToStackL( iContainer );
         iContainer->SetMenuBar( Cba() );
-
-    	// <cmail>
-    	// TInt ccVisible = iCrHandler->EditorCCVisible();
-    	// iContainer->SetCcFieldVisibleL( ccVisible == 1, EFalse );
-    	// TInt bccVisible = iCrHandler->EditorBCVisible();
-    	// iContainer->SetBccFieldVisibleL( bccVisible == 1, EFalse );
-    	// </cmail>
-
         iContainer->UpdateScrollBarL();
 
         // Set title pane text
@@ -2650,8 +2687,9 @@ void CNcsComposeView::SaveToDraftsL( TBool aParseAddresses )
 
         if ( !iAppUi.AppUiExitOngoing() )
             {
-            // Simulate a new mail event to ensure that saved message becomes visible in the
-            // mail list. All protocols do not send event automatically in this case.
+            // Simulate a new mail event to ensure that saved message becomes
+            // visible in the mail list. 
+            // All protocols do not send event automatically in this case.
             RArray<TFSMailMsgId> messageIdArray;
             CleanupClosePushL( messageIdArray );
             messageIdArray.Append( iNewMessage->GetMessageId() );
@@ -2659,9 +2697,10 @@ void CNcsComposeView::SaveToDraftsL( TBool aParseAddresses )
             TFSMailMsgId mailboxId = iNewMessage->GetMailBoxId();
             iAppUi.EventL(
                 TFSEventNewMail, mailboxId, &messageIdArray, &folderId, NULL );
-            // Update displayed mail info if the mail was already created sooner
+            // Update displayed mail info if the mail was created previously
             iAppUi.EventL(
-                TFSEventMailChanged, mailboxId, &messageIdArray, &folderId, NULL );
+                TFSEventMailChanged, mailboxId, &messageIdArray, 
+                &folderId, NULL );
             CleanupStack::PopAndDestroy( &messageIdArray );
             }
         }
@@ -2671,7 +2710,8 @@ void CNcsComposeView::SaveToDraftsL( TBool aParseAddresses )
 // CNcsComposeView::FetchLogicComplete
 // -----------------------------------------------------------------------------
 //
-TBool CNcsComposeView::FetchLogicComplete( TComposerFetchState /*aState*/, TInt aError )
+TBool CNcsComposeView::FetchLogicComplete( 
+        TComposerFetchState /*aState*/, TInt aError )
 	{
     FUNC_LOG;
     TBool result = EFalse;
@@ -2685,14 +2725,14 @@ TBool CNcsComposeView::FetchLogicComplete( TComposerFetchState /*aState*/, TInt 
         else
             {
             // something went wrong
-            DoSafeExit(ENoSave);
+            DoSafeExit( ENoSave );
             iMailFetchingErrCode = aError;
             result = ETrue;
             }
         }
     if ( iFetchWaitDialog && !iFetchDialogCancelled )
         {
-        TRAP_IGNORE(iFetchWaitDialog->ProcessFinishedL());
+        TRAP_IGNORE( iFetchWaitDialog->ProcessFinishedL() );
         iFetchWaitDialog = NULL;
         }
     return result;
@@ -2711,7 +2751,8 @@ void CNcsComposeView::ExitComposer()
         iStatusPaneIndicators->HideStatusPaneIndicators();
         }
     
-    // lower flag to indicate that view is no longer able to handle user commands
+    // lower flag to indicate that view is no longer 
+    // able to handle user commands
     iViewReady = EFalse;
 
 	// view switching and alfred operations should be avoided
@@ -2722,7 +2763,8 @@ void CNcsComposeView::ExitComposer()
         TRAP_IGNORE( NavigateBackL() );
         }
 
-    // Cleanup message contents to prevent ChildDoDeactivate() from saving the message to drafts again
+    // Cleanup message contents to prevent ChildDoDeactivate() 
+	// from saving the message to drafts again
     ResetComposer();
 
     SafeDelete( iFetchLogic );
@@ -2791,7 +2833,8 @@ void CNcsComposeView::SaveAndCleanPreviousMessage()
             iContainer->IsSubjectFieldEmpty() &&
             (iContainer->GetMessageFieldLength() < 1);
 
-        // save to Drafts if there's some user input in some header field or in message body
+        // save to Drafts if there's some user input in some header field 
+        // or in message body
         if ( !noAddrOrNoMesBody )
             {
             TRAPD( error, DoSaveDraftL( EFalse ) );
@@ -2800,7 +2843,8 @@ void CNcsComposeView::SaveAndCleanPreviousMessage()
                 }
             }
 
-        // store the message IDs to launch parameters to be able to return to same message if desired
+        // store the message IDs to launch parameters to be able to return 
+        // to same message if desired
         iLaunchParams.iMsgId = iNewMessage->GetMessageId();
         iLaunchParams.iFolderId = iNewMessage->GetFolderId();
         iLaunchParams.iMailboxId = iMailBox->GetId();
@@ -2829,15 +2873,17 @@ TInt CNcsComposeView::AsyncExit( TAny* aSelfPtr )
 void CNcsComposeView::AsyncExitL()
     {
     FUNC_LOG;
-    if ( iFakeSyncGoingOn || iExecutingDoExitL ) // if some sync method is still going on, we continue waiting
+    if ( iFakeSyncGoingOn || iExecutingDoExitL )
         {
+        // if some sync method is still going on, we continue waiting
         iActiveHelper->Cancel();
         iActiveHelper->Start();
         }
     else
         {
         ExitComposer();
-        // for some strange reason composer view is stuck and only option was to call ProcessCommandL with EAknCmdExit
+        // for some strange reason composer view is stuck and only option 
+        // was to call ProcessCommandL with EAknCmdExit
         ProcessCommandL( EAknCmdExit );
         }
     }
@@ -2862,11 +2908,11 @@ void CNcsComposeView::ShowFetchingWaitNoteL()
         {
         if ( !iFetchWaitDialog )
             {
-            iFetchWaitDialog = new(ELeave)CAknWaitDialog(
-                       (REINTERPRET_CAST(CEikDialog**,&iFetchWaitDialog)), EFalse);
-            iFetchWaitDialog->SetCallback(this);
+            iFetchWaitDialog = new (ELeave) CAknWaitDialog(
+                reinterpret_cast<CEikDialog**>( &iFetchWaitDialog ), EFalse);
+            iFetchWaitDialog->SetCallback( this );
             iFetchDialogCancelled = EFalse;
-            iFetchWaitDialog->ExecuteLD(R_FSE_FETCHING_WAIT_DIALOG);
+            iFetchWaitDialog->ExecuteLD( R_FSE_FETCHING_WAIT_DIALOG );
             }
         }
     }
@@ -2878,7 +2924,7 @@ void CNcsComposeView::ShowFetchingWaitNoteL()
 void CNcsComposeView::DialogDismissedL( TInt aButtonId )
     {
     FUNC_LOG;
-    if ( (aButtonId == EAknSoftkeyCancel) && iFetchLogic )
+    if ( aButtonId == EAknSoftkeyCancel && iFetchLogic )
         {
         iFetchDialogCancelled = ETrue;
         iFetchLogic->CancelFetchings();
@@ -2887,16 +2933,16 @@ void CNcsComposeView::DialogDismissedL( TInt aButtonId )
 
 TBool CNcsComposeView::IsPreparedForExit()
     {
-    return !(iFakeSyncGoingOn ||iExecutingDoExitL);
+    return !( iFakeSyncGoingOn ||iExecutingDoExitL );
     }
 
 // ---------------------------------------------------------------------------
 // CActiveHelper::NewL()
 // ---------------------------------------------------------------------------
 //
-CActiveHelper* CActiveHelper::NewL(CNcsComposeView* aSession )
+CActiveHelper* CActiveHelper::NewL( CNcsComposeView* aSession )
     {
-    CActiveHelper* self = new(ELeave) CActiveHelper(aSession);
+    CActiveHelper* self = new(ELeave) CActiveHelper( aSession );
     CleanupStack::PushL( self );
     self->ConstructL( );
     CleanupStack::Pop( self );
@@ -2919,7 +2965,7 @@ CActiveHelper::~CActiveHelper( )
 void CActiveHelper::Start()
     {
     TRequestStatus* status = &iStatus;
-    User::RequestComplete(status,KErrNone);
+    User::RequestComplete( status, KErrNone );
     SetActive();
     }
 
@@ -2927,7 +2973,8 @@ void CActiveHelper::Start()
 // CActiveHelper::CActiveHelper()
 // ---------------------------------------------------------------------------
 //
-CActiveHelper::CActiveHelper(CNcsComposeView* aSession ) : CActive(EPriorityLow)
+CActiveHelper::CActiveHelper( CNcsComposeView* aSession ) 
+    : CActive( EPriorityLow )
     {
     iComposeView = aSession;
     }
@@ -2938,7 +2985,7 @@ CActiveHelper::CActiveHelper(CNcsComposeView* aSession ) : CActive(EPriorityLow)
 //
 void CActiveHelper::RunL()
     {
-    if(iComposeView)
+    if( iComposeView )
         iComposeView->AsyncExitL();
     }
 
@@ -2957,7 +3004,6 @@ void CActiveHelper::DoCancel()
 //
 void CActiveHelper::ConstructL()
     {
-    CActiveScheduler::Add(this);
+    CActiveScheduler::Add( this );
     }
 
-//</cmail>

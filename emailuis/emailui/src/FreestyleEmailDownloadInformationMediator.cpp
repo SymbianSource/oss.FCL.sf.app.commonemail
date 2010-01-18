@@ -44,7 +44,8 @@
 //
 CFSEmailDownloadInfoMediator::CFSEmailDownloadInfoMediator( CFSMailClient& aMailClient )
     : CActive( EPriorityNormal ), iMailClient(aMailClient),
-    iDownloadArray( KArrayGranularity, _FOFF(TDownload, iRequestId) ), iDownloadsStarted ( EFalse )
+    iDownloadArray( KArrayGranularity, _FOFF(TDownload, iRequestId) ), iDownloadsStarted ( EFalse ),
+    iNotificationsInProgress( 0 ), iObserverDeleted( EFalse )
 	{
     FUNC_LOG;
 	CActiveScheduler::Add( this );
@@ -383,11 +384,11 @@ void CFSEmailDownloadInfoMediator::Destroy()
 void CFSEmailDownloadInfoMediator::StopObserving( MFSEmailDownloadInformationObserver* aObserver, TFSMailMsgId aMessageId )
 	{
 	FUNC_LOG;
-    for (TInt i=0; i<iObserverArray.Count(); i++)
+    for (TInt i=iObserverArray.Count()-1; i>=0; i--)
     	{
    		if ( iObserverArray[i].iObserver == aObserver && iObserverArray[i].iMessageId == aMessageId )
    			{
-   			iObserverArray.Remove(i);
+            RemoveObserver(i);
    			}
     	}
 	}
@@ -395,14 +396,14 @@ void CFSEmailDownloadInfoMediator::StopObserving( MFSEmailDownloadInformationObs
 void CFSEmailDownloadInfoMediator::StopObserving( MFSEmailDownloadInformationObserver* aObserver )
 	{
 	FUNC_LOG;
-    for (TInt i=0; i<iObserverArray.Count(); i++)
+    for ( TInt i=iObserverArray.Count()-1; i>=0; i-- )
     	{
    		if ( iObserverArray[i].iObserver == aObserver )
    			{
-   			iObserverArray.Remove(i);
+   			RemoveObserver(i);
    			}
     	}
-    for (TInt i=0; i<iAllObserverArray.Count(); i++)
+    for ( TInt i=iAllObserverArray.Count()-1; i>=0; i-- )
     	{
 		if ( iAllObserverArray[i] == aObserver )
    			{
@@ -410,6 +411,23 @@ void CFSEmailDownloadInfoMediator::StopObserving( MFSEmailDownloadInformationObs
    			}
     	}
 	}
+
+void CFSEmailDownloadInfoMediator::RemoveObserver( TInt aIdx )
+    {
+    if ( iNotificationsInProgress == 0 )
+        {
+        // If we're not currently iterating over the array, remove the entry
+        // immediately.
+        iObserverArray.Remove( aIdx );
+        }
+    else
+        {
+        // We're currently iterating over the array: mark the entry as
+        // deleted and flag that we've done so.
+        iObserverArray[aIdx].iDeleted = ETrue;
+        iObserverDeleted = ETrue;
+        }
+    }
 
 void CFSEmailDownloadInfoMediator::DownloadL( TPartData aPart, TBool aCompleteNote )
 	{
@@ -725,25 +743,61 @@ void CFSEmailDownloadInfoMediator::LaunchDownloadCompleteNoteL(
 		
 	SetActive();
     }
-	
+
 void CFSEmailDownloadInfoMediator::NotifyObserversL( const TFSProgress& aEvent, const TPartData& aPart )
     {
 	FUNC_LOG;
+
+	// notify observers of this particular message part
+    iNotificationsInProgress++;
+    TRAPD( error, NotifyPartObserversL( aEvent, aPart ) );
+    if ( --iNotificationsInProgress == 0 )
+        {
+        CleanUpObservers();
+        }
+    if ( error )
+        {
+        User::Leave( error );
+        }
+
+    // send response to every 'all observer'
+    for ( TInt i=iAllObserverArray.Count()-1; i>=0; i-- )
+        {
+        iAllObserverArray[i]->RequestResponseL( aEvent, aPart );
+        }
+    }
+
+void CFSEmailDownloadInfoMediator::NotifyPartObserversL( const TFSProgress& aEvent, const TPartData& aPart )
+    {
+	FUNC_LOG;
 	// go through all observers
-    for ( TInt j=iObserverArray.Count()-1; j>=0; j--)
+    for ( TInt j=iObserverArray.Count()-1; j>=0; j-- )
 		{
 		// if observer is observing this message
-		if ( iObserverArray[j].iMessageId == aPart.iMessageId )
+		if ( !iObserverArray[j].iDeleted && iObserverArray[j].iMessageId == aPart.iMessageId )
 			{
 			// send response to observer
 			iObserverArray[j].iObserver->RequestResponseL( aEvent, aPart );
 			}
 		}
-	// send response to every 'all observer'
-	for (TInt i=0; i<iAllObserverArray.Count(); i++)
-		{
-		iAllObserverArray[i]->RequestResponseL( aEvent, aPart );
-		}
+    }
+
+void CFSEmailDownloadInfoMediator::CleanUpObservers()
+    {
+    FUNC_LOG;
+    // If one or more observers have been marked for deletion, go through
+    // the observer array and remove them.
+    if ( iObserverDeleted )
+        {
+        for ( TInt j=iObserverArray.Count()-1; j>=0; j-- )
+            {
+            if ( iObserverArray[j].iDeleted )
+                {
+                iObserverArray.Remove(j);
+                }
+            }
+        iObserverDeleted = EFalse;
+        }
     }
 
 void CFSEmailDownloadInfoMediator::RunL()

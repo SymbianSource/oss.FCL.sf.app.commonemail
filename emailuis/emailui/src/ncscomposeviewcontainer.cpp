@@ -75,9 +75,9 @@ CNcsComposeViewContainer::CNcsComposeViewContainer(
 // Two-phased constructor.
 // -----------------------------------------------------------------------------
 //
-CNcsComposeViewContainer* CNcsComposeViewContainer::NewL( CNcsComposeView& aView,
-    const TRect& aRect, CFSMailBox& aMailBox, CFsAutoSaver& aAutoSaver,
-    TInt aFlags )
+CNcsComposeViewContainer* CNcsComposeViewContainer::NewL( 
+    CNcsComposeView& aView, const TRect& aRect, CFSMailBox& aMailBox, 
+    CFsAutoSaver& aAutoSaver, TInt aFlags )
     {
     FUNC_LOG;
 
@@ -101,9 +101,6 @@ void CNcsComposeViewContainer::ConstructL( const TRect& aRect, TInt aFlags )
 
     SetMopParent( &iView );
     CreateWindowL();
-	// <cmail>
-    // iApplicationRect = aRect;
-	// </cmail>
 
     // Setup the control array
     InitComponentArrayL();
@@ -124,9 +121,7 @@ void CNcsComposeViewContainer::ConstructL( const TRect& aRect, TInt aFlags )
     controls.AppendLC( iMessageField );
     CleanupStack::Pop( iMessageField );
 
-    // <cmail> Platform layout change
     iMessageField->SetNcsFontType( NcsUtility::ENcsBodytextFont );
-    // </cmail>
 
     // Listen edwin events and size events from message body field
     iMessageField->AddEdwinObserverL( this );
@@ -148,7 +143,8 @@ void CNcsComposeViewContainer::ConstructL( const TRect& aRect, TInt aFlags )
 
     // Create the scroll bar
     iScrollBar = new( ELeave ) CAknDoubleSpanScrollBar( this );
-    iScrollBar->ConstructL( this, this, CEikScrollBar::EVertical, aRect.Height() );
+    iScrollBar->ConstructL( 
+            this, this, CEikScrollBar::EVertical, aRect.Height() );
     iScrollBar->MakeVisible( ETrue );
     iScrollBar->SetModelL( &iScrollBarModel );
 
@@ -157,14 +153,10 @@ void CNcsComposeViewContainer::ConstructL( const TRect& aRect, TInt aFlags )
 
     SetRect( aRect );
 
-    //<cmail> S60 skin support
     iBgContext = CAknsBasicBackgroundControlContext::NewL(
         KAknsIIDQsnBgAreaMain, Rect(), EFalse );
-    // <cmail>
-	//iMessageField->SetSkinBackgroundControlContextL( iBgContext );
-	// </cmail>
+
     iLongTapDetector = CAknLongTapDetector::NewL( this );
-    //</cmail>
 
     UpdateScrollBarL();
 
@@ -194,10 +186,8 @@ CNcsComposeViewContainer::~CNcsComposeViewContainer()
 	delete iHeader;
     delete iScrollBar;
     delete iMessageField;
-    // <cmail>
     delete iBgContext;
 	delete iLongTapDetector;
-    // </cmail>
     delete iReadOnlyQuoteField;
     delete iReadOnlyQuote;
 
@@ -211,7 +201,7 @@ CNcsComposeViewContainer::~CNcsComposeViewContainer()
 //
 // -----------------------------------------------------------------------------
 //
-void CNcsComposeViewContainer::FocusChanged(TDrawNow aDrawNow)
+void CNcsComposeViewContainer::FocusChanged( TDrawNow aDrawNow )
     {
     FUNC_LOG;
 
@@ -222,9 +212,8 @@ void CNcsComposeViewContainer::FocusChanged(TDrawNow aDrawNow)
 		iFocused = iHeader;
         }
 	iFocused->SetFocus( ETrue, aDrawNow );
-	// <cmail>
 	iView.HandleContainerChangeRequiringToolbarRefresh();
-	// </cmail>
+
 	if ( aDrawNow )
 	    {
 		DrawNow();
@@ -242,20 +231,20 @@ void CNcsComposeViewContainer::SetMskL()
     iHeader->SetMskL();
     }
 
-//<cmail>
-
 // -----------------------------------------------------------------------------
 // CNcsComposeViewContainer::HandlePointerEventL()
 //
 // -----------------------------------------------------------------------------
 //
-void CNcsComposeViewContainer::HandlePointerEventL( const TPointerEvent& aPointerEvent )
+void CNcsComposeViewContainer::HandlePointerEventL( 
+        const TPointerEvent& aPointerEvent )
     {
 	FUNC_LOG;
 
     CCoeControl::HandlePointerEventL( aPointerEvent );
 
-    if ( iHeader->NeedsLongTapL( aPointerEvent.iPosition ) )
+    if ( aPointerEvent.iType != TPointerEvent::EButton1Down &&
+         iHeader->NeedsLongTapL( aPointerEvent.iPosition ) )
         {
     	iLongTapDetector->PointerEventL( aPointerEvent );
         }
@@ -266,7 +255,8 @@ void CNcsComposeViewContainer::HandlePointerEventL( const TPointerEvent& aPointe
     		{
             // Save current and original position so that those can be used in
             // drag/scrolling calculations
-            iPreviousPosition = iOriginalPosition = aPointerEvent.iParentPosition;
+            iPreviousPosition = iOriginalPosition = 
+                aPointerEvent.iParentPosition;
             iIsDragging = EFalse;
             iIsFlicking = EFalse;
 
@@ -278,23 +268,18 @@ void CNcsComposeViewContainer::HandlePointerEventL( const TPointerEvent& aPointe
                 UpdatePhysicsL();
                 }            
 
-            
-			//Closes the attachment action menu, if it is open.
-			//Otherwise does nothing
-			iView.DismissAttachmentActionMenuL();
-
-            if ( iHeader->Rect().Contains(aPointerEvent.iPosition) )
+            if ( iHeader->Rect().Contains( aPointerEvent.iPosition ) )
                 {
-                if (iFocused == iMessageField)
+                if ( iFocused == iMessageField )
                     {
                     iFocused = iHeader;
                     iHeader->SetFocus( ETrue,EDrawNow );
                     iMessageField->SetFocus( EFalse, EDrawNow );
                     iHeader->MakeVisible( ETrue );
-                    CommitL(EBodyField);
+                    CommitL( EBodyField );
                     iView.HandleContainerChangeRequiringToolbarRefresh();
                     }
-                else if (iFocused == iReadOnlyQuoteField)
+                else if ( iFocused == iReadOnlyQuoteField )
                     {
                     iFocused = iMessageField;
                     iReadOnlyQuoteField->SetFocus( EFalse, EDrawNow );
@@ -302,9 +287,10 @@ void CNcsComposeViewContainer::HandlePointerEventL( const TPointerEvent& aPointe
                     iView.HandleContainerChangeRequiringToolbarRefresh();
                     }
                 }
-            else if (iReadOnlyQuoteField->Rect().Contains(aPointerEvent.iPosition))
+            else if ( iReadOnlyQuoteField->Rect().Contains( 
+                        aPointerEvent.iPosition ) )
                 {
-                if (iFocused == iMessageField)
+                if ( iFocused == iMessageField )
                     {
                     iFocused = iReadOnlyQuoteField;
                     iReadOnlyQuoteField->SetFocus( ETrue, EDrawNow );
@@ -312,7 +298,7 @@ void CNcsComposeViewContainer::HandlePointerEventL( const TPointerEvent& aPointe
                     iReadOnlyQuoteField->SetCursorPosL( 0, EFalse );
                     iView.HandleContainerChangeRequiringToolbarRefresh();
                     }
-                else if (iFocused == iHeader)
+                else if ( iFocused == iHeader )
                     {
                     iFocused = iReadOnlyQuoteField;
                     iReadOnlyQuoteField->SetFocus( ETrue, EDrawNow );
@@ -323,15 +309,14 @@ void CNcsComposeViewContainer::HandlePointerEventL( const TPointerEvent& aPointe
                 }
             else 
                 {
-                if (iFocused == iHeader)
+                if ( iFocused == iHeader )
                     {
                     iFocused = iMessageField;
                     iHeader->SetFocus( EFalse, EDrawNow );
                     iMessageField->SetFocus( ETrue, EDrawNow );
-                    //iMessageField->SetCursorPosL( iMessageField->TextLength(), EFalse );
                     iView.HandleContainerChangeRequiringToolbarRefresh();
                     }
-                else if (iFocused == iReadOnlyQuoteField)
+                else if ( iFocused == iReadOnlyQuoteField )
                     {
                     iFocused = iMessageField;
                     iReadOnlyQuoteField->SetFocus( EFalse, EDrawNow );
@@ -340,10 +325,9 @@ void CNcsComposeViewContainer::HandlePointerEventL( const TPointerEvent& aPointe
                     }
                 else 
                     {
-                    //iMessageField->SetCursorPosL( iMessageField->TextLength(), EFalse );
-                    const TRect messageFieldRect(iMessageField->Rect());
-                    if (!messageFieldRect.Contains(aPointerEvent.iPosition) && 
-                            aPointerEvent.iPosition.iY >= messageFieldRect.iTl.iY ) 
+                    const TRect messageFieldRect( iMessageField->Rect() );
+                    if ( !messageFieldRect.Contains( aPointerEvent.iPosition ) && 
+                         aPointerEvent.iPosition.iY >= messageFieldRect.iTl.iY )
                         {
                         iMessageField->OpenVirtualKeyBoardL();
                         }
@@ -357,8 +341,8 @@ void CNcsComposeViewContainer::HandlePointerEventL( const TPointerEvent& aPointe
     		{
             if( iIsDragging && iPhysics )
                 {
-                TPoint drag(iOriginalPosition - aPointerEvent.iParentPosition);
-                iPhysics->StartPhysics(drag, iStartTime);
+                TPoint drag( iOriginalPosition - aPointerEvent.iParentPosition );
+                iPhysics->StartPhysics( drag, iStartTime );
                 iIsFlicking = ETrue;
                 iIsDragging = EFalse;
                 }
@@ -389,11 +373,14 @@ void CNcsComposeViewContainer::HandlePointerEventL( const TPointerEvent& aPointe
     			
 				if( totalHeight > areaHeight )
 					{
-					// Calculate new scroll offset based on current and previous Y-positions
-					scrollOffset = topPosition + ( iPreviousPosition.iY - position.iY );
+					// Calculate new scroll offset based on current and
+					// previous Y-positions
+					scrollOffset = topPosition + 
+                        ( iPreviousPosition.iY - position.iY );
 					// Ensure that thumb position is in correct range
 					scrollOffset = Max( scrollOffset, 0 );
-					scrollOffset = Min( scrollOffset, totalHeight - areaHeight );
+					scrollOffset = Min( scrollOffset, 
+                                        totalHeight - areaHeight );
 					}
 
 				ScrollL( scrollOffset );
@@ -411,17 +398,21 @@ void CNcsComposeViewContainer::HandlePointerEventL( const TPointerEvent& aPointe
     		break;
     		}
     	}
-    
-    }
 
-//</cmail>
+    if ( aPointerEvent.iType == TPointerEvent::EButton1Down &&
+         iHeader->NeedsLongTapL( aPointerEvent.iPosition ) )
+        {
+        iLongTapDetector->PointerEventL( aPointerEvent );
+        }
+    }
 
 // -----------------------------------------------------------------------------
 // CNcsComposeViewContainer::OfferKeyEventL()
 // Handles key events
 // -----------------------------------------------------------------------------
 //
-TKeyResponse CNcsComposeViewContainer::OfferKeyEventL( const TKeyEvent& aKeyEvent, TEventCode aType )
+TKeyResponse CNcsComposeViewContainer::OfferKeyEventL( 
+        const TKeyEvent& aKeyEvent, TEventCode aType )
     {
     FUNC_LOG;
 
@@ -433,10 +424,8 @@ TKeyResponse CNcsComposeViewContainer::OfferKeyEventL( const TKeyEvent& aKeyEven
 
     TKeyResponse ret( EKeyWasNotConsumed );
 
-    //<cmail>
     //we are allowing to change MSK label 
-    SwitchChangeMskOff(EFalse);
-    //</cmail>
+    SwitchChangeMskOff( EFalse );
     
     if ( aKeyEvent.iCode == EKeyYes )
         {
@@ -470,7 +459,8 @@ TKeyResponse CNcsComposeViewContainer::OfferKeyEventL( const TKeyEvent& aKeyEven
         iView.HandleCommandL( ENcsCmdSaveDraft );
         ret = EKeyWasConsumed;
         }
-    else if ( aKeyEvent.iCode == EKeyUpArrow || aKeyEvent.iCode == EKeyDownArrow )
+    else if ( aKeyEvent.iCode == EKeyUpArrow || 
+              aKeyEvent.iCode == EKeyDownArrow )
         {
         ret = iFocused->OfferKeyEventL( aKeyEvent, aType );
 
@@ -511,7 +501,8 @@ TKeyResponse CNcsComposeViewContainer::OfferKeyEventL( const TKeyEvent& aKeyEven
 // we want to scroll up the header and grow the message field.
 // -----------------------------------------------------------------------------
 //
-void CNcsComposeViewContainer::UpdateScreenPositionL( const TUint& /*aKeyCode*/ )
+void CNcsComposeViewContainer::UpdateScreenPositionL( 
+        const TUint& /*aKeyCode*/ )
     {
     FUNC_LOG;
 
@@ -535,7 +526,8 @@ void CNcsComposeViewContainer::UpdateScreenPositionL( const TUint& /*aKeyCode*/ 
         }
     else
         {
-        // This function should be used only when focus is in body or read-only quote
+        // This function should be used only when focus is in body or
+        // read-only quote
         return;
         }
     TPoint linePos = lineRect.iTl;
@@ -555,9 +547,11 @@ void CNcsComposeViewContainer::UpdateScreenPositionL( const TUint& /*aKeyCode*/ 
         }
 
     // Check we don't scroll too low
-    if ( quotePos.iY + moveY + iReadOnlyQuoteField->Size().iHeight < screenRect.Height() )
+    if ( quotePos.iY + moveY + iReadOnlyQuoteField->Size().iHeight < 
+         screenRect.Height() )
         {
-        moveY = screenRect.Height() - quotePos.iY - iReadOnlyQuoteField->Size().iHeight;
+        moveY = screenRect.Height() - quotePos.iY - 
+            iReadOnlyQuoteField->Size().iHeight;
         }
 
     // Check we don't scroll too high
@@ -580,8 +574,6 @@ void CNcsComposeViewContainer::UpdateScreenPositionL( const TUint& /*aKeyCode*/ 
 
         iSeparatorLineYPos += moveY;
         UpdateScrollBarL();
-
-        //DrawDeferred();
         }
     }
 
@@ -590,7 +582,7 @@ void CNcsComposeViewContainer::UpdateScreenPositionL( const TUint& /*aKeyCode*/ 
 //
 // -----------------------------------------------------------------------------
 //
-void CNcsComposeViewContainer::UpdateFieldPosition(CCoeControl* aAnchor)
+void CNcsComposeViewContainer::UpdateFieldPosition( CCoeControl* aAnchor )
     {
     FUNC_LOG;
 
@@ -598,12 +590,13 @@ void CNcsComposeViewContainer::UpdateFieldPosition(CCoeControl* aAnchor)
 	if ( iHeader && iMessageField && iReadOnlyQuoteField )
 	    {
 	    // First, move all the controls in the header
-	    iHeader->UpdateFieldPosition(aAnchor);
+	    iHeader->UpdateFieldPosition( aAnchor );
 
 	    // Then, move the body field below the header
 	    TRect headerRect = iHeader->Rect();
 	            
-		const TSize separatorSize( NcsUtility::SeparatorSizeInThisResolution() );
+		const TSize separatorSize( 
+		        NcsUtility::SeparatorSizeInThisResolution() );
 		iSeparatorLineYPos = headerRect.iBr.iY;
 			
 		TPoint bodyPos( iMessageField->Position() );
@@ -614,7 +607,7 @@ void CNcsComposeViewContainer::UpdateFieldPosition(CCoeControl* aAnchor)
 		quotePos.iY = iMessageField->Rect().iBr.iY;
 		iReadOnlyQuoteField->SetPosition( quotePos );
 
-	    TRAP_IGNORE(UpdateScrollBarL());
+	    TRAP_IGNORE( UpdateScrollBarL() );
 
 	    DrawDeferred();
 	    }
@@ -627,7 +620,8 @@ void CNcsComposeViewContainer::UpdateFieldPosition(CCoeControl* aAnchor)
 // -----------------------------------------------------------------------------
 //
 
-TKeyResponse CNcsComposeViewContainer::ChangeFocusL( const TKeyEvent& aKeyEvent )
+TKeyResponse CNcsComposeViewContainer::ChangeFocusL( 
+        const TKeyEvent& aKeyEvent )
     {
     FUNC_LOG;
 
@@ -648,10 +642,11 @@ TKeyResponse CNcsComposeViewContainer::ChangeFocusL( const TKeyEvent& aKeyEvent 
     		iHeader->SetFocus( ETrue,EDrawNow );
     		iMessageField->SetFocus( EFalse, EDrawNow );
     		iHeader->MakeVisible( ETrue );
-            CommitL(EBodyField);
+            CommitL( EBodyField );
             ret = EKeyWasConsumed;
 	        }
-	    else if ( aKeyEvent.iCode == EKeyDownArrow && iReadOnlyQuoteField->TextLength() )
+	    else if ( aKeyEvent.iCode == EKeyDownArrow && 
+	              iReadOnlyQuoteField->TextLength() )
 	        {
 	        // Focus move to read-only quote only if there is some text in it.
 	        iFocused = iReadOnlyQuoteField;
@@ -697,7 +692,6 @@ TBool CNcsComposeViewContainer::UpdateFieldSizeL()
 	return EFalse;
     }
 
-// <cmail> Platform layout changes
 // -----------------------------------------------------------------------------
 // CNcsComposeViewContainer::SizeChanged()
 // set size
@@ -712,16 +706,19 @@ void CNcsComposeViewContainer::SizeChanged()
     TRect cmailPaneRect( NcsUtility::ListCmailPaneRect( rect ) );
 
     const TInt headerLineCount( iHeader->LayoutLineCount() );
-    const TPoint headerPos( NcsUtility::HeaderControlPosition( cmailPaneRect, 0 ) );
+    const TPoint headerPos( 
+            NcsUtility::HeaderControlPosition( cmailPaneRect, 0 ) );
     cmailPaneRect.Move( 0, iHeader->Position().iY - headerPos.iY );
 
-    NcsUtility::LayoutHeaderControl( iHeader, cmailPaneRect, 0, headerLineCount );
+    NcsUtility::LayoutHeaderControl( 
+            iHeader, cmailPaneRect, 0, headerLineCount );
 
     // do not used stored headerLineCount, because relayout above may grow or
     // shrink edit fields
+    NcsUtility::LayoutBodyEdwin( 
+            iMessageField, cmailPaneRect, iHeader->LayoutLineCount(), 
+            iMessageField->LineCount(), iSeparatorLineYPos );
     TRAP_IGNORE( iMessageField->FormatAllTextNowL() );
-    NcsUtility::LayoutBodyEdwin( iMessageField, cmailPaneRect, iHeader->LayoutLineCount(), iMessageField->LineCount(),
-            iSeparatorLineYPos );
 
     iMessageField->UpdateFontSize();
 
@@ -729,8 +726,11 @@ void CNcsComposeViewContainer::SizeChanged()
     if ( iReadOnlyQuoteField->TextLength() )
         {
         TInt dummySeparatorPos;
-        NcsUtility::LayoutBodyEdwin( iReadOnlyQuoteField, cmailPaneRect, headerLineCount + iMessageField->LineCount(), iReadOnlyQuoteField->LineCount(), 
-        		dummySeparatorPos );
+        NcsUtility::LayoutBodyEdwin(
+                iReadOnlyQuoteField, cmailPaneRect, 
+                iHeader->LayoutLineCount() + iMessageField->LineCount(), 
+                iReadOnlyQuoteField->LineCount(), dummySeparatorPos );
+        TRAP_IGNORE( iReadOnlyQuoteField->FormatAllTextNowL() );
         iReadOnlyQuoteField->UpdateFontSize();
         readOnlyQuoteFieldHeight = iReadOnlyQuoteField->Rect().Height();
         }
@@ -742,16 +742,19 @@ void CNcsComposeViewContainer::SizeChanged()
     iMessageField->SetRealRect( Rect() );
     iReadOnlyQuoteField->SetRealRect( Rect() );
     
-    TInt messageLineHeigth = NcsUtility::HeaderCaptionPaneRect( cmailPaneRect ).Height();
-    iMessageEditorMinHeigth = cmailPaneRect.Height() - iHeader->Size().iHeight -
-                              NcsUtility::SeparatorSizeInThisResolution().iHeight -
-                              readOnlyQuoteFieldHeight;
+    TInt messageLineHeigth = 
+        NcsUtility::HeaderCaptionPaneRect( cmailPaneRect ).Height();
+    iMessageEditorMinHeigth = 
+        cmailPaneRect.Height() - iHeader->Size().iHeight -
+        NcsUtility::SeparatorSizeInThisResolution().iHeight -
+        readOnlyQuoteFieldHeight;
     
     iMessageEditorMinHeigth -= iMessageEditorMinHeigth % messageLineHeigth;
     if ( iMessageEditorMinHeigth > messageLineHeigth )
         {
         TSize newSize( iMessageField->Size().iWidth,
-                       Max( iMessageField->Size().iHeight, iMessageEditorMinHeigth ));
+                       Max( iMessageField->Size().iHeight, 
+                            iMessageEditorMinHeigth ) );
             
         iMessageField->SetSize( newSize );
         }
@@ -760,13 +763,10 @@ void CNcsComposeViewContainer::SizeChanged()
         iMessageEditorMinHeigth = messageLineHeigth;
         }
 
-    UpdateFieldPosition( NULL );
-    
     TRAP_IGNORE( UpdateScrollBarL() );
     DrawNow();
     
     }
-// </cmail> Platform layout changes
 
 // -----------------------------------------------------------------------------
 // CNcsComposeViewContainer::Draw() const
@@ -776,7 +776,7 @@ void CNcsComposeViewContainer::SizeChanged()
 void CNcsComposeViewContainer::Draw( const TRect& /*aRect*/ ) const
     {
     FUNC_LOG;
-	// <cmail> S60 skin support
+
 	if ( iBgContext )
 	    {
     	CWindowGc& gc = SystemGc();
@@ -814,7 +814,7 @@ void CNcsComposeViewContainer::SetBodyContentL( const TDesC& aMessage,
 
     // Activating the field will set the control to the end of the text
     iMessageField->ActivateL();
-    iMessageField->SetCursorPosL(0,EFalse);
+    iMessageField->SetCursorPosL( 0, EFalse );
 
     inputStream.Open( aReadOnlyQuote.Ptr(), aReadOnlyQuote.Size() );
     CleanupClosePushL( inputStream );
@@ -824,7 +824,7 @@ void CNcsComposeViewContainer::SetBodyContentL( const TDesC& aMessage,
 
     // Activating the field will set the control to the end of the text
     iReadOnlyQuoteField->ActivateL();
-    iReadOnlyQuoteField->SetCursorPosL(0,EFalse);
+    iReadOnlyQuoteField->SetCursorPosL( 0, EFalse );
 
     // Recalculate the size of the body field
     SizeChanged();
@@ -883,9 +883,9 @@ CRichText& CNcsComposeViewContainer::BodyText()
 // CNcsComposeViewContainer::HandleScrollEventL()
 // -----------------------------------------------------------------------------
 //
-void CNcsComposeViewContainer::HandleScrollEventL( CEikScrollBar* aScrollBar, TEikScrollEvent /*aEventType*/ )
+void CNcsComposeViewContainer::HandleScrollEventL( 
+        CEikScrollBar* aScrollBar, TEikScrollEvent /*aEventType*/ )
     {
-    // <cmail> Platform layout change
     FUNC_LOG;
     
     if( iPhysics )
@@ -912,7 +912,8 @@ void CNcsComposeViewContainer::OperationCompleteL( TContactHandlerCmd /*aCmd*/,
 
 		for ( TInt i = 0 ; i < aContacts.Count() ; i++ )
 			{
-			CNcsEmailAddressObject* object = CNcsEmailAddressObject::NewL( aContacts[i]->DisplayName(),
+			CNcsEmailAddressObject* object = 
+                CNcsEmailAddressObject::NewL( aContacts[i]->DisplayName(),
 					aContacts[i]->EmailAddress() );
 			if ( aContacts[i]->MultipleEmails() )
 				{
@@ -944,7 +945,12 @@ void CNcsComposeViewContainer::OperationCompleteL( TContactHandlerCmd /*aCmd*/,
 	iView.HandleContainerChangeRequiringToolbarRefresh();
 	}
 
-void CNcsComposeViewContainer::OperationErrorL( TContactHandlerCmd, TInt /*aError*/ )
+// -----------------------------------------------------------------------------
+// CNcsComposeViewContainer::OperationErrorL
+// -----------------------------------------------------------------------------
+//
+void CNcsComposeViewContainer::OperationErrorL( 
+        TContactHandlerCmd, TInt /*aError*/ )
 	{
     FUNC_LOG;
 	//Nothing to do
@@ -965,7 +971,8 @@ void CNcsComposeViewContainer::HandleEdwinEventL( CEikEdwin* aEdwin,
             {
             iAutoSaver.ReportActivity();
 
-            // Update screen position and scroll bar when text changed or cursor moved
+            // Update screen position and scroll bar when text changed
+            // or cursor moved
             UpdateScreenPositionL();
             UpdateScrollBarL();
             DrawDeferred();
@@ -1058,23 +1065,6 @@ void CNcsComposeViewContainer::UpdateScrollBarL()
 	}
 
 // -----------------------------------------------------------------------------
-// CNcsComposeViewContainer::SetApplicationRect()
-// -----------------------------------------------------------------------------
-//
-// <cmail>
-/*
-void CNcsComposeViewContainer::SetApplicationRect( TRect aRect )
-	{
-    FUNC_LOG;
-
-	iApplicationRect = aRect;
-
-	}
-*/
-// </cmail>
-
-
-// -----------------------------------------------------------------------------
 // CNcsComposeViewContainer::SetFocusToMessageFieldL()
 // -----------------------------------------------------------------------------
 //
@@ -1103,16 +1093,16 @@ void CNcsComposeViewContainer::AddQuickTextL( const TDesC& aText )
     FUNC_LOG;
 
     // If in 'To' field, go to msg. field
-    if(!iMessageField->IsFocused())
+    if( !iMessageField->IsFocused() )
     	{
     	SetFocusToMessageFieldL();
     	}
 	TInt pos = iMessageField->CursorPos();
 	TCursorSelection selIns( pos, pos );
 	iMessageField->InsertDeleteCharsL( pos, aText, selIns );
-	//Fix for error EFTG-7Y63XG, moving cursor to the end of inserted text
+	// Fix for error EFTG-7Y63XG, moving cursor to the end of inserted text
 	pos += aText.Length();
-	iMessageField->SetCursorPosL(pos,EFalse);
+	iMessageField->SetCursorPosL( pos, EFalse );
 	DrawDeferred();
 
     }
@@ -1225,14 +1215,14 @@ void CNcsComposeViewContainer::HandleAttachmentsOpenCommandL()
 	}
 
 // -----------------------------------------------------------------------------
-// CNcsComposeViewContainer::LaunchAttachmentActionMenuL
-// Called when right-click happens in the attahcments field
+// CNcsComposeViewContainer::LaunchStylusPopupMenu
+// Called when long tap happens in the attachments field
 // -----------------------------------------------------------------------------
 //
-void CNcsComposeViewContainer::LaunchAttachmentActionMenuL()
+void CNcsComposeViewContainer::LaunchStylusPopupMenu( const TPoint& aPenEventScreenLocation )
     {
     FUNC_LOG;
-    iView.LaunchAttachmentActionMenuL();
+    iView.LaunchStylusPopupMenu( aPenEventScreenLocation );
     }
 
 // -----------------------------------------------------------------------------
@@ -1240,7 +1230,8 @@ void CNcsComposeViewContainer::LaunchAttachmentActionMenuL()
 //
 // -----------------------------------------------------------------------------
 //
-const RPointerArray<CNcsEmailAddressObject>& CNcsComposeViewContainer::GetToFieldAddressesL( TBool aParseNow )
+const RPointerArray<CNcsEmailAddressObject>& 
+CNcsComposeViewContainer::GetToFieldAddressesL( TBool aParseNow )
     {
     return iHeader->GetToFieldAddressesL( aParseNow );
     }
@@ -1250,7 +1241,8 @@ const RPointerArray<CNcsEmailAddressObject>& CNcsComposeViewContainer::GetToFiel
 //
 // -----------------------------------------------------------------------------
 //
-const RPointerArray<CNcsEmailAddressObject>& CNcsComposeViewContainer::GetCcFieldAddressesL( TBool aParseNow )
+const RPointerArray<CNcsEmailAddressObject>& 
+CNcsComposeViewContainer::GetCcFieldAddressesL( TBool aParseNow )
     {
     return iHeader->GetCcFieldAddressesL( aParseNow );
     }
@@ -1260,7 +1252,8 @@ const RPointerArray<CNcsEmailAddressObject>& CNcsComposeViewContainer::GetCcFiel
 //
 // -----------------------------------------------------------------------------
 //
-const RPointerArray<CNcsEmailAddressObject>& CNcsComposeViewContainer::GetBccFieldAddressesL( TBool aParseNow )
+const RPointerArray<CNcsEmailAddressObject>& 
+CNcsComposeViewContainer::GetBccFieldAddressesL( TBool aParseNow )
     {
     return iHeader->GetBccFieldAddressesL( aParseNow );
     }
@@ -1298,8 +1291,6 @@ TBool CNcsComposeViewContainer::IsCcFieldVisible() const
     return iHeader->IsCcFieldVisible();
     }
 
-// <cmail> Removed unneeded IsFocusAif
-// </cmail>
 
 // -----------------------------------------------------------------------------
 // CNcsComposeViewContainer::IsFocusAttachments
@@ -1478,7 +1469,6 @@ void CNcsComposeViewContainer::SetMenuBar( CEikButtonGroupContainer* aMenuBar )
     FUNC_LOG;
 
 	iHeader->SetMenuBar(aMenuBar);
-
     }
 
 // -----------------------------------------------------------------------------
@@ -1486,12 +1476,12 @@ void CNcsComposeViewContainer::SetMenuBar( CEikButtonGroupContainer* aMenuBar )
 //
 // -----------------------------------------------------------------------------
 //
-void CNcsComposeViewContainer::SetToFieldAddressesL( RPointerArray<CNcsEmailAddressObject>& aAddress )
+void CNcsComposeViewContainer::SetToFieldAddressesL( 
+        RPointerArray<CNcsEmailAddressObject>& aAddress )
     {
     FUNC_LOG;
 
     iHeader->SetToFieldAddressesL(aAddress);
-
     }
 
 // -----------------------------------------------------------------------------
@@ -1499,12 +1489,12 @@ void CNcsComposeViewContainer::SetToFieldAddressesL( RPointerArray<CNcsEmailAddr
 //
 // -----------------------------------------------------------------------------
 //
-void CNcsComposeViewContainer::SetCcFieldAddressesL( RPointerArray<CNcsEmailAddressObject>& aAddress )
+void CNcsComposeViewContainer::SetCcFieldAddressesL( 
+        RPointerArray<CNcsEmailAddressObject>& aAddress )
     {
     FUNC_LOG;
 
     iHeader->SetCcFieldAddressesL( aAddress );
-
     }
 
 // -----------------------------------------------------------------------------
@@ -1512,7 +1502,8 @@ void CNcsComposeViewContainer::SetCcFieldAddressesL( RPointerArray<CNcsEmailAddr
 //
 // -----------------------------------------------------------------------------
 //
-void CNcsComposeViewContainer::SetBccFieldAddressesL( RPointerArray<CNcsEmailAddressObject>& aAddress )
+void CNcsComposeViewContainer::SetBccFieldAddressesL( 
+        RPointerArray<CNcsEmailAddressObject>& aAddress )
     {
     FUNC_LOG;
 
@@ -1573,30 +1564,26 @@ void CNcsComposeViewContainer::SetSubjectL( const TDesC& aSubject )
     }
 
 // -----------------------------------------------------------------------------
-// CNcsComposeViewContainer::SetAttachmentLabelTextL
+// CNcsComposeViewContainer::SetAttachmentLabelTextsLD
 //
 // -----------------------------------------------------------------------------
 //
-void CNcsComposeViewContainer::SetAttachmentLabelTextL( const TDesC& aText )
+void CNcsComposeViewContainer::SetAttachmentLabelTextsLD( 
+    CDesCArray* aAttachmentNames, CDesCArray* aAttachmentSizes )
     {
-    FUNC_LOG;
-
-	iHeader->SetAttachmentLabelTextL( aText );
-
+    FUNC_LOG;   
+    iHeader->SetAttachmentLabelTextsLD( aAttachmentNames, aAttachmentSizes );
     }
 
 // -----------------------------------------------------------------------------
-// CNcsComposeViewContainer::SetAttachmentLabelTextL
+// CNcsComposeViewContainer::FocusedAttachmentLabelIndex
 //
 // -----------------------------------------------------------------------------
 //
-void CNcsComposeViewContainer::SetAttachmentLabelTextL( const TDesC& aAttachmentName,
-                                                        const TDesC& aAttachmentSizeDesc )
+TInt CNcsComposeViewContainer::FocusedAttachmentLabelIndex()
     {
-    FUNC_LOG;
-
-    iHeader->SetAttachmentLabelTextL( aAttachmentName, aAttachmentSizeDesc );
-
+    FUNC_LOG;   
+    return iHeader->FocusedAttachmentLabelIndex();
     }
 
 // -----------------------------------------------------------------------------
@@ -1735,9 +1722,7 @@ void CNcsComposeViewContainer::SetFocusToAttachmentField()
 		iMessageField->SetFocus( EFalse, EDrawNow );
 		iHeader->MakeVisible( ETrue );
     	}
-
 	iHeader->FocusAttachmentField();
-
 	}
 
 // -----------------------------------------------------------------------------
@@ -1772,8 +1757,7 @@ void CNcsComposeViewContainer::DoPopupSelectL()
 void CNcsComposeViewContainer::HandleLayoutChangeL()
     {
     FUNC_LOG;
-    TRect rect = iView.ClientRect();
-    SetRect( rect );
+    SetRect( iView.ClientRect() );
     if ( iHeader )
         {
         iHeader->HandleDynamicVariantSwitchL();
@@ -1794,7 +1778,6 @@ void CNcsComposeViewContainer::HandleSkinChangeL()
         iHeader->HandleDynamicVariantSwitchL();
         }
 
-// <cmail>
     if ( iMessageField )
         {
         iMessageField->UpdateFontSize();
@@ -1805,7 +1788,6 @@ void CNcsComposeViewContainer::HandleSkinChangeL()
         iScrollBar->HandleResourceChange( KAknsMessageSkinChange );
         iScrollBar->DrawNow();
         }
-// </cmail>
     }
 
 // -----------------------------------------------------------------------------
@@ -1819,7 +1801,8 @@ TInt CNcsComposeViewContainer::ContentTotalHeight()
     const TSize separatorSize( NcsUtility::SeparatorSizeInThisResolution() );
 	
 	TInt totalHeight( iHeader->Size().iHeight + 
-					  separatorSize.iHeight*2 + iMessageField->Size().iHeight );
+					  separatorSize.iHeight*2 + 
+					  iMessageField->Size().iHeight );
 
 	if( iReadOnlyQuoteField->IsVisible() )
 		{
@@ -1837,42 +1820,39 @@ TInt CNcsComposeViewContainer::ContentTotalHeight()
 void CNcsComposeViewContainer::CommitL( TFieldToCommit aFieldToCommit )
     {
     FUNC_LOG;
-    iView.CommitL(ETrue,aFieldToCommit);
+    iView.CommitL( ETrue, aFieldToCommit );
     iView.HandleContainerChangeRequiringToolbarRefresh();
     }
 
-//<cmail>
 // -----------------------------------------------------------------------------
 // CNcsComposeViewContainer::SwitchChangeMskOff
-//sets up iSwitchChangeMskOff falg, which disables changes of MSK label if any popup dialog is open
+// sets up iSwitchChangeMskOff falg, which disables changes of MSK label if
+// any popup dialog is open
 // -----------------------------------------------------------------------------
 void CNcsComposeViewContainer::SwitchChangeMskOff(TBool aTag)
     {
     FUNC_LOG;
-    iHeader->SwitchChangeMskOff(aTag);
+    iHeader->SwitchChangeMskOff( aTag );
     }
-//</cmail>
 
-//<cmail>
 // -----------------------------------------------------------------------------
 // CNcsHeaderContainer::HandleLongTapEventL()
 // Handles key events
 // -----------------------------------------------------------------------------
-void CNcsComposeViewContainer::HandleLongTapEventL( const TPoint& aPenEventLocation, const TPoint& /*aPenEventScreenLocation*/ )
+void CNcsComposeViewContainer::HandleLongTapEventL( 
+        const TPoint& aPenEventLocation, 
+        const TPoint& aPenEventScreenLocation )
     {
     FUNC_LOG;
-    iHeader->HandleLongTapL( aPenEventLocation );
+    iHeader->HandleLongTap( aPenEventLocation, aPenEventScreenLocation );
     }
-//</cmail>
 
 
-//<cmail>
 void CNcsComposeViewContainer::FixSemicolonL()
 	{
     FUNC_LOG;
 	iHeader->FixSemicolonInAddressFieldsL();
 	}
-//</cmail>
 
 // ---------------------------------------------------------------------------
 // CNcsComposeViewContainer::UpdatePhysicsL()
@@ -1886,7 +1866,7 @@ void CNcsComposeViewContainer::UpdatePhysicsL()
         const TSize viewSize( Rect().Size() );
         // We must ensure that world size is at least the size of the view
         const TSize worldSize( viewSize.iWidth, 
-                Max(ContentTotalHeight(), viewSize.iHeight) );
+                Max( ContentTotalHeight(), viewSize.iHeight ) );
         iPhysics->InitPhysicsL( worldSize, viewSize, EFalse );
         }
     }
@@ -1900,7 +1880,8 @@ void CNcsComposeViewContainer::ScrollL( TInt aTargetPos )
     FUNC_LOG;
 	TPoint headerPos( iHeader->Position() );
 	
-	aTargetPos = Max( 0, Min(aTargetPos, ContentTotalHeight() - Rect().Height()) );
+	aTargetPos = Max( 0, Min( aTargetPos, 
+	                          ContentTotalHeight() - Rect().Height()) );
 	
 	TInt moveY = -headerPos.iY - aTargetPos;
 	
@@ -1927,9 +1908,11 @@ void CNcsComposeViewContainer::ScrollL( TInt aTargetPos )
 		}
 	}
 
-/**
- * @see MAknPhysicsObserver::ViewPositionChanged
- */
+// -----------------------------------------------------------------------------
+// CNcsComposeViewContainer::ViewPositionChanged
+// From MAknPhysicsObserver
+// -----------------------------------------------------------------------------
+//
 void CNcsComposeViewContainer::ViewPositionChanged(
         const TPoint& aNewPosition,
         TBool /*aDrawNow*/,
@@ -1944,18 +1927,22 @@ void CNcsComposeViewContainer::ViewPositionChanged(
 		}
 	}
 
-/**
- * @see MAknPhysicsObserver::PhysicEmulationEnded
- */
+// -----------------------------------------------------------------------------
+// CNcsComposeViewContainer::PhysicEmulationEnded
+// From MAknPhysicsObserver
+// -----------------------------------------------------------------------------
+//
 void CNcsComposeViewContainer::PhysicEmulationEnded()
     {
     FUNC_LOG;
     iIsFlicking = EFalse;
     }
 
-/**
- * @see MAknPhysicsObserver::ViewPosition
- */
+// -----------------------------------------------------------------------------
+// CNcsComposeViewContainer::ViewPosition
+// From MAknPhysicsObserver
+// -----------------------------------------------------------------------------
+//
 TPoint CNcsComposeViewContainer::ViewPosition() const
     {
     FUNC_LOG;
@@ -1963,6 +1950,10 @@ TPoint CNcsComposeViewContainer::ViewPosition() const
     }
 
 
+// -----------------------------------------------------------------------------
+// CNcsComposeViewContainer::IsRemoteSearchInprogress
+// -----------------------------------------------------------------------------
+//
 TBool CNcsComposeViewContainer::IsRemoteSearchInprogress() const
     {
     FUNC_LOG;

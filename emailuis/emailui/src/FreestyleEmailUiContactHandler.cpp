@@ -683,7 +683,14 @@ void CFSEmailUiContactHandler::VPbkSingleContactOperationComplete(
 	    MVPbkStoreContact* aContact )
 	{
     FUNC_LOG;
-	TRAP_IGNORE( VPbkSingleContactOperationCompleteL( aOperation, aContact) );
+//inform also client in case of error to enable client's actions (i.e. return search priority)
+//	TRAP_IGNORE( VPbkSingleContactOperationCompleteL( aOperation, aContact) );
+    TRAPD(error, VPbkSingleContactOperationCompleteL( aOperation, aContact) );
+    if ( error != KErrNone )
+        {
+        TRAP_IGNORE(ObserverOperationErrorL( CurrentCommand(), error ));
+        }
+//
 	}
 
 void CFSEmailUiContactHandler::VPbkSingleContactOperationCompleteL(
@@ -805,6 +812,8 @@ void CFSEmailUiContactHandler::VPbkSingleContactOperationCompleteL(
 				}
 			else
 				{
+// user cancelled operation - inform client to enable its actions (i.e. return search priority)
+                ObserverOperationErrorL( EFindAndCallToContactByEmailL, KErrCancel );
 				iState = EContactHandlerIdle;
 				}
 			}
@@ -817,6 +826,8 @@ void CFSEmailUiContactHandler::VPbkSingleContactOperationCompleteL(
 	        else
 	            {
 	            TFsEmailUiUtility::ShowErrorNoteL( R_FREESTYLE_EMAIL_UI_VIEWER_NO_PHONE_NUMBER );					
+//no phone number found - inform client to enable its actions (i.e. return search priority)
+                ObserverOperationErrorL( EFindAndCallToContactByEmailL, KErrNotFound );
 	            }
 			iState = EContactHandlerIdle;
 			}
@@ -1789,6 +1800,11 @@ void CFSEmailUiContactHandler::RemoteContactQueryL()
 		{
 		LaunchRemoteLookupWithQueryL( *iMailBox, *iPreviousEmailAddress );
 		}
+    else // user cancelled operation inform client to enable its actions (i.e. return search priority)
+        {
+        ObserverOperationErrorL( CurrentCommand(), KErrCancel );
+        }
+
 	}
 
 TContactHandlerCmd CFSEmailUiContactHandler::CurrentCommand()
@@ -1818,5 +1834,14 @@ void CFSEmailUiContactHandler::ClearObservers()
     {
     iHandlerObserver = NULL;
     }
-	
-	
+
+// <cmail> call observer's MFSEmailUiContactHandlerObserver::OperationErrorL( TContactHandlerCmd aCmd, TInt aError ) 
+void CFSEmailUiContactHandler::ObserverOperationErrorL( TContactHandlerCmd aCmd, TInt aErrorCode )
+    {
+    if( ( iHandlerObserver ) && ( KErrNone != aErrorCode ) )
+        {
+        iHandlerObserver->OperationErrorL( aCmd, aErrorCode ); 
+        iHandlerObserver = NULL;
+        }
+    }
+

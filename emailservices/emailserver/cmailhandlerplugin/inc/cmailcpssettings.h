@@ -121,12 +121,12 @@ public:
     /**
      * 
      */
-    void DissociateWidgetFromSetting( const TDesC& aContentId );
+    void DissociateWidgetFromSettingL( const TDesC& aContentId );
 
     /**
      * 
      */
-    TInt GetContentId( TInt aMailboxId, TInt aId, TDes16& aValue );
+    void GetContentId( TInt aMailboxId, TInt aNext, TDes16& aValue );
     
     /**
      * 
@@ -151,9 +151,24 @@ public:
 
     /**
      * 
-     */    
+     */
     TInt GetTotalMailboxCount();
+
+    /**
+     * 
+     */
+    TBool FindFromContentIdListL( const TDesC& aContentId );
+
+    /**
+     * 
+     */
+    void AddToContentIdListL( const TDesC& aContentId );
     
+    /**
+     * 
+     */    
+    void RemoveFromContentIdListL( const TDesC& aContentId );
+
 protected:
     /**
      * From CActive

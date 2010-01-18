@@ -111,7 +111,9 @@ SOURCE  FreestyleMessageHeaderURLEventHandler.cpp
 SOURCE  FreestyleAttachmentDownloadProgressBar.cpp
 SOURCE  FreestyleEmailUiPropertySubscriber.cpp
 SOURCE  freestyleemailuimailboxdeleter.cpp
-SOURCE cmailcustomstatuspaneindicators.cpp
+SOURCE  cmailcustomstatuspaneindicators.cpp
+SOURCE  OverlayControl.cpp
+SOURCE FSHtmlReloadAO.cpp
 
 SOURCEPATH      ../group
 
@@ -216,3 +218,5 @@ LIBRARY charconv.lib
 LIBRARY aknphysics.lib              // for panning
 
 LIBRARY MsgEditorModel.lib
+LIBRARY touchfeedback.lib
+

@@ -140,7 +140,7 @@ public:
      * Set position and size
      */
     virtual void SetRectL( const TRect& aRect );
-    
+
     /**
      * Sets height of the bar in pixels.
      *
@@ -333,7 +333,8 @@ private:
      * @param aButton pointer to button which schould be focused.
      * If NULL focus is lost by the control bar.
      */
-    void ChangeFocusL( CFsControlButton* aButton );
+    void ChangeFocusL(
+            CFsControlButton* aButton, TBool aMakeSelectorVisible = EFalse );
 
     /**
      * Sets needed variables when bar loses focus.

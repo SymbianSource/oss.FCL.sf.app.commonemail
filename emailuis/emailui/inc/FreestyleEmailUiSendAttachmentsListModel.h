@@ -189,7 +189,8 @@ protected: // from MFsTreeListObserver
 
     // <cmail> Touch
     void TreeListEventL( const TFsTreeListEvent aEvent, 
-        const TFsTreeItemId aId = KFsTreeNoneID );
+                         const TFsTreeItemId aId,
+                         const TPoint& aPoint );
     // </cmail>
 
 		

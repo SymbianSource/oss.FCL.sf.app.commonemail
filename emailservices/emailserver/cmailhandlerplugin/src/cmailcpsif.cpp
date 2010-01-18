@@ -768,11 +768,8 @@ TBool CMailCpsIf::PublisherStatusL(const CLiwGenericParamList& aEventParamList)
                              else
                                  {
                                  iInstIdList.AppendL( contentid.AllocL() );
+                                 iMailCpsHandler->ManualAccountSelectionL(cid->Des());                                 
                                  }
-/*                             if (!alreadyAssociated)
-                                {
-                                iMailCpsHandler->LaunchWidgetSettingsL(cid->Des());
-                                }*/
                              CleanupStack::PopAndDestroy( cid );
                              }
                          else if (trigger.Compare(KDeActive16) == 0)
@@ -782,7 +779,7 @@ TBool CMailCpsIf::PublisherStatusL(const CLiwGenericParamList& aEventParamList)
                              TInt widgetInstance = FindWidgetInstanceId(cid->Des());                            
                              if (!iInactive[widgetInstance])
                                  {
-                                 iMailCpsHandler->DissociateWidgetFromSetting( cid->Des() );                                 
+                                 iMailCpsHandler->DissociateWidgetFromSettingL( cid->Des() );                                 
                                  iInstIdList.Remove(widgetInstance);                                 
                                  }
                              iAllowedToPublish[widgetInstance] = EFalse;
@@ -800,7 +797,7 @@ TBool CMailCpsIf::PublisherStatusL(const CLiwGenericParamList& aEventParamList)
                              // If no accounts are created launch email wizard
                              // otherwice launch widget settings app                             
                              if (iMailCpsHandler->GetMailboxCount())
-                                 {                                
+                                 {
                                  HBufC* cid = contentid.AllocLC();
                                  iMailCpsHandler->LaunchWidgetSettingsL(cid->Des());
                                  CleanupStack::PopAndDestroy( cid );                                 

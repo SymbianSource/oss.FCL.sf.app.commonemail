@@ -28,6 +28,9 @@ _LIT( KURLTypeCc, "cc" );
 _LIT( KURLTypeBcc, "bcc" );
 _LIT( KURLTypeAttachment, "attachment" );
 _LIT( KURLTypeSeparator, "/" );
+_LIT( KURLHttpPrefix, "http://" );
+_LIT( KURLHttpsPrefix, "https://" );
+_LIT( KURLMailToPrefix, "mailto:" );
 
 class CFreestyleMessageHeaderURL : public CBase
     {

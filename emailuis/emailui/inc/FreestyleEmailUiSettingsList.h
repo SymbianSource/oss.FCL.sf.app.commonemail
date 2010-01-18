@@ -15,18 +15,15 @@
 *
 */
 
-
-
 #ifndef FSSETTINGSSYNCLIST_H
 #define FSSETTINGSSYNCLIST_H
 
 // SYSTEM INCLUDES
 #include <coecntrl.h>
 #include <e32cmn.h>
-//<cmail>
 #include "MFSMailRequestObserver.h"
-//</cmail>
 #include <AknWaitDialog.h>
+#include <aknlongtapdetector.h>
 
 // FORWARD DECLARATIONS
 class CFSMailClient;        
@@ -38,6 +35,7 @@ class CFreestyleEmailUiAppUi;
 
 typedef CAknSingleGraphicStyleListBox CSettingsListType;
 
+
 /**
  * Container class for CFsEmailSettingsList
  * 
@@ -47,10 +45,11 @@ class CFsEmailSettingsList :
     public CCoeControl, 
     public MEikListBoxObserver, 
     public MFSMailRequestObserver,
-    public MProgressDialogCallback
+    public MProgressDialogCallback,
+    public MAknLongTapDetectorCallBack
     {
-public:
-    // constructors and destructor
+public: // Constructors and destructor.
+
     static CFsEmailSettingsList* NewL( 
         const TRect& aRect, 
         const CCoeControl* aParent,
@@ -67,22 +66,50 @@ public:
     
     virtual ~CFsEmailSettingsList();
 
-public:
-    // from base class CCoeControl
+
+private: // Construction.
+
+	void ConstructL( const TRect& aRect, const CCoeControl* aParent);
+    
+    CFsEmailSettingsList( CFreestyleEmailUiAppUi& aAppUi,
+						  CFSMailClient& aMailClient,
+						  CFsEmailSettingsListView& aView );
+
+
+public: // From base class CCoeControl.
+
     TInt CountComponentControls() const;
+
     CCoeControl* ComponentControl( TInt aIndex ) const;
 
-    TKeyResponse OfferKeyEventL( 
-            const TKeyEvent& aKeyEvent, 
-            TEventCode aType );
+    TKeyResponse OfferKeyEventL( const TKeyEvent& aKeyEvent, 
+								 TEventCode aType );
     
     void HandleResourceChange( TInt aType );
+    
+    void HandlePointerEventL( const TPointerEvent& aPointerEvent );
+
     void AddAccountL();
-    void RemoveAccountL();
+
+    /**
+     * If confirmed by the user, will delete a mailbox.
+     * @return True if a mailbox was deleted, false otherwise.
+     */
+    TBool RemoveAccountL();
+
     void RequestResponseL( TFSProgress aEvent, TInt aRequestId );
+
     TBool PIMSyncItemVisible();
 
-public:     
+
+public: // From MAknLongTapDetectorCallBack.
+	
+    void HandleLongTapEventL( const TPoint& aPenEventLocation, 
+							  const TPoint& aPenEventScreenLocation );
+
+
+public: // New methods.
+
     CSettingsListType* ListBox();
     
     static HBufC* CreateListBoxItemLC( 
@@ -192,8 +219,21 @@ public:
     
     void PageUp();
     void PageDown();
-    
-public: 
+
+    /**
+     * Used to check if the currently selected item is a mailbox.
+     * @param True if the selected item is a mailbox. False otherwise.
+     */
+    TBool SelectedItemIsMailbox() const;
+
+    /**
+     * Removes the focus.
+     */
+    void ClearFocus(); 
+
+
+public:
+
     enum TControls
         {
         EListBox,
@@ -204,58 +244,65 @@ public:
         EListBoxFirstUserImageIndex
         };  
     
-protected:
-    // from base class CCoeControl
+
+protected: // From base class CCoeControl.
+
     void SizeChanged();
-    
-protected: // from MProgressDialogCallback
+
+
+protected: // From MProgressDialogCallback.
+
     void DialogDismissedL( TInt aButtonId );
-    
-private:
-    // from base class CCoeControl
+
+
+private: // From base class CCoeControl.
+
     void Draw( const TRect& aRect ) const;
 
+
 private:
-    void ConstructL( 
-        const TRect& aRect, 
-        const CCoeControl* aParent);
-    
-    CFsEmailSettingsList(CFreestyleEmailUiAppUi& aAppUi, CFSMailClient& aMailClient, CFsEmailSettingsListView& aView );
+
     void HandleListBoxEventL( CEikListBox *aListBox, TListBoxEvent aEventType );
     void InitializeControlsL();
     void LayoutControls();
     void LoadAccountsToListL();
     void SetDefaultPIMAccountL();
     TPtrC GetMailBoxNameL( const CFSMailBox& aMailBox ) const;
-    
-private:
+
+
+private: // Data.
+
     enum TFsEmailSettingsSubViewType
         {
         EFsEmailSettingsMainListView,
         EFsEmailSettingsMailboxView,
         EFsEmailSettingsPimView
         };
-    TFsEmailSettingsSubViewType iCurrentSubView;
 
-    CSettingsListType*          iListBox;
-    CFreestyleEmailUiAppUi&     iAppUi;
-    CCoeControl*                iFocusControl;
-    CFSMailClient&              iMailClient;
-    TFSMailMsgId                iSelectedAccountInfo;
-    TUid                        iSelectedPluginSettings;
-    TInt                        iPIMSyncMailboxIndex;
-    TBool                       iPIMListActivation;
-    TBool                       iPIMServiceSettingsSelection;
-    CAknWaitDialog*             iWaitDialog;
-    TInt                        iMailboxCount;
-    TInt                        iDeleteMailboxId;
-    TInt                        iDeletedIndex;
-    TInt                        iPIMSyncCount;
-    TInt                        iSelectedSubListIndex;
-    CFsEmailSettingsListView& 	iView; 
-	// it is used to properly handle taps
-    // first tap highlights an item on the settings list, second tap selects the item
-    TInt                        iPrevSelected;
+    TFsEmailSettingsSubViewType iCurrentSubView;
+    CSettingsListType* iListBox;
+    CFreestyleEmailUiAppUi& iAppUi;
+    CCoeControl* iFocusControl;
+    CAknLongTapDetector* iLongTapDetector;
+    CFSMailClient& iMailClient;
+    TFSMailMsgId iSelectedAccountInfo;
+    TUid iSelectedPluginSettings;
+    TInt iPIMSyncMailboxIndex;
+    TBool iPIMListActivation;
+    TBool iPIMServiceSettingsSelection;
+    CAknWaitDialog* iWaitDialog;
+    TInt iMailboxCount;
+    TInt iDeleteMailboxId;
+    TInt iDeletedIndex;
+    TInt iPIMSyncCount;
+    TInt iSelectedSubListIndex;
+    CFsEmailSettingsListView& iView; 
+    TBool iLongTapEventConsumed;
+    
+	// Used to properly handle taps. First tap highlights an item on the
+    // settings list, second tap selects the item.
+    TInt iPrevSelected;
     };
-                
+
+
 #endif // FSSETTINGSSYNCLIST_H

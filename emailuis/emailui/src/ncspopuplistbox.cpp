@@ -213,7 +213,8 @@ TKeyResponse CNcsPopupListBox::OfferKeyEventL( const TKeyEvent& aKeyEvent, TEven
 //      
 void CNcsPopupListBox::HandleListBoxEventL( CEikListBox* /*aListBox*/, TListBoxEvent aEventType )
     {
-    if (aEventType == EEventItemClicked)
+    if ( aEventType == EEventItemClicked || 
+    	 aEventType == EEventItemSingleClicked )
         {
         iHeaderContainer.DoPopupSelectL();
         }

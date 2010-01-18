@@ -29,14 +29,14 @@
 #include <aknlistquerydialog.h>
 #include <e32cmn.h>
 #include <FreestyleEmailUi.rsg>
-//<cmail>
+
 #include "CFSMailClient.h"
 #include "CFSMailBox.h"
 #include <AknGlobalConfirmationQuery.h> // confirmation
 #include <freestyleemailui.mbg> // icons
 #include "ESMailSettingsPluginUids.hrh"
 #include "ESMailSettingsPlugin.h"
-//</cmail>
+
 #include <aknnotewrappers.h> // for note
 #include <AknDialog.h> // for settings dialog
 #include <aknsettingitemlist.h> // for settings dialog
@@ -338,6 +338,11 @@ CFsEmailSettingsList::~CFsEmailSettingsList()
         iListBox = NULL;
         }
 
+    if ( iLongTapDetector )
+    	{
+    	delete iLongTapDetector;
+    	iLongTapDetector = NULL;
+    	}
     }
 
 // ---------------------------------------------------------------------------
@@ -391,7 +396,6 @@ CFsEmailSettingsList* CFsEmailSettingsList::NewLC(
     CleanupStack::PushL( self );
     self->ConstructL( aRect, aParent);
 
-
     return self;
     }
 
@@ -406,7 +410,7 @@ CFsEmailSettingsList* CFsEmailSettingsList::NewLC(
 //
 void CFsEmailSettingsList::ConstructL(
         const TRect& aRect,
-        const CCoeControl* aParent)
+        const CCoeControl* aParent )
     {
     FUNC_LOG;
 
@@ -423,7 +427,6 @@ void CFsEmailSettingsList::ConstructL(
     InitializeControlsL();
     SetRect( aRect );
     ActivateL();
-
     }
 
 // ---------------------------------------------------------------------------
@@ -658,6 +661,8 @@ void CFsEmailSettingsList::InitializeControlsL()
     // event listener this class
     iListBox->SetListBoxObserver( this );
 
+    // Construct the long tap detector.
+	iLongTapDetector = CAknLongTapDetector::NewL( this );
     }
 
 
@@ -671,8 +676,31 @@ void CFsEmailSettingsList::HandleResourceChange( TInt aType )
 
     CCoeControl::HandleResourceChange( aType );
     SetRect( iAvkonViewAppUi->View( SettingsViewId )->ClientRect() );
-
     }
+
+
+// -----------------------------------------------------------------------------
+// CFsEmailSettingsList::HandlePointerEventL()
+// From CCoeControl.
+// -----------------------------------------------------------------------------
+//
+void CFsEmailSettingsList::HandlePointerEventL(
+	const TPointerEvent& aPointerEvent )
+	{
+    // Pass the event to the long tap detector.
+	iLongTapDetector->PointerEventL( aPointerEvent );
+
+	if ( !iLongTapEventConsumed )
+		{
+		// Call HandlePointerEventL() of the base class.
+		CCoeControl::HandlePointerEventL( aPointerEvent );
+		}
+	else
+		{
+		iLongTapEventConsumed = EFalse;
+		}
+	}
+
 
 // ---------------------------------------------------------------------------
 // Draw container contents.
@@ -723,6 +751,37 @@ TBool CFsEmailSettingsList::PIMSyncItemVisible()
     FUNC_LOG;
     return ( iPIMSyncMailboxIndex == -1 ) ? EFalse : ETrue;
     }
+
+
+// -----------------------------------------------------------------------------
+// CFsEmailSettingsList::HandleLongTapEventL()
+// From MAknLongTapDetectorCallBack.
+// -----------------------------------------------------------------------------
+//
+void CFsEmailSettingsList::HandleLongTapEventL(
+	const TPoint& aPenEventLocation,
+	const TPoint& aPenEventScreenLocation )
+	{
+	// Get the item index based on the position of the tap event.
+	TInt itemIndex( 0 );
+	TBool itemSelected =
+		iListBox->View()->XYPosToItemIndex( aPenEventLocation,
+											itemIndex );
+
+	if ( itemSelected && itemIndex >= 0 )
+		{
+		// Update the item index based on the position of the tap event.
+		iListBox->SetCurrentItemIndex( itemIndex );
+
+		if ( SelectedItemIsMailbox() )
+			{
+			iView.DisplayStylusPopUpMenu( aPenEventScreenLocation );
+			}
+		
+		iLongTapEventConsumed = ETrue;
+		}
+	}
+
 
 // ---------------------------------------------------------------------------
 // Create a list box item for plain text
@@ -1479,14 +1538,14 @@ void CFsEmailSettingsList::AddAccountL()
     }
 
 // ---------------------------------------------------------------------------
-// RemoveAccount
-// Handle account removal from fs mail client
-// @return void
+// RemoveAccountL()
+// Handle account removal from fs mail client.
 // ---------------------------------------------------------------------------
 //
-void CFsEmailSettingsList::RemoveAccountL()
+TBool CFsEmailSettingsList::RemoveAccountL()
     {
     FUNC_LOG;
+    TBool wasDeleted( EFalse );
 
     // Make sure that FSMailServer is running, so that the mailbox is removed
     // also from MCE. Let's do it already here, so that the server has some
@@ -1496,9 +1555,10 @@ void CFsEmailSettingsList::RemoveAccountL()
     // if item index is 0 then we are on global settings item
     // this shouldn't be happening, but just in case
     iDeletedIndex = iListBox->CurrentItemIndex();
+
     if ( iDeletedIndex == 0 )
         {
-        return;
+        return EFalse;
         }
 
     // get mailbox
@@ -1531,9 +1591,11 @@ void CFsEmailSettingsList::RemoveAccountL()
             TFsEmailUiUtility::ToggleEmailIconL(EFalse);
             // delete mailbox and wait event (RequestResponseL)
             iDeleteMailboxId = iMailClient.DeleteMailBoxByUidL( mailBox->GetId(), *this );
+            wasDeleted = ETrue;
             }
         }
     CleanupStack::PopAndDestroy(); // mailBox
+    return wasDeleted;
     }
 
 
@@ -1709,3 +1771,43 @@ void CFsEmailSettingsList::PageDown()
         }
     }
 
+
+// ---------------------------------------------------------------------------
+// CFsEmailSettingsList::SelectedItemIsMailbox()
+// Used to check if the currently selected item is a mailbox.
+// ---------------------------------------------------------------------------
+//
+TBool CFsEmailSettingsList::SelectedItemIsMailbox() const
+	{
+    // Check if the current view is the main level and the selected list item
+	// is a mailbox.
+	const TInt index( iListBox->CurrentItemIndex() );
+
+    if ( iCurrentSubView == EFsEmailSettingsMainListView &&
+    	 index > 0 && index <= iMailboxCount )
+    	{
+    	// Is a mailbox.
+    	return ETrue;
+    	}
+
+    // Is something else.
+    return EFalse;
+	}
+
+
+// ---------------------------------------------------------------------------
+// CFsEmailSettingsList::ClearFocus()
+// Removes the focus.
+// ---------------------------------------------------------------------------
+//
+void CFsEmailSettingsList::ClearFocus()
+	{
+	// This is not a nice way to clear the focus but unless some one comes
+	// with a better solution, this will have to do.
+	iListBox->ItemDrawer()->SetFlags( CListItemDrawer::EDisableHighlight );
+	iListBox->View()->Draw();
+	iListBox->ItemDrawer()->ClearFlags( CListItemDrawer::EDisableHighlight );
+	}
+
+
+// End of file. 

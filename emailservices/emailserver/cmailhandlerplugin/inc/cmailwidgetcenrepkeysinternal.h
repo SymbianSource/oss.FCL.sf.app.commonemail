@@ -26,6 +26,9 @@
 // (see also constants below)
 const TUint32 KCmailCPConfiguration = 0x10000001;
 
+// Key to store content ids of added email widgets
+const TUint32 KCMailContentIdList = 0x10000002;
+
 // 1st bit: whether email content publisher listens to commands/events sent by Homescreen framework
 //     value == 0: default behaviour, events are handled as normal
 //     value != 0: publisher ignores HS events

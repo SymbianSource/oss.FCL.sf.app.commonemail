@@ -131,11 +131,13 @@ public:
      * @param aEvent Event which happend in the tree list.
      * @param aId Id of the node/item associated with the event. KFsTreeNoneID
      *            means that the event is not associated with a node/item.
+     * @param aPoint Event coordinates. Only valid for touch events.
      */
     // <cmail> Touch
     virtual void TreeVisualizerEventL( 
             const TFsTreeVisualizerEvent aEvent, 
-            const TFsTreeItemId aId = KFsTreeNoneID ) const = 0;
+            const TFsTreeItemId aId = KFsTreeNoneID,
+            const TPoint& aPoint = TPoint( 0,0 ) ) const = 0;
     // </cmail>
     
     };

@@ -317,6 +317,7 @@ private: // data
     TBool iSendToBackgroundOnDeactivation;
     // View's active status
     TBool iViewActive;
+    TBool iWasActiveControlGroup;
     };
 
 #endif // __FREESTYLEEMAILUI_VIEWBASE_H__

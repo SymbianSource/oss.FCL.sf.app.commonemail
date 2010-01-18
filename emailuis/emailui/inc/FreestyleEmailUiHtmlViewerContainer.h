@@ -26,6 +26,7 @@
 #include <BrCtlLinkResolver.h>
 
 #include "FreestyleEmailDownloadInformationMediator.h"
+#include "OverlayControl.h"
 
 class CFSMailMessage;
 class CFreestyleEmailUiAppUi;
@@ -38,7 +39,9 @@ class CFsEmailUiHtmlViewerContainer : public CCoeControl,
                                       public MBrCtlSpecialLoadObserver,
                                       public MBrCtlLinkResolver,
                                       public MBrCtlSoftkeysObserver,
-                                      public MFSEmailDownloadInformationObserver
+                                      public MFSEmailDownloadInformationObserver,
+                                      public MOverlayControlObserver,
+                                      public MBrCtlWindowObserver
     {
 public:
 
@@ -52,7 +55,7 @@ public:
     void LoadContentFromFileL( const TDesC& aFileName );
     void LoadContentFromFileL( RFile& aFile );
     void LoadContentFromUrlL( const TDesC& aUrl );
-    void LoadContentFromMailMessageL( CFSMailMessage* aMailMessage );
+    void LoadContentFromMailMessageL( CFSMailMessage* aMailMessage, TBool aResetScrollPos=ETrue );
     void ResetContent();
     void CancelFetch();
     void ClearCacheAndLoadEmptyContent();
@@ -68,6 +71,7 @@ public:
     void SizeChanged();
     TKeyResponse OfferKeyEventL( const TKeyEvent& aKeyEvent, TEventCode aType );
     void HandleResourceChange(TInt aType);
+    void MakeVisible( TBool aVisible );
 
 // from base class MBrCtlSpecialLoadObserver
 
@@ -94,6 +98,18 @@ public:
     void UpdateSoftkeyL( TBrCtlKeySoftkey aKeySoftkey, const TDesC& aLabel,
         TUint32 aCommandId, TBrCtlSoftkeyChangeReason aBrCtlSoftkeyChangeReason );
     void StopObserving();
+    
+// from MOverlayControlObserver
+    void HandleOverlayPointerEventL( COverlayControl* aControl, const TPointerEvent& aEvent );
+
+    /*
+     * Reloads the header of the opened mail.
+     */
+    void RefreshCurrentMailHeader();
+    /** Handles asynchronous reload of page for case when orientation
+     * changed
+     */
+    void ReloadPageL();
 private:
 
     // Second phase constructor.
@@ -127,6 +143,12 @@ private:
     void DownloadAttachmentL( CFSMailMessagePart& aAttachment,
         MBrCtlLinkContent& aEmbeddedLinkContent );
     
+    // Get area for overlay button
+    TRect OverlayButtonRect( TBool aLeft );
+    
+    // Update overlay button position and visibility
+    void UpdateOverlayButtons( TBool aVisible );
+    
     void SetHTMLResourceFlagFullName();
     void EnableHTMLResourceFlagL();
     TBool HTMLResourceFlagEnabled();
@@ -139,7 +161,19 @@ private:
     void ConvertToHTML( const TDesC8& aContent,
             const TDesC& aFileName, CFSMailMessagePart& aHtmlBodyPart );
     HBufC8* GetCharacterSetL( CFSMailMessagePart& aHtmlBodyPart );
+    TBool IsMessageBodyURL(const TDesC& aUrl);
+	void CreateHyperlinksFromUrlsL( CBufBase& aSource );
+    //Returns ETrue of clicking on a link requires a browser to be launched
+    TBool NeedToLaunchBrowserL( const TDesC& aUrl );
+    //Launch the browser as a standalone app
+    void LaunchBrowserL( const TDesC& aUrl );
     
+    //from MBrCtlWindowObserver    
+    CBrCtlInterface* OpenWindowL( TDesC& aUrl, TDesC* aTargetName, 
+                                  TBool aUserInitiated, TAny* aReserved );
+    CBrCtlInterface* FindWindowL( const TDesC& aTargetName ) const;  
+    void HandleWindowCommandL( const TDesC& aTargetName, TBrCtlWindowCommand aCommand ); 
+       
 
 private: // data
 
@@ -170,6 +204,9 @@ private: // data
     RArray<TPartData> iMessageParts;
     CFreestyleMessageHeaderURLEventHandler* iEventHandler;
     TBool iObservingDownload;
+    TInt iScrollPosition;
+    COverlayControl* iOverlayControlNext;
+    COverlayControl* iOverlayControlPrev;
     };
 
 

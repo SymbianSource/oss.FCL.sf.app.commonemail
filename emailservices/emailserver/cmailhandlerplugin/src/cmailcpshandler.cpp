@@ -21,6 +21,8 @@
 #include <emailwidget.rsg>
 #include <AknUtils.h>
 #include <apgcli.h>
+#include <centralrepository.h>
+#include <starterdomaincrkeys.h>
 
 #include "emailtrace.h"
 #include "CFSMailClient.h"
@@ -136,24 +138,25 @@ void CMailCpsHandler::InitializeL()
         else
             {
             CleanupStack::PushL( mailbox );
-            TInt id(1);
-            while (id)
-                {
-                CMailMailboxDetails* mailboxDetails = CreateMailboxDetailsL( *mailbox );
-                CleanupStack::PushL( mailboxDetails );
+            CMailMailboxDetails* mailboxDetails = CreateMailboxDetailsL( *mailbox );
+            CleanupStack::PushL( mailboxDetails );
             
-                if (id > 1)
+            TBuf<KMaxDescLen> cid;
+            TInt next(1);
+
+            // Check if same mailbox is already in iAccountsArray once or more
+            for ( TInt i = 0; i < iAccountsArray.Count(); i++ )
+                {               
+                TInt id = (TInt)iAccountsArray[i]->iMailboxId.Id();
+                if (id == mailboxId)
                     {
-                    iiMax = iiMax - 1;
+                    next++;
                     }
-                TBuf<KMaxDescLen> cid;
-                id = iSettings->GetContentId(mailboxId, id, cid);
-                mailboxDetails->SetWidgetInstance(cid);
-                iAccountsArray.AppendL( mailboxDetails );
-    
-                CleanupStack::Pop( mailboxDetails );                
                 }
-            
+            iSettings->GetContentId(mailboxId, next, cid);          
+            mailboxDetails->SetWidgetInstance(cid);
+            iAccountsArray.AppendL( mailboxDetails );
+            CleanupStack::Pop( mailboxDetails );                            
             CleanupStack::PopAndDestroy( mailbox );            
             }
         }
@@ -339,6 +342,7 @@ void CMailCpsHandler::UpdateMessagesL( const TInt aMailBoxNumber,
             CFSMailFolder* folder = MailClient().GetFolderByUidL( mailBoxId, parentFolder );
             if ( !folder )
                 {
+				UpdateEmptyMessagesL( aWidgetInstance, aRow );
                 return;
                 }
             CleanupStack::PushL( folder );
@@ -1612,10 +1616,10 @@ TBool CMailCpsHandler::AssociateWidgetToSetting( const TDesC& aContentId )
 // CMailCpsHandler::DissociateWidget
 // ---------------------------------------------------------------------------
 //
-void CMailCpsHandler::DissociateWidgetFromSetting( const TDesC& aContentId )
+void CMailCpsHandler::DissociateWidgetFromSettingL( const TDesC& aContentId )
     {
     FUNC_LOG;
-    iSettings->DissociateWidgetFromSetting( aContentId );
+    iSettings->DissociateWidgetFromSettingL( aContentId );
     }
 
 // ---------------------------------------------------------------------------
@@ -1627,3 +1631,62 @@ TInt CMailCpsHandler::GetMailboxCount()
     FUNC_LOG;
     return iSettings->GetTotalMailboxCount();
     }
+
+// ---------------------------------------------------------------------------
+// CMailCpsHandler::ManualAccountSelectionL
+// ---------------------------------------------------------------------------
+//
+void CMailCpsHandler::ManualAccountSelectionL( const TDesC& aContentId )
+    {
+    FUNC_LOG;
+
+    if ( FirstBootL() )
+        {
+        if (!iSettings->FindFromContentIdListL(aContentId))
+            {
+            iSettings->AddToContentIdListL(aContentId);
+            }
+        }
+    else
+        {
+        if (!iSettings->FindFromContentIdListL(aContentId))
+            {
+            iSettings->AddToContentIdListL(aContentId);
+            if (GetMailboxCount())
+                {
+                LaunchWidgetSettingsL(aContentId);
+                }
+            else
+                {
+                LaunchEmailWizardL();
+                }
+            }
+        }
+    }
+
+// ---------------------------------------------------------------------------
+// CMailCpsHandler::FirstBootL
+// ---------------------------------------------------------------------------
+TBool CMailCpsHandler::FirstBootL()
+    {
+    FUNC_LOG;
+    TInt value( 0 );
+    TBool ret(EFalse);
+
+    CRepository* repository(NULL);
+
+    TRAPD( err, repository = CRepository::NewL( KCRUidStartup ) );
+    if ( err == KErrNone )
+        {
+        err = repository->Get( KStartupFirstBoot, value );
+        }
+    delete repository;
+    
+    if (!value)
+        {
+        ret = ETrue;
+        }
+
+    return ret;
+    }
+

@@ -23,9 +23,7 @@
 #include <gulicon.h>
 #include <StringLoader.h>
 #include <FreestyleEmailUi.rsg>
-//<cmail>
 #include <featmgr.h>
-//</cmail>
 #include "CFSMailClient.h"
 #include "CFSMailBox.h"
 #include "CFSMailFolder.h"
@@ -54,22 +52,16 @@
 #include <aknnotewrappers.h>
 #include <msvapi.h>
 #include <akntitle.h>
-//<cmail>
 #include "ESMailSettingsPluginUids.hrh"
 #include "ESMailSettingsPlugin.h"
 #include "MFSMailBrandManager.h"
-//</cmail>
 #include <AknWaitDialog.h>
-// <cmail>
 #include <aknlayoutscalable_apps.cdl.h>
 #include <layoutmetadata.cdl.h>
 #include <csxhelp/cmail.hlp.hrh>
-// </cmail>
 // Meeting request
 #include <MeetingRequestUids.hrh>
-// <cmail>
 #include "cesmricalviewer.h"
-//</cmail>
 #include <aknstyluspopupmenu.h>
 #include <akntoolbar.h>
 
@@ -160,6 +152,7 @@ void CFSEmailUiMailListVisualiser::ConstructL()
 
 	iAsyncCallback = new (ELeave) CAsyncCallBack( CActive::EPriorityStandard );
 	iAsyncRedrawer = new (ELeave) CAsyncCallBack( CActive::EPriorityLow );
+	iLastFocus = EFalse;
  	}
 
 // CFSEmailUiMailListVisualiser::DoFirstStartL()
@@ -261,7 +254,7 @@ void CFSEmailUiMailListVisualiser::DoFirstStartL()
 		iCoeEnv->CreateResourceReaderLC( reader,
 				R_STYLUS_POPUP_MENU_MESSAGE_LIST_VIEW );
 		iStylusPopUpMenu->ConstructFromResourceL( reader );
-		CleanupStack::PopAndDestroy();
+		CleanupStack::PopAndDestroy(); // reader
         }
 
     iAppUi.LayoutHandler()->SetListMarqueeBehaviour( iMailList );
@@ -289,8 +282,8 @@ CFSEmailUiMailListVisualiser::CFSEmailUiMailListVisualiser( CAlfEnv& aEnv,
     : CFsEmailUiViewBase( aMailListControlGroup, *aAppUi ),
     iEnv( aEnv ),
     iListMarkItemsState( ETrue ), //Initlly list has no markings
-	iMoveToFolderOngoing( EFalse ),
-	iStylusPopUpMenuLaunched( EFalse )
+    iConsumeStdKeyYes_KeyUp( EFalse ), // use to prevent Call application execution if call for contact processed
+    iMoveToFolderOngoing( EFalse )
 	{
     FUNC_LOG;
 	}
@@ -1204,7 +1197,7 @@ void CFSEmailUiMailListVisualiser::ChildDoActivateL(const TVwsViewId& aPrevViewI
 	// Inform MR observer if needed, special MR case, returning from attachment list
 	iAppUi.MailViewer().CompletePendingMrCommand();
 
-	//Make sure that correct component is set to focused.
+	// Make sure that correct component is set to focused.
 	if ( iFocusedControl == EMailListComponent )
 	    {
 	    SetTreeListFocusedL();
@@ -1215,7 +1208,6 @@ void CFSEmailUiMailListVisualiser::ChildDoActivateL(const TVwsViewId& aPrevViewI
 	    iControlBarControl->MakeSelectorVisible( iAppUi.IsFocusShown() );
 	    }
 	UpdateButtonTextsL();
-
 	FocusVisibilityChange( iAppUi.IsFocusShown() );
 	iAppUi.ShowTitlePaneConnectionStatus();
 	}
@@ -1313,6 +1305,12 @@ void CFSEmailUiMailListVisualiser::DynInitMenuPaneL(TInt aResourceId, CEikMenuPa
     // MAIN MENU ***************************************************************************
 	if ( aResourceId == R_FSEMAILUI_MAILLIST_MENUPANE )
 		{
+		// Saves a focus visibility.
+		iLastFocus = EFalse;
+		if( iFocusedControl == EMailListComponent && IsFocusShown() )
+		    {
+		    iLastFocus = ETrue;
+		    }
 	    if (FeatureManager::FeatureSupported( KFeatureIdFfCmailIntegration ))
 		   {
 		   // remove help support in pf5250
@@ -1320,170 +1318,33 @@ void CFSEmailUiMailListVisualiser::DynInitMenuPaneL(TInt aResourceId, CEikMenuPa
 		   }
 
 	    // Checks if a device has a keyboard or not.
-		if( !iKeyboardFlipOpen )
+		if( !iLastFocus )
     	    {
-	        aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsOpen, ETrue );
-            aMenuPane->SetItemDimmed( EFsEmailUiCmdMailActions, ETrue);
-	        aMenuPane->SetItemDimmed( EFsEmailUiCmdReadEmail, ETrue );
-            }
-
-        // OFFLINE/ONLINE MENU SELECTION
-        TFSMailBoxStatus onlineStatus = iAppUi.GetActiveMailbox()->GetMailBoxStatus();
-        aMenuPane->SetItemDimmed( EFsEmailUiCmdGoOnline, onlineStatus == EFSMailBoxOnline );
-        aMenuPane->SetItemDimmed( EFsEmailUiCmdGoOffline, onlineStatus == EFSMailBoxOffline );
-
-        // Sync/cancel sync
-        TBool supportsSync = iAppUi.GetActiveMailbox()->HasCapability( EFSMBoxCapaSupportsSync );
-        if ( !supportsSync )
-            {
-            aMenuPane->SetItemDimmed( EFsEmailUiCmdCancelSync, ETrue );
-            aMenuPane->SetItemDimmed( EFsEmailUiCmdSync, ETrue );
-            }
-        else if ( GetLatestSyncState() )
-            {
-            aMenuPane->SetItemDimmed( EFsEmailUiCmdSync, ETrue );
-            }
-        else
-            {
-            aMenuPane->SetItemDimmed( EFsEmailUiCmdCancelSync, ETrue );
-            }
-
-        //MESSAGEREADER MENU SELECTION
-		if ( iAppUi.MessageReaderSupportsFreestyle() )
-			{
-			aMenuPane->SetItemDimmed( EFsEmailUiCmdReadEmail, EFalse );
-			}
-		else
-			{
-			aMenuPane->SetItemDimmed( EFsEmailUiCmdReadEmail, ETrue );
-			}
-		// Disable read in outbox and drafts
-		if ( currentFolderType == EFSDraftsFolder ||
-		     currentFolderType == EFSOutbox )
-			{
-			aMenuPane->SetItemDimmed( EFsEmailUiCmdReadEmail, ETrue );
-			}
-
-	    // EMPTY LIST, MOST OPTIONS ARE HIDDEN
-	    if ( !iModel->Count() || !iMailFolder )
-	        {
-	        aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsOpen, ETrue );
-	        aMenuPane->SetItemDimmed( EFsEmailUiCmdMailActions, ETrue );
-	        aMenuPane->SetItemDimmed( EFsEmailUiCmdMore, ETrue );
-	        aMenuPane->SetItemDimmed( EFsEmailUiCmdSearch, ETrue );
-	        aMenuPane->SetItemDimmed( EFsEmailUiCmdReadEmail, ETrue );
-	        }
-
-	    // NO TARGET ITEMS, E.G FOCUS ON DIVIDER AND NO MARKED ITEMS, ITEM RELATED OPTIONS ARE HIDDEN
-	    else if ( !targetEntries.Count() )
-	        {
-	        aMenuPane->SetItemDimmed( EFsEmailUiCmdMailActions, ETrue );
-	        aMenuPane->SetItemDimmed( EFsEmailUiCmdReadEmail, ETrue );
-	        }
-
-	    // Open command is available only if there's exactly one target item
-	    if ( targetEntries.Count() != 1 )
-	        {
-            aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsOpen, ETrue );
-	        }
-
-	    // FOLDER SPECIFIC COMMAND HIDING
-	    // In the outbox folder, Open command is inavailable in any case
-	    if ( currentFolderType == EFSOutbox )
-	        {
-	        aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsOpen, ETrue );
-	        }
-
-	    // "Clear deleted folder" command is available only in Deleted folder
-	    if ( currentFolderType != EFSDeleted || !iModel->Count() )
-	        {
-	        aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsEmptyDeleted, ETrue );
-	        }
-		}
-    // MAIN MENU ***************************************************************************
-
-
-	// ACTIONS SUBMENU *********************************************************************
-	if ( aResourceId == R_FSEMAILUI_MAILLIST_SUBMENU_MAIL_ACTIONS  )
-		{
-		// Actions menu should never be available when there's no marked or focused item(s)
-		__ASSERT_DEBUG( targetEntries.Count(), Panic(EFSEmailUiUnexpectedValue) );
-
-		CFSMailMessage* targetMessage = NULL;
-        if ( targetEntries.Count() == 1 )
-            {
-            targetMessage = &MsgPtrFromListIdL( targetEntries[0] );
-            }
-
-		// Meeting request mode is in use when there's exactly one target item and it's a
-		// calendar message and MRUI is available.
-		TBool showMrActions = EFalse;
-
-        if ( targetMessage && targetMessage->IsFlagSet( EFSMsgFlag_CalendarMsg ) &&
-             iAppUi.MrViewerInstanceL() &&
-             iAppUi.MrViewerInstanceL()->CanViewMessage( *targetMessage ) &&
-             currentFolderType != EFSOutbox &&
-		     currentFolderType != EFSDraftsFolder )
-		    {
-		    showMrActions = ETrue;
-		    }
-
-        // CALENDAR EVENT ACTIONS SUBMENU
-        if ( showMrActions )
-            {
             // Hide all the normal email message specific actions
             aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsReply, ETrue );
             aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsReplyAll, ETrue );
             aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsForward, ETrue );
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdMailActions, ETrue);
 
-            // Hide the irrelevant MR actions
-            TESMRMeetingRequestMethod mrMethod( EESMRMeetingRequestMethodUnknown );
-            if ( iAppUi.MrViewerInstanceL() )
-                {
-                TRAP_IGNORE( mrMethod = iAppUi.MrViewerInstanceL()->ResolveMeetingRequestMethodL( *targetMessage ) );
-                }
-            switch ( mrMethod )
-                {
-                case EESMRMeetingRequestMethodRequest:
-                    {
-                    aMenuPane->SetItemDimmed(EFsEmailUiCmdCalRemoveFromCalendar, ETrue);
-                    }
-                    break;
-                case EESMRMeetingRequestMethodCancellation:
-                    {
-                    aMenuPane->SetItemDimmed(EFsEmailUiCmdCalActionsAccept, ETrue);
-                    aMenuPane->SetItemDimmed(EFsEmailUiCmdCalActionsTentative, ETrue);
-                    aMenuPane->SetItemDimmed(EFsEmailUiCmdCalActionsDecline, ETrue);
+            TInt markedCount = CountMarkedItemsL();
+            // Hide mark/unmark all when not applicable
+            if ( markedCount == EmailsInModelL() ) // Hide mark all
+		       {
+		       aMenuPane->SetItemDimmed( EFsEmailUiCmdSubMenuMark, ETrue );
+		       }
+            if ( markedCount == 0 ) // Hide unmark all
+		       {
+		       aMenuPane->SetItemDimmed( EFsEmailUiCmdSubMenuUnmark, ETrue );
+		       }
 
-                    TBool supportsRemove = iAppUi.GetActiveMailbox()->HasCapability( EFSMBoxCapaRemoveFromCalendar );
-                    if( !supportsRemove )
-                        {
-                        aMenuPane->SetItemDimmed(EFsEmailUiCmdCalRemoveFromCalendar, ETrue);
-                        }
-                    }
-                    break;
-                case EESMRMeetingRequestMethodResponse:
-                case EESMRMeetingRequestMethodUnknown:
-                    {
-                    aMenuPane->SetItemDimmed(EFsEmailUiCmdCalRemoveFromCalendar, ETrue);
-                    aMenuPane->SetItemDimmed(EFsEmailUiCmdCalActionsAccept, ETrue);
-                    aMenuPane->SetItemDimmed(EFsEmailUiCmdCalActionsTentative, ETrue);
-                    aMenuPane->SetItemDimmed(EFsEmailUiCmdCalActionsDecline, ETrue);
-                    }
-                    break;
-                default:
-                    break;
-                }
             }
-
-        // MAIL MESSAGE ACTIONS SUBMENU
         else
-            {
-            // Hide all the calendar event options
-            aMenuPane->SetItemDimmed( EFsEmailUiCmdCalActionsAccept, ETrue );
-            aMenuPane->SetItemDimmed( EFsEmailUiCmdCalActionsTentative, ETrue );
-            aMenuPane->SetItemDimmed( EFsEmailUiCmdCalActionsDecline, ETrue );
-            aMenuPane->SetItemDimmed( EFsEmailUiCmdCalRemoveFromCalendar, ETrue );
+    	    {
+    		CFSMailMessage* targetMessage = NULL;
+            if ( targetEntries.Count() == 1 )
+                {
+                targetMessage = &MsgPtrFromListIdL( targetEntries[0] );
+                }
 
             // Hide the irrelevant reply / reply all / forward commands
             TInt numRecipients(0);
@@ -1493,7 +1354,7 @@ void CFSEmailUiMailListVisualiser::DynInitMenuPaneL(TInt aResourceId, CEikMenuPa
                 numRecipients = TFsEmailUiUtility::CountRecipientsSmart( iAppUi, targetMessage );
                 }
             // All reply/forward options are hidden when multiple marked messages or folder is outbox or drafts
-            if ( targetEntries.Count() > 1 ||
+            if ( targetEntries.Count() != 1 ||
                  currentFolderType == EFSOutbox ||
                  currentFolderType == EFSDraftsFolder )
                 {
@@ -1507,8 +1368,32 @@ void CFSEmailUiMailListVisualiser::DynInitMenuPaneL(TInt aResourceId, CEikMenuPa
                 {
                 aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsReplyAll, ETrue );
                 }
-           }
 
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdSubMenuUnmark, ETrue);
+            }
+
+	    // EMPTY LIST, MOST OPTIONS ARE HIDDEN
+	    if ( !iModel->Count() || !iMailFolder )
+	        {
+	        aMenuPane->SetItemDimmed( EFsEmailUiCmdMailActions, ETrue );
+	        aMenuPane->SetItemDimmed( EFsEmailUiCmdSubMenuMark, ETrue );
+	        aMenuPane->SetItemDimmed( EFsEmailUiCmdSubMenuUnmark, ETrue );
+	        aMenuPane->SetItemDimmed( EFsEmailUiCmdSearch, ETrue );
+	        }
+
+	    // FOLDER SPECIFIC COMMAND HIDING
+	    // "Clear deleted folder" command is available only in Deleted folder
+	    if ( currentFolderType != EFSDeleted || !iModel->Count() )
+	        {
+	        aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsEmptyDeleted, ETrue );
+	        }
+		}
+    // MAIN MENU ***************************************************************************
+
+
+	// ACTIONS SUBMENU *********************************************************************
+	if ( aResourceId == R_FSEMAILUI_MAILLIST_SUBMENU_MAIL_ACTIONS  )
+		{
         // COMMON PART OF ACTIONS SUBMENU
 		aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkAsRead, !IsMarkAsReadAvailableL() );
         aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkAsUnread, !IsMarkAsUnreadAvailableL() );
@@ -1516,56 +1401,24 @@ void CFSEmailUiMailListVisualiser::DynInitMenuPaneL(TInt aResourceId, CEikMenuPa
 		if ( !supportsMoving || !iMailFolder ) // Hide move from actions if not supported
 			{
 			aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsMove, ETrue );
-			aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsMoveToDrafts, ETrue );
 			}
 		else
 			{
 			// Moving supported, show/hide moving options depending on the current folder
-			// First check deleted items case, IMS does not support deleted sync
-			if ( currentFolderType == EFSDeleted )
+			// Check for outbox case
+			if ( currentFolderType == EFSOutbox )
 				{
-				aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsMoveToDrafts, ETrue );	// Dim in deleted
-				}
-			// Then check for outbox case, move to drafts is allowed, other moves not
-			else if ( currentFolderType == EFSOutbox )
-				{
-				// move from outbox to drafts is allowed
-				aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsMoveToDrafts, EFalse );	// Allow in outbox
 				// moving from outbox is not allowed otherwise
 				aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsMove, ETrue );
 				}
-			else if ( currentFolderType == EFSDraftsFolder )
-				{
-				// move from drafts to drafts is not allowed
-				aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsMoveToDrafts, ETrue );
-				// moving from drafts folder is not allowed
-				aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsMove, ETrue );
-				}
-
 			// Handle rest of the folders
 			else
 				{
-				aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsMoveToDrafts, ETrue );	// Dim in other folders
 				aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsMove, EFalse );
 				}
 			}
-		}
-    // ACTIONS SUBMENU *********************************************************************
 
-
-	// MORE SUBMENU ************************************************************************
-	if ( aResourceId == R_FSEMAILUI_MAILLIST_SUBMENU_MORE )
-		{
 		TInt markedCount = CountMarkedItemsL();
-
-	    // Checks if a device has a keyboard or not.
-		if( !iKeyboardFlipOpen )
-       	    {
-            aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkMark, ETrue );
-		    aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsCallSender, ETrue );
-		    aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsAddContact, ETrue );
-		    aMenuPane->SetItemDimmed( EFsEmailUiCmdMessageDetails, ETrue );
-	        }
 
 	    // Hide expand/collapse all when not applicable
 		if ( iNodesInUse == EListControlSeparatorDisabled || !iModel->Count() )
@@ -1579,120 +1432,49 @@ void CFSEmailUiMailListVisualiser::DynInitMenuPaneL(TInt aResourceId, CEikMenuPa
 			aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsExpandAll, AllNodesExpanded() );
 			}
 
-		// Some commands are available only when there's exactly one target message
-		if ( targetEntries.Count() != 1 )
-			{
-			aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsCallSender, ETrue );
-			aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsAddContact, ETrue );
-			aMenuPane->SetItemDimmed( EFsEmailUiCmdMessageDetails, ETrue );
-			}
-
-		// Hide mark/unmark all when not applicable
-		if ( markedCount == EmailsInModelL() ) // Hide mark all
-		    {
-		    aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkMarkAll, ETrue );
-		    //aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkUnmarkAll, EFalse );
-		    }
-		else if ( !markedCount ) // hide unmark all
-		    {
-		    //aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkMarkAll, EFalse );
-		    aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkUnmarkAll, ETrue );
-		    }
-
 		// Hide followup flagging if not applicable
 		if ( !supportsFlag || !targetEntries.Count() )
 		    {
 		    aMenuPane->SetItemDimmed(EFsEmailUiCmdActionsFlag, ETrue);
 		    }
 
-		// Hide Download Manager if no downloads present
-// <cmail> Prevent Download Manager opening with attachments
-//		if ( !iAppUi.DownloadInfoMediator() || !iAppUi.DownloadInfoMediator()->IsAnyAttachmentDownloads() )
-//		    {
-//		    aMenuPane->SetItemDimmed(EFsEmailUiCmdDownloadManager, ETrue);
-//		    }
-// </cmail>
-
-		// Availability of the mark/unmark commands depends only on the focused item
-		if ( !iMailList || iMailList->FocusedItem() == KFsTreeNoneID ||
-		     iMailList->IsNode( iMailList->FocusedItem() ) )
-		    {
-            aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkMark, ETrue );
-            aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkUnmark, ETrue );
-		    }
-		else if ( iMailList->IsMarked( iMailList->FocusedItem() ) ) // Item was already marked
-		    {
-		    aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkMark, ETrue );
-		    }
-		else
-		    {
-		    aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkUnmark, ETrue );
-		    }
-
 	    // Some commands are hidden in the outbox and drafts folders
         if ( currentFolderType == EFSOutbox ||
              currentFolderType == EFSDraftsFolder )
             {
-            aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsCallSender, ETrue );
-            aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsAddContact, ETrue );
             aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsFlag, ETrue );
             }
 		}
-    // MORE SUBMENU ************************************************************************
+    // ACTIONS SUBMENU *********************************************************************
 
 
-	// SETTINGS SUBMENU ********************************************************************
-	if ( aResourceId == R_FSEMAILUI_MAILLIST_SUBMENU_MAIL_SETTINGS )
+	// MARK SUBMENU ************************************************************************
+	// Mark submenu show only when focus is visible
+	if ( aResourceId == R_FSEMAILUI_MAILLIST_SUBMENU_MARK)
 		{
-		TUid pluginUid = iAppUi.GetActiveMailbox()->GetSettingsUid();
-
-		CESMailSettingsPlugin* settingsPlugin =
-			static_cast<CESMailSettingsPlugin*>( iAppUi.View( pluginUid ) );
-
-		if ( !settingsPlugin )
-			{
-			settingsPlugin = CESMailSettingsPlugin::NewL( pluginUid );
-			CleanupStack::PushL( settingsPlugin );
-			iAppUi.AddViewL( settingsPlugin );
-			CleanupStack::Pop( settingsPlugin ); // ownership transferred
-			}
-		TInt count( settingsPlugin->MailSettingsSubviewCount() );
-		if ( count > 0 )
-			{
-			TInt index = 0;
-			while ( index < count )
-				{
-				CEikMenuPaneItem::SData newMenuItem;
-				newMenuItem.iCommandId = EFsEmailUiCmdSettingsBaseCommandId + index;
-				newMenuItem.iCascadeId = 0;
-				newMenuItem.iFlags = 0;
-				newMenuItem.iText = settingsPlugin->MailSettingsSubviewCaption(
-		        		iAppUi.GetActiveMailboxId(),
-		        		index,
-		        		EFalse
-		        		);
-		        aMenuPane->InsertMenuItemL(
-		        		newMenuItem,
-		        		aMenuPane->NumberOfItemsInPane() );
-		        ++index;
-				}
-			}
-		else
-			{
-			// POP/IMAP mailbox settings
-			HBufC* ipsText = StringLoader::LoadLC( R_FREESTYLE_EMAIL_UI_SETTINGS_IPS_TEXT );
-			CEikMenuPaneItem::SData newMenuItem;
-			newMenuItem.iCommandId = EFsEmailUiCmdSettingsBaseCommandId;
-			newMenuItem.iCascadeId = 0;
-			newMenuItem.iFlags = 0;
-			newMenuItem.iText = *ipsText;
-	        aMenuPane->InsertMenuItemL(
-	        		newMenuItem,
-	        		aMenuPane->NumberOfItemsInPane() );
-	        CleanupStack::PopAndDestroy( ipsText );
-			}
+	    // Checks if a device has a keyboard or not.
+		if( !iLastFocus )
+       	    {
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkMark, ETrue );
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkMarkAll, ETrue );
+	        }
+         else
+       	    {
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkSubAll, ETrue );
+	        }
 		}
-    // SETTINGS SUBMENU ********************************************************************
+
+    // MARK SUBMENU ************************************************************************
+
+
+	// UNMARK SUBMENU ************************************************************************
+	// Unmark submenu show only when focus is not visible
+	if ( aResourceId == R_FSEMAILUI_MAILLIST_SUBMENU_UNMARK)
+		{
+		// Nothing to do yet
+		}
+    // UNMARK SUBMENU ************************************************************************
+
 
 	CleanupStack::PopAndDestroy( &targetEntries );
 
@@ -1831,7 +1613,14 @@ void CFSEmailUiMailListVisualiser::RefreshL( TFSMailMsgId* aFocusToMessage )
             TInt idx = ItemIndexFromMessageId( *aFocusToMessage );
             if ( idx >= 0 )
                 {
-                iMailList->SetFocusedItemL( iTreeItemArray[idx].iListItemId );
+                TFsTreeItemId itemId = iTreeItemArray[idx].iListItemId;
+                iMailList->SetFocusedItemL( itemId );
+                // If contorl bar is focused, we need to hide
+                // focus then.
+                if( iFocusedControl == EControlBarComponent )
+                    {
+                    iMailTreeListVisualizer->UpdateItemL( itemId );
+                    }
                 }
             }
 	    }
@@ -1916,7 +1705,7 @@ void CFSEmailUiMailListVisualiser::RefreshDeferred( TFSMailMsgId* aFocusToMessag
         iMsgToFocusAfterRedraw.SetId( 0 );
         iMsgToFocusAfterRedraw.SetNullId();
         }
-    // <cmail>
+
     if ( iAsyncRedrawer )
         {
         TCallBack asyncRefresh( DoRefresh, this );
@@ -1924,7 +1713,6 @@ void CFSEmailUiMailListVisualiser::RefreshDeferred( TFSMailMsgId* aFocusToMessag
         iAsyncRedrawer->Set( asyncRefresh );
         iAsyncRedrawer->CallBack();
         }
-    // </cmail>
     }
 
 // ---------------------------------------------------------------------------
@@ -1952,7 +1740,7 @@ void CFSEmailUiMailListVisualiser::CompletePendingRefresh()
     {
     FUNC_LOG;
 
-    if ( iAsyncRedrawer && iAsyncRedrawer->IsActive() ) //<cmail>
+    if ( iAsyncRedrawer && iAsyncRedrawer->IsActive() )
         {
         iAsyncRedrawer->Cancel();
         DoRefresh( this );
@@ -2087,9 +1875,9 @@ TFsTreeItemId CFSEmailUiMailListVisualiser::InsertListItemL( TInt aModelIndex,
                                                              TBool aAllowRefresh )
     {
     FUNC_LOG;
-    TRect screenRect = iAppUi.ClientRect();
-    CFsTreePlainTwoLineItemData* itemData(0);
-    CFsTreePlainTwoLineItemVisualizer* itemVisualizer(0);
+    TRect screenRec( iAppUi.ClientRect() );
+    CFsTreePlainTwoLineItemData* itemData = NULL;
+    CFsTreePlainTwoLineItemVisualizer* itemVisualizer = NULL;
     TRgb focusedColor = iAppUi.LayoutHandler()->ListFocusedStateTextSkinColor();
     TRgb normalColor = iAppUi.LayoutHandler()->ListNormalStateTextSkinColor();
 
@@ -2107,11 +1895,9 @@ TFsTreeItemId CFSEmailUiMailListVisualiser::InsertListItemL( TInt aModelIndex,
     itemData->SetPreviewPaneDataL( KMissingPreviewDataMarker );
 
     // Create item visualiser
-    itemVisualizer = CFsTreePlainTwoLineItemVisualizer::NewL(*iMailList->TreeControl());
+    itemVisualizer = CFsTreePlainTwoLineItemVisualizer::NewL(
+            *iMailList->TreeControl() );
     CleanupStack::PushL( itemVisualizer );
-
-    // Enable menu icon
-    itemVisualizer->SetFlags( itemVisualizer->Flags() | KFsTreeListItemHasMenu );
 
    	itemVisualizer->SetTextAlign( EAlfAlignHLocale );
 
@@ -2434,7 +2220,8 @@ void CFSEmailUiMailListVisualiser::CreatePlainNodeL( const TDesC* aItemDataBuff,
 //
 // ---------------------------------------------------------------------------
 //
-void CFSEmailUiMailListVisualiser::HandleDynamicVariantSwitchL( CFsEmailUiViewBase::TDynamicSwitchType aType )
+void CFSEmailUiMailListVisualiser::HandleDynamicVariantSwitchL(
+    CFsEmailUiViewBase::TDynamicSwitchType aType )
 	{
     FUNC_LOG;
     CFsEmailUiViewBase::HandleDynamicVariantSwitchL( aType );
@@ -2542,6 +2329,319 @@ TBool CFSEmailUiMailListVisualiser::HitTest(
 
 // ---------------------------------------------------------------------------
 //
+// ---------------------------------------------------------------------------
+//
+TBool CFSEmailUiMailListVisualiser::HandleArrowEventInPortraitL(
+        const TInt aScancode,
+        const TAlfEvent& aEvent,
+        const TBool aShiftState )
+    {
+    FUNC_LOG;
+    TBool result( EFalse );
+
+    if( aScancode == EStdKeyLeftArrow )
+        {
+        if( ( iControlBarControl ) &&
+            ( iFocusedControl == EMailListComponent ) )
+            {
+            // Move focus to control bar (focused button is
+            // sort button).
+            HandleCommandL( EFsEmailUiCmdGoToSwitchSorting );
+            result = ETrue;
+            }
+        else if( ( iControlBarControl ) &&
+                 ( iFocusedControl == EControlBarComponent  ) )
+            {
+            TInt focusedButtonId( iControlBarControl->GetFocusedButton()->Id() );
+            if ( focusedButtonId == iNewEmailButtonId )
+                {
+                // Change focus to mail list if there are any
+                // emails in it.
+                if( iModel->Count() )
+                    {
+                    iFocusedControl = EMailListComponent;
+                    result = EFalse;
+                    }
+                // Leave focus to control bar because there are no
+                // mails in mail list.
+                else
+                    {
+                    iControlBarControl->MakeSelectorVisible( IsFocusShown() );
+                    iFocusedControl = EControlBarComponent;
+                    result = ETrue; // Do not set focus to empty list
+                    }
+                }
+            else
+                {
+                iControlBarControl->MakeSelectorVisible( IsFocusShown() );
+                iFocusedControl = EControlBarComponent;
+                result = EFalse;
+                }
+            }
+        else
+            {
+            iFocusedControl = EMailListComponent;
+            result = EFalse;
+            }
+        SetMskL();
+        }
+    else if( aScancode == EStdKeyRightArrow )
+        {
+        // Show toolbar if there is data on the list
+        const TInt modelCount( iModel->Count() );
+        TBool focusShown( IsFocusShown() );
+
+        // If control bar is focused.
+        if( ( iControlBarControl ) &&
+            ( iFocusedControl == EControlBarComponent ) )
+            {
+            TInt focusedButtonId( iControlBarControl->GetFocusedButton()->Id() );
+
+            // If sort button is focused and there are mails in mail
+            // list then focus is moved to mail list, otherwise
+            // leave focus to control bar
+            if( focusedButtonId == iSortButtonId )
+                {
+                if ( modelCount > 0 ) // Check for empty folder
+                    {
+                    iFocusedControl = EMailListComponent;
+                    result = EFalse;
+                    }
+                else
+                    {
+                    iFocusedControl = EControlBarComponent;
+                    iControlBarControl->MakeSelectorVisible( focusShown );
+                    result = ETrue; // Do not set focus to empty list
+                    }
+                }
+            else
+                {
+                iFocusedControl = EControlBarComponent;
+                iControlBarControl->MakeSelectorVisible( focusShown );
+                result = EFalse;
+                }
+            }
+        else if( ( iControlBarControl ) &&
+                 ( iFocusedControl == EMailListComponent ) )
+            {
+            HandleCommandL( EFsEmailUiCmdGoToSwitchNewEmail );
+            result = ETrue;
+            }
+        else
+            {
+            iFocusedControl = EMailListComponent;
+            result = EFalse;
+            }
+        SetMskL();
+        }
+    else if( aScancode ==  EStdKeyDownArrow )
+        {
+        const TInt itemCount( iModel->Count() );
+        if ( iFocusedControl == EMailListComponent )
+            {
+            result = iMailList->TreeControl()->OfferEventL( aEvent );
+            if ( aShiftState )
+                {
+                DoScrollMarkUnmarkL(); // marking is done after moving the cursor
+                }
+            }
+        else if( ( iFocusedControl == EControlBarComponent ) &&
+                 ( itemCount == 0 ) )
+            {
+            result = ETrue; // Do not set focus to empty list
+            }
+        else if( ( iFocusedControl == EControlBarComponent ) &&
+                 ( itemCount > 0 ) )
+            {
+            iFocusedControl = EMailListComponent;
+
+            result = iMailList->TreeControl()->OfferEventL(aEvent);
+            if ( aShiftState )
+                {
+                DoScrollMarkUnmarkL(); // marking is done after moving the cursor
+                }
+            }
+        else
+            {
+            result = EFalse;
+            }
+        SetMskL();
+        }
+    else if( aScancode == EStdKeyUpArrow )
+        {
+        iControlBarControl->MakeSelectorVisible( IsFocusShown() );
+        if ( iFocusedControl == EMailListComponent )
+            {
+            if ( HighlightedIndex() == 0 )
+                {
+                HandleCommandL( EFsEmailUiCmdGoToSwitchFolder );
+                result = ETrue;
+                }
+            else
+                {
+                result = iMailList->TreeControl()->OfferEventL( aEvent );
+                if ( aShiftState )
+                    {
+                    // marking is done after moving the cursor
+                    DoScrollMarkUnmarkL();
+                    }
+                SetMskL();
+                }
+            }
+        else if( iFocusedControl == EControlBarComponent )
+            {
+            result = ETrue;
+            }
+        else
+            {
+            result = EFalse;
+            }
+        }
+
+    return result;
+    }
+
+// ---------------------------------------------------------------------------
+//
+// ---------------------------------------------------------------------------
+//
+TBool CFSEmailUiMailListVisualiser::HandleArrowEventInLandscapeL(
+        const TInt aScancode,
+        const TAlfEvent& aEvent,
+        const TBool aShiftState )
+    {
+    FUNC_LOG;
+    TBool result( EFalse );
+    if( aScancode == EStdKeyRightArrow )
+        {
+        if ( iFocusedControl == EMailListComponent )
+            {
+            HandleCommandL( EFsEmailUiCmdGoToSwitchFolder );
+            result = ETrue;
+            }
+        else if( iFocusedControl == EControlBarComponent )
+            {
+            iControlBarControl->MakeSelectorVisible( IsFocusShown() );
+            result = ETrue;
+            }
+        }
+    else if( aScancode == EStdKeyLeftArrow )
+        {
+        if ( iFocusedControl == EControlBarComponent )
+            {
+            const TInt modelCount( iModel->Count() );
+            if( modelCount > 0 )
+                {
+                iFocusedControl = EMailListComponent;
+                result = iMailList->TreeControl()->OfferEventL( aEvent );
+                if( aShiftState )
+                    {
+                    // marking is done after moving the cursor
+                    DoScrollMarkUnmarkL();
+                    }
+                }
+            else
+                {
+                iControlBarControl->MakeSelectorVisible( IsFocusShown() );
+                // Do not set focus to empty list
+                result = ETrue;
+                }
+            }
+        else if( iFocusedControl == EMailListComponent )
+            {
+            result = iMailList->TreeControl()->OfferEventL( aEvent );
+            if ( aShiftState )
+                {
+                // marking is done after moving the cursor
+                DoScrollMarkUnmarkL();
+                }
+           }
+        SetMskL();
+        }
+    if( aScancode == EStdKeyUpArrow )
+        {
+        if( iFocusedControl == EMailListComponent )
+            {
+            result = iMailList->TreeControl()->OfferEventL( aEvent );
+            if ( aShiftState )
+                {
+                // marking is done after moving the cursor
+                DoScrollMarkUnmarkL();
+                }
+            }
+        else if( iFocusedControl == EControlBarComponent )
+            {
+            TInt focusedButtonId( iControlBarControl->GetFocusedButton()->Id() );
+            if ( focusedButtonId == iNewEmailButtonId )
+                {
+                // Change focus to mail list if there are any
+                // mails in it.
+                if( iModel->Count() > 0 )
+                    {
+                    iFocusedControl = EMailListComponent;
+                    result = EFalse;
+                    }
+                // Leave focus to control bar because there are no
+                // mails in mail list.
+                else
+                    {
+                    // Do not set focus to empty list
+                    iControlBarControl->MakeSelectorVisible( IsFocusShown() );
+                    result = ETrue;
+                    }
+                }
+            else
+                {
+                iControlBarControl->MakeSelectorVisible( IsFocusShown() );
+                result = static_cast<CAlfControl*>( iControlBarControl )->OfferEventL( aEvent );
+                }
+            }
+        SetMskL();
+        }
+    else if( aScancode == EStdKeyDownArrow )
+        {
+        if( iFocusedControl == EMailListComponent )
+            {
+            result = iMailList->TreeControl()->OfferEventL( aEvent );
+            if( aShiftState )
+                {
+                // marking is done after moving the cursor
+                DoScrollMarkUnmarkL();
+                }
+            }
+        else if( iFocusedControl == EControlBarComponent )
+            {
+            const TInt modelCount( iModel->Count() );
+            TInt focusedButtonId( iControlBarControl->GetFocusedButton()->Id() );
+            // If sort button is focused and there are mails in mail
+            // list then focus is moved to mail list, otherwise
+            // leave focus to control bar
+            if( focusedButtonId == iSortButtonId )
+                {
+                if ( modelCount > 0 ) // Check for empty folder
+                    {
+                    iFocusedControl = EMailListComponent;
+                    result = EFalse;
+                    }
+                else
+                    {
+                    iControlBarControl->MakeSelectorVisible( IsFocusShown() );
+                    result = ETrue; // Do not set focus to empty list
+                    }
+                }
+            else
+                {
+                iControlBarControl->MakeSelectorVisible( IsFocusShown() );
+                result = static_cast<CAlfControl*>( iControlBarControl )->OfferEventL( aEvent );
+                }
+            }
+        SetMskL();
+        }
+
+    return result;
+    }
+
+// ---------------------------------------------------------------------------
 //
 // ---------------------------------------------------------------------------
 //
@@ -2681,29 +2781,34 @@ void CFSEmailUiMailListVisualiser::HandleCommandL( TInt aCommand )
     GetActionsTargetEntriesL( actionTargetItems );
 
     // Check if the focus needs to be removed.
-    if ( aCommand == KErrCancel || aCommand == EFsEmailUiCmdActionsDelete ||
-    	 aCommand == EFsEmailUiCmdMarkAsRead ||
-    	 aCommand == EFsEmailUiCmdMarkAsUnread ||
-    	 aCommand == EFsEmailUiCmdActionsMove ||
-    	 aCommand == EFsEmailUiCmdMarkUnmarkToggle )
+    if ( ( iStylusPopUpMenuVisible ) &&
+         ( aCommand == KErrCancel ||
+           aCommand == EFsEmailUiCmdActionsDelete ||
+    	   aCommand == EFsEmailUiCmdMarkAsRead ||
+    	   aCommand == EFsEmailUiCmdMarkAsUnread ||
+    	   aCommand == EFsEmailUiCmdActionsMove ||
+    	   aCommand == EFsEmailUiCmdActionsMoveMessage ||
+    	   aCommand == EFsEmailUiCmdMarkUnmarkToggle ||
+    	   aCommand == EFsEmailUiCmdActionsCollapseAll ||
+    	   aCommand == EFsEmailUiCmdActionsExpandAll ) )
     	{
    		// We end up here if the user selects an option from the pop up menu
     	// or exits the menu by tapping outside of it's area.
     	// Remove the focus from a list item if an item is focused.
-   		iStylusPopUpMenuLaunched = EFalse;
-   		FocusVisibilityChange( EFalse );
+    	iStylusPopUpMenuVisible = EFalse;
+    	iAppUi.SetFocusVisibility( EFalse );
     	}
 
-    switch ( aCommand )
+    switch( aCommand )
         {
     	case EAknSoftkeyOpen:
-		{
-		if( !iAppUi.IsFocusShown() )
-			{
-			iAppUi.SetFocusVisibility( ETrue );
-			break;
-			}
-		}
+            {
+            if( !iAppUi.IsFocusShown() )
+                {
+                iAppUi.SetFocusVisibility( ETrue );
+                break;
+                }
+            }
        	case EAknSoftkeySelect:
        	    {
        	    if ( iFocusedControl == EMailListComponent )
@@ -3074,6 +3179,17 @@ void CFSEmailUiMailListVisualiser::HandleCommandL( TInt aCommand )
 			UnmarkAllItemsL();
 			}
 			break;
+
+		case EFsEmailUiCmdMarkSubAll:
+			{
+			MarkAllItemsL();
+			}
+			break;
+		case EFsEmailUiCmdUnmarkSubAll:
+			{
+			UnmarkAllItemsL();
+			}
+			break;
 		case EFsEmailUiCmdReadEmail:
 			{
 			iAppUi.StartReadingEmailsL();
@@ -3224,6 +3340,13 @@ void CFSEmailUiMailListVisualiser::HandleCommandL( TInt aCommand )
                         HandleCommandL(EFsEmailUiCmdMarkMark);
                         }
 					}
+				else if ( item && item->ModelItemType() == ETypeSeparator )
+					{
+					// Currently only mark is done since mark should activate
+					// marking mode for messages. Unmark can be done via message long tap menu.
+					TInt index = HighlightedIndex();
+					MarkItemsUnderSeparatorL( ETrue, index );
+					}
                 }
             }
             break;
@@ -3243,6 +3366,14 @@ void CFSEmailUiMailListVisualiser::HandleCommandL( TInt aCommand )
            	iMailList->SetFocusedL( EFalse );
             }
             break;
+        case EFsEmailUiCmdGoToSwitchNewEmail:
+            {
+            iControlBarControl->SetFocusByIdL( iNewEmailButtonId );
+            iControlBarControl->MakeSelectorVisible( IsFocusShown() );
+            iFocusedControl = EControlBarComponent;
+            iMailList->SetFocusedL( EFalse );
+            break;
+            }
         case EFsEmailUiCmdCalActionsAccept:
         case EFsEmailUiCmdCalActionsTentative:
         case EFsEmailUiCmdCalActionsDecline:
@@ -3306,10 +3437,17 @@ void CFSEmailUiMailListVisualiser::HandleCommandL( TInt aCommand )
        			}
        		}
 			break;
+        case EFsEmailUiCmdSettings:
+            {
+            TInt tmp = 0;
+            const TPckgBuf<TInt> pkgBuf( tmp );
+            iAppUi.EnterFsEmailViewL( SettingsViewId,
+                                      TUid::Uid(KMailSettingsOpenMainList), pkgBuf );
+            }
+            break;
+
+
 	    default:
-	    	{
-	    	// No default action.
-	    	}
         	break;
         } // switch ( aCommand )
     CleanupStack::PopAndDestroy( &actionTargetItems );
@@ -3428,7 +3566,7 @@ void CFSEmailUiMailListVisualiser::CollapseAllNodesL()
 	{
     FUNC_LOG;
     // Safety check, ignore command if the list is empty
-    if ( iMailList->Count() )
+    if ( iMailList->Count() > 0 )
         {
     	iMailTreeListVisualizer->CollapseAllL();
         }
@@ -3436,14 +3574,13 @@ void CFSEmailUiMailListVisualiser::CollapseAllNodesL()
 
 // ---------------------------------------------------------------------------
 //
-//
 // ---------------------------------------------------------------------------
 //
 void CFSEmailUiMailListVisualiser::ExpandAllNodesL()
 	{
     FUNC_LOG;
     // Safety check, ignore command if the list is empty
-	if ( iMailList->Count() )
+	if ( iMailList->Count() > 0 )
 	    {
     	TFsTreeItemId prevId = iMailList->FocusedItem();
     	iMailTreeListVisualizer->ExpandAllL();
@@ -3451,6 +3588,10 @@ void CFSEmailUiMailListVisualiser::ExpandAllNodesL()
         }
 	}
 
+// ---------------------------------------------------------------------------
+//
+// ---------------------------------------------------------------------------
+//
 void CFSEmailUiMailListVisualiser::ExpandOrCollapseL()
     {
     FUNC_LOG;
@@ -3590,17 +3731,7 @@ void CFSEmailUiMailListVisualiser::SetMskL()
 
     if ( iFocusedControl == EControlBarComponent )
         {
-/* <cmail> Sorting enabled also for empty list
-        // Sort menu can't be opened if mail list is empty. Hide MSK label in that case.
-        if ( !listCount && iControlBarControl->GetFocusedButton() == iSortButton )
-            {
-            ChangeMskCommandL( R_FSE_QTN_MSK_EMPTY );
-            }
-        else
-</cmail> */
-            {
-            ChangeMskCommandL( R_FSE_QTN_MSK_CHANGE );
-            }
+        ChangeMskCommandL( R_FSE_QTN_MSK_CHANGE );
         }
     else  if ( iFocusedControl == EMailListComponent )
         {
@@ -3672,7 +3803,7 @@ void CFSEmailUiMailListVisualiser::SetMskL()
 //
 // ---------------------------------------------------------------------------
 //
-TBool CFSEmailUiMailListVisualiser::OfferEventL(const TAlfEvent& aEvent)
+TBool CFSEmailUiMailListVisualiser::OfferEventL( const TAlfEvent& aEvent )
     {
     FUNC_LOG;
     TBool result( EFalse );
@@ -3696,12 +3827,18 @@ TBool CFSEmailUiMailListVisualiser::OfferEventL(const TAlfEvent& aEvent)
                     }
                 else
                     {
-                    // if pointer up event was not made on control bar area
-                    // then focus need to be set to mail list component if it
-                    // didn't already have focus.
-                    if( iFocusedControl != EMailListComponent )
+                    // If pointer down event was not made on control bar area
+                    // then focus need to be set to mail list component, if it
+                    // didn't already have focus. If mail list is empty, then
+                    // focus is hidden and control bar stays as a focused item.
+                    if( ( iFocusedControl != EMailListComponent ) &&
+                        ( iMailList->Count() > 0 ) )
                         {
                         SetTreeListFocusedL();
+                        }
+                    else
+                        {
+                        iAppUi.SetFocusVisibility( EFalse );
                         }
                     }
                 }
@@ -3769,10 +3906,20 @@ TBool CFSEmailUiMailListVisualiser::OfferEventL(const TAlfEvent& aEvent)
 
     // MSK label can now be updated when shift key has been handled
     SetMskL();
+    // On KeyUp of EStdKeyYes usually Call application is called - prevent it
+    if ( iConsumeStdKeyYes_KeyUp && (aEvent.Code() == EEventKeyUp )) 
+		{
+		iConsumeStdKeyYes_KeyUp = EFalse; // in case call button was consumed elsewhere first key up enables calling Call application
+		if ( EStdKeyYes == scanCode) 
+			{
+			  result = ETrue; // consume not to switch to Call application when call to contact was processed
+			  return result;
+			}
+		}
 
     if ( aEvent.IsKeyEvent() && aEvent.Code() == EEventKey )
         {
-        TBool shiftState = (aEvent.KeyEvent().iModifiers & EModifierShift );
+        TBool shiftState = ( aEvent.KeyEvent().iModifiers & EModifierShift );
 
         // Do the (un)marking if in shift state and suitable key is received
         if ( shiftState )
@@ -3826,15 +3973,14 @@ TBool CFSEmailUiMailListVisualiser::OfferEventL(const TAlfEvent& aEvent)
         if ( !result )
             {
             // Handle possible focus visibility change
-            if ((scanCode == EStdKeyRightArrow)
-                || (scanCode == EStdKeyLeftArrow)
-                || (scanCode == EStdKeyUpArrow)
-                || (scanCode == EStdKeyDownArrow)
-                || (scanCode == EStdKeyEnter)
-                || (scanCode == EStdKeyDeviceA)
-                || (scanCode ==EStdKeyDevice3))
+            if ( ( scanCode == EStdKeyRightArrow ) ||
+                 ( scanCode == EStdKeyLeftArrow ) ||
+                 ( scanCode == EStdKeyUpArrow ) ||
+                 ( scanCode == EStdKeyDownArrow ) ||
+                 ( scanCode == EStdKeyEnter ) ||
+                 ( scanCode == EStdKeyDeviceA ) ||
+                 ( scanCode ==EStdKeyDevice3 ) )
                 {
-
                 // If the focus was not active already, ignore the key press
                 if( !iAppUi.SetFocusVisibility( ETrue ) )
                     {
@@ -3852,10 +3998,7 @@ TBool CFSEmailUiMailListVisualiser::OfferEventL(const TAlfEvent& aEvent)
                     SetMskL();
                     if ( iFocusedControl == EMailListComponent )
                         {
-                        TInt modelCount(0);
-                        // <cmail>
-                        modelCount = iModel->Count();
-                        // </cmail>
+                        TInt modelCount( modelCount = iModel->Count() );
                         if ( modelCount ) // Safety check
                             {
                             CFSEmailUiMailListModelItem* item =
@@ -3887,17 +4030,15 @@ TBool CFSEmailUiMailListVisualiser::OfferEventL(const TAlfEvent& aEvent)
                         }
                     else
                         {
-                        TInt focusedButtonId = iControlBarControl->GetFocusedButton()->Id();
+                        TInt focusedButtonId( iControlBarControl->GetFocusedButton()->Id() );
                         if ( focusedButtonId == iNewEmailButtonId )
                             {
                             HandleCommandL(EFsEmailUiCmdCompose);
                             }
                         else if ( focusedButtonId == iFolderListButtonId )
                             {
-                            //<cmail>
-                            //Set touchmanager not active for preventing getting events.
-                            DisableMailList(ETrue);
-                            //</cmail>
+                            // Set touchmanager not active for preventing getting events.
+                            DisableMailList( ETrue );
                             iAppUi.ShowFolderListInPopupL( FolderId(), this, iFolderListButton );
                             }
                         else if ( focusedButtonId == iSortButtonId )
@@ -3914,10 +4055,8 @@ TBool CFSEmailUiMailListVisualiser::OfferEventL(const TAlfEvent& aEvent)
                             // Show sort if model has data.
                             if ( iModel->Count() )
                                 {
-                                //<cmail>
-                                //Set touchmanager not active for preventing getting events.
+                                // Set touchmanager not active for preventing getting events.
                                 DisableMailList(ETrue);
-                                //</cmail>
                                 iAppUi.ShowSortListInPopupL( iCurrentSortCriteria, folderType, this, iSortButton );
                                 }
                             else
@@ -3928,164 +4067,27 @@ TBool CFSEmailUiMailListVisualiser::OfferEventL(const TAlfEvent& aEvent)
                                     IsFocusShown() );
                                 }
                             }
-                        return ETrue;//iControlBar->OfferEventL( aEvent );
+                        return ETrue; // iControlBar->OfferEventL( aEvent );
                         }
                     }
                     break;
                 case EStdKeyLeftArrow:
-                    {
-                    if( iControlBarControl && iFocusedControl == EMailListComponent )
-                        {
-                        HandleCommandL( EFsEmailUiCmdGoToSwitchSorting );
-                        result = ETrue;
-                        }
-                    else if( ( iControlBarControl ) &&
-                             ( iFocusedControl == EControlBarComponent  ) )
-                        {
-                        TInt focusedButtonId = iControlBarControl->GetFocusedButton()->Id();
-                        iControlBarControl->MakeSelectorVisible( IsFocusShown() );
-                        if ( focusedButtonId == iFolderListButtonId )
-                            {
-                            if ( iModel->Count() )
-                                {
-                                iFocusedControl = EMailListComponent;
-                                result = EFalse;
-                                }
-                            else
-                                {
-                                iFocusedControl = EControlBarComponent;
-                                result = ETrue; // Do not set focus to empty list
-                                }
-                            }
-                        else
-                            {
-                            iFocusedControl = EControlBarComponent;
-                            result = EFalse;
-                            }
-                        }
-                    else
-                        {
-                        iFocusedControl = EMailListComponent;
-                        result = EFalse;
-                        }
-                    SetMskL();
-                    }
-                    break;
                 case EStdKeyRightArrow:
-                    {
-                    // Show toolbar if there is data on the list
-                    // <cmail>
-                    if ( iFocusedControl == EMailListComponent && iModel->Count() )
-                    // </cmail>
-                        {
-                        RFsTreeItemIdList targetEntries;
-                        CleanupClosePushL( targetEntries );
-                        GetActionsTargetEntriesL( targetEntries );
-                        TInt targetCount = targetEntries.Count();
-                        CleanupStack::PopAndDestroy( &targetEntries );
-
-                        if ( targetCount )
-                            {
-                            LaunchStylusPopupMenuL();
-                            result = ETrue;
-                            }
-                        }
-                    else if( ( iControlBarControl ) &&
-                             ( iFocusedControl == EControlBarComponent ) )
-                        {
-                        TInt focusedButtonId = iControlBarControl->GetFocusedButton()->Id();
-                        iControlBarControl->MakeSelectorVisible( IsFocusShown() );
-                        if ( focusedButtonId == iFolderListButtonId )
-                            {
-                            iFocusedControl = EControlBarComponent;
-                            result = EFalse;
-                            }
-                        else
-                            {
-                            if ( iModel->Count() ) // Check for empty folder
-                                {
-                                iFocusedControl = EMailListComponent;
-                                result = EFalse;
-                                }
-                            else
-                                {
-                                iFocusedControl = EControlBarComponent;
-                                result = ETrue; // Do not set focus to empty list
-                                }
-                            }    					                                   ;
-                        }
-                    else
-                        {
-                        iFocusedControl = EMailListComponent;
-                        result = EFalse;
-                        }
-                    SetMskL();
-                    }
-                    break;
                 case EStdKeyDownArrow:
-                    {
-                    if ( iFocusedControl == EMailListComponent )
-                        {
-                        result = iMailList->TreeControl()->OfferEventL(aEvent);
-                        if ( shiftState )
-                            {
-                            DoScrollMarkUnmarkL(); // marking is done after moving the cursor
-                            }
-                        }
-                    // <cmail>
-                    else if ( iFocusedControl == EControlBarComponent && iModel->Count() == 0 )
-                        {
-                        iControlBarControl->MakeSelectorVisible( IsFocusShown() );
-                        result = ETrue; // Do not set focus to empty list
-                        }
-                    else if ( iFocusedControl == EControlBarComponent && iModel->Count() != 0 )
-                    // </cmail>
-                        {
-                        iFocusedControl = EMailListComponent;
-
-                        result = iMailList->TreeControl()->OfferEventL(aEvent);
-                        if ( shiftState )
-                            {
-                            DoScrollMarkUnmarkL(); // marking is done after moving the cursor
-                            }
-                        }
-                    else
-                        {
-                        result = EFalse;
-                        }
-                    SetMskL();
-                    }
-                    break;
                 case EStdKeyUpArrow:
                     {
-                    iControlBarControl->MakeSelectorVisible( IsFocusShown() );
-                    if ( iFocusedControl == EMailListComponent )
+                    if( Layout_Meta_Data::IsLandscapeOrientation() )
                         {
-                        if ( HighlightedIndex() == 0 )
-                            {
-                            HandleCommandL( EFsEmailUiCmdGoToSwitchFolder );
-                            result = ETrue;
-                            }
-                        else
-                            {
-                            result = iMailList->TreeControl()->OfferEventL(aEvent);
-                            if ( shiftState )
-                                {
-                                DoScrollMarkUnmarkL(); // marking is done after moving the cursor
-                                }
-                            SetMskL();
-                            }
-                        }
-                    else if (iFocusedControl == EControlBarComponent)
-                        {
-                        result = ETrue;
+                        result = HandleArrowEventInLandscapeL( scanCode,
+                                    aEvent, shiftState );
                         }
                     else
                         {
-                        result = EFalse;
+                        result = HandleArrowEventInPortraitL( scanCode,
+                                    aEvent, shiftState );
                         }
-                    }
                     break;
+                    }
                 case EStdKeyYes:
                     {
                     if ( !iAppUi.ViewSwitchingOngoing() )
@@ -4118,6 +4120,8 @@ TBool CFSEmailUiMailListVisualiser::OfferEventL(const TAlfEvent& aEvent)
                                             CFsDelayedLoader::InstanceL()->GetContactHandlerL()->FindAndCallToContactByEmailL(
                                                     *mailAddress, iAppUi.GetActiveMailbox(), this, ETrue );
                                             }
+// consume following KyUp event to prevent execution of Call application when call to contact processing
+                                        iConsumeStdKeyYes_KeyUp = result = ETrue;
                                         }
                                     }
                                 }
@@ -4133,7 +4137,6 @@ TBool CFSEmailUiMailListVisualiser::OfferEventL(const TAlfEvent& aEvent)
                     result = ETrue;
                     }
                     break;
-               //<cmail>
                // Backspace (C key) must be handled on Key-Down instead of Key-Up
                // ( this was the reason that deleted two emails from opened mail in viewer )
                case EStdKeyBackspace:
@@ -4149,7 +4152,6 @@ TBool CFSEmailUiMailListVisualiser::OfferEventL(const TAlfEvent& aEvent)
                    else result = EFalse;
                    }
                    break;
-                //</cmail>
                 default:
                     {
                     if ( iFocusedControl == EMailListComponent )
@@ -4173,6 +4175,7 @@ TBool CFSEmailUiMailListVisualiser::OfferEventL(const TAlfEvent& aEvent)
         TInt shortcutCommand =
             iAppUi.ShortcutBinding().CommandForShortcutKey( aEvent.KeyEvent(),
                 CFSEmailUiShortcutBinding::EContextMailList );
+
         // Hash/shift key of ITU-T and half-QWERTY keyboards is an exception case to other
         // shortcuts: it is handled only if it hasn't been used as shift modifier
         if ( (scanCode == EStdKeyHash || scanCode == EStdKeyLeftShift || scanCode == EStdKeyRightShift) &&
@@ -4181,9 +4184,11 @@ TBool CFSEmailUiMailListVisualiser::OfferEventL(const TAlfEvent& aEvent)
             shortcutCommand = KErrNotFound;
             }
 
-        //<cmail>  // block Backspace (C key) handle on Key-Up
-        if ( scanCode == EStdKeyBackspace) shortcutCommand = KErrNotFound; // handled on Key-Down, see above
-        //</cmail>
+        // block Backspace (C key) handle on Key-Up
+        if ( scanCode == EStdKeyBackspace )
+            {
+            shortcutCommand = KErrNotFound; // handled on Key-Down, see above
+            }
 
         if ( shortcutCommand != KErrNotFound )
             {
@@ -4199,7 +4204,6 @@ TBool CFSEmailUiMailListVisualiser::OfferEventL(const TAlfEvent& aEvent)
     return result;
     }
 
-//<cmail>
 // ---------------------------------------------------------------------------
 // CFSEmailUiMailListVisualiser::DoHandleListItemOpenL
 // ---------------------------------------------------------------------------
@@ -4279,7 +4283,7 @@ void CFSEmailUiMailListVisualiser::DoHandleControlBarOpenL( TInt aControlBarButt
 // CFSEmailUiMailListVisualiser::DoHandleListItemLongTapL
 // ---------------------------------------------------------------------------
 //
-void CFSEmailUiMailListVisualiser::DoHandleListItemLongTapL()
+void CFSEmailUiMailListVisualiser::DoHandleListItemLongTapL( const TPoint& aPoint )
     {
     FUNC_LOG;
 
@@ -4289,7 +4293,7 @@ void CFSEmailUiMailListVisualiser::DoHandleListItemLongTapL()
         iMailList->GetMarkedItemsL( markedEntries );
         if ( markedEntries.Count() >= 0 )
             {
-            LaunchStylusPopupMenuL();
+            LaunchStylusPopupMenuL( aPoint );
             }
         }
     }
@@ -4355,11 +4359,10 @@ void CFSEmailUiMailListVisualiser::FocusVisibilityChange( TBool aVisible )
         iControlBarControl->MakeSelectorVisible( aVisible );
         }
 
-    if ( iStylusPopUpMenuLaunched && !aVisible )
+    if ( iStylusPopUpMenuVisible && !aVisible )
     	{
     	// Do not allow to remove the focus from a list element if the pop up
     	// menu was just launched.
-    	iStylusPopUpMenuLaunched = EFalse;
     	return;
     	}
 
@@ -5350,6 +5353,10 @@ void CFSEmailUiMailListVisualiser::DeleteFocusedMessageL()
                 RemoveMsgItemsFromListIfFoundL( msgIds );
                 CleanupStack::PopAndDestroy( &msgIds );
 				}
+			else
+				{
+				UnmarkAllItemsL();
+				}
 			}
 		}
 	}
@@ -5415,6 +5422,10 @@ void CFSEmailUiMailListVisualiser::DeleteMarkedMessagesL()
             }
         // </cmail>
         }
+    else
+    	{
+		UnmarkAllItemsL();
+    	}
 
     CleanupStack::PopAndDestroy( &markedEntries );
 	}
@@ -5805,10 +5816,10 @@ void CFSEmailUiMailListVisualiser::FolderSelectedL(
 					}
 			    iControlBarControl->SetFocusByIdL( iSortButtonId );
 			    iControlBarControl->MakeSelectorVisible( IsFocusShown() );
-/* <cmail> Sorting empty list enabled
-                // Show sort list only if maiil list is not empty
+
+			    // Sorting empty mail list disabled
+                // Show sort list only if mail list is not empty
                 if ( iModel->Count() )
-</cmail> */
                     {
                     iAppUi.ShowSortListInPopupL( iCurrentSortCriteria, folderType, this, iSortButton );
                     }
@@ -6210,317 +6221,11 @@ HBufC* CFSEmailUiMailListVisualiser::CreateFolderNameLC( const CFSMailFolder* aF
 	}
 
 // ---------------------------------------------------------------------------
-// LaunchActionMenuL
-// Function launches action menu based on the highlighted or marked messages
-// ---------------------------------------------------------------------------
-//
-void CFSEmailUiMailListVisualiser::LaunchActionMenuL()
-	{
-    FUNC_LOG;
-	// Get marked entries
-	RFsTreeItemIdList markedEntries;
-	CleanupClosePushL( markedEntries );
-	iMailList->GetMarkedItemsL( markedEntries );
-	TInt markedCount = markedEntries.Count();
-
-	// Remove old items from action menu
-    CFSEmailUiActionMenu::RemoveAllL();
-	// Construct item list
-    RFsEActionMenuIdList itemList;
-    CleanupClosePushL( itemList );
-	// Check support for object mail iten moving
-	TBool supportsMoving = iAppUi.GetActiveMailbox()->HasCapability( EFSMBoxCapaMoveToFolder );
-
-	if ( markedCount == 0 || markedCount == 1 ) // Action menu for a single item
-		{
-		// Get pointer to the single message we are dealing with
-	    TFsTreeItemId listItemId;
-	    if ( markedCount == 0 )
-	        {
-	        listItemId = iMailList->FocusedItem();
-	        }
-	    else // ( markedCount == 1)
-	        {
-	        listItemId = markedEntries[0];
-	        }
-	    CFSMailMessage* msgPtr = &MsgPtrFromListIdL( listItemId );
-
-	    if ( iMailFolder->GetFolderType() == EFSOutbox )
-			{
-			if ( supportsMoving )
-				{
-			    itemList.AppendL( FsEActionMenuMoveToDrafts );
-				}
-			}
-		else if( iMailFolder->GetFolderType() == EFSDraftsFolder )
-			{
-			// Create mark unread / mark read flag
-			if ( msgPtr->IsFlagSet( EFSMsgFlag_Read ) )
-				{
-			    itemList.AppendL( FsEActionMenuMarkUnread );
-				}
-			else
-				{
-			    itemList.AppendL( FsEActionMenuMarkRead );
-				}
-			// Add Move message item if applicable
-			if ( supportsMoving )
-				{
-				itemList.AppendL( FsEActionMenuMove );
-				}
-			}
-		else
-			{
-			// Construct menu for calendar message based on resolved mr object
-			// and whether the MRUI object is available
-			if ( msgPtr->IsFlagSet( EFSMsgFlag_CalendarMsg ) &&  iAppUi.MrViewerInstanceL() )
-				{
-			    TESMRMeetingRequestMethod mrMethod( EESMRMeetingRequestMethodUnknown );
-			    TRAP_IGNORE( mrMethod = iAppUi.MrViewerInstanceL()->ResolveMeetingRequestMethodL( *msgPtr ) );
-			    switch ( mrMethod )
-					{
-					case EESMRMeetingRequestMethodRequest:
-						{
-						if ( iMailFolder && iMailFolder->GetFolderType() != EFSOutbox &&
-							 iMailFolder->GetFolderType() != EFSDraftsFolder )
-							{
-							// No choices in outbox in outbox or drafts
-							itemList.AppendL( FsEActionMenuAccept );
-						    itemList.AppendL( FsEActionMenuTentative );
-						    itemList.AppendL( FsEActionMenuDecline );
-							}
-						}
-						break;
-					case EESMRMeetingRequestMethodCancellation:
-						{
-						// No "remove from calendar" in outbox or drafts
-						if ( iMailFolder && iMailFolder->GetFolderType() != EFSOutbox &&
-							 iMailFolder->GetFolderType() != EFSDraftsFolder )
-							{
-							TBool supportsRemove = iAppUi.GetActiveMailbox()->HasCapability( EFSMBoxCapaRemoveFromCalendar );
-							if( supportsRemove )
-							    {
-							    itemList.AppendL( FsEActionMenuRemoveFormCal );
-							    }
-							}
-						}
-						break;
-                    case EESMRMeetingRequestMethodUnknown:
-                    case EESMRMeetingRequestMethodResponse:
-					default:
-					    {
-					    // Only "Open" options is available for responses and when MR method
-					    // cannot be resolved without opening the message (this is the case with IMAP)
-	                    itemList.AppendL( FsEActionMenuOpenCalendarEvent );
-					    }
-						break;
-					}
-				}
-			// No mrui object or message is typical mail
-			// Append normal menu commands
-			else
-				{
-			    itemList.AppendL( FsEActionMenuReply );
-			    // Show ReplyAll if more than 1 recepient
-			    TInt numRecipients(0);
-                if ( msgPtr )
-                    {
-                    //Get # of recipients
-                    numRecipients =TFsEmailUiUtility::CountRecepients( msgPtr );
-                    if ( numRecipients == 1 )
-                        {
-                        //check if the malbox ownmailaddress is same as the recipients email address. If not, then assume that the
-                        //email is a distribution list and we need to inc num of Recipients so that "Reply ALL" option appears in UI.
-                        if ( msgPtr->GetToRecipients().Count() )
-                            {
-                                if( iAppUi.GetActiveMailbox()->OwnMailAddress().GetEmailAddress().Compare(msgPtr->GetToRecipients()[0]->GetEmailAddress()) )
-                                    {
-                                    numRecipients++;
-                                    }
-                            }
-                        if ( msgPtr->GetCCRecipients().Count() )
-                            {
-                                if ( iAppUi.GetActiveMailbox()->OwnMailAddress().GetEmailAddress().Compare(msgPtr->GetCCRecipients()[0]->GetEmailAddress()) )
-                                    {
-                                    numRecipients++;
-                                    }
-                            }
-                        if( msgPtr->GetBCCRecipients().Count() )
-                            {
-                                if ( iAppUi.GetActiveMailbox()->OwnMailAddress().GetEmailAddress().Compare(msgPtr->GetBCCRecipients()[0]->GetEmailAddress()) )
-                                    {
-                                    numRecipients++;
-                                    }
-                            }
-                        }
-                    }
-
-			    if ( numRecipients > 1 )
-			        {
-	                itemList.AppendL( FsEActionMenuReplyAll );
-			        }
-			    itemList.AppendL( FsEActionMenuForward );
-				}
-
-			// Add mark as read/unread options
-			if ( IsMarkAsUnreadAvailableL() )
-				{
-			    itemList.AppendL( FsEActionMenuMarkUnread );
-				}
-			if ( IsMarkAsReadAvailableL() )
-				{
-			    itemList.AppendL( FsEActionMenuMarkRead );
-				}
-
-			// Add Move message item if applicable
-			if ( supportsMoving )
-				{
-				itemList.AppendL( FsEActionMenuMove );
-				}
-			}
-	    itemList.AppendL( FsEActionMenuDelete );
-
-		// Execute action list and handle the menu command
-		TFSMailMsgId oldMsgId = msgPtr->GetMessageId();
-
-// <cmail> Touch
-		TActionMenuCustomItemId itemId = CFSEmailUiActionMenu::ExecuteL( itemList, EFscCustom, 0, this );
-// </cmail>
-
-		// Make sure that focus or marking is still on the same item as when Action menu was launched.
-		// This is beacause message added/deleted event migh have occured and deleted the original meessage or
-	   	// resulted in complete redraw of the message list.
-        TInt newItemIdx = ItemIndexFromMessageId( oldMsgId );
-        if ( newItemIdx >= 0 ) // items still exists
-            {
-            TFsTreeItemId newItemListId = iTreeItemArray[ newItemIdx ].iListItemId;
-            if ( markedCount )
-                {
-                // Item was marked. Make sure it's marked now.
-                iMailList->MarkItemL( newItemListId, ETrue );
-                }
-            else
-                {
-                // No items were marked. Make sure the focus is on the same item as before.
-                if ( iMailList->FocusedItem() != newItemListId )
-                    {
-                    iMailList->SetFocusedItemL( newItemListId );
-                    }
-                }
-            HandleActionMenuCommandL( itemId );
-            }
-		}
-	else // Multiple items marked
-		{
-        // Add mark as read/unread options
-        if ( IsMarkAsUnreadAvailableL() )
-            {
-            itemList.AppendL( FsEActionMenuMarkUnread );
-            }
-        if ( IsMarkAsReadAvailableL() )
-            {
-            itemList.AppendL( FsEActionMenuMarkRead );
-            }
-
-		if ( iMailFolder->GetFolderType() == EFSOutbox ) // Append move to drafts in outbox
-			{
-			if ( supportsMoving )
-				{
-			    itemList.AppendL( FsEActionMenuMoveToDrafts );
-				}
-			}
-		else 	// Append move in any other cases dirtectly if supported
-			{
-			if ( supportsMoving )
-				{
-			    itemList.AppendL( FsEActionMenuMove );
-				}
-			}
-	    itemList.AppendL( FsEActionMenuDelete );
-	   	TActionMenuCustomItemId itemId = CFSEmailUiActionMenu::ExecuteL( itemList );
-		iMailList->GetMarkedItemsL( markedEntries );
-		if ( markedEntries.Count() ) // Safety check
-			{
-			HandleActionMenuCommandL( itemId );
-			}
-		}
-	CleanupStack::PopAndDestroy( &itemList );
-	CleanupStack::PopAndDestroy( &markedEntries );
-	}
-
-// ---------------------------------------------------------------------------
-// HandleActionMenuCommandL
-// Action menu command callback handler
-// ---------------------------------------------------------------------------
-//
-void CFSEmailUiMailListVisualiser::HandleActionMenuCommandL( TActionMenuCustomItemId itemId )
-	{
-    FUNC_LOG;
-	// Map each Action Menu ID to correcponding command ID.
-	TInt commandId = KErrNotFound;
-
-	switch( itemId )
-		{
-		case FsEActionMenuOpenCalendarEvent:
-		case FsEActionMenuOpen:
-		    commandId = EFsEmailUiCmdOpen;
-		    break;
-		case FsEActionMenuAccept:
-		    commandId = EFsEmailUiCmdCalActionsAccept;
-		    break;
-		case FsEActionMenuTentative:
-		    commandId = EFsEmailUiCmdCalActionsTentative;
-		    break;
-		case FsEActionMenuDecline:
-		    commandId = EFsEmailUiCmdCalActionsDecline;
-		    break;
-		case FsEActionMenuRemoveFormCal:
-		    commandId = EFsEmailUiCmdCalRemoveFromCalendar;
-		    break;
-		case FsEActionMenuMarkRead:
-		    commandId = EFsEmailUiCmdMarkAsRead;
-		    break;
-		case FsEActionMenuMarkUnread:
-		    commandId = EFsEmailUiCmdMarkAsUnread;
-			break;
-		case FsEActionMenuDelete:
-		    commandId = EFsEmailUiCmdActionsDelete;
-			break;
-		case FsEActionMenuReply:
-		    commandId = EFsEmailUiCmdActionsReply;
-			break;
-		case FsEActionMenuReplyAll:
-            commandId = EFsEmailUiCmdActionsReplyAll;
-			break;
-		case FsEActionMenuForward:
-            commandId = EFsEmailUiCmdActionsForward;
-			break;
-		case FsEActionMenuMove:
-		    commandId = EFsEmailUiCmdActionsMoveMessage;
-			break;
-		case FsEActionMenuMoveToDrafts:
-            commandId = EFsEmailUiCmdActionsMoveToDrafts;
-			break;
-		case FsEActionMenuDismissed:
-		    commandId = KErrCancel;
-		    break;
-		default:
-		    __ASSERT_DEBUG( EFalse, Panic(EFSEmailUiUnexpectedValue) );
-		    break;
-		}
-
-	if ( commandId >= 0 )
-	    {
-	    HandleCommandL( commandId );
-	    }
-	}
-
-// ---------------------------------------------------------------------------
 // LaunchStylusPopupMenuL
 // Function launches avkon stylus popup menu based on the selected message item/items
 // ---------------------------------------------------------------------------
 //
-void CFSEmailUiMailListVisualiser::LaunchStylusPopupMenuL()
+void CFSEmailUiMailListVisualiser::LaunchStylusPopupMenuL( const TPoint& aPoint )
 	{
 	// Irrelevant items for focused mail list item get dimmed at runtime
 
@@ -6575,12 +6280,12 @@ void CFSEmailUiMailListVisualiser::LaunchStylusPopupMenuL()
 		}
 
 	// Set the position for the popup
-	iStylusPopUpMenu->SetPosition( ActionMenuPosition() );
+	iStylusPopUpMenu->SetPosition( aPoint );
 
 	// Display the popup and set the flag to indicate that the menu was
 	// launched.
 	iStylusPopUpMenu->ShowMenu();
-	iStylusPopUpMenuLaunched = ETrue;
+	iStylusPopUpMenuVisible = ETrue;
 	}
 
 // ---------------------------------------------------------------------------
@@ -6847,8 +6552,9 @@ void CFSEmailUiMailListVisualiser::HandleMailBoxEventL( TFSMailEvent aEvent,
 //
 // ---------------------------------------------------------------------------
 //
-void CFSEmailUiMailListVisualiser::TreeListEventL(
-    const TFsTreeListEvent aEvent, const TFsTreeItemId aId )
+void CFSEmailUiMailListVisualiser::TreeListEventL( const TFsTreeListEvent aEvent,
+                                                   const TFsTreeItemId aId,
+                                                   const TPoint& /*aPoint*/ )
 	{
     FUNC_LOG;
     switch( aEvent )
@@ -7176,8 +6882,8 @@ TInt CFSEmailUiMailListVisualiser::MoveToPreviousMsgL( TFSMailMsgId aCurrentMsgI
 	    ChangeReadStatusOfHighlightedL( ETrue );
         aFoundPreviousMsgId = MsgIdFromIndex( prevIdx );
 	    ret = KErrNone;
-	    }	
-	
+	    }
+
 	if ( ret == KErrNone )
 		{
 		OpenHighlightedMailL();
@@ -7188,22 +6894,22 @@ TInt CFSEmailUiMailListVisualiser::MoveToPreviousMsgL( TFSMailMsgId aCurrentMsgI
 TInt CFSEmailUiMailListVisualiser::MoveToPreviousMsgAfterDeleteL( TFSMailMsgId aFoundPreviousMsgId )
 	{
 	FUNC_LOG;
-	TInt ret(KErrNotFound);	
-	
-	TInt idx = ItemIndexFromMessageId( aFoundPreviousMsgId );	
+	TInt ret(KErrNotFound);
+
+	TInt idx = ItemIndexFromMessageId( aFoundPreviousMsgId );
 	if ( idx >= 0 )
-		{		
+		{
 		// Focus the previous message
 		iMailTreeListVisualizer->SetFocusedItemL( iTreeItemArray[idx].iListItemId, EFalse );
 		ChangeReadStatusOfHighlightedL( ETrue );
-		ret = KErrNone;		
+		ret = KErrNone;
 		}
 
 	if ( ret == KErrNone )
 		{
 		OpenHighlightedMailL();
 		}
-	
+
 	return ret;
 	}
 
@@ -7259,7 +6965,7 @@ void CFSEmailUiMailListVisualiser::SetListAndCtrlBarFocusL()
         }
     else
         {
-        if ( iStylusPopUpMenuLaunched )
+        if( iStylusPopUpMenuVisible )
         	{
         	return;
         	}
@@ -7271,40 +6977,14 @@ void CFSEmailUiMailListVisualiser::SetListAndCtrlBarFocusL()
             {
             focusedBtnId = focusedBtn->Id();
             }
-        iControlBarControl->MakeSelectorVisible( IsFocusShown() );
         iControlBarControl->SetFocusL( ETrue );
         if ( focusedBtnId != KErrNotFound )
             {
             iControlBarControl->SetFocusByIdL( focusedBtnId );
             }
+        iControlBarControl->MakeSelectorVisible( IsFocusShown() );
         }
     }
-
-// <cmail>
-// ---------------------------------------------------------------------------
-// ActionMenuPosition
-// ---------------------------------------------------------------------------
-//
-TPoint CFSEmailUiMailListVisualiser::ActionMenuPosition()
-    {
-    RFsTreeItemIdList markedEntries;
-    TRAP_IGNORE(iMailList->GetMarkedItemsL( markedEntries ));
-    TInt markedCount = markedEntries.Count();
-    TFsTreeItemId listItemId;
-    if ( markedCount == 0 )
-        {
-        listItemId = iMailList->FocusedItem();
-        }
-    else // ( markedCount == 1)
-        {
-        listItemId = markedEntries[0];
-        }
-    TAlfRealRect focusRect;
-    iMailList->GetItemDisplayRectTarget(listItemId, focusRect);
-    markedEntries.Close();
-    return focusRect.iTl;
-    }
-// </cmail>
 
 void CFSEmailUiMailListVisualiser::GetParentLayoutsL( RPointerArray<CAlfVisual>& aLayoutArray ) const
     {
@@ -7635,7 +7315,20 @@ void CDateChangeTimer::Start()
 void CDateChangeTimer::RunL()
     {
     FUNC_LOG;
-    // Update mail list and reissue the request for timer event
-    iMailListVisualiser.NotifyDateChangedL();
-    Start();
+    if ( KErrCancel == iStatus.Int() )
+        {
+        ;
+        }
+    // System time changed?
+    else if ( KErrAbort == iStatus.Int() )
+        {
+        Start();
+        }
+    // Interval is over
+    else
+        {
+        // Update mail list and reissue the request for timer event
+        TRAP_IGNORE( iMailListVisualiser.NotifyDateChangedL() );
+        Start();
+        }
     }

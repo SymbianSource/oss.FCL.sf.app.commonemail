@@ -41,9 +41,14 @@
 
 "\epoc32\data\z\private\2001E277\HtmlFile\attachment.gif"        - "c:\private\2001E277\HtmlFile\attachment.gif"
 "\epoc32\data\z\private\2001E277\HtmlFile\email.html"            - "c:\private\2001E277\HtmlFile\email.html"
+"\epoc32\data\z\private\2001E277\HtmlFile\email_rtl.html"            - "c:\private\2001E277\HtmlFile\email_rtl.html"
 "\epoc32\data\z\private\2001E277\HtmlFile\header.js"             - "c:\private\2001E277\HtmlFile\header.js"
 "\epoc32\data\z\private\2001E277\HtmlFile\plus.gif"              - "c:\private\2001E277\HtmlFile\plus.gif"
 "\epoc32\data\z\private\2001E277\HtmlFile\minus.gif"             - "c:\private\2001E277\HtmlFile\minus.gif"
+"\epoc32\data\z\private\2001E277\HtmlFile\follow_up.png"         - "c:\private\2001E277\HtmlFile\follow_up.png"
+"\epoc32\data\z\private\2001E277\HtmlFile\follow_up_complete.png" - "c:\private\2001E277\HtmlFile\follow_up_complete.png"
+"\epoc32\data\z\private\2001E277\HtmlFile\todo_high_add.png"     - "c:\private\2001E277\HtmlFile\todo_high_add.png"
+"\epoc32\data\z\private\2001E277\HtmlFile\todo_low_add.png"      - "c:\private\2001E277\HtmlFile\todo_low_add.png"
 
 ; Emailuis / uicomponents
 "\epoc32\release\armv5\udeb\fs_generic.dll"                      - "c:\sys\bin\fs_generic.dll"

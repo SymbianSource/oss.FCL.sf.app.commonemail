@@ -660,8 +660,8 @@ void CNcsEditor::Draw( const TRect& /*aRect*/ ) const
 
 void CNcsEditor::FormatAllTextNowL()
 	{
-	NotifyNewFormatL();
-	iTextView->FinishBackgroundFormattingL();
+	iLayout->SetAmountToFormat(CTextLayout::EFFormatAllText);
+	iTextView->FormatTextL();
 	}
 //</cmail>
 

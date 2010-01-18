@@ -768,11 +768,10 @@ public: // Visualization management
      /**
       *
       */
-     // <cmail> Touch
      IMPORT_C virtual void TreeVisualizerEventL(
              const TFsTreeVisualizerEvent aEvent,
-             const TFsTreeItemId aId = KFsTreeNoneID ) const;
-     // </cmail>
+             const TFsTreeItemId aId,
+             const TPoint& aPoint ) const;
 
     /**
      * Gets the reference to the text style manager.

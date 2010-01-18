@@ -121,6 +121,14 @@ public:  // From MFSMailBoxSearchObserver
      *
      */
      virtual void SearchCompletedL();
+
+//
+    /**
+    * Asks client if search engine should change search priority 
+  	*/
+    virtual void ClientRequiredSearchPriority(TInt *apRequiredSearchPriority); 
+//
+
     
 private:
     /**

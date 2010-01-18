@@ -344,6 +344,10 @@ private:
     CFSEmailUiContactHandler( RFs& aSession );
     
     void ConstructL( RFs& aSession );
+    
+// <cmail> call observer's MFSEmailUiContactHandlerObserver::OperationErrorL( TContactHandlerCmd aCmd, TInt aError ) 
+    void ObserverOperationErrorL( TContactHandlerCmd aCmd, TInt aErrorCode );
+    
 
 private:
     

@@ -2,9 +2,9 @@
 * Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
-* under the terms of "Eclipse Public License v1.0"
+* under the terms of the License "Symbian Foundation License v1.0"
 * which accompanies this distribution, and is available
-* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+* at the URL "http://www.symbianfoundation.org/legal/sfl-v10.html".
 *
 * Initial Contributors:
 * Nokia Corporation - initial contribution.
@@ -32,6 +32,10 @@
 
 _LIT8( KShowDetailIconFileName, "plus.gif");
 _LIT8( KAttachementIconGeneral, "attachment.gif");
+_LIT8( KFollowUpIconFileName, "follow_up.png");
+_LIT8( KFollowUpCompleteIconFileName, "follow_up_complete.png");
+_LIT8( KPriorityHighIconFileName, "todo_high_add.png");
+_LIT8( KPriorityLowIconFileName, "todo_low_add.png");
 
 _LIT8( KHeaderTableName, "header_table");
 _LIT8( KToTableName, "to_table");
@@ -52,44 +56,82 @@ _LIT8( KCcImageName, "cc_img");
 _LIT8( KBccImageName, "bcc_img");
 _LIT8( KAttachmentImageName, "attachment_img");
 _LIT8( KDetailImageName, "detail_img");
+_LIT8( KFollowUpImageName, "follow_up_img");
+_LIT8( KFollowUpCompleteImageName, "follow_up_complete_img");
+_LIT8( KPriorityHighImageName, "todo_high_add_img");
+_LIT8( KPriorityLowImageName, "todo_low_add_img");
 
 _LIT8( KAttachmentSizeUnit, "kb");
 _LIT8( KSpace8, " ");
+
+_LIT8( KHTMLImgTagId, "<image id=\"" );
+_LIT8( KHTMLImgTagSrcBefore, "\" border=\"0\" src=\"" );
+_LIT8( KHTMLImgTagSrcAfter, "\">" );
 
 _LIT8( KMetaHeader, "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n" );
 const TInt KMaxEventLength( 256 );
 const TInt KFreestyleMessageHeaderHTMLRightMarginInPx( 10 );
 const TInt KFreestyleMessageHeaderHTMLMaxBufferSizeForWidth( 5 );
 
-EXPORT_C CFreestyleMessageHeaderHTML* CFreestyleMessageHeaderHTML::NewL( CFSMailMessage& aMailMessage, TInt aVisibleWidth   )
+EXPORT_C CFreestyleMessageHeaderHTML* CFreestyleMessageHeaderHTML::NewL( CFSMailMessage& aMailMessage, 
+                                                                         RWriteStream& aWriteStream,
+                                                                         TInt aVisibleWidth,
+                                                                         TInt aScrollPosition,
+                                                                         TBidiText::TDirectionality aDirectionality
+                                                                         )
     {
-    CFreestyleMessageHeaderHTML* self = new (ELeave) CFreestyleMessageHeaderHTML( aMailMessage, aVisibleWidth  );
+    CFreestyleMessageHeaderHTML* self = new (ELeave) CFreestyleMessageHeaderHTML( aMailMessage, aWriteStream, aVisibleWidth, aScrollPosition, aDirectionality);
     self->ConstructL();
     return self;
     }
 
-EXPORT_C void CFreestyleMessageHeaderHTML::ExportL( CFSMailMessage& aMailMessage, RWriteStream& aWriteStream, TInt aVisibleWidth   )
+EXPORT_C void CFreestyleMessageHeaderHTML::ExportL( CFSMailMessage& aMailMessage, 
+                                                    RWriteStream& aWriteStream, 
+                                                    TInt aVisibleWidth,
+                                                    TInt aScrollPosition,
+                                                    TBidiText::TDirectionality aDirectionality)
     {
-    CFreestyleMessageHeaderHTML* headerHtml = CFreestyleMessageHeaderHTML::NewL( aMailMessage, aVisibleWidth   );
+    CFreestyleMessageHeaderHTML* headerHtml = CFreestyleMessageHeaderHTML::NewL( aMailMessage, aWriteStream, aVisibleWidth, aScrollPosition, aDirectionality);
     CleanupStack::PushL( headerHtml );
-    headerHtml->ExportL( aWriteStream );
+    headerHtml->ExportL();
     CleanupStack::PopAndDestroy( headerHtml );
     }
 
-EXPORT_C void CFreestyleMessageHeaderHTML::ExportL( CFSMailMessage& aMailMessage, RFile& aFile, TInt aVisibleWidth   )
+EXPORT_C void CFreestyleMessageHeaderHTML::ExportL( CFSMailMessage& aMailMessage, 
+                                                    RFile& aFile, 
+                                                    TInt aVisibleWidth,
+                                                    TInt aScrollPosition,
+                                                    TBidiText::TDirectionality aDirectionality)
     {
-    CFreestyleMessageHeaderHTML* headerHtml = CFreestyleMessageHeaderHTML::NewL( aMailMessage, aVisibleWidth   );
+    RFileWriteStream fwstream;
+    fwstream.Attach( aFile, 0 );
+    CleanupClosePushL( fwstream );
+    
+    CFreestyleMessageHeaderHTML* headerHtml = CFreestyleMessageHeaderHTML::NewL( aMailMessage, fwstream, aVisibleWidth, aScrollPosition, aDirectionality );
     CleanupStack::PushL( headerHtml );
-    headerHtml->ExportL( aFile );
+    headerHtml->ExportL();
     CleanupStack::PopAndDestroy( headerHtml );
+    
+    CleanupStack::PopAndDestroy( &fwstream );
     }
 
-EXPORT_C void CFreestyleMessageHeaderHTML::ExportL( CFSMailMessage& aMailMessage, RFs& aFs, const TPath& aFilePath, TInt aVisibleWidth  )
+EXPORT_C void CFreestyleMessageHeaderHTML::ExportL( CFSMailMessage& aMailMessage, 
+                                                    RFs& aFs, 
+                                                    const TPath& aFilePath, 
+                                                    TInt aVisibleWidth,
+                                                    TInt aScrollPosition,
+                                                    TBidiText::TDirectionality aDirectionality)
     {
-    CFreestyleMessageHeaderHTML* headerHtml = CFreestyleMessageHeaderHTML::NewL( aMailMessage, aVisibleWidth   );
+    RFileWriteStream fwstream;
+    User::LeaveIfError( fwstream.Replace( aFs, aFilePath, EFileStreamText | EFileWrite) );
+    CleanupClosePushL( fwstream );
+    
+    CFreestyleMessageHeaderHTML* headerHtml = CFreestyleMessageHeaderHTML::NewL( aMailMessage, fwstream, aVisibleWidth, aScrollPosition, aDirectionality);
     CleanupStack::PushL( headerHtml );
-    headerHtml->ExportL( aFs, aFilePath );
+    headerHtml->ExportL();
     CleanupStack::PopAndDestroy( headerHtml );
+
+    CleanupStack::PopAndDestroy( &fwstream );    
     }
 
 CFreestyleMessageHeaderHTML::~CFreestyleMessageHeaderHTML()
@@ -97,127 +139,134 @@ CFreestyleMessageHeaderHTML::~CFreestyleMessageHeaderHTML()
     iAttachments.ResetAndDestroy();
     }
 
-EXPORT_C void CFreestyleMessageHeaderHTML::ExportL( RWriteStream& aWriteStream ) const
+EXPORT_C void CFreestyleMessageHeaderHTML::ExportL() const
     {
-    HTMLStartL( aWriteStream );
-    ExportHTMLHeaderL( aWriteStream );
-    ExportHTMLBodyL( aWriteStream );
-    HTMLEndL( aWriteStream );
+    HTMLStartL();
+    ExportHTMLHeaderL();
+    ExportHTMLBodyL();
+    HTMLEndL();
     }
 
-EXPORT_C void CFreestyleMessageHeaderHTML::ExportL( RFile& aFile ) const
+CFreestyleMessageHeaderHTML::CFreestyleMessageHeaderHTML( CFSMailMessage& aMailMessage,  
+                                                          RWriteStream& aWriteStream,
+                                                          TInt aVisibleWidth,
+                                                          TInt aScrollPosition,
+                                                          TBidiText::TDirectionality aDirectionality )
+    : iMailMessage( aMailMessage ),
+    iWriteStream( aWriteStream ),
+    iVisibleWidth( aVisibleWidth - KFreestyleMessageHeaderHTMLRightMarginInPx ),
+    iScrollPosition(aScrollPosition),
+    iDirectionality( aDirectionality )
     {
-    RFileWriteStream fwstream;
-    fwstream.Attach( aFile, 0 );
-    CleanupClosePushL( fwstream );
-    ExportL( fwstream );
-    CleanupStack::PopAndDestroy( &fwstream );
     }
 
-EXPORT_C void CFreestyleMessageHeaderHTML::ExportL( RFs& aFs, const TPath& aFilePath) const
-    {
-    RFileWriteStream fwstream;
-    User::LeaveIfError( fwstream.Replace( aFs, aFilePath, EFileStreamText | EFileWrite) );
-    CleanupClosePushL( fwstream );
-    ExportL( fwstream );
-    CleanupStack::PopAndDestroy( &fwstream );
-    }
-
-CFreestyleMessageHeaderHTML::CFreestyleMessageHeaderHTML( CFSMailMessage& aMailMessage,  TInt aVisibleWidth  )
-    : iMailMessage( aMailMessage )
-    {
-    iVisibleWidth = aVisibleWidth - KFreestyleMessageHeaderHTMLRightMarginInPx;
-  	}
-  	
 void CFreestyleMessageHeaderHTML::ConstructL()
     {
     iMailMessage.AttachmentListL( iAttachments );
     }
 
-void CFreestyleMessageHeaderHTML::HTMLStartL( RWriteStream& aWriteStream ) const
+void CFreestyleMessageHeaderHTML::HTMLStartL() const
     {
-    aWriteStream.WriteL(_L8("<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\">\n"));
-    aWriteStream.CommitL();
+    iWriteStream.WriteL(_L8("<html"));
+    if ( iDirectionality == TBidiText::ERightToLeft )
+        {
+        iWriteStream.WriteL(_L8(" dir=\"rtl\""));
+        }    
+    iWriteStream.WriteL(_L8(" xmlns=\"http://www.w3.org/1999/xhtml\">\n"));
+    iWriteStream.CommitL();
     }
 
-void CFreestyleMessageHeaderHTML::HTMLEndL( RWriteStream& aWriteStream ) const
+void CFreestyleMessageHeaderHTML::HTMLEndL() const
     {
-    aWriteStream.WriteL(_L8("</html>\n"));
-    aWriteStream.CommitL();
+    iWriteStream.WriteL(_L8("</html>\n"));
+    iWriteStream.CommitL();
     }
 
-void CFreestyleMessageHeaderHTML::ExportHTMLHeaderL( RWriteStream& aWriteStream ) const
+void CFreestyleMessageHeaderHTML::ExportHTMLHeaderL() const
     {
-    HTMLHeaderStartL( aWriteStream );
-    HTMLMetaL( aWriteStream );
-    aWriteStream.WriteL(_L8("<title>Email Header</title>\n"));
-    AddJavascriptL( aWriteStream );
-    AddStyleSheetL( aWriteStream );
-    HTMLHeaderEndL( aWriteStream );
+    HTMLHeaderStartL();
+    HTMLMetaL();
+    iWriteStream.WriteL( _L8("<title>Email Header</title>\n") );
+    AddJavascriptL();
+    AddStyleSheetL();
+    HTMLHeaderEndL();
     }
 
-void CFreestyleMessageHeaderHTML::HTMLHeaderStartL( RWriteStream& aWriteStream ) const
+void CFreestyleMessageHeaderHTML::HTMLHeaderStartL() const
     {
-    aWriteStream.WriteL(_L8("<head>"));
-    aWriteStream.CommitL();
+    iWriteStream.WriteL(_L8("<head>"));
+    iWriteStream.CommitL();
     }
 
-void CFreestyleMessageHeaderHTML::HTMLMetaL( RWriteStream& aWriteStream ) const
+void CFreestyleMessageHeaderHTML::HTMLMetaL() const
     {
     // Html file representing email header fields, is always constructed locally
     // in the phone, and it is always of charset UTF-8 irrespective of what
     // the email html-format body is
-    aWriteStream.WriteL( KMetaHeader );
-    aWriteStream.CommitL();
+    iWriteStream.WriteL( KMetaHeader );
+    iWriteStream.CommitL();
     }
 
-void CFreestyleMessageHeaderHTML::HTMLHeaderEndL( RWriteStream& aWriteStream ) const
+void CFreestyleMessageHeaderHTML::HTMLHeaderEndL() const
     {
-    aWriteStream.WriteL(_L8("</head>\n"));
-    aWriteStream.CommitL();
+    iWriteStream.WriteL(_L8("</head>\n"));
+    iWriteStream.CommitL();
     }
 
-void CFreestyleMessageHeaderHTML::ExportHTMLBodyL( RWriteStream& aWriteStream ) const
+void CFreestyleMessageHeaderHTML::ExportHTMLBodyL() const
     {
-    HTMLBodyStartL( aWriteStream );
-    ExportInitialTableL( aWriteStream );
-    StartHeaderTableL( aWriteStream, KHeaderTableName );
-    ExportFromL( aWriteStream );
-    ExportToL( aWriteStream );
-    ExportCcL( aWriteStream );
-    ExportBccL( aWriteStream );
-    ExportSentTimeL( aWriteStream );
-    ExportSubjectL( aWriteStream );
-    EndHeaderTableL( aWriteStream );
-    ExportAttachmentsL( aWriteStream );
-    HTMLBodyEndL( aWriteStream );
+    HTMLBodyStartL();
+    ExportInitialTableL();
+    StartHeaderTableL( KHeaderTableName );
+    ExportFromL();
+    ExportToL();
+    ExportCcL();
+    ExportBccL();
+    ExportSentTimeL();
+    ExportSubjectL();
+    EndHeaderTableL();
+    ExportAttachmentsL();
+    HTMLBodyEndL();
     }
 
-void CFreestyleMessageHeaderHTML::HTMLBodyStartL( RWriteStream& aWriteStream ) const
+void CFreestyleMessageHeaderHTML::HTMLBodyStartL() const
     {
-    aWriteStream.WriteL(_L8("<body>\n"));
-    aWriteStream.CommitL();
+    TBuf8<KFreestyleMessageHeaderHTMLRightMarginInPx> scrollPos;
+    scrollPos.AppendNum(iScrollPosition);
+    iWriteStream.WriteL(_L8("<body onLoad = init("));
+    iWriteStream.WriteL(scrollPos);
+    iWriteStream.WriteL(_L8(")>\n"));
+    iWriteStream.CommitL();
     }
-void CFreestyleMessageHeaderHTML::ExportInitialTableL( RWriteStream& aWriteStream ) const
-    {
 
+void CFreestyleMessageHeaderHTML::ExportInitialTableL() const
+    {
     // set the width, using the visible screen width
     TBuf8<KFreestyleMessageHeaderHTMLMaxBufferSizeForWidth> tableWidth;
     tableWidth.AppendNum( iVisibleWidth );
-    aWriteStream.WriteL(_L8("<table id=\"table_initial\" border=\"0\" width=\""));
-    aWriteStream.WriteL( tableWidth );
-    aWriteStream.WriteL( _L8("px\">\n"));
+    iWriteStream.WriteL(_L8("<table id=\"table_initial\" border=\"0\" width=\""));
+    iWriteStream.WriteL( tableWidth );
+    iWriteStream.WriteL( _L8("px\">\n"));
     
 
     // start first row: table with the sent info and the '+' icon
-    aWriteStream.WriteL(_L8("<tr><td><table id=\"table_sent_and_plus\" border=\"0\" width=\""));
-    aWriteStream.WriteL( tableWidth );
-    aWriteStream.WriteL( _L8("px\">\n"));
+    iWriteStream.WriteL(_L8("<tr><td><table id=\"table_sent_and_plus\" border=\"0\" width=\""));
+    iWriteStream.WriteL( tableWidth );
+    iWriteStream.WriteL( _L8("px\">\n"));
     
-    aWriteStream.WriteL(_L8("<tr>\n"));
+    iWriteStream.WriteL(_L8("<tr>\n"));
     
     // add Sent time and date
-    aWriteStream.WriteL(_L8("<td id=\"sent_initial\" align=\"left\" valign=\"bottom\">"));
+    iWriteStream.WriteL(_L8("<td id=\"sent_initial\""));
+    if ( iDirectionality == TBidiText::ELeftToRight )
+        {
+        iWriteStream.WriteL(_L8(" align=\"left\""));
+        }
+    else
+        {
+        iWriteStream.WriteL(_L8(" align=\"right\""));
+        }
+    iWriteStream.WriteL(_L8(" valign=\"bottom\">"));
     
     HBufC* dateText = TFsEmailUiUtility::DateTextFromMsgLC( &iMailMessage );
     HBufC* timeText = TFsEmailUiUtility::TimeTextFromMsgLC( &iMailMessage );
@@ -230,77 +279,326 @@ void CFreestyleMessageHeaderHTML::ExportInitialTableL( RWriteStream& aWriteStrea
     sentTimeTextPtr.Append( *timeText );
     HBufC8* sentTimeText8 = CnvUtfConverter::ConvertFromUnicodeToUtf8L( sentTimeTextPtr );
     CleanupStack::PushL( sentTimeText8 );
-    aWriteStream.WriteL( *sentTimeText8 );
+    iWriteStream.WriteL( *sentTimeText8 );
     CleanupStack::PopAndDestroy( sentTimeText8 );
     CleanupStack::PopAndDestroy( sentTimeText );
     CleanupStack::PopAndDestroy( timeText );
     CleanupStack::PopAndDestroy( dateText );
     
-    aWriteStream.WriteL(_L8("</td>\n"));
+    iWriteStream.WriteL(_L8("</td>\n"));
     
     // add "show details" image on the same line as Sent time and date
-    aWriteStream.WriteL(_L8("<td width=\"1\" valign=\"top\" align=\"right\" style=\"padding: 0px 10px 0px 0px;\"><image id=\"detail_img\" border=\"0\" src=\"plus.gif\" onClick=\"expandHeader()\" ></td>\n"));
-        
+    iWriteStream.WriteL(_L8("<td width=\"1\" valign=\"top\""));
+    if ( iDirectionality == TBidiText::ELeftToRight )
+        {
+        iWriteStream.WriteL(_L8(" align=\"right\""));
+        }
+    else
+        {
+        iWriteStream.WriteL(_L8(" align=\"left\""));
+        }
+    iWriteStream.WriteL(_L8(" style=\"padding: 0px 10px 0px 0px;\"><image id=\"detail_img\" border=\"0\" src=\"plus.gif\" onClick=\"expandHeader()\" ></td>\n"));
+
+    
     // finish first row
-    aWriteStream.WriteL(_L8("</tr>\n"));  
-    aWriteStream.WriteL(_L8("</table></td></tr>\n"));
+    iWriteStream.WriteL(_L8("</tr>\n"));  
+    iWriteStream.WriteL(_L8("</table></td></tr>\n"));
 
     //=============================
     // start second row which contains subject
-    aWriteStream.WriteL(_L8("<tr>\n"));
-    aWriteStream.WriteL(_L8("<td id=\"subject_initial\" align=\"left\"><b>"));
+    iWriteStream.WriteL(_L8("<tr>\n"));
+    iWriteStream.WriteL(_L8("<td id=\"subject_initial\""));
+    if ( iDirectionality == TBidiText::ELeftToRight )
+        {
+        iWriteStream.WriteL(_L8(" align=\"left\""));
+        }
+    else
+        {
+        iWriteStream.WriteL(_L8(" align=\"right\""));
+        }
+    iWriteStream.WriteL(_L8("><b>"));
 
     HBufC8* subject8 = CnvUtfConverter::ConvertFromUnicodeToUtf8L( iMailMessage.GetSubject() );
     CleanupStack::PushL( subject8 );
-    aWriteStream.WriteL( *subject8 );
+    iWriteStream.WriteL( *subject8 );
     CleanupStack::PopAndDestroy( subject8 );
-
-    aWriteStream.WriteL(_L8("</b></td>\n"));
-    aWriteStream.WriteL(_L8("</tr>\n"));  // finish subject row
+    iWriteStream.WriteL(_L8("</b>"));
+        
+    // Write icons (if necessary).
+    HBufC8* followUp = HTMLHeaderFollowUpIconLC( EFalse );
+    HBufC8* priority = HTMLHeaderPriorityIconLC( EFalse );
+        
+    if ( priority )
+        {
+        iWriteStream.WriteL( *priority );
+        CleanupStack::PopAndDestroy( priority);
+        }
+    
+    if ( followUp )
+        {
+        iWriteStream.WriteL( *followUp );
+        CleanupStack::PopAndDestroy( followUp );
+        }
+    
+    iWriteStream.WriteL(_L8("</td></tr>\n"));  // finish subject row
     
     // end table_initial
-    aWriteStream.WriteL(_L8("</table>\n"));
+    iWriteStream.WriteL(_L8("</table>\n"));
         
-    aWriteStream.CommitL();
-    }
-void CFreestyleMessageHeaderHTML::HTMLBodyEndL( RWriteStream& aWriteStream ) const
-    {
-    aWriteStream.WriteL(_L8("</body>\n"));
-    aWriteStream.CommitL();
+    iWriteStream.CommitL();
     }
 
-void CFreestyleMessageHeaderHTML::ExportSubjectL( RWriteStream& aWriteStream ) const
+HBufC8* CFreestyleMessageHeaderHTML::HTMLHeaderFollowUpIconLC( TBool aShowText ) const
     {
-    aWriteStream.WriteL( _L8("<tr id=\"") );
-    aWriteStream.WriteL( KSubjectFieldName );
-    aWriteStream.WriteL( _L8("\">") );
+    HBufC8* followUpText8( NULL );
+    HBufC8* followUpCompletedText8( NULL );
+        
+    // Reserve space with worst case scenario in mind. 
+    TInt textLength( 0 );
+    if ( aShowText )
+        {
+        // Follow up completed.
+        HBufC* followUpCompletedText = StringLoader::LoadLC( 
+                R_FREESTYLE_EMAIL_UI_VIEWER_COMPLETED );
+        followUpCompletedText8 = CnvUtfConverter::ConvertFromUnicodeToUtf8L( 
+                *followUpCompletedText );
+        CleanupStack::PopAndDestroy( followUpCompletedText );
+        CleanupStack::PushL( followUpCompletedText8 );
+        
+        // Follow up.
+        HBufC* followUpText = StringLoader::LoadLC( 
+                R_FREESTYLE_EMAIL_UI_VIEWER_FOLLOWUP );
+        followUpText8 = CnvUtfConverter::ConvertFromUnicodeToUtf8L( 
+                *followUpText );
+        CleanupStack::PopAndDestroy( followUpText );
+        CleanupStack::PushL( followUpText8 );
+    
+        textLength += KHTMLImgTagId().Length() +
+                      KFollowUpCompleteImageName().Length() +
+                      KHTMLImgTagSrcBefore().Length() +
+                      KFollowUpCompleteIconFileName().Length() +
+                      KHTMLImgTagSrcAfter().Length() +
+                      ( followUpText8->Length() >= followUpCompletedText8->Length() ?
+                      followUpText8->Length() : followUpCompletedText8->Length() ); 
+        }
+    else
+        {
+        // Plain icon and no text.
+        textLength += KHTMLImgTagId().Length() + 
+                      KFollowUpCompleteImageName().Length() +
+                      KHTMLImgTagSrcBefore().Length() +
+                      KFollowUpCompleteIconFileName().Length() +
+                      KHTMLImgTagSrcAfter().Length();
+        }
+
+    // Allocate space.
+    HBufC8* iconText8 = HBufC8::NewLC( textLength );    
+        
+    // Generate HTML code
+    TPtr8 iconPtr( iconText8->Des() );
+        
+    if ( iMailMessage.IsFlagSet( EFSMsgFlag_FollowUp ) )
+        {
+        iconPtr.Append( KHTMLImgTagId );
+        iconPtr.Append( KFollowUpImageName );
+        iconPtr.Append( KHTMLImgTagSrcBefore );
+        iconPtr.Append( KFollowUpIconFileName );
+        iconPtr.Append( KHTMLImgTagSrcAfter );
+        if ( aShowText && followUpText8 )
+            {
+            iconPtr.Append( followUpText8->Des() );
+            }
+        }
+    else if ( iMailMessage.IsFlagSet( EFSMsgFlag_FollowUpComplete ) )
+        {
+        iconPtr.Append( KHTMLImgTagId );
+        iconPtr.Append( KFollowUpCompleteImageName );
+        iconPtr.Append( KHTMLImgTagSrcBefore );
+        iconPtr.Append( KFollowUpCompleteIconFileName );
+        iconPtr.Append( KHTMLImgTagSrcAfter );
+        if ( aShowText && followUpCompletedText8 )
+            {
+            iconPtr.Append( followUpCompletedText8->Des() );
+            }
+        }
+    else
+        {
+        // No follow up flag set.
+        CleanupStack::PopAndDestroy( iconText8 );
+        iconText8 = NULL;
+        }
+
+    if ( aShowText )
+        {
+        if ( iconText8 )
+            {
+            CleanupStack::Pop( iconText8 );
+            }
+        CleanupStack::PopAndDestroy( followUpText8 );
+        CleanupStack::PopAndDestroy( followUpCompletedText8 );
+        if ( iconText8 )
+            {
+            CleanupStack::PushL( iconText8 );
+            }
+        }
+    
+    return iconText8;
+    }
+
+HBufC8* CFreestyleMessageHeaderHTML::HTMLHeaderPriorityIconLC( TBool aShowText ) const
+    {
+    HBufC8* highPrioText8( NULL );
+    HBufC8* lowPrioText8( NULL );
+        
+    // Reserve space with worst case scenario in mind. 
+    TInt textLength( 0 );
+    if ( aShowText )
+        {
+        // High priority.
+        HBufC* highPrioText = StringLoader::LoadLC( 
+                R_FREESTYLE_EMAIL_UI_VIEWER_HIGH_PRIO );
+        highPrioText8 = CnvUtfConverter::ConvertFromUnicodeToUtf8L( 
+                *highPrioText );
+        CleanupStack::PopAndDestroy( highPrioText );
+        CleanupStack::PushL( highPrioText8 );
+    
+        // Low priority.
+        HBufC* lowPrioText = StringLoader::LoadLC( 
+                R_FREESTYLE_EMAIL_UI_VIEWER_LOW_PRIO );
+        lowPrioText8 = CnvUtfConverter::ConvertFromUnicodeToUtf8L( 
+                *lowPrioText );
+        CleanupStack::PopAndDestroy( lowPrioText );
+        CleanupStack::PushL( lowPrioText8 );
+            
+        textLength += KHTMLImgTagId().Length() +
+                      KPriorityHighImageName().Length() +
+                      KHTMLImgTagSrcBefore().Length() +
+                      KPriorityHighIconFileName().Length() +
+                      KHTMLImgTagSrcAfter().Length() +
+                      ( lowPrioText8->Length() >= highPrioText8->Length() ?
+                      lowPrioText8->Length() : highPrioText8->Length() ); 
+        }
+    else
+        {
+        // Plain icon and no text.
+        textLength += KHTMLImgTagId().Length() + 
+                      KPriorityHighImageName().Length() +
+                      KHTMLImgTagSrcBefore().Length() +
+                      KPriorityHighIconFileName().Length() +
+                      KHTMLImgTagSrcAfter().Length();
+        }
+
+    // Allocate space.
+    HBufC8* iconText8 = HBufC8::NewLC( textLength );    
+        
+    // Generate HTML code
+    TPtr8 iconPtr( iconText8->Des() );
+        
+    if ( iMailMessage.IsFlagSet( EFSMsgFlag_Low ) )
+        {
+        iconPtr.Append( KHTMLImgTagId );
+        iconPtr.Append( KPriorityLowImageName );
+        iconPtr.Append( KHTMLImgTagSrcBefore );
+        iconPtr.Append( KPriorityLowIconFileName );
+        iconPtr.Append( KHTMLImgTagSrcAfter );
+        if ( aShowText && lowPrioText8 )
+            {
+            iconPtr.Append( lowPrioText8->Des() );
+            }
+        }
+    else if ( iMailMessage.IsFlagSet( EFSMsgFlag_Important ) )
+        {
+        iconPtr.Append( KHTMLImgTagId );
+        iconPtr.Append( KPriorityHighImageName );
+        iconPtr.Append( KHTMLImgTagSrcBefore );
+        iconPtr.Append( KPriorityHighIconFileName );
+        iconPtr.Append( KHTMLImgTagSrcAfter );
+        if ( aShowText && highPrioText8 )
+            {
+            iconPtr.Append( highPrioText8->Des() );
+            }
+        }
+    else
+        {
+        // No priority flag set.
+        CleanupStack::PopAndDestroy( iconText8 );
+        iconText8 = NULL;
+        }
+
+    if ( aShowText )
+        {
+        if ( iconText8 )
+            {
+            CleanupStack::Pop( iconText8 );
+            }
+        CleanupStack::PopAndDestroy( lowPrioText8 );
+        CleanupStack::PopAndDestroy( highPrioText8 );
+        if ( iconText8 )
+            {
+            CleanupStack::PushL( iconText8 );
+            }
+        }
+    
+    return iconText8;
+    }
+
+void CFreestyleMessageHeaderHTML::HTMLBodyEndL() const
+    {
+    iWriteStream.WriteL(_L8("</body>\n"));
+    iWriteStream.CommitL();
+    }
+
+void CFreestyleMessageHeaderHTML::ExportSubjectL() const
+    {
+    iWriteStream.WriteL( _L8("<tr id=\"") );
+    iWriteStream.WriteL( KSubjectFieldName );
+    iWriteStream.WriteL( _L8("\">") );
 
 
-    aWriteStream.WriteL( _L8("<td width=\"1\">") );
-    aWriteStream.WriteL( _L8("<b>") );
+    iWriteStream.WriteL( _L8("<td width=\"1\">") );
+    iWriteStream.WriteL( _L8("<b>") );
     HBufC8* subjectHeadingText = HeadingTextLC( R_FREESTYLE_EMAIL_UI_VIEWER_SUBJECT );
-    aWriteStream.WriteL( *subjectHeadingText );
+    iWriteStream.WriteL( *subjectHeadingText );
     CleanupStack::PopAndDestroy( subjectHeadingText );
-    aWriteStream.WriteL( _L8("</b>") );
-    aWriteStream.WriteL( _L8("</td>") );
-    aWriteStream.WriteL( _L8("</tr>\n") );
+    iWriteStream.WriteL( _L8("</b>") );
+    iWriteStream.WriteL( _L8("</td>") );
+    iWriteStream.WriteL( _L8("</tr>\n") );
     
     // subject text
-    aWriteStream.WriteL( _L8("<tr>") );
-    aWriteStream.WriteL( _L8("<td>") );
+    iWriteStream.WriteL( _L8("<tr>") );
+    iWriteStream.WriteL( _L8("<td>") );
 
     HBufC8* subject8 = CnvUtfConverter::ConvertFromUnicodeToUtf8L( iMailMessage.GetSubject() );
     CleanupStack::PushL( subject8 );
-    aWriteStream.WriteL( *subject8 );
+    iWriteStream.WriteL( *subject8 );
     CleanupStack::PopAndDestroy( subject8 );
 
-    aWriteStream.WriteL( _L8("</td>") );
-    aWriteStream.WriteL( _L8("</tr>\n") );
+    iWriteStream.WriteL( _L8("</td>") );
+    iWriteStream.WriteL( _L8("</tr>\n") );
+    // Write icons (if necessary).
+    HBufC8* followUp = HTMLHeaderFollowUpIconLC( ETrue );
+    HBufC8* priority = HTMLHeaderPriorityIconLC( ETrue );
+   
+    if ( priority )
+       {
+       iWriteStream.WriteL(_L8("<tr><td>"));
+       iWriteStream.WriteL( *priority );
+       iWriteStream.WriteL(_L8("</td></tr>"));
+       CleanupStack::PopAndDestroy( priority);
+       }
+   
+    if ( followUp )
+       {
+       iWriteStream.WriteL(_L8("<tr><td>"));
+       iWriteStream.WriteL( *followUp );
+       iWriteStream.WriteL(_L8("</td></tr>"));
+       CleanupStack::PopAndDestroy( followUp );
+       }
 
-    aWriteStream.CommitL();
+    iWriteStream.CommitL();
     }
 
-void CFreestyleMessageHeaderHTML::ExportFromL( RWriteStream& aWriteStream ) const
+void CFreestyleMessageHeaderHTML::ExportFromL() const
     {
     RPointerArray<CFSMailAddress> froms;
     CleanupClosePushL( froms );
@@ -309,51 +607,51 @@ void CFreestyleMessageHeaderHTML::ExportFromL( RWriteStream& aWriteStream ) cons
         {
         froms.AppendL( from );
         }
-    ExportEmailAddressesL( aWriteStream, FreestyleMessageHeaderURLFactory::EEmailAddressTypeFrom, froms, 
+    ExportEmailAddressesL( FreestyleMessageHeaderURLFactory::EEmailAddressTypeFrom, froms, 
                            KFromFieldName, KFromTableName, R_FREESTYLE_EMAIL_UI_VIEWER_FROM );
     CleanupStack::PopAndDestroy( &froms );
     }
 
-void CFreestyleMessageHeaderHTML::ExportToL( RWriteStream& aWriteStream ) const
+void CFreestyleMessageHeaderHTML::ExportToL() const
     {
     RPointerArray<CFSMailAddress>& recipients = iMailMessage.GetToRecipients();
-    ExportEmailAddressesL( aWriteStream, FreestyleMessageHeaderURLFactory::EEmailAddressTypeTo, recipients,
+    ExportEmailAddressesL( FreestyleMessageHeaderURLFactory::EEmailAddressTypeTo, recipients,
                            KToFieldName, KToTableName, R_FREESTYLE_EMAIL_UI_VIEWER_TO );
     }
 
-void CFreestyleMessageHeaderHTML::ExportCcL( RWriteStream& aWriteStream ) const
+void CFreestyleMessageHeaderHTML::ExportCcL() const
     {
     RPointerArray<CFSMailAddress>& recipients = iMailMessage.GetCCRecipients();
-    ExportEmailAddressesL( aWriteStream, FreestyleMessageHeaderURLFactory::EEmailAddressTypeCc, recipients,
+    ExportEmailAddressesL( FreestyleMessageHeaderURLFactory::EEmailAddressTypeCc, recipients,
                            KCcFieldName, KCcTableName, R_FREESTYLE_EMAIL_UI_VIEWER_CC );
     }
 
-void CFreestyleMessageHeaderHTML::ExportBccL( RWriteStream& aWriteStream ) const
+void CFreestyleMessageHeaderHTML::ExportBccL() const
     {
     RPointerArray<CFSMailAddress>& recipients = iMailMessage.GetBCCRecipients();
-    ExportEmailAddressesL( aWriteStream, FreestyleMessageHeaderURLFactory::EEmailAddressTypeBcc, recipients,
+    ExportEmailAddressesL( FreestyleMessageHeaderURLFactory::EEmailAddressTypeBcc, recipients,
                            KBccFieldName, KBccTableName, R_FREESTYLE_EMAIL_UI_VIEWER_BCC );
     }
 
-void CFreestyleMessageHeaderHTML::ExportSentTimeL( RWriteStream& aWriteStream ) const
+void CFreestyleMessageHeaderHTML::ExportSentTimeL() const
     {
 
-    aWriteStream.WriteL( _L8("<tr id=\"") );
-    aWriteStream.WriteL( KSentFieldName );
-    aWriteStream.WriteL( _L8("\">") );
+    iWriteStream.WriteL( _L8("<tr id=\"") );
+    iWriteStream.WriteL( KSentFieldName );
+    iWriteStream.WriteL( _L8("\">") );
 
 
-    aWriteStream.WriteL( _L8("<td width=\"1\">") );
-    aWriteStream.WriteL( _L8("<b>") );
+    iWriteStream.WriteL( _L8("<td width=\"1\">") );
+    iWriteStream.WriteL( _L8("<b>") );
     HBufC8* sentHeadingText = HeadingTextLC( R_FREESTYLE_EMAIL_UI_VIEWER_SENT );
-    aWriteStream.WriteL( *sentHeadingText );
+    iWriteStream.WriteL( *sentHeadingText );
     CleanupStack::PopAndDestroy( sentHeadingText );
-    aWriteStream.WriteL( _L8("</b>") );
-    aWriteStream.WriteL( _L8("</td>") );
-    aWriteStream.WriteL( _L8("</tr>\n") );
+    iWriteStream.WriteL( _L8("</b>") );
+    iWriteStream.WriteL( _L8("</td>") );
+    iWriteStream.WriteL( _L8("</tr>\n") );
 
-    aWriteStream.WriteL( _L8("<tr>") );
-    aWriteStream.WriteL( _L8("<td>") );
+    iWriteStream.WriteL( _L8("<tr>") );
+    iWriteStream.WriteL( _L8("<td>") );
 
     HBufC* dateText = TFsEmailUiUtility::DateTextFromMsgLC( &iMailMessage );
     HBufC* timeText = TFsEmailUiUtility::TimeTextFromMsgLC( &iMailMessage );
@@ -366,60 +664,68 @@ void CFreestyleMessageHeaderHTML::ExportSentTimeL( RWriteStream& aWriteStream ) 
     sentTimeTextPtr.Append( *timeText );
     HBufC8* sentTimeText8 = CnvUtfConverter::ConvertFromUnicodeToUtf8L( sentTimeTextPtr );
     CleanupStack::PushL( sentTimeText8 );
-    aWriteStream.WriteL( *sentTimeText8 );
+    iWriteStream.WriteL( *sentTimeText8 );
     CleanupStack::PopAndDestroy( sentTimeText8 );
     CleanupStack::PopAndDestroy( sentTimeText );
     CleanupStack::PopAndDestroy( timeText );
     CleanupStack::PopAndDestroy( dateText );
 
-    aWriteStream.WriteL( _L8("</td>") );
+    iWriteStream.WriteL( _L8("</td>") );
 
-    aWriteStream.WriteL( _L8("</tr>\n") );
+    iWriteStream.WriteL( _L8("</tr>\n") );
 
-    aWriteStream.CommitL();
+    iWriteStream.CommitL();
     }
 
-void CFreestyleMessageHeaderHTML::ExportAttachmentsL( RWriteStream& aWriteStream ) const
+void CFreestyleMessageHeaderHTML::ExportAttachmentsL() const
     {
-
-    TInt attachmentsCount( iAttachments.Count() );
-    if ( attachmentsCount )
+    TInt attachmentsCount (iAttachments.Count());
+    if ( attachmentsCount)
         {
         // The attachments table consists of one row that contains 2 cells
         // first cell contains the attachment icon
         // second cell contains a table which contains the attachments list
 
         // start attachments table
-        aWriteStream.WriteL( _L8("<table id=\"") ); 
-        aWriteStream.WriteL( KAttachmentTableName );
-        aWriteStream.WriteL( _L8("\" border=\"0\" width=\"100%\">\n") );  // width is set at 100% intentionally
+        iWriteStream.WriteL( _L8("<table id=\"") ); 
+        iWriteStream.WriteL( KAttachmentTableName );
+        iWriteStream.WriteL( _L8("\" border=\"0\" width=\"100%\">\n") );  // width is set at 100% intentionally
         
         // start row
-        aWriteStream.WriteL( _L8("<tr>\n") );
+        iWriteStream.WriteL( _L8("<tr>\n") );
           
         // add attachment icon
-        aWriteStream.WriteL( _L8("<td width=\"1\" valign=\"top\" align=\"right\"><image src=\"") );
-        aWriteStream.WriteL( KAttachementIconGeneral );
-        aWriteStream.WriteL( _L8("\" ></td>\n") );
+        iWriteStream.WriteL( _L8("<td width=\"1\" valign=\"top\"") );
+        if ( iDirectionality == TBidiText::ELeftToRight )
+            {
+            iWriteStream.WriteL(_L8(" align=\"right\""));
+            }
+        else
+            {
+            iWriteStream.WriteL(_L8(" align=\"left\""));
+            }
+        iWriteStream.WriteL( _L8("><image src=\"") );
+        
+        iWriteStream.WriteL( KAttachementIconGeneral );
+        iWriteStream.WriteL( _L8("\" ></td>\n") );
         
         // start table of attachments as a table within a cell
-        aWriteStream.WriteL( _L8("<td>\n") );
-        aWriteStream.WriteL(_L8("<table id=\"table_attachments_list\" border=\"0\" width=\"100%\">\n"));
+        iWriteStream.WriteL( _L8("<td>\n") );
+        iWriteStream.WriteL(_L8("<table id=\"table_attachments_list\" border=\"0\" width=\"100%\">\n"));
         for (TInt i=0; i < attachmentsCount; i++)
             {
-            AddAttachmentL( aWriteStream, *iAttachments[i] );
+            AddAttachmentL( *iAttachments[i] );
             }
 
-        aWriteStream.WriteL(_L8("</table>\n")); // end table_attachments_list
-        aWriteStream.WriteL( _L8("</td>\n") );
+        iWriteStream.WriteL(_L8("</table>\n")); // end table_attachments_list
+        iWriteStream.WriteL( _L8("</td>\n") );
         
-        aWriteStream.WriteL( _L8("</tr>\n") );
-        aWriteStream.WriteL(_L8("</table>\n")); // end attachments table
+        iWriteStream.WriteL( _L8("</tr>\n") );
+        iWriteStream.WriteL(_L8("</table>\n")); // end attachments table
         }
     }
 
-void CFreestyleMessageHeaderHTML::ExportEmailAddressesL( RWriteStream& aWriteStream, 
-                                                        FreestyleMessageHeaderURLFactory::TEmailAddressType aEmailAddressType, 
+void CFreestyleMessageHeaderHTML::ExportEmailAddressesL(FreestyleMessageHeaderURLFactory::TEmailAddressType aEmailAddressType, 
                                                         const RPointerArray<CFSMailAddress>& aEmailAddresses,
                                                         const TDesC8& aRowId,
                                                         const TDesC8& /*aTableId*/,
@@ -428,35 +734,34 @@ void CFreestyleMessageHeaderHTML::ExportEmailAddressesL( RWriteStream& aWriteStr
     if ( aEmailAddresses.Count() )
         {
         // begin table row
-        aWriteStream.WriteL( _L8("<tr id=\"")); 
-        aWriteStream.WriteL( aRowId );
-        aWriteStream.WriteL( _L8("\">") );
+        iWriteStream.WriteL( _L8("<tr id=\"")); 
+        iWriteStream.WriteL( aRowId );
+        iWriteStream.WriteL( _L8("\">") );
         
         // heading text
-        aWriteStream.WriteL( _L8("<td><b>"));
+        iWriteStream.WriteL( _L8("<td><b>"));
         HBufC8* headingText = HeadingTextLC( aHeaderTextResourceId );
-        aWriteStream.WriteL( *headingText );
+        iWriteStream.WriteL( *headingText );
         CleanupStack::PopAndDestroy( headingText );
-        aWriteStream.WriteL( _L8("</b></td>"));
+        iWriteStream.WriteL( _L8("</b></td>"));
         
-        aWriteStream.WriteL( _L8("</tr>\n") );  // end table row      
+        iWriteStream.WriteL( _L8("</tr>\n") );  // end table row      
         
         // add addresses, one address per row
         TInt count( aEmailAddresses.Count() );
         for (TInt i = 0; i < count; ++i )
             {
-            aWriteStream.WriteL( _L8("<tr><td style=\"padding: 0px 0px 7px 0px;\">") );
-            AddEmailAddressL (aWriteStream, aEmailAddressType, *aEmailAddresses[i] );
-            aWriteStream.WriteL( _L8("</td></tr>\n") );
+            iWriteStream.WriteL( _L8("<tr><td style=\"padding: 0px 0px 7px 0px;\">") );
+            AddEmailAddressL (aEmailAddressType, *aEmailAddresses[i] );
+            iWriteStream.WriteL( _L8("</td></tr>\n") );
             }
 
-        aWriteStream.CommitL();
+        iWriteStream.CommitL();
         }
     }
 
-void CFreestyleMessageHeaderHTML::AddEmailAddressL( RWriteStream& aWriteStream,
-        FreestyleMessageHeaderURLFactory::TEmailAddressType aEmailAddressType,
-        const CFSMailAddress& aEmailAddress ) const
+void CFreestyleMessageHeaderHTML::AddEmailAddressL( FreestyleMessageHeaderURLFactory::TEmailAddressType aEmailAddressType,
+                                                    const CFSMailAddress& aEmailAddress ) const
     {
     CFreestyleMessageHeaderURL* emailUrl = FreestyleMessageHeaderURLFactory::CreateEmailAddressUrlL( aEmailAddressType, aEmailAddress );
     CleanupStack::PushL( emailUrl );
@@ -465,7 +770,7 @@ void CFreestyleMessageHeaderHTML::AddEmailAddressL( RWriteStream& aWriteStream,
     CleanupStack::PushL( url );
     HBufC8* url8 = CnvUtfConverter::ConvertFromUnicodeToUtf8L( *url );
     CleanupStack::PushL( url8 );
-    StartHyperlinkL( aWriteStream, *url8 );
+    StartHyperlinkL( *url8 );
     CleanupStack::PopAndDestroy( url8 );
     CleanupStack::PopAndDestroy( url );
 
@@ -479,17 +784,17 @@ void CFreestyleMessageHeaderHTML::AddEmailAddressL( RWriteStream& aWriteStream,
         displayName8 = CnvUtfConverter::ConvertFromUnicodeToUtf8L( aEmailAddress.GetEmailAddress() );
         }
     CleanupStack::PushL( displayName8 );
-    aWriteStream.WriteL( *displayName8 );
+    iWriteStream.WriteL( *displayName8 );
     CleanupStack::PopAndDestroy( displayName8 );
 
-    EndHyperlinkL( aWriteStream );
+    EndHyperlinkL();
 
     CleanupStack::PopAndDestroy( emailUrl );
     }
 
-void CFreestyleMessageHeaderHTML::AddAttachmentL( RWriteStream& aWriteStream, CFSMailMessagePart& aAttachment ) const
+void CFreestyleMessageHeaderHTML::AddAttachmentL( CFSMailMessagePart& aAttachment ) const
     {
-    aWriteStream.WriteL( _L8("<tr><td style=\"padding: 0px 0px 7px 0px;\">") ); // pad bottom to allow some space between the lines
+    iWriteStream.WriteL( _L8("<tr><td style=\"padding: 0px 0px 7px 0px;\">") ); // pad bottom to allow some space between the lines
 
     TUint id = aAttachment.GetPartId().Id();
     TBuf<32> itemId;
@@ -500,7 +805,7 @@ void CFreestyleMessageHeaderHTML::AddAttachmentL( RWriteStream& aWriteStream, CF
     CleanupStack::PushL( attnUrlText );
     HBufC8* attnUrlText8 = CnvUtfConverter::ConvertFromUnicodeToUtf8L( *attnUrlText );
     CleanupStack::PushL( attnUrlText8 );
-    StartHyperlinkL( aWriteStream, *attnUrlText8 );
+    StartHyperlinkL( *attnUrlText8 );
     CleanupStack::PopAndDestroy( attnUrlText8 );
     CleanupStack::PopAndDestroy( attnUrlText );
     CleanupStack::PopAndDestroy( attnUrl );
@@ -508,7 +813,7 @@ void CFreestyleMessageHeaderHTML::AddAttachmentL( RWriteStream& aWriteStream, CF
     TDesC& attnName = aAttachment.AttachmentNameL();
     HBufC8* attnName8 = CnvUtfConverter::ConvertFromUnicodeToUtf8L( attnName );
     CleanupStack::PushL( attnName8 );
-    aWriteStream.WriteL( *attnName8 );
+    iWriteStream.WriteL( *attnName8 );
     CleanupStack::PopAndDestroy( attnName8 );
 
     TUint size = aAttachment.ContentSize();
@@ -527,109 +832,119 @@ void CFreestyleMessageHeaderHTML::AddAttachmentL( RWriteStream& aWriteStream, CF
     sizeText.Append( KSpace8 );
     sizeText.Append( KAttachmentSizeUnit );
     sizeText.Append( _L8(")") );
-    aWriteStream.WriteL( sizeText );
+    iWriteStream.WriteL( sizeText );
 
-    EndHyperlinkL( aWriteStream );
+    EndHyperlinkL();
 
-    aWriteStream.WriteL( _L8("</td></tr>\n") );
-    aWriteStream.CommitL();
+    iWriteStream.WriteL( _L8("</td></tr>\n") );
+    iWriteStream.CommitL();
     }
 
 
-void CFreestyleMessageHeaderHTML::StartHyperlinkL( RWriteStream& aWriteStream, const TDesC8& aUrl ) const
+void CFreestyleMessageHeaderHTML::StartHyperlinkL( const TDesC8& aUrl ) const
     {
-    aWriteStream.WriteL( _L8("<a href=\"") );
-    aWriteStream.WriteL( aUrl );
-    aWriteStream.WriteL( _L8("\">"));
-    aWriteStream.CommitL();
+    iWriteStream.WriteL( _L8("<a href=\"") );
+    iWriteStream.WriteL( aUrl );
+    iWriteStream.WriteL( _L8("\">"));
+    iWriteStream.CommitL();
     }
 
-void CFreestyleMessageHeaderHTML::EndHyperlinkL( RWriteStream& aWriteStream ) const
+void CFreestyleMessageHeaderHTML::EndHyperlinkL() const
     {
-    aWriteStream.WriteL( _L8("</a>") );
-    aWriteStream.CommitL();
+    iWriteStream.WriteL( _L8("</a>") );
+    iWriteStream.CommitL();
     }
 
-void CFreestyleMessageHeaderHTML::AddImageL( RWriteStream& aWriteStream, const TDesC8& aImageUrl ) const
+void CFreestyleMessageHeaderHTML::AddImageL( const TDesC8& aImageUrl ) const
     {
-    aWriteStream.WriteL( _L8("<image border=\"0\" src=\"") );
-    aWriteStream.WriteL( aImageUrl );
-    aWriteStream.WriteL( _L8("\">"));
-    aWriteStream.CommitL();
+    iWriteStream.WriteL( _L8("<image border=\"0\" src=\"") );
+    iWriteStream.WriteL( aImageUrl );
+    iWriteStream.WriteL( _L8("\">"));
+    iWriteStream.CommitL();
     }
 
-void CFreestyleMessageHeaderHTML::AddImageL( RWriteStream& aWriteStream,
-        const TDesC8& aImageId,
-        const TDesC8& aImageUrl,
-        const TDesC8& aImageEvent ) const
+void CFreestyleMessageHeaderHTML::AddImageL( const TDesC8& aImageId,
+                                             const TDesC8& aImageUrl,
+                                             const TDesC8& aImageEvent ) const
     {
-    aWriteStream.WriteL( _L8("<image id=\"") );
-    aWriteStream.WriteL( aImageId );
-    aWriteStream.WriteL( _L8("\" ") );
-    aWriteStream.WriteL( _L8("border=\"0\" src=\"") );
-    aWriteStream.WriteL( aImageUrl );
-    aWriteStream.WriteL( _L8("\" "));
-    aWriteStream.WriteL( aImageEvent );
-    aWriteStream.WriteL( _L8(">"));
-    aWriteStream.CommitL();
+    iWriteStream.WriteL( _L8("<image id=\"") );
+    iWriteStream.WriteL( aImageId );
+    iWriteStream.WriteL( _L8("\" ") );
+    iWriteStream.WriteL( _L8("border=\"0\" src=\"") );
+    iWriteStream.WriteL( aImageUrl );
+    iWriteStream.WriteL( _L8("\" "));
+    iWriteStream.WriteL( aImageEvent );
+    iWriteStream.WriteL( _L8(">"));
+    iWriteStream.CommitL();
     }
 
-void CFreestyleMessageHeaderHTML::AddJavascriptL( RWriteStream& aWriteStream ) const
+void CFreestyleMessageHeaderHTML::AddJavascriptL() const
     {
-    aWriteStream.WriteL( _L8("<script language=\"javascript\" src=\"header.js\"></script>\n"));
-    aWriteStream.CommitL();
+    iWriteStream.WriteL( _L8("<script language=\"javascript\" src=\"header.js\"></script>\n"));
+    iWriteStream.CommitL();
     }
 
-void CFreestyleMessageHeaderHTML::StartHeaderTableL( RWriteStream& aWriteStream, const TDesC8& aTableId ) const
+void CFreestyleMessageHeaderHTML::StartHeaderTableL( const TDesC8& aTableId ) const
     {
-    aWriteStream.WriteL( _L8("<table id=\"") );
-    aWriteStream.WriteL( aTableId );
+    iWriteStream.WriteL( _L8("<table id=\"") );
+    iWriteStream.WriteL( aTableId );
     
     // use style="display:none" so that full header table is hidden initially
-    aWriteStream.WriteL( _L8("\" border=\"0\" width=\"100%\" style=\"display: none\">\n") );
+    iWriteStream.WriteL( _L8("\" border=\"0\" width=\"100%\" style=\"display: none\">\n") );
     
     
     TBuf8<KFreestyleMessageHeaderHTMLMaxBufferSizeForWidth> tableWidth;
     tableWidth.AppendNum( iVisibleWidth );
 
     // Add "hide details" image as its own table with its own width
-    aWriteStream.WriteL( _L8("<tr><td>\n"));
-    aWriteStream.WriteL(_L8("<table id =\"table_minus_icon\" border=\"0\" width=\""));
-    aWriteStream.WriteL( tableWidth );
-    aWriteStream.WriteL( _L8("px\">\n"));
-    aWriteStream.WriteL( _L8("<tr>\n"));
-    aWriteStream.WriteL( _L8("<td valign=\"top\" align=\"right\" style=\"padding: 0px 10px 0px 0px;\"><image id=\"hideDetails_img\" border=\"0\" src=\"minus.gif\" onClick=\"collapseHeader()\"></td>\n"));
-    aWriteStream.WriteL( _L8("</tr>\n"));
-    aWriteStream.WriteL( _L8("</table></td></tr>\n"));
-    aWriteStream.CommitL();
+    iWriteStream.WriteL( _L8("<tr><td>\n"));
+    iWriteStream.WriteL(_L8("<table id =\"table_minus_icon\" border=\"0\" width=\""));
+    iWriteStream.WriteL( tableWidth );
+    iWriteStream.WriteL( _L8("px\">\n"));
+    iWriteStream.WriteL( _L8("<tr>\n"));
+    
+    iWriteStream.WriteL( _L8("<td valign=\"top\""));
+    if ( iDirectionality == TBidiText::ELeftToRight )
+        {
+        iWriteStream.WriteL(_L8(" align=\"right\""));
+        }
+    else
+        {
+        iWriteStream.WriteL(_L8(" align=\"left\""));
+        }
+    iWriteStream.WriteL( _L8(" style=\"padding: 0px 10px 0px 0px;\"><image id=\"hideDetails_img\" border=\"0\" src=\"minus.gif\" onClick=\"collapseHeader()\"></td>\n"));
+
+    iWriteStream.WriteL( _L8("</tr>\n"));
+    iWriteStream.WriteL( _L8("</table></td></tr>\n"));
+    iWriteStream.CommitL();
     }
 
-void CFreestyleMessageHeaderHTML::EndHeaderTableL( RWriteStream& aWriteStream ) const
+void CFreestyleMessageHeaderHTML::EndHeaderTableL() const
     {
-    EndTableL( aWriteStream );
+    EndTableL();
     }
 
-void CFreestyleMessageHeaderHTML::StartTableL( RWriteStream& aWriteStream, const TDesC8& aTableId ) const
+void CFreestyleMessageHeaderHTML::StartTableL( const TDesC8& aTableId ) const
     {
-    aWriteStream.WriteL( _L8("<table id=\"") );
-    aWriteStream.WriteL( aTableId );
-    aWriteStream.WriteL( _L8("\" border=\"0\">\n") );
-    aWriteStream.CommitL();
+    iWriteStream.WriteL( _L8("<table id=\"") );
+    iWriteStream.WriteL( aTableId );
+    iWriteStream.WriteL( _L8("\" border=\"1\">\n") );
+    iWriteStream.CommitL();
     }
 
-void CFreestyleMessageHeaderHTML::EndTableL( RWriteStream& aWriteStream ) const
+void CFreestyleMessageHeaderHTML::EndTableL() const
     {
-    aWriteStream.WriteL( _L8("</table>\n") );
-    aWriteStream.CommitL();
+    iWriteStream.WriteL( _L8("</table>\n") );
+    iWriteStream.CommitL();
     }
 
-void CFreestyleMessageHeaderHTML::AddShowDetailL( RWriteStream& aWriteStream ) const
+void CFreestyleMessageHeaderHTML::AddShowDetailL() const
     {
     HBufC8* event = ClickImageEventL( KDetailImageName );
     CleanupStack::PushL( event );
-    AddImageL( aWriteStream, KDetailImageName, KShowDetailIconFileName, *event );
+    AddImageL( KDetailImageName, KShowDetailIconFileName, *event );
     CleanupStack::PopAndDestroy( event );
-    aWriteStream.CommitL();
+    iWriteStream.CommitL();
     }
 
 HBufC8* CFreestyleMessageHeaderHTML::ClickImageEventL( const TDesC8& aImageName ) const
@@ -700,41 +1015,41 @@ HBufC8* CFreestyleMessageHeaderHTML::HeadingTextLC( TInt aId, TInt aSize ) const
     return headingText8;
     }
 
-void CFreestyleMessageHeaderHTML::AddStyleSheetL( RWriteStream& aWriteStream ) const
+void CFreestyleMessageHeaderHTML::AddStyleSheetL() const
     {
     // Add an internal style sheet
     // If the style becomes numerous or complicated, consider using an external style sheet
     
-    aWriteStream.WriteL( _L8("<style type=\"text/css\">\n") );
+    iWriteStream.WriteL( _L8("<style type=\"text/css\">\n") );
     
     // define a div class "header", specifying the background color
     // for the email header part
     
     // In future, query for which background color to use
-    aWriteStream.WriteL( _L8("body { background-color: lightblue; }\n") );
+    iWriteStream.WriteL( _L8("body { background-color: lightblue; }\n") );
     
     // set font size to 75% of the default size
     // because, at the default size, the header text is too big relative to the text in the email body
     // Note: since the text in the body is too small at "normal" level, 
     // we have the text size level in the browser set to "Larger" which is 20% larger than the specified size
     // the "larger" size affects all text which includes the header.
-    aWriteStream.WriteL( _L8("td { font-family:arial,sans-serif ; font-size:75% }\n"));
+    iWriteStream.WriteL( _L8("td { font-family:arial,sans-serif ; font-size:75% }\n"));
     
-    aWriteStream.WriteL( _L8("</style>\n") );
-    aWriteStream.CommitL();
+    iWriteStream.WriteL( _L8("</style>\n") );
+    iWriteStream.CommitL();
     }
 
-void CFreestyleMessageHeaderHTML::StartDivL( RWriteStream& aWriteStream ) const
+void CFreestyleMessageHeaderHTML::StartDivL() const
     {
     // Add div, using "header" class
-    aWriteStream.WriteL( _L8("<div class=\"header\">\n") );
-    aWriteStream.CommitL();
+    iWriteStream.WriteL( _L8("<div class=\"header\">\n") );
+    iWriteStream.CommitL();
     }
     
-void CFreestyleMessageHeaderHTML::EndDivL( RWriteStream& aWriteStream ) const
+void CFreestyleMessageHeaderHTML::EndDivL() const
     {
-    aWriteStream.WriteL( _L8("</div>\n") );
-    aWriteStream.CommitL();
+    iWriteStream.WriteL( _L8("</div>\n") );
+    iWriteStream.CommitL();
     }
 
 

@@ -29,10 +29,7 @@
 #include "ncsconstants.h"
 #include "FreestyleEmailUiContactHandlerObserver.h"
 #include "FreestyleEmailUi.hrh"
-
-//<cmail>
 #include <aknlongtapdetector.h>
-//</cmail>
 
 class CAknPhysics;
 class CNcsEditor;
@@ -76,7 +73,7 @@ public:
 
     /**
     * Two-phased constructor.
-    * Create a CNcsComposeViewContainer object, which will draw itself to aRect
+    * Create a CNcsComposeViewContainer object, that draws itself to aRect
     * @param aView The parent view of this container.
     * @param aRect The rectangle this view will be drawn to.
     * @param aMailBox reference to current mailbox item.
@@ -105,21 +102,24 @@ public: // new functions
     * Get addresses in TO-field.
     * @return Array of address objects.
     */
-    const RPointerArray<CNcsEmailAddressObject>& GetToFieldAddressesL( TBool aParseNow=ETrue );
+    const RPointerArray<CNcsEmailAddressObject>& 
+    GetToFieldAddressesL( TBool aParseNow=ETrue );
 
     /**
     * GetCcFieldAddressesL
     * Get addresses in CC-field.
     * @return Array of address objects.
     */
-    const RPointerArray<CNcsEmailAddressObject>& GetCcFieldAddressesL( TBool aParseNow=ETrue );
+    const RPointerArray<CNcsEmailAddressObject>& 
+    GetCcFieldAddressesL( TBool aParseNow=ETrue );
 
     /**
     * GetBccFieldAddressesL
     * Get addresses in BCC-field.
     * @return Array of address objects.
     */
-    const RPointerArray<CNcsEmailAddressObject>& GetBccFieldAddressesL( TBool aParseNow=ETrue );
+    const RPointerArray<CNcsEmailAddressObject>& 
+    GetBccFieldAddressesL( TBool aParseNow=ETrue );
 
     /**
     * GetSubjectLC
@@ -210,42 +210,48 @@ public: // new functions
     * Set TO-field addresses.
     * @param aAddress Array of address objects.
     */
-    void SetToFieldAddressesL( RPointerArray<CNcsEmailAddressObject>& aAddress );
+    void SetToFieldAddressesL( 
+            RPointerArray<CNcsEmailAddressObject>& aAddress );
 
     /**
     * SetCcFieldAddressesL
     * Set CC-field addresses.
     * @param aAddress Array of address objects.
     */
-    void SetCcFieldAddressesL( RPointerArray<CNcsEmailAddressObject>& aAddress );
+    void SetCcFieldAddressesL( 
+            RPointerArray<CNcsEmailAddressObject>& aAddress );
 
     /**
     * SetBccFieldAddressesL
     * Set BCC-field addresses.
     * @param aAddress Array of address objects.
     */
-    void SetBccFieldAddressesL( RPointerArray<CNcsEmailAddressObject>& aAddress );
+    void SetBccFieldAddressesL( 
+            RPointerArray<CNcsEmailAddressObject>& aAddress );
 
     /**
     * AppendToFieldAddressesL
     * Append TO-field addresses.
     * @param aAddress Array of address objects.
     */
-    void AppendToFieldAddressesL( RPointerArray<CNcsEmailAddressObject>& aAddress );
+    void AppendToFieldAddressesL( 
+            RPointerArray<CNcsEmailAddressObject>& aAddress );
 
     /**
     * AppendCcFieldAddressesL
     * Append CC-field addresses.
     * @param aAddress Array of address objects.
     */
-    void AppendCcFieldAddressesL( RPointerArray<CNcsEmailAddressObject>& aAddress );
+    void AppendCcFieldAddressesL( 
+            RPointerArray<CNcsEmailAddressObject>& aAddress );
 
     /**
     * AppendBccFieldAddressesL
     * Append BCC-field addresses.
     * @param aAddress Array of address objects.
     */
-    void AppendBccFieldAddressesL( RPointerArray<CNcsEmailAddressObject>& aAddress );
+    void AppendBccFieldAddressesL( 
+            RPointerArray<CNcsEmailAddressObject>& aAddress );
 
     /**
     * SetSubjectL
@@ -278,24 +284,32 @@ public: // new functions
     void SetMenuBar( CEikButtonGroupContainer* aMenuBar );
 
     /**
-    * SetAttachmentLabelTextL
-    * Set attachments label information.
-    * @param aText The text to be shown in the attachments label.
-    */
-    void SetAttachmentLabelTextL( const TDesC& aText );
+     * SetAttachmentLabelTextsL
+     * Set attachment label informations from arrays of file name and
+     * size informations. Some decorations may be added. 
+     * The file name will be truncated autoamtically if needed.
+     * The method takes ownership of the passed arrays.
+     * @param  aAttachmentNames Descriptor array containing file names.
+     * @param  aAttachmentSizes Descriptor array containing file sizes.
+     */
+    void SetAttachmentLabelTextsLD( CDesCArray* aAttachmentNames, 
+                                    CDesCArray* aAttachmentSizes );
 
     /**
-    * SetAttachmentLabelTextL
-    * Set attachments label information from file name and size information.
-    * Some decorations may be added. The file name will be truncated autoamtically if needed.
-    * @param    aAttachmentName     The name of the attachment to be shown
-    * @param    aAttachmentSizeDesc Descriptor containing size information about the file
-    */
-    void SetAttachmentLabelTextL( const TDesC& aAttachmentName, const TDesC& aAttachmentSizeDesc );
-
+     * FocusedAttachmentLabelIndex
+     * Returns the index of the attachment label that is currently focused
+     * @return Index of the focused attachment label.
+     */
+    TInt FocusedAttachmentLabelIndex();
+    
+    /**
+     * FixSemicolonL
+     * Fixes possibly missing semicolon in message header address fields.
+     */
     void FixSemicolonL();
     
     void HideAttachmentLabel();
+ 
     /**
     * IsCcFieldVisible
     * Test if CC-field is visible.
@@ -309,9 +323,6 @@ public: // new functions
     * @return True if visible.
     */
     TBool IsBccFieldVisible() const;
-
-// <cmail> Removed unneeded IsFocusAif
-// </cmail>
 
     /**
     * IsFocusTo
@@ -382,15 +393,6 @@ public: // new functions
      * Gets modifiable reference to the text in body text field.
      */
     CRichText& BodyText();
-
-    /**
-    * SetApplicationRect
-    * Sets the container rectangle.
-    * @param aRect The rectangle.
-    */
-	// <cmail>
-    // void SetApplicationRect( TRect aRect );
-	// </cmail>
 
     /**
     * SetFocusToToField
@@ -464,10 +466,10 @@ public: // new functions
     void HandleAttachmentsOpenCommandL();
 		
     /**
-    * LaunchAttachmentActionMenuL
+    * LaunchStylusPopupMenu
     * 
     */
-    void LaunchAttachmentActionMenuL();
+    void LaunchStylusPopupMenu( const TPoint& aPenEventScreenLocation );
     
     /**
     * AreAddressFieldsEmpty
@@ -488,10 +490,12 @@ public: // new functions
     */
     void CommitL( TFieldToCommit aFieldToCommit = EAllFields );
 
-    //<cmail>
-    //sets up iSwitchChangeMskOff falg, which disables changes of MSK label if any popup dialog is open
+    /**
+     * SwitchChangeMskOff
+     * Sets up iSwitchChangeMskOff falg, which disables changes of MSK label
+     * if any popup dialog is open
+     */
     void SwitchChangeMskOff(TBool aTag);
-    //</cmail>
     
     /**
      * ScrollL
@@ -501,22 +505,20 @@ public: // new functions
     
 public: // from CoeControl
 
-        /**
-        * Draw
-        * Draw this CNcsComposeViewContainer to the screen.
-        * @param aRect the rectangle of this view that needs updating
-        */
+    /**
+    * Draw
+    * Draw this CNcsComposeViewContainer to the screen.
+    * @param aRect the rectangle of this view that needs updating
+    */
     void Draw( const TRect& aRect ) const;
     
     void SetMskL();
     
-	//<cmail>
     /**
     * Handle pointer event
     * 
     */
     void HandlePointerEventL( const TPointerEvent& aPointerEvent );
-    //</cmail>
 	
     /**
     * OfferKeyEventL
@@ -553,10 +555,11 @@ public: // from CoeControl
     
 public: // from MEikScrollBarObserver
     
-        /**
-        * HandleScrollEventL
-        */
-    void HandleScrollEventL( CEikScrollBar* aScrollBar, TEikScrollEvent aEventType );
+    /**
+    * HandleScrollEventL
+    */
+    void HandleScrollEventL( 
+            CEikScrollBar* aScrollBar, TEikScrollEvent aEventType );
 
 public: // from MFSEmailUiContactHandlerObserver
 
@@ -570,17 +573,17 @@ public: // from base class MEikEdwinObserver
 
 public: // from base class MEikEdwinSizeObserver
     
-    TBool HandleEdwinSizeEventL( CEikEdwin* aEdwin, TEdwinSizeEvent aEventType, TSize aDesirableEdwinSize );
+    TBool HandleEdwinSizeEventL( CEikEdwin* aEdwin, 
+            TEdwinSizeEvent aEventType, TSize aDesirableEdwinSize );
     
 public:  // from MNcsFieldSizeObserver
 
     TBool UpdateFieldSizeL();
     void UpdateFieldPosition( CCoeControl* aAnchor );
 
-    //<cmail>
 private:  //From MAknLongTapDetectorCallBack
-    void HandleLongTapEventL( const TPoint& aPenEventLocation, const TPoint& aPenEventScreenLocation );
-    //</cmail>
+    void HandleLongTapEventL( const TPoint& aPenEventLocation, 
+            const TPoint& aPenEventScreenLocation );
     
 private:
     
@@ -612,9 +615,13 @@ private:
     *                 in moving of display.
     */
     void UpdateScreenPositionL( const TUint& aKeyCode = EKeyNull );
-    //<cmail>
+
+    /**
+     * CalculateSeparatorLineSecondaryColor
+     * @return Separator line secondary color
+     */
     TRgb CalculateSeparatorLineSecondaryColor();
-    //</cmail>
+    
     void UpdatePhysicsL();
 
 private: // from MAknPhysicsObserver
@@ -622,7 +629,8 @@ private: // from MAknPhysicsObserver
    /**
     * @see MAknPhysicsObserver::ViewPositionChanged
     */
-   virtual void ViewPositionChanged( const TPoint& aNewPosition, TBool aDrawNow, TUint aFlags );
+   virtual void ViewPositionChanged( const TPoint& aNewPosition, 
+           TBool aDrawNow, TUint aFlags );
 
    /**
     * @see MAknPhysicsObserver::PhysicEmulationEnded
@@ -656,9 +664,11 @@ private: // data
     */
     CCoeControl* iFocused;
     
-    //<cmail>
+    /**
+     * Long tap detector.
+     * Owned.
+     */
     CAknLongTapDetector* iLongTapDetector;
-    //</cmail>
     
     /**
     *
@@ -700,9 +710,8 @@ private: // data
     CFSMailBox& iMailBox;
 		
     TAppendAddresses iAppendAddresses;
-    //<cmail>
+
     TInt iSeparatorLineYPos;
-    //</cmail>
     
     // panning related
     CAknPhysics* iPhysics;

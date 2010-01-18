@@ -209,6 +209,7 @@ private: // methods
 		{
 		MFSEmailDownloadInformationObserver* iObserver;
 		TFSMailMsgId iMessageId;
+        TBool iDeleted;
 		};
 
 	class TDownload
@@ -261,12 +262,28 @@ private: // methods
 	* @param    aCompletedCount How many attachments were succesfully downloaded.
 	*/
 	void LaunchDownloadCompleteNoteL( const TPartData& aPart, TInt aCompletedCount );
-	
+
 	/**
 	* Notify all the registered observers about a download event.
 	*/
 	void NotifyObserversL( const TFSProgress& aEvent, const TPartData& aPart );
-	
+
+	/**
+	* Notify all the registered observers for a particular message part about a download event.
+	*/
+	void NotifyPartObserversL( const TFSProgress& aEvent, const TPartData& aPart );
+
+    /**
+     * Removes deleted observers from the observer array.
+     */
+    void CleanUpObservers();
+
+    /**
+     * Safely removes an entry from the observer array in case notifications
+     * are currently in process.
+     */
+    void RemoveObserver( TInt aIdx );
+
 	/**
 	* Updates the entry in iDownloadCountArray according a progress event and gets a copy of 
 	* its data. The original entry may be removed from the array as a result.
@@ -324,6 +341,13 @@ private: // data
 
 	// has there been any downloads since program started
 	TBool iDownloadsStarted;
+
+    // counter indicating how many observer notification operations are
+    // currently in progress
+    TInt iNotificationsInProgress;
+
+    // have any observers been deleted during notification
+    TBool iObserverDeleted;
     };
 
 #endif  // FSEMAILDOWNLOADINFORMATIONMEDIATOR_H

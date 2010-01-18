@@ -1,0 +1,21 @@
+/*
+* ============================================================================
+*  Name     : TestApp resource header file TestApp.hrh
+* ============================================================================
+*/
+
+#ifndef TestApp_HRH
+#define TestApp_HRH
+
+enum TTestAppCommandIds
+    {    	
+	ETestAppSubMenuId,
+	ETest1Cmd,
+	ETest2Cmd,
+	ETest3Cmd
+	};
+
+
+
+
+#endif      // TestApp_HRH

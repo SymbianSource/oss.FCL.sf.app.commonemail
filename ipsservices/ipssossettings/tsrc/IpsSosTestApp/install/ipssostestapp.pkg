@@ -1,0 +1,32 @@
+;
+; Installation file for TestApp application
+;
+;Languages
+&EN
+
+;Localized Vendor Name
+%{"Nokia email EN"}
+
+;Unique Vendor name
+:"Vendor"
+;
+; UID is the app's UID
+;
+; <cmail> S60 UID update
+#{"IpsSosTestApp"},(0x2001FE0F),1,0,0  
+; </cmail> S60 UID update
+;
+;Supports Series 60 v 0.9
+;This line indicates that this installation is for the Series 60 platform v0.9
+;This line must appear _exactly_ as shown below in the sis file
+;If this line is missing or incorrect, the sis file will not be able
+;to be installed on Series 60 v0.9 platforms
+(0x101F6F88), 0, 0, 0, {"Series60ProductID"}
+;
+; Test application
+;
+"\epoc32\release\armv5\urel\IpsSosTestApp.exe"-"!:\sys\bin\IpsSosTestApp.exe"
+"\epoc32\data\Z\private\10003a3f\apps\ipssostestapp_reg.rsc"-"!:\private\10003a3f\import\apps\ipssostestapp_reg.rsc"
+"\epoc32\data\z\resource\apps\ipssostestapp.rsc"-"!:\resource\apps\ipssostestapp.rsc"
+
+

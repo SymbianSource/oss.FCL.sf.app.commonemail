@@ -89,8 +89,9 @@ private:
      * @param aId Id of the node/item associated with the event. KFsTreeNoneID
      *            means that the event is not associated with a node/item.
      */
-    void TreeListEventL(const TFsTreeListEvent aEvent,
-            const TFsTreeItemId aId);
+    void TreeListEventL( const TFsTreeListEvent aEvent,
+                         const TFsTreeItemId aId,
+                         const TPoint& aPoint );
 
 private:
 
@@ -102,8 +103,9 @@ private:
      * Helper class for handling long tap actions. 
      *
      * @since S60 v9.1
+     * @param aPoint Coordinates of the long tap event.
      */
-    void DoHandleLongTapL();
+    void DoHandleLongTapL( const TPoint& aPoint );
 
     /**
      * Helper class for handling actions. (Open viewer, expand/collapse etc.)

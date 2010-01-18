@@ -98,7 +98,7 @@ void CEUiEmailListTouchManager::HandleControlBarEvent(
 // ---------------------------------------------------------------------------
 //
 void CEUiEmailListTouchManager::TreeListEventL(const TFsTreeListEvent aEvent,
-        const TFsTreeItemId /*aId*/)
+        const TFsTreeItemId /*aId*/, const TPoint& aPoint )
     {
     FUNC_LOG;
 
@@ -112,7 +112,7 @@ void CEUiEmailListTouchManager::TreeListEventL(const TFsTreeListEvent aEvent,
             DoHandleActionL();
             break;
         case MFsTreeListObserver::EFsTreeListItemTouchLongTap:
-            DoHandleLongTapL();
+            DoHandleLongTapL( aPoint );
             break;
         case MFsTreeListObserver::EFsTreeListItemTouchFocused:
             DoHandleTreelistFocusChangeL();
@@ -153,7 +153,7 @@ void CEUiEmailListTouchManager::ConstructL()
 // CEUiEmailListTouchManager::DoHandleLongTapL
 // ---------------------------------------------------------------------------
 //
-void CEUiEmailListTouchManager::DoHandleLongTapL()
+void CEUiEmailListTouchManager::DoHandleLongTapL( const TPoint& aPoint )
     {
     FUNC_LOG;
 
@@ -161,7 +161,7 @@ void CEUiEmailListTouchManager::DoHandleLongTapL()
     switch (iVisualiser.GetFocusedControl())
         {
         case EMailListComponent:
-            iVisualiser.DoHandleListItemLongTapL();
+            iVisualiser.DoHandleListItemLongTapL( aPoint );
             break;
         default:
             //Ignore rest

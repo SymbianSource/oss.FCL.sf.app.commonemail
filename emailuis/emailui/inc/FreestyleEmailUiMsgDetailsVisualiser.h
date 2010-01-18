@@ -112,7 +112,8 @@ public: // From MFSEmailUiContactHandlerObserver
 public: // From MFsTreeListObserver
     
     void TreeListEventL( const TFsTreeListEvent aEvent, 
-                                        const TFsTreeItemId /*aId*/ );
+                         const TFsTreeItemId aId,
+                         const TPoint& aPoint );
     
     // From MFsActionMenuPositionGiver
     TPoint ActionMenuPosition();

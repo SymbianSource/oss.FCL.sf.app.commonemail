@@ -12,7 +12,7 @@
 * Contributors:
 *
 *  Description : FreestyleEmailUi message details view implementation
-*  Version     : %version: 45 %
+*  Version     : %version: e002sa38#46 %
 *
 */
 
@@ -1751,7 +1751,8 @@ TBool CFSEmailUiMsgDetailsVisualiser::AllNodesExpanded( TFsTreeItemId aParentNod
 // ---------------------------------------------------------------------------
 //
 void CFSEmailUiMsgDetailsVisualiser::TreeListEventL( const TFsTreeListEvent aEvent, 
-                                    const TFsTreeItemId /*aId*/ )
+                                    const TFsTreeItemId /*aId*/,
+                                    const TPoint& /*aPoint*/ )
     {
     switch (aEvent)
         {

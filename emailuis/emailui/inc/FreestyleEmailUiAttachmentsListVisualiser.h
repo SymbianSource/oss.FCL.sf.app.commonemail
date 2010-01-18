@@ -77,7 +77,9 @@ public: // from CAknView
 
     /** Handles events from the tree list. */
     // <cmail> Touch
-    void TreeListEventL( const TFsTreeListEvent aEvent, const TFsTreeItemId aId );
+    void TreeListEventL( const TFsTreeListEvent aEvent, 
+                         const TFsTreeItemId aId,
+                         const TPoint& aPoint );
     TPoint ActionMenuPosition();
     // </cmail>
     TUid Id() const;

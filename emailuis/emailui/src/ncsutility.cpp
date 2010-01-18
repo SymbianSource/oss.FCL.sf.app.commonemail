@@ -20,13 +20,11 @@
 // INCLUDE FILES
 #include "emailtrace.h"
 #include <StringLoader.h>
-#include <AknUtils.h>
-//<cmail>
 #include <AknsUtils.h>
+#include <AknUtils.h>
 #include <AknsSkinInstance.h>
 #include <aknbutton.h>
 #include <eikedwin.h>
-//</cmail>
 #include <FreestyleEmailUi.rsg>
 #include <RPbkViewResourceFile.h>
 #include <CPbkContactEngine.h>
@@ -37,17 +35,14 @@
 #include <fbs.h>
 #include <flogger.h>
 #include <aknenv.h>	// CAknEnv
-//<cmail>
+
 #include "CFSMailBox.h"
 #include "CFSMailClient.h"
 #include "CFSMailAddress.h"
-//</cmail>
 
-//<cmail> Platform layout changes
 #include <aknlayoutscalable_apps.cdl.h>
 #include <layoutmetadata.cdl.h>
 #include <AknLayoutFont.h>
-//</cmail> Platform layout changes
 
 #include "ncsutility.h"
 #include "ncsemailaddressobject.h"
@@ -56,13 +51,11 @@
 #include "FreestyleEmailUiUtilities.h"
 #include "FreestyleEmailUiLayoutData.h"
 
-//<cmail>
 // CONSTANTS
 const TInt KFSUtilityMinColorValue = 0;
 const TInt KFSUtilityMaxColorValue = 255;
 const TInt KFSUtilityThresholdColorValue = 200;
 const TInt KFSUtilityThresholdColorMiddleValue = 127;
-//</cmail>
 
 // ========================= MEMBER FUNCTIONS ==================================
 
@@ -71,7 +64,8 @@ const TInt KFSUtilityThresholdColorMiddleValue = 127;
 // NcsUtility::CompleteRelativePathL()
 // -----------------------------------------------------------------------------
 //
-void NcsUtility::CompleteRelativePathL( const TDesC& aRelativePath, TPtr& aAbsolutePath )
+void NcsUtility::CompleteRelativePathL( 
+        const TDesC& aRelativePath, TPtr& aAbsolutePath )
 	{
     FUNC_LOG;
 
@@ -95,11 +89,13 @@ void NcsUtility::CompleteRelativePathL( const TDesC& aRelativePath, TPtr& aAbsol
 //
 // -----------------------------------------------------------------------------
 //
-HBufC* NcsUtility::GenerateFromLineToMessageBodyL( const RPointerArray<CNcsEmailAddressObject>& aFromArray )
+HBufC* NcsUtility::GenerateFromLineToMessageBodyL( 
+        const RPointerArray<CNcsEmailAddressObject>& aFromArray )
 	{
     FUNC_LOG;
 
-    HBufC* buf = DoGenerateAddressLineToMessageBodyL( R_NCS_ENGINE_EMAIL_FROM, aFromArray );
+    HBufC* buf = DoGenerateAddressLineToMessageBodyL( 
+            R_NCS_ENGINE_EMAIL_FROM, aFromArray );
 
 	return buf;
 	}
@@ -254,7 +250,8 @@ HBufC* NcsUtility::GenerateSubjectLineToMessageBodyL( const TDesC& aSubject )
 //
 // -----------------------------------------------------------------------------
 //
-CNcsEmailAddressObject* NcsUtility::CreateNcsAddressL( const CFSMailAddress& aFsAddress )
+CNcsEmailAddressObject* NcsUtility::CreateNcsAddressL( 
+        const CFSMailAddress& aFsAddress )
 	{
     FUNC_LOG;
 
@@ -282,7 +279,8 @@ CNcsEmailAddressObject* NcsUtility::CreateNcsAddressL( const CFSMailAddress& aFs
 // Caller takes the ownership of the returned address object
 // -----------------------------------------------------------------------------
 //
-CFSMailAddress* NcsUtility::CreateFsAddressL( const CNcsEmailAddressObject& aNcsAddress )
+CFSMailAddress* NcsUtility::CreateFsAddressL( 
+        const CNcsEmailAddressObject& aNcsAddress )
 	{
     FUNC_LOG;
 
@@ -299,7 +297,8 @@ CFSMailAddress* NcsUtility::CreateFsAddressL( const CNcsEmailAddressObject& aNcs
 //
 // -----------------------------------------------------------------------------
 //
-HBufC* NcsUtility::FormatSubjectLineL( const TDesC& aNewSubjectLine, const TDesC& aPrefix )
+HBufC* NcsUtility::FormatSubjectLineL( 
+        const TDesC& aNewSubjectLine, const TDesC& aPrefix )
 	{
     FUNC_LOG;
 
@@ -325,7 +324,9 @@ HBufC* NcsUtility::FormatSubjectLineL( const TDesC& aNewSubjectLine, const TDesC
 
 	formattedSubjectLinePtr.Trim();
 
-	HBufC* finalSubject = HBufC::NewL( formattedSubjectLinePtr.Length() + prefixPtr.Length() + KSpace().Length() );
+	HBufC* finalSubject = HBufC::NewL( 
+	        formattedSubjectLinePtr.Length() + prefixPtr.Length() + 
+	        KSpace().Length() );
 	TPtr ptr = finalSubject->Des();
 	if ( AknLayoutUtils::LayoutMirrored() )
 		{
@@ -351,13 +352,16 @@ HBufC* NcsUtility::FormatSubjectLineL( const TDesC& aNewSubjectLine, const TDesC
 //
 // -----------------------------------------------------------------------------
 //
-void NcsUtility::ConvertAddressArrayL( const RPointerArray<CFSMailAddress>& aSrc, RPointerArray<CNcsEmailAddressObject>& aDst )
+void NcsUtility::ConvertAddressArrayL( 
+        const RPointerArray<CFSMailAddress>& aSrc, 
+        RPointerArray<CNcsEmailAddressObject>& aDst )
 	{
     FUNC_LOG;
 
  	for ( TInt i=0; i<aSrc.Count(); i++ )
  		{
-		CNcsEmailAddressObject* ncsRecipient = NcsUtility::CreateNcsAddressL( *aSrc[i] );
+		CNcsEmailAddressObject* ncsRecipient = 
+            NcsUtility::CreateNcsAddressL( *aSrc[i] );
 		CleanupStack::PushL( ncsRecipient );
 		aDst.AppendL( ncsRecipient );
 		CleanupStack::Pop( ncsRecipient );
@@ -370,13 +374,16 @@ void NcsUtility::ConvertAddressArrayL( const RPointerArray<CFSMailAddress>& aSrc
 // Caller takes the ownership of address objects pointoed in the array aDst.
 // -----------------------------------------------------------------------------
 //
-void NcsUtility::ConvertAddressArrayL( const RPointerArray<CNcsEmailAddressObject>& aSrc, RPointerArray<CFSMailAddress>& aDst )
+void NcsUtility::ConvertAddressArrayL( 
+        const RPointerArray<CNcsEmailAddressObject>& aSrc, 
+        RPointerArray<CFSMailAddress>& aDst )
 	{
     FUNC_LOG;
 
  	for ( TInt i=0; i<aSrc.Count(); i++ )
  		{
-		CFSMailAddress* fsRecipient = NcsUtility::CreateFsAddressL( *aSrc[i] );
+		CFSMailAddress* fsRecipient = 
+            NcsUtility::CreateFsAddressL( *aSrc[i] );
 		CleanupStack::PushL( fsRecipient );
 		aDst.AppendL( fsRecipient );
 		CleanupStack::Pop( fsRecipient );
@@ -391,7 +398,10 @@ void NcsUtility::ConvertAddressArrayL( const RPointerArray<CNcsEmailAddressObjec
 //
 // -----------------------------------------------------------------------------
 //
-void NcsUtility::LoadScalableIconL( const TDesC& aMifRelativeFileName, TInt aImgId, TInt aMaskId, CEikImage*& aIcon, CFbsBitmap*& aImage, CFbsBitmap*& aMask )
+void NcsUtility::LoadScalableIconL( 
+        const TDesC& aMifRelativeFileName, TInt aImgId, 
+        TInt aMaskId, CEikImage*& aIcon, 
+        CFbsBitmap*& aImage, CFbsBitmap*& aMask )
     {
     FUNC_LOG;
 
@@ -442,8 +452,9 @@ void NcsUtility::DebugLog( TRefByValue<const TDesC> aFmt, ... )
 // NcsUtility::IsEqualAddressArray
 // -----------------------------------------------------------------------------
 //
-TBool NcsUtility::IsEqualAddressArray( const RPointerArray<CFSMailAddress>& aAddresses1,
-                                        const RPointerArray<CFSMailAddress>& aAddresses2 )
+TBool NcsUtility::IsEqualAddressArray( 
+        const RPointerArray<CFSMailAddress>& aAddresses1,
+        const RPointerArray<CFSMailAddress>& aAddresses2 )
 	{
     FUNC_LOG;
 
@@ -453,11 +464,13 @@ TBool NcsUtility::IsEqualAddressArray( const RPointerArray<CFSMailAddress>& aAdd
 		}
     for ( TInt i=0; i<aAddresses1.Count(); i++ )
     	{
-    	if ( aAddresses1[i]->GetEmailAddress().Compare( aAddresses2[i]->GetEmailAddress() ) != 0 )
+    	if ( aAddresses1[i]->GetEmailAddress().Compare( 
+    	        aAddresses2[i]->GetEmailAddress() ) != 0 )
     		{
     		return EFalse;
     		}
-    	if ( aAddresses1[i]->GetDisplayName().Compare( aAddresses2[i]->GetDisplayName() ) != 0 )
+    	if ( aAddresses1[i]->GetDisplayName().Compare( 
+    	        aAddresses2[i]->GetDisplayName() ) != 0 )
     		{
     		return EFalse;
     		}
@@ -503,10 +516,12 @@ TNcsMeasures NcsUtility::Measures()
 			ms.iAifEditorMarginVertical = KAifEditorMarginVerticalSmall;
 			ms.iAifEditorHeight = KAifEditorHeightSmall;
 			ms.iSubjectExtraHeightBottom = KSubjectExtraHeightBottomSmall;
-			ms.iAttachmentExtraHeightBottom = KAttachmentExtraHeightBottomSmall;
+			ms.iAttachmentExtraHeightBottom = 
+                KAttachmentExtraHeightBottomSmall;
 			ms.iIconMarginPriorityVertical = KIconMarginPriorityVerticalSmall;
 			ms.iIconMarginFollowUpVertical = KIconMarginFollowUpVerticalSmall;
-            ms.iIconMarginAttachmentVertical = KIconMarginAttachmentVerticalSmall;
+            ms.iIconMarginAttachmentVertical = 
+                KIconMarginAttachmentVerticalSmall;
 			ms.iLabelFontHeightPx = KLabelFontHeightPxSmall;
 			ms.iEditorFontHeightPx = KEditorFontHeightPxSmall;
 			}
@@ -518,10 +533,12 @@ TNcsMeasures NcsUtility::Measures()
 			ms.iAifEditorMarginVertical = KAifEditorMarginVerticalLarge;
 			ms.iAifEditorHeight = KAifEditorHeightLarge;
 			ms.iSubjectExtraHeightBottom = KSubjectExtraHeightBottomLarge;
-			ms.iAttachmentExtraHeightBottom = KAttachmentExtraHeightBottomLarge;
+			ms.iAttachmentExtraHeightBottom = 
+                KAttachmentExtraHeightBottomLarge;
 			ms.iIconMarginPriorityVertical = KIconMarginPriorityVerticalLarge;
 			ms.iIconMarginFollowUpVertical = KIconMarginFollowUpVerticalLarge;
-            ms.iIconMarginAttachmentVertical = KIconMarginAttachmentVerticalLarge;
+            ms.iIconMarginAttachmentVertical = 
+                KIconMarginAttachmentVerticalLarge;
 			ms.iLabelFontHeightPx = KLabelFontHeightPxLarge;
 			ms.iEditorFontHeightPx = KEditorFontHeightPxLarge;
 			}
@@ -541,8 +558,8 @@ CFont* NcsUtility::GetNearestFontL( TInt aLogicalFontId, TInt aHeightPixels )
 
 	// Base the font on logical font passed to us
 	const CFont* logicalFont = AknLayoutUtils::FontFromId( aLogicalFontId );
-	// Note: This font is owned by the application's system font array (where it
-	// is likely already to have been created) and does not need to be
+	// Note: This font is owned by the application's system font array (where
+	// it is likely already to have been created) and does not need to be
 	// released. It can just go out of scope.
 
 	// Extract font information
@@ -570,7 +587,8 @@ CFont* NcsUtility::GetNearestFontL( TInt aLogicalFontId, TInt aHeightPixels )
 // NcsUtility::GetLayoutFont
 // -----------------------------------------------------------------------------
 //
-const CFont* NcsUtility::GetLayoutFont(const TRect& aParent, TNcsLayoutFont aUsage )
+const CFont* NcsUtility::GetLayoutFont(
+        const TRect& aParent, TNcsLayoutFont aUsage )
     {
     FUNC_LOG;
     TAknLayoutText layoutText;
@@ -729,7 +747,6 @@ TInt NcsUtility::DeleteMessage( CFSMailClient& aMailClient,
     return error;
     }
 
-// <cmail> Platform layout changes
 // -----------------------------------------------------------------------------
 // NcsUtility::HeaderCaptionPaneRect
 // -----------------------------------------------------------------------------
@@ -746,7 +763,8 @@ TRect NcsUtility::HeaderCaptionPaneRect( const TRect& aParent )
 // NcsUtility::HeaderDetailPaneRect
 // -----------------------------------------------------------------------------
 //
-TRect NcsUtility::HeaderDetailPaneRect( const TRect& aParent, const TInt aRows, TBool aSameRow )
+TRect NcsUtility::HeaderDetailPaneRect( 
+        const TRect& aParent, const TInt aRows, TBool aSameRow )
     {
     FUNC_LOG;
     const TInt variety( aRows == 1 ? 0 : 1 );
@@ -764,7 +782,8 @@ TRect NcsUtility::HeaderDetailPaneRect( const TRect& aParent, const TInt aRows, 
 // NcsUtility::HeaderDetailIconRect
 // -----------------------------------------------------------------------------
 //
-TRect NcsUtility::HeaderDetailIconRect( const TRect& aParent, const TInt aRows, const THeaderDetailIcon aIcon )
+TRect NcsUtility::HeaderDetailIconRect( 
+        const TRect& aParent, const TInt aRows, const THeaderDetailIcon aIcon )
     {
     FUNC_LOG;
     const TInt variety( aRows == 1 ? 0 : 1 );
@@ -816,7 +835,6 @@ TRect NcsUtility::ListCmailScrollbarRect( const TRect& aParent )
     return listCmailPaneRect.Rect();
     }
 
-//<cmail>
 // -----------------------------------------------------------------------------
 // NcsUtility::SeparatorSizeInThisResolution
 //
@@ -894,7 +912,6 @@ TInt NcsUtility::ComposerRightMarginInPixels( const TRect& aParent )
     captionTextRect.LayoutText( layoutRect.Rect(), AknLayoutScalable_Apps::list_single_cmail_header_caption_pane_t1() );
     return Abs( cmailPaneRect.iBr.iX - captionTextRect.TextRect().iBr.iX );
     }
-//</cmail>
 
 // -----------------------------------------------------------------------------
 // NcsUtility::ListCmailBodyPaneRect
@@ -915,14 +932,17 @@ TRect NcsUtility::ListCmailBodyPaneRect( const TRect& aParent )
 void NcsUtility::LayoutCaptionLabel( CEikLabel* aLabel, const TRect& aParentRect )
     {
     FUNC_LOG;
-    AknLayoutUtils::LayoutLabel( aLabel, NcsUtility::HeaderCaptionPaneRect( aParentRect ), AknLayoutScalable_Apps::list_single_cmail_header_caption_pane_t1().LayoutLine() );
+    AknLayoutUtils::LayoutLabel( 
+            aLabel, NcsUtility::HeaderCaptionPaneRect( aParentRect ), 
+            AknLayoutScalable_Apps::list_single_cmail_header_caption_pane_t1().LayoutLine() );
     }
 
 // -----------------------------------------------------------------------------
 // NcsUtility::LayoutCaptionLabel
 // -----------------------------------------------------------------------------
 //
-void NcsUtility::LayoutCaptionButton( CAknButton* aButton, const TRect& aParentRect)
+void NcsUtility::LayoutCaptionButton( 
+        CAknButton* aButton, const TRect& aParentRect)
     {
     FUNC_LOG;
     TAknLayoutText layoutText;
@@ -937,7 +957,8 @@ void NcsUtility::LayoutCaptionButton( CAknButton* aButton, const TRect& aParentR
     TInt bottomMargin;
     
     // Getting editor's top and bottom margin from its layout
-    textComponentLayout = AknLayoutScalable_Apps::list_single_cmail_header_detail_pane_t1(
+    textComponentLayout = 
+        AknLayoutScalable_Apps::list_single_cmail_header_detail_pane_t1(
             KHeaderDetailTextPaneVariety );
     fontId = textComponentLayout.LayoutLine().FontId();
     
@@ -948,7 +969,9 @@ void NcsUtility::LayoutCaptionButton( CAknButton* aButton, const TRect& aParentR
         HeaderDetailPaneRect( aParentRect, 1, ETrue ),
         AknLayoutScalable_Apps::bg_button_pane_cp12() );
     
-    textComponentLayout = AknLayoutScalable_Apps::list_single_cmail_header_detail_pane_t2( labelVariety );
+    textComponentLayout = 
+        AknLayoutScalable_Apps::list_single_cmail_header_detail_pane_t2( 
+                labelVariety );
     layoutText.LayoutText(
         HeaderDetailPaneRect( aParentRect, 1, ETrue ),
         textComponentLayout.LayoutLine() );
@@ -967,17 +990,22 @@ void NcsUtility::LayoutCaptionButton( CAknButton* aButton, const TRect& aParentR
 // NcsUtility::LayoutDetailLabel
 // -----------------------------------------------------------------------------
 //
-void NcsUtility::LayoutDetailLabel( CEikLabel* aLabel, const TRect& aParentRect )
+void NcsUtility::LayoutDetailLabel( 
+        CEikLabel* aLabel, const TRect& aParentRect, TInt aRow)
     {
     FUNC_LOG;
-    AknLayoutUtils::LayoutLabel( aLabel, NcsUtility::HeaderDetailPaneRect( aParentRect, 1, ETrue ), AknLayoutScalable_Apps::list_single_cmail_header_detail_pane_t1( 0 ).LayoutLine() );
+    TRect rect( NcsUtility::HeaderDetailPaneRect( aParentRect, 1, ETrue ) );
+    rect.Move( 0, aRow*rect.Height() );
+    AknLayoutUtils::LayoutLabel( aLabel, rect, AknLayoutScalable_Apps::list_single_cmail_header_detail_pane_t1( 0 ).LayoutLine() );
     }
 
 // -----------------------------------------------------------------------------
 // NcsUtility::LayoutDetailEdwin
 // -----------------------------------------------------------------------------
 //
-void NcsUtility::LayoutDetailEdwin( CEikEdwin* aEdwin, const TRect& aParentRect, const TInt aLineCount, const TBool aBackIcon  )
+void NcsUtility::LayoutDetailEdwin( 
+        CEikEdwin* aEdwin, const TRect& aParentRect, 
+        const TInt aLineCount, const TBool aBackIcon )
     {
     FUNC_LOG;
     TAknMultiLineTextLayout edwinLayout;
@@ -999,8 +1027,9 @@ void NcsUtility::LayoutDetailEdwin( CEikEdwin* aEdwin, const TRect& aParentRect,
 // NcsUtility::LayoutDetailEdwin
 // -----------------------------------------------------------------------------
 //
-void NcsUtility::LayoutDetailEdwinTouch( CEikEdwin* aEdwin, const TRect& aParentRect,
-                                         const TInt aLineCount, const TBool /*aBackIcon*/  )
+void NcsUtility::LayoutDetailEdwinTouch( 
+        CEikEdwin* aEdwin, const TRect& aParentRect,
+        const TInt aLineCount, const TBool /*aBackIcon*/  )
     {
     FUNC_LOG;
     TAknMultiLineTextLayout edwinLayout;
@@ -1021,7 +1050,8 @@ void NcsUtility::LayoutDetailEdwinTouch( CEikEdwin* aEdwin, const TRect& aParent
 // NcsUtility::HeaderControlPosition
 // -----------------------------------------------------------------------------
 //
-TPoint NcsUtility::HeaderControlPosition( const TRect& aParentRect, const TInt aCurrentLine )
+TPoint NcsUtility::HeaderControlPosition( 
+        const TRect& aParentRect, const TInt aCurrentLine )
     {
     FUNC_LOG;
     TAknLayoutRect detailPane;
@@ -1034,7 +1064,9 @@ TPoint NcsUtility::HeaderControlPosition( const TRect& aParentRect, const TInt a
 // NcsUtility::LayoutHeaderControl
 // -----------------------------------------------------------------------------
 //
-void NcsUtility::LayoutHeaderControl( CCoeControl* aControl, const TRect& aParentRect, const TInt aCurrentLine, const TInt aNumberOfLines )
+void NcsUtility::LayoutHeaderControl( 
+        CCoeControl* aControl, const TRect& aParentRect, 
+        const TInt aCurrentLine, const TInt aNumberOfLines )
     {
     FUNC_LOG;
     TAknLayoutRect detailPane;
@@ -1049,10 +1081,9 @@ void NcsUtility::LayoutHeaderControl( CCoeControl* aControl, const TRect& aParen
 // NcsUtility::LayoutBodyEdwin
 // -----------------------------------------------------------------------------
 //
-//<cmail>
-void NcsUtility::LayoutBodyEdwin( CEikEdwin* aEdwin, const TRect& aParentRect, const TInt aCurrentLine, const TInt aNumberOfLines,
-        TInt& aSeparatorYPosition )
-//</cmail>
+void NcsUtility::LayoutBodyEdwin( 
+        CEikEdwin* aEdwin, const TRect& aParentRect, const TInt aCurrentLine, 
+        const TInt aNumberOfLines, TInt& aSeparatorYPosition )
     {
     FUNC_LOG;
     TAknMultiLineTextLayout edwinLayout;
@@ -1073,18 +1104,15 @@ void NcsUtility::LayoutBodyEdwin( CEikEdwin* aEdwin, const TRect& aParentRect, c
     TAknWindowComponentLayout headerDetailPane( AknLayoutScalable_Apps::list_single_cmail_header_detail_pane( 0, 0, 0 ) );
     detailPane.LayoutRect( aParentRect, TAknWindowComponentLayout::MultiLineY( headerDetailPane, aCurrentLine, 0 ) );
     bodyRect = TRect( detailPane.Rect().iTl, bodyRect.Size() );
-    //<cmail>
     aSeparatorYPosition = bodyRect.iTl.iY;
     // Since layout doesn't specify enough space between separator line
     // and editor, we add some space manually
     TInt deltaMove = NcsUtility::SeparatorSizeInThisResolution().iHeight;
     bodyRect.Move( 0, deltaMove );
-    //</cmail>
     AknLayoutUtils::LayoutEdwin( aEdwin, bodyRect, TAknTextComponentLayout::Multiline( edwinLayoutLines ), EAknsCIQsnTextColorsCG6 );
     edwinLayoutLines.Reset();
     }
 
-//<cmail>
 // -----------------------------------------------------------------------------
 // NcsUtility::CalculateSeparatorLineSecondaryColor
 //
@@ -1150,7 +1178,6 @@ TRgb NcsUtility::CalculateSeparatorLineSecondaryColor( TInt aDegree,
     return TRgb( redValue , greenValue, blueValue );
     }
 
-// </cmail> Platform layout changes
 // -----------------------------------------------------------------------------
 // NcsUtility::CalculateMsgBodyLineColor
 //

@@ -269,14 +269,14 @@ CHARACTER_SET UTF8
 //
 #define qtn_fse_launcher_options_cancel_sync	"Cancel synchronisation"
 
-// d:Submenu item
-// l:list_single_popup_submenu_pane_t1
+// d:Option menu item
+// l:list_single_pane_t1_cp2/opt3
 // r:TB9.1
 //
 #define qtn_fse_message_list_options_mark	"Mark"
 
-// d:Submenu item
-// l:list_single_popup_submenu_pane_t1
+// d:Option menu item
+// l:list_single_pane_t1_cp2/opt3
 // r:TB9.1
 //
 #define qtn_fse_message_list_options_unmark	"Unmark"
@@ -2612,3 +2612,123 @@ CHARACTER_SET UTF8
 // r:TB9.2
 //
 #define qtn_fse_mail_deleted_note "Mail deleted"
+
+// d:Submenu item
+// l:list_single_popup_submenu_pane_t1
+// r:TB9.2
+//
+#define qtn_cmail_message_list_options_sub_all	"All"
+
+// d:Submenu item
+// l:list_single_popup_submenu_pane_t1
+// r:TB9.2
+//
+#define qtn_cmail_message_list_options_sub_mark	"Mark"
+
+// d:Submenu item
+// l:list_single_popup_submenu_pane_t1
+// r:TB9.2
+//
+#define qtn_cmail_message_list_options_sub_mark_all	"All"
+
+// d:"Actions" submenu item
+// l:list_single_pane_t1_cp2/opt3
+// r:TB9.2
+//
+#define qtn_cmail_message_list_options_actions "Actions"
+
+// d:Options menu item
+// l:list_single_pane_t1_cp2
+// r:TB9.2
+//
+#define qtn_cmail_message_list_options_send_receive	"Send and receive now"
+
+// d:Options menu item for moving message to another folder
+// l:list_single_popup_submenu_pane_t1
+// r:TB9.2
+//
+#define qtn_cmail_options_moveto_folder "Move to folder"
+
+// d:Mail item follow up icon text in the list control
+// l:list_single_cmail_header_caption_pane_t1
+// r:TB9.2
+//
+#define qtn_cmail_header_followup	"Follow up"
+
+// d:Mail item follow up completed icon text in the list control
+// l:list_single_cmail_header_caption_pane_t1
+// r:TB9.2
+//
+#define qtn_cmail_header_completed	"Completed"
+
+// d:Mail item high priority icon text in the list control
+// l:list_single_cmail_header_caption_pane_t1
+// r:TB9.2
+//
+#define qtn_cmail_header_high_prio	"High priority"
+
+// d:Mail item low priority icon text in the list control
+// l:list_single_cmail_header_caption_pane_t1
+// r:TB9.2
+//
+#define qtn_cmail_header_low_prio	"Low priority"
+
+// d:Send email menu item
+// l:list_single_touch_menu_pane_t1
+// r:TB9.2
+//
+#define qtn_cmail_popup_send_email "Send email"
+
+// d:Copy to clipboard menu item
+// l:list_single_touch_menu_pane_t1
+// r:TB9.2
+//	
+#define qtn_cmail_popup_copy_address	"Copy address"
+
+// d:Searches the contact information of the person who’s the address is. 
+// l:list_single_touch_menu_pane_t1
+// r:TB9.2
+//	
+#define qtn_cmail_popup_search_server	"Search from server"
+
+// d:Opens the attachment 
+// l:list_single_touch_menu_pane_t1
+// r:TB9.2
+//	
+#define qtn_cmail_popup_open	"Open"
+
+// d:Save the attachment 
+// l:list_single_touch_menu_pane_t1
+// r:TB9.2
+//	
+#define qtn_cmail_popup_save	"Save"
+
+// d:Save all the attachments
+// l:list_single_touch_menu_pane_t1
+// r:TB9.2
+//	
+#define qtn_cmail_popup_save_all	"Save all"
+
+// d:Shown if the tapped attachment is being downloaded. Cancels the download.  
+// l:list_single_touch_menu_pane_t1
+// r:TB9.2	
+#define qtn_cmail_popup_cancel_download	"Cancel download"
+
+// d:Adds the web address to browser bookmarks.
+// l:list_single_touch_menu_pane_t1
+// r:TB9.2
+//	
+#define qtn_cmail_popup_add_bookmark	"Add to bookmarks"
+
+// d:Open attachment in compose view
+// l:list_single_touch_menu_pane_t1
+// r:TB9.2
+//
+#define qtn_mail_stylus_popup_open	"Open"
+
+// d:Remove attachment in compose view
+// l:list_single_touch_menu_pane_t1
+// r:TB9.2
+//
+#define qtn_mail_stylus_popup_remove	"Remove"
+

@@ -35,9 +35,14 @@ data=DATAZ_\private\2001E277\backup_registration.xml  private\2001E277\backup_re
 //<cmail> files for html display
 data=DATAZ_\private\2001E277\HtmlFile\attachment.gif private\2001E277\HtmlFile\attachment.gif
 data=DATAZ_\private\2001E277\HtmlFile\email.html private\2001E277\HtmlFile\email.html
+data=DATAZ_\private\2001E277\HtmlFile\email_rtl.html private\2001E277\HtmlFile\email_rtl.html
 data=DATAZ_\private\2001E277\HtmlFile\header.js private\2001E277\HtmlFile\header.js
 data=DATAZ_\private\2001E277\HtmlFile\plus.gif private\2001E277\HtmlFile\plus.gif
 data=DATAZ_\private\2001E277\HtmlFile\minus.gif private\2001E277\HtmlFile\minus.gif
+data=DATAZ_\private\2001E277\HtmlFile\follow_up.png private\2001E277\HtmlFile\follow_up.png
+data=DATAZ_\private\2001E277\HtmlFile\follow_up_complete.png private\2001E277\HtmlFile\follow_up_complete.png
+data=DATAZ_\private\2001E277\HtmlFile\todo_high_add.png private\2001E277\HtmlFile\todo_high_add.png
+data=DATAZ_\private\2001E277\HtmlFile\todo_low_add.png private\2001E277\HtmlFile\todo_low_add.png
 
 #endif //FF_EMAIL_FRAMEWORK
 

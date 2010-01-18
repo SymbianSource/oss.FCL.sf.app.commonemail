@@ -306,114 +306,114 @@ EXPORTS
 	_ZNK11CFsTreeList16TextStyleManagerEv @ 305 NONAME
 	_ZNK11CFsTreeList17SlideOutDirectionEv @ 306 NONAME
 	_ZNK11CFsTreeList19ScrollbarVisibilityEv @ 307 NONAME
-	_ZNK11CFsTreeList20TreeVisualizerEventLEN25MFsTreeVisualizerObserver22TFsTreeVisualizerEventEi @ 308 NONAME
-	_ZNK11CFsTreeList21TextMarqueeStartDelayEv @ 309 NONAME
-	_ZNK11CFsTreeList22TextMarqueeRepetitionsEv @ 310 NONAME
-	_ZNK11CFsTreeList26TextMarqueeCycleStartDelayEv @ 311 NONAME
-	_ZNK11CFsTreeList5ChildEij @ 312 NONAME
-	_ZNK11CFsTreeList5CountEv @ 313 NONAME
-	_ZNK11CFsTreeList5LevelEi @ 314 NONAME
-	_ZNK11CFsTreeList6IsNodeEi @ 315 NONAME
-	_ZNK11CFsTreeList6ParentEi @ 316 NONAME
-	_ZNK11CFsTreeList7IsEmptyEi @ 317 NONAME
-	_ZNK11CFsTreeList8ContainsEi @ 318 NONAME
-	_ZNK11CFsTreeList8IsMarkedEi @ 319 NONAME
-	_ZNK11CFsTreeList8ItemDataEi @ 320 NONAME
-	_ZNK11CFsTreeList8MarkTypeEv @ 321 NONAME
-	_ZNK11CFsTreeList9IsFocusedEv @ 322 NONAME
-	_ZNK13CFsControlBar16GetFocusedButtonEv @ 323 NONAME
-	_ZNK13CFsControlBar5WidthEv @ 324 NONAME
-	_ZNK13CFsControlBar6HeightEv @ 325 NONAME
-	_ZNK13CFsTextViewer10GetControlEv @ 326 NONAME
-	_ZNK13CFsTextViewer17BackgroundOpacityEv @ 327 NONAME
-	_ZNK13CFsTextViewer28GetVisibleFocusedHotspotLineERi @ 328 NONAME
-	_ZNK19CFsTreeRichItemData4TextEv @ 329 NONAME
-	_ZTI10CFsTexture @ 330 NONAME ; #<TI>#
-	_ZTI10CMyPicture @ 331 NONAME ; #<TI>#
-	_ZTI11CFsRichText @ 332 NONAME ; #<TI>#
-	_ZTI11CFsTreeList @ 333 NONAME ; #<TI>#
-	_ZTI12CSmileyField @ 334 NONAME ; #<TI>#
-	_ZTI12TKeyArrayPtr @ 335 NONAME ; #<TI>#
-	_ZTI13CFsActionMenu @ 336 NONAME ; #<TI>#
-	_ZTI13CFsTextParser @ 337 NONAME ; #<TI>#
-	_ZTI13CFsTextViewer @ 338 NONAME ; #<TI>#
-	_ZTI13CNewLineField @ 339 NONAME ; #<TI>#
-	_ZTI13CPictureField @ 340 NONAME ; #<TI>#
-	_ZTI14TFsMarqueeClet @ 341 NONAME ; #<TI>#
-	_ZTI15CFsRichTextText @ 342 NONAME ; #<TI>#
-	_ZTI15CFsSmileyParser @ 343 NONAME ; #<TI>#
-	_ZTI16CFsTextureLoader @ 344 NONAME ; #<TI>#
-	_ZTI17CFsBitmapProvider @ 345 NONAME ; #<TI>#
-	_ZTI17CFsRichTextSmiley @ 346 NONAME ; #<TI>#
-	_ZTI17CFsTextViewerKeys @ 347 NONAME ; #<TI>#
-	_ZTI18CFsRichTextNewLine @ 348 NONAME ; #<TI>#
-	_ZTI18CFsRichTextPicture @ 349 NONAME ; #<TI>#
-	_ZTI18TFsTextureObserver @ 350 NONAME ; #<TI>#
-	_ZTI19CFsSmileyDictionary @ 351 NONAME ; #<TI>#
-	_ZTI19CFsTextStyleManager @ 352 NONAME ; #<TI>#
-	_ZTI19CFsTextViewerSelect @ 353 NONAME ; #<TI>#
-	_ZTI20CFsActionMenuControl @ 354 NONAME ; #<TI>#
-	_ZTI20CFsTextViewerControl @ 355 NONAME ; #<TI>#
-	_ZTI21CFsAlfScrollbarLayout @ 356 NONAME ; #<TI>#
-	_ZTI21CFsTextViewerLayouter @ 357 NONAME ; #<TI>#
-	_ZTI21CFsTextViewerSkinData @ 358 NONAME ; #<TI>#
-	_ZTI22CFsAlfTextStyleManager @ 359 NONAME ; #<TI>#
-	_ZTI22CFsTextViewerWatermark @ 360 NONAME ; #<TI>#
-	_ZTI23CFsTextViewerSelectLine @ 361 NONAME ; #<TI>#
-	_ZTI23CFsTextViewerVisualizer @ 362 NONAME ; #<TI>#
-	_ZTI24CFsTextViewerCoordinator @ 363 NONAME ; #<TI>#
-	_ZTI24CFsTextViewerSelectEmbed @ 364 NONAME ; #<TI>#
-	_ZTI25CFsTextViewerMarkFacility @ 365 NONAME ; #<TI>#
-	_ZTI26CFsControlButtonVisualiser @ 366 NONAME ; #<TI>#
-	_ZTI26CFsTextViewerSelectHotspot @ 367 NONAME ; #<TI>#
-	_ZTI27CFsTextViewerSelectsManager @ 368 NONAME ; #<TI>#
-	_ZTI27CFsTextViewerVisualizerData @ 369 NONAME ; #<TI>#
-	_ZTI31CFsTextViewerVisualizerSettings @ 370 NONAME ; #<TI>#
-	_ZTV10CFsTexture @ 371 NONAME ; #<VT>#
-	_ZTV10CMyPicture @ 372 NONAME ; #<VT>#
-	_ZTV11CFsRichText @ 373 NONAME ; #<VT>#
-	_ZTV11CFsTreeList @ 374 NONAME ; #<VT>#
-	_ZTV12CSmileyField @ 375 NONAME ; #<VT>#
-	_ZTV12TKeyArrayPtr @ 376 NONAME ; #<VT>#
-	_ZTV13CFsActionMenu @ 377 NONAME ; #<VT>#
-	_ZTV13CFsTextParser @ 378 NONAME ; #<VT>#
-	_ZTV13CFsTextViewer @ 379 NONAME ; #<VT>#
-	_ZTV13CNewLineField @ 380 NONAME ; #<VT>#
-	_ZTV13CPictureField @ 381 NONAME ; #<VT>#
-	_ZTV14TFsMarqueeClet @ 382 NONAME ; #<VT>#
-	_ZTV15CFsRichTextText @ 383 NONAME ; #<VT>#
-	_ZTV15CFsSmileyParser @ 384 NONAME ; #<VT>#
-	_ZTV16CFsTextureLoader @ 385 NONAME ; #<VT>#
-	_ZTV17CFsBitmapProvider @ 386 NONAME ; #<VT>#
-	_ZTV17CFsRichTextSmiley @ 387 NONAME ; #<VT>#
-	_ZTV17CFsTextViewerKeys @ 388 NONAME ; #<VT>#
-	_ZTV18CFsRichTextNewLine @ 389 NONAME ; #<VT>#
-	_ZTV18CFsRichTextPicture @ 390 NONAME ; #<VT>#
-	_ZTV18TFsTextureObserver @ 391 NONAME ; #<VT>#
-	_ZTV19CFsSmileyDictionary @ 392 NONAME ; #<VT>#
-	_ZTV19CFsTextStyleManager @ 393 NONAME ; #<VT>#
-	_ZTV19CFsTextViewerSelect @ 394 NONAME ; #<VT>#
-	_ZTV20CFsActionMenuControl @ 395 NONAME ; #<VT>#
-	_ZTV20CFsTextViewerControl @ 396 NONAME ; #<VT>#
-	_ZTV21CFsAlfScrollbarLayout @ 397 NONAME ; #<VT>#
-	_ZTV21CFsTextViewerLayouter @ 398 NONAME ; #<VT>#
-	_ZTV21CFsTextViewerSkinData @ 399 NONAME ; #<VT>#
-	_ZTV22CFsAlfTextStyleManager @ 400 NONAME ; #<VT>#
-	_ZTV22CFsTextViewerWatermark @ 401 NONAME ; #<VT>#
-	_ZTV23CFsTextViewerSelectLine @ 402 NONAME ; #<VT>#
-	_ZTV23CFsTextViewerVisualizer @ 403 NONAME ; #<VT>#
-	_ZTV24CFsTextViewerCoordinator @ 404 NONAME ; #<VT>#
-	_ZTV24CFsTextViewerSelectEmbed @ 405 NONAME ; #<VT>#
-	_ZTV25CFsTextViewerMarkFacility @ 406 NONAME ; #<VT>#
-	_ZTV26CFsControlButtonVisualiser @ 407 NONAME ; #<VT>#
-	_ZTV26CFsTextViewerSelectHotspot @ 408 NONAME ; #<VT>#
-	_ZTV27CFsTextViewerSelectsManager @ 409 NONAME ; #<VT>#
-	_ZTV27CFsTextViewerVisualizerData @ 410 NONAME ; #<VT>#
-	_ZTV31CFsTextViewerVisualizerSettings @ 411 NONAME ; #<VT>#
-	_ZThn32_N14CFsTreeControl11OfferEventLERK9TAlfEvent @ 412 NONAME ; #<thunk>#
-	_ZThn4_N26CFsControlButtonVisualiser23TextureLoadingCompletedER11CAlfTextureii @ 413 NONAME ; #<thunk>#
-	_ZThn4_NK11CFsTreeList20TreeVisualizerEventLEN25MFsTreeVisualizerObserver22TFsTreeVisualizerEventEi @ 414 NONAME ; #<thunk>#
-	_ZN21CFsTreeVisualizerBase20MakeSelectorVisibleLEi @ 415 NONAME
-	_ZN11CFsTreeList23DisableKineticScrollingEi @ 416 NONAME
-	_ZN13CFsControlBar19MakeSelectorVisibleEii @ 417 NONAME
+	_ZN11CFsTreeList23DisableKineticScrollingEi @ 308 NONAME
+	_ZN13CFsControlBar19MakeSelectorVisibleEii @ 309 NONAME
+	_ZN21CFsTreeVisualizerBase20MakeSelectorVisibleLEi @ 310 NONAME
+	_ZNK11CFsTreeList20TreeVisualizerEventLEN25MFsTreeVisualizerObserver22TFsTreeVisualizerEventEiRK6TPoint @ 311 NONAME
+	_ZNK11CFsTreeList21TextMarqueeStartDelayEv @ 312 NONAME
+	_ZNK11CFsTreeList22TextMarqueeRepetitionsEv @ 313 NONAME
+	_ZNK11CFsTreeList26TextMarqueeCycleStartDelayEv @ 314 NONAME
+	_ZNK11CFsTreeList5ChildEij @ 315 NONAME
+	_ZNK11CFsTreeList5CountEv @ 316 NONAME
+	_ZNK11CFsTreeList5LevelEi @ 317 NONAME
+	_ZNK11CFsTreeList6IsNodeEi @ 318 NONAME
+	_ZNK11CFsTreeList6ParentEi @ 319 NONAME
+	_ZNK11CFsTreeList7IsEmptyEi @ 320 NONAME
+	_ZNK11CFsTreeList8ContainsEi @ 321 NONAME
+	_ZNK11CFsTreeList8IsMarkedEi @ 322 NONAME
+	_ZNK11CFsTreeList8ItemDataEi @ 323 NONAME
+	_ZNK11CFsTreeList8MarkTypeEv @ 324 NONAME
+	_ZNK11CFsTreeList9IsFocusedEv @ 325 NONAME
+	_ZNK13CFsControlBar16GetFocusedButtonEv @ 326 NONAME
+	_ZNK13CFsControlBar5WidthEv @ 327 NONAME
+	_ZNK13CFsControlBar6HeightEv @ 328 NONAME
+	_ZNK13CFsTextViewer10GetControlEv @ 329 NONAME
+	_ZNK13CFsTextViewer17BackgroundOpacityEv @ 330 NONAME
+	_ZNK13CFsTextViewer28GetVisibleFocusedHotspotLineERi @ 331 NONAME
+	_ZNK19CFsTreeRichItemData4TextEv @ 332 NONAME
+	_ZTI10CFsTexture @ 333 NONAME ; #<TI>#
+	_ZTI10CMyPicture @ 334 NONAME ; #<TI>#
+	_ZTI11CFsRichText @ 335 NONAME ; #<TI>#
+	_ZTI11CFsTreeList @ 336 NONAME ; #<TI>#
+	_ZTI12CSmileyField @ 337 NONAME ; #<TI>#
+	_ZTI12TKeyArrayPtr @ 338 NONAME ; #<TI>#
+	_ZTI13CFsActionMenu @ 339 NONAME ; #<TI>#
+	_ZTI13CFsTextParser @ 340 NONAME ; #<TI>#
+	_ZTI13CFsTextViewer @ 341 NONAME ; #<TI>#
+	_ZTI13CNewLineField @ 342 NONAME ; #<TI>#
+	_ZTI13CPictureField @ 343 NONAME ; #<TI>#
+	_ZTI14TFsMarqueeClet @ 344 NONAME ; #<TI>#
+	_ZTI15CFsRichTextText @ 345 NONAME ; #<TI>#
+	_ZTI15CFsSmileyParser @ 346 NONAME ; #<TI>#
+	_ZTI16CFsTextureLoader @ 347 NONAME ; #<TI>#
+	_ZTI17CFsBitmapProvider @ 348 NONAME ; #<TI>#
+	_ZTI17CFsRichTextSmiley @ 349 NONAME ; #<TI>#
+	_ZTI17CFsTextViewerKeys @ 350 NONAME ; #<TI>#
+	_ZTI18CFsRichTextNewLine @ 351 NONAME ; #<TI>#
+	_ZTI18CFsRichTextPicture @ 352 NONAME ; #<TI>#
+	_ZTI18TFsTextureObserver @ 353 NONAME ; #<TI>#
+	_ZTI19CFsSmileyDictionary @ 354 NONAME ; #<TI>#
+	_ZTI19CFsTextStyleManager @ 355 NONAME ; #<TI>#
+	_ZTI19CFsTextViewerSelect @ 356 NONAME ; #<TI>#
+	_ZTI20CFsActionMenuControl @ 357 NONAME ; #<TI>#
+	_ZTI20CFsTextViewerControl @ 358 NONAME ; #<TI>#
+	_ZTI21CFsAlfScrollbarLayout @ 359 NONAME ; #<TI>#
+	_ZTI21CFsTextViewerLayouter @ 360 NONAME ; #<TI>#
+	_ZTI21CFsTextViewerSkinData @ 361 NONAME ; #<TI>#
+	_ZTI22CFsAlfTextStyleManager @ 362 NONAME ; #<TI>#
+	_ZTI22CFsTextViewerWatermark @ 363 NONAME ; #<TI>#
+	_ZTI23CFsTextViewerSelectLine @ 364 NONAME ; #<TI>#
+	_ZTI23CFsTextViewerVisualizer @ 365 NONAME ; #<TI>#
+	_ZTI24CFsTextViewerCoordinator @ 366 NONAME ; #<TI>#
+	_ZTI24CFsTextViewerSelectEmbed @ 367 NONAME ; #<TI>#
+	_ZTI25CFsTextViewerMarkFacility @ 368 NONAME ; #<TI>#
+	_ZTI26CFsControlButtonVisualiser @ 369 NONAME ; #<TI>#
+	_ZTI26CFsTextViewerSelectHotspot @ 370 NONAME ; #<TI>#
+	_ZTI27CFsTextViewerSelectsManager @ 371 NONAME ; #<TI>#
+	_ZTI27CFsTextViewerVisualizerData @ 372 NONAME ; #<TI>#
+	_ZTI31CFsTextViewerVisualizerSettings @ 373 NONAME ; #<TI>#
+	_ZTV10CFsTexture @ 374 NONAME ; #<VT>#
+	_ZTV10CMyPicture @ 375 NONAME ; #<VT>#
+	_ZTV11CFsRichText @ 376 NONAME ; #<VT>#
+	_ZTV11CFsTreeList @ 377 NONAME ; #<VT>#
+	_ZTV12CSmileyField @ 378 NONAME ; #<VT>#
+	_ZTV12TKeyArrayPtr @ 379 NONAME ; #<VT>#
+	_ZTV13CFsActionMenu @ 380 NONAME ; #<VT>#
+	_ZTV13CFsTextParser @ 381 NONAME ; #<VT>#
+	_ZTV13CFsTextViewer @ 382 NONAME ; #<VT>#
+	_ZTV13CNewLineField @ 383 NONAME ; #<VT>#
+	_ZTV13CPictureField @ 384 NONAME ; #<VT>#
+	_ZTV14TFsMarqueeClet @ 385 NONAME ; #<VT>#
+	_ZTV15CFsRichTextText @ 386 NONAME ; #<VT>#
+	_ZTV15CFsSmileyParser @ 387 NONAME ; #<VT>#
+	_ZTV16CFsTextureLoader @ 388 NONAME ; #<VT>#
+	_ZTV17CFsBitmapProvider @ 389 NONAME ; #<VT>#
+	_ZTV17CFsRichTextSmiley @ 390 NONAME ; #<VT>#
+	_ZTV17CFsTextViewerKeys @ 391 NONAME ; #<VT>#
+	_ZTV18CFsRichTextNewLine @ 392 NONAME ; #<VT>#
+	_ZTV18CFsRichTextPicture @ 393 NONAME ; #<VT>#
+	_ZTV18TFsTextureObserver @ 394 NONAME ; #<VT>#
+	_ZTV19CFsSmileyDictionary @ 395 NONAME ; #<VT>#
+	_ZTV19CFsTextStyleManager @ 396 NONAME ; #<VT>#
+	_ZTV19CFsTextViewerSelect @ 397 NONAME ; #<VT>#
+	_ZTV20CFsActionMenuControl @ 398 NONAME ; #<VT>#
+	_ZTV20CFsTextViewerControl @ 399 NONAME ; #<VT>#
+	_ZTV21CFsAlfScrollbarLayout @ 400 NONAME ; #<VT>#
+	_ZTV21CFsTextViewerLayouter @ 401 NONAME ; #<VT>#
+	_ZTV21CFsTextViewerSkinData @ 402 NONAME ; #<VT>#
+	_ZTV22CFsAlfTextStyleManager @ 403 NONAME ; #<VT>#
+	_ZTV22CFsTextViewerWatermark @ 404 NONAME ; #<VT>#
+	_ZTV23CFsTextViewerSelectLine @ 405 NONAME ; #<VT>#
+	_ZTV23CFsTextViewerVisualizer @ 406 NONAME ; #<VT>#
+	_ZTV24CFsTextViewerCoordinator @ 407 NONAME ; #<VT>#
+	_ZTV24CFsTextViewerSelectEmbed @ 408 NONAME ; #<VT>#
+	_ZTV25CFsTextViewerMarkFacility @ 409 NONAME ; #<VT>#
+	_ZTV26CFsControlButtonVisualiser @ 410 NONAME ; #<VT>#
+	_ZTV26CFsTextViewerSelectHotspot @ 411 NONAME ; #<VT>#
+	_ZTV27CFsTextViewerSelectsManager @ 412 NONAME ; #<VT>#
+	_ZTV27CFsTextViewerVisualizerData @ 413 NONAME ; #<VT>#
+	_ZTV31CFsTextViewerVisualizerSettings @ 414 NONAME ; #<VT>#
+	_ZThn32_N14CFsTreeControl11OfferEventLERK9TAlfEvent @ 415 NONAME ; #<thunk>#
+	_ZThn4_N26CFsControlButtonVisualiser23TextureLoadingCompletedER11CAlfTextureii @ 416 NONAME ; #<thunk>#
+	_ZThn4_NK11CFsTreeList20TreeVisualizerEventLEN25MFsTreeVisualizerObserver22TFsTreeVisualizerEventEiRK6TPoint @ 417 NONAME ; #<thunk>#
 

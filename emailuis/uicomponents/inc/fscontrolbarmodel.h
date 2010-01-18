@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2007 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -121,7 +121,7 @@ public:
      * @param aButtonId Current button's id.
      * @return Next button after current.
      */
-    CFsControlButton* NextButton( TInt aButtonId );
+    CFsControlButton* NextButton( TInt aButtonId, TBool aLandscape = EFalse );
 
     /**
      * Retrieves button previous to the button with specified id.
@@ -129,7 +129,7 @@ public:
      * @param aButtonId Current button's id.
      * @return Previous button after current.
      */
-    CFsControlButton* PrevButton( TInt aButtonId );
+    CFsControlButton* PrevButton( TInt aButtonId, TBool aLandscape = EFalse );
 
     /**
      * Sets focus state for control bar.
@@ -196,7 +196,7 @@ public:
      * Set bar's rect
      */
     void SetRect( const TRect& aRect );
-    
+
     /**
      * Get size of the controlbar.
      *
@@ -208,7 +208,7 @@ public:
      * Get top-left position
      */
     TPoint Pos() const;
-    
+
 private:
 
     /**
@@ -260,7 +260,7 @@ private: // data
     TBool iHeightUseDefault;
 
     /**
-     * Top-left position 
+     * Top-left position
      */
     TPoint iTl;
     };

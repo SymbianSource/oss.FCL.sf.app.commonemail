@@ -178,6 +178,11 @@ private:
      * Deletes next mailbox in iMailboxesToDelete.
      */
     void DoDeleteNextMailboxL();
+    
+    /**
+     * Callback that calls DoDeleteNextMailboxL().
+     */
+    static TInt IdleCallbackL(TAny* aPtr);
                                           
 private: // data
 
@@ -195,6 +200,11 @@ private: // data
 
     // Wait dialog
     CAknWaitDialog* iWaitDialog;
+    
+    // Idletimer. This is used in RequestResponseL() to ensure that
+    // iMailboxDeleteOperationId gets updated properly when deleting multiple
+    // mailboxes.
+    CIdle* iIdle;
         
     };
 

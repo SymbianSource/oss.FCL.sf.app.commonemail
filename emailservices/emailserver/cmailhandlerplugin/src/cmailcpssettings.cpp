@@ -146,7 +146,7 @@ void CMailCpsSettings::LoadSettingsL()
                 // Resolving encountered error, ignore this entry
                 ret = iCenRep->Reset( KCMailMailboxIdBase+ii );
                 ret = iCenRep->Reset( KCMailPluginIdBase+ii );
-                ret = iCenRep->Reset( KCMailMailboxIdBase+ii );
+                ret = iCenRep->Reset( KCMailWidgetContentIdBase+ii );
                 if ( ret )
                     {
                     }
@@ -399,17 +399,19 @@ TBool CMailCpsSettings::AssociateWidgetToSetting( const TDesC& aContentId )
     }
 
 // ---------------------------------------------------------------------------
-// CMailCpsSettings::DissociateWidgetFromSetting
+// CMailCpsSettings::DissociateWidgetFromSettingL
 // ---------------------------------------------------------------------------
 //
-void CMailCpsSettings::DissociateWidgetFromSetting( const TDesC& aContentId )
+void CMailCpsSettings::DissociateWidgetFromSettingL( const TDesC& aContentId )
     {
     FUNC_LOG;
     TUint32 key(0);
-    TUint32 mailboxKey(0);    
-    
+    TUint32 mailboxKey(0);
+
+    RemoveFromContentIdListL( aContentId );
+
     for (TInt i = 0; i < KMaxMailboxCount; i++)
-        {       
+        {
         TBuf<KMaxDescLen> value;
         TUint32 tempKey(KCMailWidgetContentIdBase+i);
         iCenRep->Get( tempKey, value );
@@ -429,11 +431,9 @@ void CMailCpsSettings::DissociateWidgetFromSetting( const TDesC& aContentId )
 // CMailCpsSettings::GetContentId
 // ---------------------------------------------------------------------------
 //
-TInt CMailCpsSettings::GetContentId( TInt aMailboxId, TInt aId, TDes16& aValue )
+void CMailCpsSettings::GetContentId( TInt aMailboxId, TInt aNext, TDes16& aValue )
     {
     FUNC_LOG;
-    TBool cidFound(EFalse);
-    TInt ret(0);
     TInt found(0);
     for (TInt i = 0; i < KMaxMailboxCount; i++)
         {       
@@ -443,21 +443,13 @@ TInt CMailCpsSettings::GetContentId( TInt aMailboxId, TInt aId, TDes16& aValue )
         if (aMailboxId == value)
             {
             found++;
-            if ( !cidFound && found == aId )
+            if ( found == aNext )
                 {
                 iCenRep->Get( KCMailWidgetContentIdBase+i, aValue );
-                cidFound = ETrue;
-                }            
-            else if ( cidFound && found == aId + 1 )
-                {
-                // There is more widgets with same mailbox accounts. 
-                ret = aId + 1;
                 break;
-                }
+                }            
             }
         }
-    // if there is more than one mailbox with different cid return id of next mailbox
-    return ret;
     }
 
 // ---------------------------------------------------------------------------
@@ -599,3 +591,73 @@ TInt CMailCpsSettings::GetTotalMailboxCount()
     return ret;
     }
 
+// ---------------------------------------------------------------------------
+// CMailCpsSettings::FindFromContentIdListL
+// ---------------------------------------------------------------------------
+//
+TBool CMailCpsSettings::FindFromContentIdListL( const TDesC& aContentId )
+    {
+    FUNC_LOG;
+    TBool ret(EFalse);
+
+    TBuf<KMaxDescLen> cid;    
+    cid.Copy(KStartSeparator);    
+    cid.Append(aContentId);
+    cid.Append(KEndSeparator);
+    
+    TBuf<KMaxDescLen> value;
+    TUint32 key(KCMailContentIdList);
+    iCenRep->Get( key, value );
+    
+    TInt result = value.Find(cid);
+    
+    if (result >= 0)
+        {
+        ret = ETrue;        
+        }
+
+    return ret;
+    }
+
+// ---------------------------------------------------------------------------
+// CMailCpsSettings::AddToContentIdListL
+// ---------------------------------------------------------------------------
+//
+void CMailCpsSettings::AddToContentIdListL( const TDesC& aContentId )
+    {
+    FUNC_LOG;
+    TBuf<KMaxDescLen> value;
+
+    TUint32 key(KCMailContentIdList);
+    iCenRep->Get( key, value );
+
+    value.Append(KStartSeparator);
+    value.Append(aContentId);
+    value.Append(KEndSeparator);  
+    
+    iCenRep->Set( key, value );    
+    }
+
+// ---------------------------------------------------------------------------
+// CMailCpsSettings::RemoveFromContentIdListL
+// ---------------------------------------------------------------------------
+//
+void CMailCpsSettings::RemoveFromContentIdListL( const TDesC& aContentId )
+    {
+    FUNC_LOG;
+    TBuf<KMaxDescLen> cid;
+    cid.Copy(KStartSeparator);    
+    cid.Append(aContentId);
+    cid.Append(KEndSeparator);
+    
+    TBuf<KMaxDescLen> value;
+    TUint32 key(KCMailContentIdList);
+    iCenRep->Get( key, value );
+    
+    TInt result = value.Find(cid);
+    if (result >= 0)
+        {
+        value.Delete(result, cid.Length());
+        iCenRep->Set( key, value );        
+        }
+    }

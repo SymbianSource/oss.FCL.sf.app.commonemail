@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2007 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -14,7 +14,7 @@
 * Description:  FreestyleEmailUi search result list visualisation
 *
 */
-    
+
 #ifndef __FREESTYLEEMAILUI_SEARCHLISTVISUALISER_H__
 #define __FREESTYLEEMAILUI_SEARCHLISTVISUALISER_H__
 
@@ -61,7 +61,7 @@ class CFSMailBox;
 class CAsyncCallBack;
 class CESMRIcalViewer;
 class CFsTreePlainTwoLineItemData;
-
+class CAknStylusPopUpMenu;
 
 struct SSearchListItem
 	{
@@ -70,11 +70,10 @@ struct SSearchListItem
 	MFsTreeItemVisualizer* iTreeItemVisualiser;
 	};
 
-class CFSEmailUiSearchListVisualiser : public CFsEmailUiViewBase, 
-									   public MFSMailBoxSearchObserver, 
+class CFSEmailUiSearchListVisualiser : public CFsEmailUiViewBase,
+									   public MFSMailBoxSearchObserver,
 									   //<cmail> touch
 									   public MFsTreeListObserver,
-									   public MFsActionMenuPositionGiver,
 									   //<cmail>
 									   public MFSEmailUiGenericTimerCallback,
 									   public MFSEmailUiContactHandlerObserver
@@ -83,24 +82,24 @@ public:
 	static CFSEmailUiSearchListVisualiser* NewL(CAlfEnv& aEnv, CFreestyleEmailUiAppUi* aAppUi, CAlfControlGroup& aSeacrhListControlGroup);
 	static CFSEmailUiSearchListVisualiser* NewLC(CAlfEnv& aEnv, CFreestyleEmailUiAppUi* aAppUi, CAlfControlGroup& aSearchListControlGroup);
     virtual ~CFSEmailUiSearchListVisualiser();
-    void PrepareForExit();  
+    void PrepareForExit();
 
 public: // from CFsEmailUiViewBase
 	void DynInitMenuPaneL(TInt aResourceId, CEikMenuPane* aMenuPane);
 
-    // From view 
-	TUid Id() const;			   
+    // From view
+	TUid Id() const;
 	// <cmail> Toolbar
 	/*void DoActivateL(const TVwsViewId& aPrevViewId,
 	                 TUid aCustomMessageId,
 	                 const TDesC8& aCustomMessage);*/
     // </cmail> Toolbar
-    void ChildDoDeactivate();                
+    void ChildDoDeactivate();
     void HandleCommandL( TInt aCommand );
 
     /**
 	 * @see CFsEmailUiViewBase::SetStatusBarLayout
-	 */ 
+	 */
     void SetStatusBarLayout();
 
     // Dynamic variant switch, called by appui
@@ -113,10 +112,14 @@ public: // from CFsEmailUiViewBase
     TInt MoveToNextMsgL( TFSMailMsgId aCurrentMsgId, TFSMailMsgId& aFoundNextMsgId );
     TInt MoveToPreviousMsgL( TFSMailMsgId aCurrentMsgId, TFSMailMsgId& aFoundPreviousMsgId );
     TInt MoveToPreviousMsgAfterDeleteL( TFSMailMsgId aFoundPreviousMsgId );
-    
+
 public: // from MFSMailBoxSearchObserver
     void MatchFoundL( CFSMailMessage* aMatchMessage );
     void SearchCompletedL();
+    /**
+     * server asks client if to change the search priority (when calling)
+     */
+    void ClientRequiredSearchPriority( TInt *apRequiredSearchPriority ); // <cmail>
 
 
 public: // new methods
@@ -125,12 +128,12 @@ public: // new methods
 
 	// Mail list current model data
 	CFSEmailUiMailListModel* Model();
-	
+
 	// Event handling forwarded from control
-	TBool OfferEventL( const TAlfEvent& aEvent ); 
+	TBool OfferEventL( const TAlfEvent& aEvent );
 
 	// Used from callback
-	TInt LaunchSearchDialogL();	
+	TInt LaunchSearchDialogL();
 
 	// Used from appui to get the current index in search list
 	TInt HighlightedIndex() const;
@@ -148,29 +151,29 @@ public: // new methods
 
 public: // From MFsTreeListObserver
     //<cmail> touch
-    void TreeListEventL( const TFsTreeListEvent aEvent, const TFsTreeItemId aId );
-    
-    // From MFsActionMenuPositionGiver
-    TPoint ActionMenuPosition();
-	//</cmail>	
-		
+    void TreeListEventL( const TFsTreeListEvent aEvent,
+                         const TFsTreeItemId aId,
+                         const TPoint& aPoint );
+
+	//</cmail>
+
 public: // From MFSEMailUiContactHandlerObserver
 
     void OperationCompleteL( TContactHandlerCmd aCmd,
         const RPointerArray<CFSEmailUiClsItem>& aContacts );
     void OperationErrorL( TContactHandlerCmd, TInt aError );
 
-// <cmail> Toolbar    
+// <cmail> Toolbar
 private: // from
-    
+
     /**
      * @see CFsEmailUiViewBase::ChildDoActivateL
      */
     void ChildDoActivateL( const TVwsViewId& aPrevViewId,
             TUid aCustomMessageId,
             const TDesC8& aCustomMessage );
-   
-// </cmail> Toolbar    
+
+// </cmail> Toolbar
 
     // Called when flip state is changed
     void FlipStateChangedL( TBool aFlipOpen );
@@ -180,7 +183,7 @@ private: // from
      * @param aVisible Indicates if focus should become visible or removed
      */
     void FocusVisibilityChange( TBool aVisible );
-    
+
 private:
 	CFSEmailUiSearchListVisualiser( CFreestyleEmailUiAppUi* aAppUi, CAlfEnv& aEnv, CAlfControlGroup& aSearchListControlGroup );
 	void ConstructL();
@@ -188,7 +191,7 @@ private:
   	void ReScaleUiL();
 	void SetSearchListLayoutAnchors();
 	void SetSearchListTopBarLayoutAnchors();
-	
+
 	void CreatePlainNodeL( const TDesC& aItemDataBuff,
                            CFsTreePlainOneLineNodeData* &aItemData,
                            CFsTreePlainOneLineNodeVisualizer* &aNodeVisualizer ) const;
@@ -199,21 +202,21 @@ private:
 	TFSMailMsgId MsgIdFromIndex( TInt aItemIdx ) const;
 	TFSMailMsgId MsgIdFromListId( TFsTreeItemId aListId ) const;
 	CFSMailMessage& MsgPtrFromListId( TFsTreeItemId aListId );
-	
-	// Item data and visualiser helper functions 
-	MFsTreeItemData* ItemDataFromItemId( TFsTreeItemId aItemId );										
+
+	// Item data and visualiser helper functions
+	MFsTreeItemData* ItemDataFromItemId( TFsTreeItemId aItemId );
 	MFsTreeItemVisualizer* ItemVisualiserFromItemId( TFsTreeItemId aItemId );
-	
+
 	// Helpers to get the ordinal of a message in the iModel
 	TInt ItemIndexFromMessageId( const TFSMailMsgId& aMessageId ) const;
 	TInt NextMessageIndex( TInt aCurMsgIdx ) const;
 	TInt PreviousMessageIndex( TInt aCurMsgIdx ) const;
-		
+
 	//<cmail> touch
-	// Helper class for resolving touch events and actions	
-	void DoHandleActionL();	
+	// Helper class for resolving touch events and actions
+	void DoHandleActionL();
     //</cmail>
-	
+
 	// Open highlighted mail
 	void OpenHighlightedMailL();
 
@@ -228,36 +231,34 @@ private:
 
 	// <cmail> fixed CS high cat. finding
     void ResetResultListL();
-    
+
 	void ChangeReadStatusOfHighlightedL( TInt aRead );
 
 	void CheckAndUpdateFocusedMessageL();
-	
+
 	void RemoveFocusedFromListL();
 
 	void UpdateMsgIconAndBoldingL( CFSMailMessage* aMsgPtr );
 	void UpdateMsgIconAndBoldingL( TInt aListIndex );
 
-	// Delete messages 
+	// Delete messages
 	void DeleteFocusedMessageL();
-	
-	void CallToSenderL();
-	
-	void UpdateMailListSettingsL();	
+
+	TBool CallToSenderL();
+
+	void UpdateMailListSettingsL();
 
 	void UpdatePreviewPaneTextForItemL( CFsTreePlainTwoLineItemData* aItemData, CFSMailMessage* aMsgPtr );
 	void FilterPreviewPaneTextL( TDes& aText ) const;
-	
+
 	void SetMskL();
-	
+
     void DoFirstStartL();
-	
-    void LaunchActionMenuL();
-    
-    void HandleActionMenuCommandL( TActionMenuCustomItemId itemId );
-    
+
     void SetHeaderAttributesL();
-    
+
+    void LaunchStylusPopupMenuL( const TPoint& aPoint );
+
 private:
     // Pointer to Alf environment
 	CAlfEnv* iEnv;
@@ -278,43 +279,50 @@ private:
     	// Mail List control and layout
   	CFreestyleEmailUiSearchListControl* iSearchListControl;
  	CAlfDeckLayout* iSearchListLayout;
-    CFSEmailUiMailListModel* iModel; 
+    CFSEmailUiMailListModel* iModel;
   	CFsTreeList* iSearchList;
     CFsTreeVisualizerBase* iSearchTreeListVisualizer;
-  	TInt iNumSlots;		
+  	TInt iNumSlots;
 
-	RArray<SSearchListItem> iSearchListItemArray;   
-   
+	RArray<SSearchListItem> iSearchListItemArray;
+
 	HBufC* iLatestSearchText;
-	
+
 	TBool iThisViewActive;
 
 	TBool iSearchOngoing;
 
 	CFSEmailUiGenericTimer* iStartupCallbackTimer;
-	
+
 	RPointerArray<TDesC> iSearchStrings;
 
-	
+
 	TBool iMsgDataCouldBeChanged;
-	
-	// Previous view uid 	
+
+	// Previous view uid
 	TUid iPreviousViewUid;
-  	
-    TInt iListMode;    
+
+    TInt iListMode;
     TInt iNodesInUse;
-    
+
     TFSMailMsgId iLatestOpenedMrId;
-    
+
     TInt iSearchCount;
-    
+
 	TAknUiZoom iCurrentZoomLevel;
-  	
+
 	TBool iFirstStartCompleted;
-	
+
 	TBool iListAddedToControlGroup;  //<cmail>
 	TBool iPreparedForExit; //<cmail>
 
+    CAknStylusPopUpMenu* iStylusPopUpMenu;
+    TBool iStylusPopUpMenuVisible;
+
+	//prevents improper executing of Call application - when call to contact
+	TBool iConsumeStdKeyYes_KeyUp; 
+	// decreases search priority to enable search for contact when call to contact
+	TInt iRequiredSearchPriority; 
   	};
 
-#endif 
+#endif

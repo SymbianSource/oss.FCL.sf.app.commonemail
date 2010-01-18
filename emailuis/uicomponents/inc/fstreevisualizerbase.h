@@ -1928,14 +1928,14 @@ private: // from TViewPort::MObserver
      * Sets focused item and send event of touch focusing.
      */
     void SetFocusedItemAndSendEventL( const TFsTreeItemId aItem,
-        TPointerEventType aEventType );
+        TPointerEventType aEventType, const TPoint& aPoint );
 
     /**
      * Just a wrapper for SetFocusedItemAndSendEventL which returns the
      * error code instead of leaving.
      */
     TInt SetFocusedItemAndSendEvent( const TFsTreeItemId aItem,
-        TPointerEventType aEventType );
+        TPointerEventType aEventType, const TPoint& aPoint );
 
 private: // from MAknPhysicsObserver
 

@@ -67,12 +67,19 @@ CFSEmailUiMailboxDeleter::CFSEmailUiMailboxDeleter( CFSMailClient& aMailClient,
 void CFSEmailUiMailboxDeleter::ConstructL()
     {
     FUNC_LOG;
+    iIdle = CIdle::NewL (CIdle::EPriorityIdle);
     }
 
 CFSEmailUiMailboxDeleter::~CFSEmailUiMailboxDeleter()
     {
     FUNC_LOG;
     delete iWaitDialog;
+    iMailboxesToDelete.Close();
+    if (iIdle)
+    	{
+    	iIdle->Cancel();
+    	delete iIdle;
+    	}
     }
 
 
@@ -461,7 +468,8 @@ void CFSEmailUiMailboxDeleter::RequestResponseL( TFSProgress aEvent,
                 if( iMailboxesToDelete.Count() > 0 )
                     {
                     // Delete next mailbox in queue.
-                    DoDeleteNextMailboxL();
+            	    iIdle->Cancel();
+            		iIdle->Start(TCallBack(IdleCallbackL,this));
                     }
                 else
                     {
@@ -502,5 +510,16 @@ void CFSEmailUiMailboxDeleter::DoDeleteNextMailboxL()
     iMailboxDeleteOperationId = iMailClient.DeleteMailBoxByUidL( nextToDelete, 
                                                                  *this );
     }
+// ---------------------------------------------------------------------------
+// IdleCallback
+// ---------------------------------------------------------------------------
+//
+TInt CFSEmailUiMailboxDeleter::IdleCallbackL(TAny* aPtr)
+	{
+	TRAPD( leaveErr,
+		   static_cast<CFSEmailUiMailboxDeleter*>
+		   (aPtr)->DoDeleteNextMailboxL(); );
+	return leaveErr;
+	}
 
 // End of file

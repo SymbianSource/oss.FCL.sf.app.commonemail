@@ -715,7 +715,7 @@ void CFSEmailUiLauncherGridVisualiser::DynInitMenuPaneL(TInt aResourceId, CEikMe
 	    TFSLauncherGridMailboxStatus mbStatus = CheckMailboxStatusL();
 
 	    // Checks if a device has a keyboard or not.
-		if( !iKeyboardFlipOpen )
+		if( !IsFocusShown() )
 			{
 			if( mbStatus.iMailboxCount <= 0 )
 				{
@@ -883,6 +883,7 @@ void CFSEmailUiLauncherGridVisualiser::HandleCommandL( TInt aCommand )
 	    	// Hide the focus.
 	        iAppUi.SetFocusVisibility( EFalse );
 	        HandleButtonReleaseEvent(); // Finishes the focus removal.
+	        iStylusPopUpMenuLaunched = EFalse;
 			break;
 			}
 		case EFsEmailUiCmdSync:
@@ -993,6 +994,7 @@ void CFSEmailUiLauncherGridVisualiser::HandleCommandL( TInt aCommand )
         	// The pop-up menu was closed. Hide the focus.
             iAppUi.SetFocusVisibility( EFalse );
             HandleButtonReleaseEvent(); // Finishes the focus removal.
+	        iStylusPopUpMenuLaunched = EFalse;
        		break;
        		}
         case EFsEmailUiCmdHide:
@@ -1116,7 +1118,7 @@ TBool CFSEmailUiLauncherGridVisualiser::HandlePointerEventL(
                 	{
                 	// A pop-up menu was launched. Do not open the selected
                 	// item.
-                	iStylusPopUpMenuLaunched = EFalse;
+                	iItemIdInButtonDownEvent.iLaunchSelection = EFalse;
                 	break;
                 	}
 
@@ -1143,24 +1145,34 @@ TBool CFSEmailUiLauncherGridVisualiser::HandlePointerEventL(
                 {
                 // if pointer is moved on to other item, decrease focused
                 // item's icon.
-                if( ( currentlyFocused != id ) &&
-                    ( iItemIdInButtonDownEvent.iItemId != KErrNotFound ) )
+                if ( ( currentlyFocused != id ) &&
+                     ( iItemIdInButtonDownEvent.iItemId != KErrNotFound ) )
                     {
                     iItemIdInButtonDownEvent.iLaunchSelection = EFalse;
                     ResizeItemIcon( ETrue );
                     }
+
                 // if pointer is moved on item that has focus, increase item's
                 // icon.
-                else if( id == iItemIdInButtonDownEvent.iItemId )
+                else if ( id == iItemIdInButtonDownEvent.iItemId )
                     {
                     iItemIdInButtonDownEvent.iLaunchSelection = ETrue;
                     ResizeItemIcon( EFalse );
                     }
+
                 break;
                 }
             case TPointerEvent::EButtonRepeat:
             	{
             	// Long tap.
+                if ( currentlyFocused != id ||
+                     iItemIdInButtonDownEvent.iItemId == KErrNotFound )
+            		{
+            		// The item beneath the touch was changed during the long
+            		// tap. Thus, do not show the pop-up.
+            		break;
+            		}
+
             	// Check the type of the currently selected item.
     			TInt itemType = iCurrentLevel.iItems[id].iId;
 
@@ -1235,15 +1247,16 @@ TInt CFSEmailUiLauncherGridVisualiser::FindPointedItem( const TAlfEvent& aEvent 
     TInt count = iCurrentLevel.iItemVisualData.Count();
     const TPoint pos = aEvent.PointerEvent().iParentPosition;
 
-    for(TInt a = 0; count > a; a++)
+    for ( TInt a = 0; count > a; a++ )
         {
-        const TRect rect(iCurrentLevel.iItemVisualData[a].iBase->DisplayRect());
-        if(rect.Contains( pos ))
+        const TRect rect( iCurrentLevel.iItemVisualData[a].iBase->DisplayRect() );
+        if ( rect.Contains( pos ) )
             {
             result = a;
             break;
             }
         }
+
     return result;
     }
 
@@ -1285,6 +1298,7 @@ void CFSEmailUiLauncherGridVisualiser::MoveSelection( TDirection aDir )
 
     // Move the selector over the newly focused icon
     MoveSelectorToCurrentItem( aDir );
+    UpdateFocusVisibility();
     }
 
 
@@ -1541,16 +1555,17 @@ TBool CFSEmailUiLauncherGridVisualiser::UiOperationLaunched()
 void CFSEmailUiLauncherGridVisualiser::PopulateL( TLevel& aLevel )
     {
     FUNC_LOG;
+
     if ( iConstructionCompleted )
         {
         for( TInt i = 0; i < aLevel.iItemVisualData.Count(); i++ )
             {
             aLevel.iItemVisualData[i].iBase->RemoveAndDestroyAllD();
             }
+
         aLevel.iItemVisualData.Reset();
         aLevel.iItems.Reset();
 
-// <cmail> Use layout data instead of hard-coded values
 	    TRect mainPaneRect;
 	    AknLayoutUtils::LayoutMetricsRect(AknLayoutUtils::EMainPane, mainPaneRect);
 
@@ -1572,21 +1587,19 @@ void CFSEmailUiLauncherGridVisualiser::PopulateL( TLevel& aLevel )
 
 	    TAknLayoutText gridText;
 	    gridText.LayoutText(itemrc, AknLayoutScalable_Apps::cell_cmail_l_pane_t1(var));
-// </cmail>
 
-        if( aLevel.iParent >= 0 )
+        if ( aLevel.iParent >= 0 )
             {
             iModel->FindChildren( aLevel.iParent, aLevel.iItems );
 
-            for( TInt i = 0; i < aLevel.iItems.Count(); i++ )
+            for ( TInt i = 0; i < aLevel.iItems.Count(); i++ )
                 {
                 TItemVisualData newItem;
 
                 newItem.iBase = CAlfAnchorLayout::AddNewL( *iControl, aLevel.iGridLayout );
                 newItem.iBase->SetTactileFeedbackL( ETouchEventStylusDown,  ETouchFeedbackBasic );
 
-// <cmail> Use layout data instead of hard-coded values
-                // Set anchors for text
+                // Set anchors for text.
                 newItem.iBase->SetAnchor(
                     EAlfAnchorTopLeft,
                     0,
@@ -1621,22 +1634,21 @@ void CFSEmailUiLauncherGridVisualiser::PopulateL( TLevel& aLevel )
                     EAlfAnchorMetricAbsolute,
                     EAlfAnchorMetricAbsolute,
                     TAlfTimedPoint( gridIconRect.Rect().iBr.iX, gridIconRect.Rect().iBr.iY ) ); //gridIconSize/2, gridIconSize+KTopMargin ) );
-// </cmail>
 
                 newItem.iText = CAlfTextVisual::AddNewL( *iControl, newItem.iBase );
                 newItem.iText->EnableShadow( EFalse );
-// <cmail> Use layout data instead of hard-coded values
-				TRgb itemColor (KRgbGray);
+
+				TRgb itemColor( KRgbGray );
+
 			    // text #9 application grid unfocused application title texts #215
 				if( AknsUtils::GetCachedColor( AknsUtils::SkinInstance(),
 					itemColor, KAknsIIDQsnTextColors,
 					EAknsCIQsnTextColorsCG9 ) != KErrNone )
 					{
-				itemColor = gridText.Color();//iAppUi.LayoutHandler()->ListNormalStateTextSkinColor();
+					itemColor = gridText.Color();
 					}
-				newItem.iText->SetColor(itemColor);
-// </cmail>
 
+				newItem.iText->SetColor( itemColor );
                 newItem.iText->SetTextL( *aLevel.iItems[i].iCaption );
 
                 TAlfTimedValue opacity;
@@ -1652,22 +1664,17 @@ void CFSEmailUiLauncherGridVisualiser::PopulateL( TLevel& aLevel )
                 newItem.iImage->SetImage( TAlfImage( *aLevel.iItems[i].iIconTexture ) );
                 newItem.iImage->SetFlag( EAlfVisualFlagManualSize );
 
-// <cmail> Use layout data instead of hard-coded values
                 newItem.iImage->SetSize( gridIconRect.Rect().Size() );
                 newItem.iImage->SetScale( KScaleNotSelected );
-// </cmail>
 
                 User::LeaveIfError( aLevel.iItemVisualData.Append( newItem ) );
                 }
             }
 
-// <cmail> Use layout data instead of hard-coded values
         // Set columns and rows
-        //iVisibleColumns = iAppUi.LayoutHandler()->GridColumnsInThisResolution();
-        //iVisibleRows = iAppUi.LayoutHandler()->GridRowsInThisResolution();
         iVisibleRows = AknLayoutScalable_Apps::cell_cmail_l_pane_ParamLimits(var).LastRow() + 1;
         iVisibleColumns = AknLayoutScalable_Apps::cell_cmail_l_pane_ParamLimits(var).LastColumn() + 1;
-// </cmail>
+
         iRowCount = ( iCurrentLevel.iItemVisualData.Count() + iVisibleColumns - 1 ) / iVisibleColumns;
 
         aLevel.iGridLayout->MoveToFront();
@@ -2540,12 +2547,23 @@ void CFSEmailUiLauncherGridVisualiser::DetachSelectorMappingFunctions()
         }
     }
 
+
+// -----------------------------------------------------------------------------
+// CFSEmailUiLauncherGridVisualiser::UpdateFocusVisibility()
+// Updates the selector and the text color of a focused item.
+// -----------------------------------------------------------------------------
+//
 void CFSEmailUiLauncherGridVisualiser::UpdateFocusVisibility()
     {
-    if( iSelector )
+    const TBool showFocus =	( IsFocusShown() ||
+							  iItemIdInButtonDownEvent.iItemId >= 0 );
+
+    // Update the selector.
+    if ( iSelector )
         {
         TAlfTimedValue selectorOpacity;
-        if( IsFocusShown() || iItemIdInButtonDownEvent.iItemId >= 0 )
+
+        if ( showFocus )
             {
             selectorOpacity.SetValueNow( 1 );
             }
@@ -2553,9 +2571,48 @@ void CFSEmailUiLauncherGridVisualiser::UpdateFocusVisibility()
             {
             selectorOpacity.SetValueNow( 0 );
             }
+
         iSelector->SetOpacity( selectorOpacity );
         }
+
+    // Update the text color of the previously and newly selected items. 
+	TRgb normalColor( KRgbGray );
+	TRgb focusedColor( KRgbGray );
+
+	if ( ( AknsUtils::GetCachedColor( AknsUtils::SkinInstance(), normalColor,
+								      KAknsIIDQsnTextColors,
+								      EAknsCIQsnTextColorsCG9 ) != KErrNone ) ||
+		 ( AknsUtils::GetCachedColor( AknsUtils::SkinInstance(), focusedColor,
+									  KAknsIIDQsnTextColors,
+									  EAknsCIQsnTextColorsCG11 ) != KErrNone ) )
+		{
+		// No colors available.
+		return;
+		}
+
+	CAlfTextVisual* textVisual = NULL;
+	const TInt itemCount( iCurrentLevel.iItemVisualData.Count() );
+
+	// Set the colors of the captions not focused to normal and if an item is
+	// focused, set the color of its caption using the highlighted theme color.
+	for ( TInt i = 0; i < itemCount; ++i )
+		{
+		textVisual = iCurrentLevel.iItemVisualData[i].iText;
+
+		if ( textVisual )
+			{
+		    if ( showFocus && iCurrentLevel.iSelected == i )
+		        {
+                textVisual->SetColor( focusedColor );
+		        }
+		    else
+		        {
+                textVisual->SetColor( normalColor );
+		        }
+			}
+		}
     }
+
 
 void CFSEmailUiLauncherGridVisualiser::FlipStateChangedL( TBool aKeyboardFlipOpen )
     {

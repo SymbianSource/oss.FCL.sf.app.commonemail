@@ -29,7 +29,6 @@
 #include "FreestyleEmailUiContactHandlerObserver.h"
 #include "FreestyleEmailUiAttachmentsListModel.h"
 #include <AknWaitDialog.h>
-#include <AknNaviDecoratorObserver.h>
 #include "FreestyleEmailDownloadInformationMediator.h"
 #include "FreestyleEmailUiControlBarCallback.h"
 
@@ -53,8 +52,7 @@ class CFsEmailUiHtmlViewerView : public CFsEmailUiViewBase,
         public MProgressDialogCallback,
 		public MFSEmailUiFolderListCallback,
 		public MESMRIcalViewerCallback,
-    	public MESMRIcalViewerObserver,
-		public MAknNaviDecoratorObserver
+    	public MESMRIcalViewerObserver
     {
 public:
 
@@ -74,6 +72,10 @@ public:  // from CAknView
     */
     TUid Id() const;
 
+    void HandleStatusPaneSizeChange();
+    
+    void HandleViewRectChange();
+    
     /**
     * HandleCommandL
     * From CAknView, takes care of command handling.
@@ -82,10 +84,11 @@ public:  // from CAknView
     void HandleCommandL( TInt aCommand );
     
     // Handle accept/decline/tentative/remove commands given for meeting request message directly from list UI.
-	  void HandleMrCommandL( TInt aCommandId, TFSMailMsgId aMailboxId, TFSMailMsgId aFolderId, TFSMailMsgId aMessageId );
+	void HandleMrCommandL( TInt aCommandId, TFSMailMsgId aMailboxId, TFSMailMsgId aFolderId, TFSMailMsgId aMessageId );
     
-		void CompletePendingMrCommand();
-		void CancelPendingMrCommandL();
+	void CompletePendingMrCommand();
+	void CancelPendingMrCommandL();
+	
     /**
     * ChildDoDeactivate
     * From CFsEmailUiViewBase, deactivate the AknView
@@ -104,14 +107,19 @@ public:  // from CAknView
 
     void SetMskL();
     void PrepareForExit();
+    
 public : // for MFSMailRequestObserver
     void RequestResponseL( TFSProgress aEvent, TInt aRequestId );
+    
 public: 
     // from MProgressDialogCallback
     void DialogDismissedL( TInt aButtonId);
     
     CFSMailMessage* CurrentMessage();
     CFSEmailUiAttachmentsListModel* CurrentAttachmentsListModel();
+    
+    // Return view area that can be used for container
+    TRect ContainerRect() const;
 
 public: 
     void HandleDynamicVariantSwitchL( CFsEmailUiViewBase::TDynamicSwitchType aType );
@@ -119,6 +127,7 @@ public:
                               TFSMailMsgId aMailbox, TAny* aParam1, TAny* /*aParam2*/, TAny* /*aParam3*/ );
     
     void HandleEmailAddressCommandL( TInt aCommand, const TDesC& aEmailAddress ); 
+    void HandleWebAddressCommandL( TInt aCommand, const TDesC& aUrl );
     
     void DownloadAttachmentL( const TAttachmentData& aAttachment );
     void DownloadAllAttachmentsL();
@@ -135,6 +144,8 @@ public:
     TFSMailMsgId ViewedMessageId(); 
     
     TBool GetAsyncFetchStatus();
+    void StartFetchingMessageL();
+    void ReloadPageL();
 public: // from MFSEmailUiContactHandlerObserver
     void OperationCompleteL( TContactHandlerCmd aCmd,
                              const RPointerArray<CFSEmailUiClsItem>& aContacts );
@@ -156,13 +167,6 @@ public: // from MESMRIcalViewerObserver
     void OperationCompleted( TIcalViewerOperationResult aResult );        
     void OperationError( TIcalViewerOperationResult aResult );
 	
-public: // from MAknNaviDecoratorObserver
-    
-    /**
-     * Called by navigationDecorator if navi arrows (left/right) have been pressed
-     * @aParam aEventID specifies a tapping of either left or right arrow
-     */
-    void HandleNaviDecoratorEventL( TInt aEventID );
 private: // from
     /**
      * @see CFsEmailUiViewBase::ChildDoActivateL
@@ -191,6 +195,11 @@ private: // from
      * @see CFsEmailUiViewBase::NavigateBackL
      */ 
     void NavigateBackL();
+    
+    /**
+	 * @see CFsEmailUiViewBase::SetStatusBarLayout
+	 */ 
+    void SetStatusBarLayout();
 private: // New functions
     // list of different types of content
     enum TFetchedType
@@ -203,7 +212,7 @@ private: // New functions
     void LoadContentFromFileL( const TDesC& aFileName );
     void LoadContentFromFileL( RFile& aFile );
     void LoadContentFromUrlL( const TDesC& aUrl );
-    void LoadContentFromMailMessageL( CFSMailMessage* aMailMessage );
+    void LoadContentFromMailMessageL( CFSMailMessage* aMailMessage, TBool aResetScrollPosition =ETrue );
     void DeleteMailL();
     void HideContainer();
     void ShowContainerL();
@@ -249,9 +258,12 @@ private: // New functions
     void FolderSelectedL( TFSMailMsgId aSelectedFolderId,
                           TFSEmailUiCtrlBarResponse aResponse ); 
     
-    void UpdateNaviPaneL( TBool aForESMR = EFalse );
-    void HideNaviPane();
+    void UpdateEmailHeaderIndicators();
     TBool IsOpenedInMRViewerL();
+    void CopyCurrentToClipBoardL( const TDesC& aArgument) const;
+    void OpenLinkInBrowserL( const TDesC& aUrl) const;
+    void SaveWebAddressToFavouritesL( const TDesC& aUrl ) const;
+    void SetScrollPosition(TInt aPosition);
 private: // Constructors
     
     void ConstructL();

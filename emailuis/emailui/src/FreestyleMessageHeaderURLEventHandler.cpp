@@ -23,10 +23,15 @@
 #include "FreestyleEmailUiAppui.h"
 #include "FreestyleEmailUiHtmlViewerView.h"
 #include "FreestyleEmailUi.hrh"
+#include "FreestyleEmailUi.rsg"
+#include "FSHtmlReloadAO.h"
 
 #include <aknnotewrappers.h>
+#include <aknstyluspopupmenu.h>
 #include <BrCtlDefs.h>
 #include <e32std.h>
+#include <EIKMOBS.H>
+#include <coemain.h>  
 
 EXPORT_C CFreestyleMessageHeaderURLEventHandler* CFreestyleMessageHeaderURLEventHandler::NewL( 
         CFreestyleEmailUiAppUi& aAppUi, 
@@ -51,12 +56,61 @@ CFreestyleMessageHeaderURLEventHandler::CFreestyleMessageHeaderURLEventHandler(
 
 void CFreestyleMessageHeaderURLEventHandler::ConstructL()
     {
-    iMessageHeaderURL = CFreestyleMessageHeaderURL::NewL();
+    iMessageHeaderURL = CFreestyleMessageHeaderURL::NewL();   
+    iHTMLReloadAO = CFSHtmlReloadAO::NewL(iView);
+    
+    if(!iEmailAddressStylusPopup)
+        {
+        TPoint point( 0, 0 );
+        iEmailAddressStylusPopup = CAknStylusPopUpMenu::NewL( this , point );
+		TResourceReader reader;
+		CCoeEnv::Static()->CreateResourceReaderLC( reader, R_STYLUS_POPUP_MENU_HTML_VIEW_EMAIL_ADDRESS );
+		iEmailAddressStylusPopup->ConstructFromResourceL( reader );
+		CleanupStack::PopAndDestroy(); //resource reader
+        }
+    
+    if( !iAttachmentStylusPopup )
+    	{
+    	TPoint point( 0, 0 );
+    	iAttachmentStylusPopup = CAknStylusPopUpMenu::NewL( this , point );
+		TResourceReader reader;
+		CCoeEnv::Static()->CreateResourceReaderLC( reader, R_STYLUS_POPUP_MENU_HTML_VIEW_ATTACHMENT );
+		iAttachmentStylusPopup->ConstructFromResourceL( reader );
+		CleanupStack::PopAndDestroy(); //resource reader
+    	}
+    
+    if( !iWebAddressStylusPopup )
+		{
+		TPoint point( 0, 0 );
+		iWebAddressStylusPopup = CAknStylusPopUpMenu::NewL( this , point );
+		TResourceReader reader;
+		CCoeEnv::Static()->CreateResourceReaderLC( reader, R_STYLUS_POPUP_MENU_HTML_VIEW_WEB_ADDRESS );
+		iWebAddressStylusPopup->ConstructFromResourceL( reader );
+		CleanupStack::PopAndDestroy(); //resource reader
+		}
+    
     }
 
 CFreestyleMessageHeaderURLEventHandler::~CFreestyleMessageHeaderURLEventHandler ()
     {
     delete iMessageHeaderURL;
+    delete iHTMLReloadAO; 
+    if( iEmailAddressStylusPopup )
+    	{
+		delete iEmailAddressStylusPopup; 
+    	}
+    
+    if( iAttachmentStylusPopup )
+		{
+		delete iAttachmentStylusPopup; 
+		}
+    
+    if( iWebAddressStylusPopup )
+		{
+		delete iWebAddressStylusPopup; 
+		}   
+    
+    delete iUrl;
     }
 
 EXPORT_C TBool CFreestyleMessageHeaderURLEventHandler::HandleEventL( const TDesC& aUri )
@@ -66,110 +120,112 @@ EXPORT_C TBool CFreestyleMessageHeaderURLEventHandler::HandleEventL( const TDesC
     
     if ( ! CFreestyleMessageHeaderURL::IsMessageHeaderURL( aUri ) )
         {
+        //Handle http and https links
+        if( ( aUri.FindF( KURLHttpPrefix ) ) == 0 
+        		||( aUri.FindF( KURLHttpsPrefix ) ) == 0 )
+        	{
+        	if ( iUrl )
+        		{
+        		delete iUrl;
+        		iUrl = NULL;
+        		}
+        	iUrl = aUri.AllocL();
+        	LaunchWebAddressMenu( );
+        	return ETrue;
+        	}         
+        //Link wasn't handled
         return EFalse;
         }
     else
         {
         //URL is of the message header format, hence parse it
         iMessageHeaderURL->InternalizeL( aUri );
-
+        iMenuVisible = ETrue;
         if ( ( iMessageHeaderURL->Type()->CompareF( KURLTypeTo ) == 0 )
              || ( iMessageHeaderURL->Type()->CompareF( KURLTypeFrom ) == 0 )
              || ( iMessageHeaderURL->Type()->CompareF( KURLTypeCc ) == 0 ) )
             {
-            LaunchEmailAddressMenuL( *iMessageHeaderURL );
+            LaunchEmailAddressMenuL( );
             }
 
         else if ( ( iMessageHeaderURL->Type()->CompareF( KURLTypeAttachment ) == 0 ) )
             {
             LaunchAttachmentMenuL( FindAttachmentL( *iMessageHeaderURL ) );
             }
-
+        iMenuVisible=EFalse;
+        if( iPendingReload )
+            {
+            //Load web page aysnchronously
+            iHTMLReloadAO->ReloadPageAysnc();
+            iPendingReload=EFalse;
+            }
         return ETrue;
         }
     }
 
 /*
- * Launches the menu and populates it with the appropriate menu items and handles the user
+ * Launches the avkon stylus popup and dims the inappropriate menu items and handles the user
  * menu item selection.
  * @param aType the type of the link the user selected
  */
-void CFreestyleMessageHeaderURLEventHandler::LaunchEmailAddressMenuL( 
-        const CFreestyleMessageHeaderURL& iMessageHeaderURL )
-    {
-    CFSEmailUiActionMenu::RemoveAllL();
-    
-    RArray<TActionMenuCustomItemId> uids;
-    CleanupClosePushL( uids );
-    uids.Append( FsEActionMenuCall );
-    uids.Append( FsEActionMenuCreateMessage );
-    uids.Append( FsEActionMenuCreateEmail );
-    uids.Append( FsEActionMenuContactDetails );
-    uids.Append( FsEActionMenuAddToContacts );
-
-    if ( iView.IsRemoteLookupSupportedL() )
-        {
-        uids.Append( FsEActionMenuRemoteLookup );
-        }
-
-
-    for ( TInt i = 0; i < uids.Count(); i++ )
-        {
-        CFSEmailUiActionMenu::AddCustomItemL( uids[i] ); ///here is where you add stuff
-        }
-
-    CleanupStack::PopAndDestroy( &uids );
-    TActionMenuCustomItemId menuResult = CFSEmailUiActionMenu::ExecuteL( EFscCenter );
-
-    if ( menuResult != FsEActionMenuCasItemSelectedAndExecuted &&
-            menuResult != FsEActionMenuDismissed    )
-        {
-        HandleEmailAddressActionMenuCommandL( menuResult, iMessageHeaderURL );
-        }
+void CFreestyleMessageHeaderURLEventHandler::LaunchEmailAddressMenuL()
+    {     
+    iEmailAddressStylusPopup->SetItemDimmed( EFsEmailUiCmdActionsRemoteLookup, 
+											 !iView.IsRemoteLookupSupportedL() ); 
+    iEmailAddressStylusPopup->SetPosition( iAppUi.ClientRect().Center(), 
+										   CAknStylusPopUpMenu::EPositionTypeRightBottom );
+    iEmailAddressStylusPopup->ShowMenu();
     }
 
-void CFreestyleMessageHeaderURLEventHandler::HandleEmailAddressActionMenuCommandL(
-    TActionMenuCustomItemId aSelectedActionMenuItem,
-    const CFreestyleMessageHeaderURL& iMessageHeaderURL )
-    {
-    TInt command( 0 );
-
-    switch ( aSelectedActionMenuItem )
-        {
-        case FsEActionMenuCreateEmail: // Create message
-            {
-            command = EFsEmailUiCmdActionsReply;
-            }
-        break;
-        case FsEActionMenuAddToContacts: // Add to Contacts
-            {
-            command = FsEActionMenuAddToContacts;
-            }
-        break;
-        case FsEActionMenuCall: // Call
-            {
-            command = EFsEmailUiCmdActionsCall;
-            }
-        break;
-        case FsEActionMenuCreateMessage: // Create message
-            {
-            command = EFsEmailUiCmdActionsCreateMessage;
-            }
-        break;
-        case FsEActionMenuContactDetails: // Contact details
-            {
-            command = EFsEmailUiCmdActionsContactDetails;
-            }
-        break;
-        case FsEActionMenuRemoteLookup: // Remote lookup
-            {
-            command = EFsEmailUiCmdActionsRemoteLookup;
-            }
-        break;
-        }
-
-    iView.HandleEmailAddressCommandL( command, *iMessageHeaderURL.ItemId() );
-    }
+//From MEikMenuObserver
+void CFreestyleMessageHeaderURLEventHandler::ProcessCommandL( TInt aCommand )
+	{
+	
+	switch ( aCommand )
+		{
+		case EFsEmailUiCmdActionsReply:
+		case EFsEmailUiCmdActionsAddContact:
+		case EFsEmailUiCmdActionsRemoteLookup:
+		case EFsEmailUiCmdActionsCopyToClipboard:
+			{
+			iView.HandleEmailAddressCommandL( aCommand, *iMessageHeaderURL->ItemId() );
+			break;
+			}
+			
+		case EFsEmailUiCmdCancelDownload:
+			{
+			iView.CancelAttachmentL( FindAttachmentL( *iMessageHeaderURL ) );
+			break;
+			}
+			
+		case EFsEmailUiCmdOpenAttachment:
+			{
+			iView.OpenAttachmentL( FindAttachmentL( *iMessageHeaderURL ) );
+			break;
+			}
+			
+		case EFsEmailUiCmdSave:
+			{
+			iView.SaveAttachmentL( FindAttachmentL( *iMessageHeaderURL ) );
+			break;
+			}
+			
+		case EFsEmailUiCmdSaveAll:
+			{
+			iView.SaveAllAttachmentsL( );
+			break;  	
+			}
+			
+		case EFsEmailUiCmdActionsOpenWeb:
+		case EFsEmailUiCmdActionsAddBookmark:
+		case EFsEmailUiCmdActionsCopyWWWAddressToClipboard:
+			{
+			iView.HandleWebAddressCommandL( aCommand, *iUrl );
+			break;
+			}
+			
+		}
+	}
 
 const TAttachmentData& CFreestyleMessageHeaderURLEventHandler::FindAttachmentL( 
         const CFreestyleMessageHeaderURL& aAttachmentUrl )
@@ -216,28 +272,32 @@ void CFreestyleMessageHeaderURLEventHandler::LaunchAttachmentMenuL(
         const TAttachmentData& aAttachment )
     {
     ASSERT( iAppUi.DownloadInfoMediator() );
-    CFSEmailUiActionMenu::RemoveAllL();
+    
+    //Dim all item by default
+    iAttachmentStylusPopup->SetItemDimmed( EFsEmailUiCmdOpenAttachment, ETrue );
+    iAttachmentStylusPopup->SetItemDimmed( EFsEmailUiCmdSave, ETrue );
+    iAttachmentStylusPopup->SetItemDimmed( EFsEmailUiCmdSaveAll, ETrue );
+    iAttachmentStylusPopup->SetItemDimmed( EFsEmailUiCmdCancelDownload, ETrue );   
 
     if ( iAppUi.DownloadInfoMediator()->IsDownloading( aAttachment.partData.iMessagePartId ) )
         {        
-        CFSEmailUiActionMenu::AddCustomItemL( FsEActionAttachmentCancelDownload ); 
+        iAttachmentStylusPopup->SetItemDimmed( EFsEmailUiCmdCancelDownload, EFalse );  
         }
     else if ( aAttachment.downloadProgress == KComplete )
         {
-        CFSEmailUiActionMenu::AddCustomItemL( FsEActionAttachmentOpen ); 
+        iAttachmentStylusPopup->SetItemDimmed( EFsEmailUiCmdOpenAttachment, EFalse );
         
         // block saving of embedded messages if needed.
         if ( iView.IsEmbeddedMsgView() )
             {
             if ( iView.IsEmbeddedMsgSavingAllowed() || !iAttachmentsListModel->IsMessage( aAttachment ) )
                 {
-                CFSEmailUiActionMenu::AddCustomItemL( FsEActionAttachmentSave );    
-                } 
-             
+                iAttachmentStylusPopup->SetItemDimmed( EFsEmailUiCmdSave, EFalse );    
+                }              
             }
         else
             {
-            CFSEmailUiActionMenu::AddCustomItemL( FsEActionAttachmentSave ); 
+            iAttachmentStylusPopup->SetItemDimmed( EFsEmailUiCmdSave, EFalse );
             }
         
         if ( iAttachmentsListModel->GetModel().Count() > 1 )
@@ -246,68 +306,43 @@ void CFreestyleMessageHeaderURLEventHandler::LaunchAttachmentMenuL(
             // are any message type attachments. This is due to limitations of Activesync plugin.
             if( !(iView.IsEmbeddedMsgView() && iAttachmentsListModel->IsThereAnyMessageAttachments()) )
                 {
-                CFSEmailUiActionMenu::AddCustomItemL( FsEActionAttachmentSaveAll );            
-                }
-            
+                iAttachmentStylusPopup->SetItemDimmed( EFsEmailUiCmdSaveAll, EFalse );    
+                }            
             }         
         }
     else
         {
-        CFSEmailUiActionMenu::AddCustomItemL( FsEActionAttachmentOpen ); 
-        CFSEmailUiActionMenu::AddCustomItemL( FsEActionAttachmentSave ); 
+        iAttachmentStylusPopup->SetItemDimmed( EFsEmailUiCmdOpenAttachment, EFalse );
+        iAttachmentStylusPopup->SetItemDimmed( EFsEmailUiCmdSave, EFalse ); 
         if ( iAttachmentsListModel->GetModel().Count() > 1 )
             {
-            CFSEmailUiActionMenu::AddCustomItemL( FsEActionAttachmentSaveAll ); 
+            iAttachmentStylusPopup->SetItemDimmed( EFsEmailUiCmdSaveAll, EFalse );
             }         
         }
-
-    TActionMenuCustomItemId menuResult = CFSEmailUiActionMenu::ExecuteL( EFscCenter );
-
-    if ( menuResult != FsEActionMenuCasItemSelectedAndExecuted &&
-            menuResult != FsEActionMenuDismissed    )
-        {
-        HandAttachmentActionMenuCommandL( menuResult, aAttachment );
-        }
+    iAttachmentStylusPopup->SetPosition( iAppUi.ClientRect().Center(), 
+    								     CAknStylusPopUpMenu::EPositionTypeRightBottom );
+    iAttachmentStylusPopup->ShowMenu();
     }
 
-void CFreestyleMessageHeaderURLEventHandler::HandAttachmentActionMenuCommandL( 
-        TActionMenuCustomItemId aSelectedActionMenuItem,
-        const TAttachmentData& aAttachment )
+//Open the Avkon stylus popup when a web address link was pressed
+void CFreestyleMessageHeaderURLEventHandler::LaunchWebAddressMenu()
     {
-    switch ( aSelectedActionMenuItem )
-        {
-        case FsEActionAttachmentCancelDownload:
-            iView.CancelAttachmentL( aAttachment );
-            break;
-            
-        case FsEActionAttachmentOpen:
-            iView.OpenAttachmentL( aAttachment );
-            break;
-            
-        case FsEActionAttachmentSave:
-            iView.SaveAttachmentL( aAttachment );
-            break;
-            
-        case FsEActionAttachmentSaveAll:
-            iView.SaveAllAttachmentsL();
-            break;
-            
-        case FsEActionAttachmentClearFetchedContent:
-            iView.RemoveAttachmentContentL( aAttachment );
-            break;
-            
-        case FsEActionAttachmentDownload:
-            iView.DownloadAttachmentL( aAttachment );
-            break;
-            
-        case FsEActionAttachmentDownloadAll:
-            iView.DownloadAllAttachmentsL();
-            break;
-            
-        case FsEActionAttachmentViewAll:
-            iView.OpenAttachmentsListViewL();
-            break;            
-        }
+    iWebAddressStylusPopup->SetPosition( iAppUi.ClientRect().Center(), 
+										   CAknStylusPopUpMenu::EPositionTypeRightBottom );
+    iWebAddressStylusPopup->ShowMenu();
     }
 
+//From MEikMenuObserver
+void CFreestyleMessageHeaderURLEventHandler::SetEmphasis(CCoeControl* /*aMenuControl*/,TBool /*aEmphasis*/)
+	{
+	}
 
+void CFreestyleMessageHeaderURLEventHandler::DismissMenuAndReload()
+    {
+        CFSEmailUiActionMenu::Dismiss(ETrue);
+        iPendingReload=ETrue;
+    }
+TBool CFreestyleMessageHeaderURLEventHandler::IsMenuVisible()
+    {
+    return iMenuVisible;
+    }

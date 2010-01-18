@@ -20,14 +20,10 @@
 #ifndef __NCSEMAILHEADERUI_H__
 #define __NCSEMAILHEADERUI_H__
 
-//<cmail>
 #include <aknlongtapdetector.h>
-//</cmail>
 
-//<cmail>
 #include "cpbkxremotecontactlookupenv.h"
 #include "cpbkxremotecontactlookupserviceuicontext.h"
-//</cmail>
 
 #include "FreestyleEmailUi.hrh"
 #include "ncsaddressinputfield.h"
@@ -224,9 +220,9 @@ public: // function members
 	
 	void SetMenuBar( CEikButtonGroupContainer* aMenuBar );
 	
-	void SetAttachmentLabelTextL( const TDesC& aText );
-    void SetAttachmentLabelTextL( const TDesC& aAttachmentName, const TDesC& aAttachmentSizeDesc );
-
+    void SetAttachmentLabelTextsLD( CDesCArray* aAttachmentNames, 
+                                    CDesCArray* aAttachmentSizes );
+    TInt FocusedAttachmentLabelIndex();
     void ShowAttachmentLabelL();
 	void HideAttachmentLabel();
 
@@ -245,9 +241,6 @@ public: // function members
 	TBool IsBccFieldVisible() const;
 
 	TBool IsCcFieldVisible() const;
-
-// <cmail> Removed unneeded IsFocusAif
-// </cmail>
 
 	TBool IsFocusAttachments() const;
 
@@ -286,18 +279,16 @@ public: // function members
 		TInt aControlId );
 
 	//Set Middlesoftkey
-	//void CNcsHeaderContainer::SetMsk();
 	void SetMskL();
 	
-	//<cmail>
 	void HandlePointerEventL( const TPointerEvent& aPointerEvent );
 	
 	void OpenPhonebookL();
 	
-	void HandleLongTapL( const TPoint& aPenEventLocation );
+	void HandleLongTap( const TPoint& aPenEventLocation, 
+						 const TPoint& aPenEventScreenLocation );
 
     TBool NeedsLongTapL( const TPoint& aPenEventLocation );
-	//</cmail>
 	
 	// Process a key event
 	TKeyResponse OfferKeyEventL( const TKeyEvent& aKeyEvent, TEventCode aType );
@@ -343,18 +334,12 @@ public: // function members
 
     void HandleDynamicVariantSwitchL();
 
-    //<cmail>
     // sets up iSwitchChangeMskOff falg 
     void SwitchChangeMskOff(TBool aTag);
-    // </cmail>     
     
-    // <cmail> Platform layout change    
     virtual TInt LayoutLineCount() const;
-    // </cmail> Platform layout change    
 
-// <cmail>
     TBool IsAddressInputField( const CCoeControl* aControl ) const;
-// </cmail>
 
     TBool IsRemoteSearchInprogress() const;
 private: // Function members
@@ -393,19 +378,18 @@ private: // Function members
     * @return Selected email address object.
     */
     CNcsEmailAddressObject* ExecuteRemoteSearchL(
-        CPbkxRemoteContactLookupServiceUiContext::TResult::TExitReason& aExitReason,
+        CPbkxRemoteContactLookupServiceUiContext::TResult::TExitReason& 
+            aExitReason,
         const TDesC& aSearchText );
 
     void ChangeMskCommandL( TInt aLabelResourceId );
 
     void CommitFieldL( CCoeControl* aField );
 
-//<cmail>
 private:  //From MAknLongTapDetectorCallBack
     
-    void HandleLongTapEventL( const TPoint& aPenEventLocation, const TPoint& aPenEventScreenLocation );
-
-//</cmail>
+    void HandleLongTapEventL( const TPoint& aPenEventLocation, 
+            const TPoint& aPenEventScreenLocation );
     
 private: // Data members
 
@@ -415,13 +399,9 @@ private: // Data members
     */
     CCoeControl& iParent;
 
-    // <cmail> Platform layout change
     MNcsFieldSizeObserver& iFieldSizeObserver;
-    // </cmail> Platform layout change
     
-	//<cmail>
     CAknLongTapDetector*      iLongTapDetector;
-    //</cmail>
 	
     CEikButtonGroupContainer* iMenuBar;
     
@@ -443,16 +423,10 @@ private: // Data members
 
 	CFSMailBox& iMailBox;
 	
-    // <cmail>
     //flag which disables changes of MSK label if any popup dialog is open
     TBool iSwitchChangeMskOff;
-    // </cmail>
-	
- 	// <cmail>
-    //CFbsBitmap* iBackgroundBitmap;
-    //CFbsBitmap* iBackgroundMask;
+
     CAknsBasicBackgroundControlContext* iBgContext;
-	// </cmail>
     
     TBool iLongTapEventConsumed;
     TBool iRALInProgress;

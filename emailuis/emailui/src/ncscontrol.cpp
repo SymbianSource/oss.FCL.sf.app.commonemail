@@ -22,12 +22,11 @@
 #include <AknsSkinInstance.h>
 #include <gulcolor.h>
 #include <eikdef.h>
+#include <AknUtils.h>
 
 #include "ncscontrol.h"
 #include "FreestyleEmailUiLayoutData.h"
-// <cmail> Plaform layout change
 #include "ncsutility.h"
-// </cmail> Plaform layout change
 
 // ---------------------------------------------------------------------------
 // MNcsControl::MNcsControl
@@ -44,34 +43,22 @@ MNcsControl::MNcsControl( MNcsFieldSizeObserver* aObserver ) :
 // CNcsLabel::CNcsLabel
 // ---------------------------------------------------------------------------
 //
-// <cmail> Platform layout changes
-CNcsLabel::CNcsLabel( const CCoeControl& aParent, MNcsFieldSizeObserver* aSizeObserver ) :
+CNcsLabel::CNcsLabel( 
+        const CCoeControl& aParent, 
+        MNcsFieldSizeObserver* aSizeObserver ) :
     MNcsControl( aSizeObserver ), iParent( aParent )
     {
     FUNC_LOG;
     UpdateTextColor();
     }
-// </cmail> Platform layout changes
 
 // ---------------------------------------------------------------------------
 // CNcsLabel::Reposition
 // ---------------------------------------------------------------------------
 //
-void CNcsLabel::Reposition( TPoint& aPt, TInt /*aWidth <Cmail>*/ )
+void CNcsLabel::Reposition( TPoint& aPt, TInt /*aWidth*/ )
     {
     FUNC_LOG;
-    // <cmail> Platform layout changes
-    /*
-    TInt ht = Font()->HeightInPixels() + Font()->DescentInPixels();
-    ht += 2 * KAifLabelMarginHorizontal;
-    TSize sz( aWidth, ht );
-    if ( Rect() != TRect( aPt, sz ) )
-        {
-        SetExtent( aPt, sz );
-        }
-    aPt.iY += Size().iHeight;
-    */
-    // </cmail> Platform layout changes
     SetPosition( aPt );
     }
 
@@ -145,5 +132,28 @@ void CNcsLabel::UpdateTextColor()
 //
 TInt CNcsLabel::LayoutLineCount() const
     {
+    FUNC_LOG;
     return IsVisible() ? 1 : 0;
+    }
+
+// ---------------------------------------------------------------------------
+// CNcsLabel::TextHitAreaRect
+// ---------------------------------------------------------------------------
+//
+TRect CNcsLabel::TextHitAreaRect()
+    {
+    FUNC_LOG;
+    TRect rect;
+    if ( Font() && Text() )
+        {
+        rect = Rect();
+        rect.SetWidth( Font()->TextWidthInPixels( *Text() ) );
+        if( AknLayoutUtils::LayoutMirrored() )
+            {
+            rect.Move( Rect().Size().iWidth - 
+                       rect.Size().iWidth - 
+                       rect.iTl.iX - 2, 0 );
+            }
+        }
+    return rect;
     }

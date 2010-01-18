@@ -53,12 +53,10 @@ public: // new functions
 	virtual TInt CursorPosition() const = 0;
 	virtual void Reposition(TPoint& aPt, TInt aWidth) = 0;
     virtual const TDesC& GetLabelText() const = 0;
-    // <cmail> Platform layout change    
     virtual TInt LayoutLineCount() const = 0;
-    // </cmail> Platform layout change    
 
 protected:
-    
+
     MNcsFieldSizeObserver* iSizeObserver;
 
     };
@@ -67,9 +65,7 @@ class CNcsLabel : public CEikLabel, public MNcsControl
     {
 public:
 
-    // <cmail> Plaform layout change
 	CNcsLabel( const CCoeControl& aParent, MNcsFieldSizeObserver* aSizeObserver );
-	// </cmail> Plaform layout change
 
 public:
 
@@ -80,30 +76,23 @@ public:
 	inline virtual TInt CursorPosition() const;
 	virtual void Reposition( TPoint& aPt, TInt aWidth );    
     inline virtual const TDesC& GetLabelText() const;
-    // <cmail> Platform layout change       
     TInt LayoutLineCount() const;
-    // </cmail> Platform layout change    
-
     virtual void FocusChanged( TDrawNow aDrawNow );
-    
+    TRect TextHitAreaRect();
+
 protected: // methods from base class
 
     virtual void HandleResourceChange( TInt aType );    
 private: // methods used internally
 
-// <cmail> Plaform layout change
 private: // data
-    
+
     void UpdateTextColor();
-       
     const CCoeControl& iParent;
-    
-// </cmail> Plaform layout change
     };
 
 #include "ncscontrol.inl"
 
 #endif // __NCS_CONTROL_H__
-
 
 // End of File

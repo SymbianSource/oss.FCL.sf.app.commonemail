@@ -149,6 +149,7 @@ enum
 	EFsEmailUiCmdGoToBottom,
 	EFsEmailUiCmdGoToSwitchFolder,
 	EFsEmailUiCmdGoToSwitchSorting,
+	EFsEmailUiCmdGoToSwitchNewEmail,
 	EFsEmailUiCmdGoToActionMenu,
 	EFsEmailUiCmdMark,
 	EFsEmailUiCmdMarkMark,
@@ -189,6 +190,7 @@ enum
 	EFsEmailUiCmdActionsOpenInIntranetBase,
 	EFsEmailUiCmdActionsAddBookmark,
 	EFsEmailUiCmdActionsCopyToClipboard,
+	EFsEmailUiCmdActionsCopyWWWAddressToClipboard,
 	EFsEmailUiCmdActionsCopyText,
 	EFsEmailUiCmdViewerFetchRestOfMessage,
 	EFsEmailUiCmdPreviousMessage,
@@ -284,10 +286,10 @@ enum
 	EFsEmailUiCmdZoomLevel,
 	
 	// Zoom level indexes must remain last in the enumeration to enable adding new zoom levels
-	EFsEmailUiCmdZoomSmallest,
 	EFsEmailUiCmdZoomSmall,
 	EFsEmailUiCmdZoomNormal,
 	EFsEmailUiCmdZoomLarge,
+	EFsEmailUiCmdZoom150Percent,
 	
     // <cmail> Toolbar
 	EFsEmailUiTbCmdSend,
@@ -312,8 +314,13 @@ enum
     EFsEmailUiTbCmdSaveAll,
     
     EFsEmailUiTbCmdActions,
-    EFsEmailUiTbCmdReplyAll
+    EFsEmailUiTbCmdReplyAll,
 	// </cmail> Toolbar
+
+    EFsEmailUiCmdSubMenuMark,
+    EFsEmailUiCmdSubMenuUnmark,
+    EFsEmailUiCmdMarkSubAll,
+    EFsEmailUiCmdUnmarkSubAll
   	};
 
 enum TFsEmailUiViewerOpenInIntranetCmds

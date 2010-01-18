@@ -929,7 +929,8 @@ void CFSEmailUiSendAttachmentsListModel::InitAttachmentListL()
 
 void CFSEmailUiSendAttachmentsListModel::TreeListEventL( 
     const TFsTreeListEvent aEvent, 
-    const TFsTreeItemId /*aId*/ )
+    const TFsTreeItemId /*aId*/,
+    const TPoint& /*aPoint*/ )
 	{
     FUNC_LOG;
     

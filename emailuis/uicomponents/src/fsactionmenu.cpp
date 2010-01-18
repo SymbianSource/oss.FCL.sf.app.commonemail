@@ -226,7 +226,9 @@ void CFsActionMenu::ProcessCommandL(TInt aCommandId)
 // ---------------------------------------------------------------------------
 //
 // <cmail> Touch
-void CFsActionMenu::TreeListEventL( const TFsTreeListEvent aEvent, const TFsTreeItemId /*aId*/ )
+void CFsActionMenu::TreeListEventL( const TFsTreeListEvent aEvent, 
+                                    const TFsTreeItemId /*aId*/,
+                                    const TPoint& /*aPoint*/ )
     {
     FUNC_LOG;
 // </cmail>

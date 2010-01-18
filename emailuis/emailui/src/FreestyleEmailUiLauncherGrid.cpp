@@ -98,23 +98,24 @@ void CFSEmailUiLauncherGrid::SetVisualiserL( CFSEmailUiLauncherGridVisualiser* a
     iVisualiser = aVisualiser;
 	}
 
-void CFSEmailUiLauncherGrid::NotifyControlVisibility( TBool  aIsVisible, CAlfDisplay& aDisplay )
+void CFSEmailUiLauncherGrid::NotifyControlVisibility( TBool  aIsVisible,
+													  CAlfDisplay& aDisplay )
     {
     FUNC_LOG;
     
-    //Add & remove extra touch events. 
-    if(aIsVisible && !iDraggingSet)
+    // Add & remove extra touch events. 
+    if( aIsVisible && !iDraggingSet )
         {
         iDraggingSet = ETrue; 
-        aDisplay.Roster().AddPointerEventObserver(EAlfPointerEventReportDrag, *this);
-        aDisplay.Roster().AddPointerEventObserver(EAlfPointerEventReportLongTap, *this);
-        aDisplay.Roster().AddPointerEventObserver(EAlfPointerEventReportUnhandled, *this);
+        aDisplay.Roster().AddPointerEventObserver( EAlfPointerEventReportDrag, *this );
+        aDisplay.Roster().AddPointerEventObserver( EAlfPointerEventReportLongTap, *this );
+        aDisplay.Roster().AddPointerEventObserver( EAlfPointerEventReportUnhandled, *this );
         }
-    else if(!aIsVisible && iDraggingSet )
+    else if( !aIsVisible && iDraggingSet )
         {
-        aDisplay.Roster().RemovePointerEventObserver(EAlfPointerEventReportDrag, *this);
-        aDisplay.Roster().RemovePointerEventObserver(EAlfPointerEventReportLongTap, *this);
-        aDisplay.Roster().RemovePointerEventObserver(EAlfPointerEventReportUnhandled, *this);        
+        aDisplay.Roster().RemovePointerEventObserver( EAlfPointerEventReportDrag, *this );
+        aDisplay.Roster().RemovePointerEventObserver( EAlfPointerEventReportLongTap, *this );
+        aDisplay.Roster().RemovePointerEventObserver( EAlfPointerEventReportUnhandled, *this );
         iDraggingSet = EFalse;
         }
     }

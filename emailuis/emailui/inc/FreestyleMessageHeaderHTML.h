@@ -2,9 +2,9 @@
 * Copyright (c) 2007-2008 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
-* under the terms of "Eclipse Public License v1.0"
+* under the terms of the License "Symbian Foundation License v1.0"
 * which accompanies this distribution, and is available
-* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+* at the URL "http://www.symbianfoundation.org/legal/sfl-v10.html".
 *
 * Initial Contributors:
 * Nokia Corporation - initial contribution.
@@ -19,6 +19,7 @@
 #define __CFREESTYLE_MESSAGE_HEADER_HTML_H__
 
 #include <e32base.h>
+#include <biditext.h>  
 
 #include "CFSMailMessage.h"
 #include "CFSMailAddress.h"
@@ -32,86 +33,121 @@ class RFile;
 class CFreestyleMessageHeaderHTML : public CBase
     {
 public:
-    IMPORT_C static void ExportL( CFSMailMessage& aMailMessage, RWriteStream& aWriteStream, TInt aVisibleWidth  );
-    IMPORT_C static void ExportL( CFSMailMessage& aMailMessage, RFile& aFile, TInt aVisibleWidth   );
-    IMPORT_C static void ExportL( CFSMailMessage& aMailMessage, RFs& aFs, const TPath& aFilePath, TInt aVisibleWidth  );
+    IMPORT_C static void ExportL( CFSMailMessage& aMailMessage, 
+                                  RWriteStream& aWriteStream, 
+                                  TInt aVisibleWidth, 
+                                  TInt aScrollPosition,
+                                  TBidiText::TDirectionality aDirectionality = TBidiText::ELeftToRight);
+    IMPORT_C static void ExportL( CFSMailMessage& aMailMessage, 
+                                  RFile& aFile, 
+                                  TInt aVisibleWidth, 
+                                  TInt aScrollPosition,
+                                  TBidiText::TDirectionality aDirectionality = TBidiText::ELeftToRight);
+    IMPORT_C static void ExportL( CFSMailMessage& aMailMessage, 
+                                  RFs& aFs, 
+                                  const TPath& aFilePath, 
+                                  TInt aVisibleWidth, 
+                                  TInt aScrollPosition,
+                                  TBidiText::TDirectionality aDirectionality = TBidiText::ELeftToRight);
     
-    IMPORT_C static CFreestyleMessageHeaderHTML* NewL( CFSMailMessage& aMailMessage, TInt aVisibleWidth   );
+    IMPORT_C static CFreestyleMessageHeaderHTML* NewL( CFSMailMessage& aMailMessage,
+                                                       RWriteStream& aWriteStream,
+                                                       TInt aVisibleWidth,
+                                                       TInt aScrollPosition,
+                                                       TBidiText::TDirectionality aDirectionality = TBidiText::ELeftToRight
+                                                       );
     
     ~CFreestyleMessageHeaderHTML();
     
-    IMPORT_C void ExportL( RWriteStream& aWriteStream ) const;
-    IMPORT_C void ExportL( RFile& aFile ) const;
-    IMPORT_C void ExportL( RFs& aFs, const TPath& aFilePath) const;
+    IMPORT_C void ExportL() const;
     
 private:
-    CFreestyleMessageHeaderHTML( CFSMailMessage& aMailMessage, TInt aVisibleWidth   );
+    CFreestyleMessageHeaderHTML( CFSMailMessage& aMailMessage,
+                                 RWriteStream& aWriteStream,
+                                 TInt aVisibleWidth,
+                                 TInt aScrollPosition,
+                                 TBidiText::TDirectionality aDirectionality);
     void ConstructL();
     
-    void HTMLStartL( RWriteStream& aWriteStream ) const;
-    void HTMLEndL( RWriteStream& aWriteStream ) const;
+    void HTMLStartL() const;
+    void HTMLEndL() const;
     
-    void ExportHTMLHeaderL( RWriteStream& aWriteStream ) const;
-    void HTMLHeaderStartL( RWriteStream& aWriteStream ) const;
-    void HTMLMetaL( RWriteStream& aWriteStream ) const;
-    void HTMLHeaderEndL( RWriteStream& aWriteStream ) const;
+    void ExportHTMLHeaderL() const;
+    void HTMLHeaderStartL() const;
+    void HTMLMetaL() const;
+    void HTMLHeaderEndL() const;
 
-    void ExportHTMLBodyL( RWriteStream& aWriteStream ) const;
-    void HTMLBodyStartL( RWriteStream& aWriteStream ) const;
-    void HTMLBodyEndL( RWriteStream& aWriteStream ) const;
+    void ExportHTMLBodyL() const;
+    void HTMLBodyStartL() const;
+    void HTMLBodyEndL() const;
     
-    void ExportSubjectL( RWriteStream& aWriteStream ) const;
-    void ExportFromL( RWriteStream& aWriteStream ) const;
-    void ExportToL( RWriteStream& aWriteStream ) const;
-    void ExportCcL( RWriteStream& aWriteStream ) const;
-    void ExportBccL( RWriteStream& aWriteStream ) const;
-    void ExportSentTimeL( RWriteStream& aWriteStream ) const;
-    void ExportAttachmentsL( RWriteStream& aWriteStream ) const;
+    void ExportSubjectL() const;
+    void ExportFromL() const;
+    void ExportToL() const;
+    void ExportCcL() const;
+    void ExportBccL() const;
+    void ExportSentTimeL() const;
+    void ExportAttachmentsL() const;
     
-    void ExportEmailAddressesL( RWriteStream& aWriteStream, 
-                                FreestyleMessageHeaderURLFactory::TEmailAddressType aEmailAddressType, 
+    void ExportEmailAddressesL( FreestyleMessageHeaderURLFactory::TEmailAddressType aEmailAddressType, 
                                 const RPointerArray<CFSMailAddress>& aEmailAddresses,
                                 const TDesC8& aRowId,
                                 const TDesC8& aTableId,
                                 TInt aHeaderTextResourceId ) const;
     
-    void AddEmailAddressL( RWriteStream& aWriteStream, 
-                           FreestyleMessageHeaderURLFactory::TEmailAddressType aEmailAddressType, 
+    void AddEmailAddressL( FreestyleMessageHeaderURLFactory::TEmailAddressType aEmailAddressType, 
                            const CFSMailAddress& aEmailAddress ) const;
     
-    void AddAttachmentL( RWriteStream& aWriteStream, CFSMailMessagePart& aAttachment ) const;
+    void AddAttachmentL( CFSMailMessagePart& aAttachment ) const;
 
-    void StartHyperlinkL( RWriteStream& aWriteStream, const TDesC8& aUrl ) const;
-    void EndHyperlinkL( RWriteStream& aWriteStream ) const;
+    void StartHyperlinkL( const TDesC8& aUrl ) const;
+    void EndHyperlinkL() const;
     
-    void AddImageL( RWriteStream& aWriteStream, const TDesC8& aImageUrl ) const;
-    void AddImageL( RWriteStream& aWriteStream, const TDesC8& aImageId, const TDesC8& aImageUrl, const TDesC8& aImageEvent ) const;
+    void AddImageL( const TDesC8& aImageUrl ) const;
+    void AddImageL( const TDesC8& aImageId, const TDesC8& aImageUrl, const TDesC8& aImageEvent ) const;
     
-    void StartHeaderTableL( RWriteStream& aWriteStream, const TDesC8& aTableId ) const;
-    void EndHeaderTableL( RWriteStream& aWriteStream ) const;
+    void StartHeaderTableL( const TDesC8& aTableId ) const;
+    void EndHeaderTableL() const;
 
-    void StartTableL( RWriteStream& aWriteStream, const TDesC8& aTableId ) const;
-    void EndTableL( RWriteStream& aWriteStream ) const;
+    void StartTableL( const TDesC8& aTableId ) const;
+    void EndTableL() const;
     
-    void AddShowDetailL( RWriteStream& aWriteStream ) const;
+    void AddShowDetailL() const;
     
     HBufC8* ClickImageEventL( const TDesC8& aImageName ) const;
 
-    void AddJavascriptL( RWriteStream& aWriteStream ) const;    
+    void AddJavascriptL() const;    
     
     HBufC8* HeadingTextLC( TInt aId ) const;
     HBufC8* HeadingTextLC( TInt aId, TInt aSize ) const;
     
-    void ExportInitialTableL( RWriteStream& aWriteStream ) const;
+    void ExportInitialTableL() const;
+    /**
+     * Function for generating follow up icon's HTML code.
+     * Returns NULL if no follow up flags are set.
+     *
+     * @param aShowText Whether to show icon's text after the icon or not.
+     */
+    HBufC8* HTMLHeaderFollowUpIconLC( TBool aShowText ) const;
     
-    void AddStyleSheetL( RWriteStream& aWriteStream ) const;
-    void StartDivL( RWriteStream& aWriteStream ) const;
-    void EndDivL( RWriteStream& aWriteStream ) const;
+    /**
+     * Function for generating priority icon's HTML code.
+     * Returns NULL if mail message's priority is normal.
+     *
+     * @param aShowText Whether to show icon's text after the icon or not.
+     */
+    HBufC8* HTMLHeaderPriorityIconLC( TBool aShowText ) const;
+    void AddStyleSheetL() const;
+    void StartDivL() const;
+    void EndDivL() const;
     
 private:
-    CFSMailMessage& iMailMessage; 
-    TInt            iVisibleWidth;
-    
+    CFSMailMessage&             iMailMessage; 
+    RWriteStream&               iWriteStream;
+    TInt                        iVisibleWidth;
+    TInt                        iScrollPosition;
+    TBidiText::TDirectionality  iDirectionality;
+     
     RPointerArray<CFSMailMessagePart> iAttachments;
 };
 

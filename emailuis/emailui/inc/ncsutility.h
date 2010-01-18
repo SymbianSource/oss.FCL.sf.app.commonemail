@@ -22,9 +22,7 @@
 
 #include <cntitem.h>
 #include "CFSMailCommon.h"
-//<cmail>
 #include "ncsaddressinputfield.h"
-//</cmail>
 
 class CNcsEmailAddressObject;
 class CFSMailAddress;
@@ -33,12 +31,10 @@ class CFbsBitmap;
 class CFSMailMessage;
 class CFSMailBox;
 class CFSMailClient;
-// <cmail> Platform layout change 
 class CEikLabel;
 class CEikEdwin;
 class CAknButton;
 class CCoeControl;
-// </cmail> Platform layout change 
 
 struct TNcsMeasures
 	{
@@ -61,14 +57,12 @@ struct TNcsMeasures
 */
 class NcsUtility
     {
-// <cmail> Platform layout changes
 public:
     enum THeaderDetailIcon
         {
         EIconFront,
         EIconBack
         };
-// </cmail> Platform layout changes
 
 public:
     static void CompleteRelativePathL( const TDesC& aRelativePath, TPtr& aAbsolutePath );
@@ -107,7 +101,6 @@ public:
 
     static CFont* GetNearestFontL( TInt aLogicalFontId, TInt aHeightPixels );
 
-// <cmail> Platform layout changes
     enum TNcsLayoutFont
         {
         ENcsHeaderCaptionFont,
@@ -116,7 +109,6 @@ public:
         };
 
     static const CFont* GetLayoutFont( const TRect& aParent, TNcsLayoutFont aUsage );
-// </cmail> Platform layout changes
 
     static TBool IsReplyForwardQuoteReadOnly( const CFSMailBox& aMailBox );
 
@@ -131,7 +123,6 @@ public:
     		const TFSMailMsgId& aFolderId,
     		const TFSMailMsgId& aMsgId );
 
-    // <cmail> Platform layout changes
     static TRect HeaderCaptionPaneRect( const TRect& aParent );
 
     static TRect HeaderDetailPaneRect( const TRect& aParent, const TInt aRows, TBool aSameRow = EFalse );
@@ -143,7 +134,7 @@ public:
     static TRect ListCmailPaneRect( const TRect& aParent );
 
     static TRect ListCmailScrollbarRect( const TRect& aParent );
-    //<cmail>
+
     static TSize SeparatorSizeInThisResolution();
     static TInt ComposerLeftMarginInPixels( const TRect& aParent );
     static TInt ComposerRightMarginInPixels( const TRect& aParent );
@@ -151,20 +142,19 @@ public:
 
     static void LayoutCaptionLabel( CEikLabel* aLabel, const TRect& aParentRect );
     
-    //<cmail>
     static void LayoutCaptionButton( CAknButton* aButton, const TRect& aParentRect);
-    //</cmail>
-    static void LayoutDetailLabel( CEikLabel* aLabel, const TRect& aParentRect );
+
+    static void LayoutDetailLabel( CEikLabel* aLabel, const TRect& aParentRect, TInt aRow = 0 );
 
     static void LayoutDetailEdwin( CEikEdwin* aEdwin, const TRect& aParentRect, const TInt aLineCount, const TBool aBackIcon );
-    //<cmail>
+
     static void LayoutDetailEdwinTouch( CEikEdwin* aEdwin, const TRect& aParentRect,
                                         const TInt aLineCount, const TBool aBackIcon  );
-    //</cmail>
+
     static TPoint HeaderControlPosition( const TRect& aParentRect, const TInt aCurrentLine );
 
     static void LayoutHeaderControl( CCoeControl* aControl, const TRect& aParentRect, const TInt aCurrentLine, const TInt aNumberOfLines );
-    //<cmail>
+
     static void LayoutBodyEdwin( CEikEdwin* aEdwin, const TRect& aParentRect, const TInt aCurrentLine, const TInt aNumberOfLines,
             TInt& aSeparatorYPosition );
     static TRgb CalculateSeparatorLineSecondaryColor( TInt aDegree, TRgb aStartColor );

@@ -293,17 +293,17 @@ EXPORTS
 	?ThumbSpan@CFsAlfScrollbarLayout@@QAEHW4TFsScrollbar@@@Z @ 292 NONAME ; int CFsAlfScrollbarLayout::ThumbSpan(enum TFsScrollbar)
 	?TreeControl@CFsTreeList@@QBEPAVCAlfControl@@XZ @ 293 NONAME ; class CAlfControl * CFsTreeList::TreeControl(void) const
 	?TreeVisualizer@CFsTreeList@@QBEAAVCFsTreeVisualizerBase@@XZ @ 294 NONAME ; class CFsTreeVisualizerBase & CFsTreeList::TreeVisualizer(void) const
-	?TreeVisualizerEventL@CFsTreeList@@UBEXW4TFsTreeVisualizerEvent@MFsTreeVisualizerObserver@@H@Z @ 295 NONAME ; void CFsTreeList::TreeVisualizerEventL(enum MFsTreeVisualizerObserver::TFsTreeVisualizerEvent, int) const
-	?Update@CFsAlfScrollbarLayout@@QAEXH@Z @ 296 NONAME ; void CFsAlfScrollbarLayout::Update(int)
-	?UpdateButtonSize@CFsControlButtonVisualiser@@UAEXXZ @ 297 NONAME ; void CFsControlButtonVisualiser::UpdateButtonSize(void)
-	?UpdateElementL@CFsControlButtonVisualiser@@UAEXW4TFsControlButtonElem@@@Z @ 298 NONAME ; void CFsControlButtonVisualiser::UpdateElementL(enum TFsControlButtonElem)
-	?UpdateElementsSizeL@CFsControlButtonVisualiser@@MAEXW4TFsControlButtonType@@@Z @ 299 NONAME ; void CFsControlButtonVisualiser::UpdateElementsSizeL(enum TFsControlButtonType)
-	?UpdateStatusLayout@CFsTextViewer@@QAEXXZ @ 300 NONAME ; void CFsTextViewer::UpdateStatusLayout(void)
-	?UpdateTextStyles@CFsControlButtonVisualiser@@MAEXXZ @ 301 NONAME ; void CFsControlButtonVisualiser::UpdateTextStyles(void)
-	?VisibilityMode@CFsAlfScrollbarLayout@@QAE?AW4TFsScrollbarVisibility@@W4TFsScrollbar@@@Z @ 302 NONAME ; enum TFsScrollbarVisibility CFsAlfScrollbarLayout::VisibilityMode(enum TFsScrollbar)
-	?Visual@CFsControlBar@@QAEPAVCAlfVisual@@XZ @ 303 NONAME ; class CAlfVisual * CFsControlBar::Visual(void)
-	?Width@CFsControlBar@@QBEHXZ @ 304 NONAME ; int CFsControlBar::Width(void) const
-	?MakeSelectorVisibleL@CFsTreeVisualizerBase@@QAEXH@Z @ 305 NONAME ; void CFsTreeVisualizerBase::MakeSelectorVisibleL(int)
-	?DisableKineticScrolling@CFsTreeList@@QAEXH@Z @ 306 NONAME ; void CFsTreeList::DisableKineticScrolling(int)
-	?MakeSelectorVisible@CFsControlBar@@QAEXHH@Z @ 307 NONAME ; void CFsControlBar::MakeSelectorVisible(int, int)
+	?DisableKineticScrolling@CFsTreeList@@QAEXH@Z @ 295 NONAME ; void CFsTreeList::DisableKineticScrolling(int)
+	?MakeSelectorVisible@CFsControlBar@@QAEXHH@Z @ 296 NONAME ; void CFsControlBar::MakeSelectorVisible(int, int)
+	?MakeSelectorVisibleL@CFsTreeVisualizerBase@@QAEXH@Z @ 297 NONAME ; void CFsTreeVisualizerBase::MakeSelectorVisibleL(int)
+	?TreeVisualizerEventL@CFsTreeList@@UBEXW4TFsTreeVisualizerEvent@MFsTreeVisualizerObserver@@HABVTPoint@@@Z @ 298 NONAME ; void CFsTreeList::TreeVisualizerEventL(enum MFsTreeVisualizerObserver::TFsTreeVisualizerEvent, int, class TPoint const &) const
+	?Update@CFsAlfScrollbarLayout@@QAEXH@Z @ 299 NONAME ; void CFsAlfScrollbarLayout::Update(int)
+	?UpdateButtonSize@CFsControlButtonVisualiser@@UAEXXZ @ 300 NONAME ; void CFsControlButtonVisualiser::UpdateButtonSize(void)
+	?UpdateElementL@CFsControlButtonVisualiser@@UAEXW4TFsControlButtonElem@@@Z @ 301 NONAME ; void CFsControlButtonVisualiser::UpdateElementL(enum TFsControlButtonElem)
+	?UpdateElementsSizeL@CFsControlButtonVisualiser@@MAEXW4TFsControlButtonType@@@Z @ 302 NONAME ; void CFsControlButtonVisualiser::UpdateElementsSizeL(enum TFsControlButtonType)
+	?UpdateStatusLayout@CFsTextViewer@@QAEXXZ @ 303 NONAME ; void CFsTextViewer::UpdateStatusLayout(void)
+	?UpdateTextStyles@CFsControlButtonVisualiser@@MAEXXZ @ 304 NONAME ; void CFsControlButtonVisualiser::UpdateTextStyles(void)
+	?VisibilityMode@CFsAlfScrollbarLayout@@QAE?AW4TFsScrollbarVisibility@@W4TFsScrollbar@@@Z @ 305 NONAME ; enum TFsScrollbarVisibility CFsAlfScrollbarLayout::VisibilityMode(enum TFsScrollbar)
+	?Visual@CFsControlBar@@QAEPAVCAlfVisual@@XZ @ 306 NONAME ; class CAlfVisual * CFsControlBar::Visual(void)
+	?Width@CFsControlBar@@QBEHXZ @ 307 NONAME ; int CFsControlBar::Width(void) const
 

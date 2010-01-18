@@ -1,0 +1,17 @@
+
+#include <appinfo.rh>
+#include <ipssostestapp.rsg>
+#include <data_caging_paths_strings.hrh>
+
+UID2 KUidAppRegistrationResourceFile
+// <cmail> S60 UID update
+UID3 0x2001FE0F // application UID
+// </cmail> S60 UID update
+
+RESOURCE APP_REGISTRATION_INFO
+	{
+	app_file = "IpsSosTestApp";	
+    localisable_resource_file = APP_RESOURCE_DIR"\\IpsSosTestApp";
+    localisable_resource_id = R_TESTAPP_APP_INFO;
+	}
+// End of File

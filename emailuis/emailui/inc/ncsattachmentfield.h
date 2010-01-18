@@ -52,9 +52,11 @@ public: // methods
 
     TInt GetMinLabelLength() const;
     
-    void SetTextL( const TDesC& aText );
-    void SetTextL( const TDesC& aAttachmentName, const TDesC& aAttachmentSizeDesc );
+    void SetTextsLD( CDesCArray* aAttachmentNames, 
+                     CDesCArray* aAttachmentSizes );
 
+    TInt FocusedAttachmentLabelIndex();
+  
 public: // from MNcsControl
     
     TInt LineCount() const;
@@ -71,9 +73,7 @@ public: // from MNcsControl
 
     const TDesC& GetLabelText() const;
     
-    // <cmail> Platform layout change       
     TInt LayoutLineCount() const;
-    // </cmail> Platform layout change
     
 public: // from CCoeControl
 
@@ -89,26 +89,28 @@ public: // from CCoeControl
 
     void HandleResourceChange( TInt aType );
 
+    void HandlePointerEventL( const TPointerEvent& aPointerEvent );
+    
 private: // methods
     
-    CNcsAttachmentField( MNcsFieldSizeObserver* aSizeObserver, 
+    CNcsAttachmentField( TInt aLabelTextId,
+                         MNcsFieldSizeObserver* aSizeObserver, 
                          CNcsHeaderContainer* aParentControl );
         
-    void ConstructL( TInt aLabelTextId );
+    void ConstructL();
     
     void UpdateColors();
+    void UpdateColors( CNcsLabel* aLabel );
     
 	void UpdateFontSize();
+	void UpdateFontSize( CNcsLabel* aLabel );
 
-	// <cmail> Platform layout change 
     void LayoutControls();
 	
 	void UpdateIconPositions( const TRect& aRect );
-	// </cmail> Platform layout change 
 
-    void UpdateAttachmentTextL();
+    void UpdateAttachmentTextsL();
     
-    // <cmail> Platform layout change
     /**
      * Resizes icons 
      */
@@ -116,24 +118,24 @@ private: // methods
     
     TInt CreateIcons();
     void CreateIconsL();
-    // </cmail> Platform layout change
+    
+    void UpdateComponentArrayL();
+    
+    void UpdateSingleAttachmentLabelTextL( CNcsLabel* aLabel, TInt aIndex );
     
 private: // data
     
     CNcsHeaderContainer* iParentControl; // not owned
     
-    CNcsLabel* iAttachmentLabel;
+    // attachment labels (within the array) owned
+    RPointerArray<CNcsLabel> iAttachmentLabels;
     
-// <cmail> Platform layout change
-    //CFont* iLabelFont; // not owned, needs to be released in the end
-    //CFont* iEditorFont; // not owned, needs to be released in the end
     const CFont* iLabelFont; // not owned
     const CFont* iEditorFont; // not owned
-// </cmail>
     
-    HBufC* iAttachmentName;
-    HBufC* iAttachmentSizeDesc;
-        
+    CDesCArray* iAttachmentNames;
+    CDesCArray* iAttachmentSizes;
+    
     TInt iMaximumLabelLength;         
 
     TRgb iBgColor;
@@ -144,11 +146,10 @@ private: // data
     CFbsBitmap* iAttachmentBitmap;
     CFbsBitmap* iAttachmentMask;
     TPoint iAttachmentIconPos;
-
-    // Action menu icon
-    CFbsBitmap* iActionMenuBitmap;
-    CFbsBitmap* iActionMenuMask;
-    TPoint iActionMenuIconPos;
+    
+    TInt iLabelTextId;
+    TInt iAttachmentLabelCount;
+    TInt iFocusedLabelIndex;
     };
 
 #endif

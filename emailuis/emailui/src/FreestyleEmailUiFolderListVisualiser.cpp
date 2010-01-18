@@ -74,6 +74,7 @@
 #include "FreestyleEmailUiShortcutBinding.h"
 #include "ESMailSettingsPlugin.h"
 #include "FreestyleEmailUiStatusIndicator.h"
+#include <alf/alfborderbrush.h>
 
 // Defines the order of the folders in UI
 enum TFSEmailUiFolderListPriorities
@@ -248,6 +249,12 @@ void CFSEmailUiFolderListVisualiser::DoFirstStartL()
     AknLayoutUtils::LayoutMetricsRect(AknLayoutUtils::EMainPane, mainPaneRect);
     iFaderLayout = CAlfDeckLayout::AddNewL( *iControl );
     iFaderLayout->SetRect( mainPaneRect );
+    // It is not possible to get PointerEvent from iFaderLayout 
+    // unless it has got something to draw (even if it is not visible)  
+	iFaderLayout->EnableBrushesL();
+    CAlfBorderBrush* borderfader = CAlfBorderBrush::NewL( iEnv, 1, 1, 1, 1 );
+	borderfader->SetOpacity(KFSInvisible);
+	iFaderLayout->Brushes()->AppendL( borderfader, EAlfHasOwnership );
 
     iParentLayout = CAlfAnchorLayout::AddNewL( *iControl );
     iParentLayout->SetRect( iScreenRect );
@@ -596,19 +603,9 @@ void CFSEmailUiFolderListVisualiser::DoShowInPopupL(
         TRect outerRect( iScreenRect );
         outerRect.Shrink( paddingValue, paddingValue );
         iBackgroundBrush->SetFrameRectsL( outerRect, iScreenRect );
+        iParentLayout->Brushes()->AppendL( iBackgroundBrush, EAlfDoesNotHaveOwnership );
 		}
 
-	   // Append brush if it's not yet appended. Currently this is our only
-	    // brush so if brush count is more than zero, this brush is already
-	    // appended. If other brush(es) are added later, this implementation
-	    // need to be changed.
-	    if ( iParentLayout->Brushes()->Count() == 0 )
-	        {
-	        // Keep the ownership of the brush to avoid unneeded object
-	        // deletion / reconstruction
-	        iParentLayout->Brushes()->AppendL( iBackgroundBrush, EAlfDoesNotHaveOwnership );
-	        }
-	
 	if( !iShadowBrush )
 	    {
         iShadowBrush = CAlfShadowBorderBrush::NewL( 
@@ -619,6 +616,14 @@ void CFSEmailUiFolderListVisualiser::DoShowInPopupL(
                                            EAlfDoesNotHaveOwnership );
 	    }
 
+      // Append brush if it's not yet appended. 
+      if ( iParentLayout->Brushes()->Count() == 0 )
+          {
+          // Keep the ownership of the brush to avoid unneeded object deletion / reconstruction
+          iParentLayout->Brushes()->InsertL( 0, iBackgroundBrush, EAlfDoesNotHaveOwnership );
+          iParentLayout->Brushes()->AppendL( iShadowBrush, EAlfDoesNotHaveOwnership );
+          }
+	
 	SetPopupSoftkeysL();
 	// SetRect need to be called also here, otherwise the list layout might
 	// be wrong in mirrored layout
@@ -3097,7 +3102,8 @@ void CFSEmailUiFolderListVisualiser::DoHorizontalScrollL( TBool aForceRecalculat
 // ---------------------------------------------------------------------------
 //
 void CFSEmailUiFolderListVisualiser::TreeListEventL( const TFsTreeListEvent aEvent,
-                                    const TFsTreeItemId /*aId*/ )
+                                                     const TFsTreeItemId /*aId*/,
+                                                     const TPoint& /*aPoint*/ )
     {
     switch (aEvent)
         {

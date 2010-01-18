@@ -146,6 +146,12 @@ void CFsComposerFetchLogic::RequestResponseL( TFSProgress aEvent, TInt aRequestI
     {
     FUNC_LOG;
 
+    // Ignore all responses when cancelling is in progress.
+    if( iFetchingCancelGoingOn )
+        {
+        return;
+        }
+    
     iError = aEvent.iError;
 
     if ( !iError )

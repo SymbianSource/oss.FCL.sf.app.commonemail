@@ -12,7 +12,7 @@
  * Contributors:
  *
  *  Description : Freestyle tree list visualizer implementation
- *  
+ *
  *
  */
 
@@ -682,7 +682,7 @@ void TViewPort::ItemToPositionL(const TFsTreeItemId aItemId,
         {
         TInt top(itemRect.iTl.iY);
         top -= aPosition.iY;
-        LimitTop(top);            
+        LimitTop(top);
         if (aHint == EPositionAfterExpand)
             {
             const TInt error( iWorld.GetItemRectByIndex(
@@ -692,7 +692,7 @@ void TViewPort::ItemToPositionL(const TFsTreeItemId aItemId,
                 if (itemRect.iBr.iY - top > iSize.iHeight)
                     {
                     top += itemRect.iBr.iY - top - iSize.iHeight;
-                    LimitTop(top);            
+                    LimitTop(top);
                     }
                 }
             }
@@ -1410,11 +1410,9 @@ TBool CFsTreeVisualizerBase::HandleKeyEventL(const TAlfEvent& aEvent)
                     {
                     if (iVisualizerObserver)
                         {
-                        // <cmail> Touch
                         iVisualizerObserver->TreeVisualizerEventL(
                                 MFsTreeVisualizerObserver::EFsTreeKeyLeftArrow,
                                 iFocusedItem);
-                        // </cmail>
                         }
                     eventHandled = ETrue;
                     break;
@@ -1423,11 +1421,9 @@ TBool CFsTreeVisualizerBase::HandleKeyEventL(const TAlfEvent& aEvent)
                     {
                     if (iVisualizerObserver)
                         {
-                        // <cmail>
                         iVisualizerObserver->TreeVisualizerEventL(
                                 MFsTreeVisualizerObserver::EFsTreeKeyRightArrow,
                                 iFocusedItem);
-                        // </cmail>
                         }
                     eventHandled = ETrue;
                     break;
@@ -1451,7 +1447,6 @@ TBool CFsTreeVisualizerBase::HandleKeyEventL(const TAlfEvent& aEvent)
                             {
                             if (iTreeData->ItemVisualizer(iFocusedItem)->Menu())
                                 {
-                                // <cmail> Touch
                                 iVisualizerObserver->TreeVisualizerEventL(
                                         MFsTreeVisualizerObserver::EFsTreeItemWithMenuSelected,
                                         iFocusedItem);
@@ -1461,7 +1456,6 @@ TBool CFsTreeVisualizerBase::HandleKeyEventL(const TAlfEvent& aEvent)
                                 iVisualizerObserver->TreeVisualizerEventL(
                                         MFsTreeVisualizerObserver::EFsTreeItemSelected,
                                         iFocusedItem);
-                                // </cmail>
                                 }
                             }
                         }
@@ -1532,11 +1526,8 @@ void CFsTreeVisualizerBase::SetFocusVisibility( TBool aShow )
         }
     }
 
-// <cmail> "Base class modifications for using touch"
-
 // ---------------------------------------------------------------------------
 // CFsTreeVisualizerBase::HandlePointerEventL
-//
 // ---------------------------------------------------------------------------
 //
 TBool CFsTreeVisualizerBase::HandlePointerEventL(const TAlfEvent& aEvent)
@@ -1547,8 +1538,8 @@ TBool CFsTreeVisualizerBase::HandlePointerEventL(const TAlfEvent& aEvent)
         TPointerEvent::TType type = aEvent.PointerEvent().iType;
         const TInt id(EventItemId(aEvent));
         INFO_1("visual: $%x", aEvent.Visual());
-        if (KErrNotFound != id || type == TPointerEvent::EDrag || 
-                type  == TPointerEvent::EButtonRepeat || 
+        if (KErrNotFound != id || type == TPointerEvent::EDrag ||
+                type  == TPointerEvent::EButtonRepeat ||
                 type  == TPointerEvent::EButton1Up)
             {
             switch (type)
@@ -1704,7 +1695,7 @@ void CFsTreeVisualizerBase::SetFocusedItemL( const TFsTreeItemId aItemId,
 
     if ( visualizer )
         {
-        TBool focused = IsFocusShown();    
+        TBool focused = IsFocusShown();
         visualizer->UpdateL( iTreeData->ItemData( iFocusedItem ), focused,
                 iTreeData->Level( iFocusedItem ), iMarkIcon, iMenuIcon, 0 );
         }
@@ -1817,7 +1808,7 @@ void CFsTreeVisualizerBase::ShowListL(const TBool aFadeIn,
                     itemId);
 
             TBool itemFocused( EFalse );
-            if( showFocus ) 
+            if( showFocus )
                 {
                 itemFocused = IsItemFocused(itemId);
                 }
@@ -2254,7 +2245,7 @@ void CFsTreeVisualizerBase::ExpandNodeL(const TFsTreeItemId aNodeId)
     if (!nodeVisualizer->IsExpanded())
         {
         nodeVisualizer->SetExpanded(ETrue, &iTreeData->ItemData(aNodeId));
-        
+
         TFsTreeIterator treeIter = iTreeData->Iterator(aNodeId, aNodeId,
                 KFsTreeIteratorSkipHiddenFlag);
         if (treeIter.HasNext())
@@ -2276,7 +2267,7 @@ void CFsTreeVisualizerBase::ExpandNodeL(const TFsTreeItemId aNodeId)
                 ApplyListSpecificValuesToItem(itemviz);
                 size = itemviz->Size();
                 iWorld.InsertL(itemId, size, index);
-                } while (treeIter.HasNext()); 
+                } while (treeIter.HasNext());
             if (iFocusedItem != KFsTreeNoneID)
                 {
                 iViewPort.ItemToPositionL(iFocusedItem, position, EFalse,
@@ -2342,49 +2333,50 @@ void CFsTreeVisualizerBase::ExpandAllL()
     FUNC_LOG;
     iWorld.BeginUpdate();
     TPoint position;
-    if (iFocusedItem != KFsTreeNoneID)
+
+    if( iFocusedItem != KFsTreeNoneID )
         {
         position = iViewPort.ItemRect(iFocusedItem).iTl;
         }
     iWorld.RemoveAllL();
-    TFsTreeIterator treeIter = iTreeData->Iterator(KFsTreeRootID,
-            KFsTreeRootID);
+    TFsTreeIterator treeIter = iTreeData->Iterator(
+        KFsTreeRootID, KFsTreeRootID );
     TFsTreeItemId itemId = KFsTreeNoneID;
     TSize size;
-    while (treeIter.HasNext())
+    while( treeIter.HasNext() )
         {
         itemId = treeIter.Next();
-        if (itemId != KFsTreeNoneID)
+        if( itemId != KFsTreeNoneID )
             {
-            if (iTreeData->IsNode(itemId))
+            if( iTreeData->IsNode( itemId ) )
                 {
                 MFsTreeNodeVisualizer* nodeviz = iTreeData->NodeVisualizer(
                         itemId);
-                nodeviz->SetExpanded(ETrue, &iTreeData->ItemData(itemId));
+                nodeviz->SetExpanded( ETrue, &iTreeData->ItemData( itemId ) );
                 size = nodeviz->Size();
                 }
             else
                 {
-                MFsTreeItemVisualizer* itemviz = iTreeData->ItemVisualizer(
-                        itemId);
+                MFsTreeItemVisualizer* itemviz =
+                    iTreeData->ItemVisualizer( itemId );
                 size = itemviz->Size();
                 }
-            iWorld.AppendL(itemId, size);
+            iWorld.AppendL( itemId, size );
             }
         }
-    if (iFocusedItem != KFsTreeNoneID)
+
+    if( iFocusedItem != KFsTreeNoneID )
         {
         iViewPort.ItemToPositionL(iFocusedItem, position, EFalse,
-                TViewPort::EPositionAfterExpand);
+                TViewPort::EPositionAfterExpand );
         }
     iWorld.EndUpdateL();
-    // <cmail>
+
     if ( iVisualizerObserver )
         {
         iVisualizerObserver->TreeVisualizerEventL(
                 MFsTreeVisualizerObserver::EFsTreeListExpandedAll );
         }
-    // </cmail>
     }
 
 // ---------------------------------------------------------------------------
@@ -2396,44 +2388,58 @@ void CFsTreeVisualizerBase::CollapseAllL()
     FUNC_LOG;
     iWorld.BeginUpdate();
     TPoint position;
-    if (iFocusedItem != KFsTreeNoneID)
+
+    if( iFocusedItem != KFsTreeNoneID )
         {
-        position = iViewPort.ItemRect(iFocusedItem).iTl;
+        position = iViewPort.ItemRect( iFocusedItem ).iTl;
         }
     iWorld.RemoveAllL();
-    if (iTreeData->Count() > 0)
+    if( iTreeData->Count() > 0 )
         {
-        TUint childcount = iTreeData->CountChildren(KFsTreeRootID);
-        for (TUint i = 0; i < childcount; ++i)
+        const TUint childcount = iTreeData->CountChildren( KFsTreeRootID );
+        for( TUint i( 0 ); i < childcount; ++i )
             {
-            TFsTreeItemId itemId = iTreeData->Child(KFsTreeRootID, i);
+            TFsTreeItemId itemId = iTreeData->Child( KFsTreeRootID, i );
             TSize itemSize;
-            if (iTreeData->IsNode(itemId))
+            if( iTreeData->IsNode( itemId ) )
                 {
-                MFsTreeNodeVisualizer* nodeVis(iTreeData->NodeVisualizer(
-                        itemId));
-                nodeVis->SetExpanded(EFalse, &iTreeData->ItemData(itemId));
+                MFsTreeNodeVisualizer* nodeVis =
+                    iTreeData->NodeVisualizer( itemId );
+                nodeVis->SetExpanded( EFalse, &iTreeData->ItemData( itemId ) );
                 itemSize = nodeVis->Size();
                 }
             else
                 {
-                itemSize = iTreeData->ItemVisualizer(itemId)->Size();
+                itemSize = iTreeData->ItemVisualizer( itemId )->Size();
                 }
             iWorld.AppendL(itemId, itemSize);
             }
         }
-    if (iFocusedItem != KFsTreeNoneID)
+
+    if( iFocusedItem != KFsTreeNoneID )
         {
-        iViewPort.ItemToPositionL(iFocusedItem, position, EFalse);
+        // If item, which was selected, wasn't node, then make its parent node
+        // focused, if it doesn't have parent node or its parent is not a node
+        // then leave focus as it was.
+        if( !iTreeData->IsNode( iFocusedItem ) )
+            {
+            TFsTreeItemId parentId = iTreeData->Parent( iFocusedItem );
+            if( iTreeData->IsNode( parentId ) )
+                {
+                SetFocusedItemL( parentId );
+                position = iViewPort.ItemRect( iFocusedItem ).iTl;
+                }
+            }
+        iViewPort.ItemToPositionL( iFocusedItem, position, EFalse );
         }
+
     iWorld.EndUpdateL();
-    // <cmail>
+
     if ( iVisualizerObserver )
         {
         iVisualizerObserver->TreeVisualizerEventL(
                 MFsTreeVisualizerObserver::EFsTreeListCollapsedAll );
         }
-    // </cmail>
     }
 
 // ---------------------------------------------------------------------------
@@ -2571,7 +2577,7 @@ EXPORT_C void CFsTreeVisualizerBase::SetBackgroundColorL(TRgb aColor)
     backgroundBrush->SetColor(aColor);
 
     iWatermarkLayout->Brushes()->AppendL(backgroundBrush, EAlfHasOwnership);
-        }    
+        }
     }
 
 // ---------------------------------------------------------------------------
@@ -3598,7 +3604,7 @@ void CFsTreeVisualizerBase::UpdateViewPortL()
         keepFocusedItemInView = iViewPort.ItemRect(iFocusedItem).Height() > 0;
         }
     iViewPort.SetSizeL(listPane.Size());
-    iWorld.Recalculate(*iTreeData);   
+    iWorld.Recalculate(*iTreeData);
     if (keepFocusedItemInView)
         {
         iViewPort.ScrollItemToViewL(iFocusedItem, EFalse);
@@ -3633,7 +3639,7 @@ void CFsTreeVisualizerBase::UpdateScrollBarIfNeededL()
 void CFsTreeVisualizerBase::UpdateScrollBarL(const TInt /*aTimeout*/)
     {
     FUNC_LOG;
-    
+
     TRect mainPaneRect;
     AknLayoutUtils::LayoutMetricsRect(AknLayoutUtils::EMainPane, mainPaneRect);
     TRect listRect(iRootLayout->DisplayRectTarget());
@@ -4044,7 +4050,7 @@ void CFsTreeVisualizerBase::CreateSelectorVisualL()
 
             iListLayout->SetFlag( EAlfVisualFlagFreezeLayout );
             iListItemBackgroundLayout->SetFlag( EAlfVisualFlagFreezeLayout );
-            
+
             iSelectorVisual = CAlfImageVisual::AddNewL(*iOwnerControl, iSelectorLayout);
             opacity.SetValueNow(0.0f);
             iSelectorVisual->SetOpacity(opacity);
@@ -4052,9 +4058,9 @@ void CFsTreeVisualizerBase::CreateSelectorVisualL()
             iSelectorVisual->EnableBrushesL();
 
             // Set the selector visual size and pos.
-            iSelectorVisual->SetFlags(EAlfVisualFlagManualLayout | 
-                    EAlfVisualFlagIgnorePointer);           
-            
+            iSelectorVisual->SetFlags(EAlfVisualFlagManualLayout |
+                    EAlfVisualFlagIgnorePointer);
+
             TRect itemRect(iViewPort.ItemRect(iFocusedItem));
             itemRect.SetWidth(iListLayout->Size().iX.Target() - 2 * iListLayout->PaddingInPixels().iTl.iX);
             if ( itemRect.Height() )
@@ -4879,7 +4885,7 @@ void CFsTreeVisualizerBase::ViewPortUpdatedL(TViewPort& aViewPort)
             CAlfLayout& visualizerLayout(visualizer->Layout());
             visualizerLayout.SetSize(tpItemSize);
             visualizerLayout.PropertySetIntegerL(KPropertyItemId(), itemId);
-            visualizer->UpdateL(iTreeData->ItemData(itemId), 
+            visualizer->UpdateL(iTreeData->ItemData(itemId),
                     IsItemFocused(itemId) && IsFocusShown(),
                     iTreeData->Level(itemId), iMarkIcon, iMenuIcon,
                     0);
@@ -4936,7 +4942,7 @@ void CFsTreeVisualizerBase::StartPhysics(TPoint& aDrag,
     TTime now;
     now.HomeTime();
     TInt moveTime( now.MicroSecondsFrom( aStartTime ).Int64() );
-    if (moveTime > KFlickMaxDuration) 
+    if (moveTime > KFlickMaxDuration)
         {
         startTime = now - TTimeIntervalMicroSeconds( KFlickMaxDuration - 1 );
         aDrag.iY = aDrag.iY * KFlickMaxDuration / moveTime;
@@ -5007,10 +5013,10 @@ TPoint CFsTreeVisualizerBase::ViewPosition() const
 // ---------------------------------------------------------------------------
 //
 TInt CFsTreeVisualizerBase::SetFocusedItemAndSendEvent(
-    const TFsTreeItemId aItemId, TPointerEventType aEventType )
+    const TFsTreeItemId aItemId, TPointerEventType aEventType, const TPoint& aPoint )
     {
     FUNC_LOG;
-    TRAPD(error, SetFocusedItemAndSendEventL( aItemId, aEventType ) );
+    TRAPD(error, SetFocusedItemAndSendEventL( aItemId, aEventType, aPoint ) );
     return error;
     }
 
@@ -5020,7 +5026,7 @@ TInt CFsTreeVisualizerBase::SetFocusedItemAndSendEvent(
 // ---------------------------------------------------------------------------
 //
 void CFsTreeVisualizerBase::SetFocusedItemAndSendEventL(
-        const TFsTreeItemId aItemId, TPointerEventType aEventType )
+        const TFsTreeItemId aItemId, TPointerEventType aEventType, const TPoint& aPoint )
     {
     FUNC_LOG;
 
@@ -5036,7 +5042,7 @@ void CFsTreeVisualizerBase::SetFocusedItemAndSendEventL(
         SetFocusedItemL( aItemId );
         iVisualizerObserver->TreeVisualizerEventL(
             MFsTreeVisualizerObserver::EFsTreeItemTouchFocused,
-            FocusedItem() );
+            FocusedItem(), aPoint );
 
         // If DirectTouchMode (actions happens in pointer down events)
         if( iFlags.IsSet( EDirectTouchMode ) && aEventType == EPointerDown )
@@ -5044,19 +5050,22 @@ void CFsTreeVisualizerBase::SetFocusedItemAndSendEventL(
             iTouchPressed = EFalse;
             iVisualizerObserver->TreeVisualizerEventL(
                 MFsTreeVisualizerObserver::EFsTreeItemTouchAction,
-                aItemId );
+                aItemId, aPoint );
             }
         }
     else if( aEventType == ELongTap )
         {
+        // HandlePointerEventL do not get pointer up event after long tap event
+        // so <code>iTouchPressed</code> flag needs to be reset here.
+        iTouchPressed = EFalse;
 		iVisualizerObserver->TreeVisualizerEventL(
 				MFsTreeVisualizerObserver::EFsTreeItemTouchLongTap,
-  			    aItemId );
+  			    aItemId, aPoint );
         }
     else if( aEventType == EPointerUp )
         {
         iVisualizerObserver->TreeVisualizerEventL(
-            MFsTreeVisualizerObserver::EFsTreeItemTouchAction, aItemId );
+            MFsTreeVisualizerObserver::EFsTreeItemTouchAction, aItemId, aPoint );
         }
     }
 
@@ -5106,12 +5115,12 @@ void CFsTreeVisualizerBase::CDragHandler::Reset()
 //
 // ---------------------------------------------------------------------------
 //
-CFsTreeVisualizerBase::CDragHandler::TDragDirection 
-    CFsTreeVisualizerBase::CDragHandler::DragDirection( 
+CFsTreeVisualizerBase::CDragHandler::TDragDirection
+    CFsTreeVisualizerBase::CDragHandler::DragDirection(
         const TPoint& aCurrent, const TPoint aPrevious ) const
     {
     FUNC_LOG;
-    if (aCurrent.iY > aPrevious.iY) 
+    if (aCurrent.iY > aPrevious.iY)
         {
         return EDraggingDown;
         }
@@ -5119,7 +5128,7 @@ CFsTreeVisualizerBase::CDragHandler::TDragDirection
         {
         return EDraggingUp;
         }
-    else 
+    else
         {
         return iDragDirection;
         }
@@ -5140,7 +5149,7 @@ void CFsTreeVisualizerBase::CDragHandler::PointerDown(
     iStartTime.HomeTime();
     iFlags.Set( EPointerDownReceived );
 
-    iTree.SetFocusedItemAndSendEvent( iItemId, EPointerDown );
+    iTree.SetFocusedItemAndSendEvent( iItemId, EPointerDown, iPosition );
     }
 
 // ---------------------------------------------------------------------------
@@ -5148,12 +5157,12 @@ void CFsTreeVisualizerBase::CDragHandler::PointerDown(
 // ---------------------------------------------------------------------------
 //
 void CFsTreeVisualizerBase::CDragHandler::PointerRepeat(
-        const TPointerEvent& /*aEvent*/ )
+        const TPointerEvent& aEvent )
     {
     if( iItemId != KFsTreeNoneID && !IsFlicking() )
         {
         iFlags.Set( EWasRepeat );
-        iTree.SetFocusedItemAndSendEvent( iItemId, ELongTap );
+        iTree.SetFocusedItemAndSendEvent( iItemId, ELongTap, aEvent.iParentPosition );
         }
     }
 
@@ -5171,7 +5180,7 @@ void CFsTreeVisualizerBase::CDragHandler::PointerUp(
         if( ( aItemId != KFsTreeNoneID ) &&
             ( iTree.FocusedItem() == aItemId  ) )
             {
-            iTree.SetFocusedItemAndSendEvent( iItemId, EPointerUp );
+            iTree.SetFocusedItemAndSendEvent( iItemId, EPointerUp, aEvent.iParentPosition );
             }
         }
     else if ( IsFlicking() )
@@ -5181,7 +5190,7 @@ void CFsTreeVisualizerBase::CDragHandler::PointerUp(
         }
     else if( !iFlags.IsSet( EWasRepeat ) && iItemId != KFsTreeNoneID )
         {
-        iTree.SetFocusedItemAndSendEvent( iItemId, EPointerUp );
+        iTree.SetFocusedItemAndSendEvent( iItemId, EPointerUp, aEvent.iParentPosition );
         }
     iLastPointerPosition = iPosition = TPoint();
     iFlags.Clear( EPointerDownReceived );
@@ -5228,7 +5237,7 @@ TPoint CFsTreeVisualizerBase::CDragHandler::PointerDrag(
                     - aEvent.iPosition.iY));
             }
         TDragDirection dragDirection(DragDirection(aEvent.iPosition, iLastPointerPosition));
-        const TBool dragDirectionChanged( 
+        const TBool dragDirectionChanged(
                 (dragDirection == EDraggingUp && iDragDirection == EDraggingDown ) ||
                 (dragDirection == EDraggingDown && iDragDirection == EDraggingUp ) );
         if (dragDirectionChanged)
@@ -5294,7 +5303,7 @@ TInt CFsTreeVisualizerBase::CDragHandler::HighlightTimerCallback( TAny* aPtr )
     FUNC_LOG;
     CDragHandler* self = reinterpret_cast<CDragHandler*>( aPtr );
     self->iHighlightTimer->Cancel();
-    return self->iTree.SetFocusedItemAndSendEvent( self->iItemId, ELongTap );
+    return self->iTree.SetFocusedItemAndSendEvent( self->iItemId, ELongTap, self->iPosition );
     }
 
 // ---------------------------------------------------------------------------
@@ -5303,7 +5312,7 @@ TInt CFsTreeVisualizerBase::CDragHandler::HighlightTimerCallback( TAny* aPtr )
 //
 TBool CFsTreeVisualizerBase::IsFocusShown()
     {
-    if( iTouchPressed || iFocusVisible ) 
+    if( iTouchPressed || iFocusVisible )
         {
         return ETrue;
         }

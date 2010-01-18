@@ -17,7 +17,6 @@ box#SetupContainer
     height: 100%;
     direction: ltr;
     block-progression: tb;
-    touchfeedback: basic;
     nav-index: appearance;	
 }
 
@@ -32,14 +31,7 @@ box#MailsContainer
     height: 100%;
     direction: ltr;
     block-progression: tb;
-    touchfeedback: basic;
     nav-index: appearance;	
-}
-
-box:focus
-{
-    border-color: cyan;
-	focus-background:"SKIN(268458534 9896)";
 }
 
 box.row_container

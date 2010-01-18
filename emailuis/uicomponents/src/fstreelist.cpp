@@ -933,7 +933,8 @@ EXPORT_C CFsTreeList* CFsTreeList::ItemMenu(
 // <cmail> Touch
 EXPORT_C void CFsTreeList::TreeVisualizerEventL(
         const TFsTreeVisualizerEvent aEvent,
-        const TFsTreeItemId aId ) const
+        const TFsTreeItemId aId,
+        const TPoint& aPoint ) const
 // </cmail>
     {
     FUNC_LOG;
@@ -1032,11 +1033,7 @@ EXPORT_C void CFsTreeList::TreeVisualizerEventL(
 
     for ( TInt c = 0; c < iObservers.Count(); c++ )
         {
-        // <cmail> Touch
-        iObservers[c]->TreeListEventL(
-            listEvent,
-            aId);
-        // </cmail>
+        iObservers[c]->TreeListEventL( listEvent, aId, aPoint );
         }
     }
 

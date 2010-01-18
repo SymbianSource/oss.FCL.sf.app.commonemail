@@ -41,6 +41,9 @@ _LIT( KSpace, " ");
 _LIT( KResourceFile, "\\resource\\apps\\emailwidget.rsc" );
 _LIT( KDissociated,"0");
 
+_LIT(KStartSeparator, "<");
+_LIT(KEndSeparator, ">");
+
 //
 // EMAIL WIDGET SPECIFIC CONSTANTS USED IN PUBLISHING
 //

@@ -975,7 +975,8 @@ void CFSEmailUiAttachmentsListVisualiser::MoveItemToNodeL( TFsTreeItemId aItemId
 
 // <cmail> Touch
 void CFSEmailUiAttachmentsListVisualiser::TreeListEventL( const TFsTreeListEvent aEvent, 
-                                 	const TFsTreeItemId aId )
+                                 	const TFsTreeItemId aId,
+                                 	const TPoint& /*aPoint*/ )
 	{
     FUNC_LOG;
 

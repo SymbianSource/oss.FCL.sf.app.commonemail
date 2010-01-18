@@ -15,16 +15,17 @@
 *
 */
 
+// CLASS HEADER
+#include "fscontrolbar.h"
 
-//<cmail> SF
+// INCLUDES
 #include "emailtrace.h"
 #include <alf/alfevent.h>
 #include <alf/alfdecklayout.h>
-//</cmail>
 #include <AknsConstants.h>
 #include <AknUtils.h>
+#include <layoutmetadata.cdl.h>
 
-#include "fscontrolbar.h"
 #include "fscontrolbarmodel.h"
 #include "fscontrolbarvisualiser.h"
 #include "fscontrolbutton.h"
@@ -607,48 +608,68 @@ TBool CFsControlBar::OfferEventL( const TAlfEvent& aEvent )
 
     if ( aEvent.IsKeyEvent() )
         {
-        CFsControlButton* button( NULL );
-
-        button = iModel->ButtonById( iSelectedButton );
-
+        CFsControlButton* button = iModel->ButtonById( iSelectedButton );
         if ( button && button->OfferEventL( aEvent ) )
             {
             eventHandled = ETrue;
             }
         else
             {
-            if ( EEventKey == aEvent.Code() )
+            if( EEventKey == aEvent.Code() )
                 {
-                switch ( aEvent.KeyEvent().iScanCode )
+                TBool landscape( Layout_Meta_Data::IsLandscapeOrientation() );
+                switch( aEvent.KeyEvent().iScanCode )
                     {
                     case EStdKeyLeftArrow:
                         {
-                        button = iModel->PrevButton( iSelectedButton );
-                        ChangeFocusL( button );
-                        // Always after keypress focus needs to be shown.
-                        MakeSelectorVisible( ETrue );
+                        if( landscape )
+                            {
+                            LooseFocus( MFsControlBarObserver::EEventFocusLostAtBottom );
+                            }
+                        else
+                            {
+                            button = iModel->PrevButton( iSelectedButton );
+                            ChangeFocusL( button, ETrue );
+                            }
                         eventHandled = ETrue;
                         break;
                         }
 
                     case EStdKeyRightArrow:
                         {
-                        button = iModel->NextButton( iSelectedButton );
-                        ChangeFocusL( button );
-                        // Always after keypress focus needs to be shown.
-                        MakeSelectorVisible( ETrue );
-                        eventHandled = ETrue;
+                        if( !landscape )
+                            {
+                            button = iModel->NextButton( iSelectedButton );
+                            ChangeFocusL( button, ETrue );
+                            eventHandled = ETrue;
+                            }
                         break;
                         }
 
                     case EStdKeyDownArrow:
                         {
-                        LooseFocus(
-                                MFsControlBarObserver::EEventFocusLostAtBottom );
+                        if( landscape )
+                            {
+                            button = iModel->NextButton( iSelectedButton, landscape );
+                            ChangeFocusL( button, ETrue );
+                            }
+                        else
+                            {
+                            LooseFocus( MFsControlBarObserver::EEventFocusLostAtBottom );
+                            }
                         eventHandled = ETrue;
                         break;
                         }
-
+                    case EStdKeyUpArrow:
+                        {
+                        if( landscape )
+                            {
+                            button = iModel->PrevButton( iSelectedButton, landscape );
+                            ChangeFocusL( button, ETrue );
+                            eventHandled = ETrue;
+                            }
+                        break;
+                        }
                     default:
                         {
                         eventHandled = EFalse;
@@ -687,7 +708,6 @@ TBool CFsControlBar::HandleButtonEvent(
     TBool eventHandled( ETrue );
     switch ( aEvent )
         {
-        // <cmail> Touch
         case EEventButtonTouchPressed:
             {
             MakeSelectorVisible( ETrue, ETrue );
@@ -708,7 +728,6 @@ TBool CFsControlBar::HandleButtonEvent(
                 }
             break;
             }
-        // </cmail>
 
         case EEventButtonPressed:
             {
@@ -723,7 +742,6 @@ TBool CFsControlBar::HandleButtonEvent(
             break;
             }
 
-        // <cmail> Touch
         case EEventButtonTouchReleased:
             {
             // Notify that button is released, focus can be hidden.
@@ -748,7 +766,6 @@ TBool CFsControlBar::HandleButtonEvent(
                 }
             break;
             }
-        // </cmail>
 
         case EEventButtonReleased:
             {
@@ -832,13 +849,18 @@ void CFsControlBar::NotifyObservers(
 // Changes focus to another button or looses focus from control bar.
 // ---------------------------------------------------------------------------
 //
-void CFsControlBar::ChangeFocusL( CFsControlButton* aButton )
+void CFsControlBar::ChangeFocusL(
+        CFsControlButton* aButton, TBool aMakeSelectorVisible )
     {
     FUNC_LOG;
     if ( aButton )
         {
         // set focus to specified button
         SetFocusByIdL( aButton->Id() );
+        if( aMakeSelectorVisible )
+            {
+            MakeSelectorVisible( ETrue );
+            }
         }
     else
         {

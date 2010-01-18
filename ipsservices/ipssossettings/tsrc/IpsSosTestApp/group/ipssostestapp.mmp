@@ -1,0 +1,67 @@
+/*
+* ============================================================================
+*  Name     : ipssostestapp.mmp
+
+* ============================================================================
+*/
+#include <data_caging_paths.hrh>
+#include <platform_paths.hrh>
+#include "../../../epoc32/include/oem/defaultcaps.hrh"
+
+TARGET  ipssostestapp.exe
+TARGETTYPE  exe
+
+// <cmail> S60 UID update
+UID  0x100039CE 0x2001FE0F
+// </cmail> S60 UID update
+VENDORID        VID_DEFAULT
+CAPABILITY      ALL -TCB
+LANG     SC
+
+SOURCEPATH ../src
+SOURCE  TestAppApp.cpp
+SOURCE  TestAppAppUi.cpp
+SOURCE  TestAppDocument.cpp
+SOURCE  TestAppContainer.cpp
+
+START RESOURCE ../data/ipssostestapp.rss
+HEADER
+TARGETPATH APP_RESOURCE_DIR
+END //resource
+
+START RESOURCE ../data/ipssostestapp_reg.rss
+DEPENDS ipssostestapp.rsg
+TARGETPATH /private/10003a3f/apps
+END
+
+// <cmail>
+APP_LAYER_SYSTEMINCLUDE
+// </cmail>
+USERINCLUDE ../inc
+USERINCLUDE ../../../inc
+USERINCLUDE ..\..\..\..\..\..\ODSUtility\inc
+
+SYSTEMINCLUDE   /epoc32/include
+//<cmail>
+//<cmail>
+USERINCLUDE ../../../../../inc
+//</cmail>
+//</cmail>
+
+LIBRARY euser.lib
+LIBRARY apparc.lib
+LIBRARY cone.lib
+LIBRARY eikcore.lib
+LIBRARY eikcoctl.lib
+LIBRARY avkon.lib
+LIBRARY bafl.lib
+LIBRARY AknSkins.lib
+LIBRARY imumda.lib
+LIBRARY imcm.lib
+LIBRARY efsrv.lib
+LIBRARY estor.lib
+LIBRARY msgs.lib
+LIBRARY centralrepository.lib 
+LIBRARY odsutility.lib
+LIBRARY ipssossettings.lib
+

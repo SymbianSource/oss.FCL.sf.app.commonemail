@@ -182,3 +182,5 @@
 -c16,8 qgn_prop_email_sort_unread_desc.svg
 -c16,8 qgn_indi_tb_collapse_all.svg
 -c16,8 qgn_indi_tb_expand_all.svg
+-c16,8 qgn_indi_cmail_arrow_previous.svg
+-c16,8 qgn_indi_cmail_arrow_next.svg

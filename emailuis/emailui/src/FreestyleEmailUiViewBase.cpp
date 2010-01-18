@@ -445,8 +445,15 @@ void CFsEmailUiViewBase::HandleAppForegroundEventL( TBool aForeground )
         // Activate control group in case the view was activated when
         // application was being sent to background, and the control group
         // was left inactive.
-        const TInt KActivationDelay = 200; // ms
-        ActivateControlGroup( KActivationDelay );
+        if( iWasActiveControlGroup )
+            {
+            const TInt KActivationDelay = 200; // ms
+            ActivateControlGroup( KActivationDelay );
+            }
+        }
+    else
+        {
+        iWasActiveControlGroup = ControlGroup().AcceptInput();
         }
     }
 

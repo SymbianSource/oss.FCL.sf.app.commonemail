@@ -20,18 +20,16 @@
 #ifndef __CNCSCOMPOSEVIEW_H__
 #define __CNCSCOMPOSEVIEW_H__
 
-//<cmail>
 #include "CFSMailCommon.h"
 #include "MFSMailRequestObserver.h"
 #include <alf/alfenv.h>
 #include "AknServerApp.h"
 #include <AknProgressDialog.h>
 #include <MsgAttachmentUtils.h>
-//</cmail>
 
 #include "FreestyleEmailUiViewBase.h"
-#include"FreestyleEmailUiConstants.h"
-#include"FSComposerFetchLogic.h"
+#include "FreestyleEmailUiConstants.h"
+#include "FSComposerFetchLogic.h"
 #include "FreestyleEmailUi.hrh"
 #include "cmailcustomstatuspaneindicators.h"
 
@@ -51,8 +49,9 @@ class CFreestyleEmailUiSendAttachmentsListControl;
 class CMsvSession;
 class CAknsLayeredBackgroundControlContext;
 class CFsAutoSaver;
-class CAknWaitDialog; //<cmail>
-class CActiveHelper; //<cmail>
+class CAknWaitDialog;
+class CActiveHelper;
+class CAknStylusPopUpMenu;
 
 
 const TInt KErrNcsComposeViewNotReady = KErrNotReady - 1000;
@@ -121,18 +120,6 @@ public: // from CFsEmailUiViewBase
     * @param aCommand Command to be handled
     */
     void HandleCommandL( TInt aCommand );
-        
-    // <cmail> Toolbar
-    /**
-    * DoActivateL
-    * From CAknView, activate an AknView.
-    * @param aPrevViewId The id of the previous view
-    * @param aCustomMessageId message identifier
-    * @param aCustomMessage custom message provided when the view is changed
-    */
-    /*void DoActivateL( const TVwsViewId& aPrevViewId, TUid aCustomMessageId,
-                      const TDesC8& aCustomMessage );*/
-    // </cmail> Toolbar
 
     /**
     * ChildDoDeactivate
@@ -155,7 +142,8 @@ public: // from CFsEmailUiViewBase
     * HandleDynamicVariantSwitchL
     * Recalculates component layout 
     */
-    void HandleDynamicVariantSwitchL( CFsEmailUiViewBase::TDynamicSwitchType aType );
+    void HandleDynamicVariantSwitchL( 
+            CFsEmailUiViewBase::TDynamicSwitchType aType );
         
 public: // from MAlfActionObserver
     	
@@ -168,19 +156,11 @@ public: // from MComposerFetchLogicCallback
 public: // new functions
 
     /**
-    * LaunchAttachmentActionMenuL
-    * Show action menu for the attachments line
+    * LaunchStylusPopupMenu
+    * Show stylus popup menu for the attachments line
     */
-    void LaunchAttachmentActionMenuL();
+    void LaunchStylusPopupMenu( const TPoint& aPenEventScreenLocation );
     
-	//<cmail>
-    /**
-    * DismissAttachmentActionMenuL
-    * Close action menu for the attachments line
-    */
-    void DismissAttachmentActionMenuL();
-    //</cmail>
-	
     /**
     * AttachmentsListControl
     * Returns pointer to attachment list control
@@ -200,7 +180,6 @@ public: // new functions
     void CommitL( TBool aParseAddresses = ETrue, 
                   TFieldToCommit aFieldToCommit = EAllFields );
 
-    //<cmail>
     void DialogDismissedL( TInt aButtonId );
     
     void ShowFetchingWaitNoteL();
@@ -208,17 +187,13 @@ public: // new functions
     TBool IsPreparedForExit();
     
     void AsyncExitL();
-    //</cmail>
     
-    // <cmail>
     void HandleContainerChangeRequiringToolbarRefresh();
-    // </cmail>
 
 protected:
 
     void ProcessCommandL( TInt aCommand );
 
-// <cmail> Toolbar    
 private: // from
     
     /**
@@ -248,7 +223,6 @@ private: // from
      * Update toolbar items.
      */
     void RefreshToolbar();    
-// </cmail> Toolbar     
     
 private: // new functions
     
@@ -324,7 +298,7 @@ private: // new functions
     void DoQuickTextL();
         
     /**
-    * DoAddAttachmentL
+    * AsyncAddAttachment
     * Add attachment file to message
     */
     static TInt AsyncAddAttachment( TAny* aSelfPtr );
@@ -353,7 +327,8 @@ private: // new functions
     * Removes own address while doing reply all.
     * @param aAddressList The address list.
     */       
-    void RemoveOwnAddress( RPointerArray<CNcsEmailAddressObject>& aAddressList );
+    void RemoveOwnAddress( 
+            RPointerArray<CNcsEmailAddressObject>& aAddressList );
          
     /**
     * InitForwardFieldsL
@@ -364,9 +339,10 @@ private: // new functions
     /**
     * IncludeMessageTextL
     * Inits body text when forwarding, replying, or opening draft message.
-    * @param aEnsureEmptyLineInBegin When true, the function ensures there's empty lines
-    *                                in the beginning of the message. I.e. line break(s)
-    *                                are inserted in front of any quote or signature
+    * @param aEnsureEmptyLineInBegin When true, the function ensures there's
+    *                                empty lines in the beginning of the 
+    *                                message. I.e. line break(s) are inserted
+    *                                in front of any quote or signature
     */        
     void IncludeMessageTextL( TBool aEnsureSpaceInBegin = EFalse );
         
@@ -457,14 +433,7 @@ private: // new functions
     * Set reply/forward flag into original message if needed
     */
     void SetReplyForwardFlagL();
-        
-    /**
-    * LoadBackgroundImageAndSetBackgroundContextL
-    * Loads bg image and creates local skin item from that
-    * @param aRect Background rectangle
-    */
-//        void LoadBackgroundImageAndSetBackgroundContextL( const TRect& aRect );
-        
+         
     /**
     * MailBoxSupportsSmartReply
     * @return ETrue if mailbox supports smart reply
@@ -515,7 +484,11 @@ private:   // Constructors and destructor
     * @param aMailClient Email framework client object.
     * @param aBgControl Background control.
     */
-    CNcsComposeView( CFreestyleEmailUiAppUi& aAppUi, CAlfEnv& aEnv, CAlfControlGroup& aControlGroup, CFSMailClient& aMailClient, CMsvSession& aMsvSession );
+    CNcsComposeView( CFreestyleEmailUiAppUi& aAppUi, 
+                     CAlfEnv& aEnv, 
+                     CAlfControlGroup& aControlGroup, 
+                     CFSMailClient& aMailClient, 
+                     CMsvSession& aMsvSession );
 
     /**
     * ConstructL
@@ -641,7 +614,6 @@ private: // data
     
     CAknWaitDialog* iFetchWaitDialog; //<cmail>
     
-    //<cmail>
     //when some plugin makes fake sync, we need these
     TBool iFakeSyncGoingOn;
     TBool iFetchDialogCancelled;
@@ -651,16 +623,17 @@ private: // data
     // we need to knwo when the method is running and block all the commands
     // during that time.
     TBool iExecutingDoExitL;
-   //</cmail>
     
     CAsyncCallBack* iAsyncAttachmentAdd;
     MsgAttachmentUtils::TMsgAttachmentFetchType iAttachmentAddType;
     
     // Status pane indicators (priority and followup)
     CCustomStatuspaneIndicators* iStatusPaneIndicators;
+    
+    // Popup menu for attachment list.
+    CAknStylusPopUpMenu* iStylusPopUpMenu;
     };
 
-//<cmail>
 /**
 * This class is used by CNcsComposeView for waiting its own async tasks.
 *  
@@ -676,7 +649,7 @@ class CActiveHelper : public CActive
         *
         * @return created instance of the CCacheSessionActiveHelper
         */
-        static CActiveHelper* NewL(CNcsComposeView* aComposeView );
+        static CActiveHelper* NewL( CNcsComposeView* aComposeView );
         
         /**
         * Destructor
@@ -693,7 +666,7 @@ class CActiveHelper : public CActive
         /**
         * Constructor
         */
-        CActiveHelper(CNcsComposeView* aSession);
+        CActiveHelper( CNcsComposeView* aSession );
 
         /**
         * Active object RunL
@@ -716,7 +689,6 @@ class CActiveHelper : public CActive
         CNcsComposeView* iComposeView;
             
     };
-//</cmail>
 
 #endif // CNCSCOMPOSEVIEW_H
 

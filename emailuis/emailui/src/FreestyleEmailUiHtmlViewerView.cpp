@@ -26,6 +26,9 @@
 #include <AknGlobalNote.h>
 #include <aknnavi.h>
 #include <aknnavide.h>
+#include <APGCLI.H>
+#include <APMSTD.H>
+#include <FavouritesDb.h>
 //<cmail>
 #include <featmgr.h>
 #include "CFSMailMessage.h"
@@ -34,9 +37,15 @@
 #include <SchemeHandler.h> // CSchemeHandler
 #include <brctlinterface.h>
 #include <csxhelp/cmail.hlp.hrh>
+#include <baclipb.h> // for clipboard copy
+
+#ifdef SYMBIAN_ENABLE_SPLIT_HEADERS
+#include <txtclipboard.h>
+#endif
+
 // Meeting request
 #include <MeetingRequestUids.hrh>
-//<cmail>
+#include <layoutmetadata.cdl.h>
 #include "cesmricalviewer.h"
 #include "FreestyleEmailUiHtmlViewerView.h"
 #include "FreestyleEmailUi.hrh"
@@ -57,7 +66,7 @@
 #include <akntoolbar.h>
 // CONSTANTS
 // Zoom levels available on the UI
-const TInt KZoomLevels[] = { 50, 75, 100, 125 };
+const TInt KZoomLevels[] = { 75, 100, 125, 150 };
 const TInt KZoomLevelCount = sizeof( KZoomLevels ) / sizeof( TInt );
 
 CFsEmailUiHtmlViewerView* CFsEmailUiHtmlViewerView::NewL( 
@@ -129,7 +138,6 @@ void CFsEmailUiHtmlViewerView::ConstructL()
     iOpenMessages = new (ELeave) CStack<CFSMailMessage, ETrue>();
     iEmbeddedMessages = new (ELeave) CStack<CFSMailMessage, EFalse>();
     iNextOrPrevMessageSelected = EFalse; 
-    iForwardingMessage = EFalse;
     }
 
 // -----------------------------------------------------------------------------
@@ -291,7 +299,6 @@ void CFsEmailUiHtmlViewerView::HandleCommandL( TInt aCommand )
                         iContainer->ResetContent();
                         }
 
-                    iForwardingMessage = ETrue;
                     iAppUi.LaunchEditorL( KEditorCmdForward, params );
                     }
                 }
@@ -394,9 +401,9 @@ void CFsEmailUiHtmlViewerView::HandleCommandL( TInt aCommand )
                  break;
             default:
                 {
-                if ( aCommand >= EFsEmailUiCmdZoomSmallest )
+                if ( aCommand >= EFsEmailUiCmdZoomSmall )
                     {
-                    TUint zoomLevelIndex = aCommand - EFsEmailUiCmdZoomSmallest;
+                    TUint zoomLevelIndex = aCommand - EFsEmailUiCmdZoomSmall;
                     SetZoomLevelIndexL( zoomLevelIndex );
                     }
                 }
@@ -522,7 +529,7 @@ void CFsEmailUiHtmlViewerView::ChildDoActivateL( const TVwsViewId& /*aPrevViewId
         }
     else if ( iContainer ) // Container exists, make sure that it has a correct rect
         {
-        iContainer->SetRect( ClientRect() );
+        iContainer->SetRect( ContainerRect() );
         }
 
     // Check whether this activation is actually for a meeting request
@@ -595,7 +602,7 @@ void CFsEmailUiHtmlViewerView::ChildDoActivateL( const TVwsViewId& /*aPrevViewId
 		            TPartData msgPartData( iActivationData.iMailBoxId, iActivationData.iFolderId, iActivationData.iMessageId);
 		            iAttachmentsListModel->UpdateListL( msgPartData );
                        
-            		TRAPD( error, LoadContentFromMailMessageL( iMessage ) );
+            		TRAPD( error, LoadContentFromMailMessageL( iMessage, ETrue ) );
             		if ( error == KErrNotFound || error == KErrInUse || error == KErrLocked )
             		    {
             		    bodypartNotFound = ETrue;
@@ -651,7 +658,7 @@ void CFsEmailUiHtmlViewerView::ChildDoActivateL( const TVwsViewId& /*aPrevViewId
                 }                
             
     
-            TRAPD( error, LoadContentFromMailMessageL( iOpenMessages->Head() ) );
+            TRAPD( error, LoadContentFromMailMessageL( iOpenMessages->Head(), ETrue ) );
             if ( error == KErrNotFound || error == KErrInUse || error == KErrLocked )
                 {
                 bodypartNotFound = ETrue;
@@ -683,8 +690,6 @@ void CFsEmailUiHtmlViewerView::ChildDoActivateL( const TVwsViewId& /*aPrevViewId
         break;
         }
     
-    UpdateNaviPaneL();
-
     CleanupStack::PopAndDestroy( &iActivationData.iFile );
     SetMskL();
     
@@ -726,7 +731,7 @@ void CFsEmailUiHtmlViewerView::ChildDoActivateL( const TVwsViewId& /*aPrevViewId
             StartWaitedFetchingL(EMessageStructure);
             iFetchingAlready = ETrue;
             }
-        else if ( !MessagePartFullyFetchedL( type ) || bodypartNotFound )
+        else if ( bodypartNotFound )
             {
             iAsyncProcessComplete = EFalse;
             iFetchingAlready = EFalse;
@@ -738,7 +743,6 @@ void CFsEmailUiHtmlViewerView::ChildDoActivateL( const TVwsViewId& /*aPrevViewId
             }
        }
     iNextOrPrevMessageSelected = EFalse;
-    iForwardingMessage = EFalse;
     }
 
 // -----------------------------------------------------------------------------
@@ -817,14 +821,8 @@ void CFsEmailUiHtmlViewerView::GetInitiallyDimmedItemsL( const TInt aResourceId,
 void CFsEmailUiHtmlViewerView::ChildDoDeactivate()
     {
     FUNC_LOG;
-    // Don't cancel fetching the message parts when forwarding the message:
-    // it would also cancel the fetchings initiated by the forwarding,
-    // causing the forwarding to abort.
-    if ( !iForwardingMessage )
-        {
-        CancelFetchings();
-        }
-
+    CancelFetchings();
+   
     if ( iContainer )
         {
         HideContainer();
@@ -835,7 +833,6 @@ void CFsEmailUiHtmlViewerView::ChildDoDeactivate()
         }
     Toolbar()->SetToolbarObserver( this );
     iMessage = NULL;
-    HideNaviPane();
     }
 
 void CFsEmailUiHtmlViewerView::DoExitL()
@@ -865,7 +862,10 @@ void CFsEmailUiHtmlViewerView::NavigateBackL()
         {
         iAppUi.DownloadInfoMediator()->StopObserving( this, iMessage->GetMessageId() );
         }
-    iContainer->StopObserving();
+    if( iContainer )
+        {
+        iContainer->StopObserving();
+        }
     CFSMailMessage* tmp = PopMessage();
     if( tmp )
         {
@@ -915,6 +915,26 @@ void CFsEmailUiHtmlViewerView::NavigateBackL()
         }
     }
 
+// ---------------------------------------------------------------------------
+// Sets status bar layout
+// ---------------------------------------------------------------------------
+//
+void CFsEmailUiHtmlViewerView::SetStatusBarLayout()
+	{
+    TInt res = R_AVKON_STATUS_PANE_LAYOUT_USUAL_FLAT;
+    if( Layout_Meta_Data::IsLandscapeOrientation() )
+        {
+        // landscape must use different layout
+        res = R_AVKON_STATUS_PANE_LAYOUT_IDLE_FLAT;
+        }
+
+    if( StatusPane()->CurrentLayoutResId() != res )
+        {
+        TRAP_IGNORE(
+            StatusPane()->SwitchLayoutL( res ));
+        }
+	}
+
 void CFsEmailUiHtmlViewerView::DynInitMenuPaneL( TInt aResourceId, CEikMenuPane* aMenuPane )
     {
     FUNC_LOG;
@@ -928,22 +948,80 @@ void CFsEmailUiHtmlViewerView::DynInitMenuPaneL( TInt aResourceId, CEikMenuPane*
             aMenuPane->SetItemDimmed( EFsEmailUiCmdHelp, ETrue);      
             }   
         
+        TBool toolbarExists = EFalse;
+        if( iAppUi.CurrentFixedToolbar() )
+            {
+            toolbarExists = iAppUi.CurrentFixedToolbar()->IsVisible();
+            }
+        
         // Some commands are blocked when viewing embedded message object
         // or separate HTML file.
-        const TBool blockCmds( !iMessage || iActivationData.iEmbeddedMessageMode );
-        const TBool blockReplyALLCmd( !iMessage || iActivationData.iEmbeddedMessageMode ||
+        const TBool blockCmds( !iMessage || iActivationData.iEmbeddedMessageMode || toolbarExists );
+        const TBool blockReplyALLCmd( toolbarExists || !iMessage || iActivationData.iEmbeddedMessageMode ||
                 TFsEmailUiUtility::CountRecipientsSmart( iAppUi, iMessage ) < 2 );       
         aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsReply, blockCmds );
         aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsReplyAll, blockReplyALLCmd );
         aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsForward, blockCmds );
         aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsDelete, blockCmds );
         
+        if( iActivationData.iEmbeddedMessageMode )
+            {
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkAsRead, ETrue );
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkAsUnread, ETrue );
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsMoveMessage, ETrue );
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsFlag, ETrue );
+            }
+        
         TBool hideNext = !ShowNextMessageMenuInOptions();
         TBool blockNextCmd = !iMessage || iActivationData.iEmbeddedMessageMode || hideNext;
-        aMenuPane->SetItemDimmed( EFsEmailUiCmdNextMessage, blockNextCmd );
+        TInt menuPos;
+        if( aMenuPane->MenuItemExists( EFsEmailUiCmdNextMessage, menuPos ) )
+            {
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdNextMessage, blockNextCmd );
+            }
         TBool hidePrev = !ShowPreviousMessageMenuInOptions();
         TBool blockPrevCmd = !iMessage || iActivationData.iEmbeddedMessageMode || hidePrev;
-        aMenuPane->SetItemDimmed( EFsEmailUiCmdPreviousMessage, blockPrevCmd );
+        if( aMenuPane->MenuItemExists( EFsEmailUiCmdPreviousMessage, menuPos ) )
+            {
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdPreviousMessage, blockPrevCmd );
+            }
+        
+        CFSMailFolder* currentFolder = NULL;
+        if ( iMessage )
+            {
+            TRAP_IGNORE( currentFolder = 
+                iAppUi.GetMailClient()->GetFolderByUidL(
+                        iMessage->GetMailBoxId(), 
+                        iMessage->GetFolderId() ) );
+            }
+      
+        if ( currentFolder &&
+             currentFolder->GetFolderType() != EFSOutbox )
+            {
+            // Mark as read/unread options
+            TBool messageIsRead( iMessage->IsFlagSet( EFSMsgFlag_Read ) );
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkAsRead, messageIsRead );
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkAsUnread, !messageIsRead );
+            
+            // Move to another folder option
+            aMenuPane->SetItemDimmed( 
+                    EFsEmailUiCmdActionsMoveMessage, 
+                    !iAppUi.GetActiveMailbox()->HasCapability( EFSMBoxCapaMoveToFolder ) );
+
+            // Follow-up flag option
+            aMenuPane->SetItemDimmed( 
+                    EFsEmailUiCmdActionsFlag,
+                    !( iMailBox && TFsEmailUiUtility::IsFollowUpSupported( *iMailBox ) ) );
+            }
+        else
+            {
+            // In case of outbox, all these are dimmed
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkAsUnread, ETrue );
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkAsRead, ETrue );
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsMoveMessage, ETrue );
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsFlag, ETrue );
+            }
+        delete currentFolder;
         }
     else if ( aResourceId == R_FSEMAILUI_HTMLVIEWER_SUBMENU_ZOOM_LEVEL &&
               iContainer && iContainer->BrowserControlIf() )
@@ -1044,15 +1122,58 @@ void CFsEmailUiHtmlViewerView::HandleMrCommandL(
         }
     }
 
+void CFsEmailUiHtmlViewerView::HandleStatusPaneSizeChange()
+    {
+    CFsEmailUiViewBase::HandleStatusPaneSizeChange();
+    
+    if ( iContainer )
+        {
+        iContainer->SetRect( ContainerRect() );
+        }
+    }
+
+void CFsEmailUiHtmlViewerView::HandleViewRectChange()
+    {
+    CFsEmailUiViewBase::HandleViewRectChange();
+     
+     if ( iContainer )
+         {
+         iContainer->SetRect( ContainerRect() );
+         }
+    }
 
 void CFsEmailUiHtmlViewerView::HandleDynamicVariantSwitchL( CFsEmailUiViewBase::TDynamicSwitchType aType )
     {
     FUNC_LOG;
     
+    if ( aType == EScreenLayoutChanged )
+        {
+        SetStatusBarLayout();
+        }
+    
     if ( iContainer )
         {
+        iContainer->SetRect( ContainerRect() );
         iContainer->HandleResourceChange( aType );
         }
+    }
+
+TRect  CFsEmailUiHtmlViewerView::ContainerRect() const
+    {
+    TRect rect = ClientRect();
+    
+    CAknToolbar* toolbar = iAppUi.CurrentFixedToolbar();
+    if( toolbar && toolbar->IsVisible() && Layout_Meta_Data::IsLandscapeOrientation() )
+        {
+        TPoint pos = toolbar->PositionRelativeToScreen();
+        
+        // In some LS status pane layouts the toolbar will be shown on top of the client area
+        if( pos.iX > 0 )
+            {
+            rect.iBr.iX = pos.iX;
+            }
+        }
+    return rect; 
     }
 
 void CFsEmailUiHtmlViewerView::LoadContentFromFileL( const TDesC& aFileName )
@@ -1085,13 +1206,13 @@ void CFsEmailUiHtmlViewerView::LoadContentFromUrlL( const TDesC& aUrl )
         }
     }
 
-void CFsEmailUiHtmlViewerView::LoadContentFromMailMessageL( CFSMailMessage* aMailMessage )
+void CFsEmailUiHtmlViewerView::LoadContentFromMailMessageL( CFSMailMessage* aMailMessage, TBool aResetScrollPos )
     {
     FUNC_LOG;
 
     if ( iContainer )
         {
-        iContainer->LoadContentFromMailMessageL( aMailMessage );
+        iContainer->LoadContentFromMailMessageL( aMailMessage, aResetScrollPos );
         }
     }
 
@@ -1191,7 +1312,7 @@ void CFsEmailUiHtmlViewerView::HandleMailBoxEventL( TFSMailEvent aEvent,
      
     if (iMessage && aMailbox.Id() == iAppUi.GetActiveMailboxId().Id() && aEvent == TFSEventNewMail)
         {
-        UpdateNaviPaneL();
+        UpdateEmailHeaderIndicators();
         }
     // </cmail>
     }
@@ -1204,7 +1325,7 @@ void CFsEmailUiHtmlViewerView::DynInitZoomMenuL( CEikMenuPane* aMenuPane )
     // Set the radio button state to match current zoom level
     if ( zoomLevelIdx >= 0 && zoomLevelIdx < KZoomLevelCount )
         {
-        TInt curZoomLevel = zoomLevelIdx + EFsEmailUiCmdZoomSmallest;
+        TInt curZoomLevel = zoomLevelIdx + EFsEmailUiCmdZoomSmall;
         aMenuPane->SetItemButtonState( curZoomLevel, EEikMenuItemSymbolOn );
         }
     }
@@ -1305,6 +1426,11 @@ void CFsEmailUiHtmlViewerView::HandleEmailAddressCommandL( TInt aCommand, const 
                 SaveEmailAsContactL( aEmailAddress );
                 }
             break;
+            case EFsEmailUiCmdActionsAddContact:
+			   {
+			   SaveEmailAsContactL( aEmailAddress );
+			   }
+			   break;
             case EFsEmailUiCmdActionsCall:
                 {
                 CallAdressL( aEmailAddress, EFalse );
@@ -1325,11 +1451,43 @@ void CFsEmailUiHtmlViewerView::HandleEmailAddressCommandL( TInt aCommand, const 
                 LaunchRemoteLookupL( aEmailAddress );
                 }
             break;
+            case EFsEmailUiCmdActionsCopyToClipboard:
+            	{
+            	CopyCurrentToClipBoardL( aEmailAddress );
+            	}
+            break;
             default:
                 //nothing right now?
                 break;
             }
         }
+    }
+
+// -----------------------------------------------------------------------------
+// CFsEmailUiHtmlViewerView::HandleWebAddressCommandL()
+// -----------------------------------------------------------------------------
+//
+void CFsEmailUiHtmlViewerView::HandleWebAddressCommandL( TInt aCommand, const TDesC& aUrl )
+    {
+    FUNC_LOG;
+    switch ( aCommand )
+    	{
+    	case EFsEmailUiCmdActionsOpenWeb:
+    		{
+    		OpenLinkInBrowserL( aUrl );
+    		break;
+    		}
+		case EFsEmailUiCmdActionsAddBookmark:
+			{
+			SaveWebAddressToFavouritesL( aUrl );
+			break;
+			}
+		case EFsEmailUiCmdActionsCopyWWWAddressToClipboard:
+			{
+			CopyCurrentToClipBoardL( aUrl );
+			break;
+			}    				
+    	}
     }
 
 void CFsEmailUiHtmlViewerView::SaveEmailAsContactL(
@@ -1707,7 +1865,7 @@ void CFsEmailUiHtmlViewerView::SetMessageFollowupFlagL()
         if ( newState != EFollowUpNoChanges )
             {
             // Notify appui of changed mail item
-            UpdateNaviPaneL();
+            UpdateEmailHeaderIndicators();
             SendEventToAppUiL( TFSEventMailChanged );
             }
         }
@@ -2144,7 +2302,7 @@ void CFsEmailUiHtmlViewerView::RequestResponseL( TFSProgress aEvent, TInt aReque
                 
         if( iMessage )
             {
-            LoadContentFromMailMessageL( iMessage );  
+            LoadContentFromMailMessageL( iMessage , EFalse);  
             SetMskL();
             }
         }
@@ -2815,134 +2973,32 @@ void CFsEmailUiHtmlViewerView::PrepareForExit()
     iMailBox = NULL;
     }
 
+void CFsEmailUiHtmlViewerView::ReloadPageL(  ) 
+    {
+    FUNC_LOG;
+    if( iContainer )
+        {
+        iContainer->ReloadPageL();
+        }
+    }
+
 TBool CFsEmailUiHtmlViewerView::GetAsyncFetchStatus()
     {
     return ( iFetchingHtmlMessageBody || iFetchingMessageStructure || iFetchingPlainTextMessageBody );
     }
     
 // ---------------------------------------------------------------------------
-// CFsEmailUiHtmlViewerView::UpdateNaviPaneL
+// CFsEmailUiHtmlViewerView::UpdateEmailHeaderIndicatorsL
 // ---------------------------------------------------------------------------
 //
-void CFsEmailUiHtmlViewerView::UpdateNaviPaneL( TBool aForESMR )
+void CFsEmailUiHtmlViewerView::UpdateEmailHeaderIndicators()
     {
     FUNC_LOG;
-    // Get navigation decorator for mail viewer
-    CAknNavigationDecorator* naviDecorator = iAppUi.NaviDecoratorL( MailViewerId );
-    if ( naviDecorator )
-        {
-        // Check if there's next and previous message available, and set
-        // the navipane arrows accordingly
-        TFSMailMsgId currentMsgId = iMessage->GetMessageId();
-        TFSMailMsgId tmpMsgId;
-        TFSMailMsgId tmpMsgFolderId;
-        CAknNavigationDecorator::TScrollButton nextButton = CAknNavigationDecorator::ERightButton;
-        CAknNavigationDecorator::TScrollButton prevButton = CAknNavigationDecorator::ELeftButton;
-        if (AknLayoutUtils::LayoutMirrored())
-            {
-            nextButton = CAknNavigationDecorator::ELeftButton;
-            prevButton = CAknNavigationDecorator::ERightButton;
-            }
-        if ( iAppUi.IsNextMsgAvailable( currentMsgId, tmpMsgId, tmpMsgFolderId ) )
-            {
-            naviDecorator->SetScrollButtonDimmed( nextButton, EFalse );
-            }
-        else
-            {
-            naviDecorator->SetScrollButtonDimmed( nextButton, ETrue );
-            }
-        if ( iAppUi.IsPreviousMsgAvailable( currentMsgId, tmpMsgId, tmpMsgFolderId ) )
-            {
-            naviDecorator->SetScrollButtonDimmed( prevButton, EFalse );
-            }
-        else
-            {
-            naviDecorator->SetScrollButtonDimmed( prevButton, ETrue );
-            }
-
-        // Set this view's navipane to the top of the navipane control stack
-        CAknNavigationControlContainer* naviPaneContainer =
-            static_cast<CAknNavigationControlContainer*>(
-            StatusPane()->ControlL( TUid::Uid( EEikStatusPaneUidNavi ) ) );
-        naviPaneContainer->PushL( *naviDecorator );
-        naviDecorator->SetNaviDecoratorObserver( aForESMR ? NULL : this );
-        }
-
-    // Set priority and follow-up flags
-    CCustomStatuspaneIndicators* indicators = iAppUi.GetStatusPaneIndicatorContainer();
-    if ( indicators)
-        {
-        indicators->ShowStatusPaneIndicators();
-
-        if ( iMessage->IsFlagSet( EFSMsgFlag_Low ) )
-            {
-            indicators->SetPriorityFlag( EMsgPriorityLow );
-            }
-        else if ( iMessage->IsFlagSet( EFSMsgFlag_Important ) )
-            {
-            indicators->SetPriorityFlag( EMsgPriorityHigh );
-            }
-        else
-            {
-            indicators->SetPriorityFlag( EMsgPriorityNormal );
-            }
-
-        CCustomStatuspaneIndicators::TFollowUpFlagType flagType = CCustomStatuspaneIndicators::EFollowUpNone;
-        if (iMessage->IsFlagSet(EFSMsgFlag_FollowUp))
-            {
-            flagType = CCustomStatuspaneIndicators::EFollowUp;
-            }
-        if (iMessage->IsFlagSet(EFSMsgFlag_FollowUpComplete))
-            {
-            flagType = CCustomStatuspaneIndicators::EFollowUpComplete;
-            }
-        indicators->SetFollowUpFlag( flagType );
-        }
-
-    }
-
-// ---------------------------------------------------------------------------
-// CFsEmailUiHtmlViewerView::HandleNaviDecoratorEventL
-// ---------------------------------------------------------------------------
-//
-void CFsEmailUiHtmlViewerView::HandleNaviDecoratorEventL( TInt aEventID )
-    {
-    FUNC_LOG;
-    CAknNavigationDecorator* naviDecorator = iAppUi.NaviDecoratorL( MailViewerId );
-    if ( naviDecorator )
-        {
-        naviDecorator->SetNaviDecoratorObserver( NULL );
-        }
-    MAknNaviDecoratorObserver::TAknNaviDecoratorEvents nextButton = MAknNaviDecoratorObserver::EAknNaviDecoratorEventRightTabArrow;
-    if (AknLayoutUtils::LayoutMirrored())
-        {
-        nextButton = MAknNaviDecoratorObserver::EAknNaviDecoratorEventLeftTabArrow;
-        }
-    if( aEventID == nextButton )
-        {
-        ShowNextMessageL();
-        }
-    else
-        {
-        ShowPreviousMessageL();
-        }
-    }
-
-// -----------------------------------------------------------------------------
-// CFsEmailUiHtmlViewerView::HideNaviPane
-// -----------------------------------------------------------------------------
-void CFsEmailUiHtmlViewerView::HideNaviPane()
-    {
-    FUNC_LOG;
-    CAknNavigationControlContainer* naviPaneContainer = NULL;
-    TRAP_IGNORE( naviPaneContainer = static_cast<CAknNavigationControlContainer*>(StatusPane()->ControlL( TUid::Uid( EEikStatusPaneUidNavi ) ) ) );
-    TRAP_IGNORE( naviPaneContainer->PushDefaultL() );
-
-    CCustomStatuspaneIndicators* indicators = iAppUi.GetStatusPaneIndicatorContainer();
-    if ( indicators)
-        {
-        indicators->HideStatusPaneIndicators();
-        }
+    // Reload mail header.
+    if ( iContainer )
+    	{
+    	iContainer->RefreshCurrentMailHeader();
+    	}
     }
 
 // -----------------------------------------------------------------------------
@@ -2976,7 +3032,134 @@ TBool CFsEmailUiHtmlViewerView::IsOpenedInMRViewerL()
     return retVal;
     }
 
+// -----------------------------------------------------------------------------
+// CFsEmailUiHtmlViewerView::CopyToClipBoardL
+// -----------------------------------------------------------------------------
+void CFsEmailUiHtmlViewerView::CopyCurrentToClipBoardL( const TDesC& aArgument ) const
+	{
+    FUNC_LOG;
+    
+    // Making sure that we are copying something to the clipboard 
+    if ( aArgument.Length() > 0 )
+        {
+        HBufC* clipBoardText = aArgument.AllocLC();
+        CClipboard* cb = CClipboard::NewForWritingLC( CCoeEnv::Static()->FsSession() );
+		cb->StreamDictionary().At( KClipboardUidTypePlainText );
+		CPlainText* plainText = CPlainText::NewL();
+		CleanupStack::PushL( plainText );
+		plainText->InsertL( 0 , *clipBoardText );
+		plainText->CopyToStoreL( cb->Store(), cb->StreamDictionary(), 0, plainText->DocumentLength() );
+		CleanupStack::PopAndDestroy( plainText );
+		cb->CommitL();
+		CleanupStack::PopAndDestroy( cb );
+		CleanupStack::PopAndDestroy( clipBoardText );     
+        }
+	}
 
+// --------------------------------------------------------------------------------
+// CFsEmailUiHtmlViewerView::OpenLinkInBrowserL
+// --------------------------------------------------------------------------------
+void CFsEmailUiHtmlViewerView::OpenLinkInBrowserL( const TDesC& aUrl ) const
+	{
+	FUNC_LOG;
+	
+	// Create session
+	RApaLsSession session;
+	User::LeaveIfError( session.Connect() );
+	CleanupClosePushL( session );
+	 
+	// Gets the default application UID for for the given MIME type
+	TUid uid;
+	TDataType dataType( _L8( "text/html" ) );
+	session.AppForDataType( dataType, uid );
+	 
+	// Runs the default application using the dataType
+	TThreadId threadId;
+	User::LeaveIfError( session.StartDocument( aUrl , dataType, threadId ) );
+	 
+	CleanupStack::PopAndDestroy(); // session
+}
+
+// --------------------------------------------------------------------------------
+// CFsEmailUiHtmlViewerView::SaveWebAddressToFavouritesL
+// --------------------------------------------------------------------------------
+void CFsEmailUiHtmlViewerView::SaveWebAddressToFavouritesL( const TDesC& aUrl ) const
+	{
+	FUNC_LOG;
+	HBufC* url = aUrl.AllocLC();
+	
+	RFavouritesSession fSession;
+	User::LeaveIfError( fSession.Connect() );
+	CleanupClosePushL( fSession );
+
+	RFavouritesDb favourites;
+	User::LeaveIfError( favourites.Open( fSession, KBrowserBookmarks ) );
+	CleanupClosePushL( favourites );
+
+	CFavouritesItem *favouritesItem = CFavouritesItem::NewLC();
+	favouritesItem->SetType( CFavouritesItem::EItem );
+	favouritesItem->SetUrlL( aUrl );
+	// Should be less than KFavouritesMaxName ( 50 )
+	if ( url->Length() > KFavouritesMaxName )
+		{
+		favouritesItem->SetNameL( url->Left( KFavouritesMaxName ) );
+		}
+	else
+		{
+		favouritesItem->SetNameL( *url );
+		}
+
+	favouritesItem->SetParentFolder( KFavouritesRootUid );
+
+	TInt error = favourites.Add( *favouritesItem, ETrue );
+
+	CleanupStack::PopAndDestroy( favouritesItem );
+	CleanupStack::PopAndDestroy( &favourites );
+	CleanupStack::PopAndDestroy( &fSession );
+
+	CleanupStack::PopAndDestroy( url );
+	
+	if ( error == KErrNone )
+		{
+		TFsEmailUiUtility::ShowInfoNoteL(
+			R_FREESTYLE_EMAIL_UI_VIEWER_BOOKMARK_ADDED, ETrue );
+		}
+	else // Error in bookmark creation, show could not complete message
+		{
+		TFsEmailUiUtility::ShowErrorNoteL(
+			R_FREESTYLE_EMAIL_ERROR_GENERAL_UNABLE_TO_COMPLETE, ETrue );
+		}
+	}
+
+/*
+ * Delaying the fetch for MfE till the user scrolls to the bottom of 
+ * the message. 
+ */
+void CFsEmailUiHtmlViewerView::StartFetchingMessageL()
+    {
+    CFSMailMessagePart* htmlBodyPart = iMessage->HtmlBodyPartL();
+    TFetchedType type;
+    if( htmlBodyPart )
+       {
+       type = EMessageHtmlBodyPart;
+       }
+    else
+       {
+       type = EMessagePlainTextBodyPart;
+       }
+          
+    if ( !MessagePartFullyFetchedL( type ))
+       {
+       iAsyncProcessComplete = EFalse;
+       iStartAsyncFetchType = type;
+       //check to make sure we don't kick off fetch twice for the cases where bodypart 
+       //not found(OZ)
+       if(iMessage && !GetAsyncFetchStatus())
+           {
+           StartFetchingMessagePartL( *iMessage, type );
+           }
+       }
+    }
 //////////////////////////////////////////////////////////////////////////////////////
 // CLASS IMPLEMENTATION CHANGE TO FLAG DIALOG GLOBAL NOTE
 ///////////////////////////////////////////////////////////////////////////////////

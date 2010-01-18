@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2007 - 2009 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -15,7 +15,6 @@
 *
 */
 
-
 // SYSTEM INCLUDES
 #include "emailtrace.h"
 #include <aknViewAppUi.h>
@@ -30,19 +29,15 @@
 #include <akncontext.h>
 #include <akntitle.h>
 #include <FreestyleEmailUi.rsg>
-//<cmail>
 #include <featmgr.h>
-//</cmail>
+#include <aknstyluspopupmenu.h>
 
 #include "CFSMailCommon.h"
 #include "CFSMailBox.h"
 #include "ESMailSettingsPlugin.h"
 #include "ESMailSettingsPluginUids.hrh"
-//</cmail>
 #include <gsfwviewuids.h> // Uids for general settings activation
-// <cmail> 
 #include <csxhelp/cmail.hlp.hrh>
-// </cmail>
 
 // LOCAL INCLUDES
 #include "FreestyleEmailUiUtilities.h"
@@ -61,15 +56,16 @@
 // code that could leave.
 // ---------------------------------------------------------------------------
 //
-CFsEmailSettingsListView::CFsEmailSettingsListView( CAlfControlGroup& aControlGroup, 
-        CFreestyleEmailUiAppUi& aAppUi, CFSMailClient& aMailClient  )
-    : CFsEmailUiViewBase( aControlGroup, aAppUi ), iMailClient( aMailClient )
+CFsEmailSettingsListView::CFsEmailSettingsListView( 
+	CAlfControlGroup& aControlGroup,
+	CFreestyleEmailUiAppUi& aAppUi,
+	CFSMailClient& aMailClient  )
+    : CFsEmailUiViewBase( aControlGroup, aAppUi ),
+      iMailClient( aMailClient ),
+      iMailboxSettings( EFalse )
 	{
     FUNC_LOG;
-
 	iFsEmailSettingsList = NULL;
-	iMailboxSettings = EFalse;
-
 	}
 
 // ---------------------------------------------------------------------------
@@ -79,11 +75,18 @@ CFsEmailSettingsListView::CFsEmailSettingsListView( CAlfControlGroup& aControlGr
 CFsEmailSettingsListView::~CFsEmailSettingsListView()
 	{
     FUNC_LOG;
+
    	if ( iAsyncCallback )
 		{
 		iAsyncCallback->Cancel();
 		delete iAsyncCallback;
 		}
+
+   	if ( iStylusPopUpMenu )
+   		{
+   		delete iStylusPopUpMenu;
+   		iStylusPopUpMenu = NULL;
+   		}
 	}
 
 
@@ -101,7 +104,8 @@ CFsEmailSettingsListView* CFsEmailSettingsListView::NewL(
 	{
     FUNC_LOG;
 
-	CFsEmailSettingsListView* self = CFsEmailSettingsListView::NewLC( aMailClient, aAppUi, aControlGroup );
+	CFsEmailSettingsListView* self =
+		CFsEmailSettingsListView::NewLC( aMailClient, aAppUi, aControlGroup );
 	CleanupStack::Pop( self );
 
 	return self;
@@ -122,7 +126,8 @@ CFsEmailSettingsListView* CFsEmailSettingsListView::NewLC(
     FUNC_LOG;
 
 	CFsEmailSettingsListView* self = 
-	    new ( ELeave ) CFsEmailSettingsListView( aControlGroup, *aAppUi, aMailClient );
+	    new ( ELeave ) CFsEmailSettingsListView(
+	    	aControlGroup, *aAppUi, aMailClient );
 	CleanupStack::PushL( self );
 	self->ConstructL();
 
@@ -130,10 +135,11 @@ CFsEmailSettingsListView* CFsEmailSettingsListView::NewLC(
 	}
 
 
-/**
- * Second-phase constructor for view.  
- * Initialize contents from resource.
- */ 
+// ---------------------------------------------------------------------------
+// Second-phase constructor for view.  
+// Initialize contents from resource.
+// ---------------------------------------------------------------------------
+//
 void CFsEmailSettingsListView::ConstructL()
 	{
     FUNC_LOG;
@@ -141,16 +147,17 @@ void CFsEmailSettingsListView::ConstructL()
 	BaseConstructL( R_FS_EMAIL_SETTINGS_LIST_VIEW );
 
 	iAsyncCallback = new (ELeave) CAsyncCallBack( CActive::EPriorityStandard );
-	iAsyncCallback->Set( TCallBack( DisplayCreateQuery, this ) ); 
-	
+	iAsyncCallback->Set( TCallBack( DisplayCreateQuery, this ) );
 	}
 
 // -----------------------------------------------------------------------------
 // CFsEmailSettingsListView::DisplayCreateQuery
 // -----------------------------------------------------------------------------
+//
 void CFsEmailSettingsListView::StartMailboxAsyncQueryL()
 	{
     FUNC_LOG;
+
 	if ( iAsyncCallback )
 		{
 		iAsyncCallback->CallBack();
@@ -159,12 +166,29 @@ void CFsEmailSettingsListView::StartMailboxAsyncQueryL()
 
 
 // -----------------------------------------------------------------------------
+// CFsEmailSettingsListView::DisplayStylusPopUpMenu()
+// Displays the pop-up menu.
+// -----------------------------------------------------------------------------
+//
+void CFsEmailSettingsListView::DisplayStylusPopUpMenu( const TPoint& aPosition )
+	{
+    if ( iStylusPopUpMenu )
+    	{
+    	iStylusPopUpMenu->SetPosition( aPosition );
+    	iStylusPopUpMenu->ShowMenu();
+    	}
+	}
+
+
+// -----------------------------------------------------------------------------
 // CFsEmailSettingsListView::DisplayCreateQuery
 // -----------------------------------------------------------------------------
+//
 TInt CFsEmailSettingsListView::DisplayCreateQuery( TAny* aViewPtr )
     {
     FUNC_LOG;
-    CFsEmailSettingsListView* self = static_cast<CFsEmailSettingsListView*>( aViewPtr ); 
+    CFsEmailSettingsListView* self =
+		static_cast<CFsEmailSettingsListView*>( aViewPtr ); 
 	TRAPD( err, self->DisplayCreateMailboxNoteIfNeededL() );
     return err;
     }
@@ -172,26 +196,30 @@ TInt CFsEmailSettingsListView::DisplayCreateQuery( TAny* aViewPtr )
 // -----------------------------------------------------------------------------
 // CFsEmailSettingsListView::DisplayCreateQueryL
 // -----------------------------------------------------------------------------
+//
 void CFsEmailSettingsListView::DisplayCreateMailboxNoteIfNeededL()
     {
     FUNC_LOG;
     User::LeaveIfNull( iFsEmailSettingsList );
     iFsEmailSettingsList->DisplayCreateMailboxNoteIfNeededL();
     }
-	
-/**
- * @return The UID for this view
- */
+
+// -----------------------------------------------------------------------------
+// CFsEmailSettingsListView::Id()
+// From CAknView.
+// -----------------------------------------------------------------------------
+//
 TUid CFsEmailSettingsListView::Id() const
 	{
     FUNC_LOG;
 	return SettingsViewId;
 	}
 
-/**
- * Handle a command for this view (override)
- * @param aCommand command id to be handled
- */
+// -----------------------------------------------------------------------------
+// CFsEmailSettingsListView::HandleCommandL()
+// From CAknView.
+// -----------------------------------------------------------------------------
+//
 void CFsEmailSettingsListView::HandleCommandL( TInt aCommand )
 	{
     FUNC_LOG;
@@ -215,6 +243,7 @@ void CFsEmailSettingsListView::HandleCommandL( TInt aCommand )
 			    // navigate away from settings
 	            NavigateBackL();
 			    }
+
 			break;
 			}
 		case EAknSoftkeyOpen:	
@@ -225,48 +254,70 @@ void CFsEmailSettingsListView::HandleCommandL( TInt aCommand )
 			break;
 			}
 		case EFsEmailUiCmdSettingsAddAccount:
+			{
 			iFsEmailSettingsList->AddAccountL();
 			break;
+			}
 		case EFsEmailUiCmdSettingsRemoveAccount:
+		case EFsEmailUiCmdDeleteSelectedMailbox: // From the pop-up menu.
+			{
 			iFsEmailSettingsList->RemoveAccountL();
-			break;	
+			iFsEmailSettingsList->ClearFocus();
+			break;
+			}
 		case EFsEmailUiCmdHelp:
+			{
 			TFsEmailUiUtility::LaunchHelpL( KFSE_HLP_LAUNCHER_GRID );
             break;
+			}
 		case EFsEmailUiCmdExit:
+			{
 			AppUi()->HandleCommandL( EEikCmdExit );
 			break;
+			}
 		case EFsEmailUiCmdGoToTop:
+			{
 		    iFsEmailSettingsList->GoToTop();
 		    break;
+			}
 		case EFsEmailUiCmdGoToBottom:
+			{
 		    iFsEmailSettingsList->GoToBottom();
 		    break;
+			}
         case EFsEmailUiCmdPageUp:
+        	{
             iFsEmailSettingsList->PageUp();
             break;
+        	}
         case EFsEmailUiCmdPageDown:
+        	{
             iFsEmailSettingsList->PageDown();
             break;
+        	}
+        case KErrCancel:
+        	{
+        	// The pop-up menu was cancelled.
+        	iFsEmailSettingsList->ClearFocus();
+        	break;
+        	}
 		default:
+			{
 			break;
-		}
+			}
+		} // switch ( aCommand )
 	}
 
-/**
- *	Handles user actions during activation of the view, 
- *	such as initializing the content.
- */
-// <cmail> Toolbar
-/*void CFsEmailSettingsListView::DoActivateL(
-        const TVwsViewId& aPrevViewId,
-        TUid aCustomMessageId,
-        const TDesC8& aCustomMessage )*/
+
+// -----------------------------------------------------------------------------
+// CFsEmailSettingsListView::ChildDoActivateL()
+// From CFsEmailUiViewBase.
+// -----------------------------------------------------------------------------
+//
 void CFsEmailSettingsListView::ChildDoActivateL(
         const TVwsViewId& aPrevViewId,
         TUid aCustomMessageId,
         const TDesC8& aCustomMessage )
-// </cmail> Toolbar
 	{
     FUNC_LOG;
     
@@ -413,13 +464,26 @@ void CFsEmailSettingsListView::ChildDoActivateL(
 		}
 	// setup status pane title
     SetupStatusPaneL();
-	
+
+    if( !iStylusPopUpMenu )
+        {
+        // Construct the long tap pop-up menu.
+        TPoint point( 0, 0 );
+        iStylusPopUpMenu = CAknStylusPopUpMenu::NewL( this , point );
+		TResourceReader reader;
+		iCoeEnv->CreateResourceReaderLC( reader,
+			R_STYLUS_POPUP_MENU_LAUNCHER_GRID_VIEW );
+		iStylusPopUpMenu->ConstructFromResourceL( reader );
+		CleanupStack::PopAndDestroy(); // reader
+        }
+
 	// Make a deferred call to show the "create mailbox" query if we opened the main settings list
 	if ( aCustomMessageId.iUid == KMailSettingsOpenMainList ||
 	        aCustomMessageId.iUid == KOpenMailSettingsFromGS )
 	    {
 	    StartMailboxAsyncQueryL();
 	    }
+
 	iAppUi.HideTitlePaneConnectionStatus();
 	}
 
@@ -463,7 +527,7 @@ TInt CFsEmailSettingsListView::GetSelectedMainListIndex() const
 
 // ---------------------------------------------------------------------------
 // DynInitMenuPaneL
-// From aknview
+// From CAknView.
 // ---------------------------------------------------------------------------
 //
 void CFsEmailSettingsListView::DynInitMenuPaneL( 
@@ -502,11 +566,11 @@ void CFsEmailSettingsListView::DynInitMenuPaneL(
 	                             CFSEmailUiShortcutBinding::EContextSettings );	
 	}
 
-/**
- * SetupStatusPaneL
- * 
- * 
- */
+// ---------------------------------------------------------------------------
+// SetupStatusPaneL()
+// 
+// ---------------------------------------------------------------------------
+//
 void CFsEmailSettingsListView::SetupStatusPaneL()
 	{
     FUNC_LOG;
@@ -529,9 +593,11 @@ void CFsEmailSettingsListView::SetupStatusPaneL()
 
 	}
 
-/** 
- * Sets application default title when leaving this view
- */
+// ---------------------------------------------------------------------------
+// CleanupStatusPaneL()
+// Sets application default title when leaving this view
+// ---------------------------------------------------------------------------
+//
 void CFsEmailSettingsListView::CleanupStatusPaneL()
 	{
     FUNC_LOG;
@@ -539,9 +605,12 @@ void CFsEmailSettingsListView::CleanupStatusPaneL()
 	}
 
 
-/** 
- * Handle status pane size change for this view (override)
- */
+// ---------------------------------------------------------------------------
+// HandleStatusPaneSizeChange()
+// From CAknView.
+// Handle status pane size change for this view (override).
+// ---------------------------------------------------------------------------
+//
 void CFsEmailSettingsListView::HandleStatusPaneSizeChange()
 	{
     FUNC_LOG;
@@ -556,3 +625,4 @@ void CFsEmailSettingsListView::HandleStatusPaneSizeChange()
 	}
 
 
+// End of file.

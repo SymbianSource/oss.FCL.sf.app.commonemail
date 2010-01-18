@@ -93,13 +93,18 @@ public:
     /**
      *
      */		
-    void DissociateWidgetFromSetting( const TDesC& aContentId );    
+    void DissociateWidgetFromSettingL( const TDesC& aContentId );    
 
     /**
      *
      */     
     TInt GetMailboxCount();    
 
+    /**
+     *
+     */    
+    void ManualAccountSelectionL( const TDesC& aContentId );
+    
 protected:
     /**
      * From CFSNotificationHandlerBase
@@ -327,7 +332,12 @@ private:
      * @return ETrue if duplicate, EFalse if new message
      */
     TBool IsDuplicate( const CMailMailboxDetails& aMailbox, const TFSMailMsgId& aMsgId );
-
+    
+    /**
+     *
+     */
+    TBool FirstBootL();
+    
 private: // data
     CEikonEnv* iEnv;
     // pointer to liw wrapper that handles actual publishing

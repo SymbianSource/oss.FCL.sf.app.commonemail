@@ -22,12 +22,11 @@
 #include <aknViewAppUi.h>
 #include <aknnotewrappers.h> //CAknInformationNote
 #include <FreestyleEmailUi.rsg>
-//<cmail>
+
 #include "CFSMailBox.h"
 #include <FreestyleEmailUi.rsg>
 
 #include "cpbkxremotecontactlookupserviceuicontext.h"
-//</cmail>
 
 #include "FSEmailBuildFlags.h"
 #include "ncsheadercontainer.h"
@@ -63,7 +62,8 @@ CNcsHeaderContainer* CNcsHeaderContainer::NewL( CCoeControl& aParent,
     CFSMailBox& aMailBox, TInt aFlags )
     {
     FUNC_LOG;
-    CNcsHeaderContainer* self = new ( ELeave ) CNcsHeaderContainer( aParent, aMailBox );
+    CNcsHeaderContainer* self = 
+        new ( ELeave ) CNcsHeaderContainer( aParent, aMailBox );
     CleanupStack::PushL( self );
     self->ConstructL( aFlags );
     CleanupStack::Pop( self );
@@ -77,12 +77,10 @@ CNcsHeaderContainer* CNcsHeaderContainer::NewL( CCoeControl& aParent,
 CNcsHeaderContainer::CNcsHeaderContainer(
 	CCoeControl& aParent, 
 	CFSMailBox& aMailBox ): 
-	iParent(aParent),
-    // <cmail> Platform layout change
+	iParent( aParent ),
 	iFieldSizeObserver( static_cast< CNcsComposeViewContainer& >( aParent ) ),
-    // </cmail> Platform layout change
 	iMailBox( aMailBox ),
-	iLongTapEventConsumed(EFalse)
+	iLongTapEventConsumed( EFalse )
 	{
     FUNC_LOG;
 	}
@@ -95,14 +93,11 @@ void CNcsHeaderContainer::ConstructL( TInt aFlags )
 	{
     FUNC_LOG;
     
-	SetContainerWindowL(iParent);
+	SetContainerWindowL( iParent );
     
-	CFreestyleEmailUiAppUi* fsAppUi = static_cast<CFreestyleEmailUiAppUi*>( ControlEnv()->AppUi() );
-	// <cmail>
-	//fsAppUi->FsTextureManager()->ProvideBitmapL( EViewerTextureHeaderBackGround, iBackgroundBitmap, iBackgroundMask );
-	// </cmail>
+	CFreestyleEmailUiAppUi* fsAppUi = 
+        static_cast<CFreestyleEmailUiAppUi*>( ControlEnv()->AppUi() );
 
-	// <cmail> Platform layout change
 	// Create 'To' field
 	iToField = CNcsAddressInputField::NewL( 
 		R_NCS_TO_FIELD_TEXT,
@@ -132,7 +127,6 @@ void CNcsHeaderContainer::ConstructL( TInt aFlags )
     
     iAttachmentField = CNcsAttachmentField::NewL( R_NCS_ATTACHMENT_LABEL_TEXT, 
             &iFieldSizeObserver, this );
-    // </cmail> Platform layout change
 
     // Setup the control array
     // Add all of them now so the container and parent is set correctly
@@ -168,15 +162,16 @@ void CNcsHeaderContainer::ConstructL( TInt aFlags )
 	controls.Remove( iAttachmentField );
 
 	// test whether mailbox supports remote lookup
-	TBool remoteLookupSupported = TFsEmailUiUtility::IsRemoteLookupSupported( iMailBox );
+	TBool remoteLookupSupported = 
+        TFsEmailUiUtility::IsRemoteLookupSupported( iMailBox );
 	
-	iAacListBox = CNcsPopupListBox::NewL( this, iMailBox, *this, remoteLookupSupported );
+	iAacListBox = CNcsPopupListBox::NewL( 
+	        this, iMailBox, *this, remoteLookupSupported );
 	iAacListBox->MakeVisible( EFalse );
 
-	// <cmail>
     iBgContext = CAknsBasicBackgroundControlContext::NewL(
         KAknsIIDQsnBgAreaMain, Rect(), EFalse );
-	// </cmail>
+
     iRALInProgress = EFalse;
 	}
 
@@ -192,12 +187,8 @@ CNcsHeaderContainer::~CNcsHeaderContainer()
 	delete iSubjectField;
     delete iAttachmentField;
 	delete iAacListBox;
-	// <cmail>
-    //delete iBackgroundBitmap;
-	//delete iBackgroundMask;
 	delete iLongTapDetector;
 	delete iBgContext;
-	// </cmail>
 	}
 
 // ---------------------------------------------------------------------------
@@ -222,7 +213,7 @@ void CNcsHeaderContainer::FocusChanged( TDrawNow aDrawNow )
         // Remove MSK label when header loses focus
         TRAP_IGNORE( SetMskL() );
 		}
-	else if ( IsFocused() && !focused )
+	else if ( IsFocused() && !focused && !iRALInProgress )
 		{
 		// We're gaining focus from the message body
 		// Set the focus to the last control in the control array
@@ -240,14 +231,7 @@ void CNcsHeaderContainer::FocusChanged( TDrawNow aDrawNow )
 void CNcsHeaderContainer::Draw( const TRect& /*aRect*/ ) const
 	{
     FUNC_LOG;
-	// <cmail> S60 Skin support
-	// Get the standard graphics context
-	//CWindowGc& gc = SystemGc();
 
-	//gc.Clear();
-	
-	// Redraw the background
-	//gc.BitBlt( iBackgroundPos, iBackgroundBitmap, iBackgroundBitmap->SizeInPixels() );
     if ( iBgContext )
         {
         CWindowGc& gc = SystemGc();
@@ -259,7 +243,6 @@ void CNcsHeaderContainer::Draw( const TRect& /*aRect*/ ) const
             AknsDrawUtils::Background( skin, iBgContext, this, gc, Rect() );
             }
         }
-	// </cmail>
 	}
 
 // -----------------------------------------------------------------------------
@@ -283,7 +266,7 @@ void CNcsHeaderContainer::HandleControlArrayEventL(
 	TInt /*aControlId*/ )
 	{
     FUNC_LOG;
-	if (aEvent == CCoeControlArray::EControlAdded) 
+	if ( aEvent == CCoeControlArray::EControlAdded ) 
 		{
 		aControl->SetContainerWindowL( iParent );
 		aControl->MakeVisible( ETrue );
@@ -294,9 +277,7 @@ void CNcsHeaderContainer::HandleControlArrayEventL(
 		aControl->MakeVisible( EFalse );
 		}
 	// Tell the parent to recalculate everything
-	// <cmail> Platform layout change
-	iFieldSizeObserver.UpdateFieldPosition(NULL);
-	// </cmail> Platform layout change
+	iFieldSizeObserver.UpdateFieldPosition( NULL );
 	}
 
 void CNcsHeaderContainer::SetMskL()
@@ -305,10 +286,8 @@ void CNcsHeaderContainer::SetMskL()
     CCoeControl* focused = FindFocused();
     if ( focused == iToField || focused == iCcField || focused == iBccField )
         {
-            // <cmail> additional check if we can change MSK label    
-            if(iSwitchChangeMskOff == EFalse)
+        if( iSwitchChangeMskOff == EFalse )
             {
-            // </cmail>     
             ChangeMskCommandL( R_FSE_QTN_MSK_ADD );
             }
         }
@@ -327,7 +306,6 @@ void CNcsHeaderContainer::SetMskL()
             ChangeMskCommandL( R_FSE_QTN_MSK_EMPTY );
             }
         }
-    // <cmail> msk context menu added into composer    
     else if ( focused == iSubjectField )
         {
         ChangeMskCommandL( R_FSE_QTN_MSK_EMPTY );       
@@ -336,34 +314,33 @@ void CNcsHeaderContainer::SetMskL()
         {
         ChangeMskCommandL( R_FSE_QTN_MSK_BODY_MENU );
         }
-    // </cmail>     
     }  
 
-//<cmail>
 // -----------------------------------------------------------------------------
 // CNcsHeaderContainer::HandlePointerEventL()
 // 
 // -----------------------------------------------------------------------------
-void CNcsHeaderContainer::HandlePointerEventL( const TPointerEvent& aPointerEvent )
+void CNcsHeaderContainer::HandlePointerEventL( 
+        const TPointerEvent& aPointerEvent )
     {
 	FUNC_LOG;
 	CCoeControl* clicked = 0;
-    for (TInt i=0; i < Components().Count(); ++i)
+    for ( TInt i=0; i < Components().Count(); ++i )
         {
-        TRect rc = Components().At(i).iControl->Rect();
-        if (rc.Contains(aPointerEvent.iPosition))
+        TRect rc = Components().At( i ).iControl->Rect();
+        if ( rc.Contains( aPointerEvent.iPosition ) )
             {
-            clicked = Components().At(i).iControl;
+            clicked = Components().At( i ).iControl;
             }
         }
-    if (clicked)
+    if ( clicked )
         {
-        if (aPointerEvent.iType == TPointerEvent::EButton1Up)
+        if ( aPointerEvent.iType == TPointerEvent::EButton1Up )
             {
             CCoeControl* pOldCtrl = FindFocused();
             CCoeControl* pNewCtrl= clicked;
             
-            if (pOldCtrl != pNewCtrl)
+            if ( pOldCtrl != pNewCtrl )
                 {
                 // Unfocus the control
                 if ( pOldCtrl )
@@ -379,7 +356,8 @@ void CNcsHeaderContainer::HandlePointerEventL( const TPointerEvent& aPointerEven
                     }
 
                 // If the attachments label has changed focus
-                if ( pOldCtrl == iAttachmentField || pNewCtrl == iAttachmentField )
+                if ( pOldCtrl == iAttachmentField || 
+                     pNewCtrl == iAttachmentField )
                     {
                     DrawAttachmentFocusNow();
                     }
@@ -397,14 +375,15 @@ void CNcsHeaderContainer::HandlePointerEventL( const TPointerEvent& aPointerEven
             
             if( pNewCtrl == iAttachmentField )
             	{
-				CNcsComposeViewContainer& parent = static_cast<CNcsComposeViewContainer&>( iParent );
+				CNcsComposeViewContainer& parent = 
+                    static_cast<CNcsComposeViewContainer&>( iParent );
 				parent.HandleAttachmentsOpenCommandL();
             	}          
             }
         }
-    for (TInt i=0; i < Components().Count(); ++i)
+    for ( TInt i=0; i < Components().Count(); ++i )
         {
-        Components().At(i).iControl->HandlePointerEventL(aPointerEvent);
+        Components().At( i ).iControl->HandlePointerEventL( aPointerEvent );
         }
     }
 
@@ -412,42 +391,52 @@ void CNcsHeaderContainer::HandlePointerEventL( const TPointerEvent& aPointerEven
 // CNcsHeaderContainer::HandleLongTapL()
 // 
 // -----------------------------------------------------------------------------
-void CNcsHeaderContainer::HandleLongTapL( const TPoint& aPenEventLocation )
+void CNcsHeaderContainer::HandleLongTap( const TPoint& aPenEventLocation, 
+										  const TPoint& aPenEventScreenLocation )
     {
 	FUNC_LOG;
 	iLongTapEventConsumed = EFalse;
 	
     CCoeControl* control = FindFocused();
     TRect rect = iAttachmentField->Rect();
-    	if( iAttachmentField->IsVisible() && rect.Contains( aPenEventLocation ) )
+    	if( iAttachmentField->IsVisible() && 
+    	    rect.Contains( aPenEventLocation ) )
         {
         iLongTapEventConsumed = ETrue;
         
-        CNcsComposeViewContainer& parent = static_cast<CNcsComposeViewContainer&>( iParent );
-        parent.LaunchAttachmentActionMenuL();
+        CNcsComposeViewContainer& parent = 
+            static_cast<CNcsComposeViewContainer&>( iParent );
+        parent.LaunchStylusPopupMenu( aPenEventScreenLocation );
         }
     }
 
+// -----------------------------------------------------------------------------
+// CNcsHeaderContainer::NeedsLongTapL()
+// Whether long tap detection is needed or not (depends on whether touch 
+// location is within attachment field or not)
+// -----------------------------------------------------------------------------
 TBool CNcsHeaderContainer::NeedsLongTapL( const TPoint& aPenEventLocation )
     {
 	FUNC_LOG;
 
     CCoeControl* control = FindFocused();
     TRect rect = iAttachmentField->Rect();
-    TBool result(EFalse);
-	if( iAttachmentField->IsVisible() && rect.Contains( aPenEventLocation ) )
+    TBool result( EFalse );
+	if( iAttachmentField->IsVisible() && rect.Contains( aPenEventLocation ) &&
+	    KNoAttachmentLabelFocused !=
+            iAttachmentField->FocusedAttachmentLabelIndex() )
         {
         result = ETrue;
         }
     return result;    
     }
-//</cmail>
 
 // -----------------------------------------------------------------------------
 // CNcsHeaderContainer::OfferKeyEventL()
 // Handles key events
 // -----------------------------------------------------------------------------
-TKeyResponse CNcsHeaderContainer::OfferKeyEventL( const TKeyEvent& aKeyEvent, TEventCode aType )
+TKeyResponse CNcsHeaderContainer::OfferKeyEventL( 
+        const TKeyEvent& aKeyEvent, TEventCode aType )
     {
     FUNC_LOG;
     TKeyResponse ret( EKeyWasNotConsumed );
@@ -456,7 +445,8 @@ TKeyResponse CNcsHeaderContainer::OfferKeyEventL( const TKeyEvent& aKeyEvent, TE
     
     if( aKeyEvent.iCode == EKeyUpArrow || aKeyEvent.iCode == EKeyDownArrow )
     	{
-        if ( iAacListBox && iAacListBox->IsVisible() && !iAacListBox->IsPopupEmpty() )
+        if ( iAacListBox && iAacListBox->IsVisible() && 
+             !iAacListBox->IsPopupEmpty() )
         	{
            	return iAacListBox->OfferKeyEventL( aKeyEvent, aType );
         	}
@@ -464,7 +454,7 @@ TKeyResponse CNcsHeaderContainer::OfferKeyEventL( const TKeyEvent& aKeyEvent, TE
 	        {
 		    ret = FindFocused()->OfferKeyEventL( aKeyEvent, aType );
 		    
-    		doScroll = (ret == EKeyWasConsumed); 
+    		doScroll = ( ret == EKeyWasConsumed ); 
 	        }
 
         if ( ret == EKeyWasNotConsumed ) 
@@ -479,27 +469,25 @@ TKeyResponse CNcsHeaderContainer::OfferKeyEventL( const TKeyEvent& aKeyEvent, TE
         	{
         	if ( aType == EEventKey )
         	    {
-                CNcsComposeViewContainer& parent = static_cast<CNcsComposeViewContainer&>( iParent );
+                CNcsComposeViewContainer& parent = 
+                    static_cast<CNcsComposeViewContainer&>( iParent );
 
-                if ( aKeyEvent.iCode == EKeyEnter || aKeyEvent.iScanCode == EStdKeyEnter ||  
-                     aKeyEvent.iCode == EKeyOK || aKeyEvent.iScanCode == EStdKeyDevice3 )
+                if ( aKeyEvent.iCode == EKeyEnter || 
+                     aKeyEvent.iScanCode == EStdKeyEnter ||  
+                     aKeyEvent.iCode == EKeyOK || 
+                     aKeyEvent.iScanCode == EStdKeyDevice3 )
             	    {   
             	    // open list or attachment
             	    parent.HandleAttachmentsOpenCommandL();
             	    ret = EKeyWasConsumed;
             	    }
-            	else if ( (AknLayoutUtils::LayoutMirrored() && aKeyEvent.iCode == EKeyLeftArrow) ||
-            	          (!AknLayoutUtils::LayoutMirrored() && aKeyEvent.iCode == EKeyRightArrow) )
-        	        {
-        	        parent.LaunchAttachmentActionMenuL();
-        	        ret = EKeyWasConsumed;
-        	        }
         	    }
             }
 		else if ( IsPopupActive() && aType == EEventKey )
 			{
 			// select current
-			if( aKeyEvent.iCode == EKeyEnter || aKeyEvent.iCode == EKeyDevice4 || 
+			if( aKeyEvent.iCode == EKeyEnter || 
+			    aKeyEvent.iCode == EKeyDevice4 || 
 				aKeyEvent.iCode == EKeyOK )
 				{
 				DoPopupSelectL();
@@ -509,8 +497,11 @@ TKeyResponse CNcsHeaderContainer::OfferKeyEventL( const TKeyEvent& aKeyEvent, TE
 		else
 		    {
 		    // Don't allow line feeds in header fields.
-		    // Could be nice if enter committed the field and moved the focus to next one
-		    if ( aType == EEventKey && (aKeyEvent.iCode == EKeyEnter || aKeyEvent.iScanCode == EStdKeyEnter) )
+		    // Could be nice if enter committed the field and moved the focus
+		    // to next one
+		    if ( aType == EEventKey && 
+		         ( aKeyEvent.iCode == EKeyEnter || 
+		           aKeyEvent.iScanCode == EStdKeyEnter) )
 		        {
 		        ret = FindFocused()->OfferKeyEventL( aKeyEvent, aType );
 		        return EKeyWasConsumed;
@@ -524,14 +515,15 @@ TKeyResponse CNcsHeaderContainer::OfferKeyEventL( const TKeyEvent& aKeyEvent, TE
     		{
     		ret = focused->OfferKeyEventL( aKeyEvent, aType );
     		
-    		doScroll = (ret == EKeyWasConsumed); 
+    		doScroll = ( ret == EKeyWasConsumed ); 
     		}
     	}
 
     if( doScroll )
     	{
 		// scroll the screen if the cursor goes beyond the screen
-		CNcsComposeViewContainer& parent = static_cast<CNcsComposeViewContainer&>( iParent );
+		CNcsComposeViewContainer& parent = 
+            static_cast<CNcsComposeViewContainer&>( iParent );
 		
 		TInt screenPos( -Position().iY );
 		TInt cursorPos( CursorPosition() );
@@ -581,7 +573,8 @@ CCoeControl* CNcsHeaderContainer::FindFocused() const
 TKeyResponse CNcsHeaderContainer::ChangeFocusL( const TKeyEvent& aKeyEvent )
 	{
     FUNC_LOG;
-	ASSERT( aKeyEvent.iCode == EKeyDownArrow || aKeyEvent.iCode == EKeyUpArrow );
+	ASSERT( aKeyEvent.iCode == EKeyDownArrow || 
+	        aKeyEvent.iCode == EKeyUpArrow );
     TKeyResponse ret( EKeyWasNotConsumed );
 
     CCoeControl* pOldCtrl = FindFocused();
@@ -617,19 +610,19 @@ TKeyResponse CNcsHeaderContainer::ChangeFocusL( const TKeyEvent& aKeyEvent )
             static_cast<CNcsComposeViewContainer*>( &iParent );
     if ( pOldCtrl == iToField )
         {
-        container->CommitL(EToField);
+        container->CommitL( EToField );
         }
     else if ( pOldCtrl == iCcField) 
         {
-        container->CommitL(ECcField);
+        container->CommitL( ECcField );
         }
     else if ( pOldCtrl == iBccField)
         {
-        container->CommitL(EBccField);
+        container->CommitL( EBccField );
         }
     else if ( pOldCtrl == iSubjectField)
         {
-        container->CommitL(ESubjectField);
+        container->CommitL( ESubjectField );
         }
     
 	// If the attachments label has changed focus
@@ -677,8 +670,10 @@ void CNcsHeaderContainer::UpdateFieldPosition( CCoeControl* aAnchor )
 		}
 
 	// Then check we didn't move too much and composer still fills the whole
-	// visible area on the screen (i.e. don't scroll below the bottom of the body field)
-	CNcsComposeViewContainer& parent = static_cast<CNcsComposeViewContainer&>( iParent );
+	// visible area on the screen (i.e. don't scroll below the bottom of the
+	// body field)
+	CNcsComposeViewContainer& parent = 
+        static_cast<CNcsComposeViewContainer&>( iParent );
 	TInt composerHeight = parent.ContentTotalHeight();
     TInt screenHeight = parent.Rect().Height();
     if ( composerHeight <= screenHeight )
@@ -690,17 +685,17 @@ void CNcsHeaderContainer::UpdateFieldPosition( CCoeControl* aAnchor )
         top = Max( top, screenHeight - composerHeight );
         }
 
-    // The top edge of the header should never be lower than on the top edge of the screen.
-	// For some reason, the calculation above leads to such situation if recipient and subject
-	// fields are scrollable. If that happens, increase the top value to 0 to prevent empty
-	// space showing up above the header area.
+    // The top edge of the header should never be lower than on the top edge
+    // of the screen. For some reason, the calculation above leads to such
+    // situation if recipient and subject fields are scrollable. If that 
+    // happens, increase the top value to 0 to prevent empty space showing up
+    // above the header area.
 	top = Min( top, 0 );
 	
 	// set the new position of the container
 	SetExtent( TPoint( Rect().iTl.iX, top ), Size() );
 	}
 
-// <cmail> Platform layout change
 // -----------------------------------------------------------------------------
 // CNcsHeaderContainer::SizeChanged()
 // set size
@@ -718,13 +713,12 @@ void CNcsHeaderContainer::SizeChanged()
         const TInt lineCount( ToNcsControl( cur )->LayoutLineCount() );
         if ( lineCount > 0 )
             {
-            NcsUtility::LayoutHeaderControl( cur.Control<CCoeControl>(), rect, currentLine, lineCount );
-			// <cmail>
+            NcsUtility::LayoutHeaderControl( cur.Control<CCoeControl>(), 
+                    rect, currentLine, lineCount );
             // Do not use stored value lineCount because count may change
             // during layout (e.g. when orientation is changed => edit field
             // length may change => it grows or shrinks)
             currentLine += ToNcsControl( cur )->LayoutLineCount();
-			// </cmail>
             }
         } while ( cur.Next() );
         
@@ -733,7 +727,6 @@ void CNcsHeaderContainer::SizeChanged()
 		iAacListBox->SetPopupMaxRect( CalculatePopupRect() );
 		}
 	}
-// </cmail> Platform layout change
 
 // -----------------------------------------------------------------------------
 // CNcsHeaderContainer::PositionChanged()
@@ -753,14 +746,14 @@ void CNcsHeaderContainer::PositionChanged()
 void CNcsHeaderContainer::ChangePositions()
 	{
     FUNC_LOG;
-	TPoint nextPoint(Rect().iTl);
+	TPoint nextPoint( Rect().iTl );
 
 	CCoeControl* ctrl;
 	CCoeControlArray::TCursor cur = Components().Begin();
 	do 
 		{
 		ctrl = cur.Control<CCoeControl>();
-		ctrl->SetPosition(nextPoint);
+		ctrl->SetPosition( nextPoint );
 		nextPoint.iY += ctrl->Size().iHeight;
 		} 
     while ( cur.Next() );
@@ -774,7 +767,7 @@ void CNcsHeaderContainer::ChangePositions()
 TBool CNcsHeaderContainer::NeedsAifMenu() const
 	{
     FUNC_LOG;
-// <cmail>
+
 	CCoeControl* focused = FindFocused();
 
 	// Has to be an AIF field
@@ -788,7 +781,6 @@ TBool CNcsHeaderContainer::NeedsAifMenu() const
         }
 	
 	return ret;
-// </cmail>
 	}
 
 // ---------------------------------------------------------------------------
@@ -805,34 +797,33 @@ TInt CNcsHeaderContainer::GetTotalHeight() const
 		CCoeControl* ctrl = cur.Control<CCoeControl>();
 		ret += ctrl->Size().iHeight;
 		} 
-	while (cur.Next());
+	while ( cur.Next() );
 	return ret;
 	}
 
 // -----------------------------------------------------------------------------
-// CNcsHeaderContainer::SetAttachmentLabelTextL()
+// CNcsHeaderContainer::SetAttachmentLabelTextsLD
+//
 // -----------------------------------------------------------------------------
-void CNcsHeaderContainer::SetAttachmentLabelTextL( const TDesC& aText )
-	{
-    FUNC_LOG;
-	if ( aText.Length() >= 1 )
-		{
-		iAttachmentField->SetTextL( aText );
-		ShowAttachmentLabelL();
-		}
-    DrawAttachmentFocusNow();
-	}
-
-// -----------------------------------------------------------------------------
-// CNcsHeaderContainer::SetAttachmentLabelTextL()
-// -----------------------------------------------------------------------------
-void CNcsHeaderContainer::SetAttachmentLabelTextL( const TDesC& aAttachmentName, 
-                                                   const TDesC& aAttachmentSizeDesc )
+//
+void CNcsHeaderContainer::SetAttachmentLabelTextsLD( 
+    CDesCArray* aAttachmentNames, CDesCArray* aAttachmentSizes )
     {
-    FUNC_LOG;
-    iAttachmentField->SetTextL( aAttachmentName, aAttachmentSizeDesc );
+    FUNC_LOG;   
+    iAttachmentField->SetTextsLD( aAttachmentNames, aAttachmentSizes );
     ShowAttachmentLabelL();
     DrawAttachmentFocusNow();
+    }
+
+// -----------------------------------------------------------------------------
+// CNcsHeaderContainer::FocusedAttachmentLabelIndex
+//
+// -----------------------------------------------------------------------------
+//
+TInt CNcsHeaderContainer::FocusedAttachmentLabelIndex()
+    {
+    FUNC_LOG;
+    return iAttachmentField->FocusedAttachmentLabelIndex();
     }
 
 // -----------------------------------------------------------------------------
@@ -848,9 +839,7 @@ void CNcsHeaderContainer::ShowAttachmentLabelL()
         Components().InsertLC( cur, iAttachmentField );
         CleanupStack::Pop( iAttachmentField );
 
-        // <cmail> Platform layout change
         TRAP_IGNORE( iFieldSizeObserver.UpdateFieldSizeL() );
-        // </cmail> Platform layout change
 
         CCoeControl* pOldCtrl = FindFocused();
         if ( pOldCtrl )
@@ -859,10 +848,7 @@ void CNcsHeaderContainer::ShowAttachmentLabelL()
             }
 
         iAttachmentField->SetFocus( ETrue, ENoDrawNow );
-        // <cmail> Platform layout change
-        //CNcsComposeViewContainer& parent = static_cast<CNcsComposeViewContainer&>( iParent );
         iFieldSizeObserver.UpdateFieldPosition( iAttachmentField );
-        // </cmail> Platform layout change
         }
     }
 
@@ -902,17 +888,12 @@ void CNcsHeaderContainer::HideAttachmentLabel()
 	iAttachmentField->MakeVisible( EFalse );
 	Components().Remove( iAttachmentField );
     
-	// <cmail> Platform layout change
 	TRAP_IGNORE( iFieldSizeObserver.UpdateFieldSizeL() );
-	// </cmail> Platform layout change
 
     // Scroll to currently focused field
 	if ( pNewCtrl )
 	    {
-	    // <cmail> Platform layout change
-	    //CNcsComposeViewContainer& parent = static_cast<CNcsComposeViewContainer&>( iParent );
 	    iFieldSizeObserver.UpdateFieldPosition( pNewCtrl );
-	    // </cmail> Platform layout change	    
 	    }
 	
 	}
@@ -921,18 +902,19 @@ void CNcsHeaderContainer::HideAttachmentLabel()
 // CNcsHeaderContainer::SetBccFieldVisibleL()
 // -----------------------------------------------------------------------------
 //
-void CNcsHeaderContainer::SetBccFieldVisibleL( TBool aVisible, TDrawNow aDrawNow, TBool aFocus ) 
+void CNcsHeaderContainer::SetBccFieldVisibleL( 
+        TBool aVisible, TDrawNow aDrawNow, TBool aFocus ) 
     {
     FUNC_LOG;
-	if (iBccField->IsVisible() == aVisible)
+	if ( iBccField->IsVisible() == aVisible )
 		{
 		return;
 		}
 
 	if ( aVisible )
 		{
-		CCoeControlArray::TCursor cur = Components().Find(iSubjectField);
-		Components().InsertLC(cur,iBccField);
+		CCoeControlArray::TCursor cur = Components().Find( iSubjectField );
+		Components().InsertLC( cur, iBccField );
 		CleanupStack::Pop( iBccField );
 
 		if ( aFocus )
@@ -951,20 +933,18 @@ void CNcsHeaderContainer::SetBccFieldVisibleL( TBool aVisible, TDrawNow aDrawNow
 		{
 		if ( iBccField->IsFocused() )
 			{
-			CCoeControlArray::TCursor cur = Components().Find(iBccField);
-			ASSERT(cur.IsValid());
+			CCoeControlArray::TCursor cur = Components().Find( iBccField );
+			ASSERT( cur.IsValid() );
 			
-			iBccField->SetFocus(EFalse);
+			iBccField->SetFocus( EFalse );
 
-			cur.Prev(); //Get the control before this field
-			cur.Control<CCoeControl>()->SetFocus(ETrue);
+			cur.Prev(); // Get the control before this field
+			cur.Control<CCoeControl>()->SetFocus( ETrue );
 			}
 		Components().Remove( iBccField );
 		}
 
-	// <cmail> Platform layout change
     TRAP_IGNORE( iFieldSizeObserver.UpdateFieldSizeL() );
-    // </cmail> Platform layout change
 
 	if ( aDrawNow == EDrawNow )
 		{
@@ -975,7 +955,8 @@ void CNcsHeaderContainer::SetBccFieldVisibleL( TBool aVisible, TDrawNow aDrawNow
 // -----------------------------------------------------------------------------
 // CNcsHeaderContainer::SetCcFieldVisibleL()
 // -----------------------------------------------------------------------------
-void CNcsHeaderContainer::SetCcFieldVisibleL( TBool aVisible, TDrawNow aDrawNow, TBool aFocus ) 
+void CNcsHeaderContainer::SetCcFieldVisibleL( 
+        TBool aVisible, TDrawNow aDrawNow, TBool aFocus ) 
 	{
     FUNC_LOG;
 	if ( iCcField->IsVisible() == aVisible )
@@ -985,7 +966,7 @@ void CNcsHeaderContainer::SetCcFieldVisibleL( TBool aVisible, TDrawNow aDrawNow,
 
 	if ( aVisible )
 		{
-		Components().InsertAfterLC( Components().Id(*iToField), iCcField );
+		Components().InsertAfterLC( Components().Id( *iToField ), iCcField );
 		CleanupStack::Pop( iCcField );
 
 		if ( aFocus )
@@ -1003,15 +984,13 @@ void CNcsHeaderContainer::SetCcFieldVisibleL( TBool aVisible, TDrawNow aDrawNow,
 		{
 		if( iCcField->IsFocused() )
 			{
-			iCcField->SetFocus(EFalse);
-			iToField->SetFocus(ETrue);
+			iCcField->SetFocus( EFalse );
+			iToField->SetFocus( ETrue );
 			}
-		Components().Remove(iCcField);
+		Components().Remove( iCcField );
 		}
     
-	// <cmail> Platform layout change
 	TRAP_IGNORE( iFieldSizeObserver.UpdateFieldSizeL() );
-	// </cmail> Platform layout change
 
     if ( aDrawNow == EDrawNow )
 		{
@@ -1040,7 +1019,7 @@ TInt CNcsHeaderContainer::LineCount() const
 	CCoeControlArray::TCursor cur = Components().Begin();
 	do 
 		{
-        MNcsControl* ctrl = ToNcsControl(cur);
+        MNcsControl* ctrl = ToNcsControl( cur );
         cnt += ctrl->LineCount();
         } 
     while ( cur.Next() );
@@ -1058,7 +1037,7 @@ TInt CNcsHeaderContainer::ScrollableLines() const
 	CCoeControlArray::TCursor cur = Components().Begin();
 	do 
 		{
-		MNcsControl* ctrl = ToNcsControl(cur);
+		MNcsControl* ctrl = ToNcsControl( cur );
 		cnt += ctrl->ScrollableLines();
 		} 
 	while ( cur.Next() );
@@ -1081,7 +1060,8 @@ TInt CNcsHeaderContainer::CursorPosition() const
 	MNcsControl* ncsCtrl = dynamic_cast<MNcsControl*>( coe );
 	// This will give the the position relative to the top of the control
 	TInt pos = ncsCtrl->CursorPosition();
-	// add the location of the top of the control relative to the top of the header.
+	// add the location of the top of the control relative to the top
+	// of the header.
 	pos += coe->Rect().iTl.iY - Rect().iTl.iY;
 	return pos;
 	}
@@ -1098,7 +1078,7 @@ TInt CNcsHeaderContainer::CursorLineNumber() const
 	do 
 		{
         CCoeControl* coe = cur.Control<CCoeControl>();
-        MNcsControl* ctrl = ToNcsControl(cur);
+        MNcsControl* ctrl = ToNcsControl( cur );
         if ( !coe->IsFocused() )
             {
             cnt += ctrl->LineCount();
@@ -1132,18 +1112,18 @@ TInt CNcsHeaderContainer::GetNumChars() const
 // CNcsHeaderContainer::UpdatePopupContactListL()
 // -----------------------------------------------------------------------------
 //
-void CNcsHeaderContainer::UpdatePopupContactListL( const TDesC& aMatchString, TBool /*aListAll*/ )
+void CNcsHeaderContainer::UpdatePopupContactListL( 
+        const TDesC& aMatchString, TBool /*aListAll*/ )
 	{
     FUNC_LOG;
 
-    // <cmail> do update only for address fields
+    // do update only for address fields
 	CCoeControl* focused = FindFocused();
 	
 	if ( !IsAddressInputField( focused ) )
 	    {
 	    return;
 	    }
-	// </cmail>
 	    
 	if ( aMatchString.CompareC( KNullDesC ) == 0 || 
 	     aMatchString.Compare( KAddressDelimeterSemiColon ) == 0 )
@@ -1171,15 +1151,14 @@ void CNcsHeaderContainer::UpdatePopupContactListL( const TDesC& aMatchString, TB
 void CNcsHeaderContainer::ClosePopupContactListL()
 	{
     FUNC_LOG;
-    // <cmail>
+
     if ( iAacListBox->IsVisible() )
         {
-    // </cmail>
         iAacListBox->MakeVisible( EFalse );
         ShowPopupMenuBarL( EFalse );
         
-        // The focused address field should be redrawn after the popup is closed to fix
-        // the field border.
+        // The focused address field should be redrawn after the popup is
+        // closed to fix the field border.
         if ( iToField->IsFocused() )
             {
             iToField->DrawDeferred();
@@ -1192,9 +1171,7 @@ void CNcsHeaderContainer::ClosePopupContactListL()
             {
             iBccField->DrawDeferred();
             }
-    // <cmail>
         }
-    // </cmail>
 	}
 
 // ---------------------------------------------------------------------------
@@ -1227,7 +1204,6 @@ void CNcsHeaderContainer::DeleteSelectionL()
 	{
     FUNC_LOG;
 
-// <cmail>
     CCoeControl* focused = FindFocused();
 
     if ( IsAddressInputField( focused ) )
@@ -1242,8 +1218,6 @@ void CNcsHeaderContainer::DeleteSelectionL()
     	TEventCode code = EEventKey;
     	field->OfferKeyEventL( event, code );
         }
-// </cmail>
-
 	}
 
 // ---------------------------------------------------------------------------
@@ -1293,9 +1267,6 @@ TRect CNcsHeaderContainer::CalculatePopupRect()
 	{
     FUNC_LOG;
     // get focused control rect
-    //<cmail> Added a NULL check for FindFocused().
-    // Find out why we end up here in S60 5.0 if there is no focused
-    // item. In S60 3.2.3 this kind of situation seems not to be possible.
 	TRect popupRect;
 
     CCoeControl* focused = FindFocused();
@@ -1306,11 +1277,13 @@ TRect CNcsHeaderContainer::CalculatePopupRect()
 
         TRect editorRect = aifEditor->Editor()->Rect();
         
-        popupRect.iTl = TPoint( editorRect.iTl.iX - 1, editorRect.iTl.iY + aifEditor->CursorPosition() + 1 );
+        popupRect.iTl =
+            TPoint( editorRect.iTl.iX - 1, 
+                    editorRect.iTl.iY + aifEditor->CursorPosition() + 1 );
         
-        popupRect.iBr = TPoint( editorRect.iBr.iX + 1, iParent.Rect().iBr.iY );
+        popupRect.iBr = 
+            TPoint( editorRect.iBr.iX + 1, iParent.Rect().iBr.iY );
         }
-    //</cmail>
 
     return popupRect;
 	}
@@ -1326,7 +1299,6 @@ void CNcsHeaderContainer::DoPopupSelectL()
 
 	if( iAacListBox->IsRemoteLookupItemSelected() )
 		{
-// <cmail>
 		CCoeControl* focused = FindFocused();
 		
 		if ( IsAddressInputField( focused ) )
@@ -1337,9 +1309,13 @@ void CNcsHeaderContainer::DoPopupSelectL()
     		addressField = static_cast<CNcsAddressInputField*>( focused );
     		HBufC* lookupText = addressField->GetLookupTextLC();
     		CPbkxRemoteContactLookupServiceUiContext::TResult::TExitReason ex;
+    		// set focus to false for header - the focus should be on popup
+    		focused->SetFocus( EFalse, ENoDrawNow );
             CNcsEmailAddressObject* address = ExecuteRemoteSearchL(
                 ex, *lookupText );
             iRALInProgress = EFalse;
+            // set focus back to on
+            focused->SetFocus( ETrue, ENoDrawNow );
             if ( address )
                 {
                 CleanupStack::PushL( address );
@@ -1347,14 +1323,15 @@ void CNcsHeaderContainer::DoPopupSelectL()
                 CleanupStack::PopAndDestroy( address );
                 }
             CleanupStack::PopAndDestroy( lookupText );
-            CNcsComposeViewContainer& parent = static_cast<CNcsComposeViewContainer&>( iParent );
-            parent.FocusChanged(EDrawNow);
+            CNcsComposeViewContainer& parent = 
+                static_cast<CNcsComposeViewContainer&>( iParent );
+            parent.FocusChanged( EDrawNow );
 		    }
-// </cmail>
 		}
 	else if( !iAacListBox->IsPopupEmpty() )
 		{
-		CNcsEmailAddressObject* emailAddress  = iAacListBox->ReturnCurrentEmailAddressLC();
+		CNcsEmailAddressObject* emailAddress  = 
+            iAacListBox->ReturnCurrentEmailAddressLC();
 		if( emailAddress )
 			{
             if ( emailAddress->EmailAddress().Compare( KNullDesC ) != 0 )
@@ -1363,10 +1340,11 @@ void CNcsHeaderContainer::DoPopupSelectL()
                 }
             else
                 {           
-                // selected contact doesn't have email address, launch remote contact lookup
-                // rcl must be usable, since otherwise there couldn't be any items
-                // without email addresses
-                CPbkxRemoteContactLookupServiceUiContext::TResult::TExitReason exitReason;
+                // selected contact doesn't have email address, launch remote
+                // contact lookup rcl must be usable, since otherwise there 
+                // couldn't be any items without email addresses
+                CPbkxRemoteContactLookupServiceUiContext::TResult::TExitReason
+                    exitReason;
                 CNcsEmailAddressObject* remAddress = ExecuteRemoteSearchL(
                     exitReason,
                     emailAddress->DisplayName() );
@@ -1443,7 +1421,8 @@ TBool CNcsHeaderContainer::IsSubjectFieldEmpty() const
 // CNcsHeaderContainer::GetToFieldAddressesL
 // ---------------------------------------------------------------------------
 //
-const RPointerArray<CNcsEmailAddressObject>& CNcsHeaderContainer::GetToFieldAddressesL( TBool aParseNow )
+const RPointerArray<CNcsEmailAddressObject>& 
+CNcsHeaderContainer::GetToFieldAddressesL( TBool aParseNow )
     {
 	return iToField->GetAddressesL( aParseNow );
     }
@@ -1452,7 +1431,8 @@ const RPointerArray<CNcsEmailAddressObject>& CNcsHeaderContainer::GetToFieldAddr
 // CNcsHeaderContainer::GetCcFieldAddressesL
 // ---------------------------------------------------------------------------
 //
-const RPointerArray<CNcsEmailAddressObject>& CNcsHeaderContainer::GetCcFieldAddressesL( TBool aParseNow )
+const RPointerArray<CNcsEmailAddressObject>& 
+CNcsHeaderContainer::GetCcFieldAddressesL( TBool aParseNow )
     {
 	return iCcField->GetAddressesL( aParseNow );
     }
@@ -1461,7 +1441,8 @@ const RPointerArray<CNcsEmailAddressObject>& CNcsHeaderContainer::GetCcFieldAddr
 // CNcsHeaderContainer::GetBccFieldAddressesL
 // ---------------------------------------------------------------------------
 //
-const RPointerArray<CNcsEmailAddressObject>& CNcsHeaderContainer::GetBccFieldAddressesL( TBool aParseNow )
+const RPointerArray<CNcsEmailAddressObject>& 
+CNcsHeaderContainer::GetBccFieldAddressesL( TBool aParseNow )
     {
 	return iBccField->GetAddressesL( aParseNow );
     }
@@ -1473,9 +1454,10 @@ const RPointerArray<CNcsEmailAddressObject>& CNcsHeaderContainer::GetBccFieldAdd
 HBufC* CNcsHeaderContainer::GetSubjectLC() const
     {
     FUNC_LOG;
-	HBufC* subject = HBufC::NewLC(iSubjectField->Editor()->TextLength() + 2);
+	HBufC* subject = 
+        HBufC::NewLC( iSubjectField->Editor()->TextLength() + 2 );
 	TPtr des = subject->Des();
-	iSubjectField->Editor()->GetText(des);
+	iSubjectField->Editor()->GetText( des );
 	return subject;
     }
 
@@ -1498,9 +1480,6 @@ TBool CNcsHeaderContainer::IsCcFieldVisible() const
     FUNC_LOG;
 	return iCcField->IsVisible(); 
     }
-
-// <cmail> Unneeded IsFocusAif removed
-// </cmail>
 
 // ---------------------------------------------------------------------------
 // CNcsHeaderContainer::IsFocusAttachments
@@ -1589,7 +1568,8 @@ TInt CNcsHeaderContainer::GetSubjectFieldLength() const
 TInt CNcsHeaderContainer::GetAttachmentCount() const
     {
     FUNC_LOG;
-    CNcsComposeViewContainer& parent = static_cast<CNcsComposeViewContainer&>( iParent );
+    CNcsComposeViewContainer& parent = 
+        static_cast<CNcsComposeViewContainer&>( iParent );
     return parent.GetAttachmentCount();
     }
 
@@ -1600,7 +1580,8 @@ TInt CNcsHeaderContainer::GetAttachmentCount() const
 TInt CNcsHeaderContainer::HasRemoteAttachments() const
     {
     FUNC_LOG;
-    CNcsComposeViewContainer& parent = static_cast<CNcsComposeViewContainer&>( iParent );
+    CNcsComposeViewContainer& parent = 
+        static_cast<CNcsComposeViewContainer&>( iParent );
     return parent.HasRemoteAttachments();
     }
 
@@ -1653,7 +1634,8 @@ HBufC* CNcsHeaderContainer::GetLookupTextLC() const
 // CNcsHeaderContainer::SetToFieldAddressesL
 // ---------------------------------------------------------------------------
 //
-void CNcsHeaderContainer::SetToFieldAddressesL( const RPointerArray<CNcsEmailAddressObject>& aAddress )
+void CNcsHeaderContainer::SetToFieldAddressesL( 
+        const RPointerArray<CNcsEmailAddressObject>& aAddress )
     {
     FUNC_LOG;
 	iToField->SetAddressesL( aAddress );
@@ -1663,31 +1645,34 @@ void CNcsHeaderContainer::SetToFieldAddressesL( const RPointerArray<CNcsEmailAdd
 // CNcsHeaderContainer::SetCcFieldAddressesL
 // ---------------------------------------------------------------------------
 //
-void CNcsHeaderContainer::SetCcFieldAddressesL( const RPointerArray<CNcsEmailAddressObject>& aAddress )
+void CNcsHeaderContainer::SetCcFieldAddressesL( 
+        const RPointerArray<CNcsEmailAddressObject>& aAddress )
     {
     FUNC_LOG;
 	iCcField->SetAddressesL( aAddress );
-	if (!iCcField->IsEmpty())
-		SetCcFieldVisibleL(ETrue, ENoDrawNow);
+	if ( !iCcField->IsEmpty() )
+		SetCcFieldVisibleL( ETrue, ENoDrawNow );
     }
 
 // ---------------------------------------------------------------------------
 // CNcsHeaderContainer::SetBccFieldAddressesL
 // ---------------------------------------------------------------------------
 //
-void CNcsHeaderContainer::SetBccFieldAddressesL( const RPointerArray<CNcsEmailAddressObject>& aAddress )
+void CNcsHeaderContainer::SetBccFieldAddressesL( 
+        const RPointerArray<CNcsEmailAddressObject>& aAddress )
     {
     FUNC_LOG;
 	iBccField->SetAddressesL( aAddress );
-	if (!iBccField->IsEmpty())
-		SetBccFieldVisibleL(ETrue, ENoDrawNow);
+	if ( !iBccField->IsEmpty() )
+		SetBccFieldVisibleL( ETrue, ENoDrawNow );
     }
 
 // ---------------------------------------------------------------------------
 // CNcsHeaderContainer::AppendToFieldAddressesL
 // ---------------------------------------------------------------------------
 //
-void CNcsHeaderContainer::AppendToFieldAddressesL( const RPointerArray<CNcsEmailAddressObject>& aAddresses )
+void CNcsHeaderContainer::AppendToFieldAddressesL( 
+        const RPointerArray<CNcsEmailAddressObject>& aAddresses )
     {
     FUNC_LOG;
 	iToField->AppendAddressesL( aAddresses );
@@ -1697,7 +1682,8 @@ void CNcsHeaderContainer::AppendToFieldAddressesL( const RPointerArray<CNcsEmail
 // CNcsHeaderContainer::AppendCcFieldAddressesL
 // ---------------------------------------------------------------------------
 //
-void CNcsHeaderContainer::AppendCcFieldAddressesL( const RPointerArray<CNcsEmailAddressObject>& aAddresses )
+void CNcsHeaderContainer::AppendCcFieldAddressesL( 
+        const RPointerArray<CNcsEmailAddressObject>& aAddresses )
     {
     FUNC_LOG;
 	iCcField->AppendAddressesL( aAddresses );
@@ -1707,7 +1693,8 @@ void CNcsHeaderContainer::AppendCcFieldAddressesL( const RPointerArray<CNcsEmail
 // CNcsHeaderContainer::AppendBccFieldAddressesL
 // ---------------------------------------------------------------------------
 //
-void CNcsHeaderContainer::AppendBccFieldAddressesL( const RPointerArray<CNcsEmailAddressObject>& aAddresses )
+void CNcsHeaderContainer::AppendBccFieldAddressesL( 
+        const RPointerArray<CNcsEmailAddressObject>& aAddresses )
     {
     FUNC_LOG;
 	iBccField->AppendAddressesL( aAddresses );
@@ -1740,7 +1727,7 @@ void CNcsHeaderContainer::SetMenuBar( CEikButtonGroupContainer* aMenuBar )
 void CNcsHeaderContainer::IncludeAddressL(const CNcsEmailAddressObject& aEml )
     {
     FUNC_LOG;
-// <cmail>
+
 	CCoeControl* focused = FindFocused();
 	if ( IsAddressInputField( focused ) )
 	    {
@@ -1748,7 +1735,6 @@ void CNcsHeaderContainer::IncludeAddressL(const CNcsEmailAddressObject& aEml )
     	aifFocused = static_cast<CNcsAddressInputField*>( focused );
     	aifFocused->AddAddressL( aEml );
 	    }
-// </cmail>
     }
 
 // ---------------------------------------------------------------------------
@@ -1758,8 +1744,6 @@ void CNcsHeaderContainer::IncludeAddressL(const CNcsEmailAddressObject& aEml )
 void CNcsHeaderContainer::IncludeAddressL()
     {
     FUNC_LOG;
-// is this methods needed at all?
-// get the curren selection from popup list if there is any?
     }
 
 // ---------------------------------------------------------------------------
@@ -1801,7 +1785,8 @@ void CNcsHeaderContainer::FocusAttachmentField()
 TBool CNcsHeaderContainer::AreAddressFieldsEmpty() const
 	{
     FUNC_LOG;
-    return (IsToFieldEmpty() && IsCcFieldEmpty() && IsBccFieldEmpty()) || iRALInProgress;
+    return ( IsToFieldEmpty() && IsCcFieldEmpty() && IsBccFieldEmpty() ) || 
+            iRALInProgress;
 	}
 
 // ---------------------------------------------------------------------------
@@ -1813,7 +1798,6 @@ void CNcsHeaderContainer::HandleDynamicVariantSwitchL()
     FUNC_LOG;
     }
 
-// <cmail> Platform layout change    
 // ---------------------------------------------------------------------------
 // CNcsHeaderContainer::LayoutLineCount
 // ---------------------------------------------------------------------------
@@ -1826,12 +1810,13 @@ TInt CNcsHeaderContainer::LayoutLineCount() const
     do
         {
         totalLineCount += ToNcsControl( cur )->LayoutLineCount();                       
-        } while ( cur.Next() );
+        } 
+    while ( cur.Next() );
+    
     return totalLineCount;
     }
-// </cmail> Platform layout change    
 
-// <cmail>
+
 // ---------------------------------------------------------------------------
 // CNcsHeaderContainer::IsAddressInputField
 // ---------------------------------------------------------------------------
@@ -1853,7 +1838,6 @@ TBool CNcsHeaderContainer::IsAddressInputField(
     
     return ret;
     }
-// </cmail>
 
 // ---------------------------------------------------------------------------
 // CNcsHeaderContainer::ExecuteRemoteSearchL
@@ -1873,19 +1857,23 @@ CNcsEmailAddressObject* CNcsHeaderContainer::ExecuteRemoteSearchL(
     emailAddress.CreateL( KMaxLength );
     CleanupClosePushL( emailAddress );
 
-    TBool contactSelected = CFsDelayedLoader::InstanceL()->GetContactHandlerL()->GetNameAndEmailFromRemoteLookupL( 
-        iMailBox, aSearchText, displayname, emailAddress );
+    TBool contactSelected = 
+        CFsDelayedLoader::InstanceL()->GetContactHandlerL()->
+            GetNameAndEmailFromRemoteLookupL( 
+                iMailBox, aSearchText, displayname, emailAddress );
 
     CNcsEmailAddressObject* address = NULL;
     if ( contactSelected )
         {
         if ( !displayname.Length() )
             {
-            address = CNcsEmailAddressObject::NewL( emailAddress, emailAddress ); 
+            address = 
+                CNcsEmailAddressObject::NewL( emailAddress, emailAddress );
             }
         else
             {
-            address = CNcsEmailAddressObject::NewL( displayname, emailAddress );  
+            address = 
+                CNcsEmailAddressObject::NewL( displayname, emailAddress );
             }
         }
 
@@ -1911,16 +1899,14 @@ void CNcsHeaderContainer::ChangeMskCommandL( TInt aLabelResourceId )
         }
     }
 
-//<cmail>
 // -----------------------------------------------------------------------------
 // CNcsHeaderContainer::SwitchChangeMskOff
 // sets up iSwitchChangeMskOff falg 
 // -----------------------------------------------------------------------------
-void CNcsHeaderContainer::SwitchChangeMskOff(TBool aTag)
+void CNcsHeaderContainer::SwitchChangeMskOff( TBool aTag )
     {
     iSwitchChangeMskOff = aTag;
     }
-// </cmail>
 
 // -----------------------------------------------------------------------------
 // CNcsHeaderContainer::OpenPhonebookL
@@ -1928,7 +1914,8 @@ void CNcsHeaderContainer::SwitchChangeMskOff(TBool aTag)
 // -----------------------------------------------------------------------------
 void CNcsHeaderContainer::OpenPhonebookL()
     {
-    CNcsComposeViewContainer* container = static_cast<CNcsComposeViewContainer*>( &iParent );
+    CNcsComposeViewContainer* container = 
+        static_cast<CNcsComposeViewContainer*>( &iParent );
     container->AppendAddressesL();
     }
 

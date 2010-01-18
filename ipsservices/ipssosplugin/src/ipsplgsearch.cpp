@@ -999,6 +999,15 @@ void CIpsPlgSearch::CollectMessagesL()
             }
         }    
     }
+
+//Ask client if it wants to change the search prority (i.e. to enable search for contact)
+void CIpsPlgSearch::ClientRequiredSearchPriority( TInt *apRequiredSearchPriority )
+	{
+	FUNC_LOG;
+	if ( iObserver )
+	  iObserver->ClientRequiredSearchPriority( apRequiredSearchPriority );
+	}
+
     
 // End of File
 

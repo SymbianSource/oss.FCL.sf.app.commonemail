@@ -34,6 +34,8 @@ const TInt KAutoSaveTimeDelayMs = 15000;
 
 const TInt KHeaderDetailTextPaneVariety = 4;
 
+const TInt KNoAttachmentLabelFocused = -1;
+
 enum TMsgPriority 
     {
     EMsgPriorityLow,
