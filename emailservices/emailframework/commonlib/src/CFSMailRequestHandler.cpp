@@ -2,9 +2,9 @@
 * Copyright (c) 2007-2008 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
-* under the terms of "Eclipse Public License v1.0"
+* under the terms of the License "Symbian Foundation License v1.0"
 * which accompanies this distribution, and is available
-* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+* at the URL "http://www.symbianfoundation.org/legal/sfl-v10.html".
 *
 * Initial Contributors:
 * Nokia Corporation - initial contribution.
@@ -178,8 +178,10 @@ EXPORT_C void CFSMailRequestHandler::CancelRequestL( TInt aRequestId )
 			iPendingRequests[i].iRequestStatus == TFSPendingRequest::EFSRequestPending)
 			{
 			TFSMailMsgId pluginId(iPendingRequests[i].iPluginId,0);
-			CFSMailPlugin* plugin = GetPluginByUid(pluginId);
-			plugin->CancelL(aRequestId);
+			if(CFSMailPlugin* plugin = GetPluginByUid(pluginId))
+			    {
+			    plugin->CancelL(aRequestId);
+			    }
 			iPendingRequests[i].iRequestStatus = TFSPendingRequest::EFSRequestCancelled;
 			break;
 			}
@@ -197,8 +199,10 @@ EXPORT_C void CFSMailRequestHandler::CancelAllRequestsL( )
 			if(iPendingRequests[i].iRequestStatus == TFSPendingRequest::EFSRequestPending)
 				{
 				TFSMailMsgId pluginId(iPendingRequests[i].iPluginId,0);
-				CFSMailPlugin* plugin = GetPluginByUid(pluginId);
-				plugin->CancelL(iPendingRequests[i].iRequestId);
+				if(CFSMailPlugin* plugin = GetPluginByUid(pluginId))
+				    {
+				    plugin->CancelL(iPendingRequests[i].iRequestId);
+				    }
 				iPendingRequests[i].iRequestStatus = TFSPendingRequest::EFSRequestCancelled;
 				}
 		}

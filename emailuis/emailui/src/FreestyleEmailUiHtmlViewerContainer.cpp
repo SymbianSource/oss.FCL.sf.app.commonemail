@@ -22,12 +22,18 @@
 #include <commdbconnpref.h>
 #include <bautils.h>
 #include <biditext.h>
+#include <stringloader.h>
+#include <e32base.h>
+#include <badesca.h>
+
 //<cmail>
 #include "CFSMailMessage.h"
 //</cmail>
 #include <brctlinterface.h>
 #include <sysutil.h>
 #include <SchemeHandler.h>
+
+#include <FreestyleEmailUi.rsg>
 
 #include "FreestyleEmailUiAppui.h"
 #include "FreestyleEmailUiUtilities.h"
@@ -37,6 +43,8 @@
 
 #include "FreestyleMessageHeaderHTML.h"
 #include "FreestyleMessageHeaderURLEventHandler.h"
+#include "FreestyleEmailUiAknStatusIndicator.h"
+#include "FreestyleEmailUiAttachmentsListModel.h"
 
 _LIT( KContentIdPrefix, "cid:" );
 _LIT( KCDrive, "c:" );
@@ -72,6 +80,7 @@ _LIT8( KHtmlGreaterThan, "&gt;" );
 _LIT8( KHtmlAmpersand, "&amp;" );
 _LIT8( KHtmlQuotation, "&quot;" );
 _LIT8( KHtmlLinkTag, "<a href=\"%S\">" );
+_LIT8( KHtmlLinkTagWWW, "<a href=\"%S%S\">" );
 _LIT8( KHtmlLinkEndTag, "</a>" );
 _LIT( KURLTypeBody, "body");
 
@@ -88,8 +97,10 @@ const TReal KOverlayButtonMarginX = 0.01; // 1%
 const TReal KOverlayButtonMarginY = 0.01; // 1%
 const TReal KOverlayButtonSizeP = 0.15; // 15%
 const TReal KOverlayButtonSizeLs = 0.20; // 25%
-const TReal KOverlayButtonPosP = 0.88;
-const TReal KOverlayButtonPosLs = 0.85;
+
+
+const TInt KStatusIndicatorHeight = 50;
+const TInt KStatusIndicatorXMargin = 50;
 
 // ---------------------------------------------------------------------------
 // Two-phased constructor.
@@ -368,7 +379,7 @@ void CFsEmailUiHtmlViewerContainer::LoadContentFromMailMessageL(
         }
     else
         {
-        CFSMailMessagePart* textBodyPart = iMessage->PlainTextBodyPartL();;
+        CFSMailMessagePart* textBodyPart = iMessage->PlainTextBodyPartL();
 
         if ( textBodyPart )
             {
@@ -444,6 +455,11 @@ CCoeControl* CFsEmailUiHtmlViewerContainer::ComponentControl( TInt aIndex ) cons
             {
             return iBrCtlInterface;
             }
+        case 1:
+            if ( iAttachmentStatus )
+                return iAttachmentStatus;
+            else
+                return NULL;
         default:
             {
             return NULL;
@@ -458,7 +474,14 @@ CCoeControl* CFsEmailUiHtmlViewerContainer::ComponentControl( TInt aIndex ) cons
 TInt CFsEmailUiHtmlViewerContainer::CountComponentControls() const
     {
     FUNC_LOG;
-    return 1;
+    if ( iAttachmentStatus )
+        {
+        return 2;
+        }
+    else 
+        {
+        return 1;
+        }
     }
 
 // ---------------------------------------------------------------------------
@@ -510,6 +533,12 @@ void CFsEmailUiHtmlViewerContainer::SizeChanged()
             }
     
     UpdateOverlayButtons( IsVisible() );
+    
+    if ( iAttachmentStatus )
+        {
+        TRect rect = CalcAttachmentStatusRect();
+        iAttachmentStatus->SetRect( rect );
+        }
     }
 
 // ---------------------------------------------------------------------------
@@ -1354,11 +1383,29 @@ void CFsEmailUiHtmlViewerContainer::CreateHyperlinksFromUrlsL( CBufBase& aSource
                         if ( url.CompareC( KWww ) != KErrNone ) // if token=www., validate format 
                             {                                   // www.x
                             RBuf8 urlBuf;
-                            urlBuf.CreateL( KHtmlLinkTag().Length() + url.Length() * 2
-                                    + KHtmlLinkEndTag().Length() + KHtmlLineBreak().Length() );
+                            TBool wwwLink( EFalse );
+                            if ( url.Left( KWww().Length() ).CompareF( KWww ) == 0 )
+                                {
+                                wwwLink = ETrue;
+                                //Hyperlinks beginning with www. needs http:// prefix
+                                urlBuf.CreateL( KHtmlLinkTagWWW().Length() + url.Length() * 2
+                                        + KHtmlLinkEndTag().Length() + KHtmlLineBreak().Length() + KHttp().Length() );
+                                }                            
+                            else
+                                {
+                                urlBuf.CreateL( KHtmlLinkTag().Length() + url.Length() * 2
+                                        + KHtmlLinkEndTag().Length() + KHtmlLineBreak().Length() );                                
+                                }
                             urlBuf.CleanupClosePushL();
                             // Format html link
-                            urlBuf.AppendFormat( KHtmlLinkTag, &url );
+                            if ( wwwLink )
+                                {
+                                urlBuf.AppendFormat( KHtmlLinkTagWWW, &KHttp, &url );
+                                }
+                            else
+                                {
+                                urlBuf.AppendFormat( KHtmlLinkTag, &url );
+                                }
                             urlBuf.Append( url );
                             urlBuf.Append( KHtmlLinkEndTag );
                             if ( lineBreakPos != KErrNotFound )
@@ -1444,6 +1491,10 @@ void CFsEmailUiHtmlViewerContainer::CreateHyperlinksFromUrlsL( CBufBase& aSource
                                   // boundaries, move to next segment
                                 nextPos += nextSegment.Length();
                                 nextSegment.Set( aSource.Ptr( nextPos ) );
+                                if( nextSegment.Length() == 0 )
+                                    {      
+                                    break;
+                                    }
                                 lexNextSegment.Assign( nextSegment );
                                 nextNextToken.Set( lexNextSegment.NextToken() );
                                 if ( firstPass )
@@ -1468,11 +1519,31 @@ void CFsEmailUiHtmlViewerContainer::CreateHyperlinksFromUrlsL( CBufBase& aSource
                         if ( endOfUrlPos != KErrNotFound )
                             { // Handle hyperlink that is within 2K limit
                             RBuf8 urlBuf;
-                            urlBuf.CreateL( KHtmlLinkTag().Length() + url.Length() * 2
-                                    + KHtmlLinkEndTag().Length() + KHtmlLineBreak().Length() );
+                            TBool wwwLink( EFalse );
+
+                            if ( url.Left( KWww().Length() ).CompareF( KWww ) == 0 )
+                                {
+                                wwwLink = ETrue;
+                                urlBuf.CreateL( KHtmlLinkTagWWW().Length() + url.Length() * 2
+                                        + KHtmlLinkEndTag().Length() + KHtmlLineBreak().Length() + KHttp().Length() );
+                                }
+                            else
+                                {
+                                urlBuf.CreateL( KHtmlLinkTag().Length() + url.Length() * 2
+                                        + KHtmlLinkEndTag().Length() + KHtmlLineBreak().Length() );                                
+                                }
+
                             urlBuf.CleanupClosePushL();
-                            // Format html link
-                            urlBuf.AppendFormat( KHtmlLinkTag, &url );
+                            // Format html link                            
+                            if ( wwwLink )
+                                {
+                                urlBuf.AppendFormat( KHtmlLinkTagWWW, &KHttp, &url );
+                                }
+                            else
+                                {
+                                urlBuf.AppendFormat( KHtmlLinkTag, &url );
+                                }
+                            
                             urlBuf.Append( url );
                             urlBuf.Append( KHtmlLinkEndTag );
                             urlBuf.Append( KHtmlLineBreak );
@@ -1638,6 +1709,127 @@ void CFsEmailUiHtmlViewerContainer::ReloadPageL()
         }
     TRAP_IGNORE( LoadContentFromFileL( emailHtmlFile ) );
     SetRect( iAppUi.ClientRect() );
+    }
+
+void CFsEmailUiHtmlViewerContainer::ShowAttacthmentDownloadStatusL( 
+        TFSProgress::TFSProgressStatus aProgressStatus, 
+        const TAttachmentData& aAttachmentData )
+    {
+    TBool freshDraw = EFalse;
+    
+    if ( !iAttachmentStatus )
+        {
+        TRect rect = CalcAttachmentStatusRect();
+        iAttachmentStatus = CFreestyleEmailUiAknStatusIndicator::NewL( rect, this );
+        freshDraw = ETrue;
+        }    
+    
+    if ( !iAttachmentStatus->IsVisible() 
+         || ( aAttachmentData.downloadProgress == KNone ) 
+         || ( aProgressStatus == TFSProgress::EFSStatus_RequestCancelled ) )
+        {
+        freshDraw = ETrue;
+        }
+    
+    TInt duration = KStatusIndicatorDefaultDuration;
+    if ( ( aAttachmentData.downloadProgress == TFSProgress::EFSStatus_RequestComplete ) 
+         || ( aProgressStatus == TFSProgress::EFSStatus_RequestCancelled ) 
+         || ( aAttachmentData.downloadProgress == KComplete ) )
+        {
+        duration = KStatusIndicatorAutomaticHidingDuration;
+        }
+
+    HBufC* statusText = NULL;
+    switch ( aProgressStatus )
+        {
+        case TFSProgress::EFSStatus_Status:
+        case TFSProgress::EFSStatus_RequestComplete:
+            {
+            CDesCArray* descArray = new (ELeave) CDesCArrayFlat( 1 );
+            CleanupStack::PushL( descArray );
+            descArray->AppendL( aAttachmentData.fileName );
+            CArrayFix<TInt>* intArray = new (ELeave) CArrayFixFlat<TInt>( 1 );
+            CleanupStack::PushL( intArray );
+            intArray->AppendL( aAttachmentData.downloadProgress );
+            
+            statusText = StringLoader::LoadL( R_FSE_VIEWER_ATTACHMENTS_LIST_DOWNLOAD,
+                                              *descArray, 
+                                              *intArray );
+            CleanupStack::PopAndDestroy( intArray );
+            CleanupStack::PopAndDestroy( descArray );
+            CleanupStack::PushL( statusText );
+            }
+        break;
+        
+        case TFSProgress::EFSStatus_RequestCancelled:
+            {
+            statusText = aAttachmentData.fileName.AllocLC();
+            }
+        break;
+        
+        default:
+            statusText = KNullDesC().AllocLC();
+            break;
+        }
+
+    if ( statusText->Length() > 0 )
+        {
+        if ( freshDraw )
+            {
+            CFbsBitmap* image = NULL;
+            CFbsBitmap* imageMask = NULL;
+            if ( aProgressStatus == TFSProgress::EFSStatus_RequestCancelled )
+                {
+                iAppUi.FsTextureManager()->ProvideBitmapL(EAttachmentsCancelDownload, image, imageMask );
+                }
+            else
+                {
+                iAppUi.FsTextureManager()->ProvideBitmapL(EAttachmentsDownload, image, imageMask );
+                }
+            iAttachmentStatus->ShowIndicatorL( image, imageMask, statusText, duration );
+            }
+        else
+            {
+            iAttachmentStatus->SetTextL( statusText );
+            if ( duration > -1 )
+                {
+                iAttachmentStatus->HideIndicator( duration );
+                }
+            }
+        }
+    
+    CleanupStack::Pop( statusText );
+    }
+
+TBool CFsEmailUiHtmlViewerContainer::AttacthmentDownloadStatusVisible()
+    {
+    if ( iAttachmentStatus )
+        {
+        return iAttachmentStatus->IsVisible();
+        }
+    else
+        {
+        return EFalse;
+        }
+    }
+
+void CFsEmailUiHtmlViewerContainer::HideAttacthmentDownloadStatus()
+    {
+    if ( iAttachmentStatus )
+        {
+        iAttachmentStatus->MakeVisible( EFalse );
+        }
+    }
+
+TRect CFsEmailUiHtmlViewerContainer::CalcAttachmentStatusRect()
+    {
+    TRect rect = Rect();
+    TPoint topLeft = rect.iTl;
+    TPoint bottomRight = rect.iBr;
+    
+    TPoint statusTopLeft( topLeft.iX + KStatusIndicatorXMargin, bottomRight.iY - KStatusIndicatorHeight + 1 );
+    TPoint statusBottomRight( bottomRight.iX - KStatusIndicatorXMargin, bottomRight.iY );
+    return TRect( statusTopLeft, statusBottomRight );
     }
 
 /**

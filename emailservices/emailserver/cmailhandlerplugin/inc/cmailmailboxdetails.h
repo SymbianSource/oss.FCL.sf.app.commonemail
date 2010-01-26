@@ -46,7 +46,12 @@ public:
     * Destructor.
     */
     void SetWidgetInstance( const TDesC& aWidgetInstance );
-    
+
+    /**
+     * Changes the mailbox name.
+     */
+    void SetMailboxName( const TDesC& aMailboxName );
+
 private:
 
     /**

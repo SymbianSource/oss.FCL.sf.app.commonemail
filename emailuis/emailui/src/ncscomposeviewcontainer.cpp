@@ -211,7 +211,20 @@ void CNcsComposeViewContainer::FocusChanged( TDrawNow aDrawNow )
         {
 		iFocused = iHeader;
         }
-	iFocused->SetFocus( ETrue, aDrawNow );
+    if ( iFocused == iHeader )
+        {
+        iHeader->ShowCursor( IsFocused() );
+        iFocused->SetFocus( ETrue, aDrawNow );
+        }
+    else if ( iFocused == iMessageField )
+        {
+        iFocused->SetFocus( IsFocused(), aDrawNow );
+        }
+    else 
+        {
+        iFocused->SetFocus( ETrue, aDrawNow );
+        }
+	
 	iView.HandleContainerChangeRequiringToolbarRefresh();
 
 	if ( aDrawNow )
@@ -311,10 +324,24 @@ void CNcsComposeViewContainer::HandlePointerEventL(
                 {
                 if ( iFocused == iHeader )
                     {
+                    // fix for ESLX-7Y4C2V, dissapearing subject 
+                    HBufC* heapBuffer = HBufC::NewL(iHeader->GetSubjectFieldLength());
+                    TPtr ptr(heapBuffer->Des());
+                    ptr.Copy(*GetSubjectLC());
+
                     iFocused = iMessageField;
                     iHeader->SetFocus( EFalse, EDrawNow );
                     iMessageField->SetFocus( ETrue, EDrawNow );
+                    
+                    if ( iHeader->GetSubjectFieldLength() != heapBuffer->Length() )
+                    	{
+                    		iHeader->SetSubjectL( const_cast<HBufC&>(*heapBuffer));
+                    	}
+
+                    iHeader->SetFocus( ETrue, EDrawNow );
+                    iHeader->SetFocus( EFalse, EDrawNow );
                     iView.HandleContainerChangeRequiringToolbarRefresh();
+                    CleanupStack::PopAndDestroy(); //from GetSubjectLC()
                     }
                 else if ( iFocused == iReadOnlyQuoteField )
                     {
@@ -1519,7 +1546,7 @@ void CNcsComposeViewContainer::SetBccFieldAddressesL(
 void CNcsComposeViewContainer::AppendToFieldAddressesL( RPointerArray<CNcsEmailAddressObject>& aAddresses )
     {
     FUNC_LOG;
-
+    FixSemicolonL();
     iHeader->AppendToFieldAddressesL(aAddresses);
 
     }
@@ -1532,7 +1559,7 @@ void CNcsComposeViewContainer::AppendToFieldAddressesL( RPointerArray<CNcsEmailA
 void CNcsComposeViewContainer::AppendCcFieldAddressesL( RPointerArray<CNcsEmailAddressObject>& aAddress )
     {
     FUNC_LOG;
-
+    FixSemicolonL();
     iHeader->AppendCcFieldAddressesL( aAddress );
 
     }
@@ -1545,7 +1572,7 @@ void CNcsComposeViewContainer::AppendCcFieldAddressesL( RPointerArray<CNcsEmailA
 void CNcsComposeViewContainer::AppendBccFieldAddressesL( RPointerArray<CNcsEmailAddressObject>& aAddress )
     {
     FUNC_LOG;
-
+    FixSemicolonL();
     iHeader->AppendBccFieldAddressesL( aAddress );
 
     }

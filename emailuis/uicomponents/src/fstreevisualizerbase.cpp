@@ -362,38 +362,22 @@ void TWorld::GetItemsL(RArray<TFsTreeItemId>& aItems, TInt aY, TInt aHeight,
         }
     else if (aY > 0)
         {
-        TInt top(0);
-        TInt bottom(iItems.Count() - 1);
-        while (top <= bottom)
+        TInt min(0);
+        TInt max(iItems.Count() - 1);
+        while (min <= max)
             {
-            TInt middle(top + (bottom - top) / 2);
-            TInt topCoord(iItems[middle].Top());
-            TInt bottomCoord(iItems[middle].Bottom());
-            if (aY < topCoord)
+            const TInt middle(min + (max - min) / 2);
+            if (aY < iItems[middle].Top())
                 {
-                if (bottom == middle)
-                    {
-                    bottom--;
-                    }
-                else
-                    {
-                    bottom = middle;
-                    }
+                max = middle - 1;
                 }
-            else if (aY > bottomCoord)
+            else if (aY > iItems[middle].Bottom())
                 {
-                if (top == middle)
-                    {
-                    top++;
-                    }
-                else
-                    {
-                    top = middle;
-                    }
+                min = middle + 1;
                 }
             else
                 {
-                aOffset = aY - topCoord;
+                aOffset = aY - iItems[middle].Top();
                 aHeight += aOffset;
                 i = middle;
                 break;
@@ -542,14 +526,14 @@ void TViewPort::SetPositionL(const TPoint& aPosition, TBool aInformUpdate)
 // TViewPort::SetCenterPositionL
 // ---------------------------------------------------------------------------
 void TViewPort::SetCenterPositionL(const TPoint& aPosition,
-        TBool aInformUpdate)
+        TBool aInformUpdate, TUpdatedByPhysic aUpdateByPhysic)
     {
     iPosition = TPoint(aPosition.iX - iSize.iWidth / 2, aPosition.iY
             - iSize.iHeight / 2);
     // Do validation!
     if (aInformUpdate)
         {
-        UpdatedL();
+        UpdatedL(aUpdateByPhysic);
         }
     }
 
@@ -607,6 +591,14 @@ void TViewPort::GetVisibleItemsL(RArray<TFsTreeItemId>& aItemsToBeRemoved,
     }
 
 // ---------------------------------------------------------------------------
+// TViewPort::GetVisibleItemsL
+// ---------------------------------------------------------------------------
+void TViewPort::GetVisibleItemsL(RArray<TFsTreeItemId>& aVisible, TInt& aOffset)
+	{
+	iWorld.GetItemsL(aVisible, iPosition.iY, iSize.iHeight, aOffset);
+	}
+
+// ---------------------------------------------------------------------------
 // TViewPort::IsScrollBarNeeded
 // ---------------------------------------------------------------------------
 TBool TViewPort::IsScrollBarNeeded() const
@@ -617,9 +609,9 @@ TBool TViewPort::IsScrollBarNeeded() const
 // ---------------------------------------------------------------------------
 // TViewPort::UpdatedL
 // ---------------------------------------------------------------------------
-void TViewPort::UpdatedL()
+void TViewPort::UpdatedL(TUpdatedByPhysic aUpdateByPhysic)
     {
-    iObserver.ViewPortUpdatedL(*this);
+    iObserver.ViewPortUpdatedL(*this, aUpdateByPhysic);
     }
 
 // ---------------------------------------------------------------------------
@@ -1695,8 +1687,7 @@ void CFsTreeVisualizerBase::SetFocusedItemL( const TFsTreeItemId aItemId,
 
     if ( visualizer )
         {
-        TBool focused = IsFocusShown();
-        visualizer->UpdateL( iTreeData->ItemData( iFocusedItem ), focused,
+        visualizer->UpdateL( iTreeData->ItemData( iFocusedItem ), IsFocusShown(),
                 iTreeData->Level( iFocusedItem ), iMarkIcon, iMenuIcon, 0 );
         }
 
@@ -1792,7 +1783,7 @@ void CFsTreeVisualizerBase::ShowListL(const TBool aFadeIn,
         const TBool aSlideIn)
     {
     FUNC_LOG;
-    UpdateViewPortL();
+    iVisualizationState = EFsTreeVisible;
     if (iTreeData->Count() == 0)
         {
         iRootVisualizer->ShowL(*iRootLayout);
@@ -1800,29 +1791,28 @@ void CFsTreeVisualizerBase::ShowListL(const TBool aFadeIn,
         }
     else
         {
-        TBool showFocus = IsFocusShown();
+        const TBool showFocus = IsFocusShown();
         for (TUint i = 0; i < iVisibleItems.Count(); ++i)
             {
             TFsTreeItemId itemId(iVisibleItems[i]);
             MFsTreeItemVisualizer* visualizer = iTreeData->ItemVisualizer(
                     itemId);
 
-            TBool itemFocused( EFalse );
-            if( showFocus )
-                {
-                itemFocused = IsItemFocused(itemId);
-                }
-            visualizer->UpdateL(iTreeData->ItemData(itemId), itemFocused,
-                    iTreeData->Level(itemId), iMarkIcon, iMenuIcon,
-                    0);
+            TBool itemFocused( showFocus && IsItemFocused(itemId) );
+			if ( visualizer )
+				{
+	        	visualizer->UpdateL(iTreeData->ItemData(itemId), itemFocused,
+	                iTreeData->Level(itemId), iMarkIcon, iMenuIcon,
+	                0);
+				}
             }
         }
+    UpdateViewPortL();
 
     TInt fadeInTime(KZero), slideInTime(KZero);
     CFsSlideEffect::TSlideEffectDirection slideInDir(
             CFsSlideEffect::ESlideNone);
 
-    iVisualizationState = EFsTreeVisible;
 
     if (aFadeIn)
         {
@@ -2517,7 +2507,11 @@ void CFsTreeVisualizerBase::SetItemsAlwaysExtendedL(TBool aAlwaysExtended)
             ApplyListSpecificValuesToItem(itemviz);
             }
         }
-    iWorld.BeginUpdate();
+        const TBool isUpdating(iWorld.IsUpdating());
+    if (!isUpdating)
+        {
+        iWorld.BeginUpdate();
+        }
     iWorld.RemoveAllL();
     treeIter = iTreeData->Iterator(KFsTreeRootID, KFsTreeRootID,
             KFsTreeIteratorSkipCollapsedFlag);
@@ -2532,7 +2526,10 @@ void CFsTreeVisualizerBase::SetItemsAlwaysExtendedL(TBool aAlwaysExtended)
         }
     iViewPort.SetPositionL(TPoint(), EFalse);
     iViewPort.ClearCache();
-    iWorld.EndUpdateL();
+    if (!isUpdating)
+        {
+        iWorld.EndUpdateL();
+        }
     }
 
 // ---------------------------------------------------------------------------
@@ -2788,10 +2785,13 @@ void CFsTreeVisualizerBase::TreeEventL(
             break;
         case EFsTreeRemovedAll:
             {
-            iRootVisualizer->ShowL(*iRootLayout);
-            iRootVisualizer->UpdateL(*iRootData, EFalse, 0, iMarkIcon,
-                    iMenuIcon);
-            //iListLayout->RemoveAndDestroyAllD();
+            if (!iWorld.IsUpdating())
+                {
+                iRootVisualizer->ShowL(*iRootLayout);
+                iRootVisualizer->UpdateL(*iRootData, EFalse, 0, iMarkIcon,
+                        iMenuIcon);
+                }
+            iVisibleItems.Reset();
             iWorld.RemoveAllL();
             iFocusedItem = KFsTreeNoneID;
             }
@@ -3514,37 +3514,41 @@ TInt CFsTreeVisualizerBase::VisibleItemsHeight(const TFsTreeItemId aPrevious)
     {
     FUNC_LOG;
     TInt listItemsHeight = 0;
-    MFsTreeItemVisualizer* vis = 0;
+    MFsTreeItemVisualizer* visualizer = 0;
     TFsTreeItemId itemId;
     TInt itemCount = iVisibleItems.Count();
 
     for (TInt index = 0; index < itemCount; ++index)
         {
         itemId = iVisibleItems[index];
-        vis = iTreeData->ItemVisualizer(itemId);
+        visualizer = iTreeData->ItemVisualizer(itemId);
 
-        if (itemId == iFocusedItem)
+
+        if (visualizer)
             {
-            if (vis->IsExtendable())
+            if (itemId == iFocusedItem)
                 {
-                listItemsHeight += vis->ExtendedSize().iHeight;
+                if (visualizer->IsExtendable())
+                    {
+                    listItemsHeight += visualizer->ExtendedSize().iHeight;
+                    }
+                else
+                    {
+                    listItemsHeight += visualizer->Size().iHeight;
+                    }
+                }
+            else if (itemId == aPrevious && iFocusedItem != aPrevious)
+                {
+                listItemsHeight += visualizer->Size().iHeight;
+                }
+            else if (visualizer->IsExtended() && visualizer->IsExtendable())
+                {
+                listItemsHeight += visualizer->ExtendedSize().iHeight;
                 }
             else
                 {
-                listItemsHeight += vis->Size().iHeight;
+                listItemsHeight += visualizer->Size().iHeight;
                 }
-            }
-        else if (itemId == aPrevious && iFocusedItem != aPrevious)
-            {
-            listItemsHeight += vis->Size().iHeight;
-            }
-        else if (vis->IsExtended() && vis->IsExtendable())
-            {
-            listItemsHeight += vis->ExtendedSize().iHeight;
-            }
-        else
-            {
-            listItemsHeight += vis->Size().iHeight;
             }
         }
 
@@ -3702,10 +3706,13 @@ void CFsTreeVisualizerBase::UpdateScrollBarL(const TInt /*aTimeout*/)
         for (TUint i = 0; i < iVisibleItems.Count(); ++i)
             {
             TFsTreeItemId itemId(iVisibleItems[i]);
-            MFsTreeItemVisualizer* viz = iTreeData->ItemVisualizer(itemId);
-            viz->UpdateL(iTreeData->ItemData(itemId),
-                    IsItemFocused(itemId) && IsFocusShown(),
+            MFsTreeItemVisualizer* visualizer = iTreeData->ItemVisualizer(itemId);
+            if (visualizer)
+                {
+                visualizer->UpdateL(iTreeData->ItemData(itemId),
+					IsItemFocused(itemId) && IsFocusShown(),
                     iTreeData->Level(itemId), iMarkIcon, iMenuIcon, 0, EFalse);
+                }
             }
         UpdateSelectorVisualL();
         }
@@ -4826,9 +4833,16 @@ void CFsTreeVisualizerBase::WorldUpdatedL(const TWorld& /*aWorld*/)
 // ViewPort updated
 // ---------------------------------------------------------------------------
 //
-void CFsTreeVisualizerBase::ViewPortUpdatedL(TViewPort& aViewPort)
+void CFsTreeVisualizerBase::ViewPortUpdatedL(TViewPort& aViewPort, TUpdatedByPhysic aUpdateByPhysic)
     {
     FUNC_LOG;
+
+    // Only upadte view if the list is visible
+    if (iVisualizationState != EFsTreeVisible)
+        {
+        return;
+        }
+
     RArray<TFsTreeItemId> visibleItems;
     RArray<TFsTreeItemId> removableItems;
     TInt scrollOffset;
@@ -4841,6 +4855,30 @@ void CFsTreeVisualizerBase::ViewPortUpdatedL(TViewPort& aViewPort)
     rm = CAlfStatic::Env().RefreshMode();
     CAlfStatic::Env().SetRefreshMode(EAlfRefreshModeManual);
     iListLayout->SetFlag(EAlfVisualFlagFreezeLayout);
+    
+	if(aUpdateByPhysic == EUpdatedByPhisicEnd)
+		{
+    	RArray<TFsTreeItemId> myVisibleItems;
+    	TInt myOffset;
+    	CleanupClosePushL(myVisibleItems);
+    	aViewPort.GetVisibleItemsL(myVisibleItems, myOffset);
+    			
+    	for (TInt i = 0; i < myVisibleItems.Count(); i++)
+    		{
+    		const TFsTreeItemId itemId(myVisibleItems[i]);
+    		if (itemId != KFsTreeNoneID)
+    			{
+    			MFsTreeItemVisualizer* visualizer = iTreeData->ItemVisualizer(
+    											itemId);
+    			visualizer->UpdateL(iTreeData->ItemData(itemId), 
+    							IsItemFocused(itemId) && IsFocusShown(),
+    							iTreeData->Level(itemId), iMarkIcon, iMenuIcon,
+    							0);
+    			}
+    		}
+    	CleanupStack::PopAndDestroy();
+    	}
+
     // clear list
     TInt removed(0);
     if (fullUpdate)
@@ -4856,14 +4894,21 @@ void CFsTreeVisualizerBase::ViewPortUpdatedL(TViewPort& aViewPort)
         {
         for (TInt i = 0; i < removableItems.Count(); i++)
             {
-            CAlfVisual* visual(
-                    &iTreeData->ItemVisualizer(removableItems[i])->Layout());
-            if (iListLayout->FindVisual(visual) != KErrNotFound)
+            MFsTreeItemVisualizer* itemVisualizer(iTreeData->ItemVisualizer(removableItems[i]));
+            if (itemVisualizer)
                 {
-                removed++;
+                CAlfVisual* visual(&itemVisualizer->Layout());
+                if (iListLayout->FindVisual(visual) != KErrNotFound)
+                    {
+                    removed++;
+                    }
+                itemVisualizer->Hide();
+                const TInt index(iVisibleItems.Find(removableItems[i]));
+                if (index != KErrNotFound)
+                    {
+                    iVisibleItems.Remove(index);
+                    }
                 }
-            iTreeData->ItemVisualizer(removableItems[i])->Hide();
-            iVisibleItems.Remove(iVisibleItems.Find(removableItems[i]));
             }
         }
 
@@ -4885,10 +4930,15 @@ void CFsTreeVisualizerBase::ViewPortUpdatedL(TViewPort& aViewPort)
             CAlfLayout& visualizerLayout(visualizer->Layout());
             visualizerLayout.SetSize(tpItemSize);
             visualizerLayout.PropertySetIntegerL(KPropertyItemId(), itemId);
-            visualizer->UpdateL(iTreeData->ItemData(itemId),
+            
+            if(aUpdateByPhysic != EUpdatedByPhisic)
+            	{
+            	visualizer->UpdateL(iTreeData->ItemData(itemId),
                     IsItemFocused(itemId) && IsFocusShown(),
                     iTreeData->Level(itemId), iMarkIcon, iMenuIcon,
                     0);
+            	}
+            
             visualizerLayout.Brushes()->AppendL(iBorderBrush,
                     EAlfDoesNotHaveOwnership);
             CAlfBrush* bgBrush(NULL);
@@ -4978,7 +5028,7 @@ void CFsTreeVisualizerBase::ViewPositionChanged(const TPoint& aNewPosition,
     {
     FUNC_LOG;
     TInt error(KErrNone);
-    TRAP( error, iViewPort.SetCenterPositionL(aNewPosition) );
+    TRAP( error, iViewPort.SetCenterPositionL(aNewPosition, ETrue, EUpdatedByPhisic) );
     ERROR_1( error, "iViewPort.SetCenterPositionL failed with error: %d", error );
     }
 
@@ -4989,6 +5039,9 @@ void CFsTreeVisualizerBase::ViewPositionChanged(const TPoint& aNewPosition,
 void CFsTreeVisualizerBase::PhysicEmulationEnded()
     {
     FUNC_LOG;
+    
+    TRAP_IGNORE( iViewPort.SetCenterPositionL(iViewPort.CenterPosition(), ETrue, EUpdatedByPhisicEnd));
+    
     iFlags.Clear(EPhysicsOn);
     if (iFlags.IsSet(EUpdatePhysicsAfterSimulationFinished))
         {

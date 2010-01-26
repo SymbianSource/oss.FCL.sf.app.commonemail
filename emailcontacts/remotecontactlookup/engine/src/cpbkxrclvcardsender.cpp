@@ -132,33 +132,26 @@ void CPbkxRclvCardSender::SendvCardL(
         }
 
     CMessageData* messageData = CMessageData::NewLC();
-
-    if ( mtmUid == KSenduiMtmSmsUid )
-        {
-        // Sending through SMS
-      
-        // Copy the one and only attachment into a rich text object
-        CRichText* msgBody = CreateRichTextFromFileLC();
-
-        messageData->SetBodyTextL( msgBody );
-
-        // Send the message using Send Ui
-        iSendUi->CreateAndSendMessageL( mtmUid, messageData, KMsgBioUidVCard );
-        
-        CleanupStack::PopAndDestroy( msgBody );
-        }
-    else
-        {
-        // Not sending through SMS, just pass the attachments
-        //<cmail> hardcoded paths removed
-        messageData->AppendAttachmentL(iTempFileName);
-        //</cmail>
-        
-        // Send the message using Send Ui
-        iSendUi->CreateAndSendMessageL( mtmUid, messageData, KMsgBioUidVCard );
-        }
-
+       
+    //<cmail>
+    RFs fs;
+    RFile attachament;
+    
+    User::LeaveIfError( fs.Connect() );
+    CleanupClosePushL( fs );
+    User::LeaveIfError( attachament.Open( fs, iTempFileName, EFileShareAny ) );
+    CleanupClosePushL( attachament );
+    
+    messageData->AppendAttachmentHandleL( attachament );
+    
+    // Send the message using Send Ui
+    iSendUi->CreateAndSendMessageL( mtmUid, messageData, KMsgBioUidVCard );
+    
+    CleanupStack::PopAndDestroy( &attachament );
+    CleanupStack::PopAndDestroy( &fs );
     CleanupStack::PopAndDestroy( messageData );
+    
+    //</cmail>
 
     DestroyTempFileL();
     
@@ -223,11 +216,9 @@ CRichText* CPbkxRclvCardSender::CreateRichTextFromFileLC()
     // Open the file for reading
     RFile file;
     //<cmail> take away double line break
-    User::LeaveIfError( 
-        file.Open(
-            iEikEnv->FsSession(), 
-            iTempFileName, //<cmail>
-            EFileRead | EFileStream | EFileShareReadersOnly ) );
+    User::LeaveIfError( file.Open( iEikEnv->FsSession(), 
+                            iTempFileName, //<cmail>
+                            EFileRead | EFileStream | EFileShareReadersOnly ) );
     //</cmail>
     CleanupClosePushL( file );
     

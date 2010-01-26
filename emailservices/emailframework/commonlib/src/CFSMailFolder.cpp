@@ -111,23 +111,33 @@ EXPORT_C TInt CFSMailFolder::FetchMessagesL( 	const RArray<TFSMailMsgId>& aMessa
     FUNC_LOG;
 	// init asynchronous request
 	CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetFolderId());
-	
     TFSPendingRequest request = 
     	iRequestHandler->InitAsyncRequestL(	GetFolderId().PluginId(), aObserver );
-    	
-   	MFSMailRequestObserver* observer = request.iObserver;
-    TRAPD(err,plugin->FetchMessagesL(	GetMailBoxId(),
-    									GetFolderId(),
-    									aMessageIds,
-    									aDetails,
-    									*observer,
-    									request.iRequestId));
+
+    TInt err = KErrNone;
+    
+    if (plugin)
+        {
+        MFSMailRequestObserver* observer = request.iObserver;
+        TRAP(err,plugin->FetchMessagesL(	GetMailBoxId(),
+                                            GetFolderId(),
+                                            aMessageIds,
+                                            aDetails,
+                                            *observer,
+                                            request.iRequestId));
+        }
+    else 
+        {
+        err = KErrNotFound;        
+        }
+    
     if(err != KErrNone)
-		{
-		iRequestHandler->CompleteRequest(request.iRequestId);
-		User::Leave(err);
-		}
-    return request.iRequestId;	
+        {
+        iRequestHandler->CompleteRequest(request.iRequestId);
+        User::Leave(err);
+        }
+    return request.iRequestId;
+    
 	}
 
 

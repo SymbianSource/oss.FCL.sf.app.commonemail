@@ -111,6 +111,16 @@ EXPORT_C CAlfControl* CFsTreeList::TreeControl( ) const
     return iTreeControl;
     }
 
+void CFsTreeList::BeginUpdate()
+    {
+    iTreeVisualizer->SetAutoRefreshAtInsert( EFalse );    
+    }
+
+void CFsTreeList::EndUpdateL()
+    {
+    iTreeVisualizer->SetAutoRefreshAtInsert( ETrue );        
+    }
+
 // ---------------------------------------------------------------------------
 // Inserts new item as a child of parent given by Id with the given position.
 // ---------------------------------------------------------------------------

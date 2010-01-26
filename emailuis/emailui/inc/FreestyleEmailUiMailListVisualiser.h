@@ -2,9 +2,9 @@
 * Copyright (c) 2007 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
-* under the terms of the License "Symbian Foundation License v1.0"
+* under the terms of "Eclipse Public License v1.0"
 * which accompanies this distribution, and is available
-* at the URL "http://www.symbianfoundation.org/legal/sfl-v10.html".
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
 *
 * Initial Contributors:
 * Nokia Corporation - initial contribution.
@@ -75,10 +75,145 @@ class CAknWaitDialog;
 class CDateChangeTimer;
 class CFsTreePlainTwoLineItemData;
 class CFsTreePlainTwoLineItemVisualizer;
-//<cmail>
 class CEUiEmailListTouchManager;
-//</cmail>
+class MFSMailIterator;
 class CAknStylusPopUpMenu;
+
+/**
+ * CMailListModelUpdater
+ *
+ * Asynchronous mail list updater.
+ *
+ */
+class CMailListModelUpdater : public CActive
+    {
+private:
+
+    // Updater state
+    enum TState
+        {
+        // Idle state. Updater is doing nothing.
+        EIdle,
+        // Initializing state. Get ready for the update.
+        EInitialize,
+        // Fetching state. Fetch the messages for the model.
+        EFetch,
+        // Finalizing state. Model update done.
+        EFinalize
+        };
+
+public:
+
+    // Updater observer
+    class MObserver
+        {
+    public:
+        /**
+         * Called when an error has occured.
+         */
+        virtual void UpdateErrorL(TInt aError) = 0;
+
+        /**
+         * Called when update begins.
+         */
+        virtual void UpdateBeginL() = 0;
+
+        /**
+         * Called when new messages fetched.
+         */
+        virtual void UpdateProgressL(TFsTreeItemId& aParentId, RPointerArray<CFSMailMessage>& aMessages) = 0;
+
+        /**
+         * Called when update is completed.
+         */
+        virtual void UpdateCompleteL() = 0;
+
+        /**
+         * Update cancelled.
+         * @param aForceRefresh If ETrue, model will be fully refreshed on next activation.
+         */
+        virtual void UpdateCancelled(const TBool aForceRefresh) = 0;
+        };
+
+public:
+
+    /**
+     * Constructor
+     */
+    CMailListModelUpdater();
+
+    /**
+     * Destructor
+     */
+    ~CMailListModelUpdater();
+
+public:
+
+    /**
+     * Reference to sorting criteria array.
+     */
+    RArray<TFSMailSortCriteria>& Sorting();
+
+    /**
+     * Update model.
+     */
+    void UpdateModelL(MObserver& aObserver, MFSMailIterator* aIterator);
+
+    /**
+     * Returns ETrue if updating.
+     */
+    TBool IsUpdating() const;
+
+public: // from CActive
+
+    /**
+     * @see CActive::RunL
+     */
+    void RunL();
+
+    /**
+     * @see CActive::DoCancel
+     */
+    void DoCancel();
+
+private:
+
+    /**
+     * Signal self with given error code and set a new state.
+     */
+    void Signal(TState aState, TInt aError = KErrNone);
+
+    /**
+     * Initialize update.
+     */
+    void InitializeL();
+
+    /**
+     * Fetch one step.
+     */
+    void FetchL();
+
+    /**
+     * Finalize update.
+     */
+    void FinalizeL();
+
+    /**
+     * Reset to uninitialized state.
+     */
+    void Reset();
+
+private:
+
+    RArray<TFSMailSortCriteria> iSorting;
+    TFSMailMsgId iId;
+    TState iState;
+    TInt iItemsFetched;
+    MObserver* iObserver;
+    MFSMailIterator* iIterator;
+    TFsTreeItemId iParentId;
+    TInt iBlockSize;
+    };
 
 struct SMailListItem
 	{
@@ -122,7 +257,8 @@ class CFSEmailUiMailListVisualiser : public CFsEmailUiViewBase,
 									 public MFSEmailUiFolderListCallback,
 									 public MFSEmailUiSortListCallback,
 									 public MFsTreeListObserver,
-									 public MFSEmailUiContactHandlerObserver
+									 public MFSEmailUiContactHandlerObserver,
+									 public CMailListModelUpdater::MObserver
 // </cmail>
 	{
 friend class CMailListUpdater;
@@ -310,6 +446,8 @@ private: // Private functions
     void InsertNewMessageL( CFSMailMessage* aNewMessage, const TBool aAllowRefresh ); // ownership is transferred
 
     void RefreshListItemsL();
+    void RefreshListItemsL(TFsTreeItemId& aLatestNodeId,
+        const TInt aStartIndex, const TInt aEndIndex);
     // Refresh the list order only
     void RefreshOrderL();
 
@@ -325,7 +463,35 @@ private: // Private functions
     // Omitting the argument aChildIdx causes the new item to be appended as last child of the node.
     TFsTreeItemId InsertListItemL( TInt aModelIndex, TFsTreeItemId aParentNodeId, TInt aChildIdx = KErrNotFound, TBool aAllowRefresh = ETrue );
 
+    // from CMailListModelUpdater::MObserver
+
+    /**
+     * @see CMailListModelUpdater::MObserver::UpdateErrorL
+     */
+    void UpdateErrorL(TInt aError);
+
+    /**
+     * @see CMailListModelUpdater::MObserver::UpdateBeginL
+     */
+    void UpdateBeginL();
+
+    /**
+     * @see CMailListModelUpdater::MObserver::UpdateProgressL
+     */
+    void UpdateProgressL(TFsTreeItemId& aParentId, RPointerArray<CFSMailMessage>& aMessages);
+
+    /**
+     * @see CMailListModelUpdater::MObserver::UpdateCompleteL
+     */
+    void UpdateCompleteL();
+
+    /**
+     * @see CMailListModelUpdater::MObserver::UpdateCancelled
+     */
+    void UpdateCancelled(const TBool aForceRefresh);
+
 	// Mail model update
+    void UpdateMailListModelAsyncL();
 	void UpdateMailListModelL();
 	void CreateModelItemsL( RPointerArray<CFSMailMessage>& aMessages );
 
@@ -616,7 +782,9 @@ private: // Private objects
     // Was focus visible in the ListView.
     TBool iLastFocus;
     //used to prevent Call application execution (on keyup of call button) when call to contact required
-    TBool iConsumeStdKeyYes_KeyUp; 
+    TBool iConsumeStdKeyYes_KeyUp;
+    CMailListModelUpdater* iMailListModelUpdater;
+    TBool iForceRefresh;
   	};
 
 
@@ -668,12 +836,14 @@ public:
     ~CDateChangeTimer();
     void Start();
     void RunL();
-
+    TInt DayCount();
+    
 protected:
     CDateChangeTimer( CFSEmailUiMailListVisualiser& aMailListVisualiser );
 
 private:
     CFSEmailUiMailListVisualiser& iMailListVisualiser;
+    TInt iDayCount;
     };
 
 #endif

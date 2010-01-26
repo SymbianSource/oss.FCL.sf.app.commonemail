@@ -705,6 +705,11 @@ void CMailCpsHandler::HandleEventL(
 //            HandleNewMailboxEventL( aMailbox );
             break;
             }
+        case TFSEventMailboxRenamed:
+            {
+            HandleMailboxRenamedEventL( aMailbox );
+            break;
+            }
         case TFSEventMailboxDeleted:
             {
             HandleMailboxDeletedEventL( aMailbox );
@@ -785,6 +790,28 @@ void CMailCpsHandler::HandleNewMailboxEventL( const TFSMailMsgId aMailbox )
         }
     
     iSettings->AddMailboxL( aMailbox );
+    }
+
+// ---------------------------------------------------------
+// CMailCpsHandler::HandleMailborRenamedEventL
+// ---------------------------------------------------------
+//
+void CMailCpsHandler::HandleMailboxRenamedEventL( const TFSMailMsgId aMailbox )
+    {
+    for ( TInt ii = iAccountsArray.Count() - 1; ii >= 0; --ii )
+        {
+        if ( iAccountsArray[ii]->iMailboxId.Id() == aMailbox.Id() )
+            {
+            CFSMailBox* mailbox = NULL;
+            mailbox = MailClient().GetMailBoxByUidL( aMailbox );
+            if ( mailbox )
+                {
+                iAccountsArray[ii]->SetMailboxName( mailbox->GetName() );
+                }
+            delete mailbox;
+            break;
+            }
+        }
     }
 
 // ---------------------------------------------------------

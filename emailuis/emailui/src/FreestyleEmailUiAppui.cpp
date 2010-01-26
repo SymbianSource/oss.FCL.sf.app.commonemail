@@ -1539,29 +1539,39 @@ void CFreestyleEmailUiAppUi::SetActiveMailboxL( TFSMailMsgId aActiveMailboxId, T
 
 	// Start connect automatically if asked by the caller
 	// Disabled if offline or roaming
-	if ( aAutoSync && !TFsEmailUiUtility::IsOfflineModeL() )
-		{
-		// Create at first auto-connect, autosync monitor will check whether
-		// it is ok to start auto-connect, e.g. phone is not roaming, searching for net, etc
-		if ( !iAutoSyncMonitor )
-			{
-			// TRAP following since failing to create auto sync monitor should not prevent user
-			// from opening mail list, leave only in OOM case.
-			TRAPD( err, iAutoSyncMonitor = CFSEmailUiAutosyncMonitor::NewL( *this ) );
-			if ( err == KErrNoMemory )
-				{
-				User::Leave( err );
-				}
-			}
-		// Request auto sync if allowed in the current network mode and
-		// autosyncmonitor has been succesfully created
-		if ( iAutoSyncMonitor )
-			{
-			iAutoSyncMonitor->StartMonitoring();
-			}
-		}
+    if ( aAutoSync )
+        {
+        StartMonitoringL();
+        }
 	}
 
+void CFreestyleEmailUiAppUi::StartMonitoringL()
+    {
+    FUNC_LOG;
+    // Start connect automatically if asked by the caller
+    // Disabled if offline or roaming
+    if ( !TFsEmailUiUtility::IsOfflineModeL() )
+        {
+        // Create at first auto-connect, autosync monitor will check whether
+        // it is ok to start auto-connect, e.g. phone is not roaming, searching for net, etc
+        if ( !iAutoSyncMonitor )
+            {
+            // TRAP following since failing to create auto sync monitor should not prevent user
+            // from opening mail list, leave only in OOM case.
+            TRAPD( err, iAutoSyncMonitor = CFSEmailUiAutosyncMonitor::NewL( *this ) );
+            if ( err == KErrNoMemory )
+                {
+                User::Leave( err );
+                }
+            }
+        // Request auto sync if allowed in the current network mode and
+        // autosyncmonitor has been succesfully created
+        if ( iAutoSyncMonitor )
+            {
+            iAutoSyncMonitor->StartMonitoring();
+            }
+        }
+    }
 
 void CFreestyleEmailUiAppUi::DoAutoConnectL()
 	{
@@ -2740,10 +2750,7 @@ CFSEmailUiAutosyncMonitor::~CFSEmailUiAutosyncMonitor()
 void CFSEmailUiAutosyncMonitor::StartMonitoring()
     {
     FUNC_LOG;
-    if ( IsActive() )
-        {
         Cancel();
-        }
 #ifdef __WINS__ // do not try to connect on the emulator
     iRegisterationStatus = RMobilePhone::ERegisteredOnHomeNetwork;
     TRequestStatus* status = &iStatus;

@@ -342,6 +342,13 @@ public: // function members
     TBool IsAddressInputField( const CCoeControl* aControl ) const;
 
     TBool IsRemoteSearchInprogress() const;
+    
+    /**
+     * Shows/hides cursor.
+     * 
+     * @param aShow ETrue - shows, EFalse - hides cursor.
+     */
+    void ShowCursor( TBool aShow );
 private: // Function members
 
 	void FocusChanged(TDrawNow aDrawNow);
@@ -430,6 +437,9 @@ private: // Data members
     
     TBool iLongTapEventConsumed;
     TBool iRALInProgress;
+    
+    // Currently focused control
+    CCoeControl* iFocused;
     };
 
 

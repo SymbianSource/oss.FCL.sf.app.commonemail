@@ -211,6 +211,7 @@ public:
 
 	void SubscribeMailboxL( TFSMailMsgId aActiveMailboxId );
 	void SetActiveMailboxL( TFSMailMsgId aActiveMailboxId, TBool aAutoSync = ETrue );
+	void StartMonitoringL();
 	CMsvSession* GetMsvSession();
 
 	TFSMailMsgId GetActiveBoxInboxId();

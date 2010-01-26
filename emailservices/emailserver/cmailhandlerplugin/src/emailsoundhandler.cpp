@@ -226,15 +226,26 @@ void CFSMailSoundHandler::RecreateAudioPlayerL()
     MProfile* profile = iProfileEngine->ActiveProfileL();
     CleanupReleasePushL( *profile );
 
+    TBool vibraEnabled = profile->ProfileTones().ToneSettings().iEmailVibratingAlert;
+
+
+    TInt preference = KAudioPrefNewSMS;
+    if ( !vibraEnabled )
+        {
+        preference = EMdaPriorityPreferenceTimeAndQuality;
+        }
+
     if ( IsBeepOnceSetL( *profile ) )
         {
+        
+        
         // create audio player based on hard coded sequence
         // (Platform does not offer any "play platform-wide beep" service)
         iAudioPlayer = CMdaAudioPlayerUtility::NewDesPlayerReadOnlyL(
             KEmailBeepSequence(),
             *this, 
             KAudioPriorityRecvMsg, 
-            static_cast<TMdaPriorityPreference>( KAudioPrefNewSMS ) );
+            preference );
         }
     else
         {
@@ -272,7 +283,7 @@ void CFSMailSoundHandler::RecreateAudioPlayerL()
                 fileToPlay,
                 *this, 
                 KAudioPriorityRecvMsg, 
-                static_cast<TMdaPriorityPreference>( KAudioPrefNewSMS ) );
+                static_cast<TMdaPriorityPreference>( preference ) );
         }
     CleanupStack::PopAndDestroy( profile );  // profile
     }

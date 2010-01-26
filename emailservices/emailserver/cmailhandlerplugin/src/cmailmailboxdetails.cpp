@@ -69,6 +69,20 @@ void CMailMailboxDetails::SetWidgetInstance( const TDesC& aWidgetInstance )
     }
 
 // ---------------------------------------------------------
+// CMailMailboxDetails::SetMailboxNameL
+// ---------------------------------------------------------
+//
+void CMailMailboxDetails::SetMailboxName( const TDesC& aMailboxName )
+    {
+    HBufC* newMailboxName = aMailboxName.Alloc();
+    if ( newMailboxName )
+        {
+        delete iMailboxName;
+        iMailboxName = newMailboxName;
+        }
+    }
+
+// ---------------------------------------------------------
 // CMailMailboxDetails::ConstructL
 // ---------------------------------------------------------
 //

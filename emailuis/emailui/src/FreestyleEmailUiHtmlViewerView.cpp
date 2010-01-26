@@ -56,7 +56,6 @@
 #include "FreestyleEmailCenRepHandler.h"
 #include "FreestyleEmailUiAttachmentsListModel.h"
 #include "FreestyleEmailUiConstants.h"
-#include "FreestyleAttachmentDownloadProgressBar.h"
 #include "FSEmail.pan"
 #include "CFSMailCommon.h"
 
@@ -114,7 +113,6 @@ CFsEmailUiHtmlViewerView::~CFsEmailUiHtmlViewerView()
         }
     delete iContainer;
     delete iAttachmentsListModel;
-    delete iProgressBar;
 
     delete iOpenMessages;
     iOpenMessages = NULL;
@@ -125,9 +123,6 @@ CFsEmailUiHtmlViewerView::~CFsEmailUiHtmlViewerView()
     delete iMailBox; 
     iMailBox = NULL;
     delete iAsyncCallback;
-
-
-   
     }
 
 void CFsEmailUiHtmlViewerView::ConstructL()
@@ -451,6 +446,7 @@ void CFsEmailUiHtmlViewerView::HideContainer()
 
     if ( iContainer )
         {
+        iContainer->HideAttacthmentDownloadStatus();
         iContainer->MakeVisible( EFalse );
         iAppUi.RemoveFromStack( iContainer );
         }
@@ -1655,6 +1651,10 @@ void CFsEmailUiHtmlViewerView::OpenAttachmentL( const TAttachmentData& aAttachme
     else if ( aAttachment.downloadProgress != KComplete )
         {
         DownloadAttachmentL( aAttachment );
+        if ( iContainer && !iContainer->AttacthmentDownloadStatusVisible() )
+            {
+            iContainer->ShowAttacthmentDownloadStatusL( TFSProgress::EFSStatus_Status, aAttachment );
+            }
         }
     else
         {
@@ -1669,6 +1669,11 @@ void CFsEmailUiHtmlViewerView::SaveAttachmentL( const TAttachmentData& aAttachme
         {
         TInt savedCount( 0 );
         TBool downloadRequired = iAttachmentsListModel->SaveAttachmentL( aAttachment, fileName, savedCount );
+        if ( downloadRequired && iContainer && !iContainer->AttacthmentDownloadStatusVisible() )
+            {
+            iContainer->ShowAttacthmentDownloadStatusL( TFSProgress::EFSStatus_Status, aAttachment );
+            }
+        
         if ( savedCount )
             {
             TFsEmailUiUtility::ShowFilesSavedToFolderNoteL( savedCount );        
@@ -1682,6 +1687,18 @@ void CFsEmailUiHtmlViewerView::SaveAllAttachmentsL()
     if ( TFsEmailUiUtility::ShowSaveFolderDialogL( fileName ) )
         {
         TBool downloadRequired = iAttachmentsListModel->SaveAllAttachmentsL( fileName );
+        if ( downloadRequired && iContainer && !iContainer->AttacthmentDownloadStatusVisible() )
+            {
+            for ( TInt i = 0; i < iAttachmentsListModel->GetModel().Count(); i++ )
+                {
+                const TAttachmentData& attachment = iAttachmentsListModel->GetModel()[i];
+                if ( attachment.downloadProgress < KComplete )
+                    {
+                    iContainer->ShowAttacthmentDownloadStatusL( TFSProgress::EFSStatus_Status, attachment );
+                    break;
+                    }
+                }
+            }
         }
     }
 
@@ -1717,61 +1734,48 @@ void CFsEmailUiHtmlViewerView::UpdateDownloadIndicatorL(
     {
     FUNC_LOG;
     
-    if ( iMessage )
+    if ( !iMessage || !iContainer || ( aEvent.iError != KErrNone ) )
+        return;
+    
+    TAttachmentData* attachment = NULL;
+    const RArray<TAttachmentData>& attachments = iAttachmentsListModel->GetModel();
+    for ( TInt i=0; i < attachments.Count(); i++ )
         {
-        if ( !iProgressBar )
+        if ( attachments[i].partData == aPart )
             {
-            iProgressBar = CFreestyleAttachmentDownloadProgressBar::NewL();
+            attachment = CONST_CAST( TAttachmentData*, &iAttachmentsListModel->GetModel()[i] );
+            break;
             }
-        
-        for ( TInt i=0; i < iAttachmentsListModel->GetModel().Count(); i++ )
+        }
+    
+    if ( attachment )
+        {
+        switch ( aEvent.iProgressStatus )
             {
-            if ( iAttachmentsListModel->GetModel()[i].partData == aPart )
+            case TFSProgress::EFSStatus_Status:
                 {
-                TAttachmentData& attachment = CONST_CAST( TAttachmentData&, iAttachmentsListModel->GetModel()[i] );
-                
-                if ( aEvent.iError )
+                if ( aEvent.iMaxCount > 0 && aEvent.iCounter > 0 )
                     {
-                    iProgressBar->HideL();
+                    attachment->downloadProgress = KComplete * aEvent.iCounter / aEvent.iMaxCount;
                     }
                 else
                     {
-                    switch ( aEvent.iProgressStatus )
-                        {
-                        case TFSProgress::EFSStatus_Status:
-                            {
-                            if ( aEvent.iMaxCount > 0 && aEvent.iCounter > 0 )
-                                {
-                                attachment.downloadProgress = KComplete * aEvent.iCounter / aEvent.iMaxCount;
-                                }
-                            else
-                                {
-                                attachment.downloadProgress = KNone;
-                                }
-                            iProgressBar->UpdateL( attachment );
-                            }
-                        break;
-                        
-                        case TFSProgress::EFSStatus_RequestComplete:
-                            {
-                            attachment.downloadProgress = KComplete;
-                            iProgressBar->UpdateL( attachment );
-                            }
-                        break;
-                        
-                        case TFSProgress::EFSStatus_RequestCancelled:
-                            {
-                            iProgressBar->HideL();
-                            }
-                        break;
-                        
-                        default:                            
-                            break;
-                        }
+                    attachment->downloadProgress = KNone;
                     }
-                break;
                 }
+            break;
+            
+            case TFSProgress::EFSStatus_RequestComplete:
+                {
+                attachment->downloadProgress = KComplete;
+                }
+            break;
+            
+            default:
+                break;
             }
+        
+        iContainer->ShowAttacthmentDownloadStatusL( aEvent.iProgressStatus, *attachment );
         }
     }
 

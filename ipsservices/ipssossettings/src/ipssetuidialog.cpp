@@ -29,6 +29,8 @@
 #include <AknQueryDialog.h>
 #include <layoutmetadata.cdl.h>
 
+#include <miut_err.h>
+
 #include <featmgr.h>
 //</cmail>
 
@@ -894,7 +896,14 @@ TIpsSetUiEventResult CIpsSetUiDialogCtrl::HandleEventSubscribeFoldersL()
     	CleanupStack::PushL(op);
 
     	wait->StartAndShowWaitDialogL();
+        TInt status = wait->iStatus.Int();
     	CleanupStack::PopAndDestroy(3, mySelection); // op, wait, myselection
+
+        // Don't open the folder subscription list if we couldn't log on.
+        if ( status == KErrImapBadLogon )
+            {
+            return EIpsSetUiPageEventResultCancel;
+            }
     	}
     iDialog.SetIgnoreOneBackKey(EFalse); //<cmail>
     // </cmail>

@@ -371,6 +371,7 @@ MEmailMessageContent* CEmailMessage::ContentL() const
     if( count == 0 )
         {
         /* No content, return NULL */
+        CleanupStack::Pop(); // parts
         return NULL;
         }
     CFSMailMessagePart* part = parts[0];

@@ -629,11 +629,10 @@ void CFsTreePlainOneLineItemVisualizer::MarqueeL(const TFsTextMarqueeType aMarqu
     FUNC_LOG;
     TInt marqueeSize(0), textWidth(0);
 
-    if ( aMarqueeType == EFsTextMarqueeNone )
+    if ( aMarqueeType == EFsTextMarqueeNone || !iTextVisual )
         {
         return;
         }
-
 
     iTextVisual->SetWrapping(CAlfTextVisual::ELineWrapManual);
 

@@ -199,7 +199,14 @@ void CNcsHeaderContainer::FocusChanged( TDrawNow aDrawNow )
 	{
     FUNC_LOG;
     
-    CCoeControl* focused = FindFocused();
+    CCoeControl* focused = iFocused;
+    
+    if ( !focused )
+        {
+        focused = FindFocused();
+        iFocused = focused;
+        }
+    
     if ( !IsFocused() )
         {
         if ( focused )
@@ -213,7 +220,7 @@ void CNcsHeaderContainer::FocusChanged( TDrawNow aDrawNow )
         // Remove MSK label when header loses focus
         TRAP_IGNORE( SetMskL() );
 		}
-	else if ( IsFocused() && !focused && !iRALInProgress )
+	else if ( IsFocused() && !focused )
 		{
 		// We're gaining focus from the message body
 		// Set the focus to the last control in the control array
@@ -223,6 +230,20 @@ void CNcsHeaderContainer::FocusChanged( TDrawNow aDrawNow )
 		cur.Control<CCoeControl>()->SetFocus( ETrue, aDrawNow );
 		}
 	}
+
+// ---------------------------------------------------------------------------
+// CNcsHeaderContainer::ShowCursor
+// ---------------------------------------------------------------------------
+//
+void CNcsHeaderContainer::ShowCursor( TBool aShow )
+    {
+    CCoeControl* focused = FindFocused();
+    if ( focused )
+        {
+        iFocused = focused;
+        }
+    iFocused->SetFocus( aShow, EDrawNow );
+    }
 
 // -----------------------------------------------------------------------------
 // CNcsHeaderContainer::Draw() const
@@ -503,8 +524,9 @@ TKeyResponse CNcsHeaderContainer::OfferKeyEventL(
 		         ( aKeyEvent.iCode == EKeyEnter || 
 		           aKeyEvent.iScanCode == EStdKeyEnter) )
 		        {
-		        ret = FindFocused()->OfferKeyEventL( aKeyEvent, aType );
-		        return EKeyWasConsumed;
+		        FindFocused()->OfferKeyEventL( aKeyEvent, aType );
+		        ret = EKeyWasConsumed;
+		        doScroll = ETrue;
 		        }
 		    }
     	}
@@ -1309,13 +1331,9 @@ void CNcsHeaderContainer::DoPopupSelectL()
     		addressField = static_cast<CNcsAddressInputField*>( focused );
     		HBufC* lookupText = addressField->GetLookupTextLC();
     		CPbkxRemoteContactLookupServiceUiContext::TResult::TExitReason ex;
-    		// set focus to false for header - the focus should be on popup
-    		focused->SetFocus( EFalse, ENoDrawNow );
             CNcsEmailAddressObject* address = ExecuteRemoteSearchL(
                 ex, *lookupText );
             iRALInProgress = EFalse;
-            // set focus back to on
-            focused->SetFocus( ETrue, ENoDrawNow );
             if ( address )
                 {
                 CleanupStack::PushL( address );

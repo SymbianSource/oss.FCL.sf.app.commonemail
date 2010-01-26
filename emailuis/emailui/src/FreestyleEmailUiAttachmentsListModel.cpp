@@ -495,7 +495,13 @@ void CFSEmailUiAttachmentsListModel::UpdateListL( CFSMailMessage* aEmbeddedMessa
 			KFsTreeNoneID,
 			partData
 			};
-		attachment.downloadProgress = KComplete;
+		
+		// if not fully fetched than restart download;
+		if (IsCompletelyDownloadedL(attachment))
+			attachment.downloadProgress = KComplete;
+		else
+			attachment.downloadProgress = KNone;
+		
 		iAttachments.Append( attachment );
 		}
 	CleanupStack::PopAndDestroy( &mailParts );

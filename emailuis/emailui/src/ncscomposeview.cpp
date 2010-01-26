@@ -515,16 +515,7 @@ void CNcsComposeView::RefreshToolbar()
         SetToolbarItemDimmed( EFsEmailUiTbCmdExpandInsert, dimAllOptions );
         SetToolbarItemDimmed( EFsEmailUiTbCmdSend,
                 iContainer->AreAddressFieldsEmpty() );
-        if ( (iContainer->IsFocusBcc() || 
-              iContainer->IsFocusCc() || 
-              iContainer->IsFocusTo() ) && !dimAllOptions )
-            {
-            SetToolbarItemDimmed( EFsEmailUiTbCmdAddRecipient, EFalse );
-            }
-        else
-            {
-            SetToolbarItemDimmed( EFsEmailUiTbCmdAddRecipient, ETrue );
-            }
+        SetToolbarItemDimmed( EFsEmailUiTbCmdAddRecipient, dimAllOptions );
         }
     }
 

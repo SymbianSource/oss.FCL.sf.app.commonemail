@@ -103,9 +103,8 @@ void CFsEmailUiViewBase::DoActivateL( const TVwsViewId& aPrevViewId,
     UpdateToolbarL();
 
     // Make sure Alfred display is of correct size (there is some problems with toolbar)
-    TRect metricsRect;
-    AknLayoutUtils::LayoutMetricsRect(AknLayoutUtils::EMainPane, metricsRect);
-    CAlfEnv::Static()->PrimaryDisplay().ForceSetVisibleArea(metricsRect);
+    iAppUi.AlfEnv().PrimaryDisplay().ForceSetVisibleArea(iAppUi.ClientRect());
+    
 
     // Finally call child classes activation method
     TRAPD( error, ChildDoActivateL(aPrevViewId, aCustomMessageId, aCustomMessage) );

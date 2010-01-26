@@ -53,7 +53,26 @@ class CFsAlfTextStyleManager;
 typedef RPointerArray<MFsTreeListObserver> RFsTreeListObservers;
 
 /**
- * CFsTreeList is a component for creating and displaying hierarchical list
+ * Batch updates for the tree.
+ */
+class MFsTreeBatchProcessing
+    {
+public:
+    /**
+     * Begin batch update. During batch update changes to the world
+     * will not be updated on screen until the EndUpdateL is called.
+     */
+    virtual void BeginUpdate() = 0;
+    
+    /**
+     * End batch update. All changes done between BeginUpdate and EndUpdateL
+     * will be shown on screen.
+     */
+    virtual void EndUpdateL() = 0;
+    };
+
+/**
+ * CFsTreeList is a component for creating and displaying hierarchical list 
  * using tree data structure.
  *
  * @code
@@ -62,8 +81,20 @@ typedef RPointerArray<MFsTreeListObserver> RFsTreeListObservers;
  *
  * @lib
  */
-class CFsTreeList  : public CBase, MFsTreeVisualizerObserver
+class CFsTreeList  : public CBase, MFsTreeVisualizerObserver, MFsTreeBatchProcessing
     {
+public: // from MFsTreeBatchProcessing
+    
+    /**
+     * @see MFsTreeBatchProcessing::BeginUpdate
+     */
+    void BeginUpdate();
+
+    /**
+     * @see MFsTreeBatchProcessing::EndUpdateL
+     */
+    void EndUpdateL();
+    
 public: // Construction
 
 

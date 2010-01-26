@@ -123,6 +123,8 @@ private:
     */
     void ConstructL( CMsvEntrySelection& aMsvEntry );
 
+    void DisplayLoginFailedDialogL();
+
     //data
 private:
     

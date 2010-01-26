@@ -73,6 +73,13 @@ class CAknPhysics;
  * Contains the visual structure of the list.
  *
  */
+
+enum TUpdatedByPhysic{
+	ENotUpdatedByPhisic = 0,
+	EUpdatedByPhisic,
+	EUpdatedByPhisicEnd
+	};
+
 NONSHARABLE_CLASS( TWorld )
     {
 
@@ -333,7 +340,7 @@ public:
         /**
          * This method is called when the viewport changes.
          */
-        virtual void ViewPortUpdatedL( TViewPort& aViewPort ) = 0;
+        virtual void ViewPortUpdatedL( TViewPort& aViewPort, TUpdatedByPhysic aUpdateByPhysic = ENotUpdatedByPhisic ) = 0;
 
         };
 
@@ -354,7 +361,7 @@ public:
      * Center viewport around position aPosition. If aInformUpdate is set to ETrue, observer
      * will be signalled.
      */
-    void SetCenterPositionL( const TPoint& aPosition, TBool aInformUpdate = ETrue );
+    void SetCenterPositionL( const TPoint& aPosition, TBool aInformUpdate = ETrue, TUpdatedByPhysic aUpdateByPhysic = ENotUpdatedByPhisic );
 
     /**
      * Returns viewport position (i.e. topleft corner).
@@ -381,6 +388,11 @@ public:
      */
     void GetVisibleItemsL( RArray<TFsTreeItemId>& aItemsToBeRemoved, RArray<TFsTreeItemId>& aItemsToBeAdded, TInt& aOffset, TBool& aFullUpdate  );
 
+    /**
+      * Get items visible in viewport's area.
+      */
+    void GetVisibleItemsL(RArray<TFsTreeItemId>& aVisible, TInt& aOffset);
+    
     /**
      * Returns ETrue if the world is higher than viewport.
      */
@@ -455,7 +467,9 @@ private:
     /**
      * Called when viewport is updated.
      */
-    void UpdatedL();
+    void UpdatedL(TUpdatedByPhysic aUpdateByPhysic = ENotUpdatedByPhisic);
+    
+   
 
 private: // from TWorld::MObserver
 
@@ -1905,7 +1919,7 @@ private: // from TWorld::MObserver
 
 private: // from TViewPort::MObserver
 
-    virtual void ViewPortUpdatedL( TViewPort& aViewPort );
+    virtual void ViewPortUpdatedL( TViewPort& aViewPort, TUpdatedByPhysic aUpdateByPhysic = ENotUpdatedByPhisic);
 
 // TREE OPTIMIZATIONS
 

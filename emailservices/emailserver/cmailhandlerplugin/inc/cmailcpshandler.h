@@ -220,7 +220,13 @@ private:
      * @param aMailbox mailbox id
      */
     void HandleNewMailboxEventL( const TFSMailMsgId aMailbox );
-    
+
+    /**
+     * Handles mailbox renamed event.
+     * @param aMailbox mailbox id
+     */
+    void HandleMailboxRenamedEventL( const TFSMailMsgId aMailbox );
+
     /**
      * handles mailbox deleted event
      * @param aMailbox mailbox id

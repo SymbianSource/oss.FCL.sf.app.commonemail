@@ -2,9 +2,9 @@
 * Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
-* under the terms of the License "Symbian Foundation License v1.0"
+* under the terms of "Eclipse Public License v1.0"
 * which accompanies this distribution, and is available
-* at the URL "http://www.symbianfoundation.org/legal/sfl-v10.html".
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
 *
 * Initial Contributors:
 * Nokia Corporation - initial contribution.
@@ -97,7 +97,192 @@ static const TInt KMsgDeletionWaitNoteAmount = 5;
 _LIT( KMissingPreviewDataMarker, "..." );
 
 static const TInt KMaxItemsFethed = 1000;
-static const TInt KCMsgBlock = 100;
+static const TInt KCMsgBlock = 15;
+static const TInt KCMsgMaxBlock = 120;
+
+// ---------------------------------------------------------------------------
+// Generic method for deleting a pointer and setting it NULL.
+// ---------------------------------------------------------------------------
+//
+template <class T> void SafeDelete(T*& ptr)
+    {
+    delete ptr;
+    ptr = NULL;
+    }
+
+// CMailListModelUpdater
+
+// ---------------------------------------------------------------------------
+// Constructor
+// ---------------------------------------------------------------------------
+//
+CMailListModelUpdater::CMailListModelUpdater() : CActive(EPriorityStandard)
+    {
+    CActiveScheduler::Add(this);
+    }
+
+// ---------------------------------------------------------------------------
+// Destructor
+// ---------------------------------------------------------------------------
+//
+CMailListModelUpdater::~CMailListModelUpdater()
+    {
+    iObserver = NULL;
+    Cancel();
+    iSorting.Close();
+    }
+
+// ---------------------------------------------------------------------------
+// Returns arrays for sorting parameters. Updater owns the arrays because
+// it has to stay alive as long as the iterator is being used.
+// ---------------------------------------------------------------------------
+//
+RArray<TFSMailSortCriteria>& CMailListModelUpdater::Sorting()
+    {
+    iSorting.Reset();
+    return iSorting;
+    }
+
+// ---------------------------------------------------------------------------
+// Update the mail list model from given iterator. Update progress will be
+// informed to the observer.
+// ---------------------------------------------------------------------------
+//
+void CMailListModelUpdater::UpdateModelL(MObserver& aObserver, MFSMailIterator* aIterator)
+    {
+    Cancel();
+    iObserver = &aObserver;
+    iIterator = aIterator;
+    Signal(EInitialize);
+    }
+
+// ---------------------------------------------------------------------------
+// Internal method. Sets new state and signals itself.
+// ---------------------------------------------------------------------------
+//
+void CMailListModelUpdater::Signal(TState aState, TInt aError)
+    {
+    iState = aState;
+    iStatus = KRequestPending;
+    SetActive();
+    TRequestStatus* status = &iStatus;
+    User::RequestComplete(status, aError);
+    }
+
+// ---------------------------------------------------------------------------
+// Initialization state. Reset update and call UpdateBeginL() for the observer.
+// ---------------------------------------------------------------------------
+//
+void CMailListModelUpdater::InitializeL()
+    {
+    iBlockSize = KCMsgBlock;
+    iParentId = KFsTreeRootID;
+    iId = TFSMailMsgId();
+    iItemsFetched = 0;
+    iObserver->UpdateBeginL();
+    Signal(EFetch);
+    }
+
+// ---------------------------------------------------------------------------
+// Fetch state. Fetch next messages and if there is more messages signal
+// fetch state again OR proceed to finalizing state.
+// ---------------------------------------------------------------------------
+//
+void CMailListModelUpdater::FetchL()
+    {
+    RPointerArray<CFSMailMessage> messages(iBlockSize);
+    CleanupClosePushL(messages);
+    const TBool moreMessages(iIterator->NextL(iId, iBlockSize, messages));
+    iBlockSize = Min(KCMsgMaxBlock, iBlockSize * 2);
+    if (messages.Count() > 0)
+        {
+        iItemsFetched += messages.Count();
+        iId = messages[messages.Count() - 1]->GetMessageId();
+        iObserver->UpdateProgressL(iParentId, messages);
+        }
+    CleanupStack::PopAndDestroy(); // messages.Close()
+    if (moreMessages && iItemsFetched < KMaxItemsFethed)
+        {
+        Signal(EFetch);
+        }
+    else
+        {
+        Signal(EFinalize);
+        }
+    }
+
+// ---------------------------------------------------------------------------
+// Finalizing state. Notify observer that model update has been done and
+// free the resources.
+// ---------------------------------------------------------------------------
+//
+void CMailListModelUpdater::FinalizeL()
+    {
+    iObserver->UpdateCompleteL();
+    Reset();
+    }
+
+// ---------------------------------------------------------------------------
+// If the state is anything but EIdle, returns ETrue.
+// ---------------------------------------------------------------------------
+//
+TBool CMailListModelUpdater::IsUpdating() const
+    {
+    return iState > EIdle;
+    }
+
+// ---------------------------------------------------------------------------
+// Reset the state to EIdle and free resources.
+// ---------------------------------------------------------------------------
+//
+void CMailListModelUpdater::Reset()
+    {
+    iSorting.Reset();
+    SafeDelete(iIterator);
+    iState = EIdle;
+    }
+
+// ---------------------------------------------------------------------------
+// Active objects RunL()
+// ---------------------------------------------------------------------------
+//
+void CMailListModelUpdater::RunL()
+    {
+    const TInt error(iStatus.Int());
+    if (!error)
+        {
+        switch (iState)
+            {
+            case EInitialize:
+                InitializeL();
+                break;
+            case EFetch:
+                FetchL();
+                break;
+            case EFinalize:
+            default:
+                FinalizeL();
+                break;
+            }
+        }
+    else
+        {
+        iObserver->UpdateErrorL(error);
+        }
+    }
+
+// ---------------------------------------------------------------------------
+// Update has been cancelled. Inform the observer and free resources.
+// ---------------------------------------------------------------------------
+//
+void CMailListModelUpdater::DoCancel()
+    {
+    if (iObserver)
+        {
+        iObserver->UpdateCancelled(IsUpdating());
+        }
+    Reset();
+    }
 
 // ---------------------------------------------------------------------------
 // Static constructor.
@@ -138,6 +323,8 @@ void CFSEmailUiMailListVisualiser::ConstructL()
     FUNC_LOG;
 
 	BaseConstructL( R_FSEMAILUI_MAIL_LIST_VIEW );
+
+	iMailListModelUpdater = new (ELeave) CMailListModelUpdater();
 
 	// Don't construct this anywhere else than here.
 	// Don't delete this until in the destructor to avoid NULL checks.
@@ -282,8 +469,8 @@ CFSEmailUiMailListVisualiser::CFSEmailUiMailListVisualiser( CAlfEnv& aEnv,
     : CFsEmailUiViewBase( aMailListControlGroup, *aAppUi ),
     iEnv( aEnv ),
     iListMarkItemsState( ETrue ), //Initlly list has no markings
-    iConsumeStdKeyYes_KeyUp( EFalse ), // use to prevent Call application execution if call for contact processed
-    iMoveToFolderOngoing( EFalse )
+    iMoveToFolderOngoing( EFalse ),
+    iConsumeStdKeyYes_KeyUp( EFalse ) // use to prevent Call application execution if call for contact processed
 	{
     FUNC_LOG;
 	}
@@ -295,12 +482,8 @@ CFSEmailUiMailListVisualiser::CFSEmailUiMailListVisualiser( CAlfEnv& aEnv,
 CFSEmailUiMailListVisualiser::~CFSEmailUiMailListVisualiser()
     {
     FUNC_LOG;
-    if ( iMailFolder )
-        {
-        delete iMailFolder;
-        iMailFolder = NULL;
-        }
-
+    SafeDelete(iMailListModelUpdater);
+    SafeDelete(iMailFolder);
     delete iTouchManager;
     delete iStylusPopUpMenu;
     delete iMailList;
@@ -314,35 +497,31 @@ CFSEmailUiMailListVisualiser::~CFSEmailUiMailListVisualiser()
 void CFSEmailUiMailListVisualiser::PrepareForExit()
     {
     FUNC_LOG;
+    iMailListModelUpdater->Cancel();
     if ( iMsgNoteTimer )
         {
         iMsgNoteTimer->Cancel();
-        delete iMsgNoteTimer;
-        iMsgNoteTimer = NULL;
+        SafeDelete(iMsgNoteTimer);
         }
     if ( iDateChangeTimer )
         {
         iDateChangeTimer->Cancel();
-        delete iDateChangeTimer;
-        iDateChangeTimer = NULL;
+        SafeDelete(iDateChangeTimer);
         }
     if ( iMailListUpdater )
         {
         iMailListUpdater->Stop();
-        delete iMailListUpdater;
-        iMailListUpdater = NULL;
+        SafeDelete(iMailListUpdater);
         }
     if ( iAsyncRedrawer )
         {
         iAsyncRedrawer->Cancel();
-        delete iAsyncRedrawer;
-        iAsyncRedrawer = NULL;
+        SafeDelete(iAsyncRedrawer);
         }
     if ( iAsyncCallback )
         {
         iAsyncCallback->Cancel();
-        delete iAsyncCallback;
-        iAsyncCallback = NULL;
+        SafeDelete(iAsyncCallback);
         }
     if ( iMailList )
         {
@@ -352,16 +531,10 @@ void CFSEmailUiMailListVisualiser::PrepareForExit()
         {
         iControlBarControl->RemoveObserver( *this );
         }
-    // <cmail>
+    SafeDelete(iMailFolder);
     iTreeItemArray.Reset();
-    if ( iMailFolder )
-        {
-        delete iMailFolder;
-        iMailFolder = NULL;
-        }
 	// Reset, not delete to avoid NULL checks.
     iModel->Reset();
-    // </cmail>
     }
 
 // ---------------------------------------------------------------------------
@@ -375,6 +548,101 @@ CFsTreeList& CFSEmailUiMailListVisualiser::GetMailList()
 	}
 
 // ---------------------------------------------------------------------------
+// @see CMailListModelUpdater::MObserver::UpdateErrorL
+// ---------------------------------------------------------------------------
+//
+void CFSEmailUiMailListVisualiser::UpdateErrorL(TInt aError)
+    {
+    FUNC_LOG;
+    User::Leave(aError);
+    }
+
+// ---------------------------------------------------------------------------
+// @see CMailListModelUpdater::MObserver::UpdateBeginL
+// ---------------------------------------------------------------------------
+//
+void CFSEmailUiMailListVisualiser::UpdateBeginL()
+    {
+    FUNC_LOG;
+    iModel->Reset();
+    iTreeItemArray.Reset();
+    }
+
+// ---------------------------------------------------------------------------
+// @see CMailListModelUpdater::MObserver::UpdateProgressL
+// ---------------------------------------------------------------------------
+//
+void CFSEmailUiMailListVisualiser::UpdateProgressL(TFsTreeItemId& aParentId, RPointerArray<CFSMailMessage>& aMessages)
+    {
+    FUNC_LOG;
+    const TInt itemsInModel(iModel->Count());
+    CreateModelItemsL(aMessages);
+    RefreshListItemsL(aParentId, itemsInModel, iModel->Count());
+    }
+
+// ---------------------------------------------------------------------------
+// @see CMailListModelUpdater::MObserver::UpdateCompleteL
+// ---------------------------------------------------------------------------
+//
+void CFSEmailUiMailListVisualiser::UpdateCompleteL()
+    {
+    FUNC_LOG;
+    if ( !iModel->Count() )
+        {
+        iFocusedControl = EControlBarComponent;
+        }
+    else
+        {
+        iFocusedControl = EMailListComponent;
+        if (iMailList->FocusedItem() == KFsTreeNoneID)
+            {
+            iMailList->SetFocusedItemL( iTreeItemArray[0].iListItemId );
+            }
+        }
+    SetListAndCtrlBarFocusL();
+    iAppUi.StartMonitoringL();
+    }
+
+// ---------------------------------------------------------------------------
+// @see CMailListModelUpdater::MObserver::UpdateCancelled
+// ---------------------------------------------------------------------------
+//
+void CFSEmailUiMailListVisualiser::UpdateCancelled(const TBool aForceRefresh)
+    {
+    FUNC_LOG;
+    iForceRefresh = aForceRefresh;
+    }
+
+// ---------------------------------------------------------------------------
+// Asynchronous mail list model update.
+// ---------------------------------------------------------------------------
+//
+void CFSEmailUiMailListVisualiser::UpdateMailListModelAsyncL()
+    {
+    FUNC_LOG;
+    if ( iMailFolder )
+        {
+        TFSMailDetails details( EFSMsgDataEnvelope );
+        RArray<TFSMailSortCriteria>& sorting(iMailListModelUpdater->Sorting());
+        sorting.AppendL( iCurrentSortCriteria );
+        if ( iCurrentSortCriteria.iField != EFSMailSortByDate )
+            {
+            // Add date+descending as secondary sort criteria if primary field is something else than date
+            TFSMailSortCriteria secondarySortCriteria;
+            secondarySortCriteria.iField = EFSMailSortByDate;
+            secondarySortCriteria.iOrder = EFSMailDescending;
+            sorting.AppendL( secondarySortCriteria );
+            }
+        // List all or maximum number of messages
+        iMailListModelUpdater->UpdateModelL(*this, iMailFolder->ListMessagesL(details, sorting));
+        }
+    else
+        {
+        UpdateCompleteL();
+        }
+    }
+
+// ---------------------------------------------------------------------------
 //
 //
 // ---------------------------------------------------------------------------
@@ -382,9 +650,10 @@ CFsTreeList& CFSEmailUiMailListVisualiser::GetMailList()
 void CFSEmailUiMailListVisualiser::UpdateMailListModelL()
     {
     FUNC_LOG;
+    // Make sure asynchronous update is not going on
+    iMailListModelUpdater->Cancel();
     // Reset model with each update
 	iModel->Reset();
-
 	if ( iMailFolder )
 		{
 		// Update folder if provided, otherwise use current folder
@@ -446,14 +715,30 @@ void CFSEmailUiMailListVisualiser::CreateModelItemsL( RPointerArray<CFSMailMessa
 	{
     FUNC_LOG;
 	// New Items
-	CFSEmailUiMailListModelItem* newItem = NULL;
+	CFSEmailUiMailListModelItem* newItem(NULL);
 
 	// Draw first separator if there are messages.
 	if ( aMessages.Count() && iNodesInUse == EListControlSeparatorEnabled )
 		{
+		if (iModel->Count())
+		    {
+		    CFSMailMessage* nextMessage = aMessages[0];
+		    CFSEmailUiMailListModelItem* previousMessage(static_cast<CFSEmailUiMailListModelItem*>(iModel->Item(iModel->Count() - 1)));
+            TBool needANewDivider =
+                !MessagesBelongUnderSameSeparatorL( previousMessage->MessagePtr(), *nextMessage );
+            if ( needANewDivider )
+                {
+                newItem = CreateSeparatorModelItemLC( *nextMessage );
+                iModel->AppendL( newItem );
+                CleanupStack::Pop( newItem );
+                }
+            }
+		else
+		    {
 	    newItem = CreateSeparatorModelItemLC( *aMessages[0] );
 	    iModel->AppendL( newItem );
 		CleanupStack::Pop( newItem );
+		}
 		}
 
 	// Start appending items
@@ -951,6 +1236,7 @@ void CFSEmailUiMailListVisualiser::ChildDoActivateL(const TVwsViewId& aPrevViewI
         {
         iAppUi.FolderList().HidePopupL();
         }
+    DisableMailList( EFalse );
 
 	// inform baseView if view entered with forward navigation
 	TBool forwardNavigation = EFalse;
@@ -1116,19 +1402,24 @@ void CFSEmailUiMailListVisualiser::ChildDoActivateL(const TVwsViewId& aPrevViewI
     // CHECK IF MODEL NEEDS TO BE UPDATED
     if ( activationData.iMailBoxId != prevMailBoxId ||
          activationData.iFolderId != prevFolderId ||
-         activationData.iRequestRefresh )
+         activationData.iRequestRefresh ||
+         iForceRefresh )
          {
+         iForceRefresh = EFalse;
          // Set initial sort criteria when folder is changed
          iCurrentSortCriteria.iField = EFSMailSortByDate;
          iCurrentSortCriteria.iOrder = EFSMailDescending;
          SetSortButtonTextAndIconL();
 
-         delete iMailFolder;
-         iMailFolder = NULL;
+         SafeDelete(iMailFolder);
          TRAP_IGNORE( iMailFolder = iAppUi.GetMailClient()->GetFolderByUidL(
                  activationData.iMailBoxId, activationData.iFolderId ) );
          if ( !iMailFolder )
              {
+             if ( forwardNavigation )
+                 {
+                 iAppUi.StartMonitoringL();
+                 }
              // Safety, try to revert back to standard folder inbox
              TFSMailMsgId inboxId = iAppUi.GetActiveMailbox()->GetStandardFolderId( EFSInbox );
              iMailFolder = iAppUi.GetMailClient()->GetFolderByUidL( activationData.iMailBoxId, inboxId );
@@ -1150,9 +1441,6 @@ void CFSEmailUiMailListVisualiser::ChildDoActivateL(const TVwsViewId& aPrevViewI
     // Check sync icon timer and sync status
     ConnectionIconHandling();
 
-    iMailList->HideListL();
-    iMailList->ShowListL();
-
     // REBUILD TREE LIST IF NECESSARY
     if ( refreshNeeded )
         {
@@ -1161,25 +1449,38 @@ void CFSEmailUiMailListVisualiser::ChildDoActivateL(const TVwsViewId& aPrevViewI
         TFSMailMsgId focused = MsgIdFromListId( iMailList->FocusedItem() );
 
         // Clear any previous items from the screen and then make the view visible
+        iMailList->BeginUpdate();
         iMailList->RemoveAllL();
         iTreeItemArray.Reset();
-        UpdateMailListModelL();
-        RefreshDeferred( &focused );
-        }
+        iModel->Reset();
+        iMailList->EndUpdateL();
+        iMailList->ShowListL();
 
+        // If coming from wizard use synchronous list updating
+        if (activationData.iReturnAfterWizard)
+            {
+            UpdateMailListModelL();
+            }
+        else
+            {
+            UpdateMailListModelAsyncL();
+            }
+        }
     // THE CORRECT FOLDER IS ALREADY OPEN. CHECK IF SOME PARTIAL UPDATE IS NEEDED.
     else
         {
-        // hide & show list to force it to adept to changed screen size
+        iMailList->ShowListL();
+        if (forwardNavigation)
+            {
+            iAppUi.StartMonitoringL();
+            }
         SetListAndCtrlBarFocusL(); // ShowListL() makes list focused and this may need to be reverted
         UnmarkAllItemsL();
-
         if ( aCustomMessageId == TUid::Uid(KMailSettingsReturnFromPluginSettings) )
             {
             // Better to refresh launcher grid view because mailbox branding might be changed.
             iAppUi.LauncherGrid().SetRefreshNeeded();
             }
-
         // Check the validity of focused message, it may be deleted or
         // reply/forward, read/unread status might have changed in editor or viewer
         UpdateItemAtIndexL( HighlightedIndex() );
@@ -1240,14 +1541,19 @@ void CFSEmailUiMailListVisualiser::SetStatusBarLayout()
 //
 void CFSEmailUiMailListVisualiser::ChildDoDeactivate()
 	{
-  FUNC_LOG;
+    FUNC_LOG;
+    if (iMailListModelUpdater)
+        {
+        iMailListModelUpdater->Cancel();
+        }
 	if ( !iAppUi.AppUiExitOngoing() )
-  		{
-  	  TRAP_IGNORE( {
+  	    {
+  	    TRAP_IGNORE( {
+            iMailList->HideListL();
             iMailList->SetFocusedL( EFalse );
   	        } );
-  	  iMailTreeListVisualizer->NotifyControlVisibilityChange( EFalse );
-  		}
+  	    iMailTreeListVisualizer->NotifyControlVisibilityChange( EFalse );
+  	    }
 	iThisViewActive = EFalse;
 	}
 
@@ -1761,22 +2067,13 @@ void CFSEmailUiMailListVisualiser::RefreshListItemsL()
     CFSEmailUiMailListModelItem* item( NULL );
     SetMailListItemsExtendedL();
 
-    TBool allowRefresh(EFalse);
     TInt count(0);
     count = iModel->Count();
     for ( TInt i=0; i < count; i++ )
 		{
 		item = static_cast<CFSEmailUiMailListModelItem*>(iModel->Item(i));
 
-		if ( i == 0 || i == count - 1 )
-            {//first item - show scrollbar
-             //last item - update scrollbar
-            allowRefresh = ETrue;
-            }
-        else
-            {//rest of the messages - insert without updating
-            allowRefresh = EFalse;
-            }
+        const TBool allowRefresh(i == 0 || (i == count - 1));
 
 		// Append separator item text into the list
 		if ( item && item->ModelItemType() == ETypeSeparator )
@@ -1791,6 +2088,39 @@ void CFSEmailUiMailListVisualiser::RefreshListItemsL()
 		}
 	}
 
+// ---------------------------------------------------------------------------
+//
+//
+// ---------------------------------------------------------------------------
+//
+void CFSEmailUiMailListVisualiser::RefreshListItemsL(TFsTreeItemId& aLatestNodeId, const TInt aStartIndex, const TInt aEndIndex)
+    {
+    FUNC_LOG;
+    // IMPLEMENTATION OF FILLING UP THE LIST
+    iMailList->BeginUpdate();
+    CFSEmailUiMailListModelItem* item( NULL );
+    if (aLatestNodeId == KFsTreeRootID && !aStartIndex)
+        {
+        iMailList->RemoveAllL();
+        iTreeItemArray.Reset();
+        SetMailListItemsExtendedL();
+        }
+    for ( TInt i = aStartIndex; i < aEndIndex; i++ )
+        {
+        item = static_cast<CFSEmailUiMailListModelItem*>(iModel->Item(i));
+        // Append separator item text into the list
+        if ( item && item->ModelItemType() == ETypeSeparator )
+            {
+            aLatestNodeId = InsertNodeItemL( i, KErrNotFound, EFalse );
+            }
+        // Append mail item into the list
+        else if ( item && item->ModelItemType() == ETypeMailItem )
+            {
+            InsertListItemL( i, aLatestNodeId, KErrNotFound, EFalse );
+            }
+        }
+    iMailList->EndUpdateL();
+    }
 
 void CFSEmailUiMailListVisualiser::SetMailListItemsExtendedL()
 	{
@@ -3907,10 +4237,10 @@ TBool CFSEmailUiMailListVisualiser::OfferEventL( const TAlfEvent& aEvent )
     // MSK label can now be updated when shift key has been handled
     SetMskL();
     // On KeyUp of EStdKeyYes usually Call application is called - prevent it
-    if ( iConsumeStdKeyYes_KeyUp && (aEvent.Code() == EEventKeyUp )) 
+    if ( iConsumeStdKeyYes_KeyUp && (aEvent.Code() == EEventKeyUp ))
 		{
 		iConsumeStdKeyYes_KeyUp = EFalse; // in case call button was consumed elsewhere first key up enables calling Call application
-		if ( EStdKeyYes == scanCode) 
+		if ( EStdKeyYes == scanCode)
 			{
 			  result = ETrue; // consume not to switch to Call application when call to contact was processed
 			  return result;
@@ -5673,6 +6003,9 @@ TInt CFSEmailUiMailListVisualiser::ItemIndexFromMessageId( const TFSMailMsgId& a
     		{
     		CFSEmailUiMailListModelItem* item =
                 static_cast<CFSEmailUiMailListModelItem*>( iModel->Item( i ) );
+			// when the item is a separator check whether its MessagePtr is valid (actually it's a reference)    		    		
+			if( &(item->MessagePtr()) != NULL) 
+				{
     		if ( aMessageId == item->MessagePtr().GetMessageId() )
     			{
     			TModelItemType itemType = item->ModelItemType();
@@ -5692,6 +6025,7 @@ TInt CFSEmailUiMailListVisualiser::ItemIndexFromMessageId( const TFSMailMsgId& a
     			}
     		}
         }
+		}
 	return idx;
     }
 
@@ -5844,8 +6178,8 @@ void CFSEmailUiMailListVisualiser::FolderSelectedL(
 
 		if ( !iMailFolder || ( iMailFolder && iMailFolder->GetFolderId() != aSelectedFolderId ) )
 		    {
-            delete iMailFolder;
-            iMailFolder = NULL;
+		    iMailListModelUpdater->Cancel();
+		    SafeDelete(iMailFolder);
             iMailFolder = iAppUi.GetMailClient()->GetFolderByUidL( iAppUi.GetActiveMailboxId(), aSelectedFolderId );
 
             if ( !iMailFolder )
@@ -5889,8 +6223,8 @@ void CFSEmailUiMailListVisualiser::MailboxSelectedL( TFSMailMsgId aSelectedMailb
     //Set touchmanager back to active
     DisableMailList(EFalse);
 	iAppUi.SetActiveMailboxL( aSelectedMailboxId );
-	delete iMailFolder;
-	iMailFolder = NULL;
+	iMailListModelUpdater->Cancel();
+	SafeDelete(iMailFolder);
 	iMailFolder = iAppUi.GetMailClient()->GetFolderByUidL( iAppUi.GetActiveMailboxId(), iAppUi.GetActiveBoxInboxId() );
 
 	// Set initial sort criteria when folder has changed
@@ -6305,13 +6639,21 @@ void CFSEmailUiMailListVisualiser::CreateNewMsgL()
 void CFSEmailUiMailListVisualiser::ReplyL( CFSMailMessage* aMsgPtr )
 	{
     FUNC_LOG;
-    DoReplyForwardL( KEditorCmdReply, aMsgPtr );
+    // Replying not possible from drafts folder
+    if ( iMailFolder && iMailFolder->GetFolderType() != EFSDraftsFolder )
+        {
+        DoReplyForwardL( KEditorCmdReply, aMsgPtr );
+        }
 	}
 
 void CFSEmailUiMailListVisualiser::ReplyAllL(  CFSMailMessage* aMsgPtr )
 	{
     FUNC_LOG;
-	DoReplyForwardL( KEditorCmdReplyAll, aMsgPtr );
+    // Replying all not possible from drafts folder
+    if ( iMailFolder && iMailFolder->GetFolderType() != EFSDraftsFolder )
+        {
+        DoReplyForwardL( KEditorCmdReplyAll, aMsgPtr );
+        }
 	}
 
 void CFSEmailUiMailListVisualiser::ForwardL( CFSMailMessage* aMsgPtr )
@@ -6393,8 +6735,8 @@ void CFSEmailUiMailListVisualiser::HandleMailBoxEventL( TFSMailEvent aEvent,
 					if ( entryId == currentFolderId )
 						{
 						// Current folder deleted, try to revert back to standard folder inbox.
-						delete iMailFolder;
-						iMailFolder = NULL;
+						iMailListModelUpdater->Cancel();
+						SafeDelete(iMailFolder);
 						TFSMailMsgId inboxId = iAppUi.GetActiveMailbox()->GetStandardFolderId( EFSInbox );
 						if ( !inboxId.IsNullId() )
 						    {
@@ -6433,9 +6775,11 @@ void CFSEmailUiMailListVisualiser::HandleMailBoxEventL( TFSMailEvent aEvent,
 				if ( parentFolderId && ( *parentFolderId == currentFolderId ) )
 					{
 	 				// Refresh mailfolder to get correct actual data
-                    delete iMailFolder;
-                    iMailFolder = NULL;
+                    /*
+                    iMailListModelUpdater->Cancel();
+					SafeDelete(iMailFolder);
 					iMailFolder = iAppUi.GetMailClient()->GetFolderByUidL( aMailboxId, currentFolderId );
+					*/
 					RemoveMsgItemsFromListIfFoundL( *removedEntries );
 					}
 				}
@@ -6447,8 +6791,8 @@ void CFSEmailUiMailListVisualiser::HandleMailBoxEventL( TFSMailEvent aEvent,
 			if ( FolderId().IsNullId() )
 				{
 				// Refresh mailfolder to standard folder inbox in case of zero id
-				delete iMailFolder;
-				iMailFolder = NULL;
+                iMailListModelUpdater->Cancel();
+				SafeDelete(iMailFolder);
 				TFSMailMsgId inboxId = iAppUi.GetActiveMailbox()->GetStandardFolderId( EFSInbox );
 				if ( !inboxId.IsNullId() )
 				    {
@@ -6493,9 +6837,11 @@ void CFSEmailUiMailListVisualiser::HandleMailBoxEventL( TFSMailEvent aEvent,
             else if ( fromFolderId && ( currentFolderId == *fromFolderId ) )
                 {
  	 			// Refresh mailfolder to get correct actual data
-				delete iMailFolder;
-				iMailFolder = NULL;
+                /*
+                iMailListModelUpdater->Cancel();
+                SafeDelete(iMailFolder);
 				iMailFolder = iAppUi.GetMailClient()->GetFolderByUidL( aMailboxId, currentFolderId );
+				*/
 				RemoveMsgItemsFromListIfFoundL( *entries );
                 }
             else
@@ -6512,14 +6858,16 @@ void CFSEmailUiMailListVisualiser::HandleMailBoxEventL( TFSMailEvent aEvent,
 			if ( *parentFolderId == currentFolderId )
 				{
  	 			// Refresh mailfolder to get correct actual data
-				delete iMailFolder;
-				iMailFolder = NULL;
+				/*
+                iMailListModelUpdater->Cancel();
+                SafeDelete(iMailFolder);
 				iMailFolder = iAppUi.GetMailClient()->GetFolderByUidL( aMailboxId, currentFolderId );
+				*/
 				for ( TInt i=0 ; i<entries->Count() ; i++ )
 					{
 					TFSMailMsgId msgId = (*entries)[i];
 					TInt idx = ItemIndexFromMessageId( msgId );
-					if ( idx >= 0 )
+					if ( idx != KErrNotFound )
 					    {
 					    UpdateItemAtIndexL( idx );
 					    }
@@ -7268,6 +7616,7 @@ CDateChangeTimer::CDateChangeTimer( CFSEmailUiMailListVisualiser& aMailListVisua
     {
     FUNC_LOG;
     CActiveScheduler::Add( this );
+    iDayCount = DayCount();
     }
 
 // -----------------------------------------------------------------------------
@@ -7315,20 +7664,58 @@ void CDateChangeTimer::Start()
 void CDateChangeTimer::RunL()
     {
     FUNC_LOG;
+    
+    if (iStatus.Int() != KErrNone)
+        {
+        	INFO_1("### CDateChangeTimer::RunL (err=%d) ###", iStatus.Int());
+        }
+
+    
+    TBool dayChanged = EFalse;
+    TInt dayCount = DayCount();
+    if (dayCount != iDayCount)
+        {
+  
+        iDayCount = dayCount;
+        dayChanged = ETrue;
+        }
+
+    
     if ( KErrCancel == iStatus.Int() )
         {
         ;
-        }
-    // System time changed?
-    else if ( KErrAbort == iStatus.Int() )
+        }   
+    else if ( KErrAbort == iStatus.Int() ) // System time changed
         {
+        if (dayChanged)
+            {
+            TRAP_IGNORE( iMailListVisualiser.NotifyDateChangedL() );
+            }
         Start();
         }
-    // Interval is over
-    else
+    else  // interval is over
         {
         // Update mail list and reissue the request for timer event
         TRAP_IGNORE( iMailListVisualiser.NotifyDateChangedL() );
         Start();
         }
+    
     }
+
+
+TInt CDateChangeTimer::DayCount()
+    {
+    TTime now;
+    now.HomeTime();
+    TTime minTime = Time::MinTTime();
+    TTimeIntervalDays days = now.DaysFrom(minTime);
+    return days.Int();
+    }
+
+
+
+
+
+
+
+

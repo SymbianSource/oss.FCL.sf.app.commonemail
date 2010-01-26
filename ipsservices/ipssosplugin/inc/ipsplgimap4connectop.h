@@ -217,6 +217,8 @@ protected:
         CIpsPlgEventHandler*                iEventHandler;
         TBool                               iIsSyncStartedSignaled;
 
+        // set to true if connection is already exists
+        TBool 								iAlreadyConnected;
     };
 
 #endif

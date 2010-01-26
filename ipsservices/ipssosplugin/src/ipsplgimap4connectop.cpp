@@ -88,7 +88,8 @@ CIpsPlgImap4ConnectOp::CIpsPlgImap4ConnectOp(
     	aSignallingAllowed ),
     iDoPlainConnect( aDoPlainConnect ),
     iEventHandler( aEventHandler ),
-    iIsSyncStartedSignaled( EFalse )
+    iIsSyncStartedSignaled( EFalse ),
+    iAlreadyConnected( EFalse )
     {
     FUNC_LOG;
     iService = aService;
@@ -125,10 +126,20 @@ void CIpsPlgImap4ConnectOp::ConstructL()
         User::Panic( KIpsPlgIpsConnPanic, KErrNotSupported );
         }
     
-	iState = EStateStartConnect;
-    iStatus = KRequestPending;    
-    SetActive();
-    CompleteThis();
+    if ( tentry.Connected() )
+        {      
+        iState = EStateCompleted; 
+        iAlreadyConnected = ETrue;
+        SetActive();
+        CompleteThis();
+        }
+    else
+        {
+        iState = EStateStartConnect;
+        iStatus = KRequestPending;    
+        SetActive();
+       CompleteThis();
+        }    
     }
 
 // ----------------------------------------------------------------------------
@@ -521,6 +532,13 @@ void CIpsPlgImap4ConnectOp::QueryUserPwdL()
 //     
 /*TInt CIpsPlgImap4ConnectOp::GetOperationErrorCodeL( )
     {
+    if ( iAlreadyConnected )
+        {
+        // Connected state was set in CIpsPlgPop3ConnectOp::ConstructL()
+        // so iOperation is null
+        return KErrNone;
+        }
+        
     if ( !iOperation )
         {
         return KErrNotFound;

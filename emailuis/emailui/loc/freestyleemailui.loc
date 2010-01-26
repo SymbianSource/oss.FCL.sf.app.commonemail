@@ -1916,6 +1916,36 @@ CHARACTER_SET UTF8
 //
 #define qtn_fse_viewer_note_attachment_restart_downloading "Downloading cancelled. Restart downloading?"
 
+// d:Download status item in the html email viewer
+// l:list_single_cmail_header_detail_pane_t1
+// d:%0U stands for the name of the attachment
+// d:%1U stands for the percent of attachment file which has been downloaded.
+// r:TB9.1
+//
+#define qtn_fse_viewer_attachments_download "%0U %1N%"
+
+// d:Download status item in the html email viewer
+// l:list_single_cmail_header_detail_pane_t1
+// d:%0U stands for the percent of attachment file which has been downloaded.
+// d:%1U stands for the name of the attachment
+// r:TB9.1
+//
+#define qtn_fse_viewer_attachments_download_prefix "%0N% %1U"
+
+// d:Download status item in the html email viewer when download is cancelled
+// l:list_single_cmail_header_detail_pane_t1
+// d:%0U stands for the name of the attachment
+// r:TB9.1
+//
+#define qtn_fse_viewer_attachments_download_cancelled "%0U cancelled"
+
+// d:Download status item in the html email viewer when download is cancelled
+// l:list_single_cmail_header_detail_pane_t1
+// d:%0U stands for the name of the attachment
+// r:TB9.1
+//
+#define qtn_fse_viewer_attachments_download_cancelled_prefix "cancelled %0U"
+
 // d:Menu component in attachment list which opens the download manager
 // l:list_single_cmail_header_detail_pane_t1
 // r:TB9.1

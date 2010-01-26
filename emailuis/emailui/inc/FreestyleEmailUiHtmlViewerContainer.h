@@ -31,6 +31,8 @@
 class CFSMailMessage;
 class CFreestyleEmailUiAppUi;
 class CFreestyleMessageHeaderURLEventHandler;
+class CFreestyleEmailUiAknStatusIndicator;
+struct TAttachmentData;
 
 /**
  * Html viewer container.
@@ -110,6 +112,11 @@ public:
      * changed
      */
     void ReloadPageL();
+    
+    void ShowAttacthmentDownloadStatusL( TFSProgress::TFSProgressStatus aProgressStatus, const TAttachmentData& aAttachmentData );
+    TBool AttacthmentDownloadStatusVisible();
+    void HideAttacthmentDownloadStatus();
+    
 private:
 
     // Second phase constructor.
@@ -174,6 +181,7 @@ private:
     CBrCtlInterface* FindWindowL( const TDesC& aTargetName ) const;  
     void HandleWindowCommandL( const TDesC& aTargetName, TBrCtlWindowCommand aCommand ); 
        
+    TRect CalcAttachmentStatusRect();
 
 private: // data
 
@@ -207,6 +215,8 @@ private: // data
     TInt iScrollPosition;
     COverlayControl* iOverlayControlNext;
     COverlayControl* iOverlayControlPrev;
+
+    CFreestyleEmailUiAknStatusIndicator* iAttachmentStatus;
     };
 
 

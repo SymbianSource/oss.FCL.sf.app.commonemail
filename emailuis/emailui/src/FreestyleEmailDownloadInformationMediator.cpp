@@ -233,18 +233,24 @@ void CFSEmailDownloadInfoMediator::RequestResponseL(
 		if ( aEvent.iProgressStatus ==
 			 TFSProgress::EFSStatus_RequestComplete && !aEvent.iError )
 			{
-			// Show "Download completed" if necessary
-			if ( CompletionNotesInUseL() && completedDownloadsToNotify )
-				{
-				LaunchDownloadCompleteNoteL( download.iPartData,
-					completedDownloadsToNotify );
-				}
             // Notification of saved attachments may be given if all downloads of the given message has been completed.
             if ( download.iNotifyComplete && countObject.iDownloadsCompletedCount &&
-                 countObject.iDownloadsCompletedCount == countObject.iDownloadsStartedCount )
+                 countObject.iDownloadsCompletedCount == countObject.iDownloadsStartedCount &&
+                 countObject.iSaveRequestedCount > 0 )
                  {
                  TFsEmailUiUtility::ShowFilesSavedToFolderNoteL( countObject.iSaveRequestedCount );
                  }        
+            // Show "Download completed" if necessary
+            else if ( CompletionNotesInUseL() && completedDownloadsToNotify )
+                {
+                LaunchDownloadCompleteNoteL( download.iPartData,
+                    completedDownloadsToNotify );
+                }
+            else if ( download.iNotifyComplete &&
+                      countObject.iSaveRequestedCount == 0 )
+                {
+                TFsEmailUiUtility::OpenAttachmentL( download.iPartData );
+                }
 			}
 	    // </cmail>
         }

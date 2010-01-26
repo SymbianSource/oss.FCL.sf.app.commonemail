@@ -108,7 +108,7 @@ SOURCE  FreestyleMessageHeaderURL.cpp
 SOURCE  FreestyleMessageHeaderHTML.cpp
 SOURCE  FreestyleMessageHeaderURLFactory.cpp
 SOURCE  FreestyleMessageHeaderURLEventHandler.cpp
-SOURCE  FreestyleAttachmentDownloadProgressBar.cpp
+SOURCE  FreestyleEmailUiAknStatusIndicator.cpp
 SOURCE  FreestyleEmailUiPropertySubscriber.cpp
 SOURCE  freestyleemailuimailboxdeleter.cpp
 SOURCE  cmailcustomstatuspaneindicators.cpp

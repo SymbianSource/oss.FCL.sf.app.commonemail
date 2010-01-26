@@ -175,6 +175,8 @@ public://from MIpsPlgConnectOpCallback
         CMsvEntrySelection*                             iSelection;
         // not owned
         CIpsPlgEventHandler*                            iEventHandler;
+        // set to true if connection is already exists
+        TBool iAlreadyConnected;
     };
 
 #endif

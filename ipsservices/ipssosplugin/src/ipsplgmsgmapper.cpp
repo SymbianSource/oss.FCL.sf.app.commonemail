@@ -122,7 +122,10 @@ CFSMailMessage* CIpsPlgMsgMapper::GetMailMessageL(
 
     fsMsg->SetFolderId(
         TFSMailMsgId( iPlugin.PluginId(), aEntry.Entry().Parent() ) );
-
+    // ERLN-7YUEX3
+    fsMsg->SetMailBoxId(TFSMailMsgId( iPlugin.PluginId(), aEntry.Entry().iServiceId ));
+    // End ERLN-7YUEX3
+    
     CMsvStore* store( NULL );
 
     if ( aEntry.HasStoreL() )

@@ -237,7 +237,7 @@ void CIpsPlgOnlineOperation::SignalFSObserver( TInt aStatus )
         // Initialize the progress data
         // it would be better to get fs progress from inherited class
         // by calling FSProgressL method??
-        if ( prog.iError == KErrCancel )
+        if ( prog.iError == KErrCancel || prog.iError == KErrImapBadLogon )
             {
             prog.iProgressStatus = TFSProgress::EFSStatus_RequestCancelled;
             }

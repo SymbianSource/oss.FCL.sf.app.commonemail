@@ -285,7 +285,8 @@ CIpsPlgPop3ConnectOp::CIpsPlgPop3ConnectOp(
     iPopulateLimit( KIpsPlgPop3PopulateLimitInitValue ),
     iForcePopulate( aForcePopulate ),
     iSelection( NULL ),
-    iEventHandler( aEventHandler )
+    iEventHandler( aEventHandler ),
+    iAlreadyConnected( EFalse )
     {
     iService = aServiceId; 
     }
@@ -339,6 +340,7 @@ void CIpsPlgPop3ConnectOp::ConstructL()
     if ( tentry.Connected() )
         {      
         iState = EConnected; 
+        iAlreadyConnected = ETrue;
         SetActive();
         CompleteThis();
         }
@@ -443,6 +445,14 @@ void CIpsPlgPop3ConnectOp::QueryUsrPassL()
 TInt CIpsPlgPop3ConnectOp::GetOperationErrorCodeL( )
     {
     FUNC_LOG;
+    
+    if ( iAlreadyConnected )
+        {
+        // Connected state was set in CIpsPlgPop3ConnectOp::ConstructL()
+        // so iOperation is null
+        return KErrNone;
+        }
+        
     if ( !iOperation )
         {
         return KErrNotFound;

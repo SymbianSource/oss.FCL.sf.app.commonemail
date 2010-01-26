@@ -36,7 +36,6 @@ class CFSMailMessage;
 class CFreestyleEmailUiAppUi;
 class CFsEmailUiHtmlViewerContainer;
 class CFreestyleMessageHeaderURL;
-class CFreestyleAttachmentDownloadProgressBar;
 class CAknWaitDialog; //<cmail>
 class CFlagSelectionNoteHandler;
 class CAknGlobalListQuery;
@@ -277,7 +276,6 @@ private:
     CFSMailMessage* iMessage;
     THtmlViewerActivationData iActivationData;
     CFSEmailUiAttachmentsListModel* iAttachmentsListModel;
-    CFreestyleAttachmentDownloadProgressBar* iProgressBar;
 
     // Stack of open messages. Messages are owned by this stack. 
     CStack<CFSMailMessage, ETrue>* iOpenMessages;
