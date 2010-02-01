@@ -526,7 +526,6 @@ TKeyResponse CNcsHeaderContainer::OfferKeyEventL(
 		        {
 		        FindFocused()->OfferKeyEventL( aKeyEvent, aType );
 		        ret = EKeyWasConsumed;
-		        doScroll = ETrue;
 		        }
 		    }
     	}
@@ -543,27 +542,7 @@ TKeyResponse CNcsHeaderContainer::OfferKeyEventL(
 
     if( doScroll )
     	{
-		// scroll the screen if the cursor goes beyond the screen
-		CNcsComposeViewContainer& parent = 
-            static_cast<CNcsComposeViewContainer&>( iParent );
-		
-		TInt screenPos( -Position().iY );
-		TInt cursorPos( CursorPosition() );
-		TInt lineHeight( Rect().Height() / LineCount() );
-		TInt screenHeight( parent.Rect().Height() );
-		
-		if( cursorPos - lineHeight < screenPos )
-			{
-			screenPos = cursorPos - lineHeight;		    	
-			}
-		else
-		if( cursorPos + lineHeight > screenPos + screenHeight )
-			{
-			screenPos = cursorPos + lineHeight - screenHeight;
-			}
-		
-		parent.ScrollL( screenPos );
-		PositionChanged();
+    	DoScrollL();
     	}
 
     return ret;
@@ -657,6 +636,7 @@ TKeyResponse CNcsHeaderContainer::ChangeFocusL( const TKeyEvent& aKeyEvent )
     if ( ret == EKeyWasConsumed )
         {
         container->UpdateScrollBarL();
+        DoScrollL();
         }
 
 	// NOTE: If we're leaving the header (down was pushed on last control)
@@ -1979,3 +1959,30 @@ void CNcsHeaderContainer::CommitFieldL( CCoeControl* aField )
         }
     }
 
+// -----------------------------------------------------------------------------
+// CNcsHeaderContainer::DoScrollL
+// 
+// -----------------------------------------------------------------------------
+void CNcsHeaderContainer::DoScrollL()
+    {
+    // scroll the screen if the cursor goes beyond the screen
+    CNcsComposeViewContainer& parent = static_cast<CNcsComposeViewContainer&>( iParent );
+    
+    TInt screenPos( -Position().iY );
+    TInt cursorPos( CursorPosition() );
+    TInt lineHeight( Rect().Height() / LineCount() );
+    TInt screenHeight( parent.Rect().Height() );
+    
+    if( cursorPos - lineHeight < screenPos )
+        {
+        screenPos = cursorPos - lineHeight;             
+        }
+    else
+    if( cursorPos + lineHeight > screenPos + screenHeight )
+        {
+        screenPos = cursorPos + lineHeight - screenHeight;
+        }
+    
+    parent.ScrollL( screenPos );
+    PositionChanged();    
+    }

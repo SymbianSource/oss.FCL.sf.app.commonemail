@@ -12,7 +12,7 @@
 * Contributors:
 *
  *  Description : Implementation of the class CESMRCasPluginImpl.
- *  Version     : %version: tr1sido#9 % << Don't touch! Updated by Synergy at check-out.
+ *  Version     : %version: 10 % << Don't touch! Updated by Synergy at check-out.
  *
  */
 
@@ -35,7 +35,7 @@
 #include <CalenInterimUtils2.h>
 #include <badesca.h>
 
-#include <implementationproxy.h>
+#include <ecom/implementationproxy.h>
 #include <StringLoader.h>
 #include <AknIconUtils.h>
 #include <bautils.h>

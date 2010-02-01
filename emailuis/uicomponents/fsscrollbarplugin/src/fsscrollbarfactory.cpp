@@ -18,11 +18,9 @@
 
 
 #include "emailtrace.h"
-#include <implementationproxy.h>
-//<cmail> SF
+#include <ecom/implementationproxy.h>
 #include <alf/alfconstants.h>
 #include <alf/alflayouthandlers.h>
-//</cmail>
 #include "fsscrollbarfactory.h"
 #include "fsscrollbarlayouthandler.h"
 #include "fsscrollbarpluginconstants.h"
@@ -31,30 +29,30 @@
 // ======== LOCAL FUNCTIONS ========
 
 MAlfExtensionFactory* Instance()
-	{
+    {
     FUNC_LOG;
-	TFsScrollbarFactory* me = NULL;
-	me = new TFsScrollbarFactory;
-	return me;
-	}
+    TFsScrollbarFactory* me = NULL;
+    me = new TFsScrollbarFactory;
+    return me;
+    }
 
 
 const TImplementationProxy ImplementationTable[] =
-	{
-	//<cmail>
+    {
+    //<cmail>
     IMPLEMENTATION_PROXY_ENTRY( KFsScrollbarImplementationId,
-	                            Instance )
-    //</cmail>	                            
-	};
+                                Instance )
+    //</cmail>                              
+    };
 
 
 EXPORT_C const TImplementationProxy* ImplementationGroupProxy(
     TInt& aTableCount )
-	{
-	aTableCount = sizeof( ImplementationTable )
+    {
+    aTableCount = sizeof( ImplementationTable )
         / sizeof( TImplementationProxy ) ;
-	return ImplementationTable;
-	}
+    return ImplementationTable;
+    }
 
 
 // ======== MEMBER FUNCTIONS ========

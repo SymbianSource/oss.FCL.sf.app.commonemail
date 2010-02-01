@@ -23,7 +23,7 @@
 #include <e32std.h>
 #include <e32base.h>
 //<cmail>
-#include "cfsmailcommon.h"
+#include "CFSMailCommon.h"
 //</cmail>
 
 /**
@@ -33,7 +33,7 @@
  *  @since S60 v3.1
  */
  class MFSMailEventObserver
- 	{
+    {
     public:
 
     /**

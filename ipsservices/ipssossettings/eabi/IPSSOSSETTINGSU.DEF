@@ -32,31 +32,31 @@ EXPORTS
 	_ZN20CIpsSetDataExtension15SetLastModifiedE5TTime @ 31 NONAME
 	_ZN20CIpsSetDataExtension15SetOpenHtmlMailEi @ 32 NONAME
 	_ZN20CIpsSetDataExtension16PopulateDefaultsEv @ 33 NONAME
-	_ZN20CIpsSetDataExtension16RoamHomeOnlyFlagEv @ 34 NONAME
-	_ZN20CIpsSetDataExtension16SetOutgoingLoginEi @ 35 NONAME
-	_ZN20CIpsSetDataExtension17SetLastUpdateInfoERK7TAOInfo @ 36 NONAME
+	_ZN20CIpsSetDataExtension16SetOutgoingLoginEi @ 34 NONAME
+	_ZN20CIpsSetDataExtension17SetLastUpdateInfoERK7TAOInfo @ 35 NONAME
+	_ZN20CIpsSetDataExtension19SetFirstEmnReceivedEi @ 36 NONAME
 	_ZN20CIpsSetDataExtension19SetInboxRefreshTimeEi @ 37 NONAME
-	_ZN20CIpsSetDataExtension19SetRoamHomeOnlyFlagEi @ 38 NONAME
-	_ZN20CIpsSetDataExtension19SetSelectedTimeStopE5TTime @ 39 NONAME
-	_ZN20CIpsSetDataExtension19SetSelectedWeekDaysEj @ 40 NONAME
-	_ZN20CIpsSetDataExtension20SetAlwaysOnlineStateE19TIpsSetDataAoStatesi @ 41 NONAME
-	_ZN20CIpsSetDataExtension20SetNewMailIndicatorsEi @ 42 NONAME
-	_ZN20CIpsSetDataExtension20SetSelectedTimeStartE5TTime @ 43 NONAME
-	_ZN20CIpsSetDataExtension25SetEmailNotificationStateE20TIpsSetDataEmnStates @ 44 NONAME
-	_ZN20CIpsSetDataExtension30SetEmnReceivedButNotSyncedFlagEi @ 45 NONAME
-	_ZN20CIpsSetDataExtension4NewLEv @ 46 NONAME
-	_ZN20CIpsSetDataExtension5NewLCEv @ 47 NONAME
-	_ZNK20CIpsSetDataExtension10DataHiddenEv @ 48 NONAME
-	_ZNK20CIpsSetDataExtension10UpdateModeEv @ 49 NONAME
-	_ZNK20CIpsSetDataExtension11ExtensionIdEv @ 50 NONAME
-	_ZNK20CIpsSetDataExtension11StatusFlagsEv @ 51 NONAME
-	_ZNK20CIpsSetDataExtension12EmailAddressEv @ 52 NONAME
-	_ZNK20CIpsSetDataExtension12LastModifiedEv @ 53 NONAME
-	_ZNK20CIpsSetDataExtension12OpenHtmlMailEv @ 54 NONAME
-	_ZNK20CIpsSetDataExtension13OutgoingLoginEv @ 55 NONAME
-	_ZNK20CIpsSetDataExtension14LastSyncStatusEv @ 56 NONAME
-	_ZNK20CIpsSetDataExtension14LastUpdateInfoEv @ 57 NONAME
-	_ZNK20CIpsSetDataExtension15IsSettingsValidEv @ 58 NONAME
+	_ZN20CIpsSetDataExtension19SetSelectedTimeStopE5TTime @ 38 NONAME
+	_ZN20CIpsSetDataExtension19SetSelectedWeekDaysEj @ 39 NONAME
+	_ZN20CIpsSetDataExtension20SetAlwaysOnlineStateE19TIpsSetDataAoStatesi @ 40 NONAME
+	_ZN20CIpsSetDataExtension20SetNewMailIndicatorsEi @ 41 NONAME
+	_ZN20CIpsSetDataExtension20SetSelectedTimeStartE5TTime @ 42 NONAME
+	_ZN20CIpsSetDataExtension25SetEmailNotificationStateE20TIpsSetDataEmnStates @ 43 NONAME
+	_ZN20CIpsSetDataExtension30SetEmnReceivedButNotSyncedFlagEi @ 44 NONAME
+	_ZN20CIpsSetDataExtension4NewLEv @ 45 NONAME
+	_ZN20CIpsSetDataExtension5NewLCEv @ 46 NONAME
+	_ZNK20CIpsSetDataExtension10DataHiddenEv @ 47 NONAME
+	_ZNK20CIpsSetDataExtension10UpdateModeEv @ 48 NONAME
+	_ZNK20CIpsSetDataExtension11ExtensionIdEv @ 49 NONAME
+	_ZNK20CIpsSetDataExtension11StatusFlagsEv @ 50 NONAME
+	_ZNK20CIpsSetDataExtension12EmailAddressEv @ 51 NONAME
+	_ZNK20CIpsSetDataExtension12LastModifiedEv @ 52 NONAME
+	_ZNK20CIpsSetDataExtension12OpenHtmlMailEv @ 53 NONAME
+	_ZNK20CIpsSetDataExtension13OutgoingLoginEv @ 54 NONAME
+	_ZNK20CIpsSetDataExtension14LastSyncStatusEv @ 55 NONAME
+	_ZNK20CIpsSetDataExtension14LastUpdateInfoEv @ 56 NONAME
+	_ZNK20CIpsSetDataExtension15IsSettingsValidEv @ 57 NONAME
+	_ZNK20CIpsSetDataExtension16FirstEmnReceivedEv @ 58 NONAME
 	_ZNK20CIpsSetDataExtension16InboxRefreshTimeEv @ 59 NONAME
 	_ZNK20CIpsSetDataExtension16SelectedTimeStopEv @ 60 NONAME
 	_ZNK20CIpsSetDataExtension16SelectedWeekDaysEv @ 61 NONAME
@@ -70,58 +70,56 @@ EXPORTS
 	_ZNK20CIpsSetDataExtension8ProtocolEv @ 69 NONAME
 	_ZNK20CIpsSetDataExtension9AccountIdEv @ 70 NONAME
 	_ZNK20CIpsSetDataExtension9MailboxIdEv @ 71 NONAME
-	_ZTI11CIpsSetData @ 72 NONAME ; #<TI>#
-	_ZTI11CIpsSetView @ 73 NONAME ; #<TI>#
-	_ZTI13CIpsSetUiItem @ 74 NONAME ; #<TI>#
-	_ZTI14CIpsSetDataApi @ 75 NONAME ; #<TI>#
-	_ZTI14CIpsSetUiNotes @ 76 NONAME ; #<TI>#
-	_ZTI15CIpsSetUiFinder @ 77 NONAME ; #<TI>#
-	_ZTI17CIpsSetDataStorer @ 78 NONAME ; #<TI>#
-	_ZTI17CIpsSetUiApprover @ 79 NONAME ; #<TI>#
-	_ZTI17CIpsSetUiItemLink @ 80 NONAME ; #<TI>#
-	_ZTI18CIpsSetDataManager @ 81 NONAME ; #<TI>#
-	_ZTI18CIpsSetUiBaseArray @ 82 NONAME ; #<TI>#
-	_ZTI18CIpsSetUiItemValue @ 83 NONAME ; #<TI>#
-	_ZTI19CIpsSetUiBaseDialog @ 84 NONAME ; #<TI>#
-	_ZTI19CIpsSetUiDialogCtrl @ 85 NONAME ; #<TI>#
-	_ZTI20CIpsSetDataExtension @ 86 NONAME ; #<TI>#
-	_ZTI20CIpsSetDataSignature @ 87 NONAME ; #<TI>#
-	_ZTI20CIpsSetUiItemLinkExt @ 88 NONAME ; #<TI>#
-	_ZTI20CIpsSetWizardAdapter @ 89 NONAME ; #<TI>#
-	_ZTI21CIpsSetDataCtrlCenrep @ 90 NONAME ; #<TI>#
-	_ZTI22CIpsSetUiItemsEditText @ 91 NONAME ; #<TI>#
-	_ZTI24CIpsSetUiFolderListArray @ 92 NONAME ; #<TI>#
-	_ZTI24CIpsSetUiItemAccessPoint @ 93 NONAME ; #<TI>#
-	_ZTI25CIpsSetUtilsOperationWait @ 94 NONAME ; #<TI>#
-	_ZTI27CIpsSetUiSubscriptionDialog @ 95 NONAME ; #<TI>#
-	_ZTI9CIpsSetUi @ 96 NONAME ; #<TI>#
-	_ZTV11CIpsSetData @ 97 NONAME ; #<VT>#
-	_ZTV11CIpsSetView @ 98 NONAME ; #<VT>#
-	_ZTV13CIpsSetUiItem @ 99 NONAME ; #<VT>#
-	_ZTV14CIpsSetDataApi @ 100 NONAME ; #<VT>#
-	_ZTV14CIpsSetUiNotes @ 101 NONAME ; #<VT>#
-	_ZTV15CIpsSetUiFinder @ 102 NONAME ; #<VT>#
-	_ZTV17CIpsSetDataStorer @ 103 NONAME ; #<VT>#
-	_ZTV17CIpsSetUiApprover @ 104 NONAME ; #<VT>#
-	_ZTV17CIpsSetUiItemLink @ 105 NONAME ; #<VT>#
-	_ZTV18CIpsSetDataManager @ 106 NONAME ; #<VT>#
-	_ZTV18CIpsSetUiBaseArray @ 107 NONAME ; #<VT>#
-	_ZTV18CIpsSetUiItemValue @ 108 NONAME ; #<VT>#
-	_ZTV19CIpsSetUiBaseDialog @ 109 NONAME ; #<VT>#
-	_ZTV19CIpsSetUiDialogCtrl @ 110 NONAME ; #<VT>#
-	_ZTV20CIpsSetDataExtension @ 111 NONAME ; #<VT>#
-	_ZTV20CIpsSetDataSignature @ 112 NONAME ; #<VT>#
-	_ZTV20CIpsSetUiItemLinkExt @ 113 NONAME ; #<VT>#
-	_ZTV20CIpsSetWizardAdapter @ 114 NONAME ; #<VT>#
-	_ZTV21CIpsSetDataCtrlCenrep @ 115 NONAME ; #<VT>#
-	_ZTV22CIpsSetUiItemsEditText @ 116 NONAME ; #<VT>#
-	_ZTV24CIpsSetUiFolderListArray @ 117 NONAME ; #<VT>#
-	_ZTV24CIpsSetUiItemAccessPoint @ 118 NONAME ; #<VT>#
-	_ZTV25CIpsSetUtilsOperationWait @ 119 NONAME ; #<VT>#
-	_ZTV27CIpsSetUiSubscriptionDialog @ 120 NONAME ; #<VT>#
-	_ZTV9CIpsSetUi @ 121 NONAME ; #<VT>#
-	_ZTI31CSubscriptionDialogActiveHelper @ 122 NONAME ; #<TI>#
-	_ZTV31CSubscriptionDialogActiveHelper @ 123 NONAME ; #<VT>#
-	_ZN20CIpsSetDataExtension19SetFirstEmnReceivedEi @ 124 NONAME
-	_ZNK20CIpsSetDataExtension16FirstEmnReceivedEv @ 125 NONAME
+	_ZTI11CIpsSetData @ 72 NONAME
+	_ZTI11CIpsSetView @ 73 NONAME
+	_ZTI13CIpsSetUiItem @ 74 NONAME
+	_ZTI14CIpsSetDataApi @ 75 NONAME
+	_ZTI14CIpsSetUiNotes @ 76 NONAME
+	_ZTI15CIpsSetUiFinder @ 77 NONAME
+	_ZTI17CIpsSetDataStorer @ 78 NONAME
+	_ZTI17CIpsSetUiApprover @ 79 NONAME
+	_ZTI17CIpsSetUiItemLink @ 80 NONAME
+	_ZTI18CIpsSetDataManager @ 81 NONAME
+	_ZTI18CIpsSetUiBaseArray @ 82 NONAME
+	_ZTI18CIpsSetUiItemValue @ 83 NONAME
+	_ZTI19CIpsSetUiBaseDialog @ 84 NONAME
+	_ZTI19CIpsSetUiDialogCtrl @ 85 NONAME
+	_ZTI20CIpsSetDataExtension @ 86 NONAME
+	_ZTI20CIpsSetDataSignature @ 87 NONAME
+	_ZTI20CIpsSetUiItemLinkExt @ 88 NONAME
+	_ZTI20CIpsSetWizardAdapter @ 89 NONAME
+	_ZTI21CIpsSetDataCtrlCenrep @ 90 NONAME
+	_ZTI22CIpsSetUiItemsEditText @ 91 NONAME
+	_ZTI24CIpsSetUiFolderListArray @ 92 NONAME
+	_ZTI24CIpsSetUiItemAccessPoint @ 93 NONAME
+	_ZTI25CIpsSetUtilsOperationWait @ 94 NONAME
+	_ZTI27CIpsSetUiSubscriptionDialog @ 95 NONAME
+	_ZTI31CSubscriptionDialogActiveHelper @ 96 NONAME
+	_ZTI9CIpsSetUi @ 97 NONAME
+	_ZTV11CIpsSetData @ 98 NONAME
+	_ZTV11CIpsSetView @ 99 NONAME
+	_ZTV13CIpsSetUiItem @ 100 NONAME
+	_ZTV14CIpsSetDataApi @ 101 NONAME
+	_ZTV14CIpsSetUiNotes @ 102 NONAME
+	_ZTV15CIpsSetUiFinder @ 103 NONAME
+	_ZTV17CIpsSetDataStorer @ 104 NONAME
+	_ZTV17CIpsSetUiApprover @ 105 NONAME
+	_ZTV17CIpsSetUiItemLink @ 106 NONAME
+	_ZTV18CIpsSetDataManager @ 107 NONAME
+	_ZTV18CIpsSetUiBaseArray @ 108 NONAME
+	_ZTV18CIpsSetUiItemValue @ 109 NONAME
+	_ZTV19CIpsSetUiBaseDialog @ 110 NONAME
+	_ZTV19CIpsSetUiDialogCtrl @ 111 NONAME
+	_ZTV20CIpsSetDataExtension @ 112 NONAME
+	_ZTV20CIpsSetDataSignature @ 113 NONAME
+	_ZTV20CIpsSetUiItemLinkExt @ 114 NONAME
+	_ZTV20CIpsSetWizardAdapter @ 115 NONAME
+	_ZTV21CIpsSetDataCtrlCenrep @ 116 NONAME
+	_ZTV22CIpsSetUiItemsEditText @ 117 NONAME
+	_ZTV24CIpsSetUiFolderListArray @ 118 NONAME
+	_ZTV24CIpsSetUiItemAccessPoint @ 119 NONAME
+	_ZTV25CIpsSetUtilsOperationWait @ 120 NONAME
+	_ZTV27CIpsSetUiSubscriptionDialog @ 121 NONAME
+	_ZTV31CSubscriptionDialogActiveHelper @ 122 NONAME
+	_ZTV9CIpsSetUi @ 123 NONAME
 

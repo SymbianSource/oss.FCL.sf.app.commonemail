@@ -23,6 +23,7 @@
 
 #include "../../../inc/fsmtmsuids.h"
 #include "../../../../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
+#include "../../../../../../inc/emailtraceconfig.hrh"
 
 TARGET               fsuimtm.dll
 TARGETTYPE           DLL
@@ -72,5 +73,8 @@ LIBRARY              efsrv.lib
 LIBRARY              fssendashelper.lib
 LIBRARY              cone.lib
 LIBRARY              cmaillogger.lib
+#ifdef TRACE_INTO_FILE
+LIBRARY             flogger.lib
+#endif // TRACE_INTO_FILE
 
 nostrictdef

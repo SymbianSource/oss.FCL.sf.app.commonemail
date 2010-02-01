@@ -21,6 +21,7 @@
 #include <data_caging_paths.hrh>
 
 #include "../../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
+#include "../../../../inc/emailtraceconfig.hrh"
 #include "../inc/fscrclsettingextensionuid.h"
 
 macro FSC_CHANGES
@@ -57,7 +58,6 @@ END // RESOURCE
 
 USERINCLUDE             ../inc
 USERINCLUDE             ../../../../inc
-SYSTEMINCLUDE   	/epoc32/include/ecom
 
 APP_LAYER_SYSTEMINCLUDE
 
@@ -70,3 +70,7 @@ LIBRARY                 eikcoctl.lib
 LIBRARY                 avkon.lib
 LIBRARY                 cmaillogger.lib
 
+
+#ifdef TRACE_INTO_FILE
+LIBRARY                 flogger.lib
+#endif // TRACE_INTO_FILE

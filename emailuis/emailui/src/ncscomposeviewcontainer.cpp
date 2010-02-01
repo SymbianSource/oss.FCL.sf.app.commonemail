@@ -705,15 +705,19 @@ TKeyResponse CNcsComposeViewContainer::ChangeFocusL(
 // This is called through MNcsFieldSizeObserver when the rects have changed
 // -----------------------------------------------------------------------------
 //
-TBool CNcsComposeViewContainer::UpdateFieldSizeL()
+TBool CNcsComposeViewContainer::UpdateFieldSizeL( TBool aDoScroll )
     {
     FUNC_LOG;
 
 	// We may not have finished construction
-	if ( iHeader && iMessageField && iReadOnlyQuoteField )
+	if ( iHeader && iMessageField && iReadOnlyQuoteField && !aDoScroll )
 	    {
 	    SizeChanged();
 	    DrawDeferred();
+	    }
+	if ( iHeader && aDoScroll )
+	    {
+	    iHeader->DoScrollL();
 	    }
 
 	return EFalse;

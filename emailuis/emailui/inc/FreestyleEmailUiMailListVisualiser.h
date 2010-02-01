@@ -21,7 +21,7 @@
 #define __FREESTYLEEMAILUI_MAILLISTVISUALISER_H__
 
 // SYSTEM INCLUDES
-#include <EIKMOBS.H>
+#include <eikmobs.h>
 //<cmail>
 #include "fscontrolbarobserver.h"
 #include "fstreelistobserver.h"

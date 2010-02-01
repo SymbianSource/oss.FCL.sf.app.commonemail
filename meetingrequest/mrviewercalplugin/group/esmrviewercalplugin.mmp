@@ -17,6 +17,7 @@
 
 
 #include "../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
+#include "../../../inc/emailtraceconfig.hrh"
 #include "../../inc/esmrinternaluid.h"
 #include <data_caging_paths.hrh>
 #include <platform_paths.hrh>
@@ -56,4 +57,7 @@ LIBRARY esmrgui.lib
 LIBRARY calinterimapi.lib
 LIBRARY cmaillogger.lib
 
+#ifdef TRACE_INTO_FILE
+LIBRARY                 flogger.lib
+#endif // TRACE_INTO_FILE
 // End of file

@@ -50,12 +50,14 @@
 #include "fsalfscrollbarlayout.h"
 #include <csxhelp/cmail.hlp.hrh>
 #include <featmgr.h>
+#include <coecntrl.h>
 
 #include <aknmessagequerydialog.h>
 #include <aknstyluspopupmenu.h>
 #include <aknlayoutscalable_avkon.cdl.h>
 #include <aknlayoutscalable_apps.cdl.h>
 #include <layoutmetadata.cdl.h>
+#include <touchfeedback.h>
 
 // INTERNAL INCLUDE FILES
 #include "FSEmailBuildFlags.h"
@@ -233,7 +235,8 @@ void CFSEmailUiLauncherGridVisualiser::DoFirstStartL()
 		iStylusPopUpMenu->ConstructFromResourceL( reader );
 		CleanupStack::PopAndDestroy(); // reader
         }
-
+    
+    iCoeControl = new( ELeave )CCoeControl;
     // Initial visual layout update is done when the view gets activated.
     iRefreshNeeded = ETrue;
 
@@ -306,6 +309,7 @@ CFSEmailUiLauncherGridVisualiser::~CFSEmailUiLauncherGridVisualiser()
     delete iScrollbar;
     delete iMailboxDeleter;
     delete iStylusPopUpMenu;
+    delete iCoeControl;
     }
 
 void CFSEmailUiLauncherGridVisualiser::CreateModelL()
@@ -1106,6 +1110,13 @@ TBool CFSEmailUiLauncherGridVisualiser::HandlePointerEventL(
             {
             case TPointerEvent::EButton1Down:
                 {
+                // tactile feedback
+                MTouchFeedback* feedback = MTouchFeedback::Instance();
+                if ( feedback )
+                    {
+                    feedback->InstantFeedback( ETouchFeedbackBasic );
+                    }
+
                 iItemIdInButtonDownEvent.iItemId = id;
                 iItemIdInButtonDownEvent.iLaunchSelection = ETrue;
                 SetFocusedItemL( id );
@@ -2251,6 +2262,16 @@ void CFSEmailUiLauncherGridVisualiser::HandleDynamicVariantSwitchL( CFsEmailUiVi
         VisualLayoutUpdatedL();
 
         UpdateFocusVisibility();
+        
+        // Stylus pop-up menu is closed during Layout switching
+        if( iStylusPopUpMenuLaunched )
+            {
+            TRAP_IGNORE(iStylusPopUpMenu->HandleControlEventL(iCoeControl,
+                    MCoeControlObserver::EEventRequestExit ));
+
+            iStylusPopUpMenuLaunched = EFalse;
+            }
+       
         }
  	}
 

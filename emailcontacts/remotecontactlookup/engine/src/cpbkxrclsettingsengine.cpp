@@ -18,7 +18,7 @@
 
 #include "emailtrace.h"
 #include <centralrepository.h>
-#include <ecom.h>
+#include <ecom/ecom.h>
 #include "cpbkxrclsettingsengine.h"
 #include "pbkxrclsettings.hrh"
 #include "cpbkxremotecontactlookupprotocoladapter.h"

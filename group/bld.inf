@@ -23,9 +23,3 @@
 #include "../meetingrequest/group/bld.inf"                   
 #include "../emailuis/group/bld.inf"
 #include "../email_plat/group/bld.inf"                       
-
-
-// Remove when Cmail is integrated to the Starter-list. (<=done)
-#ifdef __CMAIL_OZ_NB_ONLY
-#include "../legacy/starteroz/group/bld.inf"
-#endif

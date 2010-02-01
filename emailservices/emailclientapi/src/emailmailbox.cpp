@@ -163,6 +163,8 @@ TInt CEmailMailbox::GetFoldersL( RFolderArray& aFolders ) const
         CleanupStack::Pop();    // folder
         }
     CleanupStack::Pop();    // folders
+    folders.Close(); // close but don't delete folders because they are
+                     // owned by CEmailFolder
     return res;
     }
 

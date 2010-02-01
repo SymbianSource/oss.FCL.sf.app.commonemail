@@ -42,9 +42,26 @@ public:
     /** @see CEmailInterfaceFactory::InterfaceL */
     virtual MEmailInterface* InterfaceL(  const TInt aInterfaceId );
     
+private:
+    enum TEmailUidAppendRemoveMode
+        {
+        EEmailUidModeAppend,
+        EEmailUidModeRemove,
+        };
+    
+    /**
+    * Registers/removes application UID to/from P&S so that the application
+    * can be shutdown during Email IAD update. Update may fail if any
+    * application is using some Email services during the update.
+    * Application UID is removed from the list in destructor.
+    * @param aMode Is the current process UID added or removed from the list
+    */
+    void AppendOrRemoveUidL( const TEmailUidAppendRemoveMode aMode );
+
 private:    
-    // c++ constructor
+    // c++ constructor and 2nd phase constructor
     CEmailInterfaceFactoryImpl();
+    void ConstructL();
 };
 
 #endif // EMAILINTERFACEFACTORY_H

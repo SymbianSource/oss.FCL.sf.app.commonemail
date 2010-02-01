@@ -287,9 +287,9 @@ CFSEmailUiSearchListVisualiser::CFSEmailUiSearchListVisualiser( CFreestyleEmailU
     iEnv( &aEnv ),
     iLatestSearchText( 0 ),
     iListAddedToControlGroup( EFalse ),
+    iPreparedForExit( EFalse ),
     iConsumeStdKeyYes_KeyUp( EFalse ), // for consuming the call event if call for contact processed
-    iRequiredSearchPriority( KStandardSearchPriority ),  // for search email priority decreasing
-    iPreparedForExit( EFalse )
+    iRequiredSearchPriority( KStandardSearchPriority )  // for search email priority decreasing
 	{
     FUNC_LOG;
 	}
@@ -764,8 +764,8 @@ void CFSEmailUiSearchListVisualiser::HandleDynamicVariantSwitchL( CFsEmailUiView
             {
             TRgb normalColor = iAppUi.LayoutHandler()->ListNormalStateTextSkinColor();
             iSearchTreeListVisualizer->RootNodeVisualizer()->SetNormalStateTextColor( normalColor );
-            }
-        ReScaleUiL();
+            ReScaleUiL();
+            }       
         }
 	}
 

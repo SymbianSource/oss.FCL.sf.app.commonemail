@@ -45,6 +45,7 @@
 class CBrushAnimation;
 class CFsAlfScrollbarLayout;
 class CAknStylusPopUpMenu;
+class CCoeControl;
 
 
 class TFSLauncherGridMailboxStatus
@@ -401,6 +402,8 @@ private: // data
     // Contains the ID of a selected mailbox. Used for deleting mailboxes
     // with long tap pop-up menu.
     TFSMailMsgId iMailboxToDelete;
+    
+    CCoeControl* iCoeControl;
     };
 
 #endif // __FREESTYLEEMAILUI_MAINGRIDUIVISUALISER_H__

@@ -522,7 +522,10 @@ void CIpsPlgImap4ConnectOp::StartL()
 // 
 void CIpsPlgImap4ConnectOp::QueryUserPwdL()
     {
-    iEventHandler->QueryUsrPassL( iService, this );
+    if ( iEventHandler )
+        {
+        iEventHandler->QueryUsrPassL( iService, this );
+        }
     }
 
     

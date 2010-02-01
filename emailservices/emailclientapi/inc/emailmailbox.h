@@ -18,7 +18,7 @@
 #ifndef EMAILMAILBOX_H
 #define EMAILMAILBOX_H
 
-#include "cfsmailcommon.h"
+#include "CFSMailCommon.h"
 #include <memailmailbox.h>
 #include "mfsmaileventobserver.h"
 #include "mfsmailrequestobserver.h"

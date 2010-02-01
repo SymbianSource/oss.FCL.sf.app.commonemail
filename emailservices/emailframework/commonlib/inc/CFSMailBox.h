@@ -19,7 +19,7 @@
 #ifndef CFSMAILBOX_H
 #define CFSMAILBOX_H
 
-#include "cfsmailboxbase.h"
+#include "CFSMailBoxBase.h"
 
 // forward declarations
 class CFSMailPlugin;

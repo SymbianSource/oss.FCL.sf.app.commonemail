@@ -123,7 +123,6 @@ USERINCLUDE     ../loc
 APP_LAYER_SYSTEMINCLUDE
 USERINCLUDE     ../../inc
 USERINCLUDE     ../../../inc
-SYSTEMINCLUDE   /epoc32/include/ecom
 
 // 9.11.2009: Temporary flagging SYMBIAN_ENABLE_SPLIT_HEADERS
 // Can be removed when header structure change is complete

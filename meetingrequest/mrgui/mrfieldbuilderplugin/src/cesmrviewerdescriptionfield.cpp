@@ -312,7 +312,10 @@ void CESMRViewerDescriptionField::ExecuteGenericCommandL( TInt aCommand )
                 {
                 const CESMRRichTextLink* link =
                     iRichTextViewer->GetSelectedLink();
-                LocationPluginL().ShowOnMapL( *iLocation, link->Value() );
+                if ( link )
+                	{
+                	LocationPluginL().ShowOnMapL( *iLocation, link->Value() );
+                	}
                 }
             break;
             }

@@ -19,6 +19,9 @@
 #include "emailtrace.h"
 #include "ipsplgheaders.h"
 
+#include <featmgr.h>
+#include <bldvariant.hrh> // for feature definitions
+
 // <cmail> const TInt KIpsSetUtilsCharAt = '@'; </cmail>
 const TInt KIpsSetUtilsCharLessThan = '<';
 const TInt KIpsSetUtilsCharMoreThan = '>';
@@ -48,6 +51,11 @@ CIpsPlgSmtpService::~CIpsPlgSmtpService()
     {
     FUNC_LOG;
     delete iMsgMapper;
+    
+    if( iFeatureManagerInitialized )
+    	{
+    	FeatureManager::UnInitializeLib();  
+    	}
     }    
 
 // ---------------------------------------------------------------------------
@@ -89,6 +97,9 @@ void CIpsPlgSmtpService::ConstructL()
     {
     FUNC_LOG;
     iMsgMapper = CIpsPlgMsgMapper::NewL( iSession, iPlugin );
+    
+    FeatureManager::InitializeLibL();
+    iFeatureManagerInitialized = ETrue;
     }
 
 // ---------------------------------------------------------------------------
@@ -523,9 +534,43 @@ CFSMailMessage* CIpsPlgSmtpService::CreateFSMessageAndSetFlagsL(
     {
     FUNC_LOG;
 
+    
+   
+    // tp teleca change for korean specific email encoding
     // Default charset
     TUid charset;
     charset.iUid = KCharacterSetIdentifierUtf8;
+
+      // korea specific charset
+      if ( FeatureManager::FeatureSupported( KFeatureIdKorean ))
+      {
+      
+      //const TUid KCRUidEMailCharsets = {0x20018441};    // korea needs different default charset
+          const TInt KoreanMib = 36; // magic number to read from cen rep would be better
+            
+		  CCnvCharacterSetConverter* charConv = NULL;
+		  TRAPD( err, charConv = CCnvCharacterSetConverter::NewL() );
+		  if( err == KErrNone )
+			  {
+			  TUint characterSetId = KCharacterSetIdentifierUtf8;
+			  RFs fs;
+			  TInt err = fs.Connect();
+			  
+			  if( err == KErrNone )
+				  {
+				  TRAP( err, characterSetId = charConv->ConvertMibEnumOfCharacterSetToIdentifierL( KoreanMib, fs ));
+				   if( err == KErrNone )
+					   { // set korean specific charset
+					   charset = TUid::Uid( characterSetId );
+					   }
+				   fs.Close();
+				  }
+			  }
+
+         delete charConv; 
+     
+      }
+      // tp teleca change END
 
     // set in preparation flag, altought 
     // not known where this affects

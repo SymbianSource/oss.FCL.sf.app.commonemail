@@ -38,7 +38,7 @@
 #include "fssmileydictionary.h"
 ///</cmail>
 #include <commonphoneparser.h>
-#include <BrowserLauncher.h>
+#include <browserlauncher.h>
 //<cmail>
 #include "CFSMailMessagePart.h"
 #include "CFSMailClient.h"
@@ -83,7 +83,7 @@
 #include <BrowserLauncher.h>
 
 // for bookmarks
-#include <FavouritesLimits.h>	// KBrowserBookmarks
+#include <FavouritesLimits.h>   // KBrowserBookmarks
 #include <FavouritesDb.h>
 
 // for fonts
@@ -160,25 +160,25 @@ CFSEmailUiMailViewerVisualiser* CFSEmailUiMailViewerVisualiser::NewL( CAlfEnv& a
 // CFSEmailUiMailViewerVisualiser::NewLC
 // -----------------------------------------------------------------------------
 CFSEmailUiMailViewerVisualiser* CFSEmailUiMailViewerVisualiser::NewLC( CAlfEnv& aEnv, CFreestyleEmailUiAppUi& aAppUi, CAlfControlGroup& aMailViewerControlGroup )
-	{
+    {
     FUNC_LOG;
     CFSEmailUiMailViewerVisualiser* self = new (ELeave) CFSEmailUiMailViewerVisualiser( aEnv, aAppUi, aMailViewerControlGroup );
     CleanupStack::PushL( self );
     self->ConstructL();
     return self;
-	}
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::ConstructL
 // -----------------------------------------------------------------------------
 void CFSEmailUiMailViewerVisualiser::ConstructL()
-	{
+    {
     FUNC_LOG;
     BaseConstructL( R_FSEMAILUI_MAIL_VIEWER_VIEW );
-	iMessage = NULL;
-	iNextOrPevMessageSelected = EFalse;
-	iFirstStartCompleted = EFalse;
-	}
+    iMessage = NULL;
+    iNextOrPevMessageSelected = EFalse;
+    iFirstStartCompleted = EFalse;
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::DoFirstStartL()
@@ -208,7 +208,7 @@ void CFSEmailUiMailViewerVisualiser::DoFirstStartL()
     MenuBar()->SetContextMenuTitleResourceId( R_FSEMAILUI_MAILVIEWER_MSK_MENUBAR );
 
     iFirstStartCompleted = ETrue;
-	}
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::CFSEmailUiMailViewerVisualiser
@@ -230,25 +230,25 @@ CFSEmailUiMailViewerVisualiser::CFSEmailUiMailViewerVisualiser( CAlfEnv& aEnv,
 // CFSEmailUiMailViewerVisualiser::~CFSEmailUiMailViewerVisualiser
 // -----------------------------------------------------------------------------
 CFSEmailUiMailViewerVisualiser::~CFSEmailUiMailViewerVisualiser()
-	{
+    {
     FUNC_LOG;
         //<cmail> notewrapper is replaced by iWaitDialog
-	//delete iAsyncWaitNote;
+    //delete iAsyncWaitNote;
         //</cmail>
-	if( iIBServiceHandler )
-		{
-		iIBServiceHandler->Reset();
-		delete iIBServiceHandler;
-		}
+    if( iIBServiceHandler )
+        {
+        iIBServiceHandler->Reset();
+        delete iIBServiceHandler;
+        }
 
-	if ( iAsyncCallback )
-	    {
-	    iAsyncCallback->Cancel();
-	    delete iAsyncCallback;
-	    }
+    if ( iAsyncCallback )
+        {
+        iAsyncCallback->Cancel();
+        delete iAsyncCallback;
+        }
 
-	iDownloadProgressControlGroup = NULL; // owned by AlfEnv
-	}
+    iDownloadProgressControlGroup = NULL; // owned by AlfEnv
+    }
 
 void CFSEmailUiMailViewerVisualiser::PrepareForExit()
     {
@@ -259,9 +259,9 @@ void CFSEmailUiMailViewerVisualiser::PrepareForExit()
     iNewMailTempAddress = NULL;
 
     // Text viewer control need to be removed control group and deleted here,
-	// because akn physics (used by text viewer control) object's destructor
-	// ends up calling CoeEnv->AppUi, so AppUi must be alive when deleting
-	// text viewer control
+    // because akn physics (used by text viewer control) object's destructor
+    // ends up calling CoeEnv->AppUi, so AppUi must be alive when deleting
+    // text viewer control
     if ( iTextViewerControl )
         {
         ControlGroup().Remove( iTextViewerControl );
@@ -330,7 +330,7 @@ void CFSEmailUiMailViewerVisualiser::RequestResponseL( const TFSProgress& aEvent
         // <cmail> Action menu is dismissed if it's opened on an attachment
         // and the download has completed (to prevent canceling after completion).
         SViewerHeadingHotSpotData currentHeaderHotSpotData;
-		CFindItemEngine::SFoundItem currentBodyHotSpotData;
+        CFindItemEngine::SFoundItem currentBodyHotSpotData;
 
         THotspotType hotspotType = iViewerRichText->FindCurrentHotSpotL(
             currentHeaderHotSpotData, currentBodyHotSpotData );
@@ -347,7 +347,7 @@ void CFSEmailUiMailViewerVisualiser::RequestResponseL( const TFSProgress& aEvent
 
             if( menu->IsDisplayed() )
                 {
-        		menu->MenuPane()->CloseCascadeMenu();
+                menu->MenuPane()->CloseCascadeMenu();
                 }
             }
         // </cmail>
@@ -359,7 +359,7 @@ void CFSEmailUiMailViewerVisualiser::RequestResponseL( const TFSProgress& aEvent
 // for MFSMailRequestObserver callback
 // -----------------------------------------------------------------------------
 void CFSEmailUiMailViewerVisualiser::RequestResponseL( TFSProgress aEvent, TInt aRequestId )
-	{
+    {
     FUNC_LOG;
     if ( iFirstStartCompleted ) // Safety
         {
@@ -456,78 +456,78 @@ void CFSEmailUiMailViewerVisualiser::RequestResponseL( TFSProgress aEvent, TInt 
     if(iAsyncProcessComplete && iWaitDialog && iDialogNotDismissed)
         iWaitDialog->ProcessFinishedL(); // deletes the dialog
     //</cmail>
-	}
+    }
 
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::FolderSelectedL
 // -----------------------------------------------------------------------------
 void CFSEmailUiMailViewerVisualiser::FolderSelectedL(
-	TFSMailMsgId aSelectedFolderId, TFSEmailUiCtrlBarResponse aResponse )
-	{
+    TFSMailMsgId aSelectedFolderId, TFSEmailUiCtrlBarResponse aResponse )
+    {
     FUNC_LOG;
 
     if ( iMoveToFolderOngoing )
-		{
-		iMoveToFolderOngoing = EFalse;
-		if ( !iMovingMeetingRequest )
-			{
-			switch ( aResponse )
-				{
-				case EFSEmailUiCtrlBarResponseSelect:
-					{
-					iMoveDestinationFolder = aSelectedFolderId;
-					iAsyncCallback->Cancel(); // cancel any outstanding callback just to be safe
-					iAsyncCallback->Set( TCallBack( MoveToFolderAndExitL, this ) );
-					iAsyncCallback->CallBack();
-					}
-					break;
+        {
+        iMoveToFolderOngoing = EFalse;
+        if ( !iMovingMeetingRequest )
+            {
+            switch ( aResponse )
+                {
+                case EFSEmailUiCtrlBarResponseSelect:
+                    {
+                    iMoveDestinationFolder = aSelectedFolderId;
+                    iAsyncCallback->Cancel(); // cancel any outstanding callback just to be safe
+                    iAsyncCallback->Set( TCallBack( MoveToFolderAndExitL, this ) );
+                    iAsyncCallback->CallBack();
+                    }
+                    break;
                 case EFSEmailUiCtrlBarResponseCancel:
-				default:
-					break;
-				}
-			}
-		else
-		 	{
-		 	iMovingMeetingRequest = EFalse;
-			switch ( aResponse )
-				{
-				case EFSEmailUiCtrlBarResponseCancel:
-					iOpResult.iResultCode = KErrCancel;
-					break;
-				case EFSEmailUiCtrlBarResponseSelect:
-					{
-					// Do moving here, do not exit, because mrui exists itself.
-					iOpResult.iResultCode = KErrNone;
-					iMoveDestinationFolder = aSelectedFolderId;
-				    RArray<TFSMailMsgId> messageIds;
-					CleanupClosePushL( messageIds );
-					messageIds.Append( iMessage->GetMessageId() );
-					// Trap is needed because protocol might return KErrNotSupported
-					// if move away from current folder is not supprted
-					TRAPD(errMove, iAppUi.GetActiveMailbox()->MoveMessagesL( messageIds,
-			                                          iMessage->GetFolderId(), iMoveDestinationFolder ));
-	        		if ( errMove != KErrNotSupported )
-		       			{
-	        			if ( errMove == KErrNone )
-			       			{
-						    TFsEmailUiUtility::DisplayMsgsMovedNoteL( 1, iMoveDestinationFolder, ETrue );
-			       			}
-		       			else
-		       				{
-		       				User::Leave( errMove );
-		       				}
-		       			}
-					CleanupStack::PopAndDestroy( &messageIds );
-					}
-					break;
-				default:
-					break;
-				}
-		 	}
-		}
+                default:
+                    break;
+                }
+            }
+        else
+            {
+            iMovingMeetingRequest = EFalse;
+            switch ( aResponse )
+                {
+                case EFSEmailUiCtrlBarResponseCancel:
+                    iOpResult.iResultCode = KErrCancel;
+                    break;
+                case EFSEmailUiCtrlBarResponseSelect:
+                    {
+                    // Do moving here, do not exit, because mrui exists itself.
+                    iOpResult.iResultCode = KErrNone;
+                    iMoveDestinationFolder = aSelectedFolderId;
+                    RArray<TFSMailMsgId> messageIds;
+                    CleanupClosePushL( messageIds );
+                    messageIds.Append( iMessage->GetMessageId() );
+                    // Trap is needed because protocol might return KErrNotSupported
+                    // if move away from current folder is not supprted
+                    TRAPD(errMove, iAppUi.GetActiveMailbox()->MoveMessagesL( messageIds,
+                                                      iMessage->GetFolderId(), iMoveDestinationFolder ));
+                    if ( errMove != KErrNotSupported )
+                        {
+                        if ( errMove == KErrNone )
+                            {
+                            TFsEmailUiUtility::DisplayMsgsMovedNoteL( 1, iMoveDestinationFolder, ETrue );
+                            }
+                        else
+                            {
+                            User::Leave( errMove );
+                            }
+                        }
+                    CleanupStack::PopAndDestroy( &messageIds );
+                    }
+                    break;
+                default:
+                    break;
+                }
+            }
+        }
 
-	}
+    }
 
 // ---------------------------------------------------------------------------
 // From MFSEmailUiContactHandlerObserver
@@ -562,28 +562,28 @@ TInt CFSEmailUiMailViewerVisualiser::MoveToFolderAndExitL( TAny* aMailViewerVisu
         static_cast<CFSEmailUiMailViewerVisualiser*>(aMailViewerVisualiser);
 
     RArray<TFSMailMsgId> messageIds;
-	CleanupClosePushL( messageIds );
+    CleanupClosePushL( messageIds );
     messageIds.Append( self->iMessage->GetMessageId() );
 
-	// Trap is needed because protocol might return KErrNotSupported
-	// if move away from current folder is not supprted
-	TRAPD(errMove, self->iAppUi.GetActiveMailbox()->MoveMessagesL( messageIds,
+    // Trap is needed because protocol might return KErrNotSupported
+    // if move away from current folder is not supprted
+    TRAPD(errMove, self->iAppUi.GetActiveMailbox()->MoveMessagesL( messageIds,
                                                      self->iMessage->GetFolderId(),
                                                      self->iMoveDestinationFolder ) );
-	if ( errMove != KErrNotSupported )
-		{
-		if ( errMove == KErrNone )
-			{
-			// move successfull, display note
-		    TFsEmailUiUtility::DisplayMsgsMovedNoteL( 1, self->iMoveDestinationFolder, ETrue );
-			}
-		else
-			{
-			// Leave with any other err code than KErrNone or KErrNotSupported.
-			User::Leave( errMove );
-			}
-		}
-	CleanupStack::PopAndDestroy( &messageIds );
+    if ( errMove != KErrNotSupported )
+        {
+        if ( errMove == KErrNone )
+            {
+            // move successfull, display note
+            TFsEmailUiUtility::DisplayMsgsMovedNoteL( 1, self->iMoveDestinationFolder, ETrue );
+            }
+        else
+            {
+            // Leave with any other err code than KErrNone or KErrNotSupported.
+            User::Leave( errMove );
+            }
+        }
+    CleanupStack::PopAndDestroy( &messageIds );
 
     // return to previous view
     self->HandleCommandL( EAknSoftkeyBack );
@@ -595,45 +595,45 @@ TInt CFSEmailUiMailViewerVisualiser::MoveToFolderAndExitL( TAny* aMailViewerVisu
 // CFSEmailUiMailViewerVisualiser::OpenFolderListForMessageMovingL
 // -----------------------------------------------------------------------------
 TBool CFSEmailUiMailViewerVisualiser::OpenFolderListForMessageMovingL()
-	{
+    {
     FUNC_LOG;
-	TBool ret = EFalse;
-	// Ignore if mailbox doesn't support moving or we are viewing embedded message
-	if ( iAppUi.GetActiveMailbox()->HasCapability( EFSMBoxCapaMoveToFolder ) &&
-	        !iEmbeddedMessageMode )
-	    {
-	    // Activate folder selection view and handle moving after callback gets destination
-	    iMoveToFolderOngoing = ETrue;
-	    TFolderListActivationData folderListData;
-	    folderListData.iCallback = this;
-	    CFSMailFolder* folder = iAppUi.GetMailClient()->GetFolderByUidL( iMessage->GetMailBoxId(), iMessage->GetFolderId() );
-	    folderListData.iSourceFolderType = TFSFolderType( folder->GetFolderType() );
-	    delete folder;
-	    const TPckgBuf<TFolderListActivationData> pkgOut( folderListData );
-	    iAppUi.EnterFsEmailViewL( FolderListId, KFolderListMoveMessage, pkgOut );
-	    ret = ETrue;
-	    }
-	return ret;
-	}
+    TBool ret = EFalse;
+    // Ignore if mailbox doesn't support moving or we are viewing embedded message
+    if ( iAppUi.GetActiveMailbox()->HasCapability( EFSMBoxCapaMoveToFolder ) &&
+            !iEmbeddedMessageMode )
+        {
+        // Activate folder selection view and handle moving after callback gets destination
+        iMoveToFolderOngoing = ETrue;
+        TFolderListActivationData folderListData;
+        folderListData.iCallback = this;
+        CFSMailFolder* folder = iAppUi.GetMailClient()->GetFolderByUidL( iMessage->GetMailBoxId(), iMessage->GetFolderId() );
+        folderListData.iSourceFolderType = TFSFolderType( folder->GetFolderType() );
+        delete folder;
+        const TPckgBuf<TFolderListActivationData> pkgOut( folderListData );
+        iAppUi.EnterFsEmailViewL( FolderListId, KFolderListMoveMessage, pkgOut );
+        ret = ETrue;
+        }
+    return ret;
+    }
 
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::ViewerControl
 // -----------------------------------------------------------------------------
 CAlfControl* CFSEmailUiMailViewerVisualiser::ViewerControl()
-	{
+    {
     FUNC_LOG;
-	return iTextViewerControl;
-	}
+    return iTextViewerControl;
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::Id
 // -----------------------------------------------------------------------------
 TUid CFSEmailUiMailViewerVisualiser::Id() const
-	{
+    {
     FUNC_LOG;
-	return MailViewerId;
-	}
+    return MailViewerId;
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::ChildDoActivateL
@@ -648,7 +648,7 @@ void CFSEmailUiMailViewerVisualiser::ChildDoActivateL(
     const TVwsViewId& aPrevViewId,
     TUid aCustomMessageId,
     const TDesC8& aCustomMessage )
-	{
+    {
     FUNC_LOG;
 
     // Read the activation parameters
@@ -792,7 +792,7 @@ void CFSEmailUiMailViewerVisualiser::ChildDoActivateL(
         }
 
     iNextOrPevMessageSelected = EFalse;
-	}
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::OfferToolbarEventL
@@ -840,24 +840,24 @@ TInt CFSEmailUiMailViewerVisualiser::ToolbarResourceId() const
 // CFSEmailUiMailViewerVisualiser::ChildDoDeactivate
 // -----------------------------------------------------------------------------
 void CFSEmailUiMailViewerVisualiser::ChildDoDeactivate()
-	{
+    {
     FUNC_LOG;
-	CancelFetchings();
-	if ( iFetchingAnimationTimer )
-	    {
-	    iFetchingAnimationTimer->Stop();
-	    }
-	if ( iDownloadProgressIndicator )
-	    {
-	    iDownloadProgressIndicator->HideIndicator();
-	    }
+    CancelFetchings();
+    if ( iFetchingAnimationTimer )
+        {
+        iFetchingAnimationTimer->Stop();
+        }
+    if ( iDownloadProgressIndicator )
+        {
+        iDownloadProgressIndicator->HideIndicator();
+        }
 
-	// Hide this view's navipane
-	HideNaviPane();
+    // Hide this view's navipane
+    HideNaviPane();
 
-	// set view itself as toolbar observer again (e.g. MRGUI could have been changed it)
-	Toolbar()->SetToolbarObserver( this );
-	}
+    // set view itself as toolbar observer again (e.g. MRGUI could have been changed it)
+    Toolbar()->SetToolbarObserver( this );
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::HideNaviPane
@@ -893,7 +893,7 @@ void CFSEmailUiMailViewerVisualiser::ActivateControlGroup( TInt aDelay /*= 0*/ )
 // message directly from list UI.
 // -----------------------------------------------------------------------------
 void CFSEmailUiMailViewerVisualiser::HandleMrCommandL(
-	TInt aCommandId,
+    TInt aCommandId,
     TFSMailMsgId aMailboxId,
     TFSMailMsgId aFolderId,
     TFSMailMsgId aMessageId )
@@ -902,16 +902,16 @@ void CFSEmailUiMailViewerVisualiser::HandleMrCommandL(
 
     // All items should be run
     if ( !iFirstStartCompleted )
-    	{
-    	DoFirstStartL();
+        {
+        DoFirstStartL();
         }
 
-	UpdateMessagePtrL( aMailboxId, aFolderId, aMessageId );
+    UpdateMessagePtrL( aMailboxId, aFolderId, aMessageId );
 
     if ( aCommandId == EFsEmailUiCmdCalRemoveFromCalendar )
         {
         iAppUi.MrViewerInstanceL()->RemoveMeetingRequestFromCalendarL(
-			*iMessage, *this );
+            *iMessage, *this );
         }
     else
         {
@@ -929,7 +929,7 @@ void CFSEmailUiMailViewerVisualiser::HandleMrCommandL(
             respondStatus = EESMRAttendeeStatusDecline;
             }
         iAppUi.MrViewerInstanceL()->ResponseToMeetingRequestL(
-        	respondStatus, *iMessage, *this );
+            respondStatus, *iMessage, *this );
         }
     }
 
@@ -938,7 +938,7 @@ void CFSEmailUiMailViewerVisualiser::HandleMrCommandL(
 // From viewer observer for CFsTextViewer callbacks
 // -----------------------------------------------------------------------------
 void CFSEmailUiMailViewerVisualiser::HandleTextViewerEventL( TFsTextViewerEvent aEvent )
-	{
+    {
     FUNC_LOG;
     if ( iFirstStartCompleted ) // Safety
         {
@@ -988,7 +988,7 @@ void CFSEmailUiMailViewerVisualiser::HandleTextViewerEventL( TFsTextViewerEvent 
             SetActionMenuIconVisbilityL();
             }
         }
-	}
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::HandleHeaderHotspotActionL
@@ -1036,26 +1036,26 @@ TBool CFSEmailUiMailViewerVisualiser::HandleHeaderHotspotActionL(
 
 // Helper funcitons to get viewed message ID and Folder id
 TFSMailMsgId CFSEmailUiMailViewerVisualiser::ViewedMessageFolderId()
-	{
+    {
     FUNC_LOG;
-	TFSMailMsgId ret;
-	if ( iMessage )
-		{
-		ret = iMessage->GetFolderId();
-		}
-	return ret;
-	}
+    TFSMailMsgId ret;
+    if ( iMessage )
+        {
+        ret = iMessage->GetFolderId();
+        }
+    return ret;
+    }
 
 TFSMailMsgId CFSEmailUiMailViewerVisualiser::ViewedMessageId()
-	{
+    {
     FUNC_LOG;
-	TFSMailMsgId ret;
-	if ( iMessage )
-		{
-		ret = iMessage->GetMessageId();
-		}
-	return ret;
-	}
+    TFSMailMsgId ret;
+    if ( iMessage )
+        {
+        ret = iMessage->GetMessageId();
+        }
+    return ret;
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::RefreshL
@@ -1071,16 +1071,16 @@ void CFSEmailUiMailViewerVisualiser::RefreshL( TBool aFirstRefresh /*= EFalse*/ 
         //</cmail>
         if ( TFsEmailUiUtility::IsMessageBodyLargeL( iMessage ) )
             {
-	        //<cmail> using normal wait note instead of using global
-	        //waitNoteId = TFsEmailUiUtility::ShowGlobalWaitNoteLC( R_FSE_WAIT_OPENING_TEXT );
+            //<cmail> using normal wait note instead of using global
+            //waitNoteId = TFsEmailUiUtility::ShowGlobalWaitNoteLC( R_FSE_WAIT_OPENING_TEXT );
             iWaitDialogOpening = new(ELeave)CAknWaitDialog(
                                 (REINTERPRET_CAST(CEikDialog**,&iWaitDialogOpening)));
-	        HBufC* noteText = StringLoader::LoadLC( R_FSE_WAIT_OPENING_TEXT );
+            HBufC* noteText = StringLoader::LoadLC( R_FSE_WAIT_OPENING_TEXT );
             iWaitDialogOpening->SetTextL(*noteText);
             //iWaitDialogOpening->DrawableWindow()->SetOrdinalPosition(0);
-	        CleanupStack::PopAndDestroy(noteText);
+            CleanupStack::PopAndDestroy(noteText);
             iWaitDialogOpening->ExecuteLD(R_FSE_WAIT_DIALOG_NO_CANCEL);
-	        //</cmail>
+            //</cmail>
             }
 
         // Do the update
@@ -1098,12 +1098,12 @@ void CFSEmailUiMailViewerVisualiser::RefreshL( TBool aFirstRefresh /*= EFalse*/ 
             }
 
         // Close the wait note if it was opened
-		if ( iWaitDialogOpening )//<cmail>
+        if ( iWaitDialogOpening )//<cmail>
             {
-		    //<cmail>
-		    //CleanupStack::PopAndDestroy( (TAny*)waitNoteId );
+            //<cmail>
+            //CleanupStack::PopAndDestroy( (TAny*)waitNoteId );
             iWaitDialogOpening->ProcessFinishedL(); //it destroys the waitnote also
-		    //</cmail>
+            //</cmail>
             }
         }
     }
@@ -1154,22 +1154,22 @@ void CFSEmailUiMailViewerVisualiser::PostRefreshL()
 // If the structure is known but message body is not fetched yet, start fetching it.
 // -----------------------------------------------------------------------------
 void CFSEmailUiMailViewerVisualiser::CheckMessageStructureL()
-	{
+    {
     FUNC_LOG;
-	if ( iFirstStartCompleted && iMessage )
-		{
-		if ( !MessageStructureKnown( *iMessage ) )
-			{ // fetch structure
-			StartWaitedFetchingL( EMessageStructure );
-			}
-		else if ( StartFetchingBodyAfterOpeningL() )
-			{
-			iViewerRichText->AppendFetchingMoreTextL();
-			StartFetchingMessagePartL( *iMessage, EMessagePlainTextBodyPart );
-			iFetchingAnimationTimer->Start( KAnimationRefreshTimeIntervalInMilliseconds );
-			}
-		}
-	}
+    if ( iFirstStartCompleted && iMessage )
+        {
+        if ( !MessageStructureKnown( *iMessage ) )
+            { // fetch structure
+            StartWaitedFetchingL( EMessageStructure );
+            }
+        else if ( StartFetchingBodyAfterOpeningL() )
+            {
+            iViewerRichText->AppendFetchingMoreTextL();
+            StartFetchingMessagePartL( *iMessage, EMessagePlainTextBodyPart );
+            iFetchingAnimationTimer->Start( KAnimationRefreshTimeIntervalInMilliseconds );
+            }
+        }
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::UpdateDownloadIndicatorL
@@ -1240,68 +1240,68 @@ void CFSEmailUiMailViewerVisualiser::UpdateDownloadIndicatorL( TFSProgress::TFSP
 // For dynamically dimm/undimm menu options according to currect message and focus in the viewer
 // -----------------------------------------------------------------------------
 void CFSEmailUiMailViewerVisualiser::DynInitMenuPaneL(
-	TInt aResourceId, CEikMenuPane* aMenuPane )
-	{
+    TInt aResourceId, CEikMenuPane* aMenuPane )
+    {
     FUNC_LOG;
-	if ( !iMessage || !iTextViewer )
-	    {
-	    User::Leave( KErrNotReady );
-	    }
+    if ( !iMessage || !iTextViewer )
+        {
+        User::Leave( KErrNotReady );
+        }
 
-	if ( aResourceId == R_FSEMAILUI_MAILVIEWER_MENUPANE )
-		{
-		
-	    if ( FeatureManager::FeatureSupported( KFeatureIdFfCmailIntegration ) )
-		   {
-		   // remove help support in pf5250
-		   aMenuPane->SetItemDimmed( EFsEmailUiCmdHelp, ETrue);      
-		   }
-	    
+    if ( aResourceId == R_FSEMAILUI_MAILVIEWER_MENUPANE )
+        {
+        
+        if ( FeatureManager::FeatureSupported( KFeatureIdFfCmailIntegration ) )
+           {
+           // remove help support in pf5250
+           aMenuPane->SetItemDimmed( EFsEmailUiCmdHelp, ETrue);      
+           }
+        
         // Folder independent options
 
-		// hide/show MessageReader
-		TBool hideMessageReader = iEmbeddedMessageMode || !iAppUi.MessageReaderSupportsFreestyle();
-		aMenuPane->SetItemDimmed( EFsEmailUiCmdReadEmail, hideMessageReader );
+        // hide/show MessageReader
+        TBool hideMessageReader = iEmbeddedMessageMode || !iAppUi.MessageReaderSupportsFreestyle();
+        aMenuPane->SetItemDimmed( EFsEmailUiCmdReadEmail, hideMessageReader );
 
-		// hide/show actions sub menu
-		TBool hideActions = !ShowActionsMenuInOptionsL();
-		aMenuPane->SetItemDimmed( EFsEmailUiCmdMailActions, hideActions );
+        // hide/show actions sub menu
+        TBool hideActions = !ShowActionsMenuInOptionsL();
+        aMenuPane->SetItemDimmed( EFsEmailUiCmdMailActions, hideActions );
 
-		// hide/show next and previous message options
-		TBool hideNext = !ShowNextMessageMenuInOptions();
-		aMenuPane->SetItemDimmed( EFsEmailUiCmdNextMessage, hideNext );
-		TBool hidePrev = !ShowPreviousMessageMenuInOptions();
-		aMenuPane->SetItemDimmed( EFsEmailUiCmdPreviousMessage, hidePrev );
+        // hide/show next and previous message options
+        TBool hideNext = !ShowNextMessageMenuInOptions();
+        aMenuPane->SetItemDimmed( EFsEmailUiCmdNextMessage, hideNext );
+        TBool hidePrev = !ShowPreviousMessageMenuInOptions();
+        aMenuPane->SetItemDimmed( EFsEmailUiCmdPreviousMessage, hidePrev );
 
         // hide/show copy to clipboard
         TBool hideCopyToClipBoard = !IsCopyToClipBoardAvailableL();
         aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsCopyToClipboard, hideCopyToClipBoard );
 
 
-		// Folder dependent options
-		TFSMailMsgId currentMessageFolderId = iMessage->GetFolderId();
-		CFSMailFolder* currentFolder = NULL;
-		if ( !iEmbeddedMessageMode )
-		    {
+        // Folder dependent options
+        TFSMailMsgId currentMessageFolderId = iMessage->GetFolderId();
+        CFSMailFolder* currentFolder = NULL;
+        if ( !iEmbeddedMessageMode )
+            {
             TRAP_IGNORE( currentFolder = iAppUi.GetMailClient()->GetFolderByUidL(
                     iMessage->GetMailBoxId(), currentMessageFolderId ) );
-		    }
-		CleanupStack::PushL( currentFolder );
-		if ( !currentFolder || currentFolder->GetFolderType() == EFSOutbox )
-			{ // outbox folder or embedded message
-			aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsForward, ETrue );
-			aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsReply, ETrue );
-			aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsReplyAll, ETrue );
-			aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsForward2, ETrue );
+            }
+        CleanupStack::PushL( currentFolder );
+        if ( !currentFolder || currentFolder->GetFolderType() == EFSOutbox )
+            { // outbox folder or embedded message
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsForward, ETrue );
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsReply, ETrue );
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsReplyAll, ETrue );
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsForward2, ETrue );
             aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsMoveToDrafts, !currentFolder );
-			aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsDelete, !currentFolder );
-			}
-		else
-			{ // other folders
-			aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsMoveToDrafts, ETrue );
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsDelete, !currentFolder );
+            }
+        else
+            { // other folders
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsMoveToDrafts, ETrue );
 
-			// hide reply all if there's no multiple recipients
-			TInt numRecipients(0);
+            // hide reply all if there's no multiple recipients
+            TInt numRecipients(0);
             if ( iMessage )
                 {
                 //Get # of recipients
@@ -1334,187 +1334,187 @@ void CFSEmailUiMailViewerVisualiser::DynInitMenuPaneL(
                     }
                 }
 
-			TBool hideReplyAll = ( numRecipients <= 1 );
-		    aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsReplyAll, hideReplyAll );
+            TBool hideReplyAll = ( numRecipients <= 1 );
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsReplyAll, hideReplyAll );
 
             // In Sent folder, option forward is shown above options reply and reply all
             TBool forwardAboveReply = ( currentFolder->GetFolderType() == EFSSentFolder );
             aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsForward, !forwardAboveReply );
             aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsForward2, forwardAboveReply );
-			}
-		CleanupStack::PopAndDestroy( currentFolder );
-		}
+            }
+        CleanupStack::PopAndDestroy( currentFolder );
+        }
 
-	if ( aResourceId == R_FSEMAILUI_MAILVIEWER_SUBMENU_MORE )
-		{
-		TFSMailMsgId currentMessageFolderId = iMessage->GetFolderId();
+    if ( aResourceId == R_FSEMAILUI_MAILVIEWER_SUBMENU_MORE )
+        {
+        TFSMailMsgId currentMessageFolderId = iMessage->GetFolderId();
         CFSMailFolder* currentFolder = NULL;
         if ( !iEmbeddedMessageMode )
             {
             TRAP_IGNORE( currentFolder = iAppUi.GetMailClient()->GetFolderByUidL(
                     iMessage->GetMailBoxId(), currentMessageFolderId ) );
             }
-		CleanupStack::PushL( currentFolder );
-		if ( !currentFolder || currentFolder->GetFolderType() == EFSOutbox )
-			{  // outbox folder or embedded message
-			aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkAsUnread, ETrue );
-			aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkAsRead, ETrue );
-			aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsMoveMessage, ETrue );
-			aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsFlag, ETrue );
+        CleanupStack::PushL( currentFolder );
+        if ( !currentFolder || currentFolder->GetFolderType() == EFSOutbox )
+            {  // outbox folder or embedded message
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkAsUnread, ETrue );
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkAsRead, ETrue );
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsMoveMessage, ETrue );
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsFlag, ETrue );
 // <cmail> Prevent Download Manager opening with attachments
-//			aMenuPane->SetItemDimmed( EFsEmailUiCmdDownloadManager, ETrue );
+//          aMenuPane->SetItemDimmed( EFsEmailUiCmdDownloadManager, ETrue );
 // </cmail> Prevent Download Manager opening with attachments
-			}
-		else // other folders
-			{
-			// show read/unread according to current state
-			TBool messageIsRead = iMessage->IsFlagSet( EFSMsgFlag_Read );
-			aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkAsRead, messageIsRead );
-			aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkAsUnread, !messageIsRead );
+            }
+        else // other folders
+            {
+            // show read/unread according to current state
+            TBool messageIsRead = iMessage->IsFlagSet( EFSMsgFlag_Read );
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkAsRead, messageIsRead );
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkAsUnread, !messageIsRead );
 
-			// show/hide move message
-			TBool hideMove = !iAppUi.GetActiveMailbox()->HasCapability( EFSMBoxCapaMoveToFolder );
-			aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsMoveMessage, hideMove );
+            // show/hide move message
+            TBool hideMove = !iAppUi.GetActiveMailbox()->HasCapability( EFSMBoxCapaMoveToFolder );
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsMoveMessage, hideMove );
 
-			// show/hide flag for followup
-			TBool hideFlag = !TFsEmailUiUtility::IsFollowUpSupported( *iMailBox );
-			aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsFlag, hideFlag );
+            // show/hide flag for followup
+            TBool hideFlag = !TFsEmailUiUtility::IsFollowUpSupported( *iMailBox );
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsFlag, hideFlag );
 
-			// hide/show download manager option
+            // hide/show download manager option
 // <cmail> Prevent Download Manager opening with attachments
-//			TBool hideDownloadMan = !ShowDownloadManagerMenuInOptions();
-//			aMenuPane->SetItemDimmed( EFsEmailUiCmdDownloadManager, hideDownloadMan );
+//          TBool hideDownloadMan = !ShowDownloadManagerMenuInOptions();
+//          aMenuPane->SetItemDimmed( EFsEmailUiCmdDownloadManager, hideDownloadMan );
 // </cmail>
-			}
-		CleanupStack::PopAndDestroy( currentFolder );
-		}
+            }
+        CleanupStack::PopAndDestroy( currentFolder );
+        }
 
-	if ( aResourceId == R_FSEMAILUI_MAILVIEWER_SUBMENU_ACTIONS )
-		{
-		// All menu items are hidden by default.
-		// Undimm items that should be visible in action menu.
-		SViewerHeadingHotSpotData currentHeaderHotSpotData;
-		CFindItemEngine::SFoundItem currentBodyHotSpotData;
-		THotspotType hotspotType = iViewerRichText->FindCurrentHotSpotL(
-			currentHeaderHotSpotData, currentBodyHotSpotData );
+    if ( aResourceId == R_FSEMAILUI_MAILVIEWER_SUBMENU_ACTIONS )
+        {
+        // All menu items are hidden by default.
+        // Undimm items that should be visible in action menu.
+        SViewerHeadingHotSpotData currentHeaderHotSpotData;
+        CFindItemEngine::SFoundItem currentBodyHotSpotData;
+        THotspotType hotspotType = iViewerRichText->FindCurrentHotSpotL(
+            currentHeaderHotSpotData, currentBodyHotSpotData );
 
-		TBool remoteLookupAvailable =
-			TFsEmailUiUtility::IsRemoteLookupSupported( *iMailBox );
+        TBool remoteLookupAvailable =
+            TFsEmailUiUtility::IsRemoteLookupSupported( *iMailBox );
 
-		if ( ( hotspotType == EHeaderHotspot && (
-			currentHeaderHotSpotData.iType == ETypeFromAddressDisplayName ||
-			currentHeaderHotSpotData.iType == ETypeToAddressDisplayName ||
-			currentHeaderHotSpotData.iType == ETypeCcAddressDisplayName ||
-			currentHeaderHotSpotData.iType == ETypeBccAddressDisplayName ||
-			currentHeaderHotSpotData.iType == ETypeEmailAddress )  )
-			||
-			( hotspotType == EBodyHotspot &&
-			  currentBodyHotSpotData.iItemType ==
-				CFindItemEngine::EFindItemSearchMailAddressBin ) )
-			{
-			aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsCall, EFalse );
-			aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsCreateMessage, EFalse );
-			aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsCreateMail, EFalse );
-			aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsContactDetails, EFalse );
-			aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsAddContact2, EFalse );
-			aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsRemoteLookup, !remoteLookupAvailable );
-			}
-		else if ( hotspotType == EHeaderHotspot &&
+        if ( ( hotspotType == EHeaderHotspot && (
+            currentHeaderHotSpotData.iType == ETypeFromAddressDisplayName ||
+            currentHeaderHotSpotData.iType == ETypeToAddressDisplayName ||
+            currentHeaderHotSpotData.iType == ETypeCcAddressDisplayName ||
+            currentHeaderHotSpotData.iType == ETypeBccAddressDisplayName ||
+            currentHeaderHotSpotData.iType == ETypeEmailAddress )  )
+            ||
+            ( hotspotType == EBodyHotspot &&
+              currentBodyHotSpotData.iItemType ==
+                CFindItemEngine::EFindItemSearchMailAddressBin ) )
+            {
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsCall, EFalse );
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsCreateMessage, EFalse );
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsCreateMail, EFalse );
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsContactDetails, EFalse );
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsAddContact2, EFalse );
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsRemoteLookup, !remoteLookupAvailable );
+            }
+        else if ( hotspotType == EHeaderHotspot &&
                   currentHeaderHotSpotData.iType == ETypeAttachment )
-			{
-			TBool hideOpen = !ShowOpenAttachmentOptionL();
-   			aMenuPane->SetItemDimmed( EFsEmailUiCmdOpenAttachment, hideOpen );
-			TBool hideDownload = !ShowDownloadOptionL();
-			aMenuPane->SetItemDimmed( EFsEmailUiCmdDownload, hideDownload );
-			TBool hideCancel = !ShowCancelDownloadOption();
-			aMenuPane->SetItemDimmed( EFsEmailUiCmdCancelDownload, hideCancel );
-			TBool hideSave = !ShowSaveAttachmentOptionL();
-		    aMenuPane->SetItemDimmed( EFsEmailUiCmdSave, hideSave );
+            {
+            TBool hideOpen = !ShowOpenAttachmentOptionL();
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdOpenAttachment, hideOpen );
+            TBool hideDownload = !ShowDownloadOptionL();
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdDownload, hideDownload );
+            TBool hideCancel = !ShowCancelDownloadOption();
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdCancelDownload, hideCancel );
+            TBool hideSave = !ShowSaveAttachmentOptionL();
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdSave, hideSave );
 
-		    TBool hideRemove = hideOpen;
+            TBool hideRemove = hideOpen;
             aMenuPane->SetItemDimmed( EFsEmailUiCmdClearFetchedAttachment, hideRemove );
-			}
-		else if ( hotspotType == EHeaderHotspot &&
-		          currentHeaderHotSpotData.iType == ETypeAttachments )
-			{
-			TBool hideOpen = !ShowOpenAttachmentOptionL();
-   			aMenuPane->SetItemDimmed( EFsEmailUiCmdOpenAttachmentList, hideOpen );
-			TBool hideDownload = !ShowDownloadOptionL();
-			aMenuPane->SetItemDimmed( EFsEmailUiCmdDownloadAll, hideDownload );
-			TBool hideCancel = !ShowCancelDownloadOption();
-			aMenuPane->SetItemDimmed( EFsEmailUiCmdCancelAllDownloads, hideCancel );
-			TBool hideSave = !ShowSaveAttachmentOptionL();
-		    aMenuPane->SetItemDimmed( EFsEmailUiCmdSaveAll, hideSave );
-			}
-		else if ( hotspotType == EBodyHotspot &&
-				  currentBodyHotSpotData.iItemType == CFindItemEngine::EFindItemSearchPhoneNumberBin )
-			{
-			aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsCall, EFalse );
-			aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsAddContact, EFalse );
-			aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsCreateMessage, EFalse );
-			aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsRemoteLookup, !remoteLookupAvailable );
-			}
-		else if ( hotspotType == EBodyHotspot &&
-				  ( currentBodyHotSpotData.iItemType ==
-				  	CFindItemEngine::EFindItemSearchURLBin ||
-				  	currentBodyHotSpotData.iItemType ==
-				  	CFindItemEngine::EFindItemSearchScheme ) )
-			{
-			// Handle action menu for different search scheme, e.g mailto: and call:
-			TInt schemaLinkType = ResolveBodyTextSchemaUrlTypeL( currentBodyHotSpotData );
-			switch ( schemaLinkType )
-				{
-				case EFocusOnEMailInBodyText:
-					{
-					aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsCall, EFalse );
-					aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsCreateMessage, EFalse );
-					aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsContactDetails, EFalse );
-					aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsAddContact2, EFalse );
-					aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsRemoteLookup, !remoteLookupAvailable );
-					}
-					break;
-				case EFocusOnNumberWithinMessage:
-					{
-					aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsCall, EFalse );
-					aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsAddContact, EFalse );
-					// Drop out "Create message" selection for SIP addresses
-					HBufC* schemeText = iViewerRichText->GetHotspotTextLC( currentBodyHotSpotData );
-					if ( schemeText && schemeText->FindC( KVoipPrefix ) != 0 )
-						{
-						aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsCreateMessage, EFalse );
-						}
-					CleanupStack::PopAndDestroy( schemeText );
-					aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsRemoteLookup, !remoteLookupAvailable );
-					}
-					break;
-				default:
-					{
-					aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsOpenWeb, EFalse );
+            }
+        else if ( hotspotType == EHeaderHotspot &&
+                  currentHeaderHotSpotData.iType == ETypeAttachments )
+            {
+            TBool hideOpen = !ShowOpenAttachmentOptionL();
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdOpenAttachmentList, hideOpen );
+            TBool hideDownload = !ShowDownloadOptionL();
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdDownloadAll, hideDownload );
+            TBool hideCancel = !ShowCancelDownloadOption();
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdCancelAllDownloads, hideCancel );
+            TBool hideSave = !ShowSaveAttachmentOptionL();
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdSaveAll, hideSave );
+            }
+        else if ( hotspotType == EBodyHotspot &&
+                  currentBodyHotSpotData.iItemType == CFindItemEngine::EFindItemSearchPhoneNumberBin )
+            {
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsCall, EFalse );
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsAddContact, EFalse );
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsCreateMessage, EFalse );
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsRemoteLookup, !remoteLookupAvailable );
+            }
+        else if ( hotspotType == EBodyHotspot &&
+                  ( currentBodyHotSpotData.iItemType ==
+                    CFindItemEngine::EFindItemSearchURLBin ||
+                    currentBodyHotSpotData.iItemType ==
+                    CFindItemEngine::EFindItemSearchScheme ) )
+            {
+            // Handle action menu for different search scheme, e.g mailto: and call:
+            TInt schemaLinkType = ResolveBodyTextSchemaUrlTypeL( currentBodyHotSpotData );
+            switch ( schemaLinkType )
+                {
+                case EFocusOnEMailInBodyText:
+                    {
+                    aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsCall, EFalse );
+                    aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsCreateMessage, EFalse );
+                    aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsContactDetails, EFalse );
+                    aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsAddContact2, EFalse );
+                    aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsRemoteLookup, !remoteLookupAvailable );
+                    }
+                    break;
+                case EFocusOnNumberWithinMessage:
+                    {
+                    aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsCall, EFalse );
+                    aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsAddContact, EFalse );
+                    // Drop out "Create message" selection for SIP addresses
+                    HBufC* schemeText = iViewerRichText->GetHotspotTextLC( currentBodyHotSpotData );
+                    if ( schemeText && schemeText->FindC( KVoipPrefix ) != 0 )
+                        {
+                        aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsCreateMessage, EFalse );
+                        }
+                    CleanupStack::PopAndDestroy( schemeText );
+                    aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsRemoteLookup, !remoteLookupAvailable );
+                    }
+                    break;
+                default:
+                    {
+                    aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsOpenWeb, EFalse );
 
-					// Handle intranet browsing item by using AIW service
-					// handler's InitializeMenuPaneL-function, it will remove
-					// the IB menu item if IB is not available, or make the
-					// item visible if IB is available
-			        if ( iIBServiceHandler && iIBServiceHandler->IsAiwMenu( aResourceId ) )
-			            {
-			            TAiwGenericParam param( EGenericParamURL );
-			            CAiwGenericParamList* list = CAiwGenericParamList::NewLC();
-			            list->AppendL( param );
-			            iIBServiceHandler->InitializeMenuPaneL( *aMenuPane, aResourceId,
-			                    EFsEmailUiCmdActionsOpenInIntranetMenu, *list, ETrue );
-			            CleanupStack::PopAndDestroy( list );
-			            }
+                    // Handle intranet browsing item by using AIW service
+                    // handler's InitializeMenuPaneL-function, it will remove
+                    // the IB menu item if IB is not available, or make the
+                    // item visible if IB is available
+                    if ( iIBServiceHandler && iIBServiceHandler->IsAiwMenu( aResourceId ) )
+                        {
+                        TAiwGenericParam param( EGenericParamURL );
+                        CAiwGenericParamList* list = CAiwGenericParamList::NewLC();
+                        list->AppendL( param );
+                        iIBServiceHandler->InitializeMenuPaneL( *aMenuPane, aResourceId,
+                                EFsEmailUiCmdActionsOpenInIntranetMenu, *list, ETrue );
+                        CleanupStack::PopAndDestroy( list );
+                        }
 
-					aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsAddBookmark, EFalse );
-					}
-					break;
-				}
-			}
-		}
+                    aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsAddBookmark, EFalse );
+                    }
+                    break;
+                }
+            }
+        }
 
-	iAppUi.ShortcutBinding().AppendShortcutHintsL( *aMenuPane,
-		CFSEmailUiShortcutBinding::EContextMailViewer );
-	}
+    iAppUi.ShortcutBinding().AppendShortcutHintsL( *aMenuPane,
+        CFSEmailUiShortcutBinding::EContextMailViewer );
+    }
 
 
 // -----------------------------------------------------------------------------
@@ -1524,298 +1524,298 @@ void CFSEmailUiMailViewerVisualiser::DynInitMenuPaneL(
 void CFSEmailUiMailViewerVisualiser::HandleCommandL( TInt aCommand )
     {
     FUNC_LOG;
-	if ( !iAppUi.ViewSwitchingOngoing() )
-    	{
-	    switch ( aCommand )
-	        {
-	        case EAknSoftkeyBack:
-	        	{
-	        	// Set empty MSK when navigating back
-	        	ChangeMskCommandL( R_FSE_QTN_MSK_EMPTY );
-	        	// Cancel MR viewer launching if Back is pressed in the middle
-	        	// of launching process.
-	            CancelPendingMrCommandL();
-	        	NavigateBackL();
-	 			}
-	        	break;
-	        // top level options
-	        case EFsEmailUiCmdActionsMoveToDrafts:
-	        	{
-	        	TFsEmailUiUtility::MoveMessageToDraftsL(
-	        		*iAppUi.GetActiveMailbox(), *iMessage );
-	        	}
-	        	break;
-	       	case EFsEmailUiCmdCalActionsReplyAsMail:
-			case EFsEmailUiCmdActionsReply:
-				{
-				if ( !iEmbeddedMessageMode )
-				    {
+    if ( !iAppUi.ViewSwitchingOngoing() )
+        {
+        switch ( aCommand )
+            {
+            case EAknSoftkeyBack:
+                {
+                // Set empty MSK when navigating back
+                ChangeMskCommandL( R_FSE_QTN_MSK_EMPTY );
+                // Cancel MR viewer launching if Back is pressed in the middle
+                // of launching process.
+                CancelPendingMrCommandL();
+                NavigateBackL();
+                }
+                break;
+            // top level options
+            case EFsEmailUiCmdActionsMoveToDrafts:
+                {
+                TFsEmailUiUtility::MoveMessageToDraftsL(
+                    *iAppUi.GetActiveMailbox(), *iMessage );
+                }
+                break;
+            case EFsEmailUiCmdCalActionsReplyAsMail:
+            case EFsEmailUiCmdActionsReply:
+                {
+                if ( !iEmbeddedMessageMode )
+                    {
                     TEditorLaunchParams params;
                     params.iMailboxId = iAppUi.GetActiveMailboxId();
                     params.iMsgId = iMessage->GetMessageId();
                     params.iActivatedExternally = EFalse;
                     iAppUi.LaunchEditorL( KEditorCmdReply, params );
-				    }
-				}
-	            break;
-			case EFsEmailUiCmdActionsReplyAll:
-				{
-				if ( !iEmbeddedMessageMode )
-				    {
+                    }
+                }
+                break;
+            case EFsEmailUiCmdActionsReplyAll:
+                {
+                if ( !iEmbeddedMessageMode )
+                    {
                     TEditorLaunchParams params;
                     params.iMailboxId = iAppUi.GetActiveMailboxId();
                     params.iMsgId = iMessage->GetMessageId();
                     params.iActivatedExternally = EFalse;
                     iAppUi.LaunchEditorL( KEditorCmdReplyAll, params );
-				    }
-				}
-	            break;
-	       	case EFsEmailUiCmdCalActionsForwardAsMail:
-			case EFsEmailUiCmdActionsForward:
-			case EFsEmailUiCmdActionsForward2:
-				{
-				if ( !iEmbeddedMessageMode )
-				    {
+                    }
+                }
+                break;
+            case EFsEmailUiCmdCalActionsForwardAsMail:
+            case EFsEmailUiCmdActionsForward:
+            case EFsEmailUiCmdActionsForward2:
+                {
+                if ( !iEmbeddedMessageMode )
+                    {
                     TEditorLaunchParams params;
                     params.iMailboxId = iAppUi.GetActiveMailboxId();
                     params.iMsgId = iMessage->GetMessageId();
                     params.iActivatedExternally = EFalse;
                     iAppUi.LaunchEditorL( KEditorCmdForward, params );
-				    }
-				}
-	            break;
-			case EFsEmailUiCmdActionsDelete:
-				{
-				DeleteMailL( *iMessage, ETrue );
-				}
-	            break;
-	        case EFsEmailUiCmdActionsCopyToClipboard:
-	        	{
-	        	CopyCurrentHotspotToClipBoardL();
-	        	}
-	        	break;
-	        case EFsEmailUiCmdPreviousMessage:
-	        	{
-				ShowPreviousMessageL();
-	        	}
-	        	break;
-	        case EFsEmailUiCmdNextMessage:
-	        	{
-				ShowNextMessageL();
-				}
-	        	break;
-	        case EFsEmailUiCmdHelp:
-	        	{
-	        	TFsEmailUiUtility::LaunchHelpL( KFSE_HLP_LAUNCHER_GRID );
-	        	}
-	        	break;
-	        case EFsEmailUiCmdExit:
-			    {
-		    	iAppUi.Exit();
-		        }
-		        break;
-	        case EFsEmailUiCmdReadEmail:
-	        	{
-	        	iAppUi.StartReadingEmailsL();
-	        	}
-	        	break;
+                    }
+                }
+                break;
+            case EFsEmailUiCmdActionsDelete:
+                {
+                DeleteMailL( *iMessage, ETrue );
+                }
+                break;
+            case EFsEmailUiCmdActionsCopyToClipboard:
+                {
+                CopyCurrentHotspotToClipBoardL();
+                }
+                break;
+            case EFsEmailUiCmdPreviousMessage:
+                {
+                ShowPreviousMessageL();
+                }
+                break;
+            case EFsEmailUiCmdNextMessage:
+                {
+                ShowNextMessageL();
+                }
+                break;
+            case EFsEmailUiCmdHelp:
+                {
+                TFsEmailUiUtility::LaunchHelpL( KFSE_HLP_LAUNCHER_GRID );
+                }
+                break;
+            case EFsEmailUiCmdExit:
+                {
+                iAppUi.Exit();
+                }
+                break;
+            case EFsEmailUiCmdReadEmail:
+                {
+                iAppUi.StartReadingEmailsL();
+                }
+                break;
 
-			// "actions" -sub menu options
-	        case EFsEmailUiCmdActionsCall:
-	        	{
-				CallHotSpotAddressL();
-	        	}
-				break;
-			case EFsEmailUiCmdActionsCreateMessage:
-				{
-				CreateMessageL();
-				}
-				break;
-			case EFsEmailUiCmdActionsCreateMail:
-			    {
-			    ComposeMailL();
-			    }
-			    break;
-	        case EFsEmailUiCmdActionsContactDetails:
-	        	{
-				OpenContactDetailsL();
-	        	}
-				break;
-	        case EFsEmailUiCmdActionsAddContact:
-	        case EFsEmailUiCmdActionsAddContact2:
-	        	{
-				SViewerHeadingHotSpotData currentHeaderHotSpotData;
-				CFindItemEngine::SFoundItem currentBodyHotSpotData;
-				THotspotType hotspotType =
-					iViewerRichText->FindCurrentHotSpotL(
-						currentHeaderHotSpotData, currentBodyHotSpotData );
-		     	if ( hotspotType == EHeaderHotspot )
-	        		{
-					HBufC* emailAddress =
-						iViewerRichText->GetHeaderHotspotEmailAddressLC(
-							currentHeaderHotSpotData );
-					SaveEmailAsContactL( *emailAddress );
-					CleanupStack::PopAndDestroy( emailAddress );
-					}
-	        	else if ( hotspotType == EBodyHotspot )
-	        		{
-					HBufC* hotspotText = iViewerRichText->GetHotspotTextLC(
-						currentBodyHotSpotData );
-					if ( currentBodyHotSpotData.iItemType ==
-						CFindItemEngine::EFindItemSearchPhoneNumberBin )
-						{
-						SavePhoneNumberAsContactL( *hotspotText );
-						}
-					else if ( currentBodyHotSpotData.iItemType ==
-						CFindItemEngine::EFindItemSearchMailAddressBin )
-						{
-						SaveEmailAsContactL( *hotspotText );
-						}
-					else if ( currentBodyHotSpotData.iItemType ==
-							CFindItemEngine::EFindItemSearchScheme)
-						{
-						if ( hotspotText->FindC( KMailtoPrefix ) == 0 )
-							{
-							// Save email address, prefix is stripped in SaveEmailAsContactL
-							SaveEmailAsContactL( *hotspotText );
-							}
-						else if ( hotspotText->FindC( KCallPrefix ) == 0 ||
-								  hotspotText->FindC( KTelPrefix ) == 0  ||
-								  hotspotText->FindC( KSmsPrefix ) == 0 ||
-								  hotspotText->FindC( KMmsPrefix ) == 0 )
-							{
-							// Save phone nukmber, prefix is stripped in SavePhoneNumberAsContactL
-							SavePhoneNumberAsContactL( *hotspotText );
-							}
-						}
-	 	      		CleanupStack::PopAndDestroy( hotspotText );
-	        		}
-	        	}
-				break;
-	 	    case EFsEmailUiCmdActionsRemoteLookup:
-	        	{
-				SViewerHeadingHotSpotData currentHeaderHotSpotData;
-				CFindItemEngine::SFoundItem currentBodyHotSpotData;
-				THotspotType hotspotType =
-					iViewerRichText->FindCurrentHotSpotL(
-						currentHeaderHotSpotData, currentBodyHotSpotData );
-		     	if ( hotspotType == EHeaderHotspot )
-	        		{
-					HBufC* emailAddress =
-						iViewerRichText->GetHeaderHotspotEmailAddressLC(
-							currentHeaderHotSpotData );
-					LaunchRemoteLookupL( *emailAddress );
-					CleanupStack::PopAndDestroy( emailAddress );
-	      			}
-	        	else if ( hotspotType == EBodyHotspot )
-	        		{
-					HBufC* hotspotText = iViewerRichText->GetHotspotTextLC(
-						currentBodyHotSpotData );
-					LaunchRemoteLookupL( *hotspotText );
-	 	      		CleanupStack::PopAndDestroy( hotspotText );
-		       		}
-	 		  	}
-				break;
-	 	    case EFsEmailUiCmdActionsOpenHtmlViewer:
-	 	        {
-	 	        LaunchHtmlViewerL();
-	 	        }
-	 	        break;
-	        case EFsEmailUiCmdActionsOpenWeb:
-	        	{
-				CFindItemEngine::SFoundItem currentBodyHotSpotData;
-				TBool bodyHotSpotFound =
-					iViewerRichText->FindCurrentBodyHotSpotL(
-						currentBodyHotSpotData );
-				OpenHotSpotUrlInBrowserL( currentBodyHotSpotData );
-	        	}
-				break;
-	        case EFsEmailUiCmdActionsOpenInIntranetMenu:
-	        	{
-				OpenLinkInIntranetL( ETrue );
-		       	}
-				break;
-	        case EFsEmailUiCmdActionsAddBookmark:
-	        	{
-				CFindItemEngine::SFoundItem currentBodyHotSpotData;
-				TBool bodyHotSpotFound =
-					iViewerRichText->FindCurrentBodyHotSpotL(
-						currentBodyHotSpotData );
-				AddToBookmarksL( currentBodyHotSpotData );
-		       	}
-				break;
-	        case EAknSoftkeyOpen:
-	        case EFsEmailUiCmdOpenAttachment:
-	            {
-	            OpenAttachmentL();
-	            }
-	            break;
-			case EFsEmailUiCmdOpenAttachmentList:
-				{
-				OpenAttachmentsViewL();
-				}
-				break;
-			case EFsEmailUiCmdDownload:
-	        case EFsEmailUiCmdDownloadAll:
-				{
-				StartDowloadingAttachmentsL();
-				}
-				break;
-	        case EFsEmailUiCmdCancelDownload:
-	        case EFsEmailUiCmdCancelAllDownloads:
-		       	{
-				CancelDowloadingAttachmentsL();
-	        	}
-				break;
-	        case EFsEmailUiCmdSave:
-	        case EFsEmailUiCmdSaveAll:
-	        	{
-				SaveAllAttachmentsL();
-	        	}
-				break;
-	        case EFsEmailUiCmdClearFetchedAttachment:
-	            {
-	            RemoveFetchedAttachmentL();
-	            }
-	            break;
+            // "actions" -sub menu options
+            case EFsEmailUiCmdActionsCall:
+                {
+                CallHotSpotAddressL();
+                }
+                break;
+            case EFsEmailUiCmdActionsCreateMessage:
+                {
+                CreateMessageL();
+                }
+                break;
+            case EFsEmailUiCmdActionsCreateMail:
+                {
+                ComposeMailL();
+                }
+                break;
+            case EFsEmailUiCmdActionsContactDetails:
+                {
+                OpenContactDetailsL();
+                }
+                break;
+            case EFsEmailUiCmdActionsAddContact:
+            case EFsEmailUiCmdActionsAddContact2:
+                {
+                SViewerHeadingHotSpotData currentHeaderHotSpotData;
+                CFindItemEngine::SFoundItem currentBodyHotSpotData;
+                THotspotType hotspotType =
+                    iViewerRichText->FindCurrentHotSpotL(
+                        currentHeaderHotSpotData, currentBodyHotSpotData );
+                if ( hotspotType == EHeaderHotspot )
+                    {
+                    HBufC* emailAddress =
+                        iViewerRichText->GetHeaderHotspotEmailAddressLC(
+                            currentHeaderHotSpotData );
+                    SaveEmailAsContactL( *emailAddress );
+                    CleanupStack::PopAndDestroy( emailAddress );
+                    }
+                else if ( hotspotType == EBodyHotspot )
+                    {
+                    HBufC* hotspotText = iViewerRichText->GetHotspotTextLC(
+                        currentBodyHotSpotData );
+                    if ( currentBodyHotSpotData.iItemType ==
+                        CFindItemEngine::EFindItemSearchPhoneNumberBin )
+                        {
+                        SavePhoneNumberAsContactL( *hotspotText );
+                        }
+                    else if ( currentBodyHotSpotData.iItemType ==
+                        CFindItemEngine::EFindItemSearchMailAddressBin )
+                        {
+                        SaveEmailAsContactL( *hotspotText );
+                        }
+                    else if ( currentBodyHotSpotData.iItemType ==
+                            CFindItemEngine::EFindItemSearchScheme)
+                        {
+                        if ( hotspotText->FindC( KMailtoPrefix ) == 0 )
+                            {
+                            // Save email address, prefix is stripped in SaveEmailAsContactL
+                            SaveEmailAsContactL( *hotspotText );
+                            }
+                        else if ( hotspotText->FindC( KCallPrefix ) == 0 ||
+                                  hotspotText->FindC( KTelPrefix ) == 0  ||
+                                  hotspotText->FindC( KSmsPrefix ) == 0 ||
+                                  hotspotText->FindC( KMmsPrefix ) == 0 )
+                            {
+                            // Save phone nukmber, prefix is stripped in SavePhoneNumberAsContactL
+                            SavePhoneNumberAsContactL( *hotspotText );
+                            }
+                        }
+                    CleanupStack::PopAndDestroy( hotspotText );
+                    }
+                }
+                break;
+            case EFsEmailUiCmdActionsRemoteLookup:
+                {
+                SViewerHeadingHotSpotData currentHeaderHotSpotData;
+                CFindItemEngine::SFoundItem currentBodyHotSpotData;
+                THotspotType hotspotType =
+                    iViewerRichText->FindCurrentHotSpotL(
+                        currentHeaderHotSpotData, currentBodyHotSpotData );
+                if ( hotspotType == EHeaderHotspot )
+                    {
+                    HBufC* emailAddress =
+                        iViewerRichText->GetHeaderHotspotEmailAddressLC(
+                            currentHeaderHotSpotData );
+                    LaunchRemoteLookupL( *emailAddress );
+                    CleanupStack::PopAndDestroy( emailAddress );
+                    }
+                else if ( hotspotType == EBodyHotspot )
+                    {
+                    HBufC* hotspotText = iViewerRichText->GetHotspotTextLC(
+                        currentBodyHotSpotData );
+                    LaunchRemoteLookupL( *hotspotText );
+                    CleanupStack::PopAndDestroy( hotspotText );
+                    }
+                }
+                break;
+            case EFsEmailUiCmdActionsOpenHtmlViewer:
+                {
+                LaunchHtmlViewerL();
+                }
+                break;
+            case EFsEmailUiCmdActionsOpenWeb:
+                {
+                CFindItemEngine::SFoundItem currentBodyHotSpotData;
+                TBool bodyHotSpotFound =
+                    iViewerRichText->FindCurrentBodyHotSpotL(
+                        currentBodyHotSpotData );
+                OpenHotSpotUrlInBrowserL( currentBodyHotSpotData );
+                }
+                break;
+            case EFsEmailUiCmdActionsOpenInIntranetMenu:
+                {
+                OpenLinkInIntranetL( ETrue );
+                }
+                break;
+            case EFsEmailUiCmdActionsAddBookmark:
+                {
+                CFindItemEngine::SFoundItem currentBodyHotSpotData;
+                TBool bodyHotSpotFound =
+                    iViewerRichText->FindCurrentBodyHotSpotL(
+                        currentBodyHotSpotData );
+                AddToBookmarksL( currentBodyHotSpotData );
+                }
+                break;
+            case EAknSoftkeyOpen:
+            case EFsEmailUiCmdOpenAttachment:
+                {
+                OpenAttachmentL();
+                }
+                break;
+            case EFsEmailUiCmdOpenAttachmentList:
+                {
+                OpenAttachmentsViewL();
+                }
+                break;
+            case EFsEmailUiCmdDownload:
+            case EFsEmailUiCmdDownloadAll:
+                {
+                StartDowloadingAttachmentsL();
+                }
+                break;
+            case EFsEmailUiCmdCancelDownload:
+            case EFsEmailUiCmdCancelAllDownloads:
+                {
+                CancelDowloadingAttachmentsL();
+                }
+                break;
+            case EFsEmailUiCmdSave:
+            case EFsEmailUiCmdSaveAll:
+                {
+                SaveAllAttachmentsL();
+                }
+                break;
+            case EFsEmailUiCmdClearFetchedAttachment:
+                {
+                RemoveFetchedAttachmentL();
+                }
+                break;
 
-			// "more" -sub menu options
-	        case EFsEmailUiCmdMarkAsUnread:
-	        	{
-	        	ChangeMsgReadStatusL( EFalse, EFalse );
-	        	}
-				break;
-	        case EFsEmailUiCmdMarkAsRead:
-	        	{
-	        	ChangeMsgReadStatusL( ETrue, EFalse );
-	        	}
-				break;
-			case EFsEmailUiCmdActionsMoveMessage:
-				{
+            // "more" -sub menu options
+            case EFsEmailUiCmdMarkAsUnread:
+                {
+                ChangeMsgReadStatusL( EFalse, EFalse );
+                }
+                break;
+            case EFsEmailUiCmdMarkAsRead:
+                {
+                ChangeMsgReadStatusL( ETrue, EFalse );
+                }
+                break;
+            case EFsEmailUiCmdActionsMoveMessage:
+                {
                 OpenFolderListForMessageMovingL();
-				}
-				break;
-	        case EFsEmailUiCmdActionsFlag:
-		        {
-	       		SetMessageFollowupFlagL();
-		        }
-		        break;
-			case EFsEmailUiCmdCompose:
-				{
-				iAppUi.CreateNewMailL();
-				}
-				break;
-			case EFsEmailUiCmdComposeTo:
-			    {
-			    ComposeMailL();
-			    }
-			    break;
-	       	case EFsEmailUiCmdMessageDetails:
-	       	case EFsEmailUiCmdViewAll:
-				{
-				TUid activationCmdId = KStartMsgDetailsToBeginning;
-				if ( aCommand == EFsEmailUiCmdViewAll )
-				    {
+                }
+                break;
+            case EFsEmailUiCmdActionsFlag:
+                {
+                SetMessageFollowupFlagL();
+                }
+                break;
+            case EFsEmailUiCmdCompose:
+                {
+                iAppUi.CreateNewMailL();
+                }
+                break;
+            case EFsEmailUiCmdComposeTo:
+                {
+                ComposeMailL();
+                }
+                break;
+            case EFsEmailUiCmdMessageDetails:
+            case EFsEmailUiCmdViewAll:
+                {
+                TUid activationCmdId = KStartMsgDetailsToBeginning;
+                if ( aCommand == EFsEmailUiCmdViewAll )
+                    {
                     SViewerHeadingHotSpotData currentHeaderHotSpotData;
                     iViewerRichText->FindCurrentHeaderHotSpotL( currentHeaderHotSpotData );
                     if( currentHeaderHotSpotData.iType == ETypeToNMoreRecipients )
@@ -1830,23 +1830,23 @@ void CFSEmailUiMailViewerVisualiser::HandleCommandL( TInt aCommand )
                         {
                         activationCmdId = KStartMsgDetailsToBcc;
                         }
-				    }
+                    }
 
                 TMsgDetailsActivationData msgDetailsData;
-	  			msgDetailsData.iMailBoxId = iMessage->GetMailBoxId();
-	  			msgDetailsData.iFolderId = iMessage->GetFolderId();
-	  			msgDetailsData.iMessageId = iMessage->GetMessageId();
-				const TPckgBuf<TMsgDetailsActivationData> pkgOut( msgDetailsData );
-				iAppUi.EnterFsEmailViewL(
-					MsgDetailsViewId, activationCmdId,  pkgOut );
-				}
-				break;
+                msgDetailsData.iMailBoxId = iMessage->GetMailBoxId();
+                msgDetailsData.iFolderId = iMessage->GetFolderId();
+                msgDetailsData.iMessageId = iMessage->GetMessageId();
+                const TPckgBuf<TMsgDetailsActivationData> pkgOut( msgDetailsData );
+                iAppUi.EnterFsEmailViewL(
+                    MsgDetailsViewId, activationCmdId,  pkgOut );
+                }
+                break;
 // <cmail> Prevent Download Manager opening with attachments
-//			case EFsEmailUiCmdDownloadManager:
-//				{
-//	  			iAppUi.EnterFsEmailViewL( DownloadManagerViewId );
-//				}
-//				break;
+//          case EFsEmailUiCmdDownloadManager:
+//              {
+//              iAppUi.EnterFsEmailViewL( DownloadManagerViewId );
+//              }
+//              break;
 // </cmail>
             case EFsEmailUiCmdMarkAsReadUnreadToggle:
                 {
@@ -1873,9 +1873,9 @@ void CFSEmailUiMailViewerVisualiser::HandleCommandL( TInt aCommand )
                 // <cmail>
                 // Do nothing if focus is already in top
                 if ( iTextViewer->GetFirstDisplayedLine() > 1 )
-                	{
+                    {
                     iTextViewer->FocusLineL( 1 );
-                	}
+                    }
                 }
                 // </cmail>
                 break;
@@ -1895,25 +1895,25 @@ void CFSEmailUiMailViewerVisualiser::HandleCommandL( TInt aCommand )
             // and the Fn mappings vary between variants.
             // Similar mechanism is used inside AknFep with key codes EKeyF19...EKeyF24,
             // so collisions with these must be avoided.
-	        case EFsEmailUiCmdScrollUp:
-	            {
-	            TKeyEvent simEvent = { KKeyCodeArtificialScrollUp, EStdKeyNull, 0, 0 };
-	            iCoeEnv->SimulateKeyEventL( simEvent, EEventKey );
-	            }
-	            break;
-	        case EFsEmailUiCmdScrollDown:
-	            {
-	            TKeyEvent simEvent = { KKeyCodeArtificialScrollDown, EStdKeyNull, 0, 0 };
-	            iCoeEnv->SimulateKeyEventL( simEvent, EEventKey );
-	            }
+            case EFsEmailUiCmdScrollUp:
+                {
+                TKeyEvent simEvent = { KKeyCodeArtificialScrollUp, EStdKeyNull, 0, 0 };
+                iCoeEnv->SimulateKeyEventL( simEvent, EEventKey );
+                }
                 break;
-	        case EFsEmailUiCmdPageUp:
+            case EFsEmailUiCmdScrollDown:
+                {
+                TKeyEvent simEvent = { KKeyCodeArtificialScrollDown, EStdKeyNull, 0, 0 };
+                iCoeEnv->SimulateKeyEventL( simEvent, EEventKey );
+                }
+                break;
+            case EFsEmailUiCmdPageUp:
                 {
                 TKeyEvent simEvent = { EKeyPageUp, EStdKeyNull, 0, 0 };
                 iCoeEnv->SimulateKeyEventL( simEvent, EEventKey );
                 }
                 break;
-	        case EFsEmailUiCmdPageDown:
+            case EFsEmailUiCmdPageDown:
                 {
                 TKeyEvent simEvent = { EKeyPageDown, EStdKeyNull, 0, 0 };
                 iCoeEnv->SimulateKeyEventL( simEvent, EEventKey );
@@ -1923,8 +1923,8 @@ void CFSEmailUiMailViewerVisualiser::HandleCommandL( TInt aCommand )
                 break;
 
             default:
-	        	break;
-	        }
+                break;
+            }
         }
     }
 
@@ -1990,25 +1990,25 @@ void CFSEmailUiMailViewerVisualiser::ComposeMailL()
 
 
 void CFSEmailUiMailViewerVisualiser::ProcessAsyncCommandL( TESMRIcalViewerOperationType aCommandId,
-		                								 const CFSMailMessage& aMessage,
-                										 MESMRIcalViewerObserver* aObserver )
-	{
-	FUNC_LOG;
-	if ( aObserver )
-		{
-		iMrObserverToInform = aObserver;
-		}
-	// we must cast constness away from message because of flaws in MRUI API
-	CFSMailMessage* messagePtr = const_cast<CFSMailMessage*>(&aMessage);
-	if ( messagePtr )
-		{
+                                                         const CFSMailMessage& aMessage,
+                                                         MESMRIcalViewerObserver* aObserver )
+    {
+    FUNC_LOG;
+    if ( aObserver )
+        {
+        iMrObserverToInform = aObserver;
+        }
+    // we must cast constness away from message because of flaws in MRUI API
+    CFSMailMessage* messagePtr = const_cast<CFSMailMessage*>(&aMessage);
+    if ( messagePtr )
+        {
         // Fill in result struct
         iOpResult.iOpType = aCommandId;
         iOpResult.iMessage = messagePtr;
         iOpResult.iResultCode = KErrNotFound;
 
         switch ( aCommandId )
-			{
+            {
             case EESMRCmdMailMessageDetails:
                 {
                 iOpResult.iResultCode = KErrNone;
@@ -2100,117 +2100,117 @@ void CFSEmailUiMailViewerVisualiser::ProcessAsyncCommandL( TESMRIcalViewerOperat
                     }
                 }
                 break;
-			case EESMRCmdDownloadManager:
-				{
-				// Check that there is something in dwnld manager to show
-				if ( ShowDownloadManagerMenuInOptions() )
-				    {
-				    iOpResult.iResultCode = KErrNone;
-				    iAppUi.EnterFsEmailViewL( DownloadManagerViewId );
-				    }
-				}
-				break;
+            case EESMRCmdDownloadManager:
+                {
+                // Check that there is something in dwnld manager to show
+                if ( ShowDownloadManagerMenuInOptions() )
+                    {
+                    iOpResult.iResultCode = KErrNone;
+                    iAppUi.EnterFsEmailViewL( DownloadManagerViewId );
+                    }
+                }
+                break;
             case EESMRCmdMailComposeMessage:
                 {
                 iOpResult.iResultCode = KErrNone;
                 iAppUi.CreateNewMailL();
                 }
                 break;
-			case EESMRCmdMailReply:
-			case EESMRCmdMailReplyAll:
-			case EESMRCmdMailForwardAsMessage:
-				{
-				// Fill result codes for mrui
-				iOpResult.iResultCode = KErrNone;
-				// Fill launc params
-	    		TEditorLaunchParams params;
-	    		params.iMailboxId = iAppUi.GetActiveMailboxId();
-	    		params.iActivatedExternally = EFalse;
-	    		params.iMsgId = messagePtr->GetMessageId();
-				if ( aCommandId == EESMRCmdMailForwardAsMessage )
-					{
-		    		iAppUi.LaunchEditorL( KEditorCmdForward, params );
-					}
-				else if ( aCommandId == EESMRCmdMailReply )
-					{
-		    		iAppUi.LaunchEditorL( KEditorCmdReply, params );
-					}
-				else if ( aCommandId == EESMRCmdMailReplyAll )
-					{
-		    		iAppUi.LaunchEditorL( KEditorCmdReplyAll, params );
-					}
-				}
-				break;
-	  		case EESMRCmdMailPreviousMessage:
-	  		    {
+            case EESMRCmdMailReply:
+            case EESMRCmdMailReplyAll:
+            case EESMRCmdMailForwardAsMessage:
+                {
+                // Fill result codes for mrui
+                iOpResult.iResultCode = KErrNone;
+                // Fill launc params
+                TEditorLaunchParams params;
+                params.iMailboxId = iAppUi.GetActiveMailboxId();
+                params.iActivatedExternally = EFalse;
+                params.iMsgId = messagePtr->GetMessageId();
+                if ( aCommandId == EESMRCmdMailForwardAsMessage )
+                    {
+                    iAppUi.LaunchEditorL( KEditorCmdForward, params );
+                    }
+                else if ( aCommandId == EESMRCmdMailReply )
+                    {
+                    iAppUi.LaunchEditorL( KEditorCmdReply, params );
+                    }
+                else if ( aCommandId == EESMRCmdMailReplyAll )
+                    {
+                    iAppUi.LaunchEditorL( KEditorCmdReplyAll, params );
+                    }
+                }
+                break;
+            case EESMRCmdMailPreviousMessage:
+                {
                 iNextOrPevMessageSelected = ETrue; // prevent back navigation when operation completed received
                 ShowPreviousMessageL();
                 iOpResult.iResultCode = KErrNone;
                 CompletePendingMrCommand();
-	  		    }
-	  		    break;
-			case EESMRCmdMailNextMessage:
-				{
-				iNextOrPevMessageSelected = ETrue; // prevent back navigation when operation completed received
-				ShowNextMessageL();
-                iOpResult.iResultCode = KErrNone;
-				CompletePendingMrCommand();
                 }
-				break;
-			default:
-				break;
-			}
-		}
+                break;
+            case EESMRCmdMailNextMessage:
+                {
+                iNextOrPevMessageSelected = ETrue; // prevent back navigation when operation completed received
+                ShowNextMessageL();
+                iOpResult.iResultCode = KErrNone;
+                CompletePendingMrCommand();
+                }
+                break;
+            default:
+                break;
+            }
+        }
 
-	// Complete immediately if handling command failed. It makes no harm if following
-	// function gets called several times in some case.
-	if ( iOpResult.iResultCode < 0 )
-	    {
-	    CompletePendingMrCommand();
-	    }
-	}
+    // Complete immediately if handling command failed. It makes no harm if following
+    // function gets called several times in some case.
+    if ( iOpResult.iResultCode < 0 )
+        {
+        CompletePendingMrCommand();
+        }
+    }
 
 
 void CFSEmailUiMailViewerVisualiser::ProcessSyncCommandL(
-	TESMRIcalViewerOperationType aCommandId,
-	const CFSMailMessage& aMessage )
-	{
+    TESMRIcalViewerOperationType aCommandId,
+    const CFSMailMessage& aMessage )
+    {
     FUNC_LOG;
-	if ( &aMessage )
-		{
-		switch ( aCommandId )
-			{
-			case EESMRCmdMailMarkUnread:
-				{
-				ChangeMsgReadStatusL( EFalse, ETrue );
-				}
-				break;
-			case EESMRCmdMailMarkRead:
-				{
-				ChangeMsgReadStatusL( ETrue, ETrue );
-				}
-				break;
-			case EESMRCmdMailFlagMessage:
-				{
-		 		if ( iMessage )
-					{
-					if ( !iFlagSelectionHanler )
-						{
-						// Create when used for the first time
-						iFlagSelectionHanler =
-							CFlagSelectionGlobalNoteHandler::NewL( *this );
-						}
-					// Call to LaunchFlagListQueryDialogL will lead
-					// to FlagselectionCompleteL
-					iFlagSelectionHanler->LaunchFlagListQueryDialogL();
-					}
-				}
-				break;
-			default:
-				break;
-			}
-		}
-	}
+    if ( &aMessage )
+        {
+        switch ( aCommandId )
+            {
+            case EESMRCmdMailMarkUnread:
+                {
+                ChangeMsgReadStatusL( EFalse, ETrue );
+                }
+                break;
+            case EESMRCmdMailMarkRead:
+                {
+                ChangeMsgReadStatusL( ETrue, ETrue );
+                }
+                break;
+            case EESMRCmdMailFlagMessage:
+                {
+                if ( iMessage )
+                    {
+                    if ( !iFlagSelectionHanler )
+                        {
+                        // Create when used for the first time
+                        iFlagSelectionHanler =
+                            CFlagSelectionGlobalNoteHandler::NewL( *this );
+                        }
+                    // Call to LaunchFlagListQueryDialogL will lead
+                    // to FlagselectionCompleteL
+                    iFlagSelectionHanler->LaunchFlagListQueryDialogL();
+                    }
+                }
+                break;
+            default:
+                break;
+            }
+        }
+    }
 
 
 // ---------------------------------------------------------------------------
@@ -2220,19 +2220,19 @@ void CFSEmailUiMailViewerVisualiser::ProcessSyncCommandL(
 // ---------------------------------------------------------------------------
 //
 TBool CFSEmailUiMailViewerVisualiser::CanProcessCommand(
-	TESMRIcalViewerOperationType aCommandId  ) const
-	{
+    TESMRIcalViewerOperationType aCommandId  ) const
+    {
     FUNC_LOG;
-	TBool ret( EFalse );
-	TInt numRecipients(0);
-	switch ( aCommandId )
-		{
-		case EESMRCmdMailReply:
-		    ret = ETrue;
-		    break;
-		case EESMRCmdMailReplyAll:
-			//Get # of recipients
-		    if ( iMessage )
+    TBool ret( EFalse );
+    TInt numRecipients(0);
+    switch ( aCommandId )
+        {
+        case EESMRCmdMailReply:
+            ret = ETrue;
+            break;
+        case EESMRCmdMailReplyAll:
+            //Get # of recipients
+            if ( iMessage )
                 {
                 numRecipients=TFsEmailUiUtility::CountRecepients( iMessage );
                 if ( numRecipients == 1 )
@@ -2262,78 +2262,78 @@ TBool CFSEmailUiMailViewerVisualiser::CanProcessCommand(
                         }
                     }
                 }
-			ret = ( iMessage && numRecipients > 1 );
-			break;
-		case EESMRCmdDownloadManager:
-			ret = ShowDownloadManagerMenuInOptions();
-			break;
+            ret = ( iMessage && numRecipients > 1 );
+            break;
+        case EESMRCmdDownloadManager:
+            ret = ShowDownloadManagerMenuInOptions();
+            break;
 // <cmail>
-		case EESMRCmdOpenAttachment:
-    	case EESMRCmdSaveAttachment:
-    	case EESMRCmdSaveAllAttachments:
-    	case EESMRCmdDownloadAttachment:
-    	case EESMRCmdDownloadAllAttachments:
+        case EESMRCmdOpenAttachment:
+        case EESMRCmdSaveAttachment:
+        case EESMRCmdSaveAllAttachments:
+        case EESMRCmdDownloadAttachment:
+        case EESMRCmdDownloadAllAttachments:
 // </cmail>
-		case EESMRCmdOpenAttachmentView:
-			ret = ETrue;
-			break;
-		case EESMRCmdMailComposeMessage:
-			ret = ETrue;
-			break;
-		case EESMRCmdMailMarkUnread:
-			{
-			ret = EFalse;
-			if ( iMessage && iMessage->IsFlagSet(EFSMsgFlag_Read) )
-				{
-				// Read, unread should be available
-				ret = ETrue;
-				}
-			}
-			break;
-		case EESMRCmdMailMarkRead:
-			{
-			ret = EFalse;
-			if ( iMessage && !iMessage->IsFlagSet(EFSMsgFlag_Read) )
-				{
-				// Read, unread should be available
-				ret = ETrue;
-				}
-			}
-			break;
-		case EESMRCmdMailMoveMessage:
-			{
-			ret = EFalse;
-			if ( iMessage )
-				{
-				// confirmed pointer exists, check whether mb has capa
-				ret = iAppUi.GetActiveMailbox()->HasCapability( EFSMBoxCapaMoveToFolder );
-				}
-			}
-			break;
-		case EESMRCmdMailForwardAsMessage:
-			ret = ETrue;
-			break;
-		case EESMRCmdMailFlagMessage:
-			ret = TFsEmailUiUtility::IsFollowUpSupported( *iMailBox );
-			break;
-	    case EESMRCmdMailMessageDetails:
-			ret = ETrue;
-			break;
-		case EESMRCmdMailDelete:
-			ret = ETrue;
-			break;
-   		case EESMRCmdMailPreviousMessage:
-   		    ret = ShowPreviousMessageMenuInOptions();
-   		    break;
- 		case EESMRCmdMailNextMessage:
- 		    ret = ShowNextMessageMenuInOptions();
- 			break;
-		default:
-			ret = EFalse;
-			break;
-		}
-	return ret;
-	}
+        case EESMRCmdOpenAttachmentView:
+            ret = ETrue;
+            break;
+        case EESMRCmdMailComposeMessage:
+            ret = ETrue;
+            break;
+        case EESMRCmdMailMarkUnread:
+            {
+            ret = EFalse;
+            if ( iMessage && iMessage->IsFlagSet(EFSMsgFlag_Read) )
+                {
+                // Read, unread should be available
+                ret = ETrue;
+                }
+            }
+            break;
+        case EESMRCmdMailMarkRead:
+            {
+            ret = EFalse;
+            if ( iMessage && !iMessage->IsFlagSet(EFSMsgFlag_Read) )
+                {
+                // Read, unread should be available
+                ret = ETrue;
+                }
+            }
+            break;
+        case EESMRCmdMailMoveMessage:
+            {
+            ret = EFalse;
+            if ( iMessage )
+                {
+                // confirmed pointer exists, check whether mb has capa
+                ret = iAppUi.GetActiveMailbox()->HasCapability( EFSMBoxCapaMoveToFolder );
+                }
+            }
+            break;
+        case EESMRCmdMailForwardAsMessage:
+            ret = ETrue;
+            break;
+        case EESMRCmdMailFlagMessage:
+            ret = TFsEmailUiUtility::IsFollowUpSupported( *iMailBox );
+            break;
+        case EESMRCmdMailMessageDetails:
+            ret = ETrue;
+            break;
+        case EESMRCmdMailDelete:
+            ret = ETrue;
+            break;
+        case EESMRCmdMailPreviousMessage:
+            ret = ShowPreviousMessageMenuInOptions();
+            break;
+        case EESMRCmdMailNextMessage:
+            ret = ShowNextMessageMenuInOptions();
+            break;
+        default:
+            ret = EFalse;
+            break;
+        }
+    return ret;
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::CompletePendingMrCommand()
@@ -2389,17 +2389,17 @@ void CFSEmailUiMailViewerVisualiser::OperationCompleted( TIcalViewerOperationRes
             TRAP_IGNORE( TFsEmailUiUtility::ShowGlobalInfoNoteL( noteTextId ) );
             }
         }
-	}
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::OperationError()
 // -----------------------------------------------------------------------------
 //
 void CFSEmailUiMailViewerVisualiser::OperationError( TIcalViewerOperationResult aResult )
-	{
+    {
     FUNC_LOG;
     // Show message in standard mail viewer in case launchin MRUI fails for any
-	// other reason than viewer being cancelled by calling CancelPendingMrCommand().
+    // other reason than viewer being cancelled by calling CancelPendingMrCommand().
     if ( aResult.iOpType == EESMRViewLaunch )
         {
         iMrUiActive = EFalse;
@@ -2414,7 +2414,7 @@ void CFSEmailUiMailViewerVisualiser::OperationError( TIcalViewerOperationResult 
                 );
             }
         }
-	}
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::SetMskL()
@@ -2534,7 +2534,7 @@ void CFSEmailUiMailViewerVisualiser::SetMskL()
             }
         else
             {
-	    //it will set context menu for email (reply, forward, etc.)
+        //it will set context menu for email (reply, forward, etc.)
             ChangeMskCommandL( R_FSE_QTN_MSK_BODY_MENU );
             }
         }
@@ -2682,8 +2682,8 @@ void CFSEmailUiMailViewerVisualiser::UpdateMailViewerL()
         iTextViewer->SetTextL( &iViewerRichText->RichText(), iSmDictionary );
 
         // ownerships are transfered to AlfEnviroment.
-	    //<cmail> Compared to S60 3.2.3 in S60 5.0 Alf offers the key events in
-	    // opposite order.
+        //<cmail> Compared to S60 3.2.3 in S60 5.0 Alf offers the key events in
+        // opposite order.
         // Create control for capturing left and right navigation events
         iControl = CFreestyleEmailUiMailViewerControl::NewL( iEnv, *this );
         ControlGroup().AppendL( iControl );
@@ -2698,132 +2698,132 @@ void CFSEmailUiMailViewerVisualiser::UpdateMailViewerL()
 // CFSEmailUiMailViewerVisualiser::SetActionButtonIconAndHighLight
 // -----------------------------------------------------------------------------
 void CFSEmailUiMailViewerVisualiser::SetActionButtonIconAndHighLight()
-	{
+    {
     FUNC_LOG;
-	CFreestyleEmailUiTextureManager* textureMgr = iAppUi.FsTextureManager();
+    CFreestyleEmailUiTextureManager* textureMgr = iAppUi.FsTextureManager();
     CFSEmailUiLayoutHandler* layoutMgr = iAppUi.LayoutHandler();
 
     // get textures from texture manager
-	CAlfTexture& menuTexture = textureMgr->TextureByIndex( EListControlMenuIcon );
-	CAlfTexture& selectortexture = textureMgr->TextureByIndex( EViewerHighlightTexture );
+    CAlfTexture& menuTexture = textureMgr->TextureByIndex( EListControlMenuIcon );
+    CAlfTexture& selectortexture = textureMgr->TextureByIndex( EViewerHighlightTexture );
 
     iTextViewer->SetLiteLineBg( selectortexture, layoutMgr->ViewerSelectorOpacity() );
 
-	iTextViewer->SetActionButton( menuTexture, 1  );
-	iTextViewer->SetActionButtonMargin( layoutMgr->ViewerActionMenuIconMargin() );
-	TSize btnSize = layoutMgr->ViewerActionMenuIconSize();
-	iTextViewer->SetActionButtonSize( btnSize.iWidth, btnSize.iHeight );
-	}
+    iTextViewer->SetActionButton( menuTexture, 1  );
+    iTextViewer->SetActionButtonMargin( layoutMgr->ViewerActionMenuIconMargin() );
+    TSize btnSize = layoutMgr->ViewerActionMenuIconSize();
+    iTextViewer->SetActionButtonSize( btnSize.iWidth, btnSize.iHeight );
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::LaunchActionMenuL
 // -----------------------------------------------------------------------------
 void CFSEmailUiMailViewerVisualiser::LaunchActionMenuL()
-	{
+    {
     FUNC_LOG;
-	// check that current hotspot is visible
-	TInt ignoreThis; // not used here. Only return value is used not this mandatory reference parameter
-	TBool visibleHotsSpot = iTextViewer->GetVisibleFocusedHotspotLine( ignoreThis );
-	if( visibleHotsSpot )
-		{
-		// Remove items
-		CFSEmailUiActionMenu::RemoveAllL();
+    // check that current hotspot is visible
+    TInt ignoreThis; // not used here. Only return value is used not this mandatory reference parameter
+    TBool visibleHotsSpot = iTextViewer->GetVisibleFocusedHotspotLine( ignoreThis );
+    if( visibleHotsSpot )
+        {
+        // Remove items
+        CFSEmailUiActionMenu::RemoveAllL();
 
-		// check which hotspot is active.
-		SViewerHeadingHotSpotData currentHeaderHotSpotData;
-		CFindItemEngine::SFoundItem currentBodyHotSpotData;
-		THotspotType hotspotType = iViewerRichText->FindCurrentHotSpotL( currentHeaderHotSpotData, currentBodyHotSpotData );
+        // check which hotspot is active.
+        SViewerHeadingHotSpotData currentHeaderHotSpotData;
+        CFindItemEngine::SFoundItem currentBodyHotSpotData;
+        THotspotType hotspotType = iViewerRichText->FindCurrentHotSpotL( currentHeaderHotSpotData, currentBodyHotSpotData );
 
-		TActionMenuType currentActionMenuType = ENoActionMenuFocused;
-		if( hotspotType == EHeaderHotspot && (
-			currentHeaderHotSpotData.iType == ETypeFromAddressDisplayName ||
-			currentHeaderHotSpotData.iType == ETypeToAddressDisplayName ||
-			currentHeaderHotSpotData.iType == ETypeCcAddressDisplayName ||
-			currentHeaderHotSpotData.iType == ETypeBccAddressDisplayName ||
-			currentHeaderHotSpotData.iType == ETypeEmailAddress ) )
-			{
-			currentActionMenuType = EFocusOnNameInAddressField;
-			}
-		else if( hotspotType == EHeaderHotspot && (
-			currentHeaderHotSpotData.iType == ETypeAttachment ) )
-			{
-			currentActionMenuType =	EFocusOnAttachmentName;
-			}
-		else if( hotspotType == EHeaderHotspot && (
-			currentHeaderHotSpotData.iType == ETypeAttachments ) )
-			{
-			currentActionMenuType =	EFocusOnAttachmentsText;
-			}
-		else if( hotspotType == EBodyHotspot &&
-				currentBodyHotSpotData.iItemType == CFindItemEngine::EFindItemSearchPhoneNumberBin )
-			{
-			currentActionMenuType = EFocusOnNumberWithinMessage;
-			}
-		else if( hotspotType == EBodyHotspot && ( currentBodyHotSpotData.iItemType == CFindItemEngine::EFindItemSearchURLBin ||
-			   	 currentBodyHotSpotData.iItemType == CFindItemEngine::EFindItemSearchScheme ) )
-			{
-			TInt schemaLinkType = ResolveBodyTextSchemaUrlTypeL( currentBodyHotSpotData );
-			switch ( schemaLinkType )
-				{
-				case EFocusOnEMailInBodyText:
-					currentActionMenuType = EFocusOnEMailInBodyText;
-					break;
-				case EFocusOnNumberWithinMessage:
-					currentActionMenuType = EFocusOnNumberWithinMessage;
-					break;
-				default:
-					currentActionMenuType = EFocusOnHyperLinkWithinMessage;
-					break;
+        TActionMenuType currentActionMenuType = ENoActionMenuFocused;
+        if( hotspotType == EHeaderHotspot && (
+            currentHeaderHotSpotData.iType == ETypeFromAddressDisplayName ||
+            currentHeaderHotSpotData.iType == ETypeToAddressDisplayName ||
+            currentHeaderHotSpotData.iType == ETypeCcAddressDisplayName ||
+            currentHeaderHotSpotData.iType == ETypeBccAddressDisplayName ||
+            currentHeaderHotSpotData.iType == ETypeEmailAddress ) )
+            {
+            currentActionMenuType = EFocusOnNameInAddressField;
+            }
+        else if( hotspotType == EHeaderHotspot && (
+            currentHeaderHotSpotData.iType == ETypeAttachment ) )
+            {
+            currentActionMenuType = EFocusOnAttachmentName;
+            }
+        else if( hotspotType == EHeaderHotspot && (
+            currentHeaderHotSpotData.iType == ETypeAttachments ) )
+            {
+            currentActionMenuType = EFocusOnAttachmentsText;
+            }
+        else if( hotspotType == EBodyHotspot &&
+                currentBodyHotSpotData.iItemType == CFindItemEngine::EFindItemSearchPhoneNumberBin )
+            {
+            currentActionMenuType = EFocusOnNumberWithinMessage;
+            }
+        else if( hotspotType == EBodyHotspot && ( currentBodyHotSpotData.iItemType == CFindItemEngine::EFindItemSearchURLBin ||
+                 currentBodyHotSpotData.iItemType == CFindItemEngine::EFindItemSearchScheme ) )
+            {
+            TInt schemaLinkType = ResolveBodyTextSchemaUrlTypeL( currentBodyHotSpotData );
+            switch ( schemaLinkType )
+                {
+                case EFocusOnEMailInBodyText:
+                    currentActionMenuType = EFocusOnEMailInBodyText;
+                    break;
+                case EFocusOnNumberWithinMessage:
+                    currentActionMenuType = EFocusOnNumberWithinMessage;
+                    break;
+                default:
+                    currentActionMenuType = EFocusOnHyperLinkWithinMessage;
+                    break;
 
-				}
-			}
-		else if( hotspotType == EBodyHotspot &&
-				currentBodyHotSpotData.iItemType == CFindItemEngine::EFindItemSearchMailAddressBin )
-			{
-			currentActionMenuType = EFocusOnEMailInBodyText;
-			}
+                }
+            }
+        else if( hotspotType == EBodyHotspot &&
+                currentBodyHotSpotData.iItemType == CFindItemEngine::EFindItemSearchMailAddressBin )
+            {
+            currentActionMenuType = EFocusOnEMailInBodyText;
+            }
 
 
-		if( currentActionMenuType != ENoActionMenuFocused )
-			{
-			CreateActionMenuItemsL( currentActionMenuType );
-		    TActionMenuCustomItemId menuResult = CFSEmailUiActionMenu::ExecuteL( EFscCenter );
-		    if ( menuResult != FsEActionMenuCasItemSelectedAndExecuted &&
-		    		menuResult != FsEActionMenuDismissed	)
-		    	{
-		    	HandleActionMenuCommandL( menuResult, currentActionMenuType );
-		    	}
-			}
-		}
-	}
+        if( currentActionMenuType != ENoActionMenuFocused )
+            {
+            CreateActionMenuItemsL( currentActionMenuType );
+            TActionMenuCustomItemId menuResult = CFSEmailUiActionMenu::ExecuteL( EFscCenter );
+            if ( menuResult != FsEActionMenuCasItemSelectedAndExecuted &&
+                    menuResult != FsEActionMenuDismissed    )
+                {
+                HandleActionMenuCommandL( menuResult, currentActionMenuType );
+                }
+            }
+        }
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::ResolveBodyTextSchemaUrlTypeL
 // -----------------------------------------------------------------------------
 TInt CFSEmailUiMailViewerVisualiser::ResolveBodyTextSchemaUrlTypeL( CFindItemEngine::SFoundItem aHotSpot )
-	{
+    {
     FUNC_LOG;
-	TInt ret( EFocusOnHyperLinkWithinMessage );
-	HBufC* schemeText = iViewerRichText->GetHotspotTextLC( aHotSpot );
-	if ( schemeText->FindC( KMailtoPrefix ) == 0 )
-		{
-		ret = EFocusOnEMailInBodyText;
-		}
-	else if ( schemeText->FindC( KCallPrefix ) == 0 ||
-			  schemeText->FindC( KTelPrefix ) == 0 ||
-			  schemeText->FindC( KSmsPrefix ) == 0 ||
-			  schemeText->FindC( KMmsPrefix ) == 0 ||
-			  schemeText->FindC( KVoipPrefix ) == 0 )
-		{
-		ret = EFocusOnNumberWithinMessage;
-		}
-	else
-		{
-		ret = EFocusOnHyperLinkWithinMessage;
-		}
-	CleanupStack::PopAndDestroy( schemeText );
-	return ret;
-	}
+    TInt ret( EFocusOnHyperLinkWithinMessage );
+    HBufC* schemeText = iViewerRichText->GetHotspotTextLC( aHotSpot );
+    if ( schemeText->FindC( KMailtoPrefix ) == 0 )
+        {
+        ret = EFocusOnEMailInBodyText;
+        }
+    else if ( schemeText->FindC( KCallPrefix ) == 0 ||
+              schemeText->FindC( KTelPrefix ) == 0 ||
+              schemeText->FindC( KSmsPrefix ) == 0 ||
+              schemeText->FindC( KMmsPrefix ) == 0 ||
+              schemeText->FindC( KVoipPrefix ) == 0 )
+        {
+        ret = EFocusOnNumberWithinMessage;
+        }
+    else
+        {
+        ret = EFocusOnHyperLinkWithinMessage;
+        }
+    CleanupStack::PopAndDestroy( schemeText );
+    return ret;
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::SetActionMenuIconVisbilityL
@@ -2848,477 +2848,477 @@ void CFSEmailUiMailViewerVisualiser::SetActionMenuIconVisbilityL()
 // CFSEmailUiMailViewerVisualiser::CreateActionMenuItemsL
 // -----------------------------------------------------------------------------
 void CFSEmailUiMailViewerVisualiser::CreateActionMenuItemsL(
-	TActionMenuType aActionMenuType )
-	{
+    TActionMenuType aActionMenuType )
+    {
     FUNC_LOG;
-	// See the ui spec for all the right action menus according to
-	// currently selected hotspot
-	RArray<TActionMenuCustomItemId> uids;
-	CleanupClosePushL( uids );
-	if ( aActionMenuType == EFocusOnNumberWithinMessage )
-		{
-		uids.Append( FsEActionMenuCall );
-		uids.Append( FsEActionMenuAddToContacts );
-		// Drop FsEActionMenuCreateMessage from sip: addresses
-		// First check which hotspot is active.
-		SViewerHeadingHotSpotData currentHeaderHotSpotData;
-		CFindItemEngine::SFoundItem currentBodyHotSpotData;
-		THotspotType hotspotType = iViewerRichText->FindCurrentHotSpotL(
-			currentHeaderHotSpotData, currentBodyHotSpotData );
-		HBufC* schemeText = iViewerRichText->GetHotspotTextLC( currentBodyHotSpotData );
-		if ( schemeText &&  schemeText->FindC( KVoipPrefix ) != 0 )
-			{
-			uids.Append( FsEActionMenuCreateMessage );
-			}
-		CleanupStack::PopAndDestroy( schemeText );
-		if ( TFsEmailUiUtility::IsRemoteLookupSupported( *iMailBox ) )
-			{
-			uids.Append( FsEActionMenuRemoteLookup );
-			}
-		}
-	else if ( aActionMenuType == EFocusOnNameInAddressField ||
-			  aActionMenuType == EFocusOnEMailInBodyText )
-		{
-		uids.Append( FsEActionMenuCall );
-		uids.Append( FsEActionMenuCreateMessage );
-	    uids.Append( FsEActionMenuCreateEmail );
-		uids.Append( FsEActionMenuContactDetails );
-		uids.Append( FsEActionMenuAddToContacts );
-		if ( TFsEmailUiUtility::IsRemoteLookupSupported( *iMailBox ) )
-			{
-			uids.Append( FsEActionMenuRemoteLookup );
-			}
-		}
-	else if ( aActionMenuType == EFocusOnHyperLinkWithinMessage )
-		{
-		uids.Append( FsEActionMenuOpenInWeb );
-		uids.Append( FsEActionMenuOpenInIntranet );
-		uids.Append( FsEActionMenuBookmark );
-		}
-	else if ( aActionMenuType == EFocusOnAttachmentName )
-		{
-		if ( ShowOpenAttachmentOptionL() )
-		    {
-    		uids.Append( FsEActionAttachmentOpen );
-		    }
-		if ( ShowDownloadOptionL() )
-			{
-			uids.Append( FsEActionAttachmentDownload );
-			}
-		if ( ShowCancelDownloadOption() )
-			{
-			uids.Append( FsEActionAttachmentCancelDownload );
-			}
-		if ( ShowSaveAttachmentOptionL() )
-		    {
-		    uids.Append( FsEActionAttachmentSave );
-		    }
+    // See the ui spec for all the right action menus according to
+    // currently selected hotspot
+    RArray<TActionMenuCustomItemId> uids;
+    CleanupClosePushL( uids );
+    if ( aActionMenuType == EFocusOnNumberWithinMessage )
+        {
+        uids.Append( FsEActionMenuCall );
+        uids.Append( FsEActionMenuAddToContacts );
+        // Drop FsEActionMenuCreateMessage from sip: addresses
+        // First check which hotspot is active.
+        SViewerHeadingHotSpotData currentHeaderHotSpotData;
+        CFindItemEngine::SFoundItem currentBodyHotSpotData;
+        THotspotType hotspotType = iViewerRichText->FindCurrentHotSpotL(
+            currentHeaderHotSpotData, currentBodyHotSpotData );
+        HBufC* schemeText = iViewerRichText->GetHotspotTextLC( currentBodyHotSpotData );
+        if ( schemeText &&  schemeText->FindC( KVoipPrefix ) != 0 )
+            {
+            uids.Append( FsEActionMenuCreateMessage );
+            }
+        CleanupStack::PopAndDestroy( schemeText );
+        if ( TFsEmailUiUtility::IsRemoteLookupSupported( *iMailBox ) )
+            {
+            uids.Append( FsEActionMenuRemoteLookup );
+            }
+        }
+    else if ( aActionMenuType == EFocusOnNameInAddressField ||
+              aActionMenuType == EFocusOnEMailInBodyText )
+        {
+        uids.Append( FsEActionMenuCall );
+        uids.Append( FsEActionMenuCreateMessage );
+        uids.Append( FsEActionMenuCreateEmail );
+        uids.Append( FsEActionMenuContactDetails );
+        uids.Append( FsEActionMenuAddToContacts );
+        if ( TFsEmailUiUtility::IsRemoteLookupSupported( *iMailBox ) )
+            {
+            uids.Append( FsEActionMenuRemoteLookup );
+            }
+        }
+    else if ( aActionMenuType == EFocusOnHyperLinkWithinMessage )
+        {
+        uids.Append( FsEActionMenuOpenInWeb );
+        uids.Append( FsEActionMenuOpenInIntranet );
+        uids.Append( FsEActionMenuBookmark );
+        }
+    else if ( aActionMenuType == EFocusOnAttachmentName )
+        {
+        if ( ShowOpenAttachmentOptionL() )
+            {
+            uids.Append( FsEActionAttachmentOpen );
+            }
+        if ( ShowDownloadOptionL() )
+            {
+            uids.Append( FsEActionAttachmentDownload );
+            }
+        if ( ShowCancelDownloadOption() )
+            {
+            uids.Append( FsEActionAttachmentCancelDownload );
+            }
+        if ( ShowSaveAttachmentOptionL() )
+            {
+            uids.Append( FsEActionAttachmentSave );
+            }
         if ( ShowOpenAttachmentOptionL() )
             {
             uids.Append( FsEActionAttachmentClearFetchedContent );
             }
-		}
-	else if ( aActionMenuType == EFocusOnAttachmentsText )
-		{
-		if ( ShowOpenAttachmentOptionL() )
-		    {
-    		uids.Append( FsEActionAttachmentViewAll );
-		    }
-		if ( ShowDownloadOptionL() )
-			{
-			uids.Append( FsEActionAttachmentDownloadAll );
-			}
-		if ( ShowCancelDownloadOption() )
-			{
-			uids.Append( FsEActionAttachmentCancelAllDownloads );
-			}
-		if ( ShowSaveAttachmentOptionL() )
-		    {
-		    uids.Append( FsEActionAttachmentSaveAll );
-		    }
-		}
+        }
+    else if ( aActionMenuType == EFocusOnAttachmentsText )
+        {
+        if ( ShowOpenAttachmentOptionL() )
+            {
+            uids.Append( FsEActionAttachmentViewAll );
+            }
+        if ( ShowDownloadOptionL() )
+            {
+            uids.Append( FsEActionAttachmentDownloadAll );
+            }
+        if ( ShowCancelDownloadOption() )
+            {
+            uids.Append( FsEActionAttachmentCancelAllDownloads );
+            }
+        if ( ShowSaveAttachmentOptionL() )
+            {
+            uids.Append( FsEActionAttachmentSaveAll );
+            }
+        }
 
-	TInt uidsCount = uids.Count();
-	for ( TInt i = 0; i <  uidsCount; i++ )
-		{
-		CFSEmailUiActionMenu::AddCustomItemL( uids[i] );
-		}
-	CleanupStack::PopAndDestroy( &uids );
-	}
+    TInt uidsCount = uids.Count();
+    for ( TInt i = 0; i <  uidsCount; i++ )
+        {
+        CFSEmailUiActionMenu::AddCustomItemL( uids[i] );
+        }
+    CleanupStack::PopAndDestroy( &uids );
+    }
 
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::HandleActionMenuCommandL
 // -----------------------------------------------------------------------------
 void CFSEmailUiMailViewerVisualiser::HandleActionMenuCommandL(
-	TActionMenuCustomItemId aSelectedActionMenuItem,
-	TActionMenuType aActionMenuType )
-	{
+    TActionMenuCustomItemId aSelectedActionMenuItem,
+    TActionMenuType aActionMenuType )
+    {
     FUNC_LOG;
-	// check which hotspot is active.
-	SViewerHeadingHotSpotData currentHeaderHotSpotData;
-	CFindItemEngine::SFoundItem currentBodyHotSpotData;
-	THotspotType hotspotType = iViewerRichText->FindCurrentHotSpotL(
-		currentHeaderHotSpotData, currentBodyHotSpotData );
+    // check which hotspot is active.
+    SViewerHeadingHotSpotData currentHeaderHotSpotData;
+    CFindItemEngine::SFoundItem currentBodyHotSpotData;
+    THotspotType hotspotType = iViewerRichText->FindCurrentHotSpotL(
+        currentHeaderHotSpotData, currentBodyHotSpotData );
 
-	if ( aActionMenuType == EFocusOnNumberWithinMessage )
-		{
-		switch ( aSelectedActionMenuItem  )
-			{
-			case FsEActionMenuCall: // Call
-				{
-				CallToBodyHotSpotNumberL( currentBodyHotSpotData );
-				}
-				break;
-			case FsEActionMenuAddToContacts: // Add to Contacts
-				{
-				HBufC* hotspotText = iViewerRichText->GetHotspotTextLC(
-					currentBodyHotSpotData );
-				SavePhoneNumberAsContactL( *hotspotText );
-				CleanupStack::PopAndDestroy( hotspotText );
-				}
-				break;
-			case FsEActionMenuCreateMessage: // Create message
-				{
-				CreateMessageL();
-				}
-				break;
-			case FsEActionMenuRemoteLookup: // Remote lookup
-				{
-				HBufC* hotspotText = iViewerRichText->GetHotspotTextLC(
-					currentBodyHotSpotData );
-				LaunchRemoteLookupL( *hotspotText );
-				CleanupStack::PopAndDestroy( hotspotText );
-				}
-				break;
-			}
-		}
-	else if ( aActionMenuType == EFocusOnNameInAddressField )
-		{
-		switch( aSelectedActionMenuItem )
-			{
-			case FsEActionMenuCall: // Call
-				{
-				CallHotSpotAddressL();
-				}
-				break;
-			case FsEActionMenuCreateMessage: // Create message
-				{
-				CreateMessageL();
-				}
-				break;
+    if ( aActionMenuType == EFocusOnNumberWithinMessage )
+        {
+        switch ( aSelectedActionMenuItem  )
+            {
+            case FsEActionMenuCall: // Call
+                {
+                CallToBodyHotSpotNumberL( currentBodyHotSpotData );
+                }
+                break;
+            case FsEActionMenuAddToContacts: // Add to Contacts
+                {
+                HBufC* hotspotText = iViewerRichText->GetHotspotTextLC(
+                    currentBodyHotSpotData );
+                SavePhoneNumberAsContactL( *hotspotText );
+                CleanupStack::PopAndDestroy( hotspotText );
+                }
+                break;
+            case FsEActionMenuCreateMessage: // Create message
+                {
+                CreateMessageL();
+                }
+                break;
+            case FsEActionMenuRemoteLookup: // Remote lookup
+                {
+                HBufC* hotspotText = iViewerRichText->GetHotspotTextLC(
+                    currentBodyHotSpotData );
+                LaunchRemoteLookupL( *hotspotText );
+                CleanupStack::PopAndDestroy( hotspotText );
+                }
+                break;
+            }
+        }
+    else if ( aActionMenuType == EFocusOnNameInAddressField )
+        {
+        switch( aSelectedActionMenuItem )
+            {
+            case FsEActionMenuCall: // Call
+                {
+                CallHotSpotAddressL();
+                }
+                break;
+            case FsEActionMenuCreateMessage: // Create message
+                {
+                CreateMessageL();
+                }
+                break;
             case FsEActionMenuCreateEmail: // Create message
                 {
                 ComposeMailL();
                 }
                 break;
-			case FsEActionMenuContactDetails: // Contact details
-				{
-				OpenContactDetailsL();
-				}
-				break;
-			case FsEActionMenuAddToContacts: // Add to Contacts
-				{
-				HBufC* emailAddress =
-					iViewerRichText->GetHeaderHotspotEmailAddressLC(
-						currentHeaderHotSpotData );
-				SaveEmailAsContactL( *emailAddress );
-				CleanupStack::PopAndDestroy( emailAddress );
-				}
-				break;
-			case FsEActionMenuRemoteLookup: // Remote lookup
-				{
-				HBufC* emailAddress =
-					iViewerRichText->GetHeaderHotspotEmailAddressLC(
-						currentHeaderHotSpotData );
-				LaunchRemoteLookupL( *emailAddress );
-				CleanupStack::PopAndDestroy( emailAddress );
-				}
-				break;
-			}
-		}
-	else if ( aActionMenuType == EFocusOnHyperLinkWithinMessage )
-		{
-		switch ( aSelectedActionMenuItem )
-			{
-			case FsEActionMenuOpenInWeb: // Open in web
-				{
-				OpenHotSpotUrlInBrowserL( currentBodyHotSpotData );
-				}
-				break;
-			case FsEActionMenuOpenInIntranet: // Open in intranet
-				{
-				OpenLinkInIntranetL( EFalse );
-				}
-				break;
-			case FsEActionMenuBookmark: // Bookmark
-				{
-				AddToBookmarksL( currentBodyHotSpotData );
-				}
-				break;
-			}
-		}
-	else if ( aActionMenuType == EFocusOnAttachmentName ||
+            case FsEActionMenuContactDetails: // Contact details
+                {
+                OpenContactDetailsL();
+                }
+                break;
+            case FsEActionMenuAddToContacts: // Add to Contacts
+                {
+                HBufC* emailAddress =
+                    iViewerRichText->GetHeaderHotspotEmailAddressLC(
+                        currentHeaderHotSpotData );
+                SaveEmailAsContactL( *emailAddress );
+                CleanupStack::PopAndDestroy( emailAddress );
+                }
+                break;
+            case FsEActionMenuRemoteLookup: // Remote lookup
+                {
+                HBufC* emailAddress =
+                    iViewerRichText->GetHeaderHotspotEmailAddressLC(
+                        currentHeaderHotSpotData );
+                LaunchRemoteLookupL( *emailAddress );
+                CleanupStack::PopAndDestroy( emailAddress );
+                }
+                break;
+            }
+        }
+    else if ( aActionMenuType == EFocusOnHyperLinkWithinMessage )
+        {
+        switch ( aSelectedActionMenuItem )
+            {
+            case FsEActionMenuOpenInWeb: // Open in web
+                {
+                OpenHotSpotUrlInBrowserL( currentBodyHotSpotData );
+                }
+                break;
+            case FsEActionMenuOpenInIntranet: // Open in intranet
+                {
+                OpenLinkInIntranetL( EFalse );
+                }
+                break;
+            case FsEActionMenuBookmark: // Bookmark
+                {
+                AddToBookmarksL( currentBodyHotSpotData );
+                }
+                break;
+            }
+        }
+    else if ( aActionMenuType == EFocusOnAttachmentName ||
               aActionMenuType == EFocusOnAttachmentsText )
-		{
-		switch ( aSelectedActionMenuItem )
-			{
-			case FsEActionAttachmentOpen: // Open single attachment
-			    {
-			    OpenAttachmentL();
+        {
+        switch ( aSelectedActionMenuItem )
+            {
+            case FsEActionAttachmentOpen: // Open single attachment
+                {
+                OpenAttachmentL();
                 }
                 break;
-			case FsEActionAttachmentViewAll: // Open attachments list
-			    {
-			    OpenAttachmentsViewL();
-			    }
-				break;
-			case FsEActionAttachmentDownload: // Dowload one
-			case FsEActionAttachmentDownloadAll : /// all attachments
-				{
-				StartDowloadingAttachmentsL();
-				}
-				break;
-			case FsEActionAttachmentCancelDownload: // Cancel one / all downloads
-			case FsEActionAttachmentCancelAllDownloads:
-				{
-				CancelDowloadingAttachmentsL();
-				}
-				break;
-			case FsEActionAttachmentSave: // Save one / all attachments
-			case FsEActionAttachmentSaveAll:
-				{
-				SaveAllAttachmentsL();
-				}
-				break;
-			case FsEActionAttachmentClearFetchedContent:
-			    {
-			    RemoveFetchedAttachmentL();
-			    }
-			    break;
-			}
-		}
-	else if ( aActionMenuType == EFocusOnEMailInBodyText )
-		{
-		switch ( aSelectedActionMenuItem )
-			{
-			case FsEActionMenuCall: // Call
-				{
-				CallHotSpotAddressL();
-				}
-				break;
-			case FsEActionMenuCreateMessage: // Create message
-				{
-				CreateMessageL();
-				}
-				break;
+            case FsEActionAttachmentViewAll: // Open attachments list
+                {
+                OpenAttachmentsViewL();
+                }
+                break;
+            case FsEActionAttachmentDownload: // Dowload one
+            case FsEActionAttachmentDownloadAll : /// all attachments
+                {
+                StartDowloadingAttachmentsL();
+                }
+                break;
+            case FsEActionAttachmentCancelDownload: // Cancel one / all downloads
+            case FsEActionAttachmentCancelAllDownloads:
+                {
+                CancelDowloadingAttachmentsL();
+                }
+                break;
+            case FsEActionAttachmentSave: // Save one / all attachments
+            case FsEActionAttachmentSaveAll:
+                {
+                SaveAllAttachmentsL();
+                }
+                break;
+            case FsEActionAttachmentClearFetchedContent:
+                {
+                RemoveFetchedAttachmentL();
+                }
+                break;
+            }
+        }
+    else if ( aActionMenuType == EFocusOnEMailInBodyText )
+        {
+        switch ( aSelectedActionMenuItem )
+            {
+            case FsEActionMenuCall: // Call
+                {
+                CallHotSpotAddressL();
+                }
+                break;
+            case FsEActionMenuCreateMessage: // Create message
+                {
+                CreateMessageL();
+                }
+                break;
             case FsEActionMenuCreateEmail: // Create message
                 {
                 ComposeMailL();
                 }
                 break;
-			case FsEActionMenuContactDetails: // Contact details
-				{
-				OpenContactDetailsL();
-				}
-				break;
-			case FsEActionMenuAddToContacts: // Add to Contacts
-				{
-				HBufC* hotspotText = iViewerRichText->GetHotspotTextLC(
-					currentBodyHotSpotData );
-				if ( currentBodyHotSpotData.iItemType ==
-					CFindItemEngine::EFindItemSearchPhoneNumberBin )
-					{
-					SavePhoneNumberAsContactL( *hotspotText );
-					}
-				else if ( currentBodyHotSpotData.iItemType ==
-					CFindItemEngine::EFindItemSearchMailAddressBin )
-					{
-					SaveEmailAsContactL( *hotspotText );
-					}
-				else if ( currentBodyHotSpotData.iItemType ==
-					CFindItemEngine::EFindItemSearchScheme )
-					{
-					if ( hotspotText->FindC( KMailtoPrefix ) == 0 )
-						{
-						// Save email as contact, address mailto: strip is done in SaveEmailAsContactL
-						SaveEmailAsContactL( *hotspotText );
-						}
-					}
-				CleanupStack::PopAndDestroy( hotspotText );
-				}
-				break;
-			case FsEActionMenuRemoteLookup: // Remote lookup
-				{
-				HBufC* hotspotText = iViewerRichText->GetHotspotTextLC(
-					currentBodyHotSpotData );
-				LaunchRemoteLookupL( *hotspotText );
-				CleanupStack::PopAndDestroy( hotspotText );
-				}
-				break;
-			}
-		}
-	}
+            case FsEActionMenuContactDetails: // Contact details
+                {
+                OpenContactDetailsL();
+                }
+                break;
+            case FsEActionMenuAddToContacts: // Add to Contacts
+                {
+                HBufC* hotspotText = iViewerRichText->GetHotspotTextLC(
+                    currentBodyHotSpotData );
+                if ( currentBodyHotSpotData.iItemType ==
+                    CFindItemEngine::EFindItemSearchPhoneNumberBin )
+                    {
+                    SavePhoneNumberAsContactL( *hotspotText );
+                    }
+                else if ( currentBodyHotSpotData.iItemType ==
+                    CFindItemEngine::EFindItemSearchMailAddressBin )
+                    {
+                    SaveEmailAsContactL( *hotspotText );
+                    }
+                else if ( currentBodyHotSpotData.iItemType ==
+                    CFindItemEngine::EFindItemSearchScheme )
+                    {
+                    if ( hotspotText->FindC( KMailtoPrefix ) == 0 )
+                        {
+                        // Save email as contact, address mailto: strip is done in SaveEmailAsContactL
+                        SaveEmailAsContactL( *hotspotText );
+                        }
+                    }
+                CleanupStack::PopAndDestroy( hotspotText );
+                }
+                break;
+            case FsEActionMenuRemoteLookup: // Remote lookup
+                {
+                HBufC* hotspotText = iViewerRichText->GetHotspotTextLC(
+                    currentBodyHotSpotData );
+                LaunchRemoteLookupL( *hotspotText );
+                CleanupStack::PopAndDestroy( hotspotText );
+                }
+                break;
+            }
+        }
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::OpenContactDetailsL
 // -----------------------------------------------------------------------------
 void CFSEmailUiMailViewerVisualiser::OpenContactDetailsL()
-	{
+    {
     FUNC_LOG;
-	SViewerHeadingHotSpotData currentHeaderHotSpotData;
-	CFindItemEngine::SFoundItem currentBodyHotSpotData;
-	THotspotType hotspotType = iViewerRichText->FindCurrentHotSpotL( currentHeaderHotSpotData, currentBodyHotSpotData );
+    SViewerHeadingHotSpotData currentHeaderHotSpotData;
+    CFindItemEngine::SFoundItem currentBodyHotSpotData;
+    THotspotType hotspotType = iViewerRichText->FindCurrentHotSpotL( currentHeaderHotSpotData, currentBodyHotSpotData );
 
-	HBufC* emailAddress = NULL;
-	if ( hotspotType == EHeaderHotspot )
-		{
-		emailAddress = iViewerRichText->GetHeaderHotspotEmailAddressLC( currentHeaderHotSpotData );
-		}
-	else if ( hotspotType == EBodyHotspot )
-		{
-		emailAddress = iViewerRichText->GetHotspotTextLC( currentBodyHotSpotData );
-		// Delete "mailto:" prefix if found
-		if ( emailAddress->FindC( KMailtoPrefix ) == 0 )
-			{
-			emailAddress->Des().Delete( 0, KMailtoPrefix().Length() );
-			}
-		}
-	else
-		{
-		return;
-		}
+    HBufC* emailAddress = NULL;
+    if ( hotspotType == EHeaderHotspot )
+        {
+        emailAddress = iViewerRichText->GetHeaderHotspotEmailAddressLC( currentHeaderHotSpotData );
+        }
+    else if ( hotspotType == EBodyHotspot )
+        {
+        emailAddress = iViewerRichText->GetHotspotTextLC( currentBodyHotSpotData );
+        // Delete "mailto:" prefix if found
+        if ( emailAddress->FindC( KMailtoPrefix ) == 0 )
+            {
+            emailAddress->Des().Delete( 0, KMailtoPrefix().Length() );
+            }
+        }
+    else
+        {
+        return;
+        }
 
-	CFsDelayedLoader::InstanceL()->GetContactHandlerL()->ShowContactDetailsL(
-			*emailAddress, EContactUpdateEmail, NULL );
+    CFsDelayedLoader::InstanceL()->GetContactHandlerL()->ShowContactDetailsL(
+            *emailAddress, EContactUpdateEmail, NULL );
 
-	CleanupStack::PopAndDestroy( emailAddress );
-	}
+    CleanupStack::PopAndDestroy( emailAddress );
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::LaunchHtmlViewerL
 // -----------------------------------------------------------------------------
 void CFSEmailUiMailViewerVisualiser::LaunchHtmlViewerL()
-	{
+    {
     FUNC_LOG;
-	if ( MessagePartFullyFetchedL( EMessageHtmlBodyPart ) )
-		{
-		THtmlViewerActivationData htmlData;
-		htmlData.iActivationDataType = THtmlViewerActivationData::EMailMessage;
-		htmlData.iMailBoxId = iMessage->GetMailBoxId();
+    if ( MessagePartFullyFetchedL( EMessageHtmlBodyPart ) )
+        {
+        THtmlViewerActivationData htmlData;
+        htmlData.iActivationDataType = THtmlViewerActivationData::EMailMessage;
+        htmlData.iMailBoxId = iMessage->GetMailBoxId();
         htmlData.iFolderId = iMessage->GetFolderId();
         htmlData.iMessageId = iMessage->GetMessageId();
         htmlData.iEmbeddedMessageMode = iEmbeddedMessageMode;
-		TPckgBuf<THtmlViewerActivationData> pckgData( htmlData );
+        TPckgBuf<THtmlViewerActivationData> pckgData( htmlData );
 
-		iAppUi.EnterFsEmailViewL( HtmlViewerId, KHtmlViewerOpenNew, pckgData );
-		}
-	else
-		{
-		StartWaitedFetchingL( EMessageHtmlBodyPart );
-		}
-	}
+        iAppUi.EnterFsEmailViewL( HtmlViewerId, KHtmlViewerOpenNew, pckgData );
+        }
+    else
+        {
+        StartWaitedFetchingL( EMessageHtmlBodyPart );
+        }
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::LaunchRemoteLookupL
 // -----------------------------------------------------------------------------
 void CFSEmailUiMailViewerVisualiser::LaunchRemoteLookupL( const TDesC& aDes ) const
-	{
+    {
     FUNC_LOG;
-	// this method assumes that remote lookup is available with current plugin.
-	HBufC* textData = HBufC::NewLC( aDes.Length() );
-	textData->Des().Append( aDes );
-	if ( textData->FindC( KMailtoPrefix ) == 0 )
-		{
-		textData->Des().Delete( 0, KMailtoPrefix().Length() );
-		}
-	else if ( textData->FindC( KCallPrefix ) == 0 )
-		{
-		textData->Des().Delete( 0, KCallPrefix().Length() );
-		}
-	else if ( textData->FindC( KTelPrefix ) == 0 )
-		{
-		textData->Des().Delete( 0, KTelPrefix().Length() );
-		}
-	else if ( textData->FindC( KSmsPrefix ) == 0 )
-		{
-		textData->Des().Delete( 0, KSmsPrefix().Length() );
-		}
-	else if ( textData->FindC( KMmsPrefix ) == 0 )
-		{
-		textData->Des().Delete( 0, KMmsPrefix().Length() );
-		}
-	else if ( textData->FindC( KVoipPrefix ) == 0 )
-		{
-		textData->Des().Delete( 0, KVoipPrefix().Length() );
-		}
+    // this method assumes that remote lookup is available with current plugin.
+    HBufC* textData = HBufC::NewLC( aDes.Length() );
+    textData->Des().Append( aDes );
+    if ( textData->FindC( KMailtoPrefix ) == 0 )
+        {
+        textData->Des().Delete( 0, KMailtoPrefix().Length() );
+        }
+    else if ( textData->FindC( KCallPrefix ) == 0 )
+        {
+        textData->Des().Delete( 0, KCallPrefix().Length() );
+        }
+    else if ( textData->FindC( KTelPrefix ) == 0 )
+        {
+        textData->Des().Delete( 0, KTelPrefix().Length() );
+        }
+    else if ( textData->FindC( KSmsPrefix ) == 0 )
+        {
+        textData->Des().Delete( 0, KSmsPrefix().Length() );
+        }
+    else if ( textData->FindC( KMmsPrefix ) == 0 )
+        {
+        textData->Des().Delete( 0, KMmsPrefix().Length() );
+        }
+    else if ( textData->FindC( KVoipPrefix ) == 0 )
+        {
+        textData->Des().Delete( 0, KVoipPrefix().Length() );
+        }
 
-	CFsDelayedLoader::InstanceL()->GetContactHandlerL()->LaunchRemoteLookupWithQueryL( *iMailBox, *textData );
-	CleanupStack::PopAndDestroy( textData );
-	}
+    CFsDelayedLoader::InstanceL()->GetContactHandlerL()->LaunchRemoteLookupWithQueryL( *iMailBox, *textData );
+    CleanupStack::PopAndDestroy( textData );
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::AddToBookmarksL
 // -----------------------------------------------------------------------------
 void CFSEmailUiMailViewerVisualiser::AddToBookmarksL(
-				const CFindItemEngine::SFoundItem& aBodyHotspotData ) const
-	{
+                const CFindItemEngine::SFoundItem& aBodyHotspotData ) const
+    {
     FUNC_LOG;
-	HBufC* hotspotText =
-		iViewerRichText->GetHotspotTextLC( aBodyHotspotData );
+    HBufC* hotspotText =
+        iViewerRichText->GetHotspotTextLC( aBodyHotspotData );
 
-	RFavouritesSession fSession;
-	User::LeaveIfError( fSession.Connect() );
-	CleanupClosePushL( fSession );
+    RFavouritesSession fSession;
+    User::LeaveIfError( fSession.Connect() );
+    CleanupClosePushL( fSession );
 
-	RFavouritesDb favoris;
-	User::LeaveIfError( favoris.Open( fSession, KBrowserBookmarks ) );
-	CleanupClosePushL( favoris );
+    RFavouritesDb favoris;
+    User::LeaveIfError( favoris.Open( fSession, KBrowserBookmarks ) );
+    CleanupClosePushL( favoris );
 
-	CFavouritesItem *favorisItem = CFavouritesItem::NewLC();
-	favorisItem->SetType( CFavouritesItem::EItem );
-	favorisItem->SetUrlL( *hotspotText );
+    CFavouritesItem *favorisItem = CFavouritesItem::NewLC();
+    favorisItem->SetType( CFavouritesItem::EItem );
+    favorisItem->SetUrlL( *hotspotText );
     // Should be less than KFavouritesMaxName ( 50 )
-	if ( hotspotText->Length() > KFavouritesMaxName )
-		{
-		favorisItem->SetNameL( hotspotText->Left( KFavouritesMaxName ) );
-		}
-	else
-		{
-     	favorisItem->SetNameL( *hotspotText );
-		}
+    if ( hotspotText->Length() > KFavouritesMaxName )
+        {
+        favorisItem->SetNameL( hotspotText->Left( KFavouritesMaxName ) );
+        }
+    else
+        {
+        favorisItem->SetNameL( *hotspotText );
+        }
 
-	favorisItem->SetParentFolder( KFavouritesRootUid );
+    favorisItem->SetParentFolder( KFavouritesRootUid );
 
-	TInt error = favoris.Add( *favorisItem, ETrue );
+    TInt error = favoris.Add( *favorisItem, ETrue );
 
-	CleanupStack::PopAndDestroy( favorisItem );
-	CleanupStack::PopAndDestroy( &favoris );
-	CleanupStack::PopAndDestroy( &fSession );
+    CleanupStack::PopAndDestroy( favorisItem );
+    CleanupStack::PopAndDestroy( &favoris );
+    CleanupStack::PopAndDestroy( &fSession );
 
-	CleanupStack::PopAndDestroy( hotspotText );
+    CleanupStack::PopAndDestroy( hotspotText );
 
-	if ( error == KErrNone )
-		{
-		TFsEmailUiUtility::ShowInfoNoteL(
-			R_FREESTYLE_EMAIL_UI_VIEWER_BOOKMARK_ADDED, ETrue );
-		}
-	else // Error in bookmark creation, show could not complete message
-		{
-		TFsEmailUiUtility::ShowErrorNoteL(
-			R_FREESTYLE_EMAIL_ERROR_GENERAL_UNABLE_TO_COMPLETE, ETrue );
-		}
-	}
+    if ( error == KErrNone )
+        {
+        TFsEmailUiUtility::ShowInfoNoteL(
+            R_FREESTYLE_EMAIL_UI_VIEWER_BOOKMARK_ADDED, ETrue );
+        }
+    else // Error in bookmark creation, show could not complete message
+        {
+        TFsEmailUiUtility::ShowErrorNoteL(
+            R_FREESTYLE_EMAIL_ERROR_GENERAL_UNABLE_TO_COMPLETE, ETrue );
+        }
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::CallHotSpotAddressL
 // -----------------------------------------------------------------------------
 void CFSEmailUiMailViewerVisualiser::CallHotSpotAddressL()
-	{
+    {
     FUNC_LOG;
-	SViewerHeadingHotSpotData currentHeaderHotSpotData;
-	CFindItemEngine::SFoundItem currentBodyHotSpotData;
-	THotspotType hotspotType = iViewerRichText->FindCurrentHotSpotL( currentHeaderHotSpotData, currentBodyHotSpotData );
+    SViewerHeadingHotSpotData currentHeaderHotSpotData;
+    CFindItemEngine::SFoundItem currentBodyHotSpotData;
+    THotspotType hotspotType = iViewerRichText->FindCurrentHotSpotL( currentHeaderHotSpotData, currentBodyHotSpotData );
 
    if( hotspotType == EHeaderHotspot &&  currentHeaderHotSpotData.iType == ETypeFromAddressDisplayName )
         {
@@ -3328,123 +3328,123 @@ void CFSEmailUiMailViewerVisualiser::CallHotSpotAddressL()
            CleanupStack::PopAndDestroy( emailAddress );
         }
    else if( ( hotspotType == EHeaderHotspot &&
-			( currentHeaderHotSpotData.iType == ETypeToAddressDisplayName ||
-			currentHeaderHotSpotData.iType == ETypeCcAddressDisplayName ||
-			currentHeaderHotSpotData.iType == ETypeBccAddressDisplayName ||
-			currentHeaderHotSpotData.iType == ETypeEmailAddress )
-			)
-		)
-		{
-		HBufC* emailAddress = iViewerRichText->GetHeaderHotspotEmailAddressLC( currentHeaderHotSpotData );
-		CFsDelayedLoader::InstanceL()->GetContactHandlerL()->FindAndCallToContactByEmailL( *emailAddress,
-				 iAppUi.GetActiveMailbox(), this, EFalse /*use call sender text*/);
-		CleanupStack::PopAndDestroy( emailAddress );
-		}
-	else if( hotspotType == EBodyHotspot &&
-				currentBodyHotSpotData.iItemType == CFindItemEngine::EFindItemSearchMailAddressBin	)
-		{
-		HBufC* emailAddress = iViewerRichText->GetHotspotTextLC( currentBodyHotSpotData );
-		CFsDelayedLoader::InstanceL()->GetContactHandlerL()->FindAndCallToContactByEmailL( *emailAddress,
-				 iAppUi.GetActiveMailbox(), this, EFalse );
-		CleanupStack::PopAndDestroy( emailAddress );
-		}
-	else if( hotspotType == EBodyHotspot &&
-				currentBodyHotSpotData.iItemType == CFindItemEngine::EFindItemSearchPhoneNumberBin )
-		{
-		CallToBodyHotSpotNumberL( currentBodyHotSpotData );
-		}
-	else if ( currentBodyHotSpotData.iItemType == CFindItemEngine::EFindItemSearchScheme )
-		{
-		// Get scheme text and make sure there is "mailto:" text or "call:" text
-		HBufC* schemeText = iViewerRichText->GetHotspotTextLC( currentBodyHotSpotData );
-		if ( schemeText &&  schemeText->FindC( KMailtoPrefix ) == 0 )
-			{
-			schemeText->Des().Delete( 0, KMailtoPrefix().Length() );
-			CFsDelayedLoader::InstanceL()->GetContactHandlerL()->FindAndCallToContactByEmailL( *schemeText,
-				 iAppUi.GetActiveMailbox(), this, EFalse);
-			}
-		else if ( schemeText->FindC( KCallPrefix ) == 0 ||
-				  schemeText->FindC( KTelPrefix ) == 0 ||
-				  schemeText->FindC( KSmsPrefix ) == 0 ||
-				  schemeText->FindC( KMmsPrefix ) == 0 ||
-				  schemeText->FindC( KVoipPrefix ) == 0 )
-			{
-			CallToBodyHotSpotNumberL( currentBodyHotSpotData );
-			}
-		CleanupStack::PopAndDestroy( schemeText );
-		}
+            ( currentHeaderHotSpotData.iType == ETypeToAddressDisplayName ||
+            currentHeaderHotSpotData.iType == ETypeCcAddressDisplayName ||
+            currentHeaderHotSpotData.iType == ETypeBccAddressDisplayName ||
+            currentHeaderHotSpotData.iType == ETypeEmailAddress )
+            )
+        )
+        {
+        HBufC* emailAddress = iViewerRichText->GetHeaderHotspotEmailAddressLC( currentHeaderHotSpotData );
+        CFsDelayedLoader::InstanceL()->GetContactHandlerL()->FindAndCallToContactByEmailL( *emailAddress,
+                 iAppUi.GetActiveMailbox(), this, EFalse /*use call sender text*/);
+        CleanupStack::PopAndDestroy( emailAddress );
+        }
+    else if( hotspotType == EBodyHotspot &&
+                currentBodyHotSpotData.iItemType == CFindItemEngine::EFindItemSearchMailAddressBin  )
+        {
+        HBufC* emailAddress = iViewerRichText->GetHotspotTextLC( currentBodyHotSpotData );
+        CFsDelayedLoader::InstanceL()->GetContactHandlerL()->FindAndCallToContactByEmailL( *emailAddress,
+                 iAppUi.GetActiveMailbox(), this, EFalse );
+        CleanupStack::PopAndDestroy( emailAddress );
+        }
+    else if( hotspotType == EBodyHotspot &&
+                currentBodyHotSpotData.iItemType == CFindItemEngine::EFindItemSearchPhoneNumberBin )
+        {
+        CallToBodyHotSpotNumberL( currentBodyHotSpotData );
+        }
+    else if ( currentBodyHotSpotData.iItemType == CFindItemEngine::EFindItemSearchScheme )
+        {
+        // Get scheme text and make sure there is "mailto:" text or "call:" text
+        HBufC* schemeText = iViewerRichText->GetHotspotTextLC( currentBodyHotSpotData );
+        if ( schemeText &&  schemeText->FindC( KMailtoPrefix ) == 0 )
+            {
+            schemeText->Des().Delete( 0, KMailtoPrefix().Length() );
+            CFsDelayedLoader::InstanceL()->GetContactHandlerL()->FindAndCallToContactByEmailL( *schemeText,
+                 iAppUi.GetActiveMailbox(), this, EFalse);
+            }
+        else if ( schemeText->FindC( KCallPrefix ) == 0 ||
+                  schemeText->FindC( KTelPrefix ) == 0 ||
+                  schemeText->FindC( KSmsPrefix ) == 0 ||
+                  schemeText->FindC( KMmsPrefix ) == 0 ||
+                  schemeText->FindC( KVoipPrefix ) == 0 )
+            {
+            CallToBodyHotSpotNumberL( currentBodyHotSpotData );
+            }
+        CleanupStack::PopAndDestroy( schemeText );
+        }
 
-	}
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::CreateMessageL
 // -----------------------------------------------------------------------------
 void CFSEmailUiMailViewerVisualiser::CreateMessageL() const
-	{
+    {
     FUNC_LOG;
-	SViewerHeadingHotSpotData currentHeaderHotSpotData;
-	CFindItemEngine::SFoundItem currentBodyHotSpotData;
-	THotspotType hotspotType = iViewerRichText->FindCurrentHotSpotL( currentHeaderHotSpotData, currentBodyHotSpotData );
+    SViewerHeadingHotSpotData currentHeaderHotSpotData;
+    CFindItemEngine::SFoundItem currentBodyHotSpotData;
+    THotspotType hotspotType = iViewerRichText->FindCurrentHotSpotL( currentHeaderHotSpotData, currentBodyHotSpotData );
 
-	if( hotspotType == EHeaderHotspot )
-		{
-		HBufC* emailAddress = iViewerRichText->GetHeaderHotspotEmailAddressLC( currentHeaderHotSpotData );
-		CFSEmailUiContactHandler* cntHandlerInstance = CFsDelayedLoader::InstanceL()->GetContactHandlerL();
-		cntHandlerInstance->FindAndCreateMsgToContactByEmailL( *emailAddress, iAppUi.GetActiveMailbox() );
-		CleanupStack::PopAndDestroy( emailAddress );
-		}
-	else if( hotspotType == EBodyHotspot )
-		{
-		// Sending based on email address, goes to contact handler
-		if ( currentBodyHotSpotData.iItemType == CFindItemEngine::EFindItemSearchMailAddressBin )
-			{
-			HBufC* emailAddress = iViewerRichText->GetHotspotTextLC( currentBodyHotSpotData );
-			CFSEmailUiContactHandler* cntHandlerInstance = CFsDelayedLoader::InstanceL()->GetContactHandlerL();
-			cntHandlerInstance->FindAndCreateMsgToContactByEmailL( *emailAddress, iAppUi.GetActiveMailbox() );
-			CleanupStack::PopAndDestroy( emailAddress );
-			}
-		// Sending based on found number, goes to utility class
-		else if ( currentBodyHotSpotData.iItemType == CFindItemEngine::EFindItemSearchPhoneNumberBin )
-			{
-			HBufC* hotspotText = iViewerRichText->GetHotspotTextLC( currentBodyHotSpotData );
-			TFsEmailUiUtility::ShowCreateMessageQueryL( *hotspotText );
-			CleanupStack::PopAndDestroy( hotspotText );
-			}
-		else if ( currentBodyHotSpotData.iItemType == CFindItemEngine::EFindItemSearchScheme )
-			{
-			// Get scheme text and make sure there is "mailto:" text or "call:" text
-			HBufC* schemeText = iViewerRichText->GetHotspotTextLC( currentBodyHotSpotData );
-			if ( schemeText && ( schemeText->FindC( KMailtoPrefix ) == 0 ||
-				 schemeText->FindC( KVoipPrefix ) == 0) )
-				{
-				schemeText->Des().Delete( 0, KMailtoPrefix().Length() );
-				CFSEmailUiContactHandler* cntHandlerInstance = CFsDelayedLoader::InstanceL()->GetContactHandlerL();
-				cntHandlerInstance->FindAndCreateMsgToContactByEmailL( *schemeText, iAppUi.GetActiveMailbox() );
-				}
-			else if ( schemeText && schemeText->FindC( KCallPrefix ) == 0 )
-				{
-				schemeText->Des().Delete( 0, KCallPrefix().Length() );
-				TFsEmailUiUtility::ShowCreateMessageQueryL( *schemeText );
-				}
-			else if ( schemeText && schemeText->FindC( KTelPrefix ) == 0 )
-				{
-				schemeText->Des().Delete( 0, KTelPrefix().Length() );
-				TFsEmailUiUtility::ShowCreateMessageQueryL( *schemeText );
-				}
-			else if ( schemeText && schemeText->FindC( KSmsPrefix ) == 0 )
-				{
-				schemeText->Des().Delete( 0, KSmsPrefix().Length() );
-				TFsEmailUiUtility::ShowCreateMessageQueryL( *schemeText );
-				}
-			else if ( schemeText && schemeText->FindC( KMmsPrefix ) == 0 )
-				{
-				schemeText->Des().Delete( 0, KMmsPrefix().Length() );
-				TFsEmailUiUtility::ShowCreateMessageQueryL( *schemeText );
-				}
-			CleanupStack::PopAndDestroy( schemeText );
-			}
-		}
-	}
+    if( hotspotType == EHeaderHotspot )
+        {
+        HBufC* emailAddress = iViewerRichText->GetHeaderHotspotEmailAddressLC( currentHeaderHotSpotData );
+        CFSEmailUiContactHandler* cntHandlerInstance = CFsDelayedLoader::InstanceL()->GetContactHandlerL();
+        cntHandlerInstance->FindAndCreateMsgToContactByEmailL( *emailAddress, iAppUi.GetActiveMailbox() );
+        CleanupStack::PopAndDestroy( emailAddress );
+        }
+    else if( hotspotType == EBodyHotspot )
+        {
+        // Sending based on email address, goes to contact handler
+        if ( currentBodyHotSpotData.iItemType == CFindItemEngine::EFindItemSearchMailAddressBin )
+            {
+            HBufC* emailAddress = iViewerRichText->GetHotspotTextLC( currentBodyHotSpotData );
+            CFSEmailUiContactHandler* cntHandlerInstance = CFsDelayedLoader::InstanceL()->GetContactHandlerL();
+            cntHandlerInstance->FindAndCreateMsgToContactByEmailL( *emailAddress, iAppUi.GetActiveMailbox() );
+            CleanupStack::PopAndDestroy( emailAddress );
+            }
+        // Sending based on found number, goes to utility class
+        else if ( currentBodyHotSpotData.iItemType == CFindItemEngine::EFindItemSearchPhoneNumberBin )
+            {
+            HBufC* hotspotText = iViewerRichText->GetHotspotTextLC( currentBodyHotSpotData );
+            TFsEmailUiUtility::ShowCreateMessageQueryL( *hotspotText );
+            CleanupStack::PopAndDestroy( hotspotText );
+            }
+        else if ( currentBodyHotSpotData.iItemType == CFindItemEngine::EFindItemSearchScheme )
+            {
+            // Get scheme text and make sure there is "mailto:" text or "call:" text
+            HBufC* schemeText = iViewerRichText->GetHotspotTextLC( currentBodyHotSpotData );
+            if ( schemeText && ( schemeText->FindC( KMailtoPrefix ) == 0 ||
+                 schemeText->FindC( KVoipPrefix ) == 0) )
+                {
+                schemeText->Des().Delete( 0, KMailtoPrefix().Length() );
+                CFSEmailUiContactHandler* cntHandlerInstance = CFsDelayedLoader::InstanceL()->GetContactHandlerL();
+                cntHandlerInstance->FindAndCreateMsgToContactByEmailL( *schemeText, iAppUi.GetActiveMailbox() );
+                }
+            else if ( schemeText && schemeText->FindC( KCallPrefix ) == 0 )
+                {
+                schemeText->Des().Delete( 0, KCallPrefix().Length() );
+                TFsEmailUiUtility::ShowCreateMessageQueryL( *schemeText );
+                }
+            else if ( schemeText && schemeText->FindC( KTelPrefix ) == 0 )
+                {
+                schemeText->Des().Delete( 0, KTelPrefix().Length() );
+                TFsEmailUiUtility::ShowCreateMessageQueryL( *schemeText );
+                }
+            else if ( schemeText && schemeText->FindC( KSmsPrefix ) == 0 )
+                {
+                schemeText->Des().Delete( 0, KSmsPrefix().Length() );
+                TFsEmailUiUtility::ShowCreateMessageQueryL( *schemeText );
+                }
+            else if ( schemeText && schemeText->FindC( KMmsPrefix ) == 0 )
+                {
+                schemeText->Des().Delete( 0, KMmsPrefix().Length() );
+                TFsEmailUiUtility::ShowCreateMessageQueryL( *schemeText );
+                }
+            CleanupStack::PopAndDestroy( schemeText );
+            }
+        }
+    }
 
 TBool CFSEmailUiMailViewerVisualiser::IsCopyToClipBoardAvailableL() const
     {
@@ -3498,7 +3498,7 @@ TBool CFSEmailUiMailViewerVisualiser::IsCopyToClipBoardAvailableL() const
 // CFSEmailUiMailViewerVisualiser::CopyCurrentHotspotToClipBoardL
 // -----------------------------------------------------------------------------
 void CFSEmailUiMailViewerVisualiser::CopyCurrentHotspotToClipBoardL() const
-	{
+    {
     FUNC_LOG;
     TInt ignoreThis( 0 );
     TBool visibleHotsSpot =
@@ -3551,7 +3551,7 @@ void CFSEmailUiMailViewerVisualiser::CopyCurrentHotspotToClipBoardL() const
             CleanupStack::PopAndDestroy( clipBoardText );
             }
         }
-	}
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::ShowOpenAttachmentOptionL
@@ -3561,9 +3561,9 @@ TBool CFSEmailUiMailViewerVisualiser::ShowOpenAttachmentOptionL()
     FUNC_LOG;
     TInt ret = EFalse;
 
-	RPointerArray<CFSMailMessagePart> attachments;
-	CleanupResetAndDestroyClosePushL( attachments );
-	iMessage->AttachmentListL( attachments );
+    RPointerArray<CFSMailMessagePart> attachments;
+    CleanupResetAndDestroyClosePushL( attachments );
+    iMessage->AttachmentListL( attachments );
 
     // The Open option is always available when focus on the multiple
     // attachments item.
@@ -3630,28 +3630,28 @@ TBool CFSEmailUiMailViewerVisualiser::ShowSaveAttachmentOptionL()
 // CFSEmailUiMailViewerVisualiser::ShowDownloadOptionL
 // -----------------------------------------------------------------------------
 TBool CFSEmailUiMailViewerVisualiser::ShowDownloadOptionL()
-	{
+    {
     FUNC_LOG;
-	TBool retVal = EFalse;
+    TBool retVal = EFalse;
 
-	TPartData partData = MailData();
+    TPartData partData = MailData();
 
-	RPointerArray<CFSMailMessagePart> attachments;
-	CleanupResetAndDestroyClosePushL( attachments );
-	iMessage->AttachmentListL( attachments );
-	TInt attachmentsCount = attachments.Count();
-	for ( TInt i = 0; i < attachmentsCount; i++ )
-		{
-		partData.iMessagePartId = attachments[i]->GetPartId();
-		if ( iAppUi.DownloadInfoMediator() && iAppUi.DownloadInfoMediator()->IsDownloadableL( partData ) )
-			{
-	    	retVal = ETrue;
-	    	break;
-			}
-		}
-	CleanupStack::PopAndDestroy( &attachments );
-	return retVal;
-	}
+    RPointerArray<CFSMailMessagePart> attachments;
+    CleanupResetAndDestroyClosePushL( attachments );
+    iMessage->AttachmentListL( attachments );
+    TInt attachmentsCount = attachments.Count();
+    for ( TInt i = 0; i < attachmentsCount; i++ )
+        {
+        partData.iMessagePartId = attachments[i]->GetPartId();
+        if ( iAppUi.DownloadInfoMediator() && iAppUi.DownloadInfoMediator()->IsDownloadableL( partData ) )
+            {
+            retVal = ETrue;
+            break;
+            }
+        }
+    CleanupStack::PopAndDestroy( &attachments );
+    return retVal;
+    }
 
 
 // -----------------------------------------------------------------------------
@@ -3687,178 +3687,178 @@ TBool CFSEmailUiMailViewerVisualiser::ShowMskDownloadOptionL()
 // CFSEmailUiMailViewerVisualiser::ShowCancelDownloadOption
 // -----------------------------------------------------------------------------
 TBool CFSEmailUiMailViewerVisualiser::ShowCancelDownloadOption()
-	{
+    {
     FUNC_LOG;
-	TBool ret( EFalse );
-	if ( iMessage && iAppUi.DownloadInfoMediator() )
-		{
-		ret = iAppUi.DownloadInfoMediator()->IsAnyAttachmentDownloads(
-		        iMessage->GetMessageId() );
-		}
-	return ret;
-	}
+    TBool ret( EFalse );
+    if ( iMessage && iAppUi.DownloadInfoMediator() )
+        {
+        ret = iAppUi.DownloadInfoMediator()->IsAnyAttachmentDownloads(
+                iMessage->GetMessageId() );
+        }
+    return ret;
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::OpenAttachmentL
 // -----------------------------------------------------------------------------
 void CFSEmailUiMailViewerVisualiser::OpenAttachmentL()
-	{
+    {
     FUNC_LOG;
-	if ( !iMessage )
-	    {
-	    User::Leave( KErrNotReady );
-	    }
+    if ( !iMessage )
+        {
+        User::Leave( KErrNotReady );
+        }
 
-	RPointerArray<CFSMailMessagePart> attachments;
-	CleanupResetAndDestroyClosePushL( attachments );
-	iMessage->AttachmentListL( attachments );
+    RPointerArray<CFSMailMessagePart> attachments;
+    CleanupResetAndDestroyClosePushL( attachments );
+    iMessage->AttachmentListL( attachments );
 
-	// start downloading if not yet downloaded.
-	if ( ShowDownloadOptionL() )
-		{
-		StartDowloadingAttachmentsL();
-		}
-	else if ( ShowCancelDownloadOption() ) // show download ongoing info
-		{
-		TFsEmailUiUtility::ShowInfoNoteL(
-			R_FSE_VIEWER_NOTE_ATTACHMENT_DOWNLOADING_PROGRESS );
-		}
-	else // open if attachment is already downloaded
-		{
-		TInt attachmentsCount = attachments.Count();
-		if ( attachmentsCount )
-			{
-			// <cmail>
-			TFsEmailUiUtility::OpenAttachmentL( *attachments[attachmentsCount-1] );
-			// </cmail>
-			}
-		}
+    // start downloading if not yet downloaded.
+    if ( ShowDownloadOptionL() )
+        {
+        StartDowloadingAttachmentsL();
+        }
+    else if ( ShowCancelDownloadOption() ) // show download ongoing info
+        {
+        TFsEmailUiUtility::ShowInfoNoteL(
+            R_FSE_VIEWER_NOTE_ATTACHMENT_DOWNLOADING_PROGRESS );
+        }
+    else // open if attachment is already downloaded
+        {
+        TInt attachmentsCount = attachments.Count();
+        if ( attachmentsCount )
+            {
+            // <cmail>
+            TFsEmailUiUtility::OpenAttachmentL( *attachments[attachmentsCount-1] );
+            // </cmail>
+            }
+        }
 
-	CleanupStack::PopAndDestroy( &attachments );
-	}
+    CleanupStack::PopAndDestroy( &attachments );
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::OpenAttachmentsViewL
 // -----------------------------------------------------------------------------
 void CFSEmailUiMailViewerVisualiser::OpenAttachmentsViewL()
-	{
+    {
     FUNC_LOG;
-	// give pointer to current for attachments list view
-	TAttachmentListActivationData params;
-	params.iMailBoxId = iMessage->GetMailBoxId();
-	params.iFolderId = iMessage->GetFolderId();
-	params.iMessageId = iMessage->GetMessageId();
-	params.iEmbeddedMsgMode = iEmbeddedMessageMode;
-	// use package buffer to pass the params
-	TPckgBuf<TAttachmentListActivationData> buf( params );
-	TUid emptyCustomMessageId = { 0 };
-	iAppUi.EnterFsEmailViewL(
-		AttachmentMngrViewId, emptyCustomMessageId, buf );
-	}
+    // give pointer to current for attachments list view
+    TAttachmentListActivationData params;
+    params.iMailBoxId = iMessage->GetMailBoxId();
+    params.iFolderId = iMessage->GetFolderId();
+    params.iMessageId = iMessage->GetMessageId();
+    params.iEmbeddedMsgMode = iEmbeddedMessageMode;
+    // use package buffer to pass the params
+    TPckgBuf<TAttachmentListActivationData> buf( params );
+    TUid emptyCustomMessageId = { 0 };
+    iAppUi.EnterFsEmailViewL(
+        AttachmentMngrViewId, emptyCustomMessageId, buf );
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::StartDowloadingAttachmentsL
 // -----------------------------------------------------------------------------
 void CFSEmailUiMailViewerVisualiser::StartDowloadingAttachmentsL()
-	{
+    {
     FUNC_LOG;
-	TPartData partData = MailData();
+    TPartData partData = MailData();
 
-	RPointerArray<CFSMailMessagePart> attachments;
-	CleanupResetAndDestroyClosePushL( attachments );
-	iMessage->AttachmentListL( attachments );
-	TInt attachmentsCount = attachments.Count();
-	for( TInt i = 0; i < attachmentsCount; i++)
-		{
-		if ( attachments[i]->FetchLoadState() == EFSNone ||
-	    	 attachments[i]->FetchLoadState() == EFSPartial )
-			{
-			partData.iMessagePartId = attachments[i]->GetPartId();
-			if ( iAppUi.DownloadInfoMediator() )
-				{
-				iAppUi.DownloadInfoMediator()->DownloadL( partData );
-				}
-			}
-		}
-	CleanupStack::PopAndDestroy( &attachments );
-	}
+    RPointerArray<CFSMailMessagePart> attachments;
+    CleanupResetAndDestroyClosePushL( attachments );
+    iMessage->AttachmentListL( attachments );
+    TInt attachmentsCount = attachments.Count();
+    for( TInt i = 0; i < attachmentsCount; i++)
+        {
+        if ( attachments[i]->FetchLoadState() == EFSNone ||
+             attachments[i]->FetchLoadState() == EFSPartial )
+            {
+            partData.iMessagePartId = attachments[i]->GetPartId();
+            if ( iAppUi.DownloadInfoMediator() )
+                {
+                iAppUi.DownloadInfoMediator()->DownloadL( partData );
+                }
+            }
+        }
+    CleanupStack::PopAndDestroy( &attachments );
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::CancelDowloadingAttachmentsL
 // -----------------------------------------------------------------------------
 void CFSEmailUiMailViewerVisualiser::CancelDowloadingAttachmentsL()
-	{
+    {
     FUNC_LOG;
-	RPointerArray<CFSMailMessagePart> attachments;
-	CleanupResetAndDestroyClosePushL( attachments );
-	iMessage->AttachmentListL( attachments );
-	TInt attachmentsCount = attachments.Count();
+    RPointerArray<CFSMailMessagePart> attachments;
+    CleanupResetAndDestroyClosePushL( attachments );
+    iMessage->AttachmentListL( attachments );
+    TInt attachmentsCount = attachments.Count();
 
-	// ask confirmation for cancel
-	TInt promptTextId = R_FSE_VIEWER_CANCEL_DOWNLOAD_QUERY;
-	if ( attachmentsCount > 1 )
-		{
-		promptTextId = R_FSE_VIEWER_CANCEL_DOWNLOADS_QUERY;
-		}
+    // ask confirmation for cancel
+    TInt promptTextId = R_FSE_VIEWER_CANCEL_DOWNLOAD_QUERY;
+    if ( attachmentsCount > 1 )
+        {
+        promptTextId = R_FSE_VIEWER_CANCEL_DOWNLOADS_QUERY;
+        }
 
-	if ( TFsEmailUiUtility::ShowConfirmationQueryL(promptTextId) && iAppUi.DownloadInfoMediator() )
-		{
-		for ( TInt i = 0 ; i < attachmentsCount ; i++ )
-			{
-			TFSPartFetchState fetchState = attachments[i]->FetchLoadState();
-			if ( fetchState == EFSPartial || fetchState == EFSNone )
-				{
-		    	iAppUi.DownloadInfoMediator()->CancelDownloadL( attachments[i]->GetPartId() );
-				}
-			}
-		}
-	CleanupStack::PopAndDestroy( &attachments );
-	}
+    if ( TFsEmailUiUtility::ShowConfirmationQueryL(promptTextId) && iAppUi.DownloadInfoMediator() )
+        {
+        for ( TInt i = 0 ; i < attachmentsCount ; i++ )
+            {
+            TFSPartFetchState fetchState = attachments[i]->FetchLoadState();
+            if ( fetchState == EFSPartial || fetchState == EFSNone )
+                {
+                iAppUi.DownloadInfoMediator()->CancelDownloadL( attachments[i]->GetPartId() );
+                }
+            }
+        }
+    CleanupStack::PopAndDestroy( &attachments );
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::SaveAllAttachmentsL
 // -----------------------------------------------------------------------------
 void CFSEmailUiMailViewerVisualiser::SaveAllAttachmentsL()
-	{
+    {
     FUNC_LOG;
-	TFileName fileName;
-  	if ( TFsEmailUiUtility::ShowSaveFolderDialogL( fileName ) )
-		{
-		// start downloading attachemts which are not downloaded.
-		// Save all attachment which all already downloaded
-		TPartData partData = MailData();
+    TFileName fileName;
+    if ( TFsEmailUiUtility::ShowSaveFolderDialogL( fileName ) )
+        {
+        // start downloading attachemts which are not downloaded.
+        // Save all attachment which all already downloaded
+        TPartData partData = MailData();
 
-		RPointerArray<CFSMailMessagePart> attachments;
-		CleanupResetAndDestroyClosePushL( attachments );
-		iMessage->AttachmentListL( attachments );
-		TInt attachmentsCount = attachments.Count();
+        RPointerArray<CFSMailMessagePart> attachments;
+        CleanupResetAndDestroyClosePushL( attachments );
+        iMessage->AttachmentListL( attachments );
+        TInt attachmentsCount = attachments.Count();
 
         // <cmail> remove the MRUI part of the message so we
-	    // don't save unnecessary .ics file
+        // don't save unnecessary .ics file
         CFSMailMessagePart* calendarPart = iMessage->FindBodyPartL( KFSMailContentTypeTextCalendar );
         CleanupStack::PushL( calendarPart );
         // </cmail>
 
-		TInt savedCount( 0 );
-		for ( TInt i = 0; i < attachmentsCount; i++ )
-			{
-			partData.iMessagePartId = attachments[i]->GetPartId();
-			if ( iAppUi.DownloadInfoMediator() && iAppUi.DownloadInfoMediator()->IsDownloadableL( partData ) )
-				{ // start download and let mediator do the saving
-				iAppUi.DownloadInfoMediator()->DownloadAndSaveL( partData, fileName );
-				}
-			else // save immediately.
-				{
-				// <cmail>
+        TInt savedCount( 0 );
+        for ( TInt i = 0; i < attachmentsCount; i++ )
+            {
+            partData.iMessagePartId = attachments[i]->GetPartId();
+            if ( iAppUi.DownloadInfoMediator() && iAppUi.DownloadInfoMediator()->IsDownloadableL( partData ) )
+                { // start download and let mediator do the saving
+                iAppUi.DownloadInfoMediator()->DownloadAndSaveL( partData, fileName );
+                }
+            else // save immediately.
+                {
+                // <cmail>
                 if( (calendarPart && partData.iMessagePartId != calendarPart->GetPartId() ||
                     !calendarPart) && TFsEmailUiUtility::OkToSaveFileL( fileName, *attachments[i] ) )
                     {
-		    		attachments[i]->CopyContentFileL( fileName );
-		    		savedCount++;
+                    attachments[i]->CopyContentFileL( fileName );
+                    savedCount++;
                     }
-				// </cmail>
-				}
-			}
+                // </cmail>
+                }
+            }
         if ( savedCount )
             {
             TFsEmailUiUtility::ShowFilesSavedToFolderNoteL( savedCount );
@@ -3866,9 +3866,9 @@ void CFSEmailUiMailViewerVisualiser::SaveAllAttachmentsL()
         // <cmail>
         CleanupStack::PopAndDestroy( calendarPart );
         // </cmail>
-		CleanupStack::PopAndDestroy( &attachments );
-		}
-	}
+        CleanupStack::PopAndDestroy( &attachments );
+        }
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::RemoveFetchedAttachmentL
@@ -3898,175 +3898,175 @@ void CFSEmailUiMailViewerVisualiser::RemoveFetchedAttachmentL()
 // CFSEmailUiMailViewerVisualiser::MailData
 // -----------------------------------------------------------------------------
 TPartData CFSEmailUiMailViewerVisualiser::MailData()
-	{
+    {
     FUNC_LOG;
-	TPartData newPartData;
-	newPartData.iMailBoxId = iMessage->GetMailBoxId();
-	newPartData.iFolderId = iMessage->GetFolderId();
-	newPartData.iMessageId = iMessage->GetMessageId();
-	return newPartData;
-	}
+    TPartData newPartData;
+    newPartData.iMailBoxId = iMessage->GetMailBoxId();
+    newPartData.iFolderId = iMessage->GetFolderId();
+    newPartData.iMessageId = iMessage->GetMessageId();
+    return newPartData;
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::StartFetchingBodyAfterOpeningL
 // -----------------------------------------------------------------------------
 TBool CFSEmailUiMailViewerVisualiser::StartFetchingBodyAfterOpeningL() const
-	{
+    {
     FUNC_LOG;
-	TBool retVal = EFalse;
-	CFSMailMessagePart* textPart = iMessage->PlainTextBodyPartL();
-	if ( textPart )
-		{
-		TFSPartFetchState currentPlainTextFetchState = textPart->FetchLoadState();
-		if ( currentPlainTextFetchState == EFSNone )
-			{
-			retVal = ETrue;
-			}
-		}
-	delete textPart;
-	return retVal;
-	}
+    TBool retVal = EFalse;
+    CFSMailMessagePart* textPart = iMessage->PlainTextBodyPartL();
+    if ( textPart )
+        {
+        TFSPartFetchState currentPlainTextFetchState = textPart->FetchLoadState();
+        if ( currentPlainTextFetchState == EFSNone )
+            {
+            retVal = ETrue;
+            }
+        }
+    delete textPart;
+    return retVal;
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::MessagePartFullyFetchedL
 // -----------------------------------------------------------------------------
 TBool CFSEmailUiMailViewerVisualiser::MessagePartFullyFetchedL( TFetchedContentType aFetchedContentType ) const
-	{
+    {
     FUNC_LOG;
-	TBool retVal = ETrue;
-	if( aFetchedContentType == EMessagePlainTextBodyPart )
-		{
-		CFSMailMessagePart* textPart = iMessage->PlainTextBodyPartL();
-		if( textPart )
-			{
-			TFSPartFetchState currentPlainTextFetchState = textPart->FetchLoadState();
-			if( currentPlainTextFetchState != EFSFull )
-				{
-				retVal = EFalse;
-				}
-			}
-		delete textPart;
-		}
-	else if( aFetchedContentType == EMessageHtmlBodyPart )
-		{
-		CFSMailMessagePart* htmlPart = iMessage->HtmlBodyPartL();
-		if( htmlPart )
-			{
-			TFSPartFetchState currentHtmlTextFetchState = htmlPart->FetchLoadState();
-			if( currentHtmlTextFetchState != EFSFull )
-				{
-				retVal = EFalse;
-				}
-			}
-		delete htmlPart;
-		}
-	else if( aFetchedContentType == EMessageStructure )
-		{
-		retVal = MessageStructureKnown( *iMessage );
-		}
-	else
-		{
-		User::Leave( KErrNotSupported );
-		}
-	return retVal;
-	}
+    TBool retVal = ETrue;
+    if( aFetchedContentType == EMessagePlainTextBodyPart )
+        {
+        CFSMailMessagePart* textPart = iMessage->PlainTextBodyPartL();
+        if( textPart )
+            {
+            TFSPartFetchState currentPlainTextFetchState = textPart->FetchLoadState();
+            if( currentPlainTextFetchState != EFSFull )
+                {
+                retVal = EFalse;
+                }
+            }
+        delete textPart;
+        }
+    else if( aFetchedContentType == EMessageHtmlBodyPart )
+        {
+        CFSMailMessagePart* htmlPart = iMessage->HtmlBodyPartL();
+        if( htmlPart )
+            {
+            TFSPartFetchState currentHtmlTextFetchState = htmlPart->FetchLoadState();
+            if( currentHtmlTextFetchState != EFSFull )
+                {
+                retVal = EFalse;
+                }
+            }
+        delete htmlPart;
+        }
+    else if( aFetchedContentType == EMessageStructure )
+        {
+        retVal = MessageStructureKnown( *iMessage );
+        }
+    else
+        {
+        User::Leave( KErrNotSupported );
+        }
+    return retVal;
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::StartFetchingMessagePartL
 // -----------------------------------------------------------------------------
 void CFSEmailUiMailViewerVisualiser::StartFetchingMessagePartL( CFSMailMessage& aMessagePtr,
-											TFetchedContentType aFetchedContentType )
-	{
+                                            TFetchedContentType aFetchedContentType )
+    {
     FUNC_LOG;
-	if( aFetchedContentType == EMessagePlainTextBodyPart )
-		{
-		CFSMailMessagePart* textPart = aMessagePtr.PlainTextBodyPartL();
-		CleanupStack::PushL( textPart );
-		TFSMailMsgId textPartId = textPart->GetPartId();
-		iFetchingPlainTextMessageBody = ETrue;
-		iCurrentPlainTextBodyFetchRequestId = textPart->FetchMessagePartL( textPartId, *this, 0 );
-		CleanupStack::PopAndDestroy( textPart );
-		}
-	else if( aFetchedContentType == EMessageHtmlBodyPart )
-		{
-		CFSMailMessagePart* htmlPart = aMessagePtr.HtmlBodyPartL();
-		CleanupStack::PushL( htmlPart );
-		TFSMailMsgId htmlPartId = htmlPart->GetPartId();
-		iFetchingHtmlMessageBody = ETrue;
-		iCurrentHtmlBodyFetchRequestId = htmlPart->FetchMessagePartL( htmlPartId, *this, 0 );
-		CleanupStack::PopAndDestroy( htmlPart );
-		}
-	else if( aFetchedContentType == EMessageStructure )
-		{
-		StartFetchingMessageStructureL( aMessagePtr );
-		}
-	else
-		{
-		User::Leave( KErrNotSupported );
-		}
-	}
+    if( aFetchedContentType == EMessagePlainTextBodyPart )
+        {
+        CFSMailMessagePart* textPart = aMessagePtr.PlainTextBodyPartL();
+        CleanupStack::PushL( textPart );
+        TFSMailMsgId textPartId = textPart->GetPartId();
+        iFetchingPlainTextMessageBody = ETrue;
+        iCurrentPlainTextBodyFetchRequestId = textPart->FetchMessagePartL( textPartId, *this, 0 );
+        CleanupStack::PopAndDestroy( textPart );
+        }
+    else if( aFetchedContentType == EMessageHtmlBodyPart )
+        {
+        CFSMailMessagePart* htmlPart = aMessagePtr.HtmlBodyPartL();
+        CleanupStack::PushL( htmlPart );
+        TFSMailMsgId htmlPartId = htmlPart->GetPartId();
+        iFetchingHtmlMessageBody = ETrue;
+        iCurrentHtmlBodyFetchRequestId = htmlPart->FetchMessagePartL( htmlPartId, *this, 0 );
+        CleanupStack::PopAndDestroy( htmlPart );
+        }
+    else if( aFetchedContentType == EMessageStructure )
+        {
+        StartFetchingMessageStructureL( aMessagePtr );
+        }
+    else
+        {
+        User::Leave( KErrNotSupported );
+        }
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::CancelFetchings
 // -----------------------------------------------------------------------------
 void CFSEmailUiMailViewerVisualiser::CancelFetchings()
-	{
+    {
     FUNC_LOG;
-	if( iFetchingPlainTextMessageBody )
-		{
-		TRAP_IGNORE( iAppUi.GetMailClient()->CancelL( iCurrentPlainTextBodyFetchRequestId ) );
-		iFetchingPlainTextMessageBody = EFalse;
-		}
-	if( iFetchingHtmlMessageBody )
-		{
-		TRAP_IGNORE( iAppUi.GetMailClient()->CancelL( iCurrentHtmlBodyFetchRequestId ) );
-		iFetchingHtmlMessageBody = EFalse;
-		}
-	if( iFetchingMessageStructure )
-		{
-		TRAP_IGNORE( iAppUi.GetMailClient()->CancelL( iCurrentStructureFetchRequestId ) );
-		iFetchingMessageStructure = EFalse;
-		}
-	iAsyncProcessComplete = ETrue;
-	//<cmail>
+    if( iFetchingPlainTextMessageBody )
+        {
+        TRAP_IGNORE( iAppUi.GetMailClient()->CancelL( iCurrentPlainTextBodyFetchRequestId ) );
+        iFetchingPlainTextMessageBody = EFalse;
+        }
+    if( iFetchingHtmlMessageBody )
+        {
+        TRAP_IGNORE( iAppUi.GetMailClient()->CancelL( iCurrentHtmlBodyFetchRequestId ) );
+        iFetchingHtmlMessageBody = EFalse;
+        }
+    if( iFetchingMessageStructure )
+        {
+        TRAP_IGNORE( iAppUi.GetMailClient()->CancelL( iCurrentStructureFetchRequestId ) );
+        iFetchingMessageStructure = EFalse;
+        }
+    iAsyncProcessComplete = ETrue;
+    //<cmail>
     if(iWaitDialog && iDialogNotDismissed)
-	    TRAP_IGNORE(iWaitDialog->ProcessFinishedL()); // deletes the dialog
-	//</cmail>
-	}
+        TRAP_IGNORE(iWaitDialog->ProcessFinishedL()); // deletes the dialog
+    //</cmail>
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::MessageStructureKnownL
 // -----------------------------------------------------------------------------
 TBool CFSEmailUiMailViewerVisualiser::MessageStructureKnown( CFSMailMessage& aMsg ) const
-	{
+    {
     FUNC_LOG;
-	return TFsEmailUiUtility::IsMessageStructureKnown( aMsg );
-	}
+    return TFsEmailUiUtility::IsMessageStructureKnown( aMsg );
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::StartFetchingMessageStructureL
 // -----------------------------------------------------------------------------
 void CFSEmailUiMailViewerVisualiser::StartFetchingMessageStructureL( CFSMailMessage& aMsg )
-	{
+    {
     FUNC_LOG;
-	TFSMailMsgId currentMailboxId = aMsg.GetMailBoxId();
-	TFSMailMsgId currentMessageFolderId = aMsg.GetFolderId();
-	CFSMailFolder* currentFolder  = iAppUi.GetMailClient()->GetFolderByUidL( currentMailboxId, currentMessageFolderId );
-	CleanupStack::PushL( currentFolder );
-	RArray<TFSMailMsgId> messageIds;
-	CleanupClosePushL( messageIds );
-	messageIds.Append( aMsg.GetMessageId() );
-	iFetchingMessageStructure = ETrue;
-	iCurrentStructureFetchRequestId = currentFolder->FetchMessagesL( messageIds, EFSMsgDataStructure, *this );
-	CleanupStack::PopAndDestroy( &messageIds );
-	CleanupStack::PopAndDestroy( currentFolder );
-	}
+    TFSMailMsgId currentMailboxId = aMsg.GetMailBoxId();
+    TFSMailMsgId currentMessageFolderId = aMsg.GetFolderId();
+    CFSMailFolder* currentFolder  = iAppUi.GetMailClient()->GetFolderByUidL( currentMailboxId, currentMessageFolderId );
+    CleanupStack::PushL( currentFolder );
+    RArray<TFSMailMsgId> messageIds;
+    CleanupClosePushL( messageIds );
+    messageIds.Append( aMsg.GetMessageId() );
+    iFetchingMessageStructure = ETrue;
+    iCurrentStructureFetchRequestId = currentFolder->FetchMessagesL( messageIds, EFSMsgDataStructure, *this );
+    CleanupStack::PopAndDestroy( &messageIds );
+    CleanupStack::PopAndDestroy( currentFolder );
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::StartWaitedFetchingL
 // -----------------------------------------------------------------------------
 void CFSEmailUiMailViewerVisualiser::StartWaitedFetchingL( TFetchedContentType aFetchedContentType )
-	{
+    {
     FUNC_LOG;
     iAsyncProcessComplete = EFalse;
     iFetchingAlready = EFalse;
@@ -4086,10 +4086,10 @@ void CFSEmailUiMailViewerVisualiser::StartWaitedFetchingL( TFetchedContentType a
     iWaitDialog->SetCallback(this);
     iDialogNotDismissed = ETrue;
     iWaitDialog->ExecuteLD(R_FSE_FETCHING_WAIT_DIALOG);
-		StartFetchingMessagePartL( *iMessage, iStartAsyncFetchType );
- 		iFetchingAlready = ETrue;
+        StartFetchingMessagePartL( *iMessage, iStartAsyncFetchType );
+        iFetchingAlready = ETrue;
     //</cmail>
-	}
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::StartFetchingRemaininBodyLinesIfAtBottomL
@@ -4119,14 +4119,14 @@ void CFSEmailUiMailViewerVisualiser::StartFetchingRemaininBodyLinesIfAtBottomL()
 // CFSEmailUiMailViewerVisualiser::TimerEventL
 // -----------------------------------------------------------------------------
 void CFSEmailUiMailViewerVisualiser::TimerEventL( CFSEmailUiGenericTimer* aTriggeredTimer )
-	{
+    {
     FUNC_LOG;
-	if ( aTriggeredTimer == iFetchingAnimationTimer )
-	    {
-    	iViewerRichText->AppendFetchingMoreTextL();
-    	iFetchingAnimationTimer->Start( KAnimationRefreshTimeIntervalInMilliseconds );
-	    }
-	}
+    if ( aTriggeredTimer == iFetchingAnimationTimer )
+        {
+        iViewerRichText->AppendFetchingMoreTextL();
+        iFetchingAnimationTimer->Start( KAnimationRefreshTimeIntervalInMilliseconds );
+        }
+    }
 
 // MAknBackgroundProcess methods
 //
@@ -4136,14 +4136,14 @@ void CFSEmailUiMailViewerVisualiser::TimerEventL( CFSEmailUiGenericTimer* aTrigg
 //<cmail>
 /*
 void CFSEmailUiMailViewerVisualiser::StepL()
-	{
+    {
     FUNC_LOG;
-	if( !iFetchingAlready )
-		{
-		StartFetchingMessagePartL( *iMessage, iStartAsyncFetchType );
- 		iFetchingAlready = ETrue;
- 		}
- 	}*/
+    if( !iFetchingAlready )
+        {
+        StartFetchingMessagePartL( *iMessage, iStartAsyncFetchType );
+        iFetchingAlready = ETrue;
+        }
+    }*/
 //</cmail>
 
 // -----------------------------------------------------------------------------
@@ -4155,7 +4155,7 @@ TBool CFSEmailUiMailViewerVisualiser::IsProcessDone() const
     {
     FUNC_LOG;
     return iAsyncProcessComplete;
-	}*/
+    }*/
 //</cmail>
 
 // -----------------------------------------------------------------------------
@@ -4169,14 +4169,14 @@ TBool CFSEmailUiMailViewerVisualiser::IsProcessDone() const
 // CFSEmailUiMailViewerVisualiser::DialogDismissedL
 // -----------------------------------------------------------------------------
 void CFSEmailUiMailViewerVisualiser::DialogDismissedL( TInt aButtonId )
-	{
+    {
     FUNC_LOG;
     iDialogNotDismissed = EFalse;
-	if( aButtonId == EAknSoftkeyCancel )
-		{
-		CancelFetchings();
-		}
-	}
+    if( aButtonId == EAknSoftkeyCancel )
+        {
+        CancelFetchings();
+        }
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::CycleError
@@ -4196,87 +4196,87 @@ void CFSEmailUiMailViewerVisualiser::DialogDismissedL( TInt aButtonId )
 // CFSEmailUiMailViewerVisualiser::AddBackgroundPicturesL
 // -----------------------------------------------------------------------------
 void CFSEmailUiMailViewerVisualiser::AddBackgroundPicturesL()
-	{
-	CAlfTexture& headerTexture = iAppUi.FsTextureManager()->TextureByIndex( EViewerTextureHeaderBackGround );
-	CAlfTexture& backgroundTexture = iAppUi.FsTextureManager()->TextureByIndex( EBackgroundTextureMailList );
+    {
+    CAlfTexture& headerTexture = iAppUi.FsTextureManager()->TextureByIndex( EViewerTextureHeaderBackGround );
+    CAlfTexture& backgroundTexture = iAppUi.FsTextureManager()->TextureByIndex( EBackgroundTextureMailList );
 
-	// add header texture
-	// -1 is here for to bottom space icon
-	// // <cmail> S60 Skin support
-	//	iTextViewer->SetPartBgImageL( 0, iViewerRichText->HeaderLengthInCharacters()-2, headerTexture );
-	// </cmail>
+    // add header texture
+    // -1 is here for to bottom space icon
+    // // <cmail> S60 Skin support
+    //  iTextViewer->SetPartBgImageL( 0, iViewerRichText->HeaderLengthInCharacters()-2, headerTexture );
+    // </cmail>
 
-	// add bg texture
-	//<cmail> S60 skin support
-	//iTextViewer->SetBackgroundImageL( backgroundTexture );
+    // add bg texture
+    //<cmail> S60 skin support
+    //iTextViewer->SetBackgroundImageL( backgroundTexture );
     //</cmail>
-	}
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::SetMessageFollowupFlagL
 // -----------------------------------------------------------------------------
 void CFSEmailUiMailViewerVisualiser::SetMessageFollowupFlagL()
-	{
+    {
     FUNC_LOG;
- 	if ( iMessage &&
- 	     iTextViewer &&
- 	     iViewerRichText &&
- 	     TFsEmailUiUtility::IsFollowUpSupported( *iMailBox ) &&
- 	     !iEmbeddedMessageMode )
-		{
-		TFollowUpNewState newState = TFsEmailUiUtility::SetMessageFollowupFlagL( *iMessage );
+    if ( iMessage &&
+         iTextViewer &&
+         iViewerRichText &&
+         TFsEmailUiUtility::IsFollowUpSupported( *iMailBox ) &&
+         !iEmbeddedMessageMode )
+        {
+        TFollowUpNewState newState = TFsEmailUiUtility::SetMessageFollowupFlagL( *iMessage );
 
-		switch ( newState )
-			{
-			case EFollowUp:
-				{
-				iViewerRichText->UpdateIconL( CFSEmailUiMailViewerRichText::EViewerIconFollowUp );
-				}
-				break;
-			case EFollowUpComplete:
-				{
-				iViewerRichText->UpdateIconL( CFSEmailUiMailViewerRichText::EViewerIconFollowUpComplete );
-				}
-				break;
-			case EFollowUpClear:
-				{
-				iViewerRichText->UpdateIconL( CFSEmailUiMailViewerRichText::EViewerIconFollowUpNone );
-				}
-				break;
-			case EFollowUpNoChanges:
-			default:
-				{
-				// do nothing.
-				}
-				break;
-			}
+        switch ( newState )
+            {
+            case EFollowUp:
+                {
+                iViewerRichText->UpdateIconL( CFSEmailUiMailViewerRichText::EViewerIconFollowUp );
+                }
+                break;
+            case EFollowUpComplete:
+                {
+                iViewerRichText->UpdateIconL( CFSEmailUiMailViewerRichText::EViewerIconFollowUpComplete );
+                }
+                break;
+            case EFollowUpClear:
+                {
+                iViewerRichText->UpdateIconL( CFSEmailUiMailViewerRichText::EViewerIconFollowUpNone );
+                }
+                break;
+            case EFollowUpNoChanges:
+            default:
+                {
+                // do nothing.
+                }
+                break;
+            }
 
-		if ( newState != EFollowUpNoChanges )
-		    {
-		    // Update icon in viewer
-	        TInt iconLine = iViewerRichText->FollowupIconLine();
+        if ( newState != EFollowUpNoChanges )
+            {
+            // Update icon in viewer
+            TInt iconLine = iViewerRichText->FollowupIconLine();
             iTextViewer->ReloadPicturesL( iconLine );
             // Notify appui of changed mail item
             SendEventToAppUiL( TFSEventMailChanged );
-		    }
-		}
-	}
+            }
+        }
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::DeleteMailL
 // -----------------------------------------------------------------------------
 TInt CFSEmailUiMailViewerVisualiser::DeleteMailL( CFSMailMessage& aMessagePtr, TBool aReturnPreviousView, TBool aDisableNote )
-	{
+    {
     FUNC_LOG;
-	TInt ret( KErrCancel );
+    TInt ret( KErrCancel );
 
-	if ( iEmbeddedMessageMode )
-	    {
-	    // embedded messages can't be deleted
-	    ret = KErrNotSupported;
-	    }
-	else
-	    {
+    if ( iEmbeddedMessageMode )
+        {
+        // embedded messages can't be deleted
+        ret = KErrNotSupported;
+        }
+    else
+        {
         TInt okToDelete( ETrue );
         if ( !aDisableNote )
             {
@@ -4311,81 +4311,81 @@ TInt CFSEmailUiMailViewerVisualiser::DeleteMailL( CFSMailMessage& aMessagePtr, T
                 {
                 // return only if we are in mail viewer
                 if ( iAppUi.CurrentActiveView()->Id() == MailViewerId )
-                	{
-                	HandleCommandL( EAknSoftkeyBack );
-                	}
+                    {
+                    HandleCommandL( EAknSoftkeyBack );
+                    }
                 }
             }
         if ( okToDelete )
             {
             ret = KErrNone;
             }
-	    }
-	return ret;
-	}
+        }
+    return ret;
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::ShowActionsMenuInOptionsL
 // -----------------------------------------------------------------------------
 TBool CFSEmailUiMailViewerVisualiser::ShowActionsMenuInOptionsL() const
-	{
+    {
     FUNC_LOG;
-	TBool retVal = ETrue;
+    TBool retVal = ETrue;
 
-	SViewerHeadingHotSpotData currentHeaderHotSpotData;
-	CFindItemEngine::SFoundItem currentBodyHotSpotData;
-	THotspotType hotspotType = iViewerRichText->FindCurrentHotSpotL( currentHeaderHotSpotData, currentBodyHotSpotData );
+    SViewerHeadingHotSpotData currentHeaderHotSpotData;
+    CFindItemEngine::SFoundItem currentBodyHotSpotData;
+    THotspotType hotspotType = iViewerRichText->FindCurrentHotSpotL( currentHeaderHotSpotData, currentBodyHotSpotData );
 
-	if( hotspotType == ENoHotspot || ( hotspotType == EHeaderHotspot && (
-		currentHeaderHotSpotData.iType == ETypeToNMoreRecipients ||
-		currentHeaderHotSpotData.iType == ETypeCcNMoreRecipients ||
-		currentHeaderHotSpotData.iType == ETypeBccNMoreRecipients ||
-		currentHeaderHotSpotData.iType == ETypeHtml ) ) )
-		{
-		retVal = EFalse;
-		}
-	return retVal;
-	}
+    if( hotspotType == ENoHotspot || ( hotspotType == EHeaderHotspot && (
+        currentHeaderHotSpotData.iType == ETypeToNMoreRecipients ||
+        currentHeaderHotSpotData.iType == ETypeCcNMoreRecipients ||
+        currentHeaderHotSpotData.iType == ETypeBccNMoreRecipients ||
+        currentHeaderHotSpotData.iType == ETypeHtml ) ) )
+        {
+        retVal = EFalse;
+        }
+    return retVal;
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::ShowDownloadManagerMenuInOptions
 // -----------------------------------------------------------------------------
 TBool CFSEmailUiMailViewerVisualiser::ShowDownloadManagerMenuInOptions() const
-	{
+    {
     FUNC_LOG;
-	TBool ret(EFalse);
+    TBool ret(EFalse);
 /* <cmail> Download Manager blocked
-	if ( iAppUi.DownloadInfoMediator() )
-		{
-		ret = iAppUi.DownloadInfoMediator()->IsAnyAttachmentDownloads();
-		}
+    if ( iAppUi.DownloadInfoMediator() )
+        {
+        ret = iAppUi.DownloadInfoMediator()->IsAnyAttachmentDownloads();
+        }
 </cmail> */
-	return ret;
-	}
+    return ret;
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::ShowNextMessageMenuInOptions
 // -----------------------------------------------------------------------------
 TBool CFSEmailUiMailViewerVisualiser::ShowNextMessageMenuInOptions() const
-	{
+    {
     FUNC_LOG;
-	TBool available = EFalse;
-	// Next/previous message options are inavailable in the embedded mode
-	if ( iMessage && !iEmbeddedMessageMode )
-	    {
+    TBool available = EFalse;
+    // Next/previous message options are inavailable in the embedded mode
+    if ( iMessage && !iEmbeddedMessageMode )
+        {
         TFSMailMsgId currentMsgId = iMessage->GetMessageId();
         TFSMailMsgId nextMsgId;
         TFSMailMsgId nextMsgFolderId;
         available = iAppUi.IsNextMsgAvailable( currentMsgId, nextMsgId, nextMsgFolderId );
-	    }
-	return available;
-	}
+        }
+    return available;
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::ShowPreviousMessageMenuInOptions
 // -----------------------------------------------------------------------------
 TBool CFSEmailUiMailViewerVisualiser::ShowPreviousMessageMenuInOptions() const
-	{
+    {
     FUNC_LOG;
     TBool available = EFalse;
     // Next/previous message options are inavailable in the embedded mode
@@ -4397,59 +4397,59 @@ TBool CFSEmailUiMailViewerVisualiser::ShowPreviousMessageMenuInOptions() const
         available = iAppUi.IsPreviousMsgAvailable( currentMsgId, prevMsgId, prevMsgFolderId );
         }
     return available;
-	}
+    }
 
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::ShowNextMessageL
 // -----------------------------------------------------------------------------
 void CFSEmailUiMailViewerVisualiser::ShowNextMessageL()
-	{
+    {
     FUNC_LOG;
-	if ( iMessage && !iEmbeddedMessageMode )
-		{
-		TFSMailMsgId currentMsgId = iMessage->GetMessageId();
-		TFSMailMsgId nextMsgId;
-		TFSMailMsgId nextMsgFolderId;
-		if ( iAppUi.IsNextMsgAvailable( currentMsgId, nextMsgId, nextMsgFolderId ) )
-			{
-			// Stop timer and cancel fetchings before showing next message
-			iFetchingAnimationTimer->Stop();
-			CancelFetchings();
+    if ( iMessage && !iEmbeddedMessageMode )
+        {
+        TFSMailMsgId currentMsgId = iMessage->GetMessageId();
+        TFSMailMsgId nextMsgId;
+        TFSMailMsgId nextMsgFolderId;
+        if ( iAppUi.IsNextMsgAvailable( currentMsgId, nextMsgId, nextMsgFolderId ) )
+            {
+            // Stop timer and cancel fetchings before showing next message
+            iFetchingAnimationTimer->Stop();
+            CancelFetchings();
 
-			// Change empty msk when moving to next
-			ChangeMskCommandL( R_FSE_QTN_MSK_EMPTY );
+            // Change empty msk when moving to next
+            ChangeMskCommandL( R_FSE_QTN_MSK_EMPTY );
 
-			iAppUi.MoveToNextMsgL( currentMsgId, nextMsgId );
-			// Next message is displayed in this view through doactivate, because view is re-activate by mail list
-			}
-		}
-	}
+            iAppUi.MoveToNextMsgL( currentMsgId, nextMsgId );
+            // Next message is displayed in this view through doactivate, because view is re-activate by mail list
+            }
+        }
+    }
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::ShowPreviousMessageL
 // -----------------------------------------------------------------------------
 void CFSEmailUiMailViewerVisualiser::ShowPreviousMessageL()
-	{
+    {
     FUNC_LOG;
-	if ( iMessage && !iEmbeddedMessageMode )
-		{
-		TFSMailMsgId currentMsgId = iMessage->GetMessageId();
-		TFSMailMsgId prevMsgId;
-		TFSMailMsgId prevMsgFolderId;
-		if ( iAppUi.IsPreviousMsgAvailable( currentMsgId, prevMsgId, prevMsgFolderId ) )
-			{
-			// Stop timer and cancel fetchings before showing prev message
-			iFetchingAnimationTimer->Stop();
-			CancelFetchings();
+    if ( iMessage && !iEmbeddedMessageMode )
+        {
+        TFSMailMsgId currentMsgId = iMessage->GetMessageId();
+        TFSMailMsgId prevMsgId;
+        TFSMailMsgId prevMsgFolderId;
+        if ( iAppUi.IsPreviousMsgAvailable( currentMsgId, prevMsgId, prevMsgFolderId ) )
+            {
+            // Stop timer and cancel fetchings before showing prev message
+            iFetchingAnimationTimer->Stop();
+            CancelFetchings();
 
-		    // Change empty msk when moving to previous
-		    ChangeMskCommandL( R_FSE_QTN_MSK_EMPTY );
+            // Change empty msk when moving to previous
+            ChangeMskCommandL( R_FSE_QTN_MSK_EMPTY );
 
-			iAppUi.MoveToPreviousMsgL( currentMsgId, prevMsgId );
-			// Previous message is displayed in this view through doactivate, because view is re-activate by mail list
-			}
-		}
-	}
+            iAppUi.MoveToPreviousMsgL( currentMsgId, prevMsgId );
+            // Previous message is displayed in this view through doactivate, because view is re-activate by mail list
+            }
+        }
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::UpdateMessagePtrL
@@ -4629,31 +4629,31 @@ void CFSEmailUiMailViewerVisualiser::NavigateBackL()
 // CFSEmailUiMailViewerVisualiser::HandleDynamicVariantSwitchL
 // -----------------------------------------------------------------------------
 void CFSEmailUiMailViewerVisualiser::HandleDynamicVariantSwitchL( CFsEmailUiViewBase::TDynamicSwitchType /*aType*/ )
-	{
+    {
     FUNC_LOG;
-	// Set scroll offset to match screen height
-	if ( iFirstStartCompleted && iTextViewer && iMessage )
-	    {
-	    // <cmail>
-	    TInt firstLine = iTextViewer->GetFirstDisplayedLine();        // get first line number
-	    TInt firstChar = iTextViewer->GetFirstCharInLine(firstLine);  // get first char offset
-	    // </cmail>
+    // Set scroll offset to match screen height
+    if ( iFirstStartCompleted && iTextViewer && iMessage )
+        {
+        // <cmail>
+        TInt firstLine = iTextViewer->GetFirstDisplayedLine();        // get first line number
+        TInt firstChar = iTextViewer->GetFirstCharInLine(firstLine);  // get first char offset
+        // </cmail>
 
-	    iAppUi.Display().Roster().Hide( ControlGroup() );
-	    RefreshL();
+        iAppUi.Display().Roster().Hide( ControlGroup() );
+        RefreshL();
 
-	    // <cmail>
-	    TInt newLine = iTextViewer->GetLineNumber(firstChar);   // get the new line number for this offset
-	    if(newLine<0) newLine = firstLine;                       // in case of error go to the prev. line number
-	    iTextViewer->FocusLineL(newLine,ETrue);                  // focus on the found line number
-	    // </cmail>
-	    // <cmail>
-	    SetActionMenuIconVisbilityL();
+        // <cmail>
+        TInt newLine = iTextViewer->GetLineNumber(firstChar);   // get the new line number for this offset
+        if(newLine<0) newLine = firstLine;                       // in case of error go to the prev. line number
+        iTextViewer->FocusLineL(newLine,ETrue);                  // focus on the found line number
+        // </cmail>
+        // <cmail>
+        SetActionMenuIconVisbilityL();
             // </cmail>
             iAppUi.Display().Roster().ShowL( ControlGroup() );
-	    iDownloadProgressIndicator->NotifyLayoutChange();
-	    }
- 	}
+        iDownloadProgressIndicator->NotifyLayoutChange();
+        }
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::HandleDynamicVariantSwitchOnBackgroundL
@@ -4668,18 +4668,18 @@ void CFSEmailUiMailViewerVisualiser::HandleDynamicVariantSwitchOnBackgroundL( CF
 // CFSEmailUiMailViewerVisualiser::OpenLinkInIntranetL
 // -----------------------------------------------------------------------------
 void CFSEmailUiMailViewerVisualiser::OpenLinkInIntranetL( TBool aMenuSelection )
-	{
+    {
     FUNC_LOG;
-	CFindItemEngine::SFoundItem currentBodyHotSpotData;
-	TBool bodyHotSpotFound = iViewerRichText->FindCurrentBodyHotSpotL( currentBodyHotSpotData );
-	if ( bodyHotSpotFound )
-		{
- 		HBufC* intranetUrl = iViewerRichText->GetHotspotTextLC( currentBodyHotSpotData );
- 		TInt len = intranetUrl->Length();
- 		HBufC8* eightBitUrl = HBufC8::NewLC( len );
-		eightBitUrl->Des().Copy( *intranetUrl );
+    CFindItemEngine::SFoundItem currentBodyHotSpotData;
+    TBool bodyHotSpotFound = iViewerRichText->FindCurrentBodyHotSpotL( currentBodyHotSpotData );
+    if ( bodyHotSpotFound )
+        {
+        HBufC* intranetUrl = iViewerRichText->GetHotspotTextLC( currentBodyHotSpotData );
+        TInt len = intranetUrl->Length();
+        HBufC8* eightBitUrl = HBufC8::NewLC( len );
+        eightBitUrl->Des().Copy( *intranetUrl );
 
-		TAiwGenericParam param( EGenericParamURL, TAiwVariant(*eightBitUrl) );
+        TAiwGenericParam param( EGenericParamURL, TAiwVariant(*eightBitUrl) );
         CAiwGenericParamList& paramList = iIBServiceHandler->InParamListL();
         paramList.AppendL( param );
         if ( aMenuSelection )
@@ -4692,284 +4692,284 @@ void CFSEmailUiMailViewerVisualiser::OpenLinkInIntranetL( TBool aMenuSelection )
             iIBServiceHandler->ExecuteServiceCmdL( KAiwCmdView,
                 paramList, iIBServiceHandler->OutParamListL() );
             }
-		CleanupStack::PopAndDestroy( eightBitUrl );
-		CleanupStack::PopAndDestroy( intranetUrl );
-		}
-	}
+        CleanupStack::PopAndDestroy( eightBitUrl );
+        CleanupStack::PopAndDestroy( intranetUrl );
+        }
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::ChangeMsgReadStatusL
 // -----------------------------------------------------------------------------
 void CFSEmailUiMailViewerVisualiser::ChangeMsgReadStatusL(
-	TBool aRead, TBool aCmdFromMrui )
-	{
+    TBool aRead, TBool aCmdFromMrui )
+    {
     FUNC_LOG;
-	if ( iMessage && !iEmbeddedMessageMode )
-		{
-		if ( aRead )
- 			{
-			// Send flags, local and server
- 			iMessage->SetFlag( EFSMsgFlag_Read );
-			}
-		else
-			{
-			// Send flags, local and server
- 			iMessage->ResetFlag( EFSMsgFlag_Read );
-			}
-		iMessage->SaveMessageL(); // Save read status
-		SendEventToAppUiL( TFSEventMailChanged );
+    if ( iMessage && !iEmbeddedMessageMode )
+        {
+        if ( aRead )
+            {
+            // Send flags, local and server
+            iMessage->SetFlag( EFSMsgFlag_Read );
+            }
+        else
+            {
+            // Send flags, local and server
+            iMessage->ResetFlag( EFSMsgFlag_Read );
+            }
+        iMessage->SaveMessageL(); // Save read status
+        SendEventToAppUiL( TFSEventMailChanged );
 
-		if ( !aCmdFromMrui && iViewerRichText && iTextViewer )
-			{
-			iViewerRichText->UpdateIconL(
-				CFSEmailUiMailViewerRichText::EViewerEmailStatus );
-			TInt iconLine = iViewerRichText->EmailStatusIconLine();
-	        iTextViewer->ReloadPicturesL( iconLine );
-			}
-		}
-	}
+        if ( !aCmdFromMrui && iViewerRichText && iTextViewer )
+            {
+            iViewerRichText->UpdateIconL(
+                CFSEmailUiMailViewerRichText::EViewerEmailStatus );
+            TInt iconLine = iViewerRichText->EmailStatusIconLine();
+            iTextViewer->ReloadPicturesL( iconLine );
+            }
+        }
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::OpenHotSpotUrlInBrowserL
 // -----------------------------------------------------------------------------
 void CFSEmailUiMailViewerVisualiser::OpenHotSpotUrlInBrowserL(  CFindItemEngine::SFoundItem& aHotSpot  )
-	{
+    {
     FUNC_LOG;
-	if ( aHotSpot.iItemType == CFindItemEngine::EFindItemSearchURLBin ||
-		 aHotSpot.iItemType == CFindItemEngine::EFindItemSearchScheme ) // Scheme is needed also
-		{
-		// use browser launcher API here
-		HBufC* urlToOpen = iViewerRichText->GetHotspotTextLC( aHotSpot );
-		// Check if the address is rtsp url and send it media player
-		if ( aHotSpot.iItemType == CFindItemEngine::EFindItemSearchScheme &&
-			 urlToOpen->FindC( KRtspUrlPrefix ) == 0 )
-			{
-			RApaLsSession appArcSession;
-			User::LeaveIfError( appArcSession.Connect() );
-			TThreadId id;
-			appArcSession.StartDocument( urlToOpen->Des(), KUidMediaPlayer , id );
-			appArcSession.Close();
-			}
-		else
-			{
-			// Check wheter the url text has some prefix (http, https, ftp, etc.).
-			// If no prefix found, try with the default prefix http.
-			TInt urlPos = urlToOpen->Find( KUrlPrefixIdentifier );
-			if ( urlPos == KErrNotFound )
-			    {
-			    HBufC* newBuf = urlToOpen->ReAllocL( urlToOpen->Length() + KHttpUrlPrefix().Length() );
-		        CleanupStack::Pop( urlToOpen );
-		        urlToOpen = newBuf;
-	            CleanupStack::PushL( urlToOpen );
-	            TPtr urlToOpenPtr = urlToOpen->Des();
-	            urlToOpenPtr.Insert( 0, KHttpUrlPrefix );
-			    }
+    if ( aHotSpot.iItemType == CFindItemEngine::EFindItemSearchURLBin ||
+         aHotSpot.iItemType == CFindItemEngine::EFindItemSearchScheme ) // Scheme is needed also
+        {
+        // use browser launcher API here
+        HBufC* urlToOpen = iViewerRichText->GetHotspotTextLC( aHotSpot );
+        // Check if the address is rtsp url and send it media player
+        if ( aHotSpot.iItemType == CFindItemEngine::EFindItemSearchScheme &&
+             urlToOpen->FindC( KRtspUrlPrefix ) == 0 )
+            {
+            RApaLsSession appArcSession;
+            User::LeaveIfError( appArcSession.Connect() );
+            TThreadId id;
+            appArcSession.StartDocument( urlToOpen->Des(), KUidMediaPlayer , id );
+            appArcSession.Close();
+            }
+        else
+            {
+            // Check wheter the url text has some prefix (http, https, ftp, etc.).
+            // If no prefix found, try with the default prefix http.
+            TInt urlPos = urlToOpen->Find( KUrlPrefixIdentifier );
+            if ( urlPos == KErrNotFound )
+                {
+                HBufC* newBuf = urlToOpen->ReAllocL( urlToOpen->Length() + KHttpUrlPrefix().Length() );
+                CleanupStack::Pop( urlToOpen );
+                urlToOpen = newBuf;
+                CleanupStack::PushL( urlToOpen );
+                TPtr urlToOpenPtr = urlToOpen->Des();
+                urlToOpenPtr.Insert( 0, KHttpUrlPrefix );
+                }
 
-			// Use scheme handler to launch the browser as a stand alone application
-	        CSchemeHandler* handler = CSchemeHandler::NewL( *urlToOpen );
-	        CleanupStack::PushL( handler );
-	        handler->HandleUrlStandaloneL();
-	        CleanupStack::PopAndDestroy( handler );
-			}
+            // Use scheme handler to launch the browser as a stand alone application
+            CSchemeHandler* handler = CSchemeHandler::NewL( *urlToOpen );
+            CleanupStack::PushL( handler );
+            handler->HandleUrlStandaloneL();
+            CleanupStack::PopAndDestroy( handler );
+            }
 
-		CleanupStack::PopAndDestroy( urlToOpen );
-		}
-	}
+        CleanupStack::PopAndDestroy( urlToOpen );
+        }
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::CallToBodyHotSpotNumberL
 // -----------------------------------------------------------------------------
 void CFSEmailUiMailViewerVisualiser::CallToBodyHotSpotNumberL( CFindItemEngine::SFoundItem& aHotSpot )
-	{
+    {
     FUNC_LOG;
 
-	if ( aHotSpot.iItemType == CFindItemEngine::EFindItemSearchPhoneNumberBin )
-		{
-		HBufC* phoneNumber = iViewerRichText->GetHotspotTextLC( aHotSpot );
-		TInt answer = TFsEmailUiUtility::ShowConfirmationQueryL(
-		        R_FREESTYLE_EMAIL_UI_VIEWER_CALL_HOTSPOT, *phoneNumber );
-		if ( answer )
-			{
-	        TPtr numberPtr = phoneNumber->Des();
-		    CommonPhoneParser::ParsePhoneNumber( numberPtr,
-		                          CommonPhoneParser::EPhoneClientNumber);
+    if ( aHotSpot.iItemType == CFindItemEngine::EFindItemSearchPhoneNumberBin )
+        {
+        HBufC* phoneNumber = iViewerRichText->GetHotspotTextLC( aHotSpot );
+        TInt answer = TFsEmailUiUtility::ShowConfirmationQueryL(
+                R_FREESTYLE_EMAIL_UI_VIEWER_CALL_HOTSPOT, *phoneNumber );
+        if ( answer )
+            {
+            TPtr numberPtr = phoneNumber->Des();
+            CommonPhoneParser::ParsePhoneNumber( numberPtr,
+                                  CommonPhoneParser::EPhoneClientNumber);
 
-		    CFsDelayedLoader::InstanceL()->GetContactHandlerL()->MakeAiwCallL( NULL, *phoneNumber );
-			}
+            CFsDelayedLoader::InstanceL()->GetContactHandlerL()->MakeAiwCallL( NULL, *phoneNumber );
+            }
         CleanupStack::PopAndDestroy( phoneNumber );
-		}
-	else if ( aHotSpot.iItemType == CFindItemEngine::EFindItemSearchScheme )
-		{
-		TBool voipCall( EFalse );
-		HBufC* schemeText = iViewerRichText->GetHotspotTextLC( aHotSpot );
-		// Strip scheme prefix text if found
-		if ( schemeText && schemeText->FindC( KCallPrefix ) == 0 )
-			{
-			schemeText->Des().Delete( 0, KCallPrefix().Length() );
-			}
-		else if ( schemeText && schemeText->FindC( KTelPrefix ) == 0 )
-			{
-			schemeText->Des().Delete( 0, KTelPrefix().Length() );
-			}
-		else if ( schemeText && schemeText->FindC( KSmsPrefix ) == 0 )
-			{
-			schemeText->Des().Delete( 0, KSmsPrefix().Length() );
-			}
-		else if ( schemeText && schemeText->FindC( KMmsPrefix ) == 0 )
-			{
-			schemeText->Des().Delete( 0, KMmsPrefix().Length() );
-			}
-		else if ( schemeText && schemeText->FindC( KVoipPrefix ) == 0 )
-			{
-			voipCall = ETrue;
-			schemeText->Des().Delete( 0, KVoipPrefix().Length() );
-			}
+        }
+    else if ( aHotSpot.iItemType == CFindItemEngine::EFindItemSearchScheme )
+        {
+        TBool voipCall( EFalse );
+        HBufC* schemeText = iViewerRichText->GetHotspotTextLC( aHotSpot );
+        // Strip scheme prefix text if found
+        if ( schemeText && schemeText->FindC( KCallPrefix ) == 0 )
+            {
+            schemeText->Des().Delete( 0, KCallPrefix().Length() );
+            }
+        else if ( schemeText && schemeText->FindC( KTelPrefix ) == 0 )
+            {
+            schemeText->Des().Delete( 0, KTelPrefix().Length() );
+            }
+        else if ( schemeText && schemeText->FindC( KSmsPrefix ) == 0 )
+            {
+            schemeText->Des().Delete( 0, KSmsPrefix().Length() );
+            }
+        else if ( schemeText && schemeText->FindC( KMmsPrefix ) == 0 )
+            {
+            schemeText->Des().Delete( 0, KMmsPrefix().Length() );
+            }
+        else if ( schemeText && schemeText->FindC( KVoipPrefix ) == 0 )
+            {
+            voipCall = ETrue;
+            schemeText->Des().Delete( 0, KVoipPrefix().Length() );
+            }
 
-		TInt answer = TFsEmailUiUtility::ShowConfirmationQueryL(
-		        R_FREESTYLE_EMAIL_UI_VIEWER_CALL_HOTSPOT, *schemeText );
-		if ( answer )
-			{
-			if ( !voipCall )
-				{
-				// use common phone parser for other than voip numbers
-		        TPtr numberPtr = schemeText->Des();
-			    CommonPhoneParser::ParsePhoneNumber( numberPtr,
-		                         CommonPhoneParser::EPhoneClientNumber );
-				}
-		    CFsDelayedLoader::InstanceL()->GetContactHandlerL()->MakeAiwCallL( NULL, *schemeText, voipCall );
-			}
-		CleanupStack::PopAndDestroy( schemeText );
-		}
-	}
+        TInt answer = TFsEmailUiUtility::ShowConfirmationQueryL(
+                R_FREESTYLE_EMAIL_UI_VIEWER_CALL_HOTSPOT, *schemeText );
+        if ( answer )
+            {
+            if ( !voipCall )
+                {
+                // use common phone parser for other than voip numbers
+                TPtr numberPtr = schemeText->Des();
+                CommonPhoneParser::ParsePhoneNumber( numberPtr,
+                                 CommonPhoneParser::EPhoneClientNumber );
+                }
+            CFsDelayedLoader::InstanceL()->GetContactHandlerL()->MakeAiwCallL( NULL, *schemeText, voipCall );
+            }
+        CleanupStack::PopAndDestroy( schemeText );
+        }
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailViewerVisualiser::WriteEmailToHotSpotAddressL
 // -----------------------------------------------------------------------------
 void CFSEmailUiMailViewerVisualiser::WriteEmailToHotSpotAddressL( CFindItemEngine::SFoundItem& aHotSpot )
-	{
+    {
     FUNC_LOG;
-	if ( aHotSpot.iItemType == CFindItemEngine::EFindItemSearchMailAddressBin )
-		{
-		delete iNewMailTempAddress; iNewMailTempAddress = NULL;
-		iNewMailTempAddress = CFSMailAddress::NewL();
-		HBufC* mailAddress = iViewerRichText->GetHotspotTextLC( aHotSpot );
-		iNewMailTempAddress->SetEmailAddress( *mailAddress );
- 		CleanupStack::PopAndDestroy( mailAddress );
-		iAppUi.LaunchEditorL( iNewMailTempAddress );
-		}
-	else if ( aHotSpot.iItemType == CFindItemEngine::EFindItemSearchScheme )
-		{
-		HBufC* schemeText = iViewerRichText->GetHotspotTextLC( aHotSpot );
-		if ( schemeText && schemeText->FindC( KMailtoPrefix ) == 0)
-			{
-			schemeText->Des().Delete( 0, KMailtoPrefix().Length() );
-			delete iNewMailTempAddress; iNewMailTempAddress = NULL;
-			iNewMailTempAddress = CFSMailAddress::NewL();
-			iNewMailTempAddress->SetEmailAddress( *schemeText );
-			iAppUi.LaunchEditorL( iNewMailTempAddress );
-			}
-		CleanupStack::PopAndDestroy( schemeText );
-		}
-	}
+    if ( aHotSpot.iItemType == CFindItemEngine::EFindItemSearchMailAddressBin )
+        {
+        delete iNewMailTempAddress; iNewMailTempAddress = NULL;
+        iNewMailTempAddress = CFSMailAddress::NewL();
+        HBufC* mailAddress = iViewerRichText->GetHotspotTextLC( aHotSpot );
+        iNewMailTempAddress->SetEmailAddress( *mailAddress );
+        CleanupStack::PopAndDestroy( mailAddress );
+        iAppUi.LaunchEditorL( iNewMailTempAddress );
+        }
+    else if ( aHotSpot.iItemType == CFindItemEngine::EFindItemSearchScheme )
+        {
+        HBufC* schemeText = iViewerRichText->GetHotspotTextLC( aHotSpot );
+        if ( schemeText && schemeText->FindC( KMailtoPrefix ) == 0)
+            {
+            schemeText->Des().Delete( 0, KMailtoPrefix().Length() );
+            delete iNewMailTempAddress; iNewMailTempAddress = NULL;
+            iNewMailTempAddress = CFSMailAddress::NewL();
+            iNewMailTempAddress->SetEmailAddress( *schemeText );
+            iAppUi.LaunchEditorL( iNewMailTempAddress );
+            }
+        CleanupStack::PopAndDestroy( schemeText );
+        }
+    }
 
 void CFSEmailUiMailViewerVisualiser::SaveEmailAsContactL(
-	const TDesC& aEmailAddress )
-	{
+    const TDesC& aEmailAddress )
+    {
     FUNC_LOG;
-	TAddToContactsType type;
-	// Query to "update existing" or "Create new"
-	// --> EFALSE = user chose "cancel"
-	if ( CFsDelayedLoader::InstanceL()->GetContactHandlerL()->
-		AddtoContactsQueryL( type ) )
-		{
-		// Create buffer and strip scheme data such as mailto: and call:
-		HBufC* textData = aEmailAddress.AllocLC();
-		if ( textData->FindC( KMailtoPrefix ) == 0 )
-			{
-			textData->Des().Delete( 0, KMailtoPrefix().Length() );
-			}
-		CFsDelayedLoader::InstanceL()->GetContactHandlerL()->AddToContactL(
-				*textData, EContactUpdateEmail, type, this );
-		CleanupStack::PopAndDestroy( textData );
-		}
-	}
+    TAddToContactsType type;
+    // Query to "update existing" or "Create new"
+    // --> EFALSE = user chose "cancel"
+    if ( CFsDelayedLoader::InstanceL()->GetContactHandlerL()->
+        AddtoContactsQueryL( type ) )
+        {
+        // Create buffer and strip scheme data such as mailto: and call:
+        HBufC* textData = aEmailAddress.AllocLC();
+        if ( textData->FindC( KMailtoPrefix ) == 0 )
+            {
+            textData->Des().Delete( 0, KMailtoPrefix().Length() );
+            }
+        CFsDelayedLoader::InstanceL()->GetContactHandlerL()->AddToContactL(
+                *textData, EContactUpdateEmail, type, this );
+        CleanupStack::PopAndDestroy( textData );
+        }
+    }
 
 void CFSEmailUiMailViewerVisualiser::SavePhoneNumberAsContactL(
-	const TDesC& aPhoneNumber )
-	{
+    const TDesC& aPhoneNumber )
+    {
     FUNC_LOG;
-	TAddToContactsType type;
-	// Query to "update existing" or "Create new"
-	// --> EFALSE = user chose "cancel"
-	if ( CFsDelayedLoader::InstanceL()->GetContactHandlerL()->
-		AddtoContactsQueryL( type ) )
-		{
-		// Create buffer and strip scheme data such as mailto: and call:
-		HBufC* textData = aPhoneNumber.AllocLC();
-		// Strip scheme prefix text if found
-		if ( textData && textData->FindC( KCallPrefix ) == 0 )
-			{
-			textData->Des().Delete( 0, KCallPrefix().Length() );
-			}
-		else if ( textData && textData->FindC( KTelPrefix ) == 0 )
-			{
-			textData->Des().Delete( 0, KTelPrefix().Length() );
-			}
-		else if ( textData && textData->FindC( KSmsPrefix ) == 0 )
-			{
-			textData->Des().Delete( 0, KSmsPrefix().Length() );
-			}
-		else if ( textData && textData->FindC( KMmsPrefix ) == 0 )
-			{
-			textData->Des().Delete( 0, KMmsPrefix().Length() );
-			}
-		CFsDelayedLoader::InstanceL()->GetContactHandlerL()->AddToContactL(
-			*textData, EContactUpdateNumber, type, this );
-		CleanupStack::PopAndDestroy( textData );
-		}
-	}
+    TAddToContactsType type;
+    // Query to "update existing" or "Create new"
+    // --> EFALSE = user chose "cancel"
+    if ( CFsDelayedLoader::InstanceL()->GetContactHandlerL()->
+        AddtoContactsQueryL( type ) )
+        {
+        // Create buffer and strip scheme data such as mailto: and call:
+        HBufC* textData = aPhoneNumber.AllocLC();
+        // Strip scheme prefix text if found
+        if ( textData && textData->FindC( KCallPrefix ) == 0 )
+            {
+            textData->Des().Delete( 0, KCallPrefix().Length() );
+            }
+        else if ( textData && textData->FindC( KTelPrefix ) == 0 )
+            {
+            textData->Des().Delete( 0, KTelPrefix().Length() );
+            }
+        else if ( textData && textData->FindC( KSmsPrefix ) == 0 )
+            {
+            textData->Des().Delete( 0, KSmsPrefix().Length() );
+            }
+        else if ( textData && textData->FindC( KMmsPrefix ) == 0 )
+            {
+            textData->Des().Delete( 0, KMmsPrefix().Length() );
+            }
+        CFsDelayedLoader::InstanceL()->GetContactHandlerL()->AddToContactL(
+            *textData, EContactUpdateNumber, type, this );
+        CleanupStack::PopAndDestroy( textData );
+        }
+    }
 
 
 void CFSEmailUiMailViewerVisualiser::FlagselectionCompleteL( TInt aSelection )
-	{
+    {
     FUNC_LOG;
-	// Set message follow up flag
-	if ( iMessage && aSelection != KErrNotFound )
-		{
-		switch ( aSelection )
-			{
-			case EFollowUp:
-				{
-				iMessage->SetFlag( EFSMsgFlag_FollowUp );
-				iMessage->ResetFlag( EFSMsgFlag_FollowUpComplete );
-				iMessage->SaveMessageL();
-				}
-				break;
-			case EFollowUpComplete:
-				{
-				iMessage->SetFlag( EFSMsgFlag_FollowUpComplete );
-				iMessage->ResetFlag( EFSMsgFlag_FollowUp );
-				iMessage->SaveMessageL();
-				}
-				break;
-			case EFollowUpClear:
-				{
-				iMessage->ResetFlag( EFSMsgFlag_FollowUp | EFSMsgFlag_FollowUpComplete );
-				iMessage->SaveMessageL();
-				}
-				break;
-			default:
-				break;
-			}
-		}
-	}
+    // Set message follow up flag
+    if ( iMessage && aSelection != KErrNotFound )
+        {
+        switch ( aSelection )
+            {
+            case EFollowUp:
+                {
+                iMessage->SetFlag( EFSMsgFlag_FollowUp );
+                iMessage->ResetFlag( EFSMsgFlag_FollowUpComplete );
+                iMessage->SaveMessageL();
+                }
+                break;
+            case EFollowUpComplete:
+                {
+                iMessage->SetFlag( EFSMsgFlag_FollowUpComplete );
+                iMessage->ResetFlag( EFSMsgFlag_FollowUp );
+                iMessage->SaveMessageL();
+                }
+                break;
+            case EFollowUpClear:
+                {
+                iMessage->ResetFlag( EFSMsgFlag_FollowUp | EFSMsgFlag_FollowUpComplete );
+                iMessage->SaveMessageL();
+                }
+                break;
+            default:
+                break;
+            }
+        }
+    }
 
 
 void CFSEmailUiMailViewerVisualiser::SetMailboxNameToStatusPaneL()
-	{
+    {
     FUNC_LOG;
-	iAppUi.SetActiveMailboxNameToStatusPaneL();
-	}
+    iAppUi.SetActiveMailboxNameToStatusPaneL();
+    }
 
 void CFSEmailUiMailViewerVisualiser::GetParentLayoutsL( RPointerArray<CAlfVisual>& aLayoutArray ) const
     {
@@ -5087,22 +5087,22 @@ void CFSEmailUiMailViewerVisualiser::HandleMailBoxEventL( TFSMailEvent aEvent,
     {
     FUNC_LOG;
     if ( iFirstStartCompleted && iMessage && aMailbox.Id() == iAppUi.GetActiveMailboxId().Id() &&
-    	 aEvent == TFSEventMailDeleted && aParam1 ) // Safety, in list events that only concern active mailbox are handled
+         aEvent == TFSEventMailDeleted && aParam1 ) // Safety, in list events that only concern active mailbox are handled
         {
         TFSMailMsgId curMsgId = iMessage->GetMessageId();
-		RArray<TFSMailMsgId>* removedEntries = static_cast<RArray<TFSMailMsgId>*>(aParam1);
-		for ( TInt i=0 ; i < removedEntries->Count() ; i++ )
-			{
-		    //<cmail>
-			if ( (curMsgId == (*removedEntries)[i]) &&
-					(iDeletedMessageFromMrui != curMsgId) )
-				{
-				//</cmail>
-	        	ChangeMskCommandL( R_FSE_QTN_MSK_EMPTY );
-	        	NavigateBackL();
-				break;
-				}
-			}
+        RArray<TFSMailMsgId>* removedEntries = static_cast<RArray<TFSMailMsgId>*>(aParam1);
+        for ( TInt i=0 ; i < removedEntries->Count() ; i++ )
+            {
+            //<cmail>
+            if ( (curMsgId == (*removedEntries)[i]) &&
+                    (iDeletedMessageFromMrui != curMsgId) )
+                {
+                //</cmail>
+                ChangeMskCommandL( R_FSE_QTN_MSK_EMPTY );
+                NavigateBackL();
+                break;
+                }
+            }
         }
     }
 
@@ -5125,80 +5125,80 @@ CFlagSelectionGlobalNoteHandler* CFlagSelectionGlobalNoteHandler::NewL( CFSEmail
     {
     FUNC_LOG;
     CFlagSelectionGlobalNoteHandler* self =
-       	 new (ELeave) CFlagSelectionGlobalNoteHandler( aViewerVisualiser );
+         new (ELeave) CFlagSelectionGlobalNoteHandler( aViewerVisualiser );
     return self;
     }
 
 
 CFlagSelectionGlobalNoteHandler::~CFlagSelectionGlobalNoteHandler()
-	{
+    {
     FUNC_LOG;
-	delete iPrompt;
-	delete iGlobalFlagQuery;
-	}
+    delete iPrompt;
+    delete iGlobalFlagQuery;
+    }
 
 void CFlagSelectionGlobalNoteHandler::Cancel()
-	{
+    {
     FUNC_LOG;
-	}
+    }
 
 void CFlagSelectionGlobalNoteHandler::LaunchFlagListQueryDialogL()
-	{
+    {
     FUNC_LOG;
-	iSelection = 0;
-	if ( !iPrompt )
-		{
-	    iPrompt = StringLoader::LoadL( R_FREESTYLE_EMAIL_UI_VIEWER_FLAG_DIALOG_HEADER );
-		}
- 	if ( !iGlobalFlagQuery )
-	 	{
-	    iGlobalFlagQuery = CAknGlobalListQuery::NewL();
-		iGlobalFlagQuery->SetHeadingL( *iPrompt ); // Set query heading.
- 		}
+    iSelection = 0;
+    if ( !iPrompt )
+        {
+        iPrompt = StringLoader::LoadL( R_FREESTYLE_EMAIL_UI_VIEWER_FLAG_DIALOG_HEADER );
+        }
+    if ( !iGlobalFlagQuery )
+        {
+        iGlobalFlagQuery = CAknGlobalListQuery::NewL();
+        iGlobalFlagQuery->SetHeadingL( *iPrompt ); // Set query heading.
+        }
 
-	CDesCArrayFlat* array = new (ELeave) CDesCArrayFlat( 3 );
-	CleanupStack::PushL( array );
-	// Add follow up text
-	HBufC* followUp = StringLoader::LoadLC( R_FREESTYLE_EMAIL_UI_FLAG_FOLLOW_UP );
+    CDesCArrayFlat* array = new (ELeave) CDesCArrayFlat( 3 );
+    CleanupStack::PushL( array );
+    // Add follow up text
+    HBufC* followUp = StringLoader::LoadLC( R_FREESTYLE_EMAIL_UI_FLAG_FOLLOW_UP );
     array->AppendL( *followUp );
-	CleanupStack::PopAndDestroy( followUp );
+    CleanupStack::PopAndDestroy( followUp );
 
-	// Add flag complete text
-	HBufC* completeFlag = StringLoader::LoadLC( R_FREESTYLE_EMAIL_UI_FLAG_COMPLETE );
+    // Add flag complete text
+    HBufC* completeFlag = StringLoader::LoadLC( R_FREESTYLE_EMAIL_UI_FLAG_COMPLETE );
     array->AppendL( *completeFlag );
-	CleanupStack::PopAndDestroy( completeFlag );
+    CleanupStack::PopAndDestroy( completeFlag );
 
-	// Add clear flag text
-	HBufC* clearFlag = StringLoader::LoadLC( R_FREESTYLE_EMAIL_UI_FLAG_CLEAR );
+    // Add clear flag text
+    HBufC* clearFlag = StringLoader::LoadLC( R_FREESTYLE_EMAIL_UI_FLAG_CLEAR );
     array->AppendL( *clearFlag );
-	CleanupStack::PopAndDestroy( clearFlag );
+    CleanupStack::PopAndDestroy( clearFlag );
 
     // Show query
     iGlobalFlagQuery->ShowListQueryL( array, iStatus, iSelection );
-	CleanupStack::PopAndDestroy( array );
+    CleanupStack::PopAndDestroy( array );
 
-	// Set active
+    // Set active
     SetActive();
-	}
+    }
 
 void CFlagSelectionGlobalNoteHandler::RunL()
-	{
+    {
     FUNC_LOG;
     TInt status = iStatus.Int();
-	iViewerVisualiser.FlagselectionCompleteL( status );
-	}
+    iViewerVisualiser.FlagselectionCompleteL( status );
+    }
 
 void CFlagSelectionGlobalNoteHandler::DoCancel()
-	{
+    {
     FUNC_LOG;
-	}
+    }
 
 TInt CFlagSelectionGlobalNoteHandler::RunError( TInt /*aError*/ )
-	{
+    {
     FUNC_LOG;
-	TInt err( KErrNone );
-	return err;
-	}
+    TInt err( KErrNone );
+    return err;
+    }
 
 CFlagSelectionGlobalNoteHandler::CFlagSelectionGlobalNoteHandler(  CFSEmailUiMailViewerVisualiser& aViewerVisualiser )
     : CActive ( EPriorityHigh ),

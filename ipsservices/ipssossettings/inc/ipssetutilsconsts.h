@@ -122,7 +122,6 @@ const TBool KIpsSetExtDefaultTAOInfoUpdateSuccessfulWithCurSettings = EFalse;
 const TInt KIpsSetExtDefaultNewMailIndicators = ETrue;
 const TInt KIpsSetExtDefaultOpenHtmlMail = EFalse;
 const TInt KIpsSetExtDefaultOutgoingLogin = CIpsSetData::EOwnOutgoing;
-const TInt KIpsSetExtDefaultRoamHomeOnlyFlag = ETrue;
 const TInt64 KIpsSetExtDefaultSelectedTimeStart = 0;
 const TInt64 KIpsSetExtDefaultSelectedTimeStop = 0;
 const TUint KIpsSetExtDefaultSelectedWeekDays = KIpsSetDataEveryDayMask;

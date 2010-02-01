@@ -614,7 +614,7 @@ void CNcsComposeView::DynInitMenuPaneL( TInt aResourceId,
         	}
         }
 
-    if ( aResourceId == R_NCS_MORE_MENU )
+    if ( aResourceId == R_NCS_EXTRA_RECEPIENT_FIELDS_MENU )
         {
 		// Select which View->CC menu items to show
 		if ( iContainer->IsCcFieldVisible() )

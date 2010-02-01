@@ -327,10 +327,6 @@ void CIpsSetUiDialogCtrl::InitUserData( CIpsSetUiItem& aBaseItem )
             InitAnyItem( aBaseItem, iData->Schedule(), KNullDesC );
             break;
 
-        case EIpsSetUiWhenRoaming:
-            InitRoaming( aBaseItem, iData->Roaming() );
-            break;
-
         // these have leaving init functions
         case EIpsSetUiMailboxSignature:
         case EIpsSetUiOutgoingIap:
@@ -689,10 +685,8 @@ void CIpsSetUiDialogCtrl::StoreSettingsToAccountL()
         GetItem( TUid::Uid( EIpsSetUiWhatDownloadSize ) )->Value(),
         GetItem( TUid::Uid( EIpsSetUiWhatDownloadSizeEditPlus ) )->Value() );
     StoreRetrievalLimit();
-
     iData->SetSchedule(
-        GetItem( TUid::Uid( EIpsSetUiWhenSchedule ) )->Value(),
-        GetItem( TUid::Uid( EIpsSetUiWhenRoaming ) )->Value() );
+        GetItem( TUid::Uid( EIpsSetUiWhenSchedule ) )->Value(), EFalse );
     iData->SetDays(
         GetItem( TUid::Uid( EIpsSetUiWhenDays ) )->Value() );
     iData->SetHours(
@@ -991,10 +985,6 @@ TInt CIpsSetUiDialogCtrl::EventItemEditEndsL( CIpsSetUiItem& aBaseItem )
             HandleEventDaysL( aBaseItem );
             break;
 
-        case EIpsSetUiWhenSchedule:
-            HandleEventSchedule( aBaseItem );
-            break;
-
         case EIpsSetUiWhatDownloadSize:
             HandleDownloadSizeL( aBaseItem );
             break;
@@ -1097,17 +1087,6 @@ void CIpsSetUiDialogCtrl::HandleDownloadSizeL( CIpsSetUiItem& aBaseItem )
         resourceText.Close();
         finalText.Close();
         }
-    }
-
-// ---------------------------------------------------------------------------
-// CIpsSetUiDialogCtrl::HandleEventSchedule()
-// ---------------------------------------------------------------------------
-//
-void CIpsSetUiDialogCtrl::HandleEventSchedule( CIpsSetUiItem& aBaseItem )
-    {
-    FUNC_LOG;
-    SetHideItem( aBaseItem.Value() == CIpsSetData::EManual,
-        TUid::Uid( EIpsSetUiWhenRoaming ), ETrue );
     }
 
 // ---------------------------------------------------------------------------

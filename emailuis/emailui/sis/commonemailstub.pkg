@@ -27,6 +27,16 @@
 ;Unique Vendor name 
 :"Symbian"
 
+; File list in this stub pkg is out-of-date. Current assumption is that we can
+; always use so called SU type certificates when signing our sisx-packages and
+; in that case there is no need to list the files in stub sis anymore. If it
+; becomes evident that this assumption is wrong, then this file list needs to
+; be updated based on the current content of the normal pkg-file(s).
+; 
+; Even if the assumption is correct, this file and the actual stub sis file
+; are still needed and the version number need to be up-to-date for IAD to
+; work correctly.
+
 ; emailuis / emailui 
 ""-"z:\sys\bin\FreestyleEmailUi.exe"
 ""-"z:\private\10003a3f\import\apps\FreestyleEmailUi_reg.r*"

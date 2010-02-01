@@ -19,6 +19,7 @@
 #include "../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
 #include "../../inc/esmrinternaluid.h"
 #include "../../../inc/fsccontactactionserviceuids.hrh" // <cmail>
+#include "../../../inc/emailtraceconfig.hrh"
 #include <data_caging_paths.hrh>
 #include <platform_paths.hrh>
 
@@ -41,13 +42,11 @@ SOURCE                  cesmrcaspluginuilauncher.cpp
 SOURCE                  cesmrcasplugincontactretriever.cpp
 
 USERINCLUDE             ../group
-USERINCLUDE	            ../inc
+USERINCLUDE             ../inc
 USERINCLUDE             ../../inc
 USERINCLUDE             ../../../inc
 
 APP_LAYER_SYSTEMINCLUDE
-
-SYSTEMINCLUDE 			/epoc32/include/ecom
 
 LIBRARY                 avkon.lib
 LIBRARY                 aknicon.lib
@@ -65,6 +64,10 @@ LIBRARY                 esmrcommon.lib
 LIBRARY                 eikcoctl.lib
 LIBRARY                 eikcore.lib
 LIBRARY                 cmaillogger.lib
+
+#ifdef TRACE_INTO_FILE
+LIBRARY                 flogger.lib
+#endif // TRACE_INTO_FILE
 
 SOURCEPATH              ../data
 START RESOURCE          2001F3FF.rss

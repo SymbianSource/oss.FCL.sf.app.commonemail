@@ -19,7 +19,7 @@
 #ifndef __CFSMAILBOXBASE_H
 #define __CFSMAILBOXBASE_H
 
-#include "cfsmailfolder.h"
+#include "CFSMailFolder.h"
 #include "mmrinfoprocessor.h"
 #include "cemailextensionbase.h"
 

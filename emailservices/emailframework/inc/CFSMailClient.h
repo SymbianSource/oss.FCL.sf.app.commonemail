@@ -25,49 +25,49 @@
 #include "CFSMailClient.hrh"
 #include "cemailextensionbase.h"
 
-#include "mfsmailbrandmanager.h"
+#include "MFSMailBrandManager.h"
 #include "cfsmailplugin.h"
 
 
 class CFSFWImplementation;
 class CFSMailPluginManager;
 
-	/**
-	* @mainpage Freestyle Email API
-	*
-	* @section sec1 Introduction
-	*
-	*    This is the mail API and framework used by the Freestyle email
-	*    client. It provides access to the message store for reading email
-	*    and to the sync engine for starting and stopping synchronizations.
-	*
-	* @section sec2 Typical Usage From UI
-	*
-	*  	// Initialize the access to the mail framework
-	*  	CFSMailClient* mail = CFSMailClient::NewL();
-	*  	CleanupClosePushL(*mail);
+    /**
+    * @mainpage Freestyle Email API
+    *
+    * @section sec1 Introduction
+    *
+    *    This is the mail API and framework used by the Freestyle email
+    *    client. It provides access to the message store for reading email
+    *    and to the sync engine for starting and stopping synchronizations.
+    *
+    * @section sec2 Typical Usage From UI
+    *
+    *   // Initialize the access to the mail framework
+    *   CFSMailClient* mail = CFSMailClient::NewL();
+    *   CleanupClosePushL(*mail);
     * 
-	*  	// List mailboxes for user to select which one to open
-	*	RPointerArray<CFSMailBox> mailBoxes;
-	*	mailBoxes.Reset();
-	*	TFSMailMsgId plugin; // null id if all mailboxes required
-	*	mail->ListMailBoxes(plugin,mailBoxes);
+    *   // List mailboxes for user to select which one to open
+    *   RPointerArray<CFSMailBox> mailBoxes;
+    *   mailBoxes.Reset();
+    *   TFSMailMsgId plugin; // null id if all mailboxes required
+    *   mail->ListMailBoxes(plugin,mailBoxes);
     *   // Lets select the first one this time
-	*  	CFSMailBox * currentMailbox = mailboxes[0]; 
+    *   CFSMailBox * currentMailbox = mailboxes[0]; 
     * 
-	*   // list all mailbox folders for user
-	*   RPointerArray<CFSMailFolder> folders = currentMailBox->ListFolders( );
-	*
-	*   // or get default folder, for example inbox
-	*	TFSMailMsgId folderId;
-	*	folderId = mailBox->GetStandardFolderId( EFSInbox );
-	*  	CFSMailFolder* inbox = mail->GetFolderByUid(currentMailBox->GetId(),folderId);
-	*
-	*   // List messages in inbox
-	*   // select message details to be listed
-	*   TFSMailDetails details(EFSMsgDataStructure);
-    *	
-	*   // set sorting criteria
+    *   // list all mailbox folders for user
+    *   RPointerArray<CFSMailFolder> folders = currentMailBox->ListFolders( );
+    *
+    *   // or get default folder, for example inbox
+    *   TFSMailMsgId folderId;
+    *   folderId = mailBox->GetStandardFolderId( EFSInbox );
+    *   CFSMailFolder* inbox = mail->GetFolderByUid(currentMailBox->GetId(),folderId);
+    *
+    *   // List messages in inbox
+    *   // select message details to be listed
+    *   TFSMailDetails details(EFSMsgDataStructure);
+    *   
+    *   // set sorting criteria
     *   TFSMailSortCriteria criteria;
     *   criteria.iField = EFSMailSortByDate;
     *   criteria.iOrder = EFSMailAscending;
@@ -75,30 +75,30 @@ class CFSMailPluginManager;
     *   sorting.Append(criteria);
     *
     *   // get email list iterator from plugin
-	*   MFSMailIterator* iterator = folder->ListMessagesL(details,sorting);
+    *   MFSMailIterator* iterator = folder->ListMessagesL(details,sorting);
     *
     *   //  list all messages from folder
     *   TFSMailMsgId currentMessageId; // first call contains NULL id as begin id
     *   RPointerArray<CFSMailMessage> messages;
     *   messages.Reset();
     *   iterator->NextL(currentMessageId, folder->GetMessageCount(), messages);
-    *		
-	*   // Show the first 5 messages to in the UI
-	*   for(TInt i=0;i<messages.Count() && i<5;i++)
-	*   {
+    *       
+    *   // Show the first 5 messages to in the UI
+    *   for(TInt i=0;i<messages.Count() && i<5;i++)
+    *   {
     *       MyHeaderShowMethod(messages[i]->GetSender().GetEmailAddress(),
     *                          messages[i]->GetSubject()
     *                          messages[i]->GetDate());
     *
     *       // get email body
-	*       CFSMailMessagePart* body = messages[i]->PlainTextBodyPartL();
+    *       CFSMailMessagePart* body = messages[i]->PlainTextBodyPartL();
     *       if(body)
     *       {
     *           TBuf<n> text;
     *           TInt startOffset = 0;
     *           body->GetContentToBufferL(text,startOffset);
     *           MyPlainTextBodyShowMethod(text);
-    *           delete body;		
+    *           delete body;        
     *       }
     *
     *       //list email attachments
@@ -111,54 +111,54 @@ class CFSMailPluginManager;
     *       }
     *       attachments.ResetAndDestroy();
     *   }
-	*
+    *
     *   // clean iterator and tables
     *   messages.ResetAndDestroy();
     *   delete iterator;
     *   sorting.Reset();
     *   delete folder;
     *
-	*   // User should call close when terminating mail framework usage
-	*   // when shutting down application close mail client singleton
-	*   CleanupStack::PopAndDestroy(mail);
-	*
-	* @section sec3 Observing Email Events.
-	*
-	*   // To be able to observe events an user has to
-	*   // implement MFSMailEventObserver interface.
-	*   // Here the COwnMailObserver class implements the interface.
-	*   COwnMailObserver* ownObserver = COwnMailObserver::NewL();
-	*
-	*   // Register to observe mail store events
-	*   mail->AddObserverL(*ownObserver);
-	*
-	*   // Now callbacks are done via the EventL function defined
-	*   // in the MFSMailEventObserver and implemented in this case
-	*   // by the COwnMailObserver
-	*
-	*   // When user does not wish to observe events anymore
-	*   // he has to unregister
-	*   mail->RemoveObserver( *ownObserver );
-	*
-	*   // Remember that it must be done for each observer
-	*   // in the end of the observation because the AddObserverL
-	*   // does not replace the observer
-	*
-	* @section sec_groups Classes
-	*
-	* The following classes form the public API of the frame work.
-	*
-	* @section sec_info More Information
-	*
-	* Copyright &copy; 2006 Nokia.  All rights reserved.
-	*
-	* This material, including documentation and any related computer programs, 
-	* is protected by copyright controlled by Nokia.  All rights are reserved.  
-	* Copying, including reproducing, storing, adapting or translating, any or 
-	* all of this material requires the prior written consent of Nokia.  This 
-	* material also contains confidential information which may not be disclosed 
-	* to others without the prior written consent of Nokia.
-	*/
+    *   // User should call close when terminating mail framework usage
+    *   // when shutting down application close mail client singleton
+    *   CleanupStack::PopAndDestroy(mail);
+    *
+    * @section sec3 Observing Email Events.
+    *
+    *   // To be able to observe events an user has to
+    *   // implement MFSMailEventObserver interface.
+    *   // Here the COwnMailObserver class implements the interface.
+    *   COwnMailObserver* ownObserver = COwnMailObserver::NewL();
+    *
+    *   // Register to observe mail store events
+    *   mail->AddObserverL(*ownObserver);
+    *
+    *   // Now callbacks are done via the EventL function defined
+    *   // in the MFSMailEventObserver and implemented in this case
+    *   // by the COwnMailObserver
+    *
+    *   // When user does not wish to observe events anymore
+    *   // he has to unregister
+    *   mail->RemoveObserver( *ownObserver );
+    *
+    *   // Remember that it must be done for each observer
+    *   // in the end of the observation because the AddObserverL
+    *   // does not replace the observer
+    *
+    * @section sec_groups Classes
+    *
+    * The following classes form the public API of the frame work.
+    *
+    * @section sec_info More Information
+    *
+    * Copyright &copy; 2006 Nokia.  All rights reserved.
+    *
+    * This material, including documentation and any related computer programs, 
+    * is protected by copyright controlled by Nokia.  All rights are reserved.  
+    * Copying, including reproducing, storing, adapting or translating, any or 
+    * all of this material requires the prior written consent of Nokia.  This 
+    * material also contains confidential information which may not be disclosed 
+    * to others without the prior written consent of Nokia.
+    */
 
 NONSHARABLE_CLASS(CFSMailClient) : public CExtendableEmail
 {
@@ -179,7 +179,7 @@ NONSHARABLE_CLASS(CFSMailClient) : public CExtendableEmail
      * @return CFSMailClient pointer
      */
      IMPORT_C static CFSMailClient* NewL( TInt aConfiguration );
-  	
+    
     /**
      * Creates a new CFSMailClient singleton instance or increments
      * reference count if singleton already exists
@@ -215,7 +215,7 @@ NONSHARABLE_CLASS(CFSMailClient) : public CExtendableEmail
      * @return mailbox object ( CFSMailBox ), ownership is transferred to user
      */
      IMPORT_C CFSMailBox* GetMailBoxByUidL( const TFSMailMsgId aMailBoxId);
-      	  		
+                
     /**
      * returns email folder object related to given folder id
      *
@@ -236,8 +236,8 @@ NONSHARABLE_CLASS(CFSMailClient) : public CExtendableEmail
      *
      * @return email object (CFSMailMessage), ownership is transferred to user
      */
-	 IMPORT_C CFSMailMessage* GetMessageByUidL(const TFSMailMsgId aMailBoxId, const TFSMailMsgId aFolderId,
-	 										  const TFSMailMsgId aMessageId, const TFSMailDetails aDetails );	 										  
+     IMPORT_C CFSMailMessage* GetMessageByUidL(const TFSMailMsgId aMailBoxId, const TFSMailMsgId aFolderId,
+                                              const TFSMailMsgId aMessageId, const TFSMailDetails aDetails );                                             
     /**
      * deletes emails defined in message id list
      *
@@ -246,7 +246,7 @@ NONSHARABLE_CLASS(CFSMailClient) : public CExtendableEmail
      * @param aMessageIds defines ids of email to be deleted
      */
      IMPORT_C void DeleteMessagesByUidL( const TFSMailMsgId aMailBoxId, const TFSMailMsgId aFolderId, 
-	 									 const RArray<TFSMailMsgId>& aMessageIds );
+                                         const RArray<TFSMailMsgId>& aMessageIds );
 
     /**
      * Deletes mail account. This asynchronous operation returns id that can
@@ -272,10 +272,10 @@ NONSHARABLE_CLASS(CFSMailClient) : public CExtendableEmail
      * @return email list iterator, ownership is transferred to user
      */
      IMPORT_C MFSMailIterator* ListMessages(
-        						const TFSMailMsgId aMailBoxId,
-        						const TFSMailMsgId  aFolderId,
-        						const TFSMailDetails  aDetails,
-        						const RArray<TFSMailSortCriteria>& aSorting);
+                                const TFSMailMsgId aMailBoxId,
+                                const TFSMailMsgId  aFolderId,
+                                const TFSMailDetails  aDetails,
+                                const RArray<TFSMailSortCriteria>& aSorting);
 
     /**
      * returns branding manager to handle branding elements
@@ -345,24 +345,24 @@ NONSHARABLE_CLASS(CFSMailClient) : public CExtendableEmail
 
     /**
      * get framework temp directory
-	 */
+     */
      IMPORT_C TDesC& GetTempDirL( );
 
     /**
      * clean framework temp directory
-	 */
+     */
      IMPORT_C void CleanTempDirL( );
 
     /**
      * cancels single pending asynchronous request
      *
      * @param aRequestId identifies request
-	 */
+     */
      IMPORT_C void CancelL( const TInt aRequestId );
 
     /**
      * cancels all pending asynchronous requests
-	 */
+     */
      IMPORT_C void CancelAllL( );
 
      /**
@@ -376,8 +376,8 @@ NONSHARABLE_CLASS(CFSMailClient) : public CExtendableEmail
 public: // from  CExtendableEmail
 
     /**
-	 * @see CExtendableEmail::ReleaseExtension
-	 */
+     * @see CExtendableEmail::ReleaseExtension
+     */
     IMPORT_C virtual void ReleaseExtension( CEmailExtension* aExtension );
 
     /**
@@ -406,12 +406,12 @@ public: // from  CExtendableEmail
     /**
      * ConstructL
      */
-	 void ConstructL( TInt aConfiguration );
+     void ConstructL( TInt aConfiguration );
 
     /**
      * returns framework singleton instance if exists
      */
-	 static CFSMailClient* Instance();
+     static CFSMailClient* Instance();
 
     /**
      * increments reference count to framework singleton
@@ -425,13 +425,13 @@ public: // from  CExtendableEmail
 
  private: // data
 
-	/** framework singleton reference count */
+    /** framework singleton reference count */
     TInt                     iReferenceCount;
 
-	/** */
+    /** */
     CFSFWImplementation*     iFWImplementation;
-	 
-	/** branding manager pointer  */
+     
+    /** branding manager pointer  */
     MFSMailBrandManager*     iBrandManager;
 };
 

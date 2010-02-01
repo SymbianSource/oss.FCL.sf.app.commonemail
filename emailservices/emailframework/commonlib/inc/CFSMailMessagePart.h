@@ -24,7 +24,7 @@
 #include <badesca.h>
 
 //<cmail>
-#include "cfsmailmessagebase.h"
+#include "CFSMailMessageBase.h"
 #include "mmrinfoobject.h"
 //</cmail>
 
@@ -334,7 +334,7 @@ class CFSMailMessagePart : public CFSMailMessageBase
      */
      IMPORT_C TBool IsMRInfoSet();
 
-	/**
+    /**
      * Sets attachment name for email part. Full path can be
      * given as input even though only filename is saved. 
      * 
@@ -484,7 +484,7 @@ protected:
 
 protected: // data
 
-  	/**
+    /**
      * email fetch from email server status
      */
      TFSPartFetchState                  iMessagePartsStatus;

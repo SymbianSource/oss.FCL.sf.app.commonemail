@@ -20,6 +20,7 @@
 #include <platform_paths.hrh>
 
 #include "../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
+#include "../../../inc/emailtraceconfig.hrh"
 
 // Details
 TARGET          IPSSOSSETTINGS.DLL
@@ -33,9 +34,9 @@ VERSION         KEmailBinaryVersionNumber
 KEmailBinaryDemandPaging
 
 // Resource definition
-SOURCEPATH		../data
-START RESOURCE	2000E53C.rss
-TARGET			IpsSosSettings.rsc
+SOURCEPATH      ../data
+START RESOURCE  2000E53C.rss
+TARGET          IpsSosSettings.rsc
 END
 
 START RESOURCE  ipssossettings.rss
@@ -130,7 +131,10 @@ LIBRARY     gdi.lib
 LIBRARY     ipssosplugin.lib
 LIBRARY     CdlEngine.lib
 LIBRARY     cmaillogger.lib
-DEBUGLIBRARY     flogger.lib
+
+#ifdef TRACE_INTO_FILE
+LIBRARY     flogger.lib
+#endif // TRACE_INTO_FILE
 
 START               wins
     BASEADDRESS     0x4A980000

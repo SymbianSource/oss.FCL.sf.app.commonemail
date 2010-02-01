@@ -19,6 +19,7 @@
 #include <platform_paths.hrh>
 
 #include "../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
+#include "../../../inc/emailtraceconfig.hrh"
 
 TARGET                  ipssosplugin.dll
 TARGETTYPE              PLUGIN
@@ -97,12 +98,15 @@ LIBRARY                 centralrepository.lib
 LIBRARY                 ipssossettings.lib
 LIBRARY                 AlwaysOnlineManagerClient.lib
 LIBRARY                 CommonEngine.lib
-LIBRARY            	    charconv.lib
+LIBRARY                 charconv.lib
 LIBRARY                 ConnMon.lib
 LIBRARY                 avkon.lib
 LIBRARY                 cmaillogger.lib
+LIBRARY                 featmgr.lib 
 
-// logging
-DEBUGLIBRARY            flogger.lib
+
+#ifdef TRACE_INTO_FILE
+LIBRARY                 flogger.lib
+#endif // TRACE_INTO_FILE
 
 DEFFILE                 IPSSOSPLUGIN.DEF

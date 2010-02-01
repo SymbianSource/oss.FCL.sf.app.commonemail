@@ -57,7 +57,7 @@
 
 "\epoc32\data\z\private\2001E277\HtmlFile\attachment.gif"        - "c:\private\2001E277\HtmlFile\attachment.gif"
 "\epoc32\data\z\private\2001E277\HtmlFile\email.html"            - "c:\private\2001E277\HtmlFile\email.html"
-"\epoc32\data\z\private\2001E277\HtmlFile\email_rtl.html"            - "c:\private\2001E277\HtmlFile\email_rtl.html"
+"\epoc32\data\z\private\2001E277\HtmlFile\email_rtl.html"        - "c:\private\2001E277\HtmlFile\email_rtl.html"
 "\epoc32\data\z\private\2001E277\HtmlFile\header.js"             - "c:\private\2001E277\HtmlFile\header.js"
 "\epoc32\data\z\private\2001E277\HtmlFile\plus.gif"              - "c:\private\2001E277\HtmlFile\plus.gif"
 "\epoc32\data\z\private\2001E277\HtmlFile\minus.gif"             - "c:\private\2001E277\HtmlFile\minus.gif"
@@ -87,14 +87,6 @@
 "\epoc32\release\armv5\udeb\fsuidatamtm.dll"                     - "c:\sys\bin\fsuidatamtm.dll"
 "\epoc32\data\Z\resource\messaging\fsuidatamtm.rsc"              - "c:\resource\messaging\fsuidatamtm.rsc"
 "\epoc32\data\z\resource\apps\fsuidatamtm.mif"                   - "c:\resource\apps\fsuidatamtm.mif"
-
-; Emailuis / widget
-; Only for TB 9.2, add after 5250+ branched:
-;"\epoc32\data\Z\private\200159c0\install\emailwidget\xuikon\00\EW.o0000"                   - "c:\private\200159c0\install\emailwidget\xuikon\00\EW.o0000"
-;"\epoc32\data\Z\private\200159c0\install\emailwidget\hsps\00\emailwidgetconfiguration.dtd" - "c:\private\200159c0\install\emailwidget\hsps\00\emailwidgetconfiguration.dtd"
-;"\epoc32\data\Z\private\200159c0\install\emailwidget\hsps\00\widgetconfiguration.xml"      - "c:\private\200159c0\install\emailwidget\hsps\00\widgetconfiguration.xml"
-;"\epoc32\data\Z\private\200159c0\install\emailwidget\hsps\00\manifest.dat"                 - "c:\private\200159c0\install\emailwidget\hsps\00\manifest.dat"
-; + CenRep
 
 ; emailservices / emailframework
 "\epoc32\release\armv5\udeb\FSMailFramework.dll"                 - "c:\sys\bin\FSMailFramework.dll"
@@ -126,6 +118,10 @@
 "\epoc32\data\Z\Resource\Plugins\cmailhandlerplugin.rsc"         - "c:\resource\plugins\cmailhandlerplugin.rsc"
 "\epoc32\data\z\resource\apps\cmailhandlerplugin.mif"            - "c:\resource\apps\cmailhandlerplugin.mif"
 "\epoc32\data\Z\resource\apps\emailwidget.rsc"                   - "c:\resource\apps\emailwidget.rsc"
+
+; emailservices / emailclientapi
+"\epoc32\release\armv5\udeb\emailclientapi.dll"                  - "c:\sys\bin\emailclientapi.dll"
+"\epoc32\data\z\resource\plugins\emailclientapi.rsc"             - "c:\resource\plugins\emailclientapi.rsc"
 
 ; ipservices
 "\epoc32\release\armv5\udeb\ipssosplugin.dll"                    - "c:\sys\bin\ipssosplugin.dll"
@@ -231,7 +227,20 @@
 "\epoc32\data\Z\private\10202BE9\2001E610.txt"                   - "c:\private\10202be9\2001E610.txt"
 "\epoc32\data\Z\private\10202BE9\2001E611.txt"                   - "c:\private\10202be9\2001E611.txt"
 
-; HomeScreen widget still missing from here
+; Emailuis / emailwidgetsettings
+"\epoc32\release\armv5\udeb\emailwidgetsettings.exe"               - "c:\sys\bin\emailwidgetsettings.exe"
+"\epoc32\data\z\private\10003a3f\apps\emailwidgetsettings_reg.rsc" - "c:\private\10003a3f\import\apps\emailwidgetsettings_reg.rsc"
+"\epoc32\data\z\resource\apps\emailwidgetsettings.rsc"             - "c:\resource\apps\emailwidgetsettings.rsc"
+"\epoc32\data\z\resource\apps\emailwidgetsettings.mif"             - "c:\resource\apps\emailwidgetsettings.mif"
+
+; Emailuis / widget
+; Non-localized files:
+"\epoc32\data\Z\private\200159c0\install\emailwidget\hsps\00\widgetconfiguration.xml"      - "c:\private\200159c0\install\emailwidget\hsps\00\widgetconfiguration.xml"
+"\epoc32\data\Z\private\200159c0\install\emailwidget\hsps\00\manifest.dat"                 - "c:\private\200159c0\install\emailwidget\hsps\00\manifest.dat"
+"\epoc32\data\Z\private\200159c0\install\emailwidget\hsps\00\qgn_menu_cmail.svg"           - "c:\private\200159c0\install\emailwidget\hsps\00\qgn_menu_cmail.svg"
+; Localized files (need to be clarified how these really work):
+"\epoc32\data\Z\private\200159c0\install\emailwidget\xuikon\00\EW.o0000"                   - "c:\private\200159c0\install\emailwidget\xuikon\00\EW.o0000"
+"\epoc32\data\Z\private\200159c0\install\emailwidget\hsps\00\emailwidgetconfiguration.dtd" - "c:\private\200159c0\install\emailwidget\hsps\00\emailwidgetconfiguration.dtd"
 
 ; emailservices / emailservermonitor
 "\epoc32\release\armv5\udeb\emailservermonitor.exe"              - "c:\sys\bin\emailservermonitor.exe"

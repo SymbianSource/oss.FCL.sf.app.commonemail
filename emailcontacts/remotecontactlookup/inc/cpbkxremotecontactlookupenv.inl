@@ -17,7 +17,7 @@
 
 
 #include <e32std.h>
-#include <ecom.h>
+#include <ecom/ecom.h>
 
 // -----------------------------------------------------------------------------
 // CPbkxRemoteContactLookupEnv::NewL
@@ -27,12 +27,12 @@ inline CPbkxRemoteContactLookupEnv* CPbkxRemoteContactLookupEnv::NewL()
     {
     CPbkxRemoteContactLookupEnv* self = NULL;
         
-	TUid implUid = {KPbkxRemoteContactLookupServiceImplImpUid};
+    TUid implUid = {KPbkxRemoteContactLookupServiceImplImpUid};
 
-	TAny* interface = REComSession::CreateImplementationL (
-		implUid, _FOFF( CPbkxRemoteContactLookupEnv, iDtor_ID_Key ) );
+    TAny* interface = REComSession::CreateImplementationL (
+        implUid, _FOFF( CPbkxRemoteContactLookupEnv, iDtor_ID_Key ) );
 
-	return reinterpret_cast< CPbkxRemoteContactLookupEnv* >( interface );
+    return reinterpret_cast< CPbkxRemoteContactLookupEnv* >( interface );
     }
     
 // -----------------------------------------------------------------------------

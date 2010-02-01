@@ -20,6 +20,7 @@
 #include <data_caging_paths.hrh> // Needed for APP_RESOURCE_DIR
 
 #include "../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
+#include "../../../inc/emailtraceconfig.hrh"
 #include "../inc/fsmailserverdefinitions.h"
 
 
@@ -53,8 +54,8 @@ USERINCLUDE             ../../../inc
 
 APP_LAYER_SYSTEMINCLUDE
 
-USERINCLUDE 			../../../emailuis/emailui/sendasmtm/fsmtms/inc
-USERINCLUDE 			../../../emailuis/emailui/sendasmtm/fsmtms/client/inc
+USERINCLUDE             ../../../emailuis/emailui/sendasmtm/fsmtms/inc
+USERINCLUDE             ../../../emailuis/emailui/sendasmtm/fsmtms/client/inc
 
 
 START RESOURCE  ../data/fsmailserver.rss
@@ -93,9 +94,14 @@ LIBRARY eikcore.lib
 LIBRARY eiksrv.lib
 LIBRARY eikdlg.lib
 LIBRARY eikcoctl.lib
-LIBRARY eiksrvui.lib	// CEikServAppUi
+LIBRARY eiksrvui.lib    // CEikServAppUi
 LIBRARY apparc.lib      // CApaApplication, TApaApplicationFactory
 LIBRARY sysutil.lib
 LIBRARY liwservicehandler.lib
 LIBRARY cmaillogger.lib
 DEBUGLIBRARY flogger.lib
+
+
+#ifdef TRACE_INTO_FILE
+LIBRARY         flogger.lib
+#endif // TRACE_INTO_FILE

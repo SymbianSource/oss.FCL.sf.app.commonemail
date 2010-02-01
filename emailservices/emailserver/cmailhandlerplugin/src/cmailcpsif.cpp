@@ -776,13 +776,16 @@ TBool CMailCpsIf::PublisherStatusL(const CLiwGenericParamList& aEventParamList)
                              {                            
                              // Widget removed from homescreen.
                              HBufC* cid = contentid.AllocLC();
-                             TInt widgetInstance = FindWidgetInstanceId(cid->Des());                            
-                             if (!iInactive[widgetInstance])
-                                 {
-                                 iMailCpsHandler->DissociateWidgetFromSettingL( cid->Des() );                                 
-                                 iInstIdList.Remove(widgetInstance);                                 
-                                 }
-                             iAllowedToPublish[widgetInstance] = EFalse;
+                             TInt widgetInstance = FindWidgetInstanceId(cid->Des());
+                             if (widgetInstance != KErrNotFound )
+                            	 {
+								 if (!iInactive[widgetInstance])
+									 {
+									 iMailCpsHandler->DissociateWidgetFromSettingL( cid->Des() );                                 
+									 iInstIdList.Remove(widgetInstance);                                 
+									 }
+								 iAllowedToPublish[widgetInstance] = EFalse;
+                            	 }
                              CleanupStack::PopAndDestroy( cid );
                              }
                          else if (trigger.Compare(KTriggerEmailUi) == 0)

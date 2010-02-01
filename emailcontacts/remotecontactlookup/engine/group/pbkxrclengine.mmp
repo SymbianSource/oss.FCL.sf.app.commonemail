@@ -20,6 +20,7 @@
 #include <data_caging_paths.hrh>
 
 #include "../../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
+#include "../../../../inc/emailtraceconfig.hrh"
 #include "../inc/pbkxrclengineuids.hrh"
 
 OPTION CW -frame on
@@ -62,9 +63,7 @@ USERINCLUDE     ../../inc
 
 APP_LAYER_SYSTEMINCLUDE
 
-SYSTEMINCLUDE   /epoc32/include/ecom
 USERINCLUDE    ../../../../inc
-SYSTEMINCLUDE	/epoc32/include/cshelp
 
 LIBRARY         euser.lib 
 LIBRARY         ecom.lib
@@ -102,8 +101,12 @@ LIBRARY         cmaillogger.lib
 LIBRARY         pbkxdebug.lib
 #endif
 
+#ifdef TRACE_INTO_FILE
+LIBRARY         flogger.lib
+#endif // TRACE_INTO_FILE
+
 SOURCEPATH      ../data
-START RESOURCE	engine.rss
+START RESOURCE  engine.rss
 HEADER
 TARGET          pbkxrclengine.rsc
 TARGETPATH      resource/apps

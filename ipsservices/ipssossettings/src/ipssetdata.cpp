@@ -745,17 +745,6 @@ TTime CIpsSetData::Hours( const TBool aStartTime ) const
     }
 
 // ---------------------------------------------------------------------------
-// CIpsSetData::Roaming()
-// ---------------------------------------------------------------------------
-//
-TBool CIpsSetData::Roaming() const
-    {
-    FUNC_LOG;
-    return ( iExtendedSettings->AlwaysOnlineState() == EMailAoHomeOnly ||
-        iExtendedSettings->EmailNotificationState() == EMailEmnHomeOnly );
-    }
-
-// ---------------------------------------------------------------------------
 // CIpsSetData::SetProtocol()
 // ---------------------------------------------------------------------------
 //
@@ -1147,11 +1136,8 @@ void CIpsSetData::SetSchedule(
     // Always Online in use        
     if ( aSchedule >= E5Mins && aSchedule <= E1Day )
         {
-        iExtendedSettings->SetAlwaysOnlineState( 
-            aRoaming ? EMailAoHomeOnly : EMailAoAlways );
+        iExtendedSettings->SetAlwaysOnlineState( EMailAoAlways );
         iExtendedSettings->SetInboxRefreshTime( time );
-        iExtendedSettings->SetRoamHomeOnlyFlag( aRoaming );
-        // set emn off when ao is in use
         iExtendedSettings->SetEmailNotificationState( EMailEmnOff );
         }
     // Set EMN        
@@ -1159,8 +1145,7 @@ void CIpsSetData::SetSchedule(
         {
         // set always online state off when emn is on
         iExtendedSettings->SetAlwaysOnlineState( EMailAoOff );
-        iExtendedSettings->SetEmailNotificationState( 
-            aRoaming ? EMailEmnHomeOnly : EMailEmnAutomatic );
+        iExtendedSettings->SetEmailNotificationState( EMailEmnAutomatic );
         iExtendedSettings->SetInboxRefreshTime( KErrNotFound );
         }
     // Manual connection mode        

@@ -1324,6 +1324,7 @@ void CNcsAifEditor::HandleTextUpdateL()
             }
         HandleTextChangedL();
         SetCursorPosL( cursorPos + 1, EFalse );
+        iSizeObserver->UpdateFieldSizeL( ETrue );
         iPartialRemove = EFalse;
         }
     else

@@ -21,6 +21,7 @@
 
 #include "../../../inc/fsmtmsuids.h"
 #include "../../../../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
+#include "../../../../../../inc/emailtraceconfig.hrh"
 
 TARGET               fsuidatamtm.dll
 TARGETTYPE           dll
@@ -50,8 +51,6 @@ APP_LAYER_SYSTEMINCLUDE
 
 USERINCLUDE ../../../../../../inc
 
-SYSTEMINCLUDE        /epoc32/include/ecom
-
 LIBRARY              euser.lib
 LIBRARY              mtur.lib            // CBaseMtmUiData
 LIBRARY              ws32.lib            //for CWsBitmap
@@ -60,8 +59,12 @@ library              efsrv.lib
 LIBRARY              FSMailFramework.lib
 LIBRARY              FSFWCommonLib.lib
 LIBRARY              ecom.lib
-LIBRARY     	     egul.lib
+LIBRARY              egul.lib
 LIBRARY              cmaillogger.lib
+
+#ifdef TRACE_INTO_FILE
+LIBRARY             flogger.lib
+#endif // TRACE_INTO_FILE
 
 LANGUAGE_IDS
 

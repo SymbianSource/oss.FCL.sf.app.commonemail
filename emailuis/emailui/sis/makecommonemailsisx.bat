@@ -48,14 +48,14 @@ copy /Y ..\..\..\emailservices\emailinstallationinitiator\sis\emailinstallationi
 REM ----------------------------------------------------------------------------------------------------------
 REM MAIL FOR EXCHANGE
 
-IF EXIST ..\..\..\..\..\complementary\eas\sis (
+IF EXIST \ext\app\eas\sis (
 @echo ### Making Mail for Exchange SISX-package [eas_engine.sisx]
-cd ..\..\..\..\..\complementary\eas\sis
+cd \ext\app\eas\sis
 
 makesis eas_engine.pkg
 @echo.
 copy /Y eas_engine.SIS eas_engine.sisx
-signsis eas_engine.sisx eas_engine.sisx ..\..\..\app\commonemail\emailuis\emailui\sis\RnD_certs\s60\RDTest_02.der ..\..\..\app\commonemail\emailuis\emailui\sis\RnD_certs\s60\RDTest_02.key
+signsis eas_engine.sisx eas_engine.sisx \sf\app\commonemail\emailuis\emailui\sis\RnD_certs\s60\RDTest_02.der \sf\app\commonemail\emailuis\emailui\sis\RnD_certs\s60\RDTest_02.key
 @echo.
 
 @echo ### Making Mail for Exchange udeb SISX-package [eas_engine_udeb.sisx]
@@ -63,26 +63,35 @@ signsis eas_engine.sisx eas_engine.sisx ..\..\..\app\commonemail\emailuis\emailu
 makesis eas_engine_udeb.pkg
 @echo.
 copy /Y eas_engine_udeb.SIS eas_engine_udeb.sisx
-signsis eas_engine_udeb.sisx eas_engine_udeb.sisx ..\..\..\app\commonemail\emailuis\emailui\sis\RnD_certs\s60\RDTest_02.der ..\..\..\app\commonemail\emailuis\emailui\sis\RnD_certs\s60\RDTest_02.key
+signsis eas_engine_udeb.sisx eas_engine_udeb.sisx \sf\app\commonemail\emailuis\emailui\sis\RnD_certs\s60\RDTest_02.der \sf\app\commonemail\emailuis\emailui\sis\RnD_certs\s60\RDTest_02.key
 @echo.
 
 @echo ### Making Mail for Exchange localized SISX-package [eas_engine_loc.sisx]
 
-REM python ..\..\..\app\commonemail\emailuis\emailui\sis\pkg-localizer.py eas_engine.pkg
+REM python \sf\app\commonemail\emailuis\emailui\sis\pkg-localizer.py eas_engine.pkg
 
 makesis eas_engine_loc.pkg
 @echo.
 copy /Y eas_engine_loc.SIS eas_engine_loc.sisx
-signsis eas_engine_loc.sisx eas_engine_loc.sisx ..\..\..\app\commonemail\emailuis\emailui\sis\RnD_certs\s60\RDTest_02.der ..\..\..\app\commonemail\emailuis\emailui\sis\RnD_certs\s60\RDTest_02.key
+signsis eas_engine_loc.sisx eas_engine_loc.sisx \sf\app\commonemail\emailuis\emailui\sis\RnD_certs\s60\RDTest_02.der \sf\app\commonemail\emailuis\emailui\sis\RnD_certs\s60\RDTest_02.key
 @echo.
 
-copy /Y eas_engine.sisx ..\..\..\app\commonemail\emailuis\emailui\sis\
-copy /Y eas_engine_udeb.sisx ..\..\..\app\commonemail\emailuis\emailui\sis\
-copy /Y eas_engine_loc.sisx ..\..\..\app\commonemail\emailuis\emailui\sis\
+@echo ### Making Mail for Exchange localized udeb SISX-package [eas_engine_udeb_loc.sisx]
 
-cd ..\..\..\app\commonemail\emailuis\emailui\sis
+makesis eas_engine_udeb_loc.pkg
+@echo.
+copy /Y eas_engine_udeb_loc.SIS eas_engine_udeb_loc.sisx
+signsis eas_engine_udeb_loc.sisx eas_engine_udeb_loc.sisx \sf\app\commonemail\emailuis\emailui\sis\RnD_certs\s60\RDTest_02.der \sf\app\commonemail\emailuis\emailui\sis\RnD_certs\s60\RDTest_02.key
+@echo.
+
+copy /Y eas_engine.sisx \sf\app\commonemail\emailuis\emailui\sis\
+copy /Y eas_engine_udeb.sisx \sf\app\commonemail\emailuis\emailui\sis\
+copy /Y eas_engine_loc.sisx \sf\app\commonemail\emailuis\emailui\sis\
+copy /Y eas_engine_udeb_loc.sisx \sf\app\commonemail\emailuis\emailui\sis\
+
+cd \sf\app\commonemail\emailuis\emailui\sis
 ) ELSE (
-@echo ### *** Error: Can't make Mail for Exchange SISX-package; folder ..\..\..\..\..\complementary\eas\sis not found! ***
+@echo ### *** Error: Can't make Mail for Exchange SISX-package; folder \ext\app\eas\sis not found! ***
 )
 @echo.
 
@@ -122,6 +131,16 @@ copy /Y commonemail_loc.SIS commonemail_loc.sisx
 signsis commonemail_loc.sisx commonemail_loc.sisx RnD_certs\s60\RDTest_02.der RnD_certs\s60\RDTest_02.key
 @echo.
 
+@echo ### Making Common Email localized udeb SISX-package [commonemail_udeb_loc.sisx]
+
+REM python pkg-localizer.py commonemail.pkg
+
+makesis commonemail_udeb_loc.pkg
+@echo.
+copy /Y commonemail_udeb_loc.SIS commonemail_udeb_loc.sisx
+signsis commonemail_udeb_loc.sisx commonemail_udeb_loc.sisx RnD_certs\s60\RDTest_02.der RnD_certs\s60\RDTest_02.key
+@echo.
+
 
 @echo ### Making Email UI SISX-package [emailui.sisx]
 
@@ -147,6 +166,16 @@ makesis emailui_loc.pkg
 @echo.
 copy /Y emailui_loc.SIS emailui_loc.sisx
 signsis emailui_loc.sisx emailui_loc.sisx RnD_certs\s60\RDTest_02.der RnD_certs\s60\RDTest_02.key
+@echo.
+
+@echo ### Making Email UI localized udeb SISX-package [emailui_udeb_loc.sisx]
+
+python pkg-localizer.py emailui_udeb.pkg
+
+makesis emailui_udeb_loc.pkg
+@echo.
+copy /Y emailui_udeb_loc.SIS emailui_udeb_loc.sisx
+signsis emailui_udeb_loc.sisx emailui_udeb_loc.sisx RnD_certs\s60\RDTest_02.der RnD_certs\s60\RDTest_02.key
 @echo.
 
 

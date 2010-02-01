@@ -19,7 +19,7 @@
 #define EMAILCLIENTAPIIMPL_H
 
 
-#include <ecom/ImplementationInformation.h> 
+#include <ecom/implementationinformation.h> 
 #include "emailapiutils.h"
 #include "cfsmailcommon.h"
 //#include "emailinternalclientapi.h"

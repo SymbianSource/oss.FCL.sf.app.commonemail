@@ -619,8 +619,7 @@ void CFsEmailSettingsListView::HandleStatusPaneSizeChange()
 		CAknView::HandleStatusPaneSizeChange();
 		
 		// this may fail, but we're not able to propagate exceptions here
-		TInt result;
-		TRAP( result, SetupStatusPaneL() ); 
+        TRAP_IGNORE( SetupStatusPaneL() ); 
 		}
 	}
 

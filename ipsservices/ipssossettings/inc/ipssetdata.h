@@ -329,11 +329,6 @@ public: // New functions
     TTime Hours( const TBool aStartTime ) const;
 
     /**
-     * @return Roaming setting
-     */
-    TBool Roaming() const;
-
-    /**
      * @param aProtocol Protocol MTM ID for settings
      */
     void SetProtocol( const TUid& aProtocol );

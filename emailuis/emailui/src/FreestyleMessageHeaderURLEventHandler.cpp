@@ -59,36 +59,6 @@ void CFreestyleMessageHeaderURLEventHandler::ConstructL()
     iMessageHeaderURL = CFreestyleMessageHeaderURL::NewL();   
     iHTMLReloadAO = CFSHtmlReloadAO::NewL(iView);
     
-    if(!iEmailAddressStylusPopup)
-        {
-        TPoint point( 0, 0 );
-        iEmailAddressStylusPopup = CAknStylusPopUpMenu::NewL( this , point );
-		TResourceReader reader;
-		CCoeEnv::Static()->CreateResourceReaderLC( reader, R_STYLUS_POPUP_MENU_HTML_VIEW_EMAIL_ADDRESS );
-		iEmailAddressStylusPopup->ConstructFromResourceL( reader );
-		CleanupStack::PopAndDestroy(); //resource reader
-        }
-    
-    if( !iAttachmentStylusPopup )
-    	{
-    	TPoint point( 0, 0 );
-    	iAttachmentStylusPopup = CAknStylusPopUpMenu::NewL( this , point );
-		TResourceReader reader;
-		CCoeEnv::Static()->CreateResourceReaderLC( reader, R_STYLUS_POPUP_MENU_HTML_VIEW_ATTACHMENT );
-		iAttachmentStylusPopup->ConstructFromResourceL( reader );
-		CleanupStack::PopAndDestroy(); //resource reader
-    	}
-    
-    if( !iWebAddressStylusPopup )
-		{
-		TPoint point( 0, 0 );
-		iWebAddressStylusPopup = CAknStylusPopUpMenu::NewL( this , point );
-		TResourceReader reader;
-		CCoeEnv::Static()->CreateResourceReaderLC( reader, R_STYLUS_POPUP_MENU_HTML_VIEW_WEB_ADDRESS );
-		iWebAddressStylusPopup->ConstructFromResourceL( reader );
-		CleanupStack::PopAndDestroy(); //resource reader
-		}
-    
     }
 
 CFreestyleMessageHeaderURLEventHandler::~CFreestyleMessageHeaderURLEventHandler ()
@@ -130,7 +100,7 @@ EXPORT_C TBool CFreestyleMessageHeaderURLEventHandler::HandleEventL( const TDesC
         		iUrl = NULL;
         		}
         	iUrl = aUri.AllocL();
-        	LaunchWebAddressMenu( );
+        	LaunchWebAddressMenuL( );
         	return ETrue;
         	}         
         //Link wasn't handled
@@ -169,7 +139,24 @@ EXPORT_C TBool CFreestyleMessageHeaderURLEventHandler::HandleEventL( const TDesC
  * @param aType the type of the link the user selected
  */
 void CFreestyleMessageHeaderURLEventHandler::LaunchEmailAddressMenuL()
-    {     
+    {
+    
+    //Change the creation of the stylus menu here to avoid crash when calling SetItemDimmed(ETrue) multiple times 
+    //on same instance of the menu (if created only once in constructor).
+    //Creating the menu everytime the user clicks on the link avoids this crash however performance is affected.
+    if( iEmailAddressStylusPopup)
+       {
+       delete iEmailAddressStylusPopup;
+       iEmailAddressStylusPopup = NULL;
+       }
+   
+    TPoint point( 0, 0 );
+    iEmailAddressStylusPopup = CAknStylusPopUpMenu::NewL( this , point );
+    TResourceReader reader;
+    CCoeEnv::Static()->CreateResourceReaderLC( reader, R_STYLUS_POPUP_MENU_HTML_VIEW_EMAIL_ADDRESS );
+    iEmailAddressStylusPopup->ConstructFromResourceL( reader );
+    CleanupStack::PopAndDestroy(); //resource reader
+         
     iEmailAddressStylusPopup->SetItemDimmed( EFsEmailUiCmdActionsRemoteLookup, 
 											 !iView.IsRemoteLookupSupportedL() ); 
     iEmailAddressStylusPopup->SetPosition( iAppUi.ClientRect().Center(), 
@@ -273,6 +260,22 @@ void CFreestyleMessageHeaderURLEventHandler::LaunchAttachmentMenuL(
     {
     ASSERT( iAppUi.DownloadInfoMediator() );
     
+    //Change the creation of the stylus menu here to avoid crash when calling SetItemDimmed(ETrue) multiple times 
+    //on same instance of the menu (if created only once in constructor).
+    //Creating the menu everytime the user clicks on the link avoids this crash however performance is affected.
+    if( iAttachmentStylusPopup )
+       {
+       delete iAttachmentStylusPopup;
+       iAttachmentStylusPopup = NULL;
+       }
+    TPoint point( 0, 0 );
+    iAttachmentStylusPopup = CAknStylusPopUpMenu::NewL( this , point );
+    TResourceReader reader;
+    CCoeEnv::Static()->CreateResourceReaderLC( reader, R_STYLUS_POPUP_MENU_HTML_VIEW_ATTACHMENT );
+    iAttachmentStylusPopup->ConstructFromResourceL( reader );
+    CleanupStack::PopAndDestroy(); //resource reader
+    
+    
     //Dim all item by default
     iAttachmentStylusPopup->SetItemDimmed( EFsEmailUiCmdOpenAttachment, ETrue );
     iAttachmentStylusPopup->SetItemDimmed( EFsEmailUiCmdSave, ETrue );
@@ -325,8 +328,25 @@ void CFreestyleMessageHeaderURLEventHandler::LaunchAttachmentMenuL(
     }
 
 //Open the Avkon stylus popup when a web address link was pressed
-void CFreestyleMessageHeaderURLEventHandler::LaunchWebAddressMenu()
+void CFreestyleMessageHeaderURLEventHandler::LaunchWebAddressMenuL()
     {
+    
+    //Change the creation of the stylus menu here to avoid crash when calling SetItemDimmed(ETrue) multiple times 
+    //on same instance of the menu (if created only once in constructor).
+    //Creating the menu everytime the user clicks on the link avoids this crash however performance is affected.
+    if( iWebAddressStylusPopup )
+        {
+        delete iWebAddressStylusPopup;
+        iWebAddressStylusPopup = NULL;
+        }
+    
+    TPoint point( 0, 0 );
+    iWebAddressStylusPopup = CAknStylusPopUpMenu::NewL( this , point );
+    TResourceReader reader;
+    CCoeEnv::Static()->CreateResourceReaderLC( reader, R_STYLUS_POPUP_MENU_HTML_VIEW_WEB_ADDRESS );
+    iWebAddressStylusPopup->ConstructFromResourceL( reader );
+    CleanupStack::PopAndDestroy(); //resource reader
+ 
     iWebAddressStylusPopup->SetPosition( iAppUi.ClientRect().Center(), 
 										   CAknStylusPopUpMenu::EPositionTypeRightBottom );
     iWebAddressStylusPopup->ShowMenu();

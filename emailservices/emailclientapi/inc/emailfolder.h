@@ -19,7 +19,7 @@
 #define CEMAILFOLDER_H
 
 #include <emailapidefs.h>
-#include "cfsmailcommon.h"
+#include "CFSMailCommon.h"
 #include <memailfolder.h>
 #include "mfsmaileventobserver.h"
 

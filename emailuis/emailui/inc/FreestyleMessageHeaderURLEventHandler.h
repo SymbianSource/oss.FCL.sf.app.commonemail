@@ -73,7 +73,7 @@ private:
     void HandAttachmentActionMenuCommandL( TActionMenuCustomItemId aSelectedActionMenuItem,
                                            const TAttachmentData& aAttachment );    
     void LaunchEmailAddressMenuL( );
-    void LaunchWebAddressMenu( );
+    void LaunchWebAddressMenuL( );
     
 private:
     CFreestyleMessageHeaderURL*     iMessageHeaderURL;

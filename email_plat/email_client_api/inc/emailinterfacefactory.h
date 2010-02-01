@@ -54,7 +54,7 @@ public:
     *
     * @code
     
-     #include <emailclientapi.h>
+     #include <emailinterfacefactory.h>
     
      using namespace EmailInterface;
      
@@ -62,7 +62,7 @@ public:
      CleanupStack::PushL( factory );
      MEmailInterface* ifPtr = factory->InterfaceL( KEmailClientApiInterface );
      MEmailClientApi* clientApi = static_cast<MEmailClientApi*>( ifPtr );
-     CleanupReleasePushL( clientApi );
+     CleanupReleasePushL( *clientApi );
      // <do something with clientApi...>
      CleanupStack::PopAndDestroy( 2 ); // clientApi and factory
      @endcode

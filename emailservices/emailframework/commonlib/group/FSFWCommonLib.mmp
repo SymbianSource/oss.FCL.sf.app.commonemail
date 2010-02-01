@@ -16,10 +16,9 @@
 */
 
 #include "../../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
+#include "../../../../inc/emailtraceconfig.hrh"
 #include <data_caging_paths.hrh>
-//<cmail>
 #include <platform_paths.hrh>
-//</cmail>
 
 TARGET        FSFWCommonLib.dll
 TARGETTYPE    dll
@@ -52,14 +51,18 @@ SOURCE        CFSMailPluginData.cpp
 SOURCE        emailcalendarinfoimpl.cpp
 SOURCE        cemailextensionbase.cpp
 
-LIBRARY  	  euser.lib
-LIBRARY	 	  estor.lib 
-LIBRARY  	  efsrv.lib
-LIBRARY  	  bafl.lib
-LIBRARY  	  apgrfx.lib
-LIBRARY    	  apmime.lib
-LIBRARY  	  ecom.lib
-LIBRARY 	  cntmodel.lib
-LIBRARY           cmaillogger.lib
-LIBRARY     eikcore.lib
-LIBRARY     avkon.lib
+LIBRARY       euser.lib
+LIBRARY       estor.lib 
+LIBRARY       efsrv.lib
+LIBRARY       bafl.lib
+LIBRARY       apgrfx.lib
+LIBRARY       apmime.lib
+LIBRARY       ecom.lib
+LIBRARY       cntmodel.lib
+LIBRARY       cmaillogger.lib
+LIBRARY       eikcore.lib
+LIBRARY       avkon.lib
+
+#ifdef TRACE_INTO_FILE
+LIBRARY       flogger.lib
+#endif // TRACE_INTO_FILE

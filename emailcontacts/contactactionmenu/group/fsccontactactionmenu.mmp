@@ -20,6 +20,7 @@
 #include <data_caging_paths.hrh>
 
 #include "../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
+#include "../../../inc/emailtraceconfig.hrh"
 #include "../inc/fsccontactactionmenuuids.hrh"
 #include "../inc/pbkxcontactactionmenudebug.hrh"
 
@@ -79,9 +80,15 @@ LIBRARY                 cmaillogger.lib
 LIBRARY                 pbkxdebug.lib
 #endif
 
+#ifdef TRACE_INTO_FILE
+LIBRARY                 flogger.lib
+#endif // TRACE_INTO_FILE
+
 SOURCEPATH              ../data
 START RESOURCE fsccontactactionmenu.rss
     TARGET fsccontactactionmenu.rsc
 END
+
+
 
 //EXPORTUNFROZEN

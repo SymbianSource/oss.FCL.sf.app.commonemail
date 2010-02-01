@@ -23,6 +23,8 @@
 #endif // _DEBUG*/
 //</cmail>
 
+#include <cmmanager.h>
+
 #include "emailtrace.h"
 #include "IpsSosAOMboxLogic.h"
 #include "ipssetdataapi.h"
@@ -753,13 +755,20 @@ TBool CIpsSosAOMBoxLogic::CanConnectIfRoamingL()
     {
     FUNC_LOG;
     TBool ret = ETrue;
-    LoadSettingsL();
-    if ( ( iExtendedSettings->EmailNotificationState() == EMailEmnHomeOnly 
-          || iExtendedSettings->AlwaysOnlineState() == EMailAoHomeOnly
-          || iExtendedSettings->RoamHomeOnlyFlag() ) && iIsRoaming )
+
+    RCmManager cmManager;
+    cmManager.OpenLC();
+    TCmGenConnSettings OccSettings;
+    
+    //ask roaming settings from occ
+    cmManager.ReadGenConnSettingsL(OccSettings);
+    if(OccSettings.iSeamlessnessVisitor == ECmCellularDataUsageDisabled && iIsRoaming)
         {
         ret = EFalse;
         }
+    
+    CleanupStack::PopAndDestroy(&cmManager); // cmManager
+    
     return ret;          
     }
 
@@ -778,9 +787,7 @@ void CIpsSosAOMBoxLogic::SetFirstEMNReceived()
     iExtendedSettings->SetFirstEmnReceived( ETrue );
     
     //if alwaysonline was allowed to roam, so will EMN be.
-    iExtendedSettings->SetEmailNotificationState(
-            iExtendedSettings->AlwaysOnlineState() == 
-            EMailAoAlways ? EMailEmnAutomatic : EMailEmnHomeOnly );
+    iExtendedSettings->SetEmailNotificationState( EMailEmnAutomatic );
     
     
     // set always online state off when emn is on

@@ -190,6 +190,11 @@ private: // data
     CMsvSession& iSession;
     
     CIpsPlgMsgMapper* iMsgMapper;
+    
+    /**
+     * Own: Feature manager initialization flag
+     */
+    TBool iFeatureManagerInitialized;
 
     };
 

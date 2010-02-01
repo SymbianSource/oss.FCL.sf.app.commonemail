@@ -763,6 +763,12 @@ CHARACTER_SET UTF8
 //	
 #define qtn_fse_message_list_options_more	"More"
 
+// d:Menu text 'Extra Recepient fields'
+// l:list_single_pane_t1_cp2/opt3
+// r:TB9.2
+//  
+#define qtn_fse_editor_options_extra_recepient_fields "Extra Recepient fields"
+
 // d:Search selection in options menu
 // l:list_single_pane_t1_cp2
 // r:TB9.1
@@ -2761,4 +2767,10 @@ CHARACTER_SET UTF8
 // r:TB9.2
 //
 #define qtn_mail_stylus_popup_remove	"Remove"
+
+// d:Save to Contacts 
+// l:list_single_touch_menu_pane_t1
+// r:TB9.2
+//
+#define qtn_mail_stylus_popup_add_to_contacts  "Save to Contacts"
 

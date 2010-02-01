@@ -17,6 +17,7 @@
 
 
 #include "../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
+#include "../../../inc/emailtraceconfig.hrh"
 #include "../../inc/esmrinternaluid.h"
 #include <data_caging_paths.hrh>
 #include <platform_paths.hrh>
@@ -43,8 +44,6 @@ USERINCLUDE             ../inc
 USERINCLUDE             ../../inc
 
 APP_LAYER_SYSTEMINCLUDE
-SYSTEMINCLUDE           /epoc32/include/ecom
-
 USERINCLUDE ../../../inc
 
 // ESMR libraries
@@ -66,5 +65,9 @@ LIBRARY                 fsmailframework.lib
 LIBRARY                 fsfwcommonlib.lib
 LIBRARY                 centralrepository.lib
 LIBRARY                 cmaillogger.lib
+
+#ifdef TRACE_INTO_FILE
+LIBRARY                 flogger.lib
+#endif // TRACE_INTO_FILE
 
 // EOF

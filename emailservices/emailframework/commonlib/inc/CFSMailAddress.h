@@ -23,9 +23,7 @@
 #include <e32std.h>
 #include <e32base.h>
 
-//<cmail>
-#include "cfsmailcommon.h"
-//</cmail>
+#include "CFSMailCommon.h"
 
 /**
  *  email address handling

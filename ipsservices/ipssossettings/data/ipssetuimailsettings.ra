@@ -46,18 +46,19 @@ RESOURCE MENU_PANE r_ips_set_menu
     {
     items=
         {
-        // Open
-        MENU_ITEM
-            {
-            command = EAknSoftkeyOpen;
-            txt = qtn_options_open;
-            },
-        // Change
-        MENU_ITEM
-            {
-            command = EAknSoftkeySelect;
-            txt = qtn_options_change;
-            },
+// Single click changes        		
+// Open
+//        MENU_ITEM
+//            {
+//            command = EAknSoftkeyOpen;
+//            txt = qtn_options_open;
+//            },
+//        // Change
+//        MENU_ITEM
+//            {
+//            command = EAknSoftkeySelect;
+//            txt = qtn_options_change;
+//            },
         MENU_ITEM
             {
             command = EAknCmdHelp;
@@ -227,6 +228,8 @@ RESOURCE IPS_SET_ARRAY r_ips_set_menu_mailbox_settings
             itemid = EIpsSetUiMailboxIncludeSignature;
             itemtype = EIpsSetUiRadioButtonArray;
             itemarray = r_ips_set_array_signature_radio;
+            // Single click changes        		
+            itemflags = KIpsSetUiFlagEnterPressed;
             },
         // Signature line
         IPS_SET_ITEM
@@ -466,7 +469,8 @@ RESOURCE IPS_SET_ARRAY r_ips_set_menu_what_to_sync
             itemid = EIpsSetUiWhatRetrieveImap4Menu;
             itemlabel = qtn_fse_settings_mail_downl_ctrl_retrieve_limit;
             itemarray = r_ips_set_what_to_sync_array_email_retrieve_imap4;
-            itemflags = KIpsSetUiFlagImap4Only;
+            // Single click changes        		
+            itemflags = KIpsSetUiFlagEnterPressed | KIpsSetUiFlagImap4Only;
             },
         // Imap4 folder path
         IPS_SET_ITEM
@@ -522,14 +526,6 @@ RESOURCE IPS_SET_ARRAY r_ips_set_menu_when_to_sync
             itemid = EIpsSetUiWhenSchedule;
             itemlabel = qtn_fse_settings_mail_interval;
             itemarray = r_ips_set_when_to_sync_array_sync_schedule;
-            },
-        // Retrieve while roaming
-        IPS_SET_ITEM
-            {
-            itemtype = EIpsSetUiRadioButtonArray;
-            itemid = EIpsSetUiWhenRoaming;
-            itemlabel = qtn_fse_settings_mail_retrieve_roaming;
-            itemarray = r_ips_set_when_to_sync_array_roaming;
             }
         };
     }
@@ -1063,33 +1059,6 @@ RESOURCE IPS_SET_ARRAY r_ips_set_when_to_sync_array_weekdays
             itemtype = EIpsSetUiItemRadioButton;
             itemid = EIpsSetUiWhenDaysBtnSunday;
             itemlabel = qtn_week_long_sunday;
-            }
-        };
-    }
-
-// ---------------------------------------------------------------------------
-//
-//   r_ips_set_when_to_sync_array_roaming
-//
-// ---------------------------------------------------------------------------
-//
-RESOURCE IPS_SET_ARRAY r_ips_set_when_to_sync_array_roaming
-    {
-    items =
-        {
-        //
-        IPS_SET_ITEM
-            {
-            itemtype = EIpsSetUiItemRadioButton;
-            itemid = EIpsSetUiWhenRoamingBtnOn;
-            itemlabel = qtn_fse_settings_mail_alwaysconnected;
-            },
-        //
-        IPS_SET_ITEM
-            {
-            itemtype = EIpsSetUiItemRadioButton;
-            itemid = EIpsSetUiWhenRoamingBtnOff;
-            itemlabel = qtn_fse_settings_mail_onlyinhome;
             }
         };
     }

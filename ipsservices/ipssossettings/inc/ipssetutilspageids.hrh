@@ -73,8 +73,6 @@ enum TIpsSetSettigsId
     EIpsSetUiWhenDays,
     EIpsSetUiWhenHours,
     EIpsSetUiWhenHoursCustom,
-    EIpsSetUiWhenRoaming,
-
 
 // BUTTON IDS
 
@@ -150,11 +148,8 @@ enum TIpsSetSettigsId
     EIpsSetUiWhenHoursBtnCustomize,
     EIpsSetUiWhenHoursEditCustomizeFrom,  //3650
     EIpsSetUiWhenHoursEditCustomizeTo,
-    EIpsSetUiWhenHoursBtnAllDay,
+    EIpsSetUiWhenHoursBtnAllDay
 
-    // Sync when roaming
-    EIpsSetUiWhenRoamingBtnOff,
-    EIpsSetUiWhenRoamingBtnOn
     };
 
 #endif // IPSSETUTILSPAGEIDS_HRH

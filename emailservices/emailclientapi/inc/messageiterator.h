@@ -18,7 +18,7 @@
 #ifndef CMESSAGEITERATOR_H
 #define CMESSAGEITERATOR_H
                                                                              
-#include <MMessageIterator.h>                                                                             
+#include <mmessageiterator.h>                                                                             
 #include "emailapidefs.h"
 #include "CFSMailCommon.h"
 

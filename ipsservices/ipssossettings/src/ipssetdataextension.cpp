@@ -47,7 +47,6 @@ CIpsSetDataExtension::CIpsSetDataExtension()
     iUpdateMode( EMailAoHeadersOnly ),
     iEmailAddress( NULL ),
     iEmnState( EMailEmnOff ),
-    iRoamHomeOnly( EFalse ),
     iHideMessages( EFalse ), 
     iNewMailIndicators( ETrue ),
     //<cmail>
@@ -121,7 +120,6 @@ void CIpsSetDataExtension::CopyL(
     iAccountId = aExtension.iAccountId;
     iExtensionId = aExtension.iExtensionId;
     iProtocol = aExtension.iProtocol;
-    iRoamHomeOnly = aExtension.iRoamHomeOnly;
     iHideMessages = aExtension.iHideMessages;
     iNewMailIndicators = aExtension.iNewMailIndicators;
     iOpenHtmlMail = aExtension.iOpenHtmlMail;
@@ -470,16 +468,6 @@ EXPORT_C void CIpsSetDataExtension::SetAlwaysOnlineState(
         //a call from plugin's GoOnline will not change this flag.
         return;
         }
-        
-    if ( iAlwaysOnlineState == EMailAoHomeOnly )
-        {
-        SetRoamHomeOnlyFlag( ETrue );
-        }
-    else if ( iAlwaysOnlineState == EMailAoAlways )
-        {
-        SetRoamHomeOnlyFlag( EFalse );
-        }
-        
     //EMailAoOff will not cause any flag changes.
     }
 
@@ -642,21 +630,6 @@ EXPORT_C TInt CIpsSetDataExtension::OutgoingLogin() const
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-EXPORT_C void CIpsSetDataExtension::SetRoamHomeOnlyFlag( TBool aTrue )
-    {
-    FUNC_LOG;
-    iRoamHomeOnly = aTrue;
-    }
-
-// ---------------------------------------------------------------------------
-// ---------------------------------------------------------------------------
-EXPORT_C TBool CIpsSetDataExtension::RoamHomeOnlyFlag()
-    {
-    FUNC_LOG;
-    return iRoamHomeOnly;
-    }
-// ---------------------------------------------------------------------------
-// ---------------------------------------------------------------------------
 EXPORT_C void CIpsSetDataExtension::SetLastModified( TTime aTime )
     {
     FUNC_LOG;
@@ -704,7 +677,6 @@ EXPORT_C void CIpsSetDataExtension::PopulateDefaults()
     iEmailAddress = KNullDesC16;
     iEmnState = static_cast<TIpsSetDataEmnStates>(
             KIpsSetExtDefaultEmailNotificationState);
-    iRoamHomeOnly = KIpsSetExtDefaultRoamHomeOnlyFlag;
     iHideMessages = KIpsSetExtDefaultHideMsgs;
     iNewMailIndicators = KIpsSetExtDefaultNewMailIndicators;
     iLastUpdateInfo.iLastUpdateFailed = 

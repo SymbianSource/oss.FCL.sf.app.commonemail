@@ -113,9 +113,10 @@ public:
      */
     void ReloadPageL();
     
-    void ShowAttacthmentDownloadStatusL( TFSProgress::TFSProgressStatus aProgressStatus, const TAttachmentData& aAttachmentData );
-    TBool AttacthmentDownloadStatusVisible();
-    void HideAttacthmentDownloadStatus();
+    void ShowAttachmentDownloadStatusL( TFSProgress::TFSProgressStatus aProgressStatus, const TAttachmentData& aAttachmentData );
+    TBool AttachmentDownloadStatusVisible();
+    void HideDownloadStatus();
+    void DisplayStatusIndicatorL();
     
 private:
 
@@ -139,6 +140,9 @@ private:
     HBufC8* ReadContentFromFileLC( RFile& aFile );
     // Writes buffer to given file
     void WriteContentToFileL( const TDesC8& aContent, const TDesC& aFileName, CFSMailMessagePart& aHtmlBodyPart );
+
+    void WriteEmptyBodyHtmlL( const TDesC& aFileName );
+    
 // </cmail>
     // Finds the attachment from the list that matches the given content ID 
     CFSMailMessagePart* MatchingAttacmentL( const TDesC& aContentId,
@@ -215,8 +219,9 @@ private: // data
     TInt iScrollPosition;
     COverlayControl* iOverlayControlNext;
     COverlayControl* iOverlayControlPrev;
-
-    CFreestyleEmailUiAknStatusIndicator* iAttachmentStatus;
+    //way to keep track of the current image being displayed by the indicator
+    TInt iAttachmentDownloadImageHandle;
+    CFreestyleEmailUiAknStatusIndicator* iStatusIndicator;
     };
 
 

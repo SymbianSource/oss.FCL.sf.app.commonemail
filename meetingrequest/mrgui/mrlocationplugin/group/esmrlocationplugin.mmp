@@ -19,6 +19,7 @@
 #include <platform_paths.hrh>
 #include <data_caging_paths.hrh>
 #include "../../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
+#include "../../../../inc/emailtraceconfig.hrh"
 #include "../../../inc/esmrinternaluid.h"
 
 TARGET                  esmrlocationplugin.dll
@@ -59,3 +60,6 @@ LIBRARY avkon.lib
 LIBRARY apparc.lib
 LIBRARY cmaillogger.lib
 
+#ifdef TRACE_INTO_FILE
+LIBRARY flogger.lib
+#endif // TRACE_INTO_FILE

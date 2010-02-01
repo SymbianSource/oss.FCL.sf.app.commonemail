@@ -2231,8 +2231,8 @@ void CFsTreeVisualizerBase::ExpandNodeL(const TFsTreeItemId aNodeId)
     MFsTreeNodeVisualizer* nodeVisualizer =
             iTreeData->NodeVisualizer(aNodeId);
     TRect rc;
-    TUint index = iWorld.GetItemRect(aNodeId, rc);
-    if (!nodeVisualizer->IsExpanded())
+    TInt index = iWorld.GetItemRect(aNodeId, rc);
+    if (!nodeVisualizer->IsExpanded() && index != KErrNotFound )
         {
         nodeVisualizer->SetExpanded(ETrue, &iTreeData->ItemData(aNodeId));
 

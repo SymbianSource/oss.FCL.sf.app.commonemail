@@ -315,17 +315,6 @@ public: // New functions
     /**
     *
     */
-    IMPORT_C void SetRoamHomeOnlyFlag( TBool aTrue );
-        
-    /**
-    *
-    */
-    IMPORT_C TBool RoamHomeOnlyFlag();
-        
-
-    /**
-    *
-    */
     IMPORT_C void SetLastModified( TTime aTime );
 
     /**
@@ -468,7 +457,6 @@ private:    // Data
      */
     TIpsSetDataEmnStates iEmnState;
             
-    TBool               iRoamHomeOnly;
     TBool               iHideMessages;
     TBool               iNewMailIndicators;
     

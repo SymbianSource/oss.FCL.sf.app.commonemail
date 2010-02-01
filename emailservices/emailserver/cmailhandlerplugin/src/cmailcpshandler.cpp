@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2008 - 2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2008 - 2010 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -23,6 +23,7 @@
 #include <apgcli.h>
 #include <centralrepository.h>
 #include <starterdomaincrkeys.h>
+#include <startupdomainpskeys.h>
 
 #include "emailtrace.h"
 #include "CFSMailClient.h"
@@ -326,7 +327,6 @@ void CMailCpsHandler::UpdateMessagesL( const TInt aMailBoxNumber,
     {
     FUNC_LOG;    
 
-    TBool mailBoxFound(EFalse);
     if ( aMailBoxNumber < iAccountsArray.Count() )
         {
         TFSMailMsgId mailBoxId;
@@ -336,7 +336,6 @@ void CMailCpsHandler::UpdateMessagesL( const TInt aMailBoxNumber,
         mailbox = MailClient().GetMailBoxByUidL( mailBoxId );
         if(mailbox)
             {
-            mailBoxFound = ETrue;
             TFSMailMsgId parentFolder( mailbox->GetStandardFolderId( EFSInbox ) );
             // Check that folder is correct
             CFSMailFolder* folder = MailClient().GetFolderByUidL( mailBoxId, parentFolder );
@@ -348,7 +347,8 @@ void CMailCpsHandler::UpdateMessagesL( const TInt aMailBoxNumber,
             CleanupStack::PushL( folder );
 
             TInt msgCount = folder->GetMessageCount();
-            if(msgCount<1)
+            
+            if(msgCount<1 || (msgCount == 1 && aRow == 3))
                 {
                 UpdateEmptyMessagesL( aWidgetInstance, aRow );
                 CleanupStack::PopAndDestroy( folder );
@@ -376,7 +376,7 @@ void CMailCpsHandler::UpdateMessagesL( const TInt aMailBoxNumber,
             TFSMailMsgId dummy;
             iterator->NextL( dummy, aMessageNumber, folderMessages);
             TInt count (folderMessages.Count());
-            if(!count)
+            if(!count || (count == 1 && aRow == 3))
                 {
                 UpdateEmptyMessagesL( aWidgetInstance, aRow );
             
@@ -428,10 +428,6 @@ void CMailCpsHandler::UpdateMessagesL( const TInt aMailBoxNumber,
             CleanupStack::PopAndDestroy( &folderMessages );
             CleanupStack::PopAndDestroy( folder );
             }
-        }
-    else if(!mailBoxFound)
-        {
-        UpdateEmptyMessagesL( aWidgetInstance, aRow );
         }
     }
 
@@ -793,7 +789,7 @@ void CMailCpsHandler::HandleNewMailboxEventL( const TFSMailMsgId aMailbox )
     }
 
 // ---------------------------------------------------------
-// CMailCpsHandler::HandleMailborRenamedEventL
+// CMailCpsHandler::HandleMailboxRenamedEventL
 // ---------------------------------------------------------
 //
 void CMailCpsHandler::HandleMailboxRenamedEventL( const TFSMailMsgId aMailbox )
@@ -1646,7 +1642,13 @@ TBool CMailCpsHandler::AssociateWidgetToSetting( const TDesC& aContentId )
 void CMailCpsHandler::DissociateWidgetFromSettingL( const TDesC& aContentId )
     {
     FUNC_LOG;
-    iSettings->DissociateWidgetFromSettingL( aContentId );
+    //Do not dissociate if device is shutting down
+    TInt status( 0 );
+    RProperty::Get( KPSUidStartup, KPSGlobalSystemState, status );
+    if (status != ESwStateShuttingDown)
+        {
+        iSettings->DissociateWidgetFromSettingL( aContentId );
+        }
     }
 
 // ---------------------------------------------------------------------------

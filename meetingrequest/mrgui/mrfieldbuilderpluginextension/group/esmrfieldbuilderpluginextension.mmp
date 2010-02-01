@@ -20,6 +20,7 @@
 #include <data_caging_paths.hrh>
 
 #include "../../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
+#include "../../../../inc/emailtraceconfig.hrh"
 #include "../../../inc/esmrinternaluid.h"
 
 TARGET          esmrfieldbuilderpluginextension.dll
@@ -35,16 +36,14 @@ KEmailBinaryDemandPaging
 // Includes
 APP_LAYER_SYSTEMINCLUDE
 
-SYSTEMINCLUDE /epoc32/include/ecom
-
 USERINCLUDE     ../inc
-USERINCLUDE 	../../inc
-USERINCLUDE 	../../../inc
+USERINCLUDE     ../../inc
+USERINCLUDE     ../../../inc
 USERINCLUDE     ../../../../inc
 
 //implementations
 
-SOURCEPATH 		../src 
+SOURCEPATH      ../src 
 
 SOURCE          CESMRFieldBuilderPluginExtensionProxy.cpp
 SOURCE          CESMRFieldBuilderPluginExtension.cpp
@@ -127,5 +126,8 @@ LIBRARY cdlengine.lib
 LIBRARY aknlayout2scalable.lib
 LIBRARY aknlayout2.lib
 LIBRARY cmaillogger.lib
+#ifdef TRACE_INTO_FILE
+LIBRARY flogger.lib
+#endif // TRACE_INTO_FILE
 
 // End of File

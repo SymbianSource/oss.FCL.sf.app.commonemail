@@ -19,6 +19,7 @@
 #include <platform_paths.hrh>
 
 #include "../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
+#include "../../../inc/emailtraceconfig.hrh"
 #include "../../inc/esmrinternaluid.h"
 
 TARGET          esmrversit2.dll
@@ -53,5 +54,9 @@ LIBRARY euser.lib       // Base
 LIBRARY estor.lib       // Streams
 LIBRARY charconv.lib    // Character conversion
 LIBRARY cmaillogger.lib
+
+#ifdef TRACE_INTO_FILE
+LIBRARY flogger.lib
+#endif // TRACE_INTO_FILE
 
 // End of File

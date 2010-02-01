@@ -152,8 +152,11 @@ EXPORT_C void CESMRRichTextViewer::FocusChanged(
         else
             {
             const CESMRRichTextLink* link = GetSelectedLink ( );
-            HighlightLink( *link );
-            DrawDeferred();
+            if ( link )
+            	{
+            	HighlightLink( *link );
+            	DrawDeferred();
+            	}
             }
         }
 

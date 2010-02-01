@@ -19,7 +19,7 @@
 #ifndef CESMRFIELDBUILDERINTERFACE
 #define CESMRFIELDBUILDERINTERFACE
 
-#include <ecom.h>
+#include <ecom/ecom.h>
 
 #include "esmrinternaluid.h"
 #include "mesmrfieldvalidator.h"

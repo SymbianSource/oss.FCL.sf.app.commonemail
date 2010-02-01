@@ -17,7 +17,7 @@
 
 #include <platform_paths.hrh>
 #include <data_caging_paths.hrh> // Needed for APP_RESOURCE_DIR
-
+#include "../../../../inc/emailtraceconfig.hrh"
 #include "../../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
 
 TARGET                          cmailhandlerplugin.dll
@@ -99,3 +99,7 @@ LIBRARY                         eikcore.lib
 LIBRARY                         egul.lib
 LIBRARY                         apparc.lib
 LIBRARY                         cmaillogger.lib
+
+#ifdef TRACE_INTO_FILE
+LIBRARY                         flogger.lib
+#endif // TRACE_INTO_FILE

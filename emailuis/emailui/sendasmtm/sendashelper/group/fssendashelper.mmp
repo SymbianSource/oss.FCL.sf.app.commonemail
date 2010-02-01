@@ -19,6 +19,7 @@
 
 #include "../../inc/fsmtmsuids.h"
 #include "../../../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
+#include "../../../../../inc/emailtraceconfig.hrh"
 
 TARGET               fssendashelper.dll
 TARGETTYPE           dll
@@ -40,8 +41,6 @@ USERINCLUDE          ../../inc
 APP_LAYER_SYSTEMINCLUDE
 
 USERINCLUDE ../../../../../inc
-SYSTEMINCLUDE        /epoc32/include/ecom
-
 
 LIBRARY              euser.lib
 LIBRARY              estor.lib 
@@ -61,3 +60,7 @@ LIBRARY              usbman.lib
 LIBRARY              FSMailFramework.lib
 LIBRARY              FSFWCommonLib.lib
 #endif
+
+#ifdef TRACE_INTO_FILE
+LIBRARY              flogger.lib
+#endif // TRACE_INTO_FILE

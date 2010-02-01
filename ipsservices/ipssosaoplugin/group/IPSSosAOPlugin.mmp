@@ -20,6 +20,7 @@
 #include <platform_paths.hrh>
 
 #include "../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
+#include "../../../inc/emailtraceconfig.hrh"
 
 TARGET                  IPSSosAOPlugin.dll
 TARGETTYPE              PLUGIN
@@ -66,8 +67,14 @@ LIBRARY                 etext.lib
 LIBRARY                 imcm.lib
 LIBRARY                 gsecomplugin.lib
 LIBRARY                 eikcore.lib
-LIBRARY			        ipssosplugin.lib
+LIBRARY                 ipssosplugin.lib
 LIBRARY                 IpsSosSettings.lib
 LIBRARY                 cmaillogger.lib
+LIBRARY					cmmanager.lib
 DEBUGLIBRARY            flogger.lib
+
+#ifdef TRACE_INTO_FILE
+LIBRARY                 flogger.lib
+#endif // TRACE_INTO_FILE
+
 DEFFILE                 IPSSOSAOPLUGIN.DEF

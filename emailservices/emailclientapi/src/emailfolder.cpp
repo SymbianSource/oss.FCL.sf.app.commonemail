@@ -182,6 +182,7 @@ TInt CEmailFolder::GetSubfoldersL( RFolderArray& aSubfolders ) const
         aSubfolders.AppendL( folder );
         }
     CleanupStack::Pop();    // folders
+    folders.Close();
     return res;
     }
 

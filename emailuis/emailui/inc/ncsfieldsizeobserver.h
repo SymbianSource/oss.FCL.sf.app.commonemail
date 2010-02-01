@@ -39,9 +39,10 @@ public:  // new functions
     * Informs the observer that the field is updated.
     *
     * @since S60 v3.0
+    * @param aDoScroll If set to ETrue, the rscreen is scrolled so that cursor is visible.
     * @return Return ETrue if you wish to redraw the edwin. EFalse otherwise.
     */
-    virtual TBool UpdateFieldSizeL() = 0;
+    virtual TBool UpdateFieldSizeL( TBool aDoScroll = EFalse ) = 0;
     
     /**
     * Informs the observer that the given control position has changed.

@@ -73,9 +73,9 @@
 
 // CONSTANTS DECLARATIONS
 const TUid KPoCOmaServerUid = 
-	{ 
-	0x102071C4 
-	};
+    { 
+    0x102071C4 
+    };
 
 // Unnamed namespace
 namespace {
@@ -1131,10 +1131,10 @@ TBool CFscActionUtils::IsPttConfiguredL()
         {
         TInt settingsId;
         TInt err = cenRep->Get( KPoCDefaultSettings, settingsId );
-		if ( err == KErrNone )
-			{
-			result = (settingsId != KErrNotFound );
-			}
+        if ( err == KErrNone )
+            {
+            result = (settingsId != KErrNotFound );
+            }
         delete cenRep;
         }
 
@@ -1197,7 +1197,7 @@ TInt CFscActionUtils::ActionPriority( TUint32 aActionPriorityCrKey,
     TInt aDefaultPriority )
     {
     FUNC_LOG;
-    TInt result;
+    TInt result( 0 ); // some value to escape warning
     TInt error = KErrNotFound;
     
     if ( iRep != NULL )

@@ -578,7 +578,7 @@ public: // from base class MEikEdwinSizeObserver
     
 public:  // from MNcsFieldSizeObserver
 
-    TBool UpdateFieldSizeL();
+    TBool UpdateFieldSizeL( TBool aDoScroll );
     void UpdateFieldPosition( CCoeControl* aAnchor );
 
 private:  //From MAknLongTapDetectorCallBack

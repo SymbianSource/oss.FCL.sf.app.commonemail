@@ -20,9 +20,10 @@
 #include <bldvariant.hrh>
 
 #include "../../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
+#include "../../../../inc/emailtraceconfig.hrh"
 
 TARGET          fsscrollbarplugin.dll
-TARGETTYPE     	PLUGIN
+TARGETTYPE      PLUGIN
 UID             0x10009d8d 0x2001E281
 
 CAPABILITY      CAP_ECOM_PLUGIN
@@ -37,9 +38,7 @@ USERINCLUDE     ../../../../inc
 
 APP_LAYER_SYSTEMINCLUDE
 
-SYSTEMINCLUDE   /epoc32/include/ecom
-
-SOURCEPATH		../data
+SOURCEPATH      ../data
 START RESOURCE 2001E281.rss
 TARGET fsscrollbarplugin.rsc
 END
@@ -66,6 +65,10 @@ LIBRARY         fs_generic.lib
 
 LIBRARY         alfclient.lib // alftimedvalue
 LIBRARY         cmaillogger.lib
+
+#ifdef TRACE_INTO_FILE
+LIBRARY        flogger.lib
+#endif // TRACE_INTO_FILE
 
 DEFFILE         fs_scrollbarpugin.def
 

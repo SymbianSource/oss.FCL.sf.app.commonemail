@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+* Copyright (c) 2009 - 2010 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -32,8 +32,9 @@ OPTION SOURCEFILE ../data/iconlist.txt
 END
 
 PRJ_EXPORTS
-../rom/emailwidgetsettings.iby          CORE_APP_LAYER_IBY_EXPORT_PATH(emailwidgetsettings.iby)
-../loc/emailwidgetsettings.loc          APP_LAYER_LOC_EXPORT_PATH(emailwidgetsettings.loc)
+../rom/emailwidgetsettings.iby                  CORE_APP_LAYER_IBY_EXPORT_PATH(emailwidgetsettings.iby)
+../loc/emailwidgetsettings.loc                  APP_LAYER_LOC_EXPORT_PATH(emailwidgetsettings.loc)
+../rom/emailwidgetsettings_resources.iby        LANGUAGE_APP_LAYER_IBY_EXPORT_PATH(emailwidgetsettings_resources.iby)
 
-../conf/cmailwidget.confml              APP_LAYER_CONFML(cmailwidget.confml)
-../conf/cmailwidget_2001E272.crml       APP_LAYER_CRML(cmailwidget_2001E272.crml)
+../conf/cmailwidget.confml                      APP_LAYER_CONFML(cmailwidget.confml)
+../conf/cmailwidget_2001E272.crml               APP_LAYER_CRML(cmailwidget_2001E272.crml)

@@ -20,7 +20,7 @@
 #define __FSEMAILLAUNCHERITEM_H__
 
 #include <e32base.h>
-#include <ecom.h>
+#include <ecom/ecom.h>
 #include <badesca.h>
 #include <AknIconUtils.h>
 
@@ -63,20 +63,20 @@ public:
     virtual ~CFSEmailLauncherItem();
 
     /**
-	 * Request a list of all available implementations which satisfy this
-	 * given interface.
-	 *
+     * Request a list of all available implementations which satisfy this
+     * given interface.
+     *
      * @param aImplInfoArray Info array of implementations.
-	 */
-	static void ListAllImplementationsL( RImplInfoPtrArray& aImplInfoArray );
+     */
+    static void ListAllImplementationsL( RImplInfoPtrArray& aImplInfoArray );
 
 public:
 
     /**
-	 * Set observer for refreshing launcher view.
-	 *
+     * Set observer for refreshing launcher view.
+     *
      * @param aObserver Observer for refreshing launcher view.
-	 */
+     */
     virtual void SetObserver( MFSEmailLauncherItemObserver* aObserver ) = 0;
 
     /**
@@ -154,8 +154,8 @@ inline CFSEmailLauncherItem* CFSEmailLauncherItem::NewL(
     }
 
 inline void CFSEmailLauncherItem::ListAllImplementationsL( RImplInfoPtrArray& aImplInfoArray )
-	{
-	REComSession::ListImplementationsL( KFSEmailLauncherItemUid, aImplInfoArray );
-	}
+    {
+    REComSession::ListImplementationsL( KFSEmailLauncherItemUid, aImplInfoArray );
+    }
 
 #endif // __FSEMAILLAUNCHERITEM_H__

@@ -15,11 +15,12 @@
 *
 */
 
+#include <cmrmailboxutils.h>
+#include <ecom/implementationinformation.h>
+
 #include "emailtrace.h"
 #include "cesmrfsemailmanager.h"
 
-#include <cmrmailboxutils.h>
-//<cmail>
 #include "CFSMailClient.h"
 #include "CFSMailBox.h"
 #include "CFSMailMessage.h"
@@ -27,12 +28,12 @@
 #include "mmrinfoprocessor.h"
 #include "CFSMailCommon.h"
 #include "CFSMailPlugin.h"
-//</cmail>
-#include <implementationinformation.h>
+
 #include "tesmrinputparams.h"
 #include "esmrconfig.hrh"
 #include "esmrhelper.h"
 #include "esmrinternaluid.h"
+
 
 // Unnamed namespace for local definitions
 namespace {

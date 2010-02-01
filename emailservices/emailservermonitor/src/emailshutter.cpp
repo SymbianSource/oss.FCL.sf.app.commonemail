@@ -24,10 +24,12 @@
 #include <e32property.h>                // RProperty
 #include <apgtask.h>                    // TApaTaskList
 #include <w32std.h>                     // RWsSession
+#include <s32mem.h>                     // RDesRead/WriteStream
 
 #include <AlwaysOnlineManagerClient.h>  // RAlwaysOnlineClientSession
 #include <CPsRequestHandler.h>          // CPSRequestHandler
 #include <centralrepository.h>          // CRepository
+#include <platform/mw/aisystemuids.hrh> // HomeScreen UIDs
 
 #include "FreestyleEmailUiConstants.h"  // FS Email UI UID
 #include "fsmtmsconstants.h"            // MCE, Phonebook & Calendar UIDs
@@ -49,6 +51,14 @@ const TUid KApplicationsToClose[] =
     { KMceAppUid },             // MCE
     { KPhoneBookUid },          // Phonebook 1 & 2
     { KCalendarAppUid1 }        // Calendar
+    };
+
+// Applications that should not be closed. Should include only system
+// applications that free the email resources by some other means.
+const TUid KApplicationsNotToBeClosed[] =
+    {
+    { AI_SID_AIFW_EXE },        // HomeScreen
+    { AI_UID3_AIFW_COMMON },    // HomeScreen
     };
 
 // Non-UI clients that need to be closed
@@ -78,6 +88,7 @@ const TUid KMsgStoreProcessesToClose[] =
     { KUidEmailStorePreInstallExe } // MessageStorePreInstallExe
     };
 
+const TInt KEmailUidExtraBuffer = 2 * KEmailPlatformApiUidItemSize;
 
 // ======== MEMBER FUNCTION DEFINITIONS ========
 
@@ -123,6 +134,8 @@ CEmailShutter::CEmailShutter()
 CEmailShutter::~CEmailShutter()
     {
     FUNC_LOG;
+    iInstStatusProperty.Close();
+    iPlatformApiAppsToClose.Close();
     }
 
 // ---------------------------------------------------------------------------
@@ -140,7 +153,8 @@ void CEmailShutter::ConstructL()
                                              KPowerMgmtPolicy );
     if( error != KErrNone && error != KErrAlreadyExists )
         {
-        ERROR_1( error, "RProperty::Define failed, error code: ", error );
+        ERROR( error, "RProperty::Define (EEmailPsKeyInstallationStatus) failed!" );
+        ERROR_1( error, "    error code: ", error );
         User::Leave( error );
         }
 
@@ -148,8 +162,33 @@ void CEmailShutter::ConstructL()
                                         EEmailPsKeyInstallationStatus );
     if( error != KErrNone )
         {
-        ERROR_1( error, "RProperty::Attach failed, error code: ", error );
+        ERROR( error, "RProperty::Attach (EEmailPsKeyInstallationStatus) failed!" );
+        ERROR_1( error, "    error code: ", error );
         User::Leave( error );
+        }
+
+    // Define P&S key used to register platform API applications
+    error = RProperty::Define( EEmailPsKeyPlatformApiAppsToCloseLength,
+                               RProperty::EInt,
+                               KAllowAllPolicy,
+                               KWriteDeviceDataPolicy );
+    
+    if( error != KErrNone && error != KErrAlreadyExists )
+        {
+        ERROR( error, "RProperty::Define (EEmailPsKeyPlatformApiAppsToCloseLength) failed!" );
+        ERROR_1( error, "    error code: ", error );
+        }
+    
+    // Define P&S key used to register platform API applications
+    error = RProperty::Define( EEmailPsKeyPlatformApiAppsToClose,
+                               RProperty::EByteArray,
+                               KAllowAllPolicy,
+                               KWriteDeviceDataPolicy );
+    
+    if( error != KErrNone && error != KErrAlreadyExists )
+        {
+        ERROR( error, "RProperty::Define (EEmailPsKeyPlatformApiAppsToClose) failed!" );
+        ERROR_1( error, "    error code: ", error );
         }
     
     CActiveScheduler::Add(this);
@@ -273,6 +312,7 @@ void CEmailShutter::EndApplicationsL()
 
     TApaTaskList taskList( session );
 
+    // First end our own applications that are defined in hard coded list
     TInt count = sizeof(KApplicationsToClose) / sizeof(TUid);
     for( TInt i = 0; i<count; i++ )
         {
@@ -284,7 +324,19 @@ void CEmailShutter::EndApplicationsL()
             task.EndTask();
             }
         }
+    
+    // Then end applications that are registered in P&S as platform API users
+    for( TInt i = 0; i<iPlatformApiAppsToClose.Count(); i++ )
+        {
+        TApaTask task = taskList.FindApp( iPlatformApiAppsToClose[i] );
+        if ( task.Exists() )
+            {
+            INFO_1( "Closing API UI app with UID: %d", iPlatformApiAppsToClose[i].iUid );
 
+            task.EndTask();
+            }
+        }
+    
     CleanupStack::PopAndDestroy( &session );
     }
 
@@ -440,6 +492,12 @@ TBool CEmailShutter::NeedToKillThisProcess(
             {
             return ETrue;
             }
+
+        // Check also clients registered as platform API users
+        if( iPlatformApiAppsToClose.Find( aSid ) != KErrNotFound )
+            {
+            return ETrue;
+            }
         }
 
     if( aMode == EKillingModePlugins ||
@@ -531,7 +589,10 @@ void CEmailShutter::StartShutdown()
         {
         iMonitor->Cancel();
         }
-    
+
+    // First read the platform API UIDs from P&S, those are needed later
+    TRAP_IGNORE( ReadPlatformApiUidsL() );
+
     // End all clients
     EndClients();
     // Wait some time to give the clients some time to shut down themselves
@@ -586,4 +647,52 @@ void CEmailShutter::WaitInCycles(
         // Do this as long as aMaxWaitTime has not elapsed and 
         // there are some process(es) to wait for
         } while ( ( totalWaitTime < aMaxWaitTime ) && KillEmAll( aMode, ETrue ) );
+    }
+
+// ---------------------------------------------------------------------------
+// Reads platform API process UIDs from Publish and Subscribe key
+// ---------------------------------------------------------------------------
+//
+void CEmailShutter::ReadPlatformApiUidsL()
+    {
+    FUNC_LOG;
+
+    iPlatformApiAppsToClose.Reset();
+
+    // Read buffer length
+    TInt bufLength( 0 );
+    User::LeaveIfError( RProperty::Get( KEmailShutdownPsCategory,
+                                        EEmailPsKeyPlatformApiAppsToCloseLength,
+                                        bufLength ) );
+
+    // Allocate buffer for reading and then read the list of UIDs from P&S.
+    // Adding some extra buffer just in case the size key and actual list
+    // are out of sync. This shouldn't happen, but you never know.
+    HBufC8* readBuf = HBufC8::NewLC( bufLength + KEmailUidExtraBuffer );
+    TPtr8 readPtr = readBuf->Des();
+    
+    User::LeaveIfError( RProperty::Get( KEmailShutdownPsCategory,
+                                        EEmailPsKeyPlatformApiAppsToClose,
+                                        readPtr ) );
+    
+    RDesReadStream readStream( readPtr );
+    CleanupClosePushL( readStream );
+    
+    // Get items count from the actual buffer
+    TInt itemsCount = readPtr.Length() / KEmailPlatformApiUidItemSize;
+    
+    for ( TInt ii = 0;ii < itemsCount; ++ii )
+        {
+        // Read next UID from the stream
+        TUid item = TUid::Uid( readStream.ReadInt32L() );
+
+        // Append only UIDs of such applications that should be closed
+        TInt count = sizeof(KApplicationsNotToBeClosed) / sizeof(TUid);
+        if( !FindFromArray( item, KApplicationsNotToBeClosed, count ) )
+            {
+            iPlatformApiAppsToClose.AppendL( item );
+            }
+        }
+    
+    CleanupStack::PopAndDestroy( 2, readBuf );
     }

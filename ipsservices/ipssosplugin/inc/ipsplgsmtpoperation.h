@@ -106,6 +106,17 @@ protected:
      */    
     void ConstructL( );
 
+    /**
+     * Completes observer with status aStatus
+     * @param aStatus: Status of the operation.
+     */
+    void CompleteObserver( TInt aStatus = KErrNone );
+
+    /**
+     * Completes itself with KErrNone status
+     */
+    void CompleteThis();
+
 private: // From CActive
 
     enum TIpsSendState

@@ -34,6 +34,7 @@ class CEmailServerMonitor;
 // Security policies used when defining P&S keys
 static _LIT_SECURITY_POLICY_PASS(KAllowAllPolicy);
 static _LIT_SECURITY_POLICY_C1(KPowerMgmtPolicy,ECapabilityPowerMgmt);
+static _LIT_SECURITY_POLICY_C1(KWriteDeviceDataPolicy,ECapabilityWriteDeviceData);
 
 // Value to be set in shutdown P&S key.
 const TInt KEmailShutterPsValue = 1;
@@ -234,6 +235,12 @@ private: // Private member functions
     void WaitInCycles( const TInt aMaxWaitTime,
                        const TEmailShutterKillingMode aMode );
     
+    /**
+     * Reads platform API process UIDs from Publish and Subscribe key to
+     * internal array
+     */
+    void ReadPlatformApiUidsL();
+    
 private: // Member variables
 
     /**
@@ -241,6 +248,11 @@ private: // Member variables
      */
     RProperty iInstStatusProperty;
 
+    /**
+     * List of UIDs of the processes that are using platform API
+     */
+    RArray<TUid> iPlatformApiAppsToClose;
+    
     /**
      * Pointer to Email Server Monitor
      * Not owned

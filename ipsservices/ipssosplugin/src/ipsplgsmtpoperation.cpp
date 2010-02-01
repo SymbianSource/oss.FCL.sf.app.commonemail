@@ -94,7 +94,32 @@ void CIpsPlgSmtpOperation::ConstructL()
     iSelection = new (ELeave) CMsvEntrySelection();
     CActiveScheduler::Add( this );
     }
-    
+
+// ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+//
+void CIpsPlgSmtpOperation::CompleteObserver( TInt aStatus /*= KErrNone*/ )
+    {
+    FUNC_LOG;
+
+    TRequestStatus* status = &iObserverRequestStatus;
+    if ( status && status->Int() == KRequestPending )
+        {
+        User::RequestComplete( status, aStatus );
+        }
+    }
+
+// ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+//
+void CIpsPlgSmtpOperation::CompleteThis()
+    {
+    FUNC_LOG;
+
+    TRequestStatus* status = &iStatus;
+    User::RequestComplete( status, KErrNone );
+    }
+
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 //
@@ -115,10 +140,9 @@ void CIpsPlgSmtpOperation::RunL()
         TImSmtpProgress prog;
         TPckg<TImSmtpProgress> param(prog);
         param.Copy( iOperation->FinalProgress() ); 
-        
-        TRequestStatus* status = &iObserverRequestStatus;
-        User::RequestComplete( status, prog.Error() );
-        }    
+
+        CompleteObserver( prog.Error() );
+        }
     }
     
 // ---------------------------------------------------------------------------
@@ -132,8 +156,8 @@ void CIpsPlgSmtpOperation::DoCancel()
         {
         iOperation->Cancel();
         }
-    TRequestStatus* status = &iObserverRequestStatus;
-    User::RequestComplete(status, KErrCancel);
+
+    CompleteObserver( KErrCancel );
     }
 
 // ---------------------------------------------------------------------------
@@ -271,6 +295,12 @@ EXPORT_C TInt CIpsPlgSmtpOperation::EmptyOutboxFromPendingMessagesL(
         {
         CallSendL();
         }
+    else
+        {
+        // nothing to do, finish operation
+        CompleteObserver( KErrNone );
+        }
+
     return retValue;
     }
 

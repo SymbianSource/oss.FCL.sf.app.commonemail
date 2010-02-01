@@ -2026,9 +2026,9 @@ RESOURCE MENU_PANE r_ncs_compose_menu
 			},
         MENU_ITEM
             {
-            cascade = r_ncs_more_menu;
+            cascade = r_ncs_extra_recepient_fields_menu;
 			command = ENcsCmdMore;
-            txt = qtn_fse_editor_options_more;
+            txt = qtn_fse_editor_options_extra_recepient_fields;
             },
         MENU_ITEM
 	        {
@@ -2128,13 +2128,13 @@ RESOURCE MENU_PANE r_ncs_priority_menu
 
 // -----------------------------------------------------------------------------
 //
-//   r_ncs_more_menu
-//   Menu for "More"
+//   r_ncs_extra_recepient_fields_menu
+//   Menu for "Extra Recepient Fields"
 //
 // -----------------------------------------------------------------------------
 //
-RESOURCE MENU_PANE r_ncs_more_menu
-	{
+RESOURCE MENU_PANE r_ncs_extra_recepient_fields_menu
+    {
 	items =
 		{
         MENU_ITEM
@@ -2851,7 +2851,7 @@ RESOURCE STYLUS_POPUP_MENU r_stylus_popup_menu_html_view_email_address
             },
         STYLUS_POPUP_MENU_ITEM
             {
-                txt = qtn_fse_viewer_options_add_to_contacts;  // Save to contacts
+                txt = qtn_mail_stylus_popup_add_to_contacts;  // Save to contacts
                 command = EFsEmailUiCmdActionsAddContact; 
             },
         STYLUS_POPUP_MENU_ITEM

@@ -433,7 +433,11 @@ TBool CIpsPlgPop3ConnectOp::ValidateL()
 void CIpsPlgPop3ConnectOp::QueryUsrPassL()
     {
     FUNC_LOG;
-    iEventHandler->QueryUsrPassL( iEntry->EntryId(), this );
+
+    if ( iEventHandler )
+        {
+        iEventHandler->QueryUsrPassL( iEntry->EntryId(), this );
+        }
     }
 
 

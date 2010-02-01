@@ -19,7 +19,7 @@
 #ifndef __FSMAILFOLDERBASE_H
 #define __FSMAILFOLDERBASE_H
 
-#include "cfsmailmessage.h"
+#include "CFsMailMessage.h"
 #include "cemailextensionbase.h"
 
 /**
@@ -31,14 +31,14 @@
 class CFSMailFolderBase : public CExtendableEmail
 {
  public:
-  	
+    
     /**
      * Two-phased constructor.
      *
      * @param aFolderId folder id in plugin containing folder
      */
      IMPORT_C static CFSMailFolderBase* NewL(const TFSMailMsgId aFolderId);
-  	
+    
     /**
      * Two-phased constructor.
      *
@@ -111,7 +111,7 @@ class CFSMailFolderBase : public CExtendableEmail
      */
      IMPORT_C TFSMailMsgId GetMailBoxId() const;
 
- 	/**
+    /**
      * folder mailbox id mutator
      *
      * @param aMailBoxId mailbox id to be set
@@ -182,7 +182,7 @@ class CFSMailFolderBase : public CExtendableEmail
      * blocking is done
      */
      IMPORT_C void BlockCopyFromL( RArray<TFSFolderType> aFolderTypes, 
-									TFSMailBoxStatus aMailBoxStatus );
+                                    TFSMailBoxStatus aMailBoxStatus );
     /**
      * blocks moving to this folder from given folder types
      *
@@ -191,81 +191,81 @@ class CFSMailFolderBase : public CExtendableEmail
      * blocking is done
      */
      IMPORT_C void BlockMoveFromL( RArray<TFSFolderType> aFolderTypes, 
-									TFSMailBoxStatus aMailBoxStatus );
+                                    TFSMailBoxStatus aMailBoxStatus );
 
 protected:
 
     /**
      * C++ default constructor.
      */
-  	 CFSMailFolderBase();
+     CFSMailFolderBase();
 
- 	/**
+    /**
      * folder id
      */
-	 TFSMailMsgId             iFolderId;
+     TFSMailMsgId             iFolderId;
 
-	/**
+    /**
      * blocked folders in copying
      */
-	 RArray<TFSFolderType>    iCopyOfflineBlocked;
-	 RArray<TFSFolderType>    iCopyOnlineBlocked;
+     RArray<TFSFolderType>    iCopyOfflineBlocked;
+     RArray<TFSFolderType>    iCopyOnlineBlocked;
 
-	/**
+    /**
      * blocked folders in moving
      */
-	 RArray<TFSFolderType>    iMoveOfflineBlocked;
-	 RArray<TFSFolderType>    iMoveOnlineBlocked;
+     RArray<TFSFolderType>    iMoveOfflineBlocked;
+     RArray<TFSFolderType>    iMoveOnlineBlocked;
 
 private:
 
-  	/**
+    /**
      * Two-phased constructor
      */
-	void ConstructL( const TFSMailMsgId aFolderId );
+    void ConstructL( const TFSMailMsgId aFolderId );
 
 private: // data
 
-	/**
+    /**
      * folder name
      */
-	 HBufC*                   iFolderName;
+     HBufC*                   iFolderName;
 
- 	/**
+    /**
      * folder type
      */
-	 TFSFolderType            iFolderType;
+     TFSFolderType            iFolderType;
 
- 	/**
+    /**
      * folder total message count 
      */
-	 TUint                 	  iMessageCount;
+     TUint                    iMessageCount;
 
- 	/**
+    /**
      * folder unread message count 
      */
-	 TUint                 	  iUnreadMessageCount;
+     TUint                    iUnreadMessageCount;
 
- 	/**
+    /**
      * folder unseen message count 
      */
-	 TUint                 	  iUnseenCount;
+     TUint                    iUnseenCount;
 
- 	/**
+    /**
      * mailbox id
      */
-	 TFSMailMsgId             iMailBoxId;
+     TFSMailMsgId             iMailBoxId;
 
 
- 	/**
+    /**
      * parent folder id
      */
-	 TFSMailMsgId             iParentFolderId;
+     TFSMailMsgId             iParentFolderId;
 
- 	/**
+    /**
      * subfolder count 
      */
-	 TUint                 	  iSubFolderCount;
+     TUint                    iSubFolderCount;
 };
 
 #endif // __FSMAILFOLDERBASE_H

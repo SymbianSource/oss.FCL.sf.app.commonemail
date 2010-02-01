@@ -19,7 +19,7 @@
 #ifndef __FSMAILFOLDER_H
 #define __FSMAILFOLDER_H
 
-#include "cfsmailfolderbase.h"
+#include "CFsMailFolderBase.h"
 #include "mfsmailiterator.h"
 
 // forward declarations
@@ -34,14 +34,14 @@ class CFSMailIterator;
 class CFSMailFolder : public CFSMailFolderBase
 {
  public:
-  	  
+      
     /**
      * Two-phased constructor.
      *
      * @param aFolderId folder id in plugin containing folder
      */
      IMPORT_C static CFSMailFolder* NewL( TFSMailMsgId aFolderId );
-  	
+    
     /**
      * Two-phased constructor.
      *
@@ -65,8 +65,8 @@ class CFSMailFolder : public CFSMailFolderBase
      * @return email list iterator, ownership is transferred to user
      */
      IMPORT_C MFSMailIterator* ListMessagesL(
-        						const TFSMailDetails aDetails,
-        						const RArray<TFSMailSortCriteria>& aSorting);
+                                const TFSMailDetails aDetails,
+                                const RArray<TFSMailSortCriteria>& aSorting);
     /**
      * removes given message from folder
      *
@@ -79,7 +79,7 @@ class CFSMailFolder : public CFSMailFolderBase
      *
      * @param aSubFolderList list of subfolders
      */
-  	 IMPORT_C void GetSubFoldersL(RPointerArray<CFSMailFolder>& aSubFolders);
+     IMPORT_C void GetSubFoldersL(RPointerArray<CFSMailFolder>& aSubFolders);
 
     /**
      * method launches fetching of messages given by user from server
@@ -89,9 +89,9 @@ class CFSMailFolder : public CFSMailFolderBase
      * @param aObserver request observer for conveying fetching progress
      *  events to user
      */
-	 IMPORT_C TInt FetchMessagesL( 	const RArray<TFSMailMsgId>& aMessageIds,
-     				 				TFSMailDetails aDetails,
-     				 				MFSMailRequestObserver& aObserver );
+     IMPORT_C TInt FetchMessagesL(  const RArray<TFSMailMsgId>& aMessageIds,
+                                    TFSMailDetails aDetails,
+                                    MFSMailRequestObserver& aObserver );
     /**
      * method to check if this folder allows copying from given folder type
      *
@@ -128,21 +128,21 @@ public: // from  CExtendableEmail
     /**
      * C++ default constructor.
      */
-  	 CFSMailFolder();
+     CFSMailFolder();
 
 private:
 
-  	/**
+    /**
      * Two-phased constructor
      */
-	void ConstructL( TFSMailMsgId aFolderId );
+    void ConstructL( TFSMailMsgId aFolderId );
 
 private: // data
 
     /**
      * request handler for plugin requests
      */
-	 CFSMailRequestHandler* 	iRequestHandler;	
+     CFSMailRequestHandler*     iRequestHandler;    
 
 };
 

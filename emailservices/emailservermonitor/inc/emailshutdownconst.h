@@ -26,7 +26,11 @@
 // Publish & Subscribe category for Email shutdown events
 const TUid KEmailShutdownPsCategory = { KEmailShutdownUidAsTInt };
 
-// Publish & Subscribe keys
+// Size of one item in platform API UID list (in Publish & Subscribe
+// key EEmailPsKeyPlatformApiAppsToClose)
+const TInt KEmailPlatformApiUidItemSize = sizeof( TInt32 );
+
+// Publish & Subscribe keys used in shutdown process
 enum TEmailShutdownPsKeys
     {
     // Publish & Subscribe key used in communication between Shutter
@@ -36,7 +40,11 @@ enum TEmailShutdownPsKeys
     // Publish & Subscribe keys for Email shutdown events
     EEmailPsKeyShutdownClients,
     EEmailPsKeyShutdownPlugins,
-    EEmailPsKeyShutdownMsgStore
+    EEmailPsKeyShutdownMsgStore,
+    
+    // Publish & Subscribe keys to register 3rd party applications to be closed
+    EEmailPsKeyPlatformApiAppsToCloseLength,
+    EEmailPsKeyPlatformApiAppsToClose
     };
 
 // Publish & Subscribe values to be used with key EEmailPsKeyInstallationStatus

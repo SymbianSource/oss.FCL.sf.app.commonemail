@@ -2039,10 +2039,13 @@ TBool CFreestyleEmailUiAppUi::IsNextMsgAvailable( TFSMailMsgId aCurrentMsgId,
 	{
     FUNC_LOG;
 	TBool ret(EFalse);
-	if ( !iNavigationHistory->IsEmpty() )
-	    {
-	    ret = iNavigationHistory->Head()->IsNextMsgAvailable( aCurrentMsgId, aFoundNextMsgId, aFoundNextMsgFolder );
-	    }
+    if( iNavigationHistory )
+        {
+        if ( !iNavigationHistory->IsEmpty() )
+            {
+            ret = iNavigationHistory->Head()->IsNextMsgAvailable( aCurrentMsgId, aFoundNextMsgId, aFoundNextMsgFolder );
+            }
+        }
 	return ret;
 	}
 
@@ -2053,10 +2056,13 @@ TBool CFreestyleEmailUiAppUi::IsPreviousMsgAvailable( TFSMailMsgId aCurrentMsgId
 	{
     FUNC_LOG;
 	TBool ret(EFalse);
-	if ( !iNavigationHistory->IsEmpty() )
-	    {
-	    ret = iNavigationHistory->Head()->IsPreviousMsgAvailable( aCurrentMsgId, aFoundPreviousMsgId, aFoundPrevMsgFolder );
-	    }
+    if( iNavigationHistory )
+        {
+        if ( !iNavigationHistory->IsEmpty() )
+            {
+            ret = iNavigationHistory->Head()->IsPreviousMsgAvailable( aCurrentMsgId, aFoundPreviousMsgId, aFoundPrevMsgFolder );
+            }
+        }
 	return ret;
 	}
 
@@ -2493,12 +2499,9 @@ TInt CFreestyleEmailUiAppUi::DisplayCreateQueryL( TAny* aSelfPtr )
         return KErrNone;
         }
 
-    if (self->iMainUiGridVisualiser)
+    if (!self->iMainUiGridVisualiser || self->iMainUiGridVisualiser->UiOperationLaunched())
         {
-        if (self->iMainUiGridVisualiser->UiOperationLaunched())
-            {
-            return KErrNone;
-            }
+        return KErrNone;
         }
 
     TRAPD( err, self->DisplayCreateMailboxQueryL() );
@@ -2750,7 +2753,10 @@ CFSEmailUiAutosyncMonitor::~CFSEmailUiAutosyncMonitor()
 void CFSEmailUiAutosyncMonitor::StartMonitoring()
     {
     FUNC_LOG;
+    if ( IsActive() )
+        {
         Cancel();
+        }
 #ifdef __WINS__ // do not try to connect on the emulator
     iRegisterationStatus = RMobilePhone::ERegisteredOnHomeNetwork;
     TRequestStatus* status = &iStatus;

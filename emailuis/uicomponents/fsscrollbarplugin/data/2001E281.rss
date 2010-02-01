@@ -14,29 +14,29 @@
 * Description: ECOM plugin resource definition.
 *
 */
-#include <registryinfo.rh>
+#include <ecom/registryinfo.rh>
 #include <alf/alfred.hrh>
 #include "../../../../inc/emailversionnumbers.hrh" // KEmailEcomVersionNumber
 
 RESOURCE REGISTRY_INFO theInfo
 {
-	dll_uid = 0x2001E281;
-	interfaces =
-	{
-	INTERFACE_INFO
-		{
-		interface_uid = K_ALF_FACTORY_INTERFACE;
-		implementations =
-				{
-				IMPLEMENTATION_INFO
-					{
-					implementation_uid = 0x2001E282;
-					version_no = KEmailEcomVersionNumber;
-					display_name = "fsscrollbar";
-					default_data = "";
-					opaque_data	 = "0";
-					}
-				};
-		}
-	};
+    dll_uid = 0x2001E281;
+    interfaces =
+    {
+    INTERFACE_INFO
+        {
+        interface_uid = K_ALF_FACTORY_INTERFACE;
+        implementations =
+                {
+                IMPLEMENTATION_INFO
+                    {
+                    implementation_uid = 0x2001E282;
+                    version_no = KEmailEcomVersionNumber;
+                    display_name = "fsscrollbar";
+                    default_data = "";
+                    opaque_data  = "0";
+                    }
+                };
+        }
+    };
 }

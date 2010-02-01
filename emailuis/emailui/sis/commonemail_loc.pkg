@@ -70,6 +70,7 @@
 
 "\epoc32\data\z\private\2001E277\HtmlFile\attachment.gif"        - "c:\private\2001E277\HtmlFile\attachment.gif"
 "\epoc32\data\z\private\2001E277\HtmlFile\email.html"            - "c:\private\2001E277\HtmlFile\email.html"
+"\epoc32\data\z\private\2001E277\HtmlFile\email_rtl.html"        - "c:\private\2001E277\HtmlFile\email_rtl.html"
 "\epoc32\data\z\private\2001E277\HtmlFile\header.js"             - "c:\private\2001E277\HtmlFile\header.js"
 "\epoc32\data\z\private\2001E277\HtmlFile\plus.gif"              - "c:\private\2001E277\HtmlFile\plus.gif"
 "\epoc32\data\z\private\2001E277\HtmlFile\minus.gif"             - "c:\private\2001E277\HtmlFile\minus.gif"
@@ -101,14 +102,6 @@
 "\epoc32\data\Z\resource\messaging\fsuidatamtm.rsc"              - "c:\resource\messaging\fsuidatamtm.rsc"
 "\epoc32\data\z\resource\apps\fsuidatamtm.mif"                   - "c:\resource\apps\fsuidatamtm.mif"
 
-; Emailuis / widget
-; Only for TB 9.2, add after 5250+ branched:
-;"\epoc32\data\Z\private\200159c0\install\emailwidget\xuikon\00\EW.o0000"                   - "c:\private\200159c0\install\emailwidget\xuikon\00\EW.o0000"
-;"\epoc32\data\Z\private\200159c0\install\emailwidget\hsps\00\emailwidgetconfiguration.dtd" - "c:\private\200159c0\install\emailwidget\hsps\00\emailwidgetconfiguration.dtd"
-;"\epoc32\data\Z\private\200159c0\install\emailwidget\hsps\00\widgetconfiguration.xml"      - "c:\private\200159c0\install\emailwidget\hsps\00\widgetconfiguration.xml"
-;"\epoc32\data\Z\private\200159c0\install\emailwidget\hsps\00\manifest.dat"                 - "c:\private\200159c0\install\emailwidget\hsps\00\manifest.dat"
-; + CenRep
-
 ; emailservices / emailframework
 "\epoc32\release\armv5\urel\FSMailFramework.dll"                 - "c:\sys\bin\FSMailFramework.dll"
 "\epoc32\release\armv5\urel\FSFWCommonLib.dll"                   - "c:\sys\bin\FSFWCommonLib.dll"
@@ -123,7 +116,7 @@
 "\epoc32\release\armv5\urel\PsMruAdapter.dll"                    - "c:\sys\bin\PsMruAdapter.dll"
 "\epoc32\data\z\resource\plugins\PsMruAdapter.rsc"               - "c:\resource\plugins\PsMruAdapter.rsc"
 
-; emailstore
+; emailservices / emailstore
 "\epoc32\release\armv5\urel\baseplugin.dll"                      - "c:\sys\bin\baseplugin.dll"
 "\epoc32\release\armv5\urel\MessageStoreClient.dll"              - "c:\sys\bin\MessageStoreClient.dll"
 "\epoc32\release\armv5\urel\MessageStoreServer.dll"              - "c:\sys\bin\MessageStoreServer.dll"
@@ -131,7 +124,7 @@
 "\epoc32\release\armv5\urel\ImsPointSecMonitor.dll"              - "c:\sys\bin\ImsPointSecMonitor.dll"
 "\epoc32\release\armv5\urel\DebugLog.dll"                        - "c:\sys\bin\DebugLog.dll"
 
-; emailserver
+; emailservices / emailserver
 ; Following line is localized, so this Engineering English line is commented out
 ;"\epoc32\data\z\resource\apps\fsmailserver.rsc"                  - "c:\resource\apps\fsmailserver.rsc"
 "\epoc32\release\armv5\urel\fsmailserver.exe"                    - "c:\sys\bin\fsmailserver.exe"
@@ -141,6 +134,10 @@
 "\epoc32\data\z\resource\apps\cmailhandlerplugin.mif"            - "c:\resource\apps\cmailhandlerplugin.mif"
 ; Following line is localized, so this Engineering English line is commented out
 ;"\epoc32\data\Z\resource\apps\emailwidget.rsc"                   - "c:\resource\apps\emailwidget.rsc"
+
+; emailservices / emailclientapi
+"\epoc32\release\armv5\urel\emailclientapi.dll"                  - "c:\sys\bin\emailclientapi.dll"
+"\epoc32\data\z\resource\plugins\emailclientapi.rsc"             - "c:\resource\plugins\emailclientapi.rsc"
 
 ; ipservices
 "\epoc32\release\armv5\urel\ipssosplugin.dll"                    - "c:\sys\bin\ipssosplugin.dll"
@@ -255,7 +252,21 @@
 "\epoc32\data\Z\private\10202BE9\2001E610.txt"                   - "c:\private\10202be9\2001E610.txt"
 "\epoc32\data\Z\private\10202BE9\2001E611.txt"                   - "c:\private\10202be9\2001E611.txt"
 
-; HomeScreen widget still missing from here
+; Emailuis / emailwidgetsettings
+"\epoc32\release\armv5\urel\emailwidgetsettings.exe"               - "c:\sys\bin\emailwidgetsettings.exe"
+"\epoc32\data\z\private\10003a3f\apps\emailwidgetsettings_reg.rsc" - "c:\private\10003a3f\import\apps\emailwidgetsettings_reg.rsc"
+; Following line is localized, so this Engineering English line is commented out
+;"\epoc32\data\z\resource\apps\emailwidgetsettings.rsc"             - "c:\resource\apps\emailwidgetsettings.rsc"
+"\epoc32\data\z\resource\apps\emailwidgetsettings.mif"             - "c:\resource\apps\emailwidgetsettings.mif"
+
+; Emailuis / widget
+; Non-localized files:
+"\epoc32\data\Z\private\200159c0\install\emailwidget\hsps\00\widgetconfiguration.xml"      - "c:\private\200159c0\install\emailwidget\hsps\00\widgetconfiguration.xml"
+"\epoc32\data\Z\private\200159c0\install\emailwidget\hsps\00\manifest.dat"                 - "c:\private\200159c0\install\emailwidget\hsps\00\manifest.dat"
+"\epoc32\data\Z\private\200159c0\install\emailwidget\hsps\00\qgn_menu_cmail.svg"           - "c:\private\200159c0\install\emailwidget\hsps\00\qgn_menu_cmail.svg"
+; Localized files (need to be clarified how these really work):
+"\epoc32\data\Z\private\200159c0\install\emailwidget\xuikon\00\EW.o0000"                   - "c:\private\200159c0\install\emailwidget\xuikon\00\EW.o0000"
+"\epoc32\data\Z\private\200159c0\install\emailwidget\hsps\00\emailwidgetconfiguration.dtd" - "c:\private\200159c0\install\emailwidget\hsps\00\emailwidgetconfiguration.dtd"
 
 IF EXISTS( "z:\resource\avkon.r01" )
     "\epoc32\data\z\resource\apps\freestyleemailui.r01"              - "c:\resource\apps\freestyleemailui.r01"
@@ -271,6 +282,7 @@ IF EXISTS( "z:\resource\avkon.r01" )
     "\epoc32\data\z\resource\esmrgui.r01"                            - "c:\resource\esmrgui.r01"
     "\epoc32\data\z\resource\esmrtasks.r01"                          - "c:\resource\esmrtasks.r01"
     "\epoc32\data\z\resource\esmrcasplugindata.r01"                  - "c:\resource\esmrcasplugindata.r01"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r01"             - "c:\resource\apps\emailwidgetsettings.r01"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r02" )
@@ -287,6 +299,7 @@ IF EXISTS( "z:\resource\avkon.r02" )
     "\epoc32\data\z\resource\esmrgui.r02"                            - "c:\resource\esmrgui.r02"
     "\epoc32\data\z\resource\esmrtasks.r02"                          - "c:\resource\esmrtasks.r02"
     "\epoc32\data\z\resource\esmrcasplugindata.r02"                  - "c:\resource\esmrcasplugindata.r02"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r02"             - "c:\resource\apps\emailwidgetsettings.r02"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r03" )
@@ -303,6 +316,7 @@ IF EXISTS( "z:\resource\avkon.r03" )
     "\epoc32\data\z\resource\esmrgui.r03"                            - "c:\resource\esmrgui.r03"
     "\epoc32\data\z\resource\esmrtasks.r03"                          - "c:\resource\esmrtasks.r03"
     "\epoc32\data\z\resource\esmrcasplugindata.r03"                  - "c:\resource\esmrcasplugindata.r03"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r03"             - "c:\resource\apps\emailwidgetsettings.r03"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r04" )
@@ -319,6 +333,7 @@ IF EXISTS( "z:\resource\avkon.r04" )
     "\epoc32\data\z\resource\esmrgui.r04"                            - "c:\resource\esmrgui.r04"
     "\epoc32\data\z\resource\esmrtasks.r04"                          - "c:\resource\esmrtasks.r04"
     "\epoc32\data\z\resource\esmrcasplugindata.r04"                  - "c:\resource\esmrcasplugindata.r04"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r04"             - "c:\resource\apps\emailwidgetsettings.r04"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r05" )
@@ -335,6 +350,7 @@ IF EXISTS( "z:\resource\avkon.r05" )
     "\epoc32\data\z\resource\esmrgui.r05"                            - "c:\resource\esmrgui.r05"
     "\epoc32\data\z\resource\esmrtasks.r05"                          - "c:\resource\esmrtasks.r05"
     "\epoc32\data\z\resource\esmrcasplugindata.r05"                  - "c:\resource\esmrcasplugindata.r05"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r05"             - "c:\resource\apps\emailwidgetsettings.r05"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r06" )
@@ -351,6 +367,7 @@ IF EXISTS( "z:\resource\avkon.r06" )
     "\epoc32\data\z\resource\esmrgui.r06"                            - "c:\resource\esmrgui.r06"
     "\epoc32\data\z\resource\esmrtasks.r06"                          - "c:\resource\esmrtasks.r06"
     "\epoc32\data\z\resource\esmrcasplugindata.r06"                  - "c:\resource\esmrcasplugindata.r06"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r06"             - "c:\resource\apps\emailwidgetsettings.r06"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r07" )
@@ -367,6 +384,7 @@ IF EXISTS( "z:\resource\avkon.r07" )
     "\epoc32\data\z\resource\esmrgui.r07"                            - "c:\resource\esmrgui.r07"
     "\epoc32\data\z\resource\esmrtasks.r07"                          - "c:\resource\esmrtasks.r07"
     "\epoc32\data\z\resource\esmrcasplugindata.r07"                  - "c:\resource\esmrcasplugindata.r07"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r07"             - "c:\resource\apps\emailwidgetsettings.r07"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r08" )
@@ -383,6 +401,7 @@ IF EXISTS( "z:\resource\avkon.r08" )
     "\epoc32\data\z\resource\esmrgui.r08"                            - "c:\resource\esmrgui.r08"
     "\epoc32\data\z\resource\esmrtasks.r08"                          - "c:\resource\esmrtasks.r08"
     "\epoc32\data\z\resource\esmrcasplugindata.r08"                  - "c:\resource\esmrcasplugindata.r08"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r08"             - "c:\resource\apps\emailwidgetsettings.r08"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r09" )
@@ -399,6 +418,7 @@ IF EXISTS( "z:\resource\avkon.r09" )
     "\epoc32\data\z\resource\esmrgui.r09"                            - "c:\resource\esmrgui.r09"
     "\epoc32\data\z\resource\esmrtasks.r09"                          - "c:\resource\esmrtasks.r09"
     "\epoc32\data\z\resource\esmrcasplugindata.r09"                  - "c:\resource\esmrcasplugindata.r09"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r09"             - "c:\resource\apps\emailwidgetsettings.r09"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r10" )
@@ -415,6 +435,7 @@ IF EXISTS( "z:\resource\avkon.r10" )
     "\epoc32\data\z\resource\esmrgui.r10"                            - "c:\resource\esmrgui.r10"
     "\epoc32\data\z\resource\esmrtasks.r10"                          - "c:\resource\esmrtasks.r10"
     "\epoc32\data\z\resource\esmrcasplugindata.r10"                  - "c:\resource\esmrcasplugindata.r10"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r10"             - "c:\resource\apps\emailwidgetsettings.r10"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r13" )
@@ -431,6 +452,7 @@ IF EXISTS( "z:\resource\avkon.r13" )
     "\epoc32\data\z\resource\esmrgui.r13"                            - "c:\resource\esmrgui.r13"
     "\epoc32\data\z\resource\esmrtasks.r13"                          - "c:\resource\esmrtasks.r13"
     "\epoc32\data\z\resource\esmrcasplugindata.r13"                  - "c:\resource\esmrcasplugindata.r13"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r13"             - "c:\resource\apps\emailwidgetsettings.r13"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r14" )
@@ -447,6 +469,7 @@ IF EXISTS( "z:\resource\avkon.r14" )
     "\epoc32\data\z\resource\esmrgui.r14"                            - "c:\resource\esmrgui.r14"
     "\epoc32\data\z\resource\esmrtasks.r14"                          - "c:\resource\esmrtasks.r14"
     "\epoc32\data\z\resource\esmrcasplugindata.r14"                  - "c:\resource\esmrcasplugindata.r14"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r14"             - "c:\resource\apps\emailwidgetsettings.r14"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r15" )
@@ -463,6 +486,7 @@ IF EXISTS( "z:\resource\avkon.r15" )
     "\epoc32\data\z\resource\esmrgui.r15"                            - "c:\resource\esmrgui.r15"
     "\epoc32\data\z\resource\esmrtasks.r15"                          - "c:\resource\esmrtasks.r15"
     "\epoc32\data\z\resource\esmrcasplugindata.r15"                  - "c:\resource\esmrcasplugindata.r15"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r15"             - "c:\resource\apps\emailwidgetsettings.r15"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r16" )
@@ -479,6 +503,7 @@ IF EXISTS( "z:\resource\avkon.r16" )
     "\epoc32\data\z\resource\esmrgui.r16"                            - "c:\resource\esmrgui.r16"
     "\epoc32\data\z\resource\esmrtasks.r16"                          - "c:\resource\esmrtasks.r16"
     "\epoc32\data\z\resource\esmrcasplugindata.r16"                  - "c:\resource\esmrcasplugindata.r16"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r16"             - "c:\resource\apps\emailwidgetsettings.r16"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r17" )
@@ -495,6 +520,7 @@ IF EXISTS( "z:\resource\avkon.r17" )
     "\epoc32\data\z\resource\esmrgui.r17"                            - "c:\resource\esmrgui.r17"
     "\epoc32\data\z\resource\esmrtasks.r17"                          - "c:\resource\esmrtasks.r17"
     "\epoc32\data\z\resource\esmrcasplugindata.r17"                  - "c:\resource\esmrcasplugindata.r17"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r17"             - "c:\resource\apps\emailwidgetsettings.r17"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r18" )
@@ -511,6 +537,7 @@ IF EXISTS( "z:\resource\avkon.r18" )
     "\epoc32\data\z\resource\esmrgui.r18"                            - "c:\resource\esmrgui.r18"
     "\epoc32\data\z\resource\esmrtasks.r18"                          - "c:\resource\esmrtasks.r18"
     "\epoc32\data\z\resource\esmrcasplugindata.r18"                  - "c:\resource\esmrcasplugindata.r18"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r18"             - "c:\resource\apps\emailwidgetsettings.r18"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r25" )
@@ -527,6 +554,7 @@ IF EXISTS( "z:\resource\avkon.r25" )
     "\epoc32\data\z\resource\esmrgui.r25"                            - "c:\resource\esmrgui.r25"
     "\epoc32\data\z\resource\esmrtasks.r25"                          - "c:\resource\esmrtasks.r25"
     "\epoc32\data\z\resource\esmrcasplugindata.r25"                  - "c:\resource\esmrcasplugindata.r25"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r25"             - "c:\resource\apps\emailwidgetsettings.r25"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r26" )
@@ -543,6 +571,7 @@ IF EXISTS( "z:\resource\avkon.r26" )
     "\epoc32\data\z\resource\esmrgui.r26"                            - "c:\resource\esmrgui.r26"
     "\epoc32\data\z\resource\esmrtasks.r26"                          - "c:\resource\esmrtasks.r26"
     "\epoc32\data\z\resource\esmrcasplugindata.r26"                  - "c:\resource\esmrcasplugindata.r26"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r26"             - "c:\resource\apps\emailwidgetsettings.r26"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r27" )
@@ -559,6 +588,7 @@ IF EXISTS( "z:\resource\avkon.r27" )
     "\epoc32\data\z\resource\esmrgui.r27"                            - "c:\resource\esmrgui.r27"
     "\epoc32\data\z\resource\esmrtasks.r27"                          - "c:\resource\esmrtasks.r27"
     "\epoc32\data\z\resource\esmrcasplugindata.r27"                  - "c:\resource\esmrcasplugindata.r27"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r27"             - "c:\resource\apps\emailwidgetsettings.r27"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r28" )
@@ -575,6 +605,7 @@ IF EXISTS( "z:\resource\avkon.r28" )
     "\epoc32\data\z\resource\esmrgui.r28"                            - "c:\resource\esmrgui.r28"
     "\epoc32\data\z\resource\esmrtasks.r28"                          - "c:\resource\esmrtasks.r28"
     "\epoc32\data\z\resource\esmrcasplugindata.r28"                  - "c:\resource\esmrcasplugindata.r28"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r28"             - "c:\resource\apps\emailwidgetsettings.r28"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r29" )
@@ -591,6 +622,7 @@ IF EXISTS( "z:\resource\avkon.r29" )
     "\epoc32\data\z\resource\esmrgui.r29"                            - "c:\resource\esmrgui.r29"
     "\epoc32\data\z\resource\esmrtasks.r29"                          - "c:\resource\esmrtasks.r29"
     "\epoc32\data\z\resource\esmrcasplugindata.r29"                  - "c:\resource\esmrcasplugindata.r29"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r29"             - "c:\resource\apps\emailwidgetsettings.r29"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r30" )
@@ -607,6 +639,7 @@ IF EXISTS( "z:\resource\avkon.r30" )
     "\epoc32\data\z\resource\esmrgui.r30"                            - "c:\resource\esmrgui.r30"
     "\epoc32\data\z\resource\esmrtasks.r30"                          - "c:\resource\esmrtasks.r30"
     "\epoc32\data\z\resource\esmrcasplugindata.r30"                  - "c:\resource\esmrcasplugindata.r30"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r30"             - "c:\resource\apps\emailwidgetsettings.r30"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r31" )
@@ -623,6 +656,7 @@ IF EXISTS( "z:\resource\avkon.r31" )
     "\epoc32\data\z\resource\esmrgui.r31"                            - "c:\resource\esmrgui.r31"
     "\epoc32\data\z\resource\esmrtasks.r31"                          - "c:\resource\esmrtasks.r31"
     "\epoc32\data\z\resource\esmrcasplugindata.r31"                  - "c:\resource\esmrcasplugindata.r31"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r31"             - "c:\resource\apps\emailwidgetsettings.r31"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r32" )
@@ -639,6 +673,7 @@ IF EXISTS( "z:\resource\avkon.r32" )
     "\epoc32\data\z\resource\esmrgui.r32"                            - "c:\resource\esmrgui.r32"
     "\epoc32\data\z\resource\esmrtasks.r32"                          - "c:\resource\esmrtasks.r32"
     "\epoc32\data\z\resource\esmrcasplugindata.r32"                  - "c:\resource\esmrcasplugindata.r32"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r32"             - "c:\resource\apps\emailwidgetsettings.r32"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r33" )
@@ -655,6 +690,7 @@ IF EXISTS( "z:\resource\avkon.r33" )
     "\epoc32\data\z\resource\esmrgui.r33"                            - "c:\resource\esmrgui.r33"
     "\epoc32\data\z\resource\esmrtasks.r33"                          - "c:\resource\esmrtasks.r33"
     "\epoc32\data\z\resource\esmrcasplugindata.r33"                  - "c:\resource\esmrcasplugindata.r33"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r33"             - "c:\resource\apps\emailwidgetsettings.r33"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r37" )
@@ -671,6 +707,7 @@ IF EXISTS( "z:\resource\avkon.r37" )
     "\epoc32\data\z\resource\esmrgui.r37"                            - "c:\resource\esmrgui.r37"
     "\epoc32\data\z\resource\esmrtasks.r37"                          - "c:\resource\esmrtasks.r37"
     "\epoc32\data\z\resource\esmrcasplugindata.r37"                  - "c:\resource\esmrcasplugindata.r37"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r37"             - "c:\resource\apps\emailwidgetsettings.r37"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r39" )
@@ -687,6 +724,7 @@ IF EXISTS( "z:\resource\avkon.r39" )
     "\epoc32\data\z\resource\esmrgui.r39"                            - "c:\resource\esmrgui.r39"
     "\epoc32\data\z\resource\esmrtasks.r39"                          - "c:\resource\esmrtasks.r39"
     "\epoc32\data\z\resource\esmrcasplugindata.r39"                  - "c:\resource\esmrcasplugindata.r39"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r39"             - "c:\resource\apps\emailwidgetsettings.r39"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r42" )
@@ -703,6 +741,7 @@ IF EXISTS( "z:\resource\avkon.r42" )
     "\epoc32\data\z\resource\esmrgui.r42"                            - "c:\resource\esmrgui.r42"
     "\epoc32\data\z\resource\esmrtasks.r42"                          - "c:\resource\esmrtasks.r42"
     "\epoc32\data\z\resource\esmrcasplugindata.r42"                  - "c:\resource\esmrcasplugindata.r42"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r42"             - "c:\resource\apps\emailwidgetsettings.r42"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r44" )
@@ -719,6 +758,7 @@ IF EXISTS( "z:\resource\avkon.r44" )
     "\epoc32\data\z\resource\esmrgui.r44"                            - "c:\resource\esmrgui.r44"
     "\epoc32\data\z\resource\esmrtasks.r44"                          - "c:\resource\esmrtasks.r44"
     "\epoc32\data\z\resource\esmrcasplugindata.r44"                  - "c:\resource\esmrcasplugindata.r44"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r44"             - "c:\resource\apps\emailwidgetsettings.r44"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r45" )
@@ -735,6 +775,7 @@ IF EXISTS( "z:\resource\avkon.r45" )
     "\epoc32\data\z\resource\esmrgui.r45"                            - "c:\resource\esmrgui.r45"
     "\epoc32\data\z\resource\esmrtasks.r45"                          - "c:\resource\esmrtasks.r45"
     "\epoc32\data\z\resource\esmrcasplugindata.r45"                  - "c:\resource\esmrcasplugindata.r45"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r45"             - "c:\resource\apps\emailwidgetsettings.r45"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r49" )
@@ -751,6 +792,7 @@ IF EXISTS( "z:\resource\avkon.r49" )
     "\epoc32\data\z\resource\esmrgui.r49"                            - "c:\resource\esmrgui.r49"
     "\epoc32\data\z\resource\esmrtasks.r49"                          - "c:\resource\esmrtasks.r49"
     "\epoc32\data\z\resource\esmrcasplugindata.r49"                  - "c:\resource\esmrcasplugindata.r49"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r49"             - "c:\resource\apps\emailwidgetsettings.r49"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r50" )
@@ -767,6 +809,7 @@ IF EXISTS( "z:\resource\avkon.r50" )
     "\epoc32\data\z\resource\esmrgui.r50"                            - "c:\resource\esmrgui.r50"
     "\epoc32\data\z\resource\esmrtasks.r50"                          - "c:\resource\esmrtasks.r50"
     "\epoc32\data\z\resource\esmrcasplugindata.r50"                  - "c:\resource\esmrcasplugindata.r50"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r50"             - "c:\resource\apps\emailwidgetsettings.r50"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r51" )
@@ -783,6 +826,7 @@ IF EXISTS( "z:\resource\avkon.r51" )
     "\epoc32\data\z\resource\esmrgui.r51"                            - "c:\resource\esmrgui.r51"
     "\epoc32\data\z\resource\esmrtasks.r51"                          - "c:\resource\esmrtasks.r51"
     "\epoc32\data\z\resource\esmrcasplugindata.r51"                  - "c:\resource\esmrcasplugindata.r51"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r51"             - "c:\resource\apps\emailwidgetsettings.r51"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r54" )
@@ -799,6 +843,7 @@ IF EXISTS( "z:\resource\avkon.r54" )
     "\epoc32\data\z\resource\esmrgui.r54"                            - "c:\resource\esmrgui.r54"
     "\epoc32\data\z\resource\esmrtasks.r54"                          - "c:\resource\esmrtasks.r54"
     "\epoc32\data\z\resource\esmrcasplugindata.r54"                  - "c:\resource\esmrcasplugindata.r54"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r54"             - "c:\resource\apps\emailwidgetsettings.r54"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r57" )
@@ -815,6 +860,7 @@ IF EXISTS( "z:\resource\avkon.r57" )
     "\epoc32\data\z\resource\esmrgui.r57"                            - "c:\resource\esmrgui.r57"
     "\epoc32\data\z\resource\esmrtasks.r57"                          - "c:\resource\esmrtasks.r57"
     "\epoc32\data\z\resource\esmrcasplugindata.r57"                  - "c:\resource\esmrcasplugindata.r57"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r57"             - "c:\resource\apps\emailwidgetsettings.r57"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r59" )
@@ -831,6 +877,7 @@ IF EXISTS( "z:\resource\avkon.r59" )
     "\epoc32\data\z\resource\esmrgui.r59"                            - "c:\resource\esmrgui.r59"
     "\epoc32\data\z\resource\esmrtasks.r59"                          - "c:\resource\esmrtasks.r59"
     "\epoc32\data\z\resource\esmrcasplugindata.r59"                  - "c:\resource\esmrcasplugindata.r59"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r59"             - "c:\resource\apps\emailwidgetsettings.r59"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r67" )
@@ -847,6 +894,7 @@ IF EXISTS( "z:\resource\avkon.r67" )
     "\epoc32\data\z\resource\esmrgui.r67"                            - "c:\resource\esmrgui.r67"
     "\epoc32\data\z\resource\esmrtasks.r67"                          - "c:\resource\esmrtasks.r67"
     "\epoc32\data\z\resource\esmrcasplugindata.r67"                  - "c:\resource\esmrcasplugindata.r67"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r67"             - "c:\resource\apps\emailwidgetsettings.r67"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r68" )
@@ -863,6 +911,7 @@ IF EXISTS( "z:\resource\avkon.r68" )
     "\epoc32\data\z\resource\esmrgui.r68"                            - "c:\resource\esmrgui.r68"
     "\epoc32\data\z\resource\esmrtasks.r68"                          - "c:\resource\esmrtasks.r68"
     "\epoc32\data\z\resource\esmrcasplugindata.r68"                  - "c:\resource\esmrcasplugindata.r68"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r68"             - "c:\resource\apps\emailwidgetsettings.r68"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r70" )
@@ -879,6 +928,7 @@ IF EXISTS( "z:\resource\avkon.r70" )
     "\epoc32\data\z\resource\esmrgui.r70"                            - "c:\resource\esmrgui.r70"
     "\epoc32\data\z\resource\esmrtasks.r70"                          - "c:\resource\esmrtasks.r70"
     "\epoc32\data\z\resource\esmrcasplugindata.r70"                  - "c:\resource\esmrcasplugindata.r70"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r70"             - "c:\resource\apps\emailwidgetsettings.r70"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r76" )
@@ -895,6 +945,7 @@ IF EXISTS( "z:\resource\avkon.r76" )
     "\epoc32\data\z\resource\esmrgui.r76"                            - "c:\resource\esmrgui.r76"
     "\epoc32\data\z\resource\esmrtasks.r76"                          - "c:\resource\esmrtasks.r76"
     "\epoc32\data\z\resource\esmrcasplugindata.r76"                  - "c:\resource\esmrcasplugindata.r76"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r76"             - "c:\resource\apps\emailwidgetsettings.r76"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r78" )
@@ -911,6 +962,7 @@ IF EXISTS( "z:\resource\avkon.r78" )
     "\epoc32\data\z\resource\esmrgui.r78"                            - "c:\resource\esmrgui.r78"
     "\epoc32\data\z\resource\esmrtasks.r78"                          - "c:\resource\esmrtasks.r78"
     "\epoc32\data\z\resource\esmrcasplugindata.r78"                  - "c:\resource\esmrcasplugindata.r78"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r78"             - "c:\resource\apps\emailwidgetsettings.r78"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r79" )
@@ -927,6 +979,7 @@ IF EXISTS( "z:\resource\avkon.r79" )
     "\epoc32\data\z\resource\esmrgui.r79"                            - "c:\resource\esmrgui.r79"
     "\epoc32\data\z\resource\esmrtasks.r79"                          - "c:\resource\esmrtasks.r79"
     "\epoc32\data\z\resource\esmrcasplugindata.r79"                  - "c:\resource\esmrcasplugindata.r79"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r79"             - "c:\resource\apps\emailwidgetsettings.r79"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r83" )
@@ -943,6 +996,7 @@ IF EXISTS( "z:\resource\avkon.r83" )
     "\epoc32\data\z\resource\esmrgui.r83"                            - "c:\resource\esmrgui.r83"
     "\epoc32\data\z\resource\esmrtasks.r83"                          - "c:\resource\esmrtasks.r83"
     "\epoc32\data\z\resource\esmrcasplugindata.r83"                  - "c:\resource\esmrcasplugindata.r83"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r83"             - "c:\resource\apps\emailwidgetsettings.r83"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r93" )
@@ -959,6 +1013,7 @@ IF EXISTS( "z:\resource\avkon.r93" )
     "\epoc32\data\z\resource\esmrgui.r93"                            - "c:\resource\esmrgui.r93"
     "\epoc32\data\z\resource\esmrtasks.r93"                          - "c:\resource\esmrtasks.r93"
     "\epoc32\data\z\resource\esmrcasplugindata.r93"                  - "c:\resource\esmrcasplugindata.r93"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r93"             - "c:\resource\apps\emailwidgetsettings.r93"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r94" )
@@ -975,6 +1030,7 @@ IF EXISTS( "z:\resource\avkon.r94" )
     "\epoc32\data\z\resource\esmrgui.r94"                            - "c:\resource\esmrgui.r94"
     "\epoc32\data\z\resource\esmrtasks.r94"                          - "c:\resource\esmrtasks.r94"
     "\epoc32\data\z\resource\esmrcasplugindata.r94"                  - "c:\resource\esmrcasplugindata.r94"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r94"             - "c:\resource\apps\emailwidgetsettings.r94"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r96" )
@@ -991,6 +1047,7 @@ IF EXISTS( "z:\resource\avkon.r96" )
     "\epoc32\data\z\resource\esmrgui.r96"                            - "c:\resource\esmrgui.r96"
     "\epoc32\data\z\resource\esmrtasks.r96"                          - "c:\resource\esmrtasks.r96"
     "\epoc32\data\z\resource\esmrcasplugindata.r96"                  - "c:\resource\esmrcasplugindata.r96"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r96"             - "c:\resource\apps\emailwidgetsettings.r96"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r102" )
@@ -1007,6 +1064,7 @@ IF EXISTS( "z:\resource\avkon.r102" )
     "\epoc32\data\z\resource\esmrgui.r102"                            - "c:\resource\esmrgui.r102"
     "\epoc32\data\z\resource\esmrtasks.r102"                          - "c:\resource\esmrtasks.r102"
     "\epoc32\data\z\resource\esmrcasplugindata.r102"                  - "c:\resource\esmrcasplugindata.r102"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r102"             - "c:\resource\apps\emailwidgetsettings.r102"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r103" )
@@ -1023,6 +1081,7 @@ IF EXISTS( "z:\resource\avkon.r103" )
     "\epoc32\data\z\resource\esmrgui.r103"                            - "c:\resource\esmrgui.r103"
     "\epoc32\data\z\resource\esmrtasks.r103"                          - "c:\resource\esmrtasks.r103"
     "\epoc32\data\z\resource\esmrcasplugindata.r103"                  - "c:\resource\esmrcasplugindata.r103"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r103"             - "c:\resource\apps\emailwidgetsettings.r103"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r129" )
@@ -1039,6 +1098,7 @@ IF EXISTS( "z:\resource\avkon.r129" )
     "\epoc32\data\z\resource\esmrgui.r129"                            - "c:\resource\esmrgui.r129"
     "\epoc32\data\z\resource\esmrtasks.r129"                          - "c:\resource\esmrtasks.r129"
     "\epoc32\data\z\resource\esmrcasplugindata.r129"                  - "c:\resource\esmrcasplugindata.r129"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r129"             - "c:\resource\apps\emailwidgetsettings.r129"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r157" )
@@ -1055,6 +1115,7 @@ IF EXISTS( "z:\resource\avkon.r157" )
     "\epoc32\data\z\resource\esmrgui.r157"                            - "c:\resource\esmrgui.r157"
     "\epoc32\data\z\resource\esmrtasks.r157"                          - "c:\resource\esmrtasks.r157"
     "\epoc32\data\z\resource\esmrcasplugindata.r157"                  - "c:\resource\esmrcasplugindata.r157"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r157"             - "c:\resource\apps\emailwidgetsettings.r157"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r158" )
@@ -1071,6 +1132,7 @@ IF EXISTS( "z:\resource\avkon.r158" )
     "\epoc32\data\z\resource\esmrgui.r158"                            - "c:\resource\esmrgui.r158"
     "\epoc32\data\z\resource\esmrtasks.r158"                          - "c:\resource\esmrtasks.r158"
     "\epoc32\data\z\resource\esmrcasplugindata.r158"                  - "c:\resource\esmrcasplugindata.r158"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r158"             - "c:\resource\apps\emailwidgetsettings.r158"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r159" )
@@ -1087,6 +1149,7 @@ IF EXISTS( "z:\resource\avkon.r159" )
     "\epoc32\data\z\resource\esmrgui.r159"                            - "c:\resource\esmrgui.r159"
     "\epoc32\data\z\resource\esmrtasks.r159"                          - "c:\resource\esmrtasks.r159"
     "\epoc32\data\z\resource\esmrcasplugindata.r159"                  - "c:\resource\esmrcasplugindata.r159"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r159"             - "c:\resource\apps\emailwidgetsettings.r159"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r160" )
@@ -1103,6 +1166,7 @@ IF EXISTS( "z:\resource\avkon.r160" )
     "\epoc32\data\z\resource\esmrgui.r160"                            - "c:\resource\esmrgui.r160"
     "\epoc32\data\z\resource\esmrtasks.r160"                          - "c:\resource\esmrtasks.r160"
     "\epoc32\data\z\resource\esmrcasplugindata.r160"                  - "c:\resource\esmrcasplugindata.r160"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r160"             - "c:\resource\apps\emailwidgetsettings.r160"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r161" )
@@ -1119,6 +1183,7 @@ IF EXISTS( "z:\resource\avkon.r161" )
     "\epoc32\data\z\resource\esmrgui.r161"                            - "c:\resource\esmrgui.r161"
     "\epoc32\data\z\resource\esmrtasks.r161"                          - "c:\resource\esmrtasks.r161"
     "\epoc32\data\z\resource\esmrcasplugindata.r161"                  - "c:\resource\esmrcasplugindata.r161"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r161"             - "c:\resource\apps\emailwidgetsettings.r161"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r326" )
@@ -1135,6 +1200,7 @@ IF EXISTS( "z:\resource\avkon.r326" )
     "\epoc32\data\z\resource\esmrgui.r326"                            - "c:\resource\esmrgui.r326"
     "\epoc32\data\z\resource\esmrtasks.r326"                          - "c:\resource\esmrtasks.r326"
     "\epoc32\data\z\resource\esmrcasplugindata.r326"                  - "c:\resource\esmrcasplugindata.r326"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r326"             - "c:\resource\apps\emailwidgetsettings.r326"
 ENDIF
 
 IF EXISTS( "z:\resource\avkon.r327" )
@@ -1151,6 +1217,7 @@ IF EXISTS( "z:\resource\avkon.r327" )
     "\epoc32\data\z\resource\esmrgui.r327"                            - "c:\resource\esmrgui.r327"
     "\epoc32\data\z\resource\esmrtasks.r327"                          - "c:\resource\esmrtasks.r327"
     "\epoc32\data\z\resource\esmrcasplugindata.r327"                  - "c:\resource\esmrcasplugindata.r327"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r327"             - "c:\resource\apps\emailwidgetsettings.r327"
 ENDIF
 
 ; emailservices / emailservermonitor

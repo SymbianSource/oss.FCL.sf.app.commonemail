@@ -62,6 +62,7 @@
 #include "FreestyleEmailUiMailViewerConstants.h"
 #include "FSDelayedLoader.h"
 #include "FreestyleMessageHeaderURL.h"
+#include "FreestyleEmailUiAknStatusIndicator.h"
 #include <akntoolbar.h>
 // CONSTANTS
 // Zoom levels available on the UI
@@ -446,7 +447,7 @@ void CFsEmailUiHtmlViewerView::HideContainer()
 
     if ( iContainer )
         {
-        iContainer->HideAttacthmentDownloadStatus();
+        iContainer->HideDownloadStatus();
         iContainer->MakeVisible( EFalse );
         iAppUi.RemoveFromStack( iContainer );
         }
@@ -476,8 +477,6 @@ void CFsEmailUiHtmlViewerView::ChildDoActivateL( const TVwsViewId& /*aPrevViewId
         TUid aCustomMessageId, const TDesC8& aCustomMessage )
     {
     FUNC_LOG;
-    
-    TBool bodypartNotFound ( EFalse );
     
     if ( iMrObserverToInform && 
          aCustomMessageId == KStartViewerReturnToPreviousMsg )
@@ -523,11 +522,7 @@ void CFsEmailUiHtmlViewerView::ChildDoActivateL( const TVwsViewId& /*aPrevViewId
         {
         iContainer = CFsEmailUiHtmlViewerContainer::NewL( iAppUi, *this );
         }
-    else if ( iContainer ) // Container exists, make sure that it has a correct rect
-        {
-        iContainer->SetRect( ContainerRect() );
-        }
-
+   
     // Check whether this activation is actually for a meeting request
     TBool openedInMrViewer( EFalse );    
     if ( THtmlViewerActivationData::EMailMessage == iActivationData.iActivationDataType )
@@ -598,15 +593,7 @@ void CFsEmailUiHtmlViewerView::ChildDoActivateL( const TVwsViewId& /*aPrevViewId
 		            TPartData msgPartData( iActivationData.iMailBoxId, iActivationData.iFolderId, iActivationData.iMessageId);
 		            iAttachmentsListModel->UpdateListL( msgPartData );
                        
-            		TRAPD( error, LoadContentFromMailMessageL( iMessage, ETrue ) );
-            		if ( error == KErrNotFound || error == KErrInUse || error == KErrLocked )
-            		    {
-            		    bodypartNotFound = ETrue;
-            		    }
-            		else if ( error != KErrNone)
-            		    {
-            		    User::Leave( error );
-            		    }
+            		LoadContentFromMailMessageL( iMessage, ETrue );
             		}
                 
                 }
@@ -654,15 +641,7 @@ void CFsEmailUiHtmlViewerView::ChildDoActivateL( const TVwsViewId& /*aPrevViewId
                 }                
             
     
-            TRAPD( error, LoadContentFromMailMessageL( iOpenMessages->Head(), ETrue ) );
-            if ( error == KErrNotFound || error == KErrInUse || error == KErrLocked )
-                {
-                bodypartNotFound = ETrue;
-                }
-            else if ( error != KErrNone)
-                {
-                User::Leave( error );
-                }
+            LoadContentFromMailMessageL( iOpenMessages->Head(), ETrue );
             
             // update tool bar as some action menu boton should not appear in embbeded messages.
             UpdateToolbarL();
@@ -710,35 +689,63 @@ void CFsEmailUiHtmlViewerView::ChildDoActivateL( const TVwsViewId& /*aPrevViewId
             }
         }
     
-    if ( !openedInMrViewer )
+    if ( !openedInMrViewer && iMessage)
         {
         CFSMailMessagePart* htmlBodyPart = iMessage->HtmlBodyPartL();
         TFetchedType type;
-        if( htmlBodyPart )
+        if ( htmlBodyPart )
             {
             type = EMessageHtmlBodyPart;
+            delete htmlBodyPart;
             }
         else
             {
             type = EMessagePlainTextBodyPart;
             }
-        if( !MessageStructureKnown(*iMessage) )
+
+        if ( !MessageStructureKnown(*iMessage) )
             {
+            iContainer->DisplayStatusIndicatorL();
             StartWaitedFetchingL(EMessageStructure);
             iFetchingAlready = ETrue;
             }
-        else if ( bodypartNotFound )
+        else 
             {
-            iAsyncProcessComplete = EFalse;
-            iFetchingAlready = EFalse;
-            iStartAsyncFetchType = type;
-            if(iMessage)
+            TBool bodypartNotFound ( EFalse );
+            if ( type == EMessagePlainTextBodyPart )
                 {
-                StartFetchingMessagePartL( *iMessage, type );
+                CFSMailMessagePart* textBodyPart = iMessage->PlainTextBodyPartL();
+                if ( textBodyPart )
+                    {
+                    delete textBodyPart;
+                    }
+                else
+                    {
+                    bodypartNotFound = ETrue;
+                    }                
+                }
+            
+            if ( bodypartNotFound )
+                {
+                iAsyncProcessComplete = EFalse;
+                iFetchingAlready = EFalse;
+                iStartAsyncFetchType = type;
+                if(iMessage)
+                    {
+                    StartFetchingMessagePartL( *iMessage, type );
+                    }
                 }
             }
        }
     iNextOrPrevMessageSelected = EFalse;
+    
+    //update rect only if it has changed from previous time.
+    if ( iContainer->Rect() != ContainerRect()  )
+        {
+        iContainer->SetRect( ContainerRect() );
+        }
+
+    
     }
 
 // -----------------------------------------------------------------------------
@@ -1651,9 +1658,9 @@ void CFsEmailUiHtmlViewerView::OpenAttachmentL( const TAttachmentData& aAttachme
     else if ( aAttachment.downloadProgress != KComplete )
         {
         DownloadAttachmentL( aAttachment );
-        if ( iContainer && !iContainer->AttacthmentDownloadStatusVisible() )
+        if ( iContainer && !iContainer->AttachmentDownloadStatusVisible() )
             {
-            iContainer->ShowAttacthmentDownloadStatusL( TFSProgress::EFSStatus_Status, aAttachment );
+            iContainer->ShowAttachmentDownloadStatusL( TFSProgress::EFSStatus_Status, aAttachment );
             }
         }
     else
@@ -1669,9 +1676,9 @@ void CFsEmailUiHtmlViewerView::SaveAttachmentL( const TAttachmentData& aAttachme
         {
         TInt savedCount( 0 );
         TBool downloadRequired = iAttachmentsListModel->SaveAttachmentL( aAttachment, fileName, savedCount );
-        if ( downloadRequired && iContainer && !iContainer->AttacthmentDownloadStatusVisible() )
+        if ( downloadRequired && iContainer && !iContainer->AttachmentDownloadStatusVisible() )
             {
-            iContainer->ShowAttacthmentDownloadStatusL( TFSProgress::EFSStatus_Status, aAttachment );
+            iContainer->ShowAttachmentDownloadStatusL( TFSProgress::EFSStatus_Status, aAttachment );
             }
         
         if ( savedCount )
@@ -1687,14 +1694,14 @@ void CFsEmailUiHtmlViewerView::SaveAllAttachmentsL()
     if ( TFsEmailUiUtility::ShowSaveFolderDialogL( fileName ) )
         {
         TBool downloadRequired = iAttachmentsListModel->SaveAllAttachmentsL( fileName );
-        if ( downloadRequired && iContainer && !iContainer->AttacthmentDownloadStatusVisible() )
+        if ( downloadRequired && iContainer && !iContainer->AttachmentDownloadStatusVisible() )
             {
             for ( TInt i = 0; i < iAttachmentsListModel->GetModel().Count(); i++ )
                 {
                 const TAttachmentData& attachment = iAttachmentsListModel->GetModel()[i];
                 if ( attachment.downloadProgress < KComplete )
                     {
-                    iContainer->ShowAttacthmentDownloadStatusL( TFSProgress::EFSStatus_Status, attachment );
+                    iContainer->ShowAttachmentDownloadStatusL( TFSProgress::EFSStatus_Status, attachment );
                     break;
                     }
                 }
@@ -1775,7 +1782,7 @@ void CFsEmailUiHtmlViewerView::UpdateDownloadIndicatorL(
                 break;
             }
         
-        iContainer->ShowAttacthmentDownloadStatusL( aEvent.iProgressStatus, *attachment );
+        iContainer->ShowAttachmentDownloadStatusL( aEvent.iProgressStatus, *attachment );
         }
     }
 
@@ -2185,6 +2192,7 @@ void CFsEmailUiHtmlViewerView::StartFetchingMessagePartL( CFSMailMessage& aMessa
                                             TFetchedType aFetchedContentType )
     {
     FUNC_LOG;
+    iContainer->DisplayStatusIndicatorL();
     if( aFetchedContentType == EMessagePlainTextBodyPart )
         {
         CFSMailMessagePart* textPart = aMessagePtr.PlainTextBodyPartL();
@@ -2295,19 +2303,21 @@ void CFsEmailUiHtmlViewerView::RequestResponseL( TFSProgress aEvent, TInt aReque
                 }
             }
         }
-    
+    if(iContainer)
+        {
+        iContainer->HideDownloadStatus();
+        }
     if ( reloadContent )
         {
     
         if (  iContainer )
             {
-            iContainer->ResetContent();
-            }
-                
-        if( iMessage )
-            {
-            LoadContentFromMailMessageL( iMessage , EFalse);  
-            SetMskL();
+            iContainer->ResetContent();                
+			if( iMessage )
+				{
+				LoadContentFromMailMessageL( iMessage , EFalse);  
+				SetMskL();
+				}
             }
         }
             
@@ -2670,7 +2680,7 @@ if ( messagePtr )
         case EESMRCmdDownloadAttachment:
         case EESMRCmdDownloadAllAttachments:
             {
-            if(iAttachmentsListModel == NULL)
+            if( !iAttachmentsListModel )
                 {
                 iAttachmentsListModel = CFSEmailUiAttachmentsListModel::NewL( iAppUi, *this );
                 iAttachmentsListModel->UpdateListL( iOpenMessages->Head() );
@@ -2687,7 +2697,7 @@ if ( messagePtr )
         case EESMRCmdSaveAttachment:
         case EESMRCmdSaveAllAttachments:
             {
-            if(iAttachmentsListModel == NULL)
+            if( !iAttachmentsListModel )
                 {
                 iAttachmentsListModel = CFSEmailUiAttachmentsListModel::NewL( iAppUi, *this );
                 iAttachmentsListModel->UpdateListL( iOpenMessages->Head() );

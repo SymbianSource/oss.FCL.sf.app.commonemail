@@ -21,7 +21,7 @@
 
 #include <e32base.h>
 //<cmail>
-#include "cfsmailcommon.h"
+#include "CFSMailCommon.h"
 //</cmail>
 
 // Forward declaration

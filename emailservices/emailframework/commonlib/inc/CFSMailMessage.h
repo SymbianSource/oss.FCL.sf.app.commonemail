@@ -19,7 +19,7 @@
 #define __CFSMAILMESSAGE_H
 
 //<cmail>
-#include "cfsmailmessagepart.h"
+#include "CFSMailMessagePart.h"
 //</cmail>
 
 /**
@@ -37,7 +37,7 @@ class CFSMailMessage : public CFSMailMessagePart
      *
      * @param aMessageId message id in plugin containing email
      */
-   	 IMPORT_C static CFSMailMessage* NewL( TFSMailMsgId aMessageId );
+     IMPORT_C static CFSMailMessage* NewL( TFSMailMsgId aMessageId );
     
     /**
      * Two-phased constructor.
@@ -46,7 +46,7 @@ class CFSMailMessage : public CFSMailMessagePart
      */
      IMPORT_C static CFSMailMessage* NewLC( TFSMailMsgId aMessageId );
 
-   	/**
+    /**
      * saves this message
      */
      IMPORT_C void SaveMessageL();
@@ -54,7 +54,7 @@ class CFSMailMessage : public CFSMailMessagePart
     /**
      * destructor
      */  
-  	 IMPORT_C ~CFSMailMessage();
+     IMPORT_C ~CFSMailMessage();
 
     /**
      * Adds new attachment to this email.
@@ -81,27 +81,27 @@ class CFSMailMessage : public CFSMailMessagePart
                                                      const TDesC8& aMimeType );
 
      /**
-	 * Returns a flat list of message parts that can be handled as attachments.
-	 * Excludes message parts that are multipart and parts that are considered
-	 * plain text or html body.
-	 * 
-	 * @param aParts contains flat list of attachments
-	 */        
-	 IMPORT_C void AttachmentListL(RPointerArray<CFSMailMessagePart>& aParts);
+     * Returns a flat list of message parts that can be handled as attachments.
+     * Excludes message parts that are multipart and parts that are considered
+     * plain text or html body.
+     * 
+     * @param aParts contains flat list of attachments
+     */        
+     IMPORT_C void AttachmentListL(RPointerArray<CFSMailMessagePart>& aParts);
 
-	/**
-	 * Returns plain text body part for this email or NULL if not found.
-	 * 
-	 * @return plain text email body part, ownership is transferred to user
-	 */        
-	 IMPORT_C CFSMailMessagePart* PlainTextBodyPartL();
+    /**
+     * Returns plain text body part for this email or NULL if not found.
+     * 
+     * @return plain text email body part, ownership is transferred to user
+     */        
+     IMPORT_C CFSMailMessagePart* PlainTextBodyPartL();
 
-	/**
-	 * Returns html body part for this message or NULL if not found.
-	 * 
-	 * @return html email body part, ownership is transferred to user
-	 */        
-	 IMPORT_C CFSMailMessagePart* HtmlBodyPartL();
+    /**
+     * Returns html body part for this message or NULL if not found.
+     * 
+     * @return html email body part, ownership is transferred to user
+     */        
+     IMPORT_C CFSMailMessagePart* HtmlBodyPartL();
 
     /**
      * Returns ETrue if this part is actually a message.
@@ -109,9 +109,9 @@ class CFSMailMessage : public CFSMailMessagePart
      * 
      * @return true if this message part is a message
      */        
-	 IMPORT_C TBool IsMessageL() const;
+     IMPORT_C TBool IsMessageL() const;
 
-	 /**
+     /**
      * Returns a flat list of message parts that can be handled as attachments.
      * Excludes message parts that are multipart and parts that are considered
      * plain text or html body.
@@ -127,12 +127,12 @@ class CFSMailMessage : public CFSMailMessagePart
     /**
      * C++ default constructor.
      */
-  	CFSMailMessage();
+    CFSMailMessage();
 
- 	/**
+    /**
      * Two-phased constructor
      */
-  	 void ConstructL( TFSMailMsgId aMessageId );
+     void ConstructL( TFSMailMsgId aMessageId );
 
     /**
      * Returns content-type parameters and their associated values.
@@ -140,10 +140,10 @@ class CFSMailMessage : public CFSMailMessagePart
      * 
      * @return content type parameters
      */
-	CDesCArray& ContentTypeParameters();
+    CDesCArray& ContentTypeParameters();
 
  private: // data
-	 
+     
 };
 
 

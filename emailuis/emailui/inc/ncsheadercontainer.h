@@ -349,6 +349,8 @@ public: // function members
      * @param aShow ETrue - shows, EFalse - hides cursor.
      */
     void ShowCursor( TBool aShow );
+
+    void DoScrollL();
 private: // Function members
 
 	void FocusChanged(TDrawNow aDrawNow);

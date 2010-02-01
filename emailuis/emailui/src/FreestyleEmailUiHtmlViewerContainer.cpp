@@ -151,7 +151,7 @@ CFsEmailUiHtmlViewerContainer::~CFsEmailUiHtmlViewerContainer()
     delete iBrCtlInterface;
     iConnection.Close();
     iSocketServer.Close();
-    
+    delete iStatusIndicator;
     delete iOverlayControlNext;
     delete iOverlayControlPrev;
     }
@@ -196,7 +196,7 @@ void CFsEmailUiHtmlViewerContainer::ConstructL()
     TRect rect( TPoint(), Size() );
 
     iBrCtlInterface = CreateBrowserControlL( this, rect, brCtlCapabilities,
-        TBrCtlDefs::ECommandIdBase, NULL, this, this );
+        TBrCtlDefs::ECommandIdBase, NULL, this, this, NULL, NULL, this, NULL );
 
     iBrCtlInterface->SetBrowserSettingL( TBrCtlDefs::ESettingsEmbedded, ETrue );
     iBrCtlInterface->SetBrowserSettingL( TBrCtlDefs::ESettingsAutoLoadImages, ETrue );
@@ -216,6 +216,7 @@ void CFsEmailUiHtmlViewerContainer::ConstructL()
             EMbmFreestyleemailuiQgn_indi_cmail_arrow_previous,
             EMbmFreestyleemailuiQgn_indi_cmail_arrow_previous_mask );
     iScrollPosition = 0;
+    iAttachmentDownloadImageHandle = 0;
     ActivateL();
     }
 
@@ -362,7 +363,6 @@ void CFsEmailUiHtmlViewerContainer::LoadContentFromMailMessageL(
 
     CFSMailMessagePart* htmlBodyPart = iMessage->HtmlBodyPartL();
 
-    TBool bodyPartAvailable( EFalse );
     if ( htmlBodyPart )
         {
         CleanupStack::PushL( htmlBodyPart );
@@ -372,7 +372,6 @@ void CFsEmailUiHtmlViewerContainer::LoadContentFromMailMessageL(
         
         // Copy html body part to email html file
         CopyFileToHtmlFileL( htmlFile, KBodyHtmlFile, *htmlBodyPart );
-        bodyPartAvailable = ETrue;
         
         CleanupStack::PopAndDestroy( &htmlFile );
         CleanupStack::PopAndDestroy( htmlBodyPart );
@@ -398,28 +397,29 @@ void CFsEmailUiHtmlViewerContainer::LoadContentFromMailMessageL(
             
             contentBuffer8->Des().Copy(*contentBuffer);         
             CopyFileToHtmlFileL( *contentBuffer8, KBodyHtmlFile, *textBodyPart );
-            bodyPartAvailable = ETrue;
             
             CleanupStack::PopAndDestroy( contentBuffer8 );
             CleanupStack::PopAndDestroy( contentBuffer );
             CleanupStack::PopAndDestroy( textBodyPart ); 
             }
-        }
-    // pass the emailHtmlFile to the browser for it to load
-    if ( bodyPartAvailable )
-        {
-        TPath emailHtmlFile;
-        emailHtmlFile.Copy( iHtmlFolderPath );
-        if ( direction == TBidiText::ELeftToRight )
-            {
-            emailHtmlFile.Append( KMessageHtmlFile );
-            }
         else
             {
-            emailHtmlFile.Append( KMessageHtmlRTLFile );
+            WriteEmptyBodyHtmlL( KBodyHtmlFile );
             }
-        LoadContentFromFileL( emailHtmlFile );
         }
+
+    // pass the emailHtmlFile to the browser for it to load
+    TPath emailHtmlFile;
+    emailHtmlFile.Copy( iHtmlFolderPath );
+    if ( direction == TBidiText::ELeftToRight )
+        {
+        emailHtmlFile.Append( KMessageHtmlFile );
+        }
+    else
+        {
+        emailHtmlFile.Append( KMessageHtmlRTLFile );
+        }
+    LoadContentFromFileL( emailHtmlFile );
     
     UpdateOverlayButtons( ETrue );
     }
@@ -456,8 +456,8 @@ CCoeControl* CFsEmailUiHtmlViewerContainer::ComponentControl( TInt aIndex ) cons
             return iBrCtlInterface;
             }
         case 1:
-            if ( iAttachmentStatus )
-                return iAttachmentStatus;
+            if ( iStatusIndicator )
+                return iStatusIndicator;
             else
                 return NULL;
         default:
@@ -474,7 +474,7 @@ CCoeControl* CFsEmailUiHtmlViewerContainer::ComponentControl( TInt aIndex ) cons
 TInt CFsEmailUiHtmlViewerContainer::CountComponentControls() const
     {
     FUNC_LOG;
-    if ( iAttachmentStatus )
+    if ( iStatusIndicator )
         {
         return 2;
         }
@@ -534,10 +534,10 @@ void CFsEmailUiHtmlViewerContainer::SizeChanged()
     
     UpdateOverlayButtons( IsVisible() );
     
-    if ( iAttachmentStatus )
+    if ( iStatusIndicator )
         {
         TRect rect = CalcAttachmentStatusRect();
-        iAttachmentStatus->SetRect( rect );
+        iStatusIndicator->SetRect( rect );
         }
     }
 
@@ -1711,20 +1711,31 @@ void CFsEmailUiHtmlViewerContainer::ReloadPageL()
     SetRect( iAppUi.ClientRect() );
     }
 
-void CFsEmailUiHtmlViewerContainer::ShowAttacthmentDownloadStatusL( 
+void CFsEmailUiHtmlViewerContainer::ShowAttachmentDownloadStatusL( 
         TFSProgress::TFSProgressStatus aProgressStatus, 
         const TAttachmentData& aAttachmentData )
     {
     TBool freshDraw = EFalse;
-    
-    if ( !iAttachmentStatus )
+    //If the indicator was displaying fetching body then we will be displaying a different indicator
+    //this is just to make sure the image is updated
+    if(iStatusIndicator)
+        {
+        if (iStatusIndicator->Image())
+            {
+            if(iStatusIndicator->Image()->Handle() != iAttachmentDownloadImageHandle)
+                {
+                freshDraw = ETrue;
+                }
+            }
+        }
+    if ( !iStatusIndicator )
         {
         TRect rect = CalcAttachmentStatusRect();
-        iAttachmentStatus = CFreestyleEmailUiAknStatusIndicator::NewL( rect, this );
+        iStatusIndicator = CFreestyleEmailUiAknStatusIndicator::NewL( rect, this );
         freshDraw = ETrue;
         }    
     
-    if ( !iAttachmentStatus->IsVisible() 
+    if ( !iStatusIndicator->IsVisible() 
          || ( aAttachmentData.downloadProgress == KNone ) 
          || ( aProgressStatus == TFSProgress::EFSStatus_RequestCancelled ) )
         {
@@ -1786,14 +1797,18 @@ void CFsEmailUiHtmlViewerContainer::ShowAttacthmentDownloadStatusL(
                 {
                 iAppUi.FsTextureManager()->ProvideBitmapL(EAttachmentsDownload, image, imageMask );
                 }
-            iAttachmentStatus->ShowIndicatorL( image, imageMask, statusText, duration );
+            if(image)
+                {
+                iAttachmentDownloadImageHandle = image->Handle();
+                }
+            iStatusIndicator->ShowIndicatorL( image, imageMask, statusText, duration );
             }
         else
             {
-            iAttachmentStatus->SetTextL( statusText );
+            iStatusIndicator->SetTextL( statusText );
             if ( duration > -1 )
                 {
-                iAttachmentStatus->HideIndicator( duration );
+                iStatusIndicator->HideIndicator( duration );
                 }
             }
         }
@@ -1801,11 +1816,11 @@ void CFsEmailUiHtmlViewerContainer::ShowAttacthmentDownloadStatusL(
     CleanupStack::Pop( statusText );
     }
 
-TBool CFsEmailUiHtmlViewerContainer::AttacthmentDownloadStatusVisible()
+TBool CFsEmailUiHtmlViewerContainer::AttachmentDownloadStatusVisible()
     {
-    if ( iAttachmentStatus )
+    if ( iStatusIndicator )
         {
-        return iAttachmentStatus->IsVisible();
+        return iStatusIndicator->IsVisible();
         }
     else
         {
@@ -1813,11 +1828,11 @@ TBool CFsEmailUiHtmlViewerContainer::AttacthmentDownloadStatusVisible()
         }
     }
 
-void CFsEmailUiHtmlViewerContainer::HideAttacthmentDownloadStatus()
+void CFsEmailUiHtmlViewerContainer::HideDownloadStatus()
     {
-    if ( iAttachmentStatus )
+    if ( iStatusIndicator )
         {
-        iAttachmentStatus->MakeVisible( EFalse );
+        iStatusIndicator->MakeVisible( EFalse );
         }
     }
 
@@ -1958,3 +1973,32 @@ void CFsEmailUiHtmlViewerContainer::LaunchBrowserL( const TDesC& aUrl )
     CleanupStack::PopAndDestroy( handler );
     }
 
+void CFsEmailUiHtmlViewerContainer::WriteEmptyBodyHtmlL( const TDesC& aFileName )
+    {
+    FUNC_LOG;
+    TFileName targetFileName;
+    targetFileName.Copy( iTempHtmlFolderPath );
+    targetFileName.Append( aFileName );
+    
+    RFile targetFile;
+    CleanupClosePushL( targetFile );
+    User::LeaveIfError( targetFile.Replace( iFs, targetFileName, EFileWrite ) );
+    User::LeaveIfError( targetFile.Write( KHTMLEmptyContent ) );   
+    CleanupStack::PopAndDestroy( &targetFile );    
+    }
+
+void CFsEmailUiHtmlViewerContainer::DisplayStatusIndicatorL()
+    {
+    TRect rect = CalcAttachmentStatusRect();  
+    if(!iStatusIndicator)
+        {
+        iStatusIndicator  = CFreestyleEmailUiAknStatusIndicator::NewL( rect, this );
+        }  
+    CFbsBitmap* image = NULL;
+    CFbsBitmap* imageMask = NULL;
+    TInt duration = KStatusIndicatorDefaultDuration;
+    HBufC* statusText = NULL;
+    statusText = StringLoader::LoadL(R_FREESTYLE_EMAIL_UI_VIEWER_FETCHING_CONTENT_TEXT);
+    iAppUi.FsTextureManager()->ProvideBitmapL(EStatusTextureSynchronising, image, imageMask );
+    iStatusIndicator->ShowIndicatorL( image, imageMask, statusText, duration );
+    }

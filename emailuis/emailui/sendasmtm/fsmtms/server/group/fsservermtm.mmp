@@ -21,7 +21,8 @@
 
 #include "../../../inc/fsmtmsuids.h"           // KUidFsServerMtmVal
 #include "../../../../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
-
+#include "../../../../../../inc/emailtraceconfig.hrh"
+    
 TARGET               fsservermtm.dll
 TARGETTYPE           dll
 
@@ -54,3 +55,6 @@ LIBRARY               	msgs.lib        // for CBaseServerMtm
 LIBRARY			centralrepository.lib
 LIBRARY                 cmaillogger.lib
 
+#ifdef TRACE_INTO_FILE
+LIBRARY                 flogger.lib
+#endif // TRACE_INTO_FILE
