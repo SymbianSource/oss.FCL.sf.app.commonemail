@@ -19,6 +19,7 @@
 #include <platform_paths.hrh>
 #include "../inc/emailclientapiimpl.hrh"
 #include "../../../inc/emailtraceconfig.hrh"
+#include "../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
 
 
 TARGET          emailclientapi.dll
@@ -27,6 +28,9 @@ UID             0x10009D8D KEmailClientApiDllUid
 CAPABILITY      CAP_ECOM_PLUGIN
 
 VENDORID        VID_DEFAULT
+
+VERSION         KEmailBinaryVersionNumber
+KEmailBinaryDemandPaging
 
 SOURCEPATH      ../src
 SOURCE          emailclientapiimpl.cpp
@@ -45,12 +49,11 @@ SOURCE          emailattachment.cpp
 SOURCE          emailtextcontent.cpp
 SOURCE          emailmultipart.cpp
 
-//user include
+// User include
 USERINCLUDE     ../inc
 USERINCLUDE     ../../../inc
 
-//system include
-
+// System include
 APP_LAYER_SYSTEMINCLUDE
 
 

@@ -20,10 +20,10 @@
 #include "cesmrimapmailfetcher.h"
 #include "esmricalviewerutils.h"
 //<cmail>
-#include "CFSMailClient.h"
-#include "CFSMailFolder.h"
-#include "CFSMailMessagePart.h"
-#include "CFSMailCommon.h"
+#include "cfsmailclient.h"
+#include "cfsmailfolder.h"
+#include "cfsmailmessagepart.h"
+#include "cfsmailcommon.h"
 #include "esmricalvieweropcodes.hrh"
 //</cmail>
 

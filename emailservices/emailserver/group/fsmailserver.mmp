@@ -99,9 +99,8 @@ LIBRARY apparc.lib      // CApaApplication, TApaApplicationFactory
 LIBRARY sysutil.lib
 LIBRARY liwservicehandler.lib
 LIBRARY cmaillogger.lib
-DEBUGLIBRARY flogger.lib
 
 
 #ifdef TRACE_INTO_FILE
-LIBRARY         flogger.lib
+LIBRARY flogger.lib
 #endif // TRACE_INTO_FILE

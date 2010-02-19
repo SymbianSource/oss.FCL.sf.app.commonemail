@@ -25,8 +25,8 @@
 //<cmail>
 #include "fscontrolbarobserver.h"
 #include "fstreelistobserver.h"
-#include "CFSMailCommon.h"
-#include "MFSMailEventObserver.h"
+#include "cfsmailcommon.h"
+#include "mfsmaileventobserver.h"
 #include "fsccontactactionmenudefines.h"
 //</cmail>
 #include "FSEmailBuildFlags.h"
@@ -287,7 +287,7 @@ public:
 	void HandleDynamicVariantSwitchL( CFsEmailUiViewBase::TDynamicSwitchType aType );
 	void HandleDynamicVariantSwitchOnBackgroundL( CFsEmailUiViewBase::TDynamicSwitchType aType );
 	// Handle foregroundevent
-	void HandleForegroundEventL();
+	void HandleForegroundEventL( TBool aForeground );
 	// Sets softkeys
 	void SetViewSoftkeysL( TInt aResourceId );
 	void SetMskL();
@@ -785,6 +785,8 @@ private: // Private objects
     TBool iConsumeStdKeyYes_KeyUp;
     CMailListModelUpdater* iMailListModelUpdater;
     TBool iForceRefresh;
+    // true if message viewer/editor is open to disable background list updates
+    TBool iMailOpened;
   	};
 
 

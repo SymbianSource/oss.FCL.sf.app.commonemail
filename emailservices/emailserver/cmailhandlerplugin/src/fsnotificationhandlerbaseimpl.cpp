@@ -18,7 +18,7 @@
 
 //<cmail>
 #include "emailtrace.h"
-#include "CFSMailClient.h"
+#include "cfsmailclient.h"
 //</cmail>
 
 #include "fsnotificationhandlermgr.h"

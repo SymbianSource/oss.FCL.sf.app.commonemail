@@ -91,14 +91,14 @@ PRJ_EXPORTS
 ../sis/commonemailstub.sis          /epoc32/data/z/system/install/commonemailstub.sis
 
 /* Plugin settings exports */
-../inc/ESMailSettingsPlugin.h |../../../inc/ESMailSettingsPlugin.h
-../inc/ESMailSettingsPlugin.inl |../../../inc/ESMailSettingsPlugin.inl
-../inc/ESMailSettingsPluginUids.hrh |../../../inc/ESMailSettingsPluginUids.hrh/* Required by MCE and Integration MTM*/
+../inc/esmailsettingsplugin.h |../../../inc/esmailsettingsplugin.h
+../inc/esmailsettingsplugin.inl |../../../inc/esmailsettingsplugin.inl
+../inc/esmailsettingspluginuids.hrh |../../../inc/esmailsettingspluginuids.hrh/* Required by MCE and Integration MTM*/
 
 ../inc/FreestyleEmailUiConstants.h |../../../inc/FreestyleEmailUiConstants.h
 
 /* Central Repository for White Label Branding */
-../inc/FreestyleEmailCenRepKeys.h |../../../inc/FreestyleEmailCenRepKeys.h
+../inc/freestyleemailcenrepkeys.h |../../../inc/freestyleemailcenrepkeys.h
 
 // Generic configuration interface for component cenrep settings
 ../conf/freestyleemailui.confml APP_LAYER_CONFML(freestyleemailui.confml) 

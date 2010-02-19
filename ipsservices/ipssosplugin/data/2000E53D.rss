@@ -17,7 +17,7 @@
 
 
 #include <ecom/registryinfo.rh>
-#include "CFSMailPlugin.hrh" // fsmailplugininterface
+#include "cfsmailplugin.hrh" // fsmailplugininterface
 #include "ipsplgsosbaseplugin.hrh"
 #include "../../../inc/emailversionnumbers.hrh" // KEmailEcomVersionNumber
 

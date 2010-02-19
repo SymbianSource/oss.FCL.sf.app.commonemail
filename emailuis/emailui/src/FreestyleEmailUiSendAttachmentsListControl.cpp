@@ -31,7 +31,7 @@
 #include <CommonContentPolicy.h>
 #include <aknnotewrappers.h> 
 #include <StringLoader.h>
-#include "CFSMailClient.h"
+#include "cfsmailclient.h"
 #include <CVPbkContactManager.h> // Virtual phonebook contact manager
 // <cmail> SF
 #include <alf/alfevent.h>

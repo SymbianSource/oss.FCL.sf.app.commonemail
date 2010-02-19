@@ -22,7 +22,7 @@
 
 #include <f32file.h>
 //<cmail>
-#include "MsgStoreWritablePropertyContainer.h"
+#include "msgstorewritablepropertycontainer.h"
 //</cmail>
 
 

@@ -35,7 +35,8 @@ public:
         };
 public:
     IMPORT_C static CFreestyleMessageHeaderURL* CreateEmailAddressUrlL( TEmailAddressType aEmailType, const CFSMailAddress& aEmailAddress );
-    IMPORT_C static CFreestyleMessageHeaderURL* CreateAttachmentUrlL( const TDesC& aAttachmentItemId ); 
+    IMPORT_C static CFreestyleMessageHeaderURL* CreateAttachmentUrlL( const TDesC& aAttachmentItemId );
+    IMPORT_C static CFreestyleMessageHeaderURL* CreateEmailSubjectUrlL( const TDesC& aSubject );
     };
 
 #endif //__CFREESTYLE_MESSAGE_HEADER_URL_FACTORY_H__

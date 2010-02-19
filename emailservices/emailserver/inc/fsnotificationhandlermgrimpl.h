@@ -23,8 +23,8 @@
 #include <e32base.h>
 
 //<cmail>
-#include "CFSMailCommon.h"
-#include "MFSMailEventObserver.h"
+#include "cfsmailcommon.h"
+#include "mfsmaileventobserver.h"
 //</cmail>
 
 #include "fsnotificationhandlermgr.h"

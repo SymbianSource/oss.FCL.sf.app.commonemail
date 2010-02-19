@@ -110,6 +110,12 @@ void CFsEmailUiViewBase::DoActivateL( const TVwsViewId& aPrevViewId,
     TRAPD( error, ChildDoActivateL(aPrevViewId, aCustomMessageId, aCustomMessage) );
     if ( !error )
         {
+        //view history have to be updated once again when email is sent to background when in plugin settings and composer is activated externaly
+        //when composer view will be deactivated it wiil call NavigateBack;
+        if (pluginSettingsActive && iAppUi.CurrentActiveView()->Id() == MailEditorId)
+        	{
+        	iAppUi.ReturnFromPluginSettingsView();
+        	}
         // View activated succesfully. Change visible control group, but not
         // when application is being sent to background.
         if ( !iAppUi.SwitchingToBackground() )
@@ -437,10 +443,9 @@ CAlfControlGroup& CFsEmailUiViewBase::ControlGroup()
 void CFsEmailUiViewBase::HandleAppForegroundEventL( TBool aForeground )
     {
     FUNC_LOG;
+    HandleForegroundEventL(aForeground);    
     if ( aForeground )
         {
-        HandleForegroundEventL();
-
         // Activate control group in case the view was activated when
         // application was being sent to background, and the control group
         // was left inactive.
@@ -556,7 +561,7 @@ void CFsEmailUiViewBase::FlipStateChangedL( TBool aKeyboardFlipOpen )
 
 // ---------------------------------------------------------------------------
 //
-void CFsEmailUiViewBase::HandleForegroundEventL()
+void CFsEmailUiViewBase::HandleForegroundEventL( TBool /*aForeground*/ )
     {
     FUNC_LOG;
     }

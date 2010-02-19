@@ -22,7 +22,7 @@
 //  INCLUDES
 #include <AknWaitNoteWrapper.h>
 //<cmail>
-#include "CFSMailCommon.h"
+#include "cfsmailcommon.h"
 //</cmail>
 
 

@@ -232,6 +232,7 @@ class CIpsPlgImap4FetchAttachmentOp :
         TMsvId                                  iService;
         TBool                                   iPopulated;
         CIpsFetchProgReport*                    iProgReport;
+        TInt                                    iRetryCount;
     };
 
 #endif //__IPSPLGIMAP4FETCHATTACHMENTOP_H__

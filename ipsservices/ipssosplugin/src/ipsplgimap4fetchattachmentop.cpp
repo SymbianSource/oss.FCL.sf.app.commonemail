@@ -152,7 +152,8 @@ CIpsPlgImap4FetchAttachmentOp::CIpsPlgImap4FetchAttachmentOp(
     aFSRequestId),
     iSelection( NULL ),
     iGetMailInfo(aGetMailInfo),
-    iFunctionId(aFunctionId)
+    iFunctionId(aFunctionId),
+    iRetryCount( 0 )
     {
     FUNC_LOG;
     iService = aService;
@@ -233,6 +234,7 @@ void CIpsPlgImap4FetchAttachmentOp::DoRunL()
                 CompleteObserver( KErrCouldNotConnect );
                 return;
                 }
+            iRetryCount = 0;
             DoFetchAttachmentL();
             break;
             }
@@ -243,13 +245,22 @@ void CIpsPlgImap4FetchAttachmentOp::DoRunL()
             
             TInt err = iStatus.Int();
 
-            if( err != KErrNone && iOperation )
+            // If the server was busy, try again a few times.
+            if ( err == KErrServerBusy && iRetryCount < 3 )
                 {
-                iFetchErrorProgress = iOperation->ProgressL().AllocL();
+                iRetryCount++;
+                DoFetchAttachmentL();
                 }
-            
-            iState = EStateIdle;
-            CompleteObserver( err );
+            else
+                {
+                if( err != KErrNone && iOperation )
+                    {
+                    iFetchErrorProgress = iOperation->ProgressL().AllocL();
+                    }
+                
+                iState = EStateIdle;
+                CompleteObserver( err );
+                }
             break;
             }
         default:

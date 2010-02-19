@@ -88,7 +88,7 @@ TUid CEmailWidgetSettingsListView::Id() const
 //	
 void CEmailWidgetSettingsListView::HandleListBoxEventL(CEikListBox* /*aListBox*/, TListBoxEvent aEventType)
     {
-    if (aEventType == EEventEnterKeyPressed || aEventType == EEventItemDoubleClicked)
+    if (aEventType == EEventEnterKeyPressed || aEventType == EEventItemDoubleClicked /*EEventItemSingleClicked*/ )
         {    
         iView->SaveSelectedL();
         AppUi()->HandleCommandL(EAknSoftkeyCancel); // Exit app

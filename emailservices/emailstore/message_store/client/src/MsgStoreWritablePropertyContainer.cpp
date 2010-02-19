@@ -16,8 +16,8 @@
 */
 
 
-#include "MsgStoreWritablePropertyContainer.h"
-#include "MsgStoreSessionContext.h"
+#include "msgstorewritablepropertycontainer.h"
+#include "msgstoresessioncontext.h"
 
 // ----------------------------------
 // CMsgStoreWritablePropertyContainer

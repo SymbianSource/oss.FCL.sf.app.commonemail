@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2008 - 2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2008 - 20010 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -20,6 +20,7 @@
 #define CMAILCPSSETTINGS_H_
 
 class CRepository;
+class CMailExternalAccount;
 
 /*
  * Callback interface for observer
@@ -77,6 +78,13 @@ public:
      * @return array of mailboxes
      */
     RArray<TFSMailMsgId>& Mailboxes();
+
+    /**
+     * Gets array of external mailboxes from widget settings
+     * @param aAccounts on completion, contains the necessary information of
+     * external mailboxes that currently should have a widget
+     */
+    void GetExtMailboxesL( RPointerArray<CMailExternalAccount>& aAccounts );
 
     /**
      * Adds mailbox to widget settings
@@ -150,9 +158,10 @@ public:
     TInt32 Configuration();
 
     /**
-     * 
+     * Return total number of all native mailboxes in the system
      */
-    TInt GetTotalMailboxCount();
+    TInt TotalIntMailboxCount();
+
 
     /**
      * 
@@ -169,6 +178,16 @@ public:
      */    
     void RemoveFromContentIdListL( const TDesC& aContentId );
 
+    /**
+     *
+     */
+    void ToggleWidgetNewMailIconL( TBool aIconOn, const TFSMailMsgId& aMailBox ); 
+
+    /**
+     *
+     */    
+    TBool GetNewMailState( const TFSMailMsgId& aMailBox );
+    
 protected:
     /**
      * From CActive
@@ -228,6 +247,13 @@ private:
      * @param aKeys array of keys
      */
     void GetMailboxNonZeroKeysL( RArray<TUint32>& aKeys );
+    
+    /**
+     * Gets all the external mailbox identifiers
+     * @param on completion, contains an array of cenrep keys that have an external
+     * account specified (i.e. not empty) 
+     */
+    void GetExtMailboxNonZeroKeysL( RArray<TUint32>& aKeys );
 
     /**
      * 
@@ -239,6 +265,8 @@ private:
      * 
      */	
     TUint32 GetSettingToAssociate();
+    
+    CMailExternalAccount* GetExtMailboxL( TInt aKey );
     
 private: // data
     // reference to mailclient

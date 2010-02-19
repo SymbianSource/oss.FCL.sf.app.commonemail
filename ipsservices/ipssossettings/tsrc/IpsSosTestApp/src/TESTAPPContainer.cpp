@@ -20,7 +20,7 @@
 #include "TestAppContainer.h"
 #include <aknlists.h>
 #include <AknsUtils.h>
-#include <AppLayout.cdl.h>
+#include <applayout.cdl.h>
 #include <AknIconUtils.h>
 #include <AknsConstants.h>
 #include <AknsDrawUtils.h>
@@ -38,11 +38,11 @@ void CTestAppContainer::ConstructL(const TRect& aRect)
     CreateWindowL(); 
 
     // Get the skin instance
-	iSkinInstance = AknsUtils::SkinInstance();
+    iSkinInstance = AknsUtils::SkinInstance();
 
-	// Create background control context for skinning the background
-	iBackgroundSkinContext = CAknsBasicBackgroundControlContext::NewL( 
-			KAknsIIDSkinBmpMainPaneUsual, aRect, ETrue );
+    // Create background control context for skinning the background
+    iBackgroundSkinContext = CAknsBasicBackgroundControlContext::NewL( 
+            KAknsIIDSkinBmpMainPaneUsual, aRect, ETrue );
     
     iListBox = new (ELeave) CEikTextListBox;
     iListBox->SetContainerWindowL( *this );
@@ -119,7 +119,7 @@ CCoeControl* CTestAppContainer::ComponentControl(TInt aIndex) const
 void CTestAppContainer::Draw(const TRect& /*aRect*/) const
     {
     CWindowGc& gc = SystemGc();
-	
+    
     AknsDrawUtils::Background( iSkinInstance, 
         iBackgroundSkinContext, this, gc, Rect() );
     }

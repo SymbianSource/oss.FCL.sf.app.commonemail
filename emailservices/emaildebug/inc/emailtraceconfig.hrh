@@ -47,4 +47,20 @@
 
 #endif // ENABLE_TRACES
 
+#ifdef ENABLE_TIMESTAMP_TRACES
+#ifndef _DEBUG
+// Undefine error traces
+#undef ERROR_TRACE
+// Undefine info traces
+#undef INFO_TRACE
+// Undefine function traces
+#undef FUNC_TRACE
+// Trace to file
+#define TRACE_INTO_FILE
+// Timestamp trace enabled
+#define TIMESTAMP_TRAC
+#endif // _DEBUG
+#endif //ENABLE_TIMESTAMP_TRACES
+
+
 #endif // EMAILTRACECONFIG_HRH

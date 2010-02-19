@@ -135,9 +135,10 @@ public://from MIpsPlgConnectOpCallback
         TBool ValidateL();
 
         /**
-        *
-        */
-        void QueryUsrPassL();
+         * Send user password query request to CIpsPlgEventHandler
+         * @return ETrue - if query send
+         */
+        TBool QueryUserPassL();
         
          
         /**
@@ -163,7 +164,7 @@ public://from MIpsPlgConnectOpCallback
             EConnected,
             EPopulate,
             EQueryingDetails,
-            EErrInvalidDetails,
+            EQueryingDetailsBusy,
             EIdle
             };
 

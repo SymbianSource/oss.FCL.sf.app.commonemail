@@ -218,4 +218,4 @@ LIBRARY aknphysics.lib              // for panning
 
 LIBRARY MsgEditorModel.lib
 LIBRARY touchfeedback.lib
-
+LIBRARY ccaclient.lib

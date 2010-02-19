@@ -20,7 +20,7 @@
 
 #include <e32base.h>
 #include <cmrmailboxutils.h>
-#include "CFSMailCommon.h"
+#include "cfsmailcommon.h"
 #include "esmrdef.h"
 
 class CFSMailClient;

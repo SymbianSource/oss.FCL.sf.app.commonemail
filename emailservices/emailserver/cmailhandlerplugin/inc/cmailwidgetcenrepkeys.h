@@ -45,4 +45,7 @@ const TUint32 KCMailExtMailboxBase                = 0x00001100;
 const TUint32 KCMailExtPluginIdOffset             = 0x00000100;
 const TUint32 KCMailExtWidgetCidOffset            = 0x00000200;
 
+// Key to store mailboxes where is new messages. Format: <mailbox1><mailbox2><mailbox3>...
+const TUint32 KCMailMailboxesWithNewMail          = 0x10000003;
+
 #endif // CMAILWIDGETCENREPKEYS_H

@@ -20,7 +20,7 @@
 #include "emailtrace.h"
 #include <StringLoader.h>
 #include <centralrepository.h>
-#include "FreestyleEmailCenRepKeys.h"
+#include "freestyleemailcenrepkeys.h"
 #include "cfsservermtm.h"
 #include <msventry.h>
 #include <mentact.h>

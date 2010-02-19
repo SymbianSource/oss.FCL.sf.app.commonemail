@@ -18,7 +18,7 @@
 #ifndef CESMRUIBASE_H
 #define CESMRUIBASE_H
 
-#include <akndialog.h>
+#include <AknDialog.h>
 #include "mesmruibase.h"
 
 /**

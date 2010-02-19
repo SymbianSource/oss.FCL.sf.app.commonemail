@@ -21,8 +21,8 @@
 #include <e32base.h>
 #include <biditext.h>  
 
-#include "CFSMailMessage.h"
-#include "CFSMailAddress.h"
+#include "cfsmailmessage.h"
+#include "cfsmailaddress.h"
 #include "FreestyleMessageHeaderURLFactory.h"
 
 class RWriteStream;
@@ -80,6 +80,12 @@ private:
     void ExportHTMLBodyL() const;
     void HTMLBodyStartL() const;
     void HTMLBodyEndL() const;
+    
+    /*
+     * Writes the subject to iWriteStream and also
+     * takes care of the urls and marks them as hotspots
+     */
+    void WriteSubjectL(TDesC& aText ) const; 
     
     void ExportSubjectL() const;
     void ExportFromL() const;
@@ -147,6 +153,7 @@ private:
     TInt                        iVisibleWidth;
     TInt                        iScrollPosition;
     TBidiText::TDirectionality  iDirectionality;
+    TBool                       iMirrorLayout;
      
     RPointerArray<CFSMailMessagePart> iAttachments;
 };

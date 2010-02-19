@@ -35,13 +35,16 @@
 #include <MVPbkContactFieldTextData.h>
 #include <MVPbkContactStoreList.h>
 
+// CCA Launcher view
+#include <mccaparameter.h>
+#include <ccafactory.h>
+#include <ccapbkcontextlauncher.h>
+
 
 // Phonebook 2
 #include <CPbk2SortOrderManager.h>
 #include <MPbk2ContactNameFormatter.h>
 #include <Pbk2ContactNameFormatterFactory.h>        
-#include <Pbk2ViewId.hrh>
-#include <CPbk2ViewState.h>
 
 // Send UI
 #include <sendui.h>
@@ -70,7 +73,7 @@
 #include <AiwServiceHandler.h>
 
 // FS Email framework
-#include "CFSMailBox.h"
+#include "cfsmailbox.h"
 //</cmail>
 
 #include <FreestyleEmailUi.rsg>
@@ -106,8 +109,8 @@ CFSEmailUiContactHandler* CFSEmailUiContactHandler::NewLC( RFs& aSession )
 CFSEmailUiContactHandler::~CFSEmailUiContactHandler()
     {
     FUNC_LOG;
-	delete iContactForMsgCreation;
-	if (iPersistentSetting)
+    delete iContactForMsgCreation;
+    if (iPersistentSetting)
         {
         iPersistentSetting->Close();
         delete iPersistentSetting;
@@ -128,6 +131,11 @@ CFSEmailUiContactHandler::~CFSEmailUiContactHandler()
     delete iLinkOperationFetch;
     delete iCurrentLink;
     delete iLastClsItem;
+    
+    if ( iConnection )
+        {
+        iConnection->Close();
+        }
     }
 
 // -----------------------------------------------------------------------------
@@ -140,72 +148,72 @@ void CFSEmailUiContactHandler::AddToContactL( const TDesC& aDes,
     {
     FUNC_LOG;
     if ( iState == EContactHandlerIdle ) //Check that there are no other request on going
-    	{
-    	iState = EContactHandlerAddToContacts;
-    	iHandlerObserver = aObserver; //Can be null
-    	TUint assignFlags = 0;
-    	if ( aAddToContactsType == EContactHandlerCreateNewContact )
-    		{
-    		// In case of EUpdateExisting, we don't have to do anything as default is updateexisting
-    		assignFlags = AiwContactAssign::ECreateNewContact;
-    		}
+        {
+        iState = EContactHandlerAddToContacts;
+        iHandlerObserver = aObserver; //Can be null
+        TUint assignFlags = 0;
+        if ( aAddToContactsType == EContactHandlerCreateNewContact )
+            {
+            // In case of EUpdateExisting, we don't have to do anything as default is updateexisting
+            assignFlags = AiwContactAssign::ECreateNewContact;
+            }
 
-    	CAiwGenericParamList& inParamList =
-    	iServiceHandler->InParamListL();
+        CAiwGenericParamList& inParamList =
+        iServiceHandler->InParamListL();
 
-    	inParamList.AppendL(
-    			TAiwGenericParam(
-    					EGenericParamContactAssignData,
-    					TAiwVariant(AiwContactAssign::TAiwSingleContactAssignDataV1Pckg(
-    							AiwContactAssign::TAiwSingleContactAssignDataV1().SetFlags(assignFlags)))));
-    	
-    	TGenericParamIdValue updateType;
-    	if ( aUpdateType == EContactUpdateEmail )
-    		{
-    		updateType = EGenericParamEmailAddress;
-    		}
-    	else // EContactUpdateNumber
-    		{
-    		updateType = EGenericParamPhoneNumber;
-    		}
-    	
-    	inParamList.AppendL(
-    			TAiwGenericParam(
-    					updateType,
-    					TAiwVariant(aDes)
-    			));
+        inParamList.AppendL(
+                TAiwGenericParam(
+                        EGenericParamContactAssignData,
+                        TAiwVariant(AiwContactAssign::TAiwSingleContactAssignDataV1Pckg(
+                                AiwContactAssign::TAiwSingleContactAssignDataV1().SetFlags(assignFlags)))));
+        
+        TGenericParamIdValue updateType;
+        if ( aUpdateType == EContactUpdateEmail )
+            {
+            updateType = EGenericParamEmailAddress;
+            }
+        else // EContactUpdateNumber
+            {
+            updateType = EGenericParamPhoneNumber;
+            }
+        
+        inParamList.AppendL(
+                TAiwGenericParam(
+                        updateType,
+                        TAiwVariant(aDes)
+                ));
 
-    	//Async call, CallBack is HandleNotify
-    	iServiceHandler->ExecuteServiceCmdL(
-    			KAiwCmdAssign,
-    			inParamList,
-    			iServiceHandler->OutParamListL(),
-    			0,
-    			this);
-    	}
+        //Async call, CallBack is HandleNotify
+        iServiceHandler->ExecuteServiceCmdL(
+                KAiwCmdAssign,
+                inParamList,
+                iServiceHandler->OutParamListL(),
+                0,
+                this);
+        }
     }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiContactHandler::AddToContactsQueryL
 // -----------------------------------------------------------------------------
 TBool CFSEmailUiContactHandler::AddtoContactsQueryL( TAddToContactsType& aType )
-	{
+    {
     FUNC_LOG;
-	// create popup list dialog asking new/update
-	// Costruct listbox and popup list
-	CEikTextListBox* listbox = new ( ELeave ) CAknSinglePopupMenuStyleListBox();
-	CleanupStack::PushL( listbox );
+    // create popup list dialog asking new/update
+    // Costruct listbox and popup list
+    CEikTextListBox* listbox = new ( ELeave ) CAknSinglePopupMenuStyleListBox();
+    CleanupStack::PushL( listbox );
 
-	CAknPopupList* popupList = CAknPopupList::NewL( listbox, 
-			R_AVKON_SOFTKEYS_SELECT_BACK );
+    CAknPopupList* popupList = CAknPopupList::NewL( listbox, 
+            R_AVKON_SOFTKEYS_SELECT_BACK );
 
-	CleanupStack::PushL( popupList );
-	listbox->ConstructL( popupList, CEikListBox::ELeftDownInViewRect );
+    CleanupStack::PushL( popupList );
+    listbox->ConstructL( popupList, CEikListBox::ELeftDownInViewRect );
 
-	listbox->CreateScrollBarFrameL(ETrue);
-	listbox->ScrollBarFrame()->SetScrollBarVisibilityL(
-			CEikScrollBarFrame::EOff,
-			CEikScrollBarFrame::EAuto );
+    listbox->CreateScrollBarFrameL(ETrue);
+    listbox->ScrollBarFrame()->SetScrollBarVisibilityL(
+            CEikScrollBarFrame::EOff,
+            CEikScrollBarFrame::EAuto );
 
     // Get list item array and put all removable theme names in it.
     MDesCArray* itemList = listbox->Model()->ItemTextArray();
@@ -216,7 +224,7 @@ TBool CFSEmailUiContactHandler::AddtoContactsQueryL( TAddToContactsType& aType )
     popupList->SetTitleL( *resource );
     CleanupStack::PopAndDestroy( resource );            
 
-	// Load and append actual selection lines
+    // Load and append actual selection lines
     resource = StringLoader::LoadLC( R_FREESTYLE_EMAIL_UI_VIEWER_CREATE_NEW_CONTACT );
     listitems->AppendL( *resource );
     CleanupStack::PopAndDestroy( resource );            
@@ -228,23 +236,23 @@ TBool CFSEmailUiContactHandler::AddtoContactsQueryL( TAddToContactsType& aType )
     TBool returnValue = EFalse;
     // Execute popup list.
     if ( popupList->ExecuteLD() )
-    	{
-    	if ( !listbox->CurrentItemIndex() )
-    		{
-    		aType = EContactHandlerCreateNewContact;
-    		}
-    	else
-    		{
-    		//UpdateExisting is "default" so no flags are needed
-    		aType = EContactHandlerUpdateExisting;
-    		}
-    	returnValue = ETrue; //User pressed OK
-    	}
+        {
+        if ( !listbox->CurrentItemIndex() )
+            {
+            aType = EContactHandlerCreateNewContact;
+            }
+        else
+            {
+            //UpdateExisting is "default" so no flags are needed
+            aType = EContactHandlerUpdateExisting;
+            }
+        returnValue = ETrue; //User pressed OK
+        }
     CleanupStack::Pop( popupList ); 
-	CleanupStack::PopAndDestroy( listbox );	
+    CleanupStack::PopAndDestroy( listbox ); 
 
-	return returnValue;
-	}
+    return returnValue;
+    }
 
 // ---------------------------------------------------------------------------
 // CFSEmailUiContactHandler::FindAndCallToContactByEmailL
@@ -273,22 +281,22 @@ void CFSEmailUiContactHandler::FindAndCallToContactByEmailL(
 // CFSEmailUiContactHandler::FindAndCreateMsgToContactByEmailL
 // -----------------------------------------------------------------------------
 void CFSEmailUiContactHandler::FindAndCreateMsgToContactByEmailL( const TDesC& aEmailAddress,
-															 	  CFSMailBox* aMailBox )
+                                                                  CFSMailBox* aMailBox )
     {
     FUNC_LOG;
     if ( iOpenComplete && (iState == EContactHandlerIdle) ) //If contact stores all ready
-    	{
-    	
-    	iState = EContactHandlerCreateMessage;
-     	iMailBox = aMailBox;     	
+        {
+        
+        iState = EContactHandlerCreateMessage;
+        iMailBox = aMailBox;        
 
-     	FindContactLinkL( aEmailAddress );
-    	
-    	}
+        FindContactLinkL( aEmailAddress );
+        
+        }
     }
 
 
-	
+    
 // ---------------------------------------------------------------------------
 // Searches for the contact if necessary and shows the contact details.
 // ---------------------------------------------------------------------------
@@ -306,8 +314,8 @@ void CFSEmailUiContactHandler::ShowContactDetailsL( const TDesC& aAddress,
 
 
 void CFSEmailUiContactHandler::MakeAiwCallL(MVPbkContactLink* aContactLink,
-											const TDesC& aContactNumber,
-											TBool aVoipOverride )
+                                            const TDesC& aContactNumber,
+                                            TBool aVoipOverride )
     {
     FUNC_LOG;
     CAiwDialDataExt* dialData = CAiwDialDataExt::NewLC();
@@ -316,22 +324,22 @@ void CFSEmailUiContactHandler::MakeAiwCallL(MVPbkContactLink* aContactLink,
     HBufC8* linkBuffer(NULL);
     
     if( aContactLink )
-    	{
-    	linkBuffer = aContactLink->PackLC();
-    	dialData->SetContactLinkL( *linkBuffer );
-   		// Contact link exists, check if voip is preferred
-	   	// Create iPersistentSetting here only when needed for the first time
-		if ( !iPersistentSetting )
-			{
-		    iPersistentSetting = 
-		        PbkGlobalSettingFactory::CreatePersistentSettingL();
-		    iPersistentSetting->
-		        ConnectL(MPbkGlobalSetting::ERichCallSettingsCategory);		
-			} 
-		if ( aVoipOverride || SelectBetweenCsAndVoip() == EAiwVoIPCall )
-			{
-		    dialData->SetCallType( CAiwDialData::EAIWVoiP );      	  	
-			}
+        {
+        linkBuffer = aContactLink->PackLC();
+        dialData->SetContactLinkL( *linkBuffer );
+        // Contact link exists, check if voip is preferred
+        // Create iPersistentSetting here only when needed for the first time
+        if ( !iPersistentSetting )
+            {
+            iPersistentSetting = 
+                PbkGlobalSettingFactory::CreatePersistentSettingL();
+            iPersistentSetting->
+                ConnectL(MPbkGlobalSetting::ERichCallSettingsCategory);     
+            } 
+        if ( aVoipOverride || SelectBetweenCsAndVoip() == EAiwVoIPCall )
+            {
+            dialData->SetCallType( CAiwDialData::EAIWVoiP );            
+            }
         // <cmail> video call
         else if ( iVideoCall )
             {
@@ -339,17 +347,17 @@ void CFSEmailUiContactHandler::MakeAiwCallL(MVPbkContactLink* aContactLink,
             dialData->SetCallType( CAiwDialData::EAIWForcedVideo );
             }
         // </cmail>
-		else
-			{
-		    dialData->SetCallType( CAiwDialData::EAIWVoice );      	  	
-			} 							
-    	}
+        else
+            {
+            dialData->SetCallType( CAiwDialData::EAIWVoice );           
+            }                           
+        }
     else
-    	{
-		if ( aVoipOverride )
-			{
-		    dialData->SetCallType( CAiwDialData::EAIWVoiP );      	  	
-			}
+        {
+        if ( aVoipOverride )
+            {
+            dialData->SetCallType( CAiwDialData::EAIWVoiP );            
+            }
         // <cmail> video call
         else if ( iVideoCall ) 
             {
@@ -357,19 +365,19 @@ void CFSEmailUiContactHandler::MakeAiwCallL(MVPbkContactLink* aContactLink,
             dialData->SetCallType( CAiwDialData::EAIWForcedVideo );
             }
         // </cmail>
-		else
-			{
-		    dialData->SetCallType( CAiwDialData::EAIWVoice );      	  	
-			}   
-    	dialData->SetPhoneNumberL( aContactNumber );
-    	}
+        else
+            {
+            dialData->SetCallType( CAiwDialData::EAIWVoice );           
+            }   
+        dialData->SetPhoneNumberL( aContactNumber );
+        }
     
     CAiwGenericParamList& inParamList = iServiceHandler->InParamListL();
     dialData->FillInParamListL( inParamList );    
     if( aContactLink )
-    	{
-    	CleanupStack::PopAndDestroy( linkBuffer );
-    	}
+        {
+        CleanupStack::PopAndDestroy( linkBuffer );
+        }
     
     CleanupStack::PopAndDestroy( dialData );
     
@@ -380,12 +388,12 @@ void CFSEmailUiContactHandler::MakeAiwCallL(MVPbkContactLink* aContactLink,
         0,
         NULL );
     if ( iHandlerObserver )
-    	{
-    	RPointerArray<CFSEmailUiClsItem> emptyArray;
-    	iHandlerObserver->OperationCompleteL( EFindAndCallToContactByEmailL, emptyArray );
-    	emptyArray.Close();
-    	iHandlerObserver = NULL;
-    	}
+        {
+        RPointerArray<CFSEmailUiClsItem> emptyArray;
+        iHandlerObserver->OperationCompleteL( EFindAndCallToContactByEmailL, emptyArray );
+        emptyArray.Close();
+        iHandlerObserver = NULL;
+        }
     iState = EContactHandlerIdle;
     } 
 
@@ -396,12 +404,12 @@ TInt CFSEmailUiContactHandler::SelectBetweenCsAndVoip() const
     // Default to voice call
     TInt ret = EAiwVoice;
     
-	TInt preferred = KErrNotFound;
+    TInt preferred = KErrNotFound;
     if ( iPersistentSetting )
-    	{
-	    iPersistentSetting->Get
-    	    (MPbkGlobalSetting::EPreferredTelephony, preferred);	
-    	}
+        {
+        iPersistentSetting->Get
+            (MPbkGlobalSetting::EPreferredTelephony, preferred);    
+        }
    
     // VoIP type is preferred only if the setting is,
     // KInternetCallPreferred. In other cases, like when the setting
@@ -430,16 +438,16 @@ void CFSEmailUiContactHandler::SearchMatchesL( const TDesC& aText,
     {
     FUNC_LOG;
     if ( (iState == EContactHandlerIdle) ||
-    	 (iState == EContactHandlerSearchMatches)  )
-    	{
-    	iState = EContactHandlerSearchMatches;
-    	iHandlerObserver = aObserver;
-    	
-    	iClsListHandler->SetCurrentMailboxL( aMailBox );
-    	
-    	//Async call, CallBack is ArrayUpdatedL (when error: OperationErrorL)
-    	iClsListHandler->SearchMatchesL( aText );
-    	}
+         (iState == EContactHandlerSearchMatches)  )
+        {
+        iState = EContactHandlerSearchMatches;
+        iHandlerObserver = aObserver;
+        
+        iClsListHandler->SetCurrentMailboxL( aMailBox );
+        
+        //Async call, CallBack is ArrayUpdatedL (when error: OperationErrorL)
+        iClsListHandler->SearchMatchesL( aText );
+        }
     }
 
 TBool CFSEmailUiContactHandler::IsLanguageSupportedL()
@@ -449,48 +457,48 @@ TBool CFSEmailUiContactHandler::IsLanguageSupportedL()
     }
 
 CVPbkContactManager* CFSEmailUiContactHandler::GetContactManager()
-	{
+    {
     FUNC_LOG;
-	return iContactManager;
-	}
+    return iContactManager;
+    }
 
 
 void CFSEmailUiContactHandler::GetAddressesFromPhonebookL(
     MFSEmailUiContactHandlerObserver* aObserver )
-	{
+    {
     FUNC_LOG;
-	if ( iState == EContactHandlerIdle )
-		{
-		if ( !aObserver )
-			{
-			//Request can't be fulfilled without observer
-			return;
-			}
-		iHandlerObserver = aObserver;
-		iState = EContactHandlerGetAddressesFromPhonebook;
-		TUint fetchFlags = 0;
+    if ( iState == EContactHandlerIdle )
+        {
+        if ( !aObserver )
+            {
+            //Request can't be fulfilled without observer
+            return;
+            }
+        iHandlerObserver = aObserver;
+        iState = EContactHandlerGetAddressesFromPhonebook;
+        TUint fetchFlags = 0;
 
-		iContactObjects.ResetAndDestroy();
+        iContactObjects.ResetAndDestroy();
 
-		CAiwGenericParamList& inParamList = iServiceHandler->InParamListL();
-		inParamList.AppendL(
-				TAiwGenericParam(
-						EGenericParamContactSelectionData,
-						TAiwVariant(TAiwMultipleItemSelectionDataV1Pckg(
-								TAiwMultipleItemSelectionDataV1().
-								SetAddressSelectType(EAiwEMailSelect).
-								SetFlags( fetchFlags )))));
+        CAiwGenericParamList& inParamList = iServiceHandler->InParamListL();
+        inParamList.AppendL(
+                TAiwGenericParam(
+                        EGenericParamContactSelectionData,
+                        TAiwVariant(TAiwMultipleItemSelectionDataV1Pckg(
+                                TAiwMultipleItemSelectionDataV1().
+                                SetAddressSelectType(EAiwEMailSelect).
+                                SetFlags( fetchFlags )))));
 
 
-		//Async call, CallBack is HandleNotify
-		iServiceHandler->ExecuteServiceCmdL(
-				KAiwCmdSelect,
-				inParamList,
-				iServiceHandler->OutParamListL(),
-				0,
-				this);	
-		}
-	}
+        //Async call, CallBack is HandleNotify
+        iServiceHandler->ExecuteServiceCmdL(
+                KAiwCmdSelect,
+                inParamList,
+                iServiceHandler->OutParamListL(),
+                0,
+                this);  
+        }
+    }
 
 // <cmail> video call
 // ---------------------------------------------------------------------------
@@ -508,22 +516,22 @@ void CFSEmailUiContactHandler::SetVideoCall( TBool aState )
 //
 /////////////////////////////////////////////////////////////////////////////
 void CFSEmailUiContactHandler::GetSmsAddressFromPhonebookAndSendL( MVPbkContactLink* aContactLink )
-	{
+    {
     FUNC_LOG;
-	if ( iState == EContactHandlerIdle )
-		{
-		iState = EContactHandlerGetSmsAddressFromPhonebook;
+    if ( iState == EContactHandlerIdle )
+        {
+        iState = EContactHandlerGetSmsAddressFromPhonebook;
 
- 		CAiwGenericParamList& inParamList = iServiceHandler->InParamListL();
- 		// Set data type select
- 	    TAiwSingleItemSelectionDataV3 dataSelect;
+        CAiwGenericParamList& inParamList = iServiceHandler->InParamListL();
+        // Set data type select
+        TAiwSingleItemSelectionDataV3 dataSelect;
         dataSelect.SetAddressSelectType( EAiwPhoneNumberSelect );
         TAiwSingleItemSelectionDataV3Pckg dataPckg( dataSelect );
         inParamList.AppendL( TAiwGenericParam( EGenericParamContactSelectionData, 
                            TAiwVariant( dataPckg )));
- 	 		
- 		// Append contact links 		
-       	CVPbkContactLinkArray* links = CVPbkContactLinkArray::NewLC();
+            
+        // Append contact links         
+        CVPbkContactLinkArray* links = CVPbkContactLinkArray::NewLC();
         links->AppendL( aContactLink ); // Clone ownership is transferred    
         HBufC8* packedLinks = links->PackLC();          
         inParamList.AppendL( TAiwGenericParam( EGenericParamContactLinkArray,
@@ -532,60 +540,60 @@ void CFSEmailUiContactHandler::GetSmsAddressFromPhonebookAndSendL( MVPbkContactL
         CleanupStack::PopAndDestroy( links ); 
 
         //Async call, CallBack is HandleNotify
-		iServiceHandler->ExecuteServiceCmdL(
-				KAiwCmdSelect,
-				inParamList,
-				iServiceHandler->OutParamListL(),
-				0,
-				this);	
-		}
-	}
+        iServiceHandler->ExecuteServiceCmdL(
+                KAiwCmdSelect,
+                inParamList,
+                iServiceHandler->OutParamListL(),
+                0,
+                this);  
+        }
+    }
 
 /////////////////////////////////////////////////////////////////////////////
 // CFSEmailUiContactHandler::GetMmsAddressFromPhonebookAndSendL
 //
 /////////////////////////////////////////////////////////////////////////////
 void CFSEmailUiContactHandler::GetMmsAddressFromPhonebookAndSendL( MVPbkContactLink* aContactLink,
-														    TBool aIsVoiceMessage )
-	{
+                                                            TBool aIsVoiceMessage )
+    {
     FUNC_LOG;
-	if ( iState == EContactHandlerIdle )
-		{
-		if ( aIsVoiceMessage )
-			{
-			iState = EContactHandlerGetVoiceMsgAddressFromPhonebook;		
-			}
-		else
-			{
-			iState = EContactHandlerGetMmsAddressFromPhonebook;			
-			}
+    if ( iState == EContactHandlerIdle )
+        {
+        if ( aIsVoiceMessage )
+            {
+            iState = EContactHandlerGetVoiceMsgAddressFromPhonebook;        
+            }
+        else
+            {
+            iState = EContactHandlerGetMmsAddressFromPhonebook;         
+            }
 
- 		CAiwGenericParamList& inParamList = iServiceHandler->InParamListL();
- 		// Set data type select
- 	    TAiwSingleItemSelectionDataV3 dataSelect;
+        CAiwGenericParamList& inParamList = iServiceHandler->InParamListL();
+        // Set data type select
+        TAiwSingleItemSelectionDataV3 dataSelect;
         dataSelect.SetAddressSelectType( EAiwMMSSelect );
         TAiwSingleItemSelectionDataV3Pckg dataPckg( dataSelect );
         inParamList.AppendL( TAiwGenericParam( EGenericParamContactSelectionData, 
                            TAiwVariant( dataPckg )));
- 	 		
- 		// Append contact links 				
-       	CVPbkContactLinkArray* links = CVPbkContactLinkArray::NewLC();
+            
+        // Append contact links                 
+        CVPbkContactLinkArray* links = CVPbkContactLinkArray::NewLC();
         links->AppendL( aContactLink ); // Clone ownership is transferred
-	    HBufC8* packedLinks = links->PackLC();          
+        HBufC8* packedLinks = links->PackLC();          
         inParamList.AppendL( TAiwGenericParam( EGenericParamContactLinkArray,
                           TAiwVariant(*packedLinks)));
         CleanupStack::PopAndDestroy( packedLinks ); 
         CleanupStack::PopAndDestroy( links );
 
         //Async call, CallBack is HandleNotify
-		iServiceHandler->ExecuteServiceCmdL(
-				KAiwCmdSelect,
-				inParamList,
-				iServiceHandler->OutParamListL(),
-				0,
-				this);	
-		}
-	}
+        iServiceHandler->ExecuteServiceCmdL(
+                KAiwCmdSelect,
+                inParamList,
+                iServiceHandler->OutParamListL(),
+                0,
+                this);  
+        }
+    }
 
 /////////////////////////////////////////////////////////////////////////////
 // CFSEmailUiContactHandler::ArrayUpdatedL
@@ -598,56 +606,56 @@ void CFSEmailUiContactHandler::ArrayUpdatedL(
 
     switch ( iState )
         {
-		case EContactHandlerCreateMessage:
-			CreateMessageL( aMatchingItems );	
-			break;
-		case EContactHandlerCallToContactByEmail:
-			if ( aMatchingItems.Count() )
-				{
-				delete iLastClsItem;
-				iLastClsItem = NULL;
-				iLastClsItem = aMatchingItems[0]->CloneLC();
-				CleanupStack::Pop();
-				}
-			HandleCallL( aMatchingItems );
-			break;
-		case EContactHandlerShowContactDetails:
-			ShowDetailsL( aMatchingItems );
-			break;
-		case EContactHandlerSearchMatches: 
-			if ( aMatchingItems.Count() == 1 )
-				{
-				if ( !iSearchMatch )
-					{
-					iSearchMatch = CFSEmailUiClsItem::NewL();			
-					}
-				iSearchMatch->SetDisplayNameL( aMatchingItems[0]->DisplayName() );
-				iSearchMatch->SetEmailAddressL( aMatchingItems[0]->EmailAddress() );
-				}
-			else
-			    {
-			    delete iSearchMatch;
-			    iSearchMatch = NULL;
-			    }
-	
-			// The ownership of the array content is transferred to observer.
-			iState = EContactHandlerIdle;
-			if ( iHandlerObserver )
-				{
-				iHandlerObserver->OperationCompleteL( ESearchContacts, aMatchingItems );
-				}
-			break;
-		default:
-			break;
+        case EContactHandlerCreateMessage:
+            CreateMessageL( aMatchingItems );   
+            break;
+        case EContactHandlerCallToContactByEmail:
+            if ( aMatchingItems.Count() )
+                {
+                delete iLastClsItem;
+                iLastClsItem = NULL;
+                iLastClsItem = aMatchingItems[0]->CloneLC();
+                CleanupStack::Pop();
+                }
+            HandleCallL( aMatchingItems );
+            break;
+        case EContactHandlerShowContactDetails:
+            ShowDetailsL( aMatchingItems );
+            break;
+        case EContactHandlerSearchMatches: 
+            if ( aMatchingItems.Count() == 1 )
+                {
+                if ( !iSearchMatch )
+                    {
+                    iSearchMatch = CFSEmailUiClsItem::NewL();           
+                    }
+                iSearchMatch->SetDisplayNameL( aMatchingItems[0]->DisplayName() );
+                iSearchMatch->SetEmailAddressL( aMatchingItems[0]->EmailAddress() );
+                }
+            else
+                {
+                delete iSearchMatch;
+                iSearchMatch = NULL;
+                }
+    
+            // The ownership of the array content is transferred to observer.
+            iState = EContactHandlerIdle;
+            if ( iHandlerObserver )
+                {
+                iHandlerObserver->OperationCompleteL( ESearchContacts, aMatchingItems );
+                }
+            break;
+        default:
+            break;
         }
 
     }
 
 void CFSEmailUiContactHandler::OperationErrorL( TInt aErrorCode )
-	{
+    {
     FUNC_LOG;
-	if ( iHandlerObserver )
-		{
+    if ( iHandlerObserver )
+        {
         // KerrNotReady --> caching in progress, KErrNotFound --> caching not started yet
         if ( (aErrorCode == KErrNotReady) || (aErrorCode == KErrNotFound) )
             {
@@ -662,9 +670,9 @@ void CFSEmailUiContactHandler::OperationErrorL( TInt aErrorCode )
                 {
                 iCachingInProgressError = EFalse;
                 iState = EContactHandlerIdle;
-		iHandlerObserver->OperationErrorL( ESearchContacts, aErrorCode );
-		}
-	}
+        iHandlerObserver->OperationErrorL( ESearchContacts, aErrorCode );
+        }
+    }
         else
             {
             iState = EContactHandlerIdle;
@@ -679,373 +687,373 @@ void CFSEmailUiContactHandler::OperationErrorL( TInt aErrorCode )
 
 
 void CFSEmailUiContactHandler::VPbkSingleContactOperationComplete(
-	    MVPbkContactOperationBase& aOperation,
-	    MVPbkStoreContact* aContact )
-	{
+        MVPbkContactOperationBase& aOperation,
+        MVPbkStoreContact* aContact )
+    {
     FUNC_LOG;
 //inform also client in case of error to enable client's actions (i.e. return search priority)
-//	TRAP_IGNORE( VPbkSingleContactOperationCompleteL( aOperation, aContact) );
+//  TRAP_IGNORE( VPbkSingleContactOperationCompleteL( aOperation, aContact) );
     TRAPD(error, VPbkSingleContactOperationCompleteL( aOperation, aContact) );
     if ( error != KErrNone )
         {
         TRAP_IGNORE(ObserverOperationErrorL( CurrentCommand(), error ));
         }
 //
-	}
+    }
 
 void CFSEmailUiContactHandler::VPbkSingleContactOperationCompleteL(
-		    MVPbkContactOperationBase& aOperation,
-		    MVPbkStoreContact* aContact )
-	{
+            MVPbkContactOperationBase& aOperation,
+            MVPbkStoreContact* aContact )
+    {
     FUNC_LOG;
-	
-	if ( (iLinkOperationFetch == &aOperation) && iState == EContactHandlerGetAddressesFromPhonebook )
-		{
-		CleanupDeletePushL( aContact );
-		
-		RPointerArray<HBufC> firstname;
-		CleanupResetAndDestroyClosePushL( firstname );
-		RPointerArray<HBufC> lastname;
-		CleanupResetAndDestroyClosePushL( lastname );
-		RPointerArray<HBufC> emailAddresses;			
-		CleanupResetAndDestroyClosePushL( emailAddresses );
-		GetContactFieldsL( iFirstnameFields, firstname, aContact );
-		GetContactFieldsL( iLastnameFields, lastname, aContact );
-	
-		// Create display name, this will be used in UI.
-		TInt dispNameLength = 1;
-		if ( firstname.Count() ) dispNameLength += firstname[0]->Length();
-		if ( lastname.Count() ) dispNameLength += lastname[0]->Length();
-		HBufC* displayname = HBufC::NewLC( dispNameLength );
-		
-		if ( firstname.Count() )
-			{
-			displayname->Des().Copy( *firstname[0] );
-			displayname->Des().Append( KSpace );
-			}
-		if ( lastname.Count() )
-			{
-			displayname->Des().Append( *lastname[0] );
-			}
-		
-		// retrieve selected email address
-		MVPbkStoreContactFieldCollection& fields = aContact->Fields();
-		MVPbkBaseContactField* selectedField = fields.RetrieveField( *iCurrentLink );
-		HBufC* selectedEmailAddress = MVPbkContactFieldTextData::Cast( 
-						selectedField->FieldData() ).Text().AllocLC();
+    
+    if ( (iLinkOperationFetch == &aOperation) && iState == EContactHandlerGetAddressesFromPhonebook )
+        {
+        CleanupDeletePushL( aContact );
+        
+        RPointerArray<HBufC> firstname;
+        CleanupResetAndDestroyClosePushL( firstname );
+        RPointerArray<HBufC> lastname;
+        CleanupResetAndDestroyClosePushL( lastname );
+        RPointerArray<HBufC> emailAddresses;            
+        CleanupResetAndDestroyClosePushL( emailAddresses );
+        GetContactFieldsL( iFirstnameFields, firstname, aContact );
+        GetContactFieldsL( iLastnameFields, lastname, aContact );
+    
+        // Create display name, this will be used in UI.
+        TInt dispNameLength = 1;
+        if ( firstname.Count() ) dispNameLength += firstname[0]->Length();
+        if ( lastname.Count() ) dispNameLength += lastname[0]->Length();
+        HBufC* displayname = HBufC::NewLC( dispNameLength );
+        
+        if ( firstname.Count() )
+            {
+            displayname->Des().Copy( *firstname[0] );
+            displayname->Des().Append( KSpace );
+            }
+        if ( lastname.Count() )
+            {
+            displayname->Des().Append( *lastname[0] );
+            }
+        
+        // retrieve selected email address
+        MVPbkStoreContactFieldCollection& fields = aContact->Fields();
+        MVPbkBaseContactField* selectedField = fields.RetrieveField( *iCurrentLink );
+        HBufC* selectedEmailAddress = MVPbkContactFieldTextData::Cast( 
+                        selectedField->FieldData() ).Text().AllocLC();
 
         //check number of email addreses
         GetContactFieldsL( iEmailFields, emailAddresses, aContact );
-		// create contact object
-		CFSEmailUiClsItem* item = CFSEmailUiClsItem::NewLC();
+        // create contact object
+        CFSEmailUiClsItem* item = CFSEmailUiClsItem::NewLC();
         
         if ( emailAddresses.Count() > 1 )
             {
             item->SetMultipleEmails( ETrue );
             }
 
-		item->SetDisplayNameL( displayname->Des() );
-		item->SetEmailAddressL( *selectedEmailAddress );
-		CleanupStack::Pop( item );
-		iContactObjects.Append( item );
+        item->SetDisplayNameL( displayname->Des() );
+        item->SetEmailAddressL( *selectedEmailAddress );
+        CleanupStack::Pop( item );
+        iContactObjects.Append( item );
 
-		CleanupStack::PopAndDestroy( selectedEmailAddress );
-		selectedEmailAddress = NULL;
+        CleanupStack::PopAndDestroy( selectedEmailAddress );
+        selectedEmailAddress = NULL;
 
-		
-		CleanupStack::PopAndDestroy( displayname );
-		CleanupStack::PopAndDestroy( &emailAddresses );
-		CleanupStack::PopAndDestroy( &lastname );
-		CleanupStack::PopAndDestroy( &firstname );
-		CleanupStack::PopAndDestroy( aContact );
-		
-		// Get index of Next ContactLink if there's no LinkSet
-		// or iCurrenLink index is set to 0
-		TInt index = (iLinksSet && iCurrentLink ? iLinksSet->Find
-				(*iCurrentLink) + 1 : 0);
-		
-		if (iLinksSet && index < iLinksSet->Count())
-		    {
-		    iCurrentLink = &iLinksSet->At(index);
-		    delete iLinkOperationFetch;
-		    iLinkOperationFetch = NULL;
+        
+        CleanupStack::PopAndDestroy( displayname );
+        CleanupStack::PopAndDestroy( &emailAddresses );
+        CleanupStack::PopAndDestroy( &lastname );
+        CleanupStack::PopAndDestroy( &firstname );
+        CleanupStack::PopAndDestroy( aContact );
+        
+        // Get index of Next ContactLink if there's no LinkSet
+        // or iCurrenLink index is set to 0
+        TInt index = (iLinksSet && iCurrentLink ? iLinksSet->Find
+                (*iCurrentLink) + 1 : 0);
+        
+        if (iLinksSet && index < iLinksSet->Count())
+            {
+            iCurrentLink = &iLinksSet->At(index);
+            delete iLinkOperationFetch;
+            iLinkOperationFetch = NULL;
 
-		    //Async operation, callback VPbkSingleContactOperationCompleteL
-		    //Error situations: VPbkSingleContactOperationFailed
-		    iLinkOperationFetch = iContactManager->RetrieveContactL(
-		        *iCurrentLink, *this);
-		    }
-		else 
-		    {
-		    delete iLinkOperationFetch; 
-		    iLinkOperationFetch = NULL;
+            //Async operation, callback VPbkSingleContactOperationCompleteL
+            //Error situations: VPbkSingleContactOperationFailed
+            iLinkOperationFetch = iContactManager->RetrieveContactL(
+                *iCurrentLink, *this);
+            }
+        else 
+            {
+            delete iLinkOperationFetch; 
+            iLinkOperationFetch = NULL;
 
-		    iCurrentLink = NULL;
-		    iState = EContactHandlerIdle;
-		    delete iLinksSet;
-		    iLinksSet = NULL;
+            iCurrentLink = NULL;
+            iState = EContactHandlerIdle;
+            delete iLinksSet;
+            iLinksSet = NULL;
 
-		    if ( iHandlerObserver )
-		    	{
-		    	iHandlerObserver->OperationCompleteL( EGetAddressesFromPhonebook, iContactObjects );
-		    	iContactObjects.ResetAndDestroy();
-		    	iHandlerObserver = NULL;
-		    	}
-			}
-		}
-	
-	else if ( (iLinkOperationFetch == &aOperation) && (iState == EContactHandlerCallToContactByEmail ) )
-	{	
-		CleanupDeletePushL( aContact );
-	
-		RPointerArray<HBufC> phonenumbers;
-		CleanupResetAndDestroyClosePushL( phonenumbers );
-		GetContactFieldsL( iPhoneNumberFields, phonenumbers, aContact );
-		TInt phoneNumbersAvailable = phonenumbers.Count();
-		CleanupStack::PopAndDestroy( &phonenumbers );
-		
-		if ( phoneNumbersAvailable )
-			{
-			if ( CallQueryL( iLastClsItem->DisplayName() ) )
-				{
-				MakeAiwCallL( iLastClsItem->ContactLink(), KNullDesC );
-				}
-			else
-				{
+            if ( iHandlerObserver )
+                {
+                iHandlerObserver->OperationCompleteL( EGetAddressesFromPhonebook, iContactObjects );
+                iContactObjects.ResetAndDestroy();
+                iHandlerObserver = NULL;
+                }
+            }
+        }
+    
+    else if ( (iLinkOperationFetch == &aOperation) && (iState == EContactHandlerCallToContactByEmail ) )
+    {   
+        CleanupDeletePushL( aContact );
+    
+        RPointerArray<HBufC> phonenumbers;
+        CleanupResetAndDestroyClosePushL( phonenumbers );
+        GetContactFieldsL( iPhoneNumberFields, phonenumbers, aContact );
+        TInt phoneNumbersAvailable = phonenumbers.Count();
+        CleanupStack::PopAndDestroy( &phonenumbers );
+        
+        if ( phoneNumbersAvailable )
+            {
+            if ( CallQueryL( iLastClsItem->DisplayName() ) )
+                {
+                MakeAiwCallL( iLastClsItem->ContactLink(), KNullDesC );
+                }
+            else
+                {
 // user cancelled operation - inform client to enable its actions (i.e. return search priority)
                 ObserverOperationErrorL( EFindAndCallToContactByEmailL, KErrCancel );
-				iState = EContactHandlerIdle;
-				}
-			}
-		else 
-			{
-	        if ( IsRemoteLookupSupported() )
-	            {
-	            RemoteContactQueryL();
-	            }
-	        else
-	            {
-	            TFsEmailUiUtility::ShowErrorNoteL( R_FREESTYLE_EMAIL_UI_VIEWER_NO_PHONE_NUMBER );					
+                iState = EContactHandlerIdle;
+                }
+            }
+        else 
+            {
+            if ( IsRemoteLookupSupported() )
+                {
+                RemoteContactQueryL();
+                }
+            else
+                {
+                TFsEmailUiUtility::ShowErrorNoteL( R_FREESTYLE_EMAIL_UI_VIEWER_NO_PHONE_NUMBER );                   
 //no phone number found - inform client to enable its actions (i.e. return search priority)
                 ObserverOperationErrorL( EFindAndCallToContactByEmailL, KErrNotFound );
-	            }
-			iState = EContactHandlerIdle;
-			}
-		
-		CleanupStack::PopAndDestroy( aContact );
-	}
-	// Addition to get contact for message creation.
-	else if ( (iLinkOperationFetch == &aOperation) && ( iMsgCreationHelperState == EContactHandlerGetSmsAddressFromPhonebook || 
-		    iMsgCreationHelperState == EContactHandlerGetMmsAddressFromPhonebook || iMsgCreationHelperState == EContactHandlerGetVoiceMsgAddressFromPhonebook ) )
-		{
-		if ( iContactForMsgCreation )
-			{
-			delete iContactForMsgCreation;
-			iContactForMsgCreation = NULL;
-			}
-		// Check that we have a contact for message creatiun
-		if ( aContact )
-			{
-			// State is now idle.
-			iState = EContactHandlerIdle;
-			// Store contact
-			iContactForMsgCreation = aContact;
-			// Create clonelink for address selection
-	        MVPbkContactLink* cloneLink = iCurrentLink->CloneLC();  
-	   		CleanupStack::Pop();
-			switch ( iMsgCreationHelperState )
-				{
-				case EContactHandlerGetSmsAddressFromPhonebook:
-					// Select SMS address, sending is done when callback completes
-					GetSmsAddressFromPhonebookAndSendL( cloneLink );
-					break;
-				case EContactHandlerGetMmsAddressFromPhonebook:
-					// Select MMS address, sending is done when callback completes
-					GetMmsAddressFromPhonebookAndSendL( cloneLink, EFalse );	
-					break;
-				case EContactHandlerGetVoiceMsgAddressFromPhonebook:
-					// Select Voice MSG address, sending is done when callback completes
-					GetMmsAddressFromPhonebookAndSendL( cloneLink, ETrue );	
-					break;
-				default:
-					iState = EContactHandlerIdle;
-					iMsgCreationHelperState = EContactHandlerIdle;
-					break;
-				}		
-			}	
-		else
-			{
-			iMsgCreationHelperState = EContactHandlerIdle;
-			iState = EContactHandlerIdle;
-			}
-		}
-	
-	}
+                }
+            iState = EContactHandlerIdle;
+            }
+        
+        CleanupStack::PopAndDestroy( aContact );
+    }
+    // Addition to get contact for message creation.
+    else if ( (iLinkOperationFetch == &aOperation) && ( iMsgCreationHelperState == EContactHandlerGetSmsAddressFromPhonebook || 
+            iMsgCreationHelperState == EContactHandlerGetMmsAddressFromPhonebook || iMsgCreationHelperState == EContactHandlerGetVoiceMsgAddressFromPhonebook ) )
+        {
+        if ( iContactForMsgCreation )
+            {
+            delete iContactForMsgCreation;
+            iContactForMsgCreation = NULL;
+            }
+        // Check that we have a contact for message creatiun
+        if ( aContact )
+            {
+            // State is now idle.
+            iState = EContactHandlerIdle;
+            // Store contact
+            iContactForMsgCreation = aContact;
+            // Create clonelink for address selection
+            MVPbkContactLink* cloneLink = iCurrentLink->CloneLC();  
+            CleanupStack::Pop();
+            switch ( iMsgCreationHelperState )
+                {
+                case EContactHandlerGetSmsAddressFromPhonebook:
+                    // Select SMS address, sending is done when callback completes
+                    GetSmsAddressFromPhonebookAndSendL( cloneLink );
+                    break;
+                case EContactHandlerGetMmsAddressFromPhonebook:
+                    // Select MMS address, sending is done when callback completes
+                    GetMmsAddressFromPhonebookAndSendL( cloneLink, EFalse );    
+                    break;
+                case EContactHandlerGetVoiceMsgAddressFromPhonebook:
+                    // Select Voice MSG address, sending is done when callback completes
+                    GetMmsAddressFromPhonebookAndSendL( cloneLink, ETrue ); 
+                    break;
+                default:
+                    iState = EContactHandlerIdle;
+                    iMsgCreationHelperState = EContactHandlerIdle;
+                    break;
+                }       
+            }   
+        else
+            {
+            iMsgCreationHelperState = EContactHandlerIdle;
+            iState = EContactHandlerIdle;
+            }
+        }
+    
+    }
 
 void CFSEmailUiContactHandler::VPbkSingleContactOperationFailed(
-	    MVPbkContactOperationBase& aOperation, TInt aError )
-	{
+        MVPbkContactOperationBase& aOperation, TInt aError )
+    {
     FUNC_LOG;
-	TRAP_IGNORE( VPbkSingleContactOperationFailedL( aOperation, aError ) );
-	}
+    TRAP_IGNORE( VPbkSingleContactOperationFailedL( aOperation, aError ) );
+    }
 
 void CFSEmailUiContactHandler::VPbkSingleContactOperationFailedL(
-	    MVPbkContactOperationBase& /*aOperation*/, TInt aError )
-	{
+        MVPbkContactOperationBase& /*aOperation*/, TInt aError )
+    {
     FUNC_LOG;
-	iState = EContactHandlerIdle;
-	if ( iHandlerObserver )
-		{
-		iHandlerObserver->OperationErrorL( EFindAndCallToContactByEmailL, aError );
-		iHandlerObserver = NULL;
-		}
-	}
+    iState = EContactHandlerIdle;
+    if ( iHandlerObserver )
+        {
+        iHandlerObserver->OperationErrorL( EFindAndCallToContactByEmailL, aError );
+        iHandlerObserver = NULL;
+        }
+    }
 
 
 void CFSEmailUiContactHandler::OpenComplete()
-	{
+    {
     FUNC_LOG;
-	if ( iStoreReady )
-		{
-		iOpenComplete = ETrue;
-		}
-	}
+    if ( iStoreReady )
+        {
+        iOpenComplete = ETrue;
+        }
+    }
 
 void CFSEmailUiContactHandler::StoreReady(MVPbkContactStore& /*aContactStore*/)
-	{
+    {
     FUNC_LOG;
-	iStoreReady = ETrue;
-	}
+    iStoreReady = ETrue;
+    }
 
 
 void CFSEmailUiContactHandler::StoreUnavailable(MVPbkContactStore& /*aContactStore*/, TInt /*aReason*/)
-	{
+    {
     FUNC_LOG;
-	iStoreReady = EFalse;
-	}
+    iStoreReady = EFalse;
+    }
 
 
 void CFSEmailUiContactHandler::HandleStoreEventL( MVPbkContactStore& /*aContactStore*/, 
-                								  TVPbkContactStoreEvent /*aStoreEvent*/)
-	{
+                                                  TVPbkContactStoreEvent /*aStoreEvent*/)
+    {
     FUNC_LOG;
-	
-	}
+    
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiContactHandler::HandleNotifyL
 // -----------------------------------------------------------------------------
 TInt CFSEmailUiContactHandler::HandleNotifyL( TInt aCmdId, TInt aEventId,
-	                CAiwGenericParamList& aEventParamList,
-	                const CAiwGenericParamList& /*aInParamList*/)
-	{
+                    CAiwGenericParamList& aEventParamList,
+                    const CAiwGenericParamList& /*aInParamList*/)
+    {
     FUNC_LOG;
-	TInt result = 0;
-	if ( (aCmdId == KAiwCmdAssign) && (iState == EContactHandlerAddToContacts) &&
-		 (aEventId == KAiwEventCompleted) )
-		{
-		// Add to contacts function is completed
-		iState = EContactHandlerIdle;
-		if ( iHandlerObserver )
-			{
-			RPointerArray<CFSEmailUiClsItem> emptyItems;
-			iHandlerObserver->OperationCompleteL( EAddToContactL, emptyItems );
-			emptyItems.Close();
-			iHandlerObserver = NULL;
-			}
-		
-		}
-	else if ( (aCmdId == KAiwCmdSelect) && (iState == EContactHandlerGetAddressesFromPhonebook) &&
-			  (aEventId == KAiwEventCompleted))
-		{
+    TInt result = 0;
+    if ( (aCmdId == KAiwCmdAssign) && (iState == EContactHandlerAddToContacts) &&
+         (aEventId == KAiwEventCompleted) )
+        {
+        // Add to contacts function is completed
+        iState = EContactHandlerIdle;
+        if ( iHandlerObserver )
+            {
+            RPointerArray<CFSEmailUiClsItem> emptyItems;
+            iHandlerObserver->OperationCompleteL( EAddToContactL, emptyItems );
+            emptyItems.Close();
+            iHandlerObserver = NULL;
+            }
+        
+        }
+    else if ( (aCmdId == KAiwCmdSelect) && (iState == EContactHandlerGetAddressesFromPhonebook) &&
+              (aEventId == KAiwEventCompleted))
+        {
 
-		TInt index = 0;
-		const TAiwGenericParam* param =
-		aEventParamList.FindFirst(index, EGenericParamContactLinkArray);
-		if (param)
-			{
-			TPtrC8 contactLinks = param->Value().AsData();
+        TInt index = 0;
+        const TAiwGenericParam* param =
+        aEventParamList.FindFirst(index, EGenericParamContactLinkArray);
+        if (param)
+            {
+            TPtrC8 contactLinks = param->Value().AsData();
 
-			iLinksSet = iContactManager->CreateLinksLC(contactLinks);
-			CleanupStack::Pop();
-			if ( iLinksSet->Count() )
-				{
-				iCurrentLink = &iLinksSet->At(0);
-				//Async operation, callback VPbkSingleContactOperationCompleteL
-				//Error situations: VPbkSingleContactOperationFailed
-				iLinkOperationFetch = iContactManager->RetrieveContactL( iLinksSet->At(0), *this );
-				}
+            iLinksSet = iContactManager->CreateLinksLC(contactLinks);
+            CleanupStack::Pop();
+            if ( iLinksSet->Count() )
+                {
+                iCurrentLink = &iLinksSet->At(0);
+                //Async operation, callback VPbkSingleContactOperationCompleteL
+                //Error situations: VPbkSingleContactOperationFailed
+                iLinkOperationFetch = iContactManager->RetrieveContactL( iLinksSet->At(0), *this );
+                }
 
-			iContactManager->ContactStoresL().OpenAllL( *this );
-			}
+            iContactManager->ContactStoresL().OpenAllL( *this );
+            }
 
-		}
-	else if ( (aCmdId == KAiwCmdSelect) && (iState == EContactHandlerGetSmsAddressFromPhonebook) &&
-			  (aEventId == KAiwEventCompleted))
-		{
-		iState = EContactHandlerIdle;
-		SendMessageL( aEventParamList,  EContactHandlerGetSmsAddressFromPhonebook );
-		}
-	else if ( (aCmdId == KAiwCmdSelect) && (iState == EContactHandlerGetMmsAddressFromPhonebook) &&
-			  (aEventId == KAiwEventCompleted))
-		{
-		iState = EContactHandlerIdle;
-		// Send SMS to contact address
-		SendMessageL( aEventParamList,  EContactHandlerGetMmsAddressFromPhonebook );
-		}
-	else if ( (aCmdId == KAiwCmdSelect) && (iState == EContactHandlerGetVoiceMsgAddressFromPhonebook) &&
-			  (aEventId == KAiwEventCompleted))
-		{
-		iState = EContactHandlerIdle;
-		// Send Voice MSG to contact address
-		SendMessageL( aEventParamList,  EContactHandlerGetVoiceMsgAddressFromPhonebook );
-		}
-	
-	//Notify caller of the error
-	else if ( aEventId == KAiwEventError )
-		{
-		iState = EContactHandlerIdle;
-		if ( iHandlerObserver )
-			{
-			iHandlerObserver->OperationErrorL( CurrentCommand(), KErrGeneral );
-			iHandlerObserver = NULL;
-			}
-		}
+        }
+    else if ( (aCmdId == KAiwCmdSelect) && (iState == EContactHandlerGetSmsAddressFromPhonebook) &&
+              (aEventId == KAiwEventCompleted))
+        {
+        iState = EContactHandlerIdle;
+        SendMessageL( aEventParamList,  EContactHandlerGetSmsAddressFromPhonebook );
+        }
+    else if ( (aCmdId == KAiwCmdSelect) && (iState == EContactHandlerGetMmsAddressFromPhonebook) &&
+              (aEventId == KAiwEventCompleted))
+        {
+        iState = EContactHandlerIdle;
+        // Send SMS to contact address
+        SendMessageL( aEventParamList,  EContactHandlerGetMmsAddressFromPhonebook );
+        }
+    else if ( (aCmdId == KAiwCmdSelect) && (iState == EContactHandlerGetVoiceMsgAddressFromPhonebook) &&
+              (aEventId == KAiwEventCompleted))
+        {
+        iState = EContactHandlerIdle;
+        // Send Voice MSG to contact address
+        SendMessageL( aEventParamList,  EContactHandlerGetVoiceMsgAddressFromPhonebook );
+        }
+    
+    //Notify caller of the error
+    else if ( aEventId == KAiwEventError )
+        {
+        iState = EContactHandlerIdle;
+        if ( iHandlerObserver )
+            {
+            iHandlerObserver->OperationErrorL( CurrentCommand(), KErrGeneral );
+            iHandlerObserver = NULL;
+            }
+        }
 
-	// We don't need to check outParams, or do anything special during the exit
-	else if ( (aEventId == KAiwEventQueryExit) )
-		{
-		result = ETrue;
-		}
-	
-	else if ( aEventId == KAiwEventOutParamCheck )
-		{
-		result = 1;
-		}
-	else if ( aEventId == KAiwEventCanceled )
-		{
-		iState = EContactHandlerIdle;
-		if ( iHandlerObserver )
-			{
-			RPointerArray<CFSEmailUiClsItem> emptyItems;
-			iHandlerObserver->OperationCompleteL( CurrentCommand(), emptyItems );
-			emptyItems.Close();
-			iHandlerObserver = NULL;
-			}
-		}
+    // We don't need to check outParams, or do anything special during the exit
+    else if ( (aEventId == KAiwEventQueryExit) )
+        {
+        result = ETrue;
+        }
+    
+    else if ( aEventId == KAiwEventOutParamCheck )
+        {
+        result = 1;
+        }
+    else if ( aEventId == KAiwEventCanceled )
+        {
+        iState = EContactHandlerIdle;
+        if ( iHandlerObserver )
+            {
+            RPointerArray<CFSEmailUiClsItem> emptyItems;
+            iHandlerObserver->OperationCompleteL( CurrentCommand(), emptyItems );
+            emptyItems.Close();
+            iHandlerObserver = NULL;
+            }
+        }
 
     return result;
     }
 
 
 CFSEmailUiContactHandler::CFSEmailUiContactHandler( RFs& aSession ): 
-	iState(EContactHandlerIdle),
+    iState(EContactHandlerIdle),
     iHandlerObserver(NULL),
-	iOpenComplete(EFalse),
-	iStoreReady(EFalse),
-	iUseSenderText(EFalse),
-	iFs( aSession ),
-	iCachingInProgressError(EFalse),
+    iOpenComplete(EFalse),
+    iStoreReady(EFalse),
+    iUseSenderText(EFalse),
+    iFs( aSession ),
+    iCachingInProgressError(EFalse),
     // <cmail> video call
     iVideoCall( EFalse )
     // </cmail>
@@ -1092,13 +1100,13 @@ void CFSEmailUiContactHandler::HandleCallL(
             }
         else
             {
-            TFsEmailUiUtility::ShowErrorNoteL( R_FREESTYLE_EMAIL_UI_VIEWER_NO_PHONE_NUMBER );					
+            TFsEmailUiUtility::ShowErrorNoteL( R_FREESTYLE_EMAIL_UI_VIEWER_NO_PHONE_NUMBER );                   
             }
         // <cmail> video call flag needs to be cleared
         iVideoCall = EFalse;
         // </cmail>
         iState = EContactHandlerIdle;
-        }				
+        }               
     else if ( aMatchingItems.Count() > 0 ) // Call to one directly
         {
         // Create contact item in which to copy number or address, async operation.
@@ -1108,26 +1116,26 @@ void CFSEmailUiContactHandler::HandleCallL(
         iCurrentLink = aMatchingItems[0]->ContactLink()->CloneLC();
         CleanupStack::Pop();
         if ( iLinkOperationFetch )
-        	{
-        	delete iLinkOperationFetch;
-        	iLinkOperationFetch = NULL;
-        	}
+            {
+            delete iLinkOperationFetch;
+            iLinkOperationFetch = NULL;
+            }
         
         //Async operation, callback VPbkSingleContactOperationCompleteL
         //Error situations: VPbkSingleContactOperationFailed
         iLinkOperationFetch = iContactManager->RetrieveContactL
-        (*iCurrentLink, *this);	
+        (*iCurrentLink, *this); 
         
         }
     }
 
 void CFSEmailUiContactHandler::CreateMessageL( const RPointerArray<CFSEmailUiClsItem>& aMatchingItems )
-	{
+    {
     FUNC_LOG;
-	iState = EContactHandlerIdle;
-	
-	if ( aMatchingItems.Count() == 0 )
-		{
+    iState = EContactHandlerIdle;
+    
+    if ( aMatchingItems.Count() == 0 )
+        {
         // <cmail>
         /*if ( IsRemoteLookupSupported() )
             {
@@ -1147,179 +1155,179 @@ void CFSEmailUiContactHandler::CreateMessageL( const RPointerArray<CFSEmailUiCls
         // no Text message available - subset of Multimedia and Voice message is displayed
         TFsEmailUiUtility::ShowCreateMessageQueryL( *iPreviousEmailAddress, ETrue );
         // </cmail>
-		iState = EContactHandlerIdle;
-		}
-	else if ( aMatchingItems.Count() > 0 ) 
-		{
-		CSendUi* sendUi = CSendUi::NewLC();
+        iState = EContactHandlerIdle;
+        }
+    else if ( aMatchingItems.Count() > 0 ) 
+        {
+        CSendUi* sendUi = CSendUi::NewLC();
 
-		CArrayFix<TUid>* showedServicesUidArray = new( ELeave ) CArrayFixFlat<TUid>(4);
-		CleanupStack::PushL( showedServicesUidArray );
+        CArrayFix<TUid>* showedServicesUidArray = new( ELeave ) CArrayFixFlat<TUid>(4);
+        CleanupStack::PushL( showedServicesUidArray );
 
-		CDesCArrayFlat* array = new ( ELeave ) CDesCArrayFlat( 2 );
-		CleanupStack::PushL( array );
+        CDesCArrayFlat* array = new ( ELeave ) CDesCArrayFlat( 2 );
+        CleanupStack::PushL( array );
 
-		TSendingCapabilities noCapabilities(0,0,0);
-		
-		if( sendUi->ValidateServiceL( KSenduiMtmSmsUid, noCapabilities ) )
-			{
-			HBufC* textMessage = StringLoader::LoadLC( R_FREESTYLE_EMAIL_UI_VIEWER_TEXT_MESSAGE );
-		    array->AppendL( *textMessage );
-			CleanupStack::PopAndDestroy( textMessage );				
-			showedServicesUidArray->AppendL( KSenduiMtmSmsUid );
-			}
-		if( sendUi->ValidateServiceL( KSenduiMtmMmsUid, noCapabilities ) )
-			{
-			HBufC* multimediaMessage = StringLoader::LoadLC( R_FREESTYLE_EMAIL_UI_VIEWER_MULTIMEDIA_MESSAGE );
-		    array->AppendL( *multimediaMessage );
-			CleanupStack::PopAndDestroy( multimediaMessage );				
-			showedServicesUidArray->AppendL( KSenduiMtmMmsUid );
-			}
-		if( sendUi->ValidateServiceL( KSenduiMtmAudioMessageUid, noCapabilities ) )
-			{
-			HBufC* voiceMessage = StringLoader::LoadLC( R_FREESTYLE_EMAIL_UI_VIEWER_VOICE_MESSAGE );
-		    array->AppendL( *voiceMessage );
-			CleanupStack::PopAndDestroy( voiceMessage );				
-			showedServicesUidArray->AppendL( KSenduiMtmAudioMessageUid );
-			}
+        TSendingCapabilities noCapabilities(0,0,0);
+        
+        if( sendUi->ValidateServiceL( KSenduiMtmSmsUid, noCapabilities ) )
+            {
+            HBufC* textMessage = StringLoader::LoadLC( R_FREESTYLE_EMAIL_UI_VIEWER_TEXT_MESSAGE );
+            array->AppendL( *textMessage );
+            CleanupStack::PopAndDestroy( textMessage );             
+            showedServicesUidArray->AppendL( KSenduiMtmSmsUid );
+            }
+        if( sendUi->ValidateServiceL( KSenduiMtmMmsUid, noCapabilities ) )
+            {
+            HBufC* multimediaMessage = StringLoader::LoadLC( R_FREESTYLE_EMAIL_UI_VIEWER_MULTIMEDIA_MESSAGE );
+            array->AppendL( *multimediaMessage );
+            CleanupStack::PopAndDestroy( multimediaMessage );               
+            showedServicesUidArray->AppendL( KSenduiMtmMmsUid );
+            }
+        if( sendUi->ValidateServiceL( KSenduiMtmAudioMessageUid, noCapabilities ) )
+            {
+            HBufC* voiceMessage = StringLoader::LoadLC( R_FREESTYLE_EMAIL_UI_VIEWER_VOICE_MESSAGE );
+            array->AppendL( *voiceMessage );
+            CleanupStack::PopAndDestroy( voiceMessage );                
+            showedServicesUidArray->AppendL( KSenduiMtmAudioMessageUid );
+            }
 
-		TInt selectedOption;
-		CAknListQueryDialog* dlg = new ( ELeave ) CAknListQueryDialog( &selectedOption );
-		dlg->PrepareLC( R_MAIL_VIEWER_CREATE_MESSAGE_DIALOG  );
-					
-		dlg->SetItemTextArray( array );
-		dlg->SetOwnershipType( ELbmDoesNotOwnItemArray );	
-		TInt ret = dlg->RunLD();
-		CleanupStack::PopAndDestroy( array );
-		CleanupStack::PopAndDestroy( showedServicesUidArray );
-		CleanupStack::PopAndDestroy( sendUi );		
-	
-		// Continue sending process if query is not cancelled
-		if( ret )
-			{
-			switch ( selectedOption )
-				{
-				case 0:
-					// Select SMS address, sending is done when callback completes
-					iMsgCreationHelperState = EContactHandlerGetSmsAddressFromPhonebook;	
-					break;
-				case 1:
-					// Select MMS address, sending is done when callback completes
-					iMsgCreationHelperState = EContactHandlerGetMmsAddressFromPhonebook;	
-					break;
-				case 2:
-					// Select Voice MSG address, sending is done when callback completes
-					iMsgCreationHelperState = EContactHandlerGetVoiceMsgAddressFromPhonebook;	
-					break;
-				default:
-					iMsgCreationHelperState = EContactHandlerIdle;
-					break;
-				}
-			// Create contact item in which to copy number or address, async operation.
-			delete iCurrentLink;
-			iCurrentLink = NULL;
-			
-			iCurrentLink = aMatchingItems[0]->ContactLink()->CloneLC();
-			CleanupStack::Pop();
-			if ( iLinkOperationFetch )
-				{
-				delete iLinkOperationFetch;
-				iLinkOperationFetch = NULL;
-				}
-			
-			//Async operation, callback VPbkSingleContactOperationCompleteL
-			//Error situations: VPbkSingleContactOperationFailed
-			iLinkOperationFetch = iContactManager->RetrieveContactL
-			(*iCurrentLink, *this);											
-			}
-		}
-	}
+        TInt selectedOption;
+        CAknListQueryDialog* dlg = new ( ELeave ) CAknListQueryDialog( &selectedOption );
+        dlg->PrepareLC( R_MAIL_VIEWER_CREATE_MESSAGE_DIALOG  );
+                    
+        dlg->SetItemTextArray( array );
+        dlg->SetOwnershipType( ELbmDoesNotOwnItemArray );   
+        TInt ret = dlg->RunLD();
+        CleanupStack::PopAndDestroy( array );
+        CleanupStack::PopAndDestroy( showedServicesUidArray );
+        CleanupStack::PopAndDestroy( sendUi );      
+    
+        // Continue sending process if query is not cancelled
+        if( ret )
+            {
+            switch ( selectedOption )
+                {
+                case 0:
+                    // Select SMS address, sending is done when callback completes
+                    iMsgCreationHelperState = EContactHandlerGetSmsAddressFromPhonebook;    
+                    break;
+                case 1:
+                    // Select MMS address, sending is done when callback completes
+                    iMsgCreationHelperState = EContactHandlerGetMmsAddressFromPhonebook;    
+                    break;
+                case 2:
+                    // Select Voice MSG address, sending is done when callback completes
+                    iMsgCreationHelperState = EContactHandlerGetVoiceMsgAddressFromPhonebook;   
+                    break;
+                default:
+                    iMsgCreationHelperState = EContactHandlerIdle;
+                    break;
+                }
+            // Create contact item in which to copy number or address, async operation.
+            delete iCurrentLink;
+            iCurrentLink = NULL;
+            
+            iCurrentLink = aMatchingItems[0]->ContactLink()->CloneLC();
+            CleanupStack::Pop();
+            if ( iLinkOperationFetch )
+                {
+                delete iLinkOperationFetch;
+                iLinkOperationFetch = NULL;
+                }
+            
+            //Async operation, callback VPbkSingleContactOperationCompleteL
+            //Error situations: VPbkSingleContactOperationFailed
+            iLinkOperationFetch = iContactManager->RetrieveContactL
+            (*iCurrentLink, *this);                                         
+            }
+        }
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiContactHandler::SendMessageL
 // -----------------------------------------------------------------------------
 void CFSEmailUiContactHandler::SendMessageL( CAiwGenericParamList& aEventParamList, TInt aServiceType )
-	{
+    {
     FUNC_LOG;
-	TInt paramIndex(0);
-	iState = EContactHandlerIdle;
+    TInt paramIndex(0);
+    iState = EContactHandlerIdle;
 
-	const TAiwGenericParam* param = 
+    const TAiwGenericParam* param = 
             aEventParamList.FindFirst( paramIndex, EGenericParamContactLinkArray );
     if ( param )
         {
         TPtrC8 packedLinks = param->Value().AsData();
         if ( packedLinks.Length() > 0 )
             {      
-	     	CSendUi* sendUi = CSendUi::NewLC();
-    		CMessageData* messageData = CMessageData::NewLC();		 
+            CSendUi* sendUi = CSendUi::NewLC();
+            CMessageData* messageData = CMessageData::NewLC();       
             MVPbkContactLinkArray* linkArray = GetContactManager()->CreateLinksLC(packedLinks);
             MVPbkStoreContactField* field = iContactForMsgCreation->Fields().RetrieveField(linkArray->At(0));
             MVPbkContactFieldData& data = field->FieldData();
             if (data.DataType() == EVPbkFieldStorageTypeText)
                 {
-                const TDesC& dataText = MVPbkContactFieldTextData::Cast(data).Text();			
-		     	// Get contact alias to message data if there is name data
+                const TDesC& dataText = MVPbkContactFieldTextData::Cast(data).Text();           
+                // Get contact alias to message data if there is name data
                 //RFs& rFs = CEikonEnv::Static()->FsSession();
-		        //User::LeaveIfError(rFs.Connect());    
-			    CPbk2SortOrderManager* sortOrderManager = 
-			    		CPbk2SortOrderManager::NewL(iContactManager->FieldTypes(), &iFs);
-			    MPbk2ContactNameFormatter* nameFormatter = 
-			    		Pbk2ContactNameFormatterFactory::CreateL(iContactManager->FieldTypes(), *sortOrderManager, &iFs);		     
-		     	HBufC* nameBuffer = nameFormatter->GetContactTitleL( iContactForMsgCreation->Fields(), 0);
-		     	
-		     	delete sortOrderManager;
-		     	sortOrderManager = NULL;
-		     	delete nameFormatter;     
-		     	nameFormatter = NULL;
-		        
-		     	//rFs.Close();
-		        if ( nameBuffer )
-		            {
-		            CleanupStack::PushL( nameBuffer );
-		            messageData->AppendToAddressL( dataText, *nameBuffer );
-		            CleanupStack::PopAndDestroy( nameBuffer );
-		            }
-		        else
-		            {
-					messageData->AppendToAddressL( dataText );	
-		            }	
-		        // Send selected message							
-				TSendingCapabilities noCapabilities(0,0,0);
-				switch ( aServiceType )
-					{				
-					case EContactHandlerGetSmsAddressFromPhonebook:
-						{
-						if( sendUi->ValidateServiceL( KSenduiMtmSmsUid, noCapabilities ) )
-							{
-							sendUi->CreateAndSendMessageL( KSenduiMtmSmsUid, messageData, KNullUid, EFalse );							
-							}
-						}					
-						break;
-					case EContactHandlerGetMmsAddressFromPhonebook:
-						{
-						if( sendUi->ValidateServiceL( KSenduiMtmMmsUid, noCapabilities ) )
-							{
-							sendUi->CreateAndSendMessageL( KSenduiMtmMmsUid, messageData, KNullUid, EFalse );							
-							}
-						}
-						break;
-					case EContactHandlerGetVoiceMsgAddressFromPhonebook:
-						{
-						if( sendUi->ValidateServiceL( KSenduiMtmAudioMessageUid, noCapabilities ) )
-							{
-							sendUi->CreateAndSendMessageL( KSenduiMtmAudioMessageUid, messageData, KNullUid, EFalse );							
-							}
-						}
-		 				break;
-					default:
-						break;			
-					}
-                }	
+                //User::LeaveIfError(rFs.Connect());    
+                CPbk2SortOrderManager* sortOrderManager = 
+                        CPbk2SortOrderManager::NewL(iContactManager->FieldTypes(), &iFs);
+                MPbk2ContactNameFormatter* nameFormatter = 
+                        Pbk2ContactNameFormatterFactory::CreateL(iContactManager->FieldTypes(), *sortOrderManager, &iFs);            
+                HBufC* nameBuffer = nameFormatter->GetContactTitleL( iContactForMsgCreation->Fields(), 0);
+                
+                delete sortOrderManager;
+                sortOrderManager = NULL;
+                delete nameFormatter;     
+                nameFormatter = NULL;
+                
+                //rFs.Close();
+                if ( nameBuffer )
+                    {
+                    CleanupStack::PushL( nameBuffer );
+                    messageData->AppendToAddressL( dataText, *nameBuffer );
+                    CleanupStack::PopAndDestroy( nameBuffer );
+                    }
+                else
+                    {
+                    messageData->AppendToAddressL( dataText );  
+                    }   
+                // Send selected message                            
+                TSendingCapabilities noCapabilities(0,0,0);
+                switch ( aServiceType )
+                    {               
+                    case EContactHandlerGetSmsAddressFromPhonebook:
+                        {
+                        if( sendUi->ValidateServiceL( KSenduiMtmSmsUid, noCapabilities ) )
+                            {
+                            sendUi->CreateAndSendMessageL( KSenduiMtmSmsUid, messageData, KNullUid, EFalse );                           
+                            }
+                        }                   
+                        break;
+                    case EContactHandlerGetMmsAddressFromPhonebook:
+                        {
+                        if( sendUi->ValidateServiceL( KSenduiMtmMmsUid, noCapabilities ) )
+                            {
+                            sendUi->CreateAndSendMessageL( KSenduiMtmMmsUid, messageData, KNullUid, EFalse );                           
+                            }
+                        }
+                        break;
+                    case EContactHandlerGetVoiceMsgAddressFromPhonebook:
+                        {
+                        if( sendUi->ValidateServiceL( KSenduiMtmAudioMessageUid, noCapabilities ) )
+                            {
+                            sendUi->CreateAndSendMessageL( KSenduiMtmAudioMessageUid, messageData, KNullUid, EFalse );                          
+                            }
+                        }
+                        break;
+                    default:
+                        break;          
+                    }
+                }   
             CleanupStack::PopAndDestroy( 3 ); // Sendui, messageData and linkArray.
             }
         }
-	}
+    }
 // ---------------------------------------------------------------------------
 // CFSEmailUiContactHandler::IsRemoteLookupSupported
 // ---------------------------------------------------------------------------
@@ -1335,33 +1343,33 @@ TBool CFSEmailUiContactHandler::IsRemoteLookupSupported()
 
 void CFSEmailUiContactHandler::GetContactFieldsL( RArray<TInt>& aFieldIds,
     RPointerArray<HBufC>& aNumbers, MVPbkStoreContact* aContact)
-	{
+    {
     FUNC_LOG;
-	for (TInt i = 0; i < aFieldIds.Count(); i++ )
-		{
-		const MVPbkFieldType*  myContactDataField = 
-		iContactManager->FieldTypes().Find( aFieldIds[i] );
+    for (TInt i = 0; i < aFieldIds.Count(); i++ )
+        {
+        const MVPbkFieldType*  myContactDataField = 
+        iContactManager->FieldTypes().Find( aFieldIds[i] );
 
-		CVPbkBaseContactFieldTypeIterator* itrNumber = 
-		CVPbkBaseContactFieldTypeIterator::NewLC( *myContactDataField, 
-				aContact->Fields() );	
+        CVPbkBaseContactFieldTypeIterator* itrNumber = 
+        CVPbkBaseContactFieldTypeIterator::NewLC( *myContactDataField, 
+                aContact->Fields() );   
 
-		// Iterate through each of the data fields
-		while ( itrNumber->HasNext() )
-			{
-			const MVPbkBaseContactField* field = itrNumber->Next();
+        // Iterate through each of the data fields
+        while ( itrNumber->HasNext() )
+            {
+            const MVPbkBaseContactField* field = itrNumber->Next();
 
-			if ( (field->FieldData()).DataType() == EVPbkFieldStorageTypeText )
-				{
-				HBufC* toAppend = MVPbkContactFieldTextData::Cast(
-						field->FieldData() ).Text().AllocL();
-				
-				aNumbers.Append( toAppend );					
-				}
-			}
-		CleanupStack::PopAndDestroy( itrNumber ); 
-		}
-	}
+            if ( (field->FieldData()).DataType() == EVPbkFieldStorageTypeText )
+                {
+                HBufC* toAppend = MVPbkContactFieldTextData::Cast(
+                        field->FieldData() ).Text().AllocL();
+                
+                aNumbers.Append( toAppend );                    
+                }
+            }
+        CleanupStack::PopAndDestroy( itrNumber ); 
+        }
+    }
 
 // ---------------------------------------------------------------------------
 // Activates phonebook view to show details of give contact
@@ -1375,23 +1383,33 @@ void CFSEmailUiContactHandler::ShowDetailsL(
         aMatchingItems[0]->ContactLink() )
         {
         MVPbkContactLink* contact = aMatchingItems[0]->ContactLink();
-        CPbk2ViewState* pbk2ViewParam = CPbk2ViewState::NewLC();
-        pbk2ViewParam->SetFocusedContact( contact->CloneLC() );
-        CleanupStack::Pop(); // Cloned contact
-        pbk2ViewParam->SetFocusedFieldIndex( 3 );
-        HBufC8* paramBuf = pbk2ViewParam->PackLC();
+        HBufC8* packed = contact->PackLC();
 
-        // Make view id with Phonebook2's app UID3 and Contact Info View's id
-        const TVwsViewId viewId( TUid::Uid(0x101f4cce),
-            TUid::Uid(EPbk2ContactInfoViewId) );
+        HBufC16* link16 = HBufC16::NewLC(packed->Length());
+        link16->Des().Copy(packed->Des());
 
-        // Activate the view
-        CEikonEnv::Static()->AppUi()->ActivateViewL( viewId,
-            CPbk2ViewState::Uid(), *paramBuf );
+        MCCAParameter*  param = TCCAFactory::NewParameterL();
+        CleanupClosePushL( *param );
+        
+        delete iConnection;
+        iConnection = NULL;
+        iConnection = TCCAFactory::NewConnectionL();
 
-        // Cleanup
-        CleanupStack::PopAndDestroy( paramBuf );
-        CleanupStack::PopAndDestroy( pbk2ViewParam );
+        // Setting up the contact link parameter, ownership transfers
+        param->SetConnectionFlag(MCCAParameter::ENormal);
+        param->SetContactDataFlag(MCCAParameter::EContactLink);
+        param->SetContactDataL( link16->Des() );
+
+        // switch to details view
+        const TUid uid = TUid::Uid( 0x200159E7 ); 
+        param->SetLaunchedViewUid( uid);
+
+        // Launching the  CCA application
+        iConnection->LaunchAppL( *param, this );
+
+        CleanupStack::Pop( param );  // parameter is taken care by MCCAConnection
+        CleanupStack::PopAndDestroy( link16 );
+        CleanupStack::PopAndDestroy( packed );
         }
     else
         {
@@ -1420,32 +1438,32 @@ void CFSEmailUiContactHandler::FindContactLinkL( const TDesC& aDes )
     }
 
 void CFSEmailUiContactHandler::FormatFieldIds()
-	{
+    {
     FUNC_LOG;
-	iEmailFields.Append( R_VPBK_FIELD_TYPE_EMAILGEN );
-	iEmailFields.Append( R_VPBK_FIELD_TYPE_EMAILWORK );
-	iEmailFields.Append( R_VPBK_FIELD_TYPE_EMAILHOME );
-	
-	iFirstnameFields.Append( R_VPBK_FIELD_TYPE_FIRSTNAME );
-	iLastnameFields.Append( R_VPBK_FIELD_TYPE_LASTNAME );
-	
-	iPhoneNumberFields.Append( R_VPBK_FIELD_TYPE_LANDPHONEHOME );
-	iPhoneNumberFields.Append( R_VPBK_FIELD_TYPE_MOBILEPHONEWORK );
-	iPhoneNumberFields.Append( R_VPBK_FIELD_TYPE_MOBILEPHONEHOME );
-	iPhoneNumberFields.Append( R_VPBK_FIELD_TYPE_LANDPHONEWORK );
-	iPhoneNumberFields.Append( R_VPBK_FIELD_TYPE_LANDPHONEGEN );
-	iPhoneNumberFields.Append( R_VPBK_FIELD_TYPE_MOBILEPHONEGEN );
-	
-	}
+    iEmailFields.Append( R_VPBK_FIELD_TYPE_EMAILGEN );
+    iEmailFields.Append( R_VPBK_FIELD_TYPE_EMAILWORK );
+    iEmailFields.Append( R_VPBK_FIELD_TYPE_EMAILHOME );
+    
+    iFirstnameFields.Append( R_VPBK_FIELD_TYPE_FIRSTNAME );
+    iLastnameFields.Append( R_VPBK_FIELD_TYPE_LASTNAME );
+    
+    iPhoneNumberFields.Append( R_VPBK_FIELD_TYPE_LANDPHONEHOME );
+    iPhoneNumberFields.Append( R_VPBK_FIELD_TYPE_MOBILEPHONEWORK );
+    iPhoneNumberFields.Append( R_VPBK_FIELD_TYPE_MOBILEPHONEHOME );
+    iPhoneNumberFields.Append( R_VPBK_FIELD_TYPE_LANDPHONEWORK );
+    iPhoneNumberFields.Append( R_VPBK_FIELD_TYPE_LANDPHONEGEN );
+    iPhoneNumberFields.Append( R_VPBK_FIELD_TYPE_MOBILEPHONEGEN );
+    
+    }
 
 void CFSEmailUiContactHandler::ResetFieldIds()
-	{
+    {
     FUNC_LOG;
-	iLastnameFields.Reset();
-	iFirstnameFields.Reset();
-	iEmailFields.Reset();
-	iPhoneNumberFields.Reset();
-	}
+    iLastnameFields.Reset();
+    iFirstnameFields.Reset();
+    iEmailFields.Reset();
+    iPhoneNumberFields.Reset();
+    }
 
 
 // -----------------------------------------------------------------------------
@@ -1453,98 +1471,98 @@ void CFSEmailUiContactHandler::ResetFieldIds()
 // -----------------------------------------------------------------------------
 TBool CFSEmailUiContactHandler::GetNameAndEmailFromRemoteLookupL( CFSMailBox& aMailBox,
     const TDesC& aQueryString, TDes& aDisplayname, TDes& aEmailAddress )
-	{
+    {
     FUNC_LOG;
 
-	CPbkxRemoteContactLookupServiceUiContext::TResult result;
-	DoRemoteLookupL( aMailBox, aQueryString, result, 
-			         CPbkxRemoteContactLookupServiceUiContext::EModeContactSelector);
+    CPbkxRemoteContactLookupServiceUiContext::TResult result;
+    DoRemoteLookupL( aMailBox, aQueryString, result, 
+                     CPbkxRemoteContactLookupServiceUiContext::EModeContactSelector);
 
-	if ( result.iExitReason == 
-		 CPbkxRemoteContactLookupServiceUiContext::TResult::EExitContactSelected )
-		{
-		GetNameAndEmail( aDisplayname, aEmailAddress, *(result.iSelectedContactItem) );
-		return ETrue;
-		} 
+    if ( result.iExitReason == 
+         CPbkxRemoteContactLookupServiceUiContext::TResult::EExitContactSelected )
+        {
+        GetNameAndEmail( aDisplayname, aEmailAddress, *(result.iSelectedContactItem) );
+        return ETrue;
+        } 
 
-	return EFalse;
-	}
+    return EFalse;
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiContactHandler::LaunchRemoteLookupL
 // -----------------------------------------------------------------------------
 void CFSEmailUiContactHandler::LaunchRemoteLookupL( CFSMailBox& aMailBox )
-	{
+    {
     FUNC_LOG;
 
-	CPbkxRemoteContactLookupServiceUiContext::TResult result;
-	DoRemoteLookupL( aMailBox, KNullDesC , result, 
-				     CPbkxRemoteContactLookupServiceUiContext::EModeNormal );
+    CPbkxRemoteContactLookupServiceUiContext::TResult result;
+    DoRemoteLookupL( aMailBox, KNullDesC , result, 
+                     CPbkxRemoteContactLookupServiceUiContext::EModeNormal );
 
-	}
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiContactHandler::LaunchRemoteLookupL
 // -----------------------------------------------------------------------------
 HBufC* CFSEmailUiContactHandler::GetNameAndNumberFromRemoteLookupL( CFSMailBox& aMailBox, const TDesC& aQuery, 
-													  RBuf& aPhoneNumber )
-	{
+                                                      RBuf& aPhoneNumber )
+    {
     FUNC_LOG;
 
-	CPbkxRemoteContactLookupServiceUiContext::TResult result;
-	DoRemoteLookupL( aMailBox, aQuery , result, 
-				     CPbkxRemoteContactLookupServiceUiContext::EModeContactSelector );
+    CPbkxRemoteContactLookupServiceUiContext::TResult result;
+    DoRemoteLookupL( aMailBox, aQuery , result, 
+                     CPbkxRemoteContactLookupServiceUiContext::EModeContactSelector );
 
-	HBufC* displayName = NULL;
-	
-	if ( result.iExitReason == 
-	CPbkxRemoteContactLookupServiceUiContext::TResult::EExitContactSelected )
-		{
-		displayName = GetPhoneNumberAndNameL( aPhoneNumber, *(result.iSelectedContactItem) );
-		} 
-	return displayName;
-	}
+    HBufC* displayName = NULL;
+    
+    if ( result.iExitReason == 
+    CPbkxRemoteContactLookupServiceUiContext::TResult::EExitContactSelected )
+        {
+        displayName = GetPhoneNumberAndNameL( aPhoneNumber, *(result.iSelectedContactItem) );
+        } 
+    return displayName;
+    }
 
 void CFSEmailUiContactHandler::LaunchRemoteLookupWithQueryL( CFSMailBox& aMailBox, const TDesC& aQuery )
-	{
+    {
     FUNC_LOG;
 
-	CPbkxRemoteContactLookupServiceUiContext::TResult result;
-	DoRemoteLookupL( aMailBox, aQuery , result, 
-					     CPbkxRemoteContactLookupServiceUiContext::EModeExistingCriteria );
+    CPbkxRemoteContactLookupServiceUiContext::TResult result;
+    DoRemoteLookupL( aMailBox, aQuery , result, 
+                         CPbkxRemoteContactLookupServiceUiContext::EModeExistingCriteria );
 
-	}
+    }
 
 HBufC* CFSEmailUiContactHandler::GetLastSearchNameL( const TDesC& aEmailAddress )
-	{
+    {
     FUNC_LOG;
-	HBufC* name(NULL);
-	if ( iSearchMatch )
-		{
-		if ( !iSearchMatch->EmailAddress().CompareF( aEmailAddress ) )
-			{
-			if ( iSearchMatch->DisplayName() != KNullDesC )
-				{
-				name = iSearchMatch->DisplayName().AllocL();
-				}
-			}
-		}
-	return name;
-	}
+    HBufC* name(NULL);
+    if ( iSearchMatch )
+        {
+        if ( !iSearchMatch->EmailAddress().CompareF( aEmailAddress ) )
+            {
+            if ( iSearchMatch->DisplayName() != KNullDesC )
+                {
+                name = iSearchMatch->DisplayName().AllocL();
+                }
+            }
+        }
+    return name;
+    }
 
 void CFSEmailUiContactHandler::Reset()
-	{
+    {
     FUNC_LOG;
-	iContactObjects.ResetAndDestroy();
-	iState = EContactHandlerIdle;
-	delete iLinksSet;
-	iLinksSet = NULL;
-	delete iLinkOperation;
-	iLinkOperation = NULL;
-	delete iLinkOperationFetch;
-	iLinkOperationFetch = NULL;
-	iHandlerObserver = NULL;
-	}
+    iContactObjects.ResetAndDestroy();
+    iState = EContactHandlerIdle;
+    delete iLinksSet;
+    iLinksSet = NULL;
+    delete iLinkOperation;
+    iLinkOperation = NULL;
+    delete iLinkOperationFetch;
+    iLinkOperationFetch = NULL;
+    iHandlerObserver = NULL;
+    }
 
 
 // ---------------------------------------------------------------------------
@@ -1553,131 +1571,131 @@ void CFSEmailUiContactHandler::Reset()
 //
 void CFSEmailUiContactHandler::GetNameAndEmail( TDes& aName, TDes& aEmail,
     CContactItem& aItem ) const
-	{
+    {
     FUNC_LOG;
-	CContactItemFieldSet& fieldSet = aItem.CardFields();
-	aName.Zero();
+    CContactItemFieldSet& fieldSet = aItem.CardFields();
+    aName.Zero();
 
-	RBuf familyName;
-	RBuf givenName;
-	TInt pos;
+    RBuf familyName;
+    RBuf givenName;
+    TInt pos;
 
-	pos = fieldSet.Find(KUidContactFieldFamilyName);
-	if (pos >= 0)
-		{
-		CContactItemField& itemField=fieldSet[pos];
-		if (!(itemField.IsHidden()) && !(itemField.IsDisabled()))
-			{
-			CContactTextField* textField = itemField.TextStorage();
-			familyName.Create( textField->Text() );
-			}				
-		}
-	pos = fieldSet.Find(KUidContactFieldGivenName);
-	if (pos >= 0)
-		{
-		CContactItemField& itemField=fieldSet[pos];
-		if (!(itemField.IsHidden()) && !(itemField.IsDisabled()))
-			{
-			CContactTextField* textField = itemField.TextStorage();
-			givenName.Create( textField->Text() );
-			}				
-		}	
-	RBuf email;
-	pos = fieldSet.Find(KUidContactFieldEMail);
-	if (pos >= 0)
-		{
-		CContactItemField& itemField=fieldSet[pos];
-		if (!(itemField.IsHidden()) && !(itemField.IsDisabled()))
-			{
-			CContactTextField* textField = itemField.TextStorage();
-			email.Create( textField->Text() );
-			aEmail.Copy( email );
-			}				
-		}
-	email.Close();
+    pos = fieldSet.Find(KUidContactFieldFamilyName);
+    if (pos >= 0)
+        {
+        CContactItemField& itemField=fieldSet[pos];
+        if (!(itemField.IsHidden()) && !(itemField.IsDisabled()))
+            {
+            CContactTextField* textField = itemField.TextStorage();
+            familyName.Create( textField->Text() );
+            }               
+        }
+    pos = fieldSet.Find(KUidContactFieldGivenName);
+    if (pos >= 0)
+        {
+        CContactItemField& itemField=fieldSet[pos];
+        if (!(itemField.IsHidden()) && !(itemField.IsDisabled()))
+            {
+            CContactTextField* textField = itemField.TextStorage();
+            givenName.Create( textField->Text() );
+            }               
+        }   
+    RBuf email;
+    pos = fieldSet.Find(KUidContactFieldEMail);
+    if (pos >= 0)
+        {
+        CContactItemField& itemField=fieldSet[pos];
+        if (!(itemField.IsHidden()) && !(itemField.IsDisabled()))
+            {
+            CContactTextField* textField = itemField.TextStorage();
+            email.Create( textField->Text() );
+            aEmail.Copy( email );
+            }               
+        }
+    email.Close();
 
 
-	if ( familyName.Length() )
-		{
-		aName.Append(givenName);
-		aName.Trim();
-		}
+    if ( familyName.Length() )
+        {
+        aName.Append(givenName);
+        aName.Trim();
+        }
 
-	if ( givenName.Length() )
-		{
-		aName.Append(' ');
-		aName.Append(familyName);
-		aName.Trim();
-		}
+    if ( givenName.Length() )
+        {
+        aName.Append(' ');
+        aName.Append(familyName);
+        aName.Trim();
+        }
 
-	givenName.Close();
-	familyName.Close();
-	}
+    givenName.Close();
+    familyName.Close();
+    }
 
 // ---------------------------------------------------------------------------
 // Gets the phone number from given contact item
 // ---------------------------------------------------------------------------
 //
 HBufC* CFSEmailUiContactHandler::GetPhoneNumberAndNameL( RBuf& aPhoneNumber, CContactItem& aItem ) const
-	{
+    {
     FUNC_LOG;
-	TInt pos;
-	CContactItemFieldSet& fieldSet = aItem.CardFields();
+    TInt pos;
+    CContactItemFieldSet& fieldSet = aItem.CardFields();
 
-	pos = fieldSet.Find(KUidContactFieldPhoneNumber);
-	if (pos >= 0)
-		{
-		CContactItemField& itemField=fieldSet[pos];
-		if (!(itemField.IsHidden()) && !(itemField.IsDisabled()))
-			{
-			CContactTextField* textField = itemField.TextStorage();
-			//aPhoneNumber.Create( textField->Text()->Length() );
-			//aPhoneNumber.Copy( textField->Text() );
-			aPhoneNumber.Create( textField->Text() );
-			}				
-		}
-	
-	HBufC* firstname = NULL;
-	
-	pos = fieldSet.Find( KUidContactFieldGivenName );
-	if ( pos >= 0 )
-		{
-		CContactItemField& itemField=fieldSet[pos];
-		if ( !itemField.IsHidden() && !itemField.IsDisabled() )
-			{
-			CContactTextField* textField = itemField.TextStorage();
-			firstname = textField->Text().AllocLC();
-			}				
-		}
-	if ( !firstname )
-	    {
-	    firstname = KNullDesC().AllocLC();
-	    }
+    pos = fieldSet.Find(KUidContactFieldPhoneNumber);
+    if (pos >= 0)
+        {
+        CContactItemField& itemField=fieldSet[pos];
+        if (!(itemField.IsHidden()) && !(itemField.IsDisabled()))
+            {
+            CContactTextField* textField = itemField.TextStorage();
+            //aPhoneNumber.Create( textField->Text()->Length() );
+            //aPhoneNumber.Copy( textField->Text() );
+            aPhoneNumber.Create( textField->Text() );
+            }               
+        }
+    
+    HBufC* firstname = NULL;
+    
+    pos = fieldSet.Find( KUidContactFieldGivenName );
+    if ( pos >= 0 )
+        {
+        CContactItemField& itemField=fieldSet[pos];
+        if ( !itemField.IsHidden() && !itemField.IsDisabled() )
+            {
+            CContactTextField* textField = itemField.TextStorage();
+            firstname = textField->Text().AllocLC();
+            }               
+        }
+    if ( !firstname )
+        {
+        firstname = KNullDesC().AllocLC();
+        }
 
-	HBufC* lastname = NULL;
-	
-	pos = fieldSet.Find( KUidContactFieldFamilyName );
-	if ( pos >= 0 )
-		{
-		CContactItemField& itemField=fieldSet[pos];
-		if ( !itemField.IsHidden() && !itemField.IsDisabled() )
-			{
-			CContactTextField* textField = itemField.TextStorage();
-			lastname = textField->Text().AllocLC();
-			}				
-		}
-	if ( !lastname )
-	    {
-	    lastname = KNullDesC().AllocLC();
-	    }
-	
-	HBufC* name = TFsEmailUiUtility::CreateDisplayNameLC( *firstname, *lastname, KNullDesC );
-	CleanupStack::Pop( name );
-	CleanupStack::PopAndDestroy( lastname );
-	CleanupStack::PopAndDestroy( firstname );
-	
-	return name;
-	}
+    HBufC* lastname = NULL;
+    
+    pos = fieldSet.Find( KUidContactFieldFamilyName );
+    if ( pos >= 0 )
+        {
+        CContactItemField& itemField=fieldSet[pos];
+        if ( !itemField.IsHidden() && !itemField.IsDisabled() )
+            {
+            CContactTextField* textField = itemField.TextStorage();
+            lastname = textField->Text().AllocLC();
+            }               
+        }
+    if ( !lastname )
+        {
+        lastname = KNullDesC().AllocLC();
+        }
+    
+    HBufC* name = TFsEmailUiUtility::CreateDisplayNameLC( *firstname, *lastname, KNullDesC );
+    CleanupStack::Pop( name );
+    CleanupStack::PopAndDestroy( lastname );
+    CleanupStack::PopAndDestroy( firstname );
+    
+    return name;
+    }
 
 // ---------------------------------------------------------------------------
 // CFSEmailUiContactHandler::DoRemoteLookupL
@@ -1685,36 +1703,36 @@ HBufC* CFSEmailUiContactHandler::GetPhoneNumberAndNameL( RBuf& aPhoneNumber, CCo
 //
 void CFSEmailUiContactHandler::DoRemoteLookupL( CFSMailBox& aMailBox,
     const TDesC& aQueryString,
-	CPbkxRemoteContactLookupServiceUiContext::TResult& aResult,
-	CPbkxRemoteContactLookupServiceUiContext::TMode aContext )
-	{
+    CPbkxRemoteContactLookupServiceUiContext::TResult& aResult,
+    CPbkxRemoteContactLookupServiceUiContext::TMode aContext )
+    {
     FUNC_LOG;
-   	TUid protocolUid = TUid::Null();
-	TUint accountId = 0;
-	aMailBox.GetRCLInfo( protocolUid, accountId );
-	const TPbkxRemoteContactLookupProtocolAccountId KAccountId(
-		protocolUid, accountId );
-		
+    TUid protocolUid = TUid::Null();
+    TUint accountId = 0;
+    aMailBox.GetRCLInfo( protocolUid, accountId );
+    const TPbkxRemoteContactLookupProtocolAccountId KAccountId(
+        protocolUid, accountId );
+        
 
-	CPbkxRemoteContactLookupEnv* env = CPbkxRemoteContactLookupEnv::NewL();
-	CleanupStack::PushL( env );
+    CPbkxRemoteContactLookupEnv* env = CPbkxRemoteContactLookupEnv::NewL();
+    CleanupStack::PushL( env );
 
-	MPbkxRemoteContactLookupServiceUi* serviceUi = env->ServiceUiL();
+    MPbkxRemoteContactLookupServiceUi* serviceUi = env->ServiceUiL();
 
-	// If you want test with RCL dummyContactDatabase, KAccountId = serviceUi->DefaultAccountIdL();
-	MPbkxRemoteContactLookupServiceUi::TContextParams params = { KAccountId, aContext };
+    // If you want test with RCL dummyContactDatabase, KAccountId = serviceUi->DefaultAccountIdL();
+    MPbkxRemoteContactLookupServiceUi::TContextParams params = { KAccountId, aContext };
 
-	CPbkxRemoteContactLookupServiceUiContext* ctx( NULL );
-	ctx = serviceUi->NewContextL( params );
+    CPbkxRemoteContactLookupServiceUiContext* ctx( NULL );
+    ctx = serviceUi->NewContextL( params );
 
-	CleanupStack::PushL( ctx ); 
+    CleanupStack::PushL( ctx ); 
 
-	ctx->ExecuteL( aQueryString, aResult );
+    ctx->ExecuteL( aQueryString, aResult );
 
-	CleanupStack::PopAndDestroy( ctx );
-	CleanupStack::PopAndDestroy( env );
+    CleanupStack::PopAndDestroy( ctx );
+    CleanupStack::PopAndDestroy( env );
 
-	}
+    }
 
 
 // ---------------------------------------------------------------------------
@@ -1723,43 +1741,43 @@ void CFSEmailUiContactHandler::DoRemoteLookupL( CFSMailBox& aMailBox,
 //
 TBool CFSEmailUiContactHandler::CallQueryL(
     const TDesC& aDisplayName )
-	{
+    {
     FUNC_LOG;
-	TInt answer = 0;
-	
-	if ( aDisplayName.Length() )
-	    {
-	    if ( iUseSenderText )
-	    	{
-	    	answer = TFsEmailUiUtility::ShowConfirmationQueryL( R_FREESTYLE_EMAIL_CALL_SENDER_QUERY, 
-															aDisplayName );
-	    	}
-	    else
-	    	{
-	    	answer = TFsEmailUiUtility::ShowConfirmationQueryL( R_FREESTYLE_EMAIL_UI_VIEWER_CALL_HOTSPOT, 
-															    aDisplayName );
-	    	}
-	    }
-	else // Show basic note if display name is not available.
-	    {
-	    _LIT(KEmpty, "");
-	    // Create dialog
-	    CFSEmailUiCallDialog* queryNote = new ( ELeave ) CFSEmailUiCallDialog();
-	    CleanupStack::PushL( queryNote ); 
+    TInt answer = 0;
+    
+    if ( aDisplayName.Length() )
+        {
+        if ( iUseSenderText )
+            {
+            answer = TFsEmailUiUtility::ShowConfirmationQueryL( R_FREESTYLE_EMAIL_CALL_SENDER_QUERY, 
+                                                            aDisplayName );
+            }
+        else
+            {
+            answer = TFsEmailUiUtility::ShowConfirmationQueryL( R_FREESTYLE_EMAIL_UI_VIEWER_CALL_HOTSPOT, 
+                                                                aDisplayName );
+            }
+        }
+    else // Show basic note if display name is not available.
+        {
+        _LIT(KEmpty, "");
+        // Create dialog
+        CFSEmailUiCallDialog* queryNote = new ( ELeave ) CFSEmailUiCallDialog();
+        CleanupStack::PushL( queryNote ); 
         // Createa and set text
-	    HBufC* querytext = StringLoader::LoadLC( R_FREESTYLE_EMAIL_UI_VIEWER_CALL_HOTSPOT, KEmpty );       
-	    TPtr pointer = querytext->Des();
-	    _LIT(KLineBreak, "\n");
+        HBufC* querytext = StringLoader::LoadLC( R_FREESTYLE_EMAIL_UI_VIEWER_CALL_HOTSPOT, KEmpty );       
+        TPtr pointer = querytext->Des();
+        _LIT(KLineBreak, "\n");
         AknTextUtils::StripCharacters( pointer, KLineBreak );
-	    queryNote->SetPromptL( *querytext );       
-	    CleanupStack::PopAndDestroy( querytext );
+        queryNote->SetPromptL( *querytext );       
+        CleanupStack::PopAndDestroy( querytext );
         CleanupStack::Pop( queryNote );
         // Show note.
         answer = queryNote->ExecuteLD( R_FSEMAIL_QUERY_DIALOG );
-	    }
-	
-	return answer;
-	}
+        }
+    
+    return answer;
+    }
 
 
 
@@ -1793,42 +1811,42 @@ void CFSEmailUiContactHandler::SetPreviousEmailAddressL( const TDesC& aAddress )
     }
 
 void CFSEmailUiContactHandler::RemoteContactQueryL()
-	{
-	FUNC_LOG;
-	TInt answer = TFsEmailUiUtility::ShowConfirmationQueryL( R_FREESTYLE_EMAIL_FETCH_FROM_REMOTE_QUERY );
-	if ( answer )	
-		{
-		LaunchRemoteLookupWithQueryL( *iMailBox, *iPreviousEmailAddress );
-		}
+    {
+    FUNC_LOG;
+    TInt answer = TFsEmailUiUtility::ShowConfirmationQueryL( R_FREESTYLE_EMAIL_FETCH_FROM_REMOTE_QUERY );
+    if ( answer )   
+        {
+        LaunchRemoteLookupWithQueryL( *iMailBox, *iPreviousEmailAddress );
+        }
     else // user cancelled operation inform client to enable its actions (i.e. return search priority)
         {
         ObserverOperationErrorL( CurrentCommand(), KErrCancel );
         }
 
-	}
+    }
 
 TContactHandlerCmd CFSEmailUiContactHandler::CurrentCommand()
-	{
+    {
     FUNC_LOG;
-	switch (iState)
-		{
-		case EContactHandlerAddToContacts:
-			return EAddToContactL;
-		case EContactHandlerSearchMatches:
-			return ESearchContacts;
-		case EContactHandlerShowContactDetails:
-			return EShowContactDetailsL;
-		case EContactHandlerGetAddressesFromPhonebook:
-			return EGetAddressesFromPhonebook;
-		case EContactHandlerCallToContactByEmail:
-			return ECallToContact;
-		case EContactHandlerCreateMessage:
-			return ECreateMessage;
-		default:
-			break;
-		}
-	return EIdle;
-	}
+    switch (iState)
+        {
+        case EContactHandlerAddToContacts:
+            return EAddToContactL;
+        case EContactHandlerSearchMatches:
+            return ESearchContacts;
+        case EContactHandlerShowContactDetails:
+            return EShowContactDetailsL;
+        case EContactHandlerGetAddressesFromPhonebook:
+            return EGetAddressesFromPhonebook;
+        case EContactHandlerCallToContactByEmail:
+            return ECallToContact;
+        case EContactHandlerCreateMessage:
+            return ECreateMessage;
+        default:
+            break;
+        }
+    return EIdle;
+    }
 
 void CFSEmailUiContactHandler::ClearObservers()
     {
@@ -1845,3 +1863,16 @@ void CFSEmailUiContactHandler::ObserverOperationErrorL( TContactHandlerCmd aCmd,
         }
     }
 
+void CFSEmailUiContactHandler::CCASimpleNotifyL( TNotifyType aType, TInt /*aReason*/ )
+    {
+    if ( MCCAObserver::EExitEvent == aType )
+        {
+        // Calling Close() for iConnection will close the running 
+        // CCApplication, so be careful when using it
+        if ( iConnection )
+            {
+            iConnection->Close();
+            iConnection = NULL;
+            }
+        }
+    }

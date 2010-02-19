@@ -35,10 +35,10 @@
 #include <freestyleemailui.mbg>
 #include <gulicon.h>
 #include <akntoolbar.h>
-#include "CFSMailMessage.h"
+#include "cfsmailmessage.h"
 #include <alf/alfframebrush.h>
-#include "CFSMailBox.h"
-#include "CFSMailClient.h"
+#include "cfsmailbox.h"
+#include "cfsmailclient.h"
 #include <hlplch.h>
 #include <akntitle.h>
 #include <centralrepository.h>

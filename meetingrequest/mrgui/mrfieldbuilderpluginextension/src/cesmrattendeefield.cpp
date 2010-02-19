@@ -27,7 +27,7 @@
 #include <AknsFrameBackgroundControlContext.h>
 //<cmail>
 #include "esmrcommands.h"
-#include "CFSMailClient.h"
+#include "cfsmailclient.h"
 //</cmail>
 #include "cesmrncspopuplistbox.h"
 #include "cesmrncsemailaddressobject.h"

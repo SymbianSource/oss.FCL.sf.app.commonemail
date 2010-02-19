@@ -22,8 +22,8 @@
 #include <e32base.h>
 
 //<cmail>
-#include "CFSMailCommon.h"
-#include "MFSMailBoxSearchObserver.h"
+#include "cfsmailcommon.h"
+#include "mfsmailboxsearchobserver.h"
 #include "fstreevisualizerobserver.h"
 #include "fstreelistobserver.h"
 #include "fsccontactactionmenudefines.h"

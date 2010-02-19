@@ -158,6 +158,6 @@ class CESMailSettingsPlugin : public CAknView
 		TUid iDtor_ID_Key;
 };
 
-#include "ESMailSettingsPlugin.inl"
+#include "esmailsettingsplugin.inl"
 
 #endif /*_ESMAILSESETTINGSPLUGIN_H_*/

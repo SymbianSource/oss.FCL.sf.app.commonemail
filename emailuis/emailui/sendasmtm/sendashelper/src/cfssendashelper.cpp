@@ -31,19 +31,19 @@
 #include <FreestyleEmailUi.rsg>
 
 //<cmail>
-#include "CFSMailCommon.h"
-#include "CFSMailClient.h"
-#include "CFSMailMessage.h"
-#include "CFSMailBox.h"
-#include "CFSMailAddress.h"
-#include "CFSMailMessageBase.h"
-#include "CFSMailMessagePart.h"
+#include "cfsmailcommon.h"
+#include "cfsmailclient.h"
+#include "cfsmailmessage.h"
+#include "cfsmailbox.h"
+#include "cfsmailaddress.h"
+#include "cfsmailmessagebase.h"
+#include "cfsmailmessagepart.h"
 #include "FreestyleEmailUiConstants.h"
-#include "ESMailSettingsPlugin.h"
+#include "esmailsettingsplugin.h"
 //</cmail>
 #include "cfssendashelper.h"
 #include "fsmtmsconstants.h"
-#include "FreestyleEmailCenRepKeys.h"
+#include "freestyleemailcenrepkeys.h"
 
 _LIT( KFreestyleEmailUiResourceFileName, "FreestyleEmailUi.rsc" );
 

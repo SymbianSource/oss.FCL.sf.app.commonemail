@@ -24,7 +24,7 @@
 
 #include <cmsvrecipientlist.h>
 //<cmail>
-#include "CFSMailCommon.h"
+#include "cfsmailcommon.h"
 //</cmail>
 // ---------------------------------------------------------------------------
 

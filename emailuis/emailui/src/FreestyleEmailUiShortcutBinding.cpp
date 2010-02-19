@@ -114,7 +114,11 @@ const CFSEmailUiShortcutBinding::TShortcutBinding KHtmlViewerShortcuts[] =
         { 0, EStdKeyBackspace, 0, EFsEmailUiCmdActionsDelete },
         { 0,    'H', 0,     EFsEmailUiCmdHelp },
         { 0,  '+', 0,     EFsEmailUiCmdZoomIn },
-        { 0,  '-', 0,     EFsEmailUiCmdZoomOut }
+        { 0,  '-', 0,     EFsEmailUiCmdZoomOut },
+        { 0,  'N', 0,     EFsEmailUiCmdNextMessage },
+        { 0,  'P', 0,     EFsEmailUiCmdPreviousMessage },
+        { 0,  EStdKeyLeftArrow, EModifierShift,     EFsEmailUiCmdPreviousMessage },
+        { 0,  EStdKeyRightArrow, EModifierShift,     EFsEmailUiCmdNextMessage }
     };
 
 // Shortcuts for the search results view    

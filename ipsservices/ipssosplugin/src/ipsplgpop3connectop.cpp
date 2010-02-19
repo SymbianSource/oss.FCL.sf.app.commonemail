@@ -149,11 +149,11 @@ void CIpsPlgPop3ConnectOp::DoRunL()
              ( err == KPop3InvalidLogin )  ||
              ( err == KPop3InvalidApopLogin ) )
             {
-            // Login details are wrong.
-        
-            iState = EQueryingDetails;
-            
-            QueryUsrPassL();
+            // Login details are wrong. Trying to ask for password
+            if ( !QueryUserPassL() )
+                {
+                CompleteObserver( err );
+                }
             }
         else if ( err == KErrNone )
             {
@@ -167,7 +167,6 @@ void CIpsPlgPop3ConnectOp::DoRunL()
                 iState = EIdle;
                 CompleteObserver( KErrNone );
                 }
-                
             }
         else
             {
@@ -188,11 +187,6 @@ void CIpsPlgPop3ConnectOp::DoRunL()
         CIpsPlgSyncStateHandler::SaveSuccessfulSyncTimeL(
                 iMsvSession, iService );
         CompleteObserver( err ); 
-        }
-    else if ( iState == EErrInvalidDetails )
-        {
-        // proper error code;
-        CompleteObserver( KErrGeneral );
         }
     else
         {
@@ -238,6 +232,7 @@ TFSProgress CIpsPlgPop3ConnectOp::GetFSProgressL() const
     switch( iState )
         {
         case EQueryingDetails:
+        case EQueryingDetailsBusy:
             result.iProgressStatus = TFSProgress::EFSStatus_Authenticating;
             break;
         case EStartConnect:
@@ -427,19 +422,31 @@ TBool CIpsPlgPop3ConnectOp::ValidateL()
     }
 
 // ----------------------------------------------------------------------------
-// CIpsPlgPop3ConnectOp::QueryUsrPassL()
+// CIpsPlgPop3ConnectOp::QueryUserPassL()
 // ----------------------------------------------------------------------------
 //
-void CIpsPlgPop3ConnectOp::QueryUsrPassL()
+TBool CIpsPlgPop3ConnectOp::QueryUserPassL()
     {
     FUNC_LOG;
 
     if ( iEventHandler )
         {
-        iEventHandler->QueryUsrPassL( iEntry->EntryId(), this );
-        }
-    }
+        // ask for credentials for pop3 account and wait for callback
+        if ( iEventHandler->QueryUsrPassL( iEntry->EntryId(), this ) )
+            {
+            iState = EQueryingDetails;
+            }
+        else
+            {
+            // another operation is waiting for password
+            iState = EQueryingDetailsBusy;
+            }
 
+        return ETrue;
+        }
+
+    return EFalse;
+    }
 
 
 // ----------------------------------------------------------------------------
@@ -476,16 +483,31 @@ TInt CIpsPlgPop3ConnectOp::GetOperationErrorCodeL( )
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
 void CIpsPlgPop3ConnectOp::CredientialsSetL( TInt aEvent )
-    {              
+    {
     FUNC_LOG;
-    if ( aEvent == EIPSSosCredientialsCancelled ) 
+
+    if ( iState == EQueryingDetails )
         {
-        CompleteObserver( KErrCancel );
+        // response for our operation`s query
+        if ( aEvent == EIPSSosCredientialsCancelled )
+            {
+            // user canceled operation
+            CompleteObserver( KErrCancel );
+            }
+
+        // password has been set, continue with operation
+        SetActive();
+        CompleteThis();
         }
-    //password has been set, continue with operation
-    
-    SetActive();
-    CompleteThis();
+    else if ( iState == EQueryingDetailsBusy )
+        {
+        // response for other operation`s query
+        // we could try to ask for password now,
+        // but decision was made to cancel operation
+        CompleteObserver( KErrCancel );
+        SetActive();
+        CompleteThis();
+        }
     }
 //EOF
 

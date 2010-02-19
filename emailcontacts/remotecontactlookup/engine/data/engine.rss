@@ -88,7 +88,7 @@ RESOURCE MENU_PANE r_rcl_search_result_dialog_menu_pane
 		MENU_ITEM { command = ERclCmdNewSearch; txt = qtn_rcl_opt_new_search; },
 		MENU_ITEM { command = ERclCmdCall; cascade = r_rcl_call_menu_pane; txt = qtn_rcl_opt_call; },
 		MENU_ITEM { command = ERclCmdSend; cascade = r_rcl_send_menu_pane; txt = qtn_rcl_opt_send; },
-		MENU_ITEM { command = ERclCmdHelp; txt = qtn_options_help; },
+//		MENU_ITEM { command = ERclCmdHelp; txt = qtn_options_help; },
 		MENU_ITEM { command = EAknCmdExit; txt = qtn_options_exit; }	
 		};
 	}

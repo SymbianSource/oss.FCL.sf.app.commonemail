@@ -89,9 +89,6 @@ void CNcsSubjectField::ConstructL( TInt aLabelTextId )
 
     iTextEditor = new ( ELeave ) CNcsEditor( iSizeObserver, ETrue, ENcsEditorSubject, captionText );
     CleanupStack::PopAndDestroy( aTextBuf );
-
-    // iTextEditor is not completely constructed until in SetContainerWindowL()
-    iFocusChangeHandler = new (ELeave) CAsyncCallBack( CActive::EPriorityStandard );
     }
 
 // ---------------------------------------------------------------------------
@@ -109,8 +106,6 @@ CNcsSubjectField::~CNcsSubjectField()
         ControlEnv()->ScreenDevice()->ReleaseFont( iFont );
         iFont = NULL;
         }*/
-
-    delete iFocusChangeHandler;
     }
 
 // -----------------------------------------------------------------------------
@@ -245,6 +240,7 @@ void CNcsSubjectField::HandlePointerEventL( const TPointerEvent& aPointerEvent )
     {
 	FUNC_LOG;
     iTextEditor->HandlePointerEventL( aPointerEvent );
+    iTextEditor->HandleTextChangedL();
     }
 
 // -----------------------------------------------------------------------------
@@ -254,21 +250,8 @@ void CNcsSubjectField::HandlePointerEventL( const TPointerEvent& aPointerEvent )
 void CNcsSubjectField::FocusChanged( TDrawNow aDrawNow )
 	{
     FUNC_LOG;
-	// The focus change gaining handling needs to be deferred until AknFep is fully
-	// initialised. Otherwise there will be problems when moving focus from
-	// body to subject. Focus losing can be handled immediately
 	iDrawAfterFocusChange = aDrawNow;
-	if ( IsFocused() )
-	    {
-	TCallBack callback( DoHandleFocusChanged, this );
-	iFocusChangeHandler->Cancel();
-	iFocusChangeHandler->Set( callback );
-	iFocusChangeHandler->CallBack();
-	}
-	else
-	    {
-	    DoHandleFocusChanged( this );
-	    }
+	DoHandleFocusChanged( this );
 	}
 
 // -----------------------------------------------------------------------------

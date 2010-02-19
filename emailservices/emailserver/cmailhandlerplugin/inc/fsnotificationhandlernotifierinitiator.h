@@ -24,7 +24,7 @@
 
 #include <barsc.h>
 //<cmail>
-#include "CFSMailCommon.h"
+#include "cfsmailcommon.h"
 
 #include "fsmailserverconst.h"
 //</cmail>

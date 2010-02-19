@@ -17,10 +17,10 @@
 
 
 
-#include "MsgStorePropertyContainer.h"
+#include "msgstorepropertycontainer.h"
 //<cmail>
-#include "DebugLogMacros.h"
-#include "MsgStorePropertyKeys.h"
+#include "debuglogmacros.h"
+#include "msgstorepropertykeys.h"
 //</cmail>
 #include "PropertiesSerializer.h"
 

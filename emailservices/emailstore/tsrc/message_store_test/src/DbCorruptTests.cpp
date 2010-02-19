@@ -16,11 +16,11 @@
 */
 
 
-#include <BAUTILS.H>
-#include <S32FILE.H>
-#include <D32DBMS.H>
+#include <bautils.h>
+#include <s32file.h>
+#include <d32dbms.h>
 #include "DbCorruptTests.h"
-#include <EmailStoreUids.hrh>
+#include <emailstoreuids.hrh>
 
 //these must match those defined in ContainerStoreDefs.
 _LIT( KDbFilename, "message_store.db" );

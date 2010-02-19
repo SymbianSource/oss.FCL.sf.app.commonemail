@@ -352,6 +352,7 @@ void CNcsAddressInputField::HandlePointerEventL( const TPointerEvent& aPointerEv
         {
         iButton->HandlePointerEventL( aPointerEvent );
         }
+    iTextEditor->HandleTextChangedL();    
     }
 
 // -----------------------------------------------------------------------------

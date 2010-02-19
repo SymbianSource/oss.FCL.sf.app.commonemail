@@ -46,7 +46,7 @@
 #include <AiwGenericParam.h>
 
 //FS Email framework
-#include "CFSMailBox.h"
+#include "cfsmailbox.h"
 //</cmail>
 
 //MRUI

@@ -79,7 +79,7 @@
 #include "esmrconfig.hrh"
 #include "mesmrfieldevent.h"
 
-#include "CFSMailBox.h"
+#include "cfsmailbox.h"
 
 /// Unnamed namespace for local definitions
 namespace  { // codescanner::namespace

@@ -20,12 +20,12 @@
 #define __MAILITERATOR_H__
 
 //<cmail>
-#include "MFSMailIterator.h"
-#include "MsgStoreSortResultIterator.h"
-#include "DebugLogMacros.h"
+#include "mfsmailiterator.h"
+#include "msgstoresortresultiterator.h"
+#include "debuglogmacros.h"
 //</cmail>
 
-#include "BasePlugin.h"
+#include "baseplugin.h"
 
 
 /**

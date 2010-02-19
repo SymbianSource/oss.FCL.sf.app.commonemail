@@ -29,7 +29,7 @@
 
 #include <calsession.h>
 //<cmail>
-#include "CFSMailClient.h"
+#include "cfsmailclient.h"
 #include "esmricalvieweropcodes.hrh"
 #include "esmricalviewerdefs.hrh"
 //</cmail>

@@ -13,7 +13,7 @@
 *
 *  Description:
 *       Encapsulates saving and removing email accounts
-*  Version     : %version: 12.1.2 %
+*  Version     : %version: e003sa37#12.1.3 %
 *
 */
 
@@ -34,7 +34,7 @@
 #include "ipssetdataapi.h"
 #include "ipsplgpropertywatcher.h"
 #include "ipsplgcommon.h"
-#include "CFSMailCommon.h"
+#include "cfsmailcommon.h"
 
 
 const TInt KIpsSetManagerMaxCreTry = 10;

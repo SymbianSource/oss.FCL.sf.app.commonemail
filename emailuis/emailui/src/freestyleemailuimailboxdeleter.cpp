@@ -30,9 +30,9 @@
 #include "emailtrace.h"
 #include "freestyleemailuimailboxdeleter.h"
 #include "FreestyleEmailUiUtilities.h"
-#include "CFSMailBox.h"
+#include "cfsmailbox.h"
 #include "FreestyleEmailUiAppui.h"
-#include "CFSMailClient.h"
+#include "cfsmailclient.h"
 
 // CONSTANT VALUES
 _LIT( KTabCharacter, "\t" ); 

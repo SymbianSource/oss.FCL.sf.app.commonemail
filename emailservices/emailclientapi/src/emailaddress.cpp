@@ -16,7 +16,7 @@
 */
 
 #include "emailaddress.h"
-#include "CFSMailClient.h"
+#include "cfsmailclient.h"
 #include "emailclientapi.hrh"
 
 CEmailAddress* CEmailAddress::NewL( const TRole aRole, const TDataOwner aOwner )

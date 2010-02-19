@@ -36,9 +36,9 @@
 #include <flogger.h>
 #include <aknenv.h>	// CAknEnv
 
-#include "CFSMailBox.h"
-#include "CFSMailClient.h"
-#include "CFSMailAddress.h"
+#include "cfsmailbox.h"
+#include "cfsmailclient.h"
+#include "cfsmailaddress.h"
 
 #include <aknlayoutscalable_apps.cdl.h>
 #include <layoutmetadata.cdl.h>

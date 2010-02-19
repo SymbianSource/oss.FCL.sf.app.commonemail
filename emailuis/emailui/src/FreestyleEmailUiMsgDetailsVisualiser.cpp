@@ -12,7 +12,7 @@
 * Contributors:
 *
 *  Description : FreestyleEmailUi message details view implementation
-*  Version     : %version: e002sa38#46 %
+*  Version     : %version: e003sa37#48 %
 *
 */
 
@@ -37,8 +37,8 @@
 //</cmail>
 
 //<cmail>
-#include "CFSMailMessage.h"
-#include "CFSMailClient.h"
+#include "cfsmailmessage.h"
+#include "cfsmailclient.h"
 //</cmail>
 
 #include "FSEmailBuildFlags.h"
@@ -57,6 +57,7 @@
 #include "fstreeplaintwolineitemdata.h"
 #include "fstreeplaintwolineitemvisualizer.h"
 #include <csxhelp/cmail.hlp.hrh>
+#include "AknWaitDialog.h"
 // </cmail>
 
 // INTERNAL INCLUDES
@@ -101,7 +102,9 @@ void CFSEmailUiMsgDetailsVisualiser::ConstructL()
     BaseConstructL( R_FSEMAILUI_MAIL_DETAILS_VIEW );
 
     iFirstStartCompleted = EFalse;    
- 
+	iFetchingMessageStructure = EFalse;
+	iAsyncProcessComplete = ETrue;
+	iWaitDialog = NULL;
 	}
 
 // CFSEmailUiMsgDetailsVisualiser::DoFirstStartL()
@@ -271,6 +274,24 @@ void CFSEmailUiMsgDetailsVisualiser::ChildDoActivateL(
 
 	    if ( iViewedMsg ) // Safety check
 	        {
+			//<cmail> 
+			// The code below fetches the mail structure in order to have access to all detail needed. 
+			// IMAP - hasStructure should be always True
+			// POP  - it is False if the message has not been read yet so the code below
+			//        should fetch the message structure
+			iAsyncProcessComplete = ETrue;
+			TBool hasStructure = TFsEmailUiUtility::IsMessageStructureKnown( *iViewedMsg );			 
+			if (!hasStructure)
+				{
+				iWaitDialog = new (ELeave) CAknWaitDialog((REINTERPRET_CAST(CEikDialog**,&iWaitDialog)), EFalse);
+				iWaitDialog->SetCallback(this);
+				iWaitDialog->ExecuteLD(R_FSE_FETCHING_WAIT_DIALOG);
+
+				iDialogNotDismissed = ETrue;
+				iAsyncProcessComplete = EFalse;
+				StartFetchingMessageStructureL(iViewedMsg);
+				}
+			//</cmail>
 	        // Set title bar text to "Message/Meeting details"
 	        ChangeTitleBarTextL( ETrue );
 
@@ -295,8 +316,16 @@ void CFSEmailUiMsgDetailsVisualiser::ChildDoActivateL(
             iParentLayout->SetRect( iScreenRect );
             ClearMsgDetailsModelL();        
             
+			//<cmail> 
+			// IMAP - hasStructure is True so the view can be updated. 
+			// POP - if hasStructure is False then the message strucure is being fetched. Wait for responce that will be received in 
+			//       observer method RequestResponseL( ... )
+			if ( hasStructure )
+				{
             UpdateMsgDetailsModelL();
             iTreeList->ShowListL();
+	        }
+			//</cmail>
 	        }
 		}
 	// <cmail> Touch
@@ -307,6 +336,9 @@ void CFSEmailUiMsgDetailsVisualiser::ChildDoActivateL(
 void CFSEmailUiMsgDetailsVisualiser::ChildDoDeactivate()
 	{
     FUNC_LOG;
+	//<cmail> 
+	CancelFetching();
+	//</cmail>
     if ( !iAppUi.AppUiExitOngoing() )
         {
         if ( iTreeList->IsFocused() )
@@ -1810,3 +1842,145 @@ void CFSEmailUiMsgDetailsVisualiser::GetParentLayoutsL( RPointerArray<CAlfVisual
     aLayoutArray.AppendL( iParentLayout );
     }
 
+// <cmail> 
+// ---------------------------------------------------------------------------
+// Fetching the Message Structure. It is necessary for POP protocol in order to read recipients
+// ---------------------------------------------------------------------------
+//
+void CFSEmailUiMsgDetailsVisualiser::StartFetchingMessageStructureL(
+		CFSMailMessage* aMsg)
+	{
+	FUNC_LOG;
+	TFSMailMsgId currentMailboxId = aMsg->GetMailBoxId();
+	TFSMailMsgId currentMessageFolderId = aMsg->GetFolderId();
+	CFSMailFolder* currentFolder = iAppUi.GetMailClient()->GetFolderByUidL(
+			currentMailboxId, currentMessageFolderId);
+	CleanupStack::PushL(currentFolder);
+	RArray<TFSMailMsgId> messageIds;
+	CleanupClosePushL(messageIds);
+	messageIds.Append(aMsg->GetMessageId());
+	// Fetch the message structure
+	iCurrentStructureFetchRequestId = currentFolder->FetchMessagesL(messageIds,
+			EFSMsgDataStructure, *this);
+	iFetchingMessageStructure = ETrue;
+	CleanupStack::PopAndDestroy(&messageIds);
+	CleanupStack::PopAndDestroy(currentFolder);
+	}
+// </cmail>
+
+// <cmail> 
+// ---------------------------------------------------------------------------
+// MFSMailRequestObserver interface implementation
+// ---------------------------------------------------------------------------
+//
+void CFSEmailUiMsgDetailsVisualiser::RequestResponseL(TFSProgress aEvent,
+		TInt aRequestId)
+	{
+	FUNC_LOG;
+	if (aRequestId == iCurrentStructureFetchRequestId && iFetchingMessageStructure)
+		{
+		if (aEvent.iError != KErrNone || aEvent.iProgressStatus == TFSProgress::EFSStatus_RequestCancelled)
+			{
+			iAsyncProcessComplete = ETrue;
+			iFetchingMessageStructure = EFalse;
+			}
+		else if (aEvent.iProgressStatus == TFSProgress::EFSStatus_RequestComplete)
+			{
+			iAsyncProcessComplete = ETrue;
+			iFetchingMessageStructure = EFalse;
+
+			// get message again, there might be new information
+			if (iViewedMsg)
+				{
+				TFSMailMsgId mailboxId = iViewedMsg->GetMailBoxId();
+				TFSMailMsgId folderId = iViewedMsg->GetFolderId();
+				TFSMailMsgId messageId = iViewedMsg->GetMessageId();
+				UpdateMessagePtrL(mailboxId, folderId, messageId);
+				}
+			}
+		}	
+    //<cmail>
+    if (iAsyncProcessComplete && iWaitDialog && iDialogNotDismissed)
+		{
+		iWaitDialog->ProcessFinishedL(); // deletes the dialog
+		}
+    //</cmail>
+	
+	if (iViewedMsg) //safety check
+		{
+		UpdateMsgDetailsModelL();
+		iTreeList->ShowListL();
+		iTreeList->SetFocusedL(ETrue);
+		}
+	}
+// </cmail>
+
+// <cmail> 
+// ---------------------------------------------------------------------------
+// Update our message pointer and saves its status
+// ---------------------------------------------------------------------------
+// 
+void CFSEmailUiMsgDetailsVisualiser::UpdateMessagePtrL(
+		TFSMailMsgId aNewMailboxId, TFSMailMsgId aNewFolderId,
+		TFSMailMsgId aNewMessageId)
+	{
+	FUNC_LOG;
+	if (iViewedMsg)
+		{
+
+		delete iViewedMsg;
+		iViewedMsg = NULL;
+		}
+
+	// it should contain all data now (including recipients)
+	iViewedMsg = iAppUi.GetMailClient()->GetMessageByUidL(aNewMailboxId,
+			aNewFolderId, aNewMessageId, EFSMsgDataEnvelope);
+
+	if (iViewedMsg)
+		{
+		// Save read status
+		iViewedMsg->SaveMessageL();
+		}
+	}
+// </cmail>
+
+// <cmail> 
+// ---------------------------------------------------------------------------
+// Cancel fetching of the message structure 
+// ---------------------------------------------------------------------------
+//
+void CFSEmailUiMsgDetailsVisualiser::CancelFetching()
+	{
+	FUNC_LOG;
+
+	if (iFetchingMessageStructure)
+		{
+		TRAP_IGNORE( iAppUi.GetMailClient()->CancelL( iCurrentStructureFetchRequestId ) );
+		iFetchingMessageStructure = EFalse;
+		}
+	iAsyncProcessComplete = ETrue;
+	if (iWaitDialog && iDialogNotDismissed)
+		{
+		TRAP_IGNORE(iWaitDialog->ProcessFinishedL()); // deletes the dialog
+		iWaitDialog = NULL;
+		}
+	//</cmail>
+	}
+// </cmail>
+
+// <cmail> 
+// ---------------------------------------------------------------------------
+// MProgressDialogCallback interface implementation
+// ---------------------------------------------------------------------------
+//
+void CFSEmailUiMsgDetailsVisualiser::DialogDismissedL( TInt aButtonId)
+	{
+    FUNC_LOG;
+    iDialogNotDismissed = EFalse;
+	if( aButtonId == EAknSoftkeyCancel )
+		{
+		CancelFetching();
+		}
+	
+	}
+// </cmail>

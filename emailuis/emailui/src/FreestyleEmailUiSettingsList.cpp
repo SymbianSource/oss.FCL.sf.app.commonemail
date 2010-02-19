@@ -30,12 +30,12 @@
 #include <e32cmn.h>
 #include <FreestyleEmailUi.rsg>
 
-#include "CFSMailClient.h"
-#include "CFSMailBox.h"
+#include "cfsmailclient.h"
+#include "cfsmailbox.h"
 #include <AknGlobalConfirmationQuery.h> // confirmation
 #include <freestyleemailui.mbg> // icons
-#include "ESMailSettingsPluginUids.hrh"
-#include "ESMailSettingsPlugin.h"
+#include "esmailsettingspluginuids.hrh"
+#include "esmailsettingsplugin.h"
 
 #include <aknnotewrappers.h> // for note
 #include <AknDialog.h> // for settings dialog

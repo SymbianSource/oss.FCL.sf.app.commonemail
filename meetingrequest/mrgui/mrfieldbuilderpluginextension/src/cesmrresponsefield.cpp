@@ -23,7 +23,7 @@
 #include "cesmrlayoutmgr.h"
 #include "nmrlayoutmanager.h"
 #include "esmrhelper.h"
-#include "CFSMailBox.h"
+#include "cfsmailbox.h"
 
 #include <esmrgui.rsg>
 #include <StringLoader.h>

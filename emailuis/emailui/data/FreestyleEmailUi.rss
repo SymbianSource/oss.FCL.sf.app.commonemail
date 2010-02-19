@@ -1116,6 +1116,8 @@ RESOURCE TBUF r_freestyle_email_ui_folder_list_drafts				{ buf=qtn_fse_folder_li
 RESOURCE TBUF r_freestyle_email_ui_folder_list_sent					{ buf=qtn_fse_folder_list_sent; }
 RESOURCE TBUF r_freestyle_email_ui_folder_list_deleted				{ buf=qtn_fse_folder_list_deleted_items; }
 
+RESOURCE TBUF r_freestyle_email_ui_folder_list_folder_with_unread	{ buf=qtn_fse_folder_list_folder_with_unread; }
+
 RESOURCE TBUF r_freestyle_email_ui_dropdown_list_inbox				{ buf=qtn_fse_message_list_inbox; }
 RESOURCE TBUF r_freestyle_email_ui_dropdown_list_outbox				{ buf=qtn_fse_message_list_outbox; }
 RESOURCE TBUF r_freestyle_email_ui_dropdown_list_drafts				{ buf=qtn_fse_message_list_draft; }
@@ -1297,6 +1299,7 @@ RESOURCE MENU_PANE r_fsemailui_maillist_menupane
           MENU_ITEM { command = EFsEmailUiCmdActionsForward; txt = qtn_fse_message_list_options_forward; },
           MENU_ITEM { command = EFsEmailUiCmdMailActions; txt = qtn_cmail_message_list_options_actions; cascade=r_fsemailui_maillist_submenu_mail_actions;},
           MENU_ITEM { command = EFsEmailUiCmdSync; txt = qtn_cmail_message_list_options_send_receive; },
+          MENU_ITEM { command = EFsEmailUiCmdCancelSync; txt = qtn_fse_launcher_options_cancel_sync; },  
           MENU_ITEM { command = EFsEmailUiCmdSubMenuMark; txt = qtn_fse_message_list_options_mark; cascade=r_fsemailui_maillist_submenu_mark;},
           MENU_ITEM { command = EFsEmailUiCmdSubMenuUnmark; txt = qtn_fse_message_list_options_unmark; cascade=r_fsemailui_maillist_submenu_unmark;},
           MENU_ITEM { command = EFsEmailUiCmdSettings; txt = qtn_fse_message_list_options_settings; },
@@ -2854,6 +2857,11 @@ RESOURCE STYLUS_POPUP_MENU r_stylus_popup_menu_html_view_email_address
                 txt = qtn_mail_stylus_popup_add_to_contacts;  // Save to contacts
                 command = EFsEmailUiCmdActionsAddContact; 
             },
+        STYLUS_POPUP_MENU_ITEM
+            {
+            txt = qtn_fse_viewer_options_contact_details;    // contact details
+            command = EFsEmailUiCmdActionsContactDetails;
+            },     
         STYLUS_POPUP_MENU_ITEM
             {
                 txt = qtn_cmail_popup_search_server;    // Search from server

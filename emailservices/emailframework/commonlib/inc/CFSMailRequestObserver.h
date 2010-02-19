@@ -21,10 +21,10 @@
 
 //  INCLUDES
 //<cmail>
-#include "MFSMailRequestObserver.h"
-#include "CFSMailPlugin.h"
+#include "mfsmailrequestobserver.h"
+#include "cfsmailplugin.h"
 //</cmail>
-#include "CFSMailRequestHandler.h"
+#include "cfsmailrequesthandler.h"
 
 /**
  *  asynchronous request observer

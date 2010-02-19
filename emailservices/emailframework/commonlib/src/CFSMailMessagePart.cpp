@@ -21,11 +21,11 @@
 #include <mmf/common/mmfcontrollerpluginresolver.h> // CleanupResetAndDestroy
 
 //<cmail>
-#include "CFSMailMessagePart.h"
-#include "CFSMailPlugin.h"
+#include "cfsmailmessagepart.h"
+#include "cfsmailplugin.h"
 //</cmail>
 
-#include "CFSMailRequestObserver.h"
+#include "cfsmailrequestobserver.h"
 
 
 // ================= MEMBER FUNCTIONS ==========================================

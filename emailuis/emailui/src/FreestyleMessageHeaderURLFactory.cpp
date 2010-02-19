@@ -16,7 +16,7 @@
 */
 
 #include "FreestyleMessageHeaderURLFactory.h"
-#include "CFSMailAddress.h"
+#include "cfsmailaddress.h"
 
 EXPORT_C CFreestyleMessageHeaderURL* FreestyleMessageHeaderURLFactory::CreateEmailAddressUrlL( TEmailAddressType aEmailType, 
         const CFSMailAddress& aEmailAddress )
@@ -67,4 +67,16 @@ EXPORT_C CFreestyleMessageHeaderURL* FreestyleMessageHeaderURLFactory::CreateAtt
     return url;
     }
 
+EXPORT_C CFreestyleMessageHeaderURL* FreestyleMessageHeaderURLFactory::CreateEmailSubjectUrlL( const TDesC& aSubject )
+    {
+    HBufC* scheme = KURLSchemeCmail().AllocLC();
+    HBufC* type = KURLTypeSubject().AllocLC();
+    HBufC* subject = aSubject.AllocLC();
+    CFreestyleMessageHeaderURL *url = CFreestyleMessageHeaderURL::NewL( scheme, type, subject );
+    CleanupStack::Pop( subject );
+    CleanupStack::Pop( type );
+    CleanupStack::Pop( scheme );
+    
+    return url;    
+    }
 

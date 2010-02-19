@@ -1703,6 +1703,17 @@ void CFsTreeVisualizerBase::SetFocusedItemL( const TFsTreeItemId aItemId,
     }
 
 // ---------------------------------------------------------------------------
+// Gets item vertical position in the list 
+// ---------------------------------------------------------------------------
+//
+TInt CFsTreeVisualizerBase::GetItemWorldPosition( const TInt aIdx )
+    {
+    TRect rect;
+    iWorld.GetItemRectByIndex( aIdx, rect);
+    return rect.iTl.iY;
+    }
+
+// ---------------------------------------------------------------------------
 // Checks if the specified item is focused.
 // ---------------------------------------------------------------------------
 //
@@ -2524,7 +2535,8 @@ void CFsTreeVisualizerBase::SetItemsAlwaysExtendedL(TBool aAlwaysExtended)
             iWorld.AppendL(itemId, itemviz->Size());
             }
         }
-    iViewPort.SetPositionL(TPoint(), EFalse);
+        // Below line commetned out. ViewPort is now not moved to the top of mail list
+        //iViewPort.SetPositionL(TPoint(), EFalse);
     iViewPort.ClearCache();
     if (!isUpdating)
         {
@@ -5020,15 +5032,26 @@ void CFsTreeVisualizerBase::UpdatePhysicsL()
     }
 
 // ---------------------------------------------------------------------------
+// Returns viewPort top-left position
+// ---------------------------------------------------------------------------
+//
+TPoint CFsTreeVisualizerBase::ViewPortTopPosition() const
+{
+    FUNC_LOG;
+    return iViewPort.Position();
+}
+
+// ---------------------------------------------------------------------------
 // Physic updated view position
 // ---------------------------------------------------------------------------
 //
 void CFsTreeVisualizerBase::ViewPositionChanged(const TPoint& aNewPosition,
-        TBool /*aDrawNow*/, TUint /*aFlags*/)
+        TBool /*aDrawNow*/, TUint aFlags )
     {
     FUNC_LOG;
     TInt error(KErrNone);
-    TRAP( error, iViewPort.SetCenterPositionL(aNewPosition, ETrue, EUpdatedByPhisic) );
+    TRAP( error, iViewPort.SetCenterPositionL(aNewPosition, ETrue,
+                aFlags == 0 ? EUpdatedByPhisic : ENotUpdatedByPhisic ) );
     ERROR_1( error, "iViewPort.SetCenterPositionL failed with error: %d", error );
     }
 

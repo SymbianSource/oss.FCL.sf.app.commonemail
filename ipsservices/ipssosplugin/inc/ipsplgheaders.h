@@ -71,16 +71,16 @@
 #include <mmsvattachmentmanager.h>    // MMsvAttachmentManager
 // cfsmail
 //<cmail>
-#include "CFSMailCommon.h"
-#include "CFSMailMessage.h"
+#include "cfsmailcommon.h"
+#include "cfsmailmessage.h"
 // sendui
 #include <SendUiConsts.h>
 #include <SenduiMtmUids.h>
 
 #include "fsmailserverconst.h"
 // mfsmail
-#include "MFSMailBoxSearchObserver.h"
-#include "MFSMailEventObserver.h"
+#include "mfsmailboxsearchobserver.h"
+#include "mfsmaileventobserver.h"
 //</cmail>
 // alwaysonline
 #include <AlwaysOnlineManagerClient.h>
@@ -160,7 +160,7 @@
 #include "ipsplgsyncstatehandler.h"
 
 // observers
-#include "MFSMailRequestObserver.h"
+#include "mfsmailrequestobserver.h"
 #include "ipsplgsettingsobserver.h"
 #include "ipsplgpropertywatcher.h"
 

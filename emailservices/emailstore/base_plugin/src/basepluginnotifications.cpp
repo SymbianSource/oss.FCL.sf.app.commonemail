@@ -18,11 +18,11 @@
 
 
 //<cmail>
-#include "MsgStore.h"
-#include "MsgStoreFolder.h"
+#include "msgstore.h"
+#include "msgstorefolder.h"
 //</cmail>
 
-#include "BasePlugin.h"
+#include "baseplugin.h"
 #include "baseplugincommonutils.h"
 
 

@@ -17,8 +17,8 @@
 
 
 #include "emailtrace.h"
-#include "CFSMailRequestObserver.h"
-#include "CFSMailRequestHandler.h"
+#include "cfsmailrequestobserver.h"
+#include "cfsmailrequesthandler.h"
 
 // ================= MEMBER FUNCTIONS ==========================================
 // -----------------------------------------------------------------------------

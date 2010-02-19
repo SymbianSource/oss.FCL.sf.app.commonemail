@@ -291,32 +291,34 @@ void CNcsPopupListBox::SetSearchTextL( const TDesC& aText )
 // -----------------------------------------------------------------------------
 //
 CNcsEmailAddressObject* CNcsPopupListBox::ReturnCurrentEmailAddressLC()
-	{
+    {
     FUNC_LOG;
-	CNcsEmailAddressObject* addressObject = NULL;
+    CNcsEmailAddressObject* addressObject = NULL;
 
     if ( iMatchingItems.Count() )
-		{
-		CFSEmailUiClsItem* clsItem = NULL;
-		if ( iRemoteLookupSupported )
-			{
-			clsItem = iMatchingItems[CurrentItemIndex()-1];  // -1 because of iRemoteLookupItemPos
-			}
-		else
-			{
-			clsItem = iMatchingItems[CurrentItemIndex()]; // no iRemoteLookupItemPos			
-			}
-		addressObject= CNcsEmailAddressObject::NewL( clsItem->DisplayName(), clsItem->EmailAddress() );
-        CleanupStack::PushL( addressObject );			
-        if ( clsItem->MultipleEmails() )
-        	{
+        {
+        CFSEmailUiClsItem* clsItem = NULL;
+        if ( iRemoteLookupSupported )
+            {
+            // calculate index of item
+            TInt index = (CurrentItemIndex() > iRemoteLookupItemPos ? CurrentItemIndex() - 1 : CurrentItemIndex());
+            clsItem = iMatchingItems[index];
+            }
+        else
+            {
+            clsItem = iMatchingItems[CurrentItemIndex()]; // no iRemoteLookupItemPos
+            }
 
-        	addressObject->SetDisplayFull( ETrue );
-        	}
-      
+        addressObject= CNcsEmailAddressObject::NewL( clsItem->DisplayName(), clsItem->EmailAddress() );
+        CleanupStack::PushL( addressObject );
+        if ( clsItem->MultipleEmails() )
+            {
+            addressObject->SetDisplayFull( ETrue );
+            }
         }
-	return addressObject;
-	}
+
+    return addressObject;
+    }
 
 // -----------------------------------------------------------------------------
 // CNcsPopupListBox::SetPopupMaxRect
@@ -503,7 +505,7 @@ void CNcsPopupListBox::MoveRemoteLookupItemL( TRemoteLookupItemMoveDirection aDi
 			}
 
 
-		if( ItemExists ( newCurrentItem ) )
+		if( ItemExists ( newCurrentItem ) && newRMLUItemIndex != -1 )
 			{
 			iItemTextsArray->Delete( iRemoteLookupItemPos );
 
@@ -580,6 +582,29 @@ void CNcsListItemDrawer::DrawActualItem(TInt aItemIndex,
 	iGc->SetBrushColor(iBackColor);
 	iGc->SetBrushStyle(CGraphicsContext::ESolidBrush);
 
+    // draw the background
+	TRect backgroundRect( aActualItemRect );
+
+    if ( !aItemIndex ) 
+        {
+        backgroundRect.iTl.iY = 0;
+        }
+    else if ( aItemIndex == iListBox.Model()->NumberOfItems() - 1 ) 
+        {
+        backgroundRect.iBr.iY = iListBox.Size().iHeight;
+        }
+    
+    iGc->DrawRect( backgroundRect );
+    
+
+    TRect textRect( aActualItemRect );
+    {
+    // temporary const_cast to get scroll width
+    CNcsPopupListBox& tmpListBox = const_cast<CNcsPopupListBox&>(iListBox);
+    textRect.Resize( -tmpListBox.ScrollBarFrame()->ScrollBarBreadth(CEikScrollBar::EVertical), 0 );
+    }
+
+
 	// Now draw the highlight
 	if( aItemIsCurrent ) 
 		{
@@ -588,14 +613,13 @@ void CNcsListItemDrawer::DrawActualItem(TInt aItemIndex,
 //	    AknsDrawUtils::DrawFrame( AknsUtils::SkinInstance(), *iGc,
 //	    	aActualItemRect, aActualItemRect,
 //	    	KNcsIIDHighlightBackground, KNcsIIDHighlightBackground );
+        iGc->DrawRect(textRect);
 		}
-	iGc->DrawRect(aActualItemRect);
-
 
 	iGc->SetPenColor(iTextColor);
 	iGc->SetPenStyle(CGraphicsContext::ESolidPen);
 	iGc->SetBrushStyle(CGraphicsContext::ENullBrush);
-	TInt topToBaseline = ( aActualItemRect.Height() - font->HeightInPixels() ) / 2
+	TInt topToBaseline = ( textRect.Height() - font->HeightInPixels() ) / 2
 						+ font->AscentInPixels();
 
 	TPtrC itemText = iListBox.Model()->ItemText( aItemIndex );
@@ -606,10 +630,10 @@ void CNcsListItemDrawer::DrawActualItem(TInt aItemIndex,
 	TRAPD( err, bidiText = TBidiText::NewL( itemText, 1 ) );
 	if ( err == KErrNone )
 		{
-		bidiText->WrapText( aActualItemRect.Width(), *font, NULL );
+		bidiText->WrapText( textRect.Width(), *font, NULL );
 		}
 		
-	TPoint leftBase = aActualItemRect.iTl + TPoint( 0, topToBaseline );
+	TPoint leftBase = textRect.iTl + TPoint( 0, topToBaseline );
 
     if ( err != KErrNone )
         {
@@ -625,7 +649,7 @@ void CNcsListItemDrawer::DrawActualItem(TInt aItemIndex,
 	else
 		{
 		// if list has rmlu item change item index right
-		if ( rmluPosition >= 0 )
+		if ( rmluPosition >= 0 && aItemIndex > rmluPosition )
 			{
 			aItemIndex--;
 			}
@@ -662,7 +686,7 @@ void CNcsListItemDrawer::DrawActualItem(TInt aItemIndex,
 					{
 					// draw letters to the start of the underlined part
 					currentTextLength = underlines[i].index - currentTextStart;
-					DrawPartOfItem( aActualItemRect, *font, currentTextStart, currentTextLength, itemText,
+					DrawPartOfItem( textRect, *font, currentTextStart, currentTextLength, itemText,
 									EFalse, topToBaseline );
 					}
 				else if ( currentTextStart == underlines[i].index )
@@ -670,7 +694,7 @@ void CNcsListItemDrawer::DrawActualItem(TInt aItemIndex,
 					// draw underlined letters
 					currentTextLength = underlines[i].length;
 					
-					DrawPartOfItem( aActualItemRect, *font, currentTextStart, currentTextLength, itemText,
+					DrawPartOfItem( textRect, *font, currentTextStart, currentTextLength, itemText,
 									ETrue, topToBaseline );
 					i++;
 					}
@@ -691,7 +715,7 @@ void CNcsListItemDrawer::DrawActualItem(TInt aItemIndex,
 					if ( currentTextStart < itemText.Length() )
 						{
 						currentTextLength = itemText.Length() - currentTextStart;
-						DrawPartOfItem( aActualItemRect, *font, currentTextStart, currentTextLength, itemText,
+						DrawPartOfItem( textRect, *font, currentTextStart, currentTextLength, itemText,
 										EFalse, topToBaseline );
 						}
 					}
@@ -746,6 +770,7 @@ void CNcsPopupListBox::UpdateListL()
     else
         {
         MakeVisible( ETrue );
+        UpdateScrollBarsL();
         iHeaderContainer.ShowPopupMenuBarL( ETrue );
         }
     }

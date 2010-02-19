@@ -16,10 +16,7 @@
 */
 
 
-//#include <BAUTILS.H>
 #include "SearchTests.h"
-//#include <ismsgstorepropertykeys.h>
-//#include "messagestoreclientserver.h"
 
 _LIT(KHigh,   "High");
 _LIT(KNormal, "Normal");

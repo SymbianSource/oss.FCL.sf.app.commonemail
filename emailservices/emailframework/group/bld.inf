@@ -18,18 +18,18 @@
 #include <platform_paths.hrh>
 
 PRJ_EXPORTS
-../inc/MFSMailIterator.h |../../../inc/MFSMailIterator.h
-../inc/MFSMailEventObserver.h |../../../inc/MFSMailEventObserver.h
-../inc/MFSMailRequestObserver.h |../../../inc/MFSMailRequestObserver.h
-../inc/MFSMailBoxSearchObserver.h |../../../inc/MFSMailBoxSearchObserver.h
-../inc/MFSMailBrandManager.h |../../../inc/MFSMailBrandManager.h
-../inc/MailBrandManager.hrh |../../../inc/MailBrandManager.hrh
-../inc/CFSMailClient.h |../../../inc/CFSMailClient.h
-../inc/CFSClientAPI.h |../../../inc/CFSClientAPI.h
-../inc/CFSMailPlugin.h |../../../inc/CFSMailPlugin.h
-../inc/CFSMailPlugin.inl |../../../inc/CFSMailPlugin.inl
-../inc/CFSMailPlugin.hrh |../../../inc/CFSMailPlugin.hrh
-../inc/CFSMailClient.hrh |../../../inc/CFSMailClient.hrh
+../inc/mfsmailiterator.h |../../../inc/mfsmailiterator.h
+../inc/mfsmaileventobserver.h |../../../inc/mfsmaileventobserver.h
+../inc/mfsmailrequestobserver.h |../../../inc/mfsmailrequestobserver.h
+../inc/mfsmailboxsearchobserver.h |../../../inc/mfsmailboxsearchobserver.h
+../inc/mfsmailbrandmanager.h |../../../inc/mfsmailbrandmanager.h
+../inc/mailbrandmanager.hrh |../../../inc/mailbrandmanager.hrh
+../inc/cfsmailclient.h |../../../inc/cfsmailclient.h
+../inc/cfsclientapi.h |../../../inc/cfsclientapi.h
+../inc/cfsmailplugin.h |../../../inc/cfsmailplugin.h
+../inc/cfsmailplugin.inl |../../../inc/cfsmailplugin.inl
+../inc/cfsmailplugin.hrh |../../../inc/cfsmailplugin.hrh
+../inc/cfsmailclient.hrh |../../../inc/cfsmailclient.hrh
 
 ../inc/emailversionnumbers.hrh |../../../inc/emailversionnumbers.hrh
 

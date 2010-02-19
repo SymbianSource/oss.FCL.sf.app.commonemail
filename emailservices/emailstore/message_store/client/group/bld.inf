@@ -19,25 +19,25 @@
 
 
 PRJ_EXPORTS
-../api/MsgStoreTypes.h                          |../../../../../inc/MsgStoreTypes.h
-../api/MsgStorePropertyKeys.h                   |../../../../../inc/MsgStorePropertyKeys.h
-../api/MsgStorePropertyContainer.h              |../../../../../inc/MsgStorePropertyContainer.h   
-../api/MsgStoreWritablePropertyContainer.h      |../../../../../inc/MsgStoreWritablePropertyContainer.h   
-../api/MsgStorePropertyContainerWithContent.h   |../../../../../inc/MsgStorePropertyContainerWithContent.h   
-../api/MsgStoreAccount.h                        |../../../../../inc/MsgStoreAccount.h   
-../api/MsgStoreObserver.h                       |../../../../../inc/MsgStoreObserver.h   
-../api/MsgStoreMailBoxObserver.h                |../../../../../inc/MsgStoreMailBoxObserver.h 
-../api/MsgStoreMessagePart.h                    |../../../../../inc/MsgStoreMessagePart.h 
-../api/MsgStoreMessage.h                        |../../../../../inc/MsgStoreMessage.h   
-../api/MsgStoreFolder.h                         |../../../../../inc/MsgStoreFolder.h   
-../api/MsgStoreSearchCriteria.h                 |../../../../../inc/MsgStoreSearchCriteria.h
-../api/MsgStoreSortCriteria.h                   |../../../../../inc/MsgStoreSortCriteria.h
-../api/MsgStoreSortResultIterator.h             |../../../../../inc/MsgStoreSortResultIterator.h 
-../api/MsgStoreMailBox.h                        |../../../../../inc/MsgStoreMailBox.h   
-../api/MsgStore.h                               |../../../../../inc/MsgStore.h   
-../api/MsgStoreAPI.h                            |../../../../../inc/MsgStoreAPI.h   
-../api/MsgStoreFolderUtils.h                    |../../../../../inc/MsgStoreFolderUtils.h
-../api/MsgStoreAddress.h                        |../../../../../inc/MsgStoreAddress.h
+../api/msgstoretypes.h                          |../../../../../inc/msgstoretypes.h
+../api/msgstorepropertykeys.h                   |../../../../../inc/msgstorepropertykeys.h
+../api/msgstorepropertycontainer.h              |../../../../../inc/msgstorepropertycontainer.h   
+../api/msgstorewritablepropertycontainer.h      |../../../../../inc/msgstorewritablepropertycontainer.h   
+../api/msgstorepropertycontainerwithcontent.h   |../../../../../inc/msgstorepropertycontainerwithcontent.h   
+../api/msgstoreaccount.h                        |../../../../../inc/msgstoreaccount.h   
+../api/msgstoreobserver.h                       |../../../../../inc/msgstoreobserver.h   
+../api/msgstoremailboxobserver.h                |../../../../../inc/msgstoremailboxobserver.h 
+../api/msgstoremessagepart.h                    |../../../../../inc/msgstoremessagepart.h 
+../api/msgstoremessage.h                        |../../../../../inc/msgstoremessage.h   
+../api/msgstorefolder.h                         |../../../../../inc/msgstorefolder.h   
+../api/msgstoresearchcriteria.h                 |../../../../../inc/msgstoresearchcriteria.h
+../api/msgstoresortcriteria.h                   |../../../../../inc/msgstoresortcriteria.h
+../api/msgstoresortresultiterator.h             |../../../../../inc/msgstoresortresultiterator.h 
+../api/msgstoremailbox.h                        |../../../../../inc/msgstoremailbox.h   
+../api/msgstore.h                               |../../../../../inc/msgstore.h   
+../api/msgstoreapi.h                            |../../../../../inc/msgstoreapi.h   
+../api/msgstorefolderutils.h                    |../../../../../inc/msgstorefolderutils.h
+../api/msgstoreaddress.h                        |../../../../../inc/msgstoreaddress.h
 
 PRJ_MMPFILES
 MessageStoreClient.mmp

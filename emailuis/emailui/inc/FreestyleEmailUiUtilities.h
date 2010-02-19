@@ -231,6 +231,7 @@ public:
 		
     // Set new email message icon on/off
     static void ToggleEmailIconL( TBool aIconOn );
+	static void ToggleEmailIconL( TBool aIconOn, const TFSMailMsgId& aMailBox );
     
     static HBufC* DateTextFromMsgLC( const CFSMailMessage* aMessage,  TBool aAddYearNumer = ETrue );
     static HBufC* TimeTextFromMsgLC( const CFSMailMessage* aMessage );

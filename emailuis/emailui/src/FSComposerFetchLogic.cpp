@@ -18,8 +18,8 @@
 
 //<cmail>
 #include "emailtrace.h"
-#include "CFSMailClient.h"
-#include "CFSMailCommon.h"
+#include "cfsmailclient.h"
+#include "cfsmailcommon.h"
 //</cmail>
 #include <FreestyleEmailUi.rsg>
 //#include <aknquerydialog.h> //<cmail>

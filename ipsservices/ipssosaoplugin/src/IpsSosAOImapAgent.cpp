@@ -25,7 +25,7 @@
 #include <msvapi.h>
 #include <AlwaysOnlineManagerCommon.h>
 //<cmail>
-#include "CFSMailCommon.h"
+#include "cfsmailcommon.h"
 //</cmail>
 
 

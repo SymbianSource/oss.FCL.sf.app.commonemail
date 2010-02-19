@@ -22,20 +22,20 @@
 #include <e32std.h>
 #include <e32base.h>
 
-#include "CFSMailPlugin.h"
+#include "cfsmailplugin.h"
 #include "mmrorganizer.h"
 
 //<cmail>
-#include "MsgStoreFolderUtils.h"
-#include "MsgStoreMailBox.h"
-#include "MsgStoreMailBoxObserver.h"
-#include "MsgStoreMessage.h"
-#include "MsgStoreObserver.h"
-#include "DebugLogMacros.h"
+#include "msgstorefolderutils.h"
+#include "msgstoremailbox.h"
+#include "msgstoremailboxobserver.h"
+#include "msgstoremessage.h"
+#include "msgstoreobserver.h"
+#include "debuglogmacros.h"
 //</cmail>
 
-#include "BaseMrInfoObject.h"
-#include "Map.h"
+#include "basemrinfoobject.h"
+#include "map.h"
 
 
 class CMsgStore;

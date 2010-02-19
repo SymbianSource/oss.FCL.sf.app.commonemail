@@ -23,7 +23,7 @@
 #include <AknWaitDialog.h>
 
 // INTERNAL INCLUDE FILES
-#include "MFSMailRequestObserver.h"
+#include "mfsmailrequestobserver.h"
 
 // FORWARD DECLARATIONS
 class CFSMailClient;

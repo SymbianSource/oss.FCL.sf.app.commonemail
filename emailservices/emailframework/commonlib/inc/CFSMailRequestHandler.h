@@ -20,8 +20,8 @@
 #define CFSMAILREQUESTHANDLER_H
 
 //  INCLUDES
-#include "CFSMailPlugin.h"
-#include "CFSMailPluginData.h"
+#include "cfsmailplugin.h"
+#include "cfsmailplugindata.h"
 
 // FORWARD DECLARATIONS
 class CFSMailRequestObserver;

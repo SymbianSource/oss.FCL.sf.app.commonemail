@@ -20,8 +20,8 @@
 #ifndef __CNCSCOMPOSEVIEW_H__
 #define __CNCSCOMPOSEVIEW_H__
 
-#include "CFSMailCommon.h"
-#include "MFSMailRequestObserver.h"
+#include "cfsmailcommon.h"
+#include "mfsmailrequestobserver.h"
 #include <alf/alfenv.h>
 #include "AknServerApp.h"
 #include <AknProgressDialog.h>

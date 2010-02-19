@@ -14,7 +14,7 @@
 * Description:   Multi-part support.
 *
 */
-#include "BasePlugin.h"
+#include "baseplugin.h"
 #include "baseplugincommonutils.h"
 #include "baseplugindelayedopsprivate.h"
 

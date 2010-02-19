@@ -18,13 +18,13 @@
 
 
 //<cmail>
-#include "MsgStoreMessagePart.h"
-#include "MsgStorePropertyKeys.h"
+#include "msgstoremessagepart.h"
+#include "msgstorepropertykeys.h"
 //</cmail>
-#include "MsgStoreSessionContext.h"
-#include "RMessageStoreSession.h"
+#include "msgstoresessioncontext.h"
+#include "rmessagestoresession.h"
 #include "MessageStoreClientServer.h"
-#include "MsgStoreMessage.h"
+#include "msgstoremessage.h"
 
 //_LIT( KTextPlain, "text/plain" );
 //_LIT( KTextHTML, "text/html" );

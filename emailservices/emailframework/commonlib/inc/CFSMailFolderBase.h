@@ -19,7 +19,7 @@
 #ifndef __FSMAILFOLDERBASE_H
 #define __FSMAILFOLDERBASE_H
 
-#include "CFsMailMessage.h"
+#include "cfsmailmessage.h"
 #include "cemailextensionbase.h"
 
 /**

@@ -16,9 +16,8 @@
 */
 
 
-#include <BAUTILS.H>
+#include <bautils.h>
 #include "ContentTests.h"
-//#include <ismsgstorepropertykeys.h>
 #include "messagestoreclientserver.h"
 
 // ============================ MEMBER FUNCTIONS ===============================

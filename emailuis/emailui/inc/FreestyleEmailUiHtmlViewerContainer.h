@@ -22,8 +22,8 @@
 
 
 #include <coecntrl.h>
-#include <BrCtlSpecialLoadObserver.h>
-#include <BrCtlLinkResolver.h>
+#include <brctlspecialloadobserver.h>
+#include <brctllinkresolver.h>
 
 #include "FreestyleEmailDownloadInformationMediator.h"
 #include "OverlayControl.h"
@@ -135,12 +135,15 @@ private:
     // Copies given file to temporary HTML folder and returns an open file
     // handle to the created copy.
 // <cmail>
-    void CopyFileToHtmlFileL( RFile& aFile, const TDesC& aFileName, CFSMailMessagePart& aHtmlBodyPart );
+    void CopyToHtmlFileL( CFSMailMessagePart& aHtmlBodyPart, const TDesC& aFileName );
+    void ConvertToHtmlFileL( CFSMailMessagePart& aTextBodyPart, const TDesC& aHtmlFileName );
+
     // Reads given file content to buffer and return pointer to it
     HBufC8* ReadContentFromFileLC( RFile& aFile );
     // Writes buffer to given file
     void WriteContentToFileL( const TDesC8& aContent, const TDesC& aFileName, CFSMailMessagePart& aHtmlBodyPart );
 
+    void PrepareBodyHtmlL(  const TDesC& aFileName  );
     void WriteEmptyBodyHtmlL( const TDesC& aFileName );
     
 // </cmail>
@@ -166,14 +169,11 @@ private:
     void CopyHTMLResourceL();
     // Ensure all resource files (eg. images) required by HTML display to be ready in C:\[private]\HtmlFile
     void EnsureHTMLResourceL(); 
-    void ConvertPlainTextToHTML(CFSMailMessagePart* aTextBodyPart, RFile htmlFile);
-    void CopyFileToHtmlFileL( const TDesC8& aBuffer,
-            const TDesC& aFileName, CFSMailMessagePart& aHtmlBodyPart );
     void ConvertToHTML( const TDesC8& aContent,
             const TDesC& aFileName, CFSMailMessagePart& aHtmlBodyPart );
     HBufC8* GetCharacterSetL( CFSMailMessagePart& aHtmlBodyPart );
     TBool IsMessageBodyURL(const TDesC& aUrl);
-	void CreateHyperlinksFromUrlsL( CBufBase& aSource );
+    void CreateHyperlinksFromUrlsL( CBufBase& aSource );
     //Returns ETrue of clicking on a link requires a browser to be launched
     TBool NeedToLaunchBrowserL( const TDesC& aUrl );
     //Launch the browser as a standalone app

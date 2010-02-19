@@ -20,7 +20,7 @@
 #ifndef _MSG_STORE_PROPERTY_CONTAINERS_ARRAY_H_
 #define _MSG_STORE_PROPERTY_CONTAINERS_ARRAY_H_
 
-#include "RMessageStoreSession.h"
+#include "rmessagestoresession.h"
 
 class CMsgStorePropertyContainer;
 

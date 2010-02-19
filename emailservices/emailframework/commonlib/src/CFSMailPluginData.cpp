@@ -17,7 +17,7 @@
 
 
 #include "emailtrace.h"
-#include "CFSMailPluginData.h"
+#include "cfsmailplugindata.h"
 
 // -----------------------------------------------------------------------------
 // CFSMailPluginData::CFSMailPluginData

@@ -18,7 +18,7 @@
 
 //<cmail>
 #include "emailtrace.h"
-#include "CFSMailFolderBase.h"
+#include "cfsmailfolderbase.h"
 //</cmail>
 
 // ================= MEMBER FUNCTIONS ==========================================

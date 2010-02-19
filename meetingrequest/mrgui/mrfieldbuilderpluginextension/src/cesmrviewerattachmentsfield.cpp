@@ -25,7 +25,7 @@
 #include <StringLoader.h>
 //<cmail>
 #include "esmricalvieweropcodes.hrh"
-#include "CFSMailMessage.h"
+#include "cfsmailmessage.h"
 //</cmail>
 
 #include "cesmrrichtextviewer.h"

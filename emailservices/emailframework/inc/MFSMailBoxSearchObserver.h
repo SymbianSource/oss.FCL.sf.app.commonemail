@@ -45,15 +45,15 @@ class MFSMailBoxSearchObserver
 
    /**
     * Notifies the email search API client that the search has completed
-	*
-	*/
+    *
+    */
     virtual void SearchCompletedL() = 0;
       
 //</cmail>
     /**
     * server asks client if to change the search priority (i.e. when calling to contact) 
- 	*
- 	*/
+    *
+    */
     virtual void ClientRequiredSearchPriority(TInt *apRequiredSearchPriority) = 0; 
 //</cmail>
     };

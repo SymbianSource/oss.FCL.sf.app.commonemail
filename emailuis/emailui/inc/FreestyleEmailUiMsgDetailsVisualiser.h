@@ -33,6 +33,8 @@
 #include "FreestyleEmailUiConstants.h"
 #include "FreestyleEmailUiContactHandlerObserver.h"
 
+#include "mfsmailrequestobserver.h"
+#include <AknProgressDialog.h>
 // forward declarations
 class CFSEmailUiMsgDetailsControl;
 class CFSEmailUiMsgDetailsModel;
@@ -50,12 +52,17 @@ class CFsTreePlainTwoLineItemData;
 class CFsTreePlainOneLineNodeVisualizer;
 class CFsTreePlainOneLineItemVisualizer;
 class CFsTreePlainTwoLineItemVisualizer;
+class MFSMailRequestObserver; //<cmail>
+class MProgressDialogCallback; //<cmail>
+class CAknWaitDialog; //<cmail>
 
 // <cmail> Touch
 class CFSEmailUiMsgDetailsVisualiser : public CFsEmailUiViewBase,
 									   public MFSEmailUiContactHandlerObserver,
 									   public MFsTreeListObserver,
-									   public MFsActionMenuPositionGiver
+									   public MFsActionMenuPositionGiver,
+									   public MFSMailRequestObserver,
+									   public MProgressDialogCallback
 // </cmail>
 	{ 
 
@@ -119,6 +126,45 @@ public: // From MFsTreeListObserver
     TPoint ActionMenuPosition();
 // </cmail>
 
+    // <cmail>     
+public: 
+	/**
+	 * MFSMailRequestObserver interface implementation
+	 */	 
+    void RequestResponseL( TFSProgress aEvent, TInt aRequestId );
+    
+    /**
+     * MProgressDialogCallback interface implementation 
+     */    
+    void DialogDismissedL( TInt aButtonId);
+    
+private:	
+	/// data related to fetching message structure
+	TInt iCurrentStructureFetchRequestId; 
+	TBool iFetchingMessageStructure;
+	TBool iAsyncProcessComplete;
+	TInt iWaitNoteId;
+	/// Wait note stuff
+	CAknWaitDialog* iWaitDialog;
+	TBool iDialogNotDismissed;
+	
+	/**
+	 * Update our message pointer and saves its status
+	 */	
+	void UpdateMessagePtrL( TFSMailMsgId aNewMailboxId,
+			TFSMailMsgId aNewFolderId,
+			TFSMailMsgId aNewMessageId );
+	
+	/**
+	 * Fetching the Message Structure. It is necessary for POP protocol in order to read recipients 
+	 */
+	void StartFetchingMessageStructureL( CFSMailMessage* aMsg );
+	
+	/**
+	 * Cancel fetching of the message structureCancel fetching of the message structure
+	 */
+	void CancelFetching();	
+	// </cmail>
 // <cmail> Toolbar    
 private: // from
     

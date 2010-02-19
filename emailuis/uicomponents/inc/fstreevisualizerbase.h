@@ -1009,6 +1009,13 @@ public:
     virtual void SetFocusedItemL( const TFsTreeItemId aItem, TBool aCheckFocus = ETrue );
     // </cmail>
 
+    /** 
+    * Gets item vertical position in the list 
+    * 
+    * @param aIdx indicates item index
+    */
+    virtual TInt GetItemWorldPosition( const TInt aIdx );
+   
     /**
      * Returns item id of the currently focused item.
      *
@@ -1646,6 +1653,28 @@ public:
      * @return ETrue if kinetic scrolling is disabled.
      */
     TBool IsKineticScrollingDisabled() const;
+    
+    /**
+    * Returns viewPort top-left position
+    */
+    virtual TPoint ViewPortTopPosition() const;
+
+public: // from MAknPhysicsObserver
+
+   /**
+    * @see MAknPhysicsObserver::ViewPositionChanged
+    */
+   virtual void ViewPositionChanged( const TPoint& aNewPosition, TBool aDrawNow = ETrue, TUint aFlags = 0 );
+
+   /**
+    * @see MAknPhysicsObserver::PhysicEmulationEnded
+    */
+   virtual void PhysicEmulationEnded();
+
+   /**
+    * @see MAknPhysicsObserver::ViewPosition
+    */
+   virtual TPoint ViewPosition() const;
 
 private:
 
@@ -1952,23 +1981,6 @@ private: // from TViewPort::MObserver
         TPointerEventType aEventType, const TPoint& aPoint );
 
 private: // from MAknPhysicsObserver
-
-   /**
-    * @see MAknPhysicsObserver::ViewPositionChanged
-    */
-   virtual void ViewPositionChanged( const TPoint& aNewPosition, TBool aDrawNow = ETrue, TUint aFlags = 0 );
-
-   /**
-    * @see MAknPhysicsObserver::PhysicEmulationEnded
-    */
-   virtual void PhysicEmulationEnded();
-
-   /**
-    * @see MAknPhysicsObserver::ViewPosition
-    */
-   virtual TPoint ViewPosition() const;
-
-private: // Single click changes
 
    virtual TBool IsFocusShown();
 

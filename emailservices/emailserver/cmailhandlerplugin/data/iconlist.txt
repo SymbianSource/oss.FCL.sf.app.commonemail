@@ -54,5 +54,5 @@
 -c16,8 qgn_indi_cmail_calendar_event_read_attachments_high_prio.svg
 -c16,8 qgn_indi_cmail_calendar_event_read_low_prio.svg
 -c16,8 qgn_indi_cmail_calendar_event_read_attachments_low_prio.svg
--c16,8 qgn_indi_ai_eplg_unread.svg
--c16,8 qgn_prop_mce_outbox_small.svg
+-c16,8 qgn_stat_message_mail_uni.svg
+-c16,8 qgn_indi_cmail_outbox_msg.svg

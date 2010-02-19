@@ -21,7 +21,7 @@
 
 #include <e32base.h>          // TKey
 //<cmail>
-#include "CFSMailCommon.h"    // tfsmailsortcriteria
+#include "cfsmailcommon.h"    // tfsmailsortcriteria
 //</cmail>
 
 class CMsvEntry;

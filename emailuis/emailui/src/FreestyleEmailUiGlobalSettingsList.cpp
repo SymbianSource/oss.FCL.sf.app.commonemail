@@ -97,7 +97,7 @@ CAknSettingItem* CFsEmailUiGlobalSettingsList::CreateSettingItemL( TInt aId )
 					aId,
 					iSettings.TitleDividers() );
 			return item;
-			}
+			}/*
 		case EGlobalSettingsDownloadNotifications:
 			{			
 			CAknBinaryPopupSettingItem* item = new ( ELeave ) 
@@ -105,7 +105,7 @@ CAknSettingItem* CFsEmailUiGlobalSettingsList::CreateSettingItemL( TInt aId )
 					aId,
 					iSettings.DownloadNotifications() );
 			return item;
-			}
+			}*/
 		case EGlobalSettingsWarnBeforeDelete:
 		    {         
 		    CAknBinaryPopupSettingItem* item = new ( ELeave ) 
@@ -204,7 +204,7 @@ void CFsEmailUiGlobalSettingsList::LoadSettingValuesL()
 	
 	iSettings.SetBodyPreview( crHandler->BodyPreview() );
 	iSettings.SetTitleDividers( crHandler->TitleDividers() );
-	iSettings.SetDownloadNotifications( crHandler->DownloadNotifications() );
+	//iSettings.SetDownloadNotifications( crHandler->DownloadNotifications() );
 	iSettings.SetActiveIdle( crHandler->ActiveIdle() );
 	iSettings.SetWarnBeforeDelete( crHandler->WarnBeforeDelete() );
 	//iSettings.SetDownloadHTMLImages( crHandler->DownloadHTMLImages() );
@@ -227,7 +227,7 @@ void CFsEmailUiGlobalSettingsList::SaveSettingValuesL()
 	
 	crHandler->SetBodyPreview( iSettings.BodyPreview() );
 	crHandler->SetTitleDividers( iSettings.TitleDividers() );
-	crHandler->SetDownloadNotifications( iSettings.DownloadNotifications() );
+	//crHandler->SetDownloadNotifications( iSettings.DownloadNotifications() );
 	crHandler->SetActiveIdle( iSettings.ActiveIdle() );
 	crHandler->SetWarnBeforeDelete( iSettings.WarnBeforeDelete() );
 	//crHandler->SetDownloadHTMLImages( iSettings.DownloadHTMLImages() );

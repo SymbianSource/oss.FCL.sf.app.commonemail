@@ -67,13 +67,8 @@ LIBRARY         timezonelocalization.lib
 // </gmail_brand_issue>
 LIBRARY         cmaillogger.lib
 
-#ifdef TRACE_INTO_FILE
-LIBRARY         flogger.lib
-#endif // TRACE_INTO_FILE
-
-
 SOURCEPATH      ../data
-START RESOURCE fsmailbrandmanager.rss
+START RESOURCE  fsmailbrandmanager.rss
 HEADER
 targetpath RESOURCE_FILES_DIR
 LANGUAGE_IDS
@@ -85,4 +80,4 @@ MACRO DEBUGLOGGER_LOG_DEBUG
 MACRO DEBUGLOGGER_DEBUG_ASSERTS
 #endif
 
-LIBRARY       flogger.lib
+LIBRARY         flogger.lib

@@ -15,10 +15,9 @@
  *
 */
 
-
-
 #include "emailtrace.h"
 #include "ipsplgheaders.h"
+#include "FreestyleEmailUiConstants.h"
 
 #define FREESTYLE_EMAIL_UI_SID 0x2001E277
 
@@ -820,11 +819,23 @@ CFSMailMessage* CIpsPlgSosBasePlugin::GetMessageByUidL(
 CFSMailMessage* CIpsPlgSosBasePlugin::CreateForwardMessageL(
     const TFSMailMsgId& aMailBoxId,
     const TFSMailMsgId& aOriginalMessageId,
-    const TDesC& /* aHeaderDescriptor */)
+    const TDesC& aHeaderDescriptor )
     {
     FUNC_LOG;
     CFSMailMessage* msg = iSmtpService->CreateForwardSmtpMessageL(
         aMailBoxId, aOriginalMessageId );
+    
+    if ( aHeaderDescriptor != KNullDesC )
+        {
+        // Ignoring trap as it is better to provide something in case of the
+        // below fix method fails than nothing.
+        TRAP_IGNORE( FixReplyForwardHeaderL( 
+                        msg, 
+                        aMailBoxId, 
+                        aOriginalMessageId, 
+                        aHeaderDescriptor ) );
+        }
+  
     return msg;
     }
 
@@ -834,11 +845,23 @@ CFSMailMessage* CIpsPlgSosBasePlugin::CreateReplyMessageL(
     const TFSMailMsgId& aMailBoxId,
     const TFSMailMsgId& aOriginalMessageId,
     const TBool aReplyToAll,
-    const TDesC& /* aHeaderDescriptor */ )
+    const TDesC& aHeaderDescriptor )
     {
     FUNC_LOG;
     CFSMailMessage* msg = iSmtpService->CreateReplySmtpMessageL(
         aMailBoxId, aOriginalMessageId, aReplyToAll );
+
+    if ( aHeaderDescriptor != KNullDesC )
+        {
+        // Ignoring trap as it is better to provide something in case of the
+        // below fix method fails than nothing.
+        TRAP_IGNORE( FixReplyForwardHeaderL( 
+                                msg, 
+                                aMailBoxId, 
+                                aOriginalMessageId, 
+                                aHeaderDescriptor ) );
+        }
+
     return msg;
     }
 
@@ -1561,6 +1584,7 @@ void CIpsPlgSosBasePlugin::SendL(TFSMailMsgId aMessageId )
  	CleanupStack::PushL(watcher);
     CIpsPlgSmtpOperation* op = CIpsPlgSmtpOperation::NewLC(
         *iSession, CActive::EPriorityStandard, watcher->iStatus, ETrue );
+    op->SetEventHandler(iEventHandler);
     watcher->SetOperation(op);
     CleanupStack::Pop( op ); // op added as member of watcher
     op->StartSendL( aMessageId.Id() );
@@ -1831,7 +1855,20 @@ void CIpsPlgSosBasePlugin::SetCredentialsL( const TFSMailMsgId& aMailBoxId,
         CMsvEntry* cEntry = iSession->GetEntryL( aMailBoxId.Id() );
         CleanupStack::PushL( cEntry );
 
-        api->SetNewPasswordL( *cEntry, aPassword );
+        RProcess process;
+        // only email server can set outgoing password
+        if ( process.SecureId() == FREESTYLE_FSSERVER_SID )
+            {
+            if ( !iEventHandler->IncomingPass() )
+                {
+                CMsvEntry* cTmp = iSession->GetEntryL( cEntry->Entry().iRelatedId );
+                CleanupStack::PopAndDestroy( 1, cEntry );
+                CleanupStack::PushL( cTmp );
+                cEntry = cTmp;
+                }
+            }
+
+		api->SetNewPasswordL( *cEntry, aPassword );
 
         CleanupStack::PopAndDestroy( 2, api );//cEntry, api
 
@@ -2012,6 +2049,59 @@ void CIpsPlgSosBasePlugin::DeleteAndRemoveOperation(
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
+void CIpsPlgSosBasePlugin::FixReplyForwardHeaderL(
+        CFSMailMessage* aMessage,
+        const TFSMailMsgId& aMailBoxId,
+        const TFSMailMsgId& aOriginalMessageId,
+        const TDesC& aHeaderDescriptor )
+    {
+    FUNC_LOG;
+    CFSMailMessagePart* textBodyPart = aMessage->PlainTextBodyPartL();
+    if ( textBodyPart )
+        {
+        CleanupStack::PushL( textBodyPart );
+        CFSMailMessage* origMsg = GetMessageByUidL( 
+                                        aMailBoxId, 
+                                        TFSMailMsgId(), 
+                                        aOriginalMessageId, 
+                                        EFSMsgDataStructure );
+        if ( origMsg )
+            {
+            CleanupStack::PushL( origMsg );
+            CFSMailMessagePart* origMsgTextBodyPart = 
+                origMsg->PlainTextBodyPartL();
+                if ( origMsgTextBodyPart )
+                    {
+                    CleanupStack::PushL( origMsgTextBodyPart );
+                    // Use the content provided in aHeaderDescriptor
+                    // instead of what is provided by 
+                    // CreateForwardSmtpMessage..
+                    TPckgBuf<TReplyForwardParams> pckg;
+                    pckg.Copy( aHeaderDescriptor );
+                    TPtr hPtr( pckg().iHeader->Des() );
+                    HBufC* body = HBufC::NewLC( 
+                            textBodyPart->FetchedContentSize() );
+                    TPtr bPtr( body->Des() );
+                    origMsgTextBodyPart->GetContentToBufferL( bPtr, 0 );
+                    HBufC* content = HBufC::NewLC(
+                            hPtr.Length() + bPtr.Length() );
+                    TPtr cPtr( content->Des() );                        
+                    cPtr.Append( hPtr );
+                    cPtr.Append( bPtr );
+                    textBodyPart->SetContent( cPtr );
+                    textBodyPart->SaveL();
+                    CleanupStack::PopAndDestroy( content );
+                    CleanupStack::PopAndDestroy( body );
+                    CleanupStack::PopAndDestroy( origMsgTextBodyPart );
+                    }
+            CleanupStack::PopAndDestroy( origMsg );
+            }
+        CleanupStack::PopAndDestroy( textBodyPart );
+        }
+    }
+
+// ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 void CIpsPlgSosBasePlugin::DisconnectL(
     const TFSMailMsgId& aMailBoxId,
     MFSMailRequestObserver& aObserver,
@@ -2082,6 +2172,7 @@ void CIpsPlgSosBasePlugin::EmptyOutboxL( const TFSMailMsgId& aMailBoxId )
  	CleanupStack::PushL(watcher);
     CIpsPlgSmtpOperation* op = CIpsPlgSmtpOperation::NewLC(
         *iSession, CActive::EPriorityStandard, watcher->iStatus, ETrue );
+    op->SetEventHandler(iEventHandler);
     watcher->SetOperation(op);
     op->EmptyOutboxFromPendingMessagesL( aMailBoxId.Id() );
     iOperations.AppendL(watcher);

@@ -18,24 +18,24 @@
 
 //MsgStore.
 //<cmail>
-#include "MsgStore.h"
-#include "MsgStoreAccount.h"
-#include "MsgStoreMailBox.h"
-#include "MsgStoreMessage.h"
-#include "MsgStoreFolder.h"
-#include "MsgStorePropertyContainer.h"
-#include "MsgStorePropertyKeys.h"
-#include "MsgStoreSortCriteria.h"
-#include "MsgStoreSortResultIterator.h"
+#include "msgstore.h"
+#include "msgstoreaccount.h"
+#include "msgstoremailbox.h"
+#include "msgstoremessage.h"
+#include "msgstorefolder.h"
+#include "msgstorepropertycontainer.h"
+#include "msgstorepropertykeys.h"
+#include "msgstoresortcriteria.h"
+#include "msgstoresortresultiterator.h"
 //Freestyle.
-#include "CFSMailCommon.h"
-#include "CFSMailMessage.h"
+#include "cfsmailcommon.h"
+#include "cfsmailmessage.h"
 //</cmail>
 //Base plugin.
-#include "BasePlugin.h"
-#include "BasePluginPanic.h"
+#include "baseplugin.h"
+#include "basepluginpanic.h"
 #include "baseplugincommonutils.h"
-#include "MailIterator.h"
+#include "mailiterator.h"
 #include "baseplugindelayedopsprivate.h"
 // Other
 #include <e32base.h>

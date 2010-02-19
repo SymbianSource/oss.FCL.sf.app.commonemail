@@ -20,7 +20,7 @@
 
 #include <ecom/ecom.h>
 
-#include "MFSMailRequestObserver.h"
+#include "mfsmailrequestobserver.h"
 #include "mfsmaileventobserver.h"
 #include "cfsmailbox.h"
 #include "cfsmailplugin.hrh"
@@ -36,8 +36,8 @@ _LIT8( KFSPluginInterfaceImplementationType, "Plug-In Interface / Freestyle Emai
  *  and implemented by plugin implementor.
  *
  *  Plugin implementor inherits from class CFSMailPlugin,
- *  but plugin load medhods are provided by framework in file CFSMailPlugin.inl
- *  CFSMailPlugin,CFSMailPlugin.inl are exported by framework
+ *  but plugin load medhods are provided by framework in file cfsmailplugin.inl
+ *  CFSMailPlugin,cfsmailplugin.inl are exported by framework
  *
  *  @lib FSFWCommonLib
  *

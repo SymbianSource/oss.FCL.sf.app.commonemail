@@ -16,10 +16,7 @@
 */
 
 
-//#include <BAUTILS.H>
 #include "EncryptionTests.h"
-//#include <ismsgstorepropertykeys.h>
-//#include "messagestoreclientserver.h"
 
 // This must match that's defined in ContainerStoreDefs.h
 enum TEncryptionState

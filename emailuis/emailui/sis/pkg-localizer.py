@@ -14,8 +14,8 @@
 * Contributors:
 *
 * Description:
-* Python script that can be used to make localized pkg-files
-* based on Engineering English pkg-files
+* Python script that can be used to make localized pkg-files based on
+* Engineering English pkg-files. Meant only for internal use in Email.
 *
 */
 """

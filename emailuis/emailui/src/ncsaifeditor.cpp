@@ -1087,7 +1087,6 @@ HBufC* CNcsAifEditor::GetLookupTextLC() const
 
 	CleanupStack::PushL( text );
 	TPtr ptr( text->Des() );
-	ptr = ptr.LeftTPtr( CursorPos() );
 	TInt location = ptr.LocateReverse( KCharAddressDelimeterSemiColon );
 	if( location != KErrNotFound )
         {

@@ -35,7 +35,7 @@ KEmailBinaryDemandPaging
 
 USERINCLUDE   ../inc
 USERINCLUDE   ../../../inc
-USERINCLUDE   ../../emailstore/inc              // EmailStoreUids.hrh
+USERINCLUDE   ../../emailstore/inc              // emailstoreuids.hrh
 
 APP_LAYER_SYSTEMINCLUDE
 
@@ -59,4 +59,4 @@ LIBRARY       AlwaysOnlineManagerClient.lib // RAlwaysOnlineClientSession
 LIBRARY       PsServerClientAPI.lib         // PCS engine client-side API
 LIBRARY       estor.lib                     // RDesRead/WriteStream
 LIBRARY       cmaillogger.lib
-DEBUGLIBRARY  flogger.lib
+LIBRARY       flogger.lib

@@ -20,7 +20,7 @@
 
 
 #include "ipsplgonlineoperation.h"
-#include "MFSMailRequestObserver.h"
+#include "mfsmailrequestobserver.h"
 
 /**
 * Move a selection of messages that may or may not be complete.

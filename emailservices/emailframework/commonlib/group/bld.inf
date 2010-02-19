@@ -18,15 +18,15 @@
 
 PRJ_EXPORTS
 
-../inc/CFSMailCommon.h |../../../../inc/CFSMailCommon.h
-../inc/CFSMailBox.h |../../../../inc/CFSMailBox.h
-../inc/CFSMailBoxBase.h |../../../../inc/CFSMailBoxBase.h
-../inc/CFSMailFolder.h |../../../../inc/CFSMailFolder.h
-../inc/CFSMailFolderBase.h |../../../../inc/CFSMailFolderBase.h
-../inc/CFSMailMessage.h |../../../../inc/CFSMailMessage.h
-../inc/CFSMailMessageBase.h |../../../../inc/CFSMailMessageBase.h
-../inc/CFSMailMessagePart.h |../../../../inc/CFSMailMessagePart.h
-../inc/CFSMailAddress.h |../../../../inc/CFSMailAddress.h
+../inc/cfsmailcommon.h |../../../../inc/cfsmailcommon.h
+../inc/cfsmailbox.h |../../../../inc/cfsmailbox.h
+../inc/cfsmailboxbase.h |../../../../inc/cfsmailboxbase.h
+../inc/cfsmailfolder.h |../../../../inc/cfsmailfolder.h
+../inc/cfsmailfolderbase.h |../../../../inc/cfsmailfolderbase.h
+../inc/cfsmailmessage.h |../../../../inc/cfsmailmessage.h
+../inc/cfsmailmessagebase.h |../../../../inc/cfsmailmessagebase.h
+../inc/cfsmailmessagepart.h |../../../../inc/cfsmailmessagepart.h
+../inc/cfsmailaddress.h |../../../../inc/cfsmailaddress.h
 ../inc/cemailextensionbase.h |../../../../inc/cemailextensionbase.h
 ../inc/cmrcalendarinfo.h |../../../../inc/cmrcalendarinfo.h
 ../inc/cmailmessageext.h |../../../../inc/cmailmessageext.h

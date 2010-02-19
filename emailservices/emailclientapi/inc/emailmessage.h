@@ -19,7 +19,7 @@
 #define EMAILMESSAGE_H
 
 #include <memailmessage.h>
-#include "CFSMailCommon.h"
+#include "cfsmailcommon.h"
 #include "emailapiutils.h"
 
 using namespace EmailInterface;
@@ -132,6 +132,9 @@ public: // from MEmailAddress
     
 private:        
 
+    // Copies/moves flag values from iPluginMessage's flags to local flag member variable
+    void InitializeFlagValues();
+    
     CEmailMessage( CPluginData& aPluginData, CFSMailMessage* aMessage, const TDataOwner aOwner );
     
     void ConstructL();

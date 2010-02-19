@@ -22,8 +22,8 @@
 #include <e32svr.h>
 #include <aknnotewrappers.h> // for note
 
-#include "FreestyleEmailCenRepHandler.h"
-#include "FreestyleEmailCenRepKeys.h"
+#include "freestyleemailcenrephandler.h"
+#include "freestyleemailcenrepkeys.h"
 
 // CONSTANTS
 //_LIT( KFsCrHandlerDelimiter, "," );

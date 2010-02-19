@@ -21,9 +21,9 @@
 
 
 #include <e32base.h>
-#include "CFSMailCommon.h"
-#include "BasePlugin.h"
-#include "DebugLogMacros.h"
+#include "cfsmailcommon.h"
+#include "baseplugin.h"
+#include "debuglogmacros.h"
 
 
 class CBasePlugin;

@@ -19,7 +19,7 @@
 #include "FreestyleMessageHeaderURL.h"
 #include "FreestyleEmailUiConstants.h"
 #include "FreestyleEmailUiUtilities.h"
-#include "CFSMailMessage.h"
+#include "cfsmailmessage.h"
 #include "FreestyleEmailUiAppui.h"
 #include "FreestyleEmailUiHtmlViewerView.h"
 #include "FreestyleEmailUi.hrh"
@@ -28,10 +28,11 @@
 
 #include <aknnotewrappers.h>
 #include <aknstyluspopupmenu.h>
-#include <BrCtlDefs.h>
+#include <brctldefs.h>
 #include <e32std.h>
-#include <EIKMOBS.H>
+#include <eikmobs.h>
 #include <coemain.h>  
+#include <schemehandler.h>
 
 EXPORT_C CFreestyleMessageHeaderURLEventHandler* CFreestyleMessageHeaderURLEventHandler::NewL( 
         CFreestyleEmailUiAppUi& aAppUi, 
@@ -66,19 +67,19 @@ CFreestyleMessageHeaderURLEventHandler::~CFreestyleMessageHeaderURLEventHandler 
     delete iMessageHeaderURL;
     delete iHTMLReloadAO; 
     if( iEmailAddressStylusPopup )
-    	{
-		delete iEmailAddressStylusPopup; 
-    	}
+        {
+        delete iEmailAddressStylusPopup; 
+        }
     
     if( iAttachmentStylusPopup )
-		{
-		delete iAttachmentStylusPopup; 
-		}
+        {
+        delete iAttachmentStylusPopup; 
+        }
     
     if( iWebAddressStylusPopup )
-		{
-		delete iWebAddressStylusPopup; 
-		}   
+        {
+        delete iWebAddressStylusPopup; 
+        }   
     
     delete iUrl;
     }
@@ -92,17 +93,17 @@ EXPORT_C TBool CFreestyleMessageHeaderURLEventHandler::HandleEventL( const TDesC
         {
         //Handle http and https links
         if( ( aUri.FindF( KURLHttpPrefix ) ) == 0 
-        		||( aUri.FindF( KURLHttpsPrefix ) ) == 0 )
-        	{
-        	if ( iUrl )
-        		{
-        		delete iUrl;
-        		iUrl = NULL;
-        		}
-        	iUrl = aUri.AllocL();
-        	LaunchWebAddressMenuL( );
-        	return ETrue;
-        	}         
+                ||( aUri.FindF( KURLHttpsPrefix ) ) == 0 )
+            {
+            if ( iUrl )
+                {
+                delete iUrl;
+                iUrl = NULL;
+                }
+            iUrl = aUri.AllocL();
+            LaunchWebAddressMenuL( );
+            return ETrue;
+            }         
         //Link wasn't handled
         return EFalse;
         }
@@ -121,6 +122,13 @@ EXPORT_C TBool CFreestyleMessageHeaderURLEventHandler::HandleEventL( const TDesC
         else if ( ( iMessageHeaderURL->Type()->CompareF( KURLTypeAttachment ) == 0 ) )
             {
             LaunchAttachmentMenuL( FindAttachmentL( *iMessageHeaderURL ) );
+            }
+        else if ( iMessageHeaderURL->Type()->CompareF( KURLTypeSubject ) )
+            {
+            CSchemeHandler* handler = CSchemeHandler::NewL( aUri );
+            CleanupStack::PushL( handler );
+            handler->HandleUrlStandaloneL();
+            CleanupStack::PopAndDestroy( handler );
             }
         iMenuVisible=EFalse;
         if( iPendingReload )
@@ -158,61 +166,62 @@ void CFreestyleMessageHeaderURLEventHandler::LaunchEmailAddressMenuL()
     CleanupStack::PopAndDestroy(); //resource reader
          
     iEmailAddressStylusPopup->SetItemDimmed( EFsEmailUiCmdActionsRemoteLookup, 
-											 !iView.IsRemoteLookupSupportedL() ); 
+                                             !iView.IsRemoteLookupSupportedL() ); 
     iEmailAddressStylusPopup->SetPosition( iAppUi.ClientRect().Center(), 
-										   CAknStylusPopUpMenu::EPositionTypeRightBottom );
+                                           CAknStylusPopUpMenu::EPositionTypeRightBottom );
     iEmailAddressStylusPopup->ShowMenu();
     }
 
 //From MEikMenuObserver
 void CFreestyleMessageHeaderURLEventHandler::ProcessCommandL( TInt aCommand )
-	{
-	
-	switch ( aCommand )
-		{
-		case EFsEmailUiCmdActionsReply:
-		case EFsEmailUiCmdActionsAddContact:
-		case EFsEmailUiCmdActionsRemoteLookup:
-		case EFsEmailUiCmdActionsCopyToClipboard:
-			{
-			iView.HandleEmailAddressCommandL( aCommand, *iMessageHeaderURL->ItemId() );
-			break;
-			}
-			
-		case EFsEmailUiCmdCancelDownload:
-			{
-			iView.CancelAttachmentL( FindAttachmentL( *iMessageHeaderURL ) );
-			break;
-			}
-			
-		case EFsEmailUiCmdOpenAttachment:
-			{
-			iView.OpenAttachmentL( FindAttachmentL( *iMessageHeaderURL ) );
-			break;
-			}
-			
-		case EFsEmailUiCmdSave:
-			{
-			iView.SaveAttachmentL( FindAttachmentL( *iMessageHeaderURL ) );
-			break;
-			}
-			
-		case EFsEmailUiCmdSaveAll:
-			{
-			iView.SaveAllAttachmentsL( );
-			break;  	
-			}
-			
-		case EFsEmailUiCmdActionsOpenWeb:
-		case EFsEmailUiCmdActionsAddBookmark:
-		case EFsEmailUiCmdActionsCopyWWWAddressToClipboard:
-			{
-			iView.HandleWebAddressCommandL( aCommand, *iUrl );
-			break;
-			}
-			
-		}
-	}
+    {
+    
+    switch ( aCommand )
+        {
+        case EFsEmailUiCmdActionsReply:
+        case EFsEmailUiCmdActionsAddContact:
+        case EFsEmailUiCmdActionsRemoteLookup:
+        case EFsEmailUiCmdActionsCopyToClipboard:
+        case EFsEmailUiCmdActionsContactDetails:
+            {
+            iView.HandleEmailAddressCommandL( aCommand, *iMessageHeaderURL->ItemId() );
+            break;
+            }
+            
+        case EFsEmailUiCmdCancelDownload:
+            {
+            iView.CancelAttachmentL( FindAttachmentL( *iMessageHeaderURL ) );
+            break;
+            }
+            
+        case EFsEmailUiCmdOpenAttachment:
+            {
+            iView.OpenAttachmentL( FindAttachmentL( *iMessageHeaderURL ) );
+            break;
+            }
+            
+        case EFsEmailUiCmdSave:
+            {
+            iView.SaveAttachmentL( FindAttachmentL( *iMessageHeaderURL ) );
+            break;
+            }
+            
+        case EFsEmailUiCmdSaveAll:
+            {
+            iView.SaveAllAttachmentsL( );
+            break;      
+            }
+            
+        case EFsEmailUiCmdActionsOpenWeb:
+        case EFsEmailUiCmdActionsAddBookmark:
+        case EFsEmailUiCmdActionsCopyWWWAddressToClipboard:
+            {
+            iView.HandleWebAddressCommandL( aCommand, *iUrl );
+            break;
+            }
+            
+        }
+    }
 
 const TAttachmentData& CFreestyleMessageHeaderURLEventHandler::FindAttachmentL( 
         const CFreestyleMessageHeaderURL& aAttachmentUrl )
@@ -323,7 +332,7 @@ void CFreestyleMessageHeaderURLEventHandler::LaunchAttachmentMenuL(
             }         
         }
     iAttachmentStylusPopup->SetPosition( iAppUi.ClientRect().Center(), 
-    								     CAknStylusPopUpMenu::EPositionTypeRightBottom );
+                                         CAknStylusPopUpMenu::EPositionTypeRightBottom );
     iAttachmentStylusPopup->ShowMenu();
     }
 
@@ -348,14 +357,14 @@ void CFreestyleMessageHeaderURLEventHandler::LaunchWebAddressMenuL()
     CleanupStack::PopAndDestroy(); //resource reader
  
     iWebAddressStylusPopup->SetPosition( iAppUi.ClientRect().Center(), 
-										   CAknStylusPopUpMenu::EPositionTypeRightBottom );
+                                           CAknStylusPopUpMenu::EPositionTypeRightBottom );
     iWebAddressStylusPopup->ShowMenu();
     }
 
 //From MEikMenuObserver
 void CFreestyleMessageHeaderURLEventHandler::SetEmphasis(CCoeControl* /*aMenuControl*/,TBool /*aEmphasis*/)
-	{
-	}
+    {
+    }
 
 void CFreestyleMessageHeaderURLEventHandler::DismissMenuAndReload()
     {

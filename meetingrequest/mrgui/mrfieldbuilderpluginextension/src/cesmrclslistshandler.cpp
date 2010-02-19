@@ -25,7 +25,7 @@
 #include <CPbkContactItem.h>                        // CPbkContactItem, TPbkContactItemField
 #include <aknnotewrappers.h>                        // CAknErrorNote
 //<cmail>
-#include "CFSMailBox.h"                             // cfsmailbox
+#include "cfsmailbox.h"                             // cfsmailbox
 //</cmail>
 #include <CPsRequestHandler.h>
 #include <CPsSettings.h>

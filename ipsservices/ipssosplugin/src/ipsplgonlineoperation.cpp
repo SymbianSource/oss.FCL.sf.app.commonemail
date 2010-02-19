@@ -230,29 +230,34 @@ void CIpsPlgOnlineOperation::InvokeClientMtmAsyncFunctionL(
 void CIpsPlgOnlineOperation::SignalFSObserver( TInt aStatus )
     {
     FUNC_LOG;
-    if( iSignallingAllowed )
-        {        
+    if ( iSignallingAllowed )
+        {
         TFSProgress prog;
-        prog.iError = aStatus;
         // Initialize the progress data
         // it would be better to get fs progress from inherited class
         // by calling FSProgressL method??
-        if ( prog.iError == KErrCancel || prog.iError == KErrImapBadLogon )
+        if ( aStatus == KErrCancel )
             {
+            prog.iError = KErrNone;
+            prog.iProgressStatus = TFSProgress::EFSStatus_RequestCancelled;
+            }
+        else if ( aStatus == KErrImapBadLogon )
+            {
+            prog.iError = aStatus;
             prog.iProgressStatus = TFSProgress::EFSStatus_RequestCancelled;
             }
         else
             {
+            prog.iError = aStatus;
             prog.iProgressStatus = TFSProgress::EFSStatus_RequestComplete;
             }
         // At least in the attachment download, FS UI assumes that
         // the counter fields are greater than 0
         prog.iMaxCount = 1;  
         prog.iCounter = 1;
-        
-        
+
         //in case of autoconnect, we don't have valid observer
-        if( &iFSOperationObserver )
+        if ( &iFSOperationObserver )
             {            
             TRAP_IGNORE( iFSOperationObserver.RequestResponseL( prog, iFSRequestId ) );
             }

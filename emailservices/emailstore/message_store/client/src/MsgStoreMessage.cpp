@@ -18,9 +18,9 @@
 
 
 //<cmail>
-#include "MsgStoreMessage.h"
+#include "msgstoremessage.h"
 //</cmail>
-#include "MsgStoreSessionContext.h"
+#include "msgstoresessioncontext.h"
 
 /** Commits a newly created message to the message store.
 	

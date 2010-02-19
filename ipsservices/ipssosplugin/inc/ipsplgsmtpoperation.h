@@ -21,18 +21,33 @@
 
 #include <smtcmtm.h>
 #include "ipsplgcommon.h"
+#include "ipsplgonlineoperation.h" // for MIpsPlgConnectOpCallback
 
 class CClientMtmRegistry;
 
 /**
  *  Class for smtp related operations
  *
+ *  This class encapsulates SMTP send new message and send pending messages
+ *  operations.
+ *
+ *  This class requires CIpsPlgEventHandler for QueryUsrPassL method
+ *  for handling login problems. Because this class is exported and
+ *  CIpsPlgEventHandler isn`t, to avoid problems, iEventHandler is passed
+ *  as TAny* and can be set only from ipssosplugin.
+ *
  *  @lib ipssosplugin.lib
  *  @since FS 1.0
  */
 //should this class inherited from online operation
-NONSHARABLE_CLASS( CIpsPlgSmtpOperation ) : public CMsvOperation
+NONSHARABLE_CLASS( CIpsPlgSmtpOperation ) :
+    public CMsvOperation,
+    public MIpsPlgConnectOpCallback
     {
+public: //from MIpsPlgConnectOpCallback
+
+    void CredientialsSetL( TInt aEvent );
+
 public:
 
     /**
@@ -84,6 +99,11 @@ public:
     IMPORT_C TInt EmptyOutboxFromPendingMessagesL( TMsvId aMailboxId );
 
     IMPORT_C CMsvEntrySelection* GetOutboxChildrensL( );
+
+	/**
+	 *  Sets CIpsPlgEventHandler
+	 */
+	void SetEventHandler( TAny* aEventHandler );
     
 protected:
 
@@ -121,8 +141,11 @@ private: // From CActive
 
     enum TIpsSendState
         {
-        EMovingOutbox,
-        ESending
+        EIdle,
+        EMovingOutbox,          // moving mail to OutBox folder
+        ESending,               // sending mail
+        EQueryingDetails,       // querying for password
+        EQueryingDetailsBusy,   // another operation is querying for details
         };
 
     /**
@@ -158,7 +181,13 @@ private: // From CActive
      * @param aRecipients array of addresses
      */
     void ValidateAddressArrayL( const CDesCArray& aRecipients );
-    
+
+    /**
+     * Send user password query request to CIpsPlgEventHandler
+     * @return ETrue - if query send
+     */
+    TBool QueryUserPassL();
+
 private:
 
     CSmtpClientMtm*     iSmtpMtm;
@@ -167,6 +196,8 @@ private:
     CClientMtmRegistry* iMtmRegistry;
     TInt                iState;
     TMsvId              iSmtpService;
+    // not owned
+    TAny*               iEventHandler; // pointer to CIpsPlgEventHandler
     };
 
 #endif /* IPSPLGSENDOPERATION_H */

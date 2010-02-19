@@ -22,8 +22,8 @@
 #include "esmrinternaluid.h"
 
 #include <calentry.h>
-#include "CFSMailClient.h"
-#include "CFSMailBox.h"
+#include "cfsmailclient.h"
+#include "cfsmailbox.h"
 #include <caluser.h>
 
 // Unnamed namespace for local definitions

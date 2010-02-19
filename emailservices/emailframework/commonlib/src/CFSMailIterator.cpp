@@ -17,7 +17,7 @@
 
 
 #include "emailtrace.h"
-#include "CFSMailIterator.h"
+#include "cfsmailiterator.h"
 
 // ================= MEMBER FUNCTIONS ==========================================
 // -----------------------------------------------------------------------------

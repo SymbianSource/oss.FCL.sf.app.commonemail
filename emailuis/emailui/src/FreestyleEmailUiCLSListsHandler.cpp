@@ -20,7 +20,7 @@
 #include <centralrepository.h>						// CRepository
 #include <AknFepInternalCRKeys.h>					// KCRUidAknFep
 //<cmail>
-#include "CFSMailBox.h"								// cfsmailbox
+#include "cfsmailbox.h"								// cfsmailbox
 //</cmail>
 #include <CPsRequestHandler.h>
 #include <CPsSettings.h>

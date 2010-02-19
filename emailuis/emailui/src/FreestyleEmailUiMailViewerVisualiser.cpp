@@ -40,12 +40,12 @@
 #include <commonphoneparser.h>
 #include <browserlauncher.h>
 //<cmail>
-#include "CFSMailMessagePart.h"
-#include "CFSMailClient.h"
+#include "cfsmailmessagepart.h"
+#include "cfsmailclient.h"
 //</cmail>
 #include <apgcli.h>
 //<cmail>
-#include "CFSMailCommon.h"
+#include "cfsmailcommon.h"
 //</cmail>
 #include <featmgr.h>
 //</cmail>
@@ -79,12 +79,12 @@
 #include <AiwMenu.h>
 
 // for opening normal browser
-#include <BrowserOverriddenSettings.h>
-#include <BrowserLauncher.h>
+#include <browseroverriddensettings.h>
+#include <browserlauncher.h>
 
 // for bookmarks
-#include <FavouritesLimits.h>   // KBrowserBookmarks
-#include <FavouritesDb.h>
+#include <favouriteslimits.h>   // KBrowserBookmarks
+#include <favouritesdb.h>
 
 // for fonts
 #include <AknFontAccess.h>
@@ -114,7 +114,7 @@
 // </cmail>
 #include <aknnotewrappers.h>
 
-#include <SchemeHandler.h> // CSchemeHandler
+#include <schemehandler.h> // CSchemeHandler
 
 // <cmail>
 #include "FreestyleEmailUiConstants.h"
@@ -125,7 +125,7 @@
 #include "FreestyleEmailUiMailListVisualiser.h"
 #include "FreestyleEmailUiFileSystemInfo.h"
 #include "FreestyleEmailUi.hrh"
-#include "FreestyleEmailCenRepHandler.h"
+#include "freestyleemailcenrephandler.h"
 #include "FreestyleEmailUiLayoutHandler.h"
 #include "FreestyleEmailUiTextureManager.h"
 #include "FreestyleEmailUiMsgDetailsVisualiser.h"
@@ -788,7 +788,7 @@ void CFSEmailUiMailViewerVisualiser::ChildDoActivateL(
             }
 
         // Set email indicator off.. user has checked the new emails
-        TFsEmailUiUtility::ToggleEmailIconL( EFalse );
+        TFsEmailUiUtility::ToggleEmailIconL( EFalse, activationData.iMailBoxId );
         }
 
     iNextOrPevMessageSelected = EFalse;

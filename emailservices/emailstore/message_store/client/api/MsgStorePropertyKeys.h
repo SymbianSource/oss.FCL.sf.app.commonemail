@@ -29,7 +29,7 @@
  ************************************************************************/
 
 /** The property key for status flags field.  Its property value type is EMsgStoreTypeUint32.
- *  The values are defined in email fw's TFSMsgFlag enum (CFSMailCommon.h).
+ *  The values are defined in email fw's TFSMsgFlag enum (cfsmailcommon.h).
  * 
  *  The following code updates the "flags" field with the local read flag
  *

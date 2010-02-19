@@ -41,7 +41,7 @@ class CFSMailMessageBase : public CExtendableEmail
      *
      * @param aMessageId id of the email to be created
      */
-   	 IMPORT_C static CFSMailMessageBase* NewL(const TFSMailMsgId aMessageId);
+     IMPORT_C static CFSMailMessageBase* NewL(const TFSMailMsgId aMessageId);
     
     /**
      * Two-phased constructor.
@@ -61,21 +61,21 @@ class CFSMailMessageBase : public CExtendableEmail
      * @return message id
      */
      IMPORT_C TFSMailMsgId GetMessageId() const;
-  	 
- 	/**
+     
+    /**
      * if email is related to another email, for example due reply / forward,
      * related email id is returned
      *
      * @return related email id
      */
-  	 IMPORT_C TFSMailMsgId IsRelatedTo() const;
+     IMPORT_C TFSMailMsgId IsRelatedTo() const;
 
- 	/**
+    /**
      * set email related to another email, for example due reply / forward
      *
      * @param aMessageId related email id
      */
-  	 IMPORT_C void SetRelatedTo( const TFSMailMsgId aMessageId );
+     IMPORT_C void SetRelatedTo( const TFSMailMsgId aMessageId );
 
     /**
      * email parent folder id accessor
@@ -159,7 +159,7 @@ class CFSMailMessageBase : public CExtendableEmail
      *
      * @param aRecipient new recipient email address
      */
-  	 IMPORT_C void AppendBCCRecipient( CFSMailAddress* aRecipient );
+     IMPORT_C void AppendBCCRecipient( CFSMailAddress* aRecipient );
 
     /**
      * clears email TO-recipients list
@@ -226,7 +226,7 @@ class CFSMailMessageBase : public CExtendableEmail
      *
      * @aFlag email flag to be reset
      */
-	 IMPORT_C void ResetFlag(const TInt aFlag);
+     IMPORT_C void ResetFlag(const TInt aFlag);
 
     /**
      * test email flag is set
@@ -253,10 +253,10 @@ class CFSMailMessageBase : public CExtendableEmail
      IMPORT_C void SetReplyToAddress(CFSMailAddress* aReplyToAddress);
 
      /**
-	  * plugin request handler accessor
-	  * 
-	  * @return request handler
-	  */
+      * plugin request handler accessor
+      * 
+      * @return request handler
+      */
      IMPORT_C CFSMailRequestHandler& RequestHandler( );
           
 public: // from  CExtendableEmail
@@ -287,43 +287,43 @@ public: // from  CExtendableEmail
      TFSMailMsgId    iMessageId;
 
  private: 
-	 
+     
     /**
      * ConstructL
      */
-     void ConstructL( const TFSMailMsgId aMessageId );	 
+     void ConstructL( const TFSMailMsgId aMessageId );   
 protected:
     // Request handler from tls 
-    CFSMailRequestHandler* 			iRequestHandler;	
+    CFSMailRequestHandler*          iRequestHandler;    
  private: // data
 
- 	/**
+    /**
      * id of another email or part this object is related to
      * due some reason, like in reply or forward email use cases
      */
-	 TFSMailMsgId    iRelatedTo;
+     TFSMailMsgId    iRelatedTo;
 
- 	/**
+    /**
      * email mailbox id
      */
      TFSMailMsgId    iMailBoxId;
 
- 	/**
+    /**
      * email parent folder id
      */
      TFSMailMsgId    iFolderId;
 
- 	/**
+    /**
      * email sender address
      */
      CFSMailAddress*    iSender;
 
- 	/**
+    /**
      * email reply-to address
      */
      CFSMailAddress*    iReplyTo;
 
-	/**
+    /**
      * email recipients, to/cc/bcc
      */
      RPointerArray<CFSMailAddress> iToRecipients;
@@ -334,7 +334,7 @@ protected:
      * email subject
      */
      HBufC*             iSubject;
- 		 
+         
     /**
      * email flags
      */
@@ -343,7 +343,7 @@ protected:
     /**
      * email date
      */
-     TTime              iDate;	 
+     TTime              iDate;   
 };
 
 

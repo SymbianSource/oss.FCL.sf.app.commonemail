@@ -21,8 +21,8 @@
 #define __MSG_STORE_SORT_RESULT_ITERATOR_H__
 
 //<cmail>
-#include "MsgStoreTypes.h"
-#include "MsgStorePropertyContainer.h"
+#include "msgstoretypes.h"
+#include "msgstorepropertycontainer.h"
 //</cmail>
 
 class TMsgStoreIdAndFlag

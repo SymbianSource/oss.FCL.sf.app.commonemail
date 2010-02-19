@@ -22,7 +22,7 @@
 #include <e32base.h>
 //<cmail>
 #include "mesmragnimportobserver.h"
-#include "CFSMailCommon.h"
+#include "cfsmailcommon.h"
 //</cmail>
 #include "cesmricalviewerasynccommand.h"
 

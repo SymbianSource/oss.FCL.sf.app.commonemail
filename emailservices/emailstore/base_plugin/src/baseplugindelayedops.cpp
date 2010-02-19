@@ -14,7 +14,7 @@
 * Description:  Email interface implementation.
 *
 */
-#include "MsgStoreWritablePropertyContainer.h"
+#include "msgstorewritablepropertycontainer.h"
 
 #include "baseplugindelayedops.h"
 #include "baseplugindelayedopsprivate.h"

@@ -24,17 +24,17 @@
 #include <s32mem.h>  // for descriptor read/write streams
 #include <f32file.h>
 
-#include "RMessageStoreSession.h"
+#include "rmessagestoresession.h"
 
-#include "EmailStoreUids.hrh"
+#include "emailstoreuids.hrh"
 #include "MessageStoreClientServer.h"
-#include "RMessageStoreSession.h"
+#include "rmessagestoresession.h"
 //<cmail>
-#include "MsgStoreAccount.h"
+#include "msgstoreaccount.h"
 #include "AccountsSerializer.h"
-#include "MsgStoreSortCriteria.h"
-#include "MsgStoreSearchCriteria.h"
-#include "MsgStoreAddress.h"
+#include "msgstoresortcriteria.h"
+#include "msgstoresearchcriteria.h"
+#include "msgstoreaddress.h"
 //</cmail>
 
 // =========

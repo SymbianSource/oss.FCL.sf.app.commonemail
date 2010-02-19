@@ -18,7 +18,7 @@
 
 
 //<cmail>
-#include "MsgStoreSortCriteria.h"
+#include "msgstoresortcriteria.h"
 //</cmail>
 
 // --------------------------

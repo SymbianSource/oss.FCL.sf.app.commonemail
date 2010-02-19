@@ -107,3 +107,7 @@ text.time_text
     text-align: right;
 }
 
+image
+{
+    _s60-aspect-ratio:preserve;
+}

@@ -26,9 +26,9 @@
 #include <driveinfo.h>
 #include <s32file.h>
 
-#include "MsgStoreTypes.h"
-#include "MsgStorePropertyKeys.h"
-#include "EmailStoreUids.hrh"
+#include "msgstoretypes.h"
+#include "msgstorepropertykeys.h"
+#include "emailstoreuids.hrh"
 #include "MessageStoreServer.h"
 #include "MessageStoreSession.h"
 #include "ContainerStore.h"
@@ -38,6 +38,7 @@
 #include "ImsPointsecMonitor.h"
 #include "ImsPointsecObserver.h"
 #include "emailstorepskeys.h" // Support for on-the-fly upgrade
+#include "emailshutdownconst.h"
 //</cmail>
 
 // =========
@@ -328,9 +329,9 @@ void CMessageStoreServer::ConstructL()
     TSecurityPolicy readPolicy( ECapabilityReadDeviceData );
     TSecurityPolicy writePolicy( ECapabilityWriteDeviceData );
     iUpgradePropertyWatcher = CPSIntPropertyWatcher::NewL( this );
-    iUpgradePropertyWatcher->StartL( KEmailStoreUpgradePSCategory,
-                                     KProperty_EmailStore_Upgrade,
-                                     process.SecureId(),
+    iUpgradePropertyWatcher->StartL( KEmailShutdownPsCategory, 
+                                     EEmailPsKeyShutdownMsgStore,
+                                     KEmailShutterPsValue,
                                      /*ETrue*/EFalse,
                                      readPolicy,
                                      writePolicy ); 

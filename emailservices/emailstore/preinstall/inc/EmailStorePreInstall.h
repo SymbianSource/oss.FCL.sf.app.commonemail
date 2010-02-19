@@ -24,7 +24,7 @@
 #include <w32std.h>
 #include <apgtask.h>
 #include <e32property.h>
-#include <DebugLogMacros.h>
+#include <debuglogmacros.h>
 #include "ProcessTimer.h"
 
 // ========

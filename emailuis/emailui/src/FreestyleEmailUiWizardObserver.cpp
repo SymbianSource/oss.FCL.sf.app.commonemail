@@ -23,13 +23,13 @@
 #include <centralrepository.h>
 #include <StringLoader.h>
 //<cmail>
-#include "CFSMailClient.h"
+#include "cfsmailclient.h"
 //</cmail>
 
 // INTERNAL INCLUDE FILES
 #include "FreestyleEmailUiWizardObserver.h"
 #include "FreestyleEmailUiLauncherGridVisualiser.h"
-#include "FreestyleEmailCenRepHandler.h"
+#include "freestyleemailcenrephandler.h"
 #include "FreestyleEmailUiUtilities.h"
 
 

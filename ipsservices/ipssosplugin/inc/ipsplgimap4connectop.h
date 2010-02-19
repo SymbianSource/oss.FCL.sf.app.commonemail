@@ -139,7 +139,8 @@ protected:
 		enum TImapConnectionState 
 			{ 
 			EStateStartConnect,
-			EStateQueryingDetails, 
+			EStateQueryingDetails,
+			EStateQueryingDetailsBusy,
 			EStateConnectAndSync,
 			EStatePopulateAllCompleted,
 			EStateCompleted,
@@ -186,13 +187,14 @@ protected:
         *
         */       
         void DoPopulateAllL();
-        
+
         /**
-        *
-        */
-        void QueryUserPwdL();
-        
-        
+         * Send user password query request to CIpsPlgEventHandler
+         * @return ETrue - if query send
+         */
+        TBool QueryUserPassL();
+
+
         /**
          * 
          */

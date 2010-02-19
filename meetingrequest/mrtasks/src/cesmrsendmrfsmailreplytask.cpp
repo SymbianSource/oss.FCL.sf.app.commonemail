@@ -24,7 +24,7 @@
 #include <cmrmailboxutils.h>
 #include <calentry.h>
 //<cmail>
-#include "CFSMailMessage.h"
+#include "cfsmailmessage.h"
 #include <coemain.h>
 #include <coeaui.h>
 #include "FreestyleEmailUiConstants.h"

@@ -19,7 +19,7 @@
 #include <platform_paths.hrh>
 
 #include "../../../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
-#include "../../../inc/EmailStoreUids.hrh"
+#include "../../../inc/emailstoreuids.hrh"
 
 TARGET        MessageStoreClient.dll
 TARGETTYPE    dll
@@ -42,7 +42,7 @@ USERINCLUDE   ../inc
 USERINCLUDE   ../../../inc
 USERINCLUDE   ../../common/inc
 
-// TEMPORARY MOVED STUFF FROM IsMsgStorePropertyKeys.h USED BY MSGSTORE TO MsgStorePropertyKeys.h
+// TEMPORARY MOVED STUFF FROM IsMsgStorePropertyKeys.h USED BY MSGSTORE TO msgstorepropertykeys.h
 //because of the IsMsgStorePropertyKeys.h there is now dependency and I'd rather keep it in its
 //original location because of the merges and the fact that it logically belongs there.
 //USERINCLUDE   ../../../../Intellisyncengine/client_symbian_s60_freestyle/sync/inc

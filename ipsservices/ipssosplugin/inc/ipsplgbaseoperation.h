@@ -18,8 +18,10 @@
 #ifndef IPSPLGBASEOPERATION_H
 #define IPSPLGBASEOPERATION_H
 
+#include "cfsmailcommon.h" // for TFSMailMsgId, TFSProgress
 
 class CMsvOperation;
+
 /**
 * class CIpsPlgBaseOperation
 *

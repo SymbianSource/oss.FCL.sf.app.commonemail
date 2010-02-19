@@ -24,18 +24,27 @@
 #include <centralrepository.h>
 #include <starterdomaincrkeys.h>
 #include <startupdomainpskeys.h>
+#include <emailobserverinterface.hrh>
+#include <emailobserverplugin.h>
+#include <memaildata.h>
+#include <memailmailboxdata.h>
 
 #include "emailtrace.h"
-#include "CFSMailClient.h"
-#include "CFSMailBox.h"
-#include "CFSMailFolder.h"
+#include "cfsmailclient.h"
+#include "cfsmailbox.h"
+#include "cfsmailfolder.h"
 #include "cmailcpshandler.h"
 #include "cmailcpssettings.h"
 #include "cmailcpsif.h"
 #include "cmailmessagedetails.h"
 #include "cmailmailboxdetails.h"
+#include "cmailexternalaccount.h"
 #include "cmailcpsifconsts.h"
 #include "FreestyleEmailUiConstants.h"
+#include "cmailpluginproxy.h"
+#include "cmailhandlerpluginpanic.h"
+
+using namespace EmailInterface;
 
 // ---------------------------------------------------------
 // CMailCpsHandler::CMailCpsHandler
@@ -81,7 +90,8 @@ void CMailCpsHandler::ConstructL()
     iSettings = CMailCpsSettings::NewL( MailClient() );
 
     InitializeL();
-    
+    InitializeExternalAccountsL();
+
     iSettings->StartObservingL( this );
     }
 
@@ -95,6 +105,7 @@ CMailCpsHandler::~CMailCpsHandler()
     delete iLiwIf;
     delete iSettings;
     iAccountsArray.ResetAndDestroy();
+    iExternalPlugins.ResetAndDestroy();
     }
 
 // ---------------------------------------------------------
@@ -164,6 +175,120 @@ void CMailCpsHandler::InitializeL()
     }
 
 // ---------------------------------------------------------
+// CMailCpsHandler::InitializeExternalAccountsL
+// ---------------------------------------------------------
+//
+void CMailCpsHandler::InitializeExternalAccountsL()
+    {
+    FUNC_LOG;
+    // Read external account data from settings
+    RPointerArray<CMailExternalAccount> extAccounts;
+    CleanupClosePushL( extAccounts );
+    iSettings->GetExtMailboxesL( extAccounts );
+
+    // Delete removed plugins
+    RemoveUnusedPluginsL( extAccounts );
+
+    // Instantiate new plugins
+    AddNewPluginsL( extAccounts );
+
+    // Set accounts under correct pluginProxies
+    SelectAndUpdateExtAccountsL( extAccounts );
+
+    __ASSERT_DEBUG( extAccounts.Count() == 0, Panic( ECmailHandlerPluginPanicNoFailedState ) );
+    CleanupStack::PopAndDestroy();
+    }
+
+// ---------------------------------------------------------
+// CMailCpsHandler::RemoveUnusedPluginsL
+// ---------------------------------------------------------
+//
+void CMailCpsHandler::RemoveUnusedPluginsL( RPointerArray<CMailExternalAccount>& aAccounts )
+    {
+    FUNC_LOG;
+    for ( TInt i = 0; i < iExternalPlugins.Count(); i++ )
+        {
+        if ( !IsPluginInArray( iExternalPlugins[i]->PluginId(), aAccounts ) )
+            {
+            // all plugin's accounts have been removed from widget settings, unloading resources
+            CMailPluginProxy* proxy = iExternalPlugins[i];
+            iExternalPlugins.Remove(i--); // also change the loop index
+            delete proxy;
+            }
+        }
+    }
+
+// ---------------------------------------------------------
+// CMailCpsHandler::AddNewPluginsL
+// ---------------------------------------------------------
+//
+void CMailCpsHandler::AddNewPluginsL( RPointerArray<CMailExternalAccount>& aAccounts )
+    {
+    FUNC_LOG;
+    for ( TInt i = 0; i < aAccounts.Count(); i++ )
+        {
+        if ( !IsPluginInArray( aAccounts[i]->PluginId(), iExternalPlugins ) )
+            {
+            // new plugin instantiation
+            INFO_1("Instantiating plugin 0x%x", aAccounts[i]->PluginId() );
+            CMailPluginProxy* proxy = CMailPluginProxy::NewL( aAccounts[i]->PluginId(), *iLiwIf );
+            CleanupStack::PushL( proxy );
+            iExternalPlugins.AppendL( proxy );
+            CleanupStack::Pop( proxy );
+            }
+        }
+    }
+
+// ---------------------------------------------------------
+// CMailCpsHandler::UpdateExtAccountsL
+// ---------------------------------------------------------
+//
+void CMailCpsHandler::SelectAndUpdateExtAccountsL( RPointerArray<CMailExternalAccount>& aAccounts )
+    {
+    FUNC_LOG;
+    for ( TInt i = 0; i < iExternalPlugins.Count(); i++ )
+        {
+        iExternalPlugins[i]->SelectAndUpdateAccountsL( aAccounts );
+        }
+    }
+
+// ---------------------------------------------------------
+// CMailCpsHandler::IsPluginInArray
+// ---------------------------------------------------------
+//
+TBool CMailCpsHandler::IsPluginInArray( const TInt aPluginId, RPointerArray<CMailExternalAccount>& aAccounts )
+    {
+    FUNC_LOG;
+    TBool found( EFalse );
+    for ( TInt i = 0; i < aAccounts.Count(); i++ )
+        {
+        if ( aAccounts[i]->PluginId() == aPluginId )
+            {
+            found = ETrue;
+            }
+        }
+    return found;
+    }
+
+// ---------------------------------------------------------
+// CMailCpsHandler::IsPluginInArray
+// ---------------------------------------------------------
+//
+TBool CMailCpsHandler::IsPluginInArray( const TInt aPluginId, RPointerArray<CMailPluginProxy>& aPlugins )
+    {
+    FUNC_LOG;
+    TBool found( EFalse );
+    for ( TInt i = 0; i < aPlugins.Count(); i++ )
+        {
+        if ( aPlugins[i]->PluginId() == aPluginId )
+            {
+            found = ETrue;
+            }
+        }
+    return found;
+    }
+
+// ---------------------------------------------------------
 // CMailCpsHandler::CreateMailboxDetailsL
 // ---------------------------------------------------------
 //
@@ -186,6 +311,7 @@ void CMailCpsHandler::SettingsChangedCallback()
     Reset();
     // Trying to keep callback interface non-leaving
     TRAP_IGNORE( InitializeL() );
+    TRAP_IGNORE( InitializeExternalAccountsL() );
     // Update widget contents after settings change
     TRAP_IGNORE( UpdateFullL() );
     }
@@ -215,24 +341,30 @@ void CMailCpsHandler::UpdateMailboxesL(TInt aInstance, const TDesC& aContentId)
     FUNC_LOG;
     TInt row(1); // start from first row
     TInt mailbox(0);
-    
+    TBool found( EFalse );
+    // try to find mailbox with matching contentId
     for ( mailbox = 0; mailbox < iAccountsArray.Count(); mailbox++ )
-        {           
-        TInt compare = aContentId.Compare(*iAccountsArray[mailbox]->iWidgetInstance);
-        if (!compare)
+        {
+        if ( !aContentId.Compare( *iAccountsArray[mailbox]->iWidgetInstance ) )
             {
+            INFO_1("iAccountsArray.Count() == %d", iAccountsArray.Count());
+            found = ETrue;
             break;
             }
         }
 
-    // Update fields from left to right
-    UpdateMailBoxIconL( mailbox, aInstance, row );
-    UpdateMailboxNameL( mailbox, aInstance, row );
-	UpdateIndicatorIconL( mailbox, aInstance, row );
-	row++;
-	UpdateMessagesL( mailbox, aInstance, 1, row);
-	row++;
-	UpdateMessagesL( mailbox, aInstance, 2, row);
+    // if contentId found from array, update the mailbox
+    if ( found )
+        {
+        // Update fields from left to right
+        UpdateMailBoxIconL( mailbox, aInstance, row );
+        UpdateMailboxNameL( mailbox, aInstance, row );
+        UpdateIndicatorIconL( mailbox, aInstance, row );
+        row++;
+        UpdateMessagesL( mailbox, aInstance, 1, row);
+        row++;
+        UpdateMessagesL( mailbox, aInstance, 2, row);
+        }
     }
 
 // ---------------------------------------------------------
@@ -601,18 +733,18 @@ void CMailCpsHandler::UpdateIndicatorIconL( const TInt aMailBoxNumber,
         TFSMailMsgId mailBoxId;
         mailBoxId = iAccountsArray[aMailBoxNumber]->iMailboxId;    
     
-        if ( GetUnseenCountL(mailBoxId) > 0 )
+        if ( iSettings->GetNewMailState( mailBoxId ) )
             {
             iLiwIf->PublishIndicatorIconL( aWidgetInstance,
                                            aRowNumber,
-                                           EMbmCmailhandlerpluginQgn_indi_ai_eplg_unread );
+                                           EMbmCmailhandlerpluginQgn_stat_message_mail_uni );
             }
     
         else if( !IsOutboxEmptyL(mailBoxId) )
             {
             iLiwIf->PublishIndicatorIconL( aWidgetInstance,
                                            aRowNumber,                
-                                           EMbmCmailhandlerpluginQgn_prop_mce_outbox_small);
+                                           EMbmCmailhandlerpluginQgn_indi_cmail_outbox_msg);
             }
         else
             {    
@@ -704,11 +836,13 @@ void CMailCpsHandler::HandleEventL(
         case TFSEventMailboxRenamed:
             {
             HandleMailboxRenamedEventL( aMailbox );
+            UpdateFullL();
             break;
             }
         case TFSEventMailboxDeleted:
             {
             HandleMailboxDeletedEventL( aMailbox );
+            UpdateFullL();
             break;
             }
         case TFSEventMailboxSettingsChanged:
@@ -720,11 +854,13 @@ void CMailCpsHandler::HandleEventL(
         case TFSEventNewMail:
             {
             HandleNewMailEventL( aMailbox, aParam1, aParam2 );
+            UpdateFullL();
             break;
             }
         case TFSEventMailDeleted:
             {
             HandleMailDeletedEventL( aMailbox, aParam1, aParam2 );
+            UpdateFullL();
             break;
             }
         case TFSEventMailChanged:
@@ -742,7 +878,6 @@ void CMailCpsHandler::HandleEventL(
             break;
             }            
         }
-	UpdateFullL();
     }
 
 // ---------------------------------------------------------
@@ -831,6 +966,7 @@ void CMailCpsHandler::HandleMailboxDeletedEventL( const TFSMailMsgId aMailbox )
 
             // Remove from cenrep
             iSettings->RemoveMailboxL( aMailbox );
+            iSettings->ToggleWidgetNewMailIconL( EFalse, aMailbox );
             break;
             }
         }
@@ -844,6 +980,9 @@ void CMailCpsHandler::HandleNewMailEventL(
     TFSMailMsgId aMailbox, TAny* aParam1, TAny* aParam2 )
     {
     FUNC_LOG;
+    
+    iSettings->ToggleWidgetNewMailIconL( ETrue, aMailbox );
+    
     // Basic assertions
     if ( !aParam1 || !aParam2 )
         {
@@ -1589,28 +1728,38 @@ void CMailCpsHandler::LaunchEmailUIL( const TDesC& aContentId )
     {
     FUNC_LOG;
 
-    TUid mailBoxUid;
-    mailBoxUid.iUid = iSettings->GetMailboxUidByContentId(aContentId);
-    TFSMailMsgId mailBoxId;
-    mailBoxId.SetId(mailBoxUid.iUid);
-    TUid pluginUid;
-    pluginUid.iUid = iSettings->GetPluginUidByContentId(aContentId);
-    mailBoxId.SetPluginId(pluginUid);
-    CFSMailBox* mailBox = MailClient().GetMailBoxByUidL( mailBoxId );
-    CleanupStack::PushL( mailBox );
-    if ( mailBox )
+    TInt nativeMailboxId( iSettings->GetMailboxUidByContentId( aContentId ) );
+    // Is the contentId related to internal mailbox or external?
+    if( nativeMailboxId )
         {
-        TFSMailMsgId inboxFolderId = mailBox->GetStandardFolderId( EFSInbox );    
+        TUid mailBoxUid;
+        mailBoxUid.iUid = nativeMailboxId;
         
-        TMailListActivationData tmp;
-        tmp.iFolderId = inboxFolderId;
-        tmp.iMailBoxId = mailBoxId; 
-        const TPckgBuf<TMailListActivationData> pkgOut( tmp );
-        iEnv->EikAppUi()->ActivateViewL( TVwsViewId(KUidEmailUi, KMailListId), 
-                                         KStartListWithFolderId, 
-                                         pkgOut);
+        TFSMailMsgId mailBoxId;
+        mailBoxId.SetId(mailBoxUid.iUid);
+        TUid pluginUid;
+        pluginUid.iUid = iSettings->GetPluginUidByContentId(aContentId);
+        mailBoxId.SetPluginId(pluginUid);
+        CFSMailBox* mailBox = MailClient().GetMailBoxByUidL( mailBoxId );
+        CleanupStack::PushL( mailBox );
+        if ( mailBox )
+            {
+            TFSMailMsgId inboxFolderId = mailBox->GetStandardFolderId( EFSInbox );
+    
+            TMailListActivationData tmp;
+            tmp.iFolderId = inboxFolderId;
+            tmp.iMailBoxId = mailBoxId;
+            const TPckgBuf<TMailListActivationData> pkgOut( tmp );
+            iEnv->EikAppUi()->ActivateViewL( TVwsViewId(KUidEmailUi, KMailListId),
+                                             KStartListWithFolderId,
+                                             pkgOut);
+            }
+        CleanupStack::PopAndDestroy( mailBox );
         }
-    CleanupStack::PopAndDestroy( mailBox );
+    else
+        {
+        LaunchExtAppL( aContentId );
+        }
     }
 
 // -----------------------------------------------------------------------------
@@ -1625,6 +1774,55 @@ void CMailCpsHandler::LaunchEmailWizardL()
                                      viewUid, 
                                      KNullDesC8);
     }
+
+// -----------------------------------------------------------------------------
+//  CMailCpsHandler::LaunchExtAppL()
+// -----------------------------------------------------------------------------
+//
+void CMailCpsHandler::LaunchExtAppL( const TDesC& aContentId )
+    {
+    FUNC_LOG;
+    CMailPluginProxy* plugin = GetExtPluginL( aContentId );
+    if ( plugin )
+        {
+        plugin->LaunchExtAppL( aContentId );
+        }
+    }
+
+// -----------------------------------------------------------------------------
+//  CMailCpsHandler::GetExtPluginL
+// -----------------------------------------------------------------------------
+//
+CMailPluginProxy* CMailCpsHandler::GetExtPluginL( const TDesC& aContentId )
+    {
+    FUNC_LOG;
+    CMailPluginProxy* plugin( NULL );
+    for( TInt i = 0; i < iExternalPlugins.Count(); i++ )
+        {
+        if ( iExternalPlugins[i]->HasAccount( aContentId ) )
+            {
+            plugin = iExternalPlugins[i];
+            }
+        }
+    return plugin;
+    }
+
+// -----------------------------------------------------------------------------
+//  CMailCpsHandler::UpdateExtAccountL
+// -----------------------------------------------------------------------------
+//
+void CMailCpsHandler::UpdateExtAccountL( const TDesC& aContentId )
+    {
+    FUNC_LOG;
+    // Look up plugin that handles this account
+    CMailPluginProxy* plugin = GetExtPluginL( aContentId );
+    if ( plugin )
+        {
+        // Publish its data
+        plugin->UpdateAccountL( aContentId );
+        }
+    }
+
 // ---------------------------------------------------------------------------
 // CMailCpsHandler::AssociateWidget
 // ---------------------------------------------------------------------------
@@ -1652,13 +1850,50 @@ void CMailCpsHandler::DissociateWidgetFromSettingL( const TDesC& aContentId )
     }
 
 // ---------------------------------------------------------------------------
+// CMailCpsHandler::TotalMailboxCount
+// ---------------------------------------------------------------------------
+//
+TInt CMailCpsHandler::TotalMailboxCountL()
+    {
+    FUNC_LOG;
+    return TotalIntMailboxCount() + TotalExtMailboxCountL();
+    }
+
+// ---------------------------------------------------------------------------
 // CMailCpsHandler::GetMailboxCount
 // ---------------------------------------------------------------------------
 //
-TInt CMailCpsHandler::GetMailboxCount()
+TInt CMailCpsHandler::TotalIntMailboxCount()
     {
     FUNC_LOG;
-    return iSettings->GetTotalMailboxCount();
+    return iSettings->TotalIntMailboxCount();
+    }
+
+// ---------------------------------------------------------
+// CMailCpsHandler::TotalExtMailboxCount
+// ---------------------------------------------------------
+//
+TInt CMailCpsHandler::TotalExtMailboxCountL()
+    {
+    FUNC_LOG;
+    TInt totalMailboxCount( 0 );
+    TUid interfaceUid = TUid::Uid( KEmailObserverInterfaceUid );
+    RImplInfoPtrArray plugins;
+    CleanupClosePushL( plugins );
+    REComSession::ListImplementationsL( interfaceUid, plugins);
+
+    for ( TInt i = 0; i < plugins.Count(); i++ )
+        {
+        TUid implUid = plugins[i]->ImplementationUid();
+        INFO_1("Instantiating plugin %d", implUid.iUid);
+        EmailInterface::CEmailObserverPlugin* plugin = 
+            EmailInterface::CEmailObserverPlugin::NewL( implUid, this );
+        MEmailData& data( plugin->EmailDataL() );
+        totalMailboxCount += data.MailboxesL().Count();
+        }
+    
+    CleanupStack::PopAndDestroy(); // plugins
+    return totalMailboxCount;
     }
 
 // ---------------------------------------------------------------------------
@@ -1681,7 +1916,7 @@ void CMailCpsHandler::ManualAccountSelectionL( const TDesC& aContentId )
         if (!iSettings->FindFromContentIdListL(aContentId))
             {
             iSettings->AddToContentIdListL(aContentId);
-            if (GetMailboxCount())
+            if ( TotalMailboxCountL() )
                 {
                 LaunchWidgetSettingsL(aContentId);
                 }
@@ -1719,3 +1954,10 @@ TBool CMailCpsHandler::FirstBootL()
     return ret;
     }
 
+// ---------------------------------------------------------------------------
+// CMailCpsHandler::EmailObserverEvent
+// ---------------------------------------------------------------------------
+void CMailCpsHandler::EmailObserverEvent( EmailInterface::MEmailData& /*aData*/ )
+    {
+    // Nothing to do
+    }

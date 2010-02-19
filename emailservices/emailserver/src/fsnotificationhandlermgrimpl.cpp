@@ -19,7 +19,7 @@
 #include "emailtrace.h"
 #include <ecom/ecom.h> // FinalClose()
 //<cmail>
-#include "CFSMailClient.h"
+#include "cfsmailclient.h"
 //</cmail>
 #include <sysutil.h>
 //<cmail>

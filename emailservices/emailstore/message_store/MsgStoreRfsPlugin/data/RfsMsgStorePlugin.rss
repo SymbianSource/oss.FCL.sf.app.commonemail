@@ -18,7 +18,7 @@
 NAME EAXP
 
 #include <ecom/registryinfo.rh>
-#include "EmailStoreUids.hrh"
+#include "emailstoreuids.hrh"
 
 RESOURCE REGISTRY_INFO theInfo
     {

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2008 - 2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2008 - 2010 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -20,17 +20,19 @@
 #include <e32base.h>
 // CRepository
 #include <centralrepository.h>
+
 // Email Framework APIs
 //<cmail>
-#include "CFSMailCommon.h"
-#include "CFSMailClient.h"
-#include "CFSMailBox.h"
-#include "CFSMailFolder.h"
+#include "cfsmailcommon.h"
+#include "cfsmailclient.h"
+#include "cfsmailbox.h"
+#include "cfsmailfolder.h"
 //</cmail>
 
 #include "cmailcpssettings.h"
 #include "cmailwidgetcenrepkeysinternal.h"
 #include "cmailcpsifconsts.h"
+#include "cmailexternalaccount.h"
 
 // ======== MEMBER FUNCTIONS ========
 
@@ -96,10 +98,10 @@ void CMailCpsSettings::ConstructL()
 void CMailCpsSettings::RunL()
     {
     FUNC_LOG;
+    StartObservingL();
     LoadSettingsL(); // mailboxes etc. user changeable data
     LoadConfigurationL(); // internal configuration data
     iObserver->SettingsChangedCallback();
-    StartObservingL();
     }
 
 // ---------------------------------------------------------------------------
@@ -192,6 +194,20 @@ void CMailCpsSettings::GetMailboxNonZeroKeysL( RArray<TUint32>& aKeys )
     }
 
 // ---------------------------------------------------------------------------
+// CMailCpsSettings::GetMailboxNonZeroKeysL
+// ---------------------------------------------------------------------------
+//
+void CMailCpsSettings::GetExtMailboxNonZeroKeysL( RArray<TUint32>& aKeys )
+    {
+    FUNC_LOG;
+    TInt ret = iCenRep->FindNeqL( KCmailExtMailboxKeyRange, KCmailExtMailboxRangeMask, 0, aKeys );
+    if ( ret != KErrNone && ret != KErrNotFound )
+        {
+        User::Leave( ret );
+        }
+    }
+
+// ---------------------------------------------------------------------------
 // CMailCpsSettings::ResolveMailbox
 // ---------------------------------------------------------------------------
 //
@@ -266,7 +282,50 @@ void CMailCpsSettings::StopObserving()
 //
 RArray<TFSMailMsgId>& CMailCpsSettings::Mailboxes()
     {
+    FUNC_LOG;
     return iMailboxArray;
+    }
+
+// ---------------------------------------------------------------------------
+// CMailCpsSettings::ExternalMailboxes
+// ---------------------------------------------------------------------------
+//
+void CMailCpsSettings::GetExtMailboxesL( RPointerArray<CMailExternalAccount>& aAccounts )
+    {
+    FUNC_LOG;
+    RArray<TUint32> keys;
+    CleanupClosePushL( keys );
+    GetExtMailboxNonZeroKeysL( keys );
+
+    for ( TInt i = 0; i < keys.Count(); i++ )
+        {
+        CMailExternalAccount* account = GetExtMailboxL( keys[i] );
+        CleanupStack::PushL( account );
+        aAccounts.AppendL( account );
+        CleanupStack::Pop( account );
+        }
+
+    CleanupStack::PopAndDestroy(); // keys
+    }
+
+// ---------------------------------------------------------------------------
+// CMailCpsSettings::GetExtMailboxL
+// ---------------------------------------------------------------------------
+//
+CMailExternalAccount* CMailCpsSettings::GetExtMailboxL( TInt aKey )
+    {
+    FUNC_LOG;
+    TInt mailboxId( 0 );
+    TInt pluginId( 0 );
+    HBufC* contentIdBuf = HBufC::NewL( KMaxDescLen );
+    TPtr contentId = contentIdBuf->Des();
+
+    User::LeaveIfError( iCenRep->Get( aKey, mailboxId ) );
+    User::LeaveIfError( iCenRep->Get( aKey + KCMailExtPluginIdOffset, pluginId ) );
+    User::LeaveIfError( iCenRep->Get( aKey + KCMailExtWidgetCidOffset, contentId ) );
+
+    return CMailExternalAccount::NewL(
+        mailboxId, pluginId, contentIdBuf );
     }
 
 // ---------------------------------------------------------------------------
@@ -579,10 +638,10 @@ TInt32 CMailCpsSettings::Configuration()
     }
 
 // ---------------------------------------------------------------------------
-// CMailCpsSettings::GetTotalMailboxCount
+// CMailCpsSettings::TotalIntMailboxCount
 // ---------------------------------------------------------------------------
 //
-TInt CMailCpsSettings::GetTotalMailboxCount()
+TInt CMailCpsSettings::TotalIntMailboxCount()
     {
     FUNC_LOG;
     RPointerArray<CFSMailBox> mailboxarray;
@@ -660,4 +719,69 @@ void CMailCpsSettings::RemoveFromContentIdListL( const TDesC& aContentId )
         value.Delete(result, cid.Length());
         iCenRep->Set( key, value );        
         }
+    }
+
+// -----------------------------------------------------------------------------
+// CMailCpsSettings::ToggleWidgetNewMailIconL
+// -----------------------------------------------------------------------------
+void CMailCpsSettings::ToggleWidgetNewMailIconL( TBool aIconOn, const TFSMailMsgId& aMailBox )
+    {
+    FUNC_LOG;
+    TBuf<KMaxDescLen> mailbox;
+    mailbox.Num(aMailBox.Id());
+
+    TBuf<KMaxDescLen> str;
+    str.Copy(KStartSeparator);    
+    str.Append(mailbox);
+    str.Append(KEndSeparator);    
+
+    TBuf<KMaxDescLen> stored;
+    TUint32 key(KCMailMailboxesWithNewMail);
+    iCenRep->Get( key, stored );
+    
+    TInt result = stored.Find(str);
+    
+    if (aIconOn)
+        {
+        if (result < 0) // Not found
+            {
+            stored.Append(str);
+            iCenRep->Set( key, stored );
+            }
+        }
+    else
+        {
+        if (result >= 0)
+            {
+            stored.Delete(result, str.Length());
+            iCenRep->Set( key, stored );
+            }
+        }
+    }
+
+// -----------------------------------------------------------------------------
+// CMailCpsSettings::GetNewMailState
+// -----------------------------------------------------------------------------
+TBool CMailCpsSettings::GetNewMailState( const TFSMailMsgId& aMailBox )
+    {
+    FUNC_LOG;
+    TBool ret(EFalse);
+    TBuf<KMaxDescLen> mailbox;
+    mailbox.Num(aMailBox.Id());
+
+    TBuf<KMaxDescLen> str;
+    str.Copy(KStartSeparator);    
+    str.Append(mailbox);
+    str.Append(KEndSeparator);    
+
+    TBuf<KMaxDescLen> stored;
+    TUint32 key(KCMailMailboxesWithNewMail);
+    iCenRep->Get( key, stored );
+    
+    TInt result = stored.Find(str);
+    if (result >= 0)
+        {
+        ret = ETrue;
+        }
+    return ret;
     }

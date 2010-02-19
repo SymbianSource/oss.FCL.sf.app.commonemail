@@ -24,11 +24,11 @@
 #include <AknWaitDialog.h>
 #include <MsgAttachmentUtils.h>
 #include <featmgr.h>
-#include "CFSMailBox.h"
-#include "CFSMailMessage.h"
-#include "CFSMailAddress.h"
-#include "CFSMailClient.h"
-#include "CFSMailCommon.h"
+#include "cfsmailbox.h"
+#include "cfsmailmessage.h"
+#include "cfsmailaddress.h"
+#include "cfsmailclient.h"
+#include "cfsmailcommon.h"
 #include <csxhelp/cmail.hlp.hrh>
 #include <akntoolbar.h>
 #include <akntoolbarextension.h>
@@ -42,7 +42,7 @@
 #include "ncsconstants.h"
 #include "ncsutility.h"
 #include "ncsemailaddressobject.h"
-#include "FreestyleEmailCenRepHandler.h"
+#include "freestyleemailcenrephandler.h"
 #include "FreestyleEmailUi.hrh"
 #include "FreestyleEmailUiConstants.h"
 #include "FreestyleEmailUiSendAttachmentsListControl.h"
@@ -408,6 +408,7 @@ void CNcsComposeView::ChildDoActivateL( const TVwsViewId& aPrevViewId,
         Toolbar()->SetDimmed( EFalse );
         RefreshToolbar();
         }
+    TIMESTAMP( "Editor launched" );
     }
 
 
@@ -908,6 +909,7 @@ void CNcsComposeView::HandleCommandL( TInt aCommand )
                 break;
             case ENcsCmdExit:
                 {
+                TIMESTAMP( "Exit selected from editor" );
                 iAppUi.Exit();
                 }
                 break;
@@ -1041,6 +1043,7 @@ TBool CNcsComposeView::DoSaveDraftL( TBool aAskUser )
                 break;
     		case 1:
     			{
+    			TIMESTAMP( "Delete draft message selected in editor" ); 
 				TRAPD( error, SaveToDraftsL( ETrue ) );
     			if ( KErrNone != error )
     			    {
@@ -2029,6 +2032,7 @@ void CNcsComposeView::DoExitL( TExitMode aMode )
         attachmentControl->Model()->Clear();
         }
     ExitComposer();
+    TIMESTAMP( "Editor exited" );
     }
 
 // -----------------------------------------------------------------------------

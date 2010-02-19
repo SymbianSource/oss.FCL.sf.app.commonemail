@@ -22,7 +22,7 @@
 #include <AknUtils.h>
 #include <StringLoader.h>
 #include <FreestyleEmailUi.rsg>
-#include "CFSMailClient.h"
+#include "cfsmailclient.h"
 // <cmail> SF
 #include <alf/alfdecklayout.h>
 // </cmail>

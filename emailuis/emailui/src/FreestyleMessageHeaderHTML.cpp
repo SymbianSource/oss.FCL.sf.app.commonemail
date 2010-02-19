@@ -23,7 +23,7 @@
 #include <StringLoader.h>
 
 #include <FreestyleEmailUi.rsg>
-
+#include <finditemengine.h>
 #include "FreestyleMessageHeaderHTML.h"
 #include "FreestyleEmailUiUtilities.h"
 #include "ncsconstants.h"
@@ -156,22 +156,31 @@ CFreestyleMessageHeaderHTML::CFreestyleMessageHeaderHTML( CFSMailMessage& aMailM
     iWriteStream( aWriteStream ),
     iVisibleWidth( aVisibleWidth - KFreestyleMessageHeaderHTMLRightMarginInPx ),
     iScrollPosition(aScrollPosition),
-    iDirectionality( aDirectionality )
+    iDirectionality( aDirectionality ),
+    iMirrorLayout( EFalse )
     {
     }
 
 void CFreestyleMessageHeaderHTML::ConstructL()
     {
     iMailMessage.AttachmentListL( iAttachments );
+    if ( AknLayoutUtils::LayoutMirrored() )
+        {
+        iMirrorLayout = ETrue;
+        }
     }
 
 void CFreestyleMessageHeaderHTML::HTMLStartL() const
     {
     iWriteStream.WriteL(_L8("<html"));
-    if ( iDirectionality == TBidiText::ERightToLeft )
+    if ( iMirrorLayout )
         {
         iWriteStream.WriteL(_L8(" dir=\"rtl\""));
-        }    
+        }
+    else
+        {
+        iWriteStream.WriteL(_L8(" dir=\"ltr\""));
+        }
     iWriteStream.WriteL(_L8(" xmlns=\"http://www.w3.org/1999/xhtml\">\n"));
     iWriteStream.CommitL();
     }
@@ -258,7 +267,8 @@ void CFreestyleMessageHeaderHTML::ExportInitialTableL() const
     
     // add Sent time and date
     iWriteStream.WriteL(_L8("<td id=\"sent_initial\""));
-    if ( iDirectionality == TBidiText::ELeftToRight )
+
+    if ( !iMirrorLayout )
         {
         iWriteStream.WriteL(_L8(" align=\"left\""));
         }
@@ -289,7 +299,7 @@ void CFreestyleMessageHeaderHTML::ExportInitialTableL() const
     
     // add "show details" image on the same line as Sent time and date
     iWriteStream.WriteL(_L8("<td width=\"1\" valign=\"top\""));
-    if ( iDirectionality == TBidiText::ELeftToRight )
+    if ( !iMirrorLayout )
         {
         iWriteStream.WriteL(_L8(" align=\"right\""));
         }
@@ -308,7 +318,7 @@ void CFreestyleMessageHeaderHTML::ExportInitialTableL() const
     // start second row which contains subject
     iWriteStream.WriteL(_L8("<tr>\n"));
     iWriteStream.WriteL(_L8("<td id=\"subject_initial\""));
-    if ( iDirectionality == TBidiText::ELeftToRight )
+    if ( !iMirrorLayout )
         {
         iWriteStream.WriteL(_L8(" align=\"left\""));
         }
@@ -318,10 +328,13 @@ void CFreestyleMessageHeaderHTML::ExportInitialTableL() const
         }
     iWriteStream.WriteL(_L8("><b>"));
 
-    HBufC8* subject8 = CnvUtfConverter::ConvertFromUnicodeToUtf8L( iMailMessage.GetSubject() );
-    CleanupStack::PushL( subject8 );
-    iWriteStream.WriteL( *subject8 );
-    CleanupStack::PopAndDestroy( subject8 );
+	HBufC* subject = iMailMessage.GetSubject().Alloc();
+	/*
+     * Writes the subject to iWriteStream and also
+     * takes care of the urls and marks them as hotspots
+     */
+    WriteSubjectL(*subject);
+
     iWriteStream.WriteL(_L8("</b>"));
         
     // Write icons (if necessary).
@@ -346,6 +359,90 @@ void CFreestyleMessageHeaderHTML::ExportInitialTableL() const
     iWriteStream.WriteL(_L8("</table>\n"));
         
     iWriteStream.CommitL();
+    }
+// -----------------------------------------------------------------------------
+// CFreestyleMessageHeaderHTML::WriteSubjectL
+// Writes the subject to iWriteStream and also
+// takes care of the urls and marks them as hotspots
+// -----------------------------------------------------------------------------
+//
+void CFreestyleMessageHeaderHTML::WriteSubjectL(TDesC& aText ) const
+    {
+    /* 
+    * Add these to searchcases to make it also search 
+    * for emailaddress and phonenumber :
+    * CFindItemEngine::EFindItemSearchMailAddressBin |
+    * CFindItemEngine::EFindItemSearchPhoneNumberBin |
+    */
+    // Search for urls    
+    TInt searchCases = CFindItemEngine::EFindItemSearchURLBin;
+                       
+    CFindItemEngine* itemEngine =
+              CFindItemEngine::NewL ( aText,
+                       ( CFindItemEngine::TFindItemSearchCase ) searchCases );
+    CleanupStack::PushL (itemEngine );
+
+    const CArrayFixFlat<CFindItemEngine::SFoundItem>
+            * foundItems = itemEngine->ItemArray ( );
+    
+    TInt index = 0;
+    // For each found item
+    for (TInt i=0; i<foundItems->Count ( ); ++i )
+        {
+        // iItemType, iStartPos, iLength
+        const CFindItemEngine::SFoundItem& item = foundItems->At (i );
+        HBufC* valueBuf = aText.Mid (item.iStartPos, item.iLength ).AllocL ( );
+        CleanupStack::PushL (valueBuf );
+        // We write the normal text to iWriteStream before and between the links in the header subject field
+        if(item.iStartPos > 0)
+            {
+            TInt itemstart = item.iStartPos;
+            HBufC* normalText = aText.Mid(index, itemstart-index).Alloc();
+            CleanupStack::PushL( normalText );
+            HBufC8* normalText8 = CnvUtfConverter::ConvertFromUnicodeToUtf8L( *normalText );
+            CleanupStack::PushL( normalText8 );
+            iWriteStream.WriteL( *normalText8 );
+            CleanupStack::PopAndDestroy( 2 ); //normalText8m, normalText
+            }        
+        switch (item.iItemType )
+            {
+            /* To make header subjectfield to recognise also phonenumber and emailadress just 
+             * add CFindItemEngine::EFindItemSearchMailAddressBin & 
+             * CFindItemEngine::EFindItemSearchPhoneNumberBin cases here.
+             */
+            case CFindItemEngine::EFindItemSearchURLBin:
+                {
+                HBufC8* url8 = CnvUtfConverter::ConvertFromUnicodeToUtf8L( *valueBuf );
+                FreestyleMessageHeaderURLFactory::CreateEmailSubjectUrlL(*valueBuf);
+                CleanupStack::PushL( url8 );
+                StartHyperlinkL(*url8);
+                iWriteStream.WriteL(*url8);
+                EndHyperlinkL();
+                CleanupStack::PopAndDestroy( url8 );
+
+                break;
+                }
+            default:
+                {
+                break;
+                }
+            }        
+        index = item.iStartPos+item.iLength;
+        CleanupStack::PopAndDestroy (valueBuf );
+        }
+        //Write the rest of the subject to subject field if we are not 
+        //at the end of the subject already, or if there wasn't any
+        //url items write the whole subject field here
+        if(index < aText.Length() )
+            {
+            HBufC* normalText = aText.Mid(index, aText.Length()-index).Alloc();
+            CleanupStack::PushL( normalText );
+            HBufC8* normalText8 = CnvUtfConverter::ConvertFromUnicodeToUtf8L( *normalText );
+            CleanupStack::PushL( normalText8 );
+            iWriteStream.WriteL( *normalText8 );
+            CleanupStack::PopAndDestroy( 2 ); //normalText8m, normalText
+            }
+    CleanupStack::PopAndDestroy (itemEngine );
     }
 
 HBufC8* CFreestyleMessageHeaderHTML::HTMLHeaderFollowUpIconLC( TBool aShowText ) const
@@ -567,11 +664,12 @@ void CFreestyleMessageHeaderHTML::ExportSubjectL() const
     // subject text
     iWriteStream.WriteL( _L8("<tr>") );
     iWriteStream.WriteL( _L8("<td>") );
-
-    HBufC8* subject8 = CnvUtfConverter::ConvertFromUnicodeToUtf8L( iMailMessage.GetSubject() );
-    CleanupStack::PushL( subject8 );
-    iWriteStream.WriteL( *subject8 );
-    CleanupStack::PopAndDestroy( subject8 );
+	HBufC* subject = iMailMessage.GetSubject().Alloc();
+    /*
+     * Writes the subject to iWriteStream and also
+     * takes care of the urls and marks them as hotspots
+     */
+    WriteSubjectL(*subject);
 
     iWriteStream.WriteL( _L8("</td>") );
     iWriteStream.WriteL( _L8("</tr>\n") );
@@ -696,13 +794,13 @@ void CFreestyleMessageHeaderHTML::ExportAttachmentsL() const
           
         // add attachment icon
         iWriteStream.WriteL( _L8("<td width=\"1\" valign=\"top\"") );
-        if ( iDirectionality == TBidiText::ELeftToRight )
+        if ( !iMirrorLayout )
             {
-            iWriteStream.WriteL(_L8(" align=\"right\""));
+            iWriteStream.WriteL(_L8(" align=\"left\""));
             }
         else
             {
-            iWriteStream.WriteL(_L8(" align=\"left\""));
+            iWriteStream.WriteL(_L8(" align=\"right\""));
             }
         iWriteStream.WriteL( _L8("><image src=\"") );
         
@@ -775,7 +873,9 @@ void CFreestyleMessageHeaderHTML::AddEmailAddressL( FreestyleMessageHeaderURLFac
     CleanupStack::PopAndDestroy( url );
 
     HBufC8* displayName8 = NULL;
-    if ( aEmailAddress.GetDisplayName().Length() > 0 )
+    //  ENLN-7ZVBES
+    //  Display name not shown in From:, instead, email address is shown
+    if ( (aEmailAddress.GetDisplayName().Length() > 0) && aEmailAddressType != FreestyleMessageHeaderURLFactory::EEmailAddressTypeFrom )
         {
         displayName8 = CnvUtfConverter::ConvertFromUnicodeToUtf8L( aEmailAddress.GetDisplayName() );
         }
@@ -904,7 +1004,7 @@ void CFreestyleMessageHeaderHTML::StartHeaderTableL( const TDesC8& aTableId ) co
     iWriteStream.WriteL( _L8("<tr>\n"));
     
     iWriteStream.WriteL( _L8("<td valign=\"top\""));
-    if ( iDirectionality == TBidiText::ELeftToRight )
+    if ( !iMirrorLayout )
         {
         iWriteStream.WriteL(_L8(" align=\"right\""));
         }

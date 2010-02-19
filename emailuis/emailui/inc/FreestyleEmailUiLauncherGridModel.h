@@ -24,7 +24,7 @@
 #include <alf/alftexture.h>
 //</cmail>
 #include "FSEmailLauncherItem.h"
-#include "CFSMailCommon.h"
+#include "cfsmailcommon.h"
 
 
 enum TItemType

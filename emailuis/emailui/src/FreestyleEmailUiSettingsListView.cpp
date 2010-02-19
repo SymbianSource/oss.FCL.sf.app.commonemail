@@ -32,10 +32,10 @@
 #include <featmgr.h>
 #include <aknstyluspopupmenu.h>
 
-#include "CFSMailCommon.h"
-#include "CFSMailBox.h"
-#include "ESMailSettingsPlugin.h"
-#include "ESMailSettingsPluginUids.hrh"
+#include "cfsmailcommon.h"
+#include "cfsmailbox.h"
+#include "esmailsettingsplugin.h"
+#include "esmailsettingspluginuids.hrh"
 #include <gsfwviewuids.h> // Uids for general settings activation
 #include <csxhelp/cmail.hlp.hrh>
 

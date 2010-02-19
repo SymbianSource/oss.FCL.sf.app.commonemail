@@ -19,8 +19,8 @@
 // SYSTEM INCLUDES
 //<cmail>
 #include "emailtrace.h"
-#include "CFSMailBox.h"
-#include "CFSMailFolder.h"
+#include "cfsmailbox.h"
+#include "cfsmailfolder.h"
 //</cmail>
 
 // INTERNAL INCLUDES
