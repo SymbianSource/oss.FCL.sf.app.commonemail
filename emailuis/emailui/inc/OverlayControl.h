@@ -24,6 +24,10 @@
 #include <coecntrl.h>
 #include <eikenv.h>
 #include <AknIconUtils.h>
+
+#include <touchfeedback.h>
+#include <touchlogicalfeedback.h>
+
 #include <freestyleemailui.mbg>
 #include "FreestyleEmailUiUtilities.h"
 
@@ -93,6 +97,8 @@ private:
 	CFbsBitmap* iBitmap;
 	CFbsBitmap* iMask;
 	MOverlayControlObserver* iObserver;
+    // tactile feed back -- not owned
+    MTouchFeedback* iTouchFeedBack;
 	};
 
 #endif // CTESTOVERLAYCONTROL_H

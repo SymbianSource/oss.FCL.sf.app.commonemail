@@ -288,6 +288,24 @@ TInt CFSMailBrandManagerImpl::GetGraphicIdsL(
     }
 
 // -----------------------------------------------------------------------------
+// CFSMailBrandManagerImpl::GetGraphicIdsL
+// -----------------------------------------------------------------------------
+TInt CFSMailBrandManagerImpl::GetGraphicIdsL(
+    TFSBrandElement aElement, 
+    const TDesC& aBrandId,
+    TDes& aIconIds  )
+    {
+    FUNC_LOG;
+
+    CFSMailBrand* brand = FindMatchingBrandL( aBrandId );
+    if ( brand == NULL )
+        {
+        return KErrNotFound;
+        }
+    return brand->GetGraphicIdsL( aElement, aIconIds );
+    }
+
+// -----------------------------------------------------------------------------
 // CFSMailBrandManagerImpl::GetTextL
 // -----------------------------------------------------------------------------
 TPtrC CFSMailBrandManagerImpl::GetTextL(

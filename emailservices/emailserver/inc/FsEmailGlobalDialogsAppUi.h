@@ -39,6 +39,8 @@ public:
     void BringToForeground();
 
 public:    // From base class CAknAppUi
+    void HandleWsEventL( const TWsEvent& aEvent, CCoeControl* aDestination );
+    void HandleForegroundEventL(TBool aForeground);
     void Exit();
 
 private:
@@ -60,6 +62,10 @@ private:
      * Own.
      */
     CEmailServerShutdownObserver* iShutdownObserver;
+    
+    TBool iForeground;
+    
+    TBool iForegroundNotTopmost;
     };
 
 

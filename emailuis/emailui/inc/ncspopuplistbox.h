@@ -144,6 +144,8 @@ private: // to populate new list
     
     void SetListItemsFromArrayL();
  		
+    TInt RoundToItemHeight(const TInt aPopupHeight) const;
+    
     void SetPopupHeight();
  
     void SetScrollBarVisibilityL();

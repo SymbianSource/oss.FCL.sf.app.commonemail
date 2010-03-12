@@ -43,6 +43,7 @@
 
 //CONSTANTS
 const TInt KMaxMailboxes = 10;
+const TInt KImapDefFoldersRetrieve = 50; // Default value for retrieve From other folders
 
 // security enums in fs wizard cenrep cenrep
 // Security protocol (0 = OFF, 1 = StartTLS, 2 = SSL/TLS)
@@ -382,6 +383,14 @@ void CIpsSetWizardAdapter::SetSettingsL( CIpsSetData& aSetData )
     else 
     	{
     	aSetData.SetDownloadSizeL( CIpsSetData::EHeadersPlus, KIpsSetDataDefaultDownloadSizeKb );
+
+    	TInt retImFolders = aSetData.RetrieveLimit(CIpsSetData::EImap4Folders); //TRetrieveLimit
+        if(retImFolders==-1)
+        	{
+            TInt retPopInbox = aSetData.RetrieveLimit(CIpsSetData::EPop3Limit); 
+           	TInt retImInbox  = aSetData.RetrieveLimit(CIpsSetData::EImap4Inbox); 
+            aSetData.SetRetrieveLimit(retPopInbox,retImInbox,KImapDefFoldersRetrieve);
+        	}
         }
     //</cmail>
     aSetData.SetEmailAddressL( iEmailAddress );

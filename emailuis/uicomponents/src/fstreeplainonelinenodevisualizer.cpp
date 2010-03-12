@@ -745,7 +745,7 @@ void CFsTreePlainOneLineNodeVisualizer::UpdateL( const MFsTreeItemData& aData,
                 iTextVisual->SetColor( textColor );
                 iTextVisual->SetTextStyle( styleId );
 
-                iTextVisual->SetWrapping(CAlfTextVisual::ELineWrapManual);
+//                iTextVisual->SetWrapping(CAlfTextVisual::ELineWrapManual);
 
                 TAlfAlignHorizontal currTextAlign( EAlfAlignHLocale );
                 currTextAlign = CurrentTextAlignmentL( iTextAlign, &data->Data(), iTextVisual );
@@ -850,13 +850,14 @@ void CFsTreePlainOneLineNodeVisualizer::MarqueeL(const TFsTextMarqueeType aMarqu
         return;
         }
 
-    iTextVisual->SetWrapping(CAlfTextVisual::ELineWrapManual);
 
     textWidth = iTextVisual->SubstringExtents(0, iTextVisual->Text().Length()).Width();
     marqueeSize = textWidth - iViewportLayout->Size().iX.Target();
 
     if (iTextVisual && (marqueeSize>0))
         {
+        iTextVisual->SetWrapping(CAlfTextVisual::ELineWrapManual);
+    
         TSize size(textWidth,iViewportLayout->Size().iY.Target());
         if ( aMarqueeType == EFsTextMarqueeForth )
             {

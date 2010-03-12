@@ -1,10 +1,10 @@
 /*
-* Copyright (c) 2008 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
-* under the terms of "Eclipse Public License v1.0"
+* under the terms of the License "Eclipse Public License v1.0"
 * which accompanies this distribution, and is available
-* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+* at the URL "http://www.eclipse.org/legal/epl-v10.html". 
 *
 * Initial Contributors:
 * Nokia Corporation - initial contribution.
@@ -27,16 +27,19 @@
 // displayable content. We need to keep FSMailServer always on top, because it
 // is hided from task list so it's not possible switch FSMailServer back to
 // foreground if user switches to Idle before dismissing the note.
-const TCoeWinPriority KFsEmailDialogsWinPriorityActive = ECoeWinPriorityAlwaysAtFront;
+// '- 1' is needed for the VKB to work correctly
+const TInt KFsEmailDialogsWinPriorityActive = ECoeWinPriorityAlwaysAtFront - 1;
 
 // To be used as FSMailServer window group priority when there is no displayable
 // content.
-const TCoeWinPriority KFsEmailDialogsWinPriorityInactive = ECoeWinPriorityNeverAtFront;
+const TInt KFsEmailDialogsWinPriorityInactive = ECoeWinPriorityNeverAtFront;
 
 const TInt KPosBringToFront = 0;
 const TInt KPosSendToBack = -1;
 
 const TUid KFSMailServerUidAsTUid = { KFSMailServerUid };
+
+const TInt KDefaultArrayGranularity = 5;
 
 
 // ---------------------------------------------------------------------------
@@ -62,11 +65,72 @@ CFsEmailGlobalDialogsAppUi::~CFsEmailGlobalDialogsAppUi()
     }
 
 // ---------------------------------------------------------------------------
+// Overriden CAknAppUi::HandleWsEventL
+// ---------------------------------------------------------------------------
+//
+void CFsEmailGlobalDialogsAppUi::HandleWsEventL( const TWsEvent& aEvent,
+                                                 CCoeControl* aDestination )
+    {
+    FUNC_LOG;
+    // Updates the foreground flag
+    CAknAppUi::HandleWsEventL( aEvent, aDestination );
+    
+    RWindowGroup& rwin = iEikonEnv->RootWin();
+    
+    TBool isActive =
+        ( rwin.OrdinalPriority() == KFsEmailDialogsWinPriorityActive );
+    
+    if ( aEvent.Type() == EEventWindowGroupListChanged && isActive )
+        {
+        RWsSession& ws = iEikonEnv->WsSession();
+        
+        CArrayFixFlat<TInt>* wgList =
+            new (ELeave) CArrayFixFlat<TInt>( KDefaultArrayGranularity );
+
+        TInt err = ws.WindowGroupList(
+            KFsEmailDialogsWinPriorityActive, wgList );
+        
+        if ( err == KErrNone )
+            {
+            TBool topmost = ( wgList->Count() > 0 ) &&
+                            ( wgList->At( 0 ) == rwin.Identifier() );
+            
+            if ( iForeground && topmost && iForegroundNotTopmost )
+                {
+                // This hack ensures the screen is refreshed when going back
+                // from the VKB window
+                SendToBackground();
+                BringToForeground();
+                }
+            
+            // Update this flag all the time when we are active
+            // The flag is true when VKB window is shown for the password
+            // query.
+            iForegroundNotTopmost = ( iForeground && !topmost );
+            }
+        
+        delete wgList;
+        wgList = NULL;
+        }
+    }
+
+// ---------------------------------------------------------------------------
+// Overriden CAknAppUi::Exit
+// ---------------------------------------------------------------------------
+//
+void CFsEmailGlobalDialogsAppUi::HandleForegroundEventL( TBool aForeground )
+    {
+    FUNC_LOG;
+    iForeground = aForeground;
+    }
+
+// ---------------------------------------------------------------------------
 // Overriden CAknAppUi::Exit
 // ---------------------------------------------------------------------------
 //
 void CFsEmailGlobalDialogsAppUi::Exit()
     {
+    FUNC_LOG;
     // Cancel shutdown observer as we are already shutting down
     if( iShutdownObserver )
         {
@@ -130,8 +194,7 @@ void CFsEmailGlobalDialogsAppUi::ConstructL()
 void CFsEmailGlobalDialogsAppUi::BringToForeground()
     {
     FUNC_LOG;
-    // Enable keyboard focus when showing some content
-    iEikonEnv->RootWin().EnableReceiptOfFocus( ETrue );
+
     
     // Bring own application to foreground
     TApaTaskList taskList( iEikonEnv->WsSession() );
@@ -146,6 +209,11 @@ void CFsEmailGlobalDialogsAppUi::BringToForeground()
     iEikonEnv->RootWin().SetOrdinalPosition( 
         KPosBringToFront,
         KFsEmailDialogsWinPriorityActive );
+
+    iEikonEnv->RootWin().EnableGroupListChangeEvents();
+	
+    // Enable keyboard focus when showing some content
+    iEikonEnv->RootWin().EnableReceiptOfFocus( ETrue );	
     }
 
 // ---------------------------------------------------------------------------
@@ -155,6 +223,7 @@ void CFsEmailGlobalDialogsAppUi::BringToForeground()
 void CFsEmailGlobalDialogsAppUi::SendToBackground()
     {
     FUNC_LOG;
+    
     // Send own application to background
     TApaTaskList taskList( iEikonEnv->WsSession() );
     TApaTask task = taskList.FindApp( KFSMailServerUidAsTUid );
@@ -170,6 +239,8 @@ void CFsEmailGlobalDialogsAppUi::SendToBackground()
     
     // Disable keyboard focus when not showing any content
     iEikonEnv->RootWin().EnableReceiptOfFocus( EFalse );
+    
+    iEikonEnv->RootWin().DisableGroupListChangeEvents();
     }
 
 #ifdef _DEBUG

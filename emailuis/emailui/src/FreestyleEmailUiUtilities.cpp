@@ -27,6 +27,7 @@
 #include <AknIconUtils.h>
 #include <aknlists.h>
 #include <aknPopup.h>
+#include <akndiscreetpopup.h>
 #include <AknGlobalConfirmationQuery.h>
 #include <aknnotewrappers.h>
 #include <AknWaitDialog.h>
@@ -70,7 +71,7 @@
 #include <CSendingServiceInfo.h>
 #include <CoreApplicationUIsSDKCRKeys.h> // offline mode keys
 #include <data_caging_path_literals.hrh>
-#include <cmailwidgetcenrepkeys.h>
+#include "cmailwidgetcenrepkeys.h"
 
 // <cmail> Removed DISABLE_DEFAULT_EMAIL
 //#ifndef DISABLE_DEFAULT_EMAIL
@@ -233,6 +234,26 @@ void CFsEmailFileHandleShutter::HandleServerAppExit( TInt aReason )
         iHandleOpen = EFalse;
         }
     MAknServerAppExitObserver::HandleServerAppExit( aReason );
+    
+    // Get current AppUi.
+    CFreestyleEmailUiAppUi* appUi = (CFreestyleEmailUiAppUi*)CCoeEnv::Static()->AppUi();
+    if( appUi->EmbeddedApp() )
+        {
+        // Set embedded application flag to false when embedded application exit.
+        appUi->SetEmbeddedApp( EFalse );
+        }
+    
+    // if email editor is not started from embedded app.
+    if( !appUi->EditorStartedFromEmbeddedApp() )
+        {
+        // Do not set embedded app to previous app.
+        appUi->SetEmbeddedAppToPreviousApp( EFalse );
+        }
+    else
+        {
+        // Set flag for judging if email editor started from embedded app to false.
+        appUi->SetEditorStartedFromEmbeddedApp( EFalse );
+        }
 
     // Clear the temp directory since the closed file might have been copied there
     TFsEmailUiUtility::EraseTempDir();
@@ -494,6 +515,36 @@ void TFsEmailUiUtility::ShowGlobalInfoNoteL( TInt aResourceStringId )
     }
 
 // -----------------------------------------------------------------------------
+// TFsEmailUiUtility::ShowDiscreetInfoNoteL
+// -----------------------------------------------------------------------------
+void TFsEmailUiUtility::ShowDiscreetInfoNoteL( TInt aResourceStringId )
+    {
+    FUNC_LOG;   
+    //create a host of dummy parameters in order to change the popup duration flag...
+    const TDesC& dummyText = KNullDesC;
+    CGulIcon* dummyIcon = NULL;
+    const TAknsItemID& dummySkinId = KAknsIIDNone;
+    const TDesC& dummyBitmapFile = KNullDesC;
+    const TInt dummyBitmapId = 0;
+    const TInt dummyMaskId = 0;
+    
+    //Set timeout flag
+    TInt flags = 0;
+    flags |= KAknDiscreetPopupDurationLong;
+    
+    HBufC* noteText = StringLoader::LoadLC( aResourceStringId );
+    CAknDiscreetPopup::ShowLocalPopupL(*noteText, 
+                                        dummyText, 
+                                        dummyIcon, 
+                                        dummySkinId,
+                                        dummyBitmapFile, 
+                                        dummyBitmapId, 
+                                        dummyMaskId, 
+                                        flags);
+    CleanupStack::PopAndDestroy( noteText );
+    }
+
+// -----------------------------------------------------------------------------
 // TFsEmailUiUtility::ShowWaitNoteL
 // -----------------------------------------------------------------------------
 void TFsEmailUiUtility::ShowWaitNoteL( CAknWaitDialog*& aDialog, TInt aTextResourceId,
@@ -670,7 +721,7 @@ void TFsEmailUiUtility::OpenFileL( RFile& aFileToOpen, TBool aAllowSave  )
 // -----------------------------------------------------------------------------
 // TFsEmailUiUtility::OpenFileL
 // -----------------------------------------------------------------------------
-void TFsEmailUiUtility::OpenFileL( RFile& aFileToOpen, TDataType& aDataType, TBool aAllowSave )
+void TFsEmailUiUtility::OpenFileL( RFile& aFileToOpen, TDataType& aDataType, TBool /* aAllowSave */)
     {
     FUNC_LOG;
     CFreestyleEmailUiAppUi* appUi = (CFreestyleEmailUiAppUi*)CCoeEnv::Static()->AppUi();
@@ -680,19 +731,9 @@ void TFsEmailUiUtility::OpenFileL( RFile& aFileToOpen, TDataType& aDataType, TBo
     appUi->FileHandleShutter().SetFile( aFileToOpen );
 
     CDocumentHandler& docHandler = appUi->DocumentHandler();
-   	CAiwGenericParamList& paramList = docHandler.InParamListL();
-
-   	// Set allow save to parameter.
-   	if ( aAllowSave )
-   	    {
-        TAiwVariant allowSaveVariant( ETrue );
-        TAiwGenericParam genericParamAllowSave( EGenericParamAllowSave,
-                allowSaveVariant );
-        paramList.AppendL( genericParamAllowSave );
-   	    }
 
     TInt res = KErrNone;
-    TRAPD( err, res = docHandler.OpenFileEmbeddedL( aFileToOpen, aDataType, paramList ) );
+    TRAPD( err, res = docHandler.OpenFileEmbeddedL( aFileToOpen, aDataType ) );
 
     // Try again with an empty data type if opening using the given data type fails
     if ( err != KErrNone || res != KErrNone )
@@ -700,7 +741,7 @@ void TFsEmailUiUtility::OpenFileL( RFile& aFileToOpen, TDataType& aDataType, TBo
         TDataType emptyType;
 
         // Open file embedded
- 	    TRAP( err, res = docHandler.OpenFileEmbeddedL( aFileToOpen, emptyType, paramList ) );
+        TRAP( err, res = docHandler.OpenFileEmbeddedL( aFileToOpen, emptyType ) );
 
         // Show an error note if opening the file still didn't succeed
         // Ensure also that the file handle got closed.
@@ -709,8 +750,22 @@ void TFsEmailUiUtility::OpenFileL( RFile& aFileToOpen, TDataType& aDataType, TBo
             ShowErrorNoteL( R_FREESTYLE_EMAIL_INFO_NOTE_UNABLE_TO_OPEN, EFalse );
             appUi->FileHandleShutter().HandleServerAppExit( KErrCancel );
             }
+        else
+            {
+            // Set embedded app flag to true when embedded app start up.
+            appUi->SetEmbeddedApp( ETrue );
+            // Set flag for judging if previous app is embedded app.
+            appUi->SetEmbeddedAppToPreviousApp( ETrue );
+            }
         }
-	}
+    else
+        {
+        // Set embedded app flag to true when embedded app start up.
+        appUi->SetEmbeddedApp( ETrue );
+        // Set flag for judging if previous app is embedded app.
+        appUi->SetEmbeddedAppToPreviousApp( ETrue );
+        }
+    }
 
 // -----------------------------------------------------------------------------
 // TFsEmailUiUtility::OpenAttachmentL
@@ -2707,14 +2762,15 @@ void TFsEmailUiUtility::ToggleEmailIconL( TBool aIconOn, const TFSMailMsgId& aMa
 	{
     FUNC_LOG;
     //Toggle email status indicator
-	if(aIconOn)
+	//This is only used for mailwidget status updating
+	/*if(aIconOn)
 		{
 		RProperty::Set( KPSUidCoreApplicationUIs, KCoreAppUIsNewEmailStatus, ECoreAppUIsNewEmail );
 		}
 	else
 		{
 		RProperty::Set( KPSUidCoreApplicationUIs, KCoreAppUIsNewEmailStatus, ECoreAppUIsNoNewEmail );
-		}
+		}*/
 
     //Toggle new mail icon in widget
     if (aMailBox.Id())

@@ -956,6 +956,8 @@ RESOURCE TBUF r_freestyle_email_ui_viewer_followup    { buf=qtn_cmail_header_fol
 RESOURCE TBUF r_freestyle_email_ui_viewer_completed    { buf=qtn_cmail_header_completed; }
 RESOURCE TBUF r_freestyle_email_ui_viewer_high_prio    { buf=qtn_cmail_header_high_prio; }
 RESOURCE TBUF r_freestyle_email_ui_viewer_low_prio    { buf=qtn_cmail_header_low_prio; }
+RESOURCE TBUF r_freestyle_email_ui_images_are_not_displayed    { buf=qtn_cmail_viewer_images_not_displayed; }
+RESOURCE TBUF r_freestyle_email_ui_display_images    { buf=qtn_cmail_viewer_display_images; }
 
 // NOTES
 RESOURCE TBUF r_freestyle_email_delete_mail_note				{ buf=qtn_fse_delete_mail_note; }
@@ -1424,7 +1426,7 @@ RESOURCE MENU_PANE r_fsemailui_htmlviewer_menupane
         //MENU_ITEM { command = EFsEmailUiCmdReadEmail; txt = qtn_fse_message_list_options_read; },
         MENU_ITEM { command = EFsEmailUiCmdZoomLevel; txt = qtn_fse_zoom_level_cascade; cascade = r_fsemailui_htmlviewer_submenu_zoom_level;},                       
         MENU_ITEM { command = EFsEmailUiCmdHelp; txt = qtn_options_help; },
-        MENU_ITEM { command = EFsEmailUiCmdExit; txt = text_softkey_exit; }
+        MENU_ITEM { command = EFsEmailUiCmdExit; txt = qtn_options_exit; }
         };
     }
     

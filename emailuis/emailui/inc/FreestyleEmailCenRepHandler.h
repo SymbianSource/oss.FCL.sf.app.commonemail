@@ -100,8 +100,8 @@ public:
 	/**
      * Download html images
      */
-    //TInt DownloadHTMLImages();
-    //void SetDownloadHTMLImages( TInt aValue );
+    TInt DownloadHTMLImages();
+    void SetDownloadHTMLImages( TInt aValue );
 	
 	/**
 	 * AttachmentFileTypes enumerator returns

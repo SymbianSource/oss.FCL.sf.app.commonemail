@@ -27,7 +27,7 @@ TARGET          FreestyleEmailUi.exe
 TARGETTYPE      exe
 
 VENDORID        VID_DEFAULT
-CAPABILITY      CAP_APPLICATION NetworkControl
+CAPABILITY      CAP_APPLICATION NetworkControl SwEvent
 
 UID             0x0 0x2001E277
 EPOCHEAPSIZE    0x1000 0x800000
@@ -114,6 +114,7 @@ SOURCE  freestyleemailuimailboxdeleter.cpp
 SOURCE  cmailcustomstatuspaneindicators.cpp
 SOURCE  OverlayControl.cpp
 SOURCE FSHtmlReloadAO.cpp
+SOURCE fsemailstatuspaneindicatorhandler.cpp
 
 SOURCEPATH      ../group
 
@@ -219,3 +220,4 @@ LIBRARY aknphysics.lib              // for panning
 LIBRARY MsgEditorModel.lib
 LIBRARY touchfeedback.lib
 LIBRARY ccaclient.lib
+LIBRARY pbk2rclengine.lib

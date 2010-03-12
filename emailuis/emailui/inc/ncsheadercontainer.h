@@ -21,9 +21,7 @@
 #define __NCSEMAILHEADERUI_H__
 
 #include <aknlongtapdetector.h>
-
-#include "cpbkxremotecontactlookupenv.h"
-#include "cpbkxremotecontactlookupserviceuicontext.h"
+#include <cpbkxremotecontactlookupserviceuicontext.h>
 
 #include "FreestyleEmailUi.hrh"
 #include "ncsaddressinputfield.h"
@@ -324,6 +322,8 @@ public: // function members
 	
 	void ShowPopupMenuBarL( TBool aShow );
 
+	TInt GetToLineHeight() const;
+	
 	TBool IsToFieldEmpty() const;
 
 	TBool IsCcFieldEmpty() const;

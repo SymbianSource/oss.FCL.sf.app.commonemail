@@ -11,7 +11,7 @@
 *
 * Contributors:
 *
-* Description:
+* Description: Message store utilities implementation
 *
 */
 

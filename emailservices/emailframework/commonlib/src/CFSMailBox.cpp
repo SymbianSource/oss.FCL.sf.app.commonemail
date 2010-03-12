@@ -25,6 +25,8 @@
 #include "cfsmailbox.h"
 #include "cfsmailrequestobserver.h"
 
+#include "cmailboxstateext.h"
+
 const TInt KMaxMruEntries( 150 );
 
 // ================= MEMBER FUNCTIONS ==========================================
@@ -844,6 +846,19 @@ EXPORT_C CEmailExtension* CFSMailBox::ExtensionL( const TUid& aInterfaceUid )
             CleanupStack::Pop(); // calInfo
             }
         }    
+    else if ( aInterfaceUid == KEmailMailboxStateExtensionUid )
+        {
+        if ( !extension )
+            {
+            // check that plugin supports requested extension.
+            if ( CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid( GetId() ) )
+                {
+                // request extension from plugin, leaves if not supported
+                extension = plugin->ExtensionL( aInterfaceUid );            
+                }
+    
+            }
+        }
     else
         {
         User::Leave( KErrNotSupported );

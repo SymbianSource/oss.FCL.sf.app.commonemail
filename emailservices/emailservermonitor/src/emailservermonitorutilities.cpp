@@ -105,3 +105,113 @@ TBool IsProcessRunning( TSecureId aUid, RProcess* aProcess /* = NULL */ )
     
     return EFalse;
     }
+
+
+/////////////////////////////////////////////////////////////////////////////////
+// GENERIC TIMER
+//
+
+// -----------------------------------------------------------------------------
+// CEmailServerMonitorTimer::NewL
+// NewL function. Returns timer object.
+// -----------------------------------------------------------------------------
+//
+CEmailServerMonitorTimer* CEmailServerMonitorTimer::NewL(
+    MEmailServerMonitorTimerCallback* aCallback,
+    const TInt aPriority )
+    {
+    FUNC_LOG;
+    CEmailServerMonitorTimer* self = NewLC( aCallback, aPriority );
+    CleanupStack::Pop( self );
+    return self;
+    }
+
+// -----------------------------------------------------------------------------
+// CEmailServerMonitorTimer::NewL
+// NewL function. Returns timer object.
+// -----------------------------------------------------------------------------
+//
+CEmailServerMonitorTimer* CEmailServerMonitorTimer::NewLC(
+    MEmailServerMonitorTimerCallback* aCallback,
+    const TInt aPriority )
+    {
+    FUNC_LOG;
+    CEmailServerMonitorTimer* self = new (ELeave) CEmailServerMonitorTimer( aCallback, aPriority );
+    CleanupStack::PushL( self );
+    self->ConstructL();
+    return self;
+    }
+
+// -----------------------------------------------------------------------------
+// CEmailServerMonitorTimer::NewL
+// NewL function. Returns timer object.
+// -----------------------------------------------------------------------------
+//
+void CEmailServerMonitorTimer::ConstructL()
+    {
+    FUNC_LOG;
+    CTimer::ConstructL();
+    CActiveScheduler::Add( this );
+    }
+
+// -----------------------------------------------------------------------------
+// CEmailServerMonitorTimer::~CEmailServerMonitorTimer
+// D'tor
+// -----------------------------------------------------------------------------
+//
+CEmailServerMonitorTimer::~CEmailServerMonitorTimer()
+    {
+    FUNC_LOG;
+    Cancel();
+    iCallback = NULL;
+    }
+
+// -----------------------------------------------------------------------------
+// CEmailServerMonitorTimer::CEmailServerMonitorTimer
+// C'tor
+// -----------------------------------------------------------------------------
+//
+CEmailServerMonitorTimer::CEmailServerMonitorTimer(
+    MEmailServerMonitorTimerCallback* aCallback,
+    const TInt aPriority )
+    : CTimer( aPriority ),
+    iCallback( aCallback )
+    {
+    }
+
+// -----------------------------------------------------------------------------
+// CEmailServerMonitorTimer::RunL
+// Timer trigger function.
+// -----------------------------------------------------------------------------
+//
+void CEmailServerMonitorTimer::RunL()
+    {
+    FUNC_LOG;
+    if ( iCallback )
+        {
+        iCallback->TimerEventL( this );
+        }
+    }
+
+// -----------------------------------------------------------------------------
+// CEmailServerMonitorTimer::Start
+// Timer starting function.
+// -----------------------------------------------------------------------------
+//
+void CEmailServerMonitorTimer::Start( TInt aInterval )
+    {
+    FUNC_LOG;
+    Cancel();
+    After( TTimeIntervalMicroSeconds32( aInterval ) );
+    }
+
+// -----------------------------------------------------------------------------
+// CEmailServerMonitorTimer::Stop
+// Timer stopping function
+// -----------------------------------------------------------------------------
+//
+void CEmailServerMonitorTimer::Stop()
+    {
+    FUNC_LOG;
+    Cancel();
+    }

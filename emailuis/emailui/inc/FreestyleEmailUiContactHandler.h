@@ -27,9 +27,7 @@
 // CCA Launcher view
 #include <mccaconnection.h>
 
-//<cmail>
-#include "cpbkxremotecontactlookupserviceuicontext.h"
-//</cmail>
+#include <cpbkxremotecontactlookupserviceuicontext.h>
 
 #include "FreestyleEmailUiCLSListsObserver.h"
 
@@ -382,14 +380,14 @@ private:
     void ResetFieldIds();
 
     /*
-     * LaunchRemoteLookupL
      * Launches remote lookup UI
      * @param aQueryString Default query string in user input field
      * @param aResult Structure containing exit reason and selected item
+     * @param aLookupMode The mode in which the lookup is performed.
      */
     void DoRemoteLookupL( CFSMailBox& aMailBox, const TDesC& aQueryString, 
         CPbkxRemoteContactLookupServiceUiContext::TResult& aResult, 
-        CPbkxRemoteContactLookupServiceUiContext::TMode	aContext =
+        CPbkxRemoteContactLookupServiceUiContext::TMode aLookupMode =
             CPbkxRemoteContactLookupServiceUiContext::EModeContactSelector );
 
     // Gets the name and email address from given contact item

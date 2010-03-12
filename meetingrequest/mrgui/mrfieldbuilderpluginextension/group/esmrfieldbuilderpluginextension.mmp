@@ -117,6 +117,7 @@ LIBRARY esmrservices.lib
 LIBRARY servicehandler.lib          // for aiw
 LIBRARY aiwdialdata.lib
 LIBRARY pbk2commonui.lib
+LIBRARY pbk2rclengine.lib
 LIBRARY ws32.lib //RWindowGroup
 LIBRARY cntmodel.lib //contactitem
 LIBRARY caleninterimutils2.lib

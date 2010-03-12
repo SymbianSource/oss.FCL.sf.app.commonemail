@@ -124,7 +124,8 @@ public:
      * 
      * @return
      */
-    TBool AssociateWidgetToSetting( const TDesC& aContentId );
+    void AssociateWidgetToSetting( const TDesC& aContentId,
+                                   const TFSMailMsgId aMailbox  );
 
     /**
      * 
@@ -256,16 +257,14 @@ private:
     void GetExtMailboxNonZeroKeysL( RArray<TUint32>& aKeys );
 
     /**
-     * 
-     * @param aContentId
-     */
-    TBool IsAlreadyAssociated( const TDesC& aContentId );
-	
-    /**
-     * 
+     * Find next free CenRep key to store setting.
+     * @param aContentId Id of widget instance
      */	
-    TUint32 GetSettingToAssociate();
-    
+    TInt GetSettingToAssociate( const TDesC& aContentId );
+
+    /**
+     * @param aKey
+     */
     CMailExternalAccount* GetExtMailboxL( TInt aKey );
     
 private: // data

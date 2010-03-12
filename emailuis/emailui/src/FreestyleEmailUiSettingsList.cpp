@@ -60,7 +60,7 @@
 #include "FreestyleEmailUiShortcutBinding.h"
 #include "FreestyleEmailUiUtilities.h"
 #include "FSEmail.pan"
-
+#include "fsemailstatuspaneindicatorhandler.h"
 // CONSTANTS
 
 
@@ -499,6 +499,11 @@ void CFsEmailSettingsList::HandleListBoxEventL( CEikListBox *aListBox, TListBoxE
         	 aEventType == EEventEnterKeyPressed )
             {
             HandleUserSelectionsL();
+            //  Fix for EJSA-82HB3F, improves fix for EELN-7Y78DM
+            //  Update title pane, needed for touch support
+            HBufC* text = CreateTitlePaneTextLC();
+            iAppUi.SetTitlePaneTextL( *text );
+            CleanupStack::PopAndDestroy( text );
             }
         }
 
@@ -561,10 +566,6 @@ void CFsEmailSettingsList::HandleUserSelectionsL()
             iPIMListActivation = ETrue;
             SetSelectedMainListIndex( index );
             CreatePluginPIMListL( iSelectedPluginSettings );
-            // Update the title pane, needed for touch support
-            HBufC* text = CreateTitlePaneTextLC();
-            iAppUi.SetTitlePaneTextL( *text );
-            CleanupStack::PopAndDestroy( text );
             }
         else // index < 0; this should never happen
             {
@@ -1587,8 +1588,10 @@ TBool CFsEmailSettingsList::RemoveAccountL()
             iWaitDialog->PrepareLC( R_FS_WAIT_NOTE_REMOVING_MAILBOX );
             iWaitDialog->SetCallback( this );
             iWaitDialog->RunLD();
-            // Set email indicator off.
-            TFsEmailUiUtility::ToggleEmailIconL(EFalse);
+
+            //emailindicator handling, we dont care if something goes wrong in the mailindicator update. 
+            TRAP_IGNORE(TFsEmailStatusPaneIndicatorHandler::StatusPaneMailIndicatorHandlingL( mailBox->GetId().Id()));
+            
             // delete mailbox and wait event (RequestResponseL)
             iDeleteMailboxId = iMailClient.DeleteMailBoxByUidL( mailBox->GetId(), *this );
             wasDeleted = ETrue;

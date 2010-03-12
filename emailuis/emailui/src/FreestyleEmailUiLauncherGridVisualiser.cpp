@@ -144,6 +144,10 @@ void CFSEmailUiLauncherGridVisualiser::ConstructL( TInt aColumns, TInt aRows )
     iUiOperationLaunched = EFalse;
 
     iMailboxDeleter = CFSEmailUiMailboxDeleter::NewL( *iAppUi.GetMailClient(), *this );
+
+    // Create startup timer
+    iStartupCallbackTimer = CFSEmailUiGenericTimer::NewL( this );
+
     }
 
 // ----------------------------------------------------------------------------
@@ -294,6 +298,13 @@ void CFSEmailUiLauncherGridVisualiser::ResizeItemIcon( TBool aReduce )
 CFSEmailUiLauncherGridVisualiser::~CFSEmailUiLauncherGridVisualiser()
     {
     FUNC_LOG;
+    
+    if ( iStartupCallbackTimer )
+    	{
+    	iStartupCallbackTimer->Cancel();
+    	delete iStartupCallbackTimer;
+    	}
+    
     iPluginIdIconIdPairs.Reset();
     iIconArray.Close();
     iMailboxRequestIds.Close();
@@ -2677,5 +2688,28 @@ void CFSEmailUiLauncherGridVisualiser::LaunchStylusPopupMenu(
 	iStylusPopUpMenuLaunched = ETrue;
 	}
 
+void CFSEmailUiLauncherGridVisualiser::HandleAppForegroundEventL( TBool aForeground )
+	{
+	CFsEmailUiViewBase::HandleAppForegroundEventL( aForeground );
+	// If the view is not visible try to visualise it after a while
+	if ( aForeground && ( !iWasActiveControlGroup ) )
+		{
+		//
+		iStartupCallbackTimer->Cancel(); // just in case
+		iStartupCallbackTimer->SetPriority( CActive::EPriorityIdle );
+		// EPriorityIdle, EPriorityLow, EPriorityStandard 
+		iStartupCallbackTimer->Start( 200 );
+		}
+	}
 
-// End of file.
+// Fire timer callback
+void CFSEmailUiLauncherGridVisualiser::TimerEventL( CFSEmailUiGenericTimer* /* aTriggeredTimer */ )
+{
+  // if view is still active then 
+  if ( ( NULL != iAppUi.CurrentActiveView() ) && ( iAppUi.CurrentActiveView()->Id() == Id() ) )	  
+		  {
+		  iWasActiveControlGroup = ETrue;
+		  HandleAppForegroundEventL( ETrue );
+		  }
+};
+

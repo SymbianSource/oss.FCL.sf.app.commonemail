@@ -56,7 +56,6 @@ public:
     * @return   None
     */
     void ExecuteCustomCommandL( const TRfsReason aType, TDesC& aCommand );
-    TInt GetDriveL( TDriveNumber& aDrive );
 
 private:
     CRfsMsgStorePlugin();

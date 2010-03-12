@@ -44,7 +44,7 @@
 // Phonebook 2
 #include <CPbk2SortOrderManager.h>
 #include <MPbk2ContactNameFormatter.h>
-#include <Pbk2ContactNameFormatterFactory.h>        
+#include <Pbk2ContactNameFormatterFactory.h>
 
 // Send UI
 #include <sendui.h>
@@ -54,17 +54,13 @@
 #include <aiwdialdataext.h>
 #include <MVPbkContactLink.h>
 
-//Remote Contact Lookup
-//<cmail>
-#include "cpbkxremotecontactlookupenv.h"
-#include "tpbkxremotecontactlookupprotocolaccountid.h"
-#include "cpbkxremotecontactlookupserviceuicontext.h"
-#include <cntitem.h>
+// Remote Contact Lookup
+#include <cpbk2remotecontactlookupaccounts.h>
+#include <pbk2remotecontactlookupfactory.h>
 
-// <cmail> SF path
+
 #include <MPbkGlobalSetting.h> // Global setting data 
 #include <PbkGlobalSettingFactory.h>
-// </cmail>
 
 // Aiw launcher
 #include <AiwDialDataTypes.h>
@@ -74,7 +70,6 @@
 
 // FS Email framework
 #include "cfsmailbox.h"
-//</cmail>
 
 #include <FreestyleEmailUi.rsg>
 
@@ -1494,7 +1489,7 @@ TBool CFSEmailUiContactHandler::GetNameAndEmailFromRemoteLookupL( CFSMailBox& aM
 void CFSEmailUiContactHandler::LaunchRemoteLookupL( CFSMailBox& aMailBox )
     {
     FUNC_LOG;
-
+    
     CPbkxRemoteContactLookupServiceUiContext::TResult result;
     DoRemoteLookupL( aMailBox, KNullDesC , result, 
                      CPbkxRemoteContactLookupServiceUiContext::EModeNormal );
@@ -1504,33 +1499,31 @@ void CFSEmailUiContactHandler::LaunchRemoteLookupL( CFSMailBox& aMailBox )
 // -----------------------------------------------------------------------------
 // CFSEmailUiContactHandler::LaunchRemoteLookupL
 // -----------------------------------------------------------------------------
-HBufC* CFSEmailUiContactHandler::GetNameAndNumberFromRemoteLookupL( CFSMailBox& aMailBox, const TDesC& aQuery, 
-                                                      RBuf& aPhoneNumber )
+HBufC* CFSEmailUiContactHandler::GetNameAndNumberFromRemoteLookupL(
+    CFSMailBox& aMailBox, const TDesC& aQuery, RBuf& aPhoneNumber )
     {
     FUNC_LOG;
 
     CPbkxRemoteContactLookupServiceUiContext::TResult result;
     DoRemoteLookupL( aMailBox, aQuery , result, 
-                     CPbkxRemoteContactLookupServiceUiContext::EModeContactSelector );
+        CPbkxRemoteContactLookupServiceUiContext::EModeContactSelector );
 
     HBufC* displayName = NULL;
-    
     if ( result.iExitReason == 
-    CPbkxRemoteContactLookupServiceUiContext::TResult::EExitContactSelected )
+         CPbkxRemoteContactLookupServiceUiContext::TResult::EExitContactSelected )
         {
         displayName = GetPhoneNumberAndNameL( aPhoneNumber, *(result.iSelectedContactItem) );
         } 
     return displayName;
     }
 
-void CFSEmailUiContactHandler::LaunchRemoteLookupWithQueryL( CFSMailBox& aMailBox, const TDesC& aQuery )
+void CFSEmailUiContactHandler::LaunchRemoteLookupWithQueryL(
+    CFSMailBox& aMailBox, const TDesC& aQuery )
     {
     FUNC_LOG;
-
     CPbkxRemoteContactLookupServiceUiContext::TResult result;
     DoRemoteLookupL( aMailBox, aQuery , result, 
-                         CPbkxRemoteContactLookupServiceUiContext::EModeExistingCriteria );
-
+        CPbkxRemoteContactLookupServiceUiContext::EModeExistingCriteria );
     }
 
 HBufC* CFSEmailUiContactHandler::GetLastSearchNameL( const TDesC& aEmailAddress )
@@ -1704,34 +1697,24 @@ HBufC* CFSEmailUiContactHandler::GetPhoneNumberAndNameL( RBuf& aPhoneNumber, CCo
 void CFSEmailUiContactHandler::DoRemoteLookupL( CFSMailBox& aMailBox,
     const TDesC& aQueryString,
     CPbkxRemoteContactLookupServiceUiContext::TResult& aResult,
-    CPbkxRemoteContactLookupServiceUiContext::TMode aContext )
+    CPbkxRemoteContactLookupServiceUiContext::TMode aLookupMode )
     {
     FUNC_LOG;
     TUid protocolUid = TUid::Null();
-    TUint accountId = 0;
-    aMailBox.GetRCLInfo( protocolUid, accountId );
-    const TPbkxRemoteContactLookupProtocolAccountId KAccountId(
-        protocolUid, accountId );
-        
+    TUint accountUid = 0;
+    aMailBox.GetRCLInfo( protocolUid, accountUid );
+    const TPbkxRemoteContactLookupProtocolAccountId accountId =
+        TPbkxRemoteContactLookupProtocolAccountId( protocolUid, accountUid );
 
-    CPbkxRemoteContactLookupEnv* env = CPbkxRemoteContactLookupEnv::NewL();
-    CleanupStack::PushL( env );
+    CPbkxRemoteContactLookupServiceUiContext::TContextParams params = 
+        { accountId, aLookupMode }; 
 
-    MPbkxRemoteContactLookupServiceUi* serviceUi = env->ServiceUiL();
+    CPbkxRemoteContactLookupServiceUiContext* context =
+        Pbk2RemoteContactLookupFactory::NewContextL( params );
+    CleanupStack::PushL( context );
 
-    // If you want test with RCL dummyContactDatabase, KAccountId = serviceUi->DefaultAccountIdL();
-    MPbkxRemoteContactLookupServiceUi::TContextParams params = { KAccountId, aContext };
-
-    CPbkxRemoteContactLookupServiceUiContext* ctx( NULL );
-    ctx = serviceUi->NewContextL( params );
-
-    CleanupStack::PushL( ctx ); 
-
-    ctx->ExecuteL( aQueryString, aResult );
-
-    CleanupStack::PopAndDestroy( ctx );
-    CleanupStack::PopAndDestroy( env );
-
+    context->ExecuteL( aQueryString, aResult );
+    CleanupStack::PopAndDestroy( context );
     }
 
 

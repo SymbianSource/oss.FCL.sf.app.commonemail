@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2008 Nokia Corporation and/or its subsidiary(-ies).
+* Copyright (c) 2008 - 2010 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -29,13 +29,15 @@ PRJ_EXPORTS
 ../hsps/00/manifest.dat                 /epoc32/data/Z/resource/homescreen/emailwidget/hsps/manifest.dat
 ../hsps/00/widgetconfiguration.xml      /epoc32/data/Z/resource/homescreen/emailwidget/hsps/widgetconfiguration.xml
 ../hsps/00/emailwidgetconfiguration.dtd /epoc32/data/Z/resource/homescreen/emailwidget/hsps/emailwidgetconfiguration.dtd
-../xuikon/00/EW.o0000                   /epoc32/data/Z/resource/homescreen/emailwidget/xuikon/EW.o0000
 ../xuikon/00/emailwidget.dat            /epoc32/data/Z/resource/homescreen/emailwidget/xuikon/emailwidget.dat
 ../xuikon/00/emailwidget.css            /epoc32/data/Z/resource/homescreen/emailwidget/xuikon/emailwidget.css
+../xuikon/37/emailwidget.css            /epoc32/data/Z/resource/homescreen/emailwidget/xuikon/37/emailwidget.css
+../xuikon/50/emailwidget.css            /epoc32/data/Z/resource/homescreen/emailwidget/xuikon/50/emailwidget.css
+../xuikon/57/emailwidget.css            /epoc32/data/Z/resource/homescreen/emailwidget/xuikon/57/emailwidget.css
+../xuikon/94/emailwidget.css            /epoc32/data/Z/resource/homescreen/emailwidget/xuikon/94/emailwidget.css
 ../xuikon/00/emailwidget.xml            /epoc32/data/Z/resource/homescreen/emailwidget/xuikon/emailwidget.xml
 // Variant creation still disabled (see also emailwidget.dat file)
 //../xuikon/00/emailwidget.dtd            /epoc32/data/Z/resource/homescreen/emailwidget/xuikon/emailwidget.dtd
-/epoc32/s60/icons/qgn_menu_cmail.svg    /epoc32/data/Z/resource/homescreen/emailwidget/hsps/qgn_menu_cmail.svg
 
 // Support for S60 localization
 //*****************************
@@ -60,7 +62,12 @@ OPTION SWITCH_LOC_FILE_NAME emailwidget
 OPTION DTD_TYPE widget
 OPTION LOC_FOLDERS yes
 END
-
+// Email widget Home Screen content list icon
+START EXTENSION s60/mifconv
+OPTION TARGETFILE ${EPOCROOT}/epoc32/data/Z/resource/homescreen/emailwidget/hsps/emailwidgeticon.mif
+OPTION HEADERFILE emailwidgeticon.mbg
+OPTION SOURCES -c16,8 qgn_menu_cmail.svg
+END
 
 PRJ_MMPFILES
 

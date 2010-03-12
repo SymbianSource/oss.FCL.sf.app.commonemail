@@ -40,6 +40,7 @@
 
 #include "FSEmailLauncherItem.h"
 #include "freestyleemailuimailboxdeleter.h"
+#include "FreestyleEmailUiUtilities.h"
 
 // FORWARD DECLARATIONS 
 class CBrushAnimation;
@@ -63,7 +64,8 @@ class CFSEmailUiLauncherGridVisualiser : public CFsEmailUiViewBase,
                      				   	 public MAlfBitmapProvider,
                      				   	 public MFSEmailLauncherItemObserver,
                      				   	 public MEikScrollBarObserver,
-                     				   	 public MFSEmailUiMailboxDeleteObserver
+                     				   	 public MFSEmailUiMailboxDeleteObserver,
+  									     public MFSEmailUiGenericTimerCallback
     {
 public:
     enum TDirection
@@ -184,6 +186,17 @@ public:
 	 */
 	void FlipStateChangedL( TBool aKeyboardFlipOpen );
 
+    /**
+     * Handles application foreground events. When applcation is brought to
+     * foreground, calls the virtual HandleForegroundEventL() method, which
+     * can be implemented by subclasses.
+     */
+    virtual void HandleAppForegroundEventL( TBool aForeground );
+	
+	// Fire timer callback
+	void TimerEventL( CFSEmailUiGenericTimer* aTriggeredTimer );
+
+	
 // <cmail> Toolbar    
 private: // from
     
@@ -404,6 +417,9 @@ private: // data
     TFSMailMsgId iMailboxToDelete;
     
     CCoeControl* iCoeControl;
+
+    // Timer to postpone the Drawing 
+    CFSEmailUiGenericTimer* iStartupCallbackTimer;
     };
 
 #endif // __FREESTYLEEMAILUI_MAINGRIDUIVISUALISER_H__

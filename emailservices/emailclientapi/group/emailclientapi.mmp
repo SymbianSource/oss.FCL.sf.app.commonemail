@@ -63,6 +63,7 @@ END
 
 
 LIBRARY bafl.lib
+LIBRARY cone.lib
 LIBRARY euser.lib
 LIBRARY ECom.lib
 LIBRARY FSFWCommonLib.lib
@@ -70,7 +71,7 @@ LIBRARY FSMailFramework.lib
 LIBRARY efsrv.lib
 LIBRARY viewcli.lib
 LIBRARY estor.lib
-
+LIBRARY centralrepository.lib
 #ifdef TRACE_INTO_FILE
 LIBRARY flogger.lib
 #endif // TRACE_INTO_FILE

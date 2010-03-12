@@ -119,6 +119,136 @@ class CFSEmailDownloadInfoMediator;
 class MAknNaviDecoratorObserver;
 class CCustomStatuspaneIndicators;
 
+/**
+ * TDisplayImagesCache
+ * 
+ * Non-persistant cache for display images per message. When user allows images to be downloaded
+ * for a message, that message's id will be stored into the cache. Later if the message is re-opened 
+ * and it is found in cache, images are allowed to be downloaded no matter what the global setting 
+ * is. Message is added to cache only when the user presses the button, it will be removed from cache
+ * if the mailbox or the message itself is deleted.
+ */
+class TDisplayImagesCache
+    {
+public:
+    
+    /**
+     * Destructor
+     */
+    ~TDisplayImagesCache();
+
+    /**
+     * Add message to cache.
+     */
+    void AddMessageL( const CFSMailMessageBase& aMsg );
+    
+    /**
+     * Remove message from cache.
+     */
+    void RemoveMessage( const CFSMailMessageBase& aMsg );
+    
+    /**
+     * Check if the message is in cache. Returns ETrue if the message is found.
+     */
+    TBool Contains( const CFSMailMessageBase& aMsg ) const;    
+    
+    /**
+     * Removes message from cache.
+     */
+    void RemoveMessage( const TFSMailMsgId& aBoxId, const TFSMailMsgId& aMsgId );
+    
+    /**
+     * Removes mailbox from cache.
+     */
+    void RemoveMailbox( const TFSMailMsgId& aBoxId );
+
+private: // internal methods
+    
+    /**
+     * Adds message to cache.
+     */
+    void AddMessageL( const TFSMailMsgId& aBoxId, const TFSMailMsgId& aMsgId );
+
+    /**
+     * Check if the message is in cache. Returns ETrue if the message is found.
+     */
+    TBool Contains( const TFSMailMsgId& aBoxId, const TFSMailMsgId& aMsgId ) const;    
+
+    /**
+     * Returns index for given mailbox in cache or KErrNotFound if the mailbox cannot
+     * be found.
+     */
+    TInt MailBoxIndex( const TFSMailMsgId& aBoxId ) const;
+    
+    /**
+     * Adds new mailbox and returns index in cache.
+     */
+    void AddMailBoxL( const TFSMailMsgId& aBoxId, TInt& aCacheIndex );
+
+private:    
+    
+    /**
+     * Cache item.
+     */
+    class TItem  
+        {
+    public:
+        /**
+         * Constructor
+         */        
+        TItem( const TFSMailMsgId& aBoxId );
+        
+        /**
+         * Destructor
+         */
+        ~TItem();
+        
+        /**
+         * Returns ETrue if given message Id is found in this box.
+         */
+        TBool Contains( const TFSMailMsgId& aMsgId ) const;
+
+        /**
+         * Adds new message Id into box.
+         */
+        void AddMessageL( const TFSMailMsgId& aMsgId );
+
+        /**
+         * Removes message from box.
+         */
+        void RemoveMessage( const TFSMailMsgId& aMsgId );
+    
+        /**
+         * Comparator for TLinearOrder, compares two items
+         */
+        static TInt CompareItem( const TItem& aItem1, const TItem& aItem2 );
+    
+    private:       
+
+        /**
+         * Comparator for TLinearOrder, compares two message Ids
+         */
+        static TInt CompareMsgId( const TFSMailMsgId& aId1, const TFSMailMsgId& aId2 );
+        
+        /**
+         * Returns index of the message in box or KErrNotFound.
+         */
+        TInt MessageIndex( const TFSMailMsgId& aMsgId ) const;
+    
+    private:
+        
+        // Mailbox Id        
+        TFSMailMsgId iMailBoxId;
+        
+        // Message Ids
+        RArray<TFSMailMsgId> iMessageIds; 
+        };
+    
+    // Cache
+    RArray<TItem> iCache;    
+    };
+
+
 class CFreestyleEmailUiAppUi : public CAknViewAppUi,
     			               public MAlfActionObserver,
     			               public MFSMailRequestObserver,
@@ -341,12 +471,34 @@ public:
     TDisplayMode DisplayMode() const;
     // </cmail>
 
-    /**
+    
+	
+	
+	/**
      * Returns the current flip status.
      * @return True if the flip is open, false otherwise.
      */
     TBool IsFlipOpen() const;
 
+    TDisplayImagesCache& DisplayImagesCache();
+
+    // Set flag for judging if there is a embedded app in FSEmail.
+    void SetEmbeddedApp( TBool aEmbeddedApp );
+    
+    // Return embedded app.
+    TBool EmbeddedApp() const;
+    
+    // Set flag for judging if previous app is embedded.
+    void SetEmbeddedAppToPreviousApp( TBool aEmbeddedApp );
+    
+    // if previous app is embedded.
+    TBool EmbeddedAppIsPreviousApp() const;
+    
+    // Set flag for judging if email editor started from embedded app.
+    void SetEditorStartedFromEmbeddedApp( TBool aEmbeddedApp );
+    
+    // if email editor started from embedded app.
+    TBool EditorStartedFromEmbeddedApp() const;
 
 public: //from MFSMailEventObserver
     /**
@@ -667,6 +819,8 @@ private:
     // Set true, when application is going to be switched to backgound
     // after the view deactivation.
     TBool iSwitchingToBackground;
+    
+    TDisplayImagesCache iDisplayImagesCache;
 
     // For handling the flip state.
     CFreestyleEmailUiPropertySubscriber* iPropertySubscriber;
@@ -674,6 +828,16 @@ private:
 
     /// Focus visibility state
     TBool iFocusVisible;
+    TBool iTouchFeedbackCreated;
+
+    // Embedded app flag.
+    TBool iHasEmbeddedApp;
+    
+    // Flag for judging if previous app is embedded app.
+    TBool iPreviousAppEmbedded;
+    
+    // Flag for judging if email editor started from embedded app.
+    TBool iEditorStartedFromEmbeddedApp;
     };
 
 

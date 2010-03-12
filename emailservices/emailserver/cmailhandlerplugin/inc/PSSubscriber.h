@@ -11,8 +11,7 @@
 *
 * Contributors:
 *
-* Description:
-*       Subscriber class for Publish & Subsribe events
+* Description: Subscriber class for Publish & Subsribe events
 *
 */
 

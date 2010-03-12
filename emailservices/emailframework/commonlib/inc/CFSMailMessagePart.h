@@ -24,7 +24,7 @@
 #include <badesca.h>
 
 //<cmail>
-#include "CFSMailMessageBase.h"
+#include "cfsmailmessagebase.h"
 #include "mmrinfoobject.h"
 //</cmail>
 

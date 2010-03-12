@@ -68,6 +68,11 @@ const TUint32 KFreestyleWLBMailboxName                   = {0x00000121};
 const TUint32 KFreestyleWLBMIFFilePathWithTargetFilename = {0x00000122};
 const TUint32 KFreestyleWLBMailboxIconID                 = {0x00000123};
 
+// used for email indicator popup-note handling
+// First key tells how many mailboxes have new emails
+const TUint32 KNumberOfMailboxesWithNewEmails                = {0x00001000};
+
+
 //
 // Email local variation flags. Flags are defined in emailvariant.hrh
 const TUint32 KEmailLocalVariationFlags	    	= {0x0000FFFE};

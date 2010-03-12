@@ -90,7 +90,7 @@ LIBRARY                 eikcore.lib
 LIBRARY                 numbergrouping.lib
 LIBRARY                 apgrfx.lib
 LIBRARY                 apparc.lib
-
+LIBRARY                 rcse.lib
 // Dependencies to Phonebook
 LIBRARY                 Pbk2Presentation.lib
 LIBRARY                 Pbk2CommonUi.lib

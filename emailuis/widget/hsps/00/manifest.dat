@@ -16,7 +16,7 @@
     <configurationuid>0x2001E272</configurationuid>
 
     <!-- description -->
-    <filelogo>qgn_menu_cmail.svg</filelogo>
+    <filelogo>mif(emailwidgeticon.mif 16384 16385)</filelogo>
     <fullname>&amp;qtn_hscr_email;</fullname>
     <description>&amp;qtn_hs_widget_mail_description;</description>
     <shortname>EW</shortname>
@@ -34,6 +34,6 @@
     </localization>
 
     <!-- Instances of widget per one homescreen -->	
-    <multiinstance>3</multiinstance>
+    <multiinstance>5</multiinstance>
 	
 </package>

@@ -285,10 +285,13 @@ void CNcsComposeViewContainer::HandlePointerEventL(
                 {
                 if ( iFocused == iMessageField )
                     {
+					if( iMessageField->SelectionLength() )
+						{
+						iMessageField->ClearSelectionL();
+						}
+                    iMessageField->SetFocus( EFalse, EDrawNow );
                     iFocused = iHeader;
                     iHeader->SetFocus( ETrue,EDrawNow );
-                    iMessageField->ClearSelectionL();
-                    iMessageField->SetFocus( EFalse, EDrawNow );
                     iHeader->MakeVisible( ETrue );
                     CommitL( EBodyField );
                     iView.HandleContainerChangeRequiringToolbarRefresh();
@@ -325,24 +328,12 @@ void CNcsComposeViewContainer::HandlePointerEventL(
                 {
                 if ( iFocused == iHeader )
                     {
-                    // fix for ESLX-7Y4C2V, dissapearing subject 
-                    HBufC* heapBuffer = HBufC::NewL(iHeader->GetSubjectFieldLength());
-                    TPtr ptr(heapBuffer->Des());
-                    ptr.Copy(*GetSubjectLC());
+                    //TRAP_IGNORE( DoUpdateSubjectL() );
 
-                    iFocused = iMessageField;
-                    iHeader->SetFocus( EFalse, EDrawNow );
+					iHeader->SetFocus( EFalse, EDrawNow );
+					iFocused = iMessageField;
                     iMessageField->SetFocus( ETrue, EDrawNow );
-                    
-                    if ( iHeader->GetSubjectFieldLength() != heapBuffer->Length() )
-                    	{
-                    		iHeader->SetSubjectL( const_cast<HBufC&>(*heapBuffer));
-                    	}
-
-                    iHeader->SetFocus( ETrue, EDrawNow );
-                    iHeader->SetFocus( EFalse, EDrawNow );
                     iView.HandleContainerChangeRequiringToolbarRefresh();
-                    CleanupStack::PopAndDestroy(); //from GetSubjectLC()
                     }
                 else if ( iFocused == iReadOnlyQuoteField )
                     {
@@ -931,6 +922,8 @@ void CNcsComposeViewContainer::HandleScrollEventL(
         iPhysics->StopPhysics();
         iPhysics->ResetFriction();
         }
+        
+    ClosePopupContactListL();
 
     ScrollL( aScrollBar->ThumbPosition() );
     }
@@ -1996,4 +1989,28 @@ TBool CNcsComposeViewContainer::IsRemoteSearchInprogress() const
     {
     FUNC_LOG;
     return iHeader->IsRemoteSearchInprogress();
+    }
+
+// -----------------------------------------------------------------------------
+// CNcsComposeViewContainer::DoUpdateSubjectL
+// -----------------------------------------------------------------------------
+//
+void CNcsComposeViewContainer::DoUpdateSubjectL()
+    {
+    FUNC_LOG;
+    // fix for ESLX-7Y4C2V, dissapearing subject
+    // get copy of subject
+    HBufC* subjectCopy = GetSubjectLC();
+    iHeader->SetFocus( EFalse, EDrawNow );
+    // get subject after focus lost
+    HBufC* subject = GetSubjectLC();
+    // restore subject from copy if necessary
+    if ( subject->Length() != subjectCopy->Length() )
+        {
+        iHeader->SetSubjectL( *subjectCopy );
+        }
+
+    // restore focus
+    iHeader->SetFocus( ETrue, EDrawNow );
+    CleanupStack::PopAndDestroy( 2, subjectCopy );
     }

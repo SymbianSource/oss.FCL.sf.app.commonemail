@@ -216,7 +216,13 @@ protected:
      */      
     CFSMailMessage* NewestMsgInFolderL(
         /*const*/ CFSMailFolder& aFolder ) const;
-
+    
+    
+    /*
+     * function that handles the mailindicator
+     */
+    void MailIndicatorHandlingL(TFSMailMsgId aMailbox);
+    
 private:
 
     /**

@@ -140,11 +140,6 @@ private:
     
     void UpdateFontSize();
     
-
-    void HandleFocusChangedL();
-    
-    static TInt DoHandleFocusChanged( TAny* aSelfPtr ); 
-    
     //<cmail>
     void HandlePointerEventL( const TPointerEvent& aPointerEvent );
     //</cmail>

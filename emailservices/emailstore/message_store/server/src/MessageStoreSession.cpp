@@ -21,8 +21,8 @@
 // INCLUDES
 // ========
 
-#include "MsgStoreTypes.h"
-#include "MsgStorePropertyKeys.h"
+#include "msgstoretypes.h"
+#include "msgstorepropertykeys.h"
 
 #include "MessageStoreSession.h"
 #include "MessageStoreServer.h"

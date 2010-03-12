@@ -78,12 +78,6 @@ public:
     void UpdateMailboxesL(TInt aInstance, const TDesC& aContentId);
 
     /**
-     * Updates external (3rd party) account based on contentId
-     * @param aContentId specifies the widget and account related to it
-     */
-    void UpdateExtAccountL( const TDesC& aContentId );
-
-    /**
      *
      */
     void LaunchWidgetSettingsL( const TDesC& aContentId );
@@ -96,7 +90,7 @@ public:
     /**
      *
      */    
-    void LaunchEmailWizardL();
+    void LaunchEmailWizardL( const TDesC& aContentId );
     /**
      * Launches an application based on the given contentId
      * This method is for external (3rd party) accounts
@@ -104,11 +98,6 @@ public:
      */
     void LaunchExtAppL( const TDesC& aContentId );
 
-    /**
-     *
-     */	
-    TBool AssociateWidgetToSetting( const TDesC& aContentId );
-	
     /**
      *
      */		
@@ -128,11 +117,6 @@ public:
      * Return total number of 3rd party mailboxes in the system
      */
     TInt TotalExtMailboxCountL();
-
-    /**
-     *
-     */    
-    void ManualAccountSelectionL( const TDesC& aContentId );
     
 	/**
      * Gets correct localised format for time (or date) string
@@ -141,6 +125,16 @@ public:
 
     // From MEmailObserverListener
     void EmailObserverEvent( EmailInterface::MEmailData& aData );
+
+    /**
+     *
+     */
+    void SetWaitingForNewMailbox( const TDesC& aContentId );
+    
+    /**
+     *
+     */    
+    void CleanWaitingForNewMailbox();
 
 protected:
     /**
@@ -228,11 +222,6 @@ private:
 	                           const TInt aFirstRow );
 
     /**
-     * Handles publishing of connection state icon
-     */
-    void UpdateConnectStateL( const TInt aMailBoxNumber, const TInt aRowNumber );       
-
-    /**
      * Handles publishing of mailbox icon
      */
     void UpdateMailBoxIconL( const TInt aMailBoxNumber,
@@ -245,11 +234,6 @@ private:
     void UpdateIndicatorIconL( const TInt aMailBoxNumber, 
                                const TInt aWidgetInstance,
                                const TInt aRowNumber );
-    
-    /**
-     * Handles publishing of empty message time string
-     */
-// void ClearMessageTimeL( const TInt aRowNumber );
 
     // Event handling subroutines
     /**
@@ -286,22 +270,6 @@ private:
      */
     void HandleMailDeletedEventL( TFSMailMsgId aMailbox, TAny* aParam1, TAny* aParam2 );
 
-    /**
-     * handles mail changed event
-     * @param aMailbox mailbox id
-     * @param aParam1 contains event specific parameters
-     * @param aParam2 contains event specific parameters
-     */
-    void HandleMailChangedEventL( TFSMailMsgId aMailbox, TAny* aParam1, TAny* aParam2 );
-
-    /**
-     * handles new folder event
-     * @param aMailbox mailbox id
-     * @param aParam1 contains event specific parameters
-     * @param aParam2 contains event specific parameters
-     */
-    void HandleNewFolderEventL( TFSMailMsgId aMailbox, TAny* aParam1, TAny* aParam2 );
-	
     /**
      * get count of unread messages in inbox
      * @param aMailbox mailbox id
@@ -366,7 +334,9 @@ private:
      *
      */     
     void PublishMessageL( TInt aWidgetInstance, CFSMailMessage& aMessage,
-                           const TDesC& aSenderName, const TDesC& aTime, TInt aFirstRow);
+                          const TDesC& aSenderName,
+                          const TDesC& aSubject,
+                          const TDesC& aTime, TInt aFirstRow);
    
     /**
      * Checks if the given message is already know/published
@@ -403,8 +373,6 @@ private:
      */
     void SelectAndUpdateExtAccountsL( RPointerArray<CMailExternalAccount>& aAccounts );
     
-    TBool FirstBootL();
-    
     /**
      * Checks whether aAccounts array has entries relating to plugin with id aPluginId
      * @param aPluginId 3rd party plugin identifier (implementation uid)
@@ -438,7 +406,10 @@ private: // data
     // local cache of mailbox details
     RPointerArray<CMailMailboxDetails> iAccountsArray;
     // array of plugin proxies. One plugin proxy handles one 3rd party plugin and its accounts
-    RPointerArray<CMailPluginProxy> iExternalPlugins;
+    RPointerArray<CMailPluginProxy>    iExternalPlugins;
+    // tells if email wizard is started from widget and it is still running
+    // and to which widget next added account is added.
+    HBufC*                             iWaitingForNewMailbox;
     };
 
 #endif  //__CMAILCPSHANDLER_H__

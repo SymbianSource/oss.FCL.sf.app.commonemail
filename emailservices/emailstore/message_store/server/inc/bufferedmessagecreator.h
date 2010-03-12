@@ -11,7 +11,7 @@
 *
 * Contributors:
 *
-* Description:
+* Description: Message creator definition
 *
 */
 #ifndef BUFFEREDMESSAGECREATOR_H

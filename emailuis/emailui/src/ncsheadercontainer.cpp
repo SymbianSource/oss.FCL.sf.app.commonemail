@@ -26,8 +26,6 @@
 #include "cfsmailbox.h"
 #include <FreestyleEmailUi.rsg>
 
-#include "cpbkxremotecontactlookupserviceuicontext.h"
-
 #include "FSEmailBuildFlags.h"
 #include "ncsheadercontainer.h"
 #include "ncscomposeviewcontainer.h"
@@ -215,6 +213,7 @@ void CNcsHeaderContainer::FocusChanged( TDrawNow aDrawNow )
             // Commit changes and make sure no controls are focused.
             TRAP_IGNORE( CommitFieldL( focused ) );
             focused->SetFocus( EFalse, aDrawNow );
+            iFocused = NULL;
             }
 
         // Remove MSK label when header loses focus
@@ -242,7 +241,10 @@ void CNcsHeaderContainer::ShowCursor( TBool aShow )
         {
         iFocused = focused;
         }
-    iFocused->SetFocus( aShow, EDrawNow );
+    if ( iFocused ) 
+        {
+        iFocused->SetFocus( aShow, EDrawNow );
+        }
     }
 
 // -----------------------------------------------------------------------------
@@ -369,7 +371,7 @@ void CNcsHeaderContainer::HandlePointerEventL(
                     pOldCtrl->SetFocus( EFalse, ENoDrawNow );
                     }
                 pNewCtrl->SetFocus( ETrue, ENoDrawNow );
-
+                iFocused = pNewCtrl;
                 // Commit changes to previously focused field.
                 if ( pOldCtrl )
                     {
@@ -793,6 +795,27 @@ TBool CNcsHeaderContainer::NeedsAifMenu() const
 	}
 
 // ---------------------------------------------------------------------------
+// CNcsHeaderContainer::GetToLineHeight
+// ---------------------------------------------------------------------------
+//
+TInt CNcsHeaderContainer::GetToLineHeight() const
+	{
+	FUNC_LOG;
+	TInt lineHeight = 0;
+	
+	if(iToField)
+		{
+	    TRect lineRect;
+	    TRAPD(err, iToField->GetLineRectL(lineRect) );
+	   	if(err == KErrNone)
+	        {
+	        lineHeight = lineRect.iBr.iY - lineRect.iTl.iY;
+	        }
+		}
+	return lineHeight;
+	}
+      
+// ---------------------------------------------------------------------------
 // CNcsHeaderContainer::GetTotalHeight
 // ---------------------------------------------------------------------------
 //
@@ -820,8 +843,11 @@ void CNcsHeaderContainer::SetAttachmentLabelTextsLD(
     {
     FUNC_LOG;   
     iAttachmentField->SetTextsLD( aAttachmentNames, aAttachmentSizes );
-    ShowAttachmentLabelL();
-    DrawAttachmentFocusNow();
+    if( aAttachmentNames )
+        {
+        ShowAttachmentLabelL();
+        DrawAttachmentFocusNow();
+        }
     }
 
 // -----------------------------------------------------------------------------
@@ -1740,6 +1766,7 @@ void CNcsHeaderContainer::IncludeAddressL(const CNcsEmailAddressObject& aEml )
     	aifFocused = static_cast<CNcsAddressInputField*>( focused );
     	aifFocused->AddAddressL( aEml );
 	    }
+	DoScrollL();
     }
 
 // ---------------------------------------------------------------------------

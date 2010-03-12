@@ -44,7 +44,6 @@
 
 #include "FreestyleMessageHeaderHTML.h"
 #include "FreestyleMessageHeaderURLEventHandler.h"
-#include "FreestyleEmailUiAknStatusIndicator.h"
 #include "FreestyleEmailUiAttachmentsListModel.h"
 
 _LIT( KContentIdPrefix, "cid:" );
@@ -85,6 +84,11 @@ _LIT8( KHtmlLinkTagWWW, "<a href=\"%S%S\">" );
 _LIT8( KHtmlLinkEndTag, "</a>" );
 _LIT( KURLTypeBody, "body");
 
+_LIT( KURLDisplayImages, "cmail://displayImages/" );
+_LIT( KURLLoadImages, "cmail://loadImages/" );
+_LIT( KURLCollapseHeader, "cmail://collapseHeader/" );
+_LIT( KURLExpandHeader, "cmail://expandHeader/" );
+
 const TText8 KGreaterThan = 0x3e;
 const TText8 KLessThan = 0x3c;
 const TText8 KAmpersand = 0x26;
@@ -102,6 +106,161 @@ const TReal KOverlayButtonSizeLs = 0.20; // 25%
 
 const TInt KStatusIndicatorHeight = 50;
 const TInt KStatusIndicatorXMargin = 50;
+
+// CEUiHtmlViewerSettingsKeyListener
+
+// ---------------------------------------------------------------------------
+//
+// ---------------------------------------------------------------------------
+//
+CEUiHtmlViewerSettingsKeyListener::CEUiHtmlViewerSettingsKeyListener( MObserver& aObserver, TUint32 aKey )
+    : CActive( EPriorityStandard ), iObserver( aObserver ), iKey( aKey )
+    {
+    CActiveScheduler::Add(this);
+    StartListening();
+    }
+
+// ---------------------------------------------------------------------------
+//
+// ---------------------------------------------------------------------------
+//
+CEUiHtmlViewerSettingsKeyListener::~CEUiHtmlViewerSettingsKeyListener()
+    {
+    Cancel();
+    }
+
+// ---------------------------------------------------------------------------
+//
+// ---------------------------------------------------------------------------
+//
+void CEUiHtmlViewerSettingsKeyListener::StartListening()
+    {
+    SetActive();
+    iObserver.Repository().NotifyRequest(iKey, iStatus);
+    }
+
+// ---------------------------------------------------------------------------
+//
+// ---------------------------------------------------------------------------
+//
+void CEUiHtmlViewerSettingsKeyListener::RunL()
+    {
+    iObserver.KeyValueChangedL(iKey);
+    StartListening();
+    }
+
+// ---------------------------------------------------------------------------
+//
+// ---------------------------------------------------------------------------
+//
+void CEUiHtmlViewerSettingsKeyListener::DoCancel()
+    {
+    iObserver.Repository().NotifyCancel(iKey);
+    }
+
+// CEUiHtmlViewerSettings
+
+// ---------------------------------------------------------------------------
+//
+// ---------------------------------------------------------------------------
+//
+CEUiHtmlViewerSettings* CEUiHtmlViewerSettings::NewL( MObserver& aObserver )
+    {
+    CEUiHtmlViewerSettings* self = new (ELeave) CEUiHtmlViewerSettings(aObserver);
+    CleanupStack::PushL(self);
+    self->ConstructL();
+    CleanupStack::Pop(); // self
+    return self;
+    }
+
+// ---------------------------------------------------------------------------
+//
+// ---------------------------------------------------------------------------
+//
+CEUiHtmlViewerSettings::~CEUiHtmlViewerSettings()
+    {
+    iKeyListeners.ResetAndDestroy();
+    delete iRepository;
+    }
+
+// ---------------------------------------------------------------------------
+//
+// ---------------------------------------------------------------------------
+//
+CEUiHtmlViewerSettings::CEUiHtmlViewerSettings( MObserver& aObserver ) : iObserver( aObserver )
+    {
+    }
+
+// ---------------------------------------------------------------------------
+//
+// ---------------------------------------------------------------------------
+//
+void CEUiHtmlViewerSettings::ConstructL()
+    {
+    iRepository = CRepository::NewL(KFreestyleEmailCenRep);
+    AddKeyListenerL(KFreestyleEmailDownloadHTMLImages);
+    }
+
+// ---------------------------------------------------------------------------
+//
+// ---------------------------------------------------------------------------
+//
+void CEUiHtmlViewerSettings::AddKeyListenerL( TUint32 aKey )
+    {
+    CEUiHtmlViewerSettingsKeyListener* listener = new (ELeave) CEUiHtmlViewerSettingsKeyListener(*this, aKey);
+    CleanupStack::PushL(listener);
+    iKeyListeners.AppendL(listener);
+    CleanupStack::Pop(); // listener
+    UpdateValue(aKey);
+    }
+
+// ---------------------------------------------------------------------------
+//
+// ---------------------------------------------------------------------------
+//
+void CEUiHtmlViewerSettings::UpdateValue( TUint32 aKey )
+    {
+    TInt value;
+    iRepository->Get(aKey, value);
+    switch (aKey)
+        {
+        case KFreestyleEmailDownloadHTMLImages:
+            // 0 = automatic, 1 = ask always
+            iFlags.Assign(aKey, value == 0);
+            break;
+        default:
+            iFlags.Assign(aKey, value);
+            break;
+        }
+    }
+
+// ---------------------------------------------------------------------------
+//
+// ---------------------------------------------------------------------------
+//
+void CEUiHtmlViewerSettings::KeyValueChangedL( TUint32 aKey )
+    {
+    UpdateValue(aKey);
+    iObserver.ViewerSettingsChangedL(aKey);
+    }
+
+// ---------------------------------------------------------------------------
+//
+// ---------------------------------------------------------------------------
+//
+CRepository& CEUiHtmlViewerSettings::Repository()
+    {
+    return *iRepository;
+    }
+
+// ---------------------------------------------------------------------------
+//
+// ---------------------------------------------------------------------------
+//
+TBool CEUiHtmlViewerSettings::AutoLoadImages() const
+    {
+    return iFlags.IsSet(EAutoLoadImages);
+    }
 
 // ---------------------------------------------------------------------------
 // Two-phased constructor.
@@ -128,7 +287,7 @@ CFsEmailUiHtmlViewerContainer::CFsEmailUiHtmlViewerContainer(
     :
     iAppUi( aAppUi ),
     iView( aView ),
-    iFs( CCoeEnv::Static()->FsSession() ),
+    iFs( iCoeEnv->FsSession() ),
     iFirstTime( ETrue )
     {
     FUNC_LOG;
@@ -141,6 +300,7 @@ CFsEmailUiHtmlViewerContainer::CFsEmailUiHtmlViewerContainer(
 CFsEmailUiHtmlViewerContainer::~CFsEmailUiHtmlViewerContainer()
     {
     FUNC_LOG;
+    delete iViewerSettings;
     if ( iObservingDownload && iAppUi.DownloadInfoMediator() )
         {
         iAppUi.DownloadInfoMediator()->StopObserving( this );
@@ -157,10 +317,10 @@ CFsEmailUiHtmlViewerContainer::~CFsEmailUiHtmlViewerContainer()
     delete iOverlayControlPrev;
     }
 
-// <cmail> Because of browser changes, followings must be performed before iAppUi.exit()
 void CFsEmailUiHtmlViewerContainer::PrepareForExit()
     {
     FUNC_LOG;
+    HideDownloadStatus();
     if ( iObservingDownload && iAppUi.DownloadInfoMediator() )
         {
         iAppUi.DownloadInfoMediator()->StopObserving( this );
@@ -171,12 +331,18 @@ void CFsEmailUiHtmlViewerContainer::PrepareForExit()
     iConnection.Close();
     iSocketServer.Close();
     }
-// </cmail>
+
+void CFsEmailUiHtmlViewerContainer::PrepareForMessageNavigation()
+    {
+    FUNC_LOG;
+    ResetContent();
+    }
 
 void CFsEmailUiHtmlViewerContainer::ConstructL()
     {
     FUNC_LOG;
-    
+    iViewerSettings = CEUiHtmlViewerSettings::NewL(*this);
+
     SetHtmlFolderPathL();
     BaflUtils::EnsurePathExistsL( iFs, iHtmlFolderPath );
     SetTempHtmlFolderPath();
@@ -195,16 +361,27 @@ void CFsEmailUiHtmlViewerContainer::ConstructL()
 
     // Set browsercontrol to whole screen
     TRect rect( TPoint(), Size() );
-
-    iBrCtlInterface = CreateBrowserControlL( this, rect, brCtlCapabilities,
-        TBrCtlDefs::ECommandIdBase, NULL, this, this, NULL, NULL, this, NULL );
+   
+    iBrCtlInterface = CreateBrowserControlL( 
+            this, // aParent 
+            rect,  // aRect
+            brCtlCapabilities, // aBrCtlCapabilities
+            TBrCtlDefs::ECommandIdBase, // aCommandIdBase
+            NULL, // aBrCtlSoftkeysObserver
+            this, // aBrCtlLinkResolver
+            this, // aBrCtlSpecialLoadObserver
+            NULL, // aBrCtlLayoutObserver
+            NULL, // aBrCtlDialogsProvider
+            this, // aBrCtlWindowObserver
+            NULL // aBrCtlDownloadObserver 
+            );
 
     iBrCtlInterface->SetBrowserSettingL( TBrCtlDefs::ESettingsEmbedded, ETrue );
-    iBrCtlInterface->SetBrowserSettingL( TBrCtlDefs::ESettingsAutoLoadImages, ETrue );
+    iBrCtlInterface->SetBrowserSettingL( TBrCtlDefs::ESettingsAutoLoadImages, iViewerSettings->AutoLoadImages() );
     iBrCtlInterface->SetBrowserSettingL( TBrCtlDefs::ESettingsPageOverview, EFalse );
     iBrCtlInterface->SetBrowserSettingL( TBrCtlDefs::ESettingsTextWrapEnabled, ETrue );
     iBrCtlInterface->SetBrowserSettingL( TBrCtlDefs::ESettingsFontSize, TBrCtlDefs::EFontSizeLevelLarger );
-
+    
     iEventHandler = CFreestyleMessageHeaderURLEventHandler::NewL( iAppUi, iView );
     
     TRect nextButtonRect = OverlayButtonRect( EFalse );
@@ -218,6 +395,10 @@ void CFsEmailUiHtmlViewerContainer::ConstructL()
             EMbmFreestyleemailuiQgn_indi_cmail_arrow_previous_mask );
     iScrollPosition = 0;
     iAttachmentDownloadImageHandle = 0;
+
+    iTouchFeedBack = MTouchFeedback::Instance();
+    iTouchFeedBack->EnableFeedbackForControl(this, ETrue);
+
     ActivateL();
     }
 
@@ -349,23 +530,14 @@ void CFsEmailUiHtmlViewerContainer::LoadContentFromMailMessageL(
     // insert email header into email.html file
     // CFreestyleMessageHeaderHTML will replace contents of email.html
     // So, no need to clear the contents
-    TLanguage language = User::Language();
-    TBidiText::TDirectionality direction = TBidiText::ScriptDirectionality( language );    
     if(aResetScrollPos)
         {
         iScrollPosition = 0; 
         }
-    if ( AknLayoutUtils::LayoutMirrored() )
-        {
-        direction = TBidiText::ERightToLeft;
-        }
-    else
-        {
-        direction = TBidiText::ELeftToRight;
-        }
-    CFreestyleMessageHeaderHTML::ExportL( *iMessage, iFs, headerHtmlFile, iAppUi.ClientRect().Width(), 
-                                            iScrollPosition,
-                                            direction);
+    const TInt visibleWidth(iAppUi.ClientRect().Width());
+    CFreestyleMessageHeaderHTML::ExportL( *iMessage, iFs, headerHtmlFile, visibleWidth, iScrollPosition,
+                                            iViewerSettings->AutoLoadImages() || iAppUi.DisplayImagesCache().Contains(*iMessage),
+                                            iHeaderExpanded );
     
     // Remove all previously created files from temporary HTML folder
     EmptyTempHtmlFolderL();
@@ -396,18 +568,27 @@ void CFsEmailUiHtmlViewerContainer::LoadContentFromMailMessageL(
 // Reset content
 // ---------------------------------------------------------------------------
 //
-void CFsEmailUiHtmlViewerContainer::ResetContent()
+void CFsEmailUiHtmlViewerContainer::ResetContent(const TBool aDisconnect)
     {
     FUNC_LOG;
     if ( iBrCtlInterface )
         {
-        TRAP_IGNORE( iBrCtlInterface->HandleCommandL( ( TInt )TBrCtlDefs::ECommandIdBase + 
-                                                      ( TInt )TBrCtlDefs::ECommandFreeMemory ) );
+        TRAP_IGNORE( 
+                iBrCtlInterface->HandleCommandL( ( TInt )TBrCtlDefs::ECommandIdBase +
+                        ( TInt )TBrCtlDefs::ECommandFreeMemory ) );
+        if (aDisconnect)
+            {
+            TRAP_IGNORE( 
+                    iBrCtlInterface->HandleCommandL( ( TInt )TBrCtlDefs::ECommandIdBase +
+                                                      ( TInt )TBrCtlDefs::ECommandDisconnect ) );
+            }
         }
     iFile.Close();
     iLinkContents.Reset();
     iMessageParts.Reset();
     iMessage = NULL;
+    iHeaderExpanded = EFalse;
+    iScrollPosition = 0;
     }
 
 // ---------------------------------------------------------------------------
@@ -492,39 +673,6 @@ void CFsEmailUiHtmlViewerContainer::SizeChanged()
     if ( iBrCtlInterface )
         {
         iBrCtlInterface->SetRect( rect );
-        }
-
-    if ( iMessage )
-        {
-        // update the width in header part and reload
-        TPath headerHtmlFile;
-        headerHtmlFile.Copy( iHtmlFolderPath );
-        headerHtmlFile.Append( KHeaderHtmlFile );
-
-        TLanguage language = User::Language();
-        TBidiText::TDirectionality direction = TBidiText::ScriptDirectionality( language );
-        
-        if ( AknLayoutUtils::LayoutMirrored() )
-            {
-            direction = TBidiText::ERightToLeft;
-            }
-        else
-            {
-            direction = TBidiText::ELeftToRight;
-            }
-        TRAP_IGNORE( CFreestyleMessageHeaderHTML::ExportL( *iMessage, iFs, headerHtmlFile, 
-            rect.Width(), iScrollPosition, direction ) ) 
-        
-        TPath emailHtmlFile;
-        emailHtmlFile.Copy( iHtmlFolderPath );
-        if ( AknLayoutUtils::LayoutMirrored() )
-            {
-            emailHtmlFile.Append( KMessageHtmlRTLFile );
-            }
-        else
-            {
-            emailHtmlFile.Append( KMessageHtmlFile );
-            }
         }
     
     UpdateOverlayButtons( IsVisible() );
@@ -738,9 +886,12 @@ TBool CFsEmailUiHtmlViewerContainer::ResolveLinkL( const TDesC& aUrl,
     const TDesC& /*aCurrentUrl*/, MBrCtlLinkContent& /*aBrCtlLinkContent*/ )
     {
     FUNC_LOG;
-    if (IsMessageBodyURL(aUrl))
+    if ( IsMessageBodyURLL(aUrl) )
         {
-        iView.StartFetchingMessageL();
+        if ( iMessage )
+            {
+            iView.StartFetchingMessageL();
+            }
         return ETrue;
         }
     else
@@ -1201,7 +1352,7 @@ void CFsEmailUiHtmlViewerContainer::EnsureHTMLResourceL()
 //
 // <cmail>
 void CFsEmailUiHtmlViewerContainer::ConvertToHTML( const TDesC8& aContent,
-    const TDesC& aFileName, CFSMailMessagePart& aTextBodyPart )
+    const TDesC& aFileName, CFSMailMessagePart& /*aTextBodyPart*/ )
     {
     FUNC_LOG;
     const TInt KBodyTextChunkSizeBytes = 1024;
@@ -1597,7 +1748,8 @@ HBufC8* CFsEmailUiHtmlViewerContainer::GetCharacterSetL( CFSMailMessagePart& aHt
     
     for ( TInt i = 0; i < contentTypeArray.Count(); i++ )
         {
-        if ( ( contentTypeArray.MdcaPoint( i ).Find( KCharsetTag ) != KErrNotFound ) &&
+        TPtrC contentEntry( contentTypeArray.MdcaPoint( i ) );
+        if ( ( contentEntry.FindF( KCharsetTag ) != KErrNotFound ) &&
                 contentTypeArray.Count() >= ( i+1) )  
             {
             TPtrC value( contentTypeArray.MdcaPoint( i+1 ) );
@@ -1653,6 +1805,10 @@ void CFsEmailUiHtmlViewerContainer::ClearCacheAndLoadEmptyContent()
 void CFsEmailUiHtmlViewerContainer::HandleResourceChange( TInt aType )
     {
     CCoeControl::HandleResourceChange( aType );
+    if ( aType == CFsEmailUiViewBase::EScreenLayoutChanged )
+        {
+        RefreshCurrentMailHeader();
+        }
     }
 
 void CFsEmailUiHtmlViewerContainer::RefreshCurrentMailHeader()
@@ -1664,53 +1820,28 @@ void CFsEmailUiHtmlViewerContainer::RefreshCurrentMailHeader()
         headerHtmlFile.Copy( iHtmlFolderPath );
         headerHtmlFile.Append( KHeaderHtmlFile );
         
-        TLanguage language = User::Language();
-        TBidiText::TDirectionality direction = TBidiText::ScriptDirectionality( language );    
-        TRAP_IGNORE( CFreestyleMessageHeaderHTML::ExportL( *iMessage, iFs, headerHtmlFile, iAppUi.ClientRect().Width(), direction ) )
+            TRAP_IGNORE( CFreestyleMessageHeaderHTML::ExportL( *iMessage, iFs,
+                headerHtmlFile, iAppUi.ClientRect().Width(), iScrollPosition,
+                iViewerSettings->AutoLoadImages() || iAppUi.DisplayImagesCache().Contains(*iMessage),
+                iHeaderExpanded ) )
         
-        TPath emailHtmlFile;
-        emailHtmlFile.Copy( iHtmlFolderPath );
-        emailHtmlFile.Append( KMessageHtmlFile );
         
-        if ( direction == TBidiText::ELeftToRight )
-            {
-            emailHtmlFile.Append( KMessageHtmlFile );
-            }
-        else
-            {
-            emailHtmlFile.Append( KMessageHtmlRTLFile );
-            }
-        
-        //Load page synchronously if menu invisible
         if(!iEventHandler->IsMenuVisible())
             {
-            TRAP_IGNORE( LoadContentFromFileL( emailHtmlFile ) );
-            SetRect( iAppUi.ClientRect() );
+            TRAP_IGNORE( ReloadPageL() );
             }
-        //Load page asynchronously after dismissing menu    
         else
             {
+            //Load page asynchronously after dismissing menu    
             iEventHandler->DismissMenuAndReload();
-            }       
+            }
         }
     }
 
 void CFsEmailUiHtmlViewerContainer::ReloadPageL()
     {
-    TLanguage language = User::Language();
-    TBidiText::TDirectionality direction = TBidiText::ScriptDirectionality( language );    
-    TPath emailHtmlFile;
-    emailHtmlFile.Copy( iHtmlFolderPath );
-    if( !AknLayoutUtils::LayoutMirrored() )
-        {
-        emailHtmlFile.Append( KMessageHtmlFile );
-        }
-    else
-        {
-        emailHtmlFile.Append( KMessageHtmlRTLFile );
-        }
-    TRAP_IGNORE( LoadContentFromFileL( emailHtmlFile ) );
-    SetRect( iAppUi.ClientRect() );
+    TRAP_IGNORE( iBrCtlInterface->HandleCommandL( ( TInt )TBrCtlDefs::ECommandIdBase +
+            ( TInt )TBrCtlDefs::ECommandReload ) );
     }
 
 void CFsEmailUiHtmlViewerContainer::ShowAttachmentDownloadStatusL( 
@@ -1829,6 +1960,23 @@ TBool CFsEmailUiHtmlViewerContainer::AttachmentDownloadStatusVisible()
         return EFalse;
         }
     }
+void CFsEmailUiHtmlViewerContainer::ViewerSettingsChangedL( const TUint32 aKey )
+    {
+    FUNC_LOG;
+    if (aKey == KFreestyleEmailDownloadHTMLImages)
+        {
+        if (iBrCtlInterface)
+            {
+            iBrCtlInterface->SetBrowserSettingL(
+                TBrCtlDefs::ESettingsAutoLoadImages,
+                    iViewerSettings->AutoLoadImages() );
+            if (iViewerSettings->AutoLoadImages() && iMessage)
+                {
+                LoadContentFromMailMessageL(iMessage, EFalse);
+                }
+            }
+        }
+    }
 
 void CFsEmailUiHtmlViewerContainer::HideDownloadStatus()
     {
@@ -1849,13 +1997,18 @@ TRect CFsEmailUiHtmlViewerContainer::CalcAttachmentStatusRect()
     return TRect( statusTopLeft, statusBottomRight );
     }
 
+void CFsEmailUiHtmlViewerContainer::TouchFeedback()
+    {
+    iTouchFeedBack->InstantFeedback(this, ETouchFeedbackBasic);  
+    }
+
 /**
  * The body fetch link is cmail://body/fetch. Look for the URL separator
  * and the presence of cmail and body on the url.
  * @param aUrl 
  * return ETrue for  a valid body URL
  */
-TBool CFsEmailUiHtmlViewerContainer::IsMessageBodyURL(const TDesC& aUrl)
+TBool CFsEmailUiHtmlViewerContainer::IsMessageBodyURLL(const TDesC& aUrl)
     {
     TInt index = aUrl.Find(KURLSchemeSeparator);
     if (index == KErrNotFound)
@@ -1864,7 +2017,31 @@ TBool CFsEmailUiHtmlViewerContainer::IsMessageBodyURL(const TDesC& aUrl)
         }
     else
         {
-        if (aUrl.Left(index).CompareF(KURLSchemeCmail) == 0)
+        if (aUrl.Compare(KURLLoadImages()) == 0)
+            {
+            iBrCtlInterface->HandleCommandL(TBrCtlDefs::ECommandLoadImages + TBrCtlDefs::ECommandIdBase);
+            return ETrue;
+            }
+        else if (aUrl.Compare(KURLDisplayImages()) == 0)
+            {
+            DisplayStatusIndicatorL(KStatusIndicatorAutomaticHidingDuration);
+            iAppUi.DisplayImagesCache().AddMessageL(*iMessage);
+            iBrCtlInterface->HandleCommandL(TBrCtlDefs::ECommandLoadImages + TBrCtlDefs::ECommandIdBase);
+            return ETrue;
+            }
+        else if (aUrl.Compare(KURLCollapseHeader()) == 0)
+            {
+            TouchFeedback();
+            iHeaderExpanded = EFalse;
+            return ETrue;
+            }
+        else if (aUrl.Compare(KURLExpandHeader()) == 0)
+            {
+            TouchFeedback();
+            iHeaderExpanded = ETrue;
+            return ETrue;        
+            }
+        else if (aUrl.Left(index).CompareF(KURLSchemeCmail) == 0)
             {
             TInt bodyIndex = aUrl.Find(KURLTypeBody);                      
             if (bodyIndex == KErrNotFound)
@@ -1895,6 +2072,7 @@ TBool CFsEmailUiHtmlViewerContainer::IsMessageBodyURL(const TDesC& aUrl)
             }
         }
     } 
+
 // ---------------------------------------------------------------------------
 // From MBrCtlWindowObserver
 // ---------------------------------------------------------------------------
@@ -1933,6 +2111,7 @@ TBool CFsEmailUiHtmlViewerContainer::NeedToLaunchBrowserL( const TDesC& aUrl )
     TBool launchBrowser( ETrue );
     // look for file:///
     _LIT( KFileLink, "file:///");
+    _LIT( KUrlLink, "http");
     
     // This might be linking to header.html or body.html frames
     // Ignore them.
@@ -1959,6 +2138,12 @@ TBool CFsEmailUiHtmlViewerContainer::NeedToLaunchBrowserL( const TDesC& aUrl )
         {
         launchBrowser = EFalse;
         }
+    //    THAA-82BEAZ - show popup first 
+    else if ( aUrl.Left(KUrlLink().Length() ).CompareF( KUrlLink ) == 0 )
+        {
+        launchBrowser = EFalse;
+        }
+    // end THAA-82BEAZ
 
     return launchBrowser;
     }
@@ -2018,18 +2203,19 @@ void CFsEmailUiHtmlViewerContainer::WriteEmptyBodyHtmlL( const TDesC& aFileName 
     CleanupStack::PopAndDestroy( &targetFile );    
     }
 
-void CFsEmailUiHtmlViewerContainer::DisplayStatusIndicatorL()
+void CFsEmailUiHtmlViewerContainer::DisplayStatusIndicatorL(TInt aDuration)
     {
-    TRect rect = CalcAttachmentStatusRect();  
+    FUNC_LOG;
+    TRect rect = CalcAttachmentStatusRect();
     if(!iStatusIndicator)
         {
         iStatusIndicator  = CFreestyleEmailUiAknStatusIndicator::NewL( rect, this );
         }  
     CFbsBitmap* image = NULL;
     CFbsBitmap* imageMask = NULL;
-    TInt duration = KStatusIndicatorDefaultDuration;
     HBufC* statusText = NULL;
     statusText = StringLoader::LoadL(R_FREESTYLE_EMAIL_UI_VIEWER_FETCHING_CONTENT_TEXT);
     iAppUi.FsTextureManager()->ProvideBitmapL(EStatusTextureSynchronising, image, imageMask );
-    iStatusIndicator->ShowIndicatorL( image, imageMask, statusText, duration );
+    iStatusIndicator->ShowIndicatorL( image, imageMask, statusText, aDuration );
     }
+

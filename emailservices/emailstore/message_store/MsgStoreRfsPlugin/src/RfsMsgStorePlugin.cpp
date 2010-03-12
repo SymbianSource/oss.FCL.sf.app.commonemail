@@ -55,8 +55,8 @@ void CRfsMsgStorePlugin::RestoreFactorySettingsL( const TRfsReason aType )
     if ( aType == ENormalRfs || aType == EDeepRfs || aType == EInitRfs )
         {
         TUint driveStatus( 0 );
-				TDriveNumber drive( EDriveC );
-     		GetDriveL( drive );
+        TDriveNumber drive( EDriveC );
+        
         if ( DriveInfo::GetDriveStatus( iFs, drive, driveStatus ) == KErrNone )
             {
             _LIT( KPrivate, ":\\Private\\" );    
@@ -70,9 +70,7 @@ void CRfsMsgStorePlugin::RestoreFactorySettingsL( const TRfsReason aType )
             msgStorePath.AppendNum( KUidMessageStoreExe, EHex );
             msgStorePath.Append( KPathDelimiter );
             CFileMan* fileManager = CFileMan::NewL( iFs );
-            // this will recursively delete all files in all directories under the msgStorePath
-            // but directories under the msgStorePath are not deleted
-            fileManager->Delete( msgStorePath, CFileMan::ERecurse );
+            fileManager->RmDir( msgStorePath );
             delete fileManager;
             }
         }
@@ -116,46 +114,5 @@ void CRfsMsgStorePlugin::ConstructL()
     User::LeaveIfError( iFs.Connect() );
     }
     
-// -----------------------------------------------------------------------------
-// CRfsMsgStorePlugin::GetDriveL(TDriveNumber&)
-// -----------------------------------------------------------------------------
-//
-TInt CRfsMsgStorePlugin::GetDriveL( TDriveNumber& aDrive )
-    {
-    _LIT16( KDriveToUseFile, "db_drive.cfg" );
-    TInt ret( KErrNotFound );
-    RFs fs;
-    if( fs.Connect() == KErrNone )
-        {
-        CleanupClosePushL( fs );               //+fs
-        TFileName fileName;
-        _LIT( KCDrive, "C:" );
-        _LIT( KPrivate, "Private" );   
-        fileName.Append(KCDrive());
-        fileName.Append( KPathDelimiter ); 
-        fileName.Append(KPrivate);
-        fileName.Append( KPathDelimiter );                 
-        fileName.AppendNum( KUidMessageStoreExe, EHex );
-        fileName.Append( KPathDelimiter );        
-        fileName.Append( KDriveToUseFile );
-        if( BaflUtils::FileExists( fs, fileName ) )
-            {
-            RFileReadStream reader;
-            if ( reader.Open( fs, fileName, EFileRead ) == KErrNone )
-          		{
-           		CleanupClosePushL( reader );             //+reader
-           		TUint drive = reader.ReadUint32L();
-              CleanupStack::PopAndDestroy( &reader );  //-reader
-              if(drive <=EDriveZ)
-	              {
-	           		aDrive = static_cast<TDriveNumber>( drive );
-           			ret = KErrNone;
-           			}
-           		}
-            }
-        CleanupStack::PopAndDestroy( &fs );    //-fs
-        } // end if
-    return ret;
-    }
 
 // END FILE RfsMsgStorePlugin.cpp

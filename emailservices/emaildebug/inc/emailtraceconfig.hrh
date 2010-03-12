@@ -47,7 +47,7 @@
 
 #endif // ENABLE_TRACES
 
-#ifdef ENABLE_TIMESTAMP_TRACES
+#ifdef __ENABLE_TIMESTAMP_TRACES
 #ifndef _DEBUG
 // Undefine error traces
 #undef ERROR_TRACE

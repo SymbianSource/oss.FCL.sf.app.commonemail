@@ -61,10 +61,7 @@ public:
      */
     void PublishActiveMailboxNameL( const TInt aInstance, 
 									const TInt aRowNumber, 
-                                    const TDesC& aMailboxName,
-                                    const TInt aMailBoxCount,
-                                    TFSMailMsgId aMailBoxId,
-                                    TFSMailMsgId aFolderId );
+                                    const TDesC& aMailboxName);
 
     /**
      * Publishes mailbox name to widget and action related to widget
@@ -173,7 +170,7 @@ public:
      * 
      */	
 	TInt GetWidgetInstanceCount();
-	
+
 private:
     
     CMailCpsIf( CMailCpsHandler* aMailCpsHandler );
@@ -214,10 +211,7 @@ private:
         const TDesC& aContentId, 
         const TDesC& aTextToAdd,
         const TDesC& aKey,
-        const TDesC8& aTrigger,
-        const TInt aMailBoxCount,
-        TFSMailMsgId aMailBoxId,
-        TFSMailMsgId aFolderId );
+        const TDesC8& aTrigger);
 
     /**
      * Publishes image
@@ -234,7 +228,8 @@ private:
          const TDesC8& aKey,
          TInt aBitmapId,
          TInt aBitmapMaskId,
-         TFSMailMsgId aMailBoxId );
+         TFSMailMsgId aMailBoxId,
+         const TDesC& aBrandId );
 
     /**
      * Removes a published entity from Content Publishing Service
@@ -246,7 +241,7 @@ private:
      * 
      */	    
     TInt FindWidgetInstanceId(const TDesC& aContentId);
-    
+
     /**
      * Resets all the published content values on HomeScreen database
      */
@@ -275,8 +270,6 @@ private:
     TUint 					iSetupUid;
 	// is content allowed to publish	
 	TBool 					iAllowedToPublish[KMaxMailboxCount];
-    // is widget inactive    
-    TBool                   iInactive[KMaxMailboxCount];	
 	// From configuration: are homescreen notifications observed or ignored
 	TBool                   iIgnoreHsNotifications;
     };

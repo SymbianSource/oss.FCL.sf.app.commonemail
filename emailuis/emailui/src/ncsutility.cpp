@@ -36,9 +36,9 @@
 #include <flogger.h>
 #include <aknenv.h>	// CAknEnv
 
-#include "cfsmailbox.h"
-#include "cfsmailclient.h"
-#include "cfsmailaddress.h"
+#include "CFSMailBox.h"
+#include "CFSMailClient.h"
+#include "CFSMailAddress.h"
 
 #include <aknlayoutscalable_apps.cdl.h>
 #include <layoutmetadata.cdl.h>
@@ -300,51 +300,59 @@ CFSMailAddress* NcsUtility::CreateFsAddressL(
 HBufC* NcsUtility::FormatSubjectLineL( 
         const TDesC& aNewSubjectLine, const TDesC& aPrefix )
 	{
-    FUNC_LOG;
+	FUNC_LOG;
+	   
+	    HBufC* formattedSubjectLine = aNewSubjectLine.AllocLC();
+	    HBufC* prefix = aPrefix.AllocLC();
+	    TPtr formattedSubjectLinePtr = formattedSubjectLine->Des();
+	    TPtr prefixPtr = prefix->Des();
+	    prefixPtr.Trim();
+	    
+	    TInt subjectLineLength = formattedSubjectLinePtr.Length();
+	    TInt length = subjectLineLength;
+	    TInt prefixLength = prefixPtr.Length();
+	    HBufC* fwdPrefix = StringLoader::LoadLC( R_NCS_ENGINE_EMAIL_FORWARD_PREFIX );
+	    TPtr fwdPrt = fwdPrefix->Des();
+	    TInt fwdLength = fwdPrt.Length();
+	    fwdPrt.Trim();
+	    
+	      for(TInt index = formattedSubjectLinePtr.FindC( prefixPtr ); index != KErrNotFound ; index = formattedSubjectLinePtr.FindC( prefixPtr ))
+	        {
+	            formattedSubjectLinePtr = formattedSubjectLinePtr.RightTPtr( length );
+	            length = formattedSubjectLinePtr.Length() - index - prefixLength;
+	        }
+	       formattedSubjectLinePtr.Trim();
+	       
+	       for(TInt index = formattedSubjectLinePtr.FindC( fwdPrt) ; index != KErrNotFound  ; index = formattedSubjectLinePtr.FindC( fwdPrt ))
+	          {
+	               formattedSubjectLinePtr = formattedSubjectLinePtr.RightTPtr( length );
+	               length = formattedSubjectLinePtr.Length() - index - fwdLength;
+	          }
 
-	HBufC* formattedSubjectLine = aNewSubjectLine.AllocLC();
-	HBufC* prefix = aPrefix.AllocLC();
+	       formattedSubjectLinePtr.Trim();
+	    
+	    
+	    HBufC* finalSubject = HBufC::NewL( formattedSubjectLinePtr.Length() + prefixPtr.Length() + KSpace().Length()  );
+	    TPtr ptr = finalSubject->Des();
+	    if ( AknLayoutUtils::LayoutMirrored() )
+	        {
+	        ptr.Append( formattedSubjectLinePtr );
+	        ptr.Append( KSpace );
+	        ptr.Append( prefixPtr );        
+	        
+	        }
+	    else
+	        {
+	        ptr.Append( prefixPtr );
+	        ptr.Append( KSpace );
+	        ptr.Append( formattedSubjectLinePtr );
+	    
+	        }
+	    CleanupStack::PopAndDestroy( fwdPrefix );
+	    CleanupStack::PopAndDestroy( prefix );
+	    CleanupStack::PopAndDestroy( formattedSubjectLine );
 
-	TPtr formattedSubjectLinePtr = formattedSubjectLine->Des();
-	TPtr prefixPtr = prefix->Des();
-	prefixPtr.Trim();
-
-	TInt subjectLineLength = formattedSubjectLinePtr.Length();
-	TInt index = 0;
-	TInt length = subjectLineLength;
-	TInt prefixLength = prefixPtr.Length();
-
-	do
-		{
-		formattedSubjectLinePtr = formattedSubjectLinePtr.RightTPtr( length );
-		index = formattedSubjectLinePtr.FindC( prefixPtr );
-		length = formattedSubjectLinePtr.Length() - index - prefixLength;
-		}
-	while( index != KErrNotFound );
-
-	formattedSubjectLinePtr.Trim();
-
-	HBufC* finalSubject = HBufC::NewL( 
-	        formattedSubjectLinePtr.Length() + prefixPtr.Length() + 
-	        KSpace().Length() );
-	TPtr ptr = finalSubject->Des();
-	if ( AknLayoutUtils::LayoutMirrored() )
-		{
-		ptr.Append( formattedSubjectLinePtr );
-		ptr.Append( KSpace );
-		ptr.Append( prefixPtr );		
-		}
-	else
-		{
-		ptr.Append( prefixPtr );
-		ptr.Append( KSpace );
-		ptr.Append( formattedSubjectLinePtr );
-		}
-
-	CleanupStack::PopAndDestroy( prefix );
-	CleanupStack::PopAndDestroy( formattedSubjectLine );
-
-	return finalSubject;
+	    return finalSubject;
 	}
 
 // -----------------------------------------------------------------------------

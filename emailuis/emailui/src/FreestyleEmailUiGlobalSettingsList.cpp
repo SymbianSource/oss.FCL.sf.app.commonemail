@@ -38,7 +38,7 @@
 #include "FreestyleEmailUiGlobalSettingsListView.h"
 #include "FreestyleEmailUiGlobalSettingsList.h"
 #include "FreestyleEmailUiAppui.h"
-#include "FreestyleEmailCenRepHandler.h"
+#include "freestyleemailcenrephandler.h"
 #include "FreestyleEmailUiShortcutBinding.h"
 #include "FreestyleEmailUiConstants.h"
 
@@ -113,7 +113,7 @@ CAknSettingItem* CFsEmailUiGlobalSettingsList::CreateSettingItemL( TInt aId )
                     aId,
                     iSettings.WarnBeforeDelete() );
             return item;
-            }/*
+            }
 		case EGlobalSettingsDownloadHTMLImages:
             {         
             CAknBinaryPopupSettingItem* item = new ( ELeave ) 
@@ -121,7 +121,7 @@ CAknSettingItem* CFsEmailUiGlobalSettingsList::CreateSettingItemL( TInt aId )
                     aId,
                     iSettings.DownloadHTMLImages() );
             return item;
-            }*/
+            }
         case EGlobalSettingsActiveIdle:
             {           
             CAknBigSettingItemBase* item = new ( ELeave )
@@ -207,7 +207,7 @@ void CFsEmailUiGlobalSettingsList::LoadSettingValuesL()
 	//iSettings.SetDownloadNotifications( crHandler->DownloadNotifications() );
 	iSettings.SetActiveIdle( crHandler->ActiveIdle() );
 	iSettings.SetWarnBeforeDelete( crHandler->WarnBeforeDelete() );
-	//iSettings.SetDownloadHTMLImages( crHandler->DownloadHTMLImages() );
+	iSettings.SetDownloadHTMLImages( crHandler->DownloadHTMLImages() );
 	}
 	
 /**
@@ -230,7 +230,7 @@ void CFsEmailUiGlobalSettingsList::SaveSettingValuesL()
 	//crHandler->SetDownloadNotifications( iSettings.DownloadNotifications() );
 	crHandler->SetActiveIdle( iSettings.ActiveIdle() );
 	crHandler->SetWarnBeforeDelete( iSettings.WarnBeforeDelete() );
-	//crHandler->SetDownloadHTMLImages( iSettings.DownloadHTMLImages() );
+	crHandler->SetDownloadHTMLImages( iSettings.DownloadHTMLImages() );
 	}
 
 /**

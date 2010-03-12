@@ -22,9 +22,8 @@
 #include <e32base.h>
 #include <MVPbkSingleContactOperationObserver.h>
 #include <AiwCommon.h>
-//<cmail>
-#include "cpbkxremotecontactlookupserviceuicontext.h"
-//</cmail>
+#include <cpbkxremotecontactlookupserviceuicontext.h>
+
 #include "resmrstatic.h"
 #include "mesmrclslistsobserver.h"
 #include "cesmrcontactmanagerhandler.h"
@@ -162,7 +161,7 @@ private: // Implementation
                             MVPbkStoreContact* aContact );
     void DoRemoteLookupL( const TDesC& aQueryString,
                           CPbkxRemoteContactLookupServiceUiContext::TResult& aResult,
-                          CPbkxRemoteContactLookupServiceUiContext::TMode aContext = 
+                          CPbkxRemoteContactLookupServiceUiContext::TMode aLookupMode = 
                           CPbkxRemoteContactLookupServiceUiContext::EModeContactSelector );
     CFSMailBox& DelayedMailBoxL();
     

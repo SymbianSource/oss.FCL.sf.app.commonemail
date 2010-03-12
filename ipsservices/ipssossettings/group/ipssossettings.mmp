@@ -46,7 +46,7 @@ LANGUAGE_IDS
 END
 
 // Def file
-DEFFILE         IPSSOSSETTINGS.DEF
+DEFFILE         ipssossettings.def
 
 // Path definition
 SOURCEPATH      ../src

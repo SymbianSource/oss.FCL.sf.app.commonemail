@@ -37,5 +37,9 @@
  */
 #define KAlwaysOnlineEmailPluginUidAsTInt 0x200100BA
 
+/** General Settings application UID
+ */
+#define KGeneralSettingsAppUidAsTInt 0x100058EC
+
 
 #endif // EMAILSERVERMONITOR_HRH

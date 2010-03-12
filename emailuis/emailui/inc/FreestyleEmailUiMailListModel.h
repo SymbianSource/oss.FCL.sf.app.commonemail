@@ -24,6 +24,7 @@
 
 // INTERNAL INCLUDES
 #include "FreestyleEmailUiListModel.h"
+#include "fstreelistconstants.h"
 
 // FORWARD DECLARATIONS
 class CFreestyleEmailUiAppUi;
@@ -152,6 +153,11 @@ public: // new methods
 	 */
     void Reset();
 
+    /**
+     * Returns ItemIds for items under specific node.
+     */
+    void GetItemIdsUnderNodeL( const TFsTreeItemId aNodeId, RFsTreeItemIdList& aMessageIds ) const;
+    
 protected: // construction
     
     // C++ constructor.

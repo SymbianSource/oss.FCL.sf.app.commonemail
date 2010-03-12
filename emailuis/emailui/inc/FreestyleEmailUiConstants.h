@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2007 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -91,7 +91,7 @@ enum TActionMenuCustomItemId
 	{
 	FsEActionMenuDismissed = -10,
 	FsEActionMenuCasItemSelectedAndExecuted,
-	
+
 	FsEActionMenuOpen = 1,
 	FsEActionMenuOpenCalendarEvent,
 	FsEActionMenuReply,
@@ -170,7 +170,7 @@ const TUid FsEActionAttachmentSaveAllUid = { FsEActionAttachmentSaveAll };
 /**
  * Settings launch modes
  */
- enum TMailSettingsLaunchMode 
+ enum TMailSettingsLaunchMode
  	{
  	KMailSettingsOpenMainList = 0x112,
  	KMailSettingsOpenMailboxSettings,
@@ -182,11 +182,11 @@ const TUid FsEActionAttachmentSaveAllUid = { FsEActionAttachmentSaveAll };
  	KMailSettingsOpenPluginSettings
  	};
 
- 	
+
 /**
 * editor launch modes
 */
-enum TEditorLaunchMode 
+enum TEditorLaunchMode
 	{
 	KEditorCmdCreateNew,
 	KEditorCmdReply,
@@ -240,11 +240,12 @@ struct TReplyForwardParams
 
 /**
 * List launch parameters
-* Use iRequestRefresh = ETrue to force list refresh when using 
+* Use iRequestRefresh = ETrue to force list refresh when using
 * KStartListReturnToPreviousFolder parameter.
 */
 static const TUid KStartListWithFolderId = { 1 };
 static const TUid KStartListReturnToPreviousFolder = { 2 };
+static const TUid KStartListWithFolderIdFromHomeScreen = { 3 };
 
 class TMailListActivationData
 	{
@@ -254,8 +255,8 @@ public: // constructor
 	    {
 	    // no implementation needed
 	    }
-	
-public: // data	
+
+public: // data
 	TFSMailMsgId iMailBoxId;
 	TFSMailMsgId iFolderId;
 	TBool iRequestRefresh;
@@ -268,15 +269,15 @@ public: // data
 class TMsgViewerActivationData
 	{
 public: // construction
-	inline TMsgViewerActivationData() 
-	    : iMailBoxId(), 
-	      iFolderId(), 
+	inline TMsgViewerActivationData()
+	    : iMailBoxId(),
+	      iFolderId(),
 	      iMessageId(),
 	      iDetails( EFSMsgDataEnvelope ),
 	      iEmbeddedMessage( NULL )
 	      {}
-	
-public: // members	
+
+public: // members
 	TFSMailMsgId iMailBoxId;
 	TFSMailMsgId iFolderId;
 	TFSMailMsgId iMessageId;
@@ -301,8 +302,8 @@ class TSearchListActivationData
 public: // construction
 	inline TSearchListActivationData()
 	    : iMailBoxId(), iFolderId() {}
-	
-public: // members	
+
+public: // members
 	TFSMailMsgId iMailBoxId;
 	TFSMailMsgId iFolderId;
 	};
@@ -328,7 +329,7 @@ public: // data types
 
 public: // methods
     // default constructor
-	inline THtmlViewerActivationData() 
+	inline THtmlViewerActivationData()
 	    : iActivationDataType( EMailMessage ),
 	      iMailBoxId(),
 	      iFolderId(),
@@ -338,7 +339,7 @@ public: // methods
 	      iUrl( KNullDesC ),
 	      iEmbeddedMessage( NULL ),
           iEmbeddedMessageMode( EFalse ) {}
-	
+
 	// substitution operator
 	inline THtmlViewerActivationData& operator=( const THtmlViewerActivationData& aAnother )
 	    {
@@ -356,8 +357,8 @@ public: // methods
 	        }
 	    return *this;
 	    }
-	
-public: // members	
+
+public: // members
     TActivationDataType iActivationDataType;
     TFSMailMsgId iMailBoxId; // Mail box ID of the message used in activation.
     TFSMailMsgId iFolderId; // Folder ID of the message used in activation.
@@ -377,8 +378,8 @@ class TAttachmentListActivationData
 public: // construction
 	inline TAttachmentListActivationData()
 	    : iMailBoxId(), iFolderId(), iMessageId(), iDetails(EFSMsgDataEnvelope), iEmbeddedMsgMode(EFalse) {}
-	
-public: // members	
+
+public: // members
 	TFSMailMsgId iMailBoxId;
 	TFSMailMsgId iFolderId;
 	TFSMailMsgId iMessageId;
@@ -421,11 +422,11 @@ class TFolderListActivationData
 public: // construction
 	inline TFolderListActivationData()
         : iSourceFolderType( EFSOther ), iCallback( NULL ) {}
-	
-public: // members	
+
+public: // members
 	// Type of the source folder in case of move or copy
 	TFSFolderType iSourceFolderType;
-	
+
 	// Call back used to inform the folder selection query result
 	MFSEmailUiFolderListCallback* iCallback;
 	};
@@ -440,31 +441,31 @@ public: // data
 	TFSMailMsgId iFolderId;
 	TFSMailMsgId iMessageId;
 	TFSMailMsgId iMessagePartId;
-	
+
 public: // methods
 	// default constructor initializes all IDs as NULL ID
 	inline TPartData()
 	    : iMailBoxId(), iFolderId(), iMessageId(), iMessagePartId()
 	    {
 	    }
-	
+
 	// construction with initial data
-	inline TPartData( TFSMailMsgId aMailBoxId, TFSMailMsgId aFolderId, 
+	inline TPartData( TFSMailMsgId aMailBoxId, TFSMailMsgId aFolderId,
 	           TFSMailMsgId aMessageId, TFSMailMsgId aMessagePartId )
-	    : iMailBoxId( aMailBoxId ), iFolderId( aFolderId ), 
+	    : iMailBoxId( aMailBoxId ), iFolderId( aFolderId ),
 	      iMessageId( aMessageId ), iMessagePartId( aMessagePartId )
-	    {  
+	    {
 	    }
-	
+
 	// construction with initial data except messagePartId
 	inline TPartData( TFSMailMsgId aMailBoxId, TFSMailMsgId aFolderId, TFSMailMsgId aMessageId )
-	    : iMailBoxId( aMailBoxId ), iFolderId( aFolderId ), 
+	    : iMailBoxId( aMailBoxId ), iFolderId( aFolderId ),
 	      iMessageId( aMessageId ), iMessagePartId()
-	    {  
+	    {
 	    }
-	
+
 	// equality operator
-	inline TBool operator==( const TPartData& aPart ) const 
+	inline TBool operator==( const TPartData& aPart ) const
 		{
 		return ( iMailBoxId==aPart.iMailBoxId && iFolderId==aPart.iFolderId &&
 		         iMessageId==aPart.iMessageId && iMessagePartId==aPart.iMessagePartId );
@@ -493,7 +494,7 @@ const TUid KAiwCmdSettingWizardFsEmail = { 0x2000CFE9 };
 static const TInt KBrowserUid = 0x10008D39;
 
 /**
- * UID for identifying Message Reader in the taskList 
+ * UID for identifying Message Reader in the taskList
  */
 static const TUid KMessageReaderUid = { 0x10201B00 };
 

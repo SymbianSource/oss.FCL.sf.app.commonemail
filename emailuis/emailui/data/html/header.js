@@ -1,54 +1,79 @@
-function collapseHeader()
-	{
-	handleHeaderDisplay( "header_table", "table_initial" )
-	parent.document.getElementById('headerBody').rows = '10%,*';
+var collapsed = true;
+var displayImagesHidden = false;
+var previousPageYOffset = -1;
+var setScrollPositionInterval;
+
+function collapseHeader(sendEvent) {
+	if (sendEvent) {
+    	location.href = "cmail://collapseHeader/";
+    	}
+    collapsed = true;
+	handleHeaderDisplay( "header_table", "table_initial" );
+	updateHeader();
 	}
-	
-function expandHeader()
-	{
+
+function expandHeader(sendEvent) {
+	if (sendEvent) {
+	    location.href = "cmail://expandHeader/";
+    	}
+	collapsed = false;
 	handleHeaderDisplay( "table_initial", "header_table" )
-	parent.document.getElementById('headerBody').rows = '40%,*';
+	parent.document.getElementById('email_frameSet').rows = "40%, *";
 	}
-	
-function handleHeaderDisplay( tableToHide, tableToShow )
-	{
+
+function updateHeader() {
+    var rows = "40%, *";
+	if (collapsed) {
+    	if (displayImagesHidden || (parent.header_frame.g_autoLoadImages != 0) || (parent.hiddenCount == 0)) {
+            rows = "10%, *";
+        } else {
+            rows = "17%, *";
+	    }
+	}
+    parent.document.getElementById('email_frameSet').rows = rows;
+    }
+
+function handleHeaderDisplay( tableToHide, tableToShow ) {
 	document.getElementById(tableToShow).style.display = "";
 	document.getElementById(tableToHide).style.display = "none";
 	}
 
-var intervalHandler;
-function fetchMoreIfAtBottom()
-   {
-   var element = parent.body_frame.document.body;
-
-   if ( element == null )
-      {
-      return;
-      }
-    
-    var viewport = parent.pageYOffset;
-    var elementHeight = element.offsetHeight;
-    var elementOffsetTop = element.offsetTop;
-    var screenHeight = screen.availHeight;
-    if ( elementOffsetTop + elementHeight - viewport < screenHeight )
-       {            
-       location.href = "cmail://body/" + viewport
-       clearInterval(intervalHandler);
-       }
-    }
-	   
-function scrollHandler()
-	{	
-	  intervalHandler = setInterval( "fetchMoreIfAtBottom()", 500);
-	} 
-				
-function init(scrollPos)
-    {
-    collapseHeader();
+function init(scrollPos) {
+	if (document.getElementById("table_initial").style.display != "none") {
+    	    collapseHeader(false);
+	} else {
+	    expandHeader(false);
+	}
     window.scrollTo(0, scrollPos);
-    //start a scrolling event which will trigger the check of bottom reached...
-    //this will take care of short document not does not need scrolling
-    scrollHandler();
-    } 
+	setScrollPositionInterval = setInterval("updateScrollPosition()", 500);
+    }
 
-//onload=init;
+function displayImagesButtonPressed() {
+    hideDisplayImagesButton();
+    parent.restoreImages("body_frame");
+    requestDisplayImages();
+}
+
+function hideDisplayImagesButton() {
+	document.getElementById("displayImagesTable").style.display = "none";
+    displayImagesHidden = true;
+    updateHeader();
+}
+
+function showDisplayImagesButton() {
+	document.getElementById("displayImagesTable").style.display = "";
+    displayImagesHidden = false;
+    updateHeader();
+}
+
+function requestDisplayImages() {
+    location.href = "cmail://displayImages/";
+}
+
+function updateScrollPosition() {
+    if (previousPageYOffset != parent.pageYOffset) {
+        previousPageYOffset = parent.pageYOffset;
+        location.href = "cmail://body/" + previousPageYOffset;
+    }
+}
+

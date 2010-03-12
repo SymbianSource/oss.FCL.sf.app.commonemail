@@ -17,10 +17,6 @@
 
 #include "OverlayControl.h"
 
-// CONSTS
-const TReal KSolidTransparencyFactor = 2;
-
-
 COverlayControl::COverlayControl( MOverlayControlObserver* aObserver )
 : iObserver( aObserver )
 	{
@@ -44,9 +40,7 @@ COverlayControl* COverlayControl::NewL( CCoeControl* aParent, MOverlayControlObs
 
 void COverlayControl::ConstructL( CCoeControl* aParent, const TRect& aRect, TInt aBitmapId, TInt aMaskId )
 	{
-
     SetContainerWindowL( *aParent );
-	
 	TFileName iconFileName;
 	TFsEmailUiUtility::GetFullIconFileNameL( iconFileName );
 	AknIconUtils::CreateIconL( iBitmap,
@@ -54,10 +48,10 @@ void COverlayControl::ConstructL( CCoeControl* aParent, const TRect& aRect, TInt
 							   iconFileName,
 							   aBitmapId,
 							   aMaskId );
-
 	SetRect( aRect );
+    iTouchFeedBack = MTouchFeedback::Instance();
+    iTouchFeedBack->EnableFeedbackForControl(this, ETrue);
     EnableDragEvents();
-	
 	ActivateL();
 	}
 
@@ -76,6 +70,12 @@ void COverlayControl::SetRect( const TRect& aRect )
 
 void COverlayControl::HandlePointerEventL( const TPointerEvent& aPointerEvent )
     {
+    if (aPointerEvent.iType == TPointerEvent::EButton1Down)
+        {      
+        // Give feedback to user (vibration)     
+        iTouchFeedBack->InstantFeedback(this, ETouchFeedbackBasic);  
+        }
+    
     CCoeControl::HandlePointerEventL( aPointerEvent );
     
     if( iObserver )

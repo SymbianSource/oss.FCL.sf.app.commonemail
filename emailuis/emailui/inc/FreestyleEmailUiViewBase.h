@@ -72,7 +72,7 @@ public: // new functions
      * foreground, calls the virtual HandleForegroundEventL() method, which
      * can be implemented by subclasses.
      */
-    void HandleAppForegroundEventL( TBool aForeground );
+    virtual void HandleAppForegroundEventL( TBool aForeground );
 
     /**
     * Inherited classes should override this to react to skin or layout changes
@@ -317,6 +317,7 @@ private: // data
     TBool iSendToBackgroundOnDeactivation;
     // View's active status
     TBool iViewActive;
+protected: // to enable overridning 
     TBool iWasActiveControlGroup;
     };
 

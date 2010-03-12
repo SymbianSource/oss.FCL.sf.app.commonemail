@@ -87,6 +87,7 @@
 #include <data_caging_path_literals.hrh> // hardcoded paths removal from cmail
 #include "cfsccontactactionmenu.h"
 //</cmail>
+#include <layoutmetadata.cdl.h>         // for Layout_Meta_Data
 
 // INTERNAL INCLUDE FILES
 #include "FreestyleEmailUiContactHandler.h"
@@ -106,7 +107,7 @@
 #include "FreestyleEmailUiAttachmentsListModel.h"
 #include "FreestyleEmailUiAttachmentsListVisualiser.h"
 #include "FreestyleEmailUiAttachmentsListControl.h"
-#include "FreestyleEmailCenRepHandler.h"
+#include "freestyleemailcenrephandler.h"
 #include "FreestyleEmailUiSettingsListView.h"
 #include "FreestyleEmailUiGlobalSettingsListView.h"
 #include "FreestyleEmailUiDownloadManagerModel.h"
@@ -155,6 +156,203 @@ const TInt KConnectionStatusIconRotationAmount = 18;
 // Length of the drive letter descriptor (e.g. "c:")
 const TInt KDriveDescLength = 2;
 
+
+// TDisplayImagesCache
+
+// ---------------------------------------------------------------------------
+// TDisplayImagesCache::~TDisplayImagesCache
+// ---------------------------------------------------------------------------
+//
+TDisplayImagesCache::~TDisplayImagesCache()
+    {
+    iCache.Reset();
+    }
+
+// ---------------------------------------------------------------------------
+// TDisplayImagesCache::AddMessageL
+// ---------------------------------------------------------------------------
+//
+void TDisplayImagesCache::AddMessageL( const CFSMailMessageBase& aMsg )
+    {
+    AddMessageL(aMsg.GetMailBoxId(), aMsg.GetMessageId());
+    }
+
+// ---------------------------------------------------------------------------
+// TDisplayImagesCache::RemoveMessage
+// ---------------------------------------------------------------------------
+//
+void TDisplayImagesCache::RemoveMessage( const CFSMailMessageBase& aMsg )
+    {
+    RemoveMessage(aMsg.GetMailBoxId(), aMsg.GetMessageId());
+    }
+
+// ---------------------------------------------------------------------------
+// TDisplayImagesCache::Contains
+// ---------------------------------------------------------------------------
+//
+TBool TDisplayImagesCache::Contains( const CFSMailMessageBase& aMsg ) const
+    {
+    return Contains(aMsg.GetMailBoxId(), aMsg.GetMessageId());
+    }
+
+// ---------------------------------------------------------------------------
+// TDisplayImagesCache::AddMessageL
+// ---------------------------------------------------------------------------
+//
+void TDisplayImagesCache::AddMessageL( const TFSMailMsgId& aBoxId, const TFSMailMsgId& aMsgId )
+    {
+    TInt index(MailBoxIndex(aBoxId));
+    if (index == KErrNotFound)
+        {
+        AddMailBoxL(aBoxId, index);
+        }
+    iCache[index].AddMessageL(aMsgId);
+    }
+
+// ---------------------------------------------------------------------------
+// TDisplayImagesCache::RemoveMessage
+// ---------------------------------------------------------------------------
+//
+void TDisplayImagesCache::RemoveMessage( const TFSMailMsgId& aBoxId, const TFSMailMsgId& aMsgId )
+    {
+    const TInt index(MailBoxIndex(aBoxId));
+    if (index != KErrNotFound)
+        {
+        iCache[index].RemoveMessage(aMsgId);
+        }
+    }
+
+// ---------------------------------------------------------------------------
+// TDisplayImagesCache::RemoveMailbox
+// ---------------------------------------------------------------------------
+//
+void TDisplayImagesCache::RemoveMailbox( const TFSMailMsgId& aBoxId )
+    {
+    const TInt index(MailBoxIndex(aBoxId));
+    if (index != KErrNotFound)
+        {
+        iCache.Remove(index);
+        }
+    }
+
+// ---------------------------------------------------------------------------
+// TDisplayImagesCache::Contains
+// ---------------------------------------------------------------------------
+//
+TBool TDisplayImagesCache::Contains( const TFSMailMsgId& aBoxId, const TFSMailMsgId& aMsgId ) const
+    {
+    const TInt index(MailBoxIndex(aBoxId));
+    if (index != KErrNotFound)
+        {
+        return iCache[index].Contains(aMsgId);
+        }
+    return EFalse;
+    }
+
+// ---------------------------------------------------------------------------
+// TDisplayImagesCache::MailBoxIndex
+// ---------------------------------------------------------------------------
+//
+TInt TDisplayImagesCache::MailBoxIndex( const TFSMailMsgId& aBoxId ) const
+    {
+    return iCache.FindInOrder(TItem(aBoxId), TLinearOrder<TItem>(TItem::CompareItem));
+    }
+
+// ---------------------------------------------------------------------------
+// TDisplayImagesCache::AddMailBoxL
+// ---------------------------------------------------------------------------
+//
+void TDisplayImagesCache::AddMailBoxL( const TFSMailMsgId& aBoxId, TInt& aCacheIndex )
+    {
+    aCacheIndex = KErrNotFound;
+    iCache.InsertInOrderL(TItem(aBoxId), TLinearOrder<TItem>(TItem::CompareItem));
+    aCacheIndex = MailBoxIndex(aBoxId);
+    }
+
+// ---------------------------------------------------------------------------
+// TDisplayImagesCache::TItem::TItem
+// ---------------------------------------------------------------------------
+//
+TDisplayImagesCache::TItem::TItem( const TFSMailMsgId& aBoxId )
+    : iMailBoxId( aBoxId )
+    {
+    }
+
+// ---------------------------------------------------------------------------
+// TDisplayImagesCache::TItem::~TItem
+// ---------------------------------------------------------------------------
+//
+TDisplayImagesCache::TItem::~TItem()
+    {
+    iMessageIds.Reset();
+    }
+
+// ---------------------------------------------------------------------------
+// TDisplayImagesCache::TItem::Contains
+// ---------------------------------------------------------------------------
+//
+TBool TDisplayImagesCache::TItem::Contains( const TFSMailMsgId& aMsgId ) const
+    {
+    return MessageIndex(aMsgId) != KErrNotFound;
+    }
+
+// ---------------------------------------------------------------------------
+// TDisplayImagesCache::TItem::AddMessageL
+// ---------------------------------------------------------------------------
+//
+void TDisplayImagesCache::TItem::AddMessageL( const TFSMailMsgId& aMsgId )
+    {
+    if (!Contains(aMsgId))
+        {
+        iMessageIds.InsertInOrderL(aMsgId, TLinearOrder<TFSMailMsgId>(TItem::CompareMsgId));
+        }
+    }
+
+// ---------------------------------------------------------------------------
+// TDisplayImagesCache::TItem::RemoveMessage
+// ---------------------------------------------------------------------------
+//
+void TDisplayImagesCache::TItem::RemoveMessage( const TFSMailMsgId& aMsgId )
+    {
+    const TInt index(MessageIndex(aMsgId));
+    if (index != KErrNotFound)
+        {
+        iMessageIds.Remove(index);
+        }
+    }
+
+// ---------------------------------------------------------------------------
+// TDisplayImagesCache::TItem::MessageIndex
+// ---------------------------------------------------------------------------
+//
+TInt TDisplayImagesCache::TItem::MessageIndex( const TFSMailMsgId& aMsgId ) const
+    {
+    return iMessageIds.FindInOrder(aMsgId, TLinearOrder<TFSMailMsgId>(TItem::CompareMsgId));
+    }
+
+// ---------------------------------------------------------------------------
+// TDisplayImagesCache::TItem::CompareItem
+// ---------------------------------------------------------------------------
+//
+TInt TDisplayImagesCache::TItem::CompareItem( const TItem& aItem1, const TItem& aItem2 )
+    {
+    return CompareMsgId(aItem1.iMailBoxId, aItem2.iMailBoxId);
+    }
+
+// ---------------------------------------------------------------------------
+// TDisplayImagesCache::TItem::CompareMsgId
+// ---------------------------------------------------------------------------
+//
+TInt TDisplayImagesCache::TItem::CompareMsgId( const TFSMailMsgId& aId1, const TFSMailMsgId& aId2 )
+    {
+    TInt result(aId1.PluginId().iUid - aId2.PluginId().iUid);
+    if (!result)
+        {
+        result = TInt(aId1.Id() - aId2.Id());
+        }
+    return result;
+    }
+
 // ---------------------------------------------------------------------------
 // C++ constructor.
 // ---------------------------------------------------------------------------
@@ -165,7 +363,10 @@ CFreestyleEmailUiAppUi::CFreestyleEmailUiAppUi( CAlfEnv& aEnv )
     iIsCaptured( EFalse ), // init "end key captured" to false
     iAutomatedMailBoxOnline( EFalse ),
     iMsgReaderIsSupported( KErrGeneral ),
-    iSwitchingToBackground( EFalse )
+    iSwitchingToBackground( EFalse ),
+    iHasEmbeddedApp( EFalse ),
+    iPreviousAppEmbedded( EFalse ),
+    iEditorStartedFromEmbeddedApp( EFalse )
     {
     FUNC_LOG;
     iEnv = &aEnv;
@@ -246,6 +447,17 @@ void CFreestyleEmailUiAppUi::ConstructL()
 
     // Enable Avkon skins.
     BaseConstructL( EAknEnableSkin | EAknEnableMSK | EAknSingleClickCompatible );
+
+    // This MUST be after BaseConstructL
+    MTouchFeedback* touchFeedback(MTouchFeedback::Instance());
+    if (touchFeedback == NULL)
+        {
+        touchFeedback = MTouchFeedback::CreateInstanceL();
+        iTouchFeedbackCreated = ETrue;
+        }
+    touchFeedback->SetFeedbackEnabledForThisApp(touchFeedback->TouchFeedbackSupported());
+
+
     // Create instance for Central repository handler
     iCRHandler = CFSEmailCRHandler::InstanceL();
 
@@ -533,6 +745,19 @@ CFreestyleEmailUiAppUi::~CFreestyleEmailUiAppUi()
     delete iNaviDecorator2MailViewer;
 
     delete iConnectionStatusIconAnimTimer;
+
+
+    MTouchFeedback* touchFeedback( MTouchFeedback::Instance() );
+    if (touchFeedback && touchFeedback->TouchFeedbackSupported())
+        {
+        touchFeedback->SetFeedbackEnabledForThisApp(EFalse);
+        }
+
+    if (iTouchFeedbackCreated)
+        {
+        MTouchFeedback::DestroyInstance();
+        }
+
     TIMESTAMP( "Application exit" );
     }
 
@@ -639,7 +864,7 @@ void CFreestyleEmailUiAppUi::ReturnFromPluginSettingsView()
         }
     // may be tricky; added here to handle activation of composer view from external app when email is plugin settings view
     // in this case also duplictaed view needs to be poped up, but iSettingsViewActive is already set to EFalse
-    // other solution would need to expand api of this class to handle directly this case 
+    // other solution would need to expand api of this class to handle directly this case
     else
     	if ( iPreviousActiveView->Id() == SettingsViewId  || iPreviousActiveView->Id() == MailListId )
     		{
@@ -1239,17 +1464,33 @@ void CFreestyleEmailUiAppUi::DoHandleResourceChangeL( TInt aType )
     //    CAlfEnv::Static()->NotifySkinChangedL();
     //    }
 
-
-    if( aType == KEikDynamicLayoutVariantSwitch || aType == KAknsMessageSkinChange)
+    if( aType == KEikDynamicLayoutVariantSwitch || aType == KAknsMessageSkinChange )
         {
+        // Changing layout for status pane (just in case it is not switched
+        // correctly), fix for HMNN-82BAGR error
+        TBool landscape(Layout_Meta_Data::IsLandscapeOrientation());
+        CEikStatusPane* statusPane = StatusPane();
+        if(landscape)
+        	{
+			if( statusPane->CurrentLayoutResId() != R_AVKON_STATUS_PANE_LAYOUT_USUAL_FLAT)
+				{
+				statusPane->SwitchLayoutL(R_AVKON_STATUS_PANE_LAYOUT_USUAL_FLAT);
+				}
+        	}
+        else
+        	{
+			if( statusPane->CurrentLayoutResId() != R_AVKON_STATUS_PANE_LAYOUT_USUAL_EXT)
+				{
+				statusPane->SwitchLayoutL(R_AVKON_STATUS_PANE_LAYOUT_USUAL_EXT);
+				}
+        	}
+
 	  	TRect screenRect;
 	 	AknLayoutUtils::LayoutMetricsRect( AknLayoutUtils::EMainPane, screenRect );
         //<cmail> layout manager call removed </cmail>
         // Notify layouthandler of changed screen resolution.
         iLayoutHandler->ScreenResolutionChanged();
   		StatusPane()->DrawNow();
-        TRect rect;
-        AknLayoutUtils::LayoutMetricsRect(AknLayoutUtils::EMainPane, rect);
         if(iEnv)
             {
 			Display().SetVisibleArea( screenRect );
@@ -1405,6 +1646,15 @@ TDisplayMode CFreestyleEmailUiAppUi::DisplayMode() const
     {
     FUNC_LOG;
     return iEikonEnv->ScreenDevice()->DisplayMode();
+    }
+
+// ---------------------------------------------------------------------------
+// Returns display images cache
+// ---------------------------------------------------------------------------
+//
+TDisplayImagesCache& CFreestyleEmailUiAppUi::DisplayImagesCache()
+    {
+    return iDisplayImagesCache;
     }
 
 
@@ -1587,6 +1837,7 @@ void CFreestyleEmailUiAppUi::StartMonitoringL()
         // autosyncmonitor has been succesfully created
         if ( iAutoSyncMonitor )
             {
+            TIMESTAMP( "Starting auto sync" );
             iAutoSyncMonitor->StartMonitoring();
             }
         }
@@ -1858,6 +2109,7 @@ void CFreestyleEmailUiAppUi::EventL( TFSMailEvent aEvent, TFSMailMsgId aMailbox,
     	{
     	case TFSEventMailboxDeleted:
     		{
+    		iDisplayImagesCache.RemoveMailbox(aMailbox);
     		gridContentsChanged = ETrue;
     		if ( iActiveMailbox && iActiveMailbox->GetId().Id() == aMailbox.Id() &&
     			 iCurrentActiveView->Id() != SettingsViewId )
@@ -1989,11 +2241,22 @@ void CFreestyleEmailUiAppUi::EventL( TFSMailEvent aEvent, TFSMailMsgId aMailbox,
                 }
             }
             break;
-   		case TFSEventMailboxSettingsChanged:
+        case TFSEventMailboxCapabilityChanged:
+            // Refresh grid if mailbox capabilities have changed
+        case TFSEventMailboxSettingsChanged:
 			// Refresh grid if mailbox settings are changed,
 			// name/branding might have changed.
 	   	 	gridContentsChanged = ETrue;
 			break;
+        case TFSEventMailDeleted:
+            {
+            RArray<TFSMailMsgId>* entries = reinterpret_cast<RArray<TFSMailMsgId>*>(aParam1);
+            for (TInt i = entries->Count() - 1; i >= 0; i--)
+                {
+                iDisplayImagesCache.RemoveMessage(aMailbox, entries->operator[](i));
+                }
+            }
+   		    break;
         default:
             {
             }
@@ -2564,7 +2827,7 @@ void CFreestyleEmailUiAppUi::DisplayCreateMailboxQueryL()
 	}
 
 // -----------------------------------------------------------------------------
-// CFreestyleEmailUiAppUi::SendToBackgroundL
+// CFreestyleEmailUiAppUi::SendToBackground
 // Send self to background.
 // -----------------------------------------------------------------------------
 void CFreestyleEmailUiAppUi::SendToBackground()
@@ -2580,6 +2843,56 @@ void CFreestyleEmailUiAppUi::SendToBackground()
         }
 
     iSwitchingToBackground = EFalse;
+    }
+
+// -----------------------------------------------------------------------------
+// CFreestyleEmailUiAppUi::SetEmbeddedApp
+// Set flag for judging if there is a embedded app in FSEmail.
+// -----------------------------------------------------------------------------
+void CFreestyleEmailUiAppUi::SetEmbeddedApp( TBool aEmbeddedApp )
+    {
+    iHasEmbeddedApp = aEmbeddedApp;
+    }
+
+// -----------------------------------------------------------------------------
+// CFreestyleEmailUiAppUi::EmbeddedApp
+// Get embedded app flag.
+// -----------------------------------------------------------------------------
+TBool CFreestyleEmailUiAppUi::EmbeddedApp() const
+    {
+    return iHasEmbeddedApp;
+    }
+
+// -----------------------------------------------------------------------------
+// CFreestyleEmailUiAppUi::SetEmbeddedAppToPreviousApp
+// -----------------------------------------------------------------------------
+void CFreestyleEmailUiAppUi::SetEmbeddedAppToPreviousApp( TBool aEmbeddedApp )
+    {
+    iPreviousAppEmbedded = aEmbeddedApp;
+    }
+
+// -----------------------------------------------------------------------------
+// CFreestyleEmailUiAppUi::EmbeddedAppIsPreviousApp
+// -----------------------------------------------------------------------------
+TBool CFreestyleEmailUiAppUi::EmbeddedAppIsPreviousApp() const
+    {
+    return iPreviousAppEmbedded;
+    }
+
+// -----------------------------------------------------------------------------
+// CFreestyleEmailUiAppUi::SetEditorStartedFromEmbeddedApp
+// -----------------------------------------------------------------------------
+void CFreestyleEmailUiAppUi::SetEditorStartedFromEmbeddedApp( TBool aEmbeddedApp )
+    {
+    iEditorStartedFromEmbeddedApp = aEmbeddedApp;
+    }
+
+// -----------------------------------------------------------------------------
+// CFreestyleEmailUiAppUi::EditorStartedFromEmbeddedApp
+// -----------------------------------------------------------------------------
+TBool CFreestyleEmailUiAppUi::EditorStartedFromEmbeddedApp() const
+    {
+    return iEditorStartedFromEmbeddedApp;
     }
 
 // -----------------------------------------------------------------------------

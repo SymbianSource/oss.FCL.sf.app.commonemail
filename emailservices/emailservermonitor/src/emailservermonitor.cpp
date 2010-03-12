@@ -30,9 +30,12 @@
 #include "emailservermonitorutilities.h"
 #include "emailservermonitor.h"
 #include "emailservermonitorconst.h"
+#include "emailshutter.h"
 
 const TUint KOneSecondInMicroSeconds = 1000000;
 
+const TInt KExternalServiceRestartDelay = 5 * KOneSecondInMicroSeconds;
+const TInt KInstallatioFinishedFlagSettingDelay = 2 * KOneSecondInMicroSeconds;
 
 // ======== MEMBER FUNCTION DEFINITIONS ========
 
@@ -68,6 +71,11 @@ CEmailServerMonitor::~CEmailServerMonitor()
     iApaLsSession.Close();
     iProcess.Close();
     iDelayTimer.Close();
+    if( iExternalServiceRestartTimer )
+        {
+        delete iExternalServiceRestartTimer;
+        iExternalServiceRestartTimer = NULL;
+        }
     }
     
 /**
@@ -75,7 +83,11 @@ CEmailServerMonitor::~CEmailServerMonitor()
  * Only NewL can be called
  */
 CEmailServerMonitor::CEmailServerMonitor()
-    : CActive( EPriorityStandard ), iState( EEsmStateIdle ), iRestarts( 0 )
+    : CActive( EPriorityStandard ),
+      iState( EEsmStateIdle ),
+      iRestarts( 0 ),
+      iShutter( NULL ),
+      iExternalServicesRestartState( EEsmEsrStateRestartNotNeeded )
     {
     FUNC_LOG;
     }
@@ -100,12 +112,70 @@ void CEmailServerMonitor::Start()
     FUNC_LOG;
     iLastRestartTime.UniversalTime();
     
-    // Set initializing state and complete self
-    // -> functionality will continue in RunL
+    // Initiate delayed restart and set correct state
+    InitiateDelayedRestart();
     iState = EEsmStateInitializing;
-    TRequestStatus* status = &iStatus;
-    SetActive();
-    User::RequestComplete( status, KErrNone );
+    }
+
+/**
+ * Set pointer to shutter.
+ */
+void CEmailServerMonitor::SetShutter( CEmailShutter* aShutter )
+    {
+    iShutter = aShutter;
+    }
+
+/**
+ * Set Restart External Services flag.
+ */
+void CEmailServerMonitor::SetRestartExternalServicesFlag( TBool aRestartFlag /*= ETrue*/ )
+    {
+    if( aRestartFlag )
+        {
+        iExternalServicesRestartState = EEsmEsrStateRestartNeeded;
+        }
+    else
+        {
+        iExternalServicesRestartState = EEsmEsrStateRestartNotNeeded;
+        }
+    }
+
+/**
+ * Called when external service restart timer has expired, so it's time to do
+ * some starting
+ */
+void CEmailServerMonitor::TimerEventL( CEmailServerMonitorTimer* /*aTriggeredTimer*/ )
+    {
+    // Shutter is used in all cases, so verify it exists at the beginning
+    if( iShutter )
+        {
+        switch( iExternalServicesRestartState )
+            {
+            case EEsmEsrStateRestartInitiated:
+                {
+                // Restart external services and change state
+                iShutter->RestartServicesAfterInstallation();
+                iExternalServicesRestartState = EEsmEsrStateFirstServiceRestarted;
+                
+                // Restart the timer to set the installation finished flag
+                // with some more delay
+                iExternalServiceRestartTimer->Start( KInstallatioFinishedFlagSettingDelay );
+                }
+                break;
+                
+            case EEsmEsrStateFirstServiceRestarted:
+                {
+                // Set the installation finished flag and clear state variable
+                iShutter->SetPsKeyInstallationFinished();
+                iExternalServicesRestartState = EEsmEsrStateRestartNotNeeded;
+                }
+                break;
+                
+            default:
+                // Do nothing, shouldn't happen
+                break;
+            }
+        }
     }
 
 /**
@@ -208,6 +278,10 @@ void CEmailServerMonitor::DoCancel()
     iState = EEsmStateIdle;
     iProcess.LogonCancel( iStatus );
     iDelayTimer.Cancel();
+    if( iExternalServiceRestartTimer )
+        {
+        iExternalServiceRestartTimer->Cancel();
+        }
     }
 
 /**
@@ -240,6 +314,24 @@ void CEmailServerMonitor::RunL()
 				// If start failed initiate new delayed restart
                 INFO( "Initiating new delayed restart" );
                 InitiateDelayedRestart();
+                }
+            // If Email server is up and running and iExternalServicesRestartState
+            // flag is set, initiate delayed restart of external services
+            else if( iExternalServicesRestartState == EEsmEsrStateRestartNeeded )
+                {
+                // Once restart is initiated, update the state
+                iExternalServicesRestartState = EEsmEsrStateRestartInitiated;
+
+                // Create the timer and start it
+                TInt timerError = KErrNone;
+                if( !iExternalServiceRestartTimer )
+                    {
+                    TRAP( timerError, iExternalServiceRestartTimer = CEmailServerMonitorTimer::NewL( this ) );
+                    }
+                if( timerError == KErrNone )
+                    {
+                    iExternalServiceRestartTimer->Start( KExternalServiceRestartDelay );
+                    }
                 }
             }
             break;

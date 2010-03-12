@@ -104,6 +104,13 @@ private:	// From MFSMailBrandManager
 	                     const TFSMailMsgId& aMailboxId,
                          TDes& aIconIds  );
 
+	/**
+	 * @see MFSMailBrandManager::GetGraphicIdsL
+	 */
+    TInt GetGraphicIdsL( TFSBrandElement aElement, 
+                         const TDesC& aBrandId,
+                         TDes& aIconIds  );
+    
 private:
 
     /**

@@ -11,6 +11,8 @@
 *
 * Contributors:
 *
+* Description:  Implementation for status indicator
+*
 */ 
 
 #include "FreestyleEmailUiAknStatusIndicator.h"

@@ -21,6 +21,9 @@
 #include <e32cmn.h>
 #include <utf.h>
 #include <StringLoader.h>
+#include <AknsUtils.h>
+#include <AknsSkinInstance.h>
+#include <AknsConstants.h>
 
 #include <FreestyleEmailUi.rsg>
 #include <finditemengine.h>
@@ -69,18 +72,29 @@ _LIT8( KHTMLImgTagSrcBefore, "\" border=\"0\" src=\"" );
 _LIT8( KHTMLImgTagSrcAfter, "\">" );
 
 _LIT8( KMetaHeader, "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n" );
+
+_LIT8( KDisplayImagesLeftToRight,
+        "<script language=\"javascript\">var g_autoLoadImages = %d;</script><table style=\"display: none;\" id=\"displayImagesTable\" width=\"%dpx\"><tr><td align=\"left\">%S</td><td align=\"right\"><input type=\"submit\" class=\"button\" value=\"%S\" onClick=\"displayImagesButtonPressed()\"/></td></tr></table>" );
+
+_LIT8( KDisplayImagesRightToLeft,
+        "<script language=\"javascript\">var g_autoLoadImages = %d;</script><table style=\"display: none;\" id=\"displayImagesTable\" width=\"%dpx\"><tr><td align=\"left\"><input type=\"submit\" class=\"button\" value=\"%S\" onClick=\"displayImagesButtonPressed()\"/></td><td align=\"right\">%S</td></tr></table>" );
+
 const TInt KMaxEventLength( 256 );
 const TInt KFreestyleMessageHeaderHTMLRightMarginInPx( 10 );
 const TInt KFreestyleMessageHeaderHTMLMaxBufferSizeForWidth( 5 );
+
+// Define this to allow theme colorin for the header
+#undef __USE_THEME_COLOR_FOR_HEADER    
 
 EXPORT_C CFreestyleMessageHeaderHTML* CFreestyleMessageHeaderHTML::NewL( CFSMailMessage& aMailMessage, 
                                                                          RWriteStream& aWriteStream,
                                                                          TInt aVisibleWidth,
                                                                          TInt aScrollPosition,
-                                                                         TBidiText::TDirectionality aDirectionality
+                                                                         const TBool aAutoLoadImages,
+                                                                         const TBool aExpanded 
                                                                          )
     {
-    CFreestyleMessageHeaderHTML* self = new (ELeave) CFreestyleMessageHeaderHTML( aMailMessage, aWriteStream, aVisibleWidth, aScrollPosition, aDirectionality);
+    CFreestyleMessageHeaderHTML* self = new (ELeave) CFreestyleMessageHeaderHTML( aMailMessage, aWriteStream, aVisibleWidth, aScrollPosition, aAutoLoadImages, aExpanded);
     self->ConstructL();
     return self;
     }
@@ -89,9 +103,10 @@ EXPORT_C void CFreestyleMessageHeaderHTML::ExportL( CFSMailMessage& aMailMessage
                                                     RWriteStream& aWriteStream, 
                                                     TInt aVisibleWidth,
                                                     TInt aScrollPosition,
-                                                    TBidiText::TDirectionality aDirectionality)
+                                                    const TBool aAutoLoadImages,
+                                                    const TBool aExpanded )
     {
-    CFreestyleMessageHeaderHTML* headerHtml = CFreestyleMessageHeaderHTML::NewL( aMailMessage, aWriteStream, aVisibleWidth, aScrollPosition, aDirectionality);
+    CFreestyleMessageHeaderHTML* headerHtml = CFreestyleMessageHeaderHTML::NewL( aMailMessage, aWriteStream, aVisibleWidth, aScrollPosition, aAutoLoadImages, aExpanded);
     CleanupStack::PushL( headerHtml );
     headerHtml->ExportL();
     CleanupStack::PopAndDestroy( headerHtml );
@@ -101,13 +116,14 @@ EXPORT_C void CFreestyleMessageHeaderHTML::ExportL( CFSMailMessage& aMailMessage
                                                     RFile& aFile, 
                                                     TInt aVisibleWidth,
                                                     TInt aScrollPosition,
-                                                    TBidiText::TDirectionality aDirectionality)
+                                                    const TBool aAutoLoadImages,
+                                                    const TBool aExpanded )
     {
     RFileWriteStream fwstream;
     fwstream.Attach( aFile, 0 );
     CleanupClosePushL( fwstream );
     
-    CFreestyleMessageHeaderHTML* headerHtml = CFreestyleMessageHeaderHTML::NewL( aMailMessage, fwstream, aVisibleWidth, aScrollPosition, aDirectionality );
+    CFreestyleMessageHeaderHTML* headerHtml = CFreestyleMessageHeaderHTML::NewL( aMailMessage, fwstream, aVisibleWidth, aScrollPosition, aAutoLoadImages, aExpanded );
     CleanupStack::PushL( headerHtml );
     headerHtml->ExportL();
     CleanupStack::PopAndDestroy( headerHtml );
@@ -120,13 +136,14 @@ EXPORT_C void CFreestyleMessageHeaderHTML::ExportL( CFSMailMessage& aMailMessage
                                                     const TPath& aFilePath, 
                                                     TInt aVisibleWidth,
                                                     TInt aScrollPosition,
-                                                    TBidiText::TDirectionality aDirectionality)
+                                                    const TBool aAutoLoadImages,
+                                                    const TBool aExpanded )
     {
     RFileWriteStream fwstream;
     User::LeaveIfError( fwstream.Replace( aFs, aFilePath, EFileStreamText | EFileWrite) );
     CleanupClosePushL( fwstream );
     
-    CFreestyleMessageHeaderHTML* headerHtml = CFreestyleMessageHeaderHTML::NewL( aMailMessage, fwstream, aVisibleWidth, aScrollPosition, aDirectionality);
+    CFreestyleMessageHeaderHTML* headerHtml = CFreestyleMessageHeaderHTML::NewL( aMailMessage, fwstream, aVisibleWidth, aScrollPosition, aAutoLoadImages, aExpanded);
     CleanupStack::PushL( headerHtml );
     headerHtml->ExportL();
     CleanupStack::PopAndDestroy( headerHtml );
@@ -151,23 +168,21 @@ CFreestyleMessageHeaderHTML::CFreestyleMessageHeaderHTML( CFSMailMessage& aMailM
                                                           RWriteStream& aWriteStream,
                                                           TInt aVisibleWidth,
                                                           TInt aScrollPosition,
-                                                          TBidiText::TDirectionality aDirectionality )
+                                                          const TBool aAutoLoadImages,
+                                                          const TBool aExpanded )
     : iMailMessage( aMailMessage ),
     iWriteStream( aWriteStream ),
     iVisibleWidth( aVisibleWidth - KFreestyleMessageHeaderHTMLRightMarginInPx ),
-    iScrollPosition(aScrollPosition),
-    iDirectionality( aDirectionality ),
-    iMirrorLayout( EFalse )
+    iScrollPosition( aScrollPosition ),
+    iAutoLoadImages( aAutoLoadImages ),
+    iMirrorLayout( AknLayoutUtils::LayoutMirrored() ),
+    iExpanded( aExpanded  )
     {
     }
 
 void CFreestyleMessageHeaderHTML::ConstructL()
     {
     iMailMessage.AttachmentListL( iAttachments );
-    if ( AknLayoutUtils::LayoutMirrored() )
-        {
-        iMirrorLayout = ETrue;
-        }
     }
 
 void CFreestyleMessageHeaderHTML::HTMLStartL() const
@@ -235,16 +250,52 @@ void CFreestyleMessageHeaderHTML::ExportHTMLBodyL() const
     ExportSubjectL();
     EndHeaderTableL();
     ExportAttachmentsL();
+    ExportDisplayImagesTableL();
     HTMLBodyEndL();
+    }
+
+void CFreestyleMessageHeaderHTML::ExportDisplayImagesTableL() const
+    {
+    if (!iAutoLoadImages)
+        {
+        _LIT8(KDescription, "");
+        _LIT8(KButton, "Display images");
+        HBufC8* description = KDescription().AllocLC(); //HeadingTextLC(R_FREESTYLE_EMAIL_UI_IMAGES_ARE_NOT_DISPLAYED);
+        HBufC8* button = KButton().AllocLC(); //HeadingTextLC(R_FREESTYLE_EMAIL_UI_DISPLAY_IMAGES);
+        HBufC8* formatBuffer = NULL;
+        if (iMirrorLayout)
+            {
+            formatBuffer = HBufC8::NewLC(KDisplayImagesRightToLeft().Length() + description->Length() + button->Length() + 8);
+            formatBuffer->Des().Format(
+                    KDisplayImagesRightToLeft(),
+                    iAutoLoadImages,
+                    iVisibleWidth,
+                    button,
+                    description);
+            }
+        else
+            {
+            formatBuffer = HBufC8::NewLC(KDisplayImagesLeftToRight().Length() + description->Length() + button->Length() + 8);
+            formatBuffer->Des().Format(
+                    KDisplayImagesLeftToRight(),
+                    iAutoLoadImages,
+                    iVisibleWidth,
+                    description,
+                    button);
+            }
+        iWriteStream.WriteL(*formatBuffer);
+        CleanupStack::PopAndDestroy(3); // description, button, formatBuffer
+        iWriteStream.CommitL();
+        }
     }
 
 void CFreestyleMessageHeaderHTML::HTMLBodyStartL() const
     {
     TBuf8<KFreestyleMessageHeaderHTMLRightMarginInPx> scrollPos;
     scrollPos.AppendNum(iScrollPosition);
-    iWriteStream.WriteL(_L8("<body onLoad = init("));
+    iWriteStream.WriteL(_L8("<body onLoad = \"init("));
     iWriteStream.WriteL(scrollPos);
-    iWriteStream.WriteL(_L8(")>\n"));
+    iWriteStream.WriteL(_L8(")\">\n"));
     iWriteStream.CommitL();
     }
 
@@ -253,9 +304,19 @@ void CFreestyleMessageHeaderHTML::ExportInitialTableL() const
     // set the width, using the visible screen width
     TBuf8<KFreestyleMessageHeaderHTMLMaxBufferSizeForWidth> tableWidth;
     tableWidth.AppendNum( iVisibleWidth );
-    iWriteStream.WriteL(_L8("<table id=\"table_initial\" border=\"0\" width=\""));
-    iWriteStream.WriteL( tableWidth );
-    iWriteStream.WriteL( _L8("px\">\n"));
+    
+    if (iExpanded)
+        {
+        iWriteStream.WriteL(_L8("<table id=\"table_initial\" border=\"0\" width=\""));
+        iWriteStream.WriteL( tableWidth );
+        iWriteStream.WriteL( _L8("px\" style=\"display: none\">\n"));    
+        }
+    else
+        {
+        iWriteStream.WriteL(_L8("<table id=\"table_initial\" border=\"0\" width=\""));
+        iWriteStream.WriteL( tableWidth );
+        iWriteStream.WriteL( _L8("px\">\n"));    
+        }
     
 
     // start first row: table with the sent info and the '+' icon
@@ -307,7 +368,7 @@ void CFreestyleMessageHeaderHTML::ExportInitialTableL() const
         {
         iWriteStream.WriteL(_L8(" align=\"left\""));
         }
-    iWriteStream.WriteL(_L8(" style=\"padding: 0px 10px 0px 0px;\"><image id=\"detail_img\" border=\"0\" src=\"plus.gif\" onClick=\"expandHeader()\" ></td>\n"));
+    iWriteStream.WriteL(_L8(" style=\"padding: 0px 10px 0px 0px;\"><image width=\"55\" height=\"36\" id=\"detail_img\" border=\"0\" src=\"plus.gif\" onClick=\"expandHeader(true)\" ></td>\n"));
 
     
     // finish first row
@@ -789,27 +850,20 @@ void CFreestyleMessageHeaderHTML::ExportAttachmentsL() const
         iWriteStream.WriteL( KAttachmentTableName );
         iWriteStream.WriteL( _L8("\" border=\"0\" width=\"100%\">\n") );  // width is set at 100% intentionally
         
+        // add attachment icon
         // start row
         iWriteStream.WriteL( _L8("<tr>\n") );
-          
-        // add attachment icon
         iWriteStream.WriteL( _L8("<td width=\"1\" valign=\"top\"") );
-        if ( !iMirrorLayout )
-            {
-            iWriteStream.WriteL(_L8(" align=\"left\""));
-            }
-        else
-            {
-            iWriteStream.WriteL(_L8(" align=\"right\""));
-            }
+        iWriteStream.WriteL(_L8(" align=\"left\""));
+
         iWriteStream.WriteL( _L8("><image src=\"") );
         
         iWriteStream.WriteL( KAttachementIconGeneral );
         iWriteStream.WriteL( _L8("\" ></td>\n") );
-        
         // start table of attachments as a table within a cell
         iWriteStream.WriteL( _L8("<td>\n") );
         iWriteStream.WriteL(_L8("<table id=\"table_attachments_list\" border=\"0\" width=\"100%\">\n"));
+
         for (TInt i=0; i < attachmentsCount; i++)
             {
             AddAttachmentL( *iAttachments[i] );
@@ -926,12 +980,28 @@ void CFreestyleMessageHeaderHTML::AddAttachmentL( CFSMailMessagePart& aAttachmen
       }
     
     TBuf8<32> sizeText;
+    
+    // Add right to left marker as "(" and ")" are messing up the html language markers
+    // and &rlm is only added in mirror layout 
+    if( iMirrorLayout )  
+        {
+    sizeText.Append( KSpace8 );
+    sizeText.Append( _L8( "&rlm;" ) );
+        }
+    
     sizeText.Append( KSpace8 );
     sizeText.Append( _L8("(") );
     sizeText.AppendNum( sizeInKB );
     sizeText.Append( KSpace8 );
     sizeText.Append( KAttachmentSizeUnit );
     sizeText.Append( _L8(")") );
+    
+    if( iMirrorLayout )
+        {
+    sizeText.Append( KSpace8 );
+    sizeText.Append( _L8( "&rlm;" ) );
+        }
+    
     iWriteStream.WriteL( sizeText );
 
     EndHyperlinkL();
@@ -987,11 +1057,15 @@ void CFreestyleMessageHeaderHTML::AddJavascriptL() const
 void CFreestyleMessageHeaderHTML::StartHeaderTableL( const TDesC8& aTableId ) const
     {
     iWriteStream.WriteL( _L8("<table id=\"") );
-    iWriteStream.WriteL( aTableId );
-    
-    // use style="display:none" so that full header table is hidden initially
-    iWriteStream.WriteL( _L8("\" border=\"0\" width=\"100%\" style=\"display: none\">\n") );
-    
+    iWriteStream.WriteL( aTableId );    
+    if (iExpanded)
+        {
+        iWriteStream.WriteL( _L8("\" border=\"0\" width=\"100%\">\n") );    
+        }
+    else
+        {
+        iWriteStream.WriteL( _L8("\" border=\"0\" width=\"100%\" style=\"display: none\">\n") );    
+        }   
     
     TBuf8<KFreestyleMessageHeaderHTMLMaxBufferSizeForWidth> tableWidth;
     tableWidth.AppendNum( iVisibleWidth );
@@ -1012,7 +1086,7 @@ void CFreestyleMessageHeaderHTML::StartHeaderTableL( const TDesC8& aTableId ) co
         {
         iWriteStream.WriteL(_L8(" align=\"left\""));
         }
-    iWriteStream.WriteL( _L8(" style=\"padding: 0px 10px 0px 0px;\"><image id=\"hideDetails_img\" border=\"0\" src=\"minus.gif\" onClick=\"collapseHeader()\"></td>\n"));
+    iWriteStream.WriteL( _L8(" style=\"padding: 0px 10px 0px 0px;\"><image width=\"55\" height=\"36\" id=\"hideDetails_img\" border=\"0\" src=\"minus.gif\" onClick=\"collapseHeader(true)\"></td>\n"));
 
     iWriteStream.WriteL( _L8("</tr>\n"));
     iWriteStream.WriteL( _L8("</table></td></tr>\n"));
@@ -1125,8 +1199,30 @@ void CFreestyleMessageHeaderHTML::AddStyleSheetL() const
     // define a div class "header", specifying the background color
     // for the email header part
     
-    // In future, query for which background color to use
-    iWriteStream.WriteL( _L8("body { background-color: lightblue; }\n") );
+#ifdef __USE_THEME_COLOR_FOR_HEADER    
+    MAknsSkinInstance* skin = AknsUtils::SkinInstance();
+    TRgb textColor;
+    TRgb bgColor;
+    // Should use EAknsCIFsTextColorsCG3 if background is white
+     if ( AknsUtils::GetCachedColor( skin, textColor,
+                 KAknsIIDQsnTextColors, EAknsCIQsnTextColorsCG81 ) != KErrNone ||
+          AknsUtils::GetCachedColor( skin, bgColor,
+                 KAknsIIDQsnOtherColors, EAknsCIQsnOtherColorsCG22 ) != KErrNone )
+         {
+         iWriteStream.WriteL( _L8("body { color: black; background-color: lightblue; }\n") );
+         }
+     else 
+         {
+         // In future, query for which background color to use
+         _LIT8( KBodyWithColor, "body { color: #%06x; background-color: #%06x; }\n" );
+         HBufC8* formatBuffer = HBufC8::NewLC(KBodyWithColor().Length() + 16);
+         formatBuffer->Des().Format(KBodyWithColor(), textColor.Internal() & 0xFFFFFF, bgColor.Internal() & 0xFFFFFF);
+         iWriteStream.WriteL( *formatBuffer );
+         CleanupStack::PopAndDestroy(); // formatBuffer
+         }
+#else
+     iWriteStream.WriteL( _L8("body { color: black; background-color: lightblue; }\n") );
+#endif // __USE_THEME_COLOR_FOR_HEADER    
     
     // set font size to 75% of the default size
     // because, at the default size, the header text is too big relative to the text in the email body
@@ -1134,7 +1230,7 @@ void CFreestyleMessageHeaderHTML::AddStyleSheetL() const
     // we have the text size level in the browser set to "Larger" which is 20% larger than the specified size
     // the "larger" size affects all text which includes the header.
     iWriteStream.WriteL( _L8("td { font-family:arial,sans-serif ; font-size:75% }\n"));
-    
+    iWriteStream.WriteL( _L8(".button { background: url('btn_middle.png') repeat-x top left; border: 1px solid #546284; height: 32px; font-size:19px; font-weight: bold; color: #344a6c; font-family:arial,sans-serif; }\n") );
     iWriteStream.WriteL( _L8("</style>\n") );
     iWriteStream.CommitL();
     }

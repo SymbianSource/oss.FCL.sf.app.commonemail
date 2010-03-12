@@ -540,7 +540,7 @@ void CFsTreePlainOneLineItemVisualizer::UpdateL( const MFsTreeItemData& aData,
                 iTextVisual->SetColor( textColor );
                 iTextVisual->SetTextStyle( styleId );
 
-                iTextVisual->SetWrapping(CAlfTextVisual::ELineWrapManual);
+//                iTextVisual->SetWrapping(CAlfTextVisual::ELineWrapManual);
 
                 TAlfAlignHorizontal currTextAlign( EAlfAlignHLocale );
                 currTextAlign = CurrentTextAlignmentL( iTextAlign, &data->Data(), iTextVisual );

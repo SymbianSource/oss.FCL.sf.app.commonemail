@@ -24,7 +24,7 @@ PRJ_EXPORTS
 ../inc/debuglogmacros.h            |../../../../../inc/debuglogmacros.h
 ../inc/debuglogconst.h             |../../../../../inc/debuglogconst.h
 ../inc/debuglog.h                  |../../../../../inc/debuglog.h
-../inc/GlobalDebugLoggingOptions.h |../../../../../inc/GlobalDebugLoggingOptions.h
+../inc/globaldebugloggingoptions.h |../../../../../inc/globaldebugloggingoptions.h
 
 PRJ_MMPFILES
 DebugLog.mmp

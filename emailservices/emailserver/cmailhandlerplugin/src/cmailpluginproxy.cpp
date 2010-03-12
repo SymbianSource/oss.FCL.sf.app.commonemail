@@ -113,7 +113,6 @@ void CMailPluginProxy::RemoveAccountsL()
     FUNC_LOG;
     while ( iAccounts.Count() )
         {
-        ResetAccountL( iAccounts[0]->ContentId() );
         delete iAccounts[0];
         iAccounts.Remove(0);
         }
@@ -131,7 +130,7 @@ void CMailPluginProxy::ResetAccountL( const TDesC& aContentId )
         {
         TFSMailMsgId dummy;
         iPublisher.PublishMailboxIconL( instId, KNullDesC );
-        iPublisher.PublishActiveMailboxNameL( instId, 1, KNullDesC, 0, dummy, dummy );
+        iPublisher.PublishActiveMailboxNameL( instId, 1, KNullDesC);
         iPublisher.PublishIndicatorIconL( instId, 1, KNullIcon );
 
         ResetMessageRowL( instId, 2 ); // 1st message row
@@ -238,6 +237,7 @@ void CMailPluginProxy::PublishAccountL( const TInt aWidgetInstanceId, MMailboxDa
             TFSMailMsgId dummy;
             iPublisher.PublishMailboxIconL( aWidgetInstanceId, i+2, KNullIcon, dummy );
             iPublisher.PublishMailDetailL( aWidgetInstanceId, i+2, KNullDesC, ESender );
+            iPublisher.PublishMailDetailL( aWidgetInstanceId, i+2, KNullDesC, ESubject );            
             iPublisher.PublishMailDetailL( aWidgetInstanceId, i+2, KNullDesC, ETime );
             }
         }
@@ -261,6 +261,7 @@ void CMailPluginProxy::PublishMessageRowL( const TInt aWidgetInstanceId, EmailIn
     
     iPublisher.PublishMailboxIconL( aWidgetInstanceId, aRow, iconId, dummy );
     iPublisher.PublishMailDetailL( aWidgetInstanceId, aRow, aMessageData.Sender(), ESender );
+    iPublisher.PublishMailDetailL( aWidgetInstanceId, aRow, aMessageData.Subject(), ESubject );
     HBufC* timeString = CMailCpsHandler::GetMessageTimeStringL( aMessageData.TimeStamp() );
     CleanupStack::PushL( timeString );
     iPublisher.PublishMailDetailL( aWidgetInstanceId, aRow, *timeString, ETime );

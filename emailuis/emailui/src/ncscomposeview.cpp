@@ -408,6 +408,28 @@ void CNcsComposeView::ChildDoActivateL( const TVwsViewId& aPrevViewId,
         Toolbar()->SetDimmed( EFalse );
         RefreshToolbar();
         }
+        
+    // if there is a embedded app in FSEmail.
+    if( iAppUi.EmbeddedApp() )
+        {
+        // Set email editor started from embedded app flag to true 
+        // so that we can switch view correct when sent email.
+        iAppUi.SetEditorStartedFromEmbeddedApp( ETrue );
+        
+        RWsSession rwsSession;
+        User::LeaveIfError( rwsSession.Connect() );
+        CleanupClosePushL( rwsSession );
+        
+        // Simulate a back key to exit embedded app 
+        // so that email editor could show on the top level.
+        TKeyEvent KeyEvent = TKeyEvent();
+        KeyEvent.iCode = EKeyCBA2;
+        rwsSession.SimulateKeyEvent( KeyEvent );
+
+        rwsSession.Close();
+        CleanupStack::PopAndDestroy( &rwsSession );
+        }
+        
     TIMESTAMP( "Editor launched" );
     }
 

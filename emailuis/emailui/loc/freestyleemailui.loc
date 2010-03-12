@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -35,7 +35,7 @@ CHARACTER_SET UTF8
 // r:TB9.1
 //
 #define qtn_fse_launcher_settings	"Settings"
-	
+
 // <cmail> Removed exit and hide
 // </cmail>
 
@@ -119,7 +119,7 @@ CHARACTER_SET UTF8
 //
 #define qtn_fse_message_list_sent	"Sent items"
 
-// d:Outbox 
+// d:Outbox
 // l:main_sp_fs_ctrlbar_ddmenu_pane_t1
 // r:TB9.1
 //
@@ -132,25 +132,25 @@ CHARACTER_SET UTF8
 #define qtn_fse_message_list_search_divider_inbox	"Inbox"
 
 // d:Sent items divider in search results screen
-// l:list_single_dyc_row_text_pane_t1 
+// l:list_single_dyc_row_text_pane_t1
 // r:TB9.1
 //
 #define qtn_fse_message_list_search_divider_sent_items	"Sent items"
 
 // d:Drafts divider in search results screen
-// l:list_single_dyc_row_text_pane_t1 
+// l:list_single_dyc_row_text_pane_t1
 // r:TB9.1
 //
 #define qtn_fse_message_list_search_divider_drafts	"Drafts"
 
 // d:Outbox divider in search results screen
-// l:list_single_dyc_row_text_pane_t1 
+// l:list_single_dyc_row_text_pane_t1
 // r:TB9.1
 //
 #define qtn_fse_message_list_search_divider_outbox	"Outbox"
 
 // d:Deleted items
-// l:main_sp_fs_ctrlbar_ddmenu_pane_t1 
+// l:main_sp_fs_ctrlbar_ddmenu_pane_t1
 // r:TB9.1
 //
 #define qtn_fse_message_list_deleted_items	"Deleted items"
@@ -161,37 +161,37 @@ CHARACTER_SET UTF8
 //
 #define qtn_fse_viewer_header_subject	"Subject:"
 
-// d:Mail viewer header item, see UI spec for more details 
+// d:Mail viewer header item, see UI spec for more details
 // l:list_single_cmail_header_caption_pane_t1
 // r:TB9.1
 //
 #define qtn_fse_viewer_header_from	"From:"
 
-// d:Mail viewer header item, see UI spec for more details 
+// d:Mail viewer header item, see UI spec for more details
 // l:list_single_cmail_header_caption_pane_t1
 // r:TB9.1
 //
 #define qtn_fse_viewer_header_to	"To:"
 
-// d:Mail viewer header item, see UI spec for more details 
+// d:Mail viewer header item, see UI spec for more details
 // l:list_single_cmail_header_caption_pane_t1
 // r:TB9.1
 //
 #define qtn_fse_viewer_header_cc	"Cc:"
 
-// d:Mail viewer header item, see UI spec for more details 
+// d:Mail viewer header item, see UI spec for more details
 // l:list_single_cmail_header_caption_pane_t1
 // r:TB9.1
 //
 #define qtn_fse_viewer_header_bcc	"Bcc:"
 
-// d:Mail viewer header item, see UI spec for more details 
+// d:Mail viewer header item, see UI spec for more details
 // l:list_single_cmail_header_caption_pane_t1
 // r:TB9.1
 //
 #define qtn_fse_viewer_header_sent	"Sent:"
 
-// d:Mail viewer header item, see UI spec for more details 
+// d:Mail viewer header item, see UI spec for more details
 // l:list_single_cmail_header_detail_pane_t1
 // r:TB9.1
 //
@@ -230,7 +230,7 @@ CHARACTER_SET UTF8
 // d:Options menu item
 // l:list_single_pane_t1_cp2
 // r:TB9.1
-//	
+//
 #define qtn_fse_message_list_options_settings	"Settings"
 
 // d:Options menu item
@@ -334,7 +334,7 @@ CHARACTER_SET UTF8
 //
 #define qtn_fse_message_list_options_flag	"Flag"
 
-// d:Popup list header 
+// d:Popup list header
 // l:heading_pane_t1
 // r:TB9.1
 //
@@ -562,7 +562,7 @@ CHARACTER_SET UTF8
 //
 #define qtn_fse_message_list_options_empty_deleted_items	"Empty deleted items"
 
-// d:Submenu item in options menu 
+// d:Submenu item in options menu
 // l:list_single_popup_submenu_pane_t1
 // r:TB9.1
 //
@@ -687,200 +687,200 @@ CHARACTER_SET UTF8
 // d:Delete multiple emails query
 // l:popup_note_window/opt2
 // r:TB9.1
-//	
+//
 #define qtn_fse_delete_mails_note	"Delete %N e-mails?"
 
 // d:Date divider text in list
 // l:list_single_dyc_row_text_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_message_list_date_monday_divider	"Monday"
 
 // d:Date divider text in list
 // l:list_single_dyc_row_text_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_message_list_date_tuesday_divider	"Tuesday"
 
 // d:Date divider text in list
 // l:list_single_dyc_row_text_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_message_list_date_wednesday_divider	"Wednesday"
 
 // d:Date divider text in list
 // l:list_single_dyc_row_text_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_message_list_date_thursday_divider	"Thursday"
 
 // d:Date divider text in list
 // l:list_single_dyc_row_text_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_message_list_date_friday_divider	"Friday"
 
 // d:Date divider text in list
 // l:list_single_dyc_row_text_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_message_list_date_saturday_divider	"Saturday"
 
 // d:Date divider text in list
 // l:list_single_dyc_row_text_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_message_list_date_sunday_divider	"Sunday"
 
 // d:Date divider text in list
 // l:list_single_dyc_row_text_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_message_list_date_today_divider	"Today"
 
 // d:Date divider text in list
 // l:list_single_dyc_row_text_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_message_list_date_yesterday_divider	"Yesterday"
 
 // d:Query note for call sender functionality
 // l:popup_note_window/opt2
 // r:TB9.1
-//	
+//
 #define qtn_fse_viewer_call_sender_query	"Call sender\n%U?"
 
 // d:Message size info to list preview pane. The descriptor argument
 // d:contains the number and type of the file size (e.g Message size: 2 MB)
 // l:list_single_dyc_row_text_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_list_message_size	"Message size: %U"
 
 // d:"More" submenu item
 // l:list_single_pane_t1_cp2/opt3
 // r:TB9.1
-//	
+//
 #define qtn_fse_message_list_options_more	"More"
 
 // d:Menu text 'Extra Recepient fields'
 // l:list_single_pane_t1_cp2/opt3
 // r:TB9.2
-//  
+//
 #define qtn_fse_editor_options_extra_recepient_fields "Extra Recepient fields"
 
 // d:Search selection in options menu
 // l:list_single_pane_t1_cp2
 // r:TB9.1
-//	
+//
 #define qtn_fse_message_list_options_search	"Search"
 
-// d:"Title bar" header for searhc screen, see UI spec for details 
+// d:"Title bar" header for searhc screen, see UI spec for details
 // l:fse_search_header_text_1
 // r:TB9.1
-//	
+//
 #define qtn_fse_message_list_search	"Search:"
 
 // d:"Title bar" header for searhc screen, see UI spec for details
 // l:fse_search_header_text_1
 // r:TB9.1
-//	
+//
 #define qtn_fse_message_list_search_for	"Search for:"
 
 // d:"Title bar" header for searhc screen, see UI spec for details
 // l:fse_search_header_text_1
 // r:TB9.1
-//	
+//
 #define qtn_fse_message_list_searching	"Searching:"
 
 // d:"Title bar" header for searhc screen, see UI spec for details
 // l:fse_search_header_text_1
 // r:TB9.1
-//	
+//
 #define qtn_fse_message_list_search_results	"Search results:"
 
 // d:Options menu item
 // l:list_single_pane_t1_cp2
 // r:TB9.1
-//	
+//
 #define qtn_fse_message_list_options_stop_search	"Stop search"
 
 // d:Options menu item
 // l:list_single_pane_t1_cp2
 // r:TB9.1
-//	
+//
 #define qtn_fse_message_list_options_new_search	"New search"
 
 // d:Options menu item
 // l:list_single_pane_t1_cp2
 // r:TB9.1
-//	
+//
 #define qtn_fse_message_list_options_connection_info	"Connection details"
 
 // d:Options menu item
 // l:list_single_popup_submenu_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_viewer_options_copy_to_clipboard	"Copy to clipboard"
 
 // d:Options menu item
 // l:list_single_popup_submenu_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_viewer_options_copy_text	"Copy text"
 
 // d:Options menu item
 // l:list_single_popup_submenu_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_message_list_options_create_meeting	"Create meeting"
 
 // d:Options menu item
 // l:list_single_popup_submenu_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_message_list_options_compose	"New message"
 
 // d:Options menu item
 // l:list_single_popup_submenu_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_viewer_options_call	"Call"
 
 // d:Options menu item
 // l:list_single_popup_submenu_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_viewer_options_create_message	"Create message"
 
 // d:Options menu item
 // l:list_single_popup_submenu_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_viewer_options_create_email	"Create mail"
 
 // d:Options menu item
 // l:list_single_popup_submenu_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_viewer_options_remote_lookup	"Search from remote"
 
 // d:Options menu item
 // l:list_single_popup_submenu_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_viewer_options_open_web	"Open in Web"
 
 // d:Options menu item
 // l:list_single_popup_submenu_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_intra_fseoptions_open_intra	"Open in intranet"
 
 // d:Attachments line in text viewer
 // l:list_single_cmail_header_caption_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_viewer_attachments_text	"Attachments (%N)"
 
 // d:Attachments line in text viewer with the attachment size info.
@@ -888,37 +888,37 @@ CHARACTER_SET UTF8
 // d:contains the total size including the type (KB or MB).
 // l:list_single_cmail_header_detail_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_viewer_header_attachments	"Attachments (%N) %U"
 
 // d:View HTML message line in text viewer
 // l:list_single_cmail_header_detail_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_viewer_view_fetching_content	"Fetching content"
 
 // d:View HTML message line in text viewer
 // l:list_single_cmail_header_detail_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_viewer_header_view_html_message	"View HTML message"
 
 // d:Selectable line text in popup selection list
 // l:list_single_graphic_pane_t1_cp2
 // r:TB9.1
-//	
+//
 #define qtn_fse_viewer_options_add_to_contacts_create_new	"Create new"
 
 // d:Selectable line text in popup selection list
 // l:list_single_graphic_pane_t1_cp2
 // r:TB9.1
-//	
+//
 #define qtn_fse_viewer_options_add_to_contacts_update_existing	"Update existing"
 
 // d:Confirmation query. Informs that sync status is in offline mode and asks if user wants to go online.
 // l:popup_note_window
 // r:TB9.1
-//	
+//
 #define qtn_fse_query_sync_status_go_online	"Sync is in offline mode. Go online?"
 
 // d:Information note.
@@ -989,7 +989,7 @@ CHARACTER_SET UTF8
 // l:popup_note_window/opt2
 // r:TB9.1
 //
-#define qtn_fse_confirm_note_message_copied	"Message copied to %U" 
+#define qtn_fse_confirm_note_message_copied	"Message copied to %U"
 
 // d:Information note. Informs that messages are copied to a folder.
 // d:%U is replaced with the name of the folder.
@@ -997,30 +997,30 @@ CHARACTER_SET UTF8
 // l:popup_note_window/opt2
 // r:TB9.1
 //
-#define qtn_fse_confirm_note_messages_copied	"%N messages copied to %U" 
+#define qtn_fse_confirm_note_messages_copied	"%N messages copied to %U"
 
 // d:Confirmation query. Informs that phone number was not found and asks if search from remote should be started.
 // l:popup_note_window
 // r:TB9.1
-//	
+//
 #define qtn_fse_query_no_phone_number_found_search_server "No number found in Contacts. Search on server?"
 
 // d:Information note.
 // l:popup_note_window/opt2
 // r:TB9.1
-//	
+//
 #define qtn_fse_error_general_no_phone_number "No phone number available"
 
 // d:Information note.
 // l:popup_note_window/opt2
 // r:TB9.1
-//	
+//
 #define qtn_fse_error_general_no_email_address "No e-mail address available"
 
 // d:Information note.
 // l:popup_note_window/opt2
 // r:TB9.1
-//	
+//
 #define qtn_fse_query_no_phone_number_found	"No phone number found in Contacts"
 
 // d:Information note. Informs that meeting will appear in Calendar after next sync.
@@ -1122,79 +1122,79 @@ CHARACTER_SET UTF8
 // d:Action menu item
 // l:sp_fs_action_menu_list_gene_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_action_menu_open	"Open"
 
 // d:Action menu item
 // l:sp_fs_action_menu_list_gene_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_action_menu_reply	"Reply"
 
 // d:Action menu item
 // l:sp_fs_action_menu_list_gene_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_action_menu_reply_all	"Reply to all"
 
 // d:Action menu item
 // l:sp_fs_action_menu_list_gene_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_action_menu_forward	"Forward"
 
 // d:Action menu item
 // l:sp_fs_action_menu_list_gene_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_action_menu_delete	"Delete"
 
 // d:Action menu item
 // l:sp_fs_action_menu_list_gene_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_action_menu_call_sender	"Call sender"
 
 // d:Action menu item
 // l:sp_fs_action_menu_list_gene_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_action_menu_move_to_drafts	"Move to Drafts"
 
 // d:Action menu item
 // l:sp_fs_action_menu_list_gene_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_action_menu_remove_from_calendar	"Remove from Cal."
 
 // d:Action menu item
 // l:sp_fs_action_menu_list_gene_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_action_menu_accept	"Accept"
 
 // d:Action menu item
 // l:sp_fs_action_menu_list_gene_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_action_menu_tentative	"Tentative"
 
 // d:Action menu item
 // l:sp_fs_action_menu_list_gene_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_action_menu_decline	"Decline"
 
 // d:Action menu item
 // l:sp_fs_action_menu_list_gene_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_action_menu_mark_read	"Mark as read"
 
 // d:Action menu item
 // l:sp_fs_action_menu_list_gene_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_action_menu_mark_unread	"Mark as unread"
 
 // d:Action menu item
@@ -1218,31 +1218,31 @@ CHARACTER_SET UTF8
 // d:TO-field label text
 // l:list_single_cmail_header_caption_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_editor_header_to "To:"
 
 // d:CC-field label text
 // l:list_single_cmail_header_caption_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_editor_header_cc "Cc:"
 
 // d:BCC-field label text
 // l:list_single_cmail_header_caption_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_editor_header_bcc "Bcc:"
 
 // d:Subject-field label text
 // l:list_single_cmail_header_caption_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_editor_header_subject "Subject:"
 
 // d:attachments label text
 // l:list_single_cmail_header_caption_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_editor_header_attachment_label "Attachs.:"
 
 // d:attachments field text
@@ -1250,7 +1250,7 @@ CHARACTER_SET UTF8
 // d:%U stands for the size of attachment files including the unit (KB or MB).
 // l:list_single_cmail_header_detail_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_editor_header_attachments "%N attachments (%U)"
 
 // d:attachments field single text
@@ -1258,211 +1258,211 @@ CHARACTER_SET UTF8
 // d:%1U stands for the size of attachment file.
 // l:list_single_cmail_header_detail_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_editor_header_single_attachment "%0U (%1U)"
 
 // d:Menu text 'Send'
 // l:list_single_pane_t1_cp2
 // r:TB9.1
-//	
+//
 #define qtn_fse_editor_options_send "Send"
 
 // d:Menu text 'Show Cc'
 // l:list_single_popup_submenu_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_editor_options_show_cc "Show Cc field"
 
 // d:Menu text 'Hide Cc'
 // l:list_single_popup_submenu_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_editor_options_hide_cc "Hide Cc field"
 
 // d:Menu text 'Show Bcc'
 // l:list_single_popup_submenu_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_editor_options_show_bcc "Show Bcc field"
 
 // d:Menu text 'Hide Bcc'
 // l:list_single_popup_submenu_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_editor_options_hide_bcc "Hide Bcc field"
 
 // d:Menu text 'Priority'
 // l:list_single_pane_t1_cp2/opt3
 // r:TB9.1
-//	
+//
 #define qtn_fse_editor_options_priority "Priority"
 
 // d:Menu text priority->'High'
 // l:list_single_popup_submenu_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_editor_options_priority_high "High"
 
 // d:Menu text priority->'Normal'
 // l:list_single_popup_submenu_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_editor_options_priority_normal "Normal"
 
 // d:Menu text priority->'Low'
 // l:list_single_popup_submenu_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_editor_options_priority_low "Low"
 
 // d:Menu text 'More'
 // l:list_single_pane_t1_cp2/opt3
 // r:TB9.1
-//	
+//
 #define qtn_fse_editor_options_more "More"
 
 // d:Menu text 'Insert from contacts'
 // l:list_single_pane_t1_cp2
 // r:TB9.1
-//	
+//
 #define qtn_fse_editor_options_insert_from_contacts "Add recipient"
 
 // d:Menu text save as draft
 // l:list_single_pane_t1_cp2
 // r:TB9.1
-//	
+//
 #define qtn_fse_editor_options_save_as_draft "Save to Drafts"
 
 // d:Menu text 'Add attachment'
 // l:list_single_pane_t1_cp2
 // r:TB9.1
-//	
+//
 #define qtn_fse_editor_options_add_attachment "Add attachment"
 
 // d:Menu text 'Remove attachment'
 // l:list_single_pane_t1_cp2
 // r:TB9.1
-//	
+//
 #define qtn_fse_editor_options_remove_attachment "Remove attachment"
 
 // d:Menu text Remove all attachments
 // l:list_single_pane_t1_cp2
 // r:TB9.1
-//	
+//
 #define qtn_fse_editor_options_remove_all_attachments "Remove all attachments"
 
 // d:Menu text Flag
 // l:list_single_pane_t1_cp2
 // r:TB9.1
-//	
+//
 #define qtn_fse_editor_options_flag "Flag"
 
 // d:Save to drafts dialog text
 // l:popup_note_wait_window
 // r:TB9.1
-//	
+//
 #define qtn_fse_editor_wait_note_saving_to_drafts "Saving message to Drafts"
 
-// d:Reply prefix. 
-// l:mce_header_field_pane_t1 
+// d:Reply prefix.
+// l:mce_header_field_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_ncs_engine_email_reply_prefix_text "RE: "
 
-// d:Forward prefix. 
+// d:Forward prefix.
 // l:mce_header_field_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_ncs_engine_email_forward_prefix_text "FW: "
 
-// d:To prefix. 
+// d:To prefix.
 // l:mce_header_field_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_ncs_engine_email_to_text "To: "
 
 // d:Cc prefix.
 // l:mce_header_field_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_ncs_engine_email_cc_text "Cc: "
 
-// d:From prefix. 
+// d:From prefix.
 // l:mce_header_field_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_ncs_engine_email_from_text "From: "
 
 // d:Sent prefix.
 // l:mce_header_field_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_ncs_engine_email_sent_text "Sent: "
 
-// d:Subject prefix. 
+// d:Subject prefix.
 // l:mce_header_field_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_ncs_engine_email_subject_text "Subject: "
 
-// d:Message line separator. 
+// d:Message line separator.
 // l:list_cmail_body_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_ncs_engine_email_message_line_separator_text "-----Original Message-----"
 
 // d:menu text Quick Text
 // l:list_single_pane_t1_cp2
 // r:TB9.1
-//	
+//
 #define qtn_fse_editor_options_insert_template "Insert template"
 
 // d:default text in recipient fields
 // l:list_single_cmail_header_detail_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_editor_recipient_enter "Enter recipient"
 
 // d:default text in subject field
 // l:list_single_cmail_header_detail_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_editor_subject_enter "Enter subject"
 
 // d:follow up item text in flag dialog
 // l:list_single_graphic_pane_t1_cp2
 // r:TB9.1
-//	
+//
 #define qtn_fse_editor_list_flag_follow_up "Follow up"
 
 // d:Clear flag item text in flag dialog
 // l:list_single_graphic_pane_t1_cp2
 // r:TB9.1
-//	
+//
 #define qtn_fse_editor_list_flag_clear "Clear flag"
 
 // d:Flag dialog title
 // l:heading_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_editor_list_flag "Flag"
 
 // d:Draft dialog title
 // l:heading_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_editor_close_message_query_prompt "Close message:"
 
 // d:Save to drafts item text in draft dialog
 // l:list_single_graphic_pane_t1_cp2
 // r:TB9.1
-//	
+//
 #define qtn_fse_editor_close_message_quey_save_to_drafts "Save to Drafts"
 
 // d:Delete item text in draft dialog
 // l:list_single_graphic_pane_t1_cp2
 // r:TB9.1
-//	
+//
 #define qtn_fse_editor_close_message_query_delete_message "Delete message"
 
 // d:Upmost item in addressfield match popup list. For selecting Remote lookup server search
@@ -1475,7 +1475,7 @@ CHARACTER_SET UTF8
 // l:control_pane_t1/opt7
 // r:TB9.1
 //
-#define qtn_ncs_softkey_select_text "Select" 
+#define qtn_ncs_softkey_select_text "Select"
 
 // d:Softkey Cancel
 // l:control_pane_t1/opt7
@@ -1630,13 +1630,13 @@ CHARACTER_SET UTF8
 //
 #define qtn_fse_folder_list_options_folder_settings	"Folder settings"
 
-// d:Mail viewer header item, see UI spec for more details 
+// d:Mail viewer header item, see UI spec for more details
 // l:none
 // r:TB9.1
 //
 #define qtn_fse_folder_list_message_count	"(%N)"
 
-// d:Mail viewer header item, see UI spec for more details 
+// d:Mail viewer header item, see UI spec for more details
 // l:none
 // r:TB9.1
 //
@@ -1839,7 +1839,7 @@ CHARACTER_SET UTF8
 // r:TB9.1
 //
 #define qtn_fse_viewer_attachment_list_options_cancel_all "Cancel all"
-	
+
 // d:Save attachment menu option in attachment list
 // l:list_single_pane_t1_cp2
 // r:TB9.1
@@ -1994,7 +1994,7 @@ CHARACTER_SET UTF8
 //
 #define qtn_fse_viewer_attachments_text_from "From:"
 
-// d:Download complete popup 
+// d:Download complete popup
 // l:list_single_cmail_header_detail_pane_t1
 // r:TB9.1
 //
@@ -2003,7 +2003,7 @@ CHARACTER_SET UTF8
 // d:Total number of complete attachments in download complete popup
 // l:list_single_cmail_header_detail_pane_t1
 // r:TB9.1
-//	
+//
 #define qtn_fse_viewer_attachments_downloaded "Attachments (%N)"
 
 // d:Personal Information Management settings list item
@@ -2182,7 +2182,7 @@ CHARACTER_SET UTF8
 
 // d:heading in body 1st row
 // d:%N stands for number of attachments
-// l:list_single_cmail_header_detail_pane_t1 
+// l:list_single_cmail_header_detail_pane_t1
 // r:TB9.1
 //
 #define qtn_fse_editor_attachments_header_attachments	"Attachments (%N)"
@@ -2253,7 +2253,7 @@ CHARACTER_SET UTF8
 // d:Header in mailbox selection dialog
 // l:heading_pane_t1
 // r:TB9.1
-//  
+//
 #define qtn_fse_launcher_select_mailbox_query_prompt	"Select mailbox:"
 
 // d:Personal information manager list title
@@ -2292,7 +2292,7 @@ CHARACTER_SET UTF8
 //
 #define qtn_fse_settings_applications_contacts	"Contacts"
 
-// d:Applications setting list item: Tasks 
+// d:Applications setting list item: Tasks
 // l:list_setting_pane_t1
 // r:TB9.1
 //
@@ -2333,13 +2333,13 @@ CHARACTER_SET UTF8
 //
 #define qtn_fse_status_email_sent	"E-mail sent"
 
-// d:Mail list options menu settings cascade menu 
+// d:Mail list options menu settings cascade menu
 // l:list_single_popup_submenu_pane_t1
 // r:TB9.1
 //
 #define qtn_fse_message_list_options_settings_mailbox	"Mailbox settings"
 
-// d:Mail list options menu settings cascade menu 
+// d:Mail list options menu settings cascade menu
 // l:list_single_popup_submenu_pane_t1
 // r:TB9.1
 //
@@ -2358,7 +2358,7 @@ CHARACTER_SET UTF8
 //
 #define qtn_fse_general_creating_new_mailbox	"Creating new mailbox"
 
-// d:Error note for showing that when creating a new mailbox the maximum amount 
+// d:Error note for showing that when creating a new mailbox the maximum amount
 //    of this type of mailboxes was reached.
 // l:popup_note_window/opt2
 // r:TB9.1
@@ -2522,19 +2522,19 @@ CHARACTER_SET UTF8
 //
 #define qtn_fse_tb_ext_reply "Reply"
 
-// d:Extended toolbar button reply, creates a reply to email message sender and other recipients 
+// d:Extended toolbar button reply, creates a reply to email message sender and other recipients
 // l:popup_preview_text_window_t1
 // r:TB9.2
 //
 #define qtn_fse_tb_ext_reply_all "Reply to all"
 
-// d:Extended toolbar button forward, creates a forward email message to the sender 
+// d:Extended toolbar button forward, creates a forward email message to the sender
 // l:popup_preview_text_window_t1
 // r:TB9.2
 //
 #define qtn_fse_tb_ext_forward "Forward"
 
-// d:Toolbar button for add attachment in editor, opens extended toolbar for attachment selection 
+// d:Toolbar button for add attachment in editor, opens extended toolbar for attachment selection
 // l:popup_preview_text_window_t1
 // r:TB9.2
 //
@@ -2600,7 +2600,7 @@ CHARACTER_SET UTF8
 //
 #define qtn_cmail_action_menu_mark "Mark"
 
-// d:Displayed in stylus popup menu when activated in message list view 
+// d:Displayed in stylus popup menu when activated in message list view
 // l:sp_fs_action_menu_list_gene_pane_t1
 // r:TB9.2
 //
@@ -2632,7 +2632,7 @@ CHARACTER_SET UTF8
 #define qtn_mail_launcher_settings_delete_multiple_mailboxes_query  "Delete %N mailboxes?"
 
 // d:Select folders item in folder list in mail list view's control bar
-// l:main_sp_fs_ctrlbar_ddmenu_pane_t1 
+// l:main_sp_fs_ctrlbar_ddmenu_pane_t1
 // r:TB9.2
 //
 #define qtn_cmail_command_area_select_folders "Select folders"
@@ -2724,42 +2724,42 @@ CHARACTER_SET UTF8
 // d:Copy to clipboard menu item
 // l:list_single_touch_menu_pane_t1
 // r:TB9.2
-//	
+//
 #define qtn_cmail_popup_copy_address	"Copy address"
 
-// d:Searches the contact information of the person who’s the address is. 
+// d:Searches the contact information of the person who’s the address is.
 // l:list_single_touch_menu_pane_t1
 // r:TB9.2
-//	
+//
 #define qtn_cmail_popup_search_server	"Search from server"
 
-// d:Opens the attachment 
+// d:Opens the attachment
 // l:list_single_touch_menu_pane_t1
 // r:TB9.2
-//	
+//
 #define qtn_cmail_popup_open	"Open"
 
-// d:Save the attachment 
+// d:Save the attachment
 // l:list_single_touch_menu_pane_t1
 // r:TB9.2
-//	
+//
 #define qtn_cmail_popup_save	"Save"
 
 // d:Save all the attachments
 // l:list_single_touch_menu_pane_t1
 // r:TB9.2
-//	
+//
 #define qtn_cmail_popup_save_all	"Save all"
 
-// d:Shown if the tapped attachment is being downloaded. Cancels the download.  
+// d:Shown if the tapped attachment is being downloaded. Cancels the download.
 // l:list_single_touch_menu_pane_t1
-// r:TB9.2	
+// r:TB9.2
 #define qtn_cmail_popup_cancel_download	"Cancel download"
 
 // d:Adds the web address to browser bookmarks.
 // l:list_single_touch_menu_pane_t1
 // r:TB9.2
-//	
+//
 #define qtn_cmail_popup_add_bookmark	"Add to bookmarks"
 
 // d:Open attachment in compose view
@@ -2774,9 +2774,39 @@ CHARACTER_SET UTF8
 //
 #define qtn_mail_stylus_popup_remove	"Remove"
 
-// d:Save to Contacts 
+// d:Save to Contacts
 // l:list_single_touch_menu_pane_t1
 // r:TB9.2
 //
 #define qtn_mail_stylus_popup_add_to_contacts  "Save to Contacts"
+
+// d:Mail viewer header item, see UI spec for more details
+// l:list_single_cmail_header_detail_pane_t1
+// r:TB9.2
+//
+#define qtn_cmail_viewer_images_not_displayed "Images are not displayed"
+
+// d:Mail viewer header item, see UI spec for more details
+// l:list_single_cmail_header_detail_pane_t1
+// r:TB9.2
+//
+#define qtn_cmail_viewer_display_images "Display images"
+
+// d:Load linked HTML images
+// l:list_setting_pane_t1
+// r:TB9.2
+//
+#define qtn_mail_setting_download_images                       "Download images"
+
+// d:Load linked HTML images option yes
+// l:list_setting_pane_t1
+// r:TB9.2
+//
+#define qtn_mail_option_alternative_yes                       "Yes"
+
+// d:Load linked HTML images option no
+// l:list_setting_pane_t1
+// r:TB9.2
+//
+#define qtn_mail_option_alternative_no                       "No"
 

@@ -23,6 +23,9 @@
 #include <e32base.h>
 #include <e32cmn.h>     // TSecureId
 
+// Forward declarations
+class CEmailServerMonitorTimer;
+
 const TInt KDefaultTimeToWaitInSeconds = 3;
 
 /////////////////////////////////////////////////////////////////////////////
@@ -50,6 +53,95 @@ void Wait( TInt aWaitTimeInSeconds = KDefaultTimeToWaitInSeconds );
  * @return ETrue if the specified process is running, otherwise EFalse.
  */
 TBool IsProcessRunning( TSecureId aUid, RProcess* aProcess = NULL );
+
+
+/**
+*  Generic timer's callback
+*
+*  Classes inherited from this one can be used as a callback for the generic
+*  timer. TimerEvent() is called when the timer elapses.
+*
+*/
+class MEmailServerMonitorTimerCallback
+    {
+public:
+    /**
+     * @param   aTriggeredTimer The timer which launched this event.
+     */
+    virtual void TimerEventL( CEmailServerMonitorTimer* aTriggeredTimer ) = 0;
+    };
+
+/**
+*  Generic timer
+*
+*  Caller gives MEmailServerMonitorTimerCallback inherited pointer as a
+*  parameter, and that pointer is used as a callback when the timer elapses.
+*  Timer interval is given as a parameter for the Start function.
+*
+*/
+class CEmailServerMonitorTimer : public CTimer
+    {
+public:
+    
+    /**
+    * Symbian two-pahse constructor.
+    *
+    * @param aCallback Callback class
+    * @param aPriority Timers priority, EPriorityStandard by default
+    */
+    static CEmailServerMonitorTimer* NewL(
+        MEmailServerMonitorTimerCallback* aCallback,
+        const TInt aPriority = CActive::EPriorityStandard );
+
+    /**
+    * Symbian two-pahse constructor.
+    *
+    * @param aCallback Callback class
+    * @param aPriority Timers priority, EPriorityStandard by default
+    */
+    static CEmailServerMonitorTimer* NewLC(
+        MEmailServerMonitorTimerCallback* aCallback,
+        const TInt aPriority = CActive::EPriorityStandard );
+        
+    /**
+    * Destructor.
+    */
+    ~CEmailServerMonitorTimer();
+        
+    /**
+    * Starts the timer with specified interval, or with the default value.
+    *
+    * @param aInterval Timer interval as microseconds
+    */
+    void Start( TInt aInterval );
+
+    /**
+    * Stops the timer.
+    */
+    void Stop();
+
+    /**
+    * CActive object's RunL
+    */
+    void RunL();
+        
+protected:
+    /**
+    * Constructor.
+    */
+    CEmailServerMonitorTimer( MEmailServerMonitorTimerCallback* aCallback,
+                              const TInt aPriority );
+        
+private:
+    /**
+    * 2nd phase constructor.
+    */
+    void ConstructL();
+
+private:
+    /* Pointer to callback class */
+    MEmailServerMonitorTimerCallback* iCallback;
+    };
 
 
 #endif // EMAILSERVERMONITORUTILITIES_H

@@ -642,6 +642,10 @@ private: // from MAknPhysicsObserver
     */
    virtual TPoint ViewPosition() const;
 
+private:
+
+   void DoUpdateSubjectL();
+
 private: // data
     
     /**

@@ -250,73 +250,49 @@ void CNcsSubjectField::HandlePointerEventL( const TPointerEvent& aPointerEvent )
 void CNcsSubjectField::FocusChanged( TDrawNow aDrawNow )
 	{
     FUNC_LOG;
-	iDrawAfterFocusChange = aDrawNow;
-	DoHandleFocusChanged( this );
+	if ( IsFocused() )
+		{
+		iTextEditor->SetFocus( ETrue );
+		TRAP_IGNORE( iTextEditor->SetCursorPosL( iTextEditor->TextLength(), EFalse ) ); 
+
+		// make sure that control is visible on screen
+		if ( Rect().iTl.iY < 0 )
+			{
+			TPoint pt = TPoint( 0, 0 );
+			Reposition( pt, Rect().Width() );
+			iSizeObserver->UpdateFieldPosition( this );
+			}
+		else
+			{
+			TPoint pos = PositionRelativeToScreen();
+			pos.iY += Size().iHeight;
+			CWsScreenDevice* screenDev = ControlEnv()->ScreenDevice();
+			TPixelsAndRotation pix;
+			screenDev->GetDefaultScreenSizeAndRotation( pix );
+			const TInt h = pix.iPixelSize.iHeight;
+			if ( pos.iY >= h - h / 3 )
+				{
+				TPoint pt = TPoint( 0, h / 3 );
+				Reposition( pt, Rect().Width() );
+				iSizeObserver->UpdateFieldPosition( this );
+				}
+			}
+
+		if ( iParentControl )
+			{
+			TRAP_IGNORE( iParentControl->SetMskL() );
+			}
+		}
+	else
+		{
+		iTextEditor->SetFocus( EFalse );
+		}
+
+	if ( aDrawNow )
+		{
+		DrawNow();
+		}
 	}
-
-// -----------------------------------------------------------------------------
-// CNcsSubjectField::HandleFocusChangedL()
-// -----------------------------------------------------------------------------
-//
-void CNcsSubjectField::HandleFocusChangedL()
-    {
-    FUNC_LOG;
-    if ( IsFocused() )
-        {
-        iTextEditor->SetFocus( ETrue );
-        iTextEditor->SetCursorPosL( iTextEditor->TextLength(), EFalse );
-
-        // make sure that control is visible on screen
-        if ( Rect().iTl.iY < 0 )
-            {
-            TPoint pt = TPoint( 0, 0 );
-            Reposition( pt, Rect().Width() );
-            iSizeObserver->UpdateFieldPosition( this );
-            }
-        else
-            {
-            TPoint pos = PositionRelativeToScreen();
-            pos.iY += Size().iHeight;
-            CWsScreenDevice* screenDev = ControlEnv()->ScreenDevice();
-            TPixelsAndRotation pix;
-            screenDev->GetDefaultScreenSizeAndRotation( pix );
-            const TInt h = pix.iPixelSize.iHeight;
-            if ( pos.iY >= h - h / 3 )
-                {
-                TPoint pt = TPoint( 0, h / 3 );
-                Reposition( pt, Rect().Width() );
-                iSizeObserver->UpdateFieldPosition( this );
-                }
-            }
-
-        if ( iParentControl )
-            {
-            iParentControl->SetMskL();
-            }
-        }
-    else
-        {
-        iTextEditor->HandleTextChangedL();
-        iTextEditor->SetFocus( EFalse );
-        }
-
-    if ( iDrawAfterFocusChange )
-        {
-        DrawNow();
-        }
-    }
-
-// -----------------------------------------------------------------------------
-// CNcsSubjectField::DoHandleFocusChanged()
-// -----------------------------------------------------------------------------
-//
-TInt CNcsSubjectField::DoHandleFocusChanged( TAny* aSelfPtr )
-    {
-    FUNC_LOG;
-    CNcsSubjectField* self = static_cast<CNcsSubjectField*>( aSelfPtr );
-    TRAPD( err, self->HandleFocusChangedL() );
-    return err;
-    }
 
 // -----------------------------------------------------------------------------
 // CNcsSubjectField::MinimumHeight()
@@ -352,7 +328,15 @@ void CNcsSubjectField::SetSubjectL( const TDesC& aSubject )
     FUNC_LOG;
     if ( &aSubject && aSubject.Length() > 0 )
     	{
-	    RMemReadStream inputStream( aSubject.Ptr(), aSubject.Size() );
+        // clear subject if necessary
+        TInt documentLength = iTextEditor->RichText()->DocumentLength();
+        if ( documentLength > 0 )
+            {
+            iTextEditor->RichText()->DeleteL( 0, documentLength );
+            iTextEditor->HandleTextChangedL();
+            }
+
+        RMemReadStream inputStream( aSubject.Ptr(), aSubject.Size() );
 	    CleanupClosePushL( inputStream );
 
 	  	iTextEditor->RichText()->ImportTextL( 0, inputStream, CPlainText::EOrganiseByParagraph );

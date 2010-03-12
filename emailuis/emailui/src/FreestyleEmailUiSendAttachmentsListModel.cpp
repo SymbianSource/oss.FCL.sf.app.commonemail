@@ -433,6 +433,8 @@ void CFSEmailUiSendAttachmentsListModel::ReFreshListL()
 
 	// header and dividers
 	CreateListSkeletonL();
+	//moved from CreateListSkeletonL();
+	SetupTitlePaneTextL();
 	// list model items
 	CreateListItemsL();
 
@@ -518,7 +520,6 @@ void CFSEmailUiSendAttachmentsListModel::CreateListSkeletonL()
     
     iAttachmentsList->SetItemsAlwaysExtendedL(ETrue);
     
-    SetupTitlePaneTextL();
 	}
 
 // ---------------------------------------------------------------------------
@@ -716,6 +717,10 @@ void CFSEmailUiSendAttachmentsListModel::RemoveItemByIndexL( const TInt aIndex )
 			// compose view is open, so remove attachment there
 			composeView->NewMessage()->RemoveChildPartL(
 				item->MailMsgPartId() );
+			if ( iItems.Count() == 1 )
+				{
+					composeView->NewMessage()->ResetFlag( EFSMsgFlag_Attachments );
+				}
 			}
 		else
 			{
@@ -732,6 +737,7 @@ void CFSEmailUiSendAttachmentsListModel::RemoveItemByIndexL( const TInt aIndex )
                 EFSMsgDataStructure );
 			CleanupStack::PushL( msg );
 			msg->RemoveChildPartL( item->MailMsgPartId() );
+			msg->ResetFlag( EFSMsgFlag_Attachments );
 			msg->SaveMessageL();
 			CleanupStack::PopAndDestroy( msg );
 			}
@@ -799,6 +805,7 @@ void CFSEmailUiSendAttachmentsListModel::RemoveAllAttachmentsL()
             RemoveAndDestroy( i );
             }
         }
+    msg->ResetFlag( EFSMsgFlag_Attachments );
     msg->SaveMessageL();
 
     // Delete msg if we own it

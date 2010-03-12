@@ -17,7 +17,7 @@
 
 #include <emailobserverinterface.hrh>
 #include <ecom/registryinfo.rh>
-#include "t_testpluginconst.hrh"
+#include "../inc/t_testpluginconst.hrh"
 
 RESOURCE REGISTRY_INFO theInfo
     {

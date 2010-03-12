@@ -58,8 +58,25 @@ _LIT(KKeySetupText, "key_setup_text");
 _LIT(KContTypeSetupIcon, "ct_setup_icon");
 _LIT8(KKeySetupIcon, "key_setup_icon");
 
+_LIT(KContTypeSetupBrandIcon1, "ct_setup_brand_icon_1");
+_LIT8(KKeySetupBrandIcon1, "key_setup_brand_icon_1");
+_LIT(KContTypeSetupBrandIcon2, "ct_setup_brand_icon_2");
+_LIT8(KKeySetupBrandIcon2, "key_setup_brand_icon_2");
+_LIT(KContTypeSetupBrandIcon3, "ct_setup_brand_icon_3");
+_LIT8(KKeySetupBrandIcon3, "key_setup_brand_icon_3");
+_LIT(KContTypeSetupBrandIcon4, "ct_setup_brand_icon_4");
+_LIT8(KKeySetupBrandIcon4, "key_setup_brand_icon_4");
+
+_LIT(KSetupBrand1, "ovi.com");
+_LIT(KSetupBrand2, "yahoo.com");
+_LIT(KSetupBrand3, "hotmail.com");
+_LIT(KSetupBrand4, "gmail.com");
+
 _LIT(KContTypeBodyText, "ct_body_text_");
 _LIT(KKeyBodyText, "key_body_text_");
+
+_LIT(KContTypeSubjectText, "ct_subject_text_");
+_LIT(KKeySubjectText, "key_subject_text_");
 
 _LIT(KContTypeIndicatorIcon, "ct_indicator_icon_");
 _LIT8(KKeyIndicatorIcon, "key_indicator_icon_");
@@ -120,16 +137,14 @@ _LIT8( KViewAppUid, "view_app_uid" );
 //  constants for requesting notification
 _LIT( KPubData, "publisher");
 _LIT( KActionName,"notify");
-_LIT8( KDeActive, "deactive");
-_LIT8( KActive, "active");
+_LIT8( KPluginStartup, "pluginstartup");
+_LIT8( KPluginShutdown, "pluginshutdown");
 _LIT8( KSuspend , "suspend");
 _LIT8( KResume, "resume");
-_LIT8( KInactive, "inactive");
-_LIT( KDeActive16, "deactive");
-_LIT( KActive16, "active");
+_LIT( KPluginStartup16, "pluginstartup");
+_LIT( KPluginShutdown16, "pluginshutdown");
 _LIT( KSuspend16, "suspend");
 _LIT( KResume16, "resume");
-_LIT( KInactive16, "inactive");
 _LIT( KSettings16, "settings");
 _LIT( KCPAll, "all");
 _LIT8( KExecute, "execute" );

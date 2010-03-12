@@ -145,7 +145,10 @@ void CFSEmailDownloadInfoMediator::RequestResponseL(
 		// removed from the array before we are finished
 		download = iDownloadArray[idx];
         
-    	// In case of error, show a note
+    	// In case of error, show a note.  Note that these notes should not
+        // be displayed synchronously, since otherwise other events can
+        // occur that delete objects that are still in use waiting for this
+        // method to complete (see PDOO-7X93JP).
 		if ( aEvent.iError && aEvent.iError != KErrCancel )
 		    {
 			// Download failed, show error note
@@ -154,13 +157,13 @@ void CFSEmailDownloadInfoMediator::RequestResponseL(
 			    { // connection error
 			    TFsEmailUiUtility::ShowErrorNoteL(
 			    	R_FREESTYLE_EMAIL_ERROR_GENERAL_CONNECTION_ERROR,
-			    	ETrue );
+			    	EFalse );
 			    }
 			else // other error
 			    {
 			    TFsEmailUiUtility::ShowErrorNoteL(
 			    	R_FREESTYLE_EMAIL_ERROR_GENERAL_UNABLE_TO_COMPLETE,
-			    	ETrue );
+			    	EFalse );
 			    }
 		    }
 		    

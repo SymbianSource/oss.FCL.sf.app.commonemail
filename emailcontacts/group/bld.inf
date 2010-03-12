@@ -22,9 +22,9 @@
 //<cmail>
 #include "../contactactionservice/group/bld.inf"
 #include "../contactactionmenu/group/bld.inf"
-#include "../remotecontactlookup/group/bld.inf"
 //</cmail>
 //<cmail> not needed in cmail
+//#include "../remotecontactlookup/group/bld.inf"
 //#include "../fscuicontrols/group/bld.inf"
 //#include "../fsccombinedviewui/group/bld.inf"
 //</cmail>

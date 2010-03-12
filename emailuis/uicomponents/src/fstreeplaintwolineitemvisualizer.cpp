@@ -12,7 +12,7 @@
 * Contributors:
 *
 *  Description : A visualizer for data items with plain text.
-*  Version     : %version: tr1sido#14 %
+*  Version     : %version: tr1sido#15 %
 *
 */
 
@@ -1684,7 +1684,7 @@ void CFsTreePlainTwoLineItemVisualizer::UpdateL( const MFsTreeItemData& aData,
                 iTextVisual->SetColor( textColor );
                 iTextVisual->SetTextStyle( styleId );
 
-                iTextVisual->SetWrapping(CAlfTextVisual::ELineWrapManual);
+//                iTextVisual->SetWrapping(CAlfTextVisual::ELineWrapManual);
 
                 TAlfAlignHorizontal currTextAlign( EAlfAlignHLocale );
                 currTextAlign = CurrentTextAlignmentL( iTextAlign, &data->Data(), iTextVisual );
@@ -1713,7 +1713,7 @@ void CFsTreePlainTwoLineItemVisualizer::UpdateL( const MFsTreeItemData& aData,
                 iSecondaryTextVisual->SetColor( textColor );
                 iSecondaryTextVisual->SetTextStyle( styleId );
 
-                iSecondaryTextVisual->SetWrapping(CAlfTextVisual::ELineWrapManual);
+//                iSecondaryTextVisual->SetWrapping(CAlfTextVisual::ELineWrapManual);
 
                 TAlfAlignHorizontal currSecTextAlign( EAlfAlignHLocale );
                 currSecTextAlign = CurrentTextAlignmentL( iSecondaryTextAlign, &data->SecondaryData(), iSecondaryTextVisual );
@@ -1744,7 +1744,7 @@ void CFsTreePlainTwoLineItemVisualizer::UpdateL( const MFsTreeItemData& aData,
                 iPreviewPaneTextVisual->SetColor( textColor );
                 iPreviewPaneTextVisual->SetTextStyle( styleId );
 
-                iPreviewPaneTextVisual->SetWrapping(CAlfTextVisual::ELineWrapManual);
+//                iPreviewPaneTextVisual->SetWrapping(CAlfTextVisual::ELineWrapManual);
 
                 TAlfAlignHorizontal currSecTextAlign( EAlfAlignHLocale );
                 currSecTextAlign = CurrentTextAlignmentL( EAlfAlignHLocale, &data->PreviewPaneData(), iPreviewPaneTextVisual );

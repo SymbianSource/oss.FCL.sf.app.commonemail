@@ -142,7 +142,19 @@ class MFSMailBrandManager
      virtual TInt GetGraphicIdsL( TFSBrandElement aElement,
                                   const TFSMailMsgId& aMailboxId,
                                   TDes& aIconIds  ) = 0;
-        
+
+    /**
+     * Returns branded graphic element of given type.
+     *
+     * @param aElementId brand element
+     * @param aBrandId Domain of email address.     
+     * @param aIconIds Icon path and ids
+     *
+     * @return Error code
+     */
+     virtual TInt GetGraphicIdsL( TFSBrandElement aElement,
+                                  const TDesC& aBrandId,
+                                  TDes& aIconIds  ) = 0;        
 };
 
 

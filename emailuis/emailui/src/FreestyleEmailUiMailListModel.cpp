@@ -571,3 +571,22 @@ void CFSEmailUiMailListModel::Reset()
     iSortCriteria.iOrder = EFSMailDescending;
     }
 
+void CFSEmailUiMailListModel::GetItemIdsUnderNodeL( const TFsTreeItemId aNodeId, 
+        RFsTreeItemIdList& aMessageIds ) const
+    {
+    FUNC_LOG;
+    aMessageIds.Reset();
+    const TInt count(iItems.Count());
+    for (TInt index = 0; index < count; index++)
+        {
+        if (iItems[index]->CorrespondingListId() == aNodeId)
+            {            
+            // Found the node Id, now get all the items under it
+            while (++index < count && iItems[index]->ModelItemType() == ETypeMailItem)
+                {
+                aMessageIds.AppendL(iItems[index]->CorrespondingListId());
+                }
+            break;
+            }
+        }        
+    }

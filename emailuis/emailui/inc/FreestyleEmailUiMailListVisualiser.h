@@ -31,6 +31,9 @@
 //</cmail>
 #include "FSEmailBuildFlags.h"
 
+#include <touchfeedback.h>
+#include <touchlogicalfeedback.h>
+
 // INTERNAL INCLUDES
 #include "FreestyleEmailUiViewBase.h"
 #include "FreestyleEmailUiListVisualiser.h"
@@ -38,6 +41,7 @@
 #include "FreestyleEmailUiControlBarCallback.h"
 #include "FreestyleEmailUiUtilities.h"
 #include "FreestyleEmailUiContactHandlerObserver.h"
+#include "cmailboxstateext.h"
 
 // FORWARD DECLARATIONS
 class CAlfTextVisual;
@@ -78,6 +82,7 @@ class CFsTreePlainTwoLineItemVisualizer;
 class CEUiEmailListTouchManager;
 class MFSMailIterator;
 class CAknStylusPopUpMenu;
+template <class T> struct TDeleteTask;
 
 /**
  * CMailListModelUpdater
@@ -258,7 +263,8 @@ class CFSEmailUiMailListVisualiser : public CFsEmailUiViewBase,
 									 public MFSEmailUiSortListCallback,
 									 public MFsTreeListObserver,
 									 public MFSEmailUiContactHandlerObserver,
-									 public CMailListModelUpdater::MObserver
+									 public CMailListModelUpdater::MObserver,
+									 public MEmailMailboxState
 // </cmail>
 	{
 friend class CMailListUpdater;
@@ -372,7 +378,7 @@ public:
 	TRect SortButtonRect();
 
 	// Update theme colors
-	void UpdateTheme();
+	void UpdateTheme(const TBool aSystemUpdate = ETrue);
 
 	// Navigation functions, used mainly from viewer
 	TBool IsNextMsgAvailable( TFSMailMsgId aCurrentMsgId, TFSMailMsgId& aFoundNextMsgId, TFSMailMsgId& aFoundNextMsgFolder ) const;
@@ -421,6 +427,11 @@ public:
     */
     void NotifyDateChangedL();
 
+    // Sets aActiveMailboxId and aActiveFolderId from iMailFolder if available
+    TInt GetActiveFolderId(TFSMailMsgId& aActiveMailboxId, TFSMailMsgId& aActiveFolderId) const;
+
+    // Creates CMailboxStateExtension with this class set as dataprovider
+    void CreateExtensionL();
 private: // from
 
     /**
@@ -536,7 +547,12 @@ private: // Private functions
 	// Message deletion internal functions
 	void DeleteFocusedMessageL();
 	void DeleteMarkedMessagesL();
-	static TInt DoDeleteMarkedMessages( TAny* aSelfPtr );
+    void DeleteMessagesUnderNodeL( const TFsTreeItemId aNodeId );
+    void ConfirmAndStartDeleteTaskL( TDeleteTask<CFSEmailUiMailListVisualiser>* aTask );
+    TBool ConfirmDeleteL( const TInt aItemCount, const TFsTreeItemId aItemId ) const;
+    static TInt DoExecuteDeleteTask( TAny* aSelfPtr );
+    void HandleDeleteTaskL( const RFsTreeItemIdList& aEntries );
+    void HandleDeleteTaskLeavingCodeL( const RFsTreeItemIdList& aEntries );
 
 	// Helper functions to access model data
 	TFSMailMsgId MsgIdFromIndex( TInt aItemIdx ) const;
@@ -703,6 +719,8 @@ private: // data types
 
 
 private: // Private objects
+    // Extension to support Ozone-plugin's check for active mailbox
+    CMailboxStateExtension* iExtension;
     // Reference to Alf environment
     CAlfEnv& iEnv;
   	// Mail list updater timer
@@ -780,6 +798,7 @@ private: // Private objects
 
     TBool iShowReplyAll;
     // Was focus visible in the ListView.
+    TDeleteTask<CFSEmailUiMailListVisualiser>* iDeleteTask;
     TBool iLastFocus;
     //used to prevent Call application execution (on keyup of call button) when call to contact required
     TBool iConsumeStdKeyYes_KeyUp;
@@ -787,6 +806,8 @@ private: // Private objects
     TBool iForceRefresh;
     // true if message viewer/editor is open to disable background list updates
     TBool iMailOpened;
+    // tactile feed back -- not owned
+    MTouchFeedback* iTouchFeedBack;
   	};
 
 

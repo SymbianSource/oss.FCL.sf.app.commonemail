@@ -27,13 +27,17 @@
 
 #include "emailservermonitorconst.h"
 
+/////////////////////////////////////////////////////////////////////////////
+//  FORWARD DECLARATIONS
+class CEmailShutter;
+
 /**
 *  Class CEmailServerMonitor implements functionality that starts up
 *  EmailServer and monitors it. If EmailServer crashes, then
 *  CEmailServerMonitor restarts it. CEmailServerMonitor also starts up needed
 *  email related 3rd party services after IAD update.
 */
-NONSHARABLE_CLASS( CEmailServerMonitor ) : public CActive
+NONSHARABLE_CLASS( CEmailServerMonitor ) : public CActive, public MEmailServerMonitorTimerCallback
     {
     
 public: // Public construcor and destructor
@@ -58,6 +62,21 @@ public: // Public member functions
      * Start email server monitoring.
      */
     void Start();
+    
+    /**
+     * Set pointer to Shutter object
+     */
+    void SetShutter( CEmailShutter* aShutter );
+    
+    /**
+     * If Restart External Services flag is set to true, then external
+     * services will be restarted after Email Server is up and running
+     */
+    void SetRestartExternalServicesFlag( TBool aRestartFlag = ETrue );
+    
+public: // From base class MEmailServerMonitorTimerCallback
+    
+    void TimerEventL( CEmailServerMonitorTimer* aTriggeredTimer );
 
 private: // Private constructors
     /**
@@ -123,6 +142,14 @@ private: // Private types
         EEsmStateRestarting
         };
 
+    enum TExternalServiceRestartState
+        {
+        EEsmEsrStateRestartNotNeeded,
+        EEsmEsrStateRestartNeeded,
+        EEsmEsrStateRestartInitiated,
+        EEsmEsrStateFirstServiceRestarted,
+        };
+    
 private: // Member variables
 
     // A session with the application architecture server
@@ -143,6 +170,23 @@ private: // Member variables
     // Time of the previous restart, used to reset restart counter if
     // server has been running succesfully long enough
     TTime iLastRestartTime;
+
+    /**
+     * Pointer to Shutter
+     * Not owned
+     */
+    CEmailShutter* iShutter;
+
+    /**
+     * Should we restart external services after Email Server is up and running
+     */
+    TExternalServiceRestartState iExternalServicesRestartState;
+    
+    /**
+     * Generic timer used to make delayed restart of the external services
+     * Owned
+     */
+    CEmailServerMonitorTimer* iExternalServiceRestartTimer;
 
     };
 

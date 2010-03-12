@@ -43,7 +43,6 @@ void CEmailWidgetSettingsListView::ConstructL()
 //	
 CEmailWidgetSettingsListView::~CEmailWidgetSettingsListView()
     {
-    delete iCid;
     }
 
 // ---------------------------------------------------------------------------
@@ -88,7 +87,7 @@ TUid CEmailWidgetSettingsListView::Id() const
 //	
 void CEmailWidgetSettingsListView::HandleListBoxEventL(CEikListBox* /*aListBox*/, TListBoxEvent aEventType)
     {
-    if (aEventType == EEventEnterKeyPressed || aEventType == EEventItemDoubleClicked /*EEventItemSingleClicked*/ )
+    if (aEventType == EEventEnterKeyPressed || aEventType == EEventItemSingleClicked )
         {    
         iView->SaveSelectedL();
         AppUi()->HandleCommandL(EAknSoftkeyCancel); // Exit app

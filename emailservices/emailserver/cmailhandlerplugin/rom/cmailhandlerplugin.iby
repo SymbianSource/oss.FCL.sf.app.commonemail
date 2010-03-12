@@ -28,6 +28,8 @@
 ECOM_PLUGIN( cmailhandlerplugin.dll, cmailhandlerplugin.rsc )
 SCALABLE_IMAGE(APP_BITMAP_DIR,APP_BITMAP_DIR,cmailhandlerplugin)
 
+data=EPOCROOT##epoc32\data\Z\private\10202BE9\20029F4A.txt  private\10202BE9\20029F4A.txt
+
 
 #endif //FF_EMAIL_FRAMEWORK
 

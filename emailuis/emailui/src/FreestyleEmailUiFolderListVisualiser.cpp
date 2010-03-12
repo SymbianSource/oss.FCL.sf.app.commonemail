@@ -2978,6 +2978,8 @@ void CFSEmailUiFolderListVisualiser::GoToBottomL()
 void CFSEmailUiFolderListVisualiser::UpdateToolbarButtons()
     {
     FUNC_LOG;
+    Toolbar()->SetItemDimmed(
+        EFsEmailUiTbCmdSelect, ( iModel == NULL ) || ( iModel->Count() == 0 ), ETrue );
     Toolbar()->SetItemDimmed( EFsEmailUiTbCmdExpandAll, AllNodesExpanded(), ETrue );
     Toolbar()->SetItemDimmed( EFsEmailUiTbCmdCollapseAll, AllNodesCollapsed(), ETrue );
     }

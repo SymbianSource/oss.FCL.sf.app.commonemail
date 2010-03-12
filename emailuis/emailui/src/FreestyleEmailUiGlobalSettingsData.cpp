@@ -62,7 +62,7 @@ void CFsEmailUiGlobalSettingsData::ConstructL()
 	SetDownloadNotifications( 0 );
 	SetActiveIdle( 0 );
 	SetWarnBeforeDelete( 1 );
-	//SetDownloadHTMLImages( 1 );
+	SetDownloadHTMLImages( 1 );
 	}
 	
 TBool& CFsEmailUiGlobalSettingsData::WarnBeforeDelete()

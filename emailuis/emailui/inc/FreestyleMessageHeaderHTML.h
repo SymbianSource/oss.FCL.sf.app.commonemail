@@ -37,25 +37,28 @@ public:
                                   RWriteStream& aWriteStream, 
                                   TInt aVisibleWidth, 
                                   TInt aScrollPosition,
-                                  TBidiText::TDirectionality aDirectionality = TBidiText::ELeftToRight);
+                                  const TBool aAutoLoadImages,                                  
+                                  const TBool aExpanded );
     IMPORT_C static void ExportL( CFSMailMessage& aMailMessage, 
                                   RFile& aFile, 
                                   TInt aVisibleWidth, 
                                   TInt aScrollPosition,
-                                  TBidiText::TDirectionality aDirectionality = TBidiText::ELeftToRight);
+                                  const TBool aAutoLoadImages,
+                                  const TBool aExpanded );
     IMPORT_C static void ExportL( CFSMailMessage& aMailMessage, 
                                   RFs& aFs, 
                                   const TPath& aFilePath, 
                                   TInt aVisibleWidth, 
                                   TInt aScrollPosition,
-                                  TBidiText::TDirectionality aDirectionality = TBidiText::ELeftToRight);
+                                  const TBool aAutoLoadImages,
+                                  const TBool aExpanded );
     
     IMPORT_C static CFreestyleMessageHeaderHTML* NewL( CFSMailMessage& aMailMessage,
                                                        RWriteStream& aWriteStream,
                                                        TInt aVisibleWidth,
                                                        TInt aScrollPosition,
-                                                       TBidiText::TDirectionality aDirectionality = TBidiText::ELeftToRight
-                                                       );
+                                                       const TBool aAutoLoadImages,
+                                                       const TBool aExpanded );
     
     ~CFreestyleMessageHeaderHTML();
     
@@ -66,7 +69,8 @@ private:
                                  RWriteStream& aWriteStream,
                                  TInt aVisibleWidth,
                                  TInt aScrollPosition,
-                                 TBidiText::TDirectionality aDirectionality);
+                                 const TBool aAutoLoadImages,
+                                 const TBool aExpanded );
     void ConstructL();
     
     void HTMLStartL() const;
@@ -76,6 +80,8 @@ private:
     void HTMLHeaderStartL() const;
     void HTMLMetaL() const;
     void HTMLHeaderEndL() const;
+
+    void ExportDisplayImagesTableL() const;
 
     void ExportHTMLBodyL() const;
     void HTMLBodyStartL() const;
@@ -152,9 +158,9 @@ private:
     RWriteStream&               iWriteStream;
     TInt                        iVisibleWidth;
     TInt                        iScrollPosition;
-    TBidiText::TDirectionality  iDirectionality;
+    TBool                       iAutoLoadImages;
     TBool                       iMirrorLayout;
-     
+    TBool                       iExpanded;
     RPointerArray<CFSMailMessagePart> iAttachments;
 };
 

@@ -46,46 +46,47 @@
 // UI Applications to be closed
 const TUid KApplicationsToClose[] =
     {
-    KFSEmailUiUid,              // Freestyle Email UI
-    { SettingWizardUidAsTInt }, // TP Wizard
-    { KMceAppUid },             // MCE
-    { KPhoneBookUid },          // Phonebook 1 & 2
-    { KCalendarAppUid1 }        // Calendar
+    KFSEmailUiUid,                     // Freestyle Email UI
+    { SettingWizardUidAsTInt },        // TP Wizard
+    { KMceAppUid },                    // MCE
+    { KPhoneBookUid },                 // Phonebook 1 & 2
+    { KCalendarAppUid1 },              // Calendar
+    { KGeneralSettingsAppUidAsTInt },  // General settings
     };
 
 // Applications that should not be closed. Should include only system
 // applications that free the email resources by some other means.
 const TUid KApplicationsNotToBeClosed[] =
     {
-    { AI_SID_AIFW_EXE },        // HomeScreen
-    { AI_UID3_AIFW_COMMON },    // HomeScreen
+    { AI_SID_AIFW_EXE },               // HomeScreen
+    { AI_UID3_AIFW_COMMON },           // HomeScreen
     };
 
 // Non-UI clients that need to be closed
 const TUid KOtherClientsToClose[] =
     {
-    { KPcsServerProcessUidAsTInt }, // PCS server
-    { FSMailServerUidAsTInt },      // FSMailServer
+    { KPcsServerProcessUidAsTInt },    // PCS server
+    { FSMailServerUidAsTInt },         // FSMailServer
     };
 
 // Plugin processes that need to be closed
 const TUid KPluginProcessesToClose[] =
     {
     // MfE plugin
-    { 0x20012BEE },      // KUidEasStartup
-    { 0x20012BEC },      // KUidEasTarmAccess
-    { 0x20012BD4 },      // KEasLogSenderServer
-    { 0x20012BE6 },      // KUidEasServer
+    { 0x20012BEE },                    // KUidEasStartup
+    { 0x20012BEC },                    // KUidEasTarmAccess
+    { 0x20012BD4 },                    // KEasLogSenderServer
+    { 0x20012BE6 },                    // KUidEasServer
     // Oz plugin
-    { 0x2002136A },      // monitor
-    { 0x20021367 },      // server
+    { 0x2002136A },                    // monitor
+    { 0x20021367 },                    // server
     };
 
 // Message store processes that need to be closed
 const TUid KMsgStoreProcessesToClose[] =
     {
-    { KUidMessageStoreExe },        // MessageStoreExe.exe
-    { KUidEmailStorePreInstallExe } // MessageStorePreInstallExe
+    { KUidMessageStoreExe },           // MessageStoreExe.exe
+    { KUidEmailStorePreInstallExe }    // MessageStorePreInstallExe
     };
 
 const TInt KEmailUidExtraBuffer = 2 * KEmailPlatformApiUidItemSize;

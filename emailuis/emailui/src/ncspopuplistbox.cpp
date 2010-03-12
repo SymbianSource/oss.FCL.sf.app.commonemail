@@ -419,22 +419,67 @@ void CNcsPopupListBox::SetListItemsFromArrayL()
 	}
 
 // -----------------------------------------------------------------------------
+// CNcsPopupListBox::RoundToItemHeight
+// -----------------------------------------------------------------------------
+TInt CNcsPopupListBox::RoundToItemHeight(const TInt aPopupHeight) const
+    {
+	TReal fullItems; // number of full visible items in window
+	TInt err = Math::Round(fullItems, (aPopupHeight / ItemHeight()), 0);
+	if(err == KErrNone)
+	    {
+	    return (TInt)(fullItems * ItemHeight()); 
+	    }
+	return aPopupHeight; // in case of error
+    }
+
+// -----------------------------------------------------------------------------
 // CNcsPopupListBox::SetPopupHeight
 // -----------------------------------------------------------------------------
 void CNcsPopupListBox::SetPopupHeight()
 	{
     FUNC_LOG;
-	TRect newRect = iPopupMaxRect;
+    // This is the total height in pixels needed to show all items
+    TInt minimumHeight = CalcHeightBasedOnNumOfItems( Model()->NumberOfItems());
+    TRect newRect = iPopupMaxRect;
+    TInt areaHeight = Parent()->Parent()->Rect().Height();
+    TInt halfAreaHeight = areaHeight/2;
 
-	// This is the total height in pixels needed to show all items
-    TInt itemCount = Model()->NumberOfItems();
- 	TInt minimumHeight = CalcHeightBasedOnNumOfItems( itemCount );
- 	
- 	// Shrink list size if maximum size is not needed
-	if( iPopupMaxRect.Height() > minimumHeight )
-	    {
-		newRect.SetHeight( minimumHeight );
-	    }
+ 	// Get height of one line in Address field
+    CNcsHeaderContainer* headerObj = static_cast<CNcsHeaderContainer* >(Parent());
+    TInt toLineHeight = headerObj->GetToLineHeight(); // height of one line height
+    if(toLineHeight == 0)
+    	{
+        toLineHeight = ItemHeight();
+    	}
+    
+    TInt newHeight = minimumHeight; // default window height
+    
+    //latch listbox on the bottom of the editor field
+    if ( newRect.iTl.iY <= halfAreaHeight ) 
+        {
+        newHeight = RoundToItemHeight( areaHeight - newRect.iTl.iY );
+        if(newHeight > minimumHeight)
+        	{
+            newHeight = minimumHeight; // shrink window (if needed)
+          	}
+        }
+    //latch listbox on the top of the editor field
+    else
+     	{
+        TInt yOffset = -minimumHeight - toLineHeight; // how much up
+        TInt newTlY = newRect.iTl.iY + yOffset;       // new Top Left Y coordinate
+        if(newTlY>=0)
+          	{
+            newRect.Move( 0, yOffset );
+            }
+        else
+        	{
+            // shrink height to visible area and move
+            newHeight = RoundToItemHeight( minimumHeight + newTlY);
+            newRect.Move( 0, -newHeight - toLineHeight);
+            }
+     	}
+    newRect.SetHeight(newHeight); // set new height
 	SetRect( newRect );
 	}
 

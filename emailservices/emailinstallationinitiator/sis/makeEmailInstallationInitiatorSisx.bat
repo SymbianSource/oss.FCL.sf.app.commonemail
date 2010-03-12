@@ -12,8 +12,7 @@ REM * Nokia Corporation - initial contribution.
 REM * 
 REM * Contributors:
 REM * 
-REM * Description:
-REM * Script that creates and signs Email installation initiator sisx packages
+REM * Description: Script that creates and signs Email installation initiator sisx packages
 REM * 
 
 @echo #########################################################

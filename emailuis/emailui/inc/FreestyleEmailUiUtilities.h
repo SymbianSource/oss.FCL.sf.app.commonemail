@@ -111,7 +111,7 @@ public:
 	
     static void ShowGlobalErrorNoteL( TInt aResourceStringId );
     static void ShowGlobalInfoNoteL( TInt aResourceStringId );
-    
+    static void ShowDiscreetInfoNoteL( TInt aResourceStringId );
     /**
     * Creates and shows a local wait note. Caller must pass a member variable pointer
     * which will hold the created wait note instance. This must NOT be an automatic variable.

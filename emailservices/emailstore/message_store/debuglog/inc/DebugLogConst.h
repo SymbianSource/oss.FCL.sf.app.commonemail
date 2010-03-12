@@ -162,7 +162,7 @@ _LIT8( KStLogDestruct, "--(0x%x)" );
 	#endif // __DEBUG_LOGGING_OPTIONS
 
 	// Finally, allow the logging options to be overriden at the global level.
-	#include "GlobalDebugLoggingOptions.h"
+	#include "globaldebugloggingoptions.h"
 
 #endif // DEBUG_USE_PROJECT_LOGGING_OPTIONS
 

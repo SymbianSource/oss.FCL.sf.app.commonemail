@@ -258,7 +258,7 @@ private: // Member variables
      * Not owned
      */
     CEmailServerMonitor* iMonitor;
-
+    
     };
 
 

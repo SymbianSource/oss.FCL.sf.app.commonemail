@@ -9,7 +9,7 @@
 * Initial Contributors:
 * Nokia Corporation - initial contribution.
 *
-* Contributors:
+* Contributors: Definition for plugin manager interface
 *
 * Description: 
 *

@@ -83,6 +83,7 @@ _LIT8( KPropertyItemId, "PropItemID" );
 
 // check from aknphysicsconstants.h
 const TInt KFlickMaxDuration( 500000 );
+const TInt KDefaultFriction( 35 ); // avkon default is 10
 
 // ======== LOCAL FUNCTIONS ========
 
@@ -350,7 +351,7 @@ void TWorld::UpdatedL()
 // Uses binary search.
 // ---------------------------------------------------------------------------
 void TWorld::GetItemsL(RArray<TFsTreeItemId>& aItems, TInt aY, TInt aHeight,
-        TInt& aOffset)
+        TInt& aOffset, TInt& aBeginIndex)
     {
     // First find first visible item using binary search algorithm
     aItems.Reset();
@@ -379,7 +380,7 @@ void TWorld::GetItemsL(RArray<TFsTreeItemId>& aItems, TInt aY, TInt aHeight,
                 {
                 aOffset = aY - iItems[middle].Top();
                 aHeight += aOffset;
-                i = middle;
+                aBeginIndex = i = middle;
                 break;
                 }
             }
@@ -449,8 +450,18 @@ void TWorld::Recalculate(const CFsTree& aTree)
 // ---------------------------------------------------------------------------
 TInt TWorld::GetItemRect(const TFsTreeItemId aItemId, TRect& aRect) const
     {
+    return GetItemRect(aItemId, aRect, 0);
+    }
+
+// ---------------------------------------------------------------------------
+// TWorld::GetItemRect
+// ---------------------------------------------------------------------------
+TInt TWorld::GetItemRect(const TFsTreeItemId aItemId, TRect& aRect, 
+        const TInt aStartIndex ) const
+    {
     TInt result(KErrNotFound);
-    for (TInt i = iItems.Count() - 1; i >= 0; i--)
+    const TInt itemCount(iItems.Count());
+    for (TInt i = aStartIndex; i < itemCount; i++)
         {
         if (iItems[i].iId == aItemId)
             {
@@ -505,7 +516,7 @@ TBool TWorld::CheckIntegrity() const
 // TViewPort::TViewPort
 // ---------------------------------------------------------------------------
 TViewPort::TViewPort(MObserver& aObserver, TWorld& aWorld) :
-    iObserver(aObserver), iWorld(aWorld)
+    iObserver(aObserver), iWorld(aWorld), iWorldIndex(KErrNotFound)
     {
     }
 
@@ -585,7 +596,7 @@ void TViewPort::GetVisibleItemsL(RArray<TFsTreeItemId>& aItemsToBeRemoved,
     {
     RArray<TFsTreeItemId> tempItems;
     CleanupClosePushL(tempItems);
-    iWorld.GetItemsL(tempItems, iPosition.iY, iSize.iHeight, aOffset);
+    iWorld.GetItemsL(tempItems, iPosition.iY, iSize.iHeight, aOffset, iWorldIndex);
     iCache.UpdateL(tempItems, aItemsToBeRemoved, aItemsToBeAdded, aFullUpdate);
     CleanupStack::PopAndDestroy(); // tempItems
     }
@@ -595,7 +606,7 @@ void TViewPort::GetVisibleItemsL(RArray<TFsTreeItemId>& aItemsToBeRemoved,
 // ---------------------------------------------------------------------------
 void TViewPort::GetVisibleItemsL(RArray<TFsTreeItemId>& aVisible, TInt& aOffset)
 	{
-	iWorld.GetItemsL(aVisible, iPosition.iY, iSize.iHeight, aOffset);
+	iWorld.GetItemsL(aVisible, iPosition.iY, iSize.iHeight, aOffset, iWorldIndex);
 	}
 
 // ---------------------------------------------------------------------------
@@ -739,6 +750,7 @@ TFsTreeItemId TViewPort::TopItem() const
 // ---------------------------------------------------------------------------
 void TViewPort::ClearCache()
     {
+    iWorldIndex = KErrNotFound;
     iCache.Clear();
     }
 
@@ -750,7 +762,8 @@ TRect TViewPort::ItemRect(const TFsTreeItemId aItemId) const
     TRect itemRect;
     if (!iCache.IsClear() && iCache.ContainsItem(aItemId))
         {
-        if (iWorld.GetItemRect(aItemId, itemRect) != KErrNotFound)
+        const TInt beginIndex(iWorldIndex == KErrNotFound ? 0 : iWorldIndex);
+        if (iWorld.GetItemRect(aItemId, itemRect, beginIndex) != KErrNotFound)
             {
             itemRect.Move(0, -iPosition.iY);
             }
@@ -1542,11 +1555,18 @@ TBool CFsTreeVisualizerBase::HandlePointerEventL(const TAlfEvent& aEvent)
                     iTouchPressed = ETrue;
                     const TPoint& pos(aEvent.PointerEvent().iParentPosition);
                     INFO_2("EButton1Down (%d, %d)", pos.iX, pos.iY);
-                    if (!iFlags.IsSet(EPhysicsOn))
+                    //if (!iFlags.IsSet(EPhysicsOn))
+                    // Keep this last!
+                    if (iFlags.IsSet(EPhysicsOn))
                         {
                         iPhysics->StopPhysics();
-                        iPhysics->ResetFriction();
+                        //iPhysics->ResetFriction();
                         UpdatePhysicsL();
+                        iFlags.Set(EIgnorePointerUpAction);
+                        }
+                    else
+                        {
+                        iFlags.Clear(EIgnorePointerUpAction);
                         }
                     iDragHandler->PointerDown(aEvent.PointerEvent(), id);
                     break;
@@ -1562,11 +1582,12 @@ TBool CFsTreeVisualizerBase::HandlePointerEventL(const TAlfEvent& aEvent)
                             MFsTreeVisualizerObserver::EFsChangeFocusVisibility );
                         INFO_2( "EButton1Up (%d, %d)", pos.iX, pos.iY );
                         }
-                    if( !iDragHandler->IsFlicking() )
+                    /*if( !iDragHandler->IsFlicking() )
                         {
                         iPhysics->StopPhysics();
-                        }
+                        }*/
                     iDragHandler->PointerUp( aEvent.PointerEvent(), id );
+                    iFlags.Clear(EIgnorePointerUpAction);
                     break;
                     }
                 case TPointerEvent::EDrag:
@@ -1578,6 +1599,7 @@ TBool CFsTreeVisualizerBase::HandlePointerEventL(const TAlfEvent& aEvent)
                             || iDragHandler->DragDelta(aEvent.PointerEvent())
                                     >= iPhysics->DragThreshold())
                         {
+                        iFlags.Set(EIgnorePointerUpAction);
                         iDragHandler->PointerDrag(aEvent.PointerEvent(), id);
                         iDragHandler->EnableFlicking();
                         }
@@ -1590,6 +1612,7 @@ TBool CFsTreeVisualizerBase::HandlePointerEventL(const TAlfEvent& aEvent)
                     const TPoint& pos(aEvent.PointerEvent().iParentPosition);
                     INFO_2("EButtonRepeat (%d, %d)", pos.iX, pos.iY);
                     iDragHandler->PointerRepeat(aEvent.PointerEvent());
+                    iFlags.Clear(EIgnorePointerUpAction);
                     break;
                     }
 
@@ -3644,7 +3667,7 @@ void CFsTreeVisualizerBase::UpdateScrollBarIfNeededL()
         {
         iScrollbarModel.SetFocusPosition(iViewPort.Position().iY);
         iScrollBar->SetModelL(&iScrollbarModel);
-        iScrollBar->DrawNow();
+        iScrollBar->DrawDeferred();
         }
     }
 
@@ -3671,7 +3694,7 @@ void CFsTreeVisualizerBase::UpdateScrollBarL(const TInt /*aTimeout*/)
     iScrollbarModel.SetWindowSize(pageSize);
     iScrollbarModel.SetFocusPosition(iViewPort.Position().iY);
     iScrollBar->SetModelL(&iScrollbarModel);
-    iScrollBar->DrawNow();
+    iScrollBar->DrawDeferred();
 
     RArray<TInt> columns;
     CleanupClosePushL(columns);
@@ -4637,6 +4660,7 @@ void CFsTreeVisualizerBase::ConstructL()
         iPhysics = CAknPhysics::NewL(*this, NULL );
         iDragHandler = CDragHandler::NewL(*this,
                 iPhysics->HighlightTimeout(), iFlags);
+        iPhysics->SetFriction(KDefaultFriction);                        
         }
 
     iRootData = CFsTreePlainOneLineItemData::NewL();
@@ -4943,13 +4967,13 @@ void CFsTreeVisualizerBase::ViewPortUpdatedL(TViewPort& aViewPort, TUpdatedByPhy
             visualizerLayout.SetSize(tpItemSize);
             visualizerLayout.PropertySetIntegerL(KPropertyItemId(), itemId);
             
-            if(aUpdateByPhysic != EUpdatedByPhisic)
-            	{
+//            if(aUpdateByPhysic != EUpdatedByPhisic)
+//            	{
             	visualizer->UpdateL(iTreeData->ItemData(itemId),
                     IsItemFocused(itemId) && IsFocusShown(),
                     iTreeData->Level(itemId), iMarkIcon, iMenuIcon,
                     0);
-            	}
+//            	}
             
             visualizerLayout.Brushes()->AppendL(iBorderBrush,
                     EAlfDoesNotHaveOwnership);
@@ -5009,8 +5033,10 @@ void CFsTreeVisualizerBase::StartPhysics(TPoint& aDrag,
         startTime = now - TTimeIntervalMicroSeconds( KFlickMaxDuration - 1 );
         aDrag.iY = aDrag.iY * KFlickMaxDuration / moveTime;
         }
-    iPhysics->StartPhysics(aDrag, startTime);
-    iFlags.Set(EPhysicsOn);
+    if (iPhysics->StartPhysics(aDrag, startTime))
+        {
+        iFlags.Set(EPhysicsOn);
+        }
     }
 
 // ---------------------------------------------------------------------------
@@ -5028,6 +5054,7 @@ void CFsTreeVisualizerBase::UpdatePhysicsL()
         const TSize worldSize(viewSize.iWidth, Max(iWorld.Height(),
                 viewSize.iHeight));
         iPhysics->InitPhysicsL(worldSize, viewSize, EFalse);
+        iPhysics->SetFriction(KDefaultFriction);                        
         }
     }
 
@@ -5140,8 +5167,12 @@ void CFsTreeVisualizerBase::SetFocusedItemAndSendEventL(
         }
     else if( aEventType == EPointerUp )
         {
-        iVisualizerObserver->TreeVisualizerEventL(
-            MFsTreeVisualizerObserver::EFsTreeItemTouchAction, aItemId, aPoint );
+        // Ignore pointer up action IF physic emulation was stopped on pointer down
+        if ( !iFlags.IsSet(EIgnorePointerUpAction) )
+            {
+            iVisualizerObserver->TreeVisualizerEventL(
+                MFsTreeVisualizerObserver::EFsTreeItemTouchAction, aItemId, aPoint );
+            }
         }
     }
 
@@ -5215,7 +5246,7 @@ CFsTreeVisualizerBase::CDragHandler::TDragDirection
 // ---------------------------------------------------------------------------
 //
 void CFsTreeVisualizerBase::CDragHandler::PointerDown(
-        const TPointerEvent& aEvent, const TFsTreeItemId aItemId)
+        const TPointerEvent& aEvent, const TFsTreeItemId aItemId )
     {
     FUNC_LOG;
     Reset();
@@ -5224,7 +5255,6 @@ void CFsTreeVisualizerBase::CDragHandler::PointerDown(
     iLastPointerPosition = aEvent.iParentPosition;
     iStartTime.HomeTime();
     iFlags.Set( EPointerDownReceived );
-
     iTree.SetFocusedItemAndSendEvent( iItemId, EPointerDown, iPosition );
     }
 

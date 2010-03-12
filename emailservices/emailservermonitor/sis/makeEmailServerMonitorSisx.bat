@@ -12,8 +12,7 @@ REM * Nokia Corporation - initial contribution.
 REM * 
 REM * Contributors:
 REM * 
-REM * Description:
-REM * Script that creates and signs commonemail sisx packages
+REM * Description: Script that creates and signs commonemail sisx packages
 REM * 
 
 @echo #################################################

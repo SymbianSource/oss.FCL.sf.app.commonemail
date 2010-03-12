@@ -32,7 +32,7 @@
 #include <CoreApplicationUIsSDKCRKeys.h> 
 #include <settingsinternalcrkeys.h>
 //<cmail> Header neither in Cmail nor in the platform
-//#include <crcseprofileregistry.h>
+#include <crcseprofileregistry.h>
 //</cmail>
 #include <NetworkHandlingDomainPSKeys.h>
 #include <MVPbkStoreContact.h>
@@ -136,7 +136,7 @@ CFscActionUtils::~CFscActionUtils()
     if ( iRCSEProfileRegistry != NULL )
         {
         //<cmail>
-        //delete iRCSEProfileRegistry;
+        delete iRCSEProfileRegistry;
         //</cmail>
         }
     }
@@ -1155,7 +1155,7 @@ TBool CFscActionUtils::IsVoipConfiguredL()
         RArray<TUint32> ids;
         CleanupClosePushL( ids );
         //<cmail>
-        //iRCSEProfileRegistry->GetAllIdsL( ids );
+        iRCSEProfileRegistry->GetAllIdsL( ids );
         //</cmail>
         configured = ids.Count() > 0;
         CleanupStack::PopAndDestroy( &ids );
@@ -1252,12 +1252,12 @@ void CFscActionUtils::ConstructL()
     if ( FeatureManager::FeatureSupported( KFeatureIdCommonVoip ) )
         {
         //<cmail>
-        //TRAP_IGNORE( iRCSEProfileRegistry = CRCSEProfileRegistry::NewL() );
+        TRAP_IGNORE( iRCSEProfileRegistry = CRCSEProfileRegistry::NewL() );
         //</cmail>
         }
     
     //<cmail>
-    iRCSEProfileRegistry = NULL;
+    //iRCSEProfileRegistry = NULL;
     //</cmail>
 
     }

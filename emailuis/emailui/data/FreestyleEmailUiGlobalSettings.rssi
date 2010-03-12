@@ -107,6 +107,13 @@ RESOURCE AVKON_SETTING_ITEM_LIST r_global_settings_item_list
 			setting_page_resource = r_global_settings_title_dividers_setting_page_resource;
 			associated_resource = r_global_settings_title_dividers;
 			},
+        AVKON_SETTING_ITEM
+            {
+            name = qtn_mail_setting_download_images;
+            identifier = EGlobalSettingsDownloadHTMLImages;
+            setting_page_resource = r_global_settings_download_html_images_setting_page_resource;
+            associated_resource = r_global_settings_download_html_images;
+            },
 		AVKON_SETTING_ITEM
 			{
 			name = qtn_fse_settings_download_notifications;
@@ -120,13 +127,6 @@ RESOURCE AVKON_SETTING_ITEM_LIST r_global_settings_item_list
 			identifier = EGlobalSettingsWarnBeforeDelete;
 			setting_page_resource = r_global_settings_warn_before_delete_resource;
 			associated_resource = r_global_settings_warn_before_delete;
-			},
-		AVKON_SETTING_ITEM
-			{
-			name = qtn_fse_settings_download_html_images;
-			identifier = EGlobalSettingsDownloadHTMLImages;
-			setting_page_resource = r_global_settings_download_html_images_setting_page_resource;
-			associated_resource = r_global_settings_download_html_images;
 			},
 		AVKON_SETTING_ITEM
 			{
@@ -526,7 +526,7 @@ RESOURCE ARRAY r_global_settings_active_idle_popped_up_texts_resource
 RESOURCE AVKON_SETTING_PAGE r_global_settings_download_html_images_setting_page_resource
     {
     number = -16380;
-    label = qtn_fse_settings_download_html_images;
+    label = qtn_mail_setting_download_images;
     type = EAknCtPopupSettingList;
     editor_resource_id = r_global_settings_download_html_images_editor_resource_id;
     }
@@ -547,12 +547,12 @@ RESOURCE ARRAY r_global_settings_download_html_images_setting_texts_resource
         {
         AVKON_ENUMERATED_TEXT
             {
-            text = qtn_fse_settings_download_html_images_always_ask;
+            text = qtn_mail_option_alternative_no;
             value = 1;
             },
         AVKON_ENUMERATED_TEXT
             {
-            text = qtn_fse_settings_download_html_images_automatic;
+            text = qtn_mail_option_alternative_yes;
             value = 0;
             }
         };
@@ -564,11 +564,11 @@ RESOURCE ARRAY r_global_settings_download_html_images_popped_up_texts_resource
         {
         LBUF
             {
-            txt = qtn_fse_settings_download_html_images_always_ask;
+            txt = qtn_mail_option_alternative_no;
             },
         LBUF
             {
-            txt = qtn_fse_settings_download_html_images_automatic;
+            txt = qtn_mail_option_alternative_yes;
             }
         };
     }

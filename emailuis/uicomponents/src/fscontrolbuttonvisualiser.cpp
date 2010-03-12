@@ -1266,8 +1266,11 @@ EXPORT_C void CFsControlButtonVisualiser::UpdateElementsSizeL(
         }
     if ( iButtonModel->ContainsElement( ECBElemLabelFirstLine ) )
         {
-        iLabelFirstLine->SetSize( text1.Size() );
-        iLabelFirstLine->SetPos( text1.iTl );
+		if ( iLabelFirstLine )
+			{
+			iLabelFirstLine->SetSize( text1.Size() );
+			iLabelFirstLine->SetPos( text1.iTl );
+			}
         }
     if ( iButtonModel->ContainsElement( ECBElemLabelSndLine ) )
         {

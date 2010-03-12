@@ -115,7 +115,6 @@ class CMessageStoreServer : private CPolicyServer,
 							private MCustomBehaviorProvider, 
 							private MBackupRestoreObserver,
                             private MImsPointsecObserver,
-                            private MStoreDriveStateObserver,
                             public  MPSPropertyWatcherObserver
     {
     public:
@@ -187,17 +186,11 @@ class CMessageStoreServer : private CPolicyServer,
         virtual void PointSecLockStarted();
         virtual void PointSecLockEnded();
         
-            
-        //from MStoreDriveStateObserver
-        virtual void DriveStateChangedL( TBool aState );
         
         void LockSystem();
         void UnlockSystemL();
         
-        void FindBiggestCapacityDriveL( TDriveNumber& aDrive );
-        TInt GetDriveL( TDriveNumber& aDrive );
-        void SetDriveL( const TDriveNumber aDrive );
-        
+    
         void SendSystemLockMessage( TInt aEvent );
         void TPtrC8ToRBuf16L( const TPtrC8& aPtr8, RBuf& aBuf ) const;
                 
@@ -212,10 +205,7 @@ class CMessageStoreServer : private CPolicyServer,
         CImsPointsecMonitor*                iPointsecMonitor;
         TBool                               iWipeAfterBackupRestore;
         
-        //monitor the message store drive for mount/unmount
-        CStoreDriveMonitor*                 iStoreDriveMonitor;
-        //True if the message store is locked because drive is unmount 
-        TBool                               iLockedByDriveMonitor;
+
 
         TBool                               iLockedByBackupRestore;
         TBool                               iLockedByPointSec;

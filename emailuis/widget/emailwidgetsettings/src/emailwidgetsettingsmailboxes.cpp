@@ -20,7 +20,7 @@
 #include <aknsettingitemlist.h>
 
 #include "emailtrace.h"
-#include "CFSMailClient.h"
+#include "cfsmailclient.h"
 #include "emailwidgetsettingsmailboxes.h"
 
 // ======== MEMBER FUNCTIONS ========

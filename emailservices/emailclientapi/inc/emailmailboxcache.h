@@ -11,7 +11,7 @@
 *
 * Contributors:
 *
-* Description: 
+* Description: Definition for mailbox cache
 *
 */
 

@@ -980,10 +980,11 @@ void CNcsAifEditor::RepositionEntriesL( const CNcsAifEntry* aPosEntry )
 		pos++; // for whitespace
 		}
 
-	// Reset the text
-	SetCursorPosL( 0, EFalse ); //In case the cursor pos is invalid
+  // Reset the text
 	HBufC* text = NULL;
 	text = GetFormattedAddressListLC( iArray );
+	// fix for dissapearing text PWAN-82DNEJ	
+	SetCursorPosL( 0, EFalse ); //In case the cursor pos is invalid
 	
     if ( iAddLeftover )
         {
@@ -1317,6 +1318,12 @@ void CNcsAifEditor::HandleTextUpdateL()
         
         // add line feed after new entry
         TInt cursorPos( CursorPos() );
+        // related to PWAN-82DNEJ cursorPos shouldn't be 0 here
+        if (cursorPos == 0)
+          {
+          cursorPos = TextLength();
+          }
+          
         if ( !iPartialRemove )
             {
             Text()->InsertL( cursorPos, TChar(CEditableText::ELineBreak) );

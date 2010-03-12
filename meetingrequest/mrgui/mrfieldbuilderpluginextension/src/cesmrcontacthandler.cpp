@@ -34,9 +34,8 @@
 #include <MVPbkContactLink.h>
 
 //Remote Contact Lookup
-//<cmail>
-#include "cpbkxremotecontactlookupenv.h"
-#include <cntitem.h>
+#include <cpbk2remotecontactlookupaccounts.h>
+#include <pbk2remotecontactlookupfactory.h>
 #include <CPbk2SortOrderManager.h>
 
 // Aiw launcher
@@ -47,7 +46,6 @@
 
 //FS Email framework
 #include "cfsmailbox.h"
-//</cmail>
 
 //MRUI
 #include <esmrgui.rsg>
@@ -614,34 +612,24 @@ void CESMRContactHandler::GetNameAndEmail( TDes& aName, TDes& aEmail, CContactIt
 //
 void CESMRContactHandler::DoRemoteLookupL( const TDesC& aQueryString,
     CPbkxRemoteContactLookupServiceUiContext::TResult& aResult,
-    CPbkxRemoteContactLookupServiceUiContext::TMode aContext )
+    CPbkxRemoteContactLookupServiceUiContext::TMode aLookupMode )
     {
     FUNC_LOG;
     TUid protocolUid = TUid::Null();
-    TUint accountId = 0;
-    
-    DelayedMailBoxL().GetRCLInfo( protocolUid, accountId );
-    const TPbkxRemoteContactLookupProtocolAccountId KAccountId( protocolUid, accountId );
+    TUint accountUid = 0;
+    DelayedMailBoxL().GetRCLInfo( protocolUid, accountUid );
+    const TPbkxRemoteContactLookupProtocolAccountId accountId =
+        TPbkxRemoteContactLookupProtocolAccountId( protocolUid, accountUid );
 
-    CPbkxRemoteContactLookupEnv* env = CPbkxRemoteContactLookupEnv::NewL();
-    CleanupStack::PushL( env );
+    CPbkxRemoteContactLookupServiceUiContext::TContextParams params = 
+        { accountId, aLookupMode }; 
 
-    MPbkxRemoteContactLookupServiceUi* serviceUi = env->ServiceUiL();
+    CPbkxRemoteContactLookupServiceUiContext* context =
+        Pbk2RemoteContactLookupFactory::NewContextL( params );
+    CleanupStack::PushL( context );
 
-    // If you want test with RCL dummyContactDatabase, KAccountId = serviceUi->DefaultAccountIdL();
-    MPbkxRemoteContactLookupServiceUi::TContextParams params = { KAccountId, aContext };
-
-    CPbkxRemoteContactLookupServiceUiContext* ctx( NULL );
-    TRAPD( error, ctx = serviceUi->NewContextL( params ) );
-
-    User::LeaveIfError( error );
-
-    CleanupStack::PushL( ctx );
-
-    ctx->ExecuteL( aQueryString, aResult );
-
-    CleanupStack::PopAndDestroy( ctx );
-    CleanupStack::PopAndDestroy( env );
+    context->ExecuteL( aQueryString, aResult );
+    CleanupStack::PopAndDestroy( context );
     }
 
 // -----------------------------------------------------------------------------

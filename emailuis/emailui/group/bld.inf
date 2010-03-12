@@ -58,8 +58,10 @@ PRJ_EXPORTS
 ../data/html/header.js /epoc32/data/z/private/2001E277/HtmlFile/header.js
 ../data/html/plus.gif /epoc32/data/z/private/2001E277/HtmlFile/plus.gif
 ../data/html/minus.gif /epoc32/data/z/private/2001E277/HtmlFile/minus.gif
+../data/html/email.js /epoc32/data/z/private/2001E277/HtmlFile/email.js
 ../data/html/follow_up.png /epoc32/data/z/private/2001E277/HtmlFile/follow_up.png
 ../data/html/follow_up_complete.png /epoc32/data/z/private/2001E277/HtmlFile/follow_up_complete.png
+../data/html/btn_middle.png /epoc32/data/z/private/2001E277/HtmlFile/btn_middle.png
 ../data/html/todo_high_add.png /epoc32/data/z/private/2001E277/HtmlFile/todo_high_add.png
 ../data/html/todo_low_add.png /epoc32/data/z/private/2001E277/HtmlFile/todo_low_add.png
 
@@ -71,9 +73,11 @@ PRJ_EXPORTS
 ../data/html/header.js /epoc32/release/winscw/udeb/z/private/2001E277/HtmlFile/header.js
 ../data/html/plus.gif /epoc32/release/winscw/udeb/z/private/2001E277/HtmlFile/plus.gif
 ../data/html/minus.gif /epoc32/release/winscw/udeb/z/private/2001E277/HtmlFile/minus.gif
+../data/html/email.js /epoc32/release/winscw/udeb/z/private/2001E277/HtmlFile/email.js
 ../data/html/follow_up.png /epoc32/release/winscw/udeb/z/private/2001E277/HtmlFile/follow_up.png
 ../data/html/follow_up_complete.png /epoc32/release/winscw/udeb/z/private/2001E277/HtmlFile/follow_up_complete.png
 ../data/html/todo_high_add.png /epoc32/release/winscw/udeb/z/private/2001E277/HtmlFile/todo_high_add.png
+../data/html/btn_middle.png /epoc32/release/winscw/udeb/z/private/2001E277/HtmlFile/btn_middle.png
 ../data/html/todo_low_add.png /epoc32/release/winscw/udeb/z/private/2001E277/HtmlFile/todo_low_add.png
 
 // make the files ready for urel emulator
@@ -83,9 +87,11 @@ PRJ_EXPORTS
 ../data/html/header.js /epoc32/release/winscw/urel/z/private/2001E277/HtmlFile/header.js
 ../data/html/plus.gif /epoc32/release/winscw/urel/z/private/2001E277/HtmlFile/plus.gif
 ../data/html/minus.gif /epoc32/release/winscw/urel/z/private/2001E277/HtmlFile/minus.gif
+../data/html/email.js /epoc32/release/winscw/urel/z/private/2001E277/HtmlFile/email.js
 ../data/html/follow_up.png /epoc32/release/winscw/urel/z/private/2001E277/follow_up.png
 ../data/html/follow_up_complete.png /epoc32/release/winscw/urel/z/private/2001E277/follow_up_complete.png
 ../data/html/todo_high_add.png /epoc32/release/winscw/urel/z/private/2001E277/todo_high_add.png
+../data/html/btn_middle.png /epoc32/release/winscw/urel/z/private/2001E277/HtmlFile/btn_middle.png
 ../data/html/todo_low_add.png /epoc32/release/winscw/urel/z/private/2001E277/todo_low_add.png
 
 ../sis/commonemailstub.sis          /epoc32/data/z/system/install/commonemailstub.sis

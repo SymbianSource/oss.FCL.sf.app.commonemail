@@ -453,6 +453,7 @@ void CFsEmailUiViewBase::HandleAppForegroundEventL( TBool aForeground )
             {
             const TInt KActivationDelay = 200; // ms
             ActivateControlGroup( KActivationDelay );
+            iWasActiveControlGroup = EFalse;
             }
         }
     else
@@ -589,8 +590,17 @@ void CFsEmailUiViewBase::NavigateBackL()
             // Email app should be hidden once the view gets deactivated. Note that hiding
             // should not happen before control group switching is over because that
             // may cause views of other Alfred apps to get distorted.
-            iSendToBackgroundOnDeactivation = ETrue;
-            iAppUi.SetSwitchingToBackground( ETrue );
+            if( !iAppUi.EmbeddedAppIsPreviousApp() ) // if previous app is embedded app, 
+                //do not need hide FSEmail app when previous app view gets deactivated.
+                {
+                iSendToBackgroundOnDeactivation = ETrue;
+                iAppUi.SetSwitchingToBackground( ETrue );
+                }
+            else
+                {
+                // Set flag to false for judging if previous app is embedded when editor exit.
+                iAppUi.SetEmbeddedAppToPreviousApp( EFalse );
+                }
 
             // Re-activate previously active mailbox if it got changed in the external activation.
             // As an exception, if previous view is the laucher grid, the previously active

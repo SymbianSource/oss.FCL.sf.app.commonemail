@@ -24,7 +24,9 @@
 #include <viewcli.h>
 #include <vwsdef.h>
 #endif // SYMBIAN_ENABLE_SPLIT_HEADERS
-
+#include <coemain.h> // CCoeEnv
+#include <coeaui.h> // CCoeAppUi
+#include <centralrepository.h>
 #include "emailclientapiimpl.h"
 #include "emailapiutils.h"
 #include "emailmailbox.h"
@@ -35,6 +37,8 @@
 #include "emailmailboxcache.h"
 #include "FreestyleEmailUiConstants.h"
 #include "emailclientapi.hrh"
+#include "FreestyleEmailCenRepKeys.h"
+#include "FreestyleEmailUiConstants.h"
 // ---------------------------------------------------------------------------
 // CEmailClientApi::MailboxL
 // ---------------------------------------------------------------------------
@@ -136,17 +140,47 @@ TInt CEmailClientApi::GetMailboxesL( RMailboxPtrArray& aMailboxes )
 // -----------------------------------------------------------------------------
 void CEmailClientApi::LaunchEmailL( const TLaunchPolicy aPolicy )
     {
-    if ( aPolicy != EDefault )
+    if ( aPolicy == EShowLastUnseenMailbox)
         {
-        // no other launch policies supported
-        User::Leave( KErrNotSupported );
+        CRepository* emailRepository = CRepository::NewL( KFreestyleEmailCenRep );
+		CleanupStack::PushL(emailRepository);
+        TInt numberOfMailboxes(0);
+        TInt inboxId(0);
+        TInt pluginId(0);
+        emailRepository->Get(KNumberOfMailboxesWithNewEmails,numberOfMailboxes);
+        if(numberOfMailboxes > 0)
+            {
+            emailRepository->Get(KNumberOfMailboxesWithNewEmails+(numberOfMailboxes*2-1),pluginId);            
+            emailRepository->Get(KNumberOfMailboxesWithNewEmails+(numberOfMailboxes*2),inboxId);
+           
+            TUid pluginUid = {pluginId};
+            TMailListActivationData activationData;
+    
+            activationData.iMailBoxId.SetId(inboxId);
+            activationData.iMailBoxId.SetPluginId(pluginUid);
+            activationData.iFolderId.SetPluginId(pluginUid);
+            TPckgBuf<TMailListActivationData> pkgBuf(activationData);
+    
+            CCoeEnv::Static()->AppUi()->CreateActivateViewEventL( 
+                    TVwsViewId(KFSEmailUiUid, MailListId), KStartListWithFolderId, 
+                    pkgBuf );
+            }
+        else
+            {
+            // We should never come here since the mailbox count should be more than 0 if launchemailL is called
+            // but just to be safe launch the email in launchergrid if something went wrong with the repository
+            const TUid dummy = {0};
+            CCoeEnv::Static()->AppUi()->CreateActivateViewEventL(TVwsViewId(KFSEmailUiUid, AppGridId),
+            dummy, KNullDesC8() );        
+            }
+        CleanupStack::PopAndDestroy();//emailRepository
         }
-    const TUid dummy = {0};
-                
-    CVwsSessionWrapper* viewSrvSession = CVwsSessionWrapper::NewLC();
-    viewSrvSession->ActivateView(TVwsViewId(KFSEmailUiUid, AppGridId),
+    else if ( aPolicy == EDefault )
+        {
+        const TUid dummy = {0};                    
+        CCoeEnv::Static()->AppUi()->CreateActivateViewEventL(TVwsViewId(KFSEmailUiUid, AppGridId),
         dummy, KNullDesC8() );
-    CleanupStack::PopAndDestroy();    
+        }
     }    
 
 // -----------------------------------------------------------------------------

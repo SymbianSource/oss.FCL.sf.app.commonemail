@@ -76,11 +76,6 @@ LOCAL_C void DoStartL()
 
     // Start email shutter functionality
     CEmailShutter* shutter = CEmailShutter::NewLC();
-    if( mode == EEsmModeRestartAfterInstallation )
-        {
-        shutter->SetPsKeyInstallationFinished();
-        shutter->RestartServicesAfterInstallation();
-        }
     shutter->StartObservingShutdownEvent();
 
     CEmailServerMonitor* monitor = NULL;
@@ -88,6 +83,11 @@ LOCAL_C void DoStartL()
         {
         // Start email server observing functionality
         monitor = CEmailServerMonitor::NewLC();
+        monitor->SetShutter( shutter );
+        if( mode == EEsmModeRestartAfterInstallation )
+            {
+            monitor->SetRestartExternalServicesFlag();
+            }
         monitor->Start();
         shutter->SetMonitor( monitor );
         }

@@ -11,6 +11,8 @@
 *
 * Contributors:
 *
+* Description: Definition for status indicator
+*
 */ 
 
 

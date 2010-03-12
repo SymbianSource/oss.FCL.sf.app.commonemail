@@ -134,6 +134,7 @@ void CFsEmailUiHtmlViewerView::ConstructL()
     iOpenMessages = new (ELeave) CStack<CFSMailMessage, ETrue>();
     iEmbeddedMessages = new (ELeave) CStack<CFSMailMessage, EFalse>();
     iNextOrPrevMessageSelected = EFalse; 
+    iForwardingMessage = EFalse;
     }
 
 // -----------------------------------------------------------------------------
@@ -298,6 +299,7 @@ void CFsEmailUiHtmlViewerView::HandleCommandL( TInt aCommand )
                         iContainer->ResetContent();
                         }
 
+                    iForwardingMessage = ETrue;
                     iAppUi.LaunchEditorL( KEditorCmdForward, params );
                     }
                 }
@@ -479,7 +481,7 @@ void CFsEmailUiHtmlViewerView::ShowContainerL()
 // Activate an Compose view
 // -----------------------------------------------------------------------------
 //
-void CFsEmailUiHtmlViewerView::ChildDoActivateL( const TVwsViewId& /*aPrevViewId*/,
+void CFsEmailUiHtmlViewerView::ChildDoActivateL( const TVwsViewId& aPrevViewId,
         TUid aCustomMessageId, const TDesC8& aCustomMessage )
     {
     FUNC_LOG;
@@ -487,6 +489,11 @@ void CFsEmailUiHtmlViewerView::ChildDoActivateL( const TVwsViewId& /*aPrevViewId
     TBool msgBodyStructurePresent ( EFalse );
     TBool msgBodyContentPresent ( EFalse );
     
+    if( aCustomMessageId != KHtmlViewerReturnToPrevious)
+     {
+     ViewEntered( aPrevViewId );
+     }
+
     if ( iMrObserverToInform && 
          aCustomMessageId == KStartViewerReturnToPreviousMsg )
         {
@@ -734,13 +741,8 @@ void CFsEmailUiHtmlViewerView::ChildDoActivateL( const TVwsViewId& /*aPrevViewId
             }
        }
     iNextOrPrevMessageSelected = EFalse;
+    iForwardingMessage = EFalse;
     
-    //update rect only if it has changed from previous time.
-    if ( iContainer->Rect() != ContainerRect()  )
-        {
-        iContainer->SetRect( ContainerRect() );
-        }
-
     TIMESTAMP( "Html viewer opened" );    
     }
 
@@ -808,6 +810,9 @@ void CFsEmailUiHtmlViewerView::GetInitiallyDimmedItemsL( const TInt aResourceId,
             {
             aDimmedItems.AppendL(EFsEmailUiTbCmdActions);
             aDimmedItems.AppendL(EFsEmailUiTbCmdDelete);
+            aDimmedItems.AppendL(EFsEmailUiTbCmdReply);
+            aDimmedItems.AppendL(EFsEmailUiTbCmdForward);
+            aDimmedItems.AppendL(EFsEmailUiTbCmdReplyAll);
             }
         }
     }
@@ -820,12 +825,18 @@ void CFsEmailUiHtmlViewerView::GetInitiallyDimmedItemsL( const TInt aResourceId,
 void CFsEmailUiHtmlViewerView::ChildDoDeactivate()
     {
     FUNC_LOG;
-    CancelFetchings();
-   
+    // Don't cancel fetching the message parts when forwarding the message:
+    // it would also cancel the fetchings initiated by the forwarding,
+    // causing the forwarding to abort.
+    if ( !iForwardingMessage )
+        {
+        CancelFetchings();
+        }
+
     if ( iContainer )
         {
         HideContainer();
-        iContainer->ResetContent();
+        iContainer->ResetContent(ETrue);
         iAppUi.RemoveFromStack(iContainer);
         iContainer->CancelFetch();
         iContainer->ClearCacheAndLoadEmptyContent();
@@ -1124,11 +1135,6 @@ void CFsEmailUiHtmlViewerView::HandleMrCommandL(
 void CFsEmailUiHtmlViewerView::HandleStatusPaneSizeChange()
     {
     CFsEmailUiViewBase::HandleStatusPaneSizeChange();
-    
-    if ( iContainer )
-        {
-        iContainer->SetRect( ContainerRect() );
-        }
     }
 
 void CFsEmailUiHtmlViewerView::HandleViewRectChange()
@@ -1277,9 +1283,11 @@ void CFsEmailUiHtmlViewerView::DeleteMailL()
                 ChangeMskCommandL( R_FSE_QTN_MSK_EMPTY );
                 NavigateBackL();
                 }
-            //inform user that mail is deleted  
-            TFsEmailUiUtility::ShowGlobalInfoNoteL( R_FREESTYLE_EMAIL_MAIL_DELETED );
-            }        
+
+			
+			}
+        //inform user that mail is deleted  
+        TFsEmailUiUtility::ShowDiscreetInfoNoteL( R_FREESTYLE_EMAIL_MAIL_DELETED );
         }
     }
 
@@ -1640,12 +1648,7 @@ void CFsEmailUiHtmlViewerView::DownloadAllAttachmentsL()
 
 void CFsEmailUiHtmlViewerView::CancelAttachmentL( const TAttachmentData& aAttachment )
     {
-    TInt reallyCancel = 
-        TFsEmailUiUtility::ShowConfirmationQueryL( R_FSE_VIEWER_CANCEL_DOWNLOAD_QUERY );
-    if ( reallyCancel )
-        {
-        iAttachmentsListModel->CancelDownloadL(aAttachment);
-        }
+    iAttachmentsListModel->CancelDownloadL(aAttachment);
     }
 
 void CFsEmailUiHtmlViewerView::OpenAttachmentL( const TAttachmentData& aAttachment )
@@ -1950,6 +1953,11 @@ void CFsEmailUiHtmlViewerView::ShowNextMessageL()
         TFSMailMsgId nextMsgFolderId;
         if ( iAppUi.IsNextMsgAvailable( currentMsgId, nextMsgId, nextMsgFolderId ) )
             {
+            if (iContainer)
+                {
+                iContainer->PrepareForMessageNavigation();
+                }
+
             // Stop timer and cancel fetchings before showing next message
             //iFetchingAnimationTimer->Stop();
             CancelFetchings();
@@ -1993,6 +2001,11 @@ void CFsEmailUiHtmlViewerView::ShowPreviousMessageL()
         TFSMailMsgId prevMsgFolderId;
         if ( iAppUi.IsPreviousMsgAvailable( currentMsgId, prevMsgId, prevMsgFolderId ) )
             {
+            if (iContainer)
+                {
+                iContainer->PrepareForMessageNavigation();
+                }
+        
             // Stop timer and cancel fetchings before showing prev message
             CancelFetchings();
            
@@ -3174,7 +3187,7 @@ void CFsEmailUiHtmlViewerView::StartFetchingMessageL()
        }
     }
 
-void CFsEmailUiHtmlViewerView::CheckMessageBodyL( CFSMailMessage& aMessage, TBool& aMessageBodyStructurePresent, TBool& aMessageBodyContentPresent)
+void CFsEmailUiHtmlViewerView::CheckMessageBodyL( CFSMailMessage& /*aMessage*/, TBool& aMessageBodyStructurePresent, TBool& aMessageBodyContentPresent)
     {
     CFSMailMessagePart* bodyPart = iMessage->HtmlBodyPartL();
     if ( !bodyPart )

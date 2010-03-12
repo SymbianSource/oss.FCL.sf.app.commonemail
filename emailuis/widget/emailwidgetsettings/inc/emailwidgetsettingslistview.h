@@ -113,7 +113,6 @@ private:
 private:
 	TVwsViewId                             iPrevViewId;
 	CEmailWidgetSettingsListViewContainer* iView;
-	HBufC*                                 iCid;
 	};
 
 #endif

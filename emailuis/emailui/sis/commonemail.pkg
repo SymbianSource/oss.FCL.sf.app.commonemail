@@ -178,14 +178,6 @@
 "\epoc32\data\z\resource\apps\fscsendplugin.rsc"                 - "c:\resource\apps\fscsendplugin.rsc"
 "\epoc32\data\z\resource\apps\fscsendplugin.mif"                 - "c:\resource\apps\fscsendplugin.mif"
 
-; emailcontacts / remotecontactlookup
-"\epoc32\release\armv5\urel\pbkxrclservice.dll"                  - "c:\sys\bin\pbkxrclservice.dll"
-"\epoc32\data\Z\Resource\Plugins\pbkxrclservice.rsc"             - "c:\resource\plugins\pbkxrclservice.rsc"
-"\epoc32\release\armv5\urel\pbkxrclengine.dll"                   - "c:\sys\bin\pbkxrclengine.dll"
-"\epoc32\data\z\resource\apps\pbkxrclengine.rsc"                 - "c:\resource\apps\pbkxrclengine.rsc"
-"\epoc32\data\z\resource\apps\pbkxrclengine.mif"                 - "c:\resource\apps\pbkxrclengine.mif"
-"\epoc32\data\Z\private\10202BE9\2001F3FE.txt"                   - "c:\private\10202be9\2001F3FE.txt"
-
 ; meetingrequest
 "\epoc32\data\z\resource\esmrgui.rsc"                            - "c:\resource\esmrgui.rsc"
 "\epoc32\data\z\resource\esmrtasks.rsc"                          - "c:\resource\esmrtasks.rsc"

@@ -32,6 +32,32 @@
                     </text>
                 </box>                             
             </box>
+            <box id="setup_row_2" class="setup_row_2_container">
+                <box id="setup_brand_1" class="setup_brand_container">
+                    <image id="setup_brand_1_id" sizeaware="true">
+                        <configuration name="content_type" value="ct_setup_brand_icon_1"/>
+                        <property class="0x2001F413:CMailWidget/key_setup_brand_icon_1"/>
+                    </image>
+                </box>
+                <box id="setup_brand_2" class="setup_brand_container">
+                    <image id="setup_brand_2_id" sizeaware="true">
+                        <configuration name="content_type" value="ct_setup_brand_icon_2"/>
+                        <property class="0x2001F413:CMailWidget/key_setup_brand_icon_2"/>
+                    </image>
+                </box>
+                <box id="setup_brand_3" class="setup_brand_container">
+                    <image id="setup_brand_3_id" sizeaware="true">
+                        <configuration name="content_type" value="ct_setup_brand_icon_3"/>
+                        <property class="0x2001F413:CMailWidget/key_setup_brand_icon_3"/>
+                    </image>
+                </box>
+                <box id="setup_brand_4" class="setup_brand_container">
+                    <image id="setup_brand_4_id" sizeaware="true">
+                        <configuration name="content_type" value="ct_setup_brand_icon_4"/>
+                        <property class="0x2001F413:CMailWidget/key_setup_brand_icon_4"/>
+                    </image>
+                </box>
+            </box>
         </box>
 
         <!-- MAILS VIEW -->
@@ -53,7 +79,7 @@
                     </image>
                 </box>            
                 <box id="TextField1" class="text_field_container">
-                    <text id="Text" class="text">
+                    <text id="Text" class="text_mailbox">
                         <configuration name="content_type" value="ct_body_text_1"/>
                         <property class="0x2001F413:CMailWidget/key_body_text_1"/>                                               
                         <!-- Display SETUP or MAILS container -->
@@ -80,18 +106,18 @@
                         <property class="0x2001F413:CMailWidget/key_mailbox_icons_2"/>                        
                     </image>
                 </box>            
-                <box id="TextField2" class="text_field_container">
-                    <text id="Text2" class="text">
-                        <configuration name="content_type" value="ct_body_text_2"/>
-                        <property class="0x2001F413:CMailWidget/key_body_text_2"/>                        
-                    </text>
-                </box>
-                <box id="MailboxTime2" class="mail_time_container">
-                    <text id="time_id_2" class="time_text">
-                        <configuration name="content_type" value="ct_time_2"/>
-                        <property class="0x2001F413:CMailWidget/key_time_2"/>                        
-                    </text>
-                </box>                
+                <text id="sender_id_2" class="sender_text">
+                    <configuration name="content_type" value="ct_body_text_2"/>
+                    <property class="0x2001F413:CMailWidget/key_body_text_2"/>                        
+                </text>
+                <text id="subject_id_2" class="subject_text">
+                    <configuration name="content_type" value="ct_subject_text_2"/>
+                    <property class="0x2001F413:CMailWidget/key_subject_text_2"/>                        
+                </text>
+                <text id="time_id_2" class="time_text">
+                    <configuration name="content_type" value="ct_time_2"/>
+                    <property class="0x2001F413:CMailWidget/key_time_2"/>                        
+                </text>
             </box>
             
             <!-- Widget row 3 -->
@@ -102,18 +128,18 @@
                         <property class="0x2001F413:CMailWidget/key_mailbox_icons_3"/>                        
                     </image>
                 </box>            
-                <box id="TextField3" class="text_field_container">
-                    <text id="Text3" class="text">
-                        <configuration name="content_type" value="ct_body_text_3"/>
-                        <property class="0x2001F413:CMailWidget/key_body_text_3"/>                        
-                    </text>
-                </box>
-                <box id="MailboxTime3" class="mail_time_container">
-                    <text id="time_id_3" class="time_text">
-                        <configuration name="content_type" value="ct_time_3"/>
-                        <property class="0x2001F413:CMailWidget/key_time_3"/>                        
-                    </text>
-                </box>                
+                <text id="sender_id_3" class="sender_text">
+                    <configuration name="content_type" value="ct_body_text_3"/>
+                    <property class="0x2001F413:CMailWidget/key_body_text_3"/>                        
+                </text>
+                <text id="subject_id_3" class="subject_text">
+                    <configuration name="content_type" value="ct_subject_text_3"/>
+                    <property class="0x2001F413:CMailWidget/key_subject_text_3"/>                        
+                </text>                
+                <text id="time_id_3" class="time_text">
+                    <configuration name="content_type" value="ct_time_3"/>
+                    <property class="0x2001F413:CMailWidget/key_time_3"/>                        
+                </text>
             </box>            
         </box>
         

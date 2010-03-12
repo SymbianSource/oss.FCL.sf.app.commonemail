@@ -343,7 +343,7 @@ TInt CFSEmailCRHandler::ActiveIdle()
         }	
     return buf;
     }
-/*
+
 // ----------------------------------------------------
 // CFSEmailCRHandler::SetDownloadHTMLImages
 // ----------------------------------------------------
@@ -356,7 +356,6 @@ void CFSEmailCRHandler::SetDownloadHTMLImages( TInt aValue )
     	iCentralRepository->Set( KFreestyleEmailDownloadHTMLImages, aValue );
 		}
     }
-
 
 // ----------------------------------------------------
 // CFSEmailCRHandler::DownloadHTMLImages
@@ -379,7 +378,7 @@ TInt CFSEmailCRHandler::DownloadHTMLImages()
         }
     return buf;
     }
-*/
+
 /*
 // ----------------------------------------------------
 // CFSEmailCRHandler::AttachmentFileTypes

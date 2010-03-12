@@ -36,5 +36,15 @@ PRJ_EXPORTS
 
 ../rom/cmailhandlerplugin.iby                 CORE_APP_LAYER_IBY_EXPORT_PATH(cmailhandlerplugin.iby)
 ../rom/cmailhandlerpluginresources.iby        LANGUAGE_APP_LAYER_IBY_EXPORT_PATH(cmailhandlerpluginresources.iby)
+// CONFML_EXPORT_PATH defined in platform_paths.hrh APP_LAYER_CONFML
+../conf/CommonemailCRKeys.confml              CONFML_EXPORT_PATH(CommonemailCRKeys.confml,s60) 
+../conf/CommonemailCRKeys_20029F4A.crml       CRML_EXPORT_PATH(CommonemailCRKeys_20029F4A.crml,s60)
+../inc/commonemailcrkeys.h                    |../../../../inc/commonemailcrkeys.h
 
+
+// TEMP fiz for wk05/10 SDK, please remvve after wk07
+../conf/20029F4A.txt                          /epoc32/winscw/c/private/10202be9/20029F4A.txt
+../conf/20029F4A.txt                          /epoc32/release/winscw/UDEB/Z/private/10202be9/20029F4A.txt
+../conf/20029F4A.txt                          /epoc32/release/winscw/UREL/Z/private/10202be9/20029F4A.txt
+../conf/20029F4A.txt                          /epoc32/data/Z/private/10202BE9/20029F4A.txt
 

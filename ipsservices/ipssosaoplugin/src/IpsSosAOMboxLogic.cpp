@@ -762,7 +762,7 @@ TBool CIpsSosAOMBoxLogic::CanConnectIfRoamingL()
     
     //ask roaming settings from occ
     cmManager.ReadGenConnSettingsL(OccSettings);
-    if(OccSettings.iSeamlessnessVisitor == ECmCellularDataUsageDisabled && iIsRoaming)
+    if(OccSettings.iCellularDataUsageVisitor == ECmCellularDataUsageDisabled && iIsRoaming)
         {
         ret = EFalse;
         }

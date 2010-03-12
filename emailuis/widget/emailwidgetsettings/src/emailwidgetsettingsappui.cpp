@@ -47,7 +47,7 @@ CEmailWidgetSettingsAppUi::~CEmailWidgetSettingsAppUi()
 void CEmailWidgetSettingsAppUi::ConstructL()
     {
     FUNC_LOG;	
-    BaseConstructL( EAknEnableSkin /*| EAknEnableMSK | EAknSingleClickCompatible*/ );
+    BaseConstructL( EAknEnableSkin | EAknEnableMSK | EAknSingleClickCompatible );
     CreateListViewL();
     }
 

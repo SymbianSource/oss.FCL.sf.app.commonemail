@@ -145,7 +145,8 @@ public:
      * Get items in range aY to aY + aHeight. Also returns offset by which the listlayout
      * needs to be scrolled (e.g. the first item in list might be only partly visible)
      */
-    void GetItemsL( RArray<TFsTreeItemId>& aItems, TInt aY, TInt aHeight, TInt& aOffset );
+    void GetItemsL( RArray<TFsTreeItemId>& aItems, TInt aY, TInt aHeight, TInt& aOffset,
+            TInt& aBeginIndex );
 
     /**
      * Returns full height of the world (in pixels).
@@ -167,6 +168,11 @@ public:
      * Returns item's rect.
      */
     TInt GetItemRect( const TFsTreeItemId, TRect& aRect ) const;
+
+    /**
+     * Returns item's rect, scan starts from aStartIndex.
+     */
+    TInt GetItemRect( const TFsTreeItemId, TRect& aRect, const TInt aStartIndex ) const;
 
     /**
      * Returns item's rect by index in world.
@@ -555,6 +561,9 @@ private:
 
     // Viewport cache
     TCache iCache;
+    
+    // Wold index of the first item in Cache
+    TInt iWorldIndex;
 
     };
 
@@ -2345,7 +2354,12 @@ private: //Data members
         /**
          * Do physics update when simulation has finished.
          */
-        EUpdatePhysicsAfterSimulationFinished
+        EUpdatePhysicsAfterSimulationFinished,
+        
+		/**
+		 * Ignore next pointer up event.
+		 */
+        EIgnorePointerUpAction
     };
 
     // Flags
