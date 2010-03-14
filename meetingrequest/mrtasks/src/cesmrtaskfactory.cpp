@@ -35,10 +35,10 @@
 #include "esmrconfig.hrh"
 
 //<cmail>
-#include "CFSMailCommon.h"
-#include "CFSMailClient.h"
-#include "CFSMailMessage.h"
-#include "CFSMailBox.h"
+#include "cfsmailcommon.h"
+#include "cfsmailclient.h"
+#include "cfsmailmessage.h"
+#include "cfsmailbox.h"
 //</cmail>
 
 namespace {

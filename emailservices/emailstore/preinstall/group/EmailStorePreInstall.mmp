@@ -19,7 +19,7 @@
 #include <platform_paths.hrh> //needed for APP_LAYER_SYSTEMINCLUDE
 
 #include "../../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
-#include "../../inc/EmailStoreUids.hrh"
+#include "../../inc/emailstoreuids.hrh"
 
 TARGET          EmailStorePreInstall.exe
 TARGETTYPE      exe

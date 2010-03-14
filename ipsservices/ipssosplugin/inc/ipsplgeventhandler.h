@@ -205,11 +205,27 @@ public:
     void SignalMailboxOfflineStateL( const TFSMailMsgId& aAccount );
 
     /**
-     * Send user password query request to fs email ui
+     * Send user password query request to fs email ui.
+     * Request is handled by emailserver.
+     * Only one query at a time is allowed - restriction of CFSMailMessageQueryHandler
+     * Operation callback is registered in handler and will receive notification
+     * on query password finished.
+     * 
      * @param aMbox entry id of mailbox service
      * @param aCallback callback interface to connection operation, defaut NULL
+     * @param aIncoming incoming or outgoing password query
+     * @return ETrue query invoked, wait for notification
+     *         EFalse another query is in progress
      */
-    void QueryUsrPassL( TMsvId aMbox, MIpsPlgConnectOpCallback* aCallback=NULL );
+    TBool QueryUsrPassL(
+        TMsvId aMbox,
+        MIpsPlgConnectOpCallback* aCallback=NULL,
+        TBool aIncoming=ETrue );
+
+    /**
+     * Query in progress is for incoming or outgoing mail.
+     */
+    TBool IncomingPass() const;
 
     /**
      * Send user password (=credentials) set signal to all plugin
@@ -220,6 +236,16 @@ public:
     void SignalCredientialsSetL( TInt aMailboxId, TBool aCancelled );
 
 private:
+
+    /** States of Query user password operation */
+    enum TQueryUsrPassState
+        {
+        EReady,                 // ready for action
+        EBusy,                  // request in progress (invoker eventhandler`s state)
+        ENotificationRequest,   // user notification request (emailserver eventhandler`s state)
+        EPasswordRequest,       // password request (emailserver eventhandler`s state)
+        ERequestResponding      // response for request received, handling in progress (invoker eventhandler`s state)
+        };
 
     /**
     * Checks the source type of event and also
@@ -443,11 +469,16 @@ private: // datak
     // base plugin id
     TUint                                   iPluginId;
 
-    //not owned
-    MIpsPlgConnectOpCallback*               iConnOpCallback;
-
     RArray<TMsvId>                          iImapFolderIds;
 
+    // state of the query user password operation
+    // diffrent states are for query invoker and query handler (emailserver)
+    TQueryUsrPassState                      iQueryPassState;
+    // array of operations which wait for query response
+    // or possibilty to perform a query
+    RPointerArray<MIpsPlgConnectOpCallback> iConnOpCallbacks;
+    // query user password for incoming or outgoing
+    TBool                                   iIncomingPass;
     };
 
 

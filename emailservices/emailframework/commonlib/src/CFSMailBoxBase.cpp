@@ -18,7 +18,7 @@
 #include <AknUtils.h>           // AknTextUtils
     
 #include "emailtrace.h"
-#include "CFSMailBoxBase.h"
+#include "cfsmailboxbase.h"
 
 _LIT( KCharsToReplace, "\r\n\t\x2028\x2029" );
 

@@ -33,13 +33,13 @@
 #include "cfsuidatamtm.h"
 
 // FREESTYLE EMAIL FRAMEWORK INCLUDES
-#include "CFSMailCommon.h"
-#include "CFSMailClient.h"
-#include "CFSMailBox.h"
+#include "cfsmailcommon.h"
+#include "cfsmailclient.h"
+#include "cfsmailbox.h"
 
 
 #include <gulicon.h>
-#include "MFSMailBrandManager.h"
+#include "mfsmailbrandmanager.h"
 
 // GLOBAL EXPORTS.
 
@@ -139,77 +139,77 @@ void CFsUiDataMtm::PopulateArraysL()
     // Support for White label branding added
     CFSMailClient* mailClient = CFSMailClient::NewL();
     CleanupClosePushL(*mailClient);
-	MFSMailBrandManager& brandManager = mailClient->GetBrandManagerL();
-	RPointerArray<CFSMailBox> mailboxes;
-	CleanupResetAndDestroyClosePushL( mailboxes );
-	TFSMailMsgId id;
+    MFSMailBrandManager& brandManager = mailClient->GetBrandManagerL();
+    RPointerArray<CFSMailBox> mailboxes;
+    CleanupResetAndDestroyClosePushL( mailboxes );
+    TFSMailMsgId id;
 
-	mailClient->ListMailBoxes( id, mailboxes );
+    mailClient->ListMailBoxes( id, mailboxes );
 
-	iIconArrays->Reset();
-	iMailboxIds.Reset();
+    iIconArrays->Reset();
+    iMailboxIds.Reset();
 
-	for ( TInt i = 0; i <= mailboxes.Count(); i++ ) // Last round is for setting the default mb icon at the end of the list
-		{
-	    CFbsBitmap* bitmap(0);
-	    CFbsBitmap* bitmapMask(0);
-	    CArrayPtrFlat<CFbsBitmap>* array = new (ELeave) CArrayPtrFlat<CFbsBitmap>( 2 );
-		CleanupStack::PushL( array ); // +2 array
-		array->SetReserveL( 2 ); // AppendLs will not LEAVE
-		
-		CGulIcon* brandedIcon( NULL );
-		TInt err;
+    for ( TInt i = 0; i <= mailboxes.Count(); i++ ) // Last round is for setting the default mb icon at the end of the list
+        {
+        CFbsBitmap* bitmap(0);
+        CFbsBitmap* bitmapMask(0);
+        CArrayPtrFlat<CFbsBitmap>* array = new (ELeave) CArrayPtrFlat<CFbsBitmap>( 2 );
+        CleanupStack::PushL( array ); // +2 array
+        array->SetReserveL( 2 ); // AppendLs will not LEAVE
+        
+        CGulIcon* brandedIcon( NULL );
+        TInt err;
 
-		if ( i < mailboxes.Count() ) // Do not execute for the last round
-			{
-			TRAP( err, brandedIcon = brandManager.GetGraphicL( EFSMailboxIcon, mailboxes[i]->GetId() ) );
-			}
-		if ( err == KErrNone && brandedIcon )
-			{
-			bitmap = brandedIcon->Bitmap();
-			bitmapMask = brandedIcon->Mask();
-			brandedIcon->SetBitmapsOwnedExternally( ETrue );
-		    CleanupStack::PushL( bitmap );
-		    array->AppendL( bitmap );
-		    CleanupStack::Pop( bitmap );
-			bitmap = 0;
-		    CleanupStack::PushL( bitmapMask );
-			array->AppendL( bitmapMask );
-		    CleanupStack::Pop( bitmapMask );
-			bitmapMask = 0;
-			iIconArrays->AppendL( array );
-			iMailboxIds.Append( (mailboxes[i]->GetId()).Id() );
+        if ( i < mailboxes.Count() ) // Do not execute for the last round
+            {
+            TRAP( err, brandedIcon = brandManager.GetGraphicL( EFSMailboxIcon, mailboxes[i]->GetId() ) );
             }
-		else
-			{
-			// Icon was not found from the branding manager or last round for the default icon
-			TRAPD( err, AknIconUtils::CreateIconL( bitmap, bitmapMask, bitmapFileName,
-					EMbmFsuidatamtmQgn_prop_cmail_inbox_small, EMbmFsuidatamtmQgn_prop_cmail_inbox_small + 1 ));
-			if( err != KErrNone )
-				{
-				}
-		    CleanupStack::PushL( bitmap );
-		    array->AppendL( bitmap );
-		    CleanupStack::Pop( bitmap );
-			bitmap = 0;
-		    CleanupStack::PushL( bitmapMask );
-			array->AppendL( bitmapMask );
-		    CleanupStack::Pop( bitmapMask );
-			bitmapMask = 0;
-			// INFO: This is not working for some reason, otherwise above code is not required.
-			// CreateBitmapsL(2, KFsUiDataMtmUdBitmapFile, EMbmFsuidatamtmFsmailbox, 
-			// EMbmFsuidatamtmLastElement);
-			iIconArrays->AppendL( array );
-			iMailboxIds.Append(0);
-			}
-		if ( brandedIcon )
-			{
-			delete brandedIcon;
-			}
-		CleanupStack::Pop( array );  
-		}
-	
-	CleanupStack::PopAndDestroy( &mailboxes );
+        if ( err == KErrNone && brandedIcon )
+            {
+            bitmap = brandedIcon->Bitmap();
+            bitmapMask = brandedIcon->Mask();
+            brandedIcon->SetBitmapsOwnedExternally( ETrue );
+            CleanupStack::PushL( bitmap );
+            array->AppendL( bitmap );
+            CleanupStack::Pop( bitmap );
+            bitmap = 0;
+            CleanupStack::PushL( bitmapMask );
+            array->AppendL( bitmapMask );
+            CleanupStack::Pop( bitmapMask );
+            bitmapMask = 0;
+            iIconArrays->AppendL( array );
+            iMailboxIds.Append( (mailboxes[i]->GetId()).Id() );
+            }
+        else
+            {
+            // Icon was not found from the branding manager or last round for the default icon
+            TRAPD( err, AknIconUtils::CreateIconL( bitmap, bitmapMask, bitmapFileName,
+                    EMbmFsuidatamtmQgn_prop_cmail_inbox_small, EMbmFsuidatamtmQgn_prop_cmail_inbox_small + 1 ));
+            if( err != KErrNone )
+                {
+                }
+            CleanupStack::PushL( bitmap );
+            array->AppendL( bitmap );
+            CleanupStack::Pop( bitmap );
+            bitmap = 0;
+            CleanupStack::PushL( bitmapMask );
+            array->AppendL( bitmapMask );
+            CleanupStack::Pop( bitmapMask );
+            bitmapMask = 0;
+            // INFO: This is not working for some reason, otherwise above code is not required.
+            // CreateBitmapsL(2, KFsUiDataMtmUdBitmapFile, EMbmFsuidatamtmFsmailbox, 
+            // EMbmFsuidatamtmLastElement);
+            iIconArrays->AppendL( array );
+            iMailboxIds.Append(0);
+            }
+        if ( brandedIcon )
+            {
+            delete brandedIcon;
+            }
+        CleanupStack::Pop( array );  
+        }
+    
+    CleanupStack::PopAndDestroy( &mailboxes );
     CleanupStack::PopAndDestroy( mailClient );
 
 }
@@ -251,12 +251,12 @@ const CBaseMtmUiData::CBitmapArray& CFsUiDataMtm::ContextIcon(
 {
     FUNC_LOG;
     for ( TInt i = 0; i < iIconArrays->Count() - 1; i++ )
-    	{
+        {
         if ( iMailboxIds[i] == aContext.iMtmData2 )
-        	{    	
-        	return *(iIconArrays->At( i ));
-        	}
-    	}
+            {       
+            return *(iIconArrays->At( i ));
+            }
+        }
     return *(iIconArrays->At( iIconArrays->Count() - 1)); // Default icon
 }
 
@@ -339,11 +339,11 @@ TBool CFsUiDataMtm::CanCreateEntryL( const TMsvEntry& aParent,
     FUNC_LOG;
     if ((aNewEntry.iMtm == KUidMsgValTypeFsMtmVal) && 
         (aNewEntry.iType == KUidMsvServiceEntry) )
-    	{
-    	aReasonResourceId=0;
+        {
+        aReasonResourceId=0;
         // --- Can create services if they are off root ---
         return (aParent.Id() == KMsvRootIndexEntryIdValue);
-    	}
+        }
     aReasonResourceId = R_FS_NOT_SUPPORTED;
     
     return EFalse;
@@ -532,7 +532,7 @@ TInt CFsUiDataMtm::QueryCapability( TUid aCapability, TInt &aResponse) const
         // defined in aknsconstants.hrh.
 
             //Disabling SendAs for Calendar is removed.
-       	    aResponse=ETrue;
+            aResponse=ETrue;
             break;
 
         default:

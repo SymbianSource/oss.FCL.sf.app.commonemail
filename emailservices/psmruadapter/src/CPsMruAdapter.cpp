@@ -23,13 +23,15 @@
 #include <data_caging_path_literals.hrh>
 #include <VPbkEng.rsg>
 //<cmail>
-#include "CFSMailClient.h"
+#include "cfsmailclient.h"
 #include "CPsMruAdapter.h"
 //</cmail>
 #include <mmf/common/mmfcontrollerpluginresolver.h> // CleanupResetAndDestroy
 
 
 #define PRINT(x)
+
+#include "emailtrace.h"
 
 // ============================== MEMBER FUNCTIONS ============================
 
@@ -45,57 +47,61 @@ const TInt KMaximumMailboxUriLength = 64;
 // Two Phase Construction
 // ----------------------------------------------------------------------------
 CPsMruAdapter* CPsMruAdapter::NewL( TAny* aPsDataPluginParameters )
-	{
-	PRINT ( _L( "Enter CPsMruAdapter::NewL" ) );
-
-	// Get the PsData plugin parametrs
-	TPsDataPluginParams* params =
-			reinterpret_cast<TPsDataPluginParams*>(aPsDataPluginParameters );
-	CPsMruAdapter* self = new ( ELeave ) CPsMruAdapter();
-	CleanupStack::PushL(self);
-	self->ConstructL( params->iDataStoreObserver, params->iStoreListObserver );
-	CleanupStack::Pop( self );
-
-	PRINT ( _L( "End CPsMruAdapter::NewL" ) );
-
-	return self;
-	}
+    {
+    FUNC_LOG;
+    PRINT ( _L( "Enter CPsMruAdapter::NewL" ) );
+    
+    // Get the PsData plugin parametrs
+    TPsDataPluginParams* params =
+    		reinterpret_cast<TPsDataPluginParams*>(aPsDataPluginParameters );
+    CPsMruAdapter* self = new ( ELeave ) CPsMruAdapter();
+    CleanupStack::PushL(self);
+    self->ConstructL( params->iDataStoreObserver, params->iStoreListObserver );
+    CleanupStack::Pop( self );
+    
+    PRINT ( _L( "End CPsMruAdapter::NewL" ) );
+    
+    return self;
+    }
 
 // ----------------------------------------------------------------------------
 // CPsMruAdapter::CPsMruAdapter
 // Two Phase Construction
 // ----------------------------------------------------------------------------
 CPsMruAdapter::CPsMruAdapter()
-	{
-	PRINT ( _L( "Enter CPsMruAdapter::CPsMruAdapter" ) );
-	PRINT ( _L( "End CPsMruAdapter::CPsMruAdapter" ) );
-	}
+    {
+    FUNC_LOG;
+    PRINT ( _L( "Enter CPsMruAdapter::CPsMruAdapter" ) );
+    iDelayMailboxCreationPtr = NULL;
+    PRINT ( _L( "End CPsMruAdapter::CPsMruAdapter" ) );
+    }
 
 // ----------------------------------------------------------------------------
 // CPsMruAdapter::ConstructL
 // Two Phase Construction
 // ----------------------------------------------------------------------------
 void CPsMruAdapter::ConstructL( MDataStoreObserver* aObserverForDataStore,
-		MStoreListObserver* aStoreListObserver )
-	{
-	PRINT ( _L( "Enter CPsMruAdapter::ConstructL" ) );
+        MStoreListObserver* aStoreListObserver )
+    {
+    FUNC_LOG;	
+    PRINT ( _L( "Enter CPsMruAdapter::ConstructL" ) );
 
-	// Mail client for FS Email framework
-	iMailClient = CFSMailClient::NewL();
+    // Mail client for FS Email framework
+    iMailClient = CFSMailClient::NewL();
 
-	// Register as observer for mail client, we'll need this to observe MRU list changes
-	// When i.e mail is sent
-	iMailClient->AddObserverL( *this );
+    // Register as observer for mail client, we'll need this to observe MRU list changes
+    // When i.e mail is sent
+    iMailClient->AddObserverL( *this );
 
-	// This updates the list of all the supported datastores
-	UpdateSupportedDataStoresList();
+    // This updates the list of all the supported datastores
+    UpdateSupportedDataStoresList();
 
-	// Store these for later use
-	iDataStoreObserver = aObserverForDataStore;
-	iStoreListObserver = aStoreListObserver;
+    // Store these for later use
+    iDataStoreObserver = aObserverForDataStore;
+    iStoreListObserver = aStoreListObserver;
 
-	PRINT ( _L( "End CPsMruAdapter::ConstructL" ) );
-	}
+    PRINT ( _L( "End CPsMruAdapter::ConstructL" ) );
+    }
 
 // ----------------------------------------------------------------------------
 // CPsMruAdapter::~CPsMruAdapter
@@ -103,6 +109,7 @@ void CPsMruAdapter::ConstructL( MDataStoreObserver* aObserverForDataStore,
 // ----------------------------------------------------------------------------
 CPsMruAdapter::~CPsMruAdapter()
     {
+    FUNC_LOG;	
     PRINT ( _L( "Enter CPsMruAdapter::~CPsMruAdapter" ) );
 
     iSupportedUris.ResetAndDestroy();
@@ -116,7 +123,15 @@ CPsMruAdapter::~CPsMruAdapter()
         iMailClient->RemoveObserver( *this );
         iMailClient->Close();
         }
-
+    if(iDelayMailboxCreationPtr)
+        {
+        iDelayMailboxCreationPtr->Deque();
+        delete iDelayMailboxCreationPtr;
+        }
+    
+    iDelayedCreatedMailboxes.Reset();
+    iDelayedCreatedMailboxes.Close();
+    
     PRINT ( _L( "End CPsMruAdapter::~CPsMruAdapter" ) );
     }
 
@@ -126,13 +141,14 @@ CPsMruAdapter::~CPsMruAdapter()
 // ----------------------------------------------------------------------------
 void CPsMruAdapter::RequestForDataL( TDesC& aDataStoreURI )
 	{
-	PRINT ( _L( "Enter CPsMruAdapter::RequestForDataL" ) );
+    FUNC_LOG;	
+    PRINT ( _L( "Enter CPsMruAdapter::RequestForDataL" ) );
 
-	// Add data to datastore, fill only requested one
-	FillDataStoreL( aDataStoreURI );
+    // Add data to datastore, fill only requested one
+    FillDataStoreL( aDataStoreURI );
 
-	PRINT ( _L( "Enter CPsMruAdapter::RequestForDataL" ) );
-	}
+    PRINT ( _L( "Enter CPsMruAdapter::RequestForDataL" ) );
+    }
 
 // ----------------------------------------------------------------------------
 // CPsMruAdapter::GetSupportedDataStoresL
@@ -140,378 +156,554 @@ void CPsMruAdapter::RequestForDataL( TDesC& aDataStoreURI )
 // ----------------------------------------------------------------------------
 
 void CPsMruAdapter::GetSupportedDataStoresL(
-		RPointerArray<TDesC> &aDataStoresURIs )
-	{
-	for ( TInt i = 0; i < iSupportedUris.Count(); i++ )
-		{
-		aDataStoresURIs.Append( iSupportedUris[i] );
-		}
-	}
+        RPointerArray<TDesC> &aDataStoresURIs )
+    {
+    FUNC_LOG;	
+    for ( TInt i = 0; i < iSupportedUris.Count(); i++ )
+        {
+        aDataStoresURIs.Append( iSupportedUris[i] );
+        }
+    }
 
 // ----------------------------------------------------------------------------
 // CPsMruAdapter::RequestForDataExtensionL
 // 
 // ----------------------------------------------------------------------------
 TAny* CPsMruAdapter::RequestForDataExtensionL(TInt /*aItemId*/)
-	{
-	// No extention required for this since we have and interger as itemId
-	// Simply return NULL
-	return NULL;
-	}
+    {
+    FUNC_LOG;	
+    // No extention required for this since we have and interger as itemId
+    // Simply return NULL
+    return NULL;
+    }
 
 // ----------------------------------------------------------------------------
 // CPsMruAdapter::UpdateSupportedDataStoresList
 // 
 // ----------------------------------------------------------------------------
 void CPsMruAdapter::UpdateSupportedDataStoresList()
-	{
-	// Mailboxes will be fetched to this array
-	RPointerArray<CFSMailBox> mailBoxes;
+    {
+    FUNC_LOG;	
+    // Mailboxes will be fetched to this array
+    RPointerArray<CFSMailBox> mailBoxes;
 
-	// List all mailboxes
-	TFSMailMsgId plugin;
-	iMailClient->ListMailBoxes( plugin, mailBoxes );
+    // List all mailboxes
+    TFSMailMsgId plugin;
+    iMailClient->ListMailBoxes( plugin, mailBoxes );
 
-	iSupportedUris.ResetAndDestroy();
+    iSupportedUris.ResetAndDestroy();
 
-	// Add all mailboxes as data stores
-	for ( TInt i = 0; i < mailBoxes.Count(); i++ )
-		{
-		// Get id of mailbox
-		TFSMailMsgId id = mailBoxes[i]->GetId();
+    // Add all mailboxes as data stores
+    for ( TInt i = 0; i < mailBoxes.Count(); i++ )
+        {
+        // Get id of mailbox
+        TFSMailMsgId id = mailBoxes[i]->GetId();
 
-		// Convert it to string, this will be the unique identifier for this mailbox
-		HBufC* identifier = HBufC::New( KMaximumMailboxUriLength );
-		if ( identifier && GetUriFromMailboxIdentifier( id, *identifier ) )
-			{
-			// Add to supported Uris list
-			if ( iSupportedUris.Append( identifier ) == KErrNone )
-			    {
-			    // Ownership of the string is successfully moved to the array
-			    identifier = NULL;
-			    }
-			}
-		delete identifier;
-		}
+        // Convert it to string, this will be the unique identifier for this mailbox
+        HBufC* identifier = HBufC::New( KMaximumMailboxUriLength );
+        if ( identifier && GetUriFromMailboxIdentifier( id, *identifier ) )
+            {
+            // Add to supported Uris list
+            if ( iSupportedUris.Append( identifier ) == KErrNone )
+                {
+                // Ownership of the string is successfully moved to the array
+                identifier = NULL;
+                }
+            }
+        delete identifier;
+        }
 
-	// Release allocated memory
-	mailBoxes.ResetAndDestroy();
-	}
+    // Release allocated memory
+    mailBoxes.ResetAndDestroy();
+    }
 
 // ----------------------------------------------------------------------------
 // CPsMruAdapter::FillDataStoreL
 // ----------------------------------------------------------------------------
 TBool CPsMruAdapter::FillDataStoreL( TDesC& aDataStoreURI )
-	{
-	TBool result = EFalse;
+    {
+    FUNC_LOG;	
+    TBool result = EFalse;
 
-	TFSMailMsgId dataStoreId;
+    TFSMailMsgId dataStoreId;
 
-	if ( GetMailboxIdentifierFromUri( aDataStoreURI, dataStoreId ) )
-		{
-		result = FillDataStoreL( dataStoreId, aDataStoreURI );
-		}
+    if ( GetMailboxIdentifierFromUri( aDataStoreURI, dataStoreId ) )
+        {
+        result = FillDataStoreL( dataStoreId, aDataStoreURI );
+        }
 
-	return result;
-	}
+    return result;
+    }
 
 TBool CPsMruAdapter::FillDataStoreL( TFSMailMsgId& aId )
-	{
-	TBool result = EFalse;
+    {
+    FUNC_LOG;	
+    TBool result = EFalse;
 
-	// Create Uri for this mailbox
-	HBufC* identifier = HBufC::NewLC( KMaximumMailboxUriLength );
-	if ( GetUriFromMailboxIdentifier( aId, *identifier ) )
-		{
-		result = FillDataStoreL( aId, *identifier );
-		}
-	CleanupStack::PopAndDestroy( identifier );
-	return result;
-	}
+    // Create Uri for this mailbox
+    HBufC* identifier = HBufC::NewLC( KMaximumMailboxUriLength );
+    if ( GetUriFromMailboxIdentifier( aId, *identifier ) )
+        {
+        result = FillDataStoreL( aId, *identifier );
+        }
+    CleanupStack::PopAndDestroy( identifier );
+    return result;
+    }
+
+void CPsMruAdapter::AddMruEmailsL( MDesCArray* aMruList, TDesC& aDataStoreURI )
+    {
+    FUNC_LOG;	
+    TInt entryIndex = 0;
+    // Add all data to data store, the format is:
+    // index0: displayname
+    // index1: email
+    // index2: next displayname
+    // index3: next email
+    // etc..
+    for ( int mruIndex = 0; mruIndex < aMruList->MdcaCount(); mruIndex += 2 )
+        {
+        TPtrC displayName = aMruList->MdcaPoint( mruIndex );
+        TPtrC emailAddress = aMruList->MdcaPoint( mruIndex + 1 );
+
+        CPsData* mruData = CPsData::NewL();
+        CleanupStack::PushL(mruData);
+        mruData->SetId( entryIndex++ );
+
+        // Set the data
+        mruData->SetDataL( 0, displayName );
+        mruData->SetDataL( 1, KNullDesC );
+        mruData->SetDataL( 2, emailAddress );
+
+        iDataStoreObserver->AddData( aDataStoreURI, mruData );
+        CleanupStack::Pop(mruData); // transferred ownership
+        }
+    }
 
 TBool CPsMruAdapter::FillDataStoreL( TFSMailMsgId& aId, TDesC& aDataStoreURI )
-	{
-	TBool result = EFalse;
+    {
+    FUNC_LOG;	
+    TBool result = EFalse;
+// code was simplified not to trace all mailboxes
+// function has trap in  Event() -case> TFSEventNewMailbox and in DeleayedMailboxCreationEventL()
+// should not leave when new mailbox only when new mail address
+    CFSMailBox *mailBox = iMailClient->GetMailBoxByUidL(aId);
+    if (mailBox)
+        {
+        AddMailboxObserverL( aId );
+        
+        // Get MRU list for this mailbox
+        MDesCArray* mruList = mailBox->ListMrusL();
+        mailBox = NULL;
+        
+        // update the caching status as InProgress
+        iDataStoreObserver->UpdateCachingStatus( aDataStoreURI,
+                ECachingInProgress );
 
-	// Mailboxes will be fetched to this array
-	RPointerArray<CFSMailBox> mailBoxes;
-	CleanupResetAndDestroyPushL( mailBoxes );
+        // Update datastore contents, first reset
+        iDataStoreObserver->RemoveAll( aDataStoreURI );
 
-	// List all mailboxes
-	TFSMailMsgId plugin;
-	iMailClient->ListMailBoxes( plugin, mailBoxes );
-
-	// Find the requested mailbox
-	for ( TInt i = 0; i < mailBoxes.Count(); i++ )
-		{
-		// Get id of mailbox
-		TFSMailMsgId id = mailBoxes[i]->GetId();
-
-		// Check that this is the requested mailbox
-		if ( id == aId )
-			{
-			AddMailboxObserverL( aId );
-			
-			// update the caching status as InProgress
-			iDataStoreObserver->UpdateCachingStatus( aDataStoreURI,
-					ECachingInProgress );
-
-			// Update datastore contents, first reset
-			iDataStoreObserver->RemoveAll( aDataStoreURI );
-
-			// Get MRU list for this mailbox
-			MDesCArray* mruList = mailBoxes[i]->ListMrusL();
-
-			if ( mruList )
-				{
-				TInt entryIndex = 0;
-	
-				// Add all data to data store, the format is:
-				// index0: displayname
-				// index1: email
-				// index2: next displayname
-				// index3: next email
-				// etc..
-				for ( int mruIndex = 0; mruIndex < mruList->MdcaCount(); mruIndex += 2 )
-					{
-					TPtrC displayName = mruList->MdcaPoint( mruIndex );
-					TPtrC emailAddress = mruList->MdcaPoint( mruIndex + 1 );
-	
-					CPsData* mruData = CPsData::NewL();
-					mruData->SetId( entryIndex++ );
-	
-					// Set the data
-					mruData->SetDataL( 0, displayName );
-					mruData->SetDataL( 1, KNullDesC );
-					mruData->SetDataL( 2, emailAddress );
-	
-					iDataStoreObserver->AddData( aDataStoreURI, mruData );
-					}
-	
-				delete mruList;
-				}
-			// update the caching status as Complete
-			iDataStoreObserver->UpdateCachingStatus( aDataStoreURI,
-					ECachingComplete );
-
-			result = ETrue;
-			break;
-			}
-		}
-
-	CleanupStack::PopAndDestroy( &mailBoxes );
-	return result;
-	}
+        TInt trap_err; // for trap macro
+        if ( mruList )
+            {
+            // trap the error to enable returning status back
+            TRAP(trap_err, AddMruEmailsL( mruList, aDataStoreURI ) );  
+            delete mruList;
+            }
+        // update the caching status as Complete
+        iDataStoreObserver->UpdateCachingStatus( aDataStoreURI,
+                ECachingComplete );
+        if ( trap_err != KErrNone ) // check for error leave code 
+            {  
+            User::Leave(trap_err);       
+            }
+        result = ETrue;
+        }   // if (mailBox)
+    return result;
+    }
 
 // ----------------------------------------------------------------------------
 // CPsContactDataAdapter::IsDataStoresSupportedL
 // 
 // ----------------------------------------------------------------------------
 TBool CPsMruAdapter::IsDataStoresSupportedL( TDesC& aDataStoreURI )
-	{
-	for ( TInt i = 0; i < iSupportedUris.Count(); i++ )
-		{
-		if ( iSupportedUris[i]->Compare( aDataStoreURI ) == 0 )
-			return ETrue;
-		}
-
-	return EFalse;
-	}
+    {
+    FUNC_LOG;	
+    for ( TInt i = 0; i < iSupportedUris.Count(); i++ )
+        {
+        if ( iSupportedUris[i]->Compare( aDataStoreURI ) == 0 )
+            return ETrue;
+        }
+    return EFalse;
+    }
 
 // ----------------------------------------------------------------------------
 // CPsContactDataAdapter::GetSupportedDataFieldsL
 // 
 // ----------------------------------------------------------------------------
 void CPsMruAdapter::GetSupportedDataFieldsL( RArray<TInt>& aDataFields )
-	{
-	aDataFields.Append( R_VPBK_FIELD_TYPE_FIRSTNAME );
-	aDataFields.Append( R_VPBK_FIELD_TYPE_LASTNAME );
-	aDataFields.Append( R_VPBK_FIELD_TYPE_EMAILGEN );
-	}
+    {
+    FUNC_LOG;	
+    aDataFields.Append( R_VPBK_FIELD_TYPE_FIRSTNAME );
+    aDataFields.Append( R_VPBK_FIELD_TYPE_LASTNAME );
+    aDataFields.Append( R_VPBK_FIELD_TYPE_EMAILGEN );
+    }
 
 TBool CPsMruAdapter::GetMailboxIdentifierFromUri( TDesC& aUri, TFSMailMsgId& aId )
-	{
-	// Find first separator in reverse order
-	TInt lastSeparator = aUri.LocateReverseF( KDefaultMailBoxURISeparator );
-	if ( lastSeparator == KErrNotFound )
-		return EFalse;
+    {
+    FUNC_LOG;	
+    // Find first separator in reverse order
+    TInt lastSeparator = aUri.LocateReverseF( KDefaultMailBoxURISeparator );
+    if ( lastSeparator == KErrNotFound )
+        return EFalse;
 
-	// This is where plugin id string starts
-	TInt pluginIdStartPosition = KDefaultMailBoxURI().Length();
-	TInt mailboxIdStartPosition = lastSeparator + 1;
+    // This is where plugin id string starts
+    TInt pluginIdStartPosition = KDefaultMailBoxURI().Length();
+    TInt mailboxIdStartPosition = lastSeparator + 1;
 
-	// It cannot be further than mailbox id
-	if ( pluginIdStartPosition >= mailboxIdStartPosition )
-		return EFalse;
+    // It cannot be further than mailbox id
+    if ( pluginIdStartPosition >= mailboxIdStartPosition )
+        return EFalse;
 
-	// Use TLex to convert string to integer
-	TLex pluginIdConverter( aUri.Mid( pluginIdStartPosition,
-			mailboxIdStartPosition - pluginIdStartPosition - 1 ) );
+    // Use TLex to convert string to integer
+    TLex pluginIdConverter( aUri.Mid( pluginIdStartPosition,
+            mailboxIdStartPosition - pluginIdStartPosition - 1 ) );
 
-	// Use TLex to convert string to integer
-	TLex mailboxIdConverter( aUri.Mid( mailboxIdStartPosition, aUri.Length()
-			- mailboxIdStartPosition ) );
+    // Use TLex to convert string to integer
+    TLex mailboxIdConverter( aUri.Mid( mailboxIdStartPosition, aUri.Length()
+            - mailboxIdStartPosition ) );
 
-	TInt pluginId;
-	TInt mailboxId;
+    TInt pluginId;
+    TInt mailboxId;
 
-	// Get plugin ID
-	if ( pluginIdConverter.Val( pluginId ) != KErrNone)
-		return EFalse;
+    // Get plugin ID
+    if ( pluginIdConverter.Val( pluginId ) != KErrNone)
+        return EFalse;
 
-	// Get mailbox ID
-	if ( mailboxIdConverter.Val( mailboxId ) != KErrNone)
-		return EFalse;
+    // Get mailbox ID
+    if ( mailboxIdConverter.Val( mailboxId ) != KErrNone)
+        return EFalse;
 
-	// Store and we're ready
-	aId.SetPluginId( TUid::Uid( pluginId ) );
-	aId.SetId( mailboxId );
+    // Store and we're ready
+    aId.SetPluginId( TUid::Uid( pluginId ) );
+    aId.SetId( mailboxId );
 
-	return ETrue;
-	}
+    return ETrue;
+    }
 
 TBool CPsMruAdapter::GetUriFromMailboxIdentifier( TFSMailMsgId& aId, HBufC& aUri )
-	{
-	// Add the uri identifier
-	aUri.Des().Copy( KDefaultMailBoxURI );
-	// Add plugin ID
-	aUri.Des().AppendNum( aId.PluginId().iUid );
-	// Add separator
-	aUri.Des().Append( KDefaultMailBoxURISeparator );
-	// Add mailbox id
-	aUri.Des().AppendNum( aId.Id() );
-
-	return true;
-	}
+    {
+    FUNC_LOG;	
+    // Add the uri identifier
+    aUri.Des().Copy( KDefaultMailBoxURI );
+    // Add plugin ID
+    aUri.Des().AppendNum( aId.PluginId().iUid );
+    // Add separator
+    aUri.Des().Append( KDefaultMailBoxURISeparator );
+    // Add mailbox id
+    aUri.Des().AppendNum( aId.Id() );
+    
+    return true;
+    }
 
 void CPsMruAdapter::EventL( TFSMailEvent aEvent, TFSMailMsgId aMailbox,
-		TAny* /*aParam1*/, TAny* aParam2, TAny* /*aParam3*/ )
-	{
-	switch ( aEvent )
-		{
-		case TFSEventMailMoved:
-		case TFSEventMailCopied:		
-		case TFSEventNewMail:
-			{
-			// Check the new parent folder id for this message
-			// For all these events, param2 indicates the new parent folder
-			TFSMailMsgId* parentFolderId =
-					static_cast< TFSMailMsgId* >( aParam2 );
-			if ( parentFolderId )
-				{
-				// Get the parent folder object
-				CFSMailFolder* parentFolder = iMailClient->GetFolderByUidL(
-						aMailbox, *parentFolderId );
-				if ( parentFolder )
-					{
-					CleanupStack::PushL( parentFolder );
+        TAny* /*aParam1*/, TAny* aParam2, TAny* /*aParam3*/ )
+    {
+    FUNC_LOG;	
+    switch ( aEvent )
+        {
+        case TFSEventMailMoved:
+        case TFSEventMailCopied:		
+        case TFSEventNewMail:
+            {
+            // Check the new parent folder id for this message
+            // For all these events, param2 indicates the new parent folder
+            TFSMailMsgId* parentFolderId =
+            		static_cast< TFSMailMsgId* >( aParam2 );
+            if ( parentFolderId )
+                {
+                // Get the parent folder object
+                CFSMailFolder* parentFolder = iMailClient->GetFolderByUidL(
+                        aMailbox, *parentFolderId );
+                if ( parentFolder )
+                    {
+                    CleanupStack::PushL( parentFolder );
+                
+                    // If it's sent/outbox folder,
+                    // we'll consider that as a new message being sent
+                    // and therefore we'll update the MRU list here
+                    if ( ( parentFolder->GetFolderType() == EFSSentFolder ) || 
+                         ( parentFolder->GetFolderType() == EFSOutbox ) )
+                        {
+                        FillDataStoreL( aMailbox );
+                        }
+                    CleanupStack::PopAndDestroy( parentFolder );
+                    }
+                }
+            }
+            break;
+            
+        case TFSEventNewMailbox:
+            {
+            CFSMailBox *mailboxPtr(NULL);
+            // if mailbox is not ready it may leave here
+            TRAPD(trap_err, mailboxPtr = iMailClient->GetMailBoxByUidL( aMailbox ));
+            if ( trap_err != KErrNone )
+                {
+                mailboxPtr = NULL;
+                }
+            if (NULL == mailboxPtr) // mailbox still does not exist 
+                {
+                DeleayMailboxCreationEventL( aMailbox ); // start timer to postpone creation	
+                break;
+                }
+            mailboxPtr = NULL;
+            HBufC* identifier = HBufC::NewLC( KMaximumMailboxUriLength ); // new string ident
+            if ( GetUriFromMailboxIdentifier( aMailbox, *identifier ) )
+                {
+                // Add to supported Uri list
+                iSupportedUris.AppendL( identifier );
 
-					// If it's sent/outbox folder,
-					// we'll consider that as a new message being sent
-					// and therefore we'll update the MRU list here
-					if ( ( parentFolder->GetFolderType() == EFSSentFolder ) || 
-						 ( parentFolder->GetFolderType() == EFSOutbox ) )
-						{
-						FillDataStoreL( aMailbox );
-						}
-					CleanupStack::PopAndDestroy( parentFolder );
-					}
-				}
-			}
-			break;
-			
-		case TFSEventNewMailbox:
-			{
-			HBufC* identifier = HBufC::NewLC( KMaximumMailboxUriLength );
-			if ( GetUriFromMailboxIdentifier( aMailbox, *identifier ) )
-				{
-				// Add to supported Uri list
-				iSupportedUris.AppendL( identifier );
+                // Add new data store to cache
+                iStoreListObserver->AddDataStore( *identifier );
 
-				// Add new data store to cache
-				iStoreListObserver->AddDataStore( *identifier );
+                // Add all data to data store
+                // FillDataStoreL( *identifier );
+                // FillDataStoreL removed - called by AddDataStore through RequestForDataL callback
 
-				// Add all data to data store
-				FillDataStoreL( *identifier );
+                // In case there is a problem with transferring strings to  - should be obsolete 
+                AddMailboxObserverL( aMailbox ); // will be added by FillDataStoreL
 
-				CleanupStack::Pop( identifier );
-				}
-			else
-				{
-				CleanupStack::PopAndDestroy( identifier );
-				}
-			}
-			break;
+                CleanupStack::Pop( identifier );
+                }
+            else
+                {
+                CleanupStack::PopAndDestroy( identifier );
+                }
+            }
+            break;
 
-		case TFSEventMailboxDeleted:
-			{
-			HBufC* identifier = HBufC::NewL( KMaximumMailboxUriLength );
-			if ( GetUriFromMailboxIdentifier( aMailbox, *identifier ) )
-				{
-				RemoveMailboxObserver( aMailbox );
-				
-				// Remove data store from cache
-				iStoreListObserver->RemoveDataStore( *identifier );
+        case TFSEventMailboxDeleted:
+            {
+            HBufC* identifier = HBufC::NewL( KMaximumMailboxUriLength );
+            if ( GetUriFromMailboxIdentifier( aMailbox, *identifier ) )
+                {
+                RemoveMailboxObserver( aMailbox );
 
-				// Remove from supported Uri list
-				for ( TInt i = 0; i < iSupportedUris.Count(); i++ )
-					{
-					if ( iSupportedUris[i]->Compare( *identifier ) == 0 )
-						{
-						delete iSupportedUris[i];
-						iSupportedUris.Remove( i );
-						break;
-						}
-					}
-				}
-			delete identifier;
-			}
-			break;
-		}
-	}
+                // Remove data store from cache
+                iStoreListObserver->RemoveDataStore( *identifier );
+
+                // Remove from supported Uri list
+                for ( TInt i = 0; i < iSupportedUris.Count(); i++ )
+                    {
+                    if ( iSupportedUris[i]->Compare( *identifier ) == 0 )
+                        {
+                        delete iSupportedUris[i];
+                        iSupportedUris.Remove( i );
+                        break;
+                        }
+                    }
+                }
+            delete identifier;
+            }
+            break;
+        }
+    }
 
 TBool CPsMruAdapter::AddMailboxObserverL( TFSMailMsgId& aId )
-	{
-	for( TInt index = 0; index < iObservedMailboxes.Count(); index++ )
-		{
-		if( iObservedMailboxes[index] == aId )
-			{
-			// Already observing
-			return EFalse;
-			}
-		}
-	
-	iMailClient->SubscribeMailboxEventsL( aId, *this );
-	iObservedMailboxes.Append( aId );
-	return ETrue;
-	}
+    {
+    FUNC_LOG;	
+    for( TInt index = 0; index < iObservedMailboxes.Count(); index++ )
+        {
+        if( iObservedMailboxes[index] == aId )
+            {
+            // Already observing
+            return EFalse;
+            }
+        }
+    
+    iMailClient->SubscribeMailboxEventsL( aId, *this );
+    iObservedMailboxes.Append( aId );
+    return ETrue;
+    }
 
 TBool CPsMruAdapter::RemoveMailboxObserver( TFSMailMsgId& aId )
-	{
-	for( TInt index = 0; index < iObservedMailboxes.Count(); index++ )
-		{
-		if( iObservedMailboxes[index] == aId )
-			{
-			iMailClient->UnsubscribeMailboxEvents( aId, *this );
-			iObservedMailboxes.Remove( index );
-			return ETrue;
-			}
-		}
-	
-	return EFalse;
-	}
+    {
+    FUNC_LOG;	
+    for( TInt index = 0; index < iObservedMailboxes.Count(); index++ )
+        {
+        if( iObservedMailboxes[index] == aId )
+            {
+            iMailClient->UnsubscribeMailboxEvents( aId, *this );
+            iObservedMailboxes.Remove( index );
+            return ETrue;
+            }
+        }
+    
+    return EFalse;
+    }
 
 void CPsMruAdapter::RemoveAllMailboxObservers()
+    {
+    FUNC_LOG;	
+    for( TInt index = 0; index < iObservedMailboxes.Count(); index++ )
+        {
+        iMailClient->UnsubscribeMailboxEvents( iObservedMailboxes[index], *this );
+        }
+
+    iObservedMailboxes.Reset();	
+    }
+
+/**
+ * If problem with NewMailbox this function will be called 
+ * by CDelayMailboxCreationHelper timer to try it after some delay
+ */
+TBool CPsMruAdapter::DeleayedMailboxCreationEventL()
 	{
-	for( TInt index = 0; index < iObservedMailboxes.Count(); index++ )
-		{
-		iMailClient->UnsubscribeMailboxEvents( iObservedMailboxes[index], *this );
-		}
+    FUNC_LOG;
+    for ( int i = iDelayedCreatedMailboxes.Count()-1; i>=0; i-- )
+        {
+        CFSMailBox *mailboxPtr(NULL);
+        // if mailbox is not ready it may leave there
+        TRAPD(trap_err, mailboxPtr = iMailClient->GetMailBoxByUidL( iDelayedCreatedMailboxes[i] ));
+        if ( trap_err != KErrNone )
+            {
+            mailboxPtr = NULL;
+            }
+        if ( mailboxPtr ) 
+            {
+            HBufC* identifier = HBufC::NewLC( KMaximumMailboxUriLength ); // new string ident
+            if ( GetUriFromMailboxIdentifier( iDelayedCreatedMailboxes[i], *identifier ) )
+                {
 
-	iObservedMailboxes.Reset();	
-	}
+                // Add to supported Uri list
+                iSupportedUris.AppendL( identifier );
 
+                // Add new data store to cache
+                iStoreListObserver->AddDataStore( *identifier );
+
+                // Add all data to data store 
+                // removed because this is called by AddDataStore through RequestForDataL callback
+                // FillDataStoreL( *identifier );
+
+                // In case there is a problem with transferring strings to  - should be obsolete 
+                AddMailboxObserverL( iDelayedCreatedMailboxes[i] ); // will be added by FillDataStoreL
+
+                CleanupStack::Pop( identifier );
+                iDelayedCreatedMailboxes.Remove( i );    	
+                }
+            else
+                {
+                CleanupStack::PopAndDestroy( identifier );
+                }
+            } 
+        }
+    return ( 0 == iDelayedCreatedMailboxes.Count() );
+    }
+
+/**
+ * If problem with NewMailbox this function will use 
+ * CDelayMailboxCreationHelper to try it after some delay
+ */
+void CPsMruAdapter::DeleayMailboxCreationEventL( TFSMailMsgId &aMailbox )
+    {
+    FUNC_LOG;	
+    if ( NULL == iDelayMailboxCreationPtr )
+        {
+        iDelayMailboxCreationPtr = CDelayMailboxCreationHelper::NewL( this );
+        }
+    iDelayedCreatedMailboxes.Append( aMailbox );
+    iDelayMailboxCreationPtr->StartDelayedCall();
+    }
+
+// ---------------------------------------------------------------------------------------------------
+// class CDelayMailboxCreationHelper : public CTimer
+// ---------------------------------------------------------------------------------------------------
+
+// static construction leaving on the stack
+CDelayMailboxCreationHelper* CDelayMailboxCreationHelper::NewLC( CPsMruAdapter *aPsMruAdapterPtr )
+    {
+    FUNC_LOG;
+    CDelayMailboxCreationHelper* self = new ( ELeave ) CDelayMailboxCreationHelper( aPsMruAdapterPtr );
+    CleanupStack::PushL( self );
+    self->ConstructL();
+    return self;
+    }
+
+// static construction leaving
+CDelayMailboxCreationHelper* CDelayMailboxCreationHelper::NewL( CPsMruAdapter *aPsMruAdapterPtr )
+    {
+    FUNC_LOG;
+    CDelayMailboxCreationHelper* self = CDelayMailboxCreationHelper::NewLC( aPsMruAdapterPtr );
+    CleanupStack::Pop( self );
+    return self;
+    }
+
+// used by MruAdapter when delayed datasource adding is needed
+void CDelayMailboxCreationHelper::StartDelayedCall()	
+    {
+    FUNC_LOG;
+    if( IsActive() )  // don't call again in case the timer rq is pending
+        {
+        Cancel();
+        }
+    iNumberOfDelayedTrials = KNumberOfDelayedTrials;
+    After( KDelayToRunAddMailbox );  // CTimer::After contains SetActive() 
+    }
+
+// Limited unsuccesful call repeating
+void CDelayMailboxCreationHelper::RunL()
+    {
+    FUNC_LOG;
+    iNumberOfDelayedTrials --; 
+    User::LeaveIfError( iStatus.Int() );
+    TBool Handled = iPsMruAdapterPtr->DeleayedMailboxCreationEventL();
+    if (( Handled ) || ( 0 >= iNumberOfDelayedTrials ))
+        { // no need to call again
+        Cancel();
+        }
+    else
+        { // wait once more
+//      SetActive is called by After
+        After( KDelayToRunAddMailbox ); 
+        }
+    }
+
+// when leave from RunL, if err handled return KErrNone
+TInt CDelayMailboxCreationHelper::RunError( TInt aError )
+    {
+    FUNC_LOG;
+    if ( KErrNone != aError )
+        {
+        Cancel(); // stop pending requiest
+        }
+    return KErrNone; //not desired to panic the thread in case of error returned
+    }
+
+// 2nd phase of construction
+void CDelayMailboxCreationHelper::ConstructL()
+    {
+    FUNC_LOG;
+    CTimer::ConstructL();
+    CActiveScheduler::Add( this );
+    }
+
+// c-tor   
+CDelayMailboxCreationHelper::CDelayMailboxCreationHelper(
+    CPsMruAdapter *aPsMruAdapterPtr )
+    : CTimer( EPriorityStandard )  //possible also EPriorityLow, EPriorityIdle
+    , iPsMruAdapterPtr ( aPsMruAdapterPtr )  // not ownink ptr
+    , iNumberOfDelayedTrials ( KNumberOfDelayedTrials ) //limited repeating num.
+    {
+    FUNC_LOG;
+    }
+
+// d-tor
+CDelayMailboxCreationHelper::~CDelayMailboxCreationHelper()
+    {
+    FUNC_LOG;
+    iPsMruAdapterPtr = NULL; // not owning interface ptr
+    Cancel();  // stop pending request
+    Deque();   // remove from CActiveScheduler
+    }
 
 // End of file
-
-

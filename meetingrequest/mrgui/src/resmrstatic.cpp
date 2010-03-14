@@ -21,8 +21,8 @@
 
 #include "cesmrcontactmenuhandler.h"
 #include "cesmrcontactmanagerhandler.h"
-#include "CFSMailClient.h"
-#include "CFSMailBox.h"
+#include "cfsmailclient.h"
+#include "cfsmailbox.h"
 // <cmail> Removed profiling </cmail>
 
 /**

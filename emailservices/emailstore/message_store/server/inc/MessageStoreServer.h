@@ -26,7 +26,7 @@
 
 #include <e32base.h>
 //<cmail>
-#include "DebugLogMacros.h"
+#include "debuglogmacros.h"
 #include "ImsPointsecObserver.h"
 #include "ImsPointsecMonitor.h"
 #include "StoreDriveMonitor.h"

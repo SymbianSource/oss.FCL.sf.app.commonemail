@@ -25,7 +25,7 @@
 
 #include <e32base.h>
 //<cmail>
-#include "DebugLogMacros.h"
+#include "debuglogmacros.h"
 //</cmail>
 
 #include "ContainerStore.h"

@@ -17,7 +17,7 @@
 */
 
 
-#include <AknMessageQueryDialog.h>
+#include <aknmessagequerydialog.h>
 
 #include "emailtrace.h"
 #include "ipsplgheaders.h"
@@ -64,18 +64,18 @@ CIpsPlgConnectAndRefreshFolderList::CIpsPlgConnectAndRefreshFolderList(
     TFSMailMsgId& aMailboxId, 
     MFSMailRequestObserver& aFSObserver,
     CIpsPlgTimerOperation& aTimer )
-	:
-	CIpsPlgOnlineOperation(
-	        aSession,
-	        aPriority,
-	        aObserverRequestStatus,
-	        aTimer,
-	        aMailboxId,
-	        aFSObserver,
-	        0, // FSRequestId
-	        EFalse), // SignallingAllowed
-	iState( EIdle ),
-	iMailboxId( aMailboxId ),
+    :
+    CIpsPlgOnlineOperation(
+            aSession,
+            aPriority,
+            aObserverRequestStatus,
+            aTimer,
+            aMailboxId,
+            aFSObserver,
+            0, // FSRequestId
+            EFalse), // SignallingAllowed
+    iState( EIdle ),
+    iMailboxId( aMailboxId ),
     iSession( aSession ),
     iService( aService ),
     iOperation( NULL ),
@@ -197,50 +197,50 @@ void CIpsPlgConnectAndRefreshFolderList::DoRunL()
             delete iOperation;
             iOperation = NULL;
             InvokeClientMtmAsyncFunctionL( 
-							KIMAP4MTMConnect, 
-							*iMsvEntry,
-            	            iService,
-            	            dummyParam );
+                            KIMAP4MTMConnect, 
+                            *iMsvEntry,
+                            iService,
+                            dummyParam );
             iState = EConnecting;
             SetActive();
             break;
-	    case EConnecting:
-	        {
-	        //  We have successfully completed connecting
-	        
-	        delete iOperation;
-	        iOperation = NULL;
-	        InvokeClientMtmAsyncFunctionL( 
-	                    KIMAP4MTMSyncTree, 
-	                    *iMsvEntry,
-	                    iService,
-	                    dummyParam ); 
-	        iState = ERefreshing;
-	        SetActive();
-	        }
-	        break;
-	    case ERefreshing:
-	        //  We have successfully completed refreshing the folder list
-	        delete iOperation;
-	        iOperation = NULL;
-	        iOperation = CIpsPlgDisconnectOp::NewL( 
-	                        iSession, 
-	                        iStatus, 
-	                        iService, 
-	                        *iTimer,
-	                        iMailboxId, 
-	                        *observer, 
-	                        NULL );
-	        iState = EDisconnecting;
-	        SetActive();
-	        break;
-	    case EDisconnecting:
-	        iState = ECompleted;
-	        CompleteObserver();
-	        break;
-	    default:
-	        User::Panic( KIpsPlgPanicCategory, EIpsPlgNoParameters );
-	    	break;
+        case EConnecting:
+            {
+            //  We have successfully completed connecting
+            
+            delete iOperation;
+            iOperation = NULL;
+            InvokeClientMtmAsyncFunctionL( 
+                        KIMAP4MTMSyncTree, 
+                        *iMsvEntry,
+                        iService,
+                        dummyParam ); 
+            iState = ERefreshing;
+            SetActive();
+            }
+            break;
+        case ERefreshing:
+            //  We have successfully completed refreshing the folder list
+            delete iOperation;
+            iOperation = NULL;
+            iOperation = CIpsPlgDisconnectOp::NewL( 
+                            iSession, 
+                            iStatus, 
+                            iService, 
+                            *iTimer,
+                            iMailboxId, 
+                            *observer, 
+                            NULL );
+            iState = EDisconnecting;
+            SetActive();
+            break;
+        case EDisconnecting:
+            iState = ECompleted;
+            CompleteObserver();
+            break;
+        default:
+            User::Panic( KIpsPlgPanicCategory, EIpsPlgNoParameters );
+            break;
         }
     }
 

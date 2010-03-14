@@ -15,7 +15,7 @@
 *
 */
 
-#include "MsgStoreSessionContext.h"
+#include "msgstoresessioncontext.h"
 
 // ==========================================================================
 // FUNCTION: Constructor

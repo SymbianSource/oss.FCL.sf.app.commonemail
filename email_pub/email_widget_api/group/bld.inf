@@ -1,0 +1,34 @@
+/*
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Build information for widget API for 3rd party email clients
+*
+*/
+
+
+#include <platform_paths.hrh>
+
+PRJ_PLATFORMS
+DEFAULT
+
+PRJ_EXPORTS
+../inc/emailobserverinterface.hrh   APP_LAYER_PUBLIC_EXPORT_PATH(emailobserverinterface.hrh)
+../inc/emailobserverplugin.h        APP_LAYER_PUBLIC_EXPORT_PATH(emailobserverplugin.h)
+../inc/emailobserverplugin.inl      APP_LAYER_PUBLIC_EXPORT_PATH(emailobserverplugin.inl)
+../inc/memailobserverlistener.h     APP_LAYER_PUBLIC_EXPORT_PATH(memailobserverlistener.h)
+../inc/memaildata.h     	        APP_LAYER_PUBLIC_EXPORT_PATH(memaildata.h)
+../inc/memailmailboxdata.h          APP_LAYER_PUBLIC_EXPORT_PATH(memailmailboxdata.h)
+../inc/memailmessagedata.h          APP_LAYER_PUBLIC_EXPORT_PATH(memailmessagedata.h)
+../inc/memailapplaunchdata.h        APP_LAYER_PUBLIC_EXPORT_PATH(memailapplaunchdata.h)
+
+// End of File

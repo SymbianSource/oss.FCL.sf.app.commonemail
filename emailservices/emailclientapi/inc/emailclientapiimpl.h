@@ -22,7 +22,6 @@
 #include <ecom/implementationinformation.h> 
 #include "emailapiutils.h"
 #include "cfsmailcommon.h"
-//#include "emailinternalclientapi.h"
 #include "mfsmaileventobserver.h"    
 #include <memailclientapi.h>
 #include "emailclientpluginmanager.h"

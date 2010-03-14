@@ -50,10 +50,10 @@
 #include "fsseparatorvisualizer.h"
 
 // FREESTYLE EMAIL FRAMEWORK INCLUDES
-#include "CFSMailCommon.h"
-#include "CFSMailClient.h"
-#include "CFSMailBox.h"
-#include "CFSMailFolder.h"
+#include "cfsmailcommon.h"
+#include "cfsmailclient.h"
+#include "cfsmailbox.h"
+#include "cfsmailfolder.h"
 #include <csxhelp/cmail.hlp.hrh>
 #include <featmgr.h>
 
@@ -72,7 +72,7 @@
 #include "FreestyleEmailUiUtilities.h"
 #include "FreestyleEmailUiLayoutData.h"
 #include "FreestyleEmailUiShortcutBinding.h"
-#include "ESMailSettingsPlugin.h"
+#include "esmailsettingsplugin.h"
 #include "FreestyleEmailUiStatusIndicator.h"
 #include <alf/alfborderbrush.h>
 

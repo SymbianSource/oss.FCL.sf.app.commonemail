@@ -28,7 +28,7 @@
 #include <f32file.h>
 #include <e32cmn.h>
 //<cmail>
-#include "DebugLogMacros.h"
+#include "debuglogmacros.h"
 //</cmail>
 #include "MessageStoreClientServer.h"
 #include "EncryptableTable.h"

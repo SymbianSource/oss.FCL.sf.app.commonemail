@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<api id="2a622bfae811b1680aa73cb3f15ff4b4" dataversion="2.0">
+  <name>Email widget api</name>
+  <description>API for 3rd party email clients to provide data for email widget</description>
+  <type>c++</type>
+  <collection>email_pub</collection>
+  <libs/>
+  <release category="public" sinceversion="3"/>
+  <attributes>
+    <htmldocprovided>no</htmldocprovided>
+    <adaptation>no</adaptation>
+  </attributes>
+</api>

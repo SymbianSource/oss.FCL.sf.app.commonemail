@@ -23,7 +23,7 @@
 
 #include <bautils.h>
 
-#include "MsgStoreTypes.h"
+#include "msgstoretypes.h"
 #include "ContainerStore.h"
 #include "ContainerStoreContainersTable.h"
 #include "ContainerStoreContentManager.h"
@@ -40,7 +40,7 @@
 #include "ContainerStoreSearchResultTable.h"
 #include "MessageStoreEncryptHandler.h"
 #include "ContainerStoreMRUAddressTable.h"
-#include "MsgStorePropertyKeys.h"
+#include "msgstorepropertykeys.h"
 
 // =========
 // CONSTANTS

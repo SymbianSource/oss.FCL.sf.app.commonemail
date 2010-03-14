@@ -16,9 +16,9 @@
 */
 
 
-#include "CFSMailRequestHandler.h"
+#include "cfsmailrequesthandler.h"
 #include "emailtrace.h"
-#include "CFSMailMessageBase.h"
+#include "cfsmailmessagebase.h"
 #include "cmailmessageext.h"
 
 // ================= MEMBER FUNCTIONS ==========================================

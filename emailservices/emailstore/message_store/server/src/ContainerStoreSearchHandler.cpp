@@ -29,7 +29,7 @@
 #include "MsgStoreSortResultRowSet.h"
 #include "PropertiesSerializer.h"
 //<cmail>
-#include "MsgStorePropertyKeys.h"
+#include "msgstorepropertykeys.h"
 //</cmail>
 
 // =========

@@ -20,8 +20,8 @@
 
 // SYSTEM INCLUDES
 //<cmail>
-#include "CFSMailCommon.h"
-#include "ESMailSettingsPlugin.h"
+#include "cfsmailcommon.h"
+#include "esmailsettingsplugin.h"
 //</cmail>
 
 

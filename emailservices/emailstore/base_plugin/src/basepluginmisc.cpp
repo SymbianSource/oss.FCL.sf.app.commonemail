@@ -18,13 +18,13 @@
 
 
 //<cmail>
-#include "MsgStore.h"
-#include "MsgStoreSearchCriteria.h"
-#include "MFSMailBoxSearchObserver.h"
+#include "msgstore.h"
+#include "msgstoresearchcriteria.h"
+#include "mfsmailboxsearchobserver.h"
 //</cmail>
 
-#include "BasePlugin.h"
-#include "BasePluginPanic.h"
+#include "baseplugin.h"
+#include "basepluginpanic.h"
 #include "baseplugincommonutils.h"
 #include "baseplugindelayedopsprivate.h"
 

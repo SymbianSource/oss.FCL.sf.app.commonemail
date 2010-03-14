@@ -19,7 +19,7 @@
 #define __CFSMAILMESSAGE_H
 
 //<cmail>
-#include "CFSMailMessagePart.h"
+#include "cfsmailmessagepart.h"
 //</cmail>
 
 /**

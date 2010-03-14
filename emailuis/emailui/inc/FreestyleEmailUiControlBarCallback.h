@@ -21,7 +21,7 @@
 #define M_FREESTYLEEMAILUICONTROLBARCALLBACK_H
 
 //<cmail>
-#include "CFSMailCommon.h"
+#include "cfsmailcommon.h"
 //</cmail>
 
 // FORWARD DECLARATIONS

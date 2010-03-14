@@ -31,6 +31,7 @@ _LIT( KURLTypeSeparator, "/" );
 _LIT( KURLHttpPrefix, "http://" );
 _LIT( KURLHttpsPrefix, "https://" );
 _LIT( KURLMailToPrefix, "mailto:" );
+_LIT( KURLTypeSubject, "subject" );
 
 class CFreestyleMessageHeaderURL : public CBase
     {

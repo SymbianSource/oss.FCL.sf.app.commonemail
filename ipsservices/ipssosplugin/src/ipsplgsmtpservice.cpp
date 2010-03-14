@@ -196,7 +196,11 @@ void CIpsPlgSmtpService::StoreMessageL(
     header->CcRecipients().Reset();
     for( TInt i = 0; i < ccArray.Count(); i++ )
         {
-        header->CcRecipients().AppendL( ccArray[i]->GetEmailAddress() ); // copy created
+        TPtrC displayName = ccArray[i]->GetDisplayName();
+        TPtrC emailName = ccArray[i]->GetEmailAddress();
+        HBufC* fullName = CreateDisplayStringLC( displayName, emailName );  // << fullName
+        header->CcRecipients().AppendL( *fullName );
+        CleanupStack::PopAndDestroy( fullName );    // >>> fullName
         }
     
     // BCC field
@@ -205,7 +209,11 @@ void CIpsPlgSmtpService::StoreMessageL(
     header->BccRecipients().Reset();
     for( TInt i = 0; i < bccArray.Count(); i++ )
         {
-        header->BccRecipients().AppendL( bccArray[i]->GetEmailAddress() ); // copy created
+        TPtrC displayName = bccArray[i]->GetDisplayName();
+        TPtrC emailName = bccArray[i]->GetEmailAddress();
+        HBufC* fullName = CreateDisplayStringLC( displayName, emailName );  // << fullName
+        header->BccRecipients().AppendL( *fullName ); // copy created
+        CleanupStack::PopAndDestroy( fullName );    // >>> fullName
         }
     
     // Subject, check null pointer

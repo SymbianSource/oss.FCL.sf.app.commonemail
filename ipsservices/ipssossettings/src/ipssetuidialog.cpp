@@ -35,7 +35,7 @@
 //</cmail>
 
 //<cmail>
-#include "CFSMailCommon.h"
+#include "cfsmailcommon.h"
 //</cmail>
 
 #include "ipssetui.h"

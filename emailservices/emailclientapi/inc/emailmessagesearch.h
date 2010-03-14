@@ -22,8 +22,8 @@
 #include <memailmessagesearch.h>
 #include <emailsorting.h>
 
-#include "CFSMailClient.h"
-#include "MFSMailBoxSearchObserver.h"
+#include "cfsmailclient.h"
+#include "mfsmailboxsearchobserver.h"
 #include "emailapiutils.h"
 
 using namespace EmailInterface;

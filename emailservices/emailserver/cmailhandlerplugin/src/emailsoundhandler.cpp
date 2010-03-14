@@ -229,7 +229,7 @@ void CFSMailSoundHandler::RecreateAudioPlayerL()
     TBool vibraEnabled = profile->ProfileTones().ToneSettings().iEmailVibratingAlert;
 
 
-    TInt preference = KAudioPrefNewSMS;
+    TInt preference = KAudioPrefNewSpecialMessage;
     if ( !vibraEnabled )
         {
         preference = EMdaPriorityPreferenceTimeAndQuality;

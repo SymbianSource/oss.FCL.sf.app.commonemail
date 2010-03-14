@@ -27,10 +27,10 @@
 #include <e32base.h>
 #include <f32file.h>
 //<cmail>
-#include "MsgStoreTypes.h"
-#include "DebugLogMacros.h"
+#include "msgstoretypes.h"
+#include "debuglogmacros.h"
 #include "MessageStoreClientServer.h"
-#include "MsgStoreSortResultIterator.h"
+#include "msgstoresortresultiterator.h"
 //</cmail>
 // ====================
 // FORWARD DECLARATIONS

@@ -19,7 +19,7 @@
 #ifndef MESMRMEETINGREQUESTENTRY_H
 #define MESMRMEETINGREQUESTENTRY_H
 
-#include "CFSMailCommon.h"
+#include "cfsmailcommon.h"
 #include "mesmrcalentry.h"
 #include "esmrdef.h"
 

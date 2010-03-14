@@ -17,11 +17,11 @@
 
 
 #include "emailtrace.h"
-#include "CFSFWImplementation.h"
+#include "cfsfwimplementation.h"
 //<cmail>
-#include "CFSMailPlugin.h"
+#include "cfsmailplugin.h"
 //</cmail>
-#include "CFSMailPluginManager.h"
+#include "cfsmailpluginmanager.h"
 
 // ================= MEMBER FUNCTIONS ==========================================
 // -----------------------------------------------------------------------------

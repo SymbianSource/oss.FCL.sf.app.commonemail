@@ -188,6 +188,7 @@ TFSProgress CIpsPlgImap4ConnectOp::GetFSProgressL() const
     switch( iState )
         {
         case EStateQueryingDetails:
+        case EStateQueryingDetailsBusy:
             result.iProgressStatus = TFSProgress::EFSStatus_Authenticating;
             break;
         case EStateStartConnect:
@@ -268,33 +269,22 @@ void CIpsPlgImap4ConnectOp::DoRunL()
     switch( iState )
         {
         case EStateQueryingDetails:
-            
-            if ( KErrNone != err )
-                {
-                // user might be cancelled query
-                // or it IS EMPTY
-                iError = err;
-                iState = EStateIdle;
-                }
-            else
-                {
-                // Retry connect.
-                DoConnectOpL();
-                }
+            // querying pass finished - try to reconnect
+            DoConnectOpL();
             break;
         case EStateStartConnect:
         	StartL();
         	break;
         case EStateConnectAndSync:
             // Connection completed
-                
-            if( err == KErrImapBadLogon )
+
+            if ( err == KErrImapBadLogon )
                 {
-                // Login details are wrong.
-                QueryUserPwdL();
-                iState = EStateQueryingDetails;
-                
-                err = KErrNone;
+                // Login details are wrong. Trying to ask for password
+                if ( QueryUserPassL() )
+                    {
+                    err = KErrNone;
+                    }
                 }
             else if ( err == KErrNone )
                 {
@@ -520,12 +510,25 @@ void CIpsPlgImap4ConnectOp::StartL()
 // CIpsPlgImap4ConnectOp::QueryUserPwdL()
 // ----------------------------------------------------------------------------
 // 
-void CIpsPlgImap4ConnectOp::QueryUserPwdL()
+TBool CIpsPlgImap4ConnectOp::QueryUserPassL()
     {
     if ( iEventHandler )
         {
-        iEventHandler->QueryUsrPassL( iService, this );
+        // ask for credentials for imap account and wait for callback
+        if ( iEventHandler->QueryUsrPassL( iService, this ) )
+            {
+            iState = EStateQueryingDetails;
+            }
+        else
+            {
+            // another operation is waiting for password
+            iState = EStateQueryingDetailsBusy;
+            }
+
+        return ETrue;
         }
+
+    return EFalse;
     }
 
     
@@ -580,8 +583,10 @@ void CIpsPlgImap4ConnectOp::SignalSyncCompleted( TInt aError )
     FUNC_LOG;
     if ( iEventHandler && aError == KErrImapBadLogon )
         {
+        /*
         iEventHandler->SetNewPropertyEvent( 
                 iService, KIpsSosEmailSyncCompleted, aError );
+        */
         iIsSyncStartedSignaled = EFalse;
         }
     }
@@ -592,14 +597,29 @@ void CIpsPlgImap4ConnectOp::SignalSyncCompleted( TInt aError )
 void CIpsPlgImap4ConnectOp::CredientialsSetL( TInt aEvent )
     {
     FUNC_LOG;
-    if ( aEvent == EIPSSosCredientialsCancelled )
+
+    if ( iState == EStateQueryingDetails )
         {
-        CompleteObserver( KErrCancel );
+        // response for our operation`s query
+        if ( aEvent == EIPSSosCredientialsCancelled )
+            {
+            // user canceled operation
+            CompleteObserver( KErrCancel );
+            }
+
+        // password has been set, continue with operation
+        SetActive();
+        CompleteThis();
         }
-    //password has been set, continue with operation
-    
-    SetActive();
-    CompleteThis();
+    else if ( iState == EStateQueryingDetailsBusy )
+        {
+        // response for other operation`s query
+        // we could try to ask for password now,
+        // but decision was made to cancel operation
+        CompleteObserver( KErrCancel );
+        SetActive();
+        CompleteThis();
+        }
     }
 // End of File
 

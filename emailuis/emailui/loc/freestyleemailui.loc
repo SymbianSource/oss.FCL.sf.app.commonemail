@@ -955,7 +955,7 @@ CHARACTER_SET UTF8
 // l:popup_note_window/opt2
 // r:TB9.1
 //
-#define qtn_fse_confirm_note_sending_queued	"E-mail queued for sending"
+#define qtn_fse_confirm_note_sending_queued	"Sending mail"
 
 // d:Information note. Informs that e-mail is in Outbox until status is online.
 // l:popup_note_window/opt2
@@ -1599,6 +1599,12 @@ CHARACTER_SET UTF8
 // r:TB9.1
 //
 #define qtn_fse_folder_list_deleted_items	"Deleted items"
+
+// d:Folder list item with unread count
+// l:list_single_large_graphic_pane_t1
+// r:5250+
+//
+#define qtn_fse_folder_list_folder_with_unread	"%0U (%1N)"
 
 // d:Options menu item in folder list
 // l:list_single_pane_t1_cp2

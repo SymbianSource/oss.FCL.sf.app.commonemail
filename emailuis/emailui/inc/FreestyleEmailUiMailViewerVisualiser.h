@@ -30,7 +30,7 @@
 #include <AknProgressDialog.h>
 //</cmail>
 //<cmail>
-#include "MFSMailRequestObserver.h"
+#include "mfsmailrequestobserver.h"
 #include "mesmricalviewercallback.h"
 #include "mesmricalviewerobserver.h"
 //</cmail>

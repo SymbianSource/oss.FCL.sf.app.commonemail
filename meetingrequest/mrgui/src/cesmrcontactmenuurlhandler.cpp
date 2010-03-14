@@ -32,12 +32,12 @@
 #include <coemain.h>
 #include <gulicon.h>
 #include <AknsUtils.h>
-#include <FavouritesDb.h>
+#include <favouritesdb.h>
 #include <apgtask.h>
 #include <apgcli.h>
 #include <AknQueryDialog.h>
 #include <aknnotewrappers.h>
-#include <FeatMgr.h>
+#include <featmgr.h>
 // for intranet application opening
 #include <AiwServiceHandler.h>
 #include <data_caging_path_literals.hrh>
@@ -49,7 +49,7 @@
 
 /// Unnamed namespace for local definitions
 namespace // codescanner::namespace
-	{
+    {
 // URL actionmenu uids
 const TUid KUidOpenInBrowser =
     {
@@ -87,7 +87,7 @@ _LIT( KBrowserProtocol, "4 " );
 // ---------------------------------------------------------------------------
 //
 CESMRContactMenuUrlHandler::CESMRContactMenuUrlHandler( 
-		CFscContactActionMenu& aContactActionMenu ) :
+        CFscContactActionMenu& aContactActionMenu ) :
     iContactActionMenu( aContactActionMenu )
     {
     FUNC_LOG;
@@ -103,7 +103,7 @@ CESMRContactMenuUrlHandler* CESMRContactMenuUrlHandler::NewL(
     {
     FUNC_LOG;
     CESMRContactMenuUrlHandler* self = 
-		new (ELeave) CESMRContactMenuUrlHandler( aContactActionMenu );
+        new (ELeave) CESMRContactMenuUrlHandler( aContactActionMenu );
     return self;
     }
 
@@ -147,8 +147,8 @@ void CESMRContactMenuUrlHandler::SetUrlL( const TDesC& aUrl )
 // ---------------------------------------------------------------------------
 //
 void CESMRContactMenuUrlHandler::CreateMenuItemL( 
-		TInt aResourceId, 
-		TUid aCommandUid )
+        TInt aResourceId, 
+        TUid aCommandUid )
     {
     FUNC_LOG;
     CGulIcon* itemIcon = CreateIconL(aCommandUid);
@@ -159,8 +159,8 @@ void CESMRContactMenuUrlHandler::CreateMenuItemL(
 
     HBufC* text = CCoeEnv::Static()->AllocReadResourceLC( aResourceId );
     CFscContactActionMenuItem* newItem = 
-		iContactActionMenu.Model().NewMenuItemL( *text,
-												 itemIcon,
+        iContactActionMenu.Model().NewMenuItemL( *text,
+                                                 itemIcon,
                                                  1,
                                                  EFalse,
                                                  aCommandUid );
@@ -226,7 +226,7 @@ TBool CESMRContactMenuUrlHandler::OptionsMenuAvailable( )
 // ---------------------------------------------------------------------------
 //
 void CESMRContactMenuUrlHandler::InitOptionsMenuL( 
-		CEikMenuPane* aActionMenuPane )
+        CEikMenuPane* aActionMenuPane )
     {
     FUNC_LOG;
     CEikMenuPaneItem::SData data;
@@ -239,7 +239,7 @@ void CESMRContactMenuUrlHandler::InitOptionsMenuL(
     data.iCommandId = command;
     command++;//dynamic command ids
     CCoeEnv::Static()->ReadResourceL( 
-    		data.iText, R_QTN_MEET_REQ_VIEWER_OPTIONS_OPEN_IN_WEB );
+            data.iText, R_QTN_MEET_REQ_VIEWER_OPTIONS_OPEN_IN_WEB );
     aActionMenuPane->AddMenuItemL( data );
 
     if(IsServiceAvailableL(R_INTRANET_AIW_INTEREST) &&
@@ -248,13 +248,13 @@ void CESMRContactMenuUrlHandler::InitOptionsMenuL(
         data.iCommandId = command;
         command++;//dynamic command ids
         CCoeEnv::Static()->ReadResourceL( 
-        		data.iText, R_QTN_MEET_REQ_FSOPTIONS_OPEN_IN_INTRA );
+                data.iText, R_QTN_MEET_REQ_FSOPTIONS_OPEN_IN_INTRA );
         aActionMenuPane->AddMenuItemL( data );
         }
 
     data.iCommandId = command;
     CCoeEnv::Static()->ReadResourceL( 
-    		data.iText, R_QTN_MEET_REQ_VIEWER_OPTIONS_BOOKMARK );
+            data.iText, R_QTN_MEET_REQ_VIEWER_OPTIONS_BOOKMARK );
     aActionMenuPane->AddMenuItemL( data );
     }
 
@@ -326,13 +326,13 @@ void CESMRContactMenuUrlHandler::ShowActionMenuL( )
 
     //fill list
     CreateMenuItemL( R_QTN_MEET_REQ_VIEWER_OPTIONS_OPEN_IN_WEB, 
-					 KUidOpenInBrowser);
+                     KUidOpenInBrowser);
 
     if(IsServiceAvailableL(R_INTRANET_AIW_INTEREST) &&
        FeatureManager::FeatureSupported( KFeatureIdFfIntranetBrowsing ) )
         {
         CreateMenuItemL( R_QTN_MEET_REQ_FSOPTIONS_OPEN_IN_INTRA, 
-						 KUidOpenInIntranet);
+                         KUidOpenInIntranet);
         }
 
     CreateMenuItemL(R_QTN_MEET_REQ_VIEWER_OPTIONS_BOOKMARK, KUidBookmark);
@@ -375,7 +375,7 @@ void CESMRContactMenuUrlHandler::OpenUrlInBrowserL( )
         User::LeaveIfError( appArcSession.Connect() ); 
         TThreadId id;
         User::LeaveIfError( appArcSession.StartDocument ( 
-        		*param, KUidBrowser, id ) );
+                *param, KUidBrowser, id ) );
         CleanupStack::PopAndDestroy( &appArcSession );
         }
     CleanupStack::PopAndDestroy( param );
@@ -396,9 +396,9 @@ void CESMRContactMenuUrlHandler::OpenUrlInIntranetL( )
     inParamList.AppendL( inParam );
 
     ServiceHandlerL().ExecuteServiceCmdL( 
-							KAiwCmdView, 
-							inParamList, 
-							ServiceHandlerL().OutParamListL() );
+                            KAiwCmdView, 
+                            inParamList, 
+                            ServiceHandlerL().OutParamListL() );
     CleanupStack::PopAndDestroy( eightBitUrl );
     }
 
@@ -416,7 +416,7 @@ void CESMRContactMenuUrlHandler::BookmarkUrlL( )
 
     // Read default name from resources
     HBufC* defaultName =CCoeEnv::Static()->AllocReadResourceLC ( 
-									R_QTN_CALENDAR_DEFAULT_BOOKMARK );
+                                    R_QTN_CALENDAR_DEFAULT_BOOKMARK );
 
     TBuf<KMaxBookmarkNameLength> retName;
     retName.Copy( defaultName->Des() );
@@ -430,31 +430,31 @@ void CESMRContactMenuUrlHandler::BookmarkUrlL( )
         CleanupStack::PopAndDestroy ( 2, item ); // item, defaultName
         }
     else
-    	{
-    	item->SetNameL( retName );
-		item->SetUrlL( *iUrl );
+        {
+        item->SetNameL( retName );
+        item->SetUrlL( *iUrl );
 
-		RFavouritesSession sess; // codescanner::resourcenotoncleanupstack
-		RFavouritesDb db; // codescanner::resourcenotoncleanupstack
+        RFavouritesSession sess; // codescanner::resourcenotoncleanupstack
+        RFavouritesDb db; // codescanner::resourcenotoncleanupstack
 
-		User::LeaveIfError( sess.Connect() );
-		CleanupClosePushL<RFavouritesSession> ( sess );
-		User::LeaveIfError( db.Open( sess, KBrowserBookmarks ) );
-		CleanupClosePushL<RFavouritesDb> ( db );
+        User::LeaveIfError( sess.Connect() );
+        CleanupClosePushL<RFavouritesSession> ( sess );
+        User::LeaveIfError( db.Open( sess, KBrowserBookmarks ) );
+        CleanupClosePushL<RFavouritesDb> ( db );
 
-		// add item
-		db.Add( *item, ETrue );
-		// Close the database.
-		db.Close();
+        // add item
+        db.Add( *item, ETrue );
+        // Close the database.
+        db.Close();
 
-		HBufC * msgBuffer = CCoeEnv::Static()->AllocReadResourceLC( 
-										R_QTN_CALENDAR_BOOKMARK_SAVED );
-		CAknConfirmationNote* note = new(ELeave)CAknConfirmationNote( ETrue );
-		note->ExecuteLD ( *msgBuffer );
+        HBufC * msgBuffer = CCoeEnv::Static()->AllocReadResourceLC( 
+                                        R_QTN_CALENDAR_BOOKMARK_SAVED );
+        CAknConfirmationNote* note = new(ELeave)CAknConfirmationNote( ETrue );
+        note->ExecuteLD ( *msgBuffer );
 
-		// item, db, sess, defaultName, msgBuffer
-		CleanupStack::PopAndDestroy ( 5, item ); // codescanner::magicnumbers
-    	}
+        // item, db, sess, defaultName, msgBuffer
+        CleanupStack::PopAndDestroy ( 5, item ); // codescanner::magicnumbers
+        }
     }
 
 // ---------------------------------------------------------------------------

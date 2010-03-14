@@ -256,4 +256,4 @@
 
 ; emailservices / emailservermonitor
 "\epoc32\release\armv5\urel\emailservermonitor.exe"              - "c:\sys\bin\emailservermonitor.exe"
-"\epoc32\release\armv5\urel\fsmailserverautostart.exe"           - "c:\sys\bin\fsmailserverautostart.exe", FILERUN, RUNBOTH
+"\epoc32\release\armv5\urel\fsmailserverautostart.exe"           - "c:\sys\bin\fsmailserverautostart.exe", FILERUN, RUNINSTALL

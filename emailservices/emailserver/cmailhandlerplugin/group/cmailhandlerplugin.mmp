@@ -37,8 +37,11 @@ SOURCE                          cmailcpsif.cpp
 SOURCE                          cmailcpssettings.cpp
 SOURCE                          cmailmessagedetails.cpp
 SOURCE                          cmailmailboxdetails.cpp
+SOURCE                          cmailcpsutils.cpp
 #endif // FF_CMAIL_INTEGRATION
 SOURCE                          cmaildriveobserver.cpp
+SOURCE                          cmailexternalaccount.cpp
+SOURCE                          cmailpluginproxy.cpp
 
 //From server
 SOURCE                          fsmailledhandler.cpp

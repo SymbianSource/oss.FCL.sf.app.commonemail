@@ -26,10 +26,10 @@
 #include <FreestyleEmailUi.rsg>
 
 //<cmail>
-#include "CFSMailMessage.h"
-#include "CFSMailClient.h"
-#include "CFSMailFolder.h"
-#include "CFSMailBox.h"
+#include "cfsmailmessage.h"
+#include "cfsmailclient.h"
+#include "cfsmailfolder.h"
+#include "cfsmailbox.h"
 #include <alf/alfframebrush.h>
 #include <alf/alftextvisual.h>
 #include "fstreelist.h"
@@ -42,7 +42,7 @@
 //</cmail>
 #include <AknQueryDialog.h>
 //<cmail>
-#include "CFSMailCommon.h"
+#include "cfsmailcommon.h"
 #include <alf/alfanchorlayout.h>
 #include <alf/alfdecklayout.h>
 #include <alf/alfcontrolgroup.h>
@@ -89,7 +89,7 @@
 #include "FreestyleEmailUiLiterals.h"
 #include "FreestyleEmailUiShortcutBinding.h"
 #include "FreestyleEmailUiMsgDetailsVisualiser.h"
-#include "FreestyleEmailCenRepHandler.h"
+#include "freestyleemailcenrephandler.h"
 #include "FreestyleEmailUiHtmlViewerView.h"
 #include "FSEmail.pan"
 

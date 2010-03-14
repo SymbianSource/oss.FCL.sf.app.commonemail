@@ -23,6 +23,9 @@
 #include <AknQueryDialog.h>
 #include <aknenv.h>
 #include <aknsettingitemlist.h>
+#include <ecom/ecom.h>
+#include <emailobserverplugin.h>
+#include <memailobserverlistener.h>
 
 #include "emailwidgetsettingsappui.h"
 #include "emailwidgetsettingsmailboxes.h"
@@ -30,7 +33,9 @@
 extern const TUid KEmailWidgetSettingsListViewId;
 
 class CEmailWidgetSettingsListView;
-class CEmailWidgetSettingsListViewContainer : public CCoeControl
+class CEmailWidgetSettingsListViewContainer :
+    public CCoeControl, 
+    public EmailInterface::MEmailObserverListener
 	{
 public:
 	CEmailWidgetSettingsListViewContainer();
@@ -46,6 +51,9 @@ public:
 	TKeyResponse OfferKeyEventL(const TKeyEvent& aKeyEvent,TEventCode aType);
 	TSize MinimumSize();
     void SaveSelectedL();
+    
+    // From MEmailObserverListener
+    virtual void EmailObserverEvent( EmailInterface::MEmailData& aEmailData );
 
 private:
 	void CreateCbaL(MEikCommandObserver* aObserver);
@@ -55,20 +63,31 @@ private:
             CArrayPtr<CGulIcon>* aIcons,
             const TInt aFileBitmapId, 
             const TInt aFileMaskId);
-	TInt GetSettingToAssociateL(const TDesC& aCid);
+    TInt AppendExternalIconL(
+            CArrayPtr<CGulIcon>* aIcons,
+            const TDesC& aMifPath,
+            const TInt aFileBitmapId, 
+            const TInt aFileMaskId);
+
+	TInt GetSettingToAssociateL(const TDesC& aCid, const TBool aNativeBox, CRepository* aCenRep);
 	void LaunchEmailWizardL();
 	
+	void ResetExtAccountWithSameId( const TDesC& aContentId, CRepository* aCenRep );
+    void ResetNatAccountWithSameId( const TDesC& aContentId, CRepository* aCenRep );
+
 private: // from MObjectProvider
 	TTypeUid::Ptr MopSupplyObject(TTypeUid aId);
 
 public:
-	CEikButtonGroupContainer*       iPopoutCba;
-	CEikColumnListBox*	            iListBox;
-	CDesCArrayFlat*                 iAccountNames;
-	CDesCArrayFlat*                 iDomains;
-    CArrayFixFlat<TFSMailMsgId>*    iAccountIds;
-	CEmailWidgetSettingsMailboxes*  iMailboxes;
-    CEikonEnv*                      iEnv;	
+	CEikColumnListBox*                     iListBox;
+	
+private:
+	CEikButtonGroupContainer*              iPopoutCba;
+	CDesCArrayFlat*                        iAccountNames;
+	CDesCArrayFlat*                        iDomains;
+	CArrayFixFlat<TFSMailMsgId>*           iAccountIds;
+	CEmailWidgetSettingsMailboxes*         iMailboxes;
+	CEikonEnv*                             iEnv;
 	};
 
 class CEmailWidgetSettingsListView : public CAknView, public MEikListBoxObserver

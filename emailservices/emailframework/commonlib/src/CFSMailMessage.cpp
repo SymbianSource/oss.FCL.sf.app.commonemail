@@ -20,9 +20,9 @@
 #include <apmrec.h>
 #include <mmf/common/mmfcontrollerpluginresolver.h> // CleanupResetAndDestroy
 
-#include "CFSMailMessage.h"
-#include "CFSMailPlugin.h"
-#include "CFSMailRequestHandler.h"
+#include "cfsmailmessage.h"
+#include "cfsmailplugin.h"
+#include "cfsmailrequesthandler.h"
 
 // ================= MEMBER FUNCTIONS ==========================================
 

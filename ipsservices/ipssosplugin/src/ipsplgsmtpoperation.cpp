@@ -18,6 +18,7 @@
 
 #include "emailtrace.h"
 #include "ipsplgheaders.h"
+#include "miut_err.h" // SMTP error codes
 
 
 const TInt KIpsSmtpOperationCharLessThan = '<';
@@ -67,7 +68,9 @@ CIpsPlgSmtpOperation::CIpsPlgSmtpOperation(
     iSmtpMtm( NULL ),
     iOperation( NULL ),
     iSelection( NULL ),  
-    iMtmRegistry( NULL )
+    iMtmRegistry( NULL ),
+    iState( EIdle ),
+    iEventHandler( NULL )
     {
     FUNC_LOG;
     }
@@ -83,6 +86,9 @@ CIpsPlgSmtpOperation::~CIpsPlgSmtpOperation()
     delete iMtmRegistry;
     delete iSelection;
     delete iOperation;
+    iOperation = NULL;
+    iEventHandler = NULL;
+    iState = EIdle;
     } 
 
 // ---------------------------------------------------------------------------
@@ -126,25 +132,67 @@ void CIpsPlgSmtpOperation::CompleteThis()
 void CIpsPlgSmtpOperation::RunL()
     {
     FUNC_LOG;
-    
-    
-    if ( iState == EMovingOutbox )
-        {
-        delete iOperation;
-        iOperation = NULL;
-        iSelection->InsertL(0, iSmtpService );
-        CallSendL( );
-        }
-    else if ( iState == ESending )
-        {
-        TImSmtpProgress prog;
-        TPckg<TImSmtpProgress> param(prog);
-        param.Copy( iOperation->FinalProgress() ); 
 
-        CompleteObserver( prog.Error() );
+    switch ( iState )
+        {
+        case EMovingOutbox:
+            {
+            delete iOperation;
+            iOperation = NULL;
+            iSelection->InsertL( 0, iSmtpService );
+            CallSendL();
+            break;
+            }
+        case ESending:
+            {
+            TImSmtpProgress prog;
+            TPckg<TImSmtpProgress> param(prog);
+            param.Copy( iOperation->FinalProgress() );
+
+            if ( prog.Error() == KSmtpLoginRefused )
+                {
+                // Login details are wrong. Trying to ask for password
+                if ( !QueryUserPassL() )
+                    {
+                    CompleteObserver( prog.Error() );
+                    }
+                }
+            else if ( prog.Error() == KSmtpUnknownErr )
+                {
+                // try to handle empty password problem
+                CEmailAccounts* accounts = CEmailAccounts::NewLC();
+                CImSmtpSettings* smtpSettings = new(ELeave) CImSmtpSettings();
+                CleanupStack::PushL( smtpSettings );
+                TSmtpAccount smtpAccount;
+                accounts->GetSmtpAccountL( iSmtpService, smtpAccount );
+                accounts->LoadSmtpSettingsL( smtpAccount, *smtpSettings );
+
+                if ( smtpSettings->Password().Length() == 0 )
+                    {
+                    if ( !QueryUserPassL() )
+                        {
+                        CompleteObserver( prog.Error() );
+                        }
+                    }
+                CleanupStack::PopAndDestroy( 2, accounts );
+                }
+            else
+                {
+                CompleteObserver( prog.Error() );
+                }
+            break;
+            }
+        case EQueryingDetails:
+            {
+            delete iOperation;
+            iOperation = NULL;
+            // querying pass finished - try to resend mail
+            CallSendL();
+            break;
+            }
         }
     }
-    
+
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 //    
@@ -397,6 +445,74 @@ void CIpsPlgSmtpOperation::ValidateAddressArrayL( const CDesCArray& aRecipients 
             {
             User::Leave( KErrBadName );
             }
+        }
+    }
+
+// ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// 
+void CIpsPlgSmtpOperation::SetEventHandler( TAny* aEventHandler )
+    {
+    iEventHandler = aEventHandler;
+    }
+
+// ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+//
+TBool CIpsPlgSmtpOperation::QueryUserPassL()
+    {
+    if ( iEventHandler )
+        {
+        CIpsPlgEventHandler* eventHandler = static_cast<CIpsPlgEventHandler*>(iEventHandler);
+        TMsvEntry entry;
+        TMsvId service;
+        User::LeaveIfError( iMsvSession.GetEntry( iSmtpService, service, entry ) );
+
+        // ask for credentials for smtp account and wait for callback
+        if ( eventHandler->QueryUsrPassL( entry.iRelatedId, this, EFalse ) )
+            {
+            iState = EQueryingDetails;
+            }
+        else
+            {
+            // another operation is waiting for password
+            iState = EQueryingDetailsBusy;
+            }
+
+        return ETrue;
+        }
+
+    return EFalse;
+    }
+
+// ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+//
+void CIpsPlgSmtpOperation::CredientialsSetL( TInt aEvent )
+    {
+    FUNC_LOG;
+
+    if ( iState == EQueryingDetails )
+        {
+        // response for our operation`s query
+        if ( aEvent == EIPSSosCredientialsCancelled )
+            {
+            // user canceled operation
+            CompleteObserver( KErrCancel );
+            }
+
+        // password has been set, continue with operation
+        SetActive();
+        CompleteThis();
+        }
+    else if ( iState == EQueryingDetailsBusy )
+        {
+        // response for other operation`s query
+        // we could try to ask for password now,
+        // but decision was made to cancel operation
+        CompleteObserver( KErrCancel );
+        SetActive();
+        CompleteThis();
         }
     }
 

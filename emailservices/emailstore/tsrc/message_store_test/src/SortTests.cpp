@@ -16,12 +16,9 @@
 */
 
 
-//#include <BAUTILS.H>
 #include <e32math.h>
 #include <tz.h>
 #include "SortTests.h"
-//#include <ismsgstorepropertykeys.h>
-//#include "messagestoreclientserver.h"
 
 const TInt32 KOwner1 = 1234;
 _LIT(KAccount1, "My Account");

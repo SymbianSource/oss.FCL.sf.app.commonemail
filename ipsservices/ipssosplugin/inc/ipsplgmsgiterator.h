@@ -22,7 +22,7 @@
 
 #include <e32def.h>             // NONSHARABLE_CLASS
 //<cmail>
-#include "MFSMailIterator.h"    // mfsmailiterator
+#include "mfsmailiterator.h"    // mfsmailiterator
 //</cmail>
 
 class TIpsPlgMsgKey;

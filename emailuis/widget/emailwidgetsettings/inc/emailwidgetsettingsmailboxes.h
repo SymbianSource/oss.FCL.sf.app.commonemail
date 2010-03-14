@@ -19,7 +19,7 @@
 #ifndef EMAILWIDGETSETTINGSMAILBOXES_H_
 #define EMAILWIDGETSETTINGSMAILBOXES_H_
 
-#include "CFSMailCommon.h"
+#include "cfsmailcommon.h"
 
 class CFSMailClient;
 

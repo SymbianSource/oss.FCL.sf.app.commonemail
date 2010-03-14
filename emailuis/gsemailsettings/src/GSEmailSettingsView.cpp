@@ -25,7 +25,7 @@
 #include <StringLoader.h>
 #include <GSEmailSettingsPlugin.rsg>
 //<cmail>
-#include "CFSMailCommon.h"
+#include "cfsmailcommon.h"
 #include "FreestyleEmailUiConstants.h" // email enumerations
 //</cmail>
 #include <freestyleemailui.mbg> // icons

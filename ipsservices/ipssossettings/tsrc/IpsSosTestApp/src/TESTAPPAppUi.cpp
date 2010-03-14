@@ -29,7 +29,7 @@
 #include <e32property.h>
 #include <msvstd.h>
 #include <ImumDaSettingsData.h>
-#include <ImumDaSettingsDatacollection.h>
+#include <ImumDaSettingsDataCollection.h>
 #include <ImumDaMailboxServices.h>
 #include <ImumDaMailboxUtilities.h>
 #include <ImumDomainApi.h>

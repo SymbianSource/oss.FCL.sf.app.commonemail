@@ -21,6 +21,7 @@
 
 // Hardcoded maximum value for number of rows in widget
 const TInt KMaxRowCount = 3;
+const TInt KMaxMsgCount = 2;
 // Hardcoded maximum value for number of mailboxes
 const TInt KMaxMailboxCount = 18;
 const TInt KMaxUnreadCount = 999;
@@ -100,6 +101,7 @@ _LIT8( KDataMap, "data_map" );
 _LIT8( KDelete, "Delete" );
 _LIT( KCpData, "cp_data" );
 _LIT8( KFilter, "filter" );
+_LIT8( KData8, "data" );
 _LIT8( KId, "id" );
 _LIT8( KItem, "item" );
 _LIT8( KItemId, "item_id" );

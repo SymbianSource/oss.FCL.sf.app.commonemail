@@ -34,14 +34,14 @@
 #include <TPbkContactItemField.h>
 #include <hwrmdomainpskeys.h> // For flip change status.
 //<cmail>
-#include "MFSMailRequestObserver.h"
-#include "MFSMailEventObserver.h"
+#include "mfsmailrequestobserver.h"
+#include "mfsmaileventobserver.h"
 #include "FreestyleEmailUiUtilities.h"
 //</cmail>
 #include <msvapi.h>
 #include <cstack.h>
 #include <iaupdateobserver.h>
-#include "CFSMailCommon.h"
+#include "cfsmailcommon.h"
 #include "cmailcustomstatuspaneindicators.h"
 
 // INTERNAL INCLUDES

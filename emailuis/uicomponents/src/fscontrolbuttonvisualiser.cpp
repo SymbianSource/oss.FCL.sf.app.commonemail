@@ -1243,9 +1243,9 @@ EXPORT_C void CFsControlButtonVisualiser::UpdateElementsSizeL(
         {
         TSize oldIconSize = iconA.Size();
         iconA.SetRect( TPoint( 
-                iconA.iTl .iX + ( buttonSize.iWidth - oldIconSize.iWidth ) / 2, 
-                iconA.iTl .iY + ( buttonSize.iHeight - oldIconSize.iHeight ) / 2 ),
-                oldIconSize );
+                            ( buttonSize.iWidth - oldIconSize.iWidth ) / 2, 
+                            ( buttonSize.iHeight - oldIconSize.iHeight ) / 2 ),
+                            oldIconSize );
         }
     iconA.SetHeight( buttonSize.iHeight );
     text1.SetHeight( buttonSize.iHeight );

@@ -23,7 +23,7 @@
 #include <e32base.h>
 #include <barsc.h>
 
-#include "MFSMailBrandManager.h"
+#include "mfsmailbrandmanager.h"
 
 // FORWARD DECLARATIONS
 class TResourceReader;

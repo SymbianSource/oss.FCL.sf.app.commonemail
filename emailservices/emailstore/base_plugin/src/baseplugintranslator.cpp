@@ -17,9 +17,9 @@
 
 
 
-#include "BasePlugin.h"
+#include "baseplugin.h"
 #include "baseplugincommonutils.h"
-#include "CFSMailCommon.h"
+#include "cfsmailcommon.h"
 
 
 static void TranslateMsgStoreAttendeeL(
@@ -1112,7 +1112,7 @@ EXPORT_C void CBasePlugin::TranslateEmailFwMrL(
  * when dealing with rule translation.
  *
  * @param aDayOfWeekMask day of week mask in the MsgStore format, see
- * MsgStorePropertyKeys.h for information.
+ * msgstorepropertykeys.h for information.
  * @param aFtor translation ftor.
  */
 void CBasePlugin::TranslateMsgStoreDayOfWeek(

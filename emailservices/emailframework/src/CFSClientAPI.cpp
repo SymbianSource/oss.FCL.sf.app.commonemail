@@ -16,8 +16,8 @@
 */
 
 #include "emailtrace.h"
-#include "CFSClientAPIRequestHandler.h"
-#include "CFSClientAPI.h"
+#include "cfsclientapirequesthandler.h"
+#include "cfsclientapi.h"
 #include "emailclientpluginmanager.h"
 
 // -----------------------------------------------------------------------------

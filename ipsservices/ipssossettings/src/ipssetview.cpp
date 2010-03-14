@@ -183,10 +183,20 @@ TInt CIpsSetView::RunSettingsDlgL( TAny* aSelfPtr )
         }
     else
         {
-        // go back to previous view
-        self->AppUi()->ActivateViewL( self->iPrevViewId,
-                                      TUid::Uid(KMailSettingsReturnFromPluginSettings),
-                                      *self->iCustomMessage );
+    	//check if composer is active view; needed to handle special case when email is plugin settings and composer is activated externaly
+    	TVwsViewId aViewId;
+    	self->AppUi()->GetActiveViewId(aViewId);
+    	if (aViewId.iViewUid == MailEditorId )
+    		{
+    		//just skip 
+    		}
+    	else
+    		{
+    		// go back to previous view
+    		self->AppUi()->ActivateViewL( self->iPrevViewId,
+										  TUid::Uid(KMailSettingsReturnFromPluginSettings),
+										  *self->iCustomMessage );
+    		}
         }
     return KErrNone;
     }

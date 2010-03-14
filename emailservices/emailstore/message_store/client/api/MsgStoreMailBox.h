@@ -22,8 +22,8 @@
 
 #include <e32base.h>
 //<cmail>
-#include "MsgStoreTypes.h"
-#include "MsgStoreWritablePropertyContainer.h"
+#include "msgstoretypes.h"
+#include "msgstorewritablepropertycontainer.h"
 //</cmail>
 
 class CMsgStoreMessage;

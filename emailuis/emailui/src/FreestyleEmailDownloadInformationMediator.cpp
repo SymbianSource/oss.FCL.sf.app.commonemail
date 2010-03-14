@@ -20,7 +20,7 @@
 #include "emailtrace.h"
 #include <e32svr.h>
 //<cmail>
-#include "CFSMailClient.h"
+#include "cfsmailclient.h"
 //</cmail>
 #include <StringLoader.h>
 #include <FreestyleEmailUi.rsg>
@@ -29,7 +29,7 @@
 #include "FreestyleEmailUiLiterals.h"
 #include "FreestyleEmailUiUtilities.h"
 #include "FreestyleEmailDownloadInformationMediator.h"
-#include "FreestyleEmailCenRepHandler.h"
+#include "freestyleemailcenrephandler.h"
 #include "FreestyleEmailUiAppui.h"
 #include "FSEmail.pan"
 

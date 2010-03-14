@@ -20,9 +20,9 @@
 #define CMAILCPSIF_H_
 
 // LIW interface
-#include <LiwServiceHandler.h>
-#include <LiwVariant.h>
-#include <LiwGenericParam.h>
+#include <liwservicehandler.h>
+#include <liwvariant.h>
+#include <liwgenericparam.h>
 #include <fbs.h>
 #include <data_caging_path_literals.hrh>
 
@@ -67,6 +67,18 @@ public:
                                     TFSMailMsgId aFolderId );
 
     /**
+     * Publishes mailbox name to widget and action related to widget
+     * @param aInstance specifies the widget instance on homescreen
+     * @param aMailboxName specifies the text to be published
+     * @param aAction specifies the action identifier that will be sent back
+     *        when user presses the widget
+     */
+    void PublishMailboxNameL(
+        const TInt aInstance, 
+        const TDesC& aMailboxName,
+        const TDesC8& aAction );
+
+    /**
      * Resets mailbox name from widget
      * @param aRowNumber specifies the row on widget UI
      */
@@ -84,6 +96,23 @@ public:
      */
     void PublishMailboxIconL( const TInt aInstance, const TInt aRowNumber, const TInt aIcon, TFSMailMsgId aMailBoxId );
 
+    /**
+     * Publishes mailbox icon based on given resource path
+     * @param aInstance specifies the widget
+     * @param aIconResourcePath specifies the icon resource
+     *  (e.g. "mif(z:\\resource\\apps\\myemailplugin.mif 16384 16385)")
+     */
+    void PublishMailboxIconL( const TInt aInstance, const TDesC& aIconPath );
+
+    /**
+     * 
+     */
+    void PublishIconReferenceL(
+        const TDesC& aContentId,
+        const TDesC& aContentType,
+        const TDesC8& aKey,
+        const TDesC& aIconPath );
+    
     /**
      * 
      */    
@@ -118,7 +147,7 @@ public:
      * 
      */	
 	TInt HandleNotifyL(
-        TInt aErrorCode,
+        TInt aCmdId,
         TInt aEventId,
         CLiwGenericParamList& aEventParamList,
         const CLiwGenericParamList& aInParamList );
@@ -153,7 +182,7 @@ private:
     /**
      * adds resource file
      */
-    void CMailCpsIf::AllocateResourcesL();
+    void AllocateResourcesL();
     
     /**
      * initializes the LIW IF
@@ -217,6 +246,12 @@ private:
      * 
      */	    
     TInt FindWidgetInstanceId(const TDesC& aContentId);
+    
+    /**
+     * Resets all the published content values on HomeScreen database
+     */
+    void ResetPublishedDataL( const TDesC& aContentId );
+
 public:
 	//
     RPointerArray<HBufC>    iInstIdList;

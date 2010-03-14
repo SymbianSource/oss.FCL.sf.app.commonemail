@@ -17,9 +17,9 @@
 
 
 
-#include "MsgStoreFolderUtils.h"
+#include "msgstorefolderutils.h"
 //<cmail>
-#include "MsgStoreFolder.h"
+#include "msgstorefolder.h"
 //</cmail>
 
 

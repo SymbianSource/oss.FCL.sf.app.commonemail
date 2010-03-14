@@ -20,7 +20,7 @@
 #include <e32std.h>
 
 #include "baseplugincommonutils.h"
-#include "MailIterator.h"
+#include "mailiterator.h"
 
 
 /**

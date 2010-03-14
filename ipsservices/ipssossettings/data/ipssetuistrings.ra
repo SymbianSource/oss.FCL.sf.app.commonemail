@@ -337,7 +337,7 @@ RESOURCE DIALOG r_ips_setui_information_query
 RESOURCE DIALOG r_ips_setui_wait_disconnecting_dialog
     {
     flags = EAknWaitNoteFlags;
-    buttons = R_AVKON_SOFTKEYS_CANCEL;
+    buttons = R_AVKON_SOFTKEYS_EMPTY;
     items =
         {
         DLG_LINE

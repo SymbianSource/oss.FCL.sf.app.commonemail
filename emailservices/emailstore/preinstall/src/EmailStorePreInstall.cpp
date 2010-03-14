@@ -19,7 +19,7 @@
 
 #include <e32const.h>
 #include "EmailStorePreInstall.h"
-#include "EmailStoreUids.hrh"
+#include "emailstoreuids.hrh"
 #include "emailstorepskeys.h"
 
 // Timeout for process exit.

@@ -74,12 +74,6 @@ public:
 	void HandlePointerEventL(const TPointerEvent& aPointerEvent);
 	
 	void MakeVisible( TBool aVisible );
-
-	   /**
-	     * Update visual state
-	     * @param aButtonDown ETrue if button is in down state
-	     */
-	void UpdateButtonState( TBool aButtonDown );
 	
 private:
 
@@ -94,30 +88,10 @@ private:
 	 */
 	void ConstructL( CCoeControl* aParent, const TRect& aRect, TInt aBitmapId, TInt aMaskId );
 
-	/**
-	 * Make a copy of bitmap
-	 */
-    void CopyBitmapL( const CFbsBitmap& aSource, CFbsBitmap& aDest );
-    
-    /**
-     * Adjust alpha for the bitmap
-     * @param aBitmap bitmap to adjust
-     * @param aFactor factor to apply
-     */
-    void AdjustAlpha( CFbsBitmap& aBitmap, TReal aFactor );
-    
-    /**
-     * Update used mask according to current button state
-     */
-    void UpdateMask();
-	
 private:
     
 	CFbsBitmap* iBitmap;
 	CFbsBitmap* iMask;
-	CFbsBitmap* iSolidMask;
-	TBool iDownState;
-	
 	MOverlayControlObserver* iObserver;
 	};
 

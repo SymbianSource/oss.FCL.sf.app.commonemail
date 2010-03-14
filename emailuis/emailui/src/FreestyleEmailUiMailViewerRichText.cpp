@@ -12,7 +12,7 @@
 * Contributors:
 *
 * Description: FreestyleEmailUi mail viewer rich text implementation
-* Version    : %version: 48 %
+* Version    : %version: e003sa37#49 %
 *
 */
 
@@ -27,9 +27,9 @@
 //<cmail>
 #include "fstextviewer.h"
 #include "fsrichtext.h"
-#include "CFSMailMessagePart.h"
-#include "CFSMailClient.h"
-#include "CFSMailCommon.h"
+#include "cfsmailmessagepart.h"
+#include "cfsmailclient.h"
+#include "cfsmailcommon.h"
 //</cmail>
 #include <txtfrmat.h>
 // <cmail> SF

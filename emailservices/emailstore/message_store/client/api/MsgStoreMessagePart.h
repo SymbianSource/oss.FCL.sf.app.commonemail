@@ -21,8 +21,8 @@
 #define __MSG_STORE_MESSAGE_PART_H__
 
 //<cmail>
-#include "MsgStoreTypes.h"
-#include "MsgStorePropertyContainerWithContent.h"
+#include "msgstoretypes.h"
+#include "msgstorepropertycontainerwithcontent.h"
 //</cmail>
 
 class CMsgStoreMessage;

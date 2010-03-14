@@ -23,7 +23,7 @@
 #include <aknnotewrappers.h> //CAknInformationNote
 #include <FreestyleEmailUi.rsg>
 
-#include "CFSMailBox.h"
+#include "cfsmailbox.h"
 #include <FreestyleEmailUi.rsg>
 
 #include "cpbkxremotecontactlookupserviceuicontext.h"
@@ -536,7 +536,14 @@ TKeyResponse CNcsHeaderContainer::OfferKeyEventL(
     		{
     		ret = focused->OfferKeyEventL( aKeyEvent, aType );
     		
-    		doScroll = ( ret == EKeyWasConsumed ); 
+    		if(aType==EEventKeyDown)
+    		    {
+    		    doScroll = ETrue; 
+    		    }
+    		else 
+    		    {
+    		    doScroll = (ret == EKeyWasConsumed); 
+    		    }
     		}
     	}
 

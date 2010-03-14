@@ -16,10 +16,7 @@
 */
 
 
-//#include <BAUTILS.H>
 #include "SizeTests.h"
-//#include <ismsgstorepropertykeys.h>
-//#include "messagestoreclientserver.h"
 
 // ============================ MEMBER FUNCTIONS ===============================
 

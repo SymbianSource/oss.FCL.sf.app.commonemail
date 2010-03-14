@@ -21,7 +21,7 @@
 // SYSTEM INCLUDES
 #include <coecntrl.h>
 #include <e32cmn.h>
-#include "MFSMailRequestObserver.h"
+#include "mfsmailrequestobserver.h"
 #include <AknWaitDialog.h>
 #include <aknlongtapdetector.h>
 

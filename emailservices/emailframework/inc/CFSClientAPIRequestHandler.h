@@ -20,7 +20,7 @@
 #define CFSCLIENTAPIREQUESTHANDLER_H
 
 //  INCLUDES
-#include "CFSMailRequestHandler.h"
+#include "cfsmailrequesthandler.h"
 
 // FORWARD DECLARATIONS
 class CFSMailRequestObserver;

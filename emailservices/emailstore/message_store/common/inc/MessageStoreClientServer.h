@@ -26,8 +26,8 @@
 
 #include <e32std.h>
 //<cmail>
-#include "MsgStoreTypes.h"
-#include "MsgStoreAccount.h"
+#include "msgstoretypes.h"
+#include "msgstoreaccount.h"
 //</cmail>
 
 // =========

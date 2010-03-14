@@ -16,10 +16,7 @@
 */
 
 
-//#include <BAUTILS.H>
 #include "ShutdownServerTest.h"
-//#include <ismsgstorepropertykeys.h>
-//#include "messagestoreclientserver.h"
 
 // ============================ MEMBER FUNCTIONS ===============================
 

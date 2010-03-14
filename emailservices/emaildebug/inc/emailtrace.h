@@ -347,7 +347,7 @@
 //
 #if defined(TIMESTAMP_TRAC)
 
-    #if defined(TRACE_INTO_FIL)
+    #if defined(TRACE_INTO_FILE)
 
         #define TIMESTAMP( aCaption )\
             {\
@@ -355,9 +355,9 @@
             t.HomeTime();\
             TDateTime dt = t.DateTime();\
             _LIT( KMsg, aCaption );\
-            _LIT( KFormat, "[TIMESTAMP] %S %d:%02d:%02d.%d us");\
+            _LIT( KFormat, "[TIMESTAMP] %d:%02d:%02d.%06d us %S");\
             RFileLogger::WriteFormat(  KEmailDir,  KEmailTraceFile, EFileLoggingModeAppend, KFormat,\
-                &KMsg, dt.Hour(), dt.Minute(), dt.Second(), dt.MicroSecond() );\
+                dt.Hour(), dt.Minute(), dt.Second(), dt.MicroSecond(), &KMsg );\
             }
 
     #else//TRACE_INTO_FILE not defined
@@ -368,9 +368,9 @@
             t.HomeTime();\
             TDateTime dt = t.DateTime();\
             _LIT( KMsg, aCaption );\
-            _LIT( KFormat, "[TIMESTAMP] %S %d:%02d:%02d.%d us");\
+            _LIT( KFormat, "[TIMESTAMP] %d:%02d:%02d.%06d us %S");\
             RDebug::Print( KFormat,\
-                &KMsg, dt.Hour(), dt.Minute(), dt.Second(), dt.MicroSecond() );\
+                dt.Hour(), dt.Minute(), dt.Second(), dt.MicroSecond(), &KMsg );\
             }
 
     #endif//TRACE_INTO_FILE

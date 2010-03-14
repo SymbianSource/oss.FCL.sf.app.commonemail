@@ -21,7 +21,7 @@
 
 #include <e32base.h>
 #include <mtclbase.h>
-#include "CFSMailCommon.h"
+#include "cfsmailcommon.h"
 
 #include <msvstd.hrh>
 enum TEasEmailMTMCmds

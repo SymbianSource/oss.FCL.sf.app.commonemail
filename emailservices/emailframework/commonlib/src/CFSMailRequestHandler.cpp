@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2008 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -17,11 +17,11 @@
 
 
 #include "emailtrace.h"
-#include "CFSMailRequestHandler.h"
-#include "CFSMailRequestObserver.h"
+#include "cfsmailrequesthandler.h"
+#include "cfsmailrequestobserver.h"
 
 
-// ================= MEMBER FUNCTIONS ==========================================	
+// ================= MEMBER FUNCTIONS ==========================================    
 // -----------------------------------------------------------------------------
 // CFSMailRequestHandler::CFSMailRequestHandler
 // -----------------------------------------------------------------------------
@@ -29,14 +29,14 @@ EXPORT_C CFSMailRequestHandler::CFSMailRequestHandler() : iRequestId(0)
 {
     FUNC_LOG;
 
-	// store pointer to TLS
-	TInt err = Dll::SetTls(static_cast<TAny*>(this));
+    // store pointer to TLS
+    TInt err = Dll::SetTls(static_cast<TAny*>(this));
 
-	// reset 
-	iPendingRequests.Reset();
-	iPluginList.Reset();
-	
-	iTempDirName =NULL;
+    // reset 
+    iPendingRequests.Reset();
+    iPluginList.Reset();
+    
+    iTempDirName =NULL;
 }
 
 // -----------------------------------------------------------------------------
@@ -62,8 +62,8 @@ EXPORT_C CFSMailRequestHandler::~CFSMailRequestHandler()
 // CFSMailRequestHandler::NewLC
 // -----------------------------------------------------------------------------
 EXPORT_C CFSMailRequestHandler* CFSMailRequestHandler::NewLC( 
-									RPointerArray<CImplementationInformation>& aPluginInfo,
-									RPointerArray<CFSMailPlugin>& aPlugins )
+                                    RPointerArray<CImplementationInformation>& aPluginInfo,
+                                    RPointerArray<CFSMailPlugin>& aPlugins )
 {
     FUNC_LOG;
   CFSMailRequestHandler* pluginHandler = new (ELeave) CFSMailRequestHandler();
@@ -76,12 +76,12 @@ EXPORT_C CFSMailRequestHandler* CFSMailRequestHandler::NewLC(
 // CFSMailRequestHandler::NewL
 // -----------------------------------------------------------------------------
 EXPORT_C CFSMailRequestHandler* CFSMailRequestHandler::NewL( 
-									RPointerArray<CImplementationInformation>& aPluginInfo,
-									RPointerArray<CFSMailPlugin>& aPlugins )
+                                    RPointerArray<CImplementationInformation>& aPluginInfo,
+                                    RPointerArray<CFSMailPlugin>& aPlugins )
 {
     FUNC_LOG;
   CFSMailRequestHandler* pluginHandler =  
-  				CFSMailRequestHandler::NewLC( aPluginInfo, aPlugins );
+                CFSMailRequestHandler::NewLC( aPluginInfo, aPlugins );
   CleanupStack:: Pop(pluginHandler);
   return pluginHandler;
 }
@@ -90,8 +90,8 @@ EXPORT_C CFSMailRequestHandler* CFSMailRequestHandler::NewL(
 // CFSMailRequestHandler::ConstructL
 // -----------------------------------------------------------------------------
 void CFSMailRequestHandler::ConstructL( 
-								RPointerArray<CImplementationInformation> /*aPluginInfo*/,
-								RPointerArray<CFSMailPlugin> /*aPlugins*/ )
+                                RPointerArray<CImplementationInformation> /*aPluginInfo*/,
+                                RPointerArray<CFSMailPlugin> /*aPlugins*/ )
 {
     FUNC_LOG;
 
@@ -102,125 +102,125 @@ void CFSMailRequestHandler::ConstructL(
 // CFSMailRequestHandler::GetPluginByUid
 // -----------------------------------------------------------------------------
 EXPORT_C CFSMailPlugin* CFSMailRequestHandler::GetPluginByUid(TFSMailMsgId aObjectId)
-	{
+    {
     FUNC_LOG;
 
-	for(TInt i=0;i<iPluginList.Count();i++)
-		{
-		if(iPluginList[i]->iPluginId.iUid == aObjectId.PluginId().iUid)
-			{
-			return iPluginList[i]->iPlugin;
-			}
-		}
+    for(TInt i=0;i<iPluginList.Count();i++)
+        {
+        if(iPluginList[i]->iPluginId.iUid == aObjectId.PluginId().iUid)
+            {
+            return iPluginList[i]->iPlugin;
+            }
+        }
 
 
-	return NULL;
-	}
-	
+    return NULL;
+    }
+    
 // -----------------------------------------------------------------------------
 // CFSMailRequestHandler::InitAsyncRequestL
 // -----------------------------------------------------------------------------
 EXPORT_C TFSPendingRequest CFSMailRequestHandler::InitAsyncRequestL( 
-													TUid aPluginId,
-													MFSMailRequestObserver& aOperationObserver)
-	{
+                                                    TUid aPluginId,
+                                                    MFSMailRequestObserver& aOperationObserver)
+    {
     FUNC_LOG;
-		TFSPendingRequest newRequest;
-		for(TInt i=0;i<iPendingRequests.Count();i++)
-			{
-			if(iPendingRequests[i].iRequestStatus != TFSPendingRequest::EFSRequestPending)
-				{
-				iPendingRequests[i].iPluginId = aPluginId;
-				iPendingRequests[i].iRequestStatus = TFSPendingRequest::EFSRequestPending;
-				iPendingRequests[i].iObserver->SetUserObserver(aOperationObserver);			
-				newRequest = iPendingRequests[i];
-				return newRequest;
-				}
-			}
+        TFSPendingRequest newRequest;
+        for(TInt i=0;i<iPendingRequests.Count();i++)
+            {
+            if(iPendingRequests[i].iRequestStatus != TFSPendingRequest::EFSRequestPending)
+                {
+                iPendingRequests[i].iPluginId = aPluginId;
+                iPendingRequests[i].iRequestStatus = TFSPendingRequest::EFSRequestPending;
+                iPendingRequests[i].iObserver->SetUserObserver(aOperationObserver);         
+                newRequest = iPendingRequests[i];
+                return newRequest;
+                }
+            }
 
-		newRequest.iRequestId = iPendingRequests.Count();
-		newRequest.iPluginId = aPluginId;
-		newRequest.iRequestStatus = TFSPendingRequest::EFSRequestPending;			
-    	CFSMailRequestObserver* observer = 
-    		CFSMailRequestObserver::NewL(*this, aOperationObserver);
-		newRequest.iObserver = observer;
-		iPendingRequests.Append(newRequest);
-    	
-		return newRequest;
-	}
+        newRequest.iRequestId = iPendingRequests.Count();
+        newRequest.iPluginId = aPluginId;
+        newRequest.iRequestStatus = TFSPendingRequest::EFSRequestPending;           
+        CFSMailRequestObserver* observer = 
+            CFSMailRequestObserver::NewL(*this, aOperationObserver);
+        newRequest.iObserver = observer;
+        iPendingRequests.Append(newRequest);
+        
+        return newRequest;
+    }
 
 // -----------------------------------------------------------------------------
 // CFSMailRequestHandler::CompleteRequest
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailRequestHandler::CompleteRequest( TInt aRequestId )
-	{
+    {
     FUNC_LOG;
-		for(TInt i=0;i<iPendingRequests.Count();i++)
-		{
-		if(iPendingRequests[i].iRequestId == aRequestId)
-			{
-			iPendingRequests[i].iRequestStatus = TFSPendingRequest::EFSRequestComplete;
-			break;
-			}
-		}
+        for(TInt i=0;i<iPendingRequests.Count();i++)
+        {
+        if(iPendingRequests[i].iRequestId == aRequestId)
+            {
+            iPendingRequests[i].iRequestStatus = TFSPendingRequest::EFSRequestComplete;
+            break;
+            }
+        }
 
-	}
-	
+    }
+    
 // -----------------------------------------------------------------------------
 // CFSMailRequestHandler::CancelRequestL
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailRequestHandler::CancelRequestL( TInt aRequestId )
-	{
+    {
     FUNC_LOG;
-		for(TInt i=0;i<iPendingRequests.Count();i++)
-		{
-		if(iPendingRequests[i].iRequestId == aRequestId &&
-			iPendingRequests[i].iRequestStatus == TFSPendingRequest::EFSRequestPending)
-			{
-			TFSMailMsgId pluginId(iPendingRequests[i].iPluginId,0);
-			if(CFSMailPlugin* plugin = GetPluginByUid(pluginId))
-			    {
-			    plugin->CancelL(aRequestId);
-			    }
-			iPendingRequests[i].iRequestStatus = TFSPendingRequest::EFSRequestCancelled;
-			break;
-			}
-		}
-	}
+        for(TInt i=0;i<iPendingRequests.Count();i++)
+        {
+        if(iPendingRequests[i].iRequestId == aRequestId &&
+            iPendingRequests[i].iRequestStatus == TFSPendingRequest::EFSRequestPending)
+            {
+            TFSMailMsgId pluginId(iPendingRequests[i].iPluginId,0);
+            if(CFSMailPlugin* plugin = GetPluginByUid(pluginId))
+                {
+                plugin->CancelL(aRequestId);
+                }
+            iPendingRequests[i].iRequestStatus = TFSPendingRequest::EFSRequestCancelled;
+            break;
+            }
+        }
+    }
 
 // -----------------------------------------------------------------------------
 // CFSMailRequestHandler::CancelAllRequestsL
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailRequestHandler::CancelAllRequestsL( )
-	{
+    {
     FUNC_LOG;
-		for(TInt i=0;i<iPendingRequests.Count();i++)
-		{
-			if(iPendingRequests[i].iRequestStatus == TFSPendingRequest::EFSRequestPending)
-				{
-				TFSMailMsgId pluginId(iPendingRequests[i].iPluginId,0);
-				if(CFSMailPlugin* plugin = GetPluginByUid(pluginId))
-				    {
-				    plugin->CancelL(iPendingRequests[i].iRequestId);
-				    }
-				iPendingRequests[i].iRequestStatus = TFSPendingRequest::EFSRequestCancelled;
-				}
-		}
-	}
+        for(TInt i=0;i<iPendingRequests.Count();i++)
+        {
+            if(iPendingRequests[i].iRequestStatus == TFSPendingRequest::EFSRequestPending)
+                {
+                TFSMailMsgId pluginId(iPendingRequests[i].iPluginId,0);
+                if(CFSMailPlugin* plugin = GetPluginByUid(pluginId))
+                    {
+                    plugin->CancelL(iPendingRequests[i].iRequestId);
+                    }
+                iPendingRequests[i].iRequestStatus = TFSPendingRequest::EFSRequestCancelled;
+                }
+        }
+    }
 
 // -----------------------------------------------------------------------------
 // CFSMailRequestHandler::AddPluginL
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailRequestHandler::AddPluginL( TUid aPluginId, CFSMailPlugin* aPlugin )
-	{
+    {
     FUNC_LOG;
 
-	CFSMailPluginData* pluginData = new (ELeave) CFSMailPluginData;
-	pluginData->iPluginId = aPluginId;
-	pluginData->iPlugin = aPlugin;
-	iPluginList.Append(pluginData);				
+    CFSMailPluginData* pluginData = new (ELeave) CFSMailPluginData;
+    pluginData->iPluginId = aPluginId;
+    pluginData->iPlugin = aPlugin;
+    iPluginList.Append(pluginData);             
 
-	}
+    }
 
 // -----------------------------------------------------------------------------
 // CFSMailRequestHandler::RemoveAllRequests

@@ -39,7 +39,7 @@
 //<cmail>
 #include <featmgr.h>
 //</cmail>
-#include "CFSMailCommon.h"
+#include "cfsmailcommon.h"
 //</cmail>
 #include <imapset.h>
 #include <akntitle.h>

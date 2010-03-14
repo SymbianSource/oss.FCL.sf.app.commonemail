@@ -70,7 +70,7 @@
 #include <CSendingServiceInfo.h>
 #include <CoreApplicationUIsSDKCRKeys.h> // offline mode keys
 #include <data_caging_path_literals.hrh>
-
+#include <cmailwidgetcenrepkeys.h>
 
 // <cmail> Removed DISABLE_DEFAULT_EMAIL
 //#ifndef DISABLE_DEFAULT_EMAIL
@@ -90,10 +90,10 @@
 #include <freestyleemailui.mbg>
 
 //<cmail>
-#include "CFSMailCommon.h"
-#include "CFSMailClient.h"
-#include "CFSMailBox.h"
-#include "CFSMailMessage.h"
+#include "cfsmailcommon.h"
+#include "cfsmailclient.h"
+#include "cfsmailbox.h"
+#include "cfsmailmessage.h"
 #include "cesmricalviewer.h"
 //</cmail>
 
@@ -2689,6 +2689,7 @@ void TFsEmailUiUtility::CopyToClipboardL( const TDesC &aBuf )
 void TFsEmailUiUtility::ToggleEmailIconL(TBool aIconOn )
 	{
     FUNC_LOG;
+    //Toggle email status indicator
 	if(aIconOn)
 		{
 		RProperty::Set( KPSUidCoreApplicationUIs, KCoreAppUIsNewEmailStatus, ECoreAppUIsNewEmail );
@@ -2699,6 +2700,64 @@ void TFsEmailUiUtility::ToggleEmailIconL(TBool aIconOn )
 		}
 	}
 
+// -----------------------------------------------------------------------------
+// TFsEmailUiUtility::ToggleEmailIconL
+// -----------------------------------------------------------------------------
+void TFsEmailUiUtility::ToggleEmailIconL( TBool aIconOn, const TFSMailMsgId& aMailBox )
+	{
+    FUNC_LOG;
+    //Toggle email status indicator
+	if(aIconOn)
+		{
+		RProperty::Set( KPSUidCoreApplicationUIs, KCoreAppUIsNewEmailStatus, ECoreAppUIsNewEmail );
+		}
+	else
+		{
+		RProperty::Set( KPSUidCoreApplicationUIs, KCoreAppUIsNewEmailStatus, ECoreAppUIsNoNewEmail );
+		}
+
+    //Toggle new mail icon in widget
+    if (aMailBox.Id())
+        {
+        CRepository* repository(NULL);
+        TRAPD( err, repository = CRepository::NewL( KCRUidCmailWidget ) );
+        if ( err == KErrNone )
+            {
+            TBuf<256> mailbox;
+            mailbox.Num(aMailBox.Id());
+
+            TBuf<256> str;
+            str.Copy(_L("<"));    
+            str.Append(mailbox);
+            str.Append(_L(">"));    
+
+            TBuf<256> stored;
+            TUint32 key(KCMailMailboxesWithNewMail);
+            repository->Get( key, stored );
+    
+            TInt result = stored.Find(str);
+    
+            if (aIconOn)
+                {
+                if (result < 0) // Not found
+                    {
+                    stored.Append(str);
+                    repository->Set( key, stored );
+                    }
+                }
+            else
+                {
+                if (result >= 0)
+                    {
+                    stored.Delete(result, str.Length());
+                    repository->Set( key, stored );
+                    }
+                }
+            }
+        delete repository;
+        }
+	}
+	
 // -----------------------------------------------------------------------------
 // TFsEmailUiUtility::DisplayMsgsMovedNoteL
 // -----------------------------------------------------------------------------

@@ -18,7 +18,7 @@
 
 //<cmail>
 #include "emailtrace.h"
-#include "CFSMailAddress.h"
+#include "cfsmailaddress.h"
 //</cmail>
 
 // ================= MEMBER FUNCTIONS ==========================================
@@ -59,11 +59,11 @@ void CFSMailAddress::ConstructL()
 CFSMailAddress::CFSMailAddress()
     {
     FUNC_LOG;
-	iEmailAddress = HBufC::New(1);
-	iEmailAddress->Des().Copy(KNullDesC());
+    iEmailAddress = HBufC::New(1);
+    iEmailAddress->Des().Copy(KNullDesC());
 
-	iDisplayName = HBufC::New(1);
-	iDisplayName->Des().Copy(KNullDesC());
+    iDisplayName = HBufC::New(1);
+    iDisplayName->Des().Copy(KNullDesC());
     }
 
 // -----------------------------------------------------------------------------
@@ -72,17 +72,17 @@ CFSMailAddress::CFSMailAddress()
 EXPORT_C CFSMailAddress::~CFSMailAddress()
     {
     FUNC_LOG;
-	if(iEmailAddress)
-		{
-		delete iEmailAddress;
-		}
-	iEmailAddress = NULL;
-		
-	if (iDisplayName)
-		{
-		delete iDisplayName;
-		}
-	iDisplayName = NULL;
+    if(iEmailAddress)
+        {
+        delete iEmailAddress;
+        }
+    iEmailAddress = NULL;
+        
+    if (iDisplayName)
+        {
+        delete iDisplayName;
+        }
+    iDisplayName = NULL;
     }
 
 // -----------------------------------------------------------------------------
@@ -91,7 +91,7 @@ EXPORT_C CFSMailAddress::~CFSMailAddress()
 EXPORT_C TDesC& CFSMailAddress::GetEmailAddress() const
     {
     FUNC_LOG;
-	return *iEmailAddress;
+    return *iEmailAddress;
     }
 
 // -----------------------------------------------------------------------------
@@ -100,16 +100,16 @@ EXPORT_C TDesC& CFSMailAddress::GetEmailAddress() const
 EXPORT_C void CFSMailAddress::SetEmailAddress(const TDesC& aAddress)
     {
     FUNC_LOG;
-	// init mailbox name
-	HBufC* address = HBufC::New(aAddress.Length());
-	
-	// store new mailbox name
-	if(address)
+    // init mailbox name
+    HBufC* address = HBufC::New(aAddress.Length());
+    
+    // store new mailbox name
+    if(address)
         {
-		delete iEmailAddress;
-		iEmailAddress = address;
-		iEmailAddress->Des().Copy(aAddress);
-	    }
+        delete iEmailAddress;
+        iEmailAddress = address;
+        iEmailAddress->Des().Copy(aAddress);
+        }
 
     }
 
@@ -119,7 +119,7 @@ EXPORT_C void CFSMailAddress::SetEmailAddress(const TDesC& aAddress)
 EXPORT_C TDesC& CFSMailAddress::GetDisplayName() const
     {
     FUNC_LOG;
-	return *iDisplayName;
+    return *iDisplayName;
     }
 
 // -----------------------------------------------------------------------------
@@ -128,15 +128,15 @@ EXPORT_C TDesC& CFSMailAddress::GetDisplayName() const
 EXPORT_C void CFSMailAddress::SetDisplayName(const TDesC& aDisplayName)
     {
     FUNC_LOG;
-	// init mailbox name
-	HBufC* name = HBufC::New(aDisplayName.Length());
-	
-	// store new mailbox name
-	if(name)
-	    {
-		delete iDisplayName;
-		iDisplayName = name;
-		iDisplayName->Des().Copy(aDisplayName);
+    // init mailbox name
+    HBufC* name = HBufC::New(aDisplayName.Length());
+    
+    // store new mailbox name
+    if(name)
+        {
+        delete iDisplayName;
+        iDisplayName = name;
+        iDisplayName->Des().Copy(aDisplayName);
         }
     }
 

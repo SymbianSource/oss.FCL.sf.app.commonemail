@@ -20,8 +20,8 @@
 #include "emailapiutils.h"
 #include "messageiterator.h"
 #include "emailsorting.h"
-#include "CFSMailFolder.h"
-#include "CFSMailPlugin.h"
+#include "cfsmailfolder.h"
+#include "cfsmailplugin.h"
 #include "emailclientapi.hrh"
 #include "emailclientapiimpldefs.h"
 
@@ -255,7 +255,7 @@ void CEmailFolder::ToFsSortCriteriaL(
     for ( TInt i=0; i < aSortCriteria.Count(); i++ )
         {
         const TEmailSortCriteria& criteria  = aSortCriteria[i];
-        __ASSERT_ALWAYS( criteria.iField < sizeof( fieldValues ),
+        __ASSERT_ALWAYS( criteria.iField < sizeof( fieldValues ) / sizeof (fieldValues [i] ),
             Panic( EMailPanicSortMapIndexOutOfBounds ) );
         TFSMailSortCriteria fsCriteria;
         fsCriteria.iField = fieldValues[ criteria.iField ];

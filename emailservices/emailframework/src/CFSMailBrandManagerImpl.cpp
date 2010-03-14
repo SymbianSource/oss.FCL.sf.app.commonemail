@@ -29,11 +29,11 @@
 #include <centralrepository.h>
 // </gmail_brand_issue>
 //<cmail>
-#include "CFSMailClient.h"
+#include "cfsmailclient.h"
 //</cmail>
 
-#include "CFSMailBrandManagerImpl.h"
-#include "CFSMailBrand.h"
+#include "cfsmailbrandmanagerimpl.h"
+#include "cfsmailbrand.h"
 
 
 const TInt KBrandArrayGranularity = 5;

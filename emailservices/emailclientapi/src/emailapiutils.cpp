@@ -16,7 +16,7 @@
 */
 
 #include    <e32std.h>       
-#include "CFSMailPlugin.h"
+#include "cfsmailplugin.h"
 #include "emailapidefs.h"
 #include "emailclientapiimpldefs.h"
 #include "emailapiutils.h"

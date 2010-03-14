@@ -25,8 +25,8 @@
 #include <f32file.h>
 #include <sysutil.h>
 
-#include "DebugLog.h"
-#include "DebugLogConst.h"
+#include "debuglog.h"
+#include "debuglogconst.h"
 
 // This takes a lot more memory to use, so it is defaulted to off.  If the code is crashing
 // in DoLogLeakedObjects then uncomment this line to help find the problem.  It is most likely

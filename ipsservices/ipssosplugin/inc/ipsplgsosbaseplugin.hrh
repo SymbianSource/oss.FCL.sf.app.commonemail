@@ -55,7 +55,8 @@ enum TIpsPropertyEvents
     EIPSSosSettingsChanged,
     KIPSSosSmtpSendStartedSignal,
     KIPSSosSmtpSendEndedSignal,
-    KIPSSosSmtpEmptyOutboxNow
+    KIPSSosSmtpEmptyOutboxNow,
+    EIPSSosSmtpPswErr
     };
 
 enum TIpsOpType

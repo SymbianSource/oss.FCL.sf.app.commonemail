@@ -22,7 +22,7 @@
 #include <e32def.h>
 #include <e32base.h>
 //<cmail>
-#include "CFSMailCommon.h"
+#include "cfsmailcommon.h"
 //</cmail>
 
 class CMailMailboxDetails;

@@ -19,7 +19,7 @@
 #ifndef EMAILMULTIPART_H_
 #define EMAILMULTIPART_H_
 // INCLUDES
-#include "CFSMailClient.h"
+#include "cfsmailclient.h"
 #include <memailcontent.h>
 #include "emailapiutils.h"
 

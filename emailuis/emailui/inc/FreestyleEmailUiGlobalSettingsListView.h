@@ -21,7 +21,7 @@
 
 // SYSTEM INCLUDES
 //<cmail>
-#include "CFSMailCommon.h" // for email constants
+#include "cfsmailcommon.h" // for email constants
 //</cmail>
 
 // LOCAL INCLUDES

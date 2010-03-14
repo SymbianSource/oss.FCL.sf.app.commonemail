@@ -25,11 +25,11 @@
 #include "esmrconfig.hrh"
 
 //<cmail>
-#include "CFSMailClient.h"
-#include "CFSMailBox.h"
-#include "CFSMailMessage.h"
-#include "CFSMailMessagePart.h"
-#include "CFSMailCommon.h"
+#include "cfsmailclient.h"
+#include "cfsmailbox.h"
+#include "cfsmailmessage.h"
+#include "cfsmailmessagepart.h"
+#include "cfsmailcommon.h"
 #include "cesmragnexternalinterface.h"
 #include "esmricalvieweropcodes.hrh"
 //</cmail>

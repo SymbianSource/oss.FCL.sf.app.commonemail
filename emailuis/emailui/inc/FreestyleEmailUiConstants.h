@@ -25,7 +25,7 @@
 #define PBKX_DEBUG_LEVEL 3 // Print errors, warnings, traces, infos, details
 
 //<cmail>
-#include "CFSMailCommon.h"
+#include "cfsmailcommon.h"
 //</cmail>
 #include <f32file.h>
 

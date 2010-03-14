@@ -22,10 +22,10 @@
 #include <gulicon.h>
 #include <centralrepository.h>
 //<cmail>
-#include "FreestyleEmailCenRepKeys.h"
+#include "freestyleemailcenrepkeys.h"
 //</cmail>
 
-#include "CFSMailBrand.h"
+#include "cfsmailbrand.h"
 
 const TInt KElementArrayGranularity = 5;
 const TInt KMaxStringLenFromCenrep = 256;

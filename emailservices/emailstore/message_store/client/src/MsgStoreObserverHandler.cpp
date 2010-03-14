@@ -16,10 +16,10 @@
 */
 
 
-#include "MsgStoreObserverHandler.h"
-#include "RMessageStoreSession.h"
+#include "msgstoreobserverhandler.h"
+#include "rmessagestoresession.h"
 //<cmail>
-#include "MsgStoreObserver.h"
+#include "msgstoreobserver.h"
 //</cmail>
 
 

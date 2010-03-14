@@ -32,7 +32,7 @@
 
 
 #include <centralrepository.h>
-#include "FreestyleEmailCenRepKeys.h"
+#include "freestyleemailcenrepkeys.h"
 #include <MeetingRequestIds.hrh>
 #include "cfssendashelper.h"
 #include "fsmtmsconstants.h"

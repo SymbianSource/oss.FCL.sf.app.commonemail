@@ -91,7 +91,7 @@ public:
     inline TFolderId() : TBaseId(), iMailboxId() {}
     
     inline TBool operator==( const TFolderId& aFolderId ) const {
-        return ( iMailboxId.iId == aFolderId.iId &&
+        return ( iMailboxId.iId == aFolderId.iMailboxId.iId &&
         iId == aFolderId.iId ); }
         
     inline TBool operator!=( const TFolderId& aFolderId ) const {

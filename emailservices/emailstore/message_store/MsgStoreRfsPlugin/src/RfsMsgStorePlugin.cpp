@@ -19,7 +19,7 @@
 #include <f32file.h>
 
 #include "RfsMsgStorePlugin.h"
-#include "EmailStoreUids.hrh"
+#include "emailstoreuids.hrh"
 #include <bautils.h>  
 #include <s32file.h>
 

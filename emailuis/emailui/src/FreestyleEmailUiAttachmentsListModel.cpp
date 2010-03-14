@@ -19,7 +19,7 @@
 // SYSTEM INCLUDEfS
 //<cmail>
 #include "emailtrace.h"
-#include "CFSMailClient.h"
+#include "cfsmailclient.h"
 //</cmail>
 #include <StringLoader.h>
 #include <FreestyleEmailUi.rsg>

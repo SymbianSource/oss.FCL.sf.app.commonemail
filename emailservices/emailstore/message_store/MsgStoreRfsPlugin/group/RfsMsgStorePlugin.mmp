@@ -17,7 +17,7 @@
 
 #include <platform_paths.hrh>
 #include <data_caging_paths.hrh>
-#include "../../../inc/EmailStoreUids.hrh"
+#include "../../../inc/emailstoreuids.hrh"
 
 TARGET        RfsMsgStorePlugin.dll
 TARGETTYPE    PLUGIN

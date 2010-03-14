@@ -25,9 +25,9 @@
 #include <e32base.h>
 #include <ecom/ecom.h>
 
-#include "CFSMailPlugin.h"
+#include "cfsmailplugin.h"
 
-#include "CFSMailRequestHandler.h"
+#include "cfsmailrequesthandler.h"
 
 /** plugin configuration at start up */
 enum TFsFwConfiguration

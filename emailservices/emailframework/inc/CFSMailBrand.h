@@ -20,7 +20,7 @@
 #define CFSMAILBRAND_H
 
 // INCLUDES
-#include "MailBrandManager.hrh"		// TFSBrandElement
+#include "mailbrandmanager.hrh"		// TFSBrandElement
 #include <gdi.h>
 #include <badesca.h>
 

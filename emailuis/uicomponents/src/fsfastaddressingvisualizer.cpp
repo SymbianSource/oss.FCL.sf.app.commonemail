@@ -16,16 +16,11 @@
 */
 
 
-//<cmail> removed __FS_ALFRED_SUPPORT flag 
-//#include <fsconfig.h>
-//</cmail> removed __FS_ALFRED_SUPPORT flag 
-//<cmail> SF
 #include "emailtrace.h"
 #include <alf/alfAnchorLayout.h>
 #include <alf/alfFlowLayout.h>
 #include <alf/alfimagevisual.h>
-//</cmail>
-#include <COECNTRL.H>
+#include <coecntrl.h>
 
 #include "fsfastaddressingvisualizer.h"
 #include "fstextinputvisual.h"

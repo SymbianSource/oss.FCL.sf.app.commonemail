@@ -22,13 +22,15 @@
 // INCLUDES
 #include <CPsDataPlugin.h>
 //<cmail>
-#include "MFSMailEventObserver.h"
+#include "mfsmaileventobserver.h"
 //</cmail>
 
 // FORWARD DECLARATION
 class CPsData;
 class CFSMailClient;
+class MDesCArray;
 
+class CDelayMailboxCreationHelper;
 // CLASS DECLARATION
 
 /**
@@ -39,24 +41,24 @@ class CFSMailClient;
 * @since S60 v3.2
 */
 class CPsMruAdapter : public CPsDataPlugin, public MFSMailEventObserver
-	{
-	public: 
-	
-	    /**
-	     * Two phase construction
-	     */
-	    static CPsMruAdapter* NewL(TAny* aPsDataPluginParameters);
-
-	    /**
-	     * Destructor
-	     */
-	    virtual ~CPsMruAdapter();
-
-	    /**
-	     * Returns the additional data for given item id
-	     * Returns NULL (in current implementation)
-	     */
-	    TAny* RequestForDataExtensionL( TInt ItemId );
+    {
+    public: 
+    
+        /**
+         * Two phase construction
+         */
+        static CPsMruAdapter* NewL(TAny* aPsDataPluginParameters);
+    
+        /**
+         * Destructor
+         */
+        virtual ~CPsMruAdapter();
+    
+        /**
+         * Returns the additional data for given item id
+         * Returns NULL (in current implementation)
+         */
+        TAny* RequestForDataExtensionL( TInt ItemId );
 
 // from base class CPsDataPlugin
 
@@ -97,92 +99,157 @@ class CPsMruAdapter : public CPsDataPlugin, public MFSMailEventObserver
         void EventL( TFSMailEvent aEvent, TFSMailMsgId aMailbox, 
             TAny* aParam1, TAny* aParam2, TAny* aParam3 );
 
+        /**
+         * If problem with NewMailbox this function will be called 
+         * by CDelayMailboxCreationHelper to try it after some delay
+         */
+        TBool DeleayedMailboxCreationEventL();
+        
+        /**
+         * If problem with NewMailbox this function will be called 
+         * by CDelayMailboxCreationHelper to try it after some delay
+         */
+        void DeleayMailboxCreationEventL( TFSMailMsgId &aMailbox );
+        
 	private:
 
-	    /**
-	     * Constructor
-	     */
-		CPsMruAdapter();
-
-		/**
-		 * 2nd phase construtor
-		 */
-		void ConstructL(MDataStoreObserver* aObserverForDataStore,
-		    MStoreListObserver* aStoreListObserver);
-
-		/**
-		 * Updates given data store
-		 */  	    
-		TBool FillDataStoreL( TDesC& aDataStoreURI );
-
-		/**
-		 * Updates given data store
-		 */  	    	    
-		TBool FillDataStoreL( TFSMailMsgId& aId );
-
-		/**
-		 * Updates a list of supported data stores
-		 */  	    
-		void UpdateSupportedDataStoresList();	    
-
-		/**
-		 * Starts observing mailbox
-		 */
-		TBool AddMailboxObserverL( TFSMailMsgId& aId );
-		
-		/**
-		 * Stops observing mailbox
-		 */
-	    TBool RemoveMailboxObserver( TFSMailMsgId& aId );
-	    
-		/**
-		 * Stops all mailbox observers
-		 */
-	    void RemoveAllMailboxObservers();
-		
-		/**
-		 * Converts Uri to TFsMailMsgId
-		 */
-		TBool GetMailboxIdentifierFromUri( TDesC& aUri, TFSMailMsgId& aId );
-
-		/**
-		 * Converts TFsMailMsgId to Uri
-		 */
-	    TBool GetUriFromMailboxIdentifier( TFSMailMsgId& aId, HBufC& aUri );
-	    
-		/**
-	    * Updates given data store
-	    */  	    	    
-	    TBool FillDataStoreL( TFSMailMsgId& aId, TDesC& aDataStoreURI );	    
+        /**
+         * Constructor
+         */
+        CPsMruAdapter();
+        
+        /**
+         * 2nd phase construtor
+         */
+        void ConstructL(MDataStoreObserver* aObserverForDataStore,
+            MStoreListObserver* aStoreListObserver);
+        
+        /**
+         * Updates given data store
+         */  	    
+        TBool FillDataStoreL( TDesC& aDataStoreURI );
+        
+        /**
+         * Updates given data store
+         */  	    	    
+        TBool FillDataStoreL( TFSMailMsgId& aId );
+        
+        /**
+         * Updates a list of supported data stores
+         */  	    
+        void UpdateSupportedDataStoresList();	    
+        
+        /**
+         * Starts observing mailbox
+         */
+        TBool AddMailboxObserverL( TFSMailMsgId& aId );
+        
+        /**
+         * Stops observing mailbox
+         */
+        TBool RemoveMailboxObserver( TFSMailMsgId& aId );
+        
+        /**
+         * Stops all mailbox observers
+         */
+        void RemoveAllMailboxObservers();
+        
+        /**
+         * Converts Uri to TFsMailMsgId
+         */
+        TBool GetMailboxIdentifierFromUri( TDesC& aUri, TFSMailMsgId& aId );
+        
+        /**
+         * Converts TFsMailMsgId to Uri
+         */
+        TBool GetUriFromMailboxIdentifier( TFSMailMsgId& aId, HBufC& aUri );
+        
+        /**
+        * Updates given data store
+        */  	    	    
+        TBool FillDataStoreL( TFSMailMsgId& aId, TDesC& aDataStoreURI );	    
+        
+        /**
+        * Calls MDataStoreObserver::AddData for every mru email - used for trapping 
+        */  	    	    
+        void AddMruEmailsL( MDesCArray* aMruList, TDesC& aDataStoreURI );
 
     private: // data
 
-		/**
-		 * Holds the observer object to communicate add/modify/delete of contacts
-		 * Not owned.
-		 */
-		MDataStoreObserver* iDataStoreObserver;
-		
-		/**
-	    * An observer instance used to send the datastore to the adapter
-	    */
-		MStoreListObserver* iStoreListObserver;		
-			
-		/**
+        /**
+         * Holds the observer object to communicate add/modify/delete of contacts
+         * Not owned.
+         */
+        MDataStoreObserver* iDataStoreObserver;
+        
+        /**
+        * An observer instance used to send the datastore to the adapter
+        */
+        MStoreListObserver* iStoreListObserver;		
+        	
+        /**
         * Supported Uris(data stores)
         */
-    	RPointerArray<HBufC> iSupportedUris;	
-    	
-    	/**
-    	 * List of mailboxes currently being observed
-    	 */
-    	RArray<TFSMailMsgId> iObservedMailboxes;
-    	
-		/**
+        RPointerArray<HBufC> iSupportedUris;	
+        
+        /**
+         * List of mailboxes currently being observed
+         */
+        RArray<TFSMailMsgId> iObservedMailboxes;
+        
+        /**
         * Fs Email framework client
         */
-	    CFSMailClient* iMailClient;
-	};
-	
+        CFSMailClient* iMailClient;
+
+        /**
+        * Class for postponing the mailbox creation in MRU list - Event may come beforet the mailbox exists
+        */
+        CDelayMailboxCreationHelper *iDelayMailboxCreationPtr;
+        
+        /**
+        * This mailboxes should be handled by CDelayMailboxCreationHelper
+        */
+        RArray<TFSMailMsgId> iDelayedCreatedMailboxes;
+
+    }; // class CPsMruAdapter
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+
+// Helper class for thread synchronization 
+// used when mailbox is not ready when TFSEventNewMailbox event comes 
+// Waits 30*0.5 sec to try posponed mailbox registration
+
+// wait 500 ms to try adding the mailbox - because sync problems 
+#define KDelayToRunAddMailbox 500 
+// try it 15 second - 30 times
+#define KNumberOfDelayedTrials 30
+
+
+class CDelayMailboxCreationHelper : public CTimer
+    {
+    public:
+        static CDelayMailboxCreationHelper* NewLC( CPsMruAdapter *aPsMruAdapterPtr );
+        static CDelayMailboxCreationHelper* NewL( CPsMruAdapter *aPsMruAdapterPtr );
+        // d-tor
+        virtual ~CDelayMailboxCreationHelper();
+        // Start timer to call CPsMruAdapter::DeleayedMailboxCreationEventL by RunL 
+        void StartDelayedCall();	
+    protected:
+        // on timer event - calls CPsMruAdapter::DeleayedMailboxCreationEventL
+        virtual void RunL();
+        // when leave from RunL, if err handled return KErrNone
+        TInt RunError( TInt aError );
+        // two phase constr.
+        void ConstructL();
+    private:
+        CDelayMailboxCreationHelper( CPsMruAdapter *aPsMruAdapterPtr ); // EPriorityLow, EPriorityIdle
+        // callback not owning pointer assigned during construction
+        CPsMruAdapter *iPsMruAdapterPtr;
+        // unsuccessful calls still allowed counter
+        TInt iNumberOfDelayedTrials;
+    }; // class CDelayMailboxCreationHelper
 
 #endif // C_PS_MRU_ADAPTER_H

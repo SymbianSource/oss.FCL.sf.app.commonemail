@@ -33,9 +33,9 @@
 #include "emailtextcontent.h"
 #include "emailmultipart.h"
 #include "emailattachment.h"
-#include "CFSMailPlugin.h"
+#include "cfsmailplugin.h"
 #include "FreestyleEmailUiConstants.h"
-#include "CFSMailClient.h"
+#include "cfsmailclient.h"
 
 // -----------------------------------------------------------------------------
 // 
@@ -74,6 +74,9 @@ void CEmailMessage::ConstructL()
             iPluginMessage->GetMessageId().Id(),
             iPluginMessage->GetFolderId().Id(), 
             iPluginMessage->GetMailBoxId().Id() );
+        
+        // Copy the message flags
+        InitializeFlagValues();
         }
     }
 
@@ -353,6 +356,142 @@ void CEmailMessage::ResetFlag( const TUint aFlag )
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
+void CEmailMessage::InitializeFlagValues()
+    {
+    // 1st reset member value, then start copying different flags
+    iFlags = 0;
+    
+    // EFlag_Read
+    if ( iPluginMessage->IsFlagSet( EFSMsgFlag_Read ) )
+        {
+        iFlags |= EFlag_Read;
+        }
+    else
+        {
+        iFlags &= ~EFlag_Read;
+        }
+    //    EFlag_Read_Locally
+    if ( iPluginMessage->IsFlagSet( EFSMsgFlag_Read_Locally ) )
+        {
+        iFlags |= EFlag_Read_Locally;
+        }
+    else
+        {
+        iFlags &= ~EFlag_Read_Locally;
+        }    
+    // EFlag_Low
+    if ( iPluginMessage->IsFlagSet( EFSMsgFlag_Low ) )
+        {
+        iFlags |= EFlag_Low;
+        }
+    else
+        {
+        iFlags &= ~EFlag_Low;
+        }
+    // EFlag_Important
+    if ( iPluginMessage->IsFlagSet( EFSMsgFlag_Important ) )
+        {
+        iFlags |= EFlag_Important;
+        }
+    else
+        {
+        iFlags &= ~EFlag_Important;
+        }
+    // EFlag_FollowUpComplete
+    if ( iPluginMessage->IsFlagSet( EFSMsgFlag_FollowUpComplete ) )
+        {
+        iFlags |= EFlag_FollowUpComplete;
+        }
+    else
+        {
+        iFlags &= ~EFlag_FollowUpComplete;
+        }
+    // EFlag_FollowUp
+    if ( iPluginMessage->IsFlagSet( EFSMsgFlag_FollowUp ) )
+        {
+        iFlags |= EFlag_FollowUp;
+        }
+    else
+        {
+        iFlags &= ~EFlag_FollowUp;
+        }
+    // EFlag_Attachments
+    if ( iPluginMessage->IsFlagSet( EFSMsgFlag_Attachments ) )
+        {
+        iFlags |= EFlag_Attachments;
+        }
+    else
+        {
+        iFlags &= ~EFlag_Attachments;
+        }
+    // EFlag_Multiple
+    if ( iPluginMessage->IsFlagSet( EFSMsgFlag_Multiple ) )
+        {
+        iFlags |= EFlag_Multiple;
+        }
+    else
+        {
+        iFlags &= ~EFlag_Multiple;
+        }
+    // EFlag_CalendarMsg
+    if ( iPluginMessage->IsFlagSet( EFSMsgFlag_CalendarMsg ) )
+        {
+        iFlags |= EFlag_CalendarMsg;
+        }
+    else
+        {
+        iFlags &= ~EFlag_CalendarMsg;
+        }
+    // EFlag_Answered
+    if ( iPluginMessage->IsFlagSet( EFSMsgFlag_Answered ) )
+        {
+        iFlags |= EFlag_Answered;
+        }
+    else
+        {
+        iFlags &= ~EFlag_Answered;
+        }
+    // EFlag_Forwarded
+    if ( iPluginMessage->IsFlagSet( EFSMsgFlag_Forwarded ) )
+        {
+        iFlags |= EFlag_Forwarded;
+        }
+    else
+        {
+        iFlags &= ~EFlag_Forwarded;
+        }
+    // EFlag_OnlyToMe
+    if ( iPluginMessage->IsFlagSet( EFSMsgFlag_OnlyToMe ) )
+        {
+        iFlags |= EFlag_OnlyToMe;
+        }
+    else
+        {
+        iFlags &= ~EFlag_OnlyToMe;
+        }
+    // EFlag_RemoteDeleted
+    if ( iPluginMessage->IsFlagSet( EFSMsgFlag_RemoteDeleted ) )
+        {
+        iFlags |= EFlag_RemoteDeleted;
+        }
+    else
+        {
+        iFlags &= ~EFlag_RemoteDeleted;
+        }
+    // EFlag_HasMsgSender 
+    if ( iPluginMessage->IsFlagSet( EFSMsgFlag_HasMsgSender ) )
+        {
+        iFlags |= EFlag_HasMsgSender;
+        }
+    else
+        {
+        iFlags &= ~EFlag_HasMsgSender;
+        }
+    }
+
+// -----------------------------------------------------------------------------
+// 
+// -----------------------------------------------------------------------------
 MEmailMessageContent* CEmailMessage::ContentL() const
     {
     if (iTextContent)
@@ -382,16 +521,16 @@ MEmailMessageContent* CEmailMessage::ContentL() const
                         iMessageId.iFolderId.iId,
                         iMessageId.iFolderId.iMailboxId ); 
 
-    if (!contentType.Compare(KFSMailContentTypeTextPlain) || 
-        !contentType.Compare(KFSMailContentTypeTextHtml))
+    if (!contentType.Find(KFSMailContentTypeTextPlain) || 
+        !contentType.Find(KFSMailContentTypeTextHtml))
         {                                
         iTextContent = CEmailTextContent::NewL(iPluginData, msgContentId, part, EAPIOwns );        
         }
-    else if (!contentType.Compare(KFSMailContentTypeMultipartMixed) ||
-             !contentType.Compare(KFSMailContentTypeMultipartAlternative) ||
-             !contentType.Compare(KFSMailContentTypeMultipartDigest) ||
-             !contentType.Compare(KFSMailContentTypeMultipartRelated) ||
-             !contentType.Compare(KFSMailContentTypeMultipartParallel))
+    else if (!contentType.Find(KFSMailContentTypeMultipartMixed) ||
+             !contentType.Find(KFSMailContentTypeMultipartAlternative) ||
+             !contentType.Find(KFSMailContentTypeMultipartDigest) ||
+             !contentType.Find(KFSMailContentTypeMultipartRelated) ||
+             !contentType.Find(KFSMailContentTypeMultipartParallel))
         {
         iContent = CEmailMultipart::NewL(iPluginData, msgContentId, part, EAPIOwns);
         }
@@ -422,7 +561,10 @@ void CEmailMessage::SetContentL( const MEmailMessageContent*  aContent )
             delete iTextContent; // Destroy old content
             }
         iTextContent = dynamic_cast<CEmailTextContent*>(textContent);
-        iTextContent->SetOwner( EAPIOwns );
+		if ( iTextContent )
+			{
+			iTextContent->SetOwner( EAPIOwns );
+			}
         return;
         }
     MEmailMultipart* mPart = aContent->AsMultipartOrNull();
@@ -433,7 +575,10 @@ void CEmailMessage::SetContentL( const MEmailMessageContent*  aContent )
             delete iContent;
             }
         iContent = dynamic_cast<CEmailMultipart*>(mPart);
-        iContent->SetOwner( EAPIOwns );
+		if ( iContent )
+			{
+			iContent->SetOwner( EAPIOwns );
+			}
         }    
     }
     

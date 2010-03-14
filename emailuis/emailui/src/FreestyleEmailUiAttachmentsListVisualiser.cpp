@@ -19,7 +19,7 @@
 
 // SYSTEM INCLUDES
 #include "emailtrace.h"
-#include "CFSMailBox.h"
+#include "cfsmailbox.h"
 #include <e32base.h>
 #include <freestyleemailui.mbg>
 #include <AknUtils.h>

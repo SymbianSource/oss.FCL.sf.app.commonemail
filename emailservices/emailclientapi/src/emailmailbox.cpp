@@ -31,11 +31,11 @@
 #include "emailfolder.h"
 #include "emailmessage.h"
 #include "emailmessagesearch.h"
-#include "CFSMailClient.h"
+#include "cfsmailclient.h"
 #include "emailclientapiimpl.h"
-#include "CFSMailPlugin.h"
-#include "CFSMailbox.h"
-#include "CFSMailFolder.h"
+#include "cfsmailplugin.h"
+#include "cfsmailbox.h"
+#include "cfsmailfolder.h"
 #include "emailclientapi.hrh"
 #include "FreestyleEmailUiConstants.h"
 
@@ -450,7 +450,7 @@ void CEmailMailbox::TObserverEventMapper::EventL(
     TMailboxId id( aMailbox.Id() );
     // boundary check
     const TInt index( aEvent );
-    if ( index < sizeof( KMailboxEventHandlers ) )
+    if ( index < sizeof( KMailboxEventHandlers ) / sizeof( KMailboxEventHandlers[ index ] ) )
         {
         // call event handler function
         TEventMapFunc method = KMailboxEventHandlers[ index ];        

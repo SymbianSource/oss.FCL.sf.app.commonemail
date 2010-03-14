@@ -32,12 +32,12 @@
 #include <fsmailserver.rsg>
 #include <StringLoader.h>
 //<cmail>
-#include "CFSMailClient.h"
-#include "CFSMailBox.h"
-#include "CFSMailFolder.h"
-#include "CFSMailMessage.h"
-#include "CFSMailAddress.h"
-#include "CFSMailCommon.h"
+#include "cfsmailclient.h"
+#include "cfsmailbox.h"
+#include "cfsmailfolder.h"
+#include "cfsmailmessage.h"
+#include "cfsmailaddress.h"
+#include "cfsmailcommon.h"
 //</cmail>
 #include <freestyleemailui.mbg>
 #include <AknQueryDialog.h>
@@ -169,6 +169,7 @@ CFreestyleEmailUiAppUi::CFreestyleEmailUiAppUi( CAlfEnv& aEnv )
     {
     FUNC_LOG;
     iEnv = &aEnv;
+    TIMESTAMP( "Application starting" );
     }
 
 // ---------------------------------------------------------------------------
@@ -381,6 +382,7 @@ void CFreestyleEmailUiAppUi::ConstructL()
     // until a certain callback event is received
     // -> thus keep this last in this method!
     iWizardObserver->DoWizardStartupActionsL();
+    TIMESTAMP( "Application started" );
     }
 
 // Functions loads some views as delayed to reduce startup time
@@ -531,6 +533,7 @@ CFreestyleEmailUiAppUi::~CFreestyleEmailUiAppUi()
     delete iNaviDecorator2MailViewer;
 
     delete iConnectionStatusIconAnimTimer;
+    TIMESTAMP( "Application exit" );
     }
 
 
@@ -634,6 +637,14 @@ void CFreestyleEmailUiAppUi::ReturnFromPluginSettingsView()
             iCurrentActiveView = iNavigationHistory->Pop();
             }
         }
+    // may be tricky; added here to handle activation of composer view from external app when email is plugin settings view
+    // in this case also duplictaed view needs to be poped up, but iSettingsViewActive is already set to EFalse
+    // other solution would need to expand api of this class to handle directly this case 
+    else
+    	if ( iPreviousActiveView->Id() == SettingsViewId  || iPreviousActiveView->Id() == MailListId )
+    		{
+    		iCurrentActiveView = iNavigationHistory->Pop();
+    		}
     }
 
 void CFreestyleEmailUiAppUi::ViewActivatedExternallyL( TUid aViewId )
@@ -668,7 +679,7 @@ void CFreestyleEmailUiAppUi::ViewActivatedExternallyL( TUid aViewId )
             iCurrentActiveView = static_cast<CFsEmailUiViewBase*>( View(aViewId) );
             }
         }
-
+    TIMESTAMP( "View activated" );
     }
 
 void CFreestyleEmailUiAppUi::SetSwitchingToBackground( TBool aValue )
@@ -700,6 +711,7 @@ void CFreestyleEmailUiAppUi::ReturnFromHtmlViewerL( TBool aMessageWasDeleted )
 	    {
        	ReturnToPreviousViewL();
 	    }
+	TIMESTAMP( "Returned from html viewer view to previous view" );
 	}
 
 TUid CFreestyleEmailUiAppUi::ReturnToPreviousViewL( const TDesC8& aCustomMessage /*= KNullDesC8*/ )
@@ -725,6 +737,7 @@ TUid CFreestyleEmailUiAppUi::ReturnToPreviousViewL( const TDesC8& aCustomMessage
 	if ( viewId == AppGridId )
 		{
 		ActivateLocalViewL( AppGridId );
+		TIMESTAMP( "Return to application grid view" );
 		}
 	else if ( viewId == MailListId )
 		{
@@ -737,6 +750,7 @@ TUid CFreestyleEmailUiAppUi::ReturnToPreviousViewL( const TDesC8& aCustomMessage
     		const TPckgBuf<TMailListActivationData> pkgOut;
     		ActivateLocalViewL( MailListId, KStartListReturnToPreviousFolder, pkgOut );
 		    }
+		TIMESTAMP( "Return to message list view" );
 		}
 	else if ( viewId == SearchListViewId )
 		{
@@ -755,10 +769,12 @@ TUid CFreestyleEmailUiAppUi::ReturnToPreviousViewL( const TDesC8& aCustomMessage
 	    // launch html viewer
 		const TPckgBuf<THtmlViewerActivationData> pkgOut;
 		ActivateLocalViewL( HtmlViewerId, KHtmlViewerReturnToPrevious, pkgOut );
+		TIMESTAMP( "Return to html viewer view" );
 	    }
 	else if ( viewId == MailEditorId )
 		{
 		ActivateLocalViewL( MailEditorId, TUid::Uid(KEditorCmdReturnToPrevious), aCustomMessage );
+		TIMESTAMP( "Return to email editor view" );
 		}
 	else if ( viewId == MsgDetailsViewId )
 		{
@@ -772,6 +788,7 @@ TUid CFreestyleEmailUiAppUi::ReturnToPreviousViewL( const TDesC8& aCustomMessage
 		{
 		// Generic case where the view does not need any startup parameters
 		ActivateLocalViewL( viewId );
+		TIMESTAMP( "Return to previous view" );
 		}
 
 	return viewId;
@@ -824,6 +841,7 @@ void CFreestyleEmailUiAppUi::ReturnToViewL( TUid aViewId,
         {
         ActivateLocalViewL( iCurrentActiveView->Id() );
         }
+    TIMESTAMP( "Return to earlier view" );
     }
 
 void CFreestyleEmailUiAppUi::ShowFolderListInPopupL(
@@ -897,6 +915,7 @@ void CFreestyleEmailUiAppUi::HandleCommandL( TInt aCommand )
 void CFreestyleEmailUiAppUi::Exit()
     {
     FUNC_LOG;
+    TIMESTAMP ("Exiting from email application");
     g_ApplicationExitOnGoing = ETrue;
     if ( iExitGuardian->ExitApplication() == KRequestPending )
         {
@@ -1741,23 +1760,40 @@ void CFreestyleEmailUiAppUi::RequestResponseL( TFSProgress /*aEvent*/, TInt /*aR
 
 // Force Sync on active mailbox.
 void CFreestyleEmailUiAppUi::SyncActiveMailBoxL()
-	{
-    FUNC_LOG;
-	if ( iActiveMailbox )
-		{
-    	iSyncStatusReqId = iActiveMailbox->RefreshNowL( *this );
-		}
-	}
-
+     {
+     FUNC_LOG;
+     if( iActiveMailbox )
+         {
+         // Start sync automatically if not syncing already
+         TSSMailSyncState latestSyncstate = iActiveMailbox->CurrentSyncState();
+         if( latestSyncstate != InboxSyncing && latestSyncstate != StartingSync && latestSyncstate != EmailSyncing )
+	     {
+    	     iSyncStatusReqId = iActiveMailbox->RefreshNowL( *this );
+	     }
+         }
+      }
 void CFreestyleEmailUiAppUi::StopActiveMailBoxSyncL()
-	{
-    FUNC_LOG;
-    if ( iActiveMailbox )
-        {
-        iActiveMailbox->CancelSyncL();
-        }
-	}
-
+     {
+     FUNC_LOG;
+     if ( iActiveMailbox && iActiveMailbox->GetMailBoxStatus()==EFSMailBoxOnline)
+         {
+         TSSMailSyncState latestSyncstate = iActiveMailbox->CurrentSyncState();
+         if(latestSyncstate == InboxSyncing ||
+                latestSyncstate == EmailSyncing ||
+                latestSyncstate == OutboxSyncing ||
+                latestSyncstate == SentItemsSyncing ||
+                latestSyncstate == DraftsSyncing ||
+                latestSyncstate == CalendarSyncing ||
+                latestSyncstate == ContactsSyncing ||
+                latestSyncstate == TasksSyncing ||
+                latestSyncstate == NotesSyncing ||
+                latestSyncstate == FilesSyncing ||
+                latestSyncstate == DataSyncStarting )
+             {
+             iActiveMailbox->CancelSyncL();
+             }
+         }
+     }
 
 MCoeMessageObserver::TMessageResponse CFreestyleEmailUiAppUi::HandleMessageL(
     TUint32 aClientHandleOfTargetWindowGroup,
@@ -1883,7 +1919,9 @@ void CFreestyleEmailUiAppUi::EventL( TFSMailEvent aEvent, TFSMailMsgId aMailbox,
         			{
                     case StartingSync:
                         {
+                        TIMESTAMP( "Starting sync" );
                         //If syncs were started by user, show the synchoronisation indicator
+                        TIMESTAMP( "Sync error" );
                         if(iManualMailBoxSyncAll)
                             {
                             ManualMailBoxSyncAll(EFalse);
@@ -1910,6 +1948,7 @@ void CFreestyleEmailUiAppUi::EventL( TFSMailEvent aEvent, TFSMailMsgId aMailbox,
                     case SyncCancelled:
                     case Idle:
                         {
+                        TIMESTAMP( "Sync finished" );
                         ManualMailBoxSync( EFalse );
                         }
                         break;

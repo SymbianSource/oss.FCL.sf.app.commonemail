@@ -18,7 +18,7 @@
 
 //<cmail>
 #include "emailtrace.h"
-#include "CFSMailClient.h"
+#include "cfsmailclient.h"
 //</cmail>
 #include <e32base.h> // needed because of the following hrh
 #include <data_caging_path_literals.hrh> // KDC_MTM_INFO_FILE_DIR
@@ -36,8 +36,8 @@
 
 // FREESTYLE EMAIL FRAMEWORK INCLUDES
 //<cmail>
-#include "CFSMailClient.h"
-#include "MFSMailBrandManager.h"
+#include "cfsmailclient.h"
+#include "mfsmailbrandmanager.h"
 //</cmail>
 
 

@@ -46,5 +46,5 @@ USERINCLUDE             ../inc
 USERINCLUDE             ../../../../inc
 
 LIBRARY                 euser.lib
-DEBUGLIBRARY            flogger.lib
+LIBRARY                 flogger.lib
 LIBRARY                 cmaillogger.lib

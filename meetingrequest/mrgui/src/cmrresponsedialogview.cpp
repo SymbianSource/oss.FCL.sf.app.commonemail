@@ -177,10 +177,10 @@ void CESMRResponseDialogView::SetContainerWindowL(
     CCoeControl::SetContainerWindowL( aContainer );
     iEditor = new (ELeave )CEikRichTextEditor();
     iEditor->ConstructL( this, 0, 0, CEikEdwin::ENoAutoSelection, 0, 0 );
-    iEditor->SetFocus( ETrue );
-    iEditor->SetContainerWindowL( *this );
-    iEditor->SetSize( Rect().Size() );
+    iEditor->SetContainerWindowL(*this);
+    iEditor->SetSize(Rect().Size());
     iEditor->SetSkinBackgroundControlContextL( iBgContext );
+    iEditor->SetFocus( ETrue );
     
     // Create vertical scrollbar for editor
     iScrollBarFrame = iEditor->CreateScrollBarFrameL();

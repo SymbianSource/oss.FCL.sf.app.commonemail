@@ -23,6 +23,10 @@
 #include <MVPbkSingleContactOperationObserver.h>
 #include <MVPbkContactStoreListObserver.h>
 #include <AiwCommon.h>
+
+// CCA Launcher view
+#include <mccaconnection.h>
+
 //<cmail>
 #include "cpbkxremotecontactlookupserviceuicontext.h"
 //</cmail>
@@ -95,7 +99,8 @@ class CFSEmailUiContactHandler:
 	public MFSEmailUiClsListsObserver,
 	public MVPbkSingleContactOperationObserver,
 	public MVPbkContactStoreListObserver,
-	public MAiwNotifyCallback
+	public MAiwNotifyCallback, 
+	public MCCAObserver
 
 {
 public:
@@ -339,6 +344,9 @@ public:
 	
 	void ClearObservers();
       
+// from MCCAObserver      
+    void CCASimpleNotifyL( TNotifyType aType, TInt aReason );
+      
 private:
     
     CFSEmailUiContactHandler( RFs& aSession );
@@ -446,10 +454,11 @@ private: // data
     /// Flag for indicating that caching error was received  
     TBool iCachingInProgressError;
     
-    // <cmail> video call
     // Flag for making video call
     TBool iVideoCall;
-    // </cmail>
+
+    // connection to CCMA launcher    
+    MCCAConnection* iConnection;
 };
 
 #endif /*FREESTYLEEMAILUICONTACTHANDLER_H_*/

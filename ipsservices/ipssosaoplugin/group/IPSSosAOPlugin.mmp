@@ -70,8 +70,7 @@ LIBRARY                 eikcore.lib
 LIBRARY                 ipssosplugin.lib
 LIBRARY                 IpsSosSettings.lib
 LIBRARY                 cmaillogger.lib
-LIBRARY					cmmanager.lib
-DEBUGLIBRARY            flogger.lib
+LIBRARY                 cmmanager.lib
 
 #ifdef TRACE_INTO_FILE
 LIBRARY                 flogger.lib

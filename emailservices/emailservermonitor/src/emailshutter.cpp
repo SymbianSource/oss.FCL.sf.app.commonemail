@@ -29,11 +29,11 @@
 #include <AlwaysOnlineManagerClient.h>  // RAlwaysOnlineClientSession
 #include <CPsRequestHandler.h>          // CPSRequestHandler
 #include <centralrepository.h>          // CRepository
-#include <platform/mw/aisystemuids.hrh> // HomeScreen UIDs
+#include <aisystemuids.hrh>             // HomeScreen UIDs
 
 #include "FreestyleEmailUiConstants.h"  // FS Email UI UID
 #include "fsmtmsconstants.h"            // MCE, Phonebook & Calendar UIDs
-#include "EmailStoreUids.hrh"           // KUidMessageStoreExe
+#include "emailstoreuids.hrh"           // KUidMessageStoreExe
 
 #include "emailtrace.h"
 #include "emailshutdownconst.h"

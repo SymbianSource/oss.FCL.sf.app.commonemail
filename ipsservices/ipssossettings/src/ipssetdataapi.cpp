@@ -162,6 +162,16 @@ EXPORT_C void CIpsSetDataApi::SetNewPasswordL(
         {
         SetNewImap4PasswordL( aService, aPassword );
         }
+    else if ( aService.Entry().iMtm.iUid == KSenduiMtmSmtpUidValue )
+        {
+        CEmailAccounts* accounts = CEmailAccounts::NewLC();
+
+        TBuf8<KIpsDataApiMaxPassLen> temp;
+        temp.Copy( aPassword );
+
+        SetNewSmtpPasswordL( aService.EntryId(), temp, *accounts );
+        CleanupStack::PopAndDestroy( 1, accounts );
+        }
     }
 
 // ----------------------------------------------------------------------------

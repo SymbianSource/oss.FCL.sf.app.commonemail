@@ -21,9 +21,9 @@
 #define __MSGSTOREFOLDERUTILS_H__
 
 //<cmail>
-#include "MsgStoreMailBox.h"
-#include "MsgStorePropertyKeys.h"
-#include "MsgStoreTypes.h"
+#include "msgstoremailbox.h"
+#include "msgstorepropertykeys.h"
+#include "msgstoretypes.h"
 //</cmail>
 
 /**

@@ -21,7 +21,7 @@
 //  INCLUDES
 #include <e32base.h>
 //<cmail>
-#include "MFSMailRequestObserver.h"
+#include "mfsmailrequestobserver.h"
 //</cmail>
 #include <AknGlobalMsgQuery.h>
 #include "FreestyleEmailUiConstants.h"

@@ -1116,7 +1116,7 @@ void CIpsSetData::SetRetrieveLimit(
 //
 void CIpsSetData::SetSchedule( 
     const TInt aSchedule,
-    const TBool aRoaming )
+    const TBool /*aRoaming*/ )
     {
     FUNC_LOG;
     TInt time = 0;

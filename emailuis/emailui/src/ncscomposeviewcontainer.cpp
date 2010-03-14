@@ -287,6 +287,7 @@ void CNcsComposeViewContainer::HandlePointerEventL(
                     {
                     iFocused = iHeader;
                     iHeader->SetFocus( ETrue,EDrawNow );
+                    iMessageField->ClearSelectionL();
                     iMessageField->SetFocus( EFalse, EDrawNow );
                     iHeader->MakeVisible( ETrue );
                     CommitL( EBodyField );
@@ -425,6 +426,11 @@ void CNcsComposeViewContainer::HandlePointerEventL(
     		break;
     		}
     	}
+    	
+    if( iFocused == iMessageField )
+    	{
+    	iMessageField->HandleTextChangedL();
+    	}
 
     if ( aPointerEvent.iType == TPointerEvent::EButton1Down &&
          iHeader->NeedsLongTapL( aPointerEvent.iPosition ) )
@@ -505,7 +511,9 @@ TKeyResponse CNcsComposeViewContainer::OfferKeyEventL(
     if ( ret == EKeyWasNotConsumed )
         {
         ret = iFocused->OfferKeyEventL( aKeyEvent, aType );
-
+        if( aType == EEventKeyUp )
+        	iView.HandleContainerChangeRequiringToolbarRefresh();
+        
         // Report user activity to auto saver if editor field handled the
         // event. In case of message field (body text), EKeyWasConsumed
         // condition does not come true because AknFep consumes EKeyEvent
@@ -514,7 +522,6 @@ TKeyResponse CNcsComposeViewContainer::OfferKeyEventL(
         // autosaver is notified in HandleEdwinEventL()
         if ( ( ret == EKeyWasConsumed ) && ( iFocused != iMessageField ) )
             {
-            iView.HandleContainerChangeRequiringToolbarRefresh();
             iAutoSaver.ReportActivity();
             }
         }

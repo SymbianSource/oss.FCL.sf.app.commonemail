@@ -19,7 +19,7 @@
 #ifndef __FSMAILFOLDER_H
 #define __FSMAILFOLDER_H
 
-#include "CFsMailFolderBase.h"
+#include "cfsmailfolderbase.h"
 #include "mfsmailiterator.h"
 
 // forward declarations

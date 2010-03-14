@@ -21,7 +21,7 @@
 
 #include <e32base.h>
 //<cmail>
-#include "MFSMailRequestObserver.h"
+#include "mfsmailrequestobserver.h"
 #include "mesmricalviewerobserver.h"
 //</cmail>
 #include "cesmricalviewerasynccommand.h"

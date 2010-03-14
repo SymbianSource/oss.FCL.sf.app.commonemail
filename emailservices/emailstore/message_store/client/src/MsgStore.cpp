@@ -18,16 +18,16 @@
 
 
 //<cmail>
-#include "MsgStore.h"
-#include "MsgStoreMailBox.h"
-#include "MsgStoreAccount.h"
-#include "MsgStoreObserver.h"
-#include "MsgStorePropertyContainer.h"
-#include "MsgStorePropertyKeys.h"
+#include "msgstore.h"
+#include "msgstoremailbox.h"
+#include "msgstoreaccount.h"
+#include "msgstoreobserver.h"
+#include "msgstorepropertycontainer.h"
+#include "msgstorepropertykeys.h"
 //</cmail>
 
-#include "MsgStoreSessionContext.h"
-#include "MsgStoreObserverHandler.h"
+#include "msgstoresessioncontext.h"
+#include "msgstoreobserverhandler.h"
 //<cmail>
 //#include "IsMsgStorePropertyKeys.h"
 //</cmail>

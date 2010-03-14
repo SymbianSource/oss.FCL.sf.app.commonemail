@@ -26,15 +26,15 @@
 #include <AknGlobalNote.h>
 #include <aknnavi.h>
 #include <aknnavide.h>
-#include <APGCLI.H>
-#include <APMSTD.H>
-#include <FavouritesDb.h>
+#include <apgcli.h>
+#include <apmstd.h>
+#include <favouritesdb.h>
 //<cmail>
 #include <featmgr.h>
-#include "CFSMailMessage.h"
-#include "CFSMailClient.h"
+#include "cfsmailmessage.h"
+#include "cfsmailclient.h"
 #include <FreestyleEmailUi.rsg>
-#include <SchemeHandler.h> // CSchemeHandler
+#include <schemehandler.h> // CSchemeHandler
 #include <brctlinterface.h>
 #include <csxhelp/cmail.hlp.hrh>
 #include <baclipb.h> // for clipboard copy
@@ -53,11 +53,11 @@
 #include "FreestyleEmailUiHtmlViewerContainer.h"
 #include "FreestyleEmailUiUtilities.h"
 #include "FreestyleEmailUiShortcutBinding.h"
-#include "FreestyleEmailCenRepHandler.h"
+#include "freestyleemailcenrephandler.h"
 #include "FreestyleEmailUiAttachmentsListModel.h"
 #include "FreestyleEmailUiConstants.h"
 #include "FSEmail.pan"
-#include "CFSMailCommon.h"
+#include "cfsmailcommon.h"
 
 #include "FreestyleEmailUiMailViewerConstants.h"
 #include "FSDelayedLoader.h"
@@ -209,23 +209,23 @@ void CFsEmailUiHtmlViewerView::HandleCommandL( TInt aCommand )
                     case TBrCtlDefs::EElementAnchor:
                         {
                         // OPEN url in standalone browser UI
-                        /*                         HBufC* url = iContainer->BrowserControlIf()->PageInfoLC(TBrCtlDefs::EPageInfoFocusedNodeUrl);
-                                               // Use scheme handler to launch the browser as a stand alone application
-                                               TInt urlPos = url->Find( KUrlPrefixIdentifier );
-                                               if( urlPos == KErrNotFound )
-                                                   {
-                                                   HBufC* newBuf = url->ReAllocL( url->Length() + KHttpUrlPrefix().Length() );
-                                                   CleanupStack::Pop( url );
-                                                   url = newBuf;
-                                                   CleanupStack::PushL( url );
-                                                   TPtr urlPtr = url->Des();
-                                                   urlPtr.Insert( 0, KHttpUrlPrefix );
-                                                   }
-                                               CSchemeHandler* handler = CSchemeHandler::NewL( *url );
-                                               CleanupStack::PushL( handler );
-                                               handler->HandleUrlStandaloneL();
-                                               CleanupStack::PopAndDestroy( handler );
-                                               CleanupStack::PopAndDestroy( url );                                     */
+                        HBufC* url = iContainer->BrowserControlIf()->PageInfoLC(TBrCtlDefs::EPageInfoFocusedNodeUrl);
+                        // Use scheme handler to launch the browser as a stand alone application
+                        TInt urlPos = url->Find( KUrlPrefixIdentifier );
+                        if( urlPos == KErrNotFound )
+                            {
+                            HBufC* newBuf = url->ReAllocL( url->Length() + KHttpUrlPrefix().Length() );
+                            CleanupStack::Pop( url );
+                            url = newBuf;
+                            CleanupStack::PushL( url );
+                            TPtr urlPtr = url->Des();
+                            urlPtr.Insert( 0, KHttpUrlPrefix );
+                            }
+                        CSchemeHandler* handler = CSchemeHandler::NewL( *url );
+                        CleanupStack::PushL( handler );
+                        handler->HandleUrlStandaloneL();
+                        CleanupStack::PopAndDestroy( handler );
+                        CleanupStack::PopAndDestroy( url );                                     
                         }
                     break;
                     case TBrCtlDefs::EElementNone:
@@ -243,6 +243,7 @@ void CFsEmailUiHtmlViewerView::HandleCommandL( TInt aCommand )
             case EFsEmailUiCmdActionsOpen:
             case EFsEmailUiCmdActionsReply:
                 {
+                TIMESTAMP( "Reply selected from html viewer" );
                 if ( iMessage && !iActivationData.iEmbeddedMessageMode )
                     {
                     TEditorLaunchParams params;
@@ -263,6 +264,7 @@ void CFsEmailUiHtmlViewerView::HandleCommandL( TInt aCommand )
             break;
             case EFsEmailUiCmdActionsReplyAll:
                 {
+                TIMESTAMP( "Reply to all selected from html viewer" );
                 if ( iMessage && !iActivationData.iEmbeddedMessageMode )
                     {
                     TEditorLaunchParams params;
@@ -282,6 +284,7 @@ void CFsEmailUiHtmlViewerView::HandleCommandL( TInt aCommand )
             break;
             case EFsEmailUiCmdActionsForward:
                 {
+                TIMESTAMP( "Forward selected from html viewer" );
                 if ( iMessage && !iActivationData.iEmbeddedMessageMode )
                     {
                     TEditorLaunchParams params;
@@ -301,6 +304,7 @@ void CFsEmailUiHtmlViewerView::HandleCommandL( TInt aCommand )
             break;
             case EFsEmailUiCmdActionsDelete:
                 {
+                TIMESTAMP( "Delete selected from html viewer" );
                 DeleteMailL();
                 }
             break;
@@ -323,6 +327,7 @@ void CFsEmailUiHtmlViewerView::HandleCommandL( TInt aCommand )
             break;
             case EFsEmailUiCmdExit:
                 {
+                TIMESTAMP( "Exit selected from html viewer" );
                 // <cmail>
                 iContainer->PrepareForExit();
                 // </cmail>
@@ -406,6 +411,7 @@ void CFsEmailUiHtmlViewerView::HandleCommandL( TInt aCommand )
             break;
             }
         }
+    TIMESTAMP( "Html viewer selected operation done" );    
     }
 
 // ---------------------------------------------------------------------------
@@ -477,6 +483,9 @@ void CFsEmailUiHtmlViewerView::ChildDoActivateL( const TVwsViewId& /*aPrevViewId
         TUid aCustomMessageId, const TDesC8& aCustomMessage )
     {
     FUNC_LOG;
+
+    TBool msgBodyStructurePresent ( EFalse );
+    TBool msgBodyContentPresent ( EFalse );
     
     if ( iMrObserverToInform && 
          aCustomMessageId == KStartViewerReturnToPreviousMsg )
@@ -588,13 +597,14 @@ void CFsEmailUiHtmlViewerView::ChildDoActivateL( const TVwsViewId& /*aPrevViewId
                     iAppUi.MrViewerInstanceL()->ExecuteViewL( *iMessage, *this );  
                     }                              
                 else
-            		{
-		            iAttachmentsListModel = CFSEmailUiAttachmentsListModel::NewL( iAppUi, *this );
-		            TPartData msgPartData( iActivationData.iMailBoxId, iActivationData.iFolderId, iActivationData.iMessageId);
-		            iAttachmentsListModel->UpdateListL( msgPartData );
+                    {
+                    iAttachmentsListModel = CFSEmailUiAttachmentsListModel::NewL( iAppUi, *this );
+                    TPartData msgPartData( iActivationData.iMailBoxId, iActivationData.iFolderId, iActivationData.iMessageId);
+                    iAttachmentsListModel->UpdateListL( msgPartData );
                        
-            		LoadContentFromMailMessageL( iMessage, ETrue );
-            		}
+                    CheckMessageBodyL( *iMessage, msgBodyStructurePresent, msgBodyContentPresent );
+                    LoadContentFromMailMessageL( iMessage, ETrue );
+                    }
                 
                 }
             else
@@ -640,7 +650,7 @@ void CFsEmailUiHtmlViewerView::ChildDoActivateL( const TVwsViewId& /*aPrevViewId
                 iAttachmentsListModel->UpdateListL( iOpenMessages->Head() );         
                 }                
             
-    
+            CheckMessageBodyL( *iOpenMessages->Head(), msgBodyStructurePresent, msgBodyContentPresent );
             LoadContentFromMailMessageL( iOpenMessages->Head(), ETrue );
             
             // update tool bar as some action menu boton should not appear in embbeded messages.
@@ -711,21 +721,7 @@ void CFsEmailUiHtmlViewerView::ChildDoActivateL( const TVwsViewId& /*aPrevViewId
             }
         else 
             {
-            TBool bodypartNotFound ( EFalse );
-            if ( type == EMessagePlainTextBodyPart )
-                {
-                CFSMailMessagePart* textBodyPart = iMessage->PlainTextBodyPartL();
-                if ( textBodyPart )
-                    {
-                    delete textBodyPart;
-                    }
-                else
-                    {
-                    bodypartNotFound = ETrue;
-                    }                
-                }
-            
-            if ( bodypartNotFound )
+            if ( msgBodyStructurePresent && !msgBodyContentPresent )
                 {
                 iAsyncProcessComplete = EFalse;
                 iFetchingAlready = EFalse;
@@ -745,7 +741,7 @@ void CFsEmailUiHtmlViewerView::ChildDoActivateL( const TVwsViewId& /*aPrevViewId
         iContainer->SetRect( ContainerRect() );
         }
 
-    
+    TIMESTAMP( "Html viewer opened" );    
     }
 
 // -----------------------------------------------------------------------------
@@ -923,7 +919,7 @@ void CFsEmailUiHtmlViewerView::NavigateBackL()
 // ---------------------------------------------------------------------------
 //
 void CFsEmailUiHtmlViewerView::SetStatusBarLayout()
-	{
+    {
     TInt res = R_AVKON_STATUS_PANE_LAYOUT_USUAL_FLAT;
     if( Layout_Meta_Data::IsLandscapeOrientation() )
         {
@@ -936,7 +932,7 @@ void CFsEmailUiHtmlViewerView::SetStatusBarLayout()
         TRAP_IGNORE(
             StatusPane()->SwitchLayoutL( res ));
         }
-	}
+    }
 
 void CFsEmailUiHtmlViewerView::DynInitMenuPaneL( TInt aResourceId, CEikMenuPane* aMenuPane )
     {
@@ -1253,14 +1249,14 @@ void CFsEmailUiHtmlViewerView::DeleteMailL()
         TFSMailMsgId mailBox = iMessage->GetMailBoxId();
         TFSMailMsgId folderId = iMessage->GetFolderId();        
  
-		//Get the id and check if there is a previous message available 
-		TFSMailMsgId prevMsgId;
-		TFSMailMsgId prevMsgFolderId;  
-		
-		//Get the previous message if it exists
-		TBool available = iAppUi.IsPreviousMsgAvailable( currentMsgId, 
-												   prevMsgId, 
-                        		                   prevMsgFolderId );
+        //Get the id and check if there is a previous message available 
+        TFSMailMsgId prevMsgId;
+        TFSMailMsgId prevMsgFolderId;  
+        
+        //Get the previous message if it exists
+        TBool available = iAppUi.IsPreviousMsgAvailable( currentMsgId, 
+                                                   prevMsgId, 
+                                                   prevMsgFolderId );
         
         //Delete the message
         iAppUi.GetMailClient()->DeleteMessagesByUidL( mailBox, folderId, msgIds );
@@ -1270,20 +1266,20 @@ void CFsEmailUiHtmlViewerView::DeleteMailL()
         SendEventToAppUiL( TFSEventMailDeleted ); 
         
         if ( iAppUi.CurrentActiveView()->Id() == HtmlViewerId )
-			{	
-			//Open the previous message or navigate back to list viewer
-			if ( available )
-				{
-				iAppUi.MoveToPreviousMsgAfterDeleteL( prevMsgId );				
-				}	
-			else
-				{
-				ChangeMskCommandL( R_FSE_QTN_MSK_EMPTY );
-				NavigateBackL();
-				}
-			//inform user that mail is deleted	
-			TFsEmailUiUtility::ShowGlobalInfoNoteL( R_FREESTYLE_EMAIL_MAIL_DELETED );
-			}        
+            {   
+            //Open the previous message or navigate back to list viewer
+            if ( available )
+                {
+                iAppUi.MoveToPreviousMsgAfterDeleteL( prevMsgId );              
+                }   
+            else
+                {
+                ChangeMskCommandL( R_FSE_QTN_MSK_EMPTY );
+                NavigateBackL();
+                }
+            //inform user that mail is deleted  
+            TFsEmailUiUtility::ShowGlobalInfoNoteL( R_FREESTYLE_EMAIL_MAIL_DELETED );
+            }        
         }
     }
 
@@ -1306,9 +1302,12 @@ void CFsEmailUiHtmlViewerView::HandleMailBoxEventL( TFSMailEvent aEvent,
 
         for ( TInt i = 0 ; i < removedEntries->Count() && cont; i++ )
             {
-            if ( curMsgId == ( *removedEntries )[i] )
+            if ( ( curMsgId == ( *removedEntries )[i] ) &&
+                    (iDeletedMessageFromMrui != curMsgId) )
                 {                
                 cont = EFalse;
+                ChangeMskCommandL( R_FSE_QTN_MSK_EMPTY );
+                HandleCommandL( EAknSoftkeyBack );
                 }            
             } 
         }
@@ -1430,10 +1429,10 @@ void CFsEmailUiHtmlViewerView::HandleEmailAddressCommandL( TInt aCommand, const 
                 }
             break;
             case EFsEmailUiCmdActionsAddContact:
-			   {
-			   SaveEmailAsContactL( aEmailAddress );
-			   }
-			   break;
+               {
+               SaveEmailAsContactL( aEmailAddress );
+               }
+               break;
             case EFsEmailUiCmdActionsCall:
                 {
                 CallAdressL( aEmailAddress, EFalse );
@@ -1455,9 +1454,9 @@ void CFsEmailUiHtmlViewerView::HandleEmailAddressCommandL( TInt aCommand, const 
                 }
             break;
             case EFsEmailUiCmdActionsCopyToClipboard:
-            	{
-            	CopyCurrentToClipBoardL( aEmailAddress );
-            	}
+                {
+                CopyCurrentToClipBoardL( aEmailAddress );
+                }
             break;
             default:
                 //nothing right now?
@@ -1474,23 +1473,23 @@ void CFsEmailUiHtmlViewerView::HandleWebAddressCommandL( TInt aCommand, const TD
     {
     FUNC_LOG;
     switch ( aCommand )
-    	{
-    	case EFsEmailUiCmdActionsOpenWeb:
-    		{
-    		OpenLinkInBrowserL( aUrl );
-    		break;
-    		}
-		case EFsEmailUiCmdActionsAddBookmark:
-			{
-			SaveWebAddressToFavouritesL( aUrl );
-			break;
-			}
-		case EFsEmailUiCmdActionsCopyWWWAddressToClipboard:
-			{
-			CopyCurrentToClipBoardL( aUrl );
-			break;
-			}    				
-    	}
+        {
+        case EFsEmailUiCmdActionsOpenWeb:
+            {
+            OpenLinkInBrowserL( aUrl );
+            break;
+            }
+        case EFsEmailUiCmdActionsAddBookmark:
+            {
+            SaveWebAddressToFavouritesL( aUrl );
+            break;
+            }
+        case EFsEmailUiCmdActionsCopyWWWAddressToClipboard:
+            {
+            CopyCurrentToClipBoardL( aUrl );
+            break;
+            }                   
+        }
     }
 
 void CFsEmailUiHtmlViewerView::SaveEmailAsContactL(
@@ -1732,7 +1731,7 @@ TBool CFsEmailUiHtmlViewerView::IsEmbeddedMsgView()
 TBool CFsEmailUiHtmlViewerView::IsEmbeddedMsgSavingAllowed()
     {
     return iMailBox->HasCapability( 
-				EFSMboxCapaSupportsSavingOfEmbeddedMessages );
+                EFSMboxCapaSupportsSavingOfEmbeddedMessages );
     }
 
 void CFsEmailUiHtmlViewerView::UpdateDownloadIndicatorL( 
@@ -1884,16 +1883,16 @@ void CFsEmailUiHtmlViewerView::SetMessageFollowupFlagL()
 void CFsEmailUiHtmlViewerView::SendEventToAppUiL( TFSMailEvent aEventType )
     {
     if ( iMessage )
-    	{
-		RArray<TFSMailMsgId> msgIdArray;
-		CleanupClosePushL( msgIdArray );
-		msgIdArray.AppendL( iMessage->GetMessageId() );
-		TFSMailMsgId folderId = iMessage->GetFolderId();
-		iAppUi.EventL( aEventType,
-					   iAppUi.GetActiveMailboxId(),
-					   &msgIdArray, &folderId, NULL );
-		CleanupStack::PopAndDestroy( &msgIdArray );
-    	}
+        {
+        RArray<TFSMailMsgId> msgIdArray;
+        CleanupClosePushL( msgIdArray );
+        msgIdArray.AppendL( iMessage->GetMessageId() );
+        TFSMailMsgId folderId = iMessage->GetFolderId();
+        iAppUi.EventL( aEventType,
+                       iAppUi.GetActiveMailboxId(),
+                       &msgIdArray, &folderId, NULL );
+        CleanupStack::PopAndDestroy( &msgIdArray );
+        }
     }
 // -----------------------------------------------------------------------------
 // CFsEmailUiHtmlViewerView::ChangeMsgReadStatusL
@@ -2313,11 +2312,11 @@ void CFsEmailUiHtmlViewerView::RequestResponseL( TFSProgress aEvent, TInt aReque
         if (  iContainer )
             {
             iContainer->ResetContent();                
-			if( iMessage )
-				{
-				LoadContentFromMailMessageL( iMessage , EFalse);  
-				SetMskL();
-				}
+            if( iMessage )
+                {
+                LoadContentFromMailMessageL( iMessage , EFalse);  
+                SetMskL();
+                }
             }
         }
             
@@ -3010,9 +3009,9 @@ void CFsEmailUiHtmlViewerView::UpdateEmailHeaderIndicators()
     FUNC_LOG;
     // Reload mail header.
     if ( iContainer )
-    	{
-    	iContainer->RefreshCurrentMailHeader();
-    	}
+        {
+        iContainer->RefreshCurrentMailHeader();
+        }
     }
 
 // -----------------------------------------------------------------------------
@@ -3050,7 +3049,7 @@ TBool CFsEmailUiHtmlViewerView::IsOpenedInMRViewerL()
 // CFsEmailUiHtmlViewerView::CopyToClipBoardL
 // -----------------------------------------------------------------------------
 void CFsEmailUiHtmlViewerView::CopyCurrentToClipBoardL( const TDesC& aArgument ) const
-	{
+    {
     FUNC_LOG;
     
     // Making sure that we are copying something to the clipboard 
@@ -3058,92 +3057,92 @@ void CFsEmailUiHtmlViewerView::CopyCurrentToClipBoardL( const TDesC& aArgument )
         {
         HBufC* clipBoardText = aArgument.AllocLC();
         CClipboard* cb = CClipboard::NewForWritingLC( CCoeEnv::Static()->FsSession() );
-		cb->StreamDictionary().At( KClipboardUidTypePlainText );
-		CPlainText* plainText = CPlainText::NewL();
-		CleanupStack::PushL( plainText );
-		plainText->InsertL( 0 , *clipBoardText );
-		plainText->CopyToStoreL( cb->Store(), cb->StreamDictionary(), 0, plainText->DocumentLength() );
-		CleanupStack::PopAndDestroy( plainText );
-		cb->CommitL();
-		CleanupStack::PopAndDestroy( cb );
-		CleanupStack::PopAndDestroy( clipBoardText );     
+        cb->StreamDictionary().At( KClipboardUidTypePlainText );
+        CPlainText* plainText = CPlainText::NewL();
+        CleanupStack::PushL( plainText );
+        plainText->InsertL( 0 , *clipBoardText );
+        plainText->CopyToStoreL( cb->Store(), cb->StreamDictionary(), 0, plainText->DocumentLength() );
+        CleanupStack::PopAndDestroy( plainText );
+        cb->CommitL();
+        CleanupStack::PopAndDestroy( cb );
+        CleanupStack::PopAndDestroy( clipBoardText );     
         }
-	}
+    }
 
 // --------------------------------------------------------------------------------
 // CFsEmailUiHtmlViewerView::OpenLinkInBrowserL
 // --------------------------------------------------------------------------------
 void CFsEmailUiHtmlViewerView::OpenLinkInBrowserL( const TDesC& aUrl ) const
-	{
-	FUNC_LOG;
-	
-	// Create session
-	RApaLsSession session;
-	User::LeaveIfError( session.Connect() );
-	CleanupClosePushL( session );
-	 
-	// Gets the default application UID for for the given MIME type
-	TUid uid;
-	TDataType dataType( _L8( "text/html" ) );
-	session.AppForDataType( dataType, uid );
-	 
-	// Runs the default application using the dataType
-	TThreadId threadId;
-	User::LeaveIfError( session.StartDocument( aUrl , dataType, threadId ) );
-	 
-	CleanupStack::PopAndDestroy(); // session
+    {
+    FUNC_LOG;
+    
+    // Create session
+    RApaLsSession session;
+    User::LeaveIfError( session.Connect() );
+    CleanupClosePushL( session );
+     
+    // Gets the default application UID for for the given MIME type
+    TUid uid;
+    TDataType dataType( _L8( "text/html" ) );
+    session.AppForDataType( dataType, uid );
+     
+    // Runs the default application using the dataType
+    TThreadId threadId;
+    User::LeaveIfError( session.StartDocument( aUrl , dataType, threadId ) );
+     
+    CleanupStack::PopAndDestroy(); // session
 }
 
 // --------------------------------------------------------------------------------
 // CFsEmailUiHtmlViewerView::SaveWebAddressToFavouritesL
 // --------------------------------------------------------------------------------
 void CFsEmailUiHtmlViewerView::SaveWebAddressToFavouritesL( const TDesC& aUrl ) const
-	{
-	FUNC_LOG;
-	HBufC* url = aUrl.AllocLC();
-	
-	RFavouritesSession fSession;
-	User::LeaveIfError( fSession.Connect() );
-	CleanupClosePushL( fSession );
+    {
+    FUNC_LOG;
+    HBufC* url = aUrl.AllocLC();
+    
+    RFavouritesSession fSession;
+    User::LeaveIfError( fSession.Connect() );
+    CleanupClosePushL( fSession );
 
-	RFavouritesDb favourites;
-	User::LeaveIfError( favourites.Open( fSession, KBrowserBookmarks ) );
-	CleanupClosePushL( favourites );
+    RFavouritesDb favourites;
+    User::LeaveIfError( favourites.Open( fSession, KBrowserBookmarks ) );
+    CleanupClosePushL( favourites );
 
-	CFavouritesItem *favouritesItem = CFavouritesItem::NewLC();
-	favouritesItem->SetType( CFavouritesItem::EItem );
-	favouritesItem->SetUrlL( aUrl );
-	// Should be less than KFavouritesMaxName ( 50 )
-	if ( url->Length() > KFavouritesMaxName )
-		{
-		favouritesItem->SetNameL( url->Left( KFavouritesMaxName ) );
-		}
-	else
-		{
-		favouritesItem->SetNameL( *url );
-		}
+    CFavouritesItem *favouritesItem = CFavouritesItem::NewLC();
+    favouritesItem->SetType( CFavouritesItem::EItem );
+    favouritesItem->SetUrlL( aUrl );
+    // Should be less than KFavouritesMaxName ( 50 )
+    if ( url->Length() > KFavouritesMaxName )
+        {
+        favouritesItem->SetNameL( url->Left( KFavouritesMaxName ) );
+        }
+    else
+        {
+        favouritesItem->SetNameL( *url );
+        }
 
-	favouritesItem->SetParentFolder( KFavouritesRootUid );
+    favouritesItem->SetParentFolder( KFavouritesRootUid );
 
-	TInt error = favourites.Add( *favouritesItem, ETrue );
+    TInt error = favourites.Add( *favouritesItem, ETrue );
 
-	CleanupStack::PopAndDestroy( favouritesItem );
-	CleanupStack::PopAndDestroy( &favourites );
-	CleanupStack::PopAndDestroy( &fSession );
+    CleanupStack::PopAndDestroy( favouritesItem );
+    CleanupStack::PopAndDestroy( &favourites );
+    CleanupStack::PopAndDestroy( &fSession );
 
-	CleanupStack::PopAndDestroy( url );
-	
-	if ( error == KErrNone )
-		{
-		TFsEmailUiUtility::ShowInfoNoteL(
-			R_FREESTYLE_EMAIL_UI_VIEWER_BOOKMARK_ADDED, ETrue );
-		}
-	else // Error in bookmark creation, show could not complete message
-		{
-		TFsEmailUiUtility::ShowErrorNoteL(
-			R_FREESTYLE_EMAIL_ERROR_GENERAL_UNABLE_TO_COMPLETE, ETrue );
-		}
-	}
+    CleanupStack::PopAndDestroy( url );
+    
+    if ( error == KErrNone )
+        {
+        TFsEmailUiUtility::ShowInfoNoteL(
+            R_FREESTYLE_EMAIL_UI_VIEWER_BOOKMARK_ADDED, ETrue );
+        }
+    else // Error in bookmark creation, show could not complete message
+        {
+        TFsEmailUiUtility::ShowErrorNoteL(
+            R_FREESTYLE_EMAIL_ERROR_GENERAL_UNABLE_TO_COMPLETE, ETrue );
+        }
+    }
 
 /*
  * Delaying the fetch for MfE till the user scrolls to the bottom of 
@@ -3174,6 +3173,38 @@ void CFsEmailUiHtmlViewerView::StartFetchingMessageL()
            }
        }
     }
+
+void CFsEmailUiHtmlViewerView::CheckMessageBodyL( CFSMailMessage& aMessage, TBool& aMessageBodyStructurePresent, TBool& aMessageBodyContentPresent)
+    {
+    CFSMailMessagePart* bodyPart = iMessage->HtmlBodyPartL();
+    if ( !bodyPart )
+        {
+        bodyPart = iMessage->PlainTextBodyPartL();
+        }
+    
+    if ( bodyPart )
+        {
+        aMessageBodyStructurePresent = ETrue;
+        CleanupStack::PushL( bodyPart );
+
+        if ( bodyPart->FetchedContentSize() == 0 && bodyPart->ContentSize() != 0 )
+            {
+            aMessageBodyContentPresent = EFalse;
+            }
+        else
+            {
+            aMessageBodyContentPresent = ETrue;
+            }
+        
+        CleanupStack::PopAndDestroy( bodyPart );
+        }
+    else
+        {
+        aMessageBodyStructurePresent = EFalse;
+        aMessageBodyContentPresent = EFalse;
+        }
+    }
+
 //////////////////////////////////////////////////////////////////////////////////////
 // CLASS IMPLEMENTATION CHANGE TO FLAG DIALOG GLOBAL NOTE
 ///////////////////////////////////////////////////////////////////////////////////

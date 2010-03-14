@@ -21,7 +21,7 @@
 
 #include <e32base.h>
 //<cmail>
-#include "MFSMailEventObserver.h"
+#include "mfsmaileventobserver.h"
 //</cmail>
 
 class CFSMailClient;

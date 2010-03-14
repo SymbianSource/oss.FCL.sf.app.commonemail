@@ -20,7 +20,7 @@
 #define __BASEMRINFOOBJECT_H__
 
 #include <e32std.h>
-#include "CFSMailCommon.h"
+#include "cfsmailcommon.h"
 #include "mmrinfoobject.h"
 #include "mmrorganizer.h"
 #include "mmrattendee.h"

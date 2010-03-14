@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2008 - 2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2008 - 2010 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -23,7 +23,7 @@
 #include <emailwidget.rsg>
 
 #include "emailtrace.h"
-#include "CFSMailClient.h"
+#include "cfsmailclient.h"
 #include "cmailcpsif.h"
 #include "cmailcpsifconsts.h"
 #include "FreestyleEmailUiConstants.h"
@@ -74,6 +74,8 @@ void CMailCpsIf::ConstructL()
     iMsgInterface = GetMessagingInterfaceL();
     RegisterForObserverL();
     PublisherRegisteryActionL();
+    
+    ResetPublishedDataL( KCPAll );
     }
 
 // ---------------------------------------------------------------------------
@@ -232,6 +234,31 @@ void CMailCpsIf::PublishActiveMailboxNameL(
     }
 
 // ---------------------------------------------------------------------------
+// CMailCpsIf::PublishActiveMailboxNameL
+// ---------------------------------------------------------------------------
+//
+void CMailCpsIf::PublishMailboxNameL(
+    const TInt aInstance, 
+    const TDesC& aMailboxName,
+    const TDesC8& aAction )
+    {
+    FUNC_LOG;
+    
+    TBuf<KMaxDescLen> contentType;
+    contentType.Copy(KContTypeBodyText);        
+    contentType.Append(_L("1"));
+    
+    TBuf<KMaxDescLen> textKey;
+    textKey.Copy(KKeyBodyText);
+    textKey.Append(_L("1"));
+
+    TFSMailMsgId dummy;
+    
+    PublishDescriptorL( KPubId, contentType, iInstIdList[aInstance]->Des(),
+        aMailboxName, textKey, aAction, 0, dummy, dummy );
+    }
+
+// ---------------------------------------------------------------------------
 // CMailCpsIf::PublishIndicatorIconL
 // ---------------------------------------------------------------------------
 //
@@ -297,6 +324,71 @@ void CMailCpsIf::PublishMailboxIconL( const TInt aInstance,
               aIcon,
               aIcon + 1,
               aMailBoxId);    
+    }
+
+// ---------------------------------------------------------------------------
+// CMailCpsIf::PublishMailboxIconL
+// ---------------------------------------------------------------------------
+//
+void CMailCpsIf::PublishMailboxIconL( const TInt aInstance, const TDesC& aIconPath )
+    {
+    FUNC_LOG;
+
+    TBuf<KMaxDescLen> contentType;
+    contentType.Copy(KContTypeMailboxIcons);        
+    contentType.Append(_L("1"));
+
+    TBuf8<KMaxDescLen> key;
+    key.Copy(KKeyMailboxIcons);     
+    key.Append(_L8("1"));
+
+    User::LeaveIfNull( iInstIdList[aInstance] );
+    PublishIconReferenceL(
+        iInstIdList[aInstance]->Des(),
+        contentType,
+        key,
+        aIconPath );
+    }
+
+// ---------------------------------------------------------------------------
+// CMailCpsIf::PublishIconReferenceL
+// ---------------------------------------------------------------------------
+//
+void CMailCpsIf::PublishIconReferenceL(
+    const TDesC& aContentId,
+    const TDesC& aContentType,
+    const TDesC8& aKey,
+    const TDesC& aIconPath )
+    {
+    FUNC_LOG;
+    CLiwGenericParamList* inparam = &(iServiceHandler->InParamListL());
+    CLiwGenericParamList* outparam = &(iServiceHandler->OutParamListL());
+
+    TLiwGenericParam type( KType, TLiwVariant( KCpData ) );
+    inparam->AppendL( type );
+
+    CLiwDefaultMap* pdatamap = CLiwDefaultMap::NewLC();
+    CLiwDefaultMap* datamap = CLiwDefaultMap::NewLC();
+
+    pdatamap->InsertL( KPublisherId, TLiwVariant( KPubId ) );
+    pdatamap->InsertL( KContentType, TLiwVariant( aContentType ) );
+    pdatamap->InsertL( KContentId, TLiwVariant( aContentId ) );
+    
+    datamap->InsertL( aKey, TLiwVariant( aIconPath ) );
+
+    pdatamap->InsertL( KDataMap, TLiwVariant(datamap) );
+    TLiwGenericParam item( KItem, TLiwVariant( pdatamap ) );       
+    inparam->AppendL( item );
+    
+    iMsgInterface->ExecuteCmdL( KAdd, *inparam, *outparam );
+    
+    CleanupStack::PopAndDestroy( datamap );
+    CleanupStack::PopAndDestroy( pdatamap );    
+    
+    item.Reset();
+    type.Reset();
+    outparam->Reset();
+    inparam->Reset();
     }
 
 // ---------------------------------------------------------------------------
@@ -492,6 +584,7 @@ void CMailCpsIf::PublishImageL(
         iconIds.Append( KSpace );
         id.Num( aBitmapMaskId );
         iconIds.Append( id );
+        iconIds.Append( _L(")") );        
         }
 
     // The actual image publishing part starts here   
@@ -668,14 +761,14 @@ void CMailCpsIf::UnRegisterForObserverL()
 // ---------------------------------------------------------------------------
 //
 TInt CMailCpsIf::HandleNotifyL(
-        TInt aErrorCode,
+        TInt /*aCmdId*/,
         TInt /*aEventId*/,
         CLiwGenericParamList& aEventParamList,
         const CLiwGenericParamList& /*aInParamList*/ )
     {
     FUNC_LOG;
     PublisherStatusL  ( aEventParamList);
-    return aErrorCode;
+    return KErrNone;
     }
    
 // ---------------------------------------------------------------------------
@@ -751,6 +844,7 @@ TBool CMailCpsIf::PublisherStatusL(const CLiwGenericParamList& aEventParamList)
                              TInt widgetInstance = FindWidgetInstanceId(cid->Des());
                              PublishSetupWizardL(widgetInstance);
                              iMailCpsHandler->UpdateMailboxesL(widgetInstance, cid->Des());
+                             iMailCpsHandler->UpdateExtAccountL( cid->Des() );
                              // Widget visible on the homescreen. Publishing allowed.
                              iAllowedToPublish[widgetInstance] = ETrue;
                              iInactive[widgetInstance] = EFalse;
@@ -776,6 +870,7 @@ TBool CMailCpsIf::PublisherStatusL(const CLiwGenericParamList& aEventParamList)
                              {                            
                              // Widget removed from homescreen.
                              HBufC* cid = contentid.AllocLC();
+                             ResetPublishedDataL( cid->Des() );
                              TInt widgetInstance = FindWidgetInstanceId(cid->Des());
                              if (widgetInstance != KErrNotFound )
                             	 {
@@ -799,7 +894,7 @@ TBool CMailCpsIf::PublisherStatusL(const CLiwGenericParamList& aEventParamList)
                              {
                              // If no accounts are created launch email wizard
                              // otherwice launch widget settings app                             
-                             if (iMailCpsHandler->GetMailboxCount())
+                             if ( iMailCpsHandler->TotalMailboxCountL() )
                                  {
                                  HBufC* cid = contentid.AllocLC();
                                  iMailCpsHandler->LaunchWidgetSettingsL(cid->Des());
@@ -877,3 +972,35 @@ TInt CMailCpsIf::FindWidgetInstanceId( const TDesC& aContentId )
     return instance;
     }
 
+// ---------------------------------------------------------------------------
+// CMailCpsIf::ResetPublishedDataL
+// ---------------------------------------------------------------------------
+//
+void CMailCpsIf::ResetPublishedDataL( const TDesC& aContentId )
+    {
+    FUNC_LOG;
+    // Clean up all published data
+    if( !iMsgInterface ) GetMessagingInterfaceL();
+    CLiwGenericParamList* inParam = &(iServiceHandler->InParamListL());
+    CLiwGenericParamList* outParam = &(iServiceHandler->OutParamListL());
+
+    // Fill input param
+    TLiwGenericParam cptype( KType, TLiwVariant( KCpData ));
+    inParam->AppendL( cptype );
+
+    CLiwDefaultMap* cpData = CLiwDefaultMap::NewLC();
+    cpData->InsertL( KPublisherId, TLiwVariant( KPubId ) );
+    cpData->InsertL( KContentType, TLiwVariant( KCPAll ) );
+    cpData->InsertL( KContentId, TLiwVariant( aContentId ) );
+    TLiwGenericParam item( KData8, TLiwVariant( cpData ) );
+    inParam->AppendL( item );
+
+    // Execute command
+    iMsgInterface->ExecuteCmdL( KDelete , *inParam, *outParam );
+    
+    CleanupStack::PopAndDestroy( cpData );
+    item.Reset();
+    cptype.Reset();
+    outParam->Reset();
+    inParam->Reset();
+    }

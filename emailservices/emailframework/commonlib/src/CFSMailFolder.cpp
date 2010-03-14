@@ -18,12 +18,12 @@
 
 //<cmail>
 #include "emailtrace.h"
-#include "CFSMailFolder.h"
-#include "CFSMailPlugin.h"
+#include "cfsmailfolder.h"
+#include "cfsmailplugin.h"
 //</cmail>
 
-#include "CFSMailIterator.h"
-#include "CFSMailRequestObserver.h"
+#include "cfsmailiterator.h"
+#include "cfsmailrequestobserver.h"
 
 // ================= MEMBER FUNCTIONS ==========================================
 // -----------------------------------------------------------------------------

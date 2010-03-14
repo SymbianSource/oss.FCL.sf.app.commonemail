@@ -105,6 +105,7 @@ CIpsPlgEventHandler::~CIpsPlgEventHandler()
     iIPSSettingsObservers.ResetAndDestroy();
     iIPSSettingsObservers.Close();
     iPropertyObservers.Close();
+    iConnOpCallbacks.Close();
     delete iSettingsApi;
     iImapFolderIds.Close();
     }
@@ -118,7 +119,8 @@ CIpsPlgEventHandler::CIpsPlgEventHandler(
     iIPSAccounts( KEventGranularity ),
     iIPSSettingsObservers( KEventGranularity ),
     iIsConnected( EFalse ),
-    iPropertyObservers( KEventGranularity )
+    iPropertyObservers( KEventGranularity ),
+    iConnOpCallbacks( KEventGranularity )
     {
     FUNC_LOG;
     }
@@ -1578,29 +1580,43 @@ void CIpsPlgEventHandler::SaveSyncStatusL( TMsvId aMailboxId, TInt aState )
 void CIpsPlgEventHandler::HandlePropertyEventL(
         TInt aEvent,
         TInt aMailbox,
-        TInt /*aPluginId*/,
-        TInt aError )
+        TInt aPluginId,
+        TInt /*aError*/ )
     {
     FUNC_LOG;
     RProcess process;
-    if ( aEvent == EIPSSosPswErr && process.SecureId() == FREESTYLE_FSSERVER_SID )
+
+    // only email server should handle login notifications
+    if (( aEvent == EIPSSosPswErr || aEvent == EIPSSosSmtpPswErr ) &&
+          process.SecureId() == FREESTYLE_FSSERVER_SID &&
+          iQueryPassState == EReady &&
+          iBasePlugin.PluginId() == aPluginId )
         {
-        TFSMailMsgId mbox = SymId2FsId( aMailbox,
-                        iBasePlugin.MtmId().iUid );
+        TFSMailMsgId mbox = SymId2FsId( aMailbox, iBasePlugin.MtmId().iUid );
+
+        // keep information about type of mail we`re setting the password
+        iIncomingPass = ( aEvent == EIPSSosPswErr ? ETrue : EFalse );
+        iQueryPassState = ENotificationRequest;
+
         TFSMailEvent event = TFSEventException;
         TFsEmailNotifierSystemMessageType msg = EFsEmailNotifErrLoginUnsuccesfull;
-        SendDelayedEventL( event, mbox, &msg, NULL , (MFSMailExceptionEventCallback*)this );
+        SendDelayedEventL( event, mbox, &msg, NULL, (MFSMailExceptionEventCallback*)this );
         }
     else if ( aEvent == EIPSSosCredientialsSet || aEvent == EIPSSosCredientialsCancelled )
         {
-        if ( iConnOpCallback )
+        // if this handler invoked query user pass
+        if ( iQueryPassState == EBusy )
             {
-            iConnOpCallback->CredientialsSetL( aEvent );
+            iQueryPassState = ERequestResponding;
+            // run callbacks
+            for ( TInt i = 0; i < iConnOpCallbacks.Count(); i++ )
+                iConnOpCallbacks[i]->CredientialsSetL( aEvent );
 
-            //Set to null after we have used this.
-            //don't delete, we don't own this.
-            iConnOpCallback=NULL;
+            iConnOpCallbacks.Reset();
+            // now handler is ready for another query user pass
+            iQueryPassState = EReady;
             }
+
         //if password was changed, we need to send settings changed event also.
         if( aEvent == EIPSSosCredientialsSet )
             {
@@ -1617,24 +1633,41 @@ void CIpsPlgEventHandler::HandlePropertyEventL(
         TFSMailEvent event = TFSEventMailboxSettingsChanged;
         SendDelayedEventL( event, mbox, NULL, NULL , NULL );
         }
-    else if ( aEvent == KIpsSosEmailSyncCompleted &&
-            aError == KErrImapBadLogon )
-        {
-        TFSMailMsgId mbox = SymId2FsId( aMailbox,
-                        iBasePlugin.MtmId().iUid );
-        TFSMailEvent event = TFSEventException;
-        TFsEmailNotifierSystemMessageType msg = EFsEmailNotifErrLoginUnsuccesfull;
-        SendDelayedEventL( event, mbox, &msg, NULL , this );
-        }
     }
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-void CIpsPlgEventHandler::QueryUsrPassL( TMsvId aMbox, MIpsPlgConnectOpCallback* aCallback )
+TBool CIpsPlgEventHandler::QueryUsrPassL(
+    TMsvId aMbox,
+    MIpsPlgConnectOpCallback* aCallback/*=NULL*/,
+    TBool aIncoming/*=ETrue*/ )
     {
     FUNC_LOG;
-    iConnOpCallback = aCallback;//can be null, doesn't matter.
-    SetNewPropertyEvent( aMbox, EIPSSosPswErr, 0 );
+
+    ASSERT( iConnOpCallbacks.Find( aCallback ) == KErrNotFound );
+    if ( aCallback )
+        iConnOpCallbacks.Append( aCallback );
+
+    // set or re-set property event
+    SetNewPropertyEvent( aMbox, (aIncoming ? EIPSSosPswErr : EIPSSosSmtpPswErr), 0 );
+
+    // only one query at a time allowed
+    if ( iQueryPassState != EReady )
+        {
+        return EFalse;
+        }
+
+    // update state
+    iQueryPassState = EBusy;
+
+    return ETrue;
+    }
+
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+TBool CIpsPlgEventHandler::IncomingPass() const
+    {
+    return iIncomingPass;
     }
 
 // ----------------------------------------------------------------------------
@@ -1642,6 +1675,12 @@ void CIpsPlgEventHandler::QueryUsrPassL( TMsvId aMbox, MIpsPlgConnectOpCallback*
 void CIpsPlgEventHandler::SignalCredientialsSetL( TInt aMailboxId, TBool aCancelled )
     {
     FUNC_LOG;
+    if ( iQueryPassState == EPasswordRequest )
+        {
+        iQueryPassState = EReady;
+        iIncomingPass = ETrue;
+        }
+
     TInt event = EIPSSosCredientialsSet;
     if ( aCancelled )
         {
@@ -1703,14 +1742,20 @@ void CIpsPlgEventHandler::CollectSubscribedFoldersL( TMsvId aMailboxId )
 // ----------------------------------------------------------------------------
 void CIpsPlgEventHandler::ExceptionEventCallbackL(
         TFSMailMsgId aMailboxId,
-        TInt /*aEventType*/,
+        TInt aEventType,
         TBool /*aResponse*/ )
     {
     FUNC_LOG;
-    TFSMailEvent event = TFSEventMailboxSyncStateChanged;
-    TSSMailSyncState state = PasswordNotVerified;
 
-    SendDelayedEventL( event, aMailboxId, &state, NULL , NULL );
+    if ( aEventType == EFsEmailNotifErrLoginUnsuccesfull &&
+         iQueryPassState == ENotificationRequest )
+        {
+        iQueryPassState = EPasswordRequest;
+        TFSMailEvent event = TFSEventMailboxSyncStateChanged;
+        TSSMailSyncState state = PasswordNotVerified;
+
+        SendDelayedEventL( event, aMailboxId, &state, NULL, NULL );
+        }
     }
 
 // End of File

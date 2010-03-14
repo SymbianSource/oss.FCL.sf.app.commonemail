@@ -20,8 +20,8 @@
 #define IPSPLGSOSBASEPLUGIN_H
 
 //<cmail>
-#include "CFSMailPlugin.h"
-#include "MFSMailRequestObserver.h"
+#include "cfsmailplugin.h"
+#include "mfsmailrequestobserver.h"
 //</cmail>
 #include <rconnmon.h>
 
@@ -586,6 +586,17 @@ private:
     void DeleteAndRemoveOperation(
             const TInt aOpArrayIndex, TInt aCompleteCode );
 
+    /**
+     * Fixes the forward (or reply) message header parts (that are copied
+     * to msg content) in case that caller has provided an own header 
+     * descriptor for these parts.
+     */
+    void FixReplyForwardHeaderL(
+            CFSMailMessage* aMessage,
+            const TFSMailMsgId& aMailBoxId,
+            const TFSMailMsgId& aOriginalMessageId,
+            const TDesC& aHeaderDescriptor );
+    
 private:
 
     /**

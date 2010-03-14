@@ -177,8 +177,6 @@ private: // data
     
     TRgb iBgColor;
     
-    CAsyncCallBack* iFocusChangeHandler;
-    
     TBool iDrawAfterFocusChange;
    
 // <cmail> Platform layout changes

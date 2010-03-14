@@ -19,7 +19,7 @@
 // SYSTEM INCLUDES
 //<cmail>
 #include "emailtrace.h"
-#include "CFSMailMessage.h"
+#include "cfsmailmessage.h"
 //</cmail>
 
 

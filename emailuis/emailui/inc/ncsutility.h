@@ -21,7 +21,7 @@
 #define NCSUTILITY_H
 
 #include <cntitem.h>
-#include "CFSMailCommon.h"
+#include "cfsmailcommon.h"
 #include "ncsaddressinputfield.h"
 
 class CNcsEmailAddressObject;

@@ -21,7 +21,7 @@
 #define __FREESTYLEEMAILUI_HTML_VIEWER_VIEW_H__
 
 #include <cstack.h>
-#include "MFSMailRequestObserver.h"
+#include "mfsmailrequestobserver.h"
 #include "mesmricalviewercallback.h"
 #include "mesmricalviewerobserver.h"
 #include "FreestyleEmailUiViewBase.h"
@@ -263,6 +263,9 @@ private: // New functions
     void OpenLinkInBrowserL( const TDesC& aUrl) const;
     void SaveWebAddressToFavouritesL( const TDesC& aUrl ) const;
     void SetScrollPosition(TInt aPosition);
+    
+    void CheckMessageBodyL( CFSMailMessage& aMessage, TBool& aMessageBodyStructurePresent, TBool& aMessageBodyContentPresent);
+    
 private: // Constructors
     
     void ConstructL();

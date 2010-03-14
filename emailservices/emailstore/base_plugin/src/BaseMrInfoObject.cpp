@@ -18,8 +18,8 @@
 
 
 
-#include "BaseMrInfoObject.h"
-#include "BasePlugin.h"
+#include "basemrinfoobject.h"
+#include "baseplugin.h"
 
 
 /**

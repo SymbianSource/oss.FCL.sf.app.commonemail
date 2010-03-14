@@ -22,7 +22,7 @@
 
 #include <aknview.h>
 //<cmail>
-#include "CFSMailCommon.h"
+#include "cfsmailcommon.h"
 //</cmail>
 // <cmail> Toolbar
 #include "akntoolbarobserver.h"
@@ -123,7 +123,7 @@ protected: // methods
      * Inherited classes may override this to react to FsEmail application
      * being brougt to foreground while that particular view is active.
      */
-    virtual void HandleForegroundEventL();
+    virtual void HandleForegroundEventL( TBool aForeground );
 
     /**
     * Inherited classes should override this instead of DoDeactivate()

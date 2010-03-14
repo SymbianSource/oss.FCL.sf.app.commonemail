@@ -18,7 +18,7 @@
 
 
 //<cmail>
-#include "MsgStoreAddress.h"
+#include "msgstoreaddress.h"
 //</cmail>
 
 // --------------------------

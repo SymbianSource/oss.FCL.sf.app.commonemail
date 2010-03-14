@@ -25,8 +25,8 @@ NAME FSMB
 #include <ovi_brand_graphics.mbg>
 #include <aol_brand_graphics.mbg>
 
-#include "MailBrandManager.hrh"
-#include "MailBrandManager.rh"
+#include "mailbrandmanager.hrh"
+#include "mailbrandmanager.rh"
 
 // ---------------------------------------------------------
 //   

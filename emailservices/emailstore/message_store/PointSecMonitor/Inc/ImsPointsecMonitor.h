@@ -26,7 +26,7 @@
 #include <e32property.h>
 
 //<cmail>
-#include "DebugLogMacros.h"
+#include "debuglogmacros.h"
 //</cmail>
 
 class MImsPointsecObserver;

@@ -21,7 +21,7 @@
 
 #include "../../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
 #include "../../../../inc/emailtraceconfig.hrh"
-#include "../../inc/EmailStoreUids.hrh"
+#include "../../inc/emailstoreuids.hrh"
 
 TARGET            baseplugin.dll
 TARGETTYPE        dll

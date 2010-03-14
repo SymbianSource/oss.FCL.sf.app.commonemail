@@ -20,6 +20,8 @@
 #define __CMAILCPSHANDLER_H__
 
 #include <aknappui.h>
+#include <memailobserverlistener.h> // base class
+
 // FSMailServer classes (base classes and callback interfaces)
 #include "fsnotificationhandlerbase.h"
 #include "fsnotificationhandlernotifierinitiator.h"
@@ -31,6 +33,9 @@ class CMailCpsIf;
 class CFSMailBox;
 class CMailMailboxDetails;
 class CMailCpsSettings;
+class CMailExternalAccount;
+class CMailPluginProxy;
+class CEmailObserverPlugin;
 
 /**
  * CMail ContentPublishingService Handler class
@@ -41,7 +46,8 @@ class CMailCpsSettings;
  */
 NONSHARABLE_CLASS( CMailCpsHandler ) : 
     public CFSNotificationHandlerBase,
-    public MMailCpsSettingsCallback
+    public MMailCpsSettingsCallback,
+    public EmailInterface::MEmailObserverListener
     {
 public:
     
@@ -72,6 +78,12 @@ public:
     void UpdateMailboxesL(TInt aInstance, const TDesC& aContentId);
 
     /**
+     * Updates external (3rd party) account based on contentId
+     * @param aContentId specifies the widget and account related to it
+     */
+    void UpdateExtAccountL( const TDesC& aContentId );
+
+    /**
      *
      */
     void LaunchWidgetSettingsL( const TDesC& aContentId );
@@ -86,6 +98,13 @@ public:
      */    
     void LaunchEmailWizardL();
     /**
+     * Launches an application based on the given contentId
+     * This method is for external (3rd party) accounts
+     * @param aContentId specifies the widget that was pressed by the user
+     */
+    void LaunchExtAppL( const TDesC& aContentId );
+
+    /**
      *
      */	
     TBool AssociateWidgetToSetting( const TDesC& aContentId );
@@ -96,15 +115,33 @@ public:
     void DissociateWidgetFromSettingL( const TDesC& aContentId );    
 
     /**
-     *
+     * Return total number of mailboxes (native+3rd party) in the system
+     */
+    TInt TotalMailboxCountL();
+    
+    /**
+     * Return total number of native mailboxes in the system
      */     
-    TInt GetMailboxCount();    
+    TInt TotalIntMailboxCount();
+
+    /**
+     * Return total number of 3rd party mailboxes in the system
+     */
+    TInt TotalExtMailboxCountL();
 
     /**
      *
      */    
     void ManualAccountSelectionL( const TDesC& aContentId );
     
+	/**
+     * Gets correct localised format for time (or date) string
+     */ 
+    static HBufC* GetMessageTimeStringL( TTime aMessageTime );
+
+    // From MEmailObserverListener
+    void EmailObserverEvent( EmailInterface::MEmailData& aData );
+
 protected:
     /**
      * From CFSNotificationHandlerBase
@@ -144,9 +181,14 @@ private:
     void Reset();
 
     /**
-     * Initializes everything
+     * Initializes native accounts
      */
     void InitializeL();
+    
+    /**
+     * Initializes external accounts
+     */
+    void InitializeExternalAccountsL();
     
     // Creation methods
     /**
@@ -178,11 +220,6 @@ private:
                           const TInt aWidgetInstance,
 	                      const TInt aMessageNumber,
                           const TInt aFirstRow );
-
-    /**
-     * Gets correct localised format for time (or date) string
-     */	
-	HBufC* GetMessageTimeStringL( TTime aMessageTime );
 	
 	/**
      *
@@ -338,12 +375,60 @@ private:
      * @return ETrue if duplicate, EFalse if new message
      */
     TBool IsDuplicate( const CMailMailboxDetails& aMailbox, const TFSMailMsgId& aMsgId );
+
+    //
+    // Private methods related to 3rd party email widget publishers
+    //
+    /**
+     * Removes all plugin proxies (and plugins) that are not listed in aAccounts
+     * @param aAccounts up-to-date list of external (3rd party) email accounts
+     *        that are specified in settings
+     */
+    void RemoveUnusedPluginsL( RPointerArray<CMailExternalAccount>& aAccounts );
     
     /**
-     *
+     * Goes through the array of external accounts and instantiates (newly added)
+     * 3rd party plugins
+     * @param aAccounts up-to-date list of external (3rd party) email accounts
+     *        that are specified in settings
      */
+    void AddNewPluginsL( RPointerArray<CMailExternalAccount>& aAccounts );
+    
+    /**
+     * Goes through the array of existing 3rd party plugin (proxies) and
+     * lets them take the accounts given in the param array.
+     * Plugin proxies also update the widget data.
+     * @param aAccounts up-to-date list of external (3rd party) email accounts
+     *        that are specified in settings
+     */
+    void SelectAndUpdateExtAccountsL( RPointerArray<CMailExternalAccount>& aAccounts );
+    
     TBool FirstBootL();
     
+    /**
+     * Checks whether aAccounts array has entries relating to plugin with id aPluginId
+     * @param aPluginId 3rd party plugin identifier (implementation uid)
+     * @param aAccounts array of 3rd party email account information
+     * @return true or false
+     */
+    TBool IsPluginInArray( const TInt aPluginId, RPointerArray<CMailExternalAccount>& aAccounts );
+    
+    /**
+     * Checks whether aPlugins array has entries relating to plugin with id aPluginId
+     * @param aPluginId 3rd party plugin identifier (implementation uid)
+     * @param aPlugins array of plugin proxies
+     * @return true or false
+     */
+    TBool IsPluginInArray( const TInt aPluginId, RPointerArray<CMailPluginProxy>& aPlugins );
+
+    /**
+     * Goes through iExternalPlugins array and finds correct entry
+     * @param aContentId specifying a widget/account
+     * @return correct plugin proxy instance pointer (ownership not transferred)
+     *         if not found, NULL is retuned
+     */
+    CMailPluginProxy* GetExtPluginL( const TDesC& aContentId );
+
 private: // data
     CEikonEnv* iEnv;
     // pointer to liw wrapper that handles actual publishing
@@ -352,6 +437,8 @@ private: // data
     CMailCpsSettings*                  iSettings;
     // local cache of mailbox details
     RPointerArray<CMailMailboxDetails> iAccountsArray;
+    // array of plugin proxies. One plugin proxy handles one 3rd party plugin and its accounts
+    RPointerArray<CMailPluginProxy> iExternalPlugins;
     };
 
 #endif  //__CMAILCPSHANDLER_H__

@@ -22,10 +22,10 @@
 #include <e32std.h>
 #include <e32base.h>
 
-#include "CFSMailClient.hrh"
+#include "cfsmailclient.hrh"
 #include "cemailextensionbase.h"
 
-#include "MFSMailBrandManager.h"
+#include "mfsmailbrandmanager.h"
 #include "cfsmailplugin.h"
 
 
