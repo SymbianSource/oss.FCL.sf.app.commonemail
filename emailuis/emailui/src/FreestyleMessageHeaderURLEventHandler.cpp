@@ -291,6 +291,8 @@ void CFreestyleMessageHeaderURLEventHandler::LaunchAttachmentMenuL(
     iAttachmentStylusPopup->SetItemDimmed( EFsEmailUiCmdSaveAll, ETrue );
     iAttachmentStylusPopup->SetItemDimmed( EFsEmailUiCmdCancelDownload, ETrue );   
 
+    const TBool isMessage( iAttachmentsListModel->IsMessage( aAttachment ) );
+    
     if ( iAppUi.DownloadInfoMediator()->IsDownloading( aAttachment.partData.iMessagePartId ) )
         {        
         iAttachmentStylusPopup->SetItemDimmed( EFsEmailUiCmdCancelDownload, EFalse );  
@@ -302,37 +304,44 @@ void CFreestyleMessageHeaderURLEventHandler::LaunchAttachmentMenuL(
         // block saving of embedded messages if needed.
         if ( iView.IsEmbeddedMsgView() )
             {
-            if ( iView.IsEmbeddedMsgSavingAllowed() || !iAttachmentsListModel->IsMessage( aAttachment ) )
+            if ( iView.IsEmbeddedMsgSavingAllowed() || !isMessage )
                 {
                 iAttachmentStylusPopup->SetItemDimmed( EFsEmailUiCmdSave, EFalse );    
                 }              
             }
         else
             {
-            iAttachmentStylusPopup->SetItemDimmed( EFsEmailUiCmdSave, EFalse );
+            iAttachmentStylusPopup->SetItemDimmed( EFsEmailUiCmdSave, isMessage && !iView.IsEmbeddedMsgSavingAllowed() );
             }
         
         if ( iAttachmentsListModel->GetModel().Count() > 1 )
             {
-            // In embedded message mode, save all needs to be blocked if there
-            // are any message type attachments. This is due to limitations of Activesync plugin.
-            if( !(iView.IsEmbeddedMsgView() && iAttachmentsListModel->IsThereAnyMessageAttachments()) )
+            // Save all cannot be shown if there is one message attachment and saving is not supported
+            if ( !( iAttachmentsListModel->IsThereAnyMessageAttachments() && !iView.IsEmbeddedMsgSavingAllowed() ) )
                 {
-                iAttachmentStylusPopup->SetItemDimmed( EFsEmailUiCmdSaveAll, EFalse );    
-                }            
+                // In embedded message mode, save all needs to be blocked if there
+                // are any message type attachments. This is due to limitations of Activesync plugin.
+                if( !(iView.IsEmbeddedMsgView() && iAttachmentsListModel->IsThereAnyMessageAttachments()) )
+                    {
+                    iAttachmentStylusPopup->SetItemDimmed( EFsEmailUiCmdSaveAll, EFalse );    
+                    }
+                }
             }         
         }
     else
         {
         iAttachmentStylusPopup->SetItemDimmed( EFsEmailUiCmdOpenAttachment, EFalse );
-        iAttachmentStylusPopup->SetItemDimmed( EFsEmailUiCmdSave, EFalse ); 
+        iAttachmentStylusPopup->SetItemDimmed( EFsEmailUiCmdSave, isMessage ); 
         if ( iAttachmentsListModel->GetModel().Count() > 1 )
             {
-            iAttachmentStylusPopup->SetItemDimmed( EFsEmailUiCmdSaveAll, EFalse );
+            iAttachmentStylusPopup->SetItemDimmed( EFsEmailUiCmdSaveAll,
+                    iAttachmentsListModel->IsThereAnyMessageAttachments() && !iView.IsEmbeddedMsgSavingAllowed() );
             }         
         }
-    iAttachmentStylusPopup->SetPosition( iAppUi.ClientRect().Center(), 
-                                         CAknStylusPopUpMenu::EPositionTypeRightBottom );
+   
+    
+    iAttachmentStylusPopup->SetPosition( iAppUi.LastSeenPointerPosition(), 
+                                         CAknStylusPopUpMenu::EPositionTypeLeftTop );
     iAttachmentStylusPopup->ShowMenu();
     }
 

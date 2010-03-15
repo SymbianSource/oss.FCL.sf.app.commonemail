@@ -158,7 +158,7 @@ void CFsUiDataMtm::PopulateArraysL()
         array->SetReserveL( 2 ); // AppendLs will not LEAVE
         
         CGulIcon* brandedIcon( NULL );
-        TInt err;
+        TInt err(KErrNone);
 
         if ( i < mailboxes.Count() ) // Do not execute for the last round
             {

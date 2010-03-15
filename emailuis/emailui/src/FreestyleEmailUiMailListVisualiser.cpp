@@ -89,6 +89,7 @@
 #include "FSDelayedLoader.h"
 #include "FSEmail.pan"
 #include "fsemailstatuspaneindicatorhandler.h"
+#include "ipsplgcommon.h"
 
 // CONST VALUES
 const TInt KControlBarTransitionTime = 250;
@@ -1635,7 +1636,7 @@ void CFSEmailUiMailListVisualiser::SetStatusBarLayout()
     if( Layout_Meta_Data::IsLandscapeOrientation() )
         {
         // landscape must use different layout
-        res = R_AVKON_STATUS_PANE_LAYOUT_IDLE_FLAT;
+		res = R_AVKON_STATUS_PANE_LAYOUT_USUAL_EXT;
         }
 
 	if ( StatusPane()->CurrentLayoutResId() != res )
@@ -1726,6 +1727,12 @@ void CFSEmailUiMailListVisualiser::DynInitMenuPaneL(TInt aResourceId, CEikMenuPa
             // Sync/cancel sync
 	    CFSMailBox* activeMailbox = iAppUi.GetActiveMailbox();
 	    TBool supportsSync = activeMailbox->HasCapability( EFSMBoxCapaSupportsSync );
+        TFSMailBoxStatus onlineStatus = activeMailbox->GetMailBoxStatus();
+         if ( onlineStatus == EFSMailBoxOnline && 
+		      KIpsPlgImap4PluginUid == activeMailbox->GetId().PluginId() )
+        	{
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdSync, ETrue );
+        	}
 
             // flag to hide or show SyncButton
             TBool hideSync = GetLatestSyncState();
@@ -1735,7 +1742,6 @@ void CFSEmailUiMailListVisualiser::DynInitMenuPaneL(TInt aResourceId, CEikMenuPa
         if ( !supportsSync )
         {
 				// POP3 behaviour
-				TFSMailBoxStatus onlineStatus = activeMailbox->GetMailBoxStatus();
 				if( onlineStatus == EFSMailBoxOnline || iMailListModelUpdater->IsUpdating() )
 				  {
 					aMenuPane->SetItemDimmed( EFsEmailUiCmdCancelSync, EFalse );
@@ -3157,7 +3163,7 @@ void CFSEmailUiMailListVisualiser::HandleForegroundEventL( TBool aForeground )
         TFsEmailUiUtility::ToggleEmailIconL(EFalse, iMailFolder->GetMailBoxId() );
         }
     
-	if ( iFirstStartCompleted ) // Safety
+	if ( aForeground && iFirstStartCompleted ) // Safety
 	    {
 	    // Update mail list settings and date formats, is done every time
 	    // the user might have changed these in settings, so the list needs to refresh
@@ -3793,21 +3799,6 @@ void CFSEmailUiMailListVisualiser::HandleCommandL( TInt aCommand )
 			TFSMailMsgId folderID;
 			folderID.SetNullId(); // Selection is popped up with NULL
 			MoveMsgsToFolderL( folderID );
-
-			TBool supportsSync = iAppUi.GetActiveMailbox()->HasCapability( EFSMBoxCapaSupportsSync );
-			if ( supportsSync )
-			    {
-			    //If synchronizing is ongoing and a new sync is started we ignore it
-			    if(!GetLatestSyncState())
-			        {
-			        iAppUi.SyncActiveMailBoxL();
-
-			        // Sync the mailbox
-			        ManualMailBoxSync(ETrue);
-
-                    iAppUi.ManualMailBoxSync( ETrue );
-			        }
-			    }
 			}
 			break;
        	case EFsEmailUiCmdActionsMoveToDrafts:
@@ -3990,7 +3981,14 @@ TInt CFSEmailUiMailListVisualiser::MoveMsgsToFolderL( const TFSMailMsgId& aDesti
                 iMoveToFolderOngoing = ETrue;
                 TFolderListActivationData folderListData;
                 folderListData.iCallback = this;
-                folderListData.iSourceFolderType = iMailFolder->GetFolderType();
+                if(iMailFolder) // Coverity error fix , assuming that inbox is best bet for safe data. 
+                    {
+                    folderListData.iSourceFolderType = iMailFolder->GetFolderType();
+                    }
+                else
+                    {
+                    folderListData.iSourceFolderType = EFSInbox;
+                    }
                 const TPckgBuf<TFolderListActivationData> pkgOut( folderListData );
                 if ( targetEntries.Count() == 1 )
                     {
@@ -4229,6 +4227,12 @@ void CFSEmailUiMailListVisualiser::SetViewSoftkeysL( TInt aResourceId )
 void CFSEmailUiMailListVisualiser::SetMskL()
     {
     FUNC_LOG;
+    // If there is no keyboard present, than Msk buttom must not be shown
+    if ( iAppUi.ShortcutBinding().KeyBoardType() == 
+                                    CFSEmailUiShortcutBinding::ENoKeyboard )
+        {
+        return;
+        }
     // Get the mail list count
     TInt listCount(0);
     if ( iMailList )
@@ -4238,7 +4242,7 @@ void CFSEmailUiMailListVisualiser::SetMskL()
 
     if ( iFocusedControl == EControlBarComponent )
         {
-        ChangeMskCommandL( R_FSE_QTN_MSK_CHANGE );
+        ChangeMskCommandL( R_FSE_QTN_MSK_CHANGE ); // change - switch focus on
         }
     else  if ( iFocusedControl == EMailListComponent )
         {
@@ -4252,17 +4256,17 @@ void CFSEmailUiMailListVisualiser::SetMskL()
                 // Nodes may not be marked
                 if ( iMailList->IsNode( iMailList->FocusedItem() ) )
                     {
-                    ChangeMskCommandL( R_FSE_QTN_MSK_EMPTY );
+                    ChangeMskCommandL( R_FSE_QTN_MSK_EMPTY ); // nothing
                     }
                 else
                     {
                     if ( iMailList->IsMarked( iMailList->FocusedItem() ) )
                         {
-                        ChangeMskCommandL( R_FSE_QTN_MSK_UNMARK );
+                        ChangeMskCommandL( R_FSE_QTN_MSK_UNMARK ); // unmark item
                         }
                     else
                         {
-                        ChangeMskCommandL( R_FSE_QTN_MSK_MARK );
+                        ChangeMskCommandL( R_FSE_QTN_MSK_MARK ); // mark item
                         }
                     }
                 }
@@ -4276,11 +4280,11 @@ void CFSEmailUiMailListVisualiser::SetMskL()
                         {
                         if ( iMailFolder && iMailFolder->GetFolderType() == EFSOutbox )
                             {
-                            ChangeMskCommandL( R_FSE_QTN_MSK_OPEN_BLOCKED );
+                            ChangeMskCommandL( R_FSE_QTN_MSK_OPEN_BLOCKED ); // blocked email opening 
                             }
                         else
                             {
-                            ChangeMskCommandL( R_FSE_QTN_MSK_OPEN );
+                            ChangeMskCommandL( R_FSE_QTN_MSK_OPEN ); // open email
                             }
                         }
                     }
@@ -4292,11 +4296,11 @@ void CFSEmailUiMailListVisualiser::SetMskL()
                         {
                         if ( iMailList->IsExpanded( iMailList->FocusedItem() ) )
                             {
-                            ChangeMskCommandL( R_FSE_QTN_MSK_COLLAPSE );
+                            ChangeMskCommandL( R_FSE_QTN_MSK_COLLAPSE ); // collapse folder
                             }
                         else
                             {
-                            ChangeMskCommandL( R_FSE_QTN_MSK_EXPAND );
+                            ChangeMskCommandL( R_FSE_QTN_MSK_EXPAND ); // expand folder
                             }
                         }
                     }
@@ -5512,11 +5516,8 @@ void CFSEmailUiMailListVisualiser::ChangeReadStatusOfIndexL( TBool aRead, TInt a
                 }
             msgPtr.SaveMessageL();  // Save flag
 
-            if ( !iMailOpened )
-                {
-                // Switch icon to correct one if mail list is visible
-                UpdateMsgIconAndBoldingL( aIndex );
-                }
+            // Switch icon to correct one if mail list is visible
+            // UpdateMsgIconAndBoldingL( aIndex );
 
             if ( iCurrentSortCriteria.iField == EFSMailSortByUnread )
                 {
@@ -7024,7 +7025,7 @@ void CFSEmailUiMailListVisualiser::HandleMailBoxEventL( TFSMailEvent aEvent,
 				SetMailboxNameToStatusPaneL();
 				}
 			}
-	 	else if ( aEvent == TFSEventMailDeleted && iMailFolder ) // <cmail> Added iMailFolder null safety check </cmail>
+	 	else if ( (aEvent == TFSEventMailDeleted || aEvent == TFSEventMailDeletedFromViewer) && iMailFolder ) // <cmail> Added iMailFolder null safety check </cmail>
 			{
 			// Change mail item icon or read status
 			RArray<TFSMailMsgId>* removedEntries = static_cast<RArray<TFSMailMsgId>*>(aParam1);
@@ -7111,7 +7112,7 @@ void CFSEmailUiMailListVisualiser::HandleMailBoxEventL( TFSMailEvent aEvent,
 			}
 		else if ( aEvent == TFSEventMailChanged && iMailFolder ) // Added iMailFolder null safety check
 			{
-			if ( !iMailOpened ) // do not handle mail changed while viewer/editor is open. This may cause flickering
+			//if ( !iMailOpened ) // do not handle mail changed while viewer/editor is open. This may cause flickering
 			    {
     			// Change mail item icon or read status
     			RArray<TFSMailMsgId>* entries = static_cast<RArray<TFSMailMsgId>*>( aParam1 );
@@ -7632,7 +7633,7 @@ TInt CFSEmailUiMailListVisualiser::GetActiveFolderId(TFSMailMsgId& aActiveMailbo
 void CFSEmailUiMailListVisualiser::CreateExtensionL()
     {
     CFSMailBox* box = iAppUi.GetActiveMailbox();
-    CEmailExtension* ext;
+    CEmailExtension* ext=NULL;
     if (box)
         {
         ext = box->ExtensionL( KEmailMailboxStateExtensionUid );

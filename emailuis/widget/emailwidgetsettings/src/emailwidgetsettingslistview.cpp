@@ -119,12 +119,8 @@ void CEmailWidgetSettingsListView::HandleCommandL(TInt aCommandId)
 // CEmailWidgetSettingsListView::HandleForegroundEventL
 // ---------------------------------------------------------------------------
 //
-void CEmailWidgetSettingsListView::HandleForegroundEventL(TBool aForeground)
+void CEmailWidgetSettingsListView::HandleForegroundEventL(TBool /*aForeground*/)
     {
-    if (!aForeground)
-        {
-        AppUi()->HandleCommandL(EAknSoftkeyCancel); //Exit app
-        }
     }
 
 // ---------------------------------------------------------------------------

@@ -605,14 +605,14 @@ void CFsEmailUiHtmlViewerView::ChildDoActivateL( const TVwsViewId& aPrevViewId,
                     }                              
                 else
                     {
+                    // Attachment list model is not created when opening mrViewer, so attachment options menu is
+                    // not working with MR messages
                     iAttachmentsListModel = CFSEmailUiAttachmentsListModel::NewL( iAppUi, *this );
-                    TPartData msgPartData( iActivationData.iMailBoxId, iActivationData.iFolderId, iActivationData.iMessageId);
+                    TPartData msgPartData( iActivationData.iMailBoxId, iActivationData.iFolderId, iActivationData.iMessageId );
                     iAttachmentsListModel->UpdateListL( msgPartData );
-                       
                     CheckMessageBodyL( *iMessage, msgBodyStructurePresent, msgBodyContentPresent );
                     LoadContentFromMailMessageL( iMessage, ETrue );
-                    }
-                
+                    }                
                 }
             else
                 {
@@ -935,7 +935,7 @@ void CFsEmailUiHtmlViewerView::SetStatusBarLayout()
     if( Layout_Meta_Data::IsLandscapeOrientation() )
         {
         // landscape must use different layout
-        res = R_AVKON_STATUS_PANE_LAYOUT_IDLE_FLAT;
+		res = R_AVKON_STATUS_PANE_LAYOUT_USUAL_EXT;
         }
 
     if( StatusPane()->CurrentLayoutResId() != res )
@@ -1221,7 +1221,7 @@ void CFsEmailUiHtmlViewerView::LoadContentFromMailMessageL( CFSMailMessage* aMai
         }
     }
 
-void CFsEmailUiHtmlViewerView::DeleteMailL()
+void CFsEmailUiHtmlViewerView::DeleteMailL(TBool aSilentDelete)
     {
     FUNC_LOG;
 
@@ -1233,7 +1233,7 @@ void CFsEmailUiHtmlViewerView::DeleteMailL()
     TInt reallyDelete( ETrue );
 
     if ( iAppUi.GetCRHandler()->WarnBeforeDelete() && 
-         !iMessage->IsFlagSet( EFSMsgFlag_CalendarMsg ) )
+         !aSilentDelete )
         {
         reallyDelete = TFsEmailUiUtility::ShowConfirmationQueryL(
                            R_FREESTYLE_EMAIL_UI_DELETE_MESSAGE_CONFIRMATION );
@@ -1269,7 +1269,9 @@ void CFsEmailUiHtmlViewerView::DeleteMailL()
         CleanupStack::PopAndDestroy( &msgIds );
 
         // Notify appui of deleted mail item
-        SendEventToAppUiL( TFSEventMailDeleted ); 
+        SendEventToAppUiL( TFSEventMailDeletedFromViewer ); 
+        
+       
         
         if ( iAppUi.CurrentActiveView()->Id() == HtmlViewerId )
             {   
@@ -1283,11 +1285,10 @@ void CFsEmailUiHtmlViewerView::DeleteMailL()
                 ChangeMskCommandL( R_FSE_QTN_MSK_EMPTY );
                 NavigateBackL();
                 }
-
-			
 			}
-        //inform user that mail is deleted  
-        TFsEmailUiUtility::ShowDiscreetInfoNoteL( R_FREESTYLE_EMAIL_MAIL_DELETED );
+        //inform user that mail is deleted
+        if (!aSilentDelete)
+        	TFsEmailUiUtility::ShowDiscreetInfoNoteL( R_FREESTYLE_EMAIL_MAIL_DELETED );
         }
     }
 
@@ -1301,13 +1302,11 @@ void CFsEmailUiHtmlViewerView::HandleMailBoxEventL( TFSMailEvent aEvent,
     {
     FUNC_LOG;
     if ( /*iFirstStartCompleted &&*/ iMessage && aMailbox.Id() == iAppUi.GetActiveMailboxId().Id() &&
-                                     aEvent == TFSEventMailDeleted && aParam1 ) // Safety, in list events that only concern active mailbox are handled
+                                     (aEvent == TFSEventMailDeleted || aEvent == TFSEventMailDeletedFromViewer) && aParam1 ) // Safety, in list events that only concern active mailbox are handled
         {
         TFSMailMsgId curMsgId = iMessage->GetMessageId();       
         RArray<TFSMailMsgId>* removedEntries = static_cast<RArray<TFSMailMsgId>*>( aParam1 );
-        // <cmail> break-keyword should be used only in switch-clauses
         TBool cont = ETrue;
-
         for ( TInt i = 0 ; i < removedEntries->Count() && cont; i++ )
             {
             if ( ( curMsgId == ( *removedEntries )[i] ) &&
@@ -1315,16 +1314,23 @@ void CFsEmailUiHtmlViewerView::HandleMailBoxEventL( TFSMailEvent aEvent,
                 {                
                 cont = EFalse;
                 ChangeMskCommandL( R_FSE_QTN_MSK_EMPTY );
-                HandleCommandL( EAknSoftkeyBack );
+                if(aEvent == TFSEventMailDeleted)
+                    {   //Delete event came from server; close the viewer.
+                	HandleCommandL( EAknSoftkeyBack );
+                	// The message we are viewing was deleted => stop here
+                	return;
+                    }
                 }            
             } 
         }
      
-    if (iMessage && aMailbox.Id() == iAppUi.GetActiveMailboxId().Id() && aEvent == TFSEventNewMail)
+    if (iContainer && iMessage && aMailbox.Id() == iAppUi.GetActiveMailboxId().Id() && 
+            ( aEvent == TFSEventNewMail || 
+              aEvent == TFSEventMailDeleted || 
+              aEvent == TFSEventMailChanged ) )
         {
-        UpdateEmailHeaderIndicators();
+        iContainer->MailListModelUpdatedL();
         }
-    // </cmail>
     }
 
 void CFsEmailUiHtmlViewerView::DynInitZoomMenuL( CEikMenuPane* aMenuPane )
@@ -1405,6 +1411,16 @@ void CFsEmailUiHtmlViewerView::SetZoomLevelIndexL( TInt aIndex )
         iContainer->BrowserControlIf()->SetBrowserSettingL(
             TBrCtlDefs::ESettingsCurrentZoomLevelIndex, newValue );
         }
+    }
+
+// -----------------------------------------------------------------------------
+// CFsEmailUiHtmlViewerView::RestoreZoomLevelL()
+// -----------------------------------------------------------------------------
+//
+void CFsEmailUiHtmlViewerView::RestoreZoomLevelL()
+    {
+    FUNC_LOG;
+    SetZoomLevelIndexL( ZoomLevelIndexL() );
     }
 
 // -----------------------------------------------------------------------------
@@ -1638,6 +1654,7 @@ void CFsEmailUiHtmlViewerView::DownloadStatusChangedL( TInt /*aIndex*/ )
 
 void CFsEmailUiHtmlViewerView::DownloadAttachmentL( const TAttachmentData& aAttachment )
     {
+    iAppUi.DownloadInfoMediator()->AddObserver( this, aAttachment.partData.iMessageId );
     iAttachmentsListModel->StartDownloadL(aAttachment);
     }
 
@@ -1785,6 +1802,12 @@ void CFsEmailUiHtmlViewerView::UpdateDownloadIndicatorL(
             }
         
         iContainer->ShowAttachmentDownloadStatusL( aEvent.iProgressStatus, *attachment );
+        }
+    
+    if (aEvent.iProgressStatus == TFSProgress::EFSStatus_RequestComplete || 
+            aEvent.iProgressStatus == TFSProgress::EFSStatus_RequestCancelled)
+        {
+        iAppUi.DownloadInfoMediator()->StopObserving( this, aPart.iMessageId );
         }
     }
 
@@ -1967,6 +1990,8 @@ void CFsEmailUiHtmlViewerView::ShowNextMessageL()
 
             iAppUi.MoveToNextMsgL( currentMsgId, nextMsgId );
             // Next message is displayed in this view through doactivate, because view is re-activate by mail list
+
+            RestoreZoomLevelL();
             }
         }
     }
@@ -2000,7 +2025,7 @@ void CFsEmailUiHtmlViewerView::ShowPreviousMessageL()
         TFSMailMsgId prevMsgId;
         TFSMailMsgId prevMsgFolderId;
         if ( iAppUi.IsPreviousMsgAvailable( currentMsgId, prevMsgId, prevMsgFolderId ) )
-            {
+            {          
             if (iContainer)
                 {
                 iContainer->PrepareForMessageNavigation();
@@ -2014,6 +2039,8 @@ void CFsEmailUiHtmlViewerView::ShowPreviousMessageL()
 
             iAppUi.MoveToPreviousMsgL( currentMsgId, prevMsgId );
             // Previous message is displayed in this view through doactivate, because view is re-activate by mail list
+
+            RestoreZoomLevelL();
             }
         }
     }
@@ -2657,7 +2684,7 @@ if ( messagePtr )
             if ( iMessage )
                 {
                 iDeletedMessageFromMrui = iMessage->GetMessageId(); //<cmail>
-                DeleteMailL();
+                DeleteMailL(ETrue);
                 iOpResult.iResultCode = KErrNone; //???? what to pass here
                 }
 

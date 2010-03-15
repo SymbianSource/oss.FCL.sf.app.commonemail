@@ -2517,22 +2517,34 @@ CHARACTER_SET UTF8
 #define qtn_fse_tb_actions "Actions"
 
 // d:Extended toolbar button reply, creates a reply to email message sender
-// l:popup_preview_text_window_t1
+// l:cell_tb_ext_pane_t1
 // r:TB9.2
 //
 #define qtn_fse_tb_ext_reply "Reply"
 
 // d:Extended toolbar button reply, creates a reply to email message sender and other recipients
-// l:popup_preview_text_window_t1
+// l:cell_tb_ext_pane_t1
 // r:TB9.2
 //
 #define qtn_fse_tb_ext_reply_all "Reply to all"
 
 // d:Extended toolbar button forward, creates a forward email message to the sender
-// l:popup_preview_text_window_t1
+// l:cell_tb_ext_pane_t1
 // r:TB9.2
 //
 #define qtn_fse_tb_ext_forward "Forward"
+
+// d:Toolbar button reply, creates a reply to email message sender
+// l:popup_preview_text_window_t1
+// r:TB9.2
+//
+#define qtn_fse_tb_reply "Reply"
+
+// d:Toolbar button forward, creates a forward email message to the sender
+// l:popup_preview_text_window_t1
+// r:TB9.2
+//
+#define qtn_fse_tb_forward "Forward"
 
 // d:Toolbar button for add attachment in editor, opens extended toolbar for attachment selection
 // l:popup_preview_text_window_t1
@@ -2809,4 +2821,52 @@ CHARACTER_SET UTF8
 // r:TB9.2
 //
 #define qtn_mail_option_alternative_no                       "No"
+
+// d:Tooltip text for opening actions toolbar extension
+// l:popup_preview_text_window_t1
+// r:TB9.2
+//
+#define qtn_mail_tb_tooltip_actions "Actions"
+
+// d:Toolbar extension command for setting low priority flag in editor
+// l:cell_tb_ext_pane_t1
+// r:TB9.2
+//
+#define qtn_mail_tb_ext_priority_low "Low"
+
+// d:Toolbar extension command for setting high priority flag in editor
+// l:cell_tb_ext_pane_t1
+// r:TB9.2
+//
+#define qtn_mail_tb_ext_priority_high "High"
+
+// d:Toolbar extension command for setting follow up flag in editor
+// l:cell_tb_ext_pane_t1
+// r:TB9.2
+//
+#define qtn_mail_tb_ext_follow_up "Follow up"
+
+// d:Toolbar extension command for showing cc field in editor
+// l:cell_tb_ext_pane_t1
+// r:TB9.2
+//
+#define qtn_mail_tb_ext_show_cc "Show Cc field"
+
+// d:Toolbar extension command for hiding cc field in editor
+// l:cell_tb_ext_pane_t1
+// r:TB9.2
+//
+#define qtn_mail_tb_ext_hide_cc "Hide Cc field"
+
+// d:Toolbar extension command for showin bcc field in editor
+// l:cell_tb_ext_pane_t1
+// r:TB9.2
+//
+#define qtn_mail_tb_ext_show_bcc "Show Bcc field"
+
+// d:Toolbar extension command for hiding bcc field in editor
+// l:cell_tb_ext_pane_t1
+// r:TB9.2
+//
+#define qtn_mail_tb_ext_hide_bcc "Hide Bcc field"
 

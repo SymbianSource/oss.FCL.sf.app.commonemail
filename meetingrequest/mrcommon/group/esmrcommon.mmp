@@ -53,11 +53,9 @@ LIBRARY                 msgs.lib
 LIBRARY                 featmgr.lib
 LIBRARY                 centralrepository.lib
 LIBRARY                 PlatformEnv.lib
-LIBRARY cmaillogger.lib
+LIBRARY                 cmaillogger.lib
 
-#ifdef TRACE_INTO_FILE
 LIBRARY                 flogger.lib
-#endif // TRACE_INTO_FILE
 
 // end of file
 

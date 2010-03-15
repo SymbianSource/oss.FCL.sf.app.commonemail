@@ -56,6 +56,9 @@ EXPORT_C CFSMailRequestHandler::~CFSMailRequestHandler()
         // close file server connection
         iFs.Close();        
         }
+    
+    // clear TLS
+    Dll::FreeTls();
     }
 
 // -----------------------------------------------------------------------------

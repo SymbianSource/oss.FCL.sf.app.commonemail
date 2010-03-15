@@ -49,7 +49,7 @@ public:
     
     /**
      * Sets email address
-     * @param address e.g 'john@domain.com'
+     * @param email address 
      */
     virtual void SetAddressL( const TDesC& aAddress ) = 0;
     

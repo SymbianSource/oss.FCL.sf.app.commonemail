@@ -36,7 +36,7 @@ END
 
 SOURCEPATH      ../src
 SOURCE          proxy.cpp
-SOURCE 			CPsMruAdapter.cpp
+SOURCE          CPsMruAdapter.cpp
 
 USERINCLUDE     ../inc
 
@@ -45,7 +45,8 @@ APP_LAYER_SYSTEMINCLUDE
 
 LIBRARY     euser.lib
 LIBRARY     eCom.lib
-LIBRARY	    PcsUtils.lib
-LIBRARY		FSMailFramework.lib
-LIBRARY		FSFWCommonLib.lib
-LIBRARY cmaillogger.lib
+LIBRARY     PcsUtils.lib
+LIBRARY     FSMailFramework.lib
+LIBRARY     FSFWCommonLib.lib
+LIBRARY     cmaillogger.lib
+LIBRARY     flogger.lib

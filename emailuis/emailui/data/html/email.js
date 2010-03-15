@@ -1,9 +1,6 @@
 // Original image sources are stored in this array
 var originalImageSources = new Array();
 
-// Cid identifier string, if the image name begins with cid: it's shown
-var cid = new String("cid:");
-
 // Number of images hidden (or replaced with our placeholder image)
 var hiddenCount = 0;
 
@@ -17,7 +14,7 @@ function hideImages(frameId) {
         for (i = 0; i < doc.images.length; i++) {
         	var image = doc.images[i];
             originalImageSources.push(image.src);
-            if (image.src.length > 0 && image.src.indexOf(cid) == -1) {
+            if (image.src.length > 0) {
                 doc.images[i].src = "../hidden.png";
                 hiddenCount++;
             }

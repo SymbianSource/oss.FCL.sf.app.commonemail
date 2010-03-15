@@ -323,6 +323,8 @@ private: // Private functions
                                      TBool aAllowRefresh,
                                      TUint aUnreadCnt = 0);
 
+    TDesC* CFSEmailUiFolderListVisualiser::GetItemDisplayNameLC( TDesC& aItemData, TUint aUnreadCnt );
+    
 	void CreatePlainItemLC2( const TDesC* aItemDataBuff,
                              CFsTreePlainOneLineItemData* &aItemData,
                              CFsTreePlainOneLineItemVisualizer* &aItemVisualizer,

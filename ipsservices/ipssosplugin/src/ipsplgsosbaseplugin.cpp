@@ -1360,36 +1360,43 @@ TInt CIpsPlgSosBasePlugin::GetMessagePartFileL(
 void CIpsPlgSosBasePlugin::CopyMessagePartFileL(
     const TFSMailMsgId& /* aMailBoxId */,
     const TFSMailMsgId& /* aParentFolderId */,
-    const TFSMailMsgId& aMessageId,
+    const TFSMailMsgId& /*aMessageId*/,
     const TFSMailMsgId& aMessagePartId,
     const TDesC& aFilePath)
 	{
     FUNC_LOG;
-    CMsvEntry* cEntry( NULL );
-    CImEmailMessage* message( NULL );
-
-    CFileMan* fileMgr = CFileMan::NewL( iSession->FileSession() );
-    CleanupStack::PushL( fileMgr );
-
-    // We trust that the message ID really refers to a message
-    GetMessageEntryL( aMessageId.Id(), cEntry, message );
-
-    // Without this e.g. alternative body iCal parts are not found
-    message->GetAttachmentsListL( aMessageId.Id(),
-        CImEmailMessage::EAllAttachments,
-        CImEmailMessage::EThisMessageAndEmbeddedMessages );
-    MMsvAttachmentManager& attachmentMgr( message->AttachmentManager() );
-    // It is assumed that the attachment ID is same as the corresponding
-    // entry ID
-    RFile attachmentFile = attachmentMgr.GetAttachmentFileL(
-        (TMsvAttachmentId) aMessagePartId.Id() );
-
-    // Overwrites the target file if such exists
-    // There is no other way to report errors than leave
-    User::LeaveIfError( fileMgr->Copy( attachmentFile, aFilePath ) );
-
-    attachmentFile.Close();
-    CleanupStack::PopAndDestroy( fileMgr );
+    CMsvEntry* cEntry = iSession->GetEntryL( aMessagePartId.Id() );
+    CleanupStack::PushL( cEntry );
+    CMsvStore* store = NULL;
+    TBool hasStore = cEntry->HasStoreL();
+    if ( hasStore )
+        {
+        store = cEntry->ReadStoreL();
+        }
+    if ( !store || !hasStore )
+        {
+        User::Leave( KErrNotFound );
+        }
+    CleanupStack::PushL( store );
+    MMsvAttachmentManager& attachmentMgr = store->AttachmentManagerL();
+    // It is assumed that the attachment file is always in the index 0
+    if ( attachmentMgr.AttachmentCount() )
+        {
+        RFile attachmentFile =
+            attachmentMgr.GetAttachmentFileL( 0 );
+        CleanupClosePushL( attachmentFile );
+        CFileMan* fileMgr = CFileMan::NewL( iSession->FileSession() );
+        CleanupStack::PushL( fileMgr );
+        User::LeaveIfError( fileMgr->Copy( attachmentFile, aFilePath ) );
+        CleanupStack::PopAndDestroy( fileMgr );
+        CleanupStack::PopAndDestroy(); // attachmentFile.Close()
+        }
+    else
+        {
+        User::Leave( KErrNotFound );
+        }
+    CleanupStack::PopAndDestroy( store );
+    CleanupStack::PopAndDestroy( cEntry );
 	}
 
 // ----------------------------------------------------------------------------
@@ -1617,6 +1624,7 @@ TFSProgress CIpsPlgSosBasePlugin::StatusL( TInt aRequestId )
 	{
     FUNC_LOG;
 	TFSProgress status;
+	status.iError = KErrNone;
 	status.iProgressStatus = TFSProgress::EFSStatus_RequestComplete;
 	for ( TInt i = 0; i < iOperations.Count(); i++ )
         {

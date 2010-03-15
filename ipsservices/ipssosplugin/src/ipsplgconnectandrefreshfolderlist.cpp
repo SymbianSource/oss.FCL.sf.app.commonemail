@@ -75,15 +75,11 @@ CIpsPlgConnectAndRefreshFolderList::CIpsPlgConnectAndRefreshFolderList(
             0, // FSRequestId
             EFalse), // SignallingAllowed
     iState( EIdle ),
-    iMailboxId( aMailboxId ),
-    iSession( aSession ),
-    iService( aService ),
-    iOperation( NULL ),
     iTimer( NULL ),
-    iMsvEntry( NULL ),
-    iObserverRequestStatus( aObserverRequestStatus )
+    iMsvEntry( NULL )
     {
     FUNC_LOG;
+    iService = aService;
     }
 
 // ----------------------------------------------------------------------------
@@ -96,7 +92,6 @@ void CIpsPlgConnectAndRefreshFolderList::ConstructL(
     iMsvEntry = aMsvEntry.CopyL();    
     iState = EStartConnect;
     DoRunL();
-    
     }
 
 // ----------------------------------------------------------------------------
@@ -106,7 +101,6 @@ CIpsPlgConnectAndRefreshFolderList::~CIpsPlgConnectAndRefreshFolderList()
     FUNC_LOG;
     Cancel();
     delete iMsvEntry;
-    delete iOperation;
     }
 
 // ---------------------------------------------------------------------------
@@ -224,11 +218,11 @@ void CIpsPlgConnectAndRefreshFolderList::DoRunL()
             delete iOperation;
             iOperation = NULL;
             iOperation = CIpsPlgDisconnectOp::NewL( 
-                            iSession, 
+            		        iMsvSession, 
                             iStatus, 
                             iService, 
                             *iTimer,
-                            iMailboxId, 
+                            iFSMailboxId, 
                             *observer, 
                             NULL );
             iState = EDisconnecting;
@@ -268,7 +262,7 @@ void CIpsPlgConnectAndRefreshFolderList::DisplayLoginFailedDialogL()
     // Get the TMsvEntry for the mailbox, which we use to get its name.
     TMsvId serviceId;
     TMsvEntry mailboxServiceEntry;
-    User::LeaveIfError( iSession.GetEntry( iMailboxId.Id(), serviceId, mailboxServiceEntry ) );
+    User::LeaveIfError( iMsvSession.GetEntry( iFSMailboxId.Id(), serviceId, mailboxServiceEntry ) );
 
     // Load/construct the strings for the dialog.
     HBufC* headerText( NULL );

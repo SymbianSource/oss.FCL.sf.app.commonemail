@@ -26,6 +26,7 @@
 #include <aknlayoutscalable_apps.cdl.h>
 #include <aknlayoutscalable_avkon.cdl.h>
 #include <layoutmetadata.cdl.h>
+#include <fslayoutmanager.h>
 
 // For generic treelist layout data setting
 #include "fstreelist.h"
@@ -472,10 +473,18 @@ TRect CFSEmailUiLayoutHandler::DropDownMenuListRect(
     if( landscape )
         {
         TSize menuSize = rect.Size();
-
-        // position left from the button
-        rect.SetRect( TPoint( buttonRect.iTl.iX - menuSize.iWidth, 
+        if ( !CFsLayoutManager::IsMirrored() )
+           {
+        	// position left from the button
+            rect.SetRect( TPoint( buttonRect.iTl.iX - menuSize.iWidth, 
                 buttonRect.Center().iY - menuSize.iHeight / 2 ), menuSize );
+           }
+        else
+           {
+           // position right from the button
+           rect.SetRect( TPoint( buttonRect.Width(), 
+                       buttonRect.Center().iY - menuSize.iHeight / 2 ), menuSize );
+           }
         }
     else
         {
@@ -1941,7 +1950,7 @@ TRect CFSEmailUiLayoutHandler::GetListRect( TBool aControlsOnTop ) const
     listRect.LayoutRect( mainPaneRect, 
                         AknLayoutScalable_Apps::main_sp_fs_listscroll_pane_te_cp01( var ));
     TRect rect = listRect.Rect();
-
+  
     // if control bar is required, reserve space on top of the listbox  
     if( aControlsOnTop && landscape )
         {

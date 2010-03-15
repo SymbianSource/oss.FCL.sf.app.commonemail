@@ -742,6 +742,7 @@ void CIpsSosAOMBoxLogic::SaveSuccessfulSyncTimeL()
     TAOInfo info;
     info.iLastSuccessfulUpdate = now;
     info.iUpdateSuccessfulWithCurSettings = ETrue;
+    info.iLastUpdateFailed=EFalse;
     iExtendedSettings->SetLastUpdateInfo( info );
     // clear flag
     iExtendedSettings->SetEmnReceivedButNotSyncedFlag( EFalse );

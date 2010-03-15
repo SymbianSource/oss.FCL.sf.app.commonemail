@@ -112,6 +112,8 @@ public:
     static void ShowGlobalErrorNoteL( TInt aResourceStringId );
     static void ShowGlobalInfoNoteL( TInt aResourceStringId );
     static void ShowDiscreetInfoNoteL( TInt aResourceStringId );
+    static void ShowDiscreetInfoNoteL( const TDesC& aNoteText );    
+     
     /**
     * Creates and shows a local wait note. Caller must pass a member variable pointer
     * which will hold the created wait note instance. This must NOT be an automatic variable.
@@ -298,6 +300,10 @@ public:
     // Checks if FSMailServer is running. If not, then launches it.
     static void EnsureFsMailServerIsRunning( RWsSession& aWsSession );
     
+    //
+    static void SetDownloadSave( TBool aValue );    
+    //
+    static void SetSaveSelect( TBool aValue );      
 private:
     static TFSEmailUiTextures GetReadMsgIcon( CFSMailMessage* aMsgPtr );
     static TFSEmailUiTextures GetUnreadMsgIcon( CFSMailMessage* aMsgPtr );
@@ -325,6 +331,8 @@ private:
 private: // static data
     static CAknGlobalNote* iGlobalWaitNote;
     static CAknWaitDialog* iOpeningWaitNote;
+    static TBool iSaveSelect;
+    static TBool iDownloadSave;
     
     // <cmail>
     // A separate MR viewer instance for checking the MR method type.

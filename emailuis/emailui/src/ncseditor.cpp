@@ -71,6 +71,7 @@ void CNcsEditor::ConstructL( const CCoeControl* aParent,
             CEikEdwin::ENoAutoSelection | CEikEdwin::EInclusiveSizeFixed |
             CEikEdwin::ENoHorizScrolling | CEikRichTextEditor::EPasteAsPlainText );
 
+    EnableKineticScrollingL( ETrue );
     iGlobalCharFormat = CCharFormatLayer::NewL();
     iGlobalCharFormat->SetBase( GlobalText()->GlobalCharFormatLayer() );
     GlobalText()->SetGlobalCharFormat( iGlobalCharFormat );

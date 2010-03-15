@@ -181,4 +181,9 @@ EXPORTS
 	?UnregisterRequestObserver@CBasePlugin@@UAEXH@Z @ 180 NONAME ; void CBasePlugin::UnregisterRequestObserver(int)
 	?UnsubscribeMailboxEvents@CBasePlugin@@UAEXABVTFSMailMsgId@@AAVMFSMailEventObserver@@@Z @ 181 NONAME ; void CBasePlugin::UnsubscribeMailboxEvents(class TFSMailMsgId const &, class MFSMailEventObserver &)
 	?WizardDataAvailableL@CBasePlugin@@UAEHXZ @ 182 NONAME ; int CBasePlugin::WizardDataAvailableL(void)
+	?LoadLC@CResourceLoader@@QAEPAVHBufC16@@H@Z @ 183 NONAME ; class HBufC16 * CResourceLoader::LoadLC(int)
+	?Fs@CResourceLoader@@QAEAAVRFs@@XZ @ 184 NONAME ; class RFs & CResourceLoader::Fs(void)
+	?NewL@CResourceLoader@@SAPAV1@ABVTDesC16@@@Z @ 185 NONAME ; class CResourceLoader * CResourceLoader::NewL(class TDesC16 const &)
+	??1CResourceLoader@@UAE@XZ @ 186 NONAME ; CResourceLoader::~CResourceLoader(void)
+	?CreateResourceReaderLC@CResourceLoader@@QBEPAVHBufC8@@AAVTResourceReader@@H@Z @ 187 NONAME ; class HBufC8 * CResourceLoader::CreateResourceReaderLC(class TResourceReader &, int) const
 

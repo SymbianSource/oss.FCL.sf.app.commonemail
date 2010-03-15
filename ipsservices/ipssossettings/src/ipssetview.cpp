@@ -165,6 +165,7 @@ TInt CIpsSetView::RunSettingsDlgL( TAny* aSelfPtr )
     CIpsSetView* self = static_cast<CIpsSetView*>( aSelfPtr );
 
     TSubViewActivationData subView;
+    subView.iSubviewId = 0;
     TPckgBuf<CESMailSettingsPlugin::TSubViewActivationData> subViewData( subView ); //<cmail>
     subViewData.Copy( *self->iCustomMessage );
     subView = subViewData();

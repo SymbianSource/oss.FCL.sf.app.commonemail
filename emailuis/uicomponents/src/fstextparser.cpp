@@ -717,7 +717,7 @@ MFsRichTextObject* CFsTextParser::GetNextObjectL()
                         info.iFirstFieldPos - iPosition));
             textObject = static_cast<MFsRichTextObject*>
                 (CFsRichTextText::NewL(iGNOSomeText, 0));
-            
+            CleanupStack::PushL(textObject);
             TInt styleId = iTextStyleManager->GetStyleIDL(iGNOCharFormat);
             ((CFsRichTextText*)textObject)->SetStyleId(styleId);
             
@@ -728,7 +728,8 @@ MFsRichTextObject* CFsTextParser::GetNextObjectL()
                 iGNOCharFormat.iFontPresentation.iTextColor );
             
             iLastPosition = iPosition;
-            iPosition += iGNOSomeText.Length();      
+            iPosition += iGNOSomeText.Length();
+            CleanupStack::Pop(textObject);
             }
         else
             {
@@ -766,6 +767,7 @@ MFsRichTextObject* CFsTextParser::GetNextObjectL()
                                   
                 CFsRichTextText* smileyTextObject = 
                     CFsRichTextText::NewL(iGNOSomeText, 0);
+                CleanupStack::PushL(smileyTextObject); 
                 smileyTextObject->SetTextColor(
                         iGNOCharFormat.iFontPresentation.iTextColor );
                 
@@ -797,7 +799,7 @@ MFsRichTextObject* CFsTextParser::GetNextObjectL()
                 
                 CFsRichTextPicture* smileyPictureObject = 
                     CFsRichTextPicture::NewL();
-                
+                CleanupStack::PushL(smileyPictureObject);
                 if(iIsSetSizeOfSmiley)      
                     {
                     texturesize = iSizeOfSmiley;
@@ -819,7 +821,9 @@ MFsRichTextObject* CFsTextParser::GetNextObjectL()
                 textObject = CFsRichTextSmiley::NewL(
                         smileyTextObject, 
                         smileyPictureObject);
-                        
+                
+                CleanupStack::Pop(smileyPictureObject);
+                CleanupStack::Pop(smileyTextObject);
                 textObject->SetBeginOfObject(iPosition);
                 textObject->SetEndOfObject(iPosition + iGNOSomeText.Length() - 1);
                 
@@ -844,7 +848,7 @@ MFsRichTextObject* CFsTextParser::GetNextObjectL()
         	{
         	textObject = static_cast<MFsRichTextObject*>
                     (CFsRichTextText::NewL(iGNOSomeText, 0));
-            
+            CleanupStack::PushL(textObject); 
         	TInt styleId = iTextStyleManager->GetStyleIDL(iGNOCharFormat);
         	((CFsRichTextText*)textObject)->SetStyleId(styleId);
             
@@ -887,6 +891,8 @@ MFsRichTextObject* CFsTextParser::GetNextObjectL()
 	            
 	        iLastPosition = iPosition;
 	        iPosition += iGNOSomeText.Length();
+	        
+	        CleanupStack::Pop(textObject);
 	        }     
         }
     

@@ -1251,7 +1251,11 @@ CFSMailMessagePart* CIpsPlgMsgMapper::ConvertBodyEntry2MessagePartL(
 
         CleanupStack::Pop( result );
         }
-    SetFetchStateL( aEntry, aMessageId.Id(), EFalse, *result );
+    if(result) // coverity error fix: result might be null
+        {
+        SetFetchStateL( aEntry, aMessageId.Id(), EFalse, *result );
+        }
+
     CleanupStack::PopAndDestroy( buf );
     return result;
     }

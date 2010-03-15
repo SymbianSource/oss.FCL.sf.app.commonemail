@@ -242,7 +242,7 @@
 ; Non-localized files:
 "\epoc32\data\Z\private\200159c0\install\emailwidget\hsps\00\widgetconfiguration.xml"      - "c:\private\200159c0\install\emailwidget\hsps\00\widgetconfiguration.xml"
 "\epoc32\data\Z\private\200159c0\install\emailwidget\hsps\00\manifest.dat"                 - "c:\private\200159c0\install\emailwidget\hsps\00\manifest.dat"
-"\epoc32\data\Z\private\200159c0\install\emailwidget\hsps\00\qgn_menu_cmail.svg"           - "c:\private\200159c0\install\emailwidget\hsps\00\qgn_menu_cmail.svg"
+"\epoc32\data\Z\private\200159c0\install\emailwidget\hsps\00\emailwidgeticon.mif"          - "c:\private\200159c0\install\emailwidget\hsps\00\emailwidgeticon.mif"
 ; Localized files (need to be clarified how these really work):
 "\epoc32\data\Z\private\200159c0\install\emailwidget\xuikon\00\EW.o0000"                   - "c:\private\200159c0\install\emailwidget\xuikon\00\EW.o0000"
 "\epoc32\data\Z\private\200159c0\install\emailwidget\hsps\00\emailwidgetconfiguration.dtd" - "c:\private\200159c0\install\emailwidget\hsps\00\emailwidgetconfiguration.dtd"

@@ -825,6 +825,7 @@ void CEmailMessage::ShowMessageViewerL( )
 void CEmailMessage::ReplyToMessageL( const TBool aReplyToAll )
     {
     TEditorLaunchParams editorLaunchData;
+    editorLaunchData.iExtra = NULL;
     editorLaunchData.iMailboxId = FsMsgId(iPluginData, iMessageId.iFolderId.iMailboxId);
     editorLaunchData.iFolderId = FsMsgId(iPluginData, iMessageId.iFolderId);
     editorLaunchData.iMsgId = FsMsgId(iPluginData, iMessageId);
@@ -844,6 +845,7 @@ void CEmailMessage::ReplyToMessageL( const TBool aReplyToAll )
 void CEmailMessage::ForwardMessageL()
     {
     TEditorLaunchParams editorLaunchData;
+    editorLaunchData.iExtra = NULL;
     editorLaunchData.iMailboxId = FsMsgId(iPluginData, iMessageId.iFolderId.iMailboxId);
     editorLaunchData.iFolderId = FsMsgId(iPluginData, iMessageId.iFolderId);
     editorLaunchData.iMsgId = FsMsgId(iPluginData, iMessageId);

@@ -812,7 +812,7 @@ EXPORT_C TInt CFsMtmClient::AddEmailAsAttachmentL( const TUint& aPluginId, const
 
 	if ( iEmailAttachedInEmail )
 		{
-		TMsvId accountId;
+		TMsvId accountId(0); // used as not found
 
 		// Get S60 mailboxes
 		CMsvEntry* root = CMsvEntry::NewL( Session(), KMsvRootIndexEntryId,
@@ -882,7 +882,7 @@ EXPORT_C TInt CFsMtmClient::DeleteEmailAsAttachmentL( const TMsvId aNewAttachEnt
 
 	if ( iEmailAttachedInEmail )
 		{
-		TMsvId accountId;
+		TMsvId accountId(0); //0 is used as notfound later on
 
 		// Get S60 mailboxes
 		CMsvEntry* root = CMsvEntry::NewL( Session(), KMsvRootIndexEntryId,

@@ -34,11 +34,11 @@
 #include <eikimage.h>
 #include <fbs.h>
 #include <flogger.h>
-#include <aknenv.h>	// CAknEnv
+#include <aknenv.h> // CAknEnv
 
-#include "CFSMailBox.h"
-#include "CFSMailClient.h"
-#include "CFSMailAddress.h"
+#include "cfsmailbox.h"
+#include "cfsmailclient.h"
+#include "cfsmailaddress.h"
 
 #include <aknlayoutscalable_apps.cdl.h>
 #include <layoutmetadata.cdl.h>
@@ -66,23 +66,23 @@ const TInt KFSUtilityThresholdColorMiddleValue = 127;
 //
 void NcsUtility::CompleteRelativePathL( 
         const TDesC& aRelativePath, TPtr& aAbsolutePath )
-	{
+    {
     FUNC_LOG;
 
-	// + 2 is for drive letter and ":"
-	if( aAbsolutePath.MaxLength() < aRelativePath.Length() + 2 )
-		{
-		User::Leave( KErrArgument );
-		}
+    // + 2 is for drive letter and ":"
+    if( aAbsolutePath.MaxLength() < aRelativePath.Length() + 2 )
+        {
+        User::Leave( KErrArgument );
+        }
 
-	TFileName path;
-  	path.Copy( aRelativePath );
-	TInt err = CompleteWithAppPath( path );
-	User::LeaveIfError( err );
+    TFileName path;
+    path.Copy( aRelativePath );
+    TInt err = CompleteWithAppPath( path );
+    User::LeaveIfError( err );
 
-	aAbsolutePath.Copy( path );
+    aAbsolutePath.Copy( path );
 
-	}
+    }
 
 // -----------------------------------------------------------------------------
 // NcsUtility::GenerateFromLineToMessageBodyL()
@@ -91,14 +91,14 @@ void NcsUtility::CompleteRelativePathL(
 //
 HBufC* NcsUtility::GenerateFromLineToMessageBodyL( 
         const RPointerArray<CNcsEmailAddressObject>& aFromArray )
-	{
+    {
     FUNC_LOG;
 
     HBufC* buf = DoGenerateAddressLineToMessageBodyL( 
             R_NCS_ENGINE_EMAIL_FROM, aFromArray );
 
-	return buf;
-	}
+    return buf;
+    }
 
 // -----------------------------------------------------------------------------
 // NcsUtility::GenerateSentLineToMessageBodyL()
@@ -106,31 +106,31 @@ HBufC* NcsUtility::GenerateFromLineToMessageBodyL(
 // -----------------------------------------------------------------------------
 //
 HBufC* NcsUtility::GenerateSentLineToMessageBodyL( CFSMailMessage& aMessage )
-	{
+    {
     FUNC_LOG;
 
-	HBufC* dateText = TFsEmailUiUtility::DateTextFromMsgLC( &aMessage );
-	HBufC* timeText = TFsEmailUiUtility::TimeTextFromMsgLC( &aMessage );
-	HBufC* sent = StringLoader::LoadLC( R_NCS_ENGINE_EMAIL_SENT );
+    HBufC* dateText = TFsEmailUiUtility::DateTextFromMsgLC( &aMessage );
+    HBufC* timeText = TFsEmailUiUtility::TimeTextFromMsgLC( &aMessage );
+    HBufC* sent = StringLoader::LoadLC( R_NCS_ENGINE_EMAIL_SENT );
 
-	HBufC* buf = HBufC::NewL( sent->Length() +
+    HBufC* buf = HBufC::NewL( sent->Length() +
                               KSpace().Length() +
-	                          dateText->Length() +
-	                          KSentLineDateAndTimeSeparatorText().Length() +
-	                          timeText->Length() );
-	TPtr ptr = buf->Des();
-	ptr.Append( *sent );
-	ptr.Append( KSpace );
-	ptr.Append( *dateText );
-	ptr.Append( KSentLineDateAndTimeSeparatorText );
-	ptr.Append( *timeText );
+                              dateText->Length() +
+                              KSentLineDateAndTimeSeparatorText().Length() +
+                              timeText->Length() );
+    TPtr ptr = buf->Des();
+    ptr.Append( *sent );
+    ptr.Append( KSpace );
+    ptr.Append( *dateText );
+    ptr.Append( KSentLineDateAndTimeSeparatorText );
+    ptr.Append( *timeText );
 
-	CleanupStack::PopAndDestroy( sent );
-	CleanupStack::PopAndDestroy( timeText );
-	CleanupStack::PopAndDestroy( dateText );
+    CleanupStack::PopAndDestroy( sent );
+    CleanupStack::PopAndDestroy( timeText );
+    CleanupStack::PopAndDestroy( dateText );
 
-	return buf;
-	}
+    return buf;
+    }
 
 // -----------------------------------------------------------------------------
 // NcsUtility::GenerateAddressLineToMessageBodyL()
@@ -138,11 +138,11 @@ HBufC* NcsUtility::GenerateSentLineToMessageBodyL( CFSMailMessage& aMessage )
 // -----------------------------------------------------------------------------
 //
 HBufC* NcsUtility::GenerateAddressLineToMessageBodyL(
-	RPointerArray<CNcsEmailAddressObject>& aToArray, TRecipientType aType )
-	{
+    RPointerArray<CNcsEmailAddressObject>& aToArray, TRecipientType aType )
+    {
     FUNC_LOG;
 
-	// figure out the recipient type dependent text
+    // figure out the recipient type dependent text
     TInt labelResource = R_NCS_ENGINE_EMAIL_TO;
     if ( aType == ERecipientTypeCc )
         {
@@ -152,7 +152,7 @@ HBufC* NcsUtility::GenerateAddressLineToMessageBodyL(
     HBufC* buf = DoGenerateAddressLineToMessageBodyL( labelResource, aToArray );
 
     return buf;
-	}
+    }
 
 // -----------------------------------------------------------------------------
 // NcsUtility::DoGenerateAddressLineToMessageBodyL()
@@ -228,22 +228,22 @@ HBufC* NcsUtility::DoGenerateAddressLineToMessageBodyL( TInt aLabelResourceId,
 // -----------------------------------------------------------------------------
 //
 HBufC* NcsUtility::GenerateSubjectLineToMessageBodyL( const TDesC& aSubject )
-	{
+    {
     FUNC_LOG;
 
-	// load "Subject:" string
-	HBufC* subjectLabel = StringLoader::LoadLC( R_NCS_ENGINE_EMAIL_SUBJECT );
+    // load "Subject:" string
+    HBufC* subjectLabel = StringLoader::LoadLC( R_NCS_ENGINE_EMAIL_SUBJECT );
 
-	// allocate buffer for the text
-	HBufC* buf = HBufC::NewL( subjectLabel->Length() + aSubject.Length() );
+    // allocate buffer for the text
+    HBufC* buf = HBufC::NewL( subjectLabel->Length() + aSubject.Length() );
     TPtr ptr = buf->Des();
     ptr.Append( *subjectLabel );
     ptr.Append( aSubject );
 
     CleanupStack::PopAndDestroy( subjectLabel );
 
-	return buf;
-	}
+    return buf;
+    }
 
 // -----------------------------------------------------------------------------
 // NcsUtility::CreateNcsAddressL()
@@ -252,27 +252,27 @@ HBufC* NcsUtility::GenerateSubjectLineToMessageBodyL( const TDesC& aSubject )
 //
 CNcsEmailAddressObject* NcsUtility::CreateNcsAddressL( 
         const CFSMailAddress& aFsAddress )
-	{
+    {
     FUNC_LOG;
 
-	CNcsEmailAddressObject* address = CNcsEmailAddressObject::NewL( ETrue );
-	CleanupStack::PushL( address );
-	// temporary ugly code because email API can return references to null
-	TDesC& a = aFsAddress.GetEmailAddress();
-	if ( &a )
-		{
-		address->SetEmailAddressL( a );
-		}
-	TDesC& name = aFsAddress.GetDisplayName();
-	if ( &name )
-		{
-		address->SetDisplayNameL( name );
-		}
+    CNcsEmailAddressObject* address = CNcsEmailAddressObject::NewL( ETrue );
+    CleanupStack::PushL( address );
+    // temporary ugly code because email API can return references to null
+    TDesC& a = aFsAddress.GetEmailAddress();
+    if ( &a )
+        {
+        address->SetEmailAddressL( a );
+        }
+    TDesC& name = aFsAddress.GetDisplayName();
+    if ( &name )
+        {
+        address->SetDisplayNameL( name );
+        }
 
-	CleanupStack::Pop( address );
+    CleanupStack::Pop( address );
 
-	return address;
-	}
+    return address;
+    }
 
 // -----------------------------------------------------------------------------
 // NcsUtility::CreateFsAddressL()
@@ -281,15 +281,15 @@ CNcsEmailAddressObject* NcsUtility::CreateNcsAddressL(
 //
 CFSMailAddress* NcsUtility::CreateFsAddressL( 
         const CNcsEmailAddressObject& aNcsAddress )
-	{
+    {
     FUNC_LOG;
 
-	CFSMailAddress* address = CFSMailAddress::NewL();
-	address->SetEmailAddress( aNcsAddress.EmailAddress() );
-	address->SetDisplayName( aNcsAddress.DisplayName() );
+    CFSMailAddress* address = CFSMailAddress::NewL();
+    address->SetEmailAddress( aNcsAddress.EmailAddress() );
+    address->SetDisplayName( aNcsAddress.DisplayName() );
 
-	return address;
-	}
+    return address;
+    }
 
 
 // -----------------------------------------------------------------------------
@@ -299,61 +299,61 @@ CFSMailAddress* NcsUtility::CreateFsAddressL(
 //
 HBufC* NcsUtility::FormatSubjectLineL( 
         const TDesC& aNewSubjectLine, const TDesC& aPrefix )
-	{
-	FUNC_LOG;
-	   
-	    HBufC* formattedSubjectLine = aNewSubjectLine.AllocLC();
-	    HBufC* prefix = aPrefix.AllocLC();
-	    TPtr formattedSubjectLinePtr = formattedSubjectLine->Des();
-	    TPtr prefixPtr = prefix->Des();
-	    prefixPtr.Trim();
-	    
-	    TInt subjectLineLength = formattedSubjectLinePtr.Length();
-	    TInt length = subjectLineLength;
-	    TInt prefixLength = prefixPtr.Length();
-	    HBufC* fwdPrefix = StringLoader::LoadLC( R_NCS_ENGINE_EMAIL_FORWARD_PREFIX );
-	    TPtr fwdPrt = fwdPrefix->Des();
-	    TInt fwdLength = fwdPrt.Length();
-	    fwdPrt.Trim();
-	    
-	      for(TInt index = formattedSubjectLinePtr.FindC( prefixPtr ); index != KErrNotFound ; index = formattedSubjectLinePtr.FindC( prefixPtr ))
-	        {
-	            formattedSubjectLinePtr = formattedSubjectLinePtr.RightTPtr( length );
-	            length = formattedSubjectLinePtr.Length() - index - prefixLength;
-	        }
-	       formattedSubjectLinePtr.Trim();
-	       
-	       for(TInt index = formattedSubjectLinePtr.FindC( fwdPrt) ; index != KErrNotFound  ; index = formattedSubjectLinePtr.FindC( fwdPrt ))
-	          {
-	               formattedSubjectLinePtr = formattedSubjectLinePtr.RightTPtr( length );
-	               length = formattedSubjectLinePtr.Length() - index - fwdLength;
-	          }
+    {
+    FUNC_LOG;
+       
+        HBufC* formattedSubjectLine = aNewSubjectLine.AllocLC();
+        HBufC* prefix = aPrefix.AllocLC();
+        TPtr formattedSubjectLinePtr = formattedSubjectLine->Des();
+        TPtr prefixPtr = prefix->Des();
+        prefixPtr.Trim();
+        
+        TInt subjectLineLength = formattedSubjectLinePtr.Length();
+        TInt length = subjectLineLength;
+        TInt prefixLength = prefixPtr.Length();
+        HBufC* fwdPrefix = StringLoader::LoadLC( R_NCS_ENGINE_EMAIL_FORWARD_PREFIX );
+        TPtr fwdPrt = fwdPrefix->Des();
+        TInt fwdLength = fwdPrt.Length();
+        fwdPrt.Trim();
+        
+          for(TInt index = formattedSubjectLinePtr.FindC( prefixPtr ); index != KErrNotFound ; index = formattedSubjectLinePtr.FindC( prefixPtr ))
+            {
+                formattedSubjectLinePtr = formattedSubjectLinePtr.RightTPtr( length );
+                length = formattedSubjectLinePtr.Length() - index - prefixLength;
+            }
+           formattedSubjectLinePtr.Trim();
+           
+           for(TInt index = formattedSubjectLinePtr.FindC( fwdPrt) ; index != KErrNotFound  ; index = formattedSubjectLinePtr.FindC( fwdPrt ))
+              {
+                   formattedSubjectLinePtr = formattedSubjectLinePtr.RightTPtr( length );
+                   length = formattedSubjectLinePtr.Length() - index - fwdLength;
+              }
 
-	       formattedSubjectLinePtr.Trim();
-	    
-	    
-	    HBufC* finalSubject = HBufC::NewL( formattedSubjectLinePtr.Length() + prefixPtr.Length() + KSpace().Length()  );
-	    TPtr ptr = finalSubject->Des();
-	    if ( AknLayoutUtils::LayoutMirrored() )
-	        {
-	        ptr.Append( formattedSubjectLinePtr );
-	        ptr.Append( KSpace );
-	        ptr.Append( prefixPtr );        
-	        
-	        }
-	    else
-	        {
-	        ptr.Append( prefixPtr );
-	        ptr.Append( KSpace );
-	        ptr.Append( formattedSubjectLinePtr );
-	    
-	        }
-	    CleanupStack::PopAndDestroy( fwdPrefix );
-	    CleanupStack::PopAndDestroy( prefix );
-	    CleanupStack::PopAndDestroy( formattedSubjectLine );
+           formattedSubjectLinePtr.Trim();
+        
+        
+        HBufC* finalSubject = HBufC::NewL( formattedSubjectLinePtr.Length() + prefixPtr.Length() + KSpace().Length()  );
+        TPtr ptr = finalSubject->Des();
+        if ( AknLayoutUtils::LayoutMirrored() )
+            {
+            ptr.Append( formattedSubjectLinePtr );
+            ptr.Append( KSpace );
+            ptr.Append( prefixPtr );        
+            
+            }
+        else
+            {
+            ptr.Append( prefixPtr );
+            ptr.Append( KSpace );
+            ptr.Append( formattedSubjectLinePtr );
+        
+            }
+        CleanupStack::PopAndDestroy( fwdPrefix );
+        CleanupStack::PopAndDestroy( prefix );
+        CleanupStack::PopAndDestroy( formattedSubjectLine );
 
-	    return finalSubject;
-	}
+        return finalSubject;
+    }
 
 // -----------------------------------------------------------------------------
 // NcsUtility::ConvertAddressArrayL()
@@ -363,19 +363,19 @@ HBufC* NcsUtility::FormatSubjectLineL(
 void NcsUtility::ConvertAddressArrayL( 
         const RPointerArray<CFSMailAddress>& aSrc, 
         RPointerArray<CNcsEmailAddressObject>& aDst )
-	{
+    {
     FUNC_LOG;
 
- 	for ( TInt i=0; i<aSrc.Count(); i++ )
- 		{
-		CNcsEmailAddressObject* ncsRecipient = 
+    for ( TInt i=0; i<aSrc.Count(); i++ )
+        {
+        CNcsEmailAddressObject* ncsRecipient = 
             NcsUtility::CreateNcsAddressL( *aSrc[i] );
-		CleanupStack::PushL( ncsRecipient );
-		aDst.AppendL( ncsRecipient );
-		CleanupStack::Pop( ncsRecipient );
- 		}
+        CleanupStack::PushL( ncsRecipient );
+        aDst.AppendL( ncsRecipient );
+        CleanupStack::Pop( ncsRecipient );
+        }
 
-	}
+    }
 
 // -----------------------------------------------------------------------------
 // NcsUtility::ConvertAddressArrayL()
@@ -385,19 +385,19 @@ void NcsUtility::ConvertAddressArrayL(
 void NcsUtility::ConvertAddressArrayL( 
         const RPointerArray<CNcsEmailAddressObject>& aSrc, 
         RPointerArray<CFSMailAddress>& aDst )
-	{
+    {
     FUNC_LOG;
 
- 	for ( TInt i=0; i<aSrc.Count(); i++ )
- 		{
-		CFSMailAddress* fsRecipient = 
+    for ( TInt i=0; i<aSrc.Count(); i++ )
+        {
+        CFSMailAddress* fsRecipient = 
             NcsUtility::CreateFsAddressL( *aSrc[i] );
-		CleanupStack::PushL( fsRecipient );
-		aDst.AppendL( fsRecipient );
-		CleanupStack::Pop( fsRecipient );
- 		}
+        CleanupStack::PushL( fsRecipient );
+        aDst.AppendL( fsRecipient );
+        CleanupStack::Pop( fsRecipient );
+        }
 
-	}
+    }
 
 
 
@@ -413,15 +413,15 @@ void NcsUtility::LoadScalableIconL(
     {
     FUNC_LOG;
 
-	HBufC* buf = HBufC::NewLC( KMaxFileName );
-	TPtr ptr = buf->Des();
-	NcsUtility::CompleteRelativePathL( aMifRelativeFileName, ptr );
+    HBufC* buf = HBufC::NewLC( KMaxFileName );
+    TPtr ptr = buf->Des();
+    NcsUtility::CompleteRelativePathL( aMifRelativeFileName, ptr );
 
     AknIconUtils::CreateIconL( aImage,
                                aMask,
                                ptr,
-	                           aImgId,
-	                           aMaskId );
+                               aImgId,
+                               aMaskId );
 
     TSize size;
     AknIconUtils::GetContentDimensions( aImage, size );
@@ -431,7 +431,7 @@ void NcsUtility::LoadScalableIconL(
     aIcon->SetNewBitmaps( aImage, aMask );
     aIcon->SetPictureOwnedExternally( ETrue );
 
-	CleanupStack::PopAndDestroy( buf );
+    CleanupStack::PopAndDestroy( buf );
 
     }
 
@@ -463,29 +463,29 @@ void NcsUtility::DebugLog( TRefByValue<const TDesC> aFmt, ... )
 TBool NcsUtility::IsEqualAddressArray( 
         const RPointerArray<CFSMailAddress>& aAddresses1,
         const RPointerArray<CFSMailAddress>& aAddresses2 )
-	{
+    {
     FUNC_LOG;
 
-	if ( aAddresses1.Count() != aAddresses2.Count() )
-		{
-		return EFalse;
-		}
+    if ( aAddresses1.Count() != aAddresses2.Count() )
+        {
+        return EFalse;
+        }
     for ( TInt i=0; i<aAddresses1.Count(); i++ )
-    	{
-    	if ( aAddresses1[i]->GetEmailAddress().Compare( 
-    	        aAddresses2[i]->GetEmailAddress() ) != 0 )
-    		{
-    		return EFalse;
-    		}
-    	if ( aAddresses1[i]->GetDisplayName().Compare( 
-    	        aAddresses2[i]->GetDisplayName() ) != 0 )
-    		{
-    		return EFalse;
-    		}
-    	}
+        {
+        if ( aAddresses1[i]->GetEmailAddress().Compare( 
+                aAddresses2[i]->GetEmailAddress() ) != 0 )
+            {
+            return EFalse;
+            }
+        if ( aAddresses1[i]->GetDisplayName().Compare( 
+                aAddresses2[i]->GetDisplayName() ) != 0 )
+            {
+            return EFalse;
+            }
+        }
 
     return ETrue;
-	}
+    }
 
 
 // -----------------------------------------------------------------------------
@@ -493,102 +493,102 @@ TBool NcsUtility::IsEqualAddressArray(
 // -----------------------------------------------------------------------------
 //
 TNcsMeasures NcsUtility::Measures()
-	{
+    {
     FUNC_LOG;
 
-	TNcsMeasures ms;
+    TNcsMeasures ms;
 
-	TAknUiZoom zoomLevel = EAknUiZoomNormal;
-	CAknEnv::Static()->GetCurrentGlobalUiZoom( zoomLevel );
-	switch ( zoomLevel )
-		{
-		case EAknUiZoomNormal: case EAknUiZoomAutomatic:
-			{
-			ms.iAifHeight = KAifHeight;
-			ms.iAifLabelMarginVertical = KAifLabelMarginVertical;
-			ms.iAifEditorMarginVertical = KAifEditorMarginVertical;
-			ms.iAifEditorHeight = KAifEditorHeight;
-			ms.iSubjectExtraHeightBottom = KSubjectExtraHeightBottom;
-			ms.iAttachmentExtraHeightBottom = KAttachmentExtraHeightBottom;
-			ms.iIconMarginPriorityVertical = KIconMarginPriorityVertical;
-			ms.iIconMarginFollowUpVertical = KIconMarginFollowUpVertical;
+    TAknUiZoom zoomLevel = EAknUiZoomNormal;
+    CAknEnv::Static()->GetCurrentGlobalUiZoom( zoomLevel );
+    switch ( zoomLevel )
+        {
+        case EAknUiZoomNormal: case EAknUiZoomAutomatic:
+            {
+            ms.iAifHeight = KAifHeight;
+            ms.iAifLabelMarginVertical = KAifLabelMarginVertical;
+            ms.iAifEditorMarginVertical = KAifEditorMarginVertical;
+            ms.iAifEditorHeight = KAifEditorHeight;
+            ms.iSubjectExtraHeightBottom = KSubjectExtraHeightBottom;
+            ms.iAttachmentExtraHeightBottom = KAttachmentExtraHeightBottom;
+            ms.iIconMarginPriorityVertical = KIconMarginPriorityVertical;
+            ms.iIconMarginFollowUpVertical = KIconMarginFollowUpVertical;
             ms.iIconMarginAttachmentVertical = KIconMarginAttachmentVertical;
-			ms.iLabelFontHeightPx = KLabelFontHeightPx;
-			ms.iEditorFontHeightPx = KEditorFontHeightPx;
-			}
+            ms.iLabelFontHeightPx = KLabelFontHeightPx;
+            ms.iEditorFontHeightPx = KEditorFontHeightPx;
+            }
             break;
-		case EAknUiZoomSmall: case EAknUiZoomVerySmall:
-			{
-			ms.iAifHeight = KAifHeightSmall;
-			ms.iAifLabelMarginVertical = KAifLabelMarginVerticalSmall;
-			ms.iAifEditorMarginVertical = KAifEditorMarginVerticalSmall;
-			ms.iAifEditorHeight = KAifEditorHeightSmall;
-			ms.iSubjectExtraHeightBottom = KSubjectExtraHeightBottomSmall;
-			ms.iAttachmentExtraHeightBottom = 
+        case EAknUiZoomSmall: case EAknUiZoomVerySmall:
+            {
+            ms.iAifHeight = KAifHeightSmall;
+            ms.iAifLabelMarginVertical = KAifLabelMarginVerticalSmall;
+            ms.iAifEditorMarginVertical = KAifEditorMarginVerticalSmall;
+            ms.iAifEditorHeight = KAifEditorHeightSmall;
+            ms.iSubjectExtraHeightBottom = KSubjectExtraHeightBottomSmall;
+            ms.iAttachmentExtraHeightBottom = 
                 KAttachmentExtraHeightBottomSmall;
-			ms.iIconMarginPriorityVertical = KIconMarginPriorityVerticalSmall;
-			ms.iIconMarginFollowUpVertical = KIconMarginFollowUpVerticalSmall;
+            ms.iIconMarginPriorityVertical = KIconMarginPriorityVerticalSmall;
+            ms.iIconMarginFollowUpVertical = KIconMarginFollowUpVerticalSmall;
             ms.iIconMarginAttachmentVertical = 
                 KIconMarginAttachmentVerticalSmall;
-			ms.iLabelFontHeightPx = KLabelFontHeightPxSmall;
-			ms.iEditorFontHeightPx = KEditorFontHeightPxSmall;
-			}
+            ms.iLabelFontHeightPx = KLabelFontHeightPxSmall;
+            ms.iEditorFontHeightPx = KEditorFontHeightPxSmall;
+            }
             break;
-		case EAknUiZoomLarge: case EAknUiZoomVeryLarge:
-			{
-			ms.iAifHeight = KAifHeightLarge;
-			ms.iAifLabelMarginVertical = KAifLabelMarginVerticalLarge;
-			ms.iAifEditorMarginVertical = KAifEditorMarginVerticalLarge;
-			ms.iAifEditorHeight = KAifEditorHeightLarge;
-			ms.iSubjectExtraHeightBottom = KSubjectExtraHeightBottomLarge;
-			ms.iAttachmentExtraHeightBottom = 
+        case EAknUiZoomLarge: case EAknUiZoomVeryLarge:
+            {
+            ms.iAifHeight = KAifHeightLarge;
+            ms.iAifLabelMarginVertical = KAifLabelMarginVerticalLarge;
+            ms.iAifEditorMarginVertical = KAifEditorMarginVerticalLarge;
+            ms.iAifEditorHeight = KAifEditorHeightLarge;
+            ms.iSubjectExtraHeightBottom = KSubjectExtraHeightBottomLarge;
+            ms.iAttachmentExtraHeightBottom = 
                 KAttachmentExtraHeightBottomLarge;
-			ms.iIconMarginPriorityVertical = KIconMarginPriorityVerticalLarge;
-			ms.iIconMarginFollowUpVertical = KIconMarginFollowUpVerticalLarge;
+            ms.iIconMarginPriorityVertical = KIconMarginPriorityVerticalLarge;
+            ms.iIconMarginFollowUpVertical = KIconMarginFollowUpVerticalLarge;
             ms.iIconMarginAttachmentVertical = 
                 KIconMarginAttachmentVerticalLarge;
-			ms.iLabelFontHeightPx = KLabelFontHeightPxLarge;
-			ms.iEditorFontHeightPx = KEditorFontHeightPxLarge;
-			}
+            ms.iLabelFontHeightPx = KLabelFontHeightPxLarge;
+            ms.iEditorFontHeightPx = KEditorFontHeightPxLarge;
+            }
             break;
-		}
+        }
 
-	return ms;
-	}
+    return ms;
+    }
 
 // -----------------------------------------------------------------------------
 // NcsUtility::GetNearestFontL
 // -----------------------------------------------------------------------------
 //
 CFont* NcsUtility::GetNearestFontL( TInt aLogicalFontId, TInt aHeightPixels )
-	{
+    {
     FUNC_LOG;
 
-	// Base the font on logical font passed to us
-	const CFont* logicalFont = AknLayoutUtils::FontFromId( aLogicalFontId );
-	// Note: This font is owned by the application's system font array (where
-	// it is likely already to have been created) and does not need to be
-	// released. It can just go out of scope.
+    // Base the font on logical font passed to us
+    const CFont* logicalFont = AknLayoutUtils::FontFromId( aLogicalFontId );
+    // Note: This font is owned by the application's system font array (where
+    // it is likely already to have been created) and does not need to be
+    // released. It can just go out of scope.
 
-	// Extract font information
-	TFontSpec fontSpec = logicalFont->FontSpecInTwips();
+    // Extract font information
+    TFontSpec fontSpec = logicalFont->FontSpecInTwips();
 
-	// Desired height, weight, and posture
-	CWsScreenDevice& screenDev = *( CEikonEnv::Static()->ScreenDevice() );
-	fontSpec.iHeight = screenDev.VerticalPixelsToTwips( aHeightPixels );
-	fontSpec.iFontStyle.SetStrokeWeight( EStrokeWeightNormal );
-	fontSpec.iFontStyle.SetPosture( EPostureUpright );
+    // Desired height, weight, and posture
+    CWsScreenDevice& screenDev = *( CEikonEnv::Static()->ScreenDevice() );
+    fontSpec.iHeight = screenDev.VerticalPixelsToTwips( aHeightPixels );
+    fontSpec.iFontStyle.SetStrokeWeight( EStrokeWeightNormal );
+    fontSpec.iFontStyle.SetPosture( EPostureUpright );
 
-	// Obtain new font
-	CFont* font;
+    // Obtain new font
+    CFont* font;
 
-	TInt err = screenDev.GetNearestFontInTwips( font, fontSpec );
-	User::LeaveIfError( err );
+    TInt err = screenDev.GetNearestFontInTwips( font, fontSpec );
+    User::LeaveIfError( err );
 
-	return font;
-	// Font is now usable. Must be released before application
-	// exit using CWsScreenDevice::ReleaseFont()
-	}
+    return font;
+    // Font is now usable. Must be released before application
+    // exit using CWsScreenDevice::ReleaseFont()
+    }
 
 // <cmail> Platform layout change
 // -----------------------------------------------------------------------------
@@ -739,9 +739,9 @@ void NcsUtility::ConvertLineEndingsL( HBufC*& aBuffer )
 // -----------------------------------------------------------------------------
 //
 TInt NcsUtility::DeleteMessage( CFSMailClient& aMailClient,
-		const TFSMailMsgId& aMailBoxId,
-		const TFSMailMsgId& aFolderId,
-		const TFSMailMsgId& aMsgId )
+        const TFSMailMsgId& aMailBoxId,
+        const TFSMailMsgId& aFolderId,
+        const TFSMailMsgId& aMsgId )
     {
     FUNC_LOG;
     RArray<TFSMailMsgId> msgIds;
@@ -761,7 +761,7 @@ TInt NcsUtility::DeleteMessage( CFSMailClient& aMailClient,
 //
 TRect NcsUtility::HeaderCaptionPaneRect( const TRect& aParent )
     {
-	FUNC_LOG;
+    FUNC_LOG;
     TAknLayoutRect headerCaptionPaneRect;
     headerCaptionPaneRect.LayoutRect( aParent, AknLayoutScalable_Apps::list_single_cmail_header_caption_pane() );
     return headerCaptionPaneRect.Rect();

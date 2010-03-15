@@ -212,12 +212,13 @@ private: // New functions
     void LoadContentFromFileL( RFile& aFile );
     void LoadContentFromUrlL( const TDesC& aUrl );
     void LoadContentFromMailMessageL( CFSMailMessage* aMailMessage, TBool aResetScrollPosition =ETrue );
-    void DeleteMailL();
+    void DeleteMailL(TBool aSilentDelete = EFalse);
     void HideContainer();
     void ShowContainerL();
     void DynInitZoomMenuL( CEikMenuPane* aMenuPane );
     TInt ZoomLevelIndexL();
     void SetZoomLevelIndexL( TInt aIndex );
+    void RestoreZoomLevelL();
     void SaveEmailAsContactL(
         const TDesC& aEmailAddress );
     //new functions for support of HTML viewer

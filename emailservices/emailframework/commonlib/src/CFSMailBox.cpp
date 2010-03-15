@@ -132,6 +132,7 @@ EXPORT_C TFSProgress CFSMailBox::GetLastSyncStatusL()
     {
     FUNC_LOG;
     TFSProgress progress;
+    progress.iError = EFalse;
     if(CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetId()))
         {
         progress = plugin->GetLastSyncStatusL( GetId() );       
@@ -148,6 +149,7 @@ EXPORT_C TInt CFSMailBox::RefreshNowL(
     FUNC_LOG;
 
     TFSPendingRequest request;
+    request.iRequestId = 0;
     if(CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetId()))
         {
         // init asynchronous request
@@ -173,6 +175,7 @@ EXPORT_C TInt CFSMailBox::RefreshNowL( )
     FUNC_LOG;
 
     TFSPendingRequest request;
+    request.iRequestId = 0;
     MFSMailRequestObserver* observer = NULL;
     if(CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetId()))
         {

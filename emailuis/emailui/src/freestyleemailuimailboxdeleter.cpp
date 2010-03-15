@@ -148,7 +148,7 @@ void CFSEmailUiMailboxDeleter::DeleteMailboxL( const TFSMailMsgId& aMailboxId )
     	{
     	// Either no mailbox with the given ID exist or it is not allowed to
     	// be deleted.
-    	// TODO Display an error message?
+    	// Display an error message?
     	CleanupStack::PopAndDestroy(); // mailboxes
     	return;
     	}

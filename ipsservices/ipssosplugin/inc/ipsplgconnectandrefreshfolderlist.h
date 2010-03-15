@@ -127,16 +127,11 @@ private:
 
     //data
 private:
-    
+
     TInt                                iState;
-    TFSMailMsgId 						iMailboxId;
-    CMsvSession&						iSession;
-    TMsvId								iService;
-    CMsvOperation* 						iOperation;
     CIpsPlgTimerOperation*				iTimer;
     CMsvEntrySelection*					iMsvEntry;
     TPckgBuf<TImap4CompoundProgress>    iProgressBuf;
-    TRequestStatus						iObserverRequestStatus;
     CAknWaitNoteWrapper*                iAsyncWaitNote;
     };
 

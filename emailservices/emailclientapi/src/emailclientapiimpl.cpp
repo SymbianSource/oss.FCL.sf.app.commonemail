@@ -37,7 +37,7 @@
 #include "emailmailboxcache.h"
 #include "FreestyleEmailUiConstants.h"
 #include "emailclientapi.hrh"
-#include "FreestyleEmailCenRepKeys.h"
+#include "freestyleemailcenrepkeys.h"
 #include "FreestyleEmailUiConstants.h"
 // ---------------------------------------------------------------------------
 // CEmailClientApi::MailboxL
@@ -143,7 +143,7 @@ void CEmailClientApi::LaunchEmailL( const TLaunchPolicy aPolicy )
     if ( aPolicy == EShowLastUnseenMailbox)
         {
         CRepository* emailRepository = CRepository::NewL( KFreestyleEmailCenRep );
-		CleanupStack::PushL(emailRepository);
+        CleanupStack::PushL(emailRepository);
         TInt numberOfMailboxes(0);
         TInt inboxId(0);
         TInt pluginId(0);

@@ -414,6 +414,7 @@ EXPORT_C void CFsSendAsHelper::LaunchUiL( TUint aPluginId, TUint aId,
     	CESMailSettingsPlugin::TSubViewActivationData pluginData;
     	pluginData.iAccount = TFSMailMsgId( aPluginId, aId );
     	pluginData.iLaunchedOutsideFSEmail = ETrue;
+    	pluginData.iSubviewId=0;
     	const TPckgBuf<CESMailSettingsPlugin::TSubViewActivationData> pkgOut( pluginData );
     	coeAppUi->ActivateViewL( TVwsViewId( KFSEmailUiUid, SettingsViewId ),
     	            TUid::Uid(KMailSettingsOpenPluginSettings), pkgOut );
@@ -444,6 +445,7 @@ EXPORT_C void CFsSendAsHelper::LaunchUiL( TUint aPluginId, TUint aId,
 
         TUid editorCommand = TUid::Uid( KEditorCmdOpen );
         TEditorLaunchParams params;
+        params.iExtra=NULL;
         params.iActivatedExternally = ETrue;    
         params.iMailboxId = TFSMailMsgId( aPluginId, aId );
         

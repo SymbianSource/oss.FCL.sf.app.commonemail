@@ -281,4 +281,13 @@ EXPORTS
 	_ZThn4_NK21CBaseMrRecurrenceRule19RecurrenceStartTimeEv @ 280 NONAME
 	_ZThn4_NK21CBaseMrRecurrenceRule20RecurrentDaysofMonthEv @ 281 NONAME
 	_ZThn4_NK21CBaseMrRecurrenceRule4TypeEv @ 282 NONAME
+	_ZN15CResourceLoader2FsEv @ 283 NONAME
+	_ZN15CResourceLoader4NewLERK7TDesC16 @ 284 NONAME
+	_ZN15CResourceLoader6LoadLCEi @ 285 NONAME
+	_ZN15CResourceLoaderD0Ev @ 286 NONAME
+	_ZN15CResourceLoaderD1Ev @ 287 NONAME
+	_ZN15CResourceLoaderD2Ev @ 288 NONAME
+	_ZNK15CResourceLoader22CreateResourceReaderLCER15TResourceReaderi @ 289 NONAME
+	_ZTI15CResourceLoader @ 290 NONAME
+	_ZTV15CResourceLoader @ 291 NONAME
 

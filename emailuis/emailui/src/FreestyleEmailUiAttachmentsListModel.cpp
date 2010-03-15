@@ -465,6 +465,18 @@ TBool CFSEmailUiAttachmentsListModel::IsThereAnyMessageAttachments() const
     return msgFound;
     }
 
+TBool CFSEmailUiAttachmentsListModel::IsThereAnyNonMessageAttachments() const
+    {
+    FUNC_LOG;
+    TBool msgFound = EFalse;
+    TInt attCount = iAttachments.Count();
+    for ( TInt i = 0 ; i < attCount && !msgFound ; i++ )
+        {
+        msgFound = !IsMessage( iAttachments[i] );
+        }
+    return msgFound;
+    }
+
 void CFSEmailUiAttachmentsListModel::UpdateListL( CFSMailMessage* aEmbeddedMessage )
 	{
     FUNC_LOG;
@@ -593,10 +605,15 @@ TBool CFSEmailUiAttachmentsListModel::SaveAllAttachmentsL(
 	TBool retVal = EFalse;
 	TInt attCount = iAttachments.Count();
     TInt savedCount( 0 );
+    const CFSMailBox* mailbox( iAppUi.GetActiveMailbox() );
 	for ( TInt i = 0; i < attCount; i++ )
 		{
-		TBool downloadStarted = SaveAttachmentL( iAttachments[i], aFileName, savedCount );
-		retVal = downloadStarted || retVal;
+        if ( !IsMessage( iAttachments[i] ) || 
+                ( mailbox && mailbox->HasCapability( EFSMboxCapaSupportsSavingOfEmbeddedMessages ) ) )
+            {
+            TBool downloadStarted = SaveAttachmentL( iAttachments[i], aFileName, savedCount );
+            retVal = downloadStarted || retVal;
+            }
 		}
 	if ( savedCount )
 	    {

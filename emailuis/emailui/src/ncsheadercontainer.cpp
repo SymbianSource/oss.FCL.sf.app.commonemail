@@ -1094,10 +1094,14 @@ TInt CNcsHeaderContainer::CursorPosition() const
 	
 	MNcsControl* ncsCtrl = dynamic_cast<MNcsControl*>( coe );
 	// This will give the the position relative to the top of the control
-	TInt pos = ncsCtrl->CursorPosition();
-	// add the location of the top of the control relative to the top
-	// of the header.
-	pos += coe->Rect().iTl.iY - Rect().iTl.iY;
+	TInt pos(0); // Coverity error fix ncsCtrl could be NULL
+	if(ncsCtrl)
+	    {
+        pos = ncsCtrl->CursorPosition();
+        // add the location of the top of the control relative to the top
+        // of the header.
+        pos += coe->Rect().iTl.iY - Rect().iTl.iY;
+	    }
 	return pos;
 	}
 

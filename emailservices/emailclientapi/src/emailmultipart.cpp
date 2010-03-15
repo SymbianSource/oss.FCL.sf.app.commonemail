@@ -105,21 +105,24 @@ MEmailMessageContent* CEmailMultipart::PartByIndexL( const TUint aIndex ) const
     CFSMailMessagePart* copy = iEmailMsgContent->Part().ChildPartL(partId);
     
     const TDesC& contentType = copy->GetContentType();
+    const TDesC& compareString = CEmailTextContent::CheckParameterFormatL( contentType );
+
     TMessageContentId msgContentId = TMessageContentId( 
             copy->GetPartId().Id(),
             Id().iMessageId.iId,
             Id().iMessageId.iFolderId.iId,
             Id().iMessageId.iFolderId.iMailboxId ); 
-    if (!contentType.Compare(KFSMailContentTypeTextPlain) || 
-        !contentType.Compare(KFSMailContentTypeTextHtml))
+   
+    if (!compareString.Compare(KFSMailContentTypeTextPlain) || 
+        !compareString.Compare(KFSMailContentTypeTextHtml))
         {                                
         content = CEmailTextContent::NewL( iEmailMsgContent->PluginData(), msgContentId, copy, EClientOwns );
         }
-    else if (!contentType.Compare(KFSMailContentTypeMultipartMixed) ||
-             !contentType.Compare(KFSMailContentTypeMultipartAlternative) ||
-             !contentType.Compare(KFSMailContentTypeMultipartDigest) ||
-             !contentType.Compare(KFSMailContentTypeMultipartRelated) ||
-             !contentType.Compare(KFSMailContentTypeMultipartParallel))
+    else if (!compareString.Compare(KFSMailContentTypeMultipartMixed) ||
+             !compareString.Compare(KFSMailContentTypeMultipartAlternative) ||
+             !compareString.Compare(KFSMailContentTypeMultipartDigest) ||
+             !compareString.Compare(KFSMailContentTypeMultipartRelated) ||
+             !compareString.Compare(KFSMailContentTypeMultipartParallel))
         {
         content = CEmailMultipart::NewL( iEmailMsgContent->PluginData(), msgContentId, copy, EClientOwns );
         }
@@ -174,7 +177,7 @@ void CEmailMultipart::AddPartL(
     iChildPartCount = iChildParts.Count();
     CleanupStack::Pop();
     
-    /* ToDo: Construct multipart  */
+
     
     return;
     }

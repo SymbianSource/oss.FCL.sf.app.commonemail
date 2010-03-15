@@ -52,6 +52,7 @@ class CFsAutoSaver;
 class CAknWaitDialog;
 class CActiveHelper;
 class CAknStylusPopUpMenu;
+class CAknToolbarExtension;
 
 
 const TInt KErrNcsComposeViewNotReady = KErrNotReady - 1000;
@@ -202,6 +203,11 @@ private: // from
     void ChildDoActivateL( const TVwsViewId& aPrevViewId,
             TUid aCustomMessageId,
             const TDesC8& aCustomMessage );  
+
+    /**
+     * From MAknToolbarObserver.
+     */
+    void DynInitToolbarL( TInt aResourceId, CAknToolbar* aToolbar );
 
     /**
      *  @see CFsEmailUiViewBase::OfferToolbarEventL
@@ -471,8 +477,11 @@ private: // new functions
     void DoFirstStartL();
     
     static TInt AsyncExit( TAny* aSelfPtr );
-    
-    //void AsyncExitL(); //<cmail> made public
+
+    // Gets button from toolbar extension.
+    CAknButton* Button( TInt aCmdId, 
+        CAknToolbarExtension* aExtension = NULL );
+
 private:   // Constructors and destructor
 
     /**

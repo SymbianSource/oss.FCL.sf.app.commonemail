@@ -259,9 +259,9 @@ void CFreestyleMessageHeaderHTML::ExportDisplayImagesTableL() const
     if (!iAutoLoadImages)
         {
         _LIT8(KDescription, "");
-        _LIT8(KButton, "Display images");
+        //_LIT8(KButton, "Display images");
         HBufC8* description = KDescription().AllocLC(); //HeadingTextLC(R_FREESTYLE_EMAIL_UI_IMAGES_ARE_NOT_DISPLAYED);
-        HBufC8* button = KButton().AllocLC(); //HeadingTextLC(R_FREESTYLE_EMAIL_UI_DISPLAY_IMAGES);
+        HBufC8* button = HeadingTextLC(R_FREESTYLE_EMAIL_UI_DISPLAY_IMAGES); // KButton().AllocLC();
         HBufC8* formatBuffer = NULL;
         if (iMirrorLayout)
             {
@@ -474,7 +474,8 @@ void CFreestyleMessageHeaderHTML::WriteSubjectL(TDesC& aText ) const
             case CFindItemEngine::EFindItemSearchURLBin:
                 {
                 HBufC8* url8 = CnvUtfConverter::ConvertFromUnicodeToUtf8L( *valueBuf );
-                FreestyleMessageHeaderURLFactory::CreateEmailSubjectUrlL(*valueBuf);
+                CFreestyleMessageHeaderURL *fsurl = FreestyleMessageHeaderURLFactory::CreateEmailSubjectUrlL(*valueBuf);
+                delete fsurl;
                 CleanupStack::PushL( url8 );
                 StartHyperlinkL(*url8);
                 iWriteStream.WriteL(*url8);

@@ -184,3 +184,14 @@
 -c16,8 qgn_indi_tb_expand_all.svg
 -c16,8 qgn_indi_cmail_arrow_previous.svg
 -c16,8 qgn_indi_cmail_arrow_next.svg
+-c16,8 qgn_indi_tb_low_priority.svg
+-c16,8 qgn_indi_tb_low_priority_selected.svg
+-c16,8 qgn_indi_tb_high_priority.svg
+-c16,8 qgn_indi_tb_high_priority_selected.svg
+-c16,8 qgn_indi_tb_follow_up.svg
+-c16,8 qgn_indi_tb_follow_up_selected.svg
+-c16,8 qgn_indi_tb_show_cc.svg
+-c16,8 qgn_indi_tb_hide_cc.svg
+-c16,8 qgn_indi_tb_show_bcc.svg
+-c16,8 qgn_indi_tb_hide_bcc.svg
+-c16,8 qgn_indi_tb_extension.svg

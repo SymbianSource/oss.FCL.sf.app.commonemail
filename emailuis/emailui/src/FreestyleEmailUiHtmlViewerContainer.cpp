@@ -357,7 +357,8 @@ void CFsEmailUiHtmlViewerContainer::ConstructL()
                               TBrCtlDefs::ECapabilityDisplayScrollBar |
                               TBrCtlDefs::ECapabilityClientNotifyURL |
                               TBrCtlDefs::ECapabilityLoadHttpFw |
-                              TBrCtlDefs::ECapabilityCursorNavigation;
+                              TBrCtlDefs::ECapabilityCursorNavigation |
+                              TBrCtlDefs::ECapabilityPinchZoom;
 
     // Set browsercontrol to whole screen
     TRect rect( TPoint(), Size() );
@@ -514,7 +515,7 @@ void CFsEmailUiHtmlViewerContainer::LoadContentFromUrlL( const TDesC& aUrl )
 // ---------------------------------------------------------------------------
 //
 void CFsEmailUiHtmlViewerContainer::LoadContentFromMailMessageL(
-    CFSMailMessage* aMailMessage, TBool aResetScrollPos )
+        CFSMailMessage* aMailMessage, TBool aResetScrollPos )
     {
     FUNC_LOG;
     ASSERT( aMailMessage );
@@ -803,7 +804,7 @@ void CFsEmailUiHtmlViewerContainer::RequestResponseL( const TFSProgress& aEvent,
             {
             iAppUi.DownloadInfoMediator()->StopObserving( this );
             }
-
+               
         if ( iMessage && linkContent )
             {
             CFSMailMessagePart* part = iMessage->ChildPartL( aPart.iMessagePartId );
@@ -817,10 +818,10 @@ void CFsEmailUiHtmlViewerContainer::RequestResponseL( const TFSProgress& aEvent,
             CleanupStack::PopAndDestroy( &contentFile );
             CleanupStack::PopAndDestroy( part );
             }
+        
         if ( iMessage )
             {
-            LoadContentFromMailMessageL( iMessage );
-            
+            LoadContentFromMailMessageL( iMessage, EFalse );            
             UpdateOverlayButtons( ETrue );
             }
         }
@@ -1495,13 +1496,13 @@ void CFsEmailUiHtmlViewerContainer::CreateHyperlinksFromUrlsL( CBufBase& aSource
     _LIT8( KHttps, "https://");
     _LIT8( KWww, "www."); 
     
-    TBool eos( EFalse );
+    TBool eos( aSource.Size() <= 0 );
     TInt position( 0 );
     TInt carryOverInc( 0 );
     
     while ( !eos )
         {
-        while ( carryOverInc >= aSource.Ptr( position ).Length() )
+        while ( carryOverInc >= aSource.Ptr( position ).Length() && aSource.Size() != 0 )
             { // Skip segments of overlapping url string
             carryOverInc -= aSource.Ptr( position ).Length();
             position += aSource.Ptr( position ).Length();
@@ -2217,5 +2218,11 @@ void CFsEmailUiHtmlViewerContainer::DisplayStatusIndicatorL(TInt aDuration)
     statusText = StringLoader::LoadL(R_FREESTYLE_EMAIL_UI_VIEWER_FETCHING_CONTENT_TEXT);
     iAppUi.FsTextureManager()->ProvideBitmapL(EStatusTextureSynchronising, image, imageMask );
     iStatusIndicator->ShowIndicatorL( image, imageMask, statusText, aDuration );
+    }
+
+void CFsEmailUiHtmlViewerContainer::MailListModelUpdatedL()
+    {
+    FUNC_LOG;
+    UpdateOverlayButtons( IsVisible() );    
     }
 

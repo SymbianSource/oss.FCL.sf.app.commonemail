@@ -84,30 +84,160 @@ RESOURCE AVKON_TOOLBAR r_freestyle_email_ui_toolbar_message_editor
                         helptxt = qtn_msg_tb_tooltip_send;
                         bmpfile = EMAILUI_ICON_FILE;
                         bmpid=EMbmFreestyleemailuiQgn_indi_tb_msg_send;
-                        bmpmask=EMbmFreestyleemailuiQgn_indi_tb_msg_send_mask;                        
-                        }  
-                    };            
+                        bmpmask=EMbmFreestyleemailuiQgn_indi_tb_msg_send_mask;
+                        }
+                    };
                 };
             },
         TBAR_CTRL
             {
-            type = EAknCtButton;
-            id = EFsEmailUiTbCmdAddRecipient;
-            control = AVKON_BUTTON
+            type = EAknCtToolbarExtension;
+            id = EFsEmailUiTbCmdExpandActions;
+            control = AVKON_TOOLBAR_EXTENSION
                 {
-                flags = KAknButtonSizeFitText;
-                states =
+                helptxt = qtn_mail_tb_tooltip_actions;
+                bmpFile = EMAILUI_ICON_FILE;
+                bmpId = EMbmFreestyleemailuiQgn_indi_tb_extension;
+                bmpMask = EMbmFreestyleemailuiQgn_indi_tb_extension_mask;
+                items =
                     {
-                    AVKON_BUTTON_STATE
+                    TBAR_CTRL
                         {
-                        helptxt = qtn_msg_tb_tooltip_add_recipient;
-                        bmpfile = EMAILUI_ICON_FILE;
-                        bmpid=EMbmFreestyleemailuiQgn_indi_tb_add_recipient;
-                        bmpmask=EMbmFreestyleemailuiQgn_indi_tb_add_recipient_mask;                        
-                        }  
-                    };            
-                };
-            },  
+                        type = EAknCtButton;
+                        id = EFsEmailUiTbCmdHighPriority;
+                        control = AVKON_BUTTON
+                            {
+                            flags = KAknButtonRequestExitOnButtonUpEvent;
+                            states =
+                                {
+                                AVKON_BUTTON_STATE
+                                    {
+                                    txt = qtn_mail_tb_ext_priority_high;
+                                    bmpfile = EMAILUI_ICON_FILE;
+                                    bmpid = EMbmFreestyleemailuiQgn_indi_tb_high_priority;
+                                    bmpmask = EMbmFreestyleemailuiQgn_indi_tb_high_priority_mask;
+                                    },
+                                AVKON_BUTTON_STATE
+                                    {
+                                    txt = qtn_mail_tb_ext_priority_high;
+                                    bmpfile = EMAILUI_ICON_FILE;
+                                    bmpid = EMbmFreestyleemailuiQgn_indi_tb_high_priority_selected;
+                                    bmpmask = EMbmFreestyleemailuiQgn_indi_tb_high_priority_selected_mask;
+                                    }
+                                };
+                            };
+                        },
+                    TBAR_CTRL
+                        {
+                        type = EAknCtButton;
+                        id = EFsEmailUiTbCmdLowPriority;
+                        control = AVKON_BUTTON
+                            {
+                            flags = KAknButtonRequestExitOnButtonUpEvent;
+                            states =
+                                {
+                                AVKON_BUTTON_STATE
+                                    {
+                                    txt = qtn_mail_tb_ext_priority_low;
+                                    bmpfile = EMAILUI_ICON_FILE;
+                                    bmpid = EMbmFreestyleemailuiQgn_indi_tb_low_priority;
+                                    bmpmask = EMbmFreestyleemailuiQgn_indi_tb_low_priority_mask;
+                                    },
+                                AVKON_BUTTON_STATE
+                                    {
+                                    txt = qtn_mail_tb_ext_priority_low;
+                                    bmpfile = EMAILUI_ICON_FILE;
+                                    bmpid = EMbmFreestyleemailuiQgn_indi_tb_low_priority_selected;
+                                    bmpmask = EMbmFreestyleemailuiQgn_indi_tb_low_priority_selected_mask;
+                                    }
+                                };
+                            };
+                        },
+                    TBAR_CTRL
+                        {
+                        type = EAknCtButton;
+                        id = EFsEmailUiTbCmdFollowUp;
+                        control = AVKON_BUTTON
+                            {
+                            flags = KAknButtonRequestExitOnButtonUpEvent;
+                            states =
+                                {
+                                AVKON_BUTTON_STATE
+                                    {
+                                    txt = qtn_mail_tb_ext_follow_up;
+                                    bmpfile = EMAILUI_ICON_FILE;
+                                    bmpid = EMbmFreestyleemailuiQgn_indi_tb_follow_up;
+                                    bmpmask = EMbmFreestyleemailuiQgn_indi_tb_follow_up_mask;
+                                    },
+                                AVKON_BUTTON_STATE
+                                    {
+                                    txt = qtn_mail_tb_ext_follow_up;
+                                    bmpfile = EMAILUI_ICON_FILE;
+                                    bmpid = EMbmFreestyleemailuiQgn_indi_tb_follow_up_selected;
+                                    bmpmask = EMbmFreestyleemailuiQgn_indi_tb_follow_up_selected_mask;
+                                    }
+                                };
+                            };
+                        },
+                    TBAR_CTRL
+                        {
+                        type = EAknCtButton;
+                        id = EFsEmailUiTbCmdCcField;
+                        control = AVKON_BUTTON
+                            {
+                            flags = KAknButtonRequestExitOnButtonUpEvent;
+                            states =
+                                {
+                                AVKON_BUTTON_STATE
+                                    {
+                                    txt = qtn_mail_tb_ext_show_cc;
+                                    bmpfile = EMAILUI_ICON_FILE;
+                                    //bmpid = EMbmFreestyleemailuiQgn_indi_tb_show_cc;
+                                    //bmpmask = EMbmFreestyleemailuiQgn_indi_tb_show_cc_mask;
+                                    bmpid = EMbmFreestyleemailuiQgn_indi_tb_hide_cc;
+                                    bmpmask = EMbmFreestyleemailuiQgn_indi_tb_hide_cc_mask;
+                                    },
+                                AVKON_BUTTON_STATE
+                                    {
+                                    txt = qtn_mail_tb_ext_hide_cc;
+                                    bmpfile = EMAILUI_ICON_FILE;
+                                    bmpid = EMbmFreestyleemailuiQgn_indi_tb_hide_cc;
+                                    bmpmask = EMbmFreestyleemailuiQgn_indi_tb_hide_cc_mask;
+                                    }
+                                };
+                            };
+                        },
+                    TBAR_CTRL
+                        {
+                        type = EAknCtButton;
+                        id = EFsEmailUiTbCmdBccField;
+                        control = AVKON_BUTTON
+                            {
+                            flags = KAknButtonRequestExitOnButtonUpEvent;
+                            states =
+                                {
+                                AVKON_BUTTON_STATE
+                                    {
+                                    txt = qtn_mail_tb_ext_show_bcc;
+                                    bmpfile = EMAILUI_ICON_FILE;
+                                    //bmpid = EMbmFreestyleemailuiQgn_indi_tb_show_bcc;
+                                    //bmpmask = EMbmFreestyleemailuiQgn_indi_tb_show_bcc_mask;
+                                    bmpid = EMbmFreestyleemailuiQgn_indi_tb_hide_bcc;
+                                    bmpmask = EMbmFreestyleemailuiQgn_indi_tb_hide_bcc_mask;
+                                    },
+                                AVKON_BUTTON_STATE
+                                    {
+                                    txt = qtn_mail_tb_ext_hide_bcc;
+                                    bmpfile = EMAILUI_ICON_FILE;
+                                    bmpid = EMbmFreestyleemailuiQgn_indi_tb_hide_bcc;
+                                    bmpmask = EMbmFreestyleemailuiQgn_indi_tb_hide_bcc_mask;
+                                    }
+                                };
+                            };
+                        }
+                    }; // end of extension items
+                }; // end of AVKON_TOOLBAR_EXTENSION
+            },
         TBAR_CTRL
             {
             type = EAknCtToolbarExtension;
@@ -135,9 +265,9 @@ RESOURCE AVKON_TOOLBAR r_freestyle_email_ui_toolbar_message_editor
                                     helptxt = qtn_msg_insert_tb_tooltip_image;
                                     bmpfile = EMAILUI_ICON_FILE;
                                     bmpid=EMbmFreestyleemailuiQgn_indi_mce_tb_image;
-                                    bmpmask=EMbmFreestyleemailuiQgn_indi_mce_tb_image_mask;                        
-                                    }  
-                                };            
+                                    bmpmask=EMbmFreestyleemailuiQgn_indi_mce_tb_image_mask;
+                                    }
+                                };
                             };
                         },
                     TBAR_CTRL
@@ -155,11 +285,11 @@ RESOURCE AVKON_TOOLBAR r_freestyle_email_ui_toolbar_message_editor
                                     helptxt = qtn_msg_insert_tb_tooltip_video;
                                     bmpfile = EMAILUI_ICON_FILE;
                                     bmpid=EMbmFreestyleemailuiQgn_indi_mce_tb_video;
-                                    bmpmask=EMbmFreestyleemailuiQgn_indi_mce_tb_video_mask;                        
-                                    }  
-                                };            
+                                    bmpmask=EMbmFreestyleemailuiQgn_indi_mce_tb_video_mask;
+                                    }
+                                };
                             };
-                        },                                    
+                        },
                     TBAR_CTRL
                         {
                         type = EAknCtButton;
@@ -175,9 +305,9 @@ RESOURCE AVKON_TOOLBAR r_freestyle_email_ui_toolbar_message_editor
                                     helptxt = qtn_msg_insert_tb_tooltip_sound;
                                     bmpfile = EMAILUI_ICON_FILE;
                                     bmpid=EMbmFreestyleemailuiQgn_indi_mce_tb_audio;
-                                    bmpmask=EMbmFreestyleemailuiQgn_indi_mce_tb_audio_mask;                        
-                                    }  
-                                };            
+                                    bmpmask=EMbmFreestyleemailuiQgn_indi_mce_tb_audio_mask;
+                                    }
+                                };
                             };
                         },
                     /*TBAR_CTRL
@@ -195,9 +325,9 @@ RESOURCE AVKON_TOOLBAR r_freestyle_email_ui_toolbar_message_editor
                                     helptxt = "Insert template";
                                     bmpfile = EMAILUI_ICON_FILE;
                                     bmpid=EMbmFreestyleemailuiQgn_indi_tb_template;
-                                    bmpmask=EMbmFreestyleemailuiQgn_indi_tb_template_mask;                        
-                                    }  
-                                };            
+                                    bmpmask=EMbmFreestyleemailuiQgn_indi_tb_template_mask;
+                                    }
+                                };
                             };
                         },*/
                     TBAR_CTRL
@@ -215,9 +345,9 @@ RESOURCE AVKON_TOOLBAR r_freestyle_email_ui_toolbar_message_editor
                                     helptxt = qtn_fse_msg_insert_tb_tooltip_note_att;
                                     bmpfile = EMAILUI_ICON_FILE;
                                     bmpid=EMbmFreestyleemailuiQgn_indi_tb_note;
-                                    bmpmask=EMbmFreestyleemailuiQgn_indi_tb_note_mask;                        
-                                    }  
-                                };            
+                                    bmpmask=EMbmFreestyleemailuiQgn_indi_tb_note_mask;
+                                    }
+                                };
                             };
                         },  
 #ifdef EMAIL_PRESENTATION_SUPPORT
@@ -236,9 +366,9 @@ RESOURCE AVKON_TOOLBAR r_freestyle_email_ui_toolbar_message_editor
                                     helptxt = qtn_msg_insert_tb_tooltip_presentation;
                                     bmpfile = EMAILUI_ICON_FILE;
                                     bmpid=EMbmFreestyleemailuiQgn_indi_mce_tb_pres;
-                                    bmpmask=EMbmFreestyleemailuiQgn_indi_mce_tb_pres_mask;                        
-                                    }  
-                                };            
+                                    bmpmask=EMbmFreestyleemailuiQgn_indi_mce_tb_pres_mask;
+                                    }
+                                };
                             };
                         },
 #endif //EMAIL_PRESENTATION_SUPPORT
@@ -257,14 +387,14 @@ RESOURCE AVKON_TOOLBAR r_freestyle_email_ui_toolbar_message_editor
                                     helptxt = qtn_msg_insert_tb_tooltip_other;
                                     bmpfile = EMAILUI_ICON_FILE;
                                     bmpid=EMbmFreestyleemailuiQgn_indi_mce_tb_other;
-                                    bmpmask=EMbmFreestyleemailuiQgn_indi_mce_tb_other_mask;                        
-                                    }  
-                                };            
+                                    bmpmask=EMbmFreestyleemailuiQgn_indi_mce_tb_other_mask;
+                                    }
+                                };
                             };
                         }
                     }; // eof extension items
                 }; // eof AVKON_TOOLBAR_EXTENSION control
-           }
+            }
         };
     }
 
@@ -410,7 +540,7 @@ RESOURCE AVKON_TOOLBAR r_freestyle_email_ui_toolbar_message_viewer
                     {
                     AVKON_BUTTON_STATE
                         {
-                        helptxt = qtn_fse_tb_ext_reply;
+                        helptxt = qtn_fse_tb_reply;
                         bmpfile = EMAILUI_ICON_FILE;
                         bmpid=EMbmFreestyleemailuiQgn_indi_tb_email_reply;
                         bmpmask=EMbmFreestyleemailuiQgn_indi_tb_email_reply_mask;                        
@@ -513,7 +643,7 @@ RESOURCE AVKON_TOOLBAR r_freestyle_email_ui_toolbar_html_message_viewer
                     {
                     AVKON_BUTTON_STATE
                         {
-                        helptxt = qtn_fse_tb_ext_forward;
+                        helptxt = qtn_fse_tb_forward;
                         bmpfile = EMAILUI_ICON_FILE;
                         bmpid=EMbmFreestyleemailuiQgn_indi_tb_email_forward;
                         bmpmask=EMbmFreestyleemailuiQgn_indi_tb_email_forward_mask;                        
@@ -564,7 +694,7 @@ RESOURCE AVKON_TOOLBAR r_freestyle_email_ui_toolbar_html_message_viewer_no_reply
                     {
                     AVKON_BUTTON_STATE
                         {
-                        helptxt = qtn_fse_tb_ext_reply;
+                        helptxt = qtn_fse_tb_reply;
                         bmpfile = EMAILUI_ICON_FILE;
                         bmpid=EMbmFreestyleemailuiQgn_indi_tb_email_reply;
                         bmpmask=EMbmFreestyleemailuiQgn_indi_tb_email_reply_mask;                        
@@ -583,7 +713,7 @@ RESOURCE AVKON_TOOLBAR r_freestyle_email_ui_toolbar_html_message_viewer_no_reply
                     {
                     AVKON_BUTTON_STATE
                         {
-                        helptxt = qtn_fse_tb_ext_forward;
+                        helptxt = qtn_fse_tb_forward;
                         bmpfile = EMAILUI_ICON_FILE;
                         bmpid=EMbmFreestyleemailuiQgn_indi_tb_email_forward;
                         bmpmask=EMbmFreestyleemailuiQgn_indi_tb_email_forward_mask;                        

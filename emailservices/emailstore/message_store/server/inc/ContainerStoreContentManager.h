@@ -110,7 +110,7 @@ class CContainerStoreContentManager : public CBase
          * manager.
          * @param aContentPath path and file name of an existing content file
          */
-        TInt TransferContentFile(
+        void TransferContentFileL(
             TContainerId aId, 
             const TDesC& aContentPath );
         

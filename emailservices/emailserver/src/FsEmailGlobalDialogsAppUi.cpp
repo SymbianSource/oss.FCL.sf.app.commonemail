@@ -97,7 +97,7 @@ void CFsEmailGlobalDialogsAppUi::HandleWsEventL( const TWsEvent& aEvent,
             
             if ( iForeground && topmost && iForegroundNotTopmost )
                 {
-                // This hack ensures the screen is refreshed when going back
+                // This ensures the screen is refreshed when going back
                 // from the VKB window
                 SendToBackground();
                 BringToForeground();

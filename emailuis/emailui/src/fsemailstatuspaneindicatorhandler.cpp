@@ -22,9 +22,9 @@
 #include "emailtrace.h"
 
 #include "cfsmailclient.h"
-#include "freestyleemailuiappui.h"
-#include "freestyleemailuiutilities.h"
-#include "freestyleemailuiconstants.h"
+#include "FreestyleEmailUiAppui.h"
+#include "FreestyleEmailUiUtilities.h"
+#include "FreestyleEmailUiConstants.h"
 #include "fsemailstatuspaneindicatorhandler.h"
 #include "commonemailcrkeys.h"
 #include "freestyleemailcenrepkeys.h"

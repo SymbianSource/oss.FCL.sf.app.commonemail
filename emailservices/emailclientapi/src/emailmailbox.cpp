@@ -349,6 +349,7 @@ void CEmailMailbox::ShowInboxL()
 void CEmailMailbox::EditNewMessageL()
     {
     TEditorLaunchParams editorLaunchData;
+    editorLaunchData.iExtra = NULL;
     editorLaunchData.iMailboxId = FsMsgId(iPluginData, iMailboxId);
     editorLaunchData.iActivatedExternally = ETrue;
 

@@ -709,7 +709,7 @@ TInt CFsTextViewerVisualizerData::RestoreL( TFsRangedVisual* aVisual )
         }
 
     CAlfVisual* visual = NULL;
-
+    CFsTexture *texture = NULL;
     if ( aVisual->iIsText )
         {
         visual = CAlfTextVisual::AddNewL( *iControl, aVisual->iLayout );
@@ -1018,30 +1018,32 @@ TFsRangedVisual* CFsTextViewerVisualizerData::GetFirstVisible()
         {
         retVal = iVisArray[0];
         }
-
-    for ( TInt i = 0; i < iVisArray.Count(); ++i )
+    
+    if(retVal) // Coverity error fix, retVal could be NULL and used
         {
-        if ( iVisArray[i]->iRect.iTl.iY >= iScreenOffset )
+        for ( TInt i = 0; i < iVisArray.Count(); ++i )
             {
-            if ( iVisArray[i]->iRect.iTl.iY < retVal->iRect.iTl.iY )
+            if ( iVisArray[i]->iRect.iTl.iY >= iScreenOffset )
                 {
-                retVal = iVisArray[i];
-                }
-            else if ( iVisArray[i]->iRect.iTl.iY 
-                    == retVal->iRect.iTl.iY )
-                {
-                if ( iVisArray[i]->iRect.iTl.iX < retVal->iRect.iTl.iX )
+                if ( iVisArray[i]->iRect.iTl.iY < retVal->iRect.iTl.iY )
+                    {
+                    retVal = iVisArray[i];
+                    }
+                else if ( iVisArray[i]->iRect.iTl.iY 
+                        == retVal->iRect.iTl.iY )
+                    {
+                    if ( iVisArray[i]->iRect.iTl.iX < retVal->iRect.iTl.iX )
+                        {
+                        retVal = iVisArray[i];
+                        }
+                    }
+                else if ( retVal->iRect.iTl.iY < iScreenOffset )
                     {
                     retVal = iVisArray[i];
                     }
                 }
-            else if ( retVal->iRect.iTl.iY < iScreenOffset )
-                {
-                retVal = iVisArray[i];
-                }
             }
         }
-    
     return retVal;
     }
 
@@ -1057,29 +1059,30 @@ TFsRangedVisual* CFsTextViewerVisualizerData::GetLastVisible()
         {
         retVal = iVisArray[0];
         }
-
-    for ( TInt i = 0; i < iVisArray.Count(); ++i )
+    if(retVal) // Coverity error fix, retval could be null and used
         {
-        if ( iVisArray[i]->iRect.iBr.iY <= iScreenOffset + iScreenHeight )
+        for ( TInt i = 0; i < iVisArray.Count(); ++i )
             {
-            if ( iVisArray[i]->iRect.iBr.iY > retVal->iRect.iBr.iY )
+            if ( iVisArray[i]->iRect.iBr.iY <= iScreenOffset + iScreenHeight )
                 {
-                retVal = iVisArray[i];
-                }
-            else if ( iVisArray[i]->iRect.iBr.iY 
-                    == retVal->iRect.iBr.iY )
-                {
-                if ( iVisArray[i]->iRect.iBr.iX > retVal->iRect.iBr.iX )
+                if ( iVisArray[i]->iRect.iBr.iY > retVal->iRect.iBr.iY )
                     {
                     retVal = iVisArray[i];
                     }
-                }
-            else 
-                {
+                else if ( iVisArray[i]->iRect.iBr.iY 
+                        == retVal->iRect.iBr.iY )
+                    {
+                    if ( iVisArray[i]->iRect.iBr.iX > retVal->iRect.iBr.iX )
+                        {
+                        retVal = iVisArray[i];
+                        }
+                    }
+                else 
+                    {
+                    }
                 }
             }
         }
-
     return retVal;
     }
 

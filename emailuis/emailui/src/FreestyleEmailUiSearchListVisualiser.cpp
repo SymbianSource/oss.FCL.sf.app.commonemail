@@ -621,49 +621,53 @@ void CFSEmailUiSearchListVisualiser::DynInitMenuPaneL(TInt aResourceId, CEikMenu
 	if (aResourceId == R_FSEMAILUI_SEARCHLIST_SUBMENU_ACTIONS)
 	    {
         CFSEmailUiMailListModelItem* item = dynamic_cast<CFSEmailUiMailListModelItem*>(iModel->Item(HighlightedIndex()));
-        CFSMailMessage* messagePtr = &item->MessagePtr();
-        TInt menuIndex( 0 );
-
-        //Get # of recipients
-        TInt numRecipients(0);
-        if ( messagePtr )
+        if(item) // Coverity error fix Item could have been NULL
             {
-            numRecipients =TFsEmailUiUtility::CountRecepients( messagePtr );
-            if ( numRecipients == 1 )
+            CFSMailMessage* messagePtr = &item->MessagePtr();
+            TInt menuIndex( 0 );
+    
+            //Get # of recipients
+            TInt numRecipients(0);
+            if ( messagePtr )
                 {
-                //check if the malbox ownmailaddress is same as the recipients email address. If not, then assume that the
-                //email is a distribution list and we need to inc num of Recipients so that "Reply ALL" option appears in UI.
-                if ( messagePtr->GetToRecipients().Count() )
+                numRecipients =TFsEmailUiUtility::CountRecepients( messagePtr );
+                if ( numRecipients == 1 )
                     {
-                    if ( iAppUi.GetActiveMailbox()->OwnMailAddress().GetEmailAddress().Compare(messagePtr->GetToRecipients()[0]->GetEmailAddress()) )
+                    //check if the malbox ownmailaddress is same as the recipients email address. If not, then assume that the
+                    //email is a distribution list and we need to inc num of Recipients so that "Reply ALL" option appears in UI.
+                    if ( messagePtr->GetToRecipients().Count() )
                         {
-                        numRecipients++;
+                        if ( iAppUi.GetActiveMailbox()->OwnMailAddress().GetEmailAddress().Compare(messagePtr->GetToRecipients()[0]->GetEmailAddress()) )
+                            {
+                            numRecipients++;
+                            }
                         }
+                        if ( messagePtr->GetCCRecipients().Count() )
+                            {
+                            if ( iAppUi.GetActiveMailbox()->OwnMailAddress().GetEmailAddress().Compare(messagePtr->GetCCRecipients()[0]->GetEmailAddress()) )
+                                {
+                                numRecipients++;
+                                }
+                            }
+                        if ( messagePtr->GetBCCRecipients().Count() )
+                            {
+                            if ( iAppUi.GetActiveMailbox()->OwnMailAddress().GetEmailAddress().Compare(messagePtr->GetBCCRecipients()[0]->GetEmailAddress()) )
+                                {
+                                numRecipients++;
+                                }
+                            }
                     }
-                    if ( messagePtr->GetCCRecipients().Count() )
-                        {
-                        if ( iAppUi.GetActiveMailbox()->OwnMailAddress().GetEmailAddress().Compare(messagePtr->GetCCRecipients()[0]->GetEmailAddress()) )
-                            {
-                            numRecipients++;
-                            }
-                        }
-                    if ( messagePtr->GetBCCRecipients().Count() )
-                        {
-                        if ( iAppUi.GetActiveMailbox()->OwnMailAddress().GetEmailAddress().Compare(messagePtr->GetBCCRecipients()[0]->GetEmailAddress()) )
-                            {
-                            numRecipients++;
-                            }
-                        }
+    
                 }
 
-            }
-        if ( numRecipients > 1 )
-            {
-            aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsReplyAll, EFalse );
-            }
-        else if ( aMenuPane->MenuItemExists( EFsEmailUiCmdActionsReplyAll, menuIndex ) )
-            {
-            aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsReplyAll, ETrue );
+            if ( numRecipients > 1 )
+                {
+                aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsReplyAll, EFalse );
+                }
+            else if ( aMenuPane->MenuItemExists( EFsEmailUiCmdActionsReplyAll, menuIndex ) )
+                {
+                aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsReplyAll, ETrue );
+                }
             }
 	    }
 
@@ -815,7 +819,7 @@ void CFSEmailUiSearchListVisualiser::SetStatusBarLayout()
     if( Layout_Meta_Data::IsLandscapeOrientation() )
         {
         // landscape must use different layout
-        res = R_AVKON_STATUS_PANE_LAYOUT_IDLE_FLAT;
+		res = R_AVKON_STATUS_PANE_LAYOUT_USUAL_EXT;
         }
 
     if ( StatusPane()->CurrentLayoutResId() !=  res )
@@ -1897,7 +1901,7 @@ void CFSEmailUiSearchListVisualiser::HandleMailBoxEventL( TFSMailEvent aEvent,
         CFSMailBox* activeMailbox = iAppUi.GetActiveMailbox();
         if ( activeMailbox && aMailbox.Id() == activeMailbox->GetId().Id() ) // Safety, in list events that only concern active mailbox are handled
             {
-            if ( iModel && iModel->Count() && aEvent == TFSEventMailDeleted )
+            if ( iModel && iModel->Count() && (aEvent == TFSEventMailDeleted || aEvent == TFSEventMailDeletedFromViewer) )
                 {
                 RArray<TFSMailMsgId>* removedEntries = static_cast<RArray<TFSMailMsgId>*>(aParam1);
                 if ( removedEntries && removedEntries->Count() )

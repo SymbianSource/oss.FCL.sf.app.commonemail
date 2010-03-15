@@ -241,13 +241,13 @@ void CFSEmailDownloadInfoMediator::RequestResponseL(
                  countObject.iDownloadsCompletedCount == countObject.iDownloadsStartedCount &&
                  countObject.iSaveRequestedCount > 0 )
                  {
+                 TFsEmailUiUtility::SetDownloadSave( ETrue );
                  TFsEmailUiUtility::ShowFilesSavedToFolderNoteL( countObject.iSaveRequestedCount );
                  }        
             // Show "Download completed" if necessary
             else if ( CompletionNotesInUseL() && completedDownloadsToNotify )
                 {
-                LaunchDownloadCompleteNoteL( download.iPartData,
-                    completedDownloadsToNotify );
+                OpenAttachmentL( download.iPartData, completedDownloadsToNotify );            
                 }
             else if ( download.iNotifyComplete &&
                       countObject.iSaveRequestedCount == 0 )
@@ -450,6 +450,7 @@ void CFSEmailDownloadInfoMediator::DownloadAndSaveL( TPartData aPart, const TDes
 	FUNC_LOG;
 	// now there is at least one download started 
 	iDownloadsStarted = ETrue;
+	TFsEmailUiUtility::SetSaveSelect( ETrue );  
 	// fetch message part
 	CFSMailMessage* mailMessage = iMailClient.GetMessageByUidL( aPart.iMailBoxId, aPart.iFolderId, aPart.iMessageId, EFSMsgDataEnvelope );
 	CleanupStack::PushL( mailMessage );
@@ -627,6 +628,19 @@ TBool CFSEmailDownloadInfoMediator::CompletionNotesInUseL() const
 	
 	return cenRepHandler->DownloadNotifications();
 	}
+
+void CFSEmailDownloadInfoMediator::OpenAttachmentL( const TPartData& aPart, 
+        const TInt aCompletedCount )
+    {
+    iPopupLaunchData = aPart;
+    if (aCompletedCount > 1)
+        {
+        iPopupLaunchData.iMessagePartId.SetNullId();    
+        }
+    TRequestStatus* status = &iStatus;
+    User::RequestComplete(status, KErrNone);
+    SetActive();
+    }
 
 void CFSEmailDownloadInfoMediator::LaunchDownloadCompleteNoteL(
         const TPartData& aPart, TInt aCompletedCount )

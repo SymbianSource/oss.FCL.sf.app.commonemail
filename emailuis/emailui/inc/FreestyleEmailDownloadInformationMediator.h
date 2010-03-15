@@ -262,7 +262,8 @@ private: // methods
 	* @param    aCompletedCount How many attachments were succesfully downloaded.
 	*/
 	void LaunchDownloadCompleteNoteL( const TPartData& aPart, TInt aCompletedCount );
-
+	void OpenAttachmentL( const TPartData& aPart, const TInt aCompletedCount );
+	
 	/**
 	* Notify all the registered observers about a download event.
 	*/

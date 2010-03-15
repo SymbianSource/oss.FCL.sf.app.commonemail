@@ -36,17 +36,16 @@ class CFSClientAPIRequestHandler : public CFSMailRequestHandler
 	{
 
 public:
-  
+	
     /**
-     * destructor.
-     */
-     ~CFSClientAPIRequestHandler();
-
+    * To prevent deleting handler when is still needed
+    */
+    void ReleaseInstance();
+	
     /**
-     * two based constructor
-     *
-     */
-     static CFSClientAPIRequestHandler* NewL( MEmailClientPluginManager* aPluginManager);
+    * Returns instance of request handler
+    */
+    static CFSClientAPIRequestHandler* GetInstanceL( MEmailClientPluginManager* aPluginManager );
 	
     /**
      * returns plugin pointer related to plugin id
@@ -64,13 +63,26 @@ protected:
   	 CFSClientAPIRequestHandler(  MEmailClientPluginManager* aPluginManager );
   	 
     /**
-     * two based constructor
+     * two phased constructor
      */
      void ConstructL( );
 
+private: // methods
+     
+    /**
+    * destructor.
+    */
+    ~CFSClientAPIRequestHandler();
+	
+    /**
+    * two phased constructor
+    *
+    */
+    static CFSClientAPIRequestHandler* NewL( MEmailClientPluginManager* aPluginManager);
 
 private: // data
 
+    TInt iInstanceCounter;
     MEmailClientPluginManager* iPluginManager;
     };
 

@@ -70,19 +70,22 @@ void COverlayControl::SetRect( const TRect& aRect )
 
 void COverlayControl::HandlePointerEventL( const TPointerEvent& aPointerEvent )
     {
-    if (aPointerEvent.iType == TPointerEvent::EButton1Down)
+    if ( aPointerEvent.iType == TPointerEvent::EButton1Down )
         {      
         // Give feedback to user (vibration)     
-        iTouchFeedBack->InstantFeedback(this, ETouchFeedbackBasic);  
+        iTouchFeedBack->InstantFeedback( this, ETouchFeedbackBasic );
+        SetPointerCapture( ETrue );        
         }
-    
     CCoeControl::HandlePointerEventL( aPointerEvent );
-    
-    if( iObserver )
+    if ( aPointerEvent.iType == TPointerEvent::EButton1Up )
         {
-        // Do not let leaves disturb the system
-        TRAP_IGNORE(
-            iObserver->HandleOverlayPointerEventL( this, aPointerEvent ));
+        if ( Rect().Contains( aPointerEvent.iPosition ) && iObserver )
+            {
+            // Do not let leaves disturb the system - send event only if the poimter 
+            // was pressed on this control
+            TRAP_IGNORE( iObserver->HandleOverlayPointerEventL( this, aPointerEvent ) );
+            }
+        SetPointerCapture( EFalse );        
         }
      }
 

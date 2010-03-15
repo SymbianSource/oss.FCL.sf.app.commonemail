@@ -33,12 +33,13 @@
 
 _LIT( KDefaultEmailTone, "z:\\data\\sounds\\digital\\Message 1.aac");
 _LIT8( KEmailBeepSequence, "\x2\x4a\x3a\x51\x9\x95\x95\xc0\x4\x0\xb\x1c\x41\x8d\x51\xa8\x0\x0" );
+_LIT( KProfileSilentTone, "Z:\\resource\\No_Sound.wav" );
 
 // ---------------------------------------------------------------------------
 // 
 // ---------------------------------------------------------------------------
 //
-void CFSMailSoundHandler::DriveStateChangedL( TBool /*aState*/ )
+void CFSMailSoundHandler::DriveStateChangedL(TBool /*aState*/)
     {
     //causes a reload of soundpayer
     iState->ProfileChanged();
@@ -56,8 +57,8 @@ CFSMailSoundHandler* CFSMailSoundHandler::NewL(
         new( ELeave ) CFSMailSoundHandler( aOwner );
     CleanupStack::PushL( self );
     self->ConstructL();
-    CleanupStack::Pop( self );
-    return self;	
+    CleanupStack::Pop(self);
+    return self;
     }
 
 // ---------------------------------------------------------------------------
@@ -68,8 +69,8 @@ void CFSMailSoundHandler::ConstructL()
     {
     FUNC_LOG;
 
-    SetObserving( ETrue );
-    
+    SetObserving(ETrue);
+
     iProfileEngine = CreateProfileEngineL();
     iHandler = CProfileChangeNotifyHandler::NewL( this );
     iMsgToneSubscriber = CPSSubscriber::NewL(
@@ -78,16 +79,15 @@ void CFSMailSoundHandler::ConstructL()
 
     // After sound state initialization iState is valid pointer until
     // CEmailSoundState::Uninitialize is called in the destructor.
-    CEmailSoundState::InitializeL( this );
+    CEmailSoundState::InitializeL(this);
     }
 
 // ---------------------------------------------------------------------------
 // 
 // ---------------------------------------------------------------------------
 //
-CFSMailSoundHandler::CFSMailSoundHandler(
-    MFSNotificationHandlerMgr& aOwner ) :
-    CFSNotificationHandlerBase( aOwner )
+CFSMailSoundHandler::CFSMailSoundHandler( MFSNotificationHandlerMgr& aOwner )
+: CFSNotificationHandlerBase(aOwner)
     {
     FUNC_LOG;
     }
@@ -98,8 +98,8 @@ CFSMailSoundHandler::CFSMailSoundHandler(
 //
 CFSMailSoundHandler::~CFSMailSoundHandler()
     {
-    FUNC_LOG;         
-    if ( iProfileEngine )
+    FUNC_LOG;
+    if (iProfileEngine)
         {
         iProfileEngine->Release();
         iProfileEngine = NULL;
@@ -108,7 +108,7 @@ CFSMailSoundHandler::~CFSMailSoundHandler()
     ReleaseAudioPlayer();
     delete iDriveObserver;
     delete iMsgToneSubscriber;
-    CEmailSoundState::Uninitialize( iState );
+    CEmailSoundState::Uninitialize(iState);
     }
 
 // ---------------------------------------------------------------------------
@@ -116,12 +116,8 @@ CFSMailSoundHandler::~CFSMailSoundHandler()
 // Home Screen status.
 // ---------------------------------------------------------------------------
 //
-void CFSMailSoundHandler::HandleEventL(
-    TFSMailEvent aEvent,
-    TFSMailMsgId aMailbox,
-    TAny* aParam1,
-    TAny* aParam2,
-    TAny* aParam3 )
+void CFSMailSoundHandler::HandleEventL(TFSMailEvent aEvent,
+        TFSMailMsgId aMailbox, TAny* aParam1, TAny* aParam2, TAny* aParam3)
     {
     FUNC_LOG;
     // assumption: base class handles event only if it is TFSEventNewMail
@@ -136,21 +132,22 @@ void CFSMailSoundHandler::HandleEventL(
 // 
 // ---------------------------------------------------------------------------
 //
-void CFSMailSoundHandler::SetState( CEmailSoundState* aNewState )
+void CFSMailSoundHandler::SetState(CEmailSoundState* aNewState)
     {
     FUNC_LOG;
     INFO_1( "email sound state => %d", (TInt) aNewState )
     iState = aNewState;
 #ifdef __HANDLER_TEST 
     // for module testing
-    if ( iTesterReqStatus ) {  
+    if ( iTesterReqStatus )
+        {
         TRequestStatus*& status = iTesterReqStatus;
         User::RequestComplete( status, KErrNone );
         iTesterReqStatus = NULL;
         }
 #endif    
     }
-    
+
 // ---------------------------------------------------------------------------
 // Returns audio player utility
 // ---------------------------------------------------------------------------
@@ -165,9 +162,10 @@ CMdaAudioPlayerUtility* CFSMailSoundHandler::AudioPlayer()
 // play from Audio player.
 // ---------------------------------------------------------------------------
 //
-void CFSMailSoundHandler::HandleActiveProfileEventL( TProfileEvent /*aPE*/, TInt /*aId*/ ) 
+void CFSMailSoundHandler::HandleActiveProfileEventL(TProfileEvent /*aPE*/,
+        TInt /*aId*/ )
     {
-    FUNC_LOG;                                                    
+    FUNC_LOG;
     // iState should never be null
     __ASSERT_ALWAYS( iState, Panic ( ECmailHandlerPluginPanicNullState ) );
     iState->ProfileChanged();
@@ -188,7 +186,7 @@ void CFSMailSoundHandler::MapcInitComplete(
     if ( aError )
         {
         delete iAudioPlayer;
-        iAudioPlayer = NULL;        
+        iAudioPlayer = NULL;
         iState->AudioInitFailed();
         }
     else
@@ -202,7 +200,7 @@ void CFSMailSoundHandler::MapcInitComplete(
 // Audio player.
 // ---------------------------------------------------------------------------
 //
-void CFSMailSoundHandler::MapcPlayComplete( TInt /*aError*/ ) 
+void CFSMailSoundHandler::MapcPlayComplete(TInt /*aError*/)
     {
     FUNC_LOG;
     // iState should never be null
@@ -222,23 +220,22 @@ void CFSMailSoundHandler::RecreateAudioPlayerL()
     FUNC_LOG;
     delete iAudioPlayer;
     iAudioPlayer = NULL;
-    
+
     MProfile* profile = iProfileEngine->ActiveProfileL();
-    CleanupReleasePushL( *profile );
+    CleanupReleasePushL(*profile);
 
-    TBool vibraEnabled = profile->ProfileTones().ToneSettings().iEmailVibratingAlert;
-
+    TBool vibraEnabled = profile->ProfileTones().ToneSettings().iVibratingAlert;
+    TBool mailVibraEnabled = vibraEnabled & profile->ProfileTones().ToneSettings().iEmailVibratingAlert;
 
     TInt preference = KAudioPrefNewSpecialMessage;
-    if ( !vibraEnabled )
+    if ( !mailVibraEnabled )
         {
-        preference = EMdaPriorityPreferenceTimeAndQuality;
+        preference = EMdaPriorityPreferenceQuality;
         }
 
-    if ( IsBeepOnceSetL( *profile ) )
+    if (IsBeepOnceSetL(*profile))
         {
-        
-        
+
         // create audio player based on hard coded sequence
         // (Platform does not offer any "play platform-wide beep" service)
         iAudioPlayer = CMdaAudioPlayerUtility::NewDesPlayerReadOnlyL(
@@ -252,8 +249,17 @@ void CFSMailSoundHandler::RecreateAudioPlayerL()
         // Otherwise loading tone from file
         TFileName fileToPlay = profile->ProfileExtraTones().EmailAlertTone();
         
+        if ( (fileToPlay.Compare(KProfileSilentTone) == 0) &&
+                (!vibraEnabled) )
+            {
+            // Play the silent tone with KAudioPrefNewSpecialMessage
+            // in order to avoid the distortion
+			// KAudioPrefNewSpecialMessage does not play vibra if KProfileSilentTone is played
+            preference = KAudioPrefNewSpecialMessage;
+            }
         RFs fs;
         TInt err = fs.Connect();
+		CleanupClosePushL( fs );
             
         if ( err == KErrNone )
             {
@@ -276,7 +282,7 @@ void CFSMailSoundHandler::RecreateAudioPlayerL()
                 fileToPlay.Append( KDefaultEmailTone );
                 }
             
-            fs.Close();
+		    CleanupStack::PopAndDestroy( &fs );
             }
         
         iAudioPlayer = CMdaAudioPlayerUtility::NewFilePlayerL( 
@@ -285,7 +291,7 @@ void CFSMailSoundHandler::RecreateAudioPlayerL()
                 KAudioPriorityRecvMsg, 
                 static_cast<TMdaPriorityPreference>( preference ) );
         }
-    CleanupStack::PopAndDestroy( profile );  // profile
+    CleanupStack::PopAndDestroy( profile );
     }
 
 // ---------------------------------------------------------------------------
@@ -337,21 +343,21 @@ void CFSMailSoundHandler::TurnNotificationOff()
 // IsBeepOnceSetL
 // ---------------------------------------------------------------------------
 //
-TBool CFSMailSoundHandler::IsBeepOnceSetL( const MProfile& aProfile ) const
+TBool CFSMailSoundHandler::IsBeepOnceSetL(const MProfile& aProfile) const
     {
     FUNC_LOG;
     // default to false
     TBool ret = EFalse;
-    
+
     // get tone settings    
     const TProfileToneSettings& toneSettings = aProfile.ProfileTones().ToneSettings();
     
     // if beep-once is set, set return value to ETrue
-    if( toneSettings.iRingingType == EProfileRingingTypeBeepOnce )
+    if (toneSettings.iRingingType == EProfileRingingTypeBeepOnce)
         {
         ret = ETrue;
-        }    
-    
+        }
+
     return ret;
     }
 
@@ -362,8 +368,8 @@ TBool CFSMailSoundHandler::IsBeepOnceSetL( const MProfile& aProfile ) const
 void CFSMailSoundHandler::HandlePropertyChangedL( const TUid& aCategory, TInt aKey )
     {
     FUNC_LOG;
-    TInt state( 0 );
-    
+    TInt state(0);
+
     //
     // Handling the event of user pressing a key while "msg received" -tone is playing
     //
@@ -371,7 +377,7 @@ void CFSMailSoundHandler::HandlePropertyChangedL( const TUid& aCategory, TInt aK
         {
         RProperty::Get( KPSUidCoreApplicationUIs, KCoreAppUIsMessageToneQuit, state );
         INFO_1("KCoreAppUIsMessageToneQuit == %d" , state );
-        if ( state == ECoreAppUIsStopTonePlaying )
+        if (state == ECoreAppUIsStopTonePlaying)
             {
             iState->StopTone();
             iMsgToneSubscriber->Cancel();

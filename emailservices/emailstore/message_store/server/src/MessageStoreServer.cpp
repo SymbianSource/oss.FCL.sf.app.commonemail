@@ -62,7 +62,7 @@ _LIT( KImsUninstaller, "IMS Uninstaller" );
 _LIT( KUpgradeDetectionFile, "c:\\System\\EsIms\\canary.txt" );
 
 
-//const TChar KColon(':');
+
 
 // SID list
 // This is the list of secure Ids that are allowed to use the message store.  This list must be terminated
@@ -380,14 +380,30 @@ CSession2* CMessageStoreServer::NewSessionL(const TVersion& aVersion, const RMes
 // Cancel the shutdown timer if it was running
 // ==========================================================================
 void CMessageStoreServer::AddSession( CMessageStoreSession* aSession )
-  {
-  __LOG_ENTER( "AddSession" )
-  iSessions.Append( aSession );
+    {
+    __LOG_ENTER( "AddSession" )
+    iSessions.Append( aSession );
 
-  // A sesssion was added, so the shutdown timer can be stopped.
-//  iShutdown->Stop();
-  __LOG_EXIT
-  } // end AddSession
+    // notify new session of current state
+    TMsgStoreEvent event;
+    event.iType        = EMsgStoreAvailable;
+    event.iId          = KMsgStoreInvalidId;
+    event.iParentId    = KMsgStoreInvalidId;
+    event.iOtherId     = KMsgStoreInvalidId;
+    event.iFlags       = KMsgStoreFlagsNotFound;
+
+    if ( iLockedByBackupRestore || iLockedByPointSec ) 
+        {
+        event.iType = EMsgStoreUnavailable;
+        }
+
+    aSession->SendEventToObserver( event );
+
+    // A sesssion was added, so the shutdown timer can be stopped.
+    //  iShutdown->Stop();
+
+    __LOG_EXIT
+    } // end AddSession
 
 // ==========================================================================
 // FUNCTION: DropSession
@@ -430,6 +446,8 @@ void CMessageStoreServer::DropSession( CMessageStoreSession* aSession )
 // ==========================================================================
 void CMessageStoreServer::CreateContainerStoreL()
     {
+    __LOG_ENTER( "CreateContainerStoreL" )
+
     TDriveNumber drive( EDriveC );
     iMessageStore = CContainerStore::NewL( KDbFilename,
                                            drive,
@@ -438,6 +456,7 @@ void CMessageStoreServer::CreateContainerStoreL()
                                            Priority() - 1);  // lower than server
 
 
+    __LOG_EXIT
     } // end CreateContainerStoreL
 
 
@@ -882,11 +901,11 @@ void CMessageStoreServer::WipeEverythingL()
 void CMessageStoreServer::BackupOrRestoreInProgress( TBool /*aIsARestore*/ )
 {
     __LOG_ENTER( "BackupOrRestoreInProgress" );
-    
-    SendSystemLockMessage( EMsgStoreBackupOrRestoreInProgress );
-    
-    if ( !iLockedByPointSec )
+
+    if ( !iLockedByBackupRestore )
         {
+        iLockedByBackupRestore = ETrue;
+        SendSystemLockMessage( EMsgStoreBackupOrRestoreInProgress );
         LockSystem();
         }
 
@@ -900,10 +919,10 @@ void CMessageStoreServer::BackupOrRestoreCompleted()
     {
     __LOG_ENTER( "BackupOrRestoreCompleted" );
   
-    SendSystemLockMessage( EMsgStoreBackupOrRestoreCompleted );
-      
-    if ( !iLockedByPointSec )
+    if ( iLockedByBackupRestore )
         {
+        iLockedByBackupRestore = EFalse;
+        SendSystemLockMessage( EMsgStoreBackupOrRestoreCompleted );
         TRAP_IGNORE( UnlockSystemL() );
         }
     
@@ -920,10 +939,7 @@ void CMessageStoreServer::PointSecLockStarted()
         {
         iLockedByPointSec = ETrue;
         SendSystemLockMessage( EMsgStorePointSecLockStarted );
-        if ( !iLockedByBackupRestore )
-            {
-            LockSystem();
-            }
+        LockSystem();
         }
     __LOG_EXIT
     }
@@ -938,10 +954,7 @@ void CMessageStoreServer::PointSecLockEnded()
         {
         iLockedByPointSec = EFalse;
         SendSystemLockMessage( EMsgStorePointSecLockEnded );
-        if ( !iLockedByBackupRestore )
-            {
-            TRAP_IGNORE( UnlockSystemL() );
-            }
+        TRAP_IGNORE( UnlockSystemL() );
         }
     __LOG_EXIT
     }
@@ -953,13 +966,18 @@ void CMessageStoreServer::LockSystem()
     {
     __LOG_ENTER( "LockSystem" );
     
-    for( TInt i = 0; i < iSessions.Count(); i++ )
+    if ( iMessageStore )
         {
-        iSessions[i]->ContainerStoreUnavailable();
-        } // end if
-
-    delete iMessageStore;
-    iMessageStore = NULL;
+        SendSystemLockMessage( EMsgStoreUnavailable );
+        
+        for( TInt i = 0; i < iSessions.Count(); i++ )
+            {
+            iSessions[i]->ContainerStoreUnavailable();
+            } // end if
+    
+        delete iMessageStore;
+        iMessageStore = NULL;
+        }
     
     __LOG_EXIT
     }
@@ -970,32 +988,37 @@ void CMessageStoreServer::LockSystem()
 void CMessageStoreServer::UnlockSystemL()
     {
     __LOG_ENTER( "UnlockSystemL" );
-    
-    TRAPD( result,
-            CreateContainerStoreL(); CreatePredefinedFoldersIfNeededL(); );
 
-    if( result != 0 )
+    if  ( ( !iLockedByBackupRestore ) 
+       && ( !iLockedByPointSec ) )
         {
-        __LOG_WRITE_ERROR( "failed to recreate message store after system lock" )
+        TRAPD( result,
+                CreateContainerStoreL(); CreatePredefinedFoldersIfNeededL(); );
 
-        // The server is in a very bad state.  Shut down the server immediately.
-        iShutdown->ShutDownNow();
-        }
-   else if  ( ( !iLockedByBackupRestore ) 
-           && ( !iLockedByPointSec ) )
-        {
-
-        for( TInt i = 0; i < iSessions.Count(); i++ )
+        if( result != KErrNone )
             {
-            iSessions[i]->ContainerStoreAvailable();
-            } // end if
-        
-        if( iWipeAfterBackupRestore )
-            {
-            iWipeAfterBackupRestore = EFalse;
-            WipeEverythingL();
-            } // end if
+            __LOG_WRITE_ERROR( "failed to recreate message store after system lock" )
 
+            // The server is in a very bad state.  Shut down the server immediately.
+            iShutdown->ShutDownNow();
+            }
+       else if  ( ( !iLockedByBackupRestore ) 
+               && ( !iLockedByPointSec ) )
+            {
+            SendSystemLockMessage( EMsgStoreAvailable );
+
+            for( TInt i = 0; i < iSessions.Count(); i++ )
+                {
+                iSessions[i]->ContainerStoreAvailable();
+                } // end if
+
+            if( iWipeAfterBackupRestore )
+                {
+                iWipeAfterBackupRestore = EFalse;
+                WipeEverythingL();
+                } // end if
+
+            } // end if
         } // end if
     
     __LOG_EXIT

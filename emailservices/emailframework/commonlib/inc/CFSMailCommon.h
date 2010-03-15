@@ -480,6 +480,12 @@ TFSMailboxUnavailable and TFSMailboxAvailable.
         // aParam2: TDesC* aCustomMessage or NULL (optional)
         // aParam3: MFSMailExceptionEventCallback* aCallback or NULL (optional)
         TFSEventException,
+        
+        // Mail deleted from viewer
+        // aParam1: RArray<TFSMailId>* aEntries
+        // aParam2: TFSMailId* aParentFolder
+        // aParam3: NULL
+        TFSEventMailDeletedFromViewer,
         };
         
 /**

@@ -292,9 +292,14 @@ enum
 	EFsEmailUiCmdZoom150Percent,
 	
     // <cmail> Toolbar
-	EFsEmailUiTbCmdSend,
-	EFsEmailUiTbCmdAddRecipient,
-	EFsEmailUiTbCmdExpandInsert,
+    EFsEmailUiTbCmdSend,
+    EFsEmailUiTbCmdExpandActions,
+    EFsEmailUiTbCmdCcField,
+    EFsEmailUiTbCmdBccField,
+    EFsEmailUiTbCmdLowPriority,
+    EFsEmailUiTbCmdHighPriority,
+    EFsEmailUiTbCmdFollowUp,
+    EFsEmailUiTbCmdExpandInsert,
     EFsEmailUiTbCmdInsertImage,
     EFsEmailUiTbCmdInsertVideo,
     EFsEmailUiTbCmdInsertAudio,

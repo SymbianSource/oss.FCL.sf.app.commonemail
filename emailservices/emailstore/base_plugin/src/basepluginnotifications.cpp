@@ -126,23 +126,32 @@ void CBasePlugin::SystemEventNotifyL( TMsgStoreSystemEvent aEvent )
     {
     switch ( aEvent )
         {
-        // A backup or restore is in progress.  The message store is unavailable.
-        case EMsgStoreBackupOrRestoreInProgress:
-        // The message store has been wiped, including the password.
-        case EMsgStoreDatabaseWiped:
-        // The message store has transitioned from an authenticated state to an unauthenticated state.
-        case EMsgStoreNotAuthenticated:
+        // The message store is unavailable.  This may be due to 
+        // a backup or restore being in progress, a Pointsec lock being issued,
+        // the disk drive being unavailable, etc.
+        case EMsgStoreUnavailable:
             {
-            NotifyGlobalEventL( TFSMailboxUnavailable );
+            // since the store is unavailabe we are unable to get 
+            // list of mailboxes, setting plugin id only
+            TFSMailMsgId id;
+            id.SetPluginId( TUid::Uid( GetPluginId() ) );
+            NotifyGlobalEventL( TFSMailboxUnavailable, id );
             }
         break;
 
-        // The backup or restore completed.  The message store is available again.   
-        case EMsgStoreBackupOrRestoreCompleted:
-        // The message store has transitioned from an unauthenticated state to an authenticated state.
-        case EMsgStoreAuthenticated:
+        // The message store is available again.
+        case EMsgStoreAvailable:
             {
-            NotifyGlobalEventL( TFSMailboxAvailable );
+            RArray<TFSMailMsgId> mailboxes;
+            CleanupClosePushL( mailboxes );
+            ListMailBoxesL( mailboxes );
+
+            for ( TInt i( 0 ); i < mailboxes.Count(); i++ )
+                {
+                NotifyGlobalEventL( TFSMailboxAvailable, mailboxes[i] );
+                }
+
+            CleanupStack::PopAndDestroy( &mailboxes );
             }
         break;
 
@@ -151,6 +160,7 @@ void CBasePlugin::SystemEventNotifyL( TMsgStoreSystemEvent aEvent )
         // which many message store operations have occurred.
         case EObserverEventQueueOverflow:
         //don't see anything meaningful to do here.
+        default:
         break;
         };
     }

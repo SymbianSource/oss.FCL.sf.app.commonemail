@@ -284,7 +284,7 @@ CFsTreeItem* TFsTreeIterator::FindNext()
                     next = item;
                     }
                 }
-            else
+            else if(node) // coverity error fix
                 {
                 item = node;
                 node = item->Parent();

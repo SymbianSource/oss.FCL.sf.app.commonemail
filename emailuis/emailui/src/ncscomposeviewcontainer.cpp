@@ -844,6 +844,7 @@ void CNcsComposeViewContainer::SetBodyContentL( const TDesC& aMessage,
     // Activating the field will set the control to the end of the text
     iMessageField->ActivateL();
     iMessageField->SetCursorPosL( 0, EFalse );
+	iMessageField->FormatAllTextNowL();
 
     inputStream.Open( aReadOnlyQuote.Ptr(), aReadOnlyQuote.Size() );
     CleanupClosePushL( inputStream );
@@ -1793,6 +1794,8 @@ void CNcsComposeViewContainer::HandleLayoutChangeL()
         {
         iHeader->HandleDynamicVariantSwitchL();
         }
+    // force recalculation of the position of every component
+    UpdateFieldPosition( NULL );
     UpdateScrollBarL();
     }
 

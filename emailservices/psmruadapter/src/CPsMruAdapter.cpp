@@ -302,7 +302,7 @@ TBool CPsMruAdapter::FillDataStoreL( TFSMailMsgId& aId, TDesC& aDataStoreURI )
         // Update datastore contents, first reset
         iDataStoreObserver->RemoveAll( aDataStoreURI );
 
-        TInt trap_err; // for trap macro
+        TInt trap_err=KErrNone; // for trap macro
         if ( mruList )
             {
             // trap the error to enable returning status back

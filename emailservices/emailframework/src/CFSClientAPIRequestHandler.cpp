@@ -26,21 +26,50 @@
 // CFSMailRequestHandler::CFSMailRequestHandler
 // -----------------------------------------------------------------------------
 CFSClientAPIRequestHandler::CFSClientAPIRequestHandler(  
-    MEmailClientPluginManager* aPluginManager ) : iPluginManager(aPluginManager)
+    MEmailClientPluginManager* aPluginManager ) : iPluginManager(aPluginManager), iInstanceCounter( 1 )
 {
     FUNC_LOG;
-
-	// store pointer to TLS
-	TInt err = Dll::SetTls(static_cast<TAny*>(this));
 }
 
 // -----------------------------------------------------------------------------
 // CFSMailRequestHandler::~CFSMailRequestHandler
 // -----------------------------------------------------------------------------
-
 CFSClientAPIRequestHandler::~CFSClientAPIRequestHandler()
     {
     FUNC_LOG;
+    }
+
+// -----------------------------------------------------------------------------
+// CFSMailRequestHandler::GetInstanceL
+// -----------------------------------------------------------------------------
+CFSClientAPIRequestHandler* CFSClientAPIRequestHandler::GetInstanceL( MEmailClientPluginManager* aPluginManager )
+    {
+    CFSClientAPIRequestHandler *requestHandler = static_cast<CFSClientAPIRequestHandler*>( Dll::Tls() );
+    if ( requestHandler == NULL )
+        {
+        requestHandler = CFSClientAPIRequestHandler::NewL( aPluginManager );
+        }
+    else
+        {
+        requestHandler->iInstanceCounter++;
+        }
+	
+    return requestHandler;
+    }
+
+// -----------------------------------------------------------------------------
+// CFSMailRequestHandler::ReleaseInstance
+// -----------------------------------------------------------------------------
+void CFSClientAPIRequestHandler::ReleaseInstance()
+    {
+    if( iInstanceCounter > 1 )
+        {
+        iInstanceCounter--;
+        }
+    else
+        {
+        delete this;
+        }
     }
 
 // -----------------------------------------------------------------------------

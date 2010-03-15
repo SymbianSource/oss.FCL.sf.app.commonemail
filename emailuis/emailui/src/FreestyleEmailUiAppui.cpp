@@ -1325,6 +1325,12 @@ void CFreestyleEmailUiAppUi::HandleWsEventL(const TWsEvent &aEvent, CCoeControl*
         return;
         }
 
+    if (aEvent.Type() == EEventPointer)
+        {
+        TAdvancedPointerEvent* pointerEvent(aEvent.Pointer());
+        iLastPointerPosition = pointerEvent->iParentPosition;
+        }
+    
 	TInt key = aEvent.Key()->iScanCode;
     // <cmail>
     // to disable voice commands during creating new mail message
@@ -2173,7 +2179,6 @@ void CFreestyleEmailUiAppUi::EventL( TFSMailEvent aEvent, TFSMailMsgId aMailbox,
                         {
                         TIMESTAMP( "Starting sync" );
                         //If syncs were started by user, show the synchoronisation indicator
-                        TIMESTAMP( "Sync error" );
                         if(iManualMailBoxSyncAll)
                             {
                             ManualMailBoxSyncAll(EFalse);
@@ -2184,6 +2189,7 @@ void CFreestyleEmailUiAppUi::EventL( TFSMailEvent aEvent, TFSMailMsgId aMailbox,
                         {
                         // error occured during "Connect" or "Send and receive" operation
                         // check if user needs to be notified
+                        TIMESTAMP( "Sync error" );
                         if ( iManualMailBoxSync )
                             {
                             // since error id is not provided by plugin, lets popup general note
@@ -2249,6 +2255,7 @@ void CFreestyleEmailUiAppUi::EventL( TFSMailEvent aEvent, TFSMailMsgId aMailbox,
 	   	 	gridContentsChanged = ETrue;
 			break;
         case TFSEventMailDeleted:
+        case TFSEventMailDeletedFromViewer:
             {
             RArray<TFSMailMsgId>* entries = reinterpret_cast<RArray<TFSMailMsgId>*>(aParam1);
             for (TInt i = entries->Count() - 1; i >= 0; i--)
@@ -2296,8 +2303,9 @@ void CFreestyleEmailUiAppUi::EventL( TFSMailEvent aEvent, TFSMailMsgId aMailbox,
     	iAttachmentListVisualiser->HandleMailBoxEventL( aEvent, aMailbox, aParam1, aParam2, aParam3 );
     	}
     // Handle mail deleted event in Html view list, as the mails might become obsolete
-    else if ( iHtmlViewerView && (aEvent == TFSEventMailDeleted || aEvent == TFSEventNewMail) &&
-    	 iCurrentActiveView->Id() == HtmlViewerId)
+    else if ( iHtmlViewerView && (aEvent == TFSEventMailDeleted || 
+                                  aEvent == TFSEventMailDeletedFromViewer || 
+                                  aEvent == TFSEventNewMail) && iCurrentActiveView->Id() == HtmlViewerId)
     	{
     	iHtmlViewerView->HandleMailBoxEventL( aEvent, aMailbox, aParam1, aParam2, aParam3 );
     	}
@@ -2893,6 +2901,14 @@ void CFreestyleEmailUiAppUi::SetEditorStartedFromEmbeddedApp( TBool aEmbeddedApp
 TBool CFreestyleEmailUiAppUi::EditorStartedFromEmbeddedApp() const
     {
     return iEditorStartedFromEmbeddedApp;
+    }
+
+// -----------------------------------------------------------------------------
+// CFreestyleEmailUiAppUi::LastSeenPointerPosition
+// -----------------------------------------------------------------------------
+const TPoint& CFreestyleEmailUiAppUi::LastSeenPointerPosition() const
+    {
+    return iLastPointerPosition;
     }
 
 // -----------------------------------------------------------------------------

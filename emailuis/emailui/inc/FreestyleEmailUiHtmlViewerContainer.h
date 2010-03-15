@@ -27,7 +27,7 @@
 
 #include "FreestyleEmailUiAknStatusIndicator.h"
 #include "FreestyleEmailDownloadInformationMediator.h"
-#include "FreestyleEmailCenRepKeys.h"
+#include "freestyleemailcenrepkeys.h"
 #include "OverlayControl.h"
 
 class CFSMailMessage;
@@ -256,6 +256,9 @@ public:
     TBool AttachmentDownloadStatusVisible();
     void HideDownloadStatus();
     void DisplayStatusIndicatorL(TInt aDuration = KStatusIndicatorDefaultDuration);
+    
+    // Inform that maillist model has updated
+    void MailListModelUpdatedL();
     
 private: // from CEUiHtmlViewerSettings::MObserver
 

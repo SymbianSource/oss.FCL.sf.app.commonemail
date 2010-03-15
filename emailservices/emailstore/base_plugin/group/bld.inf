@@ -28,6 +28,7 @@ PRJ_EXPORTS
 ../inc/basemrinfoobject.h        |../../../../inc/basemrinfoobject.h
 ../inc/baseplugincommonutils.h   |../../../../inc/baseplugincommonutils.h
 ../inc/baseplugindelayedops.h    |../../../../inc/baseplugindelayedops.h
+../inc/basepluginresourceloader.h |../../../../inc/basepluginresourceloader.h
 
 PRJ_MMPFILES
 ./BasePlugin.mmp

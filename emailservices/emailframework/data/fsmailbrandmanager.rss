@@ -359,7 +359,7 @@ RESOURCE BRANDING_DATA r_branding_data
                     },
                     
                     BRAND {
-                        // Definition of AT&T Yahoo! Mail brand   
+                        // Definition of ... Yahoo! Mail brand   
                         graphics_file_path = APP_BITMAP_DIR"\\yahoo_brand_graphics.mif";
 
                         brand_id_match_strings =
@@ -425,7 +425,7 @@ RESOURCE BRANDING_DATA r_branding_data
                             },
 
                             BRAND {
-                                // Definition of Rogers Yahoo! Mail brand   
+                                // Definition of ... Yahoo! Mail brand   
                                 graphics_file_path = APP_BITMAP_DIR"\\yahoo_brand_graphics.mif";
 
                                 brand_id_match_strings =

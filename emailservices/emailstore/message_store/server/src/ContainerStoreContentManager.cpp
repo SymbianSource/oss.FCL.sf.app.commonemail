@@ -564,19 +564,18 @@ void CContainerStoreContentManager::ReplaceContentL( TContainerId aId,
 /**
  *
  */
-TInt CContainerStoreContentManager::TransferContentFile(
+void CContainerStoreContentManager::TransferContentFileL(
     TContainerId aId, 
     const TDesC& aContentPath )
     {
-    __LOG_ENTER( "TransferContentFile" )
+    __LOG_ENTER( "TransferContentFileL" )
     
     TFileName contentFilename;  
     ContentFilename( aId, contentFilename );
     
-    TInt err = iFs.Rename( aContentPath, contentFilename ); 
+    User::LeaveIfError( iFs.Replace( aContentPath, contentFilename ) );
     
     __LOG_EXIT
-    return err;
     }
 
             

@@ -880,11 +880,14 @@ TBool CMailCpsIf::PublisherStatusL(const CLiwGenericParamList& aEventParamList)
                                  {
                                  iInstIdList.AppendL( contentid.AllocL() );
                                  }
-                             TInt widgetInstance = FindWidgetInstanceId(cid->Des());
-                             PublishSetupWizardL(widgetInstance);
-                             iMailCpsHandler->UpdateMailboxesL(widgetInstance, cid->Des());
-                             // Widget visible on the homescreen. Publishing allowed.
-                             iAllowedToPublish[widgetInstance] = ETrue;
+                             TInt widgetInstance = FindWidgetInstanceId(cid->Des()); 
+                             if(widgetInstance>=0)// coverity fix, index can be negativ, allowed 0, since it is valid index
+                                 {
+                                 PublishSetupWizardL(widgetInstance);
+                                 iMailCpsHandler->UpdateMailboxesL(widgetInstance, cid->Des());
+                                 // Widget visible on the homescreen. Publishing allowed.
+                                 iAllowedToPublish[widgetInstance] = ETrue;
+                                 }
                              CleanupStack::PopAndDestroy( cid );
                              }
                          else if (trigger.Compare(KPluginStartup16) == 0)
@@ -1012,7 +1015,7 @@ void CMailCpsIf::ResetPublishedDataL( const TDesC& aContentId )
     {
     FUNC_LOG;
     // Clean up all published data
-    if( !iMsgInterface ) GetMessagingInterfaceL();
+    if( iMsgInterface == NULL) GetMessagingInterfaceL(); // Coverity fix, it does not like !iMsgInterface comparison
     CLiwGenericParamList* inParam = &(iServiceHandler->InParamListL());
     CLiwGenericParamList* outParam = &(iServiceHandler->OutParamListL());
 

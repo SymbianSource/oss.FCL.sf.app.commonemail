@@ -132,9 +132,6 @@ const TReal KShadowBorderOpacity( 0.08 );
 const TReal KFSHeaderTextBackgroundOpacity = 0.3f;
 const TAlfTimedValue KFSVisible( 1 );
 const TAlfTimedValue KFSInvisible( 0 );
-// Considering that there are 99999 unread emails + ( + ) + SPACE size should be 5+1+1+1 =8
-static const TInt KFmtUnRdCntMaxLength( 8 );
-_LIT(KFormatUnreadCnt, " (%d)");
 
 // ---------------------------------------------------------------------------
 // NewL
@@ -2204,10 +2201,10 @@ void CFSEmailUiFolderListVisualiser::AppendSeparatorLineL()
 	{
     FUNC_LOG;
 	CFsSeparatorData* data = CFsSeparatorData::NewL();
-
+	CleanupStack::PushL(data);
 	CFsSeparatorVisualizer* visualizer( NULL );
     visualizer = CFsSeparatorVisualizer::NewL(*iTreeList->TreeControl());
-
+    CleanupStack::Pop(data);
     // We use the default size of the separator, but we need to save it
     // here to have it available later when calculating the list height
     iListSeparatorHeight = visualizer->Size().iHeight;
@@ -2258,12 +2255,7 @@ TFsTreeItemId CFSEmailUiFolderListVisualiser::AppendNodeToListL( TDesC* aItemDat
     CFsTreePlainOneLineNodeData* plainItemData;
     CFsTreePlainOneLineNodeVisualizer* plainNodeVisualizer;
 
-    HBufC* itemDispName = HBufC::NewLC(aItemData->Length() + KFmtUnRdCntMaxLength);
-    itemDispName->Des().Copy(*aItemData);
-    if( aUnreadCnt > 0 )
-        {
-        itemDispName->Des().AppendFormat(KFormatUnreadCnt, aUnreadCnt);
-        }
+    TDesC* itemDispName = GetItemDisplayNameLC( *aItemData, aUnreadCnt );
 	CreatePlainNodeLC2( itemDispName, plainItemData, plainNodeVisualizer, aIcon );
 
 	// We assume that node can never be the last item to be drawn, there will
@@ -2314,12 +2306,7 @@ TFsTreeItemId CFSEmailUiFolderListVisualiser::AppendItemToListL( TDesC* aItemDat
     CFsTreePlainOneLineItemData* plainItemData;
     CFsTreePlainOneLineItemVisualizer* plainItemVisualizer;
 
-    HBufC* itemDispName = HBufC::NewLC(aItemData->Length() + KFmtUnRdCntMaxLength);
-    itemDispName->Des().Copy(*aItemData);
-    if( aUnreadCnt > 0 )
-        {
-        itemDispName->Des().AppendFormat(KFormatUnreadCnt, aUnreadCnt);
-        }
+    TDesC* itemDispName = GetItemDisplayNameLC( *aItemData, aUnreadCnt );
     CreatePlainItemLC2( itemDispName, plainItemData, plainItemVisualizer, aIcon );
 
 
@@ -2332,6 +2319,34 @@ TFsTreeItemId CFSEmailUiFolderListVisualiser::AppendItemToListL( TDesC* aItemDat
 		}
 
 	return itemId;
+	}
+
+// ---------------------------------------------------------------------------
+// Get the display name for a folder
+// ---------------------------------------------------------------------------
+TDesC* CFSEmailUiFolderListVisualiser::GetItemDisplayNameLC( TDesC& aItemData, TUint aUnreadCnt )
+    {
+    TDesC* itemDispName = NULL;
+    if( aUnreadCnt > 0 )
+        {
+        CDesCArray* descArray = new (ELeave) CDesCArrayFlat( 1 );
+        CleanupStack::PushL( descArray );
+        descArray->AppendL( aItemData );
+        CArrayFix<TInt>* intArray = new (ELeave) CArrayFixFlat<TInt>( 1 );
+        CleanupStack::PushL( intArray );
+        intArray->AppendL( aUnreadCnt );
+        itemDispName = StringLoader::LoadL(
+                R_FREESTYLE_EMAIL_UI_FOLDER_LIST_FOLDER_WITH_UNREAD,
+                *descArray, *intArray );
+        CleanupStack::PopAndDestroy( intArray );
+        CleanupStack::PopAndDestroy( descArray );
+        CleanupStack::PushL( itemDispName );
+        }
+    else
+        {
+        itemDispName = aItemData.AllocLC();
+        }
+    return itemDispName;
 	}
 
 // ---------------------------------------------------------------------------
@@ -2850,7 +2865,14 @@ void CFSEmailUiFolderListVisualiser::AdjustWidthByContent( TRect& aRect ) const
                 // Keep the right edge position unchanged
                 if( landscape )
                     {
-                    aRect.Move( oldButtonRect.iBr.iX - aRect.iBr.iX, 0 );
+					if ( !AknLayoutUtils::LayoutMirrored() )
+						{
+					    aRect.Move( oldButtonRect.iBr.iX - aRect.iBr.iX, 0 );
+						}
+					else
+						{
+					    aRect.Move( ( aRect.Width() - aRect.iBr.iX ) + iCtrlButtonRect.Width(), 0 );
+						}
                     }
                 }
             }

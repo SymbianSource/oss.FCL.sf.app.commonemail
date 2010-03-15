@@ -102,7 +102,4 @@ LIBRARY                         eikcore.lib
 LIBRARY                         egul.lib
 LIBRARY                         apparc.lib
 LIBRARY                         cmaillogger.lib
-
-#ifdef TRACE_INTO_FILE
 LIBRARY                         flogger.lib
-#endif // TRACE_INTO_FILE

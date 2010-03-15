@@ -105,7 +105,7 @@ CNcsComposeView* CNcsComposeView::NewL(
     FUNC_LOG;
 
     CNcsComposeView* self = 
-        CNcsComposeView::NewLC( aMailClient, aEnv, 	aAppUi,
+        CNcsComposeView::NewLC( aMailClient, aEnv, aAppUi,
                                 aControlGroup, aMsvSession );
     CleanupStack::Pop( self );
 
@@ -160,7 +160,7 @@ void CNcsComposeView::DoFirstStartL()
     CAlfControlGroup& attListControlGroup = 
         iEnv.NewControlGroupL( KSendAttachmentManagerDisplayGroup );
     CFSEmailUiSendAttachmentsListVisualiser* sendAttachmentVisualiser =
-		CFSEmailUiSendAttachmentsListVisualiser::NewLC(
+        CFSEmailUiSendAttachmentsListVisualiser::NewLC(
             iEnv, &iAppUi, attListControlGroup );
     iAppUi.AddViewL( sendAttachmentVisualiser );
     CleanupStack::Pop( sendAttachmentVisualiser );
@@ -433,6 +433,91 @@ void CNcsComposeView::ChildDoActivateL( const TVwsViewId& aPrevViewId,
     TIMESTAMP( "Editor launched" );
     }
 
+// -----------------------------------------------------------------------------
+// Initialises toolbar items.
+// -----------------------------------------------------------------------------
+//
+void CNcsComposeView::DynInitToolbarL( TInt aResourceId,
+    CAknToolbar* aToolbar )
+    {
+    FUNC_LOG;
+    if ( aResourceId == EFsEmailUiTbCmdExpandActions && aToolbar )
+        {
+        CAknToolbarExtension* ext = aToolbar->ToolbarExtension();
+        if ( iContainer )
+            {
+            // Set correct state for show/hide cc field button.
+            CAknButton* ccButton = Button( EFsEmailUiTbCmdCcField, ext );
+            if ( ccButton )
+                {
+                TInt index = iContainer->IsCcFieldVisible() ? 1 : 0;
+                ccButton->SetCurrentState( index, EFalse );
+
+                // Command is dimmed, if there is content in the field.
+                ccButton->SetDimmed( iContainer->GetCcFieldLength() > 0 );
+                }
+
+            // Set correct state for show/hide bcc field button.
+            CAknButton* bccButton = Button( EFsEmailUiTbCmdBccField, ext );
+            if ( bccButton )
+                {
+                TInt index = iContainer->IsBccFieldVisible() ? 1 : 0;
+                bccButton->SetCurrentState( index, EFalse );
+
+                // Command is dimmed, if there is content in the field.
+                bccButton->SetDimmed( iContainer->GetBccFieldLength() > 0 );
+                }
+            }
+        else
+            {
+            ext->HideItemL( EFsEmailUiTbCmdCcField, ETrue );
+            ext->HideItemL( EFsEmailUiTbCmdBccField, ETrue );
+            }
+
+        if ( iNewMessage )
+            {
+            // Set correct state for low priority button.
+            TBool lowPriority = iNewMessage->IsFlagSet( EFSMsgFlag_Low );
+            CAknButton* lowPriorityButton = static_cast<CAknButton*>(
+                ext->ControlOrNull( EFsEmailUiTbCmdLowPriority ) );
+            if ( lowPriorityButton )
+                {
+                TInt index = lowPriority ? 1 : 0;
+                lowPriorityButton->SetCurrentState( index, EFalse ); 
+                }
+
+            // Set correct state for high priority button.
+            TBool highPriority = iNewMessage->IsFlagSet( EFSMsgFlag_Important );
+            CAknButton* highPriorityButton = static_cast<CAknButton*>(
+                ext->ControlOrNull( EFsEmailUiTbCmdHighPriority ) );
+            if ( highPriorityButton )
+                {
+                TInt index = highPriority ? 1 : 0;
+                highPriorityButton->SetCurrentState( index, EFalse );
+                }
+
+            // Set correct state for follow up button.
+            TBool followUp = iNewMessage->IsFlagSet( EFSMsgFlag_FollowUp );
+            CAknButton* followUpButton = static_cast<CAknButton*>(
+                ext->ControlOrNull( EFsEmailUiTbCmdFollowUp ) );
+            if ( followUpButton )
+                {
+                TInt index = followUp ? 1 : 0;
+                followUpButton->SetCurrentState( index, EFalse );
+
+                // Hide follow up button, if follow up is not supported.
+                ext->HideItemL( EFsEmailUiTbCmdFollowUp,
+                    !TFsEmailUiUtility::IsFollowUpSupported( *iMailBox ) );
+                }
+            }
+        else
+            {
+            ext->HideItemL( EFsEmailUiTbCmdLowPriority, ETrue );
+            ext->HideItemL( EFsEmailUiTbCmdHighPriority, ETrue );
+            ext->HideItemL( EFsEmailUiTbCmdFollowUp, ETrue );
+            }
+        }
+    }
 
 // -----------------------------------------------------------------------------
 // CNcsComposeView::OfferToolbarEventL
@@ -440,7 +525,7 @@ void CNcsComposeView::ChildDoActivateL( const TVwsViewId& aPrevViewId,
 void CNcsComposeView::OfferToolbarEventL( TInt aCommand )
     {
     FUNC_LOG;
-    bool attachmentAddition = EFalse;
+    TBool attachmentAddition = EFalse;
     switch ( aCommand )
         {
         case EFsEmailUiTbCmdSend:
@@ -453,12 +538,104 @@ void CNcsComposeView::OfferToolbarEventL( TInt aCommand )
                 HandleCommandL( ENcsCmdSend );
                 }
             break;
-        case EFsEmailUiTbCmdAddRecipient:
-            if ( iContainer )
+        case EFsEmailUiTbCmdCcField:
+            {
+            CAknButton* ccFieldButton = Button( EFsEmailUiTbCmdCcField );
+            if ( ccFieldButton )
                 {
-                iContainer->AppendAddressesL();
+                if ( ccFieldButton->StateIndex() )
+                    {
+                    HandleCommandL( ENcsCmdShowCc );
+                    }
+                else
+                    {
+                    HandleCommandL( ENcsCmdHideCc );
+                    }
                 }
             break;
+            }
+        case EFsEmailUiTbCmdBccField:
+            {
+            CAknButton* bccFieldButton = Button( EFsEmailUiTbCmdBccField );
+            if ( bccFieldButton )
+                {
+                if ( bccFieldButton->StateIndex()  )
+                    {
+                    HandleCommandL( ENcsCmdShowBcc );
+                    }
+                else
+                    {
+                    HandleCommandL( ENcsCmdHideBcc );
+                    }
+                }
+            break;
+            }
+        case EFsEmailUiTbCmdLowPriority:
+            {
+            CAknButton* lowPriorityButton = Button( EFsEmailUiTbCmdLowPriority );
+            if ( lowPriorityButton )
+                {
+                if ( lowPriorityButton->StateIndex() )
+                    {
+                    CAknButton* highPriorityButton = Button( 
+                        EFsEmailUiTbCmdHighPriority );
+                    if ( highPriorityButton )
+                        {
+                        highPriorityButton->SetCurrentState( 0, ETrue );
+                        }
+                    HandleCommandL( ENcsCmdPriorityLow );
+                    }
+                else
+                    {
+                    HandleCommandL( ENcsCmdPriorityNormal );
+                    }
+                }
+            break;
+            }
+        case EFsEmailUiTbCmdHighPriority:
+            {
+            CAknButton* highPriorityButton = Button( EFsEmailUiTbCmdHighPriority );
+            if ( highPriorityButton )
+                {
+                if ( highPriorityButton->StateIndex() )
+                    {
+                    CAknButton* lowPriorityButton = Button( 
+                        EFsEmailUiTbCmdLowPriority );
+                    if ( lowPriorityButton )
+                        {
+                        lowPriorityButton->SetCurrentState( 0, ETrue );
+                        }
+                    HandleCommandL( ENcsCmdPriorityHigh );
+                    }
+                else
+                    {
+                    HandleCommandL( ENcsCmdPriorityNormal );
+                    }
+                }
+            break;
+            }
+        case EFsEmailUiTbCmdFollowUp:
+            {
+            CAknButton* button = Button( EFsEmailUiTbCmdFollowUp );
+            if ( button && iNewMessage )
+                {
+                if ( button->StateIndex() )
+                    {
+                    iNewMessage->SetFlag( EFSMsgFlag_FollowUp );
+                    iNewMessage->ResetFlag( EFSMsgFlag_FollowUpComplete );
+                    iStatusPaneIndicators->SetFollowUpFlag( 
+                        CCustomStatuspaneIndicators::EFollowUp );
+                    }
+                else
+                    {
+                    iNewMessage->ResetFlag( EFSMsgFlag_FollowUp 
+                        | EFSMsgFlag_FollowUpComplete );
+                    iStatusPaneIndicators->SetFollowUpFlag( 
+                        CCustomStatuspaneIndicators::EFollowUpNone );
+                    }
+                }
+            break;
+            }
         case EFsEmailUiTbCmdInsertAudio:
             iAttachmentAddType = MsgAttachmentUtils::EAudio;
             attachmentAddition = ETrue;
@@ -535,10 +712,10 @@ void CNcsComposeView::RefreshToolbar()
         // DimAllOptions if remotesearch is in progress, 
         // because it takes you into a different view
         TBool dimAllOptions = iContainer->IsRemoteSearchInprogress();
+        SetToolbarItemDimmed( EFsEmailUiTbCmdExpandActions, dimAllOptions );
         SetToolbarItemDimmed( EFsEmailUiTbCmdExpandInsert, dimAllOptions );
-        SetToolbarItemDimmed( EFsEmailUiTbCmdSend,
-                iContainer->AreAddressFieldsEmpty() );
-        SetToolbarItemDimmed( EFsEmailUiTbCmdAddRecipient, dimAllOptions );
+        SetToolbarItemDimmed( EFsEmailUiTbCmdSend, dimAllOptions 
+            || iContainer->AreAddressFieldsEmpty() );
         }
     }
 
@@ -1945,7 +2122,10 @@ void CNcsComposeView::CommitL(
         || commitSubjectField || commitBodyField )
         {
         TInt error = KErrNone;
-        TRAP( error, iNewMessage->SaveMessageL() );
+        if(iNewMessage) // Coverity error fix:
+            {
+            TRAP( error, iNewMessage->SaveMessageL() );
+            }
         RefreshToolbar();
         }
     }
@@ -2951,6 +3131,36 @@ void CNcsComposeView::DialogDismissedL( TInt aButtonId )
 TBool CNcsComposeView::IsPreparedForExit()
     {
     return !( iFakeSyncGoingOn ||iExecutingDoExitL );
+    }
+
+// ---------------------------------------------------------------------------
+// Returns the speficied button from the toolbar extension, or NULL, 
+// if the button is not found.
+// ---------------------------------------------------------------------------
+//
+CAknButton* CNcsComposeView::Button( TInt aCmdId, 
+    CAknToolbarExtension* aExtension )
+    {
+    CAknButton* button = NULL;
+
+    // Get toolbar extension.
+    CAknToolbarExtension* extension = aExtension;
+    if ( !aExtension )
+        {
+        CAknToolbar* toolbar = Toolbar();
+        if ( toolbar )
+            {
+            extension = toolbar->ToolbarExtension();
+            }
+        }
+
+    // Get specified button from the extension.
+    if ( extension )
+        {
+        button = static_cast<CAknButton*>( extension->ControlOrNull( aCmdId ) );
+        }
+
+    return button;
     }
 
 // ---------------------------------------------------------------------------

@@ -248,6 +248,7 @@ const TDesC8& CIpsPlgImap4PopulateOp::ProgressL()
         return *iFetchErrorProgress;
         }        
     TImap4SyncProgress progg;
+    progg.iFoldersNotFound = 0;
     progg.iErrorCode = KErrNone;
     TPckgBuf<TImap4SyncProgress> param(progg);
     iSyncProgress.Copy(param);

@@ -61,6 +61,8 @@ SOURCE MailIterator.cpp
 SOURCE BaseMrInfoObject.cpp
 SOURCE basepluginfetch.cpp
 SOURCE baseplugindelayedops.cpp
+SOURCE basepluginresourceloader.cpp
+
 
 // *************************************
 // OTHER STUFF
@@ -73,6 +75,7 @@ LIBRARY     euser.lib
 LIBRARY     ecom.lib
 LIBRARY     charconv.lib
 LIBRARY     bafl.lib
+LIBRARY     efsrv.lib
 
 LIBRARY     messagestoreclient.lib
 LIBRARY     fsfwcommonlib.lib

@@ -158,6 +158,8 @@ _LIT( KFSMailServerExe, "\\sys\\bin\\fsmailserver.exe" );
 
 // Define static members
 CAknGlobalNote* TFsEmailUiUtility::iGlobalWaitNote = NULL;
+TBool TFsEmailUiUtility::iSaveSelect = ETrue;
+TBool TFsEmailUiUtility::iDownloadSave = EFalse;
 // <cmail>
 CESMRIcalViewer* TFsEmailUiUtility::iMrViewer = NULL;
 TFsEmailUiUtility::CMrViewerEmptyCallback* TFsEmailUiUtility::iMrViewerCallback = NULL;
@@ -520,6 +522,17 @@ void TFsEmailUiUtility::ShowGlobalInfoNoteL( TInt aResourceStringId )
 void TFsEmailUiUtility::ShowDiscreetInfoNoteL( TInt aResourceStringId )
     {
     FUNC_LOG;   
+    HBufC* noteText = StringLoader::LoadLC( aResourceStringId );
+    ShowDiscreetInfoNoteL( *noteText );
+    CleanupStack::PopAndDestroy( noteText );
+    }
+
+// -----------------------------------------------------------------------------
+// TFsEmailUiUtility::ShowDiscreetInfoNoteL
+// -----------------------------------------------------------------------------
+void TFsEmailUiUtility::ShowDiscreetInfoNoteL( const TDesC& aNoteText )
+    {
+    FUNC_LOG;   
     //create a host of dummy parameters in order to change the popup duration flag...
     const TDesC& dummyText = KNullDesC;
     CGulIcon* dummyIcon = NULL;
@@ -532,8 +545,7 @@ void TFsEmailUiUtility::ShowDiscreetInfoNoteL( TInt aResourceStringId )
     TInt flags = 0;
     flags |= KAknDiscreetPopupDurationLong;
     
-    HBufC* noteText = StringLoader::LoadLC( aResourceStringId );
-    CAknDiscreetPopup::ShowLocalPopupL(*noteText, 
+    CAknDiscreetPopup::ShowLocalPopupL( aNoteText, 
                                         dummyText, 
                                         dummyIcon, 
                                         dummySkinId,
@@ -541,7 +553,6 @@ void TFsEmailUiUtility::ShowDiscreetInfoNoteL( TInt aResourceStringId )
                                         dummyBitmapId, 
                                         dummyMaskId, 
                                         flags);
-    CleanupStack::PopAndDestroy( noteText );
     }
 
 // -----------------------------------------------------------------------------
@@ -682,6 +693,7 @@ TBool TFsEmailUiUtility::OkToSaveFileL( const TDesC& aFilePath, CFSMailMessagePa
 			}
 		}
 	CleanupStack::PopAndDestroy( realFilePath );
+	TFsEmailUiUtility::SetSaveSelect( ret );
 	return ret;
 	}
 
@@ -692,22 +704,35 @@ TBool TFsEmailUiUtility::OkToSaveFileL( const TDesC& aFilePath, CFSMailMessagePa
 void TFsEmailUiUtility::ShowFilesSavedToFolderNoteL( TInt aCount )
     {
     FUNC_LOG;
-    CAknGlobalNote* globalNote = CAknGlobalNote::NewLC();
-    if ( aCount == 1 )
-        {
-        HBufC* noteText = StringLoader::LoadLC( R_FREESTYLE_EMAIL_UI_ONE_ATTACHMENT_SAVED );
-        globalNote->ShowNoteL( EAknGlobalInformationNote, *noteText );
-        CleanupStack::PopAndDestroy( noteText );
+    if ( !iDownloadSave || iSaveSelect ) 
+        { 
+	    if ( aCount == 1 )
+	        {
+	        HBufC* noteText = StringLoader::LoadLC( R_FREESTYLE_EMAIL_UI_ONE_ATTACHMENT_SAVED );
+	        ShowDiscreetInfoNoteL( *noteText );
+	        CleanupStack::PopAndDestroy( noteText );
+	        }
+	    else if ( aCount > 1 )
+	        {
+	        HBufC* noteText = StringLoader::LoadLC( R_FREESTYLE_EMAIL_UI_MULTIPLE_ATTACHMENT_SAVED, aCount );
+	        ShowDiscreetInfoNoteL( *noteText );
+	        CleanupStack::PopAndDestroy( noteText );
+	        }
         }
-    else if ( aCount > 1 )
-        {
-        HBufC* noteText = StringLoader::LoadLC( R_FREESTYLE_EMAIL_UI_MULTIPLE_ATTACHMENT_SAVED, aCount );
-        globalNote->ShowNoteL( EAknGlobalInformationNote, *noteText );
-        CleanupStack::PopAndDestroy( noteText );
-        }
-    CleanupStack::PopAndDestroy( globalNote );
+    TFsEmailUiUtility::SetSaveSelect( ETrue ); 
+    TFsEmailUiUtility::SetDownloadSave( EFalse ); 
     }
 
+void TFsEmailUiUtility::SetDownloadSave( TBool aValue )
+    {
+    FUNC_LOG;
+    iDownloadSave = aValue;
+    }
+void TFsEmailUiUtility::SetSaveSelect( TBool aValue )
+    {
+    FUNC_LOG;
+    iSaveSelect = aValue;
+    }
 // -----------------------------------------------------------------------------
 // TFsEmailUiUtility::OpenFileL
 // -----------------------------------------------------------------------------

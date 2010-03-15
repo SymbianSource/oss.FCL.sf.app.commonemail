@@ -25,8 +25,8 @@
 #include "fsnotificationhandlerbase.h"
 #include "cmailhandlerpluginpanic.h"
 #include "commonemailcrkeys.h"
-#include "FreestyleEmailCenRepKeys.h"
-#include "FreestyleEmailuiConstants.h"
+#include "freestyleemailcenrepkeys.h"
+#include "FreestyleEmailUiConstants.h"
 
 
 // ======== MEMBER FUNCTIONS ========
@@ -178,28 +178,28 @@ TBool CFSNotificationHandlerBase::CapabilitiesToContinueL(
     {
     FUNC_LOG;
     if ( aEvent != TFSEventMailboxDeleted )
-    	{
-    	CFSMailBox* mailBox( MailClient().GetMailBoxByUidL( aMailbox ) );
-    	if ( mailBox == NULL )
-    		{
-    		User::Leave( KErrArgument );
-    		}
+        {
+        CFSMailBox* mailBox( MailClient().GetMailBoxByUidL( aMailbox ) );
+        if ( mailBox == NULL )
+            {
+            User::Leave( KErrArgument );
+            }
 
-    	if ( mailBox->HasCapability( EFSMBoxCapaNewEmailNotifications ) )
-    		{
-    		delete mailBox;
-    		return EFalse;
-    		}
-    	else
-    		{
-    		delete mailBox;
-    		return ETrue;
-    		}
-    	}
+        if ( mailBox->HasCapability( EFSMBoxCapaNewEmailNotifications ) )
+            {
+            delete mailBox;
+            return EFalse;
+            }
+        else
+            {
+            delete mailBox;
+            return ETrue;
+            }
+        }
     else
-    	{
-    	return ETrue;
-    	}
+        {
+        return ETrue;
+        }
     }
 
 void CFSNotificationHandlerBase::HandleEventL(

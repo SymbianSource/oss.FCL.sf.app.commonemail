@@ -307,6 +307,7 @@ void CIpsPlgSyncStateHandler::SaveSuccessfulSyncTimeL(
     TAOInfo info;
     info.iLastSuccessfulUpdate = now;
     info.iUpdateSuccessfulWithCurSettings = ETrue;
+    info.iLastUpdateFailed = EFalse;
     extendedSettings->SetLastUpdateInfo( info );
     // clear flag
     extendedSettings->SetEmnReceivedButNotSyncedFlag( EFalse );

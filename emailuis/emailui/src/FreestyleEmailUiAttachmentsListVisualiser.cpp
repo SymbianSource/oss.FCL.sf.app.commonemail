@@ -1558,7 +1558,7 @@ void CFSEmailUiAttachmentsListVisualiser::HandleMailBoxEventL( TFSMailEvent aEve
     TPartData partData = iModel->GetMessageL( nullId );
 
     if ( iFirstStartCompleted && aMailbox == partData.iMailBoxId && 
-    	 aEvent == TFSEventMailDeleted && aParam1 && iModel ) // Safety, in list events that only concern active mailbox are handled 
+    	 (aEvent == TFSEventMailDeleted || aEvent == TFSEventMailDeletedFromViewer) && aParam1 && iModel ) // Safety, in list events that only concern active mailbox are handled 
         {
 		RArray<TFSMailMsgId>* removedEntries = static_cast< RArray<TFSMailMsgId>* >(aParam1);
 		for ( TInt i=0 ; i < removedEntries->Count() ; i++ )

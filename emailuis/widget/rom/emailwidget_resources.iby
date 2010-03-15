@@ -22,17 +22,22 @@
 #ifndef FF_CMAIL_INTEGRATION
 #ifdef FF_EMAIL_FRAMEWORK
 
-// Enabled by DTD-localization tools, language specific
-
-// Following export is used only for fully localised widget
-//data=ZPRIVATE\200159c0\install\emailwidget\xuikon\00\EW.o0000 \private\200159c0\install\emailwidget\xuikon\00\EW.o0000
-
-// For partially localised widget add exports here for those languages which require different css file
-// ( add exports behind language specific flags )
-// ...
 
 data=ZPRIVATE\200159c0\install\emailwidget\hsps\00\emailwidgetconfiguration.dtd \private\200159c0\install\emailwidget\hsps\00\emailwidgetconfiguration.dtd
 data=ZPRIVATE\200159c0\install\emailwidget\hsps\00\emailwidgeticon.mif \private\200159c0\install\emailwidget\hsps\00\emailwidgeticon.mif
+
+#if defined (__LOCALES_37_IBY__)
+data=ZPRIVATE\200159c0\install\emailwidget\xuikon\37\EW.o0037 \private\200159c0\install\emailwidget\xuikon\37\EW.o0037
+#endif
+#if defined  (__LOCALES_50_IBY__)
+data=ZPRIVATE\200159c0\install\emailwidget\xuikon\50\EW.o0050 \private\200159c0\install\emailwidget\xuikon\50\EW.o0050
+#endif
+#if defined  (__LOCALES_57_IBY__)
+data=ZPRIVATE\200159c0\install\emailwidget\xuikon\57\EW.o0057 \private\200159c0\install\emailwidget\xuikon\57\EW.o0057
+#endif
+#if defined  (__LOCALES_94_IBY__)
+data=ZPRIVATE\200159c0\install\emailwidget\xuikon\94\EW.o0094 \private\200159c0\install\emailwidget\xuikon\94\EW.o0094
+#endif
 
 #endif //FF_EMAIL_FRAMEWORK
 #endif //FF_CMAIL_INTEGRATION

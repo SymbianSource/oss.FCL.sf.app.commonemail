@@ -814,7 +814,9 @@ class CMailboxInfo : public CBase
 
         virtual ~CMailboxInfo()
             {
-            iMailBox->RemoveObserverL( iBasePlugin );
+            if ( iMailBox )
+                iMailBox->RemoveObserverL( iBasePlugin );
+
             iObservers.Close();
 
             delete iMailBoxName;

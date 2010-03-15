@@ -98,12 +98,28 @@ TBool CObserverTests::ExecuteL()
 
     StartRecordingObserverEvents();         
 
-    session1->AddObserverL( this );
-    session2->AddObserverL( this );
-    
     TObserverEvent         event;
     RArray<TObserverEvent> expectedEvents;
 
+    iLog->Log( _L("Case %d: Add observer events"), iCaseId++ );
+    
+    session1->AddObserverL( this );
+    session2->AddObserverL( this );
+    
+    // one per each session         
+    event.iMailBoxId   = -1;
+    event.iOperation   = EMsgStoreAvailable;
+    event.iType        = -1;
+    event.iFlags       = KMsgStoreFlagsNotFound;
+    event.iId          = -1;
+    event.iParentId    = -1;
+    event.iOtherId     = -1;    
+    
+    expectedEvents.AppendL( event );
+    expectedEvents.AppendL( event );
+
+    VerifyRecordedObserverEventsL( ETrue, expectedEvents );         
+    
     iLog->Log( _L("Case %d: Create Account events"), iCaseId++ );
     
     CMsgStoreAccount* account1 = CMsgStoreAccount::NewLC( KOwner1, KAccount1 ); //+3
@@ -600,6 +616,12 @@ TBool CObserverTests::ExecuteL()
     expectedEvents.AppendL( event );
     expectedEvents.AppendL( event );
 
+    // one per each session         
+    event.iOperation   = EMsgStoreUnavailable;
+    
+    expectedEvents.AppendL( event );
+    expectedEvents.AppendL( event );
+
     VerifyRecordedObserverEventsL( EFalse, expectedEvents );            
     
     
@@ -610,7 +632,13 @@ TBool CObserverTests::ExecuteL()
     expectedEvents.AppendL( event );
     expectedEvents.AppendL( event );
 
-    VerifyRecordedObserverEventsL( EFalse, expectedEvents );            
+    // one per each session         
+    event.iOperation   = EMsgStoreAvailable;
+    
+    expectedEvents.AppendL( event );
+    expectedEvents.AppendL( event );
+
+   VerifyRecordedObserverEventsL( EFalse, expectedEvents );            
         
     iLog->Log( _L("Case %d: PointSec system lock events"), iCaseId++ );
 
@@ -628,12 +656,24 @@ TBool CObserverTests::ExecuteL()
     expectedEvents.AppendL( event );
     expectedEvents.AppendL( event );
 
+    // one per each session         
+    event.iOperation   = EMsgStoreUnavailable;
+    
+    expectedEvents.AppendL( event );
+    expectedEvents.AppendL( event );
+
     VerifyRecordedObserverEventsL( EFalse, expectedEvents );            
     
     TriggerPointSecEventL( EFalse );
 
     // one per each session         
     event.iOperation   = EMsgStorePointSecLockEnded;
+    expectedEvents.AppendL( event );
+    expectedEvents.AppendL( event );
+
+    // one per each session         
+    event.iOperation   = EMsgStoreAvailable;
+    
     expectedEvents.AppendL( event );
     expectedEvents.AppendL( event );
 

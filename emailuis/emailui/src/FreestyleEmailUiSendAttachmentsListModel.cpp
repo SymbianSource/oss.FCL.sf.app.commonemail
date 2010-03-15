@@ -418,14 +418,15 @@ void CFSEmailUiSendAttachmentsListModel::ReFreshListL()
 	{
     FUNC_LOG;
 	// empty the list
-	if ( iAttachmentsList )
+	if ( !iAttachmentsList ) 
 		{
-		iAttachmentsList->RemoveAllL();
-        iAttachmentsList->SetFocusedL(ETrue);
+        // Coverity error fix. iAttachmentsList was used also later without null checks
+        return;
 		}
-
-	iAttachmentsList->HideListL();
 	
+    iAttachmentsList->RemoveAllL();
+    iAttachmentsList->SetFocusedL(ETrue);
+    iAttachmentsList->HideListL();
 	TRect screenRect;
     AknLayoutUtils::LayoutMetricsRect( AknLayoutUtils::EMainPane, screenRect );
     iListLayout->SetSize( screenRect.Size() );

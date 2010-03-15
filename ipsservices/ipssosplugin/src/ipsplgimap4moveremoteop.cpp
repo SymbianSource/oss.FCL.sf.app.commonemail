@@ -139,6 +139,7 @@ const TDesC8& CIpsPlgImap4MoveRemoteOp::ProgressL()
         }        
     TImap4SyncProgress progg;
     progg.iErrorCode = KErrNone;
+    progg.iFoldersNotFound = 0;
     TPckgBuf<TImap4SyncProgress> param(progg);
     iSyncProgress.Copy(param);
     return iSyncProgress;  

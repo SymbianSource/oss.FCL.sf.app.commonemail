@@ -500,6 +500,9 @@ public:
     // if email editor started from embedded app.
     TBool EditorStartedFromEmbeddedApp() const;
 
+    // returns last seen pointer position
+    const TPoint& LastSeenPointerPosition() const;
+    
 public: //from MFSMailEventObserver
     /**
      * Framework event message.
@@ -838,6 +841,8 @@ private:
     
     // Flag for judging if email editor started from embedded app.
     TBool iEditorStartedFromEmbeddedApp;
+    
+    TPoint iLastPointerPosition;
     };
 
 

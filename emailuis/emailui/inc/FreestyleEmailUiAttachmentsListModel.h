@@ -167,6 +167,8 @@ public: // from CFSEmailUiAttachmentsModelBase
 	void CancelAllDownloadsL();
     // check if model contains any attachment of message type
     TBool IsThereAnyMessageAttachments() const;
+    // check if model contains any attachment of non-message type
+    TBool IsThereAnyNonMessageAttachments() const;
 
 private:
 	CFSEmailUiAttachmentsListModel( CFreestyleEmailUiAppUi& aAppUi, MFSEmailUiAttachmentsStatusObserver& aObserver );
