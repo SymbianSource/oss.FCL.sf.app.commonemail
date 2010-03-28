@@ -58,7 +58,7 @@ public:	// Methods.
 	IMPORT_C const RPointerArray<CESMRICalValue>& Values() const;
 	IMPORT_C const CESMRICalPropertyParam* FindParam(const TDesC& aType) const;
 
-	CESMRICalPropertyParam& CESMRICalProperty::AddPropertyParamL();
+	CESMRICalPropertyParam& AddPropertyParamL();
 	void RemovePropertyParamL(const CESMRICalPropertyParam& aParam);
 	void ExternalizeL(CESMRICalContentLineWriter& aWriter);
 

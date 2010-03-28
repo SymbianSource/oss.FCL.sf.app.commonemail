@@ -209,9 +209,9 @@ private:
     /**
      *
      */
-    void CMailCpsHandler::UpdateMailboxNameL( const TInt aMailBoxNumber,
-                                              const TInt aWidgetInstance,
-                                              const TInt aRowNumber );
+    void UpdateMailboxNameL( const TInt aMailBoxNumber,
+                             const TInt aWidgetInstance,
+                             const TInt aRowNumber );
 
     /**
      * Handles publishing of message details

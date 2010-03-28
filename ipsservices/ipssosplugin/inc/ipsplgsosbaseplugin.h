@@ -520,7 +520,7 @@ protected:
     /**
     * Checks if given local feature is turned on
     */
-    TBool CIpsPlgSosBasePlugin::LocalFeatureL(
+    TBool LocalFeatureL(
         const TUid& aCenRepUid,
         const TUint32 aKeyId,
         const TUint32 aFlag );

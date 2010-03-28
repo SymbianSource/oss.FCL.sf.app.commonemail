@@ -252,11 +252,11 @@ public:
      * @aDisplayFull default text of the editor
      * @returns Pointer to CESMRNcsAifEntry
      */
-    static CESMRNcsAifEntry* CESMRNcsAifEntry::NewL(
+    static CESMRNcsAifEntry* NewL(
         const CESMRNcsEmailAddressObject& addr,
         TBool aDisplayFull );
 
-    static CESMRNcsAifEntry* CESMRNcsAifEntry::NewL(
+    static CESMRNcsAifEntry* NewL(
         const TDesC& dn,
         const TDesC& eml,
         TBool aDisplayFull );
@@ -264,7 +264,7 @@ public:
     /**
      * C++ Virtual Destructor.
      */
-    CESMRNcsAifEntry::~CESMRNcsAifEntry();
+    ~CESMRNcsAifEntry();
 
 public:
     /**

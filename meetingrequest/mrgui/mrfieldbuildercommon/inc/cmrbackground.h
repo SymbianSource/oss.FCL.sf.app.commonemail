@@ -60,7 +60,7 @@ NONSHARABLE_CLASS( CMRBackground ): public CBase, public MCoeControlBackground
             };        
         
         CMRBackground( CESMRLayoutManager& aLayoutManager );
-        void CMRBackground::DrawFocus( 
+        void DrawFocus( 
                 CWindowGc& aGc, 
                 TRect aRect, 
                 const CCoeControl& aControl, 

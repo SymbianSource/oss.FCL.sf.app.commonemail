@@ -46,7 +46,7 @@ public:
     virtual ~CFSEmailUiMailListModelItem();
 
 private:
-    CFSEmailUiMailListModelItem::CFSEmailUiMailListModelItem( CFSMailMessage* aMessagePtr, TModelItemType aModelItemtype );
+    CFSEmailUiMailListModelItem( CFSMailMessage* aMessagePtr, TModelItemType aModelItemtype );
 public:
     inline void SetMessagePtr( CFSMailMessage* aMessagePtr ) { iMessagePtr = aMessagePtr; }
 	inline CFSMailMessage& MessagePtr() { return *iMessagePtr; }

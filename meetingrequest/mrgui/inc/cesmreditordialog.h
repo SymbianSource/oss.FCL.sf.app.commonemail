@@ -151,7 +151,7 @@ private: // Implementation
      * Checks if cfsmailbox actually supports attendee status
      * @return TBool
      */
-    TBool CESMREditorDialog::SupportsAttendeeStatusL( );
+    TBool SupportsAttendeeStatusL( );
     
     /**
      * Handle options menu command "open"

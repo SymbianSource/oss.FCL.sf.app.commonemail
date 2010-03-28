@@ -343,7 +343,7 @@ class CMsgStorePropertyContainer : public CBase
     private:
     	TUint AddPropertyL( const TDesC8& aName, const CMsgStorePropertyContainer& aContainer, TMsgStorePropertyValueType aType );
     	void UpdatePropertyL( TUint aPropertyIndex, const CMsgStorePropertyContainer& aContainer, TMsgStorePropertyValueType aType );
-    	CMsgStorePropertyContainer* CMsgStorePropertyContainer::PropertyValueContainerL( TUint aPropertyIndex, TMsgStorePropertyValueType aType ) const;   
+    	CMsgStorePropertyContainer* PropertyValueContainerL( TUint aPropertyIndex, TMsgStorePropertyValueType aType ) const;   
     	
         void ValidateIndexAndTypeL( TUint aIndex, TMsgStorePropertyValueType aType ) const;
         void ValidateLengthsL( TUint aNameLength, TUint aValueLength ) const;

@@ -44,12 +44,12 @@ class CFSEmailUiClsMatchObserver : public CBase, public MPsResultsObserver
 	
 public:
 	
-	static CFSEmailUiClsMatchObserver* CFSEmailUiClsMatchObserver::NewL( CRepository& aCr, 
+	static CFSEmailUiClsMatchObserver* NewL( CRepository& aCr, 
 				CFSEmailUiClsListsHandler& aListsHandler,
 				CPSRequestHandler& aRequestHandler,
 				CVPbkContactManager* aContactManager );
 	
-	static CFSEmailUiClsMatchObserver* CFSEmailUiClsMatchObserver::NewLC( CRepository& aCr, 
+	static CFSEmailUiClsMatchObserver* NewLC( CRepository& aCr, 
 				CFSEmailUiClsListsHandler& aListsHandler,
 				CPSRequestHandler& aRequestHandler,
 				CVPbkContactManager* aContactManager);	

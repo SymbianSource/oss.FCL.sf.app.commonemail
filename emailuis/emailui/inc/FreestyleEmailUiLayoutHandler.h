@@ -287,7 +287,7 @@ class CFSEmailUiLayoutHandler : public CBase
         TSize SeparatorGraphicSizeInThisResolution() const;
         
 		// Separator line color
-        TRgb CFSEmailUiLayoutHandler::SeparatorLineColor() const;        
+        TRgb SeparatorLineColor() const;        
 
 		// Padding value for drop down menu
         TInt DropDownMenuListPadding() const;

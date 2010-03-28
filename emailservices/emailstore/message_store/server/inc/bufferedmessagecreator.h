@@ -75,8 +75,7 @@ NONSHARABLE_CLASS( CBufferedMessageCreator ) : public CBase
 
 public:
 
-    static CBufferedMessageCreator* CBufferedMessageCreator::NewL(
-        CContainerStore& aStore );
+    static CBufferedMessageCreator* NewL( CContainerStore& aStore );
     
     virtual ~CBufferedMessageCreator();
 

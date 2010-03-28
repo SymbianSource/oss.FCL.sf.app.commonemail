@@ -220,14 +220,14 @@ class CNcsAifEntry : public CBase, public TCursorSelection
     {
 public:
 
-    static CNcsAifEntry* CNcsAifEntry::NewL( const CNcsEmailAddressObject& aAddr );
+    static CNcsAifEntry* NewL( const CNcsEmailAddressObject& aAddr );
 	
-	static CNcsAifEntry* CNcsAifEntry::NewL(
+	static CNcsAifEntry* NewL(
         const TDesC& aDn, 
         const TDesC& aEml,
         TBool aDisplayFull );
 		
-	CNcsAifEntry::~CNcsAifEntry();
+	~CNcsAifEntry();
 	
 private:
 
