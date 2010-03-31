@@ -425,26 +425,26 @@ void CEmailMailbox::TObserverEventMapper::EventL(
     TAny* aParam3 )
     {
     const TEventMapFunc KMailboxEventHandlers[] = {
-    CEmailMailbox::TObserverEventMapper::IgnoreEventL,
-    CEmailMailbox::TObserverEventMapper::IgnoreEventL, 
-    CEmailMailbox::TObserverEventMapper::IgnoreEventL, 
-    CEmailMailbox::TObserverEventMapper::IgnoreEventL,
-    CEmailMailbox::TObserverEventMapper::IgnoreEventL,
-    CEmailMailbox::TObserverEventMapper::IgnoreEventL,
-    CEmailMailbox::TObserverEventMapper::IgnoreEventL,
-    CEmailMailbox::TObserverEventMapper::IgnoreEventL,
-    CEmailMailbox::TObserverEventMapper::IgnoreEventL,
-    CEmailMailbox::TObserverEventMapper::IgnoreEventL,
-    CEmailMailbox::TObserverEventMapper::NewMessageL, 
-    CEmailMailbox::TObserverEventMapper::MessageChangedL,
-    CEmailMailbox::TObserverEventMapper::MessageDeletedL,
-    CEmailMailbox::TObserverEventMapper::MessageMoved,
-    CEmailMailbox::TObserverEventMapper::MessageCopiedL,
-    CEmailMailbox::TObserverEventMapper::NewFolderL, 
-    CEmailMailbox::TObserverEventMapper::FolderChangeL,
-    CEmailMailbox::TObserverEventMapper::FoldersDeletedL,
-    CEmailMailbox::TObserverEventMapper::FoldersMovedL,
-    CEmailMailbox::TObserverEventMapper::ExceptionL
+    &CEmailMailbox::TObserverEventMapper::IgnoreEventL,
+    &CEmailMailbox::TObserverEventMapper::IgnoreEventL, 
+    &CEmailMailbox::TObserverEventMapper::IgnoreEventL, 
+    &CEmailMailbox::TObserverEventMapper::IgnoreEventL,
+    &CEmailMailbox::TObserverEventMapper::IgnoreEventL,
+    &CEmailMailbox::TObserverEventMapper::IgnoreEventL,
+    &CEmailMailbox::TObserverEventMapper::IgnoreEventL,
+    &CEmailMailbox::TObserverEventMapper::IgnoreEventL,
+    &CEmailMailbox::TObserverEventMapper::IgnoreEventL,
+    &CEmailMailbox::TObserverEventMapper::IgnoreEventL,
+    &CEmailMailbox::TObserverEventMapper::NewMessageL, 
+    &CEmailMailbox::TObserverEventMapper::MessageChangedL,
+    &CEmailMailbox::TObserverEventMapper::MessageDeletedL,
+    &CEmailMailbox::TObserverEventMapper::MessageMoved,
+    &CEmailMailbox::TObserverEventMapper::MessageCopiedL,
+    &CEmailMailbox::TObserverEventMapper::NewFolderL, 
+    &CEmailMailbox::TObserverEventMapper::FolderChangeL,
+    &CEmailMailbox::TObserverEventMapper::FoldersDeletedL,
+    &CEmailMailbox::TObserverEventMapper::FoldersMovedL,
+    &CEmailMailbox::TObserverEventMapper::ExceptionL
     };
 
     TMailboxId id( aMailbox.Id() );
