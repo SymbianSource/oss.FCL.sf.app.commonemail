@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -36,6 +36,7 @@ MESMRFieldValidator* CESMRValidatorFactory::CreateValidatorL(
     MESMRFieldValidator* validator=  NULL;
     switch ( aType )
         {
+        case EESMREventTypeMeetingRequest:
         case EESMREventTypeAppt: // activated by meeting and meeting request
         	{
             validator = CESMRMeetingTimeValidator::NewL ( );

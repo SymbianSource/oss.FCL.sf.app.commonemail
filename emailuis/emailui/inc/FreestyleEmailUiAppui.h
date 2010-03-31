@@ -65,7 +65,6 @@ class CFSEmailUiGridMenuModel;
 class CFSEmailUiLayoutHandler;
 class CFSEmailUiViewSwitchTimer;
 class CFSEmailUiList;
-class CFSEmailUiMailViewerVisualiser;
 class CFSEmailUiMailListVisualiser;
 class CFSMailClient;
 class CFSMailMessage;
@@ -676,9 +675,6 @@ private:
 
 	// Mail view
 	CFSEmailUiMailListVisualiser* iMailListVisualiser;
-
-  	// Plain text viewer view, control inside text view;
-    CFSEmailUiMailViewerVisualiser* iViewerVisualiser;
 
 	// Message editor view
 	CNcsComposeView* iComposeView;

@@ -12,7 +12,7 @@
 * Contributors:
 *
 * Description : Common email version number definitions
-* Version     : %version: 10.1.3 %
+* Version     : %version: 10.1.5 %
 *
 */
 
@@ -25,14 +25,14 @@
  *  version number both major and minor version are stored in separate 32 bit
  *  location.
  */
-#define KEmailBinaryVersionNumber 10.5
+#define KEmailBinaryVersionNumber 10.7
 
 /** ECom version number to be used in Cmail related ECom registeration
  *  resource files.
  *  NOTE: Version number in ECom registeration resource file is saved as one
  *  byte, so 255 is the maximum version number.
  */
-#define KEmailEcomVersionNumber 5
+#define KEmailEcomVersionNumber 7
 
 /** Binary paging setting (paged/non-paged)
  */

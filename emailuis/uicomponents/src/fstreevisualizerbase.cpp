@@ -35,6 +35,7 @@
 #include <alf/alfflowlayout.h>
 #include <alf/alfdecklayout.h>
 #include <alf/alfgridlayout.h>
+#include <alf/alfanchorlayout.h>
 //brushes
 #include <alf/alfbrusharray.h>
 #include <alf/alfbrush.h>
@@ -72,8 +73,12 @@
 #include "fsalfscrollbarlayout.h"
 #include "fsalftextstylemanager.h"
 #include "fsinteractioninterval.h"
+#include "muicscrollbar.h"
+#include "cuicaknscrollbaradapter.h"
+#include "cuicscrollbar.h"
 
 #include <aknphysics.h>
+
 
 //CONSTANTS
 const TInt KDefaultShadowWidth = 4;
@@ -83,7 +88,7 @@ _LIT8( KPropertyItemId, "PropItemID" );
 
 // check from aknphysicsconstants.h
 const TInt KFlickMaxDuration( 500000 );
-const TInt KDefaultFriction( 35 ); // avkon default is 10
+const TInt KDefaultFriction( 25 ); // avkon default is 10
 
 // ======== LOCAL FUNCTIONS ========
 
@@ -456,7 +461,7 @@ TInt TWorld::GetItemRect(const TFsTreeItemId aItemId, TRect& aRect) const
 // ---------------------------------------------------------------------------
 // TWorld::GetItemRect
 // ---------------------------------------------------------------------------
-TInt TWorld::GetItemRect(const TFsTreeItemId aItemId, TRect& aRect, 
+TInt TWorld::GetItemRect(const TFsTreeItemId aItemId, TRect& aRect,
         const TInt aStartIndex ) const
     {
     TInt result(KErrNotFound);
@@ -913,11 +918,11 @@ TFsTreeItemId TViewPort::TCache::TopItem() const
 //
 EXPORT_C CFsTreeVisualizerBase* CFsTreeVisualizerBase::NewL(
         CAlfControl* aOwnerControl, CAlfLayout& aParent,
-        const TBool aDirectTouchMode)
+        const TBool aPopUpMode)
     {
     FUNC_LOG;
     CFsTreeVisualizerBase* self = new (ELeave) CFsTreeVisualizerBase(
-            aOwnerControl, aParent, aDirectTouchMode);
+            aOwnerControl, aParent, aPopUpMode);
     CleanupStack::PushL(self);
     self->ConstructL();
     CleanupStack::Pop(self);
@@ -947,9 +952,10 @@ CFsTreeVisualizerBase::~CFsTreeVisualizerBase()
     delete iWatermark;
     delete iTextStyleManager;
     delete iIntx;
-    // <cmail> Change scrollbar to avkon (to support skinning & touch)
-    delete iScrollBar;
-    // </cmail>
+    if ( iScrollBar )
+        {
+        iScrollBar->Destroy();
+        }
     }
 
 // ---------------------------------------------------------------------------
@@ -1726,7 +1732,7 @@ void CFsTreeVisualizerBase::SetFocusedItemL( const TFsTreeItemId aItemId,
     }
 
 // ---------------------------------------------------------------------------
-// Gets item vertical position in the list 
+// Gets item vertical position in the list
 // ---------------------------------------------------------------------------
 //
 TInt CFsTreeVisualizerBase::GetItemWorldPosition( const TInt aIdx )
@@ -1932,7 +1938,7 @@ void CFsTreeVisualizerBase::HideList(const TBool aFadeOut,
         const TBool aSlideOut)
     {
     FUNC_LOG;
-    iScrollBar->MakeVisible(EFalse);
+    iScrollBar->Show( EFalse );
     if (iDragHandler)
         {
         iDragHandler->Reset();
@@ -2529,41 +2535,44 @@ void CFsTreeVisualizerBase::UpdateItemL(const TFsTreeItemId aItemId)
 void CFsTreeVisualizerBase::SetItemsAlwaysExtendedL(TBool aAlwaysExtended)
     {
     FUNC_LOG;
-    iFlags.Assign(EItemsAlwaysExtended, aAlwaysExtended);
-    TFsTreeIterator treeIter(
-            iTreeData->Iterator(KFsTreeRootID, KFsTreeRootID));
-    while (treeIter.HasNext())
+    if (iFlags.IsSet(EItemsAlwaysExtended) != aAlwaysExtended )
         {
-        TFsTreeItemId itemId(treeIter.Next());
-        if (itemId != KFsTreeNoneID && !iTreeData->IsNode(itemId))
+        iFlags.Assign(EItemsAlwaysExtended, aAlwaysExtended);
+        TFsTreeIterator treeIter(
+                iTreeData->Iterator(KFsTreeRootID, KFsTreeRootID));
+        while (treeIter.HasNext())
             {
-            MFsTreeItemVisualizer* itemviz(iTreeData->ItemVisualizer(itemId));
-            ApplyListSpecificValuesToItem(itemviz);
+            TFsTreeItemId itemId(treeIter.Next());
+            if (itemId != KFsTreeNoneID && !iTreeData->IsNode(itemId))
+                {
+                MFsTreeItemVisualizer* itemviz(iTreeData->ItemVisualizer(itemId));
+                ApplyListSpecificValuesToItem(itemviz);
+                }
             }
-        }
-        const TBool isUpdating(iWorld.IsUpdating());
-    if (!isUpdating)
-        {
-        iWorld.BeginUpdate();
-        }
-    iWorld.RemoveAllL();
-    treeIter = iTreeData->Iterator(KFsTreeRootID, KFsTreeRootID,
-            KFsTreeIteratorSkipCollapsedFlag);
-    while (treeIter.HasNext())
-        {
-        TFsTreeItemId itemId(treeIter.Next());
-        if (itemId != KFsTreeNoneID)
+            const TBool isUpdating(iWorld.IsUpdating());
+        if (!isUpdating)
             {
-            MFsTreeItemVisualizer* itemviz(iTreeData->ItemVisualizer(itemId));
-            iWorld.AppendL(itemId, itemviz->Size());
+            iWorld.BeginUpdate();
             }
-        }
-        // Below line commetned out. ViewPort is now not moved to the top of mail list
-        //iViewPort.SetPositionL(TPoint(), EFalse);
-    iViewPort.ClearCache();
-    if (!isUpdating)
-        {
-        iWorld.EndUpdateL();
+        iWorld.RemoveAllL();
+        treeIter = iTreeData->Iterator(KFsTreeRootID, KFsTreeRootID,
+                KFsTreeIteratorSkipCollapsedFlag);
+        while (treeIter.HasNext())
+            {
+            TFsTreeItemId itemId(treeIter.Next());
+            if (itemId != KFsTreeNoneID)
+                {
+                MFsTreeItemVisualizer* itemviz(iTreeData->ItemVisualizer(itemId));
+                iWorld.AppendL(itemId, itemviz->Size());
+                }
+            }
+            // Below line commetned out. ViewPort is now not moved to the top of mail list
+            //iViewPort.SetPositionL(TPoint(), EFalse);
+        iViewPort.ClearCache();
+        if (!isUpdating)
+            {
+            iWorld.EndUpdateL();
+            }
         }
     }
 
@@ -2820,6 +2829,10 @@ void CFsTreeVisualizerBase::TreeEventL(
             break;
         case EFsTreeRemovedAll:
             {
+            if ( iPhysics )
+                {
+                iPhysics->StopPhysics();
+                }
             if (!iWorld.IsUpdating())
                 {
                 iRootVisualizer->ShowL(*iRootLayout);
@@ -3229,7 +3242,7 @@ void CFsTreeVisualizerBase::FadeEffectEvent(
                 }
             else if (iVisualizationState == EFsTreeFadingOut)
                 {
-                iScrollBar->MakeVisible(EFalse);
+                iScrollBar->Show( EFalse );
                 iVisualizationState = EFsTreeHidden;
                 }
             break;
@@ -3291,7 +3304,7 @@ void CFsTreeVisualizerBase::SlideEffectEvent(
                 }
             else if (iVisualizationState == EFsTreeSlidingOut)
                 {
-                iScrollBar->MakeVisible(EFalse);
+                iScrollBar->Show( EFalse );
                 iVisualizationState = EFsTreeHidden;
                 }
             break;
@@ -3328,24 +3341,18 @@ void CFsTreeVisualizerBase::SlideEffectEvent(
 void CFsTreeVisualizerBase::HandleActionL(
         const TAlfActionCommand& aActionCommand)
     {
-    // <cmail> Change scrollbar to avkon (to support skinning & touch)
     if (KAknsMessageSkinChange == aActionCommand.Id())
-        {//layoout has changed
-        //        HideList(EFalse, EFalse);
-        //        ShowListL(ETrue, EFalse);
-        iScrollBar->HandleResourceChange(KAknsMessageSkinChange);
+        {
+        iScrollBar->NotifyThemeChanged();
         }
-    // </cmail>
     }
 
 // ---------------------------------------------------------------------------
 // Hides visible list items. Clears the visible items table.
 // ---------------------------------------------------------------------------
 //
-// <cmail>
 void CFsTreeVisualizerBase::ClearVisibleItemsListL(TBool /*aRemoveAll*/,
         TBool /*aScrollList*/)
-// </cmail>
     {
     FUNC_LOG;
     }
@@ -3665,10 +3672,22 @@ void CFsTreeVisualizerBase::UpdateScrollBarIfNeededL()
     FUNC_LOG;
     if (iScrollBar->ThumbPosition() != iViewPort.Position().iY)
         {
-        iScrollbarModel.SetFocusPosition(iViewPort.Position().iY);
-        iScrollBar->SetModelL(&iScrollbarModel);
-        iScrollBar->DrawDeferred();
+        SetScrollBarModelValues();
+        iScrollBar->UpdateModelL(iScrollBarModel);
+        iScrollBar->Redraw();
         }
+    }
+
+// ---------------------------------------------------------------------------
+//  Sets scrollbar model values.
+// ---------------------------------------------------------------------------
+//
+void CFsTreeVisualizerBase::SetScrollBarModelValues()
+    {
+    const TInt pageSize(iViewPort.Size().iHeight);
+    iScrollBarModel.SetHeight(Max(iWorld.Height(), pageSize));
+    iScrollBarModel.SetWindowHeight(pageSize);
+    iScrollBarModel.SetWindowPosition(iViewPort.Position().iY);    
     }
 
 // ---------------------------------------------------------------------------
@@ -3682,19 +3701,23 @@ void CFsTreeVisualizerBase::UpdateScrollBarL(const TInt /*aTimeout*/)
     TRect mainPaneRect;
     AknLayoutUtils::LayoutMetricsRect(AknLayoutUtils::EMainPane, mainPaneRect);
     TRect listRect(iRootLayout->DisplayRectTarget());
-    listRect.Move(mainPaneRect.iTl);
+    if (!(iScrollBar->LayoutHints() & MUiCScrollBar::ELayoutRelativeToList))
+        {
+        listRect.Move(mainPaneRect.iTl);
+        }
+    else
+        {
+        const TPoint& tl( listRect.iTl );
+        listRect.Move( -tl.iX, -tl.iY );
+        }
     TRect scrollPane, listPane;
     CFsLayoutManager::LayoutMetricsRect(listRect,
             CFsLayoutManager::EFsLmSpFsScrollPane, scrollPane);
     CFsLayoutManager::LayoutMetricsRect(listRect,
             CFsLayoutManager::EFsLmMainSpFsListPane, listPane);
-
-    const TInt pageSize(iViewPort.Size().iHeight);
-    iScrollbarModel.SetScrollSpan(Max(iWorld.Height(), pageSize));
-    iScrollbarModel.SetWindowSize(pageSize);
-    iScrollbarModel.SetFocusPosition(iViewPort.Position().iY);
-    iScrollBar->SetModelL(&iScrollbarModel);
-    iScrollBar->DrawDeferred();
+    SetScrollBarModelValues();
+    iScrollBar->UpdateModelL(iScrollBarModel);
+    iScrollBar->Redraw();
 
     RArray<TInt> columns;
     CleanupClosePushL(columns);
@@ -3705,16 +3728,32 @@ void CFsTreeVisualizerBase::UpdateScrollBarL(const TInt /*aTimeout*/)
         iScrollBar->SetRect(scrollPane);
         if (AknLayoutUtils::LayoutMirrored())
             {
-            columns.AppendL(scrollPane.Width());
-            columns.AppendL(listPane.Width());
+            if (iScrollBar->LayoutHints() & MUiCScrollBar::ELayoutOnTopOfList)
+                {
+                columns.AppendL(0);
+                columns.AppendL(listRect.Width());
+                }
+            else
+                {
+                columns.AppendL(scrollPane.Width());
+                columns.AppendL(listPane.Width());
+                }
             }
         else
             {
-            columns.AppendL(listPane.Width());
-            columns.AppendL(scrollPane.Width());
+            if (iScrollBar->LayoutHints() & MUiCScrollBar::ELayoutOnTopOfList)
+                {
+                columns.AppendL(listRect.Width());
+                columns.AppendL(0);
+                }
+            else
+                {
+                columns.AppendL(listPane.Width());
+                columns.AppendL(scrollPane.Width());
+                }
             }
         iComponentLayout->SetColumnsL(columns);
-        iScrollBar->MakeVisible(ETrue);
+        iScrollBar->Show(ETrue);
         updateLayouts = ETrue;
         }
     else if (!iViewPort.IsScrollBarNeeded())
@@ -3722,15 +3761,15 @@ void CFsTreeVisualizerBase::UpdateScrollBarL(const TInt /*aTimeout*/)
         if (AknLayoutUtils::LayoutMirrored())
             {
             columns.AppendL(0);
-            columns.AppendL(listPane.Width());
+            columns.AppendL(listRect.Width());
             }
         else
             {
-            columns.AppendL(listPane.Width());
+            columns.AppendL(listRect.Width());
             columns.AppendL(0);
             }
         iComponentLayout->SetColumnsL(columns);
-        iScrollBar->MakeVisible(EFalse);
+        iScrollBar->Show(EFalse);
         updateLayouts = ETrue;
         }
     CleanupStack::PopAndDestroy(); // columns.Close()
@@ -4604,7 +4643,7 @@ TBool CFsTreeVisualizerBase::IsItemFocused(TFsTreeItemId aItemId) const
 // ---------------------------------------------------------------------------
 //
 CFsTreeVisualizerBase::CFsTreeVisualizerBase( CAlfControl* aOwnerControl,
-        CAlfLayout& aParent, const TBool aDirectTouchMode )
+        CAlfLayout& aParent, const TBool aPopUpMode )
     : iVisualizationState(EFsTreeHidden),
       iOwnerControl ( aOwnerControl ),
       iParentLayout ( aParent ),
@@ -4640,8 +4679,8 @@ CFsTreeVisualizerBase::CFsTreeVisualizerBase( CAlfControl* aOwnerControl,
       iViewPort( *this, iWorld )
     {
     FUNC_LOG;
-    iFlags.Set(EAutoRefresh);
-    iFlags.Assign(EDirectTouchMode, aDirectTouchMode);
+    iFlags.Set( EAutoRefresh );
+    iFlags.Assign( EPopupMode, aPopUpMode );
     iFlags.Set( EExpandCollapseOnLongTap );
     }
 // </cmail>
@@ -4660,7 +4699,7 @@ void CFsTreeVisualizerBase::ConstructL()
         iPhysics = CAknPhysics::NewL(*this, NULL );
         iDragHandler = CDragHandler::NewL(*this,
                 iPhysics->HighlightTimeout(), iFlags);
-        iPhysics->SetFriction(KDefaultFriction);                        
+        iPhysics->SetFriction(KDefaultFriction);
         }
 
     iRootData = CFsTreePlainOneLineItemData::NewL();
@@ -4746,17 +4785,24 @@ void CFsTreeVisualizerBase::ConstructL()
 
     iScrollbarVisibility = EFsScrollbarShowAlways;
 
-    iScrollBar = new (ELeave) CAknDoubleSpanScrollBar(0);
-    iScrollBar->ConstructL(ETrue, this, 0, CEikScrollBar::EVertical, 1000);
+    iScrollBarLayout = CAlfAnchorLayout::AddNewL( *iOwnerControl, iListDeck );
+    iScrollBarLayout->SetFlags( EAlfVisualFlagIgnorePointer );
 
-    iScrollbarModel.SetScrollSpan(iComponentLayout->Size().Target().iY);
-    iScrollbarModel.SetFocusPosition(iViewPort.Position().iY);
-    iScrollbarModel.SetWindowSize(iListLayout->Size().iY.Target());
+    if ( iFlags.IsSet( EPopupMode ) )
+        {
+        iScrollBar = CUiCAknScrollBarAdapter::NewL( *this );
+        }
+    else
+        {
+        iScrollBar = CUiCScrollBar::NewL( iOwnerControl->Env(), iScrollBarLayout );
+        }
 
-    iScrollBar->MakeVisible(EFalse);
-    iScrollBar->SetModelL(&iScrollbarModel);
+    iScrollBarModel.SetHeight(iComponentLayout->Size().Target().iY);
+    iScrollBarModel.SetWindowPosition(iViewPort.Position().iY);
+    iScrollBarModel.SetWindowHeight(iListLayout->Size().iY.Target());
 
-    // </cmail>
+    iScrollBar->Show( EFalse );
+    iScrollBar->UpdateModelL( iScrollBarModel );
 
     iFadeEffect = CFsFadeEffect::NewL(iOwnerControl, this, iRootLayout, 0);
     iSlideEffect = CFsSlideEffect::NewL(iOwnerControl, this, iRootLayout, 0);
@@ -4773,38 +4819,27 @@ void CFsTreeVisualizerBase::ConstructL()
     UpdateViewPortL();
     }
 
-// <cmail> Change scrollbar to avkon (to support skinning & touch)
 // ---------------------------------------------------------------------------
 //  Handle scrollbar events
 // ---------------------------------------------------------------------------
 //
-void CFsTreeVisualizerBase::HandleScrollEventL(CEikScrollBar* aScrollBar,
-        TEikScrollEvent aEventType)
+void CFsTreeVisualizerBase::HandleScrollEventL( const MUiCScrollBar& aScrollBar,
+        MUiCScrollBar::TEvent aEvent )
     {
     FUNC_LOG;
-
-    if (iPhysics)
+    switch (aEvent)
         {
-        iPhysics->StopPhysics();
-        }
-
-    if (aScrollBar == iScrollBar)
-        {
-
-        switch (aEventType)
-            {
-            case EEikScrollHome:
-                //Jump to beginning
-                break;
-            case EEikScrollEnd:
-                //Jump to end
-                break;
-            default:
-                TPoint position(iViewPort.Position());
-                position.iY = aScrollBar->ThumbPosition();
-                iViewPort.SetPositionL(position);
-                break;
-            }
+        case MUiCScrollBar::EScrollHome:
+            // Home
+            break;
+        case MUiCScrollBar::EScrollEnd:
+            // End
+            break;
+        default:
+            TPoint position(iViewPort.Position());
+            position.iY = aScrollBar.ThumbPosition();
+            iViewPort.SetPositionL(position);
+            break;
         }
     }
 
@@ -4822,7 +4857,7 @@ void CFsTreeVisualizerBase::NotifyControlVisibilityChange(TBool aIsVisible)
         }
     else
         {
-        iScrollBar->MakeVisible(EFalse);
+        iScrollBar->Show( EFalse );
         }
     }
 
@@ -4891,14 +4926,14 @@ void CFsTreeVisualizerBase::ViewPortUpdatedL(TViewPort& aViewPort, TUpdatedByPhy
     rm = CAlfStatic::Env().RefreshMode();
     CAlfStatic::Env().SetRefreshMode(EAlfRefreshModeManual);
     iListLayout->SetFlag(EAlfVisualFlagFreezeLayout);
-    
+
 	if(aUpdateByPhysic == EUpdatedByPhisicEnd)
 		{
     	RArray<TFsTreeItemId> myVisibleItems;
     	TInt myOffset;
     	CleanupClosePushL(myVisibleItems);
     	aViewPort.GetVisibleItemsL(myVisibleItems, myOffset);
-    			
+
     	for (TInt i = 0; i < myVisibleItems.Count(); i++)
     		{
     		const TFsTreeItemId itemId(myVisibleItems[i]);
@@ -4906,7 +4941,7 @@ void CFsTreeVisualizerBase::ViewPortUpdatedL(TViewPort& aViewPort, TUpdatedByPhy
     			{
     			MFsTreeItemVisualizer* visualizer = iTreeData->ItemVisualizer(
     											itemId);
-    			visualizer->UpdateL(iTreeData->ItemData(itemId), 
+    			visualizer->UpdateL(iTreeData->ItemData(itemId),
     							IsItemFocused(itemId) && IsFocusShown(),
     							iTreeData->Level(itemId), iMarkIcon, iMenuIcon,
     							0);
@@ -4960,21 +4995,14 @@ void CFsTreeVisualizerBase::ViewPortUpdatedL(TViewPort& aViewPort, TUpdatedByPhy
             visualizer->ShowL(*iListLayout);
             TSize size(visualizer->Size());
             TInt listInnerWidth(iListLayout->Size().IntTarget().iX);
-            TAlfTimedPoint tpItemSize(listInnerWidth, size.iHeight);
-            tpItemSize.SetTarget(TAlfRealPoint(listInnerWidth, size.iHeight),
-                    0);
+            TAlfTimedPoint tpItemSize( listInnerWidth, size.iHeight );
             CAlfLayout& visualizerLayout(visualizer->Layout());
             visualizerLayout.SetSize(tpItemSize);
+        	visualizer->UpdateL(iTreeData->ItemData(itemId),
+                IsItemFocused(itemId) && IsFocusShown(),
+                iTreeData->Level(itemId), iMarkIcon, iMenuIcon,
+                0);
             visualizerLayout.PropertySetIntegerL(KPropertyItemId(), itemId);
-            
-//            if(aUpdateByPhysic != EUpdatedByPhisic)
-//            	{
-            	visualizer->UpdateL(iTreeData->ItemData(itemId),
-                    IsItemFocused(itemId) && IsFocusShown(),
-                    iTreeData->Level(itemId), iMarkIcon, iMenuIcon,
-                    0);
-//            	}
-            
             visualizerLayout.Brushes()->AppendL(iBorderBrush,
                     EAlfDoesNotHaveOwnership);
             CAlfBrush* bgBrush(NULL);
@@ -5054,7 +5082,7 @@ void CFsTreeVisualizerBase::UpdatePhysicsL()
         const TSize worldSize(viewSize.iWidth, Max(iWorld.Height(),
                 viewSize.iHeight));
         iPhysics->InitPhysicsL(worldSize, viewSize, EFalse);
-        iPhysics->SetFriction(KDefaultFriction);                        
+        iPhysics->SetFriction(KDefaultFriction);
         }
     }
 
@@ -5089,9 +5117,9 @@ void CFsTreeVisualizerBase::ViewPositionChanged(const TPoint& aNewPosition,
 void CFsTreeVisualizerBase::PhysicEmulationEnded()
     {
     FUNC_LOG;
-    
+
     TRAP_IGNORE( iViewPort.SetCenterPositionL(iViewPort.CenterPosition(), ETrue, EUpdatedByPhisicEnd));
-    
+
     iFlags.Clear(EPhysicsOn);
     if (iFlags.IsSet(EUpdatePhysicsAfterSimulationFinished))
         {

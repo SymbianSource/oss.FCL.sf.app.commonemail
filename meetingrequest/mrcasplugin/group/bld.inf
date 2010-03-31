@@ -34,3 +34,5 @@ OPTION TARGETFILE esmrcasplugin.mif
 OPTION HEADERFILE esmrcasplugin.mbg
 OPTION SOURCES -c16,8 qgn_prop_cmail_action_meeting.svg
 END
+
+// EOF

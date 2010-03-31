@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -12,7 +12,7 @@
 * Contributors:
 *
 *  Description : Fieldstorage with both viewer and editor fields
-*  Version     : %version: tr1sido#3 %
+*  Version     : %version: e002sa33#5 %
 *
 */
 
@@ -44,7 +44,7 @@ public:
      */
     static CESMRMixedFieldStorage* NewL(
             MESMRFieldEventObserver& aEventObserver,
-            CESMRPolicy* aPolicy,
+            const CESMRPolicy& aPolicy,
             MESMRResponseObserver* aResponseObserver,
             MESMRCalEntry& aEntry );
 
@@ -53,10 +53,13 @@ public:
      */
     ~CESMRMixedFieldStorage();
 
-public: // from CESMRFieldStorage
+protected: // from CESMRFieldStorage
     void ExternalizeL( MESMRCalEntry& aEntry );
     void InternalizeL( MESMRCalEntry& aEntry );
     TInt Validate( TESMREntryFieldId& aUpdatedFocus, TBool aForceValidate );
+    void ChangePolicyL(
+            const CESMRPolicy& aNewPolicy,
+            MESMRCalEntry& aEntry );
 
 private: // Implemantation
     /**
@@ -66,15 +69,16 @@ private: // Implemantation
      */
     CESMRMixedFieldStorage(
             MESMRFieldEventObserver& aEventObserver,
-            MESMRResponseObserver* aResponseObserver,
-            MESMRCalEntry& aEntry  );
+            MESMRResponseObserver* aResponseObserver );
 
     /**
      * Second phase constructor.
      *
      * @param aPolicy policy states visible fields
+     * @param aEntry current entry for policy
      */
-    void ConstructL( CESMRPolicy* aPolicy );
+    void ConstructL( const CESMRPolicy& aPolicy,
+                     MESMRCalEntry& aEntry );
 
     /**
      * Second phase constructor.
@@ -83,7 +87,7 @@ private: // Implemantation
      * @param aValidator validator object
      */
     void ConstructForwardEventL(
-            CESMRPolicy* aPolicy,
+            const CESMRPolicy& aPolicy,
             MESMRFieldValidator* aValidator );
 
     /**
@@ -93,7 +97,7 @@ private: // Implemantation
      * @param aValidator validator object
      */
     void ConstructRecurrentEventL(
-            CESMRPolicy* aPolicy,
+            const CESMRPolicy& aPolicy,
             MESMRFieldValidator* aValidator );
 
     /**
@@ -103,9 +107,23 @@ private: // Implemantation
      * @param aValidator validator object
      */
     void ConstructEditSeriesEventL(
-            CESMRPolicy* aPolicy,
+            const CESMRPolicy& aPolicy,
             MESMRFieldValidator* aValidator );
 
+    /**
+     * Resets this storage
+     */
+    void Reset();
+    
+    /**
+     * Non-virtual function to change policy.
+     * @param aNewPolicy policy states visible fields
+     * @param aEntry the entry to handle
+     */
+    void DoChangePolicyL(
+            const CESMRPolicy& aNewPolicy,
+            MESMRCalEntry& aEntry );
+    
 private:
 
     /** Enumeration for mixed event types */
@@ -127,7 +145,7 @@ private:
     /// Ref: Response observer
     MESMRResponseObserver* iResponseObserver;
     /// Ref: Reference to used calendar entry
-    MESMRCalEntry& iEntry;
+    MESMRCalEntry* iEntry;
     /// Own: Created event type
     TMixedFieldStorageEventType iEventType;
     };

@@ -64,7 +64,7 @@ CFSMailMessageBase::CFSMailMessageBase()
 // -----------------------------------------------------------------------------
 // CFSMailMessageBase::ConstructL
 // -----------------------------------------------------------------------------
-EXPORT_C void CFSMailMessageBase::ConstructL( TFSMailMsgId aMessageId )
+void CFSMailMessageBase::ConstructL( TFSMailMsgId aMessageId )
 {
     FUNC_LOG;
 	iMessageId = aMessageId;    

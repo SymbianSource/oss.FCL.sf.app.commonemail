@@ -1,5 +1,5 @@
 /*
-* Copyright (c)  Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -56,15 +56,16 @@ public: // From CCoeControl
     TKeyResponse OfferKeyEventL( const TKeyEvent& aEvent, TEventCode aType );
     void SetContainerWindowL(const CCoeControl& aContainer);
     TSize MinimumSize();
-    virtual void HandlePointerEventL(const TPointerEvent& aPointerEvent);
 
 public: // From CESMRField
     void InitializeL();
     void SetOutlineFocusL( TBool aFocus );
     void InternalizeL( MESMRCalEntry& aEntry );
     void GetMinimumVisibleVerticalArea(TInt& aUpper, TInt& aLower);
+    void GetCursorLineVerticalPos(TInt& aUpper, TInt& aLower);
     void ListObserverSet( );
-    void ExecuteGenericCommandL( TInt aCommand );
+    TBool ExecuteGenericCommandL( TInt aCommand );
+    void HandleLongtapEventL( const TPoint& aPosition );
 
 public: // From MEikEdwinSizeObserver
     TBool HandleEdwinSizeEventL(CEikEdwin* aEdwin, TEdwinSizeEvent aType,
@@ -78,11 +79,13 @@ private: // Implementation
     void ConstructL( );
     HBufC* ClipTextLC( const TDesC& aText, const CFont& aFont, TInt aWidth );
     void UpdateAttendeesListL();
+    TInt LineSpacing();
+    TInt FocusMargin();
 
 private: // data
     // Own: Title of this field
     CMRLabel* iTitle;
-    // Own: Container for all the attendees
+    // Not own: Container for all the attendees
     CESMRRichTextViewer* iRichTextViewer;
     // Size of the field when after field has expanded.
     TSize iExpandedSize;

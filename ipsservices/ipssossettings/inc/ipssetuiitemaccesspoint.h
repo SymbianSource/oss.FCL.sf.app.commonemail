@@ -74,6 +74,11 @@ class CIpsSetUiItemAccessPoint : public CIpsSetUiItemLink
         void InitL( const TImIAPChoice& aIapChoice );
     
         /**
+        * @param aIapPrefs full Iap data used for initialization.
+        */
+        void InitL( const  CImIAPPreferences* aIapPrefs );
+        
+        /**
         * Updates the setting item text
         */
         void UpdateL();
@@ -82,6 +87,21 @@ class CIpsSetUiItemAccessPoint : public CIpsSetUiItemLink
         * Get the access point ID
         */
         TUint32 GetIapIdL();
+        
+        /**
+        * Get the access point choice (ID & preference) 
+        */
+        TImIAPChoice GetIapChoice();
+        
+        /**
+         * Creates/updates and returns extended Iap preferences 
+         */
+        CImIAPPreferences& GetExtendedIapPreferencesL();
+        
+        /**
+         * Get the selection setting i.e. EDestination
+         */
+        TCmSettingSelection GetIapSelection();
         
         /**
         * Returns the name of the specified access point
@@ -171,6 +191,18 @@ class CIpsSetUiItemAccessPoint : public CIpsSetUiItemLink
         * Owned.
         */
         RArray<TUint32>     iIapList;
+        
+    private:
+        /**
+         * Method or Destination
+         */
+        TCmSettingSelection iIapSel;
+        
+        /**
+         * Added for exporting iap data as CImIAPPreferences object
+         */
+        CImIAPPreferences* iFullIapPrefs;
+        
     };
 
 #endif /* CIPSSETUIITEMACCESSPOINT_H */

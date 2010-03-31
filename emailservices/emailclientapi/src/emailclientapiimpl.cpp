@@ -39,6 +39,7 @@
 #include "emailclientapi.hrh"
 #include "freestyleemailcenrepkeys.h"
 #include "FreestyleEmailUiConstants.h"
+
 // ---------------------------------------------------------------------------
 // CEmailClientApi::MailboxL
 // ---------------------------------------------------------------------------
@@ -201,11 +202,20 @@ CPluginData* CEmailClientApi::TPluginIterator::Next()
 // -----------------------------------------------------------------------------
 CEmailClientApi* CEmailClientApi::NewL()
     {
-    CEmailClientApi* self = new ( ELeave ) CEmailClientApi();
-    CleanupStack::PushL( self );
-    self->ConstructL();
-    CleanupStack::Pop();
-    return self;
+    CEmailClientApi* instance = static_cast<CEmailClientApi*>( Dll::Tls() );
+    
+    if ( instance == NULL )
+        {
+        instance = new ( ELeave ) CEmailClientApi();
+        CleanupStack::PushL( instance );
+        instance->ConstructL();
+        User::LeaveIfError( Dll::SetTls( instance ) );
+        CleanupStack::Pop();
+        }
+
+    instance->iInstanceCounter++;
+        
+    return instance;
     }
 
 // -----------------------------------------------------------------------------
@@ -226,12 +236,13 @@ CEmailClientApi::~CEmailClientApi()
     iLoadedPluginsArray.Close();
     delete iMailboxCache;
     delete iClientAPI;
+    Dll::FreeTls();
     }
 
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
-CEmailClientApi::CEmailClientApi()
+CEmailClientApi::CEmailClientApi() : iInstanceCounter( 0 )
     {        
     }
 
@@ -297,7 +308,14 @@ TEmailTypeId CEmailClientApi::InterfaceId() const
 // -----------------------------------------------------------------------------
 void CEmailClientApi::Release()
     {
-    delete this;
+    if( this->iInstanceCounter == 1 )
+        {
+        delete this;
+        }
+    else
+        {
+        this->iInstanceCounter--;
+        }
     }
        
 // -----------------------------------------------------------------------------

@@ -34,7 +34,7 @@ class CEmailMessageContent;
  * 
  */
 NONSHARABLE_CLASS( CEmailTextContent ) : public CBase,
-                                         public MEmailTextContent                                                                                                                          
+                                         public MEmailTextContent
 {   
 public:
     static CEmailTextContent* NewL( CPluginData& aPluginData, 
@@ -102,8 +102,7 @@ public: // from MEmailMessageContent
     
 public: // for internal usage
     void SetOwner( const TDataOwner aOwner );
-    
-    static const TDesC& CheckParameterFormatL( const TDesC& aParam );
+
     
 private:
     CEmailTextContent( const TDataOwner aOwner );

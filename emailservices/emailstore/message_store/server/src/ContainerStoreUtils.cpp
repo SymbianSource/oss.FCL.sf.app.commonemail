@@ -211,7 +211,7 @@ void CContainerStoreUtils::CreateDatabaseL()
 	__LOG_ENTER( "CreateDatabaseL" );
 
     // Create the file store.
-	iFileStore = CPermanentFileStore::ReplaceL( iFs, iDbFilename, EFileRead|EFileWrite );
+	iFileStore = CPermanentFileStore::ReplaceL( iFs, iDbFilename, EFileRead|EFileWrite|EFileWriteDirectIO );
 	
 	iFileStore->SetTypeL( iFileStore->Layout() );	
 	
@@ -237,7 +237,7 @@ void CContainerStoreUtils::OpenDatabaseL()
 	__LOG_ENTER( "OpenDatabaseL" )
 
 	// construct a file store object
-	iFileStore = CPermanentFileStore::OpenL( iFs, iDbFilename, EFileRead|EFileWrite );
+	iFileStore = CPermanentFileStore::OpenL( iFs, iDbFilename, EFileRead|EFileWrite|EFileWriteDirectIO );
 	
 	// open database from the root of the store
 	iDatabase.OpenL( iFileStore, iFileStore->Root() );	

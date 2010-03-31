@@ -1,0 +1,6 @@
+EXPORTS
+	??1CCalRemoteAttachmentInfo@@UAE@XZ @ 1 NONAME ; CCalRemoteAttachmentInfo::~CCalRemoteAttachmentInfo(void)
+	?NewL@CCalRemoteAttachmentInfo@@SAPAV1@XZ @ 2 NONAME ; class CCalRemoteAttachmentInfo * CCalRemoteAttachmentInfo::NewL(void)
+	?NewL@CCalRemoteAttachment@@SAPAV1@ABVTDesC16@@0HW4TCalRemoteAttachmentState@MCalRemoteAttachment@@@Z @ 3 NONAME ; class CCalRemoteAttachment * CCalRemoteAttachment::NewL(class TDesC16 const &, class TDesC16 const &, int, enum MCalRemoteAttachment::TCalRemoteAttachmentState)
+	??1CCalRemoteAttachment@@UAE@XZ @ 4 NONAME ; CCalRemoteAttachment::~CCalRemoteAttachment(void)
+

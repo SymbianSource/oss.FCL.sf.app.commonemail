@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -30,6 +30,7 @@
 class MESMRCalEntry;
 class CEikTimeEditor;
 class CEikDateEditor;
+class MMRAbsoluteAlarmController;
 
 /**
  * Wrapper class handles sanity checks for date/time fields on Memo/Day note
@@ -81,6 +82,8 @@ public: // from MESMRFieldValidator
             CEikDateEditor& aAlarmDate );
     void SetRecurrenceUntilDateFieldL(
                 CEikDateEditor& aRecurrenceUntil );
+    void SetAbsoluteAlarmOnOffFieldL( 
+         MMRAbsoluteAlarmController& aAbsoluteAlarmController ); 
     void StartTimeChangedL();
     void EndTimeChangedL();
     void StartDateChandedL();

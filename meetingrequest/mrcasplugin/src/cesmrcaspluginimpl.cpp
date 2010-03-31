@@ -12,7 +12,7 @@
 * Contributors:
 *
  *  Description : Implementation of the class CESMRCasPluginImpl.
- *  Version     : %version: 10 % << Don't touch! Updated by Synergy at check-out.
+ *  Version     : %version: e002sa33#9 % << Don't touch! Updated by Synergy at check-out.
  *
  */
 
@@ -27,17 +27,17 @@
 #include <esmrcasplugindata.rsg>
 #include <esmrcasplugin.mbg>
 
-#include <MVPbkStoreContact.h>
+#include <mvpbkstorecontact.h>
 #include <data_caging_path_literals.hrh>
 #include <coemain.h>
 #include <calsession.h>
 #include <cmrmailboxutils.h>
-#include <CalenInterimUtils2.h>
+#include <caleninterimutils2.h>
 #include <badesca.h>
 
 #include <ecom/implementationproxy.h>
-#include <StringLoader.h>
-#include <AknIconUtils.h>
+#include <stringloader.h>
+#include <akniconutils.h>
 #include <bautils.h>
 //<cmail>
 #include "mfscactionutils.h"

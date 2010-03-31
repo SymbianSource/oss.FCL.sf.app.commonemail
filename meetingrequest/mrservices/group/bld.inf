@@ -27,11 +27,10 @@ PRJ_EXPORTS
 ../inc/tesmralarminfo.h          	|../../inc/tesmralarminfo.h
 ../inc/esmralarminfo.rh          	|../../inc/esmralarminfo.rh
 ../inc/cesmrrecurrenceinfohandler.h	|../../inc/cesmrrecurrenceinfohandler.h
-../inc/cesmrcaluserutil.h           |../../inc/cesmrcaluserutil.h
-../inc/cesmrattachment.h            |../../inc/cesmrattachment.h
-../inc/cesmrattachmentinfo.h        |../../inc/cesmrattachmentinfo.h
-../inc/cesmrcalimportexporter.h     |../../inc/cesmrcalimportexporter.h
-../inc/mesmrcalimportexporter.h     |../../inc/mesmrcalimportexporter.h
+../inc/cesmrcaluserutil.h               |../../inc/cesmrcaluserutil.h
+../inc/cesmrconflictchecker.h           |../../inc/cesmrconflictchecker.h
+../inc/cesmrcalimportexporter.h         |../../inc/cesmrcalimportexporter.h
+../inc/mesmrcalimportexporter.h         |../../inc/mesmrcalimportexporter.h
 // </cmail>
 
 PRJ_MMPFILES

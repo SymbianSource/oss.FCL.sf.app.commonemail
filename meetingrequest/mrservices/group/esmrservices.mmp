@@ -16,9 +16,8 @@
 */
 
 
-#include "../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
-#include "../../../inc/emailtraceconfig.hrh"
 #include "../../inc/esmrinternaluid.h"
+#include "../../../inc/emailtraceconfig.hrh"
 #include <data_caging_paths.hrh>
 #include <platform_paths.hrh>
 
@@ -30,16 +29,12 @@ CAPABILITY              CAP_GENERAL_DLL
 VENDORID                VID_DEFAULT
 DEFFILE                 ESMRServices.def
 
-VERSION                 KEmailBinaryVersionNumber
-KEmailBinaryDemandPaging
-
 SOURCEPATH              ../src
 SOURCE                  cesmrrecurrenceinfohandler.cpp
 SOURCE                  cesmrcalimportexporter.cpp
 SOURCE                  cesmralarminfohandler.cpp
 SOURCE                  cesmrcaluserutil.cpp
-SOURCE                  cesmrattachment.cpp
-SOURCE                  cesmrattachmentinfo.cpp
+SOURCE                  cesmrconflictchecker.cpp
 
 USERINCLUDE             .
 USERINCLUDE             ../inc
@@ -48,7 +43,11 @@ USERINCLUDE             ../../inc
 
 APP_LAYER_SYSTEMINCLUDE
 
+//<cmail>
+//<cmail>
 USERINCLUDE ../../../inc
+//</cmail>
+//</cmail>
 
 START RESOURCE          ../data/alarminfo/esmralarminfo.rss
 HEADER
@@ -71,10 +70,9 @@ LIBRARY                 ecom.lib
 LIBRARY                 calinterimapi.lib
 LIBRARY                 caleninterimutils2.lib
 LIBRARY                 charconv.lib
-LIBRARY                 cmaillogger.lib
 
-#ifdef TRACE_INTO_FILE
-LIBRARY                 flogger.lib
-#endif // TRACE_INTO_FILE
+#if defined( ENABLE_TRACES ) && defined( TRACE_INTO_FILE )
+LIBRARY flogger.lib
+#endif // ENABLE_TRACES && TRACE_INTO_FILE
 
 // EOF

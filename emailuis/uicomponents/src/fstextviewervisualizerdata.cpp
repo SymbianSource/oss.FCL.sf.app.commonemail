@@ -709,7 +709,7 @@ TInt CFsTextViewerVisualizerData::RestoreL( TFsRangedVisual* aVisual )
         }
 
     CAlfVisual* visual = NULL;
-    CFsTexture *texture = NULL;
+//    CFsTexture *texture = NULL;
     if ( aVisual->iIsText )
         {
         visual = CAlfTextVisual::AddNewL( *iControl, aVisual->iLayout );

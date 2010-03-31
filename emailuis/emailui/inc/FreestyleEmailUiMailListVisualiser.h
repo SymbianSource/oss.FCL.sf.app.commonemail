@@ -378,7 +378,7 @@ public:
 	TRect SortButtonRect();
 
 	// Update theme colors
-	void UpdateTheme(const TBool aSystemUpdate = ETrue);
+	void UpdateThemeL(const TBool aSystemUpdate = ETrue);
 
 	// Navigation functions, used mainly from viewer
 	TBool IsNextMsgAvailable( TFSMailMsgId aCurrentMsgId, TFSMailMsgId& aFoundNextMsgId, TFSMailMsgId& aFoundNextMsgFolder ) const;
@@ -538,10 +538,91 @@ private: // Private functions
 	void ExpandOrCollapseL();
 
 	// Mark control functions
+    /**
+     * Mark all items
+     */	
 	void MarkAllItemsL();
+
+    /**
+     * Unmark all items
+     */	
 	void UnmarkAllItemsL();
+	
+    /**
+     * Exit from marking mode
+	 * @return TInt count of marked items
+     */	
 	TInt CountMarkedItemsL();
 
+    /**
+     * Check if all items are marked
+     */    
+	TBool AreAllItemsMarked();
+	
+    /**
+     * Check if all items are unmarked
+     */
+	TBool AreAllItemsUnmarked();
+	
+    /**
+     * Check if all marked items are read
+     */	
+	TBool AreAllMarkedItemsReadL();
+
+    /**
+     * Check if all marked items are unread
+     */	
+	TBool AreAllMarkedItemsUnreadL();
+	
+    /**
+     * Exit from marking mode
+     */
+	void ExitMarkingModeL();
+	
+    /**
+     * Enter to marking mode
+     */	
+	void EnterMarkingModeL();
+	
+    /**
+     * Refresh marking mode
+     */	
+	void RefreshMarkingModeL();
+	
+    /**
+     * Display marking mode title text
+     */ 
+    void DisplayMarkingModeTitleTextL();
+    
+    /**
+     * Remove marking mode title text
+     */ 
+    void RemoveMarkingModeTitleTextL();
+
+    /**
+     * Displays or remove marking mode background
+     */
+    void DisplayMarkingModeBgL( TBool aDisplay );
+    
+    /**
+     * Mark/unmark items under current separator.
+     *
+     * @param aMarked If ETrue mark all items else unmark.
+     * @param aSeparatorId Id of the separator.
+     */
+    void MarkItemsUnderSeparatorL( TBool aMarked, TInt aSeparatorId );
+	
+    /**
+     * Check if all items are marked under separator
+     *
+     * @param aSeparatorId Id of the separator.
+     * @return TBool ETrue if all items are marked under separator
+     */	
+    TBool AreAllItemsMarkedUnderSeparatorL( TInt aSeparatorId );
+    
+    /**
+     * Restore marking status
+     */
 	void MarkMessagesIfFoundL( const RArray<TFSMailMsgId>& aMessageIDs );
 
 	// Message deletion internal functions
@@ -649,14 +730,6 @@ private: // Private functions
     // as stored in iListMarkItemsState. Used for marking when shift is depressed while
     // scrolling. Returns ETrue if the highlighted item is markable.
     TBool DoScrollMarkUnmarkL();
-
-    /**
-     * Mark/unmark items under current separator.
-     *
-     * @param aMarked If ETrue mark all items else unmark.
-     * @param aSeparatorId Id of the separator.
-     */
-    void MarkItemsUnderSeparatorL( TBool aMarked, TInt aSeparatorId );
 
     //When maillist is activated this method handles the connection icon change
     void ConnectionIconHandling();
@@ -808,6 +881,17 @@ private: // Private objects
     TBool iMailOpened;
     // tactile feed back -- not owned
     MTouchFeedback* iTouchFeedBack;
+	// Is device in marking mode
+	TBool iMarkingMode;
+	// Exit marking mode when view is back to mail list view
+	TBool iMarkingModeWaitingToExit;
+	// Marking mode title variables
+	CAlfTextVisual* iMarkingModeTextVisual;
+	CAlfLayout* iMarkingModeTextParentLayout;
+	CAlfAnchorLayout* iMarkingModeTextContentLayout;
+	TPoint iMarkingModeTextPos;
+	TSize iMarkingModeTextSize;
+	TRect iMarkingModeTextRect;
   	};
 
 

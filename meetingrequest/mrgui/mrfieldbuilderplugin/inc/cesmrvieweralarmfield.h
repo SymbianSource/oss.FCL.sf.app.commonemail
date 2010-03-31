@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -11,7 +11,7 @@
 *
 * Contributors:
 *
-* Description:  ESMR viewer alarm field for CESMRListComponent
+* Description:  ESMR viewer alarm field.
 *
 */
 
@@ -47,12 +47,14 @@ public: // From CESMRField
     void InternalizeL( MESMRCalEntry& aEntry );
     void InitializeL();
     void SetOutlineFocusL( TBool aFocus );
-    
+    void LockL();
+    TBool ExecuteGenericCommandL( TInt aCommand );
+
 public: // From CCoeControl
     void SizeChanged();
     TInt CountComponentControls() const;
     CCoeControl* ComponentControl( TInt aIndex ) const;
-    
+
 private: // Implementation
     CESMRViewerAlarmField();
     void ConstructL();
@@ -60,10 +62,11 @@ private: // Implementation
 private: // members
     // Owned: Field icon
     CMRImage* iIcon;
-    // Owned: Field text label
+    // Not own: Field text label
     CMRLabel* iLabel;
-    
+    // Own: lock icon
+    CMRImage* iLockIcon;
     };
-    
+
 
 #endif // __CESMRVIEWERALARMFIELD_H__

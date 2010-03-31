@@ -19,18 +19,16 @@
                 </action>
             </actions>
             <box id="SetupRowContainer" class="row_container">
-                <box id="ImageField1" class="image_container">
-                    <image id="connstatus_id" sizeaware="true">
-                        <configuration name="content_type" value="ct_setup_icon"/>
-                        <property class="0x2001F413:CMailWidget/key_setup_icon"/>
-                    </image>
-                </box>
+                <image id="connstatus_id" sizeaware="true" class="mailbox_icon">
+				<configuration name="content_type" value="ct_setup_icon"/>
+                    <property class="0x2001F413:CMailWidget/key_setup_icon"/>
+                </image>
                 <box id="Setuptext" class="text_field_container">
                     <text id="setup">
                         <configuration name="content_type" value="ct_setup_text"/>
                         <property class="0x2001F413:CMailWidget/key_setup_text"/>						
                     </text>
-                </box>                             
+                </box>
             </box>
             <box id="setup_row_2" class="setup_row_2_container">
                 <box id="setup_brand_1" class="setup_brand_container">
@@ -69,43 +67,40 @@
                     <event name="0x2001F413:CMailWidget/ct_body_text_1(trigger_emailui)"/>
                 </action>
             </actions>
-            
+
             <!-- Widget row 1 -->
             <box id="MailViewRow1" class="row_container">
-                <box id="ImageField1" class="image_container">
-                    <image id="mailboxicons_id1" sizeaware="true">
-                        <configuration name="content_type" value="ct_mailbox_icons_1"/>
-                        <property class="0x2001F413:CMailWidget/key_mailbox_icons_1"/>                        
-                    </image>
-                </box>            
-                <box id="TextField1" class="text_field_container">
-                    <text id="Text" class="text_mailbox">
-                        <configuration name="content_type" value="ct_body_text_1"/>
-                        <property class="0x2001F413:CMailWidget/key_body_text_1"/>                                               
-                        <!-- Display SETUP or MAILS container -->
-                        <property class="policy/emptyContent" name="MailsContainer" value="display: none;"/>
-                        <property class="policy/emptyContent" name="SetupContainer" value="display: block;"/>
-                        <property class="policy/Content" name="MailsContainer" value="display: block;"/>
-                        <property class="policy/Content" name="SetupContainer" value="display: none;"/>
-                    </text>
-                </box>
+                <image id="mailboxicons_id1" sizeaware="true" class="mailbox_icon">
+                    <configuration name="content_type" value="ct_mailbox_icons_1"/>
+                    <property class="0x2001F413:CMailWidget/key_mailbox_icons_1"/>                        
+                </image>			
+                <text id="Text" class="mailbox_text">
+                    <configuration name="content_type" value="ct_body_text_1"/>
+                    <property class="0x2001F413:CMailWidget/key_body_text_1"/>                                               
+                    <!-- Display SETUP or MAILS container -->
+                    <property class="policy/emptyContent" name="MailsContainer" value="display: none;"/>
+                    <property class="policy/emptyContent" name="SetupContainer" value="display: block;"/>
+                    <property class="policy/Content" name="MailsContainer" value="display: block;"/>
+                    <property class="policy/Content" name="SetupContainer" value="display: none;"/>
+                </text>
                 <!-- Display unseen or outbox icon -->
-                <box id="IndicatorImageField1" class="indicator_image_container">
-                    <image id="indicator_image_id1" sizeaware="true">
-                        <configuration name="content_type" value="ct_indicator_icon_1"/>
-                        <property class="0x2001F413:CMailWidget/key_indicator_icon_1"/>
-                    </image>
-                </box>
+                <image id="indicator_image_id1" sizeaware="true" class="indicator_icon">
+                    <configuration name="content_type" value="ct_indicator_icon_1"/>
+                    <property class="0x2001F413:CMailWidget/key_indicator_icon_1"/>
+                </image>
+            </box>
+
+            <!-- Line between row 1 and row 2 -->
+            <box id="LineRow" class="line_container">
+                <image class="horizontal_line" />
             </box>
 
             <!-- Widget row 2 -->
             <box id="MailViewRow2" class="row_container">
-                <box id="ImageField2" class="image_container">
-                    <image id="mailboxicons_id2" sizeaware="true">
-                        <configuration name="content_type" value="ct_mailbox_icons_2"/>
-                        <property class="0x2001F413:CMailWidget/key_mailbox_icons_2"/>                        
-                    </image>
-                </box>            
+                <image id="mailboxicons_id2" sizeaware="true" class="mailbox_icon">
+                    <configuration name="content_type" value="ct_mailbox_icons_2"/>
+                    <property class="0x2001F413:CMailWidget/key_mailbox_icons_2"/>                        
+                </image>
                 <text id="sender_id_2" class="sender_text">
                     <configuration name="content_type" value="ct_body_text_2"/>
                     <property class="0x2001F413:CMailWidget/key_body_text_2"/>                        
@@ -122,12 +117,10 @@
             
             <!-- Widget row 3 -->
             <box id="MailViewRow3" class="row_container">
-                <box id="ImageField3" class="image_container">
-                    <image id="mailboxicons_id3" sizeaware="true">
-                        <configuration name="content_type" value="ct_mailbox_icons_3"/>
-                        <property class="0x2001F413:CMailWidget/key_mailbox_icons_3"/>                        
-                    </image>
-                </box>            
+                <image id="mailboxicons_id3" sizeaware="true" class="mailbox_icon">
+                    <configuration name="content_type" value="ct_mailbox_icons_3"/>
+                    <property class="0x2001F413:CMailWidget/key_mailbox_icons_3"/>                        
+                </image>
                 <text id="sender_id_3" class="sender_text">
                     <configuration name="content_type" value="ct_body_text_3"/>
                     <property class="0x2001F413:CMailWidget/key_body_text_3"/>                        

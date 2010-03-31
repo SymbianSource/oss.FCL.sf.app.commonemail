@@ -171,9 +171,8 @@ void CFSEmailUiLauncherGridVisualiser::DoFirstStartL()
     TRect gridRect = mainPaneRect;
     gridRect.iBr.iX -= scrollBarRect.Rect().Width();
 
-    TInt var = Layout_Meta_Data::IsLandscapeOrientation() ? 1 : 0;
-    iVisibleRows = AknLayoutScalable_Apps::cell_cmail_l_pane_ParamLimits( var ).LastRow() + 1;
-    iVisibleColumns = AknLayoutScalable_Apps::cell_cmail_l_pane_ParamLimits( var ).LastColumn() + 1;
+    iVisibleRows = iAppUi.LayoutHandler()->GridRowsInThisResolution();
+    iVisibleColumns = iAppUi.LayoutHandler()->GridColumnsInThisResolution();
 
     iStartupAnimation = ETrue;
     iCurrentLevel.iSelected = KDefaultSelection;
@@ -214,8 +213,9 @@ void CFSEmailUiLauncherGridVisualiser::DoFirstStartL()
     iSelectorImageVisual = CAlfImageVisual::AddNewL( *iControl, iSelector );
     iSelectorImageVisual->SetScaleMode( CAlfImageVisual::EScaleFit );
 
+    const TInt var( Layout_Meta_Data::IsLandscapeOrientation() ? 1 : 0 );
+
     // Use layout data instead of hard-coded values
-    iSelectorImageVisual->SetSize( iAppUi.LayoutHandler()->SelectorVisualSizeInThisResolution() );
     TAknLayoutRect itemRect;
     itemRect.LayoutRect( gridRect,
     	AknLayoutScalable_Apps::cell_cmail_l_pane( var, 0, 0 ) );
@@ -2058,12 +2058,12 @@ void CFSEmailUiLauncherGridVisualiser::VisualLayoutUpdatedL()
 	    selectorRect.LayoutRect(itemRect.Rect(), AknLayoutScalable_Apps::grid_highlight_pane_cp018(var));
 
 	    CFSEmailUiLayoutHandler* layoutHandler = iAppUi.LayoutHandler();
-	    iSelectorImageVisual->SetSize( selectorRect.Rect().Size() ); // layoutHandler->SelectorVisualSizeInThisResolution() );
+	    iSelectorImageVisual->SetSize( selectorRect.Rect().Size() );
 
-	    TSize displaySize = mainPaneRect.Size();//iControl->DisplayArea().Size();
+	    TSize displaySize = mainPaneRect.Size();
 
-	    TInt columns = iVisibleColumns = AknLayoutScalable_Apps::cell_cmail_l_pane_ParamLimits(var).LastColumn() + 1; //layoutHandler->GridColumnsInThisResolution();
-	    TInt rows = iVisibleRows = AknLayoutScalable_Apps::cell_cmail_l_pane_ParamLimits(var).LastRow() + 1; //layoutHandler->GridRowsInThisResolution();
+	    TInt columns = iVisibleColumns = AknLayoutScalable_Apps::cell_cmail_l_pane_ParamLimits(var).LastColumn() + 1; 
+	    TInt rows = iVisibleRows = AknLayoutScalable_Apps::cell_cmail_l_pane_ParamLimits(var).LastRow() + 1; 
 
 	// </cmail>
 
@@ -2159,6 +2159,7 @@ void CFSEmailUiLauncherGridVisualiser::VisualLayoutUpdatedL()
         scrollbarRect.SetRect(scrollbarTopLeftX, scrollbarTopLeftY, scrollbarBottomRightX, scrollbarBottomRightY);
         scrollbarRect.Move(mainPaneRect.iTl);
         iScrollbar->SetRect(scrollbarRect);
+        iScrollbar->DrawDeferred();
 	    // </cmail>
         iRefreshNeeded = EFalse;
         }
@@ -2689,27 +2690,35 @@ void CFSEmailUiLauncherGridVisualiser::LaunchStylusPopupMenu(
 	}
 
 void CFSEmailUiLauncherGridVisualiser::HandleAppForegroundEventL( TBool aForeground )
-	{
-	CFsEmailUiViewBase::HandleAppForegroundEventL( aForeground );
-	// If the view is not visible try to visualise it after a while
-	if ( aForeground && ( !iWasActiveControlGroup ) )
-		{
-		//
-		iStartupCallbackTimer->Cancel(); // just in case
-		iStartupCallbackTimer->SetPriority( CActive::EPriorityIdle );
-		// EPriorityIdle, EPriorityLow, EPriorityStandard 
-		iStartupCallbackTimer->Start( 200 );
-		}
-	}
+    {
+    FUNC_LOG;
+    
+    // If the view is not visible try to visualise it after a while
+    if ( aForeground && !iWasActiveControlGroup )
+        {
+        iStartupCallbackTimer->Cancel(); // just in case
+        iStartupCallbackTimer->SetPriority( CActive::EPriorityIdle );
+        iStartupCallbackTimer->Start( 200 );
+        }
 
+    CFsEmailUiViewBase::HandleAppForegroundEventL( aForeground );	
+    }
+
+// ----------------------------------------------------------------------------
+// CFSEmailUiLauncherGridVisualiser::TimerEventL()
 // Fire timer callback
+// ----------------------------------------------------------------------------
 void CFSEmailUiLauncherGridVisualiser::TimerEventL( CFSEmailUiGenericTimer* /* aTriggeredTimer */ )
-{
-  // if view is still active then 
-  if ( ( NULL != iAppUi.CurrentActiveView() ) && ( iAppUi.CurrentActiveView()->Id() == Id() ) )	  
-		  {
-		  iWasActiveControlGroup = ETrue;
-		  HandleAppForegroundEventL( ETrue );
-		  }
-};
+    {
+    FUNC_LOG;
+
+    // if view is still active then 
+    if ( iAppUi.CurrentActiveView() && iAppUi.CurrentActiveView()->Id() == Id() )	  
+        {
+        iWasActiveControlGroup = ETrue;
+        CFsEmailUiViewBase::HandleAppForegroundEventL( ETrue );
+        }
+
+    iStartupCallbackTimer->Cancel();
+    }
 

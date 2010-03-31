@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -30,6 +30,7 @@ class CCalEntry;
 class CEikTimeEditor;
 class CEikDateEditor;
 class MESMRCalEntry;
+class MMRAbsoluteAlarmController;
 
 /**
  * Validator for meetings.
@@ -73,8 +74,10 @@ public: // from MESMRFieldValidator
             CEikTimeEditor& aAlarmTime );
     void SetAlarmDateFieldL(
             CEikDateEditor& aAlarmDate );
-     void SetRecurrenceUntilDateFieldL(
-                CEikDateEditor& aRecurrenceUntil );
+    void SetRecurrenceUntilDateFieldL(
+            CEikDateEditor& aRecurrenceUntil );
+    void SetAbsoluteAlarmOnOffFieldL( 
+            MMRAbsoluteAlarmController& aAbsoluteAlarmController ); 
     void StartTimeChangedL();
     void EndTimeChangedL();
     void StartDateChandedL();
@@ -95,7 +98,7 @@ public: // from MESMRFieldValidator
     TBool IsRelativeAlarmValid(
             TTimeIntervalMinutes aAlarmTimeOffset );
     void SetFieldEventQueue( MESMRFieldEventQueue* aEventQueue );
-
+    MESMRFieldValidator::TESMRFieldValidatorError ValidateEditedInstanceTimeL();
 private: // Implementation
     CESMRMeetingTimeValidator();
     TInt PreValidateEditorContent();
@@ -137,6 +140,8 @@ private:
     CEikDateEditor* iAlarmDate;
     /// Ref: Reference to recurrence until date field
     CEikDateEditor* iRecurrenceUntilDate;
+    // Ref: Reference to absolute alarm on of interface
+    MMRAbsoluteAlarmController* iAbsoluteAlarmController;
     /// Own: Current recurrence value
     TESMRRecurrenceValue iRecurrenceValue;
     /// Ref: Entry being handled

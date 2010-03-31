@@ -245,7 +245,10 @@ const TAttachmentData& CFreestyleMessageHeaderURLEventHandler::FindAttachmentL(
         {
         // Probably, only the headers were downloaded. Check if attachments 
         // were downloaded later.
-        iAttachmentsListModel->UpdateListL( iMailMessage );
+        if( iMailMessage )
+            {
+            iAttachmentsListModel->UpdateListL( iMailMessage );
+            }
         for (TInt i=0; i<iAttachmentsListModel->GetModel().Count(); i++)
             {
             if ( iAttachmentsListModel->GetModel()[i].partData.iMessagePartId.Id() == id )

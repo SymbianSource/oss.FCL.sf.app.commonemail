@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2008-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -28,7 +28,7 @@ const TText8 KDefaultMailBoxURISeparator = '/';
 const TUint KSemiColon = 59;//ascii letter
 const TUint KComma = 44;//ascii letter
 
-const TInt KTextLimit( 5000 );
+const TInt KTextLimit( 2000 );
 const TInt KMaxAddressFieldLines = 3;
     
 //needed to offset the difference that HandleEdwinSizeEventL forces on this control

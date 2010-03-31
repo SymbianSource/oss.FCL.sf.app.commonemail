@@ -170,6 +170,20 @@ private:
     TDataOwner iOwner;
 
     };
+//Class for compare email content type 
+class TContentType
+{
+public:
+    TContentType( const TDesC& aContentType );
+    // Returns ETrue iff the content type represented by this object 
+    // (after parameters have been removed) is equal to the given content type.
+    TBool Equals( const TDesC& aContentType );
+
+private:
+    // Content type (without parameters)
+    TPtrC iContentType;
+};
+
 
 #endif // EMAILMESSAGE_H
 

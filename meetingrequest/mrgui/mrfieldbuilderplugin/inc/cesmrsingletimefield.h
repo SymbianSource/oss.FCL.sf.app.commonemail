@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -19,13 +19,14 @@
 #ifndef CESMRSINGLETIMEFIELD_H
 #define CESMRSINGLETIMEFIELD_H
 
-#include "cesmriconfield.h"
+#include "cesmrfield.h"
 
 class MESMRFieldValidator;
 class CEikTimeEditor;
-class CAknsFrameBackgroundControlContext;
+class CMRImage;
+class CAknsBasicBackgroundControlContext;
 
-NONSHARABLE_CLASS( CESMRSingleTimeField ): public CESMRIconField
+NONSHARABLE_CLASS( CESMRSingleTimeField ): public CESMRField
     {
 
 public:
@@ -42,14 +43,17 @@ public:
     ~CESMRSingleTimeField();
 
 public: // From CESMRField
-    void InitializeL();
     TBool OkToLoseFocusL( TESMREntryFieldId aNextItem );
     void SetOutlineFocusL( TBool aFocus );
+    void SetValidatorL( MESMRFieldValidator* aValidator );
+    TBool ExecuteGenericCommandL( TInt aCommand );
 
 public: // From CCoeControl
-    TKeyResponse OfferKeyEventL(const TKeyEvent& aEvent, TEventCode aType);
-    void ActivateL();
-    void PositionChanged();
+    TKeyResponse OfferKeyEventL( const TKeyEvent& aEvent, TEventCode aType );
+    void SizeChanged();
+    TInt CountComponentControls() const;
+    CCoeControl* ComponentControl( TInt aIndex ) const;
+    void SetContainerWindowL( const CCoeControl& aContainer );
 
 private:
     /**
@@ -65,26 +69,20 @@ private:
 
     void CheckIfValidatingNeededL( TInt aStartFieldIndex );
 
+    void DoEnvChangeL();
+    
 private:
-    /**
-     * Not owned. Validator object.
-     */
-    MESMRFieldValidator* iValidator;
 
-    /**
-     * Not owned. Time editor.
-     */
+    // Not owned. Time editor.
     CEikTimeEditor* iTime;
-
-    /**
-     * Background control context. Not own
-     */
-    MAknsControlContext* iBackground;
-
-    /**
-     * Actual background for the editor. Own
-     */
-    CAknsFrameBackgroundControlContext* iFrameBgContext;
+    
+    // Own. Field icon
+    CMRImage* iFieldIcon;
+        
+    // Own. Background control context.
+    CAknsBasicBackgroundControlContext* iBgCtrlContext;
+    /// Ref: Pointer to container window
+    const CCoeControl* iContainerWindow;
     };
 
 #endif  // CESMRSINGLETIMEFIELD_H

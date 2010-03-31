@@ -23,7 +23,6 @@
 //<cmail>
 #include "cesmrpolicymanager.h"
 //</cmail>
-#include "cesmrentryprocessor.h"
 #include "mesmrmeetingrequestentry.h"
 #include "cesmrtaskfactory.h"
 #include "mesmrtask.h"
@@ -34,17 +33,8 @@
 // CESMRTaskExtenstionImpl::CESMRTaskExtenstionImpl
 // ---------------------------------------------------------------------------
 //
-CESMRTaskExtenstionImpl::CESMRTaskExtenstionImpl(
-        MESMRCalDbMgr& aCalDBMgr,
-        CMRMailboxUtils& aMRMailboxUtils,
-        CESMRPolicyManager& aPolicyManager,
-        CESMREntryProcessor& aEntryProcessor,
-        MESMRTaskFactory& aTaskFactory )
-:       iCalDBMgr( aCalDBMgr ),
-        iMRMailboxUtils( aMRMailboxUtils),
-        iPolicyManager( aPolicyManager ),
-        iEntryProcessor( aEntryProcessor),
-        iTaskFactory( aTaskFactory )
+CESMRTaskExtenstionImpl::CESMRTaskExtenstionImpl( MESMRTaskFactory& aTaskFactory )
+    : iTaskFactory( aTaskFactory )
     {
     FUNC_LOG;
     //do nothing
@@ -66,20 +56,11 @@ EXPORT_C CESMRTaskExtenstionImpl::~CESMRTaskExtenstionImpl()
 // ---------------------------------------------------------------------------
 //
 EXPORT_C CESMRTaskExtenstionImpl* CESMRTaskExtenstionImpl::NewL(
-        MESMRCalDbMgr& aCalDBMgr,
-        CMRMailboxUtils& aMRMailboxUtils,
-        CESMRPolicyManager& aPolicyManager,
-        CESMREntryProcessor& aEntryProcessor,
         MESMRTaskFactory& aTaskFactory )
     {
     FUNC_LOG;
     CESMRTaskExtenstionImpl* self =
-        new (ELeave) CESMRTaskExtenstionImpl(
-                        aCalDBMgr,
-                        aMRMailboxUtils,
-                        aPolicyManager,
-                        aEntryProcessor,
-                        aTaskFactory );
+        new (ELeave) CESMRTaskExtenstionImpl( aTaskFactory );
     CleanupStack::PushL( self );
     self->ConstructL();
     CleanupStack::Pop( self );
@@ -102,32 +83,35 @@ void CESMRTaskExtenstionImpl::ConstructL()
 //
 void CESMRTaskExtenstionImpl::SendAndStoreResponseL(
         TESMRCommand aCommand,
-        MESMRMeetingRequestEntry& aEntry )
+        MESMRCalEntry& aEntry )
     {
     FUNC_LOG;
+    
     // First do possible command conversion
-    if ( EESMRAcceptWithoutAttachmentCheck == aCommand  )
-        {
-        aCommand = EESMRCmdAcceptMR;
-        }
-    else if ( EESMRTentativeWithoutAttachmentCheck == aCommand )
-        {
-        aCommand = EESMRCmdTentativeMR;
-        }
-    else if ( EESMRDeclineWithoutAttachmentCheck == aCommand )
-        {
-        aCommand = EESMRCmdDeclineMR;
-        }
 
-    // Check that command is valid
-    if ( !( EESMRCmdAcceptMR == aCommand ||
-            EESMRCmdTentativeMR == aCommand ||
-            EESMRCmdDeclineMR == aCommand ) )
+    switch ( aCommand )
         {
-        // Invalid command --> Leave
-        User::Leave( KErrArgument );
+        case EESMRAcceptWithoutAttachmentCheck:
+            {
+            aCommand = EESMRCmdAcceptMR;
+            break;
+            }
+        case EESMRTentativeWithoutAttachmentCheck:
+            {
+            aCommand = EESMRCmdTentativeMR;
+            break;
+            }
+        case EESMRDeclineWithoutAttachmentCheck:
+            {
+            aCommand = EESMRCmdDeclineMR;
+            break;
+            }
+        default:
+            {
+            break;
+            }
         }
-
+    
     CreateAndExecuteTaskL( aCommand, aEntry );
     }
 
@@ -137,37 +121,10 @@ void CESMRTaskExtenstionImpl::SendAndStoreResponseL(
 //
 void CESMRTaskExtenstionImpl::SendAndStoreMRL(
         TESMRCommand aCommand,
-        MESMRMeetingRequestEntry& aEntry )
+        MESMRCalEntry& aEntry )
     {
     FUNC_LOG;
-    // Check that command is valid
-    if ( !( EESMRCmdSendMR == aCommand ||
-            EESMRCmdSendMRUpdate == aCommand) )
-        {
-        // Invalid command --> Leave
-        User::Leave( KErrArgument );
-        }
-
-    CreateAndExecuteTaskL( aCommand, aEntry );
-    }
-
-// ---------------------------------------------------------------------------
-// CESMRTaskExtenstionImpl::SendAndStoreMRL
-// ---------------------------------------------------------------------------
-//
-void CESMRTaskExtenstionImpl::DeleteMRFromLocalDBL(
-        TESMRCommand aCommand,
-        MESMRMeetingRequestEntry& aEntry )
-    {
-    FUNC_LOG;
-    // Check that command is valid
-    if ( EESMRCmdDeleteMR != aCommand )
-        {
-        // Invalid command --> Leave
-        User::Leave( KErrArgument );
-        }
-
-    // Create and execute task
+    
     CreateAndExecuteTaskL( aCommand, aEntry );
     }
 
@@ -177,40 +134,28 @@ void CESMRTaskExtenstionImpl::DeleteMRFromLocalDBL(
 //
 void CESMRTaskExtenstionImpl::DeleteAndSendMRL(
         TESMRCommand aCommand,
-        MESMRMeetingRequestEntry& aEntry )
+        MESMRCalEntry& aEntry )
     {
     FUNC_LOG;
-    // Check that command is valid
-    if ( EESMRCmdDeleteMR == aCommand ||
-         EESMRCmdRemoveFromCalendar == aCommand ||
-         EESMRCmdMailDelete == aCommand )
-        {
-        // Create And execute task
-        CreateAndExecuteTaskL( aCommand, aEntry );
-        }
-    else
-        {
-        // Invalid command --> Leave
-        User::Leave( KErrArgument );
-        }
+    
+    // Create And execute task
+    CreateAndExecuteTaskL( aCommand, aEntry );
     }
 
 // ---------------------------------------------------------------------------
-// CESMRTaskExtenstionImpl::StoreMRToLocalDBL
+// CESMRTaskExtenstionImpl::StoreEntryToLocalDBL
 // ---------------------------------------------------------------------------
 //
-void CESMRTaskExtenstionImpl::StoreMRToLocalDBL(
+void CESMRTaskExtenstionImpl::StoreEntryToLocalDBL(
             TESMRCommand aCommand,
-            MESMRMeetingRequestEntry& aEntry )
+            MESMRCalEntry& aEntry )
     {
     FUNC_LOG;
-    if ( EESMRCmdSaveMR != aCommand )
-        {
-        // Invalid command --> Leave
-        User::Leave( KErrArgument );
-        }
+    
+    // Create And exexute task
     CreateAndExecuteTaskL( aCommand, aEntry );
     }
+
 
 // ---------------------------------------------------------------------------
 // CESMRTaskExtenstionImpl::ForwardMRAsEmailL
@@ -218,16 +163,10 @@ void CESMRTaskExtenstionImpl::StoreMRToLocalDBL(
 //
 void CESMRTaskExtenstionImpl::ForwardMRAsEmailL(
             TESMRCommand aCommand,
-            MESMRMeetingRequestEntry& aEntry )
+            MESMRCalEntry& aEntry )
     {
     FUNC_LOG;
-    // Check that command is valid
-    if ( EESMRCmdForwardAsMail != aCommand )
-        {
-        // Invalid command --> Leave
-        User::Leave( KErrArgument );
-        }
-
+    
     // Create And exexute task
     CreateAndExecuteTaskL( aCommand, aEntry );
     }
@@ -238,18 +177,68 @@ void CESMRTaskExtenstionImpl::ForwardMRAsEmailL(
 //
 void CESMRTaskExtenstionImpl::ReplyAsEmailL(
             TESMRCommand aCommand,
-            MESMRMeetingRequestEntry& aEntry )
+            MESMRCalEntry& aEntry )
     {
     FUNC_LOG;
-    // Check that command is valid
-    if ( EESMRCmdReply != aCommand  && EESMRCmdReplyAll != aCommand)
-        {
-        // Invalid command --> Leave
-        User::Leave( KErrArgument );
-        }
-
+    
     // Create And exexute task
     CreateAndExecuteTaskL( aCommand, aEntry );
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRTaskExtenstionImpl::DeleteEntryFromLocalDBL
+// ---------------------------------------------------------------------------
+//
+void CESMRTaskExtenstionImpl::DeleteEntryFromLocalDBL(
+            TESMRCommand aCommand,
+            MESMRCalEntry& aEntry )
+    {
+    FUNC_LOG;
+    
+    // Create And exexute task
+    CreateAndExecuteTaskL( aCommand, aEntry );
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRTaskExtenstionImpl::MarkTodoAsDoneL
+// ---------------------------------------------------------------------------
+//
+void CESMRTaskExtenstionImpl::MarkTodoAsDoneL(
+            TESMRCommand aCommand,
+            MESMRCalEntry& aEntry )
+    {
+    FUNC_LOG;
+    
+    // Create And execute task
+    CreateAndExecuteTaskL( aCommand, aEntry );
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRTaskExtenstionImpl::MarkTodoAsNotDoneL
+// ---------------------------------------------------------------------------
+//
+void CESMRTaskExtenstionImpl::MarkTodoAsNotDoneL(
+            TESMRCommand aCommand,
+            MESMRCalEntry& aEntry )
+    {
+    FUNC_LOG;
+    
+    // Create And exexute task
+    CreateAndExecuteTaskL( aCommand, aEntry );
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRTaskExtenstionImpl::MoveEntryToCurrentDBL
+// ---------------------------------------------------------------------------
+//
+void CESMRTaskExtenstionImpl::MoveEntryToCurrentDBL(
+            TESMRCommand /*aCommand*/,
+            MESMRCalEntry& aEntry )
+    {
+    FUNC_LOG;
+        
+    // Create And exexute task
+    CreateAndExecuteTaskL( EESMRCmdCalendarChange, aEntry );
     }
 
 // ---------------------------------------------------------------------------
@@ -258,7 +247,7 @@ void CESMRTaskExtenstionImpl::ReplyAsEmailL(
 //
 void CESMRTaskExtenstionImpl::CreateAndExecuteTaskL(
             TESMRCommand aCommand,
-            MESMRMeetingRequestEntry& aEntry )
+            MESMRCalEntry& aEntry )
     {
     FUNC_LOG;
     MESMRTask* task = iTaskFactory.CreateTaskL( aCommand, aEntry );
@@ -267,7 +256,7 @@ void CESMRTaskExtenstionImpl::CreateAndExecuteTaskL(
         {
         CleanupDeletePushL( task );
         task->ExecuteTaskL();
-        CleanupStack::PopAndDestroy(); // task;
+        CleanupStack::PopAndDestroy( task ); // task;
         }
     else
         {

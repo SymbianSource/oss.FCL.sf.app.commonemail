@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2003-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -16,8 +16,13 @@
 */
 
 
-#include "emailtrace.h"
 #include "cesmrrichtextlink.h"
+#include "esmrcommands.h"
+#include "emailtrace.h"
+
+#include <avkon.hrh>
+#include <avkon.rsg>
+#include <esmrgui.rsg>
 
 // ======== MEMBER FUNCTIONS ========
 
@@ -110,6 +115,74 @@ EXPORT_C void CESMRRichTextLink::SetStartPos( TInt aPos )
     FUNC_LOG;
     iStartPos = aPos;
     }
+
+// ---------------------------------------------------------------------------
+// CESMRRichTextLink::MSKCommand
+// ---------------------------------------------------------------------------
+//
+TInt CESMRRichTextLink::MSKCommand() const
+    {
+    TInt command = EAknSoftkeySelect;
+    switch ( iType )
+        {
+        case ETypeEmail:
+        case ETypePhoneNumber:
+        case ETypeURL:
+        case ETypeAttachment:
+            {
+            command = EAknSoftkeyContextOptions;
+            break;
+            }
+        case ETypeShowAll:
+            {
+            command = EESMRCmdShowAllAttendees;
+            break;
+            }
+        case ETypeLocationUrl:
+            {
+            command = EESMRCmdShowOnMap;
+            break;
+            }
+        default:
+            {
+            break;
+            }
+        }
+    
+    return command;
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRRichTextLink::MSKText
+// ---------------------------------------------------------------------------
+//
+TInt CESMRRichTextLink::MSKText() const
+    {
+    TInt resource = R_QTN_MSK_SELECT;
+    switch ( iType )
+        {
+        case ETypeEmail:
+        case ETypePhoneNumber:
+        case ETypeURL:
+        case ETypeAttachment:
+        case ETypeLocationUrl:
+            {
+            resource = R_QTN_MSK_OPEN;
+            break;
+            }
+        case ETypeShowAll:
+            {
+            resource = R_QTN_MEET_REQ_SHOW_ALL;
+            break;
+            }
+        default:
+            {
+            break;
+            }
+        }
+    
+    return resource;
+}
 
 // ---------------------------------------------------------------------------
 // CESMRRichTextLink::CESMRRichTextLink

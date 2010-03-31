@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -16,9 +16,8 @@
 */
 
 
-#include "../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
-#include "../../../inc/emailtraceconfig.hrh"
 #include "../../inc/esmrinternaluid.h"
+#include "../../../inc/emailtraceconfig.hrh"
 #include <data_caging_paths.hrh>
 #include <platform_paths.hrh>
 
@@ -30,32 +29,41 @@ CAPABILITY  CAP_GENERAL_DLL
 VENDORID    VID_DEFAULT
 DEFFILE     ESMRViewer.def
 
-VERSION     KEmailBinaryVersionNumber
-KEmailBinaryDemandPaging
-
 SOURCEPATH  ../src
 SOURCE      cesmrviewerctrl.cpp
 
 USERINCLUDE    . ../inc
 USERINCLUDE    ../../inc
+USERINCLUDE    ../../../inc
 APP_LAYER_SYSTEMINCLUDE
 
-USERINCLUDE ../../../inc
-
+LIBRARY esmrcommon.lib
 LIBRARY esmrpolicy.lib
 LIBRARY esmrservices.lib
 LIBRARY esmrutils.lib
-LIBRARY esmrentry.lib
+LIBRARY mrguicommon.lib
+LIBRARY esmrgui.lib
+LIBRARY esmrtasks.lib
 
 LIBRARY euser.lib
 LIBRARY ecom.lib
 LIBRARY eikcore.lib
-LIBRARY esmrgui.lib
 LIBRARY cone.lib
-LIBRARY cmaillogger.lib
+LIBRARY calinterimapi.lib
+LIBRARY caleninterimutils2.lib
 
-#ifdef TRACE_INTO_FILE
+//<cmail> flags are not in cmail, nor profiler
+//#ifdef ESMR_ENABLE_PROFILE
+//LIBRARY esmrprofile.lib
+//#endif
+//</cmail>
+
+#if defined( ENABLE_TRACES ) && defined( TRACE_INTO_FILE )
 LIBRARY flogger.lib
-#endif // TRACE_INTO_FILE
+#endif // ENABLE_TRACES && TRACE_INTO_FILE
+
+// <cmail> Removed profiling. </cmail>
 
 // End of file
+
+

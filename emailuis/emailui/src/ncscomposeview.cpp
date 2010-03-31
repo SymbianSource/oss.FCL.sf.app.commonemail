@@ -949,9 +949,16 @@ void CNcsComposeView::HandleCommandL( TInt aCommand )
                     {
                     // show the toolbar
                     UpdateToolbarL();
-                    if ( Toolbar() && Toolbar()->ToolbarExtension() )
+                    CAknToolbar* toolbar = Toolbar();
+                    if ( toolbar )
                         {
-                        Toolbar()->ToolbarExtension()->SetShown( ETrue );
+                        CAknToolbarExtension* extension =
+                            static_cast<CAknToolbarExtension*>(
+                                toolbar->ControlOrNull( EFsEmailUiTbCmdExpandInsert ) );
+                        if ( extension )
+                            {
+                            extension->SetShown( ETrue );
+                            }
                         }
                     }
                 else

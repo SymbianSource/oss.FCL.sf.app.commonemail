@@ -30,7 +30,7 @@ const TUid KEmailMessageExtensionUid        = { 0x2001E288 };
  * // below message is of type CFSMailMessageBase (or its derived type)
  * CEmailExtension* extension = message->ExtensionL( KEmailMessageExtensionUid );
  * CMailMessageExtension* mExt = reinterpret_cast<CMailMessageExtension*>( extension );
- * mExt->CommitL();
+ * mExt->CommitL(CFSMailMessage&);
  * // Release extension when not needed any more.
  * message->ReleaseExtension( extension );
  * @endcode
@@ -42,9 +42,9 @@ public:
     
     /**
      * Commits changes of the message to store.
-     *
+     * @param aMessage a message to commit.
      */
-    virtual void CommitL() = 0;
+    virtual void CommitL(CFSMailMessage& aMessage) = 0;
 
 protected:    
     inline CMailMessageExtension();

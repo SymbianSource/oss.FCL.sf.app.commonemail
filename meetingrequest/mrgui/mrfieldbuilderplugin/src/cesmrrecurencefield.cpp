@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -17,23 +17,22 @@
 
 #include "emailtrace.h"
 #include "cesmrrecurencefield.h"
-
-#include <eiklabel.h>
-#include <barsread.h>
-#include <esmrgui.rsg>
-#include <avkon.hrh>
-//<cmail>
-#include "esmrdef.h"
-//</cmail>
-#include <AknUtils.h>
-
 #include "cesmrrecurrence.h"
-#include "cesmrborderlayer.h"
 #include "mesmrlistobserver.h"
 #include "cesmrlistquery.h"
 #include "mesmrmeetingrequestentry.h"
 #include "mesmrfieldvalidator.h"
 #include "cesmrglobalnote.h"
+#include "nmrlayoutmanager.h"
+#include "cmrimage.h"
+#include "cmrlabel.h"
+
+#include <barsread.h>
+#include <esmrgui.rsg>
+//<cmail>
+#include "esmrdef.h"
+//</cmail>
+
 
 // Unnamed namespace for local definitions
 namespace { // codescanner::namespace
@@ -69,13 +68,15 @@ void Panic( TESMRRecurenceFieldPanic aPanic )
 // CESMRRecurrenceField::CESMRRecurrenceField
 // ---------------------------------------------------------------------------
 //
-CESMRRecurenceField::CESMRRecurenceField(
-        MESMRFieldValidator* aValidator )
-:   iValidator( aValidator),
-    iIndex( 0 )
+CESMRRecurenceField::CESMRRecurenceField( MESMRFieldValidator* aValidator )
+    : iIndex( 0 )
     {
     FUNC_LOG;
-    //do nothing
+    
+    iValidator = aValidator;
+    
+    SetFieldId ( EESMRFieldRecurrence );
+    SetFocusType( EESMRHighlightFocus );
     }
 
 // ---------------------------------------------------------------------------
@@ -87,6 +88,8 @@ CESMRRecurenceField::~CESMRRecurenceField( )
     FUNC_LOG;
     iArray.ResetAndDestroy();
     iArray.Close();
+
+    delete iFieldIcon;
     }
 
 // ---------------------------------------------------------------------------
@@ -97,8 +100,8 @@ CESMRRecurenceField* CESMRRecurenceField::NewL(
         MESMRFieldValidator* aValidator )
     {
     FUNC_LOG;
-    CESMRRecurenceField* self =
-            new (ELeave) CESMRRecurenceField( aValidator );
+    CESMRRecurenceField* self = 
+        new( ELeave )CESMRRecurenceField( aValidator );
     CleanupStack::PushL( self );
     self->ConstructL();
     CleanupStack::Pop( self );
@@ -112,40 +115,21 @@ CESMRRecurenceField* CESMRRecurenceField::NewL(
 void CESMRRecurenceField::ConstructL( )
     {
     FUNC_LOG;
-    _LIT(KEmptyText, "" );
-    SetFieldId ( EESMRFieldRecurrence );
-    iRecurence = new (ELeave) CEikLabel();
-    iRecurence->SetTextL( KEmptyText );
-    CESMRIconField::ConstructL (
-            KAknsIIDQgnFscalIndiRecurrence,
-            iRecurence );
-    }
-
-// ---------------------------------------------------------------------------
-// CESMRRecurrenceField::InitializeL
-// ---------------------------------------------------------------------------
-//
-void CESMRRecurenceField::InitializeL()
-    {
-    FUNC_LOG;
-    iRecurence->SetFont ( iLayout->Font( iCoeEnv, iFieldId ) );
-
-    iRecurence->SetLabelAlignment(
-            CESMRLayoutManager::IsMirrored() ?
-            ELayoutAlignRight : ELayoutAlignLeft );
-
-    AknLayoutUtils::OverrideControlColorL(
-            *iRecurence,
-            EColorLabelText,
-            iLayout->GeneralListAreaTextColor() );
+    iRecurrence = CMRLabel::NewL();
+    iRecurrence->SetParent( this );
+    CESMRField::ConstructL( iRecurrence );
+    
+    iRecurrence->SetTextL( KNullDesC() );
+    
+    iFieldIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapRecurrence );
+    iFieldIcon->SetParent( this );
     }
 
 // ---------------------------------------------------------------------------
 // CESMRRecurrenceField::InternalizeL
 // ---------------------------------------------------------------------------
 //
-void CESMRRecurenceField::InternalizeL(
-        MESMRCalEntry& aEntry )
+void CESMRRecurenceField::InternalizeL( MESMRCalEntry& aEntry )
     {
     FUNC_LOG;
     if ( aEntry.CanSetRecurrenceL() )
@@ -180,7 +164,7 @@ void CESMRRecurenceField::InternalizeL(
     else
         {
         __ASSERT_DEBUG( iObserver, Panic( EESMRRecurenceFieldNoObserver ) );
-        iObserver->RemoveControl ( iFieldId );
+        iObserver->HideControl ( iFieldId );
         }
     }
 
@@ -204,14 +188,19 @@ void CESMRRecurenceField::SetOutlineFocusL( TBool aFocus )
 // CESMRRecurenceField::ExecuteGenericCommandL
 // ---------------------------------------------------------------------------
 //
-void CESMRRecurenceField::ExecuteGenericCommandL( TInt aCommand )
+TBool CESMRRecurenceField::ExecuteGenericCommandL( TInt aCommand )
     {
     FUNC_LOG;
+    TBool isUsed( EFalse );
     if (aCommand == EESMRCmdOpenRecurrenceQuery ||
     	aCommand == EAknCmdOpen )
         {
         ExecuteRecurrenceQueryL();
+        isUsed = ETrue;
+        
+        HandleTactileFeedbackL();
         }
+    return isUsed;
     }
 
 // ---------------------------------------------------------------------------
@@ -221,14 +210,14 @@ void CESMRRecurenceField::ExecuteGenericCommandL( TInt aCommand )
 void CESMRRecurenceField::ExecuteRecurrenceQueryL()
     {
     FUNC_LOG;
-    TInt ret = CESMRListQuery::ExecuteL(CESMRListQuery::EESMRRecurrenceQuery );
+    TInt ret = CESMRListQuery::ExecuteL( 
+            CESMRListQuery::EESMRRecurrenceQuery );
 
     if ( ret != KErrCancel )
         {
         SetRecurrenceL( ret );
         }
     }
-
 
 // ---------------------------------------------------------------------------
 // CESMRRecurrenceField::OfferKeyEventL
@@ -288,22 +277,22 @@ void CESMRRecurenceField::SetRecurrenceL(
     TRAPD( err, iValidator->RecurrenceChangedL( rec->RecurrenceValue() ) );
     if ( err == KErrNone )
         {
-        iRecurence->SetTextL ( rec->RecurrenceText() );
-        iBorder->DrawDeferred ( );
+        iRecurrence->SetTextL( rec->RecurrenceText() );
+        iRecurrence->DrawDeferred();
 
         iIndex = aIndex;
 
         if ( rec->RecurrenceValue() != ERecurrenceNot )
             {
             // if recurrence is switched "on", the end date should be removed
-            iObserver->RemoveControl ( EESMRFieldStopDate );
-            iObserver->InsertControl ( EESMRFieldRecurrenceDate );
+            iObserver->HideControl ( EESMRFieldStopDate );
+            iObserver->ShowControl ( EESMRFieldRecurrenceDate );
             }
         else
             {
             // if recurrence is switched off, end date should be visible
-            iObserver->InsertControl ( EESMRFieldStopDate );
-            iObserver->RemoveControl ( EESMRFieldRecurrenceDate );
+            iObserver->ShowControl ( EESMRFieldStopDate );
+            iObserver->HideControl ( EESMRFieldRecurrenceDate );
             }
         }
     else
@@ -314,5 +303,89 @@ void CESMRRecurenceField::SetRecurrenceL(
         }
     }
 
-// EOF
+// ---------------------------------------------------------------------------
+// CESMRRecurenceField::SizeChanged
+// ---------------------------------------------------------------------------
+//
+void CESMRRecurenceField::SizeChanged()
+    {
+    FUNC_LOG;
+    TRect rect = Rect();
+    
+    TAknLayoutRect rowLayoutRect =
+     NMRLayoutManager::GetFieldRowLayoutRect( rect, 1 );
+    rect = rowLayoutRect.Rect();
+    
+    TAknWindowComponentLayout iconLayout =
+     NMRLayoutManager::GetWindowComponentLayout( 
+             NMRLayoutManager::EMRLayoutTextEditorIcon );
+    AknLayoutUtils::LayoutImage( iFieldIcon, rect, iconLayout );
+    
+    TAknLayoutRect bgLayoutRect =
+     NMRLayoutManager::GetLayoutRect( 
+             rect, NMRLayoutManager::EMRLayoutTextEditorBg );
+    TRect bgRect( bgLayoutRect.Rect() );
+    // Move focus rect so that it's relative to field's position.
+    bgRect.Move( -Position() );
+    SetFocusRect( bgRect );
+    
+    TAknLayoutText labelLayout = 
+     NMRLayoutManager::GetLayoutText( 
+             rect, NMRLayoutManager::EMRTextLayoutTextEditor );
+    iRecurrence->SetRect( labelLayout.TextRect() );
+    
+    // Setting font also for the field
+    iRecurrence->SetFont( labelLayout.Font() );
+    }
 
+// ---------------------------------------------------------------------------
+// CESMRRecurenceField::CountComponentControls
+// ---------------------------------------------------------------------------
+//
+TInt CESMRRecurenceField::CountComponentControls( ) const
+    {
+    FUNC_LOG;
+    TInt count( 0 );
+    if ( iFieldIcon )
+        {
+        ++count;
+        }
+    if ( iRecurrence )
+        {
+        ++count;
+        }
+    return count;
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRRecurenceField::ComponentControl
+// ---------------------------------------------------------------------------
+//
+CCoeControl* CESMRRecurenceField::ComponentControl( TInt aInd ) const
+    {
+    FUNC_LOG;
+    switch ( aInd )
+        {
+        case 0:
+            return iFieldIcon;
+        case 1:
+            return iRecurrence;
+        default:
+            return NULL;
+        }
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRRecurenceField::SetContainerWindowL
+// ---------------------------------------------------------------------------
+//
+void CESMRRecurenceField::SetContainerWindowL( 
+        const CCoeControl& aContainer )
+    {
+    CCoeControl::SetContainerWindowL( aContainer );
+    iRecurrence->SetContainerWindowL( aContainer );
+    
+    iRecurrence->SetParent( this );
+    }
+
+// EOF

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -16,10 +16,9 @@
 */
 
 
-#include "../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
 #include "../../inc/esmrinternaluid.h"
-#include "../../../inc/fsccontactactionserviceuids.hrh" // <cmail>
 #include "../../../inc/emailtraceconfig.hrh"
+#include "../../../inc/fsccontactactionserviceuids.hrh"
 #include <data_caging_paths.hrh>
 #include <platform_paths.hrh>
 
@@ -32,9 +31,6 @@ CAPABILITY              CAP_ECOM_PLUGIN
 VENDORID                VID_DEFAULT
 DEFFILE                 ESMRCASPlugin.def
 
-VERSION                 KEmailBinaryVersionNumber
-KEmailBinaryDemandPaging
-
 SOURCEPATH              ../src
 SOURCE                  cesmrcaspluginimpl.cpp
 SOURCE                  cesmrcascontactaction.cpp
@@ -42,11 +38,12 @@ SOURCE                  cesmrcaspluginuilauncher.cpp
 SOURCE                  cesmrcasplugincontactretriever.cpp
 
 USERINCLUDE             ../group
-USERINCLUDE             ../inc
+USERINCLUDE	            ../inc
 USERINCLUDE             ../../inc
 USERINCLUDE             ../../../inc
 
 APP_LAYER_SYSTEMINCLUDE
+
 
 LIBRARY                 avkon.lib
 LIBRARY                 aknicon.lib
@@ -63,11 +60,6 @@ LIBRARY                 charconv.lib
 LIBRARY                 esmrcommon.lib
 LIBRARY                 eikcoctl.lib
 LIBRARY                 eikcore.lib
-LIBRARY                 cmaillogger.lib
-
-#ifdef TRACE_INTO_FILE
-LIBRARY                 flogger.lib
-#endif // TRACE_INTO_FILE
 
 SOURCEPATH              ../data
 START RESOURCE          2001F3FF.rss
@@ -81,8 +73,9 @@ LANGUAGE_IDS
 END
 
 
-#if defined(ESMR_ENABLE_LOGGING) && defined( ESMR_LOG_FILE )
-LIBRARY flogger.lib // Debugging utilities
-#endif // ESMR_ENABLE_LOGGING && ESMR_LOG_FILE
+#if defined( ENABLE_TRACES ) && defined( TRACE_INTO_FILE )
+LIBRARY flogger.lib
+#endif // ENABLE_TRACES && TRACE_INTO_FILE
 
 // end of file
+

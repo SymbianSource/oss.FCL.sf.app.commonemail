@@ -15,18 +15,21 @@
 *
 */
 
-
-//<cmail>
-#include "emailtrace.h"
 #include "cesmrrecurrenceinfohandler.h"
+#include "cesmrcaluserutil.h"
 #include "esmrdef.h"
-//</cmail>
-
 #include "mesmrmeetingrequestentry.h"
+#include "cesmrcaldbmgr.h"
 
 #include <calentry.h>
 #include <calrrule.h>
-#include <calcommon.h>
+#include <ct/rcpointerarray.h>
+#include <calinstanceview.h>
+#include <calinstanceiterator.h>
+
+#include <calinstance.h>
+
+#include "emailtrace.h"
 
 /// Unnamed namespace for local definitions
 namespace {
@@ -183,6 +186,94 @@ void CalculateUntilForUnknownRecurrenceL(
         }
     }
 
+/**
+ * Checks if entry's recurrence end time is being adjusted
+ * @param aEntry Reference to entry 
+ */
+TBool RecurrenceEndtimeAdjustedL( 
+        const CCalEntry& aEntry,
+        MESMRCalDbMgr& aCalDb )
+    {
+    TBool retValue( EFalse );
+    
+    TCalRRule rRule;
+    if ( aEntry.GetRRuleL( rRule) )
+        {
+        TCalTime recurrenceId;
+        recurrenceId.SetTimeUtcL( Time::NullTTime() );
+        CCalEntry* entry = aCalDb.FetchEntryL( aEntry.UidL(), recurrenceId  );
+        CleanupStack::PushL( entry );
+        
+        if ( entry )
+            {
+            TCalRRule entryRRule;
+            if ( entry->GetRRuleL( entryRRule ) )
+                {
+                TTime until1 = entryRRule.Until().TimeLocalL();
+                TTime until2 = rRule.Until().TimeLocalL();
+                
+                if ( until1 != until2 )
+                    {
+                    retValue = ETrue;
+                    }
+                }
+            }
+                
+        CleanupStack::PopAndDestroy( entry );        
+        }
+    
+    return retValue;
+    }
+
+/**
+ * Get the beginning of current param time
+ * @param aStartTime Reference to time 
+ */
+TTime BeginningOfDay( const TTime& aStartTime )
+    {
+    TTime zero(TInt64(0));
+    return zero + aStartTime.DaysFrom( zero );
+    }
+
+/**
+ * Get the Time, hour, minute, sec, micsec of current param time
+ * @param aStartTime Reference to time 
+ */
+TTimeIntervalMinutes TimeOfDay( const TTime& aDateTime )
+    {
+    TTime midnight = BeginningOfDay( aDateTime );
+    TTimeIntervalMinutes result;
+    aDateTime.MinutesFrom( midnight, result );
+
+    return result;
+    }
+
+template<typename T> class CleanupResetAndDestroyClose
+    {
+    public:
+        inline static void PushL( T& aRef );
+    private:
+        static void Close( TAny *aPtr );
+    };
+
+template<typename T> inline void CleanupResetAndDestroyClosePushL( T& aRef );
+
+template<typename T> inline void CleanupResetAndDestroyClose<T>::PushL( T& aRef )
+    {
+    CleanupStack::PushL( TCleanupItem( &Close, &aRef ) );
+    }
+
+template<typename T> void CleanupResetAndDestroyClose<T>::Close( TAny *aPtr )
+    {
+    static_cast<T*>(aPtr)->ResetAndDestroy();
+    static_cast<T*>(aPtr)->Close();
+    }
+
+template<typename T> inline void CleanupResetAndDestroyClosePushL( T& aRef )
+    {
+    CleanupResetAndDestroyClose<T>::PushL( aRef );
+    }
+
 }  // namespace
 
 // ======== MEMBER FUNCTIONS ========
@@ -192,8 +283,10 @@ void CalculateUntilForUnknownRecurrenceL(
 // ---------------------------------------------------------------------------
 //
 inline CESMRRecurrenceInfoHandler::CESMRRecurrenceInfoHandler(
-        CCalEntry& aEntry ) :
-        iEntry( aEntry )
+        CCalEntry& aEntry,
+        MESMRCalDbMgr* aCalDb ) :
+        iEntry( aEntry ),
+        iCalDb( aCalDb )
     {
     FUNC_LOG;
     // Not implementation yet
@@ -218,7 +311,24 @@ EXPORT_C CESMRRecurrenceInfoHandler* CESMRRecurrenceInfoHandler::NewL(
     {
     FUNC_LOG;
 
-    CESMRRecurrenceInfoHandler* self = NewLC( aEntry );
+    CESMRRecurrenceInfoHandler* self = NewLC( aEntry, NULL );
+    CleanupStack::Pop( self );
+
+
+    return self;
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRRecurrenceInfoHandler::NewL
+// ---------------------------------------------------------------------------
+//
+EXPORT_C CESMRRecurrenceInfoHandler* CESMRRecurrenceInfoHandler::NewL(
+        CCalEntry& aEntry,
+        MESMRCalDbMgr* aCalDb )
+    {
+    FUNC_LOG;
+
+    CESMRRecurrenceInfoHandler* self = NewLC( aEntry, aCalDb );
     CleanupStack::Pop( self );
 
 
@@ -235,7 +345,26 @@ EXPORT_C CESMRRecurrenceInfoHandler* CESMRRecurrenceInfoHandler::NewLC(
     FUNC_LOG;
 
     CESMRRecurrenceInfoHandler* self =
-            new (ELeave) CESMRRecurrenceInfoHandler(aEntry);
+            new (ELeave) CESMRRecurrenceInfoHandler( aEntry, NULL );
+    CleanupStack::PushL( self );
+    self->ConstructL();
+
+
+    return self;
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRRecurrenceInfoHandler::NewLC
+// ---------------------------------------------------------------------------
+//
+EXPORT_C CESMRRecurrenceInfoHandler* CESMRRecurrenceInfoHandler::NewLC(
+        CCalEntry& aEntry,
+        MESMRCalDbMgr* aCalDb )
+    {
+    FUNC_LOG;
+
+    CESMRRecurrenceInfoHandler* self =
+            new (ELeave) CESMRRecurrenceInfoHandler( aEntry, aCalDb );
     CleanupStack::PushL( self );
     self->ConstructL();
 
@@ -499,7 +628,6 @@ EXPORT_C void CESMRRecurrenceInfoHandler::GetRecurrenceL(
 
     CleanupStack::PopAndDestroy( &rdates );
     aRecurrence = recurrenceValue;
-
     }
 
 
@@ -711,6 +839,657 @@ EXPORT_C void CESMRRecurrenceInfoHandler::GetFirstInstanceTimeL(
 
     }
 
+// -----------------------------------------------------------------------------
+// CCalenEditorDataHandler::GetPreviousInstanceTimeL
+// 
+// -----------------------------------------------------------------------------
+//
+EXPORT_C void CESMRRecurrenceInfoHandler::GetPreviousInstanceTimeL( TCalTime& aPreviousStartTime,
+                                                                    TCalTime& aPreviousEndTime,
+                                                                    TTime aInstanceDateTime )
+    {
+    FUNC_LOG;
+    
+    aPreviousStartTime.SetTimeLocalL( Time::NullTTime() );
+    aPreviousEndTime.SetTimeLocalL( Time::NullTTime() );
+
+    RPointerArray<CCalEntry> entries;
+    CleanupResetAndDestroyClosePushL( entries );
+
+    iCalDb->EntryViewL( iEntry )->FetchL( iEntry.UidL(), entries );
+
+    TCalTime currentInstanceDate = iEntry.RecurrenceIdL();
+    if( currentInstanceDate.TimeUtcL() == Time::NullTTime() )
+        {
+        // We must be creating a new exception. Calculate the recurrence id.
+        TTimeIntervalMinutes timeOfDay = TimeOfDay( entries[0]->StartTimeL().TimeLocalL() );
+        TTime beginningOfDay = BeginningOfDay( aInstanceDateTime );
+        currentInstanceDate.SetTimeLocalL( beginningOfDay + timeOfDay );
+        }
+
+    TCalRRule rrule;
+    if( entries[0]->GetRRuleL(rrule) )
+        {
+        TESMRRecurrenceValue repeatIndex = RepeatIndexL( *entries[0] );
+        
+        TBool keepLooking = ETrue;
+        RArray<TCalTime> exdates;
+        CleanupClosePushL( exdates );
+        entries[0]->GetExceptionDatesL(exdates);
+        
+        // Needed for case ERepeatOther
+        TCalRRule::TType type( rrule.Type() );
+        TInt repeatInterval( rrule.Interval() );
+        TCalTime start, end;
+        TTime previousInstanceTime = Time::NullTTime(); 
+        
+        while( keepLooking )
+            {
+            // Subtract the repeat interval of the parent.
+            switch( repeatIndex )
+                {
+                case ERecurrenceDaily:
+                    {
+                    currentInstanceDate.SetTimeLocalL( currentInstanceDate.TimeLocalL()-TTimeIntervalDays(1) );
+                    break;
+                    }
+
+                case ERecurrenceWeekly:
+                    {
+                    currentInstanceDate.SetTimeLocalL( currentInstanceDate.TimeLocalL()-TTimeIntervalDays(7) );
+                    break;
+                    }
+
+                case ERecurrenceEverySecondWeek:
+                    {
+                    currentInstanceDate.SetTimeLocalL( currentInstanceDate.TimeLocalL()-TTimeIntervalDays(14) );
+                    break;
+                    }
+
+                case ERecurrenceMonthly:
+                    {
+                    currentInstanceDate.SetTimeLocalL( currentInstanceDate.TimeLocalL()-TTimeIntervalMonths(1) );
+                    break;
+                    }
+
+                case ERecurrenceYearly:
+                    {
+                    currentInstanceDate.SetTimeLocalL( currentInstanceDate.TimeLocalL()-TTimeIntervalYears(1) );
+                    break;
+                    }
+
+                case ERecurrenceUnknown:
+                    {
+                    // Check if the current entry being edited is child entry
+                    // If yes, then put back the child entry time to currentInstanceDate  
+                    if( iEntry.RecurrenceIdL().TimeUtcL() != Time::NullTTime() )
+                        {
+                        TTimeIntervalMinutes timeOfDay = TimeOfDay( iEntry.StartTimeL().TimeLocalL() );
+                        TTime beginningOfDay = BeginningOfDay( aInstanceDateTime );
+                        currentInstanceDate.SetTimeLocalL( beginningOfDay + timeOfDay );
+                        }
+
+                    switch( type )
+                        {
+                        case TCalRRule::EDaily:
+                            {
+                            start.SetTimeLocalL( currentInstanceDate.TimeLocalL() - 
+                                    TTimeIntervalDays( 1 * repeatInterval ) );
+                            break;
+                            }
+
+                        case TCalRRule::EWeekly:
+                            {
+                            start.SetTimeLocalL( currentInstanceDate.TimeLocalL() - 
+                                    TTimeIntervalDays(7 * repeatInterval) );
+                            break;
+                            }
+
+                        case TCalRRule::EMonthly: 
+                            {
+                            // Add 7 days of buffer to cover the cases were gap b/w two instances of the event 
+                            // can go beuong 30 days. Ex: Every third wednesday of every month 
+                            start.SetTimeLocalL( currentInstanceDate.TimeLocalL() -
+                                    TTimeIntervalMonths(repeatInterval)-TTimeIntervalDays(7 * repeatInterval) );
+                            break;
+                            }
+
+                        case TCalRRule::EYearly:  
+                            {
+                            // Add 7 days of buffer to cover the cases were gap b/w two instances of the event 
+                            // can go beuong 365 days. Ex: Every third wednesday of September of every year
+                            start.SetTimeLocalL( currentInstanceDate.TimeLocalL() -
+                                    TTimeIntervalYears(repeatInterval)-TTimeIntervalDays(7 * repeatInterval) );
+                            break;
+                            }
+                        }
+
+                    end.SetTimeLocalL( BeginningOfDay( currentInstanceDate.TimeLocalL() ) );
+                    previousInstanceTime = GetPreviousInstanceForRepeatOtherL( *entries[0], 
+                            CalCommon::TCalTimeRange(start, end) );
+                    currentInstanceDate.SetTimeLocalL( previousInstanceTime );
+                    break;
+                    }
+                    
+                case ERecurrenceNot:
+                default:
+                    {
+                    keepLooking = EFalse;
+                    break;
+                    }
+                }
+
+            // Is currentInstanceDate before parent dt start?
+            if( currentInstanceDate.TimeLocalL() < entries[0]->StartTimeL().TimeLocalL() )
+                {
+                // There are no instances before the exception
+                keepLooking = EFalse;
+                }
+            else
+                {
+                // Is there an exdate on currentInstanceDate?
+                TBool isExdateOnDay = EFalse;
+                for(TInt i=0; i<exdates.Count(); ++i)
+                    {
+                    if( exdates[i].TimeLocalL() == currentInstanceDate.TimeLocalL() )
+                        {
+                        isExdateOnDay = ETrue;
+                        // There is an exdate - is there a child associated with the exdate?
+                        for(TInt j=1; j<entries.Count(); ++j)
+                            {
+                            if( entries[j]->RecurrenceIdL().TimeLocalL() == currentInstanceDate.TimeLocalL() )
+                                {
+                                // This child is the previous instance.
+                                aPreviousStartTime = entries[j]->StartTimeL();
+                                aPreviousEndTime = entries[j]->EndTimeL();
+                                keepLooking = EFalse;
+                                }
+                            }
+                        break;
+                        }
+                    }
+
+                if( !isExdateOnDay )
+                    {
+                    // The instance exists and hasn't been deleted or made into an exception.
+                    // Use information from the parent to set the start/end times.
+                    aPreviousStartTime = currentInstanceDate;
+
+                    TTimeIntervalMinutes duration;
+                    TTime start = entries[0]->StartTimeL().TimeLocalL();
+                    TTime end = entries[0]->EndTimeL().TimeLocalL(); 
+                    end.MinutesFrom( start, duration );
+                    aPreviousEndTime.SetTimeLocalL( currentInstanceDate.TimeLocalL() + duration );
+                    keepLooking = EFalse;
+                    }
+                }
+            }
+        CleanupStack::PopAndDestroy( &exdates );
+        }
+
+    CleanupStack::PopAndDestroy(&entries);
+    }
+
+// -----------------------------------------------------------------------------
+// CESMRRecurrenceInfoHandler::GetNextInstanceTimeL
+// 
+// -----------------------------------------------------------------------------
+//
+EXPORT_C void CESMRRecurrenceInfoHandler::GetNextInstanceTimeL( TCalTime& aNextStartTime,
+                                                                TCalTime& aNextEndTime,
+                                                                TTime aInstanceDateTime )
+    {
+    FUNC_LOG;
+    aNextStartTime.SetTimeLocalL( Time::NullTTime() );
+    aNextEndTime.SetTimeLocalL( Time::NullTTime() );
+
+    RPointerArray<CCalEntry> entries;
+    CleanupResetAndDestroyClosePushL(entries);
+
+    iCalDb->EntryViewL(iEntry)->FetchL( iEntry.UidL(), entries );
+    TCalTime currentInstanceDate = iEntry.RecurrenceIdL();
+    
+    if( currentInstanceDate.TimeUtcL() == Time::NullTTime() )
+        {
+        // We must be creating a new exception. Calculate the recurrence id.
+        TTimeIntervalMinutes timeOfDay = TimeOfDay( entries[0]->StartTimeL().TimeLocalL() );
+        TTime beginningOfDay = BeginningOfDay( aInstanceDateTime );
+        currentInstanceDate.SetTimeLocalL( beginningOfDay + timeOfDay );
+        }
+
+    TCalRRule rrule;
+    if( entries[0]->GetRRuleL(rrule) )
+        {
+        TESMRRecurrenceValue repeatIndex = RepeatIndexL( *entries[0] );
+        
+        TBool keepLooking = ETrue;
+        RArray<TCalTime> exdates;
+        CleanupClosePushL( exdates );
+        entries[0]->GetExceptionDatesL( exdates );
+        
+        // Needed for case ERepeatOther
+        TCalRRule::TType type( rrule.Type() );
+        TInt repeatInterval( rrule.Interval() );
+        TCalTime start, end;
+        TTime nextInstanceTime = Time::NullTTime(); 
+        
+        while( keepLooking )
+            {
+            // Subtract the repeat interval of the parent.
+            switch( repeatIndex )
+                {
+                case ERecurrenceDaily:
+                    {
+                    currentInstanceDate.SetTimeLocalL( currentInstanceDate.TimeLocalL()+TTimeIntervalDays(1) );
+                    break;
+                    }
+
+                case ERecurrenceWeekly:
+                    {
+                    currentInstanceDate.SetTimeLocalL( currentInstanceDate.TimeLocalL()+TTimeIntervalDays(7) );
+                    break;
+                    }
+
+                case ERecurrenceEverySecondWeek:
+                    {
+                    currentInstanceDate.SetTimeLocalL( currentInstanceDate.TimeLocalL()+TTimeIntervalDays(14) );
+                    break;
+                    }
+
+                case ERecurrenceMonthly:
+                    {
+                    currentInstanceDate.SetTimeLocalL( currentInstanceDate.TimeLocalL()+TTimeIntervalMonths(1) );
+                    break;
+                    }
+
+                case ERecurrenceYearly:
+                    {
+                    currentInstanceDate.SetTimeLocalL( currentInstanceDate.TimeLocalL()+TTimeIntervalYears(1) );
+                    break;
+                    }
+
+                case ERecurrenceUnknown:
+                    {
+                    // Check if the current entry being edited is child entry
+                    // If yes, then put back the child entry time to currentInstanceDate
+                    if(iEntry.RecurrenceIdL().TimeUtcL() != Time::NullTTime())
+                        {
+                        TTimeIntervalMinutes timeOfDay = TimeOfDay( iEntry.StartTimeL().TimeLocalL() );
+                        TTime beginningOfDay = BeginningOfDay( aInstanceDateTime );
+                        currentInstanceDate.SetTimeLocalL( beginningOfDay + timeOfDay );
+                        }
+                    
+                    switch( type )
+                        {
+                        case TCalRRule::EDaily:
+                            {
+                            end.SetTimeLocalL( currentInstanceDate.TimeLocalL() + 
+                                    TTimeIntervalDays(1*repeatInterval) );
+                            break;
+                            }
+
+                        case TCalRRule::EWeekly:
+                            {
+                            end.SetTimeLocalL( currentInstanceDate.TimeLocalL() + 
+                                    TTimeIntervalDays(7 *repeatInterval) );
+                            break;
+                            }
+
+                        case TCalRRule::EMonthly:
+                            {
+                            // Add 7 days of buffer to cover the cases were gap b/w two instances of the event 
+                            // can go beuong 30 days. Ex: Every third wednesday of every month
+                            end.SetTimeLocalL( currentInstanceDate.TimeLocalL() + 
+                                    TTimeIntervalMonths(repeatInterval) + TTimeIntervalDays(7 * repeatInterval) );
+                            break;
+                            }
+                            
+                        case TCalRRule::EYearly:
+                            {
+                            // Add 7 days of buffer to cover the cases were gap b/w two instances of the event 
+                            // can go beuong 365 days. Ex: Every third wednesday of September of every year
+                            end.SetTimeLocalL( currentInstanceDate.TimeLocalL() + 
+                                    TTimeIntervalYears(repeatInterval) + TTimeIntervalDays(7 * repeatInterval) );
+                            break;
+                            }
+                        }
+
+                    start.SetTimeLocalL(BeginningOfDay(currentInstanceDate.TimeLocalL()+TTimeIntervalDays(1)));
+                    nextInstanceTime = GetNextInstanceForRepeatOtherL(*entries[0], CalCommon::TCalTimeRange( start, end));
+                    currentInstanceDate.SetTimeLocalL( nextInstanceTime);
+                    break;
+                    }
+                case ERecurrenceNot:
+                    {
+                    keepLooking = EFalse;
+                    break;
+                    }
+
+                default:
+                    {
+                    break;
+                    } 
+                }
+
+            // Is currentInstanceDate after parent dt end?
+            if( currentInstanceDate.TimeLocalL() > rrule.Until().TimeLocalL() )
+                {
+                // There are no instances before the exception
+                keepLooking = EFalse;
+                }
+            else
+                {
+                // Is there an exdate on currentInstanceDate?
+                TBool isExdateOnDay = EFalse;
+                for(TInt i=0; i<exdates.Count(); ++i)
+                    {
+                    if( exdates[i].TimeLocalL() == currentInstanceDate.TimeLocalL() )
+                        {
+                        isExdateOnDay = ETrue;
+                        // There is an exdate - is there a child associated with the exdate?
+                        for(TInt j=1; j<entries.Count(); ++j)
+                            {
+                            if( entries[j]->RecurrenceIdL().TimeLocalL() == currentInstanceDate.TimeLocalL() )
+                                {
+                                // This child is the previous instance.
+                                aNextStartTime = entries[j]->StartTimeL();
+                                aNextEndTime = entries[j]->EndTimeL();
+                                keepLooking = EFalse;
+                                }
+                            }
+                        break;
+                        }
+                    }
+                
+                if( !isExdateOnDay )
+                    {
+                    // The instance exists and hasn't been deleted or made into an exception.
+                    // Use information from the parent to set the start/end times.
+                    aNextStartTime = currentInstanceDate;
+
+                    TTimeIntervalMinutes duration;
+                    TTime start = entries[0]->StartTimeL().TimeLocalL();
+                    TTime end = entries[0]->EndTimeL().TimeLocalL();
+                    end.MinutesFrom( start, duration );
+                    aNextEndTime.SetTimeLocalL( currentInstanceDate.TimeLocalL() + duration );
+                    keepLooking = EFalse;
+                    }
+                }
+            }
+        CleanupStack::PopAndDestroy( &exdates );
+        }
+
+    CleanupStack::PopAndDestroy(&entries);
+    }
+
+
+// -----------------------------------------------------------------------------
+// CESMRRecurrenceInfoHandler::GetPreviousInstanceForRepeatOtherL()
+// 
+// -----------------------------------------------------------------------------
+//
+TTime CESMRRecurrenceInfoHandler::GetPreviousInstanceForRepeatOtherL(
+            CCalEntry& aEntry, const CalCommon::TCalTimeRange& timeRange)
+    {
+    RPointerArray<CCalInstance> allInstances;
+    CleanupResetAndDestroyClosePushL( allInstances );
+    
+    TInt filter;
+    // Get the entry type to be filtered
+    switch(aEntry.EntryTypeL())
+        {
+        case CCalEntry::EAppt:
+            {
+            filter = CalCommon::EIncludeAppts;
+            break;
+            }
+
+        case CCalEntry::ETodo:
+            {
+            filter = CalCommon::EIncludeCompletedTodos | CalCommon::EIncludeIncompletedTodos;
+            break;
+            }
+
+        case CCalEntry::EEvent:
+            {
+            filter = CalCommon::EIncludeEvents;
+            break;
+            }
+
+        case CCalEntry::EReminder:
+            {
+            filter = CalCommon::EIncludeReminder;
+            break;
+            }
+
+        case CCalEntry::EAnniv:
+            {
+            filter = CalCommon::EIncludeAnnivs;
+            break;
+            }
+
+        default:
+            {
+            filter = CalCommon::EIncludeAll;
+            break;
+            }
+
+        };
+
+    iCalDb->InstanceViewL(iEntry)->FindInstanceL( allInstances, 
+                                     (CalCommon::TCalViewFilterFlags)filter,
+                                     timeRange);
+
+    TTime previousTime = Time::NullTTime();
+    
+    for( TInt i = allInstances.Count() - 1; i >= 0; i-- )
+        {
+        if( allInstances[i]->Entry().UidL() == aEntry.UidL() )
+            {
+            previousTime = allInstances[i]->Time().TimeLocalL();
+            break;
+            }
+        }
+
+    CleanupStack::PopAndDestroy( &allInstances );  
+    return previousTime;
+    }
+
+// -----------------------------------------------------------------------------
+// CESMRRecurrenceInfoHandler::GetNextInstanceForRepeatOtherL()
+// 
+// -----------------------------------------------------------------------------
+//
+TTime CESMRRecurrenceInfoHandler::GetNextInstanceForRepeatOtherL( 
+           CCalEntry& aEntry, const CalCommon::TCalTimeRange& timeRange )
+    {
+    RPointerArray<CCalInstance> allInstances;
+    CleanupResetAndDestroyClosePushL( allInstances );
+    
+    TInt filter;
+    // Get the entry type to be filtered
+    switch( aEntry.EntryTypeL() )
+        {
+        case CCalEntry::EAppt:
+            {
+            filter = CalCommon::EIncludeAppts;
+            break;
+            }  
+        case CCalEntry::ETodo:
+            {
+            filter = CalCommon::EIncludeCompletedTodos | CalCommon::EIncludeIncompletedTodos;
+            break;
+            }
+        case CCalEntry::EEvent:
+            {
+            filter = CalCommon::EIncludeEvents;
+            break;
+            }
+        case CCalEntry::EReminder:
+            {
+            filter = CalCommon::EIncludeReminder;
+            break;
+            }
+        case CCalEntry::EAnniv:
+            {
+            filter = CalCommon::EIncludeAnnivs;
+            break;
+            }
+        default:
+            {
+            filter = CalCommon::EIncludeAll;
+            break;
+            }
+        };
+    
+    iCalDb->InstanceViewL(iEntry)->FindInstanceL( allInstances, 
+                                     ( CalCommon::TCalViewFilterFlags )filter,
+                                     timeRange);
+                                     
+    TTime nextTime = Time::NullTTime();
+    
+    TInt i( 0 );
+    for( ; i < allInstances.Count(); i++ )
+        {
+        if( allInstances[i]->Entry().UidL() == aEntry.UidL() )
+            {
+            nextTime = allInstances[i]->Time().TimeLocalL();
+            break;
+            }
+        }
+  
+    CleanupStack::PopAndDestroy( &allInstances );  
+    return nextTime;
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRRecurrenceInfoHandler::RepeatIndexL
+//
+// ---------------------------------------------------------------------------
+//
+TESMRRecurrenceValue CESMRRecurrenceInfoHandler::RepeatIndexL( const CCalEntry& aEntry )
+    {
+    FUNC_LOG;
+
+    TESMRRecurrenceValue repeatIndex( ERecurrenceNot );
+
+    TCalRRule rrule;
+
+    if( aEntry.GetRRuleL( rrule) )
+        {
+        TCalRRule::TType type( rrule.Type() );
+        TInt repeatInterval( rrule.Interval() );
+
+        // If repeat type of current note is not supported in Calendar,
+        // default repeat value is "Other".
+        repeatIndex = ERecurrenceUnknown;
+
+        switch( type )
+            {
+            case TCalRRule::EDaily:
+                {
+                switch (repeatInterval)
+                    {
+                    case 1:
+                        {
+                        repeatIndex = ERecurrenceDaily;
+                        break;
+                        }
+                    case 7:
+                        {
+                        repeatIndex = ERecurrenceWeekly;
+                        break;
+                        }
+                    case 14:
+                        {
+                        repeatIndex = ERecurrenceEverySecondWeek;
+                        break;
+                        }
+                    default:
+                        {
+                        break;
+                        }
+                    }
+                break;
+                }
+
+            case TCalRRule::EWeekly:
+                {
+                switch( repeatInterval )
+                    {
+                    case 1:
+                        {
+                        repeatIndex = ERecurrenceWeekly;
+                        break;
+                        }
+                    case 2:
+                        {
+                        repeatIndex = ERecurrenceEverySecondWeek;
+                        break;
+                        }
+                    default:
+                        {
+                        break;
+                        }
+                    }
+                break;
+                }
+
+            case TCalRRule::EMonthly:
+                {
+                RArray<TInt> monthDays(31);
+                rrule.GetByMonthDayL ( monthDays );
+
+                if( monthDays.Count() == 1) 
+                    {
+                    switch( repeatInterval )
+                        {
+                        case 1:
+                            {
+                            repeatIndex = ERecurrenceMonthly;
+                            break;
+                            }
+                        // If interval of repeat is 12 months, 
+                        // every year is shown in Note Editor, 
+                        // because it means yearly repeat.
+                        case 12:
+                            {
+                            repeatIndex = ERecurrenceYearly;
+                            break;
+                            }
+                        default:
+                            {
+                            break;
+                            }
+                        }
+                    }
+
+                monthDays.Close();
+                break;
+                }
+                
+            case TCalRRule::EYearly:
+                {
+                if( repeatInterval == 1 )
+                    {
+                    repeatIndex = ERecurrenceYearly;
+                    }
+                break;
+                }
+
+            default:
+                {
+                // If repeat type of current note is not supported in Calendar,
+                // default repeat value is "Other".
+                repeatIndex = ERecurrenceUnknown;
+                break;
+                }
+            }
+        }
+
+    return repeatIndex;
+    }
+
 // ---------------------------------------------------------------------------
 // CESMRRecurrenceInfoHandler::CalculateRecurrenceUntilDateL
 //
@@ -723,10 +1502,11 @@ void CESMRRecurrenceInfoHandler::CalculateRecurrenceUntilDateL(
             const CCalEntry& aEntry  ) const
     {
     FUNC_LOG;
+    
     TCalRRule::TType rType = aRule.Type();
     TInt count             = aRule.Count();
     TCalTime until         = aRule.Until();
-
+    
     if ( count == KZero &&
          until.TimeUtcL() == Time::NullTTime() )
         {
@@ -746,6 +1526,18 @@ void CESMRRecurrenceInfoHandler::CalculateRecurrenceUntilDateL(
                 {
                 --count;
                 aUntil += TTimeIntervalDays(count);
+                
+                CESMRCalUserUtil* entryUtil = 
+                        CESMRCalUserUtil::NewLC( const_cast<CCalEntry&>(aEntry) );
+                
+                if ( iCalDb && entryUtil->IsAlldayEventL() &&
+                        RecurrenceEndtimeAdjustedL( aEntry, *iCalDb ) )
+                    {
+                    // If until is adjusted for allday entries
+                    // we wound return until day one day too long 
+                    aUntil -= TTimeIntervalDays( KOne );
+                    }                
+                CleanupStack::PopAndDestroy( entryUtil );                
                 break;
                 }
             case ERecurrenceWeekly:

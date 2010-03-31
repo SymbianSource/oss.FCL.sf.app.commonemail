@@ -822,7 +822,7 @@ void CFSMailBox::AppendMruItemL( CDesCArraySeg& aMruList,
     }
 
 // -----------------------------------------------------------------------------
-// CFSMailBox::ExtensionL
+// CFSMailBox::ReleaseExtension
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailBox::ReleaseExtension( CEmailExtension* aExtension )
     {

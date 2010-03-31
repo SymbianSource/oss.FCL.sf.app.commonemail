@@ -94,6 +94,8 @@ PRJ_EXPORTS
 ../data/html/btn_middle.png /epoc32/release/winscw/urel/z/private/2001E277/HtmlFile/btn_middle.png
 ../data/html/todo_low_add.png /epoc32/release/winscw/urel/z/private/2001E277/todo_low_add.png
 
+../data/cmail_marking_mode_bg.svg /epoc32/s60/icons/cmail_marking_mode_bg.svg
+
 ../sis/commonemailstub.sis          /epoc32/data/z/system/install/commonemailstub.sis
 
 /* Plugin settings exports */

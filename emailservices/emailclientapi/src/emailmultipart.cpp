@@ -19,6 +19,7 @@
 #include "emailtextcontent.h"
 #include "emailattachment.h"
 #include "emailmultipart.h"
+#include "emailmessage.h"
 #include "emailclientapi.hrh"
 
 
@@ -102,27 +103,24 @@ MEmailMessageContent* CEmailMultipart::PartByIndexL( const TUint aIndex ) const
         }
     MEmailMessageContent* content = NULL;
     TFSMailMsgId partId = iChildParts[aIndex];
-    CFSMailMessagePart* copy = iEmailMsgContent->Part().ChildPartL(partId);
-    
-    const TDesC& contentType = copy->GetContentType();
-    const TDesC& compareString = CEmailTextContent::CheckParameterFormatL( contentType );
-
+    CFSMailMessagePart* copy = iEmailMsgContent->Part().ChildPartL( partId );
+    TContentType contentType( copy->GetContentType() ); 
     TMessageContentId msgContentId = TMessageContentId( 
             copy->GetPartId().Id(),
             Id().iMessageId.iId,
             Id().iMessageId.iFolderId.iId,
             Id().iMessageId.iFolderId.iMailboxId ); 
    
-    if (!compareString.Compare(KFSMailContentTypeTextPlain) || 
-        !compareString.Compare(KFSMailContentTypeTextHtml))
+    if ( contentType.Equals( KFSMailContentTypeTextPlain ) || 
+         contentType.Equals( KFSMailContentTypeTextHtml ) )
         {                                
         content = CEmailTextContent::NewL( iEmailMsgContent->PluginData(), msgContentId, copy, EClientOwns );
         }
-    else if (!compareString.Compare(KFSMailContentTypeMultipartMixed) ||
-             !compareString.Compare(KFSMailContentTypeMultipartAlternative) ||
-             !compareString.Compare(KFSMailContentTypeMultipartDigest) ||
-             !compareString.Compare(KFSMailContentTypeMultipartRelated) ||
-             !compareString.Compare(KFSMailContentTypeMultipartParallel))
+    else if ( contentType.Equals( KFSMailContentTypeMultipartMixed ) ||
+              contentType.Equals( KFSMailContentTypeMultipartAlternative ) ||
+              contentType.Equals( KFSMailContentTypeMultipartDigest ) ||
+              contentType.Equals( KFSMailContentTypeMultipartRelated ) ||
+              contentType.Equals( KFSMailContentTypeMultipartParallel ) )
         {
         content = CEmailMultipart::NewL( iEmailMsgContent->PluginData(), msgContentId, copy, EClientOwns );
         }

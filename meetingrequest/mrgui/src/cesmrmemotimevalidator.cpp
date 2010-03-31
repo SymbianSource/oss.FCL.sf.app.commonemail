@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -221,7 +221,8 @@ void CESMRMemoTimeValidator::StoreValuesToEntryL(
         PreValidateEditorContent();
 
         CCalEntry& entry( aEntry.Entry() );
-
+        const CCalEntry& originalEntry( aEntry.OriginalEntry() );
+        
         TTime start = StartDateTimeL();
         TTime end = EndDateTimeL();
 
@@ -230,48 +231,54 @@ void CESMRMemoTimeValidator::StoreValuesToEntryL(
             User::Leave( KErrArgument );
             }
 
-        TCalTime startTime;
-        TCalTime endTime;
+        TTime orgStartTime = originalEntry.StartTimeL().TimeLocalL();
+        TTime orgEndTime   = originalEntry.EndTimeL().TimeLocalL();
 
-        // The default mode for memo is EFloating,
-        // But some 3rd party application might have saved a different type
-        // for one reason or another. In that case we are using
-        // the existing value.
-        if ( aEntry.IsStoredL() )
+        if( orgStartTime != start || orgEndTime != end )
             {
-            TCalTime::TTimeMode timeMode =
-                        aEntry.Entry().StartTimeL().TimeMode();
-
-            switch ( timeMode )
+            TCalTime startTime;
+            TCalTime endTime;
+    
+            // The default mode for memo is EFloating,
+            // But some 3rd party application might have saved a different type
+            // for one reason or another. In that case we are using
+            // the existing value.
+            if ( aEntry.IsStoredL() )
                 {
-                case TCalTime::EFixedUtc:
-                	{
-					startTime.SetTimeUtcL( start );
-					endTime.SetTimeUtcL( end );
-					break;
-                	}
-                case TCalTime::EFixedTimeZone:
-                	{
-					startTime.SetTimeLocalL( start );
-					endTime.SetTimeLocalL( end );
-					break;
-                	}
-                case TCalTime::EFloating: // Fall through
-                default:
-                	{
-					startTime.SetTimeLocalFloatingL( start );
-					endTime.SetTimeLocalFloatingL( end );
-					break;
-                	}
+                TCalTime::TTimeMode timeMode =
+                            aEntry.Entry().StartTimeL().TimeMode();
+    
+                switch ( timeMode )
+                    {
+                    case TCalTime::EFixedUtc:
+                        {
+                        startTime.SetTimeUtcL( start );
+                        endTime.SetTimeUtcL( end );
+                        break;
+                        }
+                    case TCalTime::EFixedTimeZone:
+                        {
+                        startTime.SetTimeLocalL( start );
+                        endTime.SetTimeLocalL( end );
+                        break;
+                        }
+                    case TCalTime::EFloating: // Fall through
+                    default:
+                        {
+                        startTime.SetTimeLocalFloatingL( start );
+                        endTime.SetTimeLocalFloatingL( end );
+                        break;
+                        }
+                    }
                 }
+            else
+                {
+                startTime.SetTimeLocalFloatingL( start );
+                endTime.SetTimeLocalFloatingL( end );
+                }
+    
+            entry.SetStartAndEndTimeL( startTime, endTime );
             }
-        else
-            {
-            startTime.SetTimeLocalFloatingL( start );
-            endTime.SetTimeLocalFloatingL( end );
-            }
-
-        entry.SetStartAndEndTimeL( startTime, endTime );
         }
     }
 
@@ -306,6 +313,11 @@ void CESMRMemoTimeValidator::SetStartDateFieldL(
     {
     FUNC_LOG;
     iStartDate = &aStartDate;
+    
+    if ( Time::NullTTime() != iCurrentStartTime )
+        {
+        SetDateToEditor( *iStartDate, iCurrentStartTime );
+        }    
     }
 
 // ---------------------------------------------------------------------------
@@ -317,6 +329,11 @@ void CESMRMemoTimeValidator::SetEndDateFieldL(
     {
     FUNC_LOG;
     iEndDate = &aEndDate;
+    
+    if ( Time::NullTTime() != iCurrentEndTime )
+        {
+        SetDateToEditor( *iEndDate, iCurrentEndTime );
+        } 
     }
 
 // ---------------------------------------------------------------------------
@@ -347,6 +364,17 @@ void CESMRMemoTimeValidator::SetAlarmDateFieldL(
 //
 void CESMRMemoTimeValidator::SetRecurrenceUntilDateFieldL(
             CEikDateEditor& /*aRecurrenceUntil*/ )
+    {
+    FUNC_LOG;
+    // No implementation for memo
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRMemoTimeValidator::SetAbsoluteAlarmOnOffFieldL
+// ---------------------------------------------------------------------------
+//
+void CESMRMemoTimeValidator::SetAbsoluteAlarmOnOffFieldL( 
+        MMRAbsoluteAlarmController& /*aAbsoluteAlarmController*/ )
     {
     FUNC_LOG;
     // No implementation for memo

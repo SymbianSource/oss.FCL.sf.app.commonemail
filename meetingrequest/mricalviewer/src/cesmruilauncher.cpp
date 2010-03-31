@@ -27,7 +27,7 @@
 #include <CalenInterimUtils2.h>
 //<cmail>
 #include "FreestyleEmailUiConstants.h"
-#include "cfsmailmessage.h"
+#include "CFSMailMessage.h"
 #include "fsmtmsuids.h"
 #include <coemain.h>
 #include <coeaui.h>
@@ -50,7 +50,6 @@ TBool CanBeShownInMRViewerL(
     CCalEntry::TMethod method( aEntry.MethodL() );
 
     if ( CCalEntry::EMethodRequest == method ||
-         CCalEntry::EMethodReply == method ||         
          CCalEntry::EMethodCancel == method )
         {
         retValue = ETrue;

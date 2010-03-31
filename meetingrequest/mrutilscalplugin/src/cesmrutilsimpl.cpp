@@ -25,7 +25,6 @@
 // From ESMRSERVICES
 //<cmail>
 #include "cesmrpolicymanager.h"
-#include "cesmrentryprocessor.h"
 #include "mesmrmeetingrequestentry.h"
 #include "cesmrtaskfactory.h"
 #include "mesmrtask.h"

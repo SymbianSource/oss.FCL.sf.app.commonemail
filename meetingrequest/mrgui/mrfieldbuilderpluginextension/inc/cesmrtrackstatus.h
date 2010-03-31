@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2003-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -19,21 +19,24 @@
 #ifndef CESMRTRACKSTATUS_H_
 #define CESMRTRACKSTATUS_H_
 
-#include "resmrstatic.h"
-#include "cesmrviewerlabelfield.h"
 #include <eikrted.h>
 #include <cntitem.h>
 #include <eiklbx.h>
 #include <eikedwob.h>
 
+#include "cesmrfield.h"
+#include "resmrstatic.h"
+
+
 // Forward declarations
 class CCalAttendee;
+class CMRImage;
 
 /**
  * This class shows the status of the attendee of a meeting request
  * a meeting request can have many of these in several modes
  */
-NONSHARABLE_CLASS( CESMRTrackStatus ) : public CESMRViewerLabelField
+NONSHARABLE_CLASS( CESMRTrackStatus ) : public CESMRField
     {
 public:
     /**
@@ -109,7 +112,7 @@ private:
     /**
      * Owned. checkbox_mark/checkbox_unmark
      */
-    CEikImage* iIcon;
+    CMRImage* iIcon;
     };
 
 #endif /*CESMRTRACKSTATUS_H_*/

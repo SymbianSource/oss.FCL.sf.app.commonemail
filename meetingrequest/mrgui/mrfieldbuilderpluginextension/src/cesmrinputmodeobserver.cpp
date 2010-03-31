@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2002-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -21,10 +21,10 @@
 #include "cesmrclslistshandler.h"
 
 #include <e32cmn.h>                             // TUid
-#include <AknFepInternalCRKeys.h>               // KCRUidAknFep, KAknFepPredTxtFlag
+#include <aknfepinternalcrkeys.h>               // KCRUidAknFep, KAknFepPredTxtFlag
 #include <centralrepository.h>                  // CRepository
 
-#include <CPcsDefs.h>                           // PCS TKeyboardModes enum
+#include <cpcsdefs.h>                           // PCS TKeyboardModes enum
 #include <eikenv.h>
 
 // Unnamed namespace for local definitions

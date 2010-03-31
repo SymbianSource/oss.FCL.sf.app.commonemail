@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2008 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -11,172 +11,134 @@
 *
 * Contributors:
 *
-* Description:   ESMR title pane handler implementation
-
- *
+* Description:   MR title pane handler implementation
+*
 */
 
-
-#include "emailtrace.h"
 #include "cesmrtitlepanehandler.h"
 
-
-
 #include <akntitle.h>
-
 #include <eikspane.h>
-
 #include <avkon.hrh> // EEikStatusPaneUidTitle
 
+// DEBUG
+#include "emailtrace.h"
 
+// ======== MEMBER FUNCTIONS ========
 
+// ---------------------------------------------------------------------------
+// CESMRTitlePaneHandler::CESMRTitlePaneHandler
+// ---------------------------------------------------------------------------
+//
 CESMRTitlePaneHandler::CESMRTitlePaneHandler( CEikonEnv& aEnv )
-
-: iEikEnv( aEnv )
-
-	{
+    : iEikEnv( aEnv )
+    {
     FUNC_LOG;
-	// Do nothing
+    // Do nothing
+    }
 
-	}
-
-	
-
+// ---------------------------------------------------------------------------
+// CESMRTitlePaneHandler::ConstructL
+// ---------------------------------------------------------------------------
+//
 void CESMRTitlePaneHandler::ConstructL()
-
-	{
+    {
     FUNC_LOG;
-	// Do nothing
+    // Do nothing
+    }
 
-	}	
-
-	
-
+// ---------------------------------------------------------------------------
+// CESMRTitlePaneHandler::NewL
+// ---------------------------------------------------------------------------
+//
 CESMRTitlePaneHandler* CESMRTitlePaneHandler::NewL( CEikonEnv& aEnv )
-
-	{
+    {
     FUNC_LOG;
-	CESMRTitlePaneHandler* self = new (ELeave) CESMRTitlePaneHandler( aEnv );
+    CESMRTitlePaneHandler* self = new (ELeave) CESMRTitlePaneHandler( aEnv );
+    CleanupStack::PushL( self );
+    self->ConstructL();
+    CleanupStack::Pop( self );
+    return self;
+    }
 
-	CleanupStack::PushL( self );
-
-	self->ConstructL();
-
-	CleanupStack::Pop( self );
-
-	return self;
-
-	}
-
-	
-
+// ---------------------------------------------------------------------------
+// CESMRTitlePaneHandler::~CESMRTitlePaneHandler
+// ---------------------------------------------------------------------------
+//
 CESMRTitlePaneHandler::~CESMRTitlePaneHandler()
-
-	{
+    {
     FUNC_LOG;
-	delete iSaveTitlePaneText;
+    delete iSaveTitlePaneText;
+    }
 
-	}	
-
-	
-
+// ---------------------------------------------------------------------------
+// CESMRTitlePaneHandler::SetNewTitle
+// ---------------------------------------------------------------------------
+//
 void CESMRTitlePaneHandler::SetNewTitle( const TDesC* aNewTitle )
-
-	{
+    {
     FUNC_LOG;
-	TRAPD( error, SetTitlePaneTextL( aNewTitle ) );
+    TRAPD( error, SetTitlePaneTextL( aNewTitle ) );
 
-	if ( error != KErrNone )
+    if ( error != KErrNone )
+    	{
+    	iEikEnv.HandleError( error );
+    	}
+    }
 
-		{
-
-		iEikEnv.HandleError( error );
-
-		}
-
-	}
-
-
-
+// ---------------------------------------------------------------------------
+// CESMRTitlePaneHandler::Rollback
+// ---------------------------------------------------------------------------
+//
 void CESMRTitlePaneHandler::Rollback()
-
-	{
+    {
     FUNC_LOG;
     if ( iTitlePane && iSaveTitlePaneText )
-
         {
-
         // iTitlePane takes ownership of iSaveTitlePaneText
-
         iTitlePane->SetText( iSaveTitlePaneText );
-
         iSaveTitlePaneText = NULL;
-
-        }	
-
-	}
+        }
+    }
 
 
-
+// ---------------------------------------------------------------------------
+// CESMRTitlePaneHandler::SetTitlePaneTextL
+// ---------------------------------------------------------------------------
+//
 void CESMRTitlePaneHandler::SetTitlePaneTextL( const TDesC* aNewTitle )
-
-	{
+    {
     FUNC_LOG;
-	// Reset saved state
-
+    // Reset saved state
     delete iSaveTitlePaneText;
-
     iSaveTitlePaneText = NULL;
-
-
 
     CEikStatusPane* statusPane = iEikEnv.AppUiFactory()->StatusPane();
 
-    if (statusPane)
-
+    if ( statusPane )
         {
-
-        if (statusPane->PaneCapabilities(TUid::Uid(EEikStatusPaneUidTitle))
-
-            .IsPresent())
-
+        if ( statusPane->PaneCapabilities(
+                TUid::Uid( EEikStatusPaneUidTitle ) ).IsPresent() )
             {
+            iTitlePane = static_cast<CAknTitlePane*>(
+                    statusPane->ControlL( TUid::Uid( EEikStatusPaneUidTitle ) ) );
 
-            iTitlePane = static_cast<CAknTitlePane*>
-
-                (statusPane->ControlL(TUid::Uid(EEikStatusPaneUidTitle)));
-
-            if (iTitlePane->Text())
-
+            if ( iTitlePane->Text() )
                 {
-
                 iSaveTitlePaneText = iTitlePane->Text()->AllocL();
-
                 }
 
-            if (aNewTitle)
-
+            if ( aNewTitle )
                 {
-
-                iTitlePane->SetTextL(*aNewTitle);
-
+                iTitlePane->SetTextL( *aNewTitle );
                 }
-
             else
-
                 {
-
                 iTitlePane->SetTextToDefaultL();
-
                 }
-
             }
-
         }
-
-	}
-
-	
+    }
 
 // End of file
 

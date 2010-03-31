@@ -46,18 +46,10 @@ public: // Construction and destruction
     /**
      * Creates and initialzes new CESMRTaskExtenstionImpl object
      * Ownership is trasferred to caller.
-     * @param aCalDbMgr Reference to cal db manager.
-     * @param aMRMailboxUtils Reference to mailbox utilities.
-     * @param aPolicyManager Reference to policy manager.
-     * @param aEntryProcessor Reference to entry processor.
+     *
      * @param aTaskFactory Reference to task factory.
      */
-    IMPORT_C static CESMRTaskExtenstionImpl* NewL(
-            MESMRCalDbMgr& aCalDBMgr,
-            CMRMailboxUtils& aMRMailboxUtils,
-            CESMRPolicyManager& aPolicyManager,
-            CESMREntryProcessor& aEntryProcessor,
-            MESMRTaskFactory& aTaskFactory );
+    IMPORT_C static CESMRTaskExtenstionImpl* NewL( MESMRTaskFactory& aTaskFactory );
 
     /**
      * C++ destructor.
@@ -67,63 +59,43 @@ public: // Construction and destruction
 public: // From MESMRTaskExtension
     void SendAndStoreResponseL(
             TESMRCommand aCommand,
-            MESMRMeetingRequestEntry& aEntry );
+            MESMRCalEntry& aEntry );
     void SendAndStoreMRL(
             TESMRCommand aCommand,
-            MESMRMeetingRequestEntry& aEntry );
-    void DeleteMRFromLocalDBL(
-            TESMRCommand aCommand,
-            MESMRMeetingRequestEntry& aEntry );
+            MESMRCalEntry& aEntry );
     void DeleteAndSendMRL(
             TESMRCommand aCommand,
-            MESMRMeetingRequestEntry& aEntry );
-    void StoreMRToLocalDBL(
+            MESMRCalEntry& aEntry );
+    void StoreEntryToLocalDBL(
             TESMRCommand aCommand,
-            MESMRMeetingRequestEntry& aEntry );
+            MESMRCalEntry& aEntry );
     void ForwardMRAsEmailL(
             TESMRCommand aCommand,
-            MESMRMeetingRequestEntry& aEntry );
+            MESMRCalEntry& aEntry );
     void ReplyAsEmailL(
             TESMRCommand aCommand,
-            MESMRMeetingRequestEntry& aEntry );
+            MESMRCalEntry& aEntry );
+    void DeleteEntryFromLocalDBL(
+            TESMRCommand aCommand,
+            MESMRCalEntry& aEntry );
+    void MarkTodoAsDoneL(
+            TESMRCommand aCommand,
+            MESMRCalEntry& aEntry );
+    void MarkTodoAsNotDoneL(
+            TESMRCommand aCommand,
+            MESMRCalEntry& aEntry );
+    void MoveEntryToCurrentDBL(
+            TESMRCommand aCommand,
+            MESMRCalEntry& aEntry );
 
 private: // Implementation
-    CESMRTaskExtenstionImpl(
-            MESMRCalDbMgr& aCalDBMgr,
-            CMRMailboxUtils& aMRMailboxUtils,
-            CESMRPolicyManager& aPolicyManager,
-            CESMREntryProcessor& aEntryProcessor,
-            MESMRTaskFactory& aTaskFactory );
+    CESMRTaskExtenstionImpl( MESMRTaskFactory& aTaskFactory );
     void ConstructL();
     void CreateAndExecuteTaskL(
             TESMRCommand aCommand,
-            MESMRMeetingRequestEntry& aEntry );
+            MESMRCalEntry& aEntry );
 
 private: // Data
-    /**
-    * Cal DB manager
-    * Not own.
-    */
-    MESMRCalDbMgr& iCalDBMgr;
-
-    /**
-    * Meeting request mailbox utils
-    * Not own.
-    */
-    CMRMailboxUtils& iMRMailboxUtils;
-
-    /**
-    * ESMR policy manager
-    * Not own.
-    */
-    CESMRPolicyManager& iPolicyManager;
-
-    /**
-    * MR Entry processor
-    * Not own.
-    */
-    CESMREntryProcessor& iEntryProcessor;
-
     /**
     * ES MR Task factory
     * Not own.

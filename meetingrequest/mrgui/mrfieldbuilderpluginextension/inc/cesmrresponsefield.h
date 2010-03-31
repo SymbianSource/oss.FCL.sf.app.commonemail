@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -19,8 +19,11 @@
 #define CESMRRESPONSEFIELD_H
 
 // INCLUDES
+#include <e32base.h>
+#include <fbs.h>
+
 #include "cesmrfield.h"
-#include "resmrstatic.h"
+#include "resmrpluginextensionstatic.h"
 
 // FORWARD DECLARATIONS
 class CLayoutManager;
@@ -56,13 +59,14 @@ NONSHARABLE_CLASS( CESMRResponseField ) : public CESMRField
         TKeyResponse OfferKeyEventL( const TKeyEvent& aKeyEvent,  TEventCode aType );
         void FocusChanged( TDrawNow aDrawNow );
         TSize MinimumSize();
-    
+        
     public: // From CESMRField
         void InitializeL();
         void InternalizeL( MESMRCalEntry& aEntry );
-        void ExecuteGenericCommandL( TInt aCommand );
-        void SetLayoutManager( CESMRLayoutManager* aLayout );
+        TBool ExecuteGenericCommandL( TInt aCommand );
         void SetOutlineFocusL( TBool aFocus );
+        TBool HandleSingletapEventL( const TPoint& aPosition );
+        void HandleLongtapEventL( const TPoint& aPosition );
         
     public: // New methods
         /**
@@ -88,9 +92,9 @@ NONSHARABLE_CLASS( CESMRResponseField ) : public CESMRField
     private: // Implementation
         CESMRResponseField(MESMRResponseObserver* aResponseObserver);
         void ConstructL();
-        void Draw( const TRect& aRect ) const;
         void HandleCancelledEventItemsL( MESMRCalEntry& aEntry );
         CCoeControl* ControlItem( TInt aIndex );
+        TBool HandleTapEventL( const TPoint& aPosition );
     
     private:
         /// Own: Conflict popup
@@ -101,14 +105,25 @@ NONSHARABLE_CLASS( CESMRResponseField ) : public CESMRField
         MESMRResponseObserver* iResponseObserver;
         /// Currently selected index 
         TInt iSelectionIndex;
-        /// Layout data
-        CESMRLayoutManager* iLayout;
         /// Font for the label text
         const CFont* iFont;
         /// Own: Static TLS data handler
-        RESMRStatic iESMRStatic;
+        RESMRPluginExtensionStatic iESMRStatic;
         /// iESMRstatic accessed
         TBool iESMRStaticAccessed;
+        /// whether a normal response
+        TBool iNormalResponse;  
+        /// whether a remove response
+        TBool iRemoveResponse;      
+        /// Judge if there is any event conflict with current event.
+        TBool iConflicted;
+        /// Judge whether it has implemented HandleSingletapEventL
+        TBool iPointEvent;
+        /// Judge whether the long tap have been consumed. 
+        /// To avoid the same event be handled by
+        /// HandleSingletapEventL() when HandleLongtapEventL().
+        TBool iLongTapEventConsumed;
+     
     };
 
 

@@ -20,6 +20,7 @@
 #include <ecom/implementationproxy.h>
 #include <msvstd.h>
 #include <aknViewAppUi.h>
+#include <aknclearer.h>
 //<cmail>
 #include "FreestyleEmailUiConstants.h"
 //</cmail>
@@ -65,6 +66,11 @@ CIpsSetView::~CIpsSetView()
     FUNC_LOG;
     delete iAsyncCallback;
     delete iCustomMessage;
+    if (iLocalScreenClearer != NULL)
+        {
+        delete iLocalScreenClearer;
+        iLocalScreenClearer = NULL;
+        }
     }
 
 // Constructor
@@ -90,11 +96,17 @@ void CIpsSetView::DoActivateL(
     iCustomMessage = NULL;
     iCustomMessage = aCustomMessage.AllocL();
     iAsyncCallback->CallBack();
+    iLocalScreenClearer = CAknLocalScreenClearer::NewL( EFalse );
     }
 
 void CIpsSetView::DoDeactivate()
     {
     FUNC_LOG;
+    if (iLocalScreenClearer != NULL)
+        {
+        delete iLocalScreenClearer;
+        iLocalScreenClearer = NULL;
+        }
     }
 
 TPtrC CIpsSetView::MailSettingsSubviewCaption(
@@ -184,6 +196,9 @@ TInt CIpsSetView::RunSettingsDlgL( TAny* aSelfPtr )
         }
     else
         {
+        //refresh background
+        self->iLocalScreenClearer->DrawNow();
+        
     	//check if composer is active view; needed to handle special case when email is plugin settings and composer is activated externaly
     	TVwsViewId aViewId;
     	self->AppUi()->GetActiveViewId(aViewId);

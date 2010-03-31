@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2008-2008 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -86,11 +86,13 @@ public: // Construction and destruction
      * @param aLocation location text to update into entry
      * @param aIgnoreQuery if ETrue, "Replace previous location" query is
      * not displayed.
+     * @param aLocationReplaced on return, ETrue if previous location was replaced
      * @return ETrue if aEntry location field was modified. 
      */
     static TBool UpdateEntryLocationL( MESMRCalEntry& aEntry,
                                        const TDesC& aLocation,
-                                       TBool aIgnoreQuery ); 
+                                       TBool aIgnoreQuery,
+                                       TBool& aLocationReplaced ); 
     
 protected: // From MESMRLocationPluginObserver
 	void SelectFromMapCompleted( TInt aError,
@@ -124,6 +126,11 @@ private: // Data
      * 
      */
     TBool iEntryUpdated;
+    
+    /**
+     * Location replace flag
+     */
+    TBool iLocationReplaced;
     
 	/**
 	 *  Location plugin.

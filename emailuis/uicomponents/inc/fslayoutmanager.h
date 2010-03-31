@@ -72,7 +72,6 @@ public:
     /**  Layout Metrics. */
     enum TFsLayoutMetrics
         {
-        //<CMAIL>
         EFsLmApplicationWindow,
         EFsLmAreaTopPane,
         EFsLmBgSpFsCtrlbarPane,
@@ -192,8 +191,27 @@ public:
         EFsLmScreen,
         EFsLmSpFsScrollPane,
         EFsLmSpFsActionMenuListGenePaneG1,
-        EFsLmSpFsActionMenuListGenePaneT1        
-        //</CMAIL>
+        EFsLmSpFsActionMenuListGenePaneT1,
+        
+        // command button area
+        
+        ECmailDdmenuBtn01Pane,
+        ECmailDdmenuBtn01PaneG1,
+        ECmailDdmenuBtn01PaneT1,
+        ECmailDdmenuBtn01PaneG2,
+        ECmailDdmenuBtn01PaneCP,
+        
+        ECmailDdmenuBtn02Pane,
+        ECmailDdmenuBtn02PaneG1,
+        ECmailDdmenuBtn02PaneG2,
+        ECmailDdmenuBtn02PaneT1,
+        ECmailDdmenuBtn02PaneT2,
+        ECmailDdmenuBtn02PaneCP,
+
+        ECmailDdmenuBtn03Pane,
+        ECmailDdmenuBtn03PaneG1,
+        ECmailDdmenuBtn03PaneT1,
+        ECmailDdmenuBtn03PaneCP
         };
 
     /**  Collection of data of text position and font. */

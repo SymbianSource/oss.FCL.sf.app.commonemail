@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -23,7 +23,6 @@
 #include "esmrcommands.h"
 
 // FORWARD DECLARATIONS
-class CESMRLayoutManager;
 class CMRLabel;
 class CMRImage;
 
@@ -86,14 +85,14 @@ NONSHARABLE_CLASS( CESMRResponseItem ) : public CCoeControl
          * @param Text for the item
          */
         void SetTextL( const TDesC& aItemText );
-    
+        
         /**
-         * Gives pointer to layoutmanager for this class.
-         *
-         * @param aLayout- Layout manager
+         * Sets response topic text to Response label. Setting text is done
+         * in two phases (SetTextL and SetTextToLabelL), so that correct Rect 
+         * has been set before trying to wrap the text into Label.
          */
-        void SetLayoutManager( CESMRLayoutManager* aLayout );
-    
+        void SetTextToLabelL();
+   
         /**
          * Counts the number of lines that item needs for the text.
          * This is called to give enough space for the item.
@@ -108,6 +107,14 @@ NONSHARABLE_CLASS( CESMRResponseItem ) : public CCoeControl
          * @return A command id
          */
         TESMRCommand CommandId() const;
+        
+        /**
+         * Set the label underlined.
+         *
+         * @param set underline true or false.
+         * @return void
+         */
+        void SetUnderlineL( TBool aUndreline );
     
     private: // Implementation
         CMRImage* IconL(TBool aChecked );
@@ -126,8 +133,6 @@ NONSHARABLE_CLASS( CESMRResponseItem ) : public CCoeControl
         HBufC* iItemText;
         /// Item's command id
         TESMRCommand iCmd;
-        /// Layout data
-        CESMRLayoutManager* iLayout;
         /// Flag for the item highlight status
         TBool iHighlighted;
         /// Flag for telling whether the item needs the icon

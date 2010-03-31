@@ -71,9 +71,6 @@ LIBRARY                 ipssosplugin.lib
 LIBRARY                 IpsSosSettings.lib
 LIBRARY                 cmaillogger.lib
 LIBRARY                 cmmanager.lib
-
-#ifdef TRACE_INTO_FILE
 LIBRARY                 flogger.lib
-#endif // TRACE_INTO_FILE
 
 DEFFILE                 IPSSOSAOPLUGIN.DEF

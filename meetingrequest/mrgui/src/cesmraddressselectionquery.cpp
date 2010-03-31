@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2002-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -21,7 +21,7 @@
 #include "cesmraddressselectionquery.h"
 
 #include <aknlists.h>
-#include <aknPopup.h>
+#include <aknpopup.h>
 #include <bautils.h>
 #include <esmrgui.rsg>
 #include <data_caging_path_literals.hrh>
@@ -115,7 +115,7 @@ void CESMRAddressSelectionQuery::ConstructL()
 // -----------------------------------------------------------------------------
 //
 TInt CESMRAddressSelectionQuery::ExecuteAddressSelectionListL( 
-        const RPointerArray<HBufC>& aAddressArray )
+		const RPointerArray<HBufC>& aAddressArray )
     {
     FUNC_LOG;
     TInt ret = ExecuteL( aAddressArray );
@@ -127,13 +127,13 @@ TInt CESMRAddressSelectionQuery::ExecuteAddressSelectionListL(
 // -----------------------------------------------------------------------------
 //
 TInt CESMRAddressSelectionQuery::ExecuteL( 
-        const RPointerArray<HBufC>& aAddressArray )
+		const RPointerArray<HBufC>& aAddressArray )
     {
     FUNC_LOG;
     TInt response( KErrCancel );
 
     CAknDoublePopupMenuStyleListBox* list = 
-        new( ELeave )CAknDoublePopupMenuStyleListBox;
+    	new( ELeave )CAknDoublePopupMenuStyleListBox;
     CleanupStack::PushL( list );
     
     CAknPopupList* popupList = CAknPopupList::NewL( list,
@@ -175,14 +175,14 @@ TInt CESMRAddressSelectionQuery::ExecuteL(
 //
 
 void CESMRAddressSelectionQuery::SetListQueryTextsL( 
-        CDesCArrayFlat* aItemArray,
-        CAknPopupList* aPopupList,
-        const RPointerArray<HBufC>& aAddressArray )
+		CDesCArrayFlat* aItemArray,
+		CAknPopupList* aPopupList,
+		const RPointerArray<HBufC>& aAddressArray )
     {
     FUNC_LOG;
     // Set title for popup
     aPopupList->SetTitleL( *iEnv->AllocReadResourceAsDes16LC( 
-            R_QTN_MEET_REQ_LOC_ADDRESS_SELECTION_TITLE ) );
+    		R_QTN_MEET_REQ_LOC_ADDRESS_SELECTION_TITLE ) );
     CleanupStack::PopAndDestroy(); // Resource string
 
     // Amount of addresses the contact has
@@ -193,7 +193,7 @@ void CESMRAddressSelectionQuery::SetListQueryTextsL(
     item.CleanupClosePushL();
     
     for ( TInt i(0); i < itemCount; ++i )
-        {
+    	{
         // Descriptor has separator between label and the actual address
         TPtr16 temp = aAddressArray[i]->Des();
 
@@ -203,25 +203,25 @@ void CESMRAddressSelectionQuery::SetListQueryTextsL(
             temp.SetLength( KMaxLength );
             }
         
-        // Finding the first instance of a separator
-        TInt offset = temp.Find( KSeparator );
-        
-        if( 0 <= offset && offset < KMaxLength )
-            {
-            // Forming label from the beginning to the first separator
-            TPtrC16 tempLabel = temp.Mid( 0, offset );
-            
-            // Forming address from the first separator to the end
-            TPtrC16 tempAddress = temp.Mid( 
-                    offset + KSeparatorLength, 
-                    temp.Length() - offset - KSeparatorLength );
-                
-            // appending address item to array
-            item.Format( KListItemFormat, &tempLabel, &tempAddress );
-            aItemArray->AppendL( item );
-            }
-        
-        }
+    	// Finding the first instance of a separator
+    	TInt offset = temp.Find( KSeparator );
+    	
+    	if( 0 <= offset && offset < KMaxLength )
+    	    {
+    	    // Forming label from the beginning to the first separator
+    	    TPtrC16 tempLabel = temp.Mid( 0, offset );
+    	    
+    	    // Forming address from the first separator to the end
+    	    TPtrC16 tempAddress = temp.Mid( 
+    	            offset + KSeparatorLength, 
+    	            temp.Length() - offset - KSeparatorLength );
+    	        
+    	    // appending address item to array
+    	    item.Format( KListItemFormat, &tempLabel, &tempAddress );
+    	    aItemArray->AppendL( item );
+    	    }
+    	
+    	}
     CleanupStack::PopAndDestroy( &item );
     }
 

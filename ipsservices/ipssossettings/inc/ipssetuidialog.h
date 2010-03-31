@@ -251,6 +251,14 @@ private:
     TImIAPChoice GetIapChoiceL( const TUid& aId ) const;
 
     /**
+     * Gets IapPrefs from the item.
+     *
+     * @return Access point preferences item.
+     */
+    CImIAPPreferences& GetIapPrefsL(const TUid& aId);
+
+    
+    /**
      * Initialize signature item
      *
      * @param aBaseItem Signature item for init

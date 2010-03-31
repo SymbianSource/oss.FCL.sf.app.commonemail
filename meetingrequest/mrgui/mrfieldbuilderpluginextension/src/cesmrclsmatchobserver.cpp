@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -22,17 +22,17 @@
 #include "esmrfieldbuilderdef.h"
 
 // for PCS support
-#include <CPsRequestHandler.h>
-#include <CPsSettings.h>
-#include <CPsQuery.h>
-#include <CPsQueryItem.h>
-#include <CPcsDefs.h>
-#include <MVPbkContactLink.h>
-#include <CVPbkContactManager.h>
+#include <cpsrequesthandler.h>
+#include <cpssettings.h>
+#include <cpsquery.h>
+#include <cpsqueryitem.h>
+#include <cpcsdefs.h>
+#include <mvpbkcontactlink.h>
+#include <cvpbkcontactmanager.h>
 #include <aknnotewrappers.h>
 #include <centralrepository.h>                          // CRepository
-#include <AknFepInternalCRKeys.h>                       // KCRUidAknFep, KAknFepPredTxtFlag
-#include <VPbkEng.rsg>
+#include <aknfepinternalcrkeys.h>                       // KCRUidAknFep, KAknFepPredTxtFlag
+#include <vpbkeng.rsg>
 
 //Constants
 

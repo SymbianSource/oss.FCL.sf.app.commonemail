@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -19,10 +19,11 @@
 #ifndef CESMRALARMFIELD_H
 #define CESMRALARMFIELD_H
 
-#include "cesmriconfield.h"
+#include "cesmrfield.h"
 
-class CEikLabel;
+class CMRLabel;
 class CESMRAlarm;
+class CMRImage;
 class MESMRFieldValidator;
 
 /**
@@ -33,7 +34,7 @@ class MESMRFieldValidator;
  *
  * @see cesmralarm.h
  */
-NONSHARABLE_CLASS( CESMRAlarmField ) : public CESMRIconField
+NONSHARABLE_CLASS( CESMRAlarmField ) : public CESMRField
     {
 public:
     /**
@@ -47,16 +48,18 @@ public:
     ~CESMRAlarmField();
 
 public: // From CESMRField
-    void InitializeL();
     void InternalizeL( MESMRCalEntry& aEntry );
     void ExternalizeL( MESMRCalEntry& aEntry );
     void SetOutlineFocusL( TBool aFocus );
     TBool OkToLoseFocusL( TESMREntryFieldId aId );
-    void ExecuteGenericCommandL( TInt aCommand );
+    TBool ExecuteGenericCommandL( TInt aCommand );
 
 public: // From CCoeControl
     TKeyResponse OfferKeyEventL(const TKeyEvent& aEvent, TEventCode aType);
-
+    TInt CountComponentControls() const;
+    CCoeControl* ComponentControl( TInt aIndex ) const;
+    void SizeChanged();
+    
 private:
     /**
      * Constructor
@@ -98,9 +101,12 @@ private:
 
 private:
     /**
-     *  Not own: Label for current alarm value
+     *  Own: Label for current alarm value
      */
-    CEikLabel* iAlarm;
+    CMRLabel* iAlarm;
+    
+    /// Own: Icon for alarm field
+    CMRImage* iIcon;
 
     /**
      * Own: List of CESMRAlarm objects
@@ -111,11 +117,6 @@ private:
      * Index pointing to iArray.
      */
     TInt iOptIndex;
-
-    /**
-     * Not owned. Validator class for time and sanity checks.
-     */
-    MESMRFieldValidator* iValidator;
 
     /**
      * Own: Relative alarm validity

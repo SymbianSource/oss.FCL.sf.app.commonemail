@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -27,6 +27,7 @@ class MESMRCalEntry;
 class CEikTimeEditor;
 class CEikDateEditor;
 class MESMRFieldEventQueue;
+class MMRAbsoluteAlarmController;
 
 /**
  * MESMRFieldValidator defines interface for field validation.
@@ -61,7 +62,11 @@ public:
         /** Relative alarm occurs in past */
         EErrorRelativeAlarmInPast,
         /** Reschedule instance to same day with another instance */
-        EErrorRescheduleInstance
+        EErrorRescheduleInstance,
+        /** The errors be used to validate the time of one edited intance of seires*/
+        EErrorInstanceOverlapsExistingOne,
+        EErrorInstanceAlreadyExistsOnThisDay,
+        EErrorInstanceOutOfSequence
         };
 
 public:
@@ -138,6 +143,14 @@ public:
     virtual void SetAlarmDateFieldL(
             CEikDateEditor& aAlarmDate ) = 0;
 
+    /**
+     * Sets absolute alarm on off field.
+     * @param aAbsoluteAlarmOnOff Reference to interface to handle absolute 
+     * alarm on-off setting.
+     */
+    virtual void SetAbsoluteAlarmOnOffFieldL( 
+            MMRAbsoluteAlarmController& aAbsoluteAlarmController ) = 0;
+    
     /**
      * Sets alarm date field.
      * @param aAlarmDate Reference to alarm date field.

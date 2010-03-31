@@ -291,7 +291,7 @@ void CFSEmailUiFolderListVisualiser::DoFirstStartL()
     iListLayout = CAlfDeckLayout::AddNewL( *iControl, iParentLayout );
     iListLayout->SetFlags(EAlfVisualFlagLayoutUpdateNotification|EAlfVisualFlagAutomaticLocaleMirroringEnabled);
 
-    iTreeVisualizer = CFsTreeVisualizerBase::NewL(iControl, *iListLayout);
+    iTreeVisualizer = CFsTreeVisualizerBase::NewL(iControl, *iListLayout, !iFullScreen);
     iTreeVisualizer->SetItemExpansionDelay( iAppUi.LayoutHandler()->ListItemExpansionDelay() );
     iTreeVisualizer->SetScrollTime( iAppUi.LayoutHandler()->ListScrollingTime() );
     iTreeVisualizer->SetFadeInEffectTime( iAppUi.LayoutHandler()->CtrlBarListFadeEffectTime() );
@@ -486,7 +486,7 @@ void CFSEmailUiFolderListVisualiser::HidePopupL()
     bgOpacity.SetTarget( 0, 0 );
     iParentLayout->SetOpacity( bgOpacity );
 	iTreeList->HideListL();
-	iTreeList->DisableKineticScrolling( EFalse );
+	//iTreeList->DisableKineticScrolling( EFalse );
 	ClearPopupSoftkeys();
 	iPopupListShown = EFalse;
 	}
@@ -631,7 +631,7 @@ void CFSEmailUiFolderListVisualiser::DoShowInPopupL(
     iParentLayout->SetOpacity( opacity );
     iParentLayout->SetRect( iScreenRect, iAppUi.LayoutHandler()->CtrlBarListFadeEffectTime() );
     iParentLayout->UpdateChildrenLayout();
-    iTreeList->DisableKineticScrolling( ETrue );
+    //iTreeList->DisableKineticScrolling( ETrue );
     iTreeList->ShowListL( ETrue );
     iTreeList->SetFocusedL( ETrue );
     iFocusVisible = iAppUi.IsFocusShown();
@@ -1564,9 +1564,10 @@ void CFSEmailUiFolderListVisualiser::SetHeaderTextByResourceIdL(
 void CFSEmailUiFolderListVisualiser::SetHeaderTextAttributesL()
     {
     iHeaderTextVisual->SetOpacity( KFSVisible );
-    CAlfTextStyle* textStyle = iAppUi.LayoutHandler()->FSTextStyleFromIdL(
-            EFSFontTypeNormalBold );
-    iHeaderTextVisual->SetTextStyle ( textStyle->Id() );
+    CAlfTextStyle& textStyle =
+        iAppUi.LayoutHandler()->FSTextStyleFromLayoutL(
+            AknLayoutScalable_Apps::main_sp_fs_ctrlbar_pane_t1(0));        
+    iHeaderTextVisual->SetTextStyle ( textStyle.Id() );
     iHeaderTextVisual->SetColor( iAppUi.LayoutHandler()->
             ListNormalStateTextSkinColor() );
     iHeaderTextVisual->SetPadding(
@@ -1925,23 +1926,23 @@ void CFSEmailUiFolderListVisualiser::AppendSubfoldersL(
 //
 TBool CFSEmailUiFolderListVisualiser::GetStandardFolderResouceIdAndIconL( const TInt aFolderType, TInt &aResourceId, CAlfTexture* &aIcon ) const
 	{
-    FUNC_LOG;
+    FUNC_LOG;  
 	TBool found(EFalse);
 	if( aFolderType == EFSInbox )
 		{
 		if( iFullScreen )
 			{
 			aResourceId = R_FREESTYLE_EMAIL_UI_FOLDER_LIST_INBOX;
-			aIcon = iIconArray[EFolderListIconInbox];
 			}
 		else
 			{
 			aResourceId = R_FREESTYLE_EMAIL_UI_DROPDOWN_LIST_INBOX;
 			// Get branded mailbox icon
-			aIcon = &iAppUi.FsTextureManager()->TextureByMailboxIdL( iActiveMailbox->GetId().PluginId(),
-																	 iActiveMailbox->GetId().Id(),
-																     iListIconSize);
+			//aIcon = &iAppUi.FsTextureManager()->TextureByMailboxIdL( iActiveMailbox->GetId().PluginId(),
+			//														 iActiveMailbox->GetId().Id(),
+			//													     iListIconSize);
 			}
+		aIcon = iIconArray[EFolderListIconInbox];
 		found = ETrue;
 		}
 	else if( aFolderType == EFSOutbox )
@@ -1949,25 +1950,25 @@ TBool CFSEmailUiFolderListVisualiser::GetStandardFolderResouceIdAndIconL( const 
 		if( iFullScreen )
 			{
 			aResourceId = R_FREESTYLE_EMAIL_UI_FOLDER_LIST_OUTBOX;
-			aIcon = iIconArray[EFolderListIconOutbox];
 			}
 		else
 			{
 			aResourceId = R_FREESTYLE_EMAIL_UI_DROPDOWN_LIST_OUTBOX;
 			}
+		aIcon = iIconArray[EFolderListIconOutbox];
 		found = ETrue;
-		}
+    	}
 	else if( aFolderType == EFSDraftsFolder )
 		{
 		if( iFullScreen )
 			{
 			aResourceId = R_FREESTYLE_EMAIL_UI_FOLDER_LIST_DRAFTS;
-			aIcon = iIconArray[EFolderListIconDrafts];
 			}
 		else
 			{
 			aResourceId = R_FREESTYLE_EMAIL_UI_DROPDOWN_LIST_DRAFTS;
 			}
+		aIcon = iIconArray[EFolderListIconDrafts];
 		found = ETrue;
 		}
 	else if( aFolderType == EFSSentFolder )
@@ -1975,12 +1976,12 @@ TBool CFSEmailUiFolderListVisualiser::GetStandardFolderResouceIdAndIconL( const 
 		if( iFullScreen )
 			{
 			aResourceId = R_FREESTYLE_EMAIL_UI_FOLDER_LIST_SENT;
-			aIcon = iIconArray[EFolderListIconSent];
 			}
 		else
 			{
 			aResourceId = R_FREESTYLE_EMAIL_UI_DROPDOWN_LIST_SENT;
-			}		
+			}
+		aIcon = iIconArray[EFolderListIconSent];
 		found = ETrue;
 		}
 	else if( aFolderType == EFSDeleted )
@@ -1988,12 +1989,12 @@ TBool CFSEmailUiFolderListVisualiser::GetStandardFolderResouceIdAndIconL( const 
 		if( iFullScreen )
 			{
 			aResourceId = R_FREESTYLE_EMAIL_UI_FOLDER_LIST_DELETED;
-			aIcon = iIconArray[EFolderListIconDeleted];
 			}
 		else
 			{
 			aResourceId = R_FREESTYLE_EMAIL_UI_DROPDOWN_LIST_DELETED;
 			}
+		aIcon = iIconArray[EFolderListIconDeleted];
 		found = ETrue;
 		}
 	return found;

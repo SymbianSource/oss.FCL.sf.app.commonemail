@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -25,9 +25,9 @@
 class CESMRField;
 
 /**
- *  Observer interface for the custom list component.
+ *  Observer interface for the custom list pane.
  *
- *  @see cesmrlistcomponent.h
+ *  @see cesmrlistpane.h
  *  @lib esmrgui.lib
  */
  class MESMRListObserver
@@ -46,14 +46,14 @@ public:
      *
      * @param aField - id of the field.
      */
-    virtual void InsertControl( TESMREntryFieldId aField ) = 0;
+    virtual void ShowControl( TESMREntryFieldId aField ) = 0;
 
     /**
      * Disables field in the list. This method does not delete field.
      *
      * @param aField - id of the field.
      */
-    virtual void RemoveControl( TESMREntryFieldId aField ) = 0;
+    virtual void HideControl( TESMREntryFieldId aField ) = 0;
 
     /**
      * Is field visible or not.
@@ -73,16 +73,37 @@ public:
      * Scrolls the specific field to be fully visible
      *
      * @param aInd Index of the field that needs to be fully visible
-     * @param aSizeChanged ETrue if the field size has been changed
      */
-    virtual void ScrollItemVisible( TInt aInd ) = 0;
+    virtual void ScrollControlVisible( TInt aInd ) = 0;
 
-// SCROLLING_MOD: Two methods for CESMRRichTextViewer usage
-    virtual void MoveListAreaDownL( TInt aAmount) = 0;
-    virtual void MoveListAreaUpL(TInt aAmount) = 0;
-
+    /**
+     * Returns the height of the whole field container area containing all visible fields
+     *
+     * @return World height.
+     */
     virtual TInt ListHeight() = 0;
-    virtual TBool IsFieldBottomVisible() = 0;
+    
+    /**
+     * Returns ETrue if focused fields bottom is visible, otherwise EFalse
+     *
+     * @return Boolean ETrue/EFalse
+     */
+    virtual TBool IsFocusedControlsBottomVisible() = 0;
+    
+    /**
+     * Moves fields the amount of pixels given. 
+     *
+     * @param aAmount, amount of the movement in pixels. Positive down, negative up.
+     */
+    virtual void RePositionFields( TInt aAmount ) = 0;
+    
+    /**
+     * Return viewable areas rect, which in other words is
+     * listpanes rect.
+     *
+     * @return TRect, rect of the viewable area.
+     */
+    virtual TRect ViewableAreaRect() = 0;
     };
 
 #endif // MESMRLISTOBSERVER_H

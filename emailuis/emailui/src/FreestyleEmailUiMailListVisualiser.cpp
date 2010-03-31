@@ -76,7 +76,6 @@
 #include "FreestyleEmailUi.hrh"
 #include "FreestyleEmailUiTextureManager.h"
 #include "FreestyleEmailUiMailListControl.h"
-#include "FreestyleEmailUiMailViewerVisualiser.h"
 #include "FreestyleEmailUiStatusIndicator.h"
 #include "freestyleemailcenrephandler.h"
 #include "FreestyleEmailUiFolderListVisualiser.h"
@@ -420,6 +419,10 @@ void CFSEmailUiMailListVisualiser::ConstructL()
 	iTouchFeedBack = MTouchFeedback::Instance();
  	}
 
+// ---------------------------------------------------------------------------
+// Second phase constructor.
+// ---------------------------------------------------------------------------
+//
 // CFSEmailUiMailListVisualiser::DoFirstStartL()
 // Purpose of this function is to do first start things only when list is
 // really needed to be shown. Implemented to make app startuo faster.
@@ -438,16 +441,12 @@ void CFSEmailUiMailListVisualiser::DoFirstStartL()
     iScreenAnchorLayout = CAlfAnchorLayout::AddNewL( *iMailListControl );
     iScreenAnchorLayout->SetFlags(EAlfVisualFlagAutomaticLocaleMirroringEnabled);
 
-    //<cmail>
     iTouchManager = CEUiEmailListTouchManager::NewL(*this);
-    //</cmail>
 
     // Create control bar control and append to control group and anchor layout
     iControlBarControl = CFsControlBar::NewL( iEnv );
     iControlBarControl->AddObserverL( *this );
-    //<cmail>
     iControlBarControl->AddObserverL( *iTouchManager );
-    //</cmail>
 
     CreateControlBarLayoutL();
     SetMailListLayoutAnchors();
@@ -469,12 +468,9 @@ void CFSEmailUiMailListVisualiser::DoFirstStartL()
     iMailList->SetMarkTypeL( CFsTreeList::EFsTreeListMultiMarkable );
     iMailList->SetIndentationL(0);
 
-    //<cmail> Compared to S60 3.2.3 in S60 5.0 Alf offers the key events in
-    // opposite order.
     ControlGroup().AppendL( iMailListControl );
     ControlGroup().AppendL( iControlBarControl );
     ControlGroup().AppendL( iMailList->TreeControl() );
-    //</cmail>
 
     iTreeItemArray.Reset();
 
@@ -503,13 +499,8 @@ void CFSEmailUiMailListVisualiser::DoFirstStartL()
     // Set menu, mark and background icons
     iMailTreeListVisualizer->SetMarkIcon( iAppUi.FsTextureManager()->TextureByIndex( EListControlMarkIcon ) );
     iMailTreeListVisualizer->SetMenuIcon( iAppUi.FsTextureManager()->TextureByIndex( EListControlMenuIcon ) );
-    //<cmail> s60 skin support
-    //iMailTreeListVisualizer->SetBackgroundTextureL( iAppUi.FsTextureManager()->TextureByIndex( EBackgroundTextureMailList ) );
-    //</cmail>
     iMailList->AddObserverL( *this );
-    //<cmail>
     iMailList->AddObserverL( *iTouchManager );
-    //</cmail>
     // Initializing the default stylus long tap popup menu
     if( !iStylusPopUpMenu )
         {
@@ -549,7 +540,10 @@ CFSEmailUiMailListVisualiser::CFSEmailUiMailListVisualiser( CAlfEnv& aEnv,
     iListMarkItemsState( ETrue ), //Initlly list has no markings
     iMoveToFolderOngoing( EFalse ),
     iConsumeStdKeyYes_KeyUp( EFalse ), // use to prevent Call application execution if call for contact processed
-    iMailOpened(EFalse)
+    iMailOpened( EFalse ),
+	iMarkingMode( EFalse ),
+    iMarkingModeWaitingToExit( EFalse ),
+    iMarkingModeTextVisual( NULL )
 	{
     FUNC_LOG;
 	}
@@ -1585,7 +1579,6 @@ void CFSEmailUiMailListVisualiser::ChildDoActivateL(const TVwsViewId& aPrevViewI
             iAppUi.StartMonitoringL();
             }
         SetListAndCtrlBarFocusL(); // ShowListL() makes list focused and this may need to be reverted
-        UnmarkAllItemsL();
         if ( aCustomMessageId == TUid::Uid(KMailSettingsReturnFromPluginSettings) )
             {
             // Better to refresh launcher grid view because mailbox branding might be changed.
@@ -1721,6 +1714,57 @@ void CFSEmailUiMailListVisualiser::DynInitMenuPaneL(TInt aResourceId, CEikMenuPa
 	    currentFolderType = iMailFolder->GetFolderType();
 	    }
 
+	if ( aResourceId == R_FSEMAILUI_MAILLIST_MARKING_MODE_MENUPANE )
+	    {
+        if (!CountMarkedItemsL())
+            {
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkingModeDelete, ETrue );
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkingModeUnread, ETrue );
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkingModeRead, ETrue );
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkingModeMove, ETrue );
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkingModeFollowUp, ETrue );
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkingModeMarkAll, EFalse );
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkingModeUnmarkAll, ETrue );
+            }
+        else
+            {
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkingModeDelete, EFalse );
+            if ( AreAllMarkedItemsUnreadL() )
+                {
+                aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkingModeUnread, ETrue );
+                }
+            else
+                {
+                aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkingModeUnread, EFalse );
+                }
+            if ( AreAllMarkedItemsReadL() )
+                {            
+                aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkingModeRead, ETrue );
+                }
+            else
+                {
+                aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkingModeRead, EFalse );
+                }
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkingModeMove, !supportsMoving );
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkingModeFollowUp, !supportsFlag );            
+            if ( AreAllItemsMarked() )
+                {
+                aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkingModeMarkAll, ETrue );
+                aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkingModeUnmarkAll, EFalse );
+                }
+            else if ( AreAllItemsUnmarked() )
+                {
+                aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkingModeMarkAll, EFalse );
+                aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkingModeUnmarkAll, ETrue );
+                }
+            else
+                {
+                aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkingModeMarkAll, EFalse );
+                aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkingModeUnmarkAll, EFalse );
+                }                
+            }
+	    }
+	
     // MAIN MENU ***************************************************************************
 	if ( aResourceId == R_FSEMAILUI_MAILLIST_MENUPANE )
 	    {
@@ -1782,18 +1826,6 @@ void CFSEmailUiMailListVisualiser::DynInitMenuPaneL(TInt aResourceId, CEikMenuPa
             aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsReplyAll, ETrue );
             aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsForward, ETrue );
             aMenuPane->SetItemDimmed( EFsEmailUiCmdMailActions, ETrue);
-
-            TInt markedCount = CountMarkedItemsL();
-            // Hide mark/unmark all when not applicable
-            if ( markedCount == EmailsInModelL() ) // Hide mark all
-		       {
-		       aMenuPane->SetItemDimmed( EFsEmailUiCmdSubMenuMark, ETrue );
-		       }
-            if ( markedCount == 0 ) // Hide unmark all
-		       {
-		       aMenuPane->SetItemDimmed( EFsEmailUiCmdSubMenuUnmark, ETrue );
-		       }
-
             }
         else
     	    {
@@ -1825,17 +1857,14 @@ void CFSEmailUiMailListVisualiser::DynInitMenuPaneL(TInt aResourceId, CEikMenuPa
                 {
                 aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsReplyAll, ETrue );
                 }
-
-            aMenuPane->SetItemDimmed( EFsEmailUiCmdSubMenuUnmark, ETrue);
             }
 
 	    // EMPTY LIST, MOST OPTIONS ARE HIDDEN
 	    if ( !iModel->Count() || !iMailFolder )
 	        {
 	        aMenuPane->SetItemDimmed( EFsEmailUiCmdMailActions, ETrue );
-	        aMenuPane->SetItemDimmed( EFsEmailUiCmdSubMenuMark, ETrue );
-	        aMenuPane->SetItemDimmed( EFsEmailUiCmdSubMenuUnmark, ETrue );
 	        aMenuPane->SetItemDimmed( EFsEmailUiCmdSearch, ETrue );
+	        aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkingMode, ETrue );
 	        }
 
 	    // FOLDER SPECIFIC COMMAND HIDING
@@ -1904,35 +1933,6 @@ void CFSEmailUiMailListVisualiser::DynInitMenuPaneL(TInt aResourceId, CEikMenuPa
 		}
     // ACTIONS SUBMENU *********************************************************************
 
-
-	// MARK SUBMENU ************************************************************************
-	// Mark submenu show only when focus is visible
-	if ( aResourceId == R_FSEMAILUI_MAILLIST_SUBMENU_MARK)
-		{
-	    // Checks if a device has a keyboard or not.
-		if( !iLastFocus )
-       	    {
-            aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkMark, ETrue );
-            aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkMarkAll, ETrue );
-	        }
-         else
-       	    {
-            aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkSubAll, ETrue );
-	        }
-		}
-
-    // MARK SUBMENU ************************************************************************
-
-
-	// UNMARK SUBMENU ************************************************************************
-	// Unmark submenu show only when focus is not visible
-	if ( aResourceId == R_FSEMAILUI_MAILLIST_SUBMENU_UNMARK)
-		{
-		// Nothing to do yet
-		}
-    // UNMARK SUBMENU ************************************************************************
-
-
 	CleanupStack::PopAndDestroy( &targetEntries );
 
 	// Add shortcut hints
@@ -1998,6 +1998,130 @@ TInt CFSEmailUiMailListVisualiser::CountMarkedItemsL()
 //
 // ---------------------------------------------------------------------------
 //
+TBool CFSEmailUiMailListVisualiser::AreAllItemsMarked()
+    {
+    FUNC_LOG;
+
+    TBool ret(ETrue);
+    
+	if ( iTreeItemArray.Count() )
+		{
+		for ( TInt i=0;i<iTreeItemArray.Count(); i++ )
+			{
+			if ( !iMailList->IsNode(iTreeItemArray[i].iListItemId ) &&
+			     !iMailList->IsMarked( iTreeItemArray[i].iListItemId ))
+                {
+				ret = EFalse;
+				break;    
+				}
+			}
+		}
+    return ret;
+    }
+
+// ---------------------------------------------------------------------------
+//
+//
+// ---------------------------------------------------------------------------
+//
+TBool CFSEmailUiMailListVisualiser::AreAllItemsUnmarked()
+    {
+    FUNC_LOG;
+
+    TBool ret(ETrue);
+    
+	if ( iTreeItemArray.Count() )
+		{
+		for ( TInt i=0;i<iTreeItemArray.Count(); i++ )
+			{
+			if ( !iMailList->IsNode(iTreeItemArray[i].iListItemId ) &&
+			     iMailList->IsMarked( iTreeItemArray[i].iListItemId ))
+                {
+				ret = EFalse;
+				break;    
+				}
+			}
+		}
+    return ret;
+    }
+
+// ---------------------------------------------------------------------------
+//
+//
+// ---------------------------------------------------------------------------
+//
+TBool CFSEmailUiMailListVisualiser::AreAllMarkedItemsReadL()
+    {
+    FUNC_LOG;
+
+    TBool ret(ETrue);
+    
+	if ( iTreeItemArray.Count() )
+		{
+        for ( TInt i=0;i<iTreeItemArray.Count(); i++ )
+            {
+            if ( !iMailList->IsNode(iTreeItemArray[i].iListItemId ) &&
+                iMailList->IsMarked( iTreeItemArray[i].iListItemId ))
+                {
+                CFSEmailUiMailListModelItem* item =
+                        static_cast<CFSEmailUiMailListModelItem*>( Model()->Item(i) );
+                CFSMailMessage* confirmedMsgPtr(0);
+                confirmedMsgPtr = iAppUi.GetMailClient()->GetMessageByUidL(iAppUi.GetActiveMailboxId(),
+                iMailFolder->GetFolderId(), item->MessagePtr().GetMessageId(), EFSMsgDataEnvelope );
+                TBool isReadMessage = confirmedMsgPtr->IsFlagSet( EFSMsgFlag_Read );
+                delete confirmedMsgPtr;
+                if ( !isReadMessage )
+                    {
+                    ret = EFalse;
+                    break;
+                    }
+                }
+            }
+		}
+    return ret;
+    }
+
+// ---------------------------------------------------------------------------
+//
+//
+// ---------------------------------------------------------------------------
+//
+TBool CFSEmailUiMailListVisualiser::AreAllMarkedItemsUnreadL()
+    {
+    FUNC_LOG;
+
+    TBool ret(ETrue);
+    
+    if ( iTreeItemArray.Count() )
+        {
+        for ( TInt i=0;i<iTreeItemArray.Count(); i++ )
+            {
+            if ( !iMailList->IsNode(iTreeItemArray[i].iListItemId ) &&
+                iMailList->IsMarked( iTreeItemArray[i].iListItemId ))
+                {
+                CFSEmailUiMailListModelItem* item =
+                        static_cast<CFSEmailUiMailListModelItem*>( Model()->Item(i) );
+                CFSMailMessage* confirmedMsgPtr(0);
+                confirmedMsgPtr = iAppUi.GetMailClient()->GetMessageByUidL(iAppUi.GetActiveMailboxId(),
+                iMailFolder->GetFolderId(), item->MessagePtr().GetMessageId(), EFSMsgDataEnvelope );
+                TBool isReadMessage = confirmedMsgPtr->IsFlagSet( EFSMsgFlag_Read );
+                delete confirmedMsgPtr;
+                if ( isReadMessage )
+                    {
+                    ret = EFalse;
+                    break;
+                    }
+                }
+            }
+        }
+    return ret;
+    }
+
+// ---------------------------------------------------------------------------
+//
+//
+// ---------------------------------------------------------------------------
+//
 void CFSEmailUiMailListVisualiser::GetMarkedMessagesL( RArray<TFSMailMsgId>& aMessageIDs ) const
     {
     FUNC_LOG;
@@ -2039,6 +2163,192 @@ void CFSEmailUiMailListVisualiser::MarkMessagesIfFoundL( const RArray<TFSMailMsg
             {
             iMailList->MarkItemL( iTreeItemArray[index].iListItemId, ETrue );
             }
+        }
+    }
+
+// ---------------------------------------------------------------------------
+//
+//
+// ---------------------------------------------------------------------------
+//
+void CFSEmailUiMailListVisualiser::ExitMarkingModeL()
+    {
+    FUNC_LOG;	
+    iMarkingMode = EFalse;
+    UnmarkAllItemsL();
+    // Change softkeys back to normal
+    SetViewSoftkeysL( R_FREESTYLE_EMAUIL_UI_SK_OPTIONS_BACK );
+    // Change options menu back to normal
+    CEikMenuBar* menu = iAppUi.CurrentActiveView()->MenuBar();
+    menu->StopDisplayingMenuBar();
+    menu->SetMenuTitleResourceId(R_FSEMAILUI_MAILLIST_MENUBAR);
+    // Change background back to normal
+    DisplayMarkingModeBgL( EFalse );   
+    // Display drop down menu buttons
+    iNewEmailButton->ShowButtonL();
+    iFolderListButton->ShowButtonL();
+    iSortButton->ShowButtonL();
+    iNewEmailButton->SetDimmed( EFalse );
+    iFolderListButton->SetDimmed( EFalse );   
+    iSortButton->SetDimmed( EFalse );
+    // Hide marking mode text on the place of drop down menus
+    RemoveMarkingModeTitleTextL();
+    }
+
+// ---------------------------------------------------------------------------
+//
+//
+// ---------------------------------------------------------------------------
+//
+void CFSEmailUiMailListVisualiser::EnterMarkingModeL()
+    {
+    FUNC_LOG;	
+    iMarkingMode = ETrue;
+	iListMarkItemsState = ETrue; // shift-scrolling does marking after one item is marked
+    HandleCommandL( EFsEmailUiCmdActionsExpandAll );
+    // Change softkeys for marking mode
+    SetViewSoftkeysL( R_FREESTYLE_EMAUIL_UI_SK_OPTIONS_CANCEL );
+    // Change options menu for marking mode
+    CEikMenuBar* menu = iAppUi.CurrentActiveView()->MenuBar();
+    menu->StopDisplayingMenuBar();
+    menu->SetMenuTitleResourceId(R_FSEMAILUI_MAILLIST_MENUBAR_MARKING_MODE);
+    // Change background to marking mode
+    DisplayMarkingModeBgL( ETrue );       
+    // Hide drop down menu buttons
+    if( Layout_Meta_Data::IsLandscapeOrientation() )
+        {
+        iNewEmailButton->SetDimmed();
+        iFolderListButton->SetDimmed();   
+        iSortButton->SetDimmed();
+        }
+    else
+        {
+        iNewEmailButton->HideButton();
+        iFolderListButton->HideButton();
+        iSortButton->HideButton();
+        }
+    // Display marking mode text on the place of drop down menus   
+    DisplayMarkingModeTitleTextL();
+    }
+
+// ---------------------------------------------------------------------------
+//
+//
+// ---------------------------------------------------------------------------
+//
+void CFSEmailUiMailListVisualiser::RefreshMarkingModeL()
+    {
+    FUNC_LOG;
+    if ( iMarkingMode )
+        {
+        // Hide drop down menu buttons    
+        if( !Layout_Meta_Data::IsLandscapeOrientation() )
+            {
+            iNewEmailButton->ShowButtonL();
+            iNewEmailButton->HideButton();
+            iFolderListButton->ShowButtonL();
+            iFolderListButton->HideButton();
+            iSortButton->ShowButtonL();    
+            iSortButton->HideButton();
+            }
+        else
+            {
+            iNewEmailButton->ShowButtonL();
+            iNewEmailButton->SetDimmed();
+            iFolderListButton->ShowButtonL();
+            iFolderListButton->SetDimmed();
+            iSortButton->ShowButtonL();    
+            iSortButton->SetDimmed();
+            }
+  
+        RemoveMarkingModeTitleTextL();
+        DisplayMarkingModeTitleTextL();
+        }
+    }
+
+// ---------------------------------------------------------------------------
+//
+//
+// ---------------------------------------------------------------------------
+//
+void CFSEmailUiMailListVisualiser::DisplayMarkingModeTitleTextL()
+    {
+    FUNC_LOG;     
+    if (!iMarkingModeTextVisual)
+        {
+        const TRect sortButtonRect( iAppUi.LayoutHandler()->GetControlBarSortButtonRect() );
+        const TRect newMailButtonRect( iAppUi.LayoutHandler()->GetControlBarNewEmailButtonRect() );
+
+        iMarkingModeTextRect = TRect( newMailButtonRect.iTl, sortButtonRect.iBr );
+        iMarkingModeTextParentLayout = CAlfDeckLayout::AddNewL( *iMailListControl );
+        iMarkingModeTextParentLayout->SetFlags( EAlfVisualFlagManualLayout );
+        iMarkingModeTextParentLayout->SetRect( iMarkingModeTextRect );
+
+        iMarkingModeTextContentLayout = CAlfAnchorLayout::AddNewL( *iMailListControl, iMarkingModeTextParentLayout );
+
+        iMarkingModeTextVisual = CAlfTextVisual::AddNewL( *iMailListControl, iMarkingModeTextContentLayout );
+        iMarkingModeTextVisual->SetWrapping( CAlfTextVisual::ELineWrapTruncate );
+        if ( AknLayoutUtils::LayoutMirrored() )
+            {
+            iMarkingModeTextVisual->SetAlign( EAlfAlignHRight, EAlfAlignVCenter );
+            }
+        else
+            {
+            iMarkingModeTextVisual->SetAlign( EAlfAlignHLeft, EAlfAlignVCenter );
+            }    
+        iMarkingModeTextVisual->SetStyle( EAlfTextStyleTitle );
+        TRgb color = iAppUi.LayoutHandler()->ListNodeTextColor();
+        iMarkingModeTextVisual->SetColor ( color );
+        if( !Layout_Meta_Data::IsLandscapeOrientation() )
+            {
+            HBufC* msg = StringLoader::LoadLC( R_FREESTYLE_EMAIL_UI_MARKINGMODE );
+            iMarkingModeTextVisual->SetTextL( *msg );
+            CleanupStack::PopAndDestroy( msg );
+            }
+        else
+            {
+            iMarkingModeTextVisual->SetTextL( KNullDesC );
+            }
+        }        
+    }
+
+// ---------------------------------------------------------------------------
+//
+//
+// ---------------------------------------------------------------------------
+//
+void CFSEmailUiMailListVisualiser::RemoveMarkingModeTitleTextL()
+    {
+    FUNC_LOG;
+    if (iMarkingModeTextVisual)
+        {
+        iMarkingModeTextVisual->SetTextL( KNullDesC );
+        iMarkingModeTextVisual->RemoveAndDestroyAllD();
+        iMarkingModeTextVisual = NULL;
+        iMarkingModeTextContentLayout->RemoveAndDestroyAllD();
+        iMarkingModeTextContentLayout = NULL;
+        iMarkingModeTextParentLayout->RemoveAndDestroyAllD();
+        iMarkingModeTextParentLayout = NULL;
+        }
+    }
+
+// ---------------------------------------------------------------------------
+//
+//
+// ---------------------------------------------------------------------------
+//
+void CFSEmailUiMailListVisualiser::DisplayMarkingModeBgL( TBool aDisplay )
+    {
+    FUNC_LOG;
+    if (aDisplay)
+        {
+        CAlfBrush* brush = iAppUi.FsTextureManager()->NewMailListMarkingModeBgBrushLC();
+        iMailTreeListVisualizer->SetBackgroundBrushL( brush );
+        CleanupStack::Pop( brush );
+        }
+    else
+        {
+        iMailTreeListVisualizer->ClearBackground();
         }
     }
 
@@ -2206,6 +2516,14 @@ void CFSEmailUiMailListVisualiser::CompletePendingRefresh()
         DoRefresh( this );
         }
 
+    if (iMarkingModeWaitingToExit)
+        {
+        if ( iAppUi.CurrentActiveView()->Id() == MailListId )
+            {
+            iMarkingModeWaitingToExit = EFalse;
+            TRAP_IGNORE( ExitMarkingModeL() );
+            }
+        }
     }
 
 // ---------------------------------------------------------------------------
@@ -2720,7 +3038,7 @@ void CFSEmailUiMailListVisualiser::HandleDynamicVariantSwitchL(
 
         if ( aType == ESkinChanged )
             {
-            UpdateTheme();
+            UpdateThemeL();
             }
         else
             {
@@ -2742,6 +3060,10 @@ void CFSEmailUiMailListVisualiser::HandleDynamicVariantSwitchL(
             iAppUi.FolderList().HandleDynamicVariantSwitchL( aType );
             }
         }
+    if (iMarkingMode)
+        {
+        RefreshMarkingModeL();
+        }    
 	}
 
 // ---------------------------------------------------------------------------
@@ -2756,7 +3078,7 @@ void CFSEmailUiMailListVisualiser::HandleDynamicVariantSwitchOnBackgroundL(
     CFsEmailUiViewBase::HandleDynamicVariantSwitchOnBackgroundL( aType );
     if ( aType == ESkinChanged )
         {
-        UpdateTheme();
+        UpdateThemeL();
         }
     else if ( aType == EScreenLayoutChanged )
         {
@@ -3129,7 +3451,7 @@ TBool CFSEmailUiMailListVisualiser::HandleArrowEventInLandscapeL(
 //
 // ---------------------------------------------------------------------------
 //
-void CFSEmailUiMailListVisualiser::UpdateTheme(const TBool aSystemUpdate)
+void CFSEmailUiMailListVisualiser::UpdateThemeL(const TBool aSystemUpdate)
     {
     iSkinChanged = aSystemUpdate;
 
@@ -3144,6 +3466,17 @@ void CFSEmailUiMailListVisualiser::UpdateTheme(const TBool aSystemUpdate)
 
     iSortButton->SetNormalTextColor( normalTextColor );
     iSortButton->SetFocusedTextColor( focusedTextColor );
+    
+    //TJOS-83DELP fix/workaround 
+    //sometimes theme wasn't properly refreshed on buttons, this helps
+    iNewEmailButton->HideButton();
+    iNewEmailButton->ShowButtonL();
+    
+    iFolderListButton->HideButton();
+    iFolderListButton->ShowButtonL();
+    
+    iSortButton->HideButton();
+    iSortButton->ShowButtonL();
     }
 
 // ---------------------------------------------------------------------------
@@ -3225,6 +3558,10 @@ void CFSEmailUiMailListVisualiser::HandleForegroundEventL( TBool aForeground )
 	        iSkinChanged = EFalse; // Toggle handled
 	        iDateChanged = EFalse; // Toggle handled
 	        }
+        if (iMarkingMode)
+            {
+            RefreshMarkingModeL();
+            }
 	    }
 	}
 
@@ -3281,7 +3618,7 @@ void CFSEmailUiMailListVisualiser::HandleCommandL( TInt aCommand )
     	   aCommand == EFsEmailUiCmdMarkAsUnread ||
     	   aCommand == EFsEmailUiCmdActionsMove ||
     	   aCommand == EFsEmailUiCmdActionsMoveMessage ||
-    	   aCommand == EFsEmailUiCmdMarkUnmarkToggle ||
+    	   aCommand == EFsEmailUiCmdMarkingModeFromPopUp ||
     	   aCommand == EFsEmailUiCmdActionsCollapseAll ||
     	   aCommand == EFsEmailUiCmdActionsExpandAll ) )
     	{
@@ -3373,6 +3710,12 @@ void CFSEmailUiMailListVisualiser::HandleCommandL( TInt aCommand )
 				NavigateBackL();
 				}
         	break;
+        case EAknSoftkeyCancel:
+            if (iMarkingMode)
+                {
+                ExitMarkingModeL();
+                }
+            break;
         case EEikCmdExit:
         case EAknSoftkeyExit:
         case EFsEmailUiCmdExit:
@@ -3656,39 +3999,63 @@ void CFSEmailUiMailListVisualiser::HandleCommandL( TInt aCommand )
 //  			iAppUi.EnterFsEmailViewL( DownloadManagerViewId );
 //			break;
 // </cmail>
-       	case EFsEmailUiCmdMarkMark:
-       		{
-            iListMarkItemsState = ETrue; // shift-scrolling does marking after one item is marked
-  	        iMailList->MarkItemL( iMailList->FocusedItem(), ETrue );
-       		}
-			break;
-		case EFsEmailUiCmdMarkMarkAll:
-			{
-			MarkAllItemsL();
-			}
-			break;
-		case EFsEmailUiCmdMarkUnmark:
-			{
-            iListMarkItemsState = EFalse; // shift-scrolling does unmarking after one item is unmarked
-  	        iMailList->MarkItemL( iMailList->FocusedItem(), EFalse );
-			}
-			break;
-		case EFsEmailUiCmdMarkUnmarkAll:
-			{
-			UnmarkAllItemsL();
-			}
-			break;
-
-		case EFsEmailUiCmdMarkSubAll:
-			{
-			MarkAllItemsL();
-			}
-			break;
-		case EFsEmailUiCmdUnmarkSubAll:
-			{
-			UnmarkAllItemsL();
-			}
-			break;
+        case EFsEmailUiCmdMarkingModeFromPopUp:
+            {
+            EnterMarkingModeL();
+            // Mark current item first
+            TInt focusedItem = iMailList->FocusedItem();
+            if ( focusedItem > 0 && iFocusedControl == EMailListComponent )
+                {
+                CFSEmailUiMailListModelItem* item = dynamic_cast<CFSEmailUiMailListModelItem*>(iModel->Item(HighlightedIndex()));
+				if ( item && item->ModelItemType() == ETypeMailItem )
+				    {
+                    iMailList->MarkItemL( iMailList->FocusedItem(), ETrue );
+					}
+				else if ( item && item->ModelItemType() == ETypeSeparator )
+					{
+					TInt index = HighlightedIndex();
+					MarkItemsUnderSeparatorL( ETrue, index );
+					}
+                }
+            }
+            break;        
+        case EFsEmailUiCmdMarkingMode:
+            {
+            EnterMarkingModeL();
+            }
+            break;
+        case EFsEmailUiCmdMarkingModeDelete:
+            {
+            DeleteMessagesL();
+            }
+            break;
+        case EFsEmailUiCmdMarkingModeUnread:
+            {
+            ChangeReadStatusOfMarkedL( EFalse );
+            ExitMarkingModeL();
+            }
+            break;
+        case EFsEmailUiCmdMarkingModeRead:
+            {
+            ChangeReadStatusOfMarkedL( ETrue );
+            ExitMarkingModeL();
+            }
+            break;            
+        case EFsEmailUiCmdMarkingModeFollowUp:
+            {
+            SetMessageFollowupFlagL();
+            }
+            break;            
+        case EFsEmailUiCmdMarkingModeMarkAll:
+            {
+            MarkAllItemsL();
+            }
+            break;
+        case EFsEmailUiCmdMarkingModeUnmarkAll:
+            {
+            UnmarkAllItemsL();
+            }
+            break;
 		case EFsEmailUiCmdReadEmail:
 			{
 			iAppUi.StartReadingEmailsL();
@@ -3793,6 +4160,11 @@ void CFSEmailUiMailListVisualiser::HandleCommandL( TInt aCommand )
 				}
     		}
 			break;
+    	case EFsEmailUiCmdMarkingModeMove:
+            {
+			iMarkingModeWaitingToExit = ETrue;
+			}
+			// Flow through			
        	case EFsEmailUiCmdActionsMove:
        	case EFsEmailUiCmdActionsMoveMessage:
 			{
@@ -3818,33 +4190,6 @@ void CFSEmailUiMailListVisualiser::HandleCommandL( TInt aCommand )
         case EFsEmailUiCmdMarkAsReadUnreadToggle:
             {
 			ShortcutReadUnreadToggleL();
-            }
-            break;
-        case EFsEmailUiCmdMarkUnmarkToggle:
-            {
-            TInt focusedItem = iMailList->FocusedItem();
-            if ( focusedItem > 0 && iFocusedControl == EMailListComponent )
-                {
-                CFSEmailUiMailListModelItem* item = dynamic_cast<CFSEmailUiMailListModelItem*>(iModel->Item(HighlightedIndex()));
-				if ( item && item->ModelItemType() == ETypeMailItem )
-				    {
-                    if ( iMailList->IsMarked( focusedItem ) )
-                        {
-                        HandleCommandL(EFsEmailUiCmdMarkUnmark);
-                        }
-                    else
-                        {
-                        HandleCommandL(EFsEmailUiCmdMarkMark);
-                        }
-					}
-				else if ( item && item->ModelItemType() == ETypeSeparator )
-					{
-					// Currently only mark is done since mark should activate
-					// marking mode for messages. Unmark can be done via message long tap menu.
-					TInt index = HighlightedIndex();
-					MarkItemsUnderSeparatorL( ETrue, index );
-					}
-                }
             }
             break;
         case EFsEmailUiCmdGoToSwitchFolder:
@@ -4201,6 +4546,10 @@ void CFSEmailUiMailListVisualiser::SetMessageFollowupFlagL()
 	                        }
 	                    }
 				    }
+                if ( iMarkingMode ) 
+                    {
+                    ExitMarkingModeL();
+                    }
 				}
 			CleanupStack::PopAndDestroy( &targetMsgIds );
 			}
@@ -4512,31 +4861,32 @@ TBool CFSEmailUiMailListVisualiser::OfferEventL( const TAlfEvent& aEvent )
                         TInt modelCount( modelCount = iModel->Count() );
                         if ( modelCount ) // Safety check
                             {
-                            CFSEmailUiMailListModelItem* item =
-                                dynamic_cast<CFSEmailUiMailListModelItem*>( iModel->Item( HighlightedIndex() ) );
-                            // MAIL ITEM; OPEN MAIL
-                            if ( item && item->ModelItemType() == ETypeMailItem )
+                            if (iMarkingMode)
                                 {
-                                CFSMailMessage* messagePtr = &item->MessagePtr();
-                                if ( messagePtr )
+                                //Do not open mail or expand/collapse separator in marking mode
+                                DoHandleListItemOpenL();
+                                }
+                            else
+                                {
+                                CFSEmailUiMailListModelItem* item =
+                                        dynamic_cast<CFSEmailUiMailListModelItem*>( iModel->Item( HighlightedIndex() ) );
+                                // MAIL ITEM; OPEN MAIL
+                                if ( item && item->ModelItemType() == ETypeMailItem )
                                     {
-                                    TIMESTAMP( "Open email selected from message list" );
-                                    OpenHighlightedMailL();
+                                    CFSMailMessage* messagePtr = &item->MessagePtr();
+                                    if ( messagePtr )
+                                        {
+                                        TIMESTAMP( "Open email selected from message list" );
+                                        OpenHighlightedMailL();
+                                        return EKeyWasConsumed;
+                                        }
+                                    }
+                                // SEPARAOR ITEM; COLLAPSE / EXPAND NODE
+                                else if ( item && item->ModelItemType() == ETypeSeparator )
+                                    {
+                                    ExpandOrCollapseL();
                                     return EKeyWasConsumed;
                                     }
-                                }
-                            // SEPARAOR ITEM; COLLAPSE / EXPAND NODE
-                            else if ( item && item->ModelItemType() == ETypeSeparator )
-                                {
-                                if ( iMailList->IsExpanded( iMailList->FocusedItem()) )
-                                    {
-                                    ExpandOrCollapseL();
-                                    }
-                                else
-                                    {
-                                    ExpandOrCollapseL();
-                                    }
-                                return EKeyWasConsumed;
                                 }
                             }
                         }
@@ -4727,25 +5077,56 @@ void CFSEmailUiMailListVisualiser::DoHandleListItemOpenL()
         {
         CFSEmailUiMailListModelItem* item =
             dynamic_cast<CFSEmailUiMailListModelItem*>( iModel->Item( HighlightedIndex() ) );
-        // MAIL ITEM; OPEN MAIL
-        if ( item && item->ModelItemType() == ETypeMailItem )
-            {
-            CFSMailMessage* messagePtr = &item->MessagePtr();
-            if ( messagePtr )
-                {
-                TIMESTAMP( "Open email selected from message list" );
-                OpenHighlightedMailL();
-                }
+        if ( iMarkingMode )
+			{
+            // In marking mode. Mark/unmark it instead of opening it.
+			if ( item && item->ModelItemType() == ETypeMailItem )
+				{
+				if (iMailList->IsMarked( iMailList->FocusedItem() ))
+                    {
+				    iMailList->MarkItemL( iMailList->FocusedItem(), EFalse );
+                    }
+				else
+				    {
+                    iMailList->MarkItemL( iMailList->FocusedItem(), ETrue );
+				    }
+				}
+			else if ( item && item->ModelItemType() == ETypeSeparator )
+			    {
+                TInt index = HighlightedIndex();
+                if ( AreAllItemsMarkedUnderSeparatorL( index ) )
+                    {
+                    MarkItemsUnderSeparatorL( EFalse, index );
+                    }
+                else
+                    {
+                    MarkItemsUnderSeparatorL( ETrue, index );
+                    }
+			    }
+			}
+		else
+			{
+		
+			// MAIL ITEM; OPEN MAIL
+			if ( item && item->ModelItemType() == ETypeMailItem )
+				{
+				CFSMailMessage* messagePtr = &item->MessagePtr();
+				if ( messagePtr )
+					{
+					TIMESTAMP( "Open email selected from message list" );
+					OpenHighlightedMailL();
+					}
 
-            // Give feedback to user (vibration)
-            iTouchFeedBack->InstantFeedback(ETouchFeedbackBasic);
-            }
-        // SEPARATOR ITEM; COLLAPSE / EXPAND NODE
-        else if ( item && item->ModelItemType() == ETypeSeparator )
-            {
-                ExpandOrCollapseL();
-                SetMskL();
-            }
+				// Give feedback to user (vibration)
+				iTouchFeedBack->InstantFeedback(ETouchFeedbackBasic);
+				}
+			// SEPARATOR ITEM; COLLAPSE / EXPAND NODE
+			else if ( item && item->ModelItemType() == ETypeSeparator )
+				{
+					ExpandOrCollapseL();
+					SetMskL();
+				}
+			}
         }
     }
 
@@ -4805,10 +5186,41 @@ void CFSEmailUiMailListVisualiser::DoHandleListItemLongTapL( const TPoint& aPoin
 
     if ( 0 < iModel->Count() ) // Safety check
         {
-        RFsTreeItemIdList markedEntries;
-        iMailList->GetMarkedItemsL( markedEntries );
-        if ( markedEntries.Count() >= 0 )
-            {
+        if ( iMarkingMode )
+			{
+            iMailTreeListVisualizer->SetFocusVisibility( EFalse );
+            TInt currentFocusState = iMailList->IsFocused();
+            iMailList->SetFocusedL( EFalse );
+            iMailList->SetFocusedL( currentFocusState );
+			CFSEmailUiMailListModelItem* item =
+                dynamic_cast<CFSEmailUiMailListModelItem*>( iModel->Item( HighlightedIndex() ) );
+            // In marking mode. Mark/unmark it instead of open popup.
+			if ( item && item->ModelItemType() == ETypeMailItem )
+				{
+				if (iMailList->IsMarked( iMailList->FocusedItem() ))
+                    {
+				    iMailList->MarkItemL( iMailList->FocusedItem(), EFalse );
+                    }
+				else
+				    {
+                    iMailList->MarkItemL( iMailList->FocusedItem(), ETrue );
+				    }
+				}
+			else if ( item && item->ModelItemType() == ETypeSeparator )
+			    {
+                TInt index = HighlightedIndex();
+                if ( AreAllItemsMarkedUnderSeparatorL( index ) )
+                    {
+                    MarkItemsUnderSeparatorL( EFalse, index );
+                    }
+                else
+                    {
+                    MarkItemsUnderSeparatorL( ETrue, index );
+                    }
+			    }
+			}
+		else
+		    {
             LaunchStylusPopupMenuL( aPoint );
             }
         }
@@ -5185,7 +5597,7 @@ void CFSEmailUiMailListVisualiser::CreateControlBarLayoutL()
 
     // Icons and sort button text
     iFolderListButton->SetIconL( iAppUi.FsTextureManager()->TextureByIndex( EListControlBarMailboxDefaultIcon ) );
-    iNewEmailButton->SetIconL( iAppUi.FsTextureManager()->TextureByIndex( EListTextureNewEmailDefaultIcon ) );
+    iNewEmailButton->SetIconL( iAppUi.FsTextureManager()->TextureByIndex( EListTextureCreateNewMessageIcon ) );
     SetSortButtonTextAndIconL();
 
     iNewEmailButton->SetElemAlignL(
@@ -5244,11 +5656,13 @@ void CFSEmailUiMailListVisualiser::ScaleControlBarL()
  	iFolderListButton->SetTextFontL( textLayout.Font()->FontSpecInTwips() );
  	iSortButton->SetTextFontL( textLayout.Font()->FontSpecInTwips() );
 
- 	UpdateTheme(EFalse);
-
-	iNewEmailButton->ShowButtonL();
-  	iFolderListButton->ShowButtonL();
-	iSortButton->ShowButtonL();
+ 	UpdateThemeL(EFalse);
+ 	if (!iMarkingMode)
+ 	    {
+        iNewEmailButton->ShowButtonL();
+        iFolderListButton->ShowButtonL();
+        iSortButton->ShowButtonL();
+ 	    }
 	}
 
 // ---------------------------------------------------------------------------
@@ -5517,7 +5931,7 @@ void CFSEmailUiMailListVisualiser::ChangeReadStatusOfIndexL( TBool aRead, TInt a
             msgPtr.SaveMessageL();  // Save flag
 
             // Switch icon to correct one if mail list is visible
-            // UpdateMsgIconAndBoldingL( aIndex );
+            UpdateMsgIconAndBoldingL( aIndex );
 
             if ( iCurrentSortCriteria.iField == EFSMailSortByUnread )
                 {
@@ -5750,23 +6164,15 @@ void CFSEmailUiMailListVisualiser::UpdateMsgIconAndBoldingL( CFsTreePlainTwoLine
     if ( aItemData && aItemVis && aMsgPtr )
         {
         CAlfTexture* itemTexture = &TFsEmailUiUtility::GetMsgIcon( aMsgPtr, *iAppUi.FsTextureManager() );
-
         aItemData->SetIcon( *itemTexture );
-
-        // Set font according the read status
-        if ( aMsgPtr->IsFlagSet( EFSMsgFlag_Read ) )
-            {
-            CAlfTextStyle* textStyle = iAppUi.LayoutHandler()->FSTextStyleFromIdL( EFSFontTypeSmall );
-            aItemVis->SetTextStyleId ( textStyle->Id() );
-            aItemVis->SetTextBold( EFalse );
-            }
-        else
-            {
-            CAlfTextStyle* textStyle = iAppUi.LayoutHandler()->FSTextStyleFromIdL( EFSFontTypeSmallBold );
-            aItemVis->SetTextStyleId ( textStyle->Id() );
-            aItemVis->SetTextBold( ETrue );
-            }
-
+        TInt variety( Layout_Meta_Data::IsLandscapeOrientation() ? 1 : 0 );
+        CAlfTextStyle& textStyle =
+            iAppUi.LayoutHandler()->FSTextStyleFromLayoutL(
+                AknLayoutScalable_Apps::list_single_dyc_row_text_pane_t1( variety ) );
+        const TBool isNotRead( !aMsgPtr->IsFlagSet( EFSMsgFlag_Read ) );
+        textStyle.SetBold( isNotRead );
+        aItemVis->SetTextBold( isNotRead );
+        aItemVis->SetTextStyleId ( textStyle.Id() );
         // Set follow up flag icon
         if ( aMsgPtr->IsFlagSet( EFSMsgFlag_FollowUp ) )
             {
@@ -5793,7 +6199,9 @@ void CFSEmailUiMailListVisualiser::UpdateMsgIconAndBoldingL( CFsTreePlainTwoLine
 void CFSEmailUiMailListVisualiser::RemoveMsgItemsFromListIfFoundL( const RArray<TFSMailMsgId>& aEntryIds )
 	{
     FUNC_LOG;
-	for ( TInt i=0 ; i<aEntryIds.Count() ; ++i )
+    
+	TBool itemFound = EFalse;
+    for ( TInt i=0 ; i<aEntryIds.Count() ; ++i )
 	    {
 	    const TFSMailMsgId& entryId = aEntryIds[i];
     	if ( !entryId.IsNullId() )
@@ -5804,20 +6212,16 @@ void CFSEmailUiMailListVisualiser::RemoveMsgItemsFromListIfFoundL( const RArray<
     			iMailList->RemoveL( iTreeItemArray[idx].iListItemId ); // remove from list
     			iTreeItemArray.Remove( idx ); // remove from internal array.
     	 		iModel->RemoveAndDestroy( idx ); // Remove from model
+    	 		itemFound = ETrue;
         	    }
     		}
 	    }
-	if ( aEntryIds.Count() > 0  )
-		{
-        if ( iMailListUpdater )
-            {
-            if ( iMailListUpdater->IsActive() )
-                {
-                iMailListUpdater->Stop();
-                }
-             iMailListUpdater->StartL();
-             }
-		}
+	
+    if ( !itemFound )
+        {
+        return;  // no items to be removed
+        }
+		
 	if ( iNodesInUse )
 		{
 		RemoveUnnecessaryNodesL();
@@ -5932,6 +6336,7 @@ void CFSEmailUiMailListVisualiser::ConfirmAndStartDeleteTaskL(
         {
         if (ConfirmDeleteL(entries.Count(), entries[0]))
             {
+            ExitMarkingModeL();
             if (entries.Count() > KMsgDeletionWaitNoteAmount)
                 {
                 TFsEmailUiUtility::ShowWaitNoteL(iDeletingWaitNote,
@@ -6376,6 +6781,7 @@ void CFSEmailUiMailListVisualiser::FolderSelectedL(
 		switch ( aResponse )
 			{
 			case EFSEmailUiCtrlBarResponseCancel:
+			    iMarkingModeWaitingToExit = EFalse;
 			    SetMskL();
 				return;
 			case EFSEmailUiCtrlBarResponseSelect:
@@ -6416,6 +6822,7 @@ void CFSEmailUiMailListVisualiser::FolderSelectedL(
 				}
 				return;
 			case EFSEmailUiCtrlBarResponseCancel:
+			    iMarkingModeWaitingToExit = EFalse;
 			    SetMskL();
 			    // <cmail> Touch
                 //Set touchmanager back to active
@@ -6839,12 +7246,6 @@ void CFSEmailUiMailListVisualiser::LaunchStylusPopupMenuL( const TPoint& aPoint 
 			// Hide / show follow up
 			TBool supportsFlag = TFsEmailUiUtility::IsFollowUpSupported( *iAppUi.GetActiveMailbox() );
 			iStylusPopUpMenu->SetItemDimmed( EFsEmailUiCmdActionsFlag, !supportsFlag );
-
-			// Hide mark if applicable
-			if ( iMailList->IsMarked( iMailList->FocusedItem() ) )
-				{
-				iStylusPopUpMenu->SetItemDimmed( EFsEmailUiCmdMark, ETrue );
-				}
 
 			// Hide collapse / expand all
 			iStylusPopUpMenu->SetItemDimmed( EFsEmailUiCmdActionsCollapseAll, ETrue );
@@ -7367,6 +7768,11 @@ TBool CFSEmailUiMailListVisualiser::DoScrollMarkUnmarkL()
     FUNC_LOG;
     TBool ret = EFalse;
 
+    if ( !iMarkingMode )
+        {
+        EnterMarkingModeL();   
+        }
+
     // <cmail>
     if ( iFocusedControl == EMailListComponent && iModel->Count() )
     // </cmail>
@@ -7419,6 +7825,44 @@ void CFSEmailUiMailListVisualiser::MarkItemsUnderSeparatorL( TBool aMarked, TInt
 			}
 		}
 	}
+
+// Check if all items under current separator are marked
+TBool CFSEmailUiMailListVisualiser::AreAllItemsMarkedUnderSeparatorL( TInt aSeparatorId )
+    {
+    FUNC_LOG;
+
+    TBool ret(ETrue);
+    
+    if ( iTreeItemArray.Count() )
+        {
+        // Find all items under wanted separator.
+        for ( TInt i = aSeparatorId + 1; i < iTreeItemArray.Count(); i++ )
+            {
+            CFSEmailUiMailListModelItem* item =
+                        static_cast<CFSEmailUiMailListModelItem*>( iModel->Item( i ) );
+
+            // Mark / unmark mail items.
+            if ( item &&
+                 item->ModelItemType() == ETypeMailItem &&
+                 !iMailList->IsNode( iTreeItemArray[i].iListItemId ) )
+                {
+                if ( !iMailList->IsMarked( iTreeItemArray[i].iListItemId ))
+                    {
+                    // Att least one unmarked item found
+                    ret = EFalse;
+                    break;
+                    }
+                }
+            else
+                {
+                // Stop iteration since another iterator was reached.
+                break;
+                }
+            }
+        }
+    return ret;
+    }
+
 // Navigation functions, used mainly from viewer
 TBool CFSEmailUiMailListVisualiser::IsNextMsgAvailable( TFSMailMsgId aCurrentMsgId,
 														TFSMailMsgId& aFoundNextMsgId,

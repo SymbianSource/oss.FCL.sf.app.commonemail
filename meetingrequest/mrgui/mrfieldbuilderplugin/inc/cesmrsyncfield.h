@@ -1,5 +1,5 @@
 /*
-* Copyright (c)  Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -15,19 +15,21 @@
  *
 */
 
-
 #ifndef CESMRSYNCFIELD_H
 #define CESMRSYNCFIELD_H
 
-#include "cesmriconfield.h"
+// INCLUDES
+#include "cesmrfield.h"
 
-class CEikLabel;
-class CESMRSync;
+// FORWARD DECLARATIONS
+class CMRLabel;
+class CMRImage;
+class CESMRTextItem;
 
 /**
  * This class is a custom field control that shows the sync status of calendar events
  */
-NONSHARABLE_CLASS( CESMRSyncField ) : public CESMRIconField
+NONSHARABLE_CLASS( CESMRSyncField ) : public CESMRField
     {
 public:
     /**
@@ -43,15 +45,17 @@ public:
     ~CESMRSyncField();
 
 public: // From CESMRField
-    void InitializeL();
     void InternalizeL( MESMRCalEntry& aEntry );
     void ExternalizeL( MESMRCalEntry& aEntry );
     void SetOutlineFocusL( TBool aFocus );
-    void ExecuteGenericCommandL( TInt aCommand );
+    TBool ExecuteGenericCommandL( TInt aCommand );
 
 public: // From CCoeControl
     TKeyResponse OfferKeyEventL( const TKeyEvent& aEvent, TEventCode aType );
-
+    TInt CountComponentControls() const;
+    CCoeControl* ComponentControl( TInt aIndex ) const;
+    void SizeChanged();
+    
 private:
     /**
      * Constructor.
@@ -81,12 +85,15 @@ private:
     /**
      * Not owned. Synchronization label.
      */
-    CEikLabel* iSync;
+    CMRLabel* iSync;
+    
+    /// Own: Icon field
+    CMRImage* iIcon;
 
     /**
      * Own. Array of synchronization objects.
      */
-    RPointerArray< CESMRSync > iArray;
+    RPointerArray< CESMRTextItem > iArray;
 
     /**
      * Index of selected synchronization.

@@ -23,6 +23,8 @@
 // Constants and defines
 const TInt KFetchOpPriority = CActive::EPriorityStandard;
 const TInt KIpsAttaFetchProgressReportInterval = 1000000; // 1 sec
+const TInt KIpsAttaFetchRetryInterval = 1000000; // 1 sec
+const TInt KIpsAttaFetchRetryCount = 30;
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
@@ -157,6 +159,7 @@ CIpsPlgImap4FetchAttachmentOp::CIpsPlgImap4FetchAttachmentOp(
     {
     FUNC_LOG;
     iService = aService;
+    iRetryTimer.CreateLocal();
     }
 
 // ----------------------------------------------------------------------------
@@ -164,6 +167,7 @@ CIpsPlgImap4FetchAttachmentOp::CIpsPlgImap4FetchAttachmentOp(
 CIpsPlgImap4FetchAttachmentOp::~CIpsPlgImap4FetchAttachmentOp()
     {
     FUNC_LOG;
+    iRetryTimer.Close();
     delete iSelection;
     delete iProgReport;
     }
@@ -238,6 +242,11 @@ void CIpsPlgImap4FetchAttachmentOp::DoRunL()
             DoFetchAttachmentL();
             break;
             }
+        case EStateWaiting:
+            {
+            DoFetchAttachmentL();
+            break;
+            }
         case EStateFetching:         
             {
             delete iProgReport;
@@ -245,11 +254,16 @@ void CIpsPlgImap4FetchAttachmentOp::DoRunL()
             
             TInt err = iStatus.Int();
 
-            // If the server was busy, try again a few times.
-            if ( err == KErrServerBusy && iRetryCount < 3 )
+            // If the server was busy, try again after a short delay, up to
+            // some retry limit.
+            if ( err == KErrServerBusy && iRetryCount < KIpsAttaFetchRetryCount )
                 {
                 iRetryCount++;
-                DoFetchAttachmentL();
+                INFO_1( "CIpsPlgImap4FetchAttachmentOp::DoRunL: iRetryCount = %d", iRetryCount );
+                iState = EStateWaiting;
+                iStatus = KRequestPending;
+                iRetryTimer.After( iStatus, KIpsAttaFetchRetryInterval );
+                SetActive();
                 }
             else
                 {

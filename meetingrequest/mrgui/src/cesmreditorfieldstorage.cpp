@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -29,6 +29,8 @@
 #include "cesmrglobalnote.h"
 #include "cesmrfield.h"
 #include "cesmrfieldeventqueue.h"
+
+#include <ct/rcpointerarray.h>
 
 //logging
 //performance profiling
@@ -131,8 +133,28 @@ void ShowValidationErrorL(
             {
             CESMRGlobalNote::ExecuteL(
                                 CESMRGlobalNote::EESMRRepeatReSchedule );
-            }
             break;
+            }
+        case MESMRFieldValidator::EErrorInstanceOverlapsExistingOne:
+            {
+            CESMRGlobalNote::ExecuteL(
+                                CESMRGlobalNote::EESMROverlapsExistingInstance );
+            break;
+            }
+            
+        case MESMRFieldValidator::EErrorInstanceAlreadyExistsOnThisDay:
+            {
+            CESMRGlobalNote::ExecuteL(
+                                CESMRGlobalNote::EESMRInstanceAlreadyExistsOnThisDay );
+            break;
+            }
+            
+        case MESMRFieldValidator::EErrorInstanceOutOfSequence:
+            {
+            CESMRGlobalNote::ExecuteL(
+                                CESMRGlobalNote::EESMRInstanceOutOfSequence );
+            break;
+            }
         default:
             {
             err = KErrNone;
@@ -174,7 +196,7 @@ CESMREditorFieldStorage::~CESMREditorFieldStorage( )
 // ---------------------------------------------------------------------------
 //
 CESMREditorFieldStorage* CESMREditorFieldStorage::NewL(
-        CESMRPolicy* aPolicy,
+        const CESMRPolicy& aPolicy,
         MESMRFieldEventObserver& aEventObserver )
     {
     FUNC_LOG;
@@ -190,32 +212,38 @@ CESMREditorFieldStorage* CESMREditorFieldStorage::NewL(
 // CESMREditorFieldStorage::ConstructL
 // ---------------------------------------------------------------------------
 //
-void CESMREditorFieldStorage::ConstructL( CESMRPolicy* aPolicy )
+void CESMREditorFieldStorage::ConstructL( const CESMRPolicy& aPolicy )
     {
     FUNC_LOG;
     CESMRFieldStorage::BaseConstructL();
     iValidator =
-            CESMRValidatorFactory::CreateValidatorL (
-                    aPolicy->EventType() );
+            CESMRValidatorFactory::CreateValidatorL( aPolicy.EventType() );
     
     __ASSERT_DEBUG( iValidator, Panic( EESMREditorFieldStorageNoValidator) );
 
     iValidator->SetFieldEventQueue( &EventQueueL() );
     
-    RArray<TESMREntryField> fields = aPolicy->Fields();
+    RArray<TESMREntryField> fields = aPolicy.Fields();
     const TInt count(fields.Count());
     
     for (TInt i(0); i < count; i++ )
         {
         TESMREntryField entryField = fields[i];
-        TBool visible( entryField.iFieldViewMode == EESMRFieldTypeDefault);
+        TBool visible( entryField.iFieldViewMode == EESMRFieldTypeDefault );
         CESMRField* field = CreateEditorFieldL( iValidator, entryField );
         
-        CleanupStack::PushL( field );
-        AddFieldL( field, visible );
-        CleanupStack::Pop( field );
+        if( field->FieldViewMode() != EESMRFieldTypeDisabled )
+            {
+            CleanupStack::PushL( field );
+            AddFieldL( field, visible );
+            CleanupStack::Pop( field );
+            }
+        else
+            {
+            delete field;
+            field = NULL;
+            }
         }
-    
     }
         
 // ---------------------------------------------------------------------------
@@ -263,6 +291,81 @@ TInt CESMREditorFieldStorage::Validate(
         }
 
     return err;
+    }
+
+// ---------------------------------------------------------------------------
+// CESMREditorFieldStorage::ChangePolicyL
+// ---------------------------------------------------------------------------
+//
+void CESMREditorFieldStorage::ChangePolicyL(
+        const CESMRPolicy& aNewPolicy,
+        MESMRCalEntry& /*aEntry*/ )
+    {
+    MESMRFieldValidator* validator =
+        CESMRValidatorFactory::CreateValidatorL( aNewPolicy.EventType() );
+        
+    __ASSERT_DEBUG( validator, Panic( EESMREditorFieldStorageNoValidator) );
+    CleanupDeletePushL( validator );
+    
+    validator->SetFieldEventQueue( &EventQueueL() );
+    
+    // Iterate through policy and create fields into tmp array
+    RArray<TESMREntryField> fields = aNewPolicy.Fields();
+    
+    TInt count( fields.Count() );
+        
+    RCPointerArray< CESMRField > fieldArray;
+    CleanupClosePushL( fieldArray );
+    
+    fieldArray.ReserveL( count );    
+
+    CESMRField* field = NULL;
+    
+    // Append new fields to array
+    for (TInt i(0); i < count; ++i )
+        {
+        field = CreateEditorFieldL( validator, fields[i] );
+        // Append field
+        if( field->FieldViewMode() != EESMRFieldTypeDisabled )
+            {
+            fieldArray.AppendL( field );
+            }
+        else
+            {
+            delete field;
+            field = NULL;
+            }
+        }
+    
+    // Reseting field array from storage, so that it can be
+    // reused
+    Reset();
+    
+    count = fieldArray.Count();
+
+    // Reserve space in strorage for all required fields
+    ReserveL( count );
+    
+    // Insert fields from fieldArray into storage
+    for ( TInt i = 0; i < count; ++i )
+        {
+        AddFieldL( fieldArray[ i ] );
+        
+        TBool visible( fields[ i ].iFieldViewMode == EESMRFieldTypeDefault );
+        Field( i )->MakeVisible( visible );
+        }
+    
+    // Remove items from field array
+    for ( TInt i = 0; i < count; ++i )
+        {
+        fieldArray.Remove( 0 );
+        }
+
+    // Assign new validator
+    delete iValidator;
+    iValidator = validator;
+    CleanupStack::PopAndDestroy( &fieldArray );
+    CleanupStack::Pop( validator );
     }
 
 // EOF

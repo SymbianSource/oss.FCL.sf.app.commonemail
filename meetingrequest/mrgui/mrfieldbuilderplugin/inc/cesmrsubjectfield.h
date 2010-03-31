@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -21,19 +21,21 @@
 
 #include <e32cmn.h>
 #include <eikedwob.h>
-#include <AknsControlContext.h>
+#include <aknscontrolcontext.h>
 
-#include "cesmriconfield.h"
+#include "cesmrfield.h"
+#include "nmrbitmapmanager.h"
 
 class CESMREditor;
 class MESMRTitlePaneObserver;
-class CAknsFrameBackgroundControlContext;
+class CMRImage;
+class CAknsBasicBackgroundControlContext;
 
 /**
  * This class is a custom field control that shows the subject of calendar events
  */
 NONSHARABLE_CLASS( CESMRSubjectField ) :
-        public CESMRIconField,
+        public CESMRField,
         public MEikEdwinSizeObserver,
         public MEikEdwinObserver
     {
@@ -55,28 +57,33 @@ public:
      * Destructor.
      */
     virtual ~CESMRSubjectField();
-
-public: // From CESMRField
-    void InitializeL();
-    void InternalizeL( MESMRCalEntry& aEntry );
-    void ExternalizeL( MESMRCalEntry& aEntry );
-    void SetOutlineFocusL( TBool aFocus );
-    TInt ExpandedHeight() const;
-    void GetMinimumVisibleVerticalArea(TInt& aUpper, TInt& aLower);
-    void ListObserverSet();
-    void ExecuteGenericCommandL( TInt aCommand );
-public: // From MEikEdwinSizeObserver
-    TBool HandleEdwinSizeEventL( CEikEdwin* aEdwin, TEdwinSizeEvent aType, TSize aSize );
-
-public: // From MEikEdwinObserver
-    void HandleEdwinEventL( CEikEdwin *aEdwin, TEdwinEvent aEventType );
-
-public: // From CCoeControl
-    void ActivateL();
-    void PositionChanged();
     
 public: // Interface
     void SetTitlePaneObserver( MESMRTitlePaneObserver* aObserver );
+    
+protected: // From CESMRField
+    TSize MinimumSize();
+    void InitializeL();
+    void InternalizeL( MESMRCalEntry& aEntry );
+    void ExternalizeL( MESMRCalEntry& aEntry );
+    void SetOutlineFocusL( TBool aFocus );    
+    void GetCursorLineVerticalPos(TInt& aUpper, TInt& aLower);
+    void ListObserverSet();
+    TBool ExecuteGenericCommandL( TInt aCommand );
+
+protected: // From MEikEdwinSizeObserver
+    TBool HandleEdwinSizeEventL( CEikEdwin* aEdwin, TEdwinSizeEvent aType, TSize aSize );
+
+protected: // From MEikEdwinObserver
+    void HandleEdwinEventL(CEikEdwin* aEdwin,TEdwinEvent aEventType);
+
+protected: // From CCoeControl
+    TInt CountComponentControls() const;
+    CCoeControl* ComponentControl( TInt aInd ) const;
+    void SizeChanged();
+    void SetContainerWindowL( const CCoeControl& aContainer );
+    TKeyResponse OfferKeyEventL( const TKeyEvent& aEvent, 
+                                       TEventCode aType );
 
 private:
     /**
@@ -91,26 +98,30 @@ private:
      * @param aTextId default text id
      * @param aIconID icon id
      */
-    void ConstructL( TESMREntryFieldId aId, TInt aTextId, TAknsItemID aIconID );
-
+    void ConstructL( 
+            TESMREntryFieldId aId, 
+            TInt aTextId, 
+            NMRBitmapManager::TMRBitmapId aIconID );
+    
+    void SetPriorityIconL( TUint aPriority );
+    
 private:
     // Not owned. Text editor.
     CESMREditor* iSubject;
-
-    // Field size.
+    // Own: Field icon
+    CMRImage* iFieldIcon;
+    // Own: Priority icon
+    CMRImage* iPriorityIcon;
+    // Own: Edwin size
     TSize iSize;
-
-    // Default text id.
-    TInt iTextId;
-
     // Not owned
     MESMRTitlePaneObserver* iTitlePaneObserver;
-
-    // Background control context
-    MAknsControlContext* iBackground;
-
-    // Actual background for the editor
-    CAknsFrameBackgroundControlContext* iFrameBgContext;
+    // Field editor line count
+    TInt iLineCount;
+    // Own: Background for the editor when it is focused
+    CAknsBasicBackgroundControlContext* iBgControlContext;
+    // Stores current priority value 
+    TUint iCurrentPriority;
     };
 
 #endif  // CESMRSUBJECTFIELD_H

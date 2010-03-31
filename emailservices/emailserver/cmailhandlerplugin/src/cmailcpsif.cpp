@@ -1031,7 +1031,10 @@ void CMailCpsIf::ResetPublishedDataL( const TDesC& aContentId )
     inParam->AppendL( item );
 
     // Execute command
-    iMsgInterface->ExecuteCmdL( KDelete , *inParam, *outParam );
+    if ( iMsgInterface )
+    	{
+		iMsgInterface->ExecuteCmdL( KDelete , *inParam, *outParam );
+    	}
     
     CleanupStack::PopAndDestroy( cpData );
     item.Reset();

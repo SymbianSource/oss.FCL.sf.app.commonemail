@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -15,30 +15,34 @@
  *
 */
 
-
-#include "emailtrace.h"
-#include <calentry.h>
-#include <StringLoader.h>
-#include <esmrgui.rsg>
-#include <AknUtils.h>
-#include <AknsDrawUtils.h>
-#include <AknsFrameBackgroundControlContext.h>
-//<cmail>
-#include "cesmrurlparserplugin.h"
-//</cmail>
-
 #include "cesmrdescriptionfield.h"
 #include "mesmrlistobserver.h"
 #include "cesmreditor.h"
 #include "cesmrrichtextlink.h"
-#include "cesmrlayoutmgr.h"
 #include "esmrfieldbuilderdef.h"
 #include "cesmrfeaturesettings.h"
 #include "cesmrglobalnote.h"
+#include "nmrlayoutmanager.h"
+#include "nmrbitmapmanager.h"
+//<cmail>
+#include "cesmrurlparserplugin.h"
+//</cmail>
 
-namespace{ // codescanner::namespace
-const TInt KFieldInnerShrink(3);
-}//namespace
+#include <calentry.h>
+#include <stringloader.h>
+#include <esmrgui.rsg>
+#include <aknutils.h>
+#include <aknsbasicbackgroundcontrolcontext.h>
+#include <eikmfne.h>
+
+// DEBUG
+#include "emailtrace.h"
+
+namespace // codescanner::namespace
+    {
+    /// Field's component count, iDescription
+    const TInt KComponentCount( 1 );
+    }//namespace
 
 // ======== MEMBER FUNCTIONS ========
 
@@ -63,11 +67,10 @@ CESMRDescriptionField* CESMRDescriptionField::NewL( )
 CESMRDescriptionField::~CESMRDescriptionField( )
     {
     FUNC_LOG;
-    delete iFrameBgContext;
-    
     delete iLocationLink;
-    
     delete iFeatures;
+    delete iBgControlContext;
+    delete iUrlParser;
     }
 
 // ---------------------------------------------------------------------------
@@ -77,7 +80,7 @@ CESMRDescriptionField::~CESMRDescriptionField( )
 void CESMRDescriptionField::InitializeL()
     {
     FUNC_LOG;
-    iDescription->SetFontL( iLayout->Font (iCoeEnv, iFieldId ), iLayout );
+    // Do nothing
     }
 
 // ---------------------------------------------------------------------------
@@ -91,7 +94,8 @@ void CESMRDescriptionField::InternalizeL( MESMRCalEntry& aEntry )
     HBufC* summary = entry.DescriptionL().AllocLC ( );
 
     // externalize is done only when there is text and its NOT the default one.
-    if ( summary->Length ( )> 0 && iDescription->DefaultText().Compare (*summary )!= 0 )
+    if ( summary->Length ( )> 0 &&
+            iDescription->DefaultText().Compare (*summary )!= 0 )
         {
         iDescription->ClearSelectionAndSetTextL ( *summary );
         if ( FeaturesL().FeatureSupported(
@@ -116,15 +120,15 @@ void CESMRDescriptionField::ExternalizeL( MESMRCalEntry& aEntry )
     {
     FUNC_LOG;
     HBufC* buf = iDescription->GetTextInHBufL();
-
+    CCalEntry& entry = aEntry.Entry();
+    
     if( buf )
         {
         CleanupStack::PushL( buf );
 
         if( iDescription->DefaultText().Compare( *buf ) != 0 )
             {
-            CCalEntry& entry = aEntry.Entry();
-                        
+            // Edited text. Add link to description text
             HBufC* newBuf = AddLinkToTextL( *buf );
             if( newBuf )
                 {
@@ -134,16 +138,24 @@ void CESMRDescriptionField::ExternalizeL( MESMRCalEntry& aEntry )
                 }
             entry.SetDescriptionL( *buf );
             }
+        else if ( iLocationLink )
+            {
+            // Location link set
+            entry.SetDescriptionL( iLocationLink->Value() );
+            }
+        else if ( entry.DescriptionL().Length() != 0 )
+            {
+            // Clear old description
+            entry.SetDescriptionL( KNullDesC );
+            }
         CleanupStack::PopAndDestroy( buf );
         }
     else if( iLocationLink )
         {
-        CCalEntry& entry = aEntry.Entry();
         entry.SetDescriptionL( iLocationLink->Value() );
         }
     else
         {
-        CCalEntry& entry = aEntry.Entry();
         entry.SetDescriptionL( KNullDesC );
         }
     }
@@ -163,16 +175,6 @@ void CESMRDescriptionField::SetOutlineFocusL( TBool aFocus )
     }
 
 // ---------------------------------------------------------------------------
-// CESMRDescriptionField::ExpandedHeight
-// ---------------------------------------------------------------------------
-//
-TInt CESMRDescriptionField::ExpandedHeight( ) const
-    {
-    FUNC_LOG;
-    return iSize.iHeight;
-    }
-
-// ---------------------------------------------------------------------------
 // CESMRDescriptionField::OfferKeyEventL
 // ---------------------------------------------------------------------------
 //
@@ -180,7 +182,17 @@ TKeyResponse CESMRDescriptionField::OfferKeyEventL(const TKeyEvent& aEvent,
         TEventCode aType )
     {
     FUNC_LOG;
-    return iDescription->OfferKeyEventL( aEvent, aType );
+    TKeyResponse response( EKeyWasNotConsumed);
+    response = iDescription->OfferKeyEventL( aEvent, aType );
+
+    if ( aType == EEventKey &&
+         ( aEvent.iScanCode != EStdKeyUpArrow &&
+          aEvent.iScanCode != EStdKeyDownArrow ))
+        {
+        iDescription->DrawDeferred();
+        }
+
+    return response;
     }
 
 // ---------------------------------------------------------------------------
@@ -191,24 +203,31 @@ TBool CESMRDescriptionField::HandleEdwinSizeEventL(CEikEdwin* /*aEdwin*/,
         TEdwinSizeEvent /*aType*/, TSize aSize )
     {
     FUNC_LOG;
-    iSize = aSize;
-    iSize.iHeight -= KEditorDifference;
-
-    if (iLayout->CurrentFontZoom() == EAknUiZoomSmall ||
-        iLayout->CurrentFontZoom() == EAknUiZoomVerySmall)
+    if ( aSize != iSize )
         {
-        iSize.iHeight -= KEditorDifference;
-        }
+        iSize = aSize;
 
-    if ( iObserver )
-        {
-        iObserver->ControlSizeChanged ( this );
-        }
+        if ( iObserver )
+            {
+            iObserver->ControlSizeChanged ( this );
+            }
 
-    if( iFrameBgContext )
-        {
-        TRect visibleRect = CalculateVisibleRect( iDescription->Rect() );
-        iFrameBgContext->SetFrameRects( visibleRect, visibleRect );
+        if( iDescription->LineCount() != iLineCount )
+            {
+            // Line count has changed, the whole component needs
+            // to be redrawn
+            DrawDeferred();
+
+            // Also if new line count is less than previous one, we
+            // need to redraw the parent also (this is the last field).
+            // Otherwise the removed line will remain on the screen
+            // until parent is redrawn.
+            if( iDescription->LineCount() < iLineCount )
+                {
+                Parent()->DrawDeferred();
+                }
+            iLineCount = iDescription->LineCount();
+            }
         }
 
     return ETrue;
@@ -218,11 +237,12 @@ TBool CESMRDescriptionField::HandleEdwinSizeEventL(CEikEdwin* /*aEdwin*/,
 // CESMRDescriptionField::HandleEdwinEventL
 // ---------------------------------------------------------------------------
 //
-void CESMRDescriptionField::HandleEdwinEventL(CEikEdwin* aEdwin,TEdwinEvent aEventType)
-	{
+void CESMRDescriptionField::HandleEdwinEventL(
+        CEikEdwin* aEdwin,TEdwinEvent aEventType)
+    {
     FUNC_LOG;
     if ( aEdwin == iDescription
-    		&& aEventType == EEventTextUpdate )
+         && aEventType == EEventTextUpdate )
         {
         HBufC* text = iDescription->GetTextInHBufL();
         if ( text )
@@ -230,61 +250,23 @@ void CESMRDescriptionField::HandleEdwinEventL(CEikEdwin* aEdwin,TEdwinEvent aEve
             CleanupStack::PushL( text );
             TInt textLength( text->Length() );
             if ( iDescription->GetLimitLength() <= textLength )
-            	{
-            	NotifyEventAsyncL( EESMRCmdSizeExceeded );
-            	}            
+                {
+                NotifyEventAsyncL( EESMRCmdSizeExceeded );
+                }
             CleanupStack::PopAndDestroy( text );
             }
         }
-	}
+    }
 
 // ---------------------------------------------------------------------------
 // CESMRDescriptionField::CESMRDescriptionField
 // ---------------------------------------------------------------------------
 //
-CESMRDescriptionField::CESMRDescriptionField() :
-    iSize( TSize( 0, 0 ))
+CESMRDescriptionField::CESMRDescriptionField()
     {
     FUNC_LOG;
-    }
-
-// ---------------------------------------------------------------------------
-// CESMRDescriptionField::ActivateL
-// ---------------------------------------------------------------------------
-//
-void CESMRDescriptionField::ActivateL()
-    {
-    FUNC_LOG;
-    CCoeControl::ActivateL();
-    TRect rect(TPoint(iDescription->Position()), iDescription->Size());
-    TRect inner(rect);
-    inner.Shrink( KFieldInnerShrink, KFieldInnerShrink );
-    TRect outer(rect);
-
-    delete iFrameBgContext;
-    iFrameBgContext = NULL;
-    iFrameBgContext = CAknsFrameBackgroundControlContext::NewL( KAknsIIDQsnFrInput, 
-                                                                outer, 
-                                                                inner, 
-                                                                EFalse );
-
-    iFrameBgContext->SetParentContext( iBackground );
-    iDescription->SetSkinBackgroundControlContextL( iFrameBgContext );
-    }
-
-// ---------------------------------------------------------------------------
-// CESMRDescriptionField::PositionChanged()
-// ---------------------------------------------------------------------------
-//
-void CESMRDescriptionField::PositionChanged()
-    {
-    FUNC_LOG;
-    CCoeControl::PositionChanged();
-    if( iFrameBgContext )
-        {
-        TRect visibleRect = CalculateVisibleRect( iDescription->Rect() );
-        iFrameBgContext->SetFrameRects( visibleRect, visibleRect );
-        }
+    SetFieldId( EESMRFieldDescription );
+    SetFocusType( EESMRHighlightFocus );
     }
 
 // ---------------------------------------------------------------------------
@@ -294,32 +276,28 @@ void CESMRDescriptionField::PositionChanged()
 void CESMRDescriptionField::ConstructL()
     {
     FUNC_LOG;
-    SetFieldId( EESMRFieldDescription );
-    SetExpandable( );
     iDescription = CESMREditor::NewL( this, 1, KTextLimit,
                                     CEikEdwin::EResizable |
                                     CEikEdwin::EAvkonEditor );
     iDescription->SetEdwinSizeObserver( this );
     iDescription->SetEdwinObserver( this );
+    CESMRField::ConstructL( iDescription );
 
     HBufC* buf = StringLoader::LoadLC( R_QTN_MEET_REQ_DETAILS_FIELD );
     iDescription->SetDefaultTextL( buf ); // ownership transferred
     CleanupStack::Pop( buf );
 
-    iBackground = AknsDrawUtils::ControlContext( this );
+    // Setting background instead of theme skin
+    NMRBitmapManager::TMRBitmapStruct bitmapStruct;
+    bitmapStruct = NMRBitmapManager::GetBitmapStruct( NMRBitmapManager::EMRBitmapInputCenter );
 
-    CESMRField::ConstructL( iDescription );
-    }
+    TRect initialisationRect( 0, 0, 0, 0 );
+    iBgControlContext = CAknsBasicBackgroundControlContext::NewL(
+                bitmapStruct.iItemId,
+                initialisationRect,
+                EFalse );
 
-// ---------------------------------------------------------------------------
-// CESMRDescriptionField::GetMinimumVisibleVerticalArea
-// ---------------------------------------------------------------------------
-//
-void CESMRDescriptionField::GetMinimumVisibleVerticalArea(TInt& aUpper, TInt& aLower)
-    {
-    FUNC_LOG;
-    aLower = iDescription->CurrentLineNumber() * iDescription->RowHeight();
-    aUpper = aLower - iDescription->RowHeight();
+    iDescription->SetSkinBackgroundControlContextL( iBgControlContext );
     }
 
 // ---------------------------------------------------------------------------
@@ -333,23 +311,29 @@ void CESMRDescriptionField::ListObserverSet()
     }
 
 // ---------------------------------------------------------------------------
+// CESMRDescriptionField::GetCursorLineVerticalPos
+// ---------------------------------------------------------------------------
+//
+void CESMRDescriptionField::GetCursorLineVerticalPos(TInt& aUpper, TInt& aLower)
+    {
+    aLower = iDescription->CurrentLineNumber() * iDescription->RowHeight();
+    aUpper = aLower - iDescription->RowHeight();
+    }
+
+// ---------------------------------------------------------------------------
 // CESMRDescriptionField::StoreLinkL
 // ---------------------------------------------------------------------------
 //
 void CESMRDescriptionField::StoreLinkL( MESMRCalEntry& aEntry )
     {
     FUNC_LOG;
-    TInt command( EESMRCmdDisableWaypointIcon );
-    CESMRUrlParserPlugin* urlParser = CESMRUrlParserPlugin::NewL();
-    CleanupStack::PushL( urlParser );
     TPtrC urlPointer;
     TInt position;
-    position = urlParser->FindLocationUrl( aEntry.Entry().DescriptionL(), 
+    position = UrlParserL().FindLocationUrl( aEntry.Entry().DescriptionL(),
                                            urlPointer );
-    CleanupStack::PopAndDestroy( urlParser );
+
     if ( position >= KErrNone )
         {
-        command = EESMRCmdEnableWaypointIcon;
         HBufC* description =
             HBufC::NewL( aEntry.Entry().DescriptionL().Length() );
         CleanupStack::PushL( description );
@@ -363,7 +347,8 @@ void CESMRDescriptionField::StoreLinkL( MESMRCalEntry& aEntry )
             }
         else
             {
-            iDescription->ClearSelectionAndSetTextL( iDescription->DefaultText() );
+            iDescription->ClearSelectionAndSetTextL(
+                    iDescription->DefaultText() );
             }
         CleanupStack::PopAndDestroy( description );
 
@@ -373,16 +358,17 @@ void CESMRDescriptionField::StoreLinkL( MESMRCalEntry& aEntry )
             iLocationLink = NULL;
             }
         HBufC* showOnMapBuf =
-            StringLoader::LoadLC( R_MEET_REQ_LINK_SHOW_ON_MAP );        
-        iLocationLink = CESMRRichTextLink::NewL( position, 
-                                     showOnMapBuf->Length(), 
+            StringLoader::LoadLC( R_MEET_REQ_LINK_SHOW_ON_MAP );
+        iLocationLink = CESMRRichTextLink::NewL( position,
+                                     showOnMapBuf->Length(),
                                      urlPointer,
                                      CESMRRichTextLink::ETypeLocationUrl,
                                      CESMRRichTextLink::ETriggerKeyOk );
-        CleanupStack::PopAndDestroy( showOnMapBuf );        
+        CleanupStack::PopAndDestroy( showOnMapBuf );
+
+        StoreGeoValueL( aEntry.Entry(),
+                        urlPointer );
         }
-    
-    NotifyEventL( command );
     }
 
 // ---------------------------------------------------------------------------
@@ -396,7 +382,7 @@ HBufC* CESMRDescriptionField::AddLinkToTextL( const TDesC& aBuf )
         {
         TInt newTextLen = aBuf.Length() + iLocationLink->Value().Length() + 1;
         HBufC* retBuf = HBufC::NewL( newTextLen );
-        
+
         retBuf->Des().Append( iLocationLink->Value() );
         _LIT( KParagraphSeparator, "\x2029" ); // unicode paragraph separator
         // add the separator after url
@@ -422,7 +408,7 @@ CESMRFeatureSettings& CESMRDescriptionField::FeaturesL()
         {
         iFeatures = CESMRFeatureSettings::NewL();
         }
-    
+
     return *iFeatures;
     }
 
@@ -430,37 +416,184 @@ CESMRFeatureSettings& CESMRDescriptionField::FeaturesL()
 // CESMRDescriptionField::ExecuteGenericCommandL
 // ---------------------------------------------------------------------------
 //
-void CESMRDescriptionField::ExecuteGenericCommandL( 
-		TInt aCommand )
-	{
+TBool CESMRDescriptionField::ExecuteGenericCommandL(
+        TInt aCommand )
+    {
     FUNC_LOG;
-	if ( EESMRCmdSizeExceeded == aCommand )
-		{
-		CESMRGlobalNote::ExecuteL ( 
-				CESMRGlobalNote::EESMRCannotDisplayMuchMore );
-		
-		HBufC* text = iDescription->GetTextInHBufL();
-		CleanupDeletePushL( text );
-		if ( text )
-			{    
-	    	TInt curPos = iDescription->CursorPos();    	
-	    	if( curPos > iDescription->GetLimitLength() - 1 )
-	    		curPos = iDescription->GetLimitLength() - 1;
-	    	HBufC* newText = 
-	    		text->Des().Mid( 0, iDescription->GetLimitLength() - 1 ).AllocLC();    	
-	    	
-	    	iDescription->SetTextL ( newText );
-	    	CleanupStack::PopAndDestroy( newText );
-	    	newText = NULL;
+    TBool isUsed( EFalse );
+    if ( EESMRCmdSizeExceeded == aCommand )
+        {
+        CESMRGlobalNote::ExecuteL(
+                CESMRGlobalNote::EESMRCannotDisplayMuchMore );
 
-	    	iDescription->SetCursorPosL (curPos, EFalse );
-	    	iDescription->HandleTextChangedL();
-	    	iDescription->UpdateScrollBarsL();
-	    	SetFocus(ETrue);
-			}
-		CleanupStack::PopAndDestroy( text );	
-		}
-	}
+        HBufC* text = iDescription->GetTextInHBufL();
+        CleanupDeletePushL( text );
+        if ( text )
+            {
+            TInt curPos = iDescription->CursorPos();
+            if( curPos > iDescription->GetLimitLength() - 1 )
+                curPos = iDescription->GetLimitLength() - 1;
+            HBufC* newText =
+                text->Des().Mid( 0,
+                        iDescription->GetLimitLength() - 1 ).AllocLC();
 
+            iDescription->SetTextL ( newText );
+            CleanupStack::PopAndDestroy( newText );
+            newText = NULL;
+
+            iDescription->SetCursorPosL (curPos, EFalse );
+            iDescription->HandleTextChangedL();
+            iDescription->UpdateScrollBarsL();
+            SetFocus(ETrue);
+            }
+        CleanupStack::PopAndDestroy( text );
+        isUsed = ETrue;
+        }
+    else if ( EESMRCmdDisableWaypointIcon == aCommand )
+        {
+        isUsed = ETrue;
+        
+        // Clear location link
+        delete iLocationLink;
+        iLocationLink = NULL;
+        }
+    
+    return isUsed;
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRDescriptionField::CountComponentControls
+// ---------------------------------------------------------------------------
+//
+TInt CESMRDescriptionField::CountComponentControls() const
+    {
+    return KComponentCount;
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRDescriptionField::ComponentControl
+// ---------------------------------------------------------------------------
+//
+CCoeControl* CESMRDescriptionField::ComponentControl( TInt aInd ) const
+    {
+    if( aInd == 0 )
+        {
+        return iDescription;
+        }
+    return NULL;
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRDescriptionField::SizeChanged
+// ---------------------------------------------------------------------------
+//
+void CESMRDescriptionField::SizeChanged()
+    {
+    TRect rect( Rect() );
+
+    // Optimization: Layouting only when necessary
+    if( iFieldRect != rect )
+        {
+        rect = NMRLayoutManager::GetFieldRowLayoutRect( rect, 1 ).Rect();
+
+        TAknLayoutText editorLayoutText = NMRLayoutManager::GetLayoutText(
+                        rect,
+                        NMRLayoutManager::EMRTextLayoutMultiRowTextEditor );
+
+        TRect editorRect = editorLayoutText.TextRect();
+
+        TRect bgRect( editorRect );
+        // Move focus rect so that it's relative to field's position.
+        bgRect.Move( -Position() );
+        if( iSize.iHeight > 0 )
+            {
+            bgRect.SetHeight( iSize.iHeight );
+            }
+        SetFocusRect( bgRect );
+
+        iDescription->SetRect(
+                TRect( editorRect.iTl,
+                        TSize( editorRect.Width(), iSize.iHeight ) ) );
+
+        // Set also correct font for description field
+        TRAP_IGNORE( iDescription->SetFontL( editorLayoutText.Font() ) );
+
+        iFieldRect = rect;
+        }
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRDescriptionField::MinimumSize
+// ---------------------------------------------------------------------------
+//
+TSize CESMRDescriptionField::MinimumSize()
+    {
+    TRect rect( Parent()->Rect() );
+    TRect listRect =
+        NMRLayoutManager::GetLayoutRect(
+                rect,
+                NMRLayoutManager::EMRLayoutListArea ).Rect();
+    TRect fieldRect =
+        NMRLayoutManager::GetFieldLayoutRect( listRect, 1 ).Rect();
+    TRect rowRect =
+        NMRLayoutManager::GetFieldRowLayoutRect( fieldRect, 1 ).Rect();
+    TRect viewerRect =
+        NMRLayoutManager::GetLayoutText(
+                rowRect,
+                NMRLayoutManager::EMRTextLayoutMultiRowTextEditor ).TextRect();
+
+    fieldRect.Resize( 0, iSize.iHeight - viewerRect.Height() );
+
+    return fieldRect.Size();
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRRepeatUntilField::SetContainerWindowL
+// ---------------------------------------------------------------------------
+//
+void CESMRDescriptionField::SetContainerWindowL(
+        const CCoeControl& aContainer )
+    {
+    CCoeControl::SetContainerWindowL( aContainer );
+    iDescription->SetContainerWindowL( aContainer );
+
+    iDescription->SetParent( this );
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRDescriptionField::StoreGeoValueL
+// ---------------------------------------------------------------------------
+//
+void CESMRDescriptionField::StoreGeoValueL(
+        CCalEntry& aCalEntry,
+        const TDesC& aLocationUrl )
+    {
+    TReal lat, lon;
+    CCalGeoValue* geoVal = aCalEntry.GeoValueL();
+
+    if ( !geoVal || ! geoVal->GetLatLong( lat, lon ) )
+        {
+        // GEO value not set. Convert URL
+        geoVal = UrlParserL().CreateGeoValueLC( aLocationUrl );
+        aCalEntry.SetGeoValueL( *geoVal );
+        CleanupStack::Pop( geoVal );
+
+        NotifyEventL( EESMRCmdEnableWaypointIcon );
+        }
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRDescriptionField::UrlParserL
+// ---------------------------------------------------------------------------
+//
+CESMRUrlParserPlugin& CESMRDescriptionField::UrlParserL()
+    {
+    if ( !iUrlParser )
+        {
+        iUrlParser = CESMRUrlParserPlugin::NewL();
+        }
+
+    return *iUrlParser;
+    }
 
 // EOF

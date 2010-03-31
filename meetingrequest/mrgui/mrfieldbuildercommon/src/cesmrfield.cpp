@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -18,12 +18,11 @@
 #include "cesmrfield.h"
 
 #include "esmrcommands.h"
-#include "cesmrborderlayer.h"
-#include "cesmrlayoutmgr.h"
 #include "nmrlayoutmanager.h"
 #include "mesmrfieldeventqueue.h"
 #include "cesmrfieldcommandevent.h"
 #include "cmrbackground.h"
+#include "esmrcommands.h"
 
 #include "emailtrace.h"
 
@@ -31,20 +30,22 @@
 #include <eikenv.h>
 #include <baclipb.h>
 #include <eikbtgpc.h>
-#include <StringLoader.h>
-#include <AknUtils.h>
+#include <stringloader.h>
+#include <aknutils.h>
+#include <touchfeedback.h>
 
 // ======== MEMBER FUNCTIONS ========
 
 // ---------------------------------------------------------------------------
-// CESMRField::CESMRField()
+// CESMRField::CESMRField
 // ---------------------------------------------------------------------------
 //
 EXPORT_C CESMRField::CESMRField()
     : iCustomMsk( EFalse ),
       iDisableRedraw( EFalse ),
       iDefaultMskVisible( EFalse ),
-      iMskVisible( EFalse )
+      iMskVisible( EFalse ),
+      iLocked( EFalse )
     {
     FUNC_LOG;
     // do nothing
@@ -52,13 +53,13 @@ EXPORT_C CESMRField::CESMRField()
 
 
 // ---------------------------------------------------------------------------
-// CESMRField::~CESMRField()
+// CESMRField::~CESMRField
 // ---------------------------------------------------------------------------
 //
 EXPORT_C CESMRField::~CESMRField()
     {
     FUNC_LOG;
-    delete iBorder;
+    delete iExtControl;
     if ( iEventQueue )
         {
         iEventQueue->RemoveObserver( this );
@@ -67,37 +68,23 @@ EXPORT_C CESMRField::~CESMRField()
     }
 
 // ---------------------------------------------------------------------------
-// CESMRField::SetExpandable()
+// CESMRField::ConstructL
 // ---------------------------------------------------------------------------
 //
-EXPORT_C void CESMRField::SetExpandable()
+EXPORT_C void CESMRField::ConstructL(
+        CCoeControl* aControl )
     {
     FUNC_LOG;
-    iExpandable = ETrue;
+    iExtControl = aControl;
+
+    // TODO: This should be made in ConstructL instead as soon we
+    //       get rid of old CESMRLayoutManager.
+    iBackground = CMRBackground::NewL();
+    this->SetBackground( iBackground );
     }
 
 // ---------------------------------------------------------------------------
-// CESMRField::IsExpandable()
-// ---------------------------------------------------------------------------
-//
-EXPORT_C TBool CESMRField::IsExpandable() const
-    {
-    FUNC_LOG;
-    return iExpandable;
-    }
-
-// ---------------------------------------------------------------------------
-// CESMRField::ExpandedHeight()
-// ---------------------------------------------------------------------------
-//
-EXPORT_C TInt CESMRField::ExpandedHeight() const
-    {
-    FUNC_LOG;
-    return 0;
-    }
-
-// ---------------------------------------------------------------------------
-// CESMRField::InitializeL()
+// CESMRField::InitializeL
 // ---------------------------------------------------------------------------
 //
 EXPORT_C void CESMRField::InitializeL()
@@ -107,7 +94,7 @@ EXPORT_C void CESMRField::InitializeL()
     }
 
 // ---------------------------------------------------------------------------
-// CESMRField::FontChangedL()
+// CESMRField::FontChangedL
 // ---------------------------------------------------------------------------
 //
 EXPORT_C void CESMRField::FontChangedL()
@@ -118,7 +105,7 @@ EXPORT_C void CESMRField::FontChangedL()
     }
 
 // ---------------------------------------------------------------------------
-// CESMRField::SetFieldId()
+// CESMRField::SetFieldId
 // ---------------------------------------------------------------------------
 //
 EXPORT_C void CESMRField::SetFieldId( TESMREntryFieldId aFieldId )
@@ -127,8 +114,30 @@ EXPORT_C void CESMRField::SetFieldId( TESMREntryFieldId aFieldId )
     iFieldId = aFieldId;
     }
 
+
 // ---------------------------------------------------------------------------
-// CESMRField::FieldId()
+// CESMRField::SetPreItemIndex
+// ---------------------------------------------------------------------------
+//
+EXPORT_C void CESMRField::SetPreItemIndex( TInt aPreItemIndex )
+    {
+    FUNC_LOG;
+    iPreItemIndex = aPreItemIndex;
+    }
+
+
+// ---------------------------------------------------------------------------
+// CESMRField::SetCurrentItemIndex
+// ---------------------------------------------------------------------------
+//
+EXPORT_C void CESMRField::SetCurrentItemIndex( TInt aCurrentItemIndex )
+    {
+    FUNC_LOG;
+    iCurrentItemIndex = aCurrentItemIndex;
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRField::FieldId
 // ---------------------------------------------------------------------------
 //
 EXPORT_C TESMREntryFieldId CESMRField::FieldId() const
@@ -138,15 +147,23 @@ EXPORT_C TESMREntryFieldId CESMRField::FieldId() const
     }
 
 // ---------------------------------------------------------------------------
-// CESMRField::ConstructL()
+// CESMRField::PreItemIndex
 // ---------------------------------------------------------------------------
 //
-EXPORT_C void CESMRField::ConstructL( 
-		CCoeControl* aControl, TESMRFieldFocusType aFocusType )
+EXPORT_C TInt CESMRField::PreItemIndex() const
     {
     FUNC_LOG;
-    iBorder = CESMRBorderLayer::NewL( aControl, aFocusType );
-    iBorder->SetParent( this );
+    return iPreItemIndex;
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRField::CurrentItemIndex
+// ---------------------------------------------------------------------------
+//
+EXPORT_C TInt CESMRField::CurrentItemIndex() const
+    {
+    FUNC_LOG;
+    return iCurrentItemIndex;
     }
 
 // ---------------------------------------------------------------------------
@@ -157,9 +174,9 @@ EXPORT_C void CESMRField::SizeChanged()
     {
     FUNC_LOG;
     TRect rect( Rect() );
-    if ( iBorder )
+    if ( iExtControl )
         {
-        iBorder->SetRect( rect );
+        iExtControl->SetRect( rect );
         }
     }
 
@@ -171,7 +188,7 @@ EXPORT_C TInt CESMRField::CountComponentControls() const
     {
     FUNC_LOG;
     TInt count( 0 );
-    if ( iBorder )
+    if ( iExtControl )
     	{
         ++count;
     	}
@@ -180,17 +197,17 @@ EXPORT_C TInt CESMRField::CountComponentControls() const
     }
 
 // ---------------------------------------------------------------------------
-// CESMRField::ComponentControl()
+// CESMRField::ComponentControl
 // ---------------------------------------------------------------------------
 //
 EXPORT_C CCoeControl* CESMRField::ComponentControl( TInt /*aInd*/ ) const
     {
     FUNC_LOG;
-    return iBorder;
+    return iExtControl;
     }
 
 // ---------------------------------------------------------------------------
-// CESMRField::MinimumSize()
+// CESMRField::MinimumSize
 // ---------------------------------------------------------------------------
 //
 EXPORT_C TSize CESMRField::MinimumSize()
@@ -204,21 +221,53 @@ EXPORT_C TSize CESMRField::MinimumSize()
     }
 
 // ---------------------------------------------------------------------------
-// CESMRField::SetContainerWindowL()
+// CESMRField::HandlePointerEventL
+// ---------------------------------------------------------------------------
+//
+EXPORT_C void CESMRField::HandlePointerEventL(
+        const TPointerEvent& aPointerEvent )
+    {
+    FUNC_LOG;
+    // Sanity check that pointer event occurs in field area
+    if ( Rect().Contains( aPointerEvent.iPosition ) )
+        {
+        if ( aPointerEvent.iType == TPointerEvent::EButton1Up )
+            {
+            if ( !HandleSingletapEventL( aPointerEvent.iPosition ) )
+                {
+                // Provide raw pointer event to field
+                HandleRawPointerEventL( aPointerEvent );
+                }
+            }
+        else // Provide other pointer events to fields
+            {
+            if ( !HandleRawPointerEventL( aPointerEvent ) )
+                {
+                // Provide pointer events to child components if field
+                // did not already consume the event
+                CCoeControl::HandlePointerEventL( aPointerEvent );
+                }
+            }
+        }
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRField::SetContainerWindowL
 // ---------------------------------------------------------------------------
 //
 EXPORT_C void CESMRField::SetContainerWindowL(const CCoeControl& aContainer)
     {
     FUNC_LOG;
     CCoeControl::SetContainerWindowL( aContainer );
-    if ( iBorder )
+    if ( iExtControl )
         {
-        iBorder->SetContainerWindowL( aContainer );
+        iExtControl->SetContainerWindowL( aContainer );
+        iExtControl->SetParent( this );
         }
     }
 
 // ---------------------------------------------------------------------------
-// CESMRField::SetListObserver()
+// CESMRField::SetListObserver
 // ---------------------------------------------------------------------------
 //
 EXPORT_C void CESMRField::SetListObserver( MESMRListObserver* aObserver )
@@ -229,7 +278,7 @@ EXPORT_C void CESMRField::SetListObserver( MESMRListObserver* aObserver )
     }
 
 // ---------------------------------------------------------------------------
-// CESMRField::SetListObserver()
+// CESMRField::ListObserverSet
 // ---------------------------------------------------------------------------
 //
 EXPORT_C void CESMRField::ListObserverSet()
@@ -239,49 +288,31 @@ EXPORT_C void CESMRField::ListObserverSet()
     }
 
 // ---------------------------------------------------------------------------
-// CESMRField::SetLayoutManager()
+// CESMRField::OfferKeyEventL
 // ---------------------------------------------------------------------------
 //
-EXPORT_C void CESMRField::SetLayoutManager( CESMRLayoutManager* aLayout )
-    {
-    FUNC_LOG;
-    iLayout = aLayout;
-    if ( iBorder )
-        {
-        iBorder->SetLayoutManager( iLayout );
-        }
-    TRAP_IGNORE(
-            iBackground = CMRBackground::NewL( *aLayout );
-            this->SetBackground( iBackground );
-            );
-    }
-
-// ---------------------------------------------------------------------------
-// CESMRField::OfferKeyEventL()
-// ---------------------------------------------------------------------------
-//
-EXPORT_C TKeyResponse CESMRField::OfferKeyEventL( 
+EXPORT_C TKeyResponse CESMRField::OfferKeyEventL(
 		const TKeyEvent& aEvent, TEventCode aType )
     {
     FUNC_LOG;
-    if ( iBorder )
+    if ( iExtControl )
         {
-        return iBorder->OfferKeyEventL( aEvent, aType );
+        return iExtControl->OfferKeyEventL( aEvent, aType );
         }
     return EKeyWasNotConsumed;
     }
 
 // ---------------------------------------------------------------------------
-// CESMRField::SetOutlineFocusL()
+// CESMRField::SetOutlineFocusL
 // ---------------------------------------------------------------------------
 //
 EXPORT_C void CESMRField::SetOutlineFocusL( TBool aFocus )
     {
     FUNC_LOG;
     iOutlineFocus = aFocus;
-    if ( iBorder )
+    if ( iExtControl )
         {
-        iBorder->SetOutlineFocusL( aFocus );
+        iExtControl->SetFocus( aFocus );
         }
     if ( aFocus )
         {
@@ -300,7 +331,7 @@ EXPORT_C void CESMRField::SetOutlineFocusL( TBool aFocus )
     }
 
 // ---------------------------------------------------------------------------
-// CESMRField::OkToLoseFocusL()
+// CESMRField::OkToLoseFocusL
 // ---------------------------------------------------------------------------
 //
 EXPORT_C TBool CESMRField::OkToLoseFocusL( // codescanner::LFunctionCantLeave
@@ -323,7 +354,18 @@ EXPORT_C void CESMRField::GetMinimumVisibleVerticalArea(
     }
 
 // ---------------------------------------------------------------------------
-// CESMRField::InternalizeL()
+// CESMRField::GetCursorLineVerticalPos
+// ---------------------------------------------------------------------------
+//
+EXPORT_C void CESMRField::GetCursorLineVerticalPos(TInt& aUpper, TInt& aLower)
+    {
+    FUNC_LOG;
+    aUpper = 0;
+    aLower = Rect().iBr.iY - Rect().iTl.iY;
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRField::InternalizeL
 // ---------------------------------------------------------------------------
 //
 EXPORT_C void CESMRField::InternalizeL( // codescanner::LFunctionCantLeave
@@ -334,7 +376,7 @@ EXPORT_C void CESMRField::InternalizeL( // codescanner::LFunctionCantLeave
     }
 
 // ---------------------------------------------------------------------------
-// CESMRField::ExternalizeL()
+// CESMRField::ExternalizeL
 // ---------------------------------------------------------------------------
 //
 EXPORT_C void CESMRField::ExternalizeL( // codescanner::LFunctionCantLeave
@@ -345,21 +387,32 @@ EXPORT_C void CESMRField::ExternalizeL( // codescanner::LFunctionCantLeave
     }
 
 // ---------------------------------------------------------------------------
-// CESMRField::ExecuteGenericCommandL()
+// CESMRField::ExecuteGenericCommandL
 // ---------------------------------------------------------------------------
 //
-EXPORT_C void CESMRField::ExecuteGenericCommandL( // codescanner::LFunctionCantLeave
-        TInt /*aCommand*/ )
+EXPORT_C TBool CESMRField::ExecuteGenericCommandL( TInt /*aCommand*/ )
     {
     FUNC_LOG;
-    /* Empty implementation, subclasses should overwrite */
+    return EFalse;
+    /* Subclasses should overwrite */
     }
 
 // ---------------------------------------------------------------------------
-// CESMRField::SetTitlePaneObserver()
+// CESMRField::LongtapDetectedL
 // ---------------------------------------------------------------------------
 //
-EXPORT_C void CESMRField::SetTitlePaneObserver( 
+EXPORT_C void CESMRField::LongtapDetectedL( const TPoint& aPosition )
+    {
+    FUNC_LOG;
+
+    HandleLongtapEventL( aPosition );
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRField::SetTitlePaneObserver
+// ---------------------------------------------------------------------------
+//
+EXPORT_C void CESMRField::SetTitlePaneObserver(
 		MESMRTitlePaneObserver* /*aObserver*/ )
     {
     FUNC_LOG;
@@ -367,109 +420,103 @@ EXPORT_C void CESMRField::SetTitlePaneObserver(
     }
 
 // ---------------------------------------------------------------------------
-// CESMRField::ChangeMiddleSoftKeyL()
+// CESMRField::ChangeMiddleSoftKeyL
 // ---------------------------------------------------------------------------
 //
-EXPORT_C void CESMRField::ChangeMiddleSoftKeyL( TInt aCommandId,
-                                                TInt aResourceId )
+EXPORT_C void CESMRField::ChangeMiddleSoftKeyL(
+        TInt aCommandId,
+        TInt aResourceId )
     {
     FUNC_LOG;
-    CEikButtonGroupContainer* cba = CEikButtonGroupContainer::Current();
-    if ( cba )
+
+    if ( AknLayoutUtils::MSKEnabled() )
         {
-        HBufC* middleSKText = StringLoader::LoadLC( aResourceId,
-                                                    iCoeEnv );
-        cba->SetCommandL( 
-        		CEikButtonGroupContainer::EMiddleSoftkeyPosition, 
-        		aCommandId, *middleSKText );
-        CleanupStack::PopAndDestroy( middleSKText );
-        if ( !iMskVisible )
+        CEikButtonGroupContainer* cba = CEikButtonGroupContainer::Current();
+        if ( cba )
             {
-            cba->MakeCommandVisibleByPosition(
+            HBufC* middleSKText = StringLoader::LoadLC( aResourceId,
+                                                        iCoeEnv );
+            cba->SetCommandL(
                     CEikButtonGroupContainer::EMiddleSoftkeyPosition,
-                    ETrue );
-            iMskVisible = ETrue;
+                    aCommandId, *middleSKText );
+            CleanupStack::PopAndDestroy( middleSKText );
+            if ( !iMskVisible )
+                {
+                cba->MakeCommandVisibleByPosition(
+                        CEikButtonGroupContainer::EMiddleSoftkeyPosition,
+                        ETrue );
+                iMskVisible = ETrue;
+                }
+            cba->DrawDeferred();
+            iCustomMsk = ETrue;
             }
-        cba->DrawDeferred();
-        iCustomMsk = ETrue;
         }
     }
 
 // ---------------------------------------------------------------------------
-// CESMRField::ChangeMiddleSoftKeyL()
+// CESMRField::SetValidatorL
+// ---------------------------------------------------------------------------
+//
+EXPORT_C void CESMRField::SetValidatorL( MESMRFieldValidator* aValidator )
+    {
+    FUNC_LOG;
+
+    iValidator = aValidator;
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRField::IsFieldActivated
+// ---------------------------------------------------------------------------
+//
+EXPORT_C TBool CESMRField::IsFieldActivated() const
+    {
+    FUNC_LOG;
+
+    return IsActivated();
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRField::DynInitMenuPaneL
+// ---------------------------------------------------------------------------
+//
+EXPORT_C void CESMRField::DynInitMenuPaneL(
+        TInt /*aResourceId*/,
+        CEikMenuPane* /*aMenuPane*/ )
+    {
+    FUNC_LOG;
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRField::ChangeMiddleSoftKeyL
 // ---------------------------------------------------------------------------
 //
 EXPORT_C void CESMRField::ChangeMiddleSoftKeyL( TInt aResourceId )
     {
     FUNC_LOG;
-    CEikButtonGroupContainer* cba = CEikButtonGroupContainer::Current();
-    if ( cba )
+
+    if ( AknLayoutUtils::MSKEnabled() )
         {
-        cba->SetCommandL(
-                CEikButtonGroupContainer::EMiddleSoftkeyPosition,
-                aResourceId );
-        if ( !iMskVisible )
+        CEikButtonGroupContainer* cba = CEikButtonGroupContainer::Current();
+        if ( cba )
             {
-            cba->MakeCommandVisibleByPosition(
+            cba->SetCommandL(
                     CEikButtonGroupContainer::EMiddleSoftkeyPosition,
-                    ETrue );
-            iMskVisible = ETrue;
+                    aResourceId );
+            if ( !iMskVisible )
+                {
+                cba->MakeCommandVisibleByPosition(
+                        CEikButtonGroupContainer::EMiddleSoftkeyPosition,
+                        ETrue );
+                iMskVisible = ETrue;
+                }
+            cba->DrawDeferred();
+            iCustomMsk = ETrue;
             }
-        cba->DrawDeferred();
-        iCustomMsk = ETrue;
-        }       
+        }
     }
 
 // ---------------------------------------------------------------------------
-// CESMRField::CalculateVisibleRect()
-// ---------------------------------------------------------------------------
-//
-EXPORT_C TRect CESMRField::CalculateVisibleRect( TRect aRect )
-    {
-    FUNC_LOG;
-    TRect targetRect(aRect);
-    // highlight bitmap target size:
-    TSize targetSize( Rect().Size() );
-
-    // fetch the size of main pane
-    TRect mainPaneRect;
-    AknLayoutUtils::LayoutMetricsRect( 
-    		AknLayoutUtils::EMainPane, mainPaneRect );
-
-    // the list drawable height:
-    TInt listAreaHeight = mainPaneRect.Height() - iLayout->TitlePaneHeight();
-
-    // if the size of field is larger than drawable height
-    // let's downsize it:
-    if ( Rect().Size().iHeight > listAreaHeight )
-        {
-        TInt shownHeight = Rect().Size().iHeight + Rect().iTl.iY;
-        // check should the highlight be smaller than
-        // whole screen:
-        if ( shownHeight < listAreaHeight )
-            {
-            targetSize.iHeight = shownHeight;
-            }
-        else
-            {
-            targetSize.iHeight = listAreaHeight;
-            }
-        }
-
-    // If part of the rect is not visible:
-    if ( targetRect.iTl.iY < 0 )
-        {
-        targetRect.iTl.iY = 0;
-        }
-
-    // visible height:
-    targetRect.SetHeight(listAreaHeight);
-
-    return targetRect;
-    }
-
-// ---------------------------------------------------------------------------
-// CESMRField::SetEventQueueL()
+// CESMRField::SetEventQueueL
 // ---------------------------------------------------------------------------
 //
 EXPORT_C void CESMRField::SetEventQueueL( MESMRFieldEventQueue* aEventQueue )
@@ -479,67 +526,72 @@ EXPORT_C void CESMRField::SetEventQueueL( MESMRFieldEventQueue* aEventQueue )
         {
         if ( aEventQueue )
             {
-            // Add self to new queue 
+            // Add self to new queue
             aEventQueue->AddObserverL( this );
             }
-        
+
         if ( iEventQueue )
             {
             // Remove self from old queue
             iEventQueue->RemoveObserver( this );
             }
-        
+
         iEventQueue = aEventQueue;
         }
     }
 
 // ---------------------------------------------------------------------------
-// CESMRField::HasOutlineFocus()
+// CESMRField::HasOutlineFocus
 // ---------------------------------------------------------------------------
 //
 EXPORT_C TBool CESMRField::HasOutlineFocus() const
     {
+    FUNC_LOG;
     return iOutlineFocus;
     }
 
 // ---------------------------------------------------------------------------
-// CESMRField::GetFocusRect()
+// CESMRField::GetFocusRect
 // ---------------------------------------------------------------------------
 //
 EXPORT_C TRect CESMRField::GetFocusRect() const
     {
+    FUNC_LOG;
     return iFocusRect;
     }
 
 // ---------------------------------------------------------------------------
-// CESMRField::SetFocusRect()
+// CESMRField::SetFocusRect
 // ---------------------------------------------------------------------------
 //
 EXPORT_C void CESMRField::SetFocusRect( const TRect& aFocusRect )
     {
+    FUNC_LOG;
     iFocusRect = aFocusRect;
     }
 
 // ---------------------------------------------------------------------------
-// CESMRField::GetFocusType()
+// CESMRField::GetFocusType
 // ---------------------------------------------------------------------------
 //
 EXPORT_C TESMRFieldFocusType CESMRField::GetFocusType() const
     {
+    FUNC_LOG;
     return iFocusType;
     }
 
 // ---------------------------------------------------------------------------
-// CESMRField::SetFocusType()
+// CESMRField::SetFocusType
 // ---------------------------------------------------------------------------
 //
 EXPORT_C void CESMRField::SetFocusType( TESMRFieldFocusType aFocusType )
     {
+    FUNC_LOG;
     iFocusType = aFocusType;
     }
 
 // ---------------------------------------------------------------------------
-// CESMRField::NotifyEventL()
+// CESMRField::NotifyEventL
 // ---------------------------------------------------------------------------
 //
 EXPORT_C void CESMRField::NotifyEventL( const MESMRFieldEvent& aEvent )
@@ -552,7 +604,7 @@ EXPORT_C void CESMRField::NotifyEventL( const MESMRFieldEvent& aEvent )
     }
 
 // ---------------------------------------------------------------------------
-// CESMRField::NotifyEventL()
+// CESMRField::NotifyEventL
 // ---------------------------------------------------------------------------
 //
 EXPORT_C void CESMRField::NotifyEventL( TInt aCommand )
@@ -565,7 +617,7 @@ EXPORT_C void CESMRField::NotifyEventL( TInt aCommand )
     }
 
 // ---------------------------------------------------------------------------
-// CESMRField::NotifyEventAsyncL()
+// CESMRField::NotifyEventAsyncL
 // ---------------------------------------------------------------------------
 //
 EXPORT_C void CESMRField::NotifyEventAsyncL( MESMRFieldEvent* aEvent )
@@ -578,7 +630,7 @@ EXPORT_C void CESMRField::NotifyEventAsyncL( MESMRFieldEvent* aEvent )
     }
 
 // ---------------------------------------------------------------------------
-// CESMRField::NotifyEventAsyncL()
+// CESMRField::NotifyEventAsyncL
 // ---------------------------------------------------------------------------
 //
 EXPORT_C void CESMRField::NotifyEventAsyncL( TInt aCommand )
@@ -591,44 +643,105 @@ EXPORT_C void CESMRField::NotifyEventAsyncL( TInt aCommand )
     }
 
 // ---------------------------------------------------------------------------
-// CESMRField::RestoreMiddleSoftKeyL()
+// CESMRField::RestoreMiddleSoftKeyL
 // ---------------------------------------------------------------------------
 //
 EXPORT_C void CESMRField::RestoreMiddleSoftKeyL()
     {
     FUNC_LOG;
-    if ( iMskVisible != iDefaultMskVisible )
+    if ( AknLayoutUtils::MSKEnabled() )
         {
-        SetMiddleSoftKeyVisible( iDefaultMskVisible );
-        }
-    
-    if ( iCustomMsk )
-        {
-        NotifyEventL( EESMRCmdRestoreMiddleSoftKey );
-        iCustomMsk = EFalse;
-        }
-    }
-
-EXPORT_C void CESMRField::SetMiddleSoftKeyVisible( TBool aVisible )
-    {
-    FUNC_LOG;
-    if ( iMskVisible != aVisible )
-        {
-        CEikButtonGroupContainer* cba = CEikButtonGroupContainer::Current();
-        if ( cba )
+        if ( iMskVisible != iDefaultMskVisible )
             {
-            cba->MakeCommandVisibleByPosition(
-                    CEikButtonGroupContainer::EMiddleSoftkeyPosition,
-                    aVisible );
-            iMskVisible = aVisible; // Visibility has been changed
+            SetMiddleSoftKeyVisible( iDefaultMskVisible );
+            }
+
+        if ( iCustomMsk )
+            {
+            NotifyEventL( EESMRCmdRestoreMiddleSoftKey );
+            iCustomMsk = EFalse;
             }
         }
-    
-    iCustomMsk = ETrue; // Field has modified editor default MSK                
     }
 
 // ---------------------------------------------------------------------------
-// CESMRField::HandleFieldEventL()
+// CESMRField::SetMiddleSoftKeyVisible
+// ---------------------------------------------------------------------------
+//
+EXPORT_C void CESMRField::SetMiddleSoftKeyVisible( TBool aVisible )
+    {
+    FUNC_LOG;
+    if ( AknLayoutUtils::MSKEnabled() )
+        {
+        if ( iMskVisible != aVisible )
+            {
+            CEikButtonGroupContainer* cba = CEikButtonGroupContainer::Current();
+            if ( cba )
+                {
+                cba->MakeCommandVisibleByPosition(
+                        CEikButtonGroupContainer::EMiddleSoftkeyPosition,
+                        aVisible );
+                iMskVisible = aVisible; // Visibility has been changed
+                }
+            }
+
+        iCustomMsk = ETrue; // Field has modified editor default MSK
+        }
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRField::HandleLongtapEventL
+// ---------------------------------------------------------------------------
+//
+EXPORT_C void CESMRField::HandleLongtapEventL( const TPoint& /*aPosition*/ )
+    {
+    FUNC_LOG;
+    // Default action for long tap event.
+    ExecuteGenericCommandL( EESMRCmdLongtapDetected );
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRField::HandleSingletapEventL
+// ---------------------------------------------------------------------------
+//
+EXPORT_C TBool CESMRField::HandleSingletapEventL( const TPoint& /*aPosition*/ )
+    {
+    FUNC_LOG;
+    // Subclasses may override for field specific actions
+    return EFalse;
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRField::HandleRawPointerEventL
+// Default implementation for pointer event handling in field
+// ---------------------------------------------------------------------------
+//
+EXPORT_C TBool CESMRField::HandleRawPointerEventL(
+        const TPointerEvent& aPointerEvent )
+    {
+    FUNC_LOG;
+
+    if ( aPointerEvent.iType == TPointerEvent::EButton1Up )
+        {
+		// Default action for touch release
+		if ( !ExecuteGenericCommandL( EAknCmdOpen ) )
+			{
+			// If the base class implementation does not use the command
+			// then the pointer event is propagated to children.
+			CCoeControl::HandlePointerEventL( aPointerEvent );
+			}
+        }
+    else
+        {
+        // Propagate the pointer event to child components
+        CCoeControl::HandlePointerEventL( aPointerEvent );
+        }
+
+    return ETrue;
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRField::HandleFieldEventL
 // ---------------------------------------------------------------------------
 //
 EXPORT_C void CESMRField::HandleFieldEventL( const MESMRFieldEvent& aEvent )
@@ -645,7 +758,7 @@ EXPORT_C void CESMRField::HandleFieldEventL( const MESMRFieldEvent& aEvent )
     }
 
 // ---------------------------------------------------------------------------
-// CESMRField::EventObserver()
+// CESMRField::EventObserver
 // ---------------------------------------------------------------------------
 //
 EXPORT_C MESMRFieldEventObserver* CESMRField::EventObserver() const
@@ -655,21 +768,105 @@ EXPORT_C MESMRFieldEventObserver* CESMRField::EventObserver() const
     }
 
 // ---------------------------------------------------------------------------
-// CESMRField::SetFieldMode()
+// CESMRField::SetFieldMode
 // ---------------------------------------------------------------------------
 //
 EXPORT_C void CESMRField::SetFieldMode( TESMRFieldMode aMode )
     {
+    FUNC_LOG;
     iFieldMode = aMode;
     }
 
 // ---------------------------------------------------------------------------
-// CESMRField::FieldMode()
+// CESMRField::FieldMode
 // ---------------------------------------------------------------------------
 //
 EXPORT_C TESMRFieldMode CESMRField::FieldMode() const
     {
+    FUNC_LOG;
     return iFieldMode;
     }
+
+// ---------------------------------------------------------------------------
+// CESMRField::SetFieldViewMode
+// ---------------------------------------------------------------------------
+//
+EXPORT_C void CESMRField::SetFieldViewMode( TESMRFieldType aViewMode )
+    {
+    FUNC_LOG;
+    iFieldViewMode = aViewMode;
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRField::FieldViewMode
+// ---------------------------------------------------------------------------
+//
+EXPORT_C TESMRFieldType CESMRField::FieldViewMode() const
+    {
+    FUNC_LOG;
+    return iFieldViewMode;
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRField::UpdateExtControlL
+// ---------------------------------------------------------------------------
+//
+EXPORT_C void CESMRField::UpdateExtControlL(
+             CCoeControl* aControl )
+    {
+    FUNC_LOG;
+    delete iExtControl;
+    iExtControl = aControl;
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRField::Lock
+// ---------------------------------------------------------------------------
+//
+EXPORT_C void CESMRField::LockL()
+	{
+	iLocked = ETrue;
+	}
+
+// ---------------------------------------------------------------------------
+// CESMRField::IsLocked
+// ---------------------------------------------------------------------------
+//
+EXPORT_C TBool CESMRField::IsLocked()
+	{
+	return iLocked;
+	}
+
+
+// ---------------------------------------------------------------------------
+// CESMRField::HandleTactileFeedbackL
+// ---------------------------------------------------------------------------
+//
+EXPORT_C void CESMRField::HandleTactileFeedbackL()
+    {
+    FUNC_LOG;
+
+    AquireTactileFeedback();
+    
+    if ( iTactileFeedback && iTactileFeedback->FeedbackEnabledForThisApp() )
+        {
+        iTactileFeedback->InstantFeedback( ETouchFeedbackBasic );
+        }
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRField::AquireTactileFeedback
+// ---------------------------------------------------------------------------
+//
+void CESMRField::AquireTactileFeedback()
+    {
+	if( !iTactileFeedback )
+		{
+		// Aquire tactile feedback pointer from TLS
+		iTactileFeedback = MTouchFeedback::Instance();
+		}
+    }
+
+
 // EOF
 

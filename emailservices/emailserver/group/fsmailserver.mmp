@@ -28,7 +28,7 @@ TARGET                  fsmailserver.exe
 TARGETTYPE              exe
 UID                     0x100039CE KFSMailServerUid
 
-CAPABILITY              CAP_APPLICATION NetworkControl
+CAPABILITY              CAP_APPLICATION NetworkControl MultimediaDD
 VENDORID                VID_DEFAULT
 
 EPOCSTACKSIZE           0x5000

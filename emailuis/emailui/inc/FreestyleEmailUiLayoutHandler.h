@@ -22,14 +22,10 @@
 // SYSTEM INCLUDES
 #include <e32base.h>
 #include <e32hashtab.h>
-//<cmail> SF
 #include <alf/alfenv.h>
 #include <alf/alftextstyle.h>
-//</cmail> SF
-// <cmail> Platform layout change
 #include <AknLayout2ScalableDef.h>
 #include <AknUtils.h>
-// </cmail> Platform layout change
 // INTERNAL INCLUDES
 #include "FreestyleEmailUiLayoutData.h"
 
@@ -39,7 +35,6 @@ class CFsTreeList;
 // CLASS DECLARATION
 class CFSEmailUiLayoutHandler : public CBase
     {
-    // <cmail>
 	public:
     
         /*
@@ -50,20 +45,13 @@ class CFSEmailUiLayoutHandler : public CBase
             ELeft,
             ERight
             };
-    // </cmail>
 
     public: 
     	static CFSEmailUiLayoutHandler* NewL( CAlfEnv& aEnv  );
     	~CFSEmailUiLayoutHandler();
-		
-		// Function returns currently used screen resolution
-		TScreenResolution ScreenResolution() const;
-		
+				
 		// Function returns orientation of the currect screen resolution
 		TScreenOrientation ScreenOrientation() const;
-		
-		// Function can be used to request screen resolution value update
-		void ScreenResolutionChanged();
 
 		// Main UI grid icon size
 		TSize GridIconSize() const;
@@ -276,9 +264,7 @@ class CFSEmailUiLayoutHandler : public CBase
         TRect GetListRect( TBool aControlsOnTop = EFalse ) const;
 
 		CAlfTextStyle& FSTextStyleFromLayoutL( const TAknTextComponentLayout& aLayout  );
-//<cmail>
 		TInt TitleCaptionPadding() const;
-
         TRect ListCmailPaneRect() const;
 
 		TAknLayoutText GetSearchListHeaderTextLayout() const;
@@ -292,28 +278,16 @@ class CFSEmailUiLayoutHandler : public CBase
 		// Padding value for drop down menu
         TInt DropDownMenuListPadding() const;
 
-// </cmail>
-
     private:
 		CFSEmailUiLayoutHandler( CAlfEnv& aEnv );
      	void ConstructL(); 
  
      	TRgb GetSkinColor( const TAknsItemID& aID, TInt aIndex, const TRgb& aFallbackColor ) const;
-// <cmail> Platform layout change
         void DeleteTextStyles();
-// </cmail> Platform layout change
 
 	private:
 		CAlfEnv& iEnv;
-		TScreenResolution iScreenResolution;
-// <cmail> Platform layout change
 		RHashMap< TAknTextComponentLayout, CAlfTextStyle* > iTextStyleMap;
-// </cmail> Platform layout change
-// <cmail> Text Styles
-        TInt iNormalTextStyle;
-        TInt iLargeTextStyle;
-        TInt iSmallTextStyle;
-// </cmail>
 	};
 
 #endif //__FREESTYLEEMAILUI_LAYOUTHANDLER_H__

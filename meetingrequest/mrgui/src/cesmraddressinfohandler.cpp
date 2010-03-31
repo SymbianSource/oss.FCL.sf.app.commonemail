@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -20,22 +20,22 @@
 #include "cesmraddressinfohandler.h"
 
 #include <eikenv.h>
-#include <AiwServiceHandler.h>
-#include <AiwContactSelectionDataTypes.h>
-#include <StringLoader.h>
+#include <aiwservicehandler.h>
+#include <aiwcontactselectiondatatypes.h>
+#include <stringloader.h>
 #include <aknnotewrappers.h>
 #include <calentry.h>
 #include <esmrgui.rsg>
 
 //Virtual Phonebook
-#include <CVPbkContactManager.h>
-#include <MVPbkContactOperationBase.h>
-#include <MVPbkStoreContact.h>
-#include <MVPbkFieldType.h>
-#include <VPbkEng.rsg>
-#include <CVPbkContactFieldIterator.h>
-#include <MVPbkContactFieldTextData.h>
-#include <MVPbkContactLink.h>
+#include <cvpbkcontactmanager.h>
+#include <mvpbkcontactoperationbase.h>
+#include <mvpbkstorecontact.h>
+#include <mvpbkfieldtype.h>
+#include <vpbkeng.rsg>
+#include <cvpbkcontactfielditerator.h>
+#include <mvpbkcontactfieldtextdata.h>
+#include <mvpbkcontactlink.h>
 
 #include "cesmrdynamicitemselectionlist.h"
 #include "cesmrlocationpluginhandler.h"
@@ -519,8 +519,13 @@ void CESMRAddressInfoHandler::UpdateEntryL( TInt aIndex )
     FUNC_LOG;
     TInt offset = iCompleteAddresses[aIndex]->Find( KTab ); //codescanner::accessArrayElementWithoutCheck2
     TPtrC address( iCompleteAddresses[aIndex]->Mid( offset + 1) ); //codescanner::accessArrayElementWithoutCheck2
+    TBool replaced;
     iEntryUpdated =
-        CESMRLocationPluginHandler::UpdateEntryLocationL( *iEntry, address, EFalse );
+        CESMRLocationPluginHandler::UpdateEntryLocationL(
+                *iEntry,
+                address,
+                EFalse,
+                replaced );
     }
 
 //EOF

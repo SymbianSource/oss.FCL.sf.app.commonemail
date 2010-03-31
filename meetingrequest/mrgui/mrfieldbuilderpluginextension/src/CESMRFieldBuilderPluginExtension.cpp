@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -25,13 +25,13 @@
 #include "cesmrattendeefield.h"
 #include "cesmrtrackingfieldlabel.h"
 #include "cesmrtrackstatus.h"
-#include "cesmrviewerattachmentsfield.h"
 #include "cesmrviewerattendeesfield.h"
 #include "cesmrresponsefield.h"
-#include "cesmrresponsereadyfield.h"
 #include "cesmrviewerfromfield.h"
+#include "cesmrfieldbuilderinterface.h"
+#include "CFSMailCommon.h"
 
-#include <CalenInterimUtils2.h>
+#include <caleninterimutils2.h>
 
 // DEBUG
 #include "emailtrace.h"
@@ -74,33 +74,45 @@ TAny* CESMRFieldBuilderPluginExtension::ExtensionL( TUid /*aExtensionUid*/ )
     }
 
 // ----------------------------------------------------------------------------
-// CESMRFieldBuilderPluginExtension::ExtensionL
+// CESMRFieldBuilderPluginExtension::CFSMailBoxCapabilityL
 // ----------------------------------------------------------------------------
 //
 TBool CESMRFieldBuilderPluginExtension::CFSMailBoxCapabilityL(
-        EMRCFSMailBoxCapability aCapa )
+        TMRCFSMailBoxCapability aCapa )
     {
     FUNC_LOG;
+    
     iESMRStatic.ConnectL();
     iESMRStaticAccessed = ETrue;
 
-    TBool response(EFalse);
+    return HasCapability( iESMRStatic.DefaultFSMailBoxL(), aCapa );
+    }
 
-    if (aCapa == EMRCFSAttendeeStatus)
-        {
-        response = iESMRStatic.DefaultFSMailBoxL().HasCapability(
-                EFSMBoxCapaMeetingRequestAttendeeStatus );
-        }
+// ----------------------------------------------------------------------------
+// CESMRFieldBuilderPluginExtension::CFSMailBoxCapabilityL
+// ----------------------------------------------------------------------------
+//
+TBool CESMRFieldBuilderPluginExtension::CFSMailBoxCapabilityL(
+            const TDesC& aEmailAddress,
+            TMRCFSMailBoxCapability aCapa )
+    {
+    FUNC_LOG;
+        
+    iESMRStatic.ConnectL();
+    iESMRStaticAccessed = ETrue;
 
-    return response;
+    CFSMailBox* mailBox = iESMRStatic.MailBoxL( aEmailAddress );
+    TBool result = HasCapability( *mailBox, aCapa );
+    delete mailBox;
+    
+    return result;
     }
 
 // ----------------------------------------------------------------------------
 // CESMRFieldBuilderPluginExtension::MRCanBeOriginateedL
 // ----------------------------------------------------------------------------
 //
-TBool CESMRFieldBuilderPluginExtension::MRCanBeOriginateedL(
-        TBool aForceResetDefaultMRMailbox )
+TBool CESMRFieldBuilderPluginExtension::MRCanBeOriginateedL()
     {
     FUNC_LOG;
     TBool retValue( EFalse );
@@ -112,8 +124,7 @@ TBool CESMRFieldBuilderPluginExtension::MRCanBeOriginateedL(
     CleanupStack::PushL( calUtils2 );
     if ( calUtils2->MRViewersEnabledL() )
         {
-        TRAPD( err, 
-               iESMRStatic.DefaultFSMailBoxL( aForceResetDefaultMRMailbox ) );
+        TRAPD( err, iESMRStatic.DefaultFSMailBoxL() );
 
         if ( KErrNone == err )
             {
@@ -191,6 +202,9 @@ CESMRField* CESMRFieldBuilderPluginExtension::CreateEditorFieldL(
             User::Leave( KErrArgument );
             }
         }
+    // Set field mode
+    field->SetFieldMode( EESMRFieldModeEdit );
+
     return field;
     }
 
@@ -207,11 +221,6 @@ CESMRField* CESMRFieldBuilderPluginExtension::CreateViewerFieldL(
     CESMRField* field = NULL;
     switch ( aField.iFieldId )
         {
-        case EESMRFieldAttachments:
-            {
-            field = CESMRViewerAttachmentsField::NewL();
-            }
-            break;
         case EESMRFieldAttendee:
             {
             field = CESMRViewerAttendeesField::NewL( CCalAttendee::EReqParticipant );
@@ -225,11 +234,6 @@ CESMRField* CESMRFieldBuilderPluginExtension::CreateViewerFieldL(
         case EESMRFieldResponseArea:
             {
             field = CESMRResponseField::NewL( aResponseObserver );
-            break;
-            }
-        case EESMRFieldResponseReadyArea:
-            {
-            field = CESMRResponseReadyField::NewL( aResponseObserver );
             break;
             }
         case EESMRFieldOrganizer:
@@ -262,5 +266,46 @@ CESMRField* CESMRFieldBuilderPluginExtension::CreateViewerFieldL(
 
     return field;
     }
+
+// -----------------------------------------------------------------------------
+// CESMRFieldBuilderPluginExtension::HasCapability
+// -----------------------------------------------------------------------------
+//
+TBool CESMRFieldBuilderPluginExtension::HasCapability(
+        const CFSMailBox& aMailBox,
+        MESMRBuilderExtension::TMRCFSMailBoxCapability aCapability ) const
+    {
+    TBool response(EFalse);
+
+    switch ( aCapability )
+        {
+        case EMRCFSAttendeeStatus:
+            {
+            response = aMailBox.HasCapability(
+                    EFSMBoxCapaMeetingRequestAttendeeStatus );
+            break;
+            }
+            
+        case EMRCFSRemoveFromCalendar:
+            {
+            response = aMailBox.HasCapability( EFSMBoxCapaRemoveFromCalendar );
+            break;
+            }
+            
+        case EMRCFSSupportsAttachmentsInMR:
+            {
+            response = aMailBox.HasCapability( EFSMboxCapaSupportsAttahmentsInMR );
+            }
+            break;
+            
+        default:
+            {
+            break;
+            }
+        }
+
+    return response;
+    }
+
 //EOF
 

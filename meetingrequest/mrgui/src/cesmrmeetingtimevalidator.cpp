@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -28,7 +28,9 @@
 #include "mesmrcalentry.h"
 #include "mesmrmeetingrequestentry.h"
 #include "mesmrfieldeventqueue.h"
+#include "mmrabsolutealarmcontroller.h"
 #include "cesmrgenericfieldevent.h"
+#include "cesmrrecurrenceinfoHandler.h"
 
 // Unnamed namespace for local definitions
 namespace { // codescanner::namespace
@@ -172,11 +174,8 @@ void SetTimeToEditor(
         {
         aTime = KMaxTTime;
         }
-
-    if ( aEditor.IsVisible() )
-        {
-        aEditor.SetTime( aTime );
-        }
+    
+    aEditor.SetTime( aTime );
     }
 
 /**
@@ -198,10 +197,28 @@ void SetDateToEditor(
         aDate = KMaxTTime;
         }
 
-    if ( aEditor.IsVisible() )
+    aEditor.SetDate( aDate );
+    }
+
+/**
+ * Compares two times and returns ETrue if they have same date components
+ * @param aLhs Left hand side component
+ * @param aRhs Right hand side component
+ */
+TBool IsSameDay(
+        const TDateTime& aLhs,
+        const TDateTime& aRhs )
+    {
+    TBool retValue(EFalse);
+
+    if ( aLhs.Day() == aRhs.Day() &&
+         aLhs.Month() == aRhs.Month() &&
+         aLhs.Year() == aRhs.Year()   )
         {
-        aEditor.SetDate( aDate );
+        retValue = ETrue;
         }
+
+    return retValue;
     }
 
 } // namespace
@@ -309,8 +326,8 @@ MESMRFieldValidator::TESMRFieldValidatorError
             TDateTime endDt = endTime.DateTime();
 
             if ( startDt.Day() != endDt.Day() ||
-                    startDt.Month() != endDt.Month() ||
-                    startDt.Year() != endDt.Year() )
+                 startDt.Month() != endDt.Month() ||
+                 startDt.Year() != endDt.Year() )
                 {
                 error = MESMRFieldValidator::EErrorRecDifferetStartAndEnd;
                 }
@@ -338,14 +355,47 @@ MESMRFieldValidator::TESMRFieldValidatorError
                  MESMRCalEntry::EESMRThisOnly == mrEntry->RecurrenceModRule() )
                 {
                 TBool instanceAlreadyOnThisDay( 
-                           mrEntry->AnyInstanceOnDayL(startTime, endTime) );
+                           mrEntry->AnyInstancesBetweenTimePeriodL(
+                        		   startTime, 
+                        		   endTime ) );
                 
                 if ( instanceAlreadyOnThisDay )
                     {
                     error = MESMRFieldValidator::EErrorRescheduleInstance;
                     }
                 }
-            }         
+            }
+        
+        if (  KErrorNone == error &&  
+              MESMRCalEntry::EESMRCalEntryMeeting == iEntry->Type() )
+            {
+            // Check that is modified entry 
+            if ( iEntry->IsRecurrentEventL() &&
+                 MESMRCalEntry::EESMRThisOnly == iEntry->RecurrenceModRule() )
+                {
+                TBool instanceAlreadyOnThisDay( 
+                           iEntry->AnyInstancesBetweenTimePeriodL(
+                        		   startTime, 
+                        		   endTime ) );
+                
+                if ( instanceAlreadyOnThisDay )
+                    {
+                    error = MESMRFieldValidator::EErrorRescheduleInstance;
+                    }
+                }
+            }  
+        
+        if (  KErrorNone == error &&  
+              ( MESMRCalEntry::EESMRCalEntryMeetingRequest == iEntry->Type() || 
+                MESMRCalEntry::EESMRCalEntryMeeting == iEntry->Type() ) )
+            {
+            // Check that is modified entry 
+            if ( iEntry->IsRecurrentEventL() &&
+                 MESMRCalEntry::EESMRThisOnly == iEntry->RecurrenceModRule() )
+                {
+                error = ValidateEditedInstanceTimeL();
+                }
+            }
         
         if ( KErrorNone == error && iAlldayEvent && iAlarmOnOff )
             {
@@ -397,8 +447,7 @@ MESMRFieldValidator::TESMRFieldValidatorError
 
         TTime until;
         if ( iRecurrenceValue != ERecurrenceNot &&
-             iRecurrenceValue != ERecurrenceUnknown &&
-             iRecurrenceUntilDate && iRecurrenceUntilDate->IsVisible() )
+             iRecurrenceValue != ERecurrenceUnknown )
             {
             until = RecurrenceUntilTime();
 
@@ -414,6 +463,137 @@ MESMRFieldValidator::TESMRFieldValidatorError
             }
         }
     return error;
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRMeetingTimeValidator::ValidateEditedInstanceTimeL
+// ---------------------------------------------------------------------------
+//
+MESMRFieldValidator::TESMRFieldValidatorError CESMRMeetingTimeValidator::ValidateEditedInstanceTimeL()
+    { 
+    CESMRRecurrenceInfoHandler* recurrenceHandler =
+                CESMRRecurrenceInfoHandler::NewLC( iEntry->Entry(), &iEntry->GetDBMgr() );
+    TCalTime preStartTime;
+    TCalTime preEndTime;
+    TCalTime nextStartTime;
+    TCalTime nextEndTime;
+
+    CCalInstance* instance = iEntry->InstanceL();
+    CleanupStack::PushL( instance );
+    TTime instanceDateTime = instance->StartTimeL().TimeLocalL();
+    CleanupStack::PopAndDestroy( instance );
+
+    recurrenceHandler->GetPreviousInstanceTimeL( preStartTime, preEndTime, instanceDateTime );
+    recurrenceHandler->GetNextInstanceTimeL( nextStartTime, nextEndTime, instanceDateTime );
+
+    CleanupStack::PopAndDestroy( recurrenceHandler );
+
+    const TTime editedStartDateTime( StartDateTime() );
+    const TTime editedEndDateTime( EndDateTime() );  
+
+    if( preStartTime.TimeLocalL() != Time::NullTTime() )
+        {
+        // Does the exception end on/after prevEnd?
+        if( editedStartDateTime < preEndTime.TimeLocalL() )
+            {
+            // Does the exception start after prevStart?
+            if( editedStartDateTime > preStartTime.TimeLocalL() )
+                {
+                return EErrorInstanceOverlapsExistingOne;
+                }
+            else
+                {
+                // Does the exception finish after prevStart?
+                if( editedEndDateTime > preStartTime.TimeLocalL() )
+                    {
+                    return EErrorInstanceOverlapsExistingOne;
+                    }
+                else
+                    {
+                    return EErrorInstanceOutOfSequence;
+                    }
+                }
+            }
+
+        // Does the exception start on the same day as prevStart?
+        if( IsSameDay( StartDateTime(), preStartTime.TimeLocalL().DateTime() ) )
+            {
+            return EErrorInstanceAlreadyExistsOnThisDay;
+            }
+        }
+
+
+    if( nextStartTime.TimeLocalL() != Time::NullTTime() )
+        {
+        // Does the exception finish on/before nextStart?
+        if( editedEndDateTime > nextStartTime.TimeLocalL() )
+            {
+            // Does the exception finish before nextFinish?
+            if( editedEndDateTime < nextEndTime.TimeLocalL() )
+                {
+                return EErrorInstanceOverlapsExistingOne;
+                }
+            else
+                {
+                // Does the exception start before nextFinish?
+                if( editedStartDateTime < nextEndTime.TimeLocalL() )
+                    {
+                    return EErrorInstanceOverlapsExistingOne;
+                    }
+                else
+                    {
+                    return EErrorInstanceOutOfSequence;
+                    }
+                }
+            }
+
+        // Does the exception start on the same day as nextStart?
+        if( IsSameDay( StartDateTime(), nextStartTime.TimeLocalL().DateTime() ) )
+            {
+            return EErrorInstanceAlreadyExistsOnThisDay;
+            }
+        }
+
+
+    // Does the series have any rdates
+    RArray<TCalTime> rDateArray;
+    CleanupClosePushL( rDateArray );
+    iEntry->Entry().GetRDatesL( rDateArray );
+    TInt rDateCount = rDateArray.Count();
+
+    if ( rDateCount > 0 )
+        {
+        // If the series has rdates, check that the exception
+        // does not overlap or start on the same day
+        TTimeIntervalMinutes duration;
+        editedStartDateTime.MinutesFrom( editedEndDateTime, duration );
+
+        for ( TInt index = 0; index < rDateCount; index++ )
+            {
+            const TTime& rDate = rDateArray[ index ].TimeLocalL();
+
+            if ( !IsSameDay( iEntry->Entry().StartTimeL().TimeLocalL().DateTime(), rDate.DateTime() ) )
+                {
+                // Does the exception start or end on the same day as a rdate.
+                if ( IsSameDay( StartDateTime(), rDate.DateTime() ) )
+                    {
+                    CleanupStack::PopAndDestroy(); // rDateArray
+                    return EErrorInstanceAlreadyExistsOnThisDay;
+                    }
+
+                // Does the exception overlap an rdate?
+                TTime rDateEnd = rDate + duration;
+                if ( editedEndDateTime > rDateEnd && editedStartDateTime < rDate )
+                    {
+                    CleanupStack::PopAndDestroy(); // rDateArray
+                    return EErrorInstanceOverlapsExistingOne;
+                    }
+                }
+            }
+        }
+
+    CleanupStack::PopAndDestroy(); // rDateArray
+    return EErrorNone;
     }
 
 // ---------------------------------------------------------------------------
@@ -472,8 +652,9 @@ void CESMRMeetingTimeValidator::ReadValuesFromEntryL(
 
         ReadAlarmFromEntryL( entry );
         ReadRecurrenceFromEntryL( aEntry );
-
+        
         DrawEditorsDeferred();
+        SendFieldChangeEventL( EESMRFieldStartDate );
         }
     }
 // ---------------------------------------------------------------------------
@@ -566,6 +747,7 @@ void CESMRMeetingTimeValidator::StoreValuesToEntryL(
             }
         }
 
+
     if ( ERecurrenceNot != iRecurrenceValue &&
          ERecurrenceUnknown != iRecurrenceValue )
         {
@@ -592,6 +774,11 @@ void CESMRMeetingTimeValidator::SetStartTimeFieldL(
     {
     FUNC_LOG;
     iStartTime = &aStartTime;
+    
+    if ( Time::NullTTime() != iCurrentStartTime )
+        {
+        SetTimeToEditor( *iStartTime, iCurrentStartTime );
+        }
     }
 
 // ---------------------------------------------------------------------------
@@ -603,6 +790,11 @@ void CESMRMeetingTimeValidator::SetEndTimeFieldL(
     {
     FUNC_LOG;
     iEndTime = &aEndTime;
+    
+    if ( Time::NullTTime() != iCurrentEndTime )
+        {
+        SetTimeToEditor( *iEndTime, iCurrentEndTime );
+        }    
     }
 
 // ---------------------------------------------------------------------------
@@ -614,6 +806,11 @@ void CESMRMeetingTimeValidator::SetStartDateFieldL(
     {
     FUNC_LOG;
     iStartDate = &aStartDate;
+    
+    if ( Time::NullTTime() != iCurrentStartTime )
+        {
+        SetDateToEditor( *iStartDate, iCurrentStartTime );
+        }    
     }
 
 // ---------------------------------------------------------------------------
@@ -625,6 +822,11 @@ void CESMRMeetingTimeValidator::SetEndDateFieldL(
     {
     FUNC_LOG;
     iEndDate = &aEndTime;
+    
+    if ( Time::NullTTime() != iCurrentEndTime )
+        {
+        SetDateToEditor( *iEndDate, iCurrentEndTime );
+        }    
     }
 
 // ---------------------------------------------------------------------------
@@ -635,7 +837,13 @@ void CESMRMeetingTimeValidator::SetAlarmTimeFieldL(
         CEikTimeEditor& aAlarmTime )
     {
     FUNC_LOG;
+    
     iAlarmTime = &aAlarmTime;
+    
+    if ( iAlarmOnOff )
+        {
+        SetTimeToEditor( *iAlarmTime, iCurrentAlarmTime );
+        }
     }
 
 // ---------------------------------------------------------------------------
@@ -647,10 +855,15 @@ void CESMRMeetingTimeValidator::SetAlarmDateFieldL(
     {
     FUNC_LOG;
     iAlarmDate = &aAlarmDate;
+    
+    if ( iAlarmOnOff )
+        {
+        SetDateToEditor( *iAlarmDate, iCurrentAlarmTime );
+        }
     }
 
 // ---------------------------------------------------------------------------
-// CESMRMeetingTimeValidator::StartTimeChangedL
+// CESMRMeetingTimeValidator::SetRecurrenceUntilDateFieldL
 // ---------------------------------------------------------------------------
 //
 void CESMRMeetingTimeValidator::SetRecurrenceUntilDateFieldL(
@@ -658,6 +871,23 @@ void CESMRMeetingTimeValidator::SetRecurrenceUntilDateFieldL(
     {
     FUNC_LOG;
     iRecurrenceUntilDate = &aRecurrenceUntil;
+    
+    if ( Time::NullTTime() != iCurrentRecurrenceUntil )
+        {
+        SetDateToEditor( *iRecurrenceUntilDate, iCurrentRecurrenceUntil );       
+        }
+    
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRMeetingTimeValidator::SetAbsoluteAlarmOnOffFieldL
+// ---------------------------------------------------------------------------
+//
+void CESMRMeetingTimeValidator::SetAbsoluteAlarmOnOffFieldL( 
+        MMRAbsoluteAlarmController& aAbsoluteAlarmController )
+    {
+    FUNC_LOG;
+    iAbsoluteAlarmController = &aAbsoluteAlarmController;
     }
 
 // ---------------------------------------------------------------------------
@@ -727,7 +957,6 @@ void CESMRMeetingTimeValidator::EndDateChangedL()
         }
 
     DrawEditorsDeferred();
-
     User::LeaveIfError( err );
     }
 
@@ -844,13 +1073,19 @@ void CESMRMeetingTimeValidator::SetAlarmOnOffL(
     {
     FUNC_LOG;
     iAlarmOnOff = aAlarmOn;
+    if( iAlarmOnOff )
+        {
+        iAbsoluteAlarmController->SetAbsoluteAlarmOn();
+        }
+    else
+        {
+        iAbsoluteAlarmController->SetAbsoluteAlarmOff();
+        }
 
     if ( iAlarmOnOff && iAlldayEvent )
         {
-        TTime nullTime = Time::NullTTime();
-
         if ( iCurrentAlarmTime > iCurrentStartTime ||
-             iCurrentAlarmTime == nullTime )
+             iCurrentAlarmTime == Time::NullTTime() )
             {
             iCurrentAlarmTime = 
 				DefaultAlldayEventAlarmTime( iCurrentStartTime );
@@ -971,7 +1206,6 @@ void CESMRMeetingTimeValidator::PreValidateEditorContentL()
         }
     if ( iAlarmOnOff && iAlarmTime && iAlldayEvent && iAlarmTime->IsVisible() )
         {
-        TDateTime dt = iAlarmTime->Time().DateTime();
         iAlarmTime->PrepareForFocusLossL();
         }
     if ( iAlarmOnOff && iAlarmDate && iAlldayEvent && iAlarmDate->IsVisible() )
@@ -991,6 +1225,9 @@ void CESMRMeetingTimeValidator::PreValidateEditorContentL()
 void CESMRMeetingTimeValidator::HandleStartTimeChangeL()
     {
     FUNC_LOG;
+    
+    TInt err( KErrNone );
+    
     TTime startTime = StartDateTime();
     TTime endTime   = EndDateTime();
     
@@ -1003,65 +1240,127 @@ void CESMRMeetingTimeValidator::HandleStartTimeChangeL()
                     iCurrentStartTime,
                     startTimeChange ) );
 
-    endTime += startTimeChange;
-    
-    if ( MESMRCalEntry::EESMRCalEntryMeetingRequest == iEntry->Type() )
+    if ( startTimeChange.Int() )
         {
-        MESMRMeetingRequestEntry* mrEntry = 
-                static_cast<MESMRMeetingRequestEntry*>( iEntry );
-        if ( mrEntry->IsRecurrentEventL() &&
-             MESMRCalEntry::EESMRThisOnly == mrEntry->RecurrenceModRule() )
+        endTime += startTimeChange;
+        
+        if ( MESMRCalEntry::EESMRCalEntryMeetingRequest == iEntry->Type() )
             {
-            TBool instanceAlreadyOnThisDay( 
-                       mrEntry->AnyInstanceOnDayL(startTime, endTime) );
-            
-            if ( instanceAlreadyOnThisDay )
-                {
-                // Restore previous time
-                SetTimeToEditor( *iStartTime, iCurrentStartTime );
-                SetDateToEditor( *iStartDate, iCurrentStartTime );
+            MESMRMeetingRequestEntry* mrEntry = 
+                    static_cast<MESMRMeetingRequestEntry*>( iEntry );
+            if ( mrEntry->IsRecurrentEventL() &&
+                 MESMRCalEntry::EESMRThisOnly == mrEntry->RecurrenceModRule() )
+                {                
+                TBool instanceAlreadyOnThisDay( 
+                           mrEntry->AnyInstancesBetweenTimePeriodL(startTime, endTime) );
                 
-                User::Leave( KErrOverflow );
+                if ( instanceAlreadyOnThisDay )
+                    {
+                    // Restore previous time
+                    SetTimeToEditor( *iStartTime, iCurrentStartTime );
+                    SetDateToEditor( *iStartDate, iCurrentStartTime );
+                    
+                    err = KErrOverflow;
+                    }
+                else
+                    {
+                    TTime firstInstanceStart;
+                    TTime firstInstanceEnd;
+                    mrEntry->GetFirstInstanceStartAndEndTimeL( 
+                            firstInstanceStart,
+                            firstInstanceEnd );
+                    
+                    if ( startTime < firstInstanceStart )
+                        {
+                        SetTimeToEditor( *iStartTime, iCurrentStartTime );
+                        SetDateToEditor( *iStartDate, iCurrentStartTime );
+                                            
+                        err = KErrUnderflow;
+                        }
+                    }
                 }
             }
+        
+        if ( MESMRCalEntry::EESMRCalEntryMeeting == iEntry->Type() )
+			{
+			if ( iEntry->IsRecurrentEventL() &&
+				 MESMRCalEntry::EESMRThisOnly == iEntry->RecurrenceModRule() )
+				{                
+				TBool instanceAlreadyOnThisDay( 
+						   iEntry->AnyInstancesBetweenTimePeriodL(
+								   startTime, 
+								   endTime ) );
+				
+				if ( instanceAlreadyOnThisDay )
+					{
+					// Restore previous time
+					SetTimeToEditor( *iStartTime, iCurrentStartTime );
+					SetDateToEditor( *iStartDate, iCurrentStartTime );
+					
+					err = KErrOverflow;
+					}
+				else
+					{
+					TTime firstInstanceStart;
+					TTime firstInstanceEnd;
+					iEntry->GetFirstInstanceStartAndEndTimeL( 
+							firstInstanceStart,
+							firstInstanceEnd );
+					
+					if ( startTime < firstInstanceStart )
+						{
+						SetTimeToEditor( *iStartTime, iCurrentStartTime );
+						SetDateToEditor( *iStartDate, iCurrentStartTime );
+											
+						err = KErrUnderflow;
+						}
+					}
+				}
+			}
+        
+        if ( KErrNone == err )
+            {
+            SetTimeToEditor( *iEndTime, endTime );
+            SetDateToEditor( *iEndDate, endTime );
+        
+            iCurrentStartTime = startTime;
+            iCurrentEndTime = endTime;
+        
+            if ( iAlldayEvent && iAlarmOnOff &&
+                 iAlarmTime->IsVisible() && iAlarmDate->IsVisible() )
+                {
+                TTime alarmTime = AlarmDateTime();
+                alarmTime += startTimeChange;
+        
+                SetTimeToEditor( *iAlarmTime, alarmTime );
+                SetDateToEditor( *iAlarmDate, alarmTime );
+        
+                iCurrentAlarmTime = alarmTime;
+                }
+        
+            if ( ERecurrenceNot != iRecurrenceValue &&
+                    iRecurrenceUntilDate && iRecurrenceUntilDate->IsVisible() )
+                {
+                TTime recUntil = RecurrenceUntilTime();
+        
+                if ( startTime.DateTime().Day() != iComparativeStartTime.Day() ||
+                     startTime.DateTime().Month() != iComparativeStartTime.Month() ||
+                     startTime.DateTime().Year() != iComparativeStartTime.Year() )
+                    {
+                    // We want to update the recurrence until only when
+                    // a) Day, b) Month, c) or Year of the start time has changed
+                    recUntil += startTimeChange;
+                    iComparativeStartTime = startTime.DateTime();
+                    }
+        
+                SetDateToEditor( *iRecurrenceUntilDate, recUntil );
+                iCurrentRecurrenceUntil = recUntil;
+                }        
+            }
         }
     
-    SetTimeToEditor( *iEndTime, endTime );
-    SetDateToEditor( *iEndDate, endTime );
-
-    iCurrentStartTime = startTime;
-    iCurrentEndTime = endTime;
-
-    if ( iAlldayEvent && iAlarmOnOff &&
-         iAlarmTime->IsVisible() && iAlarmDate->IsVisible() )
-        {
-        TTime alarmTime = AlarmDateTime();
-        alarmTime += startTimeChange;
-
-        SetTimeToEditor( *iAlarmTime, alarmTime );
-        SetDateToEditor( *iAlarmDate, alarmTime );
-
-        iCurrentAlarmTime = alarmTime;
-        }
-
-    if ( ERecurrenceNot != iRecurrenceValue &&
-            iRecurrenceUntilDate && iRecurrenceUntilDate->IsVisible() )
-        {
-        TTime recUntil = RecurrenceUntilTime();
-
-        if ( startTime.DateTime().Day() != iComparativeStartTime.Day() ||
-             startTime.DateTime().Month() != iComparativeStartTime.Month() ||
-             startTime.DateTime().Year() != iComparativeStartTime.Year() )
-            {
-            // We want to update the recurrence until only when
-            // a) Day, b) Month, c) or Year of the start time has changed
-            recUntil += startTimeChange;
-            iComparativeStartTime = startTime.DateTime();
-            }
-
-        SetDateToEditor( *iRecurrenceUntilDate, recUntil );
-        iCurrentRecurrenceUntil = recUntil;
-        }
+    DrawEditorsDeferred();
+    User::LeaveIfError( err );
     }
 
 // ---------------------------------------------------------------------------
@@ -1073,60 +1372,127 @@ void CESMRMeetingTimeValidator::HandleEndTimeChangeL()
     FUNC_LOG;
     TInt err( KErrNone );
     TTime startTime = StartDateTime();
-    TTime endTime   = EndDateTime();
+    TTime endTime = EndDateTime();
 
-    if ( !iAlldayEvent && endTime < startTime )
-        {
-        if( ERecurrenceNot != iRecurrenceValue )
+    // Check first if end time has even changed
+    TTimeIntervalMinutes endTimeChange;
+    User::LeaveIfError(
+            endTime.MinutesFrom(
+                    iCurrentEndTime,
+                    endTimeChange ) );    
+    
+    if ( endTimeChange.Int() )
+        {    
+        if ( !iAlldayEvent && endTime < startTime )
             {
-            err = KErrArgument;
-            }
-        else
-            {
-            // End time is earlier than start time
-            // and this is not allday event.
-            endTime += TTimeIntervalDays( KOne );
-            }
-        }
-
-    if ( MESMRCalEntry::EESMRCalEntryMeetingRequest == iEntry->Type() )
-        {
-        // Check that is modified entry 
-        MESMRMeetingRequestEntry* mrEntry = 
-                static_cast<MESMRMeetingRequestEntry*>( iEntry );
-        if ( mrEntry->IsRecurrentEventL() &&
-             MESMRCalEntry::EESMRThisOnly == mrEntry->RecurrenceModRule() )
-            {
-            TBool instanceAlreadyOnThisDay( 
-                       mrEntry->AnyInstanceOnDayL(startTime, endTime) );
-            
-            if ( instanceAlreadyOnThisDay )
+            if( ERecurrenceNot != iRecurrenceValue )
                 {
-                // Restore previous time
-                SetTimeToEditor( *iStartTime, iCurrentStartTime );
-                SetDateToEditor( *iStartDate, iCurrentStartTime );
-                
-                err = KErrOverflow;
+                err = KErrArgument;
+                }
+            else
+                {
+                // End time is earlier than start time
+                // and this is not allday event.
+                endTime += TTimeIntervalDays( KOne );
                 }
             }
-        }    
     
-    if ( KErrNone == err )
-        {
-        iCurrentStartTime = startTime;
-        iCurrentEndTime = endTime;
+        if ( MESMRCalEntry::EESMRCalEntryMeetingRequest == iEntry->Type() )
+            {
+            // Check that is modified entry 
+            MESMRMeetingRequestEntry* mrEntry = 
+                    static_cast<MESMRMeetingRequestEntry*>( iEntry );
+            if ( mrEntry->IsRecurrentEventL() &&
+                 MESMRCalEntry::EESMRThisOnly == mrEntry->RecurrenceModRule() )
+                {
+                TBool instanceAlreadyOnThisDay( 
+                           mrEntry->AnyInstancesBetweenTimePeriodL(startTime, endTime) );
+                
+                if ( instanceAlreadyOnThisDay )
+                    {
+                    // Restore previous time
+                    SetTimeToEditor( *iStartTime, iCurrentStartTime );
+                    SetDateToEditor( *iStartDate, iCurrentStartTime );
+                    
+                    err = KErrOverflow;
+                    }
+                else
+                    {
+                    TTime firstInstanceStart;
+                    TTime firstInstanceEnd;
+                    mrEntry->GetFirstInstanceStartAndEndTimeL( 
+                            firstInstanceStart,
+                            firstInstanceEnd );
+                    
+                    if ( startTime < firstInstanceStart )
+                        {
+                        // Restore previous time
+                        SetTimeToEditor( *iStartTime, iCurrentStartTime );
+                        SetTimeToEditor( *iEndTime, iCurrentEndTime );
+                        
+                        err = KErrUnderflow;
+                        }
+                    }                
+                }
+            }
+        
+        if ( MESMRCalEntry::EESMRCalEntryMeeting == iEntry->Type() )
+			{
+			// Check that is modified entry 
+			if ( iEntry->IsRecurrentEventL() &&
+				 MESMRCalEntry::EESMRThisOnly == iEntry->RecurrenceModRule() )
+				{
+				TBool instanceAlreadyOnThisDay( 
+						   iEntry->AnyInstancesBetweenTimePeriodL( 
+								   startTime, 
+								   endTime ) );
+				
+				if ( instanceAlreadyOnThisDay )
+					{
+					// Restore previous time
+					SetTimeToEditor( *iStartTime, iCurrentStartTime );
+					SetDateToEditor( *iStartDate, iCurrentStartTime );
+					
+					err = KErrOverflow;
+					}
+				else
+					{
+					TTime firstInstanceStart;
+					TTime firstInstanceEnd;
+					iEntry->GetFirstInstanceStartAndEndTimeL( 
+							firstInstanceStart,
+							firstInstanceEnd );
+					
+					if ( startTime < firstInstanceStart )
+						{
+						// Restore previous time
+						SetTimeToEditor( *iStartTime, iCurrentStartTime );
+						SetTimeToEditor( *iEndTime, iCurrentEndTime );
+						
+						err = KErrUnderflow;
+						}
+					}                
+				}
+			}    
+        
+        if ( KErrNone == err )
+            {
+            iCurrentStartTime = startTime;
+            iCurrentEndTime = endTime;
+            }
+    
+        if ( !iAlldayEvent )
+            {
+            SetTimeToEditor( *iStartTime, iCurrentStartTime );
+            SetTimeToEditor( *iEndTime, iCurrentEndTime );
+            }
+    
+        SetDateToEditor( *iStartDate, iCurrentStartTime );
+        SetDateToEditor( *iEndDate, iCurrentEndTime );
+    
+        DrawEditorsDeferred();
+        User::LeaveIfError( err );
         }
-
-    if ( !iAlldayEvent )
-        {
-        SetTimeToEditor( *iStartTime, iCurrentStartTime );
-        SetTimeToEditor( *iEndTime, iCurrentEndTime );
-        }
-
-    SetDateToEditor( *iStartDate, iCurrentStartTime );
-    SetDateToEditor( *iEndDate, iCurrentEndTime );
-
-    User::LeaveIfError( err );
     }
 
 // ---------------------------------------------------------------------------
@@ -1215,10 +1581,8 @@ void CESMRMeetingTimeValidator::HandleRecurrenceTypeChanged()
         TTime minTimeForRecurrenceEnd =
                 TimeForNextInstaceStartTime( iRecurrenceValue, start );
 
-        TDateTime a = iCurrentRecurrenceUntil.DateTime();
-        TDateTime b = minTimeForRecurrenceEnd.DateTime();
-
-        if ( iCurrentRecurrenceUntil < minTimeForRecurrenceEnd )
+        if ( Time::NullTTime() == iCurrentRecurrenceUntil || 
+             iCurrentRecurrenceUntil < minTimeForRecurrenceEnd )
             {
             iCurrentRecurrenceUntil = minTimeForRecurrenceEnd;
             }
@@ -1227,7 +1591,7 @@ void CESMRMeetingTimeValidator::HandleRecurrenceTypeChanged()
         {
         iCurrentRecurrenceUntil = StartDateTime();
         }
-
+    
     if ( iRecurrenceUntilDate )
         {
         SetDateToEditor( *iRecurrenceUntilDate, iCurrentRecurrenceUntil );
@@ -1257,7 +1621,9 @@ void CESMRMeetingTimeValidator::HandleRecurrenceEndDateChangedL()
 
     if ( iRecurrenceUntilDate )
         {
-        SetDateToEditor( *iRecurrenceUntilDate, iCurrentRecurrenceUntil );
+        SetDateToEditor( 
+                *iRecurrenceUntilDate, 
+                iCurrentRecurrenceUntil );
         }
 
     User::LeaveIfError( err );
@@ -1409,6 +1775,7 @@ void CESMRMeetingTimeValidator::ReadAlarmFromEntryL(
         {
         iCurrentAlarmTime = Time::NullTTime();
         iAlarmOnOff = EFalse;
+        iAbsoluteAlarmController->SetAbsoluteAlarmOff();
         }
 
     CleanupStack::PopAndDestroy( alarm );
@@ -1443,7 +1810,9 @@ void CESMRMeetingTimeValidator::ReadRecurrenceFromEntryL(
             recurrenceTime.SetTimeUtcL( iCurrentRecurrenceUntil );
             TTime localRecurrenceTime = recurrenceTime.TimeLocalL();
             
-            SetDateToEditor( *iRecurrenceUntilDate, localRecurrenceTime );
+            SetDateToEditor( 
+                    *iRecurrenceUntilDate, 
+                    localRecurrenceTime );
             }
         }
     else
@@ -1514,8 +1883,8 @@ void CESMRMeetingTimeValidator::ForceValuesL()
              recurUntil < startTime )
             {
             recurUntil = startTime + TTimeIntervalYears( KOne );
-            iCurrentRecurrenceUntil = recurUntil;
             }
+        iCurrentRecurrenceUntil = recurUntil;
         }
 
     if ( iAlldayEvent && iAlarmOnOff )
@@ -1549,6 +1918,7 @@ void CESMRMeetingTimeValidator::ForceValuesL()
                 {
                 // Setting alarm to default value if entry is not stored
                 iAlarmOnOff = EFalse;
+                iAbsoluteAlarmController->SetAbsoluteAlarmOff();
                 }
             }
 
@@ -1579,16 +1949,15 @@ void CESMRMeetingTimeValidator::ForceValuesL()
     SetDateToEditor( *iEndDate, endTime );
 
     // Alarm
-    if(iAlarmTime)
+    if( iAlarmOnOff && iAlarmTime )
         {
         SetTimeToEditor( *iAlarmTime, iCurrentAlarmTime );
         }
 
-    if(iAlarmDate)
+    if( iAlarmOnOff && iAlarmDate )
         {
         SetDateToEditor( *iAlarmDate, iCurrentAlarmTime );
         }
-
 
     // if editing certain occurance of recurrent event series
     // the repeat until date is not available.
@@ -1597,9 +1966,7 @@ void CESMRMeetingTimeValidator::ForceValuesL()
         // Recurrence until
         SetDateToEditor( *iRecurrenceUntilDate, iCurrentRecurrenceUntil );
         }
-
     }
-
 
 // ---------------------------------------------------------------------------
 // CESMRMeetingTimeValidator::ForceEndDateTime
@@ -1674,13 +2041,12 @@ void CESMRMeetingTimeValidator::WriteStartAndEndTimeToEntryL(
     {
     FUNC_LOG;
     CCalEntry& entry( aEntry.Entry() );
-    const CCalEntry& originalEntry( aEntry.OriginalEntry() );
 
     TTime startTime = StartDateTime();
     TTime endTime = EndDateTime();
 
-    TTime orgStartTime = originalEntry.StartTimeL().TimeLocalL();
-    TTime orgEndTime   = originalEntry.EndTimeL().TimeLocalL();
+    TTime orgStartTime = entry.StartTimeL().TimeLocalL();
+    TTime orgEndTime   = entry.EndTimeL().TimeLocalL();
 
     if ( !aEntry.IsStoredL() || orgStartTime != startTime ||
          orgEndTime != endTime )

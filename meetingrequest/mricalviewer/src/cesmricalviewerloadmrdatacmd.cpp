@@ -22,7 +22,7 @@
 //<cmail>
 #include "esmricalvieweropcodes.hrh"
 #include <calsession.h>
-#include "cfsmailclient.h"
+#include "CFSMailClient.h"
 //</cmail>
 
 #include "cesmrmrinfoicalretriever.h"

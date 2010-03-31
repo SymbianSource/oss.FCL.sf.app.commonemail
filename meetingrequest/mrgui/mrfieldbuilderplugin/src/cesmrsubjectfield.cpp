@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -15,23 +15,25 @@
  *
 */
 
-#include "emailtrace.h"
 #include "cesmrsubjectfield.h"
-
-#include <calentry.h>
-#include <StringLoader.h>
-#include <gulfont.h>
-#include <AknsConstants.h>
-#include <AknUtils.h>
-#include <AknsDrawUtils.h>
-#include <AknsFrameBackgroundControlContext.h>
-#include "esmrfieldbuilderdef.h"
-
-#include <esmrgui.rsg>
-
+#include "cmrimage.h"
+#include "nmrlayoutmanager.h"
 #include "cesmreditor.h"
 #include "mesmrtitlepaneobserver.h"
 #include "cesmrglobalnote.h"
+#include "esmrfieldbuilderdef.h"
+#include "nmrcolormanager.h"
+#include "nmrbitmapmanager.h"
+#include "mesmrlistobserver.h"
+
+#include <calentry.h>
+#include <stringloader.h>
+#include <aknsconstants.h>
+#include <esmrgui.rsg>
+#include <aknsbasicbackgroundcontrolcontext.h>
+#include <eikmfne.h>
+
+#include "emailtrace.h"
 
 // ======== MEMBER FUNCTIONS ========
 
@@ -39,11 +41,10 @@
 // CESMRSubjectField::CESMRSubjectField
 // ---------------------------------------------------------------------------
 //
-CESMRSubjectField::CESMRSubjectField( )
-:   CESMRIconField()
+CESMRSubjectField::CESMRSubjectField()
     {
     FUNC_LOG;
-    //do nothing
+    SetFocusType( EESMRHighlightFocus );
     }
 
 // ---------------------------------------------------------------------------
@@ -53,7 +54,9 @@ CESMRSubjectField::CESMRSubjectField( )
 CESMRSubjectField::~CESMRSubjectField( )
     {
     FUNC_LOG;
-    delete iFrameBgContext;
+    delete iFieldIcon;
+    delete iBgControlContext;
+    delete iPriorityIcon;
     }
 
 // ---------------------------------------------------------------------------
@@ -61,24 +64,41 @@ CESMRSubjectField::~CESMRSubjectField( )
 // ---------------------------------------------------------------------------
 //
 void CESMRSubjectField::ConstructL( TESMREntryFieldId aId, TInt aTextId,
-        TAknsItemID aIconID )
+        NMRBitmapManager::TMRBitmapId aIconID )
     {
     FUNC_LOG;
-    SetFieldId ( aId );
-    SetExpandable ( );
+    SetFieldId( aId );
 
+    iFieldIcon = CMRImage::NewL( aIconID );
+    iFieldIcon->SetParent( this );
+    
     iSubject = CESMREditor::NewL ( this, 1, KMaxTextLength,
             CEikEdwin::EResizable | CEikEdwin::EAvkonEditor | EAknEditorFlagNoLRNavigation);
     iSubject->SetEdwinSizeObserver ( this );
     iSubject->SetEdwinObserver( this );
+    iSubject->SetParent( this );
+
+    CESMRField::ConstructL( iSubject );  // iSubject ownership transfered
 
     HBufC* buf = StringLoader::LoadLC ( aTextId );
     iSubject->SetDefaultTextL( buf ); // ownership transferred
     CleanupStack::Pop( buf );
+    
+    // Setting background instead of theme skin  
+    NMRBitmapManager::TMRBitmapStruct bitmapStruct;
+    bitmapStruct = NMRBitmapManager::GetBitmapStruct( 
+            NMRBitmapManager::EMRBitmapInputCenter );
 
-    iBackground = AknsDrawUtils::ControlContext( this );
-
-    CESMRIconField::ConstructL ( aIconID, iSubject );
+    TRect initialisationRect( 0, 0, 0, 0 );
+    iBgControlContext = 
+                CAknsBasicBackgroundControlContext::NewL( 
+                        bitmapStruct.iItemId,
+                        initialisationRect, 
+                        EFalse );
+                
+    iSubject->SetSkinBackgroundControlContextL( iBgControlContext );
+    
+    iCurrentPriority = EFSCalenMRPriorityNormal;
     }
 
 // ---------------------------------------------------------------------------
@@ -88,22 +108,50 @@ void CESMRSubjectField::ConstructL( TESMREntryFieldId aId, TInt aTextId,
 CESMRSubjectField* CESMRSubjectField::NewL( TFieldType aType )
     {
     FUNC_LOG;
-    CESMRSubjectField* self = new (ELeave) CESMRSubjectField;
+    CESMRSubjectField* self = new( ELeave )CESMRSubjectField;
     CleanupStack::PushL ( self );
     if ( aType == ETypeSubject )
         {
-        self->ConstructL (EESMRFieldSubject,
+        self->ConstructL( EESMRFieldSubject,
         R_QTN_MEET_REQ_SUBJECT_FIELD,
-        KAknsIIDQgnFscalIndiSubject );
+        NMRBitmapManager::EMRBitmapSubject );
         }
     else
         {
-        self->ConstructL (EESMRFieldOccasion,
+        self->ConstructL( EESMRFieldOccasion,
         R_QTN_CALENDAR_ANNIVERSARY_TYPE_OCCASION,
-        KAknsIIDQgnFscalIndiOccasion );
+        NMRBitmapManager::EMRBitmapOccasion );
         }
-    CleanupStack::Pop ( self );
+    CleanupStack::Pop( self );
     return self;
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRSubjectField::MinimumSize
+// ---------------------------------------------------------------------------
+//
+TSize CESMRSubjectField::MinimumSize()
+    {
+    TRect parentRect( Parent()->Rect() );
+    
+    TRect fieldRect = 
+       NMRLayoutManager::GetFieldLayoutRect( parentRect, 1 ).Rect();
+
+    TRect editorRect( NMRLayoutManager::GetLayoutText( 
+       fieldRect, 
+       NMRLayoutManager::EMRTextLayoutTextEditor ).TextRect() );
+    
+    if( iPriorityIcon )
+        {
+		editorRect = NMRLayoutManager::GetLayoutText( 
+			   fieldRect, 
+			   NMRLayoutManager::EMRTextLayoutSingleRowEditorText ).TextRect();
+        }
+ 
+    // Adjust field size so that there's room for expandable editor.
+    fieldRect.Resize( 0, iSize.iHeight - editorRect.Height() );
+    
+    return fieldRect.Size();
     }
 
 // ---------------------------------------------------------------------------
@@ -113,7 +161,7 @@ CESMRSubjectField* CESMRSubjectField::NewL( TFieldType aType )
 void CESMRSubjectField::InitializeL()
     {
     FUNC_LOG;
-    iSubject->SetFontL( iLayout->Font( iCoeEnv, iFieldId ), iLayout );
+    // Do nothing
     }
 
 // ---------------------------------------------------------------------------
@@ -136,10 +184,16 @@ void CESMRSubjectField::InternalizeL( MESMRCalEntry& aEntry )
             iTitlePaneObserver->UpdateTitlePaneTextL( *subject );
             }
         }
+    
+    if( entry.PriorityL() != EFSCalenMRPriorityNormal &&
+            entry.EntryTypeL() == CCalEntry::EAppt )
+        {
+        SetPriorityIconL( entry.PriorityL() );
+        }
 
     // this is needed to be re-called here, otherwise the CEikEdwin
     // does not get correctly instantiated with default text
-    iSubject->FocusChanged(EDrawNow);
+    iSubject->FocusChanged( EDrawNow );
 
     CleanupStack::PopAndDestroy ( subject );
     }
@@ -152,7 +206,9 @@ void CESMRSubjectField::ExternalizeL( MESMRCalEntry& aEntry )
     {
     FUNC_LOG;
     HBufC* subject = iSubject->GetTextInHBufL ( );
-
+    
+    CCalEntry& entry = aEntry.Entry();
+    
     if ( subject )
         {
         CleanupStack::PushL ( subject );
@@ -160,20 +216,19 @@ void CESMRSubjectField::ExternalizeL( MESMRCalEntry& aEntry )
         // externalize the text only if it differs from the
         // default text. In other words, default text is not
         // externalized.
-
-       if ( iSubject->DefaultText().Compare (*subject )!= 0 )
+        if ( iSubject->DefaultText().Compare (*subject )!= 0 )
             {
-            CCalEntry& entry = aEntry.Entry ( );
-            entry.SetSummaryL ( *subject );
+            entry.SetSummaryL( *subject );
             }
 
-       CleanupStack::PopAndDestroy ( subject );
+        CleanupStack::PopAndDestroy( subject );
         }
     else
         {
-        CCalEntry& entry = aEntry.Entry ( );
         entry.SetSummaryL( KNullDesC );
         }
+
+    entry.SetPriorityL( iCurrentPriority );
     }
 
 // ---------------------------------------------------------------------------
@@ -185,27 +240,9 @@ void CESMRSubjectField::SetOutlineFocusL( TBool aFocus )
     FUNC_LOG;
     CESMRField::SetOutlineFocusL ( aFocus );
 
-    if (aFocus) //Focus is gained on the field
+    if ( aFocus ) //Focus is gained on the field
         {
-        ChangeMiddleSoftKeyL(EESMRCmdSaveMR,R_QTN_MSK_SAVE);
-        }
-    }
-
-// ---------------------------------------------------------------------------
-// CESMRSubjectField::ExpandedHeight
-// ---------------------------------------------------------------------------
-//
-TInt CESMRSubjectField::ExpandedHeight( ) const
-    {
-    FUNC_LOG;
-    TInt height = iLayout->FieldSize( FieldId() ).iHeight;
-    if( iSize.iHeight < height )
-        {
-        return height - KEditorDifference;
-        }
-    else
-        {
-        return iSize.iHeight;
+        ChangeMiddleSoftKeyL( EESMRCmdSaveMR,R_QTN_MSK_SAVE );
         }
     }
 
@@ -213,31 +250,32 @@ TInt CESMRSubjectField::ExpandedHeight( ) const
 // CESMRSubjectField::HandleEdwinSizeEventL
 // ---------------------------------------------------------------------------
 //
-TBool CESMRSubjectField::HandleEdwinSizeEventL(CEikEdwin* /*aEdwin*/,
+TBool CESMRSubjectField::HandleEdwinSizeEventL( CEikEdwin* aEdwin,
         TEdwinSizeEvent /*aType*/, TSize aSize )
     {
     FUNC_LOG;
-    iSize = aSize;
-    iSize.iHeight -= KEditorDifference;
-
-    if (iLayout->CurrentFontZoom() == EAknUiZoomSmall ||
-        iLayout->CurrentFontZoom() == EAknUiZoomVerySmall)
+    TBool reDraw( EFalse );
+    
+    if( iSize != aSize )
         {
-        iSize.iHeight -= KEditorDifference;
+        // Let's save the required size for the iSubject
+        iSize = aSize;
+            
+        if ( iObserver && aEdwin == iSubject )
+           {
+           iObserver->ControlSizeChanged( this );
+           reDraw = ETrue;
+           }
+        
+        if( iSubject->LineCount() != iLineCount )
+            {
+            // Line count has changed, the whole component needs
+            // to be redrawn
+            DrawDeferred();
+            iLineCount = iSubject->LineCount();
+            }
         }
-
-    if ( iObserver )
-        {
-        iObserver->ControlSizeChanged ( this );
-        }
-
-    if( iFrameBgContext )
-        {
-        TRect visibleRect = CalculateVisibleRect( iSubject->Rect() );
-        iFrameBgContext->SetFrameRects( visibleRect, visibleRect );
-        }
-
-    return ETrue;
+    return reDraw;
     }
 
 // ---------------------------------------------------------------------------
@@ -260,9 +298,9 @@ void CESMRSubjectField::HandleEdwinEventL( CEikEdwin *aEdwin, TEdwinEvent aEvent
             
             TInt textLength( text->Length() );
             if ( iSubject->GetLimitLength() <= textLength )
-            	{
-            	NotifyEventAsyncL( EESMRCmdSizeExceeded );
-            	}  
+                {
+                NotifyEventAsyncL( EESMRCmdSizeExceeded );
+                }  
             
             CleanupStack::PopAndDestroy( text );
             }
@@ -284,53 +322,13 @@ void CESMRSubjectField::SetTitlePaneObserver( MESMRTitlePaneObserver* aObserver 
     }
 
 // ---------------------------------------------------------------------------
-// CESMRSubjectField::PositionChanged()
+// CESMRSubjectField::GetCursorLineVerticalPos
 // ---------------------------------------------------------------------------
 //
-void CESMRSubjectField::PositionChanged()
+void CESMRSubjectField::GetCursorLineVerticalPos(TInt& aUpper, TInt& aLower)
     {
-    FUNC_LOG;
-    CCoeControl::PositionChanged();
-    if( iFrameBgContext )
-        {
-        TRect visibleRect = CalculateVisibleRect( iSubject->Rect() );
-        iFrameBgContext->SetFrameRects( visibleRect, visibleRect );
-        }
-    }
-
-// ---------------------------------------------------------------------------
-// CESMRSubjectField::GetVerticalFocusPosition
-// ---------------------------------------------------------------------------
-//
-void CESMRSubjectField::GetMinimumVisibleVerticalArea(TInt& aUpper, TInt& aLower)
-    {
-    FUNC_LOG;
     aLower = iSubject->CurrentLineNumber() * iSubject->RowHeight();
     aUpper = aLower - iSubject->RowHeight();
-    }
-// ---------------------------------------------------------------------------
-// CESMRSubjectField::ActivateL
-// ---------------------------------------------------------------------------
-//
-void CESMRSubjectField::ActivateL()
-    {
-    FUNC_LOG;
-    CCoeControl::ActivateL();
-    TRect rect(TPoint(iSubject->Position()), iSubject->Size());
-    TRect inner(rect);
-    TRect outer(rect);
-
-    iSubject->SetSize( TSize( iSubject->Size().iWidth, iLayout->FieldSize( FieldId() ).iHeight ));
-
-    delete iFrameBgContext;
-    iFrameBgContext = NULL;
-    iFrameBgContext = CAknsFrameBackgroundControlContext::NewL( KAknsIIDQsnFrInput, outer, inner, EFalse ) ;
-
-    iFrameBgContext->SetParentContext( iBackground );
-    iSubject->SetSkinBackgroundControlContextL(iFrameBgContext);
-
-    // update base class rects and redraw:
-    SizeChanged();
     }
 
 // ---------------------------------------------------------------------------
@@ -347,35 +345,264 @@ void CESMRSubjectField::ListObserverSet()
 // CESMRSubjectField::ExecuteGenericCommandL
 // ---------------------------------------------------------------------------
 //
-void CESMRSubjectField::ExecuteGenericCommandL( 
-		TInt aCommand )
-	{
+TBool CESMRSubjectField::ExecuteGenericCommandL(
+        TInt aCommand )
+    {
     FUNC_LOG;
-	if ( EESMRCmdSizeExceeded == aCommand )
-		{
-		CESMRGlobalNote::ExecuteL ( 
-				CESMRGlobalNote::EESMRCannotDisplayMuchMore );
+    TBool isUsed( EFalse );
+    switch ( aCommand )
+        {
+        case EESMRCmdPriorityHigh:
+            {
+            SetPriorityIconL( EFSCalenMRPriorityHigh );
+            isUsed = ETrue;
+            break;
+            }
+        case EESMRCmdPriorityNormal:
+            {
+            SetPriorityIconL( EFSCalenMRPriorityNormal );
+            isUsed = ETrue;
+            break;
+            }
+        case EESMRCmdPriorityLow:
+            {
+            SetPriorityIconL( EFSCalenMRPriorityLow );
+            isUsed = ETrue;
+            break;
+            }
+            
+        case EESMRCmdSizeExceeded:
+            {
+            CESMRGlobalNote::ExecuteL ( 
+                    CESMRGlobalNote::EESMRCannotDisplayMuchMore );
+            
+            HBufC* text = iSubject->GetTextInHBufL();
+            CleanupDeletePushL( text );
+            if ( text )
+                {    
+                TInt curPos = iSubject->CursorPos();        
+                if( curPos > iSubject->GetLimitLength() - 1 )
+                    curPos = iSubject->GetLimitLength() - 1;
+                HBufC* newText = 
+                    text->Des().Mid( 0, iSubject->GetLimitLength() - 1 ).AllocLC();     
+                
+                iSubject->SetTextL ( newText );
+                CleanupStack::PopAndDestroy( newText );
+                newText = NULL;
+                
+                iSubject->SetCursorPosL (curPos, EFalse );
+                iSubject->HandleTextChangedL();
+                iSubject->UpdateScrollBarsL();
+                SetFocus(ETrue);
+                }
+            CleanupStack::PopAndDestroy( text );
+            isUsed = ETrue;
+            break;
+            }
+        default:
+            {
+            break;
+            }
+        }
+    return isUsed;
+    }
 
-		HBufC* text = iSubject->GetTextInHBufL();
-		CleanupDeletePushL( text );
-		if ( text )
-			{    
-	    	TInt curPos = iSubject->CursorPos();    	
-	    	if( curPos > iSubject->GetLimitLength() - 1 )
-	    		curPos = iSubject->GetLimitLength() - 1;
-	    	HBufC* newText = 
-	    		text->Des().Mid( 0, iSubject->GetLimitLength() - 1 ).AllocLC();    	
-	    	
-	    	iSubject->SetTextL ( newText );
-	    	CleanupStack::PopAndDestroy( newText );
-	    	newText = NULL;
-	    	
-	    	iSubject->SetCursorPosL (curPos, EFalse );
-	    	iSubject->HandleTextChangedL();
-	    	iSubject->UpdateScrollBarsL();
-	    	SetFocus(ETrue);
-			}
-		CleanupStack::PopAndDestroy( text );	
-		}
-	}
+// ---------------------------------------------------------------------------
+// CESMRSubjectField::CountComponentControls
+// ---------------------------------------------------------------------------
+//
+TInt CESMRSubjectField::CountComponentControls() const
+    {
+    TInt count( 0 );
+    if ( iFieldIcon )
+        {
+        ++count;
+        }
+
+    if ( iSubject )
+        {
+        ++count;
+        }
+    
+    if ( iPriorityIcon )
+        {
+        ++count;
+        }
+    return count;
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRSubjectField::ComponentControl
+// ---------------------------------------------------------------------------
+//
+CCoeControl* CESMRSubjectField::ComponentControl( 
+        TInt aIndex ) const
+    {
+    switch ( aIndex )
+        {
+        case 0:
+            return iFieldIcon;
+        case 1:
+            return iSubject;
+        case 2:
+            return iPriorityIcon;
+        default:
+            return NULL;
+        }
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRSubjectField::SizeChanged
+// ---------------------------------------------------------------------------
+//
+void CESMRSubjectField::SizeChanged( )
+    {
+    TRect rect( Rect() );
+
+    TAknLayoutRect rowLayoutRect( 
+            NMRLayoutManager::GetFieldRowLayoutRect( rect, 1 ) );
+    TRect rowRect( rowLayoutRect.Rect() );
+    
+    // Layouting field icon
+    if( iFieldIcon )
+        {
+        TAknWindowComponentLayout iconLayout( 
+            NMRLayoutManager::GetWindowComponentLayout( 
+                    NMRLayoutManager::EMRLayoutSingleRowAColumnGraphic ) );
+        AknLayoutUtils::LayoutControl( iFieldIcon, rowRect, iconLayout );
+        }
+    
+    // Layouting priority icon
+    if( iPriorityIcon )
+        {
+        TAknWindowComponentLayout iconLayout( 
+                NMRLayoutManager::GetWindowComponentLayout( 
+                    NMRLayoutManager::EMRLayoutSingleRowDColumnGraphic ) );
+        AknLayoutUtils::LayoutImage( iPriorityIcon, rowRect, iconLayout );
+        }
+
+    TAknLayoutText editorLayoutText;
+
+    if( iPriorityIcon )
+        {
+        editorLayoutText = NMRLayoutManager::GetLayoutText( rowRect, 
+                    NMRLayoutManager::EMRTextLayoutSingleRowEditorText );
+        }
+    else
+        {
+        editorLayoutText = NMRLayoutManager::GetLayoutText( rowRect, 
+                    NMRLayoutManager::EMRTextLayoutTextEditor );
+        }
+    
+    // Layouting editor field
+    TRect editorRect( editorLayoutText.TextRect() );
+
+    // Resize height according to actual height required by edwin.
+    editorRect.Resize( 0, iSize.iHeight - editorRect.Height() );
+    iSubject->SetRect( editorRect );  
+    
+    // Try setting font. Failures are ignored.
+    TRAP_IGNORE( iSubject->SetFontL( editorLayoutText.Font() ) );
+    
+    // Layouting focus
+    TRect bgRect( TPoint( editorRect.iTl.iX, editorRect.iTl.iY ), 
+            editorRect.Size() );
+    
+    // Move focus rect so that it's relative to field's position.
+    bgRect.Move( -Position() );
+    SetFocusRect( bgRect );    
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRSubjectField::SetContainerWindowL
+// ---------------------------------------------------------------------------
+//
+void CESMRSubjectField::SetContainerWindowL( 
+        const CCoeControl& aContainer )
+    {
+    CCoeControl::SetContainerWindowL( aContainer );
+    iSubject->SetContainerWindowL( aContainer );
+    
+    iSubject->SetParent( this );
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRSubjectField::OfferKeyEventL()
+// ---------------------------------------------------------------------------
+//
+TKeyResponse CESMRSubjectField::OfferKeyEventL(
+        const TKeyEvent& aEvent,
+        TEventCode aType )
+    {
+    FUNC_LOG;
+    TKeyResponse response( EKeyWasNotConsumed);
+    response = iSubject->OfferKeyEventL ( aEvent, aType );
+
+    if ( aType == EEventKey && 
+    		( aEvent.iScanCode != EStdKeyUpArrow &&
+			  aEvent.iScanCode != EStdKeyDownArrow ))
+    	{       
+        iSubject->DrawDeferred();
+    	}
+    return response;
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRSubjectField::SetPriorityIconL
+// ---------------------------------------------------------------------------
+//
+void CESMRSubjectField::SetPriorityIconL( TUint aPriority )
+    {
+    switch ( aPriority )
+        {
+        case EFSCalenMRPriorityHigh:
+            {
+            delete iPriorityIcon;
+            iPriorityIcon = NULL;
+            
+            iPriorityIcon = CMRImage::NewL( 
+                  NMRBitmapManager::EMRBitmapPriorityHigh, ETrue );
+            iPriorityIcon->SetParent( this );
+            if( iCurrentPriority == EFSCalenMRPriorityNormal )
+            	{
+				SizeChanged();
+            	}
+            iCurrentPriority = EFSCalenMRPriorityHigh;
+            break;
+            }
+          
+        case EFSCalenMRPriorityNormal:
+            {
+            delete iPriorityIcon;
+            iPriorityIcon = NULL;
+            if( iCurrentPriority != EFSCalenMRPriorityNormal )
+				{
+				SizeChanged();
+				}
+            iCurrentPriority = EFSCalenMRPriorityNormal;
+            break;
+            }
+          
+        case EFSCalenMRPriorityLow:
+            {
+            delete iPriorityIcon;
+            iPriorityIcon = NULL;
+            
+            iPriorityIcon = CMRImage::NewL( 
+                  NMRBitmapManager::EMRBitmapPriorityLow );
+            iPriorityIcon->SetParent( this );  
+            if( iCurrentPriority == EFSCalenMRPriorityNormal )
+				{
+				SizeChanged();
+				}
+            iCurrentPriority = EFSCalenMRPriorityLow;
+            break;
+            }
+        default:
+            {
+            break;
+            }
+        }
+    }
+
 // EOF

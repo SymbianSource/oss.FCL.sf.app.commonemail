@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -22,14 +22,14 @@
 //<cmail>
 #include "esmrdef.h"
 //</cmail>
-#include <AknIconUtils.h>
+#include <akniconutils.h>
 #include <gulcolor.h>
-#include <AknUtils.h>
-#include <AknsConstants.h>
+#include <aknutils.h>
+#include <aknsconstants.h>
 #include <aknsconstants.hrh>
-#include <AknsUtils.h>
+#include <aknsutils.h>
 #include <data_caging_path_literals.hrh>
-#include <AknLayout2ScalableDef.h>
+#include <aknlayout2scalabledef.h>
 
 #include "emailtrace.h"
 
@@ -49,30 +49,6 @@ namespace { // codescanner::namespace
  * \x2029 paragraph separator
  */
 _LIT( KReplaceWhitespaceChars, "\x0009\x000A\x000B\x000C\x000D\x2028\x2029" );
-
-#ifdef _DEBUG
-
-// Definition for panic text
-_LIT( KESMRPanicTxt, "CESMRTitlePane" );
-
-/**
- * ES MR Entry panic codes
- */
-enum TESMRPanicCodes
-    {
-    EESMREntryTypeNotSet = 1, // Entry does not exist
-    };
-
-/**
- * Raises panic.
- * @param aPanic Panic code
- */
-void Panic(TESMRPanicCodes aPanic)
-    {
-    User::Panic( KESMRPanicTxt, aPanic);
-    }
-
-#endif // _DEBUG
 
 }  // namespace
 
@@ -111,7 +87,6 @@ CESMRTitlePane::~CESMRTitlePane()
     {
     FUNC_LOG;
     delete iTitle;
-    delete iIcon;
     }
 
 // ---------------------------------------------------------------------------
@@ -147,31 +122,21 @@ void CESMRTitlePane::SizeChanged()
     FUNC_LOG;
     TRect rect = Rect();
 
-    TAknTextComponentLayout labelLayout = 
-        NMRLayoutManager::GetTextComponentLayout( 
+    TAknTextComponentLayout labelLayout =
+        NMRLayoutManager::GetTextComponentLayout(
                 NMRLayoutManager::EMRLayoutCtrlBarTitle );
     AknLayoutUtils::LayoutLabel( iTitle, rect, labelLayout );
-    
-    iTitle->SetAlignment(EHCenterVCenter);
-    
+
     TRgb color;
     AknsUtils::GetCachedColor( AknsUtils::SkinInstance(),
                                         color,
                                         KAknsIIDQsnTextColors,
                                         EAknsCIQsnTextColorsCG2 );
     // If this leaves we'll have to use the default color
-    TRAP_IGNORE( AknLayoutUtils::OverrideControlColorL( 
-                                *iTitle, 
+    TRAP_IGNORE( AknLayoutUtils::OverrideControlColorL(
+                                *iTitle,
                                 EColorLabelText,
-                                color ) );     
-
-    if( iIcon )
-        {
-        TAknWindowComponentLayout iconLayout = 
-            NMRLayoutManager::GetWindowComponentLayout( 
-                    NMRLayoutManager::EMRLayoutCtrlBarGraphics );
-        AknLayoutUtils::LayoutImage( iIcon, rect, iconLayout );
-        }
+                                color ) );
     }
 
 // ---------------------------------------------------------------------------
@@ -184,9 +149,6 @@ TInt CESMRTitlePane::CountComponentControls() const
     TInt count( 0 );
 
     if ( iTitle )
-        ++count;
-
-    if ( iIcon )
         ++count;
 
     return count;
@@ -205,110 +167,9 @@ CCoeControl* CESMRTitlePane::ComponentControl( TInt aInd ) const
     		{
     		return iTitle;
     		}
-    	case 1:
-    		{
-    		return iIcon;
-    		}
     	default:
     		return NULL;
     	}
-    }
-
-// ---------------------------------------------------------------------------
-// CESMRTitlePane::HandleSetPriorityCmdL()
-// ---------------------------------------------------------------------------
-//
-void CESMRTitlePane::HandleSetPriorityCmdL( TInt aPriority )
-    {
-    FUNC_LOG;
-
-    __ASSERT_DEBUG( iEntryType != MESMRCalEntry::EESMRCalEntryNotSupported, 
-    		Panic(EESMREntryTypeNotSet ) );
-
-    switch ( aPriority )
-        {
-        case EESMRCmdPriorityHigh:
-            {
-            if ( iEntryType == MESMRCalEntry::EESMRCalEntryTodo )
-                {
-                SetPriorityL(EFSCalenTodoPriorityHigh);
-                }
-            else
-                {
-                SetPriorityL(EFSCalenMRPriorityHigh);
-                }
-            break;
-            }
-        case EESMRCmdPriorityLow:
-            {
-            if ( iEntryType == MESMRCalEntry::EESMRCalEntryTodo )
-                {
-                SetPriorityL(EFSCalenTodoPriorityLow);
-                }
-            else
-                {
-                SetPriorityL(EFSCalenMRPriorityLow);
-                }
-            break;
-            }
-        case EESMRCmdPriorityNormal:
-            {
-            if ( iEntryType == MESMRCalEntry::EESMRCalEntryTodo )
-                {
-                SetPriorityL(EFSCalenTodoPriorityNormal);
-                }
-            else
-                {
-                SetPriorityL(EFSCalenMRPriorityNormal);
-                }
-            break;
-            }
-        default:
-        	break;
-        }
-    }
-
-// ---------------------------------------------------------------------------
-// CESMRTitlePane::SetPriorityL()
-// ---------------------------------------------------------------------------
-//
-void CESMRTitlePane::SetPriorityL(TUint aPriority )
-    {
-    FUNC_LOG;
-    __ASSERT_DEBUG( iEntryType != MESMRCalEntry::EESMRCalEntryNotSupported, 
-    		Panic(EESMREntryTypeNotSet ) );
-
-    iPriority = aPriority;
-
-    // icon added to MR-title only if the default icon is set and
-    // the priority is neither high or low (the possible high/low
-    // importance icons are currently only shown in navi pane).
-    delete iIcon;
-    iIcon = NULL;
-    if ( iDefaultIcon &&
-         iEntryType != MESMRCalEntry::EESMRCalEntryTodo && 
-         aPriority != EFSCalenMRPriorityHigh &&
-         aPriority != EFSCalenMRPriorityLow )
-        {
-        CreateIconL( KAknsIIDQgnFscalIndiSubject );
-        }
-    
-    SizeChanged();
-    DrawDeferred();
-    }
-
-// ---------------------------------------------------------------------------
-// CESMRTitlePane::CreateIconL()
-// ---------------------------------------------------------------------------
-//
-void CESMRTitlePane::CreateIconL( TAknsItemID aIconID  )
-    {
-    FUNC_LOG;
-    delete iIcon;
-    iIcon = NULL;
-
-    iIcon = CMRImage::NewL( aIconID );
-    iIcon->SetParent( this );
     }
 
 // ---------------------------------------------------------------------------
@@ -344,31 +205,7 @@ void CESMRTitlePane::InternalizeL( MESMRCalEntry& aEntry )
     {
     FUNC_LOG;
     iEntryType = aEntry.Type();
-    SetPriorityL( aEntry.GetPriorityL() );
     }
 
-// ---------------------------------------------------------------------------
-// CESMRTitlePane::SetDefaultIcon()
-// ---------------------------------------------------------------------------
-//
-void CESMRTitlePane::SetDefaultIcon( TBool aDefault )
-    {
-    FUNC_LOG;
-    iDefaultIcon = aDefault;
-    }
-
-// ---------------------------------------------------------------------------
-// CESMRTitlePane::ExternalizeL()
-// ---------------------------------------------------------------------------
-//
-void CESMRTitlePane::ExternalizeL( MESMRCalEntry& aEntry )
-    {
-    FUNC_LOG;
-    if ( aEntry.Type() == MESMRCalEntry::EESMRCalEntryMeetingRequest ||
-         aEntry.Type() == MESMRCalEntry::EESMRCalEntryMeeting )
-        {
-        aEntry.SetPriorityL( iPriority );
-        }
-    }
 
 // EOF

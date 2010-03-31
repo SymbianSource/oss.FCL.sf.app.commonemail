@@ -25,22 +25,22 @@
 #include <badesca.h>
 //<cmail>
 #include "tfsccontactactionpluginparams.h"
-#include <MVPbkStoreContact.h>
-#include <CalenInterimUtils2.h>
+#include <mvpbkstorecontact.h>
+#include <caleninterimutils2.h>
 #include <cmrmailboxutils.h>
 #include <calsession.h>
 #include <calentry.h>
-#include <CAgnEntryUi.h>
+#include <cagnentryui.h>
 #include <caluser.h>
 #include "mfscactionutils.h"
 //</cmail>
-#include <aknPopup.h>
+#include <aknpopup.h>
 #include <aknlists.h>
 #include <utf.h>
 #include <ecom/ecom.h>
 #include "esmrcommands.h"
 #include <esmrcasplugindata.rsg>
-#include <StringLoader.h>
+#include <stringloader.h>
 #include <aknnotewrappers.h>
 
 
@@ -319,7 +319,7 @@ void CESMRCasPluginUiLauncher::LaunchMeetingRequestViewL(
     if (iOutParams.iAction == MAgnEntryUi::EMeetingSaved)
     	{
     	TInt res = R_FS_MR_NOTE_SAVED;
-        HBufC* prompt = StringLoader::LoadLC( res, CEikonEnv::Static() );
+        HBufC* prompt = StringLoader::LoadLC( res, CEikonEnv::Static() );// codescanner::eikonenvstatic
         CAknConfirmationNote* dialog = new( ELeave )CAknConfirmationNote();
         dialog->ExecuteLD( *prompt );
         CleanupStack::PopAndDestroy( prompt );
@@ -380,36 +380,33 @@ void CESMRCasPluginUiLauncher::AddOrganizerL()
     {
     FUNC_LOG;
     CMRMailboxUtils::TMailboxInfo defaultMailBox;
-    
-    RArray<CMRMailboxUtils::TMailboxInfo> mailBoxes;
-	CleanupClosePushL( mailBoxes );
-	SupportedMailboxesL( iMBUtils, mailBoxes );
-        
-    if ( KErrNone == iMBUtils.GetDefaultMRMailBoxL(defaultMailBox) )
-		{
-			for ( TInt i(0); i < mailBoxes.Count(); i++ )
-			{
-				if ( (defaultMailBox.iEntryId != mailBoxes[i].iEntryId) && 
-					( i == mailBoxes.Count() - 1 ) )
-				{
-				TInt selectedMailbox( PromptForDefaultMailboxL(mailBoxes) );
-				
-				if ( KErrCancel != selectedMailbox )
-					{
-					iMBUtils.SetDefaultMRMailBoxL( mailBoxes[selectedMailbox].iEntryId );
-					iMBUtils.GetDefaultMRMailBoxL(defaultMailBox);
-					}
-				
-				// This will leave if user cancelled the mailbox selection
-				User::LeaveIfError( selectedMailbox );
-				}
-			}
-		}
-    
-    CleanupStack::PopAndDestroy( &mailBoxes );
-    
+    if ( KErrNotFound == iMBUtils.GetDefaultMRMailBoxL(defaultMailBox) )
+        {
+        RArray<CMRMailboxUtils::TMailboxInfo> mailBoxes;
+        CleanupClosePushL( mailBoxes );
+
+        SupportedMailboxesL( iMBUtils, mailBoxes );
+
+        TInt selectedMailbox( PromptForDefaultMailboxL(mailBoxes) );
+
+        if ( KErrCancel != selectedMailbox )
+            {
+            iMBUtils.SetDefaultMRMailBoxL( mailBoxes[selectedMailbox].iEntryId );
+            iMBUtils.GetDefaultMRMailBoxL(defaultMailBox);
+            }
+        CleanupStack::PopAndDestroy( &mailBoxes );
+
+        // This will leave if user cancelled the mailbox selection
+        User::LeaveIfError( selectedMailbox );
+        }
+
     delete iMtmUid; iMtmUid = NULL;
     iMtmUid = defaultMailBox.iMtmUid.Name().AllocL();
+    
+    // iMtmUid needs to be upper case due to resource file definition, 
+    // so let's make sure 
+    TPtr mtm( iMtmUid->Des() );
+    mtm.UpperCase();
 
     //Set the organizer from the selected mailbox
     CCalUser* organizer = CCalUser::NewL( defaultMailBox.iEmailAddress );

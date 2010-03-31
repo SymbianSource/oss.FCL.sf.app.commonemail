@@ -1,0 +1,54 @@
+/*
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Policy definitions for BC Cal event plugin
+*
+*/
+
+#include <eikon.rh>
+#include <avkon.hrh>
+#include "esmrservices.rh"
+#include "esmrdef.h"
+
+NAME CALP
+
+RESOURCE RSS_SIGNATURE { }
+
+#include "bccalmeetingeditor.rss"
+#include "bccalmeetingviewer.rss"
+#include "bccaltodoeditor.rss"
+#include "bccaltodoviewer.rss"
+#include "bccalmemoeditor.rss"
+#include "bccalmemoviewer.rss"
+#include "bccalanniversaryeditor.rss"
+#include "bccalanniversaryviewer.rss"
+
+// ---------------------------------------------------------------------------
+// r_bccalevent_policies
+// Business Calendar Event plugin policies
+// ---------------------------------------------------------------------------
+//
+RESOURCE ESMR_POLICY_TABLE r_bccalevent_policies
+    {
+    policies = 
+        {
+        ESMR_POLICY_TABLE_ITEM { esmr_policy = r_bccal_meeting_editor; },
+        ESMR_POLICY_TABLE_ITEM { esmr_policy = r_bccal_meeting_viewer; },
+        ESMR_POLICY_TABLE_ITEM { esmr_policy = r_bccal_todo_editor; },
+        ESMR_POLICY_TABLE_ITEM { esmr_policy = r_bccal_todo_viewer; },
+        ESMR_POLICY_TABLE_ITEM { esmr_policy = r_bccal_memo_editor; },
+        ESMR_POLICY_TABLE_ITEM { esmr_policy = r_bccal_memo_viewer; },
+        ESMR_POLICY_TABLE_ITEM { esmr_policy = r_bccal_anniversary_editor; },
+        ESMR_POLICY_TABLE_ITEM { esmr_policy = r_bccal_anniversary_viewer; }
+        };    
+    }

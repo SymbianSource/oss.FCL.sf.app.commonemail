@@ -23,12 +23,13 @@ DEFAULT
 
 PRJ_EXPORTS
 ../inc/cesmrpolicy.h             	|../../inc/cesmrpolicy.h
-../inc/cesmrpolicy.inl           	|../../inc/cesmrpolicy.inl
 ../inc/cesmrpolicymanager.h      	|../../inc/cesmrpolicymanager.h
-../inc/cesmrpolicymanager.inl    	|../../inc/cesmrpolicymanager.inl
-//../inc/mesmrpolicychecker.h      	|../../inc/mesmrpolicychecker.h
+../inc/mmrpolicyprovider.h      	|../../inc/mmrpolicyprovider.h
 
 PRJ_MMPFILES
 esmrpolicy.mmp
+
+../mrentryresolver/group/mrentryresolver.mmp
+../mrcalentryresolver/group/mrcalentryresolver.mmp
 
 // EOF

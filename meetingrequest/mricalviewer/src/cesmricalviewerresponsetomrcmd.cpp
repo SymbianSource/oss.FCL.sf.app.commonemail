@@ -23,12 +23,11 @@
 #include "cesmricalvieweremailasynccmd.h"
 #include "cesmricalvieweremailsynccmd.h"
 #include "esmricalviewerutils.h"
-#include "cesmrattachmentinfo.h"
 
 //<cmail>
 #include "esmricalvieweropcodes.hrh"
 #include <calsession.h>
-#include "cfsmailclient.h"
+#include "CFSMailClient.h"
 //</cmail>
 #include <calentry.h>
 

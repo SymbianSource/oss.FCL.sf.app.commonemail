@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -20,6 +20,8 @@
 #include "cmrlabel.h"
 #include "cmrimage.h"
 #include "mesmrlistobserver.h"
+#include "nmrbitmapmanager.h"
+#include "cesmrglobalnote.h"
 
 #include <caluser.h>
 #include <calalarm.h>
@@ -27,8 +29,8 @@
 #include <calentry.h>
 #include <eikenv.h>
 #include <eikedwin.h>
-#include <StringLoader.h>
-#include <AknsConstants.h>
+#include <stringloader.h>
+#include <aknsconstants.h>
 #include <esmrgui.rsg>
 
 // DEBUG
@@ -64,7 +66,7 @@ CESMRViewerRecurrenceField::~CESMRViewerRecurrenceField()
     {
     FUNC_LOG;
     delete iIcon;
-    delete iLabel;
+    delete iLockIcon;
     }
 
 // -----------------------------------------------------------------------------
@@ -75,6 +77,7 @@ CESMRViewerRecurrenceField::CESMRViewerRecurrenceField()
     {
     FUNC_LOG;
     SetFieldId( EESMRFieldRecurrence );
+    SetFocusType( EESMRHighlightFocus );
     }
 
 // -----------------------------------------------------------------------------
@@ -86,10 +89,10 @@ void CESMRViewerRecurrenceField::ConstructL()
     FUNC_LOG;
     iLabel = CMRLabel::NewL();
     iLabel->SetParent( this );
-    iIcon = CMRImage::NewL( KAknsIIDQgnFscalIndiRecurrence );
+    CESMRField::ConstructL( iLabel ); // ownership transfered
+
+    iIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapRecurrence );
     iIcon->SetParent( this );
-    
-    SetFocusType( EESMRHighlightFocus );    
     }
 
 // -----------------------------------------------------------------------------
@@ -100,20 +103,17 @@ void CESMRViewerRecurrenceField::InitializeL()
     {
     FUNC_LOG;
     // Setting Font for the rich text viewer
-    TAknLayoutText text = NMRLayoutManager::GetLayoutText( 
-            Rect(), 
+    TAknLayoutText text = NMRLayoutManager::GetLayoutText(
+            Rect(),
             NMRLayoutManager::EMRTextLayoutTextEditor );
-    
+
     iLabel->SetFont( text.Font() );
-        
+
     // This is called so theme changes will apply when changing theme "on the fly"
     if ( IsFocused() )
         {
         iLabel->FocusChanged( EDrawNow );
         }
-
-    AknLayoutUtils::OverrideControlColorL ( *iLabel, EColorLabelText,
-                                             KRgbBlack );
     }
 
 // -----------------------------------------------------------------------------
@@ -172,7 +172,7 @@ void CESMRViewerRecurrenceField::InternalizeL( MESMRCalEntry& aEntry )
         default:
             {
             // Hide the field if there is no recurrence
-            iObserver->RemoveControl( iFieldId );
+            iObserver->HideControl( iFieldId );
             break;
             }
         }
@@ -193,24 +193,43 @@ void CESMRViewerRecurrenceField::SizeChanged()
     TAknLayoutRect rowLayoutRect =
         NMRLayoutManager::GetFieldRowLayoutRect( rect, 1 );
     rect = rowLayoutRect.Rect();
-    
+
     TAknWindowComponentLayout iconLayout =
-        NMRLayoutManager::GetWindowComponentLayout( 
+        NMRLayoutManager::GetWindowComponentLayout(
                 NMRLayoutManager::EMRLayoutTextEditorIcon );
     AknLayoutUtils::LayoutImage( iIcon, rect, iconLayout );
-    
-    TAknLayoutRect bgLayoutRect =
-        NMRLayoutManager::GetLayoutRect( 
-                rect, NMRLayoutManager::EMRLayoutTextEditorBg );
-    TRect bgRect( bgLayoutRect.Rect() );
+
+    // Layouting lock icon
+    if( iLockIcon )
+    	{
+    	TAknWindowComponentLayout iconLayout( 
+    			NMRLayoutManager::GetWindowComponentLayout( 
+    					NMRLayoutManager::EMRLayoutSingleRowDColumnGraphic ) );
+    	AknLayoutUtils::LayoutImage( iLockIcon, rect, iconLayout );
+    	}
+        
+    // Layouting label
+    TAknLayoutText viewerLayoutText;
+    if( iLockIcon )
+    	{
+    	viewerLayoutText = NMRLayoutManager::GetLayoutText( rect, 
+    			NMRLayoutManager::EMRTextLayoutSingleRowEditorText );
+    	}
+    else
+    	{
+    	viewerLayoutText = NMRLayoutManager::GetLayoutText( rect, 
+    			NMRLayoutManager::EMRTextLayoutTextEditor );
+    	}
+
+    TRect viewerRect( viewerLayoutText.TextRect() );    
+    iLabel->SetRect( viewerRect );
+
     // Move focus rect so that it's relative to field's position.
-    bgRect.Move( -Position() );
-    SetFocusRect( bgRect );
-    
-    TAknLayoutText labelLayout = 
-        NMRLayoutManager::GetLayoutText( 
-                rect, NMRLayoutManager::EMRTextLayoutTextEditor );
-    iLabel->SetRect( labelLayout.TextRect() );  
+    viewerRect.Move( -Position() );
+    SetFocusRect( viewerRect );
+
+    // Setting font also for the label
+    iLabel->SetFont( viewerLayoutText.Font() );
     }
 
 // -----------------------------------------------------------------------------
@@ -219,7 +238,13 @@ void CESMRViewerRecurrenceField::SizeChanged()
 //
 TInt CESMRViewerRecurrenceField::CountComponentControls() const
     {
-    return KComponentCount;
+    TInt count( KComponentCount );
+    if( iLockIcon )
+    	{
+    	++count;
+    	}
+    
+    return count;
     }
 
 // -----------------------------------------------------------------------------
@@ -234,6 +259,8 @@ CCoeControl* CESMRViewerRecurrenceField::ComponentControl( TInt aIndex ) const
             return iIcon;
         case 1:
             return iLabel;
+        case 2:
+        	return iLockIcon;
         default:
             return NULL;
         }
@@ -247,14 +274,50 @@ void CESMRViewerRecurrenceField::SetOutlineFocusL( TBool aFocus )
     {
     FUNC_LOG;
     CESMRField::SetOutlineFocusL ( aFocus );
-    
-    iLabel->SetFocus( aFocus );    
 
-    if ( !aFocus )
-        {
-        AknLayoutUtils::OverrideControlColorL ( *iLabel, EColorLabelText,
-                                                 KRgbBlack );
-        }
+    iLabel->SetFocus( aFocus );
     }
+
+// ---------------------------------------------------------------------------
+// CESMRViewerRecurrenceField::LockL()
+// ---------------------------------------------------------------------------
+//
+void CESMRViewerRecurrenceField::LockL()
+	{
+	FUNC_LOG;
+	if( IsLocked() )
+		{
+		return;
+		}
+	
+	CESMRField::LockL();
+	
+	delete iLockIcon;
+	iLockIcon = NULL;
+	iLockIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapLockField, ETrue );
+	iLockIcon->SetParent( this );
+	}
+
+// ---------------------------------------------------------------------------
+// CESMRViewerRecurrenceField::ExecuteGenericCommandL()
+// ---------------------------------------------------------------------------
+//
+TBool CESMRViewerRecurrenceField::ExecuteGenericCommandL( TInt aCommand )
+	{
+	FUNC_LOG;
+
+	TBool retValue( EFalse );
+
+	if( (aCommand == EAknCmdOpen) && IsLocked()  )
+		{
+		HandleTactileFeedbackL();
+		
+		CESMRGlobalNote::ExecuteL(
+				CESMRGlobalNote::EESMRUnableToEdit );
+		retValue = ETrue;
+		}
+
+	return retValue;
+	}
 // EOF
 

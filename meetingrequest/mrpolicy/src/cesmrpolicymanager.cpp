@@ -16,47 +16,23 @@
 */
 
 
-#include "emailtrace.h"
 #include "cesmrpolicymanager.h"
-//<cmail>
 #include "cesmrpolicy.h"
-#include <esmrpolicies.rsg>
 #include "esmrdef.h"
-//</cmail>
 #include "esmrinternaluid.h"
 #include "cesmrcalimportexporter.h"
 #include "tesmrentryfield.h"
-#include "cesmrpolicychecker.h"
-#include "cesmrpolicyextensionmanager.h"
+#include "cmrpolicyresolver.h"
+#include "esmrentryhelper.h"
+#include "mesmrcalentry.h"
 
-#include <coemain.h>// CCoeEnv
-#include <barsread.h>
+#include "emailtrace.h"
+
+#include <esmrpolicies.rsg>
 
 
 /// Unnamed namespace for local definitions
 namespace {
-
-// Definition for resource id array granularity
-const TInt KESMRPolicyIdArrayGranularity = 4;
-
-/**
- * Reads ESMR policy resource id table from resource.
- *
- * @param aReader Reference to resource reader.
- * @param aResourceIdTable Reference to resource id table.
- */
-void ReadResourceIdArrayL(
-        TResourceReader& aReader,
-        RArray<TInt>& aResourceIdTable )
-    {
-    TInt numOfFields = aReader.ReadInt16();
-    for (TInt i(0); i < numOfFields; i++ )
-        {
-        TInt resourceId= aReader.ReadInt32();
-        aResourceIdTable.AppendL(resourceId);
-        }
-    }
-
 
 #ifdef _DEBUG
 
@@ -114,7 +90,6 @@ void LogPolicy(
 // ---------------------------------------------------------------------------
 //
 inline CESMRPolicyManager::CESMRPolicyManager()
-:   iPolicyResourceIds( KESMRPolicyIdArrayGranularity )
     {
     FUNC_LOG;
     //do nothing
@@ -127,11 +102,8 @@ inline CESMRPolicyManager::CESMRPolicyManager()
 EXPORT_C CESMRPolicyManager::~CESMRPolicyManager()
     {
     FUNC_LOG;
-    delete iDefaultPolicyChecker;
+    delete iResolverPlugin;
     delete iCurrentPolicy;
-    delete iExtension;
-    iPolicyResourceFile.Close();
-    iPolicyResourceIds.Close();
     iPolicyStack.ResetAndDestroy();
     }
 
@@ -158,19 +130,23 @@ EXPORT_C CESMRPolicyManager* CESMRPolicyManager::NewL()
 void CESMRPolicyManager::ConstructL()
     {
     FUNC_LOG;
-    iDefaultPolicyChecker = CESMRPolicyChecker::NewL();
-    iCoeEnv = CCoeEnv::Static();
-    iExtension = CESMRPolicyExtensionManager::NewL( *iCoeEnv );
+    
     }
 
-// ---------------------------------------------------------------------------
-// CESMRPolicyManager::ExtensionUid
-// ---------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// CESMRPolicyManager::CurrentPolicy
+// -----------------------------------------------------------------------------
 //
-EXPORT_C TUid CESMRPolicyManager::ExtensionUid()
+EXPORT_C CESMRPolicy& CESMRPolicyManager::CurrentPolicy()
     {
-    FUNC_LOG;
-    return TUid::Uid( KESMRPolicyMgrUid );
+    CESMRPolicy* currentPolicy = iCurrentPolicy;
+    if ( !currentPolicy && iPolicyStack.Count() )
+        {
+        currentPolicy = iPolicyStack[ iPolicyStack.Count() - 1 ];
+        }
+    
+    ASSERT( currentPolicy );
+    return *currentPolicy;
     }
 
 // ---------------------------------------------------------------------------
@@ -180,32 +156,39 @@ EXPORT_C TUid CESMRPolicyManager::ExtensionUid()
 EXPORT_C void CESMRPolicyManager::ResolvePolicyL(
         const TESMRScenarioData& aScenarioData,
         MESMRCalEntry& aESMREntry,
-        MESMRPolicyChecker* aPolicyChecker )
+        MMRPolicyResolver* aPolicyResolver )
     {
     FUNC_LOG;
 
-    MESMRPolicyChecker* policyChecker = iDefaultPolicyChecker;
-    if ( aPolicyChecker )
+    MMRPolicyResolver* policyResolver = NULL;
+    
+    if ( aPolicyResolver )
         {
-        policyChecker = aPolicyChecker;
+        policyResolver = aPolicyResolver;
+        }
+    else
+        {
+        TESMRCalendarEventType type =
+            ESMREntryHelper::EventTypeL( aESMREntry.Entry() );
+        
+        if ( !iResolverPlugin || !iResolverPlugin->SupportsTypeL( type ) )
+            {
+            // Instantiate correct resolver
+            policyResolver = CMRPolicyResolver::NewL( type );
+            delete iResolverPlugin;
+            iResolverPlugin = policyResolver;
+            }
+        else
+            {
+            // Use default resolver
+            policyResolver = iResolverPlugin;
+            }
         }
 
     delete iCurrentPolicy;
     iCurrentPolicy = NULL;
-
-    TInt policyCount( iPolicyResourceIds.Count() );
-    for ( TInt i( 0 );
-        ( i < policyCount) && !iCurrentPolicy;
-          ++i )
-        {
-        ReadPolicyL( iPolicyResourceIds[i], aESMREntry );
-        if ( !policyChecker->MatchesL( *iCurrentPolicy, aScenarioData ) )
-            {
-            // Policy did not match --> Reading next
-            delete iCurrentPolicy;
-            iCurrentPolicy = NULL;
-            }
-        }
+    
+    iCurrentPolicy = policyResolver->ResolveL( aScenarioData );
 
     // Matching policy not found --> Panic
     __ASSERT_DEBUG( iCurrentPolicy, Panic(EESMRPolicyMgrNoPolicyFound) );
@@ -254,93 +237,15 @@ EXPORT_C CESMRPolicy* CESMRPolicyManager::PopPolicy()
     }
 
 // ---------------------------------------------------------------------------
-// CESMRPolicyManager::ReadPolicyFromResourceL
+// CESMRPolicyManager::CurrentPolicy
 // ---------------------------------------------------------------------------
 //
-EXPORT_C void CESMRPolicyManager::ReadPolicyFromResourceL(
-        const TDesC& aPolicyFile,
-        TInt aPolicyArrayResourceId )
+const CESMRPolicy& CESMRPolicyManager::CurrentPolicy() const
     {
-    FUNC_LOG;
-
-
-    iPolicyResourceFile.Close();
-    iPolicyResourceFile.OpenL( iCoeEnv->FsSession(), aPolicyFile );
-    iPolicyResourceFile.ConfirmSignatureL();
-
-    // R_ESMR_POLICIES
-    HBufC8* resourceIdBuffer =
-        iPolicyResourceFile.AllocReadLC( aPolicyArrayResourceId );
-
-    // Construct resource reader
-    TResourceReader reader;
-    reader.SetBuffer(resourceIdBuffer);
-
-    // Read policy resource ids
-    iPolicyResourceIds.Reset();
-    ReadResourceIdArrayL(reader, iPolicyResourceIds );
-
-    CleanupStack::PopAndDestroy( resourceIdBuffer );
-
-    // Load extension resources
-    iExtension->ReadResourcesFromExtensionsL();
-
-    }
-
-
-// ---------------------------------------------------------------------------
-// CESMRPolicyManager::ReadPolicyL
-// ---------------------------------------------------------------------------
-//
-void CESMRPolicyManager::ReadPolicyL(
-        TInt aResourceId,
-        MESMRCalEntry& /*aESMREntry */)
-    {
-    FUNC_LOG;
-
-    HBufC8* resourceBuffer = NULL;
-    // First try to find policy from static policies and then from extensions
-    TRAPD( error, resourceBuffer = iPolicyResourceFile.AllocReadL( aResourceId ) );
-    if ( resourceBuffer )
-        {
-        CleanupStack::PushL( resourceBuffer );
-        }
-
-    TResourceReader reader;
-    CESMRPolicy* policy = NULL;
-    if ( error == KErrNone && resourceBuffer )
-        {
-        reader.SetBuffer(resourceBuffer);
-        policy = CESMRPolicy::NewL( iPolicyResourceFile, reader );
-        }
-    else
-        {
-        resourceBuffer = iExtension->ReadBufferL( aResourceId );
-        CESMRExtensionResourceFile* file = NULL;
-        if ( resourceBuffer )
-            {
-            CleanupStack::PushL( resourceBuffer );
-            file = iExtension->ExtensionResourceFile( aResourceId );
-            }
-
-        if ( resourceBuffer && file )
-            {
-            reader.SetBuffer(resourceBuffer);
-            policy = CESMRPolicy::NewL( file->ResFile(), reader );
-            }
-        }
-
-    // Logging read policy
-    LOG_POLICY( *policy )
-
-    delete iCurrentPolicy; 
-    iCurrentPolicy = policy;
-
-    if ( resourceBuffer )
-        {
-        CleanupStack::PopAndDestroy( resourceBuffer );
-        }
-
+    CESMRPolicy& policy =
+        const_cast< CESMRPolicyManager* >( this )->CurrentPolicy();
+    
+    return policy;
     }
 
 // EOF

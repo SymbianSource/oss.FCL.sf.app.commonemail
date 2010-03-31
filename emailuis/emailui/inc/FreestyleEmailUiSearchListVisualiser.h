@@ -271,8 +271,6 @@ private:
  	CAlfAnchorLayout* iSearchTopBarComponentLayout;
 
   	// Top bar visuals and layout
- 	CAlfDeckLayout* iSearchTopBarLayout;
-	CAlfImageVisual* iBarBgVisual;
 	//CAlfImageVisual* iBarFindImage; <cmail> not in cmail
 	CAlfTextVisual* iBarTextVisual;
 

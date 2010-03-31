@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -15,27 +15,25 @@
  *
 */
 
+
 #include "cesmrviewerrecurrencedatefield.h"
 #include "mesmrresponseobserver.h"
-#include "cesmrborderlayer.h"
 #include "mesmrlistobserver.h"
 #include "esmrfieldbuilderdef.h"
-#include "cesmrlayoutmgr.h"
 #include "cmrlabel.h"
 #include "nmrlayoutmanager.h"
+#include "nmrcolormanager.h"
+#include "cesmrglobalnote.h"
 
 #include <eikenv.h>
 #include <avkon.rsg>
 #include <avkon.hrh>
-#include <StringLoader.h>
-#include <AknUtils.h>
+#include <stringloader.h>
+#include <aknutils.h>
 #include <esmrgui.rsg>
 #include <caltime.h>
 // DEBUG
 #include "emailtrace.h"
-
-using namespace ESMRLayout;
-
 namespace // codescanner::namespace
     {
     const TInt KComponentCount( 2 );
@@ -44,17 +42,15 @@ namespace // codescanner::namespace
 // ======== MEMBER FUNCTIONS ========
 
 // -----------------------------------------------------------------------------
-// CESMRViewerRecurrenceDateField::NewL
+// CESMRViewerRecurrenceDateField::CESMRViewerRecurrenceDateField
 // -----------------------------------------------------------------------------
 //
-CESMRViewerRecurrenceDateField* CESMRViewerRecurrenceDateField::NewL()
+CESMRViewerRecurrenceDateField::CESMRViewerRecurrenceDateField()
+:   iRepeatUntilDate( Time::NullTTime() )
     {
     FUNC_LOG;
-    CESMRViewerRecurrenceDateField* self = new (ELeave) CESMRViewerRecurrenceDateField();
-    CleanupStack::PushL( self );
-    self->ConstructL();
-    CleanupStack::Pop( self );
-    return self;
+    SetFieldId( EESMRFieldRecurrenceDate );
+    SetFocusType( EESMRHighlightFocus );
     }
 
 // -----------------------------------------------------------------------------
@@ -69,13 +65,18 @@ CESMRViewerRecurrenceDateField::~CESMRViewerRecurrenceDateField()
     }
 
 // -----------------------------------------------------------------------------
-// CESMRViewerRecurrenceDateField::CESMRViewerRecurrenceDateField
+// CESMRViewerRecurrenceDateField::NewL
 // -----------------------------------------------------------------------------
 //
-CESMRViewerRecurrenceDateField::CESMRViewerRecurrenceDateField()
+CESMRViewerRecurrenceDateField* CESMRViewerRecurrenceDateField::NewL()
     {
     FUNC_LOG;
-    SetFieldId( EESMRFieldRecurrenceDate );
+    CESMRViewerRecurrenceDateField* self = 
+            new (ELeave) CESMRViewerRecurrenceDateField();
+    CleanupStack::PushL( self );
+    self->ConstructL();
+    CleanupStack::Pop( self );
+    return self;
     }
 
 // -----------------------------------------------------------------------------
@@ -99,19 +100,40 @@ void CESMRViewerRecurrenceDateField::ConstructL()
 void CESMRViewerRecurrenceDateField::InitializeL()
     {
     FUNC_LOG;
-    TAknLayoutText editorRect = 
-    NMRLayoutManager::GetLayoutText( 
-            Rect(), NMRLayoutManager::EMRTextLayoutMultiRowTextEditor );
-    
-    iRepeatTopic->SetFont( editorRect.Font() );
-    iRepeatDate->SetFont( editorRect.Font() );
+    NMRColorManager::SetColor( *iRepeatTopic,
+                               NMRColorManager::EMRMainAreaTextColor );
 
-    AknLayoutUtils::OverrideControlColorL( *iRepeatTopic, EColorLabelText,
-                                            KRgbBlack );
-    AknLayoutUtils::OverrideControlColorL( *iRepeatDate, EColorLabelText,
-                                            KRgbBlack );
+    NMRColorManager::SetColor( *iRepeatDate,
+                               NMRColorManager::EMRMainAreaTextColor );
     //this control cannot ever get keyboard focus
     SetFocusing(EFalse);
+    }
+
+// -----------------------------------------------------------------------------
+// CESMRViewerRecurrenceDateField::ExecuteGenericCommandL
+// -----------------------------------------------------------------------------
+//
+TBool CESMRViewerRecurrenceDateField::ExecuteGenericCommandL( TInt aCommand )
+    {
+    FUNC_LOG;
+    
+    TBool retValue( EFalse );
+    
+    if( (aCommand == EAknCmdOpen) && IsLocked()  )
+    	{
+		HandleTactileFeedbackL();
+		
+    	CESMRGlobalNote::ExecuteL(
+    			CESMRGlobalNote::EESMRUnableToEdit );    	
+    	retValue = ETrue;
+    	}    
+    else if ( EMRCmdDoEnvironmentChange == aCommand )
+        {
+        FormatRepeatUntilDateL();
+        retValue = ETrue;
+        }
+    
+    return retValue;    
     }
 
 // -----------------------------------------------------------------------------
@@ -125,33 +147,37 @@ void CESMRViewerRecurrenceDateField::SizeChanged()
     // First row
     TAknLayoutRect row1LayoutRect =
         NMRLayoutManager::GetFieldRowLayoutRect( rect, 1 );
-    rect = row1LayoutRect.Rect();    
-    
-    TAknLayoutText topicRect = 
-        NMRLayoutManager::GetLayoutText( 
-                rect, NMRLayoutManager::EMRTextLayoutMultiRowTextEditor ); 
-    
+    rect = row1LayoutRect.Rect();
+
+    TAknLayoutText topicRect =
+        NMRLayoutManager::GetLayoutText(
+                rect, NMRLayoutManager::EMRTextLayoutMultiRowTextEditor );
+
     TRect rectWithMargin = topicRect.TextRect();
     rectWithMargin.iTl.iX += KMargin;
     iRepeatTopic->SetRect( rectWithMargin );
-    
+
     rect = Rect();
     // Move the iY down the height of the topic field
     TInt movement = row1LayoutRect.Rect().Height();
-    rect.Move( 0, movement );    
-    
+    rect.Move( 0, movement );
+
     // Second row
     TAknLayoutRect row2LayoutRect =
         NMRLayoutManager::GetFieldRowLayoutRect( rect, 2 );
-    rect = row2LayoutRect.Rect();    
-    
-    TAknLayoutText dateRect = 
-        NMRLayoutManager::GetLayoutText( 
-                rect, NMRLayoutManager::EMRTextLayoutMultiRowTextEditor );    
-    
-    rectWithMargin = dateRect.TextRect();
+    rect = row2LayoutRect.Rect();
+
+    TAknLayoutText dateRect =
+        NMRLayoutManager::GetLayoutText(
+                rect, NMRLayoutManager::EMRTextLayoutMultiRowTextEditor );
+
+        rectWithMargin = dateRect.TextRect();
     rectWithMargin.iTl.iX += KMargin;
     iRepeatDate->SetRect( rectWithMargin );
+
+    // Setting font also for the label
+    iRepeatTopic->SetFont( topicRect.Font() );
+    iRepeatDate->SetFont( dateRect.Font() );
     }
 
 // -----------------------------------------------------------------------------
@@ -168,8 +194,8 @@ TSize CESMRViewerRecurrenceDateField::MinimumSize()
     // Second row
     TAknLayoutRect row2LayoutRect =
         NMRLayoutManager::GetFieldRowLayoutRect( Rect(), 2 );
-    height += row2LayoutRect.Rect().Height();    
-    
+    height += row2LayoutRect.Rect().Height();
+
     TInt width( Parent()->Size().iWidth );
     return TSize( width, height );
     }
@@ -183,40 +209,19 @@ void CESMRViewerRecurrenceDateField::InternalizeL(
     {
     FUNC_LOG;
     // Get recurrence
-    TESMRRecurrenceValue recValue( ERecurrenceNot );
-    TTime recTime( Time::NullTTime() );
-    aEntry.GetRecurrenceL( recValue, recTime );
+    TESMRRecurrenceValue recValue( ERecurrenceNot );    
+    aEntry.GetRecurrenceL( recValue, iRepeatUntilDate );
 
     // Recurrence time has to be shown in the viewer as local time
     TCalTime recurrenceTime;
-    recurrenceTime.SetTimeUtcL( recTime );
-    TTime localRecurrenceTime;
-    localRecurrenceTime = recurrenceTime.TimeLocalL();
+    recurrenceTime.SetTimeUtcL( iRepeatUntilDate );    
+    iRepeatUntilDate = recurrenceTime.TimeLocalL();
 
     if( aEntry.IsRecurrentEventL() &&
         recValue != ERecurrenceNot &&
-        Time::NullTTime() != recTime )
+        Time::NullTTime() != iRepeatUntilDate )
         {
-        HBufC* topicHolder =
-                StringLoader::LoadLC(
-                        R_QTN_MEET_REQ_REPEAT_UNTIL,
-                        iEikonEnv );
-        // Set text for repeat topic (e.g. "Repeat until")
-        iRepeatTopic->SetTextL( topicHolder->Des() );
-        CleanupStack::PopAndDestroy( topicHolder );
-
-        // Format date string
-        HBufC* timeFormatString = iEikonEnv->AllocReadResourceLC(
-                                        R_QTN_DATE_USUAL);
-
-        TBuf< KDateStringLength > finalBuf;
-        localRecurrenceTime.FormatL( finalBuf, *timeFormatString );
-
-        // Set repeat until date value
-        AknTextUtils::DisplayTextLanguageSpecificNumberConversion( finalBuf );
-        iRepeatDate->SetTextL( finalBuf );
-        CleanupStack::PopAndDestroy( timeFormatString );
-        timeFormatString = NULL;
+        FormatRepeatUntilDateL();
         }
     else
         {
@@ -258,6 +263,37 @@ CCoeControl* CESMRViewerRecurrenceDateField::ComponentControl( TInt aInd ) const
         }
 
     return retVal;
+    }
+
+// -----------------------------------------------------------------------------
+// CESMRViewerRecurrenceDateField::FormatRepeatUntilDateL
+// -----------------------------------------------------------------------------
+//
+void CESMRViewerRecurrenceDateField::FormatRepeatUntilDateL()
+    {
+    FUNC_LOG;
+
+    HBufC* topicHolder =
+            StringLoader::LoadLC(
+                    R_QTN_MEET_REQ_REPEAT_UNTIL,
+                    iEikonEnv );
+    
+    // Set text for repeat topic (e.g. "Repeat until")
+    iRepeatTopic->SetTextL( topicHolder->Des() );
+    CleanupStack::PopAndDestroy( topicHolder );
+
+    // Format date string
+    HBufC* timeFormatString = iEikonEnv->AllocReadResourceLC(
+                                    R_QTN_DATE_USUAL);
+
+    TBuf< KDateStringLength > finalBuf;
+    iRepeatUntilDate.FormatL( finalBuf, *timeFormatString );
+
+    // Set repeat until date value
+    AknTextUtils::DisplayTextLanguageSpecificNumberConversion( finalBuf );
+    iRepeatDate->SetTextL( finalBuf );
+    CleanupStack::PopAndDestroy( timeFormatString );
+    timeFormatString = NULL;    
     }
 
 // End of file

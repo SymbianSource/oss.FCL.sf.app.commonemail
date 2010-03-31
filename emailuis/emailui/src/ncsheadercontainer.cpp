@@ -227,6 +227,7 @@ void CNcsHeaderContainer::FocusChanged( TDrawNow aDrawNow )
 		CCoeControlArray::TCursor cur = Components().End();
 		cur.Prev();
 		cur.Control<CCoeControl>()->SetFocus( ETrue, aDrawNow );
+        iFocused = cur.Control<CCoeControl>();
 		}
 	}
 
@@ -961,6 +962,7 @@ void CNcsHeaderContainer::SetBccFieldVisibleL(
 				focused->SetFocus( EFalse );
 				}
 			iBccField->SetFocus( ETrue );
+            iFocused = iBccField;
 			iBccField->SelectAllTextL();
 			}
 		}
@@ -977,6 +979,7 @@ void CNcsHeaderContainer::SetBccFieldVisibleL(
 			cur.Control<CCoeControl>()->SetFocus( ETrue );
 			}
 		Components().Remove( iBccField );
+        iFocused = iSubjectField;
 		}
 
     TRAP_IGNORE( iFieldSizeObserver.UpdateFieldSizeL() );
@@ -1012,6 +1015,7 @@ void CNcsHeaderContainer::SetCcFieldVisibleL(
 				focused->SetFocus( EFalse );
 				}
 			iCcField->SetFocus( ETrue );
+            iFocused = iCcField;
 			iCcField->SelectAllTextL();
 			}
 		}
@@ -1023,6 +1027,7 @@ void CNcsHeaderContainer::SetCcFieldVisibleL(
 			iToField->SetFocus( ETrue );
 			}
 		Components().Remove( iCcField );
+        iFocused = iToField;
 		}
     
 	TRAP_IGNORE( iFieldSizeObserver.UpdateFieldSizeL() );

@@ -24,6 +24,16 @@
 #include <calentry.h>
 #include <caluser.h>
 
+namespace { // codescanner::namespace
+
+// Definition for 0
+const TInt KZero = 0;
+
+// Definition for number of hours within day
+const TInt KHoursInDay = 24;
+
+} // namespace
+
 // ======== MEMBER FUNCTIONS ========
 
 // ---------------------------------------------------------------------------
@@ -193,6 +203,45 @@ EXPORT_C TESMRRole CESMRCalUserUtil::PhoneOwnerRoleL() const
         }
     
     return role;
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRCalUserUtil::IsAlldayEventL
+// ---------------------------------------------------------------------------
+//
+EXPORT_C TBool CESMRCalUserUtil::IsAlldayEventL() const
+    {
+    FUNC_LOG;
+    
+    TBool allDayEvent(EFalse);
+
+    TCalTime startTime = iEntry.StartTimeL();
+    TCalTime stopTime  = iEntry.EndTimeL();
+
+    TTimeIntervalHours hoursBetweenStartAndEnd;
+    stopTime.TimeLocalL().HoursFrom(
+            startTime.TimeLocalL(),
+            hoursBetweenStartAndEnd );
+
+    TCalTime::TTimeMode mode = startTime.TimeMode();
+
+    TInt hoursBetweenStartAndEndAsInt(  hoursBetweenStartAndEnd.Int() );
+    TInt alldayDivident(  hoursBetweenStartAndEndAsInt % KHoursInDay );
+
+    TDateTime startTimeLocal = startTime.TimeLocalL().DateTime();
+    TDateTime stopTimeLocal =  stopTime.TimeLocalL().DateTime();
+    
+    if ( hoursBetweenStartAndEndAsInt && KZero == alldayDivident )
+        {
+        if ( startTimeLocal.Hour() == stopTimeLocal.Hour() &&
+             startTimeLocal.Minute() == stopTimeLocal.Minute() &&
+             startTimeLocal.Second() == stopTimeLocal.Second() )
+            {
+            allDayEvent = ETrue;
+            }
+        }
+    
+    return allDayEvent;
     }
 
 // EOF

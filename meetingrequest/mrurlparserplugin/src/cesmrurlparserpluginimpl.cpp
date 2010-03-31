@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2008-2008 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2008-2008 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -17,64 +17,44 @@
 
 
 
-#include "emailtrace.h"
-#include <EPos_CPosLandmark.h>
-#include <ecom/implementationproxy.h>
-#include <barsread.h>
-#include <esmrurlparserplugindata.rsg>
-#include <data_caging_path_literals.hrh>
-#include <barsc.h>
-#include <f32file.h>
-#include <lbsposition.h>
-
 #include "cesmrurlparserpluginimpl.h"
-#include "esmrinternaluid.h"
+#include "cmrurlparserextension.h"
 
+#include <EPos_CPosLandmark.h>
+#include <EPos_CPosLandmarkEncoder.h>
+#include <EPos_CPosLandmarkParser.h>
+#include <EPos_CPosLmOperation.h>
+#include <lbsposition.h>
+#include <EscapeUtils.h>
+#include <finditemengine.h>
+#include <calentry.h>
 
-_LIT( KResourceName, "esmrurlparserplugindata.rsc" );
-_LIT( KResourceFileLocFormat, "r%02d" );
-_LIT( KResourceFormat, "rsc" );
+#include "emailtrace.h"
 
-const TInt KCoordinateMaxLength = 10;
-const TInt KNumberOfDecimals = 4;
-const TUint KDecimalSeparator = '.';
-
-
+namespace
+{
+_LIT8( KLandmarkUrlMimeType, "maps.ovi.com" );
+}
 
 // ======== MEMBER FUNCTIONS ========
 
-
-
 // ---------------------------------------------------------------------------
-// Non-leaving constructor
+// CESMRUrlParserPluginImpl::CESMRUrlParserPluginImpl
 // ---------------------------------------------------------------------------
 //
 CESMRUrlParserPluginImpl::CESMRUrlParserPluginImpl()
-:   iIsInitialized(EFalse)
     {
     FUNC_LOG;
-
     }
 
-
 // ---------------------------------------------------------------------------
-// ConstructL for leaving construction
-// ---------------------------------------------------------------------------
-//
-void CESMRUrlParserPluginImpl::ConstructL()// codescanner::LFunctionCantLeave
-    {
-    FUNC_LOG;
-
-    }
-
-
-// ---------------------------------------------------------------------------
-// Symbian style NewL constructor
+// CESMRUrlParserPluginImpl::NewL
 // ---------------------------------------------------------------------------
 //
 CESMRUrlParserPluginImpl* CESMRUrlParserPluginImpl::NewL()
     {
     FUNC_LOG;
+
     CESMRUrlParserPluginImpl* self = CESMRUrlParserPluginImpl::NewLC();
     CleanupStack::Pop( self );
     return self;
@@ -82,41 +62,48 @@ CESMRUrlParserPluginImpl* CESMRUrlParserPluginImpl::NewL()
 
 
 // ---------------------------------------------------------------------------
-// Symbian style NewLC constructor
+// CESMRUrlParserPluginImpl::NewLC
 // ---------------------------------------------------------------------------
 //
 CESMRUrlParserPluginImpl* CESMRUrlParserPluginImpl::NewLC()
     {
     FUNC_LOG;
+
     CESMRUrlParserPluginImpl* self = new( ELeave ) CESMRUrlParserPluginImpl;
     CleanupStack::PushL( self );
-    self->ConstructL();
     return self;
     }
 
 
 // ---------------------------------------------------------------------------
-// Destructor
+// CESMRUrlParserPluginImpl::~CESMRUrlParserPluginImpl
 // ---------------------------------------------------------------------------
 //
 CESMRUrlParserPluginImpl::~CESMRUrlParserPluginImpl()
     {
     FUNC_LOG;
-    iFile.Close();
-    iFs.Close();
+
+    delete iParser;
+    delete iEncoder;
+    delete iExtension;
+
+    ReleaseLandmarkResources();
     }
 
 // ---------------------------------------------------------------------------
+// CESMRUrlParserPluginImpl::FindLocationUrl
 // Finds location URL from given text input
 // ---------------------------------------------------------------------------
 //
-TInt CESMRUrlParserPluginImpl::FindLocationUrl( const TDesC& aText, 
-                                                      TPtrC& aUrl )
+TInt CESMRUrlParserPluginImpl::FindLocationUrl(
+        const TDesC& aText,
+        TPtrC& aUrl )
 
     {
     FUNC_LOG;
+
     TInt pos(0);
-    TRAPD( error, pos = DoFindLocationUrlL( aText, aUrl ) );
+    TRAPD( error, DoFindLocationUrlL( aText, pos, aUrl ) );
     if ( error != KErrNone )
         {
         return error;
@@ -128,379 +115,216 @@ TInt CESMRUrlParserPluginImpl::FindLocationUrl( const TDesC& aText,
     }
 
 // ---------------------------------------------------------------------------
-// Finds location URL from given text input
-// ---------------------------------------------------------------------------
-//
-TInt CESMRUrlParserPluginImpl::DoFindLocationUrlL( // codescanner::intleaves
-                                       const TDesC& aText, 
-                                       TPtrC& aUrl )
-    {
-    FUNC_LOG;
-    //If this parserplugin instance is not yet initialized
-    //init it now
-    if( !iIsInitialized )
-        {
-        InitializeL();
-        }
-
-    //Read basestring from resource file
-    HBufC* baseString = ReadResourceStringLC(R_QTN_LOCATION_URL);
-    
-    //Seach if base string is found from aText
-    TInt urlLocation = aText.Find(*baseString);
-    CleanupStack::PopAndDestroy(baseString);
-    if( urlLocation < KErrNone )
-        {
-        User::Leave(KErrNotFound);
-        }
-    
-    //Take out unnecessary part before URL and search if endmark (whitespace)
-    //is found. If endmark is not found, 
-    //then all the rest of descriptor is part of URL
-    HBufC* urlAndAfterBuf = aText.Mid( urlLocation ).AllocLC();
-    TInt urlAndAfterBufLength = urlAndAfterBuf->Length();
-    TInt urlEndmarkLocation = KErrNotFound; 
-    
-    for( TInt i = 0; i < urlAndAfterBufLength; i++)
-        {
-        if( TChar( (*urlAndAfterBuf)[i] ).IsSpace() )
-            {
-            urlEndmarkLocation = i;
-            break;
-            }
-        }
-     
-    if( urlEndmarkLocation == KErrNotFound )
-        {
-        urlEndmarkLocation = urlAndAfterBufLength;
-        }
-    
-    //Take out part from beginning of URL to endmark
-    HBufC* urlToEndMark = urlAndAfterBuf->Left( urlEndmarkLocation ).AllocLC();
-        
-    //Now we should have only URL left, check with "sieve" that it is about in 
-    //right format
-    HBufC* sieve = ReadResourceStringLC(R_QTN_LOCATION_SIEVE_URL);
-    TInt sievedStartPoint = urlToEndMark->Match( *sieve );
-    
-    CleanupStack::PopAndDestroy(sieve);
-    CleanupStack::PopAndDestroy(urlToEndMark);
-    CleanupStack::PopAndDestroy(urlAndAfterBuf);
-    
-    if( sievedStartPoint == KErrNotFound )
-        {
-        User::Leave(KErrNotFound);
-        }
-    
-    //Check that parameters are in right format
-    TPtrC latValue;
-    TPtrC lonValue;
-    
-    GetCoordinateParamValuesL( aText.Mid(urlLocation,urlEndmarkLocation),
-                               latValue, lonValue );
-    CheckCoordinateParamL( latValue );
-    CheckCoordinateParamL( lonValue );
-    
-    //Set aURL to correspond URL part of aText and return with url position
-    aUrl.Set( aText.Mid(urlLocation,urlEndmarkLocation));
-    return urlLocation;
-    }
-
-
-// ---------------------------------------------------------------------------
+// CESMRUrlParserPluginImpl::CreateUrlFromLandmarkL
 // Creates location URL from landmark object
 // ---------------------------------------------------------------------------
 //
-HBufC* CESMRUrlParserPluginImpl::CreateUrlFromLandmarkL( 
-                                               const CPosLandmark& aLandmark )
+HBufC* CESMRUrlParserPluginImpl::CreateUrlFromLandmarkL(
+        const CPosLandmark& aLandmark )
     {
     FUNC_LOG;
-    //If this parserplugin instance is not yet initialized
-    //init it now
-    if( !iIsInitialized )
-        {
-        InitializeL();
-        }
-    
-    //Take longitude and latitude out of landmark
-    TLocality position;
-    User::LeaveIfError( aLandmark.GetPosition( position ) );
-    TReal64 latitude = position.Latitude();
-    TReal64 longitude = position.Longitude();
-   
-    //Define TReal format type
-    TRealFormat format( KCoordinateMaxLength );
-    format.iType = KRealFormatFixed;
-    format.iPlaces = KNumberOfDecimals;
-    format.iPoint = TChar(KDecimalSeparator);
 
-    //Read strings from resourcefile
-    HBufC* baseUrl = ReadResourceStringLC( R_QTN_LOCATION_URL );                        
-    HBufC* lat = ReadResourceStringLC( R_QTN_LOCATION_URL_LATITUDE );               
-    HBufC* separator = ReadResourceStringLC( R_QTN_LOCATION_URL_PARAM_SEPARATOR );        
-    HBufC* lon = ReadResourceStringLC( R_QTN_LOCATION_URL_LONGITUDE );
-    
-    //Concatenate all strings and coordinates
-    HBufC* url = HBufC::NewL( baseUrl->Length() + lat->Length() + separator->Length() 
-                         + lon->Length() + format.iWidth + format.iWidth );
-    TPtr pointer = url->Des();
-    pointer.Append( *baseUrl );
-    pointer.Append( *lat );
-    pointer.AppendNum( latitude, format );
-    pointer.Append( *separator );
-    pointer.Append( *lon );
-    pointer.AppendNum( longitude, format );
-    
-    CleanupStack::PopAndDestroy( lon );
-    CleanupStack::PopAndDestroy( separator );
-    CleanupStack::PopAndDestroy( lat  );
-    CleanupStack::PopAndDestroy( baseUrl );
-    
+    CPosLandmarkEncoder& encoder = InitializeEncoderL();
+    CBufBase* buffer = encoder.SetUseOutputBufferL();
+    CleanupStack::PushL( buffer );
+    encoder.AddLandmarkL( aLandmark );
+    CPosLmOperation* operation = encoder.FinalizeEncodingL();
+    ExecuteAndDeleteLD( operation );
+
+    // Convert URL to Unicode and escape encode non-ASCII characters
+    HBufC* unicode = EscapeUtils::ConvertToUnicodeFromUtf8L( buffer->Ptr( 0 ) );
+    CleanupStack::PushL( unicode );
+    HBufC* url = EscapeUtils::EscapeEncodeL( *unicode, EscapeUtils::EEscapeNormal );
+
+    CleanupStack::PopAndDestroy( 2, buffer ); // unicode
+
     //Transfer ownership of url
     return url;
     }
 
 
 // ---------------------------------------------------------------------------
+// CESMRUrlParserPluginImpl::CreateLandmarkFromUrlL
 // Creates landmark object from location URL
 // ---------------------------------------------------------------------------
 //
-CPosLandmark* CESMRUrlParserPluginImpl::CreateLandmarkFromUrlL( 
-                                                           const TDesC& aUrl )
+CPosLandmark* CESMRUrlParserPluginImpl::CreateLandmarkFromUrlL(
+        const TDesC& aUrl )
     {
     FUNC_LOG;
-    //If this parserplugin instance is not yet initialized
-    //init it now
-    if( !iIsInitialized )
+
+    CPosLandmark* landmark = NULL;
+
+    // Try to create landmark using landmark parser
+    TRAPD( error, landmark = CreateLandmarkFromUrlInternalL( aUrl ) );
+
+    if ( error )
         {
-        InitializeL();
-        }
-    
-    //Read sieve from resourcefile and check if URL matches the sieveformat
-    HBufC* sieve = ReadResourceStringLC( R_QTN_LOCATION_SIEVE_URL );
-    TInt matchPos = User::LeaveIfError( aUrl.Match( *sieve ) );
-    CleanupStack::PopAndDestroy( sieve );
-    if( matchPos != 0 )
-        {
-        //URL was found but is not int the beginning of desc
-        User::Leave( KErrArgument );
+        // Try extension
+        landmark = ExtensionL().CreateLandmarkFromUrlL( aUrl );
         }
 
-    //Parse actual coordinate values out of url
-    TPtrC latValue;
-    TPtrC lonValue;
-    GetCoordinateParamValuesL( aUrl, latValue, lonValue );
-    
-    //Check that parameters are in right format
-    CheckCoordinateParamL( latValue );
-    CheckCoordinateParamL( lonValue );
-
-    //Convert parameters to TReal values
-    TLex lexConverter( latValue );
-    TReal64 realLatitude;
-    lexConverter.Val( realLatitude );
-     
-    lexConverter.Assign( lonValue );
-    TReal64 realLongitude;
-    lexConverter.Val( realLongitude );
-    
-    //Create landmark with coordinatevalues
-    CPosLandmark* landmark = CPosLandmark::NewLC();
-    TLocality position;
-    position.SetCoordinate( realLatitude, realLongitude );
-    landmark->SetPositionL( position );
-    CleanupStack::Pop( landmark );
     //transfer ownership
     return landmark;
     }
 
 // ----------------------------------------------------------------------------
-// CESMRUrlParserPluginImpl::LocateResourceFile
+// CESMRUrlParserPluginImpl::CreateGeoValueLC
+// Converts URL to Calendar GEO property
+// ----------------------------------------------------------------------------
 //
-// For locating resource file    
-// ----------------------------------------------------------------------------
-// 
-TInt CESMRUrlParserPluginImpl::LocateResourceFile( 
-        const TDesC& aResource,
-        const TDesC& aPath,
-        TFileName &aResourceFile,
-        RFs* aFs )
+CCalGeoValue* CESMRUrlParserPluginImpl::CreateGeoValueLC( const TDesC& aUrl )
     {
     FUNC_LOG;
-    TFindFile resourceFile( *aFs );
-    TInt err = resourceFile.FindByDir(
-            aResource,
-            aPath );
-    
-    if ( KErrNone == err )
-        {
-        aResourceFile.Copy( resourceFile.File() );
-        }
-    else
-        {
-        const TChar KFileFormatDelim( '.' );
-        TFileName locResourceFile;
-        
-        TInt pos = aResource.LocateReverse( KFileFormatDelim );
-        if ( pos != KErrNotFound )
-            {       
-            locResourceFile.Copy( aResource.Mid(0, pos + 1) );
-            
-            TInt language( User::Language() );
-            locResourceFile.AppendFormat( KResourceFileLocFormat, language );
-            
-            TFindFile resourceFile( *aFs );
-            err = resourceFile.FindByDir(
-                    locResourceFile,
-                    aPath );            
-            
-            if ( KErrNone == err )
-                {
-                aResourceFile.Copy( resourceFile.File() );
-                aResourceFile.Replace(
-                        aResourceFile.Length() - KResourceFormat().Length(),
-                        KResourceFormat().Length(),
-                        KResourceFormat() );
-                }
-            }
-        }
-    
 
-    return err; 
+    // Convert URL to landmark
+    CPosLandmark* landmark = CreateLandmarkFromUrlL( aUrl );
+    CleanupStack::PushL( landmark );
+
+    // Get position data from landmark
+    TLocality position;
+    User::LeaveIfError( landmark->GetPosition( position ) );
+    CleanupStack::PopAndDestroy( landmark );
+
+    // Convert position data to GEO value
+    CCalGeoValue* geoVal = CCalGeoValue::NewL();
+    CleanupStack::PushL( geoVal );
+    geoVal->SetLatLongL( position.Latitude(), position.Longitude() );
+
+    return geoVal;
     }
 
 // ----------------------------------------------------------------------------
-// CESMRUrlParserPluginImpl::InitializeL
+// CESMRUrlParserPluginImpl::InitializeParserL
+// ----------------------------------------------------------------------------
 //
-// Initializes resources
-// ----------------------------------------------------------------------------
-// 
-void CESMRUrlParserPluginImpl::InitializeL()
+CPosLandmarkParser& CESMRUrlParserPluginImpl::InitializeParserL()
     {
     FUNC_LOG;
-    if( iIsInitialized )
+
+    if ( !iParser )
         {
-        return;
+        iParser = CPosLandmarkParser::NewL( KLandmarkUrlMimeType );
         }
-    //Connect to RFs session
-    User::LeaveIfError( iFs.Connect( KFileServerDefaultMessageSlots ) );
-    
-    //Find and open resource file containing URL strings
-    TFileName fileName;
-    User::LeaveIfError( LocateResourceFile( KResourceName,
-                                            KDC_RESOURCE_FILES_DIR,
-                                            fileName,
-                                            &iFs ) );
-    iFile.OpenL( iFs, fileName );
-    iFile.ConfirmSignatureL();
-    iIsInitialized = ETrue;
+
+    return *iParser;
     }
 
 // ----------------------------------------------------------------------------
-// CESMRUrlParserPluginImpl::ReadResourceStringLC 
-// Reads resource string from specified id
+// CESMRUrlParserPluginImpl::InitializeEncoderL
 // ----------------------------------------------------------------------------
-// 
-HBufC* CESMRUrlParserPluginImpl::ReadResourceStringLC( TInt aResourceId )
-    {
-    FUNC_LOG;
-    HBufC8* string = iFile.AllocReadLC(aResourceId);
-    iReader.SetBuffer(string);
-    HBufC* stringBuffer = iReader.ReadTPtrC().AllocL();
-    CleanupStack::PopAndDestroy( string );
-    CleanupStack::PushL( stringBuffer );
-    //stringBuffer ownership is transfered
-    return stringBuffer; 
-    }
-
-// ----------------------------------------------------------------------------
-// CESMRUrlParserPluginImpl::CheckCoordinateParam 
 //
-// Checks if coordinate parameter (lon or lat) is in correct format
-// Leaves if not
-// Correct form is:
-// -minus sign allowed only in first position
-// -only one decimalseparator sign allowed
-// -only digits allowed
-// -aParam length not allowed to be zero    
-// ----------------------------------------------------------------------------
-// 
-void CESMRUrlParserPluginImpl::CheckCoordinateParamL( const TDesC& aParam )
+CPosLandmarkEncoder& CESMRUrlParserPluginImpl::InitializeEncoderL()
     {
     FUNC_LOG;
-    if( aParam.Length() == 0 )
+
+    delete iEncoder;
+    iEncoder = NULL;
+    iEncoder = CPosLandmarkEncoder::NewL( KLandmarkUrlMimeType );
+    return *iEncoder;
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRUrlParserPluginImpl::DoFindLocationUrlL
+// Finds location URL from given text input
+// ---------------------------------------------------------------------------
+//
+
+void CESMRUrlParserPluginImpl::DoFindLocationUrlL(
+        const TDesC& aText,
+        TInt& aPos,
+        TPtrC& aUrl )
+    {
+    FUNC_LOG;
+
+    aPos = KErrNotFound;
+    aUrl.Set( KNullDesC );
+
+    // Search URL from given text
+    CFindItemEngine* itemEngine = CFindItemEngine::NewL(
+            aText,
+            CFindItemEngine::EFindItemSearchURLBin );
+    CleanupStack::PushL (itemEngine );
+
+    // For each found item
+    CFindItemEngine::SFoundItem item;
+    itemEngine->Item( item );
+
+    TInt itemCount = itemEngine->ItemCount();
+    for ( TInt i = 0; i < itemCount; ++i )
         {
-        User::Leave( KErrArgument );
+        TPtrC url = aText.Mid( item.iStartPos, item.iLength );
+
+        CPosLandmark* landmark = NULL;
+        TRAPD( error, landmark = CreateLandmarkFromUrlL( url ); )
+        delete landmark;
+
+        if ( !error ) // Location url found
+            {
+            aPos = item.iStartPos;
+            aUrl.Set( url );
+            // Stop iteration
+            break;
+            }
+        else
+            {
+            itemEngine->NextItem( item );
+            }
         }
-    
-    //check that aParam contains only digits and only one decimalseparator
-    //and minus sign is first, if it exists
-    TChar character;
-    TBool decimalSeparatorFound = EFalse;
-    TLex lex;
-    lex.Assign( aParam );
-    const TUint KMinusSign = '-';
-    
-    for( TInt i = 0; i < aParam.Length(); i++)
+
+    CleanupStack::PopAndDestroy( itemEngine );
+
+    if ( aPos <  0 )
         {
-        character = lex.Get();
-        //checks if first character is minus sign and continues if it is
-        if( i == 0 && (TUint)character == KMinusSign)
-            {
-            continue;
-            }
-        //check that only one decimalseparator exists
-        if( (TUint)character == KDecimalSeparator )
-            {
-            if( decimalSeparatorFound )
-                {
-                User::Leave( KErrArgument );
-                }
-            else
-                {
-                decimalSeparatorFound = ETrue;
-                }
-            }
-        //check that character is either digit or decimalseparator
-        if( !( character.IsDigit() ) && (TUint)character != KDecimalSeparator )
-            {
-            User::Leave( KErrArgument );
-            }
+        ExtensionL().FindLocationUrlL( aText, aUrl, aPos );
         }
     }
 
-// ----------------------------------------------------------------------------
-// CESMRUrlParserPluginImpl::GetCoordinateParamValuesL 
-// Returns longitude and latitude if found correctly
-// ----------------------------------------------------------------------------
-// 
-void CESMRUrlParserPluginImpl::GetCoordinateParamValuesL( const TDesC& aUrl,
-                                                          TPtrC& aLatitude,
-                                                          TPtrC& aLongitude )
+// ---------------------------------------------------------------------------
+// CESMRUrlParserPluginImpl::ExtensionL
+// ---------------------------------------------------------------------------
+//
+CMRUrlParserExtension& CESMRUrlParserPluginImpl::ExtensionL()
     {
     FUNC_LOG;
-    //Read latitude and longitude strings from resourcefile
-    HBufC* lat = ReadResourceStringLC( R_QTN_LOCATION_URL_LATITUDE );
-    HBufC* lon = ReadResourceStringLC( R_QTN_LOCATION_URL_LONGITUDE );
-    HBufC* separator = ReadResourceStringLC( R_QTN_LOCATION_URL_PARAM_SEPARATOR );
-    
-    //Find out if lat and lon params and separator exists in aUrl
-    TInt latPos = aUrl.Find( *lat );
-    TInt lonPos = aUrl.Find( *lon );
-    TInt separatorPos = aUrl.Find( *separator );
-    if( latPos == KErrNotFound || lonPos == KErrNotFound 
-         || separatorPos == KErrNotFound )
-        {
-        User::Leave( KErrNotFound );
-        }
-    
-    //takes from aUrl parts with actual coordinate data
-    aLatitude.Set( aUrl.Mid( latPos + lat->Length(), separatorPos - latPos - lat->Length() ) );
-    aLongitude.Set( aUrl.Right( aUrl.Length() - separatorPos - 1 - lon->Length() ) );
 
-    CleanupStack::PopAndDestroy( separator );
-    CleanupStack::PopAndDestroy( lon );
-    CleanupStack::PopAndDestroy( lat );
+    if ( !iExtension )
+        {
+        iExtension = CMRUrlParserExtension::NewL();
+        }
+
+    return *iExtension;
     }
+
+// ---------------------------------------------------------------------------
+// CESMRUrlParserPluginImpl::CreateLandmarkFromUrlInternalL
+// Creates landmark object from location URL
+// ---------------------------------------------------------------------------
+//
+CPosLandmark* CESMRUrlParserPluginImpl::CreateLandmarkFromUrlInternalL(
+        const TDesC& aUrl )
+    {
+    FUNC_LOG;
+
+    // Decode URL and convert it to UTF-8 format
+    HBufC* decodedUrl = EscapeUtils::EscapeDecodeL( aUrl );
+    CleanupStack::PushL( decodedUrl );
+    HBufC8* url = EscapeUtils::ConvertFromUnicodeToUtf8L( *decodedUrl );
+    CleanupStack::PopAndDestroy( decodedUrl );
+    CleanupStack::PushL( url );
+
+    // Create landmark using correct parser
+    CPosLandmarkParser& parser = InitializeParserL();
+    parser.SetInputBuffer( *url );
+    CPosLmOperation* operation = parser.ParseContentL();
+    ExecuteAndDeleteLD( operation );
+    CPosLandmark* landmark = parser.LandmarkLC();
+    CleanupStack::Pop( landmark );
+    CleanupStack::PopAndDestroy( url );
+
+    //transfer ownership
+    return landmark;
+    }
+
 //EOF
 

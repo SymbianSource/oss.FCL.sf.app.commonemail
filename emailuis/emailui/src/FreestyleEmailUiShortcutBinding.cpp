@@ -71,7 +71,14 @@ const CFSEmailUiShortcutBinding::TShortcutBinding KMailListShortcuts[] =
         { 0,    'I', 0,     EFsEmailUiCmdActionsCollapseAll },
         { 0,    'I', 0,     EFsEmailUiCmdActionsExpandAll },
         
-        { 0,  0, 0,       EFsEmailUiCmdMarkUnmarkToggle },
+        { 0,  0, 0,       EFsEmailUiCmdMarkingModeFromPopUp },
+        { 0,  0, 0,       EFsEmailUiCmdMarkingMode },
+        { 0,  0, 0,       EFsEmailUiCmdMarkingModeDelete },
+        { 0,  0, 0,       EFsEmailUiCmdMarkingModeUnread },
+        { 0,  0, 0,       EFsEmailUiCmdMarkingModeRead },
+        { 0,  0, 0,       EFsEmailUiCmdMarkingModeMove },
+        { 0,  0, 0,       EFsEmailUiCmdMarkingModeFollowUp },
+        { 0,  0, 0,       EFsEmailUiCmdMarkingModeMarkAll },
         { 0,  0, 0,       EFsEmailUiCmdMarkMark }, 
         { 0,  0, 0,       EFsEmailUiCmdMarkUnmark }
     };

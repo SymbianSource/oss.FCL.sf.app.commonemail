@@ -210,14 +210,20 @@ TInt CFSMailIconHandler::TestIcon()
 void CFSMailIconHandler::TurnNotificationOn()
     {
     FUNC_LOG;
-    SetProperty( KPSUidCoreApplicationUIs, 
-        KCoreAppUIsNewEmailStatus, ECoreAppUIsNewEmail );
+    /*
+     * Mailindicator handling was removed fomr 9.2
+     */
+    /*SetProperty( KPSUidCoreApplicationUIs, 
+        KCoreAppUIsNewEmailStatus, ECoreAppUIsNewEmail );*/
     }
 
 void CFSMailIconHandler::TurnNotificationOff()
     {
     FUNC_LOG;
-    SetProperty( KPSUidCoreApplicationUIs, 
-        KCoreAppUIsNewEmailStatus, ECoreAppUIsNoNewEmail );
+    /*
+     * Mailindicator handling was removed fomr 9.2
+     */
+    /*SetProperty( KPSUidCoreApplicationUIs, 
+        KCoreAppUIsNewEmailStatus, ECoreAppUIsNoNewEmail );*/
     }
 

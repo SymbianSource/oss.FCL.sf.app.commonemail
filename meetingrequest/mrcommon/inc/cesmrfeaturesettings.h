@@ -21,10 +21,6 @@
 
 #include <e32base.h>
 
-//#include "?include_file"
-
-//class ?forward_classname;
-
 /**
  *  CESMRFeatureSettings is utility to access MRUI Features repository.
  *  Usage:
@@ -61,8 +57,11 @@ public:
         /** Previous locations list */
         EESMRUIPreviousLocationsList = 0x8,
         /** Any of the previous location features */
-        // Must be last member in enumeration
-        EESMRUILocationFeatures               
+        EESMRUILocationFeatures = 0xf,
+        /** Meeting request viewer only for Cmail */
+        EMRUIMeetingRequestViewerCmailOnly = 0x10,
+        /** Any of the prevuious features */
+        EMRUIAllFeatures
         };
 
     IMPORT_C static CESMRFeatureSettings* NewL();
@@ -102,14 +101,15 @@ private: // data
         EESMRUIContactsIntegrationIndex,
         EESMRUILandmarksIntegrationIndex,
         EESMRUIPreviousLocationsListIndex,
+        EMRUIMeetingRequestViewerCmailIndex,
         // Last item. Number of features
-        EESMRUINumLocationFeatures
+        EESMRUINumFeatures
         };
     
     /**
      * Feature status array
      */
-    TInt iLocationFeatures[ EESMRUINumLocationFeatures ];
+    TInt iFeatures[ EESMRUINumFeatures ];
 
     };
 

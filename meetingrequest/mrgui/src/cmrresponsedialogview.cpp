@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -16,38 +16,12 @@
 */
 #include "cmrresponsedialogview.h"
 // System includes
-#include <AknsDrawUtils.h>
-#include <AknsBasicBackgroundControlContext.h>
+#include <aknsdrawutils.h>
+#include <aknsbasicbackgroundcontrolcontext.h>
 #include <eikrted.h>
-#include <eiksbfrm.h>
-#include <AknDef.h>
-#include <AknUtils.h>
-#include <gdi.h>
-
+#include <akndef.h>
 // DEBUG
 #include "emailtrace.h"
-
-// LOCAL DEFINITIONS
-namespace // codescanner::namespace 
-    { 
-    #define KDefaultTextColor TRgb( 0x000000 );
-    /// Get the text color from skin
-    TRgb TextColor( TInt aSkinColorId )
-        {
-        TRgb bgColor;
-        TInt err;
-
-        err = AknsUtils::GetCachedColor( AknsUtils::SkinInstance(),
-                                         bgColor,
-                                         KAknsIIDQsnTextColors,
-                                         aSkinColorId );
-        if( err != KErrNone )
-            {
-            bgColor = KDefaultTextColor;
-            }
-        return bgColor;
-        }    
-    }
 
 // ---------------------------------------------------------------------------
 // CESMRResponseDialogView::NewL
@@ -177,16 +151,11 @@ void CESMRResponseDialogView::SetContainerWindowL(
     CCoeControl::SetContainerWindowL( aContainer );
     iEditor = new (ELeave )CEikRichTextEditor();
     iEditor->ConstructL( this, 0, 0, CEikEdwin::ENoAutoSelection, 0, 0 );
-    iEditor->SetContainerWindowL(*this);
-    iEditor->SetSize(Rect().Size());
-    iEditor->SetSkinBackgroundControlContextL( iBgContext );
     iEditor->SetFocus( ETrue );
-    
-    // Create vertical scrollbar for editor
-    iScrollBarFrame = iEditor->CreateScrollBarFrameL();
-    iScrollBarFrame->SetScrollBarVisibilityL( CEikScrollBarFrame::EOff, CEikScrollBarFrame::EOn );
-
-    TRAP_IGNORE( SetFontColorL() );
+    iEditor->SetContainerWindowL( *this );
+    iEditor->SetSize( Rect().Size() );
+    iEditor->SetSkinBackgroundControlContextL( iBgContext );
+    iEditor->EnableCcpuSupportL(ETrue);
     }
 
 // ---------------------------------------------------------------------------
@@ -200,12 +169,7 @@ void CESMRResponseDialogView::HandleResourceChange( TInt aType )
 
     if ( aType == KEikDynamicLayoutVariantSwitch )
         {
-        SizeChanged();
-        }
-    else if ( aType == KAknsMessageSkinChange ||
-    		  aType == KEikMessageColorSchemeChange )
-        {
-        TRAP_IGNORE( SetFontColorL() );
+        iEditor->SetRect( Rect() );
         }
     }
 
@@ -225,56 +189,8 @@ void CESMRResponseDialogView::SizeChanged()
         }
     if( iEditor )
         {
-        // Reduce scrollbar width from the editor width 
-        TRect rect = Rect();
-        TInt scrollbarWidth = iEditor->ScrollBarFrame()->ScrollBarBreadth( CEikScrollBar::EVertical );
-        TInt editorWidth = rect.Width() - scrollbarWidth;
-        if ( AknLayoutUtils::LayoutMirrored() )
-        	{
-            iEditor->SetExtent( TPoint( scrollbarWidth, 0 ), TSize( editorWidth, rect.Height() ) );       	
-        	}
-        else
-        	{
-            iEditor->SetExtent( TPoint( 0, 0 ), TSize( editorWidth, rect.Height() ) );
-        	}
+        iEditor->SetRect( Rect() );
         }
-    }
-
-// ---------------------------------------------------------------------------
-// CESMRResponseDialogView::MinimumSize()
-// ---------------------------------------------------------------------------
-//
-TSize CESMRResponseDialogView::MinimumSize()
-    {
-    FUNC_LOG;
-    TRect rect;
-    AknLayoutUtils::LayoutMetricsRect( AknLayoutUtils::EMainPane, rect );
-    return rect.Size();
-    }
-
-// -----------------------------------------------------------------------------
-// CESMRResponseDialogView::SetFontColorL()
-// -----------------------------------------------------------------------------
-//
-void CESMRResponseDialogView::SetFontColorL()
-    {
-    const CFont* sysfont = AknLayoutUtils::FontFromId( EAknLogicalFontPrimaryFont, NULL );
-    TFontSpec fontSpec = sysfont->FontSpecInTwips();
-    TCharFormat charFormat;
-    TCharFormatMask formatMask;
-    charFormat.iFontSpec = fontSpec;
-
-    formatMask.SetAttrib( EAttFontTypeface );
-    formatMask.SetAttrib( EAttFontHeight );
-    formatMask.SetAttrib( EAttFontPosture );
-
-    charFormat.iFontPresentation.iTextColor = TextColor( EAknsCIQsnTextColorsCG6 );
-    formatMask.SetAttrib( EAttColor );
-  
-    CCharFormatLayer* charFormatLayer =
-        CCharFormatLayer::NewL( charFormat, formatMask );
-
-    iEditor->SetCharFormatLayer( charFormatLayer );
     }
 
 // end of file

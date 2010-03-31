@@ -51,11 +51,6 @@ public:
     static CEmailClientApi* NewL();
     
     /**
-     * Destructor
-     */
-    ~CEmailClientApi();
-    
-    /**
      *
      */
      CEmailClientApi();       
@@ -101,6 +96,11 @@ private:
      * Constructor
      */
     void ConstructL();
+    
+     /**
+     * Destructor
+     */
+    ~CEmailClientApi();
 
     /**
      * Push ECom implementation info to cleanup operation to cleanup stack
@@ -251,6 +251,9 @@ private:
 private:
     // plugin data array for all protocol plugins
     RPluginDataArray    iPluginDataArray;
+
+    // singleton instance counter    
+    TInt iInstanceCounter;
     
     // book keeping of loaded plugins
     RArray<TPluginData> iLoadedPluginsArray;

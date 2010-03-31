@@ -1,5 +1,5 @@
 /*
-* Copyright (c)  Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -55,6 +55,17 @@ STRUCT ESMR_SYNC
     }
 
 // ---------------------------------------------------------------------------
+// ESMR_UNIFIED
+//
+// ---------------------------------------------------------------------------
+//
+STRUCT ESMR_UNIFIED
+    {
+    WORD    id;
+    LLINK   txt; // TBUF
+    }
+
+// ---------------------------------------------------------------------------
 // ESMR_PRIORITY
 //
 // ---------------------------------------------------------------------------
@@ -93,6 +104,16 @@ STRUCT ESMR_RECURENCE_TABLE
 STRUCT ESMR_SYNC_TABLE  
     {
     STRUCT sync[]; // synchronization (SYNC)
+    }
+
+// ---------------------------------------------------------------------------
+// ESMR_UNIFIED_TABLE
+//
+// ---------------------------------------------------------------------------
+//
+STRUCT ESMR_UNIFIED_TABLE  
+    {
+    STRUCT unified[]; // event type in unified editor (UNIFIED)
     }
 
 // ---------------------------------------------------------------------------

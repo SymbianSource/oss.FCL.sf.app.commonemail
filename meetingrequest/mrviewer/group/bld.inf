@@ -26,5 +26,6 @@ esmrviewer.mmp
 
 PRJ_EXPORTS
 ../inc/cesmrviewerctrl.h        |../../inc/cesmrviewerctrl.h
+../inc/mmrinfoprovider.h        |../../inc/mmrinfoprovider.h
 
 // EOF

@@ -25,7 +25,7 @@
 
 class CCalEntry;
 class CCalInstance;
-
+class MESMRCalDbMgr;
 /**
  * MESMRMeetingRequestEntry provides utility functions for handling MR Entry.
  *
@@ -39,13 +39,13 @@ public: // Definitions
      */
     enum TESMRCalEntryType
         {
-        EESMRCalEntryNotSupported = -1, // Entry type not supported
-        EESMRCalEntryMeetingRequest,    // Meeting request entry
-        EESMRCalEntryMeeting,           // Meeting entry
-        EESMRCalEntryTodo,              // TO-DO entry
-        EESMRCalEntryMemo,              // Memo entry
-        EESMRCalEntryReminder,          // Reminder entry
-        EESMRCalEntryAnniversary        // Anniversary entry
+        EESMRCalEntryNotSupported = EESMREventTypeNone,
+        EESMRCalEntryMeetingRequest = EESMREventTypeMeetingRequest,
+        EESMRCalEntryMeeting = EESMREventTypeAppt,
+        EESMRCalEntryTodo = EESMREventTypeETodo,
+        EESMRCalEntryMemo = EESMREventTypeEEvent,
+        EESMRCalEntryReminder = EESMREventTypeEReminder,
+        EESMRCalEntryAnniversary = EESMREventTypeEAnniv
         };
 
     /** 
@@ -78,6 +78,15 @@ public: // Definitions
         EESMRAlarmRelative
         };
 
+    /**
+     * Enumeration for entry 
+     */
+    enum TMREntryCapability
+        {
+        // Entry supports attachments
+        EMRCapabilityAttachments
+        };
+    
 public: // Destruction
     /**
      * Virtual destructor.
@@ -165,10 +174,10 @@ public: // Interface
     /**
     * Sets modifying rule role to meeting request.
     * @param aRule Recurrence modification rule.
+    * @param aRule ETrue event type is changing.
     */
-   virtual void SetModifyingRuleL(
-           TESMRRecurrenceModifyingRule aRule ) = 0;
-
+   virtual void SetModifyingRuleL(TESMRRecurrenceModifyingRule aRule, 
+		   const TBool aTypeChanging = EFalse ) = 0;
         /**
      * Sets the entry priority.
      * @param aPriority entry priority.
@@ -204,16 +213,45 @@ public: // Interface
     virtual TBool IsStoredL() const = 0;
 
     /**
-     * Tests if this entry has been sent to attendees.
-     * @return ETrue, if entry is sent to attendees
-     */
-    virtual TBool IsSentL() const = 0;
-
-    /**
      * Tests, whether entry is edited.
      * @return ETrue, if entry is edited.
      */
     virtual TBool IsEntryEditedL() const = 0;
+    
+    /**
+     * Tests, if entry type has changed from the original
+     * @return ETrue, if entry type has changed
+     */
+    virtual TBool IsEntryTypeChangedL() const = 0;
+
+    /**
+     * Sets the entry type changed
+     * @param aTypeChanged, ETrue if type changed, otherwise EFalse
+     */
+    virtual void SetTypeChanged( TBool aTypeChanged ) = 0;
+    
+    /**
+     * Checks if any instance (having same UID)
+     * occurs between specified time. Time information
+     * is considered to be device's local time.
+     *
+     * @param aStart Start time
+     * @param aEnd End time
+     */
+    virtual TBool AnyInstancesBetweenTimePeriodL(
+                TTime& aStart,
+                TTime& aEnd ) = 0;
+    
+    /**
+     * Fetches first instances start and end time. For non-recurrent
+     * entries this returns the entry's start and end time.
+     *
+     * @param aStart On returns contains the first instance's start time.
+     * @param aEnd On returns contains the first instance's end time.
+     */
+    virtual void GetFirstInstanceStartAndEndTimeL(
+                TTime& aStart,
+                TTime& aEnd ) = 0;
 
     /**
      * Fetches alarm information from entry.
@@ -229,8 +267,73 @@ public: // Interface
      * @return CCalEntry original entry
      */
     virtual const CCalEntry& OriginalEntry() = 0;
+    
+    /**
+     * Updates the entry after storing
+     */
+    virtual void UpdateEntryAfterStoringL() = 0;    
+    
+    /**
+     * Updates the comparative entry (needed in entry type changing)
+     */
+    virtual void UpdateComparativeEntry( CCalEntry* aNewComparativeEntry ) = 0;    
+    
+    /**
+     * Sets default values to entry.
+     */
+    virtual void SetDefaultValuesToEntryL() = 0;    
+    
+    /**
+     * Updates entry's timestamp (DTSTAMP) information.
+     */
+    virtual void UpdateTimeStampL() = 0;
+    
+    /**
+     * Clones entry and leaves the clone into CleanupStack.
+     * 
+     * @param aType the entry type of the clone. If EESMRCalEntryNotSupported
+     * the original type is preserved. 
+     */
+    virtual CCalEntry* CloneEntryLC(
+            TESMRCalEntryType aType = EESMRCalEntryNotSupported ) const = 0;
+    
+    /**
+     * Fetches validated entry. Ownership is transferred to caller.
+     * @return Pointer to validated entry.
+     */
+    virtual CCalEntry* ValidateEntryL() = 0;
+    
+    /**
+     * For recurrent event method removes this from the series.
+     * Entry needs to be recurrent event and modification rule
+     * needs to be MESMRCalEntry::EESMRThisOnly.
+     * Ownership of the returned calendar entry is transferred to caller.
+     *
+     * @return Parent entry
+     */
+    virtual CCalEntry* RemoveInstanceFromSeriesL() = 0;
+    
+    /**
+     * Get calendar dbmgr
+     * 
+     * @return calendar dbmgr
+     */
+    virtual MESMRCalDbMgr& GetDBMgr() = 0; 
+    
+    /**
+     * Tests whether entry supports capability or not.
+     * @param aCapability Capability to be checked
+     * @return ETrue if capability is supported.
+     */
+    virtual TBool SupportsCapabilityL( 
+            TMREntryCapability aCapability ) const = 0;
+    
+    /**
+     * Tests whether entry contains remote attachments or not.
+     * @return ETrue if entry contains remote attachments
+     */
+    virtual TBool ContainsRemoteAttachmentsL() = 0;
     };
-
 
 #endif // MESMRCALENTRY_H
 

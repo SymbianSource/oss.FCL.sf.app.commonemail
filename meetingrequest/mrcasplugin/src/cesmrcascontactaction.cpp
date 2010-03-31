@@ -18,7 +18,7 @@
 
 #include "emailtrace.h"
 #include "cesmrcascontactaction.h"
-#include <StringLoader.h>
+#include <stringloader.h>
 #include <gulicon.h>
 
 // ======== MEMBER FUNCTIONS ========

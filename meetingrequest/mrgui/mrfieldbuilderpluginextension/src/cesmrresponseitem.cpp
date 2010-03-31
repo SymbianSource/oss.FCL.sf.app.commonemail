@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -17,7 +17,7 @@
 #include "cesmrresponseitem.h"
 #include "nmrlayoutmanager.h"
 #include "nmrbitmapmanager.h"
-#include "cesmrlayoutmgr.h"
+#include "nmrcolormanager.h"
 #include "cmrimage.h"
 #include "cmrlabel.h"
 
@@ -112,21 +112,11 @@ void CESMRResponseItem::ConstructL( const TDesC& aItemText, TBool aHasIcon )
 void CESMRResponseItem::Draw( const TRect& aRect ) const
     {
     FUNC_LOG;
-    //switch font color to unhighlighted, leave can be ignored
-    //since it's just a color change
-    TRAP_IGNORE(AknLayoutUtils::OverrideControlColorL(
-            *iSelectionLabel,
-            EColorLabelText,
-            KRgbBlack ));
+    NMRColorManager::SetColor( *iSelectionLabel, 
+                               NMRColorManager::EMRMainAreaTextColor );
+    
     if( iHighlighted )
         {
-        //switch font color to highlighted, leave can be ignored
-        //since it's just a color change
-        TRAP_IGNORE(AknLayoutUtils::OverrideControlColorL(
-                *iSelectionLabel,
-                EColorLabelText,
-                iLayout->ViewerListAreaHighlightedTextColor() ));
-
         CWindowGc& gc = SystemGc();
         TRect rect = aRect;
         TBool enableEdges(ETrue);
@@ -302,9 +292,10 @@ void CESMRResponseItem::SizeChanged()
             NMRLayoutManager::GetTextComponentLayout( 
                     NMRLayoutManager::EMRTextLayoutText );
         AknLayoutUtils::LayoutLabel( iSelectionLabel, rect, labelLayout );
+        // SizeChange() is called when rect for ResponseItem is ready to be used.
+        // If setting text to response topic label fails, no need to catch it.
+        TRAP_IGNORE(SetTextToLabelL());
         }
-
-
     }
 
 // -----------------------------------------------------------------------------
@@ -366,11 +357,9 @@ void CESMRResponseItem::SetFont( const CFont* aFont )
     {
     FUNC_LOG;
     iSelectionLabel->SetFont( aFont );
-    // Leave case can be ignored here because there is nothing to do about it
-    TRAP_IGNORE(AknLayoutUtils::OverrideControlColorL(
-                                      *iSelectionLabel,
-                                      EColorLabelText,
-                                      KRgbBlack ) );
+
+    NMRColorManager::SetColor( *iSelectionLabel, 
+                               NMRColorManager::EMRMainAreaTextColor );
     }
 
 // -----------------------------------------------------------------------------
@@ -392,59 +381,66 @@ void CESMRResponseItem::SetTextL( const TDesC& aItemText )
         }
     else if( !iItemText &&  aItemText.Length() <= 0 )
         {
-        // if there is no text yet, there is nothing to do here.
+        // if there is no new text yet, there is nothing to do here.
         return;
         }
-
-    TInt lineCount = 1; // Default line count.
-    // If this item has no icon, it may use two lines for the text
-    if( !iIcon )
-        {
-        lineCount = KMaxLinesInResponseTopicItem;
-        }
-    // Text wrapping
-    CArrayFixFlat<TInt>* widthArray =
-                        new (ELeave) CArrayFixFlat<TInt>( lineCount );
-    CleanupStack::PushL( widthArray );
-    for ( TInt i(0); i < lineCount; i++ )
-        {
-        // If this item has no icon, all the space is for text
-        if( !iIcon )
-            {
-            TAknLayoutText layout = NMRLayoutManager::GetLayoutText( Rect(), NMRLayoutManager::EMRTextLayoutText );            
-            widthArray->AppendL( layout.TextRect().Width() );
-            }
-        else
-            {
-            widthArray->AppendL( iLayout->ResponseAreaAnswerTextSize().iWidth );
-            }
-        }
-
-    HBufC* wrappedText;
-    // Set the font for the text
-    const CFont* font = iSelectionLabel->Font();
-    RBuf buffer; // codescanner::resourcenotoncleanupstack
-    buffer.CreateL( iOriginalTextLength + widthArray->Count() );
-    buffer.CleanupClosePushL();
-
-    // Wrap the text
-    AknTextUtils::WrapToStringAndClipL( iItemText->Des(), *widthArray, *font, buffer );
-    wrappedText = buffer.AllocLC();
-
-    // Set the text to label
-    iSelectionLabel->SetTextL( *wrappedText );
-    CleanupStack::PopAndDestroy(3); // widthArray, wrappedText, buffer
+    SetTextToLabelL();
     }
 
 // -----------------------------------------------------------------------------
-// CESMRResponseItem::SetLayoutManager
+// CESMRResponseItem::SetTextToLabelL
 // -----------------------------------------------------------------------------
 //
-void CESMRResponseItem::SetLayoutManager( CESMRLayoutManager* aLayout )
-    {
-    FUNC_LOG;
-    iLayout = aLayout;
-    }
+void CESMRResponseItem::SetTextToLabelL()
+	{
+	if( iItemText )
+		{
+		TInt lineCount = 1; // Default line count.
+		// If this item has no icon, it may use two lines for the text
+		if( !iIcon )
+			{
+			lineCount = KMaxLinesInResponseTopicItem;
+			}
+		
+		// Text wrapping
+		CArrayFixFlat<TInt>* widthArray =
+							new (ELeave) CArrayFixFlat<TInt>( lineCount );
+		CleanupStack::PushL( widthArray );
+		
+		for ( TInt i(0); i < lineCount; i++ )
+			{
+			// If this item has no icon, all the space is for text
+			if( !iIcon )
+				{
+				TAknLayoutText layout = NMRLayoutManager::GetLayoutText( 
+						Rect(), NMRLayoutManager::EMRTextLayoutText );            
+				widthArray->AppendL( layout.TextRect().Width() );
+				}
+			else
+				{
+				// This layout leaves space for the icon to the left side
+				TAknLayoutText layout = NMRLayoutManager::GetLayoutText( 
+						Rect(), NMRLayoutManager::EMRTextLayoutTextEditor ); 	
+				widthArray->AppendL( layout.TextRect().Width() );
+				}
+			}
+
+		HBufC* wrappedText;
+		// Set the font for the text
+		const CFont* font = iSelectionLabel->Font();
+		RBuf buffer; // codescanner::resourcenotoncleanupstack
+		buffer.CreateL( iOriginalTextLength + widthArray->Count() );
+		buffer.CleanupClosePushL();
+
+		// Wrap the text
+		AknTextUtils::WrapToStringAndClipL( *iItemText, *widthArray, *font, buffer );
+		wrappedText = buffer.AllocLC();
+
+		// Set the text to label
+		iSelectionLabel->SetTextL( *wrappedText );
+		CleanupStack::PopAndDestroy(3); // widthArray, wrappedText, buffer		
+		}
+	}
 
 // -----------------------------------------------------------------------------
 // CESMRResponseItem::ItemTextLineCount
@@ -469,5 +465,14 @@ TESMRCommand CESMRResponseItem::CommandId() const
     {
     FUNC_LOG;
     return iCmd;
+    }
+
+// -----------------------------------------------------------------------------
+// CESMRResponseItem::SetUnderlineL
+// -----------------------------------------------------------------------------
+//
+void CESMRResponseItem::SetUnderlineL( TBool aUndreline )
+    {
+    iSelectionLabel->SetUnderlining( aUndreline );
     }
 

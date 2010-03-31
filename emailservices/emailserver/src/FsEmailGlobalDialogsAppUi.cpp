@@ -2,9 +2,9 @@
 * Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
-* under the terms of the License "Eclipse Public License v1.0"
+* under the terms of "Eclipse Public License v1.0"
 * which accompanies this distribution, and is available
-* at the URL "http://www.eclipse.org/legal/epl-v10.html". 
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
 *
 * Initial Contributors:
 * Nokia Corporation - initial contribution.
@@ -142,7 +142,7 @@ void CFsEmailGlobalDialogsAppUi::Exit()
     delete iNotificationHandlerMgr;
     iNotificationHandlerMgr = NULL;
     
-	// Call base class Exit
+    // Call base class Exit
     CAknAppUi::Exit();
     }
 
@@ -211,9 +211,9 @@ void CFsEmailGlobalDialogsAppUi::BringToForeground()
         KFsEmailDialogsWinPriorityActive );
 
     iEikonEnv->RootWin().EnableGroupListChangeEvents();
-	
+    
     // Enable keyboard focus when showing some content
-    iEikonEnv->RootWin().EnableReceiptOfFocus( ETrue );	
+    iEikonEnv->RootWin().EnableReceiptOfFocus( ETrue ); 
     }
 
 // ---------------------------------------------------------------------------

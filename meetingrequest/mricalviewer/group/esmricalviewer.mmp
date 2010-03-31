@@ -1,5 +1,5 @@
 /*
-* Copyright (c)  Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c)  Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -16,9 +16,8 @@
 */
 
 
-#include "../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
-#include "../../../inc/emailtraceconfig.hrh"
 #include "../../inc/esmrinternaluid.h"
+#include "../../../inc/emailtraceconfig.hrh"
 #include <data_caging_paths.hrh>
 #include <platform_paths.hrh>
 
@@ -29,11 +28,8 @@ UID                     KEComRecognitionUID2 KESMRIcalViewerDllUid
 CAPABILITY              CAP_ECOM_PLUGIN
 VENDORID                VID_DEFAULT
 
-VERSION                 KEmailBinaryVersionNumber
-KEmailBinaryDemandPaging
-
 SOURCEPATH              ../data
-START RESOURCE          2001846B.rss // <cmail>
+START RESOURCE          2001846B.rss
 TARGET                  esmricalviewer.rsc
 END
 
@@ -58,14 +54,14 @@ SOURCE                  cesmricalviewerremovemrfromcalcmd.cpp
 SOURCE                  cesmricalvieweremailasynccmd.cpp
 SOURCE                  cesmricalvieweremailsynccmd.cpp
 SOURCE                  esmricalviewerutils.cpp
+SOURCE                  cmrattachmentinfofetcher.cpp
 
 USERINCLUDE             .
 USERINCLUDE             ../inc
 USERINCLUDE             ../../inc
+USERINCLUDE             ../../../inc
 
 APP_LAYER_SYSTEMINCLUDE
-
-USERINCLUDE             ../../../inc
 
 LIBRARY                 euser.lib
 LIBRARY                 fsmailframework.lib
@@ -81,11 +77,10 @@ LIBRARY                 cone.lib
 LIBRARY                 charconv.lib
 LIBRARY                 estor.lib
 LIBRARY                 efsrv.lib
-LIBRARY                 esmrcommon.lib             
-LIBRARY                 cmaillogger.lib
+LIBRARY                 esmrcommon.lib
 
-#ifdef TRACE_INTO_FILE
-LIBRARY                 flogger.lib
-#endif // TRACE_INTO_FILE
+#if defined( ENABLE_TRACES ) && defined( TRACE_INTO_FILE )
+LIBRARY flogger.lib
+#endif // ENABLE_TRACES && TRACE_INTO_FILE
 
 // end of file

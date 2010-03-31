@@ -56,6 +56,11 @@ public:
     void SetFollowUpFlag( TFollowUpFlagType aFlagType );
     
     /**
+     * Clears flags from pane
+     */
+    void ClearStatusPaneFlags();
+    
+    /**
      * Hide all status pane flags
      */
     void HideStatusPaneIndicators();
@@ -64,7 +69,7 @@ public:
      * Show status pane flags, whan called flags are sett OFF
      */
     void ShowStatusPaneIndicators();
-            
+
 private:
     /**
      * Construction
@@ -86,7 +91,13 @@ private:
 	 * Sets this control's window rect
 	 */
 	void DoSetRectL();
-	
+
+    /**
+     * Draws itself by clearing with KRgbTransparent color.
+     * Usefull for removing prority icon
+     */
+    void Draw( const TRect& aRect ) const;
+
 public:  // From CCoeControl
     TSize MinimumSize();
     TInt CountComponentControls() const;

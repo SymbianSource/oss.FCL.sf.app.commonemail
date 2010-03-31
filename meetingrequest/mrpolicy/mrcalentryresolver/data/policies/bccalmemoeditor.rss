@@ -1,0 +1,110 @@
+/*
+* Copyright (c) 2009-2009 Nokia Corporation and/or its subsidiary(-ies).
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  resource definition for memo editor policy
+*
+*/
+
+
+// ---------------------------------------------------------------------------
+// r_bccal_memo_editor
+// BC Cal Event plugin policy for editing memo from calendar application
+// ---------------------------------------------------------------------------
+//
+RESOURCE ESMR_POLICY r_bccal_memo_editor
+    {
+    event_type           = EESMREventTypeEEvent;
+    policy_id            = EESMRPolicyMemoEditor;
+    policy_mode          = EESMREditMR;
+    role_flags           = KEESMRFlagOrganizer;
+    allowed_app          = KEESMRFlagAppEsCalendar;
+    field_ids            = r_bccal_memo_editor_fields;
+    default_commands     = r_bccal_memo_editor_def_commands;
+    additional_commands  = 0;
+    }
+
+// ---------------------------------------------------------------------------
+// r_bccal_memo_editor_fields
+// Default field set for memo editor
+// ---------------------------------------------------------------------------
+//
+RESOURCE ESMR_ID_TABLE r_bccal_memo_editor_fields
+    {
+    id_table =
+        {
+        ESMR_FIELD
+            {
+            field_id   = EESMRFieldCalendarName;
+            field_type = EESMRFieldTypeDefault;
+            field_mode = EESMRFieldModeEdit; 
+            },                
+        ESMR_FIELD
+            {
+            field_id   = EESMRFieldUnifiedEditor;
+            field_type = EESMRFieldTypeDefault;
+            field_mode = EESMRFieldModeEdit; 
+            },
+        ESMR_FIELD
+            {
+            field_id   = EESMRFieldSubject;
+            field_type = EESMRFieldTypeDefault;
+            field_mode = EESMRFieldModeEdit;
+            },
+        ESMR_FIELD
+            {
+            field_id   = EESMRFieldStartDate;
+            field_type = EESMRFieldTypeDefault;
+            field_mode = EESMRFieldModeEdit;
+            },
+        ESMR_FIELD
+            {
+            field_id   = EESMRFieldStopDate;
+            field_type = EESMRFieldTypeDefault;
+            field_mode = EESMRFieldModeEdit;
+            },
+        ESMR_FIELD
+            {
+            field_id   = EESMRFieldSync;
+            field_type = EESMRFieldTypeDefault;
+            field_mode = EESMRFieldModeEdit;
+            },
+        ESMR_FIELD
+            {
+            field_id   = EESMRFieldAttachments;
+            field_type = EESMRFieldTypeDefault;
+            field_mode = EESMRFieldModeEdit;
+            },
+        ESMR_FIELD
+            {
+            field_id   = EESMRFieldDescription;
+            field_type = EESMRFieldTypeDefault;
+            field_mode = EESMRFieldModeEdit;
+            }
+        };
+    }
+
+// ---------------------------------------------------------------------------
+// r_bccal_memo_editor_def_commands
+// Default options menu items for memo editor
+// ---------------------------------------------------------------------------
+//
+RESOURCE ESMR_ID_TABLE r_bccal_memo_editor_def_commands
+    {
+    id_table =
+        {
+        ESMR_ID { id = EESMRCmdCalEntryUIDelete; },
+        ESMR_ID { id = EESMRCmdSaveMR; },
+        ESMR_ID { id = EAknCmdHelp; },
+        ESMR_ID { id = EAknCmdExit; }
+        };
+    }

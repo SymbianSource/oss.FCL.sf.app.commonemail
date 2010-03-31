@@ -394,7 +394,17 @@ public: // New functions
     void SetIapL(
         TImIAPChoice aIncomingIap,
         TImIAPChoice aOutgoingIap );
+    /**
+     * 
+     * @param aIncomingIap Incoming access point to be stored.
+     * @param aOutgoingIap Outgoing access point to be stored.
+     */
 
+    void SetIapL( 
+        const CImIAPPreferences& aIncomingIap, 
+        const CImIAPPreferences& aOutgoingIap );
+
+    
     /**
      * @param aIncomingSecurity Incoming security to be stored.
      * @param aOutgoingSecurity Outgoing security to be stored.

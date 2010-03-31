@@ -29,7 +29,7 @@
 
 // From MR Mailbox Utils
 #include <cmrmailboxutils.h>
-#include <CMRUtils.h>
+#include <cmrutils.h>
 
 // From System
 #include <coemain.h>
@@ -100,30 +100,11 @@ TInt CESMRViewersImpl::ExecuteViewL( // codescanner::intleaves
     MAgnEntryUiCallback& aCallback)
     {
     FUNC_LOG;
-    TRAPD( err, ExecuteViewInternalL(
+    return ExecuteViewInternalL(
 					aEntries,
 					aInParams,
 					aOutParams,
-					aCallback ) );
-    
-    if ( KErrArgument == err )
-    	{
-    	// ES MR VIEWER controller was unable to show the
-    	// passed meeting request. Let's launc normal meeting viewer
-    	// for showing the entry
-    	
-    	CCalenEditorsPlugin* editorsPlugin =  CCalenEditorsPlugin::NewL();
-		CleanupStack::PushL( editorsPlugin );
-
-        err = editorsPlugin->ExecuteViewL( aEntries,
-                                           aInParams,
-                                           aOutParams,
-                                           aCallback );
-    	
-        CleanupStack::PopAndDestroy( editorsPlugin );
-    	}
-    
-    return err;
+					aCallback );
     }
 
 // ----------------------------------------------------------------------------

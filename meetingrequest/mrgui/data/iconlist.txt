@@ -29,7 +29,7 @@
 -c32,8 qsn_fr_list_side_l.svg
 -c32,8 qsn_fr_list_side_r.svg
 -c32,8 qsn_fr_list_side_t.svg
--c32,8 qgn_indi_cmail_arrow_right.svg
+-c32,8 qgn_indi_cmail_action_arrow_right.svg
 -c32,8 qgn_menu_browserng.svg
 -c32,8 qgn_menu_intranet.svg
 -c32,8 qsn_fr_cmail_list_center.svg
@@ -52,6 +52,25 @@
 -c32,8 qgn_prop_cmail_action_attachment_save.svg
 -c32,8 qgn_prop_cmail_action_attachment_save_all.svg
 -c32,8 qgn_prop_cmail_action_attachment_list_options_view_all.svg
+-c32,8 qgn_prop_search_contacts.svg
+-c32,8 qgn_prop_nrtyp_date.svg
+-c32,8 qgn_indi_cmail_arrow_previous.svg
+-c32,8 qgn_indi_cmail_arrow_next.svg
+-c32,8 qgn_indi_cdr_meeting.svg
+-c32,8 qgn_indi_cdr_invitation.svg
+-c32,8 qgn_indi_cdr_reminder.svg
+-c32,8 qgn_indi_cdr_birthday.svg
+-c32,8 qgn_indi_cdr_todo.svg
+-c32,8 qgn_indi_mce_tb_image.svg
+-c32,8 qgn_indi_mce_tb_video.svg
+-c32,8 qgn_indi_mce_tb_audio.svg
+-c32,8 qgn_indi_tb_template.svg
+-c32,8 qgn_indi_tb_note.svg
+-c32,8 qgn_indi_mce_tb_pres.svg
+-c32,8 qgn_indi_mce_tb_other.svg
+-c32,8 qgn_indi_tb_email_accept.svg
 -c32,8 qgn_indi_tb_email_tentative.svg
 -c32,8 qgn_indi_tb_email_decline.svg
--c32,8 qgn_indi_tb_email_accept.svg
+-c32,8 qgn_indi_sett_protected_add.svg
+-c32,8 qgn_indi_cal_locat_event_add.svg
+

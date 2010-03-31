@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -21,8 +21,8 @@
 
 #include "cesmrfield.h"
 
-class CEikLabel;
-class CEikImage;
+class CMRLabel;
+class CMRImage;
 class MESMRFieldValidator;
 
 /**
@@ -51,13 +51,13 @@ public: // From CCoeControl
     TInt CountComponentControls() const;
     CCoeControl* ComponentControl( TInt aInd ) const;
     void SizeChanged();
+    void SetContainerWindowL( const CCoeControl& aContainer );
 
 public: // From CESMRField
-    void InitializeL();
     void InternalizeL( MESMRCalEntry& aEntry );
     void ExternalizeL( MESMRCalEntry& aEntry );
     void SetOutlineFocusL( TBool aFocus );
-    void ExecuteGenericCommandL( TInt aCommand );
+    TBool ExecuteGenericCommandL( TInt aCommand );
 
 private: // Implemenation
     /**
@@ -91,32 +91,16 @@ private:
      *
      */
     void SwitchMSKLabelL();
-
+    void SendFieldChangeEventL( TESMREntryFieldId aFieldId );
 private:
-    /**
-     * Not owned. Checkbox text label
-     */
-    CEikLabel* iLabel;
+    
+    //Not owned. Checkbox text label
+    CMRLabel* iLabel;
+    
+    // Owned. checkbox_mark/checkbox_unmark
+    CMRImage* iFieldIcon;
 
-    /**
-     * Owned. checkbox_mark/checkbox_unmark
-     */
-    CEikImage* iIcon;
-
-    // Pointer to the bitmap. iIcon is created by using this bitmap
-    CFbsBitmap* iBitmap;
-
-    // Pointer to the bitmap mask. iIcon is created by using this bitmap mask
-    CFbsBitmap* iBitmapMask;
-
-    /**
-     * Not owned. Validator class for time and sanity checks.
-     */
-    MESMRFieldValidator* iValidator;
-
-    /**
-     * If checkbox is marked or unmarked.
-     */
+    // If checkbox is marked or unmarked.
     TBool iChecked;
     };
 

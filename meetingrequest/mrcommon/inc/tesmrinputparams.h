@@ -67,12 +67,6 @@ public: // Data
     TESMRCommand iCommand;
 
     /**
-     * Pointer to attachment information
-     * Not owned.
-     */
-    CESMRAttachmentInfo* iAttachmentInfo;
-
-    /**
     * Reserved for future use
     */
     TInt iSpare;

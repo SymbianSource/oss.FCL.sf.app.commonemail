@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -19,7 +19,6 @@
 #include "emailtrace.h"
 #include "cesmrimapicalretriever.h"
 #include "cesmrimapmailfetcher.h"
-#include "cesmrattachmentinfo.h"
 #include "tesmrinputparams.h"
 #include "esmricalviewerutils.h"
 #include "esmrconfig.hrh"
@@ -40,7 +39,7 @@
 #include <calentry.h>
 #include <caluser.h>
 #include <calalarm.h>
-#include <CalenInterimUtils2.h>
+#include <caleninterimutils2.h>
 #include <s32file.h>
 #include <eikenv.h>
 
@@ -52,7 +51,7 @@ _LIT8(  KTextCalendar8,  "text/calendar" );
 
 // Literal for received ics filename
 //<cmail> hard coded path removal, store goes to process's own private directory
-//_LIT( KTempReceivedIcsFile, 
+//_LIT( KTempReceivedIcsFile,
 //	  "c:\\temp\\tempreceived.ics" ); //codescanner::driveletters
 _LIT( KTempReceivedIcsFileName, "temp\\tempreceived.ics" );
 //</cmail>
@@ -64,20 +63,6 @@ _LIT( KTempReceivedIcsFileName, "temp\\tempreceived.ics" );
 
 // Definition for first position
 const TInt KFirstPos(0);
-
-/**
- * Cleanup operations for RPointerArray.
- *
- * @param aArray Pointer to RPointerArray.
- */
-void MessagePartPointerArrayCleanup( TAny* aArray )
-    {
-    RPointerArray<CFSMailMessagePart>* messagePartArray =
-        static_cast<RPointerArray<CFSMailMessagePart>*>( aArray );
-
-    messagePartArray->ResetAndDestroy();
-    messagePartArray->Close();
-    }
 
 /**
  * Cleanup operations for RPointerArray.
@@ -126,7 +111,6 @@ CESMRImapIcalRetrieverCmd::~CESMRImapIcalRetrieverCmd()
     delete iMailFetcher;
     delete iConvertedEntry;
     delete iIcsFilename;
-    delete iAttachmentInfo;
     }
 
 // ---------------------------------------------------------------------------
@@ -275,12 +259,10 @@ void CESMRImapIcalRetrieverCmd::HandleMailContentL()
         User::Leave( KErrNotFound );
         }
     CleanupStack::PushL( calendarPart );
-    
+
     CreateEntryL( *calendarPart, *msg );
     iInputParameters.iCalEntry = iConvertedEntry;
     iCalendarPartId = calendarPart->GetPartId();
-
-    CheckAttachmentDataL( *message );
 
     CleanupStack::PopAndDestroy( calendarPart );
     CleanupStack::PopAndDestroy( message );
@@ -364,77 +346,6 @@ void CESMRImapIcalRetrieverCmd::CreateEntryL(
 
             CleanupStack::Pop( organizer ); // Ownership trasferred
             }
-        }
-    }
-
-// ---------------------------------------------------------------------------
-// CESMRImapIcalRetriever::CheckAttachmentDataL
-// ---------------------------------------------------------------------------
-//
-void CESMRImapIcalRetrieverCmd::CheckAttachmentDataL(
-        CFSMailMessage& aMessage )
-    {
-    FUNC_LOG;
-    if ( aMessage.IsFlagSet( EFSMsgFlag_Attachments ) )
-        {
-        RPointerArray<CFSMailMessagePart> attachmentParts;
-        CleanupStack::PushL(
-                TCleanupItem(
-                    MessagePartPointerArrayCleanup,
-                    &attachmentParts    ) );
-
-        aMessage.AttachmentListL( attachmentParts );
-
-        TInt attachmentCount( attachmentParts.Count() );
-        if ( attachmentCount > 0 )
-            {
-            delete iAttachmentInfo;
-            iAttachmentInfo = NULL;
-            
-            iInputParameters.iAttachmentInfo = NULL;
-
-            CESMRAttachmentInfo* attachmentInfo = CESMRAttachmentInfo::NewL();
-            CleanupStack::PushL( attachmentInfo );
-
-            for( TInt i(0); i < attachmentCount; ++i )
-                {
-                CESMRAttachment::TESMRAttachmentState state(
-                        CESMRAttachment::EAttachmentStateDownloaded );
-
-                if ( EFSFull != attachmentParts[i]->FetchLoadState() )
-                    {
-                    state = CESMRAttachment::EAttachmentStateNotDownloaded;
-                    }
-
-                TInt contentSize( attachmentParts[i]->ContentSize() );
-                TPtrC attachmentName( attachmentParts[i]->AttachmentNameL() );
-
-                if ( contentSize >= 0 && attachmentName.Length() &&
-                        iCalendarPartId !=  attachmentParts[i]->GetPartId() )
-                    {
-                    attachmentInfo->AddAttachmentInfoL(
-                            attachmentName,
-                            contentSize,
-                            state );
-                    }
-                }
-
-            if ( attachmentInfo->AttachmentCount() )
-                {
-                iAttachmentInfo = attachmentInfo;
-                CleanupStack::Pop( attachmentInfo );
-                // ownership does not change
-                iInputParameters.iAttachmentInfo = iAttachmentInfo;
-                }
-            else
-                {
-                CleanupStack::PopAndDestroy( attachmentInfo );
-                }
-
-            attachmentInfo = NULL;
-
-            }
-        CleanupStack::PopAndDestroy(); // attachmentparts
         }
     }
 

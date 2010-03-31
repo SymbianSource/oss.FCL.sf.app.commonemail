@@ -73,15 +73,15 @@ _LIT8( KHTMLEmptyContent, "<HTML><BODY></BODY></HTML>");
 _LIT( KHTMLDataScheme, "data:0");
 
 
-_LIT8( KHtmlLineBreak, "<br>" );
-_LIT8( KHtmlLineBreakCRLF, "<br>\xD\xA" );
-_LIT8( KHtmlLessThan, "&lt;" );
-_LIT8( KHtmlGreaterThan, "&gt;" );
-_LIT8( KHtmlAmpersand, "&amp;" );
-_LIT8( KHtmlQuotation, "&quot;" );
-_LIT8( KHtmlLinkTag, "<a href=\"%S\">" );
-_LIT8( KHtmlLinkTagWWW, "<a href=\"%S%S\">" );
-_LIT8( KHtmlLinkEndTag, "</a>" );
+_LIT( KHtmlLineBreak, "<br>" );
+_LIT( KHtmlLineBreakCRLF, "<br>\xD\xA" );
+_LIT( KHtmlLessThan, "&lt;" );
+_LIT( KHtmlGreaterThan, "&gt;" );
+_LIT( KHtmlAmpersand, "&amp;" );
+_LIT( KHtmlQuotation, "&quot;" );
+_LIT( KHtmlLinkTag, "<a href=\"%S\">" );
+_LIT( KHtmlLinkTagWWW, "<a href=\"%S%S\">" );
+_LIT( KHtmlLinkEndTag, "</a>" );
 _LIT( KURLTypeBody, "body");
 
 _LIT( KURLDisplayImages, "cmail://displayImages/" );
@@ -89,15 +89,17 @@ _LIT( KURLLoadImages, "cmail://loadImages/" );
 _LIT( KURLCollapseHeader, "cmail://collapseHeader/" );
 _LIT( KURLExpandHeader, "cmail://expandHeader/" );
 
-const TText8 KGreaterThan = 0x3e;
-const TText8 KLessThan = 0x3c;
-const TText8 KAmpersand = 0x26;
-const TText8 KQuotation = 0x22;
-const TText8 KCharacterSpace = 0x20;
-const TText8 KSOH = 0x01; // Start Of Heading
-const TText8 KCR = 0x0d; // Carriage Return
-const TText8 KLF = 0x0a; // Line Feed
-const TText8 KHT = 0x09; // Horizontal Tab
+const TText KGreaterThan = 0x3e;
+const TText KLessThan = 0x3c;
+const TText KAmpersand = 0x26;
+const TText KQuotation = 0x22;
+const TText KCharacterSpace = 0x20;
+const TText KSOH = 0x01; // Start Of Heading
+const TText KCR = 0x0d; // Carriage Return
+const TText KLF = 0x0a; // Line Feed
+const TText KHT = 0x09; // Horizontal Tab
+const TText KUnicodeNewLineCharacter = 0x2028;
+const TText KUnicodeParagraphCharacter = 0x2029;        
 const TReal KOverlayButtonMarginX = 0.01; // 1%
 const TReal KOverlayButtonMarginY = 0.01; // 1%
 const TReal KOverlayButtonSizeP = 0.15; // 15%
@@ -1018,15 +1020,10 @@ void CFsEmailUiHtmlViewerContainer::ConvertToHtmlFileL( CFSMailMessagePart& aTex
     
     aTextBodyPart.GetContentToBufferL( contentPtr, 0 );
     
-    HBufC8* content8 = CnvUtfConverter::ConvertFromUnicodeToUtf8L( *content );
+    ConvertToHTML( *content, targetFileName, aTextBodyPart );
     
     CleanupStack::PopAndDestroy( content );
-    CleanupStack::PushL( content8 );
-        
-    ConvertToHTML( *content8, targetFileName, aTextBodyPart );
 
-    CleanupStack::PopAndDestroy( content8 );
-    
     }
 
 // ---------------------------------------------------------------------------
@@ -1242,31 +1239,35 @@ void CFsEmailUiHtmlViewerContainer::DownloadAttachmentL(
     else
         {
         TPartData partData;
-        partData.iMailBoxId = iMessage->GetMailBoxId();
-        partData.iFolderId = iMessage->GetFolderId();
-        partData.iMessageId = iMessage->GetMessageId();
-        partData.iMessagePartId = aAttachment.GetPartId();
-
-        if ( iAppUi.DownloadInfoMediator() &&
-             iAppUi.DownloadInfoMediator()->IsDownloadableL( partData ) )
+        if( iMessage )
             {
-            ASSERT( iLinkContents.Count() == iMessageParts.Count() );
+            partData.iMailBoxId = iMessage->GetMailBoxId();
+            partData.iFolderId = iMessage->GetFolderId();
+            partData.iMessageId = iMessage->GetMessageId();
+            
+            partData.iMessagePartId = aAttachment.GetPartId();
 
-            // Append message part details and embedded link content interface
-            // to corresponding arrays so that the content can be returned
-            // when the download is completed.
-            iLinkContents.AppendL( &aEmbeddedLinkContent );
-            if ( iMessageParts.Append( partData ) != KErrNone )
+            if ( iAppUi.DownloadInfoMediator() &&
+                 iAppUi.DownloadInfoMediator()->IsDownloadableL( partData ) )
                 {
-                iLinkContents.Remove( iLinkContents.Count() - 1 );
-                }
-
-            ASSERT( iLinkContents.Count() == iMessageParts.Count() );
-            if(!iView.GetAsyncFetchStatus())
-                {
-                iAppUi.DownloadInfoMediator()->AddObserver( this, aAttachment.GetMessageId() );
-                iObservingDownload=ETrue;
-                iAppUi.DownloadInfoMediator()->DownloadL( partData, EFalse );
+                ASSERT( iLinkContents.Count() == iMessageParts.Count() );
+    
+                // Append message part details and embedded link content interface
+                // to corresponding arrays so that the content can be returned
+                // when the download is completed.
+                iLinkContents.AppendL( &aEmbeddedLinkContent );
+                if ( iMessageParts.Append( partData ) != KErrNone )
+                    {
+                    iLinkContents.Remove( iLinkContents.Count() - 1 );
+                    }
+    
+                ASSERT( iLinkContents.Count() == iMessageParts.Count() );
+                if(!iView.GetAsyncFetchStatus())
+                    {
+                    iAppUi.DownloadInfoMediator()->AddObserver( this, aAttachment.GetMessageId() );
+                    iObservingDownload=ETrue;
+                    iAppUi.DownloadInfoMediator()->DownloadL( partData, EFalse );
+                    }
                 }
             }
         }
@@ -1352,11 +1353,11 @@ void CFsEmailUiHtmlViewerContainer::EnsureHTMLResourceL()
 // ---------------------------------------------------------------------------
 //
 // <cmail>
-void CFsEmailUiHtmlViewerContainer::ConvertToHTML( const TDesC8& aContent,
+void CFsEmailUiHtmlViewerContainer::ConvertToHTML( const TDesC& aContent,
     const TDesC& aFileName, CFSMailMessagePart& /*aTextBodyPart*/ )
     {
     FUNC_LOG;
-    const TInt KBodyTextChunkSizeBytes = 1024;
+    const TInt KBodyTextChunkSize = 2048;
     
     if ( SysUtil::DiskSpaceBelowCriticalLevelL( &iFs, aContent.Size(), EDriveC ) )
          {
@@ -1365,69 +1366,77 @@ void CFsEmailUiHtmlViewerContainer::ConvertToHTML( const TDesC8& aContent,
         }
     else
         {
-        CBufBase* bodyBuf = CBufSeg::NewL( KBodyTextChunkSizeBytes );
-        CleanupStack::PushL( bodyBuf );
-        
-        bodyBuf->InsertL( 0, aContent );
+        RBuf bodyBuf;
+        bodyBuf.CreateL( aContent.Size() + KBodyTextChunkSize );
+        bodyBuf.CleanupClosePushL();
+        bodyBuf.Insert( 0, aContent);
+        TInt maxlength = bodyBuf.MaxSize();
         
         TInt position( 0 );
-        TText8 previous = 0;
+        TText previous = 0;
         TBool EndOfString( EFalse );
         
         while ( !EndOfString )
             {
             TInt startPosition = position;
-            TPtr8 segment( bodyBuf->Ptr( startPosition ) );
-            int i = 0;
+            TPtr segment( bodyBuf.MidTPtr( startPosition ) );
+            TInt i = 0;
             
             while(i < segment.Length())
                 {
                 TInt currentPos = position + i;
-                TText8 ch = segment[i];
+                TText ch = segment[i];
                 
                 switch( ch )
                     {
                     case KSOH:  // end of line for IMAP and POP
-                        bodyBuf->Delete( currentPos, 1 );
-                        bodyBuf->InsertL( currentPos, KHtmlLineBreakCRLF );
+                        bodyBuf.Delete( currentPos, 1 );
+                        maxlength = maxlength + KHtmlLineBreakCRLF().Length();
+                        bodyBuf.ReAlloc( maxlength );
+                        bodyBuf.Insert( currentPos, KHtmlLineBreakCRLF );
                         i += KHtmlLineBreakCRLF().Length();
-                        segment.Set( bodyBuf->Ptr( startPosition ) );
+                        segment.Set( bodyBuf.MidTPtr( startPosition ) );
                         break;
                     case KLF: // line feed
-                        if ( previous == KCR )
-                            {
-                            bodyBuf->InsertL( currentPos, KHtmlLineBreak );
-                            i += KHtmlLineBreak().Length();
-                            segment.Set( bodyBuf->Ptr( startPosition ) );
-                            }
-                        else
-                            {
-                            i++;
-                            }
+                    case KUnicodeNewLineCharacter:
+                    case KUnicodeParagraphCharacter:
+                            maxlength = maxlength + KHtmlLineBreak().Length();
+                            bodyBuf.ReAlloc( maxlength );
+                            bodyBuf.Insert( currentPos, KHtmlLineBreak );
+                            i += KHtmlLineBreak().Length() + 1;
+                            segment.Set( bodyBuf.MidTPtr( startPosition ) );
                         break;  
                     case KQuotation:
-                        bodyBuf->Delete( currentPos, 1 );
-                        bodyBuf->InsertL( currentPos, KHtmlQuotation );
+                        bodyBuf.Delete( currentPos, 1 );
+                        maxlength = maxlength + KHtmlQuotation().Length();
+                        bodyBuf.ReAlloc( maxlength );
+                        bodyBuf.Insert( currentPos, KHtmlQuotation );
                         i += KHtmlQuotation().Length();
-                        segment.Set( bodyBuf->Ptr( startPosition ) );
+                        segment.Set( bodyBuf.MidTPtr( startPosition ) );
                         break;
                     case KAmpersand:
-                        bodyBuf->Delete( currentPos, 1 );
-                        bodyBuf->InsertL( currentPos, KHtmlAmpersand );
+                        bodyBuf.Delete( currentPos, 1 );
+                        maxlength = maxlength + KHtmlAmpersand().Length();
+                        bodyBuf.ReAlloc( maxlength  );
+                        bodyBuf.Insert( currentPos, KHtmlAmpersand );
                         i += KHtmlAmpersand().Length();
-                        segment.Set( bodyBuf->Ptr( startPosition ) );
+                        segment.Set( bodyBuf.MidTPtr( startPosition ) );
                         break;
                     case KGreaterThan:
-                        bodyBuf->Delete( currentPos, 1 );
-                        bodyBuf->InsertL( currentPos, KHtmlGreaterThan );
+                        bodyBuf.Delete( currentPos, 1 );
+                        maxlength = maxlength + KHtmlGreaterThan().Length();
+                        bodyBuf.ReAlloc( maxlength );
+                        bodyBuf.Insert( currentPos, KHtmlGreaterThan );
                         i += KHtmlGreaterThan().Length();
-                        segment.Set( bodyBuf->Ptr( startPosition ) );
+                        segment.Set( bodyBuf.MidTPtr( startPosition ) );
                         break;
                     case KLessThan:
-                        bodyBuf->Delete( currentPos, 1 );
-                        bodyBuf->InsertL( currentPos, KHtmlLessThan );
+                        bodyBuf.Delete( currentPos, 1 );
+                        maxlength =  maxlength + KHtmlLessThan().Length();
+                        bodyBuf.ReAlloc( maxlength );
+                        bodyBuf.Insert( currentPos, KHtmlLessThan );
                         i += KHtmlLessThan().Length();
-                        segment.Set( bodyBuf->Ptr( startPosition ) );
+                        segment.Set( bodyBuf.MidTPtr( startPosition ) );
                         break;
                     default:
                         i++;
@@ -1436,20 +1445,23 @@ void CFsEmailUiHtmlViewerContainer::ConvertToHTML( const TDesC8& aContent,
                 previous = ch;
                 }
             position += segment.Length();
-            if ( ( bodyBuf->Size() - position ) <= 0 )
+            if ( ( bodyBuf.Length() - position ) <= 0 )
                 {
                 EndOfString = ETrue;
                 }
             }
         
-        CreateHyperlinksFromUrlsL( *bodyBuf );
+        CreateHyperlinksFromUrlsL( bodyBuf );
+        
+        HBufC8* content8 = CnvUtfConverter::ConvertFromUnicodeToUtf8L( bodyBuf );
+        CleanupStack::PushL( content8 );        
         
         RFile targetFile;
         CleanupClosePushL( targetFile );
         User::LeaveIfError( targetFile.Replace( iFs, aFileName, EFileWrite ) );
         
         RBuf8 messageHeader;
-        _LIT8( KCharsetUtf8, "UTF-8" );
+        _LIT( KCharsetUtf8, "UTF-8" );
         TInt bufSize = KHtmlHeader1().Length() + KCharsetUtf8().Length() + KHtmlHeader2().Length();
         messageHeader.CreateL( bufSize );
         messageHeader.CleanupClosePushL();
@@ -1463,12 +1475,12 @@ void CFsEmailUiHtmlViewerContainer::ConvertToHTML( const TDesC8& aContent,
         fileStream.WriteL( messageHeader.Ptr(), messageHeader.Length() );
 
         TInt bufPos( 0 );
-        TInt bufTotalSize = bodyBuf->Size();
+        TInt bufTotalSize = content8->Size();
 
         while ( bufPos < bufTotalSize )
             {
-            TInt segmentLength = bodyBuf->Ptr( bufPos ).Length();
-            fileStream.WriteL( bodyBuf->Ptr( bufPos ).Ptr(), segmentLength );
+            TInt segmentLength = content8->Mid( bufPos ).Length();
+            fileStream.WriteL( content8->Mid( bufPos ).Ptr(), segmentLength );
             bufPos += segmentLength;
             }
 
@@ -1477,7 +1489,8 @@ void CFsEmailUiHtmlViewerContainer::ConvertToHTML( const TDesC8& aContent,
         CleanupStack::PopAndDestroy( &fileStream );
         CleanupStack::PopAndDestroy( &messageHeader );
         CleanupStack::PopAndDestroy( &targetFile );
-        CleanupStack::PopAndDestroy( bodyBuf );
+        CleanupStack::PopAndDestroy( content8 );
+        CleanupStack::PopAndDestroy( &bodyBuf ); // calls bodyBuf.Close();
 
 // </cmail>
         }
@@ -1488,34 +1501,34 @@ void CFsEmailUiHtmlViewerContainer::ConvertToHTML( const TDesC8& aContent,
 // ---------------------------------------------------------------------------
 //
 // <cmail>
-void CFsEmailUiHtmlViewerContainer::CreateHyperlinksFromUrlsL( CBufBase& aSource )
+void CFsEmailUiHtmlViewerContainer::CreateHyperlinksFromUrlsL( RBuf& aSource )
     {
     FUNC_LOG;
     const TInt urlMaxLength = 2048;
-    _LIT8( KHttp, "http://" );
-    _LIT8( KHttps, "https://");
-    _LIT8( KWww, "www."); 
+    _LIT( KHttp, "http://" );
+    _LIT( KHttps, "https://");
+    _LIT( KWww, "www."); 
     
     TBool eos( aSource.Size() <= 0 );
     TInt position( 0 );
     TInt carryOverInc( 0 );
-    
+    TInt maxlength = aSource.Length();
     while ( !eos )
         {
-        while ( carryOverInc >= aSource.Ptr( position ).Length() && aSource.Size() != 0 )
+        while ( carryOverInc >= aSource.MidTPtr( position ).Length() && aSource.Size() != 0 )
             { // Skip segments of overlapping url string
-            carryOverInc -= aSource.Ptr( position ).Length();
-            position += aSource.Ptr( position ).Length();
+            carryOverInc -= aSource.MidTPtr( position ).Length();
+            position += aSource.MidTPtr( position ).Length();
             }
         
-        TPtr8 segment( aSource.Ptr( position ) );
-        TLex8 lexSegment( segment );
+        TPtr16 segment( aSource.MidTPtr( position ) );
+        TLex16 lexSegment( segment );
         lexSegment.Inc( carryOverInc );
         carryOverInc = 0;
         
         while (!lexSegment.Eos())
             {
-            TPtrC8 nextToken( lexSegment.NextToken() );
+            TPtrC nextToken( lexSegment.NextToken() );
             TInt foundAt( KErrNotFound );
             
             // Find HTTP, HTTPS, or WWW link in CBufSeg segment of size 1024 bytes.
@@ -1527,7 +1540,7 @@ void CFsEmailUiHtmlViewerContainer::CreateHyperlinksFromUrlsL( CBufBase& aSource
                     { 
                     if ( !foundAt )
                         { // Token starts with http/https/www.x
-                        TPtrC8 url;
+                        TPtrC url;
                         TInt lineBreakPos( KErrNotFound );
                         if ( ( lineBreakPos = nextToken.FindC( KHtmlLineBreak ) ) != KErrNotFound )
                             { // Token contains html line break -> remove
@@ -1540,7 +1553,7 @@ void CFsEmailUiHtmlViewerContainer::CreateHyperlinksFromUrlsL( CBufBase& aSource
                         
                         if ( url.CompareC( KWww ) != KErrNone ) // if token=www., validate format 
                             {                                   // www.x
-                            RBuf8 urlBuf;
+                            RBuf urlBuf;
                             TBool wwwLink( EFalse );
                             if ( url.Left( KWww().Length() ).CompareF( KWww ) == 0 )
                                 {
@@ -1577,13 +1590,14 @@ void CFsEmailUiHtmlViewerContainer::CreateHyperlinksFromUrlsL( CBufBase& aSource
                             
                             //Test
                             TInt offset = lexSegment.Offset() - nextToken.Length();
-                            TLexMark8 tokenMark;
+                            TLexMark tokenMark;
                             // Move next character last token back
                             lexSegment.Inc( - nextToken.Length() );
                             lexSegment.Mark( tokenMark );
                             aSource.Delete( offset + position, nextToken.Length() );
-                            aSource.InsertL( offset + position, urlBuf );
-                            segment.Set( aSource.Ptr( position ) );
+                            aSource.ReAlloc( maxlength + urlBuf.Length() );
+                            aSource.Insert( offset + position, urlBuf );
+                            segment.Set( aSource.MidTPtr( position ) );
                             lexSegment.Assign( segment );
                             // Set next character to the position of inserted hyperlink
                             lexSegment.UnGetToMark( tokenMark );
@@ -1610,11 +1624,11 @@ void CFsEmailUiHtmlViewerContainer::CreateHyperlinksFromUrlsL( CBufBase& aSource
                 else
                     // Next token is end of string, here we handle the last token of a segment
                     {
-                    _LIT8( KUrlEnd, "<" );
+                    _LIT( KUrlEnd, "<" );
                     
                     TInt endOfUrlPos( KErrNotFound );
-                    TText8 ch = segment[ segment.Length() - 1];
-                    RBuf8 url;
+                    TText ch = segment[ segment.Length() - 1];
+                    RBuf url;
                     url.CreateL( urlMaxLength );
                     url.CleanupClosePushL();
                     
@@ -1630,12 +1644,12 @@ void CFsEmailUiHtmlViewerContainer::CreateHyperlinksFromUrlsL( CBufBase& aSource
                     else
                         { // Handle hyperlink spread in multiple segments
                         TInt nextPos = position;
-                        TPtrC8 nextSegment( aSource.Ptr( nextPos ) );
-                        TLex8 lexNextSegment( nextSegment );
-                        TPtrC8 nextNextToken( nextToken );
+                        TPtrC nextSegment( aSource.MidTPtr( nextPos ) );
+                        TLex lexNextSegment( nextSegment );
+                        TPtrC nextNextToken( nextToken );
                         TBool firstPass( ETrue );
                         
-                        while ( endOfUrlPos == KErrNotFound || nextPos >= aSource.Size() )
+                        while ( endOfUrlPos == KErrNotFound || nextPos >= aSource.Length() )
                             {
                             if ( ( url.Length() + nextNextToken.Length() )  > urlMaxLength )
                                 { // URL exceeds limit of 2K, do nothing
@@ -1648,7 +1662,7 @@ void CFsEmailUiHtmlViewerContainer::CreateHyperlinksFromUrlsL( CBufBase& aSource
                                   // with last token where hyperlink does not end within segment's
                                   // boundaries, move to next segment
                                 nextPos += nextSegment.Length();
-                                nextSegment.Set( aSource.Ptr( nextPos ) );
+                                nextSegment.Set( aSource.MidTPtr( nextPos ) );
                                 if( nextSegment.Length() == 0 )
                                     {      
                                     break;
@@ -1676,7 +1690,7 @@ void CFsEmailUiHtmlViewerContainer::CreateHyperlinksFromUrlsL( CBufBase& aSource
  
                         if ( endOfUrlPos != KErrNotFound )
                             { // Handle hyperlink that is within 2K limit
-                            RBuf8 urlBuf;
+                            RBuf urlBuf;
                             TBool wwwLink( EFalse );
 
                             if ( url.Left( KWww().Length() ).CompareF( KWww ) == 0 )
@@ -1710,8 +1724,9 @@ void CFsEmailUiHtmlViewerContainer::CreateHyperlinksFromUrlsL( CBufBase& aSource
                             // Remove hyperlink from the original message body
                             aSource.Delete( offset + position, url.Length() );
                             // Insert html formated hyperlink
-                            aSource.InsertL( offset + position, urlBuf );
-                            segment.Set( aSource.Ptr( position ) );
+                            aSource.ReAlloc( maxlength + urlBuf.Length() );
+                            aSource.Insert( offset + position, urlBuf );
+                            segment.Set( aSource.MidTPtr( position ) );
                             
                             // Set carry on value to mark where new token should start in following segment
                             carryOverInc = endOfUrlPos;
@@ -1725,7 +1740,7 @@ void CFsEmailUiHtmlViewerContainer::CreateHyperlinksFromUrlsL( CBufBase& aSource
                 }
             }
         position += segment.Length();
-        if ( ( aSource.Size() - position ) <= 0 )
+        if ( ( aSource.Length() - position ) <= 0 )
             {
             eos = ETrue;
             }
@@ -1809,8 +1824,9 @@ void CFsEmailUiHtmlViewerContainer::HandleResourceChange( TInt aType )
     if ( aType == CFsEmailUiViewBase::EScreenLayoutChanged )
         {
         RefreshCurrentMailHeader();
+	    SetRect( iView.ContainerRect() );
         }
-    }
+   }
 
 void CFsEmailUiHtmlViewerContainer::RefreshCurrentMailHeader()
     {
@@ -1833,8 +1849,9 @@ void CFsEmailUiHtmlViewerContainer::RefreshCurrentMailHeader()
             }
         else
             {
-            //Load page asynchronously after dismissing menu    
-            iEventHandler->DismissMenuAndReload();
+            //Load page asynchronously after dismissing menu 
+            //this is outdated call because it cancels Action menu which is no longer used in 9.2
+           // iEventHandler->DismissMenuAndReload();
             }
         }
     }
@@ -2026,7 +2043,10 @@ TBool CFsEmailUiHtmlViewerContainer::IsMessageBodyURLL(const TDesC& aUrl)
         else if (aUrl.Compare(KURLDisplayImages()) == 0)
             {
             DisplayStatusIndicatorL(KStatusIndicatorAutomaticHidingDuration);
+			if( iMessage )
+			{
             iAppUi.DisplayImagesCache().AddMessageL(*iMessage);
+			}
             iBrCtlInterface->HandleCommandL(TBrCtlDefs::ECommandLoadImages + TBrCtlDefs::ECommandIdBase);
             return ETrue;
             }
@@ -2163,29 +2183,33 @@ void CFsEmailUiHtmlViewerContainer::LaunchBrowserL( const TDesC& aUrl )
 
 void CFsEmailUiHtmlViewerContainer::PrepareBodyHtmlL( const TDesC& aFileName )
     {
-    CFSMailMessagePart* htmlBodyPart = iMessage->HtmlBodyPartL();
     
-    if ( htmlBodyPart )
+    if( iMessage )
         {
-        CleanupStack::PushL( htmlBodyPart );
-        // Copy html body part to email html file
-        CopyToHtmlFileL( *htmlBodyPart, aFileName );
-        CleanupStack::PopAndDestroy( htmlBodyPart );
-        }
-    else
-        {
-        CFSMailMessagePart* textBodyPart = iMessage->PlainTextBodyPartL();
+        CFSMailMessagePart* htmlBodyPart = iMessage->HtmlBodyPartL();
 
-        if ( textBodyPart )
+        if ( htmlBodyPart )
             {
-            CleanupStack::PushL( textBodyPart );
+            CleanupStack::PushL( htmlBodyPart );
             // Copy html body part to email html file
-            ConvertToHtmlFileL( *textBodyPart, aFileName );
-            CleanupStack::PopAndDestroy( textBodyPart );
+            CopyToHtmlFileL( *htmlBodyPart, aFileName );
+            CleanupStack::PopAndDestroy( htmlBodyPart );
             }
         else
             {
-            User::Leave( KErrNotFound );
+            CFSMailMessagePart* textBodyPart = iMessage->PlainTextBodyPartL();
+    
+            if ( textBodyPart )
+                {
+                CleanupStack::PushL( textBodyPart );
+                // Copy html body part to email html file
+                ConvertToHtmlFileL( *textBodyPart, aFileName );
+                CleanupStack::PopAndDestroy( textBodyPart );
+                }
+            else
+                {
+                User::Leave( KErrNotFound );
+                }
             }
         }
     }

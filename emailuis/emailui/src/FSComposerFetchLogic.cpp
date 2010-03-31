@@ -16,13 +16,10 @@
 */
 
 
-//<cmail>
 #include "emailtrace.h"
 #include "cfsmailclient.h"
 #include "cfsmailcommon.h"
-//</cmail>
 #include <FreestyleEmailUi.rsg>
-//#include <aknquerydialog.h> //<cmail>
 #include <StringLoader.h>
 
 #include "FreestyleEmailUiAppui.h"
@@ -35,18 +32,18 @@
 // -----------------------------------------------------------------------------
 //
 CFsComposerFetchLogic* CFsComposerFetchLogic::NewL( CFSMailClient& aClient,
-	TFSMailMsgId aMailBoxId, TFSMailMsgId aFolderId, TFSMailMsgId aMessageId,
-	MComposerFetchLogicCallback& aObserver, CFreestyleEmailUiAppUi& aAppUi )
-	{
+    TFSMailMsgId aMailBoxId, TFSMailMsgId aFolderId, TFSMailMsgId aMessageId,
+    MComposerFetchLogicCallback& aObserver, CFreestyleEmailUiAppUi& aAppUi )
+    {
     FUNC_LOG;
 
-	CFsComposerFetchLogic* self = new (ELeave) CFsComposerFetchLogic( aClient, aObserver, aAppUi );
-	CleanupStack::PushL( self );
-	self->ConstructL( aMailBoxId, aFolderId, aMessageId );
-	CleanupStack::Pop( self );
+    CFsComposerFetchLogic* self = new (ELeave) CFsComposerFetchLogic( aClient, aObserver, aAppUi );
+    CleanupStack::PushL( self );
+    self->ConstructL( aMailBoxId, aFolderId, aMessageId );
+    CleanupStack::Pop( self );
 
     return self;
-	}
+    }
 
 
 // -----------------------------------------------------------------------------
@@ -54,13 +51,13 @@ CFsComposerFetchLogic* CFsComposerFetchLogic::NewL( CFSMailClient& aClient,
 // -----------------------------------------------------------------------------
 //
 CFsComposerFetchLogic::CFsComposerFetchLogic( CFSMailClient& aClient,
-	MComposerFetchLogicCallback& aObserver, CFreestyleEmailUiAppUi& aAppUi ):
-	iRunMode( EModeInvalid ), iState( EStateNotStarted ), iAppUi( aAppUi ),
-	iClient( aClient ), iObserver( aObserver ),iFetchingCancelGoingOn(EFalse),//<cmail>
-        iFetchingStructure(EFalse), iFetchingBody(EFalse),iRequestCompleted(EFalse)//<cmail>
-	{
+    MComposerFetchLogicCallback& aObserver, CFreestyleEmailUiAppUi& aAppUi ):
+    iRunMode( EModeInvalid ), iState( EStateNotStarted ), iAppUi( aAppUi ),
+    iClient( aClient ), iObserver( aObserver ),iFetchingCancelGoingOn(EFalse),
+        iFetchingStructure(EFalse), iFetchingBody(EFalse),iRequestCompleted(EFalse)
+    {
     FUNC_LOG;
-	}
+    }
 
 
 // -----------------------------------------------------------------------------
@@ -68,23 +65,21 @@ CFsComposerFetchLogic::CFsComposerFetchLogic( CFSMailClient& aClient,
 // -----------------------------------------------------------------------------
 //
 CFsComposerFetchLogic::~CFsComposerFetchLogic()
-	{
+    {
     FUNC_LOG;
 
-    //CancelFetchings(); <cmail>
     if ( iAppUi.DownloadInfoMediator() )
         {
         iAppUi.DownloadInfoMediator()->StopObserving( this );
         }
 
-	iParts.Close();
+    iParts.Close();
 
-    //delete iAsyncWaitNote; //<cmail>
-	delete iMessage;
-	delete iFolder;
-	delete iMailBox;
+    delete iMessage;
+    delete iFolder;
+    delete iMailBox;
 
-	}
+    }
 
 
 // -----------------------------------------------------------------------------
@@ -92,15 +87,15 @@ CFsComposerFetchLogic::~CFsComposerFetchLogic()
 // -----------------------------------------------------------------------------
 //
 void CFsComposerFetchLogic::ConstructL( TFSMailMsgId aMailBoxId,
-	TFSMailMsgId aFolderId, TFSMailMsgId aMessageId )
-	{
+    TFSMailMsgId aFolderId, TFSMailMsgId aMessageId )
+    {
     FUNC_LOG;
 
-	iMailBox = iClient.GetMailBoxByUidL( aMailBoxId );
-	iFolder = iClient.GetFolderByUidL( aMailBoxId, aFolderId );
-	iMessage = iClient.GetMessageByUidL( aMailBoxId, aFolderId, aMessageId, EFSMsgDataStructure );
+    iMailBox = iClient.GetMailBoxByUidL( aMailBoxId );
+    iFolder = iClient.GetFolderByUidL( aMailBoxId, aFolderId );
+    iMessage = iClient.GetMessageByUidL( aMailBoxId, aFolderId, aMessageId, EFSMsgDataStructure );
 
-	}
+    }
 
 
 // -----------------------------------------------------------------------------
@@ -108,14 +103,14 @@ void CFsComposerFetchLogic::ConstructL( TFSMailMsgId aMailBoxId,
 // -----------------------------------------------------------------------------
 //
 void CFsComposerFetchLogic::RunReplyLogicL()
-	{
+    {
     FUNC_LOG;
 
-	iRunMode = EModeReply;
-	iState = EStateSmartReply;
-	iError = KErrNone;
-	RunStateL();
-	}
+    iRunMode = EModeReply;
+    iState = EStateSmartReply;
+    iError = KErrNone;
+    RunStateL();
+    }
 
 
 // -----------------------------------------------------------------------------
@@ -123,19 +118,19 @@ void CFsComposerFetchLogic::RunReplyLogicL()
 // -----------------------------------------------------------------------------
 //
 void CFsComposerFetchLogic::RunForwardLogicL()
-	{
+    {
     FUNC_LOG;
 
-	iRunMode = EModeForward;
-	iState = EStateSmartForward;
-	iError = KErrNone;
-	if ( iAppUi.DownloadInfoMediator() )
-		{
-		iAppUi.DownloadInfoMediator()->AddObserver( this, iMessage->GetMessageId() );
-		}
-	RunStateL();
+    iRunMode = EModeForward;
+    iState = EStateSmartForward;
+    iError = KErrNone;
+    if ( iAppUi.DownloadInfoMediator() )
+        {
+        iAppUi.DownloadInfoMediator()->AddObserver( this, iMessage->GetMessageId() );
+        }
+    RunStateL();
 
-	}
+    }
 
 
 // -----------------------------------------------------------------------------
@@ -201,14 +196,14 @@ void CFsComposerFetchLogic::RequestResponseL( TFSProgress aEvent, TInt aRequestI
         }
 
     }
-	
+    
 
 // -----------------------------------------------------------------------------
 // CFsComposerFetchLogic::RequestResponseL
 // -----------------------------------------------------------------------------
 //
 void CFsComposerFetchLogic::RequestResponseL( const TFSProgress& aEvent, const TPartData& aPart )
-	{
+    {
     FUNC_LOG;
 
     // Ignore all responses when cancelling is in progress.
@@ -241,156 +236,86 @@ void CFsComposerFetchLogic::RequestResponseL( const TFSProgress& aEvent, const T
         }
     }
 
-
-// -----------------------------------------------------------------------------
-// CFsComposerFetchLogic::StepL
-// -----------------------------------------------------------------------------
-//
-//<cmail>
-/*
-void CFsComposerFetchLogic::StepL()
-	{
-    FUNC_LOG;
-	}*/
-//<cmail>
-
-
-// -----------------------------------------------------------------------------
-// CFsComposerFetchLogic::IsProcessDone
-// -----------------------------------------------------------------------------
-//
-//<cmail>
-/*
-TBool CFsComposerFetchLogic::IsProcessDone() const
-	{
-    FUNC_LOG;
-	return iFetchComplete;
-	}*/
-//<cmail>
-
-
-// -----------------------------------------------------------------------------
-// CFsComposerFetchLogic::ProcessFinished
-// -----------------------------------------------------------------------------
-//
-//<cmail>
-/*
-void CFsComposerFetchLogic::ProcessFinished()
-	{
-    FUNC_LOG;
-	}*/
-//<cmail>
-
-
-// -----------------------------------------------------------------------------
-// CFsComposerFetchLogic::DialogDismissedL
-// -----------------------------------------------------------------------------
-//
-/*void CFsComposerFetchLogic::DialogDismissedL( TInt aButtonId )//<cmail>
-	{
-	if(aButtonId == EAknSoftkeyCancel)
-	    {
-	    CancelFetchings();
-	    iError = KErrCancel;
-	    }
-    FUNC_LOG;
-	}*///<cmail>
-
-
-// -----------------------------------------------------------------------------
-// CFsComposerFetchLogic::CycleError
-// -----------------------------------------------------------------------------
-//
-//<cmail>
-/*
-TInt CFsComposerFetchLogic::CycleError( TInt aError )
-	{
-    FUNC_LOG;
-	return aError;
-	}*/
-//</cmail>
-
-
 // -----------------------------------------------------------------------------
 // CFsComposerFetchLogic::RunState
 // -----------------------------------------------------------------------------
 //
 void CFsComposerFetchLogic::RunStateL()
-	{
+    {
     FUNC_LOG;
 
-	TBool doNextState = EFalse;
+    TBool doNextState = EFalse;
 
-	do
-		{
-		doNextState = EFalse;
+    do
+        {
+        doNextState = EFalse;
 
-		switch ( iState )
-			{
-			case EStateSmartReply:
-				{
-				TBool supported = iMailBox->HasCapability( EFSMBoxCapaSmartReply );
-				if ( supported )
-					{
-					Complete();
-					}
-				else
-					{
-					iState = EStateStructure;
-					doNextState = ETrue;
-					}
-				}
-			break;
+        switch ( iState )
+            {
+            case EStateSmartReply:
+                {
+                TBool supported = iMailBox->HasCapability( EFSMBoxCapaSmartReply );
+                TBool smartEdit = iMailBox->HasCapability( EFSMBoxCapaSmartEdit );
+                if ( supported && !smartEdit )
+                    {
+                    Complete();
+                    }
+                else
+                    {
+                    iState = EStateStructure;
+                    doNextState = ETrue;
+                    }
+                }
+            break;
 
-			case EStateSmartForward:
-				{
-				TBool supported = iMailBox->HasCapability( EFSMBoxCapaSmartForward );
-				if ( supported )
-					{
-					Complete();
-					}
-				else
-					{
-					iState = EStateStructure;
-					doNextState = ETrue;
-					}
-				}
-			break;
+            case EStateSmartForward:
+                {
+                TBool supported = iMailBox->HasCapability( EFSMBoxCapaSmartForward );
+                TBool smartEdit = iMailBox->HasCapability( EFSMBoxCapaSmartEdit );
+                if ( supported && !smartEdit )
+                    {
+                    Complete();
+                    }
+                else
+                    {
+                    iState = EStateStructure;
+                    doNextState = ETrue;
+                    }
+                }
+            break;
 
-			case EStateStructure:
-				{
-				TBool hasStructure = TFsEmailUiUtility::IsMessageStructureKnown( *iMessage );
-				if ( hasStructure )
-					{
-					iState = EStateBody;
-					doNextState = ETrue;
-					}
-				else
-					{
-					RArray<TFSMailMsgId> ids;
-					CleanupClosePushL( ids );
-					ids.AppendL( iMessage->GetMessageId() );
-					TRAP( iError, iStructureRequestId = iFolder->FetchMessagesL( ids, EFSMsgDataStructure, *this ) );
-					CleanupStack::PopAndDestroy( &ids );
-					if ( KErrNone == iError )
-						{
-						// fetching started successfully
-						iFetchingStructure = ETrue;
-						// show wait note
-						//ShowWaitNoteL(); //<cmail>
-						}
-					else
-						{
-						// error occurred
-					    Complete();
-						}
-					}
-				}
-			break;
+            case EStateStructure:
+                {
+                TBool hasStructure = TFsEmailUiUtility::IsMessageStructureKnown( *iMessage );
+                if ( hasStructure )
+                    {
+                    iState = EStateBody;
+                    doNextState = ETrue;
+                    }
+                else
+                    {
+                    RArray<TFSMailMsgId> ids;
+                    CleanupClosePushL( ids );
+                    ids.AppendL( iMessage->GetMessageId() );
+                    TRAP( iError, iStructureRequestId = iFolder->FetchMessagesL( ids, EFSMsgDataStructure, *this ) );
+                    CleanupStack::PopAndDestroy( &ids );
+                    if ( KErrNone == iError )
+                        {
+                        // fetching started successfully
+                        iFetchingStructure = ETrue;
+                        }
+                    else
+                        {
+                        // error occurred
+                        Complete();
+                        }
+                    }
+                }
+            break;
 
-			case EStateBody:
-				{
-				CFSMailMessagePart* body = iMessage->PlainTextBodyPartL();
+            case EStateBody:
+                {
+                CFSMailMessagePart* body = iMessage->PlainTextBodyPartL();
                 TBool fetched = EFalse;
                 // Do we have plain text body part
                 if ( !body )
@@ -414,14 +339,26 @@ void CFsComposerFetchLogic::RunStateL()
                 CleanupStack::PushL( body );
                 if ( fetched )
                     {
+                    // with Smart
                     if ( EModeReply == iRunMode )
                         {
                         Complete();
                         }
                     else if ( EModeForward == iRunMode )
                         {
-                        iState = EStateAttachments;
-                        doNextState = ETrue;
+                        TBool smartForward = iMailBox->HasCapability( EFSMBoxCapaSmartForward );
+                        if ( smartForward )
+                            {
+                            // do not download attachments if smartforward
+                            Complete();
+                            }
+                        else
+                            {
+                            // if smartforward is not suppported fetch attachments
+                            iState = EStateAttachments;
+                            doNextState = ETrue;
+                            }
+// Smart Edit changes end
                         }
                     else
                         {
@@ -438,8 +375,6 @@ void CFsComposerFetchLogic::RunStateL()
                         {
                         // fetching started successfully
                         iFetchingBody = ETrue;
-                        // show wait note if not already visible
-                        //ShowWaitNoteL(); //<cmail>
                         }
                     else
                         {
@@ -448,107 +383,50 @@ void CFsComposerFetchLogic::RunStateL()
                         }
                     }
                 CleanupStack::PopAndDestroy( body );
-				}
-			break;
-			
-			case EStateAttachments:
-				{
-				if ( TFsEmailUiUtility::HasUnfetchedAttachmentsL( *iMessage ) )
-					{
-					RPointerArray<CFSMailMessagePart> attachments;
-					CleanupResetAndDestroyClosePushL( attachments );
+                }
+            break;
+            
+            case EStateAttachments:
+                {
+                if ( TFsEmailUiUtility::HasUnfetchedAttachmentsL( *iMessage ) )
+                    {
+                    RPointerArray<CFSMailMessagePart> attachments;
+                    CleanupResetAndDestroyClosePushL( attachments );
                     iMessage->AttachmentListL( attachments );
                     for ( TInt i=0; i<attachments.Count(); i++ )
-						{
-						if ( !TFsEmailUiUtility::IsMessagePartFullyFetched( *attachments[i] ) )
-							{
-							if ( iAppUi.DownloadInfoMediator() ) 
-								{
-	                            TPartData data;
-	                            data.iMailBoxId = iMailBox->GetId();
-	                            data.iFolderId = iMessage->GetFolderId();
-	                            data.iMessageId = iMessage->GetMessageId();
-	                            data.iMessagePartId = attachments[i]->GetPartId();
-	                            iParts.AppendL( data );
-								iAppUi.DownloadInfoMediator()->DownloadL( data, EFalse );				
-								}
-							else
-							    {
-							    iError = KErrGeneral;
-							    Complete();
-							    }
-							}
-						}
-					CleanupStack::PopAndDestroy( &attachments );
-					// show wait note if not already visible
-					//ShowWaitNoteL(); //<cmail>
-					}
-				else
-					{
-					Complete();
-					}
-				}
-			break;
-			}
-		}
-	while ( doNextState );
+                        {
+                        if ( !TFsEmailUiUtility::IsMessagePartFullyFetched( *attachments[i] ) )
+                            {
+                            if ( iAppUi.DownloadInfoMediator() ) 
+                                {
+                                TPartData data;
+                                data.iMailBoxId = iMailBox->GetId();
+                                data.iFolderId = iMessage->GetFolderId();
+                                data.iMessageId = iMessage->GetMessageId();
+                                data.iMessagePartId = attachments[i]->GetPartId();
+                                iParts.AppendL( data );
+                                iAppUi.DownloadInfoMediator()->DownloadL( data, EFalse );               
+                                }
+                            else
+                                {
+                                iError = KErrGeneral;
+                                Complete();
+                                }
+                            }
+                        }
+                    CleanupStack::PopAndDestroy( &attachments );
+                    }
+                else
+                    {
+                    Complete();
+                    }
+                }
+            break;
+            }
+        }
+    while ( doNextState );
+    }
 
-	}
-
-
-// -----------------------------------------------------------------------------
-// CFsComposerFetchLogic::ShowWaitNoteL
-// -----------------------------------------------------------------------------
-//
-/*void CFsComposerFetchLogic::ShowWaitNoteL() //<cmail>
-	{
-    FUNC_LOG;
-
-	if ( !iAsyncWaitNote )
-		{
-        iFetchComplete = EFalse;
-
-        //<cmail>
-        iAsyncWaitNote = new(ELeave)CAknWaitDialog(
-                       (REINTERPRET_CAST(CEikDialog**,&iAsyncWaitNote)), ETrue);
-        iAsyncWaitNote->SetCallback(this);
-        //iError = KErrNone;
-        iAsyncWaitNote->ExecuteLD(R_FSE_FETCHING_WAIT_DIALOG);
-
-        iAsyncWaitNote = CAknWaitNoteWrapper::NewL(); //<cmail>
-        TBool result = iAsyncWaitNote->ExecuteL( R_FSE_FETCHING_WAIT_DIALOG, *this, ETrue );
-        if ( !result )
-        	{
-        	// dialog was canceled
-        	iError = KErrCancel;
-        	// stop downloads
-        	CancelFetchings();
-        	}//<cmail>
-        //<cmail>
-
-        //iObserver.FetchLogicComplete( iState, iError ); //cmail
-		}
-
-	}*/ //<cmail>
-
-// -----------------------------------------------------------------------------
-// CFsComposerFetchLogic::AskIfUserWantsToFetchAttachmentsL
-// -----------------------------------------------------------------------------
-//
-/*
-TBool CFsComposerFetchLogic::AskIfUserWantsToFetchAttachmentsL()
-	{
-
-	CAknQueryDialog* dlg = CAknQueryDialog::NewL( CAknQueryDialog::ENoTone );
-	dlg->PrepareLC( R_FSE_EDITOR_CONFIRM_ATTACHMENT_DOWNLOAD_DIALOG );
-	CAknQueryControl* control = STATIC_CAST( CAknQueryControl*, dlg->ControlOrNull( EGeneralQuery ) );
-	HBufC* prompt = StringLoader::LoadLC( R_FSE_EDITOR_CONFIRM_ATTACHMENT_DOWNLOAD );
-	control->SetPromptL( *prompt );
-	CleanupStack::PopAndDestroy( prompt );
-	return TBool( dlg->RunLD() );
-
-	}
-*/
 
 // -----------------------------------------------------------------------------
 // CFsComposerFetchLogic::CancelFetchings
@@ -596,7 +474,6 @@ void CFsComposerFetchLogic::CancelFetchings()
             }
         }
 
-    //<cmail>
     if( !iRequestCompleted )
         {
         if ( iObserver.FetchLogicComplete( iState, KErrCancel ))
@@ -609,7 +486,6 @@ void CFsComposerFetchLogic::CancelFetchings()
         }
 
     iFetchingCancelGoingOn = EFalse;
-    //</cmail>
     }
 
 // -----------------------------------------------------------------------------
@@ -617,38 +493,20 @@ void CFsComposerFetchLogic::CancelFetchings()
 // -----------------------------------------------------------------------------
 //
 void CFsComposerFetchLogic::Complete()
-	{
+    {
     FUNC_LOG;
 
-    //<cmail>
     if(!iRequestCompleted)
         {
-    //</cmail>
-	if ( iAppUi.DownloadInfoMediator() )
-		{
-		iAppUi.DownloadInfoMediator()->StopObserving( this, iMessage->GetMessageId() );
-		}
-
-        /*if ( iAsyncWaitNote ) //<cmail>
-		{
-		iFetchComplete = ETrue;
-		//<cmail> new note stops like this and not with IsProcessFinished method
-		iAsyncWaitNote->ProcessFinishedL();
-		//</cmail>
-		// observer is called in ShowWaitNoteL where showing
-		// wait note returns
-		}
-	else
-            {*/ //<cmail>
-	    // wait note not active, call observer
-        //<cmail>
+        if ( iAppUi.DownloadInfoMediator() )
+            {
+            iAppUi.DownloadInfoMediator()->StopObserving( this, iMessage->GetMessageId() );
+            }
+        // wait note not active, call observer
         iFetchingStructure = EFalse;
         iFetchingBody = EFalse;
         iRequestCompleted = ETrue;
-        //</cmail>
-		iObserver.FetchLogicComplete( iState, iError );
-            //} //<cmail>
-	    }
-
-	}
+        iObserver.FetchLogicComplete( iState, iError );
+        }
+    }
 

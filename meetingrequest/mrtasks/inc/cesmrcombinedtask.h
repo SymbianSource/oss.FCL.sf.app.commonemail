@@ -19,7 +19,10 @@
 #ifndef C_ESMRCOMBINEDTASK_H
 #define C_ESMRCOMBINEDTASK_H
 
-#include "cesmrtaskbase.h"
+#include "mesmrtask.h"
+#include <e32base.h>
+
+class MESMRCalEntry;
 
 /**
  * CESMRCombinedTask is responsibe for executing multiple tasks.
@@ -44,7 +47,8 @@
  *
  * @lib esmrtasks.lib
  */
-NONSHARABLE_CLASS( CESMRCombinedTask ) : public CESMRTaskBase
+NONSHARABLE_CLASS( CESMRCombinedTask ) : public CBase,
+                                         public MESMRTask
     {
 public:
 
@@ -70,23 +74,21 @@ public:
      * @param aMRMailboxUtils Reference mr mailbox utilities.
      * @param aRule Exection rule
      */
-    static CESMRCombinedTask* NewL(
-        MESMRCalDbMgr& aCalDbMgr,
-        MESMRMeetingRequestEntry& aEntry,
-        CMRMailboxUtils& aMRMailboxUtils,
+    IMPORT_C static CESMRCombinedTask* NewL(
+        MESMRCalEntry& aEntry,
         TESMRExecutionRule aRule =  CESMRCombinedTask::EESMRLeave );
 
     /**
      * C++ destructor.
      */
-    ~CESMRCombinedTask();
+    IMPORT_C ~CESMRCombinedTask();
 
     /**
      * Appends task to be executed. Ownership of appended task
      * is transferred.
      * @param aTask Pointer to task to be executed.
      */
-    void AppendTaskL( MESMRTask* aTask );
+    IMPORT_C void AppendTaskL( MESMRTask* aTask );
 
     /**
      * Removes the task from task list. Method returns the pointer to
@@ -95,16 +97,14 @@ public:
      * @param aTask Pointer to task to be removed.
      * @return Pointer to removed task.
      */
-    MESMRTask* RemoveTaskL( MESMRTask* aTask );
+    IMPORT_C MESMRTask* RemoveTaskL( MESMRTask* aTask );
 
 public:// From MESMRTask
     void ExecuteTaskL();
 
 private: // Implementation
     CESMRCombinedTask(
-            MESMRCalDbMgr& aCalDbMgr,
-            MESMRMeetingRequestEntry& aEntry,
-            CMRMailboxUtils& aMRMailboxUtils,
+            MESMRCalEntry& aEntry,
             TESMRExecutionRule aRule );
 
     void ConstructL();
@@ -117,9 +117,24 @@ private: // Data
     RPointerArray<MESMRTask> iTasks;
 
     /**
+     * Reference to entry. 
+     */
+    MESMRCalEntry& iEntry;
+    
+    /**
     * Task execution rule
     */
     TESMRExecutionRule iExecutionRule;
     };
+
+/**
+ * Helper function to append task into a combined task.
+ * Takes ownership of aTask at calling time and delegates it to the combined task.
+ * aTask must not be into CleanupStack at calling time.
+ * 
+ * @param aContainer combined task
+ * @param aTask a task to append into container
+ */
+IMPORT_C void AppendTaskL( CESMRCombinedTask& aContainer, MESMRTask* aTask );
 
 #endif // C_ESMRCOMBINEDTASK_H

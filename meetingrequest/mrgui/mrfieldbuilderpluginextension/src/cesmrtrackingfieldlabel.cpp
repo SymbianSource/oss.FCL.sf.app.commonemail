@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -21,14 +21,13 @@
 
 // USER INCLUDES
 #include "mesmrlistobserver.h"
-#include "cesmrborderlayer.h"
 
 // SYSTEM INCLUDES
 #include <eiklabel.h>
 #include <avkon.hrh>
 #include <caluser.h>
 #include <calentry.h>
-#include <StringLoader.h>
+#include <stringloader.h>
 #include <esmrgui.rsg>
 
 // ======== MEMBER FUNCTIONS ========
@@ -59,9 +58,6 @@ void CESMRTrackingFieldLabel::ConstructL( )
             : EESMRFieldOptTrack );
 
     iTitle = new (ELeave) CEikLabel();
-    iTitle->SetLabelAlignment ( CESMRLayoutManager::IsMirrored ( ) ? ELayoutAlignRight
-            : ELayoutAlignLeft );
-
 
     HBufC* label = StringLoader::LoadLC (iRole == CCalAttendee::EReqParticipant ?
             R_QTN_MEET_REQ_LABEL_REQUIRED : R_QTN_MEET_REQ_LABEL_OPT );
@@ -80,8 +76,11 @@ void CESMRTrackingFieldLabel::ConstructL( )
 void CESMRTrackingFieldLabel::InitializeL()
     {
     FUNC_LOG;
-    iTitleSize = iLayout->FieldSize ( EESMRFieldAttendeeLabel );
-    iTitle->SetFont( iLayout->Font (iCoeEnv, EESMRFieldAttendeeLabel ) );
+    // TODO: Do not use old layout manager anymore
+    //iTitleSize = iLayout->FieldSize ( EESMRFieldAttendeeLabel );
+    
+    // TODO: use XML Data
+    //iTitle->SetFont( iLayout->Font (iCoeEnv, EESMRFieldAttendeeLabel ) );
     }
 
 // ---------------------------------------------------------------------------
@@ -92,7 +91,7 @@ void CESMRTrackingFieldLabel::SizeChanged( )
     {
     FUNC_LOG;
     TRect rect = Rect ( );
-    if ( CESMRLayoutManager::IsMirrored ( ) )
+    /*if ( CESMRLayoutManager::IsMirrored ( ) )
         {
         TPoint titlePos( rect.iBr.iX - iTitleSize.iWidth, rect.iTl.iY);
         iTitle->SetExtent ( titlePos, iTitleSize );
@@ -102,6 +101,7 @@ void CESMRTrackingFieldLabel::SizeChanged( )
         // title
         iTitle->SetExtent ( rect.iTl, iTitleSize );
         }
+        */
     }
 
 // ---------------------------------------------------------------------------

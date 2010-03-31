@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -15,8 +15,6 @@
 *
 */
 
-//<cmail>
-#include "emailtrace.h"
 #include "cesmruifactory.h"
 #include "mesmruibase.h"
 #include "cesmreditordialog.h"
@@ -24,14 +22,19 @@
 #include "cesmrtrackingviewdialog.h"
 #include "cesmrviewerfieldstorage.h"
 #include "esmrhelper.h"
-#include <esmrgui.rsg>
 #include "cesmrpolicy.h"
-//</cmail>
+#include "mmrinfoprovider.h"
+#include "mmrpolicyprovider.h"
+
+#include <esmrgui.rsg>
 #include <e32base.h>
 #include <eikenv.h>
-#include <ConeResLoader.h>
+#include <coneresloader.h>
 #include <data_caging_path_literals.hrh>
 #include <bautils.h>
+
+// DEBUG
+#include "emailtrace.h"
 
 // Unnamed namespace for local definitions
 namespace  {
@@ -123,14 +126,20 @@ void CESMRUiFactory::LoadResourceFileL(
     {
     FUNC_LOG;
     TFileName pathAndFile;
+    
+    INFO_1( "Locating resource file for %S", &aFileName );
     ESMRHelper::LocateResourceFile(
                 aFileName,
                 KDC_RESOURCE_FILES_DIR,
                 pathAndFile,
                 &aEikEnv->FsSession() );
 
+    INFO_1( "Finding nearest language file for %S", &pathAndFile );
+    
     // Find the resource file for the nearest language
     BaflUtils::NearestLanguageFile(aEikEnv->FsSession(), pathAndFile );
+    
+    INFO( "Adding resource file" );
     aResourceOffset = CCoeEnv::Static()->AddResourceFileL( pathAndFile );
     }
 
@@ -139,22 +148,22 @@ void CESMRUiFactory::LoadResourceFileL(
 // ---------------------------------------------------------------------------
 //
 MESMRUiBase* CESMRUiFactory::CreateUIL(
-        CESMRPolicy* aPolicy,
-        MESMRCalEntry& aEntry,
+        MMRInfoProvider& aInfoProvider,
         MAgnEntryUiCallback& aCallback )
     {
     FUNC_LOG;
     MESMRUiBase* ui = NULL;
 
-    TESMRViewMode viewMode = aPolicy->ViewMode();
+    TESMRViewMode viewMode =
+        aInfoProvider.PolicyProvider().CurrentPolicy().ViewMode();
+    
     switch ( viewMode )
         {
         case EESMREditMR: // Fall through
         case EESMRForwardMR:
             {
             ui = CESMREditorDialog::NewL(
-                    aPolicy,
-                    aEntry,
+                    aInfoProvider,
                     aCallback );
             break;
             }
@@ -162,16 +171,15 @@ MESMRUiBase* CESMRUiFactory::CreateUIL(
         case EESMRViewAllDayMR:
             {
             ui = CESMRViewerDialog::NewL(
-                    aPolicy,
-                    aEntry,
+                    aInfoProvider,
                     aCallback );
             break;
             }
         case EESMRTrackingViewMR:
             {
             ui = CESMRTrackingViewDialog::NewL(
-                    aPolicy,
-                    aEntry,
+                    aInfoProvider.PolicyProvider().CurrentPolicy(),
+                    *aInfoProvider.EntryL(),
                     aCallback );
             break;
             }

@@ -21,7 +21,6 @@
 
 #include <e32base.h>
 #include <babitflags.h>
-//<cmail>
 #include "esmrdef.h"
 
 class RResourceFile;
@@ -134,26 +133,26 @@ public: // Interface
      * @return policy id.
      * @see TESMRPolicyID
      */
-    inline TESMRPolicyID PolicyId() const;
+    IMPORT_C TESMRPolicyID PolicyId() const;
 
     /**
      * Fetches policy view mode.
      * @return policy view mode.
      * @see TESMRViewMode
      */
-    inline TESMRViewMode ViewMode() const;
+    IMPORT_C TESMRViewMode ViewMode() const;
 
     /**
      * Fetches default fields.
      * @return Default fields
      */
-    inline const RArray<TESMREntryField>& Fields() const;
+    IMPORT_C const RArray<TESMREntryField>& Fields() const;
 
     /**
      * Fetches the allowed applicatio for this policy
      * @return TESMRUsingApp Parent application
      */
-    inline TESMRUsingApp AllowedApp() const;
+    IMPORT_C TESMRUsingApp AllowedApp() const;
 
 private: // Implementation
     CESMRPolicy();
@@ -179,9 +178,6 @@ private: // data
     /// Own: Additional commands
     RArray<TESMRCommand> iAdditionalCommands;
     };
-
-#include "cesmrpolicy.inl"
-//</cmail>
 
 #endif // CESMRPOLICY_H
 

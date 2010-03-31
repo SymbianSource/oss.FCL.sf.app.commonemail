@@ -26,6 +26,7 @@
 
 #include "ipssetuiitemaccesspoint.h"
 
+const TInt KDefaultIapIndex = 0; 
 
 // ============================ MEMBER FUNCTIONS ===============================
 
@@ -37,7 +38,8 @@ CIpsSetUiItemAccessPoint::CIpsSetUiItemAccessPoint()
     :
     iIapType( ECuuUserDefined ),
     iIapPref( ECommDbDialogPrefUnknown ),
-    iIapId( 0 )
+    iIapId( 0 ),
+    iFullIapPrefs(NULL)
     {
     FUNC_LOG;
     }
@@ -51,6 +53,9 @@ CIpsSetUiItemAccessPoint::~CIpsSetUiItemAccessPoint()
     FUNC_LOG;
     iIapList.Close();
     iCommMethodManager.Close();
+    
+    if (iFullIapPrefs)
+    	delete iFullIapPrefs;
     }
 
 // ----------------------------------------------------------------------------
@@ -62,6 +67,9 @@ void CIpsSetUiItemAccessPoint::ConstructL()
     FUNC_LOG;
     CIpsSetUiItemLink::ConstructL();
     iCommMethodManager.OpenL();
+    
+    iIapSel.iResult = CMManager::EAlwaysAsk; 
+    iIapSel.iId = 0;
     }
 
 // ----------------------------------------------------------------------------
@@ -111,8 +119,10 @@ CIpsSetUiItemAccessPoint& CIpsSetUiItemAccessPoint::operator=(
     iIapType = aIapItem.iIapType;
     //iIapRadioButton = aIapItem.iIapRadioButton;
     iIapPref = aIapItem.iIapPref;
-    iIapId = aIapItem.iIapId;
-
+    iIapId = aIapItem.iIapId;    
+    iIapSel.iId = aIapItem.iIapSel.iId;
+    iIapSel.iResult = aIapItem.iIapSel.iResult;
+    
     return *this;
     }
 
@@ -140,6 +150,11 @@ TInt CIpsSetUiItemAccessPoint::LaunchL()
             {
             result = LaunchIapPageL( iapId );
             }
+        else
+        	{
+			iIapSel.iId = 0;
+			iIapSel.iResult = CMManager::EAlwaysAsk;
+        	}
         }
     
     // Everything is fine, finally update the setting item
@@ -180,8 +195,9 @@ void CIpsSetUiItemAccessPoint::UpdateL()
     // be fetched from the list.
     if( iIapType == ECuuUserDefined )
         {
-        iItemSettingText->Copy( AccessPointNameLC()->Des() );
-        CleanupStack::PopAndDestroy();  //AccessPointNameLC()
+		HBufC* accPointName = AccessPointNameLC();
+        iItemSettingText->Copy( accPointName->Des());
+        CleanupStack::PopAndDestroy(accPointName);  //AccessPointNameLC()
         }
     else
         {
@@ -201,10 +217,23 @@ HBufC* CIpsSetUiItemAccessPoint::AccessPointNameLC()
     {
     FUNC_LOG;
     HBufC* bearerName( NULL );
-    RCmConnectionMethod method = iCommMethodManager.ConnectionMethodL( iIapId );
-    CleanupClosePushL( method );
-    bearerName = method.GetStringAttributeL( CMManager::ECmName );
-    CleanupStack::PopAndDestroy();  //method
+    //check if method or destination is selected
+    if (iIapSel.iResult == CMManager::EDestination)    
+    	{
+		RCmDestination dest = iCommMethodManager.DestinationL(iIapSel.iId);
+		CleanupClosePushL(dest);
+		bearerName = dest.NameLC();
+		CleanupStack::Pop(bearerName);
+		CleanupStack::PopAndDestroy(&dest); //dest
+    	}
+    else
+    	{
+    	RCmConnectionMethod method = iCommMethodManager.ConnectionMethodL( iIapId );
+    	CleanupClosePushL( method );
+    	bearerName = method.GetStringAttributeL( CMManager::ECmName );
+    	CleanupStack::PopAndDestroy(&method);  //method
+        }
+    
     CleanupStack::PushL( bearerName );
     return bearerName;
     }
@@ -242,13 +271,24 @@ TInt CIpsSetUiItemAccessPoint::LaunchIapPageL( TUint32& aIapId )
     TCmSettingSelection selection;
     TBearerFilterArray  filterArray;
     //Set focus to the currently selected access point 
-    selection.iId = iIapId;
-    selection.iResult = CMManager::EConnectionMethod;
+    selection.iId = iIapSel.iId;
+    selection.iResult =iIapSel.iResult;
     CCmApplicationSettingsUi* settingsUi = CCmApplicationSettingsUi::NewLC();
-    TUint apFilter = CMManager::EShowConnectionMethods;
+    TUint apFilter = CMManager::EShowDestinations|CMManager::EShowConnectionMethods;
+    
     result = settingsUi->RunApplicationSettingsL( selection, apFilter, filterArray );
-    aIapId = result ? selection.iId : ( TUint32 )KErrNotFound;
+    
     CleanupStack::PopAndDestroy( settingsUi );
+    
+    // store selection
+    if (result)
+    	{
+		aIapId = selection.iId;
+		iIapSel = selection;
+    	}
+    else
+    	aIapId = ( TUint32 )KErrNotFound;
+    
     // Return the quit method
     return result ? KErrNone : KErrCancel;
     }    
@@ -266,10 +306,9 @@ TInt CIpsSetUiItemAccessPoint::LaunchAlwaysAskPageL(TCuuAlwaysAskResults& aAlway
 
     // Open the always ask -page
     TBool ok = dialog->AlwaysAskPageL( aAlwaysAsk );
-
+    
     CleanupStack::PopAndDestroy( dialog );
     dialog = NULL;
-
     // Ok or cancel pressed
     return ok ? KErrNone : KErrCancel;
     }
@@ -295,6 +334,37 @@ void CIpsSetUiItemAccessPoint::InitL( const TImIAPChoice& aIapChoice )
         }
     UpdateL();
     }    
+// ---------------------------------------------------------------------------
+// CIpsSetUiItemAccessPoint::InitL()
+// ---------------------------------------------------------------------------
+//
+void CIpsSetUiItemAccessPoint::InitL( const  CImIAPPreferences* aIapPrefs )
+    {
+    FUNC_LOG;
+    if (aIapPrefs->SNAPDefined())
+    	{
+        iIapSel.iResult = CMManager::EDestination;
+        iIapSel.iId = aIapPrefs->SNAPPreference();
+        iIapPref = ECommDbDialogPrefDoNotPrompt;
+    	}
+    //Iap is used
+    else
+    	{
+		iIapPref = aIapPrefs->IAPPreference(KDefaultIapIndex).iDialogPref;
+		if( iIapPref == ECommDbDialogPrefPrompt )
+			{
+			iIapId = 0;
+			iIapType = ECuuAlwaysAsk;
+			}
+		else
+			{
+           	iIapId = aIapPrefs->IAPPreference(KDefaultIapIndex).iIAP;
+			}
+		iIapSel.iResult = CMManager::EConnectionMethod;
+		iIapSel.iId = iIapId;
+        }
+    UpdateL();
+    }    
 
 // ----------------------------------------------------------------------------
 // CIpsSetUiItemAccessPoint::InitializeSelection()
@@ -317,6 +387,55 @@ TUint32 CIpsSetUiItemAccessPoint::GetIapIdL()
     FUNC_LOG;
     return iIapId;
     }
+// ----------------------------------------------------------------------------
+// CIpsSetUiItemAccessPoint::GetIapSelection()
+// ----------------------------------------------------------------------------
+//
+TCmSettingSelection CIpsSetUiItemAccessPoint::GetIapSelection()
+	{
+	FUNC_LOG;
+	return iIapSel;
+	}
+// ----------------------------------------------------------------------------
+// CIpsSetUiItemAccessPoint::GetIapChoice()
+// ----------------------------------------------------------------------------
+//
+TImIAPChoice CIpsSetUiItemAccessPoint::GetIapChoice()
+	{
+	TImIAPChoice choice;
+	
+	choice.iDialogPref = iIapPref;
+	choice.iIAP = iIapId;
+	
+	return choice;
+	}
+// ----------------------------------------------------------------------------
+// CIpsSetUiItemAccessPoint::GetExtendedIapPreferences()
+// ----------------------------------------------------------------------------
+//
+CImIAPPreferences& CIpsSetUiItemAccessPoint::GetExtendedIapPreferencesL()
+	{
+	if (iFullIapPrefs)
+		{
+		delete iFullIapPrefs;
+		iFullIapPrefs = NULL;
+		}
+		
+	
+	iFullIapPrefs = CImIAPPreferences::NewLC();
+	CleanupStack::Pop(iFullIapPrefs);
+	
+	if (iIapSel.iResult == CMManager::EDestination)
+		{
+		iFullIapPrefs->SetSNAPL(iIapSel.iId);
+		}
+	else
+		{
+		iFullIapPrefs->AddIAPL(GetIapChoice());
+		}
+	
+	return *iFullIapPrefs;
+	}
 
 // End of File
   

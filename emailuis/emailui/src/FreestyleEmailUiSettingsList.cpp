@@ -60,7 +60,7 @@
 #include "FreestyleEmailUiShortcutBinding.h"
 #include "FreestyleEmailUiUtilities.h"
 #include "FSEmail.pan"
-#include "fsemailstatuspaneindicatorhandler.h"
+
 // CONSTANTS
 
 
@@ -1589,8 +1589,8 @@ TBool CFsEmailSettingsList::RemoveAccountL()
             iWaitDialog->SetCallback( this );
             iWaitDialog->RunLD();
 
-            //emailindicator handling, we dont care if something goes wrong in the mailindicator update. 
-            TRAP_IGNORE(TFsEmailStatusPaneIndicatorHandler::StatusPaneMailIndicatorHandlingL( mailBox->GetId().Id()));
+            //emailindicator handling, is removed from 9.2
+            //TRAP_IGNORE(TFsEmailStatusPaneIndicatorHandler::StatusPaneMailIndicatorHandlingL( mailBox->GetId().Id()));
             
             // delete mailbox and wait event (RequestResponseL)
             iDeleteMailboxId = iMailClient.DeleteMailBoxByUidL( mailBox->GetId(), *this );

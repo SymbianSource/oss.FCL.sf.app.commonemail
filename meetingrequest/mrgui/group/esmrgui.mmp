@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -17,8 +17,9 @@
 
 
 #include "../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
-#include "../../../inc/emailtraceconfig.hrh"
 #include "../../inc/esmrinternaluid.h"
+#include "../../../inc/emailtraceconfig.hrh"
+#include "../../inc/esmrconfig.hrh"
 #include <data_caging_paths.hrh>
 #include <platform_paths.hrh>
 
@@ -30,29 +31,13 @@ DEFFILE         ESMRGUI.def
 
 CAPABILITY      CAP_GENERAL_DLL
 
-VERSION         KEmailBinaryVersionNumber
-KEmailBinaryDemandPaging
-
 SOURCEPATH      ../src
 
 //the following contain dll exports
 SOURCE          cesmruifactory.cpp
-SOURCE          cesmrglobalnote.cpp
-SOURCE          cesmrconfirmationquery.cpp
-SOURCE          cesmrlistquery.cpp
-SOURCE          cesmrsendui.cpp
-SOURCE          esmrvcalexport.cpp
-SOURCE          cesmrguilistquery.cpp
-SOURCE          cmrimage.cpp
-SOURCE          cmrlabel.cpp
 
 //internal classes
-SOURCE          cesmrcontactlinkiterator.cpp
-SOURCE          cesmrcontactmenuurlhandler.cpp
-SOURCE          cesmrcontactmenuattachmenthandler.cpp
-SOURCE          cesmrcontactmanagerhandler.cpp
 SOURCE          cesmrview.cpp
-SOURCE          cesmrlistcomponent.cpp
 SOURCE          cesmrtitlepane.cpp
 
 SOURCE          cesmrfieldstorage.cpp
@@ -83,15 +68,19 @@ SOURCE          cesmrlocationhistorymanager.cpp
 SOURCE          cesmrfieldeventqueue.cpp
 
 SOURCE          cmrlistpane.cpp
+SOURCE          tnavipaneclearer.cpp
+SOURCE          cmrlistpanephysics.cpp
+SOURCE          cmrtoolbar.cpp
+SOURCE          cmrasynchcmd.cpp
+SOURCE          cesmrtrackingview.cpp
+SOURCE          cmrfieldcontainer.cpp
+SOURCE          cmrnaviarrow.cpp
+SOURCE          cmrfocusstrategybase.cpp
+SOURCE          cmrfocusstrategyeditor.cpp
+SOURCE          cmrfocusstrategyviewer.cpp
 
-//the following also contain dll exports (only used by fieldbuilder)
-SOURCE          cesmrrecurrence.cpp
-SOURCE          cesmrlayoutmgr.cpp
-SOURCE          cesmralarm.cpp
-SOURCE          resmrstatic.cpp
-SOURCE          cesmrcontactmenuhandler.cpp
-SOURCE          nmrlayoutmanager.cpp
-SOURCE          nmrbitmapmanager.cpp
+SOURCE          cmrsystemnotifier.cpp
+SOURCE          cmrattachmentindicator.cpp
 
 // Resources
 SOURCEPATH      ../data
@@ -109,16 +98,19 @@ USERINCLUDE     ../../inc
 USERINCLUDE     ../../../inc
 
 // Dependencies to esmrui libraries
+LIBRARY esmrcommon.lib
 LIBRARY esmrpolicy.lib
-LIBRARY esmrcommon.lib //esmrhelper::locateresourcefile()
-LIBRARY esmrfieldevent.lib
 LIBRARY esmrservices.lib
+LIBRARY esmrfieldevent.lib
+LIBRARY mrguicommon.lib
+LIBRARY esmrfieldbuildercommon.lib
 
 // Dependencies to Symbian/S60 OS components
 LIBRARY apparc.lib
 LIBRARY ecom.lib
 LIBRARY euser.lib
 LIBRARY apgrfx.lib
+LIBRARY apmime.lib
 LIBRARY cone.lib
 LIBRARY eikcoctl.lib
 LIBRARY egul.lib
@@ -128,7 +120,6 @@ LIBRARY eikctl.lib
 LIBRARY bafl.lib
 LIBRARY eikcore.lib
 LIBRARY efsrv.lib
-LIBRARY featmgr.lib
 LIBRARY pbkeng.lib
 LIBRARY vpbkeng.lib
 LIBRARY sendui.lib
@@ -148,30 +139,34 @@ LIBRARY fbscli.lib
 LIBRARY avkon.lib
 LIBRARY calenimp.lib
 LIBRARY caleninterimutils2.lib
-LIBRARY lmkcommonui.lib 
+LIBRARY lmkcommonui.lib
 LIBRARY eposlandmarks.lib
-LIBRARY platformenv.lib
+LIBRARY aknphysics.lib
+LIBRARY touchfeedback.lib
+LIBRARY commonui.lib
+LIBRARY npdlib.lib
+LIBRARY lbs.lib
+LIBRARY FeatDiscovery.lib
 LIBRARY gdi.lib
-LIBRARY msgs.lib
 
-// fsemail framework
-LIBRARY fsfwcommonlib.lib
-LIBRARY fsmailframework.lib
+#ifdef RD_USE_MYLOCATIONUI
+LIBRARY mylocationui.lib
+#endif // RD_USE_MYLOCATIONUI
+
+LIBRARY platformenv.lib
+LIBRARY bitgdi.lib
+
+#if defined( ENABLE_TRACES ) && defined( TRACE_INTO_FILE )
+LIBRARY flogger.lib
+LIBRARY cmaillogger.lib
+#endif // ENABLE_TRACES && TRACE_INTO_FILE
 
 //needed by XML based LAF components
-LIBRARY         cdlengine.lib
-LIBRARY         aknlayout2.lib
-LIBRARY         aknlayout2scalable.lib
+LIBRARY cdlengine.lib
+LIBRARY aknlayout2.lib
+LIBRARY aknlayout2scalable.lib
 
 // AIW
-LIBRARY ServiceHandler.lib //__PRINTING_FRAMEWORK_CALENDAR_PLUGIN
-
-LIBRARY touchfeedback.lib
-LIBRARY aknphysics.lib
-LIBRARY cmaillogger.lib
-
-#ifdef TRACE_INTO_FILE
-LIBRARY flogger.lib
-#endif // TRACE_INTO_FILE
+LIBRARY servicehandler.lib //__PRINTING_FRAMEWORK_CALENDAR_PLUGIN
 
 // End of File

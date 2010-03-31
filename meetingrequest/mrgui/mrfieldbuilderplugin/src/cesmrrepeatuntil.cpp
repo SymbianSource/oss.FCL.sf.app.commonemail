@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -15,25 +15,22 @@
  *
 */
 
-#include "emailtrace.h"
+
 #include "cesmrrepeatuntil.h"
-
-#include <AknUtils.h>
-#include <eikmfne.h>
-#include <avkon.hrh>
-#include <eiklabel.h>
-#include <StringLoader.h>
-#include <AknsDrawUtils.h>
-#include <AknsFrameBackgroundControlContext.h>
-#include <esmrgui.rsg>
-
-#include "cesmrborderlayer.h"
 #include "mesmrfieldvalidator.h"
 #include "cesmrglobalnote.h"
 #include "esmrfieldbuilderdef.h"
-#include "cesmrlayoutmgr.h"
+#include "nmrlayoutmanager.h"
+#include "nmrcolormanager.h"
+#include "cmrlabel.h"
+#include "nmrbitmapmanager.h"
 
-using namespace ESMRLayout;
+#include <eikmfne.h>
+#include <stringloader.h>
+#include <esmrgui.rsg>
+#include <aknsbasicbackgroundcontrolcontext.h>
+
+#include "emailtrace.h"
 
 // ======== MEMBER FUNCTIONS ========
 
@@ -41,12 +38,14 @@ using namespace ESMRLayout;
 // CESMRRepeatUntilField::CESMRRepeatUntilField
 // ---------------------------------------------------------------------------
 //
-CESMRRepeatUntilField::CESMRRepeatUntilField(
+CESMRRepeatUntilField::CESMRRepeatUntilField( 
         MESMRFieldValidator* aValidator )
-:   iValidator(aValidator)
     {
     FUNC_LOG;
-    //do nothing
+    
+    iValidator = aValidator;
+    SetFieldId( EESMRFieldRecurrenceDate );
+    SetFocusType( EESMRHighlightFocus );
     }
 
 // ---------------------------------------------------------------------------
@@ -57,7 +56,7 @@ CESMRRepeatUntilField::~CESMRRepeatUntilField( )
     {
     FUNC_LOG;
     delete iLabel;
-    delete iFrameBgContext;
+    delete iBgCtrlContext;
     }
 
 // ---------------------------------------------------------------------------
@@ -69,10 +68,10 @@ CESMRRepeatUntilField* CESMRRepeatUntilField::NewL(
     {
     FUNC_LOG;
     CESMRRepeatUntilField* self =
-            new (ELeave) CESMRRepeatUntilField( aValidator );
-    CleanupStack::PushL ( self );
-    self->ConstructL ( );
-    CleanupStack::Pop ( self );
+            new( ELeave )CESMRRepeatUntilField( aValidator );
+    CleanupStack::PushL( self );
+    self->ConstructL();
+    CleanupStack::Pop( self );
     return self;
     }
 
@@ -83,51 +82,65 @@ CESMRRepeatUntilField* CESMRRepeatUntilField::NewL(
 void CESMRRepeatUntilField::ConstructL( )
     {
     FUNC_LOG;
+    SetComponentsToInheritVisibility( ETrue );
     HBufC* label = StringLoader::LoadLC( R_QTN_MEET_REQ_REPEAT_UNTIL );
-    SetFieldId ( EESMRFieldRecurrenceDate );
-    iLabel = new (ELeave) CEikLabel();
-    iLabel->SetTextL ( *label );
+
+    iLabel = CMRLabel::NewL();
+    iLabel->SetParent( this );
+    iLabel->SetTextL( *label );
     CleanupStack::PopAndDestroy( label );
 
     TTime startTime;
-    startTime.UniversalTime ( );
+    startTime.UniversalTime();
 
-    iDate = new (ELeave) CEikDateEditor;
+    iDate = new( ELeave )CEikDateEditor;
+    CESMRField::ConstructL( iDate ); //ownership transferred
+    
     iDate->ConstructL(
             KAknMinimumDate,
             TTIME_MAXIMUMDATE,
             startTime,
             EFalse );
+    
     iDate->SetUpAndDownKeysConsumed ( EFalse );
-
-    iBackground = AknsDrawUtils::ControlContext( this );
-    CESMRField::ConstructL ( iDate );
 
     if ( iValidator )
         {
         iValidator->SetRecurrenceUntilDateFieldL( *iDate );
         }
+    
+    TRect tempRect( 0, 0, 0, 0 );
+    
+    // Setting background instead of theme skin  
+    NMRBitmapManager::TMRBitmapStruct bitmapStruct;
+    bitmapStruct = NMRBitmapManager::GetBitmapStruct( NMRBitmapManager::EMRBitmapInputCenter );
+
+    iBgCtrlContext = CAknsBasicBackgroundControlContext::NewL( 
+                bitmapStruct.iItemId, 
+                tempRect, 
+                EFalse );
+            
+    iDate->SetSkinBackgroundControlContextL( iBgCtrlContext );
     }
 
 // ---------------------------------------------------------------------------
-// CESMRRepeatUntilField::InitializeL
+// CESMRRepeatUntilField::MinimumSize
 // ---------------------------------------------------------------------------
 //
-void CESMRRepeatUntilField::InitializeL()
+TSize CESMRRepeatUntilField::MinimumSize()
     {
-    FUNC_LOG;
-    iLabel->SetFont( iLayout->Font( iCoeEnv, iFieldId ) );
-    iLabel->SetLabelAlignment( CESMRLayoutManager::IsMirrored ( )
-                               ? ELayoutAlignRight : ELayoutAlignLeft );
-    AknLayoutUtils::OverrideControlColorL(
-            *iLabel,
-            EColorLabelText,
-            iLayout->GeneralListAreaTextColor() );
-
-    iDate->SetFont( iLayout->Font( iCoeEnv, iFieldId ) );
-    iDate->SetMfneAlignment( CESMRLayoutManager::IsMirrored ( )
-                             ? EAknEditorAlignRight : EAknEditorAlignLeft );
-    iDate->SetSkinTextColorL( iLayout->NormalTextColorID() );
+    TRect parentRect( Parent()->Rect() );
+       
+    TRect richTextRect = 
+            NMRLayoutManager::GetFieldLayoutRect( parentRect, 1 ).Rect();
+    
+    // Add title area to the required size
+    TSize titleSize( CESMRField::MinimumSize() );
+    
+    TSize completeFieldSize( titleSize );
+    completeFieldSize.iHeight += richTextRect.Height();
+    
+    return completeFieldSize;
     }
 
 // ---------------------------------------------------------------------------
@@ -144,7 +157,7 @@ TBool CESMRRepeatUntilField::OkToLoseFocusL( TESMREntryFieldId /*aNextItem*/ )
         CESMRGlobalNote::ExecuteL(
                 CESMRGlobalNote::EESMRRepeatEndEarlierThanItStart );
         }
-    return (KErrNone == err);
+    return( KErrNone == err );
     }
 
 // ---------------------------------------------------------------------------
@@ -154,13 +167,16 @@ TBool CESMRRepeatUntilField::OkToLoseFocusL( TESMREntryFieldId /*aNextItem*/ )
 TInt CESMRRepeatUntilField::CountComponentControls( ) const
     {
     FUNC_LOG;
-    TInt count = CESMRField::CountComponentControls();
-
-    if ( iLabel )
+    TInt count( 0 );
+    if( iLabel )
         {
         ++count;
         }
-
+    if( iDate )
+        {
+        ++count;
+        }
+        
     return count;
     }
 
@@ -171,112 +187,62 @@ TInt CESMRRepeatUntilField::CountComponentControls( ) const
 CCoeControl* CESMRRepeatUntilField::ComponentControl( TInt aInd ) const
     {
     FUNC_LOG;
-    if ( aInd == 0 )
+    
+    switch ( aInd )
         {
-        return iLabel;
+        case 0:
+            return iLabel;
+        case 1:
+            return iDate;
+        default:
+            return NULL;
         }
-
-    return CESMRField::ComponentControl ( aInd );
     }
 
 // ---------------------------------------------------------------------------
 // CESMRRepeatUntilField::SizeChanged
 // ---------------------------------------------------------------------------
 //
-void CESMRRepeatUntilField::SizeChanged( )
+void CESMRRepeatUntilField::SizeChanged()
     {
     FUNC_LOG;
-    TRect rect = Rect();
-    TPoint titlePos;
-    TSize titleSize;
-
-    if ( CESMRLayoutManager::IsMirrored ( ) )
+    TRect rect( Rect() );
+    
+    // Layouting label
+    TAknLayoutRect rowLayoutRect =
+        NMRLayoutManager::GetFieldRowLayoutRect( rect, 1 );
+    TRect rowRect = rowLayoutRect.Rect();
+    
+    // Layout label to first row's rect
+    TAknTextComponentLayout titleLayout =
+        NMRLayoutManager::GetTextComponentLayout( 
+                NMRLayoutManager::EMRTextLayoutText );
+    AknLayoutUtils::LayoutLabel( iLabel, rect, titleLayout );
+        
+    // Move upper left corner below first line and get second row's rect.
+    rect.iTl.iY += rowRect.Height();
+    rowLayoutRect =
+        NMRLayoutManager::GetFieldRowLayoutRect( rect, 2 );
+    rowRect = rowLayoutRect.Rect();
+    
+    // Layouting date editor
+    if( iDate )
         {
-        titleSize = TSize( rect.Width()- ( KIconSize.iWidth + KIconBorderMargin ),
-                iLayout->FieldSize( EESMRFieldAlarmDate ).iHeight );
-
-        TPoint titlePos( rect.iBr.iX - KIconSize.iWidth - titleSize.iWidth,
-                         rect.iTl.iY);
-        iLabel->SetExtent ( titlePos, titleSize );
-
-        TSize dateSize( rect.Width()- ( KIconSize.iWidth + KIconBorderMargin ),
-                rect.Height() - titleSize.iHeight );
-        TPoint datePos(rect.iBr.iX - KIconSize.iWidth - dateSize.iWidth,
-                rect.iTl.iY + titleSize.iHeight);
-        iBorder->SetExtent ( datePos, dateSize );
-        }
-    else
-        {
-        // title
-        titlePos = TPoint( rect.iTl.iX + KIconSize.iWidth + KIconBorderMargin,
-                           rect.iTl.iY);
-        titleSize = TSize (
-                    rect.Width() - KIconSize.iWidth - KIconBorderMargin,
-                    iLayout->FieldSize( EESMRFieldAlarmDate ).iHeight );
-
-        iLabel->SetExtent ( titlePos, titleSize );
-
-        // Current implemenattion does not need the ID here
-        CESMRLayoutManager::TMarginsId nullID = CESMRLayoutManager::EFieldMargins;
-        TInt topMargin = iLayout->Margins( nullID ).iTop;
-
-        TPoint datePosition = TPoint (
-                   rect.iTl.iX + KIconSize.iWidth + KIconBorderMargin,
-                   rect.iTl.iY + iLabel->Size().iHeight + topMargin );
-
-        TSize dateSize = TSize (
-                    rect.Width() - KIconSize.iWidth - KIconBorderMargin,
-                    iLayout->FieldSize( EESMRFieldAlarmDate ).iHeight );
-
-        iBorder->SetPosition( datePosition );
-        iBorder->SetSize( dateSize );
-
-        TInt h = iLabel->Size().iHeight + iDate->Size().iHeight;
-
-        if( iFrameBgContext )
-            {
-            iFrameBgContext->SetFrameRects( iDate->Rect(), iDate->Rect() );
-            }
-        }
-    }
-
-// ---------------------------------------------------------------------------
-// CESMRRepeatUntilField::ActivateL
-// ---------------------------------------------------------------------------
-//
-void CESMRRepeatUntilField::ActivateL()
-    {
-    FUNC_LOG;
-    CCoeControl::ActivateL();
-    TRect rect(TPoint(iDate->Position()), iDate->Size());
-    TRect inner(rect);
-    TRect outer(rect);
-
-    iDate->SetSize( TSize( iDate->Size().iWidth,
-                    iLayout->FieldSize( FieldId() ).iHeight ));
-
-    iDate->SetBorder( TGulBorder::ENone );
-
-    delete iFrameBgContext;
-    iFrameBgContext = NULL;
-    iFrameBgContext = CAknsFrameBackgroundControlContext::NewL(
-                                KAknsIIDQsnFrInput, outer, inner, EFalse ) ;
-
-    iFrameBgContext->SetParentContext( iBackground );
-    iDate->SetSkinBackgroundControlContextL(iFrameBgContext);
-    }
-
-// ---------------------------------------------------------------------------
-// CESMRRepeatUntilField::PositionChanged
-// ---------------------------------------------------------------------------
-//
-void CESMRRepeatUntilField::PositionChanged()
-    {
-    FUNC_LOG;
-    CCoeControl::PositionChanged();
-    if( iFrameBgContext )
-        {
-        iFrameBgContext->SetFrameRects( iDate->Rect(), iDate->Rect() );
+        TAknLayoutRect bgLayoutRect = 
+            NMRLayoutManager::GetLayoutRect( 
+                    rowRect, NMRLayoutManager::EMRLayoutTextEditorBg );
+        TRect bgRect( bgLayoutRect.Rect() );
+        // Move focus rect so that it's relative to field's position.
+        bgRect.Move( -Position() );
+        SetFocusRect( bgRect );
+                       
+        TAknTextComponentLayout editorLayout =
+            NMRLayoutManager::GetTextComponentLayout( 
+                    NMRLayoutManager::EMRTextLayoutDateEditor );
+        AknLayoutUtils::LayoutMfne( iDate, rect, editorLayout );
+        
+        NMRColorManager::SetColor( *iDate, 
+                                   NMRColorManager::EMRMainAreaTextColor );
         }
     }
 
@@ -295,6 +261,12 @@ TKeyResponse CESMRRepeatUntilField::OfferKeyEventL(
         {
         TInt fieldIndex( iDate->CurrentField() );
         response = CESMRField::OfferKeyEventL( aEvent, aType );
+        
+        if ( aEvent.iScanCode != EStdKeyUpArrow &&
+             aEvent.iScanCode != EStdKeyDownArrow )
+        	{
+            iDate->DrawDeferred();
+        	}
         }
 
     return response;
@@ -323,7 +295,7 @@ void CESMRRepeatUntilField::CheckIfValidatingNeededL(
     }
 
 // ---------------------------------------------------------------------------
-// CESMRTimeField::SetOutlineFocusL
+// CESMRRepeatUntilField::SetOutlineFocusL
 // ---------------------------------------------------------------------------
 //
 void CESMRRepeatUntilField::SetOutlineFocusL( TBool aFocus )
@@ -334,6 +306,95 @@ void CESMRRepeatUntilField::SetOutlineFocusL( TBool aFocus )
         {
         ChangeMiddleSoftKeyL(EESMRCmdSaveMR,R_QTN_MSK_SAVE);
         }
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRRepeatUntilField::SetValidatorL
+// ---------------------------------------------------------------------------
+//
+void CESMRRepeatUntilField::SetValidatorL( MESMRFieldValidator* aValidator )
+    {
+    FUNC_LOG;
+    
+    CESMRField::SetValidatorL( aValidator );
+    
+    if ( iValidator )
+        {
+        iValidator->SetRecurrenceUntilDateFieldL( *iDate );
+        }
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRRepeatUntilField::ExecuteGenericCommandL()
+// ---------------------------------------------------------------------------
+//
+TBool CESMRRepeatUntilField::ExecuteGenericCommandL( TInt aCommand )
+    {
+    FUNC_LOG;
+    
+    TBool retValue( EFalse );
+    
+    if ( EMRCmdDoEnvironmentChange == aCommand )
+        {
+        // Locale has been changed       
+        DoEnvChangeL();
+        retValue = ETrue;
+        }
+    
+    return retValue;
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRRepeatUntilField::SetContainerWindowL
+// ---------------------------------------------------------------------------
+//
+void CESMRRepeatUntilField::SetContainerWindowL( 
+        const CCoeControl& aContainer )
+    {
+    iContainerWindow = &aContainer;
+    
+    CCoeControl::SetContainerWindowL( aContainer );
+    iDate->SetContainerWindowL( aContainer );
+    iLabel->SetContainerWindowL( aContainer );
+    
+    iDate->SetParent( this );
+    iLabel->SetParent( this );
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRRepeatUntilField::DoEnvChangeL
+// ---------------------------------------------------------------------------
+//
+void CESMRRepeatUntilField::DoEnvChangeL()
+    {
+    FUNC_LOG;
+    
+    CEikDateEditor* date = new( ELeave )CEikDateEditor;
+    CleanupStack::PushL( date );
+    
+    date->ConstructL( 
+            TTIME_MINIMUMDATE, 
+            TTIME_MAXIMUMDATE, 
+            iDate->Date(), 
+            EFalse );
+    date->SetUpAndDownKeysConsumed( EFalse );        
+    
+    UpdateExtControlL( date );
+    
+    CleanupStack::Pop( date );
+    iDate = date;
+    
+    if ( iValidator )
+        {
+        iValidator->SetRecurrenceUntilDateFieldL( *iDate );
+        }    
+    
+    iDate->SetSkinBackgroundControlContextL( iBgCtrlContext );        
+    SetContainerWindowL( *iContainerWindow );
+    
+    iDate->ActivateL();        
+    SizeChanged();
+    DrawDeferred();      
     }
 
 // EOF

@@ -21,14 +21,15 @@
 
 //  INCLUDE FILES
 #include <e32base.h>
-#include <CMRUtils.h>
+#include <cmrutils.h>
+#include "esmrdef.h"
 
 // FORWARD DECLARATIONS
 class CCalEntry;
 class CMRMailboxUtils;
 class CESMRCalDbMgr;
 class CESMRPolicyManager;
-class CESMREntryProcessor;
+class CMREntryProcessor;
 class MESMRTaskFactory;
 class MESMRTaskExtension;
 
@@ -53,6 +54,15 @@ public: // Constructors and destructors
      */
      IMPORT_C ~CESMRUtils();
 
+public: // Interface
+    
+    /**
+     * Creates extensions for specified entry type
+     */
+    IMPORT_C void CreateExtensionsL(
+            TESMRCalendarEventType aEntryType );
+     
+     
 public: // Interface is copied from CMRUtils.h 
     /**
      * Deletes given aEntries from the database and possibly allows
@@ -125,7 +135,7 @@ private: // data
     /// Own: ESMR policy manager
     CESMRPolicyManager* iPolicyManager;
     /// Own: MR Entry processor
-    CESMREntryProcessor* iEntryProcessor;
+    CMREntryProcessor* iEntryProcessor;
     /// Own: ES MR Task factory
     MESMRTaskFactory* iTaskFactory;
     /// Own: ES MR Task extension

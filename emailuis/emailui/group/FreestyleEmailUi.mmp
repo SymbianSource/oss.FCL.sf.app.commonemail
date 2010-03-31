@@ -30,8 +30,8 @@ VENDORID        VID_DEFAULT
 CAPABILITY      CAP_APPLICATION NetworkControl SwEvent
 
 UID             0x0 0x2001E277
-EPOCHEAPSIZE    0x1000 0x800000
-EPOCSTACKSIZE   0x5000
+EPOCHEAPSIZE    0x5000 0x800000
+EPOCSTACKSIZE   0x13880
 
 VERSION         KEmailBinaryVersionNumber
 KEmailBinaryDemandPaging
@@ -47,9 +47,6 @@ SOURCE  FreestyleEmailUiLauncherGrid.cpp
 SOURCE  FreestyleEmailUiLauncherGridVisualiser.cpp
 SOURCE  FreestyleEmailUiLauncherGridModel.cpp
 SOURCE  FreestyleEmailUiLayoutHandler.cpp
-SOURCE  FreestyleEmailUiMailViewerVisualiser.cpp
-SOURCE  FreestyleEmailUiMailViewerRichText.cpp
-SOURCE  FreestyleEmailUiMailViewerControl.cpp
 SOURCE  FreestyleEmailUiMailListModel.cpp
 SOURCE  FreestyleEmailUiMailListControl.cpp
 SOURCE  FreestyleEmailUiMailListVisualiser.cpp

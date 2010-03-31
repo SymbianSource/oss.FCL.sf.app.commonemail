@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -20,12 +20,14 @@
 #include "cmrlabel.h"
 #include "cmrimage.h"
 #include "nmrlayoutmanager.h"
+#include "mesmrlistobserver.h"
+#include "cesmrglobalnote.h"
 
 #include <caluser.h>
 #include <calalarm.h>
 #include <calentry.h>
-#include <StringLoader.h>
-#include <AknLayout2ScalableDef.h>
+#include <stringloader.h>
+#include <aknlayout2scalabledef.h>
 #include <esmrgui.rsg>
 
 // DEBUG
@@ -63,7 +65,7 @@ CESMRViewerAlarmField::~CESMRViewerAlarmField()
     {
     FUNC_LOG;
     delete iIcon;
-    delete iLabel;
+    delete iLockIcon;
     }
 
 // ---------------------------------------------------------------------------
@@ -74,6 +76,7 @@ CESMRViewerAlarmField::CESMRViewerAlarmField()
     {
     FUNC_LOG;
     SetFieldId ( EESMRFieldAlarm );
+    SetFocusType( EESMRHighlightFocus );
     }
 
 // ---------------------------------------------------------------------------
@@ -85,10 +88,10 @@ void CESMRViewerAlarmField::ConstructL()
     FUNC_LOG;
     iLabel = CMRLabel::NewL();
     iLabel->SetParent( this );
-    iIcon = CMRImage::NewL( KAknsIIDQgnMeetReqIndiAlarm );
+    CESMRField::ConstructL( iLabel ); // ownership transfered
+
+    iIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapAlarm );
     iIcon->SetParent( this );
-    
-    SetFocusType( EESMRHighlightFocus );
     }
 
 // ---------------------------------------------------------------------------
@@ -100,7 +103,7 @@ void CESMRViewerAlarmField::InternalizeL( MESMRCalEntry& aEntry )
     FUNC_LOG;
     if ( aEntry.IsAllDayEventL() )
         {
-        iObserver->RemoveControl( FieldId() );
+        iObserver->HideControl( FieldId() );
         }
     else
         {
@@ -115,7 +118,7 @@ void CESMRViewerAlarmField::InternalizeL( MESMRCalEntry& aEntry )
             }
         else
             {
-            stringholder = StringLoader::LoadLC( 
+            stringholder = StringLoader::LoadLC(
                     R_QTN_MEET_REQ_ALARM_OFF , iEikonEnv );
             iLabel->SetTextL( *stringholder );
             CleanupStack::PopAndDestroy( stringholder );
@@ -129,27 +132,27 @@ void CESMRViewerAlarmField::InternalizeL( MESMRCalEntry& aEntry )
         if( minutes == KHourInMinutes )
             {
             timeUnits = minutes / KHourInMinutes;
-            stringholder = StringLoader::LoadLC( 
+            stringholder = StringLoader::LoadLC(
                     R_QTN_MEET_REQ_ALARM_HOUR , timeUnits, iEikonEnv );
             }
         // Alarm time is more than one hour and less than one day before
         else if( minutes > KHourInMinutes && minutes < KDayInMinutes )
             {
             timeUnits = minutes / KHourInMinutes;
-            stringholder = StringLoader::LoadLC( 
+            stringholder = StringLoader::LoadLC(
                     R_QTN_MEET_REQ_ALARM_HOURS , timeUnits, iEikonEnv );
             }
-        // Alarm is several days before // 
+        // Alarm is several days before //
         else if( minutes >= KDayInMinutes )
             {
             timeUnits = minutes / KDayInMinutes;
-            stringholder = StringLoader::LoadLC( 
+            stringholder = StringLoader::LoadLC(
                     R_QTN_MEET_REQ_ALARM_DAYS , timeUnits, iEikonEnv );
             }
-        // Alarm is minutes before // 
+        // Alarm is minutes before //
         else
             {
-            stringholder = StringLoader::LoadLC( 
+            stringholder = StringLoader::LoadLC(
                     R_QTN_MEET_REQ_ALARM_MINUTES , minutes, iEikonEnv );
             }
 
@@ -165,19 +168,17 @@ void CESMRViewerAlarmField::InternalizeL( MESMRCalEntry& aEntry )
 void CESMRViewerAlarmField::InitializeL()
     {
     FUNC_LOG;
-    TAknLayoutText text = NMRLayoutManager::GetLayoutText( 
-            Rect(), 
+    TAknLayoutText text = NMRLayoutManager::GetLayoutText(
+            Rect(),
             NMRLayoutManager::EMRTextLayoutTextEditor );
-    
+
     iLabel->SetFont( text.Font() );
     // This is called so that theme changes will apply when changing theme "on the fly"
     if ( IsFocused() )
         {
         iLabel->FocusChanged( EDrawNow );
         }
-
-    AknLayoutUtils::OverrideControlColorL ( *iLabel, EColorLabelText,
-                                             KRgbBlack );
+    // No implementation yet
     }
 
 // ---------------------------------------------------------------------------
@@ -191,24 +192,43 @@ void CESMRViewerAlarmField::SizeChanged()
     TAknLayoutRect rowLayoutRect =
         NMRLayoutManager::GetFieldRowLayoutRect( rect, 1 );
     rect = rowLayoutRect.Rect();
-    
+
     TAknWindowComponentLayout iconLayout =
-        NMRLayoutManager::GetWindowComponentLayout( 
+        NMRLayoutManager::GetWindowComponentLayout(
                 NMRLayoutManager::EMRLayoutTextEditorIcon );
     AknLayoutUtils::LayoutImage( iIcon, rect, iconLayout );
-    
-    TAknLayoutRect bgLayoutRect =
-        NMRLayoutManager::GetLayoutRect( 
-                rect, NMRLayoutManager::EMRLayoutTextEditorBg );
-    TRect bgRect( bgLayoutRect.Rect() );
+  
+    // Layouting lock icon
+    if( iLockIcon )
+    	{
+    	TAknWindowComponentLayout iconLayout( 
+    			NMRLayoutManager::GetWindowComponentLayout( 
+    					NMRLayoutManager::EMRLayoutSingleRowDColumnGraphic ) );
+    	AknLayoutUtils::LayoutImage( iLockIcon, rect, iconLayout );
+    	}
+
+    // Layouting label
+    TAknLayoutText viewerLayoutText;
+    if( iLockIcon )
+    	{
+    	viewerLayoutText = NMRLayoutManager::GetLayoutText( rect, 
+    			NMRLayoutManager::EMRTextLayoutSingleRowEditorText );
+    	}
+    else
+    	{
+    	viewerLayoutText = NMRLayoutManager::GetLayoutText( rect, 
+    			NMRLayoutManager::EMRTextLayoutTextEditor );
+    	}
+
+    TRect viewerRect( viewerLayoutText.TextRect() );    
+    iLabel->SetRect( viewerRect );
+
     // Move focus rect so that it's relative to field's position.
-    bgRect.Move( -Position() );
-    SetFocusRect( bgRect );
-    
-    TAknLayoutText labelLayout = 
-        NMRLayoutManager::GetLayoutText( 
-                rect, NMRLayoutManager::EMRTextLayoutTextEditor );
-    iLabel->SetRect( labelLayout.TextRect() );
+    viewerRect.Move( -Position() );
+    SetFocusRect( viewerRect );
+
+    // Setting font also for the label
+    iLabel->SetFont( viewerLayoutText.Font() );
     }
 
 // ---------------------------------------------------------------------------
@@ -228,6 +248,11 @@ TInt CESMRViewerAlarmField::CountComponentControls() const
         {
         ++count;
         }
+    
+    if ( iLockIcon )
+    	{
+    	++count;
+    	}
     return count;
     }
 
@@ -244,6 +269,8 @@ CCoeControl* CESMRViewerAlarmField::ComponentControl( TInt aIndex ) const
             return iIcon;
         case 1:
             return iLabel;
+        case 2:
+        	return iLockIcon;
         default:
             return NULL;
         }
@@ -257,14 +284,50 @@ void CESMRViewerAlarmField::SetOutlineFocusL( TBool aFocus )
     {
     FUNC_LOG;
     CESMRField::SetOutlineFocusL ( aFocus );
-    
-    iLabel->SetFocus( aFocus );    
 
-    if ( !aFocus )
-        {
-        AknLayoutUtils::OverrideControlColorL ( *iLabel, EColorLabelText,
-                                                 KRgbBlack );
-        }
+    iLabel->SetFocus( aFocus );
     }
+
+// ---------------------------------------------------------------------------
+// CESMRViewerAlarmField::LockL()
+// ---------------------------------------------------------------------------
+//
+void CESMRViewerAlarmField::LockL()
+	{
+	FUNC_LOG;
+	if( IsLocked() )
+		{
+		return;
+		}
+	
+	CESMRField::LockL();
+	
+	delete iLockIcon;
+	iLockIcon = NULL;
+	iLockIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapLockField, ETrue );
+	iLockIcon->SetParent( this );
+	}
+
+// ---------------------------------------------------------------------------
+// CESMRViewerAlarmField::ExecuteGenericCommandL()
+// ---------------------------------------------------------------------------
+//
+TBool CESMRViewerAlarmField::ExecuteGenericCommandL( TInt aCommand )
+	{
+    FUNC_LOG;
+    
+    TBool retValue( EFalse );
+    
+    if( (aCommand == EAknCmdOpen) && IsLocked()  )
+    	{
+		HandleTactileFeedbackL();
+		
+    	CESMRGlobalNote::ExecuteL(
+    			CESMRGlobalNote::EESMRUnableToEdit );
+    	retValue = ETrue;
+    	}
+    
+    return retValue;
+	}
 
 // EOF

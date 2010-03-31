@@ -20,9 +20,10 @@
 #define CESMRVIEWERCTRL_H
 
 //  INCLUDES
-#include <MAgnEntryUi.h>
-#include <CMRUtils.h>
+#include <magnentryui.h>
+#include <cmrutils.h>
 #include <e32base.h>
+#include "mmrinfoprovider.h"
 
 // FORWARD DECLARATIONS
 class CCalEntry;
@@ -32,9 +33,10 @@ class CESMRUtils;
 class CMRMailboxUtils;
 class CActiveSchedulerWait;
 class CESMRUiFactory;
-class CESMREntryProcessor;
+class CMREntryProcessor;
 class MESMRTaskExtension;
 class CESMRPolicyManager;
+class MESMRCalDbMgr;
 
 // CLASS DECLARATION
 
@@ -45,7 +47,8 @@ class CESMRPolicyManager;
 NONSHARABLE_CLASS(CESMRViewerController)  :
         public CBase,
         public MAgnEntryUiCallback,
-        public MMRUtilsObserver
+        public MMRUtilsObserver,
+        public MMRInfoProvider
     {
 public:  // Constructors and destructor
     /**
@@ -78,7 +81,11 @@ protected: // From MMRUtilsObserver
             TInt aPercentageCompleted,
             TInt aStatus );
 
-private: // Constructors
+protected: // From MMRInfoProvider
+    MMRPolicyProvider& PolicyProvider() const;
+    MESMRCalEntry* EntryL();
+    
+private: // Constructors and implementation
     CESMRViewerController(
             RPointerArray<CCalEntry>& aEntries,
             const MAgnEntryUi::TAgnEntryUiInParams& aParams,
@@ -89,6 +96,12 @@ private: // Constructors
             TInt aCommandId );
     void LaunchUIL();
     void LaunchCorrectOperationModeL();
+    TInt ProcessDefaultCommandL( TInt aCommandId );
+    TInt ProcessMeetingRequestCommandL( TInt aCommandId );
+    void ChangeEntryTypeL( TInt aCommandId );
+    void UpdateComparativeEntryInTypeChangeL( const CCalEntry& aOriginalEntry );
+    void CancelAndDeleteMRInEntryTypeChangeL( 
+            CCalEntry& entry, MESMRCalDbMgr& aDbMgr );
 
 private: // Data
     /// Own: Operation error value
@@ -108,11 +121,13 @@ private: // Data
     /// Own: UI factory
     CESMRUiFactory* iGuiFactory;
     /// Ref: Reference to entry processor
-    CESMREntryProcessor* iEntryProcessor;
+    CMREntryProcessor* iEntryProcessor;
     /// Ref: Reference to task extension
     MESMRTaskExtension* iTaskExt;
     /// Ref: Reference to policy manager
     CESMRPolicyManager* iPolicyMgr;
+    /// Own: Current calendar entry to be handled
+    CCalEntry* iCalEntry;
     };
 
 #endif      // CMRHANDLER_H

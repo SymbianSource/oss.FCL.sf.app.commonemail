@@ -18,7 +18,7 @@
 
 #include "emailtrace.h"
 #include "cesmrcombinedtask.h"
-#include "mesmrmeetingrequestentry.h"
+#include "mesmrcalentry.h"
 #include <e32cmn.h>
 
 // ======== MEMBER FUNCTIONS ========
@@ -28,11 +28,9 @@
 // ---------------------------------------------------------------------------
 //
 CESMRCombinedTask::CESMRCombinedTask(
-        MESMRCalDbMgr& aCalDbMgr,
-        MESMRMeetingRequestEntry& aEntry,
-        CMRMailboxUtils& aMRMailboxUtils,
+        MESMRCalEntry& aEntry,
         TESMRExecutionRule aRule )
-:   CESMRTaskBase( aCalDbMgr, aEntry, aMRMailboxUtils ),
+:   iEntry( aEntry ),
     iExecutionRule( aRule )
     {
     FUNC_LOG;
@@ -43,29 +41,24 @@ CESMRCombinedTask::CESMRCombinedTask(
 // CESMRCombinedTask::~CESMRCombinedTask
 // ---------------------------------------------------------------------------
 //
-CESMRCombinedTask::~CESMRCombinedTask()
+EXPORT_C CESMRCombinedTask::~CESMRCombinedTask()
     {
     FUNC_LOG;
     iTasks.ResetAndDestroy();
-    iTasks.Close();
     }
 
 // ---------------------------------------------------------------------------
 // CESMRCombinedTask::NewL
 // ---------------------------------------------------------------------------
 //
-CESMRCombinedTask* CESMRCombinedTask::NewL(
-        MESMRCalDbMgr& aCalDbMgr,
-        MESMRMeetingRequestEntry& aEntry,
-        CMRMailboxUtils& aMRMailboxUtils,
+EXPORT_C CESMRCombinedTask* CESMRCombinedTask::NewL(
+        MESMRCalEntry& aEntry,
         TESMRExecutionRule aRule )
     {
     FUNC_LOG;
     CESMRCombinedTask* self =
         new (ELeave) CESMRCombinedTask(
-            aCalDbMgr,
             aEntry,
-            aMRMailboxUtils,
             aRule );
 
     CleanupStack::PushL(self);
@@ -81,24 +74,23 @@ CESMRCombinedTask* CESMRCombinedTask::NewL(
 void CESMRCombinedTask::ConstructL()
     {
     FUNC_LOG;
-    BaseConstructL();
     }
 
 // ---------------------------------------------------------------------------
 // CESMRCombinedTask::AppendTaskL
 // ---------------------------------------------------------------------------
 //
-void CESMRCombinedTask::AppendTaskL( MESMRTask* aTask )
+EXPORT_C void CESMRCombinedTask::AppendTaskL( MESMRTask* aTask )
     {
     FUNC_LOG;
-    User::LeaveIfError( iTasks.Append(aTask ) );
+    iTasks.AppendL( aTask );
     }
 
 // ---------------------------------------------------------------------------
 // CESMRCombinedTask::RemoveTaskL
 // ---------------------------------------------------------------------------
 //
-MESMRTask* CESMRCombinedTask::RemoveTaskL( MESMRTask* aTask )
+EXPORT_C MESMRTask* CESMRCombinedTask::RemoveTaskL( MESMRTask* aTask )
     {
     FUNC_LOG;
     TInt index = iTasks.Find( aTask );
@@ -124,10 +116,9 @@ void CESMRCombinedTask::ExecuteTaskL()
     TInt err( KErrNone );
     TInt taskCount( iTasks.Count() );
     
-    MESMRMeetingRequestEntry& mrEntry( ESMREntry() );    
-    if ( mrEntry.IsEntryEditedL() )
+    if ( iEntry.IsEntryEditedL() )
         {
-        mrEntry.UpdateTimeStampL();
+        iEntry.UpdateTimeStampL();
         }
     
     for( TInt i(0); i < taskCount; ++i )
@@ -159,3 +150,13 @@ void CESMRCombinedTask::ExecuteTaskL()
 
     }
 
+// ---------------------------------------------------------------------------
+// AppendTaskL
+// ---------------------------------------------------------------------------
+//
+EXPORT_C void AppendTaskL( CESMRCombinedTask& aContainer, MESMRTask* aTask )
+    {
+    CleanupDeletePushL( aTask );
+    aContainer.AppendTaskL( aTask );
+    CleanupStack::Pop( aTask );
+    }

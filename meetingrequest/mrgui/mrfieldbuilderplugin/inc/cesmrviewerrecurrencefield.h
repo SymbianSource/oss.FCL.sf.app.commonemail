@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -37,31 +37,35 @@ NONSHARABLE_CLASS( CESMRViewerRecurrenceField ): public CESMRField
          * @return Pointer to created object,
          */
         static CESMRViewerRecurrenceField* NewL();
-    
+
         /**
          * C++ destructor
          */
         ~CESMRViewerRecurrenceField();
-    
+
     public: // From CESMRField
         void InternalizeL( MESMRCalEntry& aEntry );
         void InitializeL();
         void SetOutlineFocusL( TBool aFocus );
-        
+        void LockL();
+        TBool ExecuteGenericCommandL( TInt aCommand );
+
     public: // From CCoeControl
         void SizeChanged();
         TInt CountComponentControls() const;
         CCoeControl* ComponentControl( TInt aIndex ) const;
-        
+
     private: // Implementation
         CESMRViewerRecurrenceField();
         void ConstructL();
-        
+
     private: // Data
-        /// Own: The recurrence topic field
+        /// Not own: The recurrence topic field
         CMRLabel* iLabel;
-        /// Own: Recurrence icon (default)
+        /// Owned: Recurrence icon (default)
         CMRImage* iIcon;
+        // Own: lock icon
+        CMRImage* iLockIcon;
     };
 
 #endif // __CESMRVIEWERRECURRENCEFIELD_H__

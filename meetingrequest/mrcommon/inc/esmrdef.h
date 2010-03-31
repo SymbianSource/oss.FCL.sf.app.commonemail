@@ -25,13 +25,16 @@
 /**
  * Enumeration for calendar entry types
  */
+
 enum TESMRCalendarEventType
     {
-    EESMREventTypeAppt = 0,     // Appointment calendar item
-    EESMREventTypeETodo,        // TO-DO calendar item
-    EESMREventTypeEEvent,       // Event calendar item
-    EESMREventTypeEReminder,    // Reminder calendar item
-    EESMREventTypeEAnniv        // Anniversary calendar item
+    EESMREventTypeNone = -1,
+    EESMREventTypeMeetingRequest = 0,   // Meeting request item
+    EESMREventTypeAppt,                 // Appointment calendar item
+    EESMREventTypeEEvent,               // Event calendar item
+    EESMREventTypeEAnniv,               // Anniversary calendar item
+    EESMREventTypeETodo,                // TO-DO calendar item
+    EESMREventTypeEReminder             // Reminder calendar item   
     };
 
 /**
@@ -126,11 +129,6 @@ enum TESMREntryFieldId
     EESMRFieldResponseArea = 1,
     // Response ready area, this is created always
     // when EESMRFieldResponseArea is given by policy
-    EESMRFieldResponseReadyArea,
-    // Response area with one item, this used at runtime.
-    // Not working in policy. The EESMRFieldResponseArea should be used in
-    // policy. If the response is e.g. Cancelled then this is used
-    // solve the measures of the ui components.
     EESMRFieldResponseAreaWithOneItem,
     // Organizer field
     EESMRFieldOrganizer,
@@ -178,14 +176,20 @@ enum TESMREntryFieldId
     EESMRFieldViewerBasic,
     // Additional Subject field for viewer
     EESMRFieldDetailedSubject,
-    // Attachments field
-    EESMRFieldAttachments,
     // Tracking required attendeee field
     EESMRFieldReqTrack,
     // Tracking Optional Attendee field
     EESMRFieldOptTrack,
     // Tracking status
-    EESMRTrackStatus
+    EESMRTrackStatus,
+    // Attachment field
+    EESMRFieldAttachments,
+    // Event type field
+    EESMRFieldUnifiedEditor,
+    // Calendar name field
+    EESMRFieldCalendarName,
+    // Viewer attachment field
+    EESMRFieldViewerAttachments
     };
 
 /**
@@ -194,7 +198,8 @@ enum TESMREntryFieldId
 enum TESMRFieldType
     {
     EESMRFieldTypeDefault,      // Default field
-    EESMRFieldTypeAdditional    // Additional field
+    EESMRFieldTypeAdditional,    // Additional field
+    EESMRFieldTypeDisabled      // Disabled field
     };
 
 /**
@@ -353,6 +358,40 @@ enum TESMRMailPlugin
     EESMRIntelliSync,
     // IMAP-POP plug-in
     EESMRImapPop
+    };
+
+/**
+ * BC Plugin event types for resource file
+ */
+#define KMRTypeMeetingRequest 0x01
+#define KMRTypeMeeting        0x02
+#define KMRTypeMemo           0x04
+#define KMRTypeAnniversary    0x08
+#define KMRTypeToDo           0x10
+
+/**
+ * BC Plugin event types
+ */
+enum TBCPluginEventType
+    {
+    EMRTypeMeetingRequest = 0,
+    EMRTypeMeeting        = 1,
+    EMRTypeMemo           = 2,
+    EMRTypeAnniversary    = 3,
+    EMRTypeToDo           = 4,
+    EMRTypeNone           = 1024
+    };
+
+/**
+ * Defines processor mode
+ */
+enum TMRProcessorMode
+    {
+    EMRProcessorModeNone = 0,
+    EMRProcessorModeView = 1,
+    EMRProcessorModeEdit = 2,
+    EMRProcessorModeForward = 3,
+    EMRProcessorModeTrack = 4
     };
 
 // ESMRICALVIEWER definitions

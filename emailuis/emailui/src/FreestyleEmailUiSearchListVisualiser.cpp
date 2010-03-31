@@ -84,7 +84,6 @@
 #include "FreestyleEmailUiAppui.h"
 #include "FreestyleEmailUi.hrh"
 #include "FreestyleEmailUiTextureManager.h"
-#include "FreestyleEmailUiMailViewerVisualiser.h"
 #include "FreestyleEmailUiUtilities.h"
 #include "FreestyleEmailUiLiterals.h"
 #include "FreestyleEmailUiShortcutBinding.h"
@@ -97,7 +96,7 @@
 static const TInt KMaxLengthOfSearchString = 255;
 //<cmail> s60 platform layouts
 //static const TInt KSearchIconWidth = 30;
-const TReal KFSHeaderTextBackgroundOpacity = 0.3f;
+//const TReal KFSHeaderTextBackgroundOpacity = 0.3f;
 //</cmail>
 static const TInt KItemExpansionDelay = 400;
 static const TInt KListScrollingDelay = 200;
@@ -154,9 +153,7 @@ void CFSEmailUiSearchListVisualiser::DoFirstStartL()
     iScreenAnchorLayout->SetFlags(EAlfVisualFlagAutomaticLocaleMirroringEnabled);
     SetSearchListLayoutAnchors();
 
-    // Create top bar layout
-    iSearchTopBarLayout = CAlfDeckLayout::AddNewL( *iSearchListControl, iScreenAnchorLayout );
-    iBarBgVisual = CAlfImageVisual::AddNewL( *iSearchListControl, iSearchTopBarLayout );
+
         /*<cmail> paltform layout changes to cmail
     TAlfTimedValue barBgTextureOpacity;
     barBgTextureOpacity.SetValueNow( 1 );
@@ -507,7 +504,23 @@ void CFSEmailUiSearchListVisualiser::DynInitMenuPaneL(TInt aResourceId, CEikMenu
 				aMenuPane->SetItemDimmed(EFsEmailUiCmdMailActions, EFalse);
 				aMenuPane->SetItemDimmed(EFsEmailUiCmdCalActions, ETrue);
 				}
-			aMenuPane->SetItemDimmed(EFsEmailUiCmdOpen, EFalse);
+
+			// showing of mail-related options is dependent on focus
+			// important for touch-only devices
+			if ( IsFocusShown() )
+				{
+				aMenuPane->SetItemDimmed(EFsEmailUiCmdOpen, EFalse);
+				}
+			else
+				{
+				aMenuPane->SetItemDimmed(EFsEmailUiCmdMore, ETrue);
+				aMenuPane->SetItemDimmed(EFsEmailUiCmdMailActions, ETrue);
+				aMenuPane->SetItemDimmed(EFsEmailUiCmdCalActions, ETrue);
+				aMenuPane->SetItemDimmed(EFsEmailUiCmdOpen, ETrue);
+				}
+
+			// remove message reader support because of problems with reading HTML mails
+			aMenuPane->SetItemDimmed(EFsEmailUiCmdReadEmail, ETrue);
 			}
 		}
 	else
@@ -1114,7 +1127,7 @@ void CFSEmailUiSearchListVisualiser::HandleCommandL( TInt aCommand )
            aCommand == EFsEmailUiCmdMarkAsRead ||
            aCommand == EFsEmailUiCmdMarkAsUnread ||
            aCommand == EFsEmailUiCmdActionsMove ||
-           aCommand == EFsEmailUiCmdMarkUnmarkToggle ) )
+           aCommand == EFsEmailUiCmdMarkingModeFromPopUp ) )
         {
         // We end up here if the user selects an option from the pop up menu
         // or exits the menu by tapping outside of it's area.
@@ -1323,43 +1336,30 @@ void CFSEmailUiSearchListVisualiser::ReScaleUiL()
 void CFSEmailUiSearchListVisualiser::SetSearchListLayoutAnchors()
 	{
     FUNC_LOG;
-	// Set anchors so that list leaves space for control bar
+	// Set anchors
 
 	// The anchor layout mirrors itself automatically when necessary.
 	// There's no need to mirror anything manually here.
 
-	// BAR BACGROUND IMAGE
-    TRect contBarRect = iAppUi.LayoutHandler()->GetControlBarRect();
-    TPoint& tl( contBarRect.iTl );
+	// TEXT
+    TRect textRect =  iAppUi.LayoutHandler()->GetSearchListHeaderTextLayout().TextRect();
+    TPoint tl = textRect.iTl;
     iScreenAnchorLayout->SetAnchor(EAlfAnchorTopLeft, 0,
         EAlfAnchorOriginLeft, EAlfAnchorOriginTop,
         EAlfAnchorMetricAbsolute, EAlfAnchorMetricAbsolute,
         TAlfTimedPoint( tl.iX, tl.iY ));
-    TPoint& br( contBarRect.iBr );
+    TPoint br = textRect.iBr;
     iScreenAnchorLayout->SetAnchor(EAlfAnchorBottomRight, 0,
         EAlfAnchorOriginLeft, EAlfAnchorOriginTop,
         EAlfAnchorMetricAbsolute, EAlfAnchorMetricAbsolute,
         TAlfTimedPoint( br.iX, br.iY ));
 
-	// TEXT
-    TRect textRect =  iAppUi.LayoutHandler()->GetSearchListHeaderTextLayout().TextRect();
-    tl = textRect.iTl;
+    TRect listRect = iAppUi.LayoutHandler()->GetListRect( ETrue );
     iScreenAnchorLayout->SetAnchor(EAlfAnchorTopLeft, 1,
         EAlfAnchorOriginLeft, EAlfAnchorOriginTop,
         EAlfAnchorMetricAbsolute, EAlfAnchorMetricAbsolute,
-        TAlfTimedPoint( tl.iX, tl.iY ));
-    br = textRect.iBr;
-    iScreenAnchorLayout->SetAnchor(EAlfAnchorBottomRight, 1,
-        EAlfAnchorOriginLeft, EAlfAnchorOriginTop,
-        EAlfAnchorMetricAbsolute, EAlfAnchorMetricAbsolute,
-        TAlfTimedPoint( br.iX, br.iY ));
-
-    TRect listRect = iAppUi.LayoutHandler()->GetListRect( ETrue );
-    iScreenAnchorLayout->SetAnchor(EAlfAnchorTopLeft, 2,
-        EAlfAnchorOriginLeft, EAlfAnchorOriginTop,
-        EAlfAnchorMetricAbsolute, EAlfAnchorMetricAbsolute,
         TAlfTimedPoint(listRect.iTl.iX, listRect.iTl.iY));
-    iScreenAnchorLayout->SetAnchor(EAlfAnchorBottomRight, 2,
+    iScreenAnchorLayout->SetAnchor(EAlfAnchorBottomRight, 1,
         EAlfAnchorOriginLeft, EAlfAnchorOriginTop,
         EAlfAnchorMetricAbsolute, EAlfAnchorMetricAbsolute,
         TAlfTimedPoint(listRect.iBr.iX, listRect.iBr.iY));
@@ -2564,16 +2564,6 @@ void CFSEmailUiSearchListVisualiser::SetHeaderAttributesL()
 	iBarTextVisual->SetColor( iAppUi.LayoutHandler()->
 							ListNormalStateTextSkinColor() );
 
-    if( iBarBgVisual->Brushes() )
-        {
-        iBarBgVisual->Brushes()->Reset();
-        }
-    iBarBgVisual->EnableBrushesL();
-    CAlfBrush* selectorBrush = iAppUi.FsTextureManager()->
-                   NewCtrlBarSelectorBrushLC();
-    selectorBrush->SetOpacity( KFSHeaderTextBackgroundOpacity );
-    iBarBgVisual->Brushes()->AppendL( selectorBrush, EAlfHasOwnership );
-    CleanupStack::Pop( selectorBrush );
 	}
 //</cmail>
 

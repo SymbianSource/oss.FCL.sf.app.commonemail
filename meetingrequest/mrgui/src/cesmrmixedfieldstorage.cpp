@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -30,6 +30,7 @@
 #include "cesmrvalidatorfactory.h"
 #include "cesmrglobalnote.h"
 #include "cesmrfield.h"
+#include "cesmrfieldeventqueue.h"
 
 // Unnamed namespace for local definitions
 namespace { // codescanner::namespace
@@ -111,12 +112,35 @@ void ShowValidationErrorL(
                     CESMRGlobalNote::EESMRAlarmAlreadyPassed );
             }
             break;
+            
         case MESMRFieldValidator::EErrorRescheduleInstance:
             {
             CESMRGlobalNote::ExecuteL(
                                 CESMRGlobalNote::EESMRRepeatReSchedule );
             }
             break;
+            
+        case MESMRFieldValidator::EErrorInstanceOverlapsExistingOne:
+            {
+            CESMRGlobalNote::ExecuteL(
+                                CESMRGlobalNote::EESMROverlapsExistingInstance );
+            }
+            break;
+            
+        case MESMRFieldValidator::EErrorInstanceAlreadyExistsOnThisDay:
+            {
+            CESMRGlobalNote::ExecuteL(
+                                CESMRGlobalNote::EESMRInstanceAlreadyExistsOnThisDay );
+            }
+            break;
+            
+        case MESMRFieldValidator::EErrorInstanceOutOfSequence:
+            {
+            CESMRGlobalNote::ExecuteL(
+                                CESMRGlobalNote::EESMRInstanceOutOfSequence );
+            }
+            break;
+            
         default:
             err = KErrNone;
             break;
@@ -135,11 +159,9 @@ void ShowValidationErrorL(
 //
 CESMRMixedFieldStorage::CESMRMixedFieldStorage(
         MESMRFieldEventObserver& aEventObserver,
-        MESMRResponseObserver* aResponseObserver,
-        MESMRCalEntry& aEntry ) :
+        MESMRResponseObserver* aResponseObserver ) :
     CESMRFieldStorage( aEventObserver),
-    iResponseObserver(aResponseObserver),
-    iEntry(aEntry)
+    iResponseObserver(aResponseObserver)
     {
     FUNC_LOG;
     // Do nothing
@@ -161,7 +183,7 @@ CESMRMixedFieldStorage::~CESMRMixedFieldStorage( )
 //
 CESMRMixedFieldStorage* CESMRMixedFieldStorage::NewL(
         MESMRFieldEventObserver& aEventObserver,
-        CESMRPolicy* aPolicy,
+        const CESMRPolicy& aPolicy,
         MESMRResponseObserver* aResponseObserver,
         MESMRCalEntry& aEntry )
     {
@@ -169,12 +191,11 @@ CESMRMixedFieldStorage* CESMRMixedFieldStorage::NewL(
     CESMRMixedFieldStorage* self =
             new (ELeave) CESMRMixedFieldStorage(
                     aEventObserver,
-                    aResponseObserver,
-                    aEntry );
+                    aResponseObserver );
 
-    CleanupStack::PushL ( self );
-    self->ConstructL ( aPolicy );
-    CleanupStack::Pop ( self );
+    CleanupStack::PushL( self );
+    self->ConstructL( aPolicy, aEntry );
+    CleanupStack::Pop( self );
 
     return self;
     }
@@ -183,56 +204,14 @@ CESMRMixedFieldStorage* CESMRMixedFieldStorage::NewL(
 // CESMRMixedFieldStorage::ConstructL
 // ---------------------------------------------------------------------------
 //
-void CESMRMixedFieldStorage::ConstructL( CESMRPolicy* aPolicy )
+void CESMRMixedFieldStorage::ConstructL(
+        const CESMRPolicy& aPolicy,
+        MESMRCalEntry& aEntry )
     {
     FUNC_LOG;
     CESMRFieldStorage::BaseConstructL();
-    // FORWARD allows only attendee fields and description to be edited.
-    // EDIT RECURRENT EVENT allows only start-end time and start date
-    // to be edited.
-
-    MESMRCalEntry::TESMRRecurrenceModifyingRule rule(
-            iEntry.RecurrenceModRule() );
-
-    if ( iEntry.IsRecurrentEventL() &&
-         rule == MESMRCalEntry::EESMRAllInSeries  &&
-         EESMREditMR == aPolicy->ViewMode())
-        {
-        // Contruct edit series
-        // validator ownership is transferred
-        MESMRFieldValidator* validator =
-        CESMRValidatorFactory::CreateValidatorL (
-                aPolicy->EventType() );
-
-        ConstructEditSeriesEventL(
-                aPolicy,
-                validator );
-
-        iEventType = EMixedFieldStorageEditSeriesEvent;
-        }
-
-    else if ( aPolicy->ViewMode() != EESMRForwardMR )
-        {
-        MESMRFieldValidator* validator =
-                CESMRValidatorFactory::CreateValidatorL (
-                            aPolicy->EventType() );
-
-        ConstructRecurrentEventL ( aPolicy,
-                validator );
-
-        iEventType = EMixedFieldStorageRecurrentEvent;
-        }
-    else
-        {
-        // No validator is needed because forwarding does not
-        // affecto to any time fields.
-        MESMRFieldValidator* validator = NULL;
-        ConstructForwardEventL (
-                aPolicy,
-                validator );
-
-        iEventType = EMixedFieldStorageForward;
-        }
+    
+    DoChangePolicyL( aPolicy, aEntry );
     }
 
 // ---------------------------------------------------------------------------
@@ -292,17 +271,30 @@ TInt CESMRMixedFieldStorage::Validate(
     }
 
 // ---------------------------------------------------------------------------
+// CESMRMixedFieldStorage::ChangePolicyL
+// ---------------------------------------------------------------------------
+//
+void CESMRMixedFieldStorage::ChangePolicyL(
+        const CESMRPolicy& aNewPolicy,
+        MESMRCalEntry& aEntry )
+    {
+    // Delegate to non-virtual
+    DoChangePolicyL( aNewPolicy, aEntry );
+    }
+
+
+// ---------------------------------------------------------------------------
 // CESMRMixedFieldStorage::ConstructForwardEventL
 // ---------------------------------------------------------------------------
 //
 void CESMRMixedFieldStorage::ConstructForwardEventL(
-        CESMRPolicy* aPolicy,
+        const CESMRPolicy& aPolicy,
         MESMRFieldValidator* aValidator )
     {
     FUNC_LOG;
     iValidator = aValidator;
     
-    RArray< TESMREntryField > array = aPolicy->Fields();
+    RArray< TESMREntryField > array = aPolicy.Fields();
 
     TInt fieldCount( array.Count() );
     for (TInt i(0); i < fieldCount; i++ )
@@ -316,20 +308,28 @@ void CESMRMixedFieldStorage::ConstructForwardEventL(
             case EESMRFieldDescription:
                 {
                 field = CreateEditorFieldL( iValidator, array[i] );
-                CleanupStack::PushL( field );
                 }
                 break;
             default:
                 {
                 field =  
 					CreateViewerFieldL( iResponseObserver, array[i], visible );
-                CleanupStack::PushL( field );
+                field->LockL();
                 }
                 break;
             }
         
-        AddFieldL( field, visible );
-        CleanupStack::Pop( field );
+        if( field->FieldViewMode() != EESMRFieldTypeDisabled )
+            {
+            CleanupStack::PushL( field );
+            AddFieldL( field, visible );
+            CleanupStack::Pop( field );
+            }
+        else
+            {
+            delete field;
+            field = NULL;
+            }
         }
     }
 
@@ -338,13 +338,14 @@ void CESMRMixedFieldStorage::ConstructForwardEventL(
 // ---------------------------------------------------------------------------
 //
 void CESMRMixedFieldStorage::ConstructRecurrentEventL(
-        CESMRPolicy* aPolicy,
+        const CESMRPolicy& aPolicy,
         MESMRFieldValidator* aValidator )
     {
     FUNC_LOG;
     iValidator = aValidator;
+    iValidator->SetFieldEventQueue( &EventQueueL() );
 
-    const RArray<TESMREntryField>& array = aPolicy->Fields();
+    const RArray<TESMREntryField>& array = aPolicy.Fields();
     TInt fieldCount( array.Count() );
     for (TInt i(0); i < fieldCount; ++i )
         {
@@ -354,11 +355,6 @@ void CESMRMixedFieldStorage::ConstructRecurrentEventL(
             {
             case EESMRFieldRecurrence: //Fall through
             case EESMRFieldRecurrenceDate:
-                {
-                // When editing occurence --> Recurrence information
-                // is not shown
-                break;
-                }
             default:
                 field =  CreateEditorFieldL( iValidator, array[i] );
                 break;
@@ -378,18 +374,20 @@ void CESMRMixedFieldStorage::ConstructRecurrentEventL(
 // ---------------------------------------------------------------------------
 //
 void CESMRMixedFieldStorage::ConstructEditSeriesEventL(
-        CESMRPolicy* aPolicy,
+        const CESMRPolicy& aPolicy,
         MESMRFieldValidator* aValidator )
     {
     FUNC_LOG;
     TESMRRecurrenceValue recurrenceType;
     TBool validRecurrence(
             HasValidRecurrenceForEditingL(
-                    iEntry,
+                    *iEntry,
                     recurrenceType ) );
 
     iValidator = aValidator;
-    const RArray<TESMREntryField>& array = aPolicy->Fields();
+    iValidator->SetFieldEventQueue( &EventQueueL() );
+    
+    const RArray<TESMREntryField>& array = aPolicy.Fields();
     CESMRField* field =  NULL;
     
     TInt fieldCount(  array.Count() );
@@ -405,8 +403,7 @@ void CESMRMixedFieldStorage::ConstructEditSeriesEventL(
                 {
                 if ( validRecurrence )
                     {
-                    field =  CreateEditorFieldL( iValidator, tfield );
-                    CleanupStack::PushL( field );
+                    field = CreateEditorFieldL( iValidator, tfield );
                     }
                 else
                     {
@@ -414,20 +411,98 @@ void CESMRMixedFieldStorage::ConstructEditSeriesEventL(
                     // --> Cannot be edited.
                     field = CreateViewerFieldL( 
 								iResponseObserver, tfield, visible );
-                    CleanupStack::PushL( field );
+                    field->LockL();
                     }
                 }
                 break;
             default:
                 {
-                field =  CreateEditorFieldL( iValidator, tfield );
-                CleanupStack::PushL( field );
+                field = CreateEditorFieldL( iValidator, tfield );
                 }
                 break;
             }
-        
-        AddFieldL( field, visible );
-        CleanupStack::Pop( field );
+
+        if( field->FieldViewMode() != EESMRFieldTypeDisabled )
+            {
+            CleanupStack::PushL( field );
+            AddFieldL( field, visible );
+            CleanupStack::Pop( field );
+            }
+        else
+            {
+            delete field;
+            field = NULL;
+            }
+        }
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRMixedFieldStorage::ConstructEditSeriesEventL
+// ---------------------------------------------------------------------------
+//
+void CESMRMixedFieldStorage::Reset()
+    {
+    CESMRFieldStorage::Reset();
+    delete iValidator;
+    iValidator = NULL;
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRMixedFieldStorage::DoChangePolicyL
+// ---------------------------------------------------------------------------
+//
+void CESMRMixedFieldStorage::DoChangePolicyL(
+        const CESMRPolicy& aNewPolicy,
+        MESMRCalEntry& aEntry )
+    {
+    Reset();
+    iEntry = &aEntry;
+    
+    // FORWARD allows only attendee fields and description to be edited.
+    // EDIT RECURRENT EVENT allows only start-end time and start date
+    // to be edited.
+
+    MESMRCalEntry::TESMRRecurrenceModifyingRule rule(
+            iEntry->RecurrenceModRule() );
+
+    if ( iEntry->IsRecurrentEventL() &&
+         rule == MESMRCalEntry::EESMRAllInSeries  &&
+         EESMREditMR == aNewPolicy.ViewMode())
+        {
+        // Contruct edit series
+        // validator ownership is transferred
+        MESMRFieldValidator* validator =
+        CESMRValidatorFactory::CreateValidatorL (
+                aNewPolicy.EventType() );
+
+        ConstructEditSeriesEventL(
+                aNewPolicy,
+                validator );
+
+        iEventType = EMixedFieldStorageEditSeriesEvent;
+        }
+
+    else if ( aNewPolicy.ViewMode() != EESMRForwardMR )
+        {
+        MESMRFieldValidator* validator =
+                CESMRValidatorFactory::CreateValidatorL (
+                        aNewPolicy.EventType() );
+
+        ConstructRecurrentEventL ( aNewPolicy,
+                validator );
+
+        iEventType = EMixedFieldStorageRecurrentEvent;
+        }
+    else
+        {
+        // No validator is needed because forwarding does not
+        // affecto to any time fields.
+        MESMRFieldValidator* validator = NULL;
+        ConstructForwardEventL (
+                aNewPolicy,
+                validator );
+
+        iEventType = EMixedFieldStorageForward;
         }
     }
 

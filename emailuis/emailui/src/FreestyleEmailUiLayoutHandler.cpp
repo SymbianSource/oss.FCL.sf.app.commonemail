@@ -37,12 +37,20 @@
 
 const TInt KPopupMargin = 8;
 
+// -----------------------------------------------------------------------------
+// GeneralHash
+// -----------------------------------------------------------------------------
+//
 template< typename T >
 TUint32 GeneralHash( const T& aValue )
     {
     return DefaultHash::Des8( TPckgC< T >( aValue ) );
     }
 
+// -----------------------------------------------------------------------------
+// GeneralPtrIdentity
+// -----------------------------------------------------------------------------
+//
 template< typename T >
 TBool GeneralPtrIdentity( const T& aP1, const T& aP2 )
     {
@@ -56,14 +64,8 @@ TBool GeneralPtrIdentity( const T& aP1, const T& aP2 )
 //
 CFSEmailUiLayoutHandler::CFSEmailUiLayoutHandler( CAlfEnv& aEnv )
 	: iEnv(aEnv),
-	iScreenResolution( EQvgaPortrait ),
 	iTextStyleMap( THashFunction32< TAknTextComponentLayout >( GeneralHash ),
-	    TIdentityRelation< TAknTextComponentLayout >( GeneralPtrIdentity< TAknTextComponentLayout > ) ),
-    // <cmail>
-    iNormalTextStyle( KErrNotFound ),
-    iLargeTextStyle( KErrNotFound ),
-    iSmallTextStyle( KErrNotFound )
-    // </cmail>
+	    TIdentityRelation< TAknTextComponentLayout >( GeneralPtrIdentity< TAknTextComponentLayout > ) )
  	{
     FUNC_LOG;
 	}
@@ -102,33 +104,7 @@ CFSEmailUiLayoutHandler::~CFSEmailUiLayoutHandler()
     {
     FUNC_LOG;
     DeleteTextStyles();
-    if ( iNormalTextStyle != KErrNotFound )
-        {
-        CAlfStatic::Env().TextStyleManager().DeleteTextStyle( 
-                iNormalTextStyle );
-        }
-    if( iLargeTextStyle != KErrNotFound )
-        {
-        CAlfStatic::Env().TextStyleManager().DeleteTextStyle( 
-                iLargeTextStyle );
-        }
-    if( iSmallTextStyle != KErrNotFound )
-        {
-        CAlfStatic::Env().TextStyleManager().DeleteTextStyle( 
-                iSmallTextStyle );
-        }
     }
-
-// -----------------------------------------------------------------------------
-// CFSEmailUiLayoutHandler::ScreenResolution
-// Function can be used to fetch currently active screen resolution
-// -----------------------------------------------------------------------------
-//	
-TScreenResolution CFSEmailUiLayoutHandler::ScreenResolution() const
-	{
-    FUNC_LOG;
-	return iScreenResolution;
-	}
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiLayoutHandler::ScreenOrientation
@@ -142,136 +118,32 @@ TScreenOrientation CFSEmailUiLayoutHandler::ScreenOrientation() const
     }
 
 // -----------------------------------------------------------------------------
-// CTeamUiAppLayoutHandler::ScreenResolutionChanged
-// Function can be used to update internal resolution value. Typically called
-// by UI in startup and when dynamic layout variant switch has occured 
+// CFSEmailUiLayoutHandler::GridRowsInThisResolution
 // -----------------------------------------------------------------------------
-//	
-void CFSEmailUiLayoutHandler::ScreenResolutionChanged()
-	{
-    FUNC_LOG;
-   	TRect screenRect;
- 	AknLayoutUtils::LayoutMetricsRect( AknLayoutUtils::EScreen, screenRect );
-	switch ( screenRect.Width() )
-  		{
-		case KLowResPortraitWidth:
-			iScreenResolution = ELowResPortrait;
-			break;
-		case KLowResLandscapeWidth:
-			iScreenResolution =  ELowResLandscape;
-			break;
-		case KQvgaPortraitWidth:
-			iScreenResolution =  EQvgaPortrait;
-			break;
-		case KQvgaLandscapeWidth: // Also KHvgaPortraitWidth
-			{
-			if ( screenRect.Height() == KQvgaLandscapeHeight )
-				{
-				iScreenResolution =  EQvgaLandscape;					
-				}
-			else
-				{
-				iScreenResolution =  EHvgaPortrait;
-				}			
-			}
-			break;
-		case KDrPortraitWidth:
-			iScreenResolution =  EDrPortrait;
-			break;
-		case KDrLandscapeWidth:
-			iScreenResolution =  EDrLandscape;
-			break;
-		case KVgaPortraitWidth: // Also KHvgaLandscapeWidth
-			{
-			if ( screenRect.Height() == KHvgaLandscapeHeight )
-				{
-				iScreenResolution =  EHvgaLandscape;					
-				}
-			else
-				{
-				iScreenResolution =  EVgaPortrait;
-				}							
-			}
-			break;
-		case KVgaLandscapeWidth:
-			iScreenResolution =  EVgaLandscape;
-			break;
-		case KWideLandscapeWidth:
-			iScreenResolution =  EWideLandscape;
-			break;
-		default:
-			break;
- 		}
-	}
-
-
+//
 TInt CFSEmailUiLayoutHandler::GridRowsInThisResolution() const
 	{
     FUNC_LOG;
-	TInt rowCount(0);
-	switch ( iScreenResolution )
-		{
- 		case ELowResPortrait:
-		case EQvgaPortrait:
- 		case EVgaPortrait:
-  		case EHvgaPortrait:
- 		case EDrPortrait:
-
- 		case ELowResLandscape:
- 		case EQvgaLandscape:
-		case EVgaLandscape:	
-		case EHvgaLandscape:	
- 		case EDrLandscape:
-  		    rowCount = 3;
- 		    break;
- 		    
- 		case EWideLandscape:
- 		    rowCount = 2;
- 		    break;
- 		    
-		default:
-		    rowCount = 3;
-		    break;
-		}
-	return rowCount;
+    const TInt var( Layout_Meta_Data::IsLandscapeOrientation() ? 1 : 0 );
+    return AknLayoutScalable_Apps::cell_cmail_l_pane_ParamLimits( var ).LastRow() + 1;
 	}
 
 
+// -----------------------------------------------------------------------------
+// CFSEmailUiLayoutHandler::GridColumnsInThisResolution
+// -----------------------------------------------------------------------------
+//
 TInt CFSEmailUiLayoutHandler::GridColumnsInThisResolution() const
 	{
     FUNC_LOG;
-	TInt columnCount(0);
-	switch ( iScreenResolution )
-		{
- 		case ELowResPortrait:
-		case EQvgaPortrait:
- 		case EVgaPortrait:
-  		case EHvgaPortrait:
- 		case EDrPortrait:
-  		    columnCount = 3;
- 		    break;
-
- 		case ELowResLandscape:
- 		case EQvgaLandscape:
-		case EVgaLandscape:	
-		case EHvgaLandscape:	
- 		case EDrLandscape:
-  		    columnCount = 4;
- 		    break;
- 		    
- 		case EWideLandscape:
- 		    columnCount = 5;
- 		    break;
- 		    
-		default:
-		    columnCount = 3;
-		    break;
-		}
-	return columnCount;
+    const TInt var( Layout_Meta_Data::IsLandscapeOrientation() ? 1 : 0 );
+    return AknLayoutScalable_Apps::cell_cmail_l_pane_ParamLimits( var ).LastColumn() + 1;
 	}
 
-
-// Grid normal state text color, same as focused
+// -----------------------------------------------------------------------------
+// CFSEmailUiLayoutHandler::GridIconSize
+// -----------------------------------------------------------------------------
+//
 TRgb CFSEmailUiLayoutHandler::GridNormalStateTextSkinColor() const
 	{
     FUNC_LOG;
@@ -288,7 +160,6 @@ TRgb CFSEmailUiLayoutHandler::GridNormalStateTextSkinColor() const
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiLayoutHandler::GridIconSize
-// 
 // -----------------------------------------------------------------------------
 //
 TSize CFSEmailUiLayoutHandler::GridIconSize() const
@@ -512,50 +383,6 @@ TRect CFSEmailUiLayoutHandler::DropDownMenuListRect(
     }
 
 // -----------------------------------------------------------------------------
-// CFSEmailUiLayoutHandler::SelectorVisualSizeInThisResolution
-// Selector ring image visual size
-// -----------------------------------------------------------------------------
-//
-TSize CFSEmailUiLayoutHandler::SelectorVisualSizeInThisResolution() const
-	{
-    FUNC_LOG;
-	TSize selectorVisualSize(0,0);
-	switch ( iScreenResolution )
-		{
-		case EQvgaPortrait:
-			selectorVisualSize = KSelectorVisualSizeInQvgaPort;
-	 		break;
- 		case EQvgaLandscape:
-			selectorVisualSize = KSelectorVisualSizeInQvgaLand;
-		 	break;
- 		case EVgaPortrait:
- 			selectorVisualSize = KSelectorVisualSizeInVgaPort;
- 			break;
-		case EVgaLandscape:	
-			selectorVisualSize = KSelectorVisualSizeInVgaLand;
-			break; 
-  		case EHvgaPortrait:
- 			selectorVisualSize = KSelectorVisualSizeInHvgaPort;
- 			break;
-		case EHvgaLandscape:	
-			selectorVisualSize = KSelectorVisualSizeInHvgaLand;
-			break; 
- 		case EWideLandscape:
-			selectorVisualSize = KSelectorVisualSizeInWideLand;
- 			break;
- 		case EDrPortrait:
-			selectorVisualSize = KSelectorVisualSizeInDoubleResPort;
- 			break;
- 		case EDrLandscape:
-		default:
-			selectorVisualSize = KSelectorVisualSizeInDoubleResLand;
-			break;
-		}
-	return selectorVisualSize;	
-	}
-
-
-// -----------------------------------------------------------------------------
 // CFSEmailUiLayoutHandler::OneLineListNodeHeight
 // List node item height 
 // -----------------------------------------------------------------------------
@@ -563,15 +390,12 @@ TSize CFSEmailUiLayoutHandler::SelectorVisualSizeInThisResolution() const
 TInt CFSEmailUiLayoutHandler::OneLineListNodeHeight() const
 	{
     FUNC_LOG;
-	//<cmail>
     TRect mainPaneRect;
     TAknLayoutRect listItem;
     AknLayoutUtils::LayoutMetricsRect( AknLayoutUtils::EMainPane, mainPaneRect );
     listItem.LayoutRect( mainPaneRect, AknLayoutScalable_Apps::list_single_fs_dyc_pane( 0 ) );
     return listItem.Rect().Height();
-    //</cmail>
 	}
-	
 	
 // -----------------------------------------------------------------------------
 // CFSEmailUiLayoutHandler::OneLineListItemHeight
@@ -597,7 +421,6 @@ TInt CFSEmailUiLayoutHandler::TwoLineListItemHeight() const
     return listItem.Rect().Height();
     }
 
-//<cmail>
 // -----------------------------------------------------------------------------
 // CFSEmailUiLayoutHandler::FolderListOneLineItemHeight
 // List item height for folder list
@@ -611,16 +434,8 @@ TInt CFSEmailUiLayoutHandler::FolderListOneLineItemHeight(
         {        
         return OneLineListItemHeight();
         }
-/*    else
-        {
-        const TRect ddMenuRect( DropDownMenuListRect( ELeft ) );
-        TAknLayoutRect ddMenuPane;
-        bg_sp_fs_ctrlbar_ddmenu_pane
-        return 0;
-        }*/
     return 0;
     }
-//</cmail>
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiLayoutHandler::ControlBarHeight
@@ -637,221 +452,170 @@ TInt CFSEmailUiLayoutHandler::ControlBarHeight() const
     return ctrlBarRect.Rect().Height();
 	}
 
-// <cmail> changes to avoid unnecessary creating new text styles objects.
-CAlfTextStyle* CFSEmailUiLayoutHandler::FSTextStyleFromIdL( TFSEmailFont aFontId )
-    {
-    FUNC_LOG;
-    CAlfTextStyle* style = NULL;
-    
-    switch ( aFontId )
-        {
-        case EFSFontTypeNormal:
-        case EFSFontTypeNormalBold:
-        case EFSFontTypeNormalItalic:
-            if ( iNormalTextStyle == KErrNotFound ) 
-                {
-                iNormalTextStyle = CAlfStatic::Env().TextStyleManager().
-                    CreatePlatformTextStyleL( 
-                            EAknLogicalFontPrimaryFont, 
-                            EAlfTextStyleNormal );
-                }
-            style = CAlfStatic::Env().TextStyleManager().TextStyle( 
-                        iNormalTextStyle );
-            break;
-        case EFSFontTypeLarge:
-        case EFSFontTypeLargeBold:
-        case EFSFontTypeLargeItalic:
-            if ( iLargeTextStyle == KErrNotFound ) 
-                {
-                iLargeTextStyle = CAlfStatic::Env().TextStyleManager().
-                    CreatePlatformTextStyleL( 
-                            EAknLogicalFontTitleFont, 
-                            EAlfTextStyleNormal );
-                }
-            style = CAlfStatic::Env().TextStyleManager().TextStyle( 
-                        iLargeTextStyle );
-            break;
-        case EFSFontTypeSmallItalic:
-        case EFSFontTypeSmallBold:
-        case EFSFontTypeSmall:
-        default:
-            if ( iSmallTextStyle == KErrNotFound ) 
-                {
-                iSmallTextStyle = CAlfStatic::Env().TextStyleManager().
-                    CreatePlatformTextStyleL( 
-                            EAknLogicalFontSecondaryFont, 
-                            EAlfTextStyleNormal );
-                }
-            style = CAlfStatic::Env().TextStyleManager().TextStyle( 
-                    iSmallTextStyle );
-            break;
-        }
-        
-    switch ( aFontId )
-        {
-        case EFSFontTypeSmallBold:
-            style->SetBold( EStrokeWeightBold );
-            break;
-        case EFSFontTypeSmallItalic:
-            style->SetBold( EStrokeWeightNormal );
-            style->SetItalic( EPostureItalic );    
-            break;
-        case EFSFontTypeNormal:
-            style->SetBold( EStrokeWeightNormal );
-            break;
-        case EFSFontTypeNormalBold:
-            style->SetBold( EStrokeWeightBold );
-            break;
-        case EFSFontTypeNormalItalic:
-            style->SetBold( EStrokeWeightNormal );
-            style->SetItalic( EPostureItalic );
-            break;
-        case EFSFontTypeLarge:
-            style->SetBold( EStrokeWeightNormal );
-            break;
-        case EFSFontTypeLargeBold:
-            style->SetBold( EStrokeWeightBold );
-            break;
-        case EFSFontTypeLargeItalic:
-            style->SetBold( EStrokeWeightNormal );
-            style->SetItalic( EPostureItalic ); 
-            break;
-        case EFSFontTypeSmall:
-        default:
-            {
-            style->SetBold( EStrokeWeightNormal );
-            }
-            break;
-        }
-    
-    return style;
-    }
-// </cmail>
-
+// -----------------------------------------------------------------------------
+// CFSEmailUiLayoutHandler::ControlBarListPadding
+// -----------------------------------------------------------------------------
 TPoint CFSEmailUiLayoutHandler::ControlBarListPadding() const
 	{
     FUNC_LOG;
 	return KControlBarListPadding;
 	}
 
+// -----------------------------------------------------------------------------
+// CFSEmailUiLayoutHandler::ControlBarListBorderRoundingSize
+// -----------------------------------------------------------------------------
 TInt CFSEmailUiLayoutHandler::ControlBarListBorderRoundingSize() const
 	{
     FUNC_LOG;
 	return KControlBarListBorderRoundingSize;
 	}
 
+// -----------------------------------------------------------------------------
+// CFSEmailUiLayoutHandler::ControlBarButtonBgRoundingSize
+// -----------------------------------------------------------------------------
 TInt CFSEmailUiLayoutHandler::ControlBarButtonBgRoundingSize() const
 	{
     FUNC_LOG;
 	return KControlBarbuttonBorderRoundingSize;	
 	}
 
+// -----------------------------------------------------------------------------
+// CFSEmailUiLayoutHandler::ListFadeInEffectTime
+// -----------------------------------------------------------------------------
 TInt CFSEmailUiLayoutHandler::ListFadeInEffectTime() const
 	{
     FUNC_LOG;
 	return KListFadeInEffectTime;
 	}
 
+// -----------------------------------------------------------------------------
+// CFSEmailUiLayoutHandler::ListFadeOutEffectTime
+// -----------------------------------------------------------------------------
 TInt CFSEmailUiLayoutHandler::ListFadeOutEffectTime() const
     {
     FUNC_LOG;
     return KListFadeOutEffectTime;
     }
 
+// -----------------------------------------------------------------------------
+// CFSEmailUiLayoutHandler::StatusIndicatorFadeEffectTime
+// -----------------------------------------------------------------------------
 TInt CFSEmailUiLayoutHandler::StatusIndicatorFadeEffectTime() const
 	{
     FUNC_LOG;
 	return KStatusIndicatorFadeEffectTime;
 	}
 
+// -----------------------------------------------------------------------------
+// CFSEmailUiLayoutHandler::CtrlBarListFadeEffectTime
+// -----------------------------------------------------------------------------
 TInt CFSEmailUiLayoutHandler::CtrlBarListFadeEffectTime() const
 	{
     FUNC_LOG;
 	return KCtrlBarListFadeEffectTime;
 	}
 
+// -----------------------------------------------------------------------------
+// CFSEmailUiLayoutHandler::ViewSlideEffectActive
+// -----------------------------------------------------------------------------
 TBool CFSEmailUiLayoutHandler::ViewSlideEffectActive() const
 	{
     FUNC_LOG;
 	return KListSlideEffectActive;
 	}
 
+// -----------------------------------------------------------------------------
+// CFSEmailUiLayoutHandler::ViewFadeEffectActive
+// -----------------------------------------------------------------------------
 TBool CFSEmailUiLayoutHandler::ViewFadeEffectActive() const
 	{
     FUNC_LOG;
 	return KListFadeEffectActive;
 	}
 
+// -----------------------------------------------------------------------------
+// CFSEmailUiLayoutHandler::ViewSlideEffectTime
+// -----------------------------------------------------------------------------
 TInt CFSEmailUiLayoutHandler::ViewSlideEffectTime() const
 	{
     FUNC_LOG;
 	return KListSlideEffectTime;
 	}
 
+// -----------------------------------------------------------------------------
+// CFSEmailUiLayoutHandler::ViewFadeInEffectTime
+// -----------------------------------------------------------------------------
 TInt CFSEmailUiLayoutHandler::ViewFadeInEffectTime() const
     {
     FUNC_LOG;
     return KListFadeInEffectTime;
     }
 
+// -----------------------------------------------------------------------------
+// CFSEmailUiLayoutHandler::ViewFadeOutEffectTime
+// -----------------------------------------------------------------------------
 TInt CFSEmailUiLayoutHandler::ViewFadeOutEffectTime() const
     {
     FUNC_LOG;
     return KListFadeOutEffectTime;
     }
 
+// -----------------------------------------------------------------------------
+// CFSEmailUiLayoutHandler::ListScrollingTime
+// -----------------------------------------------------------------------------
 TInt CFSEmailUiLayoutHandler::ListScrollingTime() const
 	{
     FUNC_LOG;
 	return KListScrollingTime;
 	}
 
+// -----------------------------------------------------------------------------
+// CFSEmailUiLayoutHandler::ListItemExpansionDelay
+// -----------------------------------------------------------------------------
 TInt CFSEmailUiLayoutHandler::ListItemExpansionDelay() const
 	{
     FUNC_LOG;
 	return KListItemExpansionDelay;
 	}
 
-TInt CFSEmailUiLayoutHandler::ViewHidingDelay() const
-	{
-    FUNC_LOG;
-	return KViewChangeDelay;
-	}
-	
+// -----------------------------------------------------------------------------
+// CFSEmailUiLayoutHandler::ListFocusedStateTextSkinColor
+// -----------------------------------------------------------------------------
 TRgb CFSEmailUiLayoutHandler::ListFocusedStateTextSkinColor() const
     {
     FUNC_LOG;
     MAknsSkinInstance* skin = AknsUtils::SkinInstance();
     TRgb textColor;
-    // <cmail> Skin support
     if( AknsUtils::GetCachedColor( skin, textColor,
     		KAknsIIDQsnTextColors, EAknsCIQsnTextColorsCG10 ) != KErrNone )
     	{
         textColor = KRgbBlack;
     	}
-    // </cmail>
     return textColor;
     }
 
+// -----------------------------------------------------------------------------
+// CFSEmailUiLayoutHandler::ListNormalStateTextSkinColor
+// -----------------------------------------------------------------------------
 TRgb CFSEmailUiLayoutHandler::ListNormalStateTextSkinColor() const
     {
     FUNC_LOG;
     MAknsSkinInstance* skin = AknsUtils::SkinInstance();
     TRgb textColor;
-	// <cmail> S60 Skin support
     if ( AknsUtils::GetCachedColor( skin, textColor,
     	KAknsIIDQsnTextColors, EAknsCIQsnTextColorsCG6 ) != KErrNone )
     	{
         textColor = KRgbBlack;
     	}
-	// </cmail>        
     return textColor;
     }
 	
+// -----------------------------------------------------------------------------
+// CFSEmailUiLayoutHandler::ListNodeBackgroundColor
+// -----------------------------------------------------------------------------
 TRgb CFSEmailUiLayoutHandler::ListNodeBackgroundColor() const
 	{
     FUNC_LOG;
-//<cmail> skin support
     MAknsSkinInstance* skin = AknsUtils::SkinInstance();
     TRgb nodeBgColor;
     if ( AknsUtils::GetCachedColor( skin, nodeBgColor,
@@ -859,40 +623,40 @@ TRgb CFSEmailUiLayoutHandler::ListNodeBackgroundColor() const
         {
         nodeBgColor = KRgbDarkGray;
         }
-//</cmail>
     return nodeBgColor;
 	}
 
+// -----------------------------------------------------------------------------
+// CFSEmailUiLayoutHandler::ListNodeTextColor
+// -----------------------------------------------------------------------------
 TRgb CFSEmailUiLayoutHandler::ListNodeTextColor() const
 	{
     FUNC_LOG;
    MAknsSkinInstance* skin = AknsUtils::SkinInstance();
-    // <cmail> S60 Skin support
    TRgb nodeTextColor;
     if ( AknsUtils::GetCachedColor( skin, nodeTextColor,
             KAknsIIDQsnTextColors, EAknsCIQsnTextColorsCG6 ) != KErrNone )
     	{
         nodeTextColor = KRgbWhite;
         }
-    // </cmail>
     return nodeTextColor;	
 	}
 
+// -----------------------------------------------------------------------------
+// CFSEmailUiLayoutHandler::ListHeaderBackgroundColor
+// -----------------------------------------------------------------------------
 TRgb CFSEmailUiLayoutHandler::ListHeaderBackgroundColor() const
     {
     FUNC_LOG;
     // The header item bg color is gained by mixing 50/50 node bg color
     // and list item bg color.
-    // <cmail>
     MAknsSkinInstance* skin = AknsUtils::SkinInstance();
     TRgb listItemBgColor;
     if ( AknsUtils::GetCachedColor( skin, listItemBgColor,
         KAknsIIDQsnLineColors, EAknsCIFsTextColorsCG3 ) != KErrNone )
-        //KAknsIIDQsnLineColors, EAknsCIFsTextColorsCG5 ) != KErrNone )            
         {
         listItemBgColor = KRgbWhite;
         }
-    // </cmail>
     TRgb nodeItemBgColor = ListNodeBackgroundColor(); 
     TRgb headerBgColor;
     headerBgColor.SetRed( (listItemBgColor.Red()+nodeItemBgColor.Red()) / 2 );
@@ -901,80 +665,25 @@ TRgb CFSEmailUiLayoutHandler::ListHeaderBackgroundColor() const
     return headerBgColor;
     }
 
-TInt CFSEmailUiLayoutHandler::ListTextStyle() const
-	{
-    FUNC_LOG;
-	TInt listTextStyle( EAlfTextStyleSmall );
-	TAknUiZoom zoomLevel(EAknUiZoomNormal);
-    CAknEnv::Static()->GetCurrentGlobalUiZoom( zoomLevel );
- 	switch ( zoomLevel ) 
-		{
-		case EAknUiZoomSmall:
-			{
-		    listTextStyle = EAlfTextStyleSmall;
-			}
-			break;
-		case EAknUiZoomLarge:
-			{
-		    listTextStyle = EAlfTextStyleLarge;
-			}
-			break;
-		case EAknUiZoomNormal:
-		default:
-			{
-		    listTextStyle = EAlfTextStyleNormal;
-			}
-			break;
-		}
-	return listTextStyle;
-	}
-
+// -----------------------------------------------------------------------------
+// CFSEmailUiLayoutHandler::DropdownMenuTextColor
+// -----------------------------------------------------------------------------
 TRgb CFSEmailUiLayoutHandler::DropdownMenuTextColor() const
     {
     FUNC_LOG;
     MAknsSkinInstance* skin = AknsUtils::SkinInstance();
     TRgb textColor;
-
-    // <cmail> S60 Skin support
     if ( AknsUtils::GetCachedColor( skin, textColor,
             KAknsIIDQsnTextColors, EAknsCIQsnTextColorsCG6 ) != KErrNone )
         {
          textColor = KRgbBlack;
         }
-	// </cmail>        
-
     return textColor;
     }
 
-
-TInt CFSEmailUiLayoutHandler::ViewerFontHeightInTwips() const
-	{
-    FUNC_LOG;
-	TAknUiZoom zoomLevel(EAknUiZoomNormal);
-    CAknEnv::Static()->GetCurrentGlobalUiZoom( zoomLevel );
-	TInt heightInTwips(0);
-  	switch ( zoomLevel ) 
-		{
-		case EAknUiZoomSmall:
-			{
-		    heightInTwips = 130;
-			}
-			break;
-		case EAknUiZoomLarge:
-			{
-		    heightInTwips = 190;
-			}
-			break;
-		case EAknUiZoomNormal:
-		default:
-			{
-		    heightInTwips = 160;
-			}
-			break;
-		}
-	return heightInTwips;
-	}
-
+// -----------------------------------------------------------------------------
+// CFSEmailUiLayoutHandler::ListItemFontHeightInTwips
+// -----------------------------------------------------------------------------
 TInt CFSEmailUiLayoutHandler::ListItemFontHeightInTwips( const TBool aPopup ) const
 	{
     FUNC_LOG;
@@ -996,7 +705,6 @@ TInt CFSEmailUiLayoutHandler::ListItemFontHeightInTwips( const TBool aPopup ) co
         }
 	}
 
-
 // -----------------------------------------------------------------------------
 // CFSEmailUiLayoutHandler::ViewerTitleFontAknLogicalFontId
 // -----------------------------------------------------------------------------
@@ -1005,6 +713,7 @@ TAknLogicalFontId CFSEmailUiLayoutHandler::ViewerTitleFontAknLogicalFontId() con
     FUNC_LOG;
 	return KViewerLogicalTitleFontId;
 	}
+
 // -----------------------------------------------------------------------------
 // CFSEmailUiLayoutHandler::ViewerTextFontAknLogicalFontId
 // -----------------------------------------------------------------------------
@@ -1013,44 +722,18 @@ TAknLogicalFontId CFSEmailUiLayoutHandler::ViewerTextFontAknLogicalFontId() cons
     FUNC_LOG;
 	return KViewerLogicalTextFontId;
 	}
+
 // -----------------------------------------------------------------------------
 // CFSEmailUiLayoutHandler::ViewerTitleFontHeight
 // -----------------------------------------------------------------------------
 TInt CFSEmailUiLayoutHandler::ViewerTitleFontHeight() const
 	{
 	FUNC_LOG;
-    // <cmail> Platform layout changes
-    /*
-    TAknUiZoom zoomLevel;
-    CAknEnv::Static()->GetCurrentGlobalUiZoom( zoomLevel );
-    TInt heightInPixels = 0;
-    switch ( zoomLevel )
-        {
-        case EAknUiZoomSmall:
-            {
-            heightInPixels = KViewerTitleFontSizeSmall;
-            }
-            break;
-        case EAknUiZoomLarge:
-            {
-            heightInPixels = KViewerTitleFontSizeLarge;
-            }
-            break;
-        case EAknUiZoomNormal:
-        default:
-            {
-            heightInPixels = KViewerTitleFontSizeNormal;
-            }
-            break;
-        }
-    return heightInPixels;
-    */
     TAknLayoutRect labelRect;
     labelRect.LayoutRect( ListCmailPaneRect(), AknLayoutScalable_Apps::list_single_cmail_header_caption_pane() );
     TAknLayoutText layoutText;
     layoutText.LayoutText( labelRect.Rect(), AknLayoutScalable_Apps::list_single_cmail_header_caption_pane_t1() );
     return layoutText.Font()->FontMaxHeight();
-    // </cmail> Platform layout changes
 	}
 
 // -----------------------------------------------------------------------------
@@ -1059,38 +742,11 @@ TInt CFSEmailUiLayoutHandler::ViewerTitleFontHeight() const
 TInt CFSEmailUiLayoutHandler::ViewerTextFontHeight() const
 	{
 	FUNC_LOG;
-    // <cmail> Platform layout changes
-    /*
-    TAknUiZoom zoomLevel;
-    CAknEnv::Static()->GetCurrentGlobalUiZoom( zoomLevel );
-    TInt heightInPixels = 0;
-    switch ( zoomLevel )
-        {
-        case EAknUiZoomSmall:
-            {
-            heightInPixels = KViewerTextFontSizeSmall;
-            }
-            break;
-        case EAknUiZoomLarge:
-            {
-            heightInPixels = KViewerTextFontSizeLarge;
-            }
-            break;
-        case EAknUiZoomNormal:
-        default:
-            {
-            heightInPixels = KViewerTextFontSizeNormal;
-            }
-            break;
-        }
-    return heightInPixels;
-    */
     TAknLayoutRect labelRect;
     labelRect.LayoutRect( ListCmailPaneRect(), AknLayoutScalable_Apps::list_single_cmail_header_detail_pane( 0 ) );
     TAknLayoutText layoutText;
     layoutText.LayoutText( labelRect.Rect(), AknLayoutScalable_Apps::list_single_cmail_header_detail_pane_t1( 0 ) );
     return layoutText.Font()->FontMaxHeight();
-    // </cmail> Platform layout changes
 	}
 
 // -----------------------------------------------------------------------------
@@ -1099,36 +755,9 @@ TInt CFSEmailUiLayoutHandler::ViewerTextFontHeight() const
 TInt CFSEmailUiLayoutHandler::ViewerTopMostSpaceHeight() const
 	{
 	FUNC_LOG;
-    // <cmail> Platform layout changes
-    /*
-	TAknUiZoom zoomLevel;
-    CAknEnv::Static()->GetCurrentGlobalUiZoom( zoomLevel );
-	TInt heightInPixels = 0;
-  	switch ( zoomLevel )
-		{
-		case EAknUiZoomSmall:
-			{
-			heightInPixels = KViewerTopMostSpaceSmall;
-			}
-			break;
-		case EAknUiZoomLarge:
-			{
-			heightInPixels = KViewerTopMostSpaceLarge;
-			}
-			break;
-		case EAknUiZoomNormal:
-		default:
-			{
-			heightInPixels = KViewerTopMostSpaceNormal;
-			}
-			break;
-		}
-	return heightInPixels;
-	*/
     TAknLayoutRect labelRect;
     labelRect.LayoutRect( ListCmailPaneRect(), AknLayoutScalable_Apps::list_single_cmail_header_caption_pane( 0 ) );
     return labelRect.Rect().Height();
-    // </cmail> Platform layout changes
 	}
 // -----------------------------------------------------------------------------
 // CFSEmailUiLayoutHandler::ViewerRecipientSpaceHeight
@@ -1136,36 +765,9 @@ TInt CFSEmailUiLayoutHandler::ViewerTopMostSpaceHeight() const
 TInt CFSEmailUiLayoutHandler::ViewerRecipientSpaceHeight() const
 	{
 	FUNC_LOG;
-    // <cmail> Platform layout changes
-    /*
-	TAknUiZoom zoomLevel;
-    CAknEnv::Static()->GetCurrentGlobalUiZoom( zoomLevel );
-	TInt heightInPixels = 0;
-  	switch ( zoomLevel )
-		{
-		case EAknUiZoomSmall:
-			{
-			heightInPixels = KViewerRecipientSpaceSmall;
-			}
-			break;
-		case EAknUiZoomLarge:
-			{
-			heightInPixels = KViewerRecipientSpaceLarge;
-			}
-			break;
-		case EAknUiZoomNormal:
-		default:
-			{
-			heightInPixels = KViewerRecipientSpaceNormal;
-			}
-			break;
-		}
-	return heightInPixels;
-	*/
     TAknLayoutRect labelRect;
     labelRect.LayoutRect( ListCmailPaneRect(), AknLayoutScalable_Apps::list_single_cmail_header_detail_pane( 0 ) );
     return labelRect.Rect().Height();
-    // </cmail> Platform layout changes
 	}
 
 // -----------------------------------------------------------------------------
@@ -1174,34 +776,7 @@ TInt CFSEmailUiLayoutHandler::ViewerRecipientSpaceHeight() const
 TInt CFSEmailUiLayoutHandler::ViewerHeaderInfoSpaceHeight() const
 	{
 	FUNC_LOG;
-    // <cmail> Platform layout changes
-    /*
-	TAknUiZoom zoomLevel;
-    CAknEnv::Static()->GetCurrentGlobalUiZoom( zoomLevel );
-	TInt heightInPixels = 0;
-  	switch ( zoomLevel )
-		{
-		case EAknUiZoomSmall:
-			{
-			heightInPixels = KViewerHeaderInfoSpaceSmall;
-			}
-			break;
-		case EAknUiZoomLarge:
-			{
-			heightInPixels = KViewerHeaderInfoSpaceLarge;
-			}
-			break;
-		case EAknUiZoomNormal:
-		default:
-			{
-			heightInPixels = KViewerHeaderInfoSpaceNormal;
-			}
-			break;
-		}
-	return heightInPixels;
-	*/
 	return ViewerTopMostSpaceHeight();
-    // </cmail> Platform layout changes
 	}
 
 // -----------------------------------------------------------------------------
@@ -1210,35 +785,9 @@ TInt CFSEmailUiLayoutHandler::ViewerHeaderInfoSpaceHeight() const
 TInt CFSEmailUiLayoutHandler::ViewerBottomMostSpaceHeight() const
 	{
 	FUNC_LOG;
-    // <cmail> Platform layout changes
-	/*
-	TAknUiZoom zoomLevel;
-    CAknEnv::Static()->GetCurrentGlobalUiZoom( zoomLevel );
-	TInt heightInPixels = 0;
-  	switch ( zoomLevel )
-		{
-		case EAknUiZoomSmall:
-			{
-			heightInPixels = KViewerBottomMostSpaceSmall;
-			}
-			break;
-		case EAknUiZoomLarge:
-			{
-			heightInPixels = KViewerBottomMostSpaceLarge;
-			}
-			break;
-		case EAknUiZoomNormal:
-		default:
-			{
-			heightInPixels = KViewerBottomMostSpaceNormal;
-			}
-			break;
-		}
-	return heightInPixels;
-	*/
 	return ViewerRecipientSpaceHeight();
-    // </cmail> Platform layout changes
 	}
+
 // -----------------------------------------------------------------------------
 // CFSEmailUiLayoutHandler::ViewerMaxRecipientLineCount
 // -----------------------------------------------------------------------------
@@ -1247,6 +796,7 @@ TInt CFSEmailUiLayoutHandler::ViewerMaxRecipientLineCount() const
     FUNC_LOG;
     return KViewerMaxRecipientLineCount;
     }
+
 // -----------------------------------------------------------------------------
 // CFSEmailUiLayoutHandler::ViewerMaxSubjectLineCount
 // -----------------------------------------------------------------------------
@@ -1255,6 +805,7 @@ TInt CFSEmailUiLayoutHandler::ViewerMaxSubjectLineCount() const
     FUNC_LOG;
     return KViewerMaxSubjectLineCount;
     }
+
 // -----------------------------------------------------------------------------
 // CFSEmailUiLayoutHandler::ViewerTitleTextColor
 // -----------------------------------------------------------------------------
@@ -1263,16 +814,14 @@ TRgb CFSEmailUiLayoutHandler::ViewerTitleTextColor() const
     FUNC_LOG;
     MAknsSkinInstance* skin = AknsUtils::SkinInstance();
     TRgb textColor;
-    // <cmail> S60 Skin support
     if (AknsUtils::GetCachedColor( skin, textColor,
 		KAknsIIDQsnTextColors, EAknsCIQsnTextColorsCG6 ) != KErrNone )
         {
         textColor = KBlackFallbackTextColor;
         }
-    // </cmail>
-
     return textColor;
 	}
+
 // -----------------------------------------------------------------------------
 // CFSEmailUiLayoutHandler::ViewerTextTextColor
 // -----------------------------------------------------------------------------
@@ -1281,16 +830,14 @@ TRgb CFSEmailUiLayoutHandler::ViewerTextTextColor() const
     FUNC_LOG;
     MAknsSkinInstance* skin = AknsUtils::SkinInstance();
     TRgb textColor;
-    // <cmail> S60 Skin support
     if (AknsUtils::GetCachedColor( skin, textColor,
 		KAknsIIDQsnTextColors, EAknsCIQsnTextColorsCG6 ) != KErrNone )
     	{
         textColor = KBlackFallbackTextColor;
         }
-	// </cmail>
-
     return textColor;
 	}
+
 // -----------------------------------------------------------------------------
 // CFSEmailUiLayoutHandler::ViewerBodyTextColor
 // -----------------------------------------------------------------------------
@@ -1300,13 +847,13 @@ TRgb CFSEmailUiLayoutHandler::ViewerBodyTextColor() const
     MAknsSkinInstance* skin = AknsUtils::SkinInstance();
     TRgb textColor;
     if ( AknsUtils::GetCachedColor( skin, textColor,
-            //KAknsIIDFsTextColors, EAknsCIFsTextColorsCG3 ) != KErrNone )
-            KAknsIIDQsnTextColors, EAknsCIQsnTextColorsCG13 ) != KErrNone ) // <cmail>
+            KAknsIIDQsnTextColors, EAknsCIQsnTextColorsCG13 ) != KErrNone )
         {
         textColor = KBlackFallbackTextColor;
         }
     return textColor;
 	}
+
 // -----------------------------------------------------------------------------
 // CFSEmailUiLayoutHandler::ViewerNormalHotspotTextColor
 // -----------------------------------------------------------------------------
@@ -1315,17 +862,15 @@ TRgb CFSEmailUiLayoutHandler::ViewerNormalHotspotTextColor() const
     FUNC_LOG;
     MAknsSkinInstance* skin = AknsUtils::SkinInstance();
     TRgb textColor;
-    // <cmail> S60 Skin support
 	if ( AknsUtils::GetCachedColor( skin, textColor,
             KAknsIIDQsnHighlightColors,
 		EAknsCIQsnHighlightColorsCG3 ) != KErrNone )
 		{
         textColor = KLightBlueFallbackTextColor;
         }
-	// </cmail>
-
     return textColor;
 	}
+
 // -----------------------------------------------------------------------------
 // CFSEmailUiLayoutHandler::ViewerHighlightedHotspotTextColor
 // -----------------------------------------------------------------------------
@@ -1334,15 +879,12 @@ TRgb CFSEmailUiLayoutHandler::ViewerHighlightedHotspotTextColor() const
     FUNC_LOG;
     MAknsSkinInstance* skin = AknsUtils::SkinInstance();
     TRgb textColor;
-    // <cmail> S60 Skin support
 	if ( AknsUtils::GetCachedColor( skin, textColor,
-			KAknsIIDQsnHighlightColors,
-			EAknsCIQsnHighlightColorsCG3 ) != KErrNone )
+			KAknsIIDQsnHighlightColors, EAknsCIQsnHighlightColorsCG3 ) 
+                != KErrNone )
 		{
         textColor = KLightBlueFallbackTextColor;
         }
-	// </cmail>
-
     return textColor;
 	}
 // -----------------------------------------------------------------------------
@@ -1360,16 +902,13 @@ TRgb CFSEmailUiLayoutHandler::ViewerSentTextColor() const
         }
     return textColor;
 	}
+
 // -----------------------------------------------------------------------------
 // CFSEmailUiLayoutHandler::ViewerPixelsBetweenMsgStatusIconAndSubject
 // -----------------------------------------------------------------------------
 TInt CFSEmailUiLayoutHandler::ViewerPixelsBetweenMsgStatusIconAndSubject() const
 	{
 	FUNC_LOG;
-    // <cmail> Platform layout changes
-    /*
-    return KViewerSpaceBetweenIconAndSubject;
-    */
     const TRect cmailPaneRect( ListCmailPaneRect() );
     TAknLayoutRect layoutRect;
     layoutRect.LayoutRect( cmailPaneRect, AknLayoutScalable_Apps::list_single_cmail_header_detail_pane( 0 ) );
@@ -1383,8 +922,6 @@ TInt CFSEmailUiLayoutHandler::ViewerPixelsBetweenMsgStatusIconAndSubject() const
         {
         return Abs( cmailPaneRect.iTl.iX - iconRect.Rect().iTl.iX );
         }
-        
-    // </cmail> Platform layout changes
 	}
 
 // -----------------------------------------------------------------------------
@@ -1393,15 +930,10 @@ TInt CFSEmailUiLayoutHandler::ViewerPixelsBetweenMsgStatusIconAndSubject() const
 TSize CFSEmailUiLayoutHandler::ViewerIconSize() const
 	{
 	FUNC_LOG;
-	// <cmail> Platform layout changes
-	/*
-	return KViewerIconSize;
-	*/
     TAknLayoutRect layoutRect;
     layoutRect.LayoutRect( ListCmailPaneRect(), AknLayoutScalable_Apps::list_single_cmail_header_detail_pane( 0 ) );
     layoutRect.LayoutRect( layoutRect.Rect(), AknLayoutScalable_Apps::list_single_cmail_header_detail_pane_g1( 2 ) );
     return layoutRect.Rect().Size();
-	// </cmail> Platform layout changes
 	}
 // -----------------------------------------------------------------------------
 // CFSEmailUiLayoutHandler::ViewerIndentationIconSize
@@ -1409,12 +941,7 @@ TSize CFSEmailUiLayoutHandler::ViewerIconSize() const
 TSize CFSEmailUiLayoutHandler::ViewerIndentationIconSize() const
 	{
 	FUNC_LOG;
-    // <cmail> Platform layout changes
-    /*
-    return KViewerTransparentIndentationIconSize;
-    */
 	return ViewerIconSize();
-    // </cmail> Platform layout changes
 	}
 // -----------------------------------------------------------------------------
 // CFSEmailUiLayoutHandler::ViewerActionMenuIconSize
@@ -1422,15 +949,10 @@ TSize CFSEmailUiLayoutHandler::ViewerIndentationIconSize() const
 TSize CFSEmailUiLayoutHandler::ViewerActionMenuIconSize() const
     {
 	FUNC_LOG;
-    // <cmail> Platform layout changes
-    /*
-    return KViewerActionMenuIconSize;
-    */
     TAknLayoutRect layoutRect;
     layoutRect.LayoutRect( ListCmailPaneRect(), AknLayoutScalable_Apps::list_single_cmail_header_detail_pane( 0 ) );
     layoutRect.LayoutRect( layoutRect.Rect(), AknLayoutScalable_Apps::list_single_cmail_header_detail_pane_g2( 0 ) );
     return layoutRect.Rect().Size();
-    // </cmail> Platform layout changes
     }
 
 // -----------------------------------------------------------------------------
@@ -1493,62 +1015,6 @@ TInt CFSEmailUiLayoutHandler::ViewerLeftMarginInPixels() const
     captionTextRect.LayoutText( layoutRect.Rect(), AknLayoutScalable_Apps::list_single_cmail_header_caption_pane_t1() );
     return Abs( cmailPaneRect.iTl.iX - captionTextRect.TextRect().iTl.iX );
     }
-
-// -----------------------------------------------------------------------------
-// CFSEmailUiLayoutHandler::ViewerWaterMarkSizeInThisResolution
-// -----------------------------------------------------------------------------
-TSize CFSEmailUiLayoutHandler::ViewerWaterMarkSizeInThisResolution() const
-	{
-    FUNC_LOG;
-	TSize sizeWithCurrentResolution;
-	// For now, set same size with all resolutions
-	switch ( iScreenResolution )
-		{
- 		case ELowResPortrait:
-		case EQvgaPortrait:
- 		case EVgaPortrait:
-  		case EHvgaPortrait:
- 		case EDrPortrait:
- 		case ELowResLandscape:
- 		case EQvgaLandscape:
-		case EVgaLandscape:	
-		case EHvgaLandscape:	
- 		case EDrLandscape:
- 		case EWideLandscape:
-		default:
-		    sizeWithCurrentResolution = KViewerDefaultWaterMarkSizeInViewer;
-		    break;
-		}
-	return sizeWithCurrentResolution;
-	}
-
-// -----------------------------------------------------------------------------
-// CFSEmailUiLayoutHandler::ViewerWaterMarkPositionFromBottomRightCornerInThisResolution
-// -----------------------------------------------------------------------------
-TPoint CFSEmailUiLayoutHandler::ViewerWaterMarkPlaceFromBottomRightCornerInThisResolution() const
-	{
-    FUNC_LOG;
-	TPoint placeFromBottomRightCorner;
-	// For now, set place with all resolutions
-	switch ( iScreenResolution )
-		{
- 		case ELowResPortrait:
-		case EQvgaPortrait:
- 		case EVgaPortrait:
-  		case EHvgaPortrait:
- 		case EDrPortrait:
- 		case ELowResLandscape:
- 		case EQvgaLandscape:
-		case EVgaLandscape:	
-		case EHvgaLandscape:	
- 		case EDrLandscape:
- 		case EWideLandscape:
-		default:
-		    placeFromBottomRightCorner = KViewerWaterMarkPositionFromBottomRightCorner;
-		    break;
-		}
-	return placeFromBottomRightCorner;
-	}
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiLayoutHandler::ComposerFieldBorderColor
@@ -1954,10 +1420,9 @@ TRect CFSEmailUiLayoutHandler::GetListRect( TBool aControlsOnTop ) const
     // if control bar is required, reserve space on top of the listbox  
     if( aControlsOnTop && landscape )
         {
-        TAknLayoutRect listRect2;
-        listRect2.LayoutRect( mainPaneRect, 
+        listRect.LayoutRect( mainPaneRect, 
                         AknLayoutScalable_Apps::main_sp_fs_listscroll_pane_te_cp01( 0 ));
-        rect.Intersection(listRect2.Rect());
+        rect = listRect.Rect();
         }
     
     return rect;

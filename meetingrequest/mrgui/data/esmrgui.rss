@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -22,25 +22,60 @@ NAME MRGD
 #include <avkon.rh>
 #include <avkon.rsg>
 #include <avkon.loc>
-#include <AiwCommon.rh>
-#include <AiwGenericParam.hrh>
-#include <AiwCommon.hrh> // for service commands
+#include <aiwcommon.rh>
+#include <aiwgenericparam.hrh>
+#include <aiwcommon.hrh> // for service commands
 
 #include <esmrgui.mbg>
-#include <freestyleemailui.mbg>
-#include <data_caging_paths_strings.hrh>
-//<cmail>
+#include <mrui.loc>
+
 #include "esmrdef.h"
-//</cmail>
 #include "esmrgui.hrh"
 #include "esmrgui.rh"
-//<cmail>
-#include <mrui.loc>
-//</cmail>
-#define MRGUI_ICON_FILE APP_BITMAP_DIR"\\esmrgui.mif"
-#define EMAILUI_ICON_FILE APP_BITMAP_DIR"\\FreestyleEmailUi.mif"
 
 RESOURCE RSS_SIGNATURE { }
+
+// Included resource files
+#include "mrguilocationresources.rss" // r_location_options
+
+
+// ---------------------------------------------------------------------------
+// r_global_toolbar
+// ---------------------------------------------------------------------------
+//
+RESOURCE AVKON_TOOLBAR r_global_toolbar
+    {
+    flags = KAknToolbarFixed;
+    // define empty button set in order for the toolbar to be displayed properly,
+    // buttons will be updated at runtime
+    items =
+        {
+        TBAR_CTRL
+            {
+            type = EAknCtButton;
+            id = 0;
+            control = AVKON_BUTTON
+                {
+                };
+            },
+        TBAR_CTRL
+            {
+            type = EAknCtButton;
+            id = 1;
+            control = AVKON_BUTTON
+                {
+                };
+            },
+        TBAR_CTRL
+            {
+            type = EAknCtButton;
+            id = 2;
+            control = AVKON_BUTTON
+                {
+                };
+            }
+        };
+    }
 
 // ---------------------------------------------------------------------------
 // r_priority_options
@@ -65,38 +100,6 @@ RESOURCE MENU_PANE r_priority_options
             {
             command=EESMRCmdPriorityLow;
             txt=qtn_meet_req_opt_priority_low;
-            }
-        };
-    }
-
-// ---------------------------------------------------------------------------
-// r_location_options
-//
-// ---------------------------------------------------------------------------
-//
-RESOURCE MENU_PANE r_location_options
-    {
-    items =
-        {
-        MENU_ITEM 
-            { 
-            command = EESMRCmdAssignFromMap;   
-            txt = qtn_meet_req_options_assign_from_map; 
-            },
-        MENU_ITEM 
-            { 
-            command = EESMRCmdSearchFromContacts; 
-            txt = qtn_meet_req_options_search_from_contacts; 
-            },
-        MENU_ITEM
-            {
-            command = EESMRCmdPreviousLocations;
-            txt = qtn_meet_req_options_recent_locations;
-            },
-        MENU_ITEM
-            {
-            command = EESMRCmdLandmarks;
-            txt = qtn_meet_req_options_landmarks;
             }
         };
     }
@@ -142,6 +145,11 @@ RESOURCE MENU_PANE r_mr_editor_organizer_menu
             },
         MENU_ITEM
             {
+            command = EESMRCmdSaveCloseMR;
+            txt = qtn_meet_req_opt_save_close;
+            },
+        MENU_ITEM
+            {
             command = EESMRCmdCalEntryUISave;
             txt = qtn_form_litxt_save;
             },
@@ -170,11 +178,11 @@ RESOURCE MENU_PANE r_mr_editor_organizer_menu
             command = EESMRCmdAddAttendees;
             txt = qtn_meet_req_opt_add_participants;
             },
-        MENU_ITEM 
+        MENU_ITEM
             {
-            command = EESMRCmdAddLocation;  
-            txt = qtn_meet_req_options_add_location; 
-            cascade=r_location_options; 
+            command = EESMRCmdAddLocation;
+            txt = qtn_meet_req_options_add_location;
+            cascade=r_location_options;
             },
         MENU_ITEM
             {
@@ -194,13 +202,6 @@ RESOURCE MENU_PANE r_mr_editor_organizer_menu
             },
         MENU_ITEM
             {
-            command = EESMRCmdPrint; // Same ID as in interest.
-            txt = ""; // AIW plugin will set the text.
-            // No submenu if only one item in it
-            cascade = AIW_INTELLIGENT_CASCADE_ID;
-            },
-        MENU_ITEM
-            {
             command = EAknCmdHelp;
             txt = qtn_options_help;
             },
@@ -208,6 +209,28 @@ RESOURCE MENU_PANE r_mr_editor_organizer_menu
             {
             command = EAknCmdExit;
             txt = qtn_options_exit;
+            }
+        };
+    }
+
+// ---------------------------------------------------------------------------
+// r_forward_options
+//
+// ---------------------------------------------------------------------------
+//
+RESOURCE MENU_PANE r_forward_options
+    {
+    items =
+        {
+        MENU_ITEM
+            {
+            command=EESMRCmdForwardAsMeeting;
+            txt= qtn_meet_req_opt_meeting;
+            },
+        MENU_ITEM
+            {
+            command=EESMRCmdForwardAsMail;
+            txt= qtn_meet_req_opt_email;
             }
         };
     }
@@ -283,8 +306,9 @@ RESOURCE MENU_PANE r_mr_viewer_menu
             },
         MENU_ITEM
             {
-            command = EESMRCmdForward;
+            command = EESMRCmdForwardOptions;
             txt = qtn_meet_req_opt_forward;
+            cascade=r_forward_options;
             },
         MENU_ITEM
             {
@@ -301,12 +325,6 @@ RESOURCE MENU_PANE r_mr_viewer_menu
             {
             command = EESMRCmdTodoMarkAsNotDone;
             txt = qtn_calendar_opt_mark_not_done;
-            },
-        MENU_ITEM
-            {
-            command = EESMRCmdMailEmailMoreMenu;
-            txt = qtn_meet_req_options_more;
-            cascade = r_mrviewer_email_menu;
             },
         MENU_ITEM
             {
@@ -338,13 +356,6 @@ RESOURCE MENU_PANE r_mr_viewer_menu
             {
             command = EESMRCmdClipboardCopy;
             txt = qtn_meet_req_options_copy_to_clipboard;
-            },
-        MENU_ITEM
-            {
-            command = EESMRCmdPrint; // Same ID as in interest.
-            txt = ""; // AIW plugin will set the text.
-            // No submenu if only one item in it
-            cascade = AIW_INTELLIGENT_CASCADE_ID;
             },
         MENU_ITEM
             {
@@ -483,13 +494,6 @@ RESOURCE MENU_PANE r_mr_tracking_view_menu
             },
         MENU_ITEM
             {
-            command = EESMRCmdPrint; // Same ID as in interest.
-            txt = ""; // AIW plugin will set the text.
-            // No submenu if only one item in it
-            cascade = AIW_INTELLIGENT_CASCADE_ID;
-            },
-        MENU_ITEM
-            {
             command = EAknCmdHelp;
             txt = qtn_options_help;
             },
@@ -500,6 +504,7 @@ RESOURCE MENU_PANE r_mr_tracking_view_menu
             }
         };
     }
+
 // ---------------------------------------------------------------------------
 // r_response_dialog_softkeys_options_send
 //
@@ -766,8 +771,7 @@ RESOURCE CBA r_mr_viewer_softkeys
     buttons =
         {
         CBA_BUTTON {id=EAknSoftkeyOptions; txt = text_softkey_option;},
-        //CBA_BUTTON {id=EAknSoftkeyClose; txt = text_softkey_close; },
-        CBA_BUTTON {id=EAknSoftkeyClose; txt = text_softkey_back; },
+        CBA_BUTTON {id=EAknSoftkeyClose; txt = text_softkey_close; },
         AVKON_CBA_BUTTON{id=EESMRCmdEdit; longpressid=0; txt= qtn_msk_edit; }
         };
     }
@@ -789,7 +793,7 @@ RESOURCE CBA r_mr_editor_softkeys
         CBA_BUTTON
             {
             id=EAknSoftkeyDone;
-            txt = text_softkey_cancel;
+            txt = text_softkey_done;
             },
         AVKON_CBA_BUTTON
             {
@@ -873,26 +877,24 @@ RESOURCE CBA_BUTTON r_mr_add_softkey
     txt = qtn_msk_add;
     }
 
-// ---------------------------------------------------------------------------
-// r_ps_aiw_interest
+// --------------------------------------------------------------------------
+// r_mr_send_softkey
+// --------------------------------------------------------------------------
 //
-// ---------------------------------------------------------------------------
-//
-RESOURCE AIW_INTEREST r_ps_aiw_interest
+RESOURCE CBA_BUTTON r_mr_send_softkey
     {
-    items =
-        {
-        // This application is interested in calling from menu.
-        AIW_CRITERIA_ITEM
-            {
-            id = EESMRCmdPrint;
-            serviceCmd = KAiwCmdPrint;
-            serviceClass = KAiwClassMenu;
-            contentType = ".cal";
-            defaultProvider = 0x102085EB; // Printing Framework AIW
-            maxProviders = 1;
-            }
-        };
+    id=EAknSoftkeySend;
+	txt = qtn_meet_req_softkey_send;
+    }
+
+// --------------------------------------------------------------------------
+// r_mr_done_softkey
+// --------------------------------------------------------------------------
+//
+RESOURCE CBA_BUTTON r_mr_done_softkey
+    {
+    id=EAknSoftkeyDone;
+    txt = text_softkey_done;
     }
 
 // ---------------------------------------------------------------------------
@@ -1250,6 +1252,38 @@ RESOURCE ESMR_SYNC_TABLE r_esmreditor_sync
                 };
         }
 
+RESOURCE ESMR_UNIFIED_TABLE r_esmreditor_unified
+        {
+        unified =
+                {
+                ESMR_UNIFIED
+                        {
+                        id = EESMREventTypeMeetingRequest;
+                        txt = r_qtn_meet_req_title_meeting;
+                        },
+                ESMR_UNIFIED
+                        {
+                        id = EESMREventTypeAppt;
+                        txt = r_qtn_calendar_title_meeting;
+                        },
+                ESMR_UNIFIED
+                        {
+                        id = EESMREventTypeEEvent;
+                        txt = r_qtn_calendar_title_memo;
+                        },
+                ESMR_UNIFIED
+                        {
+                        id = EESMREventTypeEAnniv;
+                        txt = r_qtn_calendar_title_anniversary;
+                        },
+                ESMR_UNIFIED
+                        {
+                        id = EESMREventTypeETodo;
+                        txt = r_qtn_calendar_title_todo;
+                        }
+                };
+        }
+
 RESOURCE ESMR_PRIORITY_TABLE r_esmreditor_priority
     {
     priority =
@@ -1299,10 +1333,6 @@ RESOURCE TBUF r_qtn_form_quest_save_changes
     {
     buf = qtn_form_quest_save_changes;
     }
-RESOURCE TBUF r_qtn_fs_action_recipient
-    {
-    buf = qtn_fs_action_recipient;
-    }
 RESOURCE TBUF r_qtn_meet_req_info_note_ends_before
     {
     buf = qtn_meet_req_info_note_ends_before;
@@ -1319,10 +1349,6 @@ RESOURCE TBUF r_qtn_meet_req_plain_text_declined
     {
     buf = qtn_meet_req_plain_text_declined;
     }
-RESOURCE TBUF r_qtn_meet_req_plain_text_description
-    {
-    buf = qtn_meet_req_plain_text_description;
-    }
 RESOURCE TBUF r_qtn_meet_req_plain_text_forwarded
     {
     buf = qtn_meet_req_plain_text_forwarded;
@@ -1338,22 +1364,6 @@ RESOURCE TBUF r_qtn_meet_req_plain_text_update
 RESOURCE TBUF r_qtn_meet_req_recurring_daily
     {
     buf = qtn_meet_req_recurring_daily;
-    }
-RESOURCE TBUF r_qtn_meet_req_add_optional
-    {
-    buf = qtn_meet_req_add_optional;
-    }
-RESOURCE TBUF r_qtn_meet_req_add_optional_act
-    {
-    buf = qtn_meet_req_add_optional_act;
-    }
-RESOURCE TBUF r_qtn_meet_req_add_required
-    {
-    buf = qtn_meet_req_add_required;
-    }
-RESOURCE TBUF r_qtn_meet_req_add_required_act
-    {
-    buf = qtn_meet_req_add_required_act;
     }
 RESOURCE TBUF r_qtn_meet_req_alarm_days
     {
@@ -1423,25 +1433,9 @@ RESOURCE TBUF r_qtn_meet_req_edit_before_send
     {
     buf = qtn_meet_req_edit_before_send;
     }
-RESOURCE TBUF r_qtn_meet_req_label_accept
-    {
-    buf = qtn_meet_req_label_accept;
-    }
-RESOURCE TBUF r_qtn_meet_req_label_cancelled
-    {
-    buf = qtn_meet_req_label_cancelled;
-    }
-RESOURCE TBUF r_qtn_meet_req_label_decline
-    {
-    buf = qtn_meet_req_label_decline;
-    }
 RESOURCE TBUF r_qtn_meet_req_label_from
     {
     buf = qtn_meet_req_label_from;
-    }
-RESOURCE TBUF r_qtn_meet_req_label_fw
-    {
-    buf = qtn_meet_req_label_fw;
     }
 RESOURCE TBUF r_qtn_meet_req_label_opt
     {
@@ -1451,101 +1445,21 @@ RESOURCE TBUF r_qtn_meet_req_label_required
     {
     buf = qtn_meet_req_label_required;
     }
-RESOURCE TBUF r_qtn_meet_req_label_tentative
-    {
-    buf = qtn_meet_req_label_tentative;
-    }
-RESOURCE TBUF r_qtn_meet_req_label_updated
-    {
-    buf = qtn_meet_req_label_updated;
-    }
 RESOURCE TBUF r_qtn_meet_req_location_field
     {
     buf = qtn_meet_req_location_field;
     }
-RESOURCE TBUF r_qtn_meet_req_opt_accept
+RESOURCE TBUF r_qtn_meet_req_opt_email
     {
-    buf = qtn_meet_req_opt_accept;
+    buf = qtn_meet_req_opt_email;
     }
-RESOURCE TBUF r_qtn_meet_req_opt_cancel
+RESOURCE TBUF r_qtn_meet_req_opt_meeting
     {
-    buf = qtn_meet_req_opt_cancel;
-    }
-RESOURCE TBUF r_qtn_meet_req_opt_decline
-    {
-    buf = qtn_meet_req_opt_decline;
-    }
-RESOURCE TBUF r_qtn_meet_req_opt_edit
-    {
-    buf = qtn_meet_req_opt_edit;
-    }
-RESOURCE TBUF r_qtn_meet_req_opt_forward
-    {
-    buf = qtn_meet_req_opt_forward;
-    }
-RESOURCE TBUF r_qtn_meet_req_opt_language
-    {
-    buf = qtn_meet_req_opt_language;
-    }
-RESOURCE TBUF r_qtn_meet_req_opt_message
-    {
-    buf = qtn_meet_req_opt_message;
+    buf = qtn_meet_req_opt_meeting;
     }
 RESOURCE TBUF r_qtn_meet_req_opt_priority
     {
     buf = qtn_meet_req_opt_priority;
-    }
-RESOURCE TBUF r_qtn_meet_req_opt_priority_high
-    {
-    buf = qtn_meet_req_opt_priority_high;
-    }
-RESOURCE TBUF r_qtn_meet_req_opt_priority_low
-    {
-    buf = qtn_meet_req_opt_priority_low;
-    }
-RESOURCE TBUF r_qtn_meet_req_opt_priority_normal
-    {
-    buf = qtn_meet_req_opt_priority_normal;
-    }
-RESOURCE TBUF r_qtn_meet_req_opt_reply
-    {
-    buf = qtn_meet_req_opt_reply;
-    }
-RESOURCE TBUF r_qtn_meet_req_opt_reply_all
-    {
-    buf = qtn_meet_req_opt_reply_all;
-    }
-RESOURCE TBUF r_qtn_meet_req_opt_send
-    {
-    buf = qtn_meet_req_opt_send;
-    }
-RESOURCE TBUF r_qtn_meet_req_opt_send_update
-    {
-    buf = qtn_meet_req_opt_send_update;
-    }
-RESOURCE TBUF r_qtn_meet_req_opt_tentative
-    {
-    buf = qtn_meet_req_opt_tentative;
-    }
-RESOURCE TBUF r_qtn_meet_req_opt_view_cal
-    {
-    buf = qtn_meet_req_opt_view_cal;
-    }
-RESOURCE TBUF r_qtn_meet_req_plain_text_end_time
-    {
-    buf = qtn_meet_req_plain_text_end_time;
-    }
-RESOURCE TBUF r_qtn_meet_req_plain_text_location
-    {
-    buf = qtn_meet_req_plain_text_location;
-    }
-RESOURCE TBUF r_qtn_meet_req_plain_text_start_time
-    {
-    buf = qtn_meet_req_plain_text_start_time;
-    }
-RESOURCE TBUF r_qtn_meet_req_plain_text_subject
-    {
-    buf = qtn_meet_req_plain_text_subject;
     }
 RESOURCE TBUF r_qtn_meet_req_recurrence_event
     {
@@ -1574,6 +1488,18 @@ RESOURCE TBUF r_qtn_meet_req_recurrent_series_delete
 RESOURCE TBUF r_qtn_meet_req_recurrent_this_occurrence_delete
     {
     buf = qtn_meet_req_recurrent_this_occurrence_delete;
+    }
+RESOURCE TBUF r_qtn_meet_req_recurrent_heading_forward
+    {
+    buf = qtn_meet_req_recurrent_heading_forward;
+    }
+RESOURCE TBUF r_qtn_meet_req_recurrent_fw_this_occurrence
+    {
+    buf = qtn_meet_req_recurrent_fw_this_occurrence;
+    }
+RESOURCE TBUF r_qtn_meet_req_fw_recurrent_series
+    {
+    buf = qtn_meet_req_fw_recurrent_series;
     }
 RESOURCE TBUF r_qtn_meet_req_recurring_monthly
     {
@@ -1631,9 +1557,9 @@ RESOURCE TBUF r_qtn_meet_req_response_decline
     {
     buf = qtn_meet_req_response_decline;
     }
-RESOURCE TBUF r_qtn_meet_req_response_remove_calendar_event
+RESOURCE TBUF r_qtn_meet_req_options_remove_from_cal
     {
-    buf = qtn_meet_req_response_remove_calendar_event;
+    buf = qtn_meet_req_options_remove_from_cal;
     }
 RESOURCE TBUF r_qtn_meet_req_response_occurs_past
     {
@@ -1691,10 +1617,6 @@ RESOURCE TBUF r_qtn_meet_req_set_recurrence_header
     {
     buf = qtn_meet_req_set_recurrence_header;
     }
-RESOURCE TBUF r_qtn_meet_req_softkey_send
-    {
-    buf = qtn_meet_req_softkey_send;
-    }
 RESOURCE TBUF r_qtn_meet_req_subject_field
     {
     buf = qtn_meet_req_subject_field;
@@ -1702,10 +1624,6 @@ RESOURCE TBUF r_qtn_meet_req_subject_field
 RESOURCE TBUF r_qtn_meet_req_title
     {
     buf = qtn_meet_req_title;
-    }
-RESOURCE TBUF r_qtn_rcl_opt_add_recipient
-    {
-    buf = qtn_rcl_opt_add_recipient;
     }
 RESOURCE TBUF r_qtn_meet_req_later_date
     {
@@ -1723,57 +1641,9 @@ RESOURCE TBUF r_qtn_calendar_task_sync_public
     {
     buf = qtn_calendar_task_sync_public;
     }
-RESOURCE TBUF r_qtn_calendar_all_day_event
-    {
-    buf = qtn_calendar_all_day_event;
-    }
 RESOURCE TBUF r_qtn_calendar_anniversary_type_occasion
     {
     buf = qtn_calendar_anniversary_type_occasion;
-    }
-RESOURCE TBUF r_qtn_calendar_info_note_ends_before
-    {
-    buf = qtn_calendar_info_note_ends_before;
-    }
-RESOURCE TBUF r_qtn_calendar_meeting_recurring_daily
-    {
-    buf = qtn_calendar_meeting_recurring_daily;
-    }
-RESOURCE TBUF r_qtn_calendar_meeting_alarm_days
-    {
-    buf = qtn_calendar_meeting_alarm_days;
-    }
-RESOURCE TBUF r_qtn_calendar_meeting_alarm_hour
-    {
-    buf = qtn_calendar_meeting_alarm_hour;
-    }
-RESOURCE TBUF r_qtn_calendar_meeting_alarm_hours
-    {
-    buf = qtn_calendar_meeting_alarm_hours;
-    }
-RESOURCE TBUF r_qtn_calendar_meeting_alarm_minutes
-    {
-    buf = qtn_calendar_meeting_alarm_minutes;
-    }
-RESOURCE TBUF r_qtn_calendar_meeting_alarm_off
-    {
-    buf = qtn_calendar_meeting_alarm_off;
-    }
-RESOURCE TBUF r_qtn_calendar_meeting_alarm_one_day
-    {
-    buf = qtn_calendar_meeting_alarm_one_day;
-    }
-RESOURCE TBUF r_qtn_calendar_meeting_alarm_one_week
-    {
-    buf = qtn_calendar_meeting_alarm_one_week;
-    }
-RESOURCE TBUF r_qtn_calendar_meeting_details_field
-    {
-    buf = qtn_calendar_meeting_details_field;
-    }
-RESOURCE TBUF r_qtn_calendar_meeting_location_field
-    {
-    buf = qtn_calendar_meeting_location_field;
     }
 RESOURCE TBUF r_qtn_calendar_meeting_opt_priority_high
     {
@@ -1786,54 +1656,6 @@ RESOURCE TBUF r_qtn_calendar_meeting_opt_priority_low
 RESOURCE TBUF r_qtn_calendar_meeting_opt_priority_normal
     {
     buf = qtn_calendar_meeting_opt_priority_normal;
-    }
-RESOURCE TBUF r_qtn_calendar_meeting_recurring_monthly
-    {
-    buf = qtn_calendar_meeting_recurring_monthly;
-    }
-RESOURCE TBUF r_qtn_calendar_meeting_recurring_not
-    {
-    buf = qtn_calendar_meeting_recurring_not;
-    }
-RESOURCE TBUF r_qtn_calendar_meeting_recurring_sec_week
-    {
-    buf = qtn_calendar_meeting_recurring_sec_week;
-    }
-RESOURCE TBUF r_qtn_calendar_meeting_recurring_weekly
-    {
-    buf = qtn_calendar_meeting_recurring_weekly;
-    }
-RESOURCE TBUF r_qtn_calendar_meeting_recurring_yearly
-    {
-    buf = qtn_calendar_meeting_recurring_yearly;
-    }
-RESOURCE TBUF r_qtn_calendar_meeting_subject_field
-    {
-    buf = qtn_calendar_meeting_subject_field;
-    }
-RESOURCE TBUF r_qtn_calendar_meeting_title
-    {
-    buf = qtn_calendar_meeting_title;
-    }
-RESOURCE TBUF r_qtn_calendar_memo_type_subj
-    {
-    buf = qtn_calendar_memo_type_subj;
-    }
-RESOURCE TBUF r_qtn_calendar_opt_delete
-    {
-    buf = qtn_calendar_opt_delete;
-    }
-RESOURCE TBUF r_qtn_calendar_opt_delete_entry
-    {
-    buf = qtn_calendar_opt_delete_entry;
-    }
-RESOURCE TBUF r_qtn_calendar_task_alarm_off
-    {
-    buf = qtn_calendar_task_alarm_off;
-    }
-RESOURCE TBUF r_qtn_calendar_task_alarm_on
-    {
-    buf = qtn_calendar_task_alarm_on;
     }
 RESOURCE TBUF r_qtn_calendar_task_priority_high
     {
@@ -1875,37 +1697,9 @@ RESOURCE TBUF r_qtn_calendar_title_todo
     {
     buf = qtn_calendar_title_todo;
     }
-RESOURCE TBUF r_qtn_calendar_todo_type_description
-    {
-    buf = qtn_calendar_todo_type_description;
-    }
-RESOURCE TBUF r_qtn_calendar_todo_type_subj
-    {
-    buf = qtn_calendar_todo_type_subj;
-    }
-RESOURCE TBUF r_qtn_fldr_delete
-    {
-    buf = qtn_fldr_delete;
-    }
-RESOURCE TBUF r_qtn_form_litxt_save
-    {
-    buf = qtn_form_litxt_save;
-    }
-RESOURCE TBUF r_qtn_meet_reg_opt_language
-    {
-    buf = qtn_meet_reg_opt_language;
-    }
-RESOURCE TBUF r_qtn_options_delete
-    {
-    buf = qtn_options_delete;
-    }
 RESOURCE TBUF r_qtn_meet_req_show_all
     {
     buf = qtn_meet_req_show_all;
-    }
-RESOURCE TBUF r_qtn_meet_req_opt_actions
-    {
-    buf = qtn_meet_req_opt_actions;
     }
 RESOURCE TBUF r_qtn_meet_req_viewer_options_open_in_web
     {
@@ -1927,10 +1721,6 @@ RESOURCE TBUF r_qtn_calendar_bookmark_saved
     {
     buf = qtn_calendar_bookmark_saved;
     }
-RESOURCE TBUF r_qtn_meet_req_actions_remote_lookup
-    {
-    buf = qtn_meet_req_actions_remote_lookup;
-    }
 RESOURCE TBUF r_qtn_calendar_alarm_passed
     {
     buf = qtn_calendar_alarm_passed;
@@ -1946,6 +1736,10 @@ RESOURCE TBUF r_qtn_meet_req_conflict_unnamed
 RESOURCE TBUF r_qtn_calendar_task_sync_title
     {
     buf = qtn_calendar_task_sync_title;
+    }
+RESOURCE TBUF r_qtn_calendar_task_unified_title
+    {
+    buf = qtn_calendar_task_unified_title;
     }
 RESOURCE TBUF r_qtn_meet_req_title_meeting
     {
@@ -1975,319 +1769,37 @@ RESOURCE TBUF r_qtn_meet_req_info_start_end_date
     {
     buf = qtn_meet_req_info_start_end_date;
     }
-RESOURCE TBUF r_qtn_calendar_later_date
-    {
-    buf = qtn_calendar_later_date;
-    }
-RESOURCE TBUF r_qtn_calendar_opt_mark_done
-    {
-    buf = qtn_calendar_opt_mark_done;
-    }
-RESOURCE TBUF r_qtn_calendar_opt_mark_not_done
-    {
-    buf = qtn_calendar_opt_mark_not_done;
-    }
-RESOURCE TBUF r_text_calendar_note_saved_msk
-    {
-    buf = text_calendar_note_saved;
-    }
 RESOURCE TBUF r_qtn_meet_req_note_attachments
     {
     buf = qtn_meet_req_note_attachments;
-    }
-RESOURCE TBUF r_qtn_fse_viewer_header_attachment
-    {
-    buf = qtn_fse_viewer_header_attachment;
-    }
-RESOURCE TBUF r_qtn_fse_viewer_header_attachment_less_than_kb
-    {
-    buf = qtn_fse_viewer_header_attachment_less_than_kb;
-    }
-RESOURCE TBUF r_qtn_fse_viewer_header_attachments_total
-    {
-    buf = qtn_fse_viewer_header_attachments_total;
-    }
-RESOURCE TBUF r_qtn_fse_viewer_header_attachments_less_than_kb
-    {
-    buf = qtn_fse_viewer_header_attachments_less_than_kb;
     }
 RESOURCE TBUF r_qtn_options_open
     {
     buf = qtn_options_open;
     }
-// <cmail> 
-RESOURCE TBUF r_qtn_meet_req_viewer_options_attach_open
-    {
-    buf = qtn_meet_req_viewer_options_attach_open;
-    }
-RESOURCE TBUF r_qtn_meet_req_viewer_options_attach_view_list
-    {
-    buf = qtn_meet_req_viewer_options_attach_view_list;
-    }
-// </cmail>
-RESOURCE TBUF r_qtn_meet_req_viewer_options_attach_download
-    {
-    buf = qtn_meet_req_viewer_options_attach_download;
-    }
-RESOURCE TBUF r_qtn_meet_req_viewer_options_attach_cancel_download
-    {
-    buf = qtn_meet_req_viewer_options_attach_cancel_download;
-    }
-RESOURCE TBUF r_qtn_meet_req_viewer_options_attach_save
-    {
-    buf = qtn_meet_req_viewer_options_attach_save;
-    }
-RESOURCE TBUF r_qtn_meet_req_viewer_options_attach_download_all
-    {
-    buf = qtn_meet_req_viewer_options_attach_download_all;
-    }
-RESOURCE TBUF r_qtn_meet_req_viewer_options_attach_cancel_all_downloads
-    {
-    buf = qtn_meet_req_viewer_options_attach_cancel_all_downloads;
-    }
-RESOURCE TBUF r_qtn_meet_req_viewer_options_attach_save_all
-    {
-    buf = qtn_meet_req_viewer_options_attach_save_all;
-    }
-RESOURCE TBUF r_qtn_meet_req_viewer_cancel_download_query
-    {
-    buf = qtn_meet_req_viewer_cancel_download_query;
-    }
-RESOURCE TBUF r_qtn_meet_req_viewer_cancel_downloads_query
-    {
-    buf = qtn_meet_req_viewer_cancel_downloads_query;
-    }
-RESOURCE TBUF r_qtn_meet_req_options_remove_from_cal
-    {
-    buf = qtn_meet_req_options_remove_from_cal;
-    }
-
-
-//
-//FOR MR EDITOR ATTENDEE FIELD, FROM FSEMAILUI
-//
-RESOURCE TBUF r_meet_req_editor_add_to_contacts
-    {
-    buf=qtn_meet_req_editor_options_add_to_contacts;
-    }
-RESOURCE TBUF r_meet_req_editor_create_new_contact
-    {
-    buf=qtn_meet_req_editor_options_add_to_contacts_create_new;
-    }
-RESOURCE TBUF r_meet_req_editor_update_existing
-    {
-    buf=qtn_meet_req_editor_options_add_to_contacts_update_existing;
-    }
-RESOURCE TBUF r_meet_req_editor_fetch_from_remote_query
-    {
-    buf=qtn_meet_req_editor_no_phone_number_found_search_server;
-    }
-RESOURCE TBUF r_meet_req_editor_no_phone_number
-    {
-    buf=qtn_meet_req_editor_error_general_no_phone_number;
-    }
 RESOURCE TBUF r_meet_req_editor_address_list_remote_lookup_search
     {
     buf=qtn_meet_req_editor_address_list_remote_lookup_search;
     }
-RESOURCE TBUF r_qtn_meet_req_options_download_mgr
+RESOURCE TBUF r_meet_req_instance_starts_earlier_than_series
     {
-    buf = qtn_meet_req_options_download_mgr;
+    buf = qtn_meet_req_instance_starts_earlier_than_series;
     }
-RESOURCE TBUF r_qtn_meet_req_options_copy_to_clipboard
+RESOURCE TBUF r_meet_req_instance_already_exists_on_this_day
     {
-    buf = qtn_meet_req_options_copy_to_clipboard;
+    buf = qtn_meet_req_instance_already_exists_on_this_day;
     }
-// <cmail> Action menu items for attachments
-RESOURCE TBUF r_qtn_meet_req_viewer_action_attach_open
+RESOURCE TBUF r_meet_req_instance_overlaps_existing_instance
     {
-    buf = qtn_meet_req_viewer_options_attach_open;
+    buf = qtn_meet_req_instance_overlaps_existing_instance;
     }
-RESOURCE TBUF r_qtn_meet_req_viewer_action_attach_download
+RESOURCE TBUF r_meet_req_instance_out_of_sequence
     {
-    buf = qtn_meet_req_viewer_options_attach_download;
+    buf = qtn_meet_req_instance_out_of_sequence;
     }
-RESOURCE TBUF r_qtn_meet_req_viewer_action_attach_save
+RESOURCE TBUF r_qtn_calendar_opt_delete_entry
     {
-    buf = qtn_meet_req_viewer_options_attach_save;
-    }
-RESOURCE TBUF r_qtn_meet_req_viewer_action_attach_cancel_download
-    {
-    buf = qtn_meet_req_viewer_options_attach_cancel_download;
-    }
-RESOURCE TBUF r_qtn_meet_req_viewer_action_attach_view_list
-    {
-    buf = qtn_meet_req_viewer_options_attach_view_list;
-    }
-RESOURCE TBUF r_qtn_meet_req_viewer_action_attach_download_all
-    {
-    buf = qtn_meet_req_viewer_options_attach_download_all;
-    }
-RESOURCE TBUF r_qtn_meet_req_viewer_action_attach_save_all
-    {
-    buf = qtn_meet_req_viewer_options_attach_save_all;
-    }
-RESOURCE TBUF r_qtn_meet_req_viewer_action_attach_cancel_all_downloads
-    {
-    buf = qtn_meet_req_viewer_options_attach_cancel_all_downloads;
-    }
-// MSKs for attachments
-RESOURCE TBUF r_qtn_msk_download
-    {
-    buf = qtn_msk_download;
-    }
-RESOURCE TBUF r_qtn_msk_viewlist
-    {
-    buf = qtn_msk_viewlist;
-    }
-// </cmail>
-
-//
-// LOCATION INTEGRATION STRINGS:
-//
-RESOURCE TBUF r_meet_req_replace_previous_location
-    {
-    buf = qtn_meet_req_replace_previous_location;
-    }
-RESOURCE TBUF r_meet_req_new_location_format
-    {
-    buf = qtn_meet_req_new_location_format;
-    }
-RESOURCE TBUF r_meet_req_address_street_city
-    {
-    buf = qtn_meet_req_address_street_city;
-    }
-RESOURCE TBUF r_qtn_meet_req_loc_address_selection_title
-    {
-    buf = qtn_meet_req_loc_address_selection_title;
-    }
-RESOURCE TBUF r_qtn_meet_req_recent_locations_selection_title
-    {
-    buf = qtn_meet_req_recent_locations_selection_title;
-    }
-RESOURCE TBUF r_qtn_meet_req_assign_updated_location
-    {
-    buf = qtn_meet_req_assign_updated_location;
-    }
-
-// Editor Options menu item texts if r_location_options not available
-RESOURCE TBUF r_meet_req_options_assign_from_map
-    {
-    buf = qtn_meet_req_options_assign_from_map; 
-    }
-RESOURCE TBUF r_meet_req_options_search_from_contacts
-    {
-    buf = qtn_meet_req_options_search_from_contacts;
-    }
-RESOURCE TBUF r_meet_req_options_previous_locations
-    {
-    buf = qtn_meet_req_options_recent_locations;
-    }
-RESOURCE TBUF r_meet_req_options_landmarks
-    {
-    buf = qtn_meet_req_options_landmarks;
-    }
-
-RESOURCE TBUF r_meet_req_address_from_contacts_format
-    {
-    buf = qtn_meet_req_address_from_contacts_format;
-    }
-RESOURCE TBUF r_meet_req_address_from_contacts_three_items
-    {
-    buf = qtn_meet_req_address_from_contacts_three_items;
-    }
-RESOURCE TBUF r_meet_req_address_from_contacts_two_items
-    {
-    buf = qtn_meet_req_address_from_contacts_two_items;
-    }
-RESOURCE TBUF r_meet_req_home_address
-    {
-    buf = qtn_meet_req_home_address;
-    }
-RESOURCE TBUF r_meet_req_work_address
-    {
-    buf = qtn_meet_req_work_address;
-    }
-RESOURCE TBUF r_meet_req_general_address
-    {
-    buf = qtn_meet_req_general_address;
-    }
-RESOURCE TBUF r_meet_req_no_address_found
-    {
-    buf = qtn_meet_req_address_not_found;
-    }
-
-// Editor context menu pane
-RESOURCE MENU_PANE r_mr_editor_location_menu
-    {
-    items =
-        {
-        MENU_ITEM
-            {
-            txt = qtn_meet_req_options_assign_from_map;
-            command = EESMRCmdAssignFromMap;
-            },
-        MENU_ITEM
-            {
-            command = EESMRCmdSearchFromContacts;
-            txt = qtn_meet_req_options_search_from_contacts;
-            },
-        MENU_ITEM
-            {
-            command = EESMRCmdPreviousLocations;
-            txt = qtn_meet_req_options_recent_locations;
-            },
-        MENU_ITEM
-            {
-            command = EESMRCmdLandmarks;
-            txt = qtn_meet_req_options_landmarks;
-            }
-        };
-    }
-
-// Editor context menu bar
-RESOURCE MENU_BAR r_mr_editor_context_menu
-    {
-    titles =
-        {
-        MENU_TITLE
-            {
-            menu_pane = r_mr_editor_location_menu;
-            }
-        };
-    }
-
-// Viewer context menu pane
-RESOURCE MENU_PANE r_mr_viewer_location_menu
-    {
-    items =
-        {
-        MENU_ITEM
-            {
-            command = EESMRCmdEdit;
-            txt = qtn_meet_req_opt_edit;
-            },
-        MENU_ITEM
-            {
-            command = EESMRCmdEditLocal;
-            txt = qtn_meet_req_opt_edit;
-            },            
-        MENU_ITEM
-           {
-           command = EESMRCmdCalEntryUIEdit;
-           txt = qtn_meet_req_opt_edit;
-           },
-        MENU_ITEM
-            {
-            command = EESMRCmdShowOnMap;
-            txt = qtn_meet_req_options_show_on_map;
-            },
-        MENU_ITEM
-            {
-            command = EESMRCmdSearchFromMap;
-            txt = qtn_meet_req_options_search_from_map;
-            }
-        };
+    buf = qtn_calendar_opt_delete_entry;
     }
 
 // Viewer context menu bar
@@ -2297,15 +1809,50 @@ RESOURCE MENU_BAR r_mr_viewer_context_menu
         {
         MENU_TITLE
             {
+            menu_pane = r_action_menu;
+            },
+        MENU_TITLE
+            {
             menu_pane = r_mr_viewer_location_menu;
             }
         };
     }
 
-// Description field link
-RESOURCE TBUF r_meet_req_link_show_on_map
+// Tracking View context menu bar
+RESOURCE MENU_BAR r_mr_tracking_view_context_menu
     {
-    buf = qtn_meet_req_link_show_on_map;
+    titles =
+        {
+        MENU_TITLE
+            {
+            menu_pane = r_action_menu;
+            }
+        };
+    }
+
+// Editor attendee field context menu bar
+RESOURCE MENU_BAR r_mr_editor_attendee_context_menu
+    {
+    titles =
+        {
+        MENU_TITLE
+            {
+            menu_pane = r_mr_editor_attendee_menu;
+            }
+        };
+    }
+
+// Viewer context menu pane
+RESOURCE MENU_PANE r_mr_editor_attendee_menu
+    {
+    items =
+        {
+        MENU_ITEM
+            {
+            command = EESMRCmdAttendeeInsertContact;
+            txt = qtn_meet_req_add_attendees_from_contacts;
+            }
+        };
     }
 
 // Reschedule instance information note
@@ -2320,68 +1867,13 @@ RESOURCE TBUF r_qtn_meet_req_long_description
 	buf = qtn_meet_req_long_description;
 	}
 
-// send button for meeting request response editor
-RESOURCE AVKON_BUTTON r_send_button
+// Display multi calendar query list title
+RESOURCE TBUF r_qtn_calendar_task_calendar_title
     {
-    flags  = KAknButtonSizeFitText;
-    states =
-        {
-        AVKON_BUTTON_STATE
-            {
-            helptxt = qtn_meet_req_opt_send;
-            bmpfile = EMAILUI_ICON_FILE;
-            bmpid=EMbmFreestyleemailuiQgn_indi_tb_msg_send;
-            bmpmask=EMbmFreestyleemailuiQgn_indi_tb_msg_send_mask;                        
-            }
-        };
+    buf = qtn_calendar_task_calendar_title;
     }
 
-// accept button for meeting request
-RESOURCE AVKON_BUTTON r_accept_button
-    {
-    flags  = KAknButtonSizeFitText;
-    states =
-        {
-        AVKON_BUTTON_STATE
-            {
-            helptxt = qtn_meet_req_response_accept;
-            bmpfile = MRGUI_ICON_FILE;
-            bmpid=EMbmEsmrguiQgn_indi_tb_email_accept;
-            bmpmask=EMbmEsmrguiQgn_indi_tb_email_accept_mask;
-            }
-        };
-    }
-
-// tentative button for meeting request
-RESOURCE AVKON_BUTTON r_tentative_button
-    {
-    flags  = KAknButtonSizeFitText;
-    states =
-        {
-        AVKON_BUTTON_STATE
-            {
-            helptxt = qtn_meet_req_response_tentative;
-            bmpfile = MRGUI_ICON_FILE;
-            bmpid=EMbmEsmrguiQgn_indi_tb_email_tentative;
-            bmpmask=EMbmEsmrguiQgn_indi_tb_email_tentative_mask;                        
-            }
-        };
-    }
-
-// decline button for meeting request
-RESOURCE AVKON_BUTTON r_decline_button
-    {
-    flags  = KAknButtonSizeFitText;
-    states =
-        {
-        AVKON_BUTTON_STATE
-            {
-            helptxt = qtn_meet_req_response_decline;
-            bmpfile = MRGUI_ICON_FILE;
-            bmpid=EMbmEsmrguiQgn_indi_tb_email_decline;
-            bmpmask=EMbmEsmrguiQgn_indi_tb_email_decline_mask;                        
-            }
-        };
-    }
-
+// Included resource files
+#include "mrguitoolbarresources.rss"
+#include "mrguiattachmentresources.rss"
 // EOF

@@ -1,0 +1,68 @@
+/*
+* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Project definition file exampleremoteattplugin
+*
+*/
+
+#include "../../inc/calremoteattachmentapidefs.h"
+#include "../../inc/esmrinternaluid.h"
+#include "../../../inc/emailtraceconfig.hrh"
+
+#include <data_caging_paths.hrh>
+#include <platform_paths.hrh>
+
+TARGET                  mrcmailremoteattachmentplugin.dll
+TARGETTYPE              PLUGIN
+UID                     KEComRecognitionUID2 KCalRemoteAttachmentAPICMailImpl
+
+CAPABILITY              CAP_ECOM_PLUGIN
+VENDORID                VID_DEFAULT
+
+SOURCEPATH              ../src
+SOURCE                  cmrcmailremoteattachmentplugin.cpp 
+SOURCE                  cmrcmailremoteattachmentpluginattinfofetcher.cpp
+SOURCE                  tmrcmailremoteattachmentpluginurlparser.cpp
+SOURCE                  cmrcmailremoteattachmentplugindownloader.cpp
+SOURCE                  dllmain.cpp
+
+USERINCLUDE             ../inc
+USERINCLUDE             ../../inc
+USERINCLUDE             ../../../inc
+
+APP_LAYER_SYSTEMINCLUDE
+SYSTEMINCLUDE           /epoc32/include/ecom    //TODO: Remove when Cmail headers are fixed
+
+
+
+SOURCEPATH              ../data/
+START RESOURCE          mrcmailremoteattachmentplugin.rss
+TARGET                  mrcmailremoteattachmentplugin.rsc
+END
+
+LIBRARY                 ecom.lib
+LIBRARY                 bafl.lib 
+LIBRARY                 euser.lib
+LIBRARY                 efsrv.lib
+LIBRARY                 cone.lib
+LIBRARY                 remoteattachment.lib
+LIBRARY                 fsmailframework.lib
+LIBRARY                 fsfwcommonlib.lib
+LIBRARY                 inetprotutil.lib
+LIBRARY                 esmrcommon.lib
+
+#if defined( ENABLE_TRACES ) && defined( TRACE_INTO_FILE )
+LIBRARY                 flogger.lib
+#endif // ENABLE_TRACES && TRACE_INTO_FILE
+
+// EOF

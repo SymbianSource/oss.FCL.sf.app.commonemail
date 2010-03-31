@@ -216,6 +216,7 @@ class CIpsPlgImap4FetchAttachmentOp :
             EStateIdle,
             EStateConnecting,
             EStateFetching,
+            EStateWaiting,
             EStateDisconnecting };
         TFetchState iState;
         
@@ -232,7 +233,11 @@ class CIpsPlgImap4FetchAttachmentOp :
         TMsvId                                  iService;
         TBool                                   iPopulated;
         CIpsFetchProgReport*                    iProgReport;
+        // Temporary fix for handling KErrServerBusy errors from the
+        // messaging service.  Remove these once the appropriate observer
+        // mechanism has been implemented in the messaging service.
         TInt                                    iRetryCount;
+        RTimer                                  iRetryTimer;
     };
 
 #endif //__IPSPLGIMAP4FETCHATTACHMENTOP_H__

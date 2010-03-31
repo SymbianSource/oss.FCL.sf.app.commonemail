@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -11,7 +11,7 @@
 *
 * Contributors:
 *
-* Description:  ESMR viewer alarm field for CESMRListComponent
+* Description:  ESMR viewer alarm field.
 *
 */
 
@@ -29,7 +29,7 @@ class CMRLabel;
 /**
  * Field for showing the alarm date.
  */
-NONSHARABLE_CLASS( CESMRViewerAlarmDateField ) : public CESMRField
+NONSHARABLE_CLASS( CESMRViewerAlarmDateField ): public CESMRField
     {
 public:
     /**
@@ -46,23 +46,28 @@ public:
 
 public: // From CESMRField
     void InternalizeL( MESMRCalEntry& aEntry );
-    void InitializeL();
     void SetOutlineFocusL( TBool aFocus );
+    TBool ExecuteGenericCommandL( TInt aCommand );
+    void LockL();
     
 public: // From CCoeControl
     void SizeChanged();
     TInt CountComponentControls() const;
-    CCoeControl* ComponentControl( TInt aIndex ) const;
-
+    CCoeControl* ComponentControl( TInt aIndex ) const;    
 private: // Implementation
     CESMRViewerAlarmDateField();
     void ConstructL();
+    void FormatAlarmTimeL();
     
 private: // Data
     // Owned: Field icon
     CMRImage* iIcon;
-    // Owned: Field text label
+    /// Own: lock icon
+    CMRImage* iLockIcon;
+    // Not own: Field text label
     CMRLabel* iLabel;
+    /// Own: Alarm time
+    TTime iAlarmTime;
     };
 
 #endif // __CESMRVIEWERALARMFIELD_H__

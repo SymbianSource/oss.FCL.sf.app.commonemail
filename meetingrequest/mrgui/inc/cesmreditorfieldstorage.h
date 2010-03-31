@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -40,7 +40,7 @@ public:
      * @param aCommandObserver Reference to command observer
      */
     static CESMREditorFieldStorage* NewL(
-            CESMRPolicy* aPolicy,
+            const CESMRPolicy& aPolicy,
             MESMRFieldEventObserver& aEventObserver );
 
     /**
@@ -59,11 +59,22 @@ public: // from CESMRFieldStorage
      * @return KErrNone if validation succeeds, error code otherwise
      */
     TInt Validate( TESMREntryFieldId& aUpdatedFocus, TBool aForceValidate );
-
+    
+    /**
+     * Adjusts this storage for new policy. Creates fields according to new
+     * policy.
+     * 
+     * @param aNewPolicy the new policy
+     * @param aEntry the entry to edit
+     */
+    void ChangePolicyL(
+            const CESMRPolicy& aNewPolicy,
+            MESMRCalEntry& aEntry );
+    
 private: // Implementation
     CESMREditorFieldStorage(
             MESMRFieldEventObserver& aEventObserver );
-    void ConstructL( CESMRPolicy* aPolicy );
+    void ConstructL( const CESMRPolicy& aPolicy );
 
 private:
     /**

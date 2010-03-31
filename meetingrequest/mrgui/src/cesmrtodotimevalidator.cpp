@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -104,10 +104,7 @@ void SetTimeToEditor(
         aTime = KMaxTTime;
         }
 
-    if ( aEditor.IsVisible() )
-        {
-        aEditor.SetTime( aTime );
-        }
+    aEditor.SetTime( aTime );
     }
 
 /**
@@ -128,15 +125,11 @@ void SetDateToEditor(
         {
         aDate = KMaxTTime;
         }
-
-    if ( aEditor.IsVisible() )
-        {
-        aEditor.SetDate( aDate );
-        }
+    aEditor.SetDate( aDate );
     }
 
 /**
- * Returns the default alarm time for all day event
+ * Returns the default alarm time for to-do
  * @param allday event start time
  * @return alarm time
  */
@@ -168,7 +161,11 @@ TTime DefaultToDoAlarmL( TTime& aTodoDueDate )
 inline CESMRTodoTimeValidator::CESMRTodoTimeValidator()
 :   iCurrentDueDate( Time::NullTTime() ),
     iCurrentAlarmTime( Time::NullTTime() ),
-    iAlarmOnOff( EFalse )
+    iAlarmOnOff( EFalse ),
+    iInitialAlarmTime( Time::NullTTime() ),
+    iInitialAlarmOnOff( EFalse ),
+    iInitialDueDate( Time::NullTTime() )
+    
     {
     FUNC_LOG;
     // Do nothing
@@ -233,6 +230,16 @@ MESMRFieldValidator::TESMRFieldValidatorError
 
                 error = MESMRFieldValidator::EErrorAlarmLaterThanStart;
                 }
+
+			if ( alarm < start )
+				{
+				TTimeIntervalDays alarmBefore = start.DaysFrom(alarm);
+				if ( alarmBefore > KMaxAlarmTime )
+					{
+					error =  MESMRFieldValidator::EErrorAlarmTooMuchInPast;
+					}
+				}
+                
             }
         }
     return error;
@@ -258,6 +265,8 @@ void CESMRTodoTimeValidator::ReadValuesFromEntryL(
         TCalTime dueDate = entry.EndTimeL();
         iCurrentDueDate = dueDate.TimeLocalL();
         SetDateToEditor( *iDueDate, iCurrentDueDate );
+        
+        iInitialDueDate = iDueDate->Date();
 
         TDateTime dueDt = iCurrentDueDate.DateTime();
 
@@ -268,9 +277,13 @@ void CESMRTodoTimeValidator::ReadValuesFromEntryL(
             {
             iCurrentAlarmTime = iCurrentDueDate - alarm->TimeOffset();
             iAlarmOnOff = ETrue;
+            iInitialAlarmOnOff = iAlarmOnOff;
 
             SetTimeToEditor( *iAlarmTime, iCurrentAlarmTime );
             SetDateToEditor( *iAlarmDate, iCurrentAlarmTime );
+            
+            iInitialAlarmTime = iAlarmTime->Time();
+            iInitialAlarmDate = iAlarmDate->Date();
             }
 
         CleanupStack::PopAndDestroy( alarm );
@@ -293,66 +306,72 @@ void CESMRTodoTimeValidator::StoreValuesToEntryL(
         PreValidateEditorContent();
         CCalEntry& entry( aEntry.Entry() );
 
-        TTime toEditorDueDate = DueDateTimeL();
-        TCalTime todoDueDate;
-
-        // The default mode for To-do is EFloating,
-        // But some 3rd party application might have saved a different type
-        // for one reason or another. In that case we are using
-        // the existing value.
-        if ( aEntry.IsStoredL() )
+        // If entry has been modified, we will write new values to entry.
+        // Otherwise entry will not be modified and thus saved 
+        // (ex. new entry and press only Done )
+        if( IsModifiedL( aEntry ) )
             {
-            TCalTime::TTimeMode timeMode =
-                            aEntry.Entry().StartTimeL().TimeMode();
-
-            switch ( timeMode )
+            TTime toEditorDueDate = DueDateTimeL();
+            TCalTime todoDueDate;
+    
+            // The default mode for To-do is EFloating,
+            // But some 3rd party application might have saved a different type
+            // for one reason or another. In that case we are using
+            // the existing value.
+            if ( aEntry.IsStoredL() )
                 {
-                case TCalTime::EFixedUtc:
-                	{
-                    todoDueDate.SetTimeUtcL( toEditorDueDate );
-                    break;
-                	}
-                case TCalTime::EFixedTimeZone:
-                	{
-                    todoDueDate.SetTimeLocalL( toEditorDueDate );
-                    break;
-                	}
-                case TCalTime::EFloating: // Fall through
-                default:
-                	{
-                    todoDueDate.SetTimeLocalFloatingL( toEditorDueDate );
-                    break;
-                	}
+                TCalTime::TTimeMode timeMode =
+                                aEntry.Entry().StartTimeL().TimeMode();
+    
+                switch ( timeMode )
+                    {
+                    case TCalTime::EFixedUtc:
+                        {
+                        todoDueDate.SetTimeUtcL( toEditorDueDate );
+                        break;
+                        }
+                    case TCalTime::EFixedTimeZone:
+                        {
+                        todoDueDate.SetTimeLocalL( toEditorDueDate );
+                        break;
+                        }
+                    case TCalTime::EFloating: // Fall through
+                    default:
+                        {
+                        todoDueDate.SetTimeLocalFloatingL( toEditorDueDate );
+                        break;
+                        }
+                    }
                 }
-            }
-        else
-            {
-            todoDueDate.SetTimeLocalFloatingL( toEditorDueDate );
-            }
-
-        entry.SetStartAndEndTimeL( todoDueDate, todoDueDate );
-
-        if ( iAlarmOnOff )
-            {
-            TTimeIntervalMinutes diff;
-
-            TTime alarm = AlarmDateTimeL();
-            toEditorDueDate.MinutesFrom( alarm, diff );
-
-            CCalAlarm* alarmObject = entry.AlarmL();
-            if ( !alarmObject )
+            else
                 {
-                alarmObject = CCalAlarm::NewL();
+                todoDueDate.SetTimeLocalFloatingL( toEditorDueDate );
                 }
-            CleanupStack::PushL( alarmObject );
-            alarmObject->SetTimeOffset( diff );
-            entry.SetAlarmL( alarmObject );
-            CleanupStack::PopAndDestroy( alarmObject );
-            alarmObject = NULL;
-            }
-        else
-            {
-            entry.SetAlarmL( NULL );
+    
+            entry.SetStartAndEndTimeL( todoDueDate, todoDueDate );
+    
+            if ( iAlarmOnOff )
+                {
+                TTimeIntervalMinutes diff;
+    
+                TTime alarm = AlarmDateTimeL();
+                toEditorDueDate.MinutesFrom( alarm, diff );
+    
+                CCalAlarm* alarmObject = entry.AlarmL();
+                if ( !alarmObject )
+                    {
+                    alarmObject = CCalAlarm::NewL();
+                    }
+                CleanupStack::PushL( alarmObject );
+                alarmObject->SetTimeOffset( diff );
+                entry.SetAlarmL( alarmObject );
+                CleanupStack::PopAndDestroy( alarmObject );
+                alarmObject = NULL;
+                }
+            else
+                {
+                entry.SetAlarmL( NULL );
+                }
             }
         }
     }
@@ -399,6 +418,11 @@ void CESMRTodoTimeValidator::SetEndDateFieldL(
     {
     FUNC_LOG;
     iDueDate = &aEndDate;
+    
+    if ( Time::NullTTime() != iCurrentDueDate )
+        {
+        SetDateToEditor( *iDueDate, iCurrentDueDate );
+        }  
     }
 
 // ---------------------------------------------------------------------------
@@ -410,6 +434,11 @@ void CESMRTodoTimeValidator::SetAlarmTimeFieldL(
     {
     FUNC_LOG;
     iAlarmTime = &aAlarmTime;
+    
+    if ( iAlarmOnOff )
+        {
+        SetTimeToEditor( *iAlarmTime, iCurrentAlarmTime );
+        }
     }
 
 // ---------------------------------------------------------------------------
@@ -421,6 +450,11 @@ void CESMRTodoTimeValidator::SetAlarmDateFieldL(
     {
     FUNC_LOG;
     iAlarmDate = &aAlarmDate;
+    
+    if ( iAlarmOnOff )
+        {
+        SetDateToEditor( *iAlarmDate, iCurrentAlarmTime );
+        }
     }
 
 // ---------------------------------------------------------------------------
@@ -429,6 +463,17 @@ void CESMRTodoTimeValidator::SetAlarmDateFieldL(
 //
 void CESMRTodoTimeValidator::SetRecurrenceUntilDateFieldL(
             CEikDateEditor& /*aRecurrenceUntil*/ )
+    {
+    FUNC_LOG;
+    // No implementation for to-do
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRTodoTimeValidator::SetAbsoluteAlarmOnOffFieldL
+// ---------------------------------------------------------------------------
+//
+void CESMRTodoTimeValidator::SetAbsoluteAlarmOnOffFieldL( 
+        MMRAbsoluteAlarmController& /*aAbsoluteAlarmController*/ )
     {
     FUNC_LOG;
     // No implementation for to-do
@@ -566,7 +611,7 @@ void CESMRTodoTimeValidator::SetAlarmOnOffL(
     {
     FUNC_LOG;
     iAlarmOnOff = aAlarmOn;
-
+    
     if ( iAlarmOnOff )
         {
         if ( iCurrentAlarmTime == Time::NullTTime() ||
@@ -639,12 +684,12 @@ void CESMRTodoTimeValidator::PreValidateEditorContentL()
         iDueDate->PrepareForFocusLossL();
         }
 
-    if ( iAlarmTime && iAlarmTime->IsVisible() )
+    if ( iAlarmOnOff && iAlarmTime && iAlarmTime->IsVisible() )
         {
         iAlarmTime->PrepareForFocusLossL();
         }
 
-    if ( iAlarmDate && iAlarmDate->IsVisible() )
+    if ( iAlarmOnOff && iAlarmDate && iAlarmDate->IsVisible() )
         {
         iAlarmDate->PrepareForFocusLossL();
         }
@@ -789,5 +834,36 @@ void CESMRTodoTimeValidator::ForceValuesL()
         }
     }
 
-// EOF
+// ---------------------------------------------------------------------------
+// CESMRTodoTimeValidator::IsModifiedL
+// ---------------------------------------------------------------------------
+//
+TBool CESMRTodoTimeValidator::IsModifiedL( MESMRCalEntry& aEntry )
+    {
+    // Checks if any of the editor fields have changed from the original /
+    // initial values
+    TBool isEdited( EFalse );
+    
+    TBool isSame = aEntry.Entry().CompareL( aEntry.OriginalEntry() );
+        
+    if( !isSame ||
+            iInitialAlarmOnOff != iAlarmOnOff ||
+                iDueDate->Date() != iInitialDueDate )
+        {
+        isEdited = ETrue;
+        }
 
+    // If alarm is on, we will check alarm time and date also for changes
+    if( iAlarmOnOff )
+        {
+        if( iAlarmTime->Time() != iInitialAlarmTime ||
+                iAlarmDate->Date() != iInitialAlarmDate )
+            {
+            isEdited = ETrue;
+            }
+        }
+
+    return isEdited;
+    }
+
+// EOF

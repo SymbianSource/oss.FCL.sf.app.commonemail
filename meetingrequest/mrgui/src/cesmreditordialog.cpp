@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -15,41 +15,7 @@
 *
 */
 
-#include "emailtrace.h"
 #include "cesmreditordialog.h"
-
-//<cmail>
-#include "esmrdef.h"
-#include <esmrgui.rsg>
-#include "cesmrpolicy.h"
-//</cmail>
-#include <eikenv.h>
-#include <eikappui.h>
-#include <avkon.hrh>
-#include <eikmenup.h>
-#include <MAgnEntryUi.h>
-#include <layoutmetadata.cdl.h>
-#include <AknDef.h>
-#include <AknUtils.h>
-
-#include <AknIndicatorContainer.h>
-#include <aknenv.h>
-#include <aknEditStateIndicator.h>
-#include <calentry.h>
-#include <CalenInterimUtils2.h>
-
-#include <akntitle.h>
-#include <StringLoader.h>
-//<cmail>
-#include <featmgr.h>
-//</cmail>
-#include "esmrcommands.h"
-//</cmail>
-
-#include <AiwServiceHandler.h>
-#include <featmgr.h>
-#include <bldvariant.hrh>
-
 #include "esmrgui.hrh"
 #include "cesmrview.h"
 #include "mesmrmeetingrequestentry.h"
@@ -68,8 +34,41 @@
 #include "cesmraddressinfohandler.h"
 #include "cesmrfeaturesettings.h"
 #include "mesmrfieldevent.h"
-
 #include "esmrconfig.hrh"
+#include "esmrdef.h"
+#include "esmrcommands.h"
+#include "cesmrpolicy.h"
+#include "cmrtoolbar.h"
+#include "mmrpolicyprovider.h"
+#include "mmrinfoprovider.h"
+#include "cesmrcaldbmgr.h"
+#include "cmrfocusstrategyeditor.h"
+#include "cesmrfieldbuilderinterface.h"
+
+#include <esmrgui.rsg>
+#include <apgcli.h>
+#include <eikenv.h>
+#include <eikappui.h>
+#include <avkon.hrh>
+#include <eikmenup.h>
+#include <magnentryui.h>
+#include <layoutmetadata.cdl.h>
+#include <akndef.h>
+#include <aknutils.h>
+#include <aknindicatorcontainer.h>
+#include <aknenv.h>
+#include <akneditstateindicator.h>
+#include <aknnotewrappers.h>
+#include <documenthandler.h>
+#include <npdapi.h>
+#include <calentry.h>
+#include <calattachment.h>
+#include <caleninterimutils2.h>
+#include <akntitle.h>
+#include <stringloader.h>
+
+// DEBUG
+#include "emailtrace.h"
 
 // <cmail> Removed profiling. </cmail>
 
@@ -77,7 +76,6 @@
 namespace { // codescanner::namespace
 
 #ifdef _DEBUG
-    _LIT( KESMREditDlgPanicTxt, "ESMREDITORDIALOG" );
     /** Enumeration for panic codes */
     enum TESMREditDlgPanicCode
         {
@@ -88,6 +86,7 @@ namespace { // codescanner::namespace
 
     void Panic( TESMREditDlgPanicCode aPanic )
         {
+        _LIT( KESMREditDlgPanicTxt, "ESMREDITORDIALOG" );
         User::Panic ( KESMREditDlgPanicTxt, aPanic );
         }
 #endif
@@ -137,36 +136,8 @@ void SetRecurrenceModRuleL(
         }
     else
         {
-        TInt result =
-                    CESMRListQuery::ExecuteL( aQueryType );
-
-                if( KErrCancel == result )
-                    {
-                    // User has cancelled selecting opening the instance
-                    User::Leave( KErrCancel );
-                    }
-
-                TESMRThisOccurenceOrSeriesQuery recurrenceModRule =
-                    static_cast<TESMRThisOccurenceOrSeriesQuery>( result );
-
-                switch( recurrenceModRule )
-                    {
-                    case EESMRThisOccurence:
-                        {
-                        aEntry.SetModifyingRuleL(
-                                MESMRMeetingRequestEntry::EESMRThisOnly );
-                        }
-                        break;
-                    case EESMRSeries:
-                        {
-                        aEntry.SetModifyingRuleL(
-                                MESMRMeetingRequestEntry::EESMRAllInSeries );
-                        }
-                        break;
-                    default:
-                        __ASSERT_DEBUG( EFalse, Panic(EESMREditDlgInvalidSeriesResult));
-                        break;
-                    }
+        aEntry.SetModifyingRuleL(
+                MESMRMeetingRequestEntry::EESMRThisOnly );
         }
     }
 
@@ -174,13 +145,13 @@ void SetRecurrenceModRuleL(
  * Creates correct type of storage for editing calendar entry.
  * @param aCommandObserver Reference to command observer
  * @param aEntry Reference to ES calendar entry
- * @param aPolicy. Pointer to used policy.
+ * @param aPolicyProvider. Pointer to used policy.
  * @param aResponseObserver Pointer to response observer.
  */
 CESMRFieldStorage* CreateCorrectStorageLC(
         MESMRFieldEventObserver& aEventObserver,
         MESMRCalEntry& aEntry,
-        CESMRPolicy* aPolicy,
+        const CESMRPolicy& aPolicy,
         MESMRResponseObserver* aResponseObserver )
     {
     CESMRFieldStorage* storage = NULL;
@@ -188,8 +159,7 @@ CESMRFieldStorage* CreateCorrectStorageLC(
     MESMRCalEntry::TESMRRecurrenceModifyingRule rule(
             aEntry.RecurrenceModRule() );
 
-    TESMRViewMode mode(
-            aPolicy->ViewMode() );
+    TESMRViewMode mode( aPolicy.ViewMode() );
 
     if ( ( aEntry.IsRecurrentEventL() &&
            rule == MESMRCalEntry::EESMRThisOnly ) ||
@@ -253,9 +223,10 @@ TBool IsSameDay(
 // ---------------------------------------------------------------------------
 //
 CESMREditorDialog::CESMREditorDialog(
-        MESMRCalEntry& aEntry,
+        MMRInfoProvider& aInfoProvider,
         MAgnEntryUiCallback& aCallback ) :
-    iEntry( aEntry), iCallback( aCallback)
+    iInfoProvider( aInfoProvider ),
+    iCallback( aCallback)
     {
     FUNC_LOG;
     // Do nothing
@@ -268,18 +239,6 @@ CESMREditorDialog::CESMREditorDialog(
 CESMREditorDialog::~CESMREditorDialog( )
     {
     FUNC_LOG;
-    if ( iFeatureManagerInitialized )
-        {
-        FeatureManager::UnInitializeLib();
-        }
-
-    if ( iServiceHandler )
-        {
-        iServiceHandler->DetachMenu ( 
-        		R_MR_EDITOR_ORGANIZER_MENU, 
-        		R_PS_AIW_INTEREST );
-        delete iServiceHandler;
-        }
 
     delete iESMRSendUI;
     if ( iTitlePane )
@@ -288,14 +247,13 @@ CESMREditorDialog::~CESMREditorDialog( )
         iTitlePane->Rollback();
         delete iTitlePane;
         }
-
     delete iInterimUtils;
-
     delete iLocationPluginHandler;
-    
     delete iAddressInfoHandler;
-    
     delete iFeatures;
+    delete iToolbar;
+    delete iFocusStrategy;
+
     // iView is deleted by framework because it uses the
     // custom control mechanism.
     }
@@ -305,15 +263,14 @@ CESMREditorDialog::~CESMREditorDialog( )
 // ---------------------------------------------------------------------------
 //
 EXPORT_C CESMREditorDialog* CESMREditorDialog::NewL(
-        CESMRPolicy* aPolicy,
-        MESMRCalEntry& aEntry,
+        MMRInfoProvider& aInfoProvider,
         MAgnEntryUiCallback& aCallback )
     {
     FUNC_LOG;
     CESMREditorDialog* self =
-    new (ELeave) CESMREditorDialog( aEntry, aCallback );
+    new (ELeave) CESMREditorDialog( aInfoProvider, aCallback );
     CleanupStack::PushL( self );
-    self->ConstructL( aPolicy );
+    self->ConstructL();
     CleanupStack::Pop( self );
     return self;
     }
@@ -322,31 +279,42 @@ EXPORT_C CESMREditorDialog* CESMREditorDialog::NewL(
 // CESMREditorDialog::ConstructL
 // ---------------------------------------------------------------------------
 //
-void CESMREditorDialog::ConstructL(
-        CESMRPolicy* aPolicy )
+void CESMREditorDialog::ConstructL()
     {
     FUNC_LOG;
     CAknDialog::ConstructL ( R_MREDITOR_MENUBAR );
-    iPolicy = aPolicy;
 
     iESMRSendUI = CESMRSendUI::NewL (EESMRCmdSendAs );
 
-    FeatureManager::InitializeLibL();
-    iFeatureManagerInitialized = ETrue;
+    MESMRCalEntry* entry = iInfoProvider.EntryL();
+    CESMRFieldStorage* storage = CreateCorrectStorageLC(
+            *this,
+            *entry,
+            iInfoProvider.PolicyProvider().CurrentPolicy(),
+            this );
 
-    // <cmail> remove custom feature KFeatureIdPrintingFrameworkCalendarPlugin 
-    // </cmail>	
+    iStartTimeUtc = entry->Entry().StartTimeL().TimeUtcL();
 
-    CESMRFieldStorage* storage =
-            CreateCorrectStorageLC( *this, iEntry, aPolicy, this );
+    //clean previous toolbar if there is, and be sure restore toolbar area to EMainPane
+    iToolbar = CMRToolbar::NewL();
 
     TRect clientRect;
     AknLayoutUtils::LayoutMetricsRect(
             AknLayoutUtils::EMainPane,
             clientRect );
 
+    // Create focus strategy
+    iFocusStrategy = CMRFocusStrategyEditor::NewL( *storage );
+
     // storage ownership is transferred to CESMRView
-    iView = CESMRView::NewL( storage, iEntry, clientRect );
+    iView = CESMRView::NewL( 
+            storage, 
+            *entry, 
+            clientRect, 
+            *iFocusStrategy,
+            *iToolbar );
+    
+    iView->SetViewMode( EESMREditMR );
     CleanupStack::Pop( storage );
 
     // try to find subject field and set title pane observer
@@ -366,62 +334,21 @@ void CESMREditorDialog::ConstructL(
                 {
                 field->SetTitlePaneObserver( iView );
                 break;
-                }            
+                }
             default:
-            	break;
+                break;
             }
         }
 
-    TInt titleStringId = -1;
-    switch ( iEntry.Type() )
-        {
-        case MESMRCalEntry::EESMRCalEntryMeetingRequest:
-            titleStringId = R_QTN_MEET_REQ_TITLE_MEETING;
-            break;
-        case MESMRCalEntry::EESMRCalEntryMeeting:
-            titleStringId = R_QTN_CALENDAR_TITLE_MEETING;
-            break;
-        case MESMRCalEntry::EESMRCalEntryTodo:
-            titleStringId = R_QTN_CALENDAR_TITLE_TODO;
-            break;
-        case MESMRCalEntry::EESMRCalEntryMemo:
-            titleStringId = R_QTN_CALENDAR_TITLE_MEMO;
-            break;
-        case MESMRCalEntry::EESMRCalEntryReminder:
-            break;
-        case MESMRCalEntry::EESMRCalEntryAnniversary:
-            titleStringId = R_QTN_CALENDAR_TITLE_ANNIVERSARY;
-            break;
-        default:
-            break;
-        }
-    if ( titleStringId != -1 )
-        {
-        iTitlePane = CESMRTitlePaneHandler::NewL( *iEikonEnv );
-        HBufC* titleText = StringLoader::LoadLC( titleStringId, iCoeEnv );
-        iTitlePane->SetNewTitle( titleText );
-        CleanupStack::PopAndDestroy( titleText );
-        }
-    
+    SetTitleL();
+
     if(!iInterimUtils)
         {
         iInterimUtils = CCalenInterimUtils2::NewL();
         }
-    
+
     iFeatures = CESMRFeatureSettings::NewL();
-    
-    if ( iFeatures->FeatureSupported(
-            CESMRFeatureSettings::EESMRUILocationFeatures ) )
-        {
-        if ( iPolicy->FieldL( EESMRFieldLocation ).iFieldMode == EESMRFieldModeEdit )
-            {
-            iMenuBar->SetContextMenuTitleResourceId( R_MR_EDITOR_CONTEXT_MENU );
-            }
-        else
-            {
-            iMenuBar->SetContextMenuTitleResourceId( R_MR_VIEWER_CONTEXT_MENU );
-            }        
-        }
+
     }
 
 // ---------------------------------------------------------------------------
@@ -477,7 +404,7 @@ TBool CESMREditorDialog::OkToExitL( TInt aButtonId )
     {
     FUNC_LOG;
     TBool res( EFalse );
-    
+    MESMRCalEntry* entry = iInfoProvider.EntryL();
     switch ( aButtonId )
         {
         case EAknSoftkeyOptions:
@@ -486,25 +413,53 @@ TBool CESMREditorDialog::OkToExitL( TInt aButtonId )
             CAknDialog::DisplayMenuL();
             break;
             }
+        case EAknSoftkeySend:
+        	{
+            if ( MESMRCalEntry::EESMRCalEntryMeetingRequest == entry->Type() )
+                {
+                MESMRMeetingRequestEntry* mrEntry =
+                        static_cast<MESMRMeetingRequestEntry*>( 
+                                iInfoProvider.EntryL() );
+                        	
+                const CESMRPolicy& policy = Policy();
+                if ( policy.IsDefaultCommand(EESMRCmdSendMRUpdate ) &&
+                        ( mrEntry->IsSentL() && mrEntry->IsStoredL() ) )
+                    {
+                    ProcessCommandL( EESMRCmdSendMRUpdate );
+                    }
+                else
+                    {
+                    ProcessCommandL( EESMRCmdSendMR );
+                    }
+                }
+        	break;
+            }
         case EESMRCmdSaveMR:
             {
             ProcessCommandL( EESMRCmdSaveMR );
             break;
             }
+        case EESMREditorAddAttachment:
+            {
+            ProcessCommandL( EESMREditorAddAttachment );
+            break;
+            }
+
+        case EESMRCmdLongtapDetected:
         case EAknSoftkeyContextOptions:
             {
-            // Show context menu
-            if ( iFeatures->FeatureSupported(
-                    CESMRFeatureSettings::EESMRUILocationFeatures ) )
+            if( SetContextMenuL() )
                 {
-                iMenuBar->TryDisplayContextMenuBarL();
+                ShowContextMenuL();;
                 }
-            break;            
+            break;
             }
         case EESMRCmdAlarmOn:
         case EESMRCmdAlarmOff:
         case EESMRCmdOpenPriorityQuery:
         case EESMRCmdOpenSyncQuery:
+        case EESMRCmdOpenUnifiedEditorQuery:
+        case EESMRCmdOpenMultiCalenSelectQuery:
         case EESMRCmdOpenRecurrenceQuery:
         case EESMRCmdOpenAlarmQuery:
         case EESMRCmdCheckEvent:
@@ -533,7 +488,7 @@ TBool CESMREditorDialog::OkToExitL( TInt aButtonId )
             {
             // Exit dialog
             TRAPD( err, HandleExitL() )
-            
+
             switch ( err )
                 {
                 case KErrNone:
@@ -581,19 +536,18 @@ void CESMREditorDialog::ActivateL( )
     FUNC_LOG;
     CAknDialog::ActivateL();
     iView->InternalizeL();
-    
+
     // Notification that MR editor is ready to be shown on screen.
-    if ( iEntry.Type() == MESMRCalEntry::EESMRCalEntryMeetingRequest )
+    MESMRCalEntry* entry = iInfoProvider.EntryL();
+    if ( entry->Type() == MESMRCalEntry::EESMRCalEntryMeetingRequest )
         {
-        TTime start = iEntry.Entry().StartTimeL().TimeUtcL();
-        TTime now;
-        now.UniversalTime();
-        if ( start < now )
-            {
-            iOccursInPast = ETrue;
-            }
         iCallback.ProcessCommandL( EESMRCmdEditorInitializationComplete );
         }
+
+    // initial stripe color
+    MESMRCalDbMgr& dbMgr = entry->GetDBMgr();
+    TPtrC calenName = dbMgr.GetCalendarNameByEntryL( *entry );
+    dbMgr.SetCurCalendarByNameL( calenName );
     }
 
 // ---------------------------------------------------------------------------
@@ -605,16 +559,16 @@ TBool CESMREditorDialog::IsAllowedToSaveL()
     FUNC_LOG;
     TBool ret(ETrue);
 
-
-    if ( ( iEntry.Type() == MESMRCalEntry::EESMRCalEntryMeetingRequest ||
-            iEntry.Type() == MESMRCalEntry::EESMRCalEntryMeeting ) &&
-         iEntry.IsStoredL() && iEntry.IsRecurrentEventL() &&
-         MESMRCalEntry::EESMRAllInSeries == iEntry.RecurrenceModRule() )
+    MESMRCalEntry* entry = iInfoProvider.EntryL();
+    if ( ( entry->Type() == MESMRCalEntry::EESMRCalEntryMeetingRequest ||
+            entry->Type() == MESMRCalEntry::EESMRCalEntryMeeting ) &&
+         entry->IsStoredL() && entry->IsRecurrentEventL() &&
+         MESMRCalEntry::EESMRAllInSeries == entry->RecurrenceModRule() )
         {
         TDateTime originalDate =
-                iEntry.OriginalEntry().StartTimeL().TimeLocalL().DateTime();
+                entry->OriginalEntry().StartTimeL().TimeLocalL().DateTime();
         TDateTime modifiedDate =
-                iEntry.Entry().StartTimeL().TimeLocalL().DateTime();
+                entry->Entry().StartTimeL().TimeLocalL().DateTime();
 
         if ( !IsSameDay( originalDate, modifiedDate ) )
         {
@@ -640,11 +594,10 @@ void CESMREditorDialog::ProcessCommandL(
     TRAPD( err, DoProcessCommandL( aCommand ) );
     if ( err != KErrNone &&
          err != KErrCancel &&
-         err != KErrArgument&&
-         err !=EESMRCmdSendMR)
+         err != KErrArgument )
         {
         User::Leave(err);
-        }           
+        }
     }
 
 // ---------------------------------------------------------------------------
@@ -657,27 +610,10 @@ void CESMREditorDialog::DoProcessCommandL(
     FUNC_LOG;
     CAknDialog::ProcessCommandL ( aCommand );
 
+    MESMRCalEntry* entry = iInfoProvider.EntryL();
+
     switch ( aCommand )
         {
-        case EESMRCmdPrint: //Fall through
-        case EESMRCmdPrint_Reserved1: //Fall through
-        case EESMRCmdPrint_Reserved2: //Fall through
-        case EESMRCmdPrint_Reserved3: //Fall through
-        case EESMRCmdPrint_Reserved4:
-            {
-            iView->ExternalizeL(); // no force validation
-            TInt res(KErrGeneral);
-            res = iCallback.ProcessCommandWithResultL ( EESMRCmdSaveMR );
-
-            if (res == KErrNone )
-                {
-                this->MakeVisible(EFalse); 
-                HandlePrintCommandL (aCommand );
-                this->MakeVisible(ETrue); 
-                }
-            break;
-            }
-
         case EESMRCmdSendAs:
             {
             SendCalendarEntryL (aCommand );
@@ -687,37 +623,38 @@ void CESMREditorDialog::DoProcessCommandL(
         case EESMRCmdCalEntryUISend:
             {
             User::LeaveIfError(
-            		iCallback.ProcessCommandWithResultL ( aCommand ));
-            break;
-            }
-        case EESMRCmdCalEntryUIDelete:
-            {
-            iView->ExternalizeL(); // no force validation
-            if (!(iCallback.ProcessCommandWithResultL(aCommand) == KErrCancel))
-            	{
-                TryExitL( EESMRCmdCalEntryUIDelete );
-            	}
+                    iCallback.ProcessCommandWithResultL ( aCommand ));
             break;
             }
         case EESMRCmdCalEntryUIAddParticipants:
             {
-            iView->ExternalizeL (); // no force validation
-            TInt result;
-            TRAPD(err,result=iCallback.ProcessCommandWithResultL ( aCommand ))
-			if (err != EESMRCmdSendMR&&err!=KErrNone)
-				{
-				User::Leave(err);
-				}
-			User::LeaveIfError(result);
-            TryExitL ( EESMRCmdForceExit );
+            TRAPD( err,  SwitchEntryTypeL( EMRCommandSwitchToMR, ETrue ) )
+
+            if (KErrArgument == err )
+            	{
+            	// There was validation error --> Just show the
+            	// existing editor.
+            	err = KErrNone;
+            	}
+            else if ( err )
+                {
+                iCoeEnv->HandleError( err );
+                TryExitL( EESMRCmdForceExit );
+                }
+
+            break;
+            }
+        case EAknSoftkeyClose:
+            {
+            TryExitL ( EAknCmdExit );
             break;
             }
         case EEikBidCancel: //Fall through
         case EAknCmdExit:
-        	{
+            {
             TryExitL ( aCommand );
             break;
-        	}
+            }
         case EAknCmdHelp:
             {
             iView->LaunchEditorHelpL ( );
@@ -749,27 +686,31 @@ void CESMREditorDialog::DoProcessCommandL(
                 if ( iFeatures->FeatureSupported(
                         CESMRFeatureSettings::EESMRUIPreviousLocationsList ) )
                     {
-                    LocationPluginHandlerL().StoreLocationToHistoryL( iEntry );
+                    LocationPluginHandlerL().StoreLocationToHistoryL( *entry );
                     }
-                
-                if ( iEntry.Type() == MESMRCalEntry::EESMRCalEntryTodo )
+
+                if ( entry->Type() == MESMRCalEntry::EESMRCalEntryTodo )
                     {
                     CESMRGlobalNote* note =
-                        CESMRGlobalNote::NewL( 
-                        		CESMRGlobalNote::EESMRTodoEntrySaved );
+                        CESMRGlobalNote::NewL(
+                                CESMRGlobalNote::EESMRTodoEntrySaved );
                     note->ExecuteLD();
                     }
                 else
                     {
                     CESMRGlobalNote* note =
-                        CESMRGlobalNote::NewL( 
-                        		CESMRGlobalNote::EESMREntrySaved );
+                        CESMRGlobalNote::NewL(
+                                CESMRGlobalNote::EESMREntrySaved );
                     note->ExecuteLD();
                     }
                 }
             }
             break;
-
+        case EESMRCmdSaveCloseMR:
+        	{
+            TryExitL( EAknSoftkeyDone );
+        	break;
+        	}
         case EESMRCmdSendMR: //Fall through
         case EESMRCmdSendMRUpdate:
             {
@@ -785,9 +726,9 @@ void CESMREditorDialog::DoProcessCommandL(
                 if ( iFeatures->FeatureSupported(
                              CESMRFeatureSettings::EESMRUIPreviousLocationsList ) )
                     {
-                    LocationPluginHandlerL().StoreLocationToHistoryL( iEntry );
+                    LocationPluginHandlerL().StoreLocationToHistoryL( *entry );
                     }
-                
+
                 TInt exitCode = aCommand ==
                         EESMRCmdDeleteMR ? EESMRCmdDeleteMR : EAknSoftkeyDone;
                 TryExitL ( exitCode );
@@ -796,59 +737,69 @@ void CESMREditorDialog::DoProcessCommandL(
             break;
 
         case EESMRCmdDeleteMR:
+        case EESMRCmdCalEntryUIDelete:
             {
-            if ( iEntry.Type () == MESMRCalEntry::EESMRCalEntryMeetingRequest )
-                {
-                TBool okToDelete = ETrue;
+            TBool okToDelete = ETrue;
 
-                if ( iEntry.IsRecurrentEventL() )
+            if ( entry->IsRecurrentEventL() )
+                {
+                SetRecurrenceModRuleL(
+                   *entry,
+                   CESMRListQuery::EESMRDeleteThisOccurenceOrSeriesQuery );
+                }
+            else
+                {
+                if( CCalenInterimUtils2::IsMeetingRequestL( entry->Entry() ) )
                     {
-                    SetRecurrenceModRuleL(
-                       iEntry,
-                       CESMRListQuery::EESMRDeleteThisOccurenceOrSeriesQuery );
+                    okToDelete = CESMRConfirmationQuery::ExecuteL(
+                            CESMRConfirmationQuery::EESMRDeleteMR );
                     }
                 else
                     {
                     okToDelete = CESMRConfirmationQuery::ExecuteL(
-                            CESMRConfirmationQuery::EESMRDeleteMR );
-
+                             CESMRConfirmationQuery::EESMRDeleteEntry );
                     }
+                }
 
-                if ( okToDelete )
+            if ( okToDelete )
+                {
+                // When deleting we do not need to externalize entry
+                if( entry->IsStoredL() )
                     {
-                    // When deleting we do not need to externalize entry
                     TInt res = iCallback.ProcessCommandWithResultL( aCommand );
                     if ( res != KErrCancel )
                         {
-                        TInt exitCode = aCommand == EESMRCmdDeleteMR ?
-                                            EESMRCmdDeleteMR : EAknSoftkeyDone;
-                        TryExitL ( exitCode );
+                        TryExitL( EESMRCmdDeleteMR );
                         }
+                    }
+                else
+                    {
+                    TryExitL( EESMRCmdDeleteMR );
                     }
                 }
             }
             break;
-        
+
         case EESMRCmdAssignFromMap:
         case EESMRCmdLandmarks:
         case EESMRCmdPreviousLocations:
-        	{
+            {
             if ( iFeatures->FeatureSupported(
                     CESMRFeatureSettings::EESMRUIMnFwIntegration
                     | CESMRFeatureSettings::EESMRUILandmarksIntegration
                     | CESMRFeatureSettings::EESMRUIPreviousLocationsList ) )
                 {
                 TBool ignoreQuery = EFalse;
-                
+
                 if ( aCommand == EESMRCmdAssignFromMap )
                     {
-                    HBufC* oldLocation = iEntry.Entry().LocationL().AllocLC();
+                    HBufC* oldLocation = entry->Entry().LocationL().AllocLC();
                     iView->ExternalizeL();
-                    
+
                     // if old and new locations are different and old location
                     // exists, the user is updating existing location. Let's discard
                     // the existing coordinates by using command EESMRCmdUpdateFromMap
-                    if ( ( iEntry.Entry().LocationL().Compare( *oldLocation ) != 0
+                    if ( ( entry->Entry().LocationL().Compare( *oldLocation ) != 0
                            && oldLocation->Length() != 0 )
                          || iLocationModified )
                         {
@@ -857,7 +808,7 @@ void CESMREditorDialog::DoProcessCommandL(
                     else if ( oldLocation->Length() == 0 )
                         {
                         // Assigning location from Maps for first time.
-                        ignoreQuery = EFalse;                                            
+                        ignoreQuery = EFalse;
                         }
                     CleanupStack::PopAndDestroy( oldLocation );
                     oldLocation = NULL;
@@ -866,41 +817,73 @@ void CESMREditorDialog::DoProcessCommandL(
                     {
                     iView->ExternalizeL();
                     }
-                
+
                 iLocationModified |=
                     LocationPluginHandlerL().HandleCommandL( aCommand,
-                                                         iEntry,
-                                                         ignoreQuery ); 
+                                                         *entry,
+                                                         ignoreQuery );
                 iView->InternalizeL();
                 iView->SetControlFocusedL( EESMRFieldLocation );
                 }
-			break;
-        	}
+            break;
+            }
         case EESMRCmdSearchFromContacts:
-        	{
+            {
             if ( iFeatures->FeatureSupported(
                     CESMRFeatureSettings::EESMRUIContactsIntegration ) )
                  {
                  iView->ExternalizeL();
                  iLocationModified |=
-                     AddressInfoHandlerL().SearchAddressFromContactsL( iEntry );
+                     AddressInfoHandlerL().SearchAddressFromContactsL( *entry );
                  iView->InternalizeL();
                  iView->SetControlFocusedL( EESMRFieldLocation );
                  }
-        	break;
-        	}
+            break;
+            }
         // Scenarios with viewer location field in editor dialog.
         case EESMRCmdShowOnMap:
         case EESMRCmdSearchFromMap:
             {
-            LocationPluginHandlerL().HandleCommandL(aCommand, iEntry );
+            if ( iFeatures->FeatureSupported(
+                    CESMRFeatureSettings::EESMRUIMnFwIntegration ) )
+                {
+                LocationPluginHandlerL().HandleCommandL(aCommand, *entry );
+                }
             break;
-            }        	
+            }
         case EAknCmdOpen:
-        	{
-        	HandleOpenCmdL();
-        	break;
-        	}
+            {
+            HandleOpenCmdL();
+            break;
+            }
+        case EESMRCmdAttendeeInsertContact:
+            {
+            OkToExitL(EESMRCmdAttendeeInsertContact);
+            break;
+            }
+        /*
+        * Attachment field editor context menu commands
+        */
+        case EESMREditorOpenAttachment:
+        case EESMREditorRemoveAttachment:
+        case EESMREditorRemoveAllAttachments:
+        case EESMREditorAddAttachment:
+           {
+           iView->ProcessEditorCommandL( aCommand );
+           break;
+           }
+
+        case EMRCommandMyLocations:
+            {
+            iView->ExternalizeL();
+            iLocationModified |=
+                LocationPluginHandlerL().HandleCommandL( aCommand,
+                                                         *entry,
+                                                         EFalse );
+            iView->InternalizeL();
+            iView->SetControlFocusedL( EESMRFieldLocation );
+            break;
+            }
         default:
             break;
         }
@@ -915,77 +898,80 @@ void CESMREditorDialog::DynInitMenuPaneL(
         CEikMenuPane* aMenu )
     {
     FUNC_LOG;
+    MESMRCalEntry* entry = iInfoProvider.EntryL();
 
-    if ( iServiceHandler && iServiceHandler->HandleSubmenuL ( *aMenu ) )
-        {
-        return;
-        }
+    TMRMenuStyle menuStyle( EMROptionsMenu );
 
     if ( aResourceId == R_MR_EDITOR_ORGANIZER_MENU )
         {
-        
-	    if ( FeatureManager::FeatureSupported( KFeatureIdFfCmailIntegration ) )
-		   {
-		   // remove help support in pf5250
-		   aMenu->SetItemDimmed( EAknCmdHelp, ETrue);      
-		   }        
-        
+        const CESMRPolicy& policy = Policy();
         const TInt count(aMenu->NumberOfItemsInPane());
-		for (TInt i(0); i < count; i++ )
-			{
-			CEikMenuPaneItem::SData& item = aMenu->ItemDataByIndexL ( i );
-			aMenu->SetItemDimmed (
-						item.iCommandId, 
-						!iPolicy->IsDefaultCommand(item.iCommandId) );
-			}
-        
-		//Open command		
-		if ( iView->IsComponentFocused( EESMRFieldSync ) ||
-			 iView->IsComponentFocused( EESMRFieldRecurrence ) ||
-			 iView->IsComponentFocused( EESMRFieldAlarm ) ||
-			 iView->IsComponentFocused( EESMRFieldPriority ))			
-			{
-			aMenu->SetItemDimmed( EAknCmdOpen, EFalse );
-			}		
-		
-		if( iInterimUtils && !(iInterimUtils->MRViewersEnabledL()))
-			{ 
-			aMenu->SetItemDimmed( EESMRCmdCalEntryUIAddParticipants, ETrue );
-			}
-        
-        // if the entry is saved (stored) and sent to recipients,
-        // show 'Send update', otherwise just 'Send'
-        TBool sentAndStored = iEntry.IsSentL() && iEntry.IsStoredL();
-
-        // enable send only if attendee editors contain attendees and
-        // entry does not occur in past (unless if this is forwarded
-        // MR in which case the "in past" sending is also allowed).
-        TBool occurredInPastCheckPassed( !iOccursInPast );
-        if ( MESMRCalEntry::EESMRCalEntryMeetingRequest == iEntry.Type() )
+        for ( TInt i(0); i < count; i++ )
             {
-            // This is meeting request
-            MESMRMeetingRequestEntry* mrEntry = 
-                static_cast<MESMRMeetingRequestEntry*>( &iEntry );
-            occurredInPastCheckPassed = mrEntry->IsForwardedL();
+            CEikMenuPaneItem::SData& item = aMenu->ItemDataByIndexL ( i );
+
+            if ( item.iCommandId )
+                {
+                // Checking from policy for commands that has valid command id and
+                aMenu->SetItemDimmed (
+                            item.iCommandId,
+                            !policy.IsDefaultCommand(item.iCommandId) );
+                }
             }
 
-        TBool sendEnabled = 
-				( iRequiredAttendeesEnabled | iOptionalAttendeesEnabled ) &&
-				occurredInPastCheckPassed;
+        //Open command
+        if ( iView->IsComponentFocused( EESMRFieldSync ) ||
+             iView->IsComponentFocused( EESMRFieldRecurrence ) ||
+             iView->IsComponentFocused( EESMRFieldAlarm ) ||
+             iView->IsComponentFocused( EESMRFieldPriority ))
+            {
+            aMenu->SetItemDimmed( EAknCmdOpen, EFalse );
+            }
 
-        if ( iPolicy->IsDefaultCommand( EESMRCmdSendMR ) )
+        if( iInterimUtils && !(iInterimUtils->MRViewersEnabledL()))
+            {
+            aMenu->SetItemDimmed( EESMRCmdCalEntryUIAddParticipants, ETrue );
+            }
+
+        
+        TBool sendEnabled( EFalse );
+        TBool sentAndStored( EFalse );
+        
+        if ( MESMRCalEntry::EESMRCalEntryMeetingRequest == entry->Type() )
+            {
+            MESMRMeetingRequestEntry* mrEntry =
+                    static_cast<MESMRMeetingRequestEntry*>( iInfoProvider.EntryL() );
+        
+            // if the entry is saved (stored) and sent to recipients,
+            // show 'Send update', otherwise just 'Send'
+            sentAndStored = mrEntry->IsSentL() && mrEntry->IsStoredL();
+
+            // enable send only if attendee editors contain attendees and
+            // entry does not occur in past.
+            TBool bOccursInPast( OccursInPast( iStartTimeUtc ) );
+                
+            TBool sendEnabled = ( !bOccursInPast &&
+                    ( mrEntry->RoleL() == EESMRRoleOrganizer ) &&            
+                    ( iRequiredAttendeesEnabled | iOptionalAttendeesEnabled ) &&
+                    ((( mrEntry->RoleL() == EESMRRoleOrganizer ) &&
+                    ( iInfoProvider.PolicyProvider().CurrentPolicy().ViewMode() == EESMREditMR )) ||
+                    ( iInfoProvider.PolicyProvider().CurrentPolicy().ViewMode() == EESMRForwardMR )
+                    ));
+            }
+        
+        if ( policy.IsDefaultCommand( EESMRCmdSendMR ) )
            {
            aMenu->SetItemDimmed ( EESMRCmdSendMR, !sendEnabled );
            }
 
-        if ( iPolicy->IsDefaultCommand(EESMRCmdSendMRUpdate ) )
+        if ( policy.IsDefaultCommand(EESMRCmdSendMRUpdate ) )
            {
            if ( sendEnabled )
                {
-               //EESMRCmdSendMRUpdate and EESMRCmdSendMR shouldn't 
+               //EESMRCmdSendMRUpdate and EESMRCmdSendMR shouldn't
                //be visible at the same time
                aMenu->SetItemDimmed( EESMRCmdSendMRUpdate, !sentAndStored );
-               if(iPolicy->IsDefaultCommand( EESMRCmdSendMR ) )
+               if( policy.IsDefaultCommand( EESMRCmdSendMR ) )
                    {
                    aMenu->SetItemDimmed( EESMRCmdSendMR, sentAndStored );
                    }
@@ -996,12 +982,22 @@ void CESMREditorDialog::DynInitMenuPaneL(
                }
            }
 
-        if(iPolicy->IsDefaultCommand( EESMRCmdViewTrack ) )
+        if ( policy.IsDefaultCommand( EESMRCmdAddOptAttendee ) )
+            {
+            // if optional attendee (recipient) is already visible, don't show
+            // the menu item.
+            TBool isVisible =
+                    iView->IsControlVisible( EESMRFieldOptAttendee );
+            aMenu->SetItemDimmed( EESMRCmdAddOptAttendee, isVisible );
+            }
+
+        if ( policy.IsDefaultCommand( EESMRCmdViewTrack ) )
             {
             //only show tracking view option when item is sent, stored
             //and when cfsmailbox actually supports attendee status
 
-            if (SupportsAttendeeStatusL())
+            if ( SupportsMailBoxCapabilityL(
+                    MESMRBuilderExtension::EMRCFSAttendeeStatus ) )
                 {
                 aMenu->SetItemDimmed( EESMRCmdViewTrack, !sentAndStored );
                 }
@@ -1009,83 +1005,64 @@ void CESMREditorDialog::DynInitMenuPaneL(
                 {
                 aMenu->SetItemDimmed( EESMRCmdViewTrack, ETrue );
                 }
-
-            }
-
-        if ( iPolicy->IsDefaultCommand( EESMRCmdAddOptAttendee ) )
-            {
-            // if optional attendee (recipient) is already visible, don't show
-            // the menu item.
-            TBool isVisible =
-                    iView->IsComponentVisible( EESMRFieldOptAttendee );
-            aMenu->SetItemDimmed( EESMRCmdAddOptAttendee, isVisible );
             }
 
         // Insert send ui menu for all other entry types than meeting request
-        if ( iEntry.Type ( )!= MESMRCalEntry::EESMRCalEntryMeetingRequest )
+        if ( entry->Type ( )!= MESMRCalEntry::EESMRCalEntryMeetingRequest )
             {
             TryInsertSendMenuL( aMenu );
             }
+		}
 
-        if ( FeatureManager::FeatureSupported( 
-        		KFeatureIdPrintingFrameworkCalendarPlugin ) )
-            {
-            // Initiliaze menu
-            iServiceHandler->InitializeMenuPaneL(
-                    *aMenu,
-                    aResourceId,
-                    EESMRCmdPrint,
-                    iServiceHandler->InParamListL() );
-            }
-        else
-            {
-            aMenu->SetItemDimmed( EESMRCmdPrint, ETrue );            
-            }
-        
-        HandleLocationOptionsL( aResourceId, aMenu );
-        }
-    
     if ( aResourceId == R_LOCATION_OPTIONS
          || aResourceId == R_MR_EDITOR_LOCATION_MENU
          || aResourceId == R_MR_VIEWER_LOCATION_MENU )
         {
+        menuStyle = EMRContextMenu;
         HandleLocationOptionsL( aResourceId, aMenu );
         }
+    if ( aResourceId == R_MR_EDITOR_ATTACHMENT_CONTEXT_MENU
+         || aResourceId == R_MR_EDITOR_ATTENDEE_CONTEXT_MENU )
+        {
+        menuStyle = EMRContextMenu;
+        }
+
+    // Field specific context menu
+    iView->DynInitMenuPaneL( menuStyle, aResourceId, aMenu );
     }
 
 // ---------------------------------------------------------------------------
 // CESMREditorDialog::SupportsAttendeeStatusL
 // ---------------------------------------------------------------------------
 //
-TBool CESMREditorDialog::SupportsAttendeeStatusL( )
+TBool CESMREditorDialog::SupportsMailBoxCapabilityL(
+        MESMRBuilderExtension::TMRCFSMailBoxCapability aCapa )
     {
     FUNC_LOG;
-    TBool supportsAttendeeStatus(EFalse);
+    TBool supportsCapability( EFalse );
     CESMRFieldBuilderInterface* plugin = NULL;
-    TRAPD( error, 
-    		plugin = CESMRFieldBuilderInterface::CreatePluginL( 
-						TUid::Uid(KESMRUIFieldBuilderPluginImplUId) ) );
+    TRAPD( error,
+            plugin = CESMRFieldBuilderInterface::CreatePluginL(
+                        TUid::Uid( KESMRUIFieldBuilderPluginImplUId ) ) );
     CleanupStack::PushL( plugin );
-    
-    if (error == KErrNone && plugin)
+
+    if ( error == KErrNone && plugin )
         {
         TUid uid = {0};
-        MESMRBuilderExtension* extension = 
-			static_cast<MESMRBuilderExtension*>( plugin->ExtensionL(uid) );
+        MESMRBuilderExtension* extension =
+            static_cast<MESMRBuilderExtension*>( plugin->ExtensionL( uid ) );
 
-        if (extension)
+        if ( extension )
             {
-            supportsAttendeeStatus = 
-				extension->CFSMailBoxCapabilityL(
-						MESMRBuilderExtension::EMRCFSAttendeeStatus);
+            supportsCapability =
+                extension->CFSMailBoxCapabilityL( aCapa );
             }
         }
 
     CleanupStack::PopAndDestroy( plugin );
 
-    return supportsAttendeeStatus;
+    return supportsCapability;
     }
-
 
 // ---------------------------------------------------------------------------
 // CESMREditorDialog::ExecuteViewLD
@@ -1134,28 +1111,39 @@ TInt CESMREditorDialog::HandleExitL() // codescanner::intleaves
     {
     FUNC_LOG;
     TInt res( KErrNone);
-
+    
     iView->ExternalizeL(); // no force validation
-    TBool isStored = iEntry.IsStoredL();
 
-    if ( iEntry.IsEntryEditedL() )
+    // If no attendees, switch MR to regular meeting
+    VerifyMeetingRequestL();
+
+    // Get the entry to be confirmed for saving
+    MESMRCalEntry* entry = iInfoProvider.EntryL();
+    
+    // if entry is stored and type changed, we will always save it
+    if( entry->IsStoredL() && entry->IsEntryTypeChangedL() )
         {
-        if ( IsAllowedToSaveL() )
+        res = TryToSaveEntryL();
+        }
+    // If entry is new and type changed, we have to see, if something has
+    // changed, before we save it.
+    else if( !entry->IsStoredL() && entry->IsEntryTypeChangedL() )
+        {
+        if( entry->IsEntryEditedL() )
             {
-            res = iCallback.ProcessCommandWithResultL( EESMRCmdSaveMR );
-            
-            if ( res == KErrNone
-                 && iFeatures->FeatureSupported(
-                         CESMRFeatureSettings::EESMRUIPreviousLocationsList ) )
-                {
-                LocationPluginHandlerL().StoreLocationToHistoryL( iEntry );
-                }
-            }
-        else
-            {
-            res = KErrCancel;
+            res = TryToSaveEntryL();
             }
         }
+    // Entry is not type changed, we will use normal procedure to
+    // see if entry will be saved or not.
+    else
+        {
+        if( entry->IsEntryEditedL() )
+            {
+            res = TryToSaveEntryL();
+            }
+        }
+
     return res;
     }
 
@@ -1166,27 +1154,36 @@ TInt CESMREditorDialog::HandleExitL() // codescanner::intleaves
 TInt CESMREditorDialog::HandleForcedExitL( TBool aShowConfirmationQuery ) // codescanner::intleaves
     {
     FUNC_LOG;
+
+    MESMRCalEntry* entry = iInfoProvider.EntryL();
+
     TInt res( KErrNone);
 
     iView->ExternalizeL ( ETrue ); // force validation should be used
 
-    if ( iEntry.IsEntryEditedL() && 
-    	 iEntry.Type() == MESMRCalEntry::EESMRCalEntryMeetingRequest)
+    // If no attendees, switch MR to regular meeting
+    VerifyMeetingRequestL();
+
+    // The entry data may be changed by the above function VerifyMeetingRequestL()
+    entry = iInfoProvider.EntryL();
+
+    if ( entry->IsEntryEditedL() )
         {
         if ( !aShowConfirmationQuery ||
              CESMRConfirmationQuery::ExecuteL(
-        		CESMRConfirmationQuery::EESMRSaveChanges ))
+                CESMRConfirmationQuery::EESMRSaveChanges ))
             {
             res = iCallback.ProcessCommandWithResultL( EESMRCmdSaveMR );
-            
+
             if ( res == KErrNone
                  && iFeatures->FeatureSupported(
                          CESMRFeatureSettings::EESMRUIPreviousLocationsList ) )
                 {
-                LocationPluginHandlerL().StoreLocationToHistoryL( iEntry );
+                LocationPluginHandlerL().StoreLocationToHistoryL( *entry );
                 }
             }
         }
+
     return res;
     }
 
@@ -1198,6 +1195,9 @@ void CESMREditorDialog::SendCalendarEntryL(
         TInt aCommandId )
     {
     FUNC_LOG;
+
+    MESMRCalEntry* entry = iInfoProvider.EntryL();
+
     iView->ExternalizeL(); // no force validation
     TInt res(KErrGeneral);
     res = iCallback.ProcessCommandWithResultL( EESMRCmdSaveMR );
@@ -1207,21 +1207,21 @@ void CESMREditorDialog::SendCalendarEntryL(
         if ( iFeatures->FeatureSupported(
                 CESMRFeatureSettings::EESMRUIPreviousLocationsList ) )
             {
-            LocationPluginHandlerL().StoreLocationToHistoryL( iEntry );
+            LocationPluginHandlerL().StoreLocationToHistoryL( *entry );
             }
-        
+
         // we don't need MenuPane in CCalSend but we need it for the API
         CEikMenuPane* pane = NULL;
 
         // Show menu to user
-        // CCalenSend handles selection internally, 
+        // CCalenSend handles selection internally,
         // so we don't get anything in return
         iESMRSendUI->DisplaySendCascadeMenuL( *pane );
 
         // Try to send
         if (iESMRSendUI->CanSendL( aCommandId ) )
             {
-            iESMRSendUI->SendAsVCalendarL( aCommandId, iEntry.Entry ( ) );
+            iESMRSendUI->SendAsVCalendarL( aCommandId, entry->Entry ( ) );
             }
         }
     }
@@ -1246,50 +1246,14 @@ void CESMREditorDialog::TryInsertSendMenuL(
     }
 
 // ---------------------------------------------------------------------------
-// CESMREditorDialog::HandlePrintCommandL
-// ---------------------------------------------------------------------------
-//
-void CESMREditorDialog::HandlePrintCommandL(
-        TInt aCommand )
-    {
-    FUNC_LOG;
-    CAiwGenericParamList& inParams = iServiceHandler->InParamListL ( );
-
-    // Param date
-
-    TCalTime startTime = iEntry.Entry().StartTimeL ( );
-
-    TAiwGenericParam dateParam( EGenericParamDateTime);
-    TTime activeDay = startTime.TimeUtcL ( );
-
-    TAiwGenericParam calendarParam( EGenericParamCalendarItem);
-    calendarParam.Value().Set ( TUid::Uid (iEntry.Entry().LocalUidL ( ) ) );
-    inParams.AppendL ( calendarParam );
-
-    // Append date param
-    dateParam.Value().Set ( activeDay );
-    inParams.AppendL ( dateParam );
-
-    const TUid uid( TUid::Uid( KUidCalendarApplication ) );
-    TAiwGenericParam uidParam( EGenericParamApplication);
-    uidParam.Value().Set ( uid );
-    inParams.AppendL ( uidParam );
-
-    // Execute service command with given parameters
-    iServiceHandler->ExecuteMenuCmdL ( aCommand,
-            inParams, iServiceHandler->OutParamListL ( ), 0,
-            NULL );
-    }
-
-// ---------------------------------------------------------------------------
 // CESMREditorDialog::HandleOpenCmdL
 // ---------------------------------------------------------------------------
 //
 void CESMREditorDialog::HandleOpenCmdL()
-	{
+    {
     FUNC_LOG;
-	iView->ProcessEditorCommandL( EAknCmdOpen );
-	}
+    iView->ProcessEditorCommandL( EAknCmdOpen );
+    }
 
 // ---------------------------------------------------------------------------
 // CESMREditorDialog::HandleLocationOptionsL
@@ -1299,184 +1263,34 @@ void CESMREditorDialog::HandleLocationOptionsL( TInt aResourceId,
                                                 CEikMenuPane* aMenuPane )
     {
     FUNC_LOG;
-    TInt menuPos = KErrNotFound;
-    
-    if ( aResourceId == R_MR_EDITOR_ORGANIZER_MENU )
-        {
-        
-	    if ( FeatureManager::FeatureSupported( KFeatureIdFfCmailIntegration ) )
-		   {
-		   // remove help support in pf5250
-		   aMenuPane->SetItemDimmed( EAknCmdHelp, ETrue);      
-		   }        
-                
-        if ( iPolicy->FieldL( EESMRFieldLocation ).iFieldMode == EESMRFieldModeView )
-            {
-            // Dim Location cascade menu with viewer field
-            aMenuPane->SetItemDimmed( EESMRCmdAddLocation, ETrue );
-            
-            if ( iFeatures->FeatureSupported(
-                    CESMRFeatureSettings::EESMRUIMnFwIntegration ) )
-                {
-                TBool showOnMap =
-                    LocationPluginHandlerL().IsCommandAvailableL( EESMRCmdShowOnMap,
-                                                                  iEntry );
-                aMenuPane->SetItemDimmed( EESMRCmdShowOnMap, !showOnMap );
-                aMenuPane->SetItemDimmed( EESMRCmdSearchFromMap, showOnMap );
-                }
-            }
-        else if ( aMenuPane->MenuItemExists( EESMRCmdAddLocation, menuPos ) )
-            {
-            TInt numOptions = 0; // number of sub menu items
-            TInt commandId = 0; // command id if only one sub menu item
-            
-            if ( iFeatures->FeatureSupported(
-                    CESMRFeatureSettings::EESMRUIMnFwIntegration ) )
-                {
-                ++numOptions;
-                commandId = EESMRCmdAssignFromMap;
-                }
-            
-            if ( iFeatures->FeatureSupported(
-                    CESMRFeatureSettings::EESMRUIContactsIntegration ) )
-                {
-                ++numOptions;
-                commandId = EESMRCmdSearchFromContacts;
-                }
-            
-            if ( iFeatures->FeatureSupported(
-                    CESMRFeatureSettings::EESMRUILandmarksIntegration) )
-                {
-                ++numOptions;
-                commandId = EESMRCmdLandmarks;
-                }
-            
-            if ( iFeatures->FeatureSupported(
-                    CESMRFeatureSettings::EESMRUIPreviousLocationsList ) )
-                {
-                ++numOptions;
-                commandId = EESMRCmdPreviousLocations;
-                }
-                        
-                        
-            
-            if ( numOptions == 0 )
-                {
-                // Delete whole sub menu
-                aMenuPane->DeleteMenuItem( EESMRCmdAddLocation );
-                }
-            else if ( numOptions == 1 )
-                {
-                // Replace submenu with available command
-                aMenuPane->DeleteMenuItem( EESMRCmdAddLocation );
-                
-                // Insert new menu item
-                HBufC* text = LoadOptionsMenuTextLC( commandId );
-                CEikMenuPaneItem::SData menuItem;
-                menuItem.iCommandId = commandId;
-                menuItem.iCascadeId = 0;
-                menuItem.iFlags = 0;
-                menuItem.iText = *text;
-                CleanupStack::PopAndDestroy( text );
-                aMenuPane->InsertMenuItemL( menuItem, menuPos );
-                }
-            }
-        else if ( aMenuPane->MenuItemExists( EESMRCmdPreviousLocations, menuPos )
-                  && !LocationPluginHandlerL().IsCommandAvailableL(
-                          EESMRCmdPreviousLocations, iEntry ) )
-            {
-            // No items in location history. Dim item.
-            aMenuPane->SetItemDimmed( EESMRCmdPreviousLocations, ETrue );
-            }
-        }
-    
-    if ( aResourceId == R_LOCATION_OPTIONS
-         || aResourceId == R_MR_EDITOR_LOCATION_MENU )
-        {
-        TBool assignFromMap = iFeatures->FeatureSupported(
-                CESMRFeatureSettings::EESMRUIMnFwIntegration );
-        aMenuPane->SetItemDimmed( EESMRCmdAssignFromMap, !assignFromMap );
-        
-        TBool searchFromContacts = iFeatures->FeatureSupported(
-                CESMRFeatureSettings::EESMRUIContactsIntegration );        
-        aMenuPane->SetItemDimmed( EESMRCmdSearchFromContacts,
-                                  !searchFromContacts );
-        
-        TBool landmarks = iFeatures->FeatureSupported(
-                CESMRFeatureSettings::EESMRUILandmarksIntegration );        
-        aMenuPane->SetItemDimmed( EESMRCmdLandmarks,
-                                  !landmarks );
-        
-        TBool previousLocations = iFeatures->FeatureSupported(
-                        CESMRFeatureSettings::EESMRUIPreviousLocationsList );
-        if ( previousLocations
-             && !LocationPluginHandlerL().IsCommandAvailableL(
-                     EESMRCmdPreviousLocations, iEntry ) )
-            {
-            // No items in history. Dim option.
-            previousLocations = EFalse;
-            }
-        aMenuPane->SetItemDimmed( EESMRCmdPreviousLocations,
-                                  !previousLocations );
-        }
-    
+
+    MESMRCalEntry* entry = iInfoProvider.EntryL();
+
     if ( aResourceId == R_MR_VIEWER_LOCATION_MENU )
         {
-        TBool showOnMap =
-            LocationPluginHandlerL().IsCommandAvailableL( EESMRCmdShowOnMap,
-                                                          iEntry );
-        
-        aMenuPane->SetItemDimmed( EESMRCmdShowOnMap, !showOnMap );
-        aMenuPane->SetItemDimmed( EESMRCmdSearchFromMap, showOnMap );
-        
-        aMenuPane->SetItemDimmed( EESMRCmdEdit,
-                                  !iPolicy->IsDefaultCommand( EESMRCmdEdit ) );
-        aMenuPane->SetItemDimmed( EESMRCmdEditLocal,
-                                  !iPolicy->IsDefaultCommand( EESMRCmdEditLocal ) );
-        aMenuPane->SetItemDimmed( EESMRCmdCalEntryUIEdit,
-                                  !iPolicy->IsDefaultCommand( EESMRCmdCalEntryUIEdit ) );
-        }
-    }
+        TBool showOnMap = EFalse;
+        TBool searchFromMap = EFalse;
 
-// ---------------------------------------------------------------------------
-// CESMREditorDialog::LoadOptionsMenuTextLC
-// ---------------------------------------------------------------------------
-//
-HBufC* CESMREditorDialog::LoadOptionsMenuTextLC( TInt aCommandId )
-    {
-    FUNC_LOG;
-    TInt resourceId = 0;
-    
-    switch ( aCommandId )
-        {
-        case EESMRCmdAssignFromMap:
+        if ( iFeatures->FeatureSupported(
+                CESMRFeatureSettings::EESMRUIMnFwIntegration ) )
             {
-            resourceId = R_MEET_REQ_OPTIONS_ASSIGN_FROM_MAP;
-            break;
+            showOnMap = LocationPluginHandlerL().IsCommandAvailableL(
+                    EESMRCmdShowOnMap,
+                    *entry );
+            searchFromMap = !showOnMap;
             }
-        case EESMRCmdSearchFromContacts:
-            {
-            resourceId = R_MEET_REQ_OPTIONS_SEARCH_FROM_CONTACTS;
-            break;
-            }
-        case EESMRCmdPreviousLocations:
-            {
-            resourceId = R_MEET_REQ_OPTIONS_PREVIOUS_LOCATIONS;
-            break;
-            }
-        case EESMRCmdLandmarks:
-            {
-            resourceId = R_MEET_REQ_OPTIONS_LANDMARKS;
-            break;
-            }
-        default:
-            {
-            User::Leave( KErrArgument );
-            }
+
+        aMenuPane->SetItemDimmed( EESMRCmdShowOnMap, !showOnMap );
+        aMenuPane->SetItemDimmed( EESMRCmdSearchFromMap, !searchFromMap );
+
+        const CESMRPolicy& policy = Policy();
+        aMenuPane->SetItemDimmed( EESMRCmdEdit,
+                                  !policy.IsDefaultCommand( EESMRCmdEdit ) );
+        aMenuPane->SetItemDimmed( EESMRCmdEditLocal,
+                                  !policy.IsDefaultCommand( EESMRCmdEditLocal ) );
+        aMenuPane->SetItemDimmed( EESMRCmdCalEntryUIEdit,
+                                  !policy.IsDefaultCommand( EESMRCmdCalEntryUIEdit ) );
         }
-    
-    HBufC* text = StringLoader::LoadLC( resourceId, iCoeEnv );
-    return text;
     }
 
 // ---------------------------------------------------------------------------
@@ -1490,10 +1304,10 @@ CESMRLocationPluginHandler& CESMREditorDialog::LocationPluginHandlerL()
         {
         iLocationPluginHandler = CESMRLocationPluginHandler::NewL( *this );
         }
-    
+
     return *iLocationPluginHandler;
     }
-    
+
 // ---------------------------------------------------------------------------
 // CESMREditorDialog::AddressInfoHandlerL
 // ---------------------------------------------------------------------------
@@ -1505,7 +1319,7 @@ CESMRAddressInfoHandler& CESMREditorDialog::AddressInfoHandlerL()
         {
         iAddressInfoHandler = CESMRAddressInfoHandler::NewL();
         }
-    
+
     return *iAddressInfoHandler;
     }
 
@@ -1527,7 +1341,7 @@ void CESMREditorDialog::HandleFieldEventL( // codescanner::LFunctionCantLeave
         case MESMRFieldEvent::EESMRFieldChangeEvent:
             {
             HandleFieldChangeEventL( aEvent );
-            break;    
+            break;
             }
         default:
             {
@@ -1544,6 +1358,7 @@ void CESMREditorDialog::HandleFieldCommandEventL(
         const MESMRFieldEvent& aEvent )
     {
     FUNC_LOG;
+    CEikButtonGroupContainer& cba = ButtonGroupContainer();
     TInt* command = static_cast< TInt* >( aEvent.Param( 0 ) );
     switch ( *command )
         {
@@ -1551,12 +1366,12 @@ void CESMREditorDialog::HandleFieldCommandEventL(
             {
             iRequiredAttendeesEnabled = ETrue;
             break;
-            }            
+            }
         case EESMRCmdAttendeeRequiredDisabled:
             {
             iRequiredAttendeesEnabled = EFalse;
             break;
-            }            
+            }
         case EESMRCmdAttendeeOptionalEnabled:
             {
             iOptionalAttendeesEnabled = ETrue;
@@ -1569,10 +1384,10 @@ void CESMREditorDialog::HandleFieldCommandEventL(
             }
         case EESMRCmdRestoreMiddleSoftKey:
             {
-            CEikButtonGroupContainer& cba = ButtonGroupContainer();
-            
-            if ( iPolicy->FieldL( iView->FocusedField() ).iFieldMode
-                 == EESMRFieldModeView )
+            iContextMenuResourceId = 0;
+
+            if ( Policy().FieldL(
+                    iView->FocusedField() ).iFieldMode == EESMRFieldModeView )
                 {
                 // Dim default MSK if editor contains viewer fields
                 cba.MakeCommandVisibleByPosition(
@@ -1582,9 +1397,9 @@ void CESMREditorDialog::HandleFieldCommandEventL(
             else
                 {
                 cba.SetCommandL(
-                    CEikButtonGroupContainer::EMiddleSoftkeyPosition, 
+                    CEikButtonGroupContainer::EMiddleSoftkeyPosition,
                     R_MR_SELECT_SOFTKEY );
-                            
+
                 cba.MakeCommandVisibleByPosition(
                         CEikButtonGroupContainer::EMiddleSoftkeyPosition,
                         ETrue );
@@ -1593,15 +1408,109 @@ void CESMREditorDialog::HandleFieldCommandEventL(
             }
             break;
         case EESMRCmdSizeExceeded:
-        	iView->ProcessEditorCommandL( *command );
-        	break;
+            iView->ProcessEditorCommandL( *command );
+            break;
+
+        case EMRCommandSwitchToMR:
+        case EMRCommandSwitchToMeeting:
+        case EMRCommandSwitchToMemo:
+        case EMRCommandSwitchToAnniversary:
+        case EMRCommandSwitchToTodo:
+            {
+            TRAPD( err, SwitchEntryTypeL( *command, ETrue ) )
+
+            if (KErrArgument == err )
+                 {
+                 // There was validation error --> Just show the
+                 // existing editor.
+                 err = KErrNone;
+                 }
+             else if ( err )
+                {
+                // UI and engine not consistent. Show error and exit
+                iCoeEnv->HandleError( err );
+                TryExitL( EESMRCmdForceExit );
+                }
+
+            break;
+            }
+        case EESMRCmdLongtapDetected:
+            {
+            OkToExitL(EESMRCmdLongtapDetected);
+            break;
+            }
+        case EMRLaunchAttachmentContextMenu:
+        case EAknSoftkeyContextOptions:
+            {
+            OkToExitL( EAknSoftkeyContextOptions );
+            break;
+            }
+        case EESMRCmdCalendarChange:
+            {
+            DrawDeferred();
+            break;
+            }
+        case EESMRCmdAssignFromMap:
+        case EMRCommandMyLocations:
+            {
+            DoProcessCommandL( *command );
+            break;
+            }
         default:
             {
             break;
             }
         }
+
+
+    MESMRCalEntry* entry = iInfoProvider.EntryL();
+    if ( entry->Type() == MESMRCalEntry::EESMRCalEntryMeetingRequest )
+    	{
+		MESMRMeetingRequestEntry* mrEntry =
+            static_cast<MESMRMeetingRequestEntry*>( iInfoProvider.EntryL() );
+
+		TBool bOccursInPast( OccursInPast( iStartTimeUtc ) );
+		
+		TBool sendEnabled = ( !bOccursInPast &&
+			( mrEntry->RoleL() == EESMRRoleOrganizer || mrEntry->IsForwardedL() ) &&            
+			( iRequiredAttendeesEnabled | iOptionalAttendeesEnabled ) &&
+			(( ( iInfoProvider.PolicyProvider().CurrentPolicy().ViewMode() == EESMREditMR )) ||
+			( iInfoProvider.PolicyProvider().CurrentPolicy().ViewMode() == EESMRForwardMR )
+			));
+
+		if( sendEnabled )
+			{
+			cba.SetCommandL(
+                    CEikButtonGroupContainer::ERightSoftkeyPosition,
+                    R_MR_SEND_SOFTKEY);
+            cba.MakeCommandVisibleByPosition(
+                    CEikButtonGroupContainer::ERightSoftkeyPosition,
+                    ETrue );
+			cba.DrawDeferred();
+			}
+		else
+			{
+			cba.SetCommandL(
+                    CEikButtonGroupContainer::ERightSoftkeyPosition,
+                    R_MR_DONE_SOFTKEY);
+            cba.MakeCommandVisibleByPosition(
+                    CEikButtonGroupContainer::ERightSoftkeyPosition,
+                    ETrue );
+			cba.DrawDeferred();
+			}
+    	}
+	else
+		{
+		cba.SetCommandL(
+                CEikButtonGroupContainer::ERightSoftkeyPosition,
+                R_MR_DONE_SOFTKEY);
+        cba.MakeCommandVisibleByPosition(
+                CEikButtonGroupContainer::ERightSoftkeyPosition,
+                ETrue );
+		cba.DrawDeferred();
+		}
     }
-    
+
 // ---------------------------------------------------------------------------
 // CESMREditorDialog::HandleFieldChangeEventL
 // ---------------------------------------------------------------------------
@@ -1610,82 +1519,105 @@ void CESMREditorDialog::HandleFieldChangeEventL(
         const MESMRFieldEvent& aEvent )
     {
     FUNC_LOG;
+
     TInt* fieldId = static_cast< TInt* >( aEvent.Param( 0 ) );
+    MESMRCalEntry* entry = iInfoProvider.EntryL();
+
     switch ( *fieldId )
         {
         case EESMRFieldLocation:
             {
             MESMRFieldEventValue* value =
                 static_cast< MESMRFieldEventValue* >( aEvent.Param( 1 ) );
-            if ( iEntry.Entry().LocationL() != value->StringValue() )
+            if ( entry->Entry().LocationL() != value->StringValue() )
                 {
                 // Show query dialog only if entry has geocoordinates.
                 // It can be verified by checking if "Show on map" is available
                 // for iEntry as geocoordinates are required for that.
                 TBool enableQuery =
                     LocationPluginHandlerL().IsCommandAvailableL(
-                            EESMRCmdShowOnMap, iEntry );
-                
+                            EESMRCmdShowOnMap, *entry );
+
                 if ( enableQuery
                      && CESMRConfirmationQuery::ExecuteL(
                         CESMRConfirmationQuery::EESMRAssignUpdatedLocation ) )
                     {
-                    HBufC* oldLocation = iEntry.Entry().LocationL().AllocLC();
+                    HBufC* oldLocation = entry->Entry().LocationL().AllocLC();
                     iView->ExternalizeL();
-                                       
+
                     // if old and new locations are different and old location
                     // exists, the user is updating existing location. Let's discard
                     // the existing coordinates by using command EESMRCmdUpdateFromMap
-                    if ( iEntry.Entry().LocationL().Compare( *oldLocation ) != 0 && 
+                    if ( entry->Entry().LocationL().Compare( *oldLocation ) != 0 &&
                             oldLocation->Length() != 0 )
                         {
-                        LocationPluginHandlerL().HandleCommandL( 
-                                EESMRCmdUpdateFromMap, 
-                                iEntry );
+                        LocationPluginHandlerL().HandleCommandL(
+                                EESMRCmdUpdateFromMap,
+                                *entry );
                         }
                     else
                         {
                         LocationPluginHandlerL().HandleCommandL(
                             EESMRCmdAssignFromMap,
-                            iEntry,
-							   EFalse );
+                            *entry,
+                            EFalse );
                         }
 
                     iView->InternalizeL();
                     iView->SetControlFocusedL( EESMRFieldLocation );
-                    
+
                     CleanupStack::PopAndDestroy( oldLocation );
                     oldLocation = NULL;
                     }
                 else if ( enableQuery )
                     {
                     // Externalize entry, so query won't be displayed
-                    // again for the same text. 
+                    // again for the same text.
                     iView->ExternalizeL();
                     }
                 }
             break;
             }
+
         case EESMRFieldStartDate:
             {
-            if ( iEntry.Type() == MESMRCalEntry::EESMRCalEntryMeetingRequest )
-                {
-                MESMRFieldEventValue* value =
-                    static_cast< MESMRFieldEventValue* >( aEvent.Param( 1 ) );
-                TTime now;
-                now.UniversalTime();
-                if ( value->TimeValue() < now )
-                    {
-                    // disable send option
-                    iOccursInPast = ETrue;
-                    }
-                else
-                    {
-                    iOccursInPast = EFalse;
-                    }
-                }
+			// for update iStartTimeUtc when meeting & mr event changing start time
+            TBool bOccursInPast( OccursInPastL( aEvent ) );
+            
+            if ( entry->Type() == MESMRCalEntry::EESMRCalEntryMeetingRequest )
+            	{
+        		MESMRMeetingRequestEntry* mrEntry =
+                    static_cast<MESMRMeetingRequestEntry*>( iInfoProvider.EntryL() );
+ 	            TBool bIsOrganizer( mrEntry->RoleL() == EESMRRoleOrganizer );            
+				
+            	ChangeRightSoftkeyL( bOccursInPast, bIsOrganizer );
+            	}
             break;
             }
+            
+        case EESMRFieldAllDayEvent:
+            {
+            TBool bOccursInPast( OccursInPast( iStartTimeUtc ) );   
+            TInt* bChecked = static_cast< TInt* >( aEvent.Param( 1 ) );
+            if( *bChecked == 1 )
+            	{
+				TDateTime startTime = iStartTimeUtc.DateTime();
+				startTime.SetHour( 0 );
+				startTime.SetMinute( 0 );
+				startTime.SetSecond( 0 );
+				bOccursInPast = OccursInPast( startTime );
+            	}               
+
+            if ( entry->Type() == MESMRCalEntry::EESMRCalEntryMeetingRequest )
+            	{
+        		MESMRMeetingRequestEntry* mrEntry =
+                    static_cast<MESMRMeetingRequestEntry*>( iInfoProvider.EntryL() );
+                TBool bIsOrganizer( mrEntry->RoleL() == EESMRRoleOrganizer );
+				
+            	ChangeRightSoftkeyL( bOccursInPast, bIsOrganizer );
+            	}
+            break;
+            }              
         default:
             {
             break;
@@ -1693,5 +1625,445 @@ void CESMREditorDialog::HandleFieldChangeEventL(
         }
     }
 
-// EOF
+// ---------------------------------------------------------------------------
+// CESMREditorDialog::SetContextMenuL
+// ---------------------------------------------------------------------------
+//
+TBool CESMREditorDialog::SetContextMenuL()
+    {
+    FUNC_LOG;
+    TInt ret( EFalse );
 
+    TESMREntryFieldId fieldId = iView->ClickedOrFocusedField();
+
+    switch( fieldId )
+        {
+        case EESMRFieldLocation:
+            {
+            ret = ETrue;
+
+            if ( Policy().FieldL( EESMRFieldLocation ).iFieldMode
+                    == EESMRFieldModeEdit )
+                {
+                iContextMenuResourceId =
+                        R_MR_EDITOR_LOCATION_CONTEXT_MENU;
+                }
+            else
+                {
+                iContextMenuResourceId =
+                        R_MR_VIEWER_CONTEXT_MENU;
+                }
+
+            if ( !iFeatures->FeatureSupported(
+                    CESMRFeatureSettings::EESMRUIMnFwIntegration )
+                 && iContextMenuResourceId == R_MR_EDITOR_LOCATION_CONTEXT_MENU )
+                {
+#ifndef RD_USE_MYLOCATIONUI
+                // Maps not supported and My Locations UI disabled
+                ret = EFalse;
+#endif //RD_USE_MYLOCATIONUI
+                }
+            }
+            break;
+
+        case EESMRFieldAttachments:
+            {
+            if ( Policy().FieldL(
+                    EESMRFieldAttachments ).iFieldMode
+                    == EESMRFieldModeEdit )
+                {
+                iContextMenuResourceId = R_MR_EDITOR_ATTACHMENT_CONTEXT_MENU;
+                ret = ETrue;
+                }
+            }
+            break;
+        case EESMRFieldAttendee:
+        case EESMRFieldOptAttendee:
+            {
+            if ( Policy().FieldL(
+                    EESMRFieldAttendee ).iFieldMode == EESMRFieldModeEdit  ||
+                 Policy().FieldL(
+                    EESMRFieldOptAttendee ).iFieldMode == EESMRFieldModeEdit )
+                {
+                iContextMenuResourceId = R_MR_EDITOR_ATTENDEE_CONTEXT_MENU;
+                ret = ETrue;
+                }
+            }
+            break;
+        default:
+            break;
+        }
+
+    if ( ret )
+        {
+        iMenuBar->SetContextMenuTitleResourceId(
+                iContextMenuResourceId );
+        }
+    else
+        {
+        iContextMenuResourceId = 0;
+        }
+
+    return ret;
+    }
+
+// ---------------------------------------------------------------------------
+// CESMREditorDialog::SwitchEntryTypeL
+// ---------------------------------------------------------------------------
+//
+void CESMREditorDialog::SwitchEntryTypeL(
+        TInt aCommand,
+        TBool aAdjustView )
+    {
+    FUNC_LOG;
+    TBool change( EFalse );
+    MESMRCalEntry* entry = iInfoProvider.EntryL();
+
+    switch ( aCommand )
+        {
+        case EMRCommandSwitchToMR:
+            {
+            TBool ret( ETrue );
+
+            // Show confirmation note if current mailbox does not
+            // support attachments and attachments exist in the entry
+            if( entry->Entry().AttachmentCountL() > 0 &&
+                    !SupportsMailBoxCapabilityL(
+                            MESMRBuilderExtension::
+                                EMRCFSSupportsAttachmentsInMR ) )
+                {
+                if ( !CESMRConfirmationQuery::ExecuteL(
+                                   CESMRConfirmationQuery::
+                                       EESMRAttachmentsNotSupported ) )
+                    {
+                    ret = EFalse;
+                    }
+                }
+
+            if( ret )
+                {
+                change =
+                    ( entry->Type() !=
+                        MESMRCalEntry::EESMRCalEntryMeetingRequest );
+                }
+
+            break;
+            }
+        case EMRCommandSwitchToMeeting:
+            {
+            change =
+                ( entry->Type() != MESMRCalEntry::EESMRCalEntryMeeting );
+            break;
+            }
+        case EMRCommandSwitchToMemo:
+            {
+            change =
+                ( entry->Type() != MESMRCalEntry::EESMRCalEntryMemo );
+            break;
+            }
+        case EMRCommandSwitchToAnniversary:
+            {
+            change =
+                ( entry->Type() != MESMRCalEntry::EESMRCalEntryAnniversary );
+            break;
+            }
+        case EMRCommandSwitchToTodo:
+            {
+            change =
+                ( entry->Type() != MESMRCalEntry::EESMRCalEntryTodo);
+            break;
+            }
+        default:
+            {
+            break;
+            }
+        }
+
+    if ( change )
+        {
+        iView->ExternalizeL(ETrue);
+        iStartTimeUtc = entry->Entry().StartTimeL().TimeUtcL();
+        iCallback.ProcessCommandL( aCommand );
+
+        if( aAdjustView )
+            {
+            MESMRCalEntry* entry = iInfoProvider.EntryL();
+            iView->AdjustViewL( entry, Policy() );
+            SetTitleL();
+            }
+        }
+    }
+
+// ---------------------------------------------------------------------------
+// CESMREditorDialog::Policy
+// ---------------------------------------------------------------------------
+//
+const CESMRPolicy& CESMREditorDialog::Policy() const
+    {
+    FUNC_LOG;
+    return iInfoProvider.PolicyProvider().CurrentPolicy();
+    }
+
+// ---------------------------------------------------------------------------
+// CESMREditorDialog::DynInitToolbarL
+// ---------------------------------------------------------------------------
+//
+void CESMREditorDialog::DynInitToolbarL ( TInt /*aResourceId*/,
+        CAknToolbar* /*aToolbar*/ )
+    {
+    // TODO: Not implemented yet
+    }
+
+// ---------------------------------------------------------------------------
+// CESMREditorDialog::OfferToolbarEventL
+// ---------------------------------------------------------------------------
+//
+void CESMREditorDialog::OfferToolbarEventL ( TInt aCommand )
+    {
+    DoProcessCommandL(aCommand);
+    }
+
+
+// ---------------------------------------------------------------------------
+// CESMREditorDialog::SetTitleL
+// ---------------------------------------------------------------------------
+//
+void CESMREditorDialog::SetTitleL ()
+    {
+    FUNC_LOG;
+
+    MESMRCalEntry* entry = iInfoProvider.EntryL();
+
+    // Setting title to status pane's title pane
+    TInt titleStringId = -1;
+    switch ( entry->Type() )
+        {
+        case MESMRCalEntry::EESMRCalEntryMeetingRequest:
+            titleStringId = R_QTN_MEET_REQ_TITLE_MEETING;
+            break;
+        case MESMRCalEntry::EESMRCalEntryMeeting:
+            titleStringId = R_QTN_CALENDAR_TITLE_MEETING;
+            break;
+        case MESMRCalEntry::EESMRCalEntryTodo:
+            titleStringId = R_QTN_CALENDAR_TITLE_TODO;
+            break;
+        case MESMRCalEntry::EESMRCalEntryMemo:
+            titleStringId = R_QTN_CALENDAR_TITLE_MEMO;
+            break;
+        case MESMRCalEntry::EESMRCalEntryReminder:
+            break;
+        case MESMRCalEntry::EESMRCalEntryAnniversary:
+            titleStringId = R_QTN_CALENDAR_TITLE_ANNIVERSARY;
+            break;
+        default:
+            break;
+        }
+
+    if ( titleStringId != -1 )
+        {
+        if( !iTitlePane )
+            {
+            iTitlePane = CESMRTitlePaneHandler::NewL( *iEikonEnv );
+            }
+
+        HBufC* titleText = StringLoader::LoadLC( titleStringId, iCoeEnv );
+        iTitlePane->SetNewTitle( titleText );
+        CleanupStack::PopAndDestroy( titleText );
+        }
+
+    // If subject does not exist, let's update the title also
+    // to main window
+    if( entry->Entry().SummaryL().Length() <= 0 )
+        {
+        HBufC* title ;
+        switch( entry->Type() )
+           {
+           case MESMRCalEntry::EESMRCalEntryTodo:
+               {
+               title = StringLoader::LoadLC ( R_QTN_CALENDAR_TITLE_NEW_TODO );
+               break;
+               }
+           case MESMRCalEntry::EESMRCalEntryMemo:
+               {
+               title = StringLoader::LoadLC ( R_QTN_CALENDAR_TITLE_NEW_MEMO );
+               break;
+               }
+           case MESMRCalEntry::EESMRCalEntryAnniversary:
+               {
+               title = StringLoader::LoadLC(R_QTN_CALENDAR_TITLE_NEW_ANNIVERSARY);
+               break;
+               }
+           case MESMRCalEntry::EESMRCalEntryMeetingRequest: // Fall through
+           case MESMRCalEntry::EESMRCalEntryMeeting: // Fall through
+           case MESMRCalEntry::EESMRCalEntryReminder: // Fall through
+           default:
+               {
+               title = StringLoader::LoadLC( R_QTN_MEET_REQ_TITLE );
+               break;
+               }
+           }
+        iView->SetTitleL( *title );
+        CleanupStack::PopAndDestroy( title );
+        }
+    }
+
+// ---------------------------------------------------------------------------
+// CESMREditorDialog::VerifyMeetingRequestL
+// ---------------------------------------------------------------------------
+//
+void CESMREditorDialog::VerifyMeetingRequestL()
+    {
+    FUNC_LOG;
+
+    MESMRCalEntry* entry = iInfoProvider.EntryL();
+
+    // If entry is meeting request, but no attendees have been added,
+    // entry is switched to and saved as regular meeting
+    if( CCalenInterimUtils2::IsMeetingRequestL( entry->Entry() ) )
+        {
+        RPointerArray<CCalAttendee>& attendees(
+                entry->Entry().AttendeesL() );
+
+        TInt attendeeCount = attendees.Count();
+
+        if( ( attendeeCount == 0 ) &&
+        	(iInfoProvider.PolicyProvider().CurrentPolicy().ViewMode() != EESMRForwardMR) )
+            {
+            TRAPD( err, SwitchEntryTypeL( EMRCommandSwitchToMeeting, EFalse ) )
+
+            if ( err )
+               {
+               // UI and engine not consistent. Show error and exit
+               iCoeEnv->HandleError( err );
+               TryExitL( EESMRCmdForceExit );
+               }
+            }
+        }
+    }
+
+// -----------------------------------------------------------------------------
+// CESMREditorDialog::ShowContextMenuL
+// -----------------------------------------------------------------------------
+//
+void CESMREditorDialog::ShowContextMenuL()
+    {
+    FUNC_LOG;
+
+    if ( iMenuBar )
+        {
+        iMenuBar->TryDisplayContextMenuBarL();
+        }
+    }
+
+
+// -----------------------------------------------------------------------------
+// CESMREditorDialog::OccursInPast
+// -----------------------------------------------------------------------------
+//
+TBool CESMREditorDialog::OccursInPastL( const MESMRFieldEvent& aEvent )
+    {
+    FUNC_LOG;
+    MESMRFieldEventValue* value = static_cast< MESMRFieldEventValue* >( aEvent.Param( 1) );
+
+    TCalTime startCalTime;
+    startCalTime.SetTimeLocalL( value->TimeValue() );
+
+    iStartTimeUtc = startCalTime.TimeUtcL();
+
+	return OccursInPast( iStartTimeUtc );
+    }
+
+// -----------------------------------------------------------------------------
+// CESMREditorDialog::OccursInPast
+// -----------------------------------------------------------------------------
+//
+TBool CESMREditorDialog::OccursInPast( const TTime& aStartUtc )
+	{
+    FUNC_LOG;
+	TBool bOccursInPast(EFalse);
+
+	TTime now;
+    now.UniversalTime();
+
+    if ( aStartUtc < now )
+    	{
+    	bOccursInPast = ETrue;
+    	}
+
+    return bOccursInPast;
+	}
+
+// -----------------------------------------------------------------------------
+// CESMREditorDialog::ChangeRightSoftkeyL
+// -----------------------------------------------------------------------------
+//
+void CESMREditorDialog::ChangeRightSoftkeyL( TBool aOccursInPast, TBool aIsOrganizer )
+	{
+    FUNC_LOG;
+	TBool sendEnabled = 
+		( iRequiredAttendeesEnabled | iOptionalAttendeesEnabled ) && 
+		!aOccursInPast && aIsOrganizer;
+
+	CEikButtonGroupContainer& cba = ButtonGroupContainer();
+	
+	if( sendEnabled )
+		{
+		cba.SetCommandL(
+                CEikButtonGroupContainer::ERightSoftkeyPosition,
+                R_MR_SEND_SOFTKEY);
+		cba.DrawDeferred();
+		}
+	else
+		{
+		cba.SetCommandL(
+                CEikButtonGroupContainer::ERightSoftkeyPosition,
+                R_MR_DONE_SOFTKEY);
+		cba.DrawDeferred();   
+		}	
+	}
+
+// -----------------------------------------------------------------------------
+// CESMREditorDialog::TryToSaveEntryL
+// -----------------------------------------------------------------------------
+//
+TInt CESMREditorDialog::TryToSaveEntryL()
+    {
+    FUNC_LOG;
+    TInt res( KErrNone );
+    
+    MESMRCalEntry* entry = iInfoProvider.EntryL();
+
+    if ( IsAllowedToSaveL() )
+        {
+        res = iCallback.ProcessCommandWithResultL( EESMRCmdSaveMR );
+
+        if ( res == KErrNone
+             && iFeatures->FeatureSupported(
+                     CESMRFeatureSettings::EESMRUIPreviousLocationsList ) )
+            {
+            LocationPluginHandlerL().StoreLocationToHistoryL( *entry );
+            }
+            if ( entry->Type() == MESMRCalEntry::EESMRCalEntryTodo )
+                {
+                CESMRGlobalNote* note =
+                    CESMRGlobalNote::NewL(
+                            CESMRGlobalNote::EESMRTodoEntrySaved );
+                note->ExecuteLD();
+                }
+            else
+                {
+                CESMRGlobalNote* note =
+                    CESMRGlobalNote::NewL(
+                            CESMRGlobalNote::EESMREntrySaved );
+                note->ExecuteLD();
+                }
+        }
+    else
+        {
+        res = KErrCancel;
+        }
+    
+    return res;
+    }
+
+// EOF

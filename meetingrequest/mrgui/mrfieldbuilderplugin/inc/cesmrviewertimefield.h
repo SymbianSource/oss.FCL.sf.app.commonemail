@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -11,7 +11,7 @@
 *
 * Contributors:
 *
-* Description:  ESMR viewer time field for CESMRListComponent
+* Description:  ESMR viewer time field.
 *
 */
 
@@ -48,21 +48,30 @@ public: // From CESMRField
     void InternalizeL( MESMRCalEntry& aEntry );
     void InitializeL();
     void SetOutlineFocusL( TBool aFocus );
-
+    TBool ExecuteGenericCommandL( TInt aCommand );
+    void LockL();
+    
 public: // From CCoeControl
     void SizeChanged();
     TInt CountComponentControls() const;
     CCoeControl* ComponentControl( TInt aIndex ) const;
-    
+
 private: // Implementation
     CESMRViewerTimeField();
     void ConstructL();
-    
+    void FormatTimeFieldStringL();
+
 private:
     // Owned: Field icon
     CMRImage* iIcon;
-    // Owned: Field text label
+    /// Own: lock icon
+    CMRImage* iLockIcon;
+    // Not own: Field text label
     CMRLabel* iLabel;
+    /// Own: Entry start time
+    TTime iStartTime;
+    /// Own: Entry end time
+    TTime iEndTime;
     };
 
 #endif // __CESMRVIEWERTIMEFIELD_H__

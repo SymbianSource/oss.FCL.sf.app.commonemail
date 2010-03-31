@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -17,7 +17,7 @@
 
 
 #include "emailtrace.h"
-#include "CESMRFieldBuilderPlugin.h"
+#include "cesmrfieldbuilderplugin.h"
 
 //<cmail>
 #include "esmrdef.h"
@@ -34,12 +34,14 @@
 #include "cesmrdescriptionfield.h"
 #include "cesmrcheckbox.h"
 #include "cesmrsingletimefield.h"
-#include "cesmrbooleanfield.h"
+#include "cmralarmonofffield.h"
 #include "cesmrsyncfield.h"
 #include "cesmrpriorityfield.h"
+#include "cmrattachmentsfield.h"
+#include "cmrunifiededitorfield.h"
+#include "cmrmulticalenfield.h"
 
 // Viewer fields
-#include "cesmrviewerlabelfield.h"
 #include "cesmrviewerlocationfield.h"
 #include "cesmrviewerstartdatefield.h"
 #include "cesmrviewertimefield.h"
@@ -55,13 +57,11 @@
 #include "cesmrvieweralarmtimefield.h"
 #include "cesmrviewerdetailedsubjectfield.h"
 #include "cesmrrepeatuntil.h"
+#include "cmrviewerattachmentfield.h"
 
-// <cmail> Removed profiling.</cmail>
 
 /// Unnamed namespace for local definitions
 namespace { // codescanner::namespace
-
-#ifdef _DEBUG
 
 // Panic literal
 _LIT( KESMRFieldBuilderPlugin, "ESMRFieldBuilderPlugin" );
@@ -76,8 +76,6 @@ void Panic( TESMRFieldBuilderPluginPanic aPanic )
     {
     User::Panic( KESMRFieldBuilderPlugin, aPanic );
     }
-
-#endif // _DEBUG
 
 }  // namespace
 
@@ -177,7 +175,7 @@ CESMRField* CESMRFieldBuilderPlugin::CreateEditorFieldL(
             field = CESMRCheckBox::NewL( aValidator );
             break;
         case EESMRFieldAlarmOnOff:
-            field = CESMRBooleanField::NewL( aValidator );
+            field = CMRAlarmOnOffField::NewL( aValidator );
             break;
         case EESMRFieldAlarmTime:
             field = CESMRSingleTimeField::NewL( aValidator );
@@ -206,6 +204,15 @@ CESMRField* CESMRFieldBuilderPlugin::CreateEditorFieldL(
         case EESMRFieldPriority:
             field = CESMRPriorityField::NewL();
             break;
+        case EESMRFieldAttachments:
+            field = CMRAttachmentsField::NewL();
+            break;
+        case EESMRFieldUnifiedEditor:
+            field = CMRUnifiedEditorField::NewL();
+            break;
+        case EESMRFieldCalendarName:
+            field = CMRMultiCalenField::NewL();
+            break;
         default:
             {
             field = FieldBuilderExtensionL()->CreateEditorFieldL(
@@ -215,7 +222,10 @@ CESMRField* CESMRFieldBuilderPlugin::CreateEditorFieldL(
             break;
         }
 
-    __ASSERT_DEBUG( field, Panic(EInvalidFieldId) );
+    __ASSERT_ALWAYS( field, Panic(EInvalidFieldId) );
+    // Set field mode
+    field->SetFieldMode( EESMRFieldModeEdit );
+
     return field;
     }
 
@@ -301,6 +311,17 @@ CESMRField* CESMRFieldBuilderPlugin::CreateViewerFieldL( MESMRResponseObserver* 
             field = CESMRViewerDetailedSubjectField::NewL();
             break;
             }
+        case EESMRFieldViewerAttachments:
+            {
+            field = CMRViewerAttachmentsField::NewL();
+            break;
+            }
+        case EESMRFieldCalendarName:
+        	{
+        	field = CMRMultiCalenField::NewL();
+        	break;
+        	}
+               
         default:
             {
             MESMRFieldBuilder* extension = FieldBuilderExtensionL();
@@ -315,10 +336,10 @@ CESMRField* CESMRFieldBuilderPlugin::CreateViewerFieldL( MESMRResponseObserver* 
             break;
         }
 
-    __ASSERT_DEBUG( field, Panic(EInvalidFieldId) );
+    __ASSERT_ALWAYS( field, Panic(EInvalidFieldId) );
     // Set field mode
     field->SetFieldMode( EESMRFieldModeView );
-    
+
     return field;
     }
 

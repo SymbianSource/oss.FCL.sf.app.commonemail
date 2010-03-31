@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -20,8 +20,8 @@
 
 #include <e32base.h>
 #include <cmrmailboxutils.h>
-#include "cfsmailcommon.h"
 #include "esmrdef.h"
+#include "cfsmailcommon.h"
 
 class CFSMailClient;
 class CFSMailMessage;
@@ -34,7 +34,16 @@ class CCalUser;
  */
 NONSHARABLE_CLASS( CESMRFsMailboxUtils ): public CBase
     {
-
+public:
+    
+    /**
+     * Enumeration for mailbox capabilities
+     */
+    enum TMRMailboxCapability
+        {
+        EMRCapabilityAttachment
+        };    
+    
 public: // Constructors and destructors
 
     /**
@@ -43,13 +52,13 @@ public: // Constructors and destructors
     * @param aMailboxUtils Reference to S60 mailbox utils
     * @return instantiated object, ownership transferred
     */
-    static CESMRFsMailboxUtils* NewL(
+    IMPORT_C static CESMRFsMailboxUtils* NewL(
             CMRMailboxUtils& aMailboxUtils );
 
     /**
     * C++ Destructor.
     */
-    ~CESMRFsMailboxUtils();
+    IMPORT_C ~CESMRFsMailboxUtils();
 
 public: // New functions
 
@@ -66,43 +75,43 @@ public: // New functions
     * @param aPrimaryBox primary mailbox for matching, if applicable
     * @return KErrNone or a system wide error code
     */
-    TInt SetPhoneOwnerL(
+    IMPORT_C TInt SetPhoneOwnerL(
         CCalEntry& aCalEntry,
         TMsvId aPrimaryBox = KMsvNullIndexEntryId );
 
     /**
     * If phone owner field hasn't been set so far, this method compares
     * mailboxowner's email address to organizer field and if no match
-    * was found compares each attendee to the mailboxowner's email address. 
-    * If match was found, phone owner field is set, otherwise KErrNotFound 
+    * was found compares each attendee to the mailboxowner's email address.
+    * If match was found, phone owner field is set, otherwise KErrNotFound
     * is returned.
     *
     * @param aCalEntry entry to modify
     * @param aPrimaryBox primary mailbox for matching, if applicable
     * @return KErrNone or a system wide error code
     */
-    TInt SetPhoneOwnerL(
+    IMPORT_C TInt SetPhoneOwnerL(
         CCalEntry& aCalEntry,
         CFSMailClient& aMailClient,
-        CFSMailMessage& aMailMessage );    
-    
+        CFSMailMessage& aMailMessage );
+
     /**
      * Resolves the plugin to be used to current calendar entry.
      * Method retrieves phone owner from calendar entry and loops all
-     * FS Email mailboxes. 
+     * FS Email mailboxes.
      * @param aEntry Reference to calendar entry.
      * @return Plugin ID for FS Email mailbox
      */
-    TESMRMailPlugin FSEmailPluginForEntryL( const CCalEntry& aEntry );
+    IMPORT_C TESMRMailPlugin FSEmailPluginForEntryL(
+            const CCalEntry& aEntry );
 
     /**
-     * Resolves the mail box for current calendar entry.
-     * Method retrieves phone owner from calendar entry and loops all
-     * FS Email mailboxes. 
-     * @param aEntry Reference to calendar entry.
-     * @return ID of the FS Email mailbox
+     * Tests if default mailbox supports certain capability.
+     * @param aCapability Capability to be tested
+     * @return ETrue if success, EFalse otherwise
      */
-    TFSMailMsgId FSEmailMailBoxForEntryL( const CCalEntry& aEntry );
+    IMPORT_C TBool DefaultMailboxSupportCapabilityL(
+            TMRMailboxCapability aCapability );
     
 private: // Implementation
     CESMRFsMailboxUtils(
@@ -116,9 +125,10 @@ private: // Implementation
             const CCalUser& aUser,
             const RPointerArray<CFSMailBox>& aMailBoxes,
             TInt& aMatchIndex );
-    
-    CFSMailClient& MailClientL();
 
+    CFSMailClient& MailClientL();
+    CFSMailBox* DefaultMailboxL();
+    
 private: // Data
     /// Ref: Reference to S60 mailbox utilities
     CMRMailboxUtils& iMRMailboxUtils;

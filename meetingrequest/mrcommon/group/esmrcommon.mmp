@@ -16,9 +16,8 @@
 */
 
 
-#include "../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
-#include "../../../inc/emailtraceconfig.hrh"
 #include "../../inc/esmrinternaluid.h"
+#include "../../../inc/emailtraceconfig.hrh"
 #include <data_caging_paths.hrh>
 #include <platform_paths.hrh>
 
@@ -30,13 +29,12 @@ CAPABILITY              CAP_GENERAL_DLL
 VENDORID                VID_DEFAULT
 DEFFILE                 ESMRCommon.def
 
-VERSION                 KEmailBinaryVersionNumber
-KEmailBinaryDemandPaging
-
 SOURCEPATH              ../src
 SOURCE                  esmrentryhelper.cpp
 SOURCE                  esmrhelper.cpp
-SOURCE                  cesmrfeaturesettings.cpp
+SOURCE                	cesmrfeaturesettings.cpp
+SOURCE                  nmrglobalfeaturesettings.cpp
+SOURCE                  cmractivitymanager.cpp
 
 USERINCLUDE             ../inc
 USERINCLUDE             ../../inc
@@ -52,10 +50,17 @@ LIBRARY                 calinterimapi.lib
 LIBRARY                 msgs.lib
 LIBRARY                 featmgr.lib
 LIBRARY                 centralrepository.lib
-LIBRARY                 PlatformEnv.lib
-LIBRARY                 cmaillogger.lib
+LIBRARY                 platformenv.lib
+LIBRARY                 caleninterimutils2.lib
+LIBRARY                 ecom.lib
+LIBRARY                 avkon.lib
+LIBRARY                 eikcore.lib
+LIBRARY                 charconv.lib
+LIBRARY                 eikcoctl.lib
 
-LIBRARY                 flogger.lib
+#if defined( ENABLE_TRACES ) && defined( TRACE_INTO_FILE )
+LIBRARY flogger.lib
+#endif // ENABLE_TRACES && TRACE_INTO_FILE
 
 // end of file
 

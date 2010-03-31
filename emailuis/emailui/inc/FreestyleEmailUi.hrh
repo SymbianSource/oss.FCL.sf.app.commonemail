@@ -151,12 +151,17 @@ enum
 	EFsEmailUiCmdGoToSwitchSorting,
 	EFsEmailUiCmdGoToSwitchNewEmail,
 	EFsEmailUiCmdGoToActionMenu,
-	EFsEmailUiCmdMark,
+	EFsEmailUiCmdMarkingModeFromPopUp,
+	EFsEmailUiCmdMarkingMode,
+	EFsEmailUiCmdMarkingModeDelete,
+	EFsEmailUiCmdMarkingModeUnread,
+	EFsEmailUiCmdMarkingModeRead,
+	EFsEmailUiCmdMarkingModeMove,
+	EFsEmailUiCmdMarkingModeFollowUp,
+	EFsEmailUiCmdMarkingModeMarkAll,
+	EFsEmailUiCmdMarkingModeUnmarkAll,
 	EFsEmailUiCmdMarkMark,
-	EFsEmailUiCmdMarkMarkAll,
 	EFsEmailUiCmdMarkUnmark,
-	EFsEmailUiCmdMarkUnmarkAll,		
-	EFsEmailUiCmdMarkUnmarkToggle,
 	EFsEmailUiCmdMailActions,
 	EFsEmailUiCmdMore,
 	EFsEmailUiCmdSearch,
@@ -319,13 +324,8 @@ enum
     EFsEmailUiTbCmdSaveAll,
     
     EFsEmailUiTbCmdActions,
-    EFsEmailUiTbCmdReplyAll,
+    EFsEmailUiTbCmdReplyAll
 	// </cmail> Toolbar
-
-    EFsEmailUiCmdSubMenuMark,
-    EFsEmailUiCmdSubMenuUnmark,
-    EFsEmailUiCmdMarkSubAll,
-    EFsEmailUiCmdUnmarkSubAll
   	};
 
 enum TFsEmailUiViewerOpenInIntranetCmds

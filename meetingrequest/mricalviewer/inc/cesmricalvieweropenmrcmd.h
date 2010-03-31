@@ -32,6 +32,7 @@ class CESMRUiLauncher;
 class CFSMailClient;
 class CESMRIcalViewerLoadMRDataCmd;
 class MESMRIcalViewerCommand;
+class CMRAttachmentInfoFetcher;
 
 /**
  * Command for opening meeting request
@@ -83,6 +84,7 @@ private: // Implementation
             MESMRIcalViewerObserver::TIcalViewerOperationResult aResult );
     void HandleError( TInt aError );
     void LaunchUIL();
+    void FillAttachmentInfoL();
 
 private: // Data
     /// Ref: Reference to ESMRICalViewer callback
@@ -93,6 +95,8 @@ private: // Data
     CFSMailClient& iMailClient;
     /// Own: Load MR Data command
     CESMRIcalViewerLoadMRDataCmd* iLoadMRDataCmd;
+    /// Own: Attachment information fetcher
+    CMRAttachmentInfoFetcher* iAttachmentInfoFetcher;
     /// Own: UI launcher
     CESMRUiLauncher* iUILauncher;
     /// Own: Operation result

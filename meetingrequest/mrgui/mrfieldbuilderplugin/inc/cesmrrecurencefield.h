@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -11,7 +11,7 @@
 *
 * Contributors:
 *
-* Description:  ESMR Recurence field for CESMRListComponent
+* Description:  ESMR Recurence field.
  *
 */
 
@@ -19,13 +19,14 @@
 #ifndef CESMRRECURENCEFIELD_H
 #define CESMRRECURENCEFIELD_H
 
-#include "cesmriconfield.h"
+#include "cesmrfield.h"
 
-class CEikLabel;
+class CMRLabel;
+class CMRImage;
 class CESMRRecurrence;
 class MESMRFieldValidator;
 
-NONSHARABLE_CLASS( CESMRRecurenceField ): public CESMRIconField
+NONSHARABLE_CLASS( CESMRRecurenceField ): public CESMRField
     {
 public:
     /**
@@ -41,13 +42,16 @@ public:
     ~CESMRRecurenceField();
 
 public: // From CESMRField
-    void InitializeL();
     void InternalizeL( MESMRCalEntry& aEntry );
     void SetOutlineFocusL( TBool aFocus );
-    void ExecuteGenericCommandL( TInt aCommand );
+    TBool ExecuteGenericCommandL( TInt aCommand );
 
 public: // From CCoeControl
     TKeyResponse OfferKeyEventL(const TKeyEvent& aKeyEvent, TEventCode aType);
+    TInt CountComponentControls() const;
+    CCoeControl* ComponentControl( TInt aInd ) const;
+    void SizeChanged();
+    void SetContainerWindowL( const CCoeControl& aContainer );
 
 private: // implementation
     /**
@@ -77,24 +81,17 @@ private: // implementation
     void ExecuteRecurrenceQueryL();
 
 private: // data
-    /**
-     * Not owned. Label for current recurrence.
-     */
-    CEikLabel* iRecurence;
-
-    /**
-     * Own. Array of recurrence objects.
-     */
+   
+    // Not owned. Label for current recurrence.
+    CMRLabel* iRecurrence;
+    
+    // Own. Field icon.
+    CMRImage* iFieldIcon;
+    
+    // Own. Array of recurrence objects.
     RPointerArray< CESMRRecurrence > iArray;
 
-    /**
-     * Not owned. Helper class for sanity and time checks.
-     */
-    MESMRFieldValidator* iValidator;
-
-    /**
-     * Index for selected recurrence (index to iArray)
-     */
+    // Index for selected recurrence (index to iArray)
     TInt iIndex;
     };
 

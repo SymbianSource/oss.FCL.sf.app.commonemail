@@ -44,13 +44,14 @@ enum TESMRIcalViewerOperationType
 
     // ESMRIcalViewer command ids
     // Loads meeting request data
-    EESMRLoadMRData        = 100,
-    EESMRLoadMRInfoData    = 101,
-    EESMRLoadImapData      = 102,
-    EESMRFetchMailContent  = 103,
-    EESMRLoadMRIcalData    = 104,
-    EESMREmailCommand      = 105,
-    EESMRLaunchUI          = 106,
+    EESMRLoadMRData          = 100,
+    EESMRLoadMRInfoData      = 101,
+    EESMRLoadImapData        = 102,
+    EESMRFetchMailContent    = 103,
+    EESMRLoadMRIcalData      = 104,
+    EESMREmailCommand        = 105,
+    EESMRLaunchUI            = 106,
+    EESMRFetchAttachmentInfo = 107,
 
     /**
      * FS Email specific commands
@@ -68,8 +69,6 @@ enum TESMRIcalViewerOperationType
     // Save attachments
     EESMRCmdSaveAttachment,
     EESMRCmdSaveAllAttachments,
-    // Email 'More' submenu
-    EESMRCmdMailEmailMoreMenu,
     // MR messsage is marked unread, sync
     EESMRCmdMailMarkUnread,
     // MR message is marked read, sync

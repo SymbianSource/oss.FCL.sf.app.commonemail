@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -11,7 +11,7 @@
 *
 * Contributors:
 *
-* Description:  ESMR location field for CESMRListComponent
+* Description:  ESMR location field.
  *
 */
 
@@ -20,100 +20,114 @@
 #define CESMRLOCATIONFIELD_H
 
 #include <e32base.h>
-#include <eikedwob.h>//MEikEdwinSizeObserver
-#include "cesmriconfield.h"
+#include <eikedwob.h>   // MEikEdwinSizeObserver
+#include <eikmobs.h>    // MEikMenuObserver
+
+#include "cesmrfield.h"
 
 //Forward declarations
 class CESMREditor;
-class CAknsFrameBackgroundControlContext;
-class MAknsControlContext;
-class CAknsFrameBackgroundControlContext;
 class CESMRFeatureSettings;
 class CFbsBitmap;
+class CMRImage;
+class CAknsBasicBackgroundControlContext;
+class CMRStylusPopupMenu;
+class CMRLabel;
+class CMRButton;
 
 /**
  * This class is a custom field control that shows the location of calendar events
  */
-NONSHARABLE_CLASS( CESMRLocationField ): public CESMRIconField, 
+NONSHARABLE_CLASS( CESMRLocationField ): public CESMRField, 
                                          public MEikEdwinSizeObserver,
-                                         public MEikEdwinObserver
+                                         public MEikEdwinObserver,
+                                         public MEikMenuObserver
     {
-public:
-    /**
-     * Creates new CESMRLocationField object. Ownership
-     * is transferred to caller.
-     * @return Pointer to created object,
-     */
-    static CESMRLocationField* NewL();
-
-    /**
-     * C++ Destructor.
-     */
-    ~CESMRLocationField();
-
-public: // From CESMRField
-    void InitializeL();
-    void InternalizeL( MESMRCalEntry& aEntry );
-    void ExternalizeL( MESMRCalEntry& aEntry );
-    void SetOutlineFocusL( TBool aFocus );
-    TInt ExpandedHeight() const;
-    void GetMinimumVisibleVerticalArea(TInt& aUpper, TInt& aLower);
-    void ListObserverSet();
-    void ExecuteGenericCommandL( TInt aCommand );
-    TSize BorderSize() const;
+    public:
+        /**
+         * Creates new CESMRLocationField object. Ownership
+         * is transferred to caller.
+         * @return Pointer to created object,
+         */
+        static CESMRLocationField* NewL();
     
-public: // From MEikEdwinSizeObserver
-    TBool HandleEdwinSizeEventL( CEikEdwin* aEdwin, TEdwinSizeEvent aType, TSize aSize );
+        /**
+         * C++ Destructor.
+         */
+        ~CESMRLocationField();
+    
+    protected: // From CESMRField
+        TSize MinimumSize();
+        void InitializeL();
+        void InternalizeL( MESMRCalEntry& aEntry );
+        void ExternalizeL( MESMRCalEntry& aEntry );
+        void SetOutlineFocusL( TBool aFocus );
+        void GetCursorLineVerticalPos(TInt& aUpper, TInt& aLower);
+        void ListObserverSet();
+        TBool ExecuteGenericCommandL( TInt aCommand );
+        TBool HandleSingletapEventL( const TPoint& aPosition );
+        void HandleLongtapEventL( const TPoint& aPosition );
+        void DynInitMenuPaneL( TInt aResourceId, CEikMenuPane* aMenuPane );
 
-public: // From MEikEdwinObserver
-	void HandleEdwinEventL(CEikEdwin* aEdwin, TEdwinEvent aEventType);
+    protected: // From MEikEdwinSizeObserver
+        TBool HandleEdwinSizeEventL( CEikEdwin* aEdwin, TEdwinSizeEvent aType, TSize aSize );
     
-public: // From CCoeControl
-    void ActivateL();
-    void PositionChanged();
-    TInt CountComponentControls() const;
-    CCoeControl* ComponentControl( TInt aInd ) const;
-    void SizeChanged();
-    
-private:
-    /**
-     * Constructor.
-     */
-    CESMRLocationField();
+    protected: // From MEikEdwinObserver
+        void HandleEdwinEventL(CEikEdwin* aEdwin, TEdwinEvent aEventType);
 
-    /**
-     * Second phase constructor.
-     */
-    void ConstructL();
+    protected: // From MEikMenuObserver
+        void ProcessCommandL( TInt aCommandId );
+        void SetEmphasis(CCoeControl* /*aMenuControl*/,TBool /*aEmphasis*/){}
 
-    CESMRFeatureSettings& FeaturesL();
-    void SetWaypointIconL( TBool aEnabled );
-    void PositionFieldElements();
-    void LayoutWaypointIcon();
+    protected: // From CCoeControl
+        TInt CountComponentControls() const;
+        CCoeControl* ComponentControl( TInt aInd ) const;
+        void SizeChanged();
+        void SetContainerWindowL( const CCoeControl& aContainer );
+        TKeyResponse OfferKeyEventL( const TKeyEvent& aEvent,
+                                           TEventCode aType );
+        TBool HandleRawPointerEventL( const TPointerEvent &aPointerEvent );
+
+    private:
+        /**
+         * Constructor.
+         */
+        CESMRLocationField();
     
-    // From MESMRFieldEventObserver
-    void HandleFieldEventL( const MESMRFieldEvent& aEvent );
-    TSize CalculateEditorSize( const TSize& aSize );
+        /**
+         * Second phase constructor.
+         */
+        void ConstructL();
     
-private:
-    // Not owned. Location editor.
-    CESMREditor* iLocation;
-    // Field size.
-    TSize iSize;
-    // Background control context. not owned
-    MAknsControlContext* iBackground;
-    // Actual background for the editor. owned
-    CAknsFrameBackgroundControlContext* iFrameBgContext;
-    // Feature settings. own.
-    CESMRFeatureSettings* iFeatures;
-    // waypointicon bitmap for coordinates. Own
-    CFbsBitmap* iWaypointIcon;
-    // waypointicon bitmap for coordinates. Own
-    CFbsBitmap* iWaypointIconMask;
-    // waypointicon icon for coordinates. Own
-    CEikImage* iIcon;
-    // Location text. Own.
-    HBufC* iLocationText;
+        CESMRFeatureSettings& FeaturesL();
+        void SetWaypointIconL( TBool aEnabled );
+
+        // From MESMRFieldEventObserver
+        void HandleFieldEventL( const MESMRFieldEvent& aEvent );
+
+    private:
+        // Own: Title of this field
+        CMRLabel* iTitle;
+        // Not owned. Location editor.
+        CESMREditor* iLocation;
+        // Own: Edwin size
+        TSize iSize;
+        // Feature settings. own.
+        CESMRFeatureSettings* iFeatures;
+        // Location text. Own.
+        HBufC* iLocationText;
+        // Own:Field left button
+        CMRButton* iFieldButton;
+        // Own: Waypoint icon
+        CMRImage* iWaypointIcon;
+        // Field editor line count
+        TInt iLineCount;
+        // Own: Background for the editor when it is focused
+        CAknsBasicBackgroundControlContext* iBgControlContext;
+        // Field rect for comparison purposes
+        TRect iFieldRect;
+        /// Own: Stylus popup menu
+        CMRStylusPopupMenu* iMenu; TBool iMenuIsShown;
     };
 
 #endif  // CESMRLOCATIONFIELD_H

@@ -20,8 +20,10 @@
 #include <data_caging_paths.hrh>
 
 #include "../../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
-#include "../../../../inc/emailtraceconfig.hrh"
 #include "../../../inc/esmrinternaluid.h"
+#include "../../../../inc/emailtraceconfig.hrh"
+#include <data_caging_paths.hrh>
+#include <platform_paths.hrh>
 
 TARGET          esmrfieldbuilderpluginextension.dll
 TARGETTYPE      PLUGIN
@@ -30,23 +32,20 @@ UID             KEComRecognitionUID2 KESMRUIFieldBuilderPluginExtensionDllUId
 CAPABILITY      CAP_ECOM_PLUGIN
 VENDORID        VID_DEFAULT
 
-VERSION         KEmailBinaryVersionNumber
-KEmailBinaryDemandPaging
-
 // Includes
 APP_LAYER_SYSTEMINCLUDE
 
 USERINCLUDE     ../inc
-USERINCLUDE     ../../inc
-USERINCLUDE     ../../../inc
+USERINCLUDE 	../../inc
+USERINCLUDE 	../../../inc
 USERINCLUDE     ../../../../inc
 
 //implementations
 
-SOURCEPATH      ../src 
+SOURCEPATH 		../src 
 
-SOURCE          CESMRFieldBuilderPluginExtensionProxy.cpp
-SOURCE          CESMRFieldBuilderPluginExtension.cpp
+SOURCE          cesmrfieldbuilderpluginextensionproxy.cpp
+SOURCE          cesmrfieldbuilderpluginextension.cpp
 SOURCE          resmrpluginextensionstatic.cpp
 
 // Source for Tracking view firlds
@@ -65,11 +64,9 @@ SOURCE          cesmrinputmodeobserver.cpp
 SOURCE          cesmrcontacthandler.cpp
 
 SOURCE          cesmrviewerfromfield.cpp
-SOURCE          cesmrviewerattachmentsfield.cpp
 SOURCE          cesmrviewerattendeesfield.cpp
 SOURCE          cesmrresponsefield.cpp
 SOURCE          cesmrresponseitem.cpp
-SOURCE          cesmrresponsereadyfield.cpp
 SOURCE          cesmrconflictpopup.cpp
 
 SOURCEPATH              ../data
@@ -79,11 +76,13 @@ END
 
 // fsemail framework
 LIBRARY fsfwcommonlib.lib
+LIBRARY fsmailframework.lib
 
 // Dependencies to mrui components
-LIBRARY esmrgui.lib //layoutmanager, mrstatic
-LIBRARY esmrfieldbuildercommon.lib //cesmrfield, cesmrborderlayer
-LIBRARY esmrcommon.lib             //esmrhelper::locateresourcefile()
+LIBRARY esmrcommon.lib
+LIBRARY esmrservices.lib
+LIBRARY esmrfieldbuildercommon.lib
+LIBRARY mrguicommon.lib
 
 // Dependencies to Symbian OS components
 LIBRARY apparc.lib
@@ -111,9 +110,6 @@ LIBRARY pcsutils.lib
 LIBRARY cenrepnotifhandler.lib
 LIBRARY estor.lib
 
-LIBRARY fsmailframework.lib
-LIBRARY esmrservices.lib
-
 LIBRARY servicehandler.lib          // for aiw
 LIBRARY aiwdialdata.lib
 LIBRARY pbk2commonui.lib
@@ -126,9 +122,10 @@ LIBRARY caleninterimutils2.lib
 LIBRARY cdlengine.lib
 LIBRARY aknlayout2scalable.lib
 LIBRARY aknlayout2.lib
-LIBRARY cmaillogger.lib
-#ifdef TRACE_INTO_FILE
+
+#if defined( ENABLE_TRACES ) && defined( TRACE_INTO_FILE )
 LIBRARY flogger.lib
-#endif // TRACE_INTO_FILE
+LIBRARY cmaillogger.lib
+#endif // ENABLE_TRACES && TRACE_INTO_FILE
 
 // End of File

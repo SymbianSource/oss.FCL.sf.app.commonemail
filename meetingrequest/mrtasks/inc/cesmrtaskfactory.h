@@ -23,80 +23,47 @@
 #include "mesmrtaskfactory.h"
 
 class MESMRCalDbMgr;
-class CMRMailboxUtils;
 
 /**
- *  CESMRTaskFactory implements interface for creating ES MR tasks.
+ *  CESMRTaskFactory defines ECom plugin interface for creating ES MR tasks.
  *  @see MESMRTaskFactory
  *
  *  @lib esmrtasks.lib
  */
-NONSHARABLE_CLASS(CESMRTaskFactory) : public CBase,
-                                      public MESMRTaskFactory
+class CESMRTaskFactory : public CBase,
+                         public MESMRTaskFactory
     {
 public: // Construction and destruction
     /**
      * Creates and initialzes new ES MR task factory.
      * @param aCalDbMgr Reference to cal db manager.
-     * @param aMRMailboxUtils Reference to mailbox utilities.
      */
-    IMPORT_C static CESMRTaskFactory* NewL(
-            MESMRCalDbMgr& aCalDbMgr,
-            CMRMailboxUtils& aMRMailboxUtils );
+    inline static CESMRTaskFactory* NewL(
+            TESMRCalendarEventType aType,
+            MESMRCalDbMgr& aCalDbMgr );
 
     /**
      * C++ destructor.
      */
-    ~CESMRTaskFactory();
+    inline ~CESMRTaskFactory();
 
 public: // From MESMRTaskFactory
     MESMRTask* CreateTaskL(
             TESMRCommand aCommand,
-            MESMRMeetingRequestEntry& aEntry );
-
-private: // Implementation
-    CESMRTaskFactory(
-            MESMRCalDbMgr& aCalDbMgr,
-            CMRMailboxUtils& aMRMailboxUtils );
-    MESMRTask* CreateSendMRResponseViaMailTaskL(
-            TESMRCommand aCommand,
-            MESMRMeetingRequestEntry& aEntry );
-    MESMRTask* CreateSendMRTaskL(
-            TESMRCommand aCommand,
-            MESMRMeetingRequestEntry& aEntry );
-    MESMRTask* CreateDeleteMRTaskL(
-            TESMRCommand aCommand,
-            MESMRMeetingRequestEntry& aEntry );
-    MESMRTask* CreateStoreMRToLocalDBTaskL(
-            TESMRCommand aCommand,
-            MESMRMeetingRequestEntry& aEntry );
-    MESMRTask* CreateForwardAsMeetingTaskL(
-            TESMRCommand aCommand,
-            MESMRMeetingRequestEntry& aEntry );
-    MESMRTask* CreateForwardAsMailTaskL(
-            MESMRMeetingRequestEntry& aEntry  );
-    MESMRTask* CreateOrganizerDeleteMRTaskL(
-            TESMRCommand aCommand,
-            MESMRMeetingRequestEntry& aEntry );
-    MESMRTask* CreateAttendeeDeleteMRTaskL(
-            TESMRCommand aCommand,
-            MESMRMeetingRequestEntry& aEntry );
-    MESMRTask* CreateReplyAsMailTaskL(
-                MESMRMeetingRequestEntry& aEntry,
-                TBool aReplyAll);
+            MESMRCalEntry& aEntry ) = 0;
 
 private: // Data
-    /*
-    * Reference to cal db manager
-    * Not own.
-    */
-    MESMRCalDbMgr& iCalDbMgr;
-
+    
     /**
-    * Reference to mr mailbox utilities
-    * Not own.
-    */
-    CMRMailboxUtils& iMRMailboxUtils;
+     * iDtor_ID_Key Instance identifier key. When instance of an
+     * implementation is created by ECOM framework, the
+     * framework will assign UID for it. The UID is used in
+     * destructor to notify framework that this instance is
+     * being destroyed and resources can be released.
+     */
+    TUid iDtor_ID_Key;    
     };
+
+#include "cesmrtaskfactory.inl"
 
 #endif // C_ESMRTASKFACTORY_H

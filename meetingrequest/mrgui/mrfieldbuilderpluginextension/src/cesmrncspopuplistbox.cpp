@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -15,29 +15,28 @@
 *
 */
 
-#include "emailtrace.h"
 #include "cesmrncspopuplistbox.h"
-
-#include <eikclbd.h>
-#include <AknsLayeredBackgroundControlContext.h>
-#include <StringLoader.h>                       // StringLoader
-#include <ct/rcpointerarray.h>
-
-//text truncation
-#include <AknBidiTextUtils.h>//line wrapping and mirroring
-#include <aknlayoutscalable_apps.cdl.h> //xml layout data for applications
-#include <aknlayoutscalable_avkon.cdl.h> //xml layout data of avkon components
-
-#include <esmrgui.rsg>
-
 #include "cesmrncsemailaddressobject.h"
 #include "cesmrcontacthandler.h"
-#include "cesmrlayoutmgr.h"
+#include "nmrbitmapmanager.h"
+#include "nmrcolormanager.h"
+
+#include <eikclbd.h>
+#include <aknslayeredbackgroundcontrolcontext.h>
+#include <stringloader.h>                       // StringLoader
+#include <ct/rcpointerarray.h>
+//text truncation
+#include <aknbiditextutils.h>//line wrapping and mirroring
+#include <aknlayoutscalable_apps.cdl.h> //xml layout data for applications
+#include <aknlayoutscalable_avkon.cdl.h> //xml layout data of avkon components
+#include <esmrgui.rsg>
+#include <eikscrlb.h>
+// DEBUG
+#include "emailtrace.h"
 
 namespace { // codescanner::namespace
 const TInt KItemExtraHeight = 8;
 const TInt KEdge (8);
-const TInt KScrollbarWidth (6);
 const TInt KListBoxDrawMargin (4);
 //drop down list colors since we have no official LAF
 #define KWhite TRgb( 255,255,255 )
@@ -110,7 +109,6 @@ void CESMRNcsPopupListBox::InitAndSearchL( const TDesC& aText )
     RCPointerArray<CESMRClsItem> matchingArray; // Empty array
     CleanupClosePushL( matchingArray );
     SetSearchTextL( aText );
-    OperationCompleteL( ESearchContacts, &matchingArray );
     CleanupStack::PopAndDestroy( &matchingArray );
     }
 
@@ -174,7 +172,6 @@ TKeyResponse CESMRNcsPopupListBox::OfferKeyEventL( const TKeyEvent& aKeyEvent, T
     TKeyResponse ret( EKeyWasNotConsumed );
     if( aKeyEvent.iCode == EKeyDownArrow )
         {
-        MoveRemoteLookupItemL( ERemoteLookupItemDown );
         iView->MoveCursorL( CListBoxView::ECursorNextItem, CListBoxView::ENoSelection );
         ret = EKeyWasConsumed;
         }
@@ -184,17 +181,13 @@ TKeyResponse CESMRNcsPopupListBox::OfferKeyEventL( const TKeyEvent& aKeyEvent, T
         // Move cursor separator line over
         if( CurrentItemIndex() - 1 > 0 && CurrentItemIndex() - 1 == iRMLUItemPosition )
             {
-            MoveRemoteLookupItemL( ERemoteLookupItemUp );
             iView->MoveCursorL( CListBoxView::ECursorPreviousItem, CListBoxView::ENoSelection );
             stay = ETrue;
             }
 
-        MoveRemoteLookupItemL( ERemoteLookupItemUp );
         iView->MoveCursorL( CListBoxView::ECursorPreviousItem, CListBoxView::ENoSelection );
         if( stay )
             {
-            MoveRemoteLookupItemL( ERemoteLookupItemDown );
-
             iView->MoveCursorL( CListBoxView::ECursorNextItem, CListBoxView::ENoSelection );
             }
 
@@ -281,14 +274,7 @@ CESMRNcsEmailAddressObject* CESMRNcsPopupListBox::ReturnCurrentEmailAddressLC()
     if( iMatchingArray.Count() > 0 )
         {
         CESMRClsItem* clsItem = NULL;
-        if( iRemoteLookupSupported )
-            {
-            clsItem =iMatchingArray[CurrentItemIndex()-1];  // -1 because of iRMLUItemPosition
-            }
-        else
-            {
-            clsItem =iMatchingArray[CurrentItemIndex()]; // no iRMLUItemPosition
-            }
+        clsItem =iMatchingArray[CurrentItemIndex()];
         addressObject= CESMRNcsEmailAddressObject::NewL( clsItem->DisplayName(), clsItem->EmailAddress() );
         CleanupStack::PushL( addressObject );
         if ( clsItem->MultipleEmails() )
@@ -378,7 +364,7 @@ void CESMRNcsPopupListBox::SetListItemsFromArrayL()
         }
 
     // Update rmlu item
-    SetRemoteLookupItemFirstToTheListL();
+    SetRemoteLookupItemLastToTheListL();
 
     HandleItemAdditionL();
 
@@ -433,61 +419,26 @@ void CESMRNcsPopupListBox::SetPopupHeightL()
     }
 
 // -----------------------------------------------------------------------------
-// CESMRNcsPopupListBox::SetRemoteLookupItemFirstToTheListL
+// CESMRNcsPopupListBox::SetRemoteLookupItemLastToTheListL
 // -----------------------------------------------------------------------------
 //
-void CESMRNcsPopupListBox::SetRemoteLookupItemFirstToTheListL()
+void CESMRNcsPopupListBox::SetRemoteLookupItemLastToTheListL()
     {
     FUNC_LOG;
+    
     if( iRemoteLookupSupported )
         {
-        HBufC* rmluText = StringLoader::LoadLC( R_MEET_REQ_EDITOR_ADDRESS_LIST_REMOTE_LOOKUP_SEARCH, *iCurrentSearchText );
+        HBufC* rmluText = StringLoader::LoadLC( 
+                R_MEET_REQ_EDITOR_ADDRESS_LIST_REMOTE_LOOKUP_SEARCH, 
+                *iCurrentSearchText );
 
-        iItemTextsArray->InsertL( 0, *rmluText );
+        iItemTextsArray->AppendL( *rmluText );
         CleanupStack::PopAndDestroy( rmluText );
-        iRMLUItemPosition = 0;
+        iRMLUItemPosition = iItemTextsArray->Count() - 1;
         }
     else
         {
-        iRMLUItemPosition = -1;
-        }
-    }
-
-// -----------------------------------------------------------------------------
-// CESMRNcsPopupListBox::MoveRemoteLookupItemL
-// -----------------------------------------------------------------------------
-//
-void CESMRNcsPopupListBox::MoveRemoteLookupItemL( TRemoteLookupItemMoveDirection aDirection )
-    {
-    FUNC_LOG;
-    if( iRemoteLookupSupported )
-        {
-        TInt newRMLUItemIndex = -1;
-        TInt newCurrentItem = -1;
-        if( aDirection == ERemoteLookupItemUp &&
-             iView->CurrentItemIndex() == iView->TopItemIndex() )
-            {
-            newRMLUItemIndex = iRMLUItemPosition - 1;
-            newCurrentItem = CurrentItemIndex() - 1;
-            }
-        else if( aDirection == ERemoteLookupItemDown &&
-                 iView->CurrentItemIndex() == iView->BottomItemIndex() )
-            {
-            newRMLUItemIndex = iRMLUItemPosition + 1;
-            newCurrentItem = CurrentItemIndex() + 1;
-            }
-
-
-        if( ItemExists ( newCurrentItem ) )
-            {
-            iItemTextsArray->Delete( iRMLUItemPosition );
-
-            HBufC* rmluText = StringLoader::LoadLC( R_MEET_REQ_EDITOR_ADDRESS_LIST_REMOTE_LOOKUP_SEARCH, *iCurrentSearchText );
-
-            iItemTextsArray->InsertL( newRMLUItemIndex, *rmluText );
-            CleanupStack::PopAndDestroy( rmluText );
-            iRMLUItemPosition = newRMLUItemIndex;
-            }
+        iRMLUItemPosition = KErrNotFound;
         }
     }
 
@@ -513,16 +464,6 @@ void CESMRNcsPopupListBox::CreateTextArrayAndSetToTheListboxL()
         Model()->SetItemTextArray( iItemTextsArray );
         Model()->SetOwnershipType( ELbmDoesNotOwnItemArray  );
         }
-    }
-
-// -----------------------------------------------------------------------------
-// CESMRNcsPopupListBox::InitialiseL
-// -----------------------------------------------------------------------------
-//
-void CESMRNcsPopupListBox::Initialise(CESMRLayoutManager* aLayout)
-    {
-    FUNC_LOG;
-    static_cast<CESMRNcsListItemDrawer*>( iItemDrawer )->SetLayoutManager(aLayout);
     }
 
 // -----------------------------------------------------------------------------
@@ -558,291 +499,314 @@ void CESMRNcsListItemDrawer::DrawActualItem( TInt aItemIndex,
     }
 
 // -----------------------------------------------------------------------------
-// CESMRNcsListItemDrawer::SetLayoutManager
-// -----------------------------------------------------------------------------
-//
-void CESMRNcsListItemDrawer::SetLayoutManager(CESMRLayoutManager* aLayout)
-    {
-    FUNC_LOG;
-    iLayout = aLayout;
-    }
-
-// -----------------------------------------------------------------------------
 // CESMRNcsListItemDrawer::DoDrawActualItemL
 // -----------------------------------------------------------------------------
 //
 void CESMRNcsListItemDrawer::DoDrawActualItemL( TInt aItemIndex,
-	const TRect& aActualItemRect, TBool aItemIsCurrent,
-	TBool /*aViewIsEmphasized*/, TBool /*aViewIsDimmed*/,
-	TBool /*aItemIsSelected*/ ) const
-	{
+    const TRect& aActualItemRect, TBool aItemIsCurrent,
+    TBool /*aViewIsEmphasized*/, TBool /*aViewIsDimmed*/,
+    TBool /*aItemIsSelected*/ ) const
+    {
     FUNC_LOG;
-	// Get reference to curren popup cls item list.
-	const RPointerArray<CESMRClsItem>& clsItemArray = 	iListBox.CurrentPopupClsItemsArray();
-	TInt rmluPosition = iListBox.RMLUItemPosition();
+    DrawPopUpBackGroundL( aActualItemRect );
+    
+    // Draw the selector if current item is the focused one
+    if( aItemIsCurrent )
+        {
+        DrawPopUpSelectorL( aActualItemRect );
+        }
 
-	// Sets all the attributes, like font, text color and background color.
-	const CFont* font = AknLayoutUtils::FontFromId( EAknLogicalFontPrimarySmallFont );
-	iGc->UseFont(font);
+    DrawPopUpTextL( aItemIndex, aActualItemRect );
+    }
 
-	// We have to draw the item in layered fashion in order to do the skin
-	// First clear the backround by drawing a solid rect.	
+// -----------------------------------------------------------------------------
+// CESMRNcsListItemDrawer::DrawPopUpBackGroundL
+// -----------------------------------------------------------------------------
+//
+void CESMRNcsListItemDrawer::DrawPopUpBackGroundL(
+        const TRect& aActualItemRect ) const
+    {
     iGc->SetPenColor( KGrayBackground );
     iGc->SetBrushColor( KGrayBackground );
-	iGc->SetPenStyle(CGraphicsContext::ESolidPen);
-	iGc->SetBrushStyle(CGraphicsContext::ESolidBrush);
 
-	// Now draw the highlight
-	if( aItemIsCurrent ) 
-		{
-		if (iLayout)
-		    {
-            CFbsBitmap* selector = NULL;
-            CFbsBitmap* selectorMask = NULL;
+    iGc->SetPenStyle( CGraphicsContext::ESolidPen );
+    iGc->SetBrushStyle( CGraphicsContext::ESolidBrush );
 
-            // highlight bitmap target rect:
-            TRect rect( aActualItemRect );
+    iGc->DrawRect( aActualItemRect );
+    }
+    
+// -----------------------------------------------------------------------------
+// CESMRNcsListItemDrawer::DrawPopUpSelectorL
+// -----------------------------------------------------------------------------
+//
+void CESMRNcsListItemDrawer::DrawPopUpSelectorL( 
+        const TRect& aActualItemRect ) const
+    {
+    CFbsBitmap* selector = NULL;
+    CFbsBitmap* selectorMask = NULL;
 
-            TSize corner(KEdge, KEdge);
-            iLayout->GetSkinBasedBitmap( 
-                    KAknsIIDQgnFsListCornerTl, selector, selectorMask, corner );
-            
-            //adjust selector size for if scrollbar is on screen
-            if (iListBox.ScrollBarFrame()->ScrollBarVisibility(CEikScrollBar::EVertical) ==
-                CEikScrollBarFrame::EOn)
-                {
-                rect.SetWidth( (rect.Width() - KScrollbarWidth) );
-                }
-                       
-            if( selector && selectorMask)
-                {
-                //corner TL
-                iGc->BitBltMasked( 
-                        rect.iTl, selector, corner, selectorMask, EFalse );
+    // Highlight bitmap target rect:
+    TRect rect( aActualItemRect );
 
-                //side L
-                TSize side(KEdge, (rect.Height() - 2 * KEdge) );
-                iLayout->GetSkinBasedBitmap( 
-                        KAknsIIDQgnFsListSideL, selector, selectorMask, side );
-                iGc->BitBltMasked( TPoint(rect.iTl.iX, rect.iTl.iY + KEdge),
-                                  selector, side, selectorMask, EFalse );
-
-                //corner BL
-                iLayout->GetSkinBasedBitmap( 
-                    KAknsIIDQgnFsListCornerBl, selector, selectorMask, corner );
-                iGc->BitBltMasked( 
-                        TPoint(rect.iTl.iX, rect.iTl.iY + KEdge + side.iHeight),
-                        selector, corner, selectorMask, EFalse );
-
-                //top
-                TSize top( (rect.Width() - 2 * KEdge) , KEdge);
-                iLayout->GetSkinBasedBitmap( 
-                        KAknsIIDQgnFsListSideT, selector, selectorMask, top );
-                iGc->BitBltMasked( TPoint(rect.iTl.iX + KEdge, rect.iTl.iY),
-                                  selector, top, selectorMask, EFalse );
-
-                //center
-                TSize center( top.iWidth, side.iHeight);
-                iLayout->GetSkinBasedBitmap( 
-                    KAknsIIDQgnFsListCenter, selector, selectorMask, center );
-                iGc->BitBltMasked( 
-                        TPoint(rect.iTl.iX + KEdge, rect.iTl.iY + KEdge),
-                        selector, center, selectorMask, EFalse );
-
-                //bottom
-                iLayout->GetSkinBasedBitmap( 
-                        KAknsIIDQgnFsListSideB, selector, selectorMask, top );
-                iGc->BitBltMasked( 
-                TPoint(rect.iTl.iX + KEdge, rect.iTl.iY + side.iHeight + KEdge),
-                selector, top, selectorMask, EFalse );
-
-                //corner TR
-                iLayout->GetSkinBasedBitmap( 
-                    KAknsIIDQgnFsListCornerTr, selector, selectorMask, corner );
-                iGc->BitBltMasked( 
-                        TPoint(rect.iTl.iX + KEdge + top.iWidth, rect.iTl.iY),
-                        selector, corner, selectorMask, EFalse );
-
-                //side R
-                iLayout->GetSkinBasedBitmap( 
-                        KAknsIIDQgnFsListSideR, selector, selectorMask, side );
-                iGc->BitBltMasked( 
-                 TPoint(rect.iTl.iX + KEdge + top.iWidth, rect.iTl.iY + KEdge),
-                 selector, side, selectorMask, EFalse );
-
-                //corner Br
-                iLayout->GetSkinBasedBitmap( 
-                    KAknsIIDQgnFsListCornerBr, selector, selectorMask, corner );
-                iGc->BitBltMasked( 
-                        TPoint(rect.iTl.iX + KEdge + top.iWidth, 
-                               rect.iTl.iY + KEdge + side.iHeight),
-                        selector, corner, selectorMask, EFalse );
-                }
-            else
-                {
-                iGc->SetBrushColor( KSelectorFallbackColor );
-                }
-            
-            delete selector;
-            delete selectorMask;
-            }
-	    else
-	        {
-	        iGc->SetBrushColor( KSelectorFallbackColor );
-	        }
-		}
-	else
-	    {
-	    iGc->DrawRect(aActualItemRect);
-	    }
-	
-    if(aItemIsCurrent)
+    TSize corner( KEdge, KEdge );
+    NMRBitmapManager::GetSkinBasedBitmap( 
+            NMRBitmapManager::EMRBitmapListTopLeft, 
+            selector, selectorMask, corner );            
+    
+    // Adjust selector size if scrollbar is present
+    if ( iListBox.ScrollBarFrame()->
+            ScrollBarVisibility( CEikScrollBar::EVertical ) == 
+                CEikScrollBarFrame::EOn )
         {
-        iGc->SetPenColor( KWhite );
+        TInt scrollBarWidth = 
+                iListBox.ScrollBarFrame()->VerticalScrollBar()->Rect().Width();
+        rect.SetWidth( ( rect.Width() - scrollBarWidth ) );
+        }
+               
+    if( selector && selectorMask )
+        {
+        //corner TL
+        iGc->BitBltMasked( 
+                rect.iTl, selector, corner, selectorMask, EFalse );
+
+        //side L
+        TSize side( KEdge, ( rect.Height() - 2 * KEdge ) );
+        NMRBitmapManager::GetSkinBasedBitmap( 
+                NMRBitmapManager::EMRBitmapListLeft, 
+                selector, selectorMask, side );
+        iGc->BitBltMasked( TPoint(rect.iTl.iX, rect.iTl.iY + KEdge ),
+                          selector, side, selectorMask, EFalse );
+
+        //corner BL
+        NMRBitmapManager::GetSkinBasedBitmap( 
+                NMRBitmapManager::EMRBitmapListBottomLeft, 
+                selector, selectorMask, corner );
+        iGc->BitBltMasked( 
+                TPoint(rect.iTl.iX, rect.iTl.iY + KEdge + side.iHeight ),
+                selector, corner, selectorMask, EFalse );
+
+        //top
+        TSize top( ( rect.Width() - 2 * KEdge ) , KEdge );
+        NMRBitmapManager::GetSkinBasedBitmap( 
+                NMRBitmapManager::EMRBitmapListTop, 
+                selector, selectorMask, top );
+        iGc->BitBltMasked( TPoint( rect.iTl.iX + KEdge, rect.iTl.iY ),
+                          selector, top, selectorMask, EFalse );
+
+        //center
+        TSize center( top.iWidth, side.iHeight );
+        NMRBitmapManager::GetSkinBasedBitmap( 
+                NMRBitmapManager::EMRBitmapListCenter, 
+                selector, selectorMask, center );
+        iGc->BitBltMasked( 
+                TPoint( rect.iTl.iX + KEdge, rect.iTl.iY + KEdge ),
+                selector, center, selectorMask, EFalse );
+
+        //bottom
+        NMRBitmapManager::GetSkinBasedBitmap( 
+                NMRBitmapManager::EMRBitmapListBottom, 
+                selector, selectorMask, top );
+        iGc->BitBltMasked( 
+        TPoint( rect.iTl.iX + KEdge, rect.iTl.iY + side.iHeight + KEdge ),
+        selector, top, selectorMask, EFalse );
+
+        //corner TR
+        NMRBitmapManager::GetSkinBasedBitmap( 
+                NMRBitmapManager::EMRBitmapListTopRight, 
+                selector, selectorMask, corner );
+        iGc->BitBltMasked( 
+                TPoint( rect.iTl.iX + KEdge + top.iWidth, rect.iTl.iY ),
+                selector, corner, selectorMask, EFalse );
+
+        //side R
+        NMRBitmapManager::GetSkinBasedBitmap( 
+                NMRBitmapManager::EMRBitmapListRight, 
+                selector, selectorMask, side );
+
+        iGc->BitBltMasked( 
+         TPoint( rect.iTl.iX + KEdge + top.iWidth, rect.iTl.iY + KEdge ),
+         selector, side, selectorMask, EFalse );
+
+        //corner Br
+        NMRBitmapManager::GetSkinBasedBitmap( 
+                NMRBitmapManager::EMRBitmapListBottomRight, 
+                selector, selectorMask, corner );
+        iGc->BitBltMasked( 
+                TPoint( rect.iTl.iX + KEdge + top.iWidth, 
+                       rect.iTl.iY + KEdge + side.iHeight ),
+                selector, corner, selectorMask, EFalse );
         }
     else
         {
-        iGc->SetPenColor( KGraySelectable );
+                iGc->SetBrushColor( KSelectorFallbackColor );
+        }            
+    delete selector;
+    delete selectorMask;
+    }
+
+// -----------------------------------------------------------------------------
+// CESMRNcsListItemDrawer::DrawPopUpTextL
+// -----------------------------------------------------------------------------
+//
+void CESMRNcsListItemDrawer::DrawPopUpTextL( 
+        TInt aItemIndex, 
+        const TRect& aActualItemRect ) const
+    {
+    // Get reference to curren popup cls item list.
+    const RPointerArray<CESMRClsItem>& clsItemArray = 
+        iListBox.CurrentPopupClsItemsArray();
+    TInt rmluPosition = iListBox.RMLUItemPosition();
+
+    iGc->SetPenColor( NMRColorManager::Color( 
+                NMRColorManager::EMRMainAreaTextColor ) );
+    
+    // Sets all the attributes, like font, text color and background color.
+    const CFont* font = AknLayoutUtils::FontFromId( EAknLogicalFontPrimarySmallFont );
+    iGc->UseFont( font );
+    
+    iGc->SetPenStyle(CGraphicsContext::ESolidPen);
+    iGc->SetBrushStyle(CGraphicsContext::ENullBrush);
+    TInt topToBaseline = ( aActualItemRect.Height() - font->HeightInPixels() ) / 2
+                        + font->AscentInPixels();
+
+    TPtrC itemText( iListBox.Model()->ItemText( aItemIndex ) );
+
+    // Construct bidirectional text object
+    TBidiText* bidiText = TBidiText::NewL( itemText, 1 );
+    CleanupStack::PushL( bidiText );
+        bidiText->WrapText( aActualItemRect.Width(), *font, NULL );
+    TPoint leftBase = aActualItemRect.iTl + TPoint( 0, topToBaseline );
+    leftBase.iX += KListBoxDrawMargin;
+
+    // check if we are drawing remote lookup item or contact match
+    if ( rmluPosition == aItemIndex )
+        {
+        iGc->SetUnderlineStyle( EUnderlineOff );
+        bidiText->DrawText( *iGc, leftBase );
         }
+    else
+        {
+        // if list has rmlu item change item index right
+//        if ( rmluPosition >= 0 )
+//            {
+//            --aItemIndex;
+//            aItemIndex = Max( 0, aItemIndex );
+//            }
 
-	iGc->SetPenStyle(CGraphicsContext::ESolidPen);
-	iGc->SetBrushStyle(CGraphicsContext::ENullBrush);
-	TInt topToBaseline = ( aActualItemRect.Height() - font->HeightInPixels() ) / 2
-						+ font->AscentInPixels();
-
-	TPtrC itemText = iListBox.Model()->ItemText( aItemIndex );
-
-	// Construct bidirectional text object
-	TBidiText* bidiText = TBidiText::NewL( itemText, 1 );
-	CleanupStack::PushL( bidiText );
-	bidiText->WrapText( aActualItemRect.Width(), *font, NULL );
-	TPoint leftBase = aActualItemRect.iTl + TPoint( 0, topToBaseline );
-	leftBase.iX += KListBoxDrawMargin;
-	
-	// check if we are drawing remote lookup item or contact match
-	if ( rmluPosition == aItemIndex )
-		{
-		iGc->SetUnderlineStyle( EUnderlineOff );
-		bidiText->DrawText( *iGc, leftBase );
-		}
-	else
-		{
-		// if list has rmlu item change item index right
-		if ( rmluPosition >= 0 )
-			{
-			--aItemIndex; 
-			aItemIndex = Max( 0, aItemIndex );
-			}
-
-		// change color to gray if match doesn't have email address.
-		if ( clsItemArray[aItemIndex]->EmailAddress().Compare( KNullDesC ) == 0 )
-			{
+        TPtrC email = clsItemArray[aItemIndex]->EmailAddress().Ptr();
+        // change color to gray if match doesn't have email address.
+        if ( clsItemArray[aItemIndex]->EmailAddress().Compare( KNullDesC ) == 0 )
+            {
             iGc->SetPenColor( KGrayNoEmail );
             iGc->SetBrushColor( KGrayNoEmail );
-			}
-		
-		// We know the text contains RTL script if the display string is not just
-		// truncated version of the original string.
-		TPtrC dispText = bidiText->DisplayText();
-		TInt compLength = dispText.Length() - 1; // -1 to omit the truncation character
-		TBool textContainsRtl = 
+            }
+
+        // TO-DO: For now, we support underlining the matching part only if the
+        // text is written completely with left-to-right script
+        
+        // We know the text contains RTL script if the display string is not just
+        // truncated version of the original string.
+        TPtrC dispText = bidiText->DisplayText();
+        TInt compLength = dispText.Length() - 1; // -1 to omit the truncation character
+        TBool textContainsRtl = 
             ( itemText.Left(compLength) != dispText.Left(compLength) );
-		
+        
         const RArray<TPsMatchLocation>& underlines = clsItemArray[aItemIndex]->Highlights();
         
-		if ( underlines.Count() > 0 && !textContainsRtl )
-			{
-	        TInt i = 0;
-	        TBool partsLeft = ETrue;
-	        TInt currentTextStart = 0;
-	        TInt currentTextLength = 0;
+        if ( underlines.Count() > 0 && !textContainsRtl )
+            {
+            TInt i = 0;
+            TBool partsLeft = ETrue;
+            TInt currentTextStart = 0;
+            TInt currentTextLength = 0;
 
-			while ( partsLeft )
-				{
-				if ( currentTextStart < underlines[i].index )
-					{
-					// draw letters to the start of the underlined part
-					currentTextLength = underlines[i].index - currentTextStart;
-					DrawPartOfItem( aActualItemRect, *font, currentTextStart, currentTextLength, itemText,
-									EFalse, topToBaseline );
-					}
-				else if ( currentTextStart == underlines[i].index )
-					{
-					// draw underlined letters
-					currentTextLength = underlines[i].length;
-					
-					DrawPartOfItem( aActualItemRect, *font, currentTextStart, currentTextLength, itemText,
-									ETrue, topToBaseline );
-					i++;
-					}
-				else 
-					{
-					// This is here, because PCS Engine might give you duplicate match entries,
-					// in this case we're not advancing text but we'll skip that match
-					currentTextLength = 0;
-					i++;
-					}
-					// update text start point
-					currentTextStart += currentTextLength;
-				
-				if ( i >= underlines.Count() )
-					{
-					partsLeft = EFalse;
-					// draw rest of the letters, if there are any after the last underlined part
-					if ( currentTextStart < itemText.Length() )
-						{
-						currentTextLength = itemText.Length() - currentTextStart;
-						DrawPartOfItem( aActualItemRect, *font, currentTextStart, currentTextLength, itemText,
-										EFalse, topToBaseline );
-						}
-					}				
-				}
-			}
-		else
-			{
-			iGc->SetUnderlineStyle( EUnderlineOff );
-			bidiText->DrawText( *iGc, leftBase );
-			}		
-		}
-	CleanupStack::PopAndDestroy( bidiText );
+            while ( partsLeft )
+                {
+                if ( currentTextStart < underlines[i].index )
+                    {
+                    // draw letters to the start of the underlined part
+                    currentTextLength = underlines[i].index - currentTextStart;
+                    DrawPartOfItem( aActualItemRect, *font, currentTextStart, currentTextLength, itemText,
+                                    EFalse, topToBaseline );
+                    }
+                else if ( currentTextStart == underlines[i].index )
+                    {
+                    // draw underlined letters
+                    currentTextLength = underlines[i].length;
+                    
+                    DrawPartOfItem( aActualItemRect, *font, currentTextStart, currentTextLength, itemText,
+                                    ETrue, topToBaseline );
+                    i++;
+                    }
+                else 
+                    {
+                    // This is here, because PCS Engine might give you duplicate match entries,
+                    // in this case we're not advancing text but we'll skip that match
+                    currentTextLength = 0;
+                    i++;
+                    }
+                    // update text start point
+                    currentTextStart += currentTextLength;
+                
+                if ( i >= underlines.Count() )
+                    {
+                    partsLeft = EFalse;
+                    // draw rest of the letters, if there are any after the last underlined part
+                    if ( currentTextStart < itemText.Length() )
+                        {
+                        currentTextLength = itemText.Length() - currentTextStart;
+                        DrawPartOfItem( aActualItemRect, *font, currentTextStart, currentTextLength, itemText,
+                                        EFalse, topToBaseline );
+                        }
+                    }
+                }
+            }
+        else
+            {
+            iGc->SetUnderlineStyle( EUnderlineOff );
+            bidiText->DrawText( *iGc, leftBase );
+            }       
+        }
+    CleanupStack::PopAndDestroy( bidiText );
 	}
 
 // -----------------------------------------------------------------------------
 // CESMRNcsListItemDrawer::DrawPartOfItem
 // -----------------------------------------------------------------------------
 void CESMRNcsListItemDrawer::DrawPartOfItem( const TRect& aItemRect, const CFont& aFont,
-						 TInt aStartPos, TInt aLength, const TDesC& aDes,
-						 TBool aUnderlined, TInt aBaselineOffsetFromTop  ) const
-	{
+                         TInt aStartPos, TInt aLength, const TDesC& aDes,
+                         TBool aUnderlined, TInt aBaselineOffsetFromTop  ) const
+    {
     FUNC_LOG;
-	if( aUnderlined )
-		{
-		iGc->SetUnderlineStyle( EUnderlineOn );
-		}
-	else
-		{
-		iGc->SetUnderlineStyle( EUnderlineOff );
-		}
-	TRect currentTextRect( aItemRect );
-	TInt pixels = aFont.TextWidthInPixels( aDes.Left( aStartPos ) );
-	currentTextRect.iTl.iX = currentTextRect.iTl.iX + pixels + KListBoxDrawMargin;
-	
-    //adjust selector size for if scrollbar is on screen
-    if (iListBox.ScrollBarFrame()->ScrollBarVisibility(CEikScrollBar::EVertical) ==
-        CEikScrollBarFrame::EOn)
+    if( aUnderlined )
         {
-        currentTextRect.iBr.iX = currentTextRect.iBr.iX - KListBoxDrawMargin - KScrollbarWidth;
+        iGc->SetUnderlineStyle( EUnderlineOn );
+        }
+    else
+        {
+        iGc->SetUnderlineStyle( EUnderlineOff );
+        }
+    TRect currentTextRect( aItemRect );
+    TInt pixels = aFont.TextWidthInPixels( aDes.Left( aStartPos ) );
+    currentTextRect.iTl.iX = currentTextRect.iTl.iX + pixels + KListBoxDrawMargin;
+    
+    // adjust selector size for if scrollbar is on screen
+    if ( iListBox.ScrollBarFrame()->
+            ScrollBarVisibility( CEikScrollBar::EVertical ) ==
+                CEikScrollBarFrame::EOn )
+        {
+        TInt scrollBarWidth = 
+                iListBox.ScrollBarFrame()->VerticalScrollBar()->Rect().Width();
+        currentTextRect.iBr.iX = 
+            currentTextRect.iBr.iX - KListBoxDrawMargin - scrollBarWidth;
         }
     else
         {
         currentTextRect.iBr.iX = currentTextRect.iBr.iX - KListBoxDrawMargin;
         }
     
-	iGc->DrawText( aDes.Mid( aStartPos, aLength ), currentTextRect, aBaselineOffsetFromTop );
-	
-	}
-
-
+    iGc->DrawText( aDes.Mid( aStartPos, aLength ), currentTextRect, aBaselineOffsetFromTop );
+    
+    }
 
 // End of File
-

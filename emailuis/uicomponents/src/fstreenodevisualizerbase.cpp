@@ -885,10 +885,6 @@ TInt CFsTreeNodeVisualizerBase::ModifiedStyleIdL( ) const
             charFormat.iFontSpec = text.iFont->FontSpecInTwips();
             }
 
-        if (iFontHeight>0)
-            {
-            charFormat.iFontSpec.iHeight = iFontHeight;
-            }
 
         TBool isBold(EFalse);
         isBold = iFlags & KFsTreeListItemTextBold;

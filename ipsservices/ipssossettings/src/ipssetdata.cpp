@@ -523,7 +523,11 @@ TImIAPChoice CIpsSetData::Iap( const TBool aIncoming ) const
     ret.iIAP = 0;
     if ( aIncoming )
         {
-        
+		if (iIncomingIapPref->SNAPDefined())
+			{
+			ret.iIAP = iIncomingIapPref->SNAPPreference();
+			}
+			
         if ( iIncomingIapPref->NumberOfIAPs() > 0 )
             {
             ret = iIncomingIapPref->IAPPreference(0);
@@ -916,10 +920,50 @@ void CIpsSetData::SetIapL(
     CleanupStack::Pop( iIncomingIapPref );
     iOutgoingIapPref = CImIAPPreferences::NewLC();
     CleanupStack::Pop( iOutgoingIapPref );
-
     iIncomingIapPref->AddIAPL( aIncomingIap );
     iOutgoingIapPref->AddIAPL( aOutgoingIap );
     }
+// ---------------------------------------------------------------------------
+// CIpsSetData::SetIapL()
+// ---------------------------------------------------------------------------
+//
+void CIpsSetData::SetIapL( 
+    const CImIAPPreferences& aIncomingIap, 
+    const CImIAPPreferences& aOutgoingIap )
+    {
+    FUNC_LOG;
+    // This is not ideal choice, but current situation forces to do this,
+    // until Reset() funcion is exported from class CImIAPPreferences
+    delete iIncomingIapPref;
+    iIncomingIapPref = NULL;
+    delete iOutgoingIapPref;
+    iOutgoingIapPref = NULL;
+
+    iIncomingIapPref = CImIAPPreferences::NewLC();
+    CleanupStack::Pop( iIncomingIapPref );
+    iOutgoingIapPref = CImIAPPreferences::NewLC();
+    CleanupStack::Pop( iOutgoingIapPref );
+        
+    if (aIncomingIap.SNAPDefined())
+    	{
+		iIncomingIapPref->SetSNAPL(aIncomingIap.SNAPPreference());
+    	}
+    else
+    	{
+    	iIncomingIapPref->AddIAPL( aIncomingIap.IAPPreference(0) );
+    	}
+        
+    if (aOutgoingIap.SNAPDefined())
+      	{
+    	iOutgoingIapPref->SetSNAPL(aOutgoingIap.SNAPPreference());
+       	}
+    else
+    	{
+    	iOutgoingIapPref->AddIAPL( aOutgoingIap.IAPPreference(0) );
+    	}
+    
+    }
+
 
 // ---------------------------------------------------------------------------
 // CIpsSetData::SetSecurity()

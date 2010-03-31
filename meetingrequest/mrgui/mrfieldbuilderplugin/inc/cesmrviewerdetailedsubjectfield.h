@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -24,6 +24,7 @@
 #include <eikedwob.h> // MEikEdwinSizeObserver
 
 #include "cesmrfield.h"
+#include "cesmrrichtextviewer.h"
 
 // FORWARD DECLARATIONS
 class CESMRRichTextViewer;
@@ -37,7 +38,8 @@ class CMRImage;
  */
 NONSHARABLE_CLASS( CESMRViewerDetailedSubjectField ):
         public CESMRField,
-        public MEikEdwinSizeObserver
+        public MEikEdwinSizeObserver,
+        public MESMRRichTextObserver
     {
 public:
     /**
@@ -65,9 +67,12 @@ public: // From CESMRField
     void InternalizeL( MESMRCalEntry& aEntry );
     void InitializeL();
     void ListObserverSet();
-    void ExecuteGenericCommandL( TInt aCommand );
+    TBool ExecuteGenericCommandL( TInt aCommand );
     void SetOutlineFocusL( TBool aFocus );
-
+    void GetCursorLineVerticalPos(TInt& aUpper, TInt& aLower); 
+    void HandleLongtapEventL( const TPoint& aPosition );
+    void LockL();
+    
 public: // From CCoeControl
     TKeyResponse OfferKeyEventL( const TKeyEvent& aEvent, 
                                        TEventCode aType );
@@ -81,21 +86,24 @@ public: // From MEikEdwinSizeObserver
             CEikEdwin* aEdwin,
             TEdwinSizeEvent aType,
             TSize aSize );
+    
+protected: // From CESMRRichTextViewer
+    TBool HandleRichTextLinkSelection( const CESMRRichTextLink* aLink );
 
 private: // Implementation
     CESMRViewerDetailedSubjectField();
     void ConstructL();
-    TRect RichTextViewerRect();
+    void SetMiddleSoftkeyL();
 
 private: // data
     // Own: Edwin size
     TSize iSize;
     // Own: Field icon
     CMRImage* iFieldIcon;
-    // Own: Subject text is storaged here
+    // Own: Priority icon
+    CMRImage* iPriorityIcon;
+    // Not own: Subject text is storaged here
     CESMRRichTextViewer* iRichTextViewer;
-    // RichTextViewer line count. Own
-    TInt iLineCount;
     /// Ref: Pointer to title pane observer
     MESMRTitlePaneObserver* iTitlePaneObserver;
     };

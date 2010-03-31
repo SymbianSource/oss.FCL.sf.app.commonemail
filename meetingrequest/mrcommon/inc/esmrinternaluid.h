@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -31,7 +31,7 @@
 #define KESMRUtilsCalPluginDataImap          "[1000102a]" //For plugin resource file
 #define KESMRUtilsCalPluginDataSmtp          "[10001028]" //For plugin resource file
 // <cmail> S60 UID update
-#define KESMRUtilsCalPluginDataFs            "[2001F406]"  //For plugin resource file
+#define KESMRUtilsCalPluginDataFs            "[2001f406]"  //For plugin resource file
 #define KESMRUtilsCalPluginResource          2001E27F.rss // for mmp
 // </cmail> S60 UID update
 
@@ -103,8 +103,21 @@
 #define KESMRLocationPluginImplementationUid	0x2001E60B
 #define KESMRLocationPluginDllUid				0x2001E60C
 
+// MR Mailbox Utils plugin UIDs
+#define KESMRMButilsExtensionImplementationUid  0x2002137D
+#define KESMRMButilsExtensionDllUid             0x2002137D
+#define KMRDefaultCMailMRMailbox                0x2002137C
+
+// MR BC Plugin UIDs
+#define KMRBCPluginImplementationUid    0x2002137B
+#define KMRBCPluginDllUid               0x2002137B
+
 #define KS60CalenEditorsImplementation 0x102071F4
 #define KCalEntryUIImplmentation       0x200025B4
+
+#define KMREntryProcessorInterfaceUID               0x20026F6D
+#define KMRMeetingRequestProcessorImplementationUID 0x20026F6E
+#define KMRCalEventProcessorImplementationUID       0x20026F6F
 
 // MRUI Private CenRep UIDs
 #define KESMRUIPreviousLocationsCRUid   0x2001E611
@@ -114,5 +127,20 @@
 #define KMaxMinutesInHour               59
 #define KMaxSecondsInMinute             59
 
+// Definition for BC plug-in resources
+#define KBCCalMRPluginResource "bcmreventplugin.rsc"
+
+#define KMRBCEventPluginInterfaceUID        0x20022D89
+#define KMRBCMREventPluginImplementationUID 0x20022D8A
+
+// Definition of MR Tasks ECom plug-in UIDs
+#define KMRTaskInterfaceUID                     0x20022D8C
+#define KMRTaskPluginImplementationUID          0x20022D8D
+#define KMRCalEventTaskPluginImplementationUID  0x20026F6C
+
+// Definition of MR Policy resolver ECom plug-in UIDs
+#define KMRPolicyResolverInterfaceUID           0x20026F70
+#define KMREntryPolicyImplementationUID         0x20026FB8
+#define KMRCalEntryPolicyImplementationUID      0x20026FB9
 
 #endif // ESMRINTERNALUID_H

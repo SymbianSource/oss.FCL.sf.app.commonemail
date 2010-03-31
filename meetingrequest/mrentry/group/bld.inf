@@ -21,9 +21,10 @@
 
 PRJ_EXPORTS
 ../inc/mesmrcalentry.h              |../../inc/mesmrcalentry.h
+../inc/cesmrfsmailboxutils.h        |../../inc/cesmrfsmailboxutils.h
+../inc/cesmrmeetingrequestentry.h   |../../inc/cesmrmeetingrequestentry.h
 ../inc/mesmrmeetingrequestentry.h   |../../inc/mesmrmeetingrequestentry.h
-../inc/cesmrentryprocessor.h        |../../inc/cesmrentryprocessor.h
-../inc/cesmrentryprocessor.inl      |../../inc/cesmrentryprocessor.inl
+
 
 PRJ_MMPFILES
 esmrentry.mmp

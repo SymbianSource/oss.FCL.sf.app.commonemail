@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -22,29 +22,18 @@
 #include "esmrinternaluid.h"
 
 #include <calentry.h>
-#include "cfsmailclient.h"
-#include "cfsmailbox.h"
+//<cmail>
+#include "CFSMailClient.h"
+#include "CFSMailBox.h"
+//</cmail>
 #include <caluser.h>
+#include <ct/rcpointerarray.h>
 
 // Unnamed namespace for local definitions
 namespace {
 
 // Definition for email address comparison
 const TInt KEqualEmailAddress( 0 );
-
-// ---------------------------------------------------------------------------
-// Cleanup operation for RPointerArray.
-// @param aArray Pointer to RPointerArray.
-// ---------------------------------------------------------------------------
-//
-void MailboxPointerArrayCleanup( TAny* aArray )
-    {
-    RPointerArray<CFSMailBox>* entryArray =
-        static_cast<RPointerArray<CFSMailBox>*>( aArray );
-
-    entryArray->ResetAndDestroy();
-    entryArray->Close();
-    }
 
 /**
  * Listes all FS mailboxes. On return aMailboxes contains FS mailboxes
@@ -79,7 +68,7 @@ inline CESMRFsMailboxUtils::CESMRFsMailboxUtils(
 // CESMRFsMailboxUtils::~CESMRFsMailboxUtils
 // ---------------------------------------------------------------------------
 //
-CESMRFsMailboxUtils::~CESMRFsMailboxUtils()
+EXPORT_C CESMRFsMailboxUtils::~CESMRFsMailboxUtils()
     {
     FUNC_LOG;
     if ( iMailClient )
@@ -92,7 +81,7 @@ CESMRFsMailboxUtils::~CESMRFsMailboxUtils()
 // CESMRFsMailboxUtils::NewL
 // ---------------------------------------------------------------------------
 //
-CESMRFsMailboxUtils* CESMRFsMailboxUtils::NewL(
+EXPORT_C CESMRFsMailboxUtils* CESMRFsMailboxUtils::NewL(
             CMRMailboxUtils& aMailboxUtils )
     {
     FUNC_LOG;
@@ -118,7 +107,7 @@ void CESMRFsMailboxUtils::ConstructL()
 // CESMRFsMailboxUtils::SetPhoneOwnerL
 // ---------------------------------------------------------------------------
 //
-TInt CESMRFsMailboxUtils::SetPhoneOwnerL(
+EXPORT_C TInt CESMRFsMailboxUtils::SetPhoneOwnerL(
             CCalEntry& aCalEntry,
             TMsvId aPrimaryBox )
     {
@@ -130,11 +119,8 @@ TInt CESMRFsMailboxUtils::SetPhoneOwnerL(
         {
         // Check if phone owner can be set using FS mailboxes
         // Loop throug all mailboxes in this plug-in
-        RPointerArray<CFSMailBox> mailboxes;
-        CleanupStack::PushL(
-                TCleanupItem(
-                        MailboxPointerArrayCleanup,
-                        &mailboxes    ) );
+        RCPointerArray<CFSMailBox> mailboxes;
+        CleanupClosePushL( mailboxes );
 
         ListMailBoxesL(
                 MailClientL(),
@@ -148,6 +134,7 @@ TInt CESMRFsMailboxUtils::SetPhoneOwnerL(
             aCalEntry.SetPhoneOwnerL( phoneOwner );
             err = KErrNone;
             }
+        
         CleanupStack::PopAndDestroy( &mailboxes );
         }
     return err;
@@ -157,14 +144,14 @@ TInt CESMRFsMailboxUtils::SetPhoneOwnerL(
 // CESMRFsMailboxUtils::SetPhoneOwnerL
 // ----------------------------------------------------------------------------
 //
-TInt CESMRFsMailboxUtils::SetPhoneOwnerL(
+EXPORT_C TInt CESMRFsMailboxUtils::SetPhoneOwnerL(
     CCalEntry& aCalEntry,
     CFSMailClient& aMailClient,
     CFSMailMessage& aMailMessage )
     {
     FUNC_LOG;
     TInt err( KErrNotFound );
-    
+
     TFSMailMsgId mailboxId( aMailMessage.GetMailBoxId() );
     CFSMailBox* mailbox = aMailClient.GetMailBoxByUidL( mailboxId );
 
@@ -172,16 +159,16 @@ TInt CESMRFsMailboxUtils::SetPhoneOwnerL(
         {
         return KErrNotFound;
         }
-    
+
     CleanupStack::PushL( mailbox );
 
     TPtrC mailboxOwnerAddName(
             mailbox->OwnMailAddress().GetEmailAddress() );
-    
+
     CCalUser* po = NULL;
     CCalUser* organizer = aCalEntry.OrganizerL();
 
-    if ( organizer &&  
+    if ( organizer &&
          KEqualEmailAddress == organizer->Address().CompareF(mailboxOwnerAddName) )
         {
         po = organizer;
@@ -200,16 +187,16 @@ TInt CESMRFsMailboxUtils::SetPhoneOwnerL(
                 po = attendee;
                 }
             }
-        }    
-    
+        }
+
     if ( po )
         {
         aCalEntry.SetPhoneOwnerL( po );
         err = KErrNone;
         }
-    
+
     CleanupStack::PopAndDestroy( mailbox );
-    
+
     return err;
     }
 
@@ -217,39 +204,36 @@ TInt CESMRFsMailboxUtils::SetPhoneOwnerL(
 // CESMRFsMailboxUtils::FSEmailPluginForEntryL
 // ----------------------------------------------------------------------------
 //
-TESMRMailPlugin CESMRFsMailboxUtils::FSEmailPluginForEntryL( 
+EXPORT_C TESMRMailPlugin CESMRFsMailboxUtils::FSEmailPluginForEntryL(
         const CCalEntry& aEntry )
     {
     FUNC_LOG;
-    RPointerArray<CFSMailBox> mailboxes;
-    CleanupStack::PushL(
-            TCleanupItem(
-                    MailboxPointerArrayCleanup,
-                    &mailboxes    ) );
+    RCPointerArray<CFSMailBox> mailboxes;
+    CleanupClosePushL( mailboxes );
 
     ListMailBoxesL(
             MailClientL(),
-            mailboxes );    
-    
+            mailboxes );
+
     CCalUser* phoneOwner = aEntry.PhoneOwnerL();
     TPtrC poMailAddress( phoneOwner->Address() );
-    
+
     CFSMailBox* fsEmailMailbox = NULL;
     TInt mailboxCount( mailboxes.Count() );
     for (TInt j(0); j < mailboxCount && !fsEmailMailbox; ++j )
-        {        
+        {
         TPtrC mailboxOwnerAddName(
                 mailboxes[j]->OwnMailAddress().GetEmailAddress() );
-        
+
         if ( KEqualEmailAddress == mailboxOwnerAddName.CompareF(poMailAddress) )
             {
             // Correct mailbox is found
             fsEmailMailbox = mailboxes[j];
             }
-        }    
-    
+        }
+
     TESMRMailPlugin plugin( EESMRUnknownPlugin );
-    
+
     if ( fsEmailMailbox )
         {
         // Mailbox was found --> We need to resolve mailboxes plug-in
@@ -268,54 +252,41 @@ TESMRMailPlugin CESMRFsMailboxUtils::FSEmailPluginForEntryL(
                 TUid::Uid( KFSEmailImap4 ) == pluginId )
             {
             plugin = EESMRImapPop;
-            }        
+            }
         }
-    
-    CleanupStack::PopAndDestroy( &mailboxes );    
+
+    CleanupStack::PopAndDestroy( &mailboxes );
     return plugin;
     }
 
 // ----------------------------------------------------------------------------
-// CESMRFsMailboxUtils::FSEmailMailBoxForEntryL
+// CESMRFsMailboxUtils::DefaultMailboxSupportCapabilityL
 // ----------------------------------------------------------------------------
 //
-TFSMailMsgId CESMRFsMailboxUtils::FSEmailMailBoxForEntryL( 
-        const CCalEntry& aEntry )
+EXPORT_C TBool CESMRFsMailboxUtils::DefaultMailboxSupportCapabilityL(
+        CESMRFsMailboxUtils::TMRMailboxCapability aCapability ) 
     {
     FUNC_LOG;
-    RPointerArray<CFSMailBox> mailboxes;
-    CleanupStack::PushL(
-            TCleanupItem( MailboxPointerArrayCleanup, &mailboxes ) );
-
-    ListMailBoxesL( MailClientL(), mailboxes );    
     
-    CCalUser* phoneOwner = aEntry.PhoneOwnerL();
-    TPtrC poMailAddress( phoneOwner->Address() );
+    TBool retValue( EFalse );    
+   
+    CFSMailBox* defaultMailbox = DefaultMailboxL();
+    CleanupStack::PushL( defaultMailbox );
+    ASSERT( defaultMailbox );
     
-    CFSMailBox* fsEmailMailbox = NULL;
-    TInt mailboxCount( mailboxes.Count() );
-    for (TInt j(0); j < mailboxCount && !fsEmailMailbox; ++j )
-        {        
-        TPtrC mailboxOwnerAddName(
-                mailboxes[j]->OwnMailAddress().GetEmailAddress() );
-        
-        if ( KEqualEmailAddress == 
-             mailboxOwnerAddName.CompareF( poMailAddress ) )
-            {
-            // Correct mailbox is found
-            fsEmailMailbox = mailboxes[j];
-            }
-        }
-    
-    TFSMailMsgId retVal; // default ctor constructs a null id.
-    
-    if ( fsEmailMailbox )
+    switch ( aCapability )
         {
-        retVal = fsEmailMailbox->GetId();
+        case CESMRFsMailboxUtils::EMRCapabilityAttachment:
+            {
+            retValue = defaultMailbox->HasCapability( 
+                            EFSMboxCapaSupportsAttahmentsInMR );
+            }
+            break;
         }
-
-    CleanupStack::PopAndDestroy( &mailboxes );
-    return retVal;
+    
+    CleanupStack::PopAndDestroy( defaultMailbox );
+    
+    return retValue;
     }
 
 // ----------------------------------------------------------------------------
@@ -396,6 +367,47 @@ CFSMailClient& CESMRFsMailboxUtils::MailClientL()
         iMailClient = CFSMailClient::NewL();
         }
     return *iMailClient;
+    }
+
+// ----------------------------------------------------------------------------
+// CESMRFsMailboxUtils::DefaultMailboxL
+// ----------------------------------------------------------------------------
+//
+CFSMailBox* CESMRFsMailboxUtils::DefaultMailboxL()
+    {
+    FUNC_LOG;
+    
+    CFSMailBox* defaultMailbox( NULL );
+    
+    CMRMailboxUtils::TMailboxInfo mailboxInfo;
+    TInt err = iMRMailboxUtils.GetDefaultMRMailBoxL( mailboxInfo );
+    
+    if ( KErrNone == err )
+        {
+        RCPointerArray<CFSMailBox> mailboxes;
+        CleanupClosePushL( mailboxes );
+        
+        ListMailBoxesL( MailClientL(), mailboxes );
+        
+        TInt mailboxCount( mailboxes.Count() );
+        for (TInt j(0); j < mailboxCount && !defaultMailbox; ++j )
+            {
+            TPtrC mailboxOwnerAddName(
+                    mailboxes[j]->OwnMailAddress().GetEmailAddress() );
+    
+            if ( KEqualEmailAddress == 
+                 mailboxOwnerAddName.CompareF( mailboxInfo.iEmailAddress) )
+                {
+                // Default mailbox is found
+                defaultMailbox = mailboxes[j];
+                mailboxes.Remove( j );
+                }
+            }
+        
+        CleanupStack::PopAndDestroy( &mailboxes );
+        }
+    
+    return defaultMailbox;
     }
 
 // EOF

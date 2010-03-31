@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -17,14 +17,6 @@
 
 
 // INCLUDE FILES
-//<cmail>
-#include "emailtrace.h"
-#include "cesmralarminfohandler.h"
-#include "cesmrrecurrenceinfohandler.h"
-//</cmail>
-#include <centralrepository.h>
-#include <calalarm.h>
-
 #include "cesmrmeetingrequestentry.h"
 #include "cesmrfsmailboxutils.h"
 #include "cesmrcaldbmgr.h"
@@ -32,43 +24,43 @@
 #include "esmrentryhelper.h"
 #include "cesmrconflictchecker.h"
 #include "cesmrcaluserutil.h"
+#include "cesmralarminfohandler.h"
+#include "cesmrrecurrenceinfohandler.h"
+#include "mmrinfoobject.h"
+#include "mmrattendee.h"
+
+#include "CFSMailMessage.h"
+
 #include "esmrconfig.hrh"
+#include "cesmrfeaturesettings.h"
+
+#include "emailtrace.h"
 
 #include <esmralarminfo.rsg>
 #include <calentry.h>
 #include <calinstance.h>
 #include <calinstanceview.h>
 #include <caluser.h>
-#include <CalenInterimUtils2.h>
+#include <calattachment.h>
+#include <caleninterimutils2.h>
 #include <cmrmailboxutils.h>
 #include <calrrule.h>
-//<cmail>
-#include "mmrinfoobject.h"
-#include "mmrattendee.h"
-//</cmail>
-#include <CalendarInternalCRKeys.h>
+#include <centralrepository.h>
+#include <calalarm.h>
+#include <calendarinternalcrkeys.h>
 #include <data_caging_path_literals.hrh>
 #include <coemain.h>
 #include <calentryview.h>
 #include <ct/rcpointerarray.h>
+#include <apmstd.h>
+#include <apgcli.h>
+#include <apmrec.h>
 
 /// Unnamed namespace for local definitions
 namespace {
 
 // Alarm resource file location
 _LIT( KAlarmInfoResource, "esmralarminfo.rsc" );
-
-// Definition for first index
-const TInt KFirstIndex = 0;
-
-// Definition for 0
-const TInt KZero = 0;
-
-// Definition for 1
-const TInt KOne = 1;
-
-// Definition for number of hours within day
-const TInt KHoursInDay = 24;
 
 // Definition for default alarm time for meeting
 const TInt KDefaultMeetingAlarmMinutes( 15 );
@@ -77,63 +69,41 @@ _LIT( KReplaceLineFeedChar, "\n" );
 _LIT( KLineFeed, "\x2029");
 
 /**
- * Finds matching calendar instance from calendar db. Ownership is
- * transferred, If instance cannot be found, NULL is returned.
- *
- * @param aCalDb Reference to cal db manager.
- * @param aEntry Reference to calendar entry
- * @return Pointer to calendar entry instance.
+ * Sets phone owner to entry.
+ * @param aMbUtils Reference to mailbox utils.
+ * @param aEntry Reference to calendar entry.
  */
-CCalInstance* FindInstanceL(
-        MESMRCalDbMgr& aCalDb,
+void SetPhoneOwnerL(
+        CMRMailboxUtils& aMbUtils,
         CCalEntry& aEntry )
     {
-    CCalInstance* instance = NULL;
-    RCPointerArray<CCalInstance> calInstances;
-    CleanupClosePushL( calInstances );
+    CESMRFsMailboxUtils* fsMbUtils =
+            CESMRFsMailboxUtils::NewL( aMbUtils );
+    CleanupStack::PushL( fsMbUtils );
 
-    CCalInstanceView* instanceView =
-            aCalDb.NormalDbInstanceView();
+    fsMbUtils->SetPhoneOwnerL( aEntry );
+    CleanupStack::PopAndDestroy( fsMbUtils );
+    fsMbUtils = NULL;
+    }
 
-    CalCommon::TCalViewFilter instanceFilter =
-            CalCommon::EIncludeAppts |
-            CalCommon::EIncludeEvents;
+/**
+ * Makes copy of the entry and sets phone owner accordingly
+ * @param aMbUtils Reference to mailbox utils.
+ * @param aEntry Reference to calendar entry.
+ */
+CCalEntry* CopyEntryL(
+        CMRMailboxUtils& aMbUtils,
+        const CCalEntry& aEntry )
+    {
+    CCalEntry* entry = ESMRHelper::CopyEntryL(
+                            aEntry,
+                            aEntry.MethodL(),
+                            ESMRHelper::ECopyFull,
+                            EESMREventTypeMeetingRequest );
 
-    // Removing one seconds from start time and adding one second to stop
-    // time. Otherwise wanted entry is not included into results.
-    TCalTime startTime;
-    startTime.SetTimeLocalL(
-        aEntry.StartTimeL().TimeLocalL() - TTimeIntervalSeconds(KOne) );
-    TCalTime endTime;
-    endTime.SetTimeLocalL(
-        aEntry.EndTimeL().TimeLocalL() + TTimeIntervalSeconds(KOne) );
+    SetPhoneOwnerL( aMbUtils, *entry );
 
-    TDateTime start = startTime.TimeLocalL().DateTime();
-    TDateTime end   = endTime.TimeLocalL().DateTime();
-
-    CalCommon::TCalTimeRange timeRange(
-            startTime,
-            endTime );
-
-    instanceView->FindInstanceL(
-            calInstances,
-            instanceFilter,
-            timeRange);
-
-    TInt instanceCount( calInstances.Count() );
-    for (TInt i = 0; (i < instanceCount && !instance); ++i)
-        {
-        CCalEntry& entry = calInstances[i]->Entry();
-
-        // Finding the entry we are intrested for
-        if ( !entry.UidL().Compare( aEntry.UidL() ) )
-            {
-            instance = calInstances[i];
-            calInstances.Remove( i );
-            }
-        }
-    CleanupStack::PopAndDestroy(); // arrayCleanup
-    return instance;
+    return entry;
     }
 
 #ifdef _DEBUG
@@ -183,7 +153,8 @@ inline CESMRMeetingRequestEntry::CESMRMeetingRequestEntry(
 :   iMRMailboxUtils( aMRMailboxUtils ),
     iConflictsExists( aConflictsExists),
     iCalDb( aCalDb ),
-    iESMRInputParams( aESMRInputParams )
+    iESMRInputParams( aESMRInputParams ),
+    iSendCanellation( ETrue )
     {
     FUNC_LOG;
     // Not yet implementation
@@ -193,21 +164,20 @@ inline CESMRMeetingRequestEntry::CESMRMeetingRequestEntry(
 // CESMRMeetingRequestEntry::~CESMRMeetingRequestEntry
 // ---------------------------------------------------------------------------
 //
-CESMRMeetingRequestEntry::~CESMRMeetingRequestEntry()
+EXPORT_C CESMRMeetingRequestEntry::~CESMRMeetingRequestEntry()
     {
     FUNC_LOG;
     delete iEntry;
     delete iForwardEntry;
     delete iOrginalEntry;
     delete iParameterEntry;
-    delete iBackupEntry;
     }
 
 // ---------------------------------------------------------------------------
 // CESMRMeetingRequestEntry::NewL
 // ---------------------------------------------------------------------------
 //
-CESMRMeetingRequestEntry* CESMRMeetingRequestEntry::NewL(
+EXPORT_C CESMRMeetingRequestEntry* CESMRMeetingRequestEntry::NewL(
         const CCalEntry& aEntry,
         CMRMailboxUtils& aMRMailboxUtils,
         MESMRCalDbMgr& aCalDb,
@@ -238,31 +208,12 @@ void CESMRMeetingRequestEntry::ConstructL(
         const CCalEntry& aEntry )
     {
     FUNC_LOG;
-    
-    iParameterEntry = ESMRHelper::CopyEntryL(
-        aEntry,
-        aEntry.MethodL(),
-        ESMRHelper::ECopyFull );    
-    iBackupEntry=ESMRHelper::CopyEntryL(
-            aEntry,
-            aEntry.MethodL(),
-            ESMRHelper::ECopyFull ); 
-    iEntry = ESMRHelper::CopyEntryL(
-        aEntry,
-        aEntry.MethodL(),
-        ESMRHelper::ECopyFull );
 
-    if ( !IsStoredL() && !IsOpenedFromMail() )
-        {
-        // by default when creating a meeting the priority value is normal
-        SetPriorityL( EFSCalenMRPriorityNormal );
-        }
+    iParameterEntry = CopyEntryL( iMRMailboxUtils, aEntry );
+    iEntry = CopyEntryL( iMRMailboxUtils, aEntry );
 
-    iOrginalEntry  = ESMRHelper::CopyEntryL(
-        aEntry,
-        aEntry.MethodL(),
-        ESMRHelper::ECopyFull );
-    
+    iOrginalEntry  = CopyEntryL( iMRMailboxUtils, aEntry );
+
     if ( EESMRRoleOrganizer == RoleL() && IsStoredL() )
         {
         // Increase sequence number
@@ -281,39 +232,52 @@ void CESMRMeetingRequestEntry::ConstructL(
         }
 
     HBufC* newDescription = ReplaceCharactersFromBufferLC(
-                                    iEntry->DescriptionL(),       
+                                    iEntry->DescriptionL(),
                                     KReplaceLineFeedChar(),
                                     KLineFeed() );
     iEntry->SetDescriptionL( *newDescription );
+    iOrginalEntry->SetDescriptionL( *newDescription );
+
     CleanupStack::PopAndDestroy( newDescription );
-        
+
+    __ASSERT_DEBUG( iEntry->PhoneOwnerL(), Panic( EESMRPhoneOwnerNotSet) );
+    
+    CESMRFeatureSettings* settings = CESMRFeatureSettings::NewL();
+    if ( settings->FeatureSupported(
+            CESMRFeatureSettings::EMRUIMeetingRequestViewerCmailOnly ) )
+        {
+        // Meeting request viewer available only from email.
+        // Remove attachments from entry.  
+        iRemoveAttachments = ETrue;
+        }
+    delete settings;
     }
 
 // ---------------------------------------------------------------------------
 // CESMRMeetingRequestEntry::ReplaceCharactersFromBufferL
 // ---------------------------------------------------------------------------
 //
-HBufC* CESMRMeetingRequestEntry::ReplaceCharactersFromBufferLC( const TDesC& aTarget, 
-                              const TDesC& aFindString, 
+HBufC* CESMRMeetingRequestEntry::ReplaceCharactersFromBufferLC( const TDesC& aTarget,
+                              const TDesC& aFindString,
                               const TDesC& aReplacement )
     {
     FUNC_LOG;
     HBufC* newBuffer = aTarget.AllocLC();
     TPtr16 ptr = newBuffer->Des();
-    
+
     // find next occurance:
     TInt offset = ptr.Find(aFindString);
     while ( offset != KErrNotFound )
         {
         // replace the data:
         ptr.Replace( offset, aFindString.Length(), aReplacement);
-        
+
         // find next occurance:
         offset = ptr.Find(aFindString);
         }
-    
+
     return newBuffer;
-    }         
+    }
 
 // ---------------------------------------------------------------------------
 // CESMRMeetingRequestEntry::Type
@@ -390,23 +354,20 @@ CCalInstance* CESMRMeetingRequestEntry::InstanceL() const
 
     CCalInstance* instance = NULL;
 
-    instance = FindInstanceL( iCalDb, *iEntry );
+    instance = iCalDb.FindInstanceL( *iEntry );
     if ( !instance )
         {
         // Instance not found by using the edited entry
         // Trying with orginal.
-        instance = FindInstanceL( iCalDb, *iOrginalEntry );
+        instance = iCalDb.FindInstanceL( *iOrginalEntry );
         }
 
     if ( !instance )
         {
         // Instance not found by using edited or orginal entry.
         // --> Leave
-
-
         User::Leave( KErrNotFound );
         }
-
 
     return instance;
     }
@@ -422,7 +383,7 @@ TBool CESMRMeetingRequestEntry::CanSetRecurrenceL() const
     __ASSERT_DEBUG( iEntry, Panic(EESMREntryNotExist ) );
 
     TBool canSetRecurrence( ETrue );
-
+    
     if ( iEntry->EntryTypeL() == CCalEntry::EAppt &&
             ESMREntryHelper::IsRepeatingMeetingL(*iEntry) &&
         (!ESMREntryHelper::IsModifyingEntryL(*iEntry) &&
@@ -454,7 +415,7 @@ TBool CESMRMeetingRequestEntry::IsRecurrentEventL() const
         // Ownership is transferred
         CCalInstance* instance = NULL;
         TRAPD(err, instance = InstanceL() );
-        if ( KErrNotFound != err&&err!=KErrNone )
+        if ( KErrNotFound != err )
             {
             User::LeaveIfError( err );
             }
@@ -540,11 +501,10 @@ void CESMRMeetingRequestEntry::GetRecurrenceL(
     __ASSERT_DEBUG( iEntry, Panic(EESMREntryNotExist ) );
 
     CESMRRecurrenceInfoHandler* recurrenceHandler =
-            CESMRRecurrenceInfoHandler::NewLC( *iEntry );
+            CESMRRecurrenceInfoHandler::NewLC( *iEntry, &iCalDb );
 
     recurrenceHandler->GetRecurrenceL( aRecurrence, aUntil );
     CleanupStack::PopAndDestroy( recurrenceHandler );
-
     }
 
 // ---------------------------------------------------------------------------
@@ -562,7 +522,7 @@ MESMRCalEntry::TESMRRecurrenceModifyingRule
 // ---------------------------------------------------------------------------
 //
 void CESMRMeetingRequestEntry::SetModifyingRuleL(
-        TESMRRecurrenceModifyingRule aRule )
+        TESMRRecurrenceModifyingRule aRule, const TBool aTypeChanging )
     {
     FUNC_LOG;
 
@@ -578,18 +538,16 @@ void CESMRMeetingRequestEntry::SetModifyingRuleL(
     recHandler->GetRecurrenceL(
             orginalRecurrence,
             orginalUntil);
-
     CleanupStack::PopAndDestroy( recHandler );
     recHandler = NULL;
 
+    TBool modifyingEntry( ESMREntryHelper::IsModifyingEntryL( *iEntry ) );
 
     if ( MESMRCalEntry::EESMRAllInSeries == aRule &&
-         IsStoredL() && !IsForwardedL() && !IsOpenedFromMail() )
+         IsStoredL() && !IsForwardedL() && !IsOpenedFromMail() && !aTypeChanging )
         {
         // When we want to modify series of recurrence entries -->
         // Parent entry is modified
-
-        TBool modifyingEntry( ESMREntryHelper::IsModifyingEntryL( *iEntry ) );        
         if ( ERecurrenceNot == orginalRecurrence && !modifyingEntry )
             {
             // Orginal entry was not recurrent event
@@ -611,27 +569,24 @@ void CESMRMeetingRequestEntry::SetModifyingRuleL(
             CleanupStack::PushL( instance );
 
             CCalEntry::TMethod entryMethod( iEntry->MethodL() );
-            CCalEntry* iBackupEntry=ESMRHelper::CopyEntryL(
-                    *iEntry,
-                    entryMethod,
-                    ESMRHelper::ECopyFull);
-            delete iEntry; 
+
+            delete iEntry;
             iEntry = NULL;
-            
-            delete iForwardEntry; 
+
+            delete iForwardEntry;
             iForwardEntry = NULL;
-            
-            delete iOrginalEntry; 
+
+            delete iOrginalEntry;
             iOrginalEntry = NULL;
 
             RCPointerArray<CCalEntry> entries;
             CleanupClosePushL( entries );
 
-            iCalDb.NormalDbEntryView()->FetchL(
+            iCalDb.EntryViewL( instance->Entry() )->FetchL(
                     instance->Entry().UidL(), entries );
 
             TInt parentIndex( KErrNotFound );
-            TInt entryCount( entries.Count() );            
+            TInt entryCount( entries.Count() );
             for ( TInt i(0); i < entryCount && KErrNotFound == parentIndex; ++i )
                 {
                 TBool modifyingEntry( ESMREntryHelper::IsModifyingEntryL( *entries[i]) );
@@ -642,24 +597,13 @@ void CESMRMeetingRequestEntry::SetModifyingRuleL(
                 }
 
             __ASSERT_DEBUG( KErrNotFound != parentIndex, Panic(EESMRParentNotFound) );
-            
+
             CCalEntry& parent = *entries[parentIndex];
 
             TPtrC description( parent.DescriptionL() );
-            
-            iEntry = ESMRHelper::CopyEntryL(
-                            parent,
-                            parent.MethodL(),
-                            ESMRHelper::ECopyFull );
-            
-            CESMRFsMailboxUtils* fsMbUtils = 
-                    CESMRFsMailboxUtils::NewL( iMRMailboxUtils );
-            CleanupStack::PushL( fsMbUtils );
-            
-            fsMbUtils->SetPhoneOwnerL( *iBackupEntry );
-            CleanupStack::PopAndDestroy( fsMbUtils );
-            fsMbUtils = NULL;
-            
+
+            iEntry = CopyEntryL( iMRMailboxUtils, parent );
+
             // Adjust parent entry's start and end time to entry
             TCalTime start;
             TCalTime end;
@@ -673,10 +617,7 @@ void CESMRMeetingRequestEntry::SetModifyingRuleL(
 
             iEntry->SetStartAndEndTimeL( start, end );
 
-            iOrginalEntry = ESMRHelper::CopyEntryL(
-                                    *iEntry,
-                                    iEntry->MethodL(),
-                                    ESMRHelper::ECopyFull );
+            iOrginalEntry = CopyEntryL( iMRMailboxUtils, *iEntry );
 
             if ( iEntry->MethodL() != entryMethod )
                 {
@@ -686,8 +627,7 @@ void CESMRMeetingRequestEntry::SetModifyingRuleL(
 
             iEntry->SetDescriptionL( description );
             iOrginalEntry->SetDescriptionL( description );
-            iEntry=ESMRHelper::CopyEntryL(*iBackupEntry,iBackupEntry->MethodL(),ESMRHelper::ECopyFull);
-            
+
             CleanupStack::PopAndDestroy(); // entries
             CleanupStack::PopAndDestroy( instance );
 
@@ -700,7 +640,15 @@ void CESMRMeetingRequestEntry::SetModifyingRuleL(
                 }
             }
         }
-
+    else if ( ERecurrenceNot != orginalRecurrence && 
+    		aTypeChanging && !modifyingEntry )
+    	{
+		// if entry( in the memory) is a recurrent event 
+		// ,and if entry type is changing, and not in modifying status then EESMRAllInSeries
+		iRecurrenceModRule = EESMRAllInSeries ;
+		return;
+    	}
+    
     iRecurrenceModRule = aRule;
 
     }
@@ -728,10 +676,10 @@ void CESMRMeetingRequestEntry::SetAllDayEventL(
     start.Set( aStartDate.DateTime().Year(),
                aStartDate.DateTime().Month(),
                aStartDate.DateTime().Day(),
-               KZero,
-               KZero,
-               KZero,
-               KZero);
+               0,
+               0,
+               0,
+               0);
 
     // set the end date to next day from given end date since
     // all day event should last 24 hours.
@@ -739,10 +687,10 @@ void CESMRMeetingRequestEntry::SetAllDayEventL(
     end.Set( endDate.DateTime().Year(),
              endDate.DateTime().Month(),
              endDate.DateTime().Day(),
-             KZero,
-             KZero,
-             KZero,
-             KZero );
+             0,
+             0,
+             0,
+             0 );
 
     startTime.SetTimeLocalL( start );
     stopTime.SetTimeLocalL( end );
@@ -762,34 +710,11 @@ TBool CESMRMeetingRequestEntry::IsAllDayEventL() const
 
     __ASSERT_DEBUG( iEntry, Panic(EESMREntryNotExist ) );
 
-    TBool allDayEvent(EFalse);
+    CESMRCalUserUtil* entryUtil = CESMRCalUserUtil::NewLC( *iEntry );
 
-    TCalTime startTime = iEntry->StartTimeL();
-    TCalTime stopTime  = iEntry->EndTimeL();
+    TBool allDayEvent( entryUtil->IsAlldayEventL() );
 
-    TTimeIntervalHours hoursBetweenStartAndEnd;
-    stopTime.TimeLocalL().HoursFrom(
-            startTime.TimeLocalL(),
-            hoursBetweenStartAndEnd );
-
-    TCalTime::TTimeMode mode = startTime.TimeMode();
-
-    TInt hoursBetweenStartAndEndAsInt(  hoursBetweenStartAndEnd.Int() );
-    TInt alldayDivident(  hoursBetweenStartAndEndAsInt % KHoursInDay );
-
-    if ( hoursBetweenStartAndEndAsInt&& KZero == alldayDivident )
-        {
-        TDateTime startTimeLocal = startTime.TimeLocalL().DateTime();
-        TDateTime stopTimeLocal =  stopTime.TimeLocalL().DateTime();
-
-        if ( startTimeLocal.Hour() == stopTimeLocal.Hour() &&
-             startTimeLocal.Minute() == stopTimeLocal.Minute() &&
-             startTimeLocal.Second() == stopTimeLocal.Second() )
-            {
-            allDayEvent = ETrue;
-            }
-        }
-
+    CleanupStack::PopAndDestroy( entryUtil );
 
     return allDayEvent;
     }
@@ -806,16 +731,16 @@ TBool CESMRMeetingRequestEntry::IsStoredL() const
 
     TBool ret(EFalse);
     CCalEntry* dbEntry = NULL;
-    
+
     TRAPD( err, dbEntry = iCalDb.FetchEntryL(
                                 iEntry->UidL(),
                                 iEntry->RecurrenceIdL() ) );
-    
+
     if ( KErrNotFound == err )
         {
-        // Error has occured while retrieving an entry        
+        // Error has occured while retrieving an entry
         ret = EFalse;
-        }    
+        }
     else if ( dbEntry)
         {
         // Entry was found from the calendar db --> it is stored for sure.
@@ -844,7 +769,7 @@ TBool CESMRMeetingRequestEntry::IsSentL() const
         {
         CCalEntry::TStatus status( iOrginalEntry->StatusL() );
         if ( CCalEntry::ENullStatus != status )
-            { // When we send a request for the first time we set 
+            { // When we send a request for the first time we set
               // it's status to some other value than ENullStatus
             retVal = ETrue;
             }
@@ -852,10 +777,12 @@ TBool CESMRMeetingRequestEntry::IsSentL() const
     else
         {
         // In attendee mode, we have sent the entry, if it is stored to
-        // calendar db and status is not declined. Declined entries are
-        // not stored to calendar db.
+        // calendar db and status is known and not declined.
+        // Declined entries are not stored to calendar db.
         TESMRAttendeeStatus currentStatus( AttendeeStatusL() );
-        if ( IsStoredL() && EESMRAttendeeStatusDecline != currentStatus)
+        if ( IsStoredL()
+             && EESMRAttendeeStatusUnknown != currentStatus
+             && EESMRAttendeeStatusDecline != currentStatus )
             {
             retVal = ETrue;
             }
@@ -924,11 +851,29 @@ TBool CESMRMeetingRequestEntry::IsEntryEditedL() const
             edited = ETrue;
             }
 
+        if( IsStoredL() )
+            {
+            if ( iCalDb.EntryViewL( *iEntry ) != iCalDb.EntryView() )
+                {
+                edited = ETrue;
+                }
+            }
         }
 
 
 
     return edited;
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRMeetingRequestEntry::IsEntryTypeChangedL
+// ---------------------------------------------------------------------------
+//
+TBool CESMRMeetingRequestEntry::IsEntryTypeChangedL() const
+    {
+    FUNC_LOG;
+    
+    return iTypeChanged;
     }
 
 // ---------------------------------------------------------------------------
@@ -967,7 +912,7 @@ void CESMRMeetingRequestEntry::GetAlarmL(
         {
         aAlarmType = MESMRCalEntry::EESMRAlarmAbsolute;
 
-        // only meeting request that is not allday event can have 
+        // only meeting request that is not allday event can have
         // relative alarm:
         if ( !IsAllDayEventL() )
             {
@@ -978,7 +923,7 @@ void CESMRMeetingRequestEntry::GetAlarmL(
             if ( KErrNone == err )
                 {
                 aAlarmType = MESMRCalEntry::EESMRAlarmRelative;
-                if( alarmInfo.iRelativeAlarmInSeconds < KZero )
+                if( alarmInfo.iRelativeAlarmInSeconds < 0 )
                     {
                     aAlarmType = MESMRCalEntry::EESMRAlarmNotFound;
                     }
@@ -1001,6 +946,192 @@ const CCalEntry& CESMRMeetingRequestEntry::OriginalEntry()
     return *iOrginalEntry;
     }
 
+
+// ---------------------------------------------------------------------------
+// CESMRMeetingRequestEntry::UpdateEntryAfterStoringL
+// ---------------------------------------------------------------------------
+//
+void CESMRMeetingRequestEntry::UpdateEntryAfterStoringL()
+    {
+    FUNC_LOG;
+
+    __ASSERT_DEBUG( iEntry, Panic(EESMREntryNotExist ) );
+
+    CCalEntry* storedEntry = NULL;
+
+
+    if ( IsRecurrentEventL() &&
+         EESMRThisOnly == iRecurrenceModRule &&
+         !IsForwardedL() && IsStoredL() &&
+         !ESMREntryHelper::IsModifyingEntryL(*iEntry) )
+        {
+        // We have stored one instance of series.
+        storedEntry = iCalDb.FetchEntryL(
+                    iEntry->UidL(),
+                    iOrginalEntry->StartTimeL() );
+        }
+    else
+        {
+        // We are dealing with single instance or with the series
+        storedEntry = iCalDb.FetchEntryL(
+                    iEntry->UidL(),
+                    iEntry->RecurrenceIdL() );
+        }
+
+
+    __ASSERT_DEBUG( storedEntry, Panic( EESMREntryNotExist ) );
+    CleanupStack::PushL( storedEntry );
+
+    // Description needs to be fecthed explicitly into memory
+    TPtrC description( storedEntry->DescriptionL() );
+
+
+    delete iEntry;
+    iEntry = NULL;
+    iEntry = CopyEntryL( iMRMailboxUtils, *storedEntry );
+
+    if ( MESMRCalEntry::EESMRAllInSeries == iRecurrenceModRule &&
+         IsRecurrentEventL() )
+        {
+        // Adjust parent entry's start and end time to entry
+        TCalTime start;
+        TCalTime end;
+
+        CESMRRecurrenceInfoHandler* recurrenceHandler =
+                CESMRRecurrenceInfoHandler::NewLC( *iEntry );
+
+        recurrenceHandler->GetFirstInstanceTimeL( start, end );
+        CleanupStack::PopAndDestroy( recurrenceHandler );
+        recurrenceHandler = NULL;
+
+        iEntry->SetStartAndEndTimeL( start, end );
+        iEntry->SetDescriptionL( description );
+        }
+
+    CCalEntry* temp  = CopyEntryL( iMRMailboxUtils, *iEntry );
+
+    delete iOrginalEntry;
+    iOrginalEntry = temp;
+
+    CleanupStack::PopAndDestroy( storedEntry );
+    }
+
+// ----------------------------------------------------------------------------
+// CMRCalEntry::UpdateComparativeEntry
+// ----------------------------------------------------------------------------
+//
+void CESMRMeetingRequestEntry::UpdateComparativeEntry(
+        CCalEntry* aNewComparativeEntry )
+    {
+    FUNC_LOG;
+
+    if( iOrginalEntry ) // Update comparative entry
+        {
+        delete iOrginalEntry;
+        iOrginalEntry = NULL;
+
+        iOrginalEntry = aNewComparativeEntry;
+        }
+
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRMeetingRequestEntry::SetDefaultValuesToEntryL
+// ---------------------------------------------------------------------------
+//
+void CESMRMeetingRequestEntry::SetDefaultValuesToEntryL()
+    {
+    FUNC_LOG;
+
+    if ( !IsStoredL() )
+        {
+        SetPriorityL( EFSCalenMRPriorityNormal );
+
+        // Get default alarm time from central repository
+        TInt defaultAlarmTime=0;
+        CRepository* repository = CRepository::NewLC( KCRUidCalendar );
+
+        TInt err = KErrNotFound;
+
+        if ( repository )
+            {
+            err = repository->Get(
+                    KCalendarDefaultAlarmTime,
+                    defaultAlarmTime );
+            CleanupStack::PopAndDestroy( repository );
+            }
+
+        if ( err != KErrNone )
+            {
+            // By default 15 minutes if not found from central repository
+            defaultAlarmTime = KDefaultMeetingAlarmMinutes;
+            }
+
+        // Getting current time
+        TTime currentTime;
+        currentTime.HomeTime();
+
+        // Getting meeting start time
+        TTime start = iEntry->StartTimeL().TimeLocalL();
+
+        // Create default alarm
+        CCalAlarm* alarm = CCalAlarm::NewL();
+        CleanupStack::PushL( alarm );
+
+        TTimeIntervalMinutes alarmOffset( defaultAlarmTime );
+
+        // If alarm time is in past
+        if ( ( start - alarmOffset ) < currentTime )
+            {
+            // Setting alarm off
+            iEntry->SetAlarmL( NULL );
+            }
+        else
+            {
+            // Set default alarm time
+            alarm->SetTimeOffset( alarmOffset );
+            iEntry->SetAlarmL( alarm );
+            }
+        CleanupStack::PopAndDestroy( alarm );
+        }
+
+    // Set the default end time if not set by client
+    if ( iEntry->StartTimeL().TimeUtcL() == iEntry->EndTimeL().TimeUtcL() )
+        {
+        // This value might also be read from cenrep
+        TTimeIntervalHours KDefaultMeetingDuration(1);
+
+        TCalTime newEndTime;
+        newEndTime.SetTimeUtcL(
+                iEntry->StartTimeL().TimeUtcL() + KDefaultMeetingDuration );
+        iEntry->SetStartAndEndTimeL(iEntry->StartTimeL(), newEndTime);
+        }
+
+    iEntry->SetReplicationStatusL( CCalEntry::EOpen );
+
+    //Original entry must be stored after the default values are set.
+    //Otherwise it looks like settings are changed even though they haven't
+    CCalEntry* temp = CopyEntryL( iMRMailboxUtils, *iEntry );
+
+    delete iOrginalEntry;
+    iOrginalEntry = temp;
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRMeetingRequestEntry::CloneEntryLC
+// ---------------------------------------------------------------------------
+//
+CCalEntry* CESMRMeetingRequestEntry::CloneEntryLC(
+        TESMRCalEntryType aType ) const
+    {
+    CCalEntry* entry =
+        ESMRHelper::CopyEntryLC( *iEntry,
+                                 iEntry->MethodL(),
+                                 ESMRHelper::ECopyFull,
+                                 TESMRCalendarEventType( aType ) );
+
+    return entry;
+    }
 
 // ---------------------------------------------------------------------------
 // CESMRMeetingRequestEntry::RoleL
@@ -1108,7 +1239,7 @@ void CESMRMeetingRequestEntry::ConstructReplyL(
 
     attendee->SetStatusL(status);
     iEntry->SetStatusL(entryStatus);
-    
+
     iEntry->SetMethodL( CCalEntry::EMethodReply );
 
     }
@@ -1127,11 +1258,11 @@ TBool CESMRMeetingRequestEntry::IsEntryOutOfDateL() const
     TBool outOfDate( EFalse );
 
     CCalEntry::TMethod method( iEntry->MethodL() );
-    if ( IsOpenedFromMail() && 
+    if ( IsOpenedFromMail() &&
          CCalEntry::EMethodCancel != method )
         {
         CCalEntry* dbEntry = NULL;
-        
+
         TRAP_IGNORE( dbEntry = iCalDb.FetchEntryL( iEntry->UidL(),
                                                  iEntry->RecurrenceIdL() ) );
 
@@ -1205,6 +1336,10 @@ TESMRAttendeeStatus CESMRMeetingRequestEntry::AttendeeStatusL() const
     CCalAttendee::TCalStatus attendeeStatus( attendee->StatusL() );
     switch ( attendeeStatus )
         {
+        case CCalAttendee::ENeedsAction:
+            status = EESMRAttendeeStatusUnknown;
+            break;
+
         case CCalAttendee::EAccepted:
             status = EESMRAttendeeStatusAccept;
             break;
@@ -1254,13 +1389,10 @@ void CESMRMeetingRequestEntry::SwitchToForwardL()
     FUNC_LOG;
 
     __ASSERT_DEBUG( iEntry, Panic(EESMREntryNotExist ) );
-    
-    CCalEntry* temp = ESMRHelper::CopyEntryL(
-        *iEntry,
-        iEntry->MethodL(),
-        ESMRHelper::ECopyFull );
-    
-    delete iForwardEntry; 
+
+    CCalEntry* temp = CopyEntryL( iMRMailboxUtils, *iEntry );
+
+    delete iForwardEntry;
     iForwardEntry = temp;
 
     RPointerArray<CCalAttendee>& attendeeList =
@@ -1269,7 +1401,7 @@ void CESMRMeetingRequestEntry::SwitchToForwardL()
     while ( attendeeList.Count() )
         {
         //remove attendees from entry that is to be forwarded
-        iForwardEntry->DeleteAttendeeL( KFirstIndex );
+        iForwardEntry->DeleteAttendeeL( 0 );
         }
 
     }
@@ -1308,11 +1440,11 @@ void CESMRMeetingRequestEntry::ConfirmEntryL()
         iForwardEntry->SetStatusL( CCalEntry::EConfirmed );
         }
     else if ( RoleL() == EESMRRoleOrganizer ||
-    		iEntry->StatusL() == CCalEntry::ENullStatus )
+            iEntry->StatusL() == CCalEntry::ENullStatus )
         {
         iEntry->SetStatusL( CCalEntry::EConfirmed );
         }
- 
+
     }
 
 // ---------------------------------------------------------------------------
@@ -1364,8 +1496,6 @@ MESMRMeetingRequestEntry::TESMREntryInfo
     MESMRMeetingRequestEntry::TESMREntryInfo info =
             EESMREntryInfoNormal;
 
-    TBool isSent( IsSentL() );
-
     if ( IsEntryOutOfDateL() )
         {
         info = EESMREntryInfoOutOfDate;
@@ -1374,7 +1504,7 @@ MESMRMeetingRequestEntry::TESMREntryInfo
         {
         info = EESMREntryInfoCancelled;
         }
-    else if ( isSent )
+    else if ( IsSentL() )
         {
         info = EESMREntryInfoAccepted;
         if ( EESMRAttendeeStatusTentative == attendeeStatus )
@@ -1385,10 +1515,6 @@ MESMRMeetingRequestEntry::TESMREntryInfo
     else if ( OccursInPastL() )
         {
         info = EESMREntryInfoOccursInPast;
-        }
-    else if ( iConflictsExists )
-        {
-        info = EESMREntryInfoConflicts;
         }
 
 
@@ -1466,10 +1592,7 @@ CCalEntry* CESMRMeetingRequestEntry::ValidateEntryL()
 
     if ( iForwardEntry )
         {
-        entry = ESMRHelper::CopyEntryL(
-                *iForwardEntry,
-                iForwardEntry->MethodL(),
-                ESMRHelper::ECopyFull );
+        entry = CopyEntryL( iMRMailboxUtils, *iForwardEntry );
         }
 
     if ( !entry && IsRecurrentEventL() &&
@@ -1506,15 +1629,15 @@ CCalEntry* CESMRMeetingRequestEntry::ValidateEntryL()
                                 parent.EntryTypeL(),
                                 guid,
                                 parent.MethodL(),
-                                KZero,
+                                0,
                                 iOrginalEntry->StartTimeL(),
                                 CalCommon::EThisOnly );
 
-                CleanupStack::Pop( guid ); 
+                CleanupStack::Pop( guid );
                 guid = NULL; // ownership transferred
                 }
 
-            CleanupStack::PopAndDestroy( instance );  
+            CleanupStack::PopAndDestroy( instance );
             instance = NULL; // instance
             CleanupStack::PushL( entry );
 
@@ -1522,11 +1645,12 @@ CCalEntry* CESMRMeetingRequestEntry::ValidateEntryL()
             CCalEntry::TMethod method( iEntry->MethodL() );
 
             entry->CopyFromL( *iEntry, CCalEntry::EDontCopyId );
-            entry->SetSequenceNumberL( KZero );
+            entry->SetSequenceNumberL( 0 );
             entry->SetMethodL( method );
             entry->SetSummaryL( iEntry->SummaryL() );
             entry->SetLocalUidL( TCalLocalUid( 0 ) );
             entry->ClearRepeatingPropertiesL();
+            iMRMailboxUtils.SetPhoneOwnerL( *entry );
 
             CleanupStack::Pop( entry );
             }
@@ -1534,14 +1658,20 @@ CCalEntry* CESMRMeetingRequestEntry::ValidateEntryL()
 
     if ( !entry )
         {
-
-        entry = ESMRHelper::CopyEntryL(
-                *iEntry,
-                iEntry->MethodL(),
-                ESMRHelper::ECopyFull );
-
+        entry = CopyEntryL( iMRMailboxUtils, *iEntry );
         }
 
+    if ( iRemoveAttachments )
+        {
+        // Remove attachments from the entry
+        TInt count( entry->AttachmentCountL() );
+        
+        for ( TInt i = 0; i < count; ++i )
+            {
+            CCalAttachment* attachment = entry->AttachmentL( i );
+            entry->DeleteAttachmentL( *attachment );
+            }
+        }
 
     return entry;
     }
@@ -1635,7 +1765,7 @@ MMRInfoObject& CESMRMeetingRequestEntry::ValidateSyncObjectL()
 
         TPtrC calEntryAddress( thisAttendee->Address() );
         TPtrC infoAddress( attendee->Address() );
-        if ( KZero == infoAddress.Compare(calEntryAddress ) )
+        if ( 0 == infoAddress.Compare(calEntryAddress ) )
             {
             found = ETrue;
 
@@ -1687,8 +1817,7 @@ TBool CESMRMeetingRequestEntry::StartupParameters(
         aStartupParams.iCalEntry       = iESMRInputParams->iCalEntry;
         aStartupParams.iMRInfoObject   = iESMRInputParams->iMRInfoObject;
         aStartupParams.iMailMessage    = iESMRInputParams->iMailMessage;
-        aStartupParams.iMailClient     = iESMRInputParams->iMailClient;
-        aStartupParams.iAttachmentInfo = iESMRInputParams->iAttachmentInfo;
+        aStartupParams.iMailClient     = iESMRInputParams->iMailClient;        
         aStartupParams.iSpare          = iESMRInputParams->iSpare;
         }
     return retValue;
@@ -1777,94 +1906,6 @@ CCalEntry* CESMRMeetingRequestEntry::RemoveInstanceFromSeriesL()
 
     return retEntry;
     }
-
-// ---------------------------------------------------------------------------
-// CESMRMeetingRequestEntry::SetDefaultValuesToEntryL
-// ---------------------------------------------------------------------------
-//
-void CESMRMeetingRequestEntry::SetDefaultValuesToEntryL()
-    {
-    FUNC_LOG;
-
-    if ( !IsStoredL() )
-        {
-        SetPriorityL( EFSCalenMRPriorityNormal );
-
-        // Get default alarm time from central repository
-        TInt defaultAlarmTime=0;
-        CRepository* repository = CRepository::NewLC( KCRUidCalendar );
-        
-        TInt err = KErrNotFound; 
-        
-        if ( repository )
-            {
-            err = repository->Get(
-                    KCalendarDefaultAlarmTime,
-                    defaultAlarmTime );
-            CleanupStack::PopAndDestroy( repository );
-            }
-
-        if ( err != KErrNone )
-            {
-            // By default 15 minutes if not found from central repository
-            defaultAlarmTime = KDefaultMeetingAlarmMinutes;
-            }
-
-        // Getting current time
-        TTime currentTime;
-        currentTime.HomeTime();
-
-        // Getting meeting start time
-        TTime start = iEntry->StartTimeL().TimeLocalL();
-
-        // Create default alarm
-        CCalAlarm* alarm = CCalAlarm::NewL();
-        CleanupStack::PushL( alarm );
-
-        TTimeIntervalMinutes alarmOffset( defaultAlarmTime );
-
-        // If alarm time is in past
-        if ( ( start - alarmOffset ) < currentTime )
-            {
-            // Setting alarm off
-            iEntry->SetAlarmL( NULL );
-            }
-        else
-            {
-            // Set default alarm time
-            alarm->SetTimeOffset( alarmOffset );
-            iEntry->SetAlarmL( alarm );
-            }
-        CleanupStack::PopAndDestroy( alarm );
-        }
-
-    // Set the default end time if not set by client
-    if ( iEntry->StartTimeL().TimeUtcL() == iEntry->EndTimeL().TimeUtcL() )
-        {
-        // This value might also be read from cenrep
-        TTimeIntervalHours KDefaultMeetingDuration(1);
-
-        TCalTime newEndTime;
-        newEndTime.SetTimeUtcL(
-                iEntry->StartTimeL().TimeUtcL() + KDefaultMeetingDuration );
-        iEntry->SetStartAndEndTimeL(iEntry->StartTimeL(), newEndTime);
-        }
-
-    iEntry->SetReplicationStatusL( CCalEntry::EOpen );
-
-    //Original entry must be stored after the default values are set.
-    //Otherwise it looks like settings are changed even though they haven't    
-
-    CCalEntry* temp = ESMRHelper::CopyEntryL(
-                                        *iEntry,
-                                        iEntry->MethodL(),
-                                        ESMRHelper::ECopyFull );
-    
-    delete iOrginalEntry;
-    iOrginalEntry = temp;
-
-    }
-
 
 // ---------------------------------------------------------------------------
 // CESMRMeetingRequestEntry::IsOpenedFromMail
@@ -2000,78 +2041,58 @@ void CESMRMeetingRequestEntry::GetRemovedAttendeesL(
     }
 
 // ---------------------------------------------------------------------------
-// CESMRMeetingRequestEntry::UpdateEntryAfterStoringL
-// ---------------------------------------------------------------------------
-//
-void CESMRMeetingRequestEntry::UpdateEntryAfterStoringL()
-    {
-    FUNC_LOG;
-
-    __ASSERT_DEBUG( iEntry, Panic(EESMREntryNotExist ) );
-
-     CCalEntry* temp  = ESMRHelper::CopyEntryL(
-        *iEntry,
-        iEntry->MethodL(),
-        ESMRHelper::ECopyFull );
-     
-     delete iOrginalEntry;
-     iOrginalEntry = temp;
-
-    }
-
-// ---------------------------------------------------------------------------
 // CESMRMeetingRequestEntry::UpdateChildEntriesSeqNumbersL
 // ---------------------------------------------------------------------------
 //
 void CESMRMeetingRequestEntry::UpdateChildEntriesSeqNumbersL()
-	{
+    {
     FUNC_LOG;
 
-    if ( MESMRCalEntry::EESMRAllInSeries == iRecurrenceModRule && 
-    	 IsStoredL() )
-    	{
-		RCPointerArray<CCalEntry> childEntries;    	
-		CleanupClosePushL( childEntries );
-		
-    	// Fetch all entries (this and child entries
-		iCalDb.NormalDbEntryView()->FetchL(
-				iEntry->UidL(),
-				childEntries );    	
-    	
-    	// Next: Remove parent entry from the array		
-		TBool removed( EFalse );
-		TInt entryCount( childEntries.Count() );
-		for ( TInt i(0); (i < entryCount) && !removed; ++i  )
-			{
-			CCalEntry* entry = childEntries[i];
-			
-			if ( !ESMREntryHelper::IsModifyingEntryL( *entry) )
-				{
-				removed = ETrue;
-				childEntries.Remove( i );
-				delete entry;
-				}
-			entry = NULL;
-			}
-    
-		TInt childCount( childEntries.Count() );
-		if ( childCount )
-			{
-			for (TInt i(0); i < childCount; ++i )
-				{
-				CCalEntry* child = childEntries[i];
-				TInt childSeqNo( child->SequenceNumberL() );
-				child->SetSequenceNumberL( childSeqNo + 1);
-				}		
-			
-			TInt updatedChilds;
-			iCalDb.NormalDbEntryView()->StoreL(childEntries, updatedChilds);
-			}
-		
-    	CleanupStack::PopAndDestroy(); // childEntries
-    	}
-    
-	}
+    if ( MESMRCalEntry::EESMRAllInSeries == iRecurrenceModRule &&
+         IsStoredL() )
+        {
+        RCPointerArray<CCalEntry> childEntries;
+        CleanupClosePushL( childEntries );
+
+        // Fetch all entries (this and child entries
+        iCalDb.EntryView()->FetchL(
+                iEntry->UidL(),
+                childEntries );
+
+        // Next: Remove parent entry from the array
+        TBool removed( EFalse );
+        TInt entryCount( childEntries.Count() );
+        for ( TInt i(0); (i < entryCount) && !removed; ++i  )
+            {
+            CCalEntry* entry = childEntries[i];
+
+            if ( !ESMREntryHelper::IsModifyingEntryL( *entry) )
+                {
+                removed = ETrue;
+                childEntries.Remove( i );
+                delete entry;
+                }
+            entry = NULL;
+            }
+
+        TInt childCount( childEntries.Count() );
+        if ( childCount )
+            {
+            for (TInt i(0); i < childCount; ++i )
+                {
+                CCalEntry* child = childEntries[i];
+                TInt childSeqNo( child->SequenceNumberL() );
+                child->SetSequenceNumberL( childSeqNo + 1);
+                }
+
+            TInt updatedChilds;
+            iCalDb.EntryView()->StoreL(childEntries, updatedChilds);
+            }
+
+        CleanupStack::PopAndDestroy(); // childEntries
+        }
+
+    }
 
 // ---------------------------------------------------------------------------
 // CESMRMeetingRequestEntry::CurrentPluginL
@@ -2083,32 +2104,16 @@ TESMRMailPlugin CESMRMeetingRequestEntry::CurrentPluginL()
 
     if ( EESMRUnknownPlugin == iCurrentFSEmailPlugin)
         {
-        CESMRFsMailboxUtils* fsMbUtils = 
+        CESMRFsMailboxUtils* fsMbUtils =
                 CESMRFsMailboxUtils::NewL( iMRMailboxUtils );
         CleanupStack::PushL( fsMbUtils );
-        
+
         iCurrentFSEmailPlugin = fsMbUtils->FSEmailPluginForEntryL( *iEntry );
         CleanupStack::PopAndDestroy( fsMbUtils );
-        fsMbUtils = NULL;        
+        fsMbUtils = NULL;
         }
 
-
     return iCurrentFSEmailPlugin;
-    }
-
-// ---------------------------------------------------------------------------
-// CESMRMeetingRequestEntry::CurrentMailBoxIdL
-// ---------------------------------------------------------------------------
-//
-TFSMailMsgId CESMRMeetingRequestEntry::CurrentMailBoxIdL()
-    {
-    FUNC_LOG;
-    CESMRFsMailboxUtils* fsMbUtils = 
-        CESMRFsMailboxUtils::NewL( iMRMailboxUtils );
-    CleanupStack::PushL( fsMbUtils );
-    TFSMailMsgId retVal = fsMbUtils->FSEmailMailBoxForEntryL( *iEntry );
-    CleanupStack::PopAndDestroy( fsMbUtils );
-    return retVal;
     }
 
 // ---------------------------------------------------------------------------
@@ -2119,49 +2124,204 @@ void CESMRMeetingRequestEntry::UpdateTimeStampL()
     {
     FUNC_LOG;
     __ASSERT_DEBUG( iEntry, Panic(EESMREntryNotExist ) );
-    
+
     TTime currentUTCTime;
     currentUTCTime.UniversalTime();
 
     TCalTime currentTime;
     currentTime.SetTimeUtcL( currentUTCTime );
 
-    iEntry->SetDTStampL( currentTime );    
+    iEntry->SetDTStampL( currentTime );
     }
 
 // ---------------------------------------------------------------------------
-// CESMRMeetingRequestEntry::UpdateTimeStampL
+// CESMRMeetingRequestEntry::AnyInstancesBetweenTimePeriodL
 // ---------------------------------------------------------------------------
 //
-TBool CESMRMeetingRequestEntry::AnyInstanceOnDayL(
+TBool CESMRMeetingRequestEntry::AnyInstancesBetweenTimePeriodL(
             TTime& aStart,
             TTime& aEnd )
     {
     FUNC_LOG;
+
+    __ASSERT_DEBUG( iEntry, Panic(EESMREntryNotExist ) );
+    __ASSERT_DEBUG( iOrginalEntry, Panic(EESMREntryNotExist ) );
+
     TBool retValue( EFalse );
-    
+
     RCPointerArray<CCalEntry> entries;
     CleanupClosePushL( entries );
-    
-    CESMRConflictChecker* conflictCheckker = 
+
+    CESMRConflictChecker* conflictCheckker =
         CESMRConflictChecker::NewL( iCalDb );
-    CleanupStack::PushL( conflictCheckker );    
+    CleanupStack::PushL( conflictCheckker );
+
+    CCalInstance* instance = InstanceL();
+    CleanupStack::PushL( instance );
     
-    conflictCheckker->FindInstancesForEntryL( aStart, 
+    TCalCollectionId colId = instance->InstanceIdL().iCollectionId;
+    CleanupStack::PopAndDestroy( instance );
+    
+    conflictCheckker->FindInstancesForEntryL( aStart,
                                               aEnd,
                                               *iEntry,
+                                              colId, 
                                               entries );
-    
+
     if ( entries.Count() )
         {
         retValue = ETrue;
-        }    
-    
+        }
+
     CleanupStack::PopAndDestroy( conflictCheckker );
     CleanupStack::PopAndDestroy(); // entries
+
+    return retValue;
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRMeetingRequestEntry::GetFirstInstanceStartAndEndTimeL
+// ---------------------------------------------------------------------------
+//
+void CESMRMeetingRequestEntry::GetFirstInstanceStartAndEndTimeL(
+            TTime& aStart,
+            TTime& aEnd )
+    {
+    FUNC_LOG;
+
+    __ASSERT_DEBUG( iEntry, Panic(EESMREntryNotExist ) );
+
+    // This fetches the parent entry
+    TCalTime recurrenceId;
+    recurrenceId.SetTimeLocalL( Time::NullTTime() );
+    CCalEntry* parent = iCalDb.FetchEntryL(
+                iEntry->UidL(),
+                recurrenceId );
+
+    CleanupStack::PushL( parent );
+
+    aStart = parent->StartTimeL().TimeLocalL();
+    aEnd = parent->EndTimeL().TimeLocalL();
+
+    CleanupStack::PopAndDestroy( parent );
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRMeetingRequestEntry::CalendarOwnerAddressL
+// ---------------------------------------------------------------------------
+//
+const TDesC& CESMRMeetingRequestEntry::CalendarOwnerAddressL() const
+    {
+    FUNC_LOG;
+
+    __ASSERT_DEBUG( iEntry, Panic( EESMREntryNotExist ) );
+
+    CCalUser* po = iEntry->PhoneOwnerL();
+
+    __ASSERT_DEBUG( po, Panic( EESMRPhoneOwnerNotSet ) );
+
+    return po->Address();
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRMeetingRequestEntry::MailboxUtils
+// ---------------------------------------------------------------------------
+//
+CMRMailboxUtils& CESMRMeetingRequestEntry::MailboxUtils() const
+    {
+    return iMRMailboxUtils;
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRMeetingRequestEntry::GetDBMgr
+// ---------------------------------------------------------------------------
+//
+MESMRCalDbMgr& CESMRMeetingRequestEntry::GetDBMgr()
+    {
+    return iCalDb;
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRMeetingRequestEntry::SupportsCapabilityL
+// ---------------------------------------------------------------------------
+//
+TBool CESMRMeetingRequestEntry::SupportsCapabilityL( 
+        MESMRCalEntry::TMREntryCapability aCapability ) const
+    {
+    TBool retValue( EFalse );
+    
+    switch( aCapability )
+        {
+        case MESMRCalEntry::EMRCapabilityAttachments:
+            {
+            CESMRFsMailboxUtils* fsMbUtils =
+                    CESMRFsMailboxUtils::NewL( iMRMailboxUtils );
+            CleanupStack::PushL( fsMbUtils );
+
+            retValue = fsMbUtils->DefaultMailboxSupportCapabilityL(
+                    CESMRFsMailboxUtils::EMRCapabilityAttachment );
+            CleanupStack::PopAndDestroy( fsMbUtils );        
+            }
+            break;
+        }
     
     return retValue;
     }
 
-// EOF
+// ---------------------------------------------------------------------------
+// CESMRMeetingRequestEntry::ContainsRemoteAttachmentsL
+// ---------------------------------------------------------------------------
+//
+TBool CESMRMeetingRequestEntry::ContainsRemoteAttachmentsL()
+    {
+    FUNC_LOG;
+    
+    TBool retValue( EFalse );
+    
+    TInt attachmentCount( iEntry->AttachmentCountL() );
+    
+    for ( TInt i(0); i < attachmentCount && !retValue; ++i )
+        {
+        CCalAttachment* attachment = iEntry->AttachmentL(i);        
+        CCalAttachment::TType type( attachment->Type() );
+        
+        if ( CCalAttachment::EFile != type )
+            {
+            retValue = ETrue;
+            }        
+        }
+    
+    return retValue;
+    }
 
+// ---------------------------------------------------------------------------
+// CESMRMeetingRequestEntry::SendCanellationAvailable
+// ---------------------------------------------------------------------------
+//
+TBool CESMRMeetingRequestEntry::SendCanellationAvailable ()
+	{
+	return iSendCanellation;
+	}
+
+// ---------------------------------------------------------------------------
+// CESMRMeetingRequestEntry::SetSendCanellationAvailable
+// ---------------------------------------------------------------------------
+//
+void CESMRMeetingRequestEntry::SetSendCanellationAvailable (
+        TBool aSendCanellation )
+	{
+	iSendCanellation = aSendCanellation;
+	}
+
+// ---------------------------------------------------------------------------
+// CESMRMeetingRequestEntry::SetTypeChanged
+// ---------------------------------------------------------------------------
+//
+void CESMRMeetingRequestEntry::SetTypeChanged( TBool aTypeChanged )
+    {
+    FUNC_LOG;
+    
+    iTypeChanged = aTypeChanged;
+    }
+
+// EOF

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -20,20 +20,20 @@
 
 #include <eikenv.h>                                 // CEikonEnv
 #include <centralrepository.h>                      // CRepository
-#include <AknFepInternalCRKeys.h>                   // KCRUidAknFep
-#include <CPbkContactEngine.h>                      // CPbkContactEngine
-#include <CPbkContactItem.h>                        // CPbkContactItem, TPbkContactItemField
+#include <aknfepinternalcrkeys.h>                   // KCRUidAknFep
+#include <cpbkcontactengine.h>                      // CPbkContactEngine
+#include <cpbkcontactitem.h>                        // CPbkContactItem, TPbkContactItemField
 #include <aknnotewrappers.h>                        // CAknErrorNote
 //<cmail>
-#include "cfsmailbox.h"                             // cfsmailbox
+#include "CFSMailBox.h"                             // cfsmailbox
 //</cmail>
-#include <CPsRequestHandler.h>
-#include <CPsSettings.h>
-#include <CPcsDefs.h>
-#include <VPbkEng.rsg>
+#include <cpsrequesthandler.h>
+#include <cpssettings.h>
+#include <cpcsdefs.h>
+#include <vpbkeng.rsg>
 #include <e32const.h>                               // TLanguage
 
-#include <CVPbkContactManager.h>
+#include <cvpbkcontactmanager.h>
 
 #include "mesmrclslistsobserver.h"
 #include "cesmrclsmatchobserver.h"

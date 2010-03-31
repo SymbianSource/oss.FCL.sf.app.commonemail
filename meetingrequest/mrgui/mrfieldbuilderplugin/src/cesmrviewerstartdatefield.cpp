@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -23,6 +23,8 @@
 #include "nmrbitmapmanager.h"
 #include "cmrlabel.h"
 #include "cmrimage.h"
+#include "emailtrace.h"
+#include "cesmrglobalnote.h"
 #include <esmrgui.rsg>
 
 #include <eiklabel.h>
@@ -32,10 +34,10 @@
 #include <calentry.h>
 #include <eikenv.h>
 #include <eikedwin.h>
-#include <StringLoader.h>
-#include <AknsConstants.h>
-#include <AknUtils.h>
-#include <AknLayout2ScalableDef.h>
+#include <stringloader.h>
+#include <aknsconstants.h>
+#include <aknutils.h>
+#include <aknlayout2scalabledef.h>
 
 // ======== LOCAL FUNCTIONS ========
 namespace // codescanner::namespace
@@ -47,16 +49,15 @@ namespace // codescanner::namespace
 // ======== MEMBER FUNCTIONS ========
 
 // -----------------------------------------------------------------------------
-// CESMRViewerStartDateField::NewL()
+// CESMRViewerStartDateField::CESMRViewerStartDateField()
 // -----------------------------------------------------------------------------
 //
-CESMRViewerStartDateField* CESMRViewerStartDateField::NewL()
+CESMRViewerStartDateField::CESMRViewerStartDateField()
     {
-    CESMRViewerStartDateField* self = new (ELeave) CESMRViewerStartDateField();
-    CleanupStack::PushL( self );
-    self->ConstructL();
-    CleanupStack::Pop( self );
-    return self;
+    FUNC_LOG;
+    
+    SetFieldId ( EESMRFieldStartDate );
+    SetFocusType( EESMRHighlightFocus );
     }
 
 // -----------------------------------------------------------------------------
@@ -65,18 +66,26 @@ CESMRViewerStartDateField* CESMRViewerStartDateField::NewL()
 //
 CESMRViewerStartDateField::~CESMRViewerStartDateField()
     {
-    delete iLabel;
+    FUNC_LOG;
+    
     delete iIcon;
+    delete iLockIcon;
     }
 
 // -----------------------------------------------------------------------------
-// CESMRViewerStartDateField::CESMRViewerStartDateField()
+// CESMRViewerStartDateField::NewL()
 // -----------------------------------------------------------------------------
 //
-CESMRViewerStartDateField::CESMRViewerStartDateField()
+CESMRViewerStartDateField* CESMRViewerStartDateField::NewL()
     {
-    SetFieldId ( EESMRFieldStartDate );    
-    SetFocusType( EESMRHighlightFocus );
+    FUNC_LOG;
+    
+    CESMRViewerStartDateField* self = 
+            new (ELeave) CESMRViewerStartDateField();
+    CleanupStack::PushL( self );
+    self->ConstructL();
+    CleanupStack::Pop( self );
+    return self;
     }
 
 // -----------------------------------------------------------------------------
@@ -85,31 +94,14 @@ CESMRViewerStartDateField::CESMRViewerStartDateField()
 //
 void CESMRViewerStartDateField::ConstructL()
     {
+    FUNC_LOG;
+    
     iLabel = CMRLabel::NewL();
     iLabel->SetParent( this );
+    CESMRField::ConstructL( iLabel ); // ownership transfered
+
     iIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapDateStart );
     iIcon->SetParent( this );
-    }
-
-// ---------------------------------------------------------------------------
-// CESMRViewerStartDateField::InitializeL()
-// ---------------------------------------------------------------------------
-//
-void CESMRViewerStartDateField::InitializeL()
-    {
-    TAknLayoutText text = NMRLayoutManager::GetLayoutText( 
-            Rect(), 
-            NMRLayoutManager::EMRTextLayoutTextEditor );
-    
-    iLabel->SetFont( text.Font() );
-    // This is called so that theme changes will apply when changing theme "on the fly"
-    if ( IsFocused() )
-        {
-        iLabel->FocusChanged( EDrawNow );
-        }
-
-    AknLayoutUtils::OverrideControlColorL ( *iLabel, EColorLabelText,
-                                             KRgbBlack );
     }
 
 // -----------------------------------------------------------------------------
@@ -118,18 +110,12 @@ void CESMRViewerStartDateField::InitializeL()
 //
 void CESMRViewerStartDateField::InternalizeL( MESMRCalEntry& aEntry )
     {
-    // Read format string from AVKON resource
-    HBufC* dateFormatString = iEikonEnv->AllocReadResourceLC
-                               (R_QTN_DATE_USUAL_WITH_ZERO);
-    TBuf<KMaxTimeBuffer> buf;
-    CCalEntry& entry = aEntry.Entry();
-    TTime startTime = entry.StartTimeL().TimeLocalL();
+    FUNC_LOG;
 
-    startTime.FormatL(buf,*dateFormatString);
+    CCalEntry& entry = aEntry.Entry();    
+    iStartTime = entry.StartTimeL().TimeLocalL();
 
-    AknTextUtils::DisplayTextLanguageSpecificNumberConversion( buf );
-    iLabel->SetTextL( buf );
-    CleanupStack::PopAndDestroy( dateFormatString );
+    FormatDateStringL();
     }
 
 // ---------------------------------------------------------------------------
@@ -138,29 +124,50 @@ void CESMRViewerStartDateField::InternalizeL( MESMRCalEntry& aEntry )
 //
 void CESMRViewerStartDateField::SizeChanged()
     {
+    FUNC_LOG;
+    
     TRect rect = Rect();
     TAknLayoutRect rowLayoutRect =
         NMRLayoutManager::GetFieldRowLayoutRect( rect, 1 );
     rect = rowLayoutRect.Rect();
-    
+
     TAknWindowComponentLayout iconLayout =
-        NMRLayoutManager::GetWindowComponentLayout( 
+        NMRLayoutManager::GetWindowComponentLayout(
                 NMRLayoutManager::EMRLayoutTextEditorIcon );
     AknLayoutUtils::LayoutImage( iIcon, rect, iconLayout );
-    
-    TAknLayoutRect bgLayoutRect = 
-        NMRLayoutManager::GetLayoutRect( 
-                rect, NMRLayoutManager::EMRLayoutTextEditorBg );
-    TRect bgRect( bgLayoutRect.Rect() );
-    bgRect.SetHeight( bgRect.Height() + 1 );
+
+    // Layouting lock icon
+    if( iLockIcon )
+    	{
+    	TAknWindowComponentLayout iconLayout( 
+    			NMRLayoutManager::GetWindowComponentLayout( 
+    					NMRLayoutManager::EMRLayoutSingleRowDColumnGraphic ) );
+    	AknLayoutUtils::LayoutImage( iLockIcon, rect, iconLayout );
+    	}
+        
+    // Layouting label
+    TAknLayoutText viewerLayoutText;
+    if( iLockIcon )
+    	{
+    	viewerLayoutText = NMRLayoutManager::GetLayoutText( rect, 
+    			NMRLayoutManager::EMRTextLayoutSingleRowEditorText );
+    	}
+    else
+    	{
+    	viewerLayoutText = NMRLayoutManager::GetLayoutText( rect, 
+    			NMRLayoutManager::EMRTextLayoutTextEditor );
+    	}
+
+    // Layouting viewer field
+    TRect viewerRect( viewerLayoutText.TextRect() );    
+    iLabel->SetRect( viewerRect );
+
     // Move focus rect so that it's relative to field's position.
-    bgRect.Move( -Position() );
-    SetFocusRect( bgRect );
-    
-    TAknLayoutText labelLayout = 
-        NMRLayoutManager::GetLayoutText( 
-                rect, NMRLayoutManager::EMRTextLayoutTextEditor );
-    iLabel->SetRect( labelLayout.TextRect() );    
+    viewerRect.Move( -Position() );
+    SetFocusRect( viewerRect );
+
+    // Setting font also for the label
+    iLabel->SetFont( viewerLayoutText.Font() );
     }
 
 // ---------------------------------------------------------------------------
@@ -169,7 +176,13 @@ void CESMRViewerStartDateField::SizeChanged()
 //
 TInt CESMRViewerStartDateField::CountComponentControls() const
     {
+    FUNC_LOG;
+    
     TInt count( KComponentCount );
+    if( iLockIcon )
+    	{
+    	++count;
+    	}
     return count;
     }
 
@@ -179,12 +192,16 @@ TInt CESMRViewerStartDateField::CountComponentControls() const
 //
 CCoeControl* CESMRViewerStartDateField::ComponentControl( TInt aIndex ) const
     {
+    FUNC_LOG;
+    
     switch ( aIndex )
         {
         case 0:
             return iIcon;
         case 1:
             return iLabel;
+        case 2:
+        	return iLockIcon;
         default:
             return NULL;
         }
@@ -196,14 +213,79 @@ CCoeControl* CESMRViewerStartDateField::ComponentControl( TInt aIndex ) const
 //
 void CESMRViewerStartDateField::SetOutlineFocusL( TBool aFocus )
     {
+    FUNC_LOG;
+    
     CESMRField::SetOutlineFocusL ( aFocus );
-    
     iLabel->SetFocus( aFocus );
-    
-    if ( !aFocus )
-        {
-        AknLayoutUtils::OverrideControlColorL ( *iLabel, EColorLabelText,
-                                                 KRgbBlack );
-        }
     }
+
+// ---------------------------------------------------------------------------
+// CESMRViewerStartDateField::ExecuteGenericCommandL()
+// ---------------------------------------------------------------------------
+//
+TBool CESMRViewerStartDateField::ExecuteGenericCommandL( TInt aCommand )
+    {
+    FUNC_LOG;
+    
+    TBool retValue( EFalse );
+    
+    if( (aCommand == EAknCmdOpen) && IsLocked()  )
+    	{
+		HandleTactileFeedbackL();
+		
+    	CESMRGlobalNote::ExecuteL(
+    			CESMRGlobalNote::EESMRUnableToEdit );
+    	retValue = ETrue;
+    	}
+    
+    if ( EMRCmdDoEnvironmentChange == aCommand )
+        {
+        FormatDateStringL();
+        retValue = ETrue;
+        }
+    
+    return retValue;
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRViewerStartDateField::LockL()
+// ---------------------------------------------------------------------------
+//
+void CESMRViewerStartDateField::LockL()
+	{
+	FUNC_LOG;
+	if( IsLocked() )
+		{
+		return;
+		}
+	
+	CESMRField::LockL();
+	
+	delete iLockIcon;
+	iLockIcon = NULL;
+	iLockIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapLockField, ETrue );
+	iLockIcon->SetParent( this );
+	}
+
+// ---------------------------------------------------------------------------
+// CESMRViewerStartDateField::FormatDateStringL()
+// ---------------------------------------------------------------------------
+//
+void CESMRViewerStartDateField::FormatDateStringL()
+    {
+    FUNC_LOG;
+    
+    // Read format string from AVKON resource
+    HBufC* dateFormatString = 
+            iEikonEnv->AllocReadResourceLC(
+                    R_QTN_DATE_USUAL_WITH_ZERO);
+    
+    TBuf<KMaxTimeBuffer> buf;
+    iStartTime.FormatL(buf, *dateFormatString);
+
+    AknTextUtils::DisplayTextLanguageSpecificNumberConversion( buf );
+    iLabel->SetTextL( buf );
+    CleanupStack::PopAndDestroy( dateFormatString );    
+    }
+
 // EOF

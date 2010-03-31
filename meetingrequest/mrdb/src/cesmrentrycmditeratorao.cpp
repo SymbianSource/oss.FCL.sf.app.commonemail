@@ -122,6 +122,8 @@ void CESMREntryCmdIteratorAO::StartCmdIterationL(
     
             
     TInt count( aCalEntryArray.Count() );
+    iCalEntryArray.ReserveL( count );
+    
     for ( TInt i( 0 ); i < count; ++i )
         {        
         iCalEntryArray.AppendL( aCalEntryArray[i] );

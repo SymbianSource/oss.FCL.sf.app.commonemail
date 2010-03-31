@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -23,7 +23,7 @@
 #include "cesmricalvieweremailasynccmd.h"
 #include "cesmricalvieweremailsynccmd.h"
 #include "cesmruilauncher.h"
-#include "cesmrattachmentinfo.h"
+#include "cmrattachmentinfofetcher.h"
 #include "esmricalviewerutils.h"
 
 //<cmail>
@@ -60,14 +60,13 @@ CESMRIcalViewerOpenMRCmd::~CESMRIcalViewerOpenMRCmd()
     CancelCommand();
     delete iLoadMRDataCmd;
     delete iUILauncher;
-    
-    // <cmail>
+    delete iAttachmentInfoFetcher;
+
     if( iEmailCommand )
         {
         delete iEmailCommand;
         iEmailCommand = NULL;
         }
-    // </cmail>
     }
 
 // -----------------------------------------------------------------------------
@@ -216,13 +215,11 @@ TInt CESMRIcalViewerOpenMRCmd::ProcessCommandWithResultL( TInt aCommandId )
         TBool asyncCommand(
                 ESMRIcalViewerUtils::IsAsyncEmailCommand( iCurrentCbCommand ) );
 
-// <cmail>
         if( iEmailCommand )
             {
             delete iEmailCommand;
             iEmailCommand = NULL;
             }
-// </cmail>
 
         if ( asyncCommand )
             {
@@ -287,6 +284,11 @@ void CESMRIcalViewerOpenMRCmd::HandleOperationCompeletedL(
     else if ( aResult.iOpType == EESMRLoadMRData )
         {
         // MR data is loaded
+        FillAttachmentInfoL();
+        }
+    else if( aResult.iOpType == EESMRFetchAttachmentInfo )
+        {
+        // Attachment information is loaded
         iInputParameters.iMailClient = &iMailClient;
         iInputParameters.iMailMessage = Message();
         iInputParameters.iCommand = EESMRCmdUndefined;
@@ -301,12 +303,10 @@ void CESMRIcalViewerOpenMRCmd::HandleOperationCompeletedL(
             {
             case EESMRCmdOpenAttachment://fallthrough
             case EESMRCmdOpenAttachmentView://fallthrough
-// <cmail>
             case EESMRCmdDownloadAttachment://fallthrough
             case EESMRCmdDownloadAllAttachments://fallthrough
             case EESMRCmdSaveAttachment://fallthrough
             case EESMRCmdSaveAllAttachments://fallthrough
-// </cmail>
                 {
                 if ( ESMRIcalViewerUtils::ContainsAttachments(iInputParameters) &&
                      iMRViewerCommand != iCurrentCbCommand )
@@ -316,7 +316,7 @@ void CESMRIcalViewerOpenMRCmd::HandleOperationCompeletedL(
                                     iMRViewerCommand);
                     }
                 iCurrentCbCommand = EESMREmailCommand;
-                //LaunchUIL();
+                LaunchUIL();
                 }
                 break;
 
@@ -359,7 +359,8 @@ void CESMRIcalViewerOpenMRCmd::HandleOperationCompeletedL(
         }
 
     if ( !iUILauncher &&
-         EESMREmailCommand == iCurrentCbCommand )
+         EESMREmailCommand == iCurrentCbCommand &&
+         aResult.iOpType != EESMRLoadMRData)
         {
         iResult.iAttendeeStatus =
                 ESMRIcalViewerUtils::UserResponsedToMRL(
@@ -400,5 +401,26 @@ void CESMRIcalViewerOpenMRCmd::LaunchUIL()
     iUILauncher->ExecuteCommandL( *Message(), *this );
     }
 
+// ---------------------------------------------------------------------------
+// CESMRIcalViewerOpenMRCmd::FillAttachmentInfoL
+// ---------------------------------------------------------------------------
+//
+void CESMRIcalViewerOpenMRCmd::FillAttachmentInfoL()
+    {
+    FUNC_LOG;
+
+    if ( !iAttachmentInfoFetcher )
+        {
+        iAttachmentInfoFetcher =
+                CMRAttachmentInfoFetcher::NewL(
+                        iMailClient,
+                        CalSession(),
+                        *(iInputParameters.iCalEntry) );
+        }
+
+    iAttachmentInfoFetcher->ExecuteCommandL( *Message(), *this );
+    }
+
 // EOF
+
 

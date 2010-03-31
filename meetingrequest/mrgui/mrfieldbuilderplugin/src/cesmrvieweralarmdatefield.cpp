@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -19,32 +19,46 @@
 
 #include "cesmreditor.h"
 #include "mesmrlistobserver.h"
-#include "nmrlayoutmanager.h"
-#include "nmrbitmapmanager.h"
-#include "cmrlabel.h"
+#include "mesmrmeetingrequestentry.h"
+#include "mesmrcalentry.h"
+#include "esmrfieldbuilderdef.h"
 #include "cmrimage.h"
-#include <esmrgui.rsg>
+#include "cmrlabel.h"
+#include "nmrlayoutmanager.h"
+#include "cesmrglobalnote.h"
 
-#include <eiklabel.h>
 #include <caluser.h>
-#include <calalarm.h>
-#include <avkon.rsg>
-#include <calentry.h>
 #include <eikenv.h>
-#include <eikedwin.h>
-#include <StringLoader.h>
-#include <AknsConstants.h>
-#include <AknUtils.h>
-#include <AknLayout2ScalableDef.h>
+#include <avkon.rsg>
+#include <calalarm.h>
+#include <calentry.h>
 
-// ======== LOCAL FUNCTIONS ========
-namespace // codescanner::namespace
-    {
-    const TInt KComponentCount( 2 ); // icon and label
-    const TInt KMaxTimeBuffer( 32 ); // buffer for date formatting
-    } // unnamed namespace
+#include "emailtrace.h"
+
 
 // ======== MEMBER FUNCTIONS ========
+
+// ---------------------------------------------------------------------------
+// CESMRViewerAlarmDateField::CESMRViewerAlarmDateField()
+// ---------------------------------------------------------------------------
+//
+CESMRViewerAlarmDateField::CESMRViewerAlarmDateField()
+    {
+    FUNC_LOG;
+    SetFieldId ( EESMRFieldAlarmDate );
+    SetFocusType( EESMRHighlightFocus );
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRViewerAlarmDateField::~CESMRViewerAlarmDateField()
+// ---------------------------------------------------------------------------
+//
+CESMRViewerAlarmDateField::~CESMRViewerAlarmDateField()
+    {
+    FUNC_LOG;
+    delete iIcon;
+    delete iLockIcon;
+    }
 
 // ---------------------------------------------------------------------------
 // CESMRViewerAlarmDateField::NewL()
@@ -60,60 +74,19 @@ CESMRViewerAlarmDateField* CESMRViewerAlarmDateField::NewL()
     }
 
 // ---------------------------------------------------------------------------
-// CESMRViewerAlarmDateField::~CESMRViewerAlarmDateField()
-// ---------------------------------------------------------------------------
-//
-CESMRViewerAlarmDateField::~CESMRViewerAlarmDateField()
-    {
-    delete iLabel;
-    delete iIcon;
-    }
-
-// ---------------------------------------------------------------------------
-// CESMRViewerAlarmDateField::CESMRViewerAlarmDateField()
-// ---------------------------------------------------------------------------
-//
-CESMRViewerAlarmDateField::CESMRViewerAlarmDateField()
-    {
-    SetFieldId ( EESMRFieldAlarmDate );
-    SetFocusType( EESMRHighlightFocus );
-    }
-
-// -----------------------------------------------------------------------------
 // CESMRViewerAlarmDateField::ConstructL()
-// -----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 //
 void CESMRViewerAlarmDateField::ConstructL()
     {
+    FUNC_LOG;
     iLabel = CMRLabel::NewL();
     iLabel->SetParent( this );
-    iIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapAlarmDate );
+    CESMRField::ConstructL( iLabel ); // ownership transfered
+
+    iIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapDateStart );
     iIcon->SetParent( this );
     }
-
-// ---------------------------------------------------------------------------
-// CESMRViewerAlarmDateField::InitializeL()
-// ---------------------------------------------------------------------------
-//
-void CESMRViewerAlarmDateField::InitializeL()
-    {
-    // Setting Font for the rich text viewer
-    TAknLayoutText text = NMRLayoutManager::GetLayoutText( 
-            Rect(), 
-            NMRLayoutManager::EMRTextLayoutTextEditor );
-    
-    iLabel->SetFont( text.Font() );
-        
-    // This is called so theme changes will apply when changing theme "on the fly"
-    if ( IsFocused() )
-        {
-        iLabel->FocusChanged( EDrawNow );
-        }
-
-    AknLayoutUtils::OverrideControlColorL( *iLabel, EColorLabelText,
-                                       KRgbBlack );
-    }
-
 
 // ---------------------------------------------------------------------------
 // CESMRViewerAlarmDateField::InternalizeL()
@@ -122,27 +95,16 @@ void CESMRViewerAlarmDateField::InitializeL()
 void CESMRViewerAlarmDateField::InternalizeL( MESMRCalEntry& aEntry )
     {
     MESMRCalEntry::TESMRAlarmType alarmType;
-    TTime alarmTime;
-
-    aEntry.GetAlarmL( alarmType, alarmTime );
+    aEntry.GetAlarmL( alarmType, iAlarmTime );
 
     if( alarmType == MESMRCalEntry::EESMRAlarmAbsolute )
         {
-        // Read format string from AVKON resource
-        HBufC* dateFormatString = iEikonEnv->AllocReadResourceLC(
-                R_QTN_DATE_USUAL_WITH_ZERO );
-        TBuf<KMaxTimeBuffer> buf;
-        
-        alarmTime.FormatL( buf, *dateFormatString );
-        AknTextUtils::DisplayTextLanguageSpecificNumberConversion( buf );
-        iLabel->SetTextL( buf );
-        
-        CleanupStack::PopAndDestroy( dateFormatString );
+        FormatAlarmTimeL();
         }
     else // Remove the alarm fields
         {
         CCoeControl::MakeVisible(EFalse);
-        iObserver->RemoveControl(EESMRFieldAlarmDate);
+        iObserver->HideControl( EESMRFieldAlarmDate );
         }
     }
 
@@ -152,28 +114,48 @@ void CESMRViewerAlarmDateField::InternalizeL( MESMRCalEntry& aEntry )
 //
 void CESMRViewerAlarmDateField::SizeChanged()
     {
+    FUNC_LOG;
     TRect rect = Rect();
     TAknLayoutRect rowLayoutRect =
         NMRLayoutManager::GetFieldRowLayoutRect( rect, 1 );
     rect = rowLayoutRect.Rect();
-    
+
     TAknWindowComponentLayout iconLayout =
-        NMRLayoutManager::GetWindowComponentLayout( 
+        NMRLayoutManager::GetWindowComponentLayout(
                 NMRLayoutManager::EMRLayoutTextEditorIcon );
     AknLayoutUtils::LayoutImage( iIcon, rect, iconLayout );
     
-    TAknLayoutRect bgLayoutRect = 
-        NMRLayoutManager::GetLayoutRect( 
-                rect, NMRLayoutManager::EMRLayoutTextEditorBg );
-    TRect bgRect( bgLayoutRect.Rect() );
-    // Move focus rect so that it's relative to field's position.
-    bgRect.Move( -Position() );
-    SetFocusRect( bgRect );
+    // Layouting lock icon
+    if( iLockIcon )
+        {
+        TAknWindowComponentLayout iconLayout( 
+                NMRLayoutManager::GetWindowComponentLayout( 
+                    NMRLayoutManager::EMRLayoutSingleRowDColumnGraphic ) );
+        AknLayoutUtils::LayoutImage( iLockIcon, rect, iconLayout );
+        }
+
+    // Layouting label
+    TAknLayoutText viewerLayoutText;
+    if( iLockIcon )
+    	{
+    	viewerLayoutText = NMRLayoutManager::GetLayoutText( rect, 
+    			NMRLayoutManager::EMRTextLayoutSingleRowEditorText );
+    	}
+    else
+    	{
+    	viewerLayoutText = NMRLayoutManager::GetLayoutText( rect, 
+    			NMRLayoutManager::EMRTextLayoutTextEditor );
+    	}
     
-    TAknLayoutText labelLayout = 
-        NMRLayoutManager::GetLayoutText( 
-                rect, NMRLayoutManager::EMRTextLayoutTextEditor );
-    iLabel->SetRect( labelLayout.TextRect() );    
+    TRect viewerRect( viewerLayoutText.TextRect() );    
+    iLabel->SetRect( viewerRect );
+    
+    // Move focus rect so that it's relative to field's position.
+    viewerRect.Move( -Position() );
+    SetFocusRect( viewerRect );
+
+    // Setting font also for the label
+    iLabel->SetFont( viewerLayoutText.Font() );
     }
 
 // ---------------------------------------------------------------------------
@@ -182,7 +164,23 @@ void CESMRViewerAlarmDateField::SizeChanged()
 //
 TInt CESMRViewerAlarmDateField::CountComponentControls() const
     {
-    TInt count( KComponentCount );
+    FUNC_LOG;
+    TInt count( 0 );
+    if ( iIcon )
+        {
+        ++count;
+        }
+
+    if ( iLabel )
+        {
+        ++count;
+        }
+    
+    if ( iLockIcon )
+    	{
+    	++count;
+    	}
+    
     return count;
     }
 
@@ -192,12 +190,15 @@ TInt CESMRViewerAlarmDateField::CountComponentControls() const
 //
 CCoeControl* CESMRViewerAlarmDateField::ComponentControl( TInt aIndex ) const
     {
+    FUNC_LOG;
     switch ( aIndex )
         {
         case 0:
             return iIcon;
         case 1:
             return iLabel;
+        case 2:
+        	return iLockIcon;
         default:
             return NULL;
         }
@@ -209,15 +210,80 @@ CCoeControl* CESMRViewerAlarmDateField::ComponentControl( TInt aIndex ) const
 //
 void CESMRViewerAlarmDateField::SetOutlineFocusL( TBool aFocus )
     {
+    FUNC_LOG;
     CESMRField::SetOutlineFocusL ( aFocus );
-    
-    iLabel->SetFocus( aFocus );    
 
-    if ( !aFocus )
-        {
-        AknLayoutUtils::OverrideControlColorL ( *iLabel, EColorLabelText,
-                                                 KRgbBlack );
-        }
+    iLabel->SetFocus( aFocus );
     }
-// EOF
 
+// ---------------------------------------------------------------------------
+// CESMRViewerAlarmDateField::ExecuteGenericCommandL()
+// ---------------------------------------------------------------------------
+//
+TBool CESMRViewerAlarmDateField::ExecuteGenericCommandL( TInt aCommand )
+    {
+    FUNC_LOG;
+    
+    TBool retValue( EFalse );
+    
+    if( (aCommand == EAknCmdOpen) && IsLocked()  )
+    	{
+		HandleTactileFeedbackL();
+		
+    	CESMRGlobalNote::ExecuteL(
+    	                    CESMRGlobalNote::EESMRUnableToEdit );
+    	retValue = ETrue;
+    	}
+    
+    if ( EMRCmdDoEnvironmentChange == aCommand )
+        {
+        FormatAlarmTimeL();
+        retValue = ETrue;
+        }
+    
+    return retValue;
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRViewerAlarmDateField::LockL()
+// ---------------------------------------------------------------------------
+//
+void CESMRViewerAlarmDateField::LockL()
+	{
+	FUNC_LOG;
+	if( IsLocked() )
+		{
+		return;
+		}
+	
+	CESMRField::LockL();
+	
+	delete iLockIcon;
+	iLockIcon = NULL;
+	iLockIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapLockField, ETrue );
+	iLockIcon->SetParent( this );	
+	}
+
+// ---------------------------------------------------------------------------
+// CESMRViewerAlarmDateField::FormatAlarmTimeL()
+// ---------------------------------------------------------------------------
+//
+void CESMRViewerAlarmDateField::FormatAlarmTimeL()
+    {
+    FUNC_LOG;
+    
+    // Read format string from AVKON resource
+    HBufC* dateFormatString = iEikonEnv->AllocReadResourceLC(
+            R_QTN_DATE_USUAL_WITH_ZERO );
+    HBufC* buf = HBufC::NewLC( KBufferLength );
+    TPtr ptr( buf->Des() );
+
+    iAlarmTime.FormatL( ptr, *dateFormatString );
+    AknTextUtils::DisplayTextLanguageSpecificNumberConversion( ptr );
+    iLabel->SetTextL( *buf );
+
+    CleanupStack::PopAndDestroy( 2, dateFormatString );
+    }
+
+
+// EOF

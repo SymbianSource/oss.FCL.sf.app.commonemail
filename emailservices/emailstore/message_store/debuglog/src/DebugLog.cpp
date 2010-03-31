@@ -1224,9 +1224,8 @@ void CDebugLogTlsData::DoReleaseLogFileHandler( CLogFileHandler* aHandler, RDebu
         
         if( aHandler->iObjects.Count() == 0 )
             {
+            iFiles.Remove( iFiles.Find(aHandler) );
             delete aHandler;
-            
-            iFiles.Remove( iFiles.Find(aHandler) );                        
             } // end if
         }
     else

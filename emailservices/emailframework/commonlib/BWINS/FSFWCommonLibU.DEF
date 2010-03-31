@@ -187,34 +187,33 @@ EXPORTS
 	?SetEmailAddress@CFSMailAddress@@QAEXABVTDesC16@@@Z @ 186 NONAME ; void CFSMailAddress::SetEmailAddress(class TDesC16 const &)
 	?GetLastSyncStatusL@CFSMailBox@@QAE?AVTFSProgress@@XZ @ 187 NONAME ; class TFSProgress CFSMailBox::GetLastSyncStatusL(void)
 	?NextL@CFSMailIterator@@UAEHVTFSMailMsgId@@IAAV?$RPointerArray@VCFSMailMessage@@@@@Z @ 188 NONAME ; int CFSMailIterator::NextL(class TFSMailMsgId, unsigned int, class RPointerArray<class CFSMailMessage> &)
-	?ConstructL@CFSMailMessageBase@@AAEXVTFSMailMsgId@@@Z @ 189 NONAME ; void CFSMailMessageBase::ConstructL(class TFSMailMsgId)
-	?SetUnreadCount@CFSMailFolderBase@@QAEXI@Z @ 190 NONAME ; void CFSMailFolderBase::SetUnreadCount(unsigned int)
-	?ChildPartsL@CFSMailMessagePart@@QAEXAAV?$RPointerArray@VCFSMailMessagePart@@@@@Z @ 191 NONAME ; void CFSMailMessagePart::ChildPartsL(class RPointerArray<class CFSMailMessagePart> &)
-	?SetRCLInfo@CFSMailBoxBase@@QAEXVTUid@@I@Z @ 192 NONAME ; void CFSMailBoxBase::SetRCLInfo(class TUid, unsigned int)
-	?NewLC@CFSMailFolderBase@@SAPAV1@VTFSMailMsgId@@@Z @ 193 NONAME ; class CFSMailFolderBase * CFSMailFolderBase::NewLC(class TFSMailMsgId)
-	?AppendCCRecipient@CFSMailMessageBase@@QAEXPAVCFSMailAddress@@@Z @ 194 NONAME ; void CFSMailMessageBase::AppendCCRecipient(class CFSMailAddress *)
-	?HasCapability@CFSMailBox@@QBEHW4TFSMailBoxCapabilities@@@Z @ 195 NONAME ; int CFSMailBox::HasCapability(enum TFSMailBoxCapabilities) const
-	?GetMessageId@CFSMailMessageBase@@QBE?AVTFSMailMsgId@@XZ @ 196 NONAME ; class TFSMailMsgId CFSMailMessageBase::GetMessageId(void) const
-	?GetSubject@CFSMailMessageBase@@QBEAAVTDesC16@@XZ @ 197 NONAME ; class TDesC16 & CFSMailMessageBase::GetSubject(void) const
-	?NewL@CFSMailIterator@@SAPAV1@AAVMFSMailIterator@@PAVCFSMailRequestHandler@@@Z @ 198 NONAME ; class CFSMailIterator * CFSMailIterator::NewL(class MFSMailIterator &, class CFSMailRequestHandler *)
-	?RefreshNowL@CFSMailBox@@QAEHAAVMFSMailRequestObserver@@@Z @ 199 NONAME ; int CFSMailBox::RefreshNowL(class MFSMailRequestObserver &)
-	?Extension@TEmailExtensions@@QBEPAVCEmailExtension@@H@Z @ 200 NONAME ; class CEmailExtension * TEmailExtensions::Extension(int) const
-	??1CFSMailRequestHandler@@UAE@XZ @ 201 NONAME ; CFSMailRequestHandler::~CFSMailRequestHandler(void)
-	?SetSubFolderCount@CFSMailFolderBase@@QAEXI@Z @ 202 NONAME ; void CFSMailFolderBase::SetSubFolderCount(unsigned int)
-	?AddL@TEmailExtensions@@QAEXPAVCEmailExtension@@@Z @ 203 NONAME ; void TEmailExtensions::AddL(class CEmailExtension *)
-	?ClearCcRecipients@CFSMailMessageBase@@QAEXXZ @ 204 NONAME ; void CFSMailMessageBase::ClearCcRecipients(void)
-	?GetPartId@CFSMailMessagePart@@QBE?AVTFSMailMsgId@@XZ @ 205 NONAME ; class TFSMailMsgId CFSMailMessagePart::GetPartId(void) const
-	?RemoveDownLoadedAttachmentsL@CFSMailBox@@QAEXXZ @ 206 NONAME ; void CFSMailBox::RemoveDownLoadedAttachmentsL(void)
-	?ExtensionL@CFSMailMessageBase@@UAEPAVCEmailExtension@@ABVTUid@@@Z @ 207 NONAME ; class CEmailExtension * CFSMailMessageBase::ExtensionL(class TUid const &)
-	?GetReplyToAddress@CFSMailMessageBase@@QAEABVCFSMailAddress@@XZ @ 208 NONAME ; class CFSMailAddress const & CFSMailMessageBase::GetReplyToAddress(void)
-	?GetMailBoxId@CFSMailFolderBase@@QBE?AVTFSMailMsgId@@XZ @ 209 NONAME ; class TFSMailMsgId CFSMailFolderBase::GetMailBoxId(void) const
-	?SearchL@CFSMailBox@@QAEXABV?$RPointerArray@VTDesC16@@@@ABVTFSMailSortCriteria@@AAVMFSMailBoxSearchObserver@@V?$RArray@VTFSMailMsgId@@@@@Z @ 210 NONAME ; void CFSMailBox::SearchL(class RPointerArray<class TDesC16> const &, class TFSMailSortCriteria const &, class MFSMailBoxSearchObserver &, class RArray<class TFSMailMsgId>)
-	??1CFSMailBox@@UAE@XZ @ 211 NONAME ; CFSMailBox::~CFSMailBox(void)
-	?FetchedContentSize@CFSMailMessagePart@@QBEIXZ @ 212 NONAME ; unsigned int CFSMailMessagePart::FetchedContentSize(void) const
-	?GetSubFoldersL@CFSMailFolder@@QAEXAAV?$RPointerArray@VCFSMailFolder@@@@@Z @ 213 NONAME ; void CFSMailFolder::GetSubFoldersL(class RPointerArray<class CFSMailFolder> &)
-	?SetFlag@CFSMailMessageBase@@QAEXH@Z @ 214 NONAME ; void CFSMailMessageBase::SetFlag(int)
-	?NewLC@CFSMailIterator@@SAPAV1@AAVMFSMailIterator@@PAVCFSMailRequestHandler@@@Z @ 215 NONAME ; class CFSMailIterator * CFSMailIterator::NewLC(class MFSMailIterator &, class CFSMailRequestHandler *)
-	?MoveMessagesL@CFSMailBox@@QAEHAAVMFSMailRequestObserver@@ABV?$RArray@VTFSMailMsgId@@@@VTFSMailMsgId@@2@Z @ 216 NONAME ; int CFSMailBox::MoveMessagesL(class MFSMailRequestObserver &, class RArray<class TFSMailMsgId> const &, class TFSMailMsgId, class TFSMailMsgId)
-	?SetContentSize@CFSMailMessagePart@@QAEXI@Z @ 217 NONAME ; void CFSMailMessagePart::SetContentSize(unsigned int)
-	?NewL@CFSMailMessagePart@@SAPAV1@VTFSMailMsgId@@0@Z @ 218 NONAME ; class CFSMailMessagePart * CFSMailMessagePart::NewL(class TFSMailMsgId, class TFSMailMsgId)
+	?SetUnreadCount@CFSMailFolderBase@@QAEXI@Z @ 189 NONAME ; void CFSMailFolderBase::SetUnreadCount(unsigned int)
+	?ChildPartsL@CFSMailMessagePart@@QAEXAAV?$RPointerArray@VCFSMailMessagePart@@@@@Z @ 190 NONAME ; void CFSMailMessagePart::ChildPartsL(class RPointerArray<class CFSMailMessagePart> &)
+	?SetRCLInfo@CFSMailBoxBase@@QAEXVTUid@@I@Z @ 191 NONAME ; void CFSMailBoxBase::SetRCLInfo(class TUid, unsigned int)
+	?NewLC@CFSMailFolderBase@@SAPAV1@VTFSMailMsgId@@@Z @ 192 NONAME ; class CFSMailFolderBase * CFSMailFolderBase::NewLC(class TFSMailMsgId)
+	?AppendCCRecipient@CFSMailMessageBase@@QAEXPAVCFSMailAddress@@@Z @ 193 NONAME ; void CFSMailMessageBase::AppendCCRecipient(class CFSMailAddress *)
+	?HasCapability@CFSMailBox@@QBEHW4TFSMailBoxCapabilities@@@Z @ 194 NONAME ; int CFSMailBox::HasCapability(enum TFSMailBoxCapabilities) const
+	?GetMessageId@CFSMailMessageBase@@QBE?AVTFSMailMsgId@@XZ @ 195 NONAME ; class TFSMailMsgId CFSMailMessageBase::GetMessageId(void) const
+	?GetSubject@CFSMailMessageBase@@QBEAAVTDesC16@@XZ @ 196 NONAME ; class TDesC16 & CFSMailMessageBase::GetSubject(void) const
+	?NewL@CFSMailIterator@@SAPAV1@AAVMFSMailIterator@@PAVCFSMailRequestHandler@@@Z @ 197 NONAME ; class CFSMailIterator * CFSMailIterator::NewL(class MFSMailIterator &, class CFSMailRequestHandler *)
+	?RefreshNowL@CFSMailBox@@QAEHAAVMFSMailRequestObserver@@@Z @ 198 NONAME ; int CFSMailBox::RefreshNowL(class MFSMailRequestObserver &)
+	?Extension@TEmailExtensions@@QBEPAVCEmailExtension@@H@Z @ 199 NONAME ; class CEmailExtension * TEmailExtensions::Extension(int) const
+	??1CFSMailRequestHandler@@UAE@XZ @ 200 NONAME ; CFSMailRequestHandler::~CFSMailRequestHandler(void)
+	?SetSubFolderCount@CFSMailFolderBase@@QAEXI@Z @ 201 NONAME ; void CFSMailFolderBase::SetSubFolderCount(unsigned int)
+	?AddL@TEmailExtensions@@QAEXPAVCEmailExtension@@@Z @ 202 NONAME ; void TEmailExtensions::AddL(class CEmailExtension *)
+	?ClearCcRecipients@CFSMailMessageBase@@QAEXXZ @ 203 NONAME ; void CFSMailMessageBase::ClearCcRecipients(void)
+	?GetPartId@CFSMailMessagePart@@QBE?AVTFSMailMsgId@@XZ @ 204 NONAME ; class TFSMailMsgId CFSMailMessagePart::GetPartId(void) const
+	?RemoveDownLoadedAttachmentsL@CFSMailBox@@QAEXXZ @ 205 NONAME ; void CFSMailBox::RemoveDownLoadedAttachmentsL(void)
+	?ExtensionL@CFSMailMessageBase@@UAEPAVCEmailExtension@@ABVTUid@@@Z @ 206 NONAME ; class CEmailExtension * CFSMailMessageBase::ExtensionL(class TUid const &)
+	?GetReplyToAddress@CFSMailMessageBase@@QAEABVCFSMailAddress@@XZ @ 207 NONAME ; class CFSMailAddress const & CFSMailMessageBase::GetReplyToAddress(void)
+	?GetMailBoxId@CFSMailFolderBase@@QBE?AVTFSMailMsgId@@XZ @ 208 NONAME ; class TFSMailMsgId CFSMailFolderBase::GetMailBoxId(void) const
+	?SearchL@CFSMailBox@@QAEXABV?$RPointerArray@VTDesC16@@@@ABVTFSMailSortCriteria@@AAVMFSMailBoxSearchObserver@@V?$RArray@VTFSMailMsgId@@@@@Z @ 209 NONAME ; void CFSMailBox::SearchL(class RPointerArray<class TDesC16> const &, class TFSMailSortCriteria const &, class MFSMailBoxSearchObserver &, class RArray<class TFSMailMsgId>)
+	??1CFSMailBox@@UAE@XZ @ 210 NONAME ; CFSMailBox::~CFSMailBox(void)
+	?FetchedContentSize@CFSMailMessagePart@@QBEIXZ @ 211 NONAME ; unsigned int CFSMailMessagePart::FetchedContentSize(void) const
+	?GetSubFoldersL@CFSMailFolder@@QAEXAAV?$RPointerArray@VCFSMailFolder@@@@@Z @ 212 NONAME ; void CFSMailFolder::GetSubFoldersL(class RPointerArray<class CFSMailFolder> &)
+	?SetFlag@CFSMailMessageBase@@QAEXH@Z @ 213 NONAME ; void CFSMailMessageBase::SetFlag(int)
+	?NewLC@CFSMailIterator@@SAPAV1@AAVMFSMailIterator@@PAVCFSMailRequestHandler@@@Z @ 214 NONAME ; class CFSMailIterator * CFSMailIterator::NewLC(class MFSMailIterator &, class CFSMailRequestHandler *)
+	?MoveMessagesL@CFSMailBox@@QAEHAAVMFSMailRequestObserver@@ABV?$RArray@VTFSMailMsgId@@@@VTFSMailMsgId@@2@Z @ 215 NONAME ; int CFSMailBox::MoveMessagesL(class MFSMailRequestObserver &, class RArray<class TFSMailMsgId> const &, class TFSMailMsgId, class TFSMailMsgId)
+	?SetContentSize@CFSMailMessagePart@@QAEXI@Z @ 216 NONAME ; void CFSMailMessagePart::SetContentSize(unsigned int)
+	?NewL@CFSMailMessagePart@@SAPAV1@VTFSMailMsgId@@0@Z @ 217 NONAME ; class CFSMailMessagePart * CFSMailMessagePart::NewL(class TFSMailMsgId, class TFSMailMsgId)
 

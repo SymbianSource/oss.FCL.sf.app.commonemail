@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -23,7 +23,7 @@
 #include <e32base.h>
 #include <cntdef.h>
 
-#include <CPcsDefs.h> // TPsMatchLocation
+#include <cpcsdefs.h> // TPsMatchLocation
 
 // FORWARD DECLARATIONS
 class MVPbkContactLink;

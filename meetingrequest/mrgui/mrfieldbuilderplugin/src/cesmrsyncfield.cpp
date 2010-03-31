@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -15,55 +15,58 @@
  *
 */
 
-#include "emailtrace.h"
 #include "cesmrsyncfield.h"
+#include "cmrimage.h"
+#include "cmrlabel.h"
+#include "cesmrtextitem.h"
+#include "cesmrlistquery.h"
+#include "nmrlayoutmanager.h"
 
-#include <eiklabel.h>
 #include <esmrgui.rsg>
-#include <StringLoader.h>
+#include <stringloader.h>
 #include <barsread.h>
 #include <avkon.hrh>
-#include <AknsConstants.h>
-#include <AknUtils.h>
-
-#include "cesmrsync.h"
-#include "cesmrlistquery.h"
+#include <aknutils.h>
 #include <calentry.h>
+// DEBUG
+#include "emailtrace.h"
 
 // Unnamed namespace for local definitions and functions
-namespace{ // codescanner::namespace
-
-CCalEntry::TReplicationStatus MapToReplicationStatus(
-        TESMRSyncValue aSyncValue )
-    {
-    CCalEntry::TReplicationStatus ret;
-    switch ( aSyncValue )
+namespace // codescanner::namespace
+    { 
+    CCalEntry::TReplicationStatus MapToReplicationStatus(
+            TESMRSyncValue aSyncValue )
         {
-        case ESyncNone:
+        CCalEntry::TReplicationStatus ret;
+        switch ( aSyncValue )
             {
-            ret = CCalEntry::ERestricted;
-            break;
+            case ESyncNone:
+                {
+                ret = CCalEntry::ERestricted;
+                break;
+                }
+            case ESyncPrivate:
+                {
+                ret = CCalEntry::EPrivate;
+                break;
+                }
+            case ESyncPublic:
+                {
+                ret = CCalEntry::EOpen;
+                break;
+                }
+            default:
+                {
+                ret = CCalEntry::ERestricted;
+                }
             }
-        case ESyncPrivate:
-            {
-            ret = CCalEntry::EPrivate;
-            break;
-            }
-        case ESyncPublic:
-            {
-            ret = CCalEntry::EOpen;
-            break;
-            }
-        default:
-            {
-            ret = CCalEntry::ERestricted;
-            }
+    
+        return ret;
         }
 
-    return ret;
-    }
-
-} // namespace
+    // Field's component count, icon and label
+    const TInt KComponentCount( 2 );
+    } // namespace
 
 // ======== MEMBER FUNCTIONS ========
 
@@ -90,21 +93,8 @@ CESMRSyncField::~CESMRSyncField( )
     FUNC_LOG;
     iArray.ResetAndDestroy ( );
     iArray.Close ( );
-    }
-
-// ---------------------------------------------------------------------------
-// CESMRSyncField::InitializeL
-// ---------------------------------------------------------------------------
-//
-void CESMRSyncField::InitializeL()
-    {
-    FUNC_LOG;
-    iSync->SetFont( iLayout->Font( iCoeEnv, iFieldId ) );
-    iSync->SetLabelAlignment( CESMRLayoutManager::IsMirrored()
-                              ? ELayoutAlignRight : ELayoutAlignLeft );
-    AknLayoutUtils::OverrideControlColorL(*iSync,
-                                           EColorLabelText,
-                                           iLayout->GeneralListAreaTextColor() );
+    
+    delete iIcon;
     }
 
 // ---------------------------------------------------------------------------
@@ -125,12 +115,12 @@ void CESMRSyncField::InternalizeL( MESMRCalEntry& aEntry )
     TInt count = reader.ReadInt16 ( );
     for (TInt i(0); i < count; i++ )
         {
-        CESMRSync* sync = new (ELeave) CESMRSync();
+        CESMRTextItem* sync = new (ELeave) CESMRTextItem();
         CleanupStack::PushL( sync );
         sync->ConstructFromResourceL ( reader );
         iArray.AppendL ( sync );
         CleanupStack::Pop( sync );
-        if ( synchValue == MapToReplicationStatus ( sync->Id ( ) ) )
+        if ( synchValue == MapToReplicationStatus ( static_cast<TESMRSyncValue>( sync->Id ( ) ) ) )
             {
             iIndex = i;
             iSync->SetTextL ( sync->TextL ( ) );
@@ -150,7 +140,7 @@ void CESMRSyncField::ExternalizeL( MESMRCalEntry& aEntry )
     if ( iIndex < iArray.Count() )
         {
         CCalEntry::TReplicationStatus
-            repStatus = MapToReplicationStatus ( iArray[iIndex]->Id ( ) );
+            repStatus = MapToReplicationStatus ( static_cast<TESMRSyncValue>( iArray[iIndex]->Id ( ) ) );
         aEntry.Entry().SetReplicationStatusL (repStatus );
         }
     else
@@ -179,14 +169,19 @@ void CESMRSyncField::SetOutlineFocusL( TBool aFocus )
 // CESMRPriorityField::ExecuteGenericCommandL
 // ---------------------------------------------------------------------------
 //
-void CESMRSyncField::ExecuteGenericCommandL( TInt aCommand )
+TBool CESMRSyncField::ExecuteGenericCommandL( TInt aCommand )
     {
     FUNC_LOG;
+    TBool isUsed( EFalse );
     if(aCommand == EESMRCmdOpenSyncQuery ||
        aCommand == EAknCmdOpen )
         {
         ExecuteSyncQueryL();
+        isUsed = ETrue;
+        
+        HandleTactileFeedbackL();
         }
+    return isUsed;
     }
 
 // ---------------------------------------------------------------------------
@@ -255,7 +250,8 @@ CESMRSyncField::CESMRSyncField( ) :
     iIndex(0)
     {
     FUNC_LOG;
-    //do nothing
+    SetFieldId( EESMRFieldSync );
+    SetFocusType( EESMRHighlightFocus );
     }
 
 // ---------------------------------------------------------------------------
@@ -265,19 +261,16 @@ CESMRSyncField::CESMRSyncField( ) :
 void CESMRSyncField::ConstructL( )
     {
     FUNC_LOG;
-    SetFieldId( EESMRFieldSync );
-
-    iSync = new (ELeave) CEikLabel;
-    iSync->SetTextL( KNullDesC );
+    iSync = CMRLabel::NewL();
+    CESMRField::ConstructL( iSync );
+    iSync->SetTextL( KNullDesC() );
 
     TGulAlignment align;
     align.SetHAlignment( EHLeft );
     align.SetVAlignment( EVCenter );
     iSync->SetAlignment( align );
 
-    CESMRIconField::ConstructL(
-            KAknsIIDQgnFscalIndiSynchronisation,
-            iSync );
+    iIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapSynchronization );
     }
 
 // ---------------------------------------------------------------------------
@@ -287,9 +280,72 @@ void CESMRSyncField::ConstructL( )
 void CESMRSyncField::UpdateLabelL( TInt aIndex )
     {
     FUNC_LOG;
-    CESMRSync* sync = iArray[ aIndex ];
+    CESMRTextItem* sync = iArray[ aIndex ];
     iSync->SetTextL( sync->TextL() );
     iSync->DrawDeferred();
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRSyncField::CountComponentControls
+// ---------------------------------------------------------------------------
+//
+TInt CESMRSyncField::CountComponentControls() const
+    {
+    return KComponentCount;
+    }
+    
+// ---------------------------------------------------------------------------
+// CESMRSyncField::ComponentControl
+// ---------------------------------------------------------------------------
+//    
+CCoeControl* CESMRSyncField::ComponentControl( TInt aIndex ) const
+    {
+    CCoeControl* control = NULL;
+    switch( aIndex )
+        {
+        case 0:
+            {
+            control = iSync;            
+            break;
+            }
+        case 1:
+            {
+            control = iIcon;
+            break;
+            }
+        default:
+            ASSERT( EFalse );
+        }
+    
+    return control;
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRSyncField::SizeChanged
+// ---------------------------------------------------------------------------
+//
+void CESMRSyncField::SizeChanged()
+    {
+    TRect rect( Rect() );
+    TAknLayoutRect iconLayout = 
+        NMRLayoutManager::GetLayoutRect( 
+                rect, NMRLayoutManager::EMRLayoutTextEditorIcon );
+    TRect iconRect( iconLayout.Rect() );
+    iIcon->SetRect( iconRect );
+    
+    TAknLayoutRect bgLayoutRect = 
+        NMRLayoutManager::GetLayoutRect( 
+                rect, NMRLayoutManager::EMRLayoutTextEditorBg );
+    TRect bgRect( bgLayoutRect.Rect() );
+    // Move focus rect so that it's relative to field's position.
+    bgRect.Move( -Position() );
+    SetFocusRect( bgRect );
+    
+    TAknTextComponentLayout editorLayout =
+        NMRLayoutManager::GetTextComponentLayout( 
+                NMRLayoutManager::EMRTextLayoutTextEditor );    
+    
+    AknLayoutUtils::LayoutLabel( iSync, rect, editorLayout );         
     }
 
 // EOF

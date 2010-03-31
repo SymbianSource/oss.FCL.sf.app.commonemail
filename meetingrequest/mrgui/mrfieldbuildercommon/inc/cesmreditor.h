@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -21,10 +21,10 @@
 
 #include <eikrted.h>
 #include <eikedwob.h>
-#include "mesmrlistobserver.h"
 
-
-class CESMRLayoutManager;
+// Forward declarations
+class MESMRListObserver;
+class MMRFieldScrollObserver;
 
 NONSHARABLE_CLASS( CESMREditor ): public CEikRichTextEditor,
                                   public MEikEdwinObserver
@@ -60,6 +60,7 @@ public: // From CCoeControl
     		const TKeyEvent& aKeyEvent,
     		TEventCode aType);
     IMPORT_C void FocusChanged(TDrawNow aDrawNow);
+    void HandlePointerEventL( const TPointerEvent& aPointerEvent );
 
 public: // From MEikEdwinObserver
     IMPORT_C void HandleEdwinEventL(CEikEdwin* aEdwin,TEdwinEvent aEventType);
@@ -78,7 +79,7 @@ public:
      * @param aFont new font
      * @param aLayout
      */
-    IMPORT_C void SetFontL( const CFont* aFont, CESMRLayoutManager* aLayout );
+    IMPORT_C void SetFontL( const CFont* aFont );
 
     /**
      * Returns cursor line number.
@@ -161,10 +162,8 @@ private:
 private:    
 	/// Ref:
     MESMRListObserver* iObserver;
-
     /// Own:
     HBufC* iDefaultText;
-    
     /// Own;
     TInt iLimitLength;
     };

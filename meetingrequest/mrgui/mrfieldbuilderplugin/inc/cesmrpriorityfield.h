@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -19,14 +19,14 @@
 #ifndef CESMRPRIORITYFIELD_H
 #define CESMRPRIORITYFIELD_H
 
-#include "cesmriconfield.h"
+#include "cesmrfield.h"
 #include "cesmrpriority.h"
+#include "mesmrcalentry.h"
 
-class MESMRCalEntry;
-class CEikLabel;
-class MESMRTitlePaneObserver;
+class CMRImage;
+class CMRLabel;
 
-NONSHARABLE_CLASS( CESMRPriorityField ): public CESMRIconField
+NONSHARABLE_CLASS( CESMRPriorityField ): public CESMRField
     {
 public:
     /**
@@ -41,17 +41,19 @@ public:
      */
     ~CESMRPriorityField();
 
-public: // From CESMRIconField
+public: // From base class CESMRField
     void InitializeL();
     void InternalizeL( MESMRCalEntry& aEntry );
     void ExternalizeL( MESMRCalEntry& aEntry );
-    void ExecuteGenericCommandL( TInt aCommand );
+    TBool ExecuteGenericCommandL( TInt aCommand );
     void SetOutlineFocusL( TBool aFocus );
-    void SetTitlePaneObserver( MESMRTitlePaneObserver* aObserver );
 
-public: // From CCoeControl
+public: // From base class CCoeControl
     TKeyResponse OfferKeyEventL(const TKeyEvent& aEvent, TEventCode aType);
-
+    void SizeChanged();
+    TInt CountComponentControls() const;
+    CCoeControl* ComponentControl( TInt aIndex ) const;    
+    
 private: // Implementation
     /**
      * Constructor.
@@ -78,10 +80,6 @@ private: // Implementation
     void ExecutePriorityQueryL();
 
 private:
-    /**
-     * Not owned. Priority label.
-     */
-    CEikLabel* iPriority;
 
     /**
      * Own. Array of available priorities.
@@ -97,11 +95,16 @@ private:
      * Entry type
      */
     MESMRCalEntry::TESMRCalEntryType iEntryType;
+    
+    /**
+     * Owned: Field icon
+     */
+    CMRImage* iIcon;
 
     /**
-     * Title pane observer for setting the priority icon
+     * Not own: Field text label
      */
-    MESMRTitlePaneObserver* iObserver;
+    CMRLabel* iLabel;    
     };
 
 #endif  // CESMRPRIORITYFIELD_H

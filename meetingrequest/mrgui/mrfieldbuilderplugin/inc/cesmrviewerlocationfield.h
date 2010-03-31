@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -19,73 +19,90 @@
 #ifndef CESMRVIEWERLOCATIONFIELD_H_
 #define CESMRVIEWERLOCATIONFIELD_H_
 
+// INCLUDES
+#include <e32base.h>
 #include <eikedwob.h>
+#include <eikmobs.h>
+#include <coecobs.h>
 
 #include "cesmrfield.h"
 
+// FORWARD DECLARATIONS
 class CMRImage;
 class CESMRRichTextViewer;
+class CAknButton;
 class CESMRFeatureSettings;
 
 /**
  * Shows the location of the meeting/event
  */
-NONSHARABLE_CLASS( CESMRViewerLocationField ): public CESMRField, 
-                                                      MEikEdwinSizeObserver
+NONSHARABLE_CLASS( CESMRViewerLocationField ): public CESMRField,
+                                                      public MEikEdwinSizeObserver,
+                                                      public MCoeControlObserver
     {
-public:
-    /**
-     * Creates new CESMRViewerLocationField object. Ownership
-     * is transferred to caller.
-     * @return Pointer to created object,
-     */
-    static CESMRViewerLocationField* NewL( );
-    
-    /**
-     * C++ Destructor.
-     */
-    ~CESMRViewerLocationField( );
+    public:
+        /**
+         * Creates new CESMRViewerLocationField object. Ownership
+         * is transferred to caller.
+         * @return Pointer to created object,
+         */
+        static CESMRViewerLocationField* NewL( );
 
-public:// From CESMRField
-    void InternalizeL( MESMRCalEntry& aEntry );
-    TSize MinimumSize();
-    void InitializeL();
-    void ListObserverSet();
-    void ExecuteGenericCommandL( TInt aCommand );
-    void SetOutlineFocusL( TBool aFocus );
 
-public: // From CCoeControl
-    TKeyResponse OfferKeyEventL(const TKeyEvent& aEvent, TEventCode aType );
-    TInt CountComponentControls() const;
-    CCoeControl* ComponentControl( TInt aInd ) const;
-    void SizeChanged();
-    void SetContainerWindowL( const CCoeControl& aContainer );
+        /**
+         * C++ Destructor.
+         */
+        ~CESMRViewerLocationField( );
 
-public: // From MEikEdwinSizeObserver
-    TBool HandleEdwinSizeEventL( CEikEdwin* aEdwin, TEdwinSizeEvent aType,
-            TSize aSize );
+    public:// From CESMRField
+        void InternalizeL( MESMRCalEntry& aEntry );
+        TSize MinimumSize();
+        void InitializeL();
+        void ListObserverSet();
+        TBool ExecuteGenericCommandL( TInt aCommand );
+        void SetOutlineFocusL( TBool aFocus );
+        void HandleLongtapEventL( const TPoint& aPosition );
+        void DynInitMenuPaneL( TInt aResourceId, CEikMenuPane* aMenuPane );
+        void LockL();
+    protected:
+		TBool HandleSingletapEventL( const TPoint& aPosition );
 
-private: // Implementation
-    CESMRViewerLocationField( );
-    void ConstructL( );
-    CESMRFeatureSettings& FeaturesL();
-    void SetWaypointIconL( TBool aEnabled );
-    TRect RichTextViewerRect();
+    public: // From CCoeControl
+        TKeyResponse OfferKeyEventL(const TKeyEvent& aEvent, TEventCode aType );
+        TInt CountComponentControls() const;
+        CCoeControl* ComponentControl( TInt aInd ) const;
+        void SizeChanged();
+        void SetContainerWindowL( const CCoeControl& aContainer );
+        void GetCursorLineVerticalPos(TInt& aUpper, TInt& aLower);
 
-private: // data 
-       
-    TSize iSize;
-    // Owned: Field icon
-    CMRImage* iFieldIcon;
-    // Owned: Field text label
-    CESMRRichTextViewer* iRichTextViewer;
-    // Owned: Waypoint icon
-    // Feature settings. Own
-    CESMRFeatureSettings* iFeatures;
-    // RichTextViewer line count. Own
-    TInt iLineCount;
-    // Middle softkey command id
-    TInt iMskCommandId;
+    public: // From MEikEdwinSizeObserver
+        TBool HandleEdwinSizeEventL( CEikEdwin* aEdwin, TEdwinSizeEvent aType,
+                TSize aSize );
+
+    public: // From MCoeControlObserver
+        void HandleControlEventL(CCoeControl* aControl,TCoeEvent aEventType);
+
+    private: // Implementation
+        CESMRViewerLocationField( );
+        void ConstructL( );
+        void SetWaypointIconL( TBool aEnabled );
+        TBool HandleTapEventL( const TPoint& aPosition );
+
+    private: // data
+        // Own: Edwin size
+        TSize iSize;
+        /// Own: Field button
+        CAknButton* iFieldButton;
+        /// Ref: Field text label
+        CESMRRichTextViewer* iRichTextViewer;
+        /// Own: Waypoint icon
+        CMRImage* iWaypointIcon;
+        /// Own: RichTextViewer line count.
+        TInt iLineCount;
+        /// Own: Middle softkey command id
+        TInt iMskCommandId;
+        /// Own: Feature settings
+        CESMRFeatureSettings* iFeatures;
     };
 
 #endif /*CESMRVIEWERLOCATIONFIELD_H_*/

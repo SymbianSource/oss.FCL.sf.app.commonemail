@@ -24,9 +24,11 @@
 #include "esmrdef.h"
 //</cmail>
 #include <caltime.h>
+#include <calcommon.h>
 
 class CCalEntry;
 class TCalRRule;
+class MESMRCalDbMgr;
 
 /**
  *  CESMRRecurrenceInfoHandler is responsible for handling recurrence related
@@ -43,6 +45,7 @@ public: // Construction and destruction
      * CESMRRecurrenceInfoHandler object. Ownership transferred to caller.
      *
      * @param aEntry Reference to calendar entry.
+     * @param aCalDb Reference to caldb manager
      * @return Pointer to esmr recurrence handler object.
      */
     IMPORT_C static CESMRRecurrenceInfoHandler* NewL(
@@ -54,11 +57,37 @@ public: // Construction and destruction
      * Created object is left to cleanup stack.
      *
      * @param aEntry Reference to calendar entry.
+     * @param aCalDb Pointer to caldb manager. Ownership not transferred.
+     * @return Pointer to esmr recurrence handler object.
+     */
+    IMPORT_C static CESMRRecurrenceInfoHandler* NewL(
+            CCalEntry& aEntry,
+            MESMRCalDbMgr* aCalDb );
+
+    /**
+     * Two-phased constructor. Creates and initializes
+     * CESMRRecurrenceInfoHandler object. Ownership transferred to caller.
+     *
+     * @param aEntry Reference to calendar entry.
+     * @param aCalDb Reference to caldb manager
      * @return Pointer to esmr recurrence handler object.
      */
     IMPORT_C static CESMRRecurrenceInfoHandler* NewLC(
             CCalEntry& aEntry );
 
+    /**
+     * Two-phased constructor. Creates and initializes
+     * CESMRRecurrenceInfoHandler object. Ownership transferred to caller.
+     * Created object is left to cleanup stack.
+     *
+     * @param aEntry Reference to calendar entry.
+     * @param aCalDb Reference to caldb manager
+     * @return Pointer to esmr recurrence handler object.
+     */
+    IMPORT_C static CESMRRecurrenceInfoHandler* NewLC(
+            CCalEntry& aEntry,
+            MESMRCalDbMgr* aCalDb );    
+    
     /**
      * C++ Destructor.
      */
@@ -129,10 +158,29 @@ public: // Interface
     IMPORT_C void GetFirstInstanceTimeL(
             TCalTime& aStart,
             TCalTime& aEnd );
+    
+    /**
+     * Gets the start and end times of the previous instance.
+     * @param aStart Reference to start time.
+     * @param aEnd Reference to end time.
+     */
+    IMPORT_C void GetPreviousInstanceTimeL( TCalTime& aPreviousStartTime,
+                                            TCalTime& aPreviousEndTime,
+                                            TTime aInstanceDateTime );
+    
+    /**
+     * Gets the start and end times of the next instance.
+     * @param aStart Reference to start time.
+     * @param aEnd Reference to end time.
+     */
+    IMPORT_C void GetNextInstanceTimeL( TCalTime& aNextStartTime,
+                                        TCalTime& aNextEndTime,
+                                        TTime aInstanceDateTime );
 
 private: // Implementation
     CESMRRecurrenceInfoHandler(
-            CCalEntry& aEntry );
+            CCalEntry& aEntry,
+            MESMRCalDbMgr* aCalDb );
     void ConstructL();
 
     void CalculateRecurrenceUntilDateL(
@@ -160,11 +208,24 @@ private: // Implementation
     TBool NeedToSetRecurrenceL(
             TESMRRecurrenceValue aRecurrence,
             TTime aUntil ) const;
+    
+    TTime GetPreviousInstanceForRepeatOtherL(
+            CCalEntry& aEntry,
+            const CalCommon::TCalTimeRange& timeRange );
+    
+    TTime GetNextInstanceForRepeatOtherL( 
+            CCalEntry& aEntry,
+            const CalCommon::TCalTimeRange& timeRange );
+    
+    TESMRRecurrenceValue RepeatIndexL( const CCalEntry& aEntry );
+    
 
 
 private:
     /// Ref: Reference to meeting request entry
     CCalEntry& iEntry;
+    /// Ref: Reference to caldb manager
+    MESMRCalDbMgr* iCalDb;
     };
 
 #endif // CESMRRECURRENCEINFOHANDLER_H

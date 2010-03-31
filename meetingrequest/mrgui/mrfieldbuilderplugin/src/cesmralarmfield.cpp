@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -15,10 +15,16 @@
  *
 */
 
-#include "emailtrace.h"
 #include "cesmralarmfield.h"
+#include "cesmralarm.h"
+#include "esmrcommands.h"
+#include "cesmrglobalnote.h"
+#include "mesmrfieldvalidator.h"
+#include "cesmrlistquery.h"
+#include "cmrimage.h"
+#include "cmrlabel.h"
+#include "nmrlayoutmanager.h"
 
-#include <eiklabel.h>
 #include <avkon.hrh>
 #include <e32keys.h>
 #include <barsc.h>
@@ -29,20 +35,16 @@
 //<cmail>
 #include "esmrdef.h"
 //</cmail>
-#include <AknUtils.h>
+#include <aknutils.h>
 
-#include "cesmrborderlayer.h"
-#include "cesmralarm.h"
-#include "esmrcommands.h"
-#include "cesmrglobalnote.h"
-#include "mesmrfieldvalidator.h"
-#include "cesmrlistquery.h"
+// DEBUG
+#include "emailtrace.h"
 
 // Unnamed namespace for local definitions
 namespace{ // codescanner::namespace
 
-_LIT( KNoText, "" );
 const TInt KMinuteInMicroSeconds(60000000);
+const TInt KComponentCount( 2 );
 
 }//namespace
 
@@ -71,23 +73,7 @@ CESMRAlarmField::~CESMRAlarmField( )
     FUNC_LOG;
     iArray.ResetAndDestroy ( );
     iArray.Close ( );
-    }
-
-// ---------------------------------------------------------------------------
-// CESMRAlarmField::InitializeL
-// ---------------------------------------------------------------------------
-//
-void CESMRAlarmField::InitializeL()
-    {
-    FUNC_LOG;
-    iAlarm->SetFont( iLayout->Font(iCoeEnv, iFieldId ) );
-    iAlarm->SetLabelAlignment( CESMRLayoutManager::IsMirrored()
-                               ? ELayoutAlignRight : ELayoutAlignLeft );
-
-    // Update text color
-    AknLayoutUtils::OverrideControlColorL(*iAlarm,
-                                           EColorLabelText,
-                                           iLayout->GeneralListAreaTextColor() );
+    delete iIcon;
     }
 
 // ---------------------------------------------------------------------------
@@ -277,11 +263,13 @@ TKeyResponse CESMRAlarmField::OfferKeyEventL(const TKeyEvent& aEvent,
 //
 CESMRAlarmField::CESMRAlarmField( MESMRFieldValidator* aValidator )
 :   iOptIndex(0),
-    iValidator( aValidator ),
     iRelativeAlarmValid( ETrue )
     {
     FUNC_LOG;
-    //do nothing
+    
+    iValidator = aValidator;
+    SetFieldId ( EESMRFieldAlarm );
+    SetFocusType( EESMRHighlightFocus );
     }
 
 // ---------------------------------------------------------------------------
@@ -291,10 +279,75 @@ CESMRAlarmField::CESMRAlarmField( MESMRFieldValidator* aValidator )
 void CESMRAlarmField::ConstructL( )
     {
     FUNC_LOG;
-    SetFieldId ( EESMRFieldAlarm );
-    iAlarm = new (ELeave) CEikLabel; // base class takes ownership
-    iAlarm->SetTextL ( KNoText );
-    CESMRIconField::ConstructL (KAknsIIDQgnMeetReqIndiAlarm, iAlarm );
+    iAlarm = CMRLabel::NewL(); // base class takes ownership
+    CESMRField::ConstructL( iAlarm );
+    iAlarm->SetTextL ( KNullDesC() );
+        
+    iIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapAlarm );
+    iIcon->SetParent( this );
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRAlarmField::CountComponentControls
+// ---------------------------------------------------------------------------
+//
+TInt CESMRAlarmField::CountComponentControls() const
+    {
+    return KComponentCount;
+    }
+    
+// ---------------------------------------------------------------------------
+// CESMRAlarmField::ComponentControl
+// ---------------------------------------------------------------------------
+//    
+CCoeControl* CESMRAlarmField::ComponentControl( TInt aIndex ) const
+    {
+    CCoeControl* control = NULL;
+    switch( aIndex )
+        {
+        case 0:
+            {
+            control = iAlarm;            
+            break;
+            }
+        case 1:
+            {
+            control = iIcon;
+            break;
+            }
+        default:
+            ASSERT( EFalse );
+        }
+    
+    return control;
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRAlarmField::SizeChanged
+// ---------------------------------------------------------------------------
+//
+void CESMRAlarmField::SizeChanged()
+    {
+    TRect rect( Rect() );
+    TAknLayoutRect iconLayout = 
+        NMRLayoutManager::GetLayoutRect( 
+                rect, NMRLayoutManager::EMRLayoutTextEditorIcon );
+    TRect iconRect( iconLayout.Rect() );
+    iIcon->SetRect( iconRect );
+    
+    TAknLayoutRect bgLayoutRect = 
+        NMRLayoutManager::GetLayoutRect( 
+                rect, NMRLayoutManager::EMRLayoutTextEditorBg );
+    TRect bgRect( bgLayoutRect.Rect() );
+    // Move focus rect so that it's relative to field's position.
+    bgRect.Move( -Position() );
+    SetFocusRect( bgRect );
+    
+    TAknTextComponentLayout editorLayout =
+        NMRLayoutManager::GetTextComponentLayout( 
+                NMRLayoutManager::EMRTextLayoutTextEditor );    
+    
+    AknLayoutUtils::LayoutLabel( iAlarm, rect, editorLayout );         
     }
 
 // ---------------------------------------------------------------------------
@@ -319,7 +372,7 @@ void CESMRAlarmField::UpdateAlarmLabelL( TInt aIndex )
                 iRelativeAlarmValid );
             }
         }
-    iBorder->DrawDeferred ( );
+    iAlarm->DrawDeferred ( );
     }
 
 // ---------------------------------------------------------------------------
@@ -365,14 +418,19 @@ void CESMRAlarmField::SetOutlineFocusL( TBool aFocus )
 // CESMRAlarmField::ExecuteGenericCommandL
 // ---------------------------------------------------------------------------
 //
-void CESMRAlarmField::ExecuteGenericCommandL( TInt aCommand )
+TBool CESMRAlarmField::ExecuteGenericCommandL( TInt aCommand )
     {
     FUNC_LOG;
+    TBool isUsed( EFalse );
     if(aCommand == EESMRCmdOpenAlarmQuery ||
        aCommand == EAknCmdOpen )
         {
         ExecuteMSKCommandL();
+        isUsed = ETrue;
+        
+        HandleTactileFeedbackL();
         }
+    return isUsed;
     }
 
 // ---------------------------------------------------------------------------

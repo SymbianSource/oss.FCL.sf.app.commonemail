@@ -209,8 +209,11 @@ enum TFSMailBoxCapabilities
     EFSMboxCapaSupportsAttahmentsInMR,
     
     // Mailbox supports saving of embedded messages
-    EFSMboxCapaSupportsSavingOfEmbeddedMessages
+    EFSMboxCapaSupportsSavingOfEmbeddedMessages,
     
+    // Mailbox supports smart editing feature.
+    // Returned by Intellisync and ActiveSync. If defined, UI will fetch message body fully. 
+    EFSMBoxCapaSmartEdit
     };
 
 /** email details included in plugin responses */

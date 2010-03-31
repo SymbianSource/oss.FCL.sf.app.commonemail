@@ -388,9 +388,10 @@ TBool CNcsSubjectField::HandleEdwinSizeEventL( CEikEdwin* /*aEdwin*/,
     TInt ret( EFalse );
     TInt htLine = iTextEditor->GetLineHeightL();
     TInt numLinesDesired = aDesirableEdwinSize.iHeight / htLine;
-    CEikScrollBarFrame& scrollBarFrame( *iTextEditor->CreateScrollBarFrameL() );
+    // commented because of EGWG-83ECSR, no negative feedback after removing
+    //CEikScrollBarFrame& scrollBarFrame( *iTextEditor->CreateScrollBarFrameL() );
     iEditorLineCount = numLinesDesired;
-    scrollBarFrame.SetScrollBarVisibilityL( CEikScrollBarFrame::EOff, CEikScrollBarFrame::EOff );
+    //scrollBarFrame.SetScrollBarVisibilityL( CEikScrollBarFrame::EOff, CEikScrollBarFrame::EOff );
     if ( iSizeObserver )
         {
         ret = iSizeObserver->UpdateFieldSizeL();

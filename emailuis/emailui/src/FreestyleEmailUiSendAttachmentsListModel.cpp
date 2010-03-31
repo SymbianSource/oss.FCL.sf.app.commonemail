@@ -434,8 +434,6 @@ void CFSEmailUiSendAttachmentsListModel::ReFreshListL()
 
 	// header and dividers
 	CreateListSkeletonL();
-	//moved from CreateListSkeletonL();
-	SetupTitlePaneTextL();
 	// list model items
 	CreateListItemsL();
 

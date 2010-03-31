@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2003-2009 Nokia Corporation and/or its subsidiary(-ies).
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -12,6 +12,7 @@
 * Contributors:
 *
 *  Description : CEikRichTextEditor based Rich Text viewer
+*  Version     : %version: e002sa32#36 %
 *
 */
 
@@ -20,39 +21,47 @@
 #include "mesmrlistobserver.h"// SCROLLING_MOD: List observer header
 #include "esmrconfig.hrh"
 #include "esmrhelper.h"
-#include "cesmriconfield.h"
 #include "cesmrfieldcommandevent.h"
 #include "mesmrfieldeventqueue.h"
-#include "cesmrlayoutmgr.h"
 #include "cesmrrichtextlink.h"
 #include "cesmrcontactmenuhandler.h"
 #include "nmrbitmapmanager.h"
+#include "nmrcolormanager.h"
+#include "esmrfieldbuilderdef.h"
+#include "cesmrfield.h"
 
 #include <esmrgui.rsg>
 #include <commonphoneparser.h>
 #include <finditemengine.h>
 #include <txtrich.h>
-#include <AknsUtils.h>
+#include <aknsutils.h>
+#include <aknbiditextutils.h>
+#include <aknutils.h>
 #include <eikenv.h>
 #include <data_caging_path_literals.hrh>
 #include <baclipb.h> // for clipboard copy
-#include <aknlongtapdetector.h>
-#include <touchfeedback.h>
-
-#ifndef FF_CMAIL_INTEGRATION
 #include <txtclipboard.h>
-#endif // FF_CMAIL_INTEGRATION
 
 // DEBUG
 #include "emailtrace.h"
 
-// <cmail> Removed profiling. </cmail>
-
 // Unnamed namespace for local definitions
 namespace{ // codescanner::namespace
 
-const TInt KArrowUpperMargin (2);
-const TInt KArrowRightMargin (5);
+#ifdef _DEBUG
+    enum TPanic
+        {
+        EParaFormatNotInitialised = 1
+        };
+    void Panic( TPanic aPanic )
+        {
+        _LIT( KCategory, "CESMRRichTextViewer" );
+        User::Panic( KCategory(), aPanic );
+        }
+#endif // DEBUG
+
+// Side margin in twips, needed because not possible to set it in pixels
+const TInt KDefaultTextSideMargin( 1 );
 
 }//namespace
 
@@ -81,10 +90,8 @@ EXPORT_C CESMRRichTextViewer::~CESMRRichTextViewer( )
     {
     FUNC_LOG;
     iLinkList.ResetAndDestroy ( );
-    delete iActionMenuIcon;
-    delete iActionMenuIconMask;
     iESMRStatic.Close ( );
-    delete iLongTapDetector;
+    delete iParaFormat;
     }
 
 // -----------------------------------------------------------------------------
@@ -116,61 +123,41 @@ EXPORT_C void CESMRRichTextViewer::FocusChanged(
         return;
         }
 
-    if ( IsFocused() )
-        {
-        if( iLayout )
-            {
-            TRAP_IGNORE( SetFontColorL( ETrue ) );
-            }
+    // Check the current selection.
+    // If a link has been highlighted, don't change it.
+    TCursorSelection selection = Selection();
 
-        if ( iCurrentLinkIndex == KErrNotFound )
+    // Gaining focus
+    if ( IsFocused()
+         && iLinkList.Count() > 0
+         && selection.Length() == 0 )
+        {
+        // We need the field indexes, cast required
+        CESMRField* parent = static_cast< CESMRField* >( Parent() );
+
+        iCntMenuHdlr->SetContactMenuObserver( this );
+        // Focus coming from above ...
+        if( parent->CurrentItemIndex() > parent->PreItemIndex() )
             {
-            TInt linkRow = KErrNotFound;
-            if ( CursorPos() == 0 )
-                {
-                // focus is coming from field above:
-                linkRow = FindTextLinkBetweenNextScrollArea(
-                		0, 1, TCursorPosition::EFLineDown );
-                }
-            else
-                {
-                linkRow = FindTextLinkBetweenNextScrollArea(
-                		LineCount()-2,
-                        LineCount()-1,
-                        TCursorPosition::EFLineUp);
-                }
-            if ( linkRow != KErrNotFound )
-                {
-                const CESMRRichTextLink* link = GetSelectedLink ( );
-                if (link )
-                    {
-                    HighlightLink (*link );
-                    DrawDeferred ( );
-                    }
-                }
+            // ... Highlight first link
+            TRAP_IGNORE( HighlightLinkL( *( iLinkList[0] ) ) );
             }
+        // Focus coming from below ...
         else
             {
-            const CESMRRichTextLink* link = GetSelectedLink ( );
-            if ( link )
-            	{
-            	HighlightLink( *link );
-            	DrawDeferred();
-            	}
+            // ... Highlight last link
+            TRAP_IGNORE( HighlightLinkL( *( iLinkList[iLinkList.Count() - 1 ] ) ) );
             }
+        DrawDeferred();
         }
 
-    if (!IsFocused())
+    // Losing focus
+    if ( !IsFocused() )
         {
-        // losing focus
-        // <cmail> codescanner
-		TRAP_IGNORE(SetSelectionL(CursorPos(), CursorPos()));
-        if( iLayout )
-            {
-            TRAP_IGNORE(SetFontColorL( EFalse ));
-            }
-        // </cmail>
-        TRAP_IGNORE( TextView()->SetDocPosL( 0 ));
+        TRAP_IGNORE(
+                SetSelectionL( CursorPos(), CursorPos() );
+                ResetActionMenuL();
+                );
         }
     }
 
@@ -208,7 +195,6 @@ TInt CESMRRichTextViewer::FindTextLinkBetweenNextScrollArea(
                 }
             }
 
-    iCurrentLinkIndex = KErrNotFound;
     return linkRow;
     }
 
@@ -224,83 +210,32 @@ TInt CESMRRichTextViewer::ValidLinkForFocusing(
     {
     FUNC_LOG;
 
-
-    if(iLinkList.Count() > aIndex)
+    if ( iLinkList.Count() > aIndex)
 	    {
-        TInt pos = iLinkList[aIndex]->StartPos();
+	    TInt currPos( KErrNotFound );
+        const CESMRRichTextLink* currentLink = GetSelectedLink();
+        if ( currentLink )
+            {
+            currPos = currentLink->StartPos();
+            }
+
+        TInt pos = iLinkList[ aIndex ]->StartPos();
 
 	    TInt checkRow = TextLayout()->GetLineNumber( pos );
 
-	    if ( checkRow >= aStartRow && checkRow <= ( aEndRow ) )
+	    if ( checkRow >= aStartRow && checkRow <= aEndRow )
 	        {
 	        if ( aDirection == TCursorPosition::EFLineDown &&
-	             aIndex > iCurrentLinkIndex  ||
+	             pos > currPos ||
 	             aDirection == TCursorPosition::EFLineUp &&
-	             ( aIndex < iCurrentLinkIndex ||
-	               iCurrentLinkIndex == KErrNotFound ))
+	             ( pos < currPos || currPos == KErrNotFound ) )
 	            {
-	            iCurrentLinkIndex = aIndex;
-
 	            // link found between next scroll area.
 	            return checkRow;
 	            }
 	        }
 	    }
     return KErrNotFound;
-    }
-
-// -----------------------------------------------------------------------------
-// CESMRRichTextViewer::SetHighLightToNextLinkL
-// -----------------------------------------------------------------------------
-//
-TBool CESMRRichTextViewer::SetHighLightToNextLinkL(
-        TCursorPosition::TMovementType aDirection,
-        TInt aStartRow,
-        TInt aEndRow )
-    {
-    FUNC_LOG;
-    TBool ret( EFalse );
-
-    TInt currentLineNumber = TextLayout()->GetLineNumber( CursorPos() );
-
-    // check is there a link before next scroll point:
-    TInt linkRow = FindTextLinkBetweenNextScrollArea(
-						aStartRow , aEndRow, aDirection);
-
-    if ( linkRow != KErrNotFound && iCurrentLinkIndex != KErrNotFound )
-        {
-        const CESMRRichTextLink* link = GetSelectedLink ( );
-        if (link )
-            {
-            HighlightLink (*link );
-
-            if ( iObserver && linkRow != currentLineNumber )
-                {
-                TInt endOfLink = link->StartPos()+link->Length();
-                TInt line = TextLayout()->GetLineNumber( endOfLink );
-                if ( aDirection == TCursorPosition::EFLineUp ) // moving up:
-                    {
-                    iObserver->MoveListAreaDownL(
-                            RowHeight() * ( currentLineNumber - line ));
-                    }
-                else
-                    {
-                    iObserver->MoveListAreaUpL(
-                            RowHeight() * ( line - currentLineNumber ));
-                    }
-                }
-
-            DrawDeferred ( );
-            ret = ETrue;
-            }
-        }
-    else
-    	{
-    	// no link are focused, do reset work to refresh the option menu.
-    	ResetActionMenuL();
-    	}
-
-    return ret;
     }
 
 // -----------------------------------------------------------------------------
@@ -312,167 +247,160 @@ EXPORT_C TKeyResponse CESMRRichTextViewer::OfferKeyEventL(
         TEventCode aType )
     {
     FUNC_LOG;
-    // Handle only event keys
-    if ( aType == EEventKey )
+    TKeyResponse response( EKeyWasNotConsumed );
+
+    // Handle only event keys.
+    if( aType != EEventKey )
         {
-        if ( iObserver ) // only description field has observer set.
+        return response;
+        }
+
+    /*
+     * Handles scrolling between rich text links.
+     */
+    const CESMRRichTextLink* selectedLink = GetSelectedLink();
+    TInt linkCount = iLinkList.Count();
+
+    // If a link is selected, it means that we are operating within
+    // the field and can move focus between the links.
+    if( linkCount && selectedLink )
+        {
+        TInt selectedLinkIndex = iLinkList.Find( selectedLink );
+
+        switch ( aKeyEvent.iCode )
             {
-            // fetch the current line number:
-            TInt currentLineNumber = TextLayout()->GetLineNumber( CursorPos() );
-
-            if ( aKeyEvent.iCode == EKeyDownArrow && aType == EEventKey )
+            case EKeyLeftArrow:
+            case EKeyUpArrow:
                 {
-                if ( !iObserver->IsFieldBottomVisible() &&
-                     SetHighLightToNextLinkL(
-                    		 TCursorPosition::EFLineDown,
-                             currentLineNumber,
-                             currentLineNumber + KMaxAddressFieldLines) )
+                // If possible and exists ...
+                if( selectedLinkIndex > 0 &&
+                        selectedLinkIndex < linkCount )
                     {
-                    return EKeyWasConsumed;
-                    }
-                else if ( iObserver->IsFieldBottomVisible() )
-                    {
-                    if ( SetHighLightToNextLinkL(TCursorPosition::EFLineDown,
-                                            currentLineNumber,
-                                            iNumberOfLines) )
-                        {
-                        return EKeyWasConsumed;
-                        }
-                    // means that the whole control is visible:
-                    // and we can skip to next field
-                    return EKeyWasNotConsumed;
+                    // ...Highlight previous link.
+                    HighlightLinkL( *( iLinkList[ selectedLinkIndex - 1 ] ) );
+                    response = EKeyWasConsumed;
+
+                    // View update required, for example if link is out of
+                    // viewable area.
+                    UpdateViewL( aKeyEvent );
                     }
 
-                if ( currentLineNumber == iNumberOfLines )
-                    {
-                    // the end of text has been reached
-                    return EKeyWasConsumed;
-                    }
-
-                // move three lines...
-                ScrollViewL( KMaxAddressFieldLines,
-							 TCursorPosition::EFLineDown);
-
-
-                SetSelectionL( CursorPos(), CursorPos() );
-                iCurrentLinkIndex = KErrNotFound;
-                if ( iObserver )
-                    {
-                    iObserver->MoveListAreaUpL(
-                    		RowHeight() * KMaxAddressFieldLines );
-                    }
-
-                return EKeyWasConsumed;
+                break;
                 }
-            else if ( aKeyEvent.iCode == EKeyUpArrow && aType == EEventKey )
+            case EKeyRightArrow:
+            case EKeyDownArrow:
                 {
-                if (iPosition.iY < 0 &&
-                    SetHighLightToNextLinkL(
-                    		TCursorPosition::EFLineUp,
-                            currentLineNumber - KMaxAddressFieldLines,
-                            currentLineNumber))
+                // If possible and exists ...
+                if( selectedLinkIndex + 1 < linkCount &&
+                        selectedLinkIndex >= 0 )
                     {
-                    return EKeyWasConsumed;
+                    // ...Highlight next link.
+                    HighlightLinkL( *( iLinkList[ selectedLinkIndex + 1 ] ) );
+                    response = EKeyWasConsumed;
+
+                    // View update required, for example if link is out of
+                    // viewable area.
+                    UpdateViewL( aKeyEvent );
                     }
-                if ( iPosition.iY > 0 )
-                    {
-                    // before changing the focus the field above,
-                    // check is there any links in rest of text
-                    if (SetHighLightToNextLinkL(TCursorPosition::EFLineUp,
-                                        0,
-                                        currentLineNumber))
-                        {
-                        return EKeyWasConsumed;
-                        }
 
-                    // means that the whole control is visible:
-                    // and we can skip to next field
-                    return EKeyWasNotConsumed;
-                    }
-                else
-                    {
-                    TInt currentLineNumber =
-                    TextLayout()->GetLineNumber( CursorPos() );
-                    // move three lines...
-                    ScrollViewL( KMaxAddressFieldLines,
-                    		     TCursorPosition::EFLineUp);
-
-                    SetSelectionL( CursorPos(), CursorPos());
-                    iCurrentLinkIndex = KErrNotFound;
-
-                     if ( iObserver )
-                        {
-                        iObserver->MoveListAreaDownL(
-                        		RowHeight() * KMaxAddressFieldLines );
-                        }
-
-                    currentLineNumber =
-						TextLayout()->GetLineNumber( CursorPos() );
-                    return EKeyWasConsumed;
-                    }
+                break;
                 }
-            }
-        if ( aKeyEvent.iCode == EKeyRightArrow ||
-        	 aKeyEvent.iCode == EKeyDevice3 ||
-             aKeyEvent.iCode == EKeyDevice4 ||
-             aKeyEvent.iCode == EKeyEnter )
-            {
-            // Show right click menu (action menu)
-            const CESMRRichTextLink* link = GetSelectedLink();
-            if (link &&
-            	link->TriggerKey ( )== CESMRRichTextLink::ETriggerKeyRight )
+            case EKeyDevice3: // Selection key
                 {
-                if ( !iLinkObserver ||
-                	 !iLinkObserver->HandleRichTextLinkSelection(link) )
-                    {
-                    iCntMenuHdlr->ShowActionMenuL();
-                    }
-                return EKeyWasConsumed;
+                // No implementation. Non-MSK devices might require this.
+                break;
                 }
-            }
-        if ( aKeyEvent.iCode == EKeyLeftArrow )
-            {
-            const CESMRRichTextLink* link = GetSelectedLink();
-            if ( link )
-                {
-                return EKeyWasConsumed;
-                }
-            }
-        if ( aKeyEvent.iCode == EKeyDevice3 ||
-        		aKeyEvent.iCode == EKeyDevice4 ||
-        		aKeyEvent.iCode == EKeyEnter )
-            {
-            // Select link
-            const CESMRRichTextLink* link = GetSelectedLink ( );
-            if (link &&
-            	link->TriggerKey ( )== CESMRRichTextLink::ETriggerKeyOk )
-                {
-                if (iLinkObserver &&
-                	iLinkObserver->HandleRichTextLinkSelection (link ) )
-                    {
-                    return EKeyWasConsumed;
-                    }
-                }
+            default:
+                break;
             }
         }
 
-    return EKeyWasNotConsumed;
+    return response;
     }
 
-
 // -----------------------------------------------------------------------------
-// CESMRRichTextViewer::ScrollViewL
+// CESMRRichTextViewer::HandlePointerEventL
 // -----------------------------------------------------------------------------
 //
-void CESMRRichTextViewer::ScrollViewL(
-        TInt aNumberOfRows,
-        TCursorPosition::TMovementType aDirection)
+void CESMRRichTextViewer::HandlePointerEventL( const TPointerEvent& aPointerEvent )
     {
-    FUNC_LOG;
-    for( TInt i=0; i < aNumberOfRows; i++ )
+    if ( Rect().Contains( aPointerEvent.iPosition) )
         {
-        MoveCursorL( aDirection, EFalse);
+        TBool linkFound( EFalse );
+
+        switch ( aPointerEvent.iType )
+            {
+            case TPointerEvent::EButton1Down:
+            case TPointerEvent::EDrag:
+                {
+                RRegion linkArea;
+                CleanupClosePushL( linkArea );
+
+                // Find matching link
+                TInt count = iLinkList.Count();
+
+                for ( TInt i = 0; i < count; ++i )
+                    {
+                    CESMRRichTextLink* link = iLinkList[ i ];
+                    GetLinkAreaL( linkArea, *link );
+
+                    if ( linkArea.Contains( aPointerEvent.iPosition ) )
+                        {
+                        if ( link != GetSelectedLink() )
+                            {
+                            iCntMenuHdlr->SetContactMenuObserver( this );
+                            HighlightLinkL( *link );
+                            DrawDeferred();
+                            }
+
+                        linkFound = ETrue;
+                        break;
+                        }
+                    }
+
+                CleanupStack::PopAndDestroy( &linkArea );
+
+                break;
+                }
+
+            case TPointerEvent::EButton1Up:
+                {
+                const CESMRRichTextLink* link = GetSelectedLink();
+
+                TBool menuAvailable = iCntMenuHdlr->OptionsMenuAvailable();
+
+                if ( link
+                     && ( menuAvailable
+                     || link->Type() == CESMRRichTextLink::ETypeLocationUrl
+                     || link->Type() == CESMRRichTextLink::ETypeAttachment ) )
+                    {
+                    linkFound = ETrue;
+
+                    LinkSelectedL();
+                    }
+                else if ( link && !menuAvailable )
+                    {
+                    linkFound = ETrue;
+                    iOpenActionMenu = ETrue;
+                    }
+                break;
+                }
+            default:
+                {
+                break;
+                }
+            }
+
+        if ( !linkFound )
+            {
+            // Tap on plain text
+            TextView()->ClearSelectionL();
+            ResetActionMenuL();
+            DrawDeferred();
+            }
+
         }
+
     }
 
 // -----------------------------------------------------------------------------
@@ -482,86 +410,8 @@ void CESMRRichTextViewer::ScrollViewL(
 EXPORT_C void CESMRRichTextViewer::SetMargins( TInt sMargin )
 	{
 	// Set new value for left and right margins
-	if ( TextView() )
-	    {
-        TextView()->SetMarginWidths( sMargin ,0);
-	    }
+    TextView()->SetMarginWidths( sMargin ,0);
 	}
-
-// -----------------------------------------------------------------------------
-// CESMRRichTextViewer::SetFontL
-// -----------------------------------------------------------------------------
-//
-EXPORT_C void CESMRRichTextViewer::SetFontL( const CFont* aFont,
-                                             CESMRLayoutManager* aLayout )
-    {
-    FUNC_LOG;
-    // These pointers are stored to able font color changing when losing or
-    // gaining focus
-    iLayout = aLayout;
-    iFont = aFont;
-
-    SetFontColorL( IsFocused() );
-
-    // This forces CEikEdwin::OnReformatL to notify observer
-    // through HandleEdwinSizeEventL about changed size.
-    // It is notified only if linecount changes.
-    CEikEdwin::iNumberOfLines = 0;
-    CEikEdwin::FormatTextL();
-    }
-
-// -----------------------------------------------------------------------------
-// CESMRRichTextViewer::SetFontColor
-// -----------------------------------------------------------------------------
-//
-void CESMRRichTextViewer::SetFontColorL( TBool aFocused )
-    {
-    FUNC_LOG;
-    // all this stuff is needed to be set, otherwise the
-    // font loses its antialiasing drawing
-
-    TFontSpec fontSpec = iFont->FontSpecInTwips();
-
-    CParaFormat paraFormat;
-    TParaFormatMask paraFormatMask;
-    paraFormat.iLineSpacingControl = CParaFormat::ELineSpacingExactlyInPixels;
-
-    paraFormatMask.SetAttrib( EAttLineSpacing );
-    paraFormat.iHorizontalAlignment = CParaFormat::ELeftAlign;
-    paraFormatMask.SetAttrib( EAttAlignment );
-
-    TCharFormat charFormat;
-    TCharFormatMask formatMask;
-    charFormat.iFontSpec = fontSpec;
-
-    formatMask.SetAttrib( EAttFontTypeface );
-    formatMask.SetAttrib( EAttFontHeight );
-    formatMask.SetAttrib( EAttFontPosture );
-    formatMask.SetAttrib( EAttFontStrokeWeight );
-
-    if( aFocused )
-        {
-        charFormat.iFontPresentation.iTextColor =
-        iLayout->ViewerListAreaHighlightedTextColor();
-        }
-    else
-        {
-        charFormat.iFontPresentation.iTextColor = KRgbBlack;
-        }
-    formatMask.SetAttrib( EAttColor );
-
-    CParaFormatLayer* paraFormatLayer =
-        CParaFormatLayer::NewL( &paraFormat, paraFormatMask );
-    CleanupStack::PushL( paraFormatLayer );
-
-    CCharFormatLayer* charFormatLayer =
-        CCharFormatLayer::NewL( charFormat, formatMask );
-
-    SetParaFormatLayer( paraFormatLayer );
-    SetCharFormatLayer( charFormatLayer );
-
-    CleanupStack::Pop( paraFormatLayer );
-    }
 
 // -----------------------------------------------------------------------------
 // CESMRRichTextViewer::SetTextL
@@ -572,34 +422,37 @@ EXPORT_C void CESMRRichTextViewer::SetTextL(
         TBool aSearchLinks )
     {
     FUNC_LOG;
-    iCurrentLinkIndex = KErrNotFound;
-    iLinkList.ResetAndDestroy ( );
+
+    iLinkList.ResetAndDestroy();
+
+    TextView()->SetMarginWidths( KDefaultTextSideMargin ,0);
 
     // Clear edwin text
     CEikEdwin::SetCursorPosL( 0, EFalse );
+    CEikRichTextEditor::SetTextL( &KNullDesC );
+    RichText()->Reset();
 
     // text lenght plus one to ensure the formatting
     // used is full, not band formatting.
     SetUpperFullFormattingLength( aText->Length() + 1 );
 
     // Set new edwin text
+    CEikEdwin::SetTextLimit( aText->Length ( ) );
     CEikRichTextEditor::SetTextL( aText );
 
     //Make sure cursor is invisible and selection visible
-    TextView()->SetCursorVisibilityL (TCursor::EFCursorInvisible,
+    TextView()->SetCursorVisibilityL(
+            TCursor::EFCursorInvisible,
             TCursor::EFCursorInvisible );
-    TextView()->SetSelectionVisibilityL (ETrue );
+    TextView()->SetSelectionVisibilityL( ETrue );
 
     // Search text for links (highlights)
-    if (aSearchLinks )
+    if ( aSearchLinks )
         {
         SearchLinksL( *aText );
         // find first link.
         FindTextLinkBetweenNextScrollArea(0, KMaxAddressFieldLines, TCursorPosition::EFLineDown);
         }
-
-    // first row is 0, so let's add one...
-    iNumberOfLines = TextLayout()->GetLineNumber( TextLength() ) + 1;
     }
 
 // -----------------------------------------------------------------------------
@@ -626,8 +479,8 @@ EXPORT_C void CESMRRichTextViewer::AddLinkL( CESMRRichTextLink* aLink )
     // Reserve space for new link
     iLinkList.ReserveL( iLinkList.Count() + 1 );
 
-    RichText()->ApplyCharFormatL( iFormat,
-                                  iFormatMask,
+    RichText()->ApplyCharFormatL( iRichTextLinkFormat,
+                                  iRichTextLinkFormatMask,
                                   aLink->StartPos(),
                                   aLink->Length() );
 
@@ -636,7 +489,7 @@ EXPORT_C void CESMRRichTextViewer::AddLinkL( CESMRRichTextLink* aLink )
 
     if ( highlight )
         {
-        HighlightLink( *aLink );
+        HighlightLinkL( *aLink );
         }
     }
 
@@ -654,8 +507,8 @@ EXPORT_C void CESMRRichTextViewer::InsertLinkL( CESMRRichTextLink* aLink,
     // Reserve space for new link
     iLinkList.ReserveL( iLinkList.Count() + 1 );
 
-    RichText()->ApplyCharFormatL( iFormat,
-                                  iFormatMask,
+    RichText()->ApplyCharFormatL( iRichTextLinkFormat,
+                                  iRichTextLinkFormatMask,
                                   aLink->StartPos(),
                                   aLink->Length() );
 
@@ -665,7 +518,7 @@ EXPORT_C void CESMRRichTextViewer::InsertLinkL( CESMRRichTextLink* aLink,
 
     if ( highlight )
         {
-        HighlightLink( *aLink );
+        HighlightLinkL( *aLink );
         }
     }
 
@@ -676,25 +529,38 @@ EXPORT_C void CESMRRichTextViewer::InsertLinkL( CESMRRichTextLink* aLink,
 EXPORT_C const CESMRRichTextLink* CESMRRichTextViewer::GetSelectedLink( ) const
     {
     FUNC_LOG;
-    if (iCurrentLinkIndex >= 0 && iCurrentLinkIndex < iLinkList.Count ( ) )
+    CESMRRichTextLink* link( NULL );
+
+    TCursorSelection currentSelection = Selection();
+
+    for ( TInt i = 0; i < iLinkList.Count(); ++i )
         {
-        return iLinkList[iCurrentLinkIndex];
+        CESMRRichTextLink* tempLink = iLinkList[i];
+        TInt startPos = tempLink->StartPos();
+        TInt length = tempLink->Length();
+
+        TCursorSelection linkSelection( startPos, startPos + length );
+
+        if( currentSelection.iCursorPos == linkSelection.iCursorPos &&
+                currentSelection.iAnchorPos == linkSelection.iAnchorPos )
+            {
+            link = tempLink;
+            break;
+            }
         }
-    else
-        {
-        return NULL;
-        }
+
+    return link;
     }
 
 // -----------------------------------------------------------------------------
 // CESMRRichTextViewer::GetLinkTextL
 // -----------------------------------------------------------------------------
 //
-EXPORT_C HBufC* CESMRRichTextViewer::GetLinkTextL(
+EXPORT_C HBufC* CESMRRichTextViewer::GetLinkTextLC(
         const CESMRRichTextLink& aLink ) const
     {
     FUNC_LOG;
-    return RichText()->Read( aLink.StartPos ( ), aLink.Length ( ) ).AllocL();
+    return RichText()->Read( aLink.StartPos(), aLink.Length() ).AllocLC();
     }
 
 // -----------------------------------------------------------------------------
@@ -729,7 +595,9 @@ EXPORT_C TInt CESMRRichTextViewer::RowHeight()
 EXPORT_C TInt CESMRRichTextViewer::LineCount()
     {
     FUNC_LOG;
-    return iNumberOfLines;
+
+    // First row is 0, so let's add one...
+    return ( TextLayout()->GetLineNumber( TextLength() ) + 1 );
     }
 // -----------------------------------------------------------------------------
 // CESMRRichTextViewer::CurrentLineNumber
@@ -743,13 +611,133 @@ EXPORT_C TInt CESMRRichTextViewer::CurrentLineNumber()
     }
 
 // -----------------------------------------------------------------------------
-// CESMRRichTextViewer::CESMRRichTextViewer
+// CESMRRichTextViewer::SetFontL
 // -----------------------------------------------------------------------------
 //
-EXPORT_C void CESMRRichTextViewer::SetActionMenuStatus( TBool aStatus )
+EXPORT_C void CESMRRichTextViewer::SetFontL( const CFont* aFont )
     {
     FUNC_LOG;
-    iActionMenuStatus = aStatus;
+    // iFont is stored for changing font color when losing or
+    // gaining focus
+    iFont = aFont;
+    if ( !iParaFormat )
+        {
+        iParaFormat = new ( ELeave ) CParaFormat();
+        }
+
+    // All this required, otherwise the font loses its
+    // antialiasing drawing.
+    iParaFormat->iLineSpacingControl = CParaFormat::ELineSpacingExactlyInPixels;
+
+    iParaFormatMask.SetAttrib( EAttLineSpacing );
+    iParaFormat->iHorizontalAlignment = CParaFormat::ELeftAlign;
+    iParaFormat->iVerticalAlignment = CParaFormat::ECenterAlign;
+    iParaFormatMask.SetAttrib( EAttAlignment );
+    iParaFormatMask.SetAttrib( EAttVerticalAlignment );
+
+    iCharFormat.iFontSpec = iFont->FontSpecInTwips();
+
+    iCharFormatMask.SetAttrib( EAttFontTypeface );
+    iCharFormatMask.SetAttrib( EAttFontHeight );
+    iCharFormatMask.SetAttrib( EAttFontPosture );
+    iCharFormatMask.SetAttrib( EAttFontStrokeWeight );
+
+    iCharFormat.iFontPresentation.iTextColor =
+        NMRColorManager::Color( NMRColorManager::EMRMainAreaTextColor );
+
+    iCharFormatMask.SetAttrib( EAttColor );
+    }
+
+// -----------------------------------------------------------------------------
+// CESMRRichTextViewer::SetLineSpacingL
+// -----------------------------------------------------------------------------
+//
+EXPORT_C void CESMRRichTextViewer::SetLineSpacingL( TInt aLineSpacingInTwips )
+    {
+    __ASSERT_DEBUG( iParaFormat, Panic( EParaFormatNotInitialised ) );
+    iParaFormatMask.SetAttrib( EAttLineSpacing );
+    iParaFormatMask.SetAttrib( EAttLineSpacingControl );
+    iParaFormat->iLineSpacingControl =
+        CParaFormat::ELineSpacingExactlyInPixels;
+
+    iParaFormat->iLineSpacingInTwips = aLineSpacingInTwips;
+    }
+
+// -----------------------------------------------------------------------------
+// CESMRRichTextViewer::ApplyLayoutChanges
+// -----------------------------------------------------------------------------
+//
+EXPORT_C void CESMRRichTextViewer::ApplyLayoutChangesL()
+    {
+    __ASSERT_DEBUG( iParaFormat, Panic( EParaFormatNotInitialised ) );
+    CRichText* richtext = RichText();
+    TInt paraCount( richtext->ParagraphCount() );
+    // Go through each paragraph and apply the same format
+    for( TInt i = 0; i < paraCount; ++i  )
+        {
+        TInt paraLen( 0 );   // Length of paragraph
+        TInt fiChPos( 0 );   // First character position of paragraph
+        // Get the length of the paragraph
+        fiChPos = richtext->CharPosOfParagraph( paraLen, i );
+        richtext->ApplyParaFormatL(
+                iParaFormat, iParaFormatMask, fiChPos, paraLen );
+        richtext->ApplyCharFormatL(
+                iCharFormat, iCharFormatMask, fiChPos, paraLen );
+        }
+    // This forces CEikEdwin::OnReformatL to notify observer
+    // through HandleEdwinSizeEventL about changed size.
+    // It is notified only if linecount changes.
+    CEikEdwin::iNumberOfLines = 0;
+    CEikEdwin::FormatTextL();
+    }
+
+
+// -----------------------------------------------------------------------------
+// CESMRRichTextViewer::SetSelectedLink
+// -----------------------------------------------------------------------------
+//
+EXPORT_C void CESMRRichTextViewer::SetFocusLink( TInt aLinkIndex )
+    {
+    if ( ( aLinkIndex >= 0 ) && ( aLinkIndex < iLinkList.Count() ) )
+        {
+        TRAP_IGNORE( HighlightLinkL( *( iLinkList[aLinkIndex] ) ) );
+        DrawDeferred();
+        }
+    }
+
+// -----------------------------------------------------------------------------
+// CESMRRichTextViewer::GetSelectedLink
+// -----------------------------------------------------------------------------
+//
+EXPORT_C TInt CESMRRichTextViewer::GetFocusLink( ) const
+    {
+    FUNC_LOG;
+    // "-1" stand for no link be selected now.
+    TInt linkIndex( KErrNotFound );
+    if ( 0 == iLinkList.Count() )
+        {
+        return linkIndex;
+        }
+    
+    TCursorSelection currentSelection = Selection();
+
+    for ( TInt i = 0; i < iLinkList.Count(); ++i )
+        {
+        CESMRRichTextLink* tempLink = iLinkList[i];
+        TInt startPos = tempLink->StartPos();
+        TInt length = tempLink->Length();
+
+        TCursorSelection linkSelection( startPos, startPos + length );
+
+        if( currentSelection.iCursorPos == linkSelection.iCursorPos &&
+                currentSelection.iAnchorPos == linkSelection.iAnchorPos )
+            {
+            linkIndex = i;
+            break;
+            }
+        }
+
+    return linkIndex;
     }
 
 // -----------------------------------------------------------------------------
@@ -757,7 +745,6 @@ EXPORT_C void CESMRRichTextViewer::SetActionMenuStatus( TBool aStatus )
 // -----------------------------------------------------------------------------
 //
 CESMRRichTextViewer::CESMRRichTextViewer( )
-:   iActionMenuStatus( ETrue ), iActionMenuOpen( EFalse )
     {
     FUNC_LOG;
     }
@@ -779,103 +766,40 @@ void CESMRRichTextViewer::ConstructL(const CCoeControl* aParent)
         flags |= CEikEdwin::EOwnsWindow;
         }
 
-    CEikRichTextEditor::ConstructL (aParent, 1, 1, flags );
-    SetSuppressBackgroundDrawing (ETrue );
+    CEikRichTextEditor::ConstructL( aParent, 1, 1, flags );
+    SetSuppressBackgroundDrawing( ETrue );
 
-    User::LeaveIfError(
-            NMRBitmapManager::GetSkinBasedBitmap(
-                    NMRBitmapManager::EMRBitmapRightClickArrow, iActionMenuIcon,
-                    iActionMenuIconMask, KIconSize ) );
-
-    iESMRStatic.ConnectL ( );
+    iESMRStatic.ConnectL();
     iCntMenuHdlr = &iESMRStatic.ContactMenuHandlerL();
-    iCurrentLinkIndex = KErrNotFound;
-    iFormatMask.SetAttrib( EAttFontUnderline );
-    iFormat.iFontPresentation.iUnderline = EUnderlineOn;
-    iFormatMask.SetAttrib( EAttColor );
-    iFormat.iFontPresentation.iTextColor = KRgbBlue;
-
-    iLongTapDetector = CAknLongTapDetector::NewL(this);
+    iRichTextLinkFormatMask.SetAttrib( EAttFontUnderline );
+    iRichTextLinkFormat.iFontPresentation.iUnderline = EUnderlineOn;
+    iRichTextLinkFormatMask.SetAttrib( EAttColor );
+    iRichTextLinkFormat.iFontPresentation.iTextColor =
+        NMRColorManager::Color(
+                NMRColorManager::EMRCutCopyPasteHighlightColor );
     }
 
 // -----------------------------------------------------------------------------
-// CESMRRichTextViewer::Draw
+// CESMRRichTextViewer::HighlightLinkL
 // -----------------------------------------------------------------------------
 //
-void CESMRRichTextViewer::Draw( const TRect& aRect ) const
+void CESMRRichTextViewer::HighlightLinkL(const CESMRRichTextLink& aLink )
     {
     FUNC_LOG;
-    CEikEdwin::Draw( aRect );
-    if (IsFocused ( ) && iActionMenuStatus )
-        {
-        const CESMRRichTextLink* link = GetSelectedLink ( );
-        if (link && link->TriggerKey ( )== CESMRRichTextLink::ETriggerKeyRight )
-            {
-            TRAP_IGNORE(DrawRightClickIconL(*link));
-            }
-        }
-    }
-
-// -----------------------------------------------------------------------------
-// CESMRRichTextViewer::DrawRightClickIconL
-// -----------------------------------------------------------------------------
-//
-void CESMRRichTextViewer::DrawRightClickIconL(
-		const CESMRRichTextLink& aLink ) const
-    {
-    FUNC_LOG;
-    TTmDocPosSpec posSpec;
-    TTmPosInfo2 posInfo;
-
-    posSpec.iPos = aLink.StartPos ( )+ aLink.Length ( );
-    posSpec.iType = TTmDocPosSpec::ETrailing;
-
-    if (TextView()->FindDocPosL (posSpec, posInfo ) )
-        {
-        TPoint pt = posInfo.iEdge;
-        pt -= iActionMenuIcon->SizeInPixels ( );
-
-        pt.iY = pt.iY + KArrowUpperMargin;
-        pt.iX = Parent()->Rect().iBr.iX -
-                iActionMenuIcon->SizeInPixels().iWidth - KArrowRightMargin;
-        TRect dst(pt, iActionMenuIcon->SizeInPixels ( ));
-        TRect src(TPoint (0, 0 ), iActionMenuIcon->SizeInPixels ( ));
-
-        CWindowGc& gc = SystemGc ( );
-        gc.DrawBitmapMasked (dst, iActionMenuIcon, src, iActionMenuIconMask,
-                EFalse );
-        }
-    }
-
-// -----------------------------------------------------------------------------
-// CESMRRichTextViewer::HighlightLink
-// -----------------------------------------------------------------------------
-//
-void CESMRRichTextViewer::HighlightLink(const CESMRRichTextLink& aLink )
-    {
-    FUNC_LOG;
-    TInt error = KErrNone;
     TCursorSelection selection( aLink.StartPos(), aLink.StartPos() + aLink.Length() );
 
     // If TextView is not constructed yet.
     if ( !TextView() )
         {
-        TRAP( error, SetSelectionL( selection.iCursorPos, selection.iAnchorPos ) );
+        SetSelectionL( selection.iCursorPos, selection.iAnchorPos );
         }
     else
         {
         TextView()->SetPendingSelection( selection );
         }
 
-    if ( error == KErrNone )
-        {
-        TRAP( error, SetValueL( aLink ) );
-        if ( error != KErrNone )
-            {
-            CEikonEnv::Static()->// codescanner::eikonenvstatic
-                HandleError( error );
-            }
-        }
+    SetValueL( aLink );
+    ChangeMiddleSoftkeyL( aLink );
     }
 
 // -----------------------------------------------------------------------------
@@ -908,15 +832,7 @@ void CESMRRichTextViewer::SetValueL( const CESMRRichTextLink& aLink )
             }
         case CESMRRichTextLink::ETypeAttachment:
             {
-            // Set this as command observer.
-            // Commands from contact menu handler are
-            // processed in ProcessCommandL and forwarded
-            // as field command events
-            // <cmail>
-            //iCntMenuHdlr->SetCommandObserver( this );
-            // </cmail>
-            iCntMenuHdlr->SetValueL( aLink.Value(),
-            		CESMRContactMenuHandler::EValueTypeAttachment );
+
             break;
             }
         default:
@@ -1005,60 +921,34 @@ void CESMRRichTextViewer::SearchLinksL(const TDesC& aText )
 // -----------------------------------------------------------------------------
 // CESMRRichTextViewer::CopyCurrentLinkToClipBoardL
 // -----------------------------------------------------------------------------
+//
 EXPORT_C void CESMRRichTextViewer::CopyCurrentLinkToClipBoardL() const
     {
     FUNC_LOG;
     const CESMRRichTextLink* link = GetSelectedLink();
+    HBufC* clipBoardText = NULL;
 
-    if( link )
+    if ( link )
+    	{
+    	clipBoardText = GetLinkTextLC( *link );
+    	}
+
+    if ( clipBoardText )
         {
-    	HBufC* clipBoardText = GetLinkTextL(*link);
-
-    	if ( clipBoardText )
-    	    {
-    	    CleanupStack::PushL( clipBoardText );
-    	    CClipboard* cb =
-            CClipboard::NewForWritingLC( CCoeEnv::Static()->FsSession() );
-            cb->StreamDictionary().At( KClipboardUidTypePlainText );
-            CPlainText* plainText = CPlainText::NewL();
-            CleanupStack::PushL( plainText );
-            plainText->InsertL( 0 , *clipBoardText);
-            plainText->CopyToStoreL( cb->Store(),
-                    cb->StreamDictionary(), 0, plainText->DocumentLength());
-            CleanupStack::PopAndDestroy( plainText );
-            cb->CommitL();
-            CleanupStack::PopAndDestroy( cb );
-            CleanupStack::PopAndDestroy( clipBoardText );
-    	    }
-        }
-    }
-
-// -----------------------------------------------------------------------------
-// CESMRRichTextViewer::CopyCurrentLinkValueToClipBoardL
-// -----------------------------------------------------------------------------
-EXPORT_C void CESMRRichTextViewer::CopyCurrentLinkValueToClipBoardL() const
-    {
-    FUNC_LOG;
-    const CESMRRichTextLink* link = GetSelectedLink();
-
-    if( link )
-        {
-    	TDesC& clipBoardText = link->Value();
-
-	    CClipboard* cb =
+        CClipboard* cb =
         CClipboard::NewForWritingLC( CCoeEnv::Static()->FsSession() );
         cb->StreamDictionary().At( KClipboardUidTypePlainText );
         CPlainText* plainText = CPlainText::NewL();
         CleanupStack::PushL( plainText );
-        plainText->InsertL( 0 , clipBoardText);
+        plainText->InsertL( 0 , *clipBoardText);
         plainText->CopyToStoreL( cb->Store(),
-                cb->StreamDictionary(), 0, plainText->DocumentLength());
+        		cb->StreamDictionary(), 0, plainText->DocumentLength());
         CleanupStack::PopAndDestroy( plainText );
         cb->CommitL();
         CleanupStack::PopAndDestroy( cb );
+        CleanupStack::PopAndDestroy( clipBoardText );
         }
     }
-
 
 // -----------------------------------------------------------------------------
 // CESMRRichTextViewer::ResetActionMenu
@@ -1066,7 +956,7 @@ EXPORT_C void CESMRRichTextViewer::CopyCurrentLinkValueToClipBoardL() const
 EXPORT_C void CESMRRichTextViewer::ResetActionMenuL() const // codescanner::LFunctionCantLeave
     {
     FUNC_LOG;
-    if(iCntMenuHdlr)
+    if ( iCntMenuHdlr )
         {
         iCntMenuHdlr->Reset();
         }
@@ -1095,7 +985,6 @@ EXPORT_C TBool CESMRRichTextViewer::LinkSelectedL()
     const CESMRRichTextLink* link = GetSelectedLink();
     if ( link )
         {
-        iActionMenuOpen = ETrue;
         switch ( link->TriggerKey() )
             {
             case CESMRRichTextLink::ETriggerKeyRight:
@@ -1103,7 +992,7 @@ EXPORT_C TBool CESMRRichTextViewer::LinkSelectedL()
                 if ( !iLinkObserver ||
                      !iLinkObserver->HandleRichTextLinkSelection(link) )
                     {
-                    iCntMenuHdlr->ShowActionMenuL();
+                    ShowContextMenuL();
                     }
                 linkSelected = ETrue;
                 break;
@@ -1111,7 +1000,7 @@ EXPORT_C TBool CESMRRichTextViewer::LinkSelectedL()
             case CESMRRichTextLink::ETriggerKeyOk:
                 {
                 if (iLinkObserver &&
-                    iLinkObserver->HandleRichTextLinkSelection (link ) )
+                    iLinkObserver->HandleRichTextLinkSelection( link ) )
                     {
                     linkSelected = ETrue;
                     }
@@ -1122,12 +1011,10 @@ EXPORT_C TBool CESMRRichTextViewer::LinkSelectedL()
                 break;
                 }
             }
-        iActionMenuOpen = EFalse;
         }
 
     return linkSelected;
     }
-
 
 // -----------------------------------------------------------------------------
 // CESMRRichTextViewer::ProcessCommandL
@@ -1157,101 +1044,198 @@ void CESMRRichTextViewer::ActivateL()
     FUNC_LOG;
     CEikRichTextEditor::ActivateL();
 
-    // Make sure correct font color is in use.
-    SetFontColorL( IsFocused() );
-
     // CEikEdwin::ActivateL removes selection, re-set highlight
     // if focused and there's a selected link.
-    if ( IsFocused() && GetSelectedLink() )
+    const CESMRRichTextLink* link = GetSelectedLink();
+    if ( link && IsFocused() )
         {
-        HighlightLink( *GetSelectedLink() );
+        HighlightLinkL( *link );
         DrawDeferred();
         }
     }
 
 // -----------------------------------------------------------------------------
-// CESMRRichTextViewer::HandlePointerEventL
+// CESMRRichTextViewer::ContactActionQueryComplete
 // -----------------------------------------------------------------------------
 //
-void CESMRRichTextViewer::HandlePointerEventL(const TPointerEvent& aPointerEvent)
+void CESMRRichTextViewer::ContactActionQueryComplete()
     {
-    TBool linkTapped( EFalse );
-    CESMRRichTextLink* link = NULL;
-    // fetch the current line number:
-    TInt currentLineNumber = TextLayout()->GetLineNumber( CursorPos() );
-    // find out tapped position
-    TPoint touchPoint = aPointerEvent.iPosition;
-
-    TInt tappedPos = TextView()->XyPosToDocPosL( touchPoint );
-    for (TInt i = 0; i<iLinkList.Count(); i++)
+    FUNC_LOG;
+    if ( iOpenActionMenu )
         {
-        link = iLinkList[ i ];
-        TInt linkStart = link->StartPos();
-        TInt linkEnd = link->StartPos() + link->Length() - 1;
-        if ( tappedPos >= linkStart && tappedPos <= linkEnd )
+        // Activate link as actions have been discovered
+        TRAP_IGNORE(  LinkSelectedL() );
+        }
+
+    // Reset menu observer
+    iCntMenuHdlr->SetContactMenuObserver( NULL );
+    iOpenActionMenu = EFalse;
+    }
+
+// -----------------------------------------------------------------------------
+// CESMRRichTextViewer::ShowContextMenuL
+// -----------------------------------------------------------------------------
+//
+void CESMRRichTextViewer::ShowContextMenuL()
+    {
+    FUNC_LOG;
+    iOpenActionMenu = EFalse;
+    ProcessCommandL( EAknSoftkeyContextOptions );
+    }
+
+// -----------------------------------------------------------------------------
+// CESMRRichTextViewer::GetLinkAreaL
+// -----------------------------------------------------------------------------
+//
+void CESMRRichTextViewer::GetLinkAreaL(
+        TRegion& aRegion,
+        const CESMRRichTextLink& aLink ) const
+    {
+    FUNC_LOG;
+    TTmDocPosSpec posSpec;
+    TTmPosInfo2 posInfo;
+
+    posSpec.iPos = aLink.StartPos();
+    posSpec.iType = TTmDocPosSpec::ELeading;
+
+    aRegion.Clear();
+
+    if ( TextView()->FindDocPosL( posSpec, posInfo ) )
+        {
+        TRect linkRect( 0, 0, 0, 0 );
+
+        // Create link surrounding rectangle
+        HBufC* text = GetLinkTextLC( aLink );
+        TInt textWidth = AknBidiTextUtils::MeasureTextBoundsWidth(
+                *iFont,
+                *text,
+                CFont::TMeasureTextInput::EFVisualOrder );
+
+        TPoint tl( posInfo.iEdge );
+
+        if ( AknLayoutUtils::LayoutMirrored() )
             {
-            // link tapped
-            linkTapped = ETrue;
-            iCurrentLinkIndex = i;
+            // move top left x to end of text
+            tl.iX -= textWidth;
+            }
+
+        tl.iY -= iFont->FontMaxAscent();
+        TPoint br( tl.iX + textWidth, tl.iY + iFont->FontMaxHeight() );
+
+        TRect rect( Rect() );
+
+        while ( ( tl.iX < rect.iTl.iX || br.iX > rect.iBr.iX )
+                && !aRegion.CheckError() )
+            {
+            // Link on multiple lines
+
+            tl.iX = Max( rect.iTl.iX, tl.iX );
+            br.iX = Min( br.iX, rect.iBr.iX );
+            linkRect.SetRect( tl, br );
+            aRegion.AddRect( linkRect );
+
+            TPtrC remainder( text->Mid( posSpec.iPos - aLink.StartPos() ) );
+            TInt numChars = iFont->TextCount( remainder,
+                                              linkRect.Width() );
+            posSpec.iPos += numChars;
+            remainder.Set( remainder.Mid( numChars) );
+
+            if ( TextView()->FindDocPosL( posSpec, posInfo ) )
+                {
+                textWidth = AknBidiTextUtils::MeasureTextBoundsWidth(
+                                *iFont,
+                                remainder,
+                                CFont::TMeasureTextInput::EFVisualOrder );
+
+                tl = posInfo.iEdge;
+
+                if ( AknLayoutUtils::LayoutMirrored() )
+                    {
+                    // move top left x to end of text
+                    tl.iX -= textWidth;
+                    }
+
+                tl.iY -= iFont->FontMaxAscent();
+                br.SetXY( tl.iX + textWidth, tl.iY + iFont->FontMaxHeight() );
+                }
+            }
+
+        linkRect.SetRect( tl, br );
+        aRegion.AddRect( linkRect );
+
+        CleanupStack::PopAndDestroy( text );
+        }
+    }
+
+// -----------------------------------------------------------------------------
+// CESMRRichTextViewer::ChangeMiddleSoftkeyL
+// -----------------------------------------------------------------------------
+//
+void CESMRRichTextViewer::ChangeMiddleSoftkeyL( const CESMRRichTextLink& aLink )
+    {
+    FUNC_LOG;
+    CESMRField* field = static_cast< CESMRField* >( Parent() );
+
+    if ( field )
+        {
+        field->ChangeMiddleSoftKeyL( aLink.MSKCommand(), aLink.MSKText() );
+        }
+    }
+
+// -----------------------------------------------------------------------------
+// CESMRRichTextViewer::UpdateViewL
+// -----------------------------------------------------------------------------
+//
+void CESMRRichTextViewer::UpdateViewL( const TKeyEvent &aKeyEvent )
+    {
+    FUNC_LOG;
+    const CESMRRichTextLink* selectedLink = GetSelectedLink();
+
+    if( !selectedLink )
+        {
+        return;
+        }
+
+    RRegion linkRegion;
+    CleanupClosePushL( linkRegion );
+
+    GetLinkAreaL( linkRegion, *selectedLink );
+    TRect linkRect = linkRegion.BoundingRect();
+
+    CleanupStack::PopAndDestroy( &linkRegion );
+
+    TRect viewableAreaRect = iObserver->ViewableAreaRect();
+
+
+    switch ( aKeyEvent.iCode )
+        {
+        case EKeyLeftArrow:
+        case EKeyUpArrow:
+            {
+            if( linkRect.iTl.iY < viewableAreaRect.iTl.iY )
+                {
+                // Move fields down
+                iObserver->RePositionFields(
+                        -( linkRect.iTl.iY - viewableAreaRect.iTl.iY ) );
+                }
+
             break;
             }
-        }
-
-    if ( aPointerEvent.iType == TPointerEvent::EButton1Down )
-        {
-        if ( linkTapped )
+        case EKeyRightArrow:
+        case EKeyDownArrow:
             {
-            // tactile feedback
-            MTouchFeedback* feedback = MTouchFeedback::Instance();
-            if ( feedback )
+            if( linkRect.iBr.iY > viewableAreaRect.iBr.iY )
                 {
-                feedback->InstantFeedback( this, ETouchFeedbackBasic );
+                // Move fields up
+                iObserver->RePositionFields(
+                        -( linkRect.iBr.iY - viewableAreaRect.iBr.iY ) );
                 }
-
-            TPointerEvent pointerEvent = aPointerEvent;
-            pointerEvent.iParentPosition = pointerEvent.iPosition
-                + DrawableWindow()->AbsPosition();
-            iLongTapDetector->PointerEventL( pointerEvent );
-            HighlightLink( *link );
-            if ( Parent() )
-                {
-                Parent()->DrawDeferred();
-                }
-            else
-                {
-                DrawDeferred();
-                }
+            break;
             }
-        }
-    else
-        {
-        TPointerEvent pointerEvent = aPointerEvent;
-        pointerEvent.iParentPosition = pointerEvent.iPosition
-            + DrawableWindow()->AbsPosition();
-        iLongTapDetector->PointerEventL( pointerEvent );
-
-        if ( aPointerEvent.iType  == TPointerEvent::EButton1Up )
-            {
-            if ( linkTapped && !iActionMenuOpen )
-                {
-                // tapped highlighted field, execute action
-                LinkSelectedL();
-                }
-            }
+        default:
+            break;
         }
     }
 
-// -----------------------------------------------------------------------------
-// CESMRRichTextViewer::HandleLongTapEventL
-// -----------------------------------------------------------------------------
-//
-void CESMRRichTextViewer::HandleLongTapEventL( const TPoint& /*aPenEventLocation*/,
-                                              const TPoint& /*aPenEventScreenLocation*/ )
-    {
-    if ( !iActionMenuOpen )
-        {
-        LinkSelectedL();
-        }
-    }
 // EOF
 

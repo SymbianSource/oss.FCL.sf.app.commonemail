@@ -21,8 +21,8 @@
 #include "cesmricalviewercanviewmr.h"
 //<cmail>
 #include "esmricalvieweropcodes.hrh"
-#include "cfsmailcommon.h"
-#include "cfsmailmessage.h"
+#include "CFSMailCommon.h"
+#include "CFSMailMessage.h"
 //</cmail>
 
 // ======== MEMBER FUNCTIONS ========

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2003-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -20,29 +20,20 @@
 #include "cesmrrichtextlink.h"
 #include "mesmrlistobserver.h"
 #include "esmrfieldbuilderdef.h"
-#include "cesmrlayoutmgr.h"
 #include "nmrlayoutmanager.h"
 #include "cmrlabel.h"
 
 #include <calentry.h>
 #include <caluser.h>
-#include <StringLoader.h>
+#include <stringloader.h>
 #include <eikenv.h>
 #include <avkon.hrh>
-#include <AknUtils.h>
+#include <aknutils.h>
 #include <esmrgui.rsg>
 
 // DEBUG
 #include "emailtrace.h"
 
-/// Unnamed namespace for local definitions
-namespace { // codescanner::namespace
-
-const TInt KMargin = 5;
-
-} // namespace
-
-using namespace ESMRLayout;
 
 // ======== MEMBER FUNCTIONS ========
 
@@ -68,7 +59,6 @@ CESMRViewerFromField::~CESMRViewerFromField( )
     {
     FUNC_LOG;
     delete iFieldTopic;
-    delete iRichTextViewer;
     }
 
 // ---------------------------------------------------------------------------
@@ -78,13 +68,16 @@ CESMRViewerFromField::~CESMRViewerFromField( )
 void CESMRViewerFromField::InitializeL()
     {
     FUNC_LOG;
-    TAknLayoutText editorRect = 
-    NMRLayoutManager::GetLayoutText( 
+    TAknLayoutText editorRect =
+    NMRLayoutManager::GetLayoutText(
             Rect(), NMRLayoutManager::EMRTextLayoutMultiRowTextEditor );
-    iRichTextViewer->SetFontL( editorRect.Font(), iLayout );
-    const CFont* topicFont = 
+    iRichTextViewer->SetFontL( editorRect.Font() );
+    iRichTextViewer->ApplyLayoutChangesL();
+    
+    const CFont* topicFont =
         AknLayoutUtils::FontFromId( EAknLogicalFontPrimaryFont, NULL );
     iFieldTopic->SetFont( topicFont );
+    iRichTextViewer->SetEventQueue( iEventQueue );
     }
 
 // ---------------------------------------------------------------------------
@@ -103,7 +96,6 @@ void CESMRViewerFromField::InternalizeL( MESMRCalEntry& aEntry )
             text.Set (organizer->Address() );
             }
         iRichTextViewer->SetTextL( &text );
-        iRichTextViewer->SetMargins( KMargin );
 
         TPtrC address = organizer->Address();
         if ( address.Length() > 0 )
@@ -117,14 +109,13 @@ void CESMRViewerFromField::InternalizeL( MESMRCalEntry& aEntry )
             }
 
         // Set the topic text
-        HBufC* stringholder = 
+        HBufC* stringholder =
             StringLoader::LoadLC( R_QTN_MEET_REQ_LABEL_FROM, iEikonEnv );
         iFieldTopic->SetTextL( *stringholder );
         CleanupStack::PopAndDestroy( stringholder );
 
         //wake up current contact menu selection by calling this
         iRichTextViewer->FocusChanged( ENoDrawNow );
-        SizeChanged( );
         }
     iDisableRedraw = ETrue;
     }
@@ -137,21 +128,15 @@ void CESMRViewerFromField::SizeChanged( )
     {
     FUNC_LOG;
     TRect rect( Rect() );
-    
+
     TAknLayoutRect row1LayoutRect =
         NMRLayoutManager::GetFieldRowLayoutRect( rect, 1 );
     rect = row1LayoutRect.Rect();
-    
+
     TAknTextComponentLayout labelLayout =
-        NMRLayoutManager::GetTextComponentLayout( 
+        NMRLayoutManager::GetTextComponentLayout(
                 NMRLayoutManager::EMRTextLayoutText );
     AknLayoutUtils::LayoutLabel( iFieldTopic, rect, labelLayout );
-    // Color should be overrided after layouting
-    // If this function leaves we'll have to use default color
-    TRAP_IGNORE( AknLayoutUtils::OverrideControlColorL( 
-                                *iFieldTopic, 
-                                EColorLabelText,
-                                KRgbBlack ));    
 
     rect = Rect();
     TAknLayoutRect row2LayoutRect =
@@ -162,17 +147,29 @@ void CESMRViewerFromField::SizeChanged( )
     TInt moveHeight = row1LayoutRect.Rect().Height();
     rect.Move( 0, moveHeight );
 
-    TAknLayoutText editorRect = 
-        NMRLayoutManager::GetLayoutText( 
+    TAknLayoutText editorRect =
+        NMRLayoutManager::GetLayoutText(
                 rect, NMRLayoutManager::EMRTextLayoutMultiRowTextEditor );
-    // Count the rect for the richtextviewer. It will be placed into the 
-    // top left corner of the editorRect and size is calculated from 
+    // Count the rect for the richtextviewer. It will be placed into the
+    // top left corner of the editorRect and size is calculated from
     // viewer's real size iExpandedSize and editorRect's width.
-    TPoint tlPoint( 
+    TPoint tlPoint(
             editorRect.TextRect().iTl.iX, editorRect.TextRect().iTl.iY );
     TSize prefSize( editorRect.TextRect().Width(), iExpandedSize.iHeight );
     TRect viewerRect( tlPoint, prefSize );
+    // Failures are ignored. 
+    TRAP_IGNORE( 
+            // Try setting font 
+            iRichTextViewer->SetFontL( editorRect.Font() );
+            // Try applying changes
+            iRichTextViewer->ApplyLayoutChangesL();
+            );
     iRichTextViewer->SetRect( viewerRect );
+
+    TRect bgRect( viewerRect );
+    // Move focus rect so that it's relative to field's position.
+    bgRect.Move( -Position() );
+    SetFocusRect( bgRect );
     }
 
 // ---------------------------------------------------------------------------
@@ -180,23 +177,23 @@ void CESMRViewerFromField::SizeChanged( )
 // ---------------------------------------------------------------------------
 //
 TSize CESMRViewerFromField::MinimumSize()
-    {    
+    {
     // Minimum size ->  Height: TitleRow + Editor size + Margin
-    //                  Width: Parent's Width 
-    //                   (so the content pane that holds all the fields)     
+    //                  Width: Parent's Width
+    //                   (so the content pane that holds all the fields)
     TRect rect = Rect();
     TAknLayoutRect row1LayoutRect =
         NMRLayoutManager::GetFieldRowLayoutRect( rect, 1 );
     TInt titleHeight = row1LayoutRect.Rect().Height();
     // Add title field height
     TInt totalHeight = titleHeight;
-    
+
     TAknLayoutRect row2LayoutRect =
         NMRLayoutManager::GetFieldRowLayoutRect( rect, 2 );
     TInt editorRowHeight = row2LayoutRect.Rect().Height();
-    
+
     TAknTextComponentLayout editorLayout =
-        NMRLayoutManager::GetTextComponentLayout( 
+        NMRLayoutManager::GetTextComponentLayout(
                 NMRLayoutManager::EMRTextLayoutMultiRowTextEditor );
     // Editor height from Layout data
     TInt editorHeight = editorLayout.H();
@@ -227,7 +224,7 @@ TInt CESMRViewerFromField::CountComponentControls( ) const
         {
         count++;
         }
-    
+
     return count;
     }
 
@@ -283,7 +280,7 @@ TBool CESMRViewerFromField::HandleEdwinSizeEventL(CEikEdwin* /*aEdwin*/,
 CESMRViewerFromField::CESMRViewerFromField( )
     {
     FUNC_LOG;
-    //do nothing
+    SetFocusType( EESMRHighlightFocus );
     }
 
 // ---------------------------------------------------------------------------
@@ -299,28 +296,34 @@ void CESMRViewerFromField::ConstructL( )
     iFieldTopic->SetTextL( KNullDesC() );
 
     iRichTextViewer = CESMRRichTextViewer::NewL ( this );
+    CESMRField::ConstructL( iRichTextViewer ); // ownership transferred
     iRichTextViewer->SetEdwinSizeObserver ( this );
+    iRichTextViewer->SetParent( this );
     }
 
 // ---------------------------------------------------------------------------
 // CESMRViewerFromField::ExecuteGenericCommandL()
 // ---------------------------------------------------------------------------
 //
-void CESMRViewerFromField::ExecuteGenericCommandL( TInt aCommand )
+TBool CESMRViewerFromField::ExecuteGenericCommandL( TInt aCommand )
     {
     FUNC_LOG;
+    TBool isUsed( EFalse );
     if (aCommand == EESMRCmdClipboardCopy)
         {
-        iRichTextViewer->CopyCurrentLinkValueToClipBoardL();
+        iRichTextViewer->CopyCurrentLinkToClipBoardL();
+        isUsed = ETrue;
         }
     if ( aCommand == EAknSoftkeySelect )
         {
         iRichTextViewer->LinkSelectedL();
+        isUsed = ETrue;
         }
+    return isUsed;
     }
 
 // ---------------------------------------------------------------------------
-// CESMRViewerFromField::ExecuteGenericCommandL()
+// CESMRViewerFromField::SetOutlineFocusL
 // ---------------------------------------------------------------------------
 //
 void CESMRViewerFromField::SetOutlineFocusL( TBool aFocus )
@@ -330,17 +333,31 @@ void CESMRViewerFromField::SetOutlineFocusL( TBool aFocus )
     if ( iRichTextViewer )
         {
         iRichTextViewer->SetFocus( aFocus );
+        }
+    if ( aFocus )
+        {
+        SetMiddleSoftKeyVisible( ETrue );
+        }
+    else if( iRichTextViewer )
+        {
+        //need to tell action menu that focus has changed
+        iRichTextViewer->ResetActionMenuL();
+        }
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRViewerFromField::HandleLongtapEventL
+// ---------------------------------------------------------------------------
+//
+void CESMRViewerFromField::HandleLongtapEventL( const TPoint& aPosition )
+    {
+    FUNC_LOG;
     
-		if ( aFocus )
-			{
-			SetMiddleSoftKeyVisible( ETrue );
-			}
-		else
-			{
-			//need to tell action menu that focus has changed
-			iRichTextViewer->ResetActionMenuL();
-			}
-        }    
+    if ( iRichTextViewer->Rect().Contains( aPosition ) )
+        {
+        iRichTextViewer->LinkSelectedL();
+		HandleTactileFeedbackL();
+        }
     }
 
 // ---------------------------------------------------------------------------
@@ -354,20 +371,9 @@ void CESMRViewerFromField::SetContainerWindowL(const CCoeControl& aContainer)
     if ( iRichTextViewer )
         {
         iRichTextViewer->SetContainerWindowL( aContainer );
+        iRichTextViewer->SetParent( this );
         }
     }
-// -----------------------------------------------------------------------------
-// CESMRViewerFromField::HandlePointerEventL
-// -----------------------------------------------------------------------------
-//
-void CESMRViewerFromField::HandlePointerEventL(const TPointerEvent& aPointerEvent)
-    {
-    CCoeControl::HandlePointerEventL(aPointerEvent);
 
-    if ( aPointerEvent.iType == TPointerEvent::EButton1Down )
-        {
-        iRichTextViewer->SetFocus( ETrue );
-        }
-    }
 //EOF
 

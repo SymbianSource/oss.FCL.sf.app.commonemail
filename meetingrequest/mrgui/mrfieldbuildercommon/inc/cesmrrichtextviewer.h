@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2003-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -12,7 +12,7 @@
 * Contributors:
 *
 *  Description : CEikRichTextEditor based Rich Text viewer
-*  Version     : %version: tr1sido#4.1.4 %
+*  Version     : %version: e002sa32#19 %
 *
 */
 
@@ -22,16 +22,16 @@
 #include <eikrted.h>
 #include <cntitem.h>
 #include <eikcmobs.h>
-#include <aknlongtapdetector.h>
 
 #include "resmrstatic.h"
+#include "mmrcontactmenuobserver.h"
 
 class CESMRRichTextLink;
-class CESMRLayoutManager;
 class MESMRFieldEventQueue;
 
 // SCROLLING_MOD: List observer forward declaraion
 class MESMRListObserver;
+class MMRFieldScrollObserver;
 
 /*
  * Pure virtual link selection observer.
@@ -53,14 +53,14 @@ public:
  * CEikRichTextEditor based Rich Text viewer.
  */
 NONSHARABLE_CLASS( CESMRRichTextViewer ) : public CEikRichTextEditor,
-                                           public MEikCommandObserver, 
-                                           public MAknLongTapDetectorCallBack
+                                           public MEikCommandObserver,
+                                           public MMRContactMenuObserver
     {
 public:
     /*
      * Two-phase constructor.
-     * @param aParent if aParent is NULL, 
-     * 				  CEikRichTextEditor is constucted as 
+     * @param aParent if aParent is NULL,
+     * 				  CEikRichTextEditor is constucted as
      * 				  window owning control.
      * @return Created object
      */
@@ -76,14 +76,20 @@ public:
     IMPORT_C void PositionChanged( );
     IMPORT_C void FocusChanged( TDrawNow aDrawNow );
     IMPORT_C TKeyResponse OfferKeyEventL(
-    		const TKeyEvent &aKeyEvent, 
+    		const TKeyEvent &aKeyEvent,
     		TEventCode aType );
-
     IMPORT_C void SetMargins( TInt sMargin );
 
-    IMPORT_C void SetFontL( 
-    		const CFont* aFont, 
-    		CESMRLayoutManager* aLayout = NULL );
+    void HandlePointerEventL( const TPointerEvent& aPointerEvent );
+
+    /*
+     * Sets the given font for the rich text component. Also
+     * sets the default main area color. Changes take effect
+     * after AppliyLayoutChanges is called.
+     *
+     * @param aFont, the font to be set for the rich text component.
+     */
+    IMPORT_C void SetFontL( const CFont* aFont );
 
     /*
      * Sets CEikRichTextEditor's text and searches text for emails,
@@ -105,7 +111,7 @@ public:
      * @param aLink link to be added
      */
     IMPORT_C void AddLinkL(CESMRRichTextLink* aLink );
-    
+
     /**
      * Inserts link to text.
      * @param aLink link to be added
@@ -123,7 +129,7 @@ public:
      *
      * @param aLink link
      */
-    IMPORT_C HBufC* GetLinkTextL( const CESMRRichTextLink& aLink ) const;
+    IMPORT_C HBufC* GetLinkTextLC( const CESMRRichTextLink& aLink ) const;
 
     /*
      * Returns pointer to new CContactItem constructed from aLink.
@@ -134,14 +140,13 @@ public:
      */
     IMPORT_C CContactItem* CreateContactItemL( const CESMRRichTextLink& aLink );
 
- 
     /*
     * Method for cesmrviewerdescriptionfield to set the list observer
     *
     * @param aObserver observer that should be notified
     */
     IMPORT_C void SetListObserver( MESMRListObserver* aObserver );
-    
+
     /**
      * Returns height of one row.
      *
@@ -155,9 +160,9 @@ public:
      */
     IMPORT_C TInt LineCount();
     /**
-     * Returns line number of currenly 
+     * Returns line number of currenly
      * focused row starting from one.
-     * 
+     *
      * @return row's height
      */
     IMPORT_C TInt CurrentLineNumber();
@@ -169,20 +174,14 @@ public:
     IMPORT_C void SetActionMenuStatus( TBool aStatus );
 
     /**
-     * Copies currently selected richtext link associated with 
+     * Copies currently selected richtext link associated with
      * action menu to the clipboard
      */
     IMPORT_C void CopyCurrentLinkToClipBoardL() const;
 
     /**
-     * Copies currently link value to clipboard 
-     * action menu to the clipboard
-     */
-    IMPORT_C void CopyCurrentLinkValueToClipBoardL() const;
-
-    /**
-     * convenience method to reset TLS static contactactionmenuhandler 
-     * for classes that only have access to richtextviewer. 
+     * convenience method to reset TLS static contactactionmenuhandler
+     * for classes that only have access to richtextviewer.
      * Needed for richtextviewer fields when they lose focus.
      */
     IMPORT_C void ResetActionMenuL() const;
@@ -199,28 +198,56 @@ public:
      * @return ETrue if link selected
      */
     IMPORT_C TBool LinkSelectedL();
+
+    /**
+     * Handles long tap event in rich text viewer.
+     * @param aPosition position of long tap event.
+     */
+    IMPORT_C void HandleLongtapEventL( TPoint& aPosition );
+
+    /*
+     * Sets the given line spacing for the rich text component.
+     * Changes take effect after AppliyLayoutChanges is called.
+     *
+     * @param aLineSpacingInTwips, the line spacing to be used.
+     */
+    IMPORT_C void SetLineSpacingL( TInt aLineSpacingInTwips );
+
+    /*
+     * Applies the layout changes to the rich text component.
+     */
+    IMPORT_C void ApplyLayoutChangesL();
     
+    /*
+     * Set selected link according to the index in the array.
+     * @param aLinkIndex the index of link need to be selected.
+     */
+    IMPORT_C void SetFocusLink( TInt aLinkIndex );
+
+    /*
+     * Get the index of selected link in the array.
+     * @return The index of selected link in the array.
+     */
+    IMPORT_C TInt GetFocusLink( ) const;
+
 protected: // From MEikCommandObserver
-    
+
     /**
      * Process commands from contact menu handler.
-     * Forwards commands to event observer. 
+     * Forwards commands to event observer.
      */
     void ProcessCommandL( TInt aCommandId );
 
-protected: // From MAknLongTapDetectorCallBack
-    virtual void HandleLongTapEventL( const TPoint& aPenEventLocation, 
-                                      const TPoint& aPenEventScreenLocation );
-    
 protected: // From CEikEdwin
     /**
      * Sets the control as ready to be drawn.
      */
     void ActivateL();
 
-protected: // From CCoeControl
-    virtual void HandlePointerEventL(const TPointerEvent& aPointerEvent);
-    
+protected: // From MMRContactMenuObserver
+
+    void ContactActionQueryComplete();
+
 private:
     /*
      * Private constuctor.
@@ -229,28 +256,17 @@ private:
 
     /*
      * Two-phase constructor.
-     * @param aParent if aParent is NULL, CEikRichTextEditor 
+     * @param aParent if aParent is NULL, CEikRichTextEditor
      * 				  is constucted as window owning control.
      */
     void ConstructL(const CCoeControl* aParent );
-
-    /*
-     * CCoeControl::Draw is overridden.
-     */
-    void Draw( const TRect& aRect ) const;
-
-    /*
-     * Draws right-click icon.
-     * @param aLink link to which draw icon
-     */
-    void DrawRightClickIconL(const CESMRRichTextLink& aLink) const;
 
     /*
      * Highlights link in CEikRichTextEditor.
      *
      * @param aLink link to be highlighted
      */
-    void HighlightLink(const CESMRRichTextLink& aLink );
+    void HighlightLinkL(const CESMRRichTextLink& aLink );
 
     /*
      * Private internal function which searches for emails,
@@ -260,63 +276,59 @@ private:
      */
     void SearchLinksL(const TDesC& aText );
 
-    void ScrollViewL( 
-    		TInt aNumberOfRows, 
-    		TCursorPosition::TMovementType aDirection);
     TInt FindTextLinkBetweenNextScrollArea(
-    		TInt aStartRow,                  
-    		TInt aEndRow,                               
+    		TInt aStartRow,
+    		TInt aEndRow,
     		TCursorPosition::TMovementType aDirection);
 
-    TBool SetHighLightToNextLinkL( TCursorPosition::TMovementType aDirection,
-                                   TInt aStartRow,
-                                   TInt aEndRow);
     TInt ValidLinkForFocusing(	TInt aIndex,
                                 TCursorPosition::TMovementType aDirection,
                                 TInt aStartRow,
                                 TInt aEndRow);
 
-    void SetFontColorL( TBool aFocused = EFalse );
-
     void SetValueL( const CESMRRichTextLink& aLink );
 
+    void ShowContextMenuL();
+
+    void GetLinkAreaL( TRegion& aRegion,
+                       const CESMRRichTextLink& aLink ) const;
+
+    void ChangeMiddleSoftkeyL( const CESMRRichTextLink& aLink );
+
+    void UpdateViewL( const TKeyEvent &aKeyEvent );
+
 private: // Data
-	/// Own:
-    TInt iCurrentLinkIndex;
-    /// Own:
+
+	/// Own: Array of hyperlinks in viewer
     RPointerArray<CESMRRichTextLink> iLinkList;
     /// Ref:
     MESMRRichTextObserver* iLinkObserver;
     /// Own:
     RESMRStatic iESMRStatic;
-    /// Own:
-    CFbsBitmap* iActionMenuIcon;
-    /// Own:
-    CFbsBitmap* iActionMenuIconMask;
     /// Ref:
     MESMRListObserver* iObserver;
-    /// Own:
-    TInt iNumberOfLines;
     /// Own:
     TInt iApproximatelyRowHeight;
     /// Ref: pointer to font
     const CFont* iFont;
-    /// Ref: Pointer to layout manager
-    CESMRLayoutManager* iLayout;
     /// Ref: Contact Menu handler
     CESMRContactMenuHandler* iCntMenuHdlr;
     /// Ref: Pointer to event queue
     MESMRFieldEventQueue* iEventQueue;
-    /// Own: Flag for action menu status
-    TBool iActionMenuStatus;
+    /// Own: Rich text link format
+    TCharFormat iRichTextLinkFormat;
+    /// Own: Rich text link format mask
+    TCharFormatMask iRichTextLinkFormatMask;
     /// Own:
-    TCharFormat iFormat;
-    /// Own:
-    TCharFormatMask iFormatMask;
-    // Own:    
-    CAknLongTapDetector* iLongTapDetector;
-    // Indicates is action menu opened
-    TBool iActionMenuOpen;
+    TBool iOpenActionMenu;
+    // Own: Paragraph formatter
+    CParaFormat* iParaFormat;
+    // Own: Paragraph formatter mask
+    TParaFormatMask iParaFormatMask;
+    // Own: Character formatter
+    TCharFormat iCharFormat;
+    // Own: Character formatter mask
+    TCharFormatMask iCharFormatMask;
     };
 
 #endif /*CESMRRICHTEXTVIEWER_H*/

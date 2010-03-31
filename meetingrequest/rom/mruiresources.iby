@@ -22,27 +22,15 @@
 #include <bldvariant.hrh>
 #include <data_caging_paths_for_iby.hrh>
 
-//<cmail>
-#ifdef FF_EMAIL_FRAMEWORK
-//</cmail>
+#if defined( FF_EMAIL_FRAMEWORK ) && defined( FF_MEETING_REQUEST_UI )
 
-// Common Resources for MRUI and CalEntryUI:
+// Common Resources for MRUI and Enhanced Calendar Event UI:
 data=DATAZ_\RESOURCE_FILES_DIR\esmrgui.rsc            RESOURCE_FILES_DIR\esmrgui.rsc
-
-//<cmail>
-//#if defined(__MEETING_REQUEST_ENABLER) && defined(FF_ES_MEETING_REQUEST_UI)
-//</cmail>
 
 // Resource files
 data=DATAZ_\RESOURCE_FILES_DIR\esmrtasks.rsc               RESOURCE_FILES_DIR\esmrtasks.rsc
 data=DATAZ_\RESOURCE_FILES_DIR\esmrcasplugindata.rsc       RESOURCE_FILES_DIR\esmrcasplugindata.rsc
 
-//<cmail>
-//#endif // __MEETING_REQUEST_ENABLER && FF_ES_MEETING_REQUEST_UI
-//</cmail>
-
-//<cmail>
-#endif //FF_EMAIL_FRAMEWORK
-//</cmail>
+#endif // FF_EMAIL_FRAMEWORK && FF_MEETING_REQUEST_UI
 
 #endif // MRUIRESOURCES_IBY

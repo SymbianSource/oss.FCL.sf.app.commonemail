@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -15,8 +15,12 @@
 *
 */
 
+#include "cesmreditor.h"
+#include "nmrcolormanager.h"
+#include "esmrfieldbuilderdef.h"
+#include "esmrdef.h"
+#include "mesmrlistobserver.h"
 
-#include "emailtrace.h"
 #include <txtfrmat.h>
 #include <txtglobl.h>
 #include <txtrich.h>
@@ -24,9 +28,8 @@
 #include <eikenv.h>
 #include <avkon.hrh>
 
-#include "cesmreditor.h"
-#include "cesmrlayoutmgr.h"
-#include "esmrfieldbuilderdef.h"
+
+#include "emailtrace.h"
 
 // ======== MEMBER FUNCTIONS ========
 
@@ -125,7 +128,7 @@ EXPORT_C TKeyResponse CESMREditor::OfferKeyEventL(
             // edwinTlY negative
             if ( cursorLowerPosition > ( listHeight - edwinTlY )) 
                 {
-                iObserver->MoveListAreaUpL(RowHeight());
+                iObserver->RePositionFields( -RowHeight() );
                 }
             }
         else if ( aKeyEvent.iCode == EKeyUpArrow && iObserver)
@@ -140,7 +143,7 @@ EXPORT_C TKeyResponse CESMREditor::OfferKeyEventL(
                 {
                 if ( (cursorPos.iY - firstRowExtra.iY * 2) < (-hiddenHeight))
                     {
-                    iObserver->MoveListAreaDownL(RowHeight());
+                    iObserver->RePositionFields( RowHeight() );
                     }
                 }
             }
@@ -151,17 +154,42 @@ EXPORT_C TKeyResponse CESMREditor::OfferKeyEventL(
     }
 
 // ---------------------------------------------------------------------------
-// CESMREditor::ClearSelectionAndSetTextL
+// CESMREditor::FocusChanged
 // ---------------------------------------------------------------------------
 //
 EXPORT_C void CESMREditor::FocusChanged(TDrawNow aDrawNow)
     {
     FUNC_LOG;
+    
     CEikRichTextEditor::FocusChanged( aDrawNow );
+    
     TRAPD( error, TryToSetSelectionL() );
     if ( error != KErrNone )
         {
-        CEikonEnv::Static()->HandleError( error );// codescanner::eikonenvstatic
+        iCoeEnv->HandleError( error );// codescanner::eikonenvstatic
+        }
+    }
+
+// ---------------------------------------------------------------------------
+// CESMREditor::HandlePointerEventL
+// ---------------------------------------------------------------------------
+//
+
+void CESMREditor::HandlePointerEventL( const TPointerEvent& aPointerEvent )
+    {
+    if ( Rect().Contains( aPointerEvent.iPosition ) )
+        {
+        switch ( aPointerEvent.iType )
+            {
+            case TPointerEvent::EButton1Down:
+            case TPointerEvent::EButton1Up:
+            	{
+            	CEikRichTextEditor::HandlePointerEventL( aPointerEvent );
+                break;
+                }
+            default:
+            	break;
+            }
         }
     }
 
@@ -196,22 +224,41 @@ EXPORT_C void CESMREditor::HandleEdwinEventL(
 		CEikEdwin* aEdwin,TEdwinEvent aEventType )
     {
     FUNC_LOG;
-    if ( aEdwin == this && aEventType == EEventNavigation && iObserver)
+    if ( aEdwin == this )
         {
-        TInt curPos = CursorPos ();
-        TInt textLength = TextLength();
-        // Update viewarea scrolling in cases where the cursor location 
-        // is changed directly from bottom to upmost position or vise versa.
-        if ( CursorPos () == TextLength() )
-            {
-            // KErrNotFound as field id is interpret as focused field:
-            iObserver->ScrollItemVisible( KErrNotFound );
-            }
-        if ( CursorPos () == 0 )
-            {
-            // KErrNotFound as field id is interpret as focused field:
-            iObserver->ScrollItemVisible( KErrNotFound );
-            }
+        switch( aEventType )
+        	{
+        	case EEventNavigation:
+        		{
+        		if ( iObserver )
+        			{
+        	        TInt curPos = CursorPos ();
+        	        TInt textLength = TextLength();
+        	        // Update viewarea scrolling in cases where the cursor location 
+        	        // is changed directly from bottom to upmost position or vise versa.
+        	        if ( CursorPos () == TextLength() || CursorPos () == 0 )
+        	            {
+        	            // KErrNotFound as field id is interpret as focused field:
+        	            iObserver->ScrollControlVisible( KErrNotFound );
+        	            }
+        			}
+        		break;
+        		}
+        		
+        	case EEventTextUpdate:
+        		{
+        		if ( IsVisible() )
+        			{
+        			DrawDeferred();
+        			}
+        		break;
+        		}
+        		
+        	default:
+        		{
+        		break;
+        		}
+        	}
         }
     }
 
@@ -233,8 +280,7 @@ EXPORT_C void CESMREditor::ClearSelectionAndSetTextL( const TDesC& aText )
 // CESMREditor::SetFontL
 // ---------------------------------------------------------------------------
 //
-EXPORT_C void CESMREditor::SetFontL( 
-		const CFont* aFont, CESMRLayoutManager* aLayout )
+EXPORT_C void CESMREditor::SetFontL( const CFont* aFont )
     {
     FUNC_LOG;
     const CFont* font = aFont;
@@ -256,9 +302,14 @@ EXPORT_C void CESMREditor::SetFontL(
     formatMask.SetAttrib( EAttFontHeight );
     formatMask.SetAttrib( EAttFontPosture );
     formatMask.SetAttrib( EAttFontStrokeWeight );
-
-    charFormat.iFontPresentation.iTextColor = aLayout->NormalTextColor();
+    formatMask.SetAttrib(EAttFontHighlightColor);
     formatMask.SetAttrib( EAttColor );
+
+    charFormat.iFontPresentation.iTextColor = 
+        NMRColorManager::Color( NMRColorManager::EMRMainAreaTextColor );
+    
+    charFormat.iFontPresentation.iHighlightColor =  
+        NMRColorManager::Color( NMRColorManager::EMRCutCopyPasteHighlightColor );
 
     CParaFormatLayer* paraFormatLayer =
         CParaFormatLayer::NewL( paraFormat, paraFormatMask );
@@ -295,7 +346,9 @@ EXPORT_C TInt CESMREditor::CursorLinePos( ) const
 EXPORT_C TInt CESMREditor::LineCount( ) const
     {
     FUNC_LOG;
-    return TextLayout()->GetLineNumber ( TextLength ( ) );
+    // first line is zero, that's why + 1 is added
+    TInt lineCount( TextLayout()->GetLineNumber ( TextLength ( ) ) + 1 );
+    return lineCount;
     }
 
 // ---------------------------------------------------------------------------
@@ -352,7 +405,7 @@ EXPORT_C const TDesC& CESMREditor::DefaultText()
     }
 
 // ---------------------------------------------------------------------------
-// CESMREditor::LineCount
+// CESMREditor::SetListObserver
 // ---------------------------------------------------------------------------
 //
 EXPORT_C void CESMREditor::SetListObserver( MESMRListObserver* aObserver )
@@ -379,7 +432,7 @@ void CESMREditor::ConstructL(const CCoeControl* aParent, TInt aNumberOfLines,
         TInt aTextLimit, TInt aEdwinFlags )
     {
     FUNC_LOG;
-    CEikRichTextEditor::ConstructL (aParent, aNumberOfLines, aTextLimit,
+    CEikRichTextEditor::ConstructL ( aParent, aNumberOfLines, aTextLimit,
             aEdwinFlags );
 
     AddEdwinObserverL(this);
@@ -387,10 +440,6 @@ void CESMREditor::ConstructL(const CCoeControl* aParent, TInt aNumberOfLines,
     SetUpperFullFormattingLength( aTextLimit );
 
     iLimitLength = aTextLimit;
-    
-    SetAlignment ( CESMRLayoutManager::IsMirrored ( ) ? EAknEditorAlignRight
-            : EAknEditorAlignLeft );
-    SetHighlightStyleL ( EEikEdwinHighlightLink );
     }
 
 // ---------------------------------------------------------------------------

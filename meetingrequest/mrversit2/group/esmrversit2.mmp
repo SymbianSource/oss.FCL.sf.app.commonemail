@@ -16,26 +16,23 @@
 *
 */
 
-#include <platform_paths.hrh>
-
-#include "../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
-#include "../../../inc/emailtraceconfig.hrh"
 #include "../../inc/esmrinternaluid.h"
+#include "../../../inc/emailtraceconfig.hrh"
+#include <data_caging_paths.hrh>
+#include <platform_paths.hrh>
 
 TARGET          esmrversit2.dll
 TARGETTYPE      dll
 UID             0x1000008d KESMRDllUid3
-CAPABILITY      CAP_GENERAL_DLL
-
-VERSION         KEmailBinaryVersionNumber
-KEmailBinaryDemandPaging
-
-USERINCLUDE     ../inc
-USERINCLUDE     ../../inc
-USERINCLUDE     ../../../inc
+CAPABILITY 		  CAP_GENERAL_DLL
 
 //System include macro
+USERINCLUDE             ../inc
+USERINCLUDE           	../../inc
+USERINCLUDE             ../../../inc
+//<cmail>
 APP_LAYER_SYSTEMINCLUDE
+//</cmail>
 
 SOURCEPATH      ../src
 
@@ -53,10 +50,9 @@ SOURCE      cesmricaltimezone.cpp cesmricaltimezoneinterval.cpp
 LIBRARY euser.lib       // Base
 LIBRARY estor.lib       // Streams
 LIBRARY charconv.lib    // Character conversion
-LIBRARY cmaillogger.lib
 
-#ifdef TRACE_INTO_FILE
+#if defined( ENABLE_TRACES ) && defined( TRACE_INTO_FILE )
 LIBRARY flogger.lib
-#endif // TRACE_INTO_FILE
+#endif // ENABLE_TRACES && TRACE_INTO_FILE
 
 // End of File

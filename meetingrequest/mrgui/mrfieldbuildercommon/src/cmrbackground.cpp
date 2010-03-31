@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -16,7 +16,9 @@
 */
 
 #include "cmrbackground.h"
-#include <AknUtils.h>
+
+#include "nmrglobalfeaturesettings.h"
+#include <aknutils.h>
 
 
 // unnamed namespace for local definitions
@@ -37,6 +39,19 @@ namespace // codescanner::namespace
             User::Panic( KCategory(), aPanic );
             }
     #endif // _DEBUG
+
+    TBool IsFocusUsed()
+        {
+        TBool retval( EFalse );
+        if ( NMRGlobalFeatureSettings::KeyboardType() !=
+                NMRGlobalFeatureSettings::ENoKeyboard )
+            {
+            // If there is a keyboard then we can show the focus
+            retval = ETrue;
+            }
+
+        return retval;
+        }
     }//namespace
 
 // ======== MEMBER FUNCTIONS ========
@@ -46,9 +61,9 @@ namespace // codescanner::namespace
 // ---------------------------------------------------------------------------
 //
 EXPORT_C 
-CMRBackground* CMRBackground::NewL( CESMRLayoutManager& aLayoutManager )
+CMRBackground* CMRBackground::NewL()
     {
-    CMRBackground* self = new (ELeave) CMRBackground( aLayoutManager );
+    CMRBackground* self = new (ELeave) CMRBackground();
     CleanupStack::PushL( self );
     CleanupStack::Pop( self );
     return self;
@@ -58,8 +73,7 @@ CMRBackground* CMRBackground::NewL( CESMRLayoutManager& aLayoutManager )
 // CMRBackground::CMRBackground
 // ---------------------------------------------------------------------------
 //
-CMRBackground::CMRBackground( CESMRLayoutManager& aLayoutManager )
-    : iLayoutManager( aLayoutManager )
+CMRBackground::CMRBackground()
     {
     // Do nothing
     }
@@ -81,24 +95,41 @@ EXPORT_C void CMRBackground::Draw(
         const CCoeControl& aControl,
         const TRect& /*aRect*/ ) const
     {
-    const CESMRField& ctrl = 
-            static_cast<const CESMRField&> ( aControl );
-    TBool hasOutlineFocus = ctrl.HasOutlineFocus();
-    TESMRFieldFocusType focusType = ctrl.GetFocusType();
-    // highlight bitmap target rect:
-    TRect rect( ctrl.GetFocusRect() );
-    rect.Move( ctrl.Position() );
-    
-    if ( hasOutlineFocus )
+    if ( IsFocusUsed() )
         {
-        if( focusType == EESMRHighlightFocus )
+        const CESMRField& ctrl =
+                static_cast<const CESMRField&> ( aControl );
+        TBool hasOutlineFocus = ctrl.HasOutlineFocus();
+        TESMRFieldFocusType focusType = ctrl.GetFocusType();
+        // highlight bitmap target rect:
+        TRect rect( ctrl.GetFocusRect() );
+        rect.Move( ctrl.Position() );
+
+        if ( hasOutlineFocus )
             {
-            if( ctrl.FieldMode() == EESMRFieldModeView )
+            if( focusType == EESMRHighlightFocus )
                 {
-                // Focused viewer field
-                DrawFocus( aGc, rect, aControl, EViewerFieldWithFocus );
-                }            
+                if( ctrl.FieldMode() == EESMRFieldModeView )
+                    {
+                    // Focused viewer field
+                    DrawFocus( aGc, rect, aControl, EViewerFieldWithFocus );
+                    }
+                else
+                    {
+                    // Focused editor field
+                    DrawFocus( aGc, rect, aControl, EEditorFieldWithFocus );
+                    }
+                }
             }
+        // TODO: Need to be removed after ui designer says that it can be removed.
+    //    else
+    //        {
+    //        if( ctrl.FieldMode() == EESMRFieldModeEdit )
+    //            {
+    //            // Not focused editor field
+    //            DrawFocus( aGc, rect, aControl, EEditorFieldNoFocus );
+    //            }
+    //        }
         }
     }
 
@@ -124,6 +155,18 @@ CMRBackground::IconSkinIdL( TBgType aType ) const
         array->AppendL( NMRBitmapManager::EMRBitmapListRight );
         array->AppendL( NMRBitmapManager::EMRBitmapListBottomRight );   
         }
+    else if ( aType == EEditorFieldWithFocus )
+        {
+        array->AppendL( NMRBitmapManager::EMRBitmapInputTopLeft );
+        array->AppendL( NMRBitmapManager::EMRBitmapInputLeft );
+        array->AppendL( NMRBitmapManager::EMRBitmapInputBottomLeft );
+        array->AppendL( NMRBitmapManager::EMRBitmapInputTop );
+        array->AppendL( NMRBitmapManager::EMRBitmapInputCenter );
+        array->AppendL( NMRBitmapManager::EMRBitmapInputBottom );
+        array->AppendL( NMRBitmapManager::EMRBitmapInputTopRight );
+        array->AppendL( NMRBitmapManager::EMRBitmapInputRight );
+        array->AppendL( NMRBitmapManager::EMRBitmapInputBottomRight );         
+        }
     else
         {
         array->AppendL( NMRBitmapManager::EMRBitmapSetOptTopLeft );
@@ -134,7 +177,7 @@ CMRBackground::IconSkinIdL( TBgType aType ) const
         array->AppendL( NMRBitmapManager::EMRBitmapSetOptBottom );
         array->AppendL( NMRBitmapManager::EMRBitmapSetOptTopRight );
         array->AppendL( NMRBitmapManager::EMRBitmapSetOptRight );
-        array->AppendL( NMRBitmapManager::EMRBitmapSetOptBottomRight );    
+        array->AppendL( NMRBitmapManager::EMRBitmapSetOptBottomRight );        
         }
  
     CleanupStack::Pop( array );

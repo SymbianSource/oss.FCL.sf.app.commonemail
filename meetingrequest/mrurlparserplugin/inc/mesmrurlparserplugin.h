@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2008-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2008-2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -22,6 +22,7 @@
 
 
 class CPosLandmark;
+class CCalGeoValue;
 
 /**
  *  MESMRUrlParserPlugin defines the interface for Location URL Parser
@@ -47,17 +48,26 @@ public:
      * @return pointer to created location URL
      */
     virtual HBufC* CreateUrlFromLandmarkL( const CPosLandmark& aLandmark ) = 0;
-    
+
     /**
      * Creates landmark object from location URL
      *
      * @param aUrl contains location URL from which landmark is created
      * @return pointer to created landmark object
      */
-    virtual CPosLandmark* CreateLandmarkFromUrlL( const TDesC& aUrl ) = 0;    
+    virtual CPosLandmark* CreateLandmarkFromUrlL( const TDesC& aUrl ) = 0;
+
+    /**
+     * Converts valid location URL to vCal GEO value.
+     * May leave with KErrNotFound/KErrArgument or other Symbian wide errorcode
+     *
+     * @param aUrl location URL to convert
+     * @return new GEO value
+     */
+    virtual CCalGeoValue* CreateGeoValueLC( const TDesC& aUrl ) = 0;
 
 protected:
-    
+
    /**
     * Destructor.
     */

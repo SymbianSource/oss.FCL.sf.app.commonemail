@@ -1,5 +1,5 @@
 /*
-* Copyright (c)  Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -16,8 +16,8 @@
 */
 
 
-#ifndef CESMRFIELDBUILDERINTERFACE
-#define CESMRFIELDBUILDERINTERFACE
+#ifndef CESMRFIELDBUILDERINTERFACE_H
+#define CESMRFIELDBUILDERINTERFACE_H
 
 #include <ecom/ecom.h>
 
@@ -68,24 +68,31 @@ public:
     /**
      * Put additional flags/checks here if needed
      */
-    enum EMRCFSMailBoxCapability
+    enum TMRCFSMailBoxCapability
         {
         EMRCFSAttendeeStatus = 0,
-        EMRCFSResponseDontSend
+        EMRCFSResponseDontSend,
+        EMRCFSRemoveFromCalendar,
+        EMRCFSSupportsAttachmentsInMR
         };
 
     /**
-     * check if a cfsmailboxflag is set
+     * Check if a cfsmailboxflag is set
      */
-    virtual TBool CFSMailBoxCapabilityL( EMRCFSMailBoxCapability aCapa ) = 0;
+    virtual TBool CFSMailBoxCapabilityL( TMRCFSMailBoxCapability aCapa ) = 0;
 
     /**
+     * Check if a cfsmailboxflag is set
+     */
+    virtual TBool CFSMailBoxCapabilityL(
+            const TDesC& aEmailAddress,
+            TMRCFSMailBoxCapability aCapa ) = 0;
+    
+    /**
      * Checks, whenter meeting request can be originated or not.
-     * @param aForceResetDefaultMRMailbox Whether or not the default MR 
-     * *      mailbox is to be forced to reset.
      * @return ETrue, if MR can be originated, EFalse otherwise.
      */
-    virtual TBool MRCanBeOriginateedL( TBool aForceResetDefaultMRMailbox ) = 0;
+    virtual TBool MRCanBeOriginateedL() = 0;
     };
 
 /**
@@ -98,7 +105,8 @@ public:
     /**
      * Create specific implementation
      */
-    inline static CESMRFieldBuilderInterface* CreatePluginL( TUid aImplementationUid );
+    inline static CESMRFieldBuilderInterface* CreatePluginL(
+            TUid aImplementationUid );
 
     /**
      * Destructor
@@ -124,10 +132,13 @@ private:
 // CESMRFieldBuilderInterface::CreatePluginL
 // -----------------------------------------------------------------------------
 //
-inline CESMRFieldBuilderInterface* CESMRFieldBuilderInterface::CreatePluginL(  TUid aImplementationUid )
+inline CESMRFieldBuilderInterface* CESMRFieldBuilderInterface::CreatePluginL(
+        TUid aImplementationUid )
     {
-    TAny* implementation = REComSession::CreateImplementationL( aImplementationUid,
-                                                                _FOFF(CESMRFieldBuilderInterface, iDestructorIdKey) );
+    TAny* implementation =
+        REComSession::CreateImplementationL( aImplementationUid,
+                                             _FOFF( CESMRFieldBuilderInterface,
+                                                    iDestructorIdKey ) );
     return reinterpret_cast<CESMRFieldBuilderInterface*>(implementation);
     }
 
@@ -141,4 +152,4 @@ inline CESMRFieldBuilderInterface::~CESMRFieldBuilderInterface()
     }
 
 
-#endif // CESMRFIELDBUILDERINTERFACE
+#endif // CESMRFIELDBUILDERINTERFACE_H

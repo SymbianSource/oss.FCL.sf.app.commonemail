@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -16,9 +16,8 @@
 */
 
 
-#include "../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
-#include "../../../inc/emailtraceconfig.hrh"
 #include "../../inc/esmrinternaluid.h"
+#include "../../../inc/emailtraceconfig.hrh"
 #include <data_caging_paths.hrh>
 #include <platform_paths.hrh>
 
@@ -30,21 +29,16 @@ CAPABILITY              CAP_GENERAL_DLL
 VENDORID                VID_DEFAULT
 DEFFILE                 ESMREntry.def
 
-VERSION                 KEmailBinaryVersionNumber
-KEmailBinaryDemandPaging
-
 SOURCEPATH              ../src
-SOURCE                  cesmrentryprocessor.cpp
 SOURCE                  cesmrmeetingrequestentry.cpp
-SOURCE                  cesmrconflictchecker.cpp
 SOURCE                  cesmrfsmailboxutils.cpp
 
 USERINCLUDE             .
 USERINCLUDE             ../inc
 USERINCLUDE             ../../inc
+USERINCLUDE             ../../../inc
 
 APP_LAYER_SYSTEMINCLUDE
-USERINCLUDE ../../../inc
 
 // ESMR libraries
 LIBRARY                 esmrcommon.lib
@@ -64,10 +58,11 @@ LIBRARY                 charconv.lib
 LIBRARY                 fsmailframework.lib
 LIBRARY                 fsfwcommonlib.lib
 LIBRARY                 centralrepository.lib
-LIBRARY                 cmaillogger.lib
+LIBRARY                 apgrfx.lib
+LIBRARY                 apmime.lib
 
-#ifdef TRACE_INTO_FILE
-LIBRARY                 flogger.lib
-#endif // TRACE_INTO_FILE
+#if defined( ENABLE_TRACES ) && defined( TRACE_INTO_FILE )
+LIBRARY flogger.lib
+#endif // ENABLE_TRACES && TRACE_INTO_FILE
 
 // EOF

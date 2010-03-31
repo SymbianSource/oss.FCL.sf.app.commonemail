@@ -20,18 +20,19 @@
 #define CESMRPOLICYMANAGER_H
 
 #include <e32base.h>
-//<cmail>
+
 #include "esmrutilsapiext.h"
-#include <barsc.h>
 #include "esmrdef.h"
 #include "tesmrscenariodata.h"
+#include "mmrpolicyprovider.h"
+
+#include <barsc.h>
+
 
 class CESMRPolicy;
 class MESMRCalEntry;
-class MESMRPolicyChecker;
-class CESMRPolicyChecker;
-class CESMRPolicyExtensionManager;
-class CCoeEnv;
+class MMRPolicyResolver;
+class CMRPolicyResolver;
 
 /**
  *  CESMRPolicyManager defines ESMR policymanager.
@@ -43,8 +44,8 @@ class CCoeEnv;
  *  @see CESMRPolicy
  *  @lib esmrpolicy.lib
  */
-NONSHARABLE_CLASS(CESMRPolicyManager) :
-        public CBase
+NONSHARABLE_CLASS(CESMRPolicyManager) : public CBase,
+                                        public MMRPolicyProvider
     {
 public: // Construction and destruction
     /**
@@ -65,33 +66,19 @@ public: // Interface
      * Fetches current policy object.
      * @return Current policy object
      */
-    inline CESMRPolicy& CurrentPolicy();
-
-    /**
-     * Fetches the extension UID for ES MR policy manager
-     * @return Uid of extension
-     */
-    IMPORT_C static TUid ExtensionUid();
+    IMPORT_C CESMRPolicy& CurrentPolicy();
 
     /**
      * Resolves policy to be used.
      * @param aScenarioData Scenario Data for resolving correct policy
      * @param aESMREntry Reference to ES MR Entry.
-     * @param aPolicyChecker to be used. If NULL, default checker is used
+     * @param aCustomResolver to be used. If NULL, resolver is determined by
+     * policy manager
      */
     IMPORT_C void ResolvePolicyL(
             const TESMRScenarioData& aScenarioData,
             MESMRCalEntry& aESMREntry,
-            MESMRPolicyChecker* aPolicyChecker );
-
-    /**
-     * Reads policy from resource file. Policies are appended
-     * @param aPolicyFile Policy resource filename.
-     * @param aPolicyArrayResourceId Policy array resource id
-     */
-    IMPORT_C void ReadPolicyFromResourceL(
-            const TDesC& aPolicyFile,
-            TInt aPolicyArrayResourceId );
+            MMRPolicyResolver* aCustomResolver = NULL );
 
     /**
      * Adds the current policy on stack for preserving it if a new policy
@@ -104,17 +91,24 @@ public: // Interface
      * @return the policy from stack or NULL if stack is empty.
      */
     IMPORT_C CESMRPolicy* PopPolicy();
+
+public: // from MMRPolicyProvider
+    
+    const CESMRPolicy& CurrentPolicy() const;
     
 private: // Implementation
 
     CESMRPolicyManager();
     void ConstructL();
-    void ReadPolicyL(
-            TInt aResourceId,
-            MESMRCalEntry& aESMREntry );
-
+    
 private: // data
 
+    /**
+     * Current policy resolver.
+     * Own.
+     */
+    MMRPolicyResolver* iResolverPlugin;
+    
     /**
     * Current policy object
     * Own.
@@ -122,36 +116,9 @@ private: // data
     CESMRPolicy* iCurrentPolicy;
 
     /**
-    * Policy resource file
-    * Own
-    */
-    RResourceFile iPolicyResourceFile;
-
-    /**
-    * ESMR policy resource ids
-    * Own.
-    */
-    RArray<TInt> iPolicyResourceIds;
-
-    /**
-     * Default ESMR policy checker.
-     * Own.
-     */
-    CESMRPolicyChecker* iDefaultPolicyChecker;
-
-    // Own: Extension resource manager
-    CESMRPolicyExtensionManager* iExtension;
-
-    // Ref: Coe Env
-    CCoeEnv* iCoeEnv;
-    
-    /**
      * Array for preserving policies
      */
     RPointerArray< CESMRPolicy > iPolicyStack;
     };
-
-#include "cesmrpolicymanager.inl"
-//</cmail>
 
 #endif // CESMRPOLICYMANAGER_H

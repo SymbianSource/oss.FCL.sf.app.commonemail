@@ -323,14 +323,22 @@ void CCustomStatuspaneIndicators::SetFollowUpFlag( CCustomStatuspaneIndicators::
 	}
 
 // ---------------------------------------------------------------------------
+// CCustomStatuspaneIndicators::ClearStatusPaneFlags
+// ---------------------------------------------------------------------------
+//
+void CCustomStatuspaneIndicators::ClearStatusPaneFlags()
+    {
+    SetPriorityFlag( EMsgPriorityNormal );
+    SetFollowUpFlag( EFollowUpNone );
+    }
+
+// ---------------------------------------------------------------------------
 // CCustomStatuspaneIndicators::HideStatusPaneIndicatorsL
 // ---------------------------------------------------------------------------
 //
 void CCustomStatuspaneIndicators::HideStatusPaneIndicators()
 	{
 	MakeVisible( EFalse );
-    SetPriorityFlag( EMsgPriorityNormal );
-    SetFollowUpFlag( EFollowUpNone );
     DrawNow();
 	}
 
@@ -342,9 +350,17 @@ void CCustomStatuspaneIndicators::ShowStatusPaneIndicators()
 	{
 	MakeVisible( ETrue );
     TRAP_IGNORE( DoSetRectL() );
-    SetPriorityFlag( EMsgPriorityNormal );
-    SetFollowUpFlag( EFollowUpNone );
     DrawNow();
+	}
+
+// ---------------------------------------------------------------------------
+// CCustomStatuspaneIndicators::Draw
+// ---------------------------------------------------------------------------
+//
+void CCustomStatuspaneIndicators::Draw( const TRect& aRect ) const
+	{
+	SystemGc().SetBrushColor( KRgbTransparent );
+	SystemGc().Clear( aRect );
 	}
 
 // ---------------------------------------------------------------------------

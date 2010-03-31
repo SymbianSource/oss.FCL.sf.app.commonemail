@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -22,12 +22,16 @@
 #include <eikrted.h>
 #include <eikedwob.h>
 
-#include "cesmrviewerlabelfield.h"
+#include "cesmrfield.h"
+
+// Forward declarations
+class CMRImage;
+class CMRLabel;
 
 /**
  * This class shows the priority of the event
  */
-NONSHARABLE_CLASS( CESMRViewerPriorityField ) : public CESMRViewerLabelField
+NONSHARABLE_CLASS( CESMRViewerPriorityField ) : public CESMRField
     {
 public:
     /**
@@ -44,10 +48,27 @@ public:
     
 public: // From CESMRField
     void InternalizeL( MESMRCalEntry& aEntry );
+    void SetOutlineFocusL( TBool aFocus );
+    void LockL();
+    TBool ExecuteGenericCommandL( TInt aCommand );
+    
+public: // From CCoeControl
+    void SizeChanged();
+    TInt CountComponentControls() const;
+    CCoeControl* ComponentControl( TInt aIndex ) const;
     
 private: // Implementation
     CESMRViewerPriorityField();
     void ConstructL();
+    
+private: // data
+    
+    // Owned: Field icon
+    CMRImage* iIcon;
+    /// Owned: Lock icon
+    CMRImage* iLockIcon;
+    // Not own: Field text label
+    CMRLabel* iLabel;    
     };
 
 #endif //__CESMRVIEWERPRIORITYFIELD_H__

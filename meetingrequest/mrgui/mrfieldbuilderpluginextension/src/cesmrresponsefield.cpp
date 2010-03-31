@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -14,34 +14,28 @@
 * Description:  Meeting Request viewer response field implementation
 *
 */
-
 #include "cesmrresponsefield.h"
 #include "cesmrresponseitem.h"
 #include "mesmrresponseobserver.h"
 #include "mesmrmeetingrequestentry.h"
 #include "cesmrconflictpopup.h"
-#include "cesmrlayoutmgr.h"
 #include "nmrlayoutmanager.h"
 #include "esmrhelper.h"
-#include "cfsmailbox.h"
+#include "cfsmailcommon.h"
 
+#include "cesmrlistquery.h"
 #include <esmrgui.rsg>
-#include <StringLoader.h>
-#include <calentry.h>
+#include <stringloader.h>
 #include <caluser.h>
 
 // DEBUG
 #include "emailtrace.h"
 
 /// Unnamed namespace for local definitions
-namespace // codescanner::namespace 
-    { 
-    const TInt KSelectionTopic(0);
-    const TInt KOnlyTwoLines( 2 );
-    const TInt KFirstCheckboxRow( 2 );
-    const TInt KFirstControlItemIndex( 1 );
-    const TInt KTopicFieldCount( 1 );
-    const TInt KFirstSelectedItem( 1 );
+namespace
+    {
+    const TInt KConflictItemIndex( 0 );
+    const TInt KExtraInfoItemIndex( 1 ); //"Request is out of date" "Please respond", ect
     }  // namespace
 
 // -----------------------------------------------------------------------------
@@ -76,8 +70,8 @@ CESMRResponseField::~CESMRResponseField()
     FUNC_LOG;
     iResponseItemArray.ResetAndDestroy();
     delete iConfPopup;
-    
-    if( iESMRStaticAccessed ) 
+
+    if( iESMRStaticAccessed )
         {
         iESMRStatic.Close();
         }
@@ -88,8 +82,8 @@ CESMRResponseField::~CESMRResponseField()
 // -----------------------------------------------------------------------------
 //
 CESMRResponseField::CESMRResponseField(MESMRResponseObserver* aResponseObserver)
-: iResponseObserver(aResponseObserver), iSelectionIndex( KFirstSelectedItem ),
-  iESMRStaticAccessed(EFalse)
+: iResponseObserver(aResponseObserver), iSelectionIndex( 0 ),
+  iESMRStaticAccessed(EFalse), iConflicted(EFalse)
     {
     FUNC_LOG;
     SetFieldId( EESMRFieldResponseArea );
@@ -102,38 +96,12 @@ CESMRResponseField::CESMRResponseField(MESMRResponseObserver* aResponseObserver)
 void CESMRResponseField::ConstructL()
     {
     FUNC_LOG;
-    // Construct the topic for response area
-    // Topic line is without icon and text. Text is set later
+
+    // Add pls resopond item to this field.
     CESMRResponseItem* responseItem =
         CESMRResponseItem::NewLC( EESMRCmdUndefined, KNullDesC, EFalse );
     iResponseItemArray.AppendL( responseItem );
     CleanupStack::Pop( responseItem );
-
-    // Create tick boxes only in non touch environment
-    if ( !AknLayoutUtils::PenEnabled() )
-    	{
-		// Constuct the first item (Accept)
-		HBufC* stringholder = StringLoader::LoadLC( R_QTN_MEET_REQ_RESPONSE_ACCEPT ,
-													iEikonEnv );
-		responseItem = CESMRResponseItem::NewLC( EESMRCmdAcceptMR, *stringholder, ETrue );
-		iResponseItemArray.AppendL( responseItem );
-		CleanupStack::Pop( responseItem );
-		CleanupStack::PopAndDestroy( stringholder );
-			
-		// Constuct the second item (Tentative)
-		stringholder = StringLoader::LoadLC( R_QTN_MEET_REQ_RESPONSE_TENTATIVE , iEikonEnv );
-		responseItem = CESMRResponseItem::NewLC( EESMRCmdTentativeMR, *stringholder, ETrue );
-		iResponseItemArray.AppendL( responseItem );
-		CleanupStack::Pop( responseItem );
-		CleanupStack::PopAndDestroy( stringholder );
-	
-		// Constuct the third item (Decline)
-		stringholder = StringLoader::LoadLC( R_QTN_MEET_REQ_RESPONSE_DECLINE , iEikonEnv );
-		responseItem = CESMRResponseItem::NewLC( EESMRCmdDeclineMR, *stringholder, ETrue );
-		iResponseItemArray.AppendL( responseItem );
-		CleanupStack::Pop( responseItem );
-		CleanupStack::PopAndDestroy( stringholder );
-    	}
     }
 
 // -----------------------------------------------------------------------------
@@ -143,14 +111,10 @@ void CESMRResponseField::ConstructL()
 void CESMRResponseField::InitializeL()
     {
     FUNC_LOG;
-    TAknLayoutText layout = 
-    NMRLayoutManager::GetLayoutText( 
-            Rect(), NMRLayoutManager::EMRTextLayoutCheckboxEditor );    
+    TAknLayoutText layout =
+    NMRLayoutManager::GetLayoutText(
+            Rect(), NMRLayoutManager::EMRTextLayoutCheckboxEditor );
     SetFont( layout.Font() );
-    if( iSelectionIndex < iResponseItemArray.Count() )
-        {
-        iResponseItemArray[iSelectionIndex]->SetHighlight();
-        }
     }
 
 // -----------------------------------------------------------------------------
@@ -174,64 +138,35 @@ CCoeControl* CESMRResponseField::ComponentControl( TInt aInd ) const
     }
 
 // -----------------------------------------------------------------------------
-// CESMRResponseField::Draw
-// -----------------------------------------------------------------------------
-//
-void CESMRResponseField::Draw(
-    const TRect& /*aRect*/ ) const
-    {
-    FUNC_LOG;
-    }
-
-// -----------------------------------------------------------------------------
 // CESMRResponseField::SizeChanged
 // -----------------------------------------------------------------------------
 //
 void CESMRResponseField::SizeChanged()
     {
     FUNC_LOG;
-    TRect rect( Rect() );
-
-    // Topic field
-    TAknLayoutRect topicLayoutRect =
-        NMRLayoutManager::GetFieldRowLayoutRect( rect, 1 );  
-    AknLayoutUtils::LayoutControl(
-            ControlItem( KSelectionTopic ),
-            rect,
-            topicLayoutRect.Color().Value(), 
-            topicLayoutRect.Rect().iTl.iX, 
-            topicLayoutRect.Rect().iTl.iY, 
-            topicLayoutRect.Rect().iBr.iX, 
-            topicLayoutRect.Rect().iBr.iY,
-            topicLayoutRect.Rect().Width(), 
-            topicLayoutRect.Rect().Height());    
-
-    // Items
-    // Remove one for the topic field
-    TInt count( iResponseItemArray.Count() - KTopicFieldCount );
-    TInt row( KFirstCheckboxRow );
-    TInt controlIndex( KFirstControlItemIndex );
+    TInt count( iResponseItemArray.Count() );
     TRect parentRect( Rect() );
-    for( TInt i = 0; i < count; ++i )
-        {        
+    TRect rect;
+    for( TInt i = 1; i <= count; ++i )
+        {
         TAknLayoutRect choiceLayoutRect =
-            NMRLayoutManager::GetFieldRowLayoutRect( parentRect, row + i );
+            NMRLayoutManager::GetFieldRowLayoutRect( parentRect, i );
         rect = parentRect;
         // Move the row down then it will be drawn to correct position.
         // controlIndex+1 tells the fields index.
         TInt movement = choiceLayoutRect.Rect().Height();
-        rect.Move( 0, movement * ( controlIndex + i ) );
-        
+        rect.Move( 0, movement * ( i - 1 ) );
+
         AknLayoutUtils::LayoutControl(
-                ControlItem( controlIndex + i ),
+                ControlItem( i - 1 ),
                 rect,
-                choiceLayoutRect.Color().Value(), 
-                choiceLayoutRect.Rect().iTl.iX, 
-                choiceLayoutRect.Rect().iTl.iY, 
-                choiceLayoutRect.Rect().iBr.iX, 
+                choiceLayoutRect.Color().Value(),
+                choiceLayoutRect.Rect().iTl.iX,
+                0,
+                choiceLayoutRect.Rect().iBr.iX,
                 choiceLayoutRect.Rect().iBr.iY,
-                choiceLayoutRect.Rect().Width(), 
-                choiceLayoutRect.Rect().Height() );          
+                choiceLayoutRect.Rect().Width(),
+                choiceLayoutRect.Rect().Height() );
         }
     }
 
@@ -247,7 +182,7 @@ TSize CESMRResponseField::MinimumSize()
     TAknLayoutRect row1LayoutRect(
         NMRLayoutManager::GetFieldRowLayoutRect( rect, 1 ) );
     rect = row1LayoutRect.Rect();
-    
+
     TInt rowCount( iResponseItemArray.Count() );
     TInt height( rect.Height() * rowCount );
     return TSize( Parent()->Size().iWidth, height );
@@ -261,30 +196,27 @@ TKeyResponse CESMRResponseField::OfferKeyEventL( const TKeyEvent& aKeyEvent,
                                                 TEventCode aType )
     {
     FUNC_LOG;
-    TKeyResponse consumed( EKeyWasNotConsumed );    
+    TKeyResponse consumed( EKeyWasNotConsumed );
 
-    if ( aType == EEventKey && iSelectionIndex < iResponseItemArray.Count() )
+    if ( aType == EEventKey )
         {
-        if ( aKeyEvent.iScanCode == EStdKeyUpArrow  && iSelectionIndex > 1)
+        if ( iConflicted )
             {
-            iResponseItemArray[iSelectionIndex]->RemoveHighlight();
-            iSelectionIndex--;
-            iResponseItemArray[iSelectionIndex]->SetHighlight();
-            consumed = EKeyWasConsumed;
-            }
-         if ( aKeyEvent.iScanCode == EStdKeyDownArrow  &&
-              iSelectionIndex < iResponseItemArray.Count() - 1 )
-            {
-            iResponseItemArray[iSelectionIndex]->RemoveHighlight();
-            iSelectionIndex++;
-            iResponseItemArray[iSelectionIndex]->SetHighlight();
-            consumed = EKeyWasConsumed;
-            }
-         // If ok button is pressed and highlight is not in the topic item
-         if ( aKeyEvent.iScanCode == EStdKeyDevice3
-              && ItemSelectedL() )
-            {
-            consumed = EKeyWasConsumed;
+            if ( aKeyEvent.iScanCode == EStdKeyUpArrow  && iSelectionIndex > 0 )
+                {
+                iResponseItemArray[KExtraInfoItemIndex]->RemoveHighlight();
+                iResponseItemArray[KConflictItemIndex]->SetHighlight();
+                iSelectionIndex = KConflictItemIndex;
+                consumed = EKeyWasConsumed;
+                }
+
+            if ( aKeyEvent.iScanCode == EStdKeyDownArrow  && iSelectionIndex < iResponseItemArray.Count()-1 )
+                {
+                iResponseItemArray[KConflictItemIndex]->RemoveHighlight();
+                iResponseItemArray[KExtraInfoItemIndex]->SetHighlight();
+                iSelectionIndex = KExtraInfoItemIndex;
+                consumed = EKeyWasConsumed;
+                }
             }
         }
 
@@ -303,16 +235,27 @@ TKeyResponse CESMRResponseField::OfferKeyEventL( const TKeyEvent& aKeyEvent,
 void CESMRResponseField::FocusChanged( TDrawNow /*aDrawNow*/ )
     {
     FUNC_LOG;
+    if ( iConflicted && !iPointEvent )
+    	{
+        // set the default value for iSelectionIndex, depend on iPreItemIndex
+    	if ( PreItemIndex() <= CurrentItemIndex() )
+    		{
+            iSelectionIndex = 0;
+    		}
+    	else
+    		{
+            iSelectionIndex = 1;
+    		}
+    	}
     // Focus received
     if ( IsFocused() && iSelectionIndex < iResponseItemArray.Count() )
         {
-        // By default, highlight the first item
-        iResponseItemArray[iSelectionIndex]->SetHighlight();
-        DrawDeferred();
-        if (iConfPopup)
-            {
-            iConfPopup->ShowPopup();
-            }
+        if( !iPointEvent )
+        	{
+            // By default, highlight the first item
+            iResponseItemArray[iSelectionIndex]->SetHighlight();
+            DrawDeferred();
+        	}
         }
     else // Focus lost remove highlight
         {
@@ -321,6 +264,7 @@ void CESMRResponseField::FocusChanged( TDrawNow /*aDrawNow*/ )
             iResponseItemArray[i]->RemoveHighlight();
             }
         }
+    iPointEvent = EFalse;
     }
 
 // -----------------------------------------------------------------------------
@@ -330,7 +274,8 @@ void CESMRResponseField::FocusChanged( TDrawNow /*aDrawNow*/ )
 void CESMRResponseField::InternalizeL( MESMRCalEntry& aEntry )
     {
     FUNC_LOG;
-
+    iNormalResponse = EFalse;
+    iRemoveResponse = EFalse;
     MESMRMeetingRequestEntry* entry = NULL;
     if ( MESMRCalEntry::EESMRCalEntryMeetingRequest == aEntry.Type() )
         {
@@ -341,6 +286,33 @@ void CESMRResponseField::InternalizeL( MESMRCalEntry& aEntry )
         User::Leave( KErrNotSupported );
         }
 
+    // Judge if there is any conflicts with other existed event.
+    iConflicted = entry->Conflicts();
+    if ( iConflicted )
+        {
+        // Construct the item to show conflicts info, and insert it to the beginning of array
+        CESMRResponseItem* conflictItem =
+            CESMRResponseItem::NewLC( EESMRCmdUndefined, KNullDesC, EFalse );
+        iResponseItemArray.Insert( conflictItem, 0 );
+        CleanupStack::Pop( conflictItem );
+
+        HBufC* conflictString;
+        conflictString = StringLoader::LoadLC(
+                       R_QTN_MEET_REQ_RESPONSE_CONFLICT , iEikonEnv );
+        // Show prompt conflict dialog
+        iConfPopup = CESMRConflictPopup::NewL(aEntry);
+
+        if ( iResponseItemArray.Count() > 0 )
+            {
+            iResponseItemArray[KConflictItemIndex]->SetUnderlineL( ETrue );
+            iResponseItemArray[KConflictItemIndex]->SetTextL( conflictString->Des() );
+            }
+        CleanupStack::PopAndDestroy( conflictString );
+        }
+
+
+    // Set other info, for example, "please respond", "Request is out of date",
+    // "Meeting has been canceled" ......
     MESMRMeetingRequestEntry::TESMREntryInfo attendeeInfo = entry->EntryAttendeeInfoL();
     HBufC* stringholder;
     switch( attendeeInfo )
@@ -349,6 +321,10 @@ void CESMRResponseField::InternalizeL( MESMRCalEntry& aEntry )
             {
             stringholder = StringLoader::LoadLC(
                            R_QTN_MEET_REQ_RESPONSE_OUT_OF_DATE , iEikonEnv );
+            if( entry->IsOpenedFromMail() )
+            	{
+                iRemoveResponse = ETrue;
+            	}
             break;
             }
 
@@ -357,6 +333,10 @@ void CESMRResponseField::InternalizeL( MESMRCalEntry& aEntry )
             stringholder = StringLoader::LoadLC(
                            R_QTN_MEET_REQ_RESPONSE_CANCELLED , iEikonEnv );
             HandleCancelledEventItemsL( aEntry );
+            if( entry->IsOpenedFromMail() )
+            	{
+            	iRemoveResponse = ETrue;
+            	}
             break;
             }
 
@@ -364,6 +344,7 @@ void CESMRResponseField::InternalizeL( MESMRCalEntry& aEntry )
             {
             stringholder = StringLoader::LoadLC(
                            R_QTN_MEET_REQ_RESPOND_ACCEPTED , iEikonEnv );
+            iNormalResponse = ETrue;
             break;
             }
 
@@ -371,6 +352,7 @@ void CESMRResponseField::InternalizeL( MESMRCalEntry& aEntry )
             {
             stringholder = StringLoader::LoadLC(
                            R_QTN_MEET_REQ_RESPOND_TENTATIVE , iEikonEnv );
+            iNormalResponse = ETrue;
             break;
             }
 
@@ -378,6 +360,7 @@ void CESMRResponseField::InternalizeL( MESMRCalEntry& aEntry )
             {
             stringholder = StringLoader::LoadLC(
                            R_QTN_MEET_REQ_RESPOND_DECLINED , iEikonEnv );
+            iNormalResponse = ETrue;
             break;
             }
 
@@ -385,15 +368,10 @@ void CESMRResponseField::InternalizeL( MESMRCalEntry& aEntry )
             {
             stringholder = StringLoader::LoadLC(
                            R_QTN_MEET_REQ_RESPONSE_OCCURS_PAST , iEikonEnv );
-            break;
-            }
-
-        case MESMRMeetingRequestEntry::EESMREntryInfoConflicts:
-            {
-            stringholder = StringLoader::LoadLC(
-                           R_QTN_MEET_REQ_RESPONSE_CONFLICT , iEikonEnv );
-            iConfPopup = CESMRConflictPopup::NewL(aEntry);
-            iConfPopup->ShowPopup();
+            if( entry->IsOpenedFromMail() )
+            	{
+            	iRemoveResponse = ETrue;
+            	}
             break;
             }
 
@@ -401,22 +379,27 @@ void CESMRResponseField::InternalizeL( MESMRCalEntry& aEntry )
             {
             stringholder = StringLoader::LoadLC(
                            R_QTN_MEET_REQ_RESPONSE_PLEASE_RESPOND , iEikonEnv );
+            iNormalResponse = ETrue;
             break;
             }
 
         default:
-        stringholder = StringLoader::LoadLC(
-                       R_QTN_MEET_REQ_RESPONSE_PLEASE_RESPOND , iEikonEnv );
+            stringholder = StringLoader::LoadLC(
+                           R_QTN_MEET_REQ_RESPONSE_PLEASE_RESPOND , iEikonEnv );
+            iNormalResponse = ETrue;
         break;
         }
 
-    iResponseItemArray[0]->SetTextL( stringholder->Des() );
-    // Check do we need to expand because of the long topic text ( two lines max )
-    if ( iResponseItemArray[0]->ItemTextLineCount() > 1  ||
-            iResponseItemArray.Count() == KOnlyTwoLines )
+    TInt repondItemIndex( 0 );
+    if ( iConflicted && iResponseItemArray.Count() == 2 )
         {
-        SizeChanged();
+        repondItemIndex = 1;
         }
+
+    iResponseItemArray[repondItemIndex]->SetUnderlineL( ETrue );
+    iResponseItemArray[repondItemIndex]->SetTextL( stringholder->Des() );
+
+    SizeChanged();
     CleanupStack::PopAndDestroy( stringholder );
     }
 
@@ -438,28 +421,11 @@ void CESMRResponseField::SetFont( const CFont* aFont )
     {
     FUNC_LOG;
     iFont = aFont;
-    // Set font for the response items (Tpoic, Accept, Tentative, Decline )
+    // Set font for the response items (conflict and extrainfo item )
     TInt itemCount = iResponseItemArray.Count();
     for( TInt i = 0; i < itemCount; i++ )
         {
         iResponseItemArray[i]->SetFont( aFont );
-        }
-    }
-
-// -----------------------------------------------------------------------------
-// CESMRResponseField::SetLayoutManager
-// -----------------------------------------------------------------------------
-//
-void CESMRResponseField::SetLayoutManager( CESMRLayoutManager* aLayout )
-    {
-    FUNC_LOG;
-    iLayout = aLayout;
-
-    // Set layoutmanager for the response items
-    TInt itemCount = iResponseItemArray.Count();
-    for( TInt i = 0; i < itemCount; i++ )
-        {
-        iResponseItemArray[i]->SetLayoutManager( aLayout );
         }
     }
 
@@ -471,37 +437,68 @@ TBool CESMRResponseField::ItemSelectedL()
     {
     FUNC_LOG;
     TBool selected( EFalse );
-    
-    if ( iSelectionIndex > KSelectionTopic )
+    TInt ret( KErrCancel );
+
+    if ( iConflicted )
         {
-        if( iSelectionIndex < iResponseItemArray.Count() )
+        if ( iSelectionIndex == 0 )
             {
-            iResponseItemArray[iSelectionIndex]->ChangeIconL( ETrue );
-            }
-        // Redraw to enable new checked icon in the screen
-        DrawDeferred();
-                
-        TBool response( EFalse );
-        
-        TInt cmd( 0 );
-        if( iSelectionIndex < iResponseItemArray.Count() )
-            {
-            cmd = static_cast< TInt >( iResponseItemArray[iSelectionIndex]->CommandId() );
-            }
-        response = iResponseObserver->Response( cmd );
-        
-        if ( !response )
-            {
-            // Cancel was selected, update the icon
-            if( iSelectionIndex < iResponseItemArray.Count() )
+            if ( iConfPopup )
                 {
-                iResponseItemArray[iSelectionIndex]->ChangeIconL( EFalse );
+                iConfPopup->ShowPopup();
                 }
             }
-        
-        selected = ETrue;
+
+        if ( KExtraInfoItemIndex == iSelectionIndex )
+            {
+            if ( iNormalResponse )
+                {
+                // Try to send response
+                CESMRListQuery* query =
+                        CESMRListQuery::NewL( CESMRListQuery::EESMRNormalResponseQuery );
+                CleanupStack::PushL( query );
+                ret = query->ExecuteLD();
+                CleanupStack::Pop( query );
+                }
+            if ( iRemoveResponse )
+                {
+                CESMRListQuery* query =
+                        CESMRListQuery::NewL( CESMRListQuery::EESMRRemoveResponseQuery );
+                CleanupStack::PushL( query );
+                ret = query->ExecuteLD();
+                CleanupStack::Pop( query );
+                }
+            }
         }
-    
+    else
+        {
+        if ( KConflictItemIndex == iSelectionIndex )
+            {
+            if ( iNormalResponse )
+                {
+                // Try to send response
+                CESMRListQuery* query =
+                        CESMRListQuery::NewL( CESMRListQuery::EESMRNormalResponseQuery );
+                CleanupStack::PushL( query );
+                ret = query->ExecuteLD();
+                CleanupStack::Pop( query );
+                }
+            if ( iRemoveResponse )
+                {
+                CESMRListQuery* query =
+                        CESMRListQuery::NewL( CESMRListQuery::EESMRRemoveResponseQuery );
+                CleanupStack::PushL( query );
+                ret = query->ExecuteLD();
+                CleanupStack::Pop( query );
+                }
+            }
+        }
+
+    if ( KErrCancel != ret )
+        {
+        NotifyEventAsyncL( ret );
+        }
+
     return selected;
     }
 
@@ -512,59 +509,33 @@ TBool CESMRResponseField::ItemSelectedL()
 void CESMRResponseField::HandleCancelledEventItemsL( MESMRCalEntry& aEntry )
     {
     FUNC_LOG;
-    // Remove all other but title items from response array. Only 'Remove from Cal'
-    // should be shown.
-    TInt count = iResponseItemArray.Count();
-    for ( TInt i = count - 1; i > 0; --i )
-        {
-        CESMRResponseItem* item = iResponseItemArray[i];
-        iResponseItemArray.Remove( i );
-        delete item;
-        item = NULL;
-        }
-
     CCalEntry& entry = aEntry.Entry();
     CCalUser* calUser = entry.PhoneOwnerL();
     TPtrC addr = ESMRHelper::AddressWithoutMailtoPrefix( calUser->Address() );
-    
+
     iESMRStatic.ConnectL();
     iESMRStaticAccessed = ETrue;
-    
-    if( iESMRStatic.MailBoxL( addr ).HasCapability( 
-            EFSMBoxCapaRemoveFromCalendar ) &&
-            aEntry.IsStoredL() )
-        {
-        // Construct the 'Remove from Calendar' item
-        HBufC* stringholder = StringLoader::LoadLC(
-                R_QTN_MEET_REQ_RESPONSE_REMOVE_CALENDAR_EVENT, iEikonEnv );
-        CESMRResponseItem* responseItem =
-            CESMRResponseItem::NewL( EESMRCmdRemoveFromCalendar, *stringholder, ETrue );
-        CleanupStack::PopAndDestroy( stringholder );
-        CleanupStack::PushL( responseItem );
-        // Set layout manager and font for the item
-        responseItem->SetLayoutManager( iLayout );
-        responseItem->SetFont( iFont );
-        responseItem->SetHighlight();
-        User::LeaveIfError( iResponseItemArray.Append( responseItem ) );
-        CleanupStack::Pop( responseItem );
-        }
     }
 
 // -----------------------------------------------------------------------------
 // CESMRResponseField::ExecuteGenericCommandL
 // -----------------------------------------------------------------------------
 //
-void CESMRResponseField::ExecuteGenericCommandL( TInt aCommand )
+TBool CESMRResponseField::ExecuteGenericCommandL( TInt aCommand )
     {
     FUNC_LOG;
+    TBool isUsed( EFalse );
     if ( aCommand == EAknSoftkeySelect )
         {
         ItemSelectedL();
+        isUsed = ETrue;
         }
     else
         {
-        CESMRField::ExecuteGenericCommandL( aCommand );
+        isUsed = CESMRField::ExecuteGenericCommandL( aCommand );
         }
+
+    return isUsed;
     }
 
 // -----------------------------------------------------------------------------
@@ -575,11 +546,131 @@ void CESMRResponseField::SetOutlineFocusL( TBool aFocus )
     {
     FUNC_LOG;
     CESMRField::SetOutlineFocusL( aFocus );
-    
+
     if ( aFocus )
         {
         SetMiddleSoftKeyVisible( ETrue );
         }
+    }
+
+// -----------------------------------------------------------------------------
+// CESMRResponseField::HandleSingletapEventL
+// -----------------------------------------------------------------------------
+//
+TBool CESMRResponseField::HandleSingletapEventL( const TPoint& aPosition )
+    {
+    FUNC_LOG;
+
+    TBool handled( EFalse );
+    if( !iLongTapEventConsumed )
+        {
+        handled = HandleTapEventL( aPosition );
+        }
+    iLongTapEventConsumed = EFalse;
+
+    return handled;
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRResponseField::HandleLongtapEventL
+// ---------------------------------------------------------------------------
+//
+void CESMRResponseField::HandleLongtapEventL( const TPoint& aPosition )
+    {
+    FUNC_LOG;
+    HandleTapEventL( aPosition );
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRResponseField::HandletapEventL
+// ---------------------------------------------------------------------------
+//
+TBool CESMRResponseField::HandleTapEventL( const TPoint& aPosition )
+    {
+    TBool handled = EFalse;
+    TInt ret = KErrCancel;
+
+    if ( Rect().Contains( aPosition ) )
+        {
+        if ( iConflicted )
+            {
+            TRect conflictItemRect = iResponseItemArray[KConflictItemIndex]->Rect();
+            if ( conflictItemRect.Contains( aPosition ) )
+                {
+                iResponseItemArray[KExtraInfoItemIndex]->RemoveHighlight();
+                iResponseItemArray[KConflictItemIndex]->SetHighlight();
+                iSelectionIndex = KConflictItemIndex;
+                 if ( iConfPopup )
+                    {
+                    iLongTapEventConsumed = ETrue;
+                    iConfPopup->ShowPopup();
+                    }
+                }
+            else
+                {
+                iResponseItemArray[KConflictItemIndex]->RemoveHighlight();
+                iResponseItemArray[KExtraInfoItemIndex]->SetHighlight();
+                iSelectionIndex = KExtraInfoItemIndex;
+                DrawDeferred();
+                if ( iNormalResponse )
+                    {
+                    CESMRListQuery* query =
+                            CESMRListQuery::NewL( CESMRListQuery::EESMRNormalResponseQuery );
+                    CleanupStack::PushL( query );
+                    // Use this flag to avoid the same event be handled by
+                    // HandleSingletapEventL() when HandleLongtapEventL().
+                    iLongTapEventConsumed = ETrue;
+                    ret = query->ExecuteLD();
+                    CleanupStack::Pop( query );
+                    }
+                if ( iRemoveResponse )
+                    {
+                    CESMRListQuery* query =
+                            CESMRListQuery::NewL( CESMRListQuery::EESMRRemoveResponseQuery );
+                    CleanupStack::PushL( query );
+                    iLongTapEventConsumed = ETrue;
+                    ret = query->ExecuteLD();
+                    CleanupStack::Pop( query );
+                    }
+                }
+            }
+        else
+            {
+            iResponseItemArray[0]->SetHighlight();
+            if ( iNormalResponse )
+                {
+                CESMRListQuery* query =
+                        CESMRListQuery::NewL( CESMRListQuery::EESMRNormalResponseQuery );
+                CleanupStack::PushL( query );
+                iLongTapEventConsumed = ETrue;
+                ret = query->ExecuteLD();
+                CleanupStack::Pop( query );
+                }
+
+            if ( iRemoveResponse )
+                {
+                CESMRListQuery* query =
+                        CESMRListQuery::NewL( CESMRListQuery::EESMRRemoveResponseQuery );
+                CleanupStack::PushL( query );
+                iLongTapEventConsumed = ETrue;
+                ret = query->ExecuteLD();
+                CleanupStack::Pop( query );
+                }
+            }
+
+        DrawDeferred();
+
+        handled = ETrue;
+        iPointEvent = ETrue;
+
+        if ( KErrCancel != ret )
+            {
+            NotifyEventAsyncL( ret );
+            }
+
+        }
+
+    return handled;
     }
 
 // -----------------------------------------------------------------------------
@@ -593,7 +684,7 @@ CCoeControl* CESMRResponseField::ControlItem( TInt aIndex )
         {
         control = static_cast<CCoeControl*>( iResponseItemArray[aIndex] );
         }
-        
+
     return control;
     }
 

@@ -460,7 +460,7 @@ RESOURCE IPS_SET_ARRAY r_ips_set_menu_what_to_sync
             itemid = EIpsSetUiWhatRetrievePop3;
             itemlabel = qtn_fse_settings_mail_downl_ctrl_retrieve_limit;
             itemarray = r_ips_set_what_to_sync_array_email_retrieve_pop3;
-            itemflags = KIpsSetUiFlagPop3Only;
+            itemflags = KIpsSetUiFlagPop3Only | KIpsSetUiFlagLangSpecificNumConv;
             },
         // Emails to retrieve (IMAP4)
         IPS_SET_ITEM
@@ -518,6 +518,7 @@ RESOURCE IPS_SET_ARRAY r_ips_set_menu_when_to_sync
             itemid = EIpsSetUiWhenHours;
             itemlabel = qtn_fse_settings_mail_conn_hours;
             itemarray = r_ips_set_when_to_sync_array_sync_hours;
+            itemflags = KIpsSetUiFlagLangSpecificNumConv;
             },
         // Update Interval
         IPS_SET_ITEM
@@ -526,6 +527,7 @@ RESOURCE IPS_SET_ARRAY r_ips_set_menu_when_to_sync
             itemid = EIpsSetUiWhenSchedule;
             itemlabel = qtn_fse_settings_mail_interval;
             itemarray = r_ips_set_when_to_sync_array_sync_schedule;
+            itemflags = KIpsSetUiFlagLangSpecificNumConv;
             }
         };
     }
@@ -766,7 +768,8 @@ RESOURCE IPS_SET_ARRAY r_ips_set_what_to_sync_array_email_retrieve_pop3
             itemtype = EIpsSetUiItemValue;
             itemid = EIpsSetUiWhatRetrievePop3EditCustom;
             itemlabel = qtn_fse_settings_mail_retrieve_amount;
-            itemflags = KIpsSetUiFlagPermanentlyHidden;
+            itemflags = KIpsSetUiFlagPermanentlyHidden |
+                KIpsSetUiFlagForceMustFill;
             }
         };
     }
@@ -789,6 +792,7 @@ RESOURCE IPS_SET_ARRAY r_ips_set_what_to_sync_array_email_retrieve_imap4
             itemlabel = qtn_fse_settings_mail_retrieve_from_inbox;
             itemarray =
                 r_ips_set_what_to_sync_array_email_retrieve_imap4_inbox;
+            itemflags = KIpsSetUiFlagLangSpecificNumConv;
             },
         //
         IPS_SET_ITEM
@@ -798,6 +802,7 @@ RESOURCE IPS_SET_ARRAY r_ips_set_what_to_sync_array_email_retrieve_imap4
             itemlabel = qtn_fse_settings_mail_retrieve_from_folders;
             itemarray =
                 r_ips_set_what_to_sync_array_email_retrieve_imap4_folder;
+            itemflags = KIpsSetUiFlagLangSpecificNumConv;
             }
         };
     }
@@ -833,7 +838,8 @@ RESOURCE IPS_SET_ARRAY r_ips_set_what_to_sync_array_email_retrieve_imap4_inbox
             itemtype = EIpsSetUiItemValue;
             itemid = EIpsSetUiWhatRetrieveImap4InboxEditCustom;
             itemlabel = qtn_fse_settings_mail_retrieve_amount;
-            itemflags = KIpsSetUiFlagPermanentlyHidden;
+            itemflags = KIpsSetUiFlagPermanentlyHidden |
+                KIpsSetUiFlagForceMustFill;
             }
         };
     }
@@ -869,7 +875,8 @@ RESOURCE IPS_SET_ARRAY r_ips_set_what_to_sync_array_email_retrieve_imap4_folder
             itemtype = EIpsSetUiItemValue;
             itemid = EIpsSetUiWhatRetrieveImap4FolderEditCustom;
             itemlabel = qtn_fse_settings_mail_retrieve_amount;
-            itemflags = KIpsSetUiFlagPermanentlyHidden;
+            itemflags = KIpsSetUiFlagPermanentlyHidden |
+                KIpsSetUiFlagForceMustFill;
             }
         };
     }
@@ -934,6 +941,7 @@ RESOURCE IPS_SET_ARRAY r_ips_set_when_to_sync_array_sync_schedule
             itemtype = EIpsSetUiItemRadioButton;
             itemid = EIpsSetUiWhenScheduleBtn5Min;
             itemlabel = qtn_fse_settings_mail_interval_5min;
+            itemflags = KIpsSetUiFlagLangSpecificNumConv;
             },
         // "10 minutes" -option
         IPS_SET_ITEM
@@ -941,6 +949,7 @@ RESOURCE IPS_SET_ARRAY r_ips_set_when_to_sync_array_sync_schedule
             itemtype = EIpsSetUiItemRadioButton;
             itemid = EIpsSetUiWhenScheduleBtn10Min;
             itemlabel = qtn_fse_settings_mail_interval_10min;
+            itemflags = KIpsSetUiFlagLangSpecificNumConv;
             },
         // "15 minutes" -option
         IPS_SET_ITEM
@@ -948,6 +957,7 @@ RESOURCE IPS_SET_ARRAY r_ips_set_when_to_sync_array_sync_schedule
             itemtype = EIpsSetUiItemRadioButton;
             itemid = EIpsSetUiWhenScheduleBtn15Min;
             itemlabel = qtn_fse_settings_mail_interval_15min;
+            itemflags = KIpsSetUiFlagLangSpecificNumConv;
             },
         // "30 minutes" -option
         IPS_SET_ITEM
@@ -955,6 +965,7 @@ RESOURCE IPS_SET_ARRAY r_ips_set_when_to_sync_array_sync_schedule
             itemtype = EIpsSetUiItemRadioButton;
             itemid = EIpsSetUiWhenScheduleBtn30Min;
             itemlabel = qtn_fse_settings_mail_interval_30min;
+            itemflags = KIpsSetUiFlagLangSpecificNumConv;
             },
         // "1 hour" -option
         IPS_SET_ITEM
@@ -962,6 +973,7 @@ RESOURCE IPS_SET_ARRAY r_ips_set_when_to_sync_array_sync_schedule
             itemtype = EIpsSetUiItemRadioButton;
             itemid = EIpsSetUiWhenScheduleBtn1Hour;
             itemlabel = qtn_fse_settings_mail_interval_1hour;
+            itemflags = KIpsSetUiFlagLangSpecificNumConv;
             },
         // "4 hours" -option
         IPS_SET_ITEM
@@ -969,6 +981,7 @@ RESOURCE IPS_SET_ARRAY r_ips_set_when_to_sync_array_sync_schedule
             itemtype = EIpsSetUiItemRadioButton;
             itemid = EIpsSetUiWhenScheduleBtn4Hours;
             itemlabel = qtn_fse_settings_mail_interval_4hours;
+            itemflags = KIpsSetUiFlagLangSpecificNumConv;
             },
         // "12 hours" -option
         IPS_SET_ITEM
@@ -976,6 +989,7 @@ RESOURCE IPS_SET_ARRAY r_ips_set_when_to_sync_array_sync_schedule
             itemtype = EIpsSetUiItemRadioButton;
             itemid = EIpsSetUiWhenScheduleBtn12Hours;
             itemlabel = qtn_fse_settings_mail_interval_12hours;
+            itemflags = KIpsSetUiFlagLangSpecificNumConv;
             },
         // "1 day" -option
         IPS_SET_ITEM
@@ -983,6 +997,7 @@ RESOURCE IPS_SET_ARRAY r_ips_set_when_to_sync_array_sync_schedule
             itemtype = EIpsSetUiItemRadioButton;
             itemid = EIpsSetUiWhenScheduleBtn1Day;
             itemlabel = qtn_fse_settings_mail_interval_1day;
+            itemflags = KIpsSetUiFlagLangSpecificNumConv;
             },
         // "Notification" -option
         IPS_SET_ITEM

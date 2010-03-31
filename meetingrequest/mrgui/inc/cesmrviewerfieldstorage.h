@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -11,7 +11,7 @@
 *
 * Contributors:
 *
-* Description:  ESMR field storage for viewer fields in CESMRListComponent
+* Description:  ESMR field storage for viewer fields owned by fieldcontainer
 *
 */
 
@@ -43,7 +43,7 @@ public:
      * @return New viewer field storage object
      */
     static CESMRViewerFieldStorage* NewL( 
-    		CESMRPolicy* aPolicy,
+    		const CESMRPolicy& aPolicy,
     		MESMRResponseObserver* aResponseObserver,
     		TBool aResponseReady,
     		MESMRFieldEventObserver& aEventObserver,
@@ -62,17 +62,17 @@ private: // Implementation
     CESMRViewerFieldStorage(
             MESMRFieldEventObserver& aEventObserver );
 
-    void ConstructL( CESMRPolicy* aPolicy,
+    void ConstructL( const CESMRPolicy& aPolicy,
                      MESMRResponseObserver* aResponseObserver,
                      TBool aResponseReady,
                      const TInt &aReqAttendee ,
                      const TInt &aOptAttendee );
 
-    void CreatePolicyFieldsL(CESMRPolicy* aPolicy,
+    void CreatePolicyFieldsL( const CESMRPolicy& aPolicy,
                 MESMRResponseObserver* aResponseObserver,
                 TBool aResponseReady);
 
-    void CreateTrackingFieldsL(CESMRPolicy* aPolicy,
+    void CreateTrackingFieldsL( const CESMRPolicy& aPolicy,
                 MESMRResponseObserver* aResponseObserver,
                 TBool aResponseReady,
                 const TInt &aReqAttendeee, const TInt &aOptAttendee);

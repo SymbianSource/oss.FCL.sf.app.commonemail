@@ -195,3 +195,4 @@
 -c16,8 qgn_indi_tb_show_bcc.svg
 -c16,8 qgn_indi_tb_hide_bcc.svg
 -c16,8 qgn_indi_tb_extension.svg
+-c16,8 cmail_marking_mode_bg.svg

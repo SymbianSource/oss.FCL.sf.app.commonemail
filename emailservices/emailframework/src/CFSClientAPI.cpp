@@ -33,7 +33,7 @@ CFSClientAPI::CFSClientAPI()
 CFSClientAPI::~CFSClientAPI()
     {
     FUNC_LOG;
-    iAPIRequestHandler->ReleaseInstance();
+    delete iAPIRequestHandler;
     }
 
 // -----------------------------------------------------------------------------
@@ -55,6 +55,6 @@ EXPORT_C CFSClientAPI* CFSClientAPI::NewL(MEmailClientPluginManager* aPluginMana
 void CFSClientAPI::ConstructL(MEmailClientPluginManager* aPluginManager)
     {
     FUNC_LOG;
-    iAPIRequestHandler = CFSClientAPIRequestHandler::GetInstanceL( aPluginManager );
+    iAPIRequestHandler = CFSClientAPIRequestHandler::NewL(aPluginManager);
     }
 

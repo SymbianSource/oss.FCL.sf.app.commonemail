@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -19,11 +19,7 @@
 #define CESMRNCSEDITOR_H
 
 #include <eikrted.h>
-#include <AknUtils.h>
-
-class CAknsBasicBackgroundControlContext;
-class CNcsCustomDraw;
-class CESMRLayoutManager;
+#include <aknutils.h>
 
 /**
  *  CESMRNcsEditor is a specialised CEikRichTextEditor for 
@@ -160,9 +156,8 @@ public: // new functions
     /**
       * Set the font of the editor
       * @param aFont font of the editor
-      * @param aLayout pointer to layout manager to get the font and sizes
       */
-    void SetFontL( const CFont* aFont, CESMRLayoutManager* aLayout );
+    void SetFontL( const CFont* aFont );
     
 #ifdef _DEBUG
     void DebugDump();
@@ -171,7 +166,9 @@ public: // new functions
 public: // from CoeControl
     TKeyResponse OfferKeyEventL( const TKeyEvent& aKeyEvent, TEventCode aType );
     void SetTextL( const TDesC* aDes );
-    void SetRect( const TRect& aRect );
+    void FocusChanged( TDrawNow aDrawNow );
+    void HandlePointerEventL( const TPointerEvent& aPointerEvent );
+    
 
 protected: // from CEikEdwin
     virtual void HandleResourceChange( TInt aType );
@@ -190,9 +187,6 @@ private: // data
     HBufC* iDefaultText;//not own
     TBool iHasDefaultText;
     TRgb iTextColor;
-
-    // background control context. Owned.
-    CAknsBasicBackgroundControlContext* iBgContext;
     };
 
 

@@ -103,10 +103,7 @@ LIBRARY                 ConnMon.lib
 LIBRARY                 avkon.lib
 LIBRARY                 cmaillogger.lib
 LIBRARY                 featmgr.lib 
+LIBRARY                 flogger.lib 
 
-
-#ifdef TRACE_INTO_FILE
-LIBRARY                 flogger.lib
-#endif // TRACE_INTO_FILE
 
 DEFFILE                 IPSSOSPLUGIN.DEF

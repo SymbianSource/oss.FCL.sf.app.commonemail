@@ -19,8 +19,9 @@
 #ifndef MESMRENTRYHELPER_H
 #define MESMRENTRYHELPER_H
 
+#include "esmrdef.h"
 #include <e32base.h>
-#include <MAgnEntryUi.h>
+#include <magnentryui.h>
 
 class CCalEntry;
 class CCalAttendee;
@@ -83,6 +84,14 @@ public: // New functions
     IMPORT_C static TBool IsCancelledL(
             const CCalEntry& aEntry,
             CMRMailboxUtils& aUtils );
+    
+    /**
+    * Checks if entry is all-day event.
+    * @param aEntry
+    * @return ETrue if meeting is all-day event
+    */
+    IMPORT_C static TBool IsAllDayEventL(
+            const CCalEntry& aEntry );
 
     /**
     * Checks whether entry is out of date or not.
@@ -122,6 +131,35 @@ public: // New functions
     IMPORT_C static TBool SpansManyDaysL(
             const TCalTime& aStartTime,
             const TCalTime& aEndTime );
+    
+    /**
+     * Resolves the calendar entry type.
+     * @param aCalEntry reference to calendar entry
+     */
+    IMPORT_C static TESMRCalendarEventType EventTypeL(
+            const CCalEntry& aCalEntry );
+    
+    /**
+     * Sets child entry's start and end time.
+     *
+     * @param aChild Reference to child entry
+     * @param aParent Reference to parent entry
+     * @param aChildEnd Child entry's start time
+     */
+    IMPORT_C static void SetInstanceStartAndEndL(
+            CCalEntry& aChild,
+            const CCalEntry& aParent,
+            const TCalTime& aChildStart );
+
+    /**
+     * Checks and adjust repeat until validity. Method adjusts entry's
+     * recurrence until time if needed.
+     * @param aEntry Reference to parent entry
+     * @param aInstanceTime Reference to instances time
+     */
+    IMPORT_C static void CheckRepeatUntilValidityL(
+            CCalEntry& aEntry,
+            const TCalTime& aInstanceTime );    
     };
 
 #endif      // MESMRENTRYHELPER_H

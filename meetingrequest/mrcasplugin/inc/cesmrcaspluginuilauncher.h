@@ -20,7 +20,7 @@
 #define CESMRCASPLUGINUILAUNCHER_H
 
 #include <e32base.h>
-#include <MAgnEntryUi.h>
+#include <magnentryui.h>
 #include <badesca.h>
 
 class CCalSession;

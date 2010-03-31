@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -18,25 +18,21 @@
 #include "cesmrviewerattendeesfield.h"
 
 #include "mesmrlistobserver.h"
-#include "cesmrborderlayer.h"
 #include "cesmrrichtextlink.h"
 #include "esmrfieldbuilderdef.h"
-#include "cesmrlayoutmgr.h"
 #include "cmrlabel.h"
 #include "nmrlayoutmanager.h"
 
 #include <caluser.h>
 #include <calentry.h>
-#include <StringLoader.h>
+#include <stringloader.h>
 #include <esmrgui.rsg>
-#include <CPbkContactEngine.h>
-#include <AknBidiTextUtils.h>
-#include "cmrlistpane.h"
+#include <cpbkcontactengine.h>
+#include <aknbiditextutils.h>
 
 // DEBUG
 #include "emailtrace.h"
 
-using namespace ESMRLayout;
 
 // CONSTANTS
 /// Unnamed namespace for local definitions
@@ -65,7 +61,7 @@ CESMRViewerAttendeesField* CESMRViewerAttendeesField::NewL(
         CCalAttendee::TCalRole aRole )
     {
     FUNC_LOG;
-    CESMRViewerAttendeesField* self = 
+    CESMRViewerAttendeesField* self =
         new (ELeave) CESMRViewerAttendeesField( aRole );
     CleanupStack::PushL ( self );
     self->ConstructL ( );
@@ -86,8 +82,9 @@ void CESMRViewerAttendeesField::ConstructL( )
 
     iTitle = CMRLabel::NewL();
     iTitle->SetParent( this );
-    
+
     iRichTextViewer = CESMRRichTextViewer::NewL (this );
+    CESMRField::ConstructL( iRichTextViewer ); // ownership transferred
     iRichTextViewer->SetEdwinSizeObserver ( this );
     iRichTextViewer->SetLinkObserver (this );
     iRichTextViewer->SetParent( this );
@@ -107,12 +104,14 @@ void CESMRViewerAttendeesField::InitializeL()
     {
     FUNC_LOG;
     TAknLayoutText layoutText =
-        NMRLayoutManager::GetLayoutText( Rect(), 
+        NMRLayoutManager::GetLayoutText( Rect(),
                 NMRLayoutManager::EMRTextLayoutMultiRowTextEditor );
-    iRichTextViewer->SetFontL( layoutText.Font(), iLayout );
+    iRichTextViewer->SetFontL( layoutText.Font() );
+    iRichTextViewer->ApplyLayoutChangesL();
     UpdateAttendeesListL();
     //wake up current contact menu selection by calling this
     iRichTextViewer->FocusChanged( ENoDrawNow );
+    iRichTextViewer->SetEventQueue( iEventQueue );
     }
 
 // -----------------------------------------------------------------------------
@@ -122,21 +121,18 @@ void CESMRViewerAttendeesField::InitializeL()
 void CESMRViewerAttendeesField::SetOutlineFocusL( TBool aFocus )
     {
     FUNC_LOG;
-    CESMRField::SetOutlineFocusL( aFocus );
+    CESMRField::SetOutlineFocusL (aFocus );
     iRichTextViewer->SetFocus( aFocus );
-    
+
     if ( aFocus )
         {
         SetMiddleSoftKeyVisible( ETrue );
         }
     else
         {
-        TInt oldShowAttendees = iShowAllAttendees;
         iShowAllAttendees = EFalse;
-        if (oldShowAttendees != iShowAllAttendees)
-            {
-            UpdateAttendeesListL();
-            }
+        UpdateAttendeesListL();
+        iRichTextViewer->ResetActionMenuL();
         }
     }
 
@@ -168,7 +164,7 @@ void CESMRViewerAttendeesField::InternalizeL( MESMRCalEntry& aEntry )
         }
     else
         {
-        iObserver->RemoveControl( iFieldId );
+        iObserver->HideControl( iFieldId );
         }
     iDisableRedraw = ETrue;
     }
@@ -181,8 +177,19 @@ void CESMRViewerAttendeesField::GetMinimumVisibleVerticalArea(
         TInt& aUpper, TInt& aLower)
     {
     FUNC_LOG;
-    aLower = iRichTextViewer->CurrentLineNumber() * iRichTextViewer->RowHeight() + iTitle->Size().iHeight;
-    aUpper = aLower - iRichTextViewer->RowHeight() - iTitle->Size().iHeight;
+    aLower = iRichTextViewer->CurrentLineNumber() * iRichTextViewer->RowHeight();
+    aUpper = aLower - iRichTextViewer->RowHeight();
+    }
+
+// -----------------------------------------------------------------------------
+// CESMRViewerAttendeesField::GetCursorLineVerticalPos
+// -----------------------------------------------------------------------------
+//
+void CESMRViewerAttendeesField::GetCursorLineVerticalPos(TInt& aUpper, TInt& aLower)
+    {
+    FUNC_LOG;
+    aLower = iRichTextViewer->CurrentLineNumber() * iRichTextViewer->RowHeight();
+    aUpper = aLower - iRichTextViewer->RowHeight();
     }
 
 // -----------------------------------------------------------------------------
@@ -204,41 +211,75 @@ void CESMRViewerAttendeesField::SizeChanged( )
     FUNC_LOG;
     // Store iRichTextViewer original width.
     TInt richTextViewerWidth = iRichTextViewer->Size().iWidth;
-    
+
     // Get field's rect
     TRect rect( Rect() );
-    
+
     // First row for title
     TAknLayoutRect rowLayoutRect =
         NMRLayoutManager::GetFieldRowLayoutRect( rect, 1 );
     TRect rowRect = rowLayoutRect.Rect();
-    
+
     // Layout title to first row's rect
     TAknTextComponentLayout titleLayout =
-        NMRLayoutManager::GetTextComponentLayout( 
+        NMRLayoutManager::GetTextComponentLayout(
                 NMRLayoutManager::EMRTextLayoutText );
     AknLayoutUtils::LayoutLabel( iTitle, rect, titleLayout );
-    // Color should be overrided after layouting
-    // If this function leaves we'll have to use default color
-    TRAP_IGNORE( AknLayoutUtils::OverrideControlColorL( 
-                                *iTitle, 
-                                EColorLabelText,
-                                KRgbBlack ));
-    
+
+    TAknLayoutText labelLayout =
+            NMRLayoutManager::GetLayoutText(
+                    rect, NMRLayoutManager::EMRTextLayoutText );
+
+    // Setting font for the label
+    iTitle->SetFont( labelLayout.Font() );
+
     // Move upper left corner below first line and get second row's rect.
     rect.iTl.iY += rowRect.Height();
     rowLayoutRect =
         NMRLayoutManager::GetFieldRowLayoutRect( rect, 2 );
     rowRect = rowLayoutRect.Rect();
-    
+
     // Get default 1 row editor rect.
     TAknLayoutText viewerLayoutText =
-        NMRLayoutManager::GetLayoutText( rowRect, 
+        NMRLayoutManager::GetLayoutText( rowRect,
                 NMRLayoutManager::EMRTextLayoutMultiRowTextEditor );
     TRect viewerRect = viewerLayoutText.TextRect();
     // Resize resize it's height according to actual height required by edwin.
     viewerRect.Resize( 0, iExpandedSize.iHeight - viewerRect.Height() );
-    iRichTextViewer->SetRect( viewerRect );  
+
+    // Layouting focus
+    TRect bgRect( 0, 0, 0, 0 );
+    if( iCalAttendees.Count() > 1 )
+    	{
+    	bgRect.SetRect( 
+    			TPoint( viewerRect.iTl.iX, 
+    					viewerRect.iTl.iY - FocusMargin() ), 
+    					TPoint( viewerRect.iBr.iX, 
+    							viewerRect.iBr.iY + FocusMargin() ) );
+    	}
+    else
+    	{
+    	TAknLayoutRect bgLayoutRect =
+    	NMRLayoutManager::GetLayoutRect(
+    			rowRect, NMRLayoutManager::EMRLayoutTextEditorBg );
+    	bgRect = bgLayoutRect.Rect();
+    	}
+
+    // Move focus rect so that it's relative to field's position.
+    bgRect.Move( -Position() );
+    SetFocusRect( bgRect );
+    
+    iRichTextViewer->SetRect( viewerRect );
+
+    // Failures are ignored. 
+    TRAP_IGNORE( 
+            iRichTextViewer->SetFontL( viewerLayoutText.Font() );
+            if( iCalAttendees.Count() > 0 )
+                {
+                iRichTextViewer->SetLineSpacingL( LineSpacing() );
+                }
+            iRichTextViewer->ApplyLayoutChangesL();
+            );
     
     // Update AttendeesList only if iRichTextViewer width was changed.
     // This happens when screen orientation changes e.g. This check
@@ -246,13 +287,19 @@ void CESMRViewerAttendeesField::SizeChanged( )
     // it causes edwin size changed event.
     if ( iRichTextViewer->Size().iWidth != richTextViewerWidth )
         {
+        // Most of this case is screen orientation, in this case we need to 
+        // Record the index of focusing link, after updating link array, then 
+        // reset the focusing to original one.
+        TInt focusingIndex = iRichTextViewer->GetFocusLink();
         // Ignore leave, there's nothing we can do if leave occurs.
         TRAP_IGNORE( UpdateAttendeesListL() );
+        if ( KErrNotFound != focusingIndex )
+            {
+            iRichTextViewer->SetFocusLink( focusingIndex );
+            }
         //wake up current contact menu selection by calling this
         iRichTextViewer->FocusChanged(ENoDrawNow);
         }
-
-    DrawDeferred();
     }
 
 // -----------------------------------------------------------------------------
@@ -272,7 +319,7 @@ TKeyResponse CESMRViewerAttendeesField::OfferKeyEventL( const TKeyEvent& aEvent,
         if ( aEvent.iScanCode == EStdKeyUpArrow
              || aEvent.iScanCode == EStdKeyDownArrow )
             {
-            const CESMRRichTextLink* link = 
+            const CESMRRichTextLink* link =
                 iRichTextViewer->GetSelectedLink ( );
             if( link )
                 {
@@ -297,11 +344,12 @@ TKeyResponse CESMRViewerAttendeesField::OfferKeyEventL( const TKeyEvent& aEvent,
 // CESMRViewerAttendeesField::SetContainerWindowL()
 // ---------------------------------------------------------------------------
 //
-void CESMRViewerAttendeesField::SetContainerWindowL( 
+void CESMRViewerAttendeesField::SetContainerWindowL(
         const CCoeControl& aContainer )
     {
     CESMRField::SetContainerWindowL( aContainer );
     iRichTextViewer->SetContainerWindowL( aContainer );
+    iRichTextViewer->SetParent( this );
     }
 
 // ---------------------------------------------------------------------------
@@ -312,17 +360,18 @@ TSize CESMRViewerAttendeesField::MinimumSize()
     {
     // Parent rect will be list area later --> no need to calculate it manually.
     TRect parentRect = Parent()->Rect();
-    TRect contentRect = NMRLayoutManager::GetLayoutRect( 
+    // TODO: Remove this after new list area is completed. See previous comment.
+    TRect contentRect = NMRLayoutManager::GetLayoutRect(
             parentRect, NMRLayoutManager::EMRLayoutListArea ).Rect();
     // We have two lines;  title and richtextviewer.
-    TRect fieldRect = 
+    TRect fieldRect =
         NMRLayoutManager::GetFieldLayoutRect( contentRect, 2 ).Rect();
     // Get row size for second row (richtext viewer).
-    TRect rowRect = 
+    TRect rowRect =
         NMRLayoutManager::GetFieldRowLayoutRect( fieldRect, 2 ).Rect();
     // Get size for default 1 line editor.
-    TRect viewerRect = NMRLayoutManager::GetLayoutText( 
-            rowRect, 
+    TRect viewerRect = NMRLayoutManager::GetLayoutText(
+            rowRect,
             NMRLayoutManager::EMRTextLayoutMultiRowTextEditor ).TextRect();
     // Adjust field size so that there's room for expandable editor.
     fieldRect.Resize( 0, iExpandedSize.iHeight - viewerRect.Height() );
@@ -333,34 +382,43 @@ TSize CESMRViewerAttendeesField::MinimumSize()
 // CESMRViewerAttendeesField::ExecuteGenericCommandL()
 // ---------------------------------------------------------------------------
 //
-void CESMRViewerAttendeesField::ExecuteGenericCommandL( TInt aCommand )
+TBool CESMRViewerAttendeesField::ExecuteGenericCommandL( TInt aCommand )
     {
     FUNC_LOG;
-    switch ( aCommand )
+
+    TBool isUsed( EFalse );
+    if (aCommand == EESMRCmdShowAllAttendees)
         {
-        case EESMRCmdClipboardCopy:
-            {
-            iRichTextViewer->CopyCurrentLinkValueToClipBoardL();
-            break;
-            }
-        case EESMRCmdShowAllAttendees:
-            {
-            iShowAllAttendees = ETrue;
-            UpdateAttendeesListL();
-        
-            RestoreMiddleSoftKeyL();
-            //wake up current contact menu selection by calling this
-            iRichTextViewer->FocusChanged(ENoDrawNow);
-            break;
-            }
-        case EAknSoftkeySelect:
-            {
-            iRichTextViewer->LinkSelectedL();
-            break;
-            }
-        default:
-            // do nothing for now..
-            break;
+        iShowAllAttendees = ETrue;
+        UpdateAttendeesListL();
+
+        RestoreMiddleSoftKeyL();
+        //wake up current contact menu selection by calling this
+        iRichTextViewer->FocusChanged(ENoDrawNow);
+
+        isUsed = ETrue;
+        }
+    if ( aCommand == EAknSoftkeySelect )
+        {
+        iRichTextViewer->LinkSelectedL();
+        isUsed = ETrue;
+        }
+
+    return isUsed;
+    }
+
+// -----------------------------------------------------------------------------
+// CESMRViewerAttendeesField::HandleLongtapEventL
+// -----------------------------------------------------------------------------
+//
+void CESMRViewerAttendeesField::HandleLongtapEventL( const TPoint& aPosition )
+    {
+    FUNC_LOG;
+    
+    if ( iRichTextViewer->Rect().Contains( aPosition ) )
+        {
+        iRichTextViewer->LinkSelectedL();
+		HandleTactileFeedbackL();
         }
     }
 
@@ -388,12 +446,12 @@ TBool CESMRViewerAttendeesField::HandleRichTextLinkSelection(
         const CESMRRichTextLink* aLink )
     {
     FUNC_LOG;
-    if ( aLink->Type() == CESMRRichTextLink::ETypeShowAll )
+    if (aLink->Type ( )== CESMRRichTextLink::ETypeShowAll )
         {
         iShowAllAttendees = ETrue;
         TRAPD( err, UpdateAttendeesListL() );
 
-        if ( err == KErrNone )
+        if (err == KErrNone )
             {
             return ETrue;
             }
@@ -444,7 +502,6 @@ CESMRViewerAttendeesField::~CESMRViewerAttendeesField( )
     {
     FUNC_LOG;
     delete iTitle;
-    delete iRichTextViewer;
     iCalAttendees.Reset();
     }
 
@@ -457,24 +514,23 @@ CESMRViewerAttendeesField::CESMRViewerAttendeesField(
     iRole( aRole)
     {
     FUNC_LOG;
-    //do nothing
+    SetFocusType( EESMRHighlightFocus );
     }
 
 // -----------------------------------------------------------------------------
 // CESMRViewerAttendeesField::ClipTextLC
 // -----------------------------------------------------------------------------
 //
-HBufC* CESMRViewerAttendeesField::ClipTextLC( 
+HBufC* CESMRViewerAttendeesField::ClipTextLC(
         const TDesC& aText, const CFont& aFont, TInt aWidth )
     {
     FUNC_LOG;
     HBufC* text = HBufC::NewLC( aText.Length() + KAknBidiExtraSpacePerLine );
     TPtr textPtr = text->Des();
-    AknBidiTextUtils::ConvertToVisualAndClip( 
+    AknBidiTextUtils::ConvertToVisualAndClip(
             aText, textPtr, aFont, aWidth, aWidth );
     return text;
     }
-
 
 // -----------------------------------------------------------------------------
 // CESMRViewerAttendeesField::UpdateAttendeesListL
@@ -486,137 +542,195 @@ void CESMRViewerAttendeesField::UpdateAttendeesListL()
     RBuf buffer; // codescanner::resourcenotoncleanupstack
     buffer.CleanupClosePushL();
 
-    iRichTextViewer->SetMargins( KMargin );
-    
-    TSize oldSize = Size();
+    TAknLayoutText text = NMRLayoutManager::GetLayoutText(
+            Rect(),
+            NMRLayoutManager::EMRTextLayoutTextEditor );
+    const CFont* font = text.Font();
 
-    TRect rect( Rect() );
-    TAknLayoutText layoutText =
-        NMRLayoutManager::GetLayoutText( rect, 
-                NMRLayoutManager::EMRTextLayoutMultiRowTextEditor );
-    TRect viewerRect = layoutText.TextRect();
-    TInt maxLineWidth = viewerRect.Size().iWidth;
-    const CFont* font = layoutText.Font();    
+    // TODO: correct icon zise to correct one. Ask from UI specifier.
+    TSize iconSize( 20, 20);
 
-    if ( maxLineWidth > 0 )  // control size is set
+    TInt maxLineWidth = iRichTextViewer->LayoutWidth();
+    maxLineWidth -= font->TextWidthInPixels( KAddressDelimeterSemiColon );
+    maxLineWidth -= iconSize.iWidth;
+
+    RPointerArray<CESMRRichTextLink> attendeeLinks;  // codescanner::resourcenotoncleanupstack
+    TCleanupItem arrayCleanup( RPointerArrayResetAndDestroy, &attendeeLinks );
+    CleanupStack::PushL( arrayCleanup );
+    attendeeLinks.ReserveL(iCalAttendees.Count());
+    for ( TInt i = 0; i < iCalAttendees.Count(); ++i )
         {
-        TInt linkCount = iCalAttendees.Count();
-        TBool notAllShown(EFalse);
-        if ( !iShowAllAttendees )
-            {
-            linkCount = Min(KMaxLineCount, iCalAttendees.Count() );
-            notAllShown = ( linkCount != iCalAttendees.Count() );
-            }
-        
-        RPointerArray<CESMRRichTextLink> attendeeLinks;  // codescanner::resourcenotoncleanupstack
-        TCleanupItem arrayCleanup( RPointerArrayResetAndDestroy, &attendeeLinks );
-        CleanupStack::PushL( arrayCleanup );
-        attendeeLinks.ReserveL( linkCount );
-        
-        for ( TInt i = 0; i < linkCount; ++i )
-            {
-            CCalAttendee* attendee = iCalAttendees[i];
-            
-            // Attendee email address.
-            TPtrC addr = attendee->Address();
-            // Attendee common name.
-            TPtrC name = attendee->CommonName();
-            // Actual text to be added to attendee field (email or common name).
-            TPtrC text = addr;
+        CCalAttendee* attendee = iCalAttendees[i];
 
-            // If attendee has common name, use it instead.
-            if ( name.Length() > 0 )
-                {
-                text.Set( name );
-                }
-            
-            if ( text.Length() > 0 )
-                {
-                CESMRRichTextLink* link = CESMRRichTextLink::NewL(
-                        buffer.Length(), 
-                        text.Length() + 
-                            KAddressDelimeterSemiColon().Length(), 
-                        addr,
-                        CESMRRichTextLink::ETypeEmail,
-                        CESMRRichTextLink::ETriggerKeyRight );
-                CleanupStack::PushL( link );
-                attendeeLinks.AppendL( link );
-                CleanupStack::Pop( link );
-        
-                // Append text and semicolon to buffer.
-                buffer.ReAllocL( buffer.Length() +
-                                 text.Length() +
-                                 KAddressDelimeterSemiColon().Length() + 
-                                 KNewLine().Length() );
-                buffer.Append( text );
-                buffer.Append( KAddressDelimeterSemiColon );
-                buffer.Append( KNewLine );
-                }            
-            }
-        
-        // If there are more lines in use than KMaxLineCount and
-        // we don't want to show all attendees, leave only
-        // KMaxLineCount-1 attendees and add 'show all'
-        // link to the end.
-        if ( notAllShown )
+        // Attendee email address.
+        TPtrC addr = attendee->Address();
+        // Attendee common name.
+        TPtrC name = attendee->CommonName();
+        // Actual text to be added to attendee field (email or common name).
+        TPtrC text = addr;
+
+        // If attendee has common name, use it instead.
+        if ( name.Length() > 0 )
             {
-            // Create and append 'show all' link.
-            CESMRRichTextLink* showAllLink;
-            HBufC* showAllBuf = StringLoader::LoadLC( R_QTN_MEET_REQ_SHOW_ALL );
-            buffer.ReAllocL( buffer.Length() + 
-                             showAllBuf->Length() );
-            showAllLink = CESMRRichTextLink::NewL( buffer.Length ( ),
-                    showAllBuf->Length(), KNullDesC,
-                    CESMRRichTextLink::ETypeShowAll,
-                    CESMRRichTextLink::ETriggerKeyOk );
-            buffer.Append( *showAllBuf );
-            CleanupStack::PopAndDestroy( showAllBuf );
-            CleanupStack::PushL( showAllLink );
-            attendeeLinks.AppendL( showAllLink );
-            CleanupStack::Pop( showAllLink );
-            }
-            
-        // Remove unnecessary new line from the end of buffer.
-        else if ( buffer.Length() >= KNewLine().Length() )
-            {
-            buffer.SetLength( buffer.Length() - KNewLine().Length() );
+            text.Set( name );
             }
 
-        if ( buffer.Length() > 0 )
-            {
-            iRichTextViewer->SetTextL( &buffer );
+        HBufC* clippedTextHBufC = ClipTextLC( text, *font, maxLineWidth );
+        TPtr clippedText = clippedTextHBufC->Des();
+        clippedText.Trim();
 
-            // Add all links to iRichTextViewer.
-            while ( attendeeLinks.Count() > 0 )
-                {
-                CESMRRichTextLink* link = attendeeLinks[0];
-                CleanupStack::PushL( link );
-                attendeeLinks.Remove( 0 );
-                iRichTextViewer->AddLinkL( link );
-                CleanupStack::Pop( link );
-                }
+        if ( clippedText.Length() > 0 )
+            {
+            CESMRRichTextLink* link = CESMRRichTextLink::NewL(
+                    buffer.Length(),
+                    clippedText.Length() +
+                        KAddressDelimeterSemiColon().Length(),
+                    addr,
+                    CESMRRichTextLink::ETypeEmail,
+                    CESMRRichTextLink::ETriggerKeyRight );
+            CleanupStack::PushL( link );
+            attendeeLinks.AppendL( link );
+            CleanupStack::Pop( link );
+
+            // Append text and semicolon to buffer.
+            buffer.ReAllocL( buffer.Length() +
+                             clippedText.Length() +
+                             KAddressDelimeterSemiColon().Length() +
+                             KNewLine().Length() );
+            buffer.Append( clippedText );
+            buffer.Append( KAddressDelimeterSemiColon );
+            buffer.Append( KNewLine );
             }
 
-        CleanupStack::PopAndDestroy( &attendeeLinks );
-        
-        TSize newSize = Size();
-        if (oldSize != newSize)
+        CleanupStack::PopAndDestroy( clippedTextHBufC );
+
+        // End loop if we have exceeded KMaxLineCount and
+        // we don't want to show all attendees
+        if ( attendeeLinks.Count() > KMaxLineCount && !iShowAllAttendees )
             {
-            CMRListPane* parent = static_cast<CMRListPane*>(Parent());
-            parent->SizeChanged();
+            break;
             }
         }
+
+    // If there are more lines in use than KMaxLineCount and
+    // we don't want to show all attendees, leave only
+    // KMaxLineCount-1 attendees and add 'show all'
+    // link to the end.
+    if ( attendeeLinks.Count() > KMaxLineCount && !iShowAllAttendees )
+        {
+        // Remove unnecessary part of buffer.
+        buffer.SetLength( attendeeLinks[KMaxLineCount - 1]->StartPos() );
+
+        // Remove links from the list.
+        while ( attendeeLinks.Count() >= KMaxLineCount )
+            {
+            delete attendeeLinks[KMaxLineCount - 1];
+            attendeeLinks.Remove( KMaxLineCount - 1 );
+            }
+
+        // Create and append 'show all' link.
+        CESMRRichTextLink* showAllLink;
+        HBufC* showAllBuf = StringLoader::LoadLC( R_QTN_MEET_REQ_SHOW_ALL );
+        buffer.ReAllocL( buffer.Length() +
+                         showAllBuf->Length() );
+        showAllLink = CESMRRichTextLink::NewL( buffer.Length ( ),
+                showAllBuf->Length(), KNullDesC,
+                CESMRRichTextLink::ETypeShowAll,
+                CESMRRichTextLink::ETriggerKeyOk );
+        buffer.Append( *showAllBuf );
+        CleanupStack::PopAndDestroy( showAllBuf );
+        CleanupStack::PushL( showAllLink );
+        attendeeLinks.AppendL( showAllLink );
+        CleanupStack::Pop( showAllLink );
+        }
+    // Remove unnecessary new line from the end of buffer.
+    else if ( buffer.Length() >= KNewLine().Length() )
+        {
+        buffer.SetLength( buffer.Length() - KNewLine().Length() );
+        }
+
+    if ( buffer.Length() > 0 )
+        {
+        iRichTextViewer->SetTextL( &buffer );
+        iRichTextViewer->SetMargins( KMargin );
+
+        // Add all links to iRichTextViewer.
+        while ( attendeeLinks.Count() > 0 )
+            {
+            CESMRRichTextLink* link = attendeeLinks[0];
+            CleanupStack::PushL( link );
+            attendeeLinks.Remove( 0 );
+            iRichTextViewer->AddLinkL( link );
+            CleanupStack::Pop( link );
+            }
+        }
+    SizeChanged();
+    CleanupStack::PopAndDestroy( &attendeeLinks );
     CleanupStack::PopAndDestroy( &buffer );
     }
 
-
-// -----------------------------------------------------------------------------
-// CESMRViewerAttendeesField::HandlePointerEventL
-// -----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// CESMRViewerAttendeesField::LineSpacing
+// ---------------------------------------------------------------------------
 //
-void CESMRViewerAttendeesField::HandlePointerEventL(const TPointerEvent& aPointerEvent)
+TInt CESMRViewerAttendeesField::LineSpacing()
     {
-    CCoeControl::HandlePointerEventL(aPointerEvent);
+    FUNC_LOG;
+    // Calculates the line spacing based on default one line layout data
+    TInt lineSpacing( 0 );
+    
+    TRect rect( Rect() );
+    
+    TAknLayoutRect rowLayoutRect =
+        NMRLayoutManager::GetFieldRowLayoutRect( rect, 1 );
+    TRect rowRect = rowLayoutRect.Rect();
+
+    TAknLayoutText labelLayout = 
+     NMRLayoutManager::GetLayoutText( 
+             rect, NMRLayoutManager::EMRTextLayoutTextEditor );
+    
+    TRect defaultTextRect = labelLayout.TextRect();
+    
+    TInt difference = rowRect.Height() - defaultTextRect.Height();
+    
+    lineSpacing = difference * 2;
+
+    return lineSpacing;
     }
+
+// ---------------------------------------------------------------------------
+// CESMRViewerAttendeesField::FocusMargin
+// ---------------------------------------------------------------------------
+//
+TInt CESMRViewerAttendeesField::FocusMargin()
+    {
+    FUNC_LOG;
+    // Calculates focus margin based on default one line layout data
+    TInt focusMagin( 0 );
+    
+    TRect rect( Rect() );
+    
+    TAknLayoutRect rowLayoutRect =
+        NMRLayoutManager::GetFieldRowLayoutRect( rect, 1 );
+    TRect rowRect = rowLayoutRect.Rect();
+
+    TAknLayoutText labelLayout = 
+     NMRLayoutManager::GetLayoutText( 
+             rect, NMRLayoutManager::EMRTextLayoutTextEditor );
+    
+    TRect defaultTextRect = labelLayout.TextRect();
+    
+    TAknLayoutRect bgLayoutRect = 
+        NMRLayoutManager::GetLayoutRect( 
+                rect, NMRLayoutManager::EMRLayoutTextEditorBg );
+    TRect defaultBgRect( bgLayoutRect.Rect() );
+
+    TInt difference = defaultBgRect.Height() - defaultTextRect.Height();
+    
+    focusMagin = TReal( difference / 2 );
+    
+    return focusMagin;
+    }
+
 // End of file
 

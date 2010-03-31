@@ -18,8 +18,7 @@
 
 // INCLUDES
 #include <ecom/registryinfov2.rh>
-#include <MeetingRequestUids.hrh>
-#include "../../../inc/emailversionnumbers.hrh" // KEmailEcomVersionNumber
+#include <meetingrequestuids.hrh>
 #include "esmrinternaluid.h"
 
 //  RESOURCE DEFINITIONS
@@ -43,9 +42,9 @@ RESOURCE REGISTRY_INFO theInfo
                 IMPLEMENTATION_INFO
                     {
                     implementation_uid = KESMRUtilsCalPluginImplUid3Fs;
-                    version_no = KEmailEcomVersionNumber;
+                    version_no = 1;
                     display_name = "";
-                    default_data = "S60DefaultImpl"; // KMRUtilsDefaultImpl from CMRUtils.h
+                    default_data = KESMRUtilsCalPluginDataFs;
                     opaque_data = "";
                     rom_only = 0;
                     }

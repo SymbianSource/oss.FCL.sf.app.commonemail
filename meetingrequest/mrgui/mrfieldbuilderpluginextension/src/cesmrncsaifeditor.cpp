@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -18,17 +18,14 @@
 #include "emailtrace.h"
 #include "cesmrncsaifeditor.h"
 
-#include <AknsDrawUtils.h>
+#include <aknsdrawutils.h>
 #include <s32mem.h>
 #include <txtrich.h>
 #include <baclipb.h>
-#include <PtiDefs.h>
-#include <StringLoader.h>
+#include <ptidefs.h>
+#include <stringloader.h>
 #include <eikedwin.h>
-
-#ifndef FF_CMAIL_INTEGRATION
 #include <txtclipboard.h>
-#endif // FF_CMAIL_INTEGRATION
 
 #include "cesmrncsemailaddressobject.h"
 #include "cesmrcontacthandler.h"
@@ -276,6 +273,10 @@ void CESMRNcsAifEditor::HandleEdwinEventL( CEikEdwin* /*aEdwin*/, TEdwinEvent aE
         {
         HandleContactDeletionL();
         HandleTextUpdateL();
+        if ( IsVisible() )
+        	{
+        	DrawDeferred();
+        	}
         }
     else if ( aEventType == MEikEdwinObserver::EEventNavigation )
         {
@@ -356,6 +357,7 @@ TKeyResponse CESMRNcsAifEditor::SetEditorSelectionL( const TKeyEvent& aKeyEvent,
         iAddressPopupList->ClosePopupContactListL();
         }
 
+    DrawDeferred();
     return response;
     }
 

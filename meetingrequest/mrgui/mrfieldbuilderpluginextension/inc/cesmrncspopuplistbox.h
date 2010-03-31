@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -19,7 +19,10 @@
 #define CESMRNCSPOPUPLISTBOX_H
 
 // INCLUDES
+#include <e32base.h>
+#include <fbs.h>
 #include <aknlists.h>
+
 #include "mesmrcontacthandlerobserver.h"
 
 // FORWARD DECLARATIONS
@@ -27,7 +30,6 @@ class CESMRNcsEmailAddressObject;
 class CAknsBasicBackgroundControlContext;
 class CESMRContactHandler;
 class CFSMailBox;
-class CESMRLayoutManager;
 
 // CLASS DECLARATION
 
@@ -118,12 +120,6 @@ public: // new methods for the header container
      * @return iRMLUItemPosition value;
      */
     TInt RMLUItemPosition() const;
-
-    /**
-     * Initialise skin/theme/laf support and set layoutmanager to be used by the list
-     * @param aLayout LayoutManager to be used by the list
-     */
-    void Initialise(CESMRLayoutManager* aLayout);
     
 private: // Implementation
     enum TRemoteLookupItemMoveDirection
@@ -133,8 +129,7 @@ private: // Implementation
         };
     void SetListItemsFromArrayL();
     void SetPopupHeightL();
-    void SetRemoteLookupItemFirstToTheListL();
-    void MoveRemoteLookupItemL( TRemoteLookupItemMoveDirection aDirection );
+    void SetRemoteLookupItemLastToTheListL();
     void CreateTextArrayAndSetToTheListboxL();
 
 private:
@@ -142,7 +137,7 @@ private:
     virtual void CreateItemDrawerL();
     
 private: // data
-    CAknsBasicBackgroundControlContext* iBaseBackroundContext;//own
+    CAknsBasicBackgroundControlContext* iBaseBackroundContext; //own
     RPointerArray<CESMRClsItem>         iMatchingArray; //own
     CDesCArray*                         iItemTextsArray;//own
     HBufC*                              iCurrentSearchText;//own
@@ -168,8 +163,6 @@ public:
      */
     CESMRNcsListItemDrawer( CESMRNcsPopupListBox& aListBox );
 
-    void SetLayoutManager( CESMRLayoutManager* aLayout );
-
 private: // from CListItemDrawer
     void DrawActualItem( TInt aItemIndex, const TRect& aActualItemRect,
                          TBool aItemIsCurrent, TBool aViewIsEmphasized,
@@ -179,13 +172,19 @@ private:
     void DoDrawActualItemL( TInt aItemIndex, const TRect& aActualItemRect,
                             TBool aItemIsCurrent, TBool aViewIsEmphasized,
                             TBool aViewIsDimmed, TBool aItemIsSelected ) const;
+    
     void DrawPartOfItem( const TRect& aItemRect, const CFont& aFont,
                          TInt aStartPos, TInt aLength, const TDesC& aDes,
                          TBool aUnderlined, TInt aBaseline ) const;
     
+private: // Implementation
+    void DrawPopUpBackGroundL( const TRect& aActualItemRect ) const;
+    void DrawPopUpSelectorL( const TRect& aActualItemRect ) const;
+    void DrawPopUpTextL( TInt aItemIndex, const TRect& aActualItemRect ) const;
+    
 private: //data
-    CESMRNcsPopupListBox&               iListBox;
-    CESMRLayoutManager*                 iLayout;//not own
+    
+    CESMRNcsPopupListBox&   iListBox;
     };
 
 

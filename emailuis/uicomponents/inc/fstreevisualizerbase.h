@@ -25,14 +25,9 @@
 #include <babitflags.h>
 
 //////TOOLKIT INCLUDES
-// <cmail> SF
 #include <alf/alfenv.h> //MAlfActionObserver
-// </cmail>
 
 //////PROJECT INCLUDES
-//<cmail> removed __FS_ALFRED_SUPPORT flag
-//#include <fsconfig.h>
-//</cmail> removed __FS_ALFRED_SUPPORT flag
 #include <aknphysicsobserveriface.h>
 
 #include "fstreevisualizer.h"
@@ -40,6 +35,7 @@
 #include "fsfadeeffectobserver.h"
 #include "fsslideeffectobserver.h"
 #include "fsscrollbarset.h"
+#include "muicscrollbar.h"
 
 //////TOOLKIT CLASSES
 class CAlfLayout;
@@ -65,9 +61,8 @@ class CFsWatermark;
 class MFsTreeItemVisualizer;
 class CFsInteractionInterval;
 class CFsAlfTextStyleManager;
-class CAknDoubleSpanScrollBar;
-
 class CAknPhysics;
+class CAlfAnchorLayout;
 
 /**
  * Contains the visual structure of the list.
@@ -398,7 +393,7 @@ public:
       * Get items visible in viewport's area.
       */
     void GetVisibleItemsL(RArray<TFsTreeItemId>& aVisible, TInt& aOffset);
-    
+
     /**
      * Returns ETrue if the world is higher than viewport.
      */
@@ -474,8 +469,8 @@ private:
      * Called when viewport is updated.
      */
     void UpdatedL(TUpdatedByPhysic aUpdateByPhysic = ENotUpdatedByPhisic);
-    
-   
+
+
 
 private: // from TWorld::MObserver
 
@@ -561,7 +556,7 @@ private:
 
     // Viewport cache
     TCache iCache;
-    
+
     // Wold index of the first item in Cache
     TInt iWorldIndex;
 
@@ -588,7 +583,7 @@ NONSHARABLE_CLASS( CFsTreeVisualizerBase ) : public CBase,
                                              public MFsFadeEffectObserver,
                                              public MFsSlideEffectObserver,
                                              public MAlfActionObserver,
-                                             public MEikScrollBarObserver,
+                                             public MUiCScrollBar::MObserver,
                                              public TWorld::MObserver,
                                              public TViewPort::MObserver,
                                              public MAknPhysicsObserver
@@ -779,7 +774,7 @@ public: // Construction
      * @return Pointer to the newly constructed object.
      */
     IMPORT_C static CFsTreeVisualizerBase* NewL( CAlfControl* aOwnerControl,
-            CAlfLayout& aParent, const TBool aDirectTouchMode = EFalse );
+            CAlfLayout& aParent, const TBool aPopUpMode = EFalse );
 
     /**
      * C++ destructor
@@ -1018,13 +1013,13 @@ public:
     virtual void SetFocusedItemL( const TFsTreeItemId aItem, TBool aCheckFocus = ETrue );
     // </cmail>
 
-    /** 
-    * Gets item vertical position in the list 
-    * 
+    /**
+    * Gets item vertical position in the list
+    *
     * @param aIdx indicates item index
     */
     virtual TInt GetItemWorldPosition( const TInt aIdx );
-   
+
     /**
      * Returns item id of the currently focused item.
      *
@@ -1628,21 +1623,13 @@ public: //From MAlfActionObserver
      */
     virtual void HandleActionL(const TAlfActionCommand& aActionCommand);
 
-// <cmail> Change scrollbar to avkon (to support skinning & touch)
 public:
 
     /**
-     * From MEikScrollBarObserver
-     *
-     * Callback method for scroll bar events
-     *
-     * Scroll bar observer should implement this method to get scroll bar events.
-     *
-     * @since S60 0.9
-     * @param aScrollBar A pointer to scrollbar which created the event
-     * @param aEventType The event occured on the scroll bar
+     * @see MUiCScrollBar::MObserver::HandleScrollEventL
      */
-    void HandleScrollEventL(CEikScrollBar* aScrollBar, TEikScrollEvent aEventType);
+    void HandleScrollEventL( const MUiCScrollBar& aScrollBar,
+            MUiCScrollBar::TEvent aEvent );
 
     /**
       *
@@ -1662,7 +1649,7 @@ public:
      * @return ETrue if kinetic scrolling is disabled.
      */
     TBool IsKineticScrollingDisabled() const;
-    
+
     /**
     * Returns viewPort top-left position
     */
@@ -1778,7 +1765,8 @@ private:
      void UpdateScrollBarL( const TInt aTimeout = 0 );
      TInt UpdateScrollBar( const TInt aTimeout = 0 );
      void UpdateScrollBarIfNeededL();
-
+     void SetScrollBarModelValues();
+     
      /**
       * Finds next focusable item.
       *
@@ -1932,7 +1920,8 @@ private:
      * @param aParent Parent layout for all the new layouts constructed by
      *                this class.
      */
-    CFsTreeVisualizerBase( CAlfControl* aOwnerControl, CAlfLayout& aParent, const TBool aDirectTouchMode );
+    CFsTreeVisualizerBase( CAlfControl* aOwnerControl,
+        CAlfLayout& aParent, const TBool aPopUpMode );
 
     /**
      * Second phase constructor
@@ -2059,6 +2048,11 @@ private: //Data members
     CAlfFlowLayout* iListLayout;
 
     /**
+     * Layout in which scroll bar is shown (on top of others)
+     */
+    CAlfAnchorLayout* iScrollBarLayout;
+
+    /**
      * Layout in which watermark is placed.
      */
     CAlfDeckLayout* iWatermarkLayout;
@@ -2097,8 +2091,8 @@ private: //Data members
      * Scrollbar
      */
     CAlfImageVisual* iDummyScrollbar;
-    CAknDoubleSpanScrollBar* iScrollBar;
-    TAknDoubleSpanScrollBarModel iScrollbarModel;
+    MUiCScrollBar* iScrollBar;
+    TUiCScrollBarModel iScrollBarModel;
     TFsScrollbarVisibility iScrollbarVisibility;
 
     /**
@@ -2355,11 +2349,16 @@ private: //Data members
          * Do physics update when simulation has finished.
          */
         EUpdatePhysicsAfterSimulationFinished,
-        
+
 		/**
 		 * Ignore next pointer up event.
 		 */
-        EIgnorePointerUpAction
+        EIgnorePointerUpAction,
+
+		/**
+		 * List is shown in popup mode.
+		 */
+        EPopupMode
     };
 
     // Flags

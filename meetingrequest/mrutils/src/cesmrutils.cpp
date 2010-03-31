@@ -29,13 +29,14 @@
 #include "cesmrpolicy.h"
 //</cmail>
 
-#include "cesmrentryprocessor.h"
+#include "cmrentryprocessor.h"
 #include "mesmrmeetingrequestentry.h"
 #include "cesmrtaskfactory.h"
 #include "mesmrtask.h"
 #include "cesmrtaskextensionimpl.h"
 #include "esmrinternaluid.h"
 #include "esmrhelper.h"
+#include "esmrentryhelper.h"
 
 // From System
 #include <coemain.h>
@@ -53,8 +54,6 @@
 /// Unnamed namespace for local definitions
 namespace {
 
-_LIT( KESMRPolicyResourceFile, "esmrpolicies.rsc" );
-
 #ifdef _DEBUG
 
 // Definition for MR UTILS panic text
@@ -65,7 +64,8 @@ enum TESMRUtilsPanicCode
     {
     EESMRUtilsEntryProcessorNull = 0,   // Entry processon is NULL
     EESMRUtilsInvalidEntry       = 1,   // Invalid calendar entry,
-    EESMRUtilsNULLCoeEnv         = 2    // CCoeEnv is NULL
+    EESMRUtilsNULLCoeEnv         = 2,   // CCoeEnv is NULL
+    EESMRUtilsInvalidType
     };
 
 void Panic(TESMRUtilsPanicCode aPanicCode)
@@ -96,13 +96,13 @@ CESMRUtils::CESMRUtils(
 //
 EXPORT_C CESMRUtils::~CESMRUtils()
     {
-    FUNC_LOG;
-    delete iCalDBMgr;
+    FUNC_LOG;    
     delete iPolicyManager;
     delete iEntryProcessor;
     delete iMRMailboxUtils;
     delete iTaskFactory;
     delete iTaskExtension;
+    delete iCalDBMgr;
     }
 
 // ----------------------------------------------------------------------------
@@ -127,21 +127,47 @@ EXPORT_C CESMRUtils* CESMRUtils::NewL(
 void CESMRUtils::ConstructL()
     {
     FUNC_LOG;
-    CCoeEnv* coeEnv = CCoeEnv::Static();
-    __ASSERT_DEBUG( coeEnv, Panic(EESMRUtilsNULLCoeEnv) );
-
-    TFileName mruiPolicyResource;
-    User::LeaveIfError(
-            ESMRHelper::LocateResourceFile(
-                    KESMRPolicyResourceFile,
-                    KDC_RESOURCE_FILES_DIR,
-                    mruiPolicyResource,
-                    &coeEnv->FsSession() ) );
-
+    
     iPolicyManager = CESMRPolicyManager::NewL();
-    iPolicyManager->ReadPolicyFromResourceL(
-            mruiPolicyResource,
-            R_ESMR_POLICIES );
+    }
+
+// ----------------------------------------------------------------------------
+// CESMRUtils::CreateExtensionsL
+// ----------------------------------------------------------------------------
+//
+EXPORT_C void CESMRUtils::CreateExtensionsL(
+        TESMRCalendarEventType aEntryType )
+    {
+    FUNC_LOG;
+    
+    CESMRTaskFactory* taskFactory = CESMRTaskFactory::NewL(
+            aEntryType,
+            *iCalDBMgr );
+    CleanupStack::PushL( taskFactory );
+    
+    CMREntryProcessor* entryProcessor = CMREntryProcessor::NewL(
+            aEntryType,
+            *iCalDBMgr );
+    CleanupStack::PushL( entryProcessor );
+    
+    MESMRTaskExtension* taskExtension =
+        CESMRTaskExtenstionImpl::NewL( *taskFactory );
+    
+    __ASSERT_DEBUG( taskFactory
+                    && entryProcessor
+                    && taskExtension,
+                    Panic( EESMRUtilsInvalidType) );
+    
+    delete iTaskFactory;
+    iTaskFactory = taskFactory;
+    
+    delete iEntryProcessor;
+    iEntryProcessor = entryProcessor;
+    
+    delete iTaskExtension;
+    iTaskExtension = taskExtension;
+    
+    CleanupStack::Pop( 2, taskFactory );
     }
 
 // ----------------------------------------------------------------------------
@@ -157,16 +183,14 @@ EXPORT_C TInt CESMRUtils::DeleteWithUiL(
     CleanupClosePushL( entries );
     User::LeaveIfError( entries.Append( &aEntry ) );
 
-    CESMREntryProcessor* processor =
-            CESMREntryProcessor::NewL(
-                        *iMRMailboxUtils,
-                        *iCalDBMgr );
+    CreateExtensionsL( ESMREntryHelper::EventTypeL( aEntry ) );
 
-    CleanupStack::PushL( processor );
-
-    processor->ProcessL( &entries );
-
-    MESMRMeetingRequestEntry& mrEntry = processor->ESMREntryL();
+    iEntryProcessor->ProcessL( &entries );
+    
+    MESMRMeetingRequestEntry& mrEntry = 
+            static_cast< MESMRMeetingRequestEntry& >(
+                    iEntryProcessor->ESMREntryL() );
+    
     if ( mrEntry.IsRecurrentEventL() )
         {
         mrEntry.SetModifyingRuleL(
@@ -179,8 +203,7 @@ EXPORT_C TInt CESMRUtils::DeleteWithUiL(
             EESMRCmdDeleteMR,
             mrEntry );
 
-    CleanupStack::PopAndDestroy( processor );
-    CleanupStack::PopAndDestroy();  //entries
+    CleanupStack::PopAndDestroy( &entries );
 
     return KErrNone;
     }
@@ -194,16 +217,15 @@ EXPORT_C TInt CESMRUtils::DeleteWithUiL(
     TMsvId /*aMailbox*/ )
     {
     FUNC_LOG;
-    CESMREntryProcessor* processor =
-            CESMREntryProcessor::NewL(
-                        *iMRMailboxUtils,
-                        *iCalDBMgr );
+    
+    CreateExtensionsL( ESMREntryHelper::EventTypeL( aInstance->Entry() ) );
+    
+    iEntryProcessor->ProcessL( *aInstance );
 
-    CleanupStack::PushL( processor );
-
-    processor->ProcessL( *aInstance );
-
-    MESMRMeetingRequestEntry& mrEntry = processor->ESMREntryL();
+    MESMRMeetingRequestEntry& mrEntry = 
+            static_cast< MESMRMeetingRequestEntry& >(
+                    iEntryProcessor->ESMREntryL() );
+    
     mrEntry.SetModifyingRuleL(
             MESMRMeetingRequestEntry::EESMRThisOnly );
 
@@ -212,9 +234,6 @@ EXPORT_C TInt CESMRUtils::DeleteWithUiL(
     iTaskExtension->DeleteAndSendMRL(
                 EESMRCmdDeleteMR,
                 mrEntry );
-
-    // prosessor and aInstance
-    CleanupStack::PopAndDestroy( processor );
 
     // aInstance is not added to CleanupStack, because calendar
     // already has it.
@@ -235,16 +254,14 @@ EXPORT_C void CESMRUtils::SendWithUiL(
     CleanupClosePushL( entries );
     User::LeaveIfError( entries.Append( &aEntry ) );
 
-    CESMREntryProcessor* processor =
-            CESMREntryProcessor::NewL(
-                        *iMRMailboxUtils,
-                        *iCalDBMgr );
+    CreateExtensionsL( ESMREntryHelper::EventTypeL( aEntry ) );
+   
+    iEntryProcessor->ProcessL( &entries );
 
-    CleanupStack::PushL( processor );
-
-    processor->ProcessL( &entries );
-
-    MESMRMeetingRequestEntry& mrEntry = processor->ESMREntryL();
+    //MESMRMeetingRequestEntry&  = processor->ESMREntryL();
+    MESMRMeetingRequestEntry& mrEntry = 
+            static_cast< MESMRMeetingRequestEntry& >(
+                    iEntryProcessor->ESMREntryL() );
     
     if ( mrEntry.IsRecurrentEventL() )
             {
@@ -256,7 +273,6 @@ EXPORT_C void CESMRUtils::SendWithUiL(
     			EESMRCmdForwardAsMail,
                 mrEntry );
 
-    CleanupStack::PopAndDestroy( processor );
     CleanupStack::PopAndDestroy( &entries );
     }
 // ----------------------------------------------------------------------------
@@ -303,20 +319,6 @@ EXPORT_C void CESMRUtils::SessionSetupL(
                                      *this );
 
     iMRMailboxUtils = CMRMailboxUtils::NewL( aMsvSession );
-
-    iTaskFactory = CESMRTaskFactory::NewL( *iCalDBMgr, *iMRMailboxUtils );
-
-    iEntryProcessor = CESMREntryProcessor::NewL(
-                        *iMRMailboxUtils,
-                        *iCalDBMgr );
-
-    iTaskExtension =
-        CESMRTaskExtenstionImpl::NewL(
-            *iCalDBMgr,
-            *iMRMailboxUtils,
-            *iPolicyManager,
-            *iEntryProcessor,
-            *iTaskFactory );
     }
 
 // ----------------------------------------------------------------------------

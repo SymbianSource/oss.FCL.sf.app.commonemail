@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2008 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -28,13 +28,6 @@ public:
      * @param aText new text
      */
     virtual void UpdateTitlePaneTextL( const TDesC& aText ) = 0;
-    
-    /**
-    * Updates the priority icon in title pane
-    * 
-    * @param aPriority
-    */
-    virtual void UpdateTitlePanePriorityIconL( TUint aPriority ) = 0;
 };
 
 #endif  // MESMRTITLEPANEOBSERVER_H

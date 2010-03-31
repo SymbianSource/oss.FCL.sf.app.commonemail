@@ -290,4 +290,10 @@ EXPORTS
 	_ZNK15CResourceLoader22CreateResourceReaderLCER15TResourceReaderi @ 289 NONAME
 	_ZTI15CResourceLoader @ 290 NONAME
 	_ZTV15CResourceLoader @ 291 NONAME
+	_ZN15CResourceLoader6Load2LEi @ 292 NONAME
+	_ZN15CResourceLoader6Load2LEiRK7TDesC16 @ 293 NONAME
+	_ZN15CResourceLoader6Load2LEii @ 294 NONAME
+	_ZN15CResourceLoader7Load2LCEi @ 295 NONAME
+	_ZN15CResourceLoader7Load2LCEiRK7TDesC16 @ 296 NONAME
+	_ZN15CResourceLoader7Load2LCEii @ 297 NONAME
 

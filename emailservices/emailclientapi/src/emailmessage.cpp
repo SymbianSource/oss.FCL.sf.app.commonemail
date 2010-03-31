@@ -514,27 +514,27 @@ MEmailMessageContent* CEmailMessage::ContentL() const
         return NULL;
         }
     CFSMailMessagePart* part = parts[0];
-    const TDesC& contentType = part->GetContentType();
+    TContentType contentType( part->GetContentType() ); 
     TMessageContentId msgContentId = TMessageContentId( 
                         part->GetPartId().Id(),
                         iMessageId.iId,
                         iMessageId.iFolderId.iId,
                         iMessageId.iFolderId.iMailboxId ); 
 
-    if (!contentType.Find(KFSMailContentTypeTextPlain) || 
-        !contentType.Find(KFSMailContentTypeTextHtml))
+    if ( contentType.Equals( KFSMailContentTypeTextPlain ) || 
+        contentType.Equals( KFSMailContentTypeTextHtml ) )
         {                                
         iTextContent = CEmailTextContent::NewL(iPluginData, msgContentId, part, EAPIOwns );        
         }
-    else if (!contentType.Find(KFSMailContentTypeMultipartMixed) ||
-             !contentType.Find(KFSMailContentTypeMultipartAlternative) ||
-             !contentType.Find(KFSMailContentTypeMultipartDigest) ||
-             !contentType.Find(KFSMailContentTypeMultipartRelated) ||
-             !contentType.Find(KFSMailContentTypeMultipartParallel))
+    else if ( contentType.Equals( KFSMailContentTypeMultipartMixed ) ||
+              contentType.Equals( KFSMailContentTypeMultipartAlternative ) ||
+              contentType.Equals( KFSMailContentTypeMultipartDigest ) ||
+              contentType.Equals( KFSMailContentTypeMultipartRelated ) ||
+              contentType.Equals( KFSMailContentTypeMultipartParallel ) )
         {
         iContent = CEmailMultipart::NewL(iPluginData, msgContentId, part, EAPIOwns);
         }
-    if (count == 2 )
+    if ( count == 2 )
         {
         CFSMailMessagePart* part = parts[1];
         const TDesC& contentType = part->GetContentType();
@@ -857,4 +857,32 @@ void CEmailMessage::ForwardMessageL()
     viewSrvSession->ActivateView(TVwsViewId(KFSEmailUiUid, MailEditorId), command, pckgData);
     CleanupStack::PopAndDestroy();   
     }
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+//
+TContentType::TContentType( const TDesC& aContentType ) : iContentType( aContentType )
+    {
+    _LIT( KSeparator, ";" );
+    TInt end = aContentType.Find( KSeparator );
+    if ( end != KErrNotFound )
+        {
+        iContentType.Set( aContentType.Left( end ) );
+        }
+    }
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+//
+TBool TContentType::Equals( const TDesC& aContentType )
+    {
+	TBool ret = iContentType.CompareF( aContentType );
+    if ( ret == 0  )
+    	return ETrue;
+    else
+    	return EFalse;
+    }
+
 // End of file.

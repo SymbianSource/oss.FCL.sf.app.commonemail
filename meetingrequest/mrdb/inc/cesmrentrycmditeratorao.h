@@ -20,7 +20,7 @@
 
 //  INCLUDE FILES
 #include <e32base.h>
-#include <CMRUtils.h>
+#include <cmrutils.h>
 
 // FORWARD DECLARATIONS
 class MESMRCalDbMgr;

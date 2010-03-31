@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -15,31 +15,58 @@
  *
 */
 
-#include "emailtrace.h"
 #include "cesmrpriorityfield.h"
 
 #include "cesmrlistquery.h"
+#include "nmrcolormanager.h"
+#include "cmrimage.h"
+#include "cmrlabel.h"
+#include "nmrlayoutmanager.h"
+#include "nmrbitmapmanager.h"
 #include "mesmrtitlepaneobserver.h"
 
-//<cmail>
-#include "mesmrcalentry.h"
-//</cmail>
 #include <calentry.h>
 #include <esmrgui.rsg>
-#include <StringLoader.h>
+#include <stringloader.h>
 #include <barsread.h>
 #include <eiklabel.h>
 #include <avkon.hrh>
-#include <AknsConstants.h>
-#include <AknUtils.h>
+#include <aknsconstants.h>
+#include <aknutils.h>
+
+#include "emailtrace.h"
 
 // ======== MEMBER FUNCTIONS ========
+
+// ---------------------------------------------------------------------------
+// CESMRPriorityField::CESMRPriorityField
+// ---------------------------------------------------------------------------
+//
+CESMRPriorityField::CESMRPriorityField()
+    {
+    FUNC_LOG;
+    SetFieldId( EESMRFieldPriority );
+    SetFocusType( EESMRHighlightFocus );
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRPriorityField::~CESMRPriorityField
+// ---------------------------------------------------------------------------
+//
+CESMRPriorityField::~CESMRPriorityField()
+    {
+    FUNC_LOG;
+    iArray.ResetAndDestroy();
+    iArray.Close();
+    
+    delete iIcon;    
+    }
 
 // ---------------------------------------------------------------------------
 // CESMRPriorityField::NewL
 // ---------------------------------------------------------------------------
 //
-CESMRPriorityField* CESMRPriorityField::NewL( )
+CESMRPriorityField* CESMRPriorityField::NewL()
     {
     FUNC_LOG;
     CESMRPriorityField* self = new (ELeave) CESMRPriorityField;
@@ -50,14 +77,18 @@ CESMRPriorityField* CESMRPriorityField::NewL( )
     }
 
 // ---------------------------------------------------------------------------
-// CESMRPriorityField::~CESMRPriorityField
+// CESMRPriorityField::ConstructL
 // ---------------------------------------------------------------------------
 //
-CESMRPriorityField::~CESMRPriorityField( )
+void CESMRPriorityField::ConstructL()
     {
-    FUNC_LOG;
-    iArray.ResetAndDestroy ( );
-    iArray.Close ( );
+    FUNC_LOG;    
+    iLabel = CMRLabel::NewL();
+    iLabel->SetParent( this );
+    CESMRField::ConstructL( iLabel ); // ownership transfered
+
+    iIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapPriorityNormal );
+    iIcon->SetParent( this );
     }
 
 // ---------------------------------------------------------------------------
@@ -67,13 +98,8 @@ CESMRPriorityField::~CESMRPriorityField( )
 void CESMRPriorityField::InitializeL()
     {
     FUNC_LOG;
-    iPriority->SetFont( iLayout->Font( iCoeEnv, iFieldId ) );
-    iPriority->SetLabelAlignment( CESMRLayoutManager::IsMirrored()
-                                  ? ELayoutAlignRight : ELayoutAlignLeft );
-
-    AknLayoutUtils::OverrideControlColorL(*iPriority,
-                                          EColorLabelText,
-                                          iLayout->GeneralListAreaTextColor() );
+    NMRColorManager::SetColor( *iLabel, 
+                               NMRColorManager::EMRMainAreaTextColor );
     }
 
 // ---------------------------------------------------------------------------
@@ -146,7 +172,8 @@ void CESMRPriorityField::ExternalizeL( MESMRCalEntry& aEntry )
 void CESMRPriorityField::SetOutlineFocusL( TBool aFocus )
     {
     FUNC_LOG;
-    CESMRField::SetOutlineFocusL ( aFocus );
+    CESMRField::SetOutlineFocusL ( aFocus );    
+    iLabel->SetFocus( aFocus );
 
     //Focus gained
     if ( aFocus )
@@ -156,17 +183,93 @@ void CESMRPriorityField::SetOutlineFocusL( TBool aFocus )
     }
 
 // ---------------------------------------------------------------------------
+// CESMRPriorityField::SizeChanged()
+// ---------------------------------------------------------------------------
+//
+void CESMRPriorityField::SizeChanged()
+    {
+    FUNC_LOG;
+    TRect rect = Rect();
+    TAknLayoutRect rowLayoutRect =
+        NMRLayoutManager::GetFieldRowLayoutRect( rect, 1 );
+    rect = rowLayoutRect.Rect();
+    
+    TAknWindowComponentLayout iconLayout =
+        NMRLayoutManager::GetWindowComponentLayout( 
+                NMRLayoutManager::EMRLayoutTextEditorIcon );
+    AknLayoutUtils::LayoutImage( iIcon, rect, iconLayout );
+    
+    TAknLayoutRect bgLayoutRect =
+        NMRLayoutManager::GetLayoutRect( 
+                rect, NMRLayoutManager::EMRLayoutTextEditorBg );
+    TRect bgRect( bgLayoutRect.Rect() );
+    // Move focus rect so that it's relative to field's position.
+    bgRect.Move( -Position() );
+    SetFocusRect( bgRect );
+    
+    TAknLayoutText labelLayout = 
+        NMRLayoutManager::GetLayoutText( 
+                rect, NMRLayoutManager::EMRTextLayoutTextEditor );
+    iLabel->SetRect( labelLayout.TextRect() );
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRPriorityField::CountComponentControls()
+// ---------------------------------------------------------------------------
+//
+TInt CESMRPriorityField::CountComponentControls() const
+    {
+    FUNC_LOG;
+    TInt count( 0 );
+    if ( iIcon )
+        {
+        ++count;
+        }
+
+    if ( iLabel )
+        {
+        ++count;
+        }
+    return count;
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRPriorityField::ComponentControl()
+// ---------------------------------------------------------------------------
+//
+CCoeControl* CESMRPriorityField::ComponentControl( TInt aIndex ) const
+    {
+    FUNC_LOG;
+    switch ( aIndex )
+        {
+        case 0:
+            return iIcon;
+        case 1:
+            return iLabel;
+        default:
+            return NULL;
+        }
+    }
+
+
+
+// ---------------------------------------------------------------------------
 // CESMRPriorityField::ExecuteGenericCommandL()
 // ---------------------------------------------------------------------------
 //
-void CESMRPriorityField::ExecuteGenericCommandL( TInt aCommand )
+TBool CESMRPriorityField::ExecuteGenericCommandL( TInt aCommand )
     {
     FUNC_LOG;
+    TBool isUsed( EFalse );
     if( aCommand == EESMRCmdOpenPriorityQuery ||
         aCommand == EAknCmdOpen )
         {
         ExecutePriorityQueryL();
+        isUsed = ETrue;
+        
+        HandleTactileFeedbackL();
         }
+    return isUsed;
     }
 
 // ---------------------------------------------------------------------------
@@ -269,32 +372,6 @@ TKeyResponse CESMRPriorityField::OfferKeyEventL(const TKeyEvent& aEvent,
     }
 
 // ---------------------------------------------------------------------------
-// CESMRPriorityField::CESMRPriorityField
-// ---------------------------------------------------------------------------
-//
-CESMRPriorityField::CESMRPriorityField( )
-    {
-    FUNC_LOG;
-    //do nothing
-    }
-
-// ---------------------------------------------------------------------------
-// CESMRPriorityField::ConstructL
-// ---------------------------------------------------------------------------
-//
-void CESMRPriorityField::ConstructL( )
-    {
-    FUNC_LOG;
-    SetFieldId ( EESMRFieldPriority );
-    iPriority = new( ELeave ) CEikLabel();
-    _LIT(KEmptyText, "");
-    iPriority->SetTextL( KEmptyText );
-
-    // ownership transferred
-    CESMRIconField::ConstructL (KAknsIIDQgnFsIndiPriorityNormal, iPriority );
-    }
-
-// ---------------------------------------------------------------------------
 // CESMRPriorityField::UpdateTextL
 // ---------------------------------------------------------------------------
 //
@@ -302,56 +379,44 @@ void CESMRPriorityField::UpdateTextL( TInt aIndex )
     {
     FUNC_LOG;
     CESMRPriority* priority = iArray[ aIndex ];
-    iPriority->SetTextL ( priority->Text ( ) );
+    iLabel->SetTextL ( priority->Text ( ) );
 
-    TAknsItemID iconID = { 0 , 0 };
+    NMRBitmapManager::TMRBitmapId bitmapId( 
+            NMRBitmapManager::EMRBitmapPriorityNormal );
 
     switch ( priority->Id() )
         {
         case EFSCalenMRPriorityLow:
         case EFSCalenTodoPriorityLow:
             {
-            iconID = KAknsIIDQgnFsIndiPriorityLow;
+            bitmapId = NMRBitmapManager::EMRBitmapPriorityLow;
             break;
             }
         case EFSCalenMRPriorityUnknown:
         case EFSCalenMRPriorityNormal:
         case EFSCalenTodoPriorityNormal:
             {
-            iconID = KAknsIIDQgnFsIndiPriorityNormal;
+            bitmapId = NMRBitmapManager::EMRBitmapPriorityNormal;
             break;
             }
         case EFSCalenMRPriorityHigh: // same value as EFSCalenTodoPriorityHigh
             {
-            iconID = KAknsIIDQgnFsIndiPriorityHigh;
+            bitmapId = NMRBitmapManager::EMRBitmapPriorityHigh;
             break;
             }
         default:
         	ASSERT(EFalse);
         	break;
         }
-    IconL( iconID );
-    DrawDeferred ( );
+    
+    delete iIcon;
+    iIcon = NULL;
+    iIcon = CMRImage::NewL( bitmapId );
+    iIcon->SetParent( this );
 
-    // update titlepane priority icon
-    if ( iObserver )
-        {
-        iObserver->UpdateTitlePanePriorityIconL( priority->Id() );
-        }
-
-    // this is needed to call in order to get new
-    // icon drawn
-    CESMRIconField::SizeChanged();
-    }
-
-
-// ---------------------------------------------------------------------------
-// CESMRPriorityField::UpdateTextL
-// ---------------------------------------------------------------------------
-//
-void CESMRPriorityField::SetTitlePaneObserver( MESMRTitlePaneObserver* aObserver )
-    {
-    iObserver = aObserver;
+    // This needs to be called so icon will be redrawn
+    SizeChanged();
+    DrawDeferred();
     }
 
 // EOF

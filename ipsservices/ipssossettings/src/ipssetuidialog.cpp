@@ -666,9 +666,9 @@ void CIpsSetUiDialogCtrl::StoreSettingsToAccountL()
     iData->SetMailServerL(
         GetItem( TUid::Uid( EIpsSetUiIncomingMailServer ) )->Text(),
         GetItem( TUid::Uid( EIpsSetUiOutgoingMailServer ) )->Text() );
-    iData->SetIapL(
-        GetIapChoiceL( TUid::Uid( EIpsSetUiIncomingIap ) ),
-        GetIapChoiceL( TUid::Uid( EIpsSetUiOutgoingIap ) ) );
+	iData->SetIapL(
+    	GetIapPrefsL(  TUid::Uid( EIpsSetUiIncomingIap ) ),
+    	GetIapPrefsL(  TUid::Uid( EIpsSetUiOutgoingIap ) ) ); 
     iData->SetSecurity(
         GetItem( TUid::Uid( EIpsSetUiIncomingSecurity ) )->Value(),
         GetItem( TUid::Uid( EIpsSetUiOutgoingSecurity ) )->Value() );
@@ -685,6 +685,7 @@ void CIpsSetUiDialogCtrl::StoreSettingsToAccountL()
         GetItem( TUid::Uid( EIpsSetUiWhatDownloadSize ) )->Value(),
         GetItem( TUid::Uid( EIpsSetUiWhatDownloadSizeEditPlus ) )->Value() );
     StoreRetrievalLimit();
+
     iData->SetSchedule(
         GetItem( TUid::Uid( EIpsSetUiWhenSchedule ) )->Value(), EFalse );
     iData->SetDays(
@@ -743,6 +744,22 @@ TImIAPChoice CIpsSetUiDialogCtrl::GetIapPref( const TInt aItemId )
     choice.iDialogPref = ap->iIapPref;
     return choice;
     }
+
+// ---------------------------------------------------------------------------
+// CIpsSetUiDialogCtrl::GetIapPrefsL()
+// ---------------------------------------------------------------------------
+//
+CImIAPPreferences& CIpsSetUiDialogCtrl::GetIapPrefsL(const TUid& aId)
+	{
+	FUNC_LOG;
+	
+	CIpsSetUiItemAccessPoint* ap =
+		static_cast<CIpsSetUiItemAccessPoint*>( GetItem( aId ) );
+	
+	CImIAPPreferences& prefs = ap->GetExtendedIapPreferencesL(); 
+	
+	return prefs;
+	}
 
 // ---------------------------------------------------------------------------
 // CIpsSetUiDialogCtrl::OfferKeyEventL()
@@ -1360,8 +1377,11 @@ void CIpsSetUiDialogCtrl::InitIapL( CIpsSetUiItem& aBaseItem )
     FUNC_LOG;
     CIpsSetUiItemAccessPoint* iapItem =
         static_cast<CIpsSetUiItemAccessPoint*>( &aBaseItem );
-    iapItem->InitL( iData->Iap(
-        aBaseItem.iItemId.iUid == EIpsSetUiIncomingIap ) );
+    //check which iap we are initializing
+    if ( aBaseItem.iItemId.iUid == EIpsSetUiIncomingIap )
+    	iapItem->InitL( iData->IncomingIapPref() );
+    else
+    	iapItem->InitL( iData->OutgoingIapPref() );
     }
 
 // ---------------------------------------------------------------------------

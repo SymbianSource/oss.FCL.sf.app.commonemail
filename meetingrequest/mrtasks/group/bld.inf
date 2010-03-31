@@ -24,6 +24,7 @@ DEFAULT
 PRJ_EXPORTS
 ../inc/mesmrtaskfactory.h           |../../inc/mesmrtaskfactory.h
 ../inc/cesmrtaskfactory.h           |../../inc/cesmrtaskfactory.h
+../inc/cesmrtaskfactory.inl         |../../inc/cesmrtaskfactory.inl
 ../inc/mesmrtask.h                  |../../inc/mesmrtask.h
 ../inc/mesmrtaskextension.h         |../../inc/mesmrtaskextension.h
 ../inc/mesmrtaskextension.inl       |../../inc/mesmrtaskextension.inl
@@ -31,5 +32,8 @@ PRJ_EXPORTS
 
 PRJ_MMPFILES
 esmrtasks.mmp
+
+#include "../mrtaskplugin/group/bld.inf"
+#include "../mrcaleventtaskplugin/group/bld.inf"
 
 // EOF

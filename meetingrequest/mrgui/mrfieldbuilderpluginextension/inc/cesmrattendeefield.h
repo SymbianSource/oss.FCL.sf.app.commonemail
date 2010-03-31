@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -19,8 +19,11 @@
 #ifndef CESMRATTENDEEFIELD_H
 #define CESMRATTENDEEFIELD_H
 
+#include <e32base.h>
+#include <fbs.h>
 #include <caluser.h>
-#include <eikedwob.h>
+#include <eiklbo.h>
+
 //<cmail>
 #include "esmrdef.h"
 //</cmail>
@@ -29,18 +32,22 @@
 #include "mesmrcontacthandlerobserver.h"
 #include "cesmrncsaifeditor.h"
 
-class CEikLabel;
 class CESMRNcsPopupListBox;
 class CEikButtonGroupContainer;
 class MESMRMeetingRequestEntry;
 class CAknsFrameBackgroundControlContext;
+class CMRLabel;
+class CAknsBasicBackgroundControlContext;
+class CMRImage;
+class CAknButton;
+class CMRButton;
 
-NONSHARABLE_CLASS( CESMRAttendeeField ):
-public CESMRField,
-public MEikEdwinSizeObserver,
-public MESMRNcsAddressPopupList,
-public MESMRContactHandlerObserver,
-public MCoeControlObserver
+NONSHARABLE_CLASS( CESMRAttendeeField ): public CESMRField,
+                                                MEikEdwinSizeObserver,
+                                                MESMRNcsAddressPopupList, 
+                                                MESMRContactHandlerObserver, 
+                                                MCoeControlObserver,
+                                                MEikListBoxObserver
     {
 public:
     /**
@@ -54,37 +61,39 @@ public:
      */
     ~CESMRAttendeeField();
 
-public: // From CESMRField
-    void InitializeL();
-    void InternalizeL( MESMRCalEntry& aEntry );
-    void ExternalizeL( MESMRCalEntry& aEntry );
-    TInt ExpandedHeight() const;
-    void GetMinimumVisibleVerticalArea(TInt& aUpper, TInt& aLower);
-    void ExecuteGenericCommandL( TInt aCommand );
-    void SetOutlineFocusL( TBool aFocus );
-
-public: // From CCoeControl
-    TInt CountComponentControls() const;
-    CCoeControl* ComponentControl( TInt aInd ) const;
-    void SizeChanged();
-    void PositionChanged();
-    TKeyResponse OfferKeyEventL( const TKeyEvent& aKeyEvent, TEventCode aType );
-    void SetContainerWindowL( const CCoeControl& aControl );
-    void ActivateL();
-
-public: // From MEikEdwinSizeObserver
-    TBool HandleEdwinSizeEventL( CEikEdwin* aEdwin, TEdwinSizeEvent aType, TSize aDesirableEdwinSize);
-
-public: // MESMRNcsAddressPopupList
+protected: // MESMRNcsAddressPopupList
     void UpdatePopupContactListL( const TDesC& aMatchString, TBool iListAll );
 
-public: // from MFSEmailUiContactHandlerObserver
+protected: // from MFSEmailUiContactHandlerObserver
     void OperationCompleteL( TContactHandlerCmd aCmd, const RPointerArray<CESMRClsItem>* aContacts );
     void OperationErrorL( TContactHandlerCmd aCmd, TInt aError );
 
-public: // from MCoeControlObserver
+protected: // from MCoeControlObserver
     void HandleControlEventL( CCoeControl *aControl, TCoeEvent aEventType );
 
+protected: // From CESMRField
+    TSize MinimumSize();
+    void InitializeL();
+    void InternalizeL( MESMRCalEntry& aEntry );
+    void ExternalizeL( MESMRCalEntry& aEntry );
+    TBool ExecuteGenericCommandL( TInt aCommand );
+    void SetOutlineFocusL( TBool aFocus );
+    TBool HandleSingletapEventL( const TPoint& aPosition );
+    void HandleLongtapEventL( const TPoint& aPosition );
+
+protected: // From CCoeControl
+    TInt CountComponentControls() const;
+    CCoeControl* ComponentControl( TInt aInd ) const;
+    void SizeChanged();
+    TKeyResponse OfferKeyEventL( const TKeyEvent& aKeyEvent, TEventCode aType );
+    void SetContainerWindowL( const CCoeControl& aControl );
+    
+protected: // From MEikEdwinSizeObserver
+    TBool HandleEdwinSizeEventL( CEikEdwin* aEdwin, TEdwinSizeEvent aType, TSize aDesirableEdwinSize);
+
+protected: // from MEikListBoxObserver
+    void HandleListBoxEventL( CEikListBox* aListBox, TListBoxEvent aEventType );
+    
 private: // Implementation
     /**
      * Constructor.
@@ -96,20 +105,6 @@ private: // Implementation
      * Second phase constructor.
      */
     void ConstructL();
-
-    /**
-     * Removes all attendees.
-     * @param aEntry calendar entry
-     */
-    void ClearAttendeeListL( CCalEntry& aEntry );
-
-    /**
-     * Adds attendees to calendar entry.
-     * @param aEntry calendar entry
-     * @param aPhoneOwnerRole Phone owner's role
-     */
-    void ParseAttendeesL(
-            MESMRMeetingRequestEntry& aMREntry );
 
     /**
      * Calculates rect for predictive participant popup.
@@ -153,68 +148,38 @@ private: // Implementation
     void ShowPopupCbaL( TBool aShow );
 
     void UpdateSendOptionL();
-
+    void GetCursorLineVerticalPos( TInt& aUpper, TInt& aLower );
+    void UpdateAttendeesL( 
+    		MESMRMeetingRequestEntry& aEntry );
+    
 private: //data
-    /**
-     * Own. Field title label.
-     */
-    CEikLabel* iTitle;
 
-    /**
-     * Temporary expanded size when editor line count grows.
-     */
-    TSize iExpandedSize;
-
-    /**
-     * Field title size.
-     */
+    // Editor size provided by edwin event.
+    TSize iSize;
+    // Field title size.
     TSize iTitleSize;
-
-    /**
-     * Attendee role.
-     */
+    // Attendee role.
     CCalAttendee::TCalRole iRole;
-
-    /**
-     * Not owned. Attendee editor.
-     */
+    // Own: Title of this field
+    CMRLabel* iTitle;
+    // Owned. Attendee editor.
     CESMRNcsAifEditor* iEditor;
-
-    /**
-     * Own. Predictive attendee popup.
-     */
+    // Own. Predictive attendee popup.
     CESMRNcsPopupListBox* iAacListBox;
-
-    /**
-     * Own.
-     */
+    // Own. Contact handler
     CESMRContactHandler* iContactHandler;
-
-    /**
-     * Own. for default text of this field.
-     */
+    // Own. for default text of this field.
     HBufC* iDefaultText;
-
-    /**
-     * Enable / Disable contact popup list
-     */
+    // Enable / Disable contact popup list
     TBool iAacListBoxEnabled;
-    
-    /**
-     * Not owned. CBA.
-     */
+    // Not owned. CBA.
     CEikButtonGroupContainer* iButtonGroupContainer;
-    
-    // Not owned. Background control context
-    MAknsControlContext* iBackground;
-    
-    /**
-     * Own. for record entry's phone owner
-     */
-    HBufC* iPhoneOwnerAddr;
-    
-    // Owned. Actual background for the editor
-    CAknsFrameBackgroundControlContext* iFrameBgContext;
+    // Own. Background control context.
+    CAknsBasicBackgroundControlContext* iBgCtrlContext;
+    /// Own: Field icon
+    CMRButton* iFieldButton;
+    // Own: Listboxes previous highlighted index
+    TInt iPreviousIndex;
     };
 
 #endif  // CESMRATTENDEEFIELD_H

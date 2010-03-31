@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2003-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -16,32 +16,38 @@
 */
 
 // CLASS HEADER
+
 #include "cesmrtrackstatus.h"
+
 #include "cesmrfield.h"
-#include "cesmriconfield.h"
-#include "cesmrborderlayer.h"
 #include "esmrdef.h"
 #include "mesmrlistobserver.h"
 #include "cesmrcontactmenuhandler.h"
 #include "esmrhelper.h"
 #include "nmrbitmapmanager.h"
+#include "cmrimage.h"
+
 #include <eiklabel.h>
 #include <eikimage.h>
 #include <calentry.h>
 #include <caluser.h>
 #include <eikenv.h>
-#include <StringLoader.h>
-#include <AknsUtils.h>
-#include <AknUtils.h>
-#include <AknsConstants.h>
-#include <AknBidiTextUtils.h>
+#include <stringloader.h>
+#include <aknsutils.h>
+#include <aknutils.h>
+#include <aknsconstants.h>
+#include <aknbiditextutils.h>
 #include <esmrgui.rsg>
 #include <data_caging_path_literals.hrh>
+#include <e32cmn.h>
+
 
 // DEBUG
 #include "emailtrace.h"
 
-using namespace ESMRLayout;
+// TODO: THIS WHOLE CLASS NEEDS TO BE REIMPLEMENTED USING XML LAYOUT DATA
+// IF THIS IS TAKEN INTO USE
+
 
 // ======== MEMBER FUNCTIONS ========
 
@@ -86,7 +92,7 @@ CESMRTrackStatus::~CESMRTrackStatus()
 CESMRTrackStatus::CESMRTrackStatus()
     {
     FUNC_LOG;
-    //do nothing
+    SetFieldId( EESMRTrackStatus );
     }
 
 // ---------------------------------------------------------------------------
@@ -96,13 +102,11 @@ CESMRTrackStatus::CESMRTrackStatus()
 void CESMRTrackStatus::ConstructL()
     {
     FUNC_LOG;
-    // As a default set icon and text as it should be in status Needs action
-    SetFieldId( EESMRTrackStatus );
-    CESMRViewerLabelField::ConstructL( KAknsIIDQgnFsIndiCaleTrackingNone );
+    iIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapTrackingNone );
+    iIcon->SetParent( this );
+
     iESMRStatic.ConnectL();
     iMenuHandler = &iESMRStatic.ContactMenuHandlerL();
-
-    iIcon = new (ELeave) CEikImage;
     }
 
 // ---------------------------------------------------------------------------
@@ -112,7 +116,7 @@ void CESMRTrackStatus::ConstructL()
 void CESMRTrackStatus::InternalizeL( MESMRCalEntry& aEntry )
     {
     FUNC_LOG;
-    TAknsItemID statusIconId = KAknsIIDQgnFsIndiCaleTrackingNone;
+
     RPointerArray<CCalAttendee> attendee = aEntry.Entry().AttendeesL();
     // The array is already in sorted order with ReqAttendee coming first and
     // OptAttendee  coming later.
@@ -139,75 +143,85 @@ void CESMRTrackStatus::InternalizeL( MESMRCalEntry& aEntry )
         iAddress = attendee[currentIndex]->Address().AllocL();
         }
 
-    const CFont* font = iLayout->Font (iCoeEnv, iFieldId );        
-    TInt maxLineWidth = iLabel->Size().iWidth;        
-    maxLineWidth -= KIconSize.iWidth;
+    // TODO: set font with XML data
+    //const CFont* font = iLayout->Font (iCoeEnv, iFieldId );        
+    //TInt maxLineWidth = iLabel->Size().iWidth;        
+    //maxLineWidth -= KIconSize.iWidth;
     
-    HBufC* clippedTextHBufC = ClipTextLC( text, *font, maxLineWidth );
-    TPtr clippedText = clippedTextHBufC->Des();
-    clippedText.Trim();
-    iLabel->SetTextL( clippedText );
-    CleanupStack::PopAndDestroy( clippedTextHBufC );
-    clippedTextHBufC = NULL;
+    //HBufC* clippedTextHBufC = ClipTextLC( text, *font, maxLineWidth );
+    //TPtr clippedText = clippedTextHBufC->Des();
+    //clippedText.Trim();
+    //iLabel->SetTextL( clippedText );
+    //CleanupStack::PopAndDestroy( clippedTextHBufC );
+    //clippedTextHBufC = NULL;
+    
+    NMRBitmapManager::TMRBitmapId bitmapId;
     
     switch( status )
         {
         case CCalAttendee::ENeedsAction:
             {
-            statusIconId = KAknsIIDQgnFsIndiCaleTrackingNone;
+            bitmapId = NMRBitmapManager::EMRBitmapTrackingNone;
             break;
             }
         case CCalAttendee::ETentative:
             {
-            statusIconId = KAknsIIDQgnFsIndiCaleTrackingTentative;
+            bitmapId = NMRBitmapManager::EMRBitmapTrackingTentative;
             break;
             }
         case CCalAttendee::EAccepted:
         case CCalAttendee::EConfirmed:
             {
-            statusIconId = KAknsIIDQgnFsIndiCaleTrackingAccept;
+            bitmapId = NMRBitmapManager::EMRBitmapTrackingAccept;
             break;
             }
         case CCalAttendee::EDeclined:
             {
-            statusIconId = KAknsIIDQgnFsIndiCaleTrackingReject;
+            bitmapId = NMRBitmapManager::EMRBitmapTrackingReject;
             break;
             }
         default:
             {
-            statusIconId = KAknsIIDQgnFsIndiCaleTrackingNone;
+            bitmapId = NMRBitmapManager::EMRBitmapTrackingNone;
             break;
             }
         }
 
-        iESMRStatic.SetCurrentFieldIndex(++currentIndex); // Move to next index
+    iESMRStatic.SetCurrentFieldIndex(++currentIndex); // Move to next index
 
-        IconL( statusIconId );
-        
-        //store default list selection to contactmenuhandler
-        iDefaultAddress = attendee[0]->Address().AllocL();
-        iMenuHandler->SetValueL(*iDefaultAddress, CESMRContactMenuHandler::EValueTypeEmail);
+    delete iIcon;
+    iIcon = NULL;
+    iIcon = CMRImage::NewL( bitmapId );
+    iIcon->SetParent( this );
+    
+    //store default list selection to contactmenuhandler
+    iDefaultAddress = attendee[0]->Address().AllocL();
+    iMenuHandler->SetValueL(*iDefaultAddress, CESMRContactMenuHandler::EValueTypeEmail);
 
-        // This needs to be called so icon will be redrawn
-        SizeChanged();
+    // This needs to be called so icon will be redrawn
+    SizeChanged();
     }
 
 // ---------------------------------------------------------------------------
 // CESMRTrackStatus::OfferKeyEventL
 // ---------------------------------------------------------------------------
 //
-TKeyResponse CESMRTrackStatus::OfferKeyEventL( const TKeyEvent& aEvent, TEventCode aType )
+TKeyResponse CESMRTrackStatus::OfferKeyEventL(
+        const TKeyEvent& aEvent,
+        TEventCode /*aType*/ )
     {
     FUNC_LOG;
+    TKeyResponse response( EKeyWasNotConsumed );
+    
     if ( aEvent.iScanCode == EStdKeyRightArrow )
         {
         // Show right click menu (action menu)
 
         iMenuHandler->ShowActionMenuL();
-        return EKeyWasConsumed;
+        response = EKeyWasConsumed;
         }
 
-    return CESMRViewerLabelField::OfferKeyEventL(aEvent,aType);
+    return response;
     }
 
 // ---------------------------------------------------------------------------
@@ -217,12 +231,13 @@ TKeyResponse CESMRTrackStatus::OfferKeyEventL( const TKeyEvent& aEvent, TEventCo
 void CESMRTrackStatus::SetOutlineFocusL(TBool aFocus )
     {
     FUNC_LOG;
-    CESMRViewerLabelField::SetOutlineFocusL (aFocus );
+    CESMRField::SetOutlineFocusL (aFocus );
+    
     SetActionMenuIconL(aFocus);
     TRgb fontColor( 0, 0, 0 );
     if ( aFocus )
         {
-        if(iAddress)
+        if( iAddress )
             {
             //no longer needed
             delete iDefaultAddress;
@@ -230,18 +245,11 @@ void CESMRTrackStatus::SetOutlineFocusL(TBool aFocus )
             //give contact to actionmenuhandler
             iMenuHandler->SetValueL(*iAddress, CESMRContactMenuHandler::EValueTypeEmail);
             }
-        fontColor = iLayout->ViewerListAreaHighlightedTextColor();
         }
     else
         {
         iMenuHandler->Reset();
-        fontColor = iLayout->ViewerListAreaTextColor();
         }
-
-    TRAP_IGNORE( AknLayoutUtils::OverrideControlColorL(
-                                      *iLabel,
-                                      EColorLabelText,
-                                      fontColor ) );
     }
 
 // ---------------------------------------------------------------------------
@@ -251,7 +259,7 @@ void CESMRTrackStatus::SetOutlineFocusL(TBool aFocus )
 TInt CESMRTrackStatus::CountComponentControls( ) const
     {
     FUNC_LOG;
-    TInt count = CESMRViewerLabelField::CountComponentControls ( );
+    TInt count( 0 );
     if ( iIcon )
         {
         ++count;
@@ -266,11 +274,17 @@ TInt CESMRTrackStatus::CountComponentControls( ) const
 CCoeControl* CESMRTrackStatus::ComponentControl( TInt aInd ) const
     {
     FUNC_LOG;
+    
+    CCoeControl* control = NULL;
+    
     if ( aInd == 2 )
         {
-        return iIcon;
+        control = iIcon;
         }
-    return CESMRViewerLabelField::ComponentControl ( aInd );
+    
+    ASSERT( control );
+    
+    return control;
     }
 
 // ---------------------------------------------------------------------------
@@ -289,25 +303,29 @@ void CESMRTrackStatus::SetActionMenuIconL( TBool aFocused )
 
     if( aFocused )
         {
+        // TODO: correct this
         User::LeaveIfError( 
                 NMRBitmapManager::GetSkinBasedBitmap( 
                         NMRBitmapManager::EMRBitmapRightClickArrow, 
-                            iActionMenuIcon, iActionMenuIconMask, KIconSize ) );
+                            iActionMenuIcon, iActionMenuIconMask, TSize(20, 20) ) );
 
+        // TODO: USE XML LAYOUT DATA AND CMRIMAGE
         // Even if creating mask failed, bitmap can be used (background is just not displayed correctly)
-        if( iActionMenuIcon )
+        /*if( iActionMenuIcon )
             {
             iIcon = new (ELeave) CEikImage;
             iIcon->SetPictureOwnedExternally(ETrue);
             iIcon->SetPicture( iActionMenuIcon, iActionMenuIconMask );
 
-            TRect rect = Rect ( );
-            TInt iconTopMargin = ( rect.Height() - KIconSize.iHeight ) / 2;
+            TRect rect = Rect ( );*/
+            
+            // TODO: use layout data 
+            /*TInt iconTopMargin = ( rect.Height() - KIconSize.iHeight ) / 2;
             TPoint iconPos( rect.iBr.iX - KIconSize.iWidth - KIconBorderMargin,
                                 rect.iBr.iY - iconTopMargin - KIconSize.iHeight);
             iIcon->SetPosition ( iconPos );
-            iIcon->SetSize ( KIconSize );           
-            }
+            iIcon->SetSize ( KIconSize );*/           
+            //}
         }
     }
 
@@ -318,17 +336,18 @@ void CESMRTrackStatus::SetActionMenuIconL( TBool aFocused )
 void CESMRTrackStatus::SizeChanged( )
     {
     FUNC_LOG;
-    CESMRViewerLabelField::SizeChanged();
 
     if ( iIcon )
         {
         TRect rect = Rect ( );
+        // TODO: use XML layout
+        /*
         TInt iconTopMargin = ( rect.Height() - KIconSize.iHeight ) / 2;
         TPoint iconPos( rect.iBr.iX - KIconSize.iWidth - KIconBorderMargin,
                             rect.iBr.iY - iconTopMargin - KIconSize.iHeight);
 
         iIcon->SetPosition ( iconPos );
-        iIcon->SetSize ( KIconSize );
+        iIcon->SetSize ( KIconSize );*/
         }
     }
 

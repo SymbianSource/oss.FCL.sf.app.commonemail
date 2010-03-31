@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -18,23 +18,30 @@
 #ifndef CESMREDITORDIALOG_H
 #define CESMREDITORDIALOG_H
 
-#include <AknDialog.h>
+#include <akndialog.h>
+#include <akntoolbarobserver.h>
+#include <aknserverapp.h>
 #include "mesmruibase.h"
 #include "mesmrresponseobserver.h"
 #include "mesmrfieldeventobserver.h"
+#include "cesmrfieldbuilderinterface.h"
 
 class CESMRPolicy;
 class MESMRCalEntry;
 class CESMRView;
 class MAgnEntryUiCallback;
 class CESMRSendUI;
-class CAiwServiceHandler;
 class CESMRField;
 class CESMRTitlePaneHandler;
 class CCalenInterimUtils2;
 class CESMRLocationPluginHandler;
 class CESMRAddressInfoHandler;
 class CESMRFeatureSettings;
+class CMRToolbar;
+class MMRInfoProvider;
+class TDataType;
+class MMRFocusStrategy;
+class MESMRMeetingRequestEntry;
 
 /**
  *  CESMREditorDialog implements the editor dialog for meeting requests.
@@ -46,7 +53,8 @@ NONSHARABLE_CLASS( CESMREditorDialog ) :
 		public CAknDialog,
 		public MESMRUiBase,
 		public MESMRResponseObserver,
-		public MESMRFieldEventObserver
+		public MESMRFieldEventObserver,
+		public MAknToolbarObserver
     {
 public:
     /**
@@ -58,8 +66,7 @@ public:
      * @return Pointer to created and initialized esmr editor dialog.
      */
     IMPORT_C static CESMREditorDialog* NewL(
-            CESMRPolicy* aPolicy,
-            MESMRCalEntry& aEntry,
+            MMRInfoProvider& aInfoProvider,
             MAgnEntryUiCallback& aCallback );
 
     /*
@@ -79,7 +86,11 @@ public: // From CAknDialog
 
 public: // From MESMRUIBase
     TInt ExecuteViewLD();
-
+    
+public: // From MAknToolbarObserver
+    void DynInitToolbarL ( TInt aResourceId, CAknToolbar* aToolbar );
+    void OfferToolbarEventL ( TInt aCommand );  
+    
 public: // From MESMRResponseObserver
     TBool Response( TInt aCommand );
     void ExitDialog();
@@ -99,7 +110,7 @@ private: // Implementation
      * @param aCallback Callback interface for AgnEntryUI
      */
     CESMREditorDialog(
-            MESMRCalEntry& aEntry,
+            MMRInfoProvider& aPolicyProvider,
             MAgnEntryUiCallback& aCallback );
 
     /**
@@ -107,7 +118,7 @@ private: // Implementation
      *
      * @param aPolicy contains all the fields for list component.
      */
-    void ConstructL( CESMRPolicy* aPolicy );
+    void ConstructL();
 
     /**
      * Handles dialog exit, saves entry etc.
@@ -135,12 +146,6 @@ private: // Implementation
     void TryInsertSendMenuL(CEikMenuPane* aMenuPane);
 
     /**
-     * Handles print command.
-     * @param aCommand
-     */
-    void HandlePrintCommandL(TInt aCommand);
-
-    /**
      * Executes user related queries whether the entry should be
      * save or not.
      * @return TBool
@@ -148,10 +153,12 @@ private: // Implementation
     TBool IsAllowedToSaveL();
 
     /**
-     * Checks if cfsmailbox actually supports attendee status
+     * Checks if cfsmailbox supports given capability.
+     * @param aCapa, the capability
      * @return TBool
      */
-    TBool CESMREditorDialog::SupportsAttendeeStatusL( );
+    TBool SupportsMailBoxCapabilityL( 
+            MESMRBuilderExtension::TMRCFSMailBoxCapability aCapa );
     
     /**
      * Handle options menu command "open"
@@ -166,43 +173,44 @@ private: // Implementation
      */
     void HandleLocationOptionsL( TInt aResourceId, CEikMenuPane* aMenuPane );
     
-    /**
-     * Loads options menu text for given command.
-     * 
-     * @param aCommandId option menu item command id
-     * @return text
-     */
-    HBufC* LoadOptionsMenuTextLC( TInt aCommandId );
-    
     CESMRLocationPluginHandler& LocationPluginHandlerL();
-    
     CESMRAddressInfoHandler& AddressInfoHandlerL();
-    
     void HandleFieldCommandEventL( const MESMRFieldEvent& aEvent );
-    
     void HandleFieldChangeEventL( const MESMRFieldEvent& aEvent );
+    TBool SetContextMenuL();
+    void SwitchEntryTypeL( TInt aCommand, TBool aAdjustView );
+    inline const CESMRPolicy& Policy() const;
+    void SetTitleL();
+    void VerifyMeetingRequestL();
+    TBool TryOpenAttachmentL();
+    TInt TryRemoveAttachmentL();   
+    TInt TryRemoveAllAttachmentsL();
+    TInt TryAddAttachmentL();
+    void ShowContextMenuL();
+    
+    /**
+     * Check mr is past
+     * 
+     * @param aEvent
+     * @return TBool
+     */
+    TBool OccursInPastL( const MESMRFieldEvent& aEvent );    
+    TBool OccursInPast( const TTime& aStartUtc );
+    void ChangeRightSoftkeyL( TBool aOccursInPast, TBool aIsOrganizer );
+    
+    TInt TryToSaveEntryL();
     
 private:
 
     /**
-     * Own: Feature manager initialization flag
+     * Ref: Info provider for accessing entry and policy
      */
-    TBool iFeatureManagerInitialized;
-
-    /**
-     * Ref: Policy for building fields and menus
-     */
-    CESMRPolicy* iPolicy;
+    MMRInfoProvider& iInfoProvider;
 
     /**
      * Ref: The only control in this dialog. Fwk deletes.
      */
     CESMRView* iView;
-
-    /**
-     * Ref: Reference to MESRCalEntry (CCalEntry wrapper)
-     */
-    MESMRCalEntry& iEntry;
 
     /**
      * Ref: Agn Entry UI callback interface
@@ -213,11 +221,6 @@ private:
      * Own: Calendar Global data
      */
     CESMRSendUI* iESMRSendUI;
-
-    /**
-     * Own: AIW Service handler
-     */
-    CAiwServiceHandler* iServiceHandler;
 
     /**
      * Own: Boolean indicating if required attendees field contains items.
@@ -257,14 +260,20 @@ private:
     CESMRFeatureSettings* iFeatures;
     
     /**
-     * Indicates if meeting request occurs in past. 
-     */
-    TBool iOccursInPast;
-    
-    /**
      * Indicates if location has been modified.
      */
     TBool iLocationModified;
+    // TODO: Take this into use when implementing the toolbar
+    /// Own: Toolbar handler
+    CMRToolbar* iToolbar;
+    
+    /// Own: Context menu resource id
+    TInt iContextMenuResourceId;
+    /// Own: Focus strategy of the editor
+    MMRFocusStrategy* iFocusStrategy;
+    
+    // record time after time field updated
+    TTime iStartTimeUtc;
     };
 
 #endif  // CESMREDITORDIALOG_H

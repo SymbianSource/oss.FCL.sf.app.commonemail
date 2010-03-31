@@ -80,6 +80,12 @@ public: // Interface
      */
     IMPORT_C TESMRRole PhoneOwnerRoleL() const;
 
+    /**
+     * Checks if entry is allday event.
+     * @return ETrue if entry is allday event.
+     */
+    IMPORT_C TBool IsAlldayEventL() const;
+    
 private: // Implementation
     CESMRCalUserUtil( CCalEntry& aEntry );
     void ConstructL();

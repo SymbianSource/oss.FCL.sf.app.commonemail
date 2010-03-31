@@ -21,6 +21,7 @@
 #include "emailtrace.h"
 #include "esmrentryhelper.h"
 #include "esmrhelper.h"
+#include "esmrdef.h"
 
 // From System
 #include <calentry.h>
@@ -28,9 +29,17 @@
 #include <calrrule.h>
 #include <caluser.h>
 #include <msvids.h>
-#include <MsgMailUIDs.h>
+#include <msgmailuids.h>
 #include <cmrmailboxutils.h>
+#include <caleninterimutils2.h>
 
+// unnamed naespace for local definitions
+namespace { // codescanner::namespace
+
+// Definition for zero interval
+const TInt KZeroInterval( 0 );
+
+}
 
 // ======== MEMBER FUNCTIONS ========
 
@@ -154,6 +163,38 @@ EXPORT_C TBool ESMREntryHelper::IsCancelledL(
     }
 
 // ----------------------------------------------------------------------------
+// ESMREntryHelper::IsAllDayEventL
+// ----------------------------------------------------------------------------
+//
+EXPORT_C TBool ESMREntryHelper::IsAllDayEventL( const CCalEntry& aEntry )
+    {
+    FUNC_LOG;
+    TBool retVal( EFalse );
+   
+    TDateTime start = aEntry.StartTimeL().TimeLocalL().DateTime();
+    TDateTime end = aEntry.EndTimeL().TimeLocalL().DateTime();
+
+    // All-day events: 
+    // From one days 00:00:00 to at least next days 00:00:00.
+    // Start times hour, minute and second need to be the same.
+    // Start and end time days need to be different
+    if( start.Hour() == end.Hour() && 
+            start.Minute() == end.Minute() &&
+                start.Second() == end.Second() && 
+                    start.Day() != end.Day() )
+        {
+        if( start.Hour() == 0 && 
+                start.Minute() == 0 &&
+                    start.Second() == 0 )
+            {
+            retVal = ETrue;
+            }
+        }
+
+    return retVal;
+    }
+
+// ----------------------------------------------------------------------------
 // ESMREntryHelper::OccursInPastL
 // ----------------------------------------------------------------------------
 //
@@ -249,6 +290,148 @@ EXPORT_C TBool ESMREntryHelper::SpansManyDaysL(
         retVal = ETrue;
         }
     return retVal;
+    }
+
+// ----------------------------------------------------------------------------
+// ESMREntryHelper::EventTypeL
+// ----------------------------------------------------------------------------
+//
+EXPORT_C TESMRCalendarEventType ESMREntryHelper::EventTypeL(
+            const CCalEntry& aCalEntry )
+    {
+    FUNC_LOG;
+    
+    TESMRCalendarEventType type( EESMREventTypeNone );
+    
+    switch ( aCalEntry.EntryTypeL() )
+        {
+        case CCalEntry::EAppt:
+            if ( CCalenInterimUtils2::IsMeetingRequestL( 
+                    const_cast< CCalEntry& >( aCalEntry ) ) )
+                {
+                type = EESMREventTypeMeetingRequest;
+                }
+            else
+                {
+                type = EESMREventTypeAppt;
+                }
+            break;
+            
+        case CCalEntry::ETodo:
+            type = EESMREventTypeETodo;
+            break;
+            
+        case CCalEntry::EEvent:
+            type = EESMREventTypeEEvent;
+            break;
+            
+        case CCalEntry::EReminder:
+            type = EESMREventTypeEReminder;
+            break;
+            
+        case CCalEntry::EAnniv:
+            type = EESMREventTypeEAnniv;
+            break;
+            
+        }
+
+    return type;
+    }
+
+// ----------------------------------------------------------------------------
+// ESMREntryHelper::SetInstanceStartAndEndL
+// ----------------------------------------------------------------------------
+//
+EXPORT_C void ESMREntryHelper::SetInstanceStartAndEndL(
+        CCalEntry& aChild,
+        const CCalEntry& aParent,
+        const TCalTime& aChildStart )
+    {
+    TTime parentStart( aParent.StartTimeL().TimeUtcL() );
+    TTime parentEnd( aParent.EndTimeL().TimeUtcL() );
+    const TTime KNullTime( Time::NullTTime() );
+
+    if ( KNullTime == parentStart ||
+         KNullTime == parentEnd ||
+         KNullTime == aChildStart.TimeUtcL() )
+        {
+        // Invalid time --> Leaving
+        User::Leave( KErrArgument );
+        }
+
+    TTimeIntervalMicroSeconds duration( KZeroInterval );
+    duration = parentEnd.MicroSecondsFrom( parentStart );
+    TCalTime childStart;
+    TCalTime childEnd;
+    
+    // Meeting time mode is Fixed Utc
+    if( aChild.EntryTypeL() == CCalEntry::EAppt )
+        {
+        const TTime startTime = aChildStart.TimeUtcL();
+        childStart.SetTimeUtcL( startTime );
+        childEnd.SetTimeUtcL( startTime + duration );   
+        }
+    
+    // Anniversary time mode is local floating
+    if( aChild.EntryTypeL() == CCalEntry::EAnniv )
+        {
+        const TTime startTime = aChildStart.TimeLocalL();
+        childStart.SetTimeLocalFloatingL( startTime );
+        childEnd.SetTimeLocalFloatingL( startTime + duration );  
+        }
+
+    aChild.SetStartAndEndTimeL( childStart, childEnd );
+    }
+
+// ----------------------------------------------------------------------------
+// ESMREntryHelper::CheckRepeatUntilValidityL
+// ----------------------------------------------------------------------------
+//
+EXPORT_C void ESMREntryHelper::CheckRepeatUntilValidityL(
+        CCalEntry& aEntry,
+        const TCalTime& aInstanceTime )
+    {    
+    if ( ESMREntryHelper::IsRepeatingMeetingL(aEntry) &&
+         !ESMREntryHelper::IsModifyingEntryL(aEntry) )
+        {
+        TCalRRule originalRRule;
+        if ( aEntry.GetRRuleL( originalRRule ) )
+            {
+            TCalTime endTime = aEntry.EndTimeL();
+            TCalTime startTime = aEntry.StartTimeL();
+
+            TTimeIntervalMicroSeconds duration =
+                endTime.TimeLocalL().MicroSecondsFrom(
+                        startTime.TimeLocalL() );
+
+            TTime instanceEndTime( aInstanceTime.TimeLocalL() );
+            instanceEndTime += duration;
+            TCalTime repeatUntilTime = originalRRule.Until();
+            
+            TDateTime repeat = repeatUntilTime.TimeLocalL().DateTime();
+            TDateTime instanceEndDatetime = instanceEndTime.DateTime();
+
+            if ( repeatUntilTime.TimeLocalL() < instanceEndTime )
+                {
+                // reset the recurrence so, that the repeat until
+                // time is included in repeat range. This is done,
+                // because when setting the instance start and end
+                // time, the CCalEntry implementation clears the
+                // recurrence information if the end time is
+                // after repeat until end time.
+                // CCalEntry forces the repeat until time to be
+                // same than last entry's start time when storing the
+                // entry to db. Reason uknown.
+                TCalRRule rRule = originalRRule;
+
+                TCalTime newUntil;
+                newUntil.SetTimeLocalL( instanceEndTime );
+                rRule.SetUntil( newUntil );
+                
+                aEntry.SetRRuleL( rRule );
+                }
+            }
+        }
     }
 
 //  End of File

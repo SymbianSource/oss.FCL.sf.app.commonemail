@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -22,6 +22,8 @@
 #include <e32base.h>
 #include "cesmrfieldbuilderinterface.h"
 #include "resmrpluginextensionstatic.h"
+
+class CFSMailBox;
 
 /**
  *  This class implements most of the field builder composite.
@@ -73,13 +75,18 @@ protected: // from MESMRFieldBuilder
             TBool aResponseReady );
 
 protected: //from  MESMRBuilderExtension
-    TBool CFSMailBoxCapabilityL( EMRCFSMailBoxCapability aCapa );
-    TBool MRCanBeOriginateedL( TBool aForceResetDefaultMRMailbox );
+    TBool CFSMailBoxCapabilityL( TMRCFSMailBoxCapability aCapa );
+    TBool CFSMailBoxCapabilityL(
+                const TDesC& aEmailAddress,
+                TMRCFSMailBoxCapability aCapa );
+    TBool MRCanBeOriginateedL();
 
 private: // Implementation
     CESMRFieldBuilderPluginExtension();
     void ConstructL();
-
+    TBool HasCapability( const CFSMailBox& aMailBox,
+            MESMRBuilderExtension::TMRCFSMailBoxCapability aCapability ) const;
+    
     /**
      * Access CFSmailbox TLS static
      */

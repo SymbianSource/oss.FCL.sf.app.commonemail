@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -49,22 +49,26 @@ public:
 public: // From CESMRField
     void InternalizeL( MESMRCalEntry& aEntry );
     void InitializeL();
-
+    TBool ExecuteGenericCommandL( TInt aCommand );
+    
 public: // From CCoeControl
     TInt CountComponentControls() const;
     CCoeControl* ComponentControl( TInt aInd ) const;
     void SizeChanged();
     TSize MinimumSize();
-    
+
 private: // Implementation
     CESMRViewerRecurrenceDateField();
     void ConstructL();
-    
+    void FormatRepeatUntilDateL();
+
 private:
     /// Own: topic label
     CMRLabel* iRepeatTopic;
     /// Own: date label
     CMRLabel* iRepeatDate;
+    /// Own: Repeat until date
+    TTime iRepeatUntilDate;
     };
 
 #endif  // CESMRVIEWERRECURRENCECONTAINER_H

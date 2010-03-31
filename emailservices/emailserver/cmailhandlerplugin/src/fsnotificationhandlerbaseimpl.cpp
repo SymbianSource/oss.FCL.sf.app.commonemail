@@ -239,9 +239,7 @@ void CFSNotificationHandlerBase::HandleEventL(
                      *parentFolder,
                      *newEntries ) )
                 {
-                // it doesn't matter if the mailindicator won't get updated
-                // its better have it not updated compared to a leave
-                TRAP_IGNORE(MailIndicatorHandlingL(aMailbox));                
+                TurnNotificationOn();
                 }
             }
          else
@@ -259,74 +257,6 @@ void CFSNotificationHandlerBase::HandleEventL(
         }
     }
 
-void CFSNotificationHandlerBase::MailIndicatorHandlingL(TFSMailMsgId aMailbox)
-    {
-    /** 
-     * There is always a pair of keys for one mailbox
-     * 1st keys is the plugin id (numberOfMailboxes*2-1)
-     * 2nd is the mailboxId (numberOfMailboxes*2)
-     */
-    TInt numberOfMailboxes(0);
-    CRepository* emailRepository = CRepository::NewL( KFreestyleEmailCenRep );
-    CleanupStack::PushL(emailRepository);
-    emailRepository->Get(KNumberOfMailboxesWithNewEmails, numberOfMailboxes);
-    CRepository* commonEmailRepository = CRepository::NewL( KCmailDataRepository );
-    CleanupStack::PushL(commonEmailRepository);
-    if(numberOfMailboxes != 0)
-        {
-        RArray<TInt> repositoryIds;
-        CleanupClosePushL(repositoryIds);
-        TInt tmp(0);
-        for(TInt i = 1 ; i <= numberOfMailboxes * 2; i++ )
-            {                        
-            emailRepository->Get(KNumberOfMailboxesWithNewEmails+i, tmp);
-            repositoryIds.Append(tmp);
-            }                    
-        TInt index = repositoryIds.Find(static_cast<TInt>(aMailbox.Id()));
-        // If it is we delete it from the array
-        if(index != KErrNotFound )
-            {
-            //unless it is the last item, then we don't have to do anything
-            if(index != (repositoryIds.Count()-1))
-                {
-                repositoryIds.Remove(index);
-                repositoryIds.Remove(index-1);               
-                // Rearrange the mailbox/mailplugin ids
-                // in the repository
-                for(TInt j = 0; j < repositoryIds.Count(); j++)
-                    {
-                    emailRepository->Set(KNumberOfMailboxesWithNewEmails + 1 + j, repositoryIds.operator [](j));
-                    }       
-                // And write the current mailbox/plugin ids back to repository as the last items
-                emailRepository->Set(KNumberOfMailboxesWithNewEmails + ( numberOfMailboxes * 2 - 1 ), static_cast<TInt>(aMailbox.PluginId().iUid));
-                emailRepository->Set(KNumberOfMailboxesWithNewEmails + ( numberOfMailboxes * 2 ),static_cast<TInt>(aMailbox.Id()) );
-                commonEmailRepository->Set(KCmailNewEmailDisplayText,MailClient().GetMailBoxByUidL(aMailbox)->GetName());
-                }
-            }
-        else
-            {
-            //Create keys with right values and update the number of mailboxes
-            numberOfMailboxes += 1;
-            emailRepository->Set(KNumberOfMailboxesWithNewEmails, numberOfMailboxes);
-            emailRepository->Create(KNumberOfMailboxesWithNewEmails + (numberOfMailboxes * 2 - 1), static_cast<TInt>(aMailbox.PluginId().iUid));
-            emailRepository->Create(KNumberOfMailboxesWithNewEmails + (numberOfMailboxes * 2), static_cast<TInt>(aMailbox.Id()));  
-            commonEmailRepository->Set(KCmailNewEmailDisplayText,MailClient().GetMailBoxByUidL(aMailbox)->GetName());
-            }
-        repositoryIds.Reset();
-        CleanupStack::PopAndDestroy();//repositoryIds
-        }
-    else
-        {
-        //Create keys with right values and pudate the number of mailboxes
-        numberOfMailboxes += 1;
-        emailRepository->Set(KNumberOfMailboxesWithNewEmails, numberOfMailboxes);
-        emailRepository->Create(KNumberOfMailboxesWithNewEmails + (numberOfMailboxes * 2 - 1), static_cast<TInt>(aMailbox.PluginId().iUid));
-        emailRepository->Create(KNumberOfMailboxesWithNewEmails + (numberOfMailboxes * 2), static_cast<TInt>(aMailbox.Id()));
-        commonEmailRepository->Set(KCmailNewEmailDisplayText,MailClient().GetMailBoxByUidL(aMailbox)->GetName());
-        }
-    CleanupStack::PopAndDestroy(2);// emailRepository, CommonEmailRepository    
-    TurnNotificationOn();
-    }
 
 CFSMailMessage* CFSNotificationHandlerBase::NewestMsgInFolderL(
     /*const*/ CFSMailFolder& aFolder ) const

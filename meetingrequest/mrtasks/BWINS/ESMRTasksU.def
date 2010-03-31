@@ -1,5 +1,9 @@
 EXPORTS
-	??1CESMRTaskExtenstionImpl@@UAE@XZ @ 1 NONAME ; CESMRTaskExtenstionImpl::~CESMRTaskExtenstionImpl(void)
-	?NewL@CESMRTaskExtenstionImpl@@SAPAV1@AAVMESMRCalDbMgr@@AAVCMRMailboxUtils@@AAVCESMRPolicyManager@@AAVCESMREntryProcessor@@AAVMESMRTaskFactory@@@Z @ 2 NONAME ; class CESMRTaskExtenstionImpl * CESMRTaskExtenstionImpl::NewL(class MESMRCalDbMgr &, class CMRMailboxUtils &, class CESMRPolicyManager &, class CESMREntryProcessor &, class MESMRTaskFactory &)
-	?NewL@CESMRTaskFactory@@SAPAV1@AAVMESMRCalDbMgr@@AAVCMRMailboxUtils@@@Z @ 3 NONAME ; class CESMRTaskFactory * CESMRTaskFactory::NewL(class MESMRCalDbMgr &, class CMRMailboxUtils &)
+	?NewL@CESMRTaskExtenstionImpl@@SAPAV1@AAVMESMRTaskFactory@@@Z @ 1 NONAME ; class CESMRTaskExtenstionImpl * CESMRTaskExtenstionImpl::NewL(class MESMRTaskFactory &)
+	??1CESMRTaskExtenstionImpl@@UAE@XZ @ 2 NONAME ; CESMRTaskExtenstionImpl::~CESMRTaskExtenstionImpl(void)
+	?RemoveTaskL@CESMRCombinedTask@@QAEPAVMESMRTask@@PAV2@@Z @ 3 NONAME ; class MESMRTask * CESMRCombinedTask::RemoveTaskL(class MESMRTask *)
+	?NewL@CESMRCombinedTask@@SAPAV1@AAVMESMRCalEntry@@W4TESMRExecutionRule@1@@Z @ 4 NONAME ; class CESMRCombinedTask * CESMRCombinedTask::NewL(class MESMRCalEntry &, enum CESMRCombinedTask::TESMRExecutionRule)
+	?AppendTaskL@CESMRCombinedTask@@QAEXPAVMESMRTask@@@Z @ 5 NONAME ; void CESMRCombinedTask::AppendTaskL(class MESMRTask *)
+	??1CESMRCombinedTask@@UAE@XZ @ 6 NONAME ; CESMRCombinedTask::~CESMRCombinedTask(void)
+	?AppendTaskL@@YAXAAVCESMRCombinedTask@@PAVMESMRTask@@@Z @ 7 NONAME ; void AppendTaskL(class CESMRCombinedTask &, class MESMRTask *)
 

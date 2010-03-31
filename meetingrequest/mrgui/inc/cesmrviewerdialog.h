@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -17,15 +17,15 @@
 #ifndef CESMRVIEWERDIALOG_H
 #define CESMRVIEWERDIALOG_H
 
-#include <AknDialog.h>
+#include <akndialog.h>
 #include <akntoolbarobserver.h>
-#include <AknNaviDecoratorObserver.h>
-#include <msvapi.h>
-
+#include <aknserverapp.h>
 #include "mesmruibase.h"
 #include "mesmrresponseobserver.h"
 #include "resmrstatic.h"
 #include "mesmrfieldeventobserver.h"
+#include "mesmrnaviarroweventobserver.h"
+#include "cesmrfieldbuilderinterface.h"
 
 class MESMRFieldStorage;
 class MESMRCalEntry;
@@ -33,14 +33,15 @@ class CESMRView;
 class MAgnEntryUiCallback;
 class CESMRPolicy;
 class CESMRSendUI;
-class CAiwServiceHandler;
 class CCEUIPolicyResolver;
 class CESMRPolicyManager;
 class CESMRLocationPluginHandler;
 class CESMRFeatureSettings;
-class CAknNavigationDecorator;
-class MESMRMeetingRequestEntry;
-class TFSMailMsgId;
+class CMRToolbar;
+class TDataType;
+class MMRInfoProvider;
+class MMRFocusStrategy;
+class CESMRTitlePaneHandler;
 
 /**
  *  CESMRViewerDialog implements the viewer dialog for meeting requests.
@@ -54,23 +55,20 @@ NONSHARABLE_CLASS( CESMRViewerDialog ):
          public MESMRResponseObserver,
          public MESMRFieldEventObserver,
          public MAknToolbarObserver,
-         public MAknNaviDecoratorObserver,
-         public MMsvSessionObserver
+         public MESMRNaviArrowEventObserver
     {
 public:
 
     /**
      * Two-phased constructor.
      *
-     * @param aStorage Field storage contains all the fields for list component.
-     * @param aEntry ESMR calendar entry (wraps the CCalEntry object)
+     * @param aInfoProvider Reference to MR / entry info provider.
      * @param aCallback Callback interface for AgnEntryUI
      * @return Pointer to created and initialized esmr editor dialog.
      */
      IMPORT_C static CESMRViewerDialog* NewL(
-        CESMRPolicy* aPolicy,
-        MESMRCalEntry& aEntry,
-        MAgnEntryUiCallback& aCallback );
+             MMRInfoProvider& aInfoProvider,
+             MAgnEntryUiCallback& aCallback );
     /*
      * Destructor.
      */
@@ -86,7 +84,7 @@ public: // From CAknDialog
             CEikMenuPane* aMenuPane );
     void ActivateL();
     void PreLayoutDynInitL();
-
+    
 public: // From MESUIBase
     TInt ExecuteViewLD();
 
@@ -96,48 +94,26 @@ public: // From MESMRResponseObserver
     void ChangeReadyResponseL();
 
 public: // From MAknToolbarObserver
-    virtual void OfferToolbarEventL( TInt aCommand );
+    void DynInitToolbarL ( TInt aResourceId, CAknToolbar* aToolbar );
+    void OfferToolbarEventL ( TInt aCommand );
 
-public: // from MAknNaviDecoratorObserver
-    void HandleNaviDecoratorEventL( TInt aEventID );
-
-public: // from MMsvSessionObserver
-    void HandleSessionEventL( 
-        TMsvSessionEvent aEvent, TAny* aArg1,
-        TAny* aArg2, TAny* aArg3 );
-    
-public:
-    /**
-     *  Static method that is given as callback to CIdle object
-     *  handling the navigation decorator right arrow event.
-     *  
-     *  @param aObjPtr TAny-casted pointer to an instance of this class.
-     *  @return Always KErrNone.
-     */
-    static TInt RunCmdMailNextMessageIdle( TAny* aObjPtr );
-    
-    /**
-     *  Static method that is given as callback to CIdle object
-     *  handling the navigation decorator left arrow event.
-     *  
-     *  @param aObjPtr TAny-casted pointer to an instance of this class.
-     *  @return Always KErrNone.
-     */
-    static TInt RunCmdMailPreviousMessageIdle( TAny* aObjPtr );
-    
 protected: // MESMRFieldEventObserver
     void HandleFieldEventL( const MESMRFieldEvent& aEvent );
+    
+public: // From MESMRNaviArrowEventObserver
+    void HandleNaviArrowEventL( const TInt aCommand );
 
 private: // Implementation
     void DoProcessCommandL( TInt aCommand );
-    CESMRViewerDialog( MESMRCalEntry& aEntry, MAgnEntryUiCallback& aCallback );
-    void ConstructL( CESMRPolicy* aPolicy );
+    CESMRViewerDialog(
+            MMRInfoProvider& aInfoProvider,
+            MAgnEntryUiCallback& aCallback );
+    void ConstructL();
     void OpenInDayModeL();
     void CommandTailL(HBufC16*& aTailBuffer);
-    TBool HandleCommandForRecurrentEventL( TInt aCommand );
+    TBool HandleCommandForEventL( TInt aCommand );
     void SendCalendarEntryL(TInt aCommandId);
     void TryInsertSendMenuL(CEikMenuPane* aMenuPane);
-    void HandlePrintCommandL(TInt aCommand);
     void HandleEmailSubmenuL(
             TInt aResourceId,
             CEikMenuPane* aMenuPane );
@@ -147,54 +123,51 @@ private: // Implementation
     void HandleDynamicMenuItemsL(
             TInt aResourceId,
             CEikMenuPane* aMenuPane );
-    TBool SupportsAttendeeStatusL();
+    TBool SupportsMailBoxCapabilityL( 
+            MESMRBuilderExtension::TMRCFSMailBoxCapability aCapa );
     TBool HandleMRExitL(
             TInt aCommand  );
-    TBool SupportsForwardingAsMeetingL( 
-            MESMRMeetingRequestEntry* aEntry,
-            TBool aForceResetDefaultMRMailbox );
+    void HandleForwardMenuL(
+            TInt aResourceId,
+            CEikMenuPane* aMenuPane );
     CESMRLocationPluginHandler& LocationPluginHandlerL();
     void SetDefaultMiddleSoftKeyL();
-    TPtrC DigMailboxAndRemovePrefixL();
-    void MakeMrGuiToolbarButtonsL();
-    void ClearToolbarL();
-    TInt AccountIdL( const TFSMailMsgId& aMailboxId );
+    TInt TryToSaveAttachmentL();
+    void SetContextMenu();
+    void ShowContextMenuL();
+    TBool UserWantToHandleAttachmentsL();
+    void InitLocationMenuL(
+            CEikMenuPane* aMenuPane );
+    void ConstructToolbarL();
+    void ProcessCommandEventL( const MESMRFieldEvent& aEvent );
+    void ProcessFieldEventL( const MESMRFieldEvent& aEvent );
     
 private: // Data
 
-    /// Own: Feature manager initialization flag
-    TBool iFeatureManagerInitialized;
-    /// Ref: The only control in this dialog. Fwk deletes.
+     /// Ref: The only control in this dialog. Fwk deletes.
     CESMRView* iView;
-    /// Ref: Reference to MESRCalEntry (CCalEntry wrapper)
-    MESMRCalEntry& iEntry;
     /// Ref: Agn Entry UI callback interface
     MAgnEntryUiCallback& iCallback;
-    /// Ref: Pointer to policy
-    CESMRPolicy* iPolicy;
     /// Own: Calendar Global data
     CESMRSendUI* iESMRSendUI;
-    /// Own: AIW Service handler
-    CAiwServiceHandler* iServiceHandler;
     /// Own: Flag for marking exit
     TBool iExitTriggered;
     /// Own: Static TLS data handler
     RESMRStatic iESMRStatic;
-    // Own: Location plugin handler.    
+    // Own: Location plugin handler.
     CESMRLocationPluginHandler* iLocationPluginHandler;
     // Own: Feature settings.
     CESMRFeatureSettings* iFeatures;
-    // Not own: Pointer to previous toolbar observer.
-    MAknToolbarObserver* iOldObserver;
-    // flag to indicate toolbar can be cleared
-    TBool iClearToolbar;
-    // Own: CIdle object through which navi button events are handled.
-    //      CIdle with callback is used because the navi buttons events
-    //      cause deletion of this dialog, but the actual button event 
-    //      handling needs to be completed before closing the dialog.
-    CIdle* iIdleNaviEventRunner;
-    // Not own: Pointer to navigation decorator
-    CAknNavigationDecorator* iESMRNaviDecorator;
+    /// Own: Toolbar
+    CMRToolbar* iToolbar;
+    /// Ref: Reference to mrinfo provider
+    MMRInfoProvider& iInfoProvider;
+    /// Own: Context menu resource ID.
+    TInt iContextMenuResourceId;
+    /// Own: Focus strategy of the viewer
+    MMRFocusStrategy* iFocusStrategy;
+    /// Own: Titlepane handler
+    CESMRTitlePaneHandler* iTitlePane;
     };
 
 #endif // CESMRVIEWERDIALOG_H

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -15,12 +15,16 @@
 *
 */
 
-#include "emailtrace.h"
 #include "cesmrfieldstorage.h"
 #include "cesmrfield.h"
 #include "mesmrcalentry.h"
 #include "cesmrfieldeventqueue.h"
-// <cmail> Removed profiling. </cmail>
+#include "cmrsystemnotifier.h"
+
+#include <touchfeedback.h>
+
+#include "emailtrace.h"
+
 
 // ======== MEMBER FUNCTIONS ========
 
@@ -29,7 +33,7 @@
 // ---------------------------------------------------------------------------
 //
 CESMRFieldStorage::CESMRFieldStorage(
-		MESMRFieldEventObserver& aEventObserver ): 
+		MESMRFieldEventObserver& aEventObserver ):
 	iEventObserver( aEventObserver )
     {
     FUNC_LOG;
@@ -40,9 +44,11 @@ void CESMRFieldStorage::BaseConstructL()
     {
     FUNC_LOG;
     // Add event observer to event queue
-    EventQueueL().AddObserverL( &iEventObserver );
+    EventQueueL().AddObserverL( &iEventObserver );    
+    iSystemNotifier = CMRSystemNotifier::NewL( EventQueueL() );
+    iSystemNotifier->StartL();
     }
-		
+
 // ---------------------------------------------------------------------------
 // CESMRFieldStorage::~CESMRFieldStorage()
 // ---------------------------------------------------------------------------
@@ -51,9 +57,10 @@ CESMRFieldStorage::~CESMRFieldStorage()
     {
     FUNC_LOG;
     iArray.ResetAndDestroy();
-    
+
     delete iPlugin;
-    delete iEventQueue;
+    delete iSystemNotifier;
+    delete iEventQueue;    
     }
 
 // ---------------------------------------------------------------------------
@@ -112,7 +119,7 @@ CESMRField* CESMRFieldStorage::Field( TInt aInd ) const
 CESMRField* CESMRFieldStorage::FieldById( TESMREntryFieldId aId ) const
     {
     CESMRField* field = NULL;
-    
+
     for ( TInt i = 0; i < iArray.Count(); ++i )
         {
         if ( iArray[ i ]->FieldId() == aId )
@@ -121,7 +128,7 @@ CESMRField* CESMRFieldStorage::FieldById( TESMREntryFieldId aId ) const
             break;
             }
         }
-    
+
     return field;
     }
 
@@ -129,8 +136,8 @@ CESMRField* CESMRFieldStorage::FieldById( TESMREntryFieldId aId ) const
 // CESMRFieldStorage::Validate()
 // ---------------------------------------------------------------------------
 //
-TInt CESMRFieldStorage::Validate( 
-		TESMREntryFieldId& /*aId */, 
+TInt CESMRFieldStorage::Validate(
+		TESMREntryFieldId& /*aId */,
 		TBool /*aForceValidation*/ )
     {
     FUNC_LOG;
@@ -144,9 +151,20 @@ TInt CESMRFieldStorage::Validate(
 void CESMRFieldStorage::InternalizeL( MESMRCalEntry& aEntry )
     {
     FUNC_LOG;
-    for ( TInt i(0); i < iArray.Count(); i++ )
+
+    TInt index(0);
+    while( index < iArray.Count() )
         {
-        iArray[ i ]->InternalizeL( aEntry );
+        TInt fieldCount( iArray.Count() );
+        iArray[ index ]->InternalizeL( aEntry );
+
+        if ( fieldCount == iArray.Count() )
+            {
+            // Field that was internalized was not removed from list
+            // We can update field index. If field is removed the next
+            // field index is already the current index ...
+            index++;
+            }
         }
     }
 
@@ -159,7 +177,10 @@ void CESMRFieldStorage::ExternalizeL( MESMRCalEntry& aEntry )
     FUNC_LOG;
     for ( TInt i(0); i < iArray.Count(); i++ )
         {
-        iArray[ i ]->ExternalizeL( aEntry );
+        if(iArray[ i ]->IsVisible())
+        	{
+        	iArray[ i ]->ExternalizeL( aEntry );
+        	}
         }
     }
 
@@ -188,15 +209,15 @@ void CESMRFieldStorage::LoadPluginL()
     iFieldBuilder = NULL;
     CESMRFieldBuilderInterface* plugin = NULL;
 
-	TRAPD( error, plugin = 
-		CESMRFieldBuilderInterface::CreatePluginL( 
+	TRAPD( error, plugin =
+		CESMRFieldBuilderInterface::CreatePluginL(
 				TUid::Uid(KESMRUIFieldBuilderPluginImplUId) ) );
-	
+
 	if ( error == KErrNone && plugin)
-		{   
+		{
 		delete iPlugin;
 		iPlugin = plugin;
-		
+
 		iFieldBuilder = iPlugin->FieldBuilderL();
 		}
     }
@@ -205,8 +226,8 @@ void CESMRFieldStorage::LoadPluginL()
 // CESMRFieldStorage::CreateEditorFieldL()
 // -----------------------------------------------------------------------------
 //
-CESMRField* CESMRFieldStorage::CreateEditorFieldL( 
-		MESMRFieldValidator* aValidator, 
+CESMRField* CESMRFieldStorage::CreateEditorFieldL(
+		MESMRFieldValidator* aValidator,
 		TESMREntryField aField )
     {
     FUNC_LOG;
@@ -224,9 +245,9 @@ CESMRField* CESMRFieldStorage::CreateEditorFieldL(
 // CESMRFieldStorage::CreateViewerFieldL()
 // -----------------------------------------------------------------------------
 //
-CESMRField* CESMRFieldStorage::CreateViewerFieldL( 
-		MESMRResponseObserver* aResponseObserver, 
-		TESMREntryField aField, 
+CESMRField* CESMRFieldStorage::CreateViewerFieldL(
+		MESMRResponseObserver* aResponseObserver,
+		TESMREntryField aField,
 		TBool aResponseReady )
     {
     FUNC_LOG;
@@ -238,6 +259,18 @@ CESMRField* CESMRFieldStorage::CreateViewerFieldL(
 					aResponseObserver, aField, aResponseReady );
         }
     return field;
+    }
+
+// -----------------------------------------------------------------------------
+// CESMRFieldStorage::ChangePolicyL()
+// -----------------------------------------------------------------------------
+//
+void CESMRFieldStorage::ChangePolicyL(
+        const CESMRPolicy& /*aNewPolicy*/,
+        MESMRCalEntry& /*aEntry*/ )
+    {
+    ASSERT( EFalse ); // Assert for debug builds
+    User::Leave( KErrNotSupported );
     }
 
 // -----------------------------------------------------------------------------
@@ -254,5 +287,43 @@ CESMRFieldEventQueue& CESMRFieldStorage::EventQueueL()
     return *iEventQueue;
     }
 
+// -----------------------------------------------------------------------------
+// CESMRFieldStorage::RemoveField()
+// -----------------------------------------------------------------------------
+//
+void CESMRFieldStorage::RemoveField( TInt aInd )
+    {
+    CESMRField* field = iArray[ aInd ];
+    iArray.Remove( aInd );
+    delete field;
+    }
+
+// -----------------------------------------------------------------------------
+// CESMRFieldStorage::InsertFieldL()
+// -----------------------------------------------------------------------------
+//
+void CESMRFieldStorage::InsertFieldL( CESMRField* aField, TInt aIndex )
+    {
+    iArray.InsertL( aField, aIndex );
+    aField->SetEventQueueL( iEventQueue );
+    }
+
+// -----------------------------------------------------------------------------
+// CESMRFieldStorage::ReserveL()
+// -----------------------------------------------------------------------------
+//
+void CESMRFieldStorage::ReserveL( TInt aCount )
+    {
+    iArray.ReserveL( aCount );
+    }
+
+// -----------------------------------------------------------------------------
+// CESMRFieldStorage::Reset()
+// -----------------------------------------------------------------------------
+//
+void CESMRFieldStorage::Reset()
+    {
+    iArray.ResetAndDestroy();
+    }
 // EOF
 

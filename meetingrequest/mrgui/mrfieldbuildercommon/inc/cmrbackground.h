@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -22,8 +22,6 @@
 #include "nmrbitmapmanager.h"
 #include "cesmrfield.h"
 
-class CESMRLayoutManager;
-
 /**
  * CESMRBorderLayer draws border around the focused control.
  *
@@ -40,7 +38,7 @@ NONSHARABLE_CLASS( CMRBackground ): public CBase, public MCoeControlBackground
          * @param aFocusType
          * @return Pointer to created and initialized esmr borderlayer object.
          */
-         IMPORT_C static CMRBackground* NewL( CESMRLayoutManager& aLayoutManager );
+         IMPORT_C static CMRBackground* NewL();
     
          /**
           * Destructor.
@@ -59,7 +57,7 @@ NONSHARABLE_CLASS( CMRBackground ): public CBase, public MCoeControlBackground
             EViewerFieldWithFocus
             };        
         
-        CMRBackground( CESMRLayoutManager& aLayoutManager );
+        CMRBackground();
         void CMRBackground::DrawFocus( 
                 CWindowGc& aGc, 
                 TRect aRect, 
@@ -67,9 +65,7 @@ NONSHARABLE_CLASS( CMRBackground ): public CBase, public MCoeControlBackground
                 TBgType aType ) const;
         CArrayFixFlat<NMRBitmapManager::TMRBitmapId>* IconSkinIdL( TBgType aType ) const;
         
-    private:
-        /// Ref: Layout manager.
-        CESMRLayoutManager& iLayoutManager;
+    private: // Data
     };
 
 #endif // CESMRBORDERLAYER_H

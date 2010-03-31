@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -18,13 +18,10 @@
 
 #include "emailtrace.h"
 #include "esmricalviewerutils.h"
-#include "cesmrattachmentinfo.h"
-//<cmail>
 #include "cfsmailmessagepart.h"
 #include "cfsmailclient.h"
 #include "cfsmailmessage.h"
 #include "cfsmailbox.h"
-//</cmail>
 
 #include <calentry.h>
 #include <caluser.h>
@@ -72,16 +69,17 @@ TESMRIcalViewerOperationType ESMRIcalViewerUtils::EmailOperation(
 // ---------------------------------------------------------------------------
 //
 TBool ESMRIcalViewerUtils::ContainsAttachments(
-        TESMRInputParams& aParams )
+        TESMRInputParams& /*aParams*/ )
     {
     FUNC_LOG;
     TBool retValue( EFalse );
 
-    if ( aParams.iAttachmentInfo &&
+    // TODO: This needs to be updated
+    /*if ( aParams.iAttachmentInfo &&
          aParams.iAttachmentInfo->AttachmentCount() )
         {
         retValue = ETrue;
-        }
+        } */
 
     return retValue;
     }
@@ -194,10 +192,10 @@ CFSMailMessagePart* ESMRIcalViewerUtils::LocateChildPartLC(
 CFSMailMessagePart* ESMRIcalViewerUtils::LocateCalendarPartL( CFSMailMessage& aMessage )
     {
     FUNC_LOG;
-    
+
     CFSMailMessagePart* calendarPart( NULL );
     CFSMailMessagePart* multipart( NULL );
-    
+
     // 1st, try to find 'TEXT/CALENDAR' part from 'MULTIPART/ALTERNATIVE' part of message
     multipart = ESMRIcalViewerUtils::LocateChildPartLC(
         aMessage,
@@ -226,7 +224,7 @@ CFSMailMessagePart* ESMRIcalViewerUtils::LocateCalendarPartL( CFSMailMessage& aM
         {
         CleanupStack::PopAndDestroy( multipart );
         }
-    
+
     if ( !calendarPart )
         {
         // If there's no 'MULTIPART/ALTERNATIVE' or it doesn't have

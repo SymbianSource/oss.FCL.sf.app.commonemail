@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -21,7 +21,7 @@
 
 #include <e32base.h>
 //<cmail>
-#include "cfsmailclient.h"
+#include "CFSMailClient.h"
 //</cmail>
 
 class TESMRPluginExtensionData;
@@ -53,14 +53,20 @@ public:
      */
     void Close();
 
-    /*
+    /**
      * Returns global instance of default CFSMailBox.
-     * @param  aForceReset If ETrue, the default FS mailbox is reset
-     *         before returning it. 
      * @return Reference to CFSMailBox object
      */
-    CFSMailBox& DefaultFSMailBoxL( TBool aForceReset = EFalse );
+    CFSMailBox& DefaultFSMailBoxL();
 
+    /**
+     * Returns mail box instance for given email address.
+     * Ownership of mail box is transferred to caller.
+     * 
+     * @param aEmailAddress email address of the desired mail box
+     * @return CFSMailBox instance. Ownership is transferred to caller.
+     */
+    CFSMailBox* MailBoxL( const TDesC& aEmailAddress );
 
 private: // Implementation
 

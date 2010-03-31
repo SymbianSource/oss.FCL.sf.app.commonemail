@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -26,26 +26,39 @@
 #include "cesmrfield.h"
 #include "mesmrcalentry.h"
 #include "nmrlayoutmanager.h"
+#include "mesmrfieldstorage.h"
 #include "FreestyleEmailUiConstants.h"
+#include "cesmrcaldbmgr.h"
+#include "mmrfocusstrategy.h"
+#include "cmrnaviarrow.h"
+#include "mesmrlistobserver.h"
+#include "cmrtoolbar.h"
+#include "cmrattachmentindicator.h"
+#include "esmrdef.h"
+#include "mesmrfieldevent.h"
+#include "cesmrgenericfieldevent.h"
 
 #include <eiklabel.h>
 #include <avkon.hrh>
-#include <MAgnEntryUi.h>
-#include <StringLoader.h>
+#include <magnentryui.h>
+#include <stringloader.h>
 #include <gulcolor.h>
 #include <eikimage.h>
 #include <esmrgui.rsg>
-#include <AknIconUtils.h>
+#include <akniconutils.h>
 #include <eikenv.h>
-#include <AknsConstants.h>
-#include <AknUtils.h>
-#include <AknsDrawUtils.h>
-#include <AknsBasicBackgroundControlContext.h>
+#include <aknsconstants.h>
+#include <aknutils.h>
+#include <aknsdrawutils.h>
+#include <aknsbasicbackgroundcontrolcontext.h>
 #include <hlplch.h>
 #include <csxhelp/cmail.hlp.hrh>
-
-#include <featmgr.h>
-//</cmail>
+#include <touchfeedback.h>
+#include <akntoolbar.h>
+#include <eikcolib.h>
+#include <featdiscovery.h>
+#include <bldvariant.hrh>
+#include <layoutmetadata.cdl.h>
 
 #include "emailtrace.h"
 
@@ -59,9 +72,16 @@
 // CESMRView::CESMRView()
 // ---------------------------------------------------------------------------
 //
-CESMRView::CESMRView( MESMRFieldStorage* aStorage, MESMRCalEntry& aEntry ) :
-	iStorage(aStorage),
-	iEntry(aEntry)
+CESMRView::CESMRView( MESMRFieldStorage* aStorage,
+        MESMRCalEntry& aEntry,
+        MMRFocusStrategy& aFocusStrategy,
+        MESMRNaviArrowEventObserver* aObserver, 
+        CMRToolbar& aToolbar )
+    : iStorage( aStorage ),
+      iEntry( &aEntry ),
+	  iFocusStrategy( aFocusStrategy ),
+	  iObserver( aObserver ),
+	  iToolbar( aToolbar )
     {
     FUNC_LOG;
     // Do nothing
@@ -74,10 +94,14 @@ CESMRView::CESMRView( MESMRFieldStorage* aStorage, MESMRCalEntry& aEntry ) :
 CESMRView* CESMRView::NewL(
         MESMRFieldStorage* aStorage,
         MESMRCalEntry& aEntry,
-        const TRect& aRect )
+        const TRect& aRect,
+        MMRFocusStrategy& aFocusStrategy,
+        CMRToolbar& aToolbar,
+        MESMRNaviArrowEventObserver* aObserver )
     {
     FUNC_LOG;
-    CESMRView* self = new (ELeave) CESMRView( aStorage, aEntry );
+    CESMRView* self = new (ELeave) CESMRView( 
+            aStorage, aEntry, aFocusStrategy, aObserver, aToolbar );
     CleanupStack::PushL( self );
     self->ConstructL( aRect );
     CleanupStack::Pop( self );
@@ -91,45 +115,7 @@ CESMRView* CESMRView::NewL(
 void CESMRView::ConstructL( const TRect& aRect )
     {
     FUNC_LOG;
-    iBgContext = CAknsBasicBackgroundControlContext::NewL( 
-            KAknsIIDQsnBgAreaMain, aRect, ETrue);
-
-    iLayout = CESMRLayoutManager::NewL();
-    iLayout->SetObserver( NULL );
-    iTitle = CESMRTitlePane::NewL();
-    // Default title text is set here.
-
-    HBufC* title ;
-    switch (iEntry.Type())
-        {
-        case MESMRCalEntry::EESMRCalEntryTodo:
-        	{
-            title = StringLoader::LoadLC ( R_QTN_CALENDAR_TITLE_NEW_TODO );
-            break;
-        	}
-        case MESMRCalEntry::EESMRCalEntryMemo:
-        	{
-            title = StringLoader::LoadLC ( R_QTN_CALENDAR_TITLE_NEW_MEMO );
-            break;
-        	}
-        case MESMRCalEntry::EESMRCalEntryAnniversary:
-        	{
-            title = StringLoader::LoadLC(R_QTN_CALENDAR_TITLE_NEW_ANNIVERSARY);
-            break;
-        	}
-        case MESMRCalEntry::EESMRCalEntryMeetingRequest: // Fall through
-        case MESMRCalEntry::EESMRCalEntryMeeting: // Fall through
-        case MESMRCalEntry::EESMRCalEntryReminder: // Fall through
-        default:
-        	{
-            title = StringLoader::LoadLC( R_QTN_MEET_REQ_TITLE );
-            break;
-        	}
-        }
-
-    iTitle->SetTextL( *title );
-    CleanupStack::PopAndDestroy( title );
-
+    CreateWindowL();
     SetRect( aRect );
     }
 
@@ -140,10 +126,12 @@ void CESMRView::ConstructL( const TRect& aRect )
 CESMRView::~CESMRView()
     {
     FUNC_LOG;
-    delete iTitle;
-    delete iList;
-    delete iLayout;
+    delete iListPane;
     delete iBgContext;
+    delete iNaviArrowLeft;
+    delete iNaviArrowRight;
+    delete iScrollBar;
+    delete iStorage;
     }
 
 // ---------------------------------------------------------------------------
@@ -154,9 +142,7 @@ void CESMRView::ExternalizeL( TBool aForceValidation )
     {
     FUNC_LOG;
     // externalize all fields:
-    iList->ExternalizeL( iEntry, aForceValidation );
-    // externalize title pane for priority value
-    iTitle->ExternalizeL( iEntry );
+    iListPane->ExternalizeL( *iEntry, aForceValidation );
     }
 
 // ---------------------------------------------------------------------------
@@ -166,56 +152,23 @@ void CESMRView::ExternalizeL( TBool aForceValidation )
 void CESMRView::InternalizeL()
     {
     FUNC_LOG;
-    // internalize title pane ( for priority )
-    iTitle->InternalizeL( iEntry );
-    iList->DisableSizeChange( ETrue );
+    iListPane->DisableSizeChange( ETrue );
     // internalize all fields:
-    iList->InternalizeL( iEntry );
-    iList->DisableSizeChange( EFalse );
-    iList->SizeChanged();
+    iListPane->InternalizeL( *iEntry );
+    iListPane->DisableSizeChange( EFalse );
+    iListPane->SizeChanged();
     }
 
 // ---------------------------------------------------------------------------
-// CESMRView::IsComponentVisible()
+// CESMRView::IsControlVisible()
 // ---------------------------------------------------------------------------
 //
-TBool CESMRView::IsComponentVisible( TESMREntryFieldId aField ) const
+TBool CESMRView::IsControlVisible( TESMREntryFieldId aFieldId ) const
     {
     FUNC_LOG;
-    return iList->ListObserver().IsControlVisible( aField );
+    return iListPane->IsControlVisible( aFieldId );
     }
 
-
-// ---------------------------------------------------------------------------
-// CESMRView::CanProcessEditorCommandL
-// ---------------------------------------------------------------------------
-//
-TBool CESMRView::CanProcessEditorCommandL( TInt aCommand )
-    {
-    FUNC_LOG;
-    CESMRField*  field = iList->FocusedItem();
-    TBool result(ETrue);
-    switch ( aCommand )
-        {
-        case EESMRCmdClipboardCopy:
-        switch (field->FieldId())
-            {
-            // quite few fields allow copiing
-            case EESMRFieldOrganizer:       // fall through 
-            case EESMRFieldAttendee:        // fall through 
-            case EESMRFieldDetailedSubject: // fall through 
-            case EESMRFieldDescription:     // fall through
-                result = ETrue;
-                break;
-            }
-        break;
-        default:
-            result = EFalse;
-            break;
-        }
-    return result;    
-    }
-    
 // ---------------------------------------------------------------------------
 // CESMRView::ProcessCommandL
 // ---------------------------------------------------------------------------
@@ -227,52 +180,51 @@ void CESMRView::ProcessEditorCommandL( TInt aCommand )
         {
         case EESMRCmdPriorityHigh: // Fall through
         case EESMRCmdPriorityNormal: // Fall through
-        case EESMRCmdPriorityLow: 
-        	{
-            iTitle->HandleSetPriorityCmdL( aCommand );
-            break;
-        	}
+        case EESMRCmdPriorityLow:
+           {
+           CESMRField* field = iStorage->FieldById( EESMRFieldSubject );
+           if ( field )
+               {
+               field->ExecuteGenericCommandL(
+                       aCommand );
+               iListPane->SizeChanged();
+               }
+           break;
+           }
         case EESMRCmdAddOptAttendee:
         	{
-            iList->ListObserver().InsertControl( EESMRFieldOptAttendee );
-            SetControlFocusedL(EESMRFieldOptAttendee);
+            iListPane->ShowControl( EESMRFieldOptAttendee );
+            SetControlFocusedL( EESMRFieldOptAttendee );
             break;
         	}
         case EAknCmdHelp:
         	{
         	break;
         	}
-        case EESMRCmdEdit:
+        case EMRCmdHideAttachmentIndicator:
             {
-            iList->ListObserver().InsertControl( EESMRFieldResponseArea );
-            iList->ListObserver().RemoveControl( EESMRFieldResponseReadyArea );
-            iList->ListObserver().SetControlFocusedL( EESMRFieldResponseArea );
-            break;
+            if ( iAttachmentIndicator )
+                {
+                TInt pos = iControls.Find( iAttachmentIndicator );
+                if (KErrNotFound != pos )
+                    {
+                    iControls.Remove( pos );
+                    }
+                    
+                delete iAttachmentIndicator;
+                iAttachmentIndicator = NULL;
+                
+                ReLayout();
+                }            
             }
+            break;
         default://forward to fields
         	{
-            iList->FocusedItem()->ExecuteGenericCommandL(aCommand);
+            iListPane->FocusedField()->ExecuteGenericCommandL( aCommand );
             break;
         	}
         }
     }
-
-// ---------------------------------------------------------------------------
-// CIpsSetUiDialogCtrl::DynInitMenuPaneL()
-// ---------------------------------------------------------------------------
-//
-void CESMRView::DynInitMenuPaneL(
-        /*TInt aResourceId,*/
-        CEikMenuPane* aMenuPane )
-    {
-    FUNC_LOG;
-	if ( FeatureManager::FeatureSupported( KFeatureIdFfCmailIntegration ) )
-		{
-		// remove help support in pf5250
-		aMenuPane->SetItemDimmed( EAknCmdHelp, ETrue);      
-		}
-    }
-
 
 // ---------------------------------------------------------------------------
 // CESMRView::LaunchEditorHelpL
@@ -281,7 +233,41 @@ void CESMRView::DynInitMenuPaneL(
 void CESMRView::LaunchEditorHelpL()
     {
     FUNC_LOG;
-    LaunchHelpL( KFSE_HLP_LAUNCHER_GRID );
+
+    switch ( iEntry->Type() )
+        {
+        case MESMRCalEntry::EESMRCalEntryTodo:
+            {
+            LaunchHelpL( KFSCA_HLP_TODO_EDITOR );
+        	break;
+            }
+        case MESMRCalEntry::EESMRCalEntryMemo:
+            {
+            LaunchHelpL( KFSCA_HLP_MEMO_EDITOR );
+            break;
+            }
+        case MESMRCalEntry::EESMRCalEntryAnniversary:
+            {
+            LaunchHelpL( KFSCA_HLP_ANNIVERSARY_EDITOR );
+            break;
+            }
+        case MESMRCalEntry::EESMRCalEntryMeeting:
+            {
+            LaunchHelpL( KFSCA_HLP_CALE_MEETING_EDITOR );
+            break;
+            }
+        case MESMRCalEntry::EESMRCalEntryMeetingRequest:
+            {
+            LaunchHelpL( KMEET_REQ_HLP_EDITOR );
+            break;
+            }
+        case MESMRCalEntry::EESMRCalEntryReminder: // Fall through
+        default:
+            {
+            break;
+            }
+        }
+
     }
 
 // ---------------------------------------------------------------------------
@@ -291,7 +277,68 @@ void CESMRView::LaunchEditorHelpL()
 void CESMRView::LaunchViewerHelpL()
     {
     FUNC_LOG;
-    LaunchHelpL( KFSE_HLP_LAUNCHER_GRID );
+
+
+    switch ( iEntry->Type() )
+        {
+    	case MESMRCalEntry::EESMRCalEntryTodo:
+    	    {
+            LaunchHelpL( KFSCA_HLP_TODO_VIEWER );
+            break;
+    	    }
+        case MESMRCalEntry::EESMRCalEntryMemo:
+            {
+            LaunchHelpL( KFSCA_HLP_MEMO_VIEWER );
+            break;
+            }
+        case MESMRCalEntry::EESMRCalEntryAnniversary:
+            {
+            LaunchHelpL( KFSCA_HLP_ANNI_VIEWER );
+            break;
+            }
+        case MESMRCalEntry::EESMRCalEntryMeeting:
+            {
+            LaunchHelpL( KFSCA_HLP_CALE_MEETING_VIEWER );
+            break;
+            }
+        case MESMRCalEntry::EESMRCalEntryMeetingRequest:
+            {
+            MESMRMeetingRequestEntry* mrEntry =
+               static_cast<MESMRMeetingRequestEntry*>( iEntry );
+            
+            if ( mrEntry->IsOpenedFromMail() )
+                {
+                if ( CFeatureDiscovery::IsFeatureSupportedL(
+                        TUid::Uid( KFeatureIdFfCalMeetingRequestUi ) ) )
+                    {
+                    // Full functionality
+                    LaunchHelpL( KFS_VIEWER_HLP_MEETING_REQ_VIEW );
+                    }
+                else
+                    {
+                    // Only viewer from Mail supported
+                    // TODO: Change to KFS_VIEWER_HLP_MR_RECEIVED
+                    // when help id is released on wk9 platform
+                    LaunchHelpL( KFS_VIEWER_HLP_MEETING_REQ_VIEW );
+                    }
+                }
+            else if ( mrEntry->RoleL() == EESMRRoleOrganizer )
+                {
+                LaunchHelpL( KFSCA_HLP_VIEWER_ORGANIZER );
+                }
+            else 
+                {
+                LaunchHelpL( KFSCA_HLP_VIEWER );
+                }
+            break;
+            }
+        case MESMRCalEntry::EESMRCalEntryReminder: // Fall through
+        default:
+            {
+            break;
+            }
+        }
+
     }
 
 // ---------------------------------------------------------------------------
@@ -305,23 +352,70 @@ TBool CESMRView::IsComponentFocused( TESMREntryFieldId aField ) const
 	}
 
 // ---------------------------------------------------------------------------
-// CESMRView::IsComponentfocused
+// CESMRView::FocusedField
 // ---------------------------------------------------------------------------
 //
 TESMREntryFieldId CESMRView::FocusedField() const
     {
     FUNC_LOG;
     TESMREntryFieldId fieldId( ( TESMREntryFieldId ) 0 );
-    
-	CESMRField* field = iList->FocusedItem();
-    
+
+	CESMRField* field = iListPane->FocusedField();
+
     if ( field )
         {
         fieldId = field->FieldId();
         }
-    
+
     return fieldId;
 	}
+
+// ---------------------------------------------------------------------------
+// CESMRView::ClickedOrFocusedField
+// ---------------------------------------------------------------------------
+//
+TESMREntryFieldId CESMRView::ClickedOrFocusedField() const
+    {
+    FUNC_LOG;
+    TESMREntryFieldId fieldId( ( TESMREntryFieldId ) 0 );
+
+    // Get clicked item if exists
+    CESMRField* field = iListPane->ClickedField();
+
+    if ( field )
+        {
+        fieldId = field->FieldId();
+        }
+    // If doesn't, try getting focused item
+    else
+        {
+        field = iListPane->FocusedField();
+        if( field )
+            {
+            fieldId = FocusedField();
+            }
+        }
+
+    return fieldId;
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRView::AdjustViewL
+// ---------------------------------------------------------------------------
+//
+void CESMRView::AdjustViewL(
+            MESMRCalEntry* aNewEntry,
+            const CESMRPolicy& aNewPolicy )
+    {
+    iStorage->ChangePolicyL( aNewPolicy,*aNewEntry );
+    iEntry = aNewEntry;
+    iListPane->InitializeL();
+    iListPane->ReActivateL();
+    InternalizeL();
+    SetControlFocusedL( EESMRFieldUnifiedEditor );
+    SetTitlePaneObserver();
+    DrawDeferred();
+    }
 
 // ---------------------------------------------------------------------------
 // CESMRView::LaunchHelpL
@@ -330,13 +424,43 @@ TESMREntryFieldId CESMRView::FocusedField() const
 void CESMRView::LaunchHelpL( const TDesC& aContext )
     {
     FUNC_LOG;
-    
-    CArrayFix<TCoeHelpContext>* cntx = 
+
+    CArrayFix<TCoeHelpContext>* cntx =
 		new (ELeave) CArrayFixFlat<TCoeHelpContext>(1);
     CleanupStack::PushL(cntx);
     cntx->AppendL( TCoeHelpContext( KFSEmailUiUid, aContext ) );
     CleanupStack::Pop(cntx);
     HlpLauncher::LaunchHelpApplicationL( iCoeEnv->WsSession(), cntx );
+    }
+
+
+// ---------------------------------------------------------------------------
+// CESMRView::SetTitlePaneObserver
+// ---------------------------------------------------------------------------
+//
+void CESMRView::SetTitlePaneObserver()
+    {
+    CESMRField* field = NULL;
+    TInt fieldCount( iStorage->Count() );
+    for ( TInt i(0); i < fieldCount; ++i )
+        {
+        field = iStorage->Field( i );
+        TESMREntryFieldId fieldId( field->FieldId() );
+
+        switch( fieldId )
+            {
+            case EESMRFieldSubject: //Fall through
+            case EESMRFieldOccasion://Fall through
+            case EESMRFieldPriority://Fall through
+            case EESMRFieldDetailedSubject:
+                {
+                field->SetTitlePaneObserver( this );
+                break;
+                }
+            default:
+                break;
+            }
+        }
     }
 
 // ---------------------------------------------------------------------------
@@ -350,33 +474,161 @@ void CESMRView::UpdateTitlePaneTextL( const TDesC& aText )
     }
 
 // ---------------------------------------------------------------------------
-// CESMRView::UpdateTitlePanePriorityIconL()
+// CESMRView::HandleScrollEventL
 // ---------------------------------------------------------------------------
 //
-void CESMRView::UpdateTitlePanePriorityIconL( TUint aPriority )
+void CESMRView::HandleScrollEventL(
+    CEikScrollBar* aScrollBar,
+    TEikScrollEvent aEventType )
     {
     FUNC_LOG;
-    iTitle->SetPriorityL( aPriority );
+
+    if ( !aScrollBar )
+       {
+       return;
+       }
+
+    TInt newPosition = aScrollBar->ThumbPosition();
+
+    switch( aEventType )
+       {
+       case EEikScrollThumbDragVert: // Drag started
+       case EEikScrollThumbReleaseVert: // Drag released
+           {
+           if( newPosition < iScrollBarThumbPosition )
+               {
+               iListPane->ScrollFieldsDown(
+                       iScrollBarThumbPosition - newPosition );
+
+               iScrollBarThumbPosition = newPosition;
+               }
+
+           else if( newPosition > iScrollBarThumbPosition )
+               {
+               iListPane->ScrollFieldsUp(
+                       newPosition - iScrollBarThumbPosition );
+
+               iScrollBarThumbPosition = newPosition;
+               }
+           break;
+           }
+       case EEikScrollPageUp:
+           {
+           if( newPosition < iScrollBarThumbPosition )
+               {
+               iListPane->ScrollFieldsDown(
+                       iScrollBarThumbPosition - newPosition );
+
+               iScrollBarThumbPosition = newPosition;
+               }
+           break;
+           }
+       case EEikScrollPageDown:
+           {
+           if( newPosition > iScrollBarThumbPosition )
+               {
+               iListPane->ScrollFieldsUp(
+                       newPosition - iScrollBarThumbPosition );
+
+               iScrollBarThumbPosition = newPosition;
+               }
+           break;
+           }
+       default:
+           {
+           break;
+           }
+       }
+
+    DrawNow();
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRView::ScrollBarPositionChanged()
+// ---------------------------------------------------------------------------
+//
+void CESMRView::ScrollBarPositionChanged( TInt aThumbPosition )
+    {
+    FUNC_LOG;
+    iScrollBarThumbPosition = aThumbPosition;
     }
 
 // ---------------------------------------------------------------------------
 // CESMRView::SetContainerWindowL
 // ---------------------------------------------------------------------------
 //
-void CESMRView::SetContainerWindowL(const CCoeControl& aContainer)
+void CESMRView::SetContainerWindowL( const CCoeControl& aContainer )
     {
     FUNC_LOG;
     CCoeControl::SetContainerWindowL( aContainer );
-    iTitle->SetContainerWindowL( *this );
+
     /**
      * Somehow if list is constructed before this SetContainerWindowL is called,
      * all redraws throws KERN-EXEC 3 (the CCoeControl's iWin variable is NULL)
      */
+
+    iScrollBar = new (ELeave) CAknDoubleSpanScrollBar( this );
+    iScrollBar->ConstructL( EFalse, this, this, CEikScrollBar::EVertical, 0 );
+    iScrollBar->SetModel( &iScrollBarModel );
+    iScrollBar->MakeVisible( ETrue );
+
+    iControls.AppendL( iScrollBar );
     
-    iList = CESMRListComponent::NewL( this, iStorage, iLayout );
-    iList->SetBackground( this );
-    // Font size setting Observer can now be set
-    iLayout->SetObserver( this );
+    iListPane = CMRListPane::NewL(
+            *this,
+            *iStorage,
+            iScrollBarModel,
+            *iScrollBar,
+            *this );
+
+    iControls.AppendL( iListPane );
+    
+    iListPane->SetBackground( this );
+
+    iBgContext = CAknsBasicBackgroundControlContext::NewL(
+            KAknsIIDQsnBgAreaMain, Rect(), ETrue );
+
+    if( iEntry )
+        {
+        MESMRCalDbMgr& dbMgr = iEntry->GetDBMgr();
+        dbMgr.SetCurCalendarByEntryL( *iEntry );
+        }
+
+    // Physics: enable needed pointer events
+    EnableDragEvents();
+    ClaimPointerGrab();
+
+    // Initialize the focus
+    iFocusStrategy.InitializeFocus();
+
+    if( iEntry->Type() == MESMRCalEntry::EESMRCalEntryMeetingRequest )
+        {
+        // Static cast is safe here. We know for sure that entry is MR
+        MESMRMeetingRequestEntry* mrEntry =
+                static_cast<MESMRMeetingRequestEntry*>( iEntry );
+        if ( mrEntry->IsOpenedFromMail() )
+            {
+            TAknLayoutRect naviArrowRightLayoutRect =
+                        NMRLayoutManager::GetLayoutRect( Rect(),
+                                NMRLayoutManager::EMRLayoutMRNaviArrowRight );
+            TRect naviArrowRect( naviArrowRightLayoutRect.Rect() );
+            
+            iNaviArrowLeft = CMRNaviArrow::NewL(
+                    this, 
+                    CMRNaviArrow::EMRArrowLeft, 
+            		iObserver, 
+            		naviArrowRect.Size()  );
+            
+            iNaviArrowRight = CMRNaviArrow::NewL( 
+                    this, 
+                    CMRNaviArrow::EMRArrowRight, 
+            		iObserver, 
+            		naviArrowRect.Size() );
+            
+            iControls.AppendL( iNaviArrowLeft );
+            iControls.AppendL( iNaviArrowRight );
+            }
+        }
     }
 
 // ---------------------------------------------------------------------------
@@ -386,15 +638,7 @@ void CESMRView::SetContainerWindowL(const CCoeControl& aContainer)
 TInt CESMRView::CountComponentControls() const
     {
     FUNC_LOG;
-    TInt count( 0 );
-
-    if ( iTitle )
-        ++count;
-
-    if ( iList )
-        ++count;
-
-    return count;
+    return iControls.Count();
     }
 
 // ---------------------------------------------------------------------------
@@ -404,21 +648,7 @@ TInt CESMRView::CountComponentControls() const
 CCoeControl* CESMRView::ComponentControl( TInt aInd ) const
     {
     FUNC_LOG;
-    switch ( aInd )
-        {
-        case 0:
-        	{
-            return iTitle;
-        	}
-        case 1:
-        	{
-            return iList;
-        	}
-        default:
-        	{
-            return NULL;
-        	}
-        }
+    return iControls[aInd];
     }
 
 // ---------------------------------------------------------------------------
@@ -429,22 +659,187 @@ void CESMRView::SizeChanged()
     {
     FUNC_LOG;
     
-    TRect rect( Rect() );
-    if ( iTitle )
+    // If list pane is not yet constructed, no point in layouting anything
+    if( !iListPane )
         {
-        TAknWindowComponentLayout titleLayout =
-            NMRLayoutManager::GetWindowComponentLayout( NMRLayoutManager::EMRLayoutCtrlBar );
-        AknLayoutUtils::LayoutControl( iTitle, rect, titleLayout );
+        return;
         }
-    if ( iList )
+            
+    TRect containerRect( Rect() );
+    
+    // Get the rect of stripe.
+    TAknLayoutRect stripeLayoutRect =
+        NMRLayoutManager::GetLayoutRect( containerRect,
+                NMRLayoutManager::EMRLayoutStripe );
+    iStripeRect = stripeLayoutRect.Rect();
+    
+    // Layouting listpane, scroll bar and navi arrows in landscape mode
+    if( Layout_Meta_Data::IsLandscapeOrientation() )
         {
-        TAknWindowComponentLayout listLayout =
-            NMRLayoutManager::GetWindowComponentLayout( NMRLayoutManager::EMRLayoutContentArea );
-        AknLayoutUtils::LayoutControl( iList, rect, listLayout );
+        TAknLayoutRect listareaLayoutRect =
+                NMRLayoutManager::GetLayoutRect( containerRect,
+                        NMRLayoutManager::EMRLayoutListArea );
+        TRect listareaRect( listareaLayoutRect.Rect() );
+
+        // List panes default rect needs to be modified due to
+        // possible toolbar, scrollbar and calendar indication stripe
+        
+        // Remove stripe width from list pane width
+        listareaRect.iTl.iX += iStripeRect.Width();
+        
+        // Remove toolbar width from list pane width
+        listareaRect.iBr.iX -= iToolbar.Rect().Width();
+        
+        if( iScrollBar )
+           {
+           TAknLayoutRect scrollareaLayoutRect =
+               NMRLayoutManager::GetLayoutRect( containerRect,
+                       NMRLayoutManager::EMRLayoutScrollBar );
+           TRect scrollareaRect( scrollareaLayoutRect.Rect() );
+           // Scroll bar's height is always the same as listpane's height
+           scrollareaRect.SetHeight( listareaRect.Height() );
+           
+           // Scrollbar needs to be moved to the left side of possible
+           // toolbar
+           scrollareaRect.Move( -iToolbar.Rect().Width(), 0 );
+           iScrollBar->SetRect( scrollareaRect );
+           
+           // Remove scroll bar width from list area's width
+           listareaRect.iBr.iX -= iScrollBar->Rect().Width();
+           }
+
+        iListPane->SetRect( listareaRect );
+        
+        // Make sure, that stripe height is the list pane height
+        iStripeRect.SetHeight( iListPane->Rect().Height() );
+
+        if(iViewMode == EESMRViewMR)
+            {
+            if( iNaviArrowLeft )
+                {
+                TAknLayoutRect naviArrowLeftLayoutRect =
+                    NMRLayoutManager::GetLayoutRect( containerRect,
+                            NMRLayoutManager::EMRLayoutMRNaviArrowLeft );
+                TRect naviArrowLeftRect( naviArrowLeftLayoutRect.Rect() );
+    
+                // Left arrow needs to be moved right the amount of
+                // stripe width in landscape
+                naviArrowLeftRect.Move( iStripeRect.Width(), 0 );
+                
+                iNaviArrowLeft->SetRect( naviArrowLeftRect );
+                }
+    
+            if( iNaviArrowRight )
+                {
+                TAknLayoutRect naviArrowRightLayoutRect =
+                        NMRLayoutManager::GetLayoutRect( containerRect,
+                                NMRLayoutManager::EMRLayoutMRNaviArrowRight );
+                TRect naviArrowRightRect( naviArrowRightLayoutRect.Rect() );
+    
+                // Right arrow needs to be moved left the amount of
+                // possible toolbar width in landscape
+                TInt scrollWidth( 0 );
+                if( iScrollBar )
+                    {
+                    scrollWidth = iScrollBar->Rect().Width();
+                    }
+                
+                naviArrowRightRect.Move( 
+                        -( iToolbar.Rect().Width() + scrollWidth ), 0 );
+    
+                iNaviArrowRight->SetRect( naviArrowRightRect );
+                }
+            }
+        else
+            {
+            SetNaviArrowStatus( EFalse, EFalse );
+            }
         }
+
+    // Layouting listpane, scroll bar and navi arrows in portrait mode
+    else
+        {
+        TAknLayoutRect listareaLayoutRect =
+               NMRLayoutManager::GetLayoutRect( containerRect,
+                       NMRLayoutManager::EMRLayoutListArea );
+        TRect listareaRect( listareaLayoutRect.Rect() );
+        
+        // The listPane's area should be:
+        // X: Should subtract the width of stripe
+        // Y: Should subtract the height of MRToolbar
+        listareaRect.iTl.iX += iStripeRect.Width();
+        listareaRect.iBr.iY -= iToolbar.Rect().Height();
+                
+        iListPane->SetRect( listareaRect );
+        
+        if( iScrollBar )
+           {
+           TAknLayoutRect scrollareaLayoutRect =
+               NMRLayoutManager::GetLayoutRect( containerRect,
+                       NMRLayoutManager::EMRLayoutScrollBar );
+           TRect scrollareaRect( scrollareaLayoutRect.Rect() );
+           // Scroll bar's height is always the same as listpane's height
+           scrollareaRect.SetHeight( iListPane->Rect().Height() );
+           iScrollBar->SetRect( scrollareaRect );
+           }
+        
+        // Make sure, that stripe height is the list pane height
+        iStripeRect.SetHeight( iListPane->Rect().Height() );
+
+        if(iViewMode == EESMRViewMR)
+            {
+            if( iNaviArrowLeft )
+                {
+                TAknLayoutRect naviArrowLeftLayoutRect =
+                    NMRLayoutManager::GetLayoutRect( containerRect,
+                            NMRLayoutManager::EMRLayoutMRNaviArrowLeft );
+                TRect naviArrowLeftRect( naviArrowLeftLayoutRect.Rect() );
+            
+                // Left arrow needs to be moved right the amount of
+                // stripe width in portrait
+                naviArrowLeftRect.Move( iStripeRect.Width(), 0 );
+                
+                // Left arrow needs to be moved up the amount of
+                // possible toolbar height in portrait
+                naviArrowLeftRect.Move( 0, -iToolbar.Rect().Height() );
+                
+                iNaviArrowLeft->SetRect( naviArrowLeftRect );
+                }
+            
+            if( iNaviArrowRight )
+                {
+                TAknLayoutRect naviArrowRightLayoutRect =
+                        NMRLayoutManager::GetLayoutRect( containerRect,
+                                NMRLayoutManager::EMRLayoutMRNaviArrowRight );
+                TRect naviArrowRightRect( naviArrowRightLayoutRect.Rect() );
+            
+                // Right arrow needs to be moved right the amount of
+                // stripe width in portrait
+                naviArrowRightRect.Move( iStripeRect.Width(), 0 );
+                
+                // Right arrow needs to be moved up the amount of
+                // possible toolbar height in portrait
+                naviArrowRightRect.Move( 0, -iToolbar.Rect().Height() );
+                
+                
+                iNaviArrowRight->SetRect( naviArrowRightRect );
+                }
+            }
+        else
+            {
+            SetNaviArrowStatus( EFalse, EFalse );
+            }
+        }
+    
+    if ( iAttachmentIndicator )
+        {
+        iAttachmentIndicator->SetRect( 
+                CalculateAttachmentIndicatorLayout() );
+        }
+    
     if( iBgContext )
         {
-        iBgContext->SetRect( rect );
+        iBgContext->SetRect( containerRect );
         if ( &Window() )
             {
             iBgContext->SetParentPos( PositionRelativeToScreen() );
@@ -470,17 +865,35 @@ TSize CESMRView::MinimumSize()
 // ---------------------------------------------------------------------------
 //
 TKeyResponse CESMRView::OfferKeyEventL(
-		const TKeyEvent &aKeyEvent, 
+		const TKeyEvent &aKeyEvent,
 		TEventCode aType)
     {
     FUNC_LOG;
     TKeyResponse response( EKeyWasNotConsumed );
-    if ( iList )
+    if ( iListPane )
         {
-        response = iList->OfferKeyEventL( aKeyEvent, aType );
+        // Use focus strategy
+        iFocusStrategy.EventOccured( MMRFocusStrategy::EFocusKeyEvent );
+
+        TBool forwardEvent( ETrue );
+        // Remove Delete hw key command if the focus is not visible
+        if ( !iFocusStrategy.IsFocusVisible() )
+            {
+            if ( aType == EEventKey && aKeyEvent.iCode == EKeyBackspace )
+                {
+                forwardEvent = EFalse;
+                }
+            }
+
+        if ( forwardEvent )
+            {
+            response = iListPane->OfferKeyEventL( aKeyEvent, aType );
+            iListPane->DrawDeferred();
+            }
         }
     return response;
     }
+
 
 // ---------------------------------------------------------------------------
 // CESMRView::Draw
@@ -491,11 +904,21 @@ void CESMRView::Draw( const TRect& aRect ) const
     {
     FUNC_LOG;
     CWindowGc& gc = SystemGc();
-      
+
     // Draw the background for iTitle using the current skin
     MAknsSkinInstance* skin = AknsUtils::SkinInstance();
     MAknsControlContext* cc = AknsDrawUtils::ControlContext( this );
     AknsDrawUtils::Background( skin, cc, this, gc, aRect );
+
+    // Draw color stripe
+    MESMRCalDbMgr& DbMgr = iEntry->GetDBMgr();
+
+    TRgb stripeColor = DbMgr.GetCurCalendarColor();
+    gc.SetBrushStyle( CGraphicsContext::ESolidBrush );
+    gc.SetBrushColor( stripeColor );
+    gc.DrawRect( iStripeRect );
+
+    gc.Reset();
     }
 
 // ---------------------------------------------------------------------------
@@ -504,12 +927,17 @@ void CESMRView::Draw( const TRect& aRect ) const
 // ---------------------------------------------------------------------------
 //
 void CESMRView::Draw(
-		CWindowGc&  aGc , 
-		const CCoeControl& /* aControl */, 
+		CWindowGc& /* aGc */,
+		const CCoeControl& aControl,
 		const TRect& /*aRect*/) const
     {
     FUNC_LOG;
-    aGc.Clear();
+    CWindowGc& gc = SystemGc();
+
+    // Draw the background for aControl using the current skin
+    MAknsSkinInstance* skin = AknsUtils::SkinInstance();
+    MAknsControlContext* cc = AknsDrawUtils::ControlContext( this );
+    AknsDrawUtils::Background( skin, cc, &aControl, gc, aControl.Rect() );
     }
 
 // ---------------------------------------------------------------------------
@@ -517,7 +945,7 @@ void CESMRView::Draw(
 // ---------------------------------------------------------------------------
 //
 void CESMRView::GetTextDrawer(
-		CCoeTextDrawerBase*& /*aText*/, 
+		CCoeTextDrawerBase*& /*aText*/,
 		const CCoeControl* /*aControl*/) const
     {
     // Do nothing
@@ -527,11 +955,9 @@ void CESMRView::GetTextDrawer(
 // CESMRView::SetTitleL()
 // ---------------------------------------------------------------------------
 //
-void CESMRView::SetTitleL( const TDesC& aTitle, TBool aDefault)
+void CESMRView::SetTitleL( const TDesC& /*aTitle*/, TBool /*aDefault*/)
     {
     FUNC_LOG;
-    iTitle->SetTextL( aTitle );
-    iTitle->SetDefaultIcon(aDefault);
     }
 
 // ---------------------------------------------------------------------------
@@ -541,18 +967,7 @@ void CESMRView::SetTitleL( const TDesC& aTitle, TBool aDefault)
 void CESMRView::SetControlFocusedL( TESMREntryFieldId aField )
     {
     FUNC_LOG;
-    iList->ListObserver().SetControlFocusedL( aField );
-    }
-
-// ---------------------------------------------------------------------------
-// CESMRView::FontSizeSettingsChanged()
-// ---------------------------------------------------------------------------
-//
-void CESMRView::FontSizeSettingsChanged()
-    {
-    FUNC_LOG;
-    iList->HandleFontChange();
-    SizeChanged();
+    iListPane->SetControlFocusedL( aField );
     }
 
 // ---------------------------------------------------------------------------
@@ -564,25 +979,24 @@ void CESMRView::HandleResourceChange( TInt aType )
     FUNC_LOG;
     CCoeControl::HandleResourceChange( aType );
     TInt error = KErrNone;
-    
+
     switch ( aType )
         {
         case  KAknsMessageSkinChange:
             {
-            TRAP( error, iList->InitializeL() );
-            SizeChanged();
+            TRAP( error, iListPane->InitializeL() );
             break;
             }
         case KEikMessageColorSchemeChange:
             {
-            TRAP( error, iList->InitializeL() );
-            SizeChanged();
+            TRAP( error, iListPane->InitializeL() );
             break;
             }
         case KEikDynamicLayoutVariantSwitch:
         case KAknLocalZoomLayoutSwitch:
             {
             SizeChanged();
+            DrawNow();
             break;
             }
         default:
@@ -603,30 +1017,219 @@ void CESMRView::HandleResourceChange( TInt aType )
 //
 TTypeUid::Ptr CESMRView::MopSupplyObject( TTypeUid aId )
     {
+    FUNC_LOG;
     if ( iBgContext )
         {
         return MAknsControlContext::SupplyMopObject( aId, iBgContext );
         }
     return CCoeControl::MopSupplyObject( aId );
     }
-    
-// <cmail>
+
+// -----------------------------------------------------------------------------
+ // CESMRView::HandlePointerEventL()
+ // -----------------------------------------------------------------------------
+ //
+ void CESMRView::HandlePointerEventL(
+     const TPointerEvent &aPointerEvent )
+     {
+     FUNC_LOG;
+     // Call focus strategy
+     iFocusStrategy.EventOccured( MMRFocusStrategy::EFocusPointerEvent );
+
+     CCoeControl::HandlePointerEventL( aPointerEvent );
+     }
+
 // ---------------------------------------------------------------------------
-// CESMRView::FocusChanged
+// CESMRView::InitialScroll()
 // ---------------------------------------------------------------------------
 //
-void CESMRView::FocusChanged(TDrawNow aDrawNow)
+void CESMRView::InitialScrollL()
     {
-    CCoeControl::FocusChanged(aDrawNow);
-    
-    // if attachments are focused, update the field to make sure
-    // attachment status is shown correctly
-    if( IsComponentFocused( EESMRFieldAttachments ) )
+    FUNC_LOG;
+    iListPane->InitialScrollL();
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRView::DynInitMenuPaneL
+// ---------------------------------------------------------------------------
+//
+void CESMRView::DynInitMenuPaneL(
+        TMRMenuStyle aMenuStyle,
+        TInt aResourceId,
+        CEikMenuPane* aMenuPane )
+    {
+    FUNC_LOG;
+    // Initialize field specific options in context menu and options menu.
+    // Options menu has field specific options only when focus is visible.
+    if ( aMenuStyle != EMROptionsMenu
+         || ( aMenuStyle == EMROptionsMenu
+              && iFocusStrategy.IsFocusVisible() ) )
         {
-        TRAP_IGNORE( iList->FocusedItem()->SetOutlineFocusL(ETrue) );
+        CESMRField* field = iStorage->FieldById( ClickedOrFocusedField() );
+        field->DynInitMenuPaneL( aResourceId, aMenuPane );
         }
     }
-// </cmail>
+
+// ---------------------------------------------------------------------------
+// CESMRView::SetNaviArrowStatus
+// ---------------------------------------------------------------------------
+//
+void CESMRView::SetNaviArrowStatus( 
+        TBool aLeftArrowVisible, 
+        TBool aRightArrowVisible )
+    {
+    FUNC_LOG;
+    if ( iNaviArrowLeft )
+        {
+        iNaviArrowLeft->SetNaviArrowStatus( aLeftArrowVisible );
+        }
+    if ( iNaviArrowRight )
+        {
+        iNaviArrowRight->SetNaviArrowStatus( aRightArrowVisible );
+        }
+    }
+// ---------------------------------------------------------------------------
+// CESMRView::SetViewMode
+// ---------------------------------------------------------------------------
+//
+void CESMRView::SetViewMode(TESMRViewMode aMode)
+	{
+    FUNC_LOG;
+	iViewMode = aMode;
+	}
+// ---------------------------------------------------------------------------
+// CESMRView::GetViewMode
+// ---------------------------------------------------------------------------
+//
+TESMRViewMode CESMRView::GetViewMode()
+	{
+    FUNC_LOG;
+	return iViewMode;
+	}
+
+// ---------------------------------------------------------------------------
+// CESMRView::ReLayout
+// ---------------------------------------------------------------------------
+//
+void CESMRView::ReLayout()
+    {
+    FUNC_LOG;
+    SizeChanged();
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRView::ProcessEventL
+// ---------------------------------------------------------------------------
+//
+void CESMRView::ProcessEventL( const MESMRFieldEvent& aEvent )
+    {
+    FUNC_LOG;
+
+    if ( MESMRFieldEvent::EESMRFieldChangeEvent ==  aEvent.Type() )
+        {
+        TInt* fieldId = static_cast< TInt* >( aEvent.Param( 0 ) );
+        
+        if ( EESMRFieldViewerAttachments == *fieldId )
+            {
+            if ( !iAttachmentIndicator )
+                {
+                TRect attachmentDownloadIndicatorRect( 
+                        CalculateAttachmentIndicatorLayout() );
+                
+                iAttachmentIndicator = CMRAttachmentIndicator::NewL( 
+                        attachmentDownloadIndicatorRect, 
+                        this );
+    
+                CFbsBitmap* bitMap( NULL );
+                CFbsBitmap* bitMapMask( NULL );
+                TSize size( 0,0 );
+                NMRBitmapManager::GetSkinBasedBitmapLC(
+                                NMRBitmapManager::EMRBitmapDownloadAttachment,
+                                bitMap, bitMapMask, size );
+                
+                CleanupStack::Pop( 2 ); // bitMap, bitMapMask
+                
+                
+                
+                iAttachmentIndicator->SetImage( bitMap, bitMapMask );
+                iControls.AppendL( iAttachmentIndicator );
+                }
+            
+            MESMRFieldEventValue* value =
+                    static_cast< MESMRFieldEventValue* >( aEvent.Param( 1 ) );
+            
+            iAttachmentIndicator->SetTextL( value->StringValue() );            
+            iAttachmentIndicator->MakeVisible( ETrue );
+            
+            ReLayout();        
+            }
+        }
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRView::CalculateAttachmentIndicatorLayout
+// ---------------------------------------------------------------------------
+//
+TRect CESMRView::CalculateAttachmentIndicatorLayout()
+    {
+    TRect containerRect( Rect() );
+    
+    TAknLayoutRect naviArrowLeftLayoutRect =
+            NMRLayoutManager::GetLayoutRect( containerRect,
+                    NMRLayoutManager::EMRLayoutMRNaviArrowLeft );    
+    TRect naviArrowLeftRect = naviArrowLeftLayoutRect.Rect();
+    
+    TAknLayoutRect naviArrowRightLayoutRect =
+            NMRLayoutManager::GetLayoutRect( containerRect,
+                    NMRLayoutManager::EMRLayoutMRNaviArrowRight );
+    TRect naviArrowRightRect = naviArrowRightLayoutRect.Rect();
+    
+    if( Layout_Meta_Data::IsLandscapeOrientation() )
+        {                
+        naviArrowLeftRect.Move( iStripeRect.Width(), 0 );
+
+        TInt scrollWidth( 0 );
+        if( iScrollBar )
+            {
+            scrollWidth = iScrollBar->Rect().Width();
+            }
+        
+        naviArrowRightRect.Move( 
+                -( iToolbar.Rect().Width() + scrollWidth ), 0 );    
+        }
+    else
+        {
+        // Left arrow needs to be moved right the amount of
+        // stripe width in portrait
+        naviArrowLeftRect.Move( iStripeRect.Width(), 0 );
+        naviArrowLeftRect.Move( 0, -iToolbar.Rect().Height() );
+
+        TRect naviArrowRightRect = naviArrowRightLayoutRect.Rect();
+        
+        naviArrowRightRect.Move( iStripeRect.Width(), 0 );
+        naviArrowRightRect.Move( 0, -iToolbar.Rect().Height() );        
+        }   
+
+    // Get height for one row 
+    TAknLayoutRect rowLayout = 
+        NMRLayoutManager::GetLayoutRect( 
+                containerRect, NMRLayoutManager::EMRLayoutTextEditorIcon );
+    TRect rowRect( rowLayout.Rect() );
+    
+    TRect attachmentIndicatorRect;
+    /*attachmentIndicatorRect.iTl = 
+            TPoint( naviArrowLeftRect.iBr.iX, 
+                    naviArrowLeftRect.iBr.iY - rowRect.Height() ); */
+    
+    attachmentIndicatorRect.iTl = 
+                TPoint( naviArrowLeftRect.iBr.iX, 
+                        naviArrowLeftRect.iBr.iY - naviArrowLeftRect.Height() );    
+    
+    attachmentIndicatorRect.iBr = 
+            TPoint(  naviArrowRightRect.iTl.iX, 
+                    naviArrowLeftRect.iBr.iY );
+    
+    return attachmentIndicatorRect;
+    }
 
 // EOF
-

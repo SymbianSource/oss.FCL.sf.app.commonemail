@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2003-2007 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -20,6 +20,8 @@
 #define CESMRVIEWERFROMFIELD_H_
 
 // INCLUDES
+#include <e32base.h>
+#include <fbs.h>
 #include <e32cmn.h>
 #include <eikedwob.h>
 
@@ -33,8 +35,8 @@ class CMRLabel;
  * Field for showing the "from" information. In other words this field shows
  * that who sent/organized this meeting request.
  */
-NONSHARABLE_CLASS( CESMRViewerFromField ) : 
-    public CESMRField, public MEikEdwinSizeObserver
+NONSHARABLE_CLASS( CESMRViewerFromField ) : public CESMRField, 
+                                                   MEikEdwinSizeObserver
     {
     public:
         /**
@@ -52,8 +54,9 @@ NONSHARABLE_CLASS( CESMRViewerFromField ) :
     public: // From CESMRField
         void InternalizeL( MESMRCalEntry& aEntry );
         void InitializeL();
-        void ExecuteGenericCommandL( TInt aCommand );
+        TBool ExecuteGenericCommandL( TInt aCommand );
         void SetOutlineFocusL( TBool aFocus );
+        void HandleLongtapEventL( const TPoint& aPosition );
     
     public: // From CCoeControl
         TKeyResponse OfferKeyEventL(
@@ -64,7 +67,6 @@ NONSHARABLE_CLASS( CESMRViewerFromField ) :
         void SizeChanged();
         TSize MinimumSize();
         void SetContainerWindowL(const CCoeControl& aContainer);
-        virtual void HandlePointerEventL(const TPointerEvent& aPointerEvent);
         
     public: // From MEikEdwinSizeObserver
         TBool HandleEdwinSizeEventL( 
@@ -77,7 +79,7 @@ NONSHARABLE_CLASS( CESMRViewerFromField ) :
         void ConstructL( );
     
     private: // data
-        // Own: Actual text of this field, not owned
+        // Not own: Actual text of this field, not owned
         CESMRRichTextViewer* iRichTextViewer;
         // Own: Topic text of this fiels
         CMRLabel* iFieldTopic;

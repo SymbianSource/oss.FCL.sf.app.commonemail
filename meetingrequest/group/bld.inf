@@ -20,10 +20,12 @@
 #include <bldvariant.hrh>
 
 // <cmail>
+#include "../mrcalremoteattachment/group/bld.inf"
 #include "../mrcommon/group/bld.inf"
 #include "../mrdb/group/bld.inf"
 #include "../mrpolicy/group/bld.inf"
 #include "../mrservices/group/bld.inf"
+#include "../mrguicommon/group/bld.inf"
 #include "../mrgui/group/bld.inf"
 #include "../mrentry/group/bld.inf"
 #include "../mrtasks/group/bld.inf"
@@ -36,6 +38,10 @@
 #include "../mragnversit2/group/bld.inf"
 #include "../mrcasplugin/group/bld.inf"
 #include "../mrurlparserplugin/group/bld.inf"
+#include "../mrmbutilsextension/group/bld.inf"
+#include "../mrbcplugin/group/bld.inf"
+#include "../mrprocessor/group/bld.inf"
+#include "../mrcmailremoteattachmentplugin/group/bld.inf"
 //</cmail>
 
 PRJ_PLATFORMS
@@ -46,8 +52,8 @@ PRJ_MMPFILES
 // <cmail> Mifconv extension taken into use.
 // Keep the PRJ_EXTENSIONS defintions below update with the mk-files.
 // Also keep updating the mk-files to enable "going back option". 
-//gnumakefile ../mrgui/group/icons.mk
-//gnumakefile ../mrcasplugin/group/esmrcaspluginicons.mk
+//gnumakefile ../mrgui/data/icons.mk
+//gnumakefile ../mrcasplugin/data/esmrcaspluginicons.mk
 // </cmail>
 
 //<cmail> Exports moved to under subsystems (due to code policy) 

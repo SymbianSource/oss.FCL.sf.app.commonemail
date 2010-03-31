@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -15,18 +15,24 @@
  *
 */
 
-#include <calentry.h>
-#include <esmrgui.rsg>
-#include <data_caging_path_literals.hrh>
-#include <AknLayout2ScalableDef.h>
-
 #include "cesmrviewerlocationfield.h"
 #include "cesmrrichtextviewer.h"
 #include "mesmrlistobserver.h"
-#include "cesmrfeaturesettings.h"
 #include "nmrlayoutmanager.h"
 #include "cmrimage.h"
+#include "cesmrfeaturesettings.h"
+#include "emailtrace.h"
+#include "cesmrglobalnote.h"
+#include "cmrbutton.h"
 
+#include <calentry.h>
+#include <esmrgui.rsg>
+#include <data_caging_path_literals.hrh>
+#include <aknlayout2scalabledef.h>
+#include <gulicon.h>
+#include <stringloader.h>
+
+// LOCAL DEFINITIONS
 
 // ======== MEMBER FUNCTIONS ========
 
@@ -49,9 +55,8 @@ CESMRViewerLocationField* CESMRViewerLocationField::NewL( )
 //
 CESMRViewerLocationField::~CESMRViewerLocationField()
     {
-    iObserver = NULL;
-    delete iFieldIcon;
-    delete iRichTextViewer;
+    delete iFieldButton;
+    delete iWaypointIcon;
     delete iFeatures;
     }
 
@@ -61,14 +66,19 @@ CESMRViewerLocationField::~CESMRViewerLocationField()
 //
 TSize CESMRViewerLocationField::MinimumSize()
     {
-    // Let's calculate the required rect of the iRichTextViewer.
-    // We will not use directly the iRichTextViewer height, because it might
-    // not exist, or the height of the viewer might still be incorrect
-    TRect richTextViewerRect = RichTextViewerRect();
+    TRect parentRect( Parent()->Rect() );
 
-    // We will use as minimum size the parents width 
-    // but the calculated iRichTextViewers height 
-    return TSize( Parent()->Size().iWidth, richTextViewerRect.Height() );
+    TRect fieldRect =
+       NMRLayoutManager::GetFieldLayoutRect( parentRect, 1 ).Rect();
+
+    TRect viewerRect( NMRLayoutManager::GetLayoutText(
+       fieldRect,
+       NMRLayoutManager::EMRTextLayoutTextEditor ).TextRect() );
+
+    // Adjust field size so that there's room for expandable editor.
+    fieldRect.Resize( 0, iSize.iHeight - viewerRect.Height() );
+
+    return fieldRect.Size();
     }
 
 
@@ -79,17 +89,19 @@ TSize CESMRViewerLocationField::MinimumSize()
 void CESMRViewerLocationField::InitializeL()
     {
     // Setting Font for the rich text viewer
-    TAknLayoutText text = NMRLayoutManager::GetLayoutText( 
-            Rect(), 
+    TAknLayoutText text = NMRLayoutManager::GetLayoutText(
+            Rect(),
             NMRLayoutManager::EMRTextLayoutTextEditor );
-    
-    iRichTextViewer->SetFontL( text.Font(), iLayout );
+
+    iRichTextViewer->SetFontL( text.Font() );
+    iRichTextViewer->ApplyLayoutChangesL();
 
     // This is called so that theme changes will apply when changing theme "on the fly"
     if ( IsFocused() )
         {
         iRichTextViewer->FocusChanged( EDrawNow );
         }
+    iRichTextViewer->SetEventQueue( iEventQueue );
     }
 
 // ---------------------------------------------------------------------------
@@ -99,19 +111,30 @@ void CESMRViewerLocationField::InitializeL()
 void CESMRViewerLocationField::InternalizeL( MESMRCalEntry& aEntry )
     {
     TPtrC text = aEntry.Entry().LocationL( );
-    
+
     // Hide this field if location is not set
     if( text.Length() == 0 )
         {
-        iObserver->RemoveControl( FieldId() );
+        iObserver->HideControl( FieldId() );
         }
     else
         {
         iRichTextViewer->SetTextL( &text, ETrue );
-        // After setting the text, the viewer line count is known
-        iLineCount = iRichTextViewer->LineCount();
         }
-    iDisableRedraw = ETrue;
+
+    // If the geo value has set, the waypoint icon has to be shown on right
+    // side of the location field
+    CCalGeoValue* geoValue = aEntry.Entry().GeoValueL();
+    TReal dummy;
+    if( !iLocked )
+    	{
+    	if( geoValue && geoValue->GetLatLong( dummy, dummy ) )
+    		{
+    		iWaypointIcon =
+    		CMRImage::NewL( NMRBitmapManager::EMRBitmapLocationWaypoint, ETrue );
+    		iWaypointIcon->SetParent( this );
+    		}
+    	}    
     }
 
 // ---------------------------------------------------------------------------
@@ -133,7 +156,7 @@ TBool CESMRViewerLocationField::HandleEdwinSizeEventL( CEikEdwin* aEdwin,
         TEdwinSizeEvent /*aType*/, TSize aSize )
     {
     TBool reDraw( EFalse );
-    
+
     // Let's save the required size for the iRichTextViewer
     iSize = aSize;
 
@@ -153,6 +176,7 @@ TBool CESMRViewerLocationField::HandleEdwinSizeEventL( CEikEdwin* aEdwin,
 CESMRViewerLocationField::CESMRViewerLocationField()
     {
     SetFieldId( EESMRFieldLocation );
+    SetFocusType( EESMRHighlightFocus );
     }
 
 // ---------------------------------------------------------------------------
@@ -161,14 +185,16 @@ CESMRViewerLocationField::CESMRViewerLocationField()
 //
 void CESMRViewerLocationField::ConstructL( )
     {
-    SetFocusType( EESMRHighlightFocus );
-   
-    iFieldIcon = CMRImage::NewL( KAknsIIDQgnMeetReqIndiLocation );
-    iFieldIcon->SetParent( this );
-    
+	iFieldButton = CMRButton::NewL( NMRBitmapManager::EMRBitmapLocation );
+    iFieldButton->SetParent( this );
+    iFieldButton->SetObserver(this);
+
     iRichTextViewer = CESMRRichTextViewer::NewL( this );
+    CESMRField::ConstructL( iRichTextViewer ); // ownership transfered
     iRichTextViewer->SetEdwinSizeObserver( this );
     iRichTextViewer->SetParent( this );
+
+    iFeatures = CESMRFeatureSettings::NewL();
     }
 
 // ---------------------------------------------------------------------------
@@ -184,24 +210,42 @@ void CESMRViewerLocationField::ListObserverSet()
 // CESMRViewerLocationField::ExecuteGenericCommandL()
 // ---------------------------------------------------------------------------
 //
-void CESMRViewerLocationField::ExecuteGenericCommandL( TInt aCommand )
+TBool CESMRViewerLocationField::ExecuteGenericCommandL( TInt aCommand )
     {
+    TBool isUsed( EFalse );
     switch ( aCommand )
         {
         case EESMRCmdClipboardCopy:
-        {
-        iRichTextViewer->CopyCurrentLinkToClipBoardL();
-        break;
+            {
+            iRichTextViewer->CopyCurrentLinkToClipBoardL();
+            isUsed = ETrue;
+            break;
             }
         case EESMRCmdDisableWaypointIcon:
         case EESMRCmdEnableWaypointIcon:
             {
             SetWaypointIconL( aCommand == EESMRCmdEnableWaypointIcon );
+            isUsed = ETrue;
             break;
             }
         case EAknSoftkeySelect:
             {
             iRichTextViewer->LinkSelectedL();
+            isUsed = ETrue;
+
+            break;
+            }
+        case EAknCmdOpen:
+            {
+            // Open command is handled only when field is locked
+            if ( IsLocked() )
+            	{
+				HandleTactileFeedbackL();
+
+            	CESMRGlobalNote::ExecuteL(
+            			CESMRGlobalNote::EESMRUnableToEdit );
+            	isUsed = ETrue;
+            	}
             break;
             }
         default:
@@ -209,6 +253,7 @@ void CESMRViewerLocationField::ExecuteGenericCommandL( TInt aCommand )
             break;
             }
         }
+    return isUsed;
     }
 
 // ---------------------------------------------------------------------------
@@ -218,84 +263,35 @@ void CESMRViewerLocationField::ExecuteGenericCommandL( TInt aCommand )
 void CESMRViewerLocationField::SetOutlineFocusL( TBool aFocus )
     {
     CESMRField::SetOutlineFocusL( aFocus );
-    
-    iRichTextViewer->SetFocus( aFocus );
 
-    if ( FeaturesL().FeatureSupported(
-            CESMRFeatureSettings::EESMRUILocationFeatures ) )
-        {
-
-        if ( aFocus )
-            {
-            //Store MSK function before changing it
-            CEikButtonGroupContainer* cba = CEikButtonGroupContainer::Current();
-            if ( cba->PositionById( EESMRCmdEdit ) ==
-                 CEikButtonGroupContainer::EMiddleSoftkeyPosition )
-                {
-                iMskCommandId = EESMRCmdEdit;
-        
-                }
-            else if ( cba->PositionById( EESMRCmdEditLocal ) ==
-                      CEikButtonGroupContainer::EMiddleSoftkeyPosition )
-                {
-                iMskCommandId = EESMRCmdEditLocal;
-                }
-            else if ( cba->PositionById( EESMRCmdCalEntryUIEdit ) ==
-                      CEikButtonGroupContainer::EMiddleSoftkeyPosition )
-                {
-                iMskCommandId = EESMRCmdCalEntryUIEdit;
-                }
-            
-            ChangeMiddleSoftKeyL( EAknSoftkeyContextOptions, R_QTN_MSK_OPEN );
-            }
-        else
-            {
-            switch ( iMskCommandId )
-                {
-                case EESMRCmdEdit:
-                case EESMRCmdEditLocal:
-                case EESMRCmdCalEntryUIEdit:
-                    {
-                    ChangeMiddleSoftKeyL( iMskCommandId, R_QTN_MSK_EDIT );
-                    break;
-                    }
-                default:
-                    {
-                    CEikButtonGroupContainer* cba =
-                        CEikButtonGroupContainer::Current();
-                    cba->SetCommandL(
-                            CEikButtonGroupContainer::EMiddleSoftkeyPosition,
-                            R_MR_SELECT_SOFTKEY );
-                    cba->DrawNow();
-                    break;
-                    }
-                }
-            
-            //need to tell action menu that focus has changed
-            iRichTextViewer->ResetActionMenuL();
-            }
-        }
+    if ( aFocus )
+       {
+       ChangeMiddleSoftKeyL( EAknSoftkeyContextOptions, R_QTN_MSK_OPEN );
+       }
+   else
+       {
+       //need to tell action menu that focus has changed
+       iRichTextViewer->ResetActionMenuL();
+       }
     }
 
 // ---------------------------------------------------------------------------
-// CESMRViewerLocationField::FeaturesL()
+// CESMRViewerLocationField::SetWaypointIconL
 // ---------------------------------------------------------------------------
 //
-CESMRFeatureSettings& CESMRViewerLocationField::FeaturesL()
+void CESMRViewerLocationField::SetWaypointIconL( TBool aEnabled )
     {
-    if ( !iFeatures )
-        {
-        iFeatures = CESMRFeatureSettings::NewL();
-        }
-    return *iFeatures;
-    }
+    delete iWaypointIcon;
+    iWaypointIcon = NULL;
 
-// ---------------------------------------------------------------------------
-// CESMRCheckbox::SetWaypointIconL
-// ---------------------------------------------------------------------------
-//
-void CESMRViewerLocationField::SetWaypointIconL( TBool /*aEnabled*/ )
-    {
+    if ( aEnabled )
+        {
+        iWaypointIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapLocationWaypoint, ETrue );
+        iWaypointIcon->SetParent( this );
+        }
+
+    // Relayout
+    SizeChanged();
     }
 
 // ---------------------------------------------------------------------------
@@ -305,12 +301,17 @@ void CESMRViewerLocationField::SetWaypointIconL( TBool /*aEnabled*/ )
 TInt CESMRViewerLocationField::CountComponentControls() const
     {
     TInt count( 0 );
-    if ( iFieldIcon )
+    if ( iFieldButton )
         {
         ++count;
         }
 
     if ( iRichTextViewer )
+        {
+        ++count;
+        }
+
+    if( iWaypointIcon )
         {
         ++count;
         }
@@ -326,9 +327,11 @@ CCoeControl* CESMRViewerLocationField::ComponentControl( TInt aIndex ) const
     switch ( aIndex )
         {
         case 0:
-            return iFieldIcon;
+            return iFieldButton;
         case 1:
             return iRichTextViewer;
+        case 2:
+            return iWaypointIcon;
         default:
             return NULL;
         }
@@ -340,75 +343,242 @@ CCoeControl* CESMRViewerLocationField::ComponentControl( TInt aIndex ) const
 //
 void CESMRViewerLocationField::SizeChanged( )
     {
-    TRect rect = Rect();
+    TRect rect( Rect() );
 
-    // LAYOUTING FIELD ICON
-    if( iFieldIcon )
+    TAknLayoutRect rowLayoutRect(
+            NMRLayoutManager::GetFieldRowLayoutRect( rect, 1 ) );
+    TRect rowRect( rowLayoutRect.Rect() );
+
+    // Layouting field icon
+    if( iFieldButton )
         {
-        TAknWindowComponentLayout iconLayout = 
-            NMRLayoutManager::GetWindowComponentLayout( NMRLayoutManager::EMRLayoutTextEditorIcon );
-        AknLayoutUtils::LayoutImage( iFieldIcon, rect, iconLayout );
+        TAknWindowComponentLayout iconLayout(
+            NMRLayoutManager::GetWindowComponentLayout(
+                    NMRLayoutManager::EMRLayoutSingleRowAColumnGraphic ) );
+        AknLayoutUtils::LayoutControl( iFieldButton, rowRect, iconLayout );
         }
 
-    // LAYOUTING FIELD BACKGROUND
-    TAknLayoutRect bgLayoutRect =
-        NMRLayoutManager::GetLayoutRect( rect, NMRLayoutManager::EMRLayoutTextEditorBg );
-    TRect bgRect( bgLayoutRect.Rect() );
-    // Move focus rect so that it's relative to field's position
+    // Layouting waypoint icon
+    if( iWaypointIcon )
+        {
+        TAknWindowComponentLayout iconLayout(
+                NMRLayoutManager::GetWindowComponentLayout(
+                    NMRLayoutManager::EMRLayoutSingleRowDColumnGraphic ) );
+        AknLayoutUtils::LayoutImage( iWaypointIcon, rowRect, iconLayout );
+        }
+
+    TAknLayoutText viewerLayoutText;
+
+    if( iWaypointIcon )
+        {
+        viewerLayoutText = NMRLayoutManager::GetLayoutText( rowRect,
+                    NMRLayoutManager::EMRTextLayoutSingleRowEditorText );
+        }
+    else
+        {
+        viewerLayoutText = NMRLayoutManager::GetLayoutText( rowRect,
+                    NMRLayoutManager::EMRTextLayoutTextEditor );
+        }
+
+    // Layouting viewer field
+    TRect viewerRect( viewerLayoutText.TextRect() );
+
+    // Resize height according to actual height required by edwin.
+    viewerRect.Resize( 0, iSize.iHeight - viewerRect.Height() );
+    iRichTextViewer->SetRect( viewerRect );
+
+    // Layouting focus
+    TRect bgRect( viewerRect );
+
+    // Move focus rect so that it's relative to field's position.
     bgRect.Move( -Position() );
     SetFocusRect( bgRect );
     
-    // LAYOUTING FIELD TEXT VIEWER
-    if( iRichTextViewer )
-        {
-        iRichTextViewer->SetRect( RichTextViewerRect() );
-        }
+    // Failures are ignored.
+    TRAP_IGNORE(
+    		// Try setting font
+    		iRichTextViewer->SetFontL( viewerLayoutText.Font() );
+    		// Try applying changes
+    		iRichTextViewer->ApplyLayoutChangesL();
+				);
     }
 
 // ---------------------------------------------------------------------------
 // CESMRViewerLocationField::SetContainerWindowL
 // ---------------------------------------------------------------------------
 //
-void CESMRViewerLocationField::SetContainerWindowL( const CCoeControl& aContainer )
+void CESMRViewerLocationField::SetContainerWindowL(
+        const CCoeControl& aContainer )
     {
     CCoeControl::SetContainerWindowL( aContainer );
     iRichTextViewer->SetContainerWindowL( aContainer );
+    iRichTextViewer->SetParent( this );
+    iFieldButton->SetContainerWindowL( aContainer );
+    iFieldButton->SetParent( this );
     }
 
 // ---------------------------------------------------------------------------
-// CESMRViewerLocationField::RichTextViewerRect
+// CESMRViewerLocationField::HandleLongtapEventL
 // ---------------------------------------------------------------------------
 //
-TRect CESMRViewerLocationField::RichTextViewerRect()
+void CESMRViewerLocationField::HandleLongtapEventL(
+        const TPoint& aPosition )
     {
-    TRect rect = Rect();
-    
-    TAknTextComponentLayout edwinLayout = NMRLayoutManager::GetTextComponentLayout( 
-            NMRLayoutManager::EMRTextLayoutTextEditor );
-
-    // Text layout rect for one line viewer
-    TAknLayoutText textLayout;
-    textLayout.LayoutText( rect, edwinLayout );
-    TRect textLayoutRect = textLayout.TextRect();
-
-    TRect viewerRect = textLayoutRect;
-    
-    // If iRichTextViewer has lines and iSize has been set, 
-    // we will use iSize.iHeight as the viewers height
-    if( iLineCount > 0 && iSize.iHeight > 0 )
+    if ( !iRichTextViewer->LinkSelectedL() )
         {
-        viewerRect.SetHeight( iSize.iHeight );
+        HandleTapEventL( aPosition );
         }
-    // Otherwise we will use one row height as the height of the 
-    // iRichTextViewer
     else
         {
-        TAknLayoutRect rowLayoutRect = 
-            NMRLayoutManager::GetFieldRowLayoutRect( rect, 1 );
-        viewerRect.SetHeight( rowLayoutRect.Rect().Height() );
+        // Reset action menu after link selection
+        iRichTextViewer->ResetActionMenuL();
         }
-   
-    return viewerRect;
     }
+
+// ---------------------------------------------------------------------------
+// CESMRViewerLocationField::DynInitMenuPaneL
+// ---------------------------------------------------------------------------
+//
+void CESMRViewerLocationField::DynInitMenuPaneL(
+        TInt aResourceId,
+        CEikMenuPane* aMenuPane )
+    {
+    if ( aResourceId == R_MR_VIEWER_MENU ||
+         aResourceId == R_MR_VIEWER_LOCATION_MENU )
+        {
+        TBool showOnMap( EFalse );
+
+        if ( iWaypointIcon )
+            {
+            showOnMap = ETrue;
+            }
+
+        TBool searchFromMap = !showOnMap;
+
+        if ( !iFeatures->FeatureSupported(
+                CESMRFeatureSettings::EESMRUIMnFwIntegration ) )
+            {
+            // Maps disabled
+            showOnMap = EFalse;
+            searchFromMap = EFalse;
+            }
+
+        aMenuPane->SetItemDimmed( EESMRCmdShowOnMap, !showOnMap );
+        aMenuPane->SetItemDimmed( EESMRCmdSearchFromMap, !searchFromMap );
+        }
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRViewerLocationField::LockL
+// ---------------------------------------------------------------------------
+//
+void CESMRViewerLocationField::LockL()
+	{
+	FUNC_LOG;
+	if( IsLocked() )
+		{
+		return;
+		}
+	
+	CESMRField::LockL();
+
+	delete iWaypointIcon;
+	iWaypointIcon = NULL;
+	iWaypointIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapLockField, ETrue );
+
+	iWaypointIcon->SetParent( this );
+	iWaypointIcon->SetObserver( this );	 
+	}
+
+// ---------------------------------------------------------------------------
+// CESMRViewerLocationField::GetCursorLineVerticalPos
+// ---------------------------------------------------------------------------
+//
+void CESMRViewerLocationField::GetCursorLineVerticalPos(
+        TInt& aUpper, TInt& aLower)
+    {
+    aLower = iRichTextViewer->CurrentLineNumber() * iRichTextViewer->RowHeight();
+    aUpper = aLower - iRichTextViewer->RowHeight();
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRViewerLocationField::HandleControlEventL
+// ---------------------------------------------------------------------------
+//
+
+void CESMRViewerLocationField::HandleControlEventL(
+        CCoeControl* aControl,TCoeEvent aEventType )
+    {
+    if ( aControl == iFieldButton )
+        {
+        if( iLocked )
+        	{
+        	//if field is locked, iFieldButton can't be used.
+        	return;
+        	}
+        switch ( aEventType )
+            {
+            // Button state changed (button was pressed)
+            case EEventRequestFocus:
+                {
+                // Clear viewer selection
+                iRichTextViewer->ClearSelectionL();
+                iRichTextViewer->DrawDeferred();
+        		
+                // Show context menu
+                HandleTactileFeedbackL();
+                NotifyEventL( EAknSoftkeyContextOptions );
+                }
+
+            default:
+                break;
+            }
+        }
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRViewerLocationField::HandleSingletapEventL
+// ---------------------------------------------------------------------------
+//
+TBool CESMRViewerLocationField::HandleSingletapEventL( const TPoint& aPosition )
+	{
+	return HandleTapEventL( aPosition );
+	}
+
+// ---------------------------------------------------------------------------
+// CESMRViewerLocationField::HandletapEventL
+// ---------------------------------------------------------------------------
+//
+TBool CESMRViewerLocationField::HandleTapEventL( const TPoint& aPosition )
+	{
+	TBool ret( EFalse );
+
+	if( iLocked )
+		{
+		HandleTactileFeedbackL();
+
+		CESMRGlobalNote::ExecuteL(
+			CESMRGlobalNote::EESMRUnableToEdit );
+
+		// Field locked, let's consume the event
+		ret = ETrue;
+		}
+	else
+		{
+		// Button events are handled by HandleControlEvent.
+		// Tap on link is handled by rich text viewer.
+		if ( !iFieldButton->Rect().Contains( aPosition )
+		     && !iRichTextViewer->GetSelectedLink() )
+			{
+			NotifyEventL( EAknSoftkeyContextOptions );
+
+			ret = ETrue;
+
+			HandleTactileFeedbackL();
+			}
+		}
+
+    return ret;
+	}
 
 //EOF

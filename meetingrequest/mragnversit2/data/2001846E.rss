@@ -17,7 +17,6 @@
 */
 
 #include <ecom/registryinfo.rh>		//REGISTRY_INFO
-#include "../../../inc/emailversionnumbers.hrh" // KEmailEcomVersionNumber
 #include "mruiuids.h"
 
 RESOURCE REGISTRY_INFO theInfo
@@ -33,7 +32,7 @@ RESOURCE REGISTRY_INFO theInfo
                 IMPLEMENTATION_INFO
                     {
                     implementation_uid = KESMRIcalConversionImplementationUid;
-                    version_no = KEmailEcomVersionNumber;
+                    version_no = 1;
                     display_name = "mrui iCalendar";
                     default_data = "text/calendar";
                     }

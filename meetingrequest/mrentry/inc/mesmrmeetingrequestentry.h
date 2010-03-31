@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -19,13 +19,15 @@
 #ifndef MESMRMEETINGREQUESTENTRY_H
 #define MESMRMEETINGREQUESTENTRY_H
 
-#include "cfsmailcommon.h"
+//<cmail>
 #include "mesmrcalentry.h"
 #include "esmrdef.h"
+//</cmail>
 
 class CCalAttendee;
 class MMRInfoObject;
 class TESMRInputParams;
+class CMRMailboxUtils;
 
 /**
  * MESMRCalEntry provides utility functions for handling MR Entry.
@@ -56,6 +58,11 @@ public:
 
 public:
 
+    /**
+     * Tests whether entry is sent or not
+     */
+    virtual TBool IsSentL() const = 0;
+    
     /**
      * Fetches the phone owner's role in this calendar entry.
      * @return User role.
@@ -163,12 +170,6 @@ public:
             TUint aFilterFlags ) const = 0;
 
     /**
-     * Fetches validated entry. Ownership is transferred to caller.
-     * @return Pointer to validated entry.
-     */
-    virtual CCalEntry* ValidateEntryL() = 0;
-
-    /**
     * Fetches the conflicting entries. Conflicting entries are added
     * to aEntryArray.
     * @param aEntryArray Array containing conflicting entries
@@ -217,21 +218,6 @@ public:
             TUint aFilterFlags ) const = 0;
 
     /**
-     * For recurrent event method removes this from the series.
-     * Entry needs to be recurrent event and modification rule
-     * needs to be MESMRCalEntry::EESMRThisOnly.
-     * Ownership of the returned calendar entry is transferred to caller.
-     *
-     * @return Parent entry
-     */
-    virtual CCalEntry* RemoveInstanceFromSeriesL() = 0;
-
-    /**
-     * Sets default values to entry.
-     */
-    virtual void SetDefaultValuesToEntryL() = 0;
-
-    /**
      * Tests, if entry is opened from mail.
      * @return ETrue if entry is opened from mail.
      */
@@ -268,16 +254,11 @@ public:
             TUint aFilterFlags ) const = 0;
 
     /**
-     * Updates the entry after storing
-     */
-    virtual void UpdateEntryAfterStoringL() = 0;
-    
-    /**
      * Updates child entries sequence numbers and stores them to
      * calendar DB.
      */
     virtual void UpdateChildEntriesSeqNumbersL() = 0;
-    
+
     /**
      * Resolves current plugin in use.
      * @return current plug-in in use.
@@ -285,27 +266,47 @@ public:
     virtual TESMRMailPlugin CurrentPluginL() = 0;
 
     /**
-     * Resolves current message box Id.
-     * @return current message box Id.
-     */
-    virtual TFSMailMsgId CurrentMailBoxIdL() = 0;
-    
-    /**
-     * Updates entry's timestamp (DTSTAMP) information.
-     */
-    virtual void UpdateTimeStampL() = 0;
-    
-    /**
      * Checks if any instance (having same UID)
      * occurs between specified time. Time information
      * is considered to be device's local time.
-     * 
+     *
      * @param aStart Start time
      * @param aEnd End time
      */
-    virtual TBool AnyInstanceOnDayL(
+    virtual TBool AnyInstancesBetweenTimePeriodL(
             TTime& aStart,
             TTime& aEnd ) = 0;
+
+    /**
+     * Fetches first instances start and end time. For non-recurrent
+     * entries this returns the entry's start and end time.
+     *
+     * @param aStart On returns contains the first instance's start time.
+     * @param aEnd On returns contains the first instance's end time.
+     */
+    virtual void GetFirstInstanceStartAndEndTimeL(
+            TTime& aStart,
+            TTime& aEnd ) = 0;
+
+    /**
+     * Fetches the calendar owner address.
+     * @return Calendar owner address
+     */
+    virtual const TDesC& CalendarOwnerAddressL() const = 0;
+
+    /**
+     * Gets the mailbox utils.
+     */
+    virtual CMRMailboxUtils& MailboxUtils() const = 0;
+
+     /**
+      *  check whether can send canellation
+      */
+     virtual TBool SendCanellationAvailable() = 0;
+     /**
+      * set the cannellation flag 
+      */
+     virtual void SetSendCanellationAvailable (TBool aSendCanellation) = 0;
     };
 
 #endif // MESMREMEETINGREQUESTSENDER_H

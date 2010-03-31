@@ -318,11 +318,11 @@ private:
     void CopyHTMLResourceL();
     // Ensure all resource files (eg. images) required by HTML display to be ready in C:\[private]\HtmlFile
     void EnsureHTMLResourceL(); 
-    void ConvertToHTML( const TDesC8& aContent,
+    void ConvertToHTML( const TDesC& aContent,
             const TDesC& aFileName, CFSMailMessagePart& aHtmlBodyPart );
     HBufC8* GetCharacterSetL( CFSMailMessagePart& aHtmlBodyPart );
     TBool IsMessageBodyURLL(const TDesC& aUrl);
-	void CreateHyperlinksFromUrlsL( CBufBase& aSource );
+	void CreateHyperlinksFromUrlsL( RBuf& aSource );
     //Returns ETrue of clicking on a link requires a browser to be launched
     TBool NeedToLaunchBrowserL( const TDesC& aUrl );
     //Launch the browser as a standalone app

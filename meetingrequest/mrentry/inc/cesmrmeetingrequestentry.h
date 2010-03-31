@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -48,7 +48,7 @@ public: // Construction and destruction
      * @param aConflictsExists ETrue, if conflicts exists
      * @param aESMRInputParams ESMR input parameters structure
      */
-    static CESMRMeetingRequestEntry* NewL(
+    IMPORT_C static CESMRMeetingRequestEntry* NewL(
             const CCalEntry& aEntry,
             CMRMailboxUtils& aMRMailboxUtils,
             MESMRCalDbMgr& aCalDb,
@@ -58,7 +58,7 @@ public: // Construction and destruction
     /**
      * C++ destructor
      */
-    ~CESMRMeetingRequestEntry();
+    IMPORT_C ~CESMRMeetingRequestEntry();
 
 public: // From MESMRMeetingRequestEntry
     TESMRCalEntryType Type() const;
@@ -76,8 +76,8 @@ public: // From MESMRMeetingRequestEntry
             TESMRRecurrenceValue& aRecurrence,
             TTime& aUntil) const;
     TESMRRecurrenceModifyingRule RecurrenceModRule() const;
-    void SetModifyingRuleL(
-            TESMRRecurrenceModifyingRule aRule );
+    void SetModifyingRuleL(TESMRRecurrenceModifyingRule aRule, 
+    		const TBool aTypeChanging = EFalse );
     void SetAllDayEventL(
             TTime aStartDate,
             TTime aEndDate );
@@ -85,10 +85,14 @@ public: // From MESMRMeetingRequestEntry
     TBool IsStoredL() const;
     TBool IsSentL() const;
     TBool IsEntryEditedL() const;
+    TBool IsEntryTypeChangedL() const;
     void GetAlarmL(
             MESMRCalEntry::TESMRAlarmType& aAlarmType,
             TTime &aAlarmTime );
     const CCalEntry& OriginalEntry();
+    void UpdateEntryAfterStoringL();
+    void SetDefaultValuesToEntryL();
+    CCalEntry* CloneEntryLC( TESMRCalEntryType aType ) const;
     TESMRRole RoleL() const;
     TBool Conflicts() const;
     void MarkMeetingCancelledL();
@@ -119,7 +123,6 @@ public: // From MESMRMeetingRequestEntry
     TInt AttendeeCountL(
             TUint aFilterFlags ) const;
     CCalEntry* RemoveInstanceFromSeriesL();
-    void SetDefaultValuesToEntryL();
     TBool IsOpenedFromMail() const;
     void GetAddedAttendeesL(
             RArray<CCalAttendee*>& aAttendeeArray,
@@ -127,14 +130,26 @@ public: // From MESMRMeetingRequestEntry
     void GetRemovedAttendeesL(
             RArray<CCalAttendee*>& aAttendeeArray,
             TUint aFilterFlags ) const;
-    void UpdateEntryAfterStoringL();
     void UpdateChildEntriesSeqNumbersL();
     TESMRMailPlugin CurrentPluginL();
-    TFSMailMsgId CurrentMailBoxIdL();
     void UpdateTimeStampL();
-    TBool AnyInstanceOnDayL(
+    TBool AnyInstancesBetweenTimePeriodL(
                 TTime& aStart,
-                TTime& aEnd );    
+                TTime& aEnd );
+    void GetFirstInstanceStartAndEndTimeL(
+                TTime& aStart,
+                TTime& aEnd );
+    const TDesC& CalendarOwnerAddressL() const;
+    CMRMailboxUtils& MailboxUtils() const;
+    void UpdateComparativeEntry(
+            CCalEntry* aNewComparativeEntry );
+    MESMRCalDbMgr& GetDBMgr();
+    TBool SupportsCapabilityL( 
+            MESMRCalEntry::TMREntryCapability aCapability ) const;
+    TBool ContainsRemoteAttachmentsL();    
+    TBool SendCanellationAvailable();
+    void SetSendCanellationAvailable (TBool aSendCanellation);
+    void SetTypeChanged( TBool aTypeChanged );
     
 private: // Implementaton
     CESMRMeetingRequestEntry(
@@ -145,14 +160,13 @@ private: // Implementaton
     void ConstructL(
             const CCalEntry& aEntry );
     HBufC* ReplaceCharactersFromBufferLC(
-    		const TDesC& aTarget, 
-            const TDesC& aFindString, 
+            const TDesC& aTarget,
+            const TDesC& aFindString,
             const TDesC& aReplacement );
 
 private: // Data
     /// Own: Calendar entry
     CCalEntry* iEntry;
-    CCalEntry* iBackupEntry;
     /// Own: Forward calendar entry
     CCalEntry* iForwardEntry;
     /// Ref: Reference to mailbox utilities
@@ -167,10 +181,16 @@ private: // Data
     TESMRInputParams* iESMRInputParams;
     /// Own: Orginal entry
     CCalEntry* iOrginalEntry;
-    /// Ref: Entry received as parameter
+    /// Own: Entry received as parameter
     CCalEntry* iParameterEntry;
     /// Own: Current FS Email plug-in
     TESMRMailPlugin iCurrentFSEmailPlugin;
+    /// Flag for removing attachments
+    TBool iRemoveAttachments;
+    /// Flag for send canellation
+    TBool iSendCanellation;
+    // Own: Indicates if the entry is type changed or not
+    TBool iTypeChanged;
     };
 
 #endif // CESMRMEETINGREQUESTENTRY_H

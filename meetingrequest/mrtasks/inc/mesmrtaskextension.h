@@ -24,7 +24,7 @@
 #include "esmrdef.h"
 //</cmail>
 
-class MESMRMeetingRequestEntry;
+class MESMRCalEntry;
 
 /**
  * MESMRTaskExtension is extension API for CMRUtils.
@@ -67,7 +67,7 @@ public: // Interface
      */
     virtual void SendAndStoreResponseL(
             TESMRCommand aCommand,
-            MESMRMeetingRequestEntry& aEntry ) = 0;
+            MESMRCalEntry& aEntry ) = 0;
 
     /**
      * Sends and stores MR . Command needs to be one of the
@@ -83,20 +83,7 @@ public: // Interface
      */
     virtual void SendAndStoreMRL(
             TESMRCommand aCommand,
-            MESMRMeetingRequestEntry& aEntry ) = 0;
-
-    /**
-     * Delete MR from local calendar DB. Command needs to be one of the
-     * following:
-     *  - EESMRCmdDeleteMR
-     *
-     * @param aCommand Command to be executed
-     * @param aEntry Reference to entry
-     * @see TESMRCommand
-     */
-    virtual void DeleteMRFromLocalDBL(
-            TESMRCommand aCommand,
-            MESMRMeetingRequestEntry& aEntry ) = 0;
+            MESMRCalEntry& aEntry ) = 0;
 
     /**
      * Deletes MR from local calendar DB. Method also sends either cancellation
@@ -111,10 +98,10 @@ public: // Interface
      */
     virtual void DeleteAndSendMRL(
             TESMRCommand aCommand,
-            MESMRMeetingRequestEntry& aEntry ) = 0;
+            MESMRCalEntry& aEntry ) = 0;
 
     /**
-     * Stores MR to local calendar DB.
+     * Stores Cal Event to local calendar DB.
      *
      * Command needs to be one of the following:
      *  - EESMRCmdSaveMR
@@ -123,10 +110,10 @@ public: // Interface
      * @param aEntry Reference to entry
      * @see TESMRCommand
      */
-    virtual void StoreMRToLocalDBL(
+    virtual void StoreEntryToLocalDBL(
             TESMRCommand aCommand,
-            MESMRMeetingRequestEntry& aEntry ) = 0;
-
+            MESMRCalEntry& aEntry ) = 0;
+                        
     /**
      * Forwards MR as email. Email editor is launched with pre-filled
      * email message.
@@ -140,7 +127,7 @@ public: // Interface
      */
      virtual void ForwardMRAsEmailL(
             TESMRCommand aCommand,
-            MESMRMeetingRequestEntry& aEntry ) = 0;
+            MESMRCalEntry& aEntry ) = 0;
 
      /**
       * Creates email reply for meeting request.
@@ -156,7 +143,64 @@ public: // Interface
       */
      virtual void ReplyAsEmailL(
             TESMRCommand aCommand,
-            MESMRMeetingRequestEntry& aEntry ) = 0;
+            MESMRCalEntry& aEntry ) = 0;
+     
+     /**
+      * Deletes calendar event from local calendar DB.
+      *
+      * Command needs to be one of the following:
+      *  - EESMRCmdCalEntryUIDelete
+      *  - EESMRCmdDeleteMR
+      *  
+      * @param aCommand Command to be executed
+      * @param aEntry Reference to entry
+      * @see TESMRCommand
+      */      
+     virtual void DeleteEntryFromLocalDBL(
+             TESMRCommand aCommand,
+             MESMRCalEntry& aEntry ) = 0;
+     
+     /**
+      * Marks to-do event as done.
+      *
+      * Command needs to be one of the following:
+      *  - EESMRCmdTodoMarkAsDone
+      *
+      * @param aCommand Command to be executed
+      * @param aEntry Reference to entry
+      * @see TESMRCommand
+      */      
+     virtual void MarkTodoAsDoneL(
+             TESMRCommand aCommand,
+             MESMRCalEntry& aEntry ) = 0;
+     
+     /**
+      * Marks to-do event as not done.
+      *
+      * Command needs to be one of the following:
+      *  - EESMRCmdTodoMarkAsNotDone
+      *
+      * @param aCommand Command to be executed
+      * @param aEntry Reference to entry
+      * @see TESMRCommand
+      */      
+     virtual void MarkTodoAsNotDoneL(
+             TESMRCommand aCommand,
+             MESMRCalEntry& aEntry ) = 0 ;
+     
+    /**
+     * Moves entry to current database
+     * 
+     * Command needs to be one of following:
+     *  - EESMRCmdSaveMR
+     *  - EESMRCmdCalEntryUISave
+     * @param aCommand Command to be executed
+     * @param aEntry Reference to entry
+     * @see TESMRCommand
+     */      
+    virtual void MoveEntryToCurrentDBL(
+         TESMRCommand aCommand,
+         MESMRCalEntry& aEntry ) = 0 ;
     };
 
 #include "mesmrtaskextension.inl"

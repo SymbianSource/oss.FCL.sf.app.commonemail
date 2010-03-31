@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -20,9 +20,11 @@
 #define MESMRFIELDSTORAGE_H
 
 #include <e32std.h>
+#include "esmrdef.h" // TESMREntryFieldId
 
 class MESMRCalEntry;
 class CESMRField;
+class CESMRPolicy;
 
 /**
  * Pure virtual class to be inherited by field storage classes.
@@ -81,6 +83,15 @@ public:
     virtual TInt Validate( 
     		TESMREntryFieldId& aId, 
     		TBool aForceValidate = EFalse ) = 0;
+    
+    /**
+     * Updates storage on policy change.
+     * 
+     * @param aNewPolicy the new policy to adjust the storage.
+     * @param aEntry the entry to handle.
+     */
+    virtual void ChangePolicyL( const CESMRPolicy& aNewPolicy,
+                                MESMRCalEntry& aEntry ) = 0;
     };
 
 #endif

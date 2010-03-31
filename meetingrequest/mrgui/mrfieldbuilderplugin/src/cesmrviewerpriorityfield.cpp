@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -15,18 +15,23 @@
  *
 */
 
-#include "emailtrace.h"
 #include "cesmrviewerpriorityfield.h"
 
-#include <eiklabel.h>
-#include <calentry.h>
-#include <eikenv.h>
-#include <StringLoader.h>
-#include <AknsConstants.h>
-
-#include <esmrgui.rsg>
 #include "esmrdef.h"
 #include "mesmrlistobserver.h"
+#include "cmrimage.h"
+#include "cmrlabel.h"
+#include "nmrlayoutmanager.h"
+#include "nmrbitmapmanager.h"
+#include "cesmrglobalnote.h"
+
+#include <calentry.h>
+#include <eikenv.h>
+#include <stringloader.h>
+#include <esmrgui.rsg>
+
+// DEBUG
+#include "emailtrace.h"
 
 // ======== MEMBER FUNCTIONS ========
 
@@ -51,7 +56,8 @@ CESMRViewerPriorityField* CESMRViewerPriorityField::NewL()
 CESMRViewerPriorityField::~CESMRViewerPriorityField()
     {
     FUNC_LOG;
-    //do nothing
+    delete iIcon;
+    delete iLockIcon;
     }
 
 // ---------------------------------------------------------------------------
@@ -61,7 +67,8 @@ CESMRViewerPriorityField::~CESMRViewerPriorityField()
 CESMRViewerPriorityField::CESMRViewerPriorityField()
     {
     FUNC_LOG;
-    //do nothing
+    SetFieldId( EESMRFieldPriority );
+    SetFocusType( EESMRHighlightFocus );
     }
 
 // ---------------------------------------------------------------------------
@@ -71,9 +78,13 @@ CESMRViewerPriorityField::CESMRViewerPriorityField()
 void CESMRViewerPriorityField::ConstructL()
     {
     FUNC_LOG;
-    // As a default set icon and text as it should be in priority NORMAL
-    SetFieldId( EESMRFieldPriority );
-    CESMRViewerLabelField::ConstructL( KAknsIIDQgnFsIndiPriorityNormal);
+    iLabel = CMRLabel::NewL();
+    iLabel->SetParent( this );
+    CESMRField::ConstructL( iLabel ); // ownership transfered
+    
+    iIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapPriorityNormal );
+    iIcon->SetParent( this );
+    
     HBufC* priorityText = StringLoader::LoadLC(
                         R_QTN_CALENDAR_MEETING_OPT_PRIORITY_NORMAL,
                         iEikonEnv );
@@ -93,7 +104,7 @@ void CESMRViewerPriorityField::InternalizeL( MESMRCalEntry& aEntry )
 
     HBufC* priorityText;
     TInt resourceId(KErrNotFound);
-    TAknsItemID priorityIconId;
+    NMRBitmapManager::TMRBitmapId bitmapId;
 
     if ( aEntry.Type() == MESMRCalEntry::EESMRCalEntryTodo )
         {
@@ -102,13 +113,13 @@ void CESMRViewerPriorityField::InternalizeL( MESMRCalEntry& aEntry )
             case EFSCalenTodoPriorityLow:
                 {
                 resourceId = R_QTN_CALENDAR_MEETING_OPT_PRIORITY_LOW;
-                priorityIconId = KAknsIIDQgnFsIndiPriorityLow;
+                bitmapId = NMRBitmapManager::EMRBitmapPriorityLow;
                 break;
                 }
             case EFSCalenTodoPriorityHigh:
                 {
                 resourceId = R_QTN_CALENDAR_MEETING_OPT_PRIORITY_HIGH;
-                priorityIconId = KAknsIIDQgnFsIndiPriorityHigh;
+                bitmapId = NMRBitmapManager::EMRBitmapPriorityHigh;
                 break;
                 }
             default:
@@ -117,7 +128,6 @@ void CESMRViewerPriorityField::InternalizeL( MESMRCalEntry& aEntry )
                 break;
                 }
             }
-
         }
     else
         {
@@ -126,13 +136,13 @@ void CESMRViewerPriorityField::InternalizeL( MESMRCalEntry& aEntry )
             case EFSCalenMRPriorityLow:
                 {
                 resourceId = R_QTN_CALENDAR_MEETING_OPT_PRIORITY_LOW;
-                priorityIconId = KAknsIIDQgnFsIndiPriorityLow;
+                bitmapId = NMRBitmapManager::EMRBitmapPriorityLow;
                 break;
                 }
             case EFSCalenMRPriorityHigh:
                 {
                 resourceId = R_QTN_CALENDAR_MEETING_OPT_PRIORITY_HIGH;
-                priorityIconId = KAknsIIDQgnFsIndiPriorityHigh;
+                bitmapId = NMRBitmapManager::EMRBitmapPriorityHigh;
                 break;
                 }
             default:
@@ -151,12 +161,162 @@ void CESMRViewerPriorityField::InternalizeL( MESMRCalEntry& aEntry )
         iLabel->SetTextL( *priorityText );
         CleanupStack::PopAndDestroy( priorityText );
 
-        IconL( priorityIconId );
+        delete iIcon;
+        iIcon = NULL;
+        iIcon = CMRImage::NewL( bitmapId );
+        iIcon->SetParent( this );
 
         // This needs to be called so icon will be redrawn
         SizeChanged();
         }
     }
 
+// ---------------------------------------------------------------------------
+// CESMRViewerPriorityField::SizeChanged()
+// ---------------------------------------------------------------------------
+//
+void CESMRViewerPriorityField::SizeChanged()
+    {
+    FUNC_LOG;
+    TRect rect = Rect();
+    TAknLayoutRect rowLayoutRect =
+        NMRLayoutManager::GetFieldRowLayoutRect( rect, 1 );
+    rect = rowLayoutRect.Rect();
+    
+    TAknWindowComponentLayout iconLayout =
+        NMRLayoutManager::GetWindowComponentLayout( 
+                NMRLayoutManager::EMRLayoutTextEditorIcon );
+    AknLayoutUtils::LayoutImage( iIcon, rect, iconLayout );
+    
+    // Layouting lock icon
+    if( iLockIcon )
+    	{
+    	TAknWindowComponentLayout iconLayout( 
+    			NMRLayoutManager::GetWindowComponentLayout( 
+    					NMRLayoutManager::EMRLayoutSingleRowDColumnGraphic ) );
+    	AknLayoutUtils::LayoutImage( iLockIcon, rect, iconLayout );
+    	}
+    
+    // Layouting label
+    TAknLayoutText viewerLayoutText;
+    if( iLockIcon )
+    	{
+    	viewerLayoutText = NMRLayoutManager::GetLayoutText( rect, 
+    			NMRLayoutManager::EMRTextLayoutSingleRowEditorText );
+    	}
+    else
+    	{
+    	viewerLayoutText = NMRLayoutManager::GetLayoutText( rect, 
+    			NMRLayoutManager::EMRTextLayoutTextEditor );
+    	}
+
+    TRect viewerRect( viewerLayoutText.TextRect() );    
+    iLabel->SetRect( viewerRect );
+
+    // Move focus rect so that it's relative to field's position.
+    viewerRect.Move( -Position() );
+    SetFocusRect( viewerRect );
+
+    // Setting font also for the label
+    iLabel->SetFont( viewerLayoutText.Font() );
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRViewerPriorityField::CountComponentControls()
+// ---------------------------------------------------------------------------
+//
+TInt CESMRViewerPriorityField::CountComponentControls() const
+    {
+    FUNC_LOG;
+    TInt count( 0 );
+    if ( iIcon )
+        {
+        ++count;
+        }
+
+    if ( iLabel )
+        {
+        ++count;
+        }
+    if ( iLockIcon )
+    	{
+    	++count;
+    	}
+    return count;
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRViewerPriorityField::ComponentControl()
+// ---------------------------------------------------------------------------
+//
+CCoeControl* CESMRViewerPriorityField::ComponentControl( TInt aIndex ) const
+    {
+    FUNC_LOG;
+    switch ( aIndex )
+        {
+        case 0:
+            return iIcon;
+        case 1:
+            return iLabel;
+        case 2:
+        	return iLockIcon;
+        default:
+            return NULL;
+        }
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRViewerPriorityField::SetOutlineFocusL()
+// ---------------------------------------------------------------------------
+//
+void CESMRViewerPriorityField::SetOutlineFocusL( TBool aFocus )
+    {
+    FUNC_LOG;
+    CESMRField::SetOutlineFocusL ( aFocus );
+    
+    iLabel->SetFocus( aFocus );    
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRViewerPriorityField::LockL()
+// ---------------------------------------------------------------------------
+//
+void CESMRViewerPriorityField::LockL()
+	{
+	FUNC_LOG;
+	if( IsLocked() )
+		{
+		return;
+		}
+	
+	CESMRField::LockL();
+	
+	delete iLockIcon;
+	iLockIcon = NULL;
+	iLockIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapLockField, ETrue );
+	iLockIcon->SetParent( this );
+	}
+
+// ---------------------------------------------------------------------------
+// CESMRViewerPriorityField::ExecuteGenericCommandL()
+// ---------------------------------------------------------------------------
+//
+TBool CESMRViewerPriorityField::ExecuteGenericCommandL( TInt aCommand )
+	{
+	FUNC_LOG;
+
+	TBool retValue( EFalse );
+
+	if( (aCommand == EAknCmdOpen) && IsLocked()  )
+		{
+		HandleTactileFeedbackL();
+		
+		CESMRGlobalNote::ExecuteL(
+				CESMRGlobalNote::EESMRUnableToEdit );
+		retValue = ETrue;
+		}
+
+	return retValue;
+	}
 // EOF
 

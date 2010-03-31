@@ -83,24 +83,19 @@ PRJ_EXPORTS
 ../inc/fsfadeeffectobserver.h |../../inc/fsfadeeffectobserver.h
 ../inc/fsslideeffectobserver.h |../../inc/fsslideeffectobserver.h
 //../inc/fsactionmenudefines.h |../../..|../../../inc/fsactionmenudefines.h
-//<cmail> removed
 //../inc/fsactionmenu.h |../../..|../../../inc/fsactionmenu.h
-//</cmail>
 ../inc/fstextviewer.h                |../../inc/fstextviewer.h
 ../inc/fstextviewerobserver.h        |../../inc/fstextviewerobserver.h
 ../inc/fssmileydictionary.h          |../../inc/fssmileydictionary.h
 ../inc/fstextviewerwatermark.h       |../../inc/fstextviewerwatermark.h
 ../inc/fstextviewerkeys.h            |../../inc/fstextviewerkeys.h
-// </cmail>
+../inc/tuicscrollbarmodel.h |../../inc/tuicscrollbarmodel.h
+../inc/muicscrollbar.h |../../inc/muicscrollbar.h
 
-//<cmail> 
 ../conf/fsgenericui_2001E280.confml APP_LAYER_CONFML(fsgenericui_2001E280.confml) 
 ../conf/fsgenericui_2001E280.crml APP_LAYER_CRML(fsgenericui_2001E280.crml)
-//</cmail>
 
-// <cmail> Export macros taken into use
 ../rom/fs_generic.iby CORE_APP_LAYER_IBY_EXPORT_PATH(fs_generic.iby)
-// </cmail>
 
 PRJ_MMPFILES
 fs_generic.mmp

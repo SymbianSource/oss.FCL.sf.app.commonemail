@@ -37,13 +37,22 @@ box#MailsContainer
 box.row_container
 {
     display:          block;
-    padding-top:      0.25u;  /* From layout data */
-    padding-bottom:   0u;     /* From layout data: Padding between rows is included in top padding */
-    width:            auto;   /* From layout data: Fit to screen */
-    height:           3.5u;   /* From layout data: Height inside padding */
+    padding-top:      0.1u;
+    padding-bottom:   0.2u;
+    width:            auto;
+    height:           3.5u;
     block-progression:lr;
     direction:        rtl;
     nav-index:        auto;
+}
+
+box.line_container
+{
+    display:          block;
+    padding-top:      2px;
+    padding-bottom:   0u;
+    width:            auto;
+    height:           2px;
 }
 
 box.setup_row_2_container
@@ -67,28 +76,6 @@ box.setup_brand_container
     direction:        ltr;
 }
 
-box.image_container
-{
-    display: block;
-    padding-left:     0.5u;   /* From layout data */
-    padding-right:    0.5u;   /* From layout data */
-    width:            3.5u;   /* From layout data */
-    height:           auto;   /* From layout data: Fills whole row_container height (3.5u) */
-    block-progression:lr;
-    direction:        ltr;
-}
-
-box.indicator_image_container
-{
-    display: block;
-    padding-left:     0.5u;
-    padding-right:    0.5u;
-    width:            3.5u;
-    height:           3.5u;
-    block-progression:lr;
-    direction: ltr;
-}
-
 text
 {
     display:          block;
@@ -103,7 +90,7 @@ text
     height:           auto;   /* From layout data: Fills whole row_container height (3.5u) */    
 }
 
-text.text_mailbox
+text.mailbox_text
 {
     padding-left:     0.5u;
     width:            auto;
@@ -130,7 +117,28 @@ text.time_text
     padding-left:     0.2u;
 }
 
-image
+image.mailbox_icon
 {
-    _s60-aspect-ratio:preserve;
+    padding-left:     0.5u;
+    padding-right:    0.5u;
+    width:            3.5u;
+    height:           auto;
+    _s60-aspect-ratio:preserve
+}
+
+image.indicator_icon
+{
+    padding-left:     0.5u;
+    padding-right:    0.5u;
+    width:            3.5u;
+    height:           3.5u;
+    _s60-aspect-ratio:preserve
+}
+
+image.horizontal_line
+{
+    height: auto; 
+    width: auto;
+    
+    path: "SKIN(270501603 4967)";
 }

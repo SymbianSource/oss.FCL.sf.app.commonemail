@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -20,8 +20,7 @@
 #define CESMRRESPONSEDIALOG_H
 
 // INCLUDES
-#include <AknDialog.h>
-#include <akntoolbarobserver.h>
+#include <akndialog.h>
 
 // FORWARD DECLARATIONS
 class CAknsBasicBackgroundControlContext;
@@ -33,8 +32,7 @@ class TLogicalFont;
  *
  *  @lib esmrgui.lib
  */
-NONSHARABLE_CLASS( CESMRResponseDialog ) : public CAknDialog,
-                                           public MAknToolbarObserver
+NONSHARABLE_CLASS( CESMRResponseDialog ) : public CAknDialog
     {
 public:
     /**
@@ -52,11 +50,6 @@ public:// From CAknDialog
     SEikControlInfo CreateCustomControlL( TInt aType );
     TBool OkToExitL (TInt aButtonId);
     void ProcessCommandL( TInt aCommand );
-    void DynInitMenuPaneL( /*TInt aResourceId,*/ 
-    		CEikMenuPane* aMenuPane );
-
-public: // From MAknToolbarObserver
-        virtual void OfferToolbarEventL( TInt aCommand );
 
 public:// From CCoeControl
     TKeyResponse OfferKeyEventL(const TKeyEvent& aEvent, TEventCode aType);
@@ -65,8 +58,6 @@ public:// From CCoeControl
 private://Implementation
     CESMRResponseDialog( HBufC*& aText );
     void ConstructL();
-    void MakeResponseToolbarL();
-    void RestoreMrGuiToolbarL();
 
 private: // data
     /**
@@ -78,11 +69,8 @@ private: // data
     * Ref: Pointer to buffer where the text is written
     */
     HBufC*& iText;
-
-    /**
-    * Pointer to previous toolbar observer. Not owned
-    */
-    MAknToolbarObserver* iOldObserver;
+    /// To record if the toolbar in previous view is visible.
+    TBool iPreviousVisibility;
     };
 
 #endif // CESMRRESPONSEDIALOG_H

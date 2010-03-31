@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -18,8 +18,8 @@
 
 
 #include "../../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
-#include "../../../../inc/emailtraceconfig.hrh"
 #include "../../../inc/esmrinternaluid.h"
+#include "../../../../inc/emailtraceconfig.hrh"
 #include <data_caging_paths.hrh>
 #include <platform_paths.hrh>
 
@@ -30,32 +30,28 @@ UID             KEPOCStaticDllUID2 KESMRDllUid3
 
 CAPABILITY      CAP_GENERAL_DLL
 
-VERSION         KEmailBinaryVersionNumber
-KEmailBinaryDemandPaging
+// Includes
 
-// Includes 
 APP_LAYER_SYSTEMINCLUDE
 USERINCLUDE   ../inc
 USERINCLUDE   ../../inc
 USERINCLUDE   ../../../inc
-USERINCLUDE   ../../../../inc 
+USERINCLUDE   ../../../../inc
 
 SOURCEPATH      ../src
-SOURCE          cesmrfield.cpp
-SOURCE          cesmrborderlayer.cpp
-SOURCE          cesmriconfield.cpp
-SOURCE          cesmrviewerlabelfield.cpp
-SOURCE          cesmreditor.cpp
-SOURCE          cesmrrichtextlink.cpp
-SOURCE          cesmrrichtextviewer.cpp
-SOURCE          cmrbackground.cpp
+SOURCE      cesmrfield.cpp
+SOURCE      cesmreditor.cpp
+SOURCE      cesmrrichtextlink.cpp
+SOURCE      cesmrrichtextviewer.cpp
+SOURCE      cmrbackground.cpp
+SOURCE      cmrattachmentui.cpp
+SOURCE      cmrattachmentprogressinfo.cpp
+SOURCE      cmrfilemanager.cpp
+SOURCE      cmrgrid.cpp
 
-SOURCEPATH      ../../mrfieldevent/src
-SOURCE          cesmrfieldcommandevent.cpp
-
-LIBRARY esmrgui.lib
 LIBRARY esmrcommon.lib
 LIBRARY esmrfieldevent.lib
+LIBRARY mrguicommon.lib
 
 // Dependencies to Symbian OS & S60 components
 LIBRARY commonengine.lib
@@ -76,10 +72,19 @@ LIBRARY fbscli.lib
 LIBRARY bafl.lib//clipboard copy
 LIBRARY estor.lib //clipboard copy streamdictionary
 LIBRARY touchfeedback.lib
-LIBRARY ws32.lib
-LIBRARY cmaillogger.lib
+LIBRARY mgfetch.lib
+LIBRARY efsrv.lib
+LIBRARY sysutil.lib // SysUtil
+LIBRARY calinterimapi.lib
+LIBRARY npdlib.lib // Note fetch
+LIBRARY commondialogs.lib // Common Dialogs API
+LIBRARY apgrfx.lib
+LIBRARY apmime.lib
+LIBRARY egul.lib
 
-#ifdef TRACE_INTO_FILE
-LIBRARY                 flogger.lib
-#endif // TRACE_INTO_FILE
+#if defined( ENABLE_TRACES ) && defined( TRACE_INTO_FILE )
+LIBRARY flogger.lib
+LIBRARY cmaillogger.lib
+#endif // ENABLE_TRACES && TRACE_INTO_FILE
+
 // End of File

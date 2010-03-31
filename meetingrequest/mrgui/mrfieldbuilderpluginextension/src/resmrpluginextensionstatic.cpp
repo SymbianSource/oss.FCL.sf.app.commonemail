@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -18,6 +18,10 @@
 #include "emailtrace.h"
 #include "resmrpluginextensionstatic.h"
 #include "cmrmailboxutils.h"
+#include "esmrhelper.h"
+#include <ct/rcpointerarray.h>
+
+// <cmail> Removed profiling. </cmail>
 
 /**
  * Storage class for RESMRStatic.
@@ -38,21 +42,6 @@ const TInt KMailBox = 0x01;
 
 // Definition for equal string
 const TInt KEqualString(0);
-
-// ---------------------------------------------------------------------------
-// Cleanup operation for RPointerArray.
-// @param aArray Pointer to RPointerArray.
-// ---------------------------------------------------------------------------
-//
-void MailboxPointerArrayCleanup( TAny* aArray )
-    {
-    // just to avoid warnings when MR not supported
-    RPointerArray<CFSMailBox>* entryArray =
-        static_cast<RPointerArray<CFSMailBox>*>( aArray );
-
-    entryArray->ResetAndDestroy();
-    entryArray->Close();
-    }
 
 }//namespace
 
@@ -83,7 +72,7 @@ RESMRPluginExtensionStatic::~RESMRPluginExtensionStatic( )
 void RESMRPluginExtensionStatic::ConnectL( )
     {
     FUNC_LOG;
-    if ( iStaticData )
+    if (iStaticData )
         {
         return;
         }
@@ -93,7 +82,7 @@ void RESMRPluginExtensionStatic::ConnectL( )
 
     // If Tls pointer was not set, create new static stuct
     // with NULL values
-    if ( !iStaticData )
+    if (!iStaticData)
         {
         iStaticData = new (ELeave) TESMRPluginExtensionData();
         memset ( iStaticData, 0, sizeof( TESMRPluginExtensionData) );
@@ -109,17 +98,17 @@ void RESMRPluginExtensionStatic::ConnectL( )
 void RESMRPluginExtensionStatic::Close( )
     {
     FUNC_LOG;
-    if ( iStaticData )
+    if (iStaticData )
         {
 
         // If FSMailClientL or DefaultFSMailBox was used
-        if ( iUsedTypes & KMailBox )
+        if (iUsedTypes & KMailBox )
             {
             // Decrease counter
             --iStaticData->iFSMailBoxCount;
 
             // If this was last instance using pointer
-            if ( iStaticData->iFSMailBoxCount == 0 )
+            if (iStaticData->iFSMailBoxCount == 0 )
                 {
                 // Owned by CFSMailClient
                 delete iStaticData->iDefaultFSMailBox;
@@ -163,16 +152,9 @@ void RESMRPluginExtensionStatic::Close( )
 // RESMRPluginExtensionStatic::DefaultFSMailBoxL
 // ---------------------------------------------------------------------------
 //
-CFSMailBox& RESMRPluginExtensionStatic::DefaultFSMailBoxL( TBool aForceReset )
+CFSMailBox& RESMRPluginExtensionStatic::DefaultFSMailBoxL()
     {
     FUNC_LOG;
-    
-    if ( aForceReset && iStaticData->iDefaultFSMailBox )
-        {
-        delete iStaticData->iDefaultFSMailBox;
-        iStaticData->iDefaultFSMailBox = NULL;
-        }
-    
     if ( !iStaticData->iDefaultFSMailBox )
         {
         CFSMailClient& fsMailClient = FSMailClientL();
@@ -186,12 +168,9 @@ CFSMailBox& RESMRPluginExtensionStatic::DefaultFSMailBoxL( TBool aForceReset )
                 mbUtils->GetDefaultMRMailBoxL( mbInfo ) );
 
         // Loop throug all mailboxes in this plug-in
-        RPointerArray<CFSMailBox> mailboxes; // codescanner::resourcenotoncleanupstack
-        CleanupStack::PushL(
-                TCleanupItem(
-                        MailboxPointerArrayCleanup,
-                        &mailboxes    ) );
-
+        RCPointerArray<CFSMailBox> mailboxes;
+        CleanupClosePushL( mailboxes );
+        
         // With null uid we get all mailboxes
         TFSMailMsgId msgId;
         fsMailClient.ListMailBoxes(
@@ -212,8 +191,7 @@ CFSMailBox& RESMRPluginExtensionStatic::DefaultFSMailBoxL( TBool aForceReset )
                 }
             }
 
-        CleanupStack::PopAndDestroy(); // mailboxes
-        CleanupStack::PopAndDestroy( mbUtils );
+        CleanupStack::PopAndDestroy( 2, mbUtils ); // mailboxes
         mbUtils = NULL;
 
         if ( !iStaticData->iDefaultFSMailBox )
@@ -225,6 +203,48 @@ CFSMailBox& RESMRPluginExtensionStatic::DefaultFSMailBoxL( TBool aForceReset )
     iUsedTypes |= KMailBox;
     ++iStaticData->iFSMailBoxCount;
     return *iStaticData->iDefaultFSMailBox;
+    }
+
+// ---------------------------------------------------------------------------
+// RESMRPluginExtensionStatic::MailBoxL
+// ---------------------------------------------------------------------------
+//
+CFSMailBox* RESMRPluginExtensionStatic::MailBoxL( const TDesC& aEmailAddress )
+    {
+    TPtrC address( ESMRHelper::AddressWithoutMailtoPrefix( aEmailAddress ) );
+    CFSMailClient& fsMailClient = FSMailClientL();
+
+    // Loop throug all mailboxes in this plug-in
+    RCPointerArray<CFSMailBox> mailboxes;
+    CleanupClosePushL( mailboxes );
+
+    // With null uid we get all mailboxes
+    TFSMailMsgId msgId;
+    fsMailClient.ListMailBoxes(
+            msgId, mailboxes );
+
+    TInt mailboxCount( mailboxes.Count() );
+    CFSMailBox* mailBox = NULL;
+    
+    for ( TInt i(0); i < mailboxCount && !mailBox; ++i )
+        {
+        TPtrC mailboxOwnerAddName(
+                mailboxes[i]->OwnMailAddress().GetEmailAddress() );
+        if ( mailboxOwnerAddName.CompareF( address ) == 0 )
+            {
+            // Correct mailbox is found
+            mailBox = mailboxes[ i ];
+            mailboxes.Remove( i );
+            }
+        }
+    CleanupStack::PopAndDestroy( &mailboxes );
+
+    if ( !mailBox )
+        {
+        User::Leave( KErrNotFound );
+        }
+    
+    return mailBox;
     }
 
 // ---------------------------------------------------------------------------

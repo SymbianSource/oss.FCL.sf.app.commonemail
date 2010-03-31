@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -147,7 +147,11 @@ TTime DefaultAnniversaryAlarm( TTime& aAnnivStartTime )
 inline CESMRAnnivTimeValidator::CESMRAnnivTimeValidator()
 :   iCurrentAnnivDate( Time::NullTTime() ),
     iCurrentAlarmTime( Time::NullTTime() ),
-    iAlarmOnOff( EFalse )
+    iAlarmOnOff( EFalse ),
+    iInitialAlarmTime( Time::NullTTime() ),
+    iInitialAlarmOnOff( EFalse ),
+    iInitialStartDate( Time::NullTTime() )
+
     {
     }
 
@@ -237,7 +241,7 @@ void CESMRAnnivTimeValidator::ReadValuesFromEntryL(
         TCalTime startTime = entry.StartTimeL();
         iCurrentAnnivDate = startTime.TimeLocalL();
         SetDateToEditor( *iStartDate, iCurrentAnnivDate );
-
+        iInitialStartDate = iStartDate->Date();
 
         CCalAlarm* alarm = entry.AlarmL();
         CleanupStack::PushL( alarm );
@@ -246,9 +250,13 @@ void CESMRAnnivTimeValidator::ReadValuesFromEntryL(
             {
             iCurrentAlarmTime = iCurrentAnnivDate - alarm->TimeOffset();
             iAlarmOnOff = ETrue;
+            iInitialAlarmOnOff = iAlarmOnOff;
 
             SetTimeToEditor( *iAlarmTime, iCurrentAlarmTime );
             SetDateToEditor( *iAlarmDate, iCurrentAlarmTime );
+            
+            iInitialAlarmTime = iAlarmTime->Time();
+            iInitialAlarmDate = iAlarmDate->Date();
             }
 
         CleanupStack::PopAndDestroy( alarm );
@@ -268,66 +276,75 @@ void CESMRAnnivTimeValidator::StoreValuesToEntryL(
         {
         PreValidateEditorContent();
         CCalEntry& entry( aEntry.Entry() );
-
-        TTime annivEdirotTime = StartTimeL();
-
-        TCalTime annivTime;
-
-        // The default mode for anniversary is EFloating,
-        // But some 3rd party application might have saved a different type
-        // for one reason or another. In that case we are using
-        // the existing value.
-        if ( aEntry.IsStoredL() )
+        TDateTime annivEditorTime = StartTimeL();
+        
+        // If entry has been modified, we will write new values to entry.
+        // Otherwise entry will not be modified and thus saved 
+        // (ex. new entry and press only Done )
+        if( IsModifiedL( aEntry ) )
             {
-            TCalTime::TTimeMode timeMode =
-                            aEntry.Entry().StartTimeL().TimeMode();
-
-            switch ( timeMode )
+            TCalTime annivTime;
+    
+            // The default mode for anniversary is EFloating,
+            // But some 3rd party application might have saved a different type
+            // for one reason or another. In that case we are using
+            // the existing value.
+            if ( aEntry.IsStoredL() )
                 {
-                case TCalTime::EFixedUtc:
-                	{
-                    annivTime.SetTimeUtcL( annivEdirotTime );
-                    break;
-                	}
-                case TCalTime::EFixedTimeZone:
-                	{
-                    annivTime.SetTimeLocalL( annivEdirotTime );
-                    break;
-                	}
-                case TCalTime::EFloating:
-                default:
-                	{
-                    annivTime.SetTimeLocalFloatingL( annivEdirotTime );
-                	}
+                TCalTime::TTimeMode timeMode =
+                                aEntry.Entry().StartTimeL().TimeMode();
+    
+                switch ( timeMode )
+                    {
+                    case TCalTime::EFixedUtc:
+                        {
+                        annivTime.SetTimeUtcL( annivEditorTime );
+                        break;
+                        }
+                    case TCalTime::EFixedTimeZone:
+                        {
+                        annivTime.SetTimeLocalL( annivEditorTime );
+                        break;
+                        }
+                    case TCalTime::EFloating:
+                    default:
+                        {
+                        annivTime.SetTimeLocalFloatingL( annivEditorTime );
+                        }
+                    }
                 }
-            }
-        else
-            {
-            annivTime.SetTimeLocalFloatingL( annivEdirotTime );
-            }
-
-        entry.SetStartAndEndTimeL( annivTime, annivTime );
-        if ( iAlarmOnOff )
-            {
-            TTimeIntervalMinutes diff;
-
-            TTime alarm = AlarmTimeL();
-            annivEdirotTime.MinutesFrom( alarm, diff );
-
-            CCalAlarm* alarmObject = entry.AlarmL();
-            if ( !alarmObject )
+            else
                 {
-                alarmObject = CCalAlarm::NewL();
+                annivTime.SetTimeLocalFloatingL( annivEditorTime );
                 }
-            CleanupStack::PushL( alarmObject );
-            alarmObject->SetTimeOffset( diff );
-            entry.SetAlarmL( alarmObject );
-            CleanupStack::PopAndDestroy( alarmObject );
-            alarmObject = NULL;
-            }
-        else
-            {
-            entry.SetAlarmL( NULL );
+    
+            entry.SetStartAndEndTimeL( annivTime, annivTime );
+
+
+            // Setting alarm only if entry needs to be saved
+            if ( iAlarmOnOff )
+                {
+                TTimeIntervalMinutes diff;
+                
+                TTime alarm = AlarmTimeL();
+                TTime editorTime = annivEditorTime;
+                editorTime.MinutesFrom( alarm, diff );
+    
+                CCalAlarm* alarmObject = entry.AlarmL();
+                if ( !alarmObject )
+                    {
+                    alarmObject = CCalAlarm::NewL();
+                    }
+                CleanupStack::PushL( alarmObject );
+                alarmObject->SetTimeOffset( diff );
+                entry.SetAlarmL( alarmObject );
+                CleanupStack::PopAndDestroy( alarmObject );
+                alarmObject = NULL;
+                }
+            else
+                {
+                entry.SetAlarmL( NULL );
+                }
             }
         }
     }
@@ -363,6 +380,11 @@ void CESMRAnnivTimeValidator::SetStartDateFieldL(
     {
     FUNC_LOG;
     iStartDate = &aStartDate;
+    
+    if ( Time::NullTTime() != iCurrentAnnivDate )
+        {
+        SetDateToEditor( *iStartDate, iCurrentAnnivDate );
+        }    
     }
 
 // ---------------------------------------------------------------------------
@@ -385,6 +407,11 @@ void CESMRAnnivTimeValidator::SetAlarmTimeFieldL(
     {
     FUNC_LOG;
     iAlarmTime = &aAlarmTime;
+    
+    if ( iAlarmOnOff )
+        {
+        SetTimeToEditor( *iAlarmTime, iCurrentAlarmTime );
+        }
     }
 
 // ---------------------------------------------------------------------------
@@ -396,6 +423,11 @@ void CESMRAnnivTimeValidator::SetAlarmDateFieldL(
     {
     FUNC_LOG;
     iAlarmDate = &aAlarmDate;
+    
+    if ( iAlarmOnOff )
+        {
+        SetDateToEditor( *iAlarmDate, iCurrentAlarmTime );
+        }
     }
 
 // ---------------------------------------------------------------------------
@@ -404,6 +436,17 @@ void CESMRAnnivTimeValidator::SetAlarmDateFieldL(
 //
 void CESMRAnnivTimeValidator::SetRecurrenceUntilDateFieldL(
             CEikDateEditor& /*aRecurrenceUntil*/ )
+    {
+    FUNC_LOG;
+    // No implementation for anniversary
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRAnnivTimeValidator::SetAbsoluteAlarmOnOffFieldL
+// ---------------------------------------------------------------------------
+//
+void CESMRAnnivTimeValidator::SetAbsoluteAlarmOnOffFieldL( 
+        MMRAbsoluteAlarmController& /*aAbsoluteAlarmController*/ )
     {
     FUNC_LOG;
     // No implementation for anniversary
@@ -620,12 +663,12 @@ void CESMRAnnivTimeValidator::PreValidateEditorContentL()
         iStartDate->PrepareForFocusLossL();
         }
 
-    if ( iAlarmTime && iAlarmTime->IsVisible() )
+    if ( iAlarmOnOff && iAlarmTime && iAlarmTime->IsVisible() )
         {
         iAlarmTime->PrepareForFocusLossL();
         }
 
-    if ( iAlarmDate && iAlarmDate->IsVisible() )
+    if ( iAlarmOnOff && iAlarmDate && iAlarmDate->IsVisible() )
         {
         iAlarmDate->PrepareForFocusLossL();
         }
@@ -731,5 +774,36 @@ void CESMRAnnivTimeValidator::ForceValuesL()
         }
     }
 
-// EOF
+// ---------------------------------------------------------------------------
+// CESMRAnnivTimeValidator::IsModifiedL
+// ---------------------------------------------------------------------------
+//
+TBool CESMRAnnivTimeValidator::IsModifiedL( MESMRCalEntry& aEntry )
+    {
+    // Checks if any of the editor fields have changed from the original /
+    // initial values
+    TBool isEdited( EFalse );
+    
+    TBool isSame = aEntry.Entry().CompareL( aEntry.OriginalEntry() );
+        
+    if( !isSame ||
+            iInitialAlarmOnOff != iAlarmOnOff ||
+                iStartDate->Date() != iInitialStartDate )
+        {
+        isEdited = ETrue;
+        }
 
+    // If alarm is on, we will check alarm time and date also for changes
+    if( iAlarmOnOff )
+        {
+        if( iAlarmTime->Time() != iInitialAlarmTime ||
+                iAlarmDate->Date() != iInitialAlarmDate )
+            {
+            isEdited = ETrue;
+            }
+        }
+
+    return isEdited;
+    }
+
+// EOF

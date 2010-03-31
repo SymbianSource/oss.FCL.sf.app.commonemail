@@ -69,8 +69,7 @@ private: // Implementation
     void CreateEntryL();
     void FillCommonFieldsL();
     void FillRecurrenceL();
-    void FillAttachmentInfoL();
-
+    
 private: // Data
     // Own: Supported fields array
     RArray<MMRInfoObject::TESMRInfoField> iSupportedFields;
@@ -82,8 +81,6 @@ private: // Data
     TESMRInputParams& iInputParameters;
     /// Own: Result structure
     MESMRIcalViewerObserver::TIcalViewerOperationResult iResult;
-    // Own
-    CESMRAttachmentInfo* iAttachmentInfo;
     };
 
 #endif 

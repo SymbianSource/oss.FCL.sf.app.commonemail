@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2008-2008 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2008-2008 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -18,21 +18,17 @@
 #ifndef CESMRURLPARSERPLUGINIMPL_H
 #define CESMRURLPARSERPLUGINIMPL_H
 
-
-#include <e32std.h>
-#include <e32base.h>
-#include <f32file.h>                // RFs
-#include <barsc.h>                  // RResourceFile
-#include <barsread.h>               // TResourceReader
-
 #include "cesmrurlparserplugin.h"
 
 class CPosLandmark;
+class CPosLandmarkParser;
+class CPosLandmarkEncoder;
+class CMRUrlParserExtension;
 
 
 /**
  *  Parser class for parsing URL to landmark and vice versa
- *  
+ *
  */
 class CESMRUrlParserPluginImpl : public CESMRUrlParserPlugin
     {
@@ -67,7 +63,7 @@ public:
      * @return pointer to created location URL, caller takes ownership
      */
     HBufC* CreateUrlFromLandmarkL( const CPosLandmark& aLandmark );
-    
+
     /**
      * Creates landmark object from location URL
      * May leave with KErrNotFound/KErrArgument or other Symbian wide errorcode
@@ -75,52 +71,49 @@ public:
      * @param aUrl contains location URL from which landmark is created
      * @return pointer to created landmark object, caller takes ownership
      */
-    CPosLandmark* CreateLandmarkFromUrlL( const TDesC& aUrl );    
-    
+    CPosLandmark* CreateLandmarkFromUrlL( const TDesC& aUrl );
+
+    /**
+     * Converts valid location URL to vCal GEO value.
+     * May leave with KErrNotFound/KErrArgument or other Symbian wide errorcode
+     *
+     * @param aUrl location URL to convert
+     * @return new GEO value
+     */
+    CCalGeoValue* CreateGeoValueLC( const TDesC& aUrl );
+
 private:
 
     CESMRUrlParserPluginImpl();
 
-    void ConstructL();
+    CPosLandmarkParser& InitializeParserL();
     
-    TInt DoFindLocationUrlL( const TDesC& aText, 
+    CPosLandmarkEncoder& InitializeEncoderL();
+    
+    void DoFindLocationUrlL( const TDesC& aText,
+                             TInt& aPos,
                              TPtrC& aUrl );
     
-    TInt LocateResourceFile( 
-            const TDesC& aResource,
-            const TDesC& aPath,
-            TFileName &aResourceFile,
-            RFs* aFs );
+    CMRUrlParserExtension& ExtensionL();
     
-    void InitializeL();
-    
-    HBufC* ReadResourceStringLC( TInt aResourceId );
-    
-    void CheckCoordinateParamL( const TDesC& aParam );
-    
-    void GetCoordinateParamValuesL( const TDesC& aUrl, TPtrC& aLatitude,
-                                    TPtrC& aLongitude );
+    CPosLandmark* CreateLandmarkFromUrlInternalL( const TDesC& aUrl );
+
 private: // data
 
     /**
-     * Tells if this instance is yet initialized
+     *  Landmark parser. Own.
      */
-    TBool iIsInitialized;
+    CPosLandmarkParser* iParser;
     
     /**
-     * File server session
+     * Landmark encoder. Own.
      */
-    RFs iFs;
+    CPosLandmarkEncoder* iEncoder;
     
     /**
-     * Resource file
+     * Parser extension. Own.
      */
-    RResourceFile iFile;
-    
-    /**
-     * Resource file reader
-     */    
-    TResourceReader iReader;
+    CMRUrlParserExtension* iExtension;
     };
 
 

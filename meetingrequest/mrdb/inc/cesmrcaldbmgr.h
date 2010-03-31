@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -20,17 +20,24 @@
 #define CESMRCALDBMGR_H
 
 #include <e32base.h>
+#include <gdi.h>
 //<cmail>
 #include "mesmrutilstombsext.h"
 //</cmail>
 #include <calprogresscallback.h>
 #include "cesmrcaldbbase.h"
 
+
 class MMRUtilsObserver;
 class CCalSession;
 class CCalEntry;
 class CESMREntryCmdIteratorAO;
 class CESMRGraveyardCleaner;
+class MESMRCalEntry;
+class CCalEntryView;
+class CCalInstanceView;
+class CCalCalendarInfo;
+
 
 /**
 * MESMRServicesCalDbMgr defines interface for calendar DB
@@ -62,6 +69,14 @@ public: // Constructors and destructors
      * @return instance view pointer, ownership not transferred
      */
     virtual CCalInstanceView* NormalDbInstanceView() = 0;
+    
+    /**
+     * Accessor for Agenda Model CCalInstanceView owned by this utility.
+     * Returns a valid array of pointer if status is EAvailable or
+     * EAvailableWithoutTombs, otherwise NULL.
+     * @return instance view pointer, ownership not transferred
+     */
+    virtual RPointerArray<CCalInstanceView> NormalDbAllCalenInstanceView() = 0;
 
     /**
      * Fetches entries from the Agenda Model based on time range.
@@ -116,7 +131,7 @@ public: // Constructors and destructors
      * @return KErrNone or a system wide error code
      */
     virtual TInt DeleteEntryL(
-            const TDesC8& aUid ) = 0;
+            const TDesC8& aUid, TInt aCalenIndex ) = 0;
 
     /**
      * Deletes the given entry from the Agenda Model.
@@ -124,7 +139,7 @@ public: // Constructors and destructors
      * @return KErrNone or a system wide error code
      */
     virtual TInt DeleteEntryL(
-            const TCalLocalUid& aLocalUid ) = 0;
+            const TCalLocalUid& aLocalUid, TInt aCalenIndex ) = 0;
 
     /**
      * Check entry: GUID, sequence number, existence in Agenda Model and
@@ -182,6 +197,107 @@ public: // Constructors and destructors
      * @return Reference to calendar server session.
      */
     virtual CCalSession& CalSession() = 0;
+
+    /**
+     * Finds matching calendar instance from calendar db. Ownership is
+     * transferred to caller.
+     * If instance cannot be found, NULL is returned.
+     *
+     * @param aCalDb Reference to cal db manager.
+     * @param aEntry Reference to calendar entry
+     * @return Pointer to calendar entry instance.
+     */
+    virtual CCalInstance* FindInstanceL(
+            const CCalEntry& aEntry ) = 0;
+
+    /**
+     * Get calendar's color by entry
+     * @param aEntry Reference to calendar entry
+     * @return calendar's color rgb value
+     */
+    virtual TRgb GetCalendarColorByEntryL( MESMRCalEntry& aEntry ) = 0;
+
+    /**
+     * Get multi-calendar name list
+     * @param aCalendarNameList Reference to name string array
+     */
+    virtual void GetMultiCalendarNameListL( RArray<TPtrC>& aCalendarNameList ) = 0;
+
+    /**
+     * Get calendar's name by entry
+     * @param aEntry Reference to calendar entry
+     * @return calendar's name
+     */
+    virtual TPtrC GetCalendarNameByEntryL( MESMRCalEntry& aEntry ) = 0;
+
+    /**
+     * Get calendar's color by calendar name
+     * @param aCalendarName Reference to calendar name
+     * @return calendar's color rgb value
+     */
+    virtual TRgb GetCalendarColorByNameL( TDesC& aCalendarName ) = 0;
+
+    /*
+     * Set current calendar by pass calendar index to it
+     * @param aIndex current calendar index
+     */
+    virtual void SetCurCalendarByIndex( TInt aIndex ) = 0;
+
+    /*
+     * Set current calendar by pass calendar name to it
+     * @param aCalendarName current calendar name
+     */
+    virtual void SetCurCalendarByNameL( TDesC& aCalendarName ) = 0;
+
+    /*
+     * Set current calendar by pass entry
+     * @param aColId current calendar collectionID
+     */
+    virtual void SetCurCalendarByColIdL( TInt aColId ) = 0;
+    
+    /*
+     * Set current calendar by pass entry
+     * @param aEntry entry which belongs current calendar
+     */
+    virtual void SetCurCalendarByEntryL( MESMRCalEntry& aEntry ) = 0;
+
+    /*
+     * Get color of current calendar
+     * @return current calendar's color(rgb value)
+     */
+    virtual TRgb GetCurCalendarColor() = 0;
+
+    /*
+     * Get colId of current calendar
+     * @return current calendar's colId
+     */
+    virtual TInt GetCurCalendarColIdL() = 0;
+    
+    /*
+     * Get index of current calendar
+     * @return current calendar's index
+     */
+    virtual TInt GetCurCalendarIndex() = 0;
+
+    /*
+     * Get entryview by CCalEntry
+     * @param aCalEntry use to get calendar which aCalEntry belongs
+     * @return CCalEntryView aCalEntry belongs
+     */
+    virtual CCalEntryView* EntryViewL(const CCalEntry& aCalEntry ) = 0;
+
+    /*
+     * Get instanceview by CCalEntry
+     * @param aCalEntry use to get calendar which aCalEntry belongs
+     * @return a CCalInstanceView that aCalEntry belongs
+     */
+    virtual CCalInstanceView* InstanceViewL(const CCalEntry& aCalEntry ) = 0;
+    
+    /*
+     * Get current entryview
+     * @return current entryView
+     */
+    virtual CCalEntryView* EntryView() = 0;
     };
 
 /**
@@ -230,6 +346,7 @@ protected: // From MESMRUtilsCalDbMgr
 
     CCalEntryView* NormalDbEntryView();
     CCalInstanceView* NormalDbInstanceView();
+    RPointerArray<CCalInstanceView> NormalDbAllCalenInstanceView();
     void FetchEntriesL(
             RPointerArray<CCalEntry>& aCalEntryArray,
             const CalCommon::TCalTimeRange& aTimeRange );
@@ -242,9 +359,9 @@ protected: // From MESMRUtilsCalDbMgr
     TInt UpdateEntryL(
             const CCalEntry& aCalEntry );
     TInt DeleteEntryL(
-            const TDesC8& aUid );
+            const TDesC8& aUid, TInt aCalenIndex );
     TInt DeleteEntryL(
-            const TCalLocalUid& aLocalUid );
+            const TCalLocalUid& aLocalUid, TInt aCalenIndex );
     MESMRUtilsTombsExt::TESMRUtilsDbResult StoreEntryCondL(
             CCalEntry& aCalEntry,
             TBool aResurrect,
@@ -260,6 +377,31 @@ protected: // From MESMRUtilsCalDbMgr
     void DeleteEntryCondL(
             const CalCommon::TCalTimeRange& aCalTimeRange );
     CCalSession& CalSession();
+    CCalInstance* FindInstanceL(
+            const CCalEntry& aEntry );
+
+    TRgb GetCalendarColorByEntryL(
+            MESMRCalEntry& aEntry);
+    void GetMultiCalendarNameListL(
+            RArray<TPtrC>& aCalendarNameList);
+    TPtrC GetCalendarNameByEntryL(
+            MESMRCalEntry& aEntry);
+    TRgb GetCalendarColorByNameL(
+            TDesC& aCalendarName);
+    void SetCurCalendarByNameL(
+            TDesC& aCalendarName );
+    void SetCurCalendarByIndex(
+            TInt aIndex );
+    void SetCurCalendarByColIdL(
+            TInt aColId );
+    void SetCurCalendarByEntryL(
+            MESMRCalEntry& aEntry );
+    TRgb GetCurCalendarColor();
+    TInt GetCurCalendarColIdL();
+    TInt GetCurCalendarIndex();
+    CCalEntryView* EntryViewL(const CCalEntry& aCalEntry );
+    CCalInstanceView* InstanceViewL(const CCalEntry& aCalEntry );
+    CCalEntryView* EntryView();
 
 protected: // New functions
     /**
@@ -355,6 +497,13 @@ protected: // Constructors and destructors
      */
     void ConstructL();
 
+private:
+    TBool CheckSpaceBelowCriticalLevelL();
+    /**
+     * Load multi calendar info to dbmgr
+     */
+    void LoadMultiCalenInfoL();
+
 protected: // data
 
     /**
@@ -369,10 +518,35 @@ protected: // data
     CCalSession& iCalSession;
 
     /**
+     * Calendar session array, support multi calendar
+     * Own.
+     */
+    RPointerArray<CCalSession> iCalSessionArray;
+
+    /**
+     * CCalEntryView array, support multi calendar
+     * Own.
+     */
+    RPointerArray<CCalEntryView> iCalEntryViewArray;
+
+    /**
+     * CCalInstanceView array, support multi calendar
+     * Own.
+     */
+    RPointerArray<CCalInstanceView> iCalInstanceViewArray;
+
+    /**
+     * CCalCalendarInfo array, support multi calendar
+     * Own.
+     */
+    RPointerArray<CCalCalendarInfo> iCalendarInfoArray;
+
+    /**
     * Reference to cal db observer
     *
     */
     MMRUtilsObserver& iObserver;
+
     /**
     * Normal agenda database
     * Own.
@@ -384,6 +558,9 @@ protected: // data
     * Own.
     */
     CESMREntryCmdIteratorAO* iCmdIterator;
+
+private:
+    TInt iCurCalenIndex;
     };
 
 #endif // CESMRCALDBMGR_H

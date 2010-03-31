@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2005 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2005 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -23,9 +23,9 @@
 #include "cesmrentrycmditeratorao.h"
 #include "esmrhelper.h"
 #include "esmrentryhelper.h"
-//<cmail>
+#include "mesmrcalentry.h"
 #include "mesmrutilstombsext.h"
-//</cmail>
+#include "mruidomaincrkeys.h"
 
 // From System
 #include <ct/rcpointerarray.h>
@@ -36,16 +36,48 @@
 #include <calentry.h>
 #include <calcommon.h>
 #include <caluser.h>
-#include <CalenInterimUtils2.h>
+#include <caleninterimutils2.h>
+#include <sysutil.h>
+#include <errorui.h>
+#include <coemain.h>
+#include <calcalendarinfo.h>
+#include <centralrepository.h>
 
 // CONSTANTS
 
 // Unnamed namespace for local definitions
 namespace {
 
-const TInt KDbInitReady = 100;
+const TInt KDbInitReady( 100 );
 
-#ifdef _DEBUG
+/**
+ * Reads last used database index from central repository
+ *
+ * @param aIndex on return contains the last used database index
+ */
+void ReadDatabaseIndexL( TInt& aIndex )
+    {
+    FUNC_LOG;
+
+    CRepository* repository = CRepository::NewLC( KCRUidESMRUIFeatures );
+    User::LeaveIfError( repository->Get( KMRUIDefaultCalDbIndex, aIndex ) );
+    CleanupStack::PopAndDestroy( repository );
+    }
+
+/**
+ * Writes used database index into central repository
+ *
+ * @param database index
+ */
+void WriteDatabaseIndexL( TInt aIndex )
+    {
+    FUNC_LOG;
+
+    CRepository* repository = CRepository::NewLC( KCRUidESMRUIFeatures );
+    User::LeaveIfError( repository->Set( KMRUIDefaultCalDbIndex, aIndex ) );
+    CleanupStack::PopAndDestroy( repository );
+    }
+
 
 // Panic code definitions
 enum TPanicCode
@@ -55,7 +87,9 @@ enum TPanicCode
     EPanicAsyncOpAlreadyExists,
     EPanicIllegalEntryStatus,
     EPanicIllegalResurrect,
-    EPanicUnexpectedUidValue
+    EPanicUnexpectedUidValue,
+    EPanicLoadMultiDbInfoFail,
+    EPanicInvalidDbIndex
     };
 
 // Panic string definition
@@ -69,8 +103,6 @@ void Panic( TPanicCode aReason )
     {
     User::Panic( KPanicMsg, aReason );
     }
-
-#endif // _DEBUG
 
 }  // namespace
 
@@ -93,7 +125,6 @@ EXPORT_C CESMRCalDbMgr* CESMRCalDbMgr::NewL(
     CleanupStack::PushL( self );
     self->ConstructL();
     CleanupStack::Pop();
-
 
     return self;
     }
@@ -123,6 +154,12 @@ CESMRCalDbMgr::CESMRCalDbMgr(
 CESMRCalDbMgr::~CESMRCalDbMgr()
     {
     FUNC_LOG;
+
+    iCalInstanceViewArray.ResetAndDestroy();
+    iCalEntryViewArray.ResetAndDestroy();
+    iCalendarInfoArray.ResetAndDestroy();
+    iCalSessionArray.ResetAndDestroy();
+
     delete iCmdIterator;
     delete iNormalDb;
     }
@@ -138,6 +175,9 @@ void CESMRCalDbMgr::ConstructL()
     iNormalDb    = CESMRCalDbNormal::NewL( iCalSession, *this, *this );
     iCmdIterator = CESMREntryCmdIteratorAO::NewL( *this );
 
+    TRAPD( err, LoadMultiCalenInfoL() );
+    __ASSERT_ALWAYS( err == KErrNone, Panic( EPanicLoadMultiDbInfoFail ) );
+    User::LeaveIfError( err );
     }
 
 // ----------------------------------------------------------------------------
@@ -167,7 +207,6 @@ void CESMRCalDbMgr::HandleCalDbStatus(
         {
         iObserver.HandleCalEngStatus( MMRUtilsObserver::ENotAvailable );
         }
-
 
     // In other cases either db is not yet finished
     }
@@ -203,7 +242,6 @@ void CESMRCalDbMgr::Completed( TInt aError )
 
     iObserver.HandleOperation( iCurrentAsyncOp, KDbInitReady, aError );
     iCurrentAsyncOp = CMRUtils::ENoOperation;
-
     }
 
 // ----------------------------------------------------------------------------
@@ -224,6 +262,16 @@ CCalInstanceView* CESMRCalDbMgr::NormalDbInstanceView()
     {
     FUNC_LOG;
     return iNormalDb->InstanceView();
+    }
+
+// ----------------------------------------------------------------------------
+// CESMRCalDbMgr::NormalDbAllCalenInstanceView
+// ----------------------------------------------------------------------------
+//
+RPointerArray<CCalInstanceView> CESMRCalDbMgr::NormalDbAllCalenInstanceView()
+    {
+    FUNC_LOG;
+    return iCalInstanceViewArray;
     }
 
 // ----------------------------------------------------------------------------
@@ -277,7 +325,6 @@ CCalEntry* CESMRCalDbMgr::FetchEntryL(
 
     CleanupStack::PopAndDestroy(); // tmpFetchArray
 
-
     return retVal;
     }
 
@@ -293,15 +340,21 @@ TInt CESMRCalDbMgr::StoreEntryL(
 
     TInt retVal( KErrNone );
 
-    if(aToNormalDb)
+    if ( CheckSpaceBelowCriticalLevelL() )
         {
-        CCalenInterimUtils2::StoreL( *( iNormalDb->EntryView() ),
-                                 aCalEntry,
-                                 ETrue );
-
+        retVal = KErrNoMemory;
         }
 
-
+    else
+        {
+        if( aToNormalDb )
+            {
+            CCalenInterimUtils2::StoreL( *(iCalEntryViewArray[iCurCalenIndex]),
+                                     aCalEntry,
+                                     ETrue );
+            WriteDatabaseIndexL( iCurCalenIndex );
+            }
+        }
 
     return retVal;
     }
@@ -319,10 +372,9 @@ TInt CESMRCalDbMgr::UpdateEntryL( const CCalEntry& aCalEntry )
     calEntryTmpArray.AppendL( &aCalEntry );
     TInt numSuccessfulEntry( 0 );
     // entry view surely exists when status is 'available':
-    iNormalDb->EntryView()->UpdateL( calEntryTmpArray, numSuccessfulEntry );
+    EntryViewL( aCalEntry )->UpdateL( calEntryTmpArray, numSuccessfulEntry );
     TInt retVal( numSuccessfulEntry == 1 ? KErrNone : KErrGeneral );
-    CleanupStack::PopAndDestroy(); // calEntryTmpArray, only close array
-
+    CleanupStack::Pop(); // calEntryTmpArray, only close array
 
     return retVal;
     }
@@ -331,7 +383,7 @@ TInt CESMRCalDbMgr::UpdateEntryL( const CCalEntry& aCalEntry )
 // CESMRCalDbMgr::DeleteEntryL
 // ----------------------------------------------------------------------------
 //
-TInt CESMRCalDbMgr::DeleteEntryL( const TDesC8& aUid )
+TInt CESMRCalDbMgr::DeleteEntryL( const TDesC8& aUid, TInt aCalenIndex )
     {
     FUNC_LOG;
 
@@ -339,9 +391,8 @@ TInt CESMRCalDbMgr::DeleteEntryL( const TDesC8& aUid )
     CleanupStack::PushL( uidArray );
     uidArray->AppendL( aUid );
     // entry view surely exists when status is 'available':
-    iNormalDb->EntryView()->DeleteL( *uidArray );
+    iCalEntryViewArray[aCalenIndex]->DeleteL( *uidArray );
     CleanupStack::PopAndDestroy( uidArray );
-
 
     return KErrNone;
     }
@@ -350,7 +401,7 @@ TInt CESMRCalDbMgr::DeleteEntryL( const TDesC8& aUid )
 // CESMRCalDbMgr::DeleteEntryL
 // ----------------------------------------------------------------------------
 //
-TInt CESMRCalDbMgr::DeleteEntryL( const TCalLocalUid& aLocalUid )
+TInt CESMRCalDbMgr::DeleteEntryL( const TCalLocalUid& aLocalUid, TInt aCalenIndex )
     {
     FUNC_LOG;
 
@@ -358,7 +409,7 @@ TInt CESMRCalDbMgr::DeleteEntryL( const TCalLocalUid& aLocalUid )
     CleanupClosePushL( localUidArray );
     localUidArray.AppendL( aLocalUid );
     TInt numSuccessfulEntry( 0 );
-    iNormalDb->EntryView()->DeleteL( localUidArray, numSuccessfulEntry );
+    iCalEntryViewArray[aCalenIndex]->DeleteL( localUidArray, numSuccessfulEntry );
     TInt retVal( numSuccessfulEntry == 1 ? KErrNone : KErrGeneral );
     CleanupStack::PopAndDestroy(); // localUidArray
 
@@ -378,57 +429,63 @@ MESMRUtilsTombsExt::TESMRUtilsDbResult CESMRCalDbMgr::StoreEntryCondL(
     TBool aCheckOnly )
     {
     FUNC_LOG;
-
-    RCPointerArray<CCalEntry> tmpFetchArray;
-    CleanupClosePushL( tmpFetchArray );
-
     MESMRUtilsTombsExt::TESMRUtilsDbResult entryStatus(
         MESMRUtilsTombsExt::EUndefined );
-    TInt index( -1 );
 
-    // 1. Normal db part, if entry is found in there then tombstones aren't
-    //    checked at all:
-
-    if ( EntryExistsInDbL( aCalEntry, *iNormalDb, tmpFetchArray, index ) )
-        { // Entry exists in normal db
-        entryStatus = EvaluateExistingEntryL( aCalEntry,
-                                              *( tmpFetchArray[index] ) );
-        if ( entryStatus == MESMRUtilsTombsExt::ECheckedValidUpdate &&
-             !aCheckOnly )
-            {
-            StoreEntryL( aCalEntry );
-            entryStatus = MESMRUtilsTombsExt::EStoredUpdate;
-            }
-        else if ( entryStatus == MESMRUtilsTombsExt::EErrorCancelled &&
-                  aResurrect )
-            {
-            __ASSERT_DEBUG( !aCheckOnly, Panic( EPanicIllegalResurrect ) );
-            StoreEntryL( aCalEntry );
-            entryStatus = MESMRUtilsTombsExt::EResurrectedCancelled;
-            }
-        // entry can't be new if it exists in the db already:
-        __ASSERT_DEBUG( entryStatus != MESMRUtilsTombsExt::ECheckedValidNew,
-                        Panic( EPanicIllegalEntryStatus) );
+    if ( CheckSpaceBelowCriticalLevelL() )
+        {
+        entryStatus = MESMRUtilsTombsExt::EErrorCancelled;
         }
-
-    // 2. New entry in this phone:
-
     else
-        { // Completely new entry (or tombstone has disappeared)
-        entryStatus = EvaluateNewEntryL( aCalEntry );
-        if ( entryStatus == MESMRUtilsTombsExt::ECheckedValidNew && !aCheckOnly )
-            {
-            StoreEntryL( aCalEntry );
-            entryStatus = MESMRUtilsTombsExt::EStoredNew;
+        {
+        RCPointerArray<CCalEntry> tmpFetchArray;
+        CleanupClosePushL( tmpFetchArray );
+
+        TInt index( -1 );
+
+        // 1. Normal db part, if entry is found in there then tombstones aren't
+        //    checked at all:
+
+        if ( EntryExistsInDbL( aCalEntry, *iNormalDb, tmpFetchArray, index ) )
+            { // Entry exists in normal db
+            entryStatus = EvaluateExistingEntryL( aCalEntry,
+                                                  *( tmpFetchArray[index] ) );
+            if ( entryStatus == MESMRUtilsTombsExt::ECheckedValidUpdate &&
+                 !aCheckOnly )
+                {
+                StoreEntryL( aCalEntry );
+                entryStatus = MESMRUtilsTombsExt::EStoredUpdate;
+                }
+            else if ( entryStatus == MESMRUtilsTombsExt::EErrorCancelled &&
+                      aResurrect )
+                {
+                __ASSERT_DEBUG( !aCheckOnly, Panic( EPanicIllegalResurrect ) );
+                StoreEntryL( aCalEntry );
+                entryStatus = MESMRUtilsTombsExt::EResurrectedCancelled;
+                }
+            // entry can't be new if it exists in the db already:
+            __ASSERT_DEBUG( entryStatus != MESMRUtilsTombsExt::ECheckedValidNew,
+                            Panic( EPanicIllegalEntryStatus) );
             }
 
-        // entry can't be update if doesn't exist in the db already:
-        __ASSERT_DEBUG( entryStatus != MESMRUtilsTombsExt::ECheckedValidUpdate,
-                        Panic( EPanicIllegalEntryStatus) );
+        // 2. New entry in this phone:
+
+        else
+            { // Completely new entry (or tombstone has disappeared)
+            entryStatus = EvaluateNewEntryL( aCalEntry );
+            if ( entryStatus == MESMRUtilsTombsExt::ECheckedValidNew && !aCheckOnly )
+                {
+                StoreEntryL( aCalEntry );
+                entryStatus = MESMRUtilsTombsExt::EStoredNew;
+                }
+
+            // entry can't be update if doesn't exist in the db already:
+            __ASSERT_DEBUG( entryStatus != MESMRUtilsTombsExt::ECheckedValidUpdate,
+                            Panic( EPanicIllegalEntryStatus) );
+            }
+
+        CleanupStack::PopAndDestroy(); // tmpFetchArray
         }
-
-    CleanupStack::PopAndDestroy(); // tmpFetchArray
-
 
     return entryStatus;
     }
@@ -445,12 +502,18 @@ void CESMRCalDbMgr::DeleteEntryCondL( const TDesC8& aUid )
     CleanupClosePushL( tmpFetchArray );
 
     // 1. Delete all found entries from normal db:
-
-    iNormalDb->EntryView()->FetchL( aUid, tmpFetchArray );
-    DeleteEntryL( aUid );
+    TInt count = iCalEntryViewArray.Count();
+    for( TInt i(0); i < count; i++ )
+        {
+        iCalEntryViewArray[i]->FetchL( aUid, tmpFetchArray );
+        if( tmpFetchArray.Count() > 0 )
+            {
+            DeleteEntryL( aUid, i );
+            tmpFetchArray.ResetAndDestroy();
+            }
+        }
 
     CleanupStack::PopAndDestroy(); // tmpFetchArray
-
     }
 
 // ----------------------------------------------------------------------------
@@ -461,14 +524,17 @@ void CESMRCalDbMgr::DeleteEntryCondL( const TCalLocalUid& aLocalUid )
     {
     FUNC_LOG;
 
-    CCalEntry* entry = iNormalDb->EntryView()->FetchL( aLocalUid );
-    if ( entry )
+    TInt count = iCalEntryViewArray.Count();
+    for( TInt i(0); i < count; i++ )
         {
-        CleanupStack::PushL( entry );
-        DeleteEntryCondL( *entry );
-        CleanupStack::PopAndDestroy( entry );
+        CCalEntry* entry = iCalEntryViewArray[i]->FetchL( aLocalUid );
+        if ( entry )
+            {
+            CleanupStack::PushL( entry );
+            DeleteEntryCondL( *entry );
+            CleanupStack::PopAndDestroy( entry );
+            }
         }
-
     }
 
 // ----------------------------------------------------------------------------
@@ -483,14 +549,29 @@ void CESMRCalDbMgr::DeleteEntryCondL( const CCalEntry& aCalEntry )
         {
         // Modifying entry
         // 1. Delete entry from normal db:
-        iNormalDb->EntryView()->DeleteL( aCalEntry );
+
+        CCalInstance* instance = FindInstanceL( (CCalEntry&)aCalEntry );
+        CleanupStack::PushL( instance );
+        TInt colId = instance->InstanceIdL().iCollectionId;
+
+        TInt index = 0;
+        TInt count = iCalSessionArray.Count();
+        for( TInt i = 0; i < count; i++ )
+            {
+            if( colId == iCalSessionArray[i]->CollectionIdL() )
+                {
+                index = i;
+                break;
+                }
+            }
+        iCalEntryViewArray[index]->DeleteL( aCalEntry );
+        CleanupStack::PopAndDestroy( instance );
         }
 
     else
         { // Originating entry, this is the same case as deleting with GUID:
         DeleteEntryCondL( aCalEntry.UidL() );
         }
-
     }
 
 // ----------------------------------------------------------------------------
@@ -527,13 +608,384 @@ CCalSession& CESMRCalDbMgr::CalSession()
     }
 
 // ----------------------------------------------------------------------------
+// CESMRCalDbMgr::FindInstanceL
+// ----------------------------------------------------------------------------
+//
+CCalInstance* CESMRCalDbMgr::FindInstanceL(
+            const CCalEntry& aEntry )
+    {
+    FUNC_LOG;
+
+    CCalInstance* instance = NULL;
+    RCPointerArray<CCalInstance> calInstances;
+    CleanupClosePushL( calInstances );
+
+    CalCommon::TCalViewFilter instanceFilter =
+                                CalCommon::EIncludeAppts |
+                                CalCommon::EIncludeEvents |
+                                CalCommon::EIncludeReminder |
+                                CalCommon::EIncludeAnnivs |
+                                CalCommon::EIncludeCompletedTodos |
+                                CalCommon::EIncludeIncompletedTodos;
+
+    // Removing one seconds from start time and adding one second to stop
+    // time. Otherwise wanted entry is not included into results.
+    TCalTime startTime;
+    startTime.SetTimeLocalL(
+        aEntry.StartTimeL().TimeLocalL() - TTimeIntervalSeconds( 1 ) );
+    TCalTime endTime;
+    endTime.SetTimeLocalL(
+        aEntry.EndTimeL().TimeLocalL() + TTimeIntervalSeconds( 1 ) );
+
+    TDateTime start = startTime.TimeLocalL().DateTime();
+    TDateTime end   = endTime.TimeLocalL().DateTime();
+
+    CalCommon::TCalTimeRange timeRange(
+            startTime,
+            endTime );
+
+
+    TInt count = iCalInstanceViewArray.Count();
+    for( TInt i = 0; i < count && !instance; i++ )
+        {
+        iCalInstanceViewArray[i]->FindInstanceL(
+                    calInstances,
+                    instanceFilter,
+                    timeRange);
+        if( calInstances.Count() > 0 )
+            {
+            TInt instanceCount( calInstances.Count() );
+            for (TInt i = 0; (i < instanceCount && !instance); ++i)
+                {
+                CCalEntry& entry = calInstances[i]->Entry();
+
+                // Finding the entry we are intrested for
+                if ( !entry.UidL().Compare( aEntry.UidL() ) )
+                    {
+                    instance = calInstances[i];
+                    calInstances.Remove( i );
+                    }
+                }
+            }
+        }
+
+    CleanupStack::PopAndDestroy(); // arrayCleanup
+    return instance;
+    }
+
+// ----------------------------------------------------------------------------
+// CESMRCalDbMgr::GetCalendarColorByEntryL
+// ----------------------------------------------------------------------------
+//
+TRgb CESMRCalDbMgr::GetCalendarColorByEntryL(MESMRCalEntry& aEntry)
+    {
+    FUNC_LOG;
+    TInt count = iCalSessionArray.Count();
+    TRgb color(0);
+    if( count < 1 )
+        return color;
+
+    if( !aEntry.IsStoredL() )
+        {
+        color = iCalendarInfoArray[0]->Color();
+        }
+    else
+        {
+        CCalInstance* instance = aEntry.InstanceL();
+        CleanupStack::PushL( instance );
+        TInt collectionId = instance->InstanceIdL().iCollectionId;
+
+        for( TInt i = 0; i < count; i++ )
+            {
+            if( collectionId == iCalSessionArray[i]->CollectionIdL() )
+                {
+                color = iCalendarInfoArray[i]->Color();
+                break;
+                }
+            }
+
+        CleanupStack::PopAndDestroy( instance );
+        }
+
+    return color;
+    }
+// ----------------------------------------------------------------------------
+// CESMRCalDbMgr::GetMultiCalendarNameListL
+// ----------------------------------------------------------------------------
+//
+void CESMRCalDbMgr::GetMultiCalendarNameListL(RArray<TPtrC>& aCalendarNameList)
+    {
+    FUNC_LOG;
+    TInt count = iCalendarInfoArray.Count();
+    aCalendarNameList.ReserveL( count );
+
+    for( TInt i = 0; i < count; i++ )
+        {
+        const TDesC& calenName = iCalendarInfoArray[i]->NameL();
+        aCalendarNameList.AppendL( TPtrC( calenName ) );
+        }
+    }
+
+// ----------------------------------------------------------------------------
+// CESMRCalDbMgr::GetCalendarNameByEntryL
+// ----------------------------------------------------------------------------
+//
+TPtrC CESMRCalDbMgr::GetCalendarNameByEntryL(MESMRCalEntry& aEntry)
+    {
+    FUNC_LOG;
+
+    TInt count = iCalSessionArray.Count();
+
+    TRgb color(0);
+    TPtrC calenName;
+
+    if( !aEntry.IsStoredL() )
+        {
+        //while create new entry, use current calendar db
+        if( count > 0 )
+            {
+            calenName.Set(iCalendarInfoArray[iCurCalenIndex]->NameL());
+            }
+        }
+    else
+        {
+        CCalInstance* instance = NULL;
+        TRAPD( err, instance = aEntry.InstanceL() );
+        CleanupStack::PushL( instance );
+        if( err == KErrNotFound || instance == NULL )
+            calenName.Set(iCalendarInfoArray[iCurCalenIndex]->NameL());
+        else
+            {
+            TInt collectionId = instance->InstanceIdL().iCollectionId;
+            TBuf<16> val;
+
+            for( TInt i = 0; i < count; i++ )
+                {
+                if( collectionId == iCalSessionArray[i]->CollectionIdL() )
+                    {
+                    calenName.Set(iCalendarInfoArray[i]->NameL());
+                    break;
+                    }
+                }
+            }
+        CleanupStack::PopAndDestroy( instance );
+        }
+
+    return calenName;
+    }
+
+// ----------------------------------------------------------------------------
+// CESMRCalDbMgr::GetCalendarColorByNameL
+// ----------------------------------------------------------------------------
+//
+TRgb CESMRCalDbMgr::GetCalendarColorByNameL(TDesC& aCalendarName)
+    {
+    FUNC_LOG;
+    TInt count = iCalendarInfoArray.Count();
+    TRgb color(0);
+
+    for ( TInt i = 0; i < count; i++)
+        {
+        if( aCalendarName.Compare( iCalendarInfoArray[i]->NameL() ) == 0 )
+            {
+            color = iCalendarInfoArray[i]->Color();
+            }
+        }
+
+    return color;
+    }
+
+// ----------------------------------------------------------------------------
+// CESMRCalDbMgr::SetCurCalendarByNameL
+// ----------------------------------------------------------------------------
+//
+void CESMRCalDbMgr::SetCurCalendarByNameL( TDesC& aCalendarName )
+    {
+    FUNC_LOG;
+    TInt count = iCalendarInfoArray.Count();
+
+    for( TInt i(0); i < count; i++ )
+        {
+        if( aCalendarName.Compare( iCalendarInfoArray[i]->NameL() ) == 0 )
+            {
+            SetCurCalendarByIndex( i );
+            break;
+            }
+        }
+    }
+
+// ----------------------------------------------------------------------------
+// CESMRCalDbMgr::SetCurCalendarByColIdL
+// ----------------------------------------------------------------------------
+//
+void CESMRCalDbMgr::SetCurCalendarByColIdL( TInt aColId )
+    {
+    FUNC_LOG;
+    TInt count = iCalSessionArray.Count();
+
+    for( TInt i = 0; i < count; i++ )
+        {
+        if( aColId == iCalSessionArray[i]->CollectionIdL() )
+            {
+            SetCurCalendarByIndex( i );
+            break;
+            }
+        }
+    }
+
+// ----------------------------------------------------------------------------
+// CESMRCalDbMgr::SetCurCalendarByEntry
+// ----------------------------------------------------------------------------
+//
+void CESMRCalDbMgr::SetCurCalendarByEntryL( MESMRCalEntry& aEntry )
+    {
+    TPtrC calenName = GetCalendarNameByEntryL( aEntry );
+    SetCurCalendarByNameL( calenName );
+    }
+
+// ----------------------------------------------------------------------------
+// CESMRCalDbMgr::SetCurCalendarByIndex
+// ----------------------------------------------------------------------------
+//
+void CESMRCalDbMgr::SetCurCalendarByIndex( TInt aIndex )
+    {
+    FUNC_LOG;
+    iCurCalenIndex = aIndex;
+    }
+
+// ----------------------------------------------------------------------------
+// CESMRCalDbMgr::GetCurCalendarColor
+// ----------------------------------------------------------------------------
+//
+TRgb CESMRCalDbMgr::GetCurCalendarColor()
+    {
+    FUNC_LOG;
+    __ASSERT_ALWAYS(
+            iCurCalenIndex < iCalendarInfoArray.Count(),
+            Panic( EPanicInvalidDbIndex ) );
+    return iCalendarInfoArray[iCurCalenIndex]->Color();
+    }
+
+// ----------------------------------------------------------------------------
+// CESMRCalDbMgr::GetCurCalendarColIdL
+// ----------------------------------------------------------------------------
+//
+TInt CESMRCalDbMgr::GetCurCalendarColIdL()
+    {
+    FUNC_LOG;
+    __ASSERT_ALWAYS(
+                iCurCalenIndex < iCalSessionArray.Count(),
+                Panic( EPanicInvalidDbIndex ) );
+
+    return iCalSessionArray[iCurCalenIndex]->CollectionIdL();
+    }
+
+// ----------------------------------------------------------------------------
+// CESMRCalDbMgr::GetCurCalendarIndex
+// ----------------------------------------------------------------------------
+//
+TInt CESMRCalDbMgr::GetCurCalendarIndex()
+    {
+    return iCurCalenIndex;
+    }
+
+// ----------------------------------------------------------------------------
+// CESMRCalDbMgr::EntryViewL
+// ----------------------------------------------------------------------------
+//
+CCalEntryView* CESMRCalDbMgr::EntryViewL(const CCalEntry& aCalEntry )
+    {
+    FUNC_LOG;
+    CCalInstance* instance = FindInstanceL( aCalEntry );
+    if( !instance )
+        {
+        return NULL;
+        }
+
+    CleanupStack::PushL( instance );
+    CCalEntryView* entryView = NULL;
+
+    TInt colId = instance->InstanceIdL().iCollectionId;
+    TInt count = iCalSessionArray.Count();
+
+    for( TInt i = 0; i < count; i++ )
+        {
+        if( colId == iCalSessionArray[i]->CollectionIdL() )
+            {
+            entryView = iCalEntryViewArray[i];
+            break;
+            }
+        }
+
+    if ( !entryView )
+        {
+        User::Leave( KErrNotFound );
+        }
+
+    CleanupStack::PopAndDestroy( instance );
+    return entryView;
+    }
+
+// ----------------------------------------------------------------------------
+// CESMRCalDbMgr::InstanceViewL
+// ----------------------------------------------------------------------------
+//
+CCalInstanceView* CESMRCalDbMgr::InstanceViewL(const CCalEntry& aCalEntry )
+    {
+    FUNC_LOG;
+    CCalInstance* instance = FindInstanceL( aCalEntry );
+    if( !instance )
+        {
+        return NULL;
+        }
+
+    CleanupStack::PushL( instance );
+    CCalInstanceView* instanceView = NULL;
+
+    TInt colId = instance->InstanceIdL().iCollectionId;
+    TInt count = iCalSessionArray.Count();
+
+    for( TInt i = 0; i < count; i++ )
+        {
+        if( colId == iCalSessionArray[i]->CollectionIdL() )
+            {
+            instanceView = iCalInstanceViewArray[i];
+            break;
+            }
+        }
+
+    if ( !instanceView )
+        {
+        User::Leave( KErrNotFound );
+        }
+
+    CleanupStack::PopAndDestroy( instance );
+    return instanceView;
+    }
+
+// ----------------------------------------------------------------------------
+// CESMRCalDbMgr::EntryView
+// ----------------------------------------------------------------------------
+//
+CCalEntryView* CESMRCalDbMgr::EntryView()
+    {
+    FUNC_LOG;
+    __ASSERT_ALWAYS(
+                    iCurCalenIndex < iCalEntryViewArray.Count(),
+                    Panic( EPanicInvalidDbIndex ) );
+    return iCalEntryViewArray[iCurCalenIndex];
+    }
+
+
+
+// ----------------------------------------------------------------------------
 // CESMRCalDbMgr::EntryExistsInDbL
 // ----------------------------------------------------------------------------
 //
 TBool CESMRCalDbMgr::EntryExistsInDbL(
     const TDesC8& aUid,
     const TCalTime& aRecurrenceId,
-    const CESMRCalDbBase& aDb,
+    const CESMRCalDbBase& /*aDb*/,
     RPointerArray<CCalEntry>& aCalEntryArray,
     TInt& aIndex ) const
     {
@@ -542,7 +994,16 @@ TBool CESMRCalDbMgr::EntryExistsInDbL(
     TBool retVal( EFalse );
     aIndex = KErrNotFound;
 
-    aDb.EntryView()->FetchL( aUid, aCalEntryArray );
+    TInt sessionCount = iCalSessionArray.Count();
+    for( TInt i = 0; i < sessionCount; i++ )
+        {
+        iCalEntryViewArray[i]->FetchL( aUid, aCalEntryArray );
+        if( aCalEntryArray.Count() > 0)
+            {
+            break;
+            }
+        }
+
     TInt count( aCalEntryArray.Count() );
     for ( TInt i( 0 ); i < count; ++i )
         {
@@ -554,7 +1015,6 @@ TBool CESMRCalDbMgr::EntryExistsInDbL(
             aIndex = i;
             }
         }
-
 
     return retVal;
     }
@@ -587,9 +1047,11 @@ MESMRUtilsTombsExt::TESMRUtilsDbResult CESMRCalDbMgr::EvaluateExistingEntryL(
     {
     FUNC_LOG;
 
-    __ASSERT_DEBUG( aEntry.UidL() == aEntry.UidL(),
+    __ASSERT_DEBUG( aEntry.UidL() == aDbEntry.UidL(),
                     Panic( EPanicUnexpectedUidValue ) );
-    MESMRUtilsTombsExt::TESMRUtilsDbResult retVal( MESMRUtilsTombsExt::EUndefined );
+
+    MESMRUtilsTombsExt::TESMRUtilsDbResult retVal(
+            MESMRUtilsTombsExt::EUndefined );
 
     TInt seq( aEntry.SequenceNumberL() );
     TInt dbSeq( aDbEntry.SequenceNumberL() );
@@ -617,7 +1079,6 @@ MESMRUtilsTombsExt::TESMRUtilsDbResult CESMRCalDbMgr::EvaluateExistingEntryL(
         retVal = MESMRUtilsTombsExt::EErrorObsolete;
         }
 
-
     return retVal;
     }
 
@@ -643,7 +1104,6 @@ MESMRUtilsTombsExt::TESMRUtilsDbResult CESMRCalDbMgr::EvaluateNewEntryL(
         retVal = MESMRUtilsTombsExt::ECheckedValidNew;
         }
 
-
     return retVal;
     }
 
@@ -666,6 +1126,21 @@ TBool CESMRCalDbMgr::IsValidNewModL( const CCalEntry& aModEntry ) const
                                               CalCommon::EIncludeAppts,
                                               range );
     TInt count( instances.Count() );
+
+    // The entry can also be in other calendar than the default one,
+    // so the instance view array should be checked in this case.
+    if( count == 0 )
+    	{
+		TInt instanceViewCount = iCalInstanceViewArray.Count();
+		for( TInt i(0); i < instanceViewCount; i++ )
+			{
+			iCalInstanceViewArray[i]->FindInstanceL( instances,
+					                                 CalCommon::EIncludeAppts,
+                                                     range );
+			}
+		count = instances.Count();
+    	}
+
     for ( TInt i( 0 ); i < count; ++i )
         {
         // When creating a new modifying entry, recurrence id must match
@@ -679,7 +1154,6 @@ TBool CESMRCalDbMgr::IsValidNewModL( const CCalEntry& aModEntry ) const
             }
         }
     CleanupStack::PopAndDestroy(); // instances, delete array items
-
 
     return retVal;
     }
@@ -702,9 +1176,97 @@ TBool CESMRCalDbMgr::OriginatingExistInDbL(
         retVal = ETrue;
         }
 
-
     return retVal;
     }
 
+// ---------------------------------------------------------------------------
+// CESMRCalDbMgr::CheckSpaceBelowCriticalLevelL
+// ---------------------------------------------------------------------------
+//
+TBool CESMRCalDbMgr::CheckSpaceBelowCriticalLevelL()
+    {
+    FUNC_LOG;
+
+    TBool retcode(EFalse);
+
+    CCoeEnv* coeEnv = CCoeEnv::Static();
+
+    if ( SysUtil::FFSSpaceBelowCriticalLevelL( &( coeEnv->FsSession() ) ) )
+        {
+        CErrorUI* errorUi = CErrorUI::NewLC();
+        errorUi->ShowGlobalErrorNoteL( KErrDiskFull );
+        CleanupStack::PopAndDestroy(); // errorUi
+        retcode = ETrue;
+        }
+
+    return retcode;
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRCalDbMgr::LoadMultiCalenInfo
+// ---------------------------------------------------------------------------
+//
+void CESMRCalDbMgr::LoadMultiCalenInfoL()
+    {
+    FUNC_LOG;
+
+    CDesCArray* fileArray = iCalSession.ListCalFilesL();
+    CleanupStack::PushL( fileArray );
+
+    TInt count = fileArray->Count();
+
+    iCalSessionArray.ReserveL( count );
+    iCalEntryViewArray.ReserveL( count );
+    iCalInstanceViewArray.ReserveL( count );
+    iCalendarInfoArray.ReserveL( count );
+
+    for( TInt i = 0; i < count; i++ )
+        {
+        CCalSession* file = CCalSession::NewL();
+        CleanupStack::PushL( file );
+
+        const TDesC& fileName = (*fileArray)[i];
+        file->OpenL( fileName );
+        CCalCalendarInfo* calendarInfo = file->CalendarInfoL();
+
+        if( calendarInfo->IsValid()
+            && calendarInfo->Enabled() )
+            {
+            // Push info into CleanupStack because NewL may leave
+            CleanupStack::PushL( calendarInfo );
+
+            CCalEntryView* entryView = CCalEntryView::NewL( *file );
+            // Push entryView into CleanupStack because NewL may leave
+            CleanupStack::PushL( entryView );
+
+            CCalInstanceView* instanceView = CCalInstanceView::NewL( *file );
+
+            // Space has been reserved so AppendL won't leave
+            iCalInstanceViewArray.AppendL( instanceView );
+
+            iCalEntryViewArray.AppendL( entryView );
+            CleanupStack::Pop( entryView );
+
+            iCalendarInfoArray.AppendL( calendarInfo );
+            CleanupStack::Pop( calendarInfo );
+
+            iCalSessionArray.AppendL( file );
+            CleanupStack::Pop( file );
+            }
+        else
+            {
+            delete calendarInfo;
+            CleanupStack::PopAndDestroy( file );
+            }
+        }
+
+    CleanupStack::PopAndDestroy( fileArray );
+
+    // Restore default database index from repository
+    ReadDatabaseIndexL( iCurCalenIndex );
+    }
+
+
 // End of file
+
 

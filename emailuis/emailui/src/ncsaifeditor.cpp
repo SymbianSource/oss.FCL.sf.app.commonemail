@@ -588,7 +588,7 @@ void CNcsAifEditor::AppendAddressesL( const RPointerArray<CNcsEmailAddressObject
     // First, add all the addresses without updating the editor text contents 
     for ( TInt i=0 ; i<aAddresses.Count() ; i++ )
         {
-    	AddAddressL( *aAddresses[i], EFalse );
+    	AddAddressL( *aAddresses[i], ETrue );
         }
     // Update editor text content after all the items have been added
     RepositionEntriesL( NULL );
@@ -888,7 +888,6 @@ void CNcsAifEditor::AddAddressL( CNcsAifEntry* aNewEntry, TBool aUpdateEditorTex
 	// This ensures items remain in correct order when populating field from
 	// existing message.
 	TInt cursorPos = CursorPos();
-	
     // if we are at the end of editor the address was
     // added from MRU list or separator was typed in
     if ( cursorPos == Text()->DocumentLength() )

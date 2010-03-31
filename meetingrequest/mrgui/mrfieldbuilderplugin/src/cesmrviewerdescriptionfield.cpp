@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -31,8 +31,8 @@
 #include "cesmrurlparserplugin.h"
 //</cmail>
 #include <calentry.h>
-#include <AknUtils.h>
-#include <StringLoader.h>
+#include <aknutils.h>
+#include <stringloader.h>
 #include <esmrgui.rsg>
 #include <avkon.rsg>
 #include <txtrich.h>
@@ -71,7 +71,7 @@ CESMRViewerDescriptionField::~CESMRViewerDescriptionField( )
     FUNC_LOG;
     delete iLocationPlugin;
     delete iFeatures;
-    delete iLocation;
+    delete iUrlParser;
     }
 
 // ---------------------------------------------------------------------------
@@ -83,13 +83,16 @@ void CESMRViewerDescriptionField::InitializeL()
     FUNC_LOG;
     TAknLayoutText layoutText =
         NMRLayoutManager::GetLayoutText( Rect(), NMRLayoutManager::EMRTextLayoutMultiRowTextEditor );
-    iRichTextViewer->SetFontL ( layoutText.Font(), iLayout );
+    iRichTextViewer->SetFontL( layoutText.Font() );
+    iRichTextViewer->ApplyLayoutChangesL();
+    
     if ( IsFocused() )
         {
         iRichTextViewer->FocusChanged( EDrawNow );
         }
 
     iRichTextViewer->HandleTextChangedL();
+    iRichTextViewer->SetEventQueue( iEventQueue );
     }
 
 // ---------------------------------------------------------------------------
@@ -102,7 +105,7 @@ void CESMRViewerDescriptionField::InternalizeL( MESMRCalEntry& aEntry )
     TPtrC text = aEntry.Entry().DescriptionL ( );
     if( text.Length() == 0 )
         {
-        iObserver->RemoveControl( FieldId() );
+        iObserver->HideControl( FieldId() );
         }
     else if ( FeaturesL().FeatureSupported(
                 CESMRFeatureSettings::EESMRUIMnFwIntegration ) )
@@ -111,6 +114,7 @@ void CESMRViewerDescriptionField::InternalizeL( MESMRCalEntry& aEntry )
         }
     else
         {
+        TPtrC text = aEntry.Entry().DescriptionL();
         iRichTextViewer->SetTextL( &text, ETrue );
         iRichTextViewer->SetMargins( KMargin );
         }
@@ -127,30 +131,19 @@ TKeyResponse CESMRViewerDescriptionField::OfferKeyEventL(
     FUNC_LOG;
     TKeyResponse response = EKeyWasNotConsumed;
     response = iRichTextViewer->OfferKeyEventL ( aEvent, aType );
-    
+
     //track up and down events to change MSK
     if ( aType == EEventKey )
         {
         if ( aEvent.iCode == EKeyUpArrow || aEvent.iCode == EKeyDownArrow )
             {
-            if ( FeaturesL().FeatureSupported(
-                    CESMRFeatureSettings::EESMRUIMnFwIntegration ) )
+            if ( !iRichTextViewer->GetSelectedLink() )
                 {
-                SetShowOnMapLinkMiddleSoftKeyL();
-                }
-            else
-                {
-                if ( iRichTextViewer->GetSelectedLink() )
-                    {
-                    SetMiddleSoftKeyVisible( ETrue );
-                    }
-                else
-                    {
-                    RestoreMiddleSoftKeyL();
-                    }
+                // Restore default middle softkey if field does not contain link
+                RestoreMiddleSoftKeyL();
                 }
             }
-        }    
+        }
     return response;
     }
 
@@ -162,6 +155,7 @@ void CESMRViewerDescriptionField::SetContainerWindowL( const CCoeControl& aConta
     {
     CESMRField::SetContainerWindowL( aContainer );
     iRichTextViewer->SetContainerWindowL( aContainer );
+    iRichTextViewer->SetParent( this );
     }
 
 // ---------------------------------------------------------------------------
@@ -179,7 +173,7 @@ TSize CESMRViewerDescriptionField::MinimumSize()
         NMRLayoutManager::GetFieldRowLayoutRect( fieldRect, 1 ).Rect();
     TRect viewerRect =
         NMRLayoutManager::GetLayoutText( rowRect, NMRLayoutManager::EMRTextLayoutMultiRowTextEditor ).TextRect();
-    
+
     fieldRect.Resize( 0, iSize.iHeight - viewerRect.Height() );
     fieldRect.SetWidth( Parent()->Rect().Width() );
     return fieldRect.Size();
@@ -193,15 +187,36 @@ void CESMRViewerDescriptionField::SizeChanged()
     {
     TRect rect( Rect() );
     rect = NMRLayoutManager::GetFieldRowLayoutRect( rect, 1 ).Rect();
-    
+
     TRect viewerRect =
-        NMRLayoutManager::GetLayoutText( 
-                rect, 
+        NMRLayoutManager::GetLayoutText(
+                rect,
                 NMRLayoutManager::EMRTextLayoutMultiRowTextEditor ).TextRect();
-    
-    iRichTextViewer->SetRect( 
-            TRect( viewerRect.iTl, 
+
+    TRect bgRect( viewerRect.iTl,
+            TSize( viewerRect.Width(), iSize.iHeight ) );
+    // Move focus rect so that it's relative to field's position.
+    bgRect.Move( -Position() );
+
+    // Setting Font for the rich text viewer
+    TAknLayoutText text = NMRLayoutManager::GetLayoutText(
+                Rect(),
+                NMRLayoutManager::EMRTextLayoutTextEditor );
+
+    // Failures are ignored. 
+    TRAP_IGNORE( 
+            // Try setting font 
+            iRichTextViewer->SetFontL( text.Font() );
+            // Try applying changes
+            iRichTextViewer->ApplyLayoutChangesL();
+            );
+
+    iRichTextViewer->SetRect(
+            TRect( viewerRect.iTl,
                     TSize( viewerRect.Width(), iSize.iHeight ) ) );
+
+    bgRect.SetHeight( iRichTextViewer->Rect().Height() );
+    SetFocusRect( bgRect );
     }
 
 // ---------------------------------------------------------------------------
@@ -237,7 +252,7 @@ TBool CESMRViewerDescriptionField::HandleEdwinSizeEventL(CEikEdwin* /*aEdwin*/,
     {
     FUNC_LOG;
     iSize = aSize;
-    
+
     if ( iObserver && iDisableRedraw )
         {
         iObserver->ControlSizeChanged ( this );
@@ -247,13 +262,35 @@ TBool CESMRViewerDescriptionField::HandleEdwinSizeEventL(CEikEdwin* /*aEdwin*/,
     }
 
 // ---------------------------------------------------------------------------
+// CESMRViewerDescriptionField::HandleRichTextLinkSelection
+// ---------------------------------------------------------------------------
+//
+TBool CESMRViewerDescriptionField::HandleRichTextLinkSelection(
+        const CESMRRichTextLink* aLink )
+    {
+    TBool result = EFalse;
+    if ( aLink &&
+         aLink->Type() == CESMRRichTextLink::ETypeLocationUrl )
+        {
+        TRAPD( error, ShowLocationOnMapL( *aLink ) )
+        if ( error )
+            {
+            iCoeEnv->HandleError( error );
+            }
+        result = ETrue;
+        }
+    return result;
+    }
+
+// ---------------------------------------------------------------------------
 // CESMRViewerDescriptionField::CESMRViewerDescriptionField()
 // ---------------------------------------------------------------------------
 //
 CESMRViewerDescriptionField::CESMRViewerDescriptionField( )
     {
     FUNC_LOG;
-    //do nothing
+    SetFieldId( EESMRFieldDescription );
+    SetFocusType( EESMRHighlightFocus );
     }
 
 // ---------------------------------------------------------------------------
@@ -265,16 +302,16 @@ void CESMRViewerDescriptionField::ConstructL( )
     FUNC_LOG;
     iRichTextViewer = CESMRRichTextViewer::NewL( this );
     iRichTextViewer->SetEdwinSizeObserver( this );
+    CESMRField::ConstructL( iRichTextViewer ); // ownership transferred
     iRichTextViewer->SetParent( this );
-    
-    SetFieldId( EESMRFieldDescription );
+    iRichTextViewer->SetLinkObserver( this );
     }
 
 // ---------------------------------------------------------------------------
-// CESMRViewerDescriptionField::GetMinimumVisibleVerticalArea()
+// CESMRViewerDescriptionField::GetCursorLineVerticalPos()
 // ---------------------------------------------------------------------------
 //
-void CESMRViewerDescriptionField::GetMinimumVisibleVerticalArea(TInt& aUpper, TInt& aLower)
+void CESMRViewerDescriptionField::GetCursorLineVerticalPos( TInt& aUpper, TInt& aLower )
     {
     FUNC_LOG;
     aLower = iRichTextViewer->CurrentLineNumber() * iRichTextViewer->RowHeight();
@@ -295,33 +332,22 @@ void CESMRViewerDescriptionField::ListObserverSet()
 // CESMRViewerDescriptionField::ExecuteGenericCommandL()
 // ---------------------------------------------------------------------------
 //
-void CESMRViewerDescriptionField::ExecuteGenericCommandL( TInt aCommand )
+TBool CESMRViewerDescriptionField::ExecuteGenericCommandL( TInt aCommand )
     {
     FUNC_LOG;
+    TBool isUsed( EFalse );
     switch ( aCommand )
         {
         case EESMRCmdClipboardCopy:
             {
             iRichTextViewer->CopyCurrentLinkToClipBoardL();
-            break;
-            }
-        case EESMRCmdShowOnMap:
-            {
-            if ( FeaturesL().FeatureSupported(
-                 CESMRFeatureSettings::EESMRUIMnFwIntegration ) )
-                {
-                const CESMRRichTextLink* link =
-                    iRichTextViewer->GetSelectedLink();
-                if ( link )
-                	{
-                	LocationPluginL().ShowOnMapL( *iLocation, link->Value() );
-                	}
-                }
+            isUsed = ETrue;
             break;
             }
         case EAknSoftkeySelect:
             {
             iRichTextViewer->LinkSelectedL();
+            isUsed = ETrue;
             break;
             }
         default:
@@ -329,6 +355,7 @@ void CESMRViewerDescriptionField::ExecuteGenericCommandL( TInt aCommand )
             break;
             }
         }
+    return isUsed;
     }
 
 // ---------------------------------------------------------------------------
@@ -339,9 +366,9 @@ void CESMRViewerDescriptionField::SetOutlineFocusL( TBool aFocus )
     {
     FUNC_LOG;
     CESMRField::SetOutlineFocusL ( aFocus );
-    
+
     iRichTextViewer->SetFocus( aFocus );
-    
+
     if ( FeaturesL().FeatureSupported(
             CESMRFeatureSettings::EESMRUIMnFwIntegration ) )
         {
@@ -350,11 +377,30 @@ void CESMRViewerDescriptionField::SetOutlineFocusL( TBool aFocus )
             SetShowOnMapLinkMiddleSoftKeyL();
             }
         }
-    
+
     if ( !aFocus )
         {
         //need to tell action menu that focus has changed
         iRichTextViewer->ResetActionMenuL();
+        }
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRDescriptionField::HandleLongtapEventL
+// ---------------------------------------------------------------------------
+//
+void CESMRViewerDescriptionField::HandleLongtapEventL(
+        const TPoint& aPosition )
+    {
+    FUNC_LOG;
+    
+    if ( iRichTextViewer->Rect().Contains( aPosition ) )
+        {
+        if( iRichTextViewer->LinkSelectedL() )
+        	{
+			HandleTactileFeedbackL();        
+        	}
+        		
         }
     }
 
@@ -365,14 +411,12 @@ void CESMRViewerDescriptionField::SetOutlineFocusL( TBool aFocus )
 void CESMRViewerDescriptionField::AddShowOnMapLinkL( MESMRCalEntry& aEntry )
     {
     FUNC_LOG;
-    TInt command( EESMRCmdDisableWaypointIcon );
-    CESMRUrlParserPlugin* urlParser = CESMRUrlParserPlugin::NewL();
-    CleanupStack::PushL( urlParser );
+
     TPtrC urlPointer;
     TInt position;
-    position = urlParser->FindLocationUrl( aEntry.Entry().DescriptionL(), 
+    position = UrlParserL().FindLocationUrl( aEntry.Entry().DescriptionL(),
                                            urlPointer );
-    CleanupStack::PopAndDestroy( urlParser );
+
     // Location url is found and need to be replaced with show on map link
     if ( position >= KErrNone )
         {
@@ -387,24 +431,22 @@ void CESMRViewerDescriptionField::AddShowOnMapLinkL( MESMRCalEntry& aEntry )
         descriptionPointer.Replace( position,
                                     urlPointer.Length(),
                                     *showOnMapBuf );
-        CESMRRichTextLink* showOnMapLink = CESMRRichTextLink::NewL( position, 
-                                             showOnMapBuf->Length(), 
+        CESMRRichTextLink* showOnMapLink = CESMRRichTextLink::NewL( position,
+                                             showOnMapBuf->Length(),
                                              urlPointer,
                                              CESMRRichTextLink::ETypeLocationUrl,
                                              CESMRRichTextLink::ETriggerKeyOk );
         CleanupStack::PushL( showOnMapLink );
         iRichTextViewer->SetTextL( description, ETrue );
-        iRichTextViewer->InsertLinkL( showOnMapLink, 0 ); 
-        CleanupStack::Pop( showOnMapLink );                
+        iRichTextViewer->InsertLinkL( showOnMapLink, 0 );
+        CleanupStack::Pop( showOnMapLink );
         iRichTextViewer->HandleTextChangedL();
         CleanupStack::PopAndDestroy( description );
         CleanupStack::PopAndDestroy( showOnMapBuf );
-        command = EESMRCmdEnableWaypointIcon;
-        
-        const TDesC& location = aEntry.Entry().LocationL();
-        delete iLocation;
-        iLocation = NULL; 
-        iLocation = location.AllocL();     
+
+        StoreGeoValueL(
+                aEntry.Entry(),
+                urlPointer );
         }
     // No location url found. Other description text is added to field.
     else
@@ -412,9 +454,8 @@ void CESMRViewerDescriptionField::AddShowOnMapLinkL( MESMRCalEntry& aEntry )
         TPtrC text = aEntry.Entry().DescriptionL();
         iRichTextViewer->SetTextL( &text, ETrue );
         }
-    
+
     iRichTextViewer->SetMargins( KMargin );
-    NotifyEventL( command );
     }
 
 // ---------------------------------------------------------------------------
@@ -435,7 +476,7 @@ void CESMRViewerDescriptionField::SetShowOnMapLinkMiddleSoftKeyL()
             {
             RestoreMiddleSoftKeyL();
             }
-        
+
         SetMiddleSoftKeyVisible( ETrue );
         }
     else
@@ -455,7 +496,7 @@ CESMRFeatureSettings& CESMRViewerDescriptionField::FeaturesL()
         {
         iFeatures = CESMRFeatureSettings::NewL();
         }
-    
+
     return *iFeatures;
     }
 
@@ -470,8 +511,64 @@ CESMRLocationPlugin& CESMRViewerDescriptionField::LocationPluginL()
         {
         iLocationPlugin = CESMRLocationPlugin::NewL();
         }
-    
+
     return *iLocationPlugin;
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRViewerDescriptionField::ShowLocationOnMapL
+// ---------------------------------------------------------------------------
+//
+void CESMRViewerDescriptionField::ShowLocationOnMapL(
+        const CESMRRichTextLink& aLink )
+    {
+    FUNC_LOG;
+
+    if ( FeaturesL().FeatureSupported(
+            CESMRFeatureSettings::EESMRUIMnFwIntegration ) )
+        {
+        LocationPluginL().ShowOnMapL( aLink.Value() );
+        }
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRViewerDescriptionField::StoreGeoValueL
+// ---------------------------------------------------------------------------
+//
+void CESMRViewerDescriptionField::StoreGeoValueL(
+        CCalEntry& aCalEntry,
+        const TDesC& aLocationUrl )
+    {
+    FUNC_LOG;
+
+    TReal lat, lon;
+    CCalGeoValue* geoVal = aCalEntry.GeoValueL();
+
+    if ( !geoVal || ! geoVal->GetLatLong( lat, lon ) )
+        {
+        // GEO value not set. Convert URL
+        geoVal = UrlParserL().CreateGeoValueLC( aLocationUrl );
+        aCalEntry.SetGeoValueL( *geoVal );
+        CleanupStack::Pop( geoVal );
+
+        NotifyEventL( EESMRCmdEnableWaypointIcon );
+        }
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRViewerDescriptionField::UrlParserL
+// ---------------------------------------------------------------------------
+//
+CESMRUrlParserPlugin& CESMRViewerDescriptionField::UrlParserL()
+    {
+    FUNC_LOG;
+
+    if ( !iUrlParser )
+        {
+        iUrlParser = CESMRUrlParserPlugin::NewL();
+        }
+
+    return *iUrlParser;
     }
 
 //EOF

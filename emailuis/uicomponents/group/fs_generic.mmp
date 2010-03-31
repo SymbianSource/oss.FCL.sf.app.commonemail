@@ -102,6 +102,9 @@ SOURCE                fsseparatorvisualizer.cpp
 SOURCE                fsactionmenu.cpp
 SOURCE                fsactionmenucontrol.cpp
 SOURCE                fsalfwatermark.cpp
+SOURCE                cuicscrollbar.cpp
+SOURCE                cuicaknscrollbaradapter.cpp
+SOURCE                tuicscrollbarmodel.cpp
 
 APP_LAYER_SYSTEMINCLUDE
 SYSTEMINCLUDE         /epoc32/include/icl
@@ -137,4 +140,6 @@ LIBRARY               centralrepository.lib
 LIBRARY               flogger.lib
 LIBRARY               aknphysics.lib
 LIBRARY               cmaillogger.lib
+LIBRARY 			  aknicon.lib
+
 DEFFILE               fs_generic_alf.def

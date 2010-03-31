@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -29,6 +29,8 @@ class CESMRField;
 class MESMRCalEntry;
 class MESMRFieldEventObserver;
 class CESMRFieldEventQueue;
+class CESMRPolicy;
+class CMRSystemNotifier;
 
 /**
  * CESMRFieldStorage is a base class for different storage classes.
@@ -88,9 +90,11 @@ public: // From MESMRFieldStorage
     TInt Count() const;
     CESMRField* Field( TInt aInd ) const;
     CESMRField* FieldById( TESMREntryFieldId aId ) const;
-    virtual void InternalizeL( MESMRCalEntry& aEntry );
-    virtual void ExternalizeL( MESMRCalEntry& aEntry );
-    virtual TInt Validate( TESMREntryFieldId& aId, TBool aForceValidate );
+    void InternalizeL( MESMRCalEntry& aEntry );
+    void ExternalizeL( MESMRCalEntry& aEntry );
+    TInt Validate( TESMREntryFieldId& aId, TBool aForceValidate );
+    void ChangePolicyL( const CESMRPolicy& aNewPolicy,
+                        MESMRCalEntry& aEntry );
 
 protected:
     // C++ constructor
@@ -100,6 +104,14 @@ protected:
     void BaseConstructL();
     
     CESMRFieldEventQueue& EventQueueL();
+    
+    void RemoveField( TInt aInd );
+    
+    void InsertFieldL( CESMRField* aField, TInt aIndex );
+    
+    void ReserveL( TInt aCount );
+    
+    void Reset();
     
 private:
     /**
@@ -121,6 +133,8 @@ private:
     MESMRFieldEventObserver& iEventObserver;
     /// Own: Event Queue
     CESMRFieldEventQueue* iEventQueue;
+    /// Own: System notifier
+    CMRSystemNotifier* iSystemNotifier;
     };
 
 #endif // CESMRFIELDSTORAGE_H

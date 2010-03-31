@@ -100,6 +100,16 @@ void CFsEmailUiViewBase::DoActivateL( const TVwsViewId& aPrevViewId,
 
     // Clear the flag of long transition effect
     SetNextTransitionOutLong( EFalse );
+
+    // Clear status pane indicators
+    CCustomStatuspaneIndicators* indicators = 
+        iAppUi.GetStatusPaneIndicatorContainer();
+    if ( indicators )
+        {
+        indicators->ClearStatusPaneFlags();
+        indicators->HideStatusPaneIndicators();
+        }
+
     UpdateToolbarL();
 
     // Make sure Alfred display is of correct size (there is some problems with toolbar)

@@ -95,7 +95,6 @@
 #include "FreestyleEmailUi.hrh"
 #include "FreestyleEmailUiLauncherGrid.h"
 #include "FreestyleEmailUiLayoutHandler.h"
-#include "FreestyleEmailUiMailViewerVisualiser.h"
 #include "FreestyleEmailUiMailListControl.h"
 #include "FreestyleEmailUiMailListModel.h"
 #include "FreestyleEmailUiMailListVisualiser.h"
@@ -483,7 +482,6 @@ void CFreestyleEmailUiAppUi::ConstructL()
 
     // Set up layouthandler
     iLayoutHandler = CFSEmailUiLayoutHandler::NewL( *iEnv );
-	iLayoutHandler->ScreenResolutionChanged();
 
     // Create mail client, list mailboxes
     iMailClient = CFSMailClient::NewL();
@@ -534,16 +532,13 @@ void CFreestyleEmailUiAppUi::ConstructL()
 	AddViewL( globalSettingsView );
 	CleanupStack::Pop( globalSettingsView );
 
-	// Create and start view load in idle. Loads rest of the views when in idle.
-  	iViewLoadIdle = CIdle::NewL( CActive::EPriorityIdle );
-	iViewLoadIdleCallback = new (ELeave) TCallBack( DelayedViewLoaderCallBackL, this );
-  	iViewLoadIdle->Start( *iViewLoadIdleCallback );
+    // Create and start view load in idle. Loads rest of the views when in idle.
+    iViewLoadIdle = CIdle::NewL( CActive::EPriorityIdle );
+    iViewLoadIdleCallback = new (ELeave) TCallBack( DelayedViewLoaderCallBackL, this );
+    iViewLoadIdle->Start( *iViewLoadIdleCallback );
 
-	// Create mail viewer
-	iViewerVisualiser = CFSEmailUiMailViewerVisualiser::NewL( *iEnv, *this, *iEmailViewerControlGroup );
-	AddViewL( iViewerVisualiser );
-	// Create html viewer
-	iHtmlViewerControlGroup = &iEnv->NewControlGroupL( KHtmlViewerDisplayGroup );
+    // Create html viewer
+    iHtmlViewerControlGroup = &iEnv->NewControlGroupL( KHtmlViewerDisplayGroup );
     iHtmlViewerView = CFsEmailUiHtmlViewerView::NewL( *iEnv, *this, *iHtmlViewerControlGroup );
     AddViewL( iHtmlViewerView );
 
@@ -607,7 +602,7 @@ TInt CFreestyleEmailUiAppUi::ViewLoadIdleCallbackFunctionL()
     phCltResPath.Append(KETelCallEngPhCltResourceFile);
     //</cmail>
     BaflUtils::NearestLanguageFile( iEikonEnv->FsSession(), phCltResPath );
-    iPhCltResHandle = CCoeEnv::Static()->AddResourceFileL( phCltResPath );
+    iPhCltResHandle = iEikonEnv->AddResourceFileL( phCltResPath );
 
 	// Create attachment list visualiser and control
 	iAttachmentControlGroup = &iEnv->NewControlGroupL( KAttachmentManagerDisplayGroup );
@@ -984,11 +979,6 @@ TUid CFreestyleEmailUiAppUi::ReturnToPreviousViewL( const TDesC8& aCustomMessage
 		const TPckgBuf<TSearchListActivationData> pkgOut( tmp );
 		ActivateLocalViewL( SearchListViewId, KStartWithPreviousResults, pkgOut );
 		}
-	else if ( viewId == MailViewerId )
-		{
-		const TPckgBuf<TMsgViewerActivationData> pkgOut;
-		ActivateLocalViewL( MailViewerId, KStartViewerReturnToPreviousMsg,  pkgOut);
-		}
 	else if ( viewId == HtmlViewerId )
 	    {
 	    // launch html viewer
@@ -1178,10 +1168,6 @@ void CFreestyleEmailUiAppUi::ExitNow()
     if ( iMailListVisualiser )
         {
         iMailListVisualiser->PrepareForExit();
-        }
-    if ( iViewerVisualiser )
-        {
-        iViewerVisualiser->PrepareForExit();
         }
     if ( iHtmlViewerView )
         {
@@ -1454,6 +1440,15 @@ void CFreestyleEmailUiAppUi::HandleResourceChangeL( TInt aType )
     // resource change handling in list views. Trap any leaves so that we set
     // the automatic refresh mode back on even in case of error.
     iEnv->SetRefreshMode( EAlfRefreshModeManual );
+    switch ( aType )
+        {
+        case KEikDynamicLayoutVariantSwitch:
+            iEnv->NotifyLayoutChangedL();
+            break;
+        case KAknsMessageSkinChange:            
+            iEnv->NotifySkinChangedL();
+            break;
+        }
     TRAPD( error, DoHandleResourceChangeL( aType ) );
     iEnv->SetRefreshMode( EAlfRefreshModeAutomatic );
     User::LeaveIfError( error );
@@ -1469,11 +1464,12 @@ void CFreestyleEmailUiAppUi::DoHandleResourceChangeL( TInt aType )
     //    {
     //    CAlfEnv::Static()->NotifySkinChangedL();
     //    }
-
-    if( aType == KEikDynamicLayoutVariantSwitch || aType == KAknsMessageSkinChange )
-        {
+    
+    if ( aType == KEikDynamicLayoutVariantSwitch )
+    	{
         // Changing layout for status pane (just in case it is not switched
         // correctly), fix for HMNN-82BAGR error
+        // it's not related with skin change so "moved up" TJOS-83DELP fix 
         TBool landscape(Layout_Meta_Data::IsLandscapeOrientation());
         CEikStatusPane* statusPane = StatusPane();
         if(landscape)
@@ -1489,13 +1485,14 @@ void CFreestyleEmailUiAppUi::DoHandleResourceChangeL( TInt aType )
 				{
 				statusPane->SwitchLayoutL(R_AVKON_STATUS_PANE_LAYOUT_USUAL_EXT);
 				}
-        	}
+        	}       
+    	}
+
+    if( aType == KEikDynamicLayoutVariantSwitch || aType == KAknsMessageSkinChange )
+        {
 
 	  	TRect screenRect;
 	 	AknLayoutUtils::LayoutMetricsRect( AknLayoutUtils::EMainPane, screenRect );
-        //<cmail> layout manager call removed </cmail>
-        // Notify layouthandler of changed screen resolution.
-        iLayoutHandler->ScreenResolutionChanged();
   		StatusPane()->DrawNow();
         if(iEnv)
             {
@@ -1967,7 +1964,7 @@ void CFreestyleEmailUiAppUi::StartReadingEmailsL()
 		CleanupStack::PopAndDestroy( &markedMsgIdArray );
 		}
 	// Check if view is in mail viewer
-	else if ( mb && ( View(MailViewerId)->IsForeground() || View(SearchListViewId)->IsForeground() ) )
+	else if ( mb && ( View(HtmlViewerId)->IsForeground() || View(SearchListViewId)->IsForeground() ) )
 		{
         delete iCustomMessageToMessageReader;
         iCustomMessageToMessageReader = NULL;
@@ -1979,7 +1976,7 @@ void CFreestyleEmailUiAppUi::StartReadingEmailsL()
 	    outStream.WriteUint32L( mb->GetId().Id() );
 		TFSMailMsgId folderId;
 	   	TFSMailMsgId msgId;
-	   	if ( View(MailViewerId)->IsForeground() && iHtmlViewerView )
+	   	if ( View(HtmlViewerId)->IsForeground() && iHtmlViewerView )
 	   		{
 	   		folderId = iHtmlViewerView->ViewedMessageFolderId();
 	   		msgId = iHtmlViewerView->ViewedMessageId();
@@ -2103,6 +2100,7 @@ void CFreestyleEmailUiAppUi::EventL( TFSMailEvent aEvent, TFSMailMsgId aMailbox,
                                      TAny* aParam1, TAny* aParam2, TAny* aParam3 )
     {
     FUNC_LOG;
+    INFO_1( "CMAIL Received event: %d", aEvent );
 
     if (iExitGuardian)
         {
@@ -2192,12 +2190,15 @@ void CFreestyleEmailUiAppUi::EventL( TFSMailEvent aEvent, TFSMailMsgId aMailbox,
                         TIMESTAMP( "Sync error" );
                         if ( iManualMailBoxSync )
                             {
-                            // since error id is not provided by plugin, lets popup general note
-                            HBufC* text = StringLoader::LoadL( R_FS_MSERVER_TEXT_UNABLE_TO_COMPLETE );
-                            CleanupStack::PushL( text );
-                            CAknInformationNote* infoNote = new ( ELeave ) CAknInformationNote;
-                            infoNote->ExecuteLD( *text );
-                            CleanupStack::PopAndDestroy( text );
+							/* 
+							 * As a fix to TJOS-82ZFCW, this general popup is no longer needed
+                             * // since error id is not provided by plugin, lets popup general note
+                             * HBufC* text = StringLoader::LoadL( R_FS_MSERVER_TEXT_UNABLE_TO_COMPLETE );
+                             * CleanupStack::PushL( text );
+                             * CAknInformationNote* infoNote = new ( ELeave ) CAknInformationNote;
+                             * infoNote->ExecuteLD( *text );
+                             * CleanupStack::PopAndDestroy( text );
+                             */
                             ManualMailBoxSync( EFalse );
                             }
                         }
@@ -2290,21 +2291,17 @@ void CFreestyleEmailUiAppUi::EventL( TFSMailEvent aEvent, TFSMailMsgId aMailbox,
     // </cmail>
 
 	// MAIL DELETED EVENT HANDLING BASED ON VIEW ACTIVE STATE.
-    // Handle mail deleted event in mail viewer, as viewed mail could be open
-    if ( iViewerVisualiser && aEvent == TFSEventMailDeleted &&
-    	 iCurrentActiveView->Id() == MailViewerId )
-    	{
-    	iViewerVisualiser->HandleMailBoxEventL( aEvent, aMailbox, aParam1, aParam2, aParam3 );
-    	}
     // Handle mail deleted event in attachment list, as the viewed mail could be open
-    else if ( iAttachmentListVisualiser && aEvent == TFSEventMailDeleted  &&
+    if ( iAttachmentListVisualiser && aEvent == TFSEventMailDeleted  &&
     	 iCurrentActiveView->Id() == AttachmentMngrViewId)
     	{
     	iAttachmentListVisualiser->HandleMailBoxEventL( aEvent, aMailbox, aParam1, aParam2, aParam3 );
     	}
     // Handle mail deleted event in Html view list, as the mails might become obsolete
+	// Pass sync finished event there too in order to dismiss status dialogs
     else if ( iHtmlViewerView && (aEvent == TFSEventMailDeleted || 
-                                  aEvent == TFSEventMailDeletedFromViewer || 
+                                  aEvent == TFSEventMailDeletedFromViewer ||
+								  aEvent == TFSEventMailboxSyncStateChanged || 
                                   aEvent == TFSEventNewMail) && iCurrentActiveView->Id() == HtmlViewerId)
     	{
     	iHtmlViewerView->HandleMailBoxEventL( aEvent, aMailbox, aParam1, aParam2, aParam3 );
@@ -3191,12 +3188,13 @@ void CFSEmailUiAutosyncMonitor::RunL()
                 case RMobilePhone::ENotRegisteredSearching:
                 case RMobilePhone::ERegisteredBusy:
                 case RMobilePhone::ERegistrationDenied:
-                case RMobilePhone::ERegisteredRoaming:
+                //case RMobilePhone::ERegisteredRoaming:
                 	// No autoconnect in these cases
                     break;
                 // This is ok
                 case RMobilePhone::ERegisteredOnHomeNetwork:
-					// TRAP autoconnect, because list UI must open regardless success
+                case RMobilePhone::ERegisteredRoaming:
+     				// TRAP autoconnect, because list UI must open regardless success
 					// or failure of the auto-connect
                 	TRAP_IGNORE( iAppUi.DoAutoConnectL() );
                     break;

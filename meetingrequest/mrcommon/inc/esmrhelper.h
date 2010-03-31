@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -21,6 +21,8 @@
 #include <e32base.h>
 #include <msvstd.h>
 #include <calentry.h>
+
+#include "esmrdef.h"
 
 class CCalAttendee;
 class CCalUser;
@@ -92,7 +94,8 @@ public: // New functions
     IMPORT_C static CCalEntry* CopyEntryL(
             const CCalEntry& aEntry,
             CCalEntry::TMethod aMethod,
-            TCopyFields aCopyType );
+            TCopyFields aCopyType,
+            TESMRCalendarEventType aEntryType = EESMREventTypeNone );
 
     /**
      * Creates a copy with given method type.
@@ -105,7 +108,8 @@ public: // New functions
     IMPORT_C static CCalEntry* CopyEntryLC(
             const CCalEntry& aEntry,
             CCalEntry::TMethod aMethod,
-            TCopyFields aCopyType );
+            TCopyFields aCopyType,
+            TESMRCalendarEventType aEntryType = EESMREventTypeNone );
 
     /**
      * Copies entry fields according to the copy type specification.
@@ -122,7 +126,7 @@ public: // New functions
 
     /**
      * Returns TPtrC to all/part of the aAddress parameter
-     * so that possible "mailto:" or "MAILTO:" prefix is 
+     * so that possible "mailto:" or "MAILTO:" prefix is
      * stripped out.
      *
      * @param aAddress address which might contain the prefix
@@ -184,19 +188,98 @@ public: // New functions
             const TDesC& aPath,
             TFileName &aResourceFile,
             RFs* aFs = NULL );
-    
+
     //<cmail> getting temporary file name is not hard coded
     /**
-    * Creates and append process'es private directory to begining of file.
+    * Creates and appends process' private directory to beginning of file.
     * It also appends two back slashes, so aFileName should not contain any
     * backslashes in the begining.
     *
     * @param aFileName private directory is appended to this file name
     * @return error code
     */
-    IMPORT_C static TInt CreateAndAppendPrivateDirToFileName(TFileName& aFileName);
+    IMPORT_C static TInt CreateAndAppendPrivateDirToFileName(
+            TFileName& aFileName);
     //</cmail>
-    
+
+    /**
+    * Creates and appends system private directory to beginning of file.
+    * It also appends two back slashes, so aFileName should not contain any
+    * backslashes in the begining.
+    *
+    * @param aFileName Others directory is appended to this file name
+    * @return error code
+    */
+    IMPORT_C static TInt CreateAndAppendOthersDirToFileName(
+            TFileName& aFileName);
+
+private:
+    /**
+     * Enumeration for entry type switching
+     */
+
+    enum TESMRSwitchEventType
+        {
+        EMRSwitchUnknown = -1,
+        EMRSwitchMRToMeeting = 0,
+        EMRSwitchMRToMemo,
+        EMRSwitchMRToAnniversary,
+        EMRSwitchMRToTodo,
+
+        EMRSwitchMeetingToMR,
+        EMRSwitchMeetingToMemo,
+        EMRSwitchMeetingToAnniversary,
+        EMRSwitchMeetingToTodo,
+
+        EMRSwitchMemoToMR,
+        EMRSwitchMemoToMeeting,
+        EMRSwitchMemoToAnniversary,
+        EMRSwitchMemoToTodo,
+
+        EMRSwitchAnniversaryToMR,
+        EMRSwitchAnniversaryToMeeting,
+        EMRSwitchAnniversaryToMemo,
+        EMRSwitchAnniversaryToTodo,
+
+        EMRSwitchTodoToMR,
+        EMRSwitchTodoToMeeting,
+        EMRSwitchTodoToMemo,
+        EMRSwitchTodoToAnniversary
+        };
+
+private: // implementation
+
+    static CCalEntry* CopyEntryAndSwitchTypeL(
+            const CCalEntry& aSourceEntry,
+            TESMRCalendarEventType aTargetType );
+
+    static TESMRSwitchEventType ResolveSwitchType(
+            TESMRCalendarEventType aSourceType,
+            TESMRCalendarEventType aTargetType );
+
+    // This handles all entry type changes to Memo
+    static CCalEntry* SwitchToMemoL( const CCalEntry& aSourceEntry );
+    // This handles all entry type changes to Anniversary
+    static CCalEntry* SwitchToAnniversaryL( const CCalEntry& aSourceEntry );
+    // This handles all entry type changes to To-do
+    static CCalEntry* SwitchToTodoL( const CCalEntry& aSourceEntry );
+    // This handles all entry type changes to Meeting
+    static CCalEntry* SwitchToMeetingL( const CCalEntry& aSourceEntry );
+    // This handles all entry type changes to Meeting request
+    static CCalEntry* SwitchToMRL( const CCalEntry& aSourceEntry );
+
+    // Helper functions
+    static CCalEntry* CreateEntryL(
+            CCalEntry::TType aType,
+            const TDesC8& aUid,
+            CCalEntry::TMethod aMethod,
+            CalCommon::TRecurrenceRange aRange );
+    static void SetMeetingTimeL(
+            CCalEntry& aTargetEntry,
+            const CCalEntry& aSourceEntry );
+    static void SetDefaultAlarmForMeetingL(
+            CCalEntry& aTargetEntry );
+    static void AddOrganizerL( CCalEntry& aTargetEntry );
     };
 
 #endif      // ESMRHELPER_H

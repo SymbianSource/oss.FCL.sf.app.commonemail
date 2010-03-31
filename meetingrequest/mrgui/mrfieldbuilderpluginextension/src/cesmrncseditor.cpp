@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -17,19 +17,19 @@
 
 #include "emailtrace.h"
 #include "cesmrncseditor.h"
+#include "nmrcolormanager.h"
 
 #include <avkon.hrh>
 #include <aknenv.h>         // CAknEnv
 #include <txtrich.h>
-#include <AknUtils.h>       // AknLayoutUtils
+#include <aknutils.h>       // AknLayoutUtils
 #include <txtglobl.h>
 
-#include <AknsConstants.h>
-#include <AknsUtils.h>
-#include <AknsSkinInstance.h>
-#include <AknsBasicBackgroundControlContext.h>
+#include <aknsconstants.h>
+#include <aknsutils.h>
+#include <aknsskininstance.h>
+#include <aknsbasicbackgroundcontrolcontext.h>
 
-#include "cesmrlayoutmgr.h"
 
 // ======== MEMBER FUNCTIONS ========
 
@@ -53,7 +53,6 @@ CESMRNcsEditor::CESMRNcsEditor( HBufC* aDefaultText ) :
 CESMRNcsEditor::~CESMRNcsEditor()
     {
     FUNC_LOG;
-    delete iBgContext;
     }
 
 // -----------------------------------------------------------------------------
@@ -133,17 +132,35 @@ void CESMRNcsEditor::SetTextL( const TDesC* aDes )
     }
 
 // -----------------------------------------------------------------------------
-// CESMRNcsEditor::SetRect
+// CESMRNcsEditor::FocusChanged
 // -----------------------------------------------------------------------------
 //
-void CESMRNcsEditor::SetRect( const TRect& aRect )
+void CESMRNcsEditor::FocusChanged( TDrawNow aDrawNow )
     {
-    FUNC_LOG;
-    CCoeControl::SetRect( aRect );
+    CEikRichTextEditor::FocusChanged( aDrawNow );
+    }
 
-    if ( iBgContext )
+// -----------------------------------------------------------------------------
+// CESMRNcsEditor::HandlePointerEventL
+// -----------------------------------------------------------------------------
+//
+void CESMRNcsEditor::HandlePointerEventL( const TPointerEvent& aPointerEvent )
+    {
+    if ( Rect().Contains( aPointerEvent.iPosition ) )
         {
-        iBgContext->SetRect( aRect );
+        switch ( aPointerEvent.iType )
+            {
+            case TPointerEvent::EButton1Down:
+            case TPointerEvent::EButton1Up:
+            	{
+                CEikRichTextEditor::HandlePointerEventL( aPointerEvent );
+                break;
+            	}
+            default:
+                {
+                break;
+                }
+            }
         }
     }
 
@@ -204,6 +221,10 @@ TInt CESMRNcsEditor::LineCount() const
     return lineCount;
     }
 
+// -----------------------------------------------------------------------------
+// CESMRNcsEditor::ScrollableLines() const
+// -----------------------------------------------------------------------------
+//
 TInt CESMRNcsEditor::ScrollableLines() const
     {
     FUNC_LOG;
@@ -216,7 +237,7 @@ TInt CESMRNcsEditor::ScrollableLines() const
     }
 
 // -----------------------------------------------------------------------------
-// CESMRNcsEditor::PositionChanged() const
+// CESMRNcsEditor::PositionChanged()
 // -----------------------------------------------------------------------------
 //
 void CESMRNcsEditor::PositionChanged()
@@ -306,8 +327,7 @@ void CESMRNcsEditor::EditObserver( TInt aStart, TInt aExtent )
     TRAPD( error, text = GetTextInHBufL());
     if (error!= KErrNone)
         {
-        CEikonEnv::Static()-> // codescanner::eikonenvstatic
-            HandleError(error);
+        iCoeEnv->HandleError(error);
         }
 
     // if we are adding or removing multiple characters check
@@ -427,7 +447,7 @@ TInt CESMRNcsEditor::ChangeBandTopL(TInt aPixels)
 // CESMRNcsEditor::SetFontL
 // -----------------------------------------------------------------------------
 //
-void CESMRNcsEditor::SetFontL( const CFont* aFont, CESMRLayoutManager* aLayout )
+void CESMRNcsEditor::SetFontL( const CFont* aFont )
     {
     FUNC_LOG;
     const CFont* font = aFont;
@@ -449,9 +469,14 @@ void CESMRNcsEditor::SetFontL( const CFont* aFont, CESMRLayoutManager* aLayout )
     formatMask.SetAttrib( EAttFontHeight );
     formatMask.SetAttrib( EAttFontPosture );
     formatMask.SetAttrib( EAttFontStrokeWeight );
-
-    charFormat.iFontPresentation.iTextColor = aLayout->NormalTextColor();
+    formatMask.SetAttrib(EAttFontHighlightColor);
     formatMask.SetAttrib( EAttColor );
+
+    charFormat.iFontPresentation.iTextColor = 
+           NMRColorManager::Color( NMRColorManager::EMRMainAreaTextColor );
+
+    charFormat.iFontPresentation.iHighlightColor =  
+           NMRColorManager::Color( NMRColorManager::EMRCutCopyPasteHighlightColor );
 
     CParaFormatLayer* paraFormatLayer =
         CParaFormatLayer::NewL( paraFormat, paraFormatMask );

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -12,7 +12,7 @@
 * Contributors:
 *
 *  Description : Storage for viewer fields
-*  Version     : %version: tr1sido#6 %
+*  Version     : %version: e002sa33#8 %
 *
 */
 
@@ -65,7 +65,7 @@ CESMRViewerFieldStorage::~CESMRViewerFieldStorage()
 // ---------------------------------------------------------------------------
 //
 CESMRViewerFieldStorage* CESMRViewerFieldStorage::NewL(
-        CESMRPolicy* aPolicy,
+        const CESMRPolicy& aPolicy,
         MESMRResponseObserver* aResponseObserver,
         TBool aResponseReady,
         MESMRFieldEventObserver& aEventObserver,
@@ -88,7 +88,7 @@ CESMRViewerFieldStorage* CESMRViewerFieldStorage::NewL(
 // ---------------------------------------------------------------------------
 //
 void CESMRViewerFieldStorage::ConstructL(
-        CESMRPolicy* aPolicy,
+        const CESMRPolicy& aPolicy,
         MESMRResponseObserver* aResponseObserver,
         TBool aResponseReady,
         const TInt &aReqAttendee,
@@ -127,14 +127,15 @@ void CESMRViewerFieldStorage::ExternalizeL(
 // CESMRViewerFieldStorage::CreatePolicyFieldsL
 // ---------------------------------------------------------------------------
 //
-void CESMRViewerFieldStorage::CreatePolicyFieldsL(CESMRPolicy* aPolicy,
+void CESMRViewerFieldStorage::CreatePolicyFieldsL(
+        const CESMRPolicy& aPolicy,
         MESMRResponseObserver* aResponseObserver,
         TBool aResponseReady)
     {
     FUNC_LOG;
     CESMRField* field = NULL;
     
-    RArray<TESMREntryField> fields = aPolicy->Fields();
+    RArray<TESMREntryField> fields = aPolicy.Fields();
     const TInt count = fields.Count();
     for ( TInt i(0); i < count ; i++ )
         {
@@ -142,31 +143,7 @@ void CESMRViewerFieldStorage::CreatePolicyFieldsL(CESMRPolicy* aPolicy,
         		aResponseObserver, fields[i], aResponseReady );
 
         TBool visible( ETrue );
-            
-        switch ( fields[i].iFieldId )
-            {
-            case EESMRFieldResponseArea:
-                {
-                if ( aResponseReady )
-                    {
-                    visible = EFalse;
-                    }
-                break;
-                }
-            case EESMRFieldResponseReadyArea:
-                {
-                if ( !aResponseReady )
-                    {
-                    visible = EFalse;
-                    }
-                break;
-                }
-            default:
-                {
-                break;
-                }
-            }
-        
+                   
         CleanupStack::PushL( field );
         AddFieldL( field, visible );
         CleanupStack::Pop( field );
@@ -177,7 +154,8 @@ void CESMRViewerFieldStorage::CreatePolicyFieldsL(CESMRPolicy* aPolicy,
 // CESMRViewerFieldStorage::CreateTrackingFieldsL
 // ---------------------------------------------------------------------------
 //
-void CESMRViewerFieldStorage::CreateTrackingFieldsL(CESMRPolicy* aPolicy,
+void CESMRViewerFieldStorage::CreateTrackingFieldsL(
+        const CESMRPolicy& aPolicy,
         MESMRResponseObserver* aResponseObserver,
         TBool aResponseReady,
         const TInt &aReqAttendee,
@@ -185,7 +163,7 @@ void CESMRViewerFieldStorage::CreateTrackingFieldsL(CESMRPolicy* aPolicy,
     {
     FUNC_LOG;
     CESMRField* field = NULL;
-    RArray<TESMREntryField> fields = aPolicy->Fields();
+    RArray<TESMREntryField> fields = aPolicy.Fields();
 
     if (aReqAttendee > 0)
         {

@@ -38,8 +38,7 @@ enum TPanicCode
 
 #endif  // _DEBUG
 
-// <cmail> Removed unneeded cleanup function.
-// </cmail>
+const TInt KNumLocationFeatures = 4;
 
 } // namespace
 
@@ -62,41 +61,33 @@ CESMRFeatureSettings::CESMRFeatureSettings()
 // ---------------------------------------------------------------------------
 //
 void CESMRFeatureSettings::ConstructL()
-    {
+    {   
     FUNC_LOG;
-    // <cmail> Removed unneeded cleanup function.
-    FeatureManager::InitializeLibL();
-    
-    TBool locationIntegrationSupported = FeatureManager::FeatureSupported(
-        KFeatureIdFfFsCalendarLocation );
 
-    FeatureManager::UnInitializeLib();
+    // Read settings from central repository. These are read-only settings,
+    // so these must be read only once at this object lifetime.
+    CRepository* settings = NULL;
+    TRAPD( err, settings = CRepository::NewL( KCRUidESMRUIFeatures ) );
 
-    if ( locationIntegrationSupported )
+    if ( err == KErrNone )
         {
-        // Read settings from central repository. These are read-only settings,
-        // so these must be read only once at this object lifetime.
-        CRepository* settings = NULL;
-        TRAPD( err, settings = CRepository::NewL( KCRUidESMRUIFeatures ) );
+        settings->Get( KESMRUIFeatureMnFwIntegration,
+                iFeatures[ EESMRUIMnFwIntegrationIndex ] );
+
+        settings->Get( KESMRUIFeatureContactsIntegration,
+                iFeatures[ EESMRUIContactsIntegrationIndex ] );
+
+        settings->Get( KESMRUIFeatureLandmarksIntegration,
+                iFeatures[ EESMRUILandmarksIntegrationIndex ] );
+
+        settings->Get( KESMRUIFeaturePreviousLocationsList,
+                iFeatures[ EESMRUIPreviousLocationsListIndex ] );
         
-        if ( err == KErrNone )
-			{
-	        settings->Get( KESMRUIFeatureMnFwIntegration,
-    	                   iLocationFeatures[ EESMRUIMnFwIntegrationIndex ] );
-                
-        	settings->Get( KESMRUIFeatureContactsIntegration,
-            	           iLocationFeatures[ EESMRUIContactsIntegrationIndex ] );
-        
-	        settings->Get( KESMRUIFeatureLandmarksIntegration,
-    	                   iLocationFeatures[ EESMRUILandmarksIntegrationIndex ] );
-        
-        	settings->Get( KESMRUIFeaturePreviousLocationsList,
-            	           iLocationFeatures[ EESMRUIPreviousLocationsListIndex ] );
-        	
-	        delete settings;
-			}		
-        }
-    // </cmail>
+        settings->Get( KMRUIFeatureMeetingRequestViewerCmailOnly,
+                iFeatures[ EMRUIMeetingRequestViewerCmailIndex ] );
+
+        delete settings;
+        }       
     }
 
 
@@ -151,10 +142,11 @@ EXPORT_C TBool CESMRFeatureSettings::FeatureSupported( TUint aFeatures ) const
         case EESMRUIContactsIntegration:
         case EESMRUILandmarksIntegration:
         case EESMRUIPreviousLocationsList:
+        case EMRUIMeetingRequestViewerCmailOnly:
             {
             TInt index = MapFeature( aFeatures );
             if ( index > KErrNotFound
-                 && iLocationFeatures[ index ] ) // codescanner::accessArrayElementWithoutCheck2
+                 && iFeatures[ index ] ) // codescanner::accessArrayElementWithoutCheck2
                 {
                 featureSupported = ETrue;
                 }
@@ -164,9 +156,9 @@ EXPORT_C TBool CESMRFeatureSettings::FeatureSupported( TUint aFeatures ) const
         // All flag
         case EESMRUILocationFeatures:
             {
-            for ( TInt i = 0; i < EESMRUINumLocationFeatures; ++i )
+            for ( TInt i = 0; i < KNumLocationFeatures; ++i )
                 {
-                if ( iLocationFeatures[ i ] ) // codescanner::accessArrayElementWithoutCheck2
+                if ( iFeatures[ i ] ) // codescanner::accessArrayElementWithoutCheck2
                     {
                     featureSupported = ETrue;
                     break; // for-loop
@@ -179,18 +171,18 @@ EXPORT_C TBool CESMRFeatureSettings::FeatureSupported( TUint aFeatures ) const
         default:
             {
             TUint mask = 0x1;
-            for ( TInt i = 0; i < EESMRUINumLocationFeatures; ++i )
+            for ( TInt i = 0; i < EESMRUINumFeatures; ++i )
                 {
                 TUint feature = aFeatures & mask;
                 TInt index = MapFeature( feature );
                 if ( ( index > KErrNotFound )
-                     && ( feature < EESMRUILocationFeatures )
-                     && iLocationFeatures[ index ] ) // codescanner::accessArrayElementWithoutCheck2
+                     && ( feature < EMRUIAllFeatures )
+                     && iFeatures[ index ] ) // codescanner::accessArrayElementWithoutCheck2
                     {
                     featureSupported = ETrue;
                     break;
                     }
-                else if ( feature > EESMRUILocationFeatures )
+                else if ( feature > EMRUIAllFeatures )
                     {
                     __ASSERT_DEBUG( EFalse, User::Panic( KPanicCategory, EUnknownFeature) );
                     }
@@ -238,6 +230,11 @@ TInt CESMRFeatureSettings::MapFeature( TUint aFeature ) const
         case EESMRUIPreviousLocationsList:
             {
             index = EESMRUIPreviousLocationsListIndex;
+            break;
+            }
+        case EMRUIMeetingRequestViewerCmailOnly:
+            {
+            index = EMRUIMeetingRequestViewerCmailIndex;
             break;
             }
         default: // Illegal flags

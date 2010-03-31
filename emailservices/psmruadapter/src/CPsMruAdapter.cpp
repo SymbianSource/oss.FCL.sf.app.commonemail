@@ -125,8 +125,8 @@ CPsMruAdapter::~CPsMruAdapter()
         }
     if(iDelayMailboxCreationPtr)
         {
-        iDelayMailboxCreationPtr->Deque();
         delete iDelayMailboxCreationPtr;
+        iDelayMailboxCreationPtr = NULL;
         }
     
     iDelayedCreatedMailboxes.Reset();

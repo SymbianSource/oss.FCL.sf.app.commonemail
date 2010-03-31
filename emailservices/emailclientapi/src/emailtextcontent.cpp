@@ -17,6 +17,7 @@
 
 #include "emailcontent.h"
 #include "emailtextcontent.h"
+#include "emailmessage.h"
 #include "emailclientapi.hrh"
 
 // CEmailTextContent
@@ -48,8 +49,8 @@ void CEmailTextContent::ConstructL(
         CFSMailMessagePart* aPart )
     {
     iEmailMsgContent = CEmailMessageContent::NewL( aPluginData, aMsgContentId, aPart );
-
-    if (!CheckParameterFormatL( aPart->GetContentType() ).Compare(KFSMailContentTypeTextHtml))
+    TContentType contentType( aPart->GetContentType() );
+    if ( contentType.Equals( KFSMailContentTypeTextHtml ) )
         {
         iTextType = EHtmlText;        
         }
@@ -314,46 +315,6 @@ MEmailAttachment* CEmailTextContent::AsAttachmentOrNull() const
     return NULL;
     }
 
-// -----------------------------------------------------------------------------
-// 
-// -----------------------------------------------------------------------------
-//
-const TDesC& CEmailTextContent::CheckParameterFormatL( const TDesC& aParam )
-    {    
-    _LIT( KSeparator, ";" );
-    _LIT( KSlash, "/" );
-    // Check for a type separator in the string
-    TInt endPos = aParam.Find( KSeparator );
-    // Construct the compare string
-    TPtrC extractString( aParam.Left( endPos ) );
-    HBufC* compareBuf = extractString.AllocLC();
-    TPtr compareString = compareBuf->Des();
-    TInt slashPos = aParam.Find( KSlash );
-    TInt stringLen = compareString.Length();
-         
-    const TDesC& leftPart = extractString.Left( slashPos );
-    HBufC* leftPartBuf = leftPart.AllocLC();
-    TPtr leftPartString = leftPartBuf->Des();
-    leftPartString.Trim();
-         
-    const TDesC& rightPart = extractString.Right( stringLen - ( slashPos + 1 ) );
-    HBufC* rightPartBuf = rightPart.AllocLC();
-    TPtr rightPartString = rightPartBuf->Des();
-    rightPartString.Trim();
-         
-    compareString.Delete( 0, endPos );
-    compareString.Append( leftPartString );
-    compareString.Append( KSlash );
-    compareString.Append( rightPartString );
-    compareString.LowerCase();   
-    CleanupStack::PopAndDestroy( rightPartBuf );
-    CleanupStack::PopAndDestroy( leftPartBuf );
-    
-    const TDesC& retParam = compareString;
-    CleanupStack::PopAndDestroy( compareBuf );
-    
-    return retParam;
-    }
 
 // -----------------------------------------------------------------------------
 // 

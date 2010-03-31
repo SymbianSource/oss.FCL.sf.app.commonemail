@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -19,7 +19,6 @@
 #include "emailtrace.h"
 #include "cesmrmrinfoicalretriever.h"
 #include "cesmrinforecurrencehandler.h"
-#include "cesmrattachmentinfo.h"
 #include "mesmricalviewerobserver.h"
 #include "tesmrinputparams.h"
 #include "esmricalviewerutils.h"
@@ -40,7 +39,7 @@
 #include <calentry.h>
 #include <caluser.h>
 #include <calalarm.h>
-#include <CalenInterimUtils2.h>
+#include <caleninterimutils2.h>
 #include <utf.h>
 
 // Unnamed namespace for local definitions and functions
@@ -327,7 +326,6 @@ CESMRInfoIcalRetrieverCmd::~CESMRInfoIcalRetrieverCmd()
     FUNC_LOG;
     iSupportedFields.Reset();
     iSupportedFields.Close();
-    delete iAttachmentInfo;
     delete iConvertedEntry;
     }
 
@@ -391,8 +389,6 @@ void CESMRInfoIcalRetrieverCmd::ExecuteCommandL(
             {
             FillRecurrenceL();
             }
-
-        FillAttachmentInfoL();
 
         // Fill input parameters
         // Ownership is not trasferred
@@ -586,7 +582,7 @@ void CESMRInfoIcalRetrieverCmd::FillCommonFieldsL()
         if ( KErrNone == err && minutesBetween.Int() > 0 )
             {
             alarm->SetTimeOffset( minutesBetween );
-            // this method copies alarm details and does not take ownership 
+            // this method copies alarm details and does not take ownership
             iConvertedEntry->SetAlarmL( alarm );
             }
         // that's why we can destroy it here
@@ -630,75 +626,6 @@ void CESMRInfoIcalRetrieverCmd::FillRecurrenceL()
                     *iMRInfoObject );
 
         CleanupStack::PopAndDestroy( recurrenceHandler );
-        }
-    }
-
-// ---------------------------------------------------------------------------
-// CESMRInfoIcalRetrieverCmd::FillAttachmentInfoL
-// ---------------------------------------------------------------------------
-//
-void CESMRInfoIcalRetrieverCmd::FillAttachmentInfoL()
-    {
-    FUNC_LOG;
-    CFSMailMessage* msg = Message();
-
-    if ( msg->IsFlagSet( EFSMsgFlag_Attachments ) )
-        {
-        RPointerArray<CFSMailMessagePart> attachmentParts;
-        CleanupStack::PushL(
-                TCleanupItem(
-                    ESMRIcalViewerUtils::MessagePartPointerArrayCleanup,
-                    &attachmentParts    ) );
-
-        msg->AttachmentListL( attachmentParts );
-
-        TInt attachmentCount( attachmentParts.Count() );
-        if ( attachmentCount > 0 )
-            {
-            delete iAttachmentInfo;
-            iAttachmentInfo = NULL;
-            
-            iInputParameters.iAttachmentInfo = NULL;
-
-            CESMRAttachmentInfo* attachmentInfo = CESMRAttachmentInfo::NewL();
-            CleanupStack::PushL( attachmentInfo );
-
-            for( TInt i(0); i < attachmentCount; ++i )
-                {
-                CESMRAttachment::TESMRAttachmentState state(
-                        CESMRAttachment::EAttachmentStateDownloaded );
-
-                if ( EFSFull != attachmentParts[i]->FetchLoadState() )
-                    {
-                    state = CESMRAttachment::EAttachmentStateNotDownloaded;
-                    }
-
-                TInt contentSize( attachmentParts[i]->ContentSize() );
-                TPtrC attachmentName( attachmentParts[i]->AttachmentNameL() );
-                if ( contentSize >= 0 && attachmentName.Length() )
-                    {
-                    attachmentInfo->AddAttachmentInfoL(
-                            attachmentName,
-                            contentSize,
-                            state );
-                    }
-                }
-
-            if ( attachmentInfo->AttachmentCount() )
-                {
-                iAttachmentInfo = attachmentInfo;
-                CleanupStack::Pop( attachmentInfo );
-                // ownership does not change
-                iInputParameters.iAttachmentInfo = iAttachmentInfo;
-                }
-            else
-                {
-                CleanupStack::PopAndDestroy( attachmentInfo );
-                }
-
-            attachmentInfo = NULL;
-            }
-        CleanupStack::PopAndDestroy(); // attachmentparts
         }
     }
 

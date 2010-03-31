@@ -90,7 +90,11 @@ void TFsEmailStatusPaneIndicatorHandler::StatusPaneMailIndicatorHandlingL( TInt 
                 CFreestyleEmailUiAppUi* appUi = 
                 static_cast<CFreestyleEmailUiAppUi*>( CCoeEnv::Static()->AppUi() );
                 //Write the name commonEmailRepository
-                commonEmailRepository->Set(KCmailNewEmailDisplayText,appUi->GetMailClient()->GetMailBoxByUidL(prevMboxId)->GetName());
+                CFSMailBox* prevMbox = appUi->GetMailClient()->GetMailBoxByUidL( prevMboxId );
+                if ( prevMbox )
+                    {
+                    commonEmailRepository->Set( KCmailNewEmailDisplayText, prevMbox->GetName() );
+                    }
                 }
             }
         if(numberOfMailboxes == 0)

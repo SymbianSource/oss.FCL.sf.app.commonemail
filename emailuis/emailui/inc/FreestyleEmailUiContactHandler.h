@@ -45,6 +45,7 @@ class MVPbkContactLinkArray;
 class CAiwServiceHandler;
 class CContactItem;
 class MPbkGlobalSetting;
+class CEikonEnv;
 
 /** Contact handler commands. */
 enum TContactHandlerCmd
@@ -457,6 +458,8 @@ private: // data
 
     // connection to CCMA launcher    
     MCCAConnection* iConnection;
+
+    CEikonEnv* iEnv;
 };
 
 #endif /*FREESTYLEEMAILUICONTACTHANDLER_H_*/

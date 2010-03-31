@@ -12,7 +12,7 @@
 * Contributors:
 *
 *  Description : A visualizer for data items with plain text.
-*  Version     : %version: tr1sido#15 %
+*  Version     : %version: tr1sido#16 %
 *
 */
 
@@ -270,21 +270,6 @@ void CFsTreePlainTwoLineItemVisualizer::UpdateLayout(
     TAlfTimedPoint tpSubjTextTl, tpSubjTextBr;
     TAlfTimedPoint tpPrevTextTl, tpPrevTextBr;
     
-    // <cmail> Layouts
-    
-/*
-    CFsLayoutManager::TFsLayoutMetrics
-        mainIconMetrics = CFsLayoutManager::EFsLmListMediumLineT2G3G1,
-        markIconMetrics = CFsLayoutManager::EFsLmListMediumLineT2G3G2,
-        menuIconMetrics = CFsLayoutManager::EFsLmListMediumLineT2G3G3,
-        //<cmail> ???        
-        sizeMetrics     = CFsLayoutManager::EFsLmListSingleDycRowPane,
-        //</cmail>
-        exSizeMetrics   = CFsLayoutManager::EFsLmListMediumLineX2,
-        preSizeMetrics  = CFsLayoutManager::EFsLmListMediumLineX3,
-        flagIconMetrics = CFsLayoutManager::EFsLmListMediumLineX2G1;
-*/
-
     CFsLayoutManager::TFsLayoutMetrics
         mainIconMetrics = CFsLayoutManager::EFsLmListSingleDycRowPaneG1,
         markIconMetrics = CFsLayoutManager::EFsLmListSingleDycRowPaneG4,
@@ -365,19 +350,19 @@ void CFsTreePlainTwoLineItemVisualizer::UpdateLayout(
                     {
                     //mainIcon + markIcon + menuIcon
                     mainIconMetrics =
-                        CFsLayoutManager::EFsLmListSingleDycRowPaneG1;//EFsLmListMediumLineX2T3G4G1;
+                        CFsLayoutManager::EFsLmListSingleDycRowPaneG1;
                     mainIconVariety = 3;
                     if (IsPreviewPaneOn())
                         {
                         markIconMetrics =
-                            CFsLayoutManager::EFsLmListSingleDycRowPaneG4;//EFsLmListMediumLineX3T4G4G4;
+                            CFsLayoutManager::EFsLmListSingleDycRowPaneG4;
                         markIconVariety = 5;
 						markIconRow = 2;
                         }
                     else
                         {
                         markIconMetrics =
-                            CFsLayoutManager::EFsLmListSingleDycRowPaneG3;//EFsLmListMediumLineX2T3G4G2;
+                            CFsLayoutManager::EFsLmListSingleDycRowPaneG3;
                         markIconVariety = 1;
 						markIconRow = 0;
                         }
@@ -999,8 +984,6 @@ void CFsTreePlainTwoLineItemVisualizer::UpdateLayout(
                         firstLineTextMetrics[1] =
                              CFsLayoutManager::EFsLmListSingleDycRowTextPaneT3;
                         firstLineTextVarieties[1] = 24;
-//                        firstLineTextMetrics[2] =
-//                             CFsLayoutManager::EFsLmListMediumLineT3RightIconx2T3;
                         }
                     }
                 else
@@ -1030,14 +1013,6 @@ void CFsTreePlainTwoLineItemVisualizer::UpdateLayout(
                         }
                     else if (firstLineTextFields==3)
                         {
-//                        markIconMetrics =
-//                            CFsLayoutManager::EFsLmListMediumLineT3RightIconG1;
-//                        firstLineTextMetrics[0] =
-//                            CFsLayoutManager::EFsLmListMediumLineT3RightIconT1;
-//                        firstLineTextMetrics[1] =
-//                            CFsLayoutManager::EFsLmListMediumLineT3RightIconT2;
-//                        firstLineTextMetrics[2] =
-//                            CFsLayoutManager::EFsLmListMediumLineT32RightIconT2;
                         }
                     }
                 }
@@ -1071,14 +1046,6 @@ void CFsTreePlainTwoLineItemVisualizer::UpdateLayout(
                         }
                     else if (firstLineTextFields==3)
                         {
-//                        menuIconMetrics =
-//                            CFsLayoutManager::EFsLmListMediumLineT3RightIconG1;
-//                        firstLineTextMetrics[0] =
-//                            CFsLayoutManager::EFsLmListMediumLineT3RightIconT1;
-//                        firstLineTextMetrics[1] =
-//                            CFsLayoutManager::EFsLmListMediumLineT3RightIconT2;
-//                        firstLineTextMetrics[2] =
-//                            CFsLayoutManager::EFsLmListMediumLineT3RightIconT2;
                         }
                     }
                 else
@@ -1281,7 +1248,12 @@ void CFsTreePlainTwoLineItemVisualizer::UpdateLayout(
                 (iFlags & KFsTreeListItemExtended))
             {
             TRect secondLineParentRect;
-            CFsLayoutManager::LayoutMetricsRect(currentSize, CFsLayoutManager::EFsLmListSingleDycRowPane, secondLineParentRect, 1, 1);
+            
+            // WORKAROUND FIX FOR LAYOUT PROBLEM -- RETURN THIS TO NORMAL WHEN LAYOUT'S ARE OK
+            //CFsLayoutManager::LayoutMetricsRect(currentSize, CFsLayoutManager::EFsLmListSingleDycRowPane, secondLineParentRect, 1, 1);
+            CFsLayoutManager::LayoutMetricsRect(currentSize, CFsLayoutManager::EFsLmListSingleDycRowPane, secondLineParentRect, 2, 1);
+            // WORKAROUND FIX FOR LAYOUT PROBLEM -- RETURN THIS TO NORMAL WHEN LAYOUT'S ARE OK
+            
             CFsLayoutManager::LayoutMetricsRect(secondLineParentRect, CFsLayoutManager::EFsLmListSingleDycRowTextPane, secondLineParentRect, secondLineTextVariety);
             CFsLayoutManager::LayoutMetricsText(secondLineParentRect,
                     secondLineTextMetrics, subjTextInfo, secondLineTextVariety);

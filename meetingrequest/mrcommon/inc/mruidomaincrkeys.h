@@ -55,4 +55,18 @@ const TUint32 KESMRUIFeatureLandmarksIntegration = 0x3;
  */
 const TUint32 KESMRUIFeaturePreviousLocationsList = 0x4;
 
+/**
+ * CenRep key for disabling all features except meeting request
+ * viewer in Cmail application.
+ * 
+ * Default value: 0 (off) 
+ */
+const TUint32 KMRUIFeatureMeetingRequestViewerCmailOnly = 0x5;
+
+/**
+ * CenRep key for storing default calendar database index for 
+ * meeting request entries.
+ */
+const TUint32 KMRUIDefaultCalDbIndex = 0x6;
+
 #endif // MRUIDOMAINCRKEYS_H

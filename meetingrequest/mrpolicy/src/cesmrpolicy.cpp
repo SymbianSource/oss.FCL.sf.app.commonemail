@@ -363,5 +363,41 @@ EXPORT_C TESMRCalendarEventType CESMRPolicy::EventType() const
     return iEventType;
     }
 
+// -----------------------------------------------------------------------------
+// CESMRPolicy::PolicyId
+// -----------------------------------------------------------------------------
+//
+EXPORT_C TESMRPolicyID CESMRPolicy::PolicyId() const
+    {
+    return iPolicyId;
+    }
+
+// -----------------------------------------------------------------------------
+// CESMRPolicy::ViewMode
+// -----------------------------------------------------------------------------
+//
+EXPORT_C TESMRViewMode CESMRPolicy::ViewMode() const
+    {
+    return iViewMode;
+    }
+
+// -----------------------------------------------------------------------------
+// CESMRPolicy::Fields
+// -----------------------------------------------------------------------------
+//
+EXPORT_C const RArray<TESMREntryField>& CESMRPolicy::Fields() const
+    {
+    return iMRFields;
+    }
+
+// -----------------------------------------------------------------------------
+// CESMRPolicy::AllowedApp
+// -----------------------------------------------------------------------------
+//
+EXPORT_C TESMRUsingApp CESMRPolicy::AllowedApp() const
+    {
+    return iAllowedApp;
+    }
+
 // EOF
 

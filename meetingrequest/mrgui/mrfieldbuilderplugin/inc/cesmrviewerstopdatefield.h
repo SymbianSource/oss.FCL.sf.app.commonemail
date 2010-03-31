@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -11,7 +11,7 @@
 *
 * Contributors:
 *
-* Description:  ESMR viewer end date field for CESMRListComponent
+* Description:  ESMR viewer end date field.
 *
 */
 
@@ -32,38 +32,45 @@ class CMRLabel;
  */
 NONSHARABLE_CLASS( CESMRViewerStopDateField ) : public CESMRField
     {
-    public:
-        /**
-         * Creates new CESMRViewerStopDateField object. Ownership
-         * is transferred to caller.
-         * @return Pointer to created object,
-         */
-        static CESMRViewerStopDateField* NewL();
+public:
+    /**
+     * Creates new CESMRViewerStopDateField object. Ownership
+     * is transferred to caller.
+     * @return Pointer to created object,
+     */
+    static CESMRViewerStopDateField* NewL();
+
+    /**
+     * C++ destructor
+     */
+    ~CESMRViewerStopDateField();
+
+public: // From CESMRField
+    void InternalizeL( MESMRCalEntry& aEntry );
+    void InitializeL();
+    void SetOutlineFocusL( TBool aFocus );
+    TBool ExecuteGenericCommandL( TInt aCommand );
+    void LockL();
+
+public: // From CCoeControl
+    void SizeChanged();
+    TInt CountComponentControls() const;
+    CCoeControl* ComponentControl( TInt aIndex ) const;
+
+private: // Implementation
+    CESMRViewerStopDateField();
+    void ConstructL();
+    void FormatDateStringL();
     
-        /**
-         * C++ destructor
-         */
-        ~CESMRViewerStopDateField();
-        
-    public: // From CESMRField
-        void InternalizeL( MESMRCalEntry& aEntry );
-        void InitializeL();
-        void SetOutlineFocusL( TBool aFocus );
-        
-    public: // From CCoeControl
-        void SizeChanged();
-        TInt CountComponentControls() const;
-        CCoeControl* ComponentControl( TInt aIndex ) const;
-        
-    private: // Implementation
-        CESMRViewerStopDateField();
-        void ConstructL();
-        
-    private: // Data
-        // Owned: Field icon
-        CMRImage* iIcon;
-        // Owned: Field text label
-        CMRLabel* iLabel;
-    };
+private: // Data
+    // Owned: Field icon
+    CMRImage* iIcon;
+    /// Own: lock icon
+    CMRImage* iLockIcon;
+    // Not own: Field text label
+    CMRLabel* iLabel;
+    /// Own: Meeting stop time
+    TTime iStopTime;        
+};
 
 #endif // __CESMRVIEWERSTOPDATEFIELD_H__

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2003-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -106,6 +106,18 @@ public:
      */
     IMPORT_C void SetStartPos( TInt aPos );
 
+    /**
+     * Gets the MSK command id based on link type.
+     * @return the command id
+     */
+    TInt MSKCommand() const;
+    
+    /**
+     * Gets the MSK text resource id based on link type.
+     * @return the resource id.
+     */
+    TInt MSKText() const;
+    
 private: // Implementation
     CESMRRichTextLink(
             TInt aStartPos,

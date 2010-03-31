@@ -227,15 +227,6 @@ void CFsTreePlainOneLineNodeVisualizer::UpdateLayout(
     TAlfTimedPoint tpMarkIconTl, tpMarkIconBr;
     TAlfTimedPoint tpMenuIconTl, tpMenuIconBr;
 
-    // <cmail> Platform layout change
-    /*CFsLayoutManager::TFsLayoutMetrics
-        mainIconMetrics = CFsLayoutManager::EFsLmListMediumLineG3G1,
-        markIconMetrics = CFsLayoutManager::EFsLmListMediumLineG3G2,
-        menuIconMetrics = CFsLayoutManager::EFsLmListMediumLineG3G3,
-        textMetrics     = CFsLayoutManager::EFsLmListMediumLineG3T1,
-        sizeMetrics     = CFsLayoutManager::EFsLmListSingleDycRowPane;*/
-
-
     CFsLayoutManager::TFsLayoutMetrics mainIconMetrics =
         CFsLayoutManager::EFsLmListSingleDycRowPaneG1;
     CFsLayoutManager::TFsLayoutMetrics markIconMetrics =
@@ -249,7 +240,6 @@ void CFsTreePlainOneLineNodeVisualizer::UpdateLayout(
     TInt markIconVariety( 0 );
     TInt menuIconVariety( 0 );
     TInt textPaneVariety( 0 );
-    // </cmail> Platform layout change
 
     if (aData->IsIconCollapsedSet())
         {
@@ -258,7 +248,6 @@ void CFsTreePlainOneLineNodeVisualizer::UpdateLayout(
             if ((iFlags & KFsTreeListItemHasMenu)
                     && (iFlags & KFsTreeListItemFocused))
                 {
-                // <cmail> Platform layout change
                 //mainIcon + markIcon + menuIcon
                 //the metrics defined when declared
                 mainIconMetrics = CFsLayoutManager::EFsLmListSingleDycRowPaneG1;
@@ -268,23 +257,15 @@ void CFsTreePlainOneLineNodeVisualizer::UpdateLayout(
                 textPaneVariety = 3;
                 menuIconVariety = 1;
                 markIconVariety = 2;
-                // </cmail> Platform layout change
                 }
             else
                 {
-                // <cmail> Platform layout change
                 //mainIcon + markIcon
-                /*
-                mainIconMetrics = CFsLayoutManager::EFsLmListMediumLineG2G1;
-                markIconMetrics = CFsLayoutManager::EFsLmListMediumLineG2G2;
-                textMetrics     = CFsLayoutManager::EFsLmListMediumLineG2T1;
-                */
                 mainIconMetrics = CFsLayoutManager::EFsLmListSingleDycRowPaneG1;
                 markIconMetrics = CFsLayoutManager::EFsLmListSingleDycRowPaneG4;
                 mainIconVariety = 4;
                 textPaneVariety = 4;
                 markIconVariety = 3;
-                // </cmail> Platform layout change
                 }
             }
         else
@@ -292,17 +273,12 @@ void CFsTreePlainOneLineNodeVisualizer::UpdateLayout(
             if ((iFlags & KFsTreeListItemHasMenu)
                     && (iFlags & KFsTreeListItemFocused))
                 {
-                // <cmail> Platform layout change
                 //mainIcon + menuIcon
-                /*mainIconMetrics = CFsLayoutManager::EFsLmListMediumLineG2G1;
-                menuIconMetrics = CFsLayoutManager::EFsLmListMediumLineG2G2;
-                textMetrics     = CFsLayoutManager::EFsLmListMediumLineG2T1;*/
                 mainIconMetrics = CFsLayoutManager::EFsLmListSingleDycRowPaneG1;
                 menuIconMetrics = CFsLayoutManager::EFsLmListSingleDycRowPaneG4;
                 mainIconVariety = 4;
                 textPaneVariety = 4;
                 menuIconVariety = 3;
-                // </cmail> Platform layout change
                 }
             else
                 {
@@ -314,15 +290,10 @@ void CFsTreePlainOneLineNodeVisualizer::UpdateLayout(
 	                }
 	            else
 		            {
-		            // <cmail> Platform layout change
 	                //mainIcon
-		            /*
-	                mainIconMetrics = CFsLayoutManager::EFsLmListMediumLineG1;
-	                textMetrics     = CFsLayoutManager::EFsLmListMediumLineT1;*/
                     mainIconMetrics = CFsLayoutManager::EFsLmListSingleDycRowPaneG1;
                     mainIconVariety = 5;
                     textPaneVariety = 5;
-                    // </cmail> Platform layout change
 		            }
                 }
             }
@@ -334,35 +305,19 @@ void CFsTreePlainOneLineNodeVisualizer::UpdateLayout(
             if ((iFlags & KFsTreeListItemHasMenu)
                     && (iFlags & KFsTreeListItemFocused))
                 {
-                // <cmail> Platform layout change
                 //markIcon + menuIcon
-                /*
-                markIconMetrics =
-                    CFsLayoutManager::EFsLmListMediumLineRightIconx2G1;
-                menuIconMetrics =
-                    CFsLayoutManager::EFsLmListMediumLineRightIconx2G2;
-                textMetrics     =
-                    CFsLayoutManager::EFsLmListMediumLineRightIconx2T1;*/
                 menuIconMetrics = CFsLayoutManager::EFsLmListSingleDycRowPaneG3;
                 markIconMetrics = CFsLayoutManager::EFsLmListSingleDycRowPaneG4;
                 menuIconVariety = 2;
                 markIconVariety = 4;
                 textPaneVariety = 6;
-                // </cmail> Platform layout change
                 }
             else
                 {
-                // <cmail> Platform layout change
                 //markIcon
-                /*
-                markIconMetrics =
-                    CFsLayoutManager::EFsLmListMediumLineRightIconG1;
-                textMetrics     =
-                    CFsLayoutManager::EFsLmListMediumLineRightIconT1;*/
                 markIconMetrics = CFsLayoutManager::EFsLmListSingleDycRowPaneG4;
                 markIconVariety = 5;
                 textPaneVariety = 7;
-                // </cmail> Platform layout change
                 }
             }
         else
@@ -370,26 +325,15 @@ void CFsTreePlainOneLineNodeVisualizer::UpdateLayout(
             if ((iFlags & KFsTreeListItemHasMenu)
                     && (iFlags & KFsTreeListItemFocused))
                 {
-                // <cmail> Platform layout change
                 //menuIcon
-                /*
-                menuIconMetrics =
-                    CFsLayoutManager::EFsLmListMediumLineRightIconG1;
-                textMetrics     =
-                    CFsLayoutManager::EFsLmListMediumLineRightIconT1;*/
                 menuIconMetrics = CFsLayoutManager::EFsLmListSingleDycRowPaneG4;
                 menuIconVariety = 5;
                 textPaneVariety = 7;
-                // </cmail> Platform layout change
                 }
             else
                 {
-                // <cmail> Platform layout change
                 //plain item
-                /*textMetrics     =
-                    CFsLayoutManager::EFsLmListMediumLinePlainT1;*/
                 textPaneVariety = 8;
-                // </cmail> Platform layout change
                 }
             }
         }
@@ -400,16 +344,10 @@ void CFsTreePlainOneLineNodeVisualizer::UpdateLayout(
 
     if (iFlags & KFsTreeListItemManagedLayout)
         {
-        // <cmail> Platform layout change
-        /*CFsLayoutManager::LayoutMetricsSize(
-                parentLayoutRect,
-                sizeMetrics,
-                iSize );*/
         CFsLayoutManager::LayoutMetricsSize(
                 parentLayoutRect,
                 CFsLayoutManager::EFsLmListSingleFsDycPane,
                 iSize );
-        // </cmail> Platform layout change
         }
 
     //one line node is not extendable
@@ -428,49 +366,48 @@ void CFsTreePlainOneLineNodeVisualizer::UpdateLayout(
         }
 
 
-    // <cmail> Platform layout change
-    /*CFsLayoutManager::LayoutMetricsRect(
-            currentSize,
-            mainIconMetrics,
-            rect );*/
     CFsLayoutManager::LayoutMetricsRect(
                 currentSize,
                 mainIconMetrics,
                 rect,
                 mainIconVariety );
-    // </cmail> Platform layout change
+    // WORKAROUND FIX FOR LAYOUT PROBLEM -- RETURN THIS TO NORMAL WHEN LAYOUT'S ARE OK
+    if (rect.iTl.iY < 15)
+        {
+        rect.Move(0, 15 - rect.iTl.iY);    
+        }
+    // WORKAROUND FIX FOR LAYOUT PROBLEM -- RETURN THIS TO NORMAL WHEN LAYOUT'S ARE OK   
     tpMainIconTl.SetTarget(TAlfRealPoint(rect.iTl));
     tpMainIconBr.SetTarget(TAlfRealPoint(rect.iBr));
 
-    // <cmail> Platform layout change
-    /*CFsLayoutManager::LayoutMetricsRect(
-            currentSize,
-            markIconMetrics,
-            rect );*/
     CFsLayoutManager::LayoutMetricsRect(
             currentSize,
             markIconMetrics,
             rect,
             markIconVariety );
-    // </cmail> Platform layout change
+    // WORKAROUND FIX FOR LAYOUT PROBLEM -- RETURN THIS TO NORMAL WHEN LAYOUT'S ARE OK
+    if (rect.iTl.iY < 15)
+        {
+        rect.Move(0, 15 - rect.iTl.iY);    
+        }
+    // WORKAROUND FIX FOR LAYOUT PROBLEM -- RETURN THIS TO NORMAL WHEN LAYOUT'S ARE OK   
     tpMarkIconTl.SetTarget(TAlfRealPoint(rect.iTl));
     tpMarkIconBr.SetTarget(TAlfRealPoint(rect.iBr));
 
-    // <cmail> Platform layout change
-    /*CFsLayoutManager::LayoutMetricsRect(
-            currentSize,
-            menuIconMetrics,
-            rect );*/
     CFsLayoutManager::LayoutMetricsRect(
             currentSize,
             menuIconMetrics,
             rect,
             menuIconVariety );
-    // </cmail> Platform layout change
+    // WORKAROUND FIX FOR LAYOUT PROBLEM -- RETURN THIS TO NORMAL WHEN LAYOUT'S ARE OK
+    if (rect.iTl.iY < 15)
+        {
+        rect.Move(0, 15 - rect.iTl.iY);    
+        }
+    // WORKAROUND FIX FOR LAYOUT PROBLEM -- RETURN THIS TO NORMAL WHEN LAYOUT'S ARE OK   
     tpMenuIconTl.SetTarget(TAlfRealPoint(rect.iTl));
     tpMenuIconBr.SetTarget(TAlfRealPoint(rect.iBr));
 
-    // <cmail> Platform layout change
     TRect textRect( currentSize );
     if (textMetrics == CFsLayoutManager::EFsLmListSingleDycRowTextPaneT1)
         {
@@ -482,14 +419,15 @@ void CFsTreePlainOneLineNodeVisualizer::UpdateLayout(
         }
 
     CFsLayoutManager::TFsText textInfo;
-    /*CFsLayoutManager::LayoutMetricsText(currentSize, textMetrics, textInfo,
-            textVariety);*/
-
     CFsLayoutManager::LayoutMetricsText(textRect,
             textMetrics, textInfo, textPaneVariety);
-    // </cmail> Platform layout change
-
-    tpTextTl.SetTarget(TAlfRealPoint(textInfo.iTextRect.iTl));
+    // WORKAROUND FIX FOR LAYOUT PROBLEM -- RETURN THIS TO NORMAL WHEN LAYOUT'S ARE OK
+    if (textInfo.iTextRect.iTl.iY < 15)
+        {
+        textInfo.iTextRect.Move(0, 15 - textInfo.iTextRect.iTl.iY);    
+        }
+    // WORKAROUND FIX FOR LAYOUT PROBLEM -- RETURN THIS TO NORMAL WHEN LAYOUT'S ARE OK
+    tpTextTl.SetTarget(TAlfRealPoint(textInfo.iTextRect.iTl)); 
     tpTextBr.SetTarget(TAlfRealPoint(textInfo.iTextRect.iBr));
 
     TInt visualIconIndex = iLayout->FindVisual(iIconVisual);

@@ -131,10 +131,7 @@ LIBRARY     gdi.lib
 LIBRARY     ipssosplugin.lib
 LIBRARY     CdlEngine.lib
 LIBRARY     cmaillogger.lib
-
-#ifdef TRACE_INTO_FILE
 LIBRARY     flogger.lib
-#endif // TRACE_INTO_FILE
 
 START               wins
     BASEADDRESS     0x4A980000

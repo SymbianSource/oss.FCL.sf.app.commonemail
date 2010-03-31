@@ -79,6 +79,7 @@
 #include "FreestyleEmailUiLiterals.h"
 #include "FreestyleEmailUiContactHandlerObserver.h"
 #include "FreestyleEmailUiCLSItem.h"
+#include "FreestyleEmailUiAppui.h"
 
 //Constants
 const TInt KInternetCallPreferred = 1;
@@ -1713,7 +1714,31 @@ void CFSEmailUiContactHandler::DoRemoteLookupL( CFSMailBox& aMailBox,
         Pbk2RemoteContactLookupFactory::NewContextL( params );
     CleanupStack::PushL( context );
 
+    if ( !iEnv )
+        {
+        iEnv = CEikonEnv::Static();
+        }
+    
+    CFreestyleEmailUiAppUi* fsAppUi =
+            static_cast<CFreestyleEmailUiAppUi*>( iEnv->AppUi() );
+    
+    TBool indicatorsWereOn = EFalse;
+    CCustomStatuspaneIndicators* indicators = fsAppUi->GetStatusPaneIndicatorContainer();
+
+    if ( indicators->IsVisible() )
+        {
+        indicatorsWereOn = ETrue;
+        // hide message indicators
+        indicators->HideStatusPaneIndicators();
+        }
+
     context->ExecuteL( aQueryString, aResult );
+    if ( indicatorsWereOn )
+        {
+        // show message indicators
+        indicators->ShowStatusPaneIndicators();
+        }
+
     CleanupStack::PopAndDestroy( context );
     }
 

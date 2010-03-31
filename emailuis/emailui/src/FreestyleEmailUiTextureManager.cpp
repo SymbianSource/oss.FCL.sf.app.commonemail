@@ -348,6 +348,20 @@ CAlfFrameBrush* CFreestyleEmailUiTextureManager::NewMailListSeparatorBgBrushLC()
 	}
 
 // -----------------------------------------------------------------------------
+// CFreestyleEmailUiTextureManager::NewMailListMarkingModeBgBrushLC
+// -----------------------------------------------------------------------------
+//
+CAlfImageBrush* CFreestyleEmailUiTextureManager::NewMailListMarkingModeBgBrushLC()
+    {
+    FUNC_LOG;
+    CAlfTexture& circle = TextureByIndex( EMarkingModeBackgroundIcon );
+    CAlfImageBrush* bgBrush = CAlfImageBrush::NewLC( *iEnv, TAlfImage(circle) );
+    bgBrush->SetLayer( EAlfBrushLayerBackground );
+    bgBrush->SetScaleMode( CAlfImageVisual::EScaleNormal );
+    return bgBrush;
+    }
+
+// -----------------------------------------------------------------------------
 // CFreestyleEmailUiTextureManager::NewControlBarListBgBrushLC
 // -----------------------------------------------------------------------------
 //
@@ -655,6 +669,16 @@ void CFreestyleEmailUiTextureManager::ProvideBitmapL(TInt aId, CFbsBitmap*& aBit
 			}
 			break;
 
+        case EListTextureCreateNewMessageIcon:
+            {
+            TInt tempsize = iAppUi->LayoutHandler()->ListControlBarMailboxDefaultIconSize();
+            iconSize.SetSize( tempsize, tempsize );
+            AknIconUtils::CreateIconL( bitmap, mask, iconFileName,
+                EMbmFreestyleemailuiQgn_prop_cmail_action_create_msg,
+                EMbmFreestyleemailuiQgn_prop_cmail_action_create_msg_mask );
+            }
+            break;			
+			
 		// MESSAGE TEXTURE READING STARTS HERE
 	 	//
 		case EMessageReadIcon:
@@ -1725,7 +1749,22 @@ void CFreestyleEmailUiTextureManager::ProvideBitmapL(TInt aId, CFbsBitmap*& aBit
                 KRgbBlack );
 		    }
 		    break;
-
+        case EMarkingModeBackgroundIcon:
+            {
+            TRect mailListRect(iAppUi->LayoutHandler()->GetListRect());
+            if ( mailListRect.Width() > mailListRect.Height() )
+                {
+                iconSize.SetSize( mailListRect.Width(), mailListRect.Width() );            
+                }
+            else
+                {
+                iconSize.SetSize( mailListRect.Height(), mailListRect.Height() );            
+                }                
+            AknIconUtils::CreateIconL( bitmap, mask, iconFileName,
+                                 EMbmFreestyleemailuiCmail_marking_mode_bg,
+                                 EMbmFreestyleemailuiCmail_marking_mode_bg);
+            }
+            break;
 		case EGridAboutTexture:
 		default:
 			// Branded mailbox icon
@@ -1917,14 +1956,12 @@ void CFreestyleEmailUiTextureManager::LoadTextureL( TFSEmailUiTextures aTextureI
 			break;
 		case EListTextureControlButton: ; break;
 		case EListTextureMailboxDefaultIcon: iTextures[aTextureId] = &CAlfStatic::Env().TextureManager().CreateTextureL( EListTextureMailboxDefaultIcon, this, EAlfTextureFlagDefault); break;
-		case EListTextureNewEmailDefaultIcon:
+        case EListTextureNewEmailDefaultIcon:
+        case EListTextureCreateNewMessageIcon:
 		    {
-		    iTextures[aTextureId] =
-				&CAlfStatic::Env().TextureManager().CreateTextureL(
-					EListTextureNewEmailDefaultIcon, this,
-					EAlfTextureFlagDefault ); 
-		    break;
+		    iTextures[aTextureId] = &CAlfStatic::Env().TextureManager().CreateTextureL( aTextureId, this, EAlfTextureFlagDefault ); 
 		    }
+            break;
 		case EListControlBarMailboxDefaultIcon: iTextures[aTextureId] = &CAlfStatic::Env().TextureManager().CreateTextureL( EListControlBarMailboxDefaultIcon, this, EAlfTextureFlagDefault); break;
 		case EBackgroundTextureViewerHeading: ; break;
 		case EBackgroundTextureBar: ; break;
@@ -1970,6 +2007,12 @@ void CFreestyleEmailUiTextureManager::LoadTextureL( TFSEmailUiTextures aTextureI
 			iTextures[aTextureId] = &CAlfStatic::Env().TextureManager().CreateTextureL( EControlBarDescendingArrowTexture, this, EAlfTextureFlagSkinContent);
 			}
 			break;
+		case EMarkingModeBackgroundIcon: 
+		    {
+		    iTextures[aTextureId] = &CAlfStatic::Env().TextureManager().CreateTextureL( EMarkingModeBackgroundIcon, this, EAlfTextureFlagRetainResolution);
+		    }
+		    break;
+			
 		// MESSAGE TEXTURES
 		case EMessageReadIcon: iTextures[aTextureId] = &CAlfStatic::Env().TextureManager().CreateTextureL( EMessageReadIcon, this, EAlfTextureFlagDefault); break;
 		case EMessageLowPrioReadIcon: iTextures[aTextureId] = &CAlfStatic::Env().TextureManager().CreateTextureL( EMessageLowPrioReadIcon, this, EAlfTextureFlagDefault); break;

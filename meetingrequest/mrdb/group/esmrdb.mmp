@@ -16,9 +16,8 @@
 */
 
 
-#include "../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
-#include "../../../inc/emailtraceconfig.hrh"
 #include "../../inc/esmrinternaluid.h"
+#include "../../../inc/emailtraceconfig.hrh"
 #include <data_caging_paths.hrh>
 #include <platform_paths.hrh>
 
@@ -29,9 +28,6 @@ UID                     KEPOCStaticDllUID2 KESMRDllUid3
 CAPABILITY              CAP_GENERAL_DLL
 VENDORID                VID_DEFAULT
 DEFFILE                 ESMRDb.def
-
-VERSION                 KEmailBinaryVersionNumber
-KEmailBinaryDemandPaging
 
 SOURCEPATH              ../src
 SOURCE                  cesmrcaldbbase.cpp
@@ -52,11 +48,13 @@ LIBRARY                 bafl.lib
 LIBRARY                 euser.lib
 LIBRARY                 calinterimapi.lib
 LIBRARY                 caleninterimutils2.lib
-LIBRARY                 cmaillogger.lib
+LIBRARY                 sysutil.lib
+LIBRARY                 commonui.lib
+LIBRARY                 cone.lib
+LIBRARY                 centralrepository.lib
 
-
-#ifdef TRACE_INTO_FILE
-LIBRARY                 flogger.lib
-#endif // TRACE_INTO_FILE
+#if defined( ENABLE_TRACES ) && defined( TRACE_INTO_FILE )
+LIBRARY flogger.lib
+#endif // ENABLE_TRACES && TRACE_INTO_FILE
 
 // end of file

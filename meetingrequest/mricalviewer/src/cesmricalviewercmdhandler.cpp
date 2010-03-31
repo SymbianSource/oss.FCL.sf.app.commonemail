@@ -29,7 +29,7 @@
 
 #include <calsession.h>
 //<cmail>
-#include "cfsmailclient.h"
+#include "CFSMailClient.h"
 #include "esmricalvieweropcodes.hrh"
 #include "esmricalviewerdefs.hrh"
 //</cmail>
@@ -37,8 +37,6 @@
 
 /// Unnamed namespace for local definitions
 namespace {
-
-#ifdef _DEBUG
 
 // Panic literal
 _LIT( KESMRIcalViewerCmdHandler, "ESMRIcalViewerCmdHandler" );
@@ -53,8 +51,6 @@ void Panic( TESMRIcalViewerCmdHandlerPanic aPanic )
     {
     User::Panic( KESMRIcalViewerCmdHandler, aPanic );
     }
-
-#endif // _DEBUG
 
 }  // namespace
 
@@ -315,7 +311,7 @@ void CESMRIcalViewerCmdHandler::ExecuteCommandInternalL(
             break;
         }
 
-    __ASSERT_DEBUG( iCommand, Panic( EInvalidCommand) );
+    __ASSERT_ALWAYS( iCommand, Panic( EInvalidCommand) );
     iCommand->ExecuteCommandL( *iMessage, *this );
     }
 

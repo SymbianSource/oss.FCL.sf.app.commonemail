@@ -186,4 +186,10 @@ EXPORTS
 	?NewL@CResourceLoader@@SAPAV1@ABVTDesC16@@@Z @ 185 NONAME ; class CResourceLoader * CResourceLoader::NewL(class TDesC16 const &)
 	??1CResourceLoader@@UAE@XZ @ 186 NONAME ; CResourceLoader::~CResourceLoader(void)
 	?CreateResourceReaderLC@CResourceLoader@@QBEPAVHBufC8@@AAVTResourceReader@@H@Z @ 187 NONAME ; class HBufC8 * CResourceLoader::CreateResourceReaderLC(class TResourceReader &, int) const
+	?Load2LC@CResourceLoader@@QAEPAVHBufC16@@HH@Z @ 188 NONAME ; class HBufC16 * CResourceLoader::Load2LC(int, int)
+	?Load2L@CResourceLoader@@QAEPAVHBufC16@@H@Z @ 189 NONAME ; class HBufC16 * CResourceLoader::Load2L(int)
+	?Load2LC@CResourceLoader@@QAEPAVHBufC16@@HABVTDesC16@@@Z @ 190 NONAME ; class HBufC16 * CResourceLoader::Load2LC(int, class TDesC16 const &)
+	?Load2L@CResourceLoader@@QAEPAVHBufC16@@HH@Z @ 191 NONAME ; class HBufC16 * CResourceLoader::Load2L(int, int)
+	?Load2LC@CResourceLoader@@QAEPAVHBufC16@@H@Z @ 192 NONAME ; class HBufC16 * CResourceLoader::Load2LC(int)
+	?Load2L@CResourceLoader@@QAEPAVHBufC16@@HABVTDesC16@@@Z @ 193 NONAME ; class HBufC16 * CResourceLoader::Load2L(int, class TDesC16 const &)
 

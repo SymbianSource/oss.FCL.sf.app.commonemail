@@ -971,15 +971,8 @@ void CFreestyleMessageHeaderHTML::AddAttachmentL( CFSMailMessagePart& aAttachmen
     iWriteStream.WriteL( *attnName8 );
     CleanupStack::PopAndDestroy( attnName8 );
 
-    TUint size = aAttachment.ContentSize();
-    TUint sizeInKB = size / 1024;
-    
-    if ( size % 1024 )
-      {
-      // round up
-      ++sizeInKB;
-      }
-    
+    HBufC* sizeDesc = TFsEmailUiUtility::CreateSizeDescLC(aAttachment.ContentSize(), EFalse);
+
     TBuf8<32> sizeText;
     
     // Add right to left marker as "(" and ")" are messing up the html language markers
@@ -992,9 +985,8 @@ void CFreestyleMessageHeaderHTML::AddAttachmentL( CFSMailMessagePart& aAttachmen
     
     sizeText.Append( KSpace8 );
     sizeText.Append( _L8("(") );
-    sizeText.AppendNum( sizeInKB );
-    sizeText.Append( KSpace8 );
-    sizeText.Append( KAttachmentSizeUnit );
+    sizeText.Append( sizeDesc->Des() );
+    CleanupStack::PopAndDestroy( sizeDesc );
     sizeText.Append( _L8(")") );
     
     if( iMirrorLayout )

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -12,7 +12,7 @@
 * Contributors:
 *
 *  Description : ESMR tracking view dialog
-*  Version     : %version: tr1sido#9 %
+*  Version     : %version: e002sa33#15 %
 *
 */
 
@@ -20,22 +20,17 @@
 #include "cesmrtrackingviewdialog.h"
 
 // SYSTEM INCLUDE
-#include <AknUtils.h>
-#include <StringLoader.h>
+#include <aknutils.h>
+#include <stringloader.h>
 #include <calentry.h>
-#include <AiwServiceHandler.h>
-#include <featmgr.h>
-#include <bldvariant.hrh>
+#include <magnentryui.h>
 //<cmail>
-#include <featmgr.h>
-//</cmail>
-
 #include "cesmrpolicy.h"
 //</cmail>
 #include <esmrgui.rsg>
 
 #include "esmrgui.hrh"
-#include "cesmrview.h"
+#include "cesmrtrackingview.h"
 #include "cesmrviewerfieldstorage.h"
 #include "mesmrcalentry.h"
 #include "cesmrcontactmenuhandler.h"
@@ -67,15 +62,15 @@ void Panic( TESMRViewerDlgPanic aPanic )
 // ---------------------------------------------------------------------------
 //
 CESMRTrackingViewDialog* CESMRTrackingViewDialog::NewL(
-		CESMRPolicy* aPolicy,
+		const CESMRPolicy& aPolicy,
 		MESMRCalEntry& aEntry,
 		MAgnEntryUiCallback& aCallback )
     {
     FUNC_LOG;
     CESMRTrackingViewDialog* self =
-	new (ELeave) CESMRTrackingViewDialog(aEntry,aCallback);
+	new (ELeave) CESMRTrackingViewDialog( aPolicy, aEntry, aCallback);
 	CleanupStack::PushL( self );
-	self->ConstructL( aPolicy );
+	self->ConstructL();
 	CleanupStack::Pop( self );
 	return self;
     }
@@ -87,17 +82,7 @@ CESMRTrackingViewDialog* CESMRTrackingViewDialog::NewL(
 CESMRTrackingViewDialog::~CESMRTrackingViewDialog()
     {
     FUNC_LOG;
-    if ( iFeatureManagerInitialized )
-        {
-        FeatureManager::UnInitializeLib();
-        }
-
-    if ( iServiceHandler )
-        {
-        iServiceHandler->DetachMenu(R_MR_TRACKING_VIEW_MENU, R_PS_AIW_INTEREST);
-        delete iServiceHandler;
-        }
-
+    
     iESMRStatic.Close();
     }
 
@@ -105,10 +90,12 @@ CESMRTrackingViewDialog::~CESMRTrackingViewDialog()
 // CESMRTrackingViewDialog::CESMRTrackingViewDialog
 // ---------------------------------------------------------------------------
 //
-CESMRTrackingViewDialog::CESMRTrackingViewDialog( 
+CESMRTrackingViewDialog::CESMRTrackingViewDialog(
+        const CESMRPolicy& aPolicy,
 		MESMRCalEntry& aEntry,
 		MAgnEntryUiCallback& aCallback) :
-    iEntry( aEntry ),
+    iPolicy( aPolicy ),
+	iEntry( aEntry ),
     iCallback(aCallback)
     {
     FUNC_LOG;
@@ -119,24 +106,15 @@ CESMRTrackingViewDialog::CESMRTrackingViewDialog(
 // CESMRTrackingViewDialog::ConstructL
 // ---------------------------------------------------------------------------
 //
-void CESMRTrackingViewDialog::ConstructL(CESMRPolicy* aPolicy)
+void CESMRTrackingViewDialog::ConstructL()
     {
     FUNC_LOG;
     CAknDialog::ConstructL ( R_TRACKING_DIALOG_MENUBAR );
-    iPolicy = aPolicy;
     iESMRStatic.ConnectL();
     iESMRStatic.ContactMenuHandlerL().Reset();
 
     TRect clientRect;
     AknLayoutUtils::LayoutMetricsRect( AknLayoutUtils::EMainPane, clientRect );
-
-    TBool responseReady(EFalse);
-
-    FeatureManager::InitializeLibL();
-    iFeatureManagerInitialized = ETrue;
-
-	// <cmail> remove custom feature KFeatureIdPrintingFrameworkCalendarPlugin 
-	// </cmail>		
 
     // Sort the attendees list so that Req attendeees comes  first
     // and then opt attendees
@@ -147,31 +125,24 @@ void CESMRTrackingViewDialog::ConstructL(CESMRPolicy* aPolicy)
 
     iESMRStatic.SetCurrentFieldIndex(0);
 
-    CESMRViewerFieldStorage* storage =
-             CESMRViewerFieldStorage::NewL(
-                     aPolicy,
-                     NULL,
-                     responseReady,
-                     *this,
-                     CountAttendeesL(CCalAttendee::EReqParticipant),
-                     CountAttendeesL(CCalAttendee::EOptParticipant) );
+    iView = CESMRTrackingView::NewL( iEntry, clientRect,
+            CountAttendeesL(CCalAttendee::EReqParticipant),
+            CountAttendeesL(CCalAttendee::EOptParticipant));
+    iView->SetParentDialog(this);
 
-    CleanupStack::PushL( storage );
-    // storage ownership is transferred to CESMRView
-    iView = CESMRView::NewL(storage, iEntry, clientRect );
-    CleanupStack::Pop( storage ); 
-     
     if ( iEntry.Entry().SummaryL().Length() == 0 )
 		 {
 		 // if no title, set unnamed text:
 		 HBufC* title = StringLoader::LoadLC (R_QTN_MEET_REQ_CONFLICT_UNNAMED);
-		 iView->SetTitleL( *title, ETrue );
+		 iView->SetTitleL( *title );
 		 CleanupStack::PopAndDestroy( title );
 		 }
     else
          {
-         iView->SetTitleL( iEntry.Entry().SummaryL(), ETrue );
+         iView->SetTitleL( iEntry.Entry().SummaryL() );
          }
+
+    iMenuBar->SetContextMenuTitleResourceId( R_MR_TRACKING_VIEW_CONTEXT_MENU );
     }
 
 // ---------------------------------------------------------------------------
@@ -204,7 +175,7 @@ TKeyResponse CESMRTrackingViewDialog::OfferKeyEventL
     {
     FUNC_LOG;
     TKeyResponse response = CAknDialog::OfferKeyEventL( aEvent, aType );
-	
+
     if ( ( response == EKeyWasNotConsumed && aEvent.iCode != EKeyEscape)
 		   && (!MenuShowing()) )
 		{
@@ -228,15 +199,15 @@ TBool CESMRTrackingViewDialog::OkToExitL (TInt aButtonId)
             {
             CAknDialog::DisplayMenuL();
             break;
-            }            
+            }
         case EESMRCmdBack:
             {
             res = ETrue;
             break;
-            }            
+            }
         case EESMRCmdCall:
             {
-            iESMRStatic.ContactMenuHandlerL().ExecuteOptionsMenuL( 
+            iESMRStatic.ContactMenuHandlerL().ExecuteOptionsMenuL(
 												EESMRCmdActionMenuFirst );
             break;
             }
@@ -244,7 +215,7 @@ TBool CESMRTrackingViewDialog::OkToExitL (TInt aButtonId)
             {
             res = CAknDialog::OkToExitL( aButtonId );
             break;
-            }       
+            }
         }
 
     return res;
@@ -259,7 +230,7 @@ TInt CESMRTrackingViewDialog::CountAttendeesL( // codescanner::intleaves
     {
     FUNC_LOG;
     RPointerArray<CCalAttendee>& calAttendeeList = iEntry.Entry().AttendeesL();
-    
+
     TInt totalParticipants = calAttendeeList.Count();
     TInt totalAttendees(0);
 
@@ -334,17 +305,6 @@ void CESMRTrackingViewDialog::DoProcessCommandL( TInt aCommand )
     CAknDialog::ProcessCommandL( aCommand );
     switch ( aCommand )
         {
-        case EESMRCmdPrint: // Fall through
-        case EESMRCmdPrint_Reserved1: // Fall through
-        case EESMRCmdPrint_Reserved2: // Fall through
-        case EESMRCmdPrint_Reserved3: // Fall through
-        case EESMRCmdPrint_Reserved4:
-            {
-            this->MakeVisible(EFalse); 
-            HandlePrintCommandL(aCommand);
-            this->MakeVisible(ETrue); 
-            break;
-            }
         case EAknCmdExit:
         	{
             TryExitL( aCommand );
@@ -357,15 +317,15 @@ void CESMRTrackingViewDialog::DoProcessCommandL( TInt aCommand )
             }
         default:
         	{
-            if ( aCommand >= EESMRCmdActionMenuFirst && 
+            if ( aCommand >= EESMRCmdActionMenuFirst &&
             	 aCommand <= EESMRCmdActionMenuLast )
                 {
-                iESMRStatic.ContactMenuHandlerL().ExecuteOptionsMenuL( 
+                iESMRStatic.ContactMenuHandlerL().ExecuteOptionsMenuL(
 																aCommand );
                 }
             else
                 {
-                __ASSERT_DEBUG( EFalse, 
+                __ASSERT_DEBUG( EFalse,
                 		Panic( EESMRTrackingVieweDlgInvalidCommand ) );
                 }
             break;
@@ -382,13 +342,6 @@ void CESMRTrackingViewDialog::DynInitMenuPaneL(
         CEikMenuPane* aMenuPane )
     {
     FUNC_LOG;
-    if ( iServiceHandler )
-        {
-        if ( iServiceHandler->HandleSubmenuL ( *aMenuPane ) )
-            {
-            return;
-            }
-        }
     if ( aResourceId == R_ACTION_MENU )
         {
         iESMRStatic.ContactMenuHandlerL().InitOptionsMenuL( aMenuPane );
@@ -396,17 +349,7 @@ void CESMRTrackingViewDialog::DynInitMenuPaneL(
 
     if ( aResourceId == R_MR_TRACKING_VIEW_MENU )
         {
-	    if (FeatureManager::FeatureSupported( KFeatureIdFfCmailIntegration ))
-		   {
-		   // remove help support in pf5250
-		   aMenuPane->SetItemDimmed( EAknCmdHelp, ETrue);      
-		   }
-		
-	    // <cmail> remove custom feature KFeatureIdPrintingFrameworkCalendarPlugin 
-	    // </cmail>				
-        aMenuPane->SetItemDimmed( EESMRCmdPrint, ETrue );
-
-        aMenuPane->SetItemDimmed( EESMRCmdActionMenu, 
+        aMenuPane->SetItemDimmed( EESMRCmdActionMenu,
         		!iESMRStatic.ContactMenuHandlerL().OptionsMenuAvailable() );
         }
     }
@@ -433,52 +376,13 @@ TInt CESMRTrackingViewDialog::ExecuteViewLD()
     }
 
 // ---------------------------------------------------------------------------
-// CESMRTrackingViewDialog::HandlePrintCommandL
-// ---------------------------------------------------------------------------
-//
-void CESMRTrackingViewDialog::HandlePrintCommandL(TInt aCommand)
-    {
-    FUNC_LOG;
-    CAiwGenericParamList& inParams = iServiceHandler->InParamListL();
-
-    // Param date
-
-    TCalTime startTime = iEntry.Entry().StartTimeL();
-
-    TAiwGenericParam dateParam( EGenericParamDateTime );
-    TTime activeDay = startTime.TimeUtcL();
-
-    TAiwGenericParam calendarParam( EGenericParamCalendarItem );
-    calendarParam.Value().Set( TUid::Uid(iEntry.Entry().LocalUidL()) );
-    inParams.AppendL( calendarParam );
-
-    // Append date param
-    dateParam.Value().Set( activeDay );
-    inParams.AppendL( dateParam );
-
-    const TUid uid( TUid::Uid( KUidCalendarApplication ) );
-    TAiwGenericParam uidParam( EGenericParamApplication );
-    uidParam.Value().Set( uid );
-    inParams.AppendL( uidParam );
-
-    // Execute service command with given parameters
-    iServiceHandler->ExecuteMenuCmdL( aCommand,
-                                      inParams,
-                                      iServiceHandler->OutParamListL(),
-                                      0,
-                                      NULL );
-
-    }
-
-// ---------------------------------------------------------------------------
 // CESMRTrackingViewDialog::HandleFieldEventL
 // ---------------------------------------------------------------------------
-//
-void CESMRTrackingViewDialog::HandleFieldEventL(
-        const MESMRFieldEvent& /*aEvent*/ )
+
+void CESMRTrackingViewDialog::HandleListEventL()
     {
     FUNC_LOG;
-    // From MESMRFieldEventObserver. Do nothing
+    iMenuBar->TryDisplayContextMenuBarL();
     }
 
 // End of File

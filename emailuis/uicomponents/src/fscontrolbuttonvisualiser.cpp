@@ -33,6 +33,7 @@
 #include <AknsConstants.h>
 #include <AknUtils.h>
 #include <touchlogicalfeedback.h>
+#include <layoutmetadata.cdl.h>
 
 #include "fscontrolbuttonvisualiser.h"
 #include "fscontrolbuttonmodel.h"
@@ -101,6 +102,11 @@ EXPORT_C void CFsControlButtonVisualiser::ConstructL()
         // Request callback after image is loaded to refresh it's size and
         // position.
         iParent->Env().TextureManager().AddLoadObserverL( this );
+
+        iParentLayout->SetFlag( EAlfVisualFlagLayoutUpdateNotification );
+        iButtonLayout->SetFlags( EAlfVisualFlagManualSize | EAlfVisualFlagManualPosition );
+        iButtonContentLayout->SetFlags( EAlfVisualFlagManualSize | EAlfVisualFlagManualPosition );
+
         }
     }
 
@@ -323,8 +329,6 @@ EXPORT_C void CFsControlButtonVisualiser::Refresh( TPoint aStartAt )
             }
 
         // Set new position for background visual and it's content.
-        iButtonLayout->SetFlag( EAlfVisualFlagManualPosition );
-        iButtonContentLayout->SetFlag( EAlfVisualFlagManualPosition );
         iButtonLayout->SetPos( pos );
         iButtonContentLayout->SetPos( pos );
         }
@@ -642,9 +646,6 @@ EXPORT_C void CFsControlButtonVisualiser::UpdateButtonSize()
 
     const TPoint oldSize( iButtonContentLayout->Size().Target() );
 
-    iButtonLayout->SetFlag( EAlfVisualFlagManualSize );
-    iButtonContentLayout->SetFlag( EAlfVisualFlagManualSize );
-
     switch( iButtonModel->AutoSizeMode() )
         {
         case MFsControlButtonInterface::EFsLayout:
@@ -708,6 +709,8 @@ EXPORT_C void CFsControlButtonVisualiser::UpdateButtonSize()
 
     TRAP_IGNORE( UpdateElementsSizeL( iButtonModel->Type() ) );
 
+    iButtonContentLayout->UpdateChildrenLayout();
+    
     // update text styles if needed (at least one text line)
     const TPoint newSize( iButtonContentLayout->Size().Target() );
     if ( newSize != oldSize )
@@ -1140,7 +1143,6 @@ EXPORT_C TInt CFsControlButtonVisualiser::CalculateButtonSize()
             const TInt newWidth(
                 parentRect.Width() + textRect.Width() - text.iTextRect.Width()
                 );
-            iParentLayout->SetFlags( EAlfVisualFlagLayoutUpdateNotification );
             return newWidth;
             }
         }
@@ -1166,9 +1168,6 @@ EXPORT_C TInt CFsControlButtonVisualiser::CalculateButtonSize()
 void CFsControlButtonVisualiser::UpdateButtonPos()
     {
     FUNC_LOG;
-    iButtonLayout->SetFlag( EAlfVisualFlagManualPosition );
-    iButtonContentLayout->SetFlag( EAlfVisualFlagManualPosition );
-
     // Set position for button background and for the content.
     iButtonLayout->SetPos( iButtonModel->TopLeftPoint() );
     iButtonContentLayout->SetPos( iButtonModel->TopLeftPoint() );
@@ -1200,34 +1199,47 @@ EXPORT_C void CFsControlButtonVisualiser::UpdateElementsSizeL(
             break;
         case ECBTypeOneLineLabelOnly:
             CFsLayoutManager::LayoutMetricsText( parentRect,
-                CFsLayoutManager::EFsLmMainSpFsCtrlbarDdmenuPaneT1, text, 0 );
+                CFsLayoutManager::ECmailDdmenuBtn01PaneT1, text, 1 );
             text1 = text.iTextRect;
             break;
         case ECBTypeOneLineLabelIconA:
-            CFsLayoutManager::LayoutMetricsRect( parentRect,
-                CFsLayoutManager::EFsLmMainSpFsCtrlbarDdmenuPaneG2,
-                iconA, 0 );
-            CFsLayoutManager::LayoutMetricsText( parentRect,
-                CFsLayoutManager::EFsLmMainSpFsCtrlbarDdmenuPaneT1, text, 2 );
-            text1 = text.iTextRect;
+            if ( Layout_Meta_Data::IsLandscapeOrientation() )
+                {
+                CFsLayoutManager::LayoutMetricsRect( parentRect,
+                    CFsLayoutManager::ECmailDdmenuBtn02PaneG2,
+                    iconA, 0 );
+                CFsLayoutManager::LayoutMetricsText( parentRect,
+                    CFsLayoutManager::ECmailDdmenuBtn02PaneT2, 
+                    text, 0 );
+                }
+            else                
+                {
+                CFsLayoutManager::LayoutMetricsRect( parentRect,
+                    CFsLayoutManager::ECmailDdmenuBtn01PaneG1,
+                    iconA, 1 );
+                CFsLayoutManager::LayoutMetricsText( parentRect,
+                    CFsLayoutManager::ECmailDdmenuBtn01PaneT1, 
+                    text, 0 );
+                }
+            text1 = text.iTextRect; 
             break;
         case ECBTypeOneLineLabelIconB:
             CFsLayoutManager::LayoutMetricsText( parentRect,
-                CFsLayoutManager::EFsLmMainSpFsCtrlbarDdmenuPaneT1, text, 1 );
+                CFsLayoutManager::ECmailDdmenuBtn01PaneT1, text, 1 );
             text1 = text.iTextRect;
             CFsLayoutManager::LayoutMetricsRect( parentRect,
-                CFsLayoutManager::EFsLmMainSpFsCtrlbarDdmenuPaneG1,
-                iconB, 0 );
+                CFsLayoutManager::ECmailDdmenuBtn01PaneG2,
+                iconB, 2 );
             break;
         case ECBTypeOneLineLabelTwoIcons:
             CFsLayoutManager::LayoutMetricsRect( parentRect,
-                CFsLayoutManager::EFsLmMainSpFsCtrlbarDdmenuPaneG2,
+                CFsLayoutManager::ECmailDdmenuBtn01PaneG1,
                 iconA, 1 );
             CFsLayoutManager::LayoutMetricsText( parentRect,
-                CFsLayoutManager::EFsLmMainSpFsCtrlbarDdmenuPaneT1, text, 3 );
+                CFsLayoutManager::ECmailDdmenuBtn01PaneT1, text, 0 );
             text1 = text.iTextRect;
             CFsLayoutManager::LayoutMetricsRect( parentRect,
-                CFsLayoutManager::EFsLmMainSpFsCtrlbarDdmenuPaneG1,
+                CFsLayoutManager::ECmailDdmenuBtn01PaneG2,
                 iconB, 1 );
             break;
         default:
@@ -1247,8 +1259,6 @@ EXPORT_C void CFsControlButtonVisualiser::UpdateElementsSizeL(
                             ( buttonSize.iHeight - oldIconSize.iHeight ) / 2 ),
                             oldIconSize );
         }
-    iconA.SetHeight( buttonSize.iHeight );
-    text1.SetHeight( buttonSize.iHeight );
     
     if ( iButtonModel->ContainsElement( ECBElemIconA ) )
         {
@@ -1270,6 +1280,14 @@ EXPORT_C void CFsControlButtonVisualiser::UpdateElementsSizeL(
 			{
 			iLabelFirstLine->SetSize( text1.Size() );
 			iLabelFirstLine->SetPos( text1.iTl );
+			if ( Layout_Meta_Data::IsLandscapeOrientation() )
+			    {
+                iLabelFirstLine->SetAlign( EAlfAlignHCenter, EAlfAlignVCenter );
+			    }
+			else
+			    {
+                iLabelFirstLine->SetAlign( EAlfAlignHLocale, EAlfAlignVCenter );			
+			    }
 			}
         }
     if ( iButtonModel->ContainsElement( ECBElemLabelSndLine ) )
@@ -1555,7 +1573,6 @@ void CFsControlButtonVisualiser::UpdateBarLayout()
     if ( iParentLayout )
         {
         // This flag is cleared when the layout is updated.
-        iParentLayout->SetFlags( EAlfVisualFlagLayoutUpdateNotification );
         iParentLayout->UpdateChildrenLayout();
         }
     }

@@ -24,7 +24,6 @@
 #include <CdlRefs.h>
 #include <apgcli.h>
 #include <eikapp.h>
-#include <layoutmetadata.cdl.h>
 // <cmail> SF
 #include <alf/alfstatic.h>
 #include <alf/alfenv.h>
@@ -94,8 +93,6 @@ EXPORT_C TBool CFsLayoutManager::LayoutMetricsRect(
     {
     FUNC_LOG;
 
-    //<CMAIL>
-
     TBool retVal( ETrue );
     TAknLayoutRect rect;
 
@@ -116,161 +113,59 @@ EXPORT_C TBool CFsLayoutManager::LayoutMetricsRect(
         case EFsLmBgSpFsCtrlbarPane:
             rect.LayoutRect( aParent,
                 AknLayoutScalable_Apps::bg_sp_fs_ctrlbar_pane( aVariety ).LayoutLine() );
-            break;
-/*        case EFsLmListMediumLine:
-            rect.LayoutRect( aParent,
-                AknLayoutScalable_Apps::list_medium_line().LayoutLine() );
-            break;*/
+            break;            
         case EFsLmListMediumLineG1:
-            rect.LayoutRect( aParent,
-                AknLayoutScalable_Apps::list_medium_line_g1( aVariety ).LayoutLine() );
-            break;
+        case EFsLmListMediumLineX2G1:
+        case EFsLmListMediumLineT2G2G1:
+        case EFsLmListMediumLineT3G2G1:           
+        case EFsLmListMediumLineT3G1:
+        case EFsLmListMediumLineT2G3G1:
+        case EFsLmListMediumLineT3G3G1:
+        case EFsLmListMediumLineX2T3G4G1:
+        case EFsLmListMediumLineX2T4G4G4:
+        case EFsLmListMediumLineX2T3G3G1:
         case EFsLmListMediumLineG2G1:
-            rect.LayoutRect( aParent,
-                AknLayoutScalable_Apps::list_medium_line_g2_g1( aVariety ).LayoutLine() );
-            break;
-        case EFsLmListMediumLineG2G2:
-            rect.LayoutRect( aParent,
-                AknLayoutScalable_Apps::list_medium_line_g2_g2( aVariety ).LayoutLine() );
-            break;
-        case EFsLmListMediumLineG3G1:
-            rect.LayoutRect( aParent,
-                AknLayoutScalable_Apps::list_medium_line_g3_g1( aVariety ).LayoutLine() );
-            break;
-        case EFsLmListMediumLineG3G2:
-            rect.LayoutRect( aParent,
-                AknLayoutScalable_Apps::list_medium_line_g3_g2( aVariety ).LayoutLine() );
-            break;
-        case EFsLmListMediumLineG3G3:
-            rect.LayoutRect( aParent,
-                AknLayoutScalable_Apps::list_medium_line_g3_g3( aVariety ).LayoutLine() );
-            break;
-        case EFsLmListMediumLineRightIconG1:
-            rect.LayoutRect( aParent,
-                AknLayoutScalable_Apps::list_medium_line_right_icon_g1().LayoutLine() );
-            break;
-        case EFsLmListMediumLineRightIconx2G1:
-            rect.LayoutRect( aParent,
-                AknLayoutScalable_Apps::list_medium_line_right_iconx2_g1().LayoutLine() );
-            break;
-        case EFsLmListMediumLineRightIconx2G2:
-            rect.LayoutRect( aParent,
-                AknLayoutScalable_Apps::list_medium_line_right_iconx2_g2().LayoutLine() );
-            break;
+        case EFsLmListMediumLineG3G1:          
         case EFsLmListMediumLineT2G1:
             rect.LayoutRect( aParent,
-                AknLayoutScalable_Apps::list_medium_line_t2_g1( aVariety ).LayoutLine() );
-            break;
-        case EFsLmListMediumLineT2G2G1:
-            rect.LayoutRect( aParent,
-                AknLayoutScalable_Apps::list_medium_line_t2_g2_g1( aVariety ).LayoutLine() );
-            break;
-        case EFsLmListMediumLineT2G2G2:
-            rect.LayoutRect( aParent,
-                AknLayoutScalable_Apps::list_medium_line_t2_g2_g2( aVariety ).LayoutLine() );
-            break;
-        case EFsLmListMediumLineT2G3G1:
-            rect.LayoutRect( aParent,
-                AknLayoutScalable_Apps::list_medium_line_t2_g3_g1( aVariety ).LayoutLine() );
-            break;
+                AknLayoutScalable_Apps::list_single_dyc_row_pane_g1( aVariety ).LayoutLine() );
+            break;        
+        case EFsLmListMediumLineG3G2:
         case EFsLmListMediumLineT2G3G2:
-            rect.LayoutRect( aParent,
-                AknLayoutScalable_Apps::list_medium_line_t2_g3_g2( aVariety ).LayoutLine() );
-            break;
-        case EFsLmListMediumLineT2G3G3:
-            rect.LayoutRect( aParent,
-                AknLayoutScalable_Apps::list_medium_line_t2_g3_g3( aVariety ).LayoutLine() );
-            break;
-        case EFsLmListMediumLineT2RightIconG1:
-            rect.LayoutRect( aParent,
-                AknLayoutScalable_Apps::list_medium_line_t2_right_icon_g1().LayoutLine() );
-            break;
-        case EFsLmListMediumLineT2RightIconx2G1:
-            rect.LayoutRect( aParent,
-                AknLayoutScalable_Apps::list_medium_line_t2_right_iconx2_g1().LayoutLine() );
-            break;
-        case EFsLmListMediumLineT2RightIconx2G2:
-            rect.LayoutRect( aParent,
-                AknLayoutScalable_Apps::list_medium_line_t2_right_iconx2_g2().LayoutLine() );
-            break;
-        case EFsLmListMediumLineT3G1:
-            rect.LayoutRect( aParent,
-                AknLayoutScalable_Apps::list_medium_line_t3_g1( aVariety ).LayoutLine() );
-            break;
-        case EFsLmListMediumLineT3G2G1:
-            rect.LayoutRect( aParent,
-                AknLayoutScalable_Apps::list_medium_line_t3_g2_g1( aVariety ).LayoutLine() );
-            break;
-        case EFsLmListMediumLineT3G2G2:
-            rect.LayoutRect( aParent,
-                AknLayoutScalable_Apps::list_medium_line_t3_g2_g2( aVariety ).LayoutLine() );
-            break;
-        case EFsLmListMediumLineT3G3G1:
-            rect.LayoutRect( aParent,
-                AknLayoutScalable_Apps::list_medium_line_t3_g3_g1( aVariety ).LayoutLine() );
-            break;
         case EFsLmListMediumLineT3G3G2:
-            rect.LayoutRect( aParent,
-                AknLayoutScalable_Apps::list_medium_line_t3_g3_g2( aVariety ).LayoutLine() );
-            break;
-        case EFsLmListMediumLineT3G3G3:
-            rect.LayoutRect( aParent,
-                AknLayoutScalable_Apps::list_medium_line_t3_g3_g3( aVariety ).LayoutLine() );
-            break;
-        case EFsLmFolderListMediumLineG1: // Values for folderlist
-		    rect.LayoutRect( aParent, AknLayoutScalable_Avkon::list_single_large_graphic_pane_g1( aVariety ).LayoutLine() );		      
-            break;
+        case EFsLmListMediumLineX2T3G4G2:
+        case EFsLmListMediumLineRightIconx2G1:
+        case EFsLmListMediumLineT2RightIconx2G1:
         case EFsLmListMediumLineT3RightIconx2G1:
             rect.LayoutRect( aParent,
-                AknLayoutScalable_Apps::list_medium_line_t3_right_iconx2_g1().LayoutLine() );
+                AknLayoutScalable_Apps::list_single_dyc_row_pane_g3( aVariety ).LayoutLine() );
             break;
-        case EFsLmListMediumLineT3RightIconx2G2:
-            rect.LayoutRect( aParent,
-                AknLayoutScalable_Apps::list_medium_line_t3_right_iconx2_g2().LayoutLine() );
-            break;
-        case EFsLmListMediumLineX2:
-            rect.LayoutRect( aParent,
-                AknLayoutScalable_Apps::list_medium_line_x2().LayoutLine() );
-            break;
-        case EFsLmListMediumLineX2G1:
-            rect.LayoutRect( aParent,
-                AknLayoutScalable_Apps::list_medium_line_x2_g1( aVariety ).LayoutLine() );
-            break;
-        case EFsLmListMediumLineX2T3G3G1:
-            rect.LayoutRect( aParent,
-                AknLayoutScalable_Apps::list_medium_line_x2_t3_g3_g1( aVariety ).LayoutLine() );
-            break;
+        case EFsLmListMediumLineG2G2:
+        case EFsLmListMediumLineT2G2G2:
+        case EFsLmListMediumLineT3G2G2:
         case EFsLmListMediumLineX2T3G3G2:
-            rect.LayoutRect( aParent,
-                AknLayoutScalable_Apps::list_medium_line_x2_t3_g3_g2( aVariety ).LayoutLine() );
-            break;
-        case EFsLmListMediumLineX2T3G3G3:
-            rect.LayoutRect( aParent,
-                AknLayoutScalable_Apps::list_medium_line_x2_t3_g3_g3( aVariety ).LayoutLine() );
-            break;
-        case EFsLmListMediumLineX2T3G4G1:
-            rect.LayoutRect( aParent,
-                AknLayoutScalable_Apps::list_medium_line_x2_t3_g4_g1( aVariety ).LayoutLine() );
-            break;
-        case EFsLmListMediumLineX2T3G4G2:
-            rect.LayoutRect( aParent,
-                AknLayoutScalable_Apps::list_medium_line_x2_t3_g4_g2( aVariety ).LayoutLine() );
-            break;
+        case EFsLmListMediumLineRightIconG1:
+        case EFsLmListMediumLineT2RightIconG1:
+        case EFsLmListMediumLineRightIconx2G2:
+        case EFsLmListMediumLineT2RightIconx2G2:
+        case EFsLmListMediumLineT3RightIconx2G2:
+        case EFsLmListMediumLineG3G3:
+        case EFsLmListMediumLineT2G3G3:
+        case EFsLmListMediumLineT3G3G3:
         case EFsLmListMediumLineX2T3G4G3:
             rect.LayoutRect( aParent,
-                AknLayoutScalable_Apps::list_medium_line_x2_t3_g4_g3( aVariety ).LayoutLine() );
-            break;
-        case EFsLmListMediumLineX2T4G4G4:
+                AknLayoutScalable_Apps::list_single_dyc_row_pane_g4( aVariety ).LayoutLine() );
+            break;         
+        case EFsLmListMediumLineX2:
             rect.LayoutRect( aParent,
-                AknLayoutScalable_Apps::list_medium_line_x2_t4_g4_g4( aVariety ).LayoutLine() );
+                AknLayoutScalable_Apps::list_single_fs_dyc_pane(1).LayoutLine() );
             break;
         case EFsLmListMediumLineX3:
             rect.LayoutRect( aParent,
-                AknLayoutScalable_Apps::list_medium_line_x3().LayoutLine() );
+                AknLayoutScalable_Apps::list_single_fs_dyc_pane(2).LayoutLine() );
             break;
-        case EFsLmListMediumLineX3T4G4G4:
-            rect.LayoutRect( aParent,
-                AknLayoutScalable_Apps::list_medium_line_x3_t4_g4_g4( aVariety ).LayoutLine() );
+        case EFsLmFolderListMediumLineG1: // Values for folderlist
+		    rect.LayoutRect( aParent, AknLayoutScalable_Avkon::list_single_large_graphic_pane_g1( aVariety ).LayoutLine() );		      
             break;
         case EFsLmListSingleDycRowPane:
             rect.LayoutRect( aParent,
@@ -354,8 +249,61 @@ EXPORT_C TBool CFsLayoutManager::LayoutMetricsRect(
                 AknLayoutScalable_Apps::sp_fs_action_menu_list_gene_pane_g1( aVariety ).LayoutLine() );
             break;
 
-        //</CMAIL>
+        case ECmailDdmenuBtn01Pane:
+            rect.LayoutRect( aParent,
+                AknLayoutScalable_Apps::cmail_ddmenu_btn01_pane( aVariety ).LayoutLine() );
+            break;
+            
+        case ECmailDdmenuBtn01PaneG1:
+            rect.LayoutRect( aParent,
+                AknLayoutScalable_Apps::cmail_ddmenu_btn01_pane_g1( aVariety ).LayoutLine() );
+            break;
+                       
+        case ECmailDdmenuBtn01PaneG2:
+            rect.LayoutRect( aParent,
+                AknLayoutScalable_Apps::cmail_ddmenu_btn01_pane_g2( aVariety ).LayoutLine() );
+            break;
+            
+        case ECmailDdmenuBtn01PaneCP:
+            rect.LayoutRect( aParent,
+                AknLayoutScalable_Apps::bg_button_pane_cp028( aVariety ).LayoutLine() );
+            break;
+                       
+        case ECmailDdmenuBtn02Pane:
+            rect.LayoutRect( aParent,
+                AknLayoutScalable_Apps::cmail_ddmenu_btn02_pane( aVariety ).LayoutLine() );
+            break;
+            
+        case ECmailDdmenuBtn02PaneG1:
+            rect.LayoutRect( aParent,
+                AknLayoutScalable_Apps::cmail_ddmenu_btn02_pane_g1( aVariety ).LayoutLine() );
+            break;            
 
+        case ECmailDdmenuBtn02PaneG2:
+            rect.LayoutRect( aParent,
+                AknLayoutScalable_Apps::cmail_ddmenu_btn02_pane_g2( aVariety ).LayoutLine() );
+            break;            
+            
+        case ECmailDdmenuBtn02PaneCP:
+            rect.LayoutRect( aParent,
+                AknLayoutScalable_Apps::bg_button_pane_cp029( aVariety ).LayoutLine() );
+            break;
+                        
+        case ECmailDdmenuBtn03Pane:
+            rect.LayoutRect( aParent,
+                AknLayoutScalable_Apps::cmail_ddmenu_btn03_pane( aVariety ).LayoutLine() );
+            break;
+            
+        case ECmailDdmenuBtn03PaneG1:
+            rect.LayoutRect( aParent,
+                AknLayoutScalable_Apps::cmail_ddmenu_btn03_pane_g1( aVariety ).LayoutLine() );
+            break;
+            
+        case ECmailDdmenuBtn03PaneCP:
+            rect.LayoutRect( aParent,
+                AknLayoutScalable_Apps::bg_button_pane_cp031( aVariety ).LayoutLine() );
+            break;          
+            
         default:
             // This is error case
             retVal = EFalse;
@@ -449,207 +397,90 @@ EXPORT_C TBool CFsLayoutManager::LayoutMetricsText(
     {
     FUNC_LOG;
 
-    //<CMAIL>
-
     TBool retVal( ETrue );
     TAknLayoutText textLayout;
-
+    
     switch ( aParam )
         {
+
         case EFsLmListMediumLineG2T1:
             textLayout.LayoutText( aParent,
-                AknLayoutScalable_Apps::list_medium_line_g2_t1( aVariety ).LayoutLine() );
+                AknLayoutScalable_Apps::list_single_dyc_row_text_pane_t1( 22 ).LayoutLine() );
             break;
         case EFsLmListMediumLineT2RightIconT1:
             textLayout.LayoutText( aParent,
-                AknLayoutScalable_Apps::list_medium_line_t2_right_icon_t1().LayoutLine() );
+                AknLayoutScalable_Apps::list_single_dyc_row_text_pane_t1( 25 ).LayoutLine() );
             break;
         case EFsLmListMediumLineT2RightIconT2:
             textLayout.LayoutText( aParent,
-                AknLayoutScalable_Apps::list_medium_line_t2_right_icon_t2().LayoutLine() );
+                AknLayoutScalable_Apps::list_single_dyc_row_text_pane_t2( 16 ).LayoutLine() );
             break;
         case EFsLmListMediumLineX2T3G3T1:
             textLayout.LayoutText( aParent,
-                AknLayoutScalable_Apps::list_medium_line_x2_t3_g3_t1( aVariety ).LayoutLine() );
+                AknLayoutScalable_Apps::list_single_dyc_row_text_pane_t1( 13 ).LayoutLine() );
             break;
         case EFsLmListMediumLineX2T3G3T2:
             textLayout.LayoutText( aParent,
-                AknLayoutScalable_Apps::list_medium_line_x2_t3_g3_t2( aVariety ).LayoutLine() );
+                AknLayoutScalable_Apps::list_single_dyc_row_text_pane_t2( 4 ).LayoutLine() );
             break;
         case EFsLmListMediumLineX2T3G2T1:
             textLayout.LayoutText( aParent,
-                AknLayoutScalable_Apps::list_medium_line_x2_t3_g2_t1( aVariety ).LayoutLine() );
+                AknLayoutScalable_Apps::list_single_dyc_row_text_pane_t1( 23 ).LayoutLine() );
             break;
         case EFsLmListMediumLineX2T3G2T2:
             textLayout.LayoutText( aParent,
-                AknLayoutScalable_Apps::list_medium_line_x2_t3_g2_t2( aVariety ).LayoutLine() );
-            break;
+                AknLayoutScalable_Apps::list_single_dyc_row_text_pane_t2( 14 ).LayoutLine() );
+            break;            
         case EFsLmListMediumLineX2T2G4T1:
             textLayout.LayoutText( aParent,
-                AknLayoutScalable_Apps::list_medium_line_x2_t2_g4_t1( aVariety ).LayoutLine() );
-            break;
+                AknLayoutScalable_Apps::list_single_dyc_row_text_pane_t1( 3 ).LayoutLine() );
+           break;                       
         case EFsLmListMediumLineX2T2G3T1:
             textLayout.LayoutText( aParent,
-                AknLayoutScalable_Apps::list_medium_line_x2_t2_g3_t1( aVariety ).LayoutLine() );
-            break;
+                AknLayoutScalable_Apps::list_single_dyc_row_text_pane_t1( 2 ).LayoutLine() );
+            break;            
         case EFsLmListMediumLineX2T2G2T1:
+        case EFsLmListMediumLineT4G4T3:
+        case EFsLmListMediumLineX3T4G4T3:
             textLayout.LayoutText( aParent,
-                AknLayoutScalable_Apps::list_medium_line_x2_t2_g2_t1( aVariety ).LayoutLine() );
-            break;
+                AknLayoutScalable_Apps::list_single_dyc_row_text_pane_t1( 5 ).LayoutLine() );
+            break;           
         case EFsLmListMediumLineX2T3T3:
             textLayout.LayoutText( aParent,
-                AknLayoutScalable_Apps::list_medium_line_x2_t3_t3().LayoutLine() );
-            break;
-        case EFsLmListMediumLineT4G4T3:
-        /*
-            TAknLayoutRect textParent;
-            textParent.LayoutRect(ListSingleDycRow(aParent, 3, 3),
-                    AknLayoutScalable_Apps::list_single_dyc_row_text_pane( 5 ).LayoutLine());
-            textLayout.LayoutText( textParent.Rect(),
-                AknLayoutScalable_Apps::list_single_dyc_row_text_pane_t1( 5 ).LayoutLine() ); //list_medium_line_t4_g4_t3*/
-            textLayout.LayoutText( aParent,
-                AknLayoutScalable_Apps::list_medium_line_t4_g4_t3( aVariety ).LayoutLine() ); //list_medium_line_t4_g4_t3*/
+                AknLayoutScalable_Apps::list_single_dyc_row_text_pane_t1( 8 ).LayoutLine() );
             break;
         case EFsLmListMediumLineX3T4G4T2:
             textLayout.LayoutText( aParent,
-                AknLayoutScalable_Apps::list_medium_line_x3_t4_g4_t2( aVariety ).LayoutLine() );
-            break;
-        case EFsLmListMediumLineX3T4G4T3:
-            textLayout.LayoutText( aParent,
-                AknLayoutScalable_Apps::list_medium_line_x3_t4_g4_t3( aVariety ).LayoutLine() );
+                AknLayoutScalable_Apps::list_single_dyc_row_text_pane_t2( 13 ).LayoutLine() );
             break;
         case EFsLmListMediumLineX3T4G4T4:
             textLayout.LayoutText( aParent,
-                AknLayoutScalable_Apps::list_medium_line_x3_t4_g4_t4( aVariety ).LayoutLine() );
-            break;
-        case EFsLmListMediumLineT3RightIconx2T1:
-            textLayout.LayoutText( aParent,
-                AknLayoutScalable_Apps::list_medium_line_t3_right_iconx2_t1().LayoutLine() );
-            break;
-        case EFsLmListMediumLineT3RightIconx2T2:
-            textLayout.LayoutText( aParent,
-                AknLayoutScalable_Apps::list_medium_line_t3_right_iconx2_t2().LayoutLine() );
-            break;
-        case EFsLmListMediumLineT2RightIconx2T1:
-            textLayout.LayoutText( aParent,
-                AknLayoutScalable_Apps::list_medium_line_t2_right_iconx2_t1().LayoutLine() );
-            break;
-        case EFsLmListMediumLineT2RightIconx2T2:
-            textLayout.LayoutText( aParent,
-                AknLayoutScalable_Apps::list_medium_line_t2_right_iconx2_t2().LayoutLine() );
+                AknLayoutScalable_Apps::list_single_dyc_row_text_pane_t1( 7 ).LayoutLine() );
             break;
         case EFsLmListMediumLineRightIconx2T1:
             textLayout.LayoutText( aParent,
-                AknLayoutScalable_Apps::list_medium_line_right_iconx2_t1().LayoutLine() );
-            break;
-        case EFsLmListMediumLineT3G3T1:
-            textLayout.LayoutText( aParent,
-                AknLayoutScalable_Apps::list_medium_line_t3_g3_t1( aVariety ).LayoutLine() );
-            break;
-        case EFsLmListMediumLineT3G3T2:
-            textLayout.LayoutText( aParent,
-                AknLayoutScalable_Apps::list_medium_line_t3_g3_t2( aVariety ).LayoutLine() );
-            break;
-        case EFsLmListMediumLineT3G3T3:
-            textLayout.LayoutText( aParent,
-                AknLayoutScalable_Apps::list_medium_line_t3_g3_t3( aVariety ).LayoutLine() );
-            break;
-        case EFsLmListMediumLineT2G3T1:
-            textLayout.LayoutText( aParent,
-                AknLayoutScalable_Apps::list_medium_line_t2_g3_t1( aVariety ).LayoutLine() );
-            break;
-        case EFsLmListMediumLineT2G3T2:
-            textLayout.LayoutText( aParent,
-                AknLayoutScalable_Apps::list_medium_line_t2_g3_t2( aVariety ).LayoutLine() );
+                AknLayoutScalable_Apps::list_single_dyc_row_text_pane_t1( 6 ).LayoutLine() );
             break;
         case EFsLmListMediumLineG3T1:
             textLayout.LayoutText( aParent,
-                AknLayoutScalable_Apps::list_medium_line_g3_t1( aVariety ).LayoutLine() );
+                AknLayoutScalable_Apps::list_single_dyc_row_text_pane_t1( 3 ).LayoutLine() );
             break;
         case EFsLmListMediumLinePlainT1:
             textLayout.LayoutText( aParent,
-                AknLayoutScalable_Apps::list_medium_line_plain_t1().LayoutLine() );
+                AknLayoutScalable_Apps::list_single_dyc_row_text_pane_t1( 8 ).LayoutLine() );
             break;
         case EFsLmListMediumLineT3T1:
             textLayout.LayoutText( aParent,
-                AknLayoutScalable_Apps::list_medium_line_t3_t1( aVariety ).LayoutLine() );
-            break;
-        case EFsLmListMediumLineT3T2:
-            textLayout.LayoutText( aParent,
-                AknLayoutScalable_Apps::list_medium_line_t3_t2( aVariety ).LayoutLine() );
-            break;
-        case EFsLmListMediumLineT3T3:
-            textLayout.LayoutText( aParent,
-                AknLayoutScalable_Apps::list_medium_line_t3_t3( aVariety ).LayoutLine() );
-            break;
-        case EFsLmListMediumLineT2T1:
-            textLayout.LayoutText( aParent,
-                AknLayoutScalable_Apps::list_medium_line_t2_t1( aVariety ).LayoutLine() );
-            break;
-        case EFsLmListMediumLineT2T2:
-            textLayout.LayoutText( aParent,
-                AknLayoutScalable_Apps::list_medium_line_t2_t2( aVariety ).LayoutLine() );
+                AknLayoutScalable_Apps::list_single_dyc_row_text_pane_t1( 35 ).LayoutLine() );
             break;
         case EFsLmListMediumLineRightIconT1:
             textLayout.LayoutText( aParent,
-                AknLayoutScalable_Apps::list_medium_line_right_icon_t1().LayoutLine() );
-            break;
-        case EFsLmListMediumLineT3G2T1:
-            textLayout.LayoutText( aParent,
-                AknLayoutScalable_Apps::list_medium_line_t3_g2_t1( aVariety ).LayoutLine() );
-            break;
-        case EFsLmListMediumLineT3G2T2:
-            textLayout.LayoutText( aParent,
-                AknLayoutScalable_Apps::list_medium_line_t3_g2_t2( aVariety ).LayoutLine() );
-            break;
-        case EFsLmListMediumLineT3G2T3:
-            textLayout.LayoutText( aParent,
-                AknLayoutScalable_Apps::list_medium_line_t3_g2_t3( aVariety ).LayoutLine() );
-            break;
-        case EFsLmListMediumLineT2G2T1:
-            textLayout.LayoutText( aParent,
-                AknLayoutScalable_Apps::list_medium_line_t2_g2_t1( aVariety ).LayoutLine() );
-            break;
-        case EFsLmListMediumLineT2G2T2:
-            textLayout.LayoutText( aParent,
-                AknLayoutScalable_Apps::list_medium_line_t2_g2_t2( aVariety ).LayoutLine() );
-            break;
-        case EFsLmListMediumLineX2T3G4T1:
-            textLayout.LayoutText( aParent,
-                AknLayoutScalable_Apps::list_medium_line_x2_t3_g4_t1( aVariety ).LayoutLine() );
-            break;
-        case EFsLmListMediumLineX2T3G4T2:
-            textLayout.LayoutText( aParent,
-                AknLayoutScalable_Apps::list_medium_line_x2_t3_g4_t2( aVariety ).LayoutLine() );
-            break;
-        case EFsLmListMediumLineX2T3G4T3:
-            textLayout.LayoutText( aParent,
-                AknLayoutScalable_Apps::list_medium_line_x2_t3_g4_t3( aVariety ).LayoutLine() );
-            break;
-        case EFsLmListMediumLinePlainT3T1:
-            textLayout.LayoutText( aParent,
-                AknLayoutScalable_Apps::list_medium_line_plain_t3_t1().LayoutLine() );
-            break;
-        case EFsLmListMediumLinePlainT3T2:
-            textLayout.LayoutText( aParent,
-                AknLayoutScalable_Apps::list_medium_line_plain_t3_t2().LayoutLine() );
-            break;
-        case EFsLmListMediumLinePlainT3T3:
-            textLayout.LayoutText( aParent,
-                AknLayoutScalable_Apps::list_medium_line_plain_t3_t3().LayoutLine() );
-            break;
-        case EFsLmListMediumLinePlainT2T1:
-            textLayout.LayoutText( aParent,
-                AknLayoutScalable_Apps::list_medium_line_plain_t2_t1().LayoutLine() );
-            break;
-        case EFsLmListMediumLinePlainT2T2:
-            textLayout.LayoutText( aParent,
-                AknLayoutScalable_Apps::list_medium_line_plain_t2_t2().LayoutLine() );
-            break;
+                AknLayoutScalable_Apps::list_single_dyc_row_text_pane_t1( 7 ).LayoutLine() );
+            break;           
         case EFsLmListMediumLineT1:
             textLayout.LayoutText( aParent,
-                AknLayoutScalable_Apps::list_medium_line_t1( aVariety ).LayoutLine() );
-            break;
+                AknLayoutScalable_Apps::list_single_dyc_row_text_pane_t1( 5 ).LayoutLine() );
+            break;      
         case EFsLmFolderListMediumLineT1: // Values for folderlist
 		    textLayout.LayoutText( aParent, AknLayoutScalable_Avkon::list_single_large_graphic_pane_t1( aVariety ).LayoutLine() );		      		                
             break;
@@ -674,14 +505,31 @@ EXPORT_C TBool CFsLayoutManager::LayoutMetricsText(
                 AknLayoutScalable_Apps::sp_fs_action_menu_list_gene_pane_t1( aVariety ).LayoutLine() );
             break;
 
-        //</CMAIL>
+        case ECmailDdmenuBtn01PaneT1:
+            textLayout.LayoutText( aParent,
+                AknLayoutScalable_Apps::cmail_ddmenu_btn01_pane_t1( aVariety ).LayoutLine() );
+            break;
 
+        case ECmailDdmenuBtn02PaneT1:
+            textLayout.LayoutText( aParent,
+                AknLayoutScalable_Apps::cmail_ddmenu_btn02_pane_t1( aVariety ).LayoutLine() );
+            break;
+
+        case ECmailDdmenuBtn02PaneT2:
+            textLayout.LayoutText( aParent,
+                AknLayoutScalable_Apps::cmail_ddmenu_btn02_pane_t2( aVariety ).LayoutLine() );
+            break;
+
+        case ECmailDdmenuBtn03PaneT1:
+            textLayout.LayoutText( aParent,
+                AknLayoutScalable_Apps::cmail_ddmenu_btn03_pane_t1( aVariety ).LayoutLine() );
+            break;
 
         default:
             retVal = EFalse;
             break;
         }
-
+    
     if ( retVal )
         {
         aText.iTextRect = textLayout.TextRect();

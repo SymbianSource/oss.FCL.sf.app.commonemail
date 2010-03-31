@@ -11,7 +11,7 @@
 *
 * Contributors:
 *
-* Description:  Interface definition for ESMR task factory
+* Description:  Interface definition for MR task factory
 *
 */
 
@@ -24,7 +24,7 @@
 //</cmail>
 
 class MESMRTask;
-class MESMRMeetingRequestEntry;
+class MESMRCalEntry;
 
 /**
  *  MESMRTaskFactory defines interface for creating ES MR tasks.
@@ -52,7 +52,7 @@ public:
      */
     virtual MESMRTask* CreateTaskL(
             TESMRCommand aCommand,
-            MESMRMeetingRequestEntry& aEntry ) = 0;
+            MESMRCalEntry& aEntry ) = 0;
     };
 
 #endif // MESMRTASKFACTORY_H
