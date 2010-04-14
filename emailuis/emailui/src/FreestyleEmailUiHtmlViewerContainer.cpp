@@ -1373,7 +1373,6 @@ void CFsEmailUiHtmlViewerContainer::ConvertToHTML( const TDesC& aContent,
         TInt maxlength = bodyBuf.MaxSize();
         
         TInt position( 0 );
-        TText previous = 0;
         TBool EndOfString( EFalse );
         
         while ( !EndOfString )
@@ -1442,7 +1441,6 @@ void CFsEmailUiHtmlViewerContainer::ConvertToHTML( const TDesC& aContent,
                         i++;
                         break;
                     }
-                previous = ch;
                 }
             position += segment.Length();
             if ( ( bodyBuf.Length() - position ) <= 0 )
@@ -1504,251 +1502,68 @@ void CFsEmailUiHtmlViewerContainer::ConvertToHTML( const TDesC& aContent,
 void CFsEmailUiHtmlViewerContainer::CreateHyperlinksFromUrlsL( RBuf& aSource )
     {
     FUNC_LOG;
-    const TInt urlMaxLength = 2048;
-    _LIT( KHttp, "http://" );
-    _LIT( KHttps, "https://");
-    _LIT( KWww, "www."); 
-    
-    TBool eos( aSource.Size() <= 0 );
-    TInt position( 0 );
-    TInt carryOverInc( 0 );
-    TInt maxlength = aSource.Length();
-    while ( !eos )
+    const TInt searhCases( CFindItemEngine::EFindItemSearchURLBin );
+    CFindItemEngine* itemEngine = CFindItemEngine::NewL( aSource, CFindItemEngine::TFindItemSearchCase( searhCases ) );
+    CleanupStack::PushL ( itemEngine );
+    if ( itemEngine->ItemCount() > 0 )
         {
-        while ( carryOverInc >= aSource.MidTPtr( position ).Length() && aSource.Size() != 0 )
-            { // Skip segments of overlapping url string
-            carryOverInc -= aSource.MidTPtr( position ).Length();
-            position += aSource.MidTPtr( position ).Length();
-            }
+        _LIT( KHttp, "http://" );
+        _LIT( KUrlFormat, "<a href=\"%S\">%S</a>" );
+        _LIT( KUrlFormatWithHttp, "<a href=\"http://%S\">%S</a>" );
         
-        TPtr16 segment( aSource.MidTPtr( position ) );
-        TLex16 lexSegment( segment );
-        lexSegment.Inc( carryOverInc );
-        carryOverInc = 0;
+        const TInt sourceLength( aSource.Length() );
+        // Allocate enough space for the final result
+        aSource.ReAllocL( sourceLength + TotalLengthOfItems( *itemEngine ) + KUrlFormatWithHttp().Length() * itemEngine->ItemCount() );
+        aSource.SetMax();
+        // Organize buffer so that original data is in the back of the aSource
+        aSource.RightTPtr( sourceLength ).Copy( aSource.Left( sourceLength ) );
+        // Set source to new original data's position
+        const TPtrC source( aSource.RightTPtr( sourceLength ) );
+        // Set target to aSource's beginning
+        TPtr target( aSource.MidTPtr( 0 ) );
+        // Reset length, we now have an empty buffer to fill
+        target.SetLength( 0 );
         
-        while (!lexSegment.Eos())
+        TInt currentSourcePosition( 0 );
+        CFindItemEngine::SFoundItem item;
+        for ( TBool available( itemEngine->Item( item ) ); available; available = itemEngine->NextItem( item ) )
             {
-            TPtrC nextToken( lexSegment.NextToken() );
-            TInt foundAt( KErrNotFound );
-            
-            // Find HTTP, HTTPS, or WWW link in CBufSeg segment of size 1024 bytes.
-            if ( ( ( foundAt = nextToken.FindC( KHttp ) ) != KErrNotFound ) ||
-                    (  ( foundAt = nextToken.FindC( KHttps ) ) != KErrNotFound ) ||
-                    ( ( foundAt = nextToken.FindC( KWww ) ) != KErrNotFound ) )
+            target.Append( source.Mid( currentSourcePosition, item.iStartPos - currentSourcePosition ) );
+            const TPtrC url( source.Mid( item.iStartPos, item.iLength ) );
+            TPtrC format( KUrlFormat() );
+            if ( url.FindF( KHttp() ) == KErrNotFound ) 
                 {
-                if ( !lexSegment.Eos() )
-                    { 
-                    if ( !foundAt )
-                        { // Token starts with http/https/www.x
-                        TPtrC url;
-                        TInt lineBreakPos( KErrNotFound );
-                        if ( ( lineBreakPos = nextToken.FindC( KHtmlLineBreak ) ) != KErrNotFound )
-                            { // Token contains html line break -> remove
-                            url.Set( nextToken.Left( lineBreakPos ) );
-                            }
-                        else
-                            {
-                            url.Set( nextToken );
-                            }
-                        
-                        if ( url.CompareC( KWww ) != KErrNone ) // if token=www., validate format 
-                            {                                   // www.x
-                            RBuf urlBuf;
-                            TBool wwwLink( EFalse );
-                            if ( url.Left( KWww().Length() ).CompareF( KWww ) == 0 )
-                                {
-                                wwwLink = ETrue;
-                                //Hyperlinks beginning with www. needs http:// prefix
-                                urlBuf.CreateL( KHtmlLinkTagWWW().Length() + url.Length() * 2
-                                        + KHtmlLinkEndTag().Length() + KHtmlLineBreak().Length() + KHttp().Length() );
-                                }                            
-                            else
-                                {
-                                urlBuf.CreateL( KHtmlLinkTag().Length() + url.Length() * 2
-                                        + KHtmlLinkEndTag().Length() + KHtmlLineBreak().Length() );                                
-                                }
-                            urlBuf.CleanupClosePushL();
-                            // Format html link
-                            if ( wwwLink )
-                                {
-                                urlBuf.AppendFormat( KHtmlLinkTagWWW, &KHttp, &url );
-                                }
-                            else
-                                {
-                                urlBuf.AppendFormat( KHtmlLinkTag, &url );
-                                }
-                            urlBuf.Append( url );
-                            urlBuf.Append( KHtmlLinkEndTag );
-                            if ( lineBreakPos != KErrNotFound )
-                                { // Add line break if removed earlier
-                                urlBuf.Append( KHtmlLineBreak );
-                                }
-                            //Test
-                            TInt nextTokenLength = nextToken.Length();
-                            TInt segOffset = lexSegment.Offset();
-                            TInt urlLength = urlBuf.Length();
-                            
-                            //Test
-                            TInt offset = lexSegment.Offset() - nextToken.Length();
-                            TLexMark tokenMark;
-                            // Move next character last token back
-                            lexSegment.Inc( - nextToken.Length() );
-                            lexSegment.Mark( tokenMark );
-                            aSource.Delete( offset + position, nextToken.Length() );
-                            aSource.ReAlloc( maxlength + urlBuf.Length() );
-                            aSource.Insert( offset + position, urlBuf );
-                            segment.Set( aSource.MidTPtr( position ) );
-                            lexSegment.Assign( segment );
-                            // Set next character to the position of inserted hyperlink
-                            lexSegment.UnGetToMark( tokenMark );
-                            
-                            // If Max segment length is reached, set carry over value to 
-                            // properly set next character in following CBufSeg segment
-                            if ( ( offset + urlBuf.Length() ) >= segment.Length() )
-                                {
-                                carryOverInc = offset + urlBuf.Length() - segment.Length();
-                                while ( !lexSegment.Eos() )
-                                    { // Set to segment's end
-                                    lexSegment.NextToken(); 
-                                    }
-                                }
-                            else
-                                {
-                                lexSegment.Inc( urlBuf.Length() );
-                                }
-                            
-                            CleanupStack::PopAndDestroy( &urlBuf );
-                            }
-                        }
-                    }
-                else
-                    // Next token is end of string, here we handle the last token of a segment
-                    {
-                    _LIT( KUrlEnd, "<" );
-                    
-                    TInt endOfUrlPos( KErrNotFound );
-                    TText ch = segment[ segment.Length() - 1];
-                    RBuf url;
-                    url.CreateL( urlMaxLength );
-                    url.CleanupClosePushL();
-                    
-                    // Find if hyperlink ends within this segment boundaries
-                    if ( ch == KSOH || ch == KCR || ch == KLF || ch == KHT || ch == KCharacterSpace )
-                        {
-                        endOfUrlPos = nextToken.Length() - 1;
-                        }
-                    else if ( ( endOfUrlPos = nextToken.Right( KHtmlLineBreak().Length() ).Find( KUrlEnd ) ) != KErrNotFound )
-                        {
-                        endOfUrlPos = nextToken.Length() - KHtmlLineBreak().Length() + endOfUrlPos;
-                        }
-                    else
-                        { // Handle hyperlink spread in multiple segments
-                        TInt nextPos = position;
-                        TPtrC nextSegment( aSource.MidTPtr( nextPos ) );
-                        TLex lexNextSegment( nextSegment );
-                        TPtrC nextNextToken( nextToken );
-                        TBool firstPass( ETrue );
-                        
-                        while ( endOfUrlPos == KErrNotFound || nextPos >= aSource.Length() )
-                            {
-                            if ( ( url.Length() + nextNextToken.Length() )  > urlMaxLength )
-                                { // URL exceeds limit of 2K, do nothing
-                                break;
-                                }
-                            
-                            url.Append( nextNextToken );
-                            if ( ( nextSegment.Length() == nextNextToken.Length() ) || firstPass )
-                                { // Token takes up the whole segment, or first pass( first segment 
-                                  // with last token where hyperlink does not end within segment's
-                                  // boundaries, move to next segment
-                                nextPos += nextSegment.Length();
-                                nextSegment.Set( aSource.MidTPtr( nextPos ) );
-                                if( nextSegment.Length() == 0 )
-                                    {      
-                                    break;
-                                    }
-                                lexNextSegment.Assign( nextSegment );
-                                nextNextToken.Set( lexNextSegment.NextToken() );
-                                if ( firstPass )
-                                    { 
-                                    firstPass =  EFalse;
-                                    }
-                                }
-                            else
-                                { // Last segment's token with hyperlink's end
-                                if ( ( endOfUrlPos = url.Find( KHtmlLineBreak ) ) != KErrNotFound )
-                                    { // Remove line break
-                                    url.Delete( endOfUrlPos, KHtmlLineBreak().Length() );
-                                    endOfUrlPos = nextNextToken.Length() - KHtmlLineBreak().Length();
-                                    }
-                                else
-                                    {
-                                    endOfUrlPos = nextNextToken.Length();
-                                    }  
-                                }
-                            }
- 
-                        if ( endOfUrlPos != KErrNotFound )
-                            { // Handle hyperlink that is within 2K limit
-                            RBuf urlBuf;
-                            TBool wwwLink( EFalse );
-
-                            if ( url.Left( KWww().Length() ).CompareF( KWww ) == 0 )
-                                {
-                                wwwLink = ETrue;
-                                urlBuf.CreateL( KHtmlLinkTagWWW().Length() + url.Length() * 2
-                                        + KHtmlLinkEndTag().Length() + KHtmlLineBreak().Length() + KHttp().Length() );
-                                }
-                            else
-                                {
-                                urlBuf.CreateL( KHtmlLinkTag().Length() + url.Length() * 2
-                                        + KHtmlLinkEndTag().Length() + KHtmlLineBreak().Length() );                                
-                                }
-
-                            urlBuf.CleanupClosePushL();
-                            // Format html link                            
-                            if ( wwwLink )
-                                {
-                                urlBuf.AppendFormat( KHtmlLinkTagWWW, &KHttp, &url );
-                                }
-                            else
-                                {
-                                urlBuf.AppendFormat( KHtmlLinkTag, &url );
-                                }
-                            
-                            urlBuf.Append( url );
-                            urlBuf.Append( KHtmlLinkEndTag );
-                            urlBuf.Append( KHtmlLineBreak );
-                            
-                            TInt offset = lexSegment.Offset() - nextToken.Length();
-                            // Remove hyperlink from the original message body
-                            aSource.Delete( offset + position, url.Length() );
-                            // Insert html formated hyperlink
-                            aSource.ReAlloc( maxlength + urlBuf.Length() );
-                            aSource.Insert( offset + position, urlBuf );
-                            segment.Set( aSource.MidTPtr( position ) );
-                            
-                            // Set carry on value to mark where new token should start in following segment
-                            carryOverInc = endOfUrlPos;
-                            position = nextPos;
-                            
-                            CleanupStack::PopAndDestroy( &urlBuf );
-                            }     
-                        }
-                    CleanupStack::PopAndDestroy( &url );
-                    }
+                format.Set( KUrlFormatWithHttp() );
                 }
-            }
-        position += segment.Length();
-        if ( ( aSource.Length() - position ) <= 0 )
+            HBufC* formatBuffer = HBufC::NewLC( format.Length() + url.Length() * 2 );
+            formatBuffer->Des().Format( format, &url, &url );            
+            target.Append( *formatBuffer );
+            CleanupStack::PopAndDestroy(); // formatBuffer
+            currentSourcePosition = item.iStartPos + item.iLength;
+            }        
+        // Append characters that are left in buffer
+        if ( currentSourcePosition < sourceLength )
             {
-            eos = ETrue;
+            target.Append( source.Mid( currentSourcePosition, sourceLength - currentSourcePosition ) );
             }
+        aSource.SetLength( target.Length() );
         }
-
-    
+    CleanupStack::PopAndDestroy(); // itemEngine
     }
 
+
+TInt CFsEmailUiHtmlViewerContainer::TotalLengthOfItems( CFindItemEngine& aItemEngine ) const
+    {
+    TInt totalLength( 0 );
+    CFindItemEngine::SFoundItem item;
+    aItemEngine.ResetPosition();
+    for ( TBool available( aItemEngine.Item( item ) ); available; available = aItemEngine.NextItem( item ) )
+        {
+        totalLength += item.iLength;
+        }
+    aItemEngine.ResetPosition();
+    return totalLength;
+    }
 
 // ---------------------------------------------------------------------------
 // Get Character set from CFSMailMessagePart

@@ -27,6 +27,11 @@
 
 #include "ipssetuifolderlistarray.h"
 
+// how the indentation is done 
+_LIT( KIndentString, ".." ); 
+const TInt KIndentStringLength = 2;  // KIndentString().Length();
+#define KMaxIndentLevel 3
+
 // ----------------------------------------------------------------------------
 // CIpsSetUiFolderListArray::NewL
 // ----------------------------------------------------------------------------
@@ -51,6 +56,7 @@ CIpsSetUiFolderListArray* CIpsSetUiFolderListArray::NewL(
 CIpsSetUiFolderListArray::~CIpsSetUiFolderListArray()
     {
     FUNC_LOG;
+    iArrayBuf.ResetAndDestroy();
     delete iText;
     delete iEntry;
     }
@@ -83,18 +89,50 @@ CIpsSetUiFolderListArray::CIpsSetUiFolderListArray(
 
 // ----------------------------------------------------------------------------
 // CIpsSetUiFolderListArray::MdcaPoint
+// list item contains: icon_index separator item_text
 // ----------------------------------------------------------------------------
 //
 TPtrC CIpsSetUiFolderListArray::MdcaPoint( TInt aIndex ) const
     {
     FUNC_LOG;
-    const TMsvEmailEntry emailEntry( (*iEntry)[aIndex] );
-
+    //    const TMsvEmailEntry emailEntry( (*iEntry)[aIndex] );
+    
+// firstly switch to correct directory to search for folders
+    TMsvId origFolder = iEntry->EntryId();
+    TArrayFolderItem * const pArrayItem = iArrayBuf[aIndex]; // not owning
+    TMsvId targetFolder = pArrayItem->Parent();
+    // if item has subitem it follows immediately
+    TBool itemHasChildFolders( ( aIndex < (iCount - 1) ) 
+          && (iArrayBuf[aIndex+1]->Parent() == pArrayItem->Id() ) );
+// return value init
     TPtr tempText = iText->Des();
     tempText.Zero();
 
+    TInt result( KErrNone );
+    if ( origFolder != targetFolder ) 
+        {
+        TRAP( result, iEntry->SetEntryL( targetFolder ) );
+        }
+    TMsvEmailEntry emailEntry;
+    if ( KErrNone == result )
+        {
+        TRAP( result, emailEntry = iEntry->ChildDataL( pArrayItem->Id() ) );
+        }
+
+    if ( KErrNone != result )    
+        {    // Handle error.
+            // item index dir or item
+            tempText.AppendNum( ( itemHasChildFolders 
+                ? EIpsSetUiFolderSubfoldersUnsubbed 
+                : EIpsSetUiFolderSingleUnsubbed ) );
+            tempText.Append( KColumnListSeparator );
+            // but name can't be find
+            return tempText;
+        }
+//    const TMsvEmailEntry emailEntry( curentEntry );
+
     TInt iconIndex = 0;
-    if ( ContextHasChildFolders( emailEntry.Id() ) )
+    if ( itemHasChildFolders )
         {
         iconIndex = ( emailEntry.LocalSubscription() ?
             EIpsSetUiFolderSubfoldersSubbed : EIpsSetUiFolderSubfoldersUnsubbed );
@@ -104,13 +142,26 @@ TPtrC CIpsSetUiFolderListArray::MdcaPoint( TInt aIndex ) const
         iconIndex = ( emailEntry.LocalSubscription() ?
             EIpsSetUiFolderSingleSubbed : EIpsSetUiFolderSingleUnsubbed );
         }
+    
     tempText.AppendNum( iconIndex );
     tempText.Append( KColumnListSeparator );
-    tempText.Append(
-        emailEntry.iDetails.Left( KIpsSetUiMaxSettingsTextLength ) );
 
+    // add indentation text of subfolders 2,4 or 6 dots 
+    TInt i = ( ( pArrayItem->IndentLevel() >= KMaxIndentLevel ) 
+            ? KMaxIndentLevel : pArrayItem->IndentLevel() );
+    TInt siz ( KIpsSetUiMaxSettingsTextLength -  i * KIndentStringLength ); 
+    for ( ; i > 0; i-- ) 
+        {
+        tempText.Append(KIndentString);
+        }
+
+    // add item text
+    tempText.Append( emailEntry.iDetails.Left( siz ) );
+    
     return tempText;
+    
     }
+
 
 // ----------------------------------------------------------------------------
 // CIpsSetUiFolderListArray::MdcaCount
@@ -129,7 +180,8 @@ TInt CIpsSetUiFolderListArray::MdcaCount() const
 TMsvId CIpsSetUiFolderListArray::Id( TInt aIndex )
     {
     FUNC_LOG;
-    return (*iEntry)[aIndex].Id();
+//    return (*iEntry)[aIndex].Id();
+    return iArrayBuf[aIndex]->Id();
     }
 
 // ----------------------------------------------------------------------------
@@ -140,12 +192,6 @@ void CIpsSetUiFolderListArray::ChangEIpsSetUiFolderL( TMsvId aFolderId )
     {
     FUNC_LOG;
     iEntry->SetEntryL( aFolderId );
-
-    CMsvEntrySelection* sel = iEntry->ChildrenWithTypeL( KUidMsvFolderEntry );
-    iCount = sel->Count();
-    delete sel;
-    sel = NULL;
-
     }
 
 // ----------------------------------------------------------------------------
@@ -185,20 +231,9 @@ TBool CIpsSetUiFolderListArray::DoContextHasChildFoldersL( TMsvId aId ) const
         KMsvGroupByType, EMsvSortByDetails, ETrue );
     CMsvEntry* entry = CMsvEntry::NewL(iSession, aId, selectionOrdering);
     CleanupStack::PushL( entry );
-    TInt index=entry->Count()-1;
-    while (index>=0 && (*entry)[index].iType!=KUidMsvFolderEntry)
-        {
-        index--;
-        }
-
+    TBool retval ( ( entry->Count() > 0 ) && ( KUidMsvFolderEntry == (*entry)[0].iType ) ); 
     CleanupStack::PopAndDestroy( entry );
-
-    if(index!=-1)
-        {
-        return ETrue;
-        }
-
-    return EFalse;
+    return retval;
     }
 
 // ----------------------------------------------------------------------------
@@ -239,7 +274,6 @@ CMsvEntrySelection* CIpsSetUiFolderListArray::GetContextChildrenL(
             }
         }
 
-
     CleanupStack::Pop( sel );
     return sel;
     }
@@ -254,10 +288,12 @@ TBool CIpsSetUiFolderListArray::FoldersUpdated() const
     return ( iEntry->Count() > 0 ? ETrue : EFalse );
     }
 
+
 // ----------------------------------------------------------------------------
 // CIpsSetUiFolderListArray::RefreshFolderListArrayL
+// original function 
 // ----------------------------------------------------------------------------
-//
+
 void CIpsSetUiFolderListArray::RefreshFolderListArrayL()
     {
     FUNC_LOG;
@@ -266,7 +302,8 @@ void CIpsSetUiFolderListArray::RefreshFolderListArrayL()
         delete iEntry;
         iEntry = NULL;
         }
-
+    iCount = 0;
+    
     iEntry = iSession.GetEntryL( iMailboxId );
     const TMsvSelectionOrdering originalOrdering=iEntry->SortType();
     TMsvSelectionOrdering newOrdering=originalOrdering;
@@ -275,10 +312,59 @@ void CIpsSetUiFolderListArray::RefreshFolderListArrayL()
     newOrdering.SetSorting( EMsvSortByDetails );
     iEntry->SetSortTypeL(newOrdering);
 
+    // code to fill in internal array
+    TInt arrayIndex(0);
+    TInt size = iArrayBuf.Count();
+    iArrayBuf.ResetAndDestroy();
+    if ( size > 8 )
+        {
+        iArrayBuf.ReserveL(size);
+        } 
+    RefreshFolderListArrayL(iMailboxId, arrayIndex, 0);
+    iArrayBuf.Compress();
+    iCount = iArrayBuf.Count();
+    
+    }
+
+// ----------------------------------------------------------------------------
+// CIpsSetUiFolderListArray::RefreshFolderListArrayL(
+//      TMsvId aIdFolder, TInt & aArrayIndex, TInt aIndentLevel)
+// recursion function to fill in / refresh iArrayBuf.
+// ----------------------------------------------------------------------------
+void CIpsSetUiFolderListArray::RefreshFolderListArrayL(
+                       TMsvId aIdFolder, TInt & aArrayIndex, TInt aIndentLevel)
+    {
+    TMsvId origFolder = iEntry->EntryId();
+    if ( origFolder != aIdFolder ) 
+        iEntry->SetEntryL( aIdFolder );
     CMsvEntrySelection* sel = iEntry->ChildrenWithTypeL( KUidMsvFolderEntry );
-    iCount = sel->Count();
-    delete sel;
-    sel = NULL;
+    CleanupStack::PushL( sel );
+    TInt count = sel->Count();
+    for (TInt i = 0; i < count; i++)
+        {
+        const TMsvEmailEntry emailEntry( (*iEntry)[i] );
+        TArrayFolderItem * item = new (ELeave) TArrayFolderItem( emailEntry.Id(), aIdFolder, aIndentLevel );
+        CleanupStack::PushL( item );
+        if ( iArrayBuf.Count() > aArrayIndex + 1 )
+            {
+            if ( iArrayBuf[aArrayIndex] ) 
+                {
+                delete iArrayBuf[aArrayIndex];
+                }
+            iArrayBuf[aArrayIndex] = item;
+            }
+        else
+            {
+            iArrayBuf.AppendL( item );
+            }
+//        iArrayBuf.Insert( item, aArrayIndex );
+        aArrayIndex++;
+        CleanupStack::Pop( item );
+        // recursion is here
+        RefreshFolderListArrayL(emailEntry.Id(), aArrayIndex, aIndentLevel + 1 );
+        }
+    CleanupStack::PopAndDestroy( sel );
+    iEntry->SetEntryL( origFolder );
     }
 
 // End of File

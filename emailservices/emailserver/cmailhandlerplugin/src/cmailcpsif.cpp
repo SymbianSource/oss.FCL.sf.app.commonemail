@@ -75,6 +75,8 @@ void CMailCpsIf::ConstructL()
     PublisherRegisteryActionL();
     
     ResetPublishedDataL( KCPAll );
+    
+    iContentControlClient = CHsCcApiClient::NewL( this );
     }
 
 // ---------------------------------------------------------------------------
@@ -95,6 +97,10 @@ CMailCpsIf::~CMailCpsIf()
     delete iServiceHandler;
     iInstIdList.ResetAndDestroy();  
     CCoeEnv::Static()->DeleteResourceFile( iResourceFileOffset );
+    if ( iContentControlClient ) 
+        {
+        delete iContentControlClient;
+        }
     }
 
 // ---------------------------------------------------------
@@ -624,8 +630,28 @@ void CMailCpsIf::PublishImageL(
 
     if (!iconIds.Length())
         {
-        TBuf<KMaxDescLen> id;
-        iconIds.Copy( KMifPrefix );
+        TBuf<KMaxDescLen> id;    
+        if ( aBitmapId == EMbmCmailhandlerpluginQgn_stat_message_mail_uni )
+            {
+            iconIds.Append( KSkinPrefix );
+            id.Num( EAknsMajorGeneric );
+            iconIds.Append( id );
+            iconIds.Append( KSpace );
+            id.Num( EAknsMinorGenericQgnStatMessageMailUni );
+            iconIds.Append( id );
+            iconIds.Append( KSkinPostfix );                    
+            }
+        else if ( aBitmapId == EMbmCmailhandlerpluginQgn_indi_cmail_outbox_msg )
+            {
+            iconIds.Append( KSkinPrefix );
+            id.Num( EAknsMajorGeneric );
+            iconIds.Append( id );
+            iconIds.Append( KSpace );
+            id.Num( EAknsMinorGenericQgnIndiCmailOutboxMsg );
+            iconIds.Append( id );
+            iconIds.Append( KSkinPostfix );
+            }
+        iconIds.Append( KMifPrefix );
         iconIds.Append( mifParse.FullName() );
         iconIds.Append( KSpace );
         id.Num( aBitmapId );
@@ -869,8 +895,9 @@ TBool CMailCpsIf::PublisherStatusL(const CLiwGenericParamList& aEventParamList)
                              {
                              // Publishing to homescreen suspended.
                              HBufC* cid = contentid.AllocLC();
-                             TInt widgetInstance = FindWidgetInstanceId(cid->Des());
-                             iAllowedToPublish[widgetInstance] = EFalse;
+	                         TInt widgetInstance = FindWidgetInstanceId(cid->Des());
+							 if(widgetInstance>=0)
+                             	iAllowedToPublish[widgetInstance] = EFalse;
                              CleanupStack::PopAndDestroy( cid );
                              }
                          else if (trigger.Compare(KResume16) == 0)
@@ -894,14 +921,26 @@ TBool CMailCpsIf::PublisherStatusL(const CLiwGenericParamList& aEventParamList)
                              {
                              // Widget added to homescreen
                              HBufC* cid = contentid.AllocLC();
-                             iInstIdList.AppendL( contentid.AllocL() );
-                             if ( iMailCpsHandler->TotalMailboxCountL() )
+                             if ( cid->Length() > 0 )
                                  {
-                                 iMailCpsHandler->LaunchWidgetSettingsL(cid->Des());
-                                 }
-                             else
-                                 {
-                                 iMailCpsHandler->LaunchEmailWizardL(cid->Des());
+                                 iInstIdList.AppendL( contentid.AllocL() );
+                                 TFSMailMsgId mailBox( iMailCpsHandler->WaitingForNewWidget() );
+                                 if ( mailBox.Id() > 0 )
+                                     {
+                                     // Associate new mailbox to widget setting
+                                     iMailCpsHandler->AssociateWidgetToSetting( 
+                                             cid->Des(),
+                                             mailBox );
+                                     iMailCpsHandler->CleanWaitingForNewWidget();
+                                     }
+                                 else if ( iMailCpsHandler->TotalMailboxCountL() )
+                                     {
+                                     iMailCpsHandler->LaunchWidgetSettingsL(cid->Des());
+                                     }
+                                 else
+                                     {
+                                     iMailCpsHandler->LaunchEmailWizardL(cid->Des());
+                                     }
                                  }
                              CleanupStack::PopAndDestroy( cid );
                              }
@@ -1042,3 +1081,79 @@ void CMailCpsIf::ResetPublishedDataL( const TDesC& aContentId )
     outParam->Reset();
     inParam->Reset();
     }
+
+// ---------------------------------------------------------------------------
+// CMailCpsIf::AddWidgetToHomescreenL
+// ---------------------------------------------------------------------------
+//
+void CMailCpsIf::AddWidgetToHomescreenL( const TFSMailMsgId aMailbox )
+    {
+    FUNC_LOG;
+    
+    for ( TInt i = 0; i < iInstIdList.Count(); i++ )
+        {
+        if ( !iMailCpsHandler->Associated(iInstIdList[i]->Des()) )
+            {
+            // Empty e-mail widget found. Associate new account to it.
+            iMailCpsHandler->AssociateWidgetToSetting( 
+                    iInstIdList[i]->Des(),
+                    aMailbox );
+            return;
+            }
+        }
+    
+    CHsContentInfoArray* widgets = CHsContentInfoArray::NewL();
+    CleanupStack::PushL( widgets );
+    iContentControlClient->WidgetListL( *widgets );   
+    CHsContentInfo* widgetContentInfo( NULL );
+
+    for ( TInt i = 0; i < widgets->Array().Count(); i++ )
+        {
+        widgetContentInfo = widgets->Array()[i];
+        if (!widgetContentInfo->Uid().Compare(KConfId8))
+            {
+            // E-mail widget found
+            widgetContentInfo->SetCanBeRemoved( ETrue );
+            if ( iContentControlClient->AddWidgetL( *widgetContentInfo ) == KErrNone )
+                {
+                // Widget added succesfully. Wait PluginStartup event from HS.
+                iMailCpsHandler->SetWaitingForNewWidget( aMailbox );
+                }
+            else
+                {
+                iMailCpsHandler->DisplayHSPageFullNoteL();
+                }
+            break;
+            }
+        }
+    CleanupStack::PopAndDestroy();
+    }
+
+
+// ---------------------------------------------------------------------------
+// CMailCpsIf::NotifyWidgetListChanged
+// ---------------------------------------------------------------------------
+//
+void CMailCpsIf::NotifyWidgetListChanged()
+    {
+    FUNC_LOG;
+    }
+
+// ---------------------------------------------------------------------------
+// CMailCpsIf::NotifyViewListChanged
+// ---------------------------------------------------------------------------
+//
+void CMailCpsIf::NotifyViewListChanged()
+    {
+    FUNC_LOG;
+    }
+
+// ---------------------------------------------------------------------------
+// CMailCpsIf::NotifyAppListChanged
+// ---------------------------------------------------------------------------
+//
+void CMailCpsIf::NotifyAppListChanged()
+    {
+    FUNC_LOG;
+    }
+

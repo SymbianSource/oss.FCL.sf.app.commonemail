@@ -25,6 +25,8 @@
 #include <brctlspecialloadobserver.h>
 #include <brctllinkresolver.h>
 
+#include <finditemengine.h>
+
 #include "FreestyleEmailUiAknStatusIndicator.h"
 #include "FreestyleEmailDownloadInformationMediator.h"
 #include "freestyleemailcenrepkeys.h"
@@ -323,6 +325,8 @@ private:
     HBufC8* GetCharacterSetL( CFSMailMessagePart& aHtmlBodyPart );
     TBool IsMessageBodyURLL(const TDesC& aUrl);
 	void CreateHyperlinksFromUrlsL( RBuf& aSource );
+	TInt TotalLengthOfItems( CFindItemEngine& aItemEngine ) const;
+	
     //Returns ETrue of clicking on a link requires a browser to be launched
     TBool NeedToLaunchBrowserL( const TDesC& aUrl );
     //Launch the browser as a standalone app

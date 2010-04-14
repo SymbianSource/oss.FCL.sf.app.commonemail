@@ -34,6 +34,7 @@ class CNcsAttachmentField;
 class CNcsEmailAddressObject;
 class CNcsPopupListBox;
 class CNcsSubjectField;
+class CAknPhysics;
 
 /**
 *  CNcsHeaderContainer
@@ -59,7 +60,7 @@ public:
      * @return a pointer to the created instance of CNcsHeaderContainer.
      */
     static CNcsHeaderContainer* NewL( CCoeControl& aParent,
-        CFSMailBox& aMailBox, TInt aFlags = NULL );
+        CFSMailBox& aMailBox, TInt aFlags = NULL, CAknPhysics* aPhysics = NULL );
 
     /**
      * ~CNcsHeaderContainer
@@ -67,6 +68,8 @@ public:
      */
     virtual ~CNcsHeaderContainer();
 
+    void EnableKineticScrollingL(CAknPhysics*  aPhysics);
+    
 private: // constructor/destructor
 
     /**
@@ -75,7 +78,7 @@ private: // constructor/destructor
     * @param aParent Parent control.
     * @param aMailBox reference to current mailbox item
     */
-	CNcsHeaderContainer( CCoeControl& aParent, CFSMailBox& aMailBox );
+	CNcsHeaderContainer( CCoeControl& aParent, CFSMailBox& aMailBox, CAknPhysics* aPhysics );
 	
 	/**
 	* ConstructL
@@ -334,6 +337,8 @@ public: // function members
 
     void HandleDynamicVariantSwitchL();
 
+    void HandleSkinChangeL();
+
     // sets up iSwitchChangeMskOff falg 
     void SwitchChangeMskOff(TBool aTag);
     
@@ -348,7 +353,7 @@ public: // function members
      * 
      * @param aShow ETrue - shows, EFalse - hides cursor.
      */
-    void ShowCursor( TBool aShow );
+    void ShowCursor( TBool aShow, TDrawNow aDrawNow = ENoDrawNow );
 
     void DoScrollL();
 private: // Function members
@@ -442,6 +447,9 @@ private: // Data members
     
     // Currently focused control
     CCoeControl* iFocused;
+
+    // panning related
+    CAknPhysics* iPhysics;
     };
 
 

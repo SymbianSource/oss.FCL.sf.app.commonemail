@@ -77,6 +77,7 @@ LIBRARY     charconv.lib
 LIBRARY     bafl.lib
 LIBRARY     efsrv.lib
 LIBRARY     gdi.lib
+LIBRARY     calinterimapi.lib
 
 LIBRARY     messagestoreclient.lib
 LIBRARY     fsfwcommonlib.lib

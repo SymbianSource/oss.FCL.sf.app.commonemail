@@ -87,7 +87,7 @@
 #include "FreestyleEmailUiHtmlViewerView.h"
 #include "FSDelayedLoader.h"
 #include "FSEmail.pan"
-#include "fsemailstatuspaneindicatorhandler.h"
+
 #include "ipsplgcommon.h"
 
 // CONST VALUES
@@ -1592,8 +1592,9 @@ void CFSEmailUiMailListVisualiser::ChildDoActivateL(const TVwsViewId& aPrevViewI
 
     iCurrentClientRect = clientRect;
 	iThisViewActive = ETrue;
-	//emailindicator handling, we dont care if something goes wrong in the mailindicator update. User can still open the mailbox
-	TRAP_IGNORE(TFsEmailStatusPaneIndicatorHandler::StatusPaneMailIndicatorHandlingL( activationData.iMailBoxId.Id()));
+	
+	//emailindicator handling, is removed from 9.2
+	//TRAP_IGNORE(TFsEmailStatusPaneIndicatorHandler::StatusPaneMailIndicatorHandlingL( activationData.iMailBoxId.Id()));
 	    
     //Update mailbox widget index status in homescreen
     TFsEmailUiUtility::ToggleEmailIconL(EFalse, activationData.iMailBoxId );
@@ -3490,8 +3491,8 @@ void CFSEmailUiMailListVisualiser::HandleForegroundEventL( TBool aForeground )
     FUNC_LOG;
     if( iMailFolder )
         {
-        //emailindicator handling, we dont care if something goes wrong in the mailindicator update. User can still open the mailbox
-        TRAP_IGNORE(TFsEmailStatusPaneIndicatorHandler::StatusPaneMailIndicatorHandlingL( iMailFolder->GetMailBoxId().Id()));
+        //emailindicator handling, is removed  from 9.2
+        //TRAP_IGNORE(TFsEmailStatusPaneIndicatorHandler::StatusPaneMailIndicatorHandlingL( iMailFolder->GetMailBoxId().Id()));
         //Update mailbox widget index status in homescreen
         TFsEmailUiUtility::ToggleEmailIconL(EFalse, iMailFolder->GetMailBoxId() );
         }
@@ -5931,7 +5932,8 @@ void CFSEmailUiMailListVisualiser::ChangeReadStatusOfIndexL( TBool aRead, TInt a
             msgPtr.SaveMessageL();  // Save flag
 
             // Switch icon to correct one if mail list is visible
-            UpdateMsgIconAndBoldingL( aIndex );
+            TBool needRefresh = ( iAppUi.CurrentActiveView()->Id() == MailListId );
+            UpdateMsgIconAndBoldingL( aIndex, needRefresh);
 
             if ( iCurrentSortCriteria.iField == EFSMailSortByUnread )
                 {
@@ -6256,43 +6258,16 @@ void CFSEmailUiMailListVisualiser::DeleteFocusedMessageL()
 		if ( item && item->ModelItemType() == ETypeMailItem )
 			{
 			CFSMailMessage& messagePtr = item->MessagePtr();
-
-			TInt okToDelete(ETrue);
-			if ( iAppUi.GetCRHandler()->WarnBeforeDelete() )
-			    {
-	            TInt queryTextId(0);
-	            if ( messagePtr.IsFlagSet( EFSMsgFlag_CalendarMsg ))
-	                {
-	                queryTextId = R_FREESTYLE_EMAIL_DELETE_CALEVENT_NOTE;
-	                }
-	            else
-	                {
-	                queryTextId = R_FREESTYLE_EMAIL_DELETE_MAIL_NOTE;
-	                }
-	            HBufC* msgSubject = TFsEmailUiUtility::CreateSubjectTextLC( &messagePtr );
-
-	            okToDelete = TFsEmailUiUtility::ShowConfirmationQueryL( queryTextId, *msgSubject );
-
-	            CleanupStack::PopAndDestroy( msgSubject );
-			    }
-
-			if ( okToDelete )
- 				{
- 				// Delete message from framework, and perform internal housekeeping
- 				TFSMailMsgId msgId = messagePtr.GetMessageId();
- 				RArray<TFSMailMsgId> msgIds;
- 				CleanupClosePushL( msgIds );
- 				msgIds.Append( msgId );
-				TFSMailMsgId folderId = FolderId();
-				TFSMailMsgId mailBox = iAppUi.GetActiveMailbox()->GetId();
-				iAppUi.GetMailClient()->DeleteMessagesByUidL( mailBox, folderId, msgIds );
-                RemoveMsgItemsFromListIfFoundL( msgIds );
-                CleanupStack::PopAndDestroy( &msgIds );
-				}
-			else
-				{
-				UnmarkAllItemsL();
-				}
+            // Delete message from framework, and perform internal housekeeping
+            TFSMailMsgId msgId = messagePtr.GetMessageId();
+            RArray<TFSMailMsgId> msgIds;
+            CleanupClosePushL( msgIds );
+            msgIds.Append( msgId );
+            TFSMailMsgId folderId = FolderId();
+            TFSMailMsgId mailBox = iAppUi.GetActiveMailbox()->GetId();
+            iAppUi.GetMailClient()->DeleteMessagesByUidL( mailBox, folderId, msgIds );
+            RemoveMsgItemsFromListIfFoundL( msgIds );
+            CleanupStack::PopAndDestroy( &msgIds );
 			}
 		}
 	}

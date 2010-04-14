@@ -27,12 +27,9 @@
 // -----------------------------------------------------------------------------
 CFSClientAPIRequestHandler::CFSClientAPIRequestHandler(  
     MEmailClientPluginManager* aPluginManager ) : iPluginManager(aPluginManager)
-{
+    {
     FUNC_LOG;
-
-	// store pointer to TLS
-	TInt err = Dll::SetTls(static_cast<TAny*>(this));
-}
+    }
 
 // -----------------------------------------------------------------------------
 // CFSMailRequestHandler::~CFSMailRequestHandler

@@ -31,7 +31,7 @@
 class CEikImage;
 class MNcsFieldSizeObserver;
 class CNcsHeaderContainer;
-
+class CAknPhysics;
 
 // CLASS DECLARATION
 /**
@@ -93,6 +93,8 @@ public: // new functions
 
     void SetTextColorL( TLogicalRgb aColor );
 		
+    void EnableKineticScrollingL(CAknPhysics* aPhysics );
+    
 public: // from CoeControl
         /**
         * SetContainerWinowL

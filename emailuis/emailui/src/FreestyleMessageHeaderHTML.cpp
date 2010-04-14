@@ -64,7 +64,6 @@ _LIT8( KFollowUpCompleteImageName, "follow_up_complete_img");
 _LIT8( KPriorityHighImageName, "todo_high_add_img");
 _LIT8( KPriorityLowImageName, "todo_low_add_img");
 
-_LIT8( KAttachmentSizeUnit, "kb");
 _LIT8( KSpace8, " ");
 
 _LIT8( KHTMLImgTagId, "<image id=\"" );
@@ -973,7 +972,7 @@ void CFreestyleMessageHeaderHTML::AddAttachmentL( CFSMailMessagePart& aAttachmen
 
     HBufC* sizeDesc = TFsEmailUiUtility::CreateSizeDescLC(aAttachment.ContentSize(), EFalse);
 
-    TBuf8<32> sizeText;
+    TBuf8<48> sizeText;
     
     // Add right to left marker as "(" and ")" are messing up the html language markers
     // and &rlm is only added in mirror layout 
@@ -985,7 +984,10 @@ void CFreestyleMessageHeaderHTML::AddAttachmentL( CFSMailMessagePart& aAttachmen
     
     sizeText.Append( KSpace8 );
     sizeText.Append( _L8("(") );
-    sizeText.Append( sizeDesc->Des() );
+    HBufC8* sizeDesc8 = CnvUtfConverter::ConvertFromUnicodeToUtf8L( sizeDesc->Des() );
+    CleanupStack::PushL( sizeDesc8 );
+    sizeText.Append( sizeDesc8->Des() );
+    CleanupStack::PopAndDestroy( sizeDesc8 );
     CleanupStack::PopAndDestroy( sizeDesc );
     sizeText.Append( _L8(")") );
     

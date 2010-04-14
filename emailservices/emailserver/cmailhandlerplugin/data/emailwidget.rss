@@ -35,4 +35,5 @@ RESOURCE TBUF { buf=""; }
 //
 RESOURCE TBUF r_emailwidget_text_setup_email                 { buf=qtn_hscr_ew_configure_email; }
 RESOURCE TBUF r_emailwidget_text_mailbox_and_mailcount       { buf=qtn_hscr_ew_email_count; }
+RESOURCE TBUF r_emailwidget_text_hs_page_full                { buf=qtn_cmail_hs_widget_full_notification; }
 //

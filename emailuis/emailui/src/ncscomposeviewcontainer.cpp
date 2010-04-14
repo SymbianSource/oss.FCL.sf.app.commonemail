@@ -102,13 +102,18 @@ void CNcsComposeViewContainer::ConstructL( const TRect& aRect, TInt aFlags )
     SetMopParent( &iView );
     CreateWindowL();
 
+    if ( CAknPhysics::FeatureEnabled() )
+        {
+        iPhysics = CAknPhysics::NewL( *this, this );
+        }
+
     // Setup the control array
     InitComponentArrayL();
     CCoeControlArray& controls = Components();
     controls.SetControlsOwnedExternally( ETrue );
 
     // Create the header field
-    iHeader = CNcsHeaderContainer::NewL( *this, iMailBox, aFlags );
+    iHeader = CNcsHeaderContainer::NewL( *this, iMailBox, aFlags, iPhysics );
     controls.AppendLC( iHeader );
     CleanupStack::Pop( iHeader );
 
@@ -118,6 +123,7 @@ void CNcsComposeViewContainer::ConstructL( const TRect& aRect, TInt aFlags )
     iMessageField->ConstructL( this, 0, 0 );
     iMessageField->SetAlignment( EAknEditorAlignBidi );
     iMessageField->SetAknEditorInputMode( EAknEditorTextInputMode );
+    iMessageField->EnableKineticScrollingL( iPhysics );
     controls.AppendLC( iMessageField );
     CleanupStack::Pop( iMessageField );
 
@@ -140,13 +146,16 @@ void CNcsComposeViewContainer::ConstructL( const TRect& aRect, TInt aFlags )
     // Listen edwin events and size events from smart quote field
     iReadOnlyQuoteField->AddEdwinObserverL( this );
     iReadOnlyQuoteField->SetEdwinSizeObserver( this );
+   iReadOnlyQuoteField->EnableKineticScrollingL( iPhysics );
 
     // Create the scroll bar
     iScrollBar = new( ELeave ) CAknDoubleSpanScrollBar( this );
-    iScrollBar->ConstructL( 
-            this, this, CEikScrollBar::EVertical, aRect.Height() );
-    iScrollBar->MakeVisible( ETrue );
+    iScrollBar->ConstructL( ETrue, this, this, CEikScrollBar::EVertical,
+        aRect.Height() );
+    iScrollBar->MakeVisible( EFalse );
     iScrollBar->SetModelL( &iScrollBarModel );
+    controls.AppendLC( iScrollBar );
+    CleanupStack::Pop( iScrollBar );
 
     iMessageField->SetupEditorL();
     iReadOnlyQuoteField->SetupEditorL();
@@ -158,17 +167,12 @@ void CNcsComposeViewContainer::ConstructL( const TRect& aRect, TInt aFlags )
 
     iLongTapDetector = CAknLongTapDetector::NewL( this );
 
-    UpdateScrollBarL();
-
     ActivateL();
+    DrawDeferred();
 
     // activate auto save functionality
     iAutoSaver.Enable( ETrue );
 
-    if ( CAknPhysics::FeatureEnabled() )
-        {
-        iPhysics = CAknPhysics::NewL( *this, this );
-        }
     }
 
 // ---------------------------------------------------------------------------
@@ -224,8 +228,8 @@ void CNcsComposeViewContainer::FocusChanged( TDrawNow aDrawNow )
         {
         iFocused->SetFocus( ETrue, aDrawNow );
         }
-	
-	iView.HandleContainerChangeRequiringToolbarRefresh();
+
+    iView.HandleContainerChangeRequiringToolbarRefresh();
 
 	if ( aDrawNow )
 	    {
@@ -252,7 +256,7 @@ void CNcsComposeViewContainer::SetMskL()
 void CNcsComposeViewContainer::HandlePointerEventL( 
         const TPointerEvent& aPointerEvent )
     {
-	FUNC_LOG;
+    FUNC_LOG;
 
     CCoeControl::HandlePointerEventL( aPointerEvent );
 
@@ -269,7 +273,7 @@ void CNcsComposeViewContainer::HandlePointerEventL(
             // Save current and original position so that those can be used in
             // drag/scrolling calculations
             iPreviousPosition = iOriginalPosition = 
-                aPointerEvent.iParentPosition;
+                aPointerEvent.iPosition;
             iIsDragging = EFalse;
             iIsFlicking = EFalse;
 
@@ -289,9 +293,9 @@ void CNcsComposeViewContainer::HandlePointerEventL(
 						{
 						iMessageField->ClearSelectionL();
 						}
-                    iMessageField->SetFocus( EFalse, EDrawNow );
+                    iMessageField->SetFocus( EFalse, ENoDrawNow );
                     iFocused = iHeader;
-                    iHeader->SetFocus( ETrue,EDrawNow );
+                    iHeader->SetFocus( ETrue,ENoDrawNow );
                     iHeader->MakeVisible( ETrue );
                     CommitL( EBodyField );
                     iView.HandleContainerChangeRequiringToolbarRefresh();
@@ -299,8 +303,8 @@ void CNcsComposeViewContainer::HandlePointerEventL(
                 else if ( iFocused == iReadOnlyQuoteField )
                     {
                     iFocused = iMessageField;
-                    iReadOnlyQuoteField->SetFocus( EFalse, EDrawNow );
-                    iHeader->SetFocus( ETrue, EDrawNow );
+                    iReadOnlyQuoteField->SetFocus( EFalse, ENoDrawNow );
+                    iHeader->SetFocus( ETrue, ENoDrawNow );
                     iView.HandleContainerChangeRequiringToolbarRefresh();
                     }
                 }
@@ -310,16 +314,16 @@ void CNcsComposeViewContainer::HandlePointerEventL(
                 if ( iFocused == iMessageField )
                     {
                     iFocused = iReadOnlyQuoteField;
-                    iReadOnlyQuoteField->SetFocus( ETrue, EDrawNow );
-                    iMessageField->SetFocus( EFalse, EDrawNow );
+                    iReadOnlyQuoteField->SetFocus( ETrue, ENoDrawNow );
+                    iMessageField->SetFocus( EFalse, ENoDrawNow );
                     iReadOnlyQuoteField->SetCursorPosL( 0, EFalse );
                     iView.HandleContainerChangeRequiringToolbarRefresh();
                     }
                 else if ( iFocused == iHeader )
                     {
                     iFocused = iReadOnlyQuoteField;
-                    iReadOnlyQuoteField->SetFocus( ETrue, EDrawNow );
-                    iHeader->SetFocus( EFalse, EDrawNow );
+                    iReadOnlyQuoteField->SetFocus( ETrue, ENoDrawNow );
+                    iHeader->SetFocus( EFalse, ENoDrawNow );
                     iReadOnlyQuoteField->SetCursorPosL( 0, EFalse );
                     iView.HandleContainerChangeRequiringToolbarRefresh();
                     }
@@ -330,20 +334,22 @@ void CNcsComposeViewContainer::HandlePointerEventL(
                     {
                     //TRAP_IGNORE( DoUpdateSubjectL() );
 
-					iHeader->SetFocus( EFalse, EDrawNow );
-					iFocused = iMessageField;
-                    iMessageField->SetFocus( ETrue, EDrawNow );
+                    iHeader->SetFocus( EFalse, ENoDrawNow );
+                    iFocused = iMessageField;
+                    iMessageField->SetFocus( ETrue, ENoDrawNow );
                     iView.HandleContainerChangeRequiringToolbarRefresh();
                     }
                 else if ( iFocused == iReadOnlyQuoteField )
                     {
                     iFocused = iMessageField;
-                    iReadOnlyQuoteField->SetFocus( EFalse, EDrawNow );
-                    iMessageField->SetFocus( ETrue, EDrawNow );
+                    iReadOnlyQuoteField->SetFocus( EFalse, ENoDrawNow );
+                    iMessageField->SetFocus( ETrue, ENoDrawNow );
                     iView.HandleContainerChangeRequiringToolbarRefresh();
                     }
                 else 
                     {
+					iMessageField->ClearSelectionL();
+
                     const TRect messageFieldRect( iMessageField->Rect() );
                     if ( !messageFieldRect.Contains( aPointerEvent.iPosition ) && 
                          aPointerEvent.iPosition.iY >= messageFieldRect.iTl.iY )
@@ -370,16 +376,28 @@ void CNcsComposeViewContainer::HandlePointerEventL(
     	
     	case TPointerEvent::EDrag:
     		{
-    		// Get current pointer position
-    		TPoint position = aPointerEvent.iParentPosition;
+            if ( !iIsDragging )
+                {
+                TInt drag( iOriginalPosition.iY - aPointerEvent.iPosition.iY );
+                if ( Abs( drag ) > iPhysics->DragThreshold() )
+                    {
+					// If user started dragging, cancel hotspot actions
+					iIsDragging = ETrue;
+                    }
+                }
 
-    		// If user started dragging, cancel hotspot actions
-            iIsDragging = ETrue;
+            // Get current pointer position
+            TPoint position = aPointerEvent.iPosition;
+
 
            if( iPhysics )
-                {
-                TPoint delta( 0, iPreviousPosition.iY - position.iY );
-                iPhysics->RegisterPanningPosition( delta );
+               {
+			   if ( iIsDragging )
+				   {
+                    TPoint delta( 0, iPreviousPosition.iY - position.iY );
+                    if ( !iMessageField->SelectionLength() )
+                    		iPhysics->RegisterPanningPosition( delta );
+				   }
                 }
             else
                 {
@@ -418,11 +436,6 @@ void CNcsComposeViewContainer::HandlePointerEventL(
     		}
     	}
     	
-    if( iFocused == iMessageField )
-    	{
-    	iMessageField->HandleTextChangedL();
-    	}
-
     if ( aPointerEvent.iType == TPointerEvent::EButton1Down &&
          iHeader->NeedsLongTapL( aPointerEvent.iPosition ) )
         {
@@ -495,13 +508,15 @@ TKeyResponse CNcsComposeViewContainer::OfferKeyEventL(
 
         if ( ret != EKeyWasConsumed )
             {
-        	DrawNow();
+            DrawDeferred();
             }
         }
 
     if ( ret == EKeyWasNotConsumed )
         {
-        ret = iFocused->OfferKeyEventL( aKeyEvent, aType );
+        if ( iFocused )
+            ret = iFocused->OfferKeyEventL( aKeyEvent, aType );
+
         if( aType == EEventKeyUp )
         	iView.HandleContainerChangeRequiringToolbarRefresh();
         
@@ -655,37 +670,38 @@ TKeyResponse CNcsComposeViewContainer::ChangeFocusL(
     if ( iFocused == iReadOnlyQuoteField && aKeyEvent.iCode == EKeyUpArrow )
         {
         iFocused = iMessageField;
-        iReadOnlyQuoteField->SetFocus( EFalse, EDrawNow );
-        iMessageField->SetFocus( ETrue, EDrawNow );
+        iReadOnlyQuoteField->SetFocus( EFalse, ENoDrawNow );
+        iMessageField->SetFocus( ETrue, ENoDrawNow );
         ret = EKeyWasConsumed;
         }
     else if ( iFocused == iMessageField )
-	    {
-	    if ( aKeyEvent.iCode == EKeyUpArrow )
-	        {
+        {
+        if ( aKeyEvent.iCode == EKeyUpArrow )
+            {
             iFocused = iHeader;
-    		iHeader->SetFocus( ETrue,EDrawNow );
-    		iMessageField->SetFocus( EFalse, EDrawNow );
-    		iHeader->MakeVisible( ETrue );
+            iHeader->SetFocus( ETrue, ENoDrawNow );
+            iMessageField->SetFocus( EFalse, ENoDrawNow );
+            iHeader->MakeVisible( ETrue );
+            iHeader->ShowCursor( ETrue );
             CommitL( EBodyField );
             ret = EKeyWasConsumed;
-	        }
-	    else if ( aKeyEvent.iCode == EKeyDownArrow && 
-	              iReadOnlyQuoteField->TextLength() )
-	        {
-	        // Focus move to read-only quote only if there is some text in it.
-	        iFocused = iReadOnlyQuoteField;
-	        iReadOnlyQuoteField->SetFocus( ETrue, EDrawNow );
-	        iMessageField->SetFocus( EFalse, EDrawNow );
-	        iReadOnlyQuoteField->SetCursorPosL( 0, EFalse );
-	        ret = EKeyWasConsumed;
-	        }
+            }
+        else if ( aKeyEvent.iCode == EKeyDownArrow && 
+                  iReadOnlyQuoteField->TextLength() )
+            {
+            // Focus move to read-only quote only if there is some text in it.
+            iFocused = iReadOnlyQuoteField;
+            iReadOnlyQuoteField->SetFocus( ETrue, ENoDrawNow );
+            iMessageField->SetFocus( EFalse, ENoDrawNow );
+            iReadOnlyQuoteField->SetCursorPosL( 0, EFalse );
+            ret = EKeyWasConsumed;
+            }
         }
-	else if ( iFocused == iHeader && aKeyEvent.iCode == EKeyDownArrow )
+    else if ( iFocused == iHeader && aKeyEvent.iCode == EKeyDownArrow )
         {
-		iFocused = iMessageField;
-		iHeader->SetFocus( EFalse, EDrawNow );
-		iMessageField->SetFocus( ETrue, EDrawNow );
+        iFocused = iMessageField;
+        iHeader->SetFocus( EFalse, ENoDrawNow );
+        iMessageField->SetFocus( ETrue, ENoDrawNow );
         iMessageField->SetCursorPosL( 0, EFalse );
         ret = EKeyWasConsumed;
         }
@@ -802,23 +818,20 @@ void CNcsComposeViewContainer::SizeChanged()
 // Draws the display
 // -----------------------------------------------------------------------------
 //
-void CNcsComposeViewContainer::Draw( const TRect& /*aRect*/ ) const
+void CNcsComposeViewContainer::Draw( const TRect& aRect ) const
     {
     FUNC_LOG;
 
-	if ( iBgContext )
-	    {
-    	CWindowGc& gc = SystemGc();
-
-    	MAknsSkinInstance* skin = AknsUtils::SkinInstance();
-
-    	if ( skin )
-    		{
-    		AknsDrawUtils::Background( skin, iBgContext, this, gc, Rect() );
-    		}
-	    }
+    if ( iBgContext )
+        {
+        CWindowGc& gc = SystemGc();
+        MAknsSkinInstance* skin = AknsUtils::SkinInstance();
+        if ( skin )
+            {
+            AknsDrawUtils::Background( skin, iBgContext, this, gc, aRect );
+            }
+        }
     }
-
 
 // -----------------------------------------------------------------------------
 // CNcsComposeViewContainer::SetBodyContentL()
@@ -1074,7 +1087,7 @@ TTypeUid::Ptr CNcsComposeViewContainer::MopSupplyObject( TTypeUid aId )
 // -----------------------------------------------------------------------------
 //
 void CNcsComposeViewContainer::UpdateScrollBarL()
-	{
+    {
     FUNC_LOG;
 
     TRect headerRect = iHeader->Rect();
@@ -1093,8 +1106,8 @@ void CNcsComposeViewContainer::UpdateScrollBarL()
     iScrollBarModel.SetFocusPosition( visiblePosition );
 
     iScrollBar->SetModelL( &iScrollBarModel );
-    iScrollBar->DrawNow();
-	}
+    iScrollBar->MakeVisible( IsVisible() );
+    }
 
 // -----------------------------------------------------------------------------
 // CNcsComposeViewContainer::SetFocusToMessageFieldL()
@@ -1108,12 +1121,11 @@ void CNcsComposeViewContainer::SetFocusToMessageFieldL()
         {
         iHeader->SetFocus( EFalse, ENoDrawNow );
         iMessageField->SetCursorPosL( 0, EFalse );
-        iMessageField->SetFocus( ETrue, EDrawNow );
+        iMessageField->SetFocus( ETrue, ENoDrawNow );
         iFocused = iMessageField;
         UpdateScreenPositionL();
         DrawDeferred();
         }
-
     }
 
 // -----------------------------------------------------------------------------
@@ -1809,7 +1821,7 @@ void CNcsComposeViewContainer::HandleSkinChangeL()
     FUNC_LOG;
     if ( iHeader )
         {
-        iHeader->HandleDynamicVariantSwitchL();
+        iHeader->HandleSkinChangeL();
         }
 
     if ( iMessageField )
@@ -1914,9 +1926,6 @@ void CNcsComposeViewContainer::ScrollL( TInt aTargetPos )
     FUNC_LOG;
 	TPoint headerPos( iHeader->Position() );
 	
-	aTargetPos = Max( 0, Min( aTargetPos, 
-	                          ContentTotalHeight() - Rect().Height()) );
-	
 	TInt moveY = -headerPos.iY - aTargetPos;
 	
 	if( moveY )
@@ -1938,7 +1947,7 @@ void CNcsComposeViewContainer::ScrollL( TInt aTargetPos )
 		iSeparatorLineYPos += moveY;
 	
 		UpdateScrollBarL();
-		DrawNow();
+		DrawDeferred();
 		}
 	}
 
@@ -1953,12 +1962,9 @@ void CNcsComposeViewContainer::ViewPositionChanged(
         TUint /*aFlags*/ )
     {
     FUNC_LOG;
-	if( iIsFlicking )
-		{
-		TInt scrollOffset = aNewPosition.iY - Rect().Size().iHeight / 2;
+	TInt scrollOffset = aNewPosition.iY - Rect().Size().iHeight / 2;
 
-		TRAP_IGNORE( ScrollL( scrollOffset ) );
-		}
+	TRAP_IGNORE( ScrollL( scrollOffset ) );
 	}
 
 // -----------------------------------------------------------------------------

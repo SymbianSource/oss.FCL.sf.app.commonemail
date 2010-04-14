@@ -1189,6 +1189,8 @@ void CFsEmailUiHtmlViewerView::DeleteMailL(TBool aSilentDelete)
 
     if ( reallyDelete )
         {
+        CancelFetchings();
+
         // Reset container content, so that plugins may really delete files
         if ( iContainer )
             {
@@ -1402,8 +1404,12 @@ void CFsEmailUiHtmlViewerView::HandleEmailAddressCommandL( TInt aCommand, const 
             {
             case EFsEmailUiCmdActionsReply:
                 {
-                if ( iMessage && !iActivationData.iEmbeddedMessageMode )
+                if ( iMessage )
                     {
+                    if ( iActivationData.iEmbeddedMessageMode )
+                        {
+                        iCreateNewMsgFromEmbeddedMsg = ETrue;
+                        }
                     delete iNewMailTempAddress;
                     iNewMailTempAddress = NULL;
                     iNewMailTempAddress = CFSMailAddress::NewL();
@@ -2596,8 +2602,9 @@ TBool CFsEmailUiHtmlViewerView::CanProcessCommand(
         case EESMRCmdMailFlagMessage:
             ret = TFsEmailUiUtility::IsFollowUpSupported( *iMailBox );
             break;
+        //Changed to EFalse to fix defect EJZG-83CDRX
         case EESMRCmdMailMessageDetails:
-            ret = ETrue;
+            ret = EFalse;
             break;
         case EESMRCmdMailDelete:
             ret = ETrue;

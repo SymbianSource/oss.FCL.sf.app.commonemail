@@ -22,6 +22,7 @@
 #include <aknViewAppUi.h>
 #include <aknnotewrappers.h> //CAknInformationNote
 #include <FreestyleEmailUi.rsg>
+#include <aknphysics.h>
 
 #include "cfsmailbox.h"
 #include <FreestyleEmailUi.rsg>
@@ -57,11 +58,11 @@ static MNcsControl* ToNcsControl( CCoeControlArray::TCursor cur )
 // ---------------------------------------------------------------------------
 //
 CNcsHeaderContainer* CNcsHeaderContainer::NewL( CCoeControl& aParent, 
-    CFSMailBox& aMailBox, TInt aFlags )
+    CFSMailBox& aMailBox, TInt aFlags, CAknPhysics* aPhysics )
     {
     FUNC_LOG;
     CNcsHeaderContainer* self = 
-        new ( ELeave ) CNcsHeaderContainer( aParent, aMailBox );
+        new ( ELeave ) CNcsHeaderContainer( aParent, aMailBox, aPhysics );
     CleanupStack::PushL( self );
     self->ConstructL( aFlags );
     CleanupStack::Pop( self );
@@ -74,11 +75,13 @@ CNcsHeaderContainer* CNcsHeaderContainer::NewL( CCoeControl& aParent,
 //
 CNcsHeaderContainer::CNcsHeaderContainer(
 	CCoeControl& aParent, 
-	CFSMailBox& aMailBox ): 
+	CFSMailBox& aMailBox,
+	CAknPhysics* aPhysics ): 
 	iParent( aParent ),
 	iFieldSizeObserver( static_cast< CNcsComposeViewContainer& >( aParent ) ),
 	iMailBox( aMailBox ),
-	iLongTapEventConsumed( EFalse )
+	iLongTapEventConsumed( EFalse ),
+    iPhysics( aPhysics )
 	{
     FUNC_LOG;
 	}
@@ -171,6 +174,11 @@ void CNcsHeaderContainer::ConstructL( TInt aFlags )
         KAknsIIDQsnBgAreaMain, Rect(), EFalse );
 
     iRALInProgress = EFalse;
+
+    iToField->EnableKineticScrollingL( iPhysics );
+    iCcField->EnableKineticScrollingL( iPhysics );
+    iBccField->EnableKineticScrollingL( iPhysics );
+    iSubjectField->EnableKineticScrollingL( iPhysics );
 	}
 
 // ---------------------------------------------------------------------------
@@ -235,7 +243,7 @@ void CNcsHeaderContainer::FocusChanged( TDrawNow aDrawNow )
 // CNcsHeaderContainer::ShowCursor
 // ---------------------------------------------------------------------------
 //
-void CNcsHeaderContainer::ShowCursor( TBool aShow )
+void CNcsHeaderContainer::ShowCursor( TBool aShow, TDrawNow aDrawNow )
     {
     CCoeControl* focused = FindFocused();
     if ( focused )
@@ -244,7 +252,7 @@ void CNcsHeaderContainer::ShowCursor( TBool aShow )
         }
     if ( iFocused ) 
         {
-        iFocused->SetFocus( aShow, EDrawNow );
+        iFocused->SetFocus( aShow, aDrawNow );
         }
     }
 
@@ -307,32 +315,36 @@ void CNcsHeaderContainer::HandleControlArrayEventL(
 void CNcsHeaderContainer::SetMskL()
     {
     FUNC_LOG;
+
+    // msk change disabled - probably some dialog/popup is visible
+    if( iSwitchChangeMskOff )
+        {
+        return;
+        }
+
     CCoeControl* focused = FindFocused();
     if ( focused == iToField || focused == iCcField || focused == iBccField )
         {
-        if( iSwitchChangeMskOff == EFalse )
-            {
-            ChangeMskCommandL( R_FSE_QTN_MSK_ADD );
-            }
+        ChangeMskCommandL( R_FSE_QTN_MSK_ADD );
         }
     else if ( focused == iAttachmentField ) 
         {
-            if ( GetAttachmentCount() > 1 )
-                {
+        if ( GetAttachmentCount() > 1 )
+            {
             ChangeMskCommandL( R_FSE_QTN_MSK_VIEWATTACHMENTS );
-                }
-            else if ( !HasRemoteAttachments() )
-                {
-            ChangeMskCommandL( R_FSE_QTN_MSK_VIEWATTACHMENT );                
-                }
-            else // message has single remote attachment => no MSK function
-                {
+            }
+        else if ( !HasRemoteAttachments() )
+            {
+            ChangeMskCommandL( R_FSE_QTN_MSK_VIEWATTACHMENT );
+            }
+        else // message has single remote attachment => no MSK function
+            {
             ChangeMskCommandL( R_FSE_QTN_MSK_EMPTY );
             }
         }
     else if ( focused == iSubjectField )
         {
-        ChangeMskCommandL( R_FSE_QTN_MSK_EMPTY );       
+        ChangeMskCommandL( R_FSE_QTN_MSK_EMPTY );
         }
     else 
         {
@@ -348,67 +360,75 @@ void CNcsHeaderContainer::HandlePointerEventL(
         const TPointerEvent& aPointerEvent )
     {
 	FUNC_LOG;
-	CCoeControl* clicked = 0;
-    for ( TInt i=0; i < Components().Count(); ++i )
+    if ( aPointerEvent.iType == TPointerEvent::EButton1Up )
         {
-        TRect rc = Components().At( i ).iControl->Rect();
-        if ( rc.Contains( aPointerEvent.iPosition ) )
-            {
-            clicked = Components().At( i ).iControl;
-            }
-        }
-    if ( clicked )
-        {
-        if ( aPointerEvent.iType == TPointerEvent::EButton1Up )
-            {
-            CCoeControl* pOldCtrl = FindFocused();
-            CCoeControl* pNewCtrl= clicked;
-            
-            if ( pOldCtrl != pNewCtrl )
-                {
-                // Unfocus the control
-                if ( pOldCtrl )
-                    {
-                    pOldCtrl->SetFocus( EFalse, ENoDrawNow );
-                    }
-                pNewCtrl->SetFocus( ETrue, ENoDrawNow );
-                iFocused = pNewCtrl;
-                // Commit changes to previously focused field.
-                if ( pOldCtrl )
-                    {
-                    CommitFieldL( pOldCtrl );
-                    }
+		CCoeControl* clicked = 0;
+		for ( TInt i=0; i < Components().Count(); ++i )
+			{
+			TRect rc = Components().At( i ).iControl->Rect();
+			if ( rc.Contains( aPointerEvent.iPosition ) )
+				{
+				clicked = Components().At( i ).iControl;
+				}
+			}
 
-                // If the attachments label has changed focus
-                if ( pOldCtrl == iAttachmentField || 
-                     pNewCtrl == iAttachmentField )
-                    {
-                    DrawAttachmentFocusNow();
-                    }
-                
-                CNcsComposeViewContainer* container = 
-                    static_cast<CNcsComposeViewContainer*>( &iParent );
-                container->UpdateScrollBarL();
-                }
-            
-            if( iLongTapEventConsumed )
-        		{
-        		iLongTapEventConsumed = EFalse;
-        		return;
-        		}        	
-            
-            if( pNewCtrl == iAttachmentField )
-            	{
-				CNcsComposeViewContainer& parent = 
-                    static_cast<CNcsComposeViewContainer&>( iParent );
-				parent.HandleAttachmentsOpenCommandL();
-            	}          
+	    if ( clicked )
+	        {
+			CCoeControl* pOldCtrl = FindFocused();
+			CCoeControl* pNewCtrl= clicked;
+			
+			if ( pOldCtrl != pNewCtrl )
+				{
+				// Unfocus the control
+				if ( pOldCtrl )
+					{
+					pOldCtrl->SetFocus( EFalse, ENoDrawNow );
+					}
+				pNewCtrl->SetFocus( ETrue, ENoDrawNow );
+				iFocused = pNewCtrl;
+				// Commit changes to previously focused field.
+				if ( pOldCtrl )
+					{
+					CommitFieldL( pOldCtrl );
+					}
+
+				// If the attachments label has changed focus
+				if ( pOldCtrl == iAttachmentField || 
+					 pNewCtrl == iAttachmentField )
+					{
+					DrawAttachmentFocusNow();
+					}
+				
+				CNcsComposeViewContainer* container = 
+					static_cast<CNcsComposeViewContainer*>( &iParent );
+				container->UpdateScrollBarL();
+				}
+			
+			if( iLongTapEventConsumed )
+				{
+				iLongTapEventConsumed = EFalse;
+				return;
+				}        
+
+			TBool physicsActionOngoing( EFalse );
+			if ( iPhysics && iPhysics->OngoingPhysicsAction() != CAknPhysics::EAknPhysicsActionNone )
+			{
+                physicsActionOngoing = ETrue;
             }
+			
+			if( pNewCtrl == iAttachmentField && !physicsActionOngoing )
+				{
+				CNcsComposeViewContainer& parent = 
+					static_cast<CNcsComposeViewContainer&>( iParent );
+				parent.HandleAttachmentsOpenCommandL();
+				}          
+	        }
         }
-    for ( TInt i=0; i < Components().Count(); ++i )
-        {
-        Components().At( i ).iControl->HandlePointerEventL( aPointerEvent );
-        }
+
+    if ( aPointerEvent.iType != TPointerEvent::EDrag )
+    	{
+		CCoeControl::HandlePointerEventL( aPointerEvent );
+    	}
     }
 
 // -----------------------------------------------------------------------------
@@ -671,16 +691,16 @@ void CNcsHeaderContainer::UpdateFieldPosition( CCoeControl* aAnchor )
 		}
 	
 	CCoeControlArray::TCursor cur = Components().Find( aAnchor );
-	ASSERT( cur.IsValid() );
-
 	// figure out the new top position of the container
 	TInt top = aAnchor->Rect().iTl.iY;
-	while ( cur.Prev() )
+        if( cur.IsValid() )
 		{
-		CCoeControl* ctrl = cur.Control<CCoeControl>();
-		top -= ctrl->Rect().Height();
+	    while ( cur.Prev() )
+	    	{
+		    CCoeControl* ctrl = cur.Control<CCoeControl>();
+		    top -= ctrl->Rect().Height();
+		    }
 		}
-
 	// Then check we didn't move too much and composer still fills the whole
 	// visible area on the screen (i.e. don't scroll below the bottom of the
 	// body field)
@@ -1837,6 +1857,19 @@ TBool CNcsHeaderContainer::AreAddressFieldsEmpty() const
 void CNcsHeaderContainer::HandleDynamicVariantSwitchL()
     {
     FUNC_LOG;
+    }
+
+// ---------------------------------------------------------------------------
+// CNcsHeaderContainer::HandleSkinChangeL
+// ---------------------------------------------------------------------------
+//
+void CNcsHeaderContainer::HandleSkinChangeL()
+    {
+    FUNC_LOG;
+    if ( iAacListBox )
+        {
+        iAacListBox->HandleResourceChange( KAknsMessageSkinChange );
+        }
     }
 
 // ---------------------------------------------------------------------------

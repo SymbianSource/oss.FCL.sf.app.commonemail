@@ -28,7 +28,7 @@
 // is hided from task list so it's not possible switch FSMailServer back to
 // foreground if user switches to Idle before dismissing the note.
 // '- 1' is needed for the VKB to work correctly
-const TInt KFsEmailDialogsWinPriorityActive = ECoeWinPriorityAlwaysAtFront - 1;
+const TInt KFsEmailDialogsWinPriorityActive = ECoeWinPriorityNormal;
 
 // To be used as FSMailServer window group priority when there is no displayable
 // content.

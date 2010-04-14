@@ -776,10 +776,7 @@ void CMRViewerAttachmentsField::HandleLongtapEventL( const TPoint& aPosition )
 
     if ( iRichTextViewer->Rect().Contains( aPosition ) )
         {
-        if( iRichTextViewer->LinkSelectedL() )
-        	{
-			HandleTactileFeedbackL();
-        	}
+        iRichTextViewer->LinkSelectedL();
         }
     }
 

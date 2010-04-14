@@ -29,6 +29,8 @@
 //</cmail>
 #include "ncscontrol.h"
 
+class CAknPhysics;
+
 //<cmail>  Temporary hardcoded layout values
 //Horizontal values
 const TInt KButtonXa = 5;
@@ -214,6 +216,8 @@ public: // from MNcsControl
     TInt LayoutLineCount() const;
     // </cmail> Platform layout change
 
+    void EnableKineticScrollingL( CAknPhysics* aPhysics );
+    
 //<cmail>
 private:
     
@@ -283,6 +287,11 @@ private: // data
     // for keeping buttons in view while scrolling
     TPoint iOriginalFieldPos;
     TPoint iOriginalButtonPos;
+
+    // panning related
+    CAknPhysics* iPhysics;
+    TBool iIsDraggingStarted;
+    TPoint iStartPosition;
     };
 	
 #endif // CNCSADDRESSINPUTFIELD_H

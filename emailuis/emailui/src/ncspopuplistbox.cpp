@@ -19,11 +19,13 @@
 // INCLUDE FILES
 #include "emailtrace.h"
 #include <eikclbd.h>
-#include <AknsLayeredBackgroundControlContext.h>
+#include <AknsFrameBackgroundControlContext.h>
 #include <FreestyleEmailUi.rsg>						// R_FSE_EDITOR_ADDRESS_LIST_REMOTE_LOOKUP_SEARCH
 #include <StringLoader.h>						// StringLoader
 #include <CPbkContactEngine.h>
 #include <aknnotewrappers.h>					//For LanguageNotSupported errorNote
+#include <aknsdrawutils.h>
+#include <aknsutils.h>
 
 #include "ncspopuplistbox.h"
 #include "ncsemailaddressobject.h"					// CNcsEmailAddressObject
@@ -37,6 +39,9 @@
 #include "FSDelayedLoader.h"
 #include "FreestyleEmailUiCLSItem.h"
 
+const TInt KBackgroundFrameWidth = 4;
+const TInt KHighlightFrameWidth = 2;
+
 // ========================= MEMBER FUNCTIONS ==================================
 
 // -----------------------------------------------------------------------------
@@ -46,15 +51,15 @@ CNcsPopupListBox* CNcsPopupListBox::NewL( const CCoeControl* aParent,
                                           CFSMailBox& aMailBox, 
                                           CNcsHeaderContainer& aHeaderContainer, 
                                           TBool aRemoteLookupSupported  )
-	{
+    {
     FUNC_LOG;
-	CNcsPopupListBox* self = 
-	    new (ELeave) CNcsPopupListBox( aHeaderContainer, aRemoteLookupSupported, aMailBox );
-	CleanupStack::PushL( self );
-	self->ConstructL( aParent );
-	CleanupStack::Pop( self );
-	return self;
-	}
+    CNcsPopupListBox* self =  new (ELeave) CNcsPopupListBox( aHeaderContainer,
+        aRemoteLookupSupported, aMailBox );
+    CleanupStack::PushL( self );
+    self->ConstructL( aParent );
+    CleanupStack::Pop( self );
+    return self;
+    }
 
 // -----------------------------------------------------------------------------
 // CNcsPopupListBox::CNcsPopupListBox
@@ -75,42 +80,40 @@ void CNcsPopupListBox::ConstructL( const CCoeControl* aParent )
     {
     FUNC_LOG;
     CEikTextListBox::ConstructL( aParent, CEikListBox::EPopout );
-    CreateScrollBarFrameL();
+    // Create non-window-owning scrollbar to avoid flickering.
+    CEikScrollBarFrame* frame = CreateScrollBarFrameL( EFalse, EFalse, EFalse );
 
-	CEikTextListBox::SetBorder( TGulBorder::ESingleGray );
+    CEikTextListBox::SetBorder( TGulBorder::ENone );
 
-	const CFont* font = AknLayoutUtils::FontFromId( EAknLogicalFontPrimarySmallFont );
-	CEikTextListBox::SetItemHeightL( font->HeightInPixels() + 8 );
+    const CFont* font = AknLayoutUtils::FontFromId( EAknLogicalFontPrimarySmallFont );
+    CEikTextListBox::SetItemHeightL( font->FontMaxHeight() + 12 );
 
-    iBaseBackroundContext = CAknsBasicBackgroundControlContext::NewL( 
-    	KAknsIIDQgnFsGrafEmailContent, 
-    	Rect(), 
-    	EFalse );
-	iContactHandler = CFsDelayedLoader::InstanceL()->GetContactHandlerL();
-	if ( !iContactHandler->IsLanguageSupportedL() )
-		{
-		iContactHandler = NULL;
-		}
-	
-	iAppUi =  static_cast<CFreestyleEmailUiAppUi*>(iEikonEnv->AppUi()); //<cmail>
-	
-    // <cmail>
+    iBackgroundContext = CAknsFrameBackgroundControlContext::NewL(
+        KAknsIIDQsnFrPopup, Rect(), Rect(), EFalse );
+    UpdateTextColors();
+
+    iContactHandler = CFsDelayedLoader::InstanceL()->GetContactHandlerL();
+    if ( !iContactHandler->IsLanguageSupportedL() )
+        {
+        iContactHandler = NULL;
+        }
+
+    iAppUi = static_cast<CFreestyleEmailUiAppUi*>( iEikonEnv->AppUi() );
     SetListBoxObserver( this );
-    // </cmail>
     }
 
 // -----------------------------------------------------------------------------
 // CNcsPopupListBox::InitAndSearchL
 // -----------------------------------------------------------------------------
 void CNcsPopupListBox::InitAndSearchL( const TDesC& aText )
-	{
+    {
     FUNC_LOG;
- 	SetSearchTextL( aText );
- 	RPointerArray<CFSEmailUiClsItem> emptyArray;
- 	CleanupClosePushL( emptyArray );
-	OperationCompleteL( ESearchContacts, emptyArray );
-	CleanupStack::PopAndDestroy( &emptyArray );
-	}
+    SetSearchTextL( aText );
+    RPointerArray<CFSEmailUiClsItem> emptyArray;
+    CleanupClosePushL( emptyArray );
+    OperationCompleteL( ESearchContacts, emptyArray );
+    CleanupStack::PopAndDestroy( &emptyArray );
+    }
 
 // ---------------------------------------------------------------------------
 // CNcsPopupListBox::~CNcsPopupListBox
@@ -118,21 +121,20 @@ void CNcsPopupListBox::InitAndSearchL( const TDesC& aText )
 CNcsPopupListBox::~CNcsPopupListBox()
     {
     FUNC_LOG;
-    delete iBaseBackroundContext;
-	delete iItemTextsArray;
-	delete iCurrentSearchText;
-	iMatchingItems.ResetAndDestroy();
-	}
+    delete iBackgroundContext;
+    delete iItemTextsArray;
+    delete iCurrentSearchText;
+    iMatchingItems.ResetAndDestroy();
+    }
 
 // -----------------------------------------------------------------------------
 // CNcsPopupListBox::CreateItemDrawerL
 // -----------------------------------------------------------------------------
 void CNcsPopupListBox::CreateItemDrawerL()
-	{
+    {
     FUNC_LOG;
-	CNcsListItemDrawer* drawer = new (ELeave) CNcsListItemDrawer( *this );
-	iItemDrawer = drawer;
-	}
+    iItemDrawer = new (ELeave) CNcsListItemDrawer( *this );
+    }
 
 // -----------------------------------------------------------------------------
 // CNcsPopupListBox::MopSupplyObject
@@ -142,7 +144,7 @@ TTypeUid::Ptr CNcsPopupListBox::MopSupplyObject(TTypeUid aId)
     FUNC_LOG;
     if ( aId.iUid == MAknsControlContext::ETypeId )
         {
-        return MAknsControlContext::SupplyMopObject( aId, iBaseBackroundContext );
+        return MAknsControlContext::SupplyMopObject( aId, iBackgroundContext );
         }
     return CCoeControl::MopSupplyObject( aId );
     }
@@ -153,15 +155,59 @@ TTypeUid::Ptr CNcsPopupListBox::MopSupplyObject(TTypeUid aId)
 void CNcsPopupListBox::SizeChanged()
     {
     FUNC_LOG;
-    CEikTextListBox::SizeChanged();
-    iBaseBackroundContext->SetRect( Rect() );
+    TRect outerRect = Rect();
+    TRect innerRect = outerRect;
+    innerRect.Shrink( KBackgroundFrameWidth, KBackgroundFrameWidth );
+    SetViewRectFromClientRect( innerRect );
+    TRAP_IGNORE( HandleViewRectSizeChangeL() );
+    iBackgroundContext->SetFrameRects( outerRect, innerRect );
+    }
+
+void CNcsPopupListBox::HandleResourceChange( TInt aType )
+    {
+    FUNC_LOG;
+    if ( aType == KAknsMessageSkinChange )
+        {
+        UpdateTextColors();
+        }
+    }
+
+void CNcsPopupListBox::HandlePointerEventL( const TPointerEvent& aPointerEvent )
+    {
+    // When scrollbar is non-window-owning, the pointer events should be passed
+    // to it through control hierachy, but the CEikTextListBox does not seem to 
+    // do that, so that is handled here.
+    CEikScrollBar* sb = iSBFrame->VerticalScrollBar();
+    if ( aPointerEvent.iType == TPointerEvent::EButton1Down )
+        {
+        if ( sb && sb->Rect().Contains( aPointerEvent.iPosition ) )
+            {
+            sb->ClaimPointerGrab( EFalse );
+            sb->HandlePointerEventL( aPointerEvent );
+            }
+        else
+            {
+            ClaimPointerGrab( EFalse );
+            }
+        }
+
+    CCoeControl* pointerRecipient = GrabbingComponent();
+    if ( sb && pointerRecipient == sb )
+        {
+        sb->HandlePointerEventL( aPointerEvent );
+        }
+    else
+        {
+        CEikTextListBox::HandlePointerEventL( aPointerEvent );
+        }
     }
 
 // -----------------------------------------------------------------------------
 // CNcsPopupListBox::OfferKeyEventL
 // -----------------------------------------------------------------------------
 //    
-TKeyResponse CNcsPopupListBox::OfferKeyEventL( const TKeyEvent& aKeyEvent, TEventCode aType )
+TKeyResponse CNcsPopupListBox::OfferKeyEventL( const TKeyEvent& aKeyEvent,
+    TEventCode aType )
     {
     FUNC_LOG;
     TKeyResponse ret( EKeyWasNotConsumed );
@@ -206,12 +252,12 @@ TKeyResponse CNcsPopupListBox::OfferKeyEventL( const TKeyEvent& aKeyEvent, TEven
     return ret;
     }
 
-// <cmail> Touch
 // ---------------------------------------------------------------------------
 // CNcsPopupListBox::HandleListBoxEventL
 // ---------------------------------------------------------------------------
 //      
-void CNcsPopupListBox::HandleListBoxEventL( CEikListBox* /*aListBox*/, TListBoxEvent aEventType )
+void CNcsPopupListBox::HandleListBoxEventL( CEikListBox* /*aListBox*/,
+    TListBoxEvent aEventType )
     {
     if ( aEventType == EEventItemClicked || 
     	 aEventType == EEventItemSingleClicked )
@@ -219,7 +265,6 @@ void CNcsPopupListBox::HandleListBoxEventL( CEikListBox* /*aListBox*/, TListBoxE
         iHeaderContainer.DoPopupSelectL();
         }
     }
-// </cmail>
 
 // -----------------------------------------------------------------------------
 // CNcsPopupListBox::OperationComplete
@@ -324,55 +369,54 @@ CNcsEmailAddressObject* CNcsPopupListBox::ReturnCurrentEmailAddressLC()
 // CNcsPopupListBox::SetPopupMaxRect
 // -----------------------------------------------------------------------------
 void CNcsPopupListBox::SetPopupMaxRect( const TRect& aPopupMaxRect )
-	{
+    {
     FUNC_LOG;
-	iPopupMaxRect = aPopupMaxRect;
-	SetPopupHeight();
-	TRAP_IGNORE( UpdateScrollBarsL() );
- 	TRAP_IGNORE( SetScrollBarVisibilityL() );
-	}
-	
+    iPopupMaxRect = aPopupMaxRect;
+    SetPopupHeight();
+    TRAP_IGNORE( UpdateScrollBarsL() );
+    TRAP_IGNORE( SetScrollBarVisibilityL() );
+    }
+
 // -----------------------------------------------------------------------------
 // CNcsPopupListBox::IsPopupEmpty
 // -----------------------------------------------------------------------------
 TBool CNcsPopupListBox::IsPopupEmpty() const
-	{
+    {
     FUNC_LOG;
-	if( Model()->NumberOfItems() > 0 )
-		return EFalse;
-	else
-		return ETrue;
-	}
+    if ( Model()->NumberOfItems() > 0 )
+        return EFalse;
+    else
+        return ETrue;
+    }
 
 // -----------------------------------------------------------------------------
 // CNcsPopupListBox::IsRemoteLookupItemSelected
 // -----------------------------------------------------------------------------
 TBool CNcsPopupListBox::IsRemoteLookupItemSelected() const
-	{
+    {
     FUNC_LOG;
-	if( CurrentItemIndex() == iRemoteLookupItemPos && iRemoteLookupSupported )
-		return ETrue;
-	else
-		return EFalse;
-	}
+    if ( CurrentItemIndex() == iRemoteLookupItemPos && iRemoteLookupSupported )
+        return ETrue;
+    else
+        return EFalse;
+    }
 
 // -----------------------------------------------------------------------------
 // CNcsPopupListBox::CurrentPopupClsItemsArray
 // -----------------------------------------------------------------------------
-
 const RPointerArray<CFSEmailUiClsItem>& CNcsPopupListBox::CurrentPopupClsItemsArray() const
-	{
-	return iMatchingItems;
-	}
+    {
+    return iMatchingItems;
+    }
 
 // -----------------------------------------------------------------------------
 // CNcsPopupListBox::RemoteLookupItemPos
 // -----------------------------------------------------------------------------
 TInt CNcsPopupListBox::RemoteLookupItemPos() const
-	{
+    {
     FUNC_LOG;
-	return iRemoteLookupItemPos;
-	}
+    return iRemoteLookupItemPos;
+    }
 
 // -----------------------------------------------------------------------------
 // CNcsPopupListBox::LayoutHandler
@@ -380,9 +424,7 @@ TInt CNcsPopupListBox::RemoteLookupItemPos() const
 CFSEmailUiLayoutHandler& CNcsPopupListBox::LayoutHandler() const
     {
     FUNC_LOG;
-    CFreestyleEmailUiAppUi* appUi = 
-        static_cast<CFreestyleEmailUiAppUi*>( ControlEnv()->AppUi() );
-    return *appUi->LayoutHandler();
+    return *iAppUi->LayoutHandler();
     }
 
 // -----------------------------------------------------------------------------
@@ -436,15 +478,16 @@ TInt CNcsPopupListBox::RoundToItemHeight(const TInt aPopupHeight) const
 // CNcsPopupListBox::SetPopupHeight
 // -----------------------------------------------------------------------------
 void CNcsPopupListBox::SetPopupHeight()
-	{
+    {
     FUNC_LOG;
     // This is the total height in pixels needed to show all items
-    TInt minimumHeight = CalcHeightBasedOnNumOfItems( Model()->NumberOfItems());
+    TInt minimumHeight = 2 * KBackgroundFrameWidth +
+        CalcHeightBasedOnNumOfItems( Model()->NumberOfItems() );
     TRect newRect = iPopupMaxRect;
     TInt areaHeight = Parent()->Parent()->Rect().Height();
     TInt halfAreaHeight = areaHeight/2;
 
- 	// Get height of one line in Address field
+    // Get height of one line in Address field
     CNcsHeaderContainer* headerObj = static_cast<CNcsHeaderContainer* >(Parent());
     TInt toLineHeight = headerObj->GetToLineHeight(); // height of one line height
     if(toLineHeight == 0)
@@ -514,7 +557,8 @@ void CNcsPopupListBox::SetRemoteLookupItemFirstToTheListL()
     FUNC_LOG;
 	if( iRemoteLookupSupported )
 		{
-		HBufC* rmluText = StringLoader::LoadLC( R_FSE_EDITOR_ADDRESS_LIST_REMOTE_LOOKUP_SEARCH, *iCurrentSearchText );
+		HBufC* rmluText = StringLoader::LoadLC( 
+		    R_FSE_EDITOR_ADDRESS_LIST_REMOTE_LOOKUP_SEARCH, *iCurrentSearchText );
 		
 		iItemTextsArray->InsertL( 0, *rmluText );
 		CleanupStack::PopAndDestroy( rmluText );
@@ -591,83 +635,80 @@ void CNcsPopupListBox::CreateTextArrayAndSetToTheListboxL( const TBool& aResetIf
 // CNcsListItemDrawer::CNcsListItemDrawer
 // -----------------------------------------------------------------------------
 CNcsListItemDrawer::CNcsListItemDrawer( const CNcsPopupListBox& aListBox )
-:CListItemDrawer(), iListBox(aListBox)
-	{
+:CListItemDrawer(), iListBox( aListBox )
+    {
     FUNC_LOG;
-	// Store a GC for later use
-	iGc = &CCoeEnv::Static()->SystemGc();
-	SetGc(iGc);
-	}
+    // Store a GC for later use
+    iGc = &CCoeEnv::Static()->SystemGc();
+    SetGc(iGc);
+    }
 
 // -----------------------------------------------------------------------------
 // CNcsListItemDrawer::DrawActualItem
 // -----------------------------------------------------------------------------
 void CNcsListItemDrawer::DrawActualItem(TInt aItemIndex,
-	const TRect& aActualItemRect, TBool aItemIsCurrent,
-	TBool /*aViewIsEmphasized*/, TBool /*aViewIsDimmed*/,
-	TBool /*aItemIsSelected*/) const
-	{
-    FUNC_LOG;
-	// <cmail>
-	iGc->Reset();
-	// </cmail>
-	
-	// Get reference to curren popup cls item list.
-	const RPointerArray<CFSEmailUiClsItem>& clsItemArray = 	iListBox.CurrentPopupClsItemsArray();
-	TInt rmluPosition = iListBox.RemoteLookupItemPos();
-
-	// Sets all the attributes, like font, text color and background color.
-	const CFont* font = AknLayoutUtils::FontFromId( EAknLogicalFontPrimarySmallFont );
-	iGc->UseFont(font);
-
-	// We have to draw the item in layered fassion in order to do the skin
-	// First clear the backround by drawing a solid white rect.	
-	iGc->SetPenColor(iBackColor);
-	iGc->SetPenStyle(CGraphicsContext::ESolidPen);
-	iGc->SetBrushColor(iBackColor);
-	iGc->SetBrushStyle(CGraphicsContext::ESolidBrush);
-
-    // draw the background
-	TRect backgroundRect( aActualItemRect );
-
-    if ( !aItemIndex ) 
-        {
-        backgroundRect.iTl.iY = 0;
-        }
-    else if ( aItemIndex == iListBox.Model()->NumberOfItems() - 1 ) 
-        {
-        backgroundRect.iBr.iY = iListBox.Size().iHeight;
-        }
-    
-    iGc->DrawRect( backgroundRect );
-    
-
-    TRect textRect( aActualItemRect );
+    const TRect& aActualItemRect, TBool aItemIsCurrent,
+    TBool /*aViewIsEmphasized*/, TBool /*aViewIsDimmed*/,
+    TBool /*aItemIsSelected*/) const
     {
-    // temporary const_cast to get scroll width
-    CNcsPopupListBox& tmpListBox = const_cast<CNcsPopupListBox&>(iListBox);
-    textRect.Resize( -tmpListBox.ScrollBarFrame()->ScrollBarBreadth(CEikScrollBar::EVertical), 0 );
+    FUNC_LOG;
+    iGc->DiscardFont();
+
+    // Get reference to curren popup cls item list.
+    const RPointerArray<CFSEmailUiClsItem>& clsItemArray =
+        iListBox.CurrentPopupClsItemsArray();
+    TInt rmluPosition = iListBox.RemoteLookupItemPos();
+
+    // Sets all the attributes, like font, text color and background color.
+    const CFont* font = AknLayoutUtils::FontFromId( EAknLogicalFontPrimarySmallFont );
+    iGc->UseFont( font );
+    iGc->SetPenStyle( CGraphicsContext::ESolidPen );
+    iGc->SetBrushStyle( CGraphicsContext::ENullBrush );
+
+    TRect itemRect = aActualItemRect;
+    { 
+    // temporary const_cast to get the scrollbar width
+    CNcsPopupListBox& tmpListBox = const_cast<CNcsPopupListBox&>( iListBox );
+    itemRect.Resize( -tmpListBox.ScrollBarFrame()->ScrollBarBreadth(
+        CEikScrollBar::EVertical ) + KBackgroundFrameWidth, 0 );
     }
 
+    TRect textRect = itemRect;
+    textRect.Shrink( KHighlightFrameWidth, KHighlightFrameWidth );
 
-	// Now draw the highlight
-	if( aItemIsCurrent ) 
-		{
-		TRgb highlightColor = iListBox.LayoutHandler().PcsPopupHighlightColor();
-		iGc->SetBrushColor(highlightColor);
-//	    AknsDrawUtils::DrawFrame( AknsUtils::SkinInstance(), *iGc,
-//	    	aActualItemRect, aActualItemRect,
-//	    	KNcsIIDHighlightBackground, KNcsIIDHighlightBackground );
-        iGc->DrawRect(textRect);
-		}
+    // Get skin instance.
+    MAknsSkinInstance* skin = AknsUtils::SkinInstance();
 
-	iGc->SetPenColor(iTextColor);
-	iGc->SetPenStyle(CGraphicsContext::ESolidPen);
-	iGc->SetBrushStyle(CGraphicsContext::ENullBrush);
-	TInt topToBaseline = ( textRect.Height() - font->HeightInPixels() ) / 2
-						+ font->AscentInPixels();
+    // Draw background using the control context from the list box.
+    MAknsControlContext* cc = AknsDrawUtils::ControlContext( &iListBox );
+    if ( cc )
+        {
+        AknsDrawUtils::Background( skin, cc, *iGc, itemRect );
+        }
+    else
+        {
+        iGc->Clear( itemRect );
+        }
 
-	TPtrC itemText = iListBox.Model()->ItemText( aItemIndex );
+    // Draw the highlight, when necessary.
+    if ( aItemIsCurrent ) 
+        {
+        AknsDrawUtils::DrawFrame( skin, *iGc, itemRect, textRect,
+            KAknsIIDQsnFrList, KAknsIIDQsnFrListCenter );
+        }
+
+    // Get text color.
+    TRgb textColor = TextColor();
+    if ( aItemIsCurrent )
+        {
+        textColor = HighlightedTextColor();
+        }
+
+    iGc->SetPenColor( textColor );
+    TInt topToBaseline = ( textRect.Height() - font->FontMaxHeight() ) / 2
+        + font->FontMaxAscent();
+
+    TPtrC itemText = iListBox.Model()->ItemText( aItemIndex );
 
 	// Construct bidirectional text object
 	// <cmail> Removed leave from non-leaving function.
@@ -818,6 +859,41 @@ void CNcsPopupListBox::UpdateListL()
         UpdateScrollBarsL();
         iHeaderContainer.ShowPopupMenuBarL( ETrue );
         }
+    }
+
+void CNcsPopupListBox::UpdateTextColors()
+    {
+    if ( iItemDrawer )
+        {
+        // Get skin instance.
+        MAknsSkinInstance* skin = AknsUtils::SkinInstance();
+
+        // Get color for popup text from current skin.
+        TRgb textColor = KRgbBlack;
+        AknsUtils::GetCachedColor( skin, textColor, KAknsIIDQsnTextColors,
+            EAknsCIQsnTextColorsCG20 );
+        iItemDrawer->SetTextColor( textColor );
+
+        // Get text color for highlighted list item from current skin.
+        AknsUtils::GetCachedColor( skin, textColor, KAknsIIDQsnTextColors,
+            EAknsCIQsnTextColorsCG10 );
+        iItemDrawer->SetHighlightedTextColor( textColor );
+        }
+    }
+
+void CNcsPopupListBox::Draw( const TRect& aRect ) const
+    {
+    CWindowGc& gc = SystemGc();
+    MAknsSkinInstance* skin = AknsUtils::SkinInstance();
+    if ( iBackgroundContext )
+        {
+        AknsDrawUtils::Background( skin, iBackgroundContext, gc, aRect );
+        }
+    else
+        {
+        gc.Clear( aRect );
+        }
+    CEikListBox::Draw( aRect );
     }
 
 // End of File

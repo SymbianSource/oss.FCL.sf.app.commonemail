@@ -176,10 +176,10 @@ TBool CESMRSyncField::ExecuteGenericCommandL( TInt aCommand )
     if(aCommand == EESMRCmdOpenSyncQuery ||
        aCommand == EAknCmdOpen )
         {
+    	HandleTactileFeedbackL();
+    	
         ExecuteSyncQueryL();
         isUsed = ETrue;
-        
-        HandleTactileFeedbackL();
         }
     return isUsed;
     }

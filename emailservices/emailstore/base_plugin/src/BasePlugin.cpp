@@ -30,6 +30,7 @@
 //Freestyle.
 #include "cfsmailcommon.h"
 #include "cfsmailmessage.h"
+#include "cmrcalendarinfo.h" 
 //</cmail>
 //Base plugin.
 #include "baseplugin.h"
@@ -40,6 +41,7 @@
 // Other
 #include <e32base.h>
 #include <utf.h>
+#include <calsession.h>
 
 //<cmail>
 #include "FreestyleEmailUiConstants.h"
@@ -257,6 +259,37 @@ EXPORT_C CFSMailBox* CBasePlugin::GetMailBoxByUidL( const TFSMailMsgId& aMailBox
 
     MMRInfoProcessor* infoProcessor = CBaseMrInfoProcessor::NewL( *this );
     result->SetMRInfoProcessorL( infoProcessor );
+    
+    //JOJA-83VJ4L Plugins need to set the correct Calendar Database ID for MRUI to work
+    //get the calendar file name from the derived class
+    const TDesC& calFileName = CalendarFileName();
+    if ( calFileName != KNullDesC )
+        {
+        //the derived class does use its own calendar file, check if that file exists
+        //the file may not exist because cal sync was disabled, or the file was deleted from the calendar UI
+        CCalSession* calSession = CCalSession::NewL();
+        CleanupStack::PushL( calSession );
+        
+        TRAPD( error, calSession->OpenL( calFileName ) );
+        if ( error == KErrNone )
+            {
+            //calendar file exists, get its file id, and set it to cMail Celendar Info via the extention
+            TCalFileId fileId = KNullFileId; 
+            calSession->FileIdL( fileId );
+            
+            //get the extention api for the MR info, set the cal db id, and release the extention
+            CEmailExtension* extension = NULL;
+            TRAP( error, extension = result->ExtensionL( KMailboxExtMrCalInfo ) );
+            if ( error == KErrNone )
+                {
+                CMRCalendarInfo* calInfo = reinterpret_cast<CMRCalendarInfo*>( extension );
+                calInfo->SetCalendarDatabaseIdL( fileId ); // cannot actually leave
+                result->ReleaseExtension( calInfo );
+                }
+            }
+        
+        CleanupStack::PopAndDestroy( calSession );
+        }
     
     CleanupStack::Pop( result );
     

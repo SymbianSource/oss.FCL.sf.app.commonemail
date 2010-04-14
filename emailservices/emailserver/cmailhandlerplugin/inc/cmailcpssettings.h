@@ -102,13 +102,6 @@ public:
     void RemoveMailboxL( const TFSMailMsgId aMailbox );
 
     /**
-     * Removes mailbox from widget settings
-     * @param aIndex refers to index in mailbox array that is returned by
-     *        CMailCpsSettings::Mailboxes()
-     */
-    void RemoveMailboxL( const TInt aIndex );
-
-    /**
      * Gets maximum row count
      * @return maximum row count
      */
@@ -188,6 +181,13 @@ public:
      *
      */    
     TBool GetNewMailState( const TFSMailMsgId& aMailBox );
+
+    /**
+     * Find next free CenRep key to store setting.
+     * @param aContentId Id of widget instance
+     * @return true if account is associated to content id, false if not
+     */    
+    TBool Associated( const TDesC& aContentId );
     
 protected:
     /**

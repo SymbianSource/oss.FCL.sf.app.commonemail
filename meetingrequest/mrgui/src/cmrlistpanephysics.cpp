@@ -242,7 +242,10 @@ void CMRListPanePhysics::ViewPositionChanged( const TPoint& aNewPosition,
     if ( aDrawNow )
         {
         iParent.DrawDeferred();
-        }        
+        }
+    
+    // Vertical scroll index has changed, we need to update scroll bar also
+    iPhysicsObserver.UpdateScrollBarDuringOngoingPhysics();
     }
 
 // ---------------------------------------------------------------------------

@@ -592,6 +592,7 @@ TBool CESMRResponseField::HandleTapEventL( const TPoint& aPosition )
 
     if ( Rect().Contains( aPosition ) )
         {
+		HandleTactileFeedbackL();
         if ( iConflicted )
             {
             TRect conflictItemRect = iResponseItemArray[KConflictItemIndex]->Rect();

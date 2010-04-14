@@ -425,10 +425,10 @@ TBool CESMRAlarmField::ExecuteGenericCommandL( TInt aCommand )
     if(aCommand == EESMRCmdOpenAlarmQuery ||
        aCommand == EAknCmdOpen )
         {
+		HandleTactileFeedbackL();
+		
         ExecuteMSKCommandL();
         isUsed = ETrue;
-        
-        HandleTactileFeedbackL();
         }
     return isUsed;
     }

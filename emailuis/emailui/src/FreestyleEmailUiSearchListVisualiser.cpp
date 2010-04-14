@@ -395,7 +395,7 @@ void CFSEmailUiSearchListVisualiser::ChildDoActivateL(const TVwsViewId& aPrevVie
 
 	// Update settings and set list mode according to settings
 	UpdateMailListSettingsL();
-
+	
 	if ( iMailBox )
 		{
 		delete iMailBox;
@@ -438,6 +438,9 @@ void CFSEmailUiSearchListVisualiser::ChildDoActivateL(const TVwsViewId& aPrevVie
 			// Need to make sure that return to this view works even if following function leaves.
 			TRAP_IGNORE( CheckAndUpdateFocusedMessageL() );
 			}
+		
+	    // Set mailbox name to status pane
+		iAppUi.SetActiveMailboxNameToStatusPaneL();	
 		}
     CAknEnv::Static()->GetCurrentGlobalUiZoom( iCurrentZoomLevel );
 	// Set msk always empty when view is activated.

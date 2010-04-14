@@ -50,9 +50,12 @@ using namespace EmailInterface;
 //
 CMailCpsHandler::CMailCpsHandler( MFSNotificationHandlerMgr& aOwner ): 
     CFSNotificationHandlerBase( aOwner ),
-    iWaitingForNewMailbox(NULL)
+    iWaitingForNewMailbox( NULL ),
+    iWaitingForNewWidget()
     {
     FUNC_LOG;
+    iWaitingForNewWidget.SetPluginId( KNullUid );
+    iWaitingForNewWidget.SetId( 0 );
     }
 
 // ---------------------------------------------------------
@@ -140,14 +143,7 @@ void CMailCpsHandler::InitializeL()
             {
             mailboxId = mailbox->GetId().Id();
             }
-        if ( !mailboxId )
-            {
-            // Remove box from settings
-            iSettings->RemoveMailboxL( ii );
-            // Array indexing changes now since one item was deleted
-            ii--;
-            }
-        else
+        if ( mailboxId )
             {
             CleanupStack::PushL( mailbox );
             CMailMailboxDetails* mailboxDetails = CreateMailboxDetailsL( *mailbox );
@@ -862,6 +858,10 @@ void CMailCpsHandler::HandleNewMailboxEventL( const TFSMailMsgId aMailbox )
     if (iWaitingForNewMailbox)
         {
         iSettings->AssociateWidgetToSetting( iWaitingForNewMailbox->Des(), aMailbox );
+        }
+    else
+        {
+        iLiwIf->AddWidgetToHomescreenL( aMailbox );
         }
     }
 
@@ -1828,3 +1828,76 @@ void CMailCpsHandler::CleanWaitingForNewMailbox()
         iWaitingForNewMailbox = NULL;
         }
     }
+
+// -----------------------------------------------------------------------------
+//  CMailCpsHandler::SetWaitingForNewWidget()
+// -----------------------------------------------------------------------------
+//
+void CMailCpsHandler::SetWaitingForNewWidget( const TFSMailMsgId aMailbox )
+    {
+    FUNC_LOG;
+    iWaitingForNewWidget.SetPluginId( aMailbox.PluginId() );
+    iWaitingForNewWidget.SetId( aMailbox.Id() );   
+    }
+
+// -----------------------------------------------------------------------------
+//  CMailCpsHandler::CleanWaitingForNewWidget()
+// -----------------------------------------------------------------------------
+//
+void CMailCpsHandler::CleanWaitingForNewWidget()
+    {
+    FUNC_LOG;
+    iWaitingForNewWidget.SetPluginId( KNullUid );
+    iWaitingForNewWidget.SetId( 0 );
+    }
+
+// -----------------------------------------------------------------------------
+//  CMailCpsHandler::WaitingForNewWidget()
+// -----------------------------------------------------------------------------
+//
+TFSMailMsgId CMailCpsHandler::WaitingForNewWidget()
+    {
+    FUNC_LOG;
+    return iWaitingForNewWidget;    
+    }
+
+// ---------------------------------------------------------------------------
+// CMailCpsSettings::AssociateWidgetToSetting
+// ---------------------------------------------------------------------------
+//
+void CMailCpsHandler::AssociateWidgetToSetting( const TDesC& aContentId,
+                                                const TFSMailMsgId aMailbox )
+    {
+    FUNC_LOG;
+    iSettings->AssociateWidgetToSetting( aContentId, aMailbox );
+    }
+
+
+// ---------------------------------------------------------------------------
+// CMailCpsHandler::Associated
+// ---------------------------------------------------------------------------
+//
+TBool CMailCpsHandler::Associated( const TDesC& aContentId )
+    {
+    FUNC_LOG;    
+    return iSettings->Associated( aContentId );
+    }
+
+// ---------------------------------------------------------------------------
+// CMailCpsSettings::DisplayHSPageFullNoteL
+// ---------------------------------------------------------------------------
+//
+void CMailCpsHandler::DisplayHSPageFullNoteL()
+    {
+    FUNC_LOG;
+    if (!iQuery)
+        {
+        iQuery = CAknGlobalNote::NewL();
+        iQuery->SetSoftkeys(R_AVKON_SOFTKEYS_OK_EMPTY);
+        }   
+    HBufC* str( NULL );
+    str = StringLoader::LoadLC( R_EMAILWIDGET_TEXT_HS_PAGE_FULL );
+    iQuery->ShowNoteL(EAknGlobalConfirmationNote, str->Des());
+    CleanupStack::PopAndDestroy( str );    
+    }
+    

@@ -410,7 +410,20 @@ void CMRUnifiedEditorField::SizeChanged()
 
     // Move focus rect so that it's relative to field's position.
     viewerRect.Move( -Position() );
-    SetFocusRect( viewerRect );
+
+    TAknLayoutRect bgLayoutRect = 
+        NMRLayoutManager::GetLayoutRect( 
+                rect, NMRLayoutManager::EMRLayoutTextEditorBg );
+    TRect bgRect( bgLayoutRect.Rect() );
+    
+    // Adjust background rect according to viewerRect 
+    bgRect.SetWidth( viewerRect.Width() );
+    
+    // Move focus rect so that it's relative to field's position.
+    bgRect.Move( -Position() );
+        
+    SetFocusRect( bgRect );
+    
         
     TAknTextComponentLayout editorLayout(
     		NMRLayoutManager::GetTextComponentLayout(

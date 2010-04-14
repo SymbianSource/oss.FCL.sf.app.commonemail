@@ -554,7 +554,7 @@ CFSMailMessage* CIpsPlgSmtpService::CreateFSMessageAndSetFlagsL(
       {
       
       //const TUid KCRUidEMailCharsets = {0x20018441};    // korea needs different default charset
-          const TInt KoreanMib = 36; // magic number to read from cen rep would be better
+          const TInt KoreanMib = 38; // magic number to read from cen rep would be better
             
 		  CCnvCharacterSetConverter* charConv = NULL;
 		  TRAPD( err, charConv = CCnvCharacterSetConverter::NewL() );

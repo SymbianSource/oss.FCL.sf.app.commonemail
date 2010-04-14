@@ -62,6 +62,8 @@
 
 // CLASS IMPLEMENTATION
 
+TInt KGenericTimerDialogInterval = 1000; // Interval for iDialogTimer
+
 // ---------------------------------------------------------------------------
 // Two-phased constructor.
 // ---------------------------------------------------------------------------
@@ -119,6 +121,8 @@ void CFreestyleEmailUiSendAttachmentsListControl::ConstructL( CAlfEnv& aEnv )
     CAlfControl::ConstructL( aEnv );
 	iService = CFscContactActionService::NewL( iAppUi->GetVPbkManagerL() );
     iModel = CFSEmailUiSendAttachmentsListModel::NewL( iAppUi, Env(), this );
+    iAttachmentAddingLocked = EFalse;
+    iDialogTimer = CFSEmailUiGenericTimer::NewL( this );
     }
 
 // ---------------------------------------------------------------------------
@@ -128,6 +132,11 @@ void CFreestyleEmailUiSendAttachmentsListControl::ConstructL( CAlfEnv& aEnv )
 CFreestyleEmailUiSendAttachmentsListControl::~CFreestyleEmailUiSendAttachmentsListControl()
     {
     FUNC_LOG;
+	if(iDialogTimer)
+		{
+	    iDialogTimer->Cancel();
+	    delete iDialogTimer;
+		}
 	delete iService;
     }
 
@@ -324,6 +333,30 @@ CFSEmailUiSendAttachmentsListModel* CFreestyleEmailUiSendAttachmentsListControl:
 	return iModel;
 }
 
+
+// ---------------------------------------------------------------------------
+// IsAttachmentAddingLocked
+//
+// ---------------------------------------------------------------------------
+//
+TBool CFreestyleEmailUiSendAttachmentsListControl::IsAttachmentAddingLocked() const
+{
+    FUNC_LOG;
+	return iAttachmentAddingLocked;
+}
+
+
+// ---------------------------------------------------------------------------
+// TimerEventL
+// Timer that delays the dialog will open the dialog here
+// ---------------------------------------------------------------------------
+//
+void CFreestyleEmailUiSendAttachmentsListControl::TimerEventL( CFSEmailUiGenericTimer* /*aTriggeredTimer*/ )
+	{
+	TFsEmailUiUtility::ShowWaitNoteL( iWaitNote, R_FSE_WAIT_INSERTING_TEXT, EFalse,ETrue );
+	iDialogTimer->Cancel();
+	}
+
 // ---------------------------------------------------------------------------
 // AppendAttachmentToListL
 //
@@ -337,6 +370,11 @@ TBool CFreestyleEmailUiSendAttachmentsListControl::AppendAttachmentToListL(MsgAt
 	TFileName filePath;
 	// <cmail>
 	TBool fetchOK = EFalse;
+	
+	if(iAttachmentAddingLocked)
+		{
+	    return ret;
+		}
 	
 	if (aType != MsgAttachmentUtils::EUnknown)
 	    {
@@ -373,8 +411,12 @@ TBool CFreestyleEmailUiSendAttachmentsListControl::AppendAttachmentToListL(MsgAt
 	    fetchOK = TFsEmailUiUtility::ShowSelectFileDialogL( filePath );
 	    }
         
+	iAttachmentAddingLocked = ETrue;
+	
 	if ( fetchOK && filePath.Length() > 0 ) // </cmail>
 		{
+	    iDialogTimer->Start(KGenericTimerDialogInterval);   
+	
         if ( !FileDrmProtectedL( filePath ) )
 			{
 			// add file as a email message part
@@ -425,6 +467,14 @@ TBool CFreestyleEmailUiSendAttachmentsListControl::AppendAttachmentToListL(MsgAt
 			ret = ETrue;
 			}
 		}
+
+	iDialogTimer->Cancel();
+	if(iWaitNote) 
+	  	{
+	    iWaitNote->ProcessFinishedL();
+	   	}
+	iAttachmentAddingLocked = EFalse;
+	
 	return ret;
 	}
 

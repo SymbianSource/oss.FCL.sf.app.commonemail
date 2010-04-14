@@ -12,7 +12,7 @@
 * Contributors:
 *
 *  Description : CEikRichTextEditor based Rich Text viewer
-*  Version     : %version: e002sa32#36 %
+*  Version     : %version: e002sa32#37 %
 *
 */
 
@@ -348,6 +348,7 @@ void CESMRRichTextViewer::HandlePointerEventL( const TPointerEvent& aPointerEven
                         {
                         if ( link != GetSelectedLink() )
                             {
+                            iCntMenuHdlr->Reset();
                             iCntMenuHdlr->SetContactMenuObserver( this );
                             HighlightLinkL( *link );
                             DrawDeferred();

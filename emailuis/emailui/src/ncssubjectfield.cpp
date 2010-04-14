@@ -597,3 +597,7 @@ void CNcsSubjectField::HandleResourceChange( TInt aType )
         }
     }
 
+void CNcsSubjectField::EnableKineticScrollingL(CAknPhysics*  aPhysics)
+    {
+    iTextEditor->EnableKineticScrollingL(aPhysics);
+    }

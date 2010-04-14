@@ -643,8 +643,7 @@ MEmailAttachment* CEmailMessage::AddAttachmentL( RFile& aFile )
     CleanupStack::PushL( part );
     CEmailAttachment* att = CEmailAttachment::NewLC(iPluginData, iMsgContentId, part, EAPIOwns);
     iAttachments.AppendL( att );
-
-    CleanupStack::Pop(); // part, att
+    CleanupStack::Pop(2); // part, att
     
     return att;
     }

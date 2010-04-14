@@ -21,9 +21,11 @@
 #include "cesmrfield.h"
 #include "cmrfieldcontainer.h"
 #include "cmrlistpanephysics.h"
+#include "nmrlayoutmanager.h"
 
 #include <eikscrlb.h>
 #include <aknutils.h>
+#include <touchfeedback.h>
 
 //DEBUG
 #include "emailtrace.h"
@@ -54,7 +56,6 @@ TInt IndexByFieldId( const MESMRFieldStorage& aFactory,
 
     return index;
     }
-
 }
 
 //----- MEMBER FUNCTIONS ----
@@ -600,9 +601,12 @@ void CMRListPane::HandlePointerEventL( const TPointerEvent &aPointerEvent )
     
     if( !iPhysicsActionOngoing )
     	{    
-		// Offer pointer event to long tap detector
-		iLongtapDetector->PointerEventL( aPointerEvent );
-	
+		// Offer pointer event to long tap detector if event occures within fields
+		if( iFieldContainer->Rect().Contains( aPointerEvent.iPosition ) )
+			{
+			iLongtapDetector->PointerEventL( aPointerEvent );
+			}
+
 		SetFocusAfterPointerEventL( aPointerEvent );
 		
         // If longtap event has been handled, then do not handle signal event anymore.
@@ -647,6 +651,55 @@ void CMRListPane::PhysicsEmulationEnded()
     DoUpdateScrollBar();
     iPhysicsActionOngoing = EFalse;
     Parent()->DrawDeferred();
+    }
+
+// ---------------------------------------------------------------------------
+// CMRListPane::UpdateScrollBarDuringOngoingPhysics
+// ---------------------------------------------------------------------------
+//
+void CMRListPane::UpdateScrollBarDuringOngoingPhysics()
+    {
+    FUNC_LOG;
+    TInt verticalScrollIndex( iPhysics->VerticalScrollIndex() );
+    iScrollModel.SetFocusPosition( verticalScrollIndex );
+
+	iScroll.SetModel( &iScrollModel );
+
+	// Update the new thumb position to view's
+	// iScrollBarThumbPosition member.
+	iScrollBarObserver.ScrollBarPositionChanged( 
+			iScroll.ThumbPosition() );
+	
+	iScroll.DrawDeferred();
+	
+	if( FeedbackScrollMarginExceeded( 
+			Abs( verticalScrollIndex - iPreviousVerticalScrollIndex ) ) )
+		{
+		HandleTactileFeedback( ETouchFeedbackSlider );
+
+		iPreviousVerticalScrollIndex = verticalScrollIndex;
+		}
+    }
+	
+// ---------------------------------------------------------------------------
+// CESMRField::HandleTactileFeedback
+// ---------------------------------------------------------------------------
+//
+void CMRListPane::HandleTactileFeedback( 
+		const TTouchLogicalFeedback& aType )
+	{
+	FUNC_LOG;
+
+	if( !iTactileFeedback )
+		{
+		// Aquire tactile feedback pointer from TLS
+		iTactileFeedback = MTouchFeedback::Instance();
+		}
+	
+	if ( iTactileFeedback && iTactileFeedback->FeedbackEnabledForThisApp() )
+		{
+		iTactileFeedback->InstantFeedback( aType );
+		}
     }
 
 // ---------------------------------------------------------------------------
@@ -740,6 +793,36 @@ TBool CMRListPane::HiddenFocus()
             }
         }
     return hiddenFocus;
+    }
+
+// ---------------------------------------------------------------------------
+// CMRListPane::FeedbackScrollMarginExceeded
+// ---------------------------------------------------------------------------
+//
+TBool CMRListPane::FeedbackScrollMarginExceeded( TInt aMargin )
+    {
+	/*
+	 * This compares given margin to default one row
+	 * field height, and returns ETrue if margin is exceeded.
+	 * Otherwise EFalse.
+	 */
+	TBool ret( EFalse );
+	
+	if( !iDefaultFieldHeight )
+		{
+		TAknLayoutRect fieldLayoutRect( 
+			NMRLayoutManager::GetFieldLayoutRect( 
+					iFieldContainer->Rect(), 1 ) );
+		
+		iDefaultFieldHeight = fieldLayoutRect.Rect().Height();
+		}
+
+	if( aMargin > iDefaultFieldHeight )
+		{
+		ret = ETrue;
+		}
+	
+    return ret;
     }
 
 // End of file

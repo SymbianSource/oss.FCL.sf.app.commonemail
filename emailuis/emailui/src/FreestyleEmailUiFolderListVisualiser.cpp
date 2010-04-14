@@ -499,8 +499,9 @@ void CFSEmailUiFolderListVisualiser::SetPopupSoftkeysL()
 	{
     FUNC_LOG;
     CEikButtonGroupContainer* cba = CEikButtonGroupContainer::Current();
-    cba->AddCommandSetToStackL( R_AVKON_SOFTKEYS_SELECT_CANCEL__SELECT);
+    cba->AddCommandSetToStackL( R_AVKON_SOFTKEYS_SELECT_CANCEL__SELECT );
     cba->UpdateCommandObserverL( cba->PositionById( EAknSoftkeySelect ), *this );
+    cba->MakeCommandVisible( EAknSoftkeySelect , EFalse );
     cba->UpdateCommandObserverL( cba->PositionById( EEikBidCancel ), *this );
     cba->DrawNow();
 	}
@@ -513,7 +514,7 @@ void CFSEmailUiFolderListVisualiser::ClearPopupSoftkeys()
 	{
     FUNC_LOG;
     CEikButtonGroupContainer* cba = CEikButtonGroupContainer::Current();
-
+    cba->MakeCommandVisible( EAknSoftkeySelect , ETrue );
     if (cba->UpdatedCommandObserverExists(CEikButtonGroupContainer::ELeftSoftkeyPosition))
         {
         cba->RemoveCommandObserver( cba->PositionById( EAknSoftkeySelect ) );
@@ -523,10 +524,12 @@ void CFSEmailUiFolderListVisualiser::ClearPopupSoftkeys()
         cba->RemoveCommandObserver( cba->PositionById( EEikBidCancel ) );
         }
     TInt pos = -1;
+   
     if ((pos = cba->PositionById( EAknSoftkeySelect )) >= 0)
         {
         cba->RemoveCommandFromStack( pos, EAknSoftkeySelect );
         }
+     
     if ((pos = cba->PositionById( EEikBidCancel )) >= 0)
         {
         cba->RemoveCommandFromStack( pos, EEikBidCancel );
@@ -871,9 +874,9 @@ void CFSEmailUiFolderListVisualiser::OfferToolbarEventL( TInt aCommand )
     {
     switch( aCommand )
         {
-        case EFsEmailUiTbCmdSelect:
+        /*case EFsEmailUiTbCmdSelect:
             HandleCommandL( EFsEmailUiCmdSelect );
-            break;
+            break;*/
         case EFsEmailUiTbCmdCollapseAll:
             HandleCommandL( EFsEmailUiCmdActionsCollapseAll );
             break;
@@ -3001,8 +3004,7 @@ void CFSEmailUiFolderListVisualiser::GoToBottomL()
 void CFSEmailUiFolderListVisualiser::UpdateToolbarButtons()
     {
     FUNC_LOG;
-    Toolbar()->SetItemDimmed(
-        EFsEmailUiTbCmdSelect, ( iModel == NULL ) || ( iModel->Count() == 0 ), ETrue );
+    //Toolbar()->SetItemDimmed(EFsEmailUiTbCmdSelect, ( iModel == NULL ) || ( iModel->Count() == 0 ), ETrue );
     Toolbar()->SetItemDimmed( EFsEmailUiTbCmdExpandAll, AllNodesExpanded(), ETrue );
     Toolbar()->SetItemDimmed( EFsEmailUiTbCmdCollapseAll, AllNodesCollapsed(), ETrue );
     }

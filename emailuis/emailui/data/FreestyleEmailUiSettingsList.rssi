@@ -66,11 +66,11 @@ RESOURCE MENU_PANE r_fs_email_settings_list_menu_pane
 	{
 	items =
 		{
-		MENU_ITEM
+/*		MENU_ITEM
 			{
 			command = EFsEmailUiCmdOpen;
 			txt = qtn_options_open;
-			},
+			},*/
 		MENU_ITEM
 			{
 			command = EFsEmailUiCmdSettingsAddAccount;

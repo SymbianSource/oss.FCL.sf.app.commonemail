@@ -84,7 +84,8 @@ CNcsComposeView::CNcsComposeView( CFreestyleEmailUiAppUi& aAppUi,
      iMailClient( aMailClient ), iOrigMessage( NULL ), iNewMessage( NULL ),
      iMsvSession( aMsvSession ), iEnv( aEnv ),
      iFakeSyncGoingOn(EFalse), iFetchDialogCancelled(EFalse),
-     iExecutingDoExitL( EFalse )
+     iExecutingDoExitL( EFalse ),
+     iMessageTextPartModified( EFalse ), iMessageModified( EFalse )
     {
     FUNC_LOG;
 
@@ -1007,6 +1008,7 @@ void CNcsComposeView::HandleCommandL( TInt aCommand )
             	iNewMessage->ResetFlag( EFSMsgFlag_Low );
             	iNewMessage->SetFlag( EFSMsgFlag_Important );
             	iNewMessage->SaveMessageL();
+                iMessageModified = EFalse;
             	iStatusPaneIndicators->SetPriorityFlag( EMsgPriorityHigh );
             	}
                 break;
@@ -1015,6 +1017,7 @@ void CNcsComposeView::HandleCommandL( TInt aCommand )
             	iNewMessage->ResetFlag( EFSMsgFlag_Low );
             	iNewMessage->ResetFlag( EFSMsgFlag_Important );
             	iNewMessage->SaveMessageL();
+                iMessageModified = EFalse;
             	iStatusPaneIndicators->SetPriorityFlag( EMsgPriorityNormal );
     	    	}
                 break;
@@ -1023,6 +1026,7 @@ void CNcsComposeView::HandleCommandL( TInt aCommand )
             	iNewMessage->ResetFlag( EFSMsgFlag_Important );
             	iNewMessage->SetFlag( EFSMsgFlag_Low );
             	iNewMessage->SaveMessageL();
+                iMessageModified = EFalse;
             	iStatusPaneIndicators->SetPriorityFlag( EMsgPriorityLow );
     	    	}
                 break;
@@ -1145,7 +1149,7 @@ void CNcsComposeView::DoSendL()
         User::Leave( KErrNotFound );
         }
 
-	CommitL();
+    CommitL( ETrue, EAllFields, ETrue );
 
     TRAPD(r, iMailBox->SendMessageL( *iNewMessage ) );
     if ( KErrNone != r )
@@ -1194,7 +1198,7 @@ TBool CNcsComposeView::DoSaveDraftL( TBool aAskUser )
         array->AppendL( *saveItem );
 		CleanupStack::PopAndDestroy( saveItem );
 
-    	HBufC* deleteItem = StringLoader::LoadLC( R_NCS_DRAFT_DELETE );
+    	HBufC* deleteItem = StringLoader::LoadLC( R_NCS_DRAFT_DISCARD );
         array->AppendL( *deleteItem );
 		CleanupStack::PopAndDestroy( deleteItem );
 
@@ -1339,14 +1343,28 @@ TInt CNcsComposeView::AsyncAddAttachment( TAny* aSelfPtr )
 	CFreestyleEmailUiSendAttachmentsListControl* attachmentControl;
 	attachmentControl = self->AttachmentsListControl();
 
-   	// show file dialog and get file name
-	TBool ok = EFalse;
-	TRAPD( error, ok = attachmentControl->AppendAttachmentToListL(
+    // show file dialog and get file name
+    TBool ok = EFalse;
+    TInt error = KErrNone;
+    if( ! self->Toolbar()->IsDimmed())
+        {
+	self->Toolbar()->SetDimmed(ETrue); 
+	}
+	
+    self->iContainer->SwitchChangeMskOff( ETrue );
+	TRAP( error, ok = attachmentControl->AppendAttachmentToListL(
                 self->iAttachmentAddType) );
+    self->iContainer->SwitchChangeMskOff( EFalse );
+    
 	if ( ok && error == KErrNone )
 	    {
-	    TRAPD( error, self->SetAttachmentLabelContentL() );
-	    return error;
+	    TRAP( error, self->SetAttachmentLabelContentL() );
+            }
+  	
+	if(! attachmentControl->IsAttachmentAddingLocked())
+	    {
+	    self->Toolbar()->SetDimmed(EFalse); 
+	    TRAP( error, self->UpdateToolbarL());
 	    }
 	return error;
     }
@@ -1521,6 +1539,7 @@ void CNcsComposeView::HandleActivationCommandL( TUid aCustomMessageId )
             {
             iNewMessage->SetContentType( KFSMailContentTypeMultipartMixed );
             iNewMessage->SaveMessageL();
+            iMessageModified = EFalse;
             }
         
         TFsEmailUiUtility::CreatePlainTextPartL( 
@@ -1598,6 +1617,7 @@ void CNcsComposeView::HandleActivationCommandL( TUid aCustomMessageId )
         iOrigMessage = NULL;
         iNewMessage->SetContentType( KFSMailContentTypeMultipartMixed );
         iNewMessage->SaveMessageL();
+        iMessageModified = EFalse;
         TFsEmailUiUtility::CreatePlainTextPartL( 
                 *iNewMessage, iNewMessageTextPart );
         InitFieldsL();
@@ -1627,6 +1647,7 @@ void CNcsComposeView::HandleActivationCommandL( TUid aCustomMessageId )
             }
         iNewMessage->SetContentType( KFSMailContentTypeMultipartMixed );
         iNewMessage->SaveMessageL();
+        iMessageModified = EFalse;
 
         TFsEmailUiUtility::CreatePlainTextPartL( 
                 *iNewMessage, iNewMessageTextPart );
@@ -2000,8 +2021,8 @@ HBufC* CNcsComposeView::GetMessageBodyL()
 //
 // -----------------------------------------------------------------------------
 //
-void CNcsComposeView::CommitL( 
-        TBool aParseAddresses, TFieldToCommit aFieldToCommit )
+void CNcsComposeView::CommitL( TBool aParseAddresses,
+    TFieldToCommit aFieldToCommit, TBool aSaveNow )
     {
     FUNC_LOG;
     __ASSERT_DEBUG( iNewMessage, Panic( ENcsBasicUi ) );
@@ -2037,64 +2058,36 @@ void CNcsComposeView::CommitL(
         case ESubjectField:
             commitSubjectField = ETrue;
             break;
-	    default:
-	        break;
-	    }
+        default:
+            break;
+        }
 
-	if ( commitToField )
-		{
-	    // get addresses from UI to MSG object
-	    RPointerArray<CFSMailAddress> toAddresses;
-	    CleanupResetAndDestroyClosePushL( toAddresses );
-	    NcsUtility::ConvertAddressArrayL( 
-	            iContainer->GetToFieldAddressesL( aParseAddresses ), 
-	            toAddresses );
-	    iNewMessage->GetToRecipients().ResetAndDestroy();
-	    for ( TInt i = 0 ; i < toAddresses.Count() ; i++ )
-	    	{
-	    	iNewMessage->AppendToRecipient( toAddresses[i] );
-	        // Ownership of the message pointer was transferred from our array
-	    	// to iNewMessage
-	        toAddresses[i] = NULL;
-	    	}
-	    CleanupStack::PopAndDestroy( &toAddresses );
-		}
+    if ( commitToField )
+        {
+        RPointerArray<CFSMailAddress>& recipients = 
+            iNewMessage->GetToRecipients();
+        recipients.ResetAndDestroy();
+        NcsUtility::ConvertAddressArrayL(
+            iContainer->GetToFieldAddressesL( aParseAddresses ), recipients );
+        }
 
-	if ( commitCcField )
-		{
-	    RPointerArray<CFSMailAddress> ccAddresses;
-	    CleanupResetAndDestroyClosePushL( ccAddresses );
-	    NcsUtility::ConvertAddressArrayL( 
-	            iContainer->GetCcFieldAddressesL( aParseAddresses ), 
-	            ccAddresses );
-	    iNewMessage->GetCCRecipients().ResetAndDestroy();
-	    for ( TInt i = 0 ; i < ccAddresses.Count() ; i++ )
-	    	{
-	    	iNewMessage->AppendCCRecipient( ccAddresses[i] );
-	        // Ownership of the message pointer was transferred from 
-	    	// our array to iNewMessage
-	        ccAddresses[i] = NULL;
-	    	}
-	    CleanupStack::PopAndDestroy( &ccAddresses );
-		}
+    if ( commitCcField )
+        {
+        RPointerArray<CFSMailAddress>& recipients = 
+            iNewMessage->GetCCRecipients();
+        recipients.ResetAndDestroy();
+        NcsUtility::ConvertAddressArrayL( 
+            iContainer->GetCcFieldAddressesL( aParseAddresses ), recipients );
+        }
 
-	if ( commitBccField )
-		{
-	    RPointerArray<CFSMailAddress> bccAddresses;
-	    CleanupResetAndDestroyClosePushL( bccAddresses );
-	    NcsUtility::ConvertAddressArrayL( 
-	            iContainer->GetBccFieldAddressesL( aParseAddresses ), 
-	            bccAddresses );
-	    iNewMessage->GetBCCRecipients().ResetAndDestroy();
-	    for ( TInt i = 0; i < bccAddresses.Count() ; i++ )
-	    	{
-	    	iNewMessage->AppendBCCRecipient( bccAddresses[i] );
-	        // Ownership of the message pointer was transferred from 
-	    	// our array to iNewMessage
-	        bccAddresses[i] = NULL;
-	    	}
-	    CleanupStack::PopAndDestroy( &bccAddresses );
-		}
+    if ( commitBccField )
+        {
+        RPointerArray<CFSMailAddress>& recipients = 
+            iNewMessage->GetBCCRecipients();
+        recipients.ResetAndDestroy();
+        NcsUtility::ConvertAddressArrayL( 
+            iContainer->GetBccFieldAddressesL( aParseAddresses ), recipients );
+        }
 
 	if ( commitSubjectField )
 	    {
@@ -2116,24 +2109,42 @@ void CNcsComposeView::CommitL(
         // incorrect argument type in FW API, can be removed when API fixed
         iNewMessageTextPart->SetContent( bodyPtr );
         CleanupStack::PopAndDestroy( body );
-
-        TInt error = KErrNone;
-        if ( iNewMessageTextPart )
-            {
-            TRAP( error, iNewMessageTextPart->SaveL() );
-            }
+        iMessageTextPartModified = ETrue;
         }
 
-	// Save message if at least one field committed
-    if ( iNewMessage || commitToField || commitCcField || commitBccField
-        || commitSubjectField || commitBodyField )
+    iMessageModified = ETrue;
+    RefreshToolbar();
+
+    if ( aSaveNow )
         {
-        TInt error = KErrNone;
-        if(iNewMessage) // Coverity error fix:
-            {
-            TRAP( error, iNewMessage->SaveMessageL() );
-            }
-        RefreshToolbar();
+        SaveMessageL();
+        }
+    }
+
+TInt CNcsComposeView::SaveMessage()
+    {
+    FUNC_LOG;
+    TInt error = KErrNone;
+    TRAP( error, SaveMessageL() );
+    return error;
+    }
+
+// -----------------------------------------------------------------------------
+// Saves the new message if it has been modifed since the last save.
+// -----------------------------------------------------------------------------
+void CNcsComposeView::SaveMessageL()
+    {
+    FUNC_LOG;
+    if ( iNewMessageTextPart && iMessageTextPartModified )
+        {
+        iNewMessageTextPart->SaveL();
+        iMessageTextPartModified = EFalse;
+        }
+
+    if ( iNewMessage && iMessageModified )
+        {
+        iNewMessage->SaveMessageL();
+        iMessageModified = EFalse;
         }
     }
 
@@ -2143,7 +2154,6 @@ void CNcsComposeView::CommitL(
 void CNcsComposeView::DoSafeExit( TExitMode aMode )
     {
     FUNC_LOG;
-
     if ( !iExecutingDoExitL )
         {
         iExecutingDoExitL = ETrue;
@@ -2660,11 +2670,11 @@ void CNcsComposeView::GenerateReplyMessageL( TBool aReplyAll )
         {
         iNewMessage->SetContentType( KFSMailContentTypeMultipartMixed );
         iNewMessage->SaveMessageL();
-	    }
-	
-	TFsEmailUiUtility::CreatePlainTextPartL( *iNewMessage, iNewMessageTextPart );
+        iMessageModified = EFalse;
+        }
 
-	}
+    TFsEmailUiUtility::CreatePlainTextPartL( *iNewMessage, iNewMessageTextPart );
+    }
 
 // -----------------------------------------------------------------------------
 // CNcsComposeView::GenerateForwardMessageL
@@ -2862,7 +2872,7 @@ void CNcsComposeView::HandleActionL( const TAlfActionCommand& aActionCommand )
     if ( iFirstStartCompleted && iNewMessage && iMailBox 
          && aActionCommand.Id() == KCmdEditorAutoSave )
         {
-        CommitL( EFalse );
+        CommitL( EFalse, EAllFields, ETrue );
         }
     }
 
@@ -2879,7 +2889,7 @@ void CNcsComposeView::SaveToDraftsL( TBool aParseAddresses )
         __ASSERT_DEBUG( iNewMessage, Panic( ENcsBasicUi ) );
 
         iFakeSyncGoingOn = ETrue;
-        TRAPD( error, CommitL( aParseAddresses ) );
+        TRAPD( error, CommitL( aParseAddresses, EAllFields, ETrue ) );
         iFakeSyncGoingOn = EFalse;
         User::LeaveIfError( error );
 

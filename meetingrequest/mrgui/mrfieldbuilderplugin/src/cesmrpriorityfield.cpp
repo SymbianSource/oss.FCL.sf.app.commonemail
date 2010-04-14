@@ -264,10 +264,10 @@ TBool CESMRPriorityField::ExecuteGenericCommandL( TInt aCommand )
     if( aCommand == EESMRCmdOpenPriorityQuery ||
         aCommand == EAknCmdOpen )
         {
+    	HandleTactileFeedbackL();
+    	
         ExecutePriorityQueryL();
         isUsed = ETrue;
-        
-        HandleTactileFeedbackL();
         }
     return isUsed;
     }

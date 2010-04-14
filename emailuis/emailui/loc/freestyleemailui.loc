@@ -1465,6 +1465,12 @@ CHARACTER_SET UTF8
 //
 #define qtn_fse_editor_close_message_query_delete_message "Delete message"
 
+// d:Discard item text in draft dialog
+// l:list_single_graphic_pane_t1_cp2
+// r:TB9.1
+//
+#define qtn_fse_editor_close_message_query_discard_message "Discard changes"
+
 // d:Upmost item in addressfield match popup list. For selecting Remote lookup server search
 // l:list_single_cmail_header_detail_pane_t1
 // r:TB9.1

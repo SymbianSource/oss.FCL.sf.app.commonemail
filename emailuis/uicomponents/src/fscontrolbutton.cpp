@@ -28,6 +28,8 @@
 
 #include <AknUtils.h>
 
+#include <touchfeedback.h> // for MTouchFeedback
+
 #include "fscontrolbutton.h"
 #include "fscontrolbuttonmodel.h"
 #include "fscontrolbuttonvisualiser.h"
@@ -665,6 +667,13 @@ TBool CFsControlButton::OfferEventL( const TAlfEvent& aEvent )
                 if( HitTest( aEvent.PointerEvent().iParentPosition ) )
                     {
                     iTouchPressed = ETrue;
+					// added for tactile feedback
+					MTouchFeedback* feedback = MTouchFeedback::Instance();
+					if (feedback)
+						{
+						feedback->InstantFeedback(ETouchFeedbackBasic);
+						}
+					
                     GrabPointerEvents( ETrue );
                     result = iParent.HandleButtonEvent(
                         MFsControlButtonObserver::EEventButtonTouchPressed,

@@ -134,7 +134,7 @@ void CESMRViewerLocationField::InternalizeL( MESMRCalEntry& aEntry )
     		CMRImage::NewL( NMRBitmapManager::EMRBitmapLocationWaypoint, ETrue );
     		iWaypointIcon->SetParent( this );
     		}
-    	}    
+    	}
     }
 
 // ---------------------------------------------------------------------------
@@ -393,7 +393,7 @@ void CESMRViewerLocationField::SizeChanged( )
     // Move focus rect so that it's relative to field's position.
     bgRect.Move( -Position() );
     SetFocusRect( bgRect );
-    
+
     // Failures are ignored.
     TRAP_IGNORE(
     		// Try setting font
@@ -427,11 +427,6 @@ void CESMRViewerLocationField::HandleLongtapEventL(
     if ( !iRichTextViewer->LinkSelectedL() )
         {
         HandleTapEventL( aPosition );
-        }
-    else
-        {
-        // Reset action menu after link selection
-        iRichTextViewer->ResetActionMenuL();
         }
     }
 
@@ -479,7 +474,7 @@ void CESMRViewerLocationField::LockL()
 		{
 		return;
 		}
-	
+
 	CESMRField::LockL();
 
 	delete iWaypointIcon;
@@ -487,7 +482,7 @@ void CESMRViewerLocationField::LockL()
 	iWaypointIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapLockField, ETrue );
 
 	iWaypointIcon->SetParent( this );
-	iWaypointIcon->SetObserver( this );	 
+	iWaypointIcon->SetObserver( this );
 	}
 
 // ---------------------------------------------------------------------------
@@ -524,7 +519,8 @@ void CESMRViewerLocationField::HandleControlEventL(
                 // Clear viewer selection
                 iRichTextViewer->ClearSelectionL();
                 iRichTextViewer->DrawDeferred();
-        		
+                iRichTextViewer->ResetActionMenuL();
+
                 // Show context menu
                 HandleTactileFeedbackL();
                 NotifyEventL( EAknSoftkeyContextOptions );

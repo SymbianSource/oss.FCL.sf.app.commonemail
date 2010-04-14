@@ -34,6 +34,9 @@ _LIT( KGreaterThan,">");
 _LIT( KLessThan,"<");
 _LIT( KAt,"@");
 _LIT( KDot,".");
+_LIT( KSkinPrefix, "SKIN(" );
+
+_LIT( KSkinPostfix, "):");
 _LIT( KMifPrefix, "mif(");
 // Mif file name and path, drive letter need to be parsed run time
 _LIT( KMifPath, "\\resource\\apps\\cmailhandlerplugin.mif");
@@ -50,6 +53,8 @@ _LIT(KEndSeparator, ">");
 //
 
 _LIT(KPubId, "0x2001F413:CMailWidget");
+_LIT8(KConfId8, "0x2001e272");
+
 _LIT(KContTypeText, "text");
 _LIT(KContTypeImage, "image");
 

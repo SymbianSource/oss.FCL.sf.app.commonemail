@@ -192,4 +192,5 @@ EXPORTS
 	?Load2L@CResourceLoader@@QAEPAVHBufC16@@HH@Z @ 191 NONAME ; class HBufC16 * CResourceLoader::Load2L(int, int)
 	?Load2LC@CResourceLoader@@QAEPAVHBufC16@@H@Z @ 192 NONAME ; class HBufC16 * CResourceLoader::Load2LC(int)
 	?Load2L@CResourceLoader@@QAEPAVHBufC16@@HABVTDesC16@@@Z @ 193 NONAME ; class HBufC16 * CResourceLoader::Load2L(int, class TDesC16 const &)
+	?CalendarFileName@CBasePlugin@@MBEABVTDesC16@@XZ @ 194 NONAME ; class TDesC16 const & CBasePlugin::CalendarFileName(void) const
 

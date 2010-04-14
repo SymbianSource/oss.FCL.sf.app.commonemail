@@ -179,21 +179,7 @@ void CIpsSetUiSubscriptionDialog::ConstructL( const TDesC& aTitlePaneText )
 void CIpsSetUiSubscriptionDialog::PreLayoutDynInitL()
     {
     FUNC_LOG;
-    // <cmail>
-    
-    /*TBool refreshed = EFalse;
-    CAknQueryDialog* confDialog = CAknQueryDialog::NewL();
-    if( confDialog->ExecuteLD( R_IPS_SET_CONNECT_FOR_UPDATE ) )
-        {
-        refreshed = ETrue;
-        CreateOperationL( EIpsSetUiRefreshFolderList );
-        }
-	
-    if( refreshed )
-        {
-        iFolderListArray->RefreshFolderListArrayL();
-        }*/
-    // </cmail>
+
     CEikColumnListBox* listBox =
         static_cast< CEikColumnListBox* >( Control( EIpsSetUiIdFolderListBox ) );
 
@@ -261,7 +247,12 @@ void CIpsSetUiSubscriptionDialog::DynInitMenuPaneL(
     {
     FUNC_LOG;
     TMsvId folderId = CurrentFolder();
-    if ( folderId == KErrNotFound )
+    TInt flags = static_cast<CEikColumnListBox*>( 
+            Control( EIpsSetUiIdFolderListBox ) )->ItemDrawer()->Flags(); 
+    TBool bSelectionVisible( (flags & CListItemDrawer::EPaintedSelection )
+          && !( flags & CListItemDrawer::EDisableHighlight ) );
+
+    if ( folderId == KErrNotFound || !bSelectionVisible )
         {
         if ( aResourceId == R_IPS_SET_SETTINGS_SUBSCRIBE_MENUPANE )
             {
@@ -325,19 +316,13 @@ void CIpsSetUiSubscriptionDialog::DynInitMenuPaneL(
 // ----------------------------------------------------------------------------
 //
 void CIpsSetUiSubscriptionDialog::HandleSessionEventL(TMsvSessionEvent aEvent,
-                    TAny* aArg1, TAny* /*aArg2*/, TAny* /*aArg3*/)
+                    TAny* /*aArg1*/, TAny* /*aArg2*/, TAny* /*aArg3*/)
     {
     FUNC_LOG;
     if(aEvent!=EMsvEntriesChanged)
         return;
-
-    CMsvEntrySelection& sel=*static_cast<CMsvEntrySelection*>(aArg1);
-    if(sel.Find(CurrentFolder())!=KErrNotFound)
-        {
-        CEikColumnListBox* listBox = static_cast<CEikColumnListBox*>(
-                                            Control(EIpsSetUiIdFolderListBox));
-        listBox->DrawNow();
-        }
+    static_cast<CEikColumnListBox*>(
+        Control(EIpsSetUiIdFolderListBox))->DrawDeferred();
     }
 
 // ----------------------------------------------------------------------------
@@ -368,27 +353,9 @@ TBool CIpsSetUiSubscriptionDialog::OkToExitL(TInt aButtonId)
     		break;
 
     	case EIpsSetUiFolderOpenFolder:
-    		// open folder which has subfolders...
+    		// open folder which has subfolders.- no need to change the list now
     		iContextEntry->SetEntryL( CurrentFolder() );
-    		if ( ContextHasChildFolders() )
-    			{
-    			iOpenedFolderId = CurrentFolder();
-    			iFolderListArray->ChangEIpsSetUiFolderL( CurrentFolder() );
-    			if ( listBox->Model()->NumberOfItems() )
-    				{
-    				listBox->SetTopItemIndex( 0 );
-    				listBox->SetCurrentItemIndex( 0 );
-    				}
-    			if ( oldCount > listBox->Model()->NumberOfItems() )
-    				{
-    				listBox->HandleItemRemovalL();
-    				}
-    			else
-    				{
-    				listBox->HandleItemAdditionL();
-    				}
-    			}
-    		break;
+            break;
 
     	case EIpsSetUiRefreshFolderList:
     		// Always after successfull update go to root view,
@@ -497,13 +464,7 @@ void CIpsSetUiSubscriptionDialog::HandleListBoxEventL(
 				Control( EIpsSetUiIdFolderListBox ) );
 		iContextEntry->SetEntryL( CurrentFolder() );
 
-		if ( listBox->Model()->NumberOfItems() &&
-			 ContextHasChildFolders() )
-			{
-			//if has childs, open folder
-			OkToExitL( EIpsSetUiFolderOpenFolder );
-			}
-		else
+        if ( listBox->Model()->NumberOfItems() )
 			{
 			//if not, change subs state of the folder
 			const TMsvEmailEntry emailEntry( iContextEntry->Entry() );
@@ -1077,7 +1038,6 @@ TInt CIpsSetUiSubscriptionDialog::CheckMSKState()
 TInt CIpsSetUiSubscriptionDialog::GetResourceForMiddlekey()
     {
     FUNC_LOG;
-//#ifdef MSK
     TInt resource = KErrNotFound;
         
         switch( CheckMSKState() )
@@ -1097,11 +1057,6 @@ TInt CIpsSetUiSubscriptionDialog::GetResourceForMiddlekey()
             }
     
     return resource;
-/*
-#else
-    return KErrNotFound;
-#endif        
-*/    
     }
 
 //<cmail>

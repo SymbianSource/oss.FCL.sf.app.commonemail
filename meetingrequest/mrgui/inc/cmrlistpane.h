@@ -21,6 +21,8 @@
 // INCLUDES
 #include <coecntrl.h>
 #include <aknlongtapdetector.h>
+#include <touchlogicalfeedback.h>
+
 #include "mmrphysicsobserver.h"
 #include "mmrfieldcontainerobserver.h"
 
@@ -33,6 +35,7 @@ class CAknDoubleSpanScrollBar;
 class MMRScrollBarObserver;
 class CESMRField;
 class MESMRCalEntry;
+class MTouchFeedback;
 
 // CLASS DECLARATIONS
 NONSHARABLE_CLASS( CMRListPane ) : 
@@ -159,6 +162,7 @@ NONSHARABLE_CLASS( CMRListPane ) :
         
     private: // From MMRPhysicsObserver
         void PhysicsEmulationEnded();
+        void UpdateScrollBarDuringOngoingPhysics();
         
     private: // From MAknLongTapDetectorCallBack
         void HandleLongTapEventL(
@@ -178,6 +182,8 @@ NONSHARABLE_CLASS( CMRListPane ) :
         void UpdateClickedField( const TPointerEvent &aPointerEvent );
         TBool HiddenFocus();
         void ForwardReceivedPointerEventsToChildrenL();
+        void HandleTactileFeedback( const TTouchLogicalFeedback& aType );
+        TBool FeedbackScrollMarginExceeded( TInt aMargin );
         
     private: // Data
         /// Ref: Storage for list items.
@@ -204,6 +210,12 @@ NONSHARABLE_CLASS( CMRListPane ) :
         /// Own: Record if the long tapping event have been comsumed, if yes, 
         /// then do not handle signal pointer event anymore.
         TBool iLongTapEventConsumed;
+        /// Ref: Reference to tactile feedback
+        MTouchFeedback* iTactileFeedback;
+        /// Own: This records vertical scroll index for tactile feedback
+        TInt iPreviousVerticalScrollIndex;
+        /// Own: This records default field height for tactile feedback during scroll
+        TInt iDefaultFieldHeight;
     };
     
 #endif // CMRLISTPANE_H

@@ -37,6 +37,12 @@ public:
      * scroll bar and focus.
      */
     virtual void PhysicsEmulationEnded() = 0;
+    
+    /**
+     * Method to be called when physics wants to notify scroll bar that 
+     * view position has changed, so that scroll bar can update itself
+     */
+    virtual void UpdateScrollBarDuringOngoingPhysics() = 0;
     };
 
 #endif // MMRPHYSICSOBSERVER_H

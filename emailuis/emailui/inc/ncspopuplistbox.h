@@ -27,7 +27,7 @@
 
 // FORWARD DECLARATION
 class CNcsEmailAddressObject;
-class CAknsBasicBackgroundControlContext;
+class CAknsFrameBackgroundControlContext;
 class CFSEmailUiContactHandler;
 class CFSMailBox;
 class CNcsHeaderContainer;
@@ -41,7 +41,7 @@ class CFreestyleEmailUiAppUi; //<cmail>
 */
 class CNcsPopupListBox : public CEikTextListBox, 
                          public MEikListBoxObserver,
-						 public MFSEmailUiContactHandlerObserver
+                         public MFSEmailUiContactHandlerObserver
     {
 public: // Constructors and destructor
 
@@ -52,12 +52,10 @@ public: // Constructors and destructor
                                    CNcsHeaderContainer& aHeaderContainer,
                                    TBool aRemoteLookupSupported );
 
-      
     /*
     * @param aMailBox reference to current mailbox item
     */
     void ConstructL( const CCoeControl* aParent );
-        
 
     /*
     * 
@@ -72,24 +70,25 @@ public: // Constructors and destructor
 public: // from CEikTextListBox
 
     TKeyResponse OfferKeyEventL( const TKeyEvent& aKeyEvent, TEventCode aType );
-        
-    virtual TTypeUid::Ptr MopSupplyObject(TTypeUid aId);
-        
+
+    TTypeUid::Ptr MopSupplyObject( TTypeUid aId );
+
     void SizeChanged();
+    void HandleResourceChange( TInt aType );
+    void HandlePointerEventL( const TPointerEvent& aPointerEvent );
 
 public: // from MEikListBoxObserver
 
     void HandleListBoxEventL( CEikListBox* aListBox, TListBoxEvent aEventType );
 
 public: // from MFSEmailUiContactHandlerObserver
-	
+
     void OperationCompleteL( TContactHandlerCmd aCmd, 
-    						const RPointerArray<CFSEmailUiClsItem>& aMatchingItems );
+        const RPointerArray<CFSEmailUiClsItem>& aMatchingItems );
     void OperationErrorL( TContactHandlerCmd aCmd, TInt aError );
- 
 
 public: // new methods for the header container
- 		
+
     /*
     * 
     * @param aText
@@ -143,7 +142,7 @@ public: // new methods for the header container
 private: // to populate new list
     
     void SetListItemsFromArrayL();
- 		
+
     TInt RoundToItemHeight(const TInt aPopupHeight) const;
     
     void SetPopupHeight();
@@ -164,21 +163,26 @@ private: // to populate new list
 
 private:
 
-    CNcsPopupListBox( CNcsHeaderContainer& aHeaderContainer, TBool aRemoteLookupSupported, 
-    				  CFSMailBox& aMailbox );
+    CNcsPopupListBox( CNcsHeaderContainer& aHeaderContainer,
+        TBool aRemoteLookupSupported, CFSMailBox& aMailbox );
 
     virtual void CreateItemDrawerL();
 
     void UpdateListL();
-    
+
+    void UpdateTextColors();
+
+    // From CCoeControl.
+    void Draw( const TRect& aRect ) const;
+
 private: // data
 
-	CNcsHeaderContainer&				iHeaderContainer;
-	
-    CAknsBasicBackgroundControlContext* iBaseBackroundContext;
-   
+    CNcsHeaderContainer&				iHeaderContainer;
+
+    CAknsFrameBackgroundControlContext* iBackgroundContext;
+
     RPointerArray<CFSEmailUiClsItem>	iMatchingItems;
-       
+
     CFSEmailUiContactHandler*			iContactHandler; // Owned
     CFSMailBox& 						iMailBox;
 

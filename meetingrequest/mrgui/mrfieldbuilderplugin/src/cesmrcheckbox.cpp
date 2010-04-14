@@ -124,12 +124,12 @@ TBool CESMRCheckBox::ExecuteGenericCommandL( TInt aCommand )
     // EAknCmdOpen is added for the Pointer events, see ListPane
     if( aCommand == EESMRCmdCheckEvent || aCommand == EAknCmdOpen )
         {
+    	HandleTactileFeedbackL();
+    
         HandleCheckEventL();
         SwitchMSKLabelL();
         SendFieldChangeEventL( EESMRFieldAllDayEvent );
         isUsed = ETrue;
-        
-        HandleTactileFeedbackL();
         }
     return isUsed;
     }

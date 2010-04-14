@@ -768,6 +768,10 @@ EXPORT_C void CBasePlugin::TranslateEmailFwMessageL(
 	    TTime sentTime;
 	    sentTime.UniversalTime();
 	    aDst.AddOrUpdatePropertyL( KMsgStorePropertySent, sentTime );
+	    // same date needs to be set as received date , because of sorting
+	    // feature in message store, which enable sorting only according to
+	    // received date.
+	    aDst.AddOrUpdatePropertyL( KMsgStorePropertyReceivedAt, sentTime );
 	    aSrc.SetDate( sentTime );
     	}
     

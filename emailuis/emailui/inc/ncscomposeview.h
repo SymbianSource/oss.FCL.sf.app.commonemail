@@ -171,15 +171,22 @@ public: // new functions
     /**
     * NewMessage
     * Returns pointer to current composer message
-    */    
+    */
     CFSMailMessage* NewMessage();
 
     /**
-    * CommitL
-    * Commits changes to message
+    * Commits changes to message. This method sets the field contents from
+    * the UI to the message object, but does not save the message unless
+    * explicitely requested.
     */
-    void CommitL( TBool aParseAddresses = ETrue, 
-                  TFieldToCommit aFieldToCommit = EAllFields );
+    void CommitL( TBool aParseAddresses = ETrue,
+        TFieldToCommit aFieldToCommit = EAllFields, TBool aSaveNow = EFalse );
+
+    /**
+     * Saves the message content, if it has been changed since the last save.
+     */
+    TInt SaveMessage();
+    void SaveMessageL();
 
     void DialogDismissedL( TInt aButtonId );
     
@@ -641,6 +648,12 @@ private: // data
     
     // Popup menu for attachment list.
     CAknStylusPopUpMenu* iStylusPopUpMenu;
+
+    // Flag to indicate whether message text part has been modified.
+    TBool iMessageTextPartModified;
+
+    // Flag to indicate whether message has been modified.
+    TBool iMessageModified;
     };
 
 /**

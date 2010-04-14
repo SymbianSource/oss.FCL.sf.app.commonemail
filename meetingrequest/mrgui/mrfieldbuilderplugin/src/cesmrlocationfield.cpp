@@ -12,7 +12,7 @@
 * Contributors:
 *
  *  Description : ESMR location field implementation
- *  Version     : %version: e002sa33#52 %
+ *  Version     : %version: e002sa32#53 %
  *
  */
 
@@ -648,8 +648,8 @@ TBool CESMRLocationField::HandleSingletapEventL( const TPoint& aPosition )
     if( iTitle->Rect().Contains( aPosition ) ||
             iFieldButton->Rect().Contains( aPosition ) )
         {
+		HandleTactileFeedbackL();
         NotifyEventL( EAknSoftkeyContextOptions );
-        HandleTactileFeedbackL();
         ret = ETrue;
         }
 
@@ -729,8 +729,8 @@ void CESMRLocationField::HandleLongtapEventL( const TPoint& aPosition )
     if( iTitle->Rect().Contains( aPosition ) ||
             iFieldButton->Rect().Contains( aPosition ) )
         {
+		HandleTactileFeedbackL();
         NotifyEventL( EAknSoftkeyContextOptions );
-        HandleTactileFeedbackL();
         }
     }
 

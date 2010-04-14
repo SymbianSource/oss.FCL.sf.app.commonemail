@@ -644,3 +644,8 @@ EXPORT_C RPointerArray<CMsgStoreMessagePart>& CBasePlugin::GetCachedBodyChildren
     {
     return *iDelayedOpsManager;
     }
+
+/*protected*/ EXPORT_C const TDesC& CBasePlugin::CalendarFileName() const
+    {
+    return KNullDesC();
+    }

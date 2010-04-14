@@ -491,10 +491,6 @@ TBool CMRAttachmentsField::ExecuteGenericCommandL( TInt aCommand )
     else if ( aCommand == EESMREditorAddAttachment )
         {
         handled = AddAttachmentL();
-        if( handled )
-        	{
-			HandleTactileFeedbackL();
-        	}
         }
 
     else if ( IsValidAttachmentEditorCommand(aCommand) &&
@@ -851,11 +847,9 @@ TBool CMRAttachmentsField::HandleSingletapEventL( const TPoint& aPosition )
         {
         if( Rect().Contains( aPosition ) )
             {
+			HandleTactileFeedbackL();
+			
             ret = AddAttachmentL();
-            if( ret )
-            	{
-				HandleTactileFeedbackL();
-            	}
             }
         }
     // Otherwise only the title and the fieldIcon will
@@ -865,11 +859,9 @@ TBool CMRAttachmentsField::HandleSingletapEventL( const TPoint& aPosition )
         if( iTitle->Rect().Contains( aPosition ) ||
                 iFieldIcon->Rect().Contains( aPosition ) )
             {
-            ret = AddAttachmentL();
-            if( ret )
-            	{
-				HandleTactileFeedbackL();
-            	}
+			HandleTactileFeedbackL();
+			
+			ret = AddAttachmentL();
             }
         }
 
@@ -888,29 +880,20 @@ void CMRAttachmentsField::HandleLongtapEventL( const TPoint& aPosition )
         {
         if( Rect().Contains( aPosition ) )
             {
-            if( AddAttachmentL() )
-            	{
-				HandleTactileFeedbackL();
-            	}
+			AddAttachmentL();
             }
         }
     else
         {
         if ( iRichTextViewer->Rect().Contains( aPosition ) )
             {
-            if( iRichTextViewer->LinkSelectedL() )
-            	{
-				HandleTactileFeedbackL();
-            	}
+			iRichTextViewer->LinkSelectedL();
             }
 
         if( iTitle->Rect().Contains( aPosition ) ||
                 iFieldIcon->Rect().Contains( aPosition ) )
             {
-            if( AddAttachmentL() )
-            	{
-				HandleTactileFeedbackL();
-            	}
+			AddAttachmentL();
             }
         }
     }

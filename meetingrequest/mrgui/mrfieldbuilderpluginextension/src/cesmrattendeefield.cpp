@@ -1077,10 +1077,10 @@ TBool CESMRAttendeeField::HandleSingletapEventL( const TPoint& aPosition )
     if( iTitle->Rect().Contains( aPosition ) ||
             iFieldButton->Rect().Contains( aPosition ) )
         {
+    	HandleTactileFeedbackL();
+    	
         iContactHandler->GetAddressesFromPhonebookL( this );
         ret = ETrue;
-        
-		HandleTactileFeedbackL();
         }
 
     return ret;
@@ -1098,7 +1098,6 @@ void CESMRAttendeeField::HandleLongtapEventL( const TPoint& aPosition )
             iFieldButton->Rect().Contains( aPosition ) )
         {
         NotifyEventL( EAknSoftkeyContextOptions );
-		HandleTactileFeedbackL();
         }
     }
 

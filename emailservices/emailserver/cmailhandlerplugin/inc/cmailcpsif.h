@@ -25,6 +25,10 @@
 #include <liwgenericparam.h>
 #include <fbs.h>
 #include <data_caging_path_literals.hrh>
+#include <hsccapiclient.h>
+#include <hscontentcontrol.h>
+#include <hscontentinfo.h>
+#include <hscontentinfoarray.h>
 
 #include "cmailcpshandler.h"
 #include "cmailcpsifconsts.h"
@@ -36,7 +40,9 @@
  *  @lib fsmailserver.exe
  *  @since S60 v5.1
  */
-NONSHARABLE_CLASS( CMailCpsIf ) : public CBase, public MLiwNotifyCallback
+NONSHARABLE_CLASS( CMailCpsIf ) : public CBase,
+                                  public MHsContentControl,
+                                  public MLiwNotifyCallback
     {
 public:
     /**
@@ -170,6 +176,11 @@ public:
      * 
      */	
 	TInt GetWidgetInstanceCount();
+	
+    /**
+     * 
+     */	
+	void AddWidgetToHomescreenL( const TFSMailMsgId aMailbox );
 
 private:
     
@@ -247,6 +258,13 @@ private:
      */
     void ResetPublishedDataL( const TDesC& aContentId );
 
+    //
+    // -------------------------- from base classes-----------------------------
+    //
+    virtual void NotifyWidgetListChanged(); // MHsContentControl
+    virtual void NotifyViewListChanged(); // MHsContentControl
+    virtual void NotifyAppListChanged(); // MHsContentControl
+    
 public:
 	//
     RPointerArray<HBufC>    iInstIdList;
@@ -272,6 +290,8 @@ private:
 	TBool 					iAllowedToPublish[KMaxMailboxCount];
 	// From configuration: are homescreen notifications observed or ignored
 	TBool                   iIgnoreHsNotifications;
+	
+	CHsCcApiClient*         iContentControlClient;
     };
 
 #endif /*CMAILCPSIF_H_*/

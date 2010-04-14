@@ -21,6 +21,7 @@
 
 #include <aknappui.h>
 #include <memailobserverlistener.h> // base class
+#include <AknGlobalNote.h>
 
 // FSMailServer classes (base classes and callback interfaces)
 #include "fsnotificationhandlerbase.h"
@@ -133,9 +134,40 @@ public:
     
     /**
      *
-     */    
+     */
     void CleanWaitingForNewMailbox();
 
+    /**
+     *
+     */
+    void SetWaitingForNewWidget( const TFSMailMsgId aMailbox );
+    
+    /**
+     *
+     */
+    void CleanWaitingForNewWidget();
+
+    /**
+     *
+     */
+    TFSMailMsgId WaitingForNewWidget();
+
+    /**
+     *
+     */
+    void AssociateWidgetToSetting( const TDesC& aContentId,
+                                   const TFSMailMsgId aMailbox );
+
+    /**
+     *
+     */    
+    TBool Associated( const TDesC& aContentId );
+
+    /**
+     *
+     */
+    void DisplayHSPageFullNoteL();
+        
 protected:
     /**
      * From CFSNotificationHandlerBase
@@ -410,6 +442,10 @@ private: // data
     // tells if email wizard is started from widget and it is still running
     // and to which widget next added account is added.
     HBufC*                             iWaitingForNewMailbox;
+    //
+    TFSMailMsgId                       iWaitingForNewWidget;
+    //
+    CAknGlobalNote*                    iQuery;
     };
 
 #endif  //__CMAILCPSHANDLER_H__

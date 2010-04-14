@@ -195,10 +195,10 @@ TBool CESMRRecurenceField::ExecuteGenericCommandL( TInt aCommand )
     if (aCommand == EESMRCmdOpenRecurrenceQuery ||
     	aCommand == EAknCmdOpen )
         {
+    	HandleTactileFeedbackL();
+    	
         ExecuteRecurrenceQueryL();
         isUsed = ETrue;
-        
-        HandleTactileFeedbackL();
         }
     return isUsed;
     }

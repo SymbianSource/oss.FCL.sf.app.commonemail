@@ -23,6 +23,27 @@
 #include <msvstd.h>     // TMsvId  
 #include <bamdesca.h>   // MDesCArray
 
+/**
+ * Help class to be used for transfering tree structure of folders 
+ * to list structure of visible items - inline class
+ */
+class TArrayFolderItem 
+    {
+private:
+    TMsvId iId;           // folder id
+    TMsvId iParent;       // parent folder or mailbox id for root
+    TInt   iIndentLevel;  // level of indentation
+public: 
+    TArrayFolderItem ( TMsvId aId, TInt32 aParent, TInt32 aIndentLevel );  
+    ~TArrayFolderItem(); 
+    TMsvId Id( void ); 
+    TInt32 Parent( void ); 
+    TInt32 IndentLevel( void );  
+    }; // TArrayFolderItem  
+
+//  CIpsSetUiFolderListArray does not have inline definitions
+#include "ipssetuifolderlistarray.inl" 
+
 class CMsvEntry;
 /**
  * Array class to be used by CIpsSetUiSubscriptionDialog
@@ -138,6 +159,14 @@ private:
      */
     TBool DoContextHasChildFoldersL( TMsvId aId ) const;
 
+    /**
+     * RefreshFolderListArrayL - for recursive filling in the iArrayBuf 
+     * @param aIdFolder, id of folder to be checked for children
+     * @param aArrayIndex, id of the array index to be written to
+     * @param aIndentLevel, indent level for new item - increases with recursion
+     * @return void
+     */
+    void RefreshFolderListArrayL( TMsvId aIdFolder, TInt & aArrayIndex, TInt aIndentLevel );
 private:
 
 // data
@@ -168,6 +197,12 @@ private:
      * Number of items.
      */
     TInt            iCount;
+
+    /**
+     * transform tree to list buffer
+     */
+    RPointerArray<TArrayFolderItem> iArrayBuf;  
+
     };
 
 #endif

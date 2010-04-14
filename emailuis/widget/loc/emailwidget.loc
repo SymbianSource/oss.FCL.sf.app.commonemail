@@ -29,3 +29,9 @@
 // r: TB9.1
 #define qtn_hscr_ew_email_count "%0U (%1N)"
 
+//d: Notifies user that active homescreen is full
+//l: popup_note_window
+//w:
+//r: TB9.2
+//
+#define qtn_cmail_hs_widget_full_notification "Active homescreen is full. Mail widget should be added manually to homescreen."

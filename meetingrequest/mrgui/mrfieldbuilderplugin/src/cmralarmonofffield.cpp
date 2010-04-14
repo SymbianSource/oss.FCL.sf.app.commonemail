@@ -237,11 +237,11 @@ TBool CMRAlarmOnOffField::ExecuteGenericCommandL( TInt aCommand )
     // EAknCmdOpen is added for the Pointer events, see ListPane
     if( aCommand == EESMRCmdAlarmOn || aCommand == EESMRCmdAlarmOff 
             || aCommand == EAknCmdOpen )
-        {    
+        {
+		HandleTactileFeedbackL();
+		
         SwitchMiddleSoftKeyL();
         isUsed = ETrue;
-        
-		HandleTactileFeedbackL();
         }
     return isUsed;
     }

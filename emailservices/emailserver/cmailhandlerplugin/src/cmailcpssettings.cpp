@@ -145,6 +145,7 @@ void CMailCpsSettings::LoadSettingsL()
             ret = ResolveMailbox( value, mailbox );
             if ( ret )
                 {
+				INFO("CMailCpsSettings::LoadSettingsL(): Error: ignore this entry");
                 // Resolving encountered error, ignore this entry
                 ret = iCenRep->Reset( KCMailMailboxIdBase+ii );
                 ret = iCenRep->Reset( KCMailPluginIdBase+ii );
@@ -216,7 +217,8 @@ TInt CMailCpsSettings::ResolveMailbox( const TInt aMailboxId, TFSMailMsgId& aMsg
     FUNC_LOG;
     RPointerArray<CFSMailBox> mailboxarray;
     TInt err = iMailClient.ListMailBoxes( TFSMailMsgId(), mailboxarray );
-    if( !err )
+	INFO_1("CMailCpsSettings::ResolveMailbox(): : ListMailBoxes() returns %d", err);
+    if( !err ) // KErrNone = 0
         {
         err = KErrNotFound;
         aMsg.SetId( aMailboxId );
@@ -227,12 +229,10 @@ TInt CMailCpsSettings::ResolveMailbox( const TInt aMailboxId, TFSMailMsgId& aMsg
                 {
                 // Mailbox found
                 aMsg.SetPluginId( mailboxarray[ii]->GetId().PluginId() );
-                return err = KErrNone;
+                err = KErrNone; 
+                break;
                 }
             }
-        }
-    else
-        {
         }
     mailboxarray.ResetAndDestroy();
     return err;
@@ -386,35 +386,11 @@ void CMailCpsSettings::RemoveMailboxL( const TFSMailMsgId aMailbox )
         {
         if( iMailboxArray[ii].Id() == aMailbox.Id() )
             {
-            RemoveMailboxL( ii );
+            TBuf<KMaxDescLen> cid;
+            GetContentId( aMailbox.Id(), 1, cid );
+            DissociateWidgetFromSettingL( cid );
+            iMailboxArray.Remove( ii );
             break;
-            }
-        }
-    }
-
-// ---------------------------------------------------------------------------
-// CMailCpsSettings::RemoveMailboxL
-// ---------------------------------------------------------------------------
-//
-void CMailCpsSettings::RemoveMailboxL( const TInt aIndex )
-    {
-    FUNC_LOG;
-    
-    // Remove mailbox from local array
-    TFSMailMsgId mailboxId = iMailboxArray[aIndex];
-    iMailboxArray.Remove( aIndex );
-    
-    // Remove mailbox from widget settings
-    RArray<TUint32> keys;
-    GetMailboxNonZeroKeysL( keys );
-    const TInt iiMax( keys.Count() );
-    for ( TInt ii = 0; ii < iiMax; ii++ )
-        {
-        TInt value( 0 );
-        iCenRep->Get( keys[ii], value );
-        if( value == mailboxId.Id() )
-            {
-            iCenRep->Set( keys[ii], 0 );
             }
         }
     }
@@ -466,21 +442,17 @@ void CMailCpsSettings::AssociateWidgetToSetting( const TDesC& aContentId,
 void CMailCpsSettings::DissociateWidgetFromSettingL( const TDesC& aContentId )
     {
     FUNC_LOG;
-    TUint32 key(0);
-    TUint32 mailboxKey(0);
-
-    for (TInt i = 0; i < KMaxMailboxCount; i++)
+    for ( TInt i = 0; i < KMaxMailboxCount; i++ )
         {
         TBuf<KMaxDescLen> value;
-        TUint32 tempKey(KCMailWidgetContentIdBase+i);
-        iCenRep->Get( tempKey, value );
+        TUint32 key( KCMailWidgetContentIdBase + i );
+        iCenRep->Get( key, value );
         TInt result = value.Compare(aContentId);
         if (!result)
             {
-            key = tempKey;
-            mailboxKey = KCMailMailboxIdBase + i;
-            iCenRep->Reset(key);
-            iCenRep->Reset(mailboxKey);
+            iCenRep->Reset( key );
+            iCenRep->Reset( KCMailMailboxIdBase + i );
+            iCenRep->Reset( KCMailPluginIdBase + i );
             break;
             }
         }        
@@ -520,6 +492,30 @@ TInt CMailCpsSettings::GetSettingToAssociate( const TDesC& aContentId )
                 ret = i;
                 break;
                 }
+            }
+        }
+    return ret;
+    }
+
+// ---------------------------------------------------------------------------
+// CMailCpsSettings::Associated
+// ---------------------------------------------------------------------------
+//
+TBool CMailCpsSettings::Associated( const TDesC& aContentId )
+    {
+    FUNC_LOG;    
+    TBool ret(EFalse);
+    
+    for (TInt i = 0; i < KMaxMailboxCount; i++)
+        {
+        TBuf<KMaxDescLen> value;
+        TUint32 key(KCMailWidgetContentIdBase+i);
+        iCenRep->Get( key, value );
+        TInt result = value.Compare(aContentId);
+        if (!result)
+            {
+            ret = ETrue;
+            break;
             }
         }
     return ret;

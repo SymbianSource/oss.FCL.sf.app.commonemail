@@ -742,6 +742,8 @@ class CBasePlugin :
 	        TMsgStoreId aId,
 	        TMsgStoreId aParentId,
 	        TMsgStoreId aOtherId );
+	    
+	    IMPORT_C virtual const TDesC& CBasePlugin::CalendarFileName() const;
 
     public:
 
@@ -774,7 +776,7 @@ class CBasePlugin :
         TCacheLine iCacheLine;
 
     private:
-
+    protected:
         MDelayedOpsManager* iDelayedOpsManager;
 
         /**

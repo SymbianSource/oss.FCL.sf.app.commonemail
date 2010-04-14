@@ -103,3 +103,7 @@ LIBRARY                         egul.lib
 LIBRARY                         apparc.lib
 LIBRARY                         cmaillogger.lib
 LIBRARY                         flogger.lib
+LIBRARY                         hsccapiclient.lib
+LIBRARY                         hscontentcontrol.lib
+LIBRARY                         hscontentinfo.lib
+LIBRARY                         aknnotify.lib

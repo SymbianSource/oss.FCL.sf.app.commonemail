@@ -32,6 +32,8 @@
 #include <sysutil.h>
 #include <AknUtils.h>
 #include <FreestyleEmailUi.rsg>
+#include <AknPhysics.h>
+
 #include "FreestyleEmailUiAppui.h"
 #include "FreestyleEmailUiLayoutData.h"
 #include "FreestyleEmailUiLayoutHandler.h"
@@ -53,10 +55,8 @@ CNcsAddressInputField::CNcsAddressInputField(
 	MNcsAddressPopupList* aAddressPopupList,
 	CNcsHeaderContainer* aParentControl ):
 	MNcsControl( aSizeObserver ),
-    // <cmail>
 	iParentControl( aParentControl ),
 	iAddressPopupList( aAddressPopupList ),
-    // </cmail>
 	iFieldType( aFieldType )
     {
     FUNC_LOG;
@@ -352,7 +352,32 @@ void CNcsAddressInputField::HandlePointerEventL( const TPointerEvent& aPointerEv
         {
         iButton->HandlePointerEventL( aPointerEvent );
         }
-    iTextEditor->HandleTextChangedL();    
+    iTextEditor->HandleTextChangedL();
+    
+    switch( aPointerEvent.iType )
+    	{
+    	case TPointerEvent::EButton1Down:
+    		{
+            // Save start position so that it can be used in
+            // drag/scrolling calculations
+            iStartPosition = aPointerEvent.iPosition;
+            iIsDraggingStarted = EFalse;
+            break;
+    		}
+    		
+    	case TPointerEvent::EDrag:
+    		{
+            if ( !iIsDraggingStarted && iPhysics )
+                {
+                TInt drag( iStartPosition.iY - aPointerEvent.iPosition.iY );
+                if ( Abs( drag ) > iPhysics->DragThreshold() )
+                    {
+					iIsDraggingStarted = ETrue;
+                    }
+                }
+            break;
+    		}
+    	}
     }
 
 // -----------------------------------------------------------------------------
@@ -364,7 +389,7 @@ void CNcsAddressInputField::HandleControlEventL( CCoeControl* aControl, TCoeEven
     {
     if( aEventType == EEventStateChanged )
         {
-        if( aControl == iButton )
+        if( aControl == iButton && !iIsDraggingStarted )
             {
             iParentControl->OpenPhonebookL();
             }
@@ -832,3 +857,9 @@ void CNcsAddressInputField::FixSemicolonAtTheEndL()
             }
         }
 	}
+
+void CNcsAddressInputField::EnableKineticScrollingL( CAknPhysics* aPhysics )
+    {
+	iPhysics = aPhysics;
+    iTextEditor->EnableKineticScrollingL( aPhysics );
+    }

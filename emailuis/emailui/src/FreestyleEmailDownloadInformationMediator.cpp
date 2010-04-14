@@ -397,7 +397,14 @@ void CFSEmailDownloadInfoMediator::StopObserving( MFSEmailDownloadInformationObs
     	{
    		if ( iObserverArray[i].iObserver == aObserver && iObserverArray[i].iMessageId == aMessageId )
    			{
-            RemoveObserver(i);
+   		
+			TDownloadCount countObject( aMessageId );
+   		    TInt idx = iDownloadCountArray.Find( countObject, 
+   		                                         TIdentityRelation<TDownloadCount>(EqualMessageId) );    
+   		    if ( idx == KErrNotFound )
+   		        {
+				RemoveObserver(i);
+   		        }
    			}
     	}
 	}

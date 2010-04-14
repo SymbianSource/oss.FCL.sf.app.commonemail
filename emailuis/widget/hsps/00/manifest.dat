@@ -34,6 +34,6 @@
     </localization>
 
     <!-- Instances of widget per one homescreen -->	
-    <multiinstance>5</multiinstance>
+    <multiinstance>6</multiinstance>
 	
 </package>

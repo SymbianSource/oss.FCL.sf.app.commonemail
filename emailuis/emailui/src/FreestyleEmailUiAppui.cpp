@@ -1361,8 +1361,13 @@ void CFreestyleEmailUiAppUi::HandleWsEventL(const TWsEvent &aEvent, CCoeControl*
                 {
                 iCurrentActiveView->HandleAppForegroundEventL( EFalse );
                 }
-            break;
+            // in case the popupmenu is shown propagate event to it 
+            if( iFolderListVisualiser && iFolderListVisualiser->IsPopupShown() )
+                {
+                iFolderListVisualiser->HandleAppForegroundEventL( EFalse );
+                }
             }
+            break;
         case KAknFullOrPartialForegroundGained:
             {
             if ( iCurrentActiveView && !iSettingsViewActive )
@@ -1374,17 +1379,21 @@ void CFreestyleEmailUiAppUi::HandleWsEventL(const TWsEvent &aEvent, CCoeControl*
                     iPendingLayoutSwitch = EFalse;
                     }
                 }
-
-    		// Call status indicator's foreground event to resize the connection screen after the screensaver
-    		if ( iStatusIndicator )
+            // Call status indicator's foreground event to resize the connection screen after the screensaver
+            if ( iStatusIndicator )
                 {
                 iStatusIndicator->HandleForegroundEventL();
                 }
-    		}
-        	break;
+            // in case the popupmenu is shown propagate event to it 
+            if( iFolderListVisualiser && iFolderListVisualiser->IsPopupShown() )
+                {
+                iFolderListVisualiser->HandleAppForegroundEventL( ETrue );
+                }
+            }
+            break;
         default:
             break;
-    	}
+        }
 
     // Close menu
     if ( closeMenu && iCurrentActiveView != NULL )

@@ -141,5 +141,6 @@ LIBRARY               flogger.lib
 LIBRARY               aknphysics.lib
 LIBRARY               cmaillogger.lib
 LIBRARY 			  aknicon.lib
+LIBRARY               touchfeedback.lib
 
 DEFFILE               fs_generic_alf.def

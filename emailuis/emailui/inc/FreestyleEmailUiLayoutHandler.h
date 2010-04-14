@@ -24,10 +24,10 @@
 #include <e32hashtab.h>
 #include <alf/alfenv.h>
 #include <alf/alftextstyle.h>
-#include <AknLayout2ScalableDef.h>
-#include <AknUtils.h>
+#include <aknlayout2scalabledef.h>
+#include <aknutils.h>
 // INTERNAL INCLUDES
-#include "FreestyleEmailUiLayoutData.h"
+#include "freestyleemailuilayoutdata.h"
 
 // FORWARD DECLARATIONS
 class CFsTreeList;
