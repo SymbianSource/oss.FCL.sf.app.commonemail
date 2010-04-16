@@ -190,7 +190,7 @@ void CIpsPlgImap4FetchAttachmentOp::DoConnectL()
         KFetchOpPriority,
         iStatus, 
         iService,
-        *iActivityTimer,
+        iActivityTimer,
         iFSMailboxId,
         iFSOperationObserver,
         iFSRequestId,
@@ -226,9 +226,8 @@ void CIpsPlgImap4FetchAttachmentOp::DoRunL()
         {
         case EStateConnecting:
             {
-            TBool connected = STATIC_CAST(
-                CIpsPlgImap4ConnectOp*, iOperation)->Connected();
-            if(!connected)
+            // <qmail> Connected() usage
+            if ( !Connected() )
                 {
                 CompleteObserver( KErrCouldNotConnect );
                 return;

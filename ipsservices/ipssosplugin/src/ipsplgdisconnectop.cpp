@@ -123,17 +123,10 @@ TFSProgress CIpsPlgDisconnectOp::GetFSProgressL() const
     return result;
     }
 
-// ----------------------------------------------------------------------------
-// CIpsPlgDisconnectOp::Connected()
-// ----------------------------------------------------------------------------
-//
-TBool CIpsPlgDisconnectOp::Connected() const
-    {
-    FUNC_LOG;
-    return iTEntry.Connected();
-    }
+// <qmail> Connected() moved to base class
 
 // ----------------------------------------------------------------------------
+
 // CIpsPlgDisconnectOp::DoRunL()
 // ----------------------------------------------------------------------------
 //
@@ -149,18 +142,11 @@ void CIpsPlgDisconnectOp::DoRunL()
         {                
         if ( iDoRemoveAfterDisconnect )
             {
-            CIpsSetDataApi* settings = CIpsSetDataApi::NewL( iMsvSession );
-            CleanupStack::PushL( settings );
-            settings->RemoveAccountL( iTEntry, iMsvSession );
-            CleanupStack::PopAndDestroy( settings );
-
-            // delete the activitytimer here and set it to null so we don't try 
-            // to use it in CompleteObserver. This is a special case that 
-            // relates to deleting a connected mailbox.
-            delete iActivityTimer;
-            iActivityTimer = NULL;
+            //CIpsSetDataApi* settings = CIpsSetDataApi::NewL( iMsvSession );
+            //CleanupStack::PushL( settings );
+            //settings->RemoveAccountL( iTEntry, iMsvSession );
+            //CleanupStack::PopAndDestroy( settings );
             }
-
         CompleteObserver( KErrNone );
         }
     }

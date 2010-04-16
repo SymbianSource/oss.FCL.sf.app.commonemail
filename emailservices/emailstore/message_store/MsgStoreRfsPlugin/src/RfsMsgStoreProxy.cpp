@@ -17,9 +17,9 @@
 
 //  Include Files
 #include <e32std.h>
-#include <ecom/implementationproxy.h>
+#include <implementationproxy.h>
 
-#include "EmailStoreUids.hrh"
+#include "emailstoreuids.hrh"
 #include "RfsMsgStorePlugin.h"
 
 

@@ -23,10 +23,11 @@
 //  INCLUDES
 #include <e32std.h>
 #include <e32base.h>
-#include <ecom/ecom.h>
+#include <ecom.h>
 
+//<cmail>
 #include "CFSMailPlugin.h"
-
+//</cmail>
 #include "CFSMailRequestHandler.h"
 
 /** plugin configuration at start up */
@@ -44,7 +45,7 @@ enum TFsFwConfiguration
  *  @lib FSFWCommonLib
  *  @since S60 v3.1
  */
-class CFSMailPluginManager : public CFSMailRequestHandler
+NONSHARABLE_CLASS ( CFSMailPluginManager ) : public CFSMailRequestHandler
 	{
 
 public:

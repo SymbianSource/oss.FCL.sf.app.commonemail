@@ -17,7 +17,7 @@
 
 #include <platform_paths.hrh>
 #include <data_caging_paths.hrh>
-#include "../../../inc/EmailStoreUids.hrh"
+#include "../../../inc/emailstoreuids.hrh"
 
 TARGET        RfsMsgStorePlugin.dll
 TARGETTYPE    PLUGIN
@@ -28,7 +28,7 @@ CAPABILITY    CAP_ECOM_PLUGIN
 VENDORID VID_DEFAULT
 
 
-VERSION       KRfsMsgStoreMMPVersionNumber
+VERSION       KRfsMsgStoreVersionNumber
 
 MW_LAYER_SYSTEMINCLUDE
 SYSTEMINCLUDE   /epoc32/include/ecom

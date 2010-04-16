@@ -57,8 +57,6 @@ CIpsPlgPop3FetchOperation::~CIpsPlgPop3FetchOperation()
     FUNC_LOG;
     delete iFetchErrorProgress;
     delete iSelection;
-    
-    delete iEntry;
     }
 
 // ----------------------------------------------------------------------------
@@ -89,47 +87,11 @@ const TDesC8& CIpsPlgPop3FetchOperation::ProgressL()
 void CIpsPlgPop3FetchOperation::ConstructL(const CMsvEntrySelection& aSel)
     {
     FUNC_LOG;
-
     BaseConstructL( KUidMsgTypePOP3 );
-
     iSelection = aSel.CopyL();
-
     iSelection->InsertL( 0, iService );
     // For Get Mail API, first selection element must be service.
-
-    // It is possible that the complete flag is on and we want to
-    // download the attachment. In these cases we need to clear the
-    // complete flag.
-
-    TInt count = iSelection->Count();
-
-    for ( ; iEntryIndex < count && !iOperation; iEntryIndex++ )
-        {
-        delete iEntry;
-        iEntry = NULL;
-        
-        iEntry = iMsvSession.GetEntryL( iSelection->At( iEntryIndex ) );
-
-        TMsvEntry entry = iEntry->Entry();
-        
-        TBool complete = entry.Complete();
-
-        if ( complete )
-            {
-            entry.SetComplete( EFalse );
-
-            iOperation = iEntry->ChangeL( entry, iStatus );
-
-            SetActive();
-            
-            iState = EStateClearCompleteFlag;
-            }
-        }
-
-    if ( !iOperation )
-        {
-        DoConnectL();
-        }
+    DoConnectL();
     }
 
 // ----------------------------------------------------------------------------
@@ -146,7 +108,7 @@ void CIpsPlgPop3FetchOperation::DoConnectL()
     // when connecting for the fetch operation, don't let connect operation to do fetch,
     // because we do it by ourself. That's why give 0 to connect operation.    
     CIpsPlgPop3ConnectOp* connOp = CIpsPlgPop3ConnectOp::NewL(
-        iMsvSession, iStatus, iService, EFalse, *iActivityTimer,
+        iMsvSession, iStatus, iService, EFalse, iActivityTimer,
         iFSMailboxId, iFSOperationObserver, iFSRequestId, NULL,EFalse );
         
     delete iOperation;
@@ -174,13 +136,6 @@ void CIpsPlgPop3FetchOperation::DoFetchL()
     TPckg<TImPop3GetMailInfo> param( iGetMailInfo );
     InvokeClientMtmAsyncFunctionL( iFunctionId, *iSelection, iService, param );
     SetActive();
-    
-    if ( iEventHandler )
-        {
-        iEventHandler->SetNewPropertyEvent( 
-            iService, KIpsSosEmailSyncStarted, KErrNone );
-        } 
-    
     }
 
 
@@ -239,7 +194,7 @@ void CIpsPlgPop3FetchOperation::DoCancel()
     if ( iEventHandler )
         {
         iEventHandler->SetNewPropertyEvent( 
-            iService, KIpsSosEmailSyncCompleted, KErrCancel );
+                iService, KIpsSosEmailSyncCompleted, KErrCancel );
         }
     }
 
@@ -252,55 +207,11 @@ void CIpsPlgPop3FetchOperation::DoRunL()
 
     switch(iState)
         {
-        case EStateClearCompleteFlag:
-            {
-            // First clean things
-            delete iOperation;
-            iOperation = NULL;
-
-            delete iEntry;
-            iEntry = NULL;
-            
-            // Leave if setting the complete flag was a failure.
-            User::LeaveIfError( iStatus.Int() );
-            
-            TInt count = iSelection->Count();
-
-            for ( ; iEntryIndex < count && !iOperation; iEntryIndex++ )
-                {
-                delete iEntry;
-                iEntry = NULL;
-                
-                iEntry = iMsvSession.GetEntryL(
-                    iSelection->At( iEntryIndex ) );
-
-                TMsvEntry entry = iEntry->Entry();
-                
-                TBool complete = entry.Complete();
-
-                if ( complete )
-                    {
-                    entry.SetComplete( EFalse );
-
-                    iOperation = iEntry->ChangeL( entry, iStatus );
-
-                    SetActive();
-                    }
-                }
-
-            if ( !iOperation )
-                {
-                DoConnectL();
-                }
-            
-            break;
-            }
         case EStateConnecting:
             {
             // Connect complete.
-            TBool connected = 
-                STATIC_CAST( CIpsPlgPop3ConnectOp*, iOperation )->Connected();
-            if(!connected)
+            // <qmail> Connected() usage
+            if ( !Connected() )
                 {
                 CompleteObserver( KErrCouldNotConnect );
                 return;
@@ -317,7 +228,7 @@ void CIpsPlgPop3FetchOperation::DoRunL()
                 TPckgBuf<TPop3Progress> paramPack;
                 if ( iOperation )
                     {
-                    paramPack.Copy( iOperation->ProgressL() );
+                paramPack.Copy( iOperation->ProgressL() );
                     }
                 TPop3Progress& progress = paramPack();
                 progress.iErrorCode = err;
@@ -329,7 +240,7 @@ void CIpsPlgPop3FetchOperation::DoRunL()
             if ( iEventHandler )
                 {
                 iEventHandler->SetNewPropertyEvent( 
-                    iService, KIpsSosEmailSyncCompleted, err );
+                        iService, KIpsSosEmailSyncCompleted, err );
                 }
             }
             break;

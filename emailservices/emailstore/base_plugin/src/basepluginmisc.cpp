@@ -371,7 +371,7 @@ EXPORT_C void CBasePlugin::CancelL( TInt aRequestId )
     		{
     		CFetchRequester* request = iReqs[i];
 
-    		TFSProgress progress;
+    		TFSProgress progress = TFSProgress();
     		progress.iProgressStatus = TFSProgress::EFSStatus_RequestCancelled;
     		progress.iCounter = progress.iMaxCount = 1;
     		progress.iError = KErrNone;
@@ -402,12 +402,13 @@ EXPORT_C const TFSProgress CBasePlugin::GetLastSyncStatusL(
 /**
  *
  */
+//<qmail>
 EXPORT_C TSSMailSyncState CBasePlugin::CurrentSyncState(
-            const TFSMailMsgId& /*aMailboxId*/ )
+    const TFSMailMsgId& /*aMailboxId*/ )
     {
     return Idle;
     }
-
+//</qmail>
 
 /**
  *

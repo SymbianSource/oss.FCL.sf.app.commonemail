@@ -33,7 +33,7 @@
 /**
 *
 */
-class CIpsPlgDeleteLocal : public CImCacheManager
+NONSHARABLE_CLASS( CIpsPlgDeleteLocal ) : public CImCacheManager
     {
     public:
 

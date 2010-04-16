@@ -17,13 +17,8 @@
 */
 
 
-#include <AknMessageQueryDialog.h>
-
 #include "emailtrace.h"
 #include "ipsplgheaders.h"
-
-#include <ipssossettings.rsg>
-#include <fsmailserver.rsg>     // For R_FS_MSERVER_*
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
@@ -173,41 +168,38 @@ void CIpsPlgConnectAndRefreshFolderList::DoRunL()
     {
     FUNC_LOG;
     MFSMailRequestObserver* observer = NULL;
-    int err = iStatus.Int();
     
-    if ( err != KErrNone )
+    if( iStatus.Int() != KErrNone )
         {
         iState = ECompleted;
-        if( err == KErrImapBadLogon )
-            {
-            DisplayLoginFailedDialogL();
-            RunError(err);
-            }
-        else
-            {
-            CompleteObserver();
-            }
+        CompleteObserver();
         return;
-        }   
+        }
     
-    TBuf8<1> dummyParam;
-    switch( iState )
+    switch(iState)
         {
         case EStartConnect:
             delete iOperation;
             iOperation = NULL;
-            InvokeClientMtmAsyncFunctionL( 
-							KIMAP4MTMConnect, 
-							*iMsvEntry,
-            	            iService,
-            	            dummyParam );
+            iOperation = CIpsPlgImap4ConnectOp::NewL(
+                            iSession,
+                            CActive::EPriorityStandard,
+                            iStatus,
+                            iService,
+                            *iTimer,
+                            iMailboxId,
+                            *observer,
+                            NULL, //FSRequestId
+                            NULL, // Event handler
+                            ETrue, // Plain connect
+                            EFalse ); // No signalling needed )
             iState = EConnecting;
             SetActive();
             break;
 	    case EConnecting:
 	        {
 	        //  We have successfully completed connecting
-	        
+	        TBuf8<1> dummyParam;
 	        delete iOperation;
 	        iOperation = NULL;
 	        InvokeClientMtmAsyncFunctionL( 
@@ -257,34 +249,6 @@ void CIpsPlgConnectAndRefreshFolderList::DoCancel()
         }
     CompleteObserver( KErrCancel );
     iState = ECompleted;
-    }
-
-// ----------------------------------------------------------------------------
-// CIpsPlgConnectAndRefreshFolderList::DisplayLoginFailedDialogL()
-// ----------------------------------------------------------------------------
-//
-void CIpsPlgConnectAndRefreshFolderList::DisplayLoginFailedDialogL()
-    {
-    // Get the TMsvEntry for the mailbox, which we use to get its name.
-    TMsvId serviceId;
-    TMsvEntry mailboxServiceEntry;
-    User::LeaveIfError( iSession.GetEntry( iMailboxId.Id(), serviceId, mailboxServiceEntry ) );
-
-    // Load/construct the strings for the dialog.
-    HBufC* headerText( NULL );
-    headerText = StringLoader::LoadLC( R_FS_MSERVER_MAILBOX_NAME, mailboxServiceEntry.iDetails );
-    HBufC* text( NULL );
-    text = StringLoader::LoadLC( R_FS_MSERVER_TEXT_LOGIN_FAILED );
-
-    // Create and display the dialog.
-    CAknMessageQueryDialog *dlg = new (ELeave) CAknMessageQueryDialog;
-    dlg->PrepareLC( R_FS_MSERVER_DIALOG_MESSAGE_QUERY );
-    dlg->SetHeaderTextL( headerText->Des() );
-    dlg->SetMessageTextL( text->Des() );
-    dlg->RunLD();
-
-    CleanupStack::PopAndDestroy( text );
-    CleanupStack::PopAndDestroy( headerText );
     }
 
 // End of File

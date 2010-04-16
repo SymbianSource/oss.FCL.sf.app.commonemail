@@ -21,8 +21,8 @@ PRJ_PLATFORMS
 DEFAULT
 
 PRJ_EXPORTS
-../Inc/ImsPointsecObserver.h     |../../../../../inc/ImsPointsecObserver.h
-../Inc/ImsPointsecMonitor.h      |../../../../../inc/ImsPointsecMonitor.h
+../inc/ImsPointsecObserver.h     |../../../../../inc/ImsPointsecObserver.h
+../inc/ImsPointsecMonitor.h      |../../../../../inc/ImsPointsecMonitor.h
 
 PRJ_MMPFILES
 ImsPointsecMonitor.mmp

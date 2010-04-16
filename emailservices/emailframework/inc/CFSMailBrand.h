@@ -34,7 +34,7 @@ class CGulIcon;
  *  @lib FSFWCommonLib
  *  @since S60 v3.1
  */
-class CFSMailBrand : public CBase
+NONSHARABLE_CLASS ( CFSMailBrand ): public CBase
 	{
 
 public:

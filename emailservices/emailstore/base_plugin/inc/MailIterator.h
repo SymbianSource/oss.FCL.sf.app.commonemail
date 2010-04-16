@@ -32,7 +32,7 @@
  * A wrapper of the msgstore iterator that translates the msgstore messages to the Freestyle
  * object model.
  */
-class HMailIterator : public MFSMailIterator
+NONSHARABLE_CLASS ( HMailIterator )  : public MFSMailIterator
     {
 
     public:

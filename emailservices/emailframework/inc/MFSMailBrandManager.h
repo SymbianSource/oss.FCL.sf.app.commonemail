@@ -21,7 +21,7 @@
 
 // INCLUDES
 //<cmail>
-#include "mailbrandmanager.hrh"
+#include "MailBrandManager.hrh"
 //</cmail>
 
 // FORWARD DECLARATIONS
@@ -61,20 +61,6 @@ class MFSMailBrandManager
 	 */
 	 virtual CGulIcon* GetGraphicL( TFSBrandElement aElement,
 	                                const TFSMailMsgId& aMailboxId ) = 0;
-
-	 /**
-      * Returns a branded graphical element.
-      *
-      * @param aElement Id of the branded element. This identifies which
-      *                 graphic user wishes to retrieve.
-      * @param aBrandId is the domain.
-      *
-      * @return A pointer to a CGulIcon object. The caller of this method is 
-      *         responsible of destroying the object. Returns NULL if the 
-      *         brand doesn't contain the requested branding element.
-      */
-      virtual CGulIcon* GetGraphicL( TFSBrandElement aElement,
-                                     const TDesC& aBrandId ) = 0;
 	
 	/**
 	 * Returns a branded text element.

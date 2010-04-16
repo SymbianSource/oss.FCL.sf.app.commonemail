@@ -48,7 +48,7 @@ public:
 * 
 * @lib ipssosaoplugin.lib
 */
-class CIpsSosAOPluginTimer : 
+NONSHARABLE_CLASS (CIpsSosAOPluginTimer) : 
     public CActive
     {
     

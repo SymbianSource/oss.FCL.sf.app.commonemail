@@ -26,7 +26,7 @@
 * CIpsPlgPop3FetchOperation
 * Fetch message(s) operation, using client MTM Get Mail API.
 */
-class CIpsPlgPop3FetchOperation :
+NONSHARABLE_CLASS ( CIpsPlgPop3FetchOperation ) :
     public CIpsPlgOnlineOperation
     {
     public:
@@ -126,7 +126,6 @@ class CIpsPlgPop3FetchOperation :
         enum TFetchState {
             EStateIdle,
             EStateConnecting,
-            EStateClearCompleteFlag,
             EStateFetching,
             EStateDisconnecting };
         TFetchState iState;
@@ -139,9 +138,7 @@ class CIpsPlgPop3FetchOperation :
         TPckgBuf<TPop3Progress> iProgressBuf;
         CMsvEntrySelection* iSelection;
         CIpsPlgEventHandler* iEventHandler;
-        // For clear complete flag operation
-        CMsvEntry* iEntry;
-        TInt iEntryIndex;
+        
     };
 
 

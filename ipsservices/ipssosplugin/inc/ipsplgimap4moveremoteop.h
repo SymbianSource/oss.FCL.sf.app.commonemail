@@ -20,13 +20,12 @@
 
 
 #include "ipsplgonlineoperation.h"
-#include "MFSMailRequestObserver.h"
 
 /**
 * Move a selection of messages that may or may not be complete.
 * Always fetches entire messages.
 */
-class CIpsPlgImap4MoveRemoteOp :
+NONSHARABLE_CLASS ( CIpsPlgImap4MoveRemoteOp ) :
     public CIpsPlgOnlineOperation
     {
     public:
@@ -119,6 +118,11 @@ class CIpsPlgImap4MoveRemoteOp :
         */
 
         void Complete();
+        
+        /**
+        *
+        */
+        void DoMoveLocalL();
 
         /**
         *
@@ -139,40 +143,12 @@ class CIpsPlgImap4MoveRemoteOp :
         TDesC8*                             iMoveErrorProgress;
         TImImap4GetMailInfo                 iGetMailInfo;
         CMsvEntrySelection*                 iSelection;
+        CMsvEntrySelection*                 iLocalSel;      // Complete messages
         CMsvEntrySelection*                 iRemoteSel;     // Incomplete messages to be fetched.
         TPckgBuf<TImap4CompoundProgress>    iProgressBuf;
         TPckgBuf<TImap4SyncProgress>        iSyncProgress;
     };
 
-
-NONSHARABLE_CLASS( CIpsPlgImap4MoveRemoteOpObserver ) : public CBase,
-    public MFSMailRequestObserver
-    {
-public:
-
-    static CIpsPlgImap4MoveRemoteOpObserver* NewL( CMsvSession& aSession,
-        CIpsPlgEventHandler& aEventHandler, const TFSMailMsgId& aSourceFolder,
-        const RArray<TFSMailMsgId>& aMessageIds );
-    ~CIpsPlgImap4MoveRemoteOpObserver();
-
-    // From base class MFSMailRequestObserver
-    void RequestResponseL( TFSProgress aEvent, TInt aRequestId );
-
-private:
-
-    CIpsPlgImap4MoveRemoteOpObserver( CMsvSession& aSession,
-        CIpsPlgEventHandler& aEventHandler,
-        TMsvId aSourceFolderId );
-    void ConstructL( const RArray<TFSMailMsgId>& aMessageIds );
-
-private:
-
-    // data
-    CMsvSession& iSession;
-    CIpsPlgEventHandler& iEventHandler;
-    TMsvId iSourceFolderId;
-    CMsvEntrySelection* iSelection;
-    };
 
 #endif //__IPSPLGIMAP4MOVEREMOTEOP_H__
 

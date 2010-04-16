@@ -32,7 +32,11 @@ class CIpsPlgMsgMapper;
  *  @lib ipssosplugin.lib
  *  @since FS 1.0
  */
-NONSHARABLE_CLASS( CIpsPlgSmtpService ) : public CBase
+NONSHARABLE_CLASS( CIpsPlgSmtpService ) : 
+    public CBase,
+// <qmail>
+    public MIpsPlgSingleOpWatcher
+// </qmail>
     {
 
 public:
@@ -88,15 +92,72 @@ public:
     CFSMailMessage* CreateNewSmtpMessageL(
         const TFSMailMsgId& aMailBoxId );
 
+// <qmail>
+    /**
+     * Creates new email message to message store asynchronously
+     *
+     * @param aMailBoxId msv entry id to mailbox which setting are used
+     * @param aOperationObserver Observer for the operation
+     * @param aRequestId Id of the operation
+     */
+    void CreateNewSmtpMessageL(
+        const TFSMailMsgId& aMailBoxId,
+        MFSMailRequestObserver& aOperationObserver,
+        const TInt aRequestId );
+// </qmail>
+
     CFSMailMessage* CreateForwardSmtpMessageL(
         const TFSMailMsgId& aMailBoxId,
         const TFSMailMsgId& aOriginalMessageId );
 
+// <qmail>
+    void CreateForwardSmtpMessageL(
+        const TFSMailMsgId& aMailBoxId,
+        const TFSMailMsgId& aOriginalMessageId,
+        MFSMailRequestObserver& aOperationObserver,
+        const TInt aRequestId );
+// </qmail>
+    
     CFSMailMessage* CreateReplySmtpMessageL(
         const TFSMailMsgId& aMailBoxId,
         const TFSMailMsgId& aOriginalMessageId,
         TBool aReplyToAll );
 
+// <qmail>
+    void CreateReplySmtpMessageL(
+        const TFSMailMsgId& aMailBoxId,
+        const TFSMailMsgId& aOriginalMessageId,
+        TBool aReplyToAll,
+        MFSMailRequestObserver& aOperationObserver,
+        const TInt aRequestId );
+// </qmail>
+
+// <qmail>
+    /**
+     * Creates proper fs message object and set flags
+     * to correspond orginal message flags
+     *
+     * @since FS 1.0
+     * @param aMessageId id of created message
+     * @param aOrginalMsgId id of orginal message
+     * @param aMailboxId mailbox id
+     * @param aCopyOriginalMsgProperties Copy properties from original message
+     * @return TMscId
+     */
+    CFSMailMessage* CreateFSMessageAndSetFlagsL(
+       TMsvId aMessageId, 
+       TMsvId aOriginalMsgId, 
+       TMsvId aMailboxId,
+       TBool aCopyOriginalMsgProperties = EFalse );
+// </qmail>
+
+// <qmail>
+public: //from MIpsPlgSingleOpWatcher
+
+    void OpCompleted(
+        CIpsPlgSingleOpWatcher& aOpWatcher,
+        TInt aCompletionCode );
+// </qmail>
 protected:
 
     /**
@@ -140,28 +201,6 @@ private:
     void ChangeServiceIdL( TMsvEntry& aEntry );
     
     /**
-     * Changes messages service id to the given id
-     *
-     * @param aEntry message entry
-     * @param aServiceId new service id
-     * @return None
-     */
-    void ChangeServiceIdL( TMsvEntry& aEntry, TMsvId aServiceId );
-
-    /**
-     * Creates proper fs message object and set flags
-     * to correspond orginal message flags
-     *
-     * @since FS 1.0
-     * @param aMessageId id of created message
-     * @param aOrginalMsgId id of orginal message
-     * @param aMailboxId mailbox id
-     * @return TMscId
-     */
-    CFSMailMessage* CreateFSMessageAndSetFlagsL(
-       TMsvId aMessageId, TMsvId aOriginalMsgId, TMsvId aMailboxId );
-    
-    /**
      * Gets MsvId from msv operations final progress 
      * descriptor, leaves if msvId is null entry
      *
@@ -183,6 +222,15 @@ private:
      * @param aCharset the charset to be set
      */
     void SetCharactersetL( CMsvEntry& aEntry, TUid aCharset );
+
+// <qmail>
+    /**
+    * Cancel, delete and remove operation from iOperations array.
+    * Send Sync Completed event to plugin if operation is sync op
+    */
+    void DeleteAndRemoveOperation( const TInt aOpArrayIndex );
+// </qmail>
+
 private: // data
 
     CIpsPlgSosBasePlugin& iPlugin;
@@ -190,12 +238,10 @@ private: // data
     CMsvSession& iSession;
     
     CIpsPlgMsgMapper* iMsgMapper;
-    
-    /**
-     * Own: Feature manager initialization flag
-     */
-    TBool iFeatureManagerInitialized;
 
+// <qmail> array of operation watchers
+    RPointerArray<CIpsPlgSingleOpWatcher>   iOperations;
+// </qmail>
     };
 
 #endif /* IPSPLGSMTPSERVICE_H*/

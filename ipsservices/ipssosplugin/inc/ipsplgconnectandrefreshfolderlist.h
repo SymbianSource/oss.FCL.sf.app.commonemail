@@ -33,7 +33,7 @@
 * Superoperation which wraps a UI around going online, updating
 * an IMAP service's folder list and disconnecting again.
 */
-class CIpsPlgConnectAndRefreshFolderList : public CIpsPlgOnlineOperation,
+NONSHARABLE_CLASS ( CIpsPlgConnectAndRefreshFolderList ) : public CIpsPlgOnlineOperation,
                                            public MAknBackgroundProcess
     {
     
@@ -122,8 +122,6 @@ private:
     * ConstructL()
     */
     void ConstructL( CMsvEntrySelection& aMsvEntry );
-
-    void DisplayLoginFailedDialogL();
 
     //data
 private:

@@ -24,6 +24,7 @@
 #include "CFSMailCommon.h"
 #include "BasePlugin.h"
 #include "DebugLogMacros.h"
+#include "baseplugindef.h"
 
 
 class CBasePlugin;
@@ -68,14 +69,14 @@ public:
  * The base class for the delayed operations. All of the delayed operations must
  * derive from it.
  */
-class CDelayedOp : public CAsyncOneShot
+class BASEPLUGIN_EXPORT CDelayedOp : public CAsyncOneShot
     {
 
 public:
     
-    IMPORT_C virtual ~CDelayedOp();
+     virtual ~CDelayedOp();
     
-    IMPORT_C void SetContext(
+     void SetContext(
         CBasePlugin& aPlugin,
         MDelayedOpsManager& aManager );
     
@@ -87,19 +88,19 @@ public:
 
 protected:
     
-    IMPORT_C CDelayedOp();
+     CDelayedOp();
     
     /**
      * Returns the plugin instance associated with this operation. Available
      * only from within the ExecuteOpL method.
      */
-    IMPORT_C CBasePlugin& GetPlugin();
+     CBasePlugin& GetPlugin();
     
     
 private:
     
-    IMPORT_C virtual void RunL();
-    IMPORT_C virtual void DoCancel();
+     virtual void RunL();
+     virtual void DoCancel();
 
 private:
     MDelayedOpsManager* iManager;   //not owned

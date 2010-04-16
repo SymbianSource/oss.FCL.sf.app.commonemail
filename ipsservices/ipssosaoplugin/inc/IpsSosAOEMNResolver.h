@@ -29,7 +29,7 @@ class CIpsSosAOMBoxLogic;
 *  This class handles OMA Email Notification messages.
 *
 */
-class CIpsSosAOEMNResolver : public CBase
+NONSHARABLE_CLASS (CIpsSosAOEMNResolver) : public CBase
     {
     public: 
 

@@ -37,7 +37,7 @@ const TInt KMaxSubjectPrefixSeparatorLength = 8;
  *  @lib ipssosplugin.lib
  *  @since 
  */
-class TIpsPlgMsgKey : public TKey
+NONSHARABLE_CLASS( TIpsPlgMsgKey ) : public TKey
     {
 
 public:
@@ -83,7 +83,7 @@ private:
     /**
      * Compares the subject strings omitting the reply & forward prefixes
      */
-    TInt CompareSubjectsL( const TDesC& aLeft, const TDesC& aRight ) const; // <cmail> change to leaving function
+    TInt CompareSubjects( const TDesC& aLeft, const TDesC& aRight ) const;
 
 private:
     // Folder objects the messages of which are sorted. Not owned.    

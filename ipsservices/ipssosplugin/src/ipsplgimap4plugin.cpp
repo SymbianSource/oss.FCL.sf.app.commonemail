@@ -98,14 +98,11 @@ TBool CIpsPlgImap4Plugin::MailboxHasCapabilityL(
         case EFSMBoxCapaCanBeDeleted:
         case EFSMBoxCapaSupportsSaveToDrafts:
         case EFSMBoxCapaMeetingRequestRespond:
-        case EFSMboxCapaSupportsAttahmentsInMR:
         case EFSMBoxCapaMeetingRequestCreate:
         case EFSMBoxCapaCanUpdateMeetingRequest:
         case EFSMBoxCapaMoveToFolder:
         case EFSMBoxCapaCopyToFolder:
         case EFSMBoxCapaSupportsSync:
-        case EFSMBoxCapaRemoveFromCalendar:
-        case EFSMBoxCapaMoveMessageNoConnectNeeded:
             {
             result = ETrue;
             break;
@@ -119,7 +116,6 @@ TBool CIpsPlgImap4Plugin::MailboxHasCapabilityL(
         case EFSMBoxCapaSupportsMRU:
         case EFSMBoxCapaSymbianMsgIntegration:
         case EFSMBoxCapaNewEmailNotifications:
-        default:
             {
             result = EFalse;
             break;
@@ -170,8 +166,10 @@ void CIpsPlgImap4Plugin::RefreshNowL(
     iOperations.AppendL( watcher );
     CleanupStack::Pop( watcher );
     
+	//<qmail>
     // send part of refresh
-    EmptyOutboxL( aMailBoxId );
+    //EmptyOutboxL( aMailBoxId ); // not used in qmail yet
+	//</qmail>
     }
 
 // ---------------------------------------------------------------------------
@@ -329,46 +327,42 @@ void CIpsPlgImap4Plugin::MoveMessagesL(
     const RArray<TFSMailMsgId>& aMessageIds, 
     const TFSMailMsgId& aSourceFolderId, 
     const TFSMailMsgId& aDestinationFolderId )
-    {
+	{
     FUNC_LOG;
-    if( aDestinationFolderId.Id() == KMsvDraftEntryId  )
-        {
-        // Move to Drafts folder
-        MoveMessagesToDraftL( aMailBoxId, 
-                aMessageIds, 
-                aSourceFolderId, 
-                aDestinationFolderId );
-        }
+	if( aDestinationFolderId.Id() == KMsvDraftEntryId  )
+	    {
+	    // Move to Drafts folder
+	    MoveMessagesToDraftL( aMailBoxId, 
+	                          aMessageIds, 
+	                          aSourceFolderId, 
+	                          aDestinationFolderId );
+	    }
     else if( aDestinationFolderId.Id() != aSourceFolderId.Id() )
         {
-        TMsvId service = aMailBoxId.Id();
-
-        CIpsPlgSingleOpWatcher* watcher = CIpsPlgSingleOpWatcher::NewL(*this);
+    	TMsvId service = aMailBoxId.Id();
+    	
+    	CIpsPlgSingleOpWatcher* watcher = CIpsPlgSingleOpWatcher::NewL(*this);
         CleanupStack::PushL( watcher );
         
         CMsvEntrySelection* sel = new(ELeave) CMsvEntrySelection;
         CleanupStack::PushL(sel);
         sel->AppendL( service );
-
+        
         TInt msgIdCount( aMessageIds.Count() );
-        for ( TInt i(0); i< msgIdCount; i++ )
+    	for ( TInt i(0); i< msgIdCount; i++ )
             {
             sel->AppendL( aMessageIds[i].Id() );
             }
-
-        TPckgBuf<TImImap4GetMailInfo> optionsBuf;
+    	
+    	TPckgBuf<TImImap4GetMailInfo> optionsBuf;
         TImImap4GetMailInfo& options = optionsBuf();
         options.iMaxEmailSize = KMaxTInt32;
-        options.iGetMailBodyParts = EGetImap4EmailHeaders;
+        options.iGetMailBodyParts = EGetImap4EmailBodyTextAndAttachments;
         options.iDestinationFolder = aDestinationFolderId.Id();
 
-        CIpsPlgImap4MoveRemoteOpObserver* observer =
-            CIpsPlgImap4MoveRemoteOpObserver::NewL( *iSession, *iEventHandler,
-                aSourceFolderId, aMessageIds );
-        watcher->SetRequestObserver( observer );
-
+        MFSMailRequestObserver* observer = NULL;
         // Synchronous operation
-        CIpsPlgBaseOperation* op = CIpsPlgImap4MoveRemoteOp::NewL(
+    	CIpsPlgBaseOperation* op = CIpsPlgImap4MoveRemoteOp::NewL(
             *iSession, 
             watcher->iStatus,
             KIMAP4MTMMoveMailSelectionWhenAlreadyConnected,
@@ -379,95 +373,17 @@ void CIpsPlgImap4Plugin::MoveMessagesL(
             aMailBoxId,
             *observer, // async not supported
             0 ); // async not supported
-
+            
         watcher->SetOperation( op );
         CleanupStack::PopAndDestroy( sel );
         iOperations.AppendL( watcher );
         CleanupStack::Pop( watcher );
         }
-    else
+     else
         {
         //do nothing
         }
-    }
-
-// ---------------------------------------------------------------------------
-// CIpsPlgImap4Plugin::MoveMessagesL()
-// asynchronic move message function
-// ---------------------------------------------------------------------------
-//
-TInt CIpsPlgImap4Plugin::MoveMessagesL( 
-    const TFSMailMsgId& aMailBoxId,
-    const RArray<TFSMailMsgId>& aMessageIds, 
-    const TFSMailMsgId& aSourceFolderId,
-    const TFSMailMsgId& aDestinationFolderId,
-    MFSMailRequestObserver& aOperationObserver,
-    TInt aRequestId )
-    {
-    FUNC_LOG;
-    TInt ret = KErrNone;
-    if( aDestinationFolderId.Id() == KMsvDraftEntryId  )
-        {
-        // Move to Drafts folder
-        MoveMessagesToDraftL( aMailBoxId, 
-                aMessageIds, 
-                aSourceFolderId, 
-                aDestinationFolderId );
-        TFSProgress progress = { 
-                TFSProgress::EFSStatus_RequestComplete, 0, 0, ret };
-        aOperationObserver.RequestResponseL( 
-                progress, aRequestId );
-        }
-    else if( aDestinationFolderId.Id() != aSourceFolderId.Id() )
-        {
-        TMsvId service = aMailBoxId.Id();
-
-        CIpsPlgSingleOpWatcher* watcher = CIpsPlgSingleOpWatcher::NewL(*this);
-        CleanupStack::PushL( watcher );
-        
-        CMsvEntrySelection* sel = new(ELeave) CMsvEntrySelection;
-        CleanupStack::PushL(sel);
-        sel->AppendL( service );
-
-        TInt msgIdCount( aMessageIds.Count() );
-        for ( TInt i(0); i< msgIdCount; i++ )
-            {
-            sel->AppendL( aMessageIds[i].Id() );
-            }
-
-        TPckgBuf<TImImap4GetMailInfo> optionsBuf;
-        TImImap4GetMailInfo& options = optionsBuf();
-        options.iMaxEmailSize = KMaxTInt32;
-        options.iGetMailBodyParts = EGetImap4EmailBodyTextAndAttachments;
-        options.iDestinationFolder = aDestinationFolderId.Id();
-
-        CIpsPlgBaseOperation* op = CIpsPlgImap4MoveRemoteOp::NewL(
-            *iSession, 
-            watcher->iStatus,
-            KIMAP4MTMMoveMailSelectionWhenAlreadyConnected,
-            service,
-            ActivityTimerL( aMailBoxId ),
-            options,
-            *sel,
-            aMailBoxId,
-            aOperationObserver,
-            aRequestId ); 
-
-        watcher->SetOperation( op );
-        CleanupStack::PopAndDestroy( sel );
-        iOperations.AppendL( watcher );
-        CleanupStack::Pop( watcher );
-        }
-    else
-        {
-        ret = KErrNotSupported;
-        TFSProgress progress = { 
-                TFSProgress::EFSStatus_RequestComplete, 0, 0, ret };
-        aOperationObserver.RequestResponseL( 
-                progress, aRequestId );
-        }
-    return ret;
-    }
+	} 	
 
 // ---------------------------------------------------------------------------
 // CIpsPlgImap4Plugin::FetchMessagePartsL()
@@ -584,13 +500,14 @@ void CIpsPlgImap4Plugin::PopulateNewMailL(
     accounts->GetImapAccountL( aMailboxId.Id(), imapAcc );
     accounts->LoadImapSettingsL( imapAcc, *settings );
     TImImap4GetPartialMailInfo info;
-    CIpsSetDataApi::ConstructImapPartialFetchInfo( info, *settings );
+    info.iPartialMailOptions = ENoSizeLimits;
+    //CIpsSetDataApi::ConstructImapPartialFetchInfo( info, *settings );
     CleanupStack::PopAndDestroy( 2, settings );
-    
+    /*
     if ( info.iTotalSizeLimit == KIpsSetDataHeadersOnly )
         {
         return;
-        }
+        }*/
     
     TPckgBuf<TImImap4GetPartialMailInfo> package(info);
     

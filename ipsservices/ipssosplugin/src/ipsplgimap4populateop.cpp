@@ -149,7 +149,7 @@ void CIpsPlgImap4PopulateOp::DoConnectL()
         KFetchOpPriority,
         iStatus, 
         iService,
-        *iActivityTimer,
+        iActivityTimer,
         iFSMailboxId,
         iFSOperationObserver,
         iFSRequestId,

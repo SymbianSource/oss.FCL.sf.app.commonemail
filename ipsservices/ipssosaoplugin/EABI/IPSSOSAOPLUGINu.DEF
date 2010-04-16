@@ -2,26 +2,3 @@ EXPORTS
 	_Z24ImplementationGroupProxyRi @ 1 NONAME
 	_ZN28CIpsSosAOPluginEComInterface20HandleServerCommandLEiP6TDesC8 @ 2 NONAME
 	_ZN28CIpsSosAOPluginEComInterface4NewLEv @ 3 NONAME
-	_ZTI17CIpsSosAOPopAgent @ 4 NONAME ; #<TI>#
-	_ZTI18CIpsSosAOBaseAgent @ 5 NONAME ; #<TI>#
-	_ZTI18CIpsSosAOImapAgent @ 6 NONAME ; #<TI>#
-	_ZTI18CIpsSosAOMBoxLogic @ 7 NONAME ; #<TI>#
-	_ZTI18CIpsSosAOSmtpAgent @ 8 NONAME ; #<TI>#
-	_ZTI20CIpsSosAOEMNResolver @ 9 NONAME ; #<TI>#
-	_ZTI20CIpsSosAOPluginTimer @ 10 NONAME ; #<TI>#
-	_ZTI21CIpsSosAOImapPopLogic @ 11 NONAME ; #<TI>#
-	_ZTI23CIpsSosAOSchedulerUtils @ 12 NONAME ; #<TI>#
-	_ZTI24CIpsSosAOSmtpSendWatcher @ 13 NONAME ; #<TI>#
-	_ZTI28CIpsSosAOPluginEComInterface @ 14 NONAME ; #<TI>#
-	_ZTV17CIpsSosAOPopAgent @ 15 NONAME ; #<VT>#
-	_ZTV18CIpsSosAOBaseAgent @ 16 NONAME ; #<VT>#
-	_ZTV18CIpsSosAOImapAgent @ 17 NONAME ; #<VT>#
-	_ZTV18CIpsSosAOMBoxLogic @ 18 NONAME ; #<VT>#
-	_ZTV18CIpsSosAOSmtpAgent @ 19 NONAME ; #<VT>#
-	_ZTV20CIpsSosAOEMNResolver @ 20 NONAME ; #<VT>#
-	_ZTV20CIpsSosAOPluginTimer @ 21 NONAME ; #<VT>#
-	_ZTV21CIpsSosAOImapPopLogic @ 22 NONAME ; #<VT>#
-	_ZTV23CIpsSosAOSchedulerUtils @ 23 NONAME ; #<VT>#
-	_ZTV24CIpsSosAOSmtpSendWatcher @ 24 NONAME ; #<VT>#
-	_ZTV28CIpsSosAOPluginEComInterface @ 25 NONAME ; #<VT>#
-

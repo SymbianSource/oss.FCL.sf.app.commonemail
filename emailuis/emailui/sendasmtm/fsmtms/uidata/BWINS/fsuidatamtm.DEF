@@ -1,4 +1,0 @@
-EXPORTS
-	?NewL@CFsUiDataMtm@@SAPAV1@AAVCRegisteredMtmDll@@@Z @ 1 NONAME ; class CFsUiDataMtm * CFsUiDataMtm::NewL(class CRegisteredMtmDll &)
-	?NewMtmUiDataLayerL@@YAPAVCBaseMtmUiData@@AAVCRegisteredMtmDll@@@Z @ 2 NONAME ; class CBaseMtmUiData * NewMtmUiDataLayerL(class CRegisteredMtmDll &)
-

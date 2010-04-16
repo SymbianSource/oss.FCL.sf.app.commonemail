@@ -25,10 +25,11 @@ _LIT( KMimeTypeTextHtml, "text/html" );
 _LIT( KMimeTypeTextRtf, "text/rtf" );
 _LIT( KSlash, "/" );
 
+// <cmail>
 _LIT( KCharSemicolon, ";" );
 _LIT( KCharEquals, "=" );
 _LIT( KCharsetTag, "CHARSET" );
-_LIT( KMessageExtension, ".eml" );
+// </cmail>
 
 // Supported multipart content types
 _LIT( KMimeTypeMultipartRelated, "multipart/related" );
@@ -44,8 +45,9 @@ _LIT( KMimeTypeMultipartParallel, "multipart/parallel" );
 const TInt KCharEscape       = 0x5C;
 const TInt KCharNonPrintable = 0x1F;
 const TInt KCharAt           = 0x40;
+// <cmail>
 const TInt KMaxContentTypeLength = 200;
-const TInt KEmbeddedMsgExtensionLength  = 4;
+// </cmail>
 
 // ======== CONSTRUCTORS & DESTRUCTOR ========
 
@@ -122,10 +124,7 @@ CFSMailMessage* CIpsPlgMsgMapper::GetMailMessageL(
 
     fsMsg->SetFolderId(
         TFSMailMsgId( iPlugin.PluginId(), aEntry.Entry().Parent() ) );
-    // ERLN-7YUEX3
-    fsMsg->SetMailBoxId(TFSMailMsgId( iPlugin.PluginId(), aEntry.Entry().iServiceId ));
-    // End ERLN-7YUEX3
-    
+
     CMsvStore* store( NULL );
 
     if ( aEntry.HasStoreL() )
@@ -173,7 +172,7 @@ CFSMailMessage* CIpsPlgMsgMapper::GetMailMessageL(
         TFSMailMsgId( iPlugin.PluginId(), aEntry.Parent() ) );
 
     SetFlags( aEntry, *result );
-    SetFetchStateL( aEntry, aEntry.Id(), EFalse, *result );
+    SetFetchState( aEntry, aEntry.Id(), EFalse ,*result );
 
     switch( aDetails )
         {
@@ -193,28 +192,25 @@ CFSMailMessage* CIpsPlgMsgMapper::GetMailMessageL(
             CMsvEntry* cEntry = iSession.GetEntryL( aEntry.Id() );
             CleanupStack::PushL( cEntry );
 
-            if ( cEntry )
-            	{
-            	if ( cEntry->HasStoreL() )
-					{
-					store = cEntry->ReadStoreL();
-					CleanupStack::PushL( store );
-					}
+            if ( cEntry && cEntry->HasStoreL() )
+                {
+                store = cEntry->ReadStoreL();
+                CleanupStack::PushL( store );
+                }
 
-				SetEnvelopeL( cEntry, store, *result );
-	
-				// Apparently, this should be done only with
-				// EFSMsgDataStructure, but EFSMsgDataEnvelope is currently
-				// used by assuming that it reads also the content-type of
-				// the message
-				SetStructureL( cEntry, *result );
-	
-				if ( store )
-					{
-					CleanupStack::PopAndDestroy( store );
-					}
-				CleanupStack::PopAndDestroy( cEntry );
-            	}
+            SetEnvelopeL( cEntry, store, *result );
+
+            // Apparently, this should be done only with
+            // EFSMsgDataStructure, but EFSMsgDataEnvelope is currently
+            // used by assuming that it reads also the content-type of
+            // the message
+            SetStructureL( cEntry, *result );
+
+            if ( store )
+                {
+                CleanupStack::PopAndDestroy( store );
+                }
+            CleanupStack::PopAndDestroy( cEntry );
             break;
             }
         case EFSMsgDataIdOnly:
@@ -275,10 +271,13 @@ CFSMailMessagePart* CIpsPlgMsgMapper::GetMessagePartL(
                 break;
                 }
             case KUidMsvAttachmentEntryValue:
-            case KUidMsvMessageEntryValue:
                 {
                 result = ConvertAttachmentEntry2MessagePartL( tEntry,
                     aMailBoxId, aMessageId );
+                break;
+                }
+            case KUidMsvMessageEntryValue:
+                {
                 break;
                 }
             case KUidMsvEmailTextEntryValue:
@@ -306,8 +305,9 @@ TBool CIpsPlgMsgMapper::ChangeTEntryFlagsL(
     TInt msgFlags = aMessage.GetFlags();
     TBool modified ( EFalse );
     TBool unread( aEmlEntry.Unread() );
-
-    if ( !LogicalXor( unread, msgFlags & EFSMsgFlag_Read ) )
+    
+    if ( !LogicalXor( unread, msgFlags & EFSMsgFlag_Read ) ||
+         !LogicalXor( unread, msgFlags & EFSMsgFlag_Read_Locally ))
         {
         aEmlEntry.SetUnread( !unread );
         modified = ETrue;
@@ -408,11 +408,7 @@ void CIpsPlgMsgMapper::UpdateMessageFlagsL(
 
     if ( isModified )
         {
-        CIpsPlgOperationWait* waiter = CIpsPlgOperationWait::NewLC();
-        CMsvOperation* ops = cEntry->ChangeL( tEntry, waiter->iStatus );
-        CleanupStack::PushL( ops );
-        waiter->Start();
-        CleanupStack::PopAndDestroy( 2, waiter );
+        cEntry->ChangeL( tEntry );
         }
 
     CleanupStack::PopAndDestroy( cEntry );
@@ -628,8 +624,6 @@ void CIpsPlgMsgMapper::SetFlags(
     {
     FUNC_LOG;
 
-    TBool forwardedMeetingRequest = EFalse;
-    
     // EFSMsgFlag_Read
     // EFSMsgFlag_Read_Locally
     if ( aEntry.Unread() )
@@ -692,33 +686,12 @@ void CIpsPlgMsgMapper::SetFlags(
                 // <cmail> implementation changed due to cs warning
                 TInt attCount = 0;
                 TRAPD ( err, attCount = GetAttachmentCountL( aEntry ) );
-                if ( err == KErrNone && attCount == 1 )
+                if ( err == KErrNone && attCount < 2 )
                 	{
-                	CMsvEntry* cEntry = NULL;
-                	TRAPD ( err2, cEntry = iSession.GetEntryL( aEntry.Id() ) );
-                	if ( err2 == KErrNone && cEntry->Count() == 1 )
-                		{
-                		TMsvEmailEntry tEntry = (*cEntry)[0];
-                		TImEmailFolderType ft = tEntry.MessageFolderType();
-                		if ( tEntry.iType == KUidMsvFolderEntry && ft == EFolderTypeMixed  )
-                			{
-                           	// Message with calendar object. But based on content type
-                			// (multipart/mixed) we know that this is meeting request
-                			// forwarded as email, so it must be seen as normal email.
-                   			forwardedMeetingRequest = ETrue;
-                   			aMsg.ResetFlag( EFSMsgFlag_CalendarMsg );
-                   			aMsg.SetFlag( EFSMsgFlag_Attachments );
-                        	}
-						else
-							{
-							// Only text/calendar part included as attachment
-							aMsg.ResetFlag( EFSMsgFlag_Attachments );
-							//Set Attachment flag for CMsvEntry (needed for sorting)
-							TRAP_IGNORE( SetAttachmentFlagL( aEntry, EFalse ) );
-							}
-                		}
-                	delete cEntry;
-                	cEntry = NULL;
+                    // Only text/calendar part included as attachment
+                    aMsg.ResetFlag( EFSMsgFlag_Attachments );
+                    //Set Attachment flag for CMsvEntry (needed for sorting)
+                    TRAP_IGNORE( SetAttachmentFlagL( aEntry, EFalse ) );
                 	}
                 // </cmail>
                 }
@@ -735,7 +708,7 @@ void CIpsPlgMsgMapper::SetFlags(
     // the index entry)
 
     // EFSMsgFlag_CalendarMsg
-    if ( aEntry.ICalendar() && !forwardedMeetingRequest ) // <cmail>
+    if ( aEntry.ICalendar() )
         {
         aMsg.SetFlag( EFSMsgFlag_CalendarMsg );
         }
@@ -776,16 +749,15 @@ void CIpsPlgMsgMapper::SetFlags(
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-void CIpsPlgMsgMapper::SetFetchStateL(
+void CIpsPlgMsgMapper::SetFetchState(
     const TMsvEmailEntry& aEntry,
     TMsvId aMsgMainId,
     TBool aIsAtta,
     CFSMailMessagePart& aMessage )
     {
     FUNC_LOG;
-    if ( aEntry.iMtm.iUid == KSenduiMtmPop3UidValue && 
-            aEntry.Id() != aMsgMainId &&
-            !aIsAtta )
+    if ( aEntry.iMtm.iUid == KSenduiMtmPop3UidValue
+            && aEntry.Id() != aMsgMainId )
         {
         TInt error = KErrNone;
         TMsvEmailEntry emlEntry;
@@ -795,7 +767,7 @@ void CIpsPlgMsgMapper::SetFetchStateL(
 
         if ( error == KErrNone )
             {
-            DoSetFetchStateL( emlEntry, aMsgMainId, aIsAtta, aMessage );
+            SetFetchStateImap( emlEntry, aMsgMainId, aIsAtta ,aMessage );
             }
         else
             {
@@ -804,13 +776,13 @@ void CIpsPlgMsgMapper::SetFetchStateL(
         }
     else
         {
-        DoSetFetchStateL( aEntry, aMsgMainId, aIsAtta, aMessage );
+        SetFetchStateImap( aEntry, aMsgMainId, aIsAtta, aMessage );
         }
     }
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-void CIpsPlgMsgMapper::DoSetFetchStateL(
+void CIpsPlgMsgMapper::SetFetchStateImap(
     const TMsvEmailEntry& aEntry,
     TMsvId aMsgMainId,
     TBool aIsAtta,
@@ -821,43 +793,9 @@ void CIpsPlgMsgMapper::DoSetFetchStateL(
         {
         aMessage.SetMessagePartsStatus( EFSPartial );
         }
-    else if ( aEntry.BodyTextComplete() && !aIsAtta )
+    else if ( aEntry.Complete() || (aEntry.BodyTextComplete() && !aIsAtta) )
         {
         aMessage.SetMessagePartsStatus( EFSFull );
-        }
-    else if ( aEntry.Complete() && !aIsAtta )
-        {
-        aMessage.SetMessagePartsStatus( EFSFull );
-        }
-    else if ( aEntry.Complete() && aIsAtta )
-        {
-        CMsvEntry* cEntry = iSession.GetEntryL( aEntry.Id() );
-
-        CleanupStack::PushL( cEntry );
-
-        TBool hasStore = cEntry->HasStoreL();
-
-        if ( hasStore )
-            {
-            CMsvStore* store = cEntry->EditStoreL();
-    
-            CleanupStack::PushL( store );
-
-            MMsvAttachmentManager& attMgr = store->AttachmentManagerL();
-        
-            if ( attMgr.AttachmentCount() )
-                {
-                aMessage.SetMessagePartsStatus( EFSFull );
-                }
-            else
-                {
-                aMessage.SetMessagePartsStatus( EFSNone );
-                }
-            
-            CleanupStack::PopAndDestroy( store );
-            }
-
-        CleanupStack::PopAndDestroy( cEntry );
         }
     else if ( aEntry.Id() != aMsgMainId )
         {
@@ -1251,8 +1189,10 @@ CFSMailMessagePart* CIpsPlgMsgMapper::ConvertBodyEntry2MessagePartL(
 
         CleanupStack::Pop( result );
         }
-    SetFetchStateL( aEntry, aMessageId.Id(), EFalse, *result );
+    SetFetchState( aEntry, aMessageId.Id(), EFalse, *result );
+// <cmail>
     CleanupStack::PopAndDestroy( buf );
+// </cmail>
     return result;
     }
 
@@ -1268,8 +1208,7 @@ CFSMailMessagePart* CIpsPlgMsgMapper::ConvertAttachmentEntry2MessagePartL(
     HBufC* buffer;
     CMsvEntry* cEntry;
 
-    __ASSERT_DEBUG( ( aEntry.iType == KUidMsvAttachmentEntry || 
-    	aEntry.iType == KUidMsvMessageEntry ),
+    __ASSERT_DEBUG( ( aEntry.iType == KUidMsvAttachmentEntry ),
         User::Panic( KIpsPlgPanicCategory, EIpsPlgInvalidEntry ) );
 
     cEntry = iSession.GetEntryL( aEntry.Id() );
@@ -1289,14 +1228,7 @@ CFSMailMessagePart* CIpsPlgMsgMapper::ConvertAttachmentEntry2MessagePartL(
             mimeHeader->RestoreL( *store );
 
             // Content-type
-            if ( aEntry.iType.iUid == KUidMsvMessageEntryValue )
-                {
-                result->SetContentType( KMimeTypeMultipartRfc822 );
-                }
-            else
-                {
-                SetContentTypeL( *mimeHeader, *result );
-                }
+            SetContentTypeL( *mimeHeader, *result );
 
             // Content-description
             buffer = HBufC::NewLC(
@@ -1341,18 +1273,7 @@ CFSMailMessagePart* CIpsPlgMsgMapper::ConvertAttachmentEntry2MessagePartL(
             CleanupStack::PopAndDestroy( mimeHeader );
             }
         // Name
-        if ( aEntry.iType.iUid == KUidMsvMessageEntryValue )
-            {
-            HBufC* att = HBufC::NewLC( aEntry.iDescription.Length() + KEmbeddedMsgExtensionLength );
-            att->Des().Copy( aEntry.iDescription );
-            att->Des().Append( KMessageExtension );
-            result->SetAttachmentNameL( att->Des() );
-            CleanupStack::PopAndDestroy( att );
-            }
-        else
-            {
-            result->SetAttachmentNameL( aEntry.iDetails );
-            }
+        result->SetAttachmentNameL( aEntry.iDetails );
 
         // Size
         result->SetContentSize( aEntry.iSize );
@@ -1367,10 +1288,9 @@ CFSMailMessagePart* CIpsPlgMsgMapper::ConvertAttachmentEntry2MessagePartL(
             }
         result->SetMailBoxId( aMailBoxId );
         CleanupStack::PopAndDestroy(store);
-        
-        SetFetchStateL( aEntry, aMessageId.Id(), ETrue, *result );
         CleanupStack::Pop( result );
         }
+    SetFetchState( aEntry, aMessageId.Id(), ETrue ,*result );
     CleanupStack::PopAndDestroy( cEntry );
 
     return result;
@@ -1514,11 +1434,9 @@ void CIpsPlgMsgMapper::SetAttachmentFlagL( const TMsvEmailEntry& aEntry,
 	// Only text/calendar part included as attachment
 	TMsvEmailEntry entryToBeChanged( aEntry );
 	entryToBeChanged.SetAttachment( aHasAttachment );
-	CIpsPlgOperationWait* waiter = CIpsPlgOperationWait::NewLC();
-	CMsvOperation* ops = cEntry->ChangeL( entryToBeChanged, waiter->iStatus );
-	CleanupStack::PushL( ops );
-	waiter->Start();
-	CleanupStack::PopAndDestroy( 3, cEntry );
+	cEntry->ChangeL( entryToBeChanged );
+	
+	CleanupStack::PopAndDestroy( cEntry );
 	}
 // </cmail>
 

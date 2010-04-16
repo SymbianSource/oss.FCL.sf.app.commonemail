@@ -30,7 +30,7 @@ class CIpsSosAOSmtpAgent;
 * CIpsSosAOSmtpSendWatcher
 *
 */
-class CIpsSosAOSmtpSendWatcher : 
+NONSHARABLE_CLASS (CIpsSosAOSmtpSendWatcher) : 
     public CActive
     {
     public:

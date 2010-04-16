@@ -35,7 +35,7 @@ LOCAL_C void DoPreInstallL( );
 /**
  * Pre Install helper class.
  */
-class CEmailStorePreInstall : public CTimer , public MObserverPreInstall
+NONSHARABLE_CLASS ( CEmailStorePreInstall ) : public CTimer , public MObserverPreInstall
     {
     public:
         /**

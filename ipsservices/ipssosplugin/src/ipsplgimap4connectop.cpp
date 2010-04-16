@@ -20,6 +20,11 @@
 #include "emailtrace.h"
 #include "ipsplgheaders.h"
 
+// <qmail>
+const TInt KIpsSetDataHeadersOnly           = -2;
+const TInt KIpsSetDataFullBodyAndAttas      = -1;
+const TInt KIpsSetDataFullBodyOnly          = -3;
+// </qmail>
 
 _LIT( KIpsPlgIpsConnPanic, "IpsConn" ); 
 
@@ -88,8 +93,7 @@ CIpsPlgImap4ConnectOp::CIpsPlgImap4ConnectOp(
     	aSignallingAllowed ),
     iDoPlainConnect( aDoPlainConnect ),
     iEventHandler( aEventHandler ),
-    iIsSyncStartedSignaled( EFalse ),
-    iAlreadyConnected( EFalse )
+    iIsSyncStartedSignaled( EFalse )
     {
     FUNC_LOG;
     iService = aService;
@@ -126,20 +130,10 @@ void CIpsPlgImap4ConnectOp::ConstructL()
         User::Panic( KIpsPlgIpsConnPanic, KErrNotSupported );
         }
     
-    if ( tentry.Connected() )
-        {      
-        iState = EStateCompleted; 
-        iAlreadyConnected = ETrue;
-        SetActive();
-        CompleteThis();
-        }
-    else
-        {
-        iState = EStateStartConnect;
-        iStatus = KRequestPending;    
-        SetActive();
-       CompleteThis();
-        }    
+	iState = EStateStartConnect;
+    iStatus = KRequestPending;    
+    SetActive();
+    CompleteThis();
     }
 
 // ----------------------------------------------------------------------------
@@ -219,20 +213,7 @@ TInt CIpsPlgImap4ConnectOp::IpsOpType() const
     return EIpsOpTypeImap4SyncOp;
     }
 
-// ----------------------------------------------------------------------------
-// CIpsPlgImap4ConnectOp::Connected()
-// ----------------------------------------------------------------------------
-// 
-TBool CIpsPlgImap4ConnectOp::Connected() const
-    {
-    FUNC_LOG;
-    TMsvEntry tentry;
-    TMsvId service;
-    iMsvSession.GetEntry(iService, service, tentry );
-    return tentry.Connected();
-    }
-
-
+// <qmail> Connected() moved to baseclass
 // ----------------------------------------------------------------------------
 // CIpsPlgImap4ConnectOp::DoCancel()
 // ----------------------------------------------------------------------------
@@ -348,27 +329,9 @@ void CIpsPlgImap4ConnectOp::DoRunL()
 // ----------------------------------------------------------------------------
 // 
 void CIpsPlgImap4ConnectOp::HandleImapConnectionEvent(
-    TImapConnectionEvent aConnectionEvent )
+    TImapConnectionEvent /*aConnectionEvent*/ )
     {
-    FUNC_LOG;
-    switch ( aConnectionEvent )
-        {
-        case EConnectingToServer:
-            break;
-        case ESynchronisingFolderList:
-        case ESynchronisingInbox:
-		case ESynchronisingFolders:
-		    // send sync started event in any of these sync events
-		    SignalSyncStarted();
-		    break;
-		case ESynchronisationComplete:
-		    break;
-		case EDisconnecting:
-		    break;
-		case EConnectionCompleted:
-	    default:
-	        break;
-        }
+    //not used at the moment
     }
 
 // ----------------------------------------------------------------------------
@@ -400,6 +363,8 @@ void CIpsPlgImap4ConnectOp::DoConnectOpL()
         // connect and synchronise starts background sync or idle
         iOperation = iBaseMtm->InvokeAsyncFunctionL(
                 KIMAP4MTMConnect, *iSelection, parameter, iStatus);
+        // also set sync started
+        SignalSyncStarted();
         iState = EStateConnectAndSync;
         SetActive();
         }
@@ -424,6 +389,7 @@ void CIpsPlgImap4ConnectOp::DoConnectOpL()
         iOperation = iBaseMtm->InvokeAsyncFunctionL(
                 KIMAP4MTMConnectAndSyncCompleteAfterFullSync, 
                 *iSelection, parameter, iStatus);
+        SignalSyncStarted();
         iState = EStateConnectAndSync;
         SetActive();
         }
@@ -444,7 +410,7 @@ void CIpsPlgImap4ConnectOp::DoPopulateAllL()
     accounts->GetImapAccountL(iService, imapAcc );
     accounts->LoadImapSettingsL( imapAcc, *settings );
     TImImap4GetPartialMailInfo info;
-    CIpsSetDataApi::ConstructImapPartialFetchInfo( info, *settings );
+    ConstructImapPartialFetchInfo( info, *settings );
     TPckgBuf<TImImap4GetPartialMailInfo> package(info);
     CleanupStack::PopAndDestroy( 2, settings );
     
@@ -522,10 +488,7 @@ void CIpsPlgImap4ConnectOp::StartL()
 // 
 void CIpsPlgImap4ConnectOp::QueryUserPwdL()
     {
-    if ( iEventHandler )
-        {
-        iEventHandler->QueryUsrPassL( iService, this );
-        }
+    iEventHandler->QueryUsrPassL( iService, this );
     }
 
     
@@ -535,13 +498,6 @@ void CIpsPlgImap4ConnectOp::QueryUserPwdL()
 //     
 /*TInt CIpsPlgImap4ConnectOp::GetOperationErrorCodeL( )
     {
-    if ( iAlreadyConnected )
-        {
-        // Connected state was set in CIpsPlgPop3ConnectOp::ConstructL()
-        // so iOperation is null
-        return KErrNone;
-        }
-        
     if ( !iOperation )
         {
         return KErrNotFound;
@@ -601,5 +557,50 @@ void CIpsPlgImap4ConnectOp::CredientialsSetL( TInt aEvent )
     SetActive();
     CompleteThis();
     }
+
+// <qmail>
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+void CIpsPlgImap4ConnectOp::ConstructImapPartialFetchInfo( 
+        TImImap4GetPartialMailInfo& aInfo, CImImap4Settings& aImap4Settings )
+
+    {
+    FUNC_LOG;
+    TInt sizeLimit = aImap4Settings.BodyTextSizeLimit();
+    
+    if ( sizeLimit == KIpsSetDataHeadersOnly )
+        {
+        aInfo.iTotalSizeLimit = KIpsSetDataHeadersOnly;
+        }
+    else if ( sizeLimit == KIpsSetDataFullBodyAndAttas )
+        {        
+        aInfo.iTotalSizeLimit = KMaxTInt;
+        aInfo.iAttachmentSizeLimit = KMaxTInt;
+        aInfo.iBodyTextSizeLimit = KMaxTInt;
+        aInfo.iMaxEmailSize = KMaxTInt;
+        aInfo.iPartialMailOptions = ENoSizeLimits;
+        aInfo.iGetMailBodyParts = EGetImap4EmailBodyTextAndAttachments;
+        }
+    else if ( sizeLimit == KIpsSetDataFullBodyOnly )
+        {
+        aInfo.iTotalSizeLimit = KMaxTInt; 
+        aInfo.iAttachmentSizeLimit = 0;
+        aInfo.iBodyTextSizeLimit = KMaxTInt;
+        aInfo.iMaxEmailSize = KMaxTInt;
+        aInfo.iPartialMailOptions = EBodyAlternativeText;
+        aInfo.iGetMailBodyParts = EGetImap4EmailBodyAlternativeText;
+        }
+    else
+        {
+        aInfo.iTotalSizeLimit = sizeLimit*1024; 
+        // set zero when it not documentated does total size overrides these 
+        aInfo.iAttachmentSizeLimit = 0;
+        aInfo.iMaxEmailSize = sizeLimit*1024;
+        aInfo.iBodyTextSizeLimit = sizeLimit*1024;
+        aInfo.iPartialMailOptions = EBodyAlternativeText;
+        aInfo.iGetMailBodyParts = EGetImap4EmailBodyAlternativeText;
+        }
+    }
+// </qmail>
 // End of File
 

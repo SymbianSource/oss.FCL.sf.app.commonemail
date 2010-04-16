@@ -33,7 +33,7 @@ class MMsgStoreSearchClient;
 // =============================
 // CLASS: CMsgStoreSearchHandler
 // =============================
-class CMsgStoreSearchHandler : private CActive
+NONSHARABLE_CLASS ( CMsgStoreSearchHandler ): private CActive
     {
     public:
     

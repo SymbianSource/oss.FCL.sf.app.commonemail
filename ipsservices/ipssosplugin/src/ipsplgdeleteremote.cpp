@@ -38,12 +38,11 @@ CIpsPlgDeleteRemote::CIpsPlgDeleteRemote(
         aMsvSession, 
         CActive::EPriorityStandard, 
         aObserverRequestStatus),
-        
-    iBlank( KNullDesC8 )
-            {
+        iBlank( KNullDesC8 )
+    {
     FUNC_LOG;
     CActiveScheduler::Add(this);
-            }
+    }
 
 
 // ----------------------------------------------------------------------------
@@ -71,7 +70,13 @@ void CIpsPlgDeleteRemote::ConstructL(
     iMtm = iEntry->Entry().iMtm;
 
     iStatus=KRequestPending;
-    StartNextDeleteLocally();
+
+	// <qmail>    
+    // It is known that there is at least one entry -> no return value check
+    SetNextLocallyDeletedFlagL();
+
+    SetActive();
+	// </qmail>    
     }
 
 // ----------------------------------------------------------------------------
@@ -104,6 +109,9 @@ CIpsPlgDeleteRemote::~CIpsPlgDeleteRemote()
     delete iOperation;
     delete iEntry;
     delete iEntrySelection;
+	// <qmail>    
+    delete iSetFlagEntry;
+	// </qmail>    
     }
 
 // ----------------------------------------------------------------------------
@@ -140,7 +148,29 @@ void CIpsPlgDeleteRemote::RunL()
         return;
         }
 
-    if ( iState == EDeletingMessagesStateLocally )
+	// <qmail>    
+    if ( iState == EDeletingMessagesStateSetFlags )
+        {
+        // cleanup is handled by SetNextLocallyDeletedFlagL
+        TBool ret = EFalse;
+        
+        TRAPD( err, ret = SetNextLocallyDeletedFlagL() );
+        
+        if ( err != KErrNone )
+            {
+            TRequestStatus* status = &iObserverRequestStatus;
+            User::RequestComplete(status, iStatus.Int());
+            }
+        else if ( ret )
+            {
+            SetActive();
+            }
+        else
+            { // setting the flags is ready, start local deletion
+            StartNextDeleteLocally();
+            }
+        }
+    else if ( iState == EDeletingMessagesStateLocally )
         {
         // local delete completed, start deleting from server
         StartDeleteFromServer();
@@ -151,7 +181,8 @@ void CIpsPlgDeleteRemote::RunL()
         TRequestStatus* status = &iObserverRequestStatus;
         User::RequestComplete(status, iStatus.Int());
         }
-    }
+    // </qmail>    
+	}
 
 // ----------------------------------------------------------------------------
 // CIpsPlgDeleteRemote::ProgressL
@@ -237,6 +268,46 @@ void CIpsPlgDeleteRemote::MakeDeleteFromServerL()
     iOperation = NULL;
     iOperation = iEntry->DeleteL( *iEntrySelection, iStatus );
     }
+
+
+// <qmail>    
+// ----------------------------------------------------------------------------
+// CIpsPlgDeleteRemote::SetNextLocallyDeletedFlagL
+// ----------------------------------------------------------------------------
+//
+TBool CIpsPlgDeleteRemote::SetNextLocallyDeletedFlagL()
+    {
+    FUNC_LOG;
+    
+    delete iOperation;
+    iOperation = NULL;
+    
+    delete iSetFlagEntry;
+    iSetFlagEntry = NULL;
+
+    TBool ret = EFalse;
+    
+    if ( iSetFlagIndex < iEntryCount )
+        {
+        TMsvId entryId = ( *iEntrySelection )[ iSetFlagIndex++ ];
+        
+        iSetFlagEntry = CMsvEntry::NewL( 
+            iMsvSession, entryId, TMsvSelectionOrdering() );
+        
+        TMsvEntry tEntry = iSetFlagEntry->Entry();
+
+        // Sets bit 32 of iMtmData1, used when msg deleted in Offline
+        // and status hasn't updated to server (client entry still exists)
+        tEntry.SetLocallyDeleted( ETrue );
+
+        iOperation = iSetFlagEntry->ChangeL( tEntry, iStatus );
+        
+        ret = ETrue;
+        }
+    
+    return ret;
+    }
+// </qmail>    
 
 //  End of File
 

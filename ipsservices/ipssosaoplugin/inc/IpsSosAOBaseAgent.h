@@ -58,7 +58,7 @@ public:
 *
 * @lib ipssosaoplugin.lib
 */
-class CIpsSosAOBaseAgent : public CActive
+NONSHARABLE_CLASS (CIpsSosAOBaseAgent) : public CActive
     {
     
 public: // enums

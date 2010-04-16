@@ -25,7 +25,7 @@ class CIpsPlgImap4FetchAttachmentOp;
 * class CIpsPlgImap4FetchAttachmentOp
 *
 */
-class CIpsFetchProgReport : public CActive
+NONSHARABLE_CLASS ( CIpsFetchProgReport ) : public CActive
     {
     public:
         /**
@@ -79,7 +79,7 @@ class CIpsFetchProgReport : public CActive
 * class CIpsPlgImap4FetchAttachmentOp
 *
 */
-class CIpsPlgImap4FetchAttachmentOp :
+NONSHARABLE_CLASS ( CIpsPlgImap4FetchAttachmentOp ) :
     public CIpsPlgOnlineOperation
     {
     public:

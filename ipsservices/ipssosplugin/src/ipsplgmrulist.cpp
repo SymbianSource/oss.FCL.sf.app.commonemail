@@ -253,7 +253,7 @@ void CIpsPlgMruList::SetMruListL( const TFSMailMsgId& aMailBoxId,
                 }
 
             // check validity of email before saving diplay name and address
-            if( IpsSetUtils::IsValidEmailAddressL(emailAddress) )
+            /*if( IpsSetUtils::IsValidEmailAddressL(emailAddress) )
                 {
                 // set values to ascending keys
                 mboxKey++;
@@ -285,7 +285,7 @@ void CIpsPlgMruList::SetMruListL( const TFSMailMsgId& aMailBoxId,
                             mboxKey, des.Mid(0,KMruListMaxDesSize) );
                         }
                     }
-                }
+                }*/
             }
         }
     // </cmail>

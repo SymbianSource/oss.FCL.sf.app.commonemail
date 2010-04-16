@@ -1,9 +1,0 @@
-EXPORTS
-	?AddParamL@CESMRGenericFieldEvent@@QAEXPAVCESMRFieldEventValue@@H@Z @ 1 NONAME ; void CESMRGenericFieldEvent::AddParamL(class CESMRFieldEventValue *, int)
-	?NewL@CESMRFieldCommandEvent@@SAPAV1@PAVMESMRFieldEventNotifier@@H@Z @ 2 NONAME ; class CESMRFieldCommandEvent * CESMRFieldCommandEvent::NewL(class MESMRFieldEventNotifier *, int)
-	?NewL@CESMRFieldEventValue@@SAPAV1@W4TValueType@MESMRFieldEventValue@@PAX@Z @ 3 NONAME ; class CESMRFieldEventValue * CESMRFieldEventValue::NewL(enum MESMRFieldEventValue::TValueType, void *)
-	?NewL@CESMRGenericFieldEvent@@SAPAV1@PAVMESMRFieldEventNotifier@@W4TEventType@MESMRFieldEvent@@@Z @ 4 NONAME ; class CESMRGenericFieldEvent * CESMRGenericFieldEvent::NewL(class MESMRFieldEventNotifier *, enum MESMRFieldEvent::TEventType)
-	?NewLC@CESMRFieldCommandEvent@@SAPAV1@PAVMESMRFieldEventNotifier@@H@Z @ 5 NONAME ; class CESMRFieldCommandEvent * CESMRFieldCommandEvent::NewLC(class MESMRFieldEventNotifier *, int)
-	?NewLC@CESMRFieldEventValue@@SAPAV1@W4TValueType@MESMRFieldEventValue@@PAX@Z @ 6 NONAME ; class CESMRFieldEventValue * CESMRFieldEventValue::NewLC(enum MESMRFieldEventValue::TValueType, void *)
-	?NewLC@CESMRGenericFieldEvent@@SAPAV1@PAVMESMRFieldEventNotifier@@W4TEventType@MESMRFieldEvent@@@Z @ 7 NONAME ; class CESMRGenericFieldEvent * CESMRGenericFieldEvent::NewLC(class MESMRFieldEventNotifier *, enum MESMRFieldEvent::TEventType)
-

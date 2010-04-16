@@ -960,36 +960,18 @@ void CIpsPlgSearch::QuickSort(
 void CIpsPlgSearch::CollectMessagesL()
     {
     FUNC_LOG;
-    TMsvId mailboxId = iCurrentSearch.iMailbox.Id();
-	TMsvId serviceId;
-	TMsvEntry tEntry;
-	TMsvEntry mailboxServiceEntry;
-	
     // Lets make a huge list of message id's. 
     iEmailMessages.Reset();    
     
     const TInt folders = iCurrentSearch.iFolderIds.Count();
     for ( TInt folder = 0; folder < folders; folder++ )
         {
-        iActiveEntry->SetEntryL( iCurrentSearch.iFolderIds[folder].Id() );  
-    	if( iActiveEntry->Entry().Parent() == KMsvLocalServiceIndexEntryIdValue )
-    		{
-    		User::LeaveIfError(
-    			iMsvSession.GetEntry( mailboxId, serviceId, tEntry ) );
-    		User::LeaveIfError(
-    		    iMsvSession.GetEntry( tEntry.iRelatedId, serviceId, mailboxServiceEntry ) );
-    		}
-    	else
-    		{
-     		serviceId = mailboxId;
-    		}
-
+        iActiveEntry->SetEntryL( iCurrentSearch.iFolderIds[folder].Id() );        
         const TInt msgs = iActiveEntry->Count();
         for ( TInt msg = 0; msg < msgs; msg++ )
             {
             const TMsvEntry& entry = ( *iActiveEntry )[msg];
             if ( entry.iType == KUidMsvMessageEntry &&
-            	 entry.iServiceId == serviceId &&
                  ( entry.iMtm.iUid == KSenduiMtmSmtpUidValue ||
                    entry.iMtm.iUid == iPlugin.MtmId().iUid ) )
                 {
@@ -999,15 +981,6 @@ void CIpsPlgSearch::CollectMessagesL()
             }
         }    
     }
-
-//Ask client if it wants to change the search prority (i.e. to enable search for contact)
-void CIpsPlgSearch::ClientRequiredSearchPriority( TInt *apRequiredSearchPriority )
-	{
-	FUNC_LOG;
-	if ( iObserver )
-	  iObserver->ClientRequiredSearchPriority( apRequiredSearchPriority );
-	}
-
     
 // End of File
 

@@ -103,12 +103,7 @@ public:
     
     TInt FindMailbox( TMsvId aMailbox );
     
-    /**
-    * Checks is there any connect operations running, meaning
-    * that the mailbox is in "connected" state.
-    * @param aMailBoxId Id of the mailbox which state is checked
-    */
-    TBool ConnOpRunning( const TFSMailMsgId& aMailBoxId  );
+
     
 private:
     

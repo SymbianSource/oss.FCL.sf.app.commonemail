@@ -28,7 +28,7 @@
 
 #include "MsgStoreTypes.h"
 #include "MsgStorePropertyKeys.h"
-#include "EmailStoreUids.hrh"
+#include "emailstoreuids.hrh"
 #include "MessageStoreServer.h"
 #include "MessageStoreSession.h"
 #include "ContainerStore.h"

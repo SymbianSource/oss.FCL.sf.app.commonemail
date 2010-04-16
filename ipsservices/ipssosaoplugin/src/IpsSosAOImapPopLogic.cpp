@@ -30,7 +30,9 @@
 #include "IpsSosAOImapPopLogic.h"
 #include "IpsSosAOMboxLogic.h"
 #include "IpsSosAOEMNResolver.h"
-#include "ipssetdataapi.h"
+//<QMail>
+
+//</QMail>
 
 
 
@@ -60,7 +62,9 @@ CIpsSosAOImapPopLogic::~CIpsSosAOImapPopLogic()
     iMailboxLogics.ResetAndDestroy();
    // iActiveEvents.ResetAndDestroy();
     delete iEmnResolver;
-    delete iDataApi;
+	//<QMail>
+
+	//</QMail>
     }
 
 // ----------------------------------------------------------------------------
@@ -84,7 +88,9 @@ void CIpsSosAOImapPopLogic::ConstructL()
     {
     FUNC_LOG;
     iEmnResolver = CIpsSosAOEMNResolver::NewL();
-    iDataApi = CIpsSetDataApi::NewL( iSession );
+	//<QMail>
+
+	//</QMail>
     }
 
 // ----------------------------------------------------------------------------
@@ -405,7 +411,8 @@ void CIpsSosAOImapPopLogic::UpdateLogicArrayL(
                 found = ETrue;
                 }
             }
-        
+		//<QMail>
+        /*
         CIpsSetDataExtension* extSet = CIpsSetDataExtension::NewLC();
         TRAPD( error, iDataApi->LoadExtendedSettingsL( 
                 mboxId, *extSet ) );
@@ -430,6 +437,8 @@ void CIpsSosAOImapPopLogic::UpdateLogicArrayL(
                 }
             }
         CleanupStack::PopAndDestroy( extSet );
+        */
+		//</QMail>
         }
     }
 

@@ -29,21 +29,26 @@
 //</cmail>
 
 #include "IpsSosAOBaseAgent.h"
-#include "IpsSetDataExtension.h"
+//<QMail>
+
+//</QMail>
 #include "IpsSosAOPluginTimer.h"
 //<cmail>
 //</cmail>
+//<QMail>
 
-class CIpsSetDataApi;
+//</QMail>
 class CIpsSosAOBaseAgent;
-class CIpsSetDataExtension;
+//<QMail>
+
+//</QMail>
 class CIpsSosAOImapPopLogic;
 
 /**
 * class CIpsSosAOImapPopLogic;
 *
 */
-class CIpsSosAOMBoxLogic : 
+NONSHARABLE_CLASS (CIpsSosAOMBoxLogic) : 
     public CBase, 
                            public MIpsSosAOPluginTimerCallBack,
                            public MIpsSosAOAgentOperationResponse
@@ -315,9 +320,13 @@ private:
     CIpsSosAOPluginTimer*           iTimer;
     // message fetch is not currently used
     RArray<TMsvId>                  iFetchMsgArray;
-    CIpsSetDataApi*                 iDataApi;
+	//<QMail>
+
+	//</QMail>
     CIpsSosAOBaseAgent*             iAgent;
-    CIpsSetDataExtension*           iExtendedSettings;
+	//<QMail>
+
+	//</QMail>
     TBool                           iIsRoaming;
     };
 

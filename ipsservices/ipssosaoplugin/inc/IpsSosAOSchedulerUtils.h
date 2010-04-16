@@ -21,9 +21,9 @@
 #define IPSSOSAOSCHEDULERUTILS_H_
 
 #include <e32base.h>
+//<Qmail>
 
-class CIpsSetDataExtension;
-
+//</Qmail>
 enum TIpsSosAOConnectionType
     {
     EAOCDisconnectAfter = 0,
@@ -49,7 +49,7 @@ enum TIpsSosAOValidConnectionDay
 *    
 *  @since FSEmail 2.0
 */
-class CIpsSosAOSchedulerUtils : public CBase
+NONSHARABLE_CLASS (CIpsSosAOSchedulerUtils) : public CBase
     {
 public:  // Constructors and destructor
 
@@ -57,16 +57,16 @@ public:  // Constructors and destructor
     * NewLC
     * @return, Constructed object
     */
-    static CIpsSosAOSchedulerUtils* NewLC(
-        const CIpsSetDataExtension& aExtentedSettings );
-
+    //<Qmail>
+    static CIpsSosAOSchedulerUtils* NewLC();
+    //</Qmail>
     /**
     * NewL
     * @return, Constructed object
     */
-    static CIpsSosAOSchedulerUtils* NewL(
-        const CIpsSetDataExtension& aExtentedSettings );
-
+    //<Qmail>
+    static CIpsSosAOSchedulerUtils* NewL();
+    //</Qmail>
     /**
     * Destructor
     */
@@ -92,9 +92,9 @@ private:
     /**
     * Constructor
     */
-    CIpsSosAOSchedulerUtils(
-        const CIpsSetDataExtension& aExtentedSettings );
-
+    //<Qmail>
+    CIpsSosAOSchedulerUtils();
+    //</Qmail>
     /**
     * Symbian 2-phase constructor
     */
@@ -207,7 +207,9 @@ private:
 private:
 
     // Reference to extended settings
-    const CIpsSetDataExtension&  iExtentedSettings;
+    //<Qmail>
+    
+    //</Qmail>
     };
 
 

@@ -17,7 +17,7 @@
 #ifndef _EMAILSTOREPSKEYS_H_
 #define _EMAILSTOREPSKEYS_H_
 
-#include "EmailStoreUids.hrh"
+#include "emailstoreuids.hrh"
 
 /**
   * EmailStore Upgrade P/S Category UID

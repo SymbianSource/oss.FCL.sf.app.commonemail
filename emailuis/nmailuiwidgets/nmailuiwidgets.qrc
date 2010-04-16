@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/" >
+        <file alias="nmattachmentlistwidget.docml" >resources/nmattachmentlistwidget.docml</file>
+        <file alias="nmattachmentlistitem.widgetml" >resources/nmattachmentlistitem.widgetml</file>
+        <file alias="nmattachmentlistitem.css" >resources/nmattachmentlistitem.css</file>
+    </qresource>
+</RCC>

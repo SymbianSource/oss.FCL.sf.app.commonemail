@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2008 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -25,7 +25,7 @@
 #include <msvapi.h>
 #include <AlwaysOnlineManagerCommon.h>
 //<cmail>
-#include "CFSMailCommon.h"
+#include "cfsmailcommon.h"
 //</cmail>
 
 
@@ -34,8 +34,9 @@
 
 
 // from settings
-#include "ipssetdataapi.h"
-#include "ipssetutilsconsts.h"
+//<QMail>
+
+//</QMail>
 
 // from ipsplugin
 #include "ipsplgimap4populateop.h"
@@ -67,7 +68,9 @@ CIpsSosAOImapAgent::~CIpsSosAOImapAgent()
     delete iOngoingOp;
     delete iImapClientMtm;
     delete iMtmReg;
-    delete iDataApi;
+	//<QMail>
+
+	//</QMail>
     iFoldersArray.Close();
 
     }
@@ -98,7 +101,9 @@ void CIpsSosAOImapAgent::ConstructL()
     iMtmReg = CClientMtmRegistry::NewL( iSession );
     CBaseMtm* bmtm = iMtmReg->NewMtmL( KUidMsgTypeIMAP4 );
     iImapClientMtm = static_cast<CImap4ClientMtm*>(bmtm);
-    iDataApi = CIpsSetDataApi::NewL( iSession );
+	//<QMail>
+    
+	//</QMail>
     iState = EStateIdle; 
     }
  
@@ -181,7 +186,9 @@ void CIpsSosAOImapAgent::RunL()
              StartSyncL();
              break;
          case EStateRefreshFolderArray:
-             iDataApi->GetSubscribedImapFoldersL( iServiceId , iFoldersArray );
+			 //<QMail>
+             //iDataApi->GetSubscribedImapFoldersL( iServiceId , iFoldersArray );
+			 //</QMail>
              iState = EStatePopulateAll;
              SetActiveAndCompleteThis();
              break;
@@ -468,15 +475,19 @@ void CIpsSosAOImapAgent::PopulateAllL()
     {
     FUNC_LOG;
     TImImap4GetPartialMailInfo info;
-    CIpsSetDataApi::ConstructImapPartialFetchInfo( info, *iImapSettings );
+	//<QMail>
+    //CIpsSetDataApi::ConstructImapPartialFetchInfo( info, *iImapSettings );
+	//</QMail>
     
     if ( !IsConnected() )
         {
         SignalSyncCompleted( iServiceId, iError );
         CancelAllAndDisconnectL();
         }
-    else if ( iFoldersArray.Count() > 0 && info.iTotalSizeLimit 
-            != KIpsSetDataHeadersOnly )
+	//<QMail>
+    else if ( iFoldersArray.Count())// > 0 && info.iTotalSizeLimit 
+            //!= KIpsSetDataHeadersOnly )
+	//</QMail>
          {
 
          // only inbox is set, do we have to populate other folders also

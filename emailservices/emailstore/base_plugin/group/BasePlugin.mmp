@@ -19,8 +19,10 @@
 
 #include <platform_paths.hrh>
 
-#include "../../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
-#include "../../../../inc/emailtraceconfig.hrh"
+//<qmail>
+// Removed from 10.1
+//#include "../../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
+//</qmail>
 #include "../../inc/EmailStoreUids.hrh"
 
 TARGET            baseplugin.dll
@@ -29,7 +31,10 @@ UID KUidSharedLibrary KUidBasePlugin
 CAPABILITY        CAP_GENERAL_DLL
 VENDORID          VID_DEFAULT
 
-VERSION           KEmailBinaryVersionNumber
+//<qmail>
+// Removed from 10.1
+//VERSION           KEmailBinaryVersionNumber
+//</qmail>
 KEmailBinaryDemandPaging
 
 
@@ -51,14 +56,14 @@ SYSTEMINCLUDE /epoc32/include/ecom
 APP_LAYER_SYSTEMINCLUDE
 
 SOURCEPATH ../src
-SOURCE BasePlugin.cpp
+SOURCE baseplugin.cpp
 SOURCE basepluginmisc.cpp
 SOURCE basepluginparts.cpp
 SOURCE basepluginnotifications.cpp
-SOURCE BasePluginPanic.cpp
+SOURCE basepluginpanic.cpp
 SOURCE baseplugintranslator.cpp
-SOURCE MailIterator.cpp
-SOURCE BaseMrInfoObject.cpp
+SOURCE mailiterator.cpp
+SOURCE basemrinfoobject.cpp
 SOURCE basepluginfetch.cpp
 SOURCE baseplugindelayedops.cpp
 
@@ -78,6 +83,3 @@ LIBRARY     messagestoreclient.lib
 LIBRARY     fsfwcommonlib.lib
 
 LIBRARY     debuglog.lib
-#ifdef TRACE_INTO_FILE
-LIBRARY     flogger.lib
-#endif // TRACE_INTO_FILE

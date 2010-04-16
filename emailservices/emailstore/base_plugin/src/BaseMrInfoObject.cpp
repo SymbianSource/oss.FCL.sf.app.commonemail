@@ -18,7 +18,7 @@
 
 
 
-#include "BaseMrInfoObject.h"
+#include "basemrinfoobject.h"
 #include "BasePlugin.h"
 
 
@@ -84,7 +84,7 @@ void CBaseMrInfoObject::ConstructL(
     iPriority = aMrInfo.PriorityL();
 
     iOrganizer = CBaseMrAttendee::NewL();
-    iOrganizer = CBaseMrAttendee::NewL( aMrInfo.MROrganizerL() );
+    /*iOrganizer = CBaseMrAttendee::NewL( aMrInfo.MROrganizerL() );
     
     RPointerArray<MMRAttendee>& attendees = aMrInfo.AttendeesL();
     TInt count = attendees.Count();
@@ -94,7 +94,7 @@ void CBaseMrInfoObject::ConstructL(
         CleanupStack::PushL( attendee );
         iAttendees.AppendL( attendee );
         CleanupStack::Pop( attendee );
-        }
+        }*/
     
     iRrule = CBaseMrRecurrenceRule::NewL( aMrInfo.RecurrenceRuleL() );
     /**@ copy construction for iExceptions, iAttachments.*/

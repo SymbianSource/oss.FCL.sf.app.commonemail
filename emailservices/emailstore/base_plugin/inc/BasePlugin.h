@@ -34,7 +34,9 @@
 #include "DebugLogMacros.h"
 //</cmail>
 
-#include "BaseMrInfoObject.h"
+#include "baseplugindef.h"
+
+#include "basemrinfoobject.h"
 #include "Map.h"
 
 
@@ -49,12 +51,22 @@ class HMailIterator;
 class CDelayedOpsManager;
 class MDelayedOpsManager;
 
+//<qmail>
+/**
+* reply/forward message creation parameters
+*/
+struct TReplyForwardParams
+    {
+    HBufC* iHeader; // reply/forward header, ownership stays in UI
+    HBufC* iSmartTag; // smart reply/forward tag, ownership stays in UI
+    };
+//</qmail>
 
 /**
  * Notes for derived classes:
  * GetPluginId - you must override this to return the ECOM id of the plugin.
  */
-class CBasePlugin :
+class BASEPLUGIN_EXPORT CBasePlugin :
     public CFSMailPlugin,
     public MMsgStoreObserver,
     protected MMsgStoreMailBoxObserver
@@ -68,6 +80,7 @@ class CBasePlugin :
     //private components.
     friend class CDelayedDeleteMessagesOp;
     friend class CDelayedSetContentOp;
+    friend class CDelayedMessageStorerOp;
 
 	protected:
     struct TOngoingFetchInfo;
@@ -82,96 +95,96 @@ class CBasePlugin :
     public:
         static CBasePlugin* NewL();
         static CBasePlugin* NewLC();
-        IMPORT_C virtual ~CBasePlugin();
+        virtual ~CBasePlugin();
     protected:
-        IMPORT_C CBasePlugin();
-        IMPORT_C void ConstructL();
+         CBasePlugin();
+         void ConstructL();
 
     // CFSMailPlugin //
     public:
 
-        IMPORT_C virtual void ListMailBoxesL(
+         virtual void ListMailBoxesL(
             RArray<TFSMailMsgId>& aMailboxes );
 
-        IMPORT_C virtual CFSMailBox* GetMailBoxByUidL(
+         virtual CFSMailBox* GetMailBoxByUidL(
             const TFSMailMsgId& aMailBox);
 
-	    IMPORT_C virtual void DeleteMailBoxByUidL(
+	     virtual void DeleteMailBoxByUidL(
 	        const TFSMailMsgId& aMailBoxId,
 	        MFSMailRequestObserver& aOperationObserver,
 			const TInt aRequestId );
 
-        IMPORT_C virtual TDesC& GetBrandingIdL(
+         virtual TDesC& GetBrandingIdL(
             const TFSMailMsgId& aMailboxId );
 
-        IMPORT_C virtual void MoveMessagesL(
+         virtual void MoveMessagesL(
             const TFSMailMsgId& aMailBoxId,
             const RArray<TFSMailMsgId>& aMessageIds,
             const TFSMailMsgId& aSourceFolderId,
             const TFSMailMsgId& aDestinationFolderId );
 
-        IMPORT_C virtual void CopyMessagesL(
+         virtual void CopyMessagesL(
             const TFSMailMsgId& aMailBoxId,
             const RArray<TFSMailMsgId>& aMessageIds,
             RArray<TFSMailMsgId>& aNewMessages,
             const TFSMailMsgId& aSourceFolderId,
             const TFSMailMsgId& aDestinationFolderId );
 
-        IMPORT_C MDesCArray* GetMrusL(
+         MDesCArray* GetMrusL(
             const TFSMailMsgId& aMailBoxId );
 
-        IMPORT_C void SetMrusL(
+         void SetMrusL(
             const TFSMailMsgId& aMailBoxId,
             MDesCArray* aNewMruList );
 
-        IMPORT_C void GoOnlineL(
+         void GoOnlineL(
             const TFSMailMsgId& aMailBoxId );
 
-        IMPORT_C void GoOfflineL(
+         void GoOfflineL(
             const TFSMailMsgId& aMailBoxId );
 
-        IMPORT_C const TFSProgress GetLastSyncStatusL(
+         const TFSProgress GetLastSyncStatusL(
             const TFSMailMsgId& aMailBoxId );
 
-        IMPORT_C void RefreshNowL(
+         void RefreshNowL(
             const TFSMailMsgId& aMailBoxId,
          	MFSMailRequestObserver& aOperationObserver,
          	TInt aRequestId );
 
-        IMPORT_C virtual CFSMailFolder* GetFolderByUidL(
+         virtual CFSMailFolder* GetFolderByUidL(
             const TFSMailMsgId& aMailBoxId,
             const TFSMailMsgId& aFolderId );
 
-        IMPORT_C virtual CFSMailFolder* CreateFolderL(
+         virtual CFSMailFolder* CreateFolderL(
             const TFSMailMsgId& aMailBoxId,
             const TFSMailMsgId& aFolderId,
             const TDesC& aFolderName,
             const TBool aSync );
 
-        IMPORT_C virtual void DeleteFolderByUidL(
+         virtual void DeleteFolderByUidL(
             const TFSMailMsgId& aMailBox,
             const TFSMailMsgId& aFolder );
 
-        IMPORT_C virtual void ListFoldersL(
+         virtual void ListFoldersL(
             const TFSMailMsgId& aMailBoxId,
             const TFSMailMsgId& aFolderId,
             RPointerArray<CFSMailFolder>& aFolderList );
 
-        IMPORT_C virtual void ListFoldersL(
+         virtual void ListFoldersL(
             const TFSMailMsgId& aMailBoxId,
             RPointerArray<CFSMailFolder>& aFolderList );
 
-        IMPORT_C virtual TFSMailMsgId GetStandardFolderIdL(
+         virtual TFSMailMsgId GetStandardFolderIdL(
             const TFSMailMsgId& aMailBoxId,
             const TFSFolderType aFolderType );
 
-        IMPORT_C virtual MFSMailIterator* ListMessagesL(
+         virtual MFSMailIterator* ListMessagesL(
             const TFSMailMsgId& aMailBoxId,
             const TFSMailMsgId& aFolderId,
             const TFSMailDetails aDetails,
             const RArray<TFSMailSortCriteria>& aSorting );
 
-        IMPORT_C virtual CFSMailMessage* GetMessageByUidL(
+         virtual CFSMailMessage* GetMessageByUidL(
             const TFSMailMsgId& aMailBoxId,
             const TFSMailMsgId& aFolderId,
             const TFSMailMsgId& aMessageId,
@@ -181,30 +194,51 @@ class CBasePlugin :
          * The delete is executed asynchronously. The base plugin will queue
          * the request and return immediately.
          */
-        IMPORT_C virtual void DeleteMessagesByUidL(
+         virtual void DeleteMessagesByUidL(
             const TFSMailMsgId& aMailBoxId,
             const TFSMailMsgId& aFolderId,
             const RArray<TFSMailMsgId>& aMessages );
 
-        IMPORT_C virtual CFSMailMessage* CreateMessageToSendL(
+         virtual CFSMailMessage* CreateMessageToSendL(
             const TFSMailMsgId& aMailBox );
+         // <qmail>
+        virtual void CreateMessageToSendL(
+            const TFSMailMsgId& aMailBoxId,
+            MFSMailRequestObserver& aOperationObserver,
+            const TInt aRequestId );
+         // </qmail>
 
-        IMPORT_C virtual CFSMailMessage* CreateForwardMessageL(
+         virtual CFSMailMessage* CreateForwardMessageL(
             const TFSMailMsgId& aMailBox,
             const TFSMailMsgId& aOriginal,
             const TDesC& aHeaderDescriptor );
 
-        IMPORT_C virtual CFSMailMessage* CreateReplyMessageL(
+         virtual CFSMailMessage* CreateReplyMessageL(
             const TFSMailMsgId& aMailBoxId,
             const TFSMailMsgId& aOriginalMessageId,
             const TBool aReplyToAll,
             const TDesC& aHeaderDescriptor );
 
-        IMPORT_C virtual void StoreMessageL(
+         virtual void StoreMessageL(
             const TFSMailMsgId& aMailBoxId,
             CFSMailMessage& aMessage );
-
-        IMPORT_C virtual void FetchMessagesL(
+        
+        // <qmail>
+         void StoreMessagesL(
+                const TFSMailMsgId& aMailBoxId,
+                RPointerArray<CFSMailMessage> &messages,
+                MFSMailRequestObserver& aOperationObserver,
+                const TInt aRequestId );
+        // </qmail>
+        
+        // <qmail>
+        virtual void StoreMessagePartsL(
+               RPointerArray<CFSMailMessagePart>& aMessageParts,
+               MFSMailRequestObserver& aOperationObserver,
+               const TInt aRequestId);
+        // <//qmail>
+		
+         virtual void FetchMessagesL(
             const TFSMailMsgId& aMailBoxId,
             const TFSMailMsgId& aFolderId,
             const RArray<TFSMailMsgId>& aMessageIds,
@@ -212,7 +246,7 @@ class CBasePlugin :
             MFSMailRequestObserver& aObserver,
             TInt aRequestId );
 
-        IMPORT_C virtual void FetchMessagePartsL(
+         virtual void FetchMessagePartsL(
             const TFSMailMsgId& aMailBoxId,
      		const TFSMailMsgId& aFolderId,
      		const TFSMailMsgId& aMessageId,
@@ -221,21 +255,21 @@ class CBasePlugin :
 			const TInt aRequestId,
         	const TUint aPreferredByteCount );
 
-        IMPORT_C virtual void GetMessagesL(
+         virtual void GetMessagesL(
             const TFSMailMsgId& aMailBoxId,
             const TFSMailMsgId& aParentFolderId,
             const RArray<TFSMailMsgId>& aMessageIds,
             RPointerArray<CFSMailMessage>& aMessageList,
             TFSMailDetails aDetails );
 
-        IMPORT_C virtual void ChildPartsL(
+         virtual void ChildPartsL(
             const TFSMailMsgId& aMailBoxId,
             const TFSMailMsgId& aParentFolderId,
 			const TFSMailMsgId& aMessageId,
      		const TFSMailMsgId& aParentId,
      		RPointerArray<CFSMailMessagePart>& aParts );
 
-        IMPORT_C virtual CFSMailMessagePart* NewChildPartL(
+         virtual CFSMailMessagePart* NewChildPartL(
             const TFSMailMsgId& aMailBoxId,
         	const TFSMailMsgId& aParentFolderId,
 			const TFSMailMsgId& aMessageId,
@@ -243,7 +277,7 @@ class CBasePlugin :
         	const TFSMailMsgId& aInsertBefore,
         	const TDesC& aContentType );
 
-        IMPORT_C virtual CFSMailMessagePart* CopyMessageAsChildPartL(
+         virtual CFSMailMessagePart* CopyMessageAsChildPartL(
             const TFSMailMsgId& aMailBoxId,
             const TFSMailMsgId& aParentFolderId,
 			const TFSMailMsgId& aMessageId,
@@ -251,47 +285,47 @@ class CBasePlugin :
         	const TFSMailMsgId& aInsertBefore,
         	const CFSMailMessage& aMessage );
 
-        IMPORT_C virtual void RemoveChildPartL(
+         virtual void RemoveChildPartL(
             const TFSMailMsgId& aMailBoxId,
             const TFSMailMsgId& aParentFolderId,
         	const TFSMailMsgId& aMessageId,
             const TFSMailMsgId& aParentPartId,
             const TFSMailMsgId& aPartId );
 
-        IMPORT_C virtual void SetPartContentFromFileL(
+         virtual void SetPartContentFromFileL(
             const TFSMailMsgId& aMailBoxId,
             const TFSMailMsgId& aParentFolderId,
             const TFSMailMsgId& aMessageId,
             const TFSMailMsgId& aMessagePartId,
             const TDesC& aFilePath );
 
-        IMPORT_C virtual void StoreMessagePartL(
+         virtual void StoreMessagePartL(
             const TFSMailMsgId& aMailBoxId,
             const TFSMailMsgId& aParentFolderId,
          	const TFSMailMsgId& aMessageId,
          	CFSMailMessagePart& aMessagePart );
 
-        IMPORT_C virtual CFSMailMessagePart* MessagePartL(
+         virtual CFSMailMessagePart* MessagePartL(
             const TFSMailMsgId& aMailBoxId,
             const TFSMailMsgId& aParentFolderId,
             const TFSMailMsgId& aMessageId,
             const TFSMailMsgId& aMessagePartId );
 
-        IMPORT_C virtual TInt GetMessagePartFileL(
+         virtual TInt GetMessagePartFileL(
             const TFSMailMsgId& aMailBoxId,
             const TFSMailMsgId& aParentFolderId,
             const TFSMailMsgId& aMessageId,
             const TFSMailMsgId& aMessagePartId,
             RFile& aFileHandle );
 
-        IMPORT_C virtual void CopyMessagePartFileL(
+         virtual void CopyMessagePartFileL(
             const TFSMailMsgId& aMailBoxId,
             const TFSMailMsgId& aParentFolderId,
             const TFSMailMsgId& aMessageId,
             const TFSMailMsgId& aMessagePartId,
             const TDesC& aFilePath );
 
-	    IMPORT_C virtual void GetContentToBufferL(
+	     virtual void GetContentToBufferL(
 	        const TFSMailMsgId& aMailBoxId,
 	        const TFSMailMsgId& aParentFolderId,
 	 		const TFSMailMsgId& aMessageId,
@@ -299,72 +333,72 @@ class CBasePlugin :
 	 		TDes& aBuffer,
 	 		TUint aStartOffset );
 
-	    IMPORT_C virtual void SetContentL(
+	     virtual void SetContentL(
 	        const TDesC& aBuffer,
 	        const TFSMailMsgId& aMailBoxId,
 	        const TFSMailMsgId& aParentFolderId,
             const TFSMailMsgId& aMessageId,
             const TFSMailMsgId& aMessagePartId);
 
-        IMPORT_C virtual void RemovePartContentL(
+         virtual void RemovePartContentL(
             const TFSMailMsgId& aMailBoxId,
             const TFSMailMsgId& aParentFolderId,
             const TFSMailMsgId& aMessageId,
             const RArray<TFSMailMsgId>& aPartIds );
 
-	    IMPORT_C virtual void SearchL(
+	     virtual void SearchL(
 	        const TFSMailMsgId& aMailBoxId,
 			const RArray<TFSMailMsgId>& aFolderIds,
 			const RPointerArray<TDesC>& aSearchStrings,
 			const TFSMailSortCriteria& aSortCriteria,
 			MFSMailBoxSearchObserver& aSearchObserver );
 
-    	IMPORT_C virtual void CancelSearch(
+    	 virtual void CancelSearch(
     	    const TFSMailMsgId& aMailBoxId );
 
-        IMPORT_C virtual void ClearSearchResultCache(
+         virtual void ClearSearchResultCache(
             const TFSMailMsgId& aMailBoxId );
 
-        IMPORT_C virtual void AddObserverL(
+         virtual void AddObserverL(
             MFSMailEventObserver& aObserver );
 
-        IMPORT_C virtual void RemoveObserver(
+         virtual void RemoveObserver(
             MFSMailEventObserver& aObserver );
 
-        IMPORT_C virtual void UnregisterRequestObserver(
+         virtual void UnregisterRequestObserver(
             TInt aRequestId );
 
-        IMPORT_C virtual void SendMessageL(
+         virtual void SendMessageL(
             CFSMailMessage& aMessage );
 
-        IMPORT_C virtual TFSProgress StatusL(
+         virtual TFSProgress StatusL(
             TInt aRequestId );
 
-        IMPORT_C virtual void CancelL(
+         virtual void CancelL(
             TInt aRequestId );
 
-        IMPORT_C virtual void SubscribeMailboxEventsL(
+         virtual void SubscribeMailboxEventsL(
             const TFSMailMsgId& aMailboxId,
             MFSMailEventObserver& aObserver );
 
-        IMPORT_C virtual void UnsubscribeMailboxEvents(
+         virtual void UnsubscribeMailboxEvents(
             const TFSMailMsgId& aMailboxId,
             MFSMailEventObserver& aObserver );
-
-        IMPORT_C virtual TSSMailSyncState CurrentSyncState(
+//<qmail>
+         virtual TSSMailSyncState CurrentSyncState(
+            const TFSMailMsgId& aMailboxId );
+//</qmail>
+         virtual TFSMailBoxStatus GetMailBoxStatus(
             const TFSMailMsgId& aMailboxId );
 
-        IMPORT_C virtual TFSMailBoxStatus GetMailBoxStatus(
-            const TFSMailMsgId& aMailboxId );
-
-        IMPORT_C virtual TBool MailboxHasCapabilityL(
+         virtual TBool MailboxHasCapabilityL(
             TFSMailBoxCapabilities aCapability,
 	 		TFSMailMsgId aMailBoxId );
 
 	    /**
 	     * Create a new ChildPart using a file path
 	     */
-	    IMPORT_C virtual CFSMailMessagePart* NewChildPartFromFileL(
+	     virtual CFSMailMessagePart* NewChildPartFromFileL(
 		    const TFSMailMsgId& aMailBoxId,
 		    const TFSMailMsgId& aParentFolderId,
 		    const TFSMailMsgId& aMessageId,
@@ -377,7 +411,7 @@ class CBasePlugin :
          *  NOTE 1: RFs.ShareProtected() must have been called already before calling this method.
          *  NOTE 2: The ownersip of the RFile handle (aFile) is transferred to this method.
 	     */
-	    IMPORT_C virtual CFSMailMessagePart* NewChildPartFromFileL(
+	     virtual CFSMailMessagePart* NewChildPartFromFileL(
 		    const TFSMailMsgId& aMailBoxId,
 		    const TFSMailMsgId& aParentFolderId,
 		    const TFSMailMsgId& aMessageId,
@@ -385,37 +419,37 @@ class CBasePlugin :
 			const TDesC& aContentType,
 		    RFile& aFile );
 
-        IMPORT_C virtual TInt WizardDataAvailableL();
+         virtual TInt WizardDataAvailableL();
 
-        IMPORT_C virtual void AuthenticateL(
+         virtual void AuthenticateL(
             MFSMailRequestObserver& aOperationObserver,
             TInt aRequestId );
 
-        IMPORT_C virtual void SetCredentialsL(
+         virtual void SetCredentialsL(
             const TFSMailMsgId& aMailBoxId,
             const TDesC& aUsername,
             const TDesC& aPassword );
 
-        IMPORT_C virtual TInt CancelSyncL(
+         virtual TInt CancelSyncL(
         	const TFSMailMsgId& aMailBoxId );
 
-        IMPORT_C virtual void SetMailboxName(
+         virtual void SetMailboxName(
             const TFSMailMsgId& /*aMailboxId*/,
             const TDesC& /*aMailboxName*/ );
 
     // MMsgStoreObserver //
     public:
-        IMPORT_C virtual void SystemEventNotify(
+         virtual void SystemEventNotify(
             TMsgStoreSystemEvent aEvent );
 
-        IMPORT_C virtual void AccountEventNotify(
+         virtual void AccountEventNotify(
             TMsgStoreAccountEvent aEvent,
     		TInt32 aOwnerId,
             const TDesC& aName,
     		const TDesC& aNewName,
     		TMsgStoreId aMailboxId );
 
-        IMPORT_C virtual void ModificationNotify(
+         virtual void ModificationNotify(
             TMsgStoreId aMailBoxId,
             TMsgStoreOperation aOperation,
             TMsgStoreContainerType aType,
@@ -426,18 +460,18 @@ class CBasePlugin :
 
     protected:
 
-        IMPORT_C CFSMailAddress* FetchEmailAddressL(
+         CFSMailAddress* FetchEmailAddressL(
             CMsgStorePropertyContainer& aMessage,
             TUint aIdx );
 
-        IMPORT_C CMailboxInfo& GetMailboxInfoL(
+         CMailboxInfo& GetMailboxInfoL(
             TMsgStoreId aId );
 
         void GetMailboxDisplayNameL(
             TMsgStoreId aId,
             RBuf& aDisplayName );
 
-        IMPORT_C virtual TUint GetPluginId();
+         virtual TUint GetPluginId();
 
         /**
          * Get signature string from protocol specific subclass.
@@ -467,7 +501,7 @@ class CBasePlugin :
             }
 
 
-        IMPORT_C virtual void TranslateMsgStorePropsL(
+         virtual void TranslateMsgStorePropsL(
             const TFSMailMsgId& aMailBoxId,
             CMsgStorePropertyContainer& aMessage,
             CFSMailMessagePart& aFsMsg,
@@ -478,7 +512,7 @@ class CBasePlugin :
          * objects.
          * Sync plugins might be interested in extending the default behavior.
          */
-        IMPORT_C virtual void TranslateMsgStoreMrL(
+         virtual void TranslateMsgStoreMrL(
             const TFSMailMsgId& aMailBoxId,
             CMsgStorePropertyContainer& aMessage,
             CMsgStorePropertyContainer& aCalendar,
@@ -493,16 +527,16 @@ class CBasePlugin :
          * @param aSrc input/source Freestyle message.
          * @param aDst output/destination MessageStore message.
          */
-        IMPORT_C virtual void TranslateEmailFwMessageL(
+         virtual void TranslateEmailFwMessageL(
             CFSMailMessagePart& aSrc,
             CMsgStoreMessagePart& aDst,
             TBool aInInbox );
 
-        IMPORT_C virtual void TranslateEmailFwMrL(
+         virtual void TranslateEmailFwMrL(
             MMRInfoObject& aSrc,
             CMsgStorePropertyContainer& aDst );
 
-        IMPORT_C void TranslateEmailFwAttendeeL(
+         void TranslateEmailFwAttendeeL(
             MMROrganizer& aSrc,
             RMsgStoreAddress& aDst );
 
@@ -526,7 +560,7 @@ class CBasePlugin :
             TAny* aParam2 = NULL,
             TAny* aParam3 = NULL );
 
-        IMPORT_C virtual void NotifyMailboxEventL(
+         virtual void NotifyMailboxEventL(
                 TFSMailEvent aEvent,
                 TFSMailMsgId aMailBox,
                 TAny* aParam1 = NULL,
@@ -538,7 +572,7 @@ class CBasePlugin :
          * looks for the text/plain part.
          * @return the main body text part or NULL if one can not be found.
          */
-        IMPORT_C CMsgStoreMessagePart* GetBodyPartL(
+         CMsgStoreMessagePart* GetBodyPartL(
             CMsgStoreMessage& aMessage,
             const TDesC& aContentType = KFSMailContentTypeTextPlain() );
 
@@ -551,7 +585,7 @@ class CBasePlugin :
          * truncated message.
          * @param aKeepAttachments true if the original message attachments are to be kept.
          */
-        IMPORT_C CFSMailMessage* CreateForwardReplyMessageL(
+         CFSMailMessage* CreateForwardReplyMessageL(
             const TFSMailMsgId& aMailBox,
             const TFSMailMsgId& aOriginal,
             const TBool aReplyToAll,
@@ -563,20 +597,20 @@ class CBasePlugin :
          * Recursively looks for the part with id aPartId in the part container
          * aParent.
          */
-        IMPORT_C CMsgStoreMessagePart* FindMessagePartL(
+         CMsgStoreMessagePart* FindMessagePartL(
             CMsgStoreMessagePart& aParent,
             TMsgStoreId aPartId );
 
         /**
          * Get MsgStore account object for the specified mailbox id.
          */
-        IMPORT_C CMsgStoreAccount* GetAccountForMsgBoxL(
+         CMsgStoreAccount* GetAccountForMsgBoxL(
             const TFSMailMsgId& aMailboxId );
 
         /**
          * Create a MR reply message.
          */
-        IMPORT_C virtual CFSMailMessage* CreateMrReplyMessageL(
+         virtual CFSMailMessage* CreateMrReplyMessageL(
             const TFSMailMsgId& aMailBoxId,
             MMRInfoObject& aMeetingRequest,
             const TFSMailMsgId& aOriginalMessageId );
@@ -584,7 +618,7 @@ class CBasePlugin :
        /**
         * Applyed when an account was deleted for proper cleanup.
         */
-       IMPORT_C  virtual void HandleMailboxDeleteL(
+         virtual void HandleMailboxDeleteL(
            const TFSMailMsgId& aMailboxId );
 
 
@@ -622,11 +656,11 @@ class CBasePlugin :
             const TDesC8& aDstProperty,
             RPointerArray<CFSMailAddress>& aRecipients );
 
-        IMPORT_C static void RemoveAllPropertiesL(
+         static void RemoveAllPropertiesL(
             CMsgStorePropertyContainer& aContainer,
             const TDesC8& aName );
 
-        IMPORT_C CMailboxInfo& RefreshMailboxCacheL( TMsgStoreId aMailBoxId );
+         CMailboxInfo& RefreshMailboxCacheL( TMsgStoreId aMailBoxId );
 
         void UnsubscribeMailboxEventsL(
             const TFSMailMsgId& aMailboxId,
@@ -666,7 +700,7 @@ class CBasePlugin :
 	    /**
 	     * Called by RemovePartContentL for each part that needs its content removed.
 	     */
-	    IMPORT_C virtual void HandleRemovePartContentL(
+	     virtual void HandleRemovePartContentL(
 	    	CMsgStoreMessage& aMsg,
 	    	CMsgStoreMessagePart& aPart );
 
@@ -686,7 +720,7 @@ class CBasePlugin :
          */
 	    void RefreshCachedMailBoxDisplayNameL( TBool& aMailBoxNameHasChanged, const TMsgStoreId& aMailBoxId );
 
-	    IMPORT_C virtual void ReportRequestStatusL(
+	     virtual void ReportRequestStatusL(
             TMsgStoreId aMailBox,
             TMsgStoreId aOtherId,
             TMsgStoreId aMsgId,
@@ -697,24 +731,24 @@ class CBasePlugin :
 	     * Finds the corresponding download request object for the part with id
 	     * of aPartId identified by also the mailbox and the message ids.
 	     */
-	    IMPORT_C TBool FindFetchRequestL(
+	     TBool FindFetchRequestL(
 	    	TMsgStoreId aMailBox,
 	    	TMsgStoreId aOtherId,
 	    	TMsgStoreId aMsgId,
 	    	TMsgStoreId aPartId,
 	    	CBasePlugin::TOngoingFetchInfo& aOngoingFetchInfo );
 
-	    IMPORT_C TBool DeleteFetchRequestForPart(
+	     TBool DeleteFetchRequestForPart(
 	    	TOngoingFetchInfo& aFetchInfo );
 
-	    IMPORT_C void DeleteFetchRequest(
+	     void DeleteFetchRequest(
 	    	TOngoingFetchInfo& aFetchInfo );
 
 
     protected:
-	    IMPORT_C void ResetCache();
+	     void ResetCache();
 
-	    IMPORT_C void ResetBodyCache();
+	     void ResetBodyCache();
 
 	    /**
 	     * This method retrieves the specified message store message from a
@@ -727,18 +761,18 @@ class CBasePlugin :
 	     * @param aMailBoxId
 	     * @param aMsgId
 	     */
-	    IMPORT_C CMsgStoreMessage* GetCachedMsgL(
+	     CMsgStoreMessage* GetCachedMsgL(
 	        TMsgStoreId aMailBoxId,
 	        TMsgStoreId aMsgId );
 
-	    IMPORT_C CMsgStoreMessagePart* GetCachedBodyL(
+	     CMsgStoreMessagePart* GetCachedBodyL(
 	        TMsgStoreId aPartId );
 
-	    IMPORT_C RPointerArray<CMsgStoreMessagePart>& GetCachedMsgChildrenL();
+	     RPointerArray<CMsgStoreMessagePart>& GetCachedMsgChildrenL();
 
-	    IMPORT_C RPointerArray<CMsgStoreMessagePart>& GetCachedBodyChildrenL();
+	     RPointerArray<CMsgStoreMessagePart>& GetCachedBodyChildrenL();
 
-	    IMPORT_C void InvalidateCacheIfNecessary(
+	     void InvalidateCacheIfNecessary(
 	        TMsgStoreId aId,
 	        TMsgStoreId aParentId,
 	        TMsgStoreId aOtherId );
@@ -750,7 +784,7 @@ class CBasePlugin :
 	     * instance. The FW's SendMessageL method internally uses this method
 	     * after translating the FW message to the MsgStore format.
 	     */
-	    IMPORT_C void SendMessageL(
+	     void SendMessageL(
             CMsgStoreMailBox& aMailBox,
             CMsgStoreMessage& aMsg,
             const TTime& aSentTime );
@@ -759,7 +793,7 @@ class CBasePlugin :
 	     * The delayed ops manager is used to queue asynchronous processing of
 	     * plugin requests.
 	     */
-	    IMPORT_C MDelayedOpsManager& GetDelayedOpsManager();
+	     MDelayedOpsManager& GetDelayedOpsManager();
 
     protected:
 
@@ -804,7 +838,7 @@ class CBasePlugin :
  * the FSEF representation and the MsgStore one. This entity groups
  * it in one place.
  */
-class CMailboxInfo : public CBase
+NONSHARABLE_CLASS( CMailboxInfo ) : public CBase
     {
     public:
         CMailboxInfo( CBasePlugin* aBasePlugin )
@@ -821,7 +855,7 @@ class CMailboxInfo : public CBase
             delete iMailBoxDisplayName;
             delete iBrandingId;
             delete iMailBox;
-            };
+            }
 
         CMsgStoreMailBox& operator() ()
             {

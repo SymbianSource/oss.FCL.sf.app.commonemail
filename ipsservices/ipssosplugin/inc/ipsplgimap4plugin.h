@@ -21,7 +21,7 @@
 
 #include "ipsplgsosbaseplugin.h"
     
-class CIpsPlgImap4Plugin : public CIpsPlgSosBasePlugin
+NONSHARABLE_CLASS( CIpsPlgImap4Plugin ) : public CIpsPlgSosBasePlugin
 {
 public:
 
@@ -82,14 +82,6 @@ public: // From CFSMailPlugin
         const RArray<TFSMailMsgId>& aMessageIds, 
         const TFSMailMsgId& aSourceFolderId, 
         const TFSMailMsgId& aDestinationFolderId );
-    
-    TInt MoveMessagesL( 
-        const TFSMailMsgId& aMailBoxId,
-        const RArray<TFSMailMsgId>& aMessageIds, 
-        const TFSMailMsgId& aSourceFolderId,
-        const TFSMailMsgId& aDestinationFolderId,
-        MFSMailRequestObserver& aOperationObserver,
-        TInt aRequestId );
     
     void PopulateNewMailL( 
         const TFSMailMsgId& aMailboxId, 

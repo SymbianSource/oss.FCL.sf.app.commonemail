@@ -15,9 +15,6 @@
 *
 */
 
-// <cmail>
-#include <AknUtils.h>
-// </cmail>
 
 #include "emailtrace.h"
 #include "ipsplgheaders.h"
@@ -27,9 +24,6 @@ const TInt KMoreThan = 1;
 const TInt KEqual = 0;
 
 _LIT(KDefaultSubjectPrefixSeparator,": ");
-// <cmail>
-_LIT( KCharsToReplace, "\r\n\t\x2028\x2029" );
-// </cmail>
 
 // ---------------------------------------------------------------------------
 // Basic sonstructor
@@ -100,10 +94,8 @@ TInt TIpsPlgMsgKey::Compare( TInt aLeft, TInt aRight ) const
                 }
             case EFSMailSortBySubject:
                 {
-                // <cmail> due to changes in CompareSubject method
-                TRAP_IGNORE( result = CompareSubjectsL( 
-                    leftEntry.iDescription, rightEntry.iDescription ) );
-                // </cmail>
+                result = CompareSubjects( 
+                    leftEntry.iDescription, rightEntry.iDescription );
                 break;
                 }
             case EFSMailSortByPriority:
@@ -138,15 +130,15 @@ TInt TIpsPlgMsgKey::Compare( TInt aLeft, TInt aRight ) const
                 }
             case EFSMailSortByUnread:
                 {
-                // In this context, an read message is 'greater' than
+                // In this context, an unread message is 'greater' than
                 // a read one
                 if ( !leftEntry.Unread() && rightEntry.Unread() ) 
                     {
-                    result = KMoreThan; // <cmail> changed from KLessThan 
+                    result = KLessThan;
                     }
                 else if ( leftEntry.Unread() && !rightEntry.Unread() ) 
                     {
-                    result = KLessThan; // <cmail> changed from KMoreThan
+                    result = KMoreThan;
                     }
                 break;
                 }
@@ -208,7 +200,7 @@ TAny* TIpsPlgMsgKey::At( TInt anIndex ) const
 // Strips the subject prefixes before comparing the strings
 // ---------------------------------------------------------------------------
 
-TInt TIpsPlgMsgKey::CompareSubjectsL( 
+TInt TIpsPlgMsgKey::CompareSubjects( 
     const TDesC& aLeft, 
     const TDesC& aRight ) const
     {
@@ -223,23 +215,8 @@ TInt TIpsPlgMsgKey::CompareSubjectsL(
         leftPtr.Ptr() + leftOffset, leftPtr.Length() - leftOffset );
     rightPtr.Set( 
         rightPtr.Ptr() + rightOffset, rightPtr.Length() - rightOffset );
-    
-    // <cmail> for unifying with UI - remove all white spaces
-    HBufC* croppedLeft = leftPtr.AllocLC();
-    TPtr croppedLeftPtr = croppedLeft->Des();
-    HBufC* croppedRight = rightPtr.AllocLC();
-    TPtr croppedRightPtr = croppedRight->Des();
         
-    AknTextUtils::ReplaceCharacters( croppedLeftPtr, KCharsToReplace, ' ' );
-    croppedLeftPtr.TrimAll();
-    AknTextUtils::ReplaceCharacters( croppedRightPtr, KCharsToReplace, ' ' );
-    croppedRightPtr.TrimAll();
-    
-    result = croppedLeftPtr.CompareC( croppedRightPtr );
-    
-    CleanupStack::PopAndDestroy( croppedRight );
-    CleanupStack::PopAndDestroy( croppedLeft );
-    // </cmail>
+    result = leftPtr.CompareC( rightPtr );
         
     return result;
     }
@@ -255,75 +232,27 @@ TInt TIpsPlgMsgKey::CompareSubjectsL(
 TInt TIpsPlgMsgKey::FindSubjectStart( const TDesC& aSubject ) const
     {
     FUNC_LOG;
-    TInt offset(0);
-    // <cmail> removed and replaced with the code from UI
-    // TFsEmailUiUtility::CreateSubjectWithoutLocalisedPrefixLC
-    // to have the same subject here and there
-    // there was sorting problem when subjects where handled
-    // different here and in UI while creating mails' list.  
-    
-    /*TPtrC ptr(aSubject);
-    TInt current(0);
-    TInt skipLength = iSubjectPrefixSeparator.Length();
-    
-    // Loop while separators are found
-    do
-        {
-        current = ptr.FindF( iSubjectPrefixSeparator );
+	TPtrC ptr(aSubject);
+	TInt offset(0);
+	TInt current(0);
+	TInt skipLength = iSubjectPrefixSeparator.Length();
+	
+	// Loop while separators are found
+	do
+		{
+		current = ptr.FindF( iSubjectPrefixSeparator );
 
-        if ( current != KErrNotFound )
-            {
-            offset += current + skipLength;
-            ptr.Set( aSubject.Ptr() + offset, aSubject.Length() - offset );
-            }
-        } while ( current != KErrNotFound );*/
-    
-    TBool prefixFound = EFalse;
-    TPtrC croppedSubject;
-    croppedSubject.Set( aSubject );
-    
-    do
-        {
-        prefixFound = EFalse;
-    
-        // Remove leading white space before trying to find the prefix
-        while( croppedSubject.Length() && 
-               TChar( croppedSubject[0] ).IsSpace() )
-            {
-            croppedSubject.Set( croppedSubject.Mid(1) );
-            offset++;
-            }
-    
-        // try to find ":" at the beginning
-        // Locate : character on location 1,2 and 3
-        static const TInt KPrefixMinLength = 1;
-        static const TInt KPrefixMaxLength = 3;
-        static const TText KPrefixSeparator = ':';
-        TInt separatorPosition = croppedSubject.Locate( KPrefixSeparator );
-        if ( separatorPosition >= KPrefixMinLength &&
-             separatorPosition <= KPrefixMaxLength )
-            {
-            TPtrC prefixCandidate = croppedSubject.Left( separatorPosition );
-            // Only fully alphabetic prefixes are cropped
-            TBool isAlpha = ETrue;
-            for ( TInt i = 0 ; i < prefixCandidate.Length() ; ++i )
-                {
-                if ( !TChar( prefixCandidate[i] ).IsAlpha() )
-                    {
-                    isAlpha = EFalse;
-                    }
-                }
-            if ( isAlpha )
-                {
-                croppedSubject.Set( croppedSubject.Mid( 
-                        separatorPosition + 1 ) );
-                offset += separatorPosition + 1;
-                prefixFound = ETrue;
-                }
-            }
-        }
-    while ( prefixFound );
-    // </cmail>
+		if ( current != KErrNotFound )
+			{
+			offset += current + skipLength;
+			ptr.Set( aSubject.Ptr() + offset, aSubject.Length() - offset );
+			}
+		} while ( current != KErrNotFound );
 
-    return offset;
+	return offset;
     }
+
+
+
+
+

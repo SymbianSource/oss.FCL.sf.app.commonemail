@@ -18,7 +18,10 @@
 
 #include <platform_paths.hrh>
 
-#include "../../../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
+//<qmail>
+//#include "../../../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
+//</qmail>
+
 #include "../../../inc/EmailStoreUids.hrh"
 
 TARGET          DebugLog.dll
@@ -27,7 +30,10 @@ UID             KUidSharedLibrary KUidDebugLog
 CAPABILITY      CAP_GENERAL_DLL
 VENDORID        VID_DEFAULT
 
-VERSION         KEmailBinaryVersionNumber
+//<qmail>
+//VERSION         KEmailBinaryVersionNumber
+//</qmail>
+
 KEmailBinaryDemandPaging
 
 // Comment this out to leave the debug logs open between writes, by default.

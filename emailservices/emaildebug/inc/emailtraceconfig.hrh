@@ -41,10 +41,6 @@
 // Tracing into file enabled, default RDebug
 #undef TRACE_INTO_FILE
 
-// Tracing into c:/cmail_<thread-name>.txt. File replaced when predefined 
-// line count is reached
-#undef TRACE_FILE_LIMIT_SIZE
-
 #endif // ENABLE_TRACES
 
 #endif // EMAILTRACECONFIG_HRH

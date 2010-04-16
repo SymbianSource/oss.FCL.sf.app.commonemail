@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/docml" >
+        <file alias="nmeditorview.docml" >conf/nmeditorview.docml</file>
+        <file alias="nmmailboxlistview.docml" >conf/nmmailboxlistview.docml</file>
+        <file alias="nmmailboxselectiondialog.docml" >conf/nmmailboxselectiondialog.docml</file>
+        <file alias="nmmailviewer.docml" >conf/nmmailviewer.docml</file>
+        <file alias="nmmessagelistview.docml" >conf/nmmessagelistview.docml</file>
+    </qresource>
+</RCC>

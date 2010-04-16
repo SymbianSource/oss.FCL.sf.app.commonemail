@@ -22,10 +22,8 @@
 
 /** Snippet length, for HTML tags. */
 const TInt KIpsPlgSnippetLen = 300;
-
-// changed to one mail per one RunL - for cycle in RunL was removed
 // Defines the number of mails handled in one scheduler round
-// const TInt KIpsPlgSearchMailsInRound = 10;
+const TInt KIpsPlgSearchMailsInRound = 10;
 
 // ======== CONSTRUCTORS & DESTRUCTOR ========
 
@@ -87,7 +85,6 @@ CIpsPlgSearchOp::CIpsPlgSearchOp(
     iMessage( NULL )
     {
     FUNC_LOG;
-    iRequiredPriority = Priority(); // priority changes are enabled
     CActiveScheduler::Add( this );
     }
 
@@ -140,12 +137,13 @@ void CIpsPlgSearchOp::RunL()
             iObserver.CollectMessagesL();
             iObserver.Sort();
             iState = ERunning;
-            iRequiredPriority = EPriorityStandard; // priority changes may be decreased
             ActivateAndComplete();
             break;
             }
         case ERunning:
             {
+            for ( TInt i(0); i < KIpsPlgSearchMailsInRound; i++ )
+                {
                 if ( NextMailL() )
                     {
                     // Mail found, read the content and search for the string.
@@ -160,13 +158,9 @@ void CIpsPlgSearchOp::RunL()
                     FinalizeL();
                     return;
                     }
-            iState = ERunning;
-// When client wants call to contact the priority must be decreased 
-// to enable search for contact which uses idle priority
-            TInt clientRequiredPriority(iRequiredPriority);
-            iObserver.ClientRequiredSearchPriority( &clientRequiredPriority );
-            iRequiredPriority = ((clientRequiredPriority > EPriorityIdle) ? EPriorityStandard : EPriorityIdle-1);
+                }
 
+            iState = ERunning;
             ActivateAndComplete();
             break;
             }
@@ -369,11 +363,6 @@ void CIpsPlgSearchOp::ActivateAndComplete( )
     {
     FUNC_LOG;
     iStatus = KRequestPending; 
-// When client wants call to contact the priority must be decreased 
-// to enable search for contact made with idle priority
-    if ( Priority() != iRequiredPriority ) // <cmail>
-    	SetPriority(iRequiredPriority);
-
     SetActive();    
     TRequestStatus* status = &iStatus;
     User::RequestComplete( status, KErrNone );    

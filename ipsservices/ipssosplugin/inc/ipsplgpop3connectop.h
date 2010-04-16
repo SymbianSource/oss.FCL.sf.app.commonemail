@@ -26,7 +26,7 @@ class CIpsPlgEventHandler;
 * Connect operation.
 * Encapsulates connection validation.
 */
-class CIpsPlgPop3ConnectOp :
+NONSHARABLE_CLASS ( CIpsPlgPop3ConnectOp ) :
     public CIpsPlgOnlineOperation,
     public MIpsPlgConnectOpCallback
     {
@@ -65,14 +65,7 @@ public://from MIpsPlgConnectOpCallback
         */
         TFSProgress GetFSProgressL() const;
 
-        /**
-        *
-        */
-        TBool Connected() const;
-        
-        /**
-        *
-        */
+// <qmail> Connected() used from baseclass
         virtual TInt IpsOpType() const;
 
     protected:
@@ -119,42 +112,19 @@ public://from MIpsPlgConnectOpCallback
         */
         void ConstructL();
 
+        // <qmail>
         /**
-        *
-        */
+         * Do.. functions handle certain state of this operation
+         */
         void DoConnectL();
-
-        /**
-        *
-        *
-        */
         void DoPopulateL();
-        /**
-        *
-        */
-        TBool ValidateL();
-
-        /**
-        *
-        */
-        void QueryUsrPassL();
+// <qmail> TBool ValidateL() removed (did nothing)
+// <qmail> void DoQueryPasswordL() not used any more
+        void DoDisconnect();
+        // </qmail>
         
-         
-        /**
-        *
-        */
-        inline void SetFlag(TUint32 aFlag);
-
-        /**
-        *
-        */
-        inline void UnsetFlag(TUint32 aFlag);
-
-        /**
-        *
-        */
-        inline TBool FlagIsSet(TUint32 aFlag) const;
-
+        // <qmail> removed flag methods as they were not used or even defined anywhere
+        
     private: // Data
     
         enum TPopConnectStates 
@@ -162,7 +132,9 @@ public://from MIpsPlgConnectOpCallback
             EStartConnect,
             EConnected,
             EPopulate,
-            EQueryingDetails,
+            // <qmail> new EDisconnecting state, removed querydetails state
+            EDisconnecting,
+            // </qmail>
             EErrInvalidDetails,
             EIdle
             };
@@ -173,10 +145,7 @@ public://from MIpsPlgConnectOpCallback
         TInt                                            iPopulateLimit;
         TBool                                           iForcePopulate;
         CMsvEntrySelection*                             iSelection;
-        // not owned
-        CIpsPlgEventHandler*                            iEventHandler;
-        // set to true if connection is already exists
-        TBool iAlreadyConnected;
+        CIpsPlgEventHandler*                            iEventHandler; // not owned
     };
 
 #endif

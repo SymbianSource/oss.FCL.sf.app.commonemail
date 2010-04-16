@@ -36,7 +36,7 @@ class CIpsSosAOImapPopLogic;
 *
 * @lib ipssosaoplugin.lib
 */
-class CIpsSosAOPluginEComInterface : 
+NONSHARABLE_CLASS (CIpsSosAOPluginEComInterface) : 
     public CAlwaysOnlineEComInterface,
     public MMsvSessionObserver
     {

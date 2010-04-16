@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2008 Nokia Corporation and/or its subsidiary(-ies).
+* Copyright (c) 2008 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -19,26 +19,22 @@
 #define IPSPLGHEADERS_H
 
 // System includes
+#include <nmcommonheaders.h>
 #include <e32cmn.h>
 #include <e32def.h>
 #include <e32base.h>
-#include <e32property.h>
+#include <e32property.h> 
 
 #include <f32file.h>
 
-#include <eikenv.h>  // for rich text para and char format layer
-#include <eikrutil.h>
-
-#include <coemain.h> // for rich text para and char format layer
 
 #include <charconv.h>
 
 // cenrep
 #include <centralrepository.h>
 // ecom
-#include <ecom/implementationproxy.h>
+#include <implementationproxy.h>
 // mtm
-#include <MTMStore.h>
 #include <mtmuibas.h>
 // mtcl
 #include <mtclbase.h>
@@ -46,7 +42,7 @@
 // msv
 #include <msvstd.hrh>
 #include <msvapi.h>     // Messaging framework
-#include <msvuids.h>
+#include <msvuids.h> 
 #include <msvstd.h>
 // miut
 #include <miutset.h>    // MTM identifiers
@@ -54,6 +50,9 @@
 #include <miut_err.h>   // KErrImapServerBusy
 #include <miutmsg.h>
 #include <miutconv.h>
+
+#include <timrfc822datefield.h> // KUidMsvEmailTextEntry, KUidMsvEmailHtmlEntry 
+
 // imap
 #include <imapset.h>
 #include <imapcmds.h>
@@ -63,16 +62,13 @@
 // smtp
 #include <smtpset.h>
 
-#ifndef FF_CMAIL_INTEGRATION
-#include <timrfc822datefield.h>
-#endif // FF_CMAIL_INTEGRATION
-
 #include <cmsvattachment.h>           // CMsvAttachment
 #include <mmsvattachmentmanager.h>    // MMsvAttachmentManager
 // cfsmail
 //<cmail>
-#include "CFSMailCommon.h"
-#include "CFSMailMessage.h"
+#include <CFSMailCommon.h>
+#include <CFSMailMessage.h>
+#include <CFSMailFolder.h>
 // sendui
 #include <SendUiConsts.h>
 #include <SenduiMtmUids.h>
@@ -111,7 +107,7 @@
 #include "ipsplgmsgmapper.h"
 #include "ipsplgmsgkey.h"
 #include "ipsplgmsgiterator.h"      // CIpsPlgMsgIterator
-#include "ipsplgmsgswap.h"        // TIpsPlgMsgSwap
+#include "ipsplgmsgswap.h"        // TIpsPlgMsgSwap 
 
 
 // imap4
@@ -141,15 +137,6 @@
 #include "ipsplgsearchop.h"
 #include "ipsplgtextsearcher.h"
 
-// settings
-#include "ipsplgsettingsobserver.h"
-#include "ipssetdataapi.h"
-#include "ipssetdatastorer.h"
-#include "ipssetdata.h"
-#include "IpsSetDataExtension.h"
-#include "ipssetutils.h"
-#include "ipssetutilsconsts.hrh"
-
 // mrulist
 #include "ipsplgmrulist.h"
 
@@ -173,6 +160,12 @@
 #include "ipsplgtimeroperation.h"
 #include "ipsplgoperationwait.h"
 #include "ipsplgonlineoperation.h"
+// <qmail>
+#include "ipsplgcreatemessageoperation.h"
+#include "ipsplgcreateforwardmessageoperation.h"
+#include "ipsplgcreatereplymessageoperation.h"
+#include "ipsplgnewchildpartfromfileoperation.h"
+// </qmail>
 #include "ipsplgdisconnectop.h"
 #include "ipsplgservicedeletionop.h"
 #include "ipsplgdeleteremote.h"

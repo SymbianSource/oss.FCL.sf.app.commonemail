@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2008 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -24,14 +24,15 @@
 #include <imapset.h>
 #include <mtclreg.h>
 //<cmail>
-#include "MFSMailRequestObserver.h"
+#include "mfsmailrequestobserver.h"
 //</cmail>
 
 #include "IpsSosAOBaseAgent.h"
 
 class CImap4ClientMtm;
-class CIpsSetDataApi;
+//<QMail>
 
+//</QMail>
 /**
 * class CIpsSosAOImapAgent;
 *
@@ -39,7 +40,7 @@ class CIpsSetDataApi;
 * virtual functions.
 *
 */
-class CIpsSosAOImapAgent : public CIpsSosAOBaseAgent,
+NONSHARABLE_CLASS (CIpsSosAOImapAgent) : public CIpsSosAOBaseAgent,
                            public MMsvImapConnectionObserver,
                            public MFSMailRequestObserver
     {
@@ -144,8 +145,9 @@ private:
     CImap4ClientMtm*                    iImapClientMtm;
     CClientMtmRegistry*                 iMtmReg;
     RArray<TMsvId>                      iFoldersArray;
-    CIpsSetDataApi*                     iDataApi;
-    
+	//<QMail>
+
+    //</QMail>
     };
 
 #endif /*IPSSOSAOIMAPAGENT_H_*/

@@ -18,7 +18,9 @@
 
 #include <platform_paths.hrh>
 
-#include "../../../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
+//<qmail>
+//#include "../../../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
+//</qmail>
 #include "../../../inc/EmailStoreUids.hrh"
 
 TARGET        MessageStoreExe.exe
@@ -28,7 +30,9 @@ SECUREID      KUidMessageStoreExe
 VENDORID      VID_DEFAULT
 CAPABILITY    CAP_SERVER
 
-VERSION       KEmailBinaryVersionNumber
+//<qmail>
+//VERSION       KEmailBinaryVersionNumber
+//</qmail>
 KEmailBinaryDemandPaging
 
 EPOCHEAPSIZE 	1024 2097152

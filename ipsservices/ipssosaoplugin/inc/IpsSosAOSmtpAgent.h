@@ -24,13 +24,15 @@
 #include <msvapi.h>
 
 class CIpsPlgSmtpOperation;
-class CIpsSetDataApi;
+//<QMail>
+
+//</QMail>
 
 /**
 * class CIpsSosAOSmtpAgent;
 *
 */
-class CIpsSosAOSmtpAgent : 
+NONSHARABLE_CLASS (CIpsSosAOSmtpAgent) : 
     public CActive
     {
     public:
@@ -91,9 +93,9 @@ class CIpsSosAOSmtpAgent :
        CMsvSession& iSession;
 	
        CIpsPlgSmtpOperation* iOperation;
+	   //<QMail>
 
-       CIpsSetDataApi* iSettingsApi;
-       
+       //</QMail>
        TInt iError;
        
     };

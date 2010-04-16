@@ -16,14 +16,4 @@ EXPORTS
 	_ZNK9RDebugLog5WriteERK6TDesC8RK7TDesC16 @ 15 NONAME
 	_ZNK9RDebugLog5WriteERK6TDesC8S2_ @ 16 NONAME
 	_ZNK9RDebugLog7HexDumpERK6TDesC8S2_ @ 17 NONAME
-	_ZTI15CLogFileHandler @ 18 NONAME ; #<TI>#
-	_ZTI16CDebugLogTlsData @ 19 NONAME ; #<TI>#
-	_ZTI22TDebugLogBase8Overflow @ 20 NONAME ; #<TI>#
-	_ZTI23TDebugLogBase16Overflow @ 21 NONAME ; #<TI>#
-	_ZTI9RDebugLog @ 22 NONAME ; #<TI>#
-	_ZTV15CLogFileHandler @ 23 NONAME ; #<VT>#
-	_ZTV16CDebugLogTlsData @ 24 NONAME ; #<VT>#
-	_ZTV22TDebugLogBase8Overflow @ 25 NONAME ; #<VT>#
-	_ZTV23TDebugLogBase16Overflow @ 26 NONAME ; #<VT>#
-	_ZTV9RDebugLog @ 27 NONAME ; #<VT>#
 

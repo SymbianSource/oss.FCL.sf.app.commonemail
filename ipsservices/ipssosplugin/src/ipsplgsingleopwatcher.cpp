@@ -99,8 +99,7 @@ EXPORT_C CIpsPlgSingleOpWatcher::~CIpsPlgSingleOpWatcher()
     FUNC_LOG;
     Cancel();
     delete iOperation;
-    delete iBaseOperation;
-    delete iRequestObserver;
+    delete iBaseOperation;      
     }
 
 
@@ -227,14 +226,6 @@ void CIpsPlgSingleOpWatcher::RunL()
     //
     // Inform client of watcher that the operation has completed
     iObserver.OpCompleted( *this, iStatus.Int() );
-    }
-
-
-void CIpsPlgSingleOpWatcher::SetRequestObserver(
-    CIpsPlgImap4MoveRemoteOpObserver* aObserver )
-    {
-    delete iRequestObserver;
-    iRequestObserver = aObserver;
     }
 
 // End of file

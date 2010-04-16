@@ -16,10 +16,11 @@
 */
 
 
-#include <ecom/registryinfo.rh>
+#include <registryinfo.rh>
+//<cmail>
 #include "CFSMailPlugin.hrh" // fsmailplugininterface
+//</cmail>
 #include "ipsplgsosbaseplugin.hrh"
-#include "../../../inc/emailversionnumbers.hrh" // KEmailEcomVersionNumber
 
 // ---------------------------------------------------------------------------
 // theInfo
@@ -39,7 +40,7 @@ RESOURCE REGISTRY_INFO theInfo
 				IMPLEMENTATION_INFO
 					{
 					implementation_uid = IPSSOSIMAP4PLUGIN_IMPLEMENTATION_UID;
-					version_no = KEmailEcomVersionNumber;
+					version_no = 1;
 					display_name = "FSEmail ECom plugin for imap4";
 					default_data = "";
 					opaque_data  = " ";
@@ -47,7 +48,7 @@ RESOURCE REGISTRY_INFO theInfo
 				IMPLEMENTATION_INFO
 					{
 					implementation_uid = IPSSOSPOP3PLUGIN_IMPLEMENTATION_UID;
-					version_no = KEmailEcomVersionNumber;
+					version_no = 1;
 					display_name = "FSEmail ECom plugin for pop3";
 					default_data = "";
 					opaque_data  = " ";
@@ -56,3 +57,4 @@ RESOURCE REGISTRY_INFO theInfo
 			}
 		};
 	}
+

@@ -28,13 +28,18 @@ const TInt KIpsSmtpOperationCharMoreThan = '>';
 //
 EXPORT_C CIpsPlgSmtpOperation* CIpsPlgSmtpOperation::NewL( 
     CMsvSession& aMsvSession, 
-    TInt aPriority, TRequestStatus& 
-    aObserverRequestStatus,
-    TBool /*aUsePublishSubscribe*/ )
+    TInt aPriority,
+    TRequestStatus& aObserverRequestStatus,
+    MFSMailRequestObserver* aOperationObserver,
+    TInt aRequestId )
     {
     FUNC_LOG;
     CIpsPlgSmtpOperation* self = CIpsPlgSmtpOperation::NewLC(
-        aMsvSession, aPriority, aObserverRequestStatus, ETrue );
+        aMsvSession,
+        aPriority,
+        aObserverRequestStatus,
+        aOperationObserver,
+        aRequestId );
     CleanupStack::Pop( self );
     return self;
     }
@@ -46,11 +51,16 @@ EXPORT_C CIpsPlgSmtpOperation* CIpsPlgSmtpOperation::NewLC(
     CMsvSession& aMsvSession, 
     TInt aPriority, 
     TRequestStatus& aObserverRequestStatus,
-    TBool /*aUsePublishSubscribe*/ )
+    MFSMailRequestObserver* aOperationObserver,
+    TInt aRequestId )
     {
     FUNC_LOG;
     CIpsPlgSmtpOperation* self = new( ELeave ) CIpsPlgSmtpOperation(
-        aMsvSession, aPriority, aObserverRequestStatus );
+        aMsvSession,
+        aPriority,
+        aObserverRequestStatus,
+        aOperationObserver,
+        aRequestId );
     CleanupStack::PushL( self );
     self->ConstructL();
     return self;
@@ -62,12 +72,16 @@ EXPORT_C CIpsPlgSmtpOperation* CIpsPlgSmtpOperation::NewLC(
 CIpsPlgSmtpOperation::CIpsPlgSmtpOperation( 
     CMsvSession& aMsvSession, 
     TInt aPriority, 
-    TRequestStatus& aObserverRequestStatus ) :
-    CMsvOperation( aMsvSession, aPriority, aObserverRequestStatus ),
+    TRequestStatus& aObserverRequestStatus,
+    MFSMailRequestObserver* aFSOperationObserver,
+    TInt aFSRequestId ) :
+    CIpsPlgBaseOperation( aMsvSession, aPriority, aObserverRequestStatus, 
+        aFSRequestId, TFSMailMsgId() ),
     iSmtpMtm( NULL ),
     iOperation( NULL ),
     iSelection( NULL ),  
-    iMtmRegistry( NULL )
+    iMtmRegistry( NULL ),
+    iFSOperationObserver( aFSOperationObserver )
     {
     FUNC_LOG;
     }
@@ -94,32 +108,7 @@ void CIpsPlgSmtpOperation::ConstructL()
     iSelection = new (ELeave) CMsvEntrySelection();
     CActiveScheduler::Add( this );
     }
-
-// ---------------------------------------------------------------------------
-// ---------------------------------------------------------------------------
-//
-void CIpsPlgSmtpOperation::CompleteObserver( TInt aStatus /*= KErrNone*/ )
-    {
-    FUNC_LOG;
-
-    TRequestStatus* status = &iObserverRequestStatus;
-    if ( status && status->Int() == KRequestPending )
-        {
-        User::RequestComplete( status, aStatus );
-        }
-    }
-
-// ---------------------------------------------------------------------------
-// ---------------------------------------------------------------------------
-//
-void CIpsPlgSmtpOperation::CompleteThis()
-    {
-    FUNC_LOG;
-
-    TRequestStatus* status = &iStatus;
-    User::RequestComplete( status, KErrNone );
-    }
-
+    
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 //
@@ -140,11 +129,44 @@ void CIpsPlgSmtpOperation::RunL()
         TImSmtpProgress prog;
         TPckg<TImSmtpProgress> param(prog);
         param.Copy( iOperation->FinalProgress() ); 
+        
+        if ( iFSOperationObserver )
+            {
+            iFSProgress.iProgressStatus =
+                TFSProgress::EFSStatus_RequestComplete;
+            iFSProgress.iError = prog.Error();
 
-        CompleteObserver( prog.Error() );
+            TRAP_IGNORE( iFSOperationObserver->RequestResponseL(
+                iFSProgress, iFSRequestId ) );
+            }
+        TRequestStatus* status = &iObserverRequestStatus;
+        User::RequestComplete( status, prog.Error() );
         }
     }
+
+// ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+//
+TInt CIpsPlgSmtpOperation::RunError( TInt aError )
+    {
+    FUNC_LOG;
+
+    if ( iFSOperationObserver )
+        {
+        iFSProgress.iProgressStatus = TFSProgress::EFSStatus_RequestComplete;
+        iFSProgress.iError = aError;
+
+        TRAP_IGNORE( iFSOperationObserver->RequestResponseL(
+			iFSProgress, iFSRequestId ) );
+        }
+
+    TRequestStatus* status = &iObserverRequestStatus;
+    User::RequestComplete( status, aError );
     
+    return KErrNone;
+    }
+
+
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 //    
@@ -157,7 +179,12 @@ void CIpsPlgSmtpOperation::DoCancel()
         iOperation->Cancel();
         }
 
-    CompleteObserver( KErrCancel );
+    // It is not relevant to inform FS observer. Cancelling is initiated
+    // either by the observer or the engine destructor when the application
+    // exits.
+    
+    TRequestStatus* status = &iObserverRequestStatus;
+    User::RequestComplete( status, KErrCancel );
     }
 
 // ---------------------------------------------------------------------------
@@ -172,6 +199,38 @@ const TDesC8& CIpsPlgSmtpOperation::ProgressL()
         return iOperation->ProgressL();
         }
     return KNullDesC8;
+    }
+
+// ---------------------------------------------------------------------------
+// CIpsPlgSmtpOperation::GetErrorProgressL
+// ---------------------------------------------------------------------------
+//   
+const TDesC8& CIpsPlgSmtpOperation::GetErrorProgressL( TInt /*aError*/ )
+    {
+    FUNC_LOG;
+    
+    return KNullDesC8; // error progress info not supported
+    }
+
+// ---------------------------------------------------------------------------
+// CIpsPlgSmtpOperation::GetFSProgressL
+// ---------------------------------------------------------------------------
+//   
+TFSProgress CIpsPlgSmtpOperation::GetFSProgressL() const
+    {
+    FUNC_LOG;
+    
+    return iFSProgress;
+    }
+
+// ---------------------------------------------------------------------------
+// CIpsPlgSmtpOperation::IpsOpType
+// ---------------------------------------------------------------------------    
+//   
+TInt CIpsPlgSmtpOperation::IpsOpType() const
+    {
+    FUNC_LOG;
+    return EIpsOpTypeSmtp;
     }
 
 // ---------------------------------------------------------------------------
@@ -295,12 +354,6 @@ EXPORT_C TInt CIpsPlgSmtpOperation::EmptyOutboxFromPendingMessagesL(
         {
         CallSendL();
         }
-    else
-        {
-        // nothing to do, finish operation
-        CompleteObserver( KErrNone );
-        }
-
     return retValue;
     }
 
@@ -393,10 +446,10 @@ void CIpsPlgSmtpOperation::ValidateAddressArrayL( const CDesCArray& aRecipients 
             fullName.Set( aRecipients[i].Mid( start, ( end - start ) ) );
             }
         // make basic sanity checks for email address
-        if( !IpsSetUtils::IsValidEmailAddressL( fullName ) )
-            {
-            User::Leave( KErrBadName );
-            }
+        //if( !IpsSetUtils::IsValidEmailAddressL( fullName ) )
+        //    {
+        //    User::Leave( KErrBadName );
+        //    }
         }
     }
 

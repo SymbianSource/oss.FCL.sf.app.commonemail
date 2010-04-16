@@ -33,7 +33,7 @@ class TRequestStatus;
 * Encapsulates delete locally operation and delete from server operation.
 * First deletes message locally and after it has been completed, deletes from the server
 */
-class CIpsPlgDeleteRemote :
+NONSHARABLE_CLASS ( CIpsPlgDeleteRemote ) :
     public CMsvOperation
     {
     public:
@@ -60,7 +60,10 @@ class CIpsPlgDeleteRemote :
     
         enum IpsPlgDeleteMessagesState 
             {
-            EDeletingMessagesStateLocally = 0,
+			// <qmail>    
+            EDeletingMessagesStateSetFlags = 0,
+			// </qmail>    
+            EDeletingMessagesStateLocally,
             EDeletingMessagesStateFromServer
             };
 
@@ -106,11 +109,23 @@ class CIpsPlgDeleteRemote :
         */
         void MakeDeleteFromServerL();
 
+		// <qmail>    
+        /**
+        * Sets the locally deleted flag for the next item (iSetFlagIndex)
+        * return true if operation started successfully, otherwise false
+        */
+        TBool SetNextLocallyDeletedFlagL();
+		// </qmail>    
+
     private:
         CMsvOperation*              iOperation;
         CMsvEntry*                  iEntry;
         CMsvEntrySelection*         iEntrySelection; 
         TInt                        iEntryCount;
+        // <qmail>
+        TInt                        iSetFlagIndex;
+        CMsvEntry*                  iSetFlagEntry;
+        // </qmail>
         TBuf8<1>                    iBlank;
         IpsPlgDeleteMessagesState   iState;
         

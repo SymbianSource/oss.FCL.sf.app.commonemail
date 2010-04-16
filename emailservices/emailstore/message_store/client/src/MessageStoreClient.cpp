@@ -22,15 +22,15 @@
 // ========
 
 #include <e32svr.h>
-#include <S32MEM.H>
+#include <s32mem.h>
 //#include <MessageStoreClient.h>
 //<cmail>
-#include "msgstoretypes.h"
-#include "debuglogmacros.h"
+#include "MsgStoreTypes.h"
+#include "DebugLogMacros.h"
 //</cmail>
 
 #include "MessageStoreClientServer.h"
-#include "EmailStoreUids.hrh"
+#include "emailstoreuids.hrh"
 #include "PropertiesSerializer.h"
 #include "MsgStoreFolder.h"
 #include "MsgStoreObserver.h"

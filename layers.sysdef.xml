@@ -1,36 +1,22 @@
 <?xml version="1.0"?>
-<!DOCTYPE SystemDefinition SYSTEM "sysdef_1_4_0.dtd" [
+<!DOCTYPE SystemDefinition SYSTEM "sysdef_1_5_1.dtd" [
   <!ENTITY layer_real_source_path "sf/app/commonemail" >
 ]>
 
-<SystemDefinition name="commonemail" schema="1.4.0">
+<SystemDefinition name="commonemail" schema="1.5.1">
   <systemModel>
     <layer name="app_layer">
       <module name="commonemail">
-        <unit unitID="EDo.commonemail" mrp="" bldFile="&layer_real_source_path;/group" name="commonemail" />
+        <unit unitID="EDo.commonemail.nmail" mrp="" bldFile="&layer_real_source_path;" proFile="nmail.pro" name="commonemail.nmail" qmakeArgs="-r"/>
       </module>
-    </layer>
-    <layer name="unit_test_layer">
-      <module name="cmail.emailserver.unittest">
-
-        <unit unitID="EDo.cmail.emailframework.unittest" mrp="" bldFile="sf/app/commonemail/emailservices/emailframework/tsrc/group" name="unittest.emailframework.cmail" />
-
-        <unit unitID="EDo.cmail.emailserver.unittest" mrp="" bldFile="sf/app/commonemail/emailservices/emailserver/tsrc/group" name="unittest.emailserver.cmail" />
-
-        <unit unitID="EDo.cmail.cmailhandlerplugin.unittest" mrp="" bldFile="sf/app/commonemail/emailservices/emailserver/cmailhandlerplugin/tsrc/group" name="unittest.cmailhandlerplugin.cmail" />
-
-        <unit unitID="EDo.cmail.mailserverautostart.unittest" mrp="" bldFile="sf/app/commonemail/emailservices/emailserver/mailserverautostart/tsrc/group" name="unittest.mailserverautostart.cmail" />
-
-        <unit unitID="EDo.cmail.saveascontactplugin.unittest" mrp="" bldFile="sf/app/commonemail/emailcontacts/contactactionservice/saveascontactplugin/tsrc/group" name="unittest.saveascontactplugin.cmail" />
-
-        <unit unitID="EDo.cmail.utils.unittest" mrp="" bldFile="ext/app/eas/Utils/tsrc/group" name="unittest.utils.cmail" />
-
-      </module>
+<!-- Internal code -->
+      <module name="nmail_tools">
+        <unit unitID="nmail.tools" mrp="" bldFile="&layer_real_source_path;\emailuis\nmailuiengine\tsrc\tools" name="qtdemos" proFile="tools.pro" qmakeArgs="-r" filter="nmail_tools"/>
+     </module>
+<!-- Internal code widget-->
+      <module name="widget_tools">
+        <unit unitID="widget.tools" mrp="" bldFile="&layer_real_source_path;\emailuis\nmhswidget\tsrc\nmhswidgettestapp" name="widgetestapp" proFile="nmhswidgettestapp.pro" qmakeArgs="-r" filter="widget_tools"/>
+     </module>
     </layer>
   </systemModel>
 </SystemDefinition>
-
-
-
-
-

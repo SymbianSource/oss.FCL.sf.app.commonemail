@@ -31,7 +31,7 @@ const TInt KIpsAutoPopulateByteLimit = KMaxTInt32;
 *
 */
     
-class CIpsPlgImap4ConnectOp :
+NONSHARABLE_CLASS ( CIpsPlgImap4ConnectOp ) :
     public CIpsPlgOnlineOperation,
     public MMsvImapConnectionObserver,
     public MIpsPlgConnectOpCallback,
@@ -110,13 +110,7 @@ public: // from MFSMailRequestObserver
     
         void RequestResponseL( TFSProgress aEvent, TInt aRequestId );
         
-public:
-
-        /**
-        *
-        */
-        TBool Connected() const;
-
+// <qmail> Connected() used from baseclass
 protected:
 
 		/**
@@ -203,6 +197,15 @@ protected:
          */
         void SignalSyncCompleted( TInt aError );
         
+        // <qmail>
+        /**
+         * 
+         */
+        void ConstructImapPartialFetchInfo( 
+                TImImap4GetPartialMailInfo& aInfo, 
+                CImImap4Settings& aImap4Settings );
+        // </qmail>
+        
         
     private: //Data
 
@@ -217,8 +220,6 @@ protected:
         CIpsPlgEventHandler*                iEventHandler;
         TBool                               iIsSyncStartedSignaled;
 
-        // set to true if connection is already exists
-        TBool 								iAlreadyConnected;
     };
 
 #endif

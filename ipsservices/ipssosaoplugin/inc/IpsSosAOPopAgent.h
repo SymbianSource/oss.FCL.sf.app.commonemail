@@ -35,7 +35,7 @@ class CPop3ClientMtm;
 * implementations of base class pure virtual functions.
 *
 */
-class CIpsSosAOPopAgent : public CIpsSosAOBaseAgent
+NONSHARABLE_CLASS (CIpsSosAOPopAgent) : public CIpsSosAOBaseAgent
     {
 public:
     

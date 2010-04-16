@@ -92,10 +92,8 @@ TBool CIpsPlgPop3Plugin::MailboxHasCapabilityL(
         case EFSMBoxCapaCanBeDeleted:
         case EFSMBoxCapaSupportsSaveToDrafts:
         case EFSMBoxCapaMeetingRequestRespond:
-        case EFSMboxCapaSupportsAttahmentsInMR:
         case EFSMBoxCapaMeetingRequestCreate:
         case EFSMBoxCapaCanUpdateMeetingRequest:
-        case EFSMBoxCapaRemoveFromCalendar:    
             {
             result = ETrue;
             break;
@@ -163,10 +161,11 @@ void CIpsPlgPop3Plugin::RefreshNowL(
     TInt populationLimit( settings->PopulationLimit() );
     CleanupStack::PopAndDestroy( 2, settings );   // >>> settings, accounts
     TBool forcePopulate( EFalse );
+    /*
     if( populationLimit != KIpsSetDataHeadersOnly )
         {
         forcePopulate = ETrue;
-        }
+        }*/
     
     CIpsPlgBaseOperation* op = CIpsPlgPop3ConnectOp::NewL( 
         *iSession, 
@@ -184,9 +183,11 @@ void CIpsPlgPop3Plugin::RefreshNowL(
     
     iOperations.AppendL( watcher );
     CleanupStack::Pop( watcher );   // >> watcher
-    
-    // send part
-    EmptyOutboxL( aMailBoxId );
+    	
+   	//<qmail>
+    // send part of refresh
+    //EmptyOutboxL( aMailBoxId ); // not used in qmail yet
+	  //</qmail>
     }
 
 // ---------------------------------------------------------------------------
@@ -195,17 +196,14 @@ void CIpsPlgPop3Plugin::RefreshNowL(
 //  
 void CIpsPlgPop3Plugin::ListFoldersL(
     const TFSMailMsgId& aMailBoxId,
-    const TFSMailMsgId& aFolderId,
+    const TFSMailMsgId& /*aFolderId*/,
     RPointerArray<CFSMailFolder>& aFolderList)
-    {
+	{
     FUNC_LOG;
-    // Pop3 can return only folders on the root level, so folders are not
-    // listed when the given folder ID is not null ID.
-    if ( aFolderId.IsNullId() )
-        {
-        ListFoldersL( aMailBoxId, aFolderList );
-        }
-    }
+	// Pop3 returns always the root level, so ignore folder id even
+	// it is given.
+	ListFoldersL( aMailBoxId, aFolderList );
+	}
 
 // ---------------------------------------------------------------------------
 // CIpsPlgPop3Plugin::ListFoldersL

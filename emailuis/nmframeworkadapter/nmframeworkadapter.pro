@@ -1,0 +1,88 @@
+#
+# Copyright (c) 2008 Nokia Corporation and/or its subsidiary(-ies).
+# All rights reserved.
+# This component and the accompanying materials are made available
+# under the terms of "Eclipse Public License v1.0"
+# which accompanies this distribution, and is available
+# at the URL "http://www.eclipse.org/legal/epl-v10.html".
+#
+# Initial Contributors:
+# Nokia Corporation - initial contribution.
+#
+# Contributors:
+#
+# Description: 
+#
+# Version : %version: 22 %
+TEMPLATE = lib
+TARGET = nmframeworkadapter
+
+CONFIG += plugin
+DEFINES += BUILD_DLL
+
+INCLUDEPATH += ../../inc
+
+HEADERS += inc/nmframeworkadapter.h \
+           inc/nmfwamessagefetchingoperation.h \
+           inc/nmfwamessagecreationoperation.h \
+           inc/nmfwastoreenvelopesoperation.h \
+           inc/nmfwaforwardmessagecreationoperation.h \
+           inc/nmfwareplymessagecreationoperation.h \
+           inc/nmfwamessagesendingoperation.h \
+           inc/nmfwaaddattachmentsoperation.h \
+           inc/nmfwaremoveattachmentoperation.h \
+           inc/nmfwastoremessageoperation.h \
+           inc/nmfwacheckoutboxoperation.h \
+           inc/nmfwamessagepartfetchingoperation.h
+
+SOURCES += src/nmframeworkadapter.cpp \
+           src/nmfwamessagefetchingoperation.cpp \
+           src/nmfwamessagecreationoperation.cpp \
+           src/nmfwastoreenvelopesoperation.cpp \
+           src/nmfwaforwardmessagecreationoperation.cpp \
+           src/nmfwareplymessagecreationoperation.cpp \
+           src/nmfwamessagesendingoperation.cpp \
+           src/nmfwaaddattachmentsoperation.cpp \
+           src/nmfwaremoveattachmentoperation.cpp \
+           src/nmfwastoremessageoperation.cpp \
+           src/nmfwacheckoutboxoperation.cpp \
+           src/nmfwamessagepartfetchingoperation.cpp
+
+RESOURCES +=
+
+symbian*: {
+    INCLUDEPATH += /epoc32/include/ecom \
+    ../../emailservices/emailframework/inc \
+    ../../emailservices/emailframework/commonlib/inc \
+    ../../inc
+    INCLUDEPATH += /epoc32/include/ecom
+
+    pluginstub.sources = nmframeworkadapter.dll
+    pluginstub.path = /resource/plugins
+    DEPLOYMENT += pluginstub
+
+	TARGET.EPOCHEAPSIZE = 0x20000 0x1000000
+    TARGET.EPOCALLOWDLLDATA = 1
+    TARGET.CAPABILITY = CAP_GENERAL_DLL
+    TARGET.UID2 = 0x1000008D
+    TARGET.UID3 = 0x20027019
+
+	LIBS += -lnmailbase
+	LIBS += -lnmailuiengine
+	LIBS += -lfsmailframework
+	LIBS += -lfsfwcommonlib
+	LIBS += -lcharconv
+
+	BLD_INF_RULES.prj_exports += \
+    "../rom/nmframeworkadapter.iby             CORE_APP_LAYER_IBY_EXPORT_PATH(nmframeworkadapter.iby)"
+
+}
+
+win32 {
+     DESTDIR = ../../../../bin
+
+     LIBS += -L../../../../bin \
+        -lnmailbase
+}
+
+

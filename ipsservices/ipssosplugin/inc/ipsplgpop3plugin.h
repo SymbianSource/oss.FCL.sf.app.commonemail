@@ -22,7 +22,7 @@
 #include "ipsplgsosbaseplugin.h"
 
 class CPop3ClientMtm;
-class CIpsPlgPop3Plugin : public CIpsPlgSosBasePlugin
+NONSHARABLE_CLASS( CIpsPlgPop3Plugin ) : public CIpsPlgSosBasePlugin
 {
 public:
 

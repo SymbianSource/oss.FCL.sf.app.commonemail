@@ -105,7 +105,6 @@ CIpsPlgEventHandler::~CIpsPlgEventHandler()
     iIPSSettingsObservers.ResetAndDestroy();
     iIPSSettingsObservers.Close();
     iPropertyObservers.Close();
-    delete iSettingsApi;
     iImapFolderIds.Close();
     }
 
@@ -128,7 +127,11 @@ CIpsPlgEventHandler::CIpsPlgEventHandler(
 void CIpsPlgEventHandler::ConstructL( )
     {
     FUNC_LOG;
-    iCenRep = CRepository::NewL( KCRUidExtendedSettingsUid );
+    // <qmail>
+    // commented out from qmail when extented settings 
+    // cen rep not exist in environment
+    //iCenRep = CRepository::NewL( KCRUidExtendedSettingsUid );
+    // </qmail>
     iPluginId = iBasePlugin.PluginId();
     RegisterPropertyObserverL( this );
     }
@@ -139,7 +142,6 @@ void CIpsPlgEventHandler::CompleteConstructL( CMsvSession* aSession )
     {
     FUNC_LOG;
     iSession = aSession;
-    iSettingsApi = CIpsSetDataApi::NewL( *iSession );
 
     // this collects all folderids to array from mailboxes that
     // have registered observers, this is need to do here because
@@ -521,7 +523,6 @@ void CIpsPlgEventHandler::SendDelayedEventL(
     event.iArg3 = aArg3;
 
     RPointerArray<MFSMailEventObserver> observers;
-    CleanupClosePushL( observers );
 
     if( aEvent == TFSEventNewMailbox ||
         aEvent == TFSEventMailboxRenamed ||
@@ -542,16 +543,14 @@ void CIpsPlgEventHandler::SendDelayedEventL(
         }
     for( TInt i = 0; i < observers.Count(); ++i )
         {
-        // ignore leave so that other observers get event even if
-        // one leaves
-        TRAP_IGNORE(observers[i]->EventL(
+        observers[i]->EventL(
             event.iEvent,
             event.iAccountId,
             event.iArg1,
             event.iArg2,
-            event.iArg3 ));
+            event.iArg3 );
         }
-    CleanupStack::PopAndDestroy( &observers );
+    observers.Close();
     }
 
 // ----------------------------------------------------------------------------
@@ -641,21 +640,10 @@ void CIpsPlgEventHandler::HandleEntriesCreatedL(
             SendDelayedEventL( event, mbox,
                 arg1, arg2 , arg3 );
             }
-        
-        // discard any new mail events if message is marked as deleted in imap
-        const TMsvEmailEntry& emlEntry(tNew);
-        TBool isMarkedAsDeleted = EFalse;
-        if ( mbox.PluginId() == KIpsPlgImap4PluginUid
-                && (EDisconnectedDeleteOperation == emlEntry.DisconnectedOperation()
-                || emlEntry.DeletedIMAP4Flag()) )
-            {
-            isMarkedAsDeleted = ETrue;
-            }
-        
-        
-        if ( type == KUidMsvMessageEntry && !isMarkedAsDeleted )
+        if ( type == KUidMsvMessageEntry )
             {
             TMsvId* parent = static_cast<TMsvId*>(aArg2);
+            // NOTE: assumed that event contains only one new message
             event = TFSEventNewMail;
             TFSMailMsgId mbox;
 
@@ -686,7 +674,6 @@ void CIpsPlgEventHandler::HandleEntriesCreatedL(
 
             // set entries array pointer
             RArray<TFSMailMsgId> array(KEventGranularity);
-            CleanupClosePushL( array );
 
             FillFSMessageArray(
                 array,
@@ -701,7 +688,7 @@ void CIpsPlgEventHandler::HandleEntriesCreatedL(
 
             SendDelayedEventL( event, mbox,
                 arg1, arg2 , arg3 );
-            CleanupStack::PopAndDestroy( &array );
+            array.Close();
             }
         else if ( type == KUidMsvFolderEntry )
             {
@@ -710,7 +697,6 @@ void CIpsPlgEventHandler::HandleEntriesCreatedL(
 
             // set entries array pointer
             RArray<TFSMailMsgId> array(1);
-            CleanupClosePushL( array );
             array.Append( SymId2FsId( tNew ) );
             arg1 = &array;
 
@@ -722,7 +708,7 @@ void CIpsPlgEventHandler::HandleEntriesCreatedL(
             SendDelayedEventL( event, mbox,
                 arg1, arg2 , arg3 );
 
-            CleanupStack::PopAndDestroy( &array );
+            array.Close();
 
             if( tNew.iMtm.iUid == KSenduiMtmImap4UidValue )
                 {
@@ -759,7 +745,6 @@ void CIpsPlgEventHandler::HandleEntriesMovedL(
         TFSMailEvent event( TFSMailboxUnavailable );
 
         RArray<TFSMailMsgId> array(KEventGranularity);
-        CleanupClosePushL( array );
         FillFSMessageArray(
             array,
             static_cast<const CMsvEntrySelection*>(aArg1),
@@ -803,7 +788,7 @@ void CIpsPlgEventHandler::HandleEntriesMovedL(
             arg2,
             arg3 );
 
-        CleanupStack::PopAndDestroy( &array );
+        array.Close();
         // set null to prevent later usage in framework side
         // causes kern exec 3 panic...
         arg1 = arg2 = arg3 = NULL;
@@ -901,8 +886,8 @@ void CIpsPlgEventHandler::HandleEntriesDeletedL(
             // message in remote folder (inbox)
             TFSMailMsgId mbox(iPluginId, tEntry.iServiceId );
             RArray<TFSMailMsgId> array( KEventGranularity );
-            CleanupClosePushL( array );
             TFSMailMsgId parentId( iPluginId, tEntry.Id() );
+
 
             if ( tEntry.iMtm.iUid == KSenduiMtmImap4UidValue )
                 {
@@ -942,7 +927,7 @@ void CIpsPlgEventHandler::HandleEntriesDeletedL(
                     arg3 );
                 }
 
-            CleanupStack::PopAndDestroy( &array );
+            array.Close();
             }
         else if ( tEntry.iMtm.iUid == KSenduiMtmSmtpUidValue )
             {
@@ -985,7 +970,6 @@ void CIpsPlgEventHandler::HandleEntriesDeletedL(
                 }
 
             RArray<TFSMailMsgId> array(1);
-            CleanupClosePushL( array );
             array.Append( msg );
             arg1 = &array;
             arg2 = &parent;
@@ -996,7 +980,7 @@ void CIpsPlgEventHandler::HandleEntriesDeletedL(
                 arg1,
                 arg2,
                 arg3 );
-            CleanupStack::PopAndDestroy( &array );
+            array.Close();
             }
         else
             {
@@ -1035,7 +1019,6 @@ void CIpsPlgEventHandler::HandleEntriesChangedL(
     TFSMailEvent event = static_cast<TFSMailEvent>( KErrNotFound );
 
     RArray<TFSMailMsgId> array(1);
-    CleanupClosePushL( array );
 
     if ( tChanged.iType == KUidMsvMessageEntry )
         {
@@ -1125,7 +1108,7 @@ void CIpsPlgEventHandler::HandleEntriesChangedL(
         SendDelayedEventL( event,
             mbox, arg1, arg2, arg3 );
         }
-    CleanupStack::PopAndDestroy( &array );
+    array.Close();
     // set null to prevent later usage in framework side
     // causes kern exec 3 panic...
     arg1 = arg2 = arg3 = NULL;
@@ -1335,10 +1318,14 @@ void CIpsPlgEventHandler::AppendSettingsObserverL(
         }
     else
         {
-        CIpsPlgSettingsObserver* obs =
+        // <qmail>
+        // commented out from qmail when extented settings 
+        // cen rep not exist in environment
+        /*CIpsPlgSettingsObserver* obs =
             CIpsPlgSettingsObserver::NewL( aAccount, *iCenRep, *this );
         obs->SetKeyAndActivateL( aSettingKey, observers );
-        iIPSSettingsObservers.AppendL( obs );
+        iIPSSettingsObservers.AppendL( obs );*/
+        // </qmail>
         }
     observers.Close();
     }
@@ -1556,7 +1543,7 @@ void CIpsPlgEventHandler::SettingsChangedL( TFSMailMsgId /*aAccount*/ )
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-void CIpsPlgEventHandler::SaveSyncStatusL( TMsvId aMailboxId, TInt aState )
+void CIpsPlgEventHandler::SaveSyncStatusL( TMsvId aMailboxId, TInt /*aState*/ )
     {
     FUNC_LOG;
     TMsvEntry tEntry;
@@ -1569,7 +1556,6 @@ void CIpsPlgEventHandler::SaveSyncStatusL( TMsvId aMailboxId, TInt aState )
 
     if( err == KErrNone )
         {
-        iSettingsApi->SaveSyncStatusL( tEntry, aState );
         }
     }
 
@@ -1690,12 +1676,11 @@ TBool CIpsPlgEventHandler::MatchFolderIdFound( TMsvId aDeletedId )
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-void CIpsPlgEventHandler::CollectSubscribedFoldersL( TMsvId aMailboxId )
+void CIpsPlgEventHandler::CollectSubscribedFoldersL( TMsvId /*aMailboxId*/ )
     {
     FUNC_LOG;
     if ( iSession )
         {
-        iSettingsApi->GetSubscribedImapFoldersL( aMailboxId, iImapFolderIds );
         }
     }
 

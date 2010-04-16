@@ -21,8 +21,10 @@
 
 #include <smtcmtm.h>
 #include "ipsplgcommon.h"
+#include "ipsplgbaseoperation.h"
 
 class CClientMtmRegistry;
+class MFSMailRequestObserver;
 
 /**
  *  Class for smtp related operations
@@ -31,7 +33,7 @@ class CClientMtmRegistry;
  *  @since FS 1.0
  */
 //should this class inherited from online operation
-NONSHARABLE_CLASS( CIpsPlgSmtpOperation ) : public CMsvOperation
+NONSHARABLE_CLASS( CIpsPlgSmtpOperation ) : public CIpsPlgBaseOperation
     {
 public:
 
@@ -45,7 +47,8 @@ public:
         CMsvSession& aMsvSession, 
         TInt aPriority, 
         TRequestStatus& aObserverRequestStatus,
-        TBool aUsePublishSubscribe );
+        MFSMailRequestObserver* aFSOperationObserver = NULL,
+        TInt aFSRequestId = KErrNotFound );
 
     /**
      * Symbian 2nd phase construcror
@@ -57,7 +60,8 @@ public:
         CMsvSession& aMsvSession, 
         TInt aPriority, 
         TRequestStatus& aObserverRequestStatus,
-        TBool aUsePublishSubscribe );
+        MFSMailRequestObserver* aOperationObserver = NULL,
+        TInt aFSRequestId = KErrNotFound );
 
     /**
      * Class destructor
@@ -72,6 +76,12 @@ public:
      */ 
     virtual const TDesC8& ProgressL();
     
+    virtual const TDesC8& GetErrorProgressL( TInt aError );
+
+    virtual TFSProgress GetFSProgressL() const;
+
+    TInt IpsOpType() const;
+
     /**
      * Stard sending operation
      *
@@ -96,8 +106,10 @@ protected:
     CIpsPlgSmtpOperation( 
         CMsvSession& aMsvSession, 
         TInt aPriority, 
-        TRequestStatus& aObserverRequestStatus );
-    
+        TRequestStatus& aObserverRequestStatus,
+        MFSMailRequestObserver* aFSOperationObserver,
+        TInt aFSRequestId );
+
     /**
      * Constructor for leaving methods
      *
@@ -105,17 +117,6 @@ protected:
      * @return None
      */    
     void ConstructL( );
-
-    /**
-     * Completes observer with status aStatus
-     * @param aStatus: Status of the operation.
-     */
-    void CompleteObserver( TInt aStatus = KErrNone );
-
-    /**
-     * Completes itself with KErrNone status
-     */
-    void CompleteThis();
 
 private: // From CActive
 
@@ -131,6 +132,9 @@ private: // From CActive
      * @since FS 1.0
      */
     void RunL( );
+
+    TInt RunError( TInt aError );
+
     void DoCancel( );
     
     /**
@@ -161,12 +165,14 @@ private: // From CActive
     
 private:
 
-    CSmtpClientMtm*     iSmtpMtm;
-    CMsvOperation*      iOperation;
-    CMsvEntrySelection* iSelection;
-    CClientMtmRegistry* iMtmRegistry;
-    TInt                iState;
-    TMsvId              iSmtpService;
+    CSmtpClientMtm*         iSmtpMtm;
+    CMsvOperation*          iOperation;
+    CMsvEntrySelection*     iSelection;
+    CClientMtmRegistry*     iMtmRegistry;
+    TInt                    iState;
+    TMsvId                  iSmtpService;
+    MFSMailRequestObserver* iFSOperationObserver;
+    TFSProgress             iFSProgress;
     };
 
 #endif /* IPSPLGSENDOPERATION_H */

@@ -17,8 +17,9 @@
 
 
 #include <platform_paths.hrh>
-
-#include "../../../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
+//<qmail>
+//#include "../../../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
+//</qmail>
 #include "../../../inc/EmailStoreUids.hrh"
 
 TARGET        MessageStoreServer.dll
@@ -27,8 +28,9 @@ UID           KUidSharedLibrary KUidMessageStoreServer
 SECUREID      KUidMessageStoreServer
 VENDORID      VID_DEFAULT
 CAPABILITY    CAP_CLIENT_DLL
-
-VERSION       KEmailBinaryVersionNumber
+//<qmail>
+//VERSION       KEmailBinaryVersionNumber
+//</qmail>
 KEmailBinaryDemandPaging
 
 MACRO DEBUG_USE_PROJECT_LOGGING_OPTIONS
@@ -73,7 +75,7 @@ SOURCE        MsgStoreStringSortResultRowSet.cpp
 SOURCE        ContainerStoreSortingTable.cpp
 SOURCE		  ContainerStoreSearchResultTable.cpp
 SOURCE        MessageStoreEncryptHandler.cpp
-SOURCE        ContainerStoreMRUAddressTable.cpp
+SOURCE        ContainerStoreMruAddressTable.cpp
 SOURCE        MsgStoreInMemorySortRowSet.cpp
 SOURCE        bufferedmessagecreator.cpp
 SOURCE        messagestoreutils.cpp

@@ -18,7 +18,7 @@
 
 
 #include "../debuglog/group/bld.inf"
-#include "../PointSecMonitor/Group/bld.inf"
+#include "../PointsecMonitor/group/bld.inf"
 #include "../server/group/bld.inf"
 #include "../client/group/bld.inf"
 #include "../exe/group/bld.inf"

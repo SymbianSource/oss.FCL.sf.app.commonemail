@@ -34,7 +34,7 @@ class MMsgStoreSearchClient;
 // CLASS: CMsgStoreSessionContext
 // NOTE: this is an internal class.
 // ==============================
-class CMsgStoreSessionContext : public CBase
+NONSHARABLE_CLASS ( CMsgStoreSessionContext ) : public CBase
 	{
 	public:
 	

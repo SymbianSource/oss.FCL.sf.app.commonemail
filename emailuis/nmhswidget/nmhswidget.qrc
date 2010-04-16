@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/docml">
+        <file alias="nmhswidgettitle.docml">conf/nmhswidgettitle.docml</file>
+        <file alias="nmhswidgetmail.docml">conf/nmhswidgetmail.docml</file>
+    </qresource>
+</RCC>

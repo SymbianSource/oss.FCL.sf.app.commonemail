@@ -39,7 +39,7 @@ _LIT( KIpsSosAOPanicLit, "AO");
 * 
 * lib ipssosaoplugin.lib
 */
-class CIpsSosAOImapPopLogic : public CBase
+NONSHARABLE_CLASS (CIpsSosAOImapPopLogic) : public CBase
     {
 
 public:
@@ -141,7 +141,9 @@ private:
     RPointerArray<CIpsSosAOMBoxLogic>   iMailboxLogics;
     
     CIpsSosAOEMNResolver*               iEmnResolver;
-    CIpsSetDataApi*                     iDataApi;
+	//<QMail>
+
+	//</QMail>
     // flag is set true when NoNWOpsAllowed (NW = network)
     // event is received, false when NWOpsAllowed is received
     TBool                               iNoNWOpsAllowed;

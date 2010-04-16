@@ -14,6 +14,8 @@
 * Description:  Email interface implementation.
 *
 */
+#include <utf.h>
+
 #include "MsgStoreWritablePropertyContainer.h"
 
 #include "baseplugindelayedops.h"
@@ -27,7 +29,7 @@
 /**
  * 
  */
-/*public virtual*/ EXPORT_C CDelayedOp::~CDelayedOp()
+/*public virtual*/  CDelayedOp::~CDelayedOp()
     {
     Cancel();
     __LOG_DESTRUCT
@@ -36,7 +38,7 @@
 /**
  * 
  */
-/*public*/ EXPORT_C void CDelayedOp::SetContext(
+/*public*/  void CDelayedOp::SetContext(
     CBasePlugin& aPlugin, MDelayedOpsManager& aManager )
     {
     iPlugin = &aPlugin;
@@ -46,7 +48,7 @@
 /**
  * 
  */
-/*protected*/ EXPORT_C CDelayedOp::CDelayedOp()
+/*protected*/  CDelayedOp::CDelayedOp()
     : CAsyncOneShot( CActive::EPriorityIdle )
     {    
     }
@@ -54,7 +56,7 @@
 /**
  * 
  */
-/*private virtual*/ EXPORT_C void CDelayedOp::RunL()
+/*private virtual*/  void CDelayedOp::RunL()
     {
     __LOG_ENTER_SUPPRESS( "Run" );
     TRAPD( err, ExecuteOpL() );
@@ -73,7 +75,7 @@
 /**
  * 
  */
-/*protected*/ EXPORT_C CBasePlugin& CDelayedOp::GetPlugin()
+/*protected*/  CBasePlugin& CDelayedOp::GetPlugin()
     {
     return *iPlugin;
     }
@@ -81,7 +83,7 @@
 /**
  * 
  */
-/*private virtual*/ EXPORT_C void CDelayedOp::DoCancel()
+/*private virtual*/  void CDelayedOp::DoCancel()
     {
     }
 
@@ -173,9 +175,8 @@ CDelayedOpsManager* CDelayedOpsManager::NewL( CBasePlugin& aPlugin )
  */
 /*private*/ void CDelayedOpsManager::ExecutePendingOps()
     {
-    //check the count on every iteration to avoid missing operations being
-    //enqueued by another operations.
-    for ( TInt i = 0; i < iDelayedOps.Count(); ++i )
+    TInt count = iDelayedOps.Count();
+    for ( TInt i = 0; i < count; ++i )
         {
         CDelayedOp* op = iDelayedOps[i];
         
@@ -475,4 +476,286 @@ CDelayedSetContentOp* CDelayedSetContentOp::NewLC(
       iMessagePartId( aMessagePartId ), iContentLength( aContentLength ),
       iStepOne( EFalse )
     {
+    }
+
+///////////////////////////////////////////////////
+// CDelayedMessageStorerOp                      //
+///////////////////////////////////////////////////
+
+/**
+ * 
+ */
+/*public static */ CDelayedMessageStorerOp* CDelayedMessageStorerOp::NewLC(
+        const TFSMailMsgId& aMailBox,
+        RPointerArray<CFSMailMessage> &messages,
+        MFSMailRequestObserver& aOperationObserver,
+        const TInt aRequestId)
+    {
+    CDelayedMessageStorerOp* self = new (ELeave) CDelayedMessageStorerOp(
+            aMailBox, messages, aOperationObserver,aRequestId);
+    CleanupStack::PushL( self );
+    self->ConstructL(  );
+    return self;
+    }
+
+/**
+ * 
+ */
+/*public static */ CDelayedMessageStorerOp* CDelayedMessageStorerOp::NewLC(
+        RPointerArray<CFSMailMessagePart>& aMessageParts,
+        MFSMailRequestObserver& aOperationObserver,
+        const TInt aRequestId)
+    {
+    CDelayedMessageStorerOp* self = new (ELeave) CDelayedMessageStorerOp(
+            aMessageParts, aOperationObserver, aRequestId);
+    CleanupStack::PushL( self );
+    self->ConstructL(  );
+    return self;
+    }
+
+/**
+ * 
+ */
+/*public virtual*/ CDelayedMessageStorerOp::~CDelayedMessageStorerOp()
+    {
+    __LOG_DESTRUCT
+    iMessages.Reset();
+    iMessageParts.Reset();
+    if (iDataBuffer)
+        {
+        delete iDataBuffer;
+        iDataBuffer = NULL;
+        }
+    }
+
+/**
+ * 
+ */
+/*private*/
+void CDelayedMessageStorerOp::ConstructL( )
+    {
+    __LOG_CONSTRUCT( "baseplugin", "CDelayedMessageStorerOp" );
+        
+    }
+
+/**
+ * 
+ */
+/*private*/ CDelayedMessageStorerOp::CDelayedMessageStorerOp(
+    const TFSMailMsgId& aMailBox,
+    RPointerArray<CFSMailMessage> &messages,
+    MFSMailRequestObserver& aOperationObserver,
+    const TInt aRequestId)
+    : iMailBox( aMailBox ), 
+      iOperationObserver( aOperationObserver ),
+      iRequestId( aRequestId ),
+      iType(EHeaders)
+    {
+    for(TInt i=0; i < messages.Count(); i++)
+        {
+        iMessages.Append(messages[i]);
+        }
+    }
+
+/**
+ * 
+ */
+/*private*/ CDelayedMessageStorerOp::CDelayedMessageStorerOp(
+    RPointerArray<CFSMailMessagePart>& aMessageParts,
+    MFSMailRequestObserver& aOperationObserver,
+    const TInt aRequestId)
+    :iOperationObserver( aOperationObserver ),
+    iRequestId( aRequestId ),
+    iType(EParts)
+    {
+    for(TInt i=0; i < aMessageParts.Count(); i++)
+        {
+        iMessageParts.Append(aMessageParts[i]);
+        }
+    }
+
+/**
+ * 
+ */
+/*private*/ void CDelayedMessageStorerOp::ExecuteOpL()
+    {
+    __LOG_ENTER( "ExecuteOpL" );
+   
+    TFSProgress progress = { TFSProgress::EFSStatus_RequestCancelled, 0, 0, 0 };
+    progress.iError = KErrNotFound;
+    TInt err(KErrNone);
+    
+    switch( iType )
+        {
+        case EHeaders: 
+            {
+            for ( TInt i = 0; i < iMessages.Count(); i++ )
+                {
+                TRAP(err, GetPlugin().StoreMessageL(iMailBox, *iMessages[i] ));
+                if(err!=KErrNone)
+                    {
+                    break;
+                    }
+                }
+            break;
+            }
+            
+        case EParts:
+            {
+                for ( TInt i = 0; i < iMessageParts.Count(); i++ )
+                {
+                CFSMailMessagePart& part= *iMessageParts[i];
+                TFSMailMsgId messageId= part.GetMessageId();
+                TFSMailMsgId folderId= part.GetFolderId();
+                
+                if (part.GetContentType().Compare(KFSMailContentTypeTextPlain) == 0 ||
+                        part.GetContentType().Compare(KFSMailContentTypeTextHtml) == 0)
+                    {
+                    TRAP(err,StorePartL(&part));
+                    if(err!=KErrNone)
+                        {
+                        break;
+                        }
+                    TRAP(err, GetPlugin().StoreMessagePartL( part.GetMailBoxId(), folderId, messageId, part ));
+                    }
+                else
+                    {
+                    TRAP(err, GetPlugin().StoreMessagePartL( part.GetMailBoxId(), folderId, messageId, part ));
+                    }
+               if(err!=KErrNone)
+                    {
+                    break;
+                    }
+                }
+            }
+        
+        default:
+        break;
+        }
+    
+    if( err == KErrNone )
+        {
+        progress.iError = KErrNone;
+        progress.iProgressStatus = TFSProgress::EFSStatus_RequestComplete;
+        }
+
+    iOperationObserver.RequestResponseL( progress, iRequestId );
+    
+    __LOG_EXIT;
+    }
+
+
+/**
+ * 
+ */
+void CDelayedMessageStorerOp::StorePartL(
+        CFSMailMessagePart* aPart)
+    {
+    User::LeaveIfNull(aPart);
+    
+    // Text buffer for html text content
+    HBufC* data16 = aPart->GetLocalTextContentLC();
+
+    TPtrC8 ptr8(reinterpret_cast<const TUint8*>( data16->Ptr() ),
+            data16->Size() );
+    
+    //get msgstore part
+    CMailboxInfo& mailBox = GetPlugin().GetMailboxInfoL( aPart->GetMailBoxId().Id() );
+    
+    CMsgStoreMessage* msg = mailBox().FetchMessageL(
+            aPart->GetMessageId().Id(), KMsgStoreInvalidId );
+    CleanupStack::PushL( msg );
+    
+    CMsgStoreMessagePart* part= msg->ChildPartL( aPart->GetPartId().Id(), ETrue );
+    
+    CleanupStack::PopAndDestroy( msg );
+    CleanupStack::PushL( part );
+
+    //replace content
+    part->ReplaceContentL(ptr8);
+    
+    CleanupStack::PopAndDestroy( part );
+    CleanupStack::PopAndDestroy( data16 );
+       
+    }
+
+
+///////////////////////////////////////////////////
+// CDelayedMessageToSendOp                      //
+///////////////////////////////////////////////////
+
+/**
+ * 
+ */
+/*public static */ CDelayedMessageToSendOp* CDelayedMessageToSendOp::NewLC(
+        CBasePlugin& aPlugin,
+        const TFSMailMsgId& aMailBox,
+        MFSMailRequestObserver& aOperationObserver,
+        const TInt aRequestId)
+    {
+    CDelayedMessageToSendOp* self = new (ELeave) CDelayedMessageToSendOp(
+            aPlugin,aMailBox, aOperationObserver,aRequestId);
+    CleanupStack::PushL( self );
+    self->ConstructL(  );
+    return self;
+    }
+
+
+/**
+ * 
+ */
+/*public virtual*/ CDelayedMessageToSendOp::~CDelayedMessageToSendOp()
+    {
+    __LOG_DESTRUCT
+    }
+
+/**
+ * 
+ */
+/*private*/
+void CDelayedMessageToSendOp::ConstructL( )
+    {
+    __LOG_CONSTRUCT( "baseplugin", "CDelayedMessageToSendOp" );
+        
+    }
+
+/**
+ * 
+ */
+/*private*/ CDelayedMessageToSendOp::CDelayedMessageToSendOp(
+    CBasePlugin& aPlugin,
+    const TFSMailMsgId& aMailBox,
+    MFSMailRequestObserver& aOperationObserver,
+    const TInt aRequestId)
+    : iBasePlugin(aPlugin), 
+      iMailBox( aMailBox ), 
+      iOperationObserver( aOperationObserver ),
+      iRequestId( aRequestId )
+    {
+
+    }
+
+
+/**
+ * 
+ */
+/*private*/ void CDelayedMessageToSendOp::ExecuteOpL()
+    {
+    __LOG_ENTER( "ExecuteOpL" );
+   
+    TFSProgress progress = { TFSProgress::EFSStatus_RequestCancelled, 0, 0, 0 };
+    progress.iError = KErrNotFound;
+    TInt err(KErrNone);
+
+    TRAP(err, progress.iParam = iBasePlugin.CreateMessageToSendL( iMailBox ));
+    
+    if( err == KErrNone  )
+        {
+        progress.iError = KErrNone;
+        progress.iProgressStatus = TFSProgress::EFSStatus_RequestComplete;
+        }
+
+    iOperationObserver.RequestResponseL( progress, iRequestId );
+    
+    __LOG_EXIT;
     }

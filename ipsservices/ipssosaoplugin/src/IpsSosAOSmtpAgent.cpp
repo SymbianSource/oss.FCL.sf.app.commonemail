@@ -19,9 +19,14 @@
 #include "emailtrace.h"
 #include <e32base.h>
 
+//<QMail>
+#include "CFSMailCommon.h"
+//</QMail>
 #include "IpsSosAOSmtpAgent.h"
 #include "ipsplgsmtpoperation.h"
-#include "ipssetdataapi.h"
+//<QMail>
+
+//</QMail>
 
 
 #ifdef _DEBUG
@@ -133,14 +138,17 @@ void CIpsSosAOSmtpAgent::CreateInternalDataL( )
     FUNC_LOG;
     if ( !iOperation )
         {
+		//<QMail>
         iOperation = CIpsPlgSmtpOperation::NewL(
-            iSession, EPriorityStandard, iStatus , EFalse );
+            iSession, EPriorityStandard, iStatus  );
         }
-        
+    /*
     if ( !iSettingsApi )
         {
         iSettingsApi = CIpsSetDataApi::NewL( iSession );
         }
+    */
+	//</QMail>
     }
 
 // ----------------------------------------------------------------------------
@@ -158,9 +166,9 @@ void CIpsSosAOSmtpAgent::ReleaseInternalData( )
         delete iOperation;
         iOperation = NULL;
         }
-    
-    delete iSettingsApi;
-    iSettingsApi = NULL;
+	//<QMail>
+
+    //</QMail>
     }
 
 

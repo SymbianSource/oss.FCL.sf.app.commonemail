@@ -23,7 +23,7 @@
 #include <e32base.h>
 
 //<cmail>
-#include "cfsmailmessage.h"
+#include "CFSMailMessage.h"
 //</cmail>
 
 /**
@@ -49,13 +49,6 @@ class MFSMailBoxSearchObserver
 	*/
     virtual void SearchCompletedL() = 0;
       
-//</cmail>
-    /**
-    * server asks client if to change the search priority (i.e. when calling to contact) 
- 	*
- 	*/
-    virtual void ClientRequiredSearchPriority(TInt *apRequiredSearchPriority) = 0; 
-//</cmail>
     };
 
 #endif  // MFSMAILBOXSEARCHOBSERVER_H

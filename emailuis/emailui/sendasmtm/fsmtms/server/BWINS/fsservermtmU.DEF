@@ -1,3 +1,0 @@
-EXPORTS
-	?NewL@CFsServerMtm@@SAPAV1@AAVCRegisteredMtmDll@@PAVCMsvServerEntry@@@Z @ 1 NONAME ; class CFsServerMtm * CFsServerMtm::NewL(class CRegisteredMtmDll &, class CMsvServerEntry *)
-

@@ -26,7 +26,7 @@
 
 #include "RMessageStoreSession.h"
 
-#include "EmailStoreUids.hrh"
+#include "emailstoreuids.hrh"
 #include "MessageStoreClientServer.h"
 #include "RMessageStoreSession.h"
 //<cmail>

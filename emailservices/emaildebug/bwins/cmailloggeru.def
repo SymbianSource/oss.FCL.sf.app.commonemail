@@ -1,4 +1,0 @@
-EXPORTS
-	?Close@CmailLogger@@SAXXZ @ 1 NONAME ; void CmailLogger::Close(void)
-	?Write@CmailLogger@@SAXABVTDesC8@@@Z @ 2 NONAME ; void CmailLogger::Write(class TDesC8 const &)
-

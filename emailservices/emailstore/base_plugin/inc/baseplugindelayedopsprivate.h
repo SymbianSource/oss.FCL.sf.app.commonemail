@@ -174,4 +174,104 @@ private:
     };
 
 
+/**
+ * 
+ */
+NONSHARABLE_CLASS( CDelayedMessageStorerOp ) : public CDelayedOp
+    {
+
+public:
+
+    static CDelayedMessageStorerOp* NewLC(
+            const TFSMailMsgId& aMailBox,
+            RPointerArray<CFSMailMessage> &messages,
+            MFSMailRequestObserver& aOperationObserver,
+            const TInt aRequestId );
+    
+    static CDelayedMessageStorerOp* NewLC(
+            RPointerArray<CFSMailMessagePart>& aMessageParts,
+            MFSMailRequestObserver& aOperationObserver,
+            const TInt aRequestId);
+
+    virtual ~CDelayedMessageStorerOp();
+
+    //CDelayedOp::ExecuteOpL
+    virtual void ExecuteOpL();
+    
+private:
+
+    void ConstructL();
+       
+    CDelayedMessageStorerOp(
+            const TFSMailMsgId& aMailBox,
+            RPointerArray<CFSMailMessage> &messages,
+            MFSMailRequestObserver& aOperationObserver,
+            const TInt aRequestId);
+    
+    CDelayedMessageStorerOp(
+            RPointerArray<CFSMailMessagePart>& aMessageParts,
+            MFSMailRequestObserver& aOperationObserver,
+            const TInt aRequestId);
+    
+    CDelayedDeleteMessagesOp& operator= ( const CDelayedDeleteMessagesOp& );    
+    
+    void StorePartL(CFSMailMessagePart* aPart);
+    
+private:
+    //enums
+    enum TActionType 
+        {
+        EHeaders = 0,
+        EParts
+        };
+    TFSMailMsgId iMailBox;
+    RPointerArray<CFSMailMessage> iMessages;
+    RPointerArray<CFSMailMessagePart> iMessageParts;
+    MFSMailRequestObserver& iOperationObserver;
+    TInt iRequestId;
+    TInt iType;
+    // Data buffer for async operations
+    HBufC8* iDataBuffer;
+    
+    __LOG_DECLARATION
+    };
+/**
+ * 
+ */
+NONSHARABLE_CLASS( CDelayedMessageToSendOp ) : public CDelayedOp
+    {
+
+public:
+
+    static CDelayedMessageToSendOp* NewLC(
+            CBasePlugin& aPlugin,
+            const TFSMailMsgId& aMailBox,
+            MFSMailRequestObserver& aOperationObserver,
+            const TInt aRequestId );
+    
+    virtual ~CDelayedMessageToSendOp();
+
+    //CDelayedOp::ExecuteOpL
+    virtual void ExecuteOpL();
+    
+private:
+
+    void ConstructL();
+       
+    CDelayedMessageToSendOp(
+            CBasePlugin& aPlugin,
+            const TFSMailMsgId& aMailBox,
+            MFSMailRequestObserver& aOperationObserver,
+            const TInt aRequestId);
+    
+    CDelayedMessageToSendOp& operator= ( const CDelayedMessageToSendOp& );    
+    
+private:
+    CBasePlugin& iBasePlugin;
+    TFSMailMsgId iMailBox;
+    MFSMailRequestObserver& iOperationObserver;
+    TInt iRequestId;
+
+    __LOG_DECLARATION
+    };
 #endif // BASEPLUGINDELAYEDOPSPRIVATE_H

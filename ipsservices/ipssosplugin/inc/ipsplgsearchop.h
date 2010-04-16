@@ -66,7 +66,7 @@ public:
      * @return
      */
     void DoCancel();
-
+    
 protected:
 
     /**
@@ -225,12 +225,6 @@ private:
      */
     CIpsPlgTextSearcher* iSearcher;  
     
-//    
-    /**
-     * Enable changing searching priority on client feedback - must be made in RunL
-     */
-    TInt iRequiredPriority;
-//    
     };
 
 #endif /* IPSPLGSEARCHOP_H */

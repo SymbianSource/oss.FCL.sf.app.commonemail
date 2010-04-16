@@ -1,0 +1,57 @@
+/*
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:
+*
+*/
+
+#ifndef NMAILUIWIDGETSHEADERS_H_
+#define NMAILUIWIDGETSHEADERS_H_
+
+#include <QtPlugin>
+#include <QTimer>
+#include <QCoreApplication>
+#include <QGraphicsItem>
+#include <QGraphicsSceneMouseEvent>
+#include <QGraphicsGridLayout>
+#ifdef Q_OS_SYMBIAN
+#include <cntservicescontact.h>
+#include <xqservicerequest.h>
+#include <qtcontacts.h>
+#include <qmobilityglobal.h>
+#include <mobcntmodel.h>
+#include <xqserviceutil.h>
+#include <xqappmgr.h>
+#include <xqserviceipcmarshal.h>
+#endif
+#include <hbmessagebox.h>
+#include <hbscrollarea.h>
+#include <hbstyleloader.h>
+#include <hbtextitem.h>
+#include <hbprogressbar.h>
+#include <hbdocumentloader.h>
+#include <hbinstance.h>
+
+#include <nmaddress.h>
+#include <nmcommon.h>
+#include "nmrecipientlineedit.h"
+#include "nmhtmllineedit.h"
+#include "nmeditortextedit.h"
+#include "nmeditorcontent.h"
+#include "nmbaseviewscrollarea.h"
+#include "nmattachmentlistitem.h"
+#include "nmattachmentlistwidget.h"
+
+
+
+#endif /* NMAILUIWIDGETSHEADERS_H_ */

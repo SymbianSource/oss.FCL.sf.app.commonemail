@@ -17,8 +17,9 @@
 
 #include <data_caging_paths.hrh>
 #include <platform_paths.hrh> //needed for APP_LAYER_SYSTEMINCLUDE
-
-#include "../../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
+//<qmail>
+//#include "../../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
+//</qmail>
 #include "../../inc/EmailStoreUids.hrh"
 
 TARGET          EmailStorePreInstall.exe
@@ -28,8 +29,9 @@ UID             0x00000000 KUidEmailStorePreInstallExe
 CAPABILITY      WriteUserData ReadDeviceData WriteDeviceData PowerMgmt
 
 VENDORID        VID_DEFAULT
-
-VERSION         KEmailBinaryVersionNumber
+//<qmail>
+//VERSION         KEmailBinaryVersionNumber
+//</qmail>
 KEmailBinaryDemandPaging
 
 EPOCPROCESSPRIORITY background

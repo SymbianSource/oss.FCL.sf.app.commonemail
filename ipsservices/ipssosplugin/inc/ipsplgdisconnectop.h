@@ -26,10 +26,10 @@
 * Disconnect operation.
 * 
 */
-class CIpsPlgDisconnectOp :
+NONSHARABLE_CLASS ( CIpsPlgDisconnectOp ) :
     public CIpsPlgOnlineOperation
     {
-    public:
+public:
 
         /**
         *
@@ -64,13 +64,8 @@ class CIpsPlgDisconnectOp :
         */
        TFSProgress GetFSProgressL() const;
 
-        /**
-        *
-        */
-        TBool Connected() const;
-
+// <qmail> Connected() used from baseclass
     protected:
-
 
         /**
         * From CActive

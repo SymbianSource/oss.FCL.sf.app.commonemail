@@ -16,7 +16,7 @@
 */
 
 
-#include <ecom/ecom.h>
+#include <ecom.h>
 
 // -----------------------------------------------------------------------------
 // constructor
@@ -65,6 +65,7 @@ inline CFSMailPlugin* CFSMailPlugin::NewL(TUid aUid)
             aUid, _FOFF( CFSMailPlugin, iDtor_ID_Key ) ) );
     }
 
+// <cmail> empty implementations added to avoid CS warnings
 // -----------------------------------------------------------------------------
 // CFSMailPlugin::GetConnectionId
 // -----------------------------------------------------------------------------
@@ -75,6 +76,7 @@ inline TInt CFSMailPlugin::GetConnectionId(
     return KErrNotSupported;
     }
     
+    // <cmail> empty implementations added to avoid CS warnings
 // -----------------------------------------------------------------------------
 // CFSMailPlugin::IsConnectionAllowedWhenRoaming
 // -----------------------------------------------------------------------------
@@ -84,5 +86,68 @@ inline TInt CFSMailPlugin::IsConnectionAllowedWhenRoaming(
     {
     return KErrNotSupported;
     }
-    
-// End of File
+// </cmail>
+
+// <qmail>
+// -----------------------------------------------------------------------------
+// CFSMailPlugin::CreateMessageToSendL
+// -----------------------------------------------------------------------------
+inline void CFSMailPlugin::CreateMessageToSendL(
+    const TFSMailMsgId& /*aMailBoxId*/,
+    MFSMailRequestObserver& /*aOperationObserver*/,
+    const TInt /*aRequestId*/ )
+    {
+    User::Leave( KErrFSMailPluginNotSupported );
+    }
+
+// -----------------------------------------------------------------------------
+// CFSMailPlugin::CreateForwardMessageL
+// -----------------------------------------------------------------------------
+inline void CFSMailPlugin::CreateForwardMessageL( const TFSMailMsgId& /*aMailBoxId*/,
+    const TFSMailMsgId& /*aOriginalMessageId*/,
+    MFSMailRequestObserver& /*aOperationObserver*/,
+    const TInt /*aRequestId*/,
+    const TDesC& /*aHeaderDescriptor*/ )
+    {
+    User::Leave( KErrFSMailPluginNotSupported );
+    }
+
+// -----------------------------------------------------------------------------
+// CFSMailPlugin::CreateReplyMessageL
+// -----------------------------------------------------------------------------
+inline void CFSMailPlugin::CreateReplyMessageL( const TFSMailMsgId& /*aMailBoxId*/,
+    const TFSMailMsgId& /*aOriginalMessageId*/,
+    const TBool /*aReplyToAll*/,
+    MFSMailRequestObserver& /*aOperationObserver*/,
+    const TInt /*aRequestId*/,
+    const TDesC& /*aHeaderDescriptor*/ )
+    {
+    User::Leave( KErrFSMailPluginNotSupported );
+    }
+
+// -----------------------------------------------------------------------------
+// CFSMailPlugin::SendMessageL
+// -----------------------------------------------------------------------------
+inline void CFSMailPlugin::SendMessageL(
+        CFSMailMessage& /*aMessage*/,
+        MFSMailRequestObserver& /*aOperationObserver*/,
+        const TInt /*aRequestId*/ )
+    {
+    User::Leave( KErrFSMailPluginNotSupported );
+    }
+
+// -----------------------------------------------------------------------------
+// CFSMailPlugin::NewChildPartFromFileL
+// -----------------------------------------------------------------------------
+inline void CFSMailPlugin::NewChildPartFromFileL( const TFSMailMsgId& /*aMailBoxId*/,
+                                     const TFSMailMsgId& /*aParentFolderId*/,
+                                     const TFSMailMsgId& /*aMessageId*/,
+                                     const TFSMailMsgId& /*aParentPartId*/,
+                                     const TDesC& /*aContentType*/,
+                                     const TDesC& /*aFilePath*/,
+                                     MFSMailRequestObserver& /*aOperationObserver*/,
+                                     const TInt /*aRequestId*/ )
+    {
+    User::Leave( KErrFSMailPluginNotSupported );
+    }
+// </qmail>

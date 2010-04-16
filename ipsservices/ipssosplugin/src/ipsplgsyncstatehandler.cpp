@@ -71,8 +71,8 @@ void CIpsPlgSyncStateHandler::HandlePropertyEventL(
     FUNC_LOG;
     if ( iPlugin.PluginId() == aPluginId &&
             ( aEvent == KIpsSosEmailSyncStarted || 
-              aEvent == KIpsSosEmailSyncCompleted ||
-              aEvent == KIpsSosEmailSyncOnHold ) )
+            aEvent == KIpsSosEmailSyncCompleted ||
+            aEvent == KIpsSosEmailSyncOnHold ) )
         {
         AppendMailboxToSyncingMailbox( aMailbox, aEvent );
         }
@@ -89,31 +89,14 @@ TSSMailSyncState CIpsPlgSyncStateHandler::GetCurrentSyncState(
     
     TInt err = iSession.GetEntry( aMailboxId.Id(), service, tEntry );
 
-    if ( err != KErrNone || iOperationsRef.Count() == 0 )
+    if ( err != KErrNone || !tEntry.Connected() || iOperationsRef.Count() == 0 )
         {
+        // no sync ongoing if not connected
         return Idle;
         }
 
-    // If the mailbox is not online but it has some connection operation
-    // already running, it means that it will be synchronized when the mailbox
-    // goes online. So we need to check is there any connection operation
-    // ongoing and return StartingSync in that case.
-    if( !tEntry.Connected() )
-        {
-        if( ConnOpRunning( aMailboxId ) )
-            {
-            // Some connection operation already processing, so the sync
-            // will start soon
-            return StartingSync;
-            }
-        else
-            {
-            // no sync ongoing if not connected and no connection operations
-            // started
-            return Idle;
-            }
-        }
-
+#ifndef RD_101_EMAIL    
+// <cmail> RD_IPS_AO_PLUGIN flaf removed
     RAlwaysOnlineClientSession aosession;
     
     err = aosession.Connect();
@@ -133,6 +116,9 @@ TSSMailSyncState CIpsPlgSyncStateHandler::GetCurrentSyncState(
             }
         }
     aosession.Close();
+#endif
+    
+// </cmail> 
    
    // found correct operation
    for ( TInt i = 0; i < iOperationsRef.Count(); i++ )
@@ -140,49 +126,23 @@ TSSMailSyncState CIpsPlgSyncStateHandler::GetCurrentSyncState(
        const CIpsPlgBaseOperation* baseOp = iOperationsRef[i]->BaseOperation();
        
        if ( baseOp && baseOp->FSMailboxId() == aMailboxId &&
-            ( baseOp->IpsOpType() == EIpsOpTypePop3SyncOp ||
-              baseOp->IpsOpType() == EIpsOpTypeImap4SyncOp ||
-              baseOp->IpsOpType() == EIpsOpTypeImap4PopulateOp ) )
+              ( baseOp->IpsOpType() == EIpsOpTypePop3SyncOp
+               || baseOp->IpsOpType() == EIpsOpTypeImap4SyncOp
+               || baseOp->IpsOpType() == EIpsOpTypeImap4PopulateOp ) )
            {
-           // Due to timing problems we might in some rare cases report
-           // EmailSyncing here even if the actual syncing is already
-           // finsihed, because the operation is removed from the array
-           // with an async function call. HandlePropertyEventL events
-           // seem to be even more unreliable (sync start event comes with
-           // big delay), so we can't trust those either. Some kind of
-           // redesign is needed to get this sync state query more reliable.
-           return EmailSyncing;
+           // check syncing mailbox, to prevent sync icon running 
+           // all the time
+           if ( FindMailbox( aMailboxId.Id() ) == KIpsSosEmailSyncCompleted )
+               {
+               return Idle;
+               }
+           else
+               {
+               return EmailSyncing;
+               }
            }
        }
     return Idle;
-    }
-
-// ---------------------------------------------------------------------------
-// ---------------------------------------------------------------------------
-TBool CIpsPlgSyncStateHandler::ConnOpRunning( const TFSMailMsgId& aMailBoxId  )
-    {
-    FUNC_LOG;
-    for ( TInt i = 0; i < iOperationsRef.Count(); i++ )
-       {
-       const CIpsPlgBaseOperation* baseOp = iOperationsRef[i]->BaseOperation();
-
-       if ( baseOp && baseOp->FSMailboxId() == aMailBoxId &&
-              ( baseOp->IpsOpType() == EIpsOpTypePop3SyncOp
-               || baseOp->IpsOpType() == EIpsOpTypeImap4SyncOp
-               || baseOp->IpsOpType() == EIpsOpTypeOnlineOp
-               || baseOp->IpsOpType() == EIpsOpTypeImap4PopulateOp ) )
-           {
-           // Due to timing problems we might in some rare cases report
-           // EmailSyncing here even if the actual syncing is already
-           // finsihed, because the operation is removed from the array
-           // with an async function call. HandlePropertyEventL events
-           // seem to be even more unreliable (sync start event comes with
-           // big delay), so we can't trust those either. Some kind of
-           // redesign is needed to get this sync state query more reliable.
-           return ETrue;
-           }
-       }
-    return EFalse;
     }
 
 // ---------------------------------------------------------------------------
@@ -295,23 +255,23 @@ TInt CIpsPlgSyncStateHandler::SolveOpProtocolType( )
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 void CIpsPlgSyncStateHandler::SaveSuccessfulSyncTimeL( 
-        CMsvSession& aSession, TMsvId aService )
+        CMsvSession& /*aSession*/, TMsvId /*aService*/ )
     {
     FUNC_LOG;
     TTime now;
     now.HomeTime();
-    CIpsSetDataExtension* extendedSettings = CIpsSetDataExtension::NewLC();
-    CIpsSetDataApi* dataApi = CIpsSetDataApi::NewL( aSession );
-    CleanupStack::PushL( dataApi );
-    dataApi->LoadExtendedSettingsL( aService, *extendedSettings );
-    TAOInfo info;
-    info.iLastSuccessfulUpdate = now;
-    info.iUpdateSuccessfulWithCurSettings = ETrue;
-    extendedSettings->SetLastUpdateInfo( info );
+    //CIpsSetDataExtension* extendedSettings = CIpsSetDataExtension::NewLC();
+    //CIpsSetDataApi* dataApi = CIpsSetDataApi::NewL( aSession );
+    //CleanupStack::PushL( dataApi );
+    //dataApi->LoadExtendedSettingsL( aService, *extendedSettings );
+    //TAOInfo info;
+    //info.iLastSuccessfulUpdate = now;
+    //info.iUpdateSuccessfulWithCurSettings = ETrue;
+    //extendedSettings->SetLastUpdateInfo( info );
     // clear flag
-    extendedSettings->SetEmnReceivedButNotSyncedFlag( EFalse );
-    dataApi->SaveExtendedSettingsL( *extendedSettings );
-    CleanupStack::PopAndDestroy( 2, extendedSettings );
+    //extendedSettings->SetEmnReceivedButNotSyncedFlag( EFalse );
+    //dataApi->SaveExtendedSettingsL( *extendedSettings );
+    //CleanupStack::PopAndDestroy( 2, extendedSettings );
     }
 
 

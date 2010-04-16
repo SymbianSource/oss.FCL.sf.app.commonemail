@@ -29,7 +29,6 @@ class CMsvSession;
 class CRepository;
 class CIpsPlgSettingsObserver;
 class CIpsPlgSyncStateObserver;
-class CIpsSetDataApi;
 /**
 * MIpsPlgPropertyObserver
 *
@@ -63,7 +62,7 @@ public:
 /**
 * Helper class to keep track of accounts
 */
-class CIPSAccountInfo : public CBase
+NONSHARABLE_CLASS ( CIPSAccountInfo ) : public CBase
     {
 public:
 
@@ -88,7 +87,7 @@ private:
  *  @lib ipssosplugin.lib
  *  @since
  */
-class CIpsPlgEventHandler : public CBase,
+NONSHARABLE_CLASS ( CIpsPlgEventHandler ) : public CBase,
                             public MMsvSessionObserver,
                             public MIpsPlgSettingsObserverCallback,
                             public MIpsPlgPropertyObserver,
@@ -414,7 +413,6 @@ private: // datak
             TUint aMtmUid );
 
     CRepository*                            iCenRep;
-    CIpsSetDataApi*                         iSettingsApi;
 
     // not owned
     CMsvSession*                            iSession;

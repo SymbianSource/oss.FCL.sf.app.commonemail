@@ -1,2 +1,0 @@
--c16,8 qgn_prop_cmail_contacts_group.svg
--c16,8 qgn_indi_cmail_action_arrow_right.svg

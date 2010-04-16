@@ -41,6 +41,9 @@ const TInt KContinueInterval = 3000000; // 3 sec
 static _LIT_SECURITY_POLICY_PASS( KAllowAllPolicy );
 static _LIT_SECURITY_POLICY_C1( KAllowWriteDeviceDataPolicy, ECapabilityWriteDeviceData );
 
+_LIT( KIpsPlgReplySubjectFormat, "%S" );
+_LIT( KIpsPlgForwardSubjectFormat, "%S" );
+
 /**
  * class TIpsMailboxState
  */

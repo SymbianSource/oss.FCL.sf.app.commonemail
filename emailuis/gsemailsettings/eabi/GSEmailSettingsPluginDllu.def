@@ -1,7 +1,0 @@
-EXPORTS
-	_Z24ImplementationGroupProxyRi @ 1 NONAME
-	_ZN20CGSEmailSettingsViewC1Ev @ 2 NONAME
-	_ZN20CGSEmailSettingsViewC2Ev @ 3 NONAME
-	_ZTI20CGSEmailSettingsView @ 4 NONAME ; #<TI>#
-	_ZTV20CGSEmailSettingsView @ 5 NONAME ; #<VT>#
-

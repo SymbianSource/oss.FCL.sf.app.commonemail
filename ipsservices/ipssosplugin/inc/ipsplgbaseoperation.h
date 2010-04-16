@@ -25,7 +25,7 @@ class CMsvOperation;
 *
 * Common base class for email online operations.
 */
-class CIpsPlgBaseOperation : public CMsvOperation
+NONSHARABLE_CLASS ( CIpsPlgBaseOperation ) : public CMsvOperation
     {
 public:
     /**

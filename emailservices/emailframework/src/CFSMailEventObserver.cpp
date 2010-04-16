@@ -16,6 +16,7 @@
 */
 
 
+#include <nmcommonheaders.h>
 #include "emailtrace.h"
 #include "CFSClientRequestObserver.h"
 

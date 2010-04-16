@@ -772,15 +772,15 @@ EXPORT_C void CBasePlugin::TranslateEmailFwMessageL(
     	}
     
     //to recipients.
-    RPointerArray<CFSMailAddress>& toRecipients = aSrc.GetToRecipients();
+    RPointerArray<CFSMailAddress> toRecipients = aSrc.GetToRecipients();
     TranslateEmailFwRecipientsL( aDst, KMsgStorePropertyTo, toRecipients );
 
     //cc recipients.
-    RPointerArray<CFSMailAddress>& ccRecipients = aSrc.GetCCRecipients();
+    RPointerArray<CFSMailAddress> ccRecipients = aSrc.GetCCRecipients();
     TranslateEmailFwRecipientsL( aDst, KMsgStorePropertyCc, ccRecipients );
 
     //bcc recipients.
-    RPointerArray<CFSMailAddress>& bccRecipients = aSrc.GetBCCRecipients();
+    RPointerArray<CFSMailAddress> bccRecipients = aSrc.GetBCCRecipients();
     TranslateEmailFwRecipientsL( aDst, KMsgStorePropertyBcc, bccRecipients );
 
     //flags.
@@ -1243,7 +1243,7 @@ EXPORT_C void CBasePlugin::TranslateEmailFwAttendeeL(
 /**
  *
  */
-EXPORT_C inline void CBasePlugin::RemoveAllPropertiesL(
+EXPORT_C void CBasePlugin::RemoveAllPropertiesL(
     CMsgStorePropertyContainer& aContainer,
     const TDesC8& aName )
 

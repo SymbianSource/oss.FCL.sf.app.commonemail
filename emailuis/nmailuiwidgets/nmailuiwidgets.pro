@@ -1,0 +1,74 @@
+# Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+# All rights reserved.
+# This component and the accompanying materials are made available
+# under the terms of "Eclipse Public License v1.0"
+# which accompanies this distribution, and is available
+# at the URL "http://www.eclipse.org/legal/epl-v10.html".
+# Initial Contributors:
+# Nokia Corporation - initial contribution.
+# Contributors:
+# Description:
+
+TEMPLATE = lib
+TARGET = nmailuiwidgets
+CONFIG += hb
+QT += webkit
+QT += network
+DEFINES += BUILD_NMAILUIWIDGETS_DLL
+INCLUDEPATH += . \
+  ./inc \
+  ../../inc \
+  ../nmailui/inc
+
+HEADERS += inc/nmailuiwidgetsheaders.h \
+           inc/nmailuiwidgetsdef.h \
+           inc/nmbaseviewscrollarea.h \
+           inc/nmrecipientlineedit.h \
+           inc/nmhtmllineedit.h \
+           inc/nmeditortextedit.h \
+           inc/nmattachmentlistwidget.h \
+           inc/nmattachmentlistitem.h
+
+SOURCES += src/nmbaseviewscrollarea.cpp \
+           src/nmrecipientlineedit.cpp \
+           src/nmhtmllineedit.cpp \
+           src/nmeditortextedit.cpp \
+           src/nmattachmentlistwidget.cpp \
+           src/nmattachmentlistitem.cpp
+
+symbian*: {
+    INCLUDEPATH += $$APP_LAYER_SYSTEMINCLUDE
+    
+    INCLUDEPATH += /epoc32/include \
+                   /epoc32/include/app \
+                   /epoc32/include/mw \
+                   /sf/mw/qtextensions/qthighway/inc \
+                   /sf/mw/qtextensions/qtmobileextensions/include 
+
+    TARGET.EPOCALLOWDLLDATA = 1
+    TARGET.CAPABILITY = CAP_GENERAL_DLL
+    TARGET.UID2 = 0x1000008D
+    TARGET.UID3 = 0x2002C348
+    LIBS += -lnmailbase \
+            -lxqservice \
+            -lxqserviceutil \
+            -lqtcontacts \
+            -lmobcntmodel
+
+    defBlock = \      
+      "$${LITERAL_HASH}if defined(MARM)" \
+      "DEFFILE  eabi/nmailuiwidgets.def" \
+      "$${LITERAL_HASH}else" \
+      "DEFFILE  bwins/nmailuiwidgets.def" \
+      "$${LITERAL_HASH}endif"
+    
+    MMP_RULES += defBlock
+}
+
+win32 {
+    DESTDIR = ../../bin
+    LIBS += -L../../bin \
+        -lnmailbase
+}
+       
+RESOURCES += nmailuiwidgets.qrc

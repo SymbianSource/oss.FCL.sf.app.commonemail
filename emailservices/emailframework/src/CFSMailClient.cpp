@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2007-2008 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -16,6 +16,7 @@
 */
 
 
+#include <nmcommonheaders.h>
 #include "emailtrace.h"
 #include "CFSMailClient.h"
 #include "CFSFWImplementation.h"
@@ -588,19 +589,3 @@ TInt CFSMailClient::DecReferenceCount()
 	return --iReferenceCount;
 }
 
-// -----------------------------------------------------------------------------
-// CFSMailClient::ReleaseExtension
-// -----------------------------------------------------------------------------
-EXPORT_C void CFSMailClient::ReleaseExtension( CEmailExtension* aExtension )
-    {
-    CExtendableEmail::ReleaseExtension( aExtension );
-    }
-
-// -----------------------------------------------------------------------------
-// CFSMailClient::ExtensionL
-// -----------------------------------------------------------------------------
-EXPORT_C CEmailExtension* CFSMailClient::ExtensionL( const TUid& aInterfaceUid )
-    {
-    return CExtendableEmail::ExtensionL( aInterfaceUid );
-    }
-    

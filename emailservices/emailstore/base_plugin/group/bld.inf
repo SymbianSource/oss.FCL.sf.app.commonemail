@@ -25,7 +25,7 @@ PRJ_EXPORTS
 ../inc/SafePointerArray.h        |../../../../inc/SafePointerArray.h
 ../inc/Map.inl                   |../../../../inc/Map.inl
 ../inc/Map.h                     |../../../../inc/Map.h
-../inc/BaseMrInfoObject.h        |../../../../inc/basemrinfoobject.h
+../inc/basemrinfoobject.h        |../../../../inc/basemrinfoobject.h
 ../inc/baseplugincommonutils.h   |../../../../inc/baseplugincommonutils.h
 ../inc/baseplugindelayedops.h    |../../../../inc/baseplugindelayedops.h
 

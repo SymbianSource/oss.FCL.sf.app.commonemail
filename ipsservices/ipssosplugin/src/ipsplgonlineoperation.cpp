@@ -15,11 +15,8 @@
 *
 */
 
-
-
 #include "emailtrace.h"
 #include "ipsplgheaders.h"
-
 
 // ----------------------------------------------------------------------------
 // CIpsPlgOnlineOperation::~CIpsPlgOnlineOperation()
@@ -50,7 +47,7 @@ CIpsPlgOnlineOperation::CIpsPlgOnlineOperation(
     :
     CIpsPlgBaseOperation( aMsvSession, aPriority, aObserverRequestStatus,
         aFSRequestId, aFSMailBoxId ), 
-        iActivityTimer( &aActivityTimer ),
+        iActivityTimer( aActivityTimer ),
         iBaseMtm( NULL ),
         iMtmReg( NULL ), 
         iOperation( NULL ),
@@ -70,9 +67,9 @@ void CIpsPlgOnlineOperation::BaseConstructL(TUid aMtmType)
     FUNC_LOG;
     // reset timer, if operation not completed after timer fires causes
     // disconnection
-    if( iActivityTimer )
+    if( &iActivityTimer )
         {
-        iActivityTimer->ResetTimerOperation();
+        iActivityTimer.ResetTimerOperation();
         }
 
     iMtmReg = CClientMtmRegistry::NewL( iMsvSession );
@@ -140,14 +137,22 @@ void CIpsPlgOnlineOperation::CompleteObserver( TInt aStatus )
     TRequestStatus* status = &iObserverRequestStatus;
     if (status && status->Int() == KRequestPending)
         {
-    
         SignalFSObserver( aStatus );
+        // <qmail>
         // removed checks to prevent unwanted disconnections
         //if we're connected, reset activitytimer. if not, there is no reason to.
-        if( iActivityTimer )
+        if( &iActivityTimer )
             {
-            iActivityTimer->ResetTimerOperation();
+            if ( Connected() )
+                {
+                iActivityTimer.ResetTimerOperation();
+                }
+            else
+                {
+                iActivityTimer.Cancel();
+                }
             }
+        // </qmail>
         User::RequestComplete(status, aStatus);
         }
     }
@@ -232,12 +237,12 @@ void CIpsPlgOnlineOperation::SignalFSObserver( TInt aStatus )
     FUNC_LOG;
     if( iSignallingAllowed )
         {        
-        TFSProgress prog;
+        TFSProgress prog = TFSProgress();
         prog.iError = aStatus;
         // Initialize the progress data
         // it would be better to get fs progress from inherited class
         // by calling FSProgressL method??
-        if ( prog.iError == KErrCancel || prog.iError == KErrImapBadLogon )
+        if ( prog.iError == KErrCancel )
             {
             prog.iProgressStatus = TFSProgress::EFSStatus_RequestCancelled;
             }
@@ -267,3 +272,15 @@ TInt CIpsPlgOnlineOperation::IpsOpType() const
     return EIpsOpTypeOnlineOp;
     }
 
+// <qmail> makes more sence to have this method here in "base" online op than in every derived class
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+TBool CIpsPlgOnlineOperation::Connected() const
+    {
+    FUNC_LOG;
+    TMsvEntry tentry;
+    TMsvId service;
+    iMsvSession.GetEntry(iService, service, tentry );
+    return tentry.Connected();
+    }
+// </qmail>

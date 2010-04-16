@@ -358,6 +358,10 @@ void CBasePlugin::ModificationNotifyL(
                     {
                     NotifyEventL( aMailBoxId, aId, aParentId, TFSEventFolderChanged );
                     }
+                else if ( EMsgStorePartContainer == aType )
+                    {
+                    ReportRequestStatusL( aMailBoxId, aOtherId, aParentId, aId );
+                    }
                 else if ( EMsgStoreMailboxContainer == aType )
                     {
                     TBool mailBoxNameHasChanged( EFalse );
@@ -371,26 +375,6 @@ void CBasePlugin::ModificationNotifyL(
                 }
             break;
 
-            case EMsgStoreRemoveContent:
-                break;
-
-            default:
-                break;
-            }
-        }
-        /* Reporting request status moved from above if-statement here. Now, request status is reported even there is no
-         * mailbox observers.
-         */ 
-        switch ( aOperation )
-            {
-            case EMsgStoreUpdateProperties:
-                {
-                if ( EMsgStorePartContainer == aType )
-                    {
-                    ReportRequestStatusL( aMailBoxId, aOtherId, aParentId, aId );
-                    }
-                }
-                break;
             /**@ check whether the ui removes the observer - then the observer must be kept
             until there are pending reqs ?*/
             //attachment download request handling.
@@ -400,11 +384,13 @@ void CBasePlugin::ModificationNotifyL(
                 ReportRequestStatusL( aMailBoxId, aOtherId, aParentId, aId, ETrue );
                 }
                 break;
-                
+            case EMsgStoreRemoveContent:
+                break;
+
             default:
                 break;
+            }
         }
-    
         
         __LOG_EXIT;
     } //ModificationNotifyL.
@@ -535,7 +521,7 @@ EXPORT_C /*protected virtual*/ void CBasePlugin::ReportRequestStatusL(
         CleanupStack::PopAndDestroy( part );
         CleanupStack::PopAndDestroy( msg );
 
-        TFSProgress progress;
+        TFSProgress progress = TFSProgress();
         progress.iError = KErrNone;
         progress.iMaxCount = size;
         progress.iCounter = fetchedSize;

@@ -1,5 +1,0 @@
-EXPORTS
-	_ZN12CFsServerMtm4NewLER17CRegisteredMtmDllP15CMsvServerEntry @ 1 NONAME
-	_ZTI12CFsServerMtm @ 2 NONAME ; #<TI>#
-	_ZTV12CFsServerMtm @ 3 NONAME ; #<VT>#
-

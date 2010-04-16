@@ -17,8 +17,9 @@
 
 
 #include <platform_paths.hrh>
-
-#include "../../../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
+//<qmail>
+//#include "../../../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
+//</qmail>
 #include "../../../inc/EmailStoreUids.hrh"
 
 TARGET        MessageStoreClient.dll
@@ -28,7 +29,9 @@ SECUREID      KUidMessageStoreClient
 CAPABILITY    CAP_CLIENT_DLL
 VENDORID      VID_DEFAULT
 
-VERSION       KEmailBinaryVersionNumber
+//<qmail>
+//VERSION       KEmailBinaryVersionNumber
+//</qmail>
 KEmailBinaryDemandPaging
 
 MACRO DEBUG_USE_PROJECT_LOGGING_OPTIONS

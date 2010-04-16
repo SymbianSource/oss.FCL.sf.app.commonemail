@@ -17,7 +17,7 @@
 
 
 #include <ecom/registryinfo.rh>
-#include "../../../inc/emailversionnumbers.hrh" // KEmailEcomVersionNumber
+#include "../../inc/emailversionnumbers.hrh" // KEmailEcomVersionNumber
 
 // ---------------------------------------------------------------------------
 // theInfo

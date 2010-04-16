@@ -39,7 +39,7 @@ public:
 *
 * Common base class for email online operations.
 */
-class CIpsPlgOnlineOperation : public CIpsPlgBaseOperation
+NONSHARABLE_CLASS ( CIpsPlgOnlineOperation ) : public CIpsPlgBaseOperation
     {
     public:
            
@@ -140,14 +140,15 @@ class CIpsPlgOnlineOperation : public CIpsPlgBaseOperation
             const CMsvEntrySelection& aSel,
             TMsvId aContextId,
             const TDesC8& aParams=KNullDesC8);
-            
+
+        // <qmail>
         /**
-        *
-        */            
-        //virtual TInt GetEngineProgress( const TDesC8& aProgress );
-
-protected:
-
+         * Finds out the current connection state of the mailbox
+         * @return true/false
+         */
+        virtual TBool Connected() const;
+        // </qmail>
+        
     /**
     *
     */
@@ -156,7 +157,7 @@ protected:
 protected:
 				// REVIEW: should tell whether the attributes are owned or not
 				// REVIEW: CMsvOperation already has similar attribute, change the name
-        CIpsPlgTimerOperation*  iActivityTimer;
+        CIpsPlgTimerOperation&  iActivityTimer;
         CBaseMtm*       iBaseMtm;
         CClientMtmRegistry* iMtmReg;
         // The sub-operation.

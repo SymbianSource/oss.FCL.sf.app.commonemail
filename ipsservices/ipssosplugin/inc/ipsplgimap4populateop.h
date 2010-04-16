@@ -27,7 +27,7 @@ class CIpsPlgEventHandler;
 *
 */
 
-class CIpsPlgImap4PopulateOp :
+NONSHARABLE_CLASS ( CIpsPlgImap4PopulateOp ) :
     public CIpsPlgOnlineOperation
     {
     public:

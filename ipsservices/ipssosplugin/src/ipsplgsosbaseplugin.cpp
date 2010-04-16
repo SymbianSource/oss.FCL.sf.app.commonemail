@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2008 Nokia Corporation and/or its subsidiary(-ies).
+* Copyright (c) 2008 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -11,7 +11,7 @@
 *
 * Contributors:
 *
-* Description: This file implements classes CIpsPlgSosBasePlugin, Plugin.
+* Description: This file implements classes CIpsPlgSosBasePlugin, Plugin. 
  *
 */
 
@@ -19,8 +19,13 @@
 
 #include "emailtrace.h"
 #include "ipsplgheaders.h"
+#include "ipsplgsosbaseplugin.hrh"
+#include "ipsplgmailstoreroperation.h"
+#include "ipsplgmessagepartstoreroperation.h"
 
-#define FREESTYLE_EMAIL_UI_SID 0x2001E277
+// <cmail> S60 UID update
+#define FREESTYLE_EMAIL_UI_SID 0x200255BA
+// </cmail> S60 UID update
 
 const TInt KOpGranularity = 2;
 
@@ -35,7 +40,7 @@ _LIT8( KCancel, "CANCEL" );
 #ifdef __WINS__
 _LIT( KEmulatorIMEI, "123456789012345" );
 #endif // __WINS__
-
+  
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
 //
@@ -44,13 +49,12 @@ CIpsPlgSosBasePlugin::CIpsPlgSosBasePlugin( const TUint aFSPluginId ) :
     iSession( NULL ),
     iMsgMapper( NULL ),
     iOperations( KOpGranularity ),
-    iActivitytimers( KOpGranularity ),
+    iActivitytimers( KOpGranularity ), 
     iSmtpService( NULL ),
     iCachedEntry( NULL ),
     iCachedEmailMessage( NULL ),
     iMruList( NULL ),
     iSearch( NULL ),
-    iSettingsApi( NULL ),
     iEventHandler( NULL ),
     iSessionOk( ETrue ),
     iBrandingId( NULL ),
@@ -65,11 +69,6 @@ CIpsPlgSosBasePlugin::CIpsPlgSosBasePlugin( const TUint aFSPluginId ) :
 CIpsPlgSosBasePlugin::~CIpsPlgSosBasePlugin()
     {
     FUNC_LOG;
-    if ( iWait.IsStarted() )
-        {
-        iWait.AsyncStop();
-        }
-
     iOperations.ResetAndDestroy();
     iActivitytimers.ResetAndDestroy();
     iOperations.Close();
@@ -85,26 +84,23 @@ CIpsPlgSosBasePlugin::~CIpsPlgSosBasePlugin()
     delete iCachedEmailMessage;
     delete iMsgMapper;
     delete iSearch;
-    delete iSettingsApi;
     delete iSyncStateHandler;
     delete iSession;
     delete iBrandingId;
     }
-
+ 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
 void CIpsPlgSosBasePlugin::BaseConstructL()
     {
     FUNC_LOG;
     iEventHandler = CIpsPlgEventHandler::NewL( *this );
-    iSession = CMsvSession::OpenAsyncL( *iEventHandler );
+    iSession = CMsvSession::OpenAsyncL( *iEventHandler );   
     iMsgMapper = CIpsPlgMsgMapper::NewL( *iSession, *this );
     iSmtpService = CIpsPlgSmtpService::NewL( *iSession, *this );
     iMruList = CIpsPlgMruList::NewL( );
     iSearch = CIpsPlgSearch::NewL( *iSession, *this );
-    iSettingsApi = CIpsSetDataApi::NewL( *iSession );
-    iSettingsApi->GetIMEIFromThePhoneL( iIMEI );
-    iSyncStateHandler = CIpsPlgSyncStateHandler::NewL(
+    iSyncStateHandler = CIpsPlgSyncStateHandler::NewL( 
             *iSession, *this, iOperations );
     iEventHandler->RegisterPropertyObserverL( iSyncStateHandler );
 
@@ -117,29 +113,32 @@ void CIpsPlgSosBasePlugin::BaseConstructL()
         {
         iIsUnderUiProcess = EFalse;
         }
-    RAlwaysOnlineClientSession aosession;
+
+#ifndef RD_101_EMAIL
+    RAlwaysOnlineClientSession aosession; 
     TInt err = aosession.Connect();
     if ( err == KErrNone )
         {
         TBuf8<1> dummyBuf;
-        TRAP( err, aosession.RelayCommandL(
-                EServerAPIEmailDisableAOEmailPlugin,
+        TRAP( err, aosession.RelayCommandL( 
+                EServerAPIEmailDisableAOEmailPlugin, 
                 dummyBuf ) );
         }
     aosession.Close();
-    }
+#endif    
+    } 
 
 // ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------	
 void CIpsPlgSosBasePlugin::CompleteConstructL()
     {
     FUNC_LOG;
     iSessionOk = ETrue;
-    iEventHandler->CompleteConstructL( iSession );
+    iEventHandler->CompleteConstructL( iSession ); 
     }
-
+    
 // ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------	
 void CIpsPlgSosBasePlugin::SessionTerminated()
     {
     FUNC_LOG;
@@ -148,12 +147,12 @@ void CIpsPlgSosBasePlugin::SessionTerminated()
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-void CIpsPlgSosBasePlugin::OpCompleted(
-	CIpsPlgSingleOpWatcher& aOpWatcher,
+void CIpsPlgSosBasePlugin::OpCompleted( 
+	CIpsPlgSingleOpWatcher& aOpWatcher, 
 	TInt aCompletionCode )
     {
     FUNC_LOG;
-    // Get valid operation count in each, some operations could have been
+    // Get valid operation count in each, some operations could have been 
     // deleted in array
     TInt opId = aOpWatcher.Operation().Id();
     for ( TInt i = iOperations.Count()-1; i >= 0; i-- )
@@ -165,16 +164,11 @@ void CIpsPlgSosBasePlugin::OpCompleted(
             DeleteAndRemoveOperation( i, aCompletionCode );
             }
         }
-    // make draft deletion synchronous so that empty drafts are not left after application close.
-    if ( iWait.IsStarted() )
-        {
-        iWait.AsyncStop();
-        }
     }
 
 // ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
- TFSMailBoxStatus CIpsPlgSosBasePlugin::GetMailBoxStatus(
+// ----------------------------------------------------------------------------    
+ TFSMailBoxStatus CIpsPlgSosBasePlugin::GetMailBoxStatus( 
     const TFSMailMsgId&  aMailBoxId  )
     {
     FUNC_LOG;
@@ -184,7 +178,7 @@ void CIpsPlgSosBasePlugin::OpCompleted(
     if( iSessionOk )
         {
         iSession->GetEntry( aMailBoxId.Id(), service, tEntry );
-
+        
         if ( tEntry.Connected() )
             {
             status = EFSMailBoxOnline;
@@ -193,7 +187,7 @@ void CIpsPlgSosBasePlugin::OpCompleted(
             {
             status = EFSMailBoxOnline;
             }
-        else
+        else 
             {
             status = EFSMailBoxOffline;
             }
@@ -208,7 +202,7 @@ void CIpsPlgSosBasePlugin::OpCompleted(
 // ----------------------------------------------------------------------------
 // CIpsPlgSosBasePlugin::SpecifiedSendingMailbox
 // Returns 'null' ID, because the method is not relevant with IPS protocols
-// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------    
  TFSMailMsgId CIpsPlgSosBasePlugin::SpecifiedSendingMailbox()
      {
     FUNC_LOG;
@@ -216,21 +210,21 @@ void CIpsPlgSosBasePlugin::OpCompleted(
      }
 
  // ----------------------------------------------------------------------------
- // ----------------------------------------------------------------------------
+ // ----------------------------------------------------------------------------    
 void CIpsPlgSosBasePlugin::ListMailBoxesL( RArray<TFSMailMsgId>& aMailboxes )
 	{
     FUNC_LOG;
-
+	
 	if( !iSessionOk )
         {
         User::Leave( KErrNotReady );
         }
 	CMsvEntry* cEntry = iSession->GetEntryL( KMsvRootIndexEntryId );
     CleanupStack::PushL( cEntry );
-
+    
     CMsvEntrySelection* childEntries = cEntry->ChildrenWithMtmL( MtmId() );
     CleanupStack::PushL( childEntries );
-
+    
     TInt count( childEntries->Count() );
     for ( TInt i(0); i < count; i++)
         {
@@ -238,9 +232,9 @@ void CIpsPlgSosBasePlugin::ListMailBoxesL( RArray<TFSMailMsgId>& aMailboxes )
     	TMsvEntry tEntry;
     	TMsvId serviceId;
     	TDriveUnit driveUnit = EDriveC;
-
+    	
         iSession->GetEntry( childEntries->At(i), serviceId, tEntry );
-
+        
         if( iIMEI.Compare( tEntry.iDescription ) == 0 )
             {
             mailboxId.SetPluginId( TUid::Uid( PluginId() ) );
@@ -263,11 +257,11 @@ void CIpsPlgSosBasePlugin::ListMailBoxesL( RArray<TFSMailMsgId>& aMailboxes )
         }
     CleanupStack::PopAndDestroy( 2, cEntry ); // childEntries
 	}
-
+ 
 // ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
-CFSMailBox* CIpsPlgSosBasePlugin::GetMailBoxByUidL(
-    const TFSMailMsgId& aMailBoxId)
+// ---------------------------------------------------------------------------- 
+CFSMailBox* CIpsPlgSosBasePlugin::GetMailBoxByUidL( 
+    const TFSMailMsgId& aMailBoxId) 
 	{
     FUNC_LOG;
     CFSMailBox* result( NULL );
@@ -275,21 +269,29 @@ CFSMailBox* CIpsPlgSosBasePlugin::GetMailBoxByUidL(
     TMsvId    serviceId;
     TInt      status;
     HBufC*    address( NULL );
-
+    
     if( !iSessionOk )
         {
         User::Leave( KErrNotReady );
         }
     status = iSession->GetEntry( aMailBoxId.Id(), serviceId, tEntry );
-
+    
     if ( status == KErrNone )
-        {
+        {  
         result = CFSMailBox::NewL( aMailBoxId );
         CleanupStack::PushL( result );   // << result
         result->SetName( tEntry.iDetails );
         result->SetSettingsUid( TUid::Uid( IPS_SET_ECOM_IMPLEMENTATION_UID ) );
-
-        iSettingsApi->GetMailboxAddressL( tEntry, address );
+        
+        CEmailAccounts* acc = CEmailAccounts::NewLC();
+        TSmtpAccount smtpAcc;
+        acc->GetSmtpAccountL( tEntry.iRelatedId , smtpAcc );
+        CImSmtpSettings* smtpSet = new (ELeave) CImSmtpSettings();
+        CleanupStack::PushL( smtpSet );
+        acc->LoadSmtpSettingsL( smtpAcc, *smtpSet );
+        address = smtpSet->EmailAddress().AllocL();
+        CleanupStack::PopAndDestroy( 2, acc );
+        
         CleanupStack::PushL( address ); // << address
         CFSMailAddress* fsAddress = CFSMailAddress::NewLC();    // << fsAddress
         fsAddress->SetEmailAddress( *address );
@@ -298,12 +300,12 @@ CFSMailBox* CIpsPlgSosBasePlugin::GetMailBoxByUidL(
         CleanupStack::PopAndDestroy( address ); // >>> address
         CleanupStack::Pop( result );    // >> result
         }
-
+    
     return result;
 	}
 
 // ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------- 
 void CIpsPlgSosBasePlugin::DeleteMailBoxByUidL(
     const TFSMailMsgId& aMailBoxId,
     MFSMailRequestObserver& aOperationObserver,
@@ -316,61 +318,35 @@ void CIpsPlgSosBasePlugin::DeleteMailBoxByUidL(
         {
         User::Leave( KErrNotReady );
         }
-
-    // Create connection to Always Online
-    RAlwaysOnlineClientSession aosess;
-    User::LeaveIfError( aosess.Connect() );
-
+    
     // Prepare the parameters to be forwarded to AO-server
     TPckg<TMsvId> param = aMailBoxId.Id();
-
-    // Send message to server and close it
-    TRAP_IGNORE( aosess.RelayCommandL( EServerAPIEmailAgentRemove, param ) );
-    aosess.Close();
 
     // delete MRU list from cen rep
     iMruList->ClearDataL( aMailBoxId );
 
     iSyncStateHandler->NotifyMailboxRemove( aMailBoxId.Id() );
 
-    CancelAllOnlineOperations( aMailBoxId );
-
     iSession->GetEntry( aMailBoxId.Id(), service, tEntry );
     if ( tEntry.Connected() )
         {
         DisconnectL( aMailBoxId, aOperationObserver, aRequestId, ETrue );
-
-        // remove activity timer from array here but leave the actual delete
-        // to the disconnect operation. This is because the disconnect op
-        // sometimes tries to use the timer after it was deleted here.
-        TInt timerCount = iActivitytimers.Count();
-        for ( TInt j = 0; j < timerCount; j++ )
-            {
-            if ( iActivitytimers[j]->FSMailboxId() == aMailBoxId )
-                {
-                iActivitytimers.Remove( j );
-                timerCount--;
-                j--;
-                }
-            }
         }
     else
         {
-        iSettingsApi->RemoveAccountL( tEntry, *iSession );
         TFSProgress progress = { TFSProgress::EFSStatus_Waiting, 0, 0, KErrNone };
         progress.iProgressStatus = TFSProgress::EFSStatus_RequestComplete;
         progress.iError = KErrNone;
         TInt requestId = aRequestId;
         aOperationObserver.RequestResponseL( progress, requestId );
-
-        DeleteActivityTimer( aMailBoxId  );
         }
+    DeleteActivityTimer( aMailBoxId  );
     }
 
 // ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
-TDesC& CIpsPlgSosBasePlugin::GetBrandingIdL( const TFSMailMsgId& aMailBoxId )
-    {
+// ---------------------------------------------------------------------------- 
+TDesC& CIpsPlgSosBasePlugin::GetBrandingIdL( const TFSMailMsgId& aMailBoxId ) 
+    {    
     FUNC_LOG;
     if( !iSessionOk )
         {
@@ -379,100 +355,65 @@ TDesC& CIpsPlgSosBasePlugin::GetBrandingIdL( const TFSMailMsgId& aMailBoxId )
     CMsvEntry* mboxEntry = iSession->GetEntryL( aMailBoxId.Id() );
     CleanupStack::PushL( mboxEntry );
 
-    TDesC& address = iSettingsApi->GetServerAddressL( *mboxEntry );
-    delete iBrandingId;
-    iBrandingId = NULL;
-    iBrandingId = address.AllocL();
     CleanupStack::PopAndDestroy( mboxEntry );
-
+    
     return *iBrandingId;
     }
 
 // ----------------------------------------------------------------------------
-// Pop3 has no implementation for this virtual
-// ----------------------------------------------------------------------------
-void CIpsPlgSosBasePlugin::MoveMessagesL(
+// ----------------------------------------------------------------------------   
+void CIpsPlgSosBasePlugin::MoveMessagesL( 
     const TFSMailMsgId& aMailBoxId,
     const RArray<TFSMailMsgId>& aMessageIds,
     const TFSMailMsgId& aSourceFolderId,
     const TFSMailMsgId& aDestinationFolderId )
 	{
     FUNC_LOG;
+	// Pop3 has no implementation for this virtual
 	if( aDestinationFolderId.Id() == KMsvDraftEntryId  )
 	    {
-	    MoveMessagesToDraftL(
-	        aMailBoxId,
-	        aMessageIds,
-	        aSourceFolderId,
-	        aDestinationFolderId );
+	    MoveMessagesToDraftL( 
+	        aMailBoxId, 
+	                          aMessageIds, 
+	                          aSourceFolderId, 
+	                          aDestinationFolderId );
 	    }
 	}
 
 // ----------------------------------------------------------------------------
-// asynchronic version from move messages function, pop3 plugin not implent
-// this virtual fucntion.
-// ----------------------------------------------------------------------------
-TInt CIpsPlgSosBasePlugin::MoveMessagesL(
-    const TFSMailMsgId& aMailBoxId,
-    const RArray<TFSMailMsgId>& aMessageIds,
-    const TFSMailMsgId& aSourceFolderId,
-    const TFSMailMsgId& aDestinationFolderId,
-    MFSMailRequestObserver& aOperationObserver,
-    TInt aRequestId )
-    {
-    FUNC_LOG;
-    TInt ret = KErrNotSupported;
-    if( aDestinationFolderId.Id() == KMsvDraftEntryId  )
-        {
-        MoveMessagesToDraftL(
-            aMailBoxId,
-            aMessageIds,
-            aSourceFolderId,
-            aDestinationFolderId );
-        ret = KErrNone;
-        }
-    ret = KErrNotSupported;
-    TFSProgress progress = { 
-            TFSProgress::EFSStatus_RequestComplete, 0, 0, ret };
-    aOperationObserver.RequestResponseL(
-            progress, aRequestId );
-    return ret;
-    }
-
-// ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------	
 void CIpsPlgSosBasePlugin::MoveMessagesToDraftL(
-    const TFSMailMsgId& /*aMailBoxId*/,
-    const RArray<TFSMailMsgId>& aMessageIds,
-    const TFSMailMsgId& aSourceFolderId,
+    const TFSMailMsgId& /*aMailBoxId*/, 
+    const RArray<TFSMailMsgId>& aMessageIds, 
+    const TFSMailMsgId& aSourceFolderId, 
     const TFSMailMsgId& aDestinationFolderId )
     {
     FUNC_LOG;
-
+    
     TInt count( aMessageIds.Count() );
     if ( !count )
         {
         User::Leave( KErrArgument );
         }
-
+            
     if( !iSessionOk )
         {
         User::Leave( KErrNotReady );
         }
-
+     
     TMsvId msgService;
     TMsvEntry tEntry;
-
+       
     CMsvEntrySelection* sel = new(ELeave) CMsvEntrySelection;
     CleanupStack::PushL(sel);
 
     CMsvEntry* msgEntry = iSession->GetEntryL( aMessageIds[0].Id() );
     CleanupStack::PushL( msgEntry );
-
+    
 	for( TInt i(0); i < count; i++ )
         {
         iSession->GetEntry( aMessageIds[i].Id(), msgService, tEntry );
-
+        
         if( aSourceFolderId.Id() == KMsvGlobalOutBoxIndexEntryIdValue )
             {
             if( tEntry.SendingState() != KMsvSendStateSending )
@@ -492,7 +433,7 @@ void CIpsPlgSosBasePlugin::MoveMessagesToDraftL(
         else
             {
             sel->AppendL( tEntry.Id() );
-            }
+            }            
         }
     if( sel->Count() )
         {
@@ -502,25 +443,25 @@ void CIpsPlgSosBasePlugin::MoveMessagesToDraftL(
             CMsvEntry* cEntry = iSession->GetEntryL( aSourceFolderId.Id() );
             CleanupStack::PushL( cEntry );
             cEntry->MoveL(
-                *sel,
+                *sel, 
                            aDestinationFolderId.Id(),//KMsvDraftEntryIdValue
                            wait->iStatus );
-
-            CleanupStack::PopAndDestroy( cEntry );
+                           
+            CleanupStack::PopAndDestroy( cEntry );                           
             }
         else
             {
             // Message is in editing state, we can't use parent as entry
-            // because it's equal to destination.
+            // because it's equal to destination. 
             TMsvId parent = msgEntry->Entry().Parent();
             msgEntry->SetEntryL( parent );
             msgEntry->CopyL(
-                *sel,
+                *sel, 
                              aDestinationFolderId.Id(),//KMsvDraftEntryIdValue
                              wait->iStatus );
             }
         wait->Start();
-        CleanupStack::PopAndDestroy( wait ); // wait
+        CleanupStack::PopAndDestroy( wait ); // wait    
         }
     CleanupStack::PopAndDestroy( 2, sel ); // msgEntry, sel
     }
@@ -535,9 +476,9 @@ void CIpsPlgSosBasePlugin::CopyMessagesL(
     const TFSMailMsgId& /*aDestinationFolderId*/ )
 	{
 	}
-
+	
 // ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------- 	
 MDesCArray* CIpsPlgSosBasePlugin::GetMrusL(
                 const TFSMailMsgId& aMailBoxId)
     {
@@ -545,14 +486,14 @@ MDesCArray* CIpsPlgSosBasePlugin::GetMrusL(
     }
 
 // ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------- 	
 void CIpsPlgSosBasePlugin::SetMrusL(
     const TFSMailMsgId& aMailBoxId,
     MDesCArray*  aNewMruList )
     {
     iMruList->SetMruListL( aMailBoxId, aNewMruList );
     }
-
+    
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 void CIpsPlgSosBasePlugin::GoOnlineL( const TFSMailMsgId& aMailBoxId )
@@ -563,20 +504,20 @@ void CIpsPlgSosBasePlugin::GoOnlineL( const TFSMailMsgId& aMailBoxId )
         RefreshNowL( aMailBoxId, *this, 0 );
         }
     }
-
+    
 // ---------------------------------------------------------------------------
-// ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------    
 void CIpsPlgSosBasePlugin::GoOfflineL( const TFSMailMsgId& aMailBoxId )
     {
     FUNC_LOG;
     CancelAllOnlineOperations( aMailBoxId );
     // use 0 for request id
-    DisconnectL( aMailBoxId, *this, 0 );
+    DisconnectL( aMailBoxId, *this, 0 ); 
     }
-
+    
 // ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
-const TFSProgress CIpsPlgSosBasePlugin::GetLastSyncStatusL(
+// ---------------------------------------------------------------------------- 
+const TFSProgress CIpsPlgSosBasePlugin::GetLastSyncStatusL( 
     const TFSMailMsgId& aMailBoxId )
     {
     FUNC_LOG;
@@ -589,9 +530,9 @@ const TFSProgress CIpsPlgSosBasePlugin::GetLastSyncStatusL(
         User::Leave( KErrNotReady );
         }
     iSession->GetEntry( aMailBoxId.Id(), service, tEntry );
-
-    TInt state = iSettingsApi->GetLastSyncStatusL( tEntry );
-
+    
+    TInt state(0);
+    
     switch( state )
         {
         case ESyncFinishedSuccessfully:
@@ -612,7 +553,7 @@ const TFSProgress CIpsPlgSosBasePlugin::GetLastSyncStatusL(
     return progress;
     }
 
-// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------- 
 // ----------------------------------------------------------------------------
 TInt CIpsPlgSosBasePlugin::CancelSyncL( const TFSMailMsgId& aMailBoxId )
     {
@@ -622,7 +563,7 @@ TInt CIpsPlgSosBasePlugin::CancelSyncL( const TFSMailMsgId& aMailBoxId )
     // found correct operation
     for ( TInt i = iOperations.Count()-1; i >= 0; i-- )
         {
-        const CIpsPlgBaseOperation* baseOp =
+        const CIpsPlgBaseOperation* baseOp = 
             iOperations[i]->BaseOperation();
         if ( baseOp && baseOp->FSMailboxId() == aMailBoxId &&
                ( baseOp->IpsOpType() == EIpsOpTypePop3SyncOp
@@ -632,23 +573,24 @@ TInt CIpsPlgSosBasePlugin::CancelSyncL( const TFSMailMsgId& aMailBoxId )
             DeleteAndRemoveOperation( i, KErrCancel );
             }
         }
-/** <should be commented out until AO Manager API enhancements are back ported>
+    
+#ifndef RD_101_EMAIL    
     RAlwaysOnlineClientSession aosession;
     err = aosession.Connect();
     if ( err == KErrNone )
         {
         TPckgBuf<TMsvId> buf(aMailBoxId.Id());
-        TRAP( err, aosession.RelayCommandL(
+        TRAP( err, aosession.RelayCommandL( 
                 EServerAPIEmailCancelAllAndDoNotDisconnect, buf ) );
         }
     aosession.Close();
-    */
+#endif    
 
     return err;
     }
 
 // ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------- 
 //
 CFSMailFolder* CIpsPlgSosBasePlugin::GetFolderByUidL(
     const TFSMailMsgId& aMailBoxId,
@@ -660,7 +602,7 @@ CFSMailFolder* CIpsPlgSosBasePlugin::GetFolderByUidL(
         {
         User::Leave( KErrNotReady );
         }
-
+        
     CMsvEntry* folderEntry = iSession->GetEntryL( aFolderId.Id() );
     CleanupStack::PushL( folderEntry ); // << folderEntry
 
@@ -669,7 +611,7 @@ CFSMailFolder* CIpsPlgSosBasePlugin::GetFolderByUidL(
         result = CFSMailFolder::NewLC( aFolderId ); // << result
         result->SetMailBoxId( aMailBoxId );
 
-        CMsvEntrySelection* msgChilds = folderEntry->ChildrenWithTypeL(
+        CMsvEntrySelection* msgChilds = folderEntry->ChildrenWithTypeL( 
                 KUidMsvMessageEntry );
         CleanupStack::PushL( msgChilds );
         TInt msgCount( msgChilds->Count() );
@@ -681,7 +623,7 @@ CFSMailFolder* CIpsPlgSosBasePlugin::GetFolderByUidL(
             TMsvEmailEntry emlEntry;
             TMsvId dummy;
             TBool isRead = ETrue;
-            if ( iSession->GetEntry(
+            if ( iSession->GetEntry( 
                     msgChilds->At(i), dummy, emlEntry ) == KErrNone )
                 {
                 if ( ( PluginId() == KIpsPlgImap4PluginUid.iUid ||
@@ -691,18 +633,18 @@ CFSMailFolder* CIpsPlgSosBasePlugin::GetFolderByUidL(
                     isRead = EFalse;
                     }
                 }
-            if ( !isRead && !emlEntry.LocallyDeleted() )
+            if ( !isRead && !emlEntry.LocallyDeleted() ) 
                 {
                 unreadCount++;
                 }
             }
-
+        
         CleanupStack::PopAndDestroy( msgChilds );
         result->SetUnreadCount( unreadCount );
         result->SetFolderName( folderEntry->Entry().iDetails );
         result->SetFolderType( GetFolderType( folderEntry, aFolderId ) );
         TMsvEntry parentEntry;
-        TInt status = iSession->GetEntry( folderEntry->Entry().Parent( ), serviceId,
+        TInt status = iSession->GetEntry( folderEntry->Entry().Parent( ), serviceId, 
                 parentEntry );
         TUint parent( 0 );
 		if( status == KErrNone )
@@ -716,12 +658,12 @@ CFSMailFolder* CIpsPlgSosBasePlugin::GetFolderByUidL(
                 parent = 0;
 				}
 			}
-
+        
         TFSMailMsgId parentId( PluginId(), parent );
         result->SetParentFolderId( parentId );
-
+        
         // Set subfolder count here for ListFolderL
-        CMsvEntrySelection* fldChildren =
+        CMsvEntrySelection* fldChildren = 
     		folderEntry->ChildrenWithTypeL( KUidMsvFolderEntry );
     	CleanupStack::PushL( fldChildren );    // << children
         result->SetSubFolderCount( fldChildren->Count() );
@@ -729,17 +671,17 @@ CFSMailFolder* CIpsPlgSosBasePlugin::GetFolderByUidL(
 
         // Set blocklist for FW
         BlockCopyMoveFromFoldersL( folderEntry, aFolderId, *result );
-
+        
         CleanupStack::Pop( result );    // >> result
         }
 	CleanupStack::PopAndDestroy( folderEntry ); // >>> folderEntry
-
+        
     return result;
 	}
-
+	
 // ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
-CFSMailFolder* CIpsPlgSosBasePlugin::CreateFolderL(
+// ---------------------------------------------------------------------------- 
+CFSMailFolder* CIpsPlgSosBasePlugin::CreateFolderL( 
     const TFSMailMsgId& /* aMailBoxId */,
     const TFSMailMsgId& /* aFolderId */,
     const TDesC& /* aFolderName */,
@@ -749,7 +691,7 @@ CFSMailFolder* CIpsPlgSosBasePlugin::CreateFolderL(
 	}
 
 // ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------- 
 void CIpsPlgSosBasePlugin::DeleteFolderByUidL(
     const TFSMailMsgId& /* aMailBoxId */,
     const TFSMailMsgId& /* aFolderId */)
@@ -757,57 +699,57 @@ void CIpsPlgSosBasePlugin::DeleteFolderByUidL(
 	}
 
 // ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------- 
 MFSMailIterator* CIpsPlgSosBasePlugin::ListMessagesL(
     const TFSMailMsgId& aMailBoxId,
     const TFSMailMsgId& aFolderId,
     const TFSMailDetails aDetails,
-    const RArray<TFSMailSortCriteria>& aSorting )
+    const RArray<TFSMailSortCriteria>& aSorting ) 
     {
     FUNC_LOG;
-    CIpsPlgMsgIterator* iterator = CIpsPlgMsgIterator::NewL(
+    CIpsPlgMsgIterator* iterator = CIpsPlgMsgIterator::NewL( 
         *this, *iSession, aMailBoxId, aFolderId, aDetails, aSorting );
-
+        
     return iterator;
     }
-
+	
 // ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------- 
 //
-CFSMailMessage* CIpsPlgSosBasePlugin::GetMessageByUidL(
+CFSMailMessage* CIpsPlgSosBasePlugin::GetMessageByUidL( 
     const TFSMailMsgId& aMailBoxId,
     const TFSMailMsgId& /* aFolderId */,
-    const TFSMailMsgId& aMessageId,
-    const TFSMailDetails aDetails)
+    const TFSMailMsgId& aMessageId, 
+    const TFSMailDetails aDetails) 
 	{
     FUNC_LOG;
 	CFSMailMessage* result( NULL );
 	TMsvId serviceId;
 	TMsvEntry tEntry;
 	TInt status( KErrNone );
-
+	
 	if( !iSessionOk )
 	    {
 	    User::Leave( KErrNotReady );
 	    }
-
+	
 	status = iSession->GetEntry( aMessageId.Id(), serviceId, tEntry);
-
+	
 	const TMsvEmailEntry& emlEntry(tEntry);
 	// do not give deleted marked messages
-	if ( status == KErrNone &&
+	if ( status == KErrNone && 
 	    EDisconnectedDeleteOperation != emlEntry.DisconnectedOperation()
 	    && !emlEntry.DeletedIMAP4Flag() )
 	    {
         result = iMsgMapper->GetMailMessageL( aMailBoxId, tEntry, aDetails );
 	    }
-
-	return result;
+	
+	return result;    
 	}
-
+	
 // ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
- CFSMailMessage* CIpsPlgSosBasePlugin::CreateMessageToSendL(
+// ---------------------------------------------------------------------------- 	
+ CFSMailMessage* CIpsPlgSosBasePlugin::CreateMessageToSendL( 
     const TFSMailMsgId& aMailBoxId )
 	{
     FUNC_LOG;
@@ -815,37 +757,81 @@ CFSMailMessage* CIpsPlgSosBasePlugin::GetMessageByUidL(
 	return msg;
 	}
 
+// <qmail>
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-CFSMailMessage* CIpsPlgSosBasePlugin::CreateForwardMessageL(
+void CIpsPlgSosBasePlugin::CreateMessageToSendL( const TFSMailMsgId& aMailBoxId,
+                                    MFSMailRequestObserver& aOperationObserver,
+                                    const TInt aRequestId )
+    {
+    FUNC_LOG;
+    iSmtpService->CreateNewSmtpMessageL( aMailBoxId, aOperationObserver, aRequestId );
+    }
+// </qmail> 
+ 
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+CFSMailMessage* CIpsPlgSosBasePlugin::CreateForwardMessageL( 
     const TFSMailMsgId& aMailBoxId,
     const TFSMailMsgId& aOriginalMessageId,
     const TDesC& /* aHeaderDescriptor */)
     {
     FUNC_LOG;
-    CFSMailMessage* msg = iSmtpService->CreateForwardSmtpMessageL(
+    CFSMailMessage* msg = iSmtpService->CreateForwardSmtpMessageL( 
         aMailBoxId, aOriginalMessageId );
     return msg;
     }
 
+// <qmail>
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-CFSMailMessage* CIpsPlgSosBasePlugin::CreateReplyMessageL(
+void CIpsPlgSosBasePlugin::CreateForwardMessageL( 
+    const TFSMailMsgId& aMailBoxId,
+    const TFSMailMsgId& aOriginalMessageId,
+    MFSMailRequestObserver& aOperationObserver,
+    const TInt aRequestId,
+    const TDesC& /*aHeaderDescriptor*/ )
+    {
+    FUNC_LOG;
+    iSmtpService->CreateForwardSmtpMessageL( aMailBoxId, aOriginalMessageId, aOperationObserver, aRequestId );
+    }
+// </qmail> 
+
+// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------- 	
+CFSMailMessage* CIpsPlgSosBasePlugin::CreateReplyMessageL( 
     const TFSMailMsgId& aMailBoxId,
     const TFSMailMsgId& aOriginalMessageId,
     const TBool aReplyToAll,
     const TDesC& /* aHeaderDescriptor */ )
     {
     FUNC_LOG;
-    CFSMailMessage* msg = iSmtpService->CreateReplySmtpMessageL(
+    CFSMailMessage* msg = iSmtpService->CreateReplySmtpMessageL( 
         aMailBoxId, aOriginalMessageId, aReplyToAll );
     return msg;
     }
 
+// <qmail>
 // ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------- 	
+void CIpsPlgSosBasePlugin::CreateReplyMessageL( 
+    const TFSMailMsgId& aMailBoxId,
+    const TFSMailMsgId& aOriginalMessageId,
+    const TBool aReplyToAll,
+    MFSMailRequestObserver& aOperationObserver,
+    const TInt aRequestId,
+    const TDesC& /* aHeaderDescriptor */ )
+    {
+    FUNC_LOG;
+    iSmtpService->CreateReplySmtpMessageL( 
+        aMailBoxId, aOriginalMessageId, aReplyToAll, aOperationObserver, aRequestId );
+    }
+// </qmail>
+
 // ----------------------------------------------------------------------------
-//
-void CIpsPlgSosBasePlugin::StoreMessageL(
+// ---------------------------------------------------------------------------- 	
+//	
+void CIpsPlgSosBasePlugin::StoreMessageL( 
     const TFSMailMsgId& aMailBoxId,
     CFSMailMessage& aMessage )
  	{
@@ -870,14 +856,10 @@ void CIpsPlgSosBasePlugin::StoreMessageL(
 
     if ( incoming )
         {
-        // It`s commented because when it`s used heavile cause -16 error
-        // For example when user want to mark as read/unread many messages
-        // Synchronous method solves this issue
-        iMsgMapper->UpdateMessageFlagsL(msgId.Id(), aMessage);
-        /*CIpsPlgSingleOpWatcher* opW = CIpsPlgSingleOpWatcher::NewLC( *this );
-        CMsvOperation* op = iMsgMapper->UpdateMessageFlagsAsyncL(
+        CIpsPlgSingleOpWatcher* opW = CIpsPlgSingleOpWatcher::NewLC( *this );
+        CMsvOperation* op = iMsgMapper->UpdateMessageFlagsAsyncL( 
                 msgId.Id(), aMessage, opW->iStatus );
-
+        
         if ( op )
             {
             opW->SetOperation( op );
@@ -887,7 +869,7 @@ void CIpsPlgSosBasePlugin::StoreMessageL(
         else
             {
             CleanupStack::PopAndDestroy( opW );
-            }*/
+            }
         }
     else
         {
@@ -895,33 +877,64 @@ void CIpsPlgSosBasePlugin::StoreMessageL(
         }
     }
 
+// <qmail>
+/**
+ *
+ * @param aMailBoxId Mailbox id.
+ * @param aOperationObserver Operation observer.
+ * @param aRequestId The request id.
+ */
+void CIpsPlgSosBasePlugin::StoreMessagesL(
+    const TFSMailMsgId& /*aMailBox*/,
+    RPointerArray<CFSMailMessage> &messages,
+    MFSMailRequestObserver& aOperationObserver,
+    const TInt aRequestId )
+    
+    {
+    CIpsPlgSingleOpWatcher* watcher = CIpsPlgSingleOpWatcher::NewL(*this);
+    CleanupStack::PushL(watcher);
+    CIpsPlgMailStorerOperation* op = 
+            CIpsPlgMailStorerOperation::NewLC(
+                    *iSession,
+                    watcher->iStatus,
+                    *this, 
+                    messages, 
+                    aOperationObserver, 
+                    aRequestId );
+    
+    watcher->SetOperation(op);
+    iOperations.AppendL(watcher);
+    CleanupStack::Pop( 2, watcher );
+    }
+// </qmail>
+
 // ----------------------------------------------------------------------------
 // CIpsPlgSosBasePlugin::GetMessagesL()
-// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------- 
 //
 void CIpsPlgSosBasePlugin::GetMessagesL(
     const TFSMailMsgId& aMailBoxId,
     const TFSMailMsgId& aFolderId,
     const RArray<TFSMailMsgId>& aMessageIds,
     RPointerArray<CFSMailMessage>& aMessageList,
-    const TFSMailDetails aDetails )
+    const TFSMailDetails aDetails ) 
 	{
     FUNC_LOG;
     TInt i;
     CFSMailMessage* msg;
-
+    
 	for (i = 0; i < aMessageIds.Count(); i++ )
         {
-        msg = GetMessageByUidL(
+        msg = GetMessageByUidL( 
             aMailBoxId, aFolderId, aMessageIds[i], aDetails );
         CleanupStack::PushL( msg );
         aMessageList.AppendL( msg );
         CleanupStack::Pop( msg );
         }
-	}
+	} 							
 
 // ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------  
 void CIpsPlgSosBasePlugin::ChildPartsL(
     const TFSMailMsgId& aMailBoxId,
     const TFSMailMsgId& /* aParentFolderId */,
@@ -934,7 +947,7 @@ void CIpsPlgSosBasePlugin::ChildPartsL(
 	}
 
 // ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------  
 CFSMailMessagePart* CIpsPlgSosBasePlugin::NewChildPartL(
     const TFSMailMsgId& aMailBoxId,
     const TFSMailMsgId& /* aParentFolderId */,
@@ -951,7 +964,7 @@ CFSMailMessagePart* CIpsPlgSosBasePlugin::NewChildPartL(
     }
 
 // ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------  
 CFSMailMessagePart* CIpsPlgSosBasePlugin::NewChildPartFromFileL(
     const TFSMailMsgId& aMailBoxId,
     const TFSMailMsgId& /* aParentFolderId */,
@@ -967,15 +980,15 @@ CFSMailMessagePart* CIpsPlgSosBasePlugin::NewChildPartFromFileL(
     RFile file;
     TInt fileSize( 0 );
     TBool parentToMultipartAlternative( EFalse );
-
+    
     // Read attachment size
     User::LeaveIfError( file.Open( iSession->FileSession(), aFilePath, EFileShareReadersOnly ) );
-
+        
     //in rare case that file has disappeared while sending
     //we just won't get the size for it
     file.Size( fileSize );
-    file.Close();
-
+    file.Close();    
+        
     // Initialize CMsvAttachment instance for the attachment creation
     CMsvAttachment* info = CMsvAttachment::NewL( CMsvAttachment::EMsvFile );
     CleanupStack::PushL( info );
@@ -992,7 +1005,7 @@ CFSMailMessagePart* CIpsPlgSosBasePlugin::NewChildPartFromFileL(
     CleanupStack::PushL( waiter );
 
     // Start attachment creation
-    message->AttachmentManager().AddAttachmentL(
+    message->AttachmentManager().AddAttachmentL( 
         aFilePath, info, waiter->iStatus );
 
     waiter->Start();
@@ -1001,7 +1014,7 @@ CFSMailMessagePart* CIpsPlgSosBasePlugin::NewChildPartFromFileL(
 
     // Dig out the entry ID of the new attachment (unbelievable that
     // there seems to be no better way to do this)
-    message->GetAttachmentsListL( cEntry->Entry().Id( ),
+    message->GetAttachmentsListL( cEntry->Entry().Id( ), 
         CImEmailMessage::EAllAttachments, CImEmailMessage::EThisMessageOnly );
     TKeyArrayFix key( 0, ECmpTInt32 );
     CMsvEntrySelection* attachmentIds = message->Selection().CopyLC();
@@ -1012,10 +1025,10 @@ CFSMailMessagePart* CIpsPlgSosBasePlugin::NewChildPartFromFileL(
         }
     TMsvId newAttachmentId = (*attachmentIds)[ attachmentIds->Count()-1 ];
     CleanupStack::PopAndDestroy( attachmentIds );
-
+    
     CMsvEntry* cAtta = iSession->GetEntryL( newAttachmentId );
     CleanupStack::PushL( cAtta );
-
+    
     // Set filename to iDetails
     TMsvEntry tEntry = cAtta->Entry();
     tEntry.iDetails.Set( aFilePath );
@@ -1026,23 +1039,23 @@ CFSMailMessagePart* CIpsPlgSosBasePlugin::NewChildPartFromFileL(
         CMsvStore* store = cAtta->EditStoreL();
         CleanupStack::PushL( store );
         CImMimeHeader* mimeHeader = CImMimeHeader::NewLC();
-
+        
         if( store->IsPresentL( KUidMsgFileMimeHeader ) )
             {
             mimeHeader->RestoreL( *store );
             CDesC8Array& array = mimeHeader->ContentTypeParams();
             array.AppendL( KMethod );
             parentToMultipartAlternative = ETrue;
-
+            
             if( aContentType.Find( KMimeTextCalRequest ) != KErrNotFound )
-                {
+                {    
                 array.AppendL( KRequest );
                 }
             else if( aContentType.Find( KMimeTextCalResponse ) != KErrNotFound )
                 {
                 array.AppendL( KResponse );
                 }
-            else if( aContentType.Find( KMimeTextCalCancel ) != KErrNotFound )
+            else if( aContentType.Find( KMimeTextCalCancel ) != KErrNotFound ) 
                 {
                 array.AppendL( KCancel );
                 }
@@ -1053,39 +1066,75 @@ CFSMailMessagePart* CIpsPlgSosBasePlugin::NewChildPartFromFileL(
             mimeHeader->StoreWithoutCommitL( *store );
             store->CommitL();
             }
-
+        
         CleanupStack::PopAndDestroy( 2, store );
         }
 
     if( parentToMultipartAlternative &&
         aFilePath.Find( _L(".ics")) != KErrNotFound )
-        {
+        {        
         TMsvEntry tAttaEntry = cAtta->Entry();
         TMsvId id = tAttaEntry.Parent();
         CMsvEntry* cParent = iSession->GetEntryL( id );
         CleanupStack::PushL( cParent );
-
+        
         TMsvEmailEntry tEntry = cParent->Entry();
         tEntry.SetMessageFolderType( EFolderTypeAlternative );
         cParent->ChangeL( tEntry );
-
+        
         CleanupStack::PopAndDestroy( cParent );
         }
     CleanupStack::PopAndDestroy( cAtta );
-
-    // Delete the message entries to get all the changes to disk and
+    
+    // Delete the message entries to get all the changes to disk and 
     // possible store locks released
     CleanCachedMessageEntries();
-
+    
     // Create the FS message part object
-    result = iMsgMapper->GetMessagePartL( newAttachmentId, aMailBoxId,
+    result = iMsgMapper->GetMessagePartL( newAttachmentId, aMailBoxId, 
         aMessageId );
 
     return result;
     }
 
+// <qmail>
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------  
+void CIpsPlgSosBasePlugin::NewChildPartFromFileL(
+    const TFSMailMsgId& aMailBoxId,
+    const TFSMailMsgId& /* aParentFolderId */,
+    const TFSMailMsgId& aMessageId,
+    const TFSMailMsgId& /* aParentPartId */,
+    const TDesC& aContentType,
+    const TDesC& aFilePath,
+    MFSMailRequestObserver& aOperationObserver,
+    const TInt aRequestId )
+    {
+    FUNC_LOG;
+    CIpsPlgSingleOpWatcher* watcher = CIpsPlgSingleOpWatcher::NewLC(*this);
+    
+    CCIpsPlgNewChildPartFromFileOperation* op = CCIpsPlgNewChildPartFromFileOperation::NewL(
+        *iSession, 
+        watcher->iStatus,
+        aMailBoxId,
+        aMessageId,
+        aContentType,
+        aFilePath,
+        aOperationObserver, 
+        aRequestId,
+        iMsgMapper);
+    watcher->SetOperation( op );
+
+    iOperations.AppendL( watcher ); 
+    CleanupStack::Pop( watcher );
+    }
+
+// </qmail> 
+
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------  
 CFSMailMessagePart* CIpsPlgSosBasePlugin::NewChildPartFromFileL(
     const TFSMailMsgId& aMailBoxId,
     const TFSMailMsgId& /* aParentFolderId */,
@@ -1095,7 +1144,7 @@ CFSMailMessagePart* CIpsPlgSosBasePlugin::NewChildPartFromFileL(
     RFile& aFile )
     {
     FUNC_LOG;
-
+    
     // Initialize helper variables
     CFSMailMessagePart* result ( NULL );
     CMsvEntry* cEntry( NULL );
@@ -1110,15 +1159,15 @@ CFSMailMessagePart* CIpsPlgSosBasePlugin::NewChildPartFromFileL(
     // Initialize CMsvAttachment instance for the attachment creation
     CMsvAttachment* info = CMsvAttachment::NewL( CMsvAttachment::EMsvFile );
     CleanupStack::PushL( info );
-
+    
     // Read attachment size
     User::LeaveIfError( aFile.Size( fileSize ) );
     info->SetSize( fileSize );
-
+    
     // Read attachment filename
     User::LeaveIfError( aFile.FullName( fileName ) );
     info->SetAttachmentNameL( fileName );
-
+    
     // Operation waiter needed to implement synchronous operation
     // on the top of async API
     CIpsPlgOperationWait* waiter = CIpsPlgOperationWait::NewL();
@@ -1129,7 +1178,7 @@ CFSMailMessagePart* CIpsPlgSosBasePlugin::NewChildPartFromFileL(
     CleanupStack::Pop( info ); // attachment manager takes ownership
 
     // Dig out the entry ID of the new attachment
-    message->GetAttachmentsListL( cEntry->Entry().Id( ),
+    message->GetAttachmentsListL( cEntry->Entry().Id( ), 
         CImEmailMessage::EAllAttachments, CImEmailMessage::EThisMessageOnly );
     TKeyArrayFix key( 0, ECmpTInt32 );
     CMsvEntrySelection* attachmentIds = message->Selection().CopyLC();
@@ -1140,7 +1189,7 @@ CFSMailMessagePart* CIpsPlgSosBasePlugin::NewChildPartFromFileL(
         }
     TMsvId newAttachmentId = (*attachmentIds)[ attachmentIds->Count()-1 ];
     CleanupStack::PopAndDestroy( attachmentIds );
-
+    
     // Meeting request related handling
     TBool parentToMultipartAlternative( EFalse );
     CMsvEntry* cAtta = iSession->GetEntryL( newAttachmentId );
@@ -1150,29 +1199,29 @@ CFSMailMessagePart* CIpsPlgSosBasePlugin::NewChildPartFromFileL(
     TMsvEntry tEntry = cAtta->Entry();
     tEntry.iDetails.Set( fileName );
     cAtta->ChangeL( tEntry );
-
+    
     if( cAtta->HasStoreL() )
         {
         CMsvStore* store = cAtta->EditStoreL();
         CleanupStack::PushL( store );
         CImMimeHeader* mimeHeader = CImMimeHeader::NewLC();
-
+        
         if( store->IsPresentL( KUidMsgFileMimeHeader ) )
             {
             mimeHeader->RestoreL( *store );
             CDesC8Array& array = mimeHeader->ContentTypeParams();
             array.AppendL( KMethod );
             parentToMultipartAlternative = ETrue;
-
+            
             if( aContentType.Find( KMimeTextCalRequest ) != KErrNotFound )
-                {
+                {    
                 array.AppendL( KRequest );
                 }
             else if( aContentType.Find( KMimeTextCalResponse ) != KErrNotFound )
                 {
                 array.AppendL( KResponse );
                 }
-            else if( aContentType.Find( KMimeTextCalCancel ) != KErrNotFound )
+            else if( aContentType.Find( KMimeTextCalCancel ) != KErrNotFound ) 
                 {
                 array.AppendL( KCancel );
                 }
@@ -1186,32 +1235,32 @@ CFSMailMessagePart* CIpsPlgSosBasePlugin::NewChildPartFromFileL(
         CleanupStack::PopAndDestroy( 2, store );
         }
     if( parentToMultipartAlternative && fileName.Find( _L(".ics")) != KErrNotFound )
-        {
+        {        
         TMsvEntry tAttaEntry = cAtta->Entry();
         TMsvId id = tAttaEntry.Parent();
         CMsvEntry* cParent = iSession->GetEntryL( id );
         CleanupStack::PushL( cParent );
-
+        
         TMsvEmailEntry tEntry = cParent->Entry();
         tEntry.SetMessageFolderType( EFolderTypeAlternative );
         cParent->ChangeL( tEntry );
-
+        
         CleanupStack::PopAndDestroy( cParent );
         }
     CleanupStack::PopAndDestroy( cAtta );
-
-    // Delete the message entries to get all the changes to disk and
+    
+    // Delete the message entries to get all the changes to disk and 
     // possible store locks released
     CleanCachedMessageEntries();
-
+    
     // Create the FS message part object and return it
-    result = iMsgMapper->GetMessagePartL( newAttachmentId, aMailBoxId,
+    result = iMsgMapper->GetMessagePartL( newAttachmentId, aMailBoxId, 
         aMessageId );
     return result;
     }
 
 // ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------  
 CFSMailMessagePart* CIpsPlgSosBasePlugin::CopyMessageAsChildPartL(
     const TFSMailMsgId& /* aMailBoxId */,
     const TFSMailMsgId& /* aParentFolderId */,
@@ -1224,9 +1273,9 @@ CFSMailMessagePart* CIpsPlgSosBasePlugin::CopyMessageAsChildPartL(
 	}
 
 // ----------------------------------------------------------------------------
-// Supports currently deletion of attachments and multipart structures
+// Supports currently deletion of attachments and multipart structures 
 // which are represented as folders in Symbian store)
-// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------  
 //
 void CIpsPlgSosBasePlugin::RemoveChildPartL(
     const TFSMailMsgId& /* aMailBoxId */,
@@ -1241,26 +1290,26 @@ void CIpsPlgSosBasePlugin::RemoveChildPartL(
     TMsvEntry tEntry;
     TMsvId serviceId;
     status = iSession->GetEntry( aPartId.Id(), serviceId, tEntry );
-
-    if ( ( status == KErrNone ) &&
+    
+    if ( ( status == KErrNone ) && 
          ( tEntry.iType == KUidMsvAttachmentEntry ) )
         {
         CImEmailMessage* message( NULL );
         // We trust that the message ID really refers to a message
         GetMessageEntryL( aMessageId.Id(), cEntry, message );
-
-        MMsvAttachmentManager& attachmentMgr( message->AttachmentManager() );
-
+    
+        MMsvAttachmentManager& attachmentMgr( message->AttachmentManager() ); 
+    
         CIpsPlgOperationWait* waiter = CIpsPlgOperationWait::NewL();
         CleanupStack::PushL( waiter );
-
-        attachmentMgr.RemoveAttachmentL(
+    
+        attachmentMgr.RemoveAttachmentL( 
             (TMsvAttachmentId) aPartId.Id(), waiter->iStatus );
-
+    
         waiter->Start();
         CleanupStack::PopAndDestroy( waiter );
         }
-    else if ( ( status == KErrNone ) &&
+    else if ( ( status == KErrNone ) && 
               ( tEntry.iType == KUidMsvFolderEntry ) )
         {
         cEntry = iSession->GetEntryL( tEntry.Parent() );
@@ -1272,13 +1321,13 @@ void CIpsPlgSosBasePlugin::RemoveChildPartL(
 
 // ----------------------------------------------------------------------------
 // The implementation supoorts the atachment and body parts at the moment.
-// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------  
 //
-CFSMailMessagePart* CIpsPlgSosBasePlugin::MessagePartL(
+CFSMailMessagePart* CIpsPlgSosBasePlugin::MessagePartL(  
     const TFSMailMsgId& aMailBoxId,
     const TFSMailMsgId& /* aParentFolderId */,
     const TFSMailMsgId& aMessageId,
-    const TFSMailMsgId& aMessagePartId)
+    const TFSMailMsgId& aMessagePartId) 
 	{
     FUNC_LOG;
     CFSMailMessagePart* result( NULL );
@@ -1291,13 +1340,14 @@ CFSMailMessagePart* CIpsPlgSosBasePlugin::MessagePartL(
 // The implementation bypass CImEmailMessage and its email's attachment
 // manager. Instead, it calls Symbian framework classes directly by
 // accessing the attachment entry.
-// ----------------------------------------------------------------------------
-TInt CIpsPlgSosBasePlugin::GetMessagePartFileL(
+// Qmail change: returns file handle for read/write
+// ----------------------------------------------------------------------------  
+TInt CIpsPlgSosBasePlugin::GetMessagePartFileL(  
     const TFSMailMsgId& /* aMailBoxId */,
     const TFSMailMsgId& /* aParentFolderId */,
     const TFSMailMsgId& /* aMessageId */,
     const TFSMailMsgId& aMessagePartId,
-    RFile& aFileHandle)
+    RFile& aFileHandle) 
 	{
     FUNC_LOG;
     TInt status( KErrNone );
@@ -1307,20 +1357,30 @@ TInt CIpsPlgSosBasePlugin::GetMessagePartFileL(
     TBool hasStore = cEntry->HasStoreL();
     if ( hasStore )
         {
-        store = cEntry->ReadStoreL();
+        //<qmail>
+        // We need to open store for edit to support multipart/alternative
+        // structure: we must have a possibility to modify text/html message part
+        //store = cEntry->ReadStoreL();
+        store = cEntry->EditStoreL();
+        //</qmail>
         }
-
+    
     if ( !store || !hasStore )
         {
         User::Leave( KErrNotFound );
         }
     CleanupStack::PushL( store );
     MMsvAttachmentManager& attachmentMgr = store->AttachmentManagerL();
-
+    
     // It is assumed that the attachment file is always in the index 0
     if ( attachmentMgr.AttachmentCount() )
         {
-        aFileHandle = attachmentMgr.GetAttachmentFileL( 0 );
+        //<qmail>
+        // We need to open store for edit to support multipart/alternative
+        // structure: we must have a possibility to modify text/html message part
+        //aFileHandle = attachmentMgr.GetAttachmentFileL( 0 );
+        aFileHandle = attachmentMgr.GetAttachmentFileForWriteL( 0 );
+        //</qmail>
         }
     else
         {
@@ -1332,53 +1392,62 @@ TInt CIpsPlgSosBasePlugin::GetMessagePartFileL(
     }
 
 // ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------  
 //
 void CIpsPlgSosBasePlugin::CopyMessagePartFileL(
     const TFSMailMsgId& /* aMailBoxId */,
     const TFSMailMsgId& /* aParentFolderId */,
-    const TFSMailMsgId& aMessageId,
+    const TFSMailMsgId& /*aMessageId*/,
     const TFSMailMsgId& aMessagePartId,
     const TDesC& aFilePath)
-	{
+    {
     FUNC_LOG;
-    CMsvEntry* cEntry( NULL );
-    CImEmailMessage* message( NULL );
-
-    CFileMan* fileMgr = CFileMan::NewL( iSession->FileSession() );
-    CleanupStack::PushL( fileMgr );
-
-    // We trust that the message ID really refers to a message
-    GetMessageEntryL( aMessageId.Id(), cEntry, message );
-
-    // Without this e.g. alternative body iCal parts are not found
-    message->GetAttachmentsListL( aMessageId.Id(),
-        CImEmailMessage::EAllAttachments,
-        CImEmailMessage::EThisMessageAndEmbeddedMessages );
-    MMsvAttachmentManager& attachmentMgr( message->AttachmentManager() );
-    // It is assumed that the attachment ID is same as the corresponding
-    // entry ID
-    RFile attachmentFile = attachmentMgr.GetAttachmentFileL(
-        (TMsvAttachmentId) aMessagePartId.Id() );
-
-    // Overwrites the target file if such exists
-    // There is no other way to report errors than leave
-    User::LeaveIfError( fileMgr->Copy( attachmentFile, aFilePath ) );
-
-    attachmentFile.Close();
-    CleanupStack::PopAndDestroy( fileMgr );
+    //<qmail>
+    CMsvEntry* cEntry = iSession->GetEntryL( aMessagePartId.Id() );
+    CleanupStack::PushL( cEntry );
+    CMsvStore* store = NULL;
+    TBool hasStore = cEntry->HasStoreL();
+    if ( hasStore )
+        {
+        store = cEntry->ReadStoreL();
+        }
+    if ( !store || !hasStore )
+        {
+        User::Leave( KErrNotFound );
+        }
+    CleanupStack::PushL( store );
+    MMsvAttachmentManager& attachmentMgr = store->AttachmentManagerL();
+    // It is assumed that the attachment file is always in the index 0
+    if ( attachmentMgr.AttachmentCount() )
+        {
+        RFile attachmentFile =
+            attachmentMgr.GetAttachmentFileL( 0 );
+        CleanupClosePushL( attachmentFile );
+        CFileMan* fileMgr = CFileMan::NewL( iSession->FileSession() );
+        CleanupStack::PushL( fileMgr );
+        User::LeaveIfError( fileMgr->Copy( attachmentFile, aFilePath ) );
+        CleanupStack::PopAndDestroy( fileMgr );
+        CleanupStack::PopAndDestroy(); // attachmentFile.Close()
+        }
+    else
+        {
+        User::Leave( KErrNotFound );
+        }
+    CleanupStack::PopAndDestroy( store );
+    CleanupStack::PopAndDestroy( cEntry );
+    //</qmail>
 	}
 
 // ----------------------------------------------------------------------------
 // The method supports only reading of the plain text body currently.
-// ----------------------------------------------------------------------------
-void CIpsPlgSosBasePlugin::GetContentToBufferL(
+// ---------------------------------------------------------------------------- 
+void CIpsPlgSosBasePlugin::GetContentToBufferL(	
     const TFSMailMsgId& /* aMailBoxId */,
     const TFSMailMsgId& /* aParentFolderId */,
     const TFSMailMsgId& aMessageId,
     const TFSMailMsgId& aMessagePartId,
     TDes& aBuffer,
-    const TUint aStartOffset)
+    const TUint aStartOffset) 
 	{
     FUNC_LOG;
     CMsvEntry* cEntry( NULL );
@@ -1390,7 +1459,7 @@ void CIpsPlgSosBasePlugin::GetContentToBufferL(
         {
     message->GetBodyTextEntryIdL(
         cEntry->Entry().Id(), CImEmailMessage::EThisMessageOnly );
-
+    
     if ( message->Selection().Count() > 0 )
         {
         // Check whether the body text is requested
@@ -1400,17 +1469,17 @@ void CIpsPlgSosBasePlugin::GetContentToBufferL(
             CleanupStack::PushL(globalParaLayer);
             CCharFormatLayer* globalCharLayer = CCharFormatLayer::NewL();
             CleanupStack::PushL(globalCharLayer);
-
+            
             CRichText* bodyText = CRichText::NewL(
-                globalParaLayer, globalCharLayer);
+                globalParaLayer, globalCharLayer);            
             CleanupStack::PushL( bodyText );
-
-            message->GetBodyTextL(
+            
+            message->GetBodyTextL( 
                 aMessageId.Id(), CImEmailMessage::EThisMessageOnly,
                 *bodyText, *globalParaLayer, *globalCharLayer );
-
+            
             bodyText->Extract( aBuffer, aStartOffset, aBuffer.MaxLength() );
-
+            
             CleanupStack::PopAndDestroy(bodyText);
             CleanupStack::PopAndDestroy(globalCharLayer);
             CleanupStack::PopAndDestroy(globalParaLayer);
@@ -1418,115 +1487,59 @@ void CIpsPlgSosBasePlugin::GetContentToBufferL(
         }
 	}
 	}
-
+	 							 
 // ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------- 
 void CIpsPlgSosBasePlugin::SetContentL(
     const TDesC& aBuffer,
     const TFSMailMsgId& /* aMailBoxId */,
     const TFSMailMsgId& /* aParentFolderId */,
-    const TFSMailMsgId& aMessageId,
+    const TFSMailMsgId& /* aMessageId */,
     const TFSMailMsgId& aMessagePartId )
 	{
     FUNC_LOG;
-    CMsvEntry* cEntry( NULL );
-    CImEmailMessage* message( NULL );
-
-    // We trust that the message ID really refers to a message
-    GetMessageEntryL( aMessageId.Id(), cEntry, message );
-	if ( message )
-	    {
-
-	    message->GetBodyTextEntryIdL(
-	    		cEntry->Entry().Id(), CImEmailMessage::EThisMessageOnly );
-	    if ( message->Selection().Count() > 0 )
-	    	{
-	    	TMsvId dummy;
-	    	TMsvEmailEntry newEmailMsg;
-	    	iSession->GetEntry( aMessageId.Id(), dummy, newEmailMsg );
-	    	TMsvId parent = newEmailMsg.Parent();
-
-	    	if ( message->Selection()[0] == aMessagePartId.Id() ||
-	    		 newEmailMsg.ICalendar() )
-	    		{
-	    		CIpsPlgOperationWait* wait = CIpsPlgOperationWait::NewLC( );
-	    		CParaFormatLayer* globalParaLayer = CParaFormatLayer::NewL();
-	    		CleanupStack::PushL(globalParaLayer);
-	    		CCharFormatLayer* globalCharLayer = CCharFormatLayer::NewL();
-	    		CleanupStack::PushL(globalCharLayer);
-	    		CRichText* text = CRichText::NewL( globalParaLayer, globalCharLayer );
-	    		CleanupStack::PushL( text );
-	    		// insert text
-	    		text->InsertL(0, aBuffer );
-	    		// synchronously
-	    		message->StoreBodyTextL(
-	    				cEntry->Entry().Id(), *text ,wait->iStatus );
-	    		wait->Start();
-	    		CleanupStack::PopAndDestroy( 4, wait );
-	    		}
-	    	}
-	    }
+    
+	//<qmail>
+    // Notice that SetContentL sets only the content of text/plain message part:
+    // text/html part can be modified directly using GetMessagePartFileL
+	CMsvEntry* cEntry( NULL );
+    CMsvStore* store = NULL;
+    
+    // following code should fill text/plain content
+    cEntry = iSession->GetEntryL( aMessagePartId.Id() );
+    CleanupStack::PushL( cEntry );
+    TBool hasStore = cEntry->HasStoreL();
+    if ( hasStore ) {
+        store = cEntry->EditStoreL();
+        CleanupStack::PushL(store);
+        CParaFormatLayer* globalParaLayer = CParaFormatLayer::NewL();
+        CleanupStack::PushL(globalParaLayer);
+        CCharFormatLayer* globalCharLayer = CCharFormatLayer::NewL();
+        CleanupStack::PushL(globalCharLayer);
+        CRichText* text = CRichText::NewL( globalParaLayer, globalCharLayer );
+        CleanupStack::PushL( text );
+        // insert text
+        text->InsertL(0, aBuffer );
+        store->StoreBodyTextL(*text);
+        store->CommitL();
+        CleanupStack::PopAndDestroy( 4, store );
+    }
+    CleanupStack::PopAndDestroy(cEntry);
+	//</qmail>
 	}
 
 // ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------- 
 void CIpsPlgSosBasePlugin::RemovePartContentL(
     const TFSMailMsgId& /* aMailBoxId */,
     const TFSMailMsgId& /* aParentFolderId */,
     const TFSMailMsgId& /* aMessageId */,
-    const RArray<TFSMailMsgId>& aPartIds )
+    const RArray<TFSMailMsgId>& /* aPartIds */)
     {
-    TInt count( aPartIds.Count() );
-
-    for( TInt i(0); i < count; i++ )
-        {
-        CMsvEntry* cEntry = iSession->GetEntryL( aPartIds[i].Id() );
-        CleanupStack::PushL( cEntry );
-        CMsvStore* store = NULL;
-        TBool hasStore = cEntry->HasStoreL();
-        if ( hasStore )
-            {
-            store = cEntry->EditStoreL();
-            }
-
-        if ( !store || !hasStore )
-            {
-            User::Leave( KErrNotFound );
-            }
-        CleanupStack::PushL( store );
-        MMsvAttachmentManager& attachmentMgr = store->AttachmentManagerL();
-
-        // It is assumed that the attachment file is always in the index 0
-        if ( attachmentMgr.AttachmentCount() )
-            {
-            // delete attachment file
-            CIpsPlgOperationWait* waiter = CIpsPlgOperationWait::NewLC();
-            attachmentMgr.RemoveAttachmentL( 0, waiter->iStatus );
-            waiter->Start();
-            CleanupStack::PopAndDestroy( waiter );
-            store->CommitL();
-
-            // clear complete flag
-            TMsvEntry tEntry( cEntry->Entry() );
-            tEntry.SetComplete( EFalse );
-
-            waiter = CIpsPlgOperationWait::NewLC();
-            CMsvOperation* ops = cEntry->ChangeL( tEntry, waiter->iStatus );
-            CleanupStack::PushL( ops );
-            waiter->Start();
-            CleanupStack::PopAndDestroy( 2, waiter );
-            }
-        else
-            {
-            User::Leave( KErrNotFound );
-            }
-        CleanupStack::PopAndDestroy( store );
-        CleanupStack::PopAndDestroy( cEntry );
-        }
     }
-
+    
 // ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------- 	
 void CIpsPlgSosBasePlugin::SetPartContentFromFileL(
     const TFSMailMsgId& /* aMailBoxId */,
     const TFSMailMsgId& /* aParentFolderId */,
@@ -1537,7 +1550,7 @@ void CIpsPlgSosBasePlugin::SetPartContentFromFileL(
     }
 
 // ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------- 	
 void CIpsPlgSosBasePlugin::StoreMessagePartL(
     const TFSMailMsgId& /* aMailBoxId */,
     const TFSMailMsgId& /* aParentFolderId */,
@@ -1546,54 +1559,87 @@ void CIpsPlgSosBasePlugin::StoreMessagePartL(
     {
     }
 
+//<qmail>
 // ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------     
+void CIpsPlgSosBasePlugin::StoreMessagePartsL(
+    RPointerArray<CFSMailMessagePart>&  aMessageParts,
+    MFSMailRequestObserver& aOperationObserver,
+    const TInt aRequestId )
+    {
+    CIpsPlgSingleOpWatcher* watcher = CIpsPlgSingleOpWatcher::NewL(*this);
+    CleanupStack::PushL(watcher);
+    CIpsPlgMessagePartStorerOperation* op =
+            CIpsPlgMessagePartStorerOperation::NewLC(*iSession,
+                    watcher->iStatus, *this, aMessageParts,
+                    aOperationObserver, aRequestId);
+    
+    watcher->SetOperation(op);
+    iOperations.AppendL(watcher);
+    CleanupStack::Pop( 2, watcher );    
+    }
+//<//qmail>
+
 // ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------- 	
 void CIpsPlgSosBasePlugin::UnregisterRequestObserver( TInt /* aRequestId */)
     {
     }
-
+    
 // ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
-void CIpsPlgSosBasePlugin::SendL(TFSMailMsgId aMessageId )
- 	{
-    FUNC_LOG;
- 	CIpsPlgSingleOpWatcher* watcher = CIpsPlgSingleOpWatcher::NewL(*this);
- 	CleanupStack::PushL(watcher);
-    CIpsPlgSmtpOperation* op = CIpsPlgSmtpOperation::NewLC(
-        *iSession, CActive::EPriorityStandard, watcher->iStatus, ETrue );
-    watcher->SetOperation(op);
-    CleanupStack::Pop( op ); // op added as member of watcher
-    op->StartSendL( aMessageId.Id() );
-    iOperations.AppendL(watcher);
-    CleanupStack::Pop( watcher );
- 	}
-
-// ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
-void CIpsPlgSosBasePlugin::SendMessageL( CFSMailMessage& aMessage )
+// ---------------------------------------------------------------------------- 	
+void CIpsPlgSosBasePlugin::SendMessageL( CFSMailMessage& /*aMessage*/ )
     {
     FUNC_LOG;
-    // is EFSMsgFlag_CalendarMsg enabled,
-    // then move send to back ground process
-    if ( aMessage.GetFlags() & EFSMsgFlag_CalendarMsg )
-        {
-        iEventHandler->SetNewPropertyEvent(
-                aMessage.GetMessageId().Id(),
-                KIPSSosSmtpEmptyOutboxNow, KErrNone );
-        }
-    else
-        {
-        SendL( aMessage.GetMessageId() );
-        }
+    // <qmail>
+    User::Leave( KErrFSMailPluginNotSupported );
+    // </qmail>
     }
 
+// <qmail>
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
+void CIpsPlgSosBasePlugin::SendMessageL(
+        CFSMailMessage& aMessage,
+        MFSMailRequestObserver& aOperationObserver,
+        const TInt aRequestId )
+    {
+    FUNC_LOG;
+    // <qmail> Not activated yet
+    // is EFSMsgFlag_CalendarMsg enabled,
+    // then move send to back ground process
+    //if ( aMessage.GetFlags() & EFSMsgFlag_CalendarMsg )
+    //    {
+    //    iEventHandler->SetNewPropertyEvent(
+    //            aMessage.GetMessageId().Id(),
+    //            KIPSSosSmtpEmptyOutboxNow, KErrNone );
+    //    }
+    //else
+    //    {
+        CIpsPlgSingleOpWatcher* watcher =
+            CIpsPlgSingleOpWatcher::NewLC(*this);
+        CIpsPlgSmtpOperation* op = CIpsPlgSmtpOperation::NewL(
+            *iSession,
+            CActive::EPriorityStandard,
+            watcher->iStatus,
+            &aOperationObserver,
+            aRequestId );
+        watcher->SetOperation(op); // ownership is transferred
+        op->StartSendL( aMessage.GetMessageId().Id() );
+        iOperations.AppendL(watcher);
+        CleanupStack::Pop( watcher );
+    //    }
+    // </qmail>
+    }
+// </qmail>
+
+// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------- 
 TFSProgress CIpsPlgSosBasePlugin::StatusL( TInt aRequestId )
 	{
     FUNC_LOG;
 	TFSProgress status;
-	status.iProgressStatus = TFSProgress::EFSStatus_RequestComplete;
+	status.iProgressStatus = TFSProgress::EFSStatus_RequestComplete;	
 	for ( TInt i = 0; i < iOperations.Count(); i++ )
         {
         const CIpsPlgBaseOperation* op = iOperations[i]->BaseOperation();
@@ -1606,8 +1652,8 @@ TFSProgress CIpsPlgSosBasePlugin::StatusL( TInt aRequestId )
 	}
 
 // ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
-void CIpsPlgSosBasePlugin::CancelL(TInt aRequestId)
+// ----------------------------------------------------------------------------    
+void CIpsPlgSosBasePlugin::CancelL(TInt aRequestId) 
 	{
     FUNC_LOG;
 	const TInt count = iOperations.Count();
@@ -1625,58 +1671,58 @@ void CIpsPlgSosBasePlugin::CancelL(TInt aRequestId)
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-void CIpsPlgSosBasePlugin::SearchL(
+void CIpsPlgSosBasePlugin::SearchL( 
     const TFSMailMsgId& aMailBoxId,
     const RArray<TFSMailMsgId>& aFolderIds,
     const RPointerArray<TDesC>& aSearchStrings,
     const TFSMailSortCriteria& aSortCriteria,
-    MFSMailBoxSearchObserver& aSearchObserver )
+    MFSMailBoxSearchObserver& aSearchObserver ) 
     {
     FUNC_LOG;
-	iSearch->SearchL(
+	iSearch->SearchL( 
 	    aMailBoxId,
 	    aFolderIds,
 	    aSearchStrings,
 	    aSortCriteria,
 	    aSearchObserver );
 	}
-
+	
 // ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
-void CIpsPlgSosBasePlugin::CancelSearch( const TFSMailMsgId& /* aMailBoxId */ )
+// ---------------------------------------------------------------------------- 	
+void CIpsPlgSosBasePlugin::CancelSearch( const TFSMailMsgId& /* aMailBoxId */ ) 
 	{
     FUNC_LOG;
 	iSearch->Cancel();
 	}
 
 // ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
-void CIpsPlgSosBasePlugin::ClearSearchResultCache(
-    const TFSMailMsgId& /* aMailBoxId */ )
+// ---------------------------------------------------------------------------- 
+void CIpsPlgSosBasePlugin::ClearSearchResultCache( 
+    const TFSMailMsgId& /* aMailBoxId */ ) 
 	{
     FUNC_LOG;
 	iSearch->ClearCache();
 	}
 
 // ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
-void CIpsPlgSosBasePlugin::AddObserverL(MFSMailEventObserver& aObserver)
+// ---------------------------------------------------------------------------- 
+void CIpsPlgSosBasePlugin::AddObserverL(MFSMailEventObserver& aObserver) 
 	{
     FUNC_LOG;
 	iEventHandler->AddPluginObserverL( &aObserver );
 	}
 
 // ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
-void CIpsPlgSosBasePlugin::RemoveObserver(MFSMailEventObserver& aObserver)
+// ---------------------------------------------------------------------------- 	
+void CIpsPlgSosBasePlugin::RemoveObserver(MFSMailEventObserver& aObserver)     
 	{
 	//don't delete. we don't own this.
 	iEventHandler->RemovePluginObserver( &aObserver );
 	}
 
 // ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
-void CIpsPlgSosBasePlugin::DeleteMessagesByUidL(
+// ---------------------------------------------------------------------------- 	
+void CIpsPlgSosBasePlugin::DeleteMessagesByUidL( 
     const TFSMailMsgId& /*aMailBoxId*/,
     const TFSMailMsgId& /*aFolderId*/,
 	const RArray<TFSMailMsgId>& aMessages )
@@ -1684,75 +1730,47 @@ void CIpsPlgSosBasePlugin::DeleteMessagesByUidL(
     FUNC_LOG;
     CMsvEntrySelection* sel=new(ELeave) CMsvEntrySelection;
     CleanupStack::PushL(sel);
-
+    
     TInt count = aMessages.Count();
     TMsvEntry tEntry;
     TMsvId service;
-
-    TMsvEntry parentEntry;
-
+    
     for(TInt i=0; i<count; i++)
         {
         iSession->GetEntry( aMessages[i].Id(), service, tEntry );
-
         //make sure that only messages get deleted.
         if( tEntry.iType == KUidMsvMessageEntry )
-            {
-            iSession->GetEntry( tEntry.Parent( ), service, parentEntry );
-
-            CMsvEntry *cEntry = CMsvEntry::NewL(
-                        *iSession, tEntry.Id(), TMsvSelectionOrdering() );
-            CleanupStack::PushL( cEntry );
-            CIpsPlgOperationWait* wait = CIpsPlgOperationWait::NewLC( );
-            // Sets bit 32 of iMtmData1, used when msg deleted in Offline
-            // and status hasn't updated to server (client entry still exists)
-            tEntry.SetLocallyDeleted( ETrue );
-            CMsvOperation* msvOp = cEntry->ChangeL( tEntry, wait->iStatus );
-            CleanupStack::PushL(msvOp);
-            wait->Start();
+            {            
+			// <qmail>    
             sel->AppendL( tEntry.Id() );
-            CleanupStack::PopAndDestroy( 3, cEntry );
+			// </qmail>    
             }
         }
-
+        
     CIpsPlgSingleOpWatcher* watcher = CIpsPlgSingleOpWatcher::NewL( *this );
     CleanupStack::PushL( watcher );
     CMsvOperation* op = CIpsPlgDeleteRemote::NewL( *iSession,
         watcher->iStatus, *sel );
     watcher->SetOperation( op );
-
-    // make draft deletion synchronous so that empty drafts are not left after application close
-    if ( parentEntry.Id() == KMsvDraftEntryIdValue && count == 1 )
-        {
-        iWait.Start();
-        CleanupStack::PopAndDestroy( watcher );
-        }
-    else
-        {
-        iOperations.AppendL( watcher );
-        CleanupStack::Pop( watcher );
-        }
-
+    iOperations.AppendL( watcher );
+    CleanupStack::Pop( watcher );
     CleanupStack::PopAndDestroy( sel );
     }
-
+    
 // ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------- 	
 void CIpsPlgSosBasePlugin::SubscribeMailboxEventsL(
     const TFSMailMsgId& aMailboxId,
     MFSMailEventObserver& aObserver)
     {
     FUNC_LOG;
-    TUint32 key = iSettingsApi->CreateCenRepKeyL(   // faulty CS warning
-        aMailboxId.Id(),
-        MtmId(),
-        CIpsSetDataStorer::EIpsSetDataLastModifiedH );
-
+    TUint32 key(0);
+    
     iEventHandler->SubscribeMailboxEventsL( aMailboxId, aObserver, key );
     }
 
 // ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------- 	
 void CIpsPlgSosBasePlugin::UnsubscribeMailboxEvents(
     const TFSMailMsgId& aMailboxId,
     MFSMailEventObserver& aObserver)
@@ -1762,7 +1780,7 @@ void CIpsPlgSosBasePlugin::UnsubscribeMailboxEvents(
     }
 
 // ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------- 	
 TSSMailSyncState CIpsPlgSosBasePlugin::CurrentSyncState(
     const TFSMailMsgId& aMailBoxId )
     {
@@ -1776,7 +1794,7 @@ TInt CIpsPlgSosBasePlugin::WizardDataAvailableL( )
     {
     FUNC_LOG;
     TInt error = KErrNone;
-    error = iSettingsApi->HandleMailboxCreation( MtmId(), *iSession );
+ 
     if ( error == KErrNotSupported )
         {
         // this means that wizard data is not meaned for this plugin (instance)
@@ -1788,8 +1806,8 @@ TInt CIpsPlgSosBasePlugin::WizardDataAvailableL( )
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-TInt CIpsPlgSosBasePlugin::GetConnectionId(
-        TFSMailMsgId /*aMailBoxId*/,
+TInt CIpsPlgSosBasePlugin::GetConnectionId( 
+        TFSMailMsgId /*aMailBoxId*/, 
         TUint32& /*aConnectionId*/ )
     {
     return KErrNotSupported;
@@ -1797,8 +1815,8 @@ TInt CIpsPlgSosBasePlugin::GetConnectionId(
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-TInt CIpsPlgSosBasePlugin::IsConnectionAllowedWhenRoaming(
-             TFSMailMsgId /*aMailBoxId*/,
+TInt CIpsPlgSosBasePlugin::IsConnectionAllowedWhenRoaming( 
+             TFSMailMsgId /*aMailBoxId*/, 
              TBool& /*aConnectionAllowed*/ )
     {
     return KErrNotSupported;
@@ -1812,30 +1830,30 @@ void CIpsPlgSosBasePlugin::AuthenticateL(
     TInt /* aRequestId */)
     {
     }
-
+    
 // ----------------------------------------------------------------------------
-// method sets authentication popup data
+// method sets authentication popup data 
 // ----------------------------------------------------------------------------
 void CIpsPlgSosBasePlugin::SetCredentialsL( const TFSMailMsgId& aMailBoxId,
 	const TDesC& /*aUsername*/, const TDesC& aPassword )
 	{
     FUNC_LOG;
 	TBool cancelled = EFalse;
-
+	
 	if ( aPassword.Length() > 0 )
 	    {
     	//Set new password and signal (possible) ongoing connect operation
-    	CIpsSetDataApi* api = CIpsSetDataApi::NewL( *iSession );
-        CleanupStack::PushL( api );
-
-        CMsvEntry* cEntry = iSession->GetEntryL( aMailBoxId.Id() );
-        CleanupStack::PushL( cEntry );
-
-        api->SetNewPasswordL( *cEntry, aPassword );
-
-        CleanupStack::PopAndDestroy( 2, api );//cEntry, api
-
-        //now signal through eventhandler that credientials have been set
+    	//CIpsSetDataApi* api = CIpsSetDataApi::NewL( *iSession );
+        //CleanupStack::PushL( api );
+        
+        //CMsvEntry* cEntry = iSession->GetEntryL( aMailBoxId.Id() );
+        //CleanupStack::PushL( cEntry );
+        
+        //api->SetNewPasswordL( *cEntry, aPassword );
+        
+        //CleanupStack::PopAndDestroy( 2, api );//cEntry, api
+        
+        //now signal through eventhandler that credientials have been set       
 	    }
 	else
 	    {
@@ -1846,11 +1864,11 @@ void CIpsPlgSosBasePlugin::SetCredentialsL( const TFSMailMsgId& aMailBoxId,
 
 // ----------------------------------------------------------------------------
 // CIpsPlgSosBasePlugin::GetMessageEntryL( )
-// Checks whether the requested message is already cached. If not, the cached
+// Checks whether the requested message is already cached. If not, the cached 
 // objects are deleted and new objects are created.
 // ----------------------------------------------------------------------------
-void CIpsPlgSosBasePlugin::GetMessageEntryL(
-    TMsvId aId,
+void CIpsPlgSosBasePlugin::GetMessageEntryL( 
+    TMsvId aId, 
     CMsvEntry*& aMessageEntry,
     CImEmailMessage*& aImEmailMessage )
     {
@@ -1859,7 +1877,7 @@ void CIpsPlgSosBasePlugin::GetMessageEntryL(
             iCachedEmailMessage->IsActive() )
         {
         CleanCachedMessageEntries();
-
+        
         iCachedEntry = iSession->GetEntryL( aId );
         if ( iCachedEntry->Entry().iType == KUidMsvMessageEntry )
             {
@@ -1881,22 +1899,22 @@ void CIpsPlgSosBasePlugin::CleanCachedMessageEntries()
     delete iCachedEntry;
     iCachedEntry = NULL;
     }
-
+    
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-TFSFolderType CIpsPlgSosBasePlugin::GetFolderType(
+TFSFolderType CIpsPlgSosBasePlugin::GetFolderType( 
     CMsvEntry* aEntry,
     TFSMailMsgId aFolderId )
 	{
     FUNC_LOG;
     TFSFolderType folderType( EFSOther );
-
+ 
 	if( ( aEntry->Entry().iDetails.CompareF( KIpsPlgInbox ) == 0 ) &&
 		( aEntry->Entry().iType == KUidMsvFolderEntry ) )
         {
         folderType = EFSInbox;
         }
-	else if( ( aEntry->Entry().iMtm == KSenduiMtmPop3Uid ) &&
+	else if( ( aEntry->Entry().iMtm == KSenduiMtmPop3Uid ) && 
 	         ( aEntry->Entry().iType == KUidMsvServiceEntry ) &&
 	         ( aEntry->Entry().iServiceId == aFolderId.Id() ) )
 	    {
@@ -1926,7 +1944,7 @@ TFSFolderType CIpsPlgSosBasePlugin::GetFolderType(
 	}
 
 // ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------	
 CIpsPlgTimerOperation& CIpsPlgSosBasePlugin::ActivityTimerL(
     const TFSMailMsgId& aMailBoxId )
     {
@@ -1939,7 +1957,7 @@ CIpsPlgTimerOperation& CIpsPlgSosBasePlugin::ActivityTimerL(
             timer = iActivitytimers[i];
             }
         }
-
+       
     if ( !timer )
         {
         // No timer for mailbox found create new
@@ -1948,19 +1966,19 @@ CIpsPlgTimerOperation& CIpsPlgSosBasePlugin::ActivityTimerL(
         User::LeaveIfError( iActivitytimers.Append( timer ) );
         CleanupStack::Pop( timer );
         }
-    return *timer;
+    return *timer;        
     }
 
 // ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------- 
 CIpsPlgSyncStateHandler& CIpsPlgSosBasePlugin::GetSyncStateHandler()
     {
     return *iSyncStateHandler;
     }
 
 // ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
-void CIpsPlgSosBasePlugin::CancelAllOnlineOperations(
+// ---------------------------------------------------------------------------- 
+void CIpsPlgSosBasePlugin::CancelAllOnlineOperations( 
     const TFSMailMsgId& aMailboxId )
     {
     FUNC_LOG;
@@ -1978,42 +1996,43 @@ void CIpsPlgSosBasePlugin::CancelAllOnlineOperations(
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-void CIpsPlgSosBasePlugin::DeleteAndRemoveOperation(
+void CIpsPlgSosBasePlugin::DeleteAndRemoveOperation( 
         const TInt aOpArrayIndex, TInt aCompleteCode )
     {
     FUNC_LOG;
     CIpsPlgSingleOpWatcher* opWatcher = iOperations[aOpArrayIndex];
-
+    
+    // <qmail> removed; does nothing
     // The operations matches, handle it in protocol plugin...if needed.
-    TRAP_IGNORE( HandleOpCompletedL( *opWatcher, aCompleteCode ) );
-
+    //TRAP_IGNORE( HandleOpCompletedL( *opWatcher, aCompleteCode ) );
+    // </qmail>
     const CIpsPlgBaseOperation* op = opWatcher->BaseOperation();
     TMsvId service = KErrNotFound;
     TUint pluginId = PluginId();
-    if ( op && (
+    if ( op && ( 
             op->IpsOpType() == EIpsOpTypeImap4SyncOp  ||
-             op->IpsOpType() == EIpsOpTypePop3SyncOp ||
+             op->IpsOpType() == EIpsOpTypePop3SyncOp || 
              op->IpsOpType() == EIpsOpTypeImap4PopulateOp ) )
         {
         service = op->Service();
-        }
+        }     
     iOperations.Remove( aOpArrayIndex );
     delete opWatcher;
     opWatcher = NULL;
     // need to remove operation first because after signaling
-    // sync complete mailbox status is asked immediatelly
+    // sync complete mailbox status is asked immediatelly 
     // and function checks connects ops also (see GetMailBoxStatus)
-    if ( service != KErrNotFound )
+    if ( service != KErrNotFound )    
         {
-        iEventHandler->SetNewPropertyEvent(
+        iEventHandler->SetNewPropertyEvent( 
                 service, KIpsSosEmailSyncCompleted, aCompleteCode );
         }
     }
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-void CIpsPlgSosBasePlugin::DisconnectL(
-    const TFSMailMsgId& aMailBoxId,
+void CIpsPlgSosBasePlugin::DisconnectL( 
+    const TFSMailMsgId& aMailBoxId, 
     MFSMailRequestObserver& aObserver,
     const TInt aRequestId,
     TBool aRemoveAccountAlso )
@@ -2023,9 +2042,9 @@ void CIpsPlgSosBasePlugin::DisconnectL(
     TMsvEntry tEntry;
     TMsvId serv;
     iSession->GetEntry( service, serv, tEntry );
-
+    
     if ( tEntry.Connected() )
-        {
+        {        
         CIpsPlgSingleOpWatcher* watcher = CIpsPlgSingleOpWatcher::NewL(*this);
         CleanupStack::PushL( watcher );
 
@@ -2038,15 +2057,15 @@ void CIpsPlgSosBasePlugin::DisconnectL(
 
         CIpsPlgBaseOperation* op = CIpsPlgDisconnectOp::NewL( *iSession,
             watcher->iStatus, service, ActivityTimerL( aMailBoxId ),
-            aMailBoxId, aObserver, aRequestId,
+            aMailBoxId, aObserver, aRequestId, 
             aRemoveAccountAlso );
 
         watcher->SetOperation( op );
         CleanupStack::PopAndDestroy( sel );
-        iOperations.AppendL( watcher );
+        iOperations.AppendL( watcher ); 
         CleanupStack::Pop( watcher );
         }
-    }
+    }        
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
@@ -2055,7 +2074,7 @@ void CIpsPlgSosBasePlugin::HandleTimerFiredL( const TFSMailMsgId& aMailboxId )
     FUNC_LOG;
     for ( TInt i = 0; i < iActivitytimers.Count(); i++ )
         {
-        // do not disconnect automatically mailboxes that are set to
+        // do not disconnect automatically mailboxes that are set to 
         // "connected"
         if ( iActivitytimers[i]->FSMailboxId().Id() == aMailboxId.Id() )
             {
@@ -2064,9 +2083,9 @@ void CIpsPlgSosBasePlugin::HandleTimerFiredL( const TFSMailMsgId& aMailboxId )
             }
         }
     }
-
+        
 // ---------------------------------------------------------------------------
-// ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------    
 void CIpsPlgSosBasePlugin::RequestResponseL(
     TFSProgress /*aEvent*/,
     TInt /*aRequestId*/ )
@@ -2074,14 +2093,16 @@ void CIpsPlgSosBasePlugin::RequestResponseL(
     }
 
 // ---------------------------------------------------------------------------
-// ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------    
 void CIpsPlgSosBasePlugin::EmptyOutboxL( const TFSMailMsgId& aMailBoxId )
     {
     FUNC_LOG;
     CIpsPlgSingleOpWatcher* watcher = CIpsPlgSingleOpWatcher::NewL(*this);
  	CleanupStack::PushL(watcher);
-    CIpsPlgSmtpOperation* op = CIpsPlgSmtpOperation::NewLC(
-        *iSession, CActive::EPriorityStandard, watcher->iStatus, ETrue );
+ 	// <qmail>
+    CIpsPlgSmtpOperation* op = CIpsPlgSmtpOperation::NewLC( 
+        *iSession, CActive::EPriorityStandard, watcher->iStatus );
+ 	// </qmail>
     watcher->SetOperation(op);
     op->EmptyOutboxFromPendingMessagesL( aMailBoxId.Id() );
     iOperations.AppendL(watcher);
@@ -2094,37 +2115,37 @@ TBool CIpsPlgSosBasePlugin::CanConnectL( const TFSMailMsgId& /*aMailboxId*/,
     TInt& /*aReason*/ )
     {
     FUNC_LOG;
-#ifdef __WINS__
+#ifdef __WINS__    
     return ETrue;
 #endif
     TBool ret=ETrue;
     //check offline mode. If set, we can't connect.
     ret = !OfflineModeSetL();
     if( ret )
-        {
+        {        
         ret = RoamingCheckL();
         }
     return ret;
     }
 
 // ---------------------------------------------------------------------------
-// ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------    
 TBool CIpsPlgSosBasePlugin::IsUnderUiProcess()
     {
     return iIsUnderUiProcess;
     }
 
 // ---------------------------------------------------------------------------
-// ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------    
 TBool CIpsPlgSosBasePlugin::OfflineModeSetL()
     {
     FUNC_LOG;
-    return !LocalFeatureL( KCRUidCoreApplicationUIs,
-        KCoreAppUIsNetworkConnectionAllowed, 1 );
-    }
+    return !LocalFeatureL( KCRUidCoreApplicationUIs, 
+        KCoreAppUIsNetworkConnectionAllowed, 1 );        
+    }    
 
 // ---------------------------------------------------------------------------
-// ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------    
 TBool CIpsPlgSosBasePlugin::LocalFeatureL(
     const TUid& aCenRepUid,
     const TUint32 aKeyId,
@@ -2148,15 +2169,15 @@ TBool CIpsPlgSosBasePlugin::LocalFeatureL(
     // Return the result as a boolean value
     return ( flags & aFlag ) == aFlag;
     }
-
+    
 // ---------------------------------------------------------------------------
-// ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------    
 TBool CIpsPlgSosBasePlugin::RoamingCheckL()
     {
     FUNC_LOG;
     //first check our registration status
     TInt regStatus = RegistrationStatusL();
-
+    
     if ( regStatus == ENetworkRegistrationHomeNetwork )
         {
         return ETrue;
@@ -2174,9 +2195,9 @@ TBool CIpsPlgSosBasePlugin::RoamingCheckL()
         return EFalse;
         }
     }
-
+    
 // ---------------------------------------------------------------------------
-// ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------    
 TInt CIpsPlgSosBasePlugin::RegistrationStatusL()
     {
     FUNC_LOG;
@@ -2185,63 +2206,69 @@ TInt CIpsPlgSosBasePlugin::RegistrationStatusL()
 
     //check network status
     iConMon.ConnectL();
-
+    
     iConMon.GetIntAttribute(
-        EBearerIdGSM, 0, KNetworkRegistration,
+        EBearerIdGSM, 0, KNetworkRegistration, 
         registrationStatus, status );
 
     User::WaitForRequest( status ); // faulty CS warning
-
+    
     iConMon.Close();
-
-    return registrationStatus;
+        
+    return registrationStatus;        
     }
 
 // ---------------------------------------------------------------------------
-// ---------------------------------------------------------------------------
-//
-void CIpsPlgSosBasePlugin::BlockCopyMoveFromFoldersL(
-    CMsvEntry* aFolderEntry,
-    TFSMailMsgId aFolderId,
+// ---------------------------------------------------------------------------    
+//  
+void CIpsPlgSosBasePlugin::BlockCopyMoveFromFoldersL( 
+    CMsvEntry* aFolderEntry, 
+    TFSMailMsgId aFolderId, 
     CFSMailFolder& aFSMailFolder )
     {
     FUNC_LOG;
-    // Currently IPS plugin can connect automatically when doing the actual
-    // move/copy operation, so no need to block offline moves separately
-    RArray<TFSFolderType> blockFolders;
-    CleanupClosePushL( blockFolders );
-
+    RArray<TFSFolderType> blockFoldersOnline;
+    CleanupClosePushL( blockFoldersOnline );
+    RArray<TFSFolderType> blockFoldersOffline;
+    CleanupClosePushL( blockFoldersOffline );
     // Move/Copy operations only between remote folders (+ IMAP Inbox) and
     // Outbox -> Drafts, block others.
-    blockFolders.Reset();
-
+    blockFoldersOnline.Reset();
+    blockFoldersOffline.Reset();
+    
     if( ( GetFolderType( aFolderEntry, aFolderId ) != EFSOther ) &&
         ( GetFolderType( aFolderEntry, aFolderId ) != EFSInbox ) )
         {
-        blockFolders.Append( EFSInbox );
-        blockFolders.Append( EFSOther );
+        blockFoldersOnline.Append( EFSInbox );
+        blockFoldersOnline.Append( EFSOther );
         }
 
     if( GetFolderType( aFolderEntry, aFolderId ) != EFSDraftsFolder )
         {
-        blockFolders.Append( EFSOutbox );
+        blockFoldersOnline.Append( EFSOutbox );
+        blockFoldersOffline.Append( EFSOutbox );
         }
-    blockFolders.Append( EFSSentFolder );
-    blockFolders.Append( EFSDraftsFolder );
-    blockFolders.Append( EFSDeleted );
-
-    // Block move/copy to this folder from blocklist, same blocklist
-    // applies to both online and offline moves/copies
-    aFSMailFolder.BlockCopyFromL( blockFolders, EFSMailBoxOnline );
-    aFSMailFolder.BlockMoveFromL( blockFolders, EFSMailBoxOnline );
-    aFSMailFolder.BlockCopyFromL( blockFolders, EFSMailBoxOffline );
-    aFSMailFolder.BlockMoveFromL( blockFolders, EFSMailBoxOffline );
-
-    CleanupStack::PopAndDestroy( &blockFolders );
+    blockFoldersOnline.Append( EFSSentFolder );
+    blockFoldersOnline.Append( EFSDraftsFolder );
+    blockFoldersOnline.Append( EFSDeleted );
+    blockFoldersOffline.Append( EFSSentFolder );
+    blockFoldersOffline.Append( EFSDraftsFolder );
+    blockFoldersOffline.Append( EFSDeleted );
+    blockFoldersOffline.Append( EFSInbox );
+    blockFoldersOffline.Append( EFSOther );
+    
+    // Block move/copy to this folder from blocklist
+    aFSMailFolder.BlockCopyFromL( blockFoldersOnline, EFSMailBoxOnline );
+    aFSMailFolder.BlockMoveFromL( blockFoldersOnline, EFSMailBoxOnline );
+    aFSMailFolder.BlockCopyFromL( blockFoldersOffline, EFSMailBoxOffline );
+    aFSMailFolder.BlockMoveFromL( blockFoldersOffline, EFSMailBoxOffline );
+            
+    CleanupStack::PopAndDestroy( &blockFoldersOffline ); 
+    CleanupStack::PopAndDestroy( &blockFoldersOnline );     
     }
 
 // ---------------------------------------------------------------------------
-// ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------    
 void CIpsPlgSosBasePlugin::StoreIMEIToMailboxL( const TMsvId aMailboxId )
     {
     FUNC_LOG;
@@ -2261,20 +2288,32 @@ void CIpsPlgSosBasePlugin::StoreIMEIToMailboxL( const TMsvId aMailboxId )
 TBool CIpsPlgSosBasePlugin::ConnOpRunning( const TFSMailMsgId& aMailBoxId  )
     {
     FUNC_LOG;
-    return iSyncStateHandler->ConnOpRunning( aMailBoxId );
+    for ( TInt i = 0; i < iOperations.Count(); i++ )
+       {
+       const CIpsPlgBaseOperation* baseOp = iOperations[i]->BaseOperation();
+       
+       if ( baseOp && baseOp->FSMailboxId() == aMailBoxId &&
+              ( baseOp->IpsOpType() == EIpsOpTypePop3SyncOp
+               || baseOp->IpsOpType() == EIpsOpTypeImap4SyncOp
+               || baseOp->IpsOpType() == EIpsOpTypeOnlineOp
+               || baseOp->IpsOpType() == EIpsOpTypeImap4PopulateOp ) )
+           {
+           return ETrue;
+           }
+       }
+    return EFalse;
     }
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-void CIpsPlgSosBasePlugin::SetMailboxName(
-        const TFSMailMsgId& aMailboxId,
-        const TDesC& aMailboxName )
+void CIpsPlgSosBasePlugin::SetMailboxName( 
+        const TFSMailMsgId& aMailboxId, 
+        const TDesC& /*aMailboxName*/ )
     {
     FUNC_LOG;
     TMsvEntry tEntry;
     TMsvId service;
     iSession->GetEntry( aMailboxId.Id(), service, tEntry );
-    TRAP_IGNORE( iSettingsApi->SetMailboxNameL( tEntry, aMailboxName ) );
     }
 
 // ---------------------------------------------------------------------------
@@ -2308,10 +2347,7 @@ void CIpsPlgSosBasePlugin::DeleteActivityTimer( const TFSMailMsgId& aMailboxId  
         if ( iActivitytimers[j]->FSMailboxId() == aMailboxId )
             {
             delete iActivitytimers[j];
-            iActivitytimers[j] = NULL;
             iActivitytimers.Remove( j );
-            timerCount--;
-            j--;
             }
         }
     }
