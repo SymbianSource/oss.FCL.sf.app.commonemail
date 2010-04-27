@@ -154,12 +154,12 @@ public: // new functions
         
     TBool IsEmpty() const;
 
-// <cmail> S60 Skin support
     void SetLabelTextColorL (TRgb aColor);
     
     void FixSemicolonAtTheEndL();
-// </cmail>
 
+    void SetCursorVisible( TBool aCursorVisible );
+    
 public: // from CoeControl
     
     /**

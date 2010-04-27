@@ -76,7 +76,7 @@ public: // From MESMRMeetingRequestEntry
             TESMRRecurrenceValue& aRecurrence,
             TTime& aUntil) const;
     TESMRRecurrenceModifyingRule RecurrenceModRule() const;
-    void SetModifyingRuleL(TESMRRecurrenceModifyingRule aRule, 
+    void SetModifyingRuleL(TESMRRecurrenceModifyingRule aRule,
     		const TBool aTypeChanging = EFalse );
     void SetAllDayEventL(
             TTime aStartDate,
@@ -144,13 +144,13 @@ public: // From MESMRMeetingRequestEntry
     void UpdateComparativeEntry(
             CCalEntry* aNewComparativeEntry );
     MESMRCalDbMgr& GetDBMgr();
-    TBool SupportsCapabilityL( 
+    TBool SupportsCapabilityL(
             MESMRCalEntry::TMREntryCapability aCapability ) const;
-    TBool ContainsRemoteAttachmentsL();    
+    TBool ContainsRemoteAttachmentsL();
     TBool SendCanellationAvailable();
     void SetSendCanellationAvailable (TBool aSendCanellation);
     void SetTypeChanged( TBool aTypeChanged );
-    
+
 private: // Implementaton
     CESMRMeetingRequestEntry(
             CMRMailboxUtils& aMRMailboxUtils,
@@ -163,6 +163,7 @@ private: // Implementaton
             const TDesC& aTarget,
             const TDesC& aFindString,
             const TDesC& aReplacement );
+    void SetDefaultDatabaseL();
 
 private: // Data
     /// Own: Calendar entry

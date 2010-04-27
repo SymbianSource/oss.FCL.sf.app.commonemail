@@ -31,8 +31,8 @@
 #include "cesmrurlparserplugin.h"
 //</cmail>
 #include <calentry.h>
-#include <aknutils.h>
-#include <stringloader.h>
+#include <AknUtils.h>
+#include <StringLoader.h>
 #include <esmrgui.rsg>
 #include <avkon.rsg>
 #include <txtrich.h>
@@ -185,6 +185,8 @@ TSize CESMRViewerDescriptionField::MinimumSize()
 //
 void CESMRViewerDescriptionField::SizeChanged()
     {
+    // Store iRichTextViewer original width.
+    TInt richTextViewerWidth = iRichTextViewer->Size().iWidth;
     TRect rect( Rect() );
     rect = NMRLayoutManager::GetFieldRowLayoutRect( rect, 1 ).Rect();
 
@@ -211,12 +213,19 @@ void CESMRViewerDescriptionField::SizeChanged()
             iRichTextViewer->ApplyLayoutChangesL();
             );
 
-    iRichTextViewer->SetRect(
-            TRect( viewerRect.iTl,
-                    TSize( viewerRect.Width(), iSize.iHeight ) ) );
-
-    bgRect.SetHeight( iRichTextViewer->Rect().Height() );
-    SetFocusRect( bgRect );
+    if ( iRichTextViewer->Size().iWidth != richTextViewerWidth )
+        {
+        // Most of this case is screen orientation, in this case we need to 
+        // Record the index of focusing link, after updating link array, then 
+        // reset the focusing to original one.
+        TInt focusingIndex = iRichTextViewer->GetFocusLink();
+        if ( KErrNotFound != focusingIndex )
+            {
+            iRichTextViewer->SetFocusLink( focusingIndex );
+            //wake up current contact menu selection by calling this
+            iRichTextViewer->FocusChanged(ENoDrawNow);
+            }
+        } 
     }
 
 // ---------------------------------------------------------------------------

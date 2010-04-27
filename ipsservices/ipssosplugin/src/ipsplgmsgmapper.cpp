@@ -191,10 +191,10 @@ CFSMailMessage* CIpsPlgMsgMapper::GetMailMessageL(
             {
             CMsvStore* store( NULL );
             CMsvEntry* cEntry = iSession.GetEntryL( aEntry.Id() );
-            CleanupStack::PushL( cEntry );
 
             if ( cEntry )
             	{
+                CleanupStack::PushL( cEntry );
             	if ( cEntry->HasStoreL() )
 					{
 					store = cEntry->ReadStoreL();

@@ -12,7 +12,7 @@
 * Contributors:
 *
 *  Description : CEikRichTextEditor based Rich Text viewer
-*  Version     : %version: e002sa32#37 %
+*  Version     : %version: e002sa33#40 %
 *
 */
 
@@ -34,9 +34,9 @@
 #include <commonphoneparser.h>
 #include <finditemengine.h>
 #include <txtrich.h>
-#include <aknsutils.h>
-#include <aknbiditextutils.h>
-#include <aknutils.h>
+#include <AknsUtils.h>
+#include <AknBidiTextUtils.h>
+#include <AknUtils.h>
 #include <eikenv.h>
 #include <data_caging_path_literals.hrh>
 #include <baclipb.h> // for clipboard copy
@@ -130,7 +130,7 @@ EXPORT_C void CESMRRichTextViewer::FocusChanged(
     // Gaining focus
     if ( IsFocused()
          && iLinkList.Count() > 0
-         && selection.Length() == 0 )
+         && ( selection.Length() == 0 ) )
         {
         // We need the field indexes, cast required
         CESMRField* parent = static_cast< CESMRField* >( Parent() );
@@ -373,7 +373,8 @@ void CESMRRichTextViewer::HandlePointerEventL( const TPointerEvent& aPointerEven
                 if ( link
                      && ( menuAvailable
                      || link->Type() == CESMRRichTextLink::ETypeLocationUrl
-                     || link->Type() == CESMRRichTextLink::ETypeAttachment ) )
+                     || link->Type() == CESMRRichTextLink::ETypeAttachment
+                     || link->Type() == CESMRRichTextLink::ETypeShowAll ) )
                     {
                     linkFound = ETrue;
 

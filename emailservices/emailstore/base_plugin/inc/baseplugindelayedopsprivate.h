@@ -19,7 +19,7 @@
 
 
 #include "baseplugindelayedops.h"
-
+#include "NestedAO.h"
 
 /**
  * Lets the user enqueue and dequeue asynchronous jobs for handling
@@ -70,7 +70,7 @@ private:
 /**
  * 
  */
-NONSHARABLE_CLASS( CDelayedDeleteMessagesOp ) : public CDelayedOp
+NONSHARABLE_CLASS( CDelayedDeleteMessagesOp ) : public CDelayedOp, public MDeletionHandler
     {
 
 public:
@@ -90,6 +90,10 @@ public:
     //CDelayedOp::ExecuteOpL
     virtual void ExecuteOpL();
     
+    //From MDeletionHandler
+    //Used to delete messages in chunks starting from aStartIndex
+    TBool DeleteMessagesInChunksL( TInt aStartIndex );
+    
 private:
 
     void ConstructL( const RArray<TFSMailMsgId>& aMessages );
@@ -108,7 +112,7 @@ private:
     TMsgStoreId iFolderId;
     RArray<TMsgStoreId> iMessages;
     TBool iImmediateDelete;
-    
+    TState iState;
     __LOG_DECLARATION
     };
 

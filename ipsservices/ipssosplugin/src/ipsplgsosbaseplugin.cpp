@@ -999,28 +999,34 @@ CFSMailMessagePart* CIpsPlgSosBasePlugin::NewChildPartFromFileL(
     file.Size( fileSize );
     file.Close();
 
-    // Initialize CMsvAttachment instance for the attachment creation
-    CMsvAttachment* info = CMsvAttachment::NewL( CMsvAttachment::EMsvFile );
-    CleanupStack::PushL( info );
-
-    info->SetAttachmentNameL( aFilePath );
-    info->SetSize( fileSize );
-
-    // Create/acquire Symbian message entry objects
-    GetMessageEntryL( aMessageId.Id(), cEntry, message );
-
+  // Take ownership of message entry objects since thanks to
+    // "clever" use of active scheduler waits we can re-enter 
+    // this function leading to crashes if somebody clears the cache
+    // while this iteration still needs them
+    TakeMessageEntryLC( aMessageId.Id(), cEntry, message );
+	
     // Operation waiter needed to implement synchronous operation
     // on the top of async API
     CIpsPlgOperationWait* waiter = CIpsPlgOperationWait::NewL();
     CleanupStack::PushL( waiter );
 
+    // Initialize CMsvAttachment instance for the attachment creation
+    CMsvAttachment* info = CMsvAttachment::NewL( CMsvAttachment::EMsvFile );
+    CleanupStack::PushL( info );
+    info->SetAttachmentNameL( aFilePath );
+    info->SetSize( fileSize );
+
     // Start attachment creation
     message->AttachmentManager().AddAttachmentL(
         aFilePath, info, waiter->iStatus );
+    CleanupStack::Pop( info ); // attachment manager takes ownership
 
     waiter->Start();
     CleanupStack::PopAndDestroy( waiter );
-    CleanupStack::Pop( info ); // attachment manager takes ownership
+    	
+    // Return message entry objects back to cache
+    CleanupStack::Pop( 2 ); // cEntry, message
+    ReturnMessageEntry( cEntry, message );
 
     // Dig out the entry ID of the new attachment (unbelievable that
     // there seems to be no better way to do this)
@@ -1126,9 +1132,16 @@ CFSMailMessagePart* CIpsPlgSosBasePlugin::NewChildPartFromFileL(
     TInt fileSize( 0 );
     TBuf<KMaxFileName> fileName;
 
-    // Create/acquire Symbian message entry objects
-    CleanCachedMessageEntries();
-    GetMessageEntryL( aMessageId.Id(), cEntry, message );
+ // Take ownership of message entry objects since thanks to
+    // "clever" use of active scheduler waits we can re-enter 
+    // this function leading to crashes if somebody clears the cache
+    // while this iteration still needs them
+    TakeMessageEntryLC( aMessageId.Id(), cEntry, message );
+
+    // Operation waiter needed to implement synchronous operation
+    // on the top of async API
+    CIpsPlgOperationWait* waiter = CIpsPlgOperationWait::NewL();
+    CleanupStack::PushL( waiter );
 
     // Initialize CMsvAttachment instance for the attachment creation
     CMsvAttachment* info = CMsvAttachment::NewL( CMsvAttachment::EMsvFile );
@@ -1142,14 +1155,15 @@ CFSMailMessagePart* CIpsPlgSosBasePlugin::NewChildPartFromFileL(
     User::LeaveIfError( aFile.FullName( fileName ) );
     info->SetAttachmentNameL( fileName );
 
-    // Operation waiter needed to implement synchronous operation
-    // on the top of async API
-    CIpsPlgOperationWait* waiter = CIpsPlgOperationWait::NewL();
-    CleanupStack::PushL( waiter );
     message->AttachmentManager().AddAttachmentL( aFile, info, waiter->iStatus );
+    CleanupStack::Pop( info ); // attachment manager takes ownership
+    
     waiter->Start();
     CleanupStack::PopAndDestroy( waiter );
-    CleanupStack::Pop( info ); // attachment manager takes ownership
+
+ 	// Return message entry objects back to cache
+ 	CleanupStack::Pop( 2 ); // cEntry, message
+ 	ReturnMessageEntry( cEntry, message );
 
     // Dig out the entry ID of the new attachment
     message->GetAttachmentsListL( cEntry->Entry().Id( ),
@@ -1269,8 +1283,14 @@ void CIpsPlgSosBasePlugin::RemoveChildPartL(
          ( tEntry.iType == KUidMsvAttachmentEntry ) )
         {
         CImEmailMessage* message( NULL );
+  
         // We trust that the message ID really refers to a message
-        GetMessageEntryL( aMessageId.Id(), cEntry, message );
+        
+        // Take ownership of message entry objects since thanks to
+        // "clever" use of active scheduler waits we can re-enter 
+        // this function leading to crashes if somebody clears the cache
+        // while this iteration still needs them
+        TakeMessageEntryLC( aMessageId.Id(), cEntry, message );
 
         MMsvAttachmentManager& attachmentMgr( message->AttachmentManager() );
 
@@ -1282,6 +1302,10 @@ void CIpsPlgSosBasePlugin::RemoveChildPartL(
 
         waiter->Start();
         CleanupStack::PopAndDestroy( waiter );
+        	
+        // Return message entry objects to cache
+        CleanupStack::Pop( 2 ); // cEntry, message
+        ReturnMessageEntry( cEntry, message );
         }
     else if ( ( status == KErrNone ) &&
               ( tEntry.iType == KUidMsvFolderEntry ) )
@@ -1462,8 +1486,12 @@ void CIpsPlgSosBasePlugin::SetContentL(
     CMsvEntry* cEntry( NULL );
     CImEmailMessage* message( NULL );
 
-    // We trust that the message ID really refers to a message
-    GetMessageEntryL( aMessageId.Id(), cEntry, message );
+    // Take ownership of message entry objects since thanks to
+    // "clever" use of active scheduler waits we can re-enter 
+    // this function leading to crashes if somebody clears the cache
+    // while this iteration still needs them
+    TakeMessageEntryLC( aMessageId.Id(), cEntry, message );
+    
 	if ( message )
 	    {
 
@@ -1496,6 +1524,10 @@ void CIpsPlgSosBasePlugin::SetContentL(
 	    		}
 	    	}
 	    }
+	
+	// Return message entry objects to cache
+	CleanupStack::Pop( 2 ); // cEntry, message
+	ReturnMessageEntry( cEntry, message );
 	}
 
 // ----------------------------------------------------------------------------
@@ -1723,7 +1755,7 @@ void CIpsPlgSosBasePlugin::DeleteMessagesByUidL(
 
     TMsvEntry parentEntry;
 
-    for(TInt i=0; i<count; i++)
+   for(TInt i=0; i<count; i++)
         {
         iSession->GetEntry( aMessages[i].Id(), service, tEntry );
 
@@ -1915,6 +1947,60 @@ void CIpsPlgSosBasePlugin::GetMessageEntryL(
     aImEmailMessage = iCachedEmailMessage;
     }
 
+    
+// ----------------------------------------------------------------------------
+// CIpsPlgSosBasePlugin::TakeMessageEntryL( )
+// Takes ownership of the cached objects or creates new ones
+// ----------------------------------------------------------------------------
+
+void CIpsPlgSosBasePlugin::TakeMessageEntryLC(
+    TMsvId aId,
+    CMsvEntry*& aMessageEntry,
+    CImEmailMessage*& aImEmailMessage )
+    {
+    FUNC_LOG;
+    if ( !iCachedEntry || ( aId != iCachedEntry->Entry().Id() ) ||
+            iCachedEmailMessage->IsActive() )
+        {
+        // Can't use the ones that are in cache, create new ones and don't replace the ones in cache
+        aMessageEntry = iSession->GetEntryL( aId );
+        aImEmailMessage = 0;
+        
+        if ( aMessageEntry->Entry().iType == KUidMsvMessageEntry )
+            {
+            CleanupStack::PushL( aMessageEntry );
+            aImEmailMessage = CImEmailMessage::NewL( *aMessageEntry );
+            CleanupStack::Pop();
+            }
+        }
+    else
+    	{
+    	// Take ownership of the cached objects
+    	aMessageEntry = iCachedEntry;
+    	aImEmailMessage = iCachedEmailMessage;
+    	iCachedEntry = 0;
+    	iCachedEmailMessage = 0;
+    	}
+    	
+    // Ownership is transferred to the caller
+    CleanupStack::PushL( aMessageEntry );
+    CleanupStack::PushL( aImEmailMessage );
+    }
+
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+void CIpsPlgSosBasePlugin::ReturnMessageEntry(
+        CMsvEntry* aMessageEntry,
+        CImEmailMessage* aImEmailMessage )
+	{
+	// Clean old ones from the cache
+	CleanCachedMessageEntries();
+	
+	// Always save the latest ones in the cache
+	iCachedEntry = aMessageEntry;
+	iCachedEmailMessage = aImEmailMessage;
+    }
+   
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
 //

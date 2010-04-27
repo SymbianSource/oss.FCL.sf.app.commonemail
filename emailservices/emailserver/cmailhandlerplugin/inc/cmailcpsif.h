@@ -34,6 +34,18 @@
 #include "cmailcpsifconsts.h"
 
 /**
+*
+*/
+class TInstIdInfo
+	{
+public:
+    TBuf<KMaxDescLen> iCid;
+	TBool             iUpdateNeeded;
+	TBool             iWizardPublished;
+	};
+
+
+/**
  *  CMail ContentPublishingService interface class
  *  Class implementing interface towards LIW FW and Content Publishing Service
  *
@@ -181,6 +193,20 @@ public:
      * 
      */	
 	void AddWidgetToHomescreenL( const TFSMailMsgId aMailbox );
+    /**
+     * 
+     */
+    TInt GetWidgetInstanceId(const TDesC& aContentId);
+
+    /**
+     * 
+     */
+    void SetUpdateNeeded( const TInt aInstance, const TBool aValue );
+
+    /**
+     * 
+     */
+    TBool UpdateNeeded( const TInt aInstance );
 
 private:
     
@@ -249,11 +275,6 @@ private:
     void RemoveL( TUint aId );
 
     /**
-     * 
-     */	    
-    TInt FindWidgetInstanceId(const TDesC& aContentId);
-
-    /**
      * Resets all the published content values on HomeScreen database
      */
     void ResetPublishedDataL( const TDesC& aContentId );
@@ -267,30 +288,30 @@ private:
     
 public:
 	//
-    RPointerArray<HBufC>    iInstIdList;
+    RArray<TInstIdInfo>     iInstIdList;
 private:
-	CMailCpsHandler*		iMailCpsHandler; //uses
+    CMailCpsHandler*        iMailCpsHandler; //uses
     // LIW IF
-    MLiwInterface* 			iMsgInterface;
+    MLiwInterface*          iMsgInterface;
     // LIW Service handler
-    CLiwServiceHandler* 	iServiceHandler;
+    CLiwServiceHandler*     iServiceHandler;
     // resource file offset
     TInt                    iResourceFileOffset;
     // UIDS of the published entities
-    TUint 					iMailboxNameUid;
+    TUint                   iMailboxNameUid;
     // message count of a mailbox
-    TUint 					iMessageCountUid;
+    TUint                   iMessageCountUid;
     // row count
-    TUint 					iRowCountUid;
+    TUint                   iRowCountUid;
     // message header details id
-    TUint 					iMsgUid;
+    TUint                   iMsgUid;
     // setup text and action id
-    TUint 					iSetupUid;
-	// is content allowed to publish	
-	TBool 					iAllowedToPublish[KMaxMailboxCount];
-	// From configuration: are homescreen notifications observed or ignored
-	TBool                   iIgnoreHsNotifications;
-	
+    TUint                   iSetupUid;
+    // is content allowed to publish	
+    TBool                   iAllowedToPublish[KMaxMailboxCount];
+    // From configuration: are homescreen notifications observed or ignored
+    TBool                   iIgnoreHsNotifications;
+    //
 	CHsCcApiClient*         iContentControlClient;
     };
 

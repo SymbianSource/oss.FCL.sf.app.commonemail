@@ -431,7 +431,7 @@ void CNcsAddressInputField::FocusChanged( TDrawNow aDrawNow )
 	if ( IsFocused() )
 		{
 		iTextEditor->SetFocus( ETrue, aDrawNow );
-        TRAP_IGNORE( iTextEditor->SetCursorPosL( iTextEditor->TextLength(), EFalse ) );
+        //TRAP_IGNORE( iTextEditor->SetCursorPosL( iTextEditor->TextLength(), EFalse ) );
 
         // make sure that control is visible on screen
 		if ( Rect().iTl.iY < 0 )
@@ -862,4 +862,9 @@ void CNcsAddressInputField::EnableKineticScrollingL( CAknPhysics* aPhysics )
     {
 	iPhysics = aPhysics;
     iTextEditor->EnableKineticScrollingL( aPhysics );
+    }
+
+void CNcsAddressInputField::SetCursorVisible( TBool aCursorVisible )
+    {
+    iTextEditor->SetCursorVisible( aCursorVisible );
     }

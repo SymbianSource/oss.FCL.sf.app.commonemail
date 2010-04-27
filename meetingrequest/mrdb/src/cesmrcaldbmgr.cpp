@@ -778,7 +778,7 @@ TPtrC CESMRCalDbMgr::GetCalendarNameByEntryL(MESMRCalEntry& aEntry)
 // CESMRCalDbMgr::GetCalendarColorByNameL
 // ----------------------------------------------------------------------------
 //
-TRgb CESMRCalDbMgr::GetCalendarColorByNameL(TDesC& aCalendarName)
+TRgb CESMRCalDbMgr::GetCalendarColorByNameL( const TDesC& aCalendarName )
     {
     FUNC_LOG;
     TInt count = iCalendarInfoArray.Count();
@@ -799,7 +799,7 @@ TRgb CESMRCalDbMgr::GetCalendarColorByNameL(TDesC& aCalendarName)
 // CESMRCalDbMgr::SetCurCalendarByNameL
 // ----------------------------------------------------------------------------
 //
-void CESMRCalDbMgr::SetCurCalendarByNameL( TDesC& aCalendarName )
+void CESMRCalDbMgr::SetCurCalendarByNameL(  const TDesC& aCalendarName )
     {
     FUNC_LOG;
     TInt count = iCalendarInfoArray.Count();
@@ -851,6 +851,27 @@ void CESMRCalDbMgr::SetCurCalendarByIndex( TInt aIndex )
     {
     FUNC_LOG;
     iCurCalenIndex = aIndex;
+    }
+
+// ----------------------------------------------------------------------------
+// CESMRCalDbMgr::SetCurCalendarByDbIdL
+// ----------------------------------------------------------------------------
+//
+void CESMRCalDbMgr::SetCurCalendarByDbIdL( TCalFileId aDbId )
+    {
+    FUNC_LOG;
+
+    for ( TInt i = 0; i < iCalSessionArray.Count(); ++i )
+        {
+        TCalFileId fileId( KNullFileId );
+        iCalSessionArray[ i ]->FileIdL( fileId );
+
+        if ( fileId == aDbId )
+            {
+            iCurCalenIndex = i;
+            break;
+            }
+        }
     }
 
 // ----------------------------------------------------------------------------

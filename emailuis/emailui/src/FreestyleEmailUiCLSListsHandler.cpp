@@ -120,12 +120,13 @@ void CFSEmailUiClsListsHandler::UpdateContactMatchListsL(
 			}
 		}
 		
-	RPointerArray<CFSEmailUiClsItem> allMatches = ConstructOneListL( iMatchingCompleteContacts,
+    RPointerArray<CFSEmailUiClsItem> allMatches = ConstructOneListL( iMatchingCompleteContacts,
                                                                       iMatchingMRUContacts,
                                                                       iMatchingMissingEmailContacts );
-	iClsListObserver->ArrayUpdatedL( allMatches );
-	allMatches.ResetAndDestroy();
-	}
+    CleanupResetAndDestroyClosePushL( allMatches ); // Ownership is taken
+    iClsListObserver->ArrayUpdatedL( allMatches ); 
+    CleanupStack::PopAndDestroy(&allMatches ); // Array is released, destructors are called 
+    }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiClsListsHandler::InputModeChangedL

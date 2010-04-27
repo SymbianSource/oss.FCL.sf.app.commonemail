@@ -16,18 +16,20 @@
 */
 
 
-#include "emailtrace.h"
 #include "cesmrfsmailboxutils.h"
+
 #include "esmrhelper.h"
 #include "esmrinternaluid.h"
 
+#include "cfsmailclient.h"
+#include "cfsmailbox.h"
+#include "cmrcalendarinfo.h"
+
 #include <calentry.h>
-//<cmail>
-#include "CFSMailClient.h"
-#include "CFSMailBox.h"
-//</cmail>
 #include <caluser.h>
 #include <ct/rcpointerarray.h>
+
+#include "emailtrace.h"
 
 // Unnamed namespace for local definitions
 namespace {
@@ -49,6 +51,35 @@ void ListMailBoxesL(
             msgId,
             aMailboxes );
     }
+
+/**
+ * Helper class for Email extension cleanup
+ */
+class TExtensionCleanup
+    {
+    public:
+
+    TExtensionCleanup(
+            CFSMailBox* aMailbox,
+            CEmailExtension* aExtension )
+        : iMailbox( aMailbox ),
+          iExtension( aExtension )
+        {
+        }
+
+    void Close()
+        {
+        iMailbox->ReleaseExtension( iExtension );
+        }
+
+    private:
+        /// Not own: mailbox
+        CFSMailBox* iMailbox;
+        // Not own: mailbox extension
+        CEmailExtension* iExtension;
+    };
+
+
 }
 
 // ======== MEMBER FUNCTIONS ========
@@ -134,7 +165,7 @@ EXPORT_C TInt CESMRFsMailboxUtils::SetPhoneOwnerL(
             aCalEntry.SetPhoneOwnerL( phoneOwner );
             err = KErrNone;
             }
-        
+
         CleanupStack::PopAndDestroy( &mailboxes );
         }
     return err;
@@ -264,29 +295,98 @@ EXPORT_C TESMRMailPlugin CESMRFsMailboxUtils::FSEmailPluginForEntryL(
 // ----------------------------------------------------------------------------
 //
 EXPORT_C TBool CESMRFsMailboxUtils::DefaultMailboxSupportCapabilityL(
-        CESMRFsMailboxUtils::TMRMailboxCapability aCapability ) 
+        CESMRFsMailboxUtils::TMRMailboxCapability aCapability )
     {
     FUNC_LOG;
-    
-    TBool retValue( EFalse );    
-   
+
+    TBool retValue( EFalse );
+
     CFSMailBox* defaultMailbox = DefaultMailboxL();
     CleanupStack::PushL( defaultMailbox );
     ASSERT( defaultMailbox );
-    
+
     switch ( aCapability )
         {
         case CESMRFsMailboxUtils::EMRCapabilityAttachment:
             {
-            retValue = defaultMailbox->HasCapability( 
+            retValue = defaultMailbox->HasCapability(
                             EFSMboxCapaSupportsAttahmentsInMR );
             }
             break;
         }
-    
+
     CleanupStack::PopAndDestroy( defaultMailbox );
-    
+
     return retValue;
+    }
+
+// ----------------------------------------------------------------------------
+// CESMRFsMailboxUtils::GetCalendarDatabaseIdL
+// ----------------------------------------------------------------------------
+//
+void CESMRFsMailboxUtils::GetCalendarDatabaseIdL(
+            TESMRMailPlugin aPlugin,
+            TCalFileId& aDbId )
+    {
+    FUNC_LOG;
+
+    TUid pluginUid( TUid::Null() );
+    aDbId = KNullFileId;
+
+    switch ( aPlugin )
+        {
+        case EESMRActiveSync:
+            {
+            pluginUid = TUid::Uid( KEasFreestylePlugin );
+            break;
+            }
+        case EESMRIntelliSync:
+            {
+            pluginUid = TUid::Uid( KIntellisync );
+            break;
+            }
+        default:
+            {
+            break;
+            }
+        }
+
+    if ( pluginUid != TUid::Null() )
+        {
+        RCPointerArray<CFSMailBox> mailboxes;
+        CleanupClosePushL( mailboxes );
+
+        ListMailBoxesL(
+                MailClientL(),
+                mailboxes );
+
+        for ( TInt i = 0; i < mailboxes.Count(); ++i )
+            {
+            CFSMailBox* mailbox = mailboxes[ i ];
+            if ( mailbox->GetId().PluginId() == pluginUid )
+                {
+                // Resolve database id using mailbox extension
+                CEmailExtension* extension =
+                        mailbox->ExtensionL( KMailboxExtMrCalInfo );
+
+                TExtensionCleanup cleanup( mailbox, extension );
+                CleanupClosePushL( cleanup );
+
+                CMRCalendarInfo* calInfo =
+                        static_cast< CMRCalendarInfo* >( extension );
+
+                if ( calInfo )
+                    {
+                    calInfo->GetCalendarDatabaseIdL( aDbId );
+                    }
+
+                CleanupStack::PopAndDestroy( &cleanup ); // Release extension
+                break;
+                }
+            }
+
+        CleanupStack::PopAndDestroy( &mailboxes );
+        }
     }
 
 // ----------------------------------------------------------------------------
@@ -376,26 +476,26 @@ CFSMailClient& CESMRFsMailboxUtils::MailClientL()
 CFSMailBox* CESMRFsMailboxUtils::DefaultMailboxL()
     {
     FUNC_LOG;
-    
+
     CFSMailBox* defaultMailbox( NULL );
-    
+
     CMRMailboxUtils::TMailboxInfo mailboxInfo;
     TInt err = iMRMailboxUtils.GetDefaultMRMailBoxL( mailboxInfo );
-    
+
     if ( KErrNone == err )
         {
         RCPointerArray<CFSMailBox> mailboxes;
         CleanupClosePushL( mailboxes );
-        
+
         ListMailBoxesL( MailClientL(), mailboxes );
-        
+
         TInt mailboxCount( mailboxes.Count() );
         for (TInt j(0); j < mailboxCount && !defaultMailbox; ++j )
             {
             TPtrC mailboxOwnerAddName(
                     mailboxes[j]->OwnMailAddress().GetEmailAddress() );
-    
-            if ( KEqualEmailAddress == 
+
+            if ( KEqualEmailAddress ==
                  mailboxOwnerAddName.CompareF( mailboxInfo.iEmailAddress) )
                 {
                 // Default mailbox is found
@@ -403,10 +503,10 @@ CFSMailBox* CESMRFsMailboxUtils::DefaultMailboxL()
                 mailboxes.Remove( j );
                 }
             }
-        
+
         CleanupStack::PopAndDestroy( &mailboxes );
         }
-    
+
     return defaultMailbox;
     }
 

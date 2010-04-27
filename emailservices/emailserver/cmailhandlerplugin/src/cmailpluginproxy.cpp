@@ -368,7 +368,7 @@ TInt CMailPluginProxy::ResolveWidgetInstance( const TDesC& aContentId )
     TInt id( KErrNotFound );
     for ( TInt i = 0; i < iPublisher.iInstIdList.Count(); i++ )
         {
-        if ( aContentId.Compare( *(iPublisher.iInstIdList[i]) ) == 0 )
+        if ( aContentId.Compare( iPublisher.iInstIdList[i].iCid ) == 0 )            
             {
             id = i;
             }

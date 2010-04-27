@@ -88,6 +88,10 @@ private:
     const CNcsEditor* iEditor;
     
     TAknTextComponentLayout iTextPaneLayout;
+    TInt 					iLineHeigth;
+    TRgb 					iLineColor;
+    TInt                    iLineOffset;
+    TInt                    iPrevBrX;
     };
 
 #endif //CNCSEDITORCUSTOMDRAW_H

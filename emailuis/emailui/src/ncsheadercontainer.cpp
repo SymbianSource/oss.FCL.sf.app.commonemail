@@ -170,9 +170,6 @@ void CNcsHeaderContainer::ConstructL( TInt aFlags )
 	        this, iMailBox, *this, remoteLookupSupported );
 	iAacListBox->MakeVisible( EFalse );
 
-    iBgContext = CAknsBasicBackgroundControlContext::NewL(
-        KAknsIIDQsnBgAreaMain, Rect(), EFalse );
-
     iRALInProgress = EFalse;
 
     iToField->EnableKineticScrollingL( iPhysics );
@@ -194,7 +191,6 @@ CNcsHeaderContainer::~CNcsHeaderContainer()
     delete iAttachmentField;
 	delete iAacListBox;
 	delete iLongTapDetector;
-	delete iBgContext;
 	}
 
 // ---------------------------------------------------------------------------
@@ -263,18 +259,6 @@ void CNcsHeaderContainer::ShowCursor( TBool aShow, TDrawNow aDrawNow )
 void CNcsHeaderContainer::Draw( const TRect& /*aRect*/ ) const
 	{
     FUNC_LOG;
-
-    if ( iBgContext )
-        {
-        CWindowGc& gc = SystemGc();
-
-        MAknsSkinInstance* skin = AknsUtils::SkinInstance();
-
-        if ( skin )
-            {
-            AknsDrawUtils::Background( skin, iBgContext, this, gc, Rect() );
-            }
-        }
 	}
 
 // -----------------------------------------------------------------------------
@@ -401,7 +385,7 @@ void CNcsHeaderContainer::HandlePointerEventL(
 				
 				CNcsComposeViewContainer* container = 
 					static_cast<CNcsComposeViewContainer*>( &iParent );
-				container->UpdateScrollBarL();
+				container->UpdateScrollBar();
 				}
 			
 			if( iLongTapEventConsumed )
@@ -425,10 +409,7 @@ void CNcsHeaderContainer::HandlePointerEventL(
 	        }
         }
 
-    if ( aPointerEvent.iType != TPointerEvent::EDrag )
-    	{
-		CCoeControl::HandlePointerEventL( aPointerEvent );
-    	}
+	CCoeControl::HandlePointerEventL( aPointerEvent );
     }
 
 // -----------------------------------------------------------------------------
@@ -463,7 +444,6 @@ TBool CNcsHeaderContainer::NeedsLongTapL( const TPoint& aPenEventLocation )
     {
 	FUNC_LOG;
 
-    CCoeControl* control = FindFocused();
     TRect rect = iAttachmentField->Rect();
     TBool result( EFalse );
 	if( iAttachmentField->IsVisible() && rect.Contains( aPenEventLocation ) &&
@@ -572,7 +552,7 @@ TKeyResponse CNcsHeaderContainer::OfferKeyEventL(
 
     if( doScroll )
     	{
-    	DoScrollL();
+    	DoScroll();
     	}
 
     return ret;
@@ -665,8 +645,8 @@ TKeyResponse CNcsHeaderContainer::ChangeFocusL( const TKeyEvent& aKeyEvent )
     // if focus was changed, update scroll bar
     if ( ret == EKeyWasConsumed )
         {
-        container->UpdateScrollBarL();
-        DoScrollL();
+        container->UpdateScrollBar();
+        DoScroll();
         }
 
 	// NOTE: If we're leaving the header (down was pushed on last control)
@@ -765,10 +745,9 @@ void CNcsHeaderContainer::SizeChanged()
 // set size
 // -----------------------------------------------------------------------------
 void CNcsHeaderContainer::PositionChanged()
-	{
+    {
     FUNC_LOG;
-	DrawDeferred();
-	}
+    }
 
 // -----------------------------------------------------------------------------
 // CNcsHeaderContainer::ChangePositions()
@@ -1328,10 +1307,10 @@ void CNcsHeaderContainer::SelectAllSubjectFieldTextL()
 // CNcsHeaderContainer::CalculatePopupRect
 // -----------------------------------------------------------------------------
 TRect CNcsHeaderContainer::CalculatePopupRect()
-	{
+    {
     FUNC_LOG;
     // get focused control rect
-	TRect popupRect;
+    TRect popupRect;
 
     CCoeControl* focused = FindFocused();
     if ( IsAddressInputField( focused ) )
@@ -1339,18 +1318,18 @@ TRect CNcsHeaderContainer::CalculatePopupRect()
         CNcsAddressInputField* aifEditor =
             static_cast<CNcsAddressInputField*>( focused );
 
+        TPoint editorPos = aifEditor->Editor()->PositionRelativeToScreen();
         TRect editorRect = aifEditor->Editor()->Rect();
-        
-        popupRect.iTl =
-            TPoint( editorRect.iTl.iX - 1, 
-                    editorRect.iTl.iY + aifEditor->CursorPosition() + 1 );
-        
-        popupRect.iBr = 
-            TPoint( editorRect.iBr.iX + 1, iParent.Rect().iBr.iY );
+
+        popupRect.iTl = TPoint( editorPos.iX, 
+            editorPos.iY + aifEditor->CursorPosition() + 1 );
+
+        popupRect.iBr = TPoint( editorPos.iX + editorRect.Width(),
+            iParent.PositionRelativeToScreen().iY + iParent.Rect().Height() );
         }
 
     return popupRect;
-	}
+    }
 
 // -----------------------------------------------------------------------------
 // CNcsHeaderContainer::DoPopupSelect
@@ -1403,11 +1382,19 @@ void CNcsHeaderContainer::DoPopupSelectL()
                 // selected contact doesn't have email address, launch remote
                 // contact lookup rcl must be usable, since otherwise there 
                 // couldn't be any items without email addresses
+                iRALInProgress = ETrue; 
                 CPbkxRemoteContactLookupServiceUiContext::TResult::TExitReason
                     exitReason;
                 CNcsEmailAddressObject* remAddress = ExecuteRemoteSearchL(
                     exitReason,
                     emailAddress->DisplayName() );
+                iRALInProgress = EFalse;
+                // Refresh the toolbar. It was hidden during the remote search 
+                // and now it needs to be shown. FocusChanged () will do it. 
+                CNcsComposeViewContainer& parent = 
+                    static_cast<CNcsComposeViewContainer&>( iParent );
+                parent.FocusChanged( EDrawNow );
+                
                 if ( remAddress )
                     {
                     CleanupStack::PushL( remAddress );
@@ -1795,7 +1782,7 @@ void CNcsHeaderContainer::IncludeAddressL(const CNcsEmailAddressObject& aEml )
     	aifFocused = static_cast<CNcsAddressInputField*>( focused );
     	aifFocused->AddAddressL( aEml );
 	    }
-	DoScrollL();
+    DoScroll();
     }
 
 // ---------------------------------------------------------------------------
@@ -2036,10 +2023,10 @@ void CNcsHeaderContainer::CommitFieldL( CCoeControl* aField )
     }
 
 // -----------------------------------------------------------------------------
-// CNcsHeaderContainer::DoScrollL
-// 
+// CNcsHeaderContainer::DoScroll
 // -----------------------------------------------------------------------------
-void CNcsHeaderContainer::DoScrollL()
+// 
+void CNcsHeaderContainer::DoScroll()
     {
     // scroll the screen if the cursor goes beyond the screen
     CNcsComposeViewContainer& parent = static_cast<CNcsComposeViewContainer&>( iParent );
@@ -2048,17 +2035,27 @@ void CNcsHeaderContainer::DoScrollL()
     TInt cursorPos( CursorPosition() );
     TInt lineHeight( Rect().Height() / LineCount() );
     TInt screenHeight( parent.Rect().Height() );
-    
-    if( cursorPos - lineHeight < screenPos )
+
+    if ( cursorPos - lineHeight < screenPos )
         {
         screenPos = cursorPos - lineHeight;             
         }
-    else
-    if( cursorPos + lineHeight > screenPos + screenHeight )
+    else if( cursorPos + lineHeight > screenPos + screenHeight )
         {
         screenPos = cursorPos + lineHeight - screenHeight;
         }
-    
-    parent.ScrollL( screenPos );
-    PositionChanged();    
+
+    parent.Scroll( screenPos );
+    }
+
+// ---------------------------------------------------------------------------
+// CNcsHeaderContainer::SetPhysicsEmulationOngoing
+// ---------------------------------------------------------------------------
+//
+void CNcsHeaderContainer::SetPhysicsEmulationOngoing( TBool aPhysOngoing )
+    {
+    iToField->SetCursorVisible( !aPhysOngoing );
+    iCcField->SetCursorVisible( !aPhysOngoing );
+    iBccField->SetCursorVisible( !aPhysOngoing );
+    iSubjectField->SetCursorVisible( !aPhysOngoing );
     }

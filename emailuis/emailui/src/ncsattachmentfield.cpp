@@ -663,8 +663,8 @@ void CNcsAttachmentField::HandlePointerEventL(
     FUNC_LOG;
     CCoeControl::HandlePointerEventL( aPointerEvent );
     
-    if ( Rect().Contains( aPointerEvent.iPosition ) &&
-         aPointerEvent.iType == TPointerEvent::EButton1Down )
+    if ( aPointerEvent.iType == TPointerEvent::EButton1Down  &&
+         Rect().Contains( aPointerEvent.iPosition ) )
         {
         TBool focusedAttachmentLabelIndexChanged( EFalse );
         TInt i( 0 );
@@ -706,7 +706,7 @@ void CNcsAttachmentField::HandlePointerEventL(
                 iAttachmentLabels[i]->SetFocus( i==iFocusedLabelIndex );
                 }
             UpdateColors();
-            DrawNow();
+            DrawDeferred();
             }
         }
     }

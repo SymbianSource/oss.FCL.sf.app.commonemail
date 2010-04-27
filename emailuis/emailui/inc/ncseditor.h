@@ -115,12 +115,10 @@ public: // new functions
 // </cmail> Platform layout changes
 
 public: // from CoeControl
-    
-    virtual TKeyResponse OfferKeyEventL( const TKeyEvent& aKeyEvent, TEventCode aType );
 
-    virtual void SetRect( const TRect& aRect );
+    TKeyResponse OfferKeyEventL( const TKeyEvent& aKeyEvent, TEventCode aType );
     void ActivateL();
-    
+
 public: // from CEikEdwin
 
     virtual void SetTextL( const TDesC* aDes );
@@ -149,14 +147,10 @@ private: // methods used internally
 	
     void UpdateColors();
 
-    void UpdateGraphics();
-    
-    void DoUpdateGraphicsL();
-    
     TAknTextComponentLayout GetLayout();
-    //<cmail>
+
     void Draw( const TRect& aRect ) const;
-    //</cmail>
+
 private: // data
     
     TInt iPreviousFontHeight;
@@ -168,9 +162,6 @@ private: // data
     // Flag indicating whether this control is header field.
     // Header fields have different backgrounds than message field.
     TBool iHeaderField;
-
-    // background control context. Owned.
-    CAknsBasicBackgroundControlContext* iBgContext;
 
     // Custom drawer. Not owned.
     CNcsCustomDraw* iCustomDrawer;

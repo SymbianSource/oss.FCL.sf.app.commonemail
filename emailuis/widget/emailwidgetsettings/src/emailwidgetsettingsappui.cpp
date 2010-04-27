@@ -62,6 +62,7 @@ void CEmailWidgetSettingsAppUi::CreateListViewL()
     const TInt count = args->Count();
     if (count!=2)
         {
+        CleanupStack::PopAndDestroy(args);
         Exit();
         }
   
@@ -69,7 +70,7 @@ void CEmailWidgetSettingsAppUi::CreateListViewL()
     CleanupStack::PushL(view);
 
     AddViewL(view);     // transfer ownership to CAknViewAppUi
-    CleanupStack::Pop(); //view
+    CleanupStack::Pop(view); //view
 
     view->ConstructL();
     SetDefaultViewL(*view);

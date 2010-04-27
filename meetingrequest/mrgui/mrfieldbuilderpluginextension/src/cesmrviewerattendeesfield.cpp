@@ -25,10 +25,10 @@
 
 #include <caluser.h>
 #include <calentry.h>
-#include <stringloader.h>
+#include <StringLoader.h>
 #include <esmrgui.rsg>
-#include <cpbkcontactengine.h>
-#include <aknbiditextutils.h>
+#include <CPbkContactEngine.h>
+#include <AknBidiTextUtils.h>
 
 // DEBUG
 #include "emailtrace.h"
@@ -296,9 +296,9 @@ void CESMRViewerAttendeesField::SizeChanged( )
         if ( KErrNotFound != focusingIndex )
             {
             iRichTextViewer->SetFocusLink( focusingIndex );
+            //wake up current contact menu selection by calling this
+            iRichTextViewer->FocusChanged(ENoDrawNow);
             }
-        //wake up current contact menu selection by calling this
-        iRichTextViewer->FocusChanged(ENoDrawNow);
         }
     }
 

@@ -68,6 +68,19 @@ class CNcsComposeView:
     public MAknServerAppExitObserver
     {
     
+private:
+
+    /**
+     * Type of commit
+     */
+    enum TCommitType
+        {
+        // This is transient commit, message may get further modifications
+        ETransient,
+        // This is final commit, no more incoming changes
+        EFinal
+        };
+        
 public:   // constructors and destructor
 
     /**
@@ -180,7 +193,9 @@ public: // new functions
     * explicitely requested.
     */
     void CommitL( TBool aParseAddresses = ETrue,
-        TFieldToCommit aFieldToCommit = EAllFields, TBool aSaveNow = EFalse );
+        TFieldToCommit aFieldToCommit = EAllFields, 
+        TBool aSaveNow = EFalse,
+        TCommitType aType = ETransient );
 
     /**
      * Saves the message content, if it has been changed since the last save.

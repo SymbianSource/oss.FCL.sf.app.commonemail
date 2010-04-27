@@ -126,12 +126,22 @@ void CFsEmailUiViewBase::DoActivateL( const TVwsViewId& aPrevViewId,
         	{
         	iAppUi.ReturnFromPluginSettingsView();
         	}
-        // View activated succesfully. Change visible control group, but not
-        // when application is being sent to background.
+
+        // View activated succesfully
         if ( !iAppUi.SwitchingToBackground() )
             {
+            // Change visible control group
             DoTransition( EFalse );
             ActivateControlGroup();
+            }
+        else
+            {
+            // View activated but Mail application is switching to background.
+            // Mail application was invoked from other app and now we`re going back
+            // to this other app. We have to force, that after going back to Mail
+            // application, ActivateControlGroup will be invoked in
+            // HandleAppForegroundEventL method
+            iWasActiveControlGroup = ETrue;
             }
         }
     else
@@ -466,8 +476,10 @@ void CFsEmailUiViewBase::HandleAppForegroundEventL( TBool aForeground )
             iWasActiveControlGroup = EFalse;
             }
         }
-    else
+    else if ( !iWasActiveControlGroup ) // If activation of control group isn`t forced
         {
+        // Mail application is switching to background.
+        // Remember state of control group to restore it when Mail goes foreground.
         iWasActiveControlGroup = ControlGroup().AcceptInput();
         }
     }

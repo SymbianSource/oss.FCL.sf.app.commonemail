@@ -69,6 +69,18 @@ CFSMailBox::CFSMailBox()
 EXPORT_C CFSMailBox::~CFSMailBox()
 {
     FUNC_LOG;
+    // extension KMailboxExtMrCalInfo needs to be released here because of
+    // MR UI
+    CEmailExtension* extension = NULL;
+    TRAPD( err, extension = CExtendableEmail::ExtensionL( KMailboxExtMrCalInfo ) );
+    if( extension != NULL && err==KErrNone )
+        {
+        // Release extension needs to be called twice because, previous
+        // CExtendableEmail::ExtensionL( KMailboxExtMrCalInfo ) call increased
+        // reference counter with one, so there is need to relase this one also.
+        CExtendableEmail::ReleaseExtension( extension );
+        CExtendableEmail::ReleaseExtension( extension );
+        }
     iFolders.ResetAndDestroy();
 }
 
@@ -361,6 +373,7 @@ EXPORT_C TInt CFSMailBox::MoveMessagesL( MFSMailRequestObserver& aOperationObser
 {
     FUNC_LOG;
     TFSPendingRequest request;
+    request.iRequestId = 0;
     if( CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid( GetId() ) )
         {
         // init asynchronous request
@@ -827,8 +840,20 @@ void CFSMailBox::AppendMruItemL( CDesCArraySeg& aMruList,
 EXPORT_C void CFSMailBox::ReleaseExtension( CEmailExtension* aExtension )
     {
     FUNC_LOG;
-    // no specialized behaviour, call base class
-    CExtendableEmail::ReleaseExtension( aExtension );
+    // MR UI needs KMailboxExtMrCalInfo to not be released until CFSMailBox 
+    // exists. It is released in desctrucor
+    if( aExtension->Uid() != KMailboxExtMrCalInfo )
+        {
+        // no specialized behaviour, call base class
+        CExtendableEmail::ReleaseExtension( aExtension );
+        }
+    else
+        {
+        if( !aExtension->DecRef() )
+            {
+            aExtension->IncRef();
+            }
+        }
     }
     
 // -----------------------------------------------------------------------------

@@ -173,6 +173,11 @@ private:
      */
     void SetThumbAnchors();
 
+    /**
+     * Reads values from layout
+     */
+    void UpdateLayoutValues();
+
 private:
 
     /**

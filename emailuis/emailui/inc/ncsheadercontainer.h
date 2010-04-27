@@ -355,7 +355,10 @@ public: // function members
      */
     void ShowCursor( TBool aShow, TDrawNow aDrawNow = ENoDrawNow );
 
-    void DoScrollL();
+    void DoScroll();
+    
+    void SetPhysicsEmulationOngoing( TBool aPhysOngoing );
+    
 private: // Function members
 
 	void FocusChanged(TDrawNow aDrawNow);
@@ -440,8 +443,6 @@ private: // Data members
     //flag which disables changes of MSK label if any popup dialog is open
     TBool iSwitchChangeMskOff;
 
-    CAknsBasicBackgroundControlContext* iBgContext;
-    
     TBool iLongTapEventConsumed;
     TBool iRALInProgress;
     

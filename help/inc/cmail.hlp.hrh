@@ -9,7 +9,7 @@
 * Initial Contributors:
 * Nokia Corporation - initial contribution.
 *
-* Contributors: .
+* Contributors:
 * 
 * Description:
 *
@@ -79,5 +79,6 @@ _LIT(KFSE_HLP_MESSAGE_LIST_INBOX, "FSE_HLP_MESSAGE_LIST_INBOX"); //
 _LIT(KFSE_HLP_SETT, "FSE_HLP_SETT"); // 
 _LIT(KFSE_HLP_ACCT_INFO, "FSE_HLP_ACCT_INFO"); // 
 _LIT(KFSE_HLP_SYNC_SETT, "FSE_HLP_SYNC_SETT"); // 
+_LIT(KFS_VIEWER_HLP_MR_RECEIVED, "FS_VIEWER_HLP_MR_RECEIVED"); // 
 
 #endif 

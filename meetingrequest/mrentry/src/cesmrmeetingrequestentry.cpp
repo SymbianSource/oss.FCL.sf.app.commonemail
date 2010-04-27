@@ -29,7 +29,7 @@
 #include "mmrinfoobject.h"
 #include "mmrattendee.h"
 
-#include "CFSMailMessage.h"
+#include "cfsmailmessage.h"
 
 #include "esmrconfig.hrh"
 #include "cesmrfeaturesettings.h"
@@ -42,12 +42,12 @@
 #include <calinstanceview.h>
 #include <caluser.h>
 #include <calattachment.h>
-#include <caleninterimutils2.h>
+#include <CalenInterimUtils2.h>
 #include <cmrmailboxutils.h>
 #include <calrrule.h>
 #include <centralrepository.h>
 #include <calalarm.h>
-#include <calendarinternalcrkeys.h>
+#include <CalendarInternalCRKeys.h>
 #include <data_caging_path_literals.hrh>
 #include <coemain.h>
 #include <calentryview.h>
@@ -241,16 +241,22 @@ void CESMRMeetingRequestEntry::ConstructL(
     CleanupStack::PopAndDestroy( newDescription );
 
     __ASSERT_DEBUG( iEntry->PhoneOwnerL(), Panic( EESMRPhoneOwnerNotSet) );
-    
+
     CESMRFeatureSettings* settings = CESMRFeatureSettings::NewL();
     if ( settings->FeatureSupported(
             CESMRFeatureSettings::EMRUIMeetingRequestViewerCmailOnly ) )
         {
         // Meeting request viewer available only from email.
-        // Remove attachments from entry.  
+        // Remove attachments from entry.
         iRemoveAttachments = ETrue;
         }
     delete settings;
+
+    if ( CurrentPluginL() == EESMRActiveSync )
+        {
+        // Set correct calendar database
+        SetDefaultDatabaseL();
+        }
     }
 
 // ---------------------------------------------------------------------------
@@ -383,7 +389,7 @@ TBool CESMRMeetingRequestEntry::CanSetRecurrenceL() const
     __ASSERT_DEBUG( iEntry, Panic(EESMREntryNotExist ) );
 
     TBool canSetRecurrence( ETrue );
-    
+
     if ( iEntry->EntryTypeL() == CCalEntry::EAppt &&
             ESMREntryHelper::IsRepeatingMeetingL(*iEntry) &&
         (!ESMREntryHelper::IsModifyingEntryL(*iEntry) &&
@@ -640,15 +646,15 @@ void CESMRMeetingRequestEntry::SetModifyingRuleL(
                 }
             }
         }
-    else if ( ERecurrenceNot != orginalRecurrence && 
+    else if ( ERecurrenceNot != orginalRecurrence &&
     		aTypeChanging && !modifyingEntry )
     	{
-		// if entry( in the memory) is a recurrent event 
+		// if entry( in the memory) is a recurrent event
 		// ,and if entry type is changing, and not in modifying status then EESMRAllInSeries
 		iRecurrenceModRule = EESMRAllInSeries ;
 		return;
     	}
-    
+
     iRecurrenceModRule = aRule;
 
     }
@@ -872,7 +878,7 @@ TBool CESMRMeetingRequestEntry::IsEntryEditedL() const
 TBool CESMRMeetingRequestEntry::IsEntryTypeChangedL() const
     {
     FUNC_LOG;
-    
+
     return iTypeChanged;
     }
 
@@ -1461,7 +1467,15 @@ TBool CESMRMeetingRequestEntry::OccursInPastL() const
     currentTimeUtc.UniversalTime();
 
     TTime startTimeUtc = iEntry->StartTimeL().TimeUtcL();
-
+    
+    if( IsRecurrentEventL() &&
+    		IsOpenedFromMail() &&
+    		EESMRAllInSeries == iRecurrenceModRule )
+    	{
+		// Get recurrence
+		TESMRRecurrenceValue recValue( ERecurrenceNot ); 
+		GetRecurrenceL( recValue, startTimeUtc );
+    	}
 
     return (startTimeUtc < currentTimeUtc);
     }
@@ -1665,7 +1679,7 @@ CCalEntry* CESMRMeetingRequestEntry::ValidateEntryL()
         {
         // Remove attachments from the entry
         TInt count( entry->AttachmentCountL() );
-        
+
         for ( TInt i = 0; i < count; ++i )
             {
             CCalAttachment* attachment = entry->AttachmentL( i );
@@ -1817,7 +1831,7 @@ TBool CESMRMeetingRequestEntry::StartupParameters(
         aStartupParams.iCalEntry       = iESMRInputParams->iCalEntry;
         aStartupParams.iMRInfoObject   = iESMRInputParams->iMRInfoObject;
         aStartupParams.iMailMessage    = iESMRInputParams->iMailMessage;
-        aStartupParams.iMailClient     = iESMRInputParams->iMailClient;        
+        aStartupParams.iMailClient     = iESMRInputParams->iMailClient;
         aStartupParams.iSpare          = iESMRInputParams->iSpare;
         }
     return retValue;
@@ -2158,14 +2172,14 @@ TBool CESMRMeetingRequestEntry::AnyInstancesBetweenTimePeriodL(
 
     CCalInstance* instance = InstanceL();
     CleanupStack::PushL( instance );
-    
+
     TCalCollectionId colId = instance->InstanceIdL().iCollectionId;
     CleanupStack::PopAndDestroy( instance );
-    
+
     conflictCheckker->FindInstancesForEntryL( aStart,
                                               aEnd,
                                               *iEntry,
-                                              colId, 
+                                              colId,
                                               entries );
 
     if ( entries.Count() )
@@ -2245,11 +2259,11 @@ MESMRCalDbMgr& CESMRMeetingRequestEntry::GetDBMgr()
 // CESMRMeetingRequestEntry::SupportsCapabilityL
 // ---------------------------------------------------------------------------
 //
-TBool CESMRMeetingRequestEntry::SupportsCapabilityL( 
+TBool CESMRMeetingRequestEntry::SupportsCapabilityL(
         MESMRCalEntry::TMREntryCapability aCapability ) const
     {
     TBool retValue( EFalse );
-    
+
     switch( aCapability )
         {
         case MESMRCalEntry::EMRCapabilityAttachments:
@@ -2260,11 +2274,11 @@ TBool CESMRMeetingRequestEntry::SupportsCapabilityL(
 
             retValue = fsMbUtils->DefaultMailboxSupportCapabilityL(
                     CESMRFsMailboxUtils::EMRCapabilityAttachment );
-            CleanupStack::PopAndDestroy( fsMbUtils );        
+            CleanupStack::PopAndDestroy( fsMbUtils );
             }
             break;
         }
-    
+
     return retValue;
     }
 
@@ -2275,22 +2289,22 @@ TBool CESMRMeetingRequestEntry::SupportsCapabilityL(
 TBool CESMRMeetingRequestEntry::ContainsRemoteAttachmentsL()
     {
     FUNC_LOG;
-    
+
     TBool retValue( EFalse );
-    
+
     TInt attachmentCount( iEntry->AttachmentCountL() );
-    
+
     for ( TInt i(0); i < attachmentCount && !retValue; ++i )
         {
-        CCalAttachment* attachment = iEntry->AttachmentL(i);        
+        CCalAttachment* attachment = iEntry->AttachmentL(i);
         CCalAttachment::TType type( attachment->Type() );
-        
+
         if ( CCalAttachment::EFile != type )
             {
             retValue = ETrue;
-            }        
+            }
         }
-    
+
     return retValue;
     }
 
@@ -2320,8 +2334,39 @@ void CESMRMeetingRequestEntry::SetSendCanellationAvailable (
 void CESMRMeetingRequestEntry::SetTypeChanged( TBool aTypeChanged )
     {
     FUNC_LOG;
-    
+
     iTypeChanged = aTypeChanged;
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRMeetingRequestEntry::SetDefaultDatabaseL
+// ---------------------------------------------------------------------------
+//
+void CESMRMeetingRequestEntry::SetDefaultDatabaseL()
+    {
+    FUNC_LOG;
+
+    if ( !IsStoredL() )
+        {
+        // If entry has not been stored, set database manager to use correct
+        // database supported by plugin sync solution.
+        CESMRFsMailboxUtils* fsMbUtils =
+                CESMRFsMailboxUtils::NewL( iMRMailboxUtils );
+        CleanupStack::PushL( fsMbUtils );
+        TCalFileId aDbId( KNullFileId );
+        fsMbUtils->GetCalendarDatabaseIdL( CurrentPluginL(), aDbId );
+        CleanupStack::PopAndDestroy( fsMbUtils );
+
+        if ( aDbId != KNullFileId )
+            {
+            iCalDb.SetCurCalendarByDbIdL( aDbId );
+            }
+        else if ( CurrentPluginL() == EESMRActiveSync )
+            {
+            _LIT( KMfeDb, "Mail for Exchange" );
+            iCalDb.SetCurCalendarByNameL( KMfeDb );
+            }
+        }
     }
 
 // EOF

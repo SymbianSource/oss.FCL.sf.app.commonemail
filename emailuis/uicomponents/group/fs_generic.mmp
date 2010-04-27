@@ -140,7 +140,8 @@ LIBRARY               centralrepository.lib
 LIBRARY               flogger.lib
 LIBRARY               aknphysics.lib
 LIBRARY               cmaillogger.lib
-LIBRARY 			  aknicon.lib
+LIBRARY               aknicon.lib
+LIBRARY               aknlayout2.lib
 LIBRARY               touchfeedback.lib
 
 DEFFILE               fs_generic_alf.def

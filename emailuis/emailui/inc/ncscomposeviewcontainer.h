@@ -90,12 +90,12 @@ public:
     virtual ~CNcsComposeViewContainer();
 
 public: // new functions
-        
+
     /**
-    * UpdateScrollBarL
+    * UpdateScrollBar
     * Updates scroll bar data.
     */
-    void UpdateScrollBarL();
+    void UpdateScrollBar();
 
     /**
     * GetToFieldAddressesL
@@ -496,13 +496,13 @@ public: // new functions
      * if any popup dialog is open
      */
     void SwitchChangeMskOff(TBool aTag);
-    
+
     /**
-     * ScrollL
+     * Scroll
      * @param aTargetPos Scrolls display to given position
      */
-    void ScrollL( TInt aTargetPos );
-    
+    void Scroll( TInt aTargetPos, TBool aDrawNow = ETrue );
+
 public: // from CoeControl
 
     /**
@@ -734,6 +734,11 @@ private: // data
 
     // Descriptor for read-only quote text. Own.
     HBufC* iReadOnlyQuote;
+
+    TInt iTotalComposerHeight; 
+    TInt iVisibleAreaHeight;
+    TInt iTotalMoveY;
+    TInt iSeparatorHeight;
     };
 
 

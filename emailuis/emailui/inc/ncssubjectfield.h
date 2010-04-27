@@ -95,6 +95,8 @@ public: // new functions
 		
     void EnableKineticScrollingL(CAknPhysics* aPhysics );
     
+    void SetCursorVisible( TBool aCursorVisible );
+    
 public: // from CoeControl
         /**
         * SetContainerWinowL

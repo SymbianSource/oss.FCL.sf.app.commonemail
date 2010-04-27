@@ -83,15 +83,8 @@ void CNcsEditor::ConstructL( const CCoeControl* aParent,
 CNcsEditor::~CNcsEditor()
     {
     FUNC_LOG;
-    // <cmail> Platform layout change
-    delete iBgContext;
-    // </cmail>
     delete iGlobalCharFormat;
-    
-    if ( iEditorCustomDrawer )
-        {
-        delete iEditorCustomDrawer;        
-        }
+    delete iEditorCustomDrawer;
     delete iCaptionText;
     }
 
@@ -196,17 +189,6 @@ void CNcsEditor::SetTextL( const TDesC* aDes )
     }
 
 // -----------------------------------------------------------------------------
-// CNcsEditor::SetRect
-// -----------------------------------------------------------------------------
-//
-void CNcsEditor::SetRect( const TRect& aRect )
-    {
-    FUNC_LOG;
-    //CCoeControl::SetRect( aRect );
-    CEikRichTextEditor::SetRect( aRect );
-    }
-
-// -----------------------------------------------------------------------------
 // CNcsEditor::HandleResourceChange
 // -----------------------------------------------------------------------------
 //
@@ -217,8 +199,6 @@ void CNcsEditor::HandleResourceChange( TInt aType )
 
     if ( aType == KAknsMessageSkinChange )
         {
-        // S60 skin support
-        UpdateGraphics();
         UpdateFontSize();
         UpdateColors();
         if ( iCustomDrawer )
@@ -292,10 +272,7 @@ void CNcsEditor::SetupEditorL()
     SetCursorPosL(0,EFalse);
     UpdateFontSize();
     UpdateColors();
-    // <cmail> S60 skin support
-    UpdateGraphics();
-    // </cmail>
-	}
+    }
 
 // -----------------------------------------------------------------------------
 // CNcsEditor::LineCount() const
@@ -494,41 +471,6 @@ void CNcsEditor::UpdateFontL()
     charFormatMask.SetAttrib(EAttFontHeight);
     iGlobalCharFormat->SetL(charFormat, charFormatMask);
     GlobalText()->SetGlobalCharFormat( iGlobalCharFormat );
-    }
-
-// </cmail>
-
-// -----------------------------------------------------------------------------
-// CNcsEditor::UpdateGraphics
-// -----------------------------------------------------------------------------
-//
-void CNcsEditor::UpdateGraphics()
-    {
-    TRAP_IGNORE( DoUpdateGraphicsL() );
-    }
-
-// -----------------------------------------------------------------------------
-// CNcsEditor::DoUpdateGraphicsL
-// -----------------------------------------------------------------------------
-//
-void CNcsEditor::DoUpdateGraphicsL()
-    {
-	// <cmail> S60 Skin support
-    delete iBgContext;
-    iBgContext = NULL;
-
-    TSize mainPaneSize;
- 	AknLayoutUtils::LayoutMetricsSize(
- 	    AknLayoutUtils::EMainPane, mainPaneSize );
-
-    iBgContext = CAknsBasicBackgroundControlContext::NewL(
-        //KAknsIIDQgnFsGrafEmailContent,
-        KAknsIIDQsnBgAreaMain,
-        TRect( mainPaneSize ),
-        EFalse );
-
-    SetSkinBackgroundControlContextL( iBgContext );
-	// </cmail>
     }
 
 // ---------------------------------------------------------------------------

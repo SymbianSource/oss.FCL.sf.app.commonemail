@@ -27,8 +27,8 @@
 #include <caluser.h>
 #include <calalarm.h>
 #include <calentry.h>
-#include <stringloader.h>
-#include <aknlayout2scalabledef.h>
+#include <StringLoader.h>
+#include <AknLayout2ScalableDef.h>
 #include <esmrgui.rsg>
 
 #include "emailtrace.h"
@@ -155,7 +155,10 @@ void CESMRViewerAllDayEventField::SizeChanged()
     	}
 
     TRect viewerRect( viewerLayoutText.TextRect() );    
-    iLabel->SetRect( viewerRect );
+    iLabel->SetRect( viewerRect );    
+    // Setting font for the label also
+    iLabel->SetFont( viewerLayoutText.Font() );
+
 
     // Move focus rect so that it's relative to field's position.
     viewerRect.Move( -Position() );

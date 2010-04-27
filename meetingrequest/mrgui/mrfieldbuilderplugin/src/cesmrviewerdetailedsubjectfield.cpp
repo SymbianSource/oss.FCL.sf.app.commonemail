@@ -27,9 +27,9 @@
 #include "cesmrglobalnote.h"
 
 #include <esmrgui.rsg>
-#include <stringloader.h>
+#include <StringLoader.h>
 #include <calentry.h>
-#include <aknlayout2scalabledef.h>
+#include <AknLayout2ScalableDef.h>
 
 // DEBUG
 #include "emailtrace.h"
@@ -512,6 +512,8 @@ CCoeControl* CESMRViewerDetailedSubjectField::ComponentControl(
 //
 void CESMRViewerDetailedSubjectField::SizeChanged( )
     {
+    // Store iRichTextViewer original width.
+    TInt richTextViewerWidth = iRichTextViewer->Size().iWidth;
     TRect rect( Rect() );
 
     TAknLayoutRect rowLayoutRect( 
@@ -570,6 +572,20 @@ void CESMRViewerDetailedSubjectField::SizeChanged( )
             // Try applying changes
             iRichTextViewer->ApplyLayoutChangesL();
             );
+
+    if ( iRichTextViewer->Size().iWidth != richTextViewerWidth )
+        {
+        // Most of this case is screen orientation, in this case we need to 
+        // Record the index of focusing link, after updating link array, then 
+        // reset the focusing to original one.
+        TInt focusingIndex = iRichTextViewer->GetFocusLink();
+        if ( KErrNotFound != focusingIndex )
+            {
+            iRichTextViewer->SetFocusLink( focusingIndex );
+            //wake up current contact menu selection by calling this
+            iRichTextViewer->FocusChanged(ENoDrawNow);
+            }
+        }
     }
 
 // ---------------------------------------------------------------------------

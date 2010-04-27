@@ -212,6 +212,7 @@ private: // New functions
     void LoadContentFromFileL( RFile& aFile );
     void LoadContentFromUrlL( const TDesC& aUrl );
     void LoadContentFromMailMessageL( CFSMailMessage* aMailMessage, TBool aResetScrollPosition =ETrue );
+    static TInt DeleteMail( TAny* aSelf );
     void DeleteMailL(TBool aSilentDelete = EFalse);
     void HideContainer();
     void ShowContainerL();
@@ -337,6 +338,7 @@ private: // data for moving message to different folder action
     // Flag selection handler active object for global note
     CFlagSelectionNoteHandler* iFlagSelectionHandler;  
     TBool iNextOrPrevMessageSelected;
+    TBool iMessageIsDeleted;
     };
 
 ////////////////////////////////////////

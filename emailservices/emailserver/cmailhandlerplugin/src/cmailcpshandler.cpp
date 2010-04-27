@@ -27,6 +27,8 @@
 #include <memaildata.h>
 #include <memailmailboxdata.h>
 
+#include <scs/cleanuputils.h> // CleanupResetAndDestroyPushL
+
 #include "emailtrace.h"
 #include "cfsmailclient.h"
 #include "cfsmailbox.h"
@@ -130,9 +132,10 @@ void CMailCpsHandler::InitializeL()
     FUNC_LOG;
     // Get current configuration from settings interface,
     // and pass it on to actual publisher interface
+        
     iLiwIf->SetConfiguration( iSettings->Configuration() );
-
     TInt iiMax( iSettings->Mailboxes().Count() );
+    INFO_1("iSettings->Mailboxes().Count() = %d", iiMax );
     for ( TInt ii = 0; ii < iiMax; ii++ )
         {
         CFSMailBox* mailbox( NULL );
@@ -141,33 +144,34 @@ void CMailCpsHandler::InitializeL()
         TInt mailboxId(0);
         if (mailbox)
             {
-            mailboxId = mailbox->GetId().Id();
-            }
-        if ( mailboxId )
-            {
             CleanupStack::PushL( mailbox );
-            CMailMailboxDetails* mailboxDetails = CreateMailboxDetailsL( *mailbox );
-            CleanupStack::PushL( mailboxDetails );
-
-            TBuf<KMaxDescLen> cid;
-            TInt next(1);
-
-            // Check if same mailbox is already in iAccountsArray once or more
-            for ( TInt i = 0; i < iAccountsArray.Count(); i++ )
+            mailboxId = mailbox->GetId().Id();
+            if ( mailboxId )
                 {
-                TInt id = (TInt)iAccountsArray[i]->iMailboxId.Id();
-                if (id == mailboxId)
+                CMailMailboxDetails* mailboxDetails = CreateMailboxDetailsL( *mailbox );
+                CleanupStack::PushL( mailboxDetails );
+    
+                TBuf<KMaxDescLen> cid;
+                TInt next(1);
+    
+                // Check if same mailbox is already in iAccountsArray once or more
+                for ( TInt i = 0; i < iAccountsArray.Count(); i++ )
                     {
-                    next++;
+                    TInt id = (TInt)iAccountsArray[i]->iMailboxId.Id();
+                    if (id == mailboxId)
+                        {
+                        next++;
+                        }
                     }
+                iSettings->GetContentId(mailboxId, next, cid);
+                mailboxDetails->SetWidgetInstance(cid);
+                iAccountsArray.AppendL( mailboxDetails );
+                CleanupStack::Pop( mailboxDetails );
                 }
-            iSettings->GetContentId(mailboxId, next, cid);
-            mailboxDetails->SetWidgetInstance(cid);
-            iAccountsArray.AppendL( mailboxDetails );
-            CleanupStack::Pop( mailboxDetails );
             CleanupStack::PopAndDestroy( mailbox );
             }
         }
+     INFO_1("iAccountsArray.Count() = %d", iAccountsArray.Count() );
     }
 
 // ---------------------------------------------------------
@@ -179,7 +183,7 @@ void CMailCpsHandler::InitializeExternalAccountsL()
     FUNC_LOG;
     // Read external account data from settings
     RPointerArray<CMailExternalAccount> extAccounts;
-    CleanupClosePushL( extAccounts );
+    CleanupResetAndDestroyPushL( extAccounts );  // owning - GetExtMailboxesL transfers ownership
     iSettings->GetExtMailboxesL( extAccounts );
 
     // Delete removed plugins
@@ -192,7 +196,7 @@ void CMailCpsHandler::InitializeExternalAccountsL()
     SelectAndUpdateExtAccountsL( extAccounts );
 
     __ASSERT_DEBUG( extAccounts.Count() == 0, Panic( ECmailHandlerPluginPanicNoFailedState ) );
-    CleanupStack::PopAndDestroy();
+    CleanupStack::PopAndDestroy( &extAccounts );
     }
 
 // ---------------------------------------------------------
@@ -309,8 +313,29 @@ void CMailCpsHandler::SettingsChangedCallback()
     TRAP_IGNORE( InitializeL() );
     TRAP_IGNORE( InitializeExternalAccountsL() );
     // Update widget contents after settings change
+    TInt count = iLiwIf->GetWidgetInstanceCount();
+    for (TInt i = 0; i < count; i++ )
+        {
+        iLiwIf->SetUpdateNeeded( i, ETrue );
+        }
     TRAP_IGNORE( UpdateFullL() );
     CleanWaitingForNewMailbox();
+    }
+
+// ---------------------------------------------------------
+// CMailCpsHandler::SetUpdateNeeded
+// ---------------------------------------------------------
+//
+void CMailCpsHandler::SetUpdateNeeded( const TFSMailMsgId aMailbox )
+    {
+    FUNC_LOG;
+    TInt count = iSettings->WidgetCountByMailbox( aMailbox.Id() );
+    for (TInt i = 0; i < count; i++ )
+        {
+        TBuf<KMaxDescLen> cid;
+        iSettings->GetContentId( aMailbox.Id(), i + 1, cid );
+        iLiwIf->SetUpdateNeeded( iLiwIf->GetWidgetInstanceId( cid ), ETrue );
+        }
     }
 
 // ---------------------------------------------------------
@@ -324,7 +349,7 @@ void CMailCpsHandler::UpdateFullL()
         {
         if ( iLiwIf->AllowedToPublish(instance) )
             {
-            UpdateMailboxesL(instance, iLiwIf->iInstIdList[instance]->Des());
+            UpdateMailboxesL(instance, iLiwIf->iInstIdList[instance].iCid);
             }
         }
     }
@@ -344,45 +369,51 @@ void CMailCpsHandler::UpdateMailboxesL(TInt aInstance, const TDesC& aContentId)
         plugin->UpdateAccountL( aContentId );
         }
     else // handle internal accounts
-        {   
-        TInt row(1); // start from first row
-        TInt mailbox(0);
-        TBool found( EFalse );
-        // try to find mailbox with matching contentId
-        for ( mailbox = 0; mailbox < iAccountsArray.Count(); mailbox++ )
+        {
+        if ( iLiwIf->UpdateNeeded( aInstance ) )
             {
-            if ( !aContentId.Compare( *iAccountsArray[mailbox]->iWidgetInstance ) )
+            TInt row(1); // start from first row
+            TInt mailbox(0);
+            TBool found( EFalse );
+            // try to find mailbox with matching contentId
+            for ( mailbox = 0; mailbox < iAccountsArray.Count(); mailbox++ )
                 {
-                INFO_1("iAccountsArray.Count() == %d", iAccountsArray.Count());
-                found = ETrue;
-                break;
+                if ( !aContentId.Compare( *iAccountsArray[mailbox]->iWidgetInstance ) )
+                    {
+                    INFO_1("iAccountsArray[mailbox] mailbox = %d", mailbox);
+                    found = ETrue;
+                    break;
+                    }
                 }
-            }
 
-        // if contentId found from array, update the mailbox
-        if ( found )
-            {
-            // Update fields from left to right
-            UpdateMailBoxIconL( mailbox, aInstance, row );
-            UpdateMailboxNameL( mailbox, aInstance, row );
-            UpdateIndicatorIconL( mailbox, aInstance, row );
-            row++;
-            UpdateMessagesL( mailbox, aInstance, 1, row);
-            row++;
-            UpdateMessagesL( mailbox, aInstance, 2, row);
-            }
-        else
-            {
-            // Clean mailbox name
-            iLiwIf->PublishActiveMailboxNameL( aInstance, 1, KNullDesC );
-            // Clean mailbox icon
-            TFSMailMsgId mailBoxId; // id not essential here        
-            iLiwIf->PublishMailboxIconL( aInstance, 1, KNullIcon, mailBoxId);
-            // Clean indicator icon
-            iLiwIf->PublishIndicatorIconL( aInstance, 1, KNullIcon);
-            // Clean message rows
-            UpdateEmptyMessagesL( aInstance, 2 );
-            UpdateEmptyMessagesL( aInstance, 3 );
+            // if contentId found from array, update the mailbox
+            if ( found )
+                {
+                 INFO_1("found = TRUE iAccountsArray.Count() == %d", iAccountsArray.Count());
+                // Update fields from left to right
+                UpdateMailBoxIconL( mailbox, aInstance, row );
+                UpdateMailboxNameL( mailbox, aInstance, row );
+                UpdateIndicatorIconL( mailbox, aInstance, row );
+                row++;
+                UpdateMessagesL( mailbox, aInstance, 1, row);
+                row++;
+                UpdateMessagesL( mailbox, aInstance, 2, row);
+                }
+            else
+                {
+                INFO_1("found = FALSE iAccountsArray.Count() == %d", iAccountsArray.Count());
+                // Clean mailbox name
+                iLiwIf->PublishActiveMailboxNameL( aInstance, 1, KNullDesC );
+                // Clean mailbox icon
+                TFSMailMsgId mailBoxId; // id not essential here        
+                iLiwIf->PublishMailboxIconL( aInstance, 1, KNullIcon, mailBoxId);
+                // Clean indicator icon
+                iLiwIf->PublishIndicatorIconL( aInstance, 1, KNullIcon);
+                // Clean message rows
+                UpdateEmptyMessagesL( aInstance, 2 );
+                UpdateEmptyMessagesL( aInstance, 3 );
+                }
+            iLiwIf->SetUpdateNeeded( aInstance, EFalse );
             }
         }
     }
@@ -478,10 +509,11 @@ void CMailCpsHandler::UpdateMessagesL( const TInt aMailBoxNumber,
         mailBoxId = iAccountsArray[aMailBoxNumber]->iMailboxId;
 
         CFSMailBox* mailbox( NULL );
-        mailbox = MailClient().GetMailBoxByUidL( mailBoxId );
+        mailbox = MailClient().GetMailBoxByUidL( mailBoxId ); // transferred ownership
         if(mailbox)
             {
             TFSMailMsgId parentFolder( mailbox->GetStandardFolderId( EFSInbox ) );
+            delete mailbox;
             // Check that folder is correct
             CFSMailFolder* folder = MailClient().GetFolderByUidL( mailBoxId, parentFolder );
             if ( !folder )
@@ -504,7 +536,7 @@ void CMailCpsHandler::UpdateMessagesL( const TInt aMailBoxNumber,
 
             // Update folder if provided, otherwise use current folder
             RPointerArray<CFSMailMessage> folderMessages(1);
-            CleanupClosePushL( folderMessages );
+            CleanupResetAndDestroyPushL( folderMessages ); // owning array, from emailapiutils.h
 
             TFSMailDetails details( EFSMsgDataEnvelope );
             RArray<TFSMailSortCriteria> sorting;
@@ -529,7 +561,6 @@ void CMailCpsHandler::UpdateMessagesL( const TInt aMailBoxNumber,
                 CleanupStack::PopAndDestroy( &sorting );
                 CleanupStack::PopAndDestroy( &folderMessages );
                 CleanupStack::PopAndDestroy( folder );
-
                 return;
                 }
             TFSMailMsgId msgId = folderMessages[aMessageNumber - 1]->GetMessageId();
@@ -733,13 +764,12 @@ void CMailCpsHandler::UpdateIndicatorIconL( const TInt aMailBoxNumber,
         TFSMailMsgId mailBoxId;
         mailBoxId = iAccountsArray[aMailBoxNumber]->iMailboxId;
 
-        if ( iSettings->GetNewMailState( mailBoxId ) )
+        if ( iSettings->GetNewMailStateL( mailBoxId, GetUnreadCountL(mailBoxId) ) )
             {
             iLiwIf->PublishIndicatorIconL( aWidgetInstance,
                                            aRowNumber,
                                            EMbmCmailhandlerpluginQgn_stat_message_mail_uni );
             }
-
         else if( !IsOutboxEmptyL(mailBoxId) )
             {
             iLiwIf->PublishIndicatorIconL( aWidgetInstance,
@@ -820,27 +850,37 @@ void CMailCpsHandler::HandleEventL(
         case TFSEventMailboxRenamed:
             {
             HandleMailboxRenamedEventL( aMailbox );
+            SetUpdateNeeded( aMailbox );
             UpdateFullL();
             break;
             }
         case TFSEventMailboxDeleted:
             {
             HandleMailboxDeletedEventL( aMailbox );
+            SetUpdateNeeded( aMailbox );
             UpdateFullL();
             break;
             }
         case TFSEventNewMail:
             {
             HandleNewMailEventL( aMailbox, aParam1, aParam2 );
+            SetUpdateNeeded( aMailbox );
             UpdateFullL();
             break;
             }
         case TFSEventMailDeleted:
             {
             HandleMailDeletedEventL( aMailbox, aParam1, aParam2 );
+            SetUpdateNeeded( aMailbox );
             UpdateFullL();
             break;
             }
+        case TFSEventMailChanged:
+            {
+            SetUpdateNeeded( aMailbox );
+            UpdateFullL();
+            break;
+            }            
         default:
             {
             break;
@@ -1083,6 +1123,7 @@ TInt CMailCpsHandler::GetUnreadCountL(TFSMailMsgId aMailbox)
     if(mailbox)
         {
         TFSMailMsgId folderId( mailbox->GetStandardFolderId( EFSInbox ) );
+        delete mailbox; // transferred ownership
         // Check that folder is correct
         CFSMailFolder* folder = MailClient().GetFolderByUidL( aMailbox, folderId );
         if ( !folder )
@@ -1117,6 +1158,7 @@ TInt CMailCpsHandler::GetUnseenCountL(TFSMailMsgId aMailbox)
     if(mailbox)
         {
         TFSMailMsgId folderId( mailbox->GetStandardFolderId( EFSInbox ) );
+        delete mailbox; // transferred ownership
         // Check that folder is correct
         CFSMailFolder* folder = MailClient().GetFolderByUidL( aMailbox, folderId );
         if ( !folder )
@@ -1152,6 +1194,7 @@ TBool CMailCpsHandler::IsOutboxEmptyL(TFSMailMsgId aMailbox)
     if(mailbox)
         {
         TFSMailMsgId folderId( mailbox->GetStandardFolderId( EFSOutbox ) );
+        delete mailbox; // ownership was transferred
         // Check that folder is correct
         CFSMailFolder* folder = MailClient().GetFolderByUidL( aMailbox, folderId );
         if ( !folder )
@@ -1181,7 +1224,7 @@ TBool CMailCpsHandler::IsOutboxEmptyL(TFSMailMsgId aMailbox)
         CleanupDeletePushL( iterator );
 
         RPointerArray<CFSMailMessage> messages;
-        CleanupClosePushL( messages );
+        CleanupResetAndDestroyPushL( messages ); // owning array
         iterator->NextL( TFSMailMsgId(), msgCount, messages );
 
         TInt arrayCount(messages.Count());
@@ -1774,7 +1817,7 @@ TInt CMailCpsHandler::TotalExtMailboxCountL()
     TInt totalMailboxCount( 0 );
     TUid interfaceUid = TUid::Uid( KEmailObserverInterfaceUid );
     RImplInfoPtrArray plugins;
-    CleanupClosePushL( plugins );
+    CleanupResetAndDestroyPushL(plugins); // CleanupClosePushL does not call ptr destructors
     REComSession::ListImplementationsL( interfaceUid, plugins);
 
     for ( TInt i = 0; i < plugins.Count(); i++ )
@@ -1787,7 +1830,7 @@ TInt CMailCpsHandler::TotalExtMailboxCountL()
         totalMailboxCount += data.MailboxesL().Count();
         }
 
-    CleanupStack::PopAndDestroy(); // plugins
+    CleanupStack::PopAndDestroy( &plugins ); // plugins
     return totalMailboxCount;
     }
 

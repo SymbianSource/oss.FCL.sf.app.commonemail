@@ -25,9 +25,9 @@
 #include <alf/alfenv.h>
 #include <alf/alftextstyle.h>
 #include <aknlayout2scalabledef.h>
-#include <aknutils.h>
+#include <AknUtils.h>
 // INTERNAL INCLUDES
-#include "freestyleemailuilayoutdata.h"
+#include "FreestyleEmailUiLayoutData.h"
 
 // FORWARD DECLARATIONS
 class CFsTreeList;

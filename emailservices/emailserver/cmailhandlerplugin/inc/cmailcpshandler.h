@@ -69,6 +69,11 @@ public:
     virtual void SettingsChangedCallback();
 
     /**
+     *
+     */
+    void SetUpdateNeeded( const TFSMailMsgId aMailbox );
+    
+    /**
      * Wraps all "Update*" methods
      */
     void UpdateFullL();    
@@ -168,6 +173,12 @@ public:
      */
     void DisplayHSPageFullNoteL();
         
+    /**
+     * get count of unread messages in inbox
+     * @param aMailbox mailbox id
+     */    
+    TInt GetUnreadCountL( TFSMailMsgId aMailbox);
+
 protected:
     /**
      * From CFSNotificationHandlerBase
@@ -301,12 +312,6 @@ private:
      * @param aParam2 contains event specific parameters
      */
     void HandleMailDeletedEventL( TFSMailMsgId aMailbox, TAny* aParam1, TAny* aParam2 );
-
-    /**
-     * get count of unread messages in inbox
-     * @param aMailbox mailbox id
-     */    
-    TInt GetUnreadCountL( TFSMailMsgId aMailbox);
 
     /**
      * get count of unseen messages in inbox

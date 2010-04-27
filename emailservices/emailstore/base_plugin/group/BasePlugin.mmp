@@ -62,7 +62,7 @@ SOURCE BaseMrInfoObject.cpp
 SOURCE basepluginfetch.cpp
 SOURCE baseplugindelayedops.cpp
 SOURCE basepluginresourceloader.cpp
-
+SOURCE NestedAO.cpp
 
 // *************************************
 // OTHER STUFF

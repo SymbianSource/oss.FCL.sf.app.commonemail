@@ -12,7 +12,7 @@
 * Contributors:
 *
 *  Description : A visualizer for data items with plain text.
-*  Version     : %version: tr1sido#16 %
+*  Version     : %version: tr1sido#17 %
 *
 */
 
@@ -1247,13 +1247,8 @@ void CFsTreePlainTwoLineItemVisualizer::UpdateLayout(
         if ((iFlags & KFsTreeListItemAlwaysExtended) ||
                 (iFlags & KFsTreeListItemExtended))
             {
-            TRect secondLineParentRect;
-            
-            // WORKAROUND FIX FOR LAYOUT PROBLEM -- RETURN THIS TO NORMAL WHEN LAYOUT'S ARE OK
-            //CFsLayoutManager::LayoutMetricsRect(currentSize, CFsLayoutManager::EFsLmListSingleDycRowPane, secondLineParentRect, 1, 1);
-            CFsLayoutManager::LayoutMetricsRect(currentSize, CFsLayoutManager::EFsLmListSingleDycRowPane, secondLineParentRect, 2, 1);
-            // WORKAROUND FIX FOR LAYOUT PROBLEM -- RETURN THIS TO NORMAL WHEN LAYOUT'S ARE OK
-            
+            TRect secondLineParentRect;            
+            CFsLayoutManager::LayoutMetricsRect(currentSize, CFsLayoutManager::EFsLmListSingleDycRowPane, secondLineParentRect, 1, 1);            
             CFsLayoutManager::LayoutMetricsRect(secondLineParentRect, CFsLayoutManager::EFsLmListSingleDycRowTextPane, secondLineParentRect, secondLineTextVariety);
             CFsLayoutManager::LayoutMetricsText(secondLineParentRect,
                     secondLineTextMetrics, subjTextInfo, secondLineTextVariety);

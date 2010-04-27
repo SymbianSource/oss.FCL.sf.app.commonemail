@@ -79,9 +79,9 @@ _LIT( KHtmlLessThan, "&lt;" );
 _LIT( KHtmlGreaterThan, "&gt;" );
 _LIT( KHtmlAmpersand, "&amp;" );
 _LIT( KHtmlQuotation, "&quot;" );
-_LIT( KHtmlLinkTag, "<a href=\"%S\">" );
-_LIT( KHtmlLinkTagWWW, "<a href=\"%S%S\">" );
-_LIT( KHtmlLinkEndTag, "</a>" );
+// _LIT( KHtmlLinkTag, "<a href=\"%S\">" );
+// _LIT( KHtmlLinkTagWWW, "<a href=\"%S%S\">" );
+// _LIT( KHtmlLinkEndTag, "</a>" );
 _LIT( KURLTypeBody, "body");
 
 _LIT( KURLDisplayImages, "cmail://displayImages/" );
@@ -93,11 +93,11 @@ const TText KGreaterThan = 0x3e;
 const TText KLessThan = 0x3c;
 const TText KAmpersand = 0x26;
 const TText KQuotation = 0x22;
-const TText KCharacterSpace = 0x20;
+// const TText KCharacterSpace = 0x20;
 const TText KSOH = 0x01; // Start Of Heading
-const TText KCR = 0x0d; // Carriage Return
+// const TText KCR = 0x0d; // Carriage Return
 const TText KLF = 0x0a; // Line Feed
-const TText KHT = 0x09; // Horizontal Tab
+// const TText KHT = 0x09; // Horizontal Tab
 const TText KUnicodeNewLineCharacter = 0x2028;
 const TText KUnicodeParagraphCharacter = 0x2029;        
 const TReal KOverlayButtonMarginX = 0.01; // 1%
@@ -1507,7 +1507,7 @@ void CFsEmailUiHtmlViewerContainer::CreateHyperlinksFromUrlsL( RBuf& aSource )
     CleanupStack::PushL ( itemEngine );
     if ( itemEngine->ItemCount() > 0 )
         {
-        _LIT( KHttp, "http://" );
+        _LIT( KSchemeDelimiter, "://" );
         _LIT( KUrlFormat, "<a href=\"%S\">%S</a>" );
         _LIT( KUrlFormatWithHttp, "<a href=\"http://%S\">%S</a>" );
         
@@ -1531,7 +1531,7 @@ void CFsEmailUiHtmlViewerContainer::CreateHyperlinksFromUrlsL( RBuf& aSource )
             target.Append( source.Mid( currentSourcePosition, item.iStartPos - currentSourcePosition ) );
             const TPtrC url( source.Mid( item.iStartPos, item.iLength ) );
             TPtrC format( KUrlFormat() );
-            if ( url.FindF( KHttp() ) == KErrNotFound ) 
+            if ( url.FindF( KSchemeDelimiter() ) == KErrNotFound ) 
                 {
                 format.Set( KUrlFormatWithHttp() );
                 }

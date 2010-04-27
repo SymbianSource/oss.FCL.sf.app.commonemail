@@ -26,6 +26,8 @@
 #include <aknnotewrappers.h>					//For LanguageNotSupported errorNote
 #include <aknsdrawutils.h>
 #include <aknsutils.h>
+#include <aknlayoutscalable_apps.cdl.h>
+#include <aknlayoutscalable_avkon.cdl.h>
 
 #include "ncspopuplistbox.h"
 #include "ncsemailaddressobject.h"					// CNcsEmailAddressObject
@@ -39,7 +41,6 @@
 #include "FSDelayedLoader.h"
 #include "FreestyleEmailUiCLSItem.h"
 
-const TInt KBackgroundFrameWidth = 4;
 const TInt KHighlightFrameWidth = 2;
 
 // ========================= MEMBER FUNCTIONS ==================================
@@ -67,10 +68,14 @@ CNcsPopupListBox* CNcsPopupListBox::NewL( const CCoeControl* aParent,
 CNcsPopupListBox::CNcsPopupListBox( CNcsHeaderContainer& aHeaderContainer, 
                                     TBool aRemoteLookupSupported, 
                                     CFSMailBox& aMailBox)
-	: iHeaderContainer( aHeaderContainer ),iMailBox( aMailBox ),
-	  iRemoteLookupSupported( aRemoteLookupSupported ),iCachingInProgress( EFalse )
+    : iHeaderContainer( aHeaderContainer ),
+      iMailBox( aMailBox ),
+      iRemoteLookupSupported( aRemoteLookupSupported ),
+      iCachingInProgress( EFalse ),
+      iAppUi( static_cast<CFreestyleEmailUiAppUi*>( iEikonEnv->AppUi() ) )
     {
     FUNC_LOG;
+    iPopupMaxRect = TRect( 100, 100, 100, 100 );
     }
 
 // -----------------------------------------------------------------------------
@@ -79,9 +84,11 @@ CNcsPopupListBox::CNcsPopupListBox( CNcsHeaderContainer& aHeaderContainer,
 void CNcsPopupListBox::ConstructL( const CCoeControl* aParent )
     {
     FUNC_LOG;
-    CEikTextListBox::ConstructL( aParent, CEikListBox::EPopout );
-    // Create non-window-owning scrollbar to avoid flickering.
-    CEikScrollBarFrame* frame = CreateScrollBarFrameL( EFalse, EFalse, EFalse );
+    CEikTextListBox::ConstructL( NULL, CEikListBox::EPopout );
+    SetMopParent( const_cast<CCoeControl*>( aParent ) );
+    User::LeaveIfError( SetParent( const_cast<CCoeControl*>( aParent ) ) );
+
+    CEikScrollBarFrame* frame = CreateScrollBarFrameL( EFalse, EFalse, ETrue );
 
     CEikTextListBox::SetBorder( TGulBorder::ENone );
 
@@ -89,7 +96,7 @@ void CNcsPopupListBox::ConstructL( const CCoeControl* aParent )
     CEikTextListBox::SetItemHeightL( font->FontMaxHeight() + 12 );
 
     iBackgroundContext = CAknsFrameBackgroundControlContext::NewL(
-        KAknsIIDQsnFrPopup, Rect(), Rect(), EFalse );
+        KAknsIIDQsnFrPopupSub, Rect(), Rect(), EFalse );
     UpdateTextColors();
 
     iContactHandler = CFsDelayedLoader::InstanceL()->GetContactHandlerL();
@@ -98,7 +105,6 @@ void CNcsPopupListBox::ConstructL( const CCoeControl* aParent )
         iContactHandler = NULL;
         }
 
-    iAppUi = static_cast<CFreestyleEmailUiAppUi*>( iEikonEnv->AppUi() );
     SetListBoxObserver( this );
     }
 
@@ -155,12 +161,17 @@ TTypeUid::Ptr CNcsPopupListBox::MopSupplyObject(TTypeUid aId)
 void CNcsPopupListBox::SizeChanged()
     {
     FUNC_LOG;
-    TRect outerRect = Rect();
-    TRect innerRect = outerRect;
-    innerRect.Shrink( KBackgroundFrameWidth, KBackgroundFrameWidth );
+    const TRect outerRect = Rect();
+
+    TAknLayoutRect subpane;
+    subpane.LayoutRect( outerRect, 
+        AknLayoutScalable_Avkon::bg_popup_sub_pane_g1() );
+    const TRect innerRect = subpane.Rect();
+
+    iBackgroundContext->SetFrameRects( outerRect, innerRect );
+
     SetViewRectFromClientRect( innerRect );
     TRAP_IGNORE( HandleViewRectSizeChangeL() );
-    iBackgroundContext->SetFrameRects( outerRect, innerRect );
     }
 
 void CNcsPopupListBox::HandleResourceChange( TInt aType )
@@ -174,32 +185,7 @@ void CNcsPopupListBox::HandleResourceChange( TInt aType )
 
 void CNcsPopupListBox::HandlePointerEventL( const TPointerEvent& aPointerEvent )
     {
-    // When scrollbar is non-window-owning, the pointer events should be passed
-    // to it through control hierachy, but the CEikTextListBox does not seem to 
-    // do that, so that is handled here.
-    CEikScrollBar* sb = iSBFrame->VerticalScrollBar();
-    if ( aPointerEvent.iType == TPointerEvent::EButton1Down )
-        {
-        if ( sb && sb->Rect().Contains( aPointerEvent.iPosition ) )
-            {
-            sb->ClaimPointerGrab( EFalse );
-            sb->HandlePointerEventL( aPointerEvent );
-            }
-        else
-            {
-            ClaimPointerGrab( EFalse );
-            }
-        }
-
-    CCoeControl* pointerRecipient = GrabbingComponent();
-    if ( sb && pointerRecipient == sb )
-        {
-        sb->HandlePointerEventL( aPointerEvent );
-        }
-    else
-        {
-        CEikTextListBox::HandlePointerEventL( aPointerEvent );
-        }
+    CEikTextListBox::HandlePointerEventL( aPointerEvent );
     }
 
 // -----------------------------------------------------------------------------
@@ -372,7 +358,8 @@ void CNcsPopupListBox::SetPopupMaxRect( const TRect& aPopupMaxRect )
     {
     FUNC_LOG;
     iPopupMaxRect = aPopupMaxRect;
-    SetPopupHeight();
+
+    SetPopupRect();
     TRAP_IGNORE( UpdateScrollBarsL() );
     TRAP_IGNORE( SetScrollBarVisibilityL() );
     }
@@ -449,82 +436,116 @@ void CNcsPopupListBox::SetListItemsFromArrayL()
 	// Update rmlu item
 	SetRemoteLookupItemFirstToTheListL();
 	
-	SetPopupHeight();
+	SetPopupRect();
 	SetScrollBarVisibilityL();
 	HandleItemAdditionL();
-	
-	if( iItemTextsArray && iItemTextsArray->Count() > 0 ) 
-		SetCurrentItemIndex( 0 );
 
-	if( IsVisible() )
-		DrawDeferred();
-	}
+    if ( iItemTextsArray && iItemTextsArray->Count() > 0 )
+        {
+        SetCurrentItemIndex( 0 );
+        }
+
+    if ( IsVisible() )
+        {
+        DrawDeferred();
+        }
+    }
 
 // -----------------------------------------------------------------------------
 // CNcsPopupListBox::RoundToItemHeight
 // -----------------------------------------------------------------------------
 TInt CNcsPopupListBox::RoundToItemHeight(const TInt aPopupHeight) const
     {
-	TReal fullItems; // number of full visible items in window
-	TInt err = Math::Round(fullItems, (aPopupHeight / ItemHeight()), 0);
-	if(err == KErrNone)
-	    {
-	    return (TInt)(fullItems * ItemHeight()); 
-	    }
-	return aPopupHeight; // in case of error
+    TReal fullItems; // number of full visible items in window
+    TInt err = Math::Round(fullItems, (aPopupHeight / ItemHeight()), 0);
+    if (err == KErrNone)
+        {
+        return (TInt)(fullItems * ItemHeight()); 
+        }
+    return aPopupHeight; // in case of error
     }
 
 // -----------------------------------------------------------------------------
-// CNcsPopupListBox::SetPopupHeight
+// CNcsPopupListBox::SetPopupRect
 // -----------------------------------------------------------------------------
-void CNcsPopupListBox::SetPopupHeight()
+void CNcsPopupListBox::SetPopupRect()
     {
     FUNC_LOG;
-    // This is the total height in pixels needed to show all items
-    TInt minimumHeight = 2 * KBackgroundFrameWidth +
-        CalcHeightBasedOnNumOfItems( Model()->NumberOfItems() );
+    // The popup width and horizontal position is adjusted so that it
+    // will be within the area specified in both layout data and the set
+    // maximum rect.
+    TAknLayoutRect editorPane;
+    editorPane.LayoutRect( iAppUi->ClientRect(),
+        TAknWindowComponentLayout::Compose(
+            TAknWindowComponentLayout::Compose(
+                AknLayoutScalable_Apps::list_cmail_pane(),
+                AknLayoutScalable_Apps::list_single_cmail_header_detail_pane( 0 ) ),
+            AknLayoutScalable_Apps::list_single_cmail_header_editor_pane_bg( 4 ) ) );
+    TRect editorPaneRect = editorPane.Rect();
+
     TRect newRect = iPopupMaxRect;
-    TInt areaHeight = Parent()->Parent()->Rect().Height();
-    TInt halfAreaHeight = areaHeight/2;
+    newRect.iTl.iX = Max( iPopupMaxRect.iTl.iX, editorPaneRect.iTl.iX );
+    newRect.iBr.iX = Min( iPopupMaxRect.iBr.iX, editorPaneRect.iBr.iX );
+
+    // Thhe popup height and vertical position is adjusted based on the
+    // available space below and above the cursor and the number of items
+    // in the list.
+    const TRect rect = iPopupMaxRect;
+    TAknLayoutRect subpane;
+    subpane.LayoutRect( rect, AknLayoutScalable_Avkon::bg_popup_sub_pane_g1() );
+    const TRect subpaneRect = subpane.Rect();
+
+    const TInt frameHeights = iPopupMaxRect.Height() - subpaneRect.Height();
+
+    // This is the total height in pixels needed to show all items
+    TInt minimumHeight = frameHeights + 
+        CalcHeightBasedOnNumOfItems( Model()->NumberOfItems() );
+
+    CCoeControl* container = Parent()->Parent();
+    TInt containerTop = container->PositionRelativeToScreen().iY;
+    TInt containerHeight = container->Rect().Height();
+    TInt containerCenter = containerTop + containerHeight / 2;
 
     // Get height of one line in Address field
     CNcsHeaderContainer* headerObj = static_cast<CNcsHeaderContainer* >(Parent());
     TInt toLineHeight = headerObj->GetToLineHeight(); // height of one line height
-    if(toLineHeight == 0)
-    	{
-        toLineHeight = ItemHeight();
-    	}
-    
-    TInt newHeight = minimumHeight; // default window height
-    
-    //latch listbox on the bottom of the editor field
-    if ( newRect.iTl.iY <= halfAreaHeight ) 
+    if ( toLineHeight == 0 )
         {
-        newHeight = RoundToItemHeight( areaHeight - newRect.iTl.iY );
-        if(newHeight > minimumHeight)
-        	{
-            newHeight = minimumHeight; // shrink window (if needed)
-          	}
+        toLineHeight = ItemHeight();
         }
-    //latch listbox on the top of the editor field
+
+    TInt newHeight = minimumHeight; // default window height
+
+    // latch listbox on the bottom of the editor field
+    if ( newRect.iTl.iY <= containerCenter ) 
+        {
+        TInt maxHeight = containerHeight - ( newRect.iTl.iY - containerTop ); 
+        newHeight = RoundToItemHeight( maxHeight - frameHeights ) + frameHeights;
+        if ( newHeight > minimumHeight )
+            {
+            newHeight = minimumHeight; // shrink window (if needed)
+            }
+        }
+    // latch listbox on the top of the editor field
     else
-     	{
+        {
         TInt yOffset = -minimumHeight - toLineHeight; // how much up
         TInt newTlY = newRect.iTl.iY + yOffset;       // new Top Left Y coordinate
-        if(newTlY>=0)
-          	{
+        if ( newTlY >= containerTop )
+            {
             newRect.Move( 0, yOffset );
             }
         else
-        	{
+            {
             // shrink height to visible area and move
-            newHeight = RoundToItemHeight( minimumHeight + newTlY);
-            newRect.Move( 0, -newHeight - toLineHeight);
+            TInt maxHeight = newRect.iTl.iY - toLineHeight - containerTop;
+            newHeight = RoundToItemHeight( maxHeight - frameHeights ) + frameHeights;
+            newRect.Move( 0, -newHeight - toLineHeight );
             }
-     	}
-    newRect.SetHeight(newHeight); // set new height
-	SetRect( newRect );
-	}
+        }
+    newRect.SetHeight( newHeight ); // set new height
+    SetRect( newRect );
+    }
 
 // -----------------------------------------------------------------------------
 // CNcsPopupListBox::SetScrollBarVisibilityL
@@ -669,8 +690,16 @@ void CNcsListItemDrawer::DrawActualItem(TInt aItemIndex,
     { 
     // temporary const_cast to get the scrollbar width
     CNcsPopupListBox& tmpListBox = const_cast<CNcsPopupListBox&>( iListBox );
-    itemRect.Resize( -tmpListBox.ScrollBarFrame()->ScrollBarBreadth(
-        CEikScrollBar::EVertical ) + KBackgroundFrameWidth, 0 );
+    const TInt scrollbarBreadth = tmpListBox.ScrollBarFrame()->
+        ScrollBarBreadth( CEikScrollBar::EVertical );
+    if ( AknLayoutUtils::LayoutMirrored() )
+        {
+        itemRect.iTl.iX = iListBox.Rect().iTl.iX + scrollbarBreadth;
+        }
+    else
+        {
+        itemRect.iBr.iX = iListBox.Rect().iBr.iX - scrollbarBreadth;
+        }
     }
 
     TRect textRect = itemRect;
@@ -683,11 +712,11 @@ void CNcsListItemDrawer::DrawActualItem(TInt aItemIndex,
     MAknsControlContext* cc = AknsDrawUtils::ControlContext( &iListBox );
     if ( cc )
         {
-        AknsDrawUtils::Background( skin, cc, *iGc, itemRect );
+        AknsDrawUtils::Background( skin, cc, *iGc, aActualItemRect );
         }
     else
         {
-        iGc->Clear( itemRect );
+        iGc->Clear( aActualItemRect );
         }
 
     // Draw the highlight, when necessary.
@@ -881,19 +910,20 @@ void CNcsPopupListBox::UpdateTextColors()
         }
     }
 
-void CNcsPopupListBox::Draw( const TRect& aRect ) const
+void CNcsPopupListBox::Draw( const TRect& /*aRect*/ ) const
     {
     CWindowGc& gc = SystemGc();
     MAknsSkinInstance* skin = AknsUtils::SkinInstance();
     if ( iBackgroundContext )
         {
-        AknsDrawUtils::Background( skin, iBackgroundContext, gc, aRect );
+        AknsDrawUtils::DrawBackground( skin, iBackgroundContext, this, gc,
+            Rect().iTl, Rect(), KAknsDrawParamNoClearUnderImage );
         }
     else
         {
-        gc.Clear( aRect );
+        gc.Clear( Rect() );
         }
-    CEikListBox::Draw( aRect );
+    CEikListBox::Draw( Rect() );
     }
 
 // End of File

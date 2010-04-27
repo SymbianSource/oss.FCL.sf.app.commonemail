@@ -62,7 +62,7 @@
 
 // CLASS IMPLEMENTATION
 
-TInt KGenericTimerDialogInterval = 1000; // Interval for iDialogTimer
+const TInt KBigAttachmentSize = 200000; // in Bytes - Attachment is big when it's over this size
 
 // ---------------------------------------------------------------------------
 // Two-phased constructor.
@@ -122,7 +122,6 @@ void CFreestyleEmailUiSendAttachmentsListControl::ConstructL( CAlfEnv& aEnv )
 	iService = CFscContactActionService::NewL( iAppUi->GetVPbkManagerL() );
     iModel = CFSEmailUiSendAttachmentsListModel::NewL( iAppUi, Env(), this );
     iAttachmentAddingLocked = EFalse;
-    iDialogTimer = CFSEmailUiGenericTimer::NewL( this );
     }
 
 // ---------------------------------------------------------------------------
@@ -132,12 +131,7 @@ void CFreestyleEmailUiSendAttachmentsListControl::ConstructL( CAlfEnv& aEnv )
 CFreestyleEmailUiSendAttachmentsListControl::~CFreestyleEmailUiSendAttachmentsListControl()
     {
     FUNC_LOG;
-	if(iDialogTimer)
-		{
-	    iDialogTimer->Cancel();
-	    delete iDialogTimer;
-		}
-	delete iService;
+    delete iService;
     }
 
 // <cmail>
@@ -345,18 +339,6 @@ TBool CFreestyleEmailUiSendAttachmentsListControl::IsAttachmentAddingLocked() co
 	return iAttachmentAddingLocked;
 }
 
-
-// ---------------------------------------------------------------------------
-// TimerEventL
-// Timer that delays the dialog will open the dialog here
-// ---------------------------------------------------------------------------
-//
-void CFreestyleEmailUiSendAttachmentsListControl::TimerEventL( CFSEmailUiGenericTimer* /*aTriggeredTimer*/ )
-	{
-	TFsEmailUiUtility::ShowWaitNoteL( iWaitNote, R_FSE_WAIT_INSERTING_TEXT, EFalse,ETrue );
-	iDialogTimer->Cancel();
-	}
-
 // ---------------------------------------------------------------------------
 // AppendAttachmentToListL
 //
@@ -413,10 +395,34 @@ TBool CFreestyleEmailUiSendAttachmentsListControl::AppendAttachmentToListL(MsgAt
         
 	iAttachmentAddingLocked = ETrue;
 	
+	if( fetchOK )
+		{
+	    TInt size(0);  
+	    TInt err(KErrNone);
+	    // check if dialog could be shown if the attachment is not protected and have a propper size
+	    RFile file; 
+	    err = file.Open( CCoeEnv::Static()->FsSession(), filePath, EFileShareReadersOnly );
+	    if( err == KErrNone )
+	        {
+	        CleanupClosePushL( file );
+	        fetchOK = !FileDrmProtectedL( file ); // it's ok if it is NOT protected
+	   	    file.Size(size); //get size in bytes
+	        CleanupStack::PopAndDestroy( &file );
+	    	}
+	        
+	    // show dialog for multiple files or 
+	    // show if file is not protected and it's considered as the Big Attachment
+        if(( fetchOK && size > KBigAttachmentSize )  || err != KErrNone )
+            {
+		    TFsEmailUiUtility::ShowWaitNoteL( iWaitNote, R_FSE_WAIT_INSERTING_TEXT, EFalse,ETrue );
+		    iWaitNote->DrawNow();
+		    iWaitNote->FocusChanged(EDrawNow);
+		    }
+	    }
+    
+	
 	if ( fetchOK && filePath.Length() > 0 ) // </cmail>
 		{
-	    iDialogTimer->Start(KGenericTimerDialogInterval);   
-	
         if ( !FileDrmProtectedL( filePath ) )
 			{
 			// add file as a email message part
@@ -468,8 +474,7 @@ TBool CFreestyleEmailUiSendAttachmentsListControl::AppendAttachmentToListL(MsgAt
 			}
 		}
 
-	iDialogTimer->Cancel();
-	if(iWaitNote) 
+	if( iWaitNote ) 
 	  	{
 	    iWaitNote->ProcessFinishedL();
 	   	}
@@ -511,7 +516,7 @@ TBool CFreestyleEmailUiSendAttachmentsListControl::FileDrmProtectedL( const TDes
     RFile file;
     TInt err = file.Open( CCoeEnv::Static()->FsSession(), 
                           aFilePath, 
-                          EFileRead | EFileShareAny );
+                          EFileShareReadersOnly );
     User::LeaveIfError( err );
     CleanupClosePushL( file );
     isProtected = FileDrmProtectedL( file );

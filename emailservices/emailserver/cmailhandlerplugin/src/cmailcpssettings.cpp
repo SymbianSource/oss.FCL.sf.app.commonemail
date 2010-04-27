@@ -122,45 +122,104 @@ void CMailCpsSettings::DoCancel()
 void CMailCpsSettings::LoadSettingsL()
     {
     FUNC_LOG;
-    // Clean up local settings cache
-    iMailboxArray.Reset();
     TInt ret( KErrNone );
-    
-    // Load mailbox array
-    RArray<TUint32> keys;
+
+    // mailbox keys
+    RArray<TUint> cenrepMailboxes; 
+    CleanupClosePushL( cenrepMailboxes );
+    RArray<TBool> cenrepMailboxesExistence; 
+    CleanupClosePushL( cenrepMailboxesExistence );
+
+    // cenrep keys
+    RArray<TUint32> keys; 
     CleanupClosePushL( keys );
     GetMailboxNonZeroKeysL( keys );
-    const TInt iiMax( keys.Count() );
-    for ( TInt ii = 0; ii < iiMax; ii++ )
+    TInt dMax( keys.Count() );
+    
+    cenrepMailboxes.ReserveL( dMax );
+    cenrepMailboxesExistence.ReserveL( dMax );
+    
+    // make array of mailbox keys
+    TInt value( 0 );
+    TInt i;
+    for ( i = 0; i < dMax; i++ )
         {
-        TInt value( 0 );
-        ret = iCenRep->Get( keys[ii], value );
-        if ( ret )
-            {
-            User::Leave( ret );
-            }
-        else
-            {
-            TFSMailMsgId mailbox; 
-            ret = ResolveMailbox( value, mailbox );
-            if ( ret )
+         User::LeaveIfError( ret = iCenRep->Get( keys[i], value ));
+         cenrepMailboxes.AppendL( static_cast<TUint>(value) );
+         cenrepMailboxesExistence.AppendL( EFalse );
+        }
+    CleanupStack::PopAndDestroy(&keys); 
+    
+    // Sync array of cenrep keys with iMailboxArray
+    // remove from array what is not in cenrep
+    TInt dFound( KErrNotFound );
+    for ( i = iMailboxArray.Count()-1; i >= 0; i -- )
+        {
+        dFound = cenrepMailboxes.Find( iMailboxArray[i].Id() );
+        if ( KErrNotFound != dFound ) 
+            { 
+             // mailbox is in iMailboxArray and in cenrep => check provider
+            INFO_1("Mailbox both in cenrep and iMailboxArray: i = %d ", i );
+            ret = CheckMailboxExistence( iMailboxArray[i] );
+            if ( KErrNotFound == ret)
                 {
-				INFO("CMailCpsSettings::LoadSettingsL(): Error: ignore this entry");
-                // Resolving encountered error, ignore this entry
-                ret = iCenRep->Reset( KCMailMailboxIdBase+ii );
-                ret = iCenRep->Reset( KCMailPluginIdBase+ii );
-                ret = iCenRep->Reset( KCMailWidgetContentIdBase+ii );
-                if ( ret )
-                    {
-                    }
+                // mailbox was removed from provider => remove from cenrep also
+                // cenrepMailboxes indexed the same way as keys => finding key not needed 
+                ret = iCenRep->Reset( KCMailMailboxIdBase + i );
+                ret = iCenRep->Reset( KCMailPluginIdBase + i );
+                ret = iCenRep->Reset( KCMailWidgetContentIdBase + i );
+                INFO_1("Mailbox removed from cenrep: dFound %d ", dFound );
                 }
             else
                 {
-                iMailboxArray.AppendL( mailbox );
+                User::LeaveIfError(ret); // for instance if no memory
+                INFO_1("Mailbox provider check ok: dFound = %d ", dFound );
+                }
+            cenrepMailboxesExistence[dFound] = ETrue; // not remove to ensure indexes are the same as in keys
+            }
+        else
+            {
+            // mailbox was removed from cenrep => remove from array
+            iMailboxArray.Remove(i);
+            INFO_1("Mailbox removed from iMailboxArray: i = %d ", i );
+            }
+        }
+    // Check order and new mailboxes 
+    TInt j(0);
+    for ( i = 0; i < dMax; i++ )
+        {
+        // new mailboxes in cenrep needs to be added to iMailboxArray
+        if ( ! cenrepMailboxesExistence[i] ) 
+            {
+            TFSMailMsgId mailbox; 
+            // Find mailbox by this function because cenrep does not hold pluginID
+            if ( KErrNone == ResolveMailbox( cenrepMailboxes[i], mailbox ) )
+                {
+                iMailboxArray.Insert( mailbox, i );
+                INFO_1("Mailbox added to iMailboxArray: i = %d ", i );
+                }
+            }
+        // Check if order is OK
+        if ( iMailboxArray[i].Id() != cenrepMailboxes[i] )
+            {
+            TInt jMax( iMailboxArray.Count() );
+            for ( j = i+1; j <= jMax; j++ )
+                {
+                if ( iMailboxArray[j].Id() == cenrepMailboxes[i])
+                    {
+                    iMailboxArray.Insert( iMailboxArray[j], i ); 
+                    iMailboxArray.Remove( j+1 );// insertion increased indices 
+                    break;
+                    }
+                }
+            if (j == jMax) // arrays not in sync error
+                {
+                User::Leave( KErrNotFound );
                 }
             }
         }
-    CleanupStack::PopAndDestroy(); // CleanupClosePushL( keys )
+    CleanupStack::PopAndDestroy(&cenrepMailboxesExistence);
+    CleanupStack::PopAndDestroy(&cenrepMailboxes);
     }
 
 // ---------------------------------------------------------------------------
@@ -217,7 +276,7 @@ TInt CMailCpsSettings::ResolveMailbox( const TInt aMailboxId, TFSMailMsgId& aMsg
     FUNC_LOG;
     RPointerArray<CFSMailBox> mailboxarray;
     TInt err = iMailClient.ListMailBoxes( TFSMailMsgId(), mailboxarray );
-	INFO_1("CMailCpsSettings::ResolveMailbox(): : ListMailBoxes() returns %d", err);
+	INFO_1("CMailCpsSettings::ResolveMailbox():: ListMailBoxes() returns %d", err);
     if( !err ) // KErrNone = 0
         {
         err = KErrNotFound;
@@ -237,6 +296,28 @@ TInt CMailCpsSettings::ResolveMailbox( const TInt aMailboxId, TFSMailMsgId& aMsg
     mailboxarray.ResetAndDestroy();
     return err;
     }
+
+TInt CMailCpsSettings::CheckMailboxExistence( TFSMailMsgId& aMsg )
+    {
+    FUNC_LOG;
+    CFSMailBox *mbox( NULL );
+    TRAPD(err, mbox = iMailClient.GetMailBoxByUidL(aMsg));
+    if ( mbox ) // mail box exists
+        {
+        delete mbox;
+        return KErrNone;
+        }
+    if ( ( KErrNotFound == err ) || ( KErrNone == err ) )
+        {
+    // mail box not exists, chek if it is not in different plugin 
+    // very safe, maybe return KErrNotFound would be enough
+        return ResolveMailbox( aMsg.Id(), aMsg );
+        }
+    return err;
+    }
+
+
+
 
 // ---------------------------------------------------------------------------
 // CMailCpsSettings::StartObservingL
@@ -305,7 +386,7 @@ void CMailCpsSettings::GetExtMailboxesL( RPointerArray<CMailExternalAccount>& aA
         CleanupStack::Pop( account );
         }
 
-    CleanupStack::PopAndDestroy(); // keys
+    CleanupStack::PopAndDestroy(&keys); // keys
     }
 
 // ---------------------------------------------------------------------------
@@ -370,7 +451,7 @@ void CMailCpsSettings::AddMailboxL( const TFSMailMsgId aMailbox )
         {
         }
 
-    CleanupStack::PopAndDestroy(); // CleanupClosePushL( keys );
+    CleanupStack::PopAndDestroy( &keys ); // keys 
 
     }
 
@@ -547,6 +628,27 @@ void CMailCpsSettings::GetContentId( TInt aMailboxId, TInt aNext, TDes16& aValue
     }
 
 // ---------------------------------------------------------------------------
+// CMailCpsSettings::WidgetCountByMailbox
+// ---------------------------------------------------------------------------
+//
+TInt CMailCpsSettings::WidgetCountByMailbox( TInt aMailboxId )
+    {
+    FUNC_LOG;
+    TInt ret(0);
+    for (TInt i = 0; i < KMaxMailboxCount; i++)
+        {       
+        TInt value;
+        TUint32 mailboxKey(KCMailMailboxIdBase+i);
+        iCenRep->Get( mailboxKey, value );     
+        if (aMailboxId == value)
+            {
+            ret++;
+            }
+        }
+    return ret;
+    }
+
+// ---------------------------------------------------------------------------
 // CMailCpsSettings::IsSelected
 // ---------------------------------------------------------------------------
 //
@@ -636,6 +738,7 @@ TInt CMailCpsSettings::TotalIntMailboxCount()
     RPointerArray<CFSMailBox> mailboxarray;
     iMailClient.ListMailBoxes( TFSMailMsgId(), mailboxarray );    
     TInt ret = mailboxarray.Count(); 
+    mailboxarray.ResetAndDestroy();
     return ret;
     }
 
@@ -678,28 +781,35 @@ void CMailCpsSettings::ToggleWidgetNewMailIconL( TBool aIconOn, const TFSMailMsg
     }
 
 // -----------------------------------------------------------------------------
-// CMailCpsSettings::GetNewMailState
+// CMailCpsSettings::GetNewMailStateL
 // -----------------------------------------------------------------------------
-TBool CMailCpsSettings::GetNewMailState( const TFSMailMsgId& aMailBox )
+TBool CMailCpsSettings::GetNewMailStateL( const TFSMailMsgId& aMailBox, TInt aUnreadCount )
     {
     FUNC_LOG;
     TBool ret(EFalse);
-    TBuf<KMaxDescLen> mailbox;
-    mailbox.Num(aMailBox.Id());
-
-    TBuf<KMaxDescLen> str;
-    str.Copy(KStartSeparator);    
-    str.Append(mailbox);
-    str.Append(KEndSeparator);    
-
-    TBuf<KMaxDescLen> stored;
-    TUint32 key(KCMailMailboxesWithNewMail);
-    iCenRep->Get( key, stored );
-    
-    TInt result = stored.Find(str);
-    if (result >= 0)
+    if ( aUnreadCount )
         {
-        ret = ETrue;
+        TBuf<KMaxDescLen> mailbox;
+        mailbox.Num(aMailBox.Id());
+
+        TBuf<KMaxDescLen> str;
+        str.Copy(KStartSeparator);    
+        str.Append(mailbox);
+        str.Append(KEndSeparator);    
+
+        TBuf<KMaxDescLen> stored;
+        TUint32 key(KCMailMailboxesWithNewMail);
+        iCenRep->Get( key, stored );
+    
+        TInt result = stored.Find(str);
+        if (result >= 0)
+            {
+            ret = ETrue;
+            }
+        }
+    else
+        {
+        ToggleWidgetNewMailIconL( EFalse, aMailBox );
         }
     return ret;
     }

@@ -24,6 +24,8 @@
 #include <alf/alftexture.h>
 #include <alf/alfanchorlayout.h>
 #include <alf/alfdecklayout.h>
+#include <AknUtils.h>
+#include <aknlayoutscalable_apps.cdl.h>
 
 // Constants
 
@@ -34,11 +36,27 @@ const TReal32 KVisibleOpacityThumb = 0.85f;
 // Background opacity (visible)
 const TReal32 KVisibleOpacityBackground = 0.65f;
 // How long scrollbar will be visible after change
-const TReal32 KVisibleTimeout = 500;
+const TReal32 KVisibleTimeout = 250;
 // How long fading will take
 const TReal32 KFadeTimeout = 500;
-// Width of the scrollbar (this will be replaced with value from layout)
-const TInt KScrollBarWidth = 18;
+
+// Local methods
+
+// ---------------------------------------------------------------------------
+// ScrollBarWidth
+// ---------------------------------------------------------------------------
+TInt ScrollBarWidth()
+    {
+    FUNC_LOG;
+    TRect mainPaneRect;
+    AknLayoutUtils::LayoutMetricsRect( AknLayoutUtils::EMainPane, mainPaneRect );
+    TAknLayoutRect layoutRect;
+    layoutRect.LayoutRect( mainPaneRect, AknLayoutScalable_Apps::main_sp_fs_email_pane() );
+    layoutRect.LayoutRect( layoutRect.Rect(), AknLayoutScalable_Apps::listscroll_cmail_pane() );
+    layoutRect.LayoutRect( layoutRect.Rect(), AknLayoutScalable_Apps::list_cmail_pane() );    
+    layoutRect.LayoutRect( layoutRect.Rect(), AknLayoutScalable_Apps::sp_fs_scroll_pane_cp02() );
+    return layoutRect.Rect().Width();
+    }
 
 // CUiCCompositeImage
 
@@ -111,6 +129,8 @@ void CUiCCompositeImage::ConstructL( CAlfControl& aControl, CAlfLayout* aParentL
 void CUiCCompositeImage::SetAnchors()
     {
     FUNC_LOG;
+    const TInt width( ScrollBarWidth() );
+    
     // iTop
     iLayout->SetAnchor(
             EAlfAnchorTopLeft, 0,
@@ -121,26 +141,26 @@ void CUiCCompositeImage::SetAnchors()
             EAlfAnchorBottomRight, 0,
             EAlfAnchorOriginRight, EAlfAnchorOriginTop,
             EAlfAnchorMetricAbsolute, EAlfAnchorMetricAbsolute,
-            TAlfTimedPoint( 0, KScrollBarWidth  ) );
+            TAlfTimedPoint( 0, width  ) );
 
     // iMiddle
     iLayout->SetAnchor(
             EAlfAnchorTopLeft, 1,
             EAlfAnchorOriginLeft, EAlfAnchorOriginTop,
             EAlfAnchorMetricAbsolute, EAlfAnchorMetricAbsolute,
-            TAlfTimedPoint( 0, KScrollBarWidth ) );
+            TAlfTimedPoint( 0, width ) );
     iLayout->SetAnchor(
             EAlfAnchorBottomRight, 1,
             EAlfAnchorOriginRight, EAlfAnchorOriginBottom,
             EAlfAnchorMetricAbsolute, EAlfAnchorMetricAbsolute,
-            TAlfTimedPoint( 0, -KScrollBarWidth  ) );
+            TAlfTimedPoint( 0, -width  ) );
 
     // iBottom
     iLayout->SetAnchor(
             EAlfAnchorTopLeft, 2,
             EAlfAnchorOriginLeft, EAlfAnchorOriginBottom,
             EAlfAnchorMetricAbsolute, EAlfAnchorMetricAbsolute,
-            TAlfTimedPoint( 0, -KScrollBarWidth ) );
+            TAlfTimedPoint( 0, -width ) );
     iLayout->SetAnchor(
             EAlfAnchorBottomRight, 2,
             EAlfAnchorOriginRight, EAlfAnchorOriginBottom,
@@ -332,13 +352,15 @@ void CUiCScrollBar::ProvideBitmapL( TInt aId, CFbsBitmap*& aBitmap, CFbsBitmap*&
 
     if ( aBitmap )
         {
+        const TInt width( ScrollBarWidth() );
+
         TAknContentDimensions origDim;
         AknIconUtils::GetContentDimensions( aBitmap, origDim );
         TSize iconSize( origDim.iWidth, origDim.iHeight );
-        if (iconSize.iWidth != KScrollBarWidth && iconSize.iWidth > 0)
+        if (iconSize.iWidth != width && iconSize.iWidth > 0)
             {
-            iconSize.iHeight = iconSize.iHeight * KScrollBarWidth / iconSize.iWidth;
-            iconSize.iWidth = KScrollBarWidth;
+            iconSize.iHeight = iconSize.iHeight * width / iconSize.iWidth;
+            iconSize.iWidth = width;
             }
         AknIconUtils::DisableCompression( aBitmap );
         AknIconUtils::SetSize( aBitmap, iconSize, EAspectRatioNotPreserved );
@@ -400,7 +422,7 @@ void CUiCScrollBar::ConstructL( CAlfEnv& aEnv, CAlfLayout* aParentLayout )
             Env().TextureManager().CreateTextureL( EThumbMiddle, this, EAlfTextureFlagSkinContent ),
             Env().TextureManager().CreateTextureL( EThumbBottom, this, EAlfTextureFlagSkinContent ) );
     iThumbVisual->Layout().SetFlags( EAlfVisualFlagDrawAfterOthers );
-    SetAnchors();
+    SetAnchors();    
     }
 
 // ---------------------------------------------------------------------------
@@ -425,7 +447,7 @@ void CUiCScrollBar::SetBgAnchors()
             EAlfAnchorTopLeft, 0,
             EAlfAnchorOriginRight, EAlfAnchorOriginTop,
             EAlfAnchorMetricAbsolute, EAlfAnchorMetricAbsolute,
-            TAlfTimedPoint( -KScrollBarWidth, 0 ) );
+            TAlfTimedPoint( -ScrollBarWidth(), 0 ) );
     iBgLayout->SetAnchor(
             EAlfAnchorBottomRight, 0,
             EAlfAnchorOriginRight, EAlfAnchorOriginBottom,
@@ -445,7 +467,7 @@ void CUiCScrollBar::SetThumbAnchors()
             EAlfAnchorTopLeft, 0,
             EAlfAnchorOriginRight, EAlfAnchorOriginTop,
             EAlfAnchorMetricAbsolute, EAlfAnchorMetricAbsolute,
-            TAlfTimedPoint( -KScrollBarWidth, iModel.ThumbPosition() ) );
+            TAlfTimedPoint( -ScrollBarWidth(), iModel.ThumbPosition() ) );
     iThumbLayout->SetAnchor(
             EAlfAnchorBottomRight, 0,
             EAlfAnchorOriginRight, EAlfAnchorOriginTop,

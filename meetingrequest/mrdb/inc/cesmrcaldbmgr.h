@@ -69,7 +69,7 @@ public: // Constructors and destructors
      * @return instance view pointer, ownership not transferred
      */
     virtual CCalInstanceView* NormalDbInstanceView() = 0;
-    
+
     /**
      * Accessor for Agenda Model CCalInstanceView owned by this utility.
      * Returns a valid array of pointer if status is EAvailable or
@@ -235,31 +235,37 @@ public: // Constructors and destructors
      * @param aCalendarName Reference to calendar name
      * @return calendar's color rgb value
      */
-    virtual TRgb GetCalendarColorByNameL( TDesC& aCalendarName ) = 0;
+    virtual TRgb GetCalendarColorByNameL( const TDesC& aCalendarName ) = 0;
 
-    /*
+    /**
      * Set current calendar by pass calendar index to it
      * @param aIndex current calendar index
      */
     virtual void SetCurCalendarByIndex( TInt aIndex ) = 0;
 
-    /*
+    /**
      * Set current calendar by pass calendar name to it
      * @param aCalendarName current calendar name
      */
-    virtual void SetCurCalendarByNameL( TDesC& aCalendarName ) = 0;
+    virtual void SetCurCalendarByNameL( const TDesC& aCalendarName ) = 0;
 
-    /*
+    /**
      * Set current calendar by pass entry
      * @param aColId current calendar collectionID
      */
     virtual void SetCurCalendarByColIdL( TInt aColId ) = 0;
-    
-    /*
+
+    /**
      * Set current calendar by pass entry
      * @param aEntry entry which belongs current calendar
      */
     virtual void SetCurCalendarByEntryL( MESMRCalEntry& aEntry ) = 0;
+
+    /**
+     * Sets current calendar by calendar database file id.
+     * @param aDbId calendar database file id to use
+     */
+    virtual void SetCurCalendarByDbIdL( TCalFileId aDbId ) = 0;
 
     /*
      * Get color of current calendar
@@ -272,7 +278,7 @@ public: // Constructors and destructors
      * @return current calendar's colId
      */
     virtual TInt GetCurCalendarColIdL() = 0;
-    
+
     /*
      * Get index of current calendar
      * @return current calendar's index
@@ -292,7 +298,7 @@ public: // Constructors and destructors
      * @return a CCalInstanceView that aCalEntry belongs
      */
     virtual CCalInstanceView* InstanceViewL(const CCalEntry& aCalEntry ) = 0;
-    
+
     /*
      * Get current entryview
      * @return current entryView
@@ -387,15 +393,16 @@ protected: // From MESMRUtilsCalDbMgr
     TPtrC GetCalendarNameByEntryL(
             MESMRCalEntry& aEntry);
     TRgb GetCalendarColorByNameL(
-            TDesC& aCalendarName);
+            const TDesC& aCalendarName);
     void SetCurCalendarByNameL(
-            TDesC& aCalendarName );
+            const TDesC& aCalendarName );
     void SetCurCalendarByIndex(
             TInt aIndex );
     void SetCurCalendarByColIdL(
             TInt aColId );
     void SetCurCalendarByEntryL(
             MESMRCalEntry& aEntry );
+    void SetCurCalendarByDbIdL( TCalFileId aDbId );
     TRgb GetCurCalendarColor();
     TInt GetCurCalendarColIdL();
     TInt GetCurCalendarIndex();

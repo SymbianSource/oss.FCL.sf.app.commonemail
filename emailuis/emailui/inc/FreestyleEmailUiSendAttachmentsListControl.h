@@ -24,7 +24,6 @@
 
 // LOCAL INCLUDES
 #include "FreestyleEmailUiAttachmentsListModel.h"
-#include "FreestyleEmailUiUtilities.h"
 #include "fsccontactactionmenudefines.h"
 
 // FORWARD DECLARATIONS
@@ -44,7 +43,7 @@ class CAknWaitNote;
 */
 // <cmail>
 class CFreestyleEmailUiSendAttachmentsListControl 
-	: public CAlfControl, public MFsActionMenuPositionGiver, public MMGFetchVerifier, public MFSEmailUiGenericTimerCallback
+	: public CAlfControl, public MFsActionMenuPositionGiver, public MMGFetchVerifier 
     {  
 // </cmail>
 public:
@@ -89,10 +88,7 @@ public: // new methods
     TBool OfferEventL( const TAlfEvent& aEvent );  
 
     TBool IsAttachmentAddingLocked() const;
-    
-	// Fire timer callback
-	void TimerEventL( CFSEmailUiGenericTimer* aTriggeredTimer );
-    
+        
     /**
     * AppendAttachmentToListL
     * Adds new attachment to list and email body
@@ -244,9 +240,7 @@ private: // data
     
     // adding attachment locked
     TBool iAttachmentAddingLocked;
-    
-    // Timer to postpone the Info Dialog 
-    CFSEmailUiGenericTimer* iDialogTimer;
+
     };
 
 #endif /*FREESTYLEMAILUI_SENDATTACHMENTSLISTCONTROL_H_*/

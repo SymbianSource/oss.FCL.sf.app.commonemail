@@ -20,6 +20,8 @@
 
 #include <e32base.h>
 #include <cmrmailboxutils.h>
+#include <calcommon.h>
+
 #include "esmrdef.h"
 #include "cfsmailcommon.h"
 
@@ -35,15 +37,15 @@ class CCalUser;
 NONSHARABLE_CLASS( CESMRFsMailboxUtils ): public CBase
     {
 public:
-    
+
     /**
      * Enumeration for mailbox capabilities
      */
     enum TMRMailboxCapability
         {
         EMRCapabilityAttachment
-        };    
-    
+        };
+
 public: // Constructors and destructors
 
     /**
@@ -112,7 +114,18 @@ public: // New functions
      */
     IMPORT_C TBool DefaultMailboxSupportCapabilityL(
             TMRMailboxCapability aCapability );
-    
+
+    /**
+     * Gets the calendar database id used by mail plugin
+     *
+     * @param aPlugin mail plugin in use
+     * @param aDbId on return contains the database id or KNullFileId
+     *              if plugin does not provide database id information.
+     */
+    void GetCalendarDatabaseIdL(
+            TESMRMailPlugin aPlugin,
+            TCalFileId& aDbId );
+
 private: // Implementation
     CESMRFsMailboxUtils(
             CMRMailboxUtils& aMailboxUtils );
@@ -128,7 +141,7 @@ private: // Implementation
 
     CFSMailClient& MailClientL();
     CFSMailBox* DefaultMailboxL();
-    
+
 private: // Data
     /// Ref: Reference to S60 mailbox utilities
     CMRMailboxUtils& iMRMailboxUtils;

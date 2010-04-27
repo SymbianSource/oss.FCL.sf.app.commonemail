@@ -77,7 +77,7 @@ _LIT8( KDisplayImagesLeftToRight,
 
 _LIT8( KDisplayImagesRightToLeft,
         "<script language=\"javascript\">var g_autoLoadImages = %d;</script><table style=\"display: none;\" id=\"displayImagesTable\" width=\"%dpx\"><tr><td align=\"left\"><input type=\"submit\" class=\"button\" value=\"%S\" onClick=\"displayImagesButtonPressed()\"/></td><td align=\"right\">%S</td></tr></table>" );
-
+_LIT8 ( KProtocolIdentifier, "://" );
 const TInt KMaxEventLength( 256 );
 const TInt KFreestyleMessageHeaderHTMLRightMarginInPx( 10 );
 const TInt KFreestyleMessageHeaderHTMLMaxBufferSizeForWidth( 5 );
@@ -1009,6 +1009,10 @@ void CFreestyleMessageHeaderHTML::AddAttachmentL( CFSMailMessagePart& aAttachmen
 void CFreestyleMessageHeaderHTML::StartHyperlinkL( const TDesC8& aUrl ) const
     {
     iWriteStream.WriteL( _L8("<a href=\"") );
+    if ( aUrl.FindF( KProtocolIdentifier() ) == KErrNotFound )
+    	{
+        iWriteStream.WriteL( _L8("http://"));
+    	}
     iWriteStream.WriteL( aUrl );
     iWriteStream.WriteL( _L8("\">"));
     iWriteStream.CommitL();

@@ -562,6 +562,21 @@ private:
         CMsvEntry*& aMessageEntry,
         CImEmailMessage*& aImEmailMessage );
 
+    /**
+	 * Takes ownership of the cached objects or creates new ones
+	 */     	 
+	void TakeMessageEntryLC(
+		TMsvId aId,
+        CMsvEntry*& aMessageEntry,
+        CImEmailMessage*& aImEmailMessage );
+    
+    /**
+     * Return objects to cache, deleting old ones in the cache if necessary
+     */         
+    void ReturnMessageEntry(
+        CMsvEntry* aMessageEntry,
+        CImEmailMessage* aImEmailMessage );
+        
     /*
      * Cleans up the cached messages entries that have accessed with
      * GetMessageEntryL()

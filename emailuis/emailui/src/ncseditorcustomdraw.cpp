@@ -82,36 +82,43 @@ void CNcsEditorCustomDraw::DrawBackground(
     TRect& aDrawn ) const
     {
     FUNC_LOG;
-    iCustomDrawer->DrawBackground( aParam, aBackground, aDrawn );
-    TInt lineHeigth( 0 );
-    TRAP_IGNORE( lineHeigth = iEditor->GetLineHeightL() );
-
-    TAknTextDecorationMetrics decorationMetrics( iTextPaneLayout.LayoutLine().FontId() );
-    TInt topMargin, bottomMargin;
-    decorationMetrics.GetTopAndBottomMargins( topMargin, bottomMargin );
-
-    TInt lineOffset = iTextPaneLayout.H() + topMargin + bottomMargin;
-    
-    TRgb lineColor = NcsUtility::CalculateMsgBodyLineColor( KFSColorDarkeningDegree, 
-                                                            NcsUtility::SeparatorLineColor() );
-    aParam.iGc.SetPenColor( lineColor );
-
-    TInt margin( 0 );
-    if ( aParam.iDrawRect.Height() < lineHeigth ||
-         aParam.iDrawRect.Height() == lineOffset )
+    if ( iPrevBrX == 0 )
         {
-        margin = 1;
+        const_cast<CNcsEditorCustomDraw*>(this)->iPrevBrX = aParam.iDrawRect.iBr.iX;
         }
-
-    TRect currentRect( aParam.iDrawRect.iTl , TPoint( aParam.iDrawRect.iBr.iX, aParam.iDrawRect.iTl.iY + lineOffset - margin ));
     
-    while ( currentRect.iBr.iY <= aParam.iDrawRect.iBr.iY )
+    // draw background if text selection is ongoing
+    if ( iEditor->SelectionLength() )
+    	{
+		iCustomDrawer->DrawBackground( aParam, aBackground, aDrawn );
+    	}
+    else
+    	{
+        aDrawn = aParam.iDrawRect;
+    	}
+    	
+    if ( aParam.iDrawRect.iTl.iX < iPrevBrX )
         {
-        if ( currentRect.iTl.iY >= aParam.iDrawRect.iTl.iY  )
+        aParam.iGc.SetPenColor( iLineColor );
+    
+        TInt margin( 0 );
+        if ( aParam.iDrawRect.Height() < iLineHeigth ||
+             aParam.iDrawRect.Height() == iLineOffset )
             {
-            aParam.iGc.DrawLine( TPoint( currentRect.iTl.iX, currentRect.iBr.iY), currentRect.iBr );
+            margin = 1;
             }
-        currentRect.Move( 0, lineHeigth );
+    
+        TRect currentRect( aParam.iDrawRect.iTl , TPoint( aParam.iDrawRect.iBr.iX, aParam.iDrawRect.iTl.iY + iLineOffset - margin ));
+        
+        while ( currentRect.iBr.iY <= aParam.iDrawRect.iBr.iY )
+            {
+            if ( currentRect.iTl.iY >= aParam.iDrawRect.iTl.iY  )
+                {
+                aParam.iGc.DrawLine( TPoint( currentRect.iTl.iX, currentRect.iBr.iY), currentRect.iBr );
+                }
+            currentRect.Move( 0, iLineHeigth );
+            }
+        const_cast<CNcsEditorCustomDraw*>(this)->iPrevBrX = aParam.iDrawRect.iBr.iX;
         }
     }
 
@@ -164,4 +171,12 @@ TRgb CNcsEditorCustomDraw::SystemColor( TUint aColorIndex, TRgb aDefaultColor ) 
 void CNcsEditorCustomDraw::UpdateLayout( TAknTextComponentLayout aLayout )
     {
     iTextPaneLayout = aLayout;
+    TRAP_IGNORE( iLineHeigth = iEditor->GetLineHeightL() );
+    iLineColor = NcsUtility::CalculateMsgBodyLineColor( KFSColorDarkeningDegree, 
+                                                            NcsUtility::SeparatorLineColor() );
+    TAknTextDecorationMetrics decorationMetrics( iTextPaneLayout.LayoutLine().FontId() );
+    TInt topMargin, bottomMargin;
+    decorationMetrics.GetTopAndBottomMargins( topMargin, bottomMargin );
+
+    iLineOffset = iTextPaneLayout.H() + topMargin + bottomMargin;
     }

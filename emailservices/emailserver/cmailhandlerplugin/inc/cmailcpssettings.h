@@ -83,6 +83,7 @@ public:
      * Gets array of external mailboxes from widget settings
      * @param aAccounts on completion, contains the necessary information of
      * external mailboxes that currently should have a widget
+     * transfers ownership of accounts to caller
      */
     void GetExtMailboxesL( RPointerArray<CMailExternalAccount>& aAccounts );
 
@@ -129,6 +130,11 @@ public:
      * 
      */
     void GetContentId( TInt aMailboxId, TInt aNext, TDes16& aValue );
+    
+    /**
+     * 
+     */    
+    TInt WidgetCountByMailbox( TInt aMailboxId );
     
     /**
      * 
@@ -180,7 +186,7 @@ public:
     /**
      *
      */    
-    TBool GetNewMailState( const TFSMailMsgId& aMailBox );
+    TBool GetNewMailStateL( const TFSMailMsgId& aMailBox, TInt aUnreadCount );
 
     /**
      * Find next free CenRep key to store setting.
@@ -244,6 +250,15 @@ private:
     TInt ResolveMailbox( const TInt aMailboxId, TFSMailMsgId& aMsg ); 
 
     /**
+     * Finds mailbox if plugin id is set - more efficient than Resolve mailbox
+     * 
+     * @param aMsg      mailbox both PluginId and Id is checked
+     * @return KErrNone if mailbox exists  
+     * @return KErrNotFound aMsg.Id() points to non-existent mailbox
+     **/
+    TInt CheckMailboxExistence( TFSMailMsgId& aMsg );
+
+    /**
      * Gets array of CenRep keys representing mailboxes configured to widget
      * @param aKeys array of keys
      */
@@ -263,6 +278,7 @@ private:
     TInt GetSettingToAssociate( const TDesC& aContentId );
 
     /**
+     * Returns CMailExternalAccount::NewL() according to cenrep key aKey
      * @param aKey
      */
     CMailExternalAccount* GetExtMailboxL( TInt aKey );

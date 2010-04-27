@@ -52,6 +52,7 @@
 #include "FreestyleEmailUiConstants.h"
 #include "FSAutoSaver.h"
 #include "FSEmail.pan"
+#include "cmailmessageext.h"
 
 
 // line separators that should not appear in Subject
@@ -245,6 +246,9 @@ void CNcsComposeView::PrepareForExit()
     else
         {
         DoSafeExit( ESaveDraft );
+
+        // cleaning - usefull when application is closed from task switcher
+        HideToolbar();
         }
 
     if( iFetchLogic )
@@ -710,16 +714,18 @@ void CNcsComposeView::RefreshToolbar()
     FUNC_LOG;
     if ( iContainer )
         {
-        // DimAllOptions if remotesearch is in progress, 
+        // Hide toolbar if remotesearch is in progress, 
         // because it takes you into a different view
-        TBool dimAllOptions = iContainer->IsRemoteSearchInprogress();
-        SetToolbarItemDimmed( EFsEmailUiTbCmdExpandActions, dimAllOptions );
-        SetToolbarItemDimmed( EFsEmailUiTbCmdExpandInsert, dimAllOptions );
-        SetToolbarItemDimmed( EFsEmailUiTbCmdSend, dimAllOptions 
-            || iContainer->AreAddressFieldsEmpty() );
+        TBool hideToolbar = iContainer->IsRemoteSearchInprogress();
+        SetToolbarItemDimmed( EFsEmailUiTbCmdSend, iContainer->AreAddressFieldsEmpty() );
+     
+        CAknToolbar* toolbar(Toolbar());
+        if (toolbar)
+            {
+            toolbar->SetToolbarVisibility(!hideToolbar);
+            }
         }
     }
-
 
 // -----------------------------------------------------------------------------
 // CNcsComposeView::ChildDoDeactivate()
@@ -1346,27 +1352,29 @@ TInt CNcsComposeView::AsyncAddAttachment( TAny* aSelfPtr )
     // show file dialog and get file name
     TBool ok = EFalse;
     TInt error = KErrNone;
-    if( ! self->Toolbar()->IsDimmed())
+    CAknToolbar* toolbar = self->Toolbar();
+    if ( !toolbar->IsDimmed() )
         {
-	self->Toolbar()->SetDimmed(ETrue); 
-	}
-	
+        toolbar->SetDimmed(ETrue); 
+        }
+
     self->iContainer->SwitchChangeMskOff( ETrue );
-	TRAP( error, ok = attachmentControl->AppendAttachmentToListL(
+    TRAP( error, ok = attachmentControl->AppendAttachmentToListL(
                 self->iAttachmentAddType) );
     self->iContainer->SwitchChangeMskOff( EFalse );
-    
-	if ( ok && error == KErrNone )
-	    {
-	    TRAP( error, self->SetAttachmentLabelContentL() );
-            }
-  	
-	if(! attachmentControl->IsAttachmentAddingLocked())
-	    {
-	    self->Toolbar()->SetDimmed(EFalse); 
-	    TRAP( error, self->UpdateToolbarL());
-	    }
-	return error;
+
+    if ( ok && error == KErrNone )
+        {
+        TRAP( error, self->SetAttachmentLabelContentL() );
+        }
+
+    if ( !attachmentControl->IsAttachmentAddingLocked() )
+        {
+        toolbar->SetDimmed(EFalse);
+        self->RefreshToolbar();
+        toolbar->DrawDeferred();
+        }
+    return error;
     }
 
 // -----------------------------------------------------------------------------
@@ -2022,7 +2030,7 @@ HBufC* CNcsComposeView::GetMessageBodyL()
 // -----------------------------------------------------------------------------
 //
 void CNcsComposeView::CommitL( TBool aParseAddresses,
-    TFieldToCommit aFieldToCommit, TBool aSaveNow )
+    TFieldToCommit aFieldToCommit, TBool aSaveNow, TCommitType aType  )
     {
     FUNC_LOG;
     __ASSERT_DEBUG( iNewMessage, Panic( ENcsBasicUi ) );
@@ -2118,6 +2126,19 @@ void CNcsComposeView::CommitL( TBool aParseAddresses,
     if ( aSaveNow )
         {
         SaveMessageL();
+        
+        // If this is final commit, then inform it via extension
+        if ( aType == EFinal )
+            {
+            CMailMessageExtension* messageExtension = 
+                    static_cast<CMailMessageExtension*>
+                        ( iNewMessage->ExtensionL( KEmailMessageExtensionUid ) );
+            if ( messageExtension )
+                {
+                messageExtension->CommitL( *iNewMessage ) ;
+                iNewMessage->ReleaseExtension( messageExtension );
+                }
+            }
         }
     }
 
@@ -2754,7 +2775,7 @@ void CNcsComposeView::InitUiGeneralL()
         {
         AppUi()->AddToStackL( iContainer );
         iContainer->SetMenuBar( Cba() );
-        iContainer->UpdateScrollBarL();
+        iContainer->UpdateScrollBar();
 
         // Set title pane text
         const TDesC& mbName = iMailBox->GetName();
@@ -2889,7 +2910,7 @@ void CNcsComposeView::SaveToDraftsL( TBool aParseAddresses )
         __ASSERT_DEBUG( iNewMessage, Panic( ENcsBasicUi ) );
 
         iFakeSyncGoingOn = ETrue;
-        TRAPD( error, CommitL( aParseAddresses, EAllFields, ETrue ) );
+        TRAPD( error, CommitL( aParseAddresses, EAllFields, ETrue, EFinal ) );
         iFakeSyncGoingOn = EFalse;
         User::LeaveIfError( error );
 

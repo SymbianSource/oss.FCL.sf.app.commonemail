@@ -135,6 +135,7 @@ void CFsEmailUiHtmlViewerView::ConstructL()
     iEmbeddedMessages = new (ELeave) CStack<CFSMailMessage, EFalse>();
     iNextOrPrevMessageSelected = EFalse; 
     iForwardingMessage = EFalse;
+    iMessageIsDeleted = EFalse;
     }
 
 // -----------------------------------------------------------------------------
@@ -757,7 +758,10 @@ void CFsEmailUiHtmlViewerView::OfferToolbarEventL( TInt aCommand )
             }
         case EFsEmailUiTbCmdDelete:
             {
-            HandleCommandL(EFsEmailUiCmdActionsDelete);
+            iAsyncCallback->Cancel();
+            iAsyncCallback->Set( TCallBack( DeleteMail, this ) );
+            iAsyncCallback->SetPriority( CActive::EPriorityHigh );
+            iAsyncCallback->CallBack();
             break;
             }
         case EFsEmailUiTbCmdReplyAll:
@@ -911,12 +915,15 @@ void CFsEmailUiHtmlViewerView::NavigateBackL()
     // In usual case we use the base view implementation
     else
         {
-        
         iMessage = NULL;
-        
         CancelFetchings();
-             
         CFsEmailUiViewBase::NavigateBackL();
+
+        if ( iContainer )
+            {
+            HideContainer();
+            iContainer->ResetContent();
+            }
         }
     }
 
@@ -1169,7 +1176,16 @@ void CFsEmailUiHtmlViewerView::LoadContentFromMailMessageL( CFSMailMessage* aMai
         }
     }
 
-void CFsEmailUiHtmlViewerView::DeleteMailL(TBool aSilentDelete)
+TInt CFsEmailUiHtmlViewerView::DeleteMail( TAny* aSelf )
+    {
+    FUNC_LOG;
+    CFsEmailUiHtmlViewerView* self =
+        static_cast<CFsEmailUiHtmlViewerView*>( aSelf );
+    TRAP_IGNORE( self->DeleteMailL( EFalse ) );
+    return KErrNone;
+    }
+
+void CFsEmailUiHtmlViewerView::DeleteMailL( TBool aSilentDelete )
     {
     FUNC_LOG;
 
@@ -1228,7 +1244,11 @@ void CFsEmailUiHtmlViewerView::DeleteMailL(TBool aSilentDelete)
             //Open the previous message or navigate back to list viewer
             if ( available )
                 {
-                iAppUi.MoveToPreviousMsgAfterDeleteL( prevMsgId );              
+				iMessageIsDeleted = ETrue;
+                TRAPD( err, iAppUi.MoveToPreviousMsgAfterDeleteL( prevMsgId ) );
+                iMessageIsDeleted = EFalse;
+                
+                User::LeaveIfError( err );
                 }   
             else
                 {
@@ -1264,7 +1284,7 @@ void CFsEmailUiHtmlViewerView::HandleMailBoxEventL( TFSMailEvent aEvent,
                 {                
                 cont = EFalse;
                 ChangeMskCommandL( R_FSE_QTN_MSK_EMPTY );
-                if(aEvent == TFSEventMailDeleted)
+                if( aEvent == TFSEventMailDeleted  && !iMessageIsDeleted )
                     {   //Delete event came from server; close the viewer.
                 	HandleCommandL( EAknSoftkeyBack );
                 	// The message we are viewing was deleted => stop here
@@ -1962,7 +1982,10 @@ void CFsEmailUiHtmlViewerView::ShowNextMessageL()
             iAppUi.MoveToNextMsgL( currentMsgId, nextMsgId );
             // Next message is displayed in this view through doactivate, because view is re-activate by mail list
 
-            RestoreZoomLevelL();
+            if ( iContainer )
+                {
+			    RestoreZoomLevelL();
+                }
             }
         }
     }
@@ -2011,7 +2034,10 @@ void CFsEmailUiHtmlViewerView::ShowPreviousMessageL()
             iAppUi.MoveToPreviousMsgL( currentMsgId, prevMsgId );
             // Previous message is displayed in this view through doactivate, because view is re-activate by mail list
 
-            RestoreZoomLevelL();
+            if ( iContainer )
+                {
+                RestoreZoomLevelL();
+                }
             }
         }
     }
@@ -2062,6 +2088,7 @@ void CFsEmailUiHtmlViewerView::FolderSelectedL(
                     iMoveDestinationFolder = aSelectedFolderId;
                     iAsyncCallback->Cancel(); // cancel any outstanding callback just to be safe
                     iAsyncCallback->Set( TCallBack( MoveToFolderAndExitL, this ) );
+                    iAsyncCallback->SetPriority( CActive::EPriorityLow );
                     iAsyncCallback->CallBack();
                     }
                     break;

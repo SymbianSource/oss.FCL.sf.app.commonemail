@@ -88,6 +88,12 @@ EXPORT_C CFSMailMessageBase::~CFSMailMessageBase()
 		iSubject = NULL;
 		}
 
+    if(iReplyTo)
+        {
+        delete iReplyTo;
+        iReplyTo = NULL;
+        }
+	
 	// clear recipients lists
 	iToRecipients.ResetAndDestroy();		
 	iCcRecipients.ResetAndDestroy();

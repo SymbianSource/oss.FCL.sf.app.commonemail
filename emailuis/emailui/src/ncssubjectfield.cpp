@@ -253,7 +253,7 @@ void CNcsSubjectField::FocusChanged( TDrawNow aDrawNow )
 	if ( IsFocused() )
 		{
 		iTextEditor->SetFocus( ETrue );
-		TRAP_IGNORE( iTextEditor->SetCursorPosL( iTextEditor->TextLength(), EFalse ) ); 
+		//TRAP_IGNORE( iTextEditor->SetCursorPosL( iTextEditor->TextLength(), EFalse ) ); 
 
 		// make sure that control is visible on screen
 		if ( Rect().iTl.iY < 0 )
@@ -600,4 +600,9 @@ void CNcsSubjectField::HandleResourceChange( TInt aType )
 void CNcsSubjectField::EnableKineticScrollingL(CAknPhysics*  aPhysics)
     {
     iTextEditor->EnableKineticScrollingL(aPhysics);
+    }
+
+void CNcsSubjectField::SetCursorVisible( TBool aCursorVisible )
+    {
+    iTextEditor->SetCursorVisible( aCursorVisible );
     }

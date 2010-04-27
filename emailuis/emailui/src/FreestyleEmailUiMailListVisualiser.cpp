@@ -57,6 +57,7 @@
 #include "mfsmailbrandmanager.h"
 #include <AknWaitDialog.h>
 #include <aknlayoutscalable_apps.cdl.h>
+#include <aknlayoutscalable_avkon.cdl.h>
 #include <layoutmetadata.cdl.h>
 #include <csxhelp/cmail.hlp.hrh>
 // Meeting request
@@ -1325,6 +1326,16 @@ void CFSEmailUiMailListVisualiser::ChildDoActivateL(const TVwsViewId& aPrevViewI
 	{
     FUNC_LOG;
     TIMESTAMP( "Opening message list view" );
+    
+    if (iMarkingModeWaitingToExit)
+        {
+        if ( iAppUi.CurrentActiveView()->Id() == MailListId )
+            {
+            iMarkingModeWaitingToExit = EFalse;
+            TRAP_IGNORE( ExitMarkingModeL() );
+            }
+        }
+
     iShowReplyAll = EFalse;
 
 	if ( !iFirstStartCompleted )
@@ -2175,6 +2186,8 @@ void CFSEmailUiMailListVisualiser::MarkMessagesIfFoundL( const RArray<TFSMailMsg
 void CFSEmailUiMailListVisualiser::ExitMarkingModeL()
     {
     FUNC_LOG;	
+    // Hide marking mode text on the place of drop down menus
+    RemoveMarkingModeTitleTextL();	
     iMarkingMode = EFalse;
     UnmarkAllItemsL();
     // Change softkeys back to normal
@@ -2186,14 +2199,11 @@ void CFSEmailUiMailListVisualiser::ExitMarkingModeL()
     // Change background back to normal
     DisplayMarkingModeBgL( EFalse );   
     // Display drop down menu buttons
-    iNewEmailButton->ShowButtonL();
-    iFolderListButton->ShowButtonL();
-    iSortButton->ShowButtonL();
+    iControlBarControl->SetRectL( iAppUi.LayoutHandler()->GetControlBarRect() );
     iNewEmailButton->SetDimmed( EFalse );
     iFolderListButton->SetDimmed( EFalse );   
     iSortButton->SetDimmed( EFalse );
-    // Hide marking mode text on the place of drop down menus
-    RemoveMarkingModeTitleTextL();
+    ScaleControlBarL();
     }
 
 // ---------------------------------------------------------------------------
@@ -2224,12 +2234,11 @@ void CFSEmailUiMailListVisualiser::EnterMarkingModeL()
         }
     else
         {
-        iNewEmailButton->HideButton();
-        iFolderListButton->HideButton();
-        iSortButton->HideButton();
+        TRect rect(0,0,0,0);
+        iControlBarControl->SetRectL( rect );
+        // Display marking mode text on the place of drop down menus   
+        DisplayMarkingModeTitleTextL();
         }
-    // Display marking mode text on the place of drop down menus   
-    DisplayMarkingModeTitleTextL();
     }
 
 // ---------------------------------------------------------------------------
@@ -2245,25 +2254,18 @@ void CFSEmailUiMailListVisualiser::RefreshMarkingModeL()
         // Hide drop down menu buttons    
         if( !Layout_Meta_Data::IsLandscapeOrientation() )
             {
-            iNewEmailButton->ShowButtonL();
-            iNewEmailButton->HideButton();
-            iFolderListButton->ShowButtonL();
-            iFolderListButton->HideButton();
-            iSortButton->ShowButtonL();    
-            iSortButton->HideButton();
+            TRect rect(0,0,0,0);
+            iControlBarControl->SetRectL( rect );
+            DisplayMarkingModeTitleTextL();
             }
         else
             {
-            iNewEmailButton->ShowButtonL();
+            iControlBarControl->SetRectL( iAppUi.LayoutHandler()->GetControlBarRect() );
             iNewEmailButton->SetDimmed();
-            iFolderListButton->ShowButtonL();
             iFolderListButton->SetDimmed();
-            iSortButton->ShowButtonL();    
             iSortButton->SetDimmed();
+            RemoveMarkingModeTitleTextL();
             }
-  
-        RemoveMarkingModeTitleTextL();
-        DisplayMarkingModeTitleTextL();
         }
     }
 
@@ -2515,15 +2517,6 @@ void CFSEmailUiMailListVisualiser::CompletePendingRefresh()
         {
         iAsyncRedrawer->Cancel();
         DoRefresh( this );
-        }
-
-    if (iMarkingModeWaitingToExit)
-        {
-        if ( iAppUi.CurrentActiveView()->Id() == MailListId )
-            {
-            iMarkingModeWaitingToExit = EFalse;
-            TRAP_IGNORE( ExitMarkingModeL() );
-            }
         }
     }
 
@@ -3454,7 +3447,7 @@ TBool CFSEmailUiMailListVisualiser::HandleArrowEventInLandscapeL(
 //
 void CFSEmailUiMailListVisualiser::UpdateThemeL(const TBool aSystemUpdate)
     {
-    iSkinChanged = aSystemUpdate;
+    iSkinChanged = iSkinChanged || aSystemUpdate;
 
     TRgb focusedTextColor = iAppUi.LayoutHandler()->ListFocusedStateTextSkinColor();
     TRgb normalTextColor = iAppUi.LayoutHandler()->ListNormalStateTextSkinColor();
@@ -3467,15 +3460,14 @@ void CFSEmailUiMailListVisualiser::UpdateThemeL(const TBool aSystemUpdate)
 
     iSortButton->SetNormalTextColor( normalTextColor );
     iSortButton->SetFocusedTextColor( focusedTextColor );
-    
-    //TJOS-83DELP fix/workaround 
+
     //sometimes theme wasn't properly refreshed on buttons, this helps
     iNewEmailButton->HideButton();
     iNewEmailButton->ShowButtonL();
-    
+
     iFolderListButton->HideButton();
     iFolderListButton->ShowButtonL();
-    
+
     iSortButton->HideButton();
     iSortButton->ShowButtonL();
     }
@@ -5633,6 +5625,13 @@ void CFSEmailUiMailListVisualiser::CreateControlBarLayoutL()
 void CFSEmailUiMailListVisualiser::ScaleControlBarL()
 	{
     FUNC_LOG;
+    
+    if( !Layout_Meta_Data::IsLandscapeOrientation() && iMarkingMode)
+        {
+        // No control bar buttons in portrait marking mode
+        return;    
+        }    
+    
     TRect screenRect = iAppUi.ClientRect();
 
 	// First set pos, widht and height
@@ -5658,12 +5657,10 @@ void CFSEmailUiMailListVisualiser::ScaleControlBarL()
  	iSortButton->SetTextFontL( textLayout.Font()->FontSpecInTwips() );
 
  	UpdateThemeL(EFalse);
- 	if (!iMarkingMode)
- 	    {
-        iNewEmailButton->ShowButtonL();
-        iFolderListButton->ShowButtonL();
-        iSortButton->ShowButtonL();
- 	    }
+
+    iNewEmailButton->ShowButtonL();
+    iFolderListButton->ShowButtonL();
+    iSortButton->ShowButtonL();
 	}
 
 // ---------------------------------------------------------------------------
@@ -5846,6 +5843,14 @@ void CFSEmailUiMailListVisualiser::SetMailListLayoutAnchors()
     // <cmail> Platform layout changes
     TRect listRect = iAppUi.LayoutHandler()->GetListRect();
 	// Set anchors so that list leaves space for control bar
+    if( Layout_Meta_Data::IsMirrored() ) 
+        { 
+        TInt tlX = listRect.iTl.iX; 
+        TInt brX = listRect.iBr.iX;
+        
+        listRect.iTl.iX = AknLayoutScalable_Avkon::Screen().LayoutLine().iW - brX; 
+        listRect.iBr.iX = AknLayoutScalable_Avkon::Screen().LayoutLine().iW - tlX; 
+        } 
     iScreenAnchorLayout->SetAnchor(EAlfAnchorTopLeft, 1,
         EAlfAnchorOriginLeft, EAlfAnchorOriginTop,
         EAlfAnchorMetricAbsolute, EAlfAnchorMetricAbsolute,

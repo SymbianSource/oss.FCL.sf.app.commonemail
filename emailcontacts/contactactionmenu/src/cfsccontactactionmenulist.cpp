@@ -27,14 +27,14 @@
 #include <coeaui.h>
 #include <coefontprovider.h>
 #include <gulfont.h>
-#include <aknbiditextutils.h> 
-#include <aknlayoutfont.h> 
-#include <aknlayout2scalabledatadef.h>
+#include <AknBidiTextUtils.h> 
+#include <AknLayoutFont.h> 
+#include <AknLayout2ScalableDataDef.h>
 #include <aknlayout2scalabledef.h>
 #include <layoutmetadata.cdl.h>
-#include <cdlengine.h>
+#include <CdlEngine.h>
 #include <coemain.h>
-#include <aknslistboxbackgroundcontrolcontext.h> 
+#include <AknsListBoxBackgroundControlContext.h> 
 
 #include <aknlayoutscalable_apps.cdl.h>
 #include <layoutmetadata.cdl.h>

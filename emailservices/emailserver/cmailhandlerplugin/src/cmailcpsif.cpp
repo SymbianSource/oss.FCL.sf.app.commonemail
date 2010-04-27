@@ -95,7 +95,10 @@ CMailCpsIf::~CMailCpsIf()
         iMsgInterface = NULL;
         }
     delete iServiceHandler;
-    iInstIdList.ResetAndDestroy();  
+    for ( TInt i = 0; i < iInstIdList.Count(); i++ )
+        {
+        iInstIdList.Remove(i);
+        }
     CCoeEnv::Static()->DeleteResourceFile( iResourceFileOffset );
     if ( iContentControlClient ) 
         {
@@ -180,22 +183,24 @@ MLiwInterface* CMailCpsIf::GetMessagingInterfaceL()
 // CMailCpsIf::PublishSetupWizardL
 // ---------------------------------------------------------------------------
 //
-void CMailCpsIf::PublishSetupWizardL(TInt instance)
+void CMailCpsIf::PublishSetupWizardL(TInt aInstance)
     {
     FUNC_LOG;
-    TFSMailMsgId mailBoxId;
-    TFSMailMsgId folderId;
-
-    HBufC* setupEmail = StringLoader::LoadLC(R_EMAILWIDGET_TEXT_SETUP_EMAIL);
+    if (!iInstIdList[aInstance].iWizardPublished)
+        {
+        TFSMailMsgId mailBoxId;
+        TFSMailMsgId folderId;
     
-    iSetupUid = PublishDescriptorL(
+       HBufC* setupEmail = StringLoader::LoadLC(R_EMAILWIDGET_TEXT_SETUP_EMAIL);
+    
+        iSetupUid = PublishDescriptorL(
             KPubId, KContTypeSetupText,
-            iInstIdList[instance]->Des(),
+            iInstIdList[aInstance].iCid,
             *setupEmail, 
-            KKeySetupText, KTriggerWizard8);	
+            KKeySetupText, KTriggerWizard8);
 
-    PublishImageL(
-            iInstIdList[instance]->Des(),
+        PublishImageL(
+            iInstIdList[aInstance].iCid,
             KContTypeSetupIcon,
             KKeySetupIcon,
             EMbmCmailhandlerpluginQgn_prop_cmail_new_mailbox,
@@ -203,8 +208,8 @@ void CMailCpsIf::PublishSetupWizardL(TInt instance)
             mailBoxId,
             KNullDes);
             
-    PublishImageL(
-            iInstIdList[instance]->Des(),
+        PublishImageL(
+            iInstIdList[aInstance].iCid,
             KContTypeSetupBrandIcon1,
             KKeySetupBrandIcon1,
             EMbmCmailhandlerpluginQgn_indi_cmail_drop_email_account,
@@ -212,8 +217,8 @@ void CMailCpsIf::PublishSetupWizardL(TInt instance)
             mailBoxId,
             KSetupBrand1);
 
-    PublishImageL(
-            iInstIdList[instance]->Des(),
+        PublishImageL(
+            iInstIdList[aInstance].iCid,
             KContTypeSetupBrandIcon2,
             KKeySetupBrandIcon2,
             EMbmCmailhandlerpluginQgn_indi_cmail_drop_email_account,
@@ -221,8 +226,8 @@ void CMailCpsIf::PublishSetupWizardL(TInt instance)
             mailBoxId,
             KSetupBrand2);
 
-    PublishImageL(
-            iInstIdList[instance]->Des(),
+        PublishImageL(
+            iInstIdList[aInstance].iCid,
             KContTypeSetupBrandIcon3,
             KKeySetupBrandIcon3,
             EMbmCmailhandlerpluginQgn_indi_cmail_drop_email_account,
@@ -230,16 +235,17 @@ void CMailCpsIf::PublishSetupWizardL(TInt instance)
             mailBoxId,
             KSetupBrand3);
 
-    PublishImageL(
-            iInstIdList[instance]->Des(),
+        PublishImageL(
+            iInstIdList[aInstance].iCid,
             KContTypeSetupBrandIcon4,
             KKeySetupBrandIcon4,
             EMbmCmailhandlerpluginQgn_indi_cmail_drop_email_account,
             EMbmCmailhandlerpluginQgn_indi_cmail_drop_email_account_mask,
             mailBoxId,
-            KSetupBrand4);            
-
-    CleanupStack::PopAndDestroy(setupEmail);    
+            KSetupBrand4);
+        iInstIdList[aInstance].iWizardPublished = ETrue;
+        CleanupStack::PopAndDestroy(setupEmail);
+        }        
     }
 
 // ---------------------------------------------------------------------------
@@ -266,7 +272,7 @@ void CMailCpsIf::PublishActiveMailboxNameL(
 		
     iMailboxNameUid = PublishDescriptorL(
         KPubId, contentType, 
-        iInstIdList[aInstance]->Des(),
+        iInstIdList[aInstance].iCid,        
         aMailboxName,
         textKey, KTriggerEmailUi8);
     }
@@ -292,8 +298,8 @@ void CMailCpsIf::PublishMailboxNameL(
 
     TFSMailMsgId dummy;
     
-    PublishDescriptorL( KPubId, contentType, iInstIdList[aInstance]->Des(),
-        aMailboxName, textKey, aAction);
+    PublishDescriptorL( KPubId, contentType, iInstIdList[aInstance].iCid,
+        aMailboxName, textKey, aAction);        
     }
 
 // ---------------------------------------------------------------------------
@@ -322,7 +328,7 @@ void CMailCpsIf::PublishIndicatorIconL( const TInt aInstance,
     key.Append(row8);
 
     PublishImageL(
-              iInstIdList[aInstance]->Des(),
+              iInstIdList[aInstance].iCid,
               contentType,
               key,
               aIcon,
@@ -357,7 +363,7 @@ void CMailCpsIf::PublishMailboxIconL( const TInt aInstance,
     key.Append(row8);
 
     PublishImageL(
-              iInstIdList[aInstance]->Des(),
+              iInstIdList[aInstance].iCid,
               contentType,
               key,
               aIcon,
@@ -382,9 +388,10 @@ void CMailCpsIf::PublishMailboxIconL( const TInt aInstance, const TDesC& aIconPa
     key.Copy(KKeyMailboxIcons);     
     key.Append(_L8("1"));
 
-    User::LeaveIfNull( iInstIdList[aInstance] );
+    if ( GetWidgetInstanceCount() <= aInstance ) User::LeaveIfError( KErrNotFound );
+
     PublishIconReferenceL(
-        iInstIdList[aInstance]->Des(),
+        iInstIdList[aInstance].iCid,
         contentType,
         key,
         aIconPath );
@@ -480,7 +487,7 @@ void CMailCpsIf::PublishMailDetailL( const TInt aInstance,
 
     iMailboxNameUid = PublishDescriptorL(
         KPubId, contentType, 
-        iInstIdList[aInstance]->Des(),
+        iInstIdList[aInstance].iCid,
         aText,
         textKey, KNullDes8);  
     }
@@ -895,7 +902,7 @@ TBool CMailCpsIf::PublisherStatusL(const CLiwGenericParamList& aEventParamList)
                              {
                              // Publishing to homescreen suspended.
                              HBufC* cid = contentid.AllocLC();
-	                         TInt widgetInstance = FindWidgetInstanceId(cid->Des());
+                             TInt widgetInstance = GetWidgetInstanceId(cid->Des());
 							 if(widgetInstance>=0)
                              	iAllowedToPublish[widgetInstance] = EFalse;
                              CleanupStack::PopAndDestroy( cid );
@@ -903,15 +910,19 @@ TBool CMailCpsIf::PublisherStatusL(const CLiwGenericParamList& aEventParamList)
                          else if (trigger.Compare(KResume16) == 0)
                              {
                              HBufC* cid = contentid.AllocLC();
-                             if ( FindWidgetInstanceId(cid->Des()) < 0 )
+                             if ( GetWidgetInstanceId(cid->Des()) < 0 )
                                  {
-                                 iInstIdList.AppendL( contentid.AllocL() );
+                                 TInstIdInfo instIdInfo;
+                                 instIdInfo.iCid.Copy(cid->Des());                           
+                                 instIdInfo.iUpdateNeeded = ETrue;
+                                 instIdInfo.iWizardPublished = EFalse;
+                                 iInstIdList.AppendL(instIdInfo);
                                  }
-                             TInt widgetInstance = FindWidgetInstanceId(cid->Des()); 
+                             TInt widgetInstance = GetWidgetInstanceId(cid->Des()); 
                              if(widgetInstance>=0)// coverity fix, index can be negativ, allowed 0, since it is valid index
                                  {
-                                 PublishSetupWizardL(widgetInstance);
                                  iMailCpsHandler->UpdateMailboxesL(widgetInstance, cid->Des());
+                                 PublishSetupWizardL(widgetInstance);                                 
                                  // Widget visible on the homescreen. Publishing allowed.
                                  iAllowedToPublish[widgetInstance] = ETrue;
                                  }
@@ -923,7 +934,11 @@ TBool CMailCpsIf::PublisherStatusL(const CLiwGenericParamList& aEventParamList)
                              HBufC* cid = contentid.AllocLC();
                              if ( cid->Length() > 0 )
                                  {
-                                 iInstIdList.AppendL( contentid.AllocL() );
+                                 TInstIdInfo instIdInfo;
+                                 instIdInfo.iCid.Copy(cid->Des());                           
+                                 instIdInfo.iUpdateNeeded = ETrue;
+                                 instIdInfo.iWizardPublished = EFalse;
+                                 iInstIdList.AppendL(instIdInfo);
                                  TFSMailMsgId mailBox( iMailCpsHandler->WaitingForNewWidget() );
                                  if ( mailBox.Id() > 0 )
                                      {
@@ -950,7 +965,7 @@ TBool CMailCpsIf::PublisherStatusL(const CLiwGenericParamList& aEventParamList)
                              HBufC* cid = contentid.AllocLC();                             
                              ResetPublishedDataL( cid->Des() );							 
                              iMailCpsHandler->DissociateWidgetFromSettingL( cid->Des() );
-                             TInt widgetInstance = FindWidgetInstanceId( cid->Des() );
+                             TInt widgetInstance = GetWidgetInstanceId( cid->Des() );
                              if (widgetInstance != KErrNotFound )
                                  {
                                  iInstIdList.Remove(widgetInstance);
@@ -1027,16 +1042,16 @@ TInt CMailCpsIf::GetWidgetInstanceCount()
 
 
 // ---------------------------------------------------------------------------
-// CMailCpsIf::FindWidgetInstanceId
+// CMailCpsIf::GetWidgetInstanceId
 // ---------------------------------------------------------------------------
 //
-TInt CMailCpsIf::FindWidgetInstanceId( const TDesC& aContentId )
+TInt CMailCpsIf::GetWidgetInstanceId( const TDesC& aContentId )
     {
     FUNC_LOG;
     TInt instance(KErrNotFound);
-    for (TInt i = 0; i < iInstIdList.Count(); i++)
+    for (TInt i = 0; i < iInstIdList.Count(); i++)    
         {
-        TInt val = aContentId.Compare(iInstIdList[i]->Des());
+        TInt val = aContentId.Compare(iInstIdList[i].iCid);
         if (!val)
             {
             instance = i;
@@ -1092,11 +1107,11 @@ void CMailCpsIf::AddWidgetToHomescreenL( const TFSMailMsgId aMailbox )
     
     for ( TInt i = 0; i < iInstIdList.Count(); i++ )
         {
-        if ( !iMailCpsHandler->Associated(iInstIdList[i]->Des()) )
+        if ( !iMailCpsHandler->Associated(iInstIdList[i].iCid) )
             {
             // Empty e-mail widget found. Associate new account to it.
             iMailCpsHandler->AssociateWidgetToSetting( 
-                    iInstIdList[i]->Des(),
+                    iInstIdList[i].iCid,
                     aMailbox );
             return;
             }
@@ -1155,5 +1170,25 @@ void CMailCpsIf::NotifyViewListChanged()
 void CMailCpsIf::NotifyAppListChanged()
     {
     FUNC_LOG;
+    }
+
+// ---------------------------------------------------------------------------
+// CMailCpsIf::SetUpdateNeeded
+// ---------------------------------------------------------------------------
+//
+void CMailCpsIf::SetUpdateNeeded( const TInt aInstance, const TBool aValue )
+    {
+    FUNC_LOG;
+    iInstIdList[aInstance].iUpdateNeeded = aValue;
+    }
+
+// ---------------------------------------------------------------------------
+// CMailCpsIf::UpdateNeeded
+// ---------------------------------------------------------------------------
+//
+TBool CMailCpsIf::UpdateNeeded( const TInt aInstance )
+    {
+    FUNC_LOG;
+    return iInstIdList[aInstance].iUpdateNeeded;
     }
 
