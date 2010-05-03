@@ -20,7 +20,8 @@
 
 #include "nmprivateclasses.h"
 #include "nmcommon_api.h"
-#include "nmapiengine.h"
+
+class NmEngine;
 
 namespace EmailClientApi
 {

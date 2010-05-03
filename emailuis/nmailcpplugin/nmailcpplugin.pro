@@ -44,6 +44,8 @@ LIBS += -lcpframework
 LIBS += -lnmailuiengine
 LIBS += -lnmailbase
 LIBS += -lnmsettingui
+LIBS += -leuser
+LIBS += -llibc
 
 # Input
 HEADERS += inc/nmsettingsplugin.h

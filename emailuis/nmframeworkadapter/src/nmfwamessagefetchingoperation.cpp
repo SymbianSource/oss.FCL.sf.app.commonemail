@@ -39,7 +39,7 @@ NmFwaMessageFetchingOperation::~NmFwaMessageFetchingOperation()
     doCancelOperation();
 }
 
-void NmFwaMessageFetchingOperation::runAsyncOperation()
+void NmFwaMessageFetchingOperation::doRunAsyncOperation()
 {
     const TFSMailMsgId mailboxId(mMailboxId.pluginId32(), mMailboxId.id32());
     const TFSMailMsgId folderId(mFolderId.pluginId32(), mFolderId.id32());

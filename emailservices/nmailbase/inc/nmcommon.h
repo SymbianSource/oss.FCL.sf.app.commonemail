@@ -151,6 +151,8 @@ const int NmNoError = 0;
 const int NmNotFoundError = -1;
 const int NmGeneralError = -2;
 const int NmCancelError = -3;
+const int NmAuthenticationError = -200;
+const int NmServerConnectionError = -201;
 
 /*!
 	Predefined constants for ContentTypes and parameters
@@ -295,7 +297,7 @@ inline void NmId::setPluginId32(quint32 pluginId32)
 #include <QDateTime>
 
 static void printToFileAndConsole(QString str, QString filename)
-{
+{    
     // Print to file
     QFile debugFile(filename);
     QIODevice::OpenMode openMode = QIODevice::Text;
@@ -314,10 +316,10 @@ static void printToFileAndConsole(QString str, QString filename)
         debugFile.close();
     }
     // Print to console
-    qDebug() << d << str << endl;
- }
+    qDebug() << d << str << endl; 
+}
 
-//
+// 
 // NMLOG is used to log QStrings to text file. For example:
 //
 // NMLOG("nmailui: application opened successfully");
@@ -326,7 +328,12 @@ static void printToFileAndConsole(QString str, QString filename)
 // int error = -12;
 // NMLOG(QString("### cannot open file: err=%1  file='%2' ###").arg(error).arg(fileName));
 //
+#ifdef _DEBUG
 #define NMLOG(a) { printToFileAndConsole(a, "c:/logs/nmail.log"); }
+#else
+#define NMLOG(a)
+#endif
+
 
 /*! email list sort criteria definition */
 class NmMailSortCriteria
@@ -336,6 +343,20 @@ public:
     NmMailSortOrder mOrder;
 };
 
+/*!
+    \class NmOperationCompletionEvent
+    \brief Generic wrapper for information related to asynchronous operations
+ */
+class NmOperationCompletionEvent
+{
+public:
+    int  mOperationType;
+    int  mCompletionCode;
+    NmId mMailboxId;
+    NmId mFolderId;
+    NmId mMessageId;
+};
+Q_DECLARE_METATYPE(NmOperationCompletionEvent)
 
 #endif /* NMCOMMON_H_ */
 

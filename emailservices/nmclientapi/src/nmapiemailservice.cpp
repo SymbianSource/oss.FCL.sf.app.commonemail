@@ -32,7 +32,7 @@ NmEmailService::~NmEmailService()
     }
 }
 
-bool NmEmailService::envelope(
+bool NmEmailService::getEnvelope(
     const quint64 mailboxId,
     const quint64 folderId,
     const quint64 envelopeId,
@@ -44,7 +44,7 @@ bool NmEmailService::envelope(
     return mEngine->envelopeById(mailboxId, folderId, envelopeId, envelope);
 }
 
-bool NmEmailService::mailbox(const quint64 mailboxId, NmMailbox &mailboxInfo)
+bool NmEmailService::getMailbox(const quint64 mailboxId, NmMailbox &mailboxInfo)
 {
     if (!mEngine) {
         return false;

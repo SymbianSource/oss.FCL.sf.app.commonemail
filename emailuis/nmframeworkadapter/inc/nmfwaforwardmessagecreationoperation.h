@@ -31,8 +31,8 @@ public:
     
     ~NmFwaForwardMessageCreationOperation();
     
-protected slots:
-    void runAsyncOperation();
+protected:
+    void doRunAsyncOperation();
     
 private:
     NmId mOriginalMessageId;

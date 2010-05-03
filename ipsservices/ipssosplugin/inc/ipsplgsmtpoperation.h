@@ -43,9 +43,9 @@ public:
      * @since FS 1.0
      * @return None
      */
+    // <qmail> priority parameter has been removed
     IMPORT_C static CIpsPlgSmtpOperation* NewL( 
         CMsvSession& aMsvSession, 
-        TInt aPriority, 
         TRequestStatus& aObserverRequestStatus,
         MFSMailRequestObserver* aFSOperationObserver = NULL,
         TInt aFSRequestId = KErrNotFound );
@@ -56,9 +56,9 @@ public:
      * @since FS 1.0
      * @return None
      */
+    // <qmail> priority parameter has been removed
     IMPORT_C static CIpsPlgSmtpOperation* NewLC(
         CMsvSession& aMsvSession, 
-        TInt aPriority, 
         TRequestStatus& aObserverRequestStatus,
         MFSMailRequestObserver* aOperationObserver = NULL,
         TInt aFSRequestId = KErrNotFound );
@@ -80,7 +80,11 @@ public:
 
     virtual TFSProgress GetFSProgressL() const;
 
-    TInt IpsOpType() const;
+    // <qmail> change ret val type
+    /**
+     * Returns operation type
+     */
+    TIpsOpType IpsOpType() const;
 
     /**
      * Stard sending operation
@@ -103,9 +107,9 @@ protected:
      * @since FS 1.0
      * @return None
      */
+    // <qmail> priority parameter has been removed
     CIpsPlgSmtpOperation( 
         CMsvSession& aMsvSession, 
-        TInt aPriority, 
         TRequestStatus& aObserverRequestStatus,
         MFSMailRequestObserver* aFSOperationObserver,
         TInt aFSRequestId );

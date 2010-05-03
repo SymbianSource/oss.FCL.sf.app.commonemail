@@ -17,6 +17,8 @@
 
 #include "nmuiheaders.h"
 
+#define AttachmentFileNameMaxLength 17
+
 /*!
 	\class NmAttachmentList
 	\brief Class for handling the attachment list
@@ -25,7 +27,7 @@
 /*!
     Constructor
 */
-NmAttachmentList::NmAttachmentList(NmAttachmentListWidget *listWidget)
+NmAttachmentList::NmAttachmentList(NmAttachmentListWidget &listWidget)
 : mListWidget(listWidget)
 {
     updateLayout();
@@ -52,7 +54,10 @@ int NmAttachmentList::insertAttachment(
     mDisplayFileName.append(displayName);
     mAttachmentPartId.append(attachmentPartId);
     mFileSize.append(fileSize);
-    mListWidget->insertAttachment(count() - 1, displayName, createSizeString(fileSize));
+    mListWidget.insertAttachment(
+        count() - 1,
+        NmUtilities::truncate(displayName, AttachmentFileNameMaxLength), 
+        NmUtilities::attachmentSizeString(fileSize.toDouble()));  
     updateLayout();
     return count() - 1;
 }
@@ -61,7 +66,8 @@ int NmAttachmentList::insertAttachment(
     Set attachmentPartId of the list item. Because there can be several attachments with
     same filename, function will search the one which nmid is not set.
 */
-void NmAttachmentList::setAttachmentPartId(const QString fullFileName, const NmId &attachmentPartId)
+void NmAttachmentList::setAttachmentPartId(const QString fullFileName, 
+                                           const NmId &attachmentPartId)
 {
     for (int i=0; i<count(); ++i) {
         if (mFullFileName.at(i) == fullFileName && mAttachmentPartId.at(i).id() == 0) {
@@ -78,6 +84,7 @@ void NmAttachmentList::setAttachmentSize(const NmId &attachmentPartId, const QSt
     for (int i=0; i<count(); ++i) {
         if (mAttachmentPartId.at(i) == attachmentPartId) {
             mFileSize.replace(i, size);
+            mListWidget.setAttachmentSize(i, NmUtilities::attachmentSizeString(size.toDouble()));
         }
     }
 }
@@ -89,13 +96,26 @@ void NmAttachmentList::removeAttachment(int arrayIndex)
 {
     if (arrayIndex < count()) {
         // Remove UI
-        mListWidget->removeAttachment(arrayIndex);
+        mListWidget.removeAttachment(arrayIndex);
         // Remove from data structure
         mFullFileName.removeAt(arrayIndex);
         mDisplayFileName.removeAt(arrayIndex);
         mAttachmentPartId.removeAt(arrayIndex);
         updateLayout();
     }
+}
+
+/*!
+    Return full filename of the list item
+*/
+QString NmAttachmentList::getFullFileNameByIndex(int arrayIndex)
+{
+	QString result;
+	
+    if ( arrayIndex >= 0 && arrayIndex < mFullFileName.count() ) {
+        result.append(mFullFileName.at(arrayIndex));
+    }
+    return result;
 }
 
 /*!
@@ -129,7 +149,7 @@ void NmAttachmentList::clearList()
 {
     for (int i=count()-1; i>=0; --i) {
         // Remove from UI
-        mListWidget->removeAttachment(i);
+        mListWidget.removeAttachment(i);
         // Remove from data structure
         mFullFileName.removeAt(i);
         mDisplayFileName.removeAt(i);
@@ -141,7 +161,7 @@ void NmAttachmentList::clearList()
 /*!
     Return attachment list widget
 */
-NmAttachmentListWidget* NmAttachmentList::listWidget()
+NmAttachmentListWidget& NmAttachmentList::listWidget()
 {
     return mListWidget;
 }
@@ -184,25 +204,12 @@ QString NmAttachmentList::fullNameToDisplayName(const QString &fullName)
 }
 
 /*!
-    Create string for showing the size information
-*/
-QString NmAttachmentList::createSizeString(const QString &sizeInBytes)
-{
-    double sizeMb = sizeInBytes.toDouble() / 1000000;
-    if (sizeMb < 0.1) {
-        // 0.1 Mb is the minimum size shown for attachment
-        sizeMb = 0.1;
-    }
-    return QString().sprintf("(%.1f Mb)", sizeMb); // Use loc string when available
-}
-
-/*!
     Update the list layout height
 */
 void NmAttachmentList::updateLayout()
 {
     // Fix this when progress bar is used
-    mListWidget->setMaximumHeight(count() * 29); 
+    mListWidget.setMaximumHeight(count() * 56); 
     QTimer::singleShot(1, this, SLOT(delayedLayoutChangeInfo()));
 }
 
@@ -213,3 +220,4 @@ void NmAttachmentList::delayedLayoutChangeInfo()
 {
     emit attachmentListLayoutChanged();
 }
+

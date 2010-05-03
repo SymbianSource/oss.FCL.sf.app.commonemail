@@ -38,7 +38,6 @@ class NmMessagePart;
 class CFSMailPlugin;
 class CFSMailMessage;
 class MFSMailRequestObserver;
-class CFSMailRequestHandler;
 
 const TInt KArrayGranularity = 16;
 
@@ -51,7 +50,7 @@ const TInt KArrayGranularity = 16;
 NONSHARABLE_CLASS ( CFSMailMessagePart ) : public CFSMailMessageBase
 {
  public:
-    //<qmail>
+// <qmail>
     /**
      * Enumeration to indicate data source
      */
@@ -60,7 +59,7 @@ NONSHARABLE_CLASS ( CFSMailMessagePart ) : public CFSMailMessageBase
         EDataSourceMessageStore = 0,    // plugin (data from message store)
         EDataSourceLocal                // internal private shared object
         };
-    //<qmail>
+// </qmail>
    
  public:
 
@@ -80,31 +79,35 @@ NONSHARABLE_CLASS ( CFSMailMessagePart ) : public CFSMailMessageBase
      */
      IMPORT_C static CFSMailMessagePart* NewLC( TFSMailMsgId aMessageId, TFSMailMsgId aMessagePartId );
 
+// <qmail>
      /**
       * Two-phased constructor.
       *
       * @param aMessageId message id in plugin containing email
       */
       IMPORT_C static CFSMailMessagePart* NewLC( const NmId &aNmMessageId, const NmMessagePart& aNmMessagePart );     
-     
+// </qmail>
+
     /**
      * destructor
      */  
      IMPORT_C virtual ~CFSMailMessagePart();
      
-  /**
+    /**
      * email part id accessor
      *
      * @return email part id
      */
      IMPORT_C TFSMailMsgId GetPartId() const;
 
+// <qmail>
     /**
      * email part content-type accessor (e.g. "text/plain")
      *
      * @return email part content type
      */
      IMPORT_C const TDesC& GetContentType() const;
+// </qmail>
     
     /**
      * email part content-type mutator 
@@ -123,8 +126,8 @@ NONSHARABLE_CLASS ( CFSMailMessagePart ) : public CFSMailMessageBase
      IMPORT_C CDesCArray& ContentTypeParameters();
      
     /**
-   * Returns email Content-Description value, includes also parameters,
-   * if any.
+     * Returns email Content-Description value, includes also parameters,
+     * if any.
      *
      * @return email Content-Description
      */
@@ -195,7 +198,8 @@ NONSHARABLE_CLASS ( CFSMailMessagePart ) : public CFSMailMessageBase
      * saves this message part 
      */
      IMPORT_C void SaveL();
-    
+
+// <qmail>
     /**
      * lists all direct child parts of this email part
      *
@@ -204,6 +208,7 @@ NONSHARABLE_CLASS ( CFSMailMessagePart ) : public CFSMailMessageBase
      */
      IMPORT_C void ChildPartsL(RPointerArray<CFSMailMessagePart>& aParts, 
          TFSMailMessagePartDataSource aDataSource = EDataSourceMessageStore);
+// </qmail>
 
     /**
      * Returns child part of this part identified by part id.
@@ -219,7 +224,7 @@ NONSHARABLE_CLASS ( CFSMailMessagePart ) : public CFSMailMessageBase
      * 
      * @return ETrue if this email part is email
      */        
-   IMPORT_C virtual TBool IsMessageL() const;
+     IMPORT_C virtual TBool IsMessageL() const;
 
     /**
      * Creates and adds a new child part to this email part
@@ -235,7 +240,7 @@ NONSHARABLE_CLASS ( CFSMailMessagePart ) : public CFSMailMessageBase
 
     /**
      * Copies given email object as new child part of this email part or email.
-   *
+     *
      * @param aInsertBefore defines place of where new child part is created,
      * if aInsertBefore is NULL id then new part is added as last.
      * @param aMessage message to be copied as child part
@@ -252,6 +257,20 @@ NONSHARABLE_CLASS ( CFSMailMessagePart ) : public CFSMailMessageBase
      */
      IMPORT_C void RemoveChildPartL(TFSMailMsgId aPartId);
 
+// <qmail>
+     /**
+      * Removes child part (and it's children, if any) from this email part
+      * 
+      * @param aPartId part id of the email part to be removed
+      * @param aOperationObserver Observer for the operation 
+      * 
+      * @return id of the request, KErrNotSupported if the protocol plugin this
+      * instance is attached to does not support the async method.
+      */
+     IMPORT_C TInt RemoveChildPartL( TFSMailMsgId aPartId,
+                                     MFSMailRequestObserver& aOperationObserver);
+// </qmail>
+     
     /**
      * Retrieves a read-only file handle for the content file of this message part.
      * The caller must close the file handle.
@@ -334,7 +353,7 @@ NONSHARABLE_CLASS ( CFSMailMessagePart ) : public CFSMailMessageBase
      * @param aStartOffset offset from content begin
      */
      IMPORT_C void GetContentToBufferL(TDes16& aBuffer, TUint aStartOffset);
-  
+    
     /**
      * copies email part contents from buffer given by user
      *
@@ -342,41 +361,34 @@ NONSHARABLE_CLASS ( CFSMailMessagePart ) : public CFSMailMessageBase
      */
      IMPORT_C void SetContent(TDes16& aBuffer); 
 
-  /**
+    /**
      * meeting request accessor if email part is a meeting request
      * 
      * @return meeting request object
      */
      IMPORT_C MMRInfoObject& GetMRInfo();
-  
-  /**
-   * stores given meeting request object as email part
-   * 
-   * @param aMeetingRequest meeting request object
-   */
+    
+    /**
+     * stores given meeting request object as email part
+     * 
+     * @param aMeetingRequest meeting request object
+     */
      IMPORT_C void SetMRInfo(MMRInfoObject* aMeetingRequest);
 
     /**
-   * method checks if MRInfo exists
-   * 
-   * @return true / false
-   */
-   IMPORT_C TBool IsMRInfoSet();
+     * method checks if MRInfo exists
+     * 
+     * @return true / false
+     */
+     IMPORT_C TBool IsMRInfoSet();
 
     /**
-   * plugin request handler accessor
-   * 
-   * @return request handler
-   */
-     IMPORT_C CFSMailRequestHandler& RequestHandler( );
-
-  /**
      * Sets attachment name for email part. Full path can be
      * given as input even though only filename is saved. 
      * 
      * @param aFilePath attachment name
      */        
-   IMPORT_C void SetAttachmentNameL(const TDesC& aFilePath);
+     IMPORT_C void SetAttachmentNameL(const TDesC& aFilePath);
 
     /**
      * returns email part attachment name
@@ -384,7 +396,8 @@ NONSHARABLE_CLASS ( CFSMailMessagePart ) : public CFSMailMessageBase
      * @return attachment name
      */        
      IMPORT_C TDesC& AttachmentNameL();
-  
+    
+// <qmail>
     /**
      * finds email body part based on given content type 
      * (plain text or html body part of email message)
@@ -396,7 +409,16 @@ NONSHARABLE_CLASS ( CFSMailMessagePart ) : public CFSMailMessageBase
      */
      IMPORT_C CFSMailMessagePart* FindBodyPartL(const TDesC& aContentType,
          TFSMailMessagePartDataSource aDataSource = EDataSourceMessageStore);
+// </qmail>
 
+    /**
+     * Checks that content type matches given.
+     * 
+     * @param aContentType body part content type to be checked
+     *
+     * @return ETrue if content type of message part matches tto given
+     */
+     IMPORT_C TBool ContentTypeMatches( const TDesC& aContentType );
 
     /**
      * starts email part fetching from email server
@@ -411,9 +433,9 @@ NONSHARABLE_CLASS ( CFSMailMessagePart ) : public CFSMailMessageBase
      *
      * @return err code
      */        
-   IMPORT_C TInt FetchMessagePartL(   const TFSMailMsgId aMessagePartId,
-                          MFSMailRequestObserver& aOperationObserver,
-                        const TUint aPreferredByteCount);
+     IMPORT_C TInt FetchMessagePartL(   const TFSMailMsgId aMessagePartId,
+                                        MFSMailRequestObserver& aOperationObserver,
+                                        const TUint aPreferredByteCount);
 
     /**
      * starts email parts fetching from email server
@@ -428,36 +450,36 @@ NONSHARABLE_CLASS ( CFSMailMessagePart ) : public CFSMailMessageBase
      *
      * @return err code
      */        
-   IMPORT_C TInt FetchMessagesPartsL( const RArray<TFSMailMsgId>& aMessagePartIds,
-                        MFSMailRequestObserver& aOperationObserver,
-                        const TUint aPreferredByteCount);
-  /**
-   * creates a list containing all email / email part subparts
-   * 
-   * @param aParts email part list given/owned by user
-   */        
-   IMPORT_C void AppendAttachmentsL(RPointerArray<CFSMailMessagePart>& aParts);
+     IMPORT_C TInt FetchMessagesPartsL( const RArray<TFSMailMsgId>& aMessagePartIds,
+                                        MFSMailRequestObserver& aOperationObserver,
+                                        const TUint aPreferredByteCount);
+    /**
+     * creates a list containing all email / email part subparts
+     * 
+     * @param aParts email part list given/owned by user
+     */        
+     IMPORT_C void AppendAttachmentsL(RPointerArray<CFSMailMessagePart>& aParts);
 
-  /**
-   * sets email part fetch status
-   * 
-   * @param aMessagePartStatus (EFSMessagePartsKnown)
-   */
+    /**
+     * sets email part fetch status
+     * 
+     * @param aMessagePartStatus (EFSMessagePartsKnown)
+     */
      IMPORT_C void SetMessagePartsStatus(TFSPartFetchState aMessagePartStatus);
 
     /**
-   * Adds new attachment to this email (part).
-   * 
-   * @param aFilePath full path of new attachment.
-   * @param aInsertBefore defines position of new attachment,
-   *        if NullId then new attachment is created as last part.
-   * @param aContentType attachment content type
+     * Adds new attachment to this email (part).
+     * 
+     * @param aFilePath full path of new attachment.
+     * @param aInsertBefore defines position of new attachment,
+     *        if NullId then new attachment is created as last part.
+     * @param aContentType attachment content type
 
      * @return new email part, ownership is transferred to user
-   */ 
-   IMPORT_C CFSMailMessagePart* AddNewAttachmentL( const TDesC& aFilePath, 
-                                                   const TFSMailMsgId aInsertBefore,
-                                                   const TDesC& aContentType );
+     */ 
+     IMPORT_C CFSMailMessagePart* AddNewAttachmentL( const TDesC& aFilePath, 
+                                                     const TFSMailMsgId aInsertBefore,
+                                                     const TDesC& aContentType );
     /**
      * read only part size accessor (character or byte count)
      *
@@ -478,16 +500,16 @@ NONSHARABLE_CLASS ( CFSMailMessagePart ) : public CFSMailMessageBase
       */
      IMPORT_C void RemoveDownLoadedAttachmentsL();
      
-     //<qmail>
+// <qmail>
      /**
  	 * gets the new NmMessagePart object
  	 *
  	 * @return NmMessagePart object
  	 */
  	 IMPORT_C NmMessagePart* GetNmMessagePart();
-     //<qmail>
+// </qmail>
  	 
- 	 //<qmail>
+// <qmail>
      /**
       * Gets the text content from private shared object.
       * Returns the ownership of text buffer to caller.
@@ -496,7 +518,7 @@ NONSHARABLE_CLASS ( CFSMailMessagePart ) : public CFSMailMessageBase
       * @return HBufC*
       */
      IMPORT_C HBufC* GetLocalTextContentLC();
-     //<qmail>
+// </qmail>
      
      
 public: // data
@@ -512,7 +534,7 @@ protected:
      * lists subparts
      */
      void ListMessagePartsL( RPointerArray<CFSMailMessagePart>& aParts );
-       
+         
     /**
      * clears internal part array
      */
@@ -521,7 +543,7 @@ protected:
     /**
      * finds id of body part
      */
-   TFSMailMsgId FindBodyPartIdL(const TDesC& aContentType);
+     TFSMailMsgId FindBodyPartIdL(const TDesC& aContentType);
 
      /**
      * Returns a flat list of message parts that can be handled as attachments.
@@ -534,37 +556,37 @@ protected:
 
 protected: // data
 
-   CFSMailRequestHandler*       iRequestHandler;  
-
     /**
      * email fetch from email server status
      */
-   TFSPartFetchState          iMessagePartsStatus;
+     TFSPartFetchState                  iMessagePartsStatus;
 
+// <qmail>
  	/**
  	 * message part MIME type - pointer descriptor to access QString object
  	 */
  	 mutable TPtrC						iContentTypePtr;
+// </qmail>
 	 
   	/** message parts array */
 	 RPointerArray<CFSMailMessagePart>	iMessageParts;
 	 TBool                              iReadMessageParts;
 	 
-    //<qmail>
+// <qmail>
 	/**
 	 * Reference to QT side of the message meta data object.
 	 */
 	 QExplicitlySharedDataPointer<NmMessagePartPrivate> iNmPrivateMessagePart;
-    //<qmail>
+// </qmail>
 
 protected:
 
-  /**
+    /**
      * Two-phased constructor
      */
      void ConstructL( TFSMailMsgId aMessageId, TFSMailMsgId aMessagePartId );
 
-    //<qmail>
+// <qmail>
     /**
      * Two-phased constructor
      */
@@ -572,16 +594,20 @@ protected:
 
      void ConstructL(const NmMessagePart& aNmMessagePart,
                      const NmMessageEnvelope& aNmMessageEnvelope);
-    //<qmail>
+// </qmail>
 
-private:	// data
+private:    // data
 
+// <qmail>
+// Unnecessary members removed: iMessagePartId, iContentSize, iFetchedContentSize
+// </qmail>
      /** read only part size */
      TUint           iReadOnlyPartSize;
 
      /** fetched from email server indication */
      TBool           iIsFetched;
 
+// <qmail>
    	/**
    	 * email content decription  - pointer descriptor to access QString object
    	 */
@@ -591,6 +617,7 @@ private:	// data
    	 * email content disposition  - pointer descriptor to access QString object
    	 */
    	 mutable TPtrC	iContentDispositionPtr;
+// </qmail>
  	 
      /** attachment name */
      HBufC           *iAttachmentName;
@@ -598,10 +625,12 @@ private:	// data
      /** email content class */
      HBufC           *iContentClass;
 
+// <qmail>
     /**
      * email content id  - pointer descriptor to access QString object
      */
-     mutable TPtrC	iContentIDPtr;     
+     mutable TPtrC	iContentIDPtr;
+// </qmail>
 
      /** content disposition parameters */
      CDesCArray      *iContentDispositionParams;
@@ -610,7 +639,7 @@ private:	// data
      CDesCArray      *iContentTypeParams;
 
      /** meeting request object */
-     MMRInfoObject*  iMeetingRequest;           
+     MMRInfoObject*  iMeetingRequest;                       
 
      /* temp file handle */
      RFile           iFile;

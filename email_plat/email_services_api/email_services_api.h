@@ -1,19 +1,22 @@
 /*
- * Copyright (c) 2010 Nokia Corporation and/or its subsidiary(-ies).
- * All rights reserved.
- * This component and the accompanying materials are made available
- * under the terms of "Eclipse Public License v1.0"
- * which accompanies this distribution, and is available
- * at the URL "http://www.eclipse.org/legal/epl-v10.html".
- *
- * Initial Contributors:
- * Nokia Corporation - initial contribution.
- *
- * Contributors:
- *
- * Description: Email services API to be used through Qt Highway.
- *
- */
+* Copyright (c) 2010 Nokia Corporation and/or its subsidiary(-ies).
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description: Email services API to be used through Qt Highway.
+*
+*/
+
+#ifndef EMAIL_SERVICES_API_H
+#define EMAIL_SERVICES_API_H
 
 /*!
     Keys for mail send service data.
@@ -27,7 +30,7 @@ static const QString emailSendBccKey = "bcc";
 /*!
     Mail send service interface name.
 */
-static const QString emailInterfaceNameSend = "com.nokia.symbian.IMessage.Send";
+static const QString emailInterfaceNameSend = "com.nokia.symbian.IEmailMessageSend";
 
 
 /*!
@@ -141,5 +144,4 @@ static const QString emailOperationViewInbox = "displayInboxByMailboxId(QVariant
 */
 static const QString emailOperationViewMessage = "viewMessage(QVariant,QVariant,QVariant)";
 
-
-// End of file.
+#endif // EMAIL_SERVICES_API_H

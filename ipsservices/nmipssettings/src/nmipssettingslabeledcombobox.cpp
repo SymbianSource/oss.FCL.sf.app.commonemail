@@ -56,7 +56,7 @@ NmIpsSettingsLabeledComboBox::NmIpsSettingsLabeledComboBox(QGraphicsItem *parent
     // Connect signals and slots.
     connect(mComboBox, SIGNAL(currentIndexChanged(int)), 
         this, SLOT(comboBoxIndexChanged(int)), Qt::UniqueConnection);
-    connect(mComboBox, SIGNAL(currentIndexChanged(int)), 
+    connect(mComboBox, SIGNAL(currentIndexChanged(int)),
         this, SIGNAL(currentIndexChanged(int)), Qt::UniqueConnection);
 }
 
@@ -68,44 +68,59 @@ NmIpsSettingsLabeledComboBox::~NmIpsSettingsLabeledComboBox()
 }
 
 /*!
-    Sets the current combobox index.
-    \param index Combobox index to set.
+    Returns the current index.
+    \return Index.
 */
-void NmIpsSettingsLabeledComboBox::setCurrentIndex(int index)
+int NmIpsSettingsLabeledComboBox::currentIndex() const
 {
-    // Change is not signaled outside via currentIndexChanged.
-    disconnect(mComboBox, SIGNAL(currentIndexChanged(int)), 
-        this, SIGNAL(currentIndexChanged(int)));
-    mComboBox->setCurrentIndex(index);
-
-    // Force refreshing the label text when the new index is same as current index.
-    if (mComboBox->currentIndex() == index) {
-        comboBoxIndexChanged(index);
-        }
-
-    // Reconnect the slot to signal changes outside.
-    connect(mComboBox, SIGNAL(currentIndexChanged(int)),
-            this, SIGNAL(currentIndexChanged(int)), Qt::UniqueConnection);
+    return mComboBox->currentIndex();
 }
 
 /*!
-    Sets the combobox items and corresponding texts for the label.
-    \param texts Item texts.
+    Sets the current index.
+    \param currentIndex Index to set.
 */
-void NmIpsSettingsLabeledComboBox::setItems(QStringList comboBoxItems,
-                                            QStringList texts)
+void NmIpsSettingsLabeledComboBox::setCurrentIndex(int index)
 {
-    // Set the combobox items without signaling index change.
-    disconnect(mComboBox, SIGNAL(currentIndexChanged(int)), 
-        this, SIGNAL(currentIndexChanged(int)));
-    mComboBox->setItems(comboBoxItems);
-    connect(mComboBox, SIGNAL(currentIndexChanged(int)),
-        this, SIGNAL(currentIndexChanged(int)), Qt::UniqueConnection);
+    mComboBox->setCurrentIndex(index);
+}
 
-    // Set the corresponding texts for the label.
+/*!
+    Returns the current combobox items.
+    \return Combobox items.
+*/
+QStringList NmIpsSettingsLabeledComboBox::comboItems() const
+{
+    return mComboBox->items();
+}
+
+/*!
+    Sets the current combobox items.
+    \param comboItem Combobox items to set.
+*/
+void NmIpsSettingsLabeledComboBox::setComboItems(QStringList comboItems)
+{
+    mComboBox->setItems(comboItems);
+}
+/*!
+    Returns the current label texts.
+    \return Label texts.
+*/
+QStringList NmIpsSettingsLabeledComboBox::labelTexts() const
+{
+    return QStringList(mLabelTexts.values());
+}
+
+/*!
+    Sets the current label texts.
+    \param labelTexts Label texts to set.
+*/
+void NmIpsSettingsLabeledComboBox::setLabelTexts(QStringList labelTexts)
+{
+    // Set the label texts.
     mLabelTexts.clear();
-    for (int i=0; i<comboBoxItems.count(); ++i) {
-        mLabelTexts.insert(i, texts.at(i));
+    for (int i=0; i<labelTexts.count(); ++i) {
+        mLabelTexts.insert(i, labelTexts.at(i));
     }
 }
 
@@ -115,5 +130,6 @@ void NmIpsSettingsLabeledComboBox::setItems(QStringList comboBoxItems,
 */
 void NmIpsSettingsLabeledComboBox::comboBoxIndexChanged(int index)
 {
-    mLabel->setPlainText(mLabelTexts.value(index));
+    QString label(mLabelTexts.value(index));
+    mLabel->setPlainText(label);
 }

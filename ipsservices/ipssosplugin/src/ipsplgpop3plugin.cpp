@@ -174,7 +174,7 @@ void CIpsPlgPop3Plugin::RefreshNowL(
         forcePopulate,
         ActivityTimerL( aMailBoxId ),
         aMailBoxId, 
-        aOperationObserver,
+        &aOperationObserver,
         aRequestId,
         iEventHandler );
     
@@ -344,7 +344,7 @@ void CIpsPlgPop3Plugin::FetchMessagesL(
         info, 
         *sel, 
         aMailBoxId, 
-        aObserver, 
+        &aObserver, 
         aRequestId,
         iEventHandler );
     

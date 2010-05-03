@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2008 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -19,8 +19,8 @@
 #ifndef __FSMAILFOLDERBASE_H
 #define __FSMAILFOLDERBASE_H
 
-
 #include "CFSMailMessage.h"
+#include "cemailextensionbase.h"
 
 // <qmail>
 class NmFolder;
@@ -33,7 +33,7 @@ class NmFolderPrivate;
  *  @lib FSFWCommonLib
  *  @since S60 S60 v3.1
  */
-NONSHARABLE_CLASS ( CFSMailFolderBase ) : public CBase
+NONSHARABLE_CLASS ( CFSMailFolderBase ) : public CExtendableEmail
 {
  public:
     
@@ -42,48 +42,48 @@ NONSHARABLE_CLASS ( CFSMailFolderBase ) : public CBase
      *
      * @param aFolderId folder id in plugin containing folder
      */
-    IMPORT_C static CFSMailFolderBase* NewL( const TFSMailMsgId aFolderId );
+     IMPORT_C static CFSMailFolderBase* NewL(const TFSMailMsgId aFolderId);
     
     /**
      * Two-phased constructor.
      *
      * @param aFolderId folder id in plugin containing folder
      */
-    IMPORT_C static CFSMailFolderBase* NewLC( const TFSMailMsgId aFolderId );
+     IMPORT_C static CFSMailFolderBase* NewLC(const TFSMailMsgId aFolderId);
 
     /**
      * Destructor.
      *
      */  
-    IMPORT_C virtual ~CFSMailFolderBase();
+     IMPORT_C virtual ~CFSMailFolderBase();
 
     /**
      * folder id accessor
      *
      * @return folder id
      */
-    IMPORT_C TFSMailMsgId GetFolderId() const;
+     IMPORT_C TFSMailMsgId GetFolderId() const;
 
     /**
      * parent folder id accessor
      *
      * @return parent folder id
      */
-    IMPORT_C TFSMailMsgId GetParentFolderId() const;
+     IMPORT_C TFSMailMsgId GetParentFolderId() const;
 
     /**
      * parent folder id mutator
      *
      * @param aFolderId parent folder id to be set
      */
-    IMPORT_C void SetParentFolderId( const TFSMailMsgId aFolderId );
+     IMPORT_C void SetParentFolderId( const TFSMailMsgId aFolderId );
 
     /**
      * folder name accessor
      *
      * @return folder name
      */
-    IMPORT_C TDesC& GetFolderName() const;
+     IMPORT_C TDesC& GetFolderName() const;
 
     /**
      * Folder name mutator. Note ! Some clients may ignore names set for
@@ -93,91 +93,91 @@ NONSHARABLE_CLASS ( CFSMailFolderBase ) : public CBase
      *
      * @param aFolderName folder name to be set
      */
-    IMPORT_C void SetFolderName( const TDesC& aFolderName );
+     IMPORT_C void SetFolderName(const TDesC& aFolderName);
 
     /**
      * folder type accessor
      *
      * @return folder type
      */
-    IMPORT_C TFSFolderType GetFolderType() const;
+     IMPORT_C TFSFolderType GetFolderType() const;
 
     /**
      * folder type mutator
      *
      * @param aFolderType folder type to be set
      */
-    IMPORT_C void SetFolderType( const TFSFolderType aFolderType );
+     IMPORT_C void SetFolderType( const TFSFolderType aFolderType );
 
     /**
      * returns id of mailbox containing this folder
      *
      * @return mailbox id
      */
-    IMPORT_C TFSMailMsgId GetMailBoxId() const;
+     IMPORT_C TFSMailMsgId GetMailBoxId() const;
 
     /**
      * folder mailbox id mutator
      *
      * @param aMailBoxId mailbox id to be set
      */
-    IMPORT_C void SetMailBoxId( const TFSMailMsgId aMailBoxId );
+     IMPORT_C void SetMailBoxId( const TFSMailMsgId aMailBoxId );
 
     /**
      * returns message count contained by this folder
      *
      * @return message count
      */
-    IMPORT_C TUint GetMessageCount() const;
+     IMPORT_C TUint GetMessageCount() const;
 
     /**
      * returns unread message count contained by this folder
      *
      * @return unread message count
      */
-    IMPORT_C TUint GetUnreadCount() const;
+     IMPORT_C TUint GetUnreadCount() const;
 
     /**
      * returns unseen message count contained by this folder
      *
      * @return unseen message count
      */
-    IMPORT_C TUint GetUnseenCount() const;
+     IMPORT_C TUint GetUnseenCount() const;
 
     /**
      * returns subfolder count contained by this folder
      *
      * @return subfolder count
      */
-    IMPORT_C TUint GetSubFolderCount() const;
+     IMPORT_C TUint GetSubFolderCount() const;
 
     /**
      * set message count contained by this folder
      *
      * @param aMessageCount message count
      */
-    IMPORT_C void SetMessageCount( const TUint aMessageCount );
+     IMPORT_C void SetMessageCount( const TUint aMessageCount );
 
     /**
      * set unread message count contained by this folder
      *
      * @param aMessageCount unread message count
      */
-    IMPORT_C void SetUnreadCount( const TUint aMessageCount );
+     IMPORT_C void SetUnreadCount( const TUint aMessageCount );
 
     /**
      * set unseen message count contained by this folder
      *
      * @param aMessageCount unseen message count
      */
-    IMPORT_C void SetUnseenCount( const TUint aMessageCount );
+     IMPORT_C void SetUnseenCount( const TUint aMessageCount );
 
     /**
      * set subfolder count contained by this folder
      *
      * @param subfolder count
      */
-    IMPORT_C void SetSubFolderCount( const TUint aMessageCount );
+     IMPORT_C void SetSubFolderCount( const TUint aMessageCount );
 
     /**
      * blocks copying to this folder from given folder types
@@ -186,8 +186,8 @@ NONSHARABLE_CLASS ( CFSMailFolderBase ) : public CBase
      * @param aMailBoxStatus mailbox status (online / offline) when
      * blocking is done
      */
-    IMPORT_C void BlockCopyFromL( RArray<TFSFolderType> aFolderTypes, 
-                  TFSMailBoxStatus aMailBoxStatus );
+     IMPORT_C void BlockCopyFromL( RArray<TFSFolderType> aFolderTypes, 
+                                    TFSMailBoxStatus aMailBoxStatus );
     /**
      * blocks moving to this folder from given folder types
      *
@@ -195,8 +195,8 @@ NONSHARABLE_CLASS ( CFSMailFolderBase ) : public CBase
      * @param aMailBoxStatus mailbox status (online / offline) when
      * blocking is done
      */
-    IMPORT_C void BlockMoveFromL( RArray<TFSFolderType> aFolderTypes, 
-                  TFSMailBoxStatus aMailBoxStatus );
+     IMPORT_C void BlockMoveFromL( RArray<TFSFolderType> aFolderTypes, 
+                                    TFSMailBoxStatus aMailBoxStatus );
 
     // <qmail>
     /**
@@ -213,27 +213,26 @@ protected:
      */
      CFSMailFolderBase();
 
+// <qmail>
      /**
       * Two-phased constructor
       */
-    IMPORT_C void ConstructL( const TFSMailMsgId aFolderId );     
+    IMPORT_C void ConstructL( const TFSMailMsgId aFolderId );
+// </qmail>  
 
-    /**
-     * folder id
-     */
-    TFSMailMsgId             iFolderId;
+// <qmail> unnecessary iFolderId member removed </qmail>
 
     /**
      * blocked folders in copying
      */
-    RArray<TFSFolderType>    iCopyOfflineBlocked;
-    RArray<TFSFolderType>    iCopyOnlineBlocked;
+     RArray<TFSFolderType>    iCopyOfflineBlocked;
+     RArray<TFSFolderType>    iCopyOnlineBlocked;
 
     /**
      * blocked folders in moving
      */
-    RArray<TFSFolderType>    iMoveOfflineBlocked;
-    RArray<TFSFolderType>    iMoveOnlineBlocked;
+     RArray<TFSFolderType>    iMoveOfflineBlocked;
+     RArray<TFSFolderType>    iMoveOnlineBlocked;
 
 
 private: // data

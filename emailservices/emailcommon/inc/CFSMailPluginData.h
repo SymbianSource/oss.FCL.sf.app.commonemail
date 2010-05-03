@@ -32,7 +32,7 @@
  *  @since S60 v3.1
  */
 NONSHARABLE_CLASS ( CFSMailPluginData ) : public CBase
-{
+    {
 
 public:
 

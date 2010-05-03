@@ -64,9 +64,11 @@
 #include <hbtoolbar.h>
 #include <hbgroupbox.h>
 #include <hbpushbutton.h>
+#include <hbprogressdialog.h>
 #include <hblistwidget.h>
 #include <hblistwidgetitem.h>
 #include <hbmessagebox.h>
+#include <hbnotificationdialog.h>
 #include <hbstyleloader.h>
 #include <hbiconitem.h>
 #include <hbextendedlocale.h>
@@ -75,6 +77,8 @@
 #include <hbdevicemessagebox.h>
 #include <hbtransparentwindow.h>
 #include <hbdialog.h>
+#include <hbmessagebox.h>
+#include <hbtoolbarextension.h>
 
 #ifdef Q_OS_SYMBIAN
 #include <cntservicescontact.h>
@@ -140,5 +144,7 @@
 #include "nmutilities.h"
 #include "nmattachmentlistwidget.h"
 #include "nmattachmentlist.h"
+#include "nmeditortextdocument.h"
+#include "nmattachmentpicker.h"
 
 #endif /* NMUIHEADERS_H_ */

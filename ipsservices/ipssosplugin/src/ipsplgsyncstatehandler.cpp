@@ -69,10 +69,9 @@ void CIpsPlgSyncStateHandler::HandlePropertyEventL(
         TInt aEvent, TInt aMailbox, TInt aPluginId ,TInt /*aError*/ )
     {
     FUNC_LOG;
-    if ( iPlugin.PluginId() == aPluginId &&
-            ( aEvent == KIpsSosEmailSyncStarted || 
-            aEvent == KIpsSosEmailSyncCompleted ||
-            aEvent == KIpsSosEmailSyncOnHold ) )
+    // <qmail> removed sync-on-hold state
+    if ( ( iPlugin.PluginId() == aPluginId ) &&
+        ( aEvent == KIpsSosEmailSyncStarted || aEvent == KIpsSosEmailSyncCompleted ) )
         {
         AppendMailboxToSyncingMailbox( aMailbox, aEvent );
         }

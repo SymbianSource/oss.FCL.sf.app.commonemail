@@ -45,14 +45,21 @@ public:
 
     bool populateModel(HbDataFormModel &model, HbDataForm &form, const NmId &mailboxId);
 
-public slots:
-
-    void itemShown(const QModelIndex& index);
-
 signals:
 
     void mailboxListChanged(const NmId &mailboxId, NmSettings::MailboxEventType type);
     void mailboxPropertyChanged(const NmId &mailboxId, QVariant property, QVariant value);
+    void goOnline(const NmId &mailboxId);
+    void goOffline(const NmId &mailboxId);
+
+public slots:
+
+    void aboutToClose();
+    
+private slots:
+
+    void createUserDefinedMode();
+    void showMailInInboxModified(int index);
 
 private:
 
@@ -72,9 +79,6 @@ private:
     NmIpsSettingsManagerBase *mSettingsManager;
     // Owned.
     QTranslator *mTranslator;
-
-    // Not owned.
-    HbDataFormModelItem *mReceivingScheduleSelectedItem;
     // Not owned.
     HbDataFormModel *mModel;
     // Not owned.

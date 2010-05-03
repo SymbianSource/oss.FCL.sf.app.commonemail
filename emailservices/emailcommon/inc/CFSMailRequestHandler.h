@@ -25,7 +25,10 @@
 //</cmail>
 #include "CFSMailPluginData.h"
 
+// <qmail>
+// Entire class is now exported
 #include "emailcommondef.h"
+// </qmail>
 
 // FORWARD DECLARATIONS
 class CFSMailRequestObserver;
@@ -106,7 +109,7 @@ public:
      * @return request data
      */
       TFSPendingRequest InitAsyncRequestL( TUid aPluginId,
-                                                   MFSMailRequestObserver& aOperationObserver );
+                                                    MFSMailRequestObserver& aOperationObserver);
 
     /**
      * completes asynchronous request
@@ -180,7 +183,7 @@ protected:
 protected: // data
 
     /** list of loaded plugins */
-    RPointerArray<CFSMailPluginData>    iPluginList;
+	 RPointerArray<CFSMailPluginData>    iPluginList;
 
 private: 
 
@@ -190,9 +193,9 @@ private:
 private: // data
 
     /** list of pending requests */
-    RArray<TFSPendingRequest>           iPendingRequests;
-    
-    /** request id counter       */
+	 RArray<TFSPendingRequest>           iPendingRequests;
+	
+	/** request id counter       */
     TUint                                iRequestId;
 
     /** temp directory files handling        */ 
@@ -201,5 +204,5 @@ private: // data
     };
 
 #endif
-  
+
 // End of File

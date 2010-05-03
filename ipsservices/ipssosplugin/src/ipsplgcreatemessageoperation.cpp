@@ -30,32 +30,30 @@
 // CIpsPlgCreateMessageOperation::CIpsPlgCreateMessageOperation
 // ----------------------------------------------------------------------------
 //
+// <qmail> priority parameter has been removed
 CIpsPlgCreateMessageOperation::CIpsPlgCreateMessageOperation(
     CIpsPlgSmtpService* aSmtpService,
     CMsvSession& aMsvSession,
     TRequestStatus& aObserverRequestStatus,
     TMsvId aSmtpServiceId, 
     TMsvPartList aPartList,
-    TMsvId aMailBoxId,
+    TFSMailMsgId aMailBoxId,
     MFSMailRequestObserver& aOperationObserver,
-    const TInt aRequestId ) 
+    TInt aRequestId ) 
     :
-    CMsvOperation( 
+    CIpsPlgBaseOperation( 
         aMsvSession, 
-        CActive::EPriorityStandard, 
-        aObserverRequestStatus),
+        aObserverRequestStatus,
+        aRequestId,
+        aMailBoxId),
     iSmtpService(aSmtpService),
     iSmtpServiceId(aSmtpServiceId),
     iPartList(aPartList),
-    iBlank( KNullDesC8 ),
-    iMailBoxId(aMailBoxId),
-    iOperationObserver(aOperationObserver),
-    iRequestId(aRequestId)
+    iOperationObserver(aOperationObserver)
     {
     FUNC_LOG;
     CActiveScheduler::Add( this );
     }
-
 
 // ----------------------------------------------------------------------------
 // CIpsPlgCreateMessageOperation::ConstructL
@@ -78,9 +76,9 @@ CIpsPlgCreateMessageOperation* CIpsPlgCreateMessageOperation::NewL(
     TRequestStatus& aObserverRequestStatus,
     TMsvId aSmtpServiceId, 
     TMsvPartList aPartList,
-    TMsvId aMailBoxId,
+    TFSMailMsgId aMailBoxId,
     MFSMailRequestObserver& aOperationObserver,
-    const TInt aRequestId )
+    TInt aRequestId )
     {
     FUNC_LOG;
     CIpsPlgCreateMessageOperation* self =
@@ -143,7 +141,7 @@ void CIpsPlgCreateMessageOperation::RunL()
         if( err == KErrNone )
             {
             newMessage = iSmtpService->CreateFSMessageAndSetFlagsL( 
-                    msgId, KErrNotFound, iMailBoxId );
+                    msgId, KErrNotFound, iFSMailboxId.Id() );
             }
         
         // relay the created message (observer takes ownership)
@@ -202,21 +200,20 @@ TMsvId CIpsPlgCreateMessageOperation::GetIdFromProgressL( const TDesC8& aProg )
 void CIpsPlgCreateMessageOperation::SignalFSObserver(
         TInt aStatus, CFSMailMessage* aMessage )
     {
-    TFSProgress result =
-        { TFSProgress::EFSStatus_Waiting, 0, 0, KErrNone, aMessage };
-    
     if ( aStatus == KErrCancel )
         {
-        result.iProgressStatus = TFSProgress::EFSStatus_RequestCancelled;
-        result.iError = KErrCancel;
+        iFSProgress.iProgressStatus = TFSProgress::EFSStatus_RequestCancelled;
+        iFSProgress.iError = KErrCancel;
+        iFSProgress.iParam = NULL;
         }
     else
         {
-        result.iProgressStatus = TFSProgress::EFSStatus_RequestComplete;
-        result.iError = aStatus;
+        iFSProgress.iProgressStatus = TFSProgress::EFSStatus_RequestComplete;
+        iFSProgress.iError = aStatus;
+        iFSProgress.iParam = aMessage;
         }
 
-    TRAP_IGNORE( iOperationObserver.RequestResponseL( result, iRequestId ) );
+    TRAP_IGNORE( iOperationObserver.RequestResponseL( iFSProgress, iFSRequestId ) );
     }
 
 // ----------------------------------------------------------------------------
@@ -236,7 +233,29 @@ const TDesC8& CIpsPlgCreateMessageOperation::ProgressL()
             }
         }
 
-    return iBlank;
+    return KNullDesC8;
+    }
+
+// ---------------------------------------------------------------------------
+// CIpsPlgCreateMessageOperation::GetErrorProgressL
+// ---------------------------------------------------------------------------
+//   
+const TDesC8& CIpsPlgCreateMessageOperation::GetErrorProgressL( TInt /*aError*/ )
+    {
+    FUNC_LOG;
+    
+    return KNullDesC8; // error progress info not supported
+    }
+
+// ---------------------------------------------------------------------------
+// CIpsPlgCreateMessageOperation::GetFSProgressL
+// ---------------------------------------------------------------------------
+//   
+TFSProgress CIpsPlgCreateMessageOperation::GetFSProgressL() const
+    {
+    FUNC_LOG;
+    
+    return iFSProgress;
     }
 
 // ----------------------------------------------------------------------------
@@ -279,6 +298,16 @@ void CIpsPlgCreateMessageOperation::StartMessageCreationL()
         KMsvEmailTypeListMHTMLMessage,
         //0,
         KUidMsgTypeSMTP);
+    }
+
+
+// ----------------------------------------------------------------------------
+// CIpsPlgCreateMessageOperation::IpsOpType
+// ----------------------------------------------------------------------------    
+TIpsOpType CIpsPlgCreateMessageOperation::IpsOpType() const
+    {
+    FUNC_LOG;
+    return EIpsOpTypeCreateMessageOp;
     }
 
 //  End of File

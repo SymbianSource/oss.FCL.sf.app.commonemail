@@ -16,8 +16,15 @@
 */
 
 
-#include <QCoreApplication>
+#include "nmmailagentheaders.h"
 #include "nmmailagent.h"
+
+#ifdef __WINSCW__
+const int NmStartupDelay = 14000; // 14s
+#else
+const int NmStartupDelay = 4000; // 4s
+#endif
+
 
 /*!
 	int main
@@ -26,9 +33,9 @@ int main(int argc, char *argv[])
 {
     QCoreApplication app(argc, argv);
     NmMailAgent agent;
-    if( !agent.init() ) {
-        // failed to start the framework
-        return 1;
-    }
+
+    // Agent will be initialised with a delay to avoid startup problems
+    QTimer::singleShot(NmStartupDelay, &agent, SLOT(delayedStart()));
+
     return app.exec();
 }

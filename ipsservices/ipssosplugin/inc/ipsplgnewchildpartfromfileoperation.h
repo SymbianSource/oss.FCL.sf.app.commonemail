@@ -21,13 +21,13 @@
 
 class MFSMailRequestObserver;
 
-NONSHARABLE_CLASS ( CCIpsPlgNewChildPartFromFileOperation ): public CMsvOperation
+NONSHARABLE_CLASS ( CIpsPlgNewChildPartFromFileOperation ): public CIpsPlgBaseOperation
 {
 public:
     /**
     * Constructor.
     */
-    static CCIpsPlgNewChildPartFromFileOperation* NewL(
+    static CIpsPlgNewChildPartFromFileOperation* NewL(
         CMsvSession& aMsvSession,
         TRequestStatus& aObserverRequestStatus,
         const TFSMailMsgId& aMailBoxId,
@@ -41,16 +41,23 @@ public:
     /**
     * Destructor.
     */
-    virtual ~CCIpsPlgNewChildPartFromFileOperation();
+    virtual ~CIpsPlgNewChildPartFromFileOperation();
 
-public: // From CMsvOperation
+public: // From CIpsPlgBaseOperation
+    
     virtual const TDesC8& ProgressL();
+    
+    virtual const TDesC8& GetErrorProgressL(TInt aError);
+
+    virtual TFSProgress GetFSProgressL() const;
+
+    TIpsOpType IpsOpType() const;   
     
 protected:
     /**
     * Constructor.
     */
-    CCIpsPlgNewChildPartFromFileOperation(
+    CIpsPlgNewChildPartFromFileOperation(
         CMsvSession& aMsvSession,
         TRequestStatus& aObserverRequestStatus,
         const TFSMailMsgId& aMailBoxId,
@@ -88,16 +95,41 @@ private:
                            CImEmailMessage*& aImEmailMessage );
     
     void CleanCachedMessageEntries();
+
+    /*
+     * Four different operation steps are needed
+     */
+    enum TOperationStep
+        {
+        EPrepareMsvEntry,
+        EPrepareStore,
+        EStoreMessagePart
+        };
     
-    enum TOperationStep {EStep1, EStep2, EStep3, EStep4} ;
+    /*
+     * Initializes attachment manager asynchronously
+     */
+    void InitAttachmentManagerL();
+    
+    /*
+     * Prepares Msv entry to be updated asynchronously
+     */
+    void PrepareMsvEntryL();
+    
+    /*
+     * Prepares message store asynchronously if needed
+     */
+    void PrepareStoreL();
+    
+    /*
+     * Stores message part and finishes the operation
+     */
+    void StoreMessagePartL();
     
 protected:
     CMsvOperation* iOperation;   // owned
-    TBuf8<1> iBlank;
-    TFSMailMsgId iMailBoxId;
     TFSMailMsgId iMessageId;
     MFSMailRequestObserver& iOperationObserver;  // not owned
-    TInt iRequestId;
     HBufC* iContentType;
     HBufC* iFilePath;
     CMsvEntry* iCachedEntry;
@@ -107,6 +139,7 @@ protected:
     CIpsPlgMsgMapper* iMsgMapper;
     TMsvId iNewAttachmentId;
     TOperationStep iStep;
+    TFSProgress iFSProgress;
 };
 
 #endif // IPSPLGNEWCHILDPARTFROMFILEOPERATION_H

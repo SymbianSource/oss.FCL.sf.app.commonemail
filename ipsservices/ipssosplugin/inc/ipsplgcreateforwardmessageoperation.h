@@ -38,10 +38,10 @@ public:
         CMsvSession& aMsvSession,
         TRequestStatus& aObserverRequestStatus,
         TMsvPartList aPartList,
-        TMsvId aMailBoxId,
+        TFSMailMsgId aMailBoxId,
         TMsvId aOriginalMessageId,
         MFSMailRequestObserver& aOperationObserver,
-        const TInt aRequestId );
+        TInt aRequestId );
         
     /**
     * Destructor.
@@ -58,10 +58,10 @@ private:
         CMsvSession& aMsvSession,
         TRequestStatus& aObserverRequestStatus,
         TMsvPartList aPartList,
-        TMsvId aMailBoxId,
+        TFSMailMsgId aMailBoxId,
         TMsvId aOriginalMessageId, 
         MFSMailRequestObserver& aOperationObserver,
-        const TInt aRequestId );
+        TInt aRequestId );
 
     /**
     * From CActive

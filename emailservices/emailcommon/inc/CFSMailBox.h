@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2008 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -41,7 +41,6 @@ class CFSMailRequestHandler;
  *  mailbox data handling
  *
  *  @lib FSFWCommonLib
- *  @since S60 v3.1
  */
 NONSHARABLE_CLASS ( CFSMailBox ) : public CFSMailBoxBase
 {
@@ -57,15 +56,15 @@ NONSHARABLE_CLASS ( CFSMailBox ) : public CFSMailBoxBase
      *
      * @param aMailBoxId mailbox id in plugin containing mailbox
      */
-    IMPORT_C static CFSMailBox* NewL( TFSMailMsgId aMailBoxId );
-    
+  	 IMPORT_C static CFSMailBox* NewL( TFSMailMsgId aMailBoxId	);
+  	
     /**
      * two based constructor
      *
      * @param aMailBoxId mailbox id in plugin containing mailbox
      */
-     IMPORT_C static CFSMailBox* NewLC( TFSMailMsgId aMailBoxId );
-    
+  	 IMPORT_C static CFSMailBox* NewLC( TFSMailMsgId aMailBoxId );
+  	
     /**
      * Enables synchronization of the mailbox. This means
      * that the framework can connect to server to do synchronization
@@ -84,8 +83,8 @@ NONSHARABLE_CLASS ( CFSMailBox ) : public CFSMailBoxBase
      * for this purpose. There are also other reasons for ending up
      * in offline state like network error or scheduling.
      * 
-     */
-    IMPORT_C void GoOnlineL();
+	 */
+     IMPORT_C void GoOnlineL();
 
     /**
      * Disables mailbox synchronization. Connection to server
@@ -96,16 +95,16 @@ NONSHARABLE_CLASS ( CFSMailBox ) : public CFSMailBoxBase
      * same connection then this function has effect on those
      * mailboxes also.
      * 
-     */
-    IMPORT_C void GoOfflineL();
+	 */
+     IMPORT_C void GoOfflineL();
 
     /**
      * Returns last synchronizing operation progress status.
      *
      * @return last sync operation progress status
      * 
-     */
-    IMPORT_C TFSProgress GetLastSyncStatusL();
+	 */
+     IMPORT_C TFSProgress GetLastSyncStatusL();
 
     /**
      * Forces synchronization of mailbox. This can be called
@@ -131,24 +130,24 @@ NONSHARABLE_CLASS ( CFSMailBox ) : public CFSMailBoxBase
      * @param aOperationObserver optional observer given by user
      *
      * @return asynchronous request id
-     */
-    IMPORT_C TInt RefreshNowL( MFSMailRequestObserver& aOperationObserver );
+	 */
+     IMPORT_C TInt RefreshNowL( MFSMailRequestObserver& aOperationObserver );
 
-    IMPORT_C TInt RefreshNowL();
-    
+     IMPORT_C TInt RefreshNowL( );
+  	
     /**
      * cancels all ongoing synchronizations in this mailbox regardless
      * of initiator, by user or by plugin itself
      *
-     */
-    IMPORT_C void CancelSyncL();
+	 */
+     IMPORT_C void CancelSyncL();
 
     /**
      * creates into this mailbox new draft email 
      *
      * @return new draft email object, ownership is transferred to user
      */
-    IMPORT_C CFSMailMessage* CreateMessageToSend();
+  	 IMPORT_C CFSMailMessage* CreateMessageToSend( );
 
 // <qmail>  	 
     /**
@@ -178,7 +177,7 @@ NONSHARABLE_CLASS ( CFSMailBox ) : public CFSMailBoxBase
         MFSMailRequestObserver& aOperationObserver );
 // </qmail> 
     
-     /**
+    /**
      * creates into this mailbox new draft email to be forwarded 
      *
      * @param aOriginalMessageId message id of the original message to be forwarded
@@ -187,8 +186,8 @@ NONSHARABLE_CLASS ( CFSMailBox ) : public CFSMailBoxBase
      *
      * @return new draft email object, ownership is transferred to user
      */
-    IMPORT_C CFSMailMessage* CreateForwardMessage( const TFSMailMsgId aOriginalMessageId,
-                            const TDesC& aHeaderDescriptor = KNullDesC );
+  	 IMPORT_C CFSMailMessage* CreateForwardMessage( const TFSMailMsgId aOriginalMessageId,
+  	 												const TDesC& aHeaderDescriptor = KNullDesC  );
 
 // <qmail>       
     /**
@@ -218,9 +217,9 @@ NONSHARABLE_CLASS ( CFSMailBox ) : public CFSMailBoxBase
      *
      * @return new draft email object, ownership is transferred to user
      */
-    IMPORT_C CFSMailMessage* CreateReplyMessage( const TFSMailMsgId aOriginalMessageId,
-                            const TBool aReplyToAll,
-                            const TDesC& aHeaderDescriptor = KNullDesC );
+  	 IMPORT_C CFSMailMessage* CreateReplyMessage(	const TFSMailMsgId aOriginalMessageId,
+  	 							 					const TBool aReplyToAll,
+  	 							 					const TDesC& aHeaderDescriptor = KNullDesC  );
 
 // <qmail>       
     /**
@@ -245,7 +244,7 @@ NONSHARABLE_CLASS ( CFSMailBox ) : public CFSMailBoxBase
      *
      * @param aMessage message to be sent
      */
-    IMPORT_C void SendMessageL( CFSMailMessage& aMessage );
+	 IMPORT_C void SendMessageL(CFSMailMessage& aMessage);
 
 // <qmail>
     /**
@@ -259,41 +258,41 @@ NONSHARABLE_CLASS ( CFSMailBox ) : public CFSMailBoxBase
 // </qmail>
 
     /**
-     * List subfolders of given folder.
-     * Only direct subfolders of given folder are returned.
-       *
-       * folder data : 
-       * - folder id
-       * - folder name
-       * - folder type ; Inbox, Outbox, Sent, Drafts, Deleted, Other
-       * - message count
-       * - unread message count
-       * - mailbox id 
-       * - parent folder
-       * - subfolder count
-       *
-       * @param aFolderId defines parent folder id. TFSMailId::NullId() for root level list.
-       * @param aFolderList plugin writes results in this array owned by user
-       */
-    IMPORT_C void ListFolders( const TFSMailMsgId aFolderId, RPointerArray<CFSMailFolder>& aFolderList ); 
+	 * List subfolders of given folder.
+	 * Only direct subfolders of given folder are returned.
+	 *
+	 * folder data : 
+	 * - folder id
+	 * - folder name
+	 * - folder type ; Inbox, Outbox, Sent, Drafts, Deleted, Other
+	 * - message count
+	 * - unread message count
+	 * - mailbox id 
+	 * - parent folder
+	 * - subfolder count
+	 *
+	 * @param aFolderId defines parent folder id. TFSMailId::NullId() for root level list.
+	 * @param aFolderList plugin writes results in this array owned by user
+	 */
+	 IMPORT_C void ListFolders( const TFSMailMsgId aFolderId, RPointerArray<CFSMailFolder>& aFolderList); 
 
-      /**
-       * List all subfolders of mailbox.
-       *
-       * folder data : 
-       * - folder id
-       * - folder name
-       * - folder type ; Inbox, Outbox, Sent Items, Drafts, Deleted Items, Other
-       * - message count
-       * - unread message count
-       * - mailbox id 
-       * - parent folder
-       * - subfolder count
-       *
-       * @return results in this array owned by this object, caller must determine
-       *         tree structure by examining parent id of each returned folder.
-       */
-    IMPORT_C RPointerArray<CFSMailFolder>& ListFolders(); 
+	/**
+	 * List all subfolders of mailbox.
+	 *
+	 * folder data : 
+	 * - folder id
+	 * - folder name
+	 * - folder type ; Inbox, Outbox, Sent Items, Drafts, Deleted Items, Other
+	 * - message count
+	 * - unread message count
+	 * - mailbox id 
+	 * - parent folder
+	 * - subfolder count
+	 *
+	 * @return results in this array owned by this object, caller must determine
+	 *         tree structure by examining parent id of each returned folder.
+	 */
+	 IMPORT_C RPointerArray<CFSMailFolder>& ListFolders(  ); 
 
     /**
      * Standard folder id accessor.
@@ -301,7 +300,7 @@ NONSHARABLE_CLASS ( CFSMailBox ) : public CFSMailBoxBase
      * @param aFolderType defines folder type
      * @return standard folder id
      */
-    IMPORT_C TFSMailMsgId GetStandardFolderId( const TFSFolderType aFolderType );
+	 IMPORT_C TFSMailMsgId GetStandardFolderId( const TFSFolderType aFolderType );
 
 
     /**
@@ -310,7 +309,7 @@ NONSHARABLE_CLASS ( CFSMailBox ) : public CFSMailBoxBase
      *
      * @return branding id
      */
-    IMPORT_C TDesC& GetBrandingIdL( );
+     IMPORT_C TDesC& GetBrandingIdL( );
 
 
     /**
@@ -320,10 +319,22 @@ NONSHARABLE_CLASS ( CFSMailBox ) : public CFSMailBoxBase
      * @param aSourceFolderId source folder id
      * @param aDestinationFolderId destination folder id
      */    
-    IMPORT_C void MoveMessagesL( const RArray<TFSMailMsgId>& aMessageIds, 
-                                 const TFSMailMsgId aSourceFolderId, 
-                                 const TFSMailMsgId aDestinationFolderId );
+     IMPORT_C void MoveMessagesL( const RArray<TFSMailMsgId>& aMessageIds, 
+                                  const TFSMailMsgId aSourceFolderId, 
+                                  const TFSMailMsgId aDestinationFolderId );
 
+     /**
+     * Moves a messages between folders. Async version.
+     *                            
+     * @param MFSMailRequestObserver& aOperationObserver for callback
+     * @param aMessageIds ids of the messages to be transferred
+     * @param aSourceFolderId source folder id
+     * @param aDestinationFolderId destination folder id
+     */    
+	 IMPORT_C TInt MoveMessagesL( MFSMailRequestObserver& aOperationObserver,
+                                  const RArray<TFSMailMsgId>& aMessageIds, 
+                                  const TFSMailMsgId aSourceFolderId, 
+                                  const TFSMailMsgId aDestinationFolderId );
     /**
      * Copies a messages from one folder to another folder.
      * including the properties, content, and all attachments. 
@@ -336,11 +347,11 @@ NONSHARABLE_CLASS ( CFSMailBox ) : public CFSMailBoxBase
      * @param aSourceFolderId source folder id
      * @param aDestinationFolderId destination folder id
      */    
-    IMPORT_C void CopyMessagesL( const RArray<TFSMailMsgId>& aMessageIds, 
-                                 RArray<TFSMailMsgId>& aCopiedMessages,
-                                 const TFSMailMsgId aSourceFolderId, 
-                                 const TFSMailMsgId aDestinationFolderId );
-                                  
+     IMPORT_C void CopyMessagesL(	const RArray<TFSMailMsgId>& aMessageIds, 
+							  		RArray<TFSMailMsgId>& aCopiedMessages,
+                              		const TFSMailMsgId aSourceFolderId, 
+                              		const TFSMailMsgId aDestinationFolderId );
+                              		
     /**
      * Asyncronous call for starting search for given string. Only one search can be
      * performed at a time.
@@ -355,33 +366,33 @@ NONSHARABLE_CLASS ( CFSMailBox ) : public CFSMailBoxBase
      * results generated by the same search string.
      *    
      * The function will leave with KErrInUse if a search is already in progress.
-   *
+	 *
      * note only works if the store is in an authenticated state,
      * otherwise this function leaves with KErrNotReady
      *
      * @param aSearchStrings text strings that will be searched from different message fields.
-   * @param aSortCriteria sort criteria for the results
-   * @param aSortCriteria sort criteria for the results
+	 * @param aSortCriteria sort criteria for the results
+	 * @param aSortCriteria sort criteria for the results
      * @param aFolderIds user can give list of folders to be searched
      */    
-    IMPORT_C void SearchL( const RPointerArray<TDesC>& aSearchStrings,
-                           const TFSMailSortCriteria& aSortCriteria,
-                           MFSMailBoxSearchObserver& aSearchObserver );
+	 IMPORT_C void SearchL( const RPointerArray<TDesC>& aSearchStrings,
+						    const TFSMailSortCriteria& aSortCriteria,
+					 	    MFSMailBoxSearchObserver& aSearchObserver );
 
-    IMPORT_C void SearchL( const RPointerArray<TDesC>& aSearchStrings,
-                           const TFSMailSortCriteria& aSortCriteria,
-                           MFSMailBoxSearchObserver& aSearchObserver,
-                           RArray<TFSMailMsgId> aFolderIds );
+	 IMPORT_C void SearchL( const RPointerArray<TDesC>& aSearchStrings,
+						    const TFSMailSortCriteria& aSortCriteria,
+					 	    MFSMailBoxSearchObserver& aSearchObserver,
+                            RArray<TFSMailMsgId> aFolderIds );
     /**
      * Cancels current search. Does nothing if there is not any search ongoing.
      * The search client will not be called back after this function is called.
-     *
+	 *
      * note CancelSearch() method does NOT clear the search result cached in the store. 
      *       A different sort order can be used for the same search string, and the 
      *       cache will be utilized.  Only by using a different search string can the
      *       cache be cleaned.
      */    
-    IMPORT_C void CancelSearch();
+	 IMPORT_C void CancelSearch();
 
     /**
      * Inform the store to clean up its cache for search results.
@@ -390,15 +401,15 @@ NONSHARABLE_CLASS ( CFSMailBox ) : public CFSMailBoxBase
      * 
      *  This function should be called by the UI when search results are no longer in display.
      */
-    IMPORT_C void ClearSearchResultCache();
+     IMPORT_C void ClearSearchResultCache();
 
-    /**
-     * DEPRECATED
-     *
+	/**
+	 * DEPRECATED
+	 *
      * @param aFolderId...
      * @param aObserver observer
      */    
-    IMPORT_C void AddObserver( const TFSMailMsgId aFolderId, MFSMailEventObserver& aObserver );
+	 IMPORT_C void AddObserver(const TFSMailMsgId aFolderId, MFSMailEventObserver& aObserver);
 
     /** 
      *  Get a list of most recently used addresses of this mailbox.
@@ -411,28 +422,28 @@ NONSHARABLE_CLASS ( CFSMailBox ) : public CFSMailBoxBase
      * @return Array of descriptors containing MRUs. Ownership
      *         is transferred. Empty if no entries are found.
      */
-    IMPORT_C MDesCArray* ListMrusL() const;
+     IMPORT_C MDesCArray* ListMrusL() const;
 
     /**
      * Returns the current synchronizing state of this mailbox.
      *
      * @return mailbox synchronizing state data structure
      */
-    IMPORT_C TSSMailSyncState CurrentSyncState() const;
+     IMPORT_C TSSMailSyncState CurrentSyncState() const;
 
     /**
      * mailbox capability check for user
      *
      * @param aCapa mailbox capability to be checked
      */
-    IMPORT_C TBool HasCapability( const TFSMailBoxCapabilities aCapability ) const; 
+	 IMPORT_C TBool HasCapability(const TFSMailBoxCapabilities aCapability) const; 
 
     /**
      * mailbox connection status accessor
      *
      * @return connection status, online / offline
      */
-    IMPORT_C TFSMailBoxStatus GetMailBoxStatus( );
+	 IMPORT_C TFSMailBoxStatus GetMailBoxStatus( );
 
     /**
      * mailbox authentication data mutator
@@ -446,7 +457,7 @@ NONSHARABLE_CLASS ( CFSMailBox ) : public CFSMailBoxBase
       * removes downloaded attachments from local/terminal memory 
       */
      IMPORT_C void RemoveDownLoadedAttachmentsL();
-   
+	 
      /**
       * reads connection id from plugin
       *
@@ -461,19 +472,45 @@ NONSHARABLE_CLASS ( CFSMailBox ) : public CFSMailBoxBase
       * @param  aConnectionAllowed 
       * @return KErrNone or error code
       */
-     IMPORT_C TInt IsConnectionAllowedWhenRoaming( TBool& aConnectionAllowed ) ;
-   
+     IMPORT_C TInt IsConnectionAllowedWhenRoaming( TBool& aConnectionAllowed) ;
+
+     /**
+      * creates email from RFC822 format data stream located
+      * in given attachment file
+      *
+      * @param  aFile access to file containing data stream contents
+      *         given by user
+      *
+      * return new email object, ownership is transferred to user
+      */
+      IMPORT_C CFSMailMessage* CreateMessageFromFileL( const RFile& aFile );
+
+public: // from  CExtendableEmail
+
+     /**
+     * @see CExtendableEmail::ReleaseExtension()
+     */
+     IMPORT_C void ReleaseExtension( CEmailExtension* aExtension );
+
+     /**
+      * Returns extension by uid, leaves KErrNotSupported if extension is
+      * not available.
+      * @param aInterfaceUid extension interface uid
+      * @return extension pointer. Ownership depends on extension.
+      */
+     IMPORT_C CEmailExtension* ExtensionL( const TUid& aInterfaceUid );
+
 private:
 
-    /**
+  	/**
      * Two-phased constructor
      */
-     void ConstructL( TFSMailMsgId aMailBoxId );
+  	 void ConstructL( TFSMailMsgId aMailBoxId );
 
     /**
      * C++ default constructor.
      */
-     CFSMailBox();
+  	 CFSMailBox();
 
     /**
      * Function used internally to inform that Mru list related to this
@@ -577,12 +614,12 @@ private:
     /**
      * request handler for plugin requests
      */
-    CFSMailRequestHandler*   iRequestHandler;  
+	 CFSMailRequestHandler* 	iRequestHandler;	
 
-    /**
+	/**
      * mailbox folder list
      */
-    RPointerArray<CFSMailFolder> iFolders;
+	 RPointerArray<CFSMailFolder> iFolders;
 
 };
 

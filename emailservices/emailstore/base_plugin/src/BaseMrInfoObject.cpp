@@ -84,6 +84,7 @@ void CBaseMrInfoObject::ConstructL(
     iPriority = aMrInfo.PriorityL();
 
     iOrganizer = CBaseMrAttendee::NewL();
+//<qmail> Commented out in 10.1
     /*iOrganizer = CBaseMrAttendee::NewL( aMrInfo.MROrganizerL() );
     
     RPointerArray<MMRAttendee>& attendees = aMrInfo.AttendeesL();
@@ -95,6 +96,7 @@ void CBaseMrInfoObject::ConstructL(
         iAttendees.AppendL( attendee );
         CleanupStack::Pop( attendee );
         }*/
+//</qmail>
     
     iRrule = CBaseMrRecurrenceRule::NewL( aMrInfo.RecurrenceRuleL() );
     /**@ copy construction for iExceptions, iAttachments.*/

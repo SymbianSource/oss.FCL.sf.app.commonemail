@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2008 Nokia Corporation and/or its subsidiary(-ies).
+* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -23,6 +23,7 @@
 #include <QExplicitlySharedDataPointer>
 #include <e32base.h>
 #include "CFSMailCommon.h"
+#include "cemailextensionbase.h"
 
 class NmMailboxPrivate;
 class NmMailbox;
@@ -37,42 +38,42 @@ class MMRInfoProcessor;
  *  @since S60 S60 v3.1
  */
 
-NONSHARABLE_CLASS ( CFSMailBoxBase ) : public CBase
+NONSHARABLE_CLASS ( CFSMailBoxBase ) : public CExtendableEmail
 {
  public:
-
+  
     /**
      * Two-phased constructor.
      *
      * @param aMailBoxId mailbox id in plugin containing mailbox
      */
-     IMPORT_C static CFSMailBoxBase* NewL( const TFSMailMsgId aMailBoxId );
-
+     IMPORT_C static CFSMailBoxBase* NewL(const TFSMailMsgId aMailBoxId);
+  	
     /**
      * Two-phased constructor.
      *
      * @param aMailBoxId mailbox id in plugin containing mailbox
      */
-     IMPORT_C static CFSMailBoxBase* NewLC( const TFSMailMsgId aMailBoxId );
+     IMPORT_C static CFSMailBoxBase* NewLC(const TFSMailMsgId aMailBoxId);
 
     /**
      * Destructor.
-     */
+     */  
      IMPORT_C virtual ~CFSMailBoxBase();
-
+  	
     /**
      * mailbox id accessor
      *
      * @return mailbox id
      */
-     IMPORT_C TFSMailMsgId GetId() const;
+     IMPORT_C TFSMailMsgId GetId( ) const;
 
     /**
      * mailbox name accessor
      *
      * @return mailbox name
      */
-     IMPORT_C TDesC& GetName() const;
+     IMPORT_C TDesC& GetName( ) const;
 
     /**
      * mailbox name mutator
@@ -80,32 +81,35 @@ NONSHARABLE_CLASS ( CFSMailBoxBase ) : public CBase
      * @param aMailBoxName mailbox name
      */
      IMPORT_C void SetName( const TDesC& aMailBoxName );
-
+	 		
     /**
      * retuns mailbox status accessor
      *
      * @return mailbox status
      */
-     IMPORT_C TFSMailBoxStatus GetStatus() const;
+     IMPORT_C TFSMailBoxStatus GetStatus( ) const;
 
     /**
      * mailbox status mutator
      *
      * @param aStatus mailbox status
      */
+     //<cmail>
+     //function definition is empty, we need to remove it if not needed
+     //</cmail>
      IMPORT_C void SetStatus( const TFSMailBoxStatus aStatus );
 
-    /*
-     * Function to set context of Remote Contact Lookup service for
-     * this mailbox for protocol plugins.
-     *
-     * @param aProtocolUid specifies Ecom implementation UID of
-     *        "Remote Contact Lookup Protocol Adaptation API" to use.
-     * @param aMailBoxId mailbox id in plugin
-     */
-     IMPORT_C void SetRCLInfo( const TUid aProtocolUid, const TUint aMailBoxId );
-
-     /*
+	/*
+	 * Function to set context of Remote Contact Lookup service for
+	 * this mailbox for protocol plugins.
+	 *
+	 * @param aProtocolUid specifies Ecom implementation UID of
+	 *	      "Remote Contact Lookup Protocol Adaptation API" to use.
+	 * @param aMailBoxId mailbox id in plugin
+	 */
+     IMPORT_C void SetRCLInfo(const TUid aProtocolUid, const TUint aMailBoxId);
+ 
+	/*
      * Function to retrieve Remote Contact Lookup service context for
      * this mailbox.
      *
@@ -113,7 +117,7 @@ NONSHARABLE_CLASS ( CFSMailBoxBase ) : public CBase
      *        "Remote Contact Lookup Protocol Adaptation API" to use.
      * @param aMailBoxId mailbox id in plugin
      */
-     IMPORT_C void GetRCLInfo( TUid& aProtocolUid, TUint& aAccountUid );
+     IMPORT_C void GetRCLInfo(TUid& aProtocolUid, TUint& aAccountUid);
 
     /**
      * returns settings view id for mailbox
@@ -127,15 +131,15 @@ NONSHARABLE_CLASS ( CFSMailBoxBase ) : public CBase
      *
      * @param aUid settings view id
      */
-     IMPORT_C void SetSettingsUid( const TUid aUid );
+     IMPORT_C void SetSettingsUid(const TUid aUid);
 
-    /**
-     * Returns a meeting request info processor, which is used for replying
-     * to meeting request received as MMRInfoObjet
-     *
-     * @return meeting info Processor, NULL if not supported by plugin
-     *         ownership not transferred
-     */
+	/**
+	 * Returns a meeting request info processor, which is used for replying
+	 * to meeting request received as MMRInfoObjet
+	 *
+	 * @return meeting info Processor, NULL if not supported by plugin
+	 *         ownership not transferred
+	 */ 
      IMPORT_C MMRInfoProcessor& MRInfoProcessorL();
 
     /**
@@ -143,28 +147,28 @@ NONSHARABLE_CLASS ( CFSMailBoxBase ) : public CBase
      *
      * @return
      */
-     IMPORT_C TBool IsMRInfoProcessorSet();
+	 IMPORT_C TBool IsMRInfoProcessorSet();
+
+	/**
+	 * Meeting request info processor mutator
+	 *
+	 * @param aMrInfoProcessor meeting info Processor, ownership transferred
+	 */ 
+	 IMPORT_C void SetMRInfoProcessorL(MMRInfoProcessor* aMrInfoProcessor);
 
     /**
-     * Meeting request info processor mutator
+     * mailbox own address accessor
      *
-     * @param aMrInfoProcessor meeting info Processor, ownership transferred
+     * @return mailbox own address
      */
-     IMPORT_C void SetMRInfoProcessorL( MMRInfoProcessor* aMrInfoProcessor );
+     IMPORT_C CFSMailAddress& OwnMailAddress( );
 
-     /**
-      * mailbox own address accessor
-      *
-      * @return mailbox own address
-      */
-      IMPORT_C CFSMailAddress& OwnMailAddress();
-    
     /**
      * mailbox own address mutator
      *
      * @param aOwnMailAddress mailbox own address
      */
-     IMPORT_C void SetOwnMailAddressL( CFSMailAddress* aOwnMailAddress );
+     IMPORT_C void SetOwnMailAddressL( CFSMailAddress* aOwnMailAddress);
     
     /**
      * returns nmmailbox constructed with shared data,
@@ -181,54 +185,54 @@ protected:
      */
      CFSMailBoxBase();
 
-    /**
-     * branding id accessor
-     */
-     TDesC& BrandingId();
+     /**
+      * branding id accessor
+      */
+      TDesC& BrandingId();
 
 // <qmail> Removed SetMailBoxId </qmail>
 protected: // data
 
 protected: // <cmail>
 
-    /**
+  	/**
      * Two-phased constructor
      */
-     void ConstructL( const TFSMailMsgId aMailBoxId );
-
+  	 void ConstructL( const TFSMailMsgId aMailBoxId );
+  	 
 private: // data
-
-    /**
+ 	
+	/**
      * mailbox name
      */
-     HBufC*               iMailBoxName;
+	 HBufC*	              iMailBoxName;
 
-
-    /**
+	 
+	/**
      * remote contact lookup info
      */
      TUid                 iProtocolUid;
-     TUint                iAccountUid;
-
-    /**
+     TUint 	              iAccountUid;
+	
+	/**
      * settings uid
      */
      TUid                 iSettingsUid;
 
-     /**
+	/**
      * Meeting request info
      */
      MMRInfoProcessor*    iMRInfoProcessor;
 
-    /**
+	/**
      * mailbox own address
      */
-     CFSMailAddress*      iOwnMailAddress;
+	 CFSMailAddress*      iOwnMailAddress;
 
-    /**
-     * branding id
-     */
-     HBufC*                iBrId;
+	 /**
+	  * branding id
+	  */
+	 HBufC*                iBrId;
 
     /**
      * Reference to QT side of the mailbox object.
@@ -242,9 +246,11 @@ private: // data
      * Variable is mutable in order to maintain 
      * binary compatibility in this API
      */
+// <qmail>
      mutable TPtrC16 iTextPtr;
+// </qmail>
 
 // <qmail> Removed iMailBoxId </qmail>
 };
 
-#endif  // __CFSMAILBOXBASE_H
+#endif 	// __CFSMAILBOXBASE_H

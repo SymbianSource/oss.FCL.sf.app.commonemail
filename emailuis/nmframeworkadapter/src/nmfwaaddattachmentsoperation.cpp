@@ -52,30 +52,38 @@ NmFwaAddAttachmentsOperation::NmFwaAddAttachmentsOperation(
  */
 NmFwaAddAttachmentsOperation::~NmFwaAddAttachmentsOperation()
 {
+    doCancelOperation();
     mFileList.clear();
     mRequestIds.clear();
-    doCancelOperation();
 }
 
 /*!
-    Slot, called after base object construction via timer event, runs the
+    Called after base object construction via timer event, runs the
     async operation.
     
     \sa NmOperation
  */
-void NmFwaAddAttachmentsOperation::runAsyncOperation()
+void NmFwaAddAttachmentsOperation::doRunAsyncOperation()
+{
+    TRAPD(err, doRunAsyncOperationL());
+    if (err != KErrNone) {
+        completeOperation(NmGeneralError);
+    }
+}
+
+/*!
+    Leaving version of doRunAsyncOperationL
+ */
+void NmFwaAddAttachmentsOperation::doRunAsyncOperationL()
 {
     CFSMailMessage *msg = NULL;
+    msg = CFSMailMessage::NewL(mMessage);
 
-    TRAPD(err, msg = CFSMailMessage::NewL(mMessage));
-
-    if (err == KErrNone) {
-        // Go through the attachment list and add those into mail message one by one.
-        for (int i=0; i<mFileList.count(); ++i) {
-            HBufC *fileName = NmConverter::qstringToHBufCLC(mFileList.at(i));
-            TRAP(err, mRequestIds.append(msg->AddNewAttachmentL(*fileName, *this)));
-            CleanupStack::PopAndDestroy(fileName);
-        }
+    // Go through the attachment list and add those into mail message one by one.
+    for (int i=0; i<mFileList.count(); ++i) {
+        HBufC *fileName = NmConverter::qstringToHBufCLC(mFileList.at(i));
+        mRequestIds.append(msg->AddNewAttachmentL(*fileName, *this));
+        CleanupStack::PopAndDestroy(fileName);
     }
     delete msg;
     msg = NULL;
@@ -129,12 +137,18 @@ void NmFwaAddAttachmentsOperation::RequestResponseL(TFSProgress aEvent,
                 mFileList.removeAt(i);
             }
             else if (status == TFSProgress::EFSStatus_RequestCancelled) {
+                completeOperationPart(mFileList.at(i),
+                                      NULL,
+                                      NmCancelError);
                 mFileList.clear();
                 mRequestIds.clear();
                 operationCancelled();
                 err = NmCancelError;
             }
             else {
+                completeOperationPart(mFileList.at(i),
+                                      NULL,
+                                      NmGeneralError);
                 mFileList.clear();
                 mRequestIds.clear();
                 err = NmGeneralError;
@@ -145,5 +159,18 @@ void NmFwaAddAttachmentsOperation::RequestResponseL(TFSProgress aEvent,
     // complete operation
     if (!mRequestIds.count()) {
         completeOperation(err);
+    }
+}
+
+/*!
+    Cancels the async operation. \sa NmOperation
+ */
+void NmFwaAddAttachmentsOperation::doCancelOperation()
+{
+    for (int i=0;i<mRequestIds.count();++i) {
+        if (mRequestIds[i] >= 0) {
+            TInt reqId = static_cast<TInt>(mRequestIds[i]);
+            TRAP_IGNORE(mMailClient.CancelL(reqId));
+        }
     }
 }

@@ -123,12 +123,36 @@ void NmMessage::setId(const NmId &id)
 /*!
     Returns pointer to plain text body, if plain text body is not found
     returns null pointer. Ownership of message part object is not transferred.
+    Do not delete returned pointer. Non-modifying version.
+ */
+const NmMessagePart *NmMessage::plainTextBodyPart() const
+{
+    const NmMessagePart *ret = NULL;
+    ret = findContentPart(NmContentTypeTextPlain);
+    return ret;
+}
+
+/*!
+    Returns pointer to plain text body, if plain text body is not found
+    returns null pointer. Ownership of message part object is not transferred.
     Do not delete returned pointer.
  */
 NmMessagePart *NmMessage::plainTextBodyPart()
 {
     NmMessagePart *ret = NULL;
     ret = findContentPart(NmContentTypeTextPlain);
+    return ret;
+}
+
+/*!
+    Returns pointer to html body, if html body is not found
+    returns null pointer. Ownership of message part object is not transferred.
+    Do not delete returned pointer. Non-modifying version.
+ */
+const NmMessagePart *NmMessage::htmlBodyPart() const
+{
+    const NmMessagePart *ret = NULL;
+    ret = findContentPart(NmContentTypeTextHtml);
     return ret;
 }
 
@@ -181,7 +205,7 @@ const NmMessageEnvelope &NmMessage::envelope() const
 * 
 * @param flat list of attachments to be filled
 */        
-void NmMessage::attachmentList(QList<NmMessagePart*> &parts)
+void NmMessage::attachmentList(QList<NmMessagePart*> &parts) const
 {
     parts.clear();
     appendAttachments(parts);
@@ -193,23 +217,23 @@ void NmMessage::attachmentList(QList<NmMessagePart*> &parts)
     }
     else {
         // find plain text body part from the list
-        NmMessagePart* txtPart = findContentPart(NmContentTypeTextPlain);
+        const NmMessagePart* txtPart = findContentPart(NmContentTypeTextPlain);
         if ( txtPart ) {
             // remove plain text body part from attachment list
-            for ( int ii = parts.count() - 1; ii >= 0; --ii ) {
-                if ( parts.at(ii)->id() == txtPart->id() ) {
-                    parts.removeAt(ii);
+            for ( int i = parts.count() - 1; i >= 0; --i ) {
+                if ( parts.at(i)->id() == txtPart->id() ) {
+                    parts.removeAt(i);
                     break;
                 }
             }
         }
         // find  html body part from the list
-        NmMessagePart* htmlPart = findContentPart(NmContentTypeTextHtml);
+        const NmMessagePart* htmlPart = findContentPart(NmContentTypeTextHtml);
         if ( htmlPart ) {
             // remove html body part from attachment list
-            for ( int ii = parts.count() - 1; ii >= 0; --ii ) {
-                if ( parts.at(ii)->id() == htmlPart->id() ) {
-                    parts.removeAt(ii);
+            for ( int i = parts.count() - 1; i >= 0; --i ) {
+                if ( parts.at(i)->id() == htmlPart->id() ) {
+                    parts.removeAt(i);
                     break;
                 }
             }

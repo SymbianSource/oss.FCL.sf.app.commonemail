@@ -33,6 +33,7 @@ class NmSendServiceInterface;
 class NmMailboxServiceInterface;
 class NmViewerServiceInterface;
 class NmViewerViewNetManager;
+class NmUtilities;
 
 class NmApplication : public QObject
 {
@@ -43,7 +44,7 @@ public:
     void enterNmUiView(NmUiStartParam *startParam);
     HbMainWindow* mainWindow();
     NmUiExtensionManager &extManager();
-    NmViewerViewNetManager* networkAccessManager();
+    NmViewerViewNetManager &networkAccessManager();
     QSize screenSize();
 
 
@@ -51,6 +52,7 @@ public slots:
     void popView();
     void exitApplication();
     void delayedExitApplication();
+    void handleOperationCompleted(const NmOperationCompletionEvent &event);
 
 private:
     void createMainWindow();
@@ -65,11 +67,14 @@ private:
     HbAction *mBackAction;                  // Owned
     NmUiExtensionManager *mExtensionManager;// Owned
     NmSendServiceInterface *mSendServiceInterface; // Owned
+    NmSendServiceInterface *mSendServiceInterface2; // Owned
     NmMailboxServiceInterface *mMailboxServiceInterface; // Owned
     NmViewerServiceInterface *mViewerServiceInterface; // Owned
     NmMailboxListModel *mMbListModel;       // Not owned
     NmUiViewId mServiceViewId;
-    NmViewerViewNetManager* mNetManager;     // Owned
+    NmViewerViewNetManager *mNetManager;     // Owned
+    bool mForegroundService;	
+    NmUtilities *mUtilities; // Owned
 };
 
 #endif // NMAPPLICATION_H

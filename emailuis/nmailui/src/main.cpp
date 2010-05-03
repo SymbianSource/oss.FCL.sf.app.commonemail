@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
     QString path = "Z:/resource/qt/translations/";
 #else
     QString lang;
-    QString appName = "nmailui";
+    QString appName = "mail";
     QString path = ":/translations";
 #endif
     translator.load(appName + lang, path);

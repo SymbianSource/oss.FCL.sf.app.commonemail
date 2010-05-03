@@ -59,8 +59,8 @@ EmailClientApi::NmMessageEnvelope NmToApiConverter::NmMessageEnvelope2ApiEnvelop
     QList<EmailClientApi::NmEmailAddress> to_api = NmAddress2QString(to);
     QList<EmailClientApi::NmEmailAddress> cc_api = NmAddress2QString(cc);
 
-    api_env.setGetToRecipients(to_api);
-    api_env.setGetCcRecipients(cc_api);
+    api_env.setToRecipients(to_api);
+    api_env.setCcRecipients(cc_api);
 
     api_env.setHasAttachments(envelope.hasAttachments());
     api_env.setId(envelope.id().id());

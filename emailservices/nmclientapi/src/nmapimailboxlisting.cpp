@@ -56,7 +56,7 @@ NmMailboxListing::~NmMailboxListing()
  *  \return Return true if results were avaible
  *  \arg List of mailboxes to filled. On start is cleared. 
  */
-bool NmMailboxListing::mailboxes(QList<EmailClientApi::NmMailbox> &mailboxes)
+bool NmMailboxListing::getMailboxes(QList<EmailClientApi::NmMailbox> &mailboxes)
 {
     mailboxes.clear();
 

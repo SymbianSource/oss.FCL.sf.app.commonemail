@@ -33,12 +33,17 @@
     \param mailClient Reference to mail client object.
  */
 NmFwaMessageSendingOperation::NmFwaMessageSendingOperation(
+    NmDataPluginInterface &pluginInterface,
     NmMessage *message,
     CFSMailClient &mailClient) :
+        mPluginInterface(pluginInterface),
+        mSaveOperation(NULL),
         mMessage(message),
         mMailClient(mailClient),
-        mRequestId(NmNotFoundError)
+        mRequestId(NmNotFoundError),
+        mSaved(false)
 {
+    mMailClient.IncReferenceCount();
 }
 
 /*!
@@ -46,61 +51,49 @@ NmFwaMessageSendingOperation::NmFwaMessageSendingOperation(
  */
 NmFwaMessageSendingOperation::~NmFwaMessageSendingOperation()
 {
+    delete mSaveOperation;
+
     doCancelOperation();
+    mMailClient.Close(); // decrease ref count
     delete mMessage;
 }
 
 /*!
     returns pointer to message, ownership is not transferred
  */
-const NmMessage *NmFwaMessageSendingOperation::getMessage()
+const NmMessage *NmFwaMessageSendingOperation::getMessage() const
 {
     return mMessage;
 }
 
 /*!
-    Slot, called after base object construction via timer event, runs the
+    Called after base object construction via timer event, runs the
     async operation.
     
     \sa NmOperation
  */
-void NmFwaMessageSendingOperation::runAsyncOperation()
+void NmFwaMessageSendingOperation::doRunAsyncOperation()
 {
-    TInt err (KErrNone);
-    TRAP(err, runAsyncOperationL());
+    int err = NmNoError;
+    
+    if (mSaved) {
+        TRAPD(trapped, err = sendMessageL());
 
-    if (err == KErrNotFound) {
-        completeOperation(NmNotFoundError);
+        if (trapped == KErrNotFound) {
+            err = NmNotFoundError;
+        }
+        else if (trapped != KErrNone) {
+            err = NmGeneralError;
+        }
     }
-    else if (err != KErrNone){
-        completeOperation(NmGeneralError);
-    }
-    // err == KErrNone means everything went well and the operation is 
-    // proceeding
-}
-
-/*!
-    Leaving version of runAsyncOperation
- */
-void NmFwaMessageSendingOperation::runAsyncOperationL()
-{
-    CFSMailBox *currentMailbox( NULL );
-
-    if (!mMessage) {
-        User::Leave( KErrNotFound );
-    }
-    TFSMailMsgId mailboxId = NmConverter::nmIdToMailMsgId(mMessage->mailboxId());
-    currentMailbox = mMailClient.GetMailBoxByUidL(mailboxId);
-    CleanupStack::PushL(currentMailbox);
-    if (!currentMailbox) {
-        User::Leave( KErrNotFound );
+    else {
+        err = saveMessageWithSubparts();
     }
 
-    CFSMailMessage *msg = CFSMailMessage::NewL(*mMessage); // no leave -> msg != NULL
-    CleanupStack::PushL(msg);
-	
-    mRequestId = currentMailbox->SendMessageL(*msg, *this);
-    CleanupStack::PopAndDestroy(2); // msg, currentMailbox
+    if (err != NmNoError) {
+        completeOperation(err);
+    }
+    // err == NmNoError means everything went well and the operation is proceeding
 }
 
 /*!
@@ -144,4 +137,74 @@ void NmFwaMessageSendingOperation::RequestResponseL(TFSProgress aEvent,
             completeOperation(NmGeneralError);
         }
     }
+}
+
+/*!
+    Handle completed store message operation
+ */
+void NmFwaMessageSendingOperation::handleCompletedSaveOperation(int error)
+{
+    if (error == NmNoError) {
+        mTimer->stop();
+        mTimer->start(1);
+        mSaved = true;
+    }
+    else {
+        completeOperation(NmGeneralError);
+    }
+}
+
+/*!
+    Saves a message with its subparts (into message store).
+*/
+int NmFwaMessageSendingOperation::saveMessageWithSubparts()
+{
+    int ret = NmNotFoundError;
+    
+    if (mMessage) {
+        delete mSaveOperation;
+        mSaveOperation = NULL;
+        
+        mSaveOperation = mPluginInterface.saveMessageWithSubparts(*mMessage);
+        
+        if (mSaveOperation) {
+            connect(mSaveOperation, SIGNAL(operationCompleted(int)), this,
+                SLOT(handleCompletedSaveOperation(int)));
+            ret = NmNoError;
+        }
+        else {
+            ret = NmGeneralError;
+        }
+            
+    }
+
+    return ret;
+}
+
+/*!
+    Sends the message.
+ */
+int NmFwaMessageSendingOperation::sendMessageL()
+{
+    int ret = NmNotFoundError;
+    
+    if (mMessage) {
+        TFSMailMsgId mailboxId = NmConverter::nmIdToMailMsgId(mMessage->mailboxId());
+        CFSMailBox *currentMailbox( NULL );
+        currentMailbox = mMailClient.GetMailBoxByUidL(mailboxId);
+        CleanupStack::PushL(currentMailbox);
+        if (!currentMailbox) {
+            User::Leave( KErrNotFound );
+        }
+    
+        CFSMailMessage *msg = CFSMailMessage::NewL(*mMessage); // no leave -> msg != NULL
+        CleanupStack::PushL(msg);
+        
+        mRequestId = currentMailbox->SendMessageL(*msg, *this);
+        CleanupStack::PopAndDestroy(2); // msg, currentMailbox
+        
+        ret = NmNoError;
+    }
+    
+    return ret;
 }

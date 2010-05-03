@@ -24,15 +24,15 @@ EXPORTS
 	_ZN14EmailClientApi14NmEmailAddressD0Ev @ 23 NONAME
 	_ZN14EmailClientApi14NmEmailAddressD1Ev @ 24 NONAME
 	_ZN14EmailClientApi14NmEmailAddressD2Ev @ 25 NONAME
-	_ZN14EmailClientApi14NmEmailService10initialiseEv @ 26 NONAME
-	_ZN14EmailClientApi14NmEmailService11initializedEb @ 27 NONAME
-	_ZN14EmailClientApi14NmEmailService11qt_metacallEN11QMetaObject4CallEiPPv @ 28 NONAME
-	_ZN14EmailClientApi14NmEmailService11qt_metacastEPKc @ 29 NONAME
-	_ZN14EmailClientApi14NmEmailService12uninitialiseEv @ 30 NONAME
-	_ZN14EmailClientApi14NmEmailService16staticMetaObjectE @ 31 NONAME DATA 16
-	_ZN14EmailClientApi14NmEmailService19getStaticMetaObjectEv @ 32 NONAME
-	_ZN14EmailClientApi14NmEmailService7mailboxEyRNS_9NmMailboxE @ 33 NONAME
-	_ZN14EmailClientApi14NmEmailService8envelopeEyyyRNS_17NmMessageEnvelopeE @ 34 NONAME
+	_ZN14EmailClientApi14NmEmailService10getMailboxEyRNS_9NmMailboxE @ 26 NONAME
+	_ZN14EmailClientApi14NmEmailService10initialiseEv @ 27 NONAME
+	_ZN14EmailClientApi14NmEmailService11getEnvelopeEyyyRNS_17NmMessageEnvelopeE @ 28 NONAME
+	_ZN14EmailClientApi14NmEmailService11initializedEb @ 29 NONAME
+	_ZN14EmailClientApi14NmEmailService11qt_metacallEN11QMetaObject4CallEiPPv @ 30 NONAME
+	_ZN14EmailClientApi14NmEmailService11qt_metacastEPKc @ 31 NONAME
+	_ZN14EmailClientApi14NmEmailService12uninitialiseEv @ 32 NONAME
+	_ZN14EmailClientApi14NmEmailService16staticMetaObjectE @ 33 NONAME DATA 16
+	_ZN14EmailClientApi14NmEmailService19getStaticMetaObjectEv @ 34 NONAME
 	_ZN14EmailClientApi14NmEmailServiceC1EP7QObject @ 35 NONAME
 	_ZN14EmailClientApi14NmEmailServiceC2EP7QObject @ 36 NONAME
 	_ZN14EmailClientApi14NmEmailServiceD0Ev @ 37 NONAME
@@ -52,14 +52,14 @@ EXPORTS
 	_ZN14EmailClientApi15NmEventNotifierD0Ev @ 51 NONAME
 	_ZN14EmailClientApi15NmEventNotifierD1Ev @ 52 NONAME
 	_ZN14EmailClientApi15NmEventNotifierD2Ev @ 53 NONAME
-	_ZN14EmailClientApi15NmFolderListing11qt_metacallEN11QMetaObject4CallEiPPv @ 54 NONAME
-	_ZN14EmailClientApi15NmFolderListing11qt_metacastEPKc @ 55 NONAME
-	_ZN14EmailClientApi15NmFolderListing13foldersListedEi @ 56 NONAME
-	_ZN14EmailClientApi15NmFolderListing16staticMetaObjectE @ 57 NONAME DATA 16
-	_ZN14EmailClientApi15NmFolderListing19getStaticMetaObjectEv @ 58 NONAME
-	_ZN14EmailClientApi15NmFolderListing5startEv @ 59 NONAME
-	_ZN14EmailClientApi15NmFolderListing6cancelEv @ 60 NONAME
-	_ZN14EmailClientApi15NmFolderListing7foldersER5QListINS_8NmFolderEE @ 61 NONAME
+	_ZN14EmailClientApi15NmFolderListing10getFoldersER5QListINS_8NmFolderEE @ 54 NONAME
+	_ZN14EmailClientApi15NmFolderListing11qt_metacallEN11QMetaObject4CallEiPPv @ 55 NONAME
+	_ZN14EmailClientApi15NmFolderListing11qt_metacastEPKc @ 56 NONAME
+	_ZN14EmailClientApi15NmFolderListing13foldersListedEi @ 57 NONAME
+	_ZN14EmailClientApi15NmFolderListing16staticMetaObjectE @ 58 NONAME DATA 16
+	_ZN14EmailClientApi15NmFolderListing19getStaticMetaObjectEv @ 59 NONAME
+	_ZN14EmailClientApi15NmFolderListing5startEv @ 60 NONAME
+	_ZN14EmailClientApi15NmFolderListing6cancelEv @ 61 NONAME
 	_ZN14EmailClientApi15NmFolderListingC1EP7QObjectRKy @ 62 NONAME
 	_ZN14EmailClientApi15NmFolderListingC2EP7QObjectRKy @ 63 NONAME
 	_ZN14EmailClientApi15NmFolderListingD0Ev @ 64 NONAME
@@ -67,12 +67,12 @@ EXPORTS
 	_ZN14EmailClientApi15NmFolderListingD2Ev @ 66 NONAME
 	_ZN14EmailClientApi16NmMailboxListing11qt_metacallEN11QMetaObject4CallEiPPv @ 67 NONAME
 	_ZN14EmailClientApi16NmMailboxListing11qt_metacastEPKc @ 68 NONAME
-	_ZN14EmailClientApi16NmMailboxListing15mailboxesListedEi @ 69 NONAME
-	_ZN14EmailClientApi16NmMailboxListing16staticMetaObjectE @ 70 NONAME DATA 16
-	_ZN14EmailClientApi16NmMailboxListing19getStaticMetaObjectEv @ 71 NONAME
-	_ZN14EmailClientApi16NmMailboxListing5startEv @ 72 NONAME
-	_ZN14EmailClientApi16NmMailboxListing6cancelEv @ 73 NONAME
-	_ZN14EmailClientApi16NmMailboxListing9mailboxesER5QListINS_9NmMailboxEE @ 74 NONAME
+	_ZN14EmailClientApi16NmMailboxListing12getMailboxesER5QListINS_9NmMailboxEE @ 69 NONAME
+	_ZN14EmailClientApi16NmMailboxListing15mailboxesListedEi @ 70 NONAME
+	_ZN14EmailClientApi16NmMailboxListing16staticMetaObjectE @ 71 NONAME DATA 16
+	_ZN14EmailClientApi16NmMailboxListing19getStaticMetaObjectEv @ 72 NONAME
+	_ZN14EmailClientApi16NmMailboxListing5startEv @ 73 NONAME
+	_ZN14EmailClientApi16NmMailboxListing6cancelEv @ 74 NONAME
 	_ZN14EmailClientApi16NmMailboxListingC1EP7QObject @ 75 NONAME
 	_ZN14EmailClientApi16NmMailboxListingC2EP7QObject @ 76 NONAME
 	_ZN14EmailClientApi16NmMailboxListingD0Ev @ 77 NONAME
@@ -80,12 +80,12 @@ EXPORTS
 	_ZN14EmailClientApi16NmMailboxListingD2Ev @ 79 NONAME
 	_ZN14EmailClientApi17NmEnvelopeListing11qt_metacallEN11QMetaObject4CallEiPPv @ 80 NONAME
 	_ZN14EmailClientApi17NmEnvelopeListing11qt_metacastEPKc @ 81 NONAME
-	_ZN14EmailClientApi17NmEnvelopeListing15envelopesListedEi @ 82 NONAME
-	_ZN14EmailClientApi17NmEnvelopeListing16staticMetaObjectE @ 83 NONAME DATA 16
-	_ZN14EmailClientApi17NmEnvelopeListing19getStaticMetaObjectEv @ 84 NONAME
-	_ZN14EmailClientApi17NmEnvelopeListing5startEv @ 85 NONAME
-	_ZN14EmailClientApi17NmEnvelopeListing6cancelEv @ 86 NONAME
-	_ZN14EmailClientApi17NmEnvelopeListing9envelopesER5QListINS_17NmMessageEnvelopeEE @ 87 NONAME
+	_ZN14EmailClientApi17NmEnvelopeListing12getEnvelopesER5QListINS_17NmMessageEnvelopeEE @ 82 NONAME
+	_ZN14EmailClientApi17NmEnvelopeListing15envelopesListedEi @ 83 NONAME
+	_ZN14EmailClientApi17NmEnvelopeListing16staticMetaObjectE @ 84 NONAME DATA 16
+	_ZN14EmailClientApi17NmEnvelopeListing19getStaticMetaObjectEv @ 85 NONAME
+	_ZN14EmailClientApi17NmEnvelopeListing5startEv @ 86 NONAME
+	_ZN14EmailClientApi17NmEnvelopeListing6cancelEv @ 87 NONAME
 	_ZN14EmailClientApi17NmEnvelopeListingC1EP7QObjectyy @ 88 NONAME
 	_ZN14EmailClientApi17NmEnvelopeListingC2EP7QObjectyy @ 89 NONAME
 	_ZN14EmailClientApi17NmEnvelopeListingD0Ev @ 90 NONAME
@@ -93,19 +93,19 @@ EXPORTS
 	_ZN14EmailClientApi17NmEnvelopeListingD2Ev @ 92 NONAME
 	_ZN14EmailClientApi17NmMessageEnvelope10setSubjectERK7QString @ 93 NONAME
 	_ZN14EmailClientApi17NmMessageEnvelope11setSentTimeE9QDateTime @ 94 NONAME
-	_ZN14EmailClientApi17NmMessageEnvelope12ccRecipientsER5QListINS_14NmEmailAddressEE @ 95 NONAME
-	_ZN14EmailClientApi17NmMessageEnvelope12setIsRepliedEb @ 96 NONAME
-	_ZN14EmailClientApi17NmMessageEnvelope12setPlainTextERK7QString @ 97 NONAME
-	_ZN14EmailClientApi17NmMessageEnvelope12setTotalSizeEy @ 98 NONAME
-	_ZN14EmailClientApi17NmMessageEnvelope12toRecipientsER5QListINS_14NmEmailAddressEE @ 99 NONAME
-	_ZN14EmailClientApi17NmMessageEnvelope13plainTextBodyERNS_13NmMessageBodyE @ 100 NONAME
-	_ZN14EmailClientApi17NmMessageEnvelope14setContentTypeERK7QString @ 101 NONAME
-	_ZN14EmailClientApi17NmMessageEnvelope14setFetchedSizeEy @ 102 NONAME
-	_ZN14EmailClientApi17NmMessageEnvelope14setIsForwardedEb @ 103 NONAME
+	_ZN14EmailClientApi17NmMessageEnvelope12setIsRepliedEb @ 95 NONAME
+	_ZN14EmailClientApi17NmMessageEnvelope12setPlainTextERK7QString @ 96 NONAME
+	_ZN14EmailClientApi17NmMessageEnvelope12setTotalSizeEy @ 97 NONAME
+	_ZN14EmailClientApi17NmMessageEnvelope14setContentTypeERK7QString @ 98 NONAME
+	_ZN14EmailClientApi17NmMessageEnvelope14setFetchedSizeEy @ 99 NONAME
+	_ZN14EmailClientApi17NmMessageEnvelope14setIsForwardedEb @ 100 NONAME
+	_ZN14EmailClientApi17NmMessageEnvelope15getCcRecipientsER5QListINS_14NmEmailAddressEE @ 101 NONAME
+	_ZN14EmailClientApi17NmMessageEnvelope15getToRecipientsER5QListINS_14NmEmailAddressEE @ 102 NONAME
+	_ZN14EmailClientApi17NmMessageEnvelope15setCcRecipientsERK5QListINS_14NmEmailAddressEE @ 103 NONAME
 	_ZN14EmailClientApi17NmMessageEnvelope15setParentFolderEy @ 104 NONAME
-	_ZN14EmailClientApi17NmMessageEnvelope17setHasAttachmentsEb @ 105 NONAME
-	_ZN14EmailClientApi17NmMessageEnvelope18setGetCcRecipientsERK5QListINS_14NmEmailAddressEE @ 106 NONAME
-	_ZN14EmailClientApi17NmMessageEnvelope18setGetToRecipientsERK5QListINS_14NmEmailAddressEE @ 107 NONAME
+	_ZN14EmailClientApi17NmMessageEnvelope15setToRecipientsERK5QListINS_14NmEmailAddressEE @ 105 NONAME
+	_ZN14EmailClientApi17NmMessageEnvelope16getPlainTextBodyERNS_13NmMessageBodyE @ 106 NONAME
+	_ZN14EmailClientApi17NmMessageEnvelope17setHasAttachmentsEb @ 107 NONAME
 	_ZN14EmailClientApi17NmMessageEnvelope5setIdEy @ 108 NONAME
 	_ZN14EmailClientApi17NmMessageEnvelope9setIsReadEb @ 109 NONAME
 	_ZN14EmailClientApi17NmMessageEnvelope9setSenderERK7QString @ 110 NONAME
@@ -116,7 +116,7 @@ EXPORTS
 	_ZN14EmailClientApi17NmMessageEnvelopeD2Ev @ 115 NONAME
 	_ZN14EmailClientApi17NmMessageEnvelopeaSERKS0_ @ 116 NONAME
 	_ZN14EmailClientApi8NmFolder13setFolderTypeENS_15EmailFolderTypeE @ 117 NONAME
-	_ZN14EmailClientApi8NmFolder14childFolderIdsER5QListIyE @ 118 NONAME
+	_ZN14EmailClientApi8NmFolder17getChildFolderIdsER5QListIyE @ 118 NONAME
 	_ZN14EmailClientApi8NmFolder17setChildFolderIdsER5QListIyE @ 119 NONAME
 	_ZN14EmailClientApi8NmFolder17setParentFolderIdEy @ 120 NONAME
 	_ZN14EmailClientApi8NmFolder5setIdEy @ 121 NONAME

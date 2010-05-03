@@ -26,7 +26,8 @@ INCLUDEPATH += ../../inc \
 ../inc \
 /epoc32/include/ecom 
 
-HEADERS   += inc/CFSMailBox.h \
+HEADERS   += inc/cemailextensionbase.h \ 
+    inc/CFSMailBox.h \
     inc/CFSMailBoxBase.h \
     inc/CFSMailFolder.h \
     inc/CFSMailFolderBase.h \
@@ -39,9 +40,14 @@ HEADERS   += inc/CFSMailBox.h \
     inc/CFSMailRequestHandler.h \
     inc/CFSMailPluginData.h \
     inc/CFSMailCommon.h \
-    inc/nmconverter.h
+    inc/nmconverter.h \
+    inc/cmailboxstateext.h \
+    inc/cmailmessageext.h \
+    inc/cmrcalendarinfo.h \
+    inc/cmrcalendarinfoimpl.h
     
-SOURCES   += src/CFSMailBox.cpp \
+SOURCES   += src/cemailextensionbase.cpp \
+    src/CFSMailBox.cpp \
     src/CFSMailBoxBase.cpp \
     src/CFSMailFolder.cpp \
     src/CFSMailFolderBase.cpp \
@@ -53,7 +59,8 @@ SOURCES   += src/CFSMailBox.cpp \
     src/CFSMailIterator.cpp \
     src/CFSMailRequestHandler.cpp \
     src/CFSMailPluginData.cpp \
-    src/nmconverter.cpp
+    src/nmconverter.cpp \
+    src/emailcalendarinfoimpl.cpp
 
 symbian*: { 
     TARGET.EPOCALLOWDLLDATA = 1

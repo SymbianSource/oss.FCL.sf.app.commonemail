@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2001 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2001 - 2009 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -17,6 +17,7 @@
 
 NAME FSMB
 
+#include <eikon.rh>
 #include <data_caging_paths_strings.hrh>
 #include <google_brand_graphics.mbg>
 #include <yahoo_brand_graphics.mbg>
@@ -34,6 +35,8 @@ NAME FSMB
 //
 // ---------------------------------------------------------
 //
+RESOURCE RSS_SIGNATURE { }
+
 RESOURCE BRANDING_DATA r_branding_data
     {
     list_of_brands =
@@ -356,7 +359,7 @@ RESOURCE BRANDING_DATA r_branding_data
                     },
                     
                     BRAND {
-                        // Definition of AT&T Yahoo! Mail brand   
+                        // Definition of ... Yahoo! Mail brand   
                         graphics_file_path = APP_BITMAP_DIR"\\yahoo_brand_graphics.mif";
 
                         brand_id_match_strings =
@@ -422,7 +425,7 @@ RESOURCE BRANDING_DATA r_branding_data
                             },
 
                             BRAND {
-                                // Definition of Rogers Yahoo! Mail brand   
+                                // Definition of ... Yahoo! Mail brand   
                                 graphics_file_path = APP_BITMAP_DIR"\\yahoo_brand_graphics.mif";
 
                                 brand_id_match_strings =

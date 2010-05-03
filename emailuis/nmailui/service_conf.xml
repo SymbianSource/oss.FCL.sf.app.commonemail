@@ -13,6 +13,11 @@
     <customproperty key="aiw_action_icon">qtg_large_email</customproperty>
   </interface>
   <interface>
+    <name>IEmailMessageSend</name>
+    <version>1.0</version>
+    <description>Send interface</description>
+  </interface>
+  <interface>
     <name>IEmailInboxView</name>
     <version>1.0</version>
     <description>Email inbox interface</description>

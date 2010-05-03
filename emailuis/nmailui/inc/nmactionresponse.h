@@ -40,7 +40,9 @@ enum NmActionResponseCommand
     NmActionResponseCommandReplyAll,
     NmActionResponseCommandDeleteMail,
     NmActionResponseCommandUpdateMailboxName,
-    NmActionResponseCommandMailboxDeleted
+    NmActionResponseCommandMailboxDeleted,
+    NmActionResponseCommandRemoveAttachment,
+    NmActionResponseCommandOpenAttachment
 };
 
 

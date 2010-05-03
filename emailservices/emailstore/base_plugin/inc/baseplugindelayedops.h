@@ -24,8 +24,10 @@
 #include "CFSMailCommon.h"
 #include "BasePlugin.h"
 #include "DebugLogMacros.h"
-#include "baseplugindef.h"
 
+//<qmail>
+#include "baseplugindef.h"
+//</qmail>
 
 class CBasePlugin;
 class CDelayedOp;

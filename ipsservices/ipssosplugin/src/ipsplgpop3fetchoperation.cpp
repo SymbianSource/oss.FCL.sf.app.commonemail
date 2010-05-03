@@ -15,12 +15,8 @@
 *
 */
 
-
 #include "emailtrace.h"
 #include "ipsplgheaders.h"
-
-// Constants and defines
-const TInt KFetchOpPriority = CActive::EPriorityStandard;
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
@@ -33,7 +29,7 @@ CIpsPlgPop3FetchOperation* CIpsPlgPop3FetchOperation::NewL(
     const TImPop3GetMailInfo& aGetMailInfo,
     const CMsvEntrySelection& aSel,
     TFSMailMsgId aFSMailBoxId,
-    MFSMailRequestObserver& aFSOperationObserver,
+    MFSMailRequestObserver* aFSOperationObserver,
     TInt aFSRequestId,
     CIpsPlgEventHandler* aEventHandler )
     {
@@ -108,11 +104,18 @@ void CIpsPlgPop3FetchOperation::DoConnectL()
     // when connecting for the fetch operation, don't let connect operation to do fetch,
     // because we do it by ourself. That's why give 0 to connect operation.    
     CIpsPlgPop3ConnectOp* connOp = CIpsPlgPop3ConnectOp::NewL(
-        iMsvSession, iStatus, iService, EFalse, iActivityTimer,
-        iFSMailboxId, iFSOperationObserver, iFSRequestId, NULL,EFalse );
+        iMsvSession,
+        iStatus, 
+        iService, 
+        EFalse, 
+        iActivityTimer,
+        iFSMailboxId, 
+        iFSOperationObserver, 
+        iFSRequestId, 
+        NULL );
         
-    delete iOperation;
-    iOperation = connOp;
+    delete iSubOperation;
+    iSubOperation = connOp;
 
     SetActive();
     }
@@ -127,21 +130,19 @@ void CIpsPlgPop3FetchOperation::DoFetchL()
     iState = EStateFetching;
 
     // Switch operations.
-    delete iOperation;
-    iOperation = NULL;
-    iStatus = KRequestPending;
+    delete iSubOperation;
+    iSubOperation = NULL;
 
     // Filters are not used when performing 'fetch' operation, use normal 
     // getmail info instead
     TPckg<TImPop3GetMailInfo> param( iGetMailInfo );
-    InvokeClientMtmAsyncFunctionL( iFunctionId, *iSelection, iService, param );
+    InvokeClientMtmAsyncFunctionL( iFunctionId, *iSelection, param );
     SetActive();
     }
 
-
-
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
+// <qmail> priority parameter has been removed
 CIpsPlgPop3FetchOperation::CIpsPlgPop3FetchOperation(
     CMsvSession& aMsvSession,
     TRequestStatus& aObserverRequestStatus,
@@ -150,14 +151,20 @@ CIpsPlgPop3FetchOperation::CIpsPlgPop3FetchOperation(
     CIpsPlgTimerOperation& aActivityTimer,
     const TImPop3GetMailInfo& aGetMailInfo,
     TFSMailMsgId aFSMailBoxId,
-    MFSMailRequestObserver& aFSOperationObserver,
+    MFSMailRequestObserver* aFSOperationObserver,
     TInt aFSRequestId,
     CIpsPlgEventHandler* aEventHandler )
     : 
-    CIpsPlgOnlineOperation( aMsvSession, KFetchOpPriority,
-        aObserverRequestStatus, aActivityTimer, aFSMailBoxId,
-        aFSOperationObserver, aFSRequestId), iFunctionId( aFunctionId ),
-        iGetMailInfo( aGetMailInfo ), iEventHandler( aEventHandler )
+    CIpsPlgOnlineOperation(
+        aMsvSession,
+        aObserverRequestStatus, 
+        aActivityTimer, 
+        aFSMailBoxId,
+        aFSOperationObserver, 
+        aFSRequestId ),
+    iFunctionId( aFunctionId ),
+    iGetMailInfo( aGetMailInfo ), 
+    iEventHandler( aEventHandler )
     {
     FUNC_LOG;
     iService = aService;
@@ -171,7 +178,7 @@ void CIpsPlgPop3FetchOperation::RunL()
 
     TRAP( iError, DoRunL() );
     
-    if(iError != KErrNone)
+    if( iError )
         {        
         // Notify observer we have finished.
         CompleteObserver();
@@ -226,9 +233,9 @@ void CIpsPlgPop3FetchOperation::DoRunL()
             if( KErrNone != err )
                 {
                 TPckgBuf<TPop3Progress> paramPack;
-                if ( iOperation )
+                if ( iSubOperation )
                     {
-                paramPack.Copy( iOperation->ProgressL() );
+                paramPack.Copy( iSubOperation->ProgressL() );
                     }
                 TPop3Progress& progress = paramPack();
                 progress.iErrorCode = err;
@@ -288,5 +295,11 @@ TFSProgress CIpsPlgPop3FetchOperation::GetFSProgressL() const
     return result;
     }
 
-// EOF
-
+// <qmail> new func to this op
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------    
+TIpsOpType CIpsPlgPop3FetchOperation::IpsOpType() const
+    {
+    FUNC_LOG;
+    return EIpsOpTypePop3FetchOp;
+    }

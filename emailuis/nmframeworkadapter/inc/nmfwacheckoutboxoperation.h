@@ -35,11 +35,11 @@ public:
     
     virtual bool getMessageId(NmId &messageId) const;
 
-private slots:
-    virtual void runAsyncOperation();
+private:
+    virtual void doRunAsyncOperation();
     
 private:
-    void runAsyncOperationL();
+    void doRunAsyncOperationL();
 
 private:
     NmId mMailboxId;

@@ -15,7 +15,10 @@
 *
 */
 
+//<qmail>
 #include <nmcommonheaders.h>
+//</qmail>
+
 #include "emailtrace.h"
 #include "CFSFWImplementation.h"
 //<cmail>

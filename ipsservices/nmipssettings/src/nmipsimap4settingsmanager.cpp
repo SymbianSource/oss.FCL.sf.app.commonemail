@@ -42,7 +42,7 @@
 NmIpsImap4SettingsManager::NmIpsImap4SettingsManager(const NmId &mailboxId,
     CEmailAccounts *account,
     TImapAccount imapAccount)
-: NmIpsSettingsManagerBase(mailboxId, account),
+: NmIpsSettingsManagerBase(mailboxId, account, IpsServices::EMailImap),
   mImap4Account(imapAccount)
 {
     QT_TRAP_THROWING(mImap4Settings = new(ELeave) CImImap4Settings());
@@ -68,17 +68,40 @@ NmIpsImap4SettingsManager::~NmIpsImap4SettingsManager()
 */
 bool NmIpsImap4SettingsManager::readSetting(IpsServices::SettingItem settingItem, QVariant &settingValue)
 {
-    bool found(true);
+    bool found(false);
     switch (settingItem) {
-        case IpsServices::LoginName:
+        case IpsServices::IncomingLoginName:
             settingValue = XQConversions::s60Desc8ToQString(mImap4Settings->LoginName());
+            found = true;
             break;
-        case IpsServices::Password:
+        case IpsServices::IncomingPassword:
             settingValue = XQConversions::s60Desc8ToQString(mImap4Settings->Password());
+            found = true;
             break;
         case IpsServices::MailboxName:
             settingValue = XQConversions::s60DescToQString(mImap4Account.iImapAccountName);
+            found = true;
             break;
+        case IpsServices::IncomingMailServer:
+            settingValue = XQConversions::s60DescToQString(mImap4Settings->ServerAddress());
+            found = true;
+            break;
+        case IpsServices::IncomingPort:
+            settingValue = mImap4Settings->Port();
+            found = true;
+            break;
+        case IpsServices::FolderPath:
+            settingValue = XQConversions::s60Desc8ToQString(mImap4Settings->FolderPath());
+            found = true;
+            break;
+        case IpsServices::IncomingSecureSockets:
+        	settingValue = mImap4Settings->SecureSockets();
+            found = true;
+            break;  
+        case IpsServices::IncomingSSLWrapper:
+        	settingValue = mImap4Settings->SSLWrapper();
+            found = true;
+            break;  
         default:
             found = NmIpsSettingsManagerBase::readSetting(settingItem, settingValue);
             break;
@@ -101,7 +124,7 @@ bool NmIpsImap4SettingsManager::writeSetting(IpsServices::SettingItem settingIte
     TInt err(KErrNone);
 
     switch (settingItem) {
-        case IpsServices::LoginName:
+        case IpsServices::IncomingLoginName:
             tmp8 = XQConversions::qStringToS60Desc8(settingValue.toString());
             TRAP(err, mImap4Settings->SetLoginNameL(*tmp8));
             delete tmp8;
@@ -109,7 +132,7 @@ bool NmIpsImap4SettingsManager::writeSetting(IpsServices::SettingItem settingIte
                 ret = saveSettings();
             }
             break;
-        case IpsServices::Password:
+        case IpsServices::IncomingPassword:
             tmp8 = XQConversions::qStringToS60Desc8(settingValue.toString());
             TRAP(err, mImap4Settings->SetPasswordL(*tmp8));
             delete tmp8;
@@ -119,10 +142,38 @@ bool NmIpsImap4SettingsManager::writeSetting(IpsServices::SettingItem settingIte
             break;
         case IpsServices::MailboxName:
             tmp = XQConversions::qStringToS60Desc(settingValue.toString());
-            mImap4Account.iImapAccountName.Copy( *tmp );
+            mImap4Account.iImapAccountName.Copy(*tmp);
             delete tmp;
             ret = saveSettings();
             break;
+        case IpsServices::IncomingMailServer:
+            tmp = XQConversions::qStringToS60Desc(settingValue.toString());
+            TRAP(err, mImap4Settings->SetServerAddressL(*tmp));
+            delete tmp;
+            if (err==KErrNone) {
+                ret = saveSettings();
+            }
+            break;
+        case IpsServices::IncomingPort:            
+            mImap4Settings->SetPort(settingValue.toInt());
+            ret = saveSettings();
+            break;
+        case IpsServices::FolderPath:            
+            tmp8 = XQConversions::qStringToS60Desc8(settingValue.toString());
+            TRAP(err, mImap4Settings->SetFolderPathL(*tmp8));
+            delete tmp;
+            if (err==KErrNone) {
+                ret = saveSettings();
+            }
+            break;
+        case IpsServices::IncomingSecureSockets:
+            mImap4Settings->SetSecureSockets(settingValue.toBool());
+            ret = saveSettings();
+            break;  
+        case IpsServices::IncomingSSLWrapper:
+            mImap4Settings->SetSSLWrapper(settingValue.toBool());
+            ret = saveSettings();
+            break;  
         default:
             ret = NmIpsSettingsManagerBase::writeSetting(settingItem, settingValue);
             break;
@@ -138,9 +189,9 @@ bool NmIpsImap4SettingsManager::writeSetting(IpsServices::SettingItem settingIte
 */
 int NmIpsImap4SettingsManager::deleteMailbox()
 {
-    int error(NmIpsSettingsManagerBase::deleteMailbox());
+    TRAPD(error, mAccount->DeleteImapAccountL(mImap4Account));
     if (!error) {
-        TRAP(error, mAccount->DeleteImapAccountL(mImap4Account));
+		NmIpsSettingsManagerBase::deleteMailbox();
     }
 
     NMLOG(QString("NmIpsImap4SettingsManager::deleteMailbox status %1").arg(error));
@@ -156,4 +207,21 @@ bool NmIpsImap4SettingsManager::saveSettings()
     TRAPD(err, mAccount->SaveImapSettingsL(mImap4Account, *mImap4Settings));
     NMLOG(QString("NmIpsImap4SettingsManager::saveSettings rval %1").arg(err));
     return (err==KErrNone);
+}
+
+/*!
+     Determine the default port for the incoming mail server based on the security settings
+     
+     \return int the port number to use
+ */
+int NmIpsImap4SettingsManager::determineDefaultIncomingPort()
+{
+    int port = 0;    
+    bool sslTls = mImap4Settings->SSLWrapper();    
+    if (sslTls) {
+        port = IpsServices::imap4OverSslPort;
+    } else {
+        port = IpsServices::standardImap4Port;
+    }        
+    return port;
 }

@@ -18,7 +18,7 @@
 symbian*: {
     # Build.inf rules
     BLD_INF_RULES.prj_exports += "$${LITERAL_HASH}include <platform_paths.hrh>" \
-            "nmail_client_api/nmcommon_api.h           APP_LAYER_PLATFORM_EXPORT_PATH(nmcommonheader_api.h)" \
+            "nmail_client_api/nmcommon_api.h           APP_LAYER_PLATFORM_EXPORT_PATH(nmcommon_api.h)" \
             "nmail_client_api/nmapiemailaddress.h      APP_LAYER_PLATFORM_EXPORT_PATH(nmapiemailaddress.h)" \
             "nmail_client_api/nmapiemailservice.h      APP_LAYER_PLATFORM_EXPORT_PATH(nmapiemailservice.h)" \
             "nmail_client_api/nmenginedef.h            APP_LAYER_PLATFORM_EXPORT_PATH(nmenginedef.h)" \

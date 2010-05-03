@@ -32,7 +32,7 @@ NmFwaReplyMessageCreationOperation::~NmFwaReplyMessageCreationOperation()
 {
 }
 
-void NmFwaReplyMessageCreationOperation::runAsyncOperation()
+void NmFwaReplyMessageCreationOperation::doRunAsyncOperation()
 {
     const TFSMailMsgId mailMsgId(mMailboxId.pluginId32(), mMailboxId.id32());
 

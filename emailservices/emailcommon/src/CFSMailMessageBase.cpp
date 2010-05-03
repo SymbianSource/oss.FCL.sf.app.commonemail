@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2008 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -17,12 +17,14 @@
 
 
 //<cmail>
-#include <nmcommonheaders.h>
+#include "CFSMailRequestHandler.h"
 #include "emailtrace.h"
 #include "CFSMailMessageBase.h"
+#include "cmailmessageext.h"
 //</cmail>
 
 //<qmail>
+#include <nmcommonheaders.h>
 #include "nmmessageenvelope.h"
 #include "nmconverter.h"
 //</qmail>
@@ -33,11 +35,11 @@
 // -----------------------------------------------------------------------------
 EXPORT_C CFSMailMessageBase * CFSMailMessageBase::NewLC( TFSMailMsgId aMessageId )
 {
-    FUNC_LOG;
-    CFSMailMessageBase* message = new (ELeave) CFSMailMessageBase();
-    CleanupStack:: PushL(message);
-    message->ConstructL(aMessageId);
-    return message;
+  FUNC_LOG;
+  CFSMailMessageBase* message = new (ELeave) CFSMailMessageBase();
+  CleanupStack:: PushL(message);
+  message->ConstructL(aMessageId);
+  return message;
 } 
 
 // -----------------------------------------------------------------------------
@@ -45,10 +47,10 @@ EXPORT_C CFSMailMessageBase * CFSMailMessageBase::NewLC( TFSMailMsgId aMessageId
 // -----------------------------------------------------------------------------
 EXPORT_C CFSMailMessageBase * CFSMailMessageBase::NewL( TFSMailMsgId aMessageId )
 {
-    FUNC_LOG;
-    CFSMailMessageBase* message =  CFSMailMessageBase::NewLC(aMessageId);
-    CleanupStack:: Pop(message);
-    return message;
+  FUNC_LOG;
+  CFSMailMessageBase* message =  CFSMailMessageBase::NewLC(aMessageId);
+  CleanupStack:: Pop(message);
+  return message;
 }
 
 // -----------------------------------------------------------------------------
@@ -57,16 +59,18 @@ EXPORT_C CFSMailMessageBase * CFSMailMessageBase::NewL( TFSMailMsgId aMessageId 
 CFSMailMessageBase::CFSMailMessageBase(): iSender(NULL)
 {
     FUNC_LOG;
+// <qmail> unnecessary member initialization removed: iSubject, iFlags </qmail>
+  	// set request handler pointer
+	iRequestHandler = static_cast<CFSMailRequestHandler*>(Dll::Tls());
 }
 
-//<qmail>
 // -----------------------------------------------------------------------------
 // CFSMailMessageBase::ConstructL
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailMessageBase::ConstructL( TFSMailMsgId aMessageId )
 {
     FUNC_LOG;
-
+// <qmail>
     // Construction of shared data object
     iNmPrivateMessageEnvelope = new NmMessageEnvelopePrivate();
 
@@ -78,13 +82,14 @@ EXPORT_C void CFSMailMessageBase::ConstructL( TFSMailMsgId aMessageId )
 
     // construct the CFSMailAddress object and connect it with NmAddress private data
     iSender = CFSMailAddress::NewL(iNmPrivateMessageEnvelope->mSender);
-    //iSender->ShareNmAddressPrivate(iNmPrivateMessageEnvelope->mSender);
+// </qmail>
 }
 
+// <qmail>
 // -----------------------------------------------------------------------------
 // CFSMailMessageBase::ConstructL
 // -----------------------------------------------------------------------------
-void CFSMailMessageBase::ConstructL(
+EXPORT_C void CFSMailMessageBase::ConstructL(
     const NmMessageEnvelope &aMessageEnvelope )
 {
     FUNC_LOG;
@@ -99,20 +104,21 @@ void CFSMailMessageBase::ConstructL(
 EXPORT_C CFSMailMessageBase::~CFSMailMessageBase()
 {
     FUNC_LOG;
-    if(iSender)
-        {
-        delete iSender;
-        iSender = NULL;
-        }
+	if(iSender)
+		{
+		delete iSender;
+		iSender = NULL;
+		}
+// <qmail> unnecessary member destruction removed: iSubject, iToRecipients, iCcRecipients, iBccRecipients </qmail>
 }
 
-//<qmail>
 // -----------------------------------------------------------------------------
 // CFSMailMessageBase::GetMessageId
 // -----------------------------------------------------------------------------
 EXPORT_C TFSMailMsgId CFSMailMessageBase::GetMessageId(  ) const
 {
     FUNC_LOG;
+// <qmail>
     //For message  
     TFSMailMsgId id = TFSMailMsgId(iNmPrivateMessageEnvelope->mId);
     
@@ -120,10 +126,12 @@ EXPORT_C TFSMailMsgId CFSMailMessageBase::GetMessageId(  ) const
     if(id.IsNullId()){
         id = TFSMailMsgId(iNmPrivateMessageEnvelope->mParentId);
     }
-    
+	
     return id;
+// </qmail>
 }
 
+// <qmail>
 // -----------------------------------------------------------------------------
 // CFSMailMessageBase::SetMessageId
 // -----------------------------------------------------------------------------
@@ -143,7 +151,9 @@ EXPORT_C void CFSMailMessageBase::SetMessageId( const TFSMailMsgId aMessageId )
 EXPORT_C TFSMailMsgId CFSMailMessageBase::GetFolderId( ) const
 {
     FUNC_LOG;
-    return NmConverter::nmIdToMailMsgId(iNmPrivateMessageEnvelope->mParentId);
+// <qmail>
+    return TFSMailMsgId(iNmPrivateMessageEnvelope->mParentId);
+// </qmail>
 }
 
 // -----------------------------------------------------------------------------
@@ -152,8 +162,9 @@ EXPORT_C TFSMailMsgId CFSMailMessageBase::GetFolderId( ) const
 EXPORT_C void CFSMailMessageBase::SetFolderId( const TFSMailMsgId aFolderId )
 {
     FUNC_LOG;
-    iNmPrivateMessageEnvelope->mParentId =
-        NmConverter::mailMsgIdToNmId(aFolderId);
+// <qmail>
+    iNmPrivateMessageEnvelope->mParentId = NmConverter::mailMsgIdToNmId(aFolderId);
+// </qmail>
 }
 
 // -----------------------------------------------------------------------------
@@ -162,7 +173,9 @@ EXPORT_C void CFSMailMessageBase::SetFolderId( const TFSMailMsgId aFolderId )
 EXPORT_C TFSMailMsgId CFSMailMessageBase::GetMailBoxId( ) const
 {
     FUNC_LOG;
-    return NmConverter::nmIdToMailMsgId(iNmPrivateMessageEnvelope->mMailboxId);
+// <qmail>
+    return NmId(iNmPrivateMessageEnvelope->mMailboxId);
+// </qmail>
 }
 
 // -----------------------------------------------------------------------------
@@ -171,25 +184,28 @@ EXPORT_C TFSMailMsgId CFSMailMessageBase::GetMailBoxId( ) const
 EXPORT_C void CFSMailMessageBase::SetMailBoxId( const TFSMailMsgId aMailBoxId )
 {
     FUNC_LOG;
+// <qmail>
     iNmPrivateMessageEnvelope->mMailboxId = NmConverter::mailMsgIdToNmId(aMailBoxId);
+// </qmail>
 }
 
-//<qmail>
 // -----------------------------------------------------------------------------
 // CFSMailMessageBase::SetSender
 // -----------------------------------------------------------------------------
-EXPORT_C void CFSMailMessageBase::SetSender( CFSMailAddress* aSender )
+EXPORT_C void CFSMailMessageBase::SetSender(CFSMailAddress* aSender)
 {
     FUNC_LOG;
-    if (iSender) 
-        {
-        delete iSender;
+// <qmail>
+	// store sender
+	if (iSender)
+		{
+		delete iSender;
         iSender = NULL;
-        }
-    iSender = aSender;
+		}
+	iSender = aSender;
     iNmPrivateMessageEnvelope->mSender = iSender->GetNmAddress();
+// </qmail>
 }
-//</qmail>
 
 // -----------------------------------------------------------------------------
 // CFSMailMessageBase::GetSender
@@ -197,7 +213,7 @@ EXPORT_C void CFSMailMessageBase::SetSender( CFSMailAddress* aSender )
 EXPORT_C CFSMailAddress* CFSMailMessageBase::GetSender() const
 {
     FUNC_LOG;
-    return iSender;
+	return iSender;
 }
 
 // -----------------------------------------------------------------------------
@@ -239,8 +255,7 @@ EXPORT_C RPointerArray<CFSMailAddress> CFSMailMessageBase::GetBCCRecipients()
 // -----------------------------------------------------------------------------
 // CFSMailMessageBase::AppendToRecipient
 // -----------------------------------------------------------------------------
-EXPORT_C void CFSMailMessageBase::AppendToRecipient(
-    CFSMailAddress* aRecipient )
+EXPORT_C void CFSMailMessageBase::AppendToRecipient(CFSMailAddress* aRecipient)
 {
     FUNC_LOG;
 // <qmail>
@@ -252,7 +267,7 @@ EXPORT_C void CFSMailMessageBase::AppendToRecipient(
 // -----------------------------------------------------------------------------
 // CFSMailMessageBase::AppendCCRecipient
 // -----------------------------------------------------------------------------
-EXPORT_C void CFSMailMessageBase::AppendCCRecipient( CFSMailAddress* aRecipient )
+EXPORT_C void CFSMailMessageBase::AppendCCRecipient(CFSMailAddress* aRecipient )
 {
     FUNC_LOG;
 // <qmail>
@@ -277,34 +292,34 @@ EXPORT_C void CFSMailMessageBase::AppendBCCRecipient( CFSMailAddress* aRecipient
 // CFSMailMessageBase::ClearToRecipients
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailMessageBase::ClearToRecipients( )
-{
+	{
     FUNC_LOG;
 // <qmail>
     iNmPrivateMessageEnvelope->mToRecipients.clear();
 // </qmail>
-}
+	}
 
 // -----------------------------------------------------------------------------
 // CFSMailMessageBase::ClearCcRecipients
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailMessageBase::ClearCcRecipients( )
-{
+	{
     FUNC_LOG;
 // <qmail>
     iNmPrivateMessageEnvelope->mCcRecipients.clear();
 // </qmail>
-}
+	}
 
 // -----------------------------------------------------------------------------
 // CFSMailMessageBase::ClearBccRecipients
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailMessageBase::ClearBccRecipients( )
-{
+	{
     FUNC_LOG;
 // <qmail>
     iNmPrivateMessageEnvelope->mBccRecipients.clear();
 // </qmail>
-}
+	}
 
 //<qmail>
 // -----------------------------------------------------------------------------
@@ -313,9 +328,11 @@ EXPORT_C void CFSMailMessageBase::ClearBccRecipients( )
 EXPORT_C TDesC& CFSMailMessageBase::GetSubject() const
 {
     FUNC_LOG;
+// <qmail>
     iSubjectPtr.Set(reinterpret_cast<const TUint16*> (iNmPrivateMessageEnvelope->mSubject.utf16()),
         iNmPrivateMessageEnvelope->mSubject.length());
     return iSubjectPtr;
+// </qmail>
 }
 
 // -----------------------------------------------------------------------------
@@ -324,7 +341,9 @@ EXPORT_C TDesC& CFSMailMessageBase::GetSubject() const
 EXPORT_C TTime CFSMailMessageBase::GetDate() const
 {
     FUNC_LOG;
+// <qmail>
     return NmConverter::toTTime(iNmPrivateMessageEnvelope->mSentTime);
+// </qmail>
 }
 
 // -----------------------------------------------------------------------------
@@ -333,17 +352,21 @@ EXPORT_C TTime CFSMailMessageBase::GetDate() const
 EXPORT_C void CFSMailMessageBase::SetDate( const TTime aDate )
 {
     FUNC_LOG;
+// <qmail>
     iNmPrivateMessageEnvelope->mSentTime = NmConverter::toQDateTime(aDate);
+// </qmail>
 }
 
 // -----------------------------------------------------------------------------
 // CFSMailMessageBase::SetSubject
 // -----------------------------------------------------------------------------
-EXPORT_C void CFSMailMessageBase::SetSubject( const TDesC& aSubject )
+EXPORT_C void CFSMailMessageBase::SetSubject(const TDesC& aSubject)
 {
     FUNC_LOG;
+// <qmail>
     QString qtSubject = QString::fromUtf16(aSubject.Ptr(), aSubject.Length());
     iNmPrivateMessageEnvelope->mSubject = qtSubject;
+// </qmail>
 }
 
 // -----------------------------------------------------------------------------
@@ -352,72 +375,80 @@ EXPORT_C void CFSMailMessageBase::SetSubject( const TDesC& aSubject )
 EXPORT_C TInt CFSMailMessageBase::GetFlags( ) const
 {
     FUNC_LOG;
+// <qmail>
     return (TInt)iNmPrivateMessageEnvelope->flags();
+// </qmail>
 }
 
 // -----------------------------------------------------------------------------
 // CFSMailMessageBase::SetFlag
 // -----------------------------------------------------------------------------
-EXPORT_C void CFSMailMessageBase::SetFlag( const TInt aFlag )
+EXPORT_C void CFSMailMessageBase::SetFlag(const TInt aFlag)
 {
     FUNC_LOG;
+// <qmail>
     iNmPrivateMessageEnvelope->setFlags((NmMessageFlags)aFlag, true);
+// </qmail>
 }
 
 // -----------------------------------------------------------------------------
 // CFSMailMessageBase::ResetFlag
 // -----------------------------------------------------------------------------
-EXPORT_C void CFSMailMessageBase::ResetFlag( const TInt aFlag )
+EXPORT_C void CFSMailMessageBase::ResetFlag(const TInt aFlag)
 {
     FUNC_LOG;
+// <qmail>
     iNmPrivateMessageEnvelope->setFlags((NmMessageFlags)aFlag, false);
+// </qmail>
 }
 
 // -----------------------------------------------------------------------------
 // CFSMailMessageBase::IsFlagSet
 // -----------------------------------------------------------------------------
-EXPORT_C TBool CFSMailMessageBase::IsFlagSet( const TInt aFlag ) const
+EXPORT_C TBool CFSMailMessageBase::IsFlagSet(const TInt aFlag) const
 {
     FUNC_LOG;
+// <qmail>
     TBool result = EFalse;
     if (iNmPrivateMessageEnvelope->isFlagSet((NmMessageFlag)aFlag)) 
         {
         result = ETrue;
         }
     return result;
+// <qmail>
 }
-//</qmail>
 
 // -----------------------------------------------------------------------------
 // CFSMailMessageBase::IsRelatedTo
 // -----------------------------------------------------------------------------
 EXPORT_C TFSMailMsgId CFSMailMessageBase::IsRelatedTo() const
-{
+	{
     FUNC_LOG;
-    return iRelatedTo;
-}
+	return iRelatedTo;
+	}
 
 // -----------------------------------------------------------------------------
 // CFSMailMessageBase::SetRelatedTo
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailMessageBase::SetRelatedTo( const TFSMailMsgId aMessageId )
-{
+	{
     FUNC_LOG;
-    iRelatedTo = aMessageId;
-}
+	iRelatedTo = aMessageId;
+	}
 
 // -----------------------------------------------------------------------------
 // CFSMailMessageBase::SetReplyToAddress
 // -----------------------------------------------------------------------------
-EXPORT_C void CFSMailMessageBase::SetReplyToAddress( CFSMailAddress* aReplyToAddress )
+EXPORT_C void CFSMailMessageBase::SetReplyToAddress(CFSMailAddress* aReplyToAddress)
 {
     FUNC_LOG;
-    // store sender
-    if (iReplyTo)
-        {
-        delete iReplyTo;
-        }
-    iReplyTo = aReplyToAddress;
+	// store sender
+	if (iReplyTo)
+		{
+		delete iReplyTo;
+		}
+	iReplyTo = aReplyToAddress;
+
 }
 
 // -----------------------------------------------------------------------------
@@ -426,9 +457,15 @@ EXPORT_C void CFSMailMessageBase::SetReplyToAddress( CFSMailAddress* aReplyToAdd
 EXPORT_C const CFSMailAddress& CFSMailMessageBase::GetReplyToAddress()
 {
     FUNC_LOG;
-    return *iReplyTo;
+	return *iReplyTo;
 }
 
+EXPORT_C CFSMailRequestHandler& CFSMailMessageBase::RequestHandler( )
+{
+	return *iRequestHandler;
+}
+
+// <qmail>
 // -----------------------------------------------------------------------------
 // CFSMailMessageBase::GetNmMessageEnvelope
 // -----------------------------------------------------------------------------
@@ -437,4 +474,47 @@ EXPORT_C NmMessageEnvelope* CFSMailMessageBase::GetNmMessageEnvelope()
     FUNC_LOG;
     return new NmMessageEnvelope(iNmPrivateMessageEnvelope);
 }
+// </qmail>
 
+// -----------------------------------------------------------------------------
+// CFSMailMessageBase::ReleaseExtension
+// -----------------------------------------------------------------------------
+EXPORT_C void CFSMailMessageBase::ReleaseExtension( CEmailExtension* aExtension )
+    {
+    FUNC_LOG;
+    if ( CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(
+		iNmPrivateMessageEnvelope->mId ) )
+        {
+        // If plugin has created the extension, let it handle destruction.
+        plugin->ReleaseExtension( aExtension );
+        }
+    else
+        {
+        CExtendableEmail::ReleaseExtension( aExtension );
+        }
+    }
+    
+// -----------------------------------------------------------------------------
+// CFSMailMessageBase::ExtensionL
+// -----------------------------------------------------------------------------
+EXPORT_C CEmailExtension* CFSMailMessageBase::ExtensionL( 
+    const TUid& aInterfaceUid )
+    {
+    FUNC_LOG;
+    CEmailExtension* ext = CExtendableEmail::ExtensionL( aInterfaceUid );
+    // didn't find already created instance, try now
+    if ( !ext )
+        {
+        // check that plugin supports requested extension.
+// <qmail>
+        if ( CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(
+			iNmPrivateMessageEnvelope->mId ) )
+// </qmail>
+            {
+            // request extension from plugin, leaves if not supported
+            ext = plugin->ExtensionL( aInterfaceUid );    
+            }
+
+        }
+    return ext;
+    }

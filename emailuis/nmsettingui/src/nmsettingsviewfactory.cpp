@@ -20,7 +20,7 @@
 #include <QCoreApplication>
 #include <HbInstance>
 #include <HbAction>
-#include <HbMessagebox>
+#include <HbMessageBox>
 
 #include "nmsettingsviewfactory.h"
 #include "nmmailboxsettingsmanager.h"
@@ -212,6 +212,21 @@ void NmSettingsViewFactory::launchSettingView(const NmId &mailboxId,
             mSettingsViewLauncher,
             SIGNAL(mailboxPropertyChanged(const NmId &, QVariant, QVariant)));
 
+    connect(mSettingsManager,
+            SIGNAL(goOnline(const NmId &)),
+            mSettingsViewLauncher,
+            SIGNAL(goOnline(const NmId &)));
+
+    connect(mSettingsManager,
+            SIGNAL(goOffline(const NmId &)),
+            mSettingsViewLauncher,
+            SIGNAL(goOffline(const NmId &)));
+
+    connect(this,
+            SIGNAL(aboutToClose()),
+            mSettingsManager,
+            SIGNAL(aboutToClose()));
+
     // Create back navigation action for a view.
     HbAction *action = new HbAction(Hb::BackNaviAction, view);
     connect(action, SIGNAL(triggered()), this, SLOT(backPress()));
@@ -233,6 +248,7 @@ void NmSettingsViewFactory::backPress()
 {
     NMLOG(QString("NmSettingsViewFactory::backPress"));
 
+    emit aboutToClose();
     HbMainWindow *mainWindow = hbInstance->allMainWindows().takeFirst();
     QList<HbView *> views = mainWindow->views();
     if (views.count() > 1) {

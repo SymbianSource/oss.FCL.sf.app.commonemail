@@ -30,18 +30,21 @@ mProgress(0),
 mIsRunning(true)
 {
     // operation is started immediately
-    mTimer = new QTimer(this);
-    mTimer->setSingleShot(TRUE);
+    mTimer = new QTimer(this); // QObject takes care of deleting
+    mTimer->setSingleShot(true);
     connect(mTimer, SIGNAL(timeout()), this, SLOT(runAsyncOperation()));
     mTimer->start(1);
 }
 
 /*!
     \brief Destructor
-    Does nothing
  */
 NmOperation::~NmOperation()
 {
+    // Delete items from the mPreliminaryOperations list.
+    qDeleteAll(mPreliminaryOperations.begin(), mPreliminaryOperations.end());
+    // Remove the items.
+    mPreliminaryOperations.clear();
 }
 
 /*!
@@ -50,6 +53,21 @@ NmOperation::~NmOperation()
 bool NmOperation::isRunning() const
 {
     return mIsRunning;
+}
+
+/*!
+    \brief Adds a "preliminary operation" which needs to end until this operation can start.
+    Ownership of the operation is transferred to this.
+ */
+void NmOperation::addPreliminaryOperation(NmOperation *operation)
+{
+    connect(operation, SIGNAL(operationCompleted()), this,
+        SLOT(handlePreliminaryOperationFinished()));
+
+    connect(operation, SIGNAL(operationCancelled()), this,
+        SLOT(handlePreliminaryOperationFinished()));
+
+    mPreliminaryOperations.append(operation);
 }
 
 /*!
@@ -89,6 +107,39 @@ void NmOperation::updateOperationProgress(int progress)
     mProgress = progress;
     this->doUpdateOperationProgress();
     emit this->operationProgressChanged(mProgress);
+}
+
+/*!
+    \brief Slot, run the operation if no preliminary operations are running.
+    Calls the pure virtual doRunAsyncOperation() of the derived class if there are no preliminary
+    operations running.
+ */
+void NmOperation::runAsyncOperation()
+{
+    // cleanup the preliminary operations
+    int count = mPreliminaryOperations.count();
+    for (int i = 0; i < count; ++i) {
+        if (!mPreliminaryOperations[i] || !mPreliminaryOperations[i]->isRunning()) {
+            delete mPreliminaryOperations.takeAt(i);
+            --i;
+            --count;
+        }
+    }
+
+    if (mPreliminaryOperations.count() == 0) {
+        doRunAsyncOperation();
+    }
+}
+
+/*!
+    \brief Slot, update progress
+    This is signalled by a preliminary operation when its operation is completed or cancelled. 
+    Do not call runAsyncOperation immediately but let the signal be handled by other slots first. 
+ */
+void NmOperation::handlePreliminaryOperationFinished()
+{
+    mTimer->stop();
+    mTimer->start(1);
 }
 
 /*!

@@ -21,14 +21,13 @@
 #define _EMAILSTORE_IBY_
 
 #include <data_caging_paths_for_iby.hrh>
-#include <bldvariant.hrh>
 
 //----------------------------------------------------
 // Email Store - message store and base email plugin
 //----------------------------------------------------
 
 // Ignore some content when not in a Cmail environment
-#ifdef FF_EMAIL_FRAMEWORK 
+//#ifdef FF_EMAIL_FRAMEWORK 
 
 // Base email plugin
 file=ABI_DIR\BUILD_DIR\baseplugin.dll                 SHARED_LIB_DIR\baseplugin.dll
@@ -44,6 +43,6 @@ ECOM_PLUGIN( RfsMsgStorePlugin.dll, RfsMsgStorePlugin.rsc )
 //the stub sis.
 data=DATAZ_\system\install\emailstore_stub.sis        system\install\emailstore_stub.sis
 
-#endif //FF_EMAIL_FRAMEWORK 
+//#endif //FF_EMAIL_FRAMEWORK 
 
 #endif //_EMAILSTORE_IBY_

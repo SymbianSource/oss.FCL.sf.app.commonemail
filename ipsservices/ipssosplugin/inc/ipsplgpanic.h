@@ -15,7 +15,6 @@
 *
 */
 
-
 #ifndef IPSPLGPANIC_H
 #define IPSPLGPANIC_H
 
@@ -23,6 +22,7 @@
 #include <e32def.h>
 
 _LIT(KIpsPlgPanicCategory, "IpsPlgSos");
+_LIT( KIpsPlgIpsConnPanic, "IpsConn" ); 
 
 enum TIpsPlgPanic {
     EIpsPlgInvalidMessageIndex,

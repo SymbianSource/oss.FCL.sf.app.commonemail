@@ -100,7 +100,7 @@ NmBaseClientPlugin::NmBaseClientPlugin()
 :mMenuRequest(NULL),
 mEditorToolBarRequest(NULL),
 mViewerToolBarRequest(NULL),
-mViewerViewToolbarRequest(NULL),
+mViewerViewRequest(NULL),
 mUiEngine(NULL),
 mSettingsViewLauncher(NULL)
 {
@@ -212,9 +212,9 @@ void NmBaseClientPlugin::deleteMessage()
     Public slot connected to triggered() signal of delete action instance.
     The method sends a delete mail command to the action observer.
 */
-void NmBaseClientPlugin::deleteMessageFromViewerViewToolbar()
+void NmBaseClientPlugin::deleteMessageFromViewerView()
 {
-    handleRequest(NmActionResponseCommandDeleteMail, mViewerViewToolbarRequest);
+    handleRequest(NmActionResponseCommandDeleteMail, mViewerViewRequest);
 }
 
 /*!
@@ -258,6 +258,14 @@ void NmBaseClientPlugin::settings()
             connect(mSettingsViewLauncher,
                 SIGNAL(mailboxPropertyChanged(const NmId &, QVariant, QVariant)),
                 this, SLOT(mailboxPropertyChanged(const NmId &, QVariant, QVariant)));
+
+            connect(mSettingsViewLauncher,
+            	SIGNAL(goOnline(const NmId &)),
+                this, SLOT(goOnline(const NmId &)));
+
+            connect(mSettingsViewLauncher,
+            	SIGNAL(goOffline(const NmId &)),
+                this, SLOT(goOffline(const NmId &)));
         }
 
         mSettingsViewLauncher->launchSettingsView(id, mailbox->name());
@@ -283,7 +291,7 @@ void NmBaseClientPlugin::sendMail()
 
 void NmBaseClientPlugin::replyMail()
 {
-    handleRequest(NmActionResponseCommandReply, mViewerViewToolbarRequest);
+    handleRequest(NmActionResponseCommandReply, mViewerViewRequest);
 }
 
 /*!
@@ -293,7 +301,7 @@ void NmBaseClientPlugin::replyMail()
 
 void NmBaseClientPlugin::replyAllMail()
 {
-    handleRequest(NmActionResponseCommandReplyAll, mViewerViewToolbarRequest);
+    handleRequest(NmActionResponseCommandReplyAll, mViewerViewRequest);
 }
 
 /*!
@@ -302,7 +310,7 @@ void NmBaseClientPlugin::replyAllMail()
 */
 void NmBaseClientPlugin::forwardMail()
 {
-    handleRequest(NmActionResponseCommandForward, mViewerViewToolbarRequest);
+    handleRequest(NmActionResponseCommandForward, mViewerViewRequest);
 }
 
 /*!
@@ -335,6 +343,22 @@ void NmBaseClientPlugin::setPriorityLow()
 void NmBaseClientPlugin::attach()
 {
     handleRequest(NmActionResponseCommandAttach, mEditorToolBarRequest);
+}
+
+/*!
+    Public slot connected to remove attachment context menu action
+*/
+void NmBaseClientPlugin::removeAttachment()
+{
+    handleRequest(NmActionResponseCommandRemoveAttachment, mMenuRequest);
+}
+
+/*!
+    Public slot connected to open attachment context menu action
+*/
+void NmBaseClientPlugin::openAttachment()
+{
+    handleRequest(NmActionResponseCommandOpenAttachment, mMenuRequest);
 }
 
 /*!
@@ -375,6 +399,23 @@ void NmBaseClientPlugin::mailboxPropertyChanged(const NmId &mailboxId, QVariant 
         NmActionResponse response(NmActionResponseCommandUpdateMailboxName, mMenuRequest);
         observer->handleActionCommand(response);
     }
+}
+
+/*!
+    Private slot connected to settings view launcher.
+    \param mailboxId Id of mailbox.
+*/
+void NmBaseClientPlugin::goOnline(const NmId &mailboxId)
+{
+        mUiEngine->goOnline(mailboxId);
+}
+/*!
+    Private slot connected to settings view launcher.
+    \param mailboxId Id of mailbox.
+*/
+void NmBaseClientPlugin::goOffline(const NmId &mailboxId)
+{
+        mUiEngine->goOffline(mailboxId);
 }
 
 /*!
@@ -494,9 +535,43 @@ void NmBaseClientPlugin::createViewerViewCommands(
     NMLOG("NmBaseClientPlugin::createViewerViewCommands()-->");
 
     switch (request.menuType()) {
+    	case NmActionOptionsMenu:
+		{
+			mViewerViewRequest = request;
+
+			// Options menu Reply action
+			NmAction *replyAction = new NmAction(0);
+			replyAction->setObjectName("baseclientplugin_reply");
+			replyAction->setText(hbTrId("txt_mail_viewer_opt_reply"));
+			connect(replyAction, SIGNAL(triggered()), this, SLOT(replyMail()));
+			actionList.append(replyAction);
+
+			// Options menu Reply all action
+			NmAction *replyAllAction = new NmAction(0);
+			replyAllAction->setObjectName("baseclientplugin_reply_all");
+			replyAllAction->setText(hbTrId("txt_mail_viewer_opt_reply_all"));
+			connect(replyAllAction, SIGNAL(triggered()), this, SLOT(replyAllMail()));
+			actionList.append(replyAllAction);
+
+			// Options menu Forward action
+			NmAction *forwardAction = new NmAction(0);
+			forwardAction->setObjectName("baseclientplugin_forward");
+			forwardAction->setText(hbTrId("txt_mail_viewer_opt_forward"));
+			connect(forwardAction, SIGNAL(triggered()), this, SLOT(forwardMail()));
+			actionList.append(forwardAction);
+
+			// Options menu Delete action
+			NmAction *deleteAction = new NmAction(0);
+			deleteAction->setObjectName("baseclientplugin_delete");
+			deleteAction->setText(hbTrId("txt_mail_viewer_opt_delete"));
+			connect(deleteAction, SIGNAL(triggered()),
+					this, SLOT(deleteMessageFromViewerView()));
+			actionList.append(deleteAction);
+			break;
+		}
         case NmActionToolbar:
         {
-            mViewerViewToolbarRequest = request;
+            mViewerViewRequest = request;
 			Qt::Orientation orientation = Qt::Horizontal;
 			HbMainWindow *mainWindow = static_cast<HbMainWindow*>(HbApplication::activeWindow());
 			if( mainWindow ) {
@@ -545,7 +620,7 @@ void NmBaseClientPlugin::createViewerViewCommands(
             deleteAction->setIcon(NmIcons::getIcon(NmIcons::NmIconDelete));
             deleteAction->setObjectName("baseclientplugin_delete");
             connect(deleteAction, SIGNAL(triggered()),
-                    this, SLOT(deleteMessageFromViewerViewToolbar()));
+                    this, SLOT(deleteMessageFromViewerView()));
             actionList.append(deleteAction);
             break;
         }
@@ -617,6 +692,23 @@ void NmBaseClientPlugin::createEditorViewCommands(
             connect(action, SIGNAL(triggered()), this, SLOT(setPriorityLow()));
             actionList.append(action);
             break;
+        }
+        case NmActionContextMenu:
+        {
+            mMenuRequest = request;
+
+            NmAction *action = new NmAction(0);
+            action->setObjectName("baseclientplugin_removeattachmentaction");
+            action->setText(hbTrId("txt_common_menu_remove"));
+            connect(action, SIGNAL(triggered()), this, SLOT(removeAttachment()));
+            actionList.append(action);
+
+            action = new NmAction(0);
+            action->setObjectName("baseclientplugin_openattachmentaction");
+            action->setText(hbTrId("txt_common_menu_open"));
+            connect(action, SIGNAL(triggered()), this, SLOT(openAttachment()));
+            actionList.append(action);
+            break;	
         }
         case NmActionVKB:
         {

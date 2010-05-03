@@ -91,7 +91,7 @@ QString NmMessageEnvelope::sender() const
 /*
  * getter for to recipients
  */
-void NmMessageEnvelope::toRecipients(QList<EmailClientApi::NmEmailAddress> &toRecipients)
+void NmMessageEnvelope::getToRecipients(QList<EmailClientApi::NmEmailAddress> &toRecipients)
 {
     toRecipients = d->toRecipients;
 }
@@ -99,7 +99,7 @@ void NmMessageEnvelope::toRecipients(QList<EmailClientApi::NmEmailAddress> &toRe
 /*
  * getter for cc recipients
  */
-void NmMessageEnvelope::ccRecipients(QList<EmailClientApi::NmEmailAddress> &ccRecipients)
+void NmMessageEnvelope::getCcRecipients(QList<EmailClientApi::NmEmailAddress> &ccRecipients)
 {
     ccRecipients = d->ccRecipients;
 }
@@ -155,7 +155,7 @@ QString NmMessageEnvelope::contentType() const
 /*
  * getter for plaintext body
  */
-void NmMessageEnvelope::plainTextBody(EmailClientApi::NmMessageBody &body)
+void NmMessageEnvelope::getPlainTextBody(EmailClientApi::NmMessageBody &body)
 {
     body.setContent(d->plainText);
     body.setFetchedSize(d->fetchedSize);
@@ -197,7 +197,7 @@ void NmMessageEnvelope::setSender(const QString& sender)
 /*
  * setter for to recipients 
  */
-void NmMessageEnvelope::setGetToRecipients(
+void NmMessageEnvelope::setToRecipients(
     const QList<EmailClientApi::NmEmailAddress>& toRecipients)
 {
     d->toRecipients = toRecipients;
@@ -206,7 +206,7 @@ void NmMessageEnvelope::setGetToRecipients(
 /*
  * setter for cc recipients 
  */
-void NmMessageEnvelope::setGetCcRecipients(
+void NmMessageEnvelope::setCcRecipients(
     const QList<EmailClientApi::NmEmailAddress> &ccRecipients)
 {
     d->ccRecipients = ccRecipients;

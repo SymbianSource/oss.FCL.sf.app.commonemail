@@ -33,13 +33,16 @@ public:
     
     bool readSetting(IpsServices::SettingItem settingItem, QVariant &settingValue) const;
     bool writeSetting(IpsServices::SettingItem settingItem, const QVariant &settingValue);
+    bool writeSetting(int profileMode, IpsServices::SettingItem settingItem, const QVariant &settingValue);
     void deleteSettings();
 
 private:
+    bool writeSettingToCenRep(qint32 profileOffset, IpsServices::SettingItem settingItem, const QVariant &settingValue);
     QVariant readFromCenRep(quint32 key) const;
     bool writeToCenRep(quint32 key, const QVariant &value) const;
     void calculateMailboxOffset();
     void calculateActiveProfileOffset();
+    qint32 convertToProfileOffset(int profile);
 
 private: // data
     const NmId &mMailboxId;

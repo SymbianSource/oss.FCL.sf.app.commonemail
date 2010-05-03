@@ -93,7 +93,7 @@ class TMonthDayTranslator : public TDayOfWeekFtor
 /**
  *
  */
-EXPORT_C void CBasePlugin::TranslateMsgStorePropsL(
+void CBasePlugin::TranslateMsgStorePropsL(
     const TFSMailMsgId& aMailBoxId,
     CMsgStorePropertyContainer& aMessage,
     CFSMailMessagePart& aFsMsg,
@@ -318,7 +318,7 @@ EXPORT_C void CBasePlugin::TranslateMsgStorePropsL(
  * @param aMessage
  * @param aFsMsg
  */
-EXPORT_C void CBasePlugin::TranslateMsgStoreMrL(
+void CBasePlugin::TranslateMsgStoreMrL(
     const TFSMailMsgId& aMailBoxId,
     CMsgStorePropertyContainer& aMessage,
     CMsgStorePropertyContainer& aCalendar,
@@ -714,7 +714,7 @@ EXPORT_C void CBasePlugin::TranslateMsgStoreMrL(
 /**
  *
  */
-EXPORT_C void CBasePlugin::TranslateEmailFwMessageL(
+void CBasePlugin::TranslateEmailFwMessageL(
     CFSMailMessagePart& aSrc,
     CMsgStoreMessagePart& aDst,
     TBool aInInbox )
@@ -768,10 +768,15 @@ EXPORT_C void CBasePlugin::TranslateEmailFwMessageL(
 	    TTime sentTime;
 	    sentTime.UniversalTime();
 	    aDst.AddOrUpdatePropertyL( KMsgStorePropertySent, sentTime );
+	    // same date needs to be set as received date , because of sorting
+	    // feature in message store, which enable sorting only according to
+	    // received date.
+	    aDst.AddOrUpdatePropertyL( KMsgStorePropertyReceivedAt, sentTime );
 	    aSrc.SetDate( sentTime );
     	}
     
     //to recipients.
+//<qmail> Return by val (as in earlier Cmail version)
     RPointerArray<CFSMailAddress> toRecipients = aSrc.GetToRecipients();
     TranslateEmailFwRecipientsL( aDst, KMsgStorePropertyTo, toRecipients );
 
@@ -782,6 +787,7 @@ EXPORT_C void CBasePlugin::TranslateEmailFwMessageL(
     //bcc recipients.
     RPointerArray<CFSMailAddress> bccRecipients = aSrc.GetBCCRecipients();
     TranslateEmailFwRecipientsL( aDst, KMsgStorePropertyBcc, bccRecipients );
+//</qmail>
 
     //flags.
     //the cast is important otherwise the TBool overload gets called.
@@ -865,7 +871,7 @@ EXPORT_C void CBasePlugin::TranslateEmailFwMessageL(
 /**
  *
  */
-EXPORT_C void CBasePlugin::TranslateEmailFwMrL(
+void CBasePlugin::TranslateEmailFwMrL(
     MMRInfoObject& aSrc,
     CMsgStorePropertyContainer& aDst )
 
@@ -1221,7 +1227,7 @@ void CBasePlugin::TranslateEmailFwDayOfWeek(
 /**
  *
  */
-EXPORT_C void CBasePlugin::TranslateEmailFwAttendeeL(
+void CBasePlugin::TranslateEmailFwAttendeeL(
     MMROrganizer& aSrc,
     RMsgStoreAddress& aDst )
 
@@ -1243,7 +1249,7 @@ EXPORT_C void CBasePlugin::TranslateEmailFwAttendeeL(
 /**
  *
  */
-EXPORT_C void CBasePlugin::RemoveAllPropertiesL(
+void CBasePlugin::RemoveAllPropertiesL(
     CMsgStorePropertyContainer& aContainer,
     const TDesC8& aName )
 

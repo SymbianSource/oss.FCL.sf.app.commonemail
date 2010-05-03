@@ -28,7 +28,7 @@ class NmAttachmentList : public QObject
 {
     Q_OBJECT
 public:
-    NmAttachmentList(NmAttachmentListWidget *listWidget);
+    NmAttachmentList(NmAttachmentListWidget &listWidget);
     ~NmAttachmentList();
     int insertAttachment(const QString &fullFileName,
                          const QString &fileSize,
@@ -38,15 +38,15 @@ public:
     void removeAttachment(int arrayIndex);
     void removeAttachment(const QString &fullFileName);
     void removeAttachment(const NmId &attachmentPartId);
-    NmAttachmentListWidget *listWidget();
+    NmAttachmentListWidget &listWidget();
     void clearList();
     int count();
     NmId nmIdByIndex(int listIndex);
     int indexByNmId(const NmId &id);
+    QString getFullFileNameByIndex(int arrayIndex);
 
 private:
     QString fullNameToDisplayName(const QString &fullName);
-    QString createSizeString(const QString &sizeInBytes);
     void updateLayout();
     
 private slots:
@@ -56,7 +56,7 @@ signals:
     void attachmentListLayoutChanged();
     
 private:
-    NmAttachmentListWidget *mListWidget; // Not owned
+    NmAttachmentListWidget &mListWidget; // Not owned
     QStringList mFullFileName;
     QStringList mDisplayFileName;
     QStringList mFileSize;

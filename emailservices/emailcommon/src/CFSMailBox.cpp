@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2008 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -15,12 +15,17 @@
 *
 */
 
+// <qmail>
 #include <nmcommonheaders.h>
+// <//qmail>
 
 #include "emailtrace.h"
+#include <bamdesca.h>
 #include "CFSMailPlugin.h"
+#include "cmrcalendarinfoimpl.h"
 #include "CFSMailBox.h"
 #include "CFSMailRequestObserver.h"
+#include "cmailboxstateext.h"
 // <qmail>
 #include "CFSMailFolder.h"
 #include "CFSMailAddress.h"
@@ -32,24 +37,24 @@ const TInt KMaxMruEntries( 150 );
 // -----------------------------------------------------------------------------
 // CFSMailBox::NewLC
 // -----------------------------------------------------------------------------
-EXPORT_C CFSMailBox* CFSMailBox::NewLC( TFSMailMsgId aMailBoxId )
+EXPORT_C CFSMailBox* CFSMailBox::NewLC(TFSMailMsgId aMailBoxId)
 {
     FUNC_LOG;
-    CFSMailBox* api = new (ELeave) CFSMailBox();
-    CleanupStack:: PushL(api);
-    api->ConstructL(aMailBoxId);
-    return api;
+  CFSMailBox* api = new (ELeave) CFSMailBox();
+  CleanupStack:: PushL(api);
+  api->ConstructL(aMailBoxId);
+  return api;
 } 
 
 // -----------------------------------------------------------------------------
 // CFSMailBox::NewL
 // -----------------------------------------------------------------------------
-EXPORT_C CFSMailBox* CFSMailBox::NewL( TFSMailMsgId aMailBoxId )
+EXPORT_C CFSMailBox* CFSMailBox::NewL(TFSMailMsgId aMailBoxId)
 {
     FUNC_LOG;
-    CFSMailBox* api =  CFSMailBox::NewLC(aMailBoxId);
-    CleanupStack:: Pop(api);
-    return api;
+  CFSMailBox* api =  CFSMailBox::NewLC(aMailBoxId);
+  CleanupStack:: Pop(api);
+  return api;
 }
 
 // -----------------------------------------------------------------------------
@@ -74,76 +79,84 @@ EXPORT_C CFSMailBox::~CFSMailBox()
 // -----------------------------------------------------------------------------
 // CFSMailBox::ConstructL
 // -----------------------------------------------------------------------------
-void CFSMailBox::ConstructL( TFSMailMsgId aMailBoxId )
+void CFSMailBox::ConstructL(TFSMailMsgId aMailBoxId)
 {
     FUNC_LOG;
+// <qmail>
     CFSMailBoxBase::ConstructL(aMailBoxId);
+// </qmail>
 }
 
 // -----------------------------------------------------------------------------
 // CFSMailBox::GoOnlineL
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailBox::GoOnlineL()
-{
-    FUNC_LOG;  
+    {
+    FUNC_LOG;
+    
     if(CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetId()))
         {
         plugin->GoOnlineL( GetId() );
         }
-}
+    }
 
 // -----------------------------------------------------------------------------
 // CFSMailBox::GoOfflineL
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailBox::GoOfflineL()
-{
-    FUNC_LOG;    
+    {
+    FUNC_LOG;
+    
     if(CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetId()))
         {
         plugin->GoOfflineL( GetId() );
         }
-}
+        
+    }
 
 // -----------------------------------------------------------------------------
 // CFSMailBox::CancelSyncL
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailBox::CancelSyncL()
-{
-    FUNC_LOG;  
+    {
+    FUNC_LOG;
+    
     if(CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetId()))
         {
         plugin->CancelSyncL( GetId() );
         }
-}
+    }
 
 // -----------------------------------------------------------------------------
 // CFSMailBox::GetLastSyncStatusL
 // -----------------------------------------------------------------------------
 EXPORT_C TFSProgress CFSMailBox::GetLastSyncStatusL()
-{
+    {
     FUNC_LOG;
     TFSProgress progress;
+    progress.iError = EFalse;
     if(CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetId()))
         {
-        progress = plugin->GetLastSyncStatusL( GetId() );   
+        progress = plugin->GetLastSyncStatusL( GetId() );       
         }
     return progress;
-}
+    }
 
 // -----------------------------------------------------------------------------
 // CFSMailBox::RefreshNowL
 // -----------------------------------------------------------------------------
 EXPORT_C TInt CFSMailBox::RefreshNowL(
     MFSMailRequestObserver& aOperationObserver )
-{
+    {
     FUNC_LOG;
 
     TFSPendingRequest request;
+    request.iRequestId = 0;
     if(CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetId()))
         {
         // init asynchronous request
         request = iRequestHandler->InitAsyncRequestL( GetId().PluginId(),
-                              aOperationObserver );
+                                                        aOperationObserver );
         MFSMailRequestObserver* observer = request.iObserver;
         TRAPD(err,plugin->RefreshNowL( GetId(), *observer, request.iRequestId));
         if(err != KErrNone)
@@ -153,37 +166,40 @@ EXPORT_C TInt CFSMailBox::RefreshNowL(
             }
         }
     return request.iRequestId;
-}
+
+   }
 
 // -----------------------------------------------------------------------------
 // CFSMailBox::RefreshNowL
 // -----------------------------------------------------------------------------
-EXPORT_C TInt CFSMailBox::RefreshNowL()
-{
+EXPORT_C TInt CFSMailBox::RefreshNowL( )
+    {
     FUNC_LOG;
 
     TFSPendingRequest request;
+    request.iRequestId = 0;
     MFSMailRequestObserver* observer = NULL;
     if(CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetId()))
         {
         // init asynchronous request
         request = iRequestHandler->InitAsyncRequestL( GetId().PluginId(), *observer );
-      
+        
         observer = request.iObserver;
         TRAPD(err,plugin->RefreshNowL( GetId(), *observer, request.iRequestId));
         if(err != KErrNone)
-        {
+            {
             iRequestHandler->CompleteRequest(request.iRequestId);
             User::Leave(err);
+            }
         }
-    }
     return request.iRequestId;
-}
+
+   }
 
 // -----------------------------------------------------------------------------
 // CFSMailBox::CreateMessageToSend
 // -----------------------------------------------------------------------------
-EXPORT_C CFSMailMessage* CFSMailBox::CreateMessageToSend()
+EXPORT_C CFSMailMessage* CFSMailBox::CreateMessageToSend( )
 {
     FUNC_LOG;
 
@@ -279,16 +295,16 @@ EXPORT_C int CFSMailBox::UpdateMessageFlagsL(
 // -----------------------------------------------------------------------------
 // CFSMailBox::CreateForwardMessage
 // -----------------------------------------------------------------------------
-EXPORT_C CFSMailMessage* CFSMailBox::CreateForwardMessage( TFSMailMsgId aOriginalMessageId,
-                              const TDesC& aHeaderDescriptor )
+EXPORT_C CFSMailMessage* CFSMailBox::CreateForwardMessage(  TFSMailMsgId aOriginalMessageId,
+                                                            const TDesC& aHeaderDescriptor )
 {
     FUNC_LOG;
     CFSMailMessage* message = NULL;
     if(CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetId()))
         {
         TRAPD(err,message = plugin->CreateForwardMessageL( GetId(), 
-                                aOriginalMessageId,
-                                aHeaderDescriptor ));
+                                                                aOriginalMessageId,
+                                                                aHeaderDescriptor ));
         if(err != KErrNone)
             {
             message = NULL;
@@ -339,22 +355,22 @@ EXPORT_C TInt CFSMailBox::CreateForwardMessageL( const TFSMailMsgId aOriginalMes
 // CFSMailBox::CreateReplyMessage
 // -----------------------------------------------------------------------------
 EXPORT_C CFSMailMessage* CFSMailBox::CreateReplyMessage( TFSMailMsgId aOriginalMessageId,
-                             TBool aReplyToAll,
-                             const TDesC& aHeaderDescriptor )
+                                                         TBool aReplyToAll,
+                                                         const TDesC& aHeaderDescriptor )
 {
     FUNC_LOG;
     CFSMailMessage* message = NULL;
     if(CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetId()))
         {
         TRAPD(err,message = plugin->CreateReplyMessageL( GetId(),
-                              aOriginalMessageId,
-                              aReplyToAll,
-                              aHeaderDescriptor ));
+                                                            aOriginalMessageId,
+                                                            aReplyToAll,
+                                                            aHeaderDescriptor ));
         if(err != KErrNone)
             {
             message = NULL;
             }
-    }
+        }
     return message;
 }
 
@@ -400,7 +416,7 @@ EXPORT_C TInt CFSMailBox::CreateReplyMessageL( const TFSMailMsgId aOriginalMessa
 // -----------------------------------------------------------------------------
 // CFSMailBox::GetStandardFolderId
 // -----------------------------------------------------------------------------
-EXPORT_C TFSMailMsgId CFSMailBox::GetStandardFolderId( TFSFolderType aFolderType )
+EXPORT_C TFSMailMsgId CFSMailBox::GetStandardFolderId(TFSFolderType aFolderType)
 {
     FUNC_LOG;
 
@@ -420,7 +436,7 @@ EXPORT_C TFSMailMsgId CFSMailBox::GetStandardFolderId( TFSFolderType aFolderType
 // CFSMailBox::SendMessageL
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailBox::SendMessageL( CFSMailMessage& aMessage )
-{
+    {
     FUNC_LOG;
     if(CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetId()))
         {
@@ -431,7 +447,7 @@ EXPORT_C void CFSMailBox::SendMessageL( CFSMailMessage& aMessage )
         // </qmail>
         plugin->SendMessageL( aMessage );
         }
-}
+	}
 
 // <qmail>
 // -----------------------------------------------------------------------------
@@ -483,41 +499,42 @@ EXPORT_C TInt CFSMailBox::SendMessageL(
 // CFSMailBox::ListFolders
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailBox::ListFolders(  TFSMailMsgId aFolder,
-                    RPointerArray<CFSMailFolder>& aFolderList )
+                                        RPointerArray<CFSMailFolder>& aFolderList)
 {
     FUNC_LOG;
 
     if(CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetId()))
-        {
+    {
         TRAPD(err, plugin->ListFoldersL(GetId(),aFolder,aFolderList));
         if(err != KErrNone)
             {
             aFolderList.ResetAndDestroy();
             }
-        }
+    }
 }
 
 // -----------------------------------------------------------------------------
 // CFSMailBox::ListFolders
 // -----------------------------------------------------------------------------
-EXPORT_C RPointerArray<CFSMailFolder>& CFSMailBox::ListFolders()
-{ 
+EXPORT_C RPointerArray<CFSMailFolder>& CFSMailBox::ListFolders( )
+{   
     iFolders.ResetAndDestroy();
     if(CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetId()))
-        {
+    {
         TRAPD(err,plugin->ListFoldersL(GetId(),iFolders));
         if(err != KErrNone)
             {
             iFolders.ResetAndDestroy();
             }
-        }
+    }
+
     return iFolders;
 }
 
 // -----------------------------------------------------------------------------
 // CFSMailBox::GetBrandingIdL
 // -----------------------------------------------------------------------------
-EXPORT_C TDesC& CFSMailBox::GetBrandingIdL()
+EXPORT_C TDesC& CFSMailBox::GetBrandingIdL( )
 {
     FUNC_LOG;
     return BrandingId();
@@ -527,8 +544,8 @@ EXPORT_C TDesC& CFSMailBox::GetBrandingIdL()
 // CFSMailBox::MoveMessagesL
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailBox::MoveMessagesL( const RArray<TFSMailMsgId>& aMessageIds, 
-                                   const TFSMailMsgId aSourceFolderId, 
-                                   const TFSMailMsgId aDestinationFolderId )
+                                         const TFSMailMsgId aSourceFolderId, 
+                                         const TFSMailMsgId aDestinationFolderId )
 {
     FUNC_LOG;
     if(CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetId()))
@@ -538,18 +555,44 @@ EXPORT_C void CFSMailBox::MoveMessagesL( const RArray<TFSMailMsgId>& aMessageIds
 }
 
 // -----------------------------------------------------------------------------
+// CFSMailBox::MoveMessagesL
+// -----------------------------------------------------------------------------
+EXPORT_C TInt CFSMailBox::MoveMessagesL( MFSMailRequestObserver& aOperationObserver,
+                                         const RArray<TFSMailMsgId>& aMessageIds, 
+                                         const TFSMailMsgId aSourceFolderId, 
+                                         const TFSMailMsgId aDestinationFolderId )
+{
+    FUNC_LOG;
+    TFSPendingRequest request;
+    if( CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid( GetId() ) )
+        {
+        // init asynchronous request
+        request = iRequestHandler->InitAsyncRequestL( GetId().PluginId(),
+                                                        aOperationObserver );
+        plugin->MoveMessagesL(
+            GetId(), 
+            aMessageIds, 
+            aSourceFolderId, 
+            aDestinationFolderId, 
+            aOperationObserver, 
+            request.iRequestId );
+        }
+    return request.iRequestId;
+}
+
+// -----------------------------------------------------------------------------
 // CFSMailBox::CopyMessagesL
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailBox::CopyMessagesL( const RArray<TFSMailMsgId>& aMessageIds, 
-                                       RArray<TFSMailMsgId>& aNewMessages, 
-                                       const TFSMailMsgId aSourceFolderId, 
-                                       const TFSMailMsgId aDestinationFolderId )
+                                         RArray<TFSMailMsgId>& aNewMessages, 
+                                         const TFSMailMsgId aSourceFolderId, 
+                                         const TFSMailMsgId aDestinationFolderId )
 {
     FUNC_LOG;
     if(CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetId()))
         {
         plugin->CopyMessagesL(GetId(), aMessageIds, aNewMessages,
-                aSourceFolderId, aDestinationFolderId );  
+                                aSourceFolderId, aDestinationFolderId );    
         }
 }
 
@@ -557,27 +600,29 @@ EXPORT_C void CFSMailBox::CopyMessagesL( const RArray<TFSMailMsgId>& aMessageIds
 // CFSMailBox::SearchL
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailBox::SearchL( const RPointerArray<TDesC>& /*aSearchStrings*/,
-                   const TFSMailSortCriteria&  /*aSortCriteria*/,
-                   MFSMailBoxSearchObserver&   /*aSearchObserver*/,
-                   const RArray<TFSMailMsgId>  /*aFolderIds */ )
-{
+                                   const TFSMailSortCriteria&  /*aSortCriteria*/,
+                                   MFSMailBoxSearchObserver&   /*aSearchObserver*/,
+                                   const RArray<TFSMailMsgId>  /*aFolderIds */ )
+    {
     FUNC_LOG;
-}
-  
+
+    }
+    
 // -----------------------------------------------------------------------------
 // CFSMailBox::SearchL
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailBox::SearchL( const RPointerArray<TDesC>& aSearchStrings,
-                   const TFSMailSortCriteria& aSortCriteria,
-                   MFSMailBoxSearchObserver& aSearchObserver )
-{
+                                   const TFSMailSortCriteria& aSortCriteria,
+                                   MFSMailBoxSearchObserver& aSearchObserver )
+    {
     FUNC_LOG;
     if(CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetId()))
         {
+
         // get mailbox folder list
         iFolders.ResetAndDestroy();
         plugin->ListFoldersL(GetId(),iFolders);
-    
+
         TFSMailMsgId draftsFolderId = GetStandardFolderId( EFSDraftsFolder );
         TFSMailMsgId outboxId = GetStandardFolderId( EFSOutbox );
         
@@ -585,49 +630,49 @@ EXPORT_C void CFSMailBox::SearchL( const RPointerArray<TDesC>& aSearchStrings,
         RArray<TFSMailMsgId> folderIds;
         folderIds.Reset();
         for(TInt i=0;i<iFolders.Count();i++)
-            {
+        {
             TFSMailMsgId id = iFolders[i]->GetFolderId();
             if( id != draftsFolderId && id != outboxId )
-                {
+            {
                 folderIds.Append(id);
-                }
             }
-    
+        }
+        
         // start search
         plugin->SearchL( GetId(), folderIds, aSearchStrings, aSortCriteria, aSearchObserver );
         folderIds.Reset();
         }
-}
+    }
 
 // -----------------------------------------------------------------------------
 // CFSMailBox::CancelSearch
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailBox::CancelSearch()
-{
+    {
     FUNC_LOG;
     if(CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetId()))
         {
         plugin->CancelSearch( GetId() );
         }
-}
+    }
 
 // -----------------------------------------------------------------------------
 // CFSMailBox::ClearSearchResultCache
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailBox::ClearSearchResultCache()
-{
+    {
     FUNC_LOG;
     if(CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetId()))
         {
         plugin->ClearSearchResultCache( GetId() );
         }
-}
+    }
 
 // -----------------------------------------------------------------------------
 // CFSMailBox::ListMrusL
 // -----------------------------------------------------------------------------
 EXPORT_C MDesCArray* CFSMailBox::ListMrusL() const
-{
+    {
     FUNC_LOG;
     MDesCArray* mruList(0);
     if ( CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetId() ) )
@@ -635,14 +680,14 @@ EXPORT_C MDesCArray* CFSMailBox::ListMrusL() const
         mruList = plugin->GetMrusL( GetId() );
         }
     return mruList;
-}
+    }
 
 
 // -----------------------------------------------------------------------------
 // CFSMailBox::CurrentSyncState
 // -----------------------------------------------------------------------------
 EXPORT_C TSSMailSyncState CFSMailBox::CurrentSyncState() const
-{
+    {
     FUNC_LOG;
     TSSMailSyncState syncState(Idle);
     if ( CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid( GetId() ) )
@@ -650,7 +695,7 @@ EXPORT_C TSSMailSyncState CFSMailBox::CurrentSyncState() const
         syncState = plugin->CurrentSyncState( GetId() );
         }
     return syncState;
-}
+    }
 
 // -----------------------------------------------------------------------------
 // CFSMailBox::HasCapability
@@ -666,7 +711,7 @@ EXPORT_C TBool CFSMailBox::HasCapability( const TFSMailBoxCapabilities aCapabili
             {
             capability = EFalse;
             }
-    }
+        }
     return capability;
 }
 
@@ -678,9 +723,9 @@ EXPORT_C TFSMailBoxStatus CFSMailBox::GetMailBoxStatus()
     FUNC_LOG;
     TFSMailBoxStatus status(EFSMailBoxOffline);
     if ( CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetId() ) )
-        {
+    {
         status = plugin->GetMailBoxStatus( GetId() );
-        }
+    }
     return status;
 }
 
@@ -688,19 +733,19 @@ EXPORT_C TFSMailBoxStatus CFSMailBox::GetMailBoxStatus()
 // CFSMailBox::SetCredentialsL
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailBox::SetCredentialsL( const TDesC& aUsername, const TDesC& aPassword )
-{
+    {
     FUNC_LOG;
     if ( CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetId() ) )
         {
         plugin->SetCredentialsL( GetId(), aUsername, aPassword );
         }
-}
+    }
 
 // -----------------------------------------------------------------------------
 // CFSMailBox::RemoveDownLoadedAttachmentsL
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailBox::RemoveDownLoadedAttachmentsL()
-{
+    {
     FUNC_LOG;
     
     CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid( GetId() );
@@ -715,13 +760,13 @@ EXPORT_C void CFSMailBox::RemoveDownLoadedAttachmentsL()
             delete folder;
             }
         }
-}
+    }
 
 // -----------------------------------------------------------------------------
 // CFSMailBox::GetConnectionId
 // -----------------------------------------------------------------------------
 EXPORT_C TInt CFSMailBox::GetConnectionId( TUint32& aConnectionId )
-{
+    {
     FUNC_LOG;
     TInt rcode = KErrNotSupported;
     if ( CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid( GetId() ) )
@@ -729,13 +774,13 @@ EXPORT_C TInt CFSMailBox::GetConnectionId( TUint32& aConnectionId )
         rcode = plugin->GetConnectionId( GetId(), aConnectionId );
         }
     return rcode;
-}
+    }
 
 // -----------------------------------------------------------------------------
 // CFSMailBox::IsConnectionAllowedWhenRoaming
 // -----------------------------------------------------------------------------
 EXPORT_C TInt CFSMailBox::IsConnectionAllowedWhenRoaming( TBool& aConnectionAllowed )
-{
+    {
     FUNC_LOG;
     TInt rcode = KErrNotSupported;
     if ( CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid( GetId() ) )
@@ -743,6 +788,20 @@ EXPORT_C TInt CFSMailBox::IsConnectionAllowedWhenRoaming( TBool& aConnectionAllo
         rcode = plugin->IsConnectionAllowedWhenRoaming( GetId(), aConnectionAllowed );
         }
     return rcode;
+    }
+
+// -----------------------------------------------------------------------------
+// CFSMailBox::CreateMessageFromFileL
+// -----------------------------------------------------------------------------
+EXPORT_C CFSMailMessage* CFSMailBox::CreateMessageFromFileL( const RFile& aFile )
+{
+    FUNC_LOG;
+    CFSMailMessage* message = NULL;
+    if(CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetId()))
+    {
+		message = plugin->CreateMessageFromFileL( GetId(), aFile );
+    }
+    return message;
 }
 
 // -----------------------------------------------------------------------------
@@ -752,7 +811,7 @@ void CFSMailBox::UpdateMrusL(
     const RPointerArray<CFSMailAddress>& aRecipients,
     const RPointerArray<CFSMailAddress>& aCCRecipients,
     const RPointerArray<CFSMailAddress>& aBCCRecipients ) const
-{
+    {
     FUNC_LOG;
     
     // First lets make a copy of the current mru list
@@ -801,13 +860,13 @@ void CFSMailBox::UpdateMrusL(
     plugin->SetMrusL( GetId(), newMruList );
     
     CleanupStack::PopAndDestroy( newMruList );
-}
+    }
 
 // -----------------------------------------------------------------------------
 // CFSMailBox::CopyArrayL
 // -----------------------------------------------------------------------------    
 CDesCArraySeg* CFSMailBox::CopyArrayL( MDesCArray& aArrayToBeCopied ) const
-{
+    {
     FUNC_LOG;
     CDesCArraySeg* newArray = new (ELeave) CDesCArraySeg( 10 );
     CleanupStack::PushL( newArray );
@@ -822,7 +881,7 @@ CDesCArraySeg* CFSMailBox::CopyArrayL( MDesCArray& aArrayToBeCopied ) const
     
     CleanupStack::Pop( newArray );
     return newArray;
-}
+    }
 
 // -----------------------------------------------------------------------------
 // CFSMailBox::UpdateMruListL
@@ -830,7 +889,7 @@ CDesCArraySeg* CFSMailBox::CopyArrayL( MDesCArray& aArrayToBeCopied ) const
 void CFSMailBox::UpdateMruListL(
     CDesCArraySeg& aMruList,
     const RPointerArray<CFSMailAddress>& aNewRecentlyUsedOnes ) const
-{
+    {
     FUNC_LOG;
     TUint newCount( aNewRecentlyUsedOnes.Count() );
     TUint newIndexer( 0 );
@@ -863,7 +922,7 @@ void CFSMailBox::UpdateMruListL(
         
         ++newIndexer;
         }
-}
+    }
 
 // -----------------------------------------------------------------------------
 // CFSMailBox::FindAddressFromMruList
@@ -871,7 +930,7 @@ void CFSMailBox::UpdateMruListL(
 TInt CFSMailBox::FindAddressFromMruList( CDesCArraySeg& aMruList,
                                          TDesC& searchedAddress,
                                          TInt& aPos ) const
-{
+    {
     FUNC_LOG;
     // CDesCArray::Find() is not used here because there is
     // possibility that we have to go through the whole array
@@ -903,12 +962,15 @@ TInt CFSMailBox::FindAddressFromMruList( CDesCArraySeg& aMruList,
     return 1;
     }
 
+
+
+
 // -----------------------------------------------------------------------------
 // CFSMailBox::AddAndRemoveExcessMruL
 // -----------------------------------------------------------------------------
 void CFSMailBox::AddAndRemoveExcessMruL( CDesCArraySeg& aMruList,
                                          CFSMailAddress& aToBeAdded ) const
-{
+    {
     FUNC_LOG;
     if ( aMruList.Count() == KMaxMruEntries )
         {
@@ -917,7 +979,7 @@ void CFSMailBox::AddAndRemoveExcessMruL( CDesCArraySeg& aMruList,
         }
     // Latest address is always found from the end.
     AppendMruItemL( aMruList, aToBeAdded );
-}
+    }
 
 // -----------------------------------------------------------------------------
 // CFSMailBox::SetAsMostRecentMruL
@@ -925,21 +987,21 @@ void CFSMailBox::AddAndRemoveExcessMruL( CDesCArraySeg& aMruList,
 void CFSMailBox::SetAsMostRecentMruL( CDesCArraySeg& aMruList,
                                       TInt aPosition,
                                       CFSMailAddress& aMostRecent ) const
-{
+    {
     FUNC_LOG;
     // Position of the address is given so the possible display name is
     // in the previous slot. Delete both.
     aMruList.Delete( aPosition - 1, 2 );
     // Latest address is always found from the end.
     AppendMruItemL( aMruList, aMostRecent );
-}
+    }
 
 // -----------------------------------------------------------------------------
 // CFSMailBox::AppendMruItemL
 // -----------------------------------------------------------------------------
 void CFSMailBox::AppendMruItemL( CDesCArraySeg& aMruList,
                                  CFSMailAddress& aToBeAppended ) const
-{
+    {
     FUNC_LOG;
     // In the array, display name is always the first and then comes
     // the actual address.
@@ -950,15 +1012,62 @@ void CFSMailBox::AppendMruItemL( CDesCArraySeg& aMruList,
     TDesC* emailAddress = &aToBeAppended.GetEmailAddress();
 
     if( displayName->Length() > 0 && displayName->Compare(*emailAddress) == 0 )
-        {
+    {
         aMruList.AppendL( KNullDesC );
+    }
+    else
+    {
+        aMruList.AppendL( *displayName );                
+    }
+    
+    aMruList.AppendL( *emailAddress );    
+    }
+
+// -----------------------------------------------------------------------------
+// CFSMailBox::ReleaseExtension
+// -----------------------------------------------------------------------------
+EXPORT_C void CFSMailBox::ReleaseExtension( CEmailExtension* aExtension )
+    {
+    FUNC_LOG;
+    // no specialized behaviour, call base class
+    CExtendableEmail::ReleaseExtension( aExtension );
+    }
+    
+// -----------------------------------------------------------------------------
+// CFSMailBox::ExtensionL
+// -----------------------------------------------------------------------------
+EXPORT_C CEmailExtension* CFSMailBox::ExtensionL( const TUid& aInterfaceUid )
+    {
+    FUNC_LOG;
+    CEmailExtension* extension = NULL;
+    if ( aInterfaceUid == KMailboxExtMrCalInfo )
+        {
+        extension = CExtendableEmail::ExtensionL( aInterfaceUid );
+        if ( extension == NULL )
+            {
+            extension = new ( ELeave ) CMRCalendarInfoImpl();
+            CleanupStack::PushL( extension );
+            iExtensions.AddL( extension );
+            CleanupStack::Pop(); // calInfo
+            }
+        }    
+    else if ( aInterfaceUid == KEmailMailboxStateExtensionUid )
+        {
+        if ( !extension )
+            {
+            // check that plugin supports requested extension.
+            if ( CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid( GetId() ) )
+                {
+                // request extension from plugin, leaves if not supported
+                extension = plugin->ExtensionL( aInterfaceUid );
+                }
+    
+            }
         }
     else
         {
-        aMruList.AppendL( *displayName );                
+        User::Leave( KErrNotSupported );
         }
-    
-    aMruList.AppendL( *emailAddress );    
-    // </cmail>
-}
+    return extension;
+    }
 

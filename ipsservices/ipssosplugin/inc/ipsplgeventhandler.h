@@ -90,13 +90,13 @@ private:
 NONSHARABLE_CLASS ( CIpsPlgEventHandler ) : public CBase,
                             public MMsvSessionObserver,
                             public MIpsPlgSettingsObserverCallback,
-                            public MIpsPlgPropertyObserver,
-                            public MFSMailExceptionEventCallback
+                            public MIpsPlgPropertyObserver
+// <qmail> not needed       public MFSMailExceptionEventCallback
     {
-
-public://from MFSMailExceptionEventCallback
-
-    void ExceptionEventCallbackL( TFSMailMsgId aMailboxId, TInt aEventType, TBool aResponse );
+//public://from MFSMailExceptionEventCallback
+//
+//    void ExceptionEventCallbackL( TFSMailMsgId aMailboxId, TInt aEventType, TBool aResponse );
+// </qmail>
 
 public: //from MIpsPlgPropertyObserver
     void HandlePropertyEventL(
@@ -196,28 +196,11 @@ public:
      */
     void NotifyPropertyEventL( TIpsPlgPropertyEvent aEvent );
 
-    /**
-     * used to inform ui offline state if connection attempt
-     * was not successfull
-     * @param aAccount FS mailbox id
-     */
-    void SignalMailboxOfflineStateL( const TFSMailMsgId& aAccount );
-
-    /**
-     * Send user password query request to fs email ui
-     * @param aMbox entry id of mailbox service
-     * @param aCallback callback interface to connection operation, defaut NULL
-     */
-    void QueryUsrPassL( TMsvId aMbox, MIpsPlgConnectOpCallback* aCallback=NULL );
-
-    /**
-     * Send user password (=credentials) set signal to all plugin
-     * instances via p&s (property) mechanism
-     * @param aMailboxId entry id of mailbox
-     * @param aCancelled indicates is user cancelled password dialog
-     */
-    void SignalCredientialsSetL( TInt aMailboxId, TBool aCancelled );
-
+    // <qmail> removing unused functions
+    //    void SignalMailboxOfflineStateL( const TFSMailMsgId& aAccount );
+    //    void QueryUsrPassL( TMsvId aMbox, MIpsPlgConnectOpCallback* aCallback=NULL );
+    //    void SignalCredientialsSetL( TInt aMailboxId, TBool aCancelled );
+    // </qmail>
 private:
 
     /**
@@ -360,11 +343,8 @@ private:
         TFSMailMsgId& aFSParent,
         RArray<TFSMailMsgId>& aFSDeletedArray );
 
-
-    /**
-    * Saves last signalled sync status to settings
-    */
-    void SaveSyncStatusL( TMsvId aMailboxId, TInt aState );
+    // <qmail> does nothing; removing
+    //    void SaveSyncStatusL( TMsvId aMailboxId, TInt aState );
 
     /**
     * Appends folder id to array if not already in there
@@ -412,6 +392,15 @@ private: // datak
             const CMsvEntrySelection* aSelection,
             TUint aMtmUid );
 
+    // <qmail> new function
+    /**
+     * Convert sync operation completion code to email framework's syncState
+     * @param aStatus
+     * @return syncstate
+     */
+    TSSMailSyncState ConvertCompletionCode( TInt aCompletionCode );
+    // </qmail>
+    
     CRepository*                            iCenRep;
 
     // not owned
@@ -441,8 +430,7 @@ private: // datak
     // base plugin id
     TUint                                   iPluginId;
 
-    //not owned
-    MIpsPlgConnectOpCallback*               iConnOpCallback;
+    // <qmail> MIpsPlgConnectOpCallback not used any more
 
     RArray<TMsvId>                          iImapFolderIds;
 

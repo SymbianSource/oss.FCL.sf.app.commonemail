@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2008 Nokia Corporation and/or its subsidiary(-ies).
+* Copyright (c) 2007-2008 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -15,8 +15,10 @@
 *
 */
 
-
+// <qmail>
 #include <nmcommonheaders.h>
+// </qmail>
+
 #include "emailtrace.h"
 #include "CFSMailBoxBase.h"
 // <qmail>
@@ -25,36 +27,42 @@
 // </qmail>
 #include "nmmailbox.h"
 
+//<qmail> Cmail fix task applied using QString methods (AknTextUtils n/a in 10.1)
+const int KCharCount = 5;
+static const QChar KCharsToReplace[KCharCount] = { '\r','\n','\t',0x2028,0x2029 };
+//</qmail>
+
 // ================= MEMBER FUNCTIONS ==========================================
 // -----------------------------------------------------------------------------
 // CFSMailBoxBase::NewLC
 // -----------------------------------------------------------------------------
-EXPORT_C CFSMailBoxBase* CFSMailBoxBase::NewLC( TFSMailMsgId aMailBoxId )
+EXPORT_C CFSMailBoxBase* CFSMailBoxBase::NewLC(TFSMailMsgId aMailBoxId)
 {
     FUNC_LOG;
-    CFSMailBoxBase* api = new (ELeave) CFSMailBoxBase();
-    CleanupStack:: PushL(api);
-    api->ConstructL(aMailBoxId);  
-    return api; 
-}
+  CFSMailBoxBase* api = new (ELeave) CFSMailBoxBase();
+  CleanupStack:: PushL(api);
+  api->ConstructL(aMailBoxId);
+  return api;
+} 
 
 // -----------------------------------------------------------------------------
 // CFSMailBoxBase::NewL
 // -----------------------------------------------------------------------------
-EXPORT_C CFSMailBoxBase* CFSMailBoxBase::NewL( TFSMailMsgId aMailBoxId )
+EXPORT_C CFSMailBoxBase* CFSMailBoxBase::NewL(TFSMailMsgId aMailBoxId)
 {
     FUNC_LOG;
-    CFSMailBoxBase* api =  CFSMailBoxBase::NewLC(aMailBoxId);
-    CleanupStack:: Pop(api);
-    return api;
+  CFSMailBoxBase* api =  CFSMailBoxBase::NewLC(aMailBoxId);
+  CleanupStack:: Pop(api);
+  return api;
 }
 
 // -----------------------------------------------------------------------------
 // CFSMailBoxBase::CFSMailBoxBase
 // -----------------------------------------------------------------------------
-CFSMailBoxBase::CFSMailBoxBase()
+CFSMailBoxBase::CFSMailBoxBase() : CExtendableEmail()
 {
     FUNC_LOG;
+	
 }
 
 // -----------------------------------------------------------------------------
@@ -65,21 +73,21 @@ EXPORT_C CFSMailBoxBase::~CFSMailBoxBase()
     FUNC_LOG;
     if( iMailBoxName )
         {
-        delete iMailBoxName;
+  		delete iMailBoxName;
         }
-    iMailBoxName = NULL;
+	iMailBoxName = NULL;
 
     if( iBrId )
         {
-        delete iBrId;
+  		delete iBrId;
         }
-    iBrId = NULL;
+	iBrId = NULL;
 
     if( iOwnMailAddress )
         {
-        delete iOwnMailAddress;
+  		delete iOwnMailAddress;
         }
-    iOwnMailAddress = NULL;
+	iOwnMailAddress = NULL;	
 
     if( iMRInfoProcessor )
         {
@@ -91,10 +99,10 @@ EXPORT_C CFSMailBoxBase::~CFSMailBoxBase()
 // -----------------------------------------------------------------------------
 // CFSMailBoxBase::ConstructL
 // -----------------------------------------------------------------------------
-void CFSMailBoxBase::ConstructL( const TFSMailMsgId aMailBoxId )
+void CFSMailBoxBase::ConstructL(const TFSMailMsgId aMailBoxId)
 {
     FUNC_LOG;
-	// <qmail> Removed iMailboxId </qmail>
+// <qmail> Removed iMailboxId </qmail>
     // prepare null empty descriptor
     iMailBoxName = HBufC::NewL(1);
     iMailBoxName->Des().Copy(KNullDesC());
@@ -102,7 +110,7 @@ void CFSMailBoxBase::ConstructL( const TFSMailMsgId aMailBoxId )
     iBrId = HBufC::NewL(1);
     iBrId->Des().Copy(KNullDesC());
 
-    // <qmail>
+// <qmail>
     // Creating QT side object of the mailbox class.
     iNmPrivateMailbox = new NmMailboxPrivate();
     // Initialize QT data: pluginId and id. These need conversions between QT
@@ -116,17 +124,18 @@ void CFSMailBoxBase::ConstructL( const TFSMailMsgId aMailBoxId )
 
     // typedef unsigned int TUint -> typedef unsigned int quint32
     iNmPrivateMailbox->mId.setPluginId32((unsigned int)aMailBoxId.PluginId().iUid);
-    // </qmail>
+// </qmail>
 }
 
-// <qmail>
 // -----------------------------------------------------------------------------
 // CFSMailBoxBase::GetId
 // -----------------------------------------------------------------------------
 EXPORT_C TFSMailMsgId CFSMailBoxBase::GetId() const
 {
     FUNC_LOG;
+// <qmail>
     return TFSMailMsgId(iNmPrivateMailbox->mId);
+// </qmail>
 }
 
 // -----------------------------------------------------------------------------
@@ -135,10 +144,12 @@ EXPORT_C TFSMailMsgId CFSMailBoxBase::GetId() const
 EXPORT_C TDesC& CFSMailBoxBase::GetName()const
 {
     FUNC_LOG;
+// <qmail>
     iTextPtr.Set( 
         reinterpret_cast<const TUint16*> (iNmPrivateMailbox->mName.utf16()),
         iNmPrivateMailbox->mName.length());
     return iTextPtr;
+// </qmail>
 }
 
 // -----------------------------------------------------------------------------
@@ -147,10 +158,16 @@ EXPORT_C TDesC& CFSMailBoxBase::GetName()const
 EXPORT_C void CFSMailBoxBase::SetName( const TDesC& aMailBoxName )
 {
     FUNC_LOG;
-    QString qtName = QString::fromUtf16(aMailBoxName.Ptr(), aMailBoxName.Length());
-    iNmPrivateMailbox->mName = qtName;
-}
 // <qmail>
+    QString qtName = QString::fromUtf16(aMailBoxName.Ptr(), aMailBoxName.Length());
+    // Fix from Cmail 9.2 rewritten with QString methods
+    for (int i = 0; i < KCharCount; i++) {
+        QChar chr = KCharsToReplace[i];
+        qtName = qtName.replace(chr, ' ');
+    }
+    iNmPrivateMailbox->mName = qtName;
+// </qmail>
+}
 
 // -----------------------------------------------------------------------------
 // CFSMailBoxBase::GetStatus
@@ -158,7 +175,7 @@ EXPORT_C void CFSMailBoxBase::SetName( const TDesC& aMailBoxName )
 EXPORT_C TFSMailBoxStatus CFSMailBoxBase::GetStatus( ) const
 {
     FUNC_LOG;
-    return EFSMailBoxOffline;
+	return EFSMailBoxOffline;
 }
 
 // -----------------------------------------------------------------------------
@@ -167,84 +184,85 @@ EXPORT_C TFSMailBoxStatus CFSMailBoxBase::GetStatus( ) const
 EXPORT_C void CFSMailBoxBase::SetStatus( const TFSMailBoxStatus /*aStatus*/ )
 {
     FUNC_LOG;
+	
 }
 
 // -----------------------------------------------------------------------------
 // CFSMailBoxBase::GetRCLInfo
 // -----------------------------------------------------------------------------
-EXPORT_C void CFSMailBoxBase::GetRCLInfo( TUid& aProtocolUid, TUint& aAccountUid )
+EXPORT_C void CFSMailBoxBase::GetRCLInfo(TUid& aProtocolUid, TUint& aAccountUid)
 {
     FUNC_LOG;
-    aProtocolUid = iProtocolUid;
-    aAccountUid = iAccountUid;
+	aProtocolUid = iProtocolUid;
+	aAccountUid = iAccountUid;
 }
 
 // -----------------------------------------------------------------------------
 // CFSMailBoxBase::SetRCLInfo
 // -----------------------------------------------------------------------------
-EXPORT_C void CFSMailBoxBase::SetRCLInfo( const TUid aProtocolUid, const TUint aAccountUid )
+EXPORT_C void CFSMailBoxBase::SetRCLInfo(const TUid aProtocolUid, const TUint aAccountUid)
 {
     FUNC_LOG;
-    iProtocolUid = aProtocolUid;
-    iAccountUid = aAccountUid;
+	iProtocolUid = aProtocolUid;
+	iAccountUid = aAccountUid;
 }
 
 // -----------------------------------------------------------------------------
 // CFSMailBoxBase::GetSettingsUid
 // -----------------------------------------------------------------------------
 EXPORT_C const TUid CFSMailBoxBase::GetSettingsUid()
-  {
+	{
     FUNC_LOG;
-    return iSettingsUid;
-}
+	return iSettingsUid;
+	}
 
 // -----------------------------------------------------------------------------
 // CFSMailBoxBase::SetSettingsUid
 // -----------------------------------------------------------------------------
-EXPORT_C void CFSMailBoxBase::SetSettingsUid( const TUid aUid )
-{
+EXPORT_C void CFSMailBoxBase::SetSettingsUid(const TUid aUid)
+	{
     FUNC_LOG;
-    iSettingsUid = aUid;
-}
+		iSettingsUid = aUid;
+	}
 
 // -----------------------------------------------------------------------------
 // CFSMailBoxBase::MRInfoProcessorL
 // -----------------------------------------------------------------------------
 EXPORT_C MMRInfoProcessor& CFSMailBoxBase::MRInfoProcessorL()
-{
+	{
     FUNC_LOG;
-    return *iMRInfoProcessor;
-}
+	return *iMRInfoProcessor;
+	}
 
 // -----------------------------------------------------------------------------
 // CFSMailBoxBase::IsMRInfoProcessorSet
 // -----------------------------------------------------------------------------
 EXPORT_C TBool CFSMailBoxBase::IsMRInfoProcessorSet()
-{
+	{
     FUNC_LOG;
-    if(iMRInfoProcessor)
-        {
-        return ETrue;
-        }
-    else
-        {
-        return EFalse;
-        }
-}
+	if(iMRInfoProcessor)
+		{
+		return ETrue;
+		}
+	else
+		{
+		return EFalse;
+		}
+	}
 
 // -----------------------------------------------------------------------------
 // CFSMailBoxBase::SetMRInfoProcessorL
 // -----------------------------------------------------------------------------
-EXPORT_C void CFSMailBoxBase::SetMRInfoProcessorL( MMRInfoProcessor* aMRInfoProcessor )
-{
+EXPORT_C void CFSMailBoxBase::SetMRInfoProcessorL(MMRInfoProcessor* aMRInfoProcessor)
+	{
     FUNC_LOG;
 
-    if(iMRInfoProcessor)
-        {
-        delete iMRInfoProcessor;
-        }
-    iMRInfoProcessor = aMRInfoProcessor;
-}
+	if(iMRInfoProcessor)
+	{
+		delete iMRInfoProcessor;
+	}
+	iMRInfoProcessor = aMRInfoProcessor;
+	}
 
 // -----------------------------------------------------------------------------
 // CFSMailBoxBase::OwnMailAddress
@@ -252,36 +270,38 @@ EXPORT_C void CFSMailBoxBase::SetMRInfoProcessorL( MMRInfoProcessor* aMRInfoProc
 EXPORT_C CFSMailAddress& CFSMailBoxBase::OwnMailAddress( )
 {
     FUNC_LOG;
-    return *iOwnMailAddress;
+	return *iOwnMailAddress;
 }
 
 // -----------------------------------------------------------------------------
 // CFSMailBoxBase::SetOwnMailAddress
 // -----------------------------------------------------------------------------
-EXPORT_C void CFSMailBoxBase::SetOwnMailAddressL( CFSMailAddress* aOwnMailAddress )
+EXPORT_C void CFSMailBoxBase::SetOwnMailAddressL( CFSMailAddress* aOwnMailAddress)
 {
     FUNC_LOG;
-    if(iOwnMailAddress)
-        {
-        delete iOwnMailAddress;
-        }
-    iOwnMailAddress = aOwnMailAddress;
+	if(iOwnMailAddress)
+		{
+		delete iOwnMailAddress;
+		}
+	iOwnMailAddress = aOwnMailAddress;
 
-    // set also branding id based on domain name
+	// set also branding id based on domain name
     TPtrC ptr = OwnMailAddress().GetEmailAddress();
     TInt index = ptr.Locate('@') + 1;
     if(index > 0 && ptr.Length() > 0)
-        {
+    {
         if(iBrId)
-            {
+        {
             delete iBrId;
             iBrId = NULL;
-            }
-        ptr.Set( ptr.Right( ptr.Length() - index ) );
+        }
+        ptr.Set( ptr.Right( ptr.Length() - index ) );        
         iBrId = HBufC::New(ptr.Length());
         iBrId->Des().Copy(ptr);
-        }
+    }
+// <qmail>
     iNmPrivateMailbox->mAddress = aOwnMailAddress->GetNmAddress();
+// </qmail>
 }
 
 // -----------------------------------------------------------------------------
@@ -295,10 +315,10 @@ TDesC& CFSMailBoxBase::BrandingId( )
 
 // <qmail> Removed SetMailBoxId </qmail>
 
+// <qmail>
 // -----------------------------------------------------------------------------
 // CFSMailBoxBase::GetNmMailbox
 // -----------------------------------------------------------------------------
-// <qmail>
 EXPORT_C NmMailbox* CFSMailBoxBase::GetNmMailbox()
 {
     NmMailbox* nmmailbox = new NmMailbox(iNmPrivateMailbox);

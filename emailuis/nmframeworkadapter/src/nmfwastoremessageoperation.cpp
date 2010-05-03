@@ -33,7 +33,7 @@ NmFwaStoreMessageOperation::~NmFwaStoreMessageOperation()
     delete mMessage;
 }
 
-void NmFwaStoreMessageOperation::runAsyncOperation()
+void NmFwaStoreMessageOperation::doRunAsyncOperation()
 {
     TInt err = KErrNone;
 

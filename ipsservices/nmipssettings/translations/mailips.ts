@@ -2,6 +2,16 @@
 <!DOCTYPE TS>
 <TS version="3.0" sourcelanguage="en_GB">
 <context>
+<message numerus="no" id="txt_mailips_setlabel_security_val_on_starttls">
+    <comment>Value for txt_mailips_setlabel_secure_connection. Secure connection on with StartTLS (name of the secure connection protocol )</comment>        
+    <source>On (StartTLS)</source>
+    <translation variants="no" type="unfinished"></translation>
+    <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
+    <extra-loc-viewid>mail_06_d</extra-loc-viewid>
+    <extra-loc-positionid>setlabel_11_12_val</extra-loc-positionid>
+    <extra-loc-feature>mail</extra-loc-feature>
+    <extra-loc-blank>False</extra-loc-blank>
+</message>
 <message numerus="no" id="txt_mailips_setlabel_outgoing_mail_authentication">
     <comment>Value for txt_mailips_setlabel_outgoing_mail_authentication. User defines the authentication</comment>        
     <source>User authentication</source>
@@ -9,17 +19,7 @@
     <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06_d</extra-loc-viewid>
     <extra-loc-positionid>setlabel_10_val</extra-loc-positionid>
-    <extra-loc-feature>ma</extra-loc-feature>
-    <extra-loc-blank>False</extra-loc-blank>
-</message>
-<message numerus="no" id="txt_mailips_setlabel_refresh_during_daytime_val_of">
-    <comment>Value for txt_mailips_setlabel_secure_connection. Secure connection off</comment>        
-    <source>Off</source>
-    <translation variants="no" type="unfinished"></translation>
-    <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
-    <extra-loc-viewid>mail_06_d</extra-loc-viewid>
-    <extra-loc-positionid>setlabel_6_val</extra-loc-positionid>
-    <extra-loc-feature>ma</extra-loc-feature>
+    <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_setlabel_reply_to_address">
@@ -29,7 +29,37 @@
     <extra-loc-layout_id>qtl_dataform_pri</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06_c</extra-loc-viewid>
     <extra-loc-positionid>setlabel_4</extra-loc-positionid>
-    <extra-loc-feature>ma</extra-loc-feature>
+    <extra-loc-feature>mail</extra-loc-feature>
+    <extra-loc-blank>False</extra-loc-blank>
+</message>
+<message numerus="no" id="txt_long_caption_mailips">
+    <comment></comment>        
+    <source>Mail</source>
+    <translation variants="no" type="unfinished"></translation>
+    <extra-loc-layout_id>qtl_pri_large_graphic</extra-loc-layout_id>    
+    <extra-loc-viewid>mail</extra-loc-viewid>
+    <extra-loc-positionid>list</extra-loc-positionid>
+    <extra-loc-feature>mail</extra-loc-feature>
+    <extra-loc-blank>False</extra-loc-blank>
+</message>
+<message numerus="no" id="txt_mailips_setlabel_incoming_port">
+    <comment>Setting label under Server info txt_mailips_subhead_server_info for defining the incoming port for mail connection.</comment>        
+    <source>Incoming port</source>
+    <translation variants="no" type="unfinished"></translation>
+    <extra-loc-layout_id>qtl_dataform_pri</extra-loc-layout_id>    
+    <extra-loc-viewid>mail_06_d</extra-loc-viewid>
+    <extra-loc-positionid>setlabel_13</extra-loc-positionid>
+    <extra-loc-feature>mail</extra-loc-feature>
+    <extra-loc-blank>False</extra-loc-blank>
+</message>
+<message numerus="no" id="txt_mailips_setlabel_incoming_port_default">
+    <comment>Value for txt_mailips_setlabel_incoming_port</comment>        
+    <source>Default</source>
+    <translation variants="no" type="unfinished"></translation>
+    <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
+    <extra-loc-viewid>mail_06_d</extra-loc-viewid>
+    <extra-loc-positionid>setlabel_13_val</extra-loc-positionid>
+    <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_setlabel_incoming_mail_server">
@@ -39,7 +69,7 @@
     <extra-loc-layout_id>qtl_dataform_pri</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06_d</extra-loc-viewid>
     <extra-loc-positionid>setlabel_2</extra-loc-positionid>
-    <extra-loc-feature>ma</extra-loc-feature>
+    <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_setlabel_my_name">
@@ -49,7 +79,7 @@
     <extra-loc-layout_id>qtl_dataform_pri</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06_a</extra-loc-viewid>
     <extra-loc-positionid>setlabel_1</extra-loc-positionid>
-    <extra-loc-feature>ma</extra-loc-feature>
+    <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_subhead_preferences">
@@ -59,17 +89,17 @@
     <extra-loc-layout_id>qtl_dataform_group_pri</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06_a</extra-loc-viewid>
     <extra-loc-positionid>subhead</extra-loc-positionid>
-    <extra-loc-feature>ma</extra-loc-feature>
+    <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
-<message numerus="no" id="txt_mailips_setlabel_secure_connection">
-    <comment>Setting label under Server info txt_mailips_subhead_server_info for defining the secure connection usage. Setting item in server info</comment>        
-    <source>Secure connection</source>
+<message numerus="no" id="txt_mailips_setlabel_inbox_path_user_defined">
+    <comment>Value for txt_mailips_setlabel_inbox_path. Value for inbox path and port</comment>        
+    <source>User defined</source>
     <translation variants="no" type="unfinished"></translation>
-    <extra-loc-layout_id>qtl_dataform_pri</extra-loc-layout_id>    
+    <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06_d</extra-loc-viewid>
-    <extra-loc-positionid>setlabel_6</extra-loc-positionid>
-    <extra-loc-feature>ma</extra-loc-feature>
+    <extra-loc-positionid>setlabel_9_val</extra-loc-positionid>
+    <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_setlabel_day_end_time">
@@ -79,7 +109,7 @@
     <extra-loc-layout_id>qtl_dataform_pri</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06_b</extra-loc-viewid>
     <extra-loc-positionid>setlabel_5</extra-loc-positionid>
-    <extra-loc-feature>ma</extra-loc-feature>
+    <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_setlabel_download_images_val_every_day">
@@ -89,17 +119,7 @@
     <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06_b</extra-loc-viewid>
     <extra-loc-positionid>setlabel_3_val</extra-loc-positionid>
-    <extra-loc-feature>ma</extra-loc-feature>
-    <extra-loc-blank>False</extra-loc-blank>
-</message>
-<message numerus="no" id="txt_mailips_setlabel_port">
-    <comment>Setting label under Server info txt_mailips_subhead_server_info for defining the port for mail connection. Setting item in server info</comment>        
-    <source>Port</source>
-    <translation variants="no" type="unfinished"></translation>
-    <extra-loc-layout_id>qtl_dataform_pri</extra-loc-layout_id>    
-    <extra-loc-viewid>mail_06_d</extra-loc-viewid>
-    <extra-loc-positionid>setlabel_7</extra-loc-positionid>
-    <extra-loc-feature>ma</extra-loc-feature>
+    <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_setlabel_download_images_val_tue">
@@ -109,7 +129,17 @@
     <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06_b</extra-loc-viewid>
     <extra-loc-positionid>setlabel_3_val</extra-loc-positionid>
-    <extra-loc-feature>ma</extra-loc-feature>
+    <extra-loc-feature>mail</extra-loc-feature>
+    <extra-loc-blank>False</extra-loc-blank>
+</message>
+<message numerus="no" id="txt_mailips_setlabel_outgoing_port">
+    <comment>Setting label under Server info txt_mailips_subhead_server_info for defining the outgoing port for mail connection.</comment>        
+    <source>Outgoing port</source>
+    <translation variants="no" type="unfinished"></translation>
+    <extra-loc-layout_id>qtl_dataform_pri</extra-loc-layout_id>    
+    <extra-loc-viewid>mail_06_d</extra-loc-viewid>
+    <extra-loc-positionid>setlabel_14</extra-loc-positionid>
+    <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_setlabel_val_every_1_hour">
@@ -119,7 +149,7 @@
     <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06_b</extra-loc-viewid>
     <extra-loc-positionid>setlabel_6_val</extra-loc-positionid>
-    <extra-loc-feature>ma</extra-loc-feature>
+    <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_setlabel_outgoing_mail_server">
@@ -129,7 +159,7 @@
     <extra-loc-layout_id>qtl_dataform_pri</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06_d</extra-loc-viewid>
     <extra-loc-positionid>setlabel_3</extra-loc-positionid>
-    <extra-loc-feature>ma</extra-loc-feature>
+    <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_setlabel_selected_mode_val_save_energy">
@@ -139,7 +169,7 @@
     <extra-loc-layout_id>qtl_dataform_combobox_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06_b</extra-loc-viewid>
     <extra-loc-positionid>setlabel_20_val</extra-loc-positionid>
-    <extra-loc-feature>ma</extra-loc-feature>
+    <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_list_the_mailbox_is_refreshed_as_defin">
@@ -149,7 +179,7 @@
     <extra-loc-layout_id>qtl_dataform_description_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06_b</extra-loc-viewid>
     <extra-loc-positionid>list</extra-loc-positionid>
-    <extra-loc-feature>ma</extra-loc-feature>
+    <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_setlabel_download_images_val_sat">
@@ -159,7 +189,7 @@
     <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06_b</extra-loc-viewid>
     <extra-loc-positionid>setlabel_3_val</extra-loc-positionid>
-    <extra-loc-feature>ma</extra-loc-feature>
+    <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_setlabel_download_images_val_wed">
@@ -169,7 +199,7 @@
     <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06_b</extra-loc-viewid>
     <extra-loc-positionid>setlabel_3_val</extra-loc-positionid>
-    <extra-loc-feature>ma</extra-loc-feature>
+    <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_setlabel_download_images_val_sun">
@@ -179,7 +209,17 @@
     <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06_b</extra-loc-viewid>
     <extra-loc-positionid>setlabel_3_val</extra-loc-positionid>
-    <extra-loc-feature>ma</extra-loc-feature>
+    <extra-loc-feature>mail</extra-loc-feature>
+    <extra-loc-blank>False</extra-loc-blank>
+</message>
+<message numerus="no" id="txt_mailips_setlabel_security_val_off">
+    <comment>Value for txt_mailips_setlabel_secure_connection. Secure connection off</comment>        
+    <source>Off</source>
+    <translation variants="no" type="unfinished"></translation>
+    <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
+    <extra-loc-viewid>mail_06_d</extra-loc-viewid>
+    <extra-loc-positionid>setlabel_11_12_val</extra-loc-positionid>
+    <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_setlabel_show_mail_in_other_folders">
@@ -189,7 +229,7 @@
     <extra-loc-layout_id>qtl_dataform_pri</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06_b</extra-loc-viewid>
     <extra-loc-positionid>setlabel_2</extra-loc-positionid>
-    <extra-loc-feature>ma</extra-loc-feature>
+    <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_setlabel_username">
@@ -199,7 +239,7 @@
     <extra-loc-layout_id>qtl_dataform_pri</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06_c</extra-loc-viewid>
     <extra-loc-positionid>setlabel_2</extra-loc-positionid>
-    <extra-loc-feature>ma</extra-loc-feature>
+    <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_setlabel_receiving_weekdays">
@@ -209,7 +249,7 @@
     <extra-loc-layout_id>qtl_dataform_pri</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06_b</extra-loc-viewid>
     <extra-loc-positionid>setlabel_3</extra-loc-positionid>
-    <extra-loc-feature>ma</extra-loc-feature>
+    <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_setlabel_refresh_mail">
@@ -219,7 +259,7 @@
     <extra-loc-layout_id>qtl_dataform_pri</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06_b</extra-loc-viewid>
     <extra-loc-positionid>setlabel_6</extra-loc-positionid>
-    <extra-loc-feature>ma</extra-loc-feature>
+    <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_setlabel_mail_address">
@@ -229,7 +269,7 @@
     <extra-loc-layout_id>qtl_dataform_pri</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06_c</extra-loc-viewid>
     <extra-loc-positionid>setlabel_1</extra-loc-positionid>
-    <extra-loc-feature>ma</extra-loc-feature>
+    <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_setlabel_mailbox_name">
@@ -239,7 +279,7 @@
     <extra-loc-layout_id>qtl_dataform_pri</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06_a</extra-loc-viewid>
     <extra-loc-positionid>setlabel_2</extra-loc-positionid>
-    <extra-loc-feature>ma</extra-loc-feature>
+    <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_setlabel_connection">
@@ -249,7 +289,7 @@
     <extra-loc-layout_id>qtl_dataform_pri</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06_d</extra-loc-viewid>
     <extra-loc-positionid>setlabel_8</extra-loc-positionid>
-    <extra-loc-feature>ma</extra-loc-feature>
+    <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_setlabel_download_images_val_mon">
@@ -259,7 +299,7 @@
     <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06_b</extra-loc-viewid>
     <extra-loc-positionid>setlabel_3_val</extra-loc-positionid>
-    <extra-loc-feature>ma</extra-loc-feature>
+    <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_setlabel_inbox_path">
@@ -269,7 +309,17 @@
     <extra-loc-layout_id>qtl_dataform_pri</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06_d</extra-loc-viewid>
     <extra-loc-positionid>setlabel_9</extra-loc-positionid>
-    <extra-loc-feature>ma</extra-loc-feature>
+    <extra-loc-feature>mail</extra-loc-feature>
+    <extra-loc-blank>False</extra-loc-blank>
+</message>
+<message numerus="no" id="txt_mailips_setlabel_incoming_security">
+    <comment>Setting label under Server info txt_mailips_subhead_server_info for defining the secure connection usage for incoming mail. </comment>        
+    <source>Incoming secure connection</source>
+    <translation variants="no" type="unfinished"></translation>
+    <extra-loc-layout_id>qtl_dataform_pri</extra-loc-layout_id>    
+    <extra-loc-viewid>mail_06_d</extra-loc-viewid>
+    <extra-loc-positionid>setlabel_11</extra-loc-positionid>
+    <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_subhead_receiving_schedule">
@@ -279,7 +329,7 @@
     <extra-loc-layout_id>qtl_dataform_group_pri</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06_b</extra-loc-viewid>
     <extra-loc-positionid>subhead</extra-loc-positionid>
-    <extra-loc-feature>ma</extra-loc-feature>
+    <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_setlabel_download_images_val_thu">
@@ -289,7 +339,7 @@
     <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06_b</extra-loc-viewid>
     <extra-loc-positionid>setlabel_3_val</extra-loc-positionid>
-    <extra-loc-feature>ma</extra-loc-feature>
+    <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_subhead_server_info">
@@ -299,17 +349,7 @@
     <extra-loc-layout_id>qtl_dataform_group_pri</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06_d</extra-loc-viewid>
     <extra-loc-positionid>subhead</extra-loc-positionid>
-    <extra-loc-feature>ma</extra-loc-feature>
-    <extra-loc-blank>False</extra-loc-blank>
-</message>
-<message numerus="no" id="txt_mailips_setlabel_refresh_during_daytime_val_on">
-    <comment>Value for txt_mailips_setlabel_secure_connection. Secure connection on with SLL/TLS (name of the secure connection protocol )</comment>        
-    <source>On (SLL/TLS)</source>
-    <translation variants="no" type="unfinished"></translation>
-    <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
-    <extra-loc-viewid>mail_06_d</extra-loc-viewid>
-    <extra-loc-positionid>setlabel_6_val</extra-loc-positionid>
-    <extra-loc-feature>ma</extra-loc-feature>
+    <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_setlabel_inbox_path_val_default">
@@ -319,7 +359,7 @@
     <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06_d</extra-loc-viewid>
     <extra-loc-positionid>setlabel_9_val</extra-loc-positionid>
-    <extra-loc-feature>ma</extra-loc-feature>
+    <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_setlabel_val_when_i_open_mailbox">
@@ -329,7 +369,7 @@
     <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06_b</extra-loc-viewid>
     <extra-loc-positionid>setlabel_6_val</extra-loc-positionid>
-    <extra-loc-feature>ma</extra-loc-feature>
+    <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_list_the_mailbox_is_refreshed_every_15">
@@ -339,7 +379,7 @@
     <extra-loc-layout_id>qtl_dataform_description_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06_b</extra-loc-viewid>
     <extra-loc-positionid>list</extra-loc-positionid>
-    <extra-loc-feature>ma</extra-loc-feature>
+    <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_setlabel_selected_mode_val_user_define">
@@ -349,7 +389,7 @@
     <extra-loc-layout_id>qtl_dataform_combobox_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06_b</extra-loc-viewid>
     <extra-loc-positionid>setlabel_20_val</extra-loc-positionid>
-    <extra-loc-feature>ma</extra-loc-feature>
+    <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_setlabel_download_images_val_fri">
@@ -359,7 +399,17 @@
     <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06_b</extra-loc-viewid>
     <extra-loc-positionid>setlabel_3_val</extra-loc-positionid>
-    <extra-loc-feature>ma</extra-loc-feature>
+    <extra-loc-feature>mail</extra-loc-feature>
+    <extra-loc-blank>False</extra-loc-blank>
+</message>
+<message numerus="no" id="txt_mailips_setlabel_incoming_port_user_defined">
+    <comment>Value for txt_mailips_setlabel_incoming_port</comment>        
+    <source>User defined</source>
+    <translation variants="no" type="unfinished"></translation>
+    <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
+    <extra-loc-viewid>mail_06_d</extra-loc-viewid>
+    <extra-loc-positionid>setlabel_13_val</extra-loc-positionid>
+    <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_setlabel_val_every_4_hours">
@@ -369,7 +419,7 @@
     <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06_b</extra-loc-viewid>
     <extra-loc-positionid>setlabel_6_val</extra-loc-positionid>
-    <extra-loc-feature>ma</extra-loc-feature>
+    <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_setlabel_val_keep_uptodate">
@@ -379,7 +429,7 @@
     <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06_b</extra-loc-viewid>
     <extra-loc-positionid>setlabel_6_val</extra-loc-positionid>
-    <extra-loc-feature>ma</extra-loc-feature>
+    <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_setlabel_selected_mode_val_keep_upto">
@@ -389,7 +439,7 @@
     <extra-loc-layout_id>qtl_dataform_combobox_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06_b</extra-loc-viewid>
     <extra-loc-positionid>setlabel_20_val</extra-loc-positionid>
-    <extra-loc-feature>ma</extra-loc-feature>
+    <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_list_the_mailbox_is_uptodate_during">
@@ -399,7 +449,27 @@
     <extra-loc-layout_id>qtl_dataform_description_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06_b</extra-loc-viewid>
     <extra-loc-positionid>list</extra-loc-positionid>
-    <extra-loc-feature>ma</extra-loc-feature>
+    <extra-loc-feature>mail</extra-loc-feature>
+    <extra-loc-blank>False</extra-loc-blank>
+</message>
+<message numerus="no" id="txt_mailips_setlabel_security_val_on_ssltls">
+    <comment>Value for txt_mailips_setlabel_secure_connection. Secure connection on with SLL/TLS (name of the secure connection protocol )</comment>        
+    <source>On (SLL/TLS)</source>
+    <translation variants="no" type="unfinished"></translation>
+    <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
+    <extra-loc-viewid>mail_06_d</extra-loc-viewid>
+    <extra-loc-positionid>setlabel_11_12_val</extra-loc-positionid>
+    <extra-loc-feature>mail</extra-loc-feature>
+    <extra-loc-blank>False</extra-loc-blank>
+</message>
+<message numerus="no" id="txt_mailips_setlabel_outgoing_security">
+    <comment>Setting label under Server info txt_mailips_subhead_server_info for defining the secure connection usage for outgoing mail.</comment>        
+    <source>Outgoing secure connection</source>
+    <translation variants="no" type="unfinished"></translation>
+    <extra-loc-layout_id>qtl_dataform_pri</extra-loc-layout_id>    
+    <extra-loc-viewid>mail_06_d</extra-loc-viewid>
+    <extra-loc-positionid>setlabel_12</extra-loc-positionid>
+    <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_setlabel_password">
@@ -409,7 +479,7 @@
     <extra-loc-layout_id>qtl_dataform_pri</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06_c</extra-loc-viewid>
     <extra-loc-positionid>setlabel_3</extra-loc-positionid>
-    <extra-loc-feature>ma</extra-loc-feature>
+    <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_setlabel_selected_mode_val_fetch_manua">
@@ -419,7 +489,7 @@
     <extra-loc-layout_id>qtl_dataform_combobox_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06_b</extra-loc-viewid>
     <extra-loc-positionid>setlabel_20_val</extra-loc-positionid>
-    <extra-loc-feature>ma</extra-loc-feature>
+    <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_list_the_mailbox_is_refreshed_only_by">
@@ -429,7 +499,7 @@
     <extra-loc-layout_id>qtl_dataform_description_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06_b</extra-loc-viewid>
     <extra-loc-positionid>list</extra-loc-positionid>
-    <extra-loc-feature>ma</extra-loc-feature>
+    <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_setlabel_val_every_15_minutes">
@@ -439,7 +509,7 @@
     <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06_b</extra-loc-viewid>
     <extra-loc-positionid>setlabel_6_val</extra-loc-positionid>
-    <extra-loc-feature>ma</extra-loc-feature>
+    <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_setlabel_day_start_time">
@@ -449,7 +519,7 @@
     <extra-loc-layout_id>qtl_dataform_pri</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06_b</extra-loc-viewid>
     <extra-loc-positionid>setlabel_4</extra-loc-positionid>
-    <extra-loc-feature>ma</extra-loc-feature>
+    <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_subhead_user_info">
@@ -459,7 +529,7 @@
     <extra-loc-layout_id>qtl_dataform_group_pri</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06_c</extra-loc-viewid>
     <extra-loc-positionid>subhead</extra-loc-positionid>
-    <extra-loc-feature>ma</extra-loc-feature>
+    <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_setlabel_val_all">
@@ -469,7 +539,7 @@
     <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06_b</extra-loc-viewid>
     <extra-loc-positionid>setlabel_1_2_val</extra-loc-positionid>
-    <extra-loc-feature>ma</extra-loc-feature>
+    <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_list_version_l1">
@@ -479,17 +549,17 @@
     <extra-loc-layout_id>qtl_dataform_pri</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06</extra-loc-viewid>
     <extra-loc-positionid>list</extra-loc-positionid>
-    <extra-loc-feature>ma</extra-loc-feature>
+    <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
-<message numerus="no" id="txt_mailips_setlabel_show_mail_in_inbox">
-    <comment>Setting label under Receiving schedule &gt; Selected mode &gt; Save energy  (txt_mailips_setlabel_selected_mode_val_save_energy). Allows the user to define how many mails are synchronized to Inbox from server (50, 100, 200 or All).</comment>        
-    <source>Show mail in inbox</source>
+<message numerus="no" id="txt_mailnips_setlabel_signature">
+    <comment>Setting item in preferences.</comment>        
+    <source>Signature</source>
     <translation variants="no" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dataform_pri</extra-loc-layout_id>    
-    <extra-loc-viewid>mail_06_b</extra-loc-viewid>
-    <extra-loc-positionid>setlabel_1</extra-loc-positionid>
-    <extra-loc-feature>ma</extra-loc-feature>
+    <extra-loc-viewid>mail_06_a</extra-loc-viewid>
+    <extra-loc-positionid>setlabel_10</extra-loc-positionid>
+    <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_setlabel_selected_mode">
@@ -499,7 +569,17 @@
     <extra-loc-layout_id>qtl_dataform_pri</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06_b</extra-loc-viewid>
     <extra-loc-positionid>setlabel_20</extra-loc-positionid>
-    <extra-loc-feature>ma</extra-loc-feature>
+    <extra-loc-feature>mail</extra-loc-feature>
+    <extra-loc-blank>False</extra-loc-blank>
+</message>
+<message numerus="no" id="txt_mailips_setlabel_show_mail_in_inbox">
+    <comment>Setting label under Receiving schedule &gt; Selected mode &gt; Save energy  (txt_mailips_setlabel_selected_mode_val_save_energy). Allows the user to define how many mails are synchronized to Inbox from server (50, 100, 200 or All).</comment>        
+    <source>Show mail in inbox</source>
+    <translation variants="no" type="unfinished"></translation>
+    <extra-loc-layout_id>qtl_dataform_pri</extra-loc-layout_id>    
+    <extra-loc-viewid>mail_06_b</extra-loc-viewid>
+    <extra-loc-positionid>setlabel_1</extra-loc-positionid>
+    <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_button_delete_mailbox">
@@ -509,7 +589,7 @@
     <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06</extra-loc-viewid>
     <extra-loc-positionid>Button</extra-loc-positionid>
-    <extra-loc-feature>ma</extra-loc-feature>
+    <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 </context>

@@ -19,6 +19,7 @@
 #define NMEDITORCONTENT_H_
 
 #include <hbwidget.h>
+#include "nmuiviewids.h"
 
 enum MessageBodyType { PlainText, HTMLText };
 
@@ -28,8 +29,10 @@ class HbDocumentLoader;
 class NmBaseViewScrollArea;
 class NmEditorView;
 class NmMessage;
+class NmMessageEnvelope;
 class NmEditorHeader;
 class NmEditorTextEdit;
+class QNetworkAccessManager;
 
 class NmEditorContent : public HbWidget
 {
@@ -38,10 +41,12 @@ Q_OBJECT
 public:
     NmEditorContent(QGraphicsItem *parent,
                     NmEditorView *parentView,
-                    HbDocumentLoader *documentLoader);
+                    HbDocumentLoader *documentLoader,
+                    QNetworkAccessManager &manager);
     virtual ~NmEditorContent();
 
-    void setMessageData(NmMessage *message);
+    void setMessageData(const NmMessage &message, 
+                        NmMessageEnvelope *replyMsgEnvelope=0);
     NmEditorTextEdit* editor() const;
     NmEditorHeader* header() const;
 
@@ -59,7 +64,6 @@ private:
     NmEditorHeader *mHeaderWidget;   // Owned
     NmEditorView *mParentView;       // Not owned
     HbAnchorLayout *mEditorLayout;   // Not owned
-    NmMessage *mMessage;             // Not Owned
     MessageBodyType mMessageBodyType;
     NmEditorTextEdit *mEditorWidget; // Not owned
     NmBaseViewScrollArea *mBackgroundScrollArea;

@@ -40,7 +40,6 @@ public slots:
 #ifdef Q_OS_SYMBIAN
     void insertSelectedContacts(const QVariant &selectedContacts);
 #endif
-    void insertText(const QString &text);
 
 protected:	// from HbLineEdit
     void keyPressEvent(QKeyEvent *event);

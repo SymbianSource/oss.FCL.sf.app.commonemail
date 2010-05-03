@@ -15,19 +15,29 @@
 *
 */
 
-
+//<qmail>
 #include <nmcommonheaders.h>
+//</qmail>
+
 #include "emailtrace.h"
 #include <barsread.h>
+//<qmail> Commented out in Qmail
+//#include <AknIconUtils.h>
+//</qmail>
 #include <gulicon.h>
 #include <centralrepository.h>
 //<cmail>
+//<qmail> Commented out in Qmail
 //#include "freestyleemailcenrepkeys.h"
+//</qmail>
 //</cmail>
 
 #include "CFSMailBrand.h"
 
 const TInt KElementArrayGranularity = 5;
+//<qmail> Commented out in Qmail
+//const TInt KMaxStringLenFromCenrep = 256;
+//</qmail>
 const TInt KMaxDesLen = 256;
 _LIT(KSpace, " ");
 // -----------------------------------------------------------------------------
@@ -66,9 +76,9 @@ CFSMailBrand* CFSMailBrand::NewLC( TResourceReader& aReader, TBool aIsWhiteLabel
 // -----------------------------------------------------------------------------
 void CFSMailBrand::ConstructFromCenrepL( )
     {
-    /*
     FUNC_LOG;
     
+	/*
     TBuf<KMaxStringLenFromCenrep> tBuf; // Temporary buffer
     HBufC*    mailboxName;
 
@@ -126,7 +136,7 @@ void CFSMailBrand::ConstructFromCenrepL( )
         CleanupStack::PopAndDestroy( mailboxName );
         CleanupStack::PopAndDestroy( repository );
         }
-        */
+		*/
    }
 
 // -----------------------------------------------------------------------------
@@ -304,9 +314,15 @@ CGulIcon* CFSMailBrand::GetGraphicL( TFSBrandElement aElementId )
 		 	TParse parse;
 		    User::LeaveIfError( parse.Set( *iIconFilePath, &dllFileName, NULL) );
 		    TFileName iconFileName( parse.FullName() );
-                
+             
+//<qmail>
             // Get icon and mask with above info
-		    
+            /*AknIconUtils::CreateIconLC( icon,
+                                        mask,
+                                        iconFileName,
+                                        element.iIconId,
+                                        element.iMaskId );*/
+//</qmail>
             CGulIcon* gulIcon = CGulIcon::NewL( icon, mask );
 
             CleanupStack::Pop( 2 ); // icon, mask

@@ -25,6 +25,7 @@
 #include <MFSMailRequestObserver.h>
 
 class NmMessage;
+class NmDataPluginInterface;
 class CFSMailClient;
 
 class NmFwaMessageSendingOperation : public NmMessageSendingOperation,
@@ -32,31 +33,36 @@ class NmFwaMessageSendingOperation : public NmMessageSendingOperation,
 {
     Q_OBJECT
 public:
-    NmFwaMessageSendingOperation(NmMessage *message,
+    NmFwaMessageSendingOperation(NmDataPluginInterface &pluginInterface,
+                                 NmMessage *message,
                                  CFSMailClient &mailClient);
     
     ~NmFwaMessageSendingOperation();
 
-    const NmMessage *getMessage();
+    const NmMessage *getMessage() const;
 
     // from MFSMailRequestObserver
     void RequestResponseL(TFSProgress aEvent, TInt aRequestId);
 
 protected slots:
-    void runAsyncOperation();
+    void handleCompletedSaveOperation(int error);
     
 protected:
+    void doRunAsyncOperation();
     void doCompleteOperation();
-
     void doCancelOperation();
 
 private:
-    void runAsyncOperationL();
+    int saveMessageWithSubparts();
+    int sendMessageL();
 
 private:
-    NmMessage *mMessage;
+    NmDataPluginInterface &mPluginInterface;
+    NmOperation *mSaveOperation;    // Owned
+    NmMessage *mMessage;            // Owned
     CFSMailClient &mMailClient;
     TInt mRequestId;
+    bool mSaved;
 };
 
 #endif /* NMFWAMESSAGESENDINGOPERATION_H_ */

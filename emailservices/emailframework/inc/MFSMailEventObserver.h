@@ -33,7 +33,7 @@
  *  @since S60 v3.1
  */
  class MFSMailEventObserver
- 	{
+    {
     public:
 
     /**

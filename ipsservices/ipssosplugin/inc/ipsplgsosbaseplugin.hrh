@@ -68,8 +68,20 @@ enum TIpsOpType
     EIpsOpTypeUnknown,
     EIpsOpTypeImap4SyncOp,
     EIpsOpTypePop3SyncOp,
-    EIpsOpTypeOnlineOp,
     EIpsOpTypeImap4PopulateOp,
-    EIpsOpTypeSmtp
+    EIpsOpTypeSmtp,
+// <qmail> new op types
+    EIpsOpTypeImap4Disconnect,
+    EIpsOpTypePop3Disconnect,
+    EIpsOpTypeFetchAttachmentOp,
+    EIpsOpTypeMoveRemoteOp,
+    EIpsOpTypePop3FetchOp,
+    EIpsOpTypeConnectAndRefreshFolderListOp,
+    EIpsOpTypeCreateMessageOp,
+    EIpsOpTypeMailStorerOp,
+    EIpsOpTypeMessagePartStorerOp,
+    EIpsOpTypeNewChildPartFromFile,
+    EIpsOpTypeRemoveChildPart
+// </qmail>
     };
 #endif /*IPSSOSPLUGIN_HRH_*/

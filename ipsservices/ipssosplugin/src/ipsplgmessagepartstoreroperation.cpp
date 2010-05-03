@@ -17,9 +17,8 @@
 
 #include <utf.h>
 
-#include "ipsplgmessagepartstoreroperation.h"
-#include "CFSMailPlugin.h"
 #include "emailtrace.h"
+#include "ipsplgheaders.h"
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
@@ -78,6 +77,21 @@ CIpsPlgMessagePartStorerOperation::~CIpsPlgMessagePartStorerOperation()
 // ---------------------------------------------------------------------------
 void CIpsPlgMessagePartStorerOperation::DoCancel()
     {
+    // <qmail>
+    TRequestStatus* status = &iObserverRequestStatus;
+    if ( status && status->Int() == KRequestPending )
+        {
+        if (&iFSOperationObserver)
+            {
+            iFSProgress.iProgressStatus = TFSProgress::EFSStatus_RequestCancelled;
+            iFSProgress.iError = KErrCancel;
+            iFSProgress.iParam = NULL;
+
+            TRAP_IGNORE( iFSOperationObserver.RequestResponseL( iFSProgress, iFSRequestId ) );
+            }
+        User::RequestComplete( status, iStatus.Int() );
+        }
+    // </qmail>
     FUNC_LOG;
     }
 
@@ -89,6 +103,36 @@ const TDesC8& CIpsPlgMessagePartStorerOperation::ProgressL()
     return KNullDesC8;
     }
 
+// <qmail>
+// ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+//   
+const TDesC8& CIpsPlgMessagePartStorerOperation::GetErrorProgressL( TInt /*aError*/ )
+    {
+    FUNC_LOG;
+    
+    return KNullDesC8; // error progress info not supported
+    }
+
+// ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+//   
+TFSProgress CIpsPlgMessagePartStorerOperation::GetFSProgressL() const
+    {
+    FUNC_LOG;
+    
+    return iFSProgress;
+    }
+
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------    
+TIpsOpType CIpsPlgMessagePartStorerOperation::IpsOpType() const
+    {
+    FUNC_LOG;
+    return EIpsOpTypeMessagePartStorerOp;
+    }
+// </qmail>
+
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 CIpsPlgMessagePartStorerOperation::CIpsPlgMessagePartStorerOperation(
@@ -96,10 +140,12 @@ CIpsPlgMessagePartStorerOperation::CIpsPlgMessagePartStorerOperation(
         CFSMailPlugin& aPlugin,
         RPointerArray<CFSMailMessagePart> &aMessageParts,
         MFSMailRequestObserver& aFSOperationObserver, const TInt aRequestId) :
-    CMsvOperation(aMsvSession, CActive::EPriorityStandard,
-            aObserverRequestStatus), iPlugin(aPlugin), iMessageParts(
-            aMessageParts), iFSOperationObserver(aFSOperationObserver),
-            iRequestId(aRequestId), iExecutionIndex(0), iDataBuffer(NULL)
+    CIpsPlgBaseOperation(aMsvSession, aObserverRequestStatus, aRequestId, TFSMailMsgId()), 
+    iPlugin(aPlugin), 
+    iMessageParts(aMessageParts), 
+    iFSOperationObserver(aFSOperationObserver),
+    iExecutionIndex(0), 
+    iDataBuffer(NULL)
     {
     FUNC_LOG;
     }
@@ -133,11 +179,13 @@ void CIpsPlgMessagePartStorerOperation::RunL()
 		{
 		if (&iFSOperationObserver)
 			{
-			TFSProgress prog =
-				{
-				TFSProgress::EFSStatus_RequestComplete, 0, 0, 0
-				};
-			TRAP_IGNORE( iFSOperationObserver.RequestResponseL( prog, iRequestId ) );
+		    // <qmail>
+		    iFSProgress.iProgressStatus = TFSProgress::EFSStatus_RequestComplete;
+	        iFSProgress.iError = KErrNone;
+	        iFSProgress.iParam = NULL;
+
+			TRAP_IGNORE( iFSOperationObserver.RequestResponseL( iFSProgress, iFSRequestId ) );
+			// </qmail>
 			}
 		TRequestStatus* status = &iObserverRequestStatus;
 		User::RequestComplete(status, KErrNone);

@@ -57,7 +57,7 @@ public:
      *  It clears list of folders after be called.
      *  It also at start clear inputlist of NmFolder.
      */
-    bool folders(QList<EmailClientApi::NmFolder> &folders);
+    bool getFolders(QList<EmailClientApi::NmFolder> &folders);
 
     /*!
      * \brief Return info if listing is running

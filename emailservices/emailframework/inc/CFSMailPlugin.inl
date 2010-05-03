@@ -150,4 +150,18 @@ inline void CFSMailPlugin::NewChildPartFromFileL( const TFSMailMsgId& /*aMailBox
     {
     User::Leave( KErrFSMailPluginNotSupported );
     }
+
+// -----------------------------------------------------------------------------
+// CFSMailPlugin::RemoveChildPartL
+// -----------------------------------------------------------------------------
+inline void CFSMailPlugin::RemoveChildPartL( const TFSMailMsgId& /*aMailBoxId*/,
+                               const TFSMailMsgId& /*aParentFolderId*/,
+                               const TFSMailMsgId& /*aMessageId*/,
+                               const TFSMailMsgId& /*aParentPartId*/,
+                               const TFSMailMsgId& /*aPartId*/,
+                               MFSMailRequestObserver& /*aOperationObserver*/,
+                               const TInt /*aRequestId*/)
+    {
+    User::Leave( KErrFSMailPluginNotSupported );
+    }
 // </qmail>

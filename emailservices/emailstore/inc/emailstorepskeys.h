@@ -30,4 +30,9 @@ static const TUid KEmailStoreUpgradePSCategory = { KUidEmailStorePreInstallExe }
   */
 const TInt KProperty_EmailStore_Upgrade = 115;
   
+
+// Copied from emailshutter.h 
+// Value to be set in shutdown P&S key.
+const TInt KEmailShutterPsValue = 1;
+
 #endif //_EMAILSTOREPSKEYS_H_

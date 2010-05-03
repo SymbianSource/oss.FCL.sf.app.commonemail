@@ -33,10 +33,7 @@ class CIpsPlgMsgMapper;
  *  @since FS 1.0
  */
 NONSHARABLE_CLASS( CIpsPlgSmtpService ) : 
-    public CBase,
-// <qmail>
-    public MIpsPlgSingleOpWatcher
-// </qmail>
+    public CBase
     {
 
 public:
@@ -92,47 +89,16 @@ public:
     CFSMailMessage* CreateNewSmtpMessageL(
         const TFSMailMsgId& aMailBoxId );
 
-// <qmail>
-    /**
-     * Creates new email message to message store asynchronously
-     *
-     * @param aMailBoxId msv entry id to mailbox which setting are used
-     * @param aOperationObserver Observer for the operation
-     * @param aRequestId Id of the operation
-     */
-    void CreateNewSmtpMessageL(
-        const TFSMailMsgId& aMailBoxId,
-        MFSMailRequestObserver& aOperationObserver,
-        const TInt aRequestId );
-// </qmail>
-
     CFSMailMessage* CreateForwardSmtpMessageL(
         const TFSMailMsgId& aMailBoxId,
         const TFSMailMsgId& aOriginalMessageId );
 
-// <qmail>
-    void CreateForwardSmtpMessageL(
-        const TFSMailMsgId& aMailBoxId,
-        const TFSMailMsgId& aOriginalMessageId,
-        MFSMailRequestObserver& aOperationObserver,
-        const TInt aRequestId );
-// </qmail>
-    
     CFSMailMessage* CreateReplySmtpMessageL(
         const TFSMailMsgId& aMailBoxId,
         const TFSMailMsgId& aOriginalMessageId,
         TBool aReplyToAll );
 
-// <qmail>
-    void CreateReplySmtpMessageL(
-        const TFSMailMsgId& aMailBoxId,
-        const TFSMailMsgId& aOriginalMessageId,
-        TBool aReplyToAll,
-        MFSMailRequestObserver& aOperationObserver,
-        const TInt aRequestId );
-// </qmail>
-
-// <qmail>
+// <qmail> moved for public access
     /**
      * Creates proper fs message object and set flags
      * to correspond orginal message flags
@@ -149,15 +115,17 @@ public:
        TMsvId aOriginalMsgId, 
        TMsvId aMailboxId,
        TBool aCopyOriginalMsgProperties = EFalse );
+
+    /**
+     * Changes messages service id
+     *
+     * @since FS 1.0
+     * @param aEntry Original message entry 
+     * @return None
+     */
+    void ChangeServiceIdL( TMsvEntry& aEntry );    
 // </qmail>
 
-// <qmail>
-public: //from MIpsPlgSingleOpWatcher
-
-    void OpCompleted(
-        CIpsPlgSingleOpWatcher& aOpWatcher,
-        TInt aCompletionCode );
-// </qmail>
 protected:
 
     /**
@@ -192,15 +160,6 @@ private:
                               const TDesC& aEmailName );
 
     /**
-     * Changes messages service id
-     *
-     * @since FS 1.0
-     * @param aEntry Original message entry 
-     * @return None
-     */
-    void ChangeServiceIdL( TMsvEntry& aEntry );
-    
-    /**
      * Gets MsvId from msv operations final progress 
      * descriptor, leaves if msvId is null entry
      *
@@ -223,14 +182,6 @@ private:
      */
     void SetCharactersetL( CMsvEntry& aEntry, TUid aCharset );
 
-// <qmail>
-    /**
-    * Cancel, delete and remove operation from iOperations array.
-    * Send Sync Completed event to plugin if operation is sync op
-    */
-    void DeleteAndRemoveOperation( const TInt aOpArrayIndex );
-// </qmail>
-
 private: // data
 
     CIpsPlgSosBasePlugin& iPlugin;
@@ -238,10 +189,6 @@ private: // data
     CMsvSession& iSession;
     
     CIpsPlgMsgMapper* iMsgMapper;
-
-// <qmail> array of operation watchers
-    RPointerArray<CIpsPlgSingleOpWatcher>   iOperations;
-// </qmail>
     };
 
 #endif /* IPSPLGSMTPSERVICE_H*/

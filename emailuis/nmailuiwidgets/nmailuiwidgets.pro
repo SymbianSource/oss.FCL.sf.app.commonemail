@@ -36,6 +36,9 @@ SOURCES += src/nmbaseviewscrollarea.cpp \
            src/nmattachmentlistwidget.cpp \
            src/nmattachmentlistitem.cpp
 
+LIBS += -leuser
+LIBS += -llibc
+
 symbian*: {
     INCLUDEPATH += $$APP_LAYER_SYSTEMINCLUDE
     

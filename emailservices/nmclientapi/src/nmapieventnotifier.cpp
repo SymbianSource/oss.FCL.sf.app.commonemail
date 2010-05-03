@@ -19,8 +19,10 @@
 #include <QVariant>
 #include <QString>
 
+#include "nmapiengine.h"
 #include "nmapieventnotifier_p.h"
 #include "nmapieventnotifier.h"
+
 
 quint32 IntervalEmitingSignals = 10000;
 

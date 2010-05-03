@@ -35,10 +35,10 @@ CIpsPlgCreateReplyMessageOperation::CIpsPlgCreateReplyMessageOperation(
     CMsvSession& aMsvSession,
     TRequestStatus& aObserverRequestStatus,
     TMsvPartList aPartList,
-    TMsvId aMailBoxId,
+    TFSMailMsgId aMailBoxId,
     TMsvId aOriginalMessageId, 
     MFSMailRequestObserver& aOperationObserver,
-    const TInt aRequestId ) 
+    TInt aRequestId ) 
     :
     CIpsPlgCreateMessageOperation(
         aSmtpService,
@@ -64,10 +64,10 @@ CIpsPlgCreateReplyMessageOperation* CIpsPlgCreateReplyMessageOperation::NewL(
     CMsvSession& aMsvSession,
     TRequestStatus& aObserverRequestStatus,
     TMsvPartList aPartList,
-    TMsvId aMailBoxId,
+    TFSMailMsgId aMailBoxId,
     TMsvId aOriginalMessageId, 
     MFSMailRequestObserver& aOperationObserver,
-    const TInt aRequestId )
+    TInt aRequestId )
     {
     FUNC_LOG;
     CIpsPlgCreateReplyMessageOperation* self =
@@ -114,7 +114,7 @@ void CIpsPlgCreateReplyMessageOperation::RunL()
             {
             //  ...so we can create an FS type message
             newMessage = iSmtpService->CreateFSMessageAndSetFlagsL( 
-                    msgId, iOriginalMessageId, iMailBoxId );
+                    msgId, iOriginalMessageId, iFSMailboxId.Id() );
             CleanupStack::PushL( newMessage ); // ***
         
             // dig out new reply message's header

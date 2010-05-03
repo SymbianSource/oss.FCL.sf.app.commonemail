@@ -41,14 +41,14 @@ public:
     // from MFSMailRequestObserver
     void RequestResponseL(TFSProgress aEvent, TInt aRequestId);
 
-protected slots:
-    void runAsyncOperation();
+protected:
+    void doRunAsyncOperation();
     
 protected:
     void doCancelOperation();
     
 private:
-    void runAsyncOperationL();
+    void doRunAsyncOperationL();
 
 private:
     NmId mMailboxId;

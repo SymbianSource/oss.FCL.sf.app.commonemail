@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2008 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -21,9 +21,8 @@
 
 #include <e32std.h>
 #include <e32base.h>
-
-
 #include "CFSMailAddress.h"
+#include "cemailextensionbase.h"
 
 //<qmail>
 #include <QExplicitlySharedDataPointer>
@@ -31,13 +30,15 @@ class NmMessageEnvelopePrivate;
 class NmMessageEnvelope;
 //</qmail>
 
+class CFSMailRequestHandler;
+
 /**
  *  email handling base class
  *
  *  @lib FSFWCommonLib
  *  @since S60 v3.1
  */
-NONSHARABLE_CLASS ( CFSMailMessageBase ) : public CBase
+NONSHARABLE_CLASS ( CFSMailMessageBase ) : public CExtendableEmail
 {
  public:
 
@@ -46,14 +47,14 @@ NONSHARABLE_CLASS ( CFSMailMessageBase ) : public CBase
      *
      * @param aMessageId id of the email to be created
      */
-     IMPORT_C static CFSMailMessageBase* NewL( const TFSMailMsgId aMessageId );
+     IMPORT_C static CFSMailMessageBase* NewL(const TFSMailMsgId aMessageId);
     
     /**
      * Two-phased constructor.
      *
      * @param aMessageId id of the email to be created
      */
-     IMPORT_C static CFSMailMessageBase* NewLC( const TFSMailMsgId aMessageId );
+     IMPORT_C static CFSMailMessageBase* NewLC(const TFSMailMsgId aMessageId);
  
     /**
      * Destructor.
@@ -67,7 +68,7 @@ NONSHARABLE_CLASS ( CFSMailMessageBase ) : public CBase
      */
      IMPORT_C TFSMailMsgId GetMessageId() const;
      
-     /**
+    /**
      * if email is related to another email, for example due reply / forward,
      * related email id is returned
      *
@@ -75,7 +76,7 @@ NONSHARABLE_CLASS ( CFSMailMessageBase ) : public CBase
      */
      IMPORT_C TFSMailMsgId IsRelatedTo() const;
 
-     /**
+    /**
      * set email related to another email, for example due reply / forward
      *
      * @param aMessageId related email id
@@ -122,8 +123,9 @@ NONSHARABLE_CLASS ( CFSMailMessageBase ) : public CBase
      *
      * @param aSender email sender address, ownership transferred from user
      */
-     IMPORT_C void SetSender( CFSMailAddress* aSender );
+     IMPORT_C void SetSender(CFSMailAddress* aSender);
 
+// <qmail>
     /**
      * returns TO-recipients list of email
      *
@@ -144,13 +146,14 @@ NONSHARABLE_CLASS ( CFSMailMessageBase ) : public CBase
      * @return bcc-recipients list, ownership not transferred user
      */
      IMPORT_C RPointerArray<CFSMailAddress> GetBCCRecipients( );
+// </qmail>
 
     /**
      * appends one recipient to email TO-field, ownership transferred from user
      *
      * @param aRecipient new recipient email address
      */
-     IMPORT_C void AppendToRecipient( CFSMailAddress* aRecipient );
+     IMPORT_C void AppendToRecipient( CFSMailAddress* aRecipient);
 
     /**
      * appends one recipient to email CC-field, ownership transferred from user
@@ -170,19 +173,19 @@ NONSHARABLE_CLASS ( CFSMailMessageBase ) : public CBase
      * clears email TO-recipients list
      *
      */
-     IMPORT_C void ClearToRecipients();
+     IMPORT_C void ClearToRecipients( );
 
     /**
      * clears email CC-recipients list
      *
      */
-     IMPORT_C void ClearCcRecipients();
+     IMPORT_C void ClearCcRecipients( );
 
     /**
      * clears email BCC-recipients list
      *
      */
-     IMPORT_C void ClearBccRecipients();
+     IMPORT_C void ClearBccRecipients( );
 
     /**
      * email subject accessor
@@ -196,7 +199,7 @@ NONSHARABLE_CLASS ( CFSMailMessageBase ) : public CBase
      *
      * @param aSubject new email subject
      */
-     IMPORT_C void SetSubject( const TDesC& aSubject );
+     IMPORT_C void SetSubject(const TDesC& aSubject);
 
     /**
      * email date accessor
@@ -210,28 +213,28 @@ NONSHARABLE_CLASS ( CFSMailMessageBase ) : public CBase
      *
      * @param aDate new email date
      */
-     IMPORT_C void SetDate( const TTime aDate );
+     IMPORT_C void SetDate(const TTime aDate);
 
     /**
      * email flags accessor
      *
      * @return email flags
      */
-     IMPORT_C TInt GetFlags() const;
+     IMPORT_C TInt GetFlags( ) const;
 
     /**
      * email flag set
      *
      * @aFlag email flag to be set
      */
-     IMPORT_C void SetFlag( const TInt aFlag );
+     IMPORT_C void SetFlag(const TInt aFlag);
 
     /**
      * email flag reset
      *
      * @aFlag email flag to be reset
      */
-     IMPORT_C void ResetFlag( const TInt aFlag );
+     IMPORT_C void ResetFlag(const TInt aFlag);
 
     /**
      * test email flag is set
@@ -239,7 +242,7 @@ NONSHARABLE_CLASS ( CFSMailMessageBase ) : public CBase
      * @aFlag email flag to be tested
      * @return email flag status (set/reset)
      */
-     IMPORT_C TBool IsFlagSet( const TInt aFlag ) const;
+     IMPORT_C TBool IsFlagSet(const TInt aFlag) const;
 
     /**
      * Email reply-to address accessor ; defines optional email address
@@ -255,16 +258,38 @@ NONSHARABLE_CLASS ( CFSMailMessageBase ) : public CBase
      *
      * @param aReplyToAddress email reply-to address
      */
-     IMPORT_C void SetReplyToAddress( CFSMailAddress* aReplyToAddress );
+     IMPORT_C void SetReplyToAddress(CFSMailAddress* aReplyToAddress);
 
-    // <qmail>
+     /**
+      * plugin request handler accessor
+      * 
+      * @return request handler
+      */
+     IMPORT_C CFSMailRequestHandler& RequestHandler( );
+	 
+// <qmail>
     /**
      * gets the new NmMessageEnvelope object
      *
      * @return NmMessageEnvelope object
      */
      IMPORT_C NmMessageEnvelope* GetNmMessageEnvelope();
-    // </qmail>
+// </qmail>
+          
+public: // from  CExtendableEmail
+
+     /**
+     * @see CExtendableEmail::ReleaseExtension
+     */                                        
+     IMPORT_C void ReleaseExtension( CEmailExtension* aExtension );
+     
+     /**
+      * Returns extension by uid, leaves KErrNotSupported if extension is
+      * not available.
+      * @param aInterfaceUid extension interface uid
+      * @return extension pointer. Ownership depends on extension.
+      */
+     IMPORT_C CEmailExtension* ExtensionL( const TUid& aInterfaceUid );
 
  protected:
 
@@ -273,12 +298,13 @@ NONSHARABLE_CLASS ( CFSMailMessageBase ) : public CBase
      */
      CFSMailMessageBase();
 
+// <qmail>
     /**
      * ConstructL
      */
     IMPORT_C void ConstructL( const TFSMailMsgId aMessageId );      
 
-    void ConstructL( const NmMessageEnvelope &aMessageEnvelope );
+    IMPORT_C void ConstructL( const NmMessageEnvelope &aMessageEnvelope );
     
     /**
      * email message id mutator
@@ -286,13 +312,18 @@ NONSHARABLE_CLASS ( CFSMailMessageBase ) : public CBase
      * @param aMessageId message id to be set
      */
     IMPORT_C void SetMessageId( const TFSMailMsgId aMessageId );
-   
-    // <qmail>
+// </qmail>
+ 
+protected:	// data
+    // Request handler from tls 
+    CFSMailRequestHandler*          iRequestHandler;
+	
+//<qmail>
     /**
      * Reference to QT side of the message meta data object.
      */
      QExplicitlySharedDataPointer<NmMessageEnvelopePrivate> iNmPrivateMessageEnvelope;
-    // </qmail>
+//</qmail>
 
  private: // data
 
@@ -312,21 +343,29 @@ NONSHARABLE_CLASS ( CFSMailMessageBase ) : public CBase
      */
      TFSMailMsgId    iFolderId;
 
+// <qmail>
      /**
      * email sender address
      * do not use it directly!
      */
      CFSMailAddress*    iSender;
+// </qmail>
 
      /**
      * email reply-to address
      */
      CFSMailAddress*    iReplyTo;
 
+// <qmail>
+// Unnecessary members removed: iToRecipients, iCcRecipients, iBccRecipients, iFlags, iDate
+// </qmail>
+
+// <qmail>
     /**
      * email subject
      */
      mutable TPtrC    iSubjectPtr;
+// </qmail>
      
 };
 

@@ -20,6 +20,10 @@
 
 #include <QObject>
 #include <QList>
+#ifdef Q_OS_SYMBIAN
+#include <xqsharablefile.h>
+#endif
+
 #include "nmcommon.h"
 #include "nmuienginedef.h"
 
@@ -70,7 +74,13 @@ public:
         const NmId &mailboxId,
         const NmId &folderId,
         const NmId &messageId,
-        const NmId& messagePartId);
+        const NmId &messagePartId);
+    
+    XQSharableFile messagePartFile(
+            const NmId &mailboxId,
+            const NmId &folderId,
+            const NmId &messageId,
+            const NmId &messagePartId);
     
     NmMailboxMetaData *mailboxById(const NmId &mailboxId);
 
@@ -109,10 +119,12 @@ public:
 
     int saveMessage(const NmMessage &message);
 
-    NmOperation *saveMessageWithSubparts(const NmMessage &message);
-
     int refreshMailbox(const NmId &mailboxId);
 
+    int goOnline(const NmId &mailboxId);
+    
+    int goOffline(const NmId &mailboxId);
+    
     int removeMessage(
                 const NmId &mailboxId,
                 const NmId &folderId,
@@ -120,11 +132,11 @@ public:
 
     void storeOperation(NmOperation *op);
 
-    void sendMessage(NmMessage *message);
+    void sendMessage(NmMessage *message, const QList<NmOperation *> &preliminaryOperations);
 
     bool isSendingMessage() const;
 
-    const NmMessage *messageBeingSent();
+    const NmMessage *messageBeingSent() const;
     NmAddAttachmentsOperation *addAttachments(
             const NmMessage &message,
             const QList<QString> &fileList);
@@ -138,15 +150,15 @@ public:
 
 public slots:
     void handleCompletedOperation();
-
     void handleCompletedSendOperation();
-    void handleCompletedSaveOperation(int error);
-
+    void handleSyncStateEvent(NmSyncState syncState, const NmOperationCompletionEvent &event);
     void cleanupSendOperation();
     
 signals:
     void syncStateEvent(NmSyncState, const NmId &);
     void connectionEvent(NmConnectState, const NmId &);
+    void operationCompleted(const NmOperationCompletionEvent &event);
+    void sendOperationCompleted();
 
 private:
 
@@ -165,12 +177,6 @@ private:
     QList<NmOperation*> mOperations;			// Owned
 
     NmMessageSendingOperation *mSendOperation;  // Owned
-    NmOperation *mSaveOperation;                // Owned
-
-    // Flag that idicates if the message should be sent after storing
-    bool mMessageToBeSent;
-
-	NmMessage *mMessage;                        // Owned
 };
 
 

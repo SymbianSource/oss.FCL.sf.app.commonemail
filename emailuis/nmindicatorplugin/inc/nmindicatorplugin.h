@@ -26,6 +26,8 @@
 #include <hbindicatorplugininterface.h>
 #include <hbindicatorinterface.h>
 
+class NmIndicator;
+
 class NmIndicatorPlugin : public QObject, public HbIndicatorPluginInterface
 {
     Q_OBJECT
@@ -44,12 +46,22 @@ public: // From HbIndicatorPluginInterface
     HbIndicatorInterface* createIndicator(const QString &indicatorType);
     int error() const;
 
+public slots:
+
+    bool indicatorIconLost();
+    bool showMailbox(quint64 mailboxId);
+    void indicatorDeactivated(QObject *indicator);
+    void globalStatusChanged(bool sending);
+
 private:
     Q_DISABLE_COPY(NmIndicatorPlugin)
 
     int mError;
     QStringList mIndicatorTypes;
     QTranslator *mTranslator; // owned
+    QList<NmIndicator*> mIndicators;
+    NmIndicator *mStatusBarIndicator;
+    bool mSending;
 };
 
 #endif // NMINDICATORPLUGIN_H

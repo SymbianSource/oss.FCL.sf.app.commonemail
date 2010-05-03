@@ -25,7 +25,7 @@
 #include <msvapi.h>
 #include <AlwaysOnlineManagerCommon.h>
 //<cmail>
-#include "cfsmailcommon.h"
+#include "CFSMailCommon.h"
 //</cmail>
 
 
@@ -505,17 +505,16 @@ void CIpsSosAOImapAgent::PopulateAllL()
          TFSMailMsgId mbox( KIpsPlgImap4PluginUidValue, iServiceId );
          iStatus = KRequestPending;
          iOngoingOp = CIpsPlgImap4PopulateOp::NewL(
-                 iSession,
-                 this->iStatus,
-                 CActive::EPriorityLow,
-                 iServiceId,
-                 *dummy,
-                 info,
-                 *sel,
-                 mbox,
-                 *this,
-                 0,
-                 NULL );
+             iSession,
+             this->iStatus,
+             iServiceId,
+             *dummy,
+             info,
+             *sel,
+             mbox,
+             this,
+             0,
+             NULL );
          
          iFoldersArray.Remove( 0 );
          SetActive();

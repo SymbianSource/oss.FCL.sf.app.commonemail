@@ -49,7 +49,7 @@ public slots:
     void refresh();
     void openMessage();
     void deleteMessage();
-    void deleteMessageFromViewerViewToolbar();
+    void deleteMessageFromViewerView();
     void createNewMailViewerToolBar();
     void createNewMail();
     void settings();
@@ -63,10 +63,14 @@ public slots:
     void markAsRead();
     void markAsUnread();
     void attach();
+    void removeAttachment();
+    void openAttachment();
 
 private slots:
     void mailboxListChanged(const NmId &mailboxId, NmSettings::MailboxEventType type);
     void mailboxPropertyChanged(const NmId &mailboxId, QVariant property, QVariant value);
+    void goOnline(const NmId &mailboxId);
+    void goOffline(const NmId &mailboxId);
 
 protected:
     virtual quint32 pluginId() = 0;
@@ -82,7 +86,7 @@ private:
     NmActionRequest mMenuRequest;
     NmActionRequest mEditorToolBarRequest;
     NmActionRequest mViewerToolBarRequest;
-    NmActionRequest mViewerViewToolbarRequest;
+    NmActionRequest mViewerViewRequest;
     NmUiEngine *mUiEngine; // Singleton instance
     NmSettingsViewLauncher *mSettingsViewLauncher; // owned
 };

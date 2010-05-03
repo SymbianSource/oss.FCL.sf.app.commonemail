@@ -36,9 +36,9 @@ NmFwaStoreEnvelopesOperation::~NmFwaStoreEnvelopesOperation()
     NMLOG("NmFwaStoreEnvelopesOperation::~NmFwaStoreEnvelopesOperation() --->");
 }
 
-void NmFwaStoreEnvelopesOperation::runAsyncOperation()
+void NmFwaStoreEnvelopesOperation::doRunAsyncOperation()
 {
-    NMLOG("NmFwaStoreEnvelopesOperation::runAsyncOperation() <---");
+    NMLOG("NmFwaStoreEnvelopesOperation::doRunAsyncOperation() <---");
     const TFSMailMsgId mailboxId(mMailboxId.pluginId32(), mMailboxId.id32());
     CFSMailBox *mailbox(NULL);
     TRAP_IGNORE( mailbox = mMailClient.GetMailBoxByUidL(mailboxId) );
@@ -57,7 +57,7 @@ void NmFwaStoreEnvelopesOperation::runAsyncOperation()
         delete mailbox;
         mailbox = NULL;
     }
-    NMLOG("NmFwaStoreEnvelopesOperation::runAsyncOperation() --->");
+    NMLOG("NmFwaStoreEnvelopesOperation::doRunAsyncOperation() --->");
 }
 
 void NmFwaStoreEnvelopesOperation::doCancelOperation()

@@ -24,8 +24,8 @@ namespace IpsServices {
          Enumeration for identifying mailbox settings.
      */
     enum SettingItem {
-        LoginName = 0,                          // String
-        Password,                               // String
+        IncomingLoginName = 0,                  // String
+        IncomingPassword,                       // String
         MailboxName,                            // String
         EmailAddress,                           // String
         ReplyAddress,                           // String
@@ -42,8 +42,82 @@ namespace IpsServices {
         ReceptionDayEndTime,                    // Integer: 0-23
         ReceptionRefreshPeriodDayTime,          // Integer: 5,15,60,240,0="When open mailbox"
         ReceptionRefreshPeriodOther,            // Integer: 5,15,60,240,0="When open mailbox"
-        UserNameHidden                          // Integer: 0=Off, 1=On
+        UserNameHidden,                         // Integer: 0=Off, 1=On
+        IncomingMailServer,                     // String
+        OutgoingMailServer,                     // String
+        IncomingPort,                           // Integer
+        OutgoingPort,                           // Integer
+        FolderPath,                             // String: Empty string means 'Default'
+        IncomingSecureSockets,                  // Boolean
+        IncomingSSLWrapper,                     // Boolean
+        OutgoingLoginName,                      // String
+        OutgoingPassword,                       // String
+        SMTPAuthentication,                     // Boolean
+        OutgoingSecureSockets,                  // Boolean
+        OutgoingSSLWrapper                      // Boolean
     }; 
+    
+    /**
+     * Utility structure TAOInfo.
+     * Contains info was last update successful ( TBool )
+     * and the date and time of last successful update ( TTime )     
+     */
+    struct TAOInfo
+        {
+        TBool iLastUpdateFailed; 
+        TTime iLastSuccessfulUpdate;
+        TBool iUpdateSuccessfulWithCurSettings;
+        };
+    
+    /**
+     * Supported always online states.
+     */
+    enum TIpsSetDataAoStates
+        {
+        EMailAoAlways = 0,
+        EMailAoHomeOnly,
+        EMailAoOff
+        };
+
+    /**
+     * Supported OMA EMN states
+     */
+    enum TIpsSetDataEmnStates
+        {
+        EMailEmnAutomatic = 0,
+        EMailEmnHomeOnly,
+        EMailEmnOff
+        };
+    
+    /** 
+     * Security types 
+     */
+    enum TIpsSetDataSecurityTypes
+        {
+        EMailStartTls = 0,
+        EMailSslTls,
+        EMailSecurityOff
+        };
+
+    /** 
+     * Account types 
+     */
+    enum TIpsSetAccountTypes
+        {
+        EMailPop = 0,
+        EMailImap
+        };
+    
+    const int standardPop3Port = 110;   // POP3 - port 110
+    const int standardImap4Port = 143;  // IMAP - port 143
+    const int standardSmtpPort = 25;    // SMTP - port 25
+    const int secureSmtpPort = 465;     // Secure SMTP (SSMTP) - port 465
+    const int secureImap4Port = 585;    // Secure IMAP (IMAP4-SSL) - port 585
+    const int imap4OverSslPort = 993;   // IMAP4 over SSL (IMAPS) - port 993
+    const int securePop3Port = 995;     // Secure POP3 (SSL-POP) - port 995
+    
+    const int NmIpsSettingsDefault = 0;         //Radio button list default index
+    const int NmIpsSettingsUserDefined = 1;     //Radio button list user defined index
 
 } // namespace
 

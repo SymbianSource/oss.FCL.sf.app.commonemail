@@ -19,7 +19,11 @@
 #define NMDATAPLUGININTERFACE_H_
 
 #include <QList>
+#ifdef Q_OS_SYMBIAN
+#include <xqsharablefile.h>
+#endif
 #include "nmcommon.h"
+
 
 class NmMailbox;
 class NmMessage;
@@ -64,6 +68,11 @@ public:
         const NmId &folderId,
         const NmId &messageId,
         NmMessage *&message) = 0;
+		
+    virtual int getFolderById(
+            const NmId& mailboxId, 
+            const NmId& folderId, 
+            NmFolder*& folder ) = 0;
     
     virtual int listFolders(
         const NmId &mailboxId,
@@ -73,6 +82,12 @@ public:
         const NmId &mailboxId,
         const NmId &folderId,
         QList<NmMessageEnvelope*> &messageEnvelopeList) = 0;  
+    
+virtual int listMessages(
+        const NmId &mailboxId,
+        const NmId &folderId,
+        QList<NmMessageEnvelope*> &messageEnvelopeList, 
+		const int maxAmountOfEnvelopes ) = 0;
     
     virtual NmOperation *fetchMessage( 
         const NmId &mailboxId, 
@@ -86,11 +101,21 @@ public:
         const NmId &messageId,
         const NmId &messagePartId) = 0;
     
+    virtual XQSharableFile messagePartFile(
+            const NmId &mailboxId,
+            const NmId &folderId,
+            const NmId &messageId,
+            const NmId &messagePartId) = 0;
+    
     virtual NmId getStandardFolderId(
         const NmId &mailbox,
         NmFolderType folderType ) = 0;
     
     virtual int refreshMailbox(NmId mailboxId) = 0;
+    
+    virtual int goOnline(const NmId &mailboxId) = 0;
+    
+    virtual int goOffline(const NmId &mailboxId) = 0;
     
     virtual int contentToMessagePart(
         const NmId &mailboxId,

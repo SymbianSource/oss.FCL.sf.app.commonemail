@@ -25,8 +25,6 @@ static const char *NMUI_EDITOR_SCROLL_AREA_CONTENTS = "scrollAreaContents";
 static const int nmOrientationTimer=100;
 
 static const QString Delimiter("; ");
-#define IMAGE_FETCHER_INTERFACE "Image"
-#define FETCHER_OPERATION "fetch(QVariantMap,QVariant)"
 
 /*!
 	\class NmEditorView
@@ -41,20 +39,22 @@ NmEditorView::NmEditorView(
     NmUiStartParam* startParam,
     NmUiEngine &uiEngine,
     QGraphicsItem *parent)
-: NmBaseView(startParam, parent),
-mApplication(application),
-mUiEngine(uiEngine),
-mDocumentLoader(NULL),
-mScrollArea(NULL),
-mEditWidget(NULL),
-mHeaderWidget(NULL),
-mMessage(NULL),
-mContentWidget(NULL),
-mAttachContextMenu(NULL),
-mMessageCreationOperation(NULL),
-mAddAttachmentOperation(NULL),
-mRemoveAttachmentOperation(NULL),
-mCheckOutboxOperation(NULL)
+    : NmBaseView(startParam, parent),
+      mApplication(application),
+      mUiEngine(uiEngine),
+      mDocumentLoader(NULL),
+      mScrollArea(NULL),
+      mEditWidget(NULL),
+      mHeaderWidget(NULL),
+      mMessage(NULL),
+      mContentWidget(NULL),
+      mAttachmentListContextMenu(NULL),
+      mMessageCreationOperation(NULL),
+      mAddAttachmentOperation(NULL),
+      mRemoveAttachmentOperation(NULL),
+      mCheckOutboxOperation(NULL),
+      mWaitDialog(NULL),
+      mAttachmentPicker(NULL)
 {
     mDocumentLoader	= new HbDocumentLoader();
     // Set object name
@@ -72,18 +72,24 @@ mCheckOutboxOperation(NULL)
 */
 NmEditorView::~NmEditorView()
 {
+    // It is clearer that the operations are not owned by parent QObject as
+    // they are not allocated in the constructor.
+    delete mRemoveAttachmentOperation;
+    delete mAddAttachmentOperation;
     delete mMessageCreationOperation;
     delete mCheckOutboxOperation;
-
     delete mMessage;
-
     mWidgetList.clear();
     delete mDocumentLoader;
-
     delete mContentWidget;
-
     delete mPrioritySubMenu;
-    delete mAttachContextMenu;
+    
+    if (mAttachmentListContextMenu) {
+        mAttachmentListContextMenu->clearActions();
+        delete mAttachmentListContextMenu;
+    }
+    delete mWaitDialog;
+    delete mAttachmentPicker;    
 }
 
 /*!
@@ -109,7 +115,8 @@ void NmEditorView::loadViewLayout()
         mScrollAreaContents = qobject_cast<HbWidget *>
              (mDocumentLoader->findObject(NMUI_EDITOR_SCROLL_AREA_CONTENTS));
 
-        mContentWidget = new NmEditorContent(mScrollArea, this, mDocumentLoader);
+        mContentWidget = new NmEditorContent(mScrollArea, this, mDocumentLoader, 
+            mApplication.networkAccessManager());
         mEditWidget = mContentWidget->editor();
         mHeaderWidget = mContentWidget->header();
 
@@ -151,8 +158,8 @@ void NmEditorView::loadViewLayout()
     connect(mApplication.mainWindow(), SIGNAL(orientationChanged(Qt::Orientation)),
             this, SLOT(orientationChanged(Qt::Orientation)));
     // Signal for handling the attachment list selection
-    connect(mHeaderWidget, SIGNAL(attachmentRemoved(const NmId)),
-            this, SLOT(removeAttachment(const NmId)));
+    connect(mHeaderWidget, SIGNAL(attachmentLongPressed(NmId, QPointF)),
+            this, SLOT(attachmentLongPressed(NmId, QPointF)));
 }
 
 /*!
@@ -193,6 +200,7 @@ void NmEditorView::orientationChanged(Qt::Orientation orientation)
     Q_UNUSED(orientation);
     // Adjust content height
     QTimer::singleShot(nmOrientationTimer, this, SLOT(adjustViewDimensions()));
+    QTimer::singleShot(nmOrientationTimer, mHeaderWidget, SLOT(sendHeaderHeightChanged()));
 }
 
 /*!
@@ -225,7 +233,7 @@ HbWidget* NmEditorView::scrollAreaContents()
 
 /*
    Query user if we want to exit the editor
- */
+*/
 bool NmEditorView::okToExitView()
 {
     bool okToExit = true;
@@ -280,9 +288,42 @@ bool NmEditorView::okToExitView()
 */
 void NmEditorView::aboutToExitView()
 {
+    if (mStartParam && mStartParam->service() && mUiEngine.isSendingMessage()) {
+        // The application was started as a service and is about to close.
+        // A message is still being sent and in order to make sure that the
+        // send operation is not cancelled, let us display a modal wait dialog.
+
+        // When the send operation is completed, the dialog is automatically
+        // closed.
+        connect(&mUiEngine, SIGNAL(sendOperationCompleted()),
+                this, SLOT(handleSendOperationCompleted()));
+
+        // Close and delete the previous wait dialog if one exists.
+        if (mWaitDialog) {
+            mWaitDialog->close();
+            delete mWaitDialog;
+        }
+
+        // Construct and setup the wait dialog.
+        mWaitDialog = new HbProgressDialog();
+        mWaitDialog->setText(hbTrId("txt_mail_shareui_sending_please_wait"));
+
+        if (!XQServiceUtil::isEmbedded()) {
+            // Hide the application.
+            XQServiceUtil::toBackground(true);
+        }
+
+        // Display the wait dialog.
+        mWaitDialog->exec();
+        delete mWaitDialog;
+        mWaitDialog = NULL;
+    }
+
     // These operations need to be stopped before message can be deleted
     delete mAddAttachmentOperation;
+    mAddAttachmentOperation = NULL;
     delete mRemoveAttachmentOperation;
+    mRemoveAttachmentOperation = NULL;
 
     if (mMessage) { // this is NULL if sending is started
         // Delete message from drafts
@@ -297,14 +338,14 @@ void NmEditorView::aboutToExitView()
     Find message data based on start parameters.  Method is called
     when editor is started. If message data is found it means that
     operation is forward or reply message.
- */
+*/
 void NmEditorView::setMessageData()
 {
     // Check the outbox.
     delete mCheckOutboxOperation;
-	mCheckOutboxOperation = NULL;
+    mCheckOutboxOperation = NULL;
 	
-	mCheckOutboxOperation = mUiEngine.checkOutbox(mStartParam->mailboxId());
+    mCheckOutboxOperation = mUiEngine.checkOutbox(mStartParam->mailboxId());
     
     if (mCheckOutboxOperation) {
         connect(mCheckOutboxOperation, SIGNAL(operationCompleted(int)),
@@ -316,7 +357,7 @@ void NmEditorView::setMessageData()
 }
 
 /*!
- */
+*/
 void NmEditorView::startMessageCreation(NmUiEditorStartMode startMode)
 {
     NmId mailboxId = mStartParam->mailboxId();
@@ -324,9 +365,9 @@ void NmEditorView::startMessageCreation(NmUiEditorStartMode startMode)
     NmId msgId = mStartParam->messageId();
     
     delete mMessageCreationOperation;
-	mMessageCreationOperation = NULL;
+    mMessageCreationOperation = NULL;
 	
-	// original message is now fetched so start message creation
+    // original message is now fetched so start message creation
     if (startMode == NmUiEditorForward) {
         mMessageCreationOperation = mUiEngine.createForwardMessage(mailboxId, msgId);
     }
@@ -350,7 +391,7 @@ void NmEditorView::startMessageCreation(NmUiEditorStartMode startMode)
 
 /*!
     Starting the message sending is handled here.
- */
+*/
 void NmEditorView::startSending()
 {
     // The message contents should be verified
@@ -358,7 +399,9 @@ void NmEditorView::startSending()
     
     // verify addresses before sending
     QList<NmAddress> invalidAddresses;
-    NmUtilities::getRecipientsFromMessage(*mMessage, invalidAddresses, NmUtilities::InvalidAddress);
+    if (mMessage) {
+        NmUtilities::getRecipientsFromMessage(*mMessage, invalidAddresses, NmUtilities::InvalidAddress);
+    }
     
     bool okToSend = true;
     if (invalidAddresses.count() > 0) {
@@ -377,9 +420,16 @@ void NmEditorView::startSending()
     }
     
     if (okToSend) {
-        // ownership of mMessage changes
-        mUiEngine.sendMessage(mMessage);
+        QList<NmOperation *> preliminaryOperations;
+        preliminaryOperations.append(mAddAttachmentOperation);
+        preliminaryOperations.append(mRemoveAttachmentOperation);
+        // ownership of mMessage is transferred
+        // ownerships of NmOperations in preliminaryOperations are transferred
+        mUiEngine.sendMessage(mMessage, preliminaryOperations);
         mMessage = NULL;
+        mAddAttachmentOperation = NULL;
+        mRemoveAttachmentOperation = NULL;
+        preliminaryOperations.clear();
         // sending animation should be shown here, then exit
         QTimer::singleShot(1000, &mApplication, SLOT(popView()));
     }
@@ -387,7 +437,7 @@ void NmEditorView::startSending()
 
 /*!
     This is signalled by mMessageCreationOperation when message is created.
- */
+*/
 void NmEditorView::messageCreated(int result)
 {
     delete mMessage;
@@ -408,7 +458,7 @@ void NmEditorView::messageCreated(int result)
 
 /*!
    Updates the message with the editor contents.
- */
+*/
 void NmEditorView::updateMessageWithEditorContents()
 {
     if (mMessage) {
@@ -461,7 +511,7 @@ void NmEditorView::updateMessageWithEditorContents()
 /*!
     Updates the message with the editor contents. Called only once when the
     editor is launched.
- */
+*/
 void NmEditorView::fillEditorWithMessageContents()
 {
     if (!mMessage || !mContentWidget) {
@@ -571,7 +621,21 @@ void NmEditorView::fillEditorWithMessageContents()
                                        *attachmentHtml);
     }
 
-    mContentWidget->setMessageData(mMessage);
+    // Set content data
+    if (editorStartMode==NmUiEditorReply||
+        editorStartMode==NmUiEditorReplyAll||
+        editorStartMode==NmUiEditorForward){
+        // Pass envelope ptr only when needed for reaply header creation
+        NmMessage *originalMessage = mUiEngine.message(mStartParam->mailboxId(), 
+                                                       mStartParam->folderId(), 
+                                                       mStartParam->messageId());
+        mContentWidget->setMessageData(*mMessage, &originalMessage->envelope()); 
+        delete originalMessage;
+    }
+    else{
+        // Reply header not needed, do not pass envelope ptr
+        mContentWidget->setMessageData(*mMessage);     
+    }
     
     // Get list of attachments from the message and set those into UI attachment list
     QList<NmMessagePart*> attachments;
@@ -620,7 +684,33 @@ void NmEditorView::createToolBar()
             if( list[i]->availabilityCondition() == NmAction::NmSendable ) {
                 list[i]->setEnabled(false);
             }
-        }
+            //object name set in NmBaseClientPlugin::createEditorViewCommands
+            //temporary solution
+            else if (list[i]->objectName() == "baseclientplugin_attachaction") {
+                HbToolBarExtension* extension = new HbToolBarExtension();
+                mAttachmentPicker = new NmAttachmentPicker(this);
+                
+                if (extension && mAttachmentPicker) {
+                    connect(mAttachmentPicker, SIGNAL(attachmentsFetchOk(const QVariant &)),
+                        this, SLOT(onAttachmentReqCompleted(const QVariant &)));            
+                                                
+                    HbAction* actionPhoto = 
+                        extension->addAction(hbTrId("txt_mail_list_photo"), extension, SLOT(close()));
+                    connect(actionPhoto, SIGNAL(triggered()), mAttachmentPicker, SLOT(fetchImage()));
+                    
+                    HbAction* actionMusic = 
+                        extension->addAction(hbTrId("txt_mail_list_music"), extension, SLOT(close()));
+                    connect(actionMusic, SIGNAL(triggered()), mAttachmentPicker, SLOT(fetchAudio()));
+                    
+                    HbAction* actionVideo = 
+                        extension->addAction(hbTrId("txt_mail_list_video"), extension, SLOT(close()));                
+                    HbAction* actionOther = 
+                        extension->addAction(hbTrId("txt_mail_list_other"), extension, SLOT(close()));
+            
+                    list[i]->setToolBarExtension(extension);
+                }
+            }            
+        }        
     }
 }
 
@@ -663,36 +753,31 @@ void NmEditorView::handleActionCommand(NmActionResponse &actionResponse)
     }
     else if (actionResponse.menuType() == NmActionToolbar) {
         switch (responseCommand) {
-            case NmActionResponseCommandSendMail: {
+        case NmActionResponseCommandSendMail: {
+            // Just in case send mail would be somehow accessible during message creation or
+            // outobox checking
+            if (!mCheckOutboxOperation->isRunning()
+                && (!mMessageCreationOperation || !mMessageCreationOperation->isRunning())) {
                 startSending();
-                break;
             }
-            case NmActionResponseCommandAttach : {
-                // Do nothing if previous addAttachment operation is still ongoing.
-                if(!mAddAttachmentOperation || !mAddAttachmentOperation->isRunning()) {
-                    //will be replaced by toolbar extension                                
-                    if (!mAttachContextMenu) {
-                        QList<NmAction *> actionList;
-                        NmAction* actionPhoto = new NmAction(0);
-                        actionPhoto->setText(QObject::tr("Photo", "txt_nmailui_photo_attach"));
-                        actionList.append(actionPhoto);
-                        connect(actionPhoto, SIGNAL(triggered()), this, SLOT(attachImage()));
-                                
-                        mAttachContextMenu = new HbMenu();
-                        mAttachContextMenu->clearActions();
-
-                        for (int i=0;i<actionList.count();i++) {
-                            mAttachContextMenu->addAction(actionList[i]);
-                        }
-                    }
-                
-                    QPointF menuPos(qreal(20),qreal(520));
-                    mAttachContextMenu->exec(menuPos);
-                }
-                break;
-            }
-            default:
-                break;
+            break;
+        }
+        default:
+            break;
+        }
+    }
+    else if (actionResponse.menuType() == NmActionContextMenu) {
+        switch (responseCommand) {
+        case NmActionResponseCommandRemoveAttachment: {
+            removeAttachmentTriggered();
+            break;
+        }
+        case NmActionResponseCommandOpenAttachment: {
+            openAttachmentTriggered();
+            break;
+        }
+        default:
+        	break;
         }
     }
 }
@@ -700,7 +785,7 @@ void NmEditorView::handleActionCommand(NmActionResponse &actionResponse)
 /*!
     This function converts background scroll area coordinate point into
     body text editor coordinate point.
- */
+*/
 QPointF NmEditorView::viewCoordinateToEditCoordinate(QPointF orgPoint)
 {
     QPointF contentWidgetPos = mScrollAreaContents->pos();
@@ -845,7 +930,7 @@ void NmEditorView::setMailboxName()
 /*!
    Adds a prefix to the subject for reply or forward. 
    Strips other occurrences of the prefix from the beginning.
- */
+*/
 QString NmEditorView::addSubjectPrefix( NmUiEditorStartMode startMode, const QString &subject )
 {
     QString newSubject(subject.trimmed());
@@ -886,29 +971,6 @@ QString NmEditorView::addSubjectPrefix( NmUiEditorStartMode startMode, const QSt
     return newSubject;
 }
 
-#ifdef Q_OS_SYMBIAN
-
-void NmEditorView::attachImage()
-{      
-    XQAiwRequest *request;
-    XQApplicationManager mAppmgr;
-    request = mAppmgr.create(IMAGE_FETCHER_INTERFACE, FETCHER_OPERATION, true);
-        
-    if (request) {
-        connect(request, SIGNAL(requestOk(const QVariant&)), this, SLOT(onAttachmentReqCompleted(const QVariant&)));
-    }
-    else {
-        //create request failed
-        NMLOG("appmgr: create request failed");
-        return;
-    }               
-
-    if (!(request)->send()) {
-        //sending request failed
-        NMLOG("appmgr: send request failed");
-    }
-    delete request;
-}
 
 /*!
     This slot is called when 'attachment picker' request has been performed succesfully
@@ -921,7 +983,21 @@ void NmEditorView::onAttachmentReqCompleted(const QVariant &value)
     }
 }
 
-#endif
+
+/*!
+    Closes the wait dialog if one exists.
+    
+    This slot is called if the mail application has been started as a service
+    and is about to close. Closing the application while still sending a message
+    may cause unwanted cancelling of the operation.
+*/
+void NmEditorView::handleSendOperationCompleted()
+{
+    if (mWaitDialog) {
+        mWaitDialog->close();
+    }
+}
+
 
 /*!
     Add list of attachments
@@ -937,9 +1013,7 @@ void NmEditorView::addAttachments(const QStringList& fileNames)
         NMLOG(fileName);
     }
 
-    // Start operation to attach file or list of files into mail message
-    // This will also copy files into message store
-    // Delete previous operation
+    // Delete previous operation if it's not running.
     if (mAddAttachmentOperation) {
         if (!mAddAttachmentOperation->isRunning()) {
             delete mAddAttachmentOperation;
@@ -947,9 +1021,12 @@ void NmEditorView::addAttachments(const QStringList& fileNames)
         }
     }
     if (!mAddAttachmentOperation) {
+        // Start operation to attach file or list of files into mail message.
+        // This will also copy files into message store.
         mAddAttachmentOperation = mUiEngine.addAttachments(*mMessage, fileNames);
 
         if (mAddAttachmentOperation) {
+            enableToolBarAttach(false);
             // Signal to inform completion of one attachment
             connect(mAddAttachmentOperation,
                     SIGNAL(operationPartCompleted(const QString &, const NmId &, int)),
@@ -966,31 +1043,69 @@ void NmEditorView::addAttachments(const QStringList& fileNames)
 }
 
 /*!
-    This slot is called when attachment has been deleted from UI
+    This slot is called to create context menu when attachment has been selected
+    from UI by longpress.
 */
-void NmEditorView::removeAttachment(const NmId attachmentPartId)
+void NmEditorView::attachmentLongPressed(NmId attachmentPartId, QPointF point)
 {
-    // Delete previous operation
-    if (mRemoveAttachmentOperation) {
-        if (!mRemoveAttachmentOperation->isRunning()) {
-            delete mRemoveAttachmentOperation;
-            mRemoveAttachmentOperation = NULL;
+    // Store id of the attachment to be removed into member.
+    // It is used by removeAttachmentTriggered later if 'remove' selected.
+    mSelectedAttachment = attachmentPartId;
+	
+    if (!mAttachmentListContextMenu) {
+        mAttachmentListContextMenu = new HbMenu();
+    }
+    mAttachmentListContextMenu->clearActions();
+    NmActionRequest request(this, NmActionContextMenu, NmActionContextViewEditor,
+        NmActionContextDataMessage, mStartParam->mailboxId(), mStartParam->folderId(),
+        mStartParam->messageId());
+    NmUiExtensionManager &extensionManager = mApplication.extManager();
+    if (&extensionManager) {
+        QList<NmAction*> actionList;
+        extensionManager.getActions(request, actionList);
+        for (int i = 0; i < actionList.count(); ++i) {
+            mAttachmentListContextMenu->addAction(actionList[i]);
         }
     }
-    if (!mRemoveAttachmentOperation) {
-        mRemoveAttachmentOperation = mUiEngine.removeAttachment(*mMessage, attachmentPartId);
-    }
+
+    // Add menu position check here, so that it does not go outside of the screen
+    QPointF menuPos(point.x(),point.y());
+    mAttachmentListContextMenu->exec(menuPos);
 }
 
 /*!
     This is signalled by mAddAttachmentOperation when the operation is
     completed for one attachment.
- */
+*/
 void NmEditorView::oneAttachmentAdded(const QString &fileName, const NmId &msgPartId, int result)
 {
-    if (result == NmNoError) {
-        // Get file size from the message when it works
-        mHeaderWidget->setAttachmentParameters(fileName, msgPartId, QString("0"), result);
+    if (result == NmNoError && mMessage) {
+        // Need to get the message again because new attachment part has been added.
+        NmId mailboxId = mMessage->mailboxId();
+        NmId folderId = mMessage->parentId();
+        NmId msgId = mMessage->envelope().id();
+
+        delete mMessage;
+        mMessage = NULL;
+        
+        mMessage = mUiEngine.message(mailboxId, folderId, msgId);
+
+        if (mMessage) {
+            // Get attachment list from the message
+            QList<NmMessagePart*> attachmentList;
+            mMessage->attachmentList(attachmentList);
+        
+            // Search newly added attachment from the list
+            for (int i=0; i<attachmentList.count(); i++) {
+                if (attachmentList[i]->id() == msgPartId) {
+                    // Get attachment file size and set it into UI
+                    mHeaderWidget->setAttachmentParameters(fileName,
+                        msgPartId,
+                        QString().setNum(attachmentList[i]->size()),
+                        result);
+                }
+            }
+        }
     }
     else {
         // Attachment adding failed. Show an error note and remove from UI attachment list.
@@ -1002,9 +1117,10 @@ void NmEditorView::oneAttachmentAdded(const QString &fileName, const NmId &msgPa
 /*!
     This is signalled by mAddAttachmentOperation when the operation is
     completed totally.
- */
+*/
 void NmEditorView::allAttachmentsAdded(int result)
 {
+    enableToolBarAttach(true);
     if (result != NmNoError) {
         HbMessageBox::warning(hbTrId("txt_mail_dialog_unable_to_add_attachment"));
     }
@@ -1012,7 +1128,7 @@ void NmEditorView::allAttachmentsAdded(int result)
 
 /*!
     This is signalled by mCheckOutboxOperation when the operation is complete.
- */
+*/
 void NmEditorView::outboxChecked(int result)
 {
     bool messageInOutbox = false;
@@ -1118,6 +1234,83 @@ QString NmEditorView::addressListToString(const QList<NmAddress> &list) const
     }
 
     return addressesString;
+}
+
+/*!
+    This slot is called when 'remove' is selected from attachment list context menu.
+*/
+void NmEditorView::removeAttachmentTriggered()
+{
+    // Delete previous operation
+    if (mRemoveAttachmentOperation) {
+        if (!mRemoveAttachmentOperation->isRunning()) {
+            delete mRemoveAttachmentOperation;
+            mRemoveAttachmentOperation = NULL;
+        }
+    }
+    if (!mRemoveAttachmentOperation) {
+        // Remove from UI
+        mHeaderWidget->removeAttachment(mSelectedAttachment);
+        // Remove from message store
+        mRemoveAttachmentOperation = mUiEngine.removeAttachment(*mMessage, mSelectedAttachment);
+        if (mRemoveAttachmentOperation) {
+            // Signal to inform the remove operation completion
+            connect(mRemoveAttachmentOperation,
+                    SIGNAL(operationCompleted(int)),
+                    this,
+                    SLOT(attachmentRemoved(int)));
+        }
+    }
+}
+
+/*!
+    This slot is called by mRemoveAttachmentOperation when the operation is
+    completed. There is no need to update UI because it was already updated.
+ */
+void NmEditorView::attachmentRemoved(int result)
+{
+    // It is not desided yet what to do if operation fails
+    Q_UNUSED(result);
+    
+    if (mMessage) {
+        // Reload message because one attachment has been removed
+        NmId mailboxId = mMessage->mailboxId();
+        NmId folderId = mMessage->parentId();
+        NmId msgId = mMessage->envelope().id();
+
+        delete mMessage;
+        mMessage = NULL;
+    
+        mMessage = mUiEngine.message(mailboxId, folderId, msgId);
+    }
+}
+
+/*!
+    This slot is called when 'open' is selected from attachment list context menu.
+*/
+void NmEditorView::openAttachmentTriggered()
+{
+    mHeaderWidget->launchAttachment(mSelectedAttachment);
+}
+
+/*!
+   Enables/disables toolbar extension for attach
+*/
+void NmEditorView::enableToolBarAttach(bool enable)
+{
+    HbToolBar *tb = toolBar();
+    if (tb) {
+        QList<QAction *> toolbarList = tb->actions();
+        int count = toolbarList.count();
+        for (int i = 0; i < count; i++) {
+            NmAction *action = static_cast<NmAction *>(toolbarList[i]);
+            //object name set in NmBaseClientPlugin::createEditorViewCommands
+            //temporary solution
+            if (action->objectName() == "baseclientplugin_attachaction") {
+                action->setEnabled(enable);
+            }
+        }
+    }
 }
 
 

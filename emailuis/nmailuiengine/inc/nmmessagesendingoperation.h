@@ -25,7 +25,7 @@ class NmMessage;
 class NmMessageSendingOperation : public NmOperation
 {
 public:
-    virtual const NmMessage *getMessage() = 0;
+    virtual const NmMessage *getMessage() const = 0;
 };
 
 #endif /* NMMESSAGESENDINGOPERATION_H_ */

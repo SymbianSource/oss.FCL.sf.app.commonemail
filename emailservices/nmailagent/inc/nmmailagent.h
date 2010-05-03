@@ -21,18 +21,26 @@
 #include <nmcommon.h>
 
 class NmMailbox;
-class NmFrameworkAdapter;
+class NmDataPluginFactory;
+class NmDataPluginInterface;
 
-class NmMailboxInfo 
+class NmMailboxInfo
 {
-public:    
+public:
     NmId mId;
+    int mIndicatorIndex;
     QString mName;
+    NmId mInboxFolderId;
+    NmId mOutboxFolderId;
     NmSyncState mSyncState;
     NmConnectState mConnectState;
+    int mInboxCreatedMessages;
+    int mInboxChangedMessages;
+    int mInboxDeletedMessages;
     int mUnreadMails;
+    int mOutboxMails;
     bool mActive;
-    
+
     NmMailboxInfo();
 };
 
@@ -45,7 +53,7 @@ public:
     NmMailAgent();
 
     ~NmMailAgent();
-    
+
     bool init();
 
 public slots:
@@ -61,43 +69,46 @@ public slots:
 
     void handleSyncStateEvent(
             NmSyncState state,
-            const NmId mailboxId);
+            const NmOperationCompletionEvent &event);
 
     void handleConnectionEvent(NmConnectState state, const NmId mailboxId);
-    
+
+    void delayedStart();
+
 private:
-    
-    bool loadAdapter();
-    
+
     void initMailboxStatus();
-    
+
     int getUnreadCount(const NmId& mailboxId, int maxCount);
-    
-    void updateStatus();
+
+    int getOutboxCount(const NmId& mailboxId);
+
+    int getIndicatorIndex();
 
     bool isMailboxActive(const NmMailboxInfo& mailboxInfo);
-    
-    bool updateIndicator(int mailboxIndex, 
-        bool active,
+
+    bool updateIndicator(bool active,
         const NmMailboxInfo& mailboxInfo);
-    
+
     NmMailboxInfo* getMailboxInfo(const NmId &id);
-    
+
     NmMailboxInfo* createMailboxInfo(const NmId &id);
 
-    NmMailboxInfo* createMailboxInfo(const NmMailbox &mailbox);
-    
+    NmMailboxInfo* createMailboxInfo(const NmMailbox &mailbox,
+        NmDataPluginInterface *plugin);
+
     bool removeMailboxInfo(const NmId &id);
-    
-    bool updateMailboxActivity(const NmId &mailboxId, bool active);
-    
+
+    bool updateMailboxState(const NmId &mailboxId,
+        bool active, bool refreshAlways);
+
     static QStringList pluginFolders();
-    
+
 private: // data
-    
-    NmFrameworkAdapter *mAdapter; // Owned
+
+    NmDataPluginFactory *mPluginFactory;
     QList<NmMailboxInfo*> mMailboxes;
-    int mActiveIndicators;
+    bool mSendingState;
 };
 
 

@@ -192,6 +192,7 @@ void NmMessageListModel::handleMessageEvent(
         } else {
             for (int a(0); a < messageIds.count(); a++) {
                 removeMessageFromModel(messageIds[a]);
+                emit removeMessage(messageIds[a]);
             }
         }
     }

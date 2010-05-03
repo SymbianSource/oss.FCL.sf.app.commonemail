@@ -41,7 +41,8 @@ inc/IpsSosAOPluginTimer.h \
 inc/IpsSosAOPopAgent.h \
 inc/IpsSosAOSchedulerUtils.h \
 inc/IpsSosAOSmtpAgent.h \
-inc/IpsSosAOSmtpSendWatcher.h
+inc/IpsSosAOSmtpSendWatcher.h \
+inc/IpsSosAOSettingsHandler.h
 
 
     
@@ -57,7 +58,8 @@ src/IpsSosAOPluginTimer.cpp \
 src/IpsSosAOPopAgent.cpp \
 src/IpsSosAOSchedulerUtils.cpp \
 src/IpsSosAOSmtpAgent.cpp \
-src/IpsSosAOSmtpSendWatcher.cpp
+src/IpsSosAOSmtpSendWatcher.cpp \
+src/IpsSosAOSettingsHandler.cpp
 
 
 RESOURCES +=

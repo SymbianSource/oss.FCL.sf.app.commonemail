@@ -43,7 +43,7 @@ NONSHARABLE_CLASS ( CIpsPlgPop3FetchOperation ) :
             const TImPop3GetMailInfo& aGetMailInfo,
             const CMsvEntrySelection& aSel,
             TFSMailMsgId aFSMailBoxId,
-            MFSMailRequestObserver& aFSOperationObserver,
+            MFSMailRequestObserver* aFSOperationObserver,
             TInt aFSRequestId,
             CIpsPlgEventHandler* aEventHandler );
 
@@ -68,6 +68,12 @@ NONSHARABLE_CLASS ( CIpsPlgPop3FetchOperation ) :
         */
         virtual TFSProgress GetFSProgressL() const;
         
+        // <qmail> new func to this op
+        /**
+         * Returns operation type
+         */
+        TIpsOpType IpsOpType() const;
+        
     protected:
 
         /**
@@ -81,7 +87,7 @@ NONSHARABLE_CLASS ( CIpsPlgPop3FetchOperation ) :
             CIpsPlgTimerOperation& aActivityTimer,
             const TImPop3GetMailInfo& aGetMailInfo,
             TFSMailMsgId aFSMailBoxId,
-            MFSMailRequestObserver& aFSOperationObserver,
+            MFSMailRequestObserver* aFSOperationObserver,
             TInt aFSRequestId,
             CIpsPlgEventHandler* aEventHandler);
 

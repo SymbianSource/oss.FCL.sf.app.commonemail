@@ -28,12 +28,12 @@ static const double HeaderAreaMarginsTotal = 3 * Un;
 */
 NmEditorContent::NmEditorContent(QGraphicsItem *parent,
                                  NmEditorView *parentView,
-                                 HbDocumentLoader *documentLoader) :
+                                 HbDocumentLoader *documentLoader,
+                                 QNetworkAccessManager &manager) :
     HbWidget(parent),
     mHeaderWidget(NULL),
     mParentView(parentView),
     mEditorLayout(NULL),
-    mMessage(NULL),
     mMessageBodyType(PlainText),
     mEditorWidget(NULL),
     mBackgroundScrollArea((NmBaseViewScrollArea*)parent)
@@ -45,6 +45,12 @@ NmEditorContent::NmEditorContent(QGraphicsItem *parent,
 
     // Get pointer to body text area handling widget
     mEditorWidget = qobject_cast<NmEditorTextEdit *>(documentLoader->findWidget(NMUI_EDITOR_BODY));
+
+    // Set body editor to use NmEditorTextDocument
+    NmEditorTextDocument *textDocument = new NmEditorTextDocument(manager);
+    mEditorWidget->setDocument(textDocument); 
+    textDocument->setParent(mEditorWidget); // ownership changes
+
     mEditorWidget->init(this, mBackgroundScrollArea);
     
     // Remove the comment to enable style picker menu item.
@@ -63,47 +69,53 @@ NmEditorContent::~NmEditorContent()
 }
 
 /*!
-    Fill message data into header and body fileds
+    Fill message data into header and body fileds. If reply envelopw is
+    present, reply header is generated and set to editor. Reply
+    envelope ownership is not transferred here.
  */
-void NmEditorContent::setMessageData(NmMessage *message)
+void NmEditorContent::setMessageData(const NmMessage &message,
+                                     NmMessageEnvelope *replyMsgEnvelope)
 {
-    if(message)	{
-        mMessage = message;
-        // Check which part is present. Html or plain text part
-        NmMessagePart *htmlPart = mMessage->htmlBodyPart();
-        NmMessagePart *plainPart = mMessage->plainTextBodyPart();
+    // Check which part is present. Html or plain text part
+    const NmMessagePart *htmlPart = message.htmlBodyPart();
+    const NmMessagePart *plainPart = message.plainTextBodyPart();
 
-        QList<NmMessagePart*> parts;
-        mMessage->attachmentList(parts);
-        NmMessagePart* attachmentHtml = NULL;
+    QList<NmMessagePart*> parts;
+    message.attachmentList(parts);
+    NmMessagePart* attachmentHtml = NULL;
 
-        foreach(NmMessagePart* part, parts) {
-            if (part->contentDescription().startsWith( NmContentDescrAttachmentHtml )) {
-                    attachmentHtml = part;
-                }
+    foreach(NmMessagePart* part, parts) {
+        if (part->contentDescription().startsWith( NmContentDescrAttachmentHtml )) {
+                attachmentHtml = part;
             }
-        
-        if (htmlPart) {	    
-            // Html part was present, set it to HbTextEdit
-            // This will generate contentsChanged() event which is used to
-            // set new height for the editor widget and content.
-            if(attachmentHtml){
-                QString htmlText = htmlPart->textContent() + attachmentHtml->textContent();
-                emit setHtml(htmlText);
-            }
-            else{
-                emit setHtml(htmlPart->textContent());    
-            }
-
-            mMessageBodyType = HTMLText;
         }
-        else if (plainPart) {
-            // Plain text part was present, set it to HbTextEdit
-            emit setPlainText(plainPart->textContent());
-            mMessageBodyType = PlainText;
+    
+    if (htmlPart) {	    
+        // Html part was present, set it to HbTextEdit
+        // This will generate contentsChanged() event which is used to
+        // set new height for the editor widget and content.
+        if(attachmentHtml){
+            QString htmlText = htmlPart->textContent() + attachmentHtml->textContent();
+            emit setHtml(htmlText);
+        } 
+        else{
+            emit setHtml(htmlPart->textContent());    
         }
+        mMessageBodyType = HTMLText;
     }
-}
+    else if (plainPart) {
+        // Plain text part was present, set it to HbTextEdit
+        emit setPlainText(plainPart->textContent());
+        mMessageBodyType = PlainText;
+    }
+    
+    // Original message text to editor content fiel
+    if (replyMsgEnvelope && mEditorWidget) {          
+        QTextCursor cursor = mEditorWidget->textCursor();
+        cursor.setPosition(1);
+        cursor.insertHtml(NmUtilities::createReplyHeader(*replyMsgEnvelope));
+    }
+}  
 
 /*!
    This method set new height for the editor content when header or body field

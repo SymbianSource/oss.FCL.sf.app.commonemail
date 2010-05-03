@@ -29,8 +29,7 @@ NmRecipientLineEdit::NmRecipientLineEdit(QGraphicsItem *parent)
     : NmHtmlLineEdit(parent),
     mNeedToGenerateEmailAddressList(true)
 {
-    connect(this, SIGNAL(textChanged(const QString &)), 
-            this, SLOT(handleTextChanged(const QString &)));
+    connect(this, SIGNAL(textChanged(QString)), this, SLOT(handleTextChanged(QString)));
 }
 
 
@@ -61,33 +60,55 @@ QList<NmAddress> NmRecipientLineEdit::emailAddressList()
 
 #ifdef Q_OS_SYMBIAN
 /*!
-   This Slot inserts the contacts selected from PhoneBook at the lineedit cursor position.
+   This Slot inserts the selected contacts from Contacts-picker into the lineedit cursor position.    
+   "You shouldn't be able to convert the parameter selectedContacts into a QStringlist or QString,
+   you need to convert selectedContacts into a CntServicesContactList." -- Comments from 
+   Contacts-picker author Erkinheimo Joonas (Nokia-D/Espoo)
+   Contacts-Picker should be working in TB 10.1 MCL wk16 release, 
+   Custom metatypes problem will be fixed in wk16 by QtHighway.
 */
 void NmRecipientLineEdit::insertSelectedContacts(const QVariant &selectedContacts)
 {
-    CntServicesContactList contactList;
-    contactList = qVariantValue<CntServicesContactList>(selectedContacts);
+    if (!selectedContacts.isNull()) {
+        CntServicesContactList contactList;
+        contactList = qVariantValue<CntServicesContactList>(selectedContacts);
 
-    if (contactList.count() == 0) {	
-// Using HbMessageBox or any other dialogs e.g HbNotificationDialog causes XQServiceRequest crash!
-//     // "No contact returned" will be replaced by a hbTrId.
-//     HbMessageBox note(tr("No contact returned"), HbMessageBox::MessageTypeInformation);
-//     note.setTimeout(HbMessageBox::NoTimeout);
-//     note.exec();
-    }
-    else {
-        // Loop through all the contacts selected from PhoneBook.
-        for (int i = 0; i < contactList.count(); ++i) {
-            QString contactEmailAddress = contactList[i].mEmailAddress;
-            QString contactName = contactList[i].mDisplayName;
+        if (contactList.count() == 0) {	
+            // String "No contact returned" will be replaced by a hbTrId.
+            HbMessageBox note(tr("No contact returned"), HbMessageBox::MessageTypeInformation);
+            note.setTimeout(HbMessageBox::NoTimeout);
+            note.exec();
+        }
+        else {
+            // Loop through all the contacts selected from Contacts application.
+            for (int i = 0; i < contactList.count(); ++i) {
+                QString contactEmailAddress = contactList[i].mEmailAddress;
+                QString contactName = contactList[i].mDisplayName;
 
             // If this contact has no name.
-            if(contactName.isEmpty()) {	
-            // Insert this contact's emailaddress.			
-            insertText(contactEmailAddress);
+            if(contactName.isEmpty()) {				
+                // Generate custom keyevent for this contact's emailaddress.
+                QKeyEvent contactEmailAddressKeyEvent(QEvent::KeyPress, Qt::Key_unknown, 
+                		                              Qt::NoModifier, contactEmailAddress);
+                // Forward this contactEmailAddressKeyEventt to base class to handle.
+                NmHtmlLineEdit::keyPressEvent(&contactEmailAddressKeyEvent);
             }
             else {
-                insertText(contactName); 
+                // Handle a rare case: there's another contact has same name 
+                // but has different emailaddress.
+                for (int i = 0; i != mContactsSelectedFromPhoneBook.count(); ++i) {
+                    if (mContactsSelectedFromPhoneBook.at(i).displayName() == contactName &&
+                    	mContactsSelectedFromPhoneBook.at(i).address() != contactEmailAddress) {
+                        // Differentiate this contact's name by adding a * mark
+                        contactName.append("*");
+                    }
+                }
+                
+                // Generate custom keyevent for this contact's name.
+                QKeyEvent contactNameKeyEvent(QEvent::KeyPress, Qt::Key_unknown, Qt::NoModifier,
+                                              contactName);
+                // Forward this contactNameKeyEvent to base class to handle.
+                NmHtmlLineEdit::keyPressEvent(&contactNameKeyEvent);
             }
 
             // Generate custom keyevent for Delimiter("; ").
@@ -102,31 +123,19 @@ void NmRecipientLineEdit::insertSelectedContacts(const QVariant &selectedContact
             
             // Add this NmAddress formated contact into mContactsSelectedFromPhoneBook.
             mContactsSelectedFromPhoneBook.append(contact);
+            }
         }
     }
+    else {
+        //Request returned NULL 
+        NMLOG("Request returned NULL.");
+    }
+        
 }
 
 Q_IMPLEMENT_USER_METATYPE(CntServicesContact)
 Q_IMPLEMENT_USER_METATYPE_NO_OPERATORS(CntServicesContactList)
 #endif   // Q_OS_SYMBIAN
-
-
-/*!
-   This Slot inserts text at the lineedit cursor position 
-   In the future when underlining some recipient is requested, 
-   the implementation will be replaced with QTextCursor, QTextCharFormat, so on.
-*/
-void NmRecipientLineEdit::insertText(const QString &text)
-{
-    // Loop through all the characters from the text.
-    for (int i = 0; i != text.count(); ++i) {
-        QString character(text[i]);
-        // Generate custom keyevent for this character.
-        QKeyEvent charKeyEvent(QEvent::KeyPress, Qt::Key_unknown, Qt::NoModifier, character);
-        // Forward the charKeyEvent to base class to handle.
-        NmHtmlLineEdit::keyPressEvent(&charKeyEvent);
-    }
-}
 
 
 /*!
@@ -136,6 +145,8 @@ void NmRecipientLineEdit::insertText(const QString &text)
 */
 void NmRecipientLineEdit::keyPressEvent(QKeyEvent *keyEvent)
 {
+	bool eventHandled = false;
+	
     if (keyEvent) {
         switch (keyEvent->key()) {    
         case Qt::Key_Comma:
@@ -148,23 +159,28 @@ void NmRecipientLineEdit::keyPressEvent(QKeyEvent *keyEvent)
                 if ((this->text()).isEmpty() || textBeforeCursor.endsWith(Delimiter)
                     || textBeforeCursor.endsWith(Semicolon)) {
                     keyEvent->ignore();
+                    eventHandled = true;
                 }
                 else {
                     // Generate custom keyevent for Delimiter("; ") and 
                     // forward to the base class to handle.
                     QKeyEvent delimiterKeyEvent(keyEvent->type(), keyEvent->key(),
-                    keyEvent->modifiers(), Delimiter);
+                                                keyEvent->modifiers(), Delimiter);
                     NmHtmlLineEdit::keyPressEvent(&delimiterKeyEvent);
+                    eventHandled = true;
                 }
             }
-        break;
+            break;
 
         default:
             NmHtmlLineEdit::keyPressEvent(keyEvent);
-        break;
+            eventHandled = true;
+            break;      
         }
     }
-    else {
+    
+    // If event is not handled, forward to the base class to handle.
+    if (!eventHandled) {
         NmHtmlLineEdit::keyPressEvent(keyEvent);
     }
 }
@@ -176,9 +192,11 @@ void NmRecipientLineEdit::keyPressEvent(QKeyEvent *keyEvent)
 */
 void NmRecipientLineEdit::inputMethodEvent(QInputMethodEvent *event)
 {
+	bool eventHandled = false;
+	
     if (event) {
         QString eventText = event->commitString();
-		
+
         if (!eventText.isEmpty() || event->replacementLength()) {
             // If typed charater from virtual keyboard is "," or ";"
             if (eventText.contains(CommaOrSemicolon)) {
@@ -189,23 +207,21 @@ void NmRecipientLineEdit::inputMethodEvent(QInputMethodEvent *event)
                 if ((this->text()).isEmpty() || textBeforeCursor.endsWith(Delimiter)
                     || textBeforeCursor.endsWith(Semicolon)) {
                     event->ignore();
+                    eventHandled = true;
                 }
                 else {
                     // Modify event with Delimiter("; ") and forward to the base class to handle.
                     event->setCommitString(Delimiter, event->replacementStart(),
                                            event->replacementLength()); 
                     NmHtmlLineEdit::inputMethodEvent(event);
+                    eventHandled = true;
                 }
             }
-            else {  
-                NmHtmlLineEdit::inputMethodEvent(event);
-            }
-        }
-        else { 
-            NmHtmlLineEdit::inputMethodEvent(event);
         }
     }
-    else {   
+
+    // If event is not handled, forward to the base class to handle.
+    if (!eventHandled) {
         NmHtmlLineEdit::inputMethodEvent(event);
     }
 }
@@ -241,7 +257,8 @@ void NmRecipientLineEdit::generateEmailAddressList()
                     // Form the item into Qmail NmAddress format.
                     NmAddress recipient;
                     recipient.setAddress(itemInLineedit);
-                    recipient.setDisplayName(itemInLineedit);
+                    // no display name info available, so don't us it
+                    recipient.setDisplayName(QString()); 
                     // Add this NmAddress formated lineedit item into mEmailAddressList.
                     mEmailAddressList.append(recipient);  
                 }
@@ -251,7 +268,8 @@ void NmRecipientLineEdit::generateEmailAddressList()
             // Form the item into Qmail NmAddress format.
             NmAddress recipient;
             recipient.setAddress(itemInLineedit);
-            recipient.setDisplayName(itemInLineedit);           
+            // no display name info available, so don't us it
+            recipient.setDisplayName(QString()); 
             // Add this NmAddress formated lineedit item into mEmailAddressList.
             mEmailAddressList.append(recipient);  
         }

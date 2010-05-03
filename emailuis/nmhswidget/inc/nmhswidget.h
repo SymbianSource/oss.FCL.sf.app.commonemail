@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+ * Copyright (c) 2010 Nokia Corporation and/or its subsidiary(-ies).
  * All rights reserved.
  * This component and the accompanying materials are made available
  * under the terms of "Eclipse Public License v1.0"
@@ -19,6 +19,7 @@
 #define NMHSWIDGET_H
 
 #include <hbwidget.h>
+#include "nmcommon.h"
 
 class NmHsWidgetEmailEngine;
 class NmHsWidgetTitleRow;
@@ -28,6 +29,8 @@ class QGraphicsLinearLayout;
 class NmHsWidget : public HbWidget
 {
     Q_OBJECT
+    
+    Q_PROPERTY(QString accountId READ accountId WRITE setAccountId)
   
 public:
     NmHsWidget(QGraphicsItem *parent = 0, Qt::WindowFlags flags = 0);
@@ -35,23 +38,28 @@ public:
     
 public slots:
     void onInitialize();
+    void onShow();
+    void onHide();
     void onUninitialize();
     
-    void updateAccountName(const QString& accountName);
-    void updateUnreadCount(const int& unreadCount);
+
     void updateMailData();
+    void setAccountId(const QString &text);
+    QString accountId() const;
 
 protected:
     void updateMailRowsList(int mailCount);
     void paint(QPainter *painter, 
                const QStyleOptionGraphicsItem *option, 
                QWidget *widget);
+    void mousePressEvent(QGraphicsSceneMouseEvent *event);
     
 private:
     NmHsWidgetEmailEngine* mEngine;
     QGraphicsLinearLayout *mRowLayout;
     NmHsWidgetTitleRow* mTitleRow;
     QList<NmHsWidgetEmailRow*> mMailRows;
+    NmId mAccountId;
     
 public:    
     friend class TestNmHsWidget;     

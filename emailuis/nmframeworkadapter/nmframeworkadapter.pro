@@ -13,7 +13,7 @@
 #
 # Description: 
 #
-# Version : %version: 22 %
+# Version : %version: 24 %
 TEMPLATE = lib
 TARGET = nmframeworkadapter
 
@@ -50,6 +50,10 @@ SOURCES += src/nmframeworkadapter.cpp \
 
 RESOURCES +=
 
+LIBS += -leuser
+LIBS += -llibc
+LIBS += -lefsrv
+
 symbian*: {
     INCLUDEPATH += /epoc32/include/ecom \
     ../../emailservices/emailframework/inc \
@@ -72,6 +76,7 @@ symbian*: {
 	LIBS += -lfsmailframework
 	LIBS += -lfsfwcommonlib
 	LIBS += -lcharconv
+    LIBS += -lxqserviceutil 
 
 	BLD_INF_RULES.prj_exports += \
     "../rom/nmframeworkadapter.iby             CORE_APP_LAYER_IBY_EXPORT_PATH(nmframeworkadapter.iby)"

@@ -25,6 +25,7 @@
 class QGraphicsLinearLayout;
 class HbTextEdit;
 class HbDocumentLoader;
+class HbProgressDialog;
 class HbWidget;
 class NmBaseViewScrollArea;
 class NmApplication;
@@ -39,6 +40,7 @@ class NmOperation;
 class NmMessageCreationOperation;
 class NmAddAttachmentsOperation;
 class NmCheckOutboxOperation;
+class NmAttachmentPicker;
 
 
 class NmEditorView : public NmBaseView, public NmActionObserver
@@ -62,12 +64,12 @@ public:
     bool okToExitView();
     void aboutToExitView();
 
-
 public slots:
 
     void orientationChanged(Qt::Orientation orientation);
     void createOptionsMenu();
     void setButtonsDimming(bool enabled);
+    void attachmentLongPressed(NmId attachmentPartId, QPointF point);
 
 
 public: // From NmActionObserver
@@ -84,14 +86,12 @@ private slots:
                             int result);
 
     void allAttachmentsAdded(int result);
+    void attachmentRemoved(int result);
     void outboxChecked(int result);
-    void removeAttachment(const NmId attachmentPartId);
-
-#ifdef Q_OS_SYMBIAN    
+    void removeAttachmentTriggered();
+    void handleSendOperationCompleted();
+    void openAttachmentTriggered();  
     void onAttachmentReqCompleted(const QVariant &value);
-    void attachImage();
-#endif    
-
 
 private:
 
@@ -110,6 +110,7 @@ private:
     void setPriority(NmActionResponseCommand priority);
     QString addressListToString(const QList<NmAddress*> &list) const;
     QString addressListToString(const QList<NmAddress> &list) const;
+    void enableToolBarAttach(bool enable);
 
 
 public slots:
@@ -132,13 +133,18 @@ private: // Data
     NmEditorHeader *mHeaderWidget;      // Not owned
     NmMessage *mMessage;                // Owned
     NmEditorContent *mContentWidget;    // Owned
-    HbMenu  *mPrioritySubMenu;          // Owned
-    HbMenu *mAttachContextMenu;         // Owned
+    HbMenu *mPrioritySubMenu;           // Owned
+    HbMenu *mAttachmentListContextMenu; // Owned
+    NmId mSelectedAttachment;
 
     NmMessageCreationOperation *mMessageCreationOperation;  // Owned
     NmAddAttachmentsOperation *mAddAttachmentOperation;     // Owned
     NmOperation *mRemoveAttachmentOperation;                // Owned
     NmCheckOutboxOperation *mCheckOutboxOperation;          // Owned
+
+    HbProgressDialog *mWaitDialog; // Owned.
+    
+    NmAttachmentPicker* mAttachmentPicker;    // Owned    
 };
 
 

@@ -86,14 +86,14 @@ static const quint32 EmailKeyReceptionUserDefinedProfile = 4;
 
 // Inbox sync window in number of messages. 0 means all messages are synched
 // from the server. 
-// Value for each profile: KUTP(200),SE(100),FM(100), UD
+// Value for each profile: KUTP(500),SE(50),FM(50), UD
 // This key follows the profile offset.
 static const quint32 EmailKeyReceptionInboxSyncWindow = 5;
 
 // default values for each profile
-static const int DefaultValueKeepUpToDateInboxSyncWindow = 200;
-static const int DefaultValueSaveEnergyInboxSyncWindow = 100;
-static const int DefaultValueManualSyncInboxSyncWindow = 100;
+static const int DefaultValueKeepUpToDateInboxSyncWindow = 500;
+static const int DefaultValueSaveEnergyInboxSyncWindow = 50;
+static const int DefaultValueManualSyncInboxSyncWindow = 50;
 static const int DefaultUserDefinedInboxSyncWindow = -1;
 
 // Other folder sync window in number of messages. 0 means all messages are synched

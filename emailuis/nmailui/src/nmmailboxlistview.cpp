@@ -88,7 +88,7 @@ void NmMailboxListView::loadViewLayout()
         if (mMailboxListWidget) {
             NMLOG("nmailui: mailboxlistview: List object loaded");
             // Set item prototype.
-            mMailboxListWidget->setItemPrototype(new NmMailboxListViewItem(mDocumentLoader));
+            mMailboxListWidget->setItemPrototype(new NmMailboxListViewItem(this));
             mMailboxListWidget->setItemRecycling(true);
             QObject::connect(mMailboxListWidget,
                     SIGNAL(activated(const QModelIndex &)),

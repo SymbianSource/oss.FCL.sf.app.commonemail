@@ -30,3 +30,7 @@ EXPORTS
 	?staticMetaObject@NmSettingsViewFactory@@2UQMetaObject@@B @ 29 NONAME ; struct QMetaObject const NmSettingsViewFactory::staticMetaObject
 	?mailboxListChanged@NmSettingsViewLauncher@@IAEXABVNmId@@W4MailboxEventType@NmSettings@@@Z @ 30 NONAME ; void NmSettingsViewLauncher::mailboxListChanged(class NmId const &, enum NmSettings::MailboxEventType)
 	?staticMetaObject@NmSettingsViewLauncher@@2UQMetaObject@@B @ 31 NONAME ; struct QMetaObject const NmSettingsViewLauncher::staticMetaObject
+	?goOnline@NmSettingsViewLauncher@@IAEXABVNmId@@@Z @ 32 NONAME ; void NmSettingsViewLauncher::goOnline(class NmId const &)
+	?aboutToClose@NmSettingsViewFactory@@IAEXXZ @ 33 NONAME ; void NmSettingsViewFactory::aboutToClose(void)
+	?goOffline@NmSettingsViewLauncher@@IAEXABVNmId@@@Z @ 34 NONAME ; void NmSettingsViewLauncher::goOffline(class NmId const &)
+

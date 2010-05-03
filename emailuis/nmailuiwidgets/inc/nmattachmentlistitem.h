@@ -33,7 +33,9 @@ class NMAILUIWIDGETS_EXPORT NmAttachmentListItem : public HbWidget
 public:
     explicit NmAttachmentListItem(QGraphicsItem *parent = 0);
     virtual ~NmAttachmentListItem();
-    void setTextItems(const QString &fileName, const QString &fileSize);
+    void setTextColor(const QColor color);
+    void setFileNameText(const QString &fileName);
+    void setFileSizeText(const QString &fileSize);
     void setProgressBarValue(const int value);
     int progressBarValue() const;
 
@@ -61,7 +63,7 @@ private:
     QTimer *mTimer; //owned
     bool mButtonPressed;
     QPointF mLongPressedPoint;
-
+    QColor mTextColor;
 };
 
 #endif /* NMATTACHMENTLISTITEM_H_ */

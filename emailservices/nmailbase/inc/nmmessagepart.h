@@ -111,6 +111,7 @@ public:
 
 protected:
 
+	const NmMessagePart *findContentPart(const QString &contentType) const;
 	NmMessagePart *findContentPart(const QString &contentType);
 	// this cannot be private, must be usable from derived class
     NmMessagePart(const NmMessagePart &part);

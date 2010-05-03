@@ -32,6 +32,7 @@
 #define KRfsMsgStorePluginDllUid    0x2000C8D3 // MsgStore RfsPlugin DLL
 #define KRfsMsgStorePluginImpUid    0x2000C8D4 // MsgStore RfsPlugin Implementation Uid
 #define KRfsMsgStoreVersionNumber   1          // MsgStore RfsPlugin version number
+#define KRfsMsgStoreMMPVersionNumber 1.0       // MsgStore version number for MMP file (major.minor)
 
 // These should be defined in Symbian OS headers, but aren't
 #ifndef KUidEPOCApp       

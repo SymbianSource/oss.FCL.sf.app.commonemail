@@ -17,11 +17,15 @@
 #ifndef NMATTACHMENTLISTWIDGET_H_
 #define NMATTACHMENTLISTWIDGET_H_
 
+#include <QColor>
+
 #include <hbwidget.h>
 #include "nmailuiwidgetsdef.h"
 
 class NmAttachmentListItem;
 class QGraphicsGridLayout;
+class QStyleOptionGraphicsItem;
+class QPainter;
 
 class NMAILUIWIDGETS_EXPORT NmAttachmentListWidget : public HbWidget
 {
@@ -30,10 +34,13 @@ class NMAILUIWIDGETS_EXPORT NmAttachmentListWidget : public HbWidget
 public:
     NmAttachmentListWidget(QGraphicsItem *parent = 0);
     virtual ~NmAttachmentListWidget();
+    void setTextColor(const QColor color);
     void insertAttachment(const int index, const QString &fileName, const QString &fileSize);
     void removeAttachment(const int index);
+    void setAttachmentSize(int index, const QString &fileSize);
     int count() const;
     int progressValue(int index) const;
+    void paint(QPainter *painter,const QStyleOptionGraphicsItem *option,QWidget *widget);
 
 public slots:
     void setProgressBarValue(int index, int value); 
@@ -59,6 +66,7 @@ private:
     QList<NmAttachmentListItem*> mItemList; //owned
     QGraphicsGridLayout *mLayout;
     Qt::Orientation mOrientation;
+    QColor mTextColor;
 };
 
 #endif // NMATTACHMENTLISTWIDGET_H_

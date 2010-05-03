@@ -20,6 +20,7 @@
 #define NMHSWIDGETEMAILROW_H_
 
 #include <hbwidget.h>
+#include "nmcommon.h"
 
 //FORWARD DECLARATIONS:
 class HbLabel;
@@ -32,6 +33,7 @@ class NmHsWidgetEmailRow : public HbWidget
 public:
     NmHsWidgetEmailRow(QGraphicsItem *parent = 0, Qt::WindowFlags flags = 0);
     ~NmHsWidgetEmailRow();
+    NmId messageId();
 
 public slots:
     void updateMailData( const NmMessageEnvelope& envelope );
@@ -46,6 +48,8 @@ private:
     HbLabel *mSubjectLabel;
     HbLabel *mTimeLabel;
     HbLabel *mNewMailIcon;
+    HbLabel *mSeparatorIcon;
+    NmId mMessageId;
     QList <HbLabel*> mStatusIcons;  
     
 };

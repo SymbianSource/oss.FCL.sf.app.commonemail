@@ -17,6 +17,8 @@
 
 #include "nmuiheaders.h"
 
+static const int NmMegabyte = 1048576;
+
 // taken from http://www.regular-expressions.info/email.html
 static const QRegExp EmailAddressPattern("[A-Za-z\\d!#$%&'*+/=?^_`{|}~-]+"
                                          "(?:"
@@ -188,20 +190,18 @@ int NmUtilities::openFile(QFile &file)
   Opens file specified by RFile handle. Usually used by viewer
   for opening attachments from message store as RFiles
 */
-int NmUtilities::openFile(RFile &file)
+int NmUtilities::openFile(XQSharableFile &file)
 {
     int ret(NmNotFoundError);
-    XQSharableFile sf;
-    sf.setHandle(file);
     XQApplicationManager aiwMgr;
     XQAiwRequest *request(NULL);
-    request = aiwMgr.create(sf);  
+    request = aiwMgr.create(file);  
     // Create request for the sharable file
     if (request)
     {
         // Set request arguments
         QList<QVariant> args;
-        args << qVariantFromValue(sf);  
+        args << qVariantFromValue(file);  
         request->setArguments(args);
         // Send the request, ownership of request is transferred
         bool res = request->send();
@@ -227,4 +227,147 @@ QString NmUtilities::truncate( const QString &string, int length )
 
     return string.mid(0, length - padding.length()) + padding;
 }
+
+/*!
+ * Shows an error note. Used by at least editor and viewer classes.
+ * 
+ */
+void NmUtilities::displayErrorNote(QString noteText)
+{
+	HbNotificationDialog *note = new HbNotificationDialog();
+	
+	note->setIcon(HbIcon(QLatin1String("note_warning")));
+	note->setTitle(noteText);
+	note->setTitleTextWrapping(Hb::TextWordWrap);
+	note->setDismissPolicy(HbPopup::TapAnywhere);
+	note->setAttribute(Qt::WA_DeleteOnClose);
+	note->setSequentialShow(false);
+
+	note->show();
+}
+
+/*!
+    Function returns localized attachment size string based
+    on attachment size in bytes
+ */
+QString NmUtilities::attachmentSizeString(const int sizeInBytes)
+{
+    qreal sizeMb = (qreal)sizeInBytes / (qreal)NmMegabyte;
+    if (sizeMb < 0.1) {
+        // 0.1 Mb is the minimum size shown for attachment
+        sizeMb = 0.1;
+    }
+    return QString().sprintf("(%.1f Mb)", sizeMb); // Use loc string when available    
+}
+
+/*!
+    takes care of necessary error/information note displaying
+*/
+void NmUtilities::displayOperationCompletionNote(const NmOperationCompletionEvent &event)
+{
+    if(event.mCompletionCode != NmNoError) {
+        if(event.mCompletionCode == NmAuthenticationError) {
+            HbMessageBox *messageBox = new HbMessageBox(HbMessageBox::MessageTypeWarning);
+            messageBox->setText(hbTrId("txt_mail_dialog_mail_address_or_password_is_incorr"));
+            // using default timeout
+            HbAction *action = messageBox->exec();
+        }
+        if(event.mCompletionCode == NmServerConnectionError) {
+            HbMessageBox *messageBox = new HbMessageBox(HbMessageBox::MessageTypeWarning);
+            messageBox->setText(hbTrId("txt_mail_dialog_server_settings_incorrect_link"));
+            messageBox->setTimeout(HbMessageBox::NoTimeout);
+            HbAction *action = messageBox->exec();
+            if(action == messageBox->primaryAction()) {
+                // Settings to be launched..
+            }
+        }
+    }
+}
+
+
+/*!
+    Function returns localized "Original message" header
+    in html format based on envelope
+*/
+QString NmUtilities::createReplyHeader(const NmMessageEnvelope &env)
+{
+    QString ret = "<html><body><br><br>";
+    // Append "----- Original message ----" text
+    ret+=hbTrId("txt_mail_editor_reply_original_msg");                  
+    // Append sender
+    ret+="<br>";
+    ret+=hbTrId("txt_mail_editor_reply_from");               
+    ret+=" ";        
+    if (env.sender().displayName().length()){
+        ret+=env.sender().displayName();
+    }
+    else{
+        ret+=env.sender().address();
+    }   
+    // Append sent time
+    ret+="<br>";
+    ret+=hbTrId("txt_mail_editor_reply_sent");   
+    ret+=" ";  
+    HbExtendedLocale locale = HbExtendedLocale::system();
+    QDate sentLocalDate = env.sentTime().toLocalTime().date();
+    ret+=locale.format(sentLocalDate, r_qtn_date_usual);   
+    // Append to recipients
+    const QList<NmAddress> &toList = env.toRecipients();
+    if (toList.count()){
+        ret+="<br>";
+        ret+=hbTrId("txt_mail_editor_reply_to"); 
+        ret+=" ";    
+        for (int i=0;i<toList.count();i++){
+            if (toList[i].displayName().length()){
+                ret+=toList[i].displayName();
+            }
+            else{
+                ret+=toList[i].address();
+            }
+            if (i!=toList.count()-1){
+                ret+=";";          
+            }
+        }    
+    }
+    // Append cc recipients
+    const QList<NmAddress> &ccList = env.ccRecipients();
+    if (ccList.count()){
+        ret+="<br>";
+        ret+=hbTrId("txt_mail_editor_reply_cc"); 
+        ret+=" ";         
+        for (int i=0;i<ccList.count();i++){
+            if (ccList[i].displayName().length()){
+                ret+=ccList[i].displayName();
+            }
+            else{
+                ret+=ccList[i].address();
+            }
+            if (i!=toList.count()-1){
+                ret+=";";          
+            }
+        }    
+    }
+    // Append subject if there is subject to display
+    if (env.subject().length()){
+        ret+="<br>";
+        ret+=hbTrId("txt_mail_editor_reply_subject"); 
+        ret+=" ";    
+        ret+=env.subject();    
+    }
+    // Append priority if it is other than normal  
+    if (env.priority()!=NmMessagePriorityNormal){   
+        ret+="<br>";
+        ret+=hbTrId("txt_mail_editor_reply_importance"); 
+        ret+=" ";    
+        if (env.priority()==NmMessagePriorityLow){
+            ret+=hbTrId("txt_mail_editor_reply_importance_low");         
+        }
+        else {
+            ret+=hbTrId("txt_mail_editor_reply_importance_high"); 
+        }
+    }    
+    ret+="<br></body></html>";
+    return ret;
+}
+
 

@@ -26,7 +26,7 @@ class NmRecipientLineEdit;
 class HbPushButton;
 class HbIconItem;
 #ifdef Q_OS_SYMBIAN
-class XQServiceRequest;
+class XQAiwRequest;
 #endif
 
 class NmRecipientField : public HbWidget
@@ -67,10 +67,6 @@ private:
     HbPushButton *mLaunchContactsPickerButton;       
     HbIconItem *mAddButtonIcon;
     bool mOwned;
-
-#ifdef Q_OS_SYMBIAN
-    XQServiceRequest *mLaunchContactsPickerRequest;
-#endif
 };
 
 #endif   // NMRECIPIENTFIELD_H_

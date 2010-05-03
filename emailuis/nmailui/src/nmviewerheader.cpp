@@ -96,6 +96,7 @@ void NmViewerHeader::loadWidgets()
     }
 }
 
+
 /*!
     Reimplementation to do some extra painting
 */
@@ -128,6 +129,7 @@ void NmViewerHeader::setMessage(NmMessage* message)
     mMessage=message;
     setHeaderData();
 }
+
 
 /*!
     Function updates data in already created objects. New message pointer
@@ -232,8 +234,14 @@ void NmViewerHeader::createExpandableHeader()
     if (mHeaderBox) {        // Initialize recipient box
         if (!mRecipientsBox){
             mRecipientsBox = new HbTextEdit();
+            HbStyle::setItemName(mRecipientsBox, "recipients");
+            mRecipientsBox->setContextMenuFlags(0);
             mRecipientsBox->setReadOnly(true);
-            mRecipientsBox->setFontSpec(HbFontSpec(HbFontSpec::Secondary));        
+            mRecipientsBox->setFontSpec(HbFontSpec(HbFontSpec::Secondary)); 
+            // Set text wrapping for from/to/cc address fields using text document
+            QTextOption textOption = mRecipientsBox->document()->defaultTextOption();
+            textOption.setWrapMode(QTextOption::WrapAtWordBoundaryOrAnywhere);
+            mRecipientsBox->document()->setDefaultTextOption(textOption);
         }
         connect(mRecipientsBox, SIGNAL(cursorPositionChanged(int, int)),
                 this, SLOT(cursorPositionChanged(int, int)));

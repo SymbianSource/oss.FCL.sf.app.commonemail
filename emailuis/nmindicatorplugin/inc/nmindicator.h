@@ -26,17 +26,20 @@ class NmMailboxInfo
 {
 public:
     NmMailboxInfo();
-    
+
 public:
     NmId mId;
     QString mName;
     NmSyncState mSyncState;
     NmConnectState mConnectState;
     int mUnreadMails;
+    int mOutboxMails;
 };
 
 class NmIndicator : public HbIndicatorInterface
 {
+    Q_OBJECT
+
 public:
 
     NmIndicator(const QString &indicatorType);
@@ -46,19 +49,37 @@ public: // From HbIndicatorInterface
 
     bool handleInteraction(InteractionType type);
     QVariant indicatorData(int role) const;
+    HbIndicatorInterface::Category category() const;
+    bool acceptIcon(bool sending);
+    void updateGlobalStatus(bool sending);
 
 protected: // From HbIndicatorInterface
 
     bool handleClientRequest(RequestType type, const QVariant &parameter);
 
+signals:
+
+    void indicatorIconLost();
+    void globalStatusChanged(bool sending);
+    void mailboxLaunched(quint64 mailboxId);
+
+private slots:
+
+    void hideSendIndicator();
+    
 private:
 
-    bool showMailbox(quint64 mailboxId);
     void storeMailboxData(QVariant mailboxData);
+    void showSendProgress();
+    bool isSending() const;
 
 private:
 
 	NmMailboxInfo mMailbox;
+    bool mShowIndicator;
+    bool mSendingState;
+    bool mShowSendProgress;
+	bool mActive;
 };
 
 #endif // NMINDICATOR_H

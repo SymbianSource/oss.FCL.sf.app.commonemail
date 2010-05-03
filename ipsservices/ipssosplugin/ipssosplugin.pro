@@ -52,6 +52,7 @@ inc/ipsplgcreatemessageoperation.h \
 inc/ipsplgcreateforwardmessageoperation.h \
 inc/ipsplgcreatereplymessageoperation.h \
 inc/ipsplgnewchildpartfromfileoperation.h \
+inc/ipsplgremovechildpartoperation.h \
 inc/ipsplgoperationwait.h \
 inc/ipsplgpop3connectop.h \
 inc/ipsplgpop3fetchoperation.h \
@@ -96,6 +97,7 @@ src/ipsplgcreatemessageoperation.cpp \
 src/ipsplgcreateforwardmessageoperation.cpp \
 src/ipsplgcreatereplymessageoperation.cpp \
 src/ipsplgnewchildpartfromfileoperation.cpp \
+src/ipsplgremovechildpartoperation.cpp \
 src/ipsplgoperationwait.cpp \
 src/ipsplgpop3connectop.cpp \
 src/ipsplgpop3fetchoperation.cpp \

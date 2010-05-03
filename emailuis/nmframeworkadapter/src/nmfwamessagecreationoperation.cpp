@@ -53,11 +53,11 @@ NmFwaMessageCreationOperation::~NmFwaMessageCreationOperation()
 }
 
 /*!
-    Slot, called after base object construction via timer event, runs the async operation.
+    Called after base object construction via timer event, runs the async operation.
     
     \sa NmOperation
  */
-void NmFwaMessageCreationOperation::runAsyncOperation()
+void NmFwaMessageCreationOperation::doRunAsyncOperation()
 {
     const TFSMailMsgId mailMsgId(mMailboxId.pluginId32(), mMailboxId.id32());
 

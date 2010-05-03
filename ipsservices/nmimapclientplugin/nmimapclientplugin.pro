@@ -28,6 +28,9 @@ HEADERS += inc/nmimapclientplugin.h \
 
 SOURCES += src/nmimapclientplugin.cpp
 
+LIBS += -leuser
+LIBS += -llibc
+
 symbian*: { 
     TARGET.EPOCALLOWDLLDATA = 1
     TARGET.CAPABILITY = ALL \

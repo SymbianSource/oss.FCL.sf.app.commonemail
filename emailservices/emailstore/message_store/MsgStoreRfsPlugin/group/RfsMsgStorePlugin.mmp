@@ -28,7 +28,7 @@ CAPABILITY    CAP_ECOM_PLUGIN
 VENDORID VID_DEFAULT
 
 
-VERSION       KRfsMsgStoreVersionNumber
+VERSION       KRfsMsgStoreMMPVersionNumber
 
 MW_LAYER_SYSTEMINCLUDE
 SYSTEMINCLUDE   /epoc32/include/ecom

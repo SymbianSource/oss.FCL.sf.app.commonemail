@@ -40,6 +40,8 @@ SOURCES   += src/nmmailbox.cpp \
     src/nmfolder.cpp \
     src/nmaddress.cpp
 
+LIBS += -leuser
+
 symbian*: { 
     TARGET.EPOCALLOWDLLDATA = 1
     TARGET.CAPABILITY = ALL \

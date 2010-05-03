@@ -32,6 +32,9 @@ HEADERS += inc/nmindicatorplugin.h \
 SOURCES += src/nmindicatorplugin.cpp \
            src/nmindicator.cpp
 
+LIBS += -leuser
+LIBS += -llibc
+
 symbian {
     TARGET.EPOCALLOWDLLDATA=1
     TARGET.CAPABILITY = ALL -TCB

@@ -21,7 +21,7 @@
     \brief list view item for message list view
 */
 
-static const qreal NmItemLineOpacity = 0.3;
+static const qreal NmItemLineOpacity = 0.4;
 
 /*!
     Constructor
@@ -226,6 +226,7 @@ void NmMessageListViewItem::setContentsToMessageItem(const NmMessageEnvelope &en
         drawer->setFillWholeRect(false);
         // Set drawer. Takes ownership of the drawer and deletes previous drawer.
         mNewMsgIcon->setFrameDrawer(drawer);
+        mNewMsgIcon->show();
     } else {
 
         setFontsRead();
@@ -234,6 +235,7 @@ void NmMessageListViewItem::setContentsToMessageItem(const NmMessageEnvelope &en
         drawer->setFillWholeRect(false);
         // Set drawer. Takes ownership of the drawer and deletes previous drawer.
         mNewMsgIcon->setFrameDrawer(drawer);
+        mNewMsgIcon->hide();        
     }
 }
 

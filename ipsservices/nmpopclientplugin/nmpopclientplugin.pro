@@ -28,6 +28,9 @@ HEADERS += inc/nmpopclientplugin.h \
 
 SOURCES += src/nmpopclientplugin.cpp
 
+LIBS += -leuser
+LIBS += -llibc
+
 symbian*: { 
     TARGET.EPOCALLOWDLLDATA = 1
     TARGET.CAPABILITY = ALL \

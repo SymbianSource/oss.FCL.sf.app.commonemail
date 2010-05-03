@@ -32,10 +32,11 @@ public:
     NmOperation(QObject *parent = 0);
     virtual ~NmOperation();    
     bool isRunning() const;
+    void addPreliminaryOperation(NmOperation *operation);
     
 signals:
     void operationProgressChanged(int progress);
-    void operationCompleted(int result);
+    void operationCompleted(int result = 0);
     void operationCancelled();
 
 public slots:
@@ -44,17 +45,22 @@ public slots:
     void updateOperationProgress(int progress);
 
 protected slots:
-    virtual void runAsyncOperation() = 0;
+    virtual void runAsyncOperation();
+    virtual void handlePreliminaryOperationFinished();
 
 protected:
     virtual void doCompleteOperation();
     virtual void doCancelOperation();
     virtual void doUpdateOperationProgress();
+    virtual void doRunAsyncOperation() = 0;
 
-private:
+protected:
     QTimer *mTimer;
+    
+private:
     int mProgress;
     bool mIsRunning;
+    QList<NmOperation *> mPreliminaryOperations;
 };
 
 #endif /* NMOPERATION_H_ */

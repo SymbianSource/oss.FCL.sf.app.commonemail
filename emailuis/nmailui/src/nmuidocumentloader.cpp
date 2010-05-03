@@ -49,6 +49,10 @@ QObject *NmUiDocumentLoader::createObject(const QString& type, const QString &na
         res = new NmViewerHeader();
         res->setObjectName(name);
     }
+    if( type == NmAttachmentListWidget::staticMetaObject.className() ) {
+        res = new NmAttachmentListWidget();
+        res->setObjectName(name);
+    }    
     if (res == NULL) {
         res = HbDocumentLoader::createObject(type, name);
     }

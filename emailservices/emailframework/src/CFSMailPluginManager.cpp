@@ -15,8 +15,9 @@
 *
 */
 
-
+//<qmail>
 #include <nmcommonheaders.h>
+//</qmail>
 #include "emailtrace.h"
 #include "CFSMailPluginManager.h"
 #include "CFSMailRequestObserver.h"

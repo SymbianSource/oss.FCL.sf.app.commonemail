@@ -24,7 +24,7 @@
 #include <imapset.h>
 #include <mtclreg.h>
 //<cmail>
-#include "mfsmailrequestobserver.h"
+#include "MFSMailRequestObserver.h"
 //</cmail>
 
 #include "IpsSosAOBaseAgent.h"

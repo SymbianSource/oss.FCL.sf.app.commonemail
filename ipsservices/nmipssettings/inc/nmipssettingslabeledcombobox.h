@@ -18,6 +18,7 @@
 #ifndef NMIPSSETTINGSLABELEDCOMBOBOX_H
 #define NMIPSSETTINGSLABELEDCOMBOBOX_H
 
+#include <qstringlist.h>
 #include <hbwidget.h>
 #include <qhash.h>
 
@@ -30,13 +31,23 @@ class NmIpsSettingsLabeledComboBox : public HbWidget
 {
     Q_OBJECT
 
+    Q_PROPERTY(int currentIndex READ currentIndex WRITE setCurrentIndex)
+    Q_PROPERTY(QStringList comboItems READ comboItems WRITE setComboItems)
+    Q_PROPERTY(QStringList labelTexts READ labelTexts WRITE setLabelTexts)
+
 public:
 
     NmIpsSettingsLabeledComboBox(QGraphicsItem *parent = 0, Qt::WindowFlags wFlags = 0);
     virtual ~NmIpsSettingsLabeledComboBox();
 
+    int currentIndex() const;
     void setCurrentIndex(int index);
-    void setItems(QStringList comboBoxItems, QStringList texts);
+
+    QStringList comboItems() const;
+    void setComboItems(QStringList comboItems);
+
+    QStringList labelTexts() const;
+    void setLabelTexts(QStringList labelTexts);
 
 signals:
 
@@ -54,7 +65,6 @@ private: // data
     HbComboBox *mComboBox;
 
     QHash<int, QString> mLabelTexts;
-
 };
 
 #endif // NMIPSSETTINGSLABELEDCOMBOBOX_H

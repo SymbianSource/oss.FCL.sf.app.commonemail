@@ -31,7 +31,7 @@
 /**
  * Base plugin has no particular id.
  */
-EXPORT_C TUint CBasePlugin::GetPluginId()
+TUint CBasePlugin::GetPluginId()
     {
     return 0;
     }
@@ -40,7 +40,7 @@ EXPORT_C TUint CBasePlugin::GetPluginId()
 /**
  *
  */
-EXPORT_C TFSMailBoxStatus CBasePlugin::GetMailBoxStatus(
+TFSMailBoxStatus CBasePlugin::GetMailBoxStatus(
     const TFSMailMsgId& /*aMailBoxId*/ )
     {
     return EFSMailBoxOnline;
@@ -50,7 +50,7 @@ EXPORT_C TFSMailBoxStatus CBasePlugin::GetMailBoxStatus(
 /**
  *
  */
-EXPORT_C TBool CBasePlugin::MailboxHasCapabilityL(
+TBool CBasePlugin::MailboxHasCapabilityL(
     TFSMailBoxCapabilities /*aCapability*/,
     TFSMailMsgId /*aMailBoxId*/ )
     {
@@ -61,7 +61,7 @@ EXPORT_C TBool CBasePlugin::MailboxHasCapabilityL(
 /**
  *
  */
-EXPORT_C TInt CBasePlugin::WizardDataAvailableL()
+TInt CBasePlugin::WizardDataAvailableL()
     {
     return KErrNotSupported;
     }
@@ -70,7 +70,7 @@ EXPORT_C TInt CBasePlugin::WizardDataAvailableL()
 /**
  *
  */
-EXPORT_C void CBasePlugin::AuthenticateL(
+void CBasePlugin::AuthenticateL(
     MFSMailRequestObserver& /*aOperationObserver*/,
     TInt /*aRequestId*/ )
     {
@@ -80,7 +80,7 @@ EXPORT_C void CBasePlugin::AuthenticateL(
 
 /**
  */
-EXPORT_C void CBasePlugin::SetCredentialsL(
+void CBasePlugin::SetCredentialsL(
     const TFSMailMsgId& /* aMailBoxId */,
     const TDesC& /* aUsername */,
     const TDesC& /* aPassword */ )
@@ -92,7 +92,7 @@ EXPORT_C void CBasePlugin::SetCredentialsL(
 /**
  *
  */
-EXPORT_C TDesC& CBasePlugin::GetBrandingIdL( const TFSMailMsgId& aMailboxId )
+TDesC& CBasePlugin::GetBrandingIdL( const TFSMailMsgId& aMailboxId )
     {
     CMailboxInfo& mailbox = GetMailboxInfoL( aMailboxId.Id() );
     return *mailbox.iBrandingId;
@@ -102,7 +102,7 @@ EXPORT_C TDesC& CBasePlugin::GetBrandingIdL( const TFSMailMsgId& aMailboxId )
 /**
  *
  */
-EXPORT_C TInt CBasePlugin::CancelSyncL( const TFSMailMsgId& /*aMailBoxId*/ )
+TInt CBasePlugin::CancelSyncL( const TFSMailMsgId& /*aMailBoxId*/ )
 	{
 	return KErrNotSupported;
 	}
@@ -171,7 +171,7 @@ class CSearchHandler : public CBase, public MMsgStoreSearchClient
 /**
  *
  */
-EXPORT_C void CBasePlugin::SearchL(
+void CBasePlugin::SearchL(
     const TFSMailMsgId& aMailBoxId,
     const RArray<TFSMailMsgId>& aFolderIds,
     const RPointerArray<TDesC>& aSearchStrings,
@@ -220,7 +220,7 @@ EXPORT_C void CBasePlugin::SearchL(
 /**
  *
  */
-EXPORT_C void CBasePlugin::CancelSearch(
+void CBasePlugin::CancelSearch(
     const TFSMailMsgId& aMailBoxId )
 
     {
@@ -231,7 +231,7 @@ EXPORT_C void CBasePlugin::CancelSearch(
 /**
  *
  */
-EXPORT_C void CBasePlugin::ClearSearchResultCache(
+void CBasePlugin::ClearSearchResultCache(
     const TFSMailMsgId& aMailBoxId )
 
     {
@@ -245,7 +245,7 @@ EXPORT_C void CBasePlugin::ClearSearchResultCache(
 /**
  *
  */
-EXPORT_C void CBasePlugin::GoOfflineL(
+void CBasePlugin::GoOfflineL(
     const TFSMailMsgId& /*aMailBoxId*/ )
     {
     }
@@ -254,7 +254,7 @@ EXPORT_C void CBasePlugin::GoOfflineL(
 /**
  *
  */
-EXPORT_C void CBasePlugin::GoOnlineL(
+void CBasePlugin::GoOnlineL(
     const TFSMailMsgId& /*aMailBoxId*/ )
     {
     }
@@ -263,7 +263,7 @@ EXPORT_C void CBasePlugin::GoOnlineL(
 /**
  *
  */
-EXPORT_C void CBasePlugin::RefreshNowL(
+void CBasePlugin::RefreshNowL(
     const TFSMailMsgId& /*aMailBoxId*/,
  	MFSMailRequestObserver& /*aOperationObserver*/,
  	TInt /*aRequestId*/ )
@@ -279,7 +279,7 @@ EXPORT_C void CBasePlugin::RefreshNowL(
 /**
  *
  */
-EXPORT_C MDesCArray* CBasePlugin::GetMrusL(
+MDesCArray* CBasePlugin::GetMrusL(
     const TFSMailMsgId& aMailBoxId )
 
     {
@@ -313,7 +313,7 @@ EXPORT_C MDesCArray* CBasePlugin::GetMrusL(
 /**
  *
  */
-EXPORT_C void CBasePlugin::SetMrusL(
+void CBasePlugin::SetMrusL(
     const TFSMailMsgId& aMailBoxId,
     MDesCArray* aNewMruList )
 
@@ -350,7 +350,7 @@ EXPORT_C void CBasePlugin::SetMrusL(
 /**
  *
  */
-EXPORT_C TFSProgress CBasePlugin::StatusL( TInt /*aRequestId*/ )
+TFSProgress CBasePlugin::StatusL( TInt /*aRequestId*/ )
     {
     TFSProgress result = { TFSProgress::EFSStatus_Waiting, 0, 0, 0 };
     return result;
@@ -361,7 +361,7 @@ EXPORT_C TFSProgress CBasePlugin::StatusL( TInt /*aRequestId*/ )
  * Concrete plugins need to call the base plugin's implementation.
  * @param aRequestId
  */
-EXPORT_C void CBasePlugin::CancelL( TInt aRequestId )
+void CBasePlugin::CancelL( TInt aRequestId )
     {
     //find the fetch request and notify the observer.
     TInt count = iReqs.Count();
@@ -370,8 +370,9 @@ EXPORT_C void CBasePlugin::CancelL( TInt aRequestId )
     	if ( iReqs[i]->iRequestId == aRequestId )
     		{
     		CFetchRequester* request = iReqs[i];
-
+//<qmail>
     		TFSProgress progress = TFSProgress();
+//</qmail>
     		progress.iProgressStatus = TFSProgress::EFSStatus_RequestCancelled;
     		progress.iCounter = progress.iMaxCount = 1;
     		progress.iError = KErrNone;
@@ -388,7 +389,7 @@ EXPORT_C void CBasePlugin::CancelL( TInt aRequestId )
 /**
  *
  */
-EXPORT_C const TFSProgress CBasePlugin::GetLastSyncStatusL(
+const TFSProgress CBasePlugin::GetLastSyncStatusL(
     const TFSMailMsgId& /*aMailBoxId*/ )
 
     {
@@ -403,8 +404,8 @@ EXPORT_C const TFSProgress CBasePlugin::GetLastSyncStatusL(
  *
  */
 //<qmail>
-EXPORT_C TSSMailSyncState CBasePlugin::CurrentSyncState(
-    const TFSMailMsgId& /*aMailboxId*/ )
+TSSMailSyncState CBasePlugin::CurrentSyncState(
+            const TFSMailMsgId& /*aMailboxId*/ )
     {
     return Idle;
     }
@@ -413,7 +414,7 @@ EXPORT_C TSSMailSyncState CBasePlugin::CurrentSyncState(
 /**
  *
  */
-EXPORT_C CMsgStoreAccount* CBasePlugin::GetAccountForMsgBoxL(
+CMsgStoreAccount* CBasePlugin::GetAccountForMsgBoxL(
     const TFSMailMsgId& aMailboxId )
 
     {
@@ -470,7 +471,7 @@ void CBasePlugin::DoClearSearchResultCacheL(
 /**
  *
  */
-EXPORT_C /*virtual*/ void CBasePlugin::SetMailboxName(
+/*virtual*/ void CBasePlugin::SetMailboxName(
     const TFSMailMsgId& /*aMailboxId*/,
     const TDesC& /*aMailboxName*/ )
     {
@@ -479,7 +480,7 @@ EXPORT_C /*virtual*/ void CBasePlugin::SetMailboxName(
 /**
  *
  */
-/*protected*/ EXPORT_C void CBasePlugin::ResetCache()
+/*protected*/ void CBasePlugin::ResetCache()
     {
     __LOG_ENTER_SUPPRESS( "ResetCache" );
 
@@ -497,7 +498,7 @@ EXPORT_C /*virtual*/ void CBasePlugin::SetMailboxName(
 /**
  *
  */
-/*protected*/ EXPORT_C void CBasePlugin::ResetBodyCache()
+/*protected*/ void CBasePlugin::ResetBodyCache()
     {
     __LOG_ENTER_SUPPRESS( "ResetCache" );
     iCacheLine.iBodyChildren.ResetAndDestroy();
@@ -512,7 +513,7 @@ EXPORT_C /*virtual*/ void CBasePlugin::SetMailboxName(
 /**
  *
  */
-/*protected*/ EXPORT_C CMsgStoreMessage* CBasePlugin::GetCachedMsgL(
+/*protected*/ CMsgStoreMessage* CBasePlugin::GetCachedMsgL(
     TMsgStoreId aMailBoxId,
     TMsgStoreId aMsgId )
     {
@@ -547,7 +548,7 @@ EXPORT_C /*virtual*/ void CBasePlugin::SetMailboxName(
  *
  */
 /*protected*/
-EXPORT_C CMsgStoreMessagePart* CBasePlugin::GetCachedBodyL(
+CMsgStoreMessagePart* CBasePlugin::GetCachedBodyL(
     TMsgStoreId aPartId )
     {
     __LOG_ENTER_SUPPRESS( "GetCachedBodyL" );
@@ -575,7 +576,7 @@ EXPORT_C CMsgStoreMessagePart* CBasePlugin::GetCachedBodyL(
  *
  */
 /*protected*/
-EXPORT_C RPointerArray<CMsgStoreMessagePart>& CBasePlugin::GetCachedMsgChildrenL()
+RPointerArray<CMsgStoreMessagePart>& CBasePlugin::GetCachedMsgChildrenL()
     {
     __LOG_ENTER_SUPPRESS( "GetCachedMsgChildrenL" );
 
@@ -599,7 +600,7 @@ EXPORT_C RPointerArray<CMsgStoreMessagePart>& CBasePlugin::GetCachedMsgChildrenL
  *
  */
 /*protected*/
-EXPORT_C RPointerArray<CMsgStoreMessagePart>& CBasePlugin::GetCachedBodyChildrenL()
+RPointerArray<CMsgStoreMessagePart>& CBasePlugin::GetCachedBodyChildrenL()
     {
     __LOG_ENTER_SUPPRESS( "GetCachedBodyChildrenL" );
 
@@ -622,7 +623,7 @@ EXPORT_C RPointerArray<CMsgStoreMessagePart>& CBasePlugin::GetCachedBodyChildren
 /**
  *
  */
-/*protected*/ EXPORT_C void CBasePlugin::InvalidateCacheIfNecessary(
+/*protected*/ void CBasePlugin::InvalidateCacheIfNecessary(
     TMsgStoreId aId,
     TMsgStoreId aParentId,
     TMsgStoreId aOtherId )
@@ -641,7 +642,12 @@ EXPORT_C RPointerArray<CMsgStoreMessagePart>& CBasePlugin::GetCachedBodyChildren
 /**
  *
  */
-/*public*/ EXPORT_C MDelayedOpsManager& CBasePlugin::GetDelayedOpsManager()
+/*public*/ MDelayedOpsManager& CBasePlugin::GetDelayedOpsManager()
     {
     return *iDelayedOpsManager;
+    }
+
+/*protected*/ const TDesC& CBasePlugin::CalendarFileName() const
+    {
+    return KNullDesC();
     }

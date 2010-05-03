@@ -15,8 +15,10 @@
 *
 */
 
-
+// <qmail>
 #include <nmcommonheaders.h>
+// </qmail>
+
 #include "emailtrace.h"
 #include "CFSMailRequestObserver.h"
 #include "CFSMailRequestHandler.h"
@@ -28,6 +30,7 @@
 CFSMailRequestObserver::CFSMailRequestObserver()
 {
     FUNC_LOG;
+
 }
 
 // -----------------------------------------------------------------------------
@@ -36,41 +39,42 @@ CFSMailRequestObserver::CFSMailRequestObserver()
 CFSMailRequestObserver::~CFSMailRequestObserver()
 {
     FUNC_LOG;
+
 }
 // -----------------------------------------------------------------------------
 // CFSMailRequestObserver::NewLC
 // -----------------------------------------------------------------------------
 CFSMailRequestObserver* CFSMailRequestObserver::NewLC( CFSMailRequestHandler& aPluginManager,
-                       MFSMailRequestObserver& aObserver )
+											 MFSMailRequestObserver& aObserver)
 {
     FUNC_LOG;
-    CFSMailRequestObserver* obs = new (ELeave) CFSMailRequestObserver();
-    CleanupStack:: PushL(obs);
-    obs->ConstructL(aPluginManager,aObserver);
-    return obs;
+	CFSMailRequestObserver* obs = new (ELeave) CFSMailRequestObserver();
+  	CleanupStack:: PushL(obs);
+  	obs->ConstructL(aPluginManager,aObserver);
+  	return obs;
 } 
 
 // -----------------------------------------------------------------------------
 // CFSMailRequestObserver::NewL
 // -----------------------------------------------------------------------------
 CFSMailRequestObserver* CFSMailRequestObserver::NewL( CFSMailRequestHandler& aPluginRequestHandler,
-                      MFSMailRequestObserver& aObserver )
+											MFSMailRequestObserver& aObserver )
 {
     FUNC_LOG;
-    CFSMailRequestObserver* obs =  CFSMailRequestObserver::NewLC(aPluginRequestHandler,aObserver);
-    CleanupStack::Pop(obs);
-    return obs;
+  	CFSMailRequestObserver* obs =  CFSMailRequestObserver::NewLC(aPluginRequestHandler,aObserver);
+  	CleanupStack::Pop(obs);
+  	return obs;
 }
 
 // -----------------------------------------------------------------------------
 // CFSMailRequestObserver::ConstructL
 // -----------------------------------------------------------------------------
 void CFSMailRequestObserver::ConstructL( CFSMailRequestHandler& aPluginRequestHandler,
-                  MFSMailRequestObserver& aObserver )
+									MFSMailRequestObserver& aObserver )
 {
     FUNC_LOG;
-    iObserver = &aObserver;
-    iRequestHandler = &aPluginRequestHandler;
+	iObserver = &aObserver;
+	iRequestHandler = &aPluginRequestHandler;
 }
 
 // -----------------------------------------------------------------------------
@@ -80,24 +84,25 @@ void CFSMailRequestObserver::RequestResponseL( TFSProgress aEvent, TInt aRequest
 {
     FUNC_LOG;
 
-    if(iObserver)
-        {
-        iObserver->RequestResponseL(aEvent,aRequestId); 
-        }
-    
-    if(aEvent.iProgressStatus == TFSProgress::EFSStatus_RequestComplete 
-        || aEvent.iProgressStatus == TFSProgress::EFSStatus_RequestCancelled)
-        {
-        iRequestHandler->CompleteRequest(aRequestId);
-        }
+	if(iObserver)
+		{
+		iObserver->RequestResponseL(aEvent,aRequestId);	
+		}
+		
+	if(aEvent.iProgressStatus == TFSProgress::EFSStatus_RequestComplete ||
+		aEvent.iProgressStatus == TFSProgress::EFSStatus_RequestCancelled)
+		{
+		iRequestHandler->CompleteRequest(aRequestId);
+		}
+
 }
 
 // -----------------------------------------------------------------------------
 // CFSMailRequestObserver::SetUserObserver
 // -----------------------------------------------------------------------------
-void CFSMailRequestObserver::SetUserObserver( MFSMailRequestObserver& aObserver )
-{
+void CFSMailRequestObserver::SetUserObserver(MFSMailRequestObserver& aObserver)
+	{
     FUNC_LOG;
     iObserver = &aObserver;
-}
-
+	}
+	

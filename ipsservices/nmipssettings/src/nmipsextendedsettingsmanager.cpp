@@ -76,8 +76,7 @@ bool NmIpsExtendedSettingsManager::readSetting(IpsServices::SettingItem settingI
                 settingValue = readFromCenRep(IpsServices::EmailKeyReceptionActiveProfile);
                 break;
             case IpsServices::ReceptionUserDefinedProfile:
-                settingValue = readFromCenRep(mActiveProfileOffset +
-                                              IpsServices::EmailKeyReceptionUserDefinedProfile);
+                settingValue = readFromCenRep(IpsServices::EmailKeyReceptionUserDefinedProfile);
                 break;
             case IpsServices::ReceptionInboxSyncWindow:
                 settingValue = readFromCenRep(mActiveProfileOffset +
@@ -127,69 +126,20 @@ bool NmIpsExtendedSettingsManager::readSetting(IpsServices::SettingItem settingI
 bool NmIpsExtendedSettingsManager::writeSetting(IpsServices::SettingItem settingItem,
                                                 const QVariant &settingValue)
 {
-    bool ret(mMailboxOffset>=0);
-    if(ret) {
-        switch(settingItem) {
-            case IpsServices::DownloadPictures:
-                ret = writeToCenRep(IpsServices::EmailKeyPreferenceDownloadPictures, settingValue);
-                break;
-            case IpsServices::MessageDivider:
-                ret = writeToCenRep(IpsServices::EmailKeyPreferenceMessageDivider, settingValue);
-                break;
-            case IpsServices::ReceptionActiveProfile:
-                ret = writeToCenRep(IpsServices::EmailKeyReceptionActiveProfile, settingValue);
-                calculateActiveProfileOffset();
-                break;
-            case IpsServices::ReceptionUserDefinedProfile:
-                ret = writeToCenRep(mActiveProfileOffset +
-                                    IpsServices::EmailKeyReceptionUserDefinedProfile,
-                                    settingValue);
-                break;
-            case IpsServices::ReceptionInboxSyncWindow:
-                ret = writeToCenRep(mActiveProfileOffset +
-                                    IpsServices::EmailKeyReceptionInboxSyncWindow,
-                                    settingValue);
-                break;
-            case IpsServices::ReceptionGenericSyncWindowInMessages:
-                ret = writeToCenRep(mActiveProfileOffset +
-                                    IpsServices::EmailKeyReceptionGenericSyncWindowInMessages,
-                                    settingValue);
-                break;
-            case IpsServices::ReceptionWeekDays:
-                ret = writeToCenRep(mActiveProfileOffset + IpsServices::EmailKeyReceptionWeekDays,
-                                    settingValue);
-                break;
-            case IpsServices::ReceptionDayStartTime:
-                ret = writeToCenRep(mActiveProfileOffset +
-                                    IpsServices::EmailKeyReceptionDayStartTime,
-                                    settingValue);
-                break;
-            case IpsServices::ReceptionDayEndTime:
-                ret = writeToCenRep(mActiveProfileOffset + IpsServices::EmailKeyReceptionDayEndTime,
-                                    settingValue);
-                break;
-            case IpsServices::ReceptionRefreshPeriodDayTime:
-                ret = writeToCenRep(mActiveProfileOffset +
-                                    IpsServices::EmailKeyReceptionRefreshPeriodDayTime,
-                                    settingValue);
-                break;
-            case IpsServices::ReceptionRefreshPeriodOther:
-                ret = writeToCenRep(mActiveProfileOffset +
-                                    IpsServices::EmailKeyReceptionRefreshPeriodOther,
-                                    settingValue);
-                break;
-            case IpsServices::UserNameHidden:
-                ret = writeToCenRep(IpsServices::EmailKeyUserNameHidden, settingValue);
-                break;
-            default:
-                ret = false;
-                break;
-            }
-    }
-    return ret;
+    return writeSettingToCenRep(mActiveProfileOffset, settingItem, settingValue);
 }
 
 /*!     
+
+*/
+bool NmIpsExtendedSettingsManager::writeSetting(int profileMode,
+    IpsServices::SettingItem settingItem, const QVariant &settingValue)
+{
+    quint32 profileOffset = convertToProfileOffset(profileMode);
+    return writeSettingToCenRep(profileOffset, settingItem, settingValue);
+}
+
+/*!
     Deletes all the extended settings of the mailbox.
 */
 void NmIpsExtendedSettingsManager::deleteSettings()
@@ -211,6 +161,67 @@ void NmIpsExtendedSettingsManager::deleteSettings()
             utils.deleteKey(key);
             }
     }
+}
+
+/*!
+
+*/
+bool NmIpsExtendedSettingsManager::writeSettingToCenRep(qint32 profileOffset,
+    IpsServices::SettingItem settingItem, const QVariant &settingValue)
+{
+    bool ret(profileOffset >= 0);
+    if(ret) {
+        switch(settingItem) {
+            case IpsServices::DownloadPictures:
+                ret = writeToCenRep(IpsServices::EmailKeyPreferenceDownloadPictures, settingValue);
+                break;
+            case IpsServices::MessageDivider:
+                ret = writeToCenRep(IpsServices::EmailKeyPreferenceMessageDivider, settingValue);
+                break;
+            case IpsServices::ReceptionActiveProfile:
+                ret = writeToCenRep(IpsServices::EmailKeyReceptionActiveProfile, settingValue);
+                calculateActiveProfileOffset();
+                break;
+            case IpsServices::ReceptionUserDefinedProfile:
+                ret = writeToCenRep(IpsServices::EmailKeyReceptionUserDefinedProfile, settingValue);
+                break;
+            case IpsServices::ReceptionInboxSyncWindow:
+                ret = writeToCenRep(profileOffset + IpsServices::EmailKeyReceptionInboxSyncWindow,
+                                    settingValue);
+                break;
+            case IpsServices::ReceptionGenericSyncWindowInMessages:
+                ret = writeToCenRep(profileOffset + IpsServices::EmailKeyReceptionGenericSyncWindowInMessages,
+                                    settingValue);
+                break;
+            case IpsServices::ReceptionWeekDays:
+                ret = writeToCenRep(profileOffset + IpsServices::EmailKeyReceptionWeekDays,
+                                    settingValue);
+                break;
+            case IpsServices::ReceptionDayStartTime:
+                ret = writeToCenRep(profileOffset + IpsServices::EmailKeyReceptionDayStartTime,
+                                    settingValue);
+                break;
+            case IpsServices::ReceptionDayEndTime:
+                ret = writeToCenRep(profileOffset + IpsServices::EmailKeyReceptionDayEndTime,
+                                    settingValue);
+                break;
+            case IpsServices::ReceptionRefreshPeriodDayTime:
+                ret = writeToCenRep(profileOffset + IpsServices::EmailKeyReceptionRefreshPeriodDayTime,
+                                    settingValue);
+                break;
+            case IpsServices::ReceptionRefreshPeriodOther:
+                ret = writeToCenRep(profileOffset + IpsServices::EmailKeyReceptionRefreshPeriodOther,
+                                    settingValue);
+                break;
+            case IpsServices::UserNameHidden:
+                ret = writeToCenRep(IpsServices::EmailKeyUserNameHidden, settingValue);
+                break;
+            default:
+                ret = false;
+                break;
+            }
+    }
+    return ret;
 }
 
 /*!
@@ -265,12 +276,18 @@ void NmIpsExtendedSettingsManager::calculateMailboxOffset()
 */
 void NmIpsExtendedSettingsManager::calculateActiveProfileOffset()
 {
-    quint32 profileOffset(0);
-
     QVariant activeProfile = readFromCenRep(IpsServices::EmailKeyReceptionActiveProfile);
+    mActiveProfileOffset = convertToProfileOffset(activeProfile.toInt());
+}
 
+/*!
+
+*/
+qint32 NmIpsExtendedSettingsManager::convertToProfileOffset(int profile)
+{
+    quint32 profileOffset(0);
     // Possible values are defined in ipssettingkeys.h
-    switch(activeProfile.toInt()) {
+    switch(profile) {
         case 0:
             profileOffset = IpsServices::EmailProfileOffsetKUTD;
             break;
@@ -286,5 +303,5 @@ void NmIpsExtendedSettingsManager::calculateActiveProfileOffset()
         default:
             break;
     }
-    mActiveProfileOffset = profileOffset;
+    return profileOffset;
 }

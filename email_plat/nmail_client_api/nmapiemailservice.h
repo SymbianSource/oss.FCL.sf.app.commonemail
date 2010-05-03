@@ -62,12 +62,12 @@ public:
     /*
      *gets mail message envelope by id (see also NmEventNotifier)
      */
-    bool envelope( const quint64 mailboxId, const quint64 folderId, const quint64 envelopeId, NmMessageEnvelope &envelope );
+    bool getEnvelope( const quint64 mailboxId, const quint64 folderId, const quint64 envelopeId, NmMessageEnvelope &envelope );
 
     /*
      *  gets mailbox info by id (see also NmEventNotifier)
      */
-    bool mailbox( const quint64 mailboxId, NmMailbox &mailboxInfo );
+    bool getMailbox( const quint64 mailboxId, NmMailbox &mailboxInfo );
 
     /*
      * returns isrunning flag value

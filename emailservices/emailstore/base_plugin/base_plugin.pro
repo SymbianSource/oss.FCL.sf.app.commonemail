@@ -31,10 +31,12 @@ HEADERS += inc/BaseMrInfoObject.h \
            inc/baseplugindelayedopsprivate.h \
            inc/BasePluginPanic.h \
            inc/MailIterator.h \
+	   inc/basepluginresourceloader.h  \
            inc/Map.h \
            inc/SafePointerArray.h \
            inc/Map.inl \
-           inc/baseplugindef.h 
+           inc/baseplugindef.h \
+	   inc/nestedao.h
 SOURCES += src/BaseMrInfoObject.cpp \
            src/BasePlugin.cpp \
            src/baseplugindelayedops.cpp \
@@ -44,7 +46,9 @@ SOURCES += src/BaseMrInfoObject.cpp \
            src/BasePluginPanic.cpp \
            src/basepluginparts.cpp \
            src/baseplugintranslator.cpp \
-           src/MailIterator.cpp
+           src/MailIterator.cpp \
+	   src/basepluginresourceloader.cpp \
+	   src/nestedao.cpp
 
 LIBS += -leuser \
 		-lecom \
@@ -52,7 +56,8 @@ LIBS += -leuser \
 		-lbafl \
 		-lmessagestoreclient \
 		-lfsfwcommonlib \
-		-ldebuglog
+		-ldebuglog \
+		-lcalinterimapi
 		
 symbian*: { 
     

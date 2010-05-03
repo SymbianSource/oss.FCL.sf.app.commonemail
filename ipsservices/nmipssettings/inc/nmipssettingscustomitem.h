@@ -28,18 +28,29 @@ class HbWidget;
 
 class NmIpsSettingsCustomItem : public HbDataFormViewItem
 {
+    Q_OBJECT
+
 public:
 
-    enum { LabeledComboBox = HbDataFormModelItem::CustomItemBase + 10 };
+    enum { LabeledComboBox = HbDataFormModelItem::CustomItemBase + 10,
+           TimeEditor };
 
     explicit NmIpsSettingsCustomItem(QGraphicsItem *parent=0);
     virtual ~NmIpsSettingsCustomItem();
     virtual HbAbstractViewItem* createItem();
     virtual bool canSetModelIndex(const QModelIndex &index) const;
 
+public slots:
+
+    void restore();
+	
 protected:
 
     virtual HbWidget* createCustomWidget();
+
+private:
+
+    void setWidgetProperty(const QString &property, const QHash<QString, QVariant> &properties);
 
 };
 

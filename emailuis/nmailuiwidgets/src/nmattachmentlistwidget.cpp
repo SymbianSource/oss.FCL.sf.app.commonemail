@@ -20,6 +20,8 @@
 static const QString FILE_PATH_DOCML = ":nmattachmentlistwidget.docml";
 static const QString ATTACHMENT_WIDGET = "nmattachmentlistwidget";
 
+static const qreal NmItemLineOpacity = 0.4;
+
 /*!
  @nmailuiwidgets
  \class NmAttachmentListWidget
@@ -117,6 +119,16 @@ NmAttachmentListWidget::~NmAttachmentListWidget( )
 }
 
 /*!
+    Setter for items text color override. This fucntion can be used
+    if theme background is not used and text needs to be shown in diferent color.
+ */
+void NmAttachmentListWidget::setTextColor(const QColor color)
+{
+    mTextColor=color;
+}
+
+
+/*!
     Inserts attachment to given index. If index already contains data,
     old one will be moved to next.
  */
@@ -133,7 +145,11 @@ void NmAttachmentListWidget::insertAttachment(
     connect(item, SIGNAL(itemLongPressed(QPointF)), this, SLOT(handleLongPressed(QPointF)));
 
     //set texts
-    item->setTextItems(fileName,fileSize);
+    if (mTextColor.isValid()){
+        item->setTextColor(mTextColor);    
+    }
+    item->setFileNameText(fileName);
+    item->setFileSizeText(fileSize);
 
     //finally add item to item's list
     mItemList.insert(index,item);
@@ -167,6 +183,18 @@ void NmAttachmentListWidget::removeAttachment(int index)
 }
 
 /*!
+    Set attachment file size.
+ */
+void NmAttachmentListWidget::setAttachmentSize(
+        int index, 
+        const QString &fileSize)
+{
+	if (index>=0 && index<mItemList.count()) {
+	    mItemList.at(index)->setFileSizeText(fileSize);
+	}
+}
+
+/*!
     Returns attachment(s) count. 
  */
 int NmAttachmentListWidget::count() const
@@ -184,6 +212,45 @@ int NmAttachmentListWidget::progressValue(int index) const
         ret = mItemList.at(index)->progressBarValue();
     }
     return ret;
+}
+
+
+/*!
+    paint. Paint function for line painting.
+*/
+void NmAttachmentListWidget::paint(
+    QPainter *painter,
+    const QStyleOptionGraphicsItem *option,
+    QWidget *widget)
+{
+    Q_UNUSED(option);
+    Q_UNUSED(widget);
+    if (painter&&mLayout){
+        // Use text color as a line color if set, otherwise use theme
+        // normal list content color.
+        if (mTextColor.isValid()){
+            painter->setPen(mTextColor);
+        }
+        else{
+            QColor col = HbColorScheme::color("list_item_content_normal");
+            if (col.isValid()) {
+                painter->setPen(col);
+            }
+        }
+        painter->setOpacity(NmItemLineOpacity);
+        // Draw line after each item
+        int rowCount = mLayout->rowCount();
+        QRectF layoutRect = mLayout->geometry ();
+        for (int i=0;i<rowCount;i++){
+            QGraphicsLayoutItem *item = mLayout->itemAt(i,0);
+            if (item){
+                QRectF itemRect = item->geometry();      
+                QLineF line1( itemRect.topLeft().x(), itemRect.bottomRight().y(),
+                              layoutRect.bottomRight().x(), itemRect.bottomRight().y());
+                painter->drawLine(line1);                     
+            }     
+        }        
+    }
 }
 
 /*!
@@ -239,6 +306,7 @@ void NmAttachmentListWidget::constructUi()
     if(loadingOk && widgetCount){
         if(layout()){
             mLayout = dynamic_cast<QGraphicsGridLayout*>(layout());
+            mLayout->setContentsMargins(0,0,0,0);
         } else {
             NMLOG("NmAttachmentListWidget::constructUi: Widget doesn't have layout!");
         }
@@ -333,6 +401,9 @@ void NmAttachmentListWidget::insertItemToLayout(NmAttachmentListItem* item)
     if(Qt::Vertical == mOrientation){
         mLayout->addItem(item,layout_count,0);
     } else {
+        if (mLayout->contentsRect().width() > 0) {
+            item->setPreferredWidth(mLayout->contentsRect().width() / 2);
+        }
         mLayout->addItem(item,layout_count / 2, layout_count % 2);
     }
 

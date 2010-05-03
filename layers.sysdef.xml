@@ -14,9 +14,11 @@
         <unit unitID="nmail.tools" mrp="" bldFile="&layer_real_source_path;\emailuis\nmailuiengine\tsrc\tools" name="qtdemos" proFile="tools.pro" qmakeArgs="-r" filter="nmail_tools"/>
      </module>
 <!-- Internal code widget-->
+<!-- temporary built from nmail.pro as a workaround to ServiceFW bug on service regisrtations, fix expected on wk18 MCL
       <module name="widget_tools">
         <unit unitID="widget.tools" mrp="" bldFile="&layer_real_source_path;\emailuis\nmhswidget\tsrc\nmhswidgettestapp" name="widgetestapp" proFile="nmhswidgettestapp.pro" qmakeArgs="-r" filter="widget_tools"/>
      </module>
+-->     
     </layer>
   </systemModel>
 </SystemDefinition>

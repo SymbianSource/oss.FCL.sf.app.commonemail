@@ -11,7 +11,7 @@
 *
 * Contributors:
 *
-* Description:
+* Description: Message creator implementation
 *
 */
 
@@ -509,7 +509,7 @@ void CBufferedMessageCreator::CommitMessagesImplL(
         
         if ( BaflUtils::FileExists( rfs, filePath ) )
             {
-            aStore.ContentManager().TransferContentFile(
+            aStore.ContentManager().TransferContentFileL(
                 part.iParams.iId, filePath );
             }
         }

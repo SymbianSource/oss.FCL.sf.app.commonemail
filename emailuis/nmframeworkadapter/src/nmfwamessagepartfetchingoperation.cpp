@@ -81,18 +81,18 @@ void NmFwaMessagePartFetchingOperation::RequestResponseL(TFSProgress aEvent, TIn
 /*!
 
  */
-void NmFwaMessagePartFetchingOperation::runAsyncOperation()
+void NmFwaMessagePartFetchingOperation::doRunAsyncOperation()
 {
-    TRAPD(err, runAsyncOperationL());
+    TRAPD(err, doRunAsyncOperationL());
     if (err != KErrNone) {
         completeOperation(NmGeneralError);
     }
 }
 
 /*!
-    Leaving version from runAsyncOperation
+    Leaving version from doRunAsyncOperation
  */
-void NmFwaMessagePartFetchingOperation::runAsyncOperationL()
+void NmFwaMessagePartFetchingOperation::doRunAsyncOperationL()
 {
     const TFSMailMsgId mailboxId(mMailboxId.pluginId32(), mMailboxId.id32());
     const TFSMailMsgId folderId(mFolderId.pluginId32(), mFolderId.id32());

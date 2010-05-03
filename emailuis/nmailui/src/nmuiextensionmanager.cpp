@@ -62,7 +62,6 @@ void NmUiExtensionManager::loadExtensionPlugins()
 #ifdef Q_OS_SYMBIAN
     // Note: In Symbian the plugin stub files (.qtplugin) must be used whenever
     // a path to plugin is needed - Symbian platform security.
-    const QString KTestPluginExtensionName = "nmtestpluginextension.qtplugin";
     const QString KImapPluginExtensionName = "nmimapclientplugin.qtplugin";
     const QString KPopPluginExtensionName  = "nmpopclientplugin.qtplugin";
     const QString KEasPluginExtensionName = "nmeasclientplugin.qtplugin";
@@ -70,21 +69,10 @@ void NmUiExtensionManager::loadExtensionPlugins()
     QDir pluginDir = QDir(KPluginDirectory);
 #else
     #define NM_WINS_ENV
-    const QString KTestPluginExtensionName = "nmtestpluginextension.dll";
     const QString KImapPluginExtensionName = "nmimapclientplugin.dll";
     const QString KPopPluginExtensionName  = "nmpopclientplugin.dll";
     QDir pluginDir = QDir(QApplication::applicationDirPath());
 #endif
-
-    
-    // Each plugin should be mapped to separate QPluginLoader   
-    QPluginLoader *testPluginLoader = new QPluginLoader(
-            pluginDir.absoluteFilePath(KTestPluginExtensionName));
-    testPluginLoader->load();
-    QObject *testPluginInstance(NULL); 
-    if (testPluginLoader && testPluginLoader->isLoaded()){
-        testPluginInstance = testPluginLoader->instance();    
-    }
 
     QPluginLoader *imapPluginLoader = new QPluginLoader(
             pluginDir.absoluteFilePath(KImapPluginExtensionName));
@@ -100,24 +88,6 @@ void NmUiExtensionManager::loadExtensionPlugins()
     QObject *easPluginInstance = easPluginLoader->instance();
 #endif
 
-    if(testPluginInstance) {
-        NmUiExtensionInterface *interface = qobject_cast<NmUiExtensionInterface*>(testPluginInstance);
-        if (interface) {
-            mExtensions.append(interface);
-        }
-
-        // Store QPluginLoader instances to keep plugins alive.
-        // If QPluginLoader instance for a plugin is deleted, then there
-        // is a risk that some component outside will load and unload
-        // plugin, which will lead into situation where plugin is deleted.
-        // This means that instance in mPluginArray will be invalid.
-        mPluginLoaders.append(testPluginLoader);
-    } else {
-        // We don't have proper plugin instance, so we don't need it's loader.
-        delete testPluginLoader;
-        testPluginLoader = NULL;
-    }
-    
     if(imapPluginInstance) {
         NmUiExtensionInterface *interface = qobject_cast<NmUiExtensionInterface*>(imapPluginInstance);
         if (interface) {

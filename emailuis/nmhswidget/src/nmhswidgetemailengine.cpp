@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+ * Copyright (c) 2010 Nokia Corporation and/or its subsidiary(-ies).
  * All rights reserved.
  * This component and the accompanying materials are made available
  * under the terms of "Eclipse Public License v1.0"
@@ -15,174 +15,354 @@
  *
  */
 
+#include <QDebug>
 #include <QTimer>
-
-#include "nmhswidgetemailengine.h"
+#include <QDir>
+#include <qpluginloader.h>
+#include <XQServiceRequest.h>
+#include "email_services_api.h"
+#include "nmcommon.h"
 #include "nmmessageenvelope.h"
-
-#include "nmframeworkadapter_stub.h" //Stub implementation for Sprint 2
-
+#include "nmhswidgetemailengine.h"
+#include "nmdataplugininterface.h"
+#include "nmmailbox.h"
+#include "nmfolder.h"
+#include "nmdatapluginfactory.h"
 
 /*!
-    Constructor
-*/
-NmHsWidgetEmailEngine::NmHsWidgetEmailEngine() :
-    mAccountName(0), 
-    mUnreadCount(0), 
-    m_stub_adapter(0)
+ Constructor
+ */
+NmHsWidgetEmailEngine::NmHsWidgetEmailEngine(const NmId& monitoredMailboxId) :
+    mMailboxId(monitoredMailboxId), mAccountName(0), mUnreadCount(0),
+            mEmailInterface(0), mFactory(0), mAccountEventReceivedWhenSuspended(false),
+            mMessageEventReceivedWhenSuspended(false), mSuspended(false) 
     {
-    m_stub_adapter = new NmFrameworkAdapter_stub();
-
+    qDebug()<<"NmHsWidgetEmailEngine() -- START";
+    constructNmPlugin();
     updateData();
     updateAccount();
-    
-    //TODO: To be removed in Sprint 3
-
-    connect( m_stub_adapter, SIGNAL( messageEvent() ) , this, SLOT( updateData() ) );
-    connect( m_stub_adapter, SIGNAL( mailboxEvent() ) , this, SLOT( updateAccount() ) );
-
-    //END
-    
+    qDebug()<<"NmHsWidgetEmailEngine() -- END";
     }
 
 
+/*!
+ constructNmPlugin
+ */
+void NmHsWidgetEmailEngine::constructNmPlugin()
+    {
+    qDebug()<<"NmHsWidgetEmailEngine::constructNmPlugin() -- START";
+    
+    QObject* pluginInstance(0); 
+    //Get data plugin factory instance
+    mFactory = NmDataPluginFactory::instance();
+
+    if(mFactory)        
+        {
+        pluginInstance = mFactory->pluginInstance(mMailboxId);
+        }
+
+    if(pluginInstance)
+        { 
+        mEmailInterface = mFactory->interfaceInstance( pluginInstance );
+        mFolderId = mEmailInterface->getStandardFolderId(mMailboxId, NmFolderInbox);
+        //Subscription is needed - otherwise the signals will not be received
+        mEmailInterface->subscribeMailboxEvents(mMailboxId);
+        
+        //Connect to events
+        connect(pluginInstance,
+                SIGNAL( messageEvent(NmMessageEvent, const NmId&, 
+                        const QList<NmId>&, const NmId&) ),
+                this,
+                SLOT( handleMessageEvent(NmMessageEvent, const NmId&, 
+                        const QList<NmId>&, const NmId&) ));
+
+        connect(pluginInstance,
+                SIGNAL( mailboxEvent(NmMailboxEvent, const QList<NmId>& ) ),
+                this,
+                SLOT( handleMailboxEvent(NmMailboxEvent, const QList<NmId>&) ));
+        
+        qDebug()<<"NmHsWidgetEmailEngine::constructNmPlugin() -- OK";
+        }
+    else
+        {
+        emit errorOccured(NmEngineErrFailure);
+        qDebug()<<"NmHsWidgetEmailEngine::constructNmPlugin() -- FAILED";
+        }
+
+    qDebug()<<"NmHsWidgetEmailEngine::constructNmPlugin() -- END";
+    }
 
 /*!
-    Reset envelope list
-    \post mEnvelopeList.isEmpty() == true && all contained objects are deleted
-*/
+ Reset envelope list
+ \post mEnvelopeList.isEmpty() == true && all contained objects are deleted
+ */
 void NmHsWidgetEmailEngine::resetEnvelopeList()
     {
+    qDebug()<<"NmHsWidgetEmailEngine::resetEnvelopeList() -- START";
+    
     while (!mEnvelopeList.isEmpty())
         {
-        delete mEnvelopeList.takeFirst();    
+        delete mEnvelopeList.takeFirst();
         }
     
+    qDebug()<<"NmHsWidgetEmailEngine::resetEnvelopeList() -- END";
     }
 
 /*!
-    Destructor
-*/
+ Destructor
+ */
 NmHsWidgetEmailEngine::~NmHsWidgetEmailEngine()
     {
+    qDebug()<<"~NmHsWidgetEmailEngine -- START";
+ 
     resetEnvelopeList();
-    delete m_stub_adapter;
-    }
-
-
-/*!
-    Shrink envelope list
-    \post mEnvelopeList.count() <= KMaxNumberOfEnvelopesProvided, 
-    other objects are removed and freed.
-*/
-void NmHsWidgetEmailEngine::shrinkEnvelopeList()
-    {
-    //remove & delete the last object from the list
-    //until we have shrinked the list to be small enough
-    while ( mEnvelopeList.count() > KMaxNumberOfEnvelopesProvided )
-        {
-        delete mEnvelopeList.takeLast();    
+    if  ( mFactory )
+        {        
+        NmDataPluginFactory::releaseInstance(mFactory);
         }
+    qDebug()<<"~NmHsWidgetEmailEngine -- END";
     }
 
 
 /*!
-    getEnvelopes() provides message envelopes. 
-    Amount of message envelopes returned is the smallest of the following factors:
-    'KMaxNumberOfEnvelopesProvided', 'maxEnvelopeAmount', 'amount of available envelopes'. 
-    
-    \param list list to be filled with message envelopes
-    \param maxEnvelopeAmount Client side limit for amount of message envelope count. 
-    \return count of envelopes added to list
-*/
-int NmHsWidgetEmailEngine::getEnvelopes(QList<NmMessageEnvelope> &list, int maxEnvelopeAmount)
+ getEnvelopes() provides message envelopes as a list of stack objects
+ Amount of message envelopes in the list parameter is the smallest of the following factors:
+ 'KMaxNumberOfEnvelopesProvided', 'maxEnvelopeAmount', 'amount of available envelopes'. 
+  
+ \param list list to be filled with message envelopes
+ \param maxEnvelopeAmount Client side limit for amount of message envelope count. 
+ \return count of envelopes added to list
+ */
+int NmHsWidgetEmailEngine::getEnvelopes(QList<NmMessageEnvelope> &list,
+        int maxEnvelopeAmount)
     {
+    qDebug()<<"NmHsWidgetEmailEngine::getEnvelopes()";
+    list.clear(); //Reset the parameter list to avoid side effects
     int i = 0;
-    for (; i<mEnvelopeList.count() && i<maxEnvelopeAmount ; i++ )
+    for (; i < mEnvelopeList.count() && i < maxEnvelopeAmount; i++)
         {
-        NmMessageEnvelope env( *mEnvelopeList[i] );
+        NmMessageEnvelope env(*mEnvelopeList[i]);
         list.append(env);
         }
-    return i; 
+    return i;
     }
 
 /*!
-    UnreadCount
+ UnreadCount
 
-    \return count of unread mails
-*/
+ \return count of unread mails
+ */
 int NmHsWidgetEmailEngine::unreadCount()
     {
+    qDebug()<<"NmHsWidgetEmailEngine::unreadCount()";
     return mUnreadCount;
     }
 
 /*!
-    accountName
+ accountName
 
-    \return name of the monitored account
-*/
+ \return name of the monitored account
+ */
 QString NmHsWidgetEmailEngine::accountName()
     {
+    qDebug()<<"NmHsWidgetEmailEngine::accountName()";
     return mAccountName;
     }
 
 /*!
-    Refresh email data.
-    \post mData is refreshed with valid content so that it has
-    valid data with maximum of KMaxNumberOfEnvelopesProvided envelopes
-    
-    NOTE: THIS IS STUB IMPLEMENTATION UNTIL SPRINT 3
-*/
+ Refresh email data.
+ \post mEnvelopeList is refreshed with valid content so that it has
+ valid data with maximum of KMaxNumberOfEnvelopesProvided envelopes
+ 
+ */
 void NmHsWidgetEmailEngine::updateData()
     {
-    resetEnvelopeList();
-    //TODO Sprint 3: Get the list from the server
-    /* TEST DATA */
-
-    resetEnvelopeList();
-    m_stub_adapter->listMessages(mEnvelopeList);
-    
+    qDebug()<<"NmHsWidgetEmailEngine::updateData() -- START";
+    if(!mEmailInterface)
+        {
+        qDebug()<<"NmHsWidgetEmailEngine::updateData() -- Interface missing";
+        return; //if interface is missing there's nothing to do
+        }
+    //reset envelope list before retrieving new items
+    resetEnvelopeList(); 
+    //get messages from inbox
+    mEmailInterface->listMessages(mMailboxId, mFolderId, mEnvelopeList, KMaxNumberOfEnvelopesProvided);
+    Q_ASSERT_X(mEnvelopeList.count() <= KMaxNumberOfEnvelopesProvided, "nmhswidgetemailengine", "list max size exeeded");
+    //emit signal about new message data right away
     emit mailDataChanged();
-    mUnreadCount = calculateUnreadCount( mEnvelopeList );
-    emit unreadCountChanged( mUnreadCount );
-    /* TEST DATA END*/
-    
-    //TODO: Sprint3 at this point shrink the list to KMaxNumberOfEnvelopesProvided
-    shrinkEnvelopeList();
+    //retrieve new unread count to mUnreadCount
+    NmFolder* folder = NULL;
+    int err = mEmailInterface->getFolderById(mMailboxId, mFolderId, folder);
+ 
+    if(folder)
+        {
+        mUnreadCount = folder->unreadMessageCount();
+        delete folder;
+        folder = NULL;
+        //limit the unread count to KMaxUnreadCount
+        if( mUnreadCount > KMaxUnreadCount)
+            {
+            mUnreadCount = KMaxUnreadCount;
+            }
+        //emit signal about changed unread count
+        emit unreadCountChanged(mUnreadCount);
+        }
+
+
+
+    qDebug()<<"NmHsWidgetEmailEngine::updateData() -- END";
     }
 
 /*!
-    Update Account data
-    \post mAccountName is valid
-    
-    NOTE: THIS IS STUB IMPLEMENTATION UNTIL SPRINT 3
-*/
+ handleMessageEvent slot.
+ */
+void NmHsWidgetEmailEngine::handleMessageEvent(NmMessageEvent event,
+        const NmId &folderId, const QList<NmId> &messageIds, const NmId& mailboxId)
+    {
+    qDebug()<<"NmHsWidgetEmailEngine::handleMessageEvent() -- START";
+    Q_UNUSED(event);
+    Q_UNUSED(messageIds);
+    if ( (folderId == mFolderId) && (mailboxId == mMailboxId) )
+        {
+        //Data is updated only if the engine is not suspended
+        if( mSuspended )
+            {
+            mMessageEventReceivedWhenSuspended = true;
+            }
+        else
+            {
+            updateData();
+            }   
+        }
+    qDebug()<<"NmHsWidgetEmailEngine::handleMessageEvent() -- END";
+    }
+
+/*!
+ handleMailboxEvent slot.
+ */
+void NmHsWidgetEmailEngine::handleMailboxEvent(NmMailboxEvent event,
+        const QList<NmId> &mailboxIds)
+    {
+    qDebug()<<"NmHsWidgetEmailEngine::handleMailboxEvent() -- START";
+    Q_UNUSED(mailboxIds);
+    //react only to NmMailboxChanged event
+    if (event == NmMailboxChanged)
+        {
+        if ( mSuspended )
+            {
+            mAccountEventReceivedWhenSuspended = true;
+            }
+        else
+            {
+            updateAccount();
+            }
+
+        }
+    qDebug()<<"NmHsWidgetEmailEngine::handleMailboxEvent() -- END";
+    }
+
+/*!
+ Update Account data
+ \post if mEmailInterface exists, the mAccountName is refreshed from adapter 
+       and accountNameChanged signal is emitted.
+ */
 void NmHsWidgetEmailEngine::updateAccount()
     {
-    mAccountName = m_stub_adapter->mailboxName();
-    emit accountNameChanged (mAccountName);
+    qDebug()<<"NmHsWidgetEmailEngine::updateAccount() -- START";
+    
+    NmMailbox* box = NULL;
+    if(mEmailInterface)
+        {
+        mEmailInterface->getMailboxById(mMailboxId, box);
+        }
+    if (box)
+        {
+        mAccountName = box->name();
+        emit accountNameChanged(mAccountName);
+        delete box;
+        box = NULL;
+        }
+    qDebug()<<"NmHsWidgetEmailEngine::updateAccount() -- END";
     }
 
 /*!
-    Calculate unread count from envelope list.
-    
-    \param envelopeList List of envelopes from which unread envelopes are to be count.
-    \return count of unreads in list 
-    if unread count is < KMaxUnreadCount, otherwise KMaxUnreadCount. 
-*/
-int NmHsWidgetEmailEngine::calculateUnreadCount(QList<NmMessageEnvelope*> envelopeList)
+  suspend slot.
+  \post engine will not emit signals or refresh its data during suspension.
+ */
+void NmHsWidgetEmailEngine::suspend()
     {
-    int unreadCount = 0; 
-    
-    QList<NmMessageEnvelope*>::const_iterator itEnd(envelopeList.constEnd());
-    QList<NmMessageEnvelope*>::const_iterator it = envelopeList.constBegin();
-    
-    for ( ; (it != itEnd)&&(unreadCount < KMaxUnreadCount); ++it)
-    {
-      if ( !(*it)->isRead() )
-          {
-          unreadCount++;
-          }
+    qDebug()<<"NmHsWidgetEmailEngine::suspend() -- START";
+    mSuspended = true;
+    qDebug()<<"NmHsWidgetEmailEngine::suspend() -- END";
     }
-    return unreadCount;
+
+/*!
+  activate slot.
+  \post Engine will immediately refresh all the data that has been announced to
+  have changed during the suspension. Events are enabled.
+ */
+void NmHsWidgetEmailEngine::activate()
+    {
+    qDebug()<<"NmHsWidgetEmailEngine::activate() -- START";
+    mSuspended = false; 
+    if ( mAccountEventReceivedWhenSuspended )
+        {
+        mAccountEventReceivedWhenSuspended = false;
+        updateAccount();
+        }
+    if (mMessageEventReceivedWhenSuspended)
+        {
+        mMessageEventReceivedWhenSuspended = false;
+        updateData();
+        }
+    qDebug()<<"NmHsWidgetEmailEngine::activate() -- END";
+    }
+
+/*!
+  launchMailAppInboxView slot.
+  \post Mail application is launched to inbox view corresponding widget's mailbox id
+ */
+void NmHsWidgetEmailEngine::launchMailAppInboxView()
+    {
+    qDebug()<<"NmHsWidgetEmailEngine::launchMailAppInboxView() -- START";
+
+    XQServiceRequest request(
+        emailInterfaceNameMailbox,
+        emailOperationViewInbox,
+        false);
+    
+    QList<QVariant> list;
+    list.append(QVariant(mMailboxId.id()));
+
+    request.setArguments(list);
+    QVariant returnValue;
+    bool rval = request.send(returnValue);
+    
+    qDebug()<<"NmHsWidgetEmailEngine::launchMailAppInboxView() -- END";
+    }
+
+/*!
+  launchMailAppMailViewer slot.
+  \param messageId Defines the message opened to viewer
+  \post Mail application is launched and viewing mail specified by
+ */
+void NmHsWidgetEmailEngine::launchMailAppMailViewer(const NmId &messageId)
+    {
+    qDebug()<<"NmHsWidgetEmailEngine::launchMailAppMailViewer() -- START";
+
+    XQServiceRequest request(
+       emailInterfaceNameMessage,
+       emailOperationViewMessage,
+       false);
+    
+    QList<QVariant> list;
+    list.append(QVariant(mMailboxId.id()));
+    list.append(QVariant(mFolderId.id()));
+    list.append(QVariant(messageId.id()));
+    
+    request.setArguments(list);
+    QVariant returnValue;
+    bool rval = request.send(returnValue);
+    
+    qDebug()<<"NmHsWidgetEmailEngine::launchMailAppMailViewer() -- END";
     }

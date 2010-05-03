@@ -111,7 +111,7 @@ void NmEnvelopeListing::cancel()
  *  It clears list of envelopes after be called.
  *  It also at start clear inputlist of NmMessageEnvelope.
  */
-bool NmEnvelopeListing::envelopes(QList<EmailClientApi::NmMessageEnvelope> &envelopes)
+bool NmEnvelopeListing::getEnvelopes(QList<EmailClientApi::NmMessageEnvelope> &envelopes)
 {
     envelopes.clear();
 

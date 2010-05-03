@@ -71,18 +71,23 @@ const TUint KMsgStoreSystemEventMin = 1000;
 /** Defines the system events of which observers receive notification. */
 enum TMsgStoreSystemEvent
 	{
-	// A backup or restore is in progress.  The message store is unavailable.
-	EMsgStoreBackupOrRestoreInProgress = KMsgStoreSystemEventMin,
-	
-	// The backup or restore completed.  The message store is available again.
-	EMsgStoreBackupOrRestoreCompleted,
+    // Available and Unavailable events have been added which include the
+    // status of backup/restore and Pointsec.  It is recommended that these
+    // new events be used to determine Msg Store availability.
+    // Backup/restore events and Pointsec events left for backwards compatibility.
+    
+    // A backup or restore is in progress.
+    EMsgStoreBackupOrRestoreInProgress = KMsgStoreSystemEventMin,
+    
+    // The backup or restore completed.
+    EMsgStoreBackupOrRestoreCompleted,
     
     // PointSec has locked the file system, all operations are suspendded
     EMsgStorePointSecLockStarted,
     
     // PointSec has unlocked the file system, all operations are resumed
     EMsgStorePointSecLockEnded,
-	
+    
 	// The message store has been wiped, including the password.
 	EMsgStoreDatabaseWiped,
 
@@ -95,7 +100,15 @@ enum TMsgStoreSystemEvent
 	// The observer event queue has overflowed and has been reset, so events have been lost.  This
 	// shouldn't happen unless the client thread has been starved for an extended period of time, during
 	// which many message store operations have occurred.
-	EObserverEventQueueOverflow
+	EObserverEventQueueOverflow,
+	
+    // The message store is unavailable.  This may be due to 
+    // a backup or restore being in progress, a Pointsec lock being issued,
+    // the disk drive being unavailable, etc.
+    EMsgStoreUnavailable,
+    
+    // All lock conditions have cleared and the message store is available again.
+    EMsgStoreAvailable
 	
 	}; // end enum TMsgStoreSystemEvent
 	

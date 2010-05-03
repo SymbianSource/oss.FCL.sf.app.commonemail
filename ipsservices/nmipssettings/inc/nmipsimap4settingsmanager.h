@@ -38,8 +38,9 @@ public:
     
     bool readSetting(IpsServices::SettingItem settingItem, QVariant &settingValue);
     bool writeSetting(IpsServices::SettingItem settingItem, const QVariant &settingValue);
-
-    int deleteMailbox();
+    
+    int deleteMailbox();    
+    int determineDefaultIncomingPort();
 
 private:    
 

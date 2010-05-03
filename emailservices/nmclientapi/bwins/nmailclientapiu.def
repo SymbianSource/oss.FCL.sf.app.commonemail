@@ -1,96 +1,96 @@
 EXPORTS
-	?setId@NmMessageEnvelope@EmailClientApi@@QAEX_K@Z @ 1 NONAME ; void EmailClientApi::NmMessageEnvelope::setId(unsigned long long)
-	?qt_metacall@NmEnvelopeListing@EmailClientApi@@UAEHW4Call@QMetaObject@@HPAPAX@Z @ 2 NONAME ; int EmailClientApi::NmEnvelopeListing::qt_metacall(enum QMetaObject::Call, int, void * *)
-	?metaObject@NmEnvelopeListing@EmailClientApi@@UBEPBUQMetaObject@@XZ @ 3 NONAME ; struct QMetaObject const * EmailClientApi::NmEnvelopeListing::metaObject(void) const
-	?trUtf8@NmMailboxListing@EmailClientApi@@SA?AVQString@@PBD0@Z @ 4 NONAME ; class QString EmailClientApi::NmMailboxListing::trUtf8(char const *, char const *)
-	?trUtf8@NmFolderListing@EmailClientApi@@SA?AVQString@@PBD0@Z @ 5 NONAME ; class QString EmailClientApi::NmFolderListing::trUtf8(char const *, char const *)
-	?uninitialise@NmEmailService@EmailClientApi@@QAEXXZ @ 6 NONAME ; void EmailClientApi::NmEmailService::uninitialise(void)
-	?trUtf8@NmEnvelopeListing@EmailClientApi@@SA?AVQString@@PBD0H@Z @ 7 NONAME ; class QString EmailClientApi::NmEnvelopeListing::trUtf8(char const *, char const *, int)
-	?plainTextBody@NmMessageEnvelope@EmailClientApi@@QAEXAAVNmMessageBody@2@@Z @ 8 NONAME ; void EmailClientApi::NmMessageEnvelope::plainTextBody(class EmailClientApi::NmMessageBody &)
-	?foldersListed@NmFolderListing@EmailClientApi@@IAEXH@Z @ 9 NONAME ; void EmailClientApi::NmFolderListing::foldersListed(int)
-	?start@NmFolderListing@EmailClientApi@@UAE_NXZ @ 10 NONAME ; bool EmailClientApi::NmFolderListing::start(void)
-	?qt_metacall@NmEmailService@EmailClientApi@@UAEHW4Call@QMetaObject@@HPAPAX@Z @ 11 NONAME ; int EmailClientApi::NmEmailService::qt_metacall(enum QMetaObject::Call, int, void * *)
-	??0NmFolder@EmailClientApi@@QAE@ABV01@@Z @ 12 NONAME ; EmailClientApi::NmFolder::NmFolder(class EmailClientApi::NmFolder const &)
-	?isReplied@NmMessageEnvelope@EmailClientApi@@QBE_NXZ @ 13 NONAME ; bool EmailClientApi::NmMessageEnvelope::isReplied(void) const
-	?setName@NmMailbox@EmailClientApi@@QAEXABVQString@@@Z @ 14 NONAME ; void EmailClientApi::NmMailbox::setName(class QString const &)
-	?isRead@NmMessageEnvelope@EmailClientApi@@QBE_NXZ @ 15 NONAME ; bool EmailClientApi::NmMessageEnvelope::isRead(void) const
-	?qt_metacall@NmEventNotifier@EmailClientApi@@UAEHW4Call@QMetaObject@@HPAPAX@Z @ 16 NONAME ; int EmailClientApi::NmEventNotifier::qt_metacall(enum QMetaObject::Call, int, void * *)
-	?cancel@NmEnvelopeListing@EmailClientApi@@UAEXXZ @ 17 NONAME ; void EmailClientApi::NmEnvelopeListing::cancel(void)
-	?setHasAttachments@NmMessageEnvelope@EmailClientApi@@QAEX_N@Z @ 18 NONAME ; void EmailClientApi::NmMessageEnvelope::setHasAttachments(bool)
-	??0NmMailboxListing@EmailClientApi@@QAE@PAVQObject@@@Z @ 19 NONAME ; EmailClientApi::NmMailboxListing::NmMailboxListing(class QObject *)
-	?sendEventsFromBuffer@NmEventNotifier@EmailClientApi@@QAEXXZ @ 20 NONAME ; void EmailClientApi::NmEventNotifier::sendEventsFromBuffer(void)
-	?mailboxEvent@NmEventNotifier@EmailClientApi@@IAEXW4MailboxEvent@@V?$QList@_K@@@Z @ 21 NONAME ; void EmailClientApi::NmEventNotifier::mailboxEvent(enum MailboxEvent, class QList<unsigned long long>)
-	?hasAttachments@NmMessageEnvelope@EmailClientApi@@QBE_NXZ @ 22 NONAME ; bool EmailClientApi::NmMessageEnvelope::hasAttachments(void) const
-	??_ENmEventNotifier@EmailClientApi@@UAE@I@Z @ 23 NONAME ; EmailClientApi::NmEventNotifier::~NmEventNotifier(unsigned int)
-	??0NmMessageEnvelope@EmailClientApi@@QAE@XZ @ 24 NONAME ; EmailClientApi::NmMessageEnvelope::NmMessageEnvelope(void)
-	?setSender@NmMessageEnvelope@EmailClientApi@@QAEXABVQString@@@Z @ 25 NONAME ; void EmailClientApi::NmMessageEnvelope::setSender(class QString const &)
-	?qt_metacast@NmMessageTask@@UAEPAXPBD@Z @ 26 NONAME ; void * NmMessageTask::qt_metacast(char const *)
-	?qt_metacast@NmEmailService@EmailClientApi@@UAEPAXPBD@Z @ 27 NONAME ; void * EmailClientApi::NmEmailService::qt_metacast(char const *)
-	??0NmMessageEnvelope@EmailClientApi@@QAE@ABV01@@Z @ 28 NONAME ; EmailClientApi::NmMessageEnvelope::NmMessageEnvelope(class EmailClientApi::NmMessageEnvelope const &)
-	?totalSize@NmMessageBody@EmailClientApi@@QBE_KXZ @ 29 NONAME ; unsigned long long EmailClientApi::NmMessageBody::totalSize(void) const
-	?qt_metacast@NmFolderListing@EmailClientApi@@UAEPAXPBD@Z @ 30 NONAME ; void * EmailClientApi::NmFolderListing::qt_metacast(char const *)
-	?trUtf8@NmEventNotifier@EmailClientApi@@SA?AVQString@@PBD0@Z @ 31 NONAME ; class QString EmailClientApi::NmEventNotifier::trUtf8(char const *, char const *)
-	?initialized@NmEmailService@EmailClientApi@@IAEX_N@Z @ 32 NONAME ; void EmailClientApi::NmEmailService::initialized(bool)
-	??0NmMessageTask@@IAE@PAVQObject@@@Z @ 33 NONAME ; NmMessageTask::NmMessageTask(class QObject *)
-	??0NmFolderListing@EmailClientApi@@QAE@PAVQObject@@AB_K@Z @ 34 NONAME ; EmailClientApi::NmFolderListing::NmFolderListing(class QObject *, unsigned long long const &)
-	?cancel@NmMailboxListing@EmailClientApi@@UAEXXZ @ 35 NONAME ; void EmailClientApi::NmMailboxListing::cancel(void)
-	?staticMetaObject@NmFolderListing@EmailClientApi@@2UQMetaObject@@B @ 36 NONAME ; struct QMetaObject const EmailClientApi::NmFolderListing::staticMetaObject
-	??1NmEmailService@EmailClientApi@@UAE@XZ @ 37 NONAME ; EmailClientApi::NmEmailService::~NmEmailService(void)
-	?setDisplayName@NmEmailAddress@EmailClientApi@@QAEXABVQString@@@Z @ 38 NONAME ; void EmailClientApi::NmEmailAddress::setDisplayName(class QString const &)
-	??4NmMessageEnvelope@EmailClientApi@@QAEAAV01@ABV01@@Z @ 39 NONAME ; class EmailClientApi::NmMessageEnvelope & EmailClientApi::NmMessageEnvelope::operator=(class EmailClientApi::NmMessageEnvelope const &)
-	?getStaticMetaObject@NmMailboxListing@EmailClientApi@@SAABUQMetaObject@@XZ @ 40 NONAME ; struct QMetaObject const & EmailClientApi::NmMailboxListing::getStaticMetaObject(void)
-	?setIsForwarded@NmMessageEnvelope@EmailClientApi@@QAEX_N@Z @ 41 NONAME ; void EmailClientApi::NmMessageEnvelope::setIsForwarded(bool)
-	??_ENmEnvelopeListing@EmailClientApi@@UAE@I@Z @ 42 NONAME ; EmailClientApi::NmEnvelopeListing::~NmEnvelopeListing(unsigned int)
-	?tr@NmEnvelopeListing@EmailClientApi@@SA?AVQString@@PBD0@Z @ 43 NONAME ; class QString EmailClientApi::NmEnvelopeListing::tr(char const *, char const *)
-	??_ENmMailboxListing@EmailClientApi@@UAE@I@Z @ 44 NONAME ; EmailClientApi::NmMailboxListing::~NmMailboxListing(unsigned int)
-	?isForwarded@NmMessageEnvelope@EmailClientApi@@QBE_NXZ @ 45 NONAME ; bool EmailClientApi::NmMessageEnvelope::isForwarded(void) const
-	?envelope@NmEmailService@EmailClientApi@@QAE_N_K00AAVNmMessageEnvelope@2@@Z @ 46 NONAME ; bool EmailClientApi::NmEmailService::envelope(unsigned long long, unsigned long long, unsigned long long, class EmailClientApi::NmMessageEnvelope &)
-	?getStaticMetaObject@NmEnvelopeListing@EmailClientApi@@SAABUQMetaObject@@XZ @ 47 NONAME ; struct QMetaObject const & EmailClientApi::NmEnvelopeListing::getStaticMetaObject(void)
-	?staticMetaObject@NmMessageTask@@2UQMetaObject@@B @ 48 NONAME ; struct QMetaObject const NmMessageTask::staticMetaObject
-	?trUtf8@NmEmailService@EmailClientApi@@SA?AVQString@@PBD0@Z @ 49 NONAME ; class QString EmailClientApi::NmEmailService::trUtf8(char const *, char const *)
-	??0NmEnvelopeListing@EmailClientApi@@QAE@PAVQObject@@_K1@Z @ 50 NONAME ; EmailClientApi::NmEnvelopeListing::NmEnvelopeListing(class QObject *, unsigned long long, unsigned long long)
-	?setAddress@NmEmailAddress@EmailClientApi@@QAEXABVQString@@@Z @ 51 NONAME ; void EmailClientApi::NmEmailAddress::setAddress(class QString const &)
-	?parentFolderId@NmFolder@EmailClientApi@@QBE_KXZ @ 52 NONAME ; unsigned long long EmailClientApi::NmFolder::parentFolderId(void) const
-	?setParentFolderId@NmFolder@EmailClientApi@@QAEX_K@Z @ 53 NONAME ; void EmailClientApi::NmFolder::setParentFolderId(unsigned long long)
-	?id@NmFolder@EmailClientApi@@QBE_KXZ @ 54 NONAME ; unsigned long long EmailClientApi::NmFolder::id(void) const
-	?qt_metacall@NmMessageTask@@UAEHW4Call@QMetaObject@@HPAPAX@Z @ 55 NONAME ; int NmMessageTask::qt_metacall(enum QMetaObject::Call, int, void * *)
-	?trUtf8@NmEnvelopeListing@EmailClientApi@@SA?AVQString@@PBD0@Z @ 56 NONAME ; class QString EmailClientApi::NmEnvelopeListing::trUtf8(char const *, char const *)
-	?mailboxes@NmMailboxListing@EmailClientApi@@QAE_NAAV?$QList@VNmMailbox@EmailClientApi@@@@@Z @ 57 NONAME ; bool EmailClientApi::NmMailboxListing::mailboxes(class QList<class EmailClientApi::NmMailbox> &)
-	?setFetchedSize@NmMessageEnvelope@EmailClientApi@@QAEX_K@Z @ 58 NONAME ; void EmailClientApi::NmMessageEnvelope::setFetchedSize(unsigned long long)
-	?name@NmMailbox@EmailClientApi@@QBE?AVQString@@XZ @ 59 NONAME ; class QString EmailClientApi::NmMailbox::name(void) const
-	?getStaticMetaObject@NmMessageTask@@SAABUQMetaObject@@XZ @ 60 NONAME ; struct QMetaObject const & NmMessageTask::getStaticMetaObject(void)
-	?initialise@NmEmailService@EmailClientApi@@QAEXXZ @ 61 NONAME ; void EmailClientApi::NmEmailService::initialise(void)
-	?id@NmMessageEnvelope@EmailClientApi@@QBE_KXZ @ 62 NONAME ; unsigned long long EmailClientApi::NmMessageEnvelope::id(void) const
-	?setIsReplied@NmMessageEnvelope@EmailClientApi@@QAEX_N@Z @ 63 NONAME ; void EmailClientApi::NmMessageEnvelope::setIsReplied(bool)
-	??_ENmMessageEnvelope@EmailClientApi@@UAE@I@Z @ 64 NONAME ; EmailClientApi::NmMessageEnvelope::~NmMessageEnvelope(unsigned int)
-	?isRunning@NmEnvelopeListing@EmailClientApi@@QBE_NXZ @ 65 NONAME ; bool EmailClientApi::NmEnvelopeListing::isRunning(void) const
-	?tr@NmFolderListing@EmailClientApi@@SA?AVQString@@PBD0@Z @ 66 NONAME ; class QString EmailClientApi::NmFolderListing::tr(char const *, char const *)
-	?sender@NmMessageEnvelope@EmailClientApi@@QBE?AVQString@@XZ @ 67 NONAME ; class QString EmailClientApi::NmMessageEnvelope::sender(void) const
-	?canceled@NmMessageTask@@IAEXXZ @ 68 NONAME ; void NmMessageTask::canceled(void)
-	?isRunning@NmMailboxListing@EmailClientApi@@QBE_NXZ @ 69 NONAME ; bool EmailClientApi::NmMailboxListing::isRunning(void) const
-	?address@NmEmailAddress@EmailClientApi@@QBE?AVQString@@XZ @ 70 NONAME ; class QString EmailClientApi::NmEmailAddress::address(void) const
-	?staticMetaObject@NmMailboxListing@EmailClientApi@@2UQMetaObject@@B @ 71 NONAME ; struct QMetaObject const EmailClientApi::NmMailboxListing::staticMetaObject
-	?tr@NmFolderListing@EmailClientApi@@SA?AVQString@@PBD0H@Z @ 72 NONAME ; class QString EmailClientApi::NmFolderListing::tr(char const *, char const *, int)
-	??1NmMessageEnvelope@EmailClientApi@@UAE@XZ @ 73 NONAME ; EmailClientApi::NmMessageEnvelope::~NmMessageEnvelope(void)
-	?setContent@NmMessageBody@EmailClientApi@@QAEXABVQString@@@Z @ 74 NONAME ; void EmailClientApi::NmMessageBody::setContent(class QString const &)
-	?getStaticMetaObject@NmEmailService@EmailClientApi@@SAABUQMetaObject@@XZ @ 75 NONAME ; struct QMetaObject const & EmailClientApi::NmEmailService::getStaticMetaObject(void)
-	?tr@NmEnvelopeListing@EmailClientApi@@SA?AVQString@@PBD0H@Z @ 76 NONAME ; class QString EmailClientApi::NmEnvelopeListing::tr(char const *, char const *, int)
-	?folderType@NmFolder@EmailClientApi@@QBE?AW4EmailFolderType@2@XZ @ 77 NONAME ; enum EmailClientApi::EmailFolderType EmailClientApi::NmFolder::folderType(void) const
-	?tr@NmMailboxListing@EmailClientApi@@SA?AVQString@@PBD0H@Z @ 78 NONAME ; class QString EmailClientApi::NmMailboxListing::tr(char const *, char const *, int)
-	??4NmMailbox@EmailClientApi@@QAEAAV01@ABV01@@Z @ 79 NONAME ; class EmailClientApi::NmMailbox & EmailClientApi::NmMailbox::operator=(class EmailClientApi::NmMailbox const &)
-	??_ENmMessageBody@EmailClientApi@@UAE@I@Z @ 80 NONAME ; EmailClientApi::NmMessageBody::~NmMessageBody(unsigned int)
-	?tr@NmMessageTask@@SA?AVQString@@PBD0@Z @ 81 NONAME ; class QString NmMessageTask::tr(char const *, char const *)
-	?setId@NmMailbox@EmailClientApi@@QAEX_K@Z @ 82 NONAME ; void EmailClientApi::NmMailbox::setId(unsigned long long)
-	?qt_metacast@NmEnvelopeListing@EmailClientApi@@UAEPAXPBD@Z @ 83 NONAME ; void * EmailClientApi::NmEnvelopeListing::qt_metacast(char const *)
-	?trUtf8@NmEmailService@EmailClientApi@@SA?AVQString@@PBD0H@Z @ 84 NONAME ; class QString EmailClientApi::NmEmailService::trUtf8(char const *, char const *, int)
-	?tr@NmEventNotifier@EmailClientApi@@SA?AVQString@@PBD0H@Z @ 85 NONAME ; class QString EmailClientApi::NmEventNotifier::tr(char const *, char const *, int)
-	??1NmMailboxListing@EmailClientApi@@UAE@XZ @ 86 NONAME ; EmailClientApi::NmMailboxListing::~NmMailboxListing(void)
-	??1NmEmailAddress@EmailClientApi@@UAE@XZ @ 87 NONAME ; EmailClientApi::NmEmailAddress::~NmEmailAddress(void)
-	??_ENmFolderListing@EmailClientApi@@UAE@I@Z @ 88 NONAME ; EmailClientApi::NmFolderListing::~NmFolderListing(unsigned int)
-	??1NmMailbox@EmailClientApi@@UAE@XZ @ 89 NONAME ; EmailClientApi::NmMailbox::~NmMailbox(void)
-	?failed@NmMessageTask@@IAEXH@Z @ 90 NONAME ; void NmMessageTask::failed(int)
-	?setGetCcRecipients@NmMessageEnvelope@EmailClientApi@@QAEXABV?$QList@VNmEmailAddress@EmailClientApi@@@@@Z @ 91 NONAME ; void EmailClientApi::NmMessageEnvelope::setGetCcRecipients(class QList<class EmailClientApi::NmEmailAddress> const &)
-	?folders@NmFolderListing@EmailClientApi@@QAE_NAAV?$QList@VNmFolder@EmailClientApi@@@@@Z @ 92 NONAME ; bool EmailClientApi::NmFolderListing::folders(class QList<class EmailClientApi::NmFolder> &)
+	?getFolders@NmFolderListing@EmailClientApi@@QAE_NAAV?$QList@VNmFolder@EmailClientApi@@@@@Z @ 1 NONAME ; bool EmailClientApi::NmFolderListing::getFolders(class QList<class EmailClientApi::NmFolder> &)
+	?setId@NmMessageEnvelope@EmailClientApi@@QAEX_K@Z @ 2 NONAME ; void EmailClientApi::NmMessageEnvelope::setId(unsigned long long)
+	?qt_metacall@NmEnvelopeListing@EmailClientApi@@UAEHW4Call@QMetaObject@@HPAPAX@Z @ 3 NONAME ; int EmailClientApi::NmEnvelopeListing::qt_metacall(enum QMetaObject::Call, int, void * *)
+	?metaObject@NmEnvelopeListing@EmailClientApi@@UBEPBUQMetaObject@@XZ @ 4 NONAME ; struct QMetaObject const * EmailClientApi::NmEnvelopeListing::metaObject(void) const
+	?setCcRecipients@NmMessageEnvelope@EmailClientApi@@QAEXABV?$QList@VNmEmailAddress@EmailClientApi@@@@@Z @ 5 NONAME ; void EmailClientApi::NmMessageEnvelope::setCcRecipients(class QList<class EmailClientApi::NmEmailAddress> const &)
+	?trUtf8@NmMailboxListing@EmailClientApi@@SA?AVQString@@PBD0@Z @ 6 NONAME ; class QString EmailClientApi::NmMailboxListing::trUtf8(char const *, char const *)
+	?trUtf8@NmFolderListing@EmailClientApi@@SA?AVQString@@PBD0@Z @ 7 NONAME ; class QString EmailClientApi::NmFolderListing::trUtf8(char const *, char const *)
+	?uninitialise@NmEmailService@EmailClientApi@@QAEXXZ @ 8 NONAME ; void EmailClientApi::NmEmailService::uninitialise(void)
+	?trUtf8@NmEnvelopeListing@EmailClientApi@@SA?AVQString@@PBD0H@Z @ 9 NONAME ; class QString EmailClientApi::NmEnvelopeListing::trUtf8(char const *, char const *, int)
+	?foldersListed@NmFolderListing@EmailClientApi@@IAEXH@Z @ 10 NONAME ; void EmailClientApi::NmFolderListing::foldersListed(int)
+	?start@NmFolderListing@EmailClientApi@@UAE_NXZ @ 11 NONAME ; bool EmailClientApi::NmFolderListing::start(void)
+	?qt_metacall@NmEmailService@EmailClientApi@@UAEHW4Call@QMetaObject@@HPAPAX@Z @ 12 NONAME ; int EmailClientApi::NmEmailService::qt_metacall(enum QMetaObject::Call, int, void * *)
+	??0NmFolder@EmailClientApi@@QAE@ABV01@@Z @ 13 NONAME ; EmailClientApi::NmFolder::NmFolder(class EmailClientApi::NmFolder const &)
+	?isReplied@NmMessageEnvelope@EmailClientApi@@QBE_NXZ @ 14 NONAME ; bool EmailClientApi::NmMessageEnvelope::isReplied(void) const
+	?setName@NmMailbox@EmailClientApi@@QAEXABVQString@@@Z @ 15 NONAME ; void EmailClientApi::NmMailbox::setName(class QString const &)
+	?isRead@NmMessageEnvelope@EmailClientApi@@QBE_NXZ @ 16 NONAME ; bool EmailClientApi::NmMessageEnvelope::isRead(void) const
+	?qt_metacall@NmEventNotifier@EmailClientApi@@UAEHW4Call@QMetaObject@@HPAPAX@Z @ 17 NONAME ; int EmailClientApi::NmEventNotifier::qt_metacall(enum QMetaObject::Call, int, void * *)
+	?cancel@NmEnvelopeListing@EmailClientApi@@UAEXXZ @ 18 NONAME ; void EmailClientApi::NmEnvelopeListing::cancel(void)
+	?setHasAttachments@NmMessageEnvelope@EmailClientApi@@QAEX_N@Z @ 19 NONAME ; void EmailClientApi::NmMessageEnvelope::setHasAttachments(bool)
+	??0NmMailboxListing@EmailClientApi@@QAE@PAVQObject@@@Z @ 20 NONAME ; EmailClientApi::NmMailboxListing::NmMailboxListing(class QObject *)
+	?sendEventsFromBuffer@NmEventNotifier@EmailClientApi@@QAEXXZ @ 21 NONAME ; void EmailClientApi::NmEventNotifier::sendEventsFromBuffer(void)
+	?mailboxEvent@NmEventNotifier@EmailClientApi@@IAEXW4MailboxEvent@@V?$QList@_K@@@Z @ 22 NONAME ; void EmailClientApi::NmEventNotifier::mailboxEvent(enum MailboxEvent, class QList<unsigned long long>)
+	?hasAttachments@NmMessageEnvelope@EmailClientApi@@QBE_NXZ @ 23 NONAME ; bool EmailClientApi::NmMessageEnvelope::hasAttachments(void) const
+	??_ENmEventNotifier@EmailClientApi@@UAE@I@Z @ 24 NONAME ; EmailClientApi::NmEventNotifier::~NmEventNotifier(unsigned int)
+	??0NmMessageEnvelope@EmailClientApi@@QAE@XZ @ 25 NONAME ; EmailClientApi::NmMessageEnvelope::NmMessageEnvelope(void)
+	?setSender@NmMessageEnvelope@EmailClientApi@@QAEXABVQString@@@Z @ 26 NONAME ; void EmailClientApi::NmMessageEnvelope::setSender(class QString const &)
+	?qt_metacast@NmMessageTask@@UAEPAXPBD@Z @ 27 NONAME ; void * NmMessageTask::qt_metacast(char const *)
+	?qt_metacast@NmEmailService@EmailClientApi@@UAEPAXPBD@Z @ 28 NONAME ; void * EmailClientApi::NmEmailService::qt_metacast(char const *)
+	??0NmMessageEnvelope@EmailClientApi@@QAE@ABV01@@Z @ 29 NONAME ; EmailClientApi::NmMessageEnvelope::NmMessageEnvelope(class EmailClientApi::NmMessageEnvelope const &)
+	?totalSize@NmMessageBody@EmailClientApi@@QBE_KXZ @ 30 NONAME ; unsigned long long EmailClientApi::NmMessageBody::totalSize(void) const
+	?qt_metacast@NmFolderListing@EmailClientApi@@UAEPAXPBD@Z @ 31 NONAME ; void * EmailClientApi::NmFolderListing::qt_metacast(char const *)
+	?trUtf8@NmEventNotifier@EmailClientApi@@SA?AVQString@@PBD0@Z @ 32 NONAME ; class QString EmailClientApi::NmEventNotifier::trUtf8(char const *, char const *)
+	?initialized@NmEmailService@EmailClientApi@@IAEX_N@Z @ 33 NONAME ; void EmailClientApi::NmEmailService::initialized(bool)
+	??0NmMessageTask@@IAE@PAVQObject@@@Z @ 34 NONAME ; NmMessageTask::NmMessageTask(class QObject *)
+	??0NmFolderListing@EmailClientApi@@QAE@PAVQObject@@AB_K@Z @ 35 NONAME ; EmailClientApi::NmFolderListing::NmFolderListing(class QObject *, unsigned long long const &)
+	?setToRecipients@NmMessageEnvelope@EmailClientApi@@QAEXABV?$QList@VNmEmailAddress@EmailClientApi@@@@@Z @ 36 NONAME ; void EmailClientApi::NmMessageEnvelope::setToRecipients(class QList<class EmailClientApi::NmEmailAddress> const &)
+	?cancel@NmMailboxListing@EmailClientApi@@UAEXXZ @ 37 NONAME ; void EmailClientApi::NmMailboxListing::cancel(void)
+	?staticMetaObject@NmFolderListing@EmailClientApi@@2UQMetaObject@@B @ 38 NONAME ; struct QMetaObject const EmailClientApi::NmFolderListing::staticMetaObject
+	??1NmEmailService@EmailClientApi@@UAE@XZ @ 39 NONAME ; EmailClientApi::NmEmailService::~NmEmailService(void)
+	?setDisplayName@NmEmailAddress@EmailClientApi@@QAEXABVQString@@@Z @ 40 NONAME ; void EmailClientApi::NmEmailAddress::setDisplayName(class QString const &)
+	??4NmMessageEnvelope@EmailClientApi@@QAEAAV01@ABV01@@Z @ 41 NONAME ; class EmailClientApi::NmMessageEnvelope & EmailClientApi::NmMessageEnvelope::operator=(class EmailClientApi::NmMessageEnvelope const &)
+	?getStaticMetaObject@NmMailboxListing@EmailClientApi@@SAABUQMetaObject@@XZ @ 42 NONAME ; struct QMetaObject const & EmailClientApi::NmMailboxListing::getStaticMetaObject(void)
+	?setIsForwarded@NmMessageEnvelope@EmailClientApi@@QAEX_N@Z @ 43 NONAME ; void EmailClientApi::NmMessageEnvelope::setIsForwarded(bool)
+	?getEnvelope@NmEmailService@EmailClientApi@@QAE_N_K00AAVNmMessageEnvelope@2@@Z @ 44 NONAME ; bool EmailClientApi::NmEmailService::getEnvelope(unsigned long long, unsigned long long, unsigned long long, class EmailClientApi::NmMessageEnvelope &)
+	??_ENmEnvelopeListing@EmailClientApi@@UAE@I@Z @ 45 NONAME ; EmailClientApi::NmEnvelopeListing::~NmEnvelopeListing(unsigned int)
+	?tr@NmEnvelopeListing@EmailClientApi@@SA?AVQString@@PBD0@Z @ 46 NONAME ; class QString EmailClientApi::NmEnvelopeListing::tr(char const *, char const *)
+	??_ENmMailboxListing@EmailClientApi@@UAE@I@Z @ 47 NONAME ; EmailClientApi::NmMailboxListing::~NmMailboxListing(unsigned int)
+	?isForwarded@NmMessageEnvelope@EmailClientApi@@QBE_NXZ @ 48 NONAME ; bool EmailClientApi::NmMessageEnvelope::isForwarded(void) const
+	?getStaticMetaObject@NmEnvelopeListing@EmailClientApi@@SAABUQMetaObject@@XZ @ 49 NONAME ; struct QMetaObject const & EmailClientApi::NmEnvelopeListing::getStaticMetaObject(void)
+	?staticMetaObject@NmMessageTask@@2UQMetaObject@@B @ 50 NONAME ; struct QMetaObject const NmMessageTask::staticMetaObject
+	?trUtf8@NmEmailService@EmailClientApi@@SA?AVQString@@PBD0@Z @ 51 NONAME ; class QString EmailClientApi::NmEmailService::trUtf8(char const *, char const *)
+	??0NmEnvelopeListing@EmailClientApi@@QAE@PAVQObject@@_K1@Z @ 52 NONAME ; EmailClientApi::NmEnvelopeListing::NmEnvelopeListing(class QObject *, unsigned long long, unsigned long long)
+	?setAddress@NmEmailAddress@EmailClientApi@@QAEXABVQString@@@Z @ 53 NONAME ; void EmailClientApi::NmEmailAddress::setAddress(class QString const &)
+	?parentFolderId@NmFolder@EmailClientApi@@QBE_KXZ @ 54 NONAME ; unsigned long long EmailClientApi::NmFolder::parentFolderId(void) const
+	?getMailboxes@NmMailboxListing@EmailClientApi@@QAE_NAAV?$QList@VNmMailbox@EmailClientApi@@@@@Z @ 55 NONAME ; bool EmailClientApi::NmMailboxListing::getMailboxes(class QList<class EmailClientApi::NmMailbox> &)
+	?setParentFolderId@NmFolder@EmailClientApi@@QAEX_K@Z @ 56 NONAME ; void EmailClientApi::NmFolder::setParentFolderId(unsigned long long)
+	?id@NmFolder@EmailClientApi@@QBE_KXZ @ 57 NONAME ; unsigned long long EmailClientApi::NmFolder::id(void) const
+	?qt_metacall@NmMessageTask@@UAEHW4Call@QMetaObject@@HPAPAX@Z @ 58 NONAME ; int NmMessageTask::qt_metacall(enum QMetaObject::Call, int, void * *)
+	?trUtf8@NmEnvelopeListing@EmailClientApi@@SA?AVQString@@PBD0@Z @ 59 NONAME ; class QString EmailClientApi::NmEnvelopeListing::trUtf8(char const *, char const *)
+	?setFetchedSize@NmMessageEnvelope@EmailClientApi@@QAEX_K@Z @ 60 NONAME ; void EmailClientApi::NmMessageEnvelope::setFetchedSize(unsigned long long)
+	?name@NmMailbox@EmailClientApi@@QBE?AVQString@@XZ @ 61 NONAME ; class QString EmailClientApi::NmMailbox::name(void) const
+	?getStaticMetaObject@NmMessageTask@@SAABUQMetaObject@@XZ @ 62 NONAME ; struct QMetaObject const & NmMessageTask::getStaticMetaObject(void)
+	?initialise@NmEmailService@EmailClientApi@@QAEXXZ @ 63 NONAME ; void EmailClientApi::NmEmailService::initialise(void)
+	?id@NmMessageEnvelope@EmailClientApi@@QBE_KXZ @ 64 NONAME ; unsigned long long EmailClientApi::NmMessageEnvelope::id(void) const
+	?setIsReplied@NmMessageEnvelope@EmailClientApi@@QAEX_N@Z @ 65 NONAME ; void EmailClientApi::NmMessageEnvelope::setIsReplied(bool)
+	??_ENmMessageEnvelope@EmailClientApi@@UAE@I@Z @ 66 NONAME ; EmailClientApi::NmMessageEnvelope::~NmMessageEnvelope(unsigned int)
+	?isRunning@NmEnvelopeListing@EmailClientApi@@QBE_NXZ @ 67 NONAME ; bool EmailClientApi::NmEnvelopeListing::isRunning(void) const
+	?tr@NmFolderListing@EmailClientApi@@SA?AVQString@@PBD0@Z @ 68 NONAME ; class QString EmailClientApi::NmFolderListing::tr(char const *, char const *)
+	?sender@NmMessageEnvelope@EmailClientApi@@QBE?AVQString@@XZ @ 69 NONAME ; class QString EmailClientApi::NmMessageEnvelope::sender(void) const
+	?canceled@NmMessageTask@@IAEXXZ @ 70 NONAME ; void NmMessageTask::canceled(void)
+	?isRunning@NmMailboxListing@EmailClientApi@@QBE_NXZ @ 71 NONAME ; bool EmailClientApi::NmMailboxListing::isRunning(void) const
+	?address@NmEmailAddress@EmailClientApi@@QBE?AVQString@@XZ @ 72 NONAME ; class QString EmailClientApi::NmEmailAddress::address(void) const
+	?staticMetaObject@NmMailboxListing@EmailClientApi@@2UQMetaObject@@B @ 73 NONAME ; struct QMetaObject const EmailClientApi::NmMailboxListing::staticMetaObject
+	?tr@NmFolderListing@EmailClientApi@@SA?AVQString@@PBD0H@Z @ 74 NONAME ; class QString EmailClientApi::NmFolderListing::tr(char const *, char const *, int)
+	??1NmMessageEnvelope@EmailClientApi@@UAE@XZ @ 75 NONAME ; EmailClientApi::NmMessageEnvelope::~NmMessageEnvelope(void)
+	?setContent@NmMessageBody@EmailClientApi@@QAEXABVQString@@@Z @ 76 NONAME ; void EmailClientApi::NmMessageBody::setContent(class QString const &)
+	?getStaticMetaObject@NmEmailService@EmailClientApi@@SAABUQMetaObject@@XZ @ 77 NONAME ; struct QMetaObject const & EmailClientApi::NmEmailService::getStaticMetaObject(void)
+	?tr@NmEnvelopeListing@EmailClientApi@@SA?AVQString@@PBD0H@Z @ 78 NONAME ; class QString EmailClientApi::NmEnvelopeListing::tr(char const *, char const *, int)
+	?folderType@NmFolder@EmailClientApi@@QBE?AW4EmailFolderType@2@XZ @ 79 NONAME ; enum EmailClientApi::EmailFolderType EmailClientApi::NmFolder::folderType(void) const
+	?tr@NmMailboxListing@EmailClientApi@@SA?AVQString@@PBD0H@Z @ 80 NONAME ; class QString EmailClientApi::NmMailboxListing::tr(char const *, char const *, int)
+	??4NmMailbox@EmailClientApi@@QAEAAV01@ABV01@@Z @ 81 NONAME ; class EmailClientApi::NmMailbox & EmailClientApi::NmMailbox::operator=(class EmailClientApi::NmMailbox const &)
+	??_ENmMessageBody@EmailClientApi@@UAE@I@Z @ 82 NONAME ; EmailClientApi::NmMessageBody::~NmMessageBody(unsigned int)
+	?tr@NmMessageTask@@SA?AVQString@@PBD0@Z @ 83 NONAME ; class QString NmMessageTask::tr(char const *, char const *)
+	?setId@NmMailbox@EmailClientApi@@QAEX_K@Z @ 84 NONAME ; void EmailClientApi::NmMailbox::setId(unsigned long long)
+	?qt_metacast@NmEnvelopeListing@EmailClientApi@@UAEPAXPBD@Z @ 85 NONAME ; void * EmailClientApi::NmEnvelopeListing::qt_metacast(char const *)
+	?trUtf8@NmEmailService@EmailClientApi@@SA?AVQString@@PBD0H@Z @ 86 NONAME ; class QString EmailClientApi::NmEmailService::trUtf8(char const *, char const *, int)
+	?tr@NmEventNotifier@EmailClientApi@@SA?AVQString@@PBD0H@Z @ 87 NONAME ; class QString EmailClientApi::NmEventNotifier::tr(char const *, char const *, int)
+	??1NmMailboxListing@EmailClientApi@@UAE@XZ @ 88 NONAME ; EmailClientApi::NmMailboxListing::~NmMailboxListing(void)
+	??1NmEmailAddress@EmailClientApi@@UAE@XZ @ 89 NONAME ; EmailClientApi::NmEmailAddress::~NmEmailAddress(void)
+	??_ENmFolderListing@EmailClientApi@@UAE@I@Z @ 90 NONAME ; EmailClientApi::NmFolderListing::~NmFolderListing(unsigned int)
+	??1NmMailbox@EmailClientApi@@UAE@XZ @ 91 NONAME ; EmailClientApi::NmMailbox::~NmMailbox(void)
+	?failed@NmMessageTask@@IAEXH@Z @ 92 NONAME ; void NmMessageTask::failed(int)
 	?messageEvent@NmEventNotifier@EmailClientApi@@IAEXW4MessageEvent@@_K1V?$QList@_K@@@Z @ 93 NONAME ; void EmailClientApi::NmEventNotifier::messageEvent(enum MessageEvent, unsigned long long, unsigned long long, class QList<unsigned long long>)
 	?tr@NmMessageTask@@SA?AVQString@@PBD0H@Z @ 94 NONAME ; class QString NmMessageTask::tr(char const *, char const *, int)
 	??0NmEmailAddress@EmailClientApi@@QAE@ABV01@@Z @ 95 NONAME ; EmailClientApi::NmEmailAddress::NmEmailAddress(class EmailClientApi::NmEmailAddress const &)
@@ -106,8 +106,8 @@ EXPORTS
 	?metaObject@NmFolderListing@EmailClientApi@@UBEPBUQMetaObject@@XZ @ 105 NONAME ; struct QMetaObject const * EmailClientApi::NmFolderListing::metaObject(void) const
 	?tr@NmEmailService@EmailClientApi@@SA?AVQString@@PBD0@Z @ 106 NONAME ; class QString EmailClientApi::NmEmailService::tr(char const *, char const *)
 	?staticMetaObject@NmEnvelopeListing@EmailClientApi@@2UQMetaObject@@B @ 107 NONAME ; struct QMetaObject const EmailClientApi::NmEnvelopeListing::staticMetaObject
-	?envelopes@NmEnvelopeListing@EmailClientApi@@QAE_NAAV?$QList@VNmMessageEnvelope@EmailClientApi@@@@@Z @ 108 NONAME ; bool EmailClientApi::NmEnvelopeListing::envelopes(class QList<class EmailClientApi::NmMessageEnvelope> &)
-	?displayName@NmEmailAddress@EmailClientApi@@QBE?AVQString@@XZ @ 109 NONAME ; class QString EmailClientApi::NmEmailAddress::displayName(void) const
+	?displayName@NmEmailAddress@EmailClientApi@@QBE?AVQString@@XZ @ 108 NONAME ; class QString EmailClientApi::NmEmailAddress::displayName(void) const
+	?getMailbox@NmEmailService@EmailClientApi@@QAE_N_KAAVNmMailbox@2@@Z @ 109 NONAME ; bool EmailClientApi::NmEmailService::getMailbox(unsigned long long, class EmailClientApi::NmMailbox &)
 	?id@NmMailbox@EmailClientApi@@QBE_KXZ @ 110 NONAME ; unsigned long long EmailClientApi::NmMailbox::id(void) const
 	?plainText@NmMessageEnvelope@EmailClientApi@@QBE?AVQString@@XZ @ 111 NONAME ; class QString EmailClientApi::NmMessageEnvelope::plainText(void) const
 	??_ENmFolder@EmailClientApi@@QAE@I@Z @ 112 NONAME ; EmailClientApi::NmFolder::~NmFolder(unsigned int)
@@ -123,59 +123,59 @@ EXPORTS
 	??_ENmMessageTask@@UAE@I@Z @ 122 NONAME ; NmMessageTask::~NmMessageTask(unsigned int)
 	?metaObject@NmEventNotifier@EmailClientApi@@UBEPBUQMetaObject@@XZ @ 123 NONAME ; struct QMetaObject const * EmailClientApi::NmEventNotifier::metaObject(void) const
 	??0NmEmailService@EmailClientApi@@QAE@PAVQObject@@@Z @ 124 NONAME ; EmailClientApi::NmEmailService::NmEmailService(class QObject *)
-	?childFolderIds@NmFolder@EmailClientApi@@QAEXAAV?$QList@_K@@@Z @ 125 NONAME ; void EmailClientApi::NmFolder::childFolderIds(class QList<unsigned long long> &)
-	??1NmMessageBody@EmailClientApi@@UAE@XZ @ 126 NONAME ; EmailClientApi::NmMessageBody::~NmMessageBody(void)
-	?subject@NmMessageEnvelope@EmailClientApi@@QBE?AVQString@@XZ @ 127 NONAME ; class QString EmailClientApi::NmMessageEnvelope::subject(void) const
-	??0NmMessageBody@EmailClientApi@@QAE@XZ @ 128 NONAME ; EmailClientApi::NmMessageBody::NmMessageBody(void)
-	?getStaticMetaObject@NmFolderListing@EmailClientApi@@SAABUQMetaObject@@XZ @ 129 NONAME ; struct QMetaObject const & EmailClientApi::NmFolderListing::getStaticMetaObject(void)
-	?setContentType@NmMessageEnvelope@EmailClientApi@@QAEXABVQString@@@Z @ 130 NONAME ; void EmailClientApi::NmMessageEnvelope::setContentType(class QString const &)
-	?setFolderType@NmFolder@EmailClientApi@@QAEXW4EmailFolderType@2@@Z @ 131 NONAME ; void EmailClientApi::NmFolder::setFolderType(enum EmailClientApi::EmailFolderType)
+	??1NmMessageBody@EmailClientApi@@UAE@XZ @ 125 NONAME ; EmailClientApi::NmMessageBody::~NmMessageBody(void)
+	?subject@NmMessageEnvelope@EmailClientApi@@QBE?AVQString@@XZ @ 126 NONAME ; class QString EmailClientApi::NmMessageEnvelope::subject(void) const
+	??0NmMessageBody@EmailClientApi@@QAE@XZ @ 127 NONAME ; EmailClientApi::NmMessageBody::NmMessageBody(void)
+	?getStaticMetaObject@NmFolderListing@EmailClientApi@@SAABUQMetaObject@@XZ @ 128 NONAME ; struct QMetaObject const & EmailClientApi::NmFolderListing::getStaticMetaObject(void)
+	?setContentType@NmMessageEnvelope@EmailClientApi@@QAEXABVQString@@@Z @ 129 NONAME ; void EmailClientApi::NmMessageEnvelope::setContentType(class QString const &)
+	?setFolderType@NmFolder@EmailClientApi@@QAEXW4EmailFolderType@2@@Z @ 130 NONAME ; void EmailClientApi::NmFolder::setFolderType(enum EmailClientApi::EmailFolderType)
+	?getEnvelopes@NmEnvelopeListing@EmailClientApi@@QAE_NAAV?$QList@VNmMessageEnvelope@EmailClientApi@@@@@Z @ 131 NONAME ; bool EmailClientApi::NmEnvelopeListing::getEnvelopes(class QList<class EmailClientApi::NmMessageEnvelope> &)
 	?name@NmFolder@EmailClientApi@@QBE?AVQString@@XZ @ 132 NONAME ; class QString EmailClientApi::NmFolder::name(void) const
 	?staticMetaObject@NmEventNotifier@EmailClientApi@@2UQMetaObject@@B @ 133 NONAME ; struct QMetaObject const EmailClientApi::NmEventNotifier::staticMetaObject
-	?setGetToRecipients@NmMessageEnvelope@EmailClientApi@@QAEXABV?$QList@VNmEmailAddress@EmailClientApi@@@@@Z @ 134 NONAME ; void EmailClientApi::NmMessageEnvelope::setGetToRecipients(class QList<class EmailClientApi::NmEmailAddress> const &)
-	?setIsRead@NmMessageEnvelope@EmailClientApi@@QAEX_N@Z @ 135 NONAME ; void EmailClientApi::NmMessageEnvelope::setIsRead(bool)
-	?envelopesListed@NmEnvelopeListing@EmailClientApi@@IAEXH@Z @ 136 NONAME ; void EmailClientApi::NmEnvelopeListing::envelopesListed(int)
-	?start@NmEventNotifier@EmailClientApi@@UAE_NXZ @ 137 NONAME ; bool EmailClientApi::NmEventNotifier::start(void)
-	??1NmFolder@EmailClientApi@@QAE@XZ @ 138 NONAME ; EmailClientApi::NmFolder::~NmFolder(void)
-	?trUtf8@NmMessageTask@@SA?AVQString@@PBD0H@Z @ 139 NONAME ; class QString NmMessageTask::trUtf8(char const *, char const *, int)
+	?setIsRead@NmMessageEnvelope@EmailClientApi@@QAEX_N@Z @ 134 NONAME ; void EmailClientApi::NmMessageEnvelope::setIsRead(bool)
+	?envelopesListed@NmEnvelopeListing@EmailClientApi@@IAEXH@Z @ 135 NONAME ; void EmailClientApi::NmEnvelopeListing::envelopesListed(int)
+	?start@NmEventNotifier@EmailClientApi@@UAE_NXZ @ 136 NONAME ; bool EmailClientApi::NmEventNotifier::start(void)
+	??1NmFolder@EmailClientApi@@QAE@XZ @ 137 NONAME ; EmailClientApi::NmFolder::~NmFolder(void)
+	?trUtf8@NmMessageTask@@SA?AVQString@@PBD0H@Z @ 138 NONAME ; class QString NmMessageTask::trUtf8(char const *, char const *, int)
+	?getCcRecipients@NmMessageEnvelope@EmailClientApi@@QAEXAAV?$QList@VNmEmailAddress@EmailClientApi@@@@@Z @ 139 NONAME ; void EmailClientApi::NmMessageEnvelope::getCcRecipients(class QList<class EmailClientApi::NmEmailAddress> &)
 	?content@NmMessageBody@EmailClientApi@@QBE?AVQString@@XZ @ 140 NONAME ; class QString EmailClientApi::NmMessageBody::content(void) const
 	?metaObject@NmEmailService@EmailClientApi@@UBEPBUQMetaObject@@XZ @ 141 NONAME ; struct QMetaObject const * EmailClientApi::NmEmailService::metaObject(void) const
 	?start@NmEnvelopeListing@EmailClientApi@@UAE_NXZ @ 142 NONAME ; bool EmailClientApi::NmEnvelopeListing::start(void)
-	?ccRecipients@NmMessageEnvelope@EmailClientApi@@QAEXAAV?$QList@VNmEmailAddress@EmailClientApi@@@@@Z @ 143 NONAME ; void EmailClientApi::NmMessageEnvelope::ccRecipients(class QList<class EmailClientApi::NmEmailAddress> &)
-	?qt_metacast@NmMailboxListing@EmailClientApi@@UAEPAXPBD@Z @ 144 NONAME ; void * EmailClientApi::NmMailboxListing::qt_metacast(char const *)
-	?setFetchedSize@NmMessageBody@EmailClientApi@@QAEX_K@Z @ 145 NONAME ; void EmailClientApi::NmMessageBody::setFetchedSize(unsigned long long)
-	??0NmMailbox@EmailClientApi@@QAE@XZ @ 146 NONAME ; EmailClientApi::NmMailbox::NmMailbox(void)
-	?trUtf8@NmMessageTask@@SA?AVQString@@PBD0@Z @ 147 NONAME ; class QString NmMessageTask::trUtf8(char const *, char const *)
-	?setSubject@NmMessageEnvelope@EmailClientApi@@QAEXABVQString@@@Z @ 148 NONAME ; void EmailClientApi::NmMessageEnvelope::setSubject(class QString const &)
-	?metaObject@NmMailboxListing@EmailClientApi@@UBEPBUQMetaObject@@XZ @ 149 NONAME ; struct QMetaObject const * EmailClientApi::NmMailboxListing::metaObject(void) const
-	?getStaticMetaObject@NmEventNotifier@EmailClientApi@@SAABUQMetaObject@@XZ @ 150 NONAME ; struct QMetaObject const & EmailClientApi::NmEventNotifier::getStaticMetaObject(void)
-	?setAddress@NmMailbox@EmailClientApi@@QAEXABVQString@@@Z @ 151 NONAME ; void EmailClientApi::NmMailbox::setAddress(class QString const &)
-	?staticMetaObject@NmEmailService@EmailClientApi@@2UQMetaObject@@B @ 152 NONAME ; struct QMetaObject const EmailClientApi::NmEmailService::staticMetaObject
-	?setTotalSize@NmMessageBody@EmailClientApi@@QAEX_K@Z @ 153 NONAME ; void EmailClientApi::NmMessageBody::setTotalSize(unsigned long long)
-	?trUtf8@NmFolderListing@EmailClientApi@@SA?AVQString@@PBD0H@Z @ 154 NONAME ; class QString EmailClientApi::NmFolderListing::trUtf8(char const *, char const *, int)
-	?tr@NmEmailService@EmailClientApi@@SA?AVQString@@PBD0H@Z @ 155 NONAME ; class QString EmailClientApi::NmEmailService::tr(char const *, char const *, int)
-	?isRunning@NmEmailService@EmailClientApi@@QBE_NXZ @ 156 NONAME ; bool EmailClientApi::NmEmailService::isRunning(void) const
-	?qt_metacall@NmMailboxListing@EmailClientApi@@UAEHW4Call@QMetaObject@@HPAPAX@Z @ 157 NONAME ; int EmailClientApi::NmMailboxListing::qt_metacall(enum QMetaObject::Call, int, void * *)
-	?cancel@NmFolderListing@EmailClientApi@@UAEXXZ @ 158 NONAME ; void EmailClientApi::NmFolderListing::cancel(void)
-	??1NmFolderListing@EmailClientApi@@UAE@XZ @ 159 NONAME ; EmailClientApi::NmFolderListing::~NmFolderListing(void)
-	??1NmMessageTask@@UAE@XZ @ 160 NONAME ; NmMessageTask::~NmMessageTask(void)
-	??0NmMailbox@EmailClientApi@@QAE@ABV01@@Z @ 161 NONAME ; EmailClientApi::NmMailbox::NmMailbox(class EmailClientApi::NmMailbox const &)
-	??0NmEmailAddress@EmailClientApi@@QAE@XZ @ 162 NONAME ; EmailClientApi::NmEmailAddress::NmEmailAddress(void)
-	?setId@NmFolder@EmailClientApi@@QAEX_K@Z @ 163 NONAME ; void EmailClientApi::NmFolder::setId(unsigned long long)
+	?qt_metacast@NmMailboxListing@EmailClientApi@@UAEPAXPBD@Z @ 143 NONAME ; void * EmailClientApi::NmMailboxListing::qt_metacast(char const *)
+	?setFetchedSize@NmMessageBody@EmailClientApi@@QAEX_K@Z @ 144 NONAME ; void EmailClientApi::NmMessageBody::setFetchedSize(unsigned long long)
+	??0NmMailbox@EmailClientApi@@QAE@XZ @ 145 NONAME ; EmailClientApi::NmMailbox::NmMailbox(void)
+	?trUtf8@NmMessageTask@@SA?AVQString@@PBD0@Z @ 146 NONAME ; class QString NmMessageTask::trUtf8(char const *, char const *)
+	?setSubject@NmMessageEnvelope@EmailClientApi@@QAEXABVQString@@@Z @ 147 NONAME ; void EmailClientApi::NmMessageEnvelope::setSubject(class QString const &)
+	?metaObject@NmMailboxListing@EmailClientApi@@UBEPBUQMetaObject@@XZ @ 148 NONAME ; struct QMetaObject const * EmailClientApi::NmMailboxListing::metaObject(void) const
+	?getStaticMetaObject@NmEventNotifier@EmailClientApi@@SAABUQMetaObject@@XZ @ 149 NONAME ; struct QMetaObject const & EmailClientApi::NmEventNotifier::getStaticMetaObject(void)
+	?setAddress@NmMailbox@EmailClientApi@@QAEXABVQString@@@Z @ 150 NONAME ; void EmailClientApi::NmMailbox::setAddress(class QString const &)
+	?staticMetaObject@NmEmailService@EmailClientApi@@2UQMetaObject@@B @ 151 NONAME ; struct QMetaObject const EmailClientApi::NmEmailService::staticMetaObject
+	?setTotalSize@NmMessageBody@EmailClientApi@@QAEX_K@Z @ 152 NONAME ; void EmailClientApi::NmMessageBody::setTotalSize(unsigned long long)
+	?trUtf8@NmFolderListing@EmailClientApi@@SA?AVQString@@PBD0H@Z @ 153 NONAME ; class QString EmailClientApi::NmFolderListing::trUtf8(char const *, char const *, int)
+	?tr@NmEmailService@EmailClientApi@@SA?AVQString@@PBD0H@Z @ 154 NONAME ; class QString EmailClientApi::NmEmailService::tr(char const *, char const *, int)
+	?isRunning@NmEmailService@EmailClientApi@@QBE_NXZ @ 155 NONAME ; bool EmailClientApi::NmEmailService::isRunning(void) const
+	?qt_metacall@NmMailboxListing@EmailClientApi@@UAEHW4Call@QMetaObject@@HPAPAX@Z @ 156 NONAME ; int EmailClientApi::NmMailboxListing::qt_metacall(enum QMetaObject::Call, int, void * *)
+	?cancel@NmFolderListing@EmailClientApi@@UAEXXZ @ 157 NONAME ; void EmailClientApi::NmFolderListing::cancel(void)
+	??1NmFolderListing@EmailClientApi@@UAE@XZ @ 158 NONAME ; EmailClientApi::NmFolderListing::~NmFolderListing(void)
+	??1NmMessageTask@@UAE@XZ @ 159 NONAME ; NmMessageTask::~NmMessageTask(void)
+	??0NmMailbox@EmailClientApi@@QAE@ABV01@@Z @ 160 NONAME ; EmailClientApi::NmMailbox::NmMailbox(class EmailClientApi::NmMailbox const &)
+	??0NmEmailAddress@EmailClientApi@@QAE@XZ @ 161 NONAME ; EmailClientApi::NmEmailAddress::NmEmailAddress(void)
+	?setId@NmFolder@EmailClientApi@@QAEX_K@Z @ 162 NONAME ; void EmailClientApi::NmFolder::setId(unsigned long long)
+	?getPlainTextBody@NmMessageEnvelope@EmailClientApi@@QAEXAAVNmMessageBody@2@@Z @ 163 NONAME ; void EmailClientApi::NmMessageEnvelope::getPlainTextBody(class EmailClientApi::NmMessageBody &)
 	?qt_metacall@NmFolderListing@EmailClientApi@@UAEHW4Call@QMetaObject@@HPAPAX@Z @ 164 NONAME ; int EmailClientApi::NmFolderListing::qt_metacall(enum QMetaObject::Call, int, void * *)
 	?contentType@NmMessageEnvelope@EmailClientApi@@QBE?AVQString@@XZ @ 165 NONAME ; class QString EmailClientApi::NmMessageEnvelope::contentType(void) const
 	??_ENmEmailService@EmailClientApi@@UAE@I@Z @ 166 NONAME ; EmailClientApi::NmEmailService::~NmEmailService(unsigned int)
 	??_ENmMailbox@EmailClientApi@@UAE@I@Z @ 167 NONAME ; EmailClientApi::NmMailbox::~NmMailbox(unsigned int)
 	?parentFolder@NmMessageEnvelope@EmailClientApi@@QBE_KXZ @ 168 NONAME ; unsigned long long EmailClientApi::NmMessageEnvelope::parentFolder(void) const
-	?setTotalSize@NmMessageEnvelope@EmailClientApi@@QAEX_K@Z @ 169 NONAME ; void EmailClientApi::NmMessageEnvelope::setTotalSize(unsigned long long)
-	?metaObject@NmMessageTask@@UBEPBUQMetaObject@@XZ @ 170 NONAME ; struct QMetaObject const * NmMessageTask::metaObject(void) const
-	?trUtf8@NmEventNotifier@EmailClientApi@@SA?AVQString@@PBD0H@Z @ 171 NONAME ; class QString EmailClientApi::NmEventNotifier::trUtf8(char const *, char const *, int)
-	?isRunning@NmFolderListing@EmailClientApi@@QBE_NXZ @ 172 NONAME ; bool EmailClientApi::NmFolderListing::isRunning(void) const
-	?fetchedSize@NmMessageEnvelope@EmailClientApi@@QBE_KXZ @ 173 NONAME ; unsigned long long EmailClientApi::NmMessageEnvelope::fetchedSize(void) const
-	?toRecipients@NmMessageEnvelope@EmailClientApi@@QAEXAAV?$QList@VNmEmailAddress@EmailClientApi@@@@@Z @ 174 NONAME ; void EmailClientApi::NmMessageEnvelope::toRecipients(class QList<class EmailClientApi::NmEmailAddress> &)
+	?getToRecipients@NmMessageEnvelope@EmailClientApi@@QAEXAAV?$QList@VNmEmailAddress@EmailClientApi@@@@@Z @ 169 NONAME ; void EmailClientApi::NmMessageEnvelope::getToRecipients(class QList<class EmailClientApi::NmEmailAddress> &)
+	?setTotalSize@NmMessageEnvelope@EmailClientApi@@QAEX_K@Z @ 170 NONAME ; void EmailClientApi::NmMessageEnvelope::setTotalSize(unsigned long long)
+	?metaObject@NmMessageTask@@UBEPBUQMetaObject@@XZ @ 171 NONAME ; struct QMetaObject const * NmMessageTask::metaObject(void) const
+	?trUtf8@NmEventNotifier@EmailClientApi@@SA?AVQString@@PBD0H@Z @ 172 NONAME ; class QString EmailClientApi::NmEventNotifier::trUtf8(char const *, char const *, int)
+	?isRunning@NmFolderListing@EmailClientApi@@QBE_NXZ @ 173 NONAME ; bool EmailClientApi::NmFolderListing::isRunning(void) const
+	?fetchedSize@NmMessageEnvelope@EmailClientApi@@QBE_KXZ @ 174 NONAME ; unsigned long long EmailClientApi::NmMessageEnvelope::fetchedSize(void) const
 	??0NmEventNotifier@EmailClientApi@@QAE@PAVQObject@@@Z @ 175 NONAME ; EmailClientApi::NmEventNotifier::NmEventNotifier(class QObject *)
 	?setParentFolder@NmMessageEnvelope@EmailClientApi@@QAEX_K@Z @ 176 NONAME ; void EmailClientApi::NmMessageEnvelope::setParentFolder(unsigned long long)
 	??1NmEnvelopeListing@EmailClientApi@@UAE@XZ @ 177 NONAME ; EmailClientApi::NmEnvelopeListing::~NmEnvelopeListing(void)
-	?setChildFolderIds@NmFolder@EmailClientApi@@QAEXAAV?$QList@_K@@@Z @ 178 NONAME ; void EmailClientApi::NmFolder::setChildFolderIds(class QList<unsigned long long> &)
-	?mailbox@NmEmailService@EmailClientApi@@QAE_N_KAAVNmMailbox@2@@Z @ 179 NONAME ; bool EmailClientApi::NmEmailService::mailbox(unsigned long long, class EmailClientApi::NmMailbox &)
+	?getChildFolderIds@NmFolder@EmailClientApi@@QAEXAAV?$QList@_K@@@Z @ 178 NONAME ; void EmailClientApi::NmFolder::getChildFolderIds(class QList<unsigned long long> &)
+	?setChildFolderIds@NmFolder@EmailClientApi@@QAEXAAV?$QList@_K@@@Z @ 179 NONAME ; void EmailClientApi::NmFolder::setChildFolderIds(class QList<unsigned long long> &)
 

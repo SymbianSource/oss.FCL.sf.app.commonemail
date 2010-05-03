@@ -108,7 +108,7 @@ public:
      * returns child folder ids.
      * to be implemented later when nmail functionality is available
      */
-    void childFolderIds(QList<quint64> &childFolderIds);
+    void getChildFolderIds(QList<quint64> &childFolderIds);
 
     /*
      * returns parent folder id.

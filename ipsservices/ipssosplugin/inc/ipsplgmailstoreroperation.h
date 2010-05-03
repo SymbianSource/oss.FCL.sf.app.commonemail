@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007 Nokia Corporation and/or its subsidiary(-ies).
+* Copyright (c) 2007 - 2010 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -26,7 +26,7 @@ class CFSMailMessage;
 class MFSMailRequestObserver;
 
 NONSHARABLE_CLASS( CIpsPlgMailStorerOperation ) :
-    public CMsvOperation
+    public CIpsPlgBaseOperation
     {
 public:
     /**
@@ -69,9 +69,27 @@ public:
     void DoCancel();
 
     /**
-     * From CMsvOperation
-     */
+    * From CMsvoperation
+    */
     virtual const TDesC8& ProgressL();
+
+    // <qmail>
+    /**
+    * From CIpsPlgBaseOperation
+    */
+    virtual const TDesC8& GetErrorProgressL(TInt aError);
+
+    /**
+    * From CIpsPlgBaseOperation
+    */
+    virtual TFSProgress GetFSProgressL() const;
+
+    /**
+     * From CIpsPlgBaseOperation
+     * Returns operation type
+     */
+    TIpsOpType IpsOpType() const;    
+    // </qmail>
 
 protected:
 
@@ -110,7 +128,9 @@ private://data
     CFSMailPlugin&              iPlugin;
     RPointerArray<CFSMailMessage>     &iMessages;
     MFSMailRequestObserver&     iFSOperationObserver;
-    const TInt                        iRequestId;
+    // <qmail>
+    TFSProgress                 iFSProgress;
+    // </qmail>
     };
 
 #endif //CIpsPlgMailStorerOperation_H

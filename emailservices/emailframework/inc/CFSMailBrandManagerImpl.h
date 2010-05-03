@@ -67,6 +67,12 @@ private:	// From MFSMailBrandManager
 	                       const TFSMailMsgId& aMailboxId );
 
 	/**
+	 * @see MFSMailBrandManager::GetGraphicL, overloaded with brandid
+	 */
+	CGulIcon* GetGraphicL( TFSBrandElement aElement, const TDesC& aBrandId );
+	
+	
+	/**
 	 * @see MFSMailBrandManager::GetTextL
 	 */
 	TPtrC GetTextL( TFSBrandElement aElement,
@@ -98,6 +104,13 @@ private:	// From MFSMailBrandManager
 	                     const TFSMailMsgId& aMailboxId,
                          TDes& aIconIds  );
 
+	/**
+	 * @see MFSMailBrandManager::GetGraphicIdsL
+	 */
+    TInt GetGraphicIdsL( TFSBrandElement aElement, 
+                         const TDesC& aBrandId,
+                         TDes& aIconIds  );
+    
 private:
 
     /**
@@ -134,6 +147,16 @@ private:
 	 */
 	CFSMailBox* MailboxMatchingBrandIdL( const TDesC& aBrandId ) const;
 	
+// <gmail_brand_issue>
+    void GetMCCValueL( TDes& aMcc ) const;    
+
+    void GetMCCValueFromSIML( TDes& aMcc ) const;    
+
+    TUint8 GetCurrentCountryL() const;
+
+    void VerifyMailAccountName( TPtrC& aBrandedName ) const;
+// </gmail_brand_issue>
+
 private: // data
 
     /**

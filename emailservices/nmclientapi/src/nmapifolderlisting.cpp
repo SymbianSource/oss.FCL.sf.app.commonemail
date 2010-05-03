@@ -54,7 +54,7 @@ NmFolderListing::~NmFolderListing()
  *  It clears list of folders after be called.
  *  It also at start clear inputlist of NmFolder.
  */
-bool NmFolderListing::folders(QList<EmailClientApi::NmFolder> &folders)
+bool NmFolderListing::getFolders(QList<EmailClientApi::NmFolder> &folders)
 {
     folders.clear();
     if (!mFolderListing->mIsRunning || mFolderListing->mFolders.isEmpty()) {

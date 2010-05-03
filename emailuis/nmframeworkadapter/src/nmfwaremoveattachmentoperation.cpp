@@ -53,50 +53,94 @@ NmFwaRemoveAttachmentOperation::~NmFwaRemoveAttachmentOperation()
 }
 
 /*!
-    Slot, called after base object construction via timer event, runs the
+    Called after base object construction via timer event, runs the
     async operation.
     
     \sa NmOperation
  */
-void NmFwaRemoveAttachmentOperation::runAsyncOperation()
+void NmFwaRemoveAttachmentOperation::doRunAsyncOperation()
+{
+    TRAPD(err, doRunAsyncOperationL());
+    if (err != KErrNone) {
+        completeOperation(NmGeneralError);
+    }
+}
+
+/*!
+    Leaving function for async operation
+    \sa NmOperation
+ */
+void NmFwaRemoveAttachmentOperation::doRunAsyncOperationL()
 {
     CFSMailMessage *msg = NULL;
 
-    TRAPD(err, msg = CFSMailMessage::NewL(mMessage));
+    msg = CFSMailMessage::NewL(mMessage);
     
-    if (err == KErrNone) {
-    
-        // Get attachment list from the message
-        RPointerArray<CFSMailMessagePart> attachments;
-        attachments.Reset();
-        TRAP(err, msg->AttachmentListL(attachments));
+    // Get attachment list from the message
+    RPointerArray<CFSMailMessagePart> attachments;
+    attachments.Reset();
+    msg->AttachmentListL(attachments);
         
-        if (err == KErrNone) {
-            err = KErrNotFound;
-            
-            // Search through all attachments from message and remove attachment
-            // if message part match.
-            for (int i=0; i<attachments.Count(); ++i) {
-                if (mAttachmentPartId.id() == attachments[i]->GetPartId().GetNmId().id()) {
-                    TRAP(err, msg->RemoveChildPartL(attachments[i]->GetPartId()));
-                    break;
-                }
-            }
+    // Search through all attachments from message and remove attachment
+    // if message part match.
+    for (int i=0; i<attachments.Count(); ++i) {
+        if (mAttachmentPartId.id() == attachments[i]->GetPartId().GetNmId().id()) {
+            mRequestId = msg->RemoveChildPartL(attachments[i]->GetPartId(),*this);
+            break;
         }
-        attachments.ResetAndDestroy();
     }
+    attachments.ResetAndDestroy();
     
     delete msg;
     msg = NULL;
+}
+
+/*!
+    Asynchronous request response message.
     
-    // Send signal for completion of the operation
-    if (err == KErrNone) {
-        completeOperation(NmNoError);
-    }
-    else if (err == KErrNotFound) {
-        completeOperation(NmNotFoundError);
+    \param aEvent Plugin event description.
+    \param aRequestId Request id of asyncronous operation.
+ */
+void NmFwaRemoveAttachmentOperation::RequestResponseL(TFSProgress aEvent,
+                                                      TInt aRequestId)
+{
+    if (aRequestId == mRequestId) {
+        TFSProgress::TFSProgressStatus status = aEvent.iProgressStatus;
+        if (status == TFSProgress::EFSStatus_RequestComplete) {
+            // Request completed. Let's check the result
+            switch (aEvent.iError) {
+                case KErrNone: {
+                    completeOperation(NmNoError);
+                    break;
+                }
+                case KErrNotFound:
+                    completeOperation(NmNotFoundError);
+                    break;
+                default:
+                    completeOperation(NmGeneralError);
+            }
+        }
+        else if (status == TFSProgress::EFSStatus_RequestCancelled) {
+            operationCancelled();
+            completeOperation(NmCancelError);
+        }
+        else {
+            completeOperation(NmGeneralError);
+        }
     }
     else {
         completeOperation(NmGeneralError);
     }
 }
+
+/*!
+    Cancels the async operation. \sa NmOperation
+ */
+void NmFwaRemoveAttachmentOperation::doCancelOperation()
+{
+    if (mRequestId >= 0) {
+        TRAP_IGNORE(mMailClient.CancelL(mRequestId));
+        mRequestId = KErrNotFound;
+    }
+}
+

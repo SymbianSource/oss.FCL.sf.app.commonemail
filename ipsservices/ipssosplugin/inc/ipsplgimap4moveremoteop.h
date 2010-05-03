@@ -15,9 +15,8 @@
 *
 */
 
-#ifndef __IPSPLGIMAP4MOVEREMOTEOP_H__
-#define __IPSPLGIMAP4MOVEREMOTEOP_H__
-
+#ifndef IPSPLGIMAP4MOVEREMOTEOP_H
+#define IPSPLGIMAP4MOVEREMOTEOP_H
 
 #include "ipsplgonlineoperation.h"
 
@@ -28,128 +27,123 @@
 NONSHARABLE_CLASS ( CIpsPlgImap4MoveRemoteOp ) :
     public CIpsPlgOnlineOperation
     {
-    public:
-        /**
-        *
-        * @param aSession: Server session.
-        * @param aStatus: Observer completion status.
-        * @param aReporter: Progress reporter.
-        * @param aSel: The message ids to get.
-        * @param aTargetId: Where to fetch the messages to.
-        * @param aCopy: Copying or moving.
-        */
-        static CIpsPlgImap4MoveRemoteOp* NewL(
-            CMsvSession& aMsvSession,
-            TRequestStatus& aObserverRequestStatus,
-            TInt aFunctionId,
-            TMsvId aService,
-            CIpsPlgTimerOperation& aActivityTimer,
-            const TImImap4GetMailInfo& aGetMailInfo,
-            const CMsvEntrySelection& aSel,
-            TFSMailMsgId aFSMailBoxId,
-            MFSMailRequestObserver& aFSOperationObserver,
-            TInt aFSRequestId );
+public:
+    /**
+    * NewL
+    * @param aMsvSession client/server session to MsvServer
+    * @param aObserverRequestStatus client's status
+    * @param aService serviceId of the mailbox
+    * @param aActivityTimer mailbox specific activity timer
+    * @param aDestinationFolder destination folder id to where the messages are to be moved
+    * @param aSelection selection of messages
+    * @param aFSMailBoxId identifies mailbox
+    * @param aFSOperationObserver observer of this operation
+    * @param aFSRequestId client assigned request identifier
+    * @return class instance
+    */
+    // <qmail> parameters changed
+    static CIpsPlgImap4MoveRemoteOp* NewL(
+        CMsvSession& aMsvSession,
+        TRequestStatus& aObserverRequestStatus,
+        TMsvId aService,
+        CIpsPlgTimerOperation& aActivityTimer,
+        const TMsvId& aDestinationFolder,
+        const CMsvEntrySelection& aSelection,
+        TFSMailMsgId aFSMailBoxId,
+        MFSMailRequestObserver* aFSOperationObserver,
+        TInt aFSRequestId );
 
-        /**
-        *
-        */
-        virtual ~CIpsPlgImap4MoveRemoteOp();
-        
-        /**
-        *
-        */
-        const TDesC8& ProgressL();
-        
-        /**
-        *
-        */
-        const TDesC8& GetErrorProgressL( TInt aError );
-        
-        /**
-        *
-        */
-        TFSProgress GetFSProgressL() const;
-        
-    private:
-
-        /**
-        * for explanation of parameters, see NewL
-        */
-        CIpsPlgImap4MoveRemoteOp(
-            CMsvSession& aMsvSession,
-            TRequestStatus& aObserverRequestStatus,
-            TInt aFunctionId,
-            TMsvId aService,
-            CIpsPlgTimerOperation& aActivityTimer,
-            const TImImap4GetMailInfo& aGetMailInfo,
-            TFSMailMsgId aFSMailBoxId,
-            MFSMailRequestObserver& aFSOperationObserver,
-            TInt aFSRequestId );
-
-        /**
-        *
-        */
-        void ConstructL(const CMsvEntrySelection& aSel);
-        
-        /**
-        * RunL()
-        */
-        void RunL();
-        
-        /**
-        *
-        */
-        void DoRunL();
-        
-        
-        /**
-        *
-        */
-        void DoConnectL();
-        
-        /**
-        *
-        * Sort messages into complete and incomplete.
-        */
-        void SortMessageSelectionL(const CMsvEntrySelection& aSel);
-        
-        /**
-        *
-        */
-
-        void Complete();
-        
-        /**
-        *
-        */
-        void DoMoveLocalL();
-
-        /**
-        *
-        */
-        void DoMoveRemoteL();
-        
-    protected:
+    virtual ~CIpsPlgImap4MoveRemoteOp();
     
-        /**
-        * From CIpsPlgOnlineoperation
-        */
-        TInt GetEngineProgress( const TDesC8& aProgress );
+    /**
+    * From MsvOperation
+    * Gets information on the progress of the operation
+    * (see MsvOperation header)
+    */
+    const TDesC8& ProgressL();
+    
+    /**
+    * From CIpsPlgBaseOperation
+    * For reporting if DoRunL leaves
+    */
+    const TDesC8& GetErrorProgressL( TInt aError );
+    
+    TFSProgress GetFSProgressL() const;
+    
+    // <qmail> new func to this op
+    /**
+     * Returns operation type
+     */
+    TIpsOpType IpsOpType() const;
+    
+private:
+    // <qmail> parameters changed
+    CIpsPlgImap4MoveRemoteOp(
+        CMsvSession& aMsvSession,
+        TRequestStatus& aObserverRequestStatus,
+        TMsvId aService,
+        CIpsPlgTimerOperation& aActivityTimer,
+        const TMsvId& aDestinationFolder,
+        TFSMailMsgId aFSMailBoxId,
+        MFSMailRequestObserver* aFSOperationObserver,
+        TInt aFSRequestId );
 
-    private:
-        enum TState { EIdle, EConnecting, ELocalMsgs, ERemoteMsgs };
-        TState                              iState;
-        TInt                                iFunctionId;
-        TDesC8*                             iMoveErrorProgress;
-        TImImap4GetMailInfo                 iGetMailInfo;
-        CMsvEntrySelection*                 iSelection;
-        CMsvEntrySelection*                 iLocalSel;      // Complete messages
-        CMsvEntrySelection*                 iRemoteSel;     // Incomplete messages to be fetched.
-        TPckgBuf<TImap4CompoundProgress>    iProgressBuf;
-        TPckgBuf<TImap4SyncProgress>        iSyncProgress;
+    void ConstructL( const CMsvEntrySelection& aSelection );
+    
+    void RunL();
+    
+    /**
+     * actual implementation of RunL's functionality
+     * RunL wraps and traps this function
+     */
+    void DoRunL();
+    
+    void DoConnectL();
+    
+    /**
+    * Sort messages into complete and incomplete.
+    */
+    void SortMessageSelectionL(const CMsvEntrySelection& aSel);
+    
+    /**
+     * Completes client's status
+     */
+    void Complete();
+    
+    /**
+     * handles local moving
+     */
+    void DoMoveLocalL();
+
+    /**
+     * handles remote moving
+     */
+    void DoMoveRemoteL();
+    
+    // <qmail> removed TInt GetEngineProgress( const TDesC8& aProgress );
+
+private:
+    // internal state of this operation
+    enum TState 
+        { 
+        EIdle, 
+        EConnecting, 
+        ELocalMsgs, 
+        ERemoteMsgs 
+        };
+    TState                              iState;
+
+    // <qmail> iFunctionId; removed
+    // used in error situations
+    TDesC8*                             iMoveErrorProgress;
+    // <qmail> using destination folder Id instead of mailInfo struct
+    // specifies folder where to move
+    TMsvId                              iDestinationFolderId;
+    // <qmail> removed iSelection;
+    CMsvEntrySelection*                 iLocalSel;      // Complete messages
+    CMsvEntrySelection*                 iRemoteSel;     // Incomplete messages to be fetched.
+    TPckgBuf<TImap4CompoundProgress>    iProgressBuf;
+    TPckgBuf<TImap4SyncProgress>        iSyncProgress;
     };
 
-
-#endif //__IPSPLGIMAP4MOVEREMOTEOP_H__
-
-// End of File
+#endif // IPSPLGIMAP4MOVEREMOTEOP_H

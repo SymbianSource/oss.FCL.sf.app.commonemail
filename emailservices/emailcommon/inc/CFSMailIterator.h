@@ -45,16 +45,16 @@ public:
      */
      IMPORT_C static CFSMailIterator* NewL( MFSMailIterator& aIterator,
                                    CFSMailRequestHandler* aRequestHandler );
-                  
+									
     /**
      * Two-phased constructor.
      *
      * @param aIterator plugin iteraror 
      * @param aRequestHandler request handler for plugin requests
      */
-     IMPORT_C static CFSMailIterator* NewLC(  MFSMailIterator& aIterator,
-                  CFSMailRequestHandler* aRequestHandler );
-                  
+     IMPORT_C static CFSMailIterator* NewLC(	MFSMailIterator& aIterator,
+									CFSMailRequestHandler* aRequestHandler );
+									
     /**
      * see MFSMailIterator::NextL
      *
@@ -89,11 +89,11 @@ public:
     /**
      * Destructor.
      */  
-     ~CFSMailIterator();
-          
+   	 ~CFSMailIterator();
+        	
 private:
 
-    /**
+  	/**
      * Two-phased constructor
      */
      void ConstructL( MFSMailIterator& aIterator,
@@ -102,25 +102,25 @@ private:
     /**
      * C++ default constructor.
      */
-     CFSMailIterator();
+  	 CFSMailIterator();
 
     /**
      * sets request handler
      */
      void SetAsyncRequestHandler(RPointerArray<CFSMailMessage>& aMessages);
-    
+  	
 private: // data
  
     /**
      * request handler for plugin requests
      */
-     CFSMailRequestHandler*    iRequestHandler; 
+     CFSMailRequestHandler*    iRequestHandler;	
 
     /**
      * plugin iterator
      */
      MFSMailIterator*          iIterator;
-    };
+   	};
 
 #endif  // M_FSMAILITERATOR_H
 

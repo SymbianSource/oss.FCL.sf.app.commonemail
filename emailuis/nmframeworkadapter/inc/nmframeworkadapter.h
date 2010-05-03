@@ -23,6 +23,9 @@
 #include <nmdataplugininterface.h>
 #include <CFSMailCommon.h>
 #include <MFSMailEventObserver.h>
+#ifdef Q_OS_SYMBIAN
+#include <xqsharablefile.h>
+#endif
 
 class NmMailbox;
 class NmMessage;
@@ -87,12 +90,22 @@ public:
         const NmId &folderId,
         const NmId &messageId,
         const NmId &messagePartId);
+    
+    XQSharableFile messagePartFile(
+            const NmId &mailboxId,
+            const NmId &folderId,
+            const NmId &messageId,
+            const NmId &messagePartId);
            
     NmId getStandardFolderId(
             const NmId& mailbox,
             NmFolderType folderType );
 
     int refreshMailbox(NmId mailboxId);
+
+    int goOnline(const NmId& mailboxId);
+    
+    int goOffline(const NmId& mailboxId);
 
     int contentToMessagePart(
             const NmId &mailboxId,
@@ -153,6 +166,17 @@ public:
     
     NmConnectState connectionState(const NmId& mailboxId) const;
     
+    int getFolderById(
+            const NmId &mailboxId, 
+            const NmId &folderId, 
+            NmFolder *&folder );
+			
+	int listMessages(
+            const NmId& mailboxId,
+            const NmId& folderId,
+            QList<NmMessageEnvelope*> &messageMetaDataList,
+            const int maxAmountOfEnvelopes);
+			
 signals:
     void mailboxEvent(NmMailboxEvent event, const QList<NmId> &mailboxIds);
     void messageEvent(
@@ -162,8 +186,8 @@ signals:
             const NmId& mailboxId); //added to provide mailboxId
     
     void syncStateEvent(
-            NmSyncState state,
-            const NmId mailboxId);
+        NmSyncState state,
+        const NmOperationCompletionEvent &event );
     
     void connectionEvent(NmConnectState state, const NmId mailboxId);
 
@@ -184,7 +208,8 @@ private:
     void listMessagesL(  
             const NmId &mailboxId,
             const NmId &folderId,
-            QList<NmMessageEnvelope*> &messageMetaDataList);
+            QList<NmMessageEnvelope*> &messageMetaDataList, 
+            const int maxAmountOfEnvelopes);
     
     NmId getMailboxIdByMailMsgId(TFSMailMsgId mailbox);
 
@@ -201,6 +226,10 @@ private:
 
     int RefreshMailboxL(NmId mailboxId);
     
+    int GoOnlineL(const NmId& mailboxId);
+
+    int GoOfflineL(const NmId& mailboxId);
+
     void handleMailboxEvent(
             TFSMailMsgId mailbox,
             NmMailboxEvent event);
@@ -213,6 +242,11 @@ private:
     
     void handleSyncstateEvent(TAny* param1, TFSMailMsgId mailbox);
     
+	void getFolderByIdL(
+            const NmId& mailboxId, 
+            const NmId& folderId, 
+            NmFolder*& unreadCount );		
+	
 private:
     CFSMailClient*  mFSfw;//singleton, not owned
 };

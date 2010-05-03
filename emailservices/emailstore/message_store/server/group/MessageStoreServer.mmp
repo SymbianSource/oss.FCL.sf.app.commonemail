@@ -58,7 +58,6 @@ SOURCE        MessageStoreServer.cpp
 SOURCE        MessageStoreSession.cpp
 SOURCE        BackupRestoreObserver.cpp
 SOURCE        ShutdownServer.cpp
-SOURCE        StoreDriveMonitor.cpp
 
 SOURCE        ContainerStore.cpp
 SOURCE        ContainerStoreContainersTable.cpp
@@ -73,9 +72,9 @@ SOURCE        ContainerStoreUtils.cpp
 SOURCE        MsgStoreSortResultRowSet.cpp
 SOURCE        MsgStoreStringSortResultRowSet.cpp
 SOURCE        ContainerStoreSortingTable.cpp
-SOURCE		  ContainerStoreSearchResultTable.cpp
+SOURCE        ContainerStoreSearchResultTable.cpp
 SOURCE        MessageStoreEncryptHandler.cpp
-SOURCE        ContainerStoreMruAddressTable.cpp
+SOURCE        ContainerStoreMRUAddressTable.cpp
 SOURCE        MsgStoreInMemorySortRowSet.cpp
 SOURCE        bufferedmessagecreator.cpp
 SOURCE        messagestoreutils.cpp

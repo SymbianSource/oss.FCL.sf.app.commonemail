@@ -38,8 +38,8 @@ public:
     
     virtual void RequestResponseL(TFSProgress aEvent, TInt aRequestId);
 
-protected slots:
-    virtual void runAsyncOperation();
+protected:
+    virtual void doRunAsyncOperation();
     
 protected:
     virtual void doCompleteOperation();

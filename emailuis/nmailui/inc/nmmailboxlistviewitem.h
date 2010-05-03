@@ -21,13 +21,12 @@
 #include <hblistviewitem.h>
 
 class HbLabel;
-class HbDocumentLoader;
 class QGraphicsLinearLayout;
 
 class NmMailboxListViewItem : public HbListViewItem
 {
 public:
-    NmMailboxListViewItem(HbDocumentLoader *documentLoader);
+    NmMailboxListViewItem(QGraphicsItem * parent = 0);
     virtual ~NmMailboxListViewItem();
     enum { ItemType = Hb::ItemType_Last + 1 };
 
@@ -42,7 +41,6 @@ protected:
     void polishEvent();
 
 private:
-	HbDocumentLoader *mDocumentLoader;  // Not owned
     QGraphicsLinearLayout *mLayout;     // Not owned
 };
 

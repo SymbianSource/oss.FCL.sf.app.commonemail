@@ -33,3 +33,7 @@ EXPORTS
 	_ZTV22NmSettingsViewLauncher @ 32 NONAME
 	_ZThn8_N21NmSettingsViewFactoryD0Ev @ 33 NONAME
 	_ZThn8_N21NmSettingsViewFactoryD1Ev @ 34 NONAME
+	_ZN21NmSettingsViewFactory12aboutToCloseEv @ 35 NONAME
+	_ZN22NmSettingsViewLauncher8goOnlineERK4NmId @ 36 NONAME
+	_ZN22NmSettingsViewLauncher9goOfflineERK4NmId @ 37 NONAME
+

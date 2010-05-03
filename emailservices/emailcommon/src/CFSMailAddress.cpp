@@ -31,13 +31,13 @@
 // CFSMailAddress::NewLC
 // -----------------------------------------------------------------------------
 EXPORT_C CFSMailAddress* CFSMailAddress::NewLC()
-{
+    {
     FUNC_LOG;
     CFSMailAddress* adr = new (ELeave) CFSMailAddress();
     CleanupStack::PushL(adr);
     adr->ConstructL();
     return adr;
-} 
+    } 
 
 // -----------------------------------------------------------------------------
 // CFSMailAddress::NewL
@@ -48,112 +48,129 @@ EXPORT_C CFSMailAddress* CFSMailAddress::NewL()
     CFSMailAddress* adr =  CFSMailAddress::NewLC();
     CleanupStack::Pop(adr);
     return adr;
-}
+    }
 
 // <qmail>
 // -----------------------------------------------------------------------------
 // CFSMailAddress::NewL
 // -----------------------------------------------------------------------------
 EXPORT_C CFSMailAddress* CFSMailAddress::NewL( const NmAddress& aNmAddress )
-{
+	{
     FUNC_LOG;
     CFSMailAddress* adr = new (ELeave) CFSMailAddress();
     CleanupStack::PushL(adr);
     adr->ConstructL(aNmAddress);
     CleanupStack::Pop(adr);
     return adr;
-}
-
+	}
 // </qmail>
+
 // -----------------------------------------------------------------------------
 // CFSMailAddress::ConstructL
 // -----------------------------------------------------------------------------
 void CFSMailAddress::ConstructL()
-{
+    {
     FUNC_LOG;
+// <qmail>
     // Construction of shared data object
     iNmPrivateAddress = new NmAddressPrivate();
-}
+// </qmail>
+    }
+	
 // <qmail>
 // -----------------------------------------------------------------------------
 // CFSMailAddress::ConstructL
 // --------------------------------_--------------------------------------------
 void CFSMailAddress::ConstructL( const NmAddress& aNmAddress )
-{
+	{
     FUNC_LOG;
     // shared data object
     iNmPrivateAddress = aNmAddress.d;
-}
+	}
 // </qmail>
 
 // -----------------------------------------------------------------------------
 // CFSMailAddress::CFSMailAddress
 // -----------------------------------------------------------------------------
 CFSMailAddress::CFSMailAddress()
-{
+    {
     FUNC_LOG;
-}
+// <qmail>
+// Unnecessary members initialization removed: iEmailAddress, iDisplayName
+// </qmail>
+    }
 
 // -----------------------------------------------------------------------------
 // CFSMailAddress::~CFSMailAddress
 // -----------------------------------------------------------------------------
 EXPORT_C CFSMailAddress::~CFSMailAddress()
-{
+    {
     FUNC_LOG;
-}
-
 // <qmail>
+// Unnecessary members destruction removed: iEmailAddress, iDisplayName
+// </qmail>
+        }
+
 // -----------------------------------------------------------------------------
 // CFSMailAddress::GetEmailAddress
 // -----------------------------------------------------------------------------
 EXPORT_C TDesC& CFSMailAddress::GetEmailAddress() const
-{
+    {
     FUNC_LOG;
+// <qmail>
     iEmailAddressPtr.Set(reinterpret_cast<const TUint16*> (iNmPrivateAddress->mAddress.utf16()),
         iNmPrivateAddress->mAddress.length());
     return iEmailAddressPtr;
-}
+// </qmail>
+    }
 
 // -----------------------------------------------------------------------------
 // CFSMailAddress::SetEmailAddress
 // -----------------------------------------------------------------------------
-EXPORT_C void CFSMailAddress::SetEmailAddress( const TDesC& aAddress )
-{
+EXPORT_C void CFSMailAddress::SetEmailAddress(const TDesC& aAddress)
+    {
     FUNC_LOG;
+// <qmail>
     QString qtEmailAddress = QString::fromUtf16(aAddress.Ptr(), aAddress.Length());
     iNmPrivateAddress->mAddress = qtEmailAddress;
-}
+// </qmail>
+	}
 
 // -----------------------------------------------------------------------------
 // CFSMailAddress::GetDisplayName
 // -----------------------------------------------------------------------------
 EXPORT_C TDesC& CFSMailAddress::GetDisplayName() const
-{
+    {
     FUNC_LOG;
+// <qmail>
     iDisplayNamePtr.Set(reinterpret_cast<const TUint16*> (iNmPrivateAddress->mDisplayName.utf16()),
         iNmPrivateAddress->mDisplayName.length());
     return iDisplayNamePtr;
-}
+// </qmail>
+    }
 
 // -----------------------------------------------------------------------------
 // CFSMailAddress::SetDisplayName
 // -----------------------------------------------------------------------------
-EXPORT_C void CFSMailAddress::SetDisplayName( const TDesC& aDisplayName )
-{
+EXPORT_C void CFSMailAddress::SetDisplayName(const TDesC& aDisplayName)
+    {
     FUNC_LOG;
+// <qmail>
     QString qtDisplayName = QString::fromUtf16(aDisplayName.Ptr(), aDisplayName.Length());
     iNmPrivateAddress->mDisplayName = qtDisplayName;
-}
-  
+// </qmail>
+	}
+
+// <qmail>
 // -----------------------------------------------------------------------------
 // CFSMailAddress::GetNmAddress
 // -----------------------------------------------------------------------------
 EXPORT_C NmAddress CFSMailAddress::GetNmAddress()
-{
+	{
     FUNC_LOG;
     NmAddress nmAddress(iNmPrivateAddress);
     return nmAddress;
-}
+	}
 // </qmail>
 
 

@@ -21,11 +21,13 @@
 #include <QObject>
 #include <nmoperation.h>
 #include <nmcommon.h>
+#include <MFSMailRequestObserver.h>
 
 class NmMessage;
 class CFSMailClient;
 
-class NmFwaRemoveAttachmentOperation : public NmOperation
+class NmFwaRemoveAttachmentOperation : public NmOperation,
+                                       public MFSMailRequestObserver
 {
     Q_OBJECT
 public:
@@ -35,13 +37,23 @@ public:
     
     virtual ~NmFwaRemoveAttachmentOperation();
 
-protected slots:
-    virtual void runAsyncOperation();
+public: // from MFSMailRequestObserver
+    virtual void RequestResponseL(TFSProgress aEvent, TInt aRequestId);
+    
+protected:
+    virtual void doRunAsyncOperation();
 
+protected:
+    virtual void doCancelOperation();
+    
+private:
+	void doRunAsyncOperationL();
+    
 private:
     const NmMessage &mMessage;
     NmId mAttachmentPartId;
     CFSMailClient &mMailClient;
+    TInt mRequestId;
 };
 
 #endif /* NMFWAREMOVEATTACHMENTOPERATION_H_ */

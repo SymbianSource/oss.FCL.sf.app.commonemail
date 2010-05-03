@@ -15,12 +15,22 @@
 *
 */
 
-
+//<qmail>
 #include <nmcommonheaders.h>
+//</qmail>
+
 #include "emailtrace.h"
 #include <FSMAILBRANDMANAGER.rsg>
 #include <barsread.h>
 #include <bautils.h>
+#include <mmf/common/mmfcontrollerpluginresolver.h> // CleanupResetAndDestroy
+// <gmail_brand_issue>
+#include <etelmm.h>
+#include <mmtsy_names.h>
+#include <startupdomainpskeys.h>
+#include <tzlocalizer.h> // CTzLocalizer
+#include <centralrepository.h>
+// </gmail_brand_issue>
 //<cmail>
 #include "CFSMailClient.h"
 //</cmail>
@@ -31,6 +41,37 @@
 
 const TInt KBrandArrayGranularity = 5;
 _LIT( KResourceFilePath,"\\resource\\fsmailbrandmanager.rsc" );
+
+// The following are needed to convert "Gmail" brand name to "Google Mail"
+// in certain countries.
+// <gmail_brand_issue>
+
+_LIT( KBrandNameGmail, "Gmail" );
+_LIT( KBrandNameGoogleMail, "Google Mail" );
+
+_LIT( KMCCGermany, "262" );
+_LIT( KMCCUK1, "234" );
+_LIT( KMCCUK2, "235" );
+
+const TUint8 KGermanyTzId = 36;
+const TUint8 KUKTzId = 104;
+
+const TInt KMCCValueMaxLength = 3;
+
+#ifdef __WINS__
+LOCAL_C void RetrieveNextToken( TDes8& aContent, TDes& aToken )	
+	{
+	_LIT8( KComma, "," );
+	TInt pos = aContent.Find( KComma );
+	if ( pos != KErrNotFound ) 
+		{
+		aToken.Copy( aContent.MidTPtr( 0, pos ) );
+		aContent.Copy(
+		    aContent.RightTPtr( aContent.Length() - pos - 1 ) );
+		}
+	}
+#endif // __WINS__
+// </gmail_brand_issue>
 
 // -----------------------------------------------------------------------------
 // CFSMailBrandManagerImpl::CFSMailBrandManagerImpl
@@ -133,42 +174,43 @@ void CFSMailBrandManagerImpl::UpdateMailboxNamesL( const TFSMailMsgId aMailBoxId
     
     // list all mailboxes
     RPointerArray<CFSMailBox> mailBoxes;
-    TInt rcode = iMailClient.ListMailBoxes( TFSMailMsgId(), mailBoxes );
-    if( rcode == KErrNone )
+    CleanupResetAndDestroyPushL( mailBoxes );
+    iMailClient.ListMailBoxes( TFSMailMsgId(), mailBoxes );
+    // Check is there need to change the name of the mailbox
+    TPtrC name = GetTextL( EFSMailboxName, aMailBoxId);
+    // <gmail_brand_issue>
+    VerifyMailAccountName( name );
+    // </gmail_brand_issue>
+    if( name.Length() )
         {
-        // Check is there need to change the name of the mailbox
-        TPtrC name = GetTextL( EFSMailboxName, aMailBoxId);
-        if( name.Length() )
+        // check duplicates
+        TInt orderNumber(2);
+        TBool duplicate(ETrue);
+        HBufC* newName = HBufC::NewL(name.Length()+6);
+        TPtrC brandedName = name;
+        while(duplicate != EFalse)
             {
-            // check duplicates
-            TInt orderNumber(2);
-            TBool duplicate(ETrue);
-            HBufC* newName = HBufC::NewL(name.Length()+6);
-            TPtrC brandedName = name;
-            while(duplicate != EFalse)
+            duplicate = EFalse;
+            for(TInt i = 0; i < mailBoxes.Count( );i++)
                 {
-                duplicate = EFalse;
-                for(TInt i = 0; i < mailBoxes.Count( );i++)
+                if(brandedName == mailBoxes[i]->GetName() && 
+                   aMailBoxId != mailBoxes[i]->GetId( ))
                     {
-                    if(brandedName == mailBoxes[i]->GetName() && 
-                       aMailBoxId != mailBoxes[i]->GetId( ))
-                        {
-                        duplicate = ETrue;
-                        newName->Des().Copy(name);
-                        newName->Des().Append(' ');
-                        newName->Des().Append('(');
-                        newName->Des().AppendNum(orderNumber++);
-                        newName->Des().Append(')');
-                        brandedName.Set(newName->Des());
-                        break;
-                        }
+                    duplicate = ETrue;
+                    newName->Des().Copy(name);
+                    newName->Des().Append(' ');
+                    newName->Des().Append('(');
+                    newName->Des().AppendNum(orderNumber++);
+                    newName->Des().Append(')');
+                    brandedName.Set(newName->Des());
+                    break;
                     }
                 }
-            iMailClient.SetMailboxName(aMailBoxId,brandedName);
-            delete newName;
             }
+        iMailClient.SetMailboxName(aMailBoxId,brandedName);
+        delete newName;
         }
-       mailBoxes.ResetAndDestroy();
+    CleanupStack::PopAndDestroy( &mailBoxes );
     }
 
 // -----------------------------------------------------------------------------
@@ -202,6 +244,22 @@ CGulIcon* CFSMailBrandManagerImpl::GetGraphicL(
 	}
 
 // -----------------------------------------------------------------------------
+// CFSMailBrandManagerImpl::GetGraphicL
+// -----------------------------------------------------------------------------
+CGulIcon* CFSMailBrandManagerImpl::GetGraphicL(
+    TFSBrandElement aElement, 
+    const TDesC& aBrandId )
+    {
+    FUNC_LOG;
+    CFSMailBrand* brand = FindMatchingBrandL( aBrandId );
+    if ( brand == NULL )
+        {
+        return NULL;    
+        }    
+    return brand->GetGraphicL( aElement );
+    }
+    
+// -----------------------------------------------------------------------------
 // CFSMailBrandManagerImpl::GetGraphicIdsL
 // -----------------------------------------------------------------------------
 TInt CFSMailBrandManagerImpl::GetGraphicIdsL(
@@ -229,6 +287,24 @@ TInt CFSMailBrandManagerImpl::GetGraphicIdsL(
 	    {
 	    return KErrNotFound;
 	    }
+    return brand->GetGraphicIdsL( aElement, aIconIds );
+    }
+
+// -----------------------------------------------------------------------------
+// CFSMailBrandManagerImpl::GetGraphicIdsL
+// -----------------------------------------------------------------------------
+TInt CFSMailBrandManagerImpl::GetGraphicIdsL(
+    TFSBrandElement aElement, 
+    const TDesC& aBrandId,
+    TDes& aIconIds  )
+    {
+    FUNC_LOG;
+
+    CFSMailBrand* brand = FindMatchingBrandL( aBrandId );
+    if ( brand == NULL )
+        {
+        return KErrNotFound;
+        }
     return brand->GetGraphicIdsL( aElement, aIconIds );
     }
 
@@ -336,11 +412,14 @@ void CFSMailBrandManagerImpl::ConstructFromResourceL( TResourceReader& aReader )
 CFSMailBrand* CFSMailBrandManagerImpl::FindMatchingBrandL( const TDesC& aBrandId )
     {
     FUNC_LOG;
-    TInt brandCount( iBrands->Count() );
-    for ( TInt i( 0 ); i < brandCount; i++ )
+    if( aBrandId.Length() )
         {
-        if ( (*iBrands)[ i ]->IsMatching( aBrandId ) )
-            return (*iBrands)[ i ];
+        TInt brandCount( iBrands->Count() );
+        for ( TInt i( 0 ); i < brandCount; i++ )
+            {
+            if ( (*iBrands)[ i ]->IsMatching( aBrandId ) )
+                return (*iBrands)[ i ];
+            }
         }
     return NULL;
     }
@@ -350,18 +429,13 @@ CFSMailBrand* CFSMailBrandManagerImpl::FindMatchingBrandL( const TDesC& aBrandId
 // -----------------------------------------------------------------------------
 CFSMailBox* CFSMailBrandManagerImpl::MailboxMatchingBrandIdL(
     const TDesC& aBrandId ) const
-    {
-    FUNC_LOG;
+    {    
     RPointerArray<CFSMailBox> mailboxes;
-    TInt outcome( KErrNone );
-    
-    outcome = iMailClient.ListMailBoxes( TFSMailMsgId(), mailboxes );
-    if ( outcome != KErrNone )
-        {
-        mailboxes.ResetAndDestroy();
-        User::Leave( outcome );
-        }
-    
+
+    CleanupResetAndDestroyPushL( mailboxes );
+
+    iMailClient.ListMailBoxes( TFSMailMsgId(), mailboxes );
+
     TInt mailboxCount( mailboxes.Count() );
     TInt mailboxIndexer( 0 );
     while ( mailboxIndexer < mailboxCount )
@@ -386,8 +460,201 @@ CFSMailBox* CFSMailBrandManagerImpl::MailboxMatchingBrandIdL(
         ++mailboxIndexer;
         }
         
-    mailboxes.ResetAndDestroy();
+    CleanupStack::PopAndDestroy( &mailboxes );
     User::Leave( KErrNotFound );
     return NULL; // To prevent warning
     }
 
+// <gmail_brand_issue>
+// -----------------------------------------------------------------------------
+// CFSMailBrandManagerImpl::GetMCCValueL
+// -----------------------------------------------------------------------------
+void CFSMailBrandManagerImpl::GetMCCValueL( TDes& aMcc ) const
+    {
+    aMcc.Zero();
+    
+    TInt err = KErrNone;
+
+#ifndef __WINS__
+
+    TBool isSimPresent = EFalse;
+    
+    TInt simStatus( 0 );
+
+	err = RProperty::Get( KPSUidStartup, KPSSimStatus, simStatus );
+
+	if ( err == KErrNone &&
+	        simStatus != ESimNotPresent &&
+	        simStatus != ESimNotSupported )
+	    {
+	    isSimPresent = ETrue;
+	    }
+
+    if ( isSimPresent )
+        {
+        // We cannot let the method leave here
+        TRAP( err, GetMCCValueFromSIML( aMcc ) );
+
+        // If reading from SIM fails one time try again after 0.5 secs
+        if ( err != KErrNone )
+            {
+            const TInt KHalfSecond = 500000;
+
+            User::After( KHalfSecond );
+            
+            err = KErrNone;
+
+            // We cannot let the method leave here
+            TRAP( err, GetMCCValueFromSIML( aMcc ) );
+            }
+        }
+
+#else // __WINS__
+
+    _LIT( KSIMInfo, "C:\\data\\Settings\\SIMInfo.txt" );
+
+    RFs fs;
+
+    User::LeaveIfError( fs.Connect() );
+
+    RFile simFile;
+
+    err = simFile.Open( fs, KSIMInfo(), EFileShareReadersOnly |
+                                        EFileStream |
+                                        EFileRead );
+    if ( err == KErrNone )
+        {
+        TBuf8<100> content;
+        TBuf<100> dummy;
+
+        simFile.Read( content );
+
+    	simFile.Close();
+
+    	fs.Close();
+
+        if ( content.Length() > 0 )
+        	{
+            RetrieveNextToken( content, dummy );
+            RetrieveNextToken( content, dummy );
+            RetrieveNextToken( content, dummy );
+            RetrieveNextToken( content, dummy );
+
+            RMobilePhone::TMobilePhoneSubscriberId subscriberId;
+
+            RetrieveNextToken( content, subscriberId );
+
+            if ( subscriberId.Length() >= KMCCValueMaxLength )
+                {
+                aMcc = subscriberId.Left( KMCCValueMaxLength );
+                }
+        	}
+        }
+
+#endif // __WINS__
+
+    }
+
+// ----------------------------------------------------------------------------
+// CFSMailBrandManagerImpl::GetMCCValueFromSIML
+// ----------------------------------------------------------------------------
+// 
+void CFSMailBrandManagerImpl::GetMCCValueFromSIML( TDes& aMcc ) const
+    {
+    RTelServer telServer;
+
+    CleanupClosePushL( telServer );
+
+    User::LeaveIfError( telServer.Connect() );
+
+    User::LeaveIfError( telServer.LoadPhoneModule( KMmTsyModuleName ) );
+    
+    RMobilePhone mobilePhone;
+
+    CleanupClosePushL( mobilePhone );
+
+    User::LeaveIfError( mobilePhone.Open( telServer, KMmTsyPhoneName ) );
+    
+    TRequestStatus status;
+
+    RMobilePhone::TMobilePhoneSubscriberId subscriberId;       
+
+    mobilePhone.GetSubscriberId( status, subscriberId );
+    
+    User::WaitForRequest( status );
+
+    User::LeaveIfError( status.Int() );
+    
+    CleanupStack::PopAndDestroy( &mobilePhone );
+
+    CleanupStack::PopAndDestroy( &telServer );
+
+    if ( subscriberId.Length() >= KMCCValueMaxLength )
+        {
+        aMcc = subscriberId.Left( KMCCValueMaxLength );
+        }
+    }
+
+// ----------------------------------------------------------------------------
+// CFSMailBrandManagerImpl::GetCurrentCountryL
+// ----------------------------------------------------------------------------
+// 
+TUint8 CFSMailBrandManagerImpl::GetCurrentCountryL() const
+    {
+    CTzLocalizer* localizer = CTzLocalizer::NewLC();
+
+    CTzLocalizedCity* city = localizer->GetFrequentlyUsedZoneCityL(
+        CTzLocalizedTimeZone::ECurrentZone );
+        
+    CleanupStack::PushL( city );
+
+    CTzLocalizedCityGroup* cityGroup = 
+        localizer->GetCityGroupL( city->GroupId() );
+
+    TUint8 countryId = cityGroup->Id();
+    
+    delete cityGroup;
+    cityGroup = NULL;
+    
+    CleanupStack::PopAndDestroy( 2, localizer );
+    
+    return countryId;
+    }
+
+// -----------------------------------------------------------------------------
+// CFSMailBrandManagerImpl::VerifyMailAccountName
+// -----------------------------------------------------------------------------
+void CFSMailBrandManagerImpl::VerifyMailAccountName(
+        TPtrC& aBrandedName ) const
+    {
+    // Due to legal reasons we don't show brand name "Gmail" in Germany and UK
+    if ( !aBrandedName.CompareF( KBrandNameGmail ) )
+        {
+        // First check timezone id
+        TUint8 timeZone = 0;
+        
+        TRAPD( err, timeZone = GetCurrentCountryL() );
+        
+        if ( err == KErrNone && ( timeZone == KGermanyTzId ||
+                                  timeZone == KUKTzId ) )
+            {
+            aBrandedName.Set( KBrandNameGoogleMail );
+            }
+        // Then if necessary check MCC
+        else
+            {
+            TBuf<KMCCValueMaxLength> mcc;
+
+            TRAPD( err2, GetMCCValueL( mcc ) );
+            
+            if ( err2 == KErrNone && ( mcc == KMCCGermany ||
+                                       mcc == KMCCUK1 ||
+                                       mcc == KMCCUK2 ) )
+                {
+                aBrandedName.Set( KBrandNameGoogleMail );
+                }
+            }
+
+        }
+    }
+// </gmail_brand_issue>

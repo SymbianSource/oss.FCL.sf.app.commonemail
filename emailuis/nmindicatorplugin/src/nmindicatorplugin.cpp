@@ -15,29 +15,31 @@
 *
 */
 
-#include "NmIndicatorPlugin.h"
-
+#include "nmindicatorplugin.h"
 #include "nmindicator.h"
 
-#include <QtPlugin>
 #include <QCoreApplication>
 #include <QLocale>
 #include <QVariant>
+#include <QTimer>
+
+#include <xqservicerequest.h>
+#include <email_services_api.h>
 
 Q_EXPORT_PLUGIN(NmIndicatorPlugin)
 
-const int maxIndicatorCount = 10;
+const int NmMaxIndicatorCount = 10;
 
 /*!
     \class NmIndicatorPlugin
-    \brief Mail indicator plugin class. 
+    \brief Mail indicator plugin class.
 */
 
 /*!
      Class constructor.
 */
-NmIndicatorPlugin::NmIndicatorPlugin() 
-: mError(0), mTranslator(0)
+NmIndicatorPlugin::NmIndicatorPlugin()
+: mError(0), mTranslator(0), mStatusBarIndicator(0), mSending(false)
 {
 }
 
@@ -46,6 +48,7 @@ NmIndicatorPlugin::NmIndicatorPlugin()
 */
 NmIndicatorPlugin::~NmIndicatorPlugin()
 {
+    NMLOG("NmIndicatorPlugin::~NmIndicatorPlugin");
 	delete mTranslator;
 }
 
@@ -55,8 +58,8 @@ NmIndicatorPlugin::~NmIndicatorPlugin()
 QStringList NmIndicatorPlugin::indicatorTypes() const
 {
     QStringList types;
-    for (int i=0; i<maxIndicatorCount; i++) {
-		QString name = QString("com.nokia.nmail.indicatorplugin_")+i+"/1.0";
+    for (int i=0; i<NmMaxIndicatorCount; i++) {
+		QString name = QString("com.nokia.nmail.indicatorplugin_%1/1.0").arg(i);
 		types << name;
     }
     return types;
@@ -78,6 +81,23 @@ bool NmIndicatorPlugin::accessAllowed(const QString &indicatorType,
 }
 
 /*!
+    Called when any of the indicator receive updated status of the global status
+ */
+void NmIndicatorPlugin::globalStatusChanged(bool sending)
+{
+    mSending = sending;
+
+    // Pass the information to the indicator handling the status bar icon
+    if (mStatusBarIndicator) {
+        mStatusBarIndicator->acceptIcon(sending);
+    }
+    else {
+		// No indicator is showing the status now.
+		indicatorIconLost();
+	}
+}
+
+/*!
 	Creates an indicator of type indicatorType. Ownership is passed to the caller.
  */
 HbIndicatorInterface* NmIndicatorPlugin::createIndicator(
@@ -91,9 +111,14 @@ HbIndicatorInterface* NmIndicatorPlugin::createIndicator(
         mTranslator->load(appName + lang, path);
         QCoreApplication::installTranslator(mTranslator);
     }
-    
-    HbIndicatorInterface *indicator = 0;
-    indicator = new NmIndicator(indicatorType);
+
+    NmIndicator* indicator = new NmIndicator(indicatorType);
+    connect(indicator, SIGNAL(indicatorIconLost()), this, SLOT(indicatorIconLost()));
+    connect(indicator, SIGNAL(destroyed(QObject *)), this, SLOT(indicatorDeactivated(QObject *)));
+    connect(indicator, SIGNAL(globalStatusChanged(bool)), this, SLOT(globalStatusChanged(bool)));
+    connect(indicator, SIGNAL(mailboxLaunched(quint64)), this, SLOT(showMailbox(quint64)));
+    mIndicators.append(indicator);
+
     return indicator;
 }
 
@@ -105,6 +130,62 @@ int NmIndicatorPlugin::error() const
     return mError;
 }
 
+/*!
+    Called when an indicator signals about lost indicator.
+    \param true if a new indicator was found
+ */
+bool NmIndicatorPlugin::indicatorIconLost()
+{
+    bool found(false);
+    mStatusBarIndicator = NULL;
 
+    foreach (NmIndicator* indicator, mIndicators) {
+        // Find a new candidate to handle the status bar icon
+        if (indicator->acceptIcon(mSending)) {
+			mStatusBarIndicator = indicator;
+			found = true;
+            break;
+        }
+    }
+    return found;
+}
+
+/*!
+    Remove destroyed indicators from the list.
+    \param indicator item that has been deleted
+ */
+void NmIndicatorPlugin::indicatorDeactivated(QObject *indObject)
+{
+    NMLOG(QString("NmIndicatorPlugin::indicatorDeactivated %1").arg((int)indObject));
+    NmIndicator *indicator = static_cast<NmIndicator*>(indObject);
+    mIndicators.removeAll(indicator);
+    if (mStatusBarIndicator == indicator) {
+		mStatusBarIndicator = NULL;
+
+		// Find new indicator to take care of the status bar icon
+		indicatorIconLost();
+	}
+}
+
+/*!
+    Opens inbox view to specific mailbox
+    \return true if inbox is succesfully opened
+*/
+bool NmIndicatorPlugin::showMailbox(quint64 mailboxId)
+{
+    NMLOG("NmIndicatorPlugin::showMailbox");
+    XQServiceRequest request(
+        emailInterfaceNameMailbox,
+        emailOperationViewInbox,
+        true);
+
+    QList<QVariant> list;
+    list.append(QVariant(mailboxId));
+
+    request.setArguments(list);
+
+    int returnValue(-1);
+    return request.send(returnValue);
+}
 
 

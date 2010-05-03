@@ -15,10 +15,8 @@
 *
 */
 
-#include "ipsplgmailstoreroperation.h"
-#include "CFSMailPlugin.h"
 #include "emailtrace.h"
-
+#include "ipsplgheaders.h"
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
@@ -80,6 +78,21 @@ CIpsPlgMailStorerOperation::~CIpsPlgMailStorerOperation()
 // ---------------------------------------------------------------------------
 void CIpsPlgMailStorerOperation::DoCancel()
     {
+    // <qmail>
+    TRequestStatus* status = &iObserverRequestStatus;
+    if ( status && status->Int() == KRequestPending )
+        {
+        if (&iFSOperationObserver)
+            {
+            iFSProgress.iProgressStatus = TFSProgress::EFSStatus_RequestCancelled;
+            iFSProgress.iError = KErrCancel;
+            iFSProgress.iParam = NULL;
+
+            TRAP_IGNORE( iFSOperationObserver.RequestResponseL( iFSProgress, iFSRequestId ) );
+            }
+        User::RequestComplete( status, iStatus.Int() );
+        }
+    // </qmail>
     FUNC_LOG;
     }
 
@@ -90,6 +103,36 @@ const TDesC8& CIpsPlgMailStorerOperation::ProgressL()
     return KNullDesC8;
     }
 
+// <qmail>
+// ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+//   
+const TDesC8& CIpsPlgMailStorerOperation::GetErrorProgressL( TInt /*aError*/ )
+    {
+    FUNC_LOG;
+    
+    return KNullDesC8; // error progress info not supported
+    }
+
+// ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+//   
+TFSProgress CIpsPlgMailStorerOperation::GetFSProgressL() const
+    {
+    FUNC_LOG;
+    
+    return iFSProgress;
+    }
+
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------    
+TIpsOpType CIpsPlgMailStorerOperation::IpsOpType() const
+    {
+    FUNC_LOG;
+    return EIpsOpTypeMailStorerOp;
+    }
+// </qmail>
+
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 CIpsPlgMailStorerOperation::CIpsPlgMailStorerOperation(
@@ -99,11 +142,12 @@ CIpsPlgMailStorerOperation::CIpsPlgMailStorerOperation(
     RPointerArray<CFSMailMessage> &aMessages,
     MFSMailRequestObserver& aFSOperationObserver,
     const TInt aRequestId):
-    CMsvOperation(aMsvSession, CActive::EPriorityStandard, aObserverRequestStatus),
+// <qmail>
+    CIpsPlgBaseOperation(aMsvSession, aObserverRequestStatus, aRequestId, TFSMailMsgId()), 
     iPlugin(aPlugin),
     iMessages(aMessages),
-    iFSOperationObserver(aFSOperationObserver),
-    iRequestId(aRequestId)
+    iFSOperationObserver(aFSOperationObserver)
+// </qmail>
     {
     FUNC_LOG;
     }
@@ -158,12 +202,13 @@ void CIpsPlgMailStorerOperation::RunL()
         {
         if( &iFSOperationObserver )
             {
-            TFSProgress prog = { TFSProgress::EFSStatus_RequestComplete, 0, 0, 0 };
+            // <qmail>
+            iFSProgress.iProgressStatus = TFSProgress::EFSStatus_RequestComplete;
+            iFSProgress.iError = KErrNone;
+            iFSProgress.iParam = NULL;
 
-            TRAP_IGNORE(
-                    iFSOperationObserver.RequestResponseL(
-                            prog,
-                            iRequestId ) );
+            TRAP_IGNORE( iFSOperationObserver.RequestResponseL( iFSProgress, iFSRequestId ) );
+            // </qmail>
             }
 
         TRequestStatus* status = &iObserverRequestStatus;

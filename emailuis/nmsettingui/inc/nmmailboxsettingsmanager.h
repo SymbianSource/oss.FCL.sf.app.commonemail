@@ -61,6 +61,12 @@ signals:
                                 QVariant property,
                                 QVariant value);
 
+    void goOnline(const NmId &mailboxId);
+
+    void goOffline(const NmId &mailboxId);
+
+    void aboutToClose();
+
 
 private:
 

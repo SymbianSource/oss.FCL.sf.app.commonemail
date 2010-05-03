@@ -61,6 +61,9 @@ SOURCES += src/nmipssettingsplugin.cpp \
            src/nmipssettingscustomitem.cpp \
            src/nmipssettingslabeledcombobox.cpp
 
+LIBS += -leuser
+LIBS += -llibc
+
 symbian: { 
     TARGET.EPOCALLOWDLLDATA = 1
     DEFINES += PLUGINUID3=0x2002C30D
@@ -70,6 +73,7 @@ symbian: {
     LIBS += -limcm
     LIBS += -lxqutils
     LIBS += -lxqsettingsmanager
+    LIBS += -leuser
 }
 symbian: plugin { # copy qtstub and manifest
 
@@ -90,6 +94,7 @@ BLD_INF_RULES.prj_exports += "$${LITERAL_HASH}include <platform_paths.hrh>" \
                              "rom/nmipssettings.iby                 CORE_APP_LAYER_IBY_EXPORT_PATH(nmipssettings.iby)" \
                              "rom/nmipssettingslanguage.iby         LANGUAGE_APP_LAYER_IBY_EXPORT_PATH(nmipssettingslanguage.iby)" \
                              "inc/ipssettingkeys.h                  |../../inc/ipssettingkeys.h" \
+                             "inc/nmipssettingitems.h               |../inc/nmipssettingitems.h" \
                              "conf/2000E53D.txt                     /epoc32/release/winscw/udeb/z/private/10202BE9/2000E53D.txt" \
                              "conf/2000E53D.txt                     /epoc32/release/winscw/urel/z/private/10202BE9/2000E53D.txt" \
                              "conf/2000E53D.txt                     /epoc32/data/z/private/10202BE9/2000E53D.txt" \

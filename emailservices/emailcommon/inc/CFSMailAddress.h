@@ -49,7 +49,7 @@ NONSHARABLE_CLASS ( CFSMailAddress ) : public CBase
      * Two-phased constructor.
      *
      */
-    IMPORT_C static CFSMailAddress* NewL();
+   	 IMPORT_C static CFSMailAddress* NewL();
 
     /**
      * Two-phased constructor.
@@ -63,40 +63,40 @@ NONSHARABLE_CLASS ( CFSMailAddress ) : public CBase
      * Two-phased constructor.
      *
      */
-    IMPORT_C static CFSMailAddress* NewLC();
+  	 IMPORT_C static CFSMailAddress* NewLC();
 
     /**
      * destructor
      */
-    IMPORT_C ~CFSMailAddress();
-        
+  	 IMPORT_C ~CFSMailAddress();
+      	
     /**
      * email address accessor
      *
      * @return email address owned by class
      */
-    IMPORT_C TDesC& GetEmailAddress() const;
+  	 IMPORT_C TDesC& GetEmailAddress() const;
         
     /**
      * email address mutator
      *
      * @param aAddress email address to be stored
      */
-    IMPORT_C void SetEmailAddress( const TDesC& aAddress );
-     
+  	 IMPORT_C void SetEmailAddress(const TDesC& aAddress);
+  	 
     /**
      * display name accessor
      *
      * @return stored display name owned by class
      */
-    IMPORT_C TDesC& GetDisplayName() const;
+  	 IMPORT_C TDesC& GetDisplayName() const;
         
     /**
      * display name mutator
      *
      * @param aDisplayName display name to be stored
      */
-    IMPORT_C void SetDisplayName( const TDesC& aDisplayName );
+  	 IMPORT_C void SetDisplayName(const TDesC& aDisplayName);
 
     /**
      * returns the NmAddress object
@@ -115,10 +115,11 @@ NONSHARABLE_CLASS ( CFSMailAddress ) : public CBase
      CFSMailAddress();
     // </qmail> 
  
-  /**
+
+ 	/**
      * Two-phased constructor
      */
-     void ConstructL();
+  	 void ConstructL();
 
     /**
      * Two-phased constructor
@@ -129,12 +130,13 @@ NONSHARABLE_CLASS ( CFSMailAddress ) : public CBase
 
  private: // data
 
-    /**
+	// <qmail>
+  	/**
      * email address - pointer descriptor to access QString object
      */
     mutable TPtrC  iEmailAddressPtr;
 
-    /**
+  	/**
      * display name - pointer descriptor to access QString object
      */
     mutable TPtrC  iDisplayNamePtr;
@@ -142,7 +144,6 @@ NONSHARABLE_CLASS ( CFSMailAddress ) : public CBase
     /**
      * Reference to QT side of the address data object.
      */
-    // <qmail>
     QExplicitlySharedDataPointer<NmAddressPrivate> iNmPrivateAddress;
     // </qmail>
 };

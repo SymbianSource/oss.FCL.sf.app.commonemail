@@ -57,6 +57,8 @@ public:
     void setGroupBoxCollapsed( bool collapsed );
     void addAttachment(const QString &fileName, const QString &fileSize, const NmId &nmid);
     void removeAttachment(const QString &fileName);
+    void removeAttachment(const NmId &nmid);
+    void launchAttachment(const NmId &nmid);
     void setAttachmentParameters(
         const QString &fileName,
         const NmId &msgPartId,
@@ -72,13 +74,14 @@ private:
 signals:
     void headerHeightChanged(int);
     void recipientFieldsHaveContent(bool recipientFieldsHaveContent);
-    void attachmentRemoved(const NmId);
+    void attachmentLongPressed(NmId attachmentPartId, QPointF point);
 
 public slots:
     void sendHeaderHeightChanged();
     void editorContentChanged();
     void groupBoxExpandCollapse();
-    void attachmentSelected(int, QPointF);
+    void attachmentActivated(int arrayIndex);
+    void attachmentLongPressed(int arrayIndex, QPointF point);
 
 private:
     HbDocumentLoader* mDocumentLoader;  // Not owned

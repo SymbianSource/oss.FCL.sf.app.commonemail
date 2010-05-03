@@ -61,6 +61,8 @@ const qreal KNmHsWidgetBackgroundOpacity = 0.50;
 #define KNmHsWidgetMailRowMiddleIcon   "iconTwo"
 /** right status icon */
 #define KNmHsWidgetMailRowRightIcon   "iconThree"
+/** separator icon */
+#define KNmHsWidgetMailSeparatorIcon   "iconSeparator"
 
 
 #endif  // NMHSWIDGETCONSTS_H

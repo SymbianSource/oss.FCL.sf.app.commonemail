@@ -765,7 +765,29 @@ void CIpsPlgSosBasePlugin::CreateMessageToSendL( const TFSMailMsgId& aMailBoxId,
                                     const TInt aRequestId )
     {
     FUNC_LOG;
-    iSmtpService->CreateNewSmtpMessageL( aMailBoxId, aOperationObserver, aRequestId );
+    // asynchronous message creation is started here to enable canceling of the operation
+    TMsvPartList partList( KMsvMessagePartBody );
+    
+    CIpsPlgSingleOpWatcher* watcher = CIpsPlgSingleOpWatcher::NewLC(*this);
+    
+    TMsvEntry mboxEntry;
+    TMsvId service;
+    User::LeaveIfError(
+        iSession->GetEntry( aMailBoxId.Id(), service, mboxEntry ) );
+
+    CIpsPlgCreateMessageOperation* op = CIpsPlgCreateMessageOperation::NewL( 
+        iSmtpService, 
+        *iSession,
+        watcher->iStatus,
+        mboxEntry.iRelatedId, 
+        partList, 
+        aMailBoxId, 
+        aOperationObserver, 
+        aRequestId );
+    watcher->SetOperation( op );
+
+    iOperations.AppendL( watcher ); 
+    CleanupStack::Pop( watcher );    
     }
 // </qmail> 
  
@@ -793,7 +815,43 @@ void CIpsPlgSosBasePlugin::CreateForwardMessageL(
     const TDesC& /*aHeaderDescriptor*/ )
     {
     FUNC_LOG;
-    iSmtpService->CreateForwardSmtpMessageL( aMailBoxId, aOriginalMessageId, aOperationObserver, aRequestId );
+    // asynchronous message creation is started here to enable canceling of the operation
+    
+    // 1. part of function checs that body text and all
+    // attachments are fetched
+    TMsvEntry orgMsg;
+    TMsvId service;
+    User::LeaveIfError( iSession->GetEntry( 
+            aOriginalMessageId.Id(), service, orgMsg ) );
+    
+    if ( orgMsg.Id() ==  KMsvNullIndexEntryIdValue )
+        {
+        User::Leave(KErrNotFound);
+        }
+    
+    if ( ( orgMsg.Parent() == KMsvSentEntryIdValue ) && 
+         ( orgMsg.iMtm == KSenduiMtmSmtpUid ) )
+        {
+        iSmtpService->ChangeServiceIdL( orgMsg );
+        }
+    
+    TMsvPartList partList( KMsvMessagePartBody | KMsvMessagePartAttachments );
+    
+    CIpsPlgSingleOpWatcher* watcher = CIpsPlgSingleOpWatcher::NewLC(*this);
+    
+    CIpsPlgCreateForwardMessageOperation* op = CIpsPlgCreateForwardMessageOperation::NewL( 
+        iSmtpService, 
+        *iSession,
+        watcher->iStatus,
+        partList, 
+        aMailBoxId, 
+        orgMsg.Id(), 
+        aOperationObserver, 
+        aRequestId );
+    watcher->SetOperation( op );
+
+    iOperations.AppendL( watcher ); 
+    CleanupStack::Pop( watcher );
     }
 // </qmail> 
 
@@ -823,8 +881,48 @@ void CIpsPlgSosBasePlugin::CreateReplyMessageL(
     const TDesC& /* aHeaderDescriptor */ )
     {
     FUNC_LOG;
-    iSmtpService->CreateReplySmtpMessageL( 
-        aMailBoxId, aOriginalMessageId, aReplyToAll, aOperationObserver, aRequestId );
+    // asynchronous message creation is started here to enable canceling of the operation
+    
+    // find orginal message header and check that body is fetched
+    TMsvEntry orgMsg;
+    TMsvId service;
+    User::LeaveIfError( 
+        iSession->GetEntry( aOriginalMessageId.Id(), service, orgMsg ) );
+    
+    if ( orgMsg.Id() ==  KMsvNullIndexEntryIdValue )
+        {
+        User::Leave(KErrNotFound);
+        }
+    
+    if ( ( orgMsg.Parent() == KMsvSentEntryIdValue ) && 
+         ( orgMsg.iMtm == KSenduiMtmSmtpUid ) )
+        {
+        iSmtpService->ChangeServiceIdL( orgMsg );
+        }
+    
+    // partList flags control e.g. what kind of recipient set is created
+    TMsvPartList partList = KMsvMessagePartBody | KMsvMessagePartDescription
+    | KMsvMessagePartOriginator;        
+    if( aReplyToAll )
+        {
+        partList |= KMsvMessagePartRecipient;
+        }
+    
+    CIpsPlgSingleOpWatcher* watcher = CIpsPlgSingleOpWatcher::NewLC(*this);
+    
+    CIpsPlgCreateReplyMessageOperation* op = CIpsPlgCreateReplyMessageOperation::NewL( 
+        iSmtpService, 
+        *iSession,
+        watcher->iStatus,
+        partList, 
+        aMailBoxId, 
+        orgMsg.Id(), 
+        aOperationObserver, 
+        aRequestId );
+    watcher->SetOperation( op );
+
+    iOperations.AppendL( watcher ); 
+    CleanupStack::Pop( watcher );
     }
 // </qmail>
 
@@ -1115,7 +1213,7 @@ void CIpsPlgSosBasePlugin::NewChildPartFromFileL(
     FUNC_LOG;
     CIpsPlgSingleOpWatcher* watcher = CIpsPlgSingleOpWatcher::NewLC(*this);
     
-    CCIpsPlgNewChildPartFromFileOperation* op = CCIpsPlgNewChildPartFromFileOperation::NewL(
+    CIpsPlgNewChildPartFromFileOperation* op = CIpsPlgNewChildPartFromFileOperation::NewL(
         *iSession, 
         watcher->iStatus,
         aMailBoxId,
@@ -1318,6 +1416,39 @@ void CIpsPlgSosBasePlugin::RemoveChildPartL(
         CleanupStack::PopAndDestroy( cEntry );
         }
 	}
+
+// <qmail>
+// ----------------------------------------------------------------------------
+// Supports currently deletion of attachments and multipart structures 
+// which are represented as folders in Symbian store)
+// ----------------------------------------------------------------------------  
+//
+void CIpsPlgSosBasePlugin::RemoveChildPartL(
+    const TFSMailMsgId& /* aMailBoxId */,
+    const TFSMailMsgId& /* aParentFolderId */,
+    const TFSMailMsgId& aMessageId,
+    const TFSMailMsgId& /* aParentPartId */,
+    const TFSMailMsgId& aPartId,
+    MFSMailRequestObserver& aOperationObserver,
+    const TInt aRequestId )
+    {
+    FUNC_LOG;
+    CIpsPlgSingleOpWatcher* watcher = CIpsPlgSingleOpWatcher::NewLC(*this);
+    
+    CIpsPlgRemoveChildPartOperation* op = CIpsPlgRemoveChildPartOperation::NewL(
+        *iSession, 
+        watcher->iStatus,
+        aMessageId,
+        aPartId,
+        aOperationObserver, 
+        aRequestId);
+    watcher->SetOperation( op );
+
+    iOperations.AppendL( watcher ); 
+    CleanupStack::Pop( watcher );
+
+    }
+// </qmail>
 
 // ----------------------------------------------------------------------------
 // The implementation supoorts the atachment and body parts at the moment.
@@ -1618,9 +1749,10 @@ void CIpsPlgSosBasePlugin::SendMessageL(
     //    {
         CIpsPlgSingleOpWatcher* watcher =
             CIpsPlgSingleOpWatcher::NewLC(*this);
+
+        // <qmail> priority parameter has been removed
         CIpsPlgSmtpOperation* op = CIpsPlgSmtpOperation::NewL(
             *iSession,
-            CActive::EPriorityStandard,
             watcher->iStatus,
             &aOperationObserver,
             aRequestId );
@@ -1834,32 +1966,35 @@ void CIpsPlgSosBasePlugin::AuthenticateL(
 // ----------------------------------------------------------------------------
 // method sets authentication popup data 
 // ----------------------------------------------------------------------------
-void CIpsPlgSosBasePlugin::SetCredentialsL( const TFSMailMsgId& aMailBoxId,
-	const TDesC& /*aUsername*/, const TDesC& aPassword )
+//
+void CIpsPlgSosBasePlugin::SetCredentialsL( const TFSMailMsgId& /*aMailBoxId*/,
+	const TDesC& /*aUsername*/, const TDesC& /*aPassword*/ )
 	{
-    FUNC_LOG;
-	TBool cancelled = EFalse;
-	
-	if ( aPassword.Length() > 0 )
-	    {
-    	//Set new password and signal (possible) ongoing connect operation
-    	//CIpsSetDataApi* api = CIpsSetDataApi::NewL( *iSession );
-        //CleanupStack::PushL( api );
-        
-        //CMsvEntry* cEntry = iSession->GetEntryL( aMailBoxId.Id() );
-        //CleanupStack::PushL( cEntry );
-        
-        //api->SetNewPasswordL( *cEntry, aPassword );
-        
-        //CleanupStack::PopAndDestroy( 2, api );//cEntry, api
-        
-        //now signal through eventhandler that credientials have been set       
-	    }
-	else
-	    {
-	    cancelled = ETrue;
-	    }
-	iEventHandler->SignalCredientialsSetL( aMailBoxId.Id(), cancelled );
+// <qmail> not used; should be removed
+//    FUNC_LOG;
+//	TBool cancelled = EFalse;
+//	
+//	if ( aPassword.Length() > 0 )
+//	    {
+//    	//Set new password and signal (possible) ongoing connect operation
+//    	//CIpsSetDataApi* api = CIpsSetDataApi::NewL( *iSession );
+//        //CleanupStack::PushL( api );
+//        
+//        //CMsvEntry* cEntry = iSession->GetEntryL( aMailBoxId.Id() );
+//        //CleanupStack::PushL( cEntry );
+//        
+//        //api->SetNewPasswordL( *cEntry, aPassword );
+//        
+//        //CleanupStack::PopAndDestroy( 2, api );//cEntry, api
+//        
+//        //now signal through eventhandler that credientials have been set       
+//	    }
+//	else
+//	    {
+//	    cancelled = ETrue;
+//	    }
+//	iEventHandler->SignalCredientialsSetL( aMailBoxId.Id(), cancelled );
+// </qmail>
 	}
 
 // ----------------------------------------------------------------------------
@@ -2035,7 +2170,7 @@ void CIpsPlgSosBasePlugin::DisconnectL(
     const TFSMailMsgId& aMailBoxId, 
     MFSMailRequestObserver& aObserver,
     const TInt aRequestId,
-    TBool aRemoveAccountAlso )
+    TBool /*aRemoveAccountAlso*/ )
     {
     FUNC_LOG;
     TMsvId service = aMailBoxId.Id();
@@ -2055,10 +2190,14 @@ void CIpsPlgSosBasePlugin::DisconnectL(
 
         sel->AppendL( service );
 
-        CIpsPlgBaseOperation* op = CIpsPlgDisconnectOp::NewL( *iSession,
-            watcher->iStatus, service, ActivityTimerL( aMailBoxId ),
-            aMailBoxId, aObserver, aRequestId, 
-            aRemoveAccountAlso );
+        CIpsPlgBaseOperation* op = CIpsPlgDisconnectOp::NewL(
+            *iSession,
+            watcher->iStatus, 
+            service, 
+            ActivityTimerL( aMailBoxId ),
+            aMailBoxId, 
+            &aObserver, 
+            aRequestId );
 
         watcher->SetOperation( op );
         CleanupStack::PopAndDestroy( sel );
@@ -2100,8 +2239,7 @@ void CIpsPlgSosBasePlugin::EmptyOutboxL( const TFSMailMsgId& aMailBoxId )
     CIpsPlgSingleOpWatcher* watcher = CIpsPlgSingleOpWatcher::NewL(*this);
  	CleanupStack::PushL(watcher);
  	// <qmail>
-    CIpsPlgSmtpOperation* op = CIpsPlgSmtpOperation::NewLC( 
-        *iSession, CActive::EPriorityStandard, watcher->iStatus );
+    CIpsPlgSmtpOperation* op = CIpsPlgSmtpOperation::NewLC( *iSession, watcher->iStatus );
  	// </qmail>
     watcher->SetOperation(op);
     op->EmptyOutboxFromPendingMessagesL( aMailBoxId.Id() );
@@ -2295,7 +2433,6 @@ TBool CIpsPlgSosBasePlugin::ConnOpRunning( const TFSMailMsgId& aMailBoxId  )
        if ( baseOp && baseOp->FSMailboxId() == aMailBoxId &&
               ( baseOp->IpsOpType() == EIpsOpTypePop3SyncOp
                || baseOp->IpsOpType() == EIpsOpTypeImap4SyncOp
-               || baseOp->IpsOpType() == EIpsOpTypeOnlineOp
                || baseOp->IpsOpType() == EIpsOpTypeImap4PopulateOp ) )
            {
            return ETrue;

@@ -26,9 +26,9 @@ const TInt KIpsSmtpOperationCharMoreThan = '>';
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 //
+// <qmail> priority parameter has been removed
 EXPORT_C CIpsPlgSmtpOperation* CIpsPlgSmtpOperation::NewL( 
     CMsvSession& aMsvSession, 
-    TInt aPriority,
     TRequestStatus& aObserverRequestStatus,
     MFSMailRequestObserver* aOperationObserver,
     TInt aRequestId )
@@ -36,7 +36,6 @@ EXPORT_C CIpsPlgSmtpOperation* CIpsPlgSmtpOperation::NewL(
     FUNC_LOG;
     CIpsPlgSmtpOperation* self = CIpsPlgSmtpOperation::NewLC(
         aMsvSession,
-        aPriority,
         aObserverRequestStatus,
         aOperationObserver,
         aRequestId );
@@ -47,9 +46,9 @@ EXPORT_C CIpsPlgSmtpOperation* CIpsPlgSmtpOperation::NewL(
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 //
+// <qmail> priority parameter has been removed
 EXPORT_C CIpsPlgSmtpOperation* CIpsPlgSmtpOperation::NewLC( 
     CMsvSession& aMsvSession, 
-    TInt aPriority, 
     TRequestStatus& aObserverRequestStatus,
     MFSMailRequestObserver* aOperationObserver,
     TInt aRequestId )
@@ -57,7 +56,6 @@ EXPORT_C CIpsPlgSmtpOperation* CIpsPlgSmtpOperation::NewLC(
     FUNC_LOG;
     CIpsPlgSmtpOperation* self = new( ELeave ) CIpsPlgSmtpOperation(
         aMsvSession,
-        aPriority,
         aObserverRequestStatus,
         aOperationObserver,
         aRequestId );
@@ -68,15 +66,13 @@ EXPORT_C CIpsPlgSmtpOperation* CIpsPlgSmtpOperation::NewLC(
    
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-//
+// <qmail> priority parameter has been removed
 CIpsPlgSmtpOperation::CIpsPlgSmtpOperation( 
     CMsvSession& aMsvSession, 
-    TInt aPriority, 
     TRequestStatus& aObserverRequestStatus,
     MFSMailRequestObserver* aFSOperationObserver,
     TInt aFSRequestId ) :
-    CIpsPlgBaseOperation( aMsvSession, aPriority, aObserverRequestStatus, 
-        aFSRequestId, TFSMailMsgId() ),
+    CIpsPlgBaseOperation( aMsvSession, aObserverRequestStatus, aFSRequestId, TFSMailMsgId() ),
     iSmtpMtm( NULL ),
     iOperation( NULL ),
     iSelection( NULL ),  
@@ -224,10 +220,9 @@ TFSProgress CIpsPlgSmtpOperation::GetFSProgressL() const
     }
 
 // ---------------------------------------------------------------------------
-// CIpsPlgSmtpOperation::IpsOpType
 // ---------------------------------------------------------------------------    
-//   
-TInt CIpsPlgSmtpOperation::IpsOpType() const
+// <qmail> return type
+TIpsOpType CIpsPlgSmtpOperation::IpsOpType() const
     {
     FUNC_LOG;
     return EIpsOpTypeSmtp;

@@ -58,6 +58,10 @@ public:
     void launchSettingView(const NmId &mailboxId,
                            const QString &mailboxName) const;
 
+signals:
+
+	void aboutToClose();
+	
 private slots:
 
     void backPress();

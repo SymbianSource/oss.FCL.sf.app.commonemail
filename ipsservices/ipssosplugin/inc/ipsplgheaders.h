@@ -73,7 +73,6 @@
 #include <SendUiConsts.h>
 #include <SenduiMtmUids.h>
 
-#include "fsmailserverconst.h"
 // mfsmail
 #include "MFSMailBoxSearchObserver.h"
 #include "MFSMailEventObserver.h"
@@ -165,6 +164,9 @@
 #include "ipsplgcreateforwardmessageoperation.h"
 #include "ipsplgcreatereplymessageoperation.h"
 #include "ipsplgnewchildpartfromfileoperation.h"
+#include "ipsplgremovechildpartoperation.h"
+#include "ipsplgmailstoreroperation.h"
+#include "ipsplgmessagepartstoreroperation.h"
 // </qmail>
 #include "ipsplgdisconnectop.h"
 #include "ipsplgservicedeletionop.h"

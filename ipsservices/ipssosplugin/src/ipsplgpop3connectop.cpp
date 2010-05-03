@@ -34,17 +34,16 @@ CIpsPlgPop3ConnectOp* CIpsPlgPop3ConnectOp::NewL(
     TBool aForcePopulate,
     CIpsPlgTimerOperation& aActivityTimer,
     TFSMailMsgId aFSMailBoxId,
-    MFSMailRequestObserver& aFSOperationObserver,
+    MFSMailRequestObserver* aFSOperationObserver,
     TInt aFSRequestId,
-    CIpsPlgEventHandler* aEventHandler,
-    TBool aSignallingAllowed )
+    CIpsPlgEventHandler* aEventHandler )
     {
     FUNC_LOG;
     CIpsPlgPop3ConnectOp* op = 
         new(ELeave) CIpsPlgPop3ConnectOp( aMsvSession, aObserverRequestStatus, 
             aService, aForcePopulate, aActivityTimer, aFSMailBoxId,
             aFSOperationObserver, aFSRequestId, 
-            aEventHandler, aSignallingAllowed );
+            aEventHandler );
         
     CleanupStack::PushL( op );
     op->ConstructL();
@@ -75,9 +74,9 @@ const TDesC8& CIpsPlgPop3ConnectOp::ProgressL()
         {
         return GetErrorProgressL( iError );
         }
-    else if( iOperation )
+    else if( iSubOperation )
         {
-        return iOperation->ProgressL();
+        return iSubOperation->ProgressL();
         }
     
     iProgress().iErrorCode = KErrNone;
@@ -90,9 +89,9 @@ const TDesC8& CIpsPlgPop3ConnectOp::ProgressL()
 void CIpsPlgPop3ConnectOp::DoCancel()
     {
     FUNC_LOG;
-    if( iOperation )
+    if( iSubOperation )
         {
-        iOperation->Cancel();
+        iSubOperation->Cancel();
         }
     CompleteObserver( KErrCancel );
     }
@@ -111,13 +110,13 @@ void CIpsPlgPop3ConnectOp::DoRunL()
 // <qmail> remove EQueryingDetails state
     if ( iState == EStartConnect )
         {
-        if ( iOperation )
+        if ( iSubOperation )
             {
             // operation exist and it means 
             // disconnect operation was ongoing.
             // How handle errors
-            delete iOperation;
-            iOperation = NULL;
+            delete iSubOperation;
+            iSubOperation = NULL;
             }
         
         // Begin Connect.
@@ -184,9 +183,9 @@ const TDesC8& CIpsPlgPop3ConnectOp::GetErrorProgressL( TInt aError )
     {
     FUNC_LOG;
     iError = aError;
-    if ( iOperation && iError == KErrNone )
+    if ( iSubOperation && iError == KErrNone )
         {
-        return iOperation->ProgressL();
+        return iSubOperation->ProgressL();
         }
     TPop3Progress& progress = iProgress();
     progress.iPop3Progress = TPop3Progress::EPopConnecting;
@@ -238,6 +237,7 @@ TFSProgress CIpsPlgPop3ConnectOp::GetFSProgressL() const
 // CIpsPlgPop3ConnectOp::CIpsPlgPop3ConnectOp
 // ----------------------------------------------------------------------------
 //
+// <qmail> priority parameter has been removed
 CIpsPlgPop3ConnectOp::CIpsPlgPop3ConnectOp(
     CMsvSession& aMsvSession,
     TRequestStatus& aObserverRequestStatus,
@@ -245,14 +245,17 @@ CIpsPlgPop3ConnectOp::CIpsPlgPop3ConnectOp(
     TBool aForcePopulate,
     CIpsPlgTimerOperation& aActivityTimer,
     TFSMailMsgId aFSMailBoxId,
-    MFSMailRequestObserver& aFSOperationObserver,
+    MFSMailRequestObserver* aFSOperationObserver,
     TInt aFSRequestId,
-    CIpsPlgEventHandler* aEventHandler,
-    TBool aSignallingAllowed )
+    CIpsPlgEventHandler* aEventHandler )
     :
-    CIpsPlgOnlineOperation( aMsvSession, CActive::EPriorityStandard,
-        aObserverRequestStatus, aActivityTimer, aFSMailBoxId,
-        aFSOperationObserver, aFSRequestId, aSignallingAllowed ),
+    CIpsPlgOnlineOperation(
+        aMsvSession,
+        aObserverRequestStatus, 
+        aActivityTimer, 
+        aFSMailBoxId,
+        aFSOperationObserver, 
+        aFSRequestId ),
     iState( EIdle ),
     iEntry( NULL ),
     iPopulateLimit( KIpsPlgPop3PopulateLimitInitValue ),
@@ -307,13 +310,13 @@ void CIpsPlgPop3ConnectOp::ConstructL()
     if ( tentry.Connected() )
         {      
         iState = EConnected; 
-        SetActive();
+        // <qmail> SetActive(); moved inside CompleteThis();
         CompleteThis();
         }
     else
         {
         iState = EStartConnect; 
-        SetActive();
+        // <qmail> SetActive(); moved inside CompleteThis();
         CompleteThis();
         }    
     }
@@ -325,8 +328,8 @@ void CIpsPlgPop3ConnectOp::ConstructL()
 void CIpsPlgPop3ConnectOp::DoConnectL()
     {
     FUNC_LOG;
-    iStatus = KRequestPending;
-    InvokeClientMtmAsyncFunctionL( KPOP3MTMConnect, iService, iService );
+    // <qmail> unnecessary: iStatus = KRequestPending;
+    InvokeClientMtmAsyncFunctionL( KPOP3MTMConnect, iService ); // <qmail> 1 param removed
     SetActive();
     
     if ( iEventHandler )
@@ -343,7 +346,7 @@ void CIpsPlgPop3ConnectOp::DoConnectL()
 void CIpsPlgPop3ConnectOp::DoPopulateL()
     {
     FUNC_LOG;
-    iStatus = KRequestPending;
+    // <qmail> unnecessary: iStatus = KRequestPending;
 
     // Prepare parameters and include filtering
     TImPop3PopulateOptions pop3GetMailInfo;
@@ -354,8 +357,7 @@ void CIpsPlgPop3ConnectOp::DoPopulateL()
     iSelection->InsertL(0, iService);
     iBaseMtm->SwitchCurrentEntryL( iService );
     // Start the fetch operation
-    InvokeClientMtmAsyncFunctionL( KPOP3MTMPopulateAll, *iSelection,
-        iService, params);
+    InvokeClientMtmAsyncFunctionL( KPOP3MTMPopulateAll, *iSelection, params ); // <qmail> 1 param removed
 
     SetActive();
     }
@@ -363,8 +365,8 @@ void CIpsPlgPop3ConnectOp::DoPopulateL()
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-// 
-TInt CIpsPlgPop3ConnectOp::IpsOpType() const
+// <qmail> return type
+TIpsOpType CIpsPlgPop3ConnectOp::IpsOpType() const
     {
     FUNC_LOG;
     return EIpsOpTypePop3SyncOp;
@@ -379,28 +381,23 @@ TInt CIpsPlgPop3ConnectOp::IpsOpType() const
 TInt CIpsPlgPop3ConnectOp::GetOperationErrorCodeL( )
     {
     FUNC_LOG;
-    if ( !iOperation )
+    if ( !iSubOperation )
         {
         return KErrNotFound;
         }
-    if ( !iOperation->IsActive() && iOperation->iStatus.Int() != KErrNone )
+    if ( !iSubOperation->IsActive() && iSubOperation->iStatus.Int() != KErrNone )
         {
-        return iOperation->iStatus.Int();
+        return iSubOperation->iStatus.Int();
         }
     
     TPckgBuf<TPop3Progress> paramPack;
-    paramPack.Copy( iOperation->ProgressL() );
+    paramPack.Copy( iSubOperation->ProgressL() );
     const TPop3Progress& progress = paramPack();
     
     return progress.iErrorCode;
     }
 
-// ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
-void CIpsPlgPop3ConnectOp::CredientialsSetL( TInt /*aEvent*/ )
-    {
-//<qmail> to be removed
-    }
+// <qmail> Removing CIpsPlgImap4ConnectOp::CredientialsSetL 
 
 //<qmail> new state
 // ----------------------------------------------------------------------------
@@ -408,8 +405,8 @@ void CIpsPlgPop3ConnectOp::CredientialsSetL( TInt /*aEvent*/ )
 void CIpsPlgPop3ConnectOp::DoDisconnect()
     {
     FUNC_LOG;
-    iStatus = KRequestPending;
-    InvokeClientMtmAsyncFunctionL( KPOP3MTMDisconnect, iService, iService );
+    // <qmail> unnecessary: iStatus = KRequestPending;
+    InvokeClientMtmAsyncFunctionL( KPOP3MTMDisconnect, iService ); // <qmail> 1 param removed
     SetActive();
     }
 //</qmail>

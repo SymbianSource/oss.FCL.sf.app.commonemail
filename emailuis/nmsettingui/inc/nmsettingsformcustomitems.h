@@ -47,6 +47,9 @@ public:
 
     virtual HbAbstractViewItem* createItem();
 
+public slots:
+
+    void restore();
 
 protected:
 

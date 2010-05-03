@@ -17,12 +17,15 @@
 
 #include "nmuiheaders.h"
 #ifdef Q_OS_SYMBIAN
+#include <email_services_api.h>
 #include <e32base.h>
 #else
 #define NM_WINS_ENV
 #endif
 
 static const qreal nmCacheSize = 2097152;
+static const char *NMUI_CACHE_DIR = "cache";
+static const QString NmSendServiceName = "com.nokia.symbian.IMessage.Send";
 
 /*!
 	\class NmApplication
@@ -41,11 +44,14 @@ mUiEngine(NULL),
 mBackAction(NULL),
 mExtensionManager(NULL),
 mMbListModel(NULL),
-mServiceViewId(NmUiViewNone)
+mServiceViewId(NmUiViewNone),
+mForegroundService(false),
+mUtilities(NULL)
 {
     // Create network access manager and cache for application use.
     mNetManager = new NmViewerViewNetManager();
     QNetworkDiskCache *cache = new QNetworkDiskCache();
+    cache->setCacheDirectory(NMUI_CACHE_DIR);
     cache->setMaximumCacheSize(nmCacheSize);
     mNetManager->setCache(cache);
 
@@ -60,12 +66,15 @@ mServiceViewId(NmUiViewNone)
 
 #ifndef NM_WINS_ENV
     mSendServiceInterface =
-            new NmSendServiceInterface(NULL, *mUiEngine, this);
+            new NmSendServiceInterface(NmSendServiceName, NULL, *mUiEngine, this);
+    mSendServiceInterface2 =
+            new NmSendServiceInterface(emailInterfaceNameSend, NULL, *mUiEngine, this);
     mMailboxServiceInterface =
             new NmMailboxServiceInterface(NULL, *mUiEngine, this);
     mViewerServiceInterface =
             new NmViewerServiceInterface(NULL, this, *mUiEngine);
 #endif
+    mUtilities = new NmUtilities();
 }
 
 /*!
@@ -75,6 +84,7 @@ NmApplication::~NmApplication()
 {
 #ifndef NM_WINS_ENV
 	delete mSendServiceInterface;
+	delete mSendServiceInterface2;
 	delete mMailboxServiceInterface;
 	delete mViewerServiceInterface;
 #endif
@@ -93,6 +103,8 @@ NmApplication::~NmApplication()
     delete mNetManager;
     mNetManager=NULL;
     }
+    delete mUtilities;
+    delete mMainWindow;
 }
 
 /*!
@@ -121,7 +133,6 @@ void NmApplication::createMainWindow()
 
     // Create main window
     mMainWindow = new HbMainWindow();
-    mMainWindow->show();
 
     // Create extension manager
     mExtensionManager = new NmUiExtensionManager();
@@ -133,7 +144,14 @@ void NmApplication::createMainWindow()
     if (mMainWindow) {
         mBackAction = new HbAction(Hb::BackNaviAction,this);
         connect(mBackAction, SIGNAL(triggered()), this, SLOT(popView()));
+        // Show main window
+        mMainWindow->show();
     }
+
+    // async operation completion related notifications
+    connect(
+        mUiEngine, SIGNAL(operationCompleted(const NmOperationCompletionEvent &)),
+        this, SLOT(handleOperationCompleted(const NmOperationCompletionEvent &)));
 
     mMbListModel = &mUiEngine->mailboxListModel();
 
@@ -193,6 +211,17 @@ void NmApplication::popView()
             // Remove view from stack.
             mMainWindow->removeView(view);
 
+            // if we were in editor and sent a message, pop viewer from stack first
+            // so we can go straight to mail list
+            if (!mViewStack->isEmpty() && topViewId == NmUiViewMessageEditor &&
+                mUiEngine->isSendingMessage() &&
+                mViewStack->top()->nmailViewId() == NmUiViewMessageViewer) {
+                NmBaseView *tmpView = mViewStack->pop();
+                mMainWindow->removeView(tmpView);
+                delete tmpView;
+                tmpView = NULL;
+            }
+
             if (!mViewStack->isEmpty()) {
                 // Activate next view in stack
                 NmBaseView *showView = mViewStack->top();
@@ -205,12 +234,15 @@ void NmApplication::popView()
             view = NULL;
 
 #ifndef NM_WINS_ENV
-            // If view was started as service, move the app now to the background
+            // If view was started as service, move the app now
+            // to the background, unless it was started when the app
+            // was already in foreground..
             if (mServiceViewId == topViewId) {
                 mServiceViewId = NmUiViewNone;
 
                 // if started as embedded, do not hide the app
-		        if (!XQServiceUtil::isEmbedded()) {
+		        if (!XQServiceUtil::isEmbedded() &&
+		            !mForegroundService) {
 		            XQServiceUtil::toBackground(true);
                 }
             }
@@ -253,10 +285,34 @@ void NmApplication::enterNmUiView(NmUiStartParam* startParam)
     // Check the validity of start parameter object
     if (startParam) {
 
+        if (startParam->service() && mMainWindow) {
+			// Store the visibility state when the service was launched
+			mForegroundService = mMainWindow->isVisible();
+
+			// When the message list is started as a service previous views are removed
+			// from the stack. Open editors are not closed.
+			// Also if the view is same than the new one, keep it open (reload the content).
+			
+		    // at least one view must remain in the stack
+			while (mViewStack->count()>1) { 
+			    NmUiViewId topId = mViewStack->top()->nmailViewId();
+			    if (topId!=NmUiViewMessageEditor && 
+			        topId!=NmUiViewMailboxList &&
+			        topId!=startParam->viewId()) {
+			        popView();
+			    }
+			    else {
+			        // Editor or mailbox list in the top. Stop the loop.
+			        break;
+			    }
+			}
+        }
+        
         // Check whether requested view is already active
         // and if so, ask it to reload contents with new start parameter data
-        // Do not reuse the view if started as service (ShareUI or Launch API)
-        if (mActiveViewId==startParam->viewId() && !startParam->service()) {
+        // Do not reuse the view if started as service to editor view (ShareUI)
+        if (mActiveViewId==startParam->viewId() &&
+        	(!startParam->service() || mActiveViewId!=NmUiViewMessageEditor)) {
             mViewStack->top()->reloadViewContents(startParam);
         }
         else {
@@ -271,6 +327,12 @@ void NmApplication::enterNmUiView(NmUiStartParam* startParam)
                 break;
                 case NmUiViewMessageList:
                 {
+                    // Check the topmost view. If it is an editor, do not open
+                    // a new mail list view
+                    if (startParam->service() && !mViewStack->isEmpty() && 
+                        mViewStack->top()->nmailViewId()==NmUiViewMessageEditor) {
+                        break;
+                    }
                     NmMessageListModel &messageListModel = mUiEngine->messageListModel(
                                                 startParam->mailboxId(), startParam->folderId());
                     NmMessageListView *msgList =new NmMessageListView(
@@ -288,11 +350,12 @@ void NmApplication::enterNmUiView(NmUiStartParam* startParam)
                 default:
                     // Reset view stack and exit application
                     delete startParam;
+                    startParam=NULL;
                     resetViewStack();
                     break;
             }
 
-            if (startParam->service()) {
+            if (startParam && startParam->service()) {
 				// Store the view id that was launched as service
         		mServiceViewId = mActiveViewId;
 			}
@@ -311,6 +374,8 @@ void NmApplication::exitApplication()
 #ifndef NM_WINS_ENV
     delete mSendServiceInterface;
     mSendServiceInterface = NULL;
+    delete mSendServiceInterface2;
+    mSendServiceInterface2 = NULL;
     delete mMailboxServiceInterface;
     mMailboxServiceInterface = NULL;
     delete mViewerServiceInterface;
@@ -350,9 +415,9 @@ NmUiExtensionManager& NmApplication::extManager()
 /*!
     Getter for network access manager
 */
-NmViewerViewNetManager* NmApplication::networkAccessManager()
+NmViewerViewNetManager& NmApplication::networkAccessManager()
 {
-    return mNetManager;
+    return *mNetManager;
 }
 
 /*!
@@ -386,4 +451,12 @@ QSize NmApplication::screenSize()
         }
     }
     return ret;
+}
+
+/*!
+    handles all asynchronous operation's completions at UI level
+*/
+void NmApplication::handleOperationCompleted(const NmOperationCompletionEvent &event)
+{
+    mUtilities->displayOperationCompletionNote(event);
 }

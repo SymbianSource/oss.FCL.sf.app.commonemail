@@ -31,7 +31,9 @@ NmHsWidgetEmailRow::NmHsWidgetEmailRow(QGraphicsItem *parent, Qt::WindowFlags fl
       mSenderLabel(0),
       mSubjectLabel(0),
       mTimeLabel(0),
-      mNewMailIcon(0)
+      mNewMailIcon(0),
+      mSeparatorIcon(0),
+      mMessageId(0)
 {
     qDebug() << "NmHsWidgetEmailRow::NmHsWidgetEmailRow IN -->>";
     
@@ -49,7 +51,17 @@ NmHsWidgetEmailRow::~NmHsWidgetEmailRow()
 
     qDebug() << "NmHsWidgetEmailRow::~NmHsWidgetEmailRow OUT <<--";
 }
-    
+
+/*!
+    Returns id of message shown
+*/
+NmId NmHsWidgetEmailRow::messageId()
+{
+    qDebug() << "NmHsWidgetEmailRow::messageId()";
+    return mMessageId;
+
+}
+
 /*!
     Loads layout data and child items from docml file
 */
@@ -73,6 +85,11 @@ void NmHsWidgetEmailRow::loadDocML()
     Q_ASSERT_X((container != 0), "nmhswidget", "email container not found!");
     layout->addItem(container);
 
+    //separator
+    mSeparatorIcon = static_cast<HbLabel*>(loader.findWidget(KNmHsWidgetMailSeparatorIcon));
+    HbIcon separatorIcon("qtg_graf_divider_h_thin"); 
+    mSeparatorIcon->setIcon(separatorIcon);
+    
     //child items possible to update
     mSenderLabel = static_cast<HbLabel*>(loader.findWidget(KNmHsWidgetMailRowSenderLabel));
     mSubjectLabel = static_cast<HbLabel*>(loader.findWidget(KNmHsWidgetMailRowSubjectLabel));
@@ -80,6 +97,8 @@ void NmHsWidgetEmailRow::loadDocML()
 
     //Icons
     mNewMailIcon = static_cast<HbLabel*>(loader.findWidget(KNmHsWidgetMailRowNewMailIcon));
+    HbIcon newEmailIcon("qtg_fr_list_new_item_c"); 
+    mNewMailIcon->setIcon(newEmailIcon);
     // KNmHsWidgetMailRowLeftIcon is not yet used, because followup information is not shown in client side
     // and thus it is not wanted to be shown in widget side
     mStatusIcons.append( static_cast<HbLabel*>(loader.findWidget(KNmHsWidgetMailRowRightIcon)));
@@ -101,9 +120,11 @@ void NmHsWidgetEmailRow::loadDocML()
 void NmHsWidgetEmailRow::updateMailData( const NmMessageEnvelope& envelope )
     {
     qDebug() << "NmHsWidgetEmailRow::updateMailData IN -->>";
+
     //hide all icons, so no previous data is messing with the new
     hideIcons();
-    
+
+    mMessageId = envelope.id();
     //Show sender name if it is available, otherwise show email address
     QString senderDisplayName = envelope.sender().displayName();
     if ( !senderDisplayName.isNull() && !senderDisplayName.isEmpty()  )
@@ -199,7 +220,6 @@ void NmHsWidgetEmailRow::setIconsToWidget( const NmMessageEnvelope& envelope )
     // Here we show icons added to the iconList in the order they have been added.
     for(int count = 0; count<iconList.count(); count++){
         mStatusIcons[count]->setIcon(iconList[count]);
-        mStatusIcons[count]->setAlignment(Qt::AlignRight);
         mStatusIcons[count]->show();
     }
     

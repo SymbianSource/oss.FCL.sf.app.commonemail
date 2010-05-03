@@ -25,9 +25,8 @@
 /*!
     Constructor
 */
-NmMailboxListViewItem::NmMailboxListViewItem(HbDocumentLoader *documentLoader)
-: HbListViewItem(),
-mDocumentLoader(documentLoader),
+NmMailboxListViewItem::NmMailboxListViewItem(QGraphicsItem *parent)
+: HbListViewItem(parent),
 mLayout(NULL)
 {
 }
@@ -44,7 +43,7 @@ NmMailboxListViewItem::~NmMailboxListViewItem()
 */
 HbListViewItem* NmMailboxListViewItem::createItem()
 {
-    return new NmMailboxListViewItem(mDocumentLoader);
+    return new NmMailboxListViewItem(*this);
 }
 
 /*!

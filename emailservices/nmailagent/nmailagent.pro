@@ -21,6 +21,7 @@ QT += core
 CONFIG += hb 
 CONFIG += console
 
+load(hb.prf)
 symbian:CONFIG -= symbian_i18n
 
 MOC_DIR = moc
@@ -38,7 +39,8 @@ SOURCES   += src/main.cpp \
              src/nmmailagent.cpp
 
 LIBS += -lnmailbase
-LIBS += -lnmailclientapi
+LIBS += -lnmailuiengine
+LIBS += -llibc
 
 symbian*: { 
     INCLUDEPATH += $$APP_LAYER_SYSTEMINCLUDE

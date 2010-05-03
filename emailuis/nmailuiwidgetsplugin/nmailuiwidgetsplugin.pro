@@ -25,6 +25,8 @@ HEADERS += inc/nmailuiwidgetsplugin.h
 
 SOURCES += src/nmailuiwidgetsplugin.cpp
 
+LIBS += -leuser
+
 symbian*: {
     TARGET.EPOCALLOWDLLDATA = 1
     TARGET.CAPABILITY = ALL \

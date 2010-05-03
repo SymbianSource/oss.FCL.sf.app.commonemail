@@ -462,6 +462,23 @@ QString NmMessagePart::attachmentName() const
 }
 
 /*!
+    Recursive child part finder for NmMessage class (non-modifying).
+ */
+const NmMessagePart *NmMessagePart::findContentPart(const QString &contentType) const
+{
+    const NmMessagePart *ret = NULL;
+
+    if (!d->mContentType.isEmpty() && d->mContentType.startsWith(contentType)) {
+        ret = this;
+    } else {
+        for (int i = 0; !ret && i < d->mChildParts.count(); i++) {
+            ret = d->mChildParts[i]->findContentPart(contentType);
+        }
+    }
+    return ret;
+}
+
+/*!
     Recursive child part finder for NmMessage class
  */
 NmMessagePart *NmMessagePart::findContentPart(const QString &contentType)

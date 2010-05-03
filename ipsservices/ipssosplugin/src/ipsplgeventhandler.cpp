@@ -245,11 +245,11 @@ void CIpsPlgEventHandler::UnRegisterPropertyObserver(
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-void CIpsPlgEventHandler::NotifyPropertyEventL(
-        TIpsPlgPropertyEvent aEvent )
+void CIpsPlgEventHandler::NotifyPropertyEventL( TIpsPlgPropertyEvent aEvent )
     {
     FUNC_LOG;
-    TBool doNotify = ETrue;
+    INFO_1("pluginid == 0x%x", iPluginId);
+   //<qmail> not used: TBool doNotify = ETrue;
     switch ( aEvent.iEvent )
         {
         case KIpsSosEmailSyncStarted:
@@ -265,8 +265,8 @@ void CIpsPlgEventHandler::NotifyPropertyEventL(
         default:
             break;
         }
-
-    for ( TInt i = 0; doNotify && i < iPropertyObservers.Count(); i++ )
+    // <qmail> removed doNotify bool below
+    for ( TInt i = 0; i < iPropertyObservers.Count(); i++ )
         {
         TRAP_IGNORE( iPropertyObservers[i]->HandlePropertyEventL(
                 aEvent.iEvent,  aEvent.iMailbox,
@@ -1477,62 +1477,81 @@ void CIpsPlgEventHandler::FindCorrectDeletedEntryAndParentL(
 void CIpsPlgEventHandler::SignalStartSyncL( const TFSMailMsgId& aAccount )
     {
     FUNC_LOG;
-    TFSMailEvent event = TFSEventMailboxSyncStateChanged;
-    TSSMailSyncState state = StartingSync;
+    // <qmail> no need to create event variable here
+    //    TFSMailEvent event = TFSEventMailboxSyncStateChanged;
+    // <qmail> renamed variable
+    TSSMailSyncState syncState( StartingSync );
 
-    SaveSyncStatusL( aAccount.Id(), TInt( state ) );
+    // <qmail> remove SaveSyncStatusL as it does nothing
+    // SaveSyncStatusL( aAccount.Id(), TInt( syncState ) );
 
     SendDelayedEventL(
-        event,
+        TFSEventMailboxSyncStateChanged,
         aAccount,
-        &state,
+        &syncState,
         NULL,
         NULL );
     }
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-void CIpsPlgEventHandler::SignalSyncCompletedL(
-    const TFSMailMsgId& aAccount,
-    TInt aError )
+void CIpsPlgEventHandler::SignalSyncCompletedL( const TFSMailMsgId& aAccount, TInt aError )
     {
     FUNC_LOG;
-    TFSMailEvent event = TFSEventMailboxSyncStateChanged;
+    // <qmail> no need to create event variable here
+    //    TFSMailEvent event = TFSEventMailboxSyncStateChanged;
+    // <qmail> renamed variable, and setting value in new func
+    TSSMailSyncState syncState = ConvertCompletionCode( aError );
 
-    TSSMailSyncState state = FinishedSuccessfully;
-
-    if ( aError == KErrCancel )
-        {
-        state = SyncCancelled;
-        }
-    else if ( aError != KErrNone && aError != KErrCancel )
-        {
-        state = SyncError;
-        }
-
-    SaveSyncStatusL( aAccount.Id(), TInt( state ) );
+    // <qmail> remove SaveSyncStatusL as it does nothing
+    //    SaveSyncStatusL( aAccount.Id(), TInt( syncState ) );
 
     SendDelayedEventL(
-        event,
+        TFSEventMailboxSyncStateChanged,
         aAccount,
-        &state,
+        &syncState,
         NULL,
         NULL );
     }
 
+// <qmail> new function
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-void CIpsPlgEventHandler::SignalMailboxOfflineStateL(
-    const TFSMailMsgId& aAccount )
+TSSMailSyncState CIpsPlgEventHandler::ConvertCompletionCode( TInt aCompletionCode )
     {
     FUNC_LOG;
-    SendDelayedEventL(
-        TFSEventMailboxOffline,
-        aAccount,
-        NULL,
-        NULL,
-        NULL );
+    switch ( aCompletionCode )
+        {
+        case KErrNone:
+            return FinishedSuccessfully;
+        case KErrCancel:
+            return SyncCancelled;
+        case KErrImapBadLogon:
+        case KPop3InvalidUser:
+        case KPop3InvalidLogin:
+        case KPop3InvalidApopLogin:
+            return PasswordNotVerified;
+        default:
+            return SyncError;
+        }
     }
+// </qmail>
+
+//<qmail> not used at all
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+//void CIpsPlgEventHandler::SignalMailboxOfflineStateL(
+//    const TFSMailMsgId& aAccount )
+//    {
+//    FUNC_LOG;
+//    SendDelayedEventL(
+//        TFSEventMailboxOffline,
+//        aAccount,
+//        NULL,
+//        NULL,
+//        NULL );
+//    }
+// </qmail>
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
@@ -1541,101 +1560,102 @@ void CIpsPlgEventHandler::SettingsChangedL( TFSMailMsgId /*aAccount*/ )
     FUNC_LOG;
     }
 
+//<qmail> not used at all
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-void CIpsPlgEventHandler::SaveSyncStatusL( TMsvId aMailboxId, TInt /*aState*/ )
-    {
-    FUNC_LOG;
-    TMsvEntry tEntry;
-    TMsvId service;
-    if( !iSession )
-        {
-        User::Leave( KErrNotReady );
-        }
-    TInt err = iSession->GetEntry( aMailboxId, service, tEntry );
-
-    if( err == KErrNone )
-        {
-        }
-    }
+//void CIpsPlgEventHandler::SaveSyncStatusL( TMsvId aMailboxId, TInt /*aState*/ )
+//    {
+//    FUNC_LOG;
+//    TMsvEntry tEntry;
+//    TMsvId service;
+//    if( !iSession )
+//        {
+//        User::Leave( KErrNotReady );
+//        }
+//    TInt err = iSession->GetEntry( aMailboxId, service, tEntry );
+//
+//    if( err == KErrNone )
+//        {
+//        }
+//    }
+// </qmail>
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
 void CIpsPlgEventHandler::HandlePropertyEventL(
-        TInt aEvent,
-        TInt aMailbox,
-        TInt /*aPluginId*/,
-        TInt aError )
+    TInt aEvent,
+    TInt aMailbox,
+    TInt /*aPluginId*/,
+    TInt /*aError*/ )
     {
     FUNC_LOG;
-    RProcess process;
-    if ( aEvent == EIPSSosPswErr && process.SecureId() == FREESTYLE_FSSERVER_SID )
-        {
-        TFSMailMsgId mbox = SymId2FsId( aMailbox,
-                        iBasePlugin.MtmId().iUid );
-        TFSMailEvent event = TFSEventException;
-        TFsEmailNotifierSystemMessageType msg = EFsEmailNotifErrLoginUnsuccesfull;
-        SendDelayedEventL( event, mbox, &msg, NULL , (MFSMailExceptionEventCallback*)this );
-        }
-    else if ( aEvent == EIPSSosCredientialsSet || aEvent == EIPSSosCredientialsCancelled )
-        {
-        if ( iConnOpCallback )
-            {
-            iConnOpCallback->CredientialsSetL( aEvent );
-
-            //Set to null after we have used this.
-            //don't delete, we don't own this.
-            iConnOpCallback=NULL;
-            }
-        //if password was changed, we need to send settings changed event also.
-        if( aEvent == EIPSSosCredientialsSet )
-            {
-            TFSMailMsgId mbox = SymId2FsId( aMailbox,
-                    iBasePlugin.MtmId().iUid );
-            TFSMailEvent event = TFSEventMailboxSettingsChanged;
-            SendDelayedEventL( event, mbox, NULL, NULL , NULL );
-            }
-        }
-    else if ( aEvent == EIPSSosSettingsChanged )
+//  <qmail> remove these events 
+//    RProcess process;
+//    if ( aEvent == EIPSSosPswErr && process.SecureId() == FREESTYLE_FSSERVER_SID )
+//        {
+//        TFSMailMsgId mbox = SymId2FsId( aMailbox,
+//                        iBasePlugin.MtmId().iUid );
+//        TFSMailEvent event = TFSEventException;
+//        TFsEmailNotifierSystemMessageType msg = EFsEmailNotifErrLoginUnsuccesfull;
+//        SendDelayedEventL( event, mbox, &msg, NULL , (MFSMailExceptionEventCallback*)this );
+//        }
+//    else if ( aEvent == EIPSSosCredientialsSet || aEvent == EIPSSosCredientialsCancelled )
+//        {
+//        if ( iConnOpCallback )
+//            {
+//            iConnOpCallback->CredientialsSetL( aEvent );
+//
+//            //Set to null after we have used this.
+//            //don't delete, we don't own this.
+//            iConnOpCallback=NULL;
+//            }
+//        //if password was changed, we need to send settings changed event also.
+//        if( aEvent == EIPSSosCredientialsSet )
+//            {
+//            TFSMailMsgId mbox = SymId2FsId( aMailbox,
+//                    iBasePlugin.MtmId().iUid );
+//            TFSMailEvent event = TFSEventMailboxSettingsChanged;
+//            SendDelayedEventL( event, mbox, NULL, NULL , NULL );
+//            }
+//        }
+//    else
+// </qmail>
+    if ( aEvent == EIPSSosSettingsChanged )
         {
         TFSMailMsgId mbox = SymId2FsId( aMailbox,
                 iBasePlugin.MtmId().iUid );
         TFSMailEvent event = TFSEventMailboxSettingsChanged;
         SendDelayedEventL( event, mbox, NULL, NULL , NULL );
         }
-    else if ( aEvent == KIpsSosEmailSyncCompleted &&
-            aError == KErrImapBadLogon )
-        {
-        TFSMailMsgId mbox = SymId2FsId( aMailbox,
-                        iBasePlugin.MtmId().iUid );
-        TFSMailEvent event = TFSEventException;
-        TFsEmailNotifierSystemMessageType msg = EFsEmailNotifErrLoginUnsuccesfull;
-        SendDelayedEventL( event, mbox, &msg, NULL , this );
-        }
+
+// <qmail> no need for KIpsSosEmailSyncCompleted event handling here,
+// because it has just been sent in NotifyPropertyEventL()
     }
+
+// <qmail> removing unused functions
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+//void CIpsPlgEventHandler::QueryUsrPassL( TMsvId aMbox, MIpsPlgConnectOpCallback* aCallback )
+//    {
+//    FUNC_LOG;
+//    iConnOpCallback = aCallback;//can be null, doesn't matter.
+//    SetNewPropertyEvent( aMbox, EIPSSosPswErr, 0 );
+//    }
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-void CIpsPlgEventHandler::QueryUsrPassL( TMsvId aMbox, MIpsPlgConnectOpCallback* aCallback )
-    {
-    FUNC_LOG;
-    iConnOpCallback = aCallback;//can be null, doesn't matter.
-    SetNewPropertyEvent( aMbox, EIPSSosPswErr, 0 );
-    }
-
-// ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
-void CIpsPlgEventHandler::SignalCredientialsSetL( TInt aMailboxId, TBool aCancelled )
-    {
-    FUNC_LOG;
-    TInt event = EIPSSosCredientialsSet;
-    if ( aCancelled )
-        {
-        event = EIPSSosCredientialsCancelled;
-        }
-
-    SetNewPropertyEvent( aMailboxId, event, 0 );
-    }
+//void CIpsPlgEventHandler::SignalCredientialsSetL( TInt aMailboxId, TBool aCancelled )
+//    {
+//    FUNC_LOG;
+//    TInt event = EIPSSosCredientialsSet;
+//    if ( aCancelled )
+//        {
+//        event = EIPSSosCredientialsCancelled;
+//        }
+//
+//    SetNewPropertyEvent( aMailboxId, event, 0 );
+//    }
+// </qmail>
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
@@ -1679,24 +1699,21 @@ TBool CIpsPlgEventHandler::MatchFolderIdFound( TMsvId aDeletedId )
 void CIpsPlgEventHandler::CollectSubscribedFoldersL( TMsvId /*aMailboxId*/ )
     {
     FUNC_LOG;
-    if ( iSession )
-        {
-        }
+// <qmail> code removed as it does nothing; keeping the func as it probably will be needed
     }
 
+// <qmail> not needed
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-void CIpsPlgEventHandler::ExceptionEventCallbackL(
-        TFSMailMsgId aMailboxId,
-        TInt /*aEventType*/,
-        TBool /*aResponse*/ )
-    {
-    FUNC_LOG;
-    TFSMailEvent event = TFSEventMailboxSyncStateChanged;
-    TSSMailSyncState state = PasswordNotVerified;
-
-    SendDelayedEventL( event, aMailboxId, &state, NULL , NULL );
-    }
-
-// End of File
-
+//void CIpsPlgEventHandler::ExceptionEventCallbackL(
+//        TFSMailMsgId aMailboxId,
+//        TInt /*aEventType*/,
+//        TBool /*aResponse*/ )
+//    {
+//    FUNC_LOG;
+//    TFSMailEvent event = TFSEventMailboxSyncStateChanged;
+//    TSSMailSyncState state = PasswordNotVerified;
+//
+//    SendDelayedEventL( event, aMailboxId, &state, NULL , NULL );
+//    }
+// </qmail>

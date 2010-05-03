@@ -22,7 +22,7 @@ static const QString FILE_PATH_CSS = ":nmattachmentlistitem.css";
 
 static const int PROGRESSBAR_MIN = 0; 
 static const int PROGRESSBAR_MAX = 100;
-static const int PROGRESSBAR_HIDE_COUNTDOWN = 5000;
+static const int PROGRESSBAR_HIDE_COUNTDOWN = 500;
 static const int LONGPRESS_TIMER = 2000;
 
 
@@ -53,6 +53,14 @@ NmAttachmentListItem::NmAttachmentListItem(QGraphicsItem *parent)
     init( );
 }
 
+/*!
+    Setter for items text color override. This fucntion can be used
+    if theme background is not used and text needs to be shown in diferent color.
+ */
+void NmAttachmentListItem::setTextColor(const QColor color)
+{
+    mTextColor=color;
+}
 
 /*!
     Destructor.
@@ -61,18 +69,38 @@ NmAttachmentListItem::~NmAttachmentListItem( )
 {
     HbStyleLoader::unregisterFilePath(FILE_PATH_WIDGETML);
     HbStyleLoader::unregisterFilePath(FILE_PATH_CSS);
+    
+    delete mTimer;
+    mTimer = NULL; 
 }
 
 /*!
-    Set the texts to be displayed in the file name and file size items
-    
+    Set the text to be displayed in the file name item.
  */
-void NmAttachmentListItem::setTextItems(const QString &fileName, const QString &fileSize)
+void NmAttachmentListItem::setFileNameText(const QString &fileName)
 {
-    mFileNameText->setText(fileName);
-    mFileSizeText->setText(fileSize);    
+    if (mFileNameText){
+        if (mTextColor.isValid()){
+            mFileNameText->setTextColor(mTextColor);
+        }
+        mFileNameText->setTextWrapping(Hb::TextNoWrap);
+        mFileNameText->setText(fileName);    
+    }
 }
 
+/*!
+    Set the text to be displayed in the file size item
+ */
+void NmAttachmentListItem::setFileSizeText(const QString &fileSize)
+{
+    if (mFileSizeText){
+        if (mTextColor.isValid()){
+            mFileSizeText->setTextColor(mTextColor);
+        }
+        mFileSizeText->setTextWrapping(Hb::TextNoWrap);
+        mFileSizeText->setText(fileSize);  
+    } 
+}
 
 /*!
     Set the download progress bar value (0-100)%, if value is 0 progress bar is hidden
@@ -159,7 +187,9 @@ void NmAttachmentListItem::mousePressEvent( QGraphicsSceneMouseEvent *event )
 
     mButtonPressed = true;
     mLongPressedPoint = event->scenePos();
-    mTimer->start(LONGPRESS_TIMER);
+    if(mTimer){
+        mTimer->start(LONGPRESS_TIMER);        
+    }
 }
 
 /*!
@@ -169,7 +199,7 @@ void NmAttachmentListItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
     Q_UNUSED(event);
     NMLOG("NmAttachmentListItem::mouseReleasedEvent");
-    if ( mButtonPressed ){
+    if ( mTimer && mButtonPressed ){
         emit itemActivated();
         mButtonPressed = false;
         mTimer->stop();
@@ -199,7 +229,6 @@ void NmAttachmentListItem::longPressedActivated()
         NMLOG("NmAttachmentListItem::longPressedActivated");
         emit itemLongPressed(mLongPressedPoint);
         mButtonPressed = false;
-        mTimer->stop();
     }
 }
 

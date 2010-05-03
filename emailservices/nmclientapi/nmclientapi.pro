@@ -70,7 +70,8 @@ HEADERS   += nmapiemailservice.h \
 	     nmapimessagebody.h \
 	     nmapimessageenvelope.h
 			 
-			
+LIBS += -leuser
+LIBS += -llibc			
 
 
 SOURCES   += nmapimessagetask.cpp \

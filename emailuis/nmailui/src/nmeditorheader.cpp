@@ -102,7 +102,7 @@ void NmEditorHeader::loadWidgets()
     NmAttachmentListWidget *attachmentList = qobject_cast<NmAttachmentListWidget *>
         (mDocumentLoader->findWidget(NMUI_EDITOR_ATTACHMENT_LIST));
     // Create attachment list handling object
-    mAttachmentList = new NmAttachmentList(attachmentList);
+    mAttachmentList = new NmAttachmentList(*attachmentList);
 
     mPriorityIconLabel = qobject_cast<HbLabel *>
         (mDocumentLoader->findWidget(NMUI_EDITOR_PRIORITY_ICON));
@@ -135,8 +135,10 @@ void NmEditorHeader::createConnections()
             this, SLOT(groupBoxExpandCollapse()));
 
     // Signals for handling the attachment list
-    connect(mAttachmentList->listWidget(), SIGNAL(longPressed(int, QPointF)),
-            this, SLOT(attachmentSelected(int, QPointF)));
+    connect(&mAttachmentList->listWidget(), SIGNAL(itemActivated(int)),
+            this, SLOT(attachmentActivated(int)));
+    connect(&mAttachmentList->listWidget(), SIGNAL(longPressed(int, QPointF)),
+            this, SLOT(attachmentLongPressed(int, QPointF)));
     connect(mAttachmentList ,SIGNAL(attachmentListLayoutChanged()),
             this, SLOT(sendHeaderHeightChanged()));
 }
@@ -172,7 +174,7 @@ int NmEditorHeader::headerHeight() const
 
     qreal attHeight = 0;
     if (mAttachmentList && mAttachmentList->count() > 0) {
-        attHeight = mAttachmentList->listWidget()->geometry().height();
+        attHeight = mAttachmentList->listWidget().geometry().height();
     }
 
     return (int)(toHeight + recipientGroupBoxHeight + subjectHeight + attHeight);
@@ -374,12 +376,22 @@ void NmEditorHeader::addAttachment(
 }
 
 /*!
-   Remove attachment from the list. This function is used when attachment adding has failed
-   and attachment id is not known.
+   Remove attachment from the list. This function is used when
+   attachment adding has failed and attachment id is not known.
  */
 void NmEditorHeader::removeAttachment(const QString &fileName)
 {
     mAttachmentList->removeAttachment(fileName);
+    sendHeaderHeightChanged();
+}
+
+/*!
+   Remove attachment from the list. This function is used when
+   attachment has been selected for remove.
+ */
+void NmEditorHeader::removeAttachment(const NmId &nmid)
+{
+    mAttachmentList->removeAttachment(nmid);
     sendHeaderHeightChanged();
 }
 
@@ -400,13 +412,33 @@ void NmEditorHeader::setAttachmentParameters(
 }
 
 /*!
+   Attachment launched from attachment list by "open" menu item.
+ */
+void NmEditorHeader::launchAttachment(const NmId &itemId)
+{
+    attachmentActivated(mAttachmentList->indexByNmId(itemId));
+}
+
+/*!
+   Slot attachment activated from attachment list by short tap.
+ */
+void NmEditorHeader::attachmentActivated(int arrayIndex)
+{
+    const char *engineerText="Unable to open. Attachment file type not supported";
+    const char *localizedText="txt_mail_dialog_unable_to_open_attachment_file_ty";
+	
+    QFile launchFile(mAttachmentList->getFullFileNameByIndex(arrayIndex));
+    if (NmUtilities::openFile( launchFile ) == NmNotFoundError) {
+        NmUtilities::displayErrorNote( QObject::tr(engineerText, localizedText) ); 
+    }
+}
+
+/*!
    Slot attachment selected from attachment list by longtap.
  */
-void NmEditorHeader::attachmentSelected(int arrayIndex, QPointF point)
+void NmEditorHeader::attachmentLongPressed(int arrayIndex, QPointF point)
 {
-    Q_UNUSED(point);
     // Remove selected attachment
-    emit attachmentRemoved(mAttachmentList->nmIdByIndex(arrayIndex));
-    mAttachmentList->removeAttachment(arrayIndex);
+    emit attachmentLongPressed(mAttachmentList->nmIdByIndex(arrayIndex), point);
 }
     

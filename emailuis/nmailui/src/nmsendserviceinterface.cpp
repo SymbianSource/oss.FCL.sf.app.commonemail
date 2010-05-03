@@ -1,20 +1,20 @@
 /*
- * Copyright (c) 2010 Nokia Corporation and/or its subsidiary(-ies).
- * All rights reserved.
- * This component and the accompanying materials are made available
- * under the terms of "Eclipse Public License v1.0"
- * which accompanies this distribution, and is available
- * at the URL "http://www.eclipse.org/legal/epl-v10.html".
- *
- * Initial Contributors:
- * Nokia Corporation - initial contribution.
- *
- * Contributors:
- *
- * Description: NMail Application Launcher interface used for interfacing between
- *              QT highway and other applications
- *
- */
+* Copyright (c) 2010 Nokia Corporation and/or its subsidiary(-ies).
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description: NMail Application Launcher interface used for interfacing between
+*              QT highway and other applications
+*
+*/
 
 //  INCLUDES
 #include "nmuiheaders.h"
@@ -257,11 +257,12 @@ public: // Data
 /*!
     Class constructor.
 */
-NmSendServiceInterface::NmSendServiceInterface(QObject *parent,
+NmSendServiceInterface::NmSendServiceInterface(QString interfaceName, 
+                                               QObject *parent,
                                                NmUiEngine &uiEngine,
                                                NmApplication *application)
 #ifndef NM_WINS_ENV
-    : XQServiceProvider(QLatin1String("com.nokia.symbian.IMessage.Send"), parent),
+    : XQServiceProvider(interfaceName, parent),
 #else
     : QObject(parent),
 #endif

@@ -41,7 +41,9 @@ public:
     virtual NmId id() const;
     virtual void setId(const NmId &id);
 
+    const NmMessagePart *plainTextBodyPart() const;
     NmMessagePart *plainTextBodyPart();
+    const NmMessagePart *htmlBodyPart() const;
     NmMessagePart *htmlBodyPart();
 
     void setEnvelope(const NmMessageEnvelope &envelope);
@@ -50,7 +52,7 @@ public:
 
     CFSMailMessage* getCFSMailMessage();
 
-    void attachmentList(QList<NmMessagePart*> &parts);
+    void attachmentList(QList<NmMessagePart*> &parts) const;
     
 private:
     NmMessage &operator=(const NmMessage &message);

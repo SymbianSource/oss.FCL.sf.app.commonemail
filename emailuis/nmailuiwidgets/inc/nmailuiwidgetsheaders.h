@@ -41,6 +41,7 @@
 #include <hbprogressbar.h>
 #include <hbdocumentloader.h>
 #include <hbinstance.h>
+#include <hbcolorscheme.h>
 
 #include <nmaddress.h>
 #include <nmcommon.h>

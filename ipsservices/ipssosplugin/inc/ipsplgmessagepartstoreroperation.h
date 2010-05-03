@@ -28,7 +28,7 @@ class CFSMailMessage;
 class CFSMailMessagePart;
 class MFSMailRequestObserver;
 
-NONSHARABLE_CLASS( CIpsPlgMessagePartStorerOperation ) : public CMsvOperation
+NONSHARABLE_CLASS( CIpsPlgMessagePartStorerOperation ) : public CIpsPlgBaseOperation
     {
 public:
     /**
@@ -72,9 +72,27 @@ public:
     void DoCancel();
 
     /**
-     * From CMsvOperation
-     */
+    * From CMsvoperation
+    */
     virtual const TDesC8& ProgressL();
+
+    // <qmail>
+    /**
+    * From CIpsPlgBaseOperation
+    */
+    virtual const TDesC8& GetErrorProgressL(TInt aError);
+
+    /**
+    * From CIpsPlgBaseOperation
+    */
+    virtual TFSProgress GetFSProgressL() const;
+
+    /**
+     * From CIpsPlgBaseOperation
+     * Returns operation type
+     */
+    TIpsOpType IpsOpType() const;    
+    // </qmail>
 
 protected:
 
@@ -135,13 +153,16 @@ private:
     RPointerArray<CFSMailMessagePart> iMessageParts;
 
     MFSMailRequestObserver& iFSOperationObserver;
-    const TInt iRequestId;
     
     // Execution index stores current progres
     TInt iExecutionIndex;
     
     // Data buffer for async operations
     HBufC8* iDataBuffer;
+
+    // <qmail>
+    TFSProgress iFSProgress;
+    // </qmail>
     };
 
 #endif /* IPSPLGMESSAGEPARTSTOREOPERATION_H_ */

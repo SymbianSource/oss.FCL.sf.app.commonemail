@@ -190,7 +190,11 @@ void NmMessageListView::reloadViewContents(NmUiStartParam* startParam)
         mStartParam=NULL;
         // Store new start parameter data
         mStartParam=startParam;
+        // Update the model with new parameters
+        mUiEngine.messageListModel(startParam->mailboxId(), startParam->folderId());
         refreshList();
+        // Refresh the mailboxname 
+        setMailboxName();
     }
     else {
         NMLOG("nmailui: Invalid message list start parameter");

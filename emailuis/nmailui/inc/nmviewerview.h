@@ -40,17 +40,19 @@ class NmMailViewerWK;
 class NmUiDocumentLoader;
 class NmOperation;
 class HbProgressDialog;
+class NmAttachmentListWidget;
 
 class NmViewerView : public NmBaseView, public NmActionObserver
 {
     Q_OBJECT
 public:
-    NmViewerView(
-            NmApplication &application,
-            NmUiStartParam* startParam,
-            NmUiEngine &uiEngine,
-            HbMainWindow *mainWindow,
-            QGraphicsItem *parent = NULL);
+    explicit NmViewerView(
+				NmApplication &application,
+				NmUiStartParam* startParam,
+				NmUiEngine &uiEngine,
+				HbMainWindow *mainWindow,
+				bool toolbar = false,
+				QGraphicsItem *parent = NULL);
     ~NmViewerView();
     void reloadViewContents(NmUiStartParam* startParam);
     NmUiViewId nmailViewId() const;
@@ -58,11 +60,16 @@ public:
 
 public slots:
     void orientationChanged(Qt::Orientation orientation);
+    void adjustViewDimensions();
     void linkClicked(const QUrl& link);
     void contentScrollPositionChanged(const QPointF &newPosition);
     void handleMouseReleaseEvent(QGraphicsSceneMouseEvent *event);
     void handleMousePressEvent(QGraphicsSceneMouseEvent *event);
     void fetchMessage();
+    void openAttachment(int index);
+    void changeProgress(int progressValue);
+	void externalDelete(const NmId &messageId);
+	void createOptionsMenu();
     
 private slots: 
     void setMessageData();
@@ -71,29 +78,35 @@ private slots:
     void webFrameLoaded(bool loaded);
     void scaleWebViewWhenLoading(const QSize &size);
     void scaleWebViewWhenLoaded();
+    void attachmentFetchCompleted(int result);
     
 public: // From NmActionObserver
     void handleActionCommand(NmActionResponse &menuResponse);
+
+signals:
+    void progressValueChanged(int index, int value);
 
 private:
     void loadMessage();
     void loadViewLayout();
     QString formatMessage();
     bool eventOnTopOfHeaderArea(QGraphicsSceneMouseEvent *event);
-    QString escapeSpecialCharacters(const QString text);
     void changeMessageReadStatus(bool read);
     void setMailboxName();
     void createToolBar();
+    void setAttachmentList();
 
 private:
     NmApplication &mApplication;
     NmUiEngine &mUiEngine;
     HbMainWindow *mMainWindow;               // Not owned
+    bool mToolbar;							  // is toolbar or options menu in use
     NmMessage* mMessage;                     // Owned
     NmBaseViewScrollArea *mScrollArea;     // Not owned
     HbWidget *mViewerContent;                // Not owned
     NmMailViewerWK *mWebView;                // Not owned
     NmViewerHeader *mHeaderWidget;           // Not owned
+    NmAttachmentListWidget *mAttaListWidget;  // Not owned
     QPointF mHeaderStartScenePos;
     QGraphicsLinearLayout *mViewerContentLayout; // Not owned
     NmOperation *mMessageFetchingOperation;   // Not owned
@@ -107,6 +120,10 @@ private:
     HbProgressDialog *mWaitDialog;            // owned
     bool loadingCompleted;
     QSize mLatestLoadingSize;
+    QList<NmId> mAttaIdList; 
+    NmOperation *mFetchOperation;             // owned
+    int mAttaIndexUnderFetch;
+    NmAttachmentListWidget *mAttaWidget;      // Not owned
 };
 
 #endif /* NMVIEWERVIEW_H_ */

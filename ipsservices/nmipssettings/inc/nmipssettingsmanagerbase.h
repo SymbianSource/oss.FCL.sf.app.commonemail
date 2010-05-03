@@ -33,24 +33,29 @@ class NmId;
 class NmIpsSettingsManagerBase
 {
 public:
-    NmIpsSettingsManagerBase(const NmId &mailboxId, CEmailAccounts *account);
-    virtual ~NmIpsSettingsManagerBase();
 
+    NmIpsSettingsManagerBase(const NmId &mailboxId, CEmailAccounts *account, IpsServices::TIpsSetAccountTypes);
+    virtual ~NmIpsSettingsManagerBase();
     virtual bool readSetting(IpsServices::SettingItem settingItem, QVariant &settingValue);
     virtual bool writeSetting(IpsServices::SettingItem settingItem, const QVariant &settingValue);
     virtual int deleteMailbox();
-    NmId& mailboxId();
-
+    IpsServices::TIpsSetAccountTypes accountType() const;
+    NmId mailboxId() const;
+    virtual int determineDefaultIncomingPort() = 0;
+    int determineDefaultOutgoingPort();
+    NmIpsExtendedSettingsManager &extendedSettingsManager() const;
+    
 private:
+
     bool saveSettings();
     
-protected:
+protected: // data.
+
     CEmailAccounts *mAccount;   // Owned.
     CImSmtpSettings *mSmtpSettings; // Owned.
-
     NmIpsExtendedSettingsManager *mExtendedSettingsManager; // Owned.
-
     TSmtpAccount mSmtpAccount;
+    IpsServices::TIpsSetAccountTypes mAccountType;
     NmId mMailboxId;
 };
 

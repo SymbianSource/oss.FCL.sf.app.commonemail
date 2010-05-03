@@ -33,9 +33,9 @@ NmFwaCheckOutboxOperation::~NmFwaCheckOutboxOperation()
     doCancelOperation();
 }
 
-void NmFwaCheckOutboxOperation::runAsyncOperation()
+void NmFwaCheckOutboxOperation::doRunAsyncOperation()
 {
-    TRAPD(err, runAsyncOperationL());
+    TRAPD(err, doRunAsyncOperationL());
     
     if (err) {
         completeOperation(NmGeneralError);
@@ -53,7 +53,7 @@ bool NmFwaCheckOutboxOperation::getMessageId(NmId &messageId) const
     return mFound;
 }
 
-void NmFwaCheckOutboxOperation::runAsyncOperationL()
+void NmFwaCheckOutboxOperation::doRunAsyncOperationL()
 {
     int err = NmNotFoundError;
 

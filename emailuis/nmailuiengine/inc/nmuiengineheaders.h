@@ -25,13 +25,16 @@
 #include <QApplication>
 #include <QLocale>
 #include <QTimer>
-
+#ifdef Q_OS_SYMBIAN
+#include <xqsharablefile.h>
+#endif
 
 // Orbit
 #include <hbapplication.h>
 #include <hbmainwindow.h>
 #include <hbnamespace.h>
 #include <hbicon.h>
+#include <hbiconanimationmanager.h>
 
 
 // nmailuiengine

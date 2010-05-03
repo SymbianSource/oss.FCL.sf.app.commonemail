@@ -48,9 +48,6 @@ CIpsPlgSmtpService::~CIpsPlgSmtpService()
     {
     FUNC_LOG;
     delete iMsgMapper;
-// <qmail>
-    iOperations.ResetAndDestroy();
-// </qmail>
     }    
 
 // ---------------------------------------------------------------------------
@@ -93,46 +90,6 @@ void CIpsPlgSmtpService::ConstructL()
     FUNC_LOG;
     iMsgMapper = CIpsPlgMsgMapper::NewL( iSession, iPlugin );
     }
-
-// <qmail>
-// ----------------------------------------------------------------------------
-// CIpsPlgSmtpService::OpCompleted
-// ----------------------------------------------------------------------------
-void CIpsPlgSmtpService::OpCompleted(
-    CIpsPlgSingleOpWatcher& aOpWatcher,
-    TInt /*aCompletionCode*/ )
-    {
-    FUNC_LOG;
-    // Get valid operation count in each, some operations could have been
-    // deleted in array
-    TInt opId = aOpWatcher.Operation().Id();
-	
-	TInt count = iOperations.Count();
-	
-    for ( TInt i = count - 1; i >= 0; i-- )
-        {
-        CMsvOperation& oper = iOperations[i]->Operation();
-
-        if ( oper.Id() == opId )
-            {
-            DeleteAndRemoveOperation( i );
-            }
-        }
-    }
-
-// ---------------------------------------------------------------------------
-// CIpsPlgSmtpService::DeleteAndRemoveOperation
-// ---------------------------------------------------------------------------
-void CIpsPlgSmtpService::DeleteAndRemoveOperation( const TInt aOpArrayIndex )
-    {
-    FUNC_LOG;
-    CIpsPlgSingleOpWatcher* opWatcher = iOperations[aOpArrayIndex];
-
-    iOperations.Remove( aOpArrayIndex );
-    delete opWatcher;
-    opWatcher = NULL;
-    }
-// </qmail>
 
 // ---------------------------------------------------------------------------
 // CIpsPlgSmtpService::CreateDisplayStringLC
@@ -299,40 +256,6 @@ CFSMailMessage* CIpsPlgSmtpService::CreateNewSmtpMessageL(
             msgId, KErrNotFound, aMailBoxId.Id() );
     }
 
-// <qmail>
-// ---------------------------------------------------------------------------
-// CIpsPlgSmtpService::CreateNewSmtpMessageL
-// ---------------------------------------------------------------------------
-//
-void CIpsPlgSmtpService::CreateNewSmtpMessageL(
-    const TFSMailMsgId& aMailBoxId,
-    MFSMailRequestObserver& aOperationObserver,
-    const TInt aRequestId )
-    {
-    TMsvPartList partList( KMsvMessagePartBody );
-    
-    CIpsPlgSingleOpWatcher* watcher = CIpsPlgSingleOpWatcher::NewLC(*this);
-    
-    TMsvEntry mboxEntry;
-    TMsvId service;
-    User::LeaveIfError(
-	    iSession.GetEntry( aMailBoxId.Id(), service, mboxEntry ) );
-
-    CIpsPlgCreateMessageOperation* op = CIpsPlgCreateMessageOperation::NewL( this, 
-        iSession,
-        watcher->iStatus,
-        mboxEntry.iRelatedId, 
-        partList, 
-        aMailBoxId.Id(), 
-        aOperationObserver, 
-        aRequestId );
-    watcher->SetOperation( op );
-
-    iOperations.AppendL( watcher ); 
-    CleanupStack::Pop( watcher );
-    }
-// </qmail>
-
 // ---------------------------------------------------------------------------
 // CIpsPlgSmtpService::CreateForwardSmtpMessageL
 // ---------------------------------------------------------------------------
@@ -381,56 +304,6 @@ CFSMailMessage* CIpsPlgSmtpService::CreateForwardSmtpMessageL(
     
     return CreateFSMessageAndSetFlagsL( msgId, orgMsg.Id(), aMailBoxId.Id() );
     }
-
-// <qmail>
-// ---------------------------------------------------------------------------
-// CIpsPlgSmtpService::CreateNewSmtpMessageL
-// ---------------------------------------------------------------------------
-//
-void CIpsPlgSmtpService::CreateForwardSmtpMessageL(
-    const TFSMailMsgId& aMailBoxId,
-    const TFSMailMsgId& aOriginalMessageId,
-    MFSMailRequestObserver& aOperationObserver,
-    const TInt aRequestId )
-    {
-    FUNC_LOG;
-    // 1. part of function checs that body text and all
-    // attachments are fetched
-    TMsvEntry orgMsg;
-    TMsvId service;
-    User::LeaveIfError( iSession.GetEntry( 
-            aOriginalMessageId.Id(), service, orgMsg ) );
-    
-    if ( orgMsg.Id() ==  KMsvNullIndexEntryIdValue )
-        {
-        User::Leave(KErrNotFound);
-        }
-    
-    if ( ( orgMsg.Parent() == KMsvSentEntryIdValue ) && 
-         ( orgMsg.iMtm == KSenduiMtmSmtpUid ) )
-        {
-        ChangeServiceIdL( orgMsg );
-        }
-    
-    TMsvPartList partList( KMsvMessagePartBody | KMsvMessagePartAttachments );
-    
-    CIpsPlgSingleOpWatcher* watcher = CIpsPlgSingleOpWatcher::NewLC(*this);
-    
-    CIpsPlgCreateForwardMessageOperation* op = CIpsPlgCreateForwardMessageOperation::NewL( 
-        this, 
-        iSession,
-        watcher->iStatus,
-        partList, 
-        aMailBoxId.Id(), 
-        orgMsg.Id(), 
-        aOperationObserver, 
-        aRequestId );
-    watcher->SetOperation( op );
-
-    iOperations.AppendL( watcher ); 
-    CleanupStack::Pop( watcher );
-    }
-// </qmail>
 
 // ---------------------------------------------------------------------------
 // CIpsPlgSmtpService::CreateReplySmtpMessageL
@@ -537,62 +410,6 @@ CFSMailMessage* CIpsPlgSmtpService::CreateReplySmtpMessageL(
     CleanupStack::Pop( fsMsg ); // fsMsg is given to client
     return fsMsg;
     }
-
-// <qmail>
-// ---------------------------------------------------------------------------
-// CIpsPlgSmtpService::CreateReplySmtpMessageL
-// ---------------------------------------------------------------------------
-//
-void CIpsPlgSmtpService::CreateReplySmtpMessageL( 
-    const TFSMailMsgId& aMailBoxId,
-    const TFSMailMsgId& aOriginalMessageId,
-    TBool aReplyToAll,
-    MFSMailRequestObserver& aOperationObserver,
-    const TInt aRequestId )
-    {
-    FUNC_LOG;
-    // find orginal message header and check that body is fetched
-    TMsvEntry orgMsg;
-    TMsvId service;
-    User::LeaveIfError( 
-        iSession.GetEntry( aOriginalMessageId.Id(), service, orgMsg ) );
-    
-    if ( orgMsg.Id() ==  KMsvNullIndexEntryIdValue )
-        {
-        User::Leave(KErrNotFound);
-        }
-    
-    if ( ( orgMsg.Parent() == KMsvSentEntryIdValue ) && 
-         ( orgMsg.iMtm == KSenduiMtmSmtpUid ) )
-        {
-        ChangeServiceIdL( orgMsg );
-        }
-    
-    // partList flags control e.g. what kind of recipient set is created
-    TMsvPartList partList = KMsvMessagePartBody | KMsvMessagePartDescription
-    | KMsvMessagePartOriginator;        
-    if( aReplyToAll )
-        {
-        partList |= KMsvMessagePartRecipient;
-        }
-    
-    CIpsPlgSingleOpWatcher* watcher = CIpsPlgSingleOpWatcher::NewLC(*this);
-    
-    CIpsPlgCreateReplyMessageOperation* op = CIpsPlgCreateReplyMessageOperation::NewL( 
-        this, 
-        iSession,
-        watcher->iStatus,
-        partList, 
-        aMailBoxId.Id(), 
-        orgMsg.Id(), 
-        aOperationObserver, 
-        aRequestId );
-    watcher->SetOperation( op );
-
-    iOperations.AppendL( watcher ); 
-    CleanupStack::Pop( watcher );
-    }
-// </qmail>
 
 // ---------------------------------------------------------------------------
 // CIpsPlgSmtpService::ChangeServiceIdL

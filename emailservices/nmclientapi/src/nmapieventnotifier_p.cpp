@@ -15,6 +15,7 @@
  *
  */
 
+#include "nmapiengine.h"
 #include "nmapieventnotifier_p.h"
 
 namespace EmailClientApi

@@ -23,6 +23,9 @@ static const int MaxRows = 10000;
 static const double LabelFieldWidth = 10 * Un + Un;
 static const double ButtonWidth = 9.5 * Un;
 static const double FieldHeight = 5 * Un;
+static const char *ContactsServiceName = "com.nokia.services.phonebookservices";
+static const char *ContactsInterfaceName = "Fetch";
+static const char *ContactsOperationName = "fetch(QString,QString,QString)";
 
 /*!
    Constructor
@@ -37,9 +40,6 @@ NmRecipientField::NmRecipientField(
     mRecipientsEditor(edit),
     mLaunchContactsPickerButton(button),
     mOwned(false)
-#ifdef Q_OS_SYMBIAN
-    ,mLaunchContactsPickerRequest(NULL)
-#endif
 {
     mLaunchContactsPickerButton->setIcon(NmIcons::getIcon(NmIcons::NmIconContacts));
     createConnections();
@@ -56,9 +56,6 @@ NmRecipientField::NmRecipientField(const QString &labelString, QGraphicsItem *pa
     mRecipientsEditor(NULL),
     mLaunchContactsPickerButton(NULL),
     mOwned(true)
-#ifdef Q_OS_SYMBIAN
-    ,mLaunchContactsPickerRequest(NULL)
-#endif
 {
     mLayoutHorizontal = new QGraphicsLinearLayout(Qt::Horizontal, this);
 
@@ -138,13 +135,6 @@ NmRecipientField::~NmRecipientField()
             mLabel = 0;
         }
     }
-
-#ifdef Q_OS_SYMBIAN
-    if (mLaunchContactsPickerRequest) {
-        delete mLaunchContactsPickerRequest;
-        mLaunchContactsPickerRequest = 0;
-    }
-#endif
 }
 
 /*!
@@ -191,23 +181,30 @@ void NmRecipientField::setText(const QString &newText)
 */
 void NmRecipientField::launchContactsPicker()
 {
-    if (mLaunchContactsPickerRequest) {
-        delete mLaunchContactsPickerRequest;
-        mLaunchContactsPickerRequest = 0;
+    XQApplicationManager mAppmgr;
+    XQAiwRequest *launchContactsPickerRequest;
+    
+    bool isEmbeded = true;
+    launchContactsPickerRequest = mAppmgr.create(ContactsServiceName, ContactsInterfaceName, 
+                                                 ContactsOperationName, isEmbeded);
+    
+    if (launchContactsPickerRequest) {
+        connect(launchContactsPickerRequest, SIGNAL(requestOk(QVariant)),
+                mRecipientsEditor, SLOT(insertSelectedContacts(QVariant)));
+    }
+    else {
+        // Failed creating request 
+        NMLOG("XQApplicationManager: failed creating fecth contactspicker request.");
+	    return;
     }
 
-    mLaunchContactsPickerRequest = new XQServiceRequest
-	                                   ("com.nokia.services.phonebookservices.Fetch",
-                                        "fetch(QString,QString,QString)", false);
-    connect(mLaunchContactsPickerRequest, SIGNAL(requestCompleted(QVariant)),
-            mRecipientsEditor, SLOT(insertSelectedContacts(QVariant)));
-
-    // "Contacts" will be replaced by a hbTrId when it is ready
-    *mLaunchContactsPickerRequest << tr("Contacts");
-    *mLaunchContactsPickerRequest << KCntActionAll;
-    *mLaunchContactsPickerRequest << KCntActionAll;
-
-    QVariant returnValue;
-    mLaunchContactsPickerRequest->send(returnValue);
+    // Send request
+    if (!launchContactsPickerRequest->send()) {
+       //Failed sending request 
+       NMLOG("XQApplicationManager: failed sending request.");
+    }
+        
+    delete launchContactsPickerRequest;
+    launchContactsPickerRequest = 0;
 }
 #endif

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2006 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2006 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -54,7 +54,7 @@ class MDesCArray;
  *  API allows Symbian leaves from plugins and will trap them, error codes are
  *  expected to be symbian error codes.
  *  @since ...
- */ 
+ */
 class MFSMailPlugin
   	{
 public: // Data
@@ -68,7 +68,7 @@ public: // Methods
      * @return plugin capabilities data structure
      */
   	 virtual const TFSMailPluginCapabilities ReadPluginCapabilitiesL() = 0;
-  	      	
+
 	// MAILBOX HANDLING
     /**
      * lists existing mailboxes implemented by given plugin
@@ -88,12 +88,12 @@ public: // Methods
      *               - mailbox capabilities
      *
      * @param aMailBoxId defines mailbox id
-     * @return mailBox object ( CFSMailBox ) to be owned by user 
+     * @return mailBox object ( CFSMailBox ) to be owned by user
      */
 	 virtual CFSMailBox* GetMailBoxByUidL( const TFSMailMsgId& aMailBoxId) = 0;
-      	  		
+
     /**
-     * removes mailbox 
+     * removes mailbox
      *
      * @param aMailBoxId defines id of the mailbox to be removed
      */
@@ -117,15 +117,15 @@ public: // Methods
      * @param aSourceFolderId id of the folder where messages are located
      * @param aDestinationFolderId destination folder id
      *
-     */    
+     */
      virtual void MoveMessagesL( 	const TFSMailMsgId& aMailBoxId,
-     							 	const RArray<TFSMailMsgId>& aMessageIds, 
+     							 	const RArray<TFSMailMsgId>& aMessageIds,
                                 	const TFSMailMsgId& aSourceFolderId,
-                                	const TFSMailMsgId& aDestinationFolderId ) = 0;     
+                                	const TFSMailMsgId& aDestinationFolderId ) = 0;
     /**
      * Copies a messages from one folder to another.
      * This function copies a messages to the given folder,
-     * including the properties, content, and all attachments. 
+     * including the properties, content, and all attachments.
      * (note Only works if the store is in an authenticated state,
      *  otherwise this function leaves with KErrNotReady)
      *
@@ -134,7 +134,7 @@ public: // Methods
      * @param aNewMessages ids of the copied messages.
      * @param aSourceFolderId id of the folder where messages are located
      * @param aDestinationFolderId destination folder id
-     */    
+     */
      virtual void CopyMessagesL( const TFSMailMsgId& aMailBoxId,
      							 const RArray<TFSMailMsgId>& aMessageIds,
      							 RArray<TFSMailMsgId>& aNewMessages,
@@ -150,7 +150,7 @@ public: // Methods
      *
      *  The function will leave with KErrNotFound if a mailbox with
      *  given id is not found.
-     *        
+     *
      * @param aMailBoxId defines mailbox id
      * @return Array of descriptors containing MRUs. Ownership
      *         is transferred. Empty if no entries are found.
@@ -169,38 +169,38 @@ public: // Methods
      *
      *  The function will leave with KErrNotFound if a mailbox with
      *  given id is not found.
-     *        
+     *
      * @param aMailBoxId defines mailbox id
      * @param aNewMruList Array of descriptors containing MRUs. Empty if no entries are found.
-     */    
+     */
      virtual void SetMrusL( const TFSMailMsgId& aMailBoxId,
      						MDesCArray* aNewMruList ) = 0;
 
 	// MAILBOX SYNC
     /**
      * DEPRECATED
-     * 
+     *
 	 */
      virtual void GoOnlineL( ) = 0;
 
     /**
      * DEPRECATED
-     * 
+     *
 	 */
      virtual void GoOfflineL( ) = 0;
 
     /**
      * DEPRECATED
-     * 
+     *
 	 */
      virtual  TFSProgress GetLastSyncStatusL( ) = 0;
 
     /**
      * DEPRECATED
      *
-	 */	 
+	 */
      virtual TInt RefreshNowL( ) = 0;
-     
+
     /**
      * Enables synchronization of identified mailbox. This means
      * that the plugin can connect toserver to do synchronization
@@ -220,7 +220,7 @@ public: // Methods
      * in offline state like network error or scheduling.
      *
      * @param aMailBoxId defines mailbox
-     * 
+     *
 	 */
      virtual void GoOnlineL( const TFSMailMsgId& aMailBoxId ) = 0;
 
@@ -233,7 +233,7 @@ public: // Methods
      * mailboxes also.
      *
      * @param aMailBoxId defines mailbox
-     * 
+     *
 	 */
      virtual void GoOfflineL( const TFSMailMsgId& aMailBoxId ) = 0;
 
@@ -242,7 +242,7 @@ public: // Methods
      *
      * @param aMailBoxId defines mailbox
      * @return Last sync operation status
-     * 
+     *
 	 */
      virtual const TFSProgress GetLastSyncStatusL( const TFSMailMsgId& aMailBoxId ) = 0;
 
@@ -254,10 +254,10 @@ public: // Methods
      *
      * All collections (mail etc.) supported by the plugin and
      * enabled by user settings are synchronized.
-     *     
+     *
      * This is an asynchronous operation and the request id
      * is returned for cancelling purpose.
-     * 
+     *
      * Observer is given as a parameter to enable callbacks
      * related to this operation. Alternatively user can use
      * empty implementation of the observer function and rely
@@ -273,7 +273,7 @@ public: // Methods
      virtual void RefreshNowL(	const TFSMailMsgId& aMailBoxId,
          						MFSMailRequestObserver& aOperationObserver,
          						TInt aRequestId ) = 0;
-         						
+
 	// FOLDER HANDLING
     /**
      * returns email folder object related to given folder id
@@ -283,7 +283,7 @@ public: // Methods
      *				 - folder type ; Inbox, Outbox, Sent, Drafts, Deleted, Other
      *               - message count
      *               - unread message count
-     *               - mailbox id 
+     *               - mailbox id
 	 *				 - parent folder
      * @param aMailBoxId defines mailbox id
      * @param aFolderId defines folder id
@@ -294,7 +294,7 @@ public: // Methods
 
     /**
      * creates new folder
-     * 
+     *
      * @param aMailBoxId defines mailbox where folder is created
      * @param aFolderId defines id of the parent folder
      * @param aFolderName defines name of the new folder
@@ -318,13 +318,13 @@ public: // Methods
 
 	/**
 	 * List subfolders of given folder. Only direct subfolders of given folder are returned.
-	 * Folder data : 
+	 * Folder data :
 	 * - folder id
 	 * - folder name
 	 * - folder type ; Inbox, Outbox, Sent, Drafts, Deleted, Other
 	 * - message count
 	 * - unread message count
-	 * - mailbox id 
+	 * - mailbox id
 	 * - parent folder
 	 * - subfolder count
 	 *
@@ -334,17 +334,17 @@ public: // Methods
 	 */
 	virtual void ListFoldersL(	const TFSMailMsgId& aMailBoxId,
 	    						const TFSMailMsgId& aParentFolderId,
-	    						RPointerArray<CFSMailFolder>& aFolderList) = 0; 
+	    						RPointerArray<CFSMailFolder>& aFolderList) = 0;
 
 	/**
-	 * List all subfolders of given mailbox. 
-	 * folder data : 
+	 * List all subfolders of given mailbox.
+	 * folder data :
 	 * - folder id
 	 * - folder name
 	 * - folder type ; Inbox, Outbox, Sent, Drafts, Deleted, Other
 	 * - message count
 	 * - unread message count
-	 * - mailbox id 
+	 * - mailbox id
 	 * - parent folder
 	 * - subfolder count
 	 *
@@ -353,7 +353,7 @@ public: // Methods
 	 * Caller must determine tree structure by examining parent id of each returned folder.
 	 */
 	 virtual void ListFoldersL(	const TFSMailMsgId& aMailBoxId,
-	    						RPointerArray<CFSMailFolder>& aFolderList) = 0; 
+	    						RPointerArray<CFSMailFolder>& aFolderList) = 0;
     /**
      * return folder id of given folder type
      *
@@ -381,7 +381,7 @@ public: // Methods
         									 const TFSMailMsgId& aFolderId,
         									 const TFSMailDetails aDetails,
         									 const RArray<TFSMailSortCriteria>& aSorting ) = 0;
-	
+
     /**
      * returns email message object related to given message id
      *
@@ -421,7 +421,7 @@ public: // Methods
 	 virtual void DeleteMessagesByUidL( const TFSMailMsgId& aMailBoxId,
 	 									const TFSMailMsgId& aFolderId,
 	 									const RArray<TFSMailMsgId>& aMessages ) = 0;
-	 
+
     /**
      * creates new message template into drafts folder
      *
@@ -429,7 +429,7 @@ public: // Methods
      * @return message object to be modified by user (ownership is transferred to user)
      */
 	 virtual CFSMailMessage* CreateMessageToSendL( const TFSMailMsgId& aMailBoxId ) = 0;
-	 
+
     /**
      * creates new message template to drafts folder to be forwarded
      *
@@ -439,7 +439,7 @@ public: // Methods
      */
 	 virtual CFSMailMessage* CreateForwardMessageL( const TFSMailMsgId& aMailBoxId,
 	 												const TFSMailMsgId& aOriginalMessageId ) = 0;
-	 
+
     /**
      * creates new reply message template to drafts folder
      * @param aMailBoxId defines mailbox where message is created
@@ -450,7 +450,7 @@ public: // Methods
 	 virtual CFSMailMessage* CreateReplyMessageL( const TFSMailMsgId& aMailBoxId,
 	 											  const TFSMailMsgId& aOriginalMessageId,
 	 											  const TBool aReplyToAll ) = 0;
-	 
+
     /**
      * stores message data to message store after modifications (commit)
      *
@@ -486,7 +486,7 @@ public: // Methods
      							 	TFSMailDetails aDetails,
      							 	MFSMailRequestObserver& aObserver,
      							 	TInt aRequestId) = 0;
-     							 	
+
     /**
      * DEPRECATED
      * Fetches message part contents from server asynchronously.
@@ -514,7 +514,7 @@ public: // Methods
         								MFSMailRequestObserver& aOperationObserver,
 										const TInt aRequestId,
         								const TUint aPreferredByteCount) = 0;
-        								
+
 
     /* synchronous message accessor
 	 *
@@ -538,7 +538,7 @@ public: // Methods
      							const RArray<TFSMailMsgId>& aMessageIds,
      							RPointerArray<CFSMailMessage>& aMessageList,
      							const TFSMailDetails aDetails ) = 0;
-     							
+
     /**
      * Returns child part objects for given message part. Ownership of objects
      * is transferred to caller.
@@ -558,14 +558,14 @@ public: // Methods
     /**
      * Creates and adds a new child part to this part.
      * If aInsertBefore is NULL id then new part is added as last.
-     * 
+     *
      * @param aMailBoxId defines mailbox where message is located
      * @param aParentFolderId defines parent folder where message is located
      * @param aMessageId gives the id of the message that message part belongs to
      * @param aParentPartId parent of the new part
      * @param aInsertBefore id of existing part that new part should precede.
      * If NULL id then new part is added as last.
-     */        
+     */
      virtual CFSMailMessagePart* NewChildPartL( const TFSMailMsgId& aMailBoxId,
 				     							const TFSMailMsgId& aParentFolderId,
 												const TFSMailMsgId& aMessageId,
@@ -575,7 +575,7 @@ public: // Methods
 
     /**
      * Copies given message as new child part to this part.
-     * 
+     *
      * @param aMailBoxId defines mailbox where message is located
      * @param aParentFolderId defines parent folder where message is located
      * @param aMessageId gives the id of the message that message part belongs to
@@ -583,7 +583,7 @@ public: // Methods
      * @param aInsertBefore id of existing part that new part should precede.
      * If NULL id then new part is added as last.
      * @param aMessage specifies the message that is copied
-     */        
+     */
      virtual CFSMailMessagePart* CopyMessageAsChildPartL(const TFSMailMsgId& aMailBoxId,
 						     							 const TFSMailMsgId& aParentFolderId,
 														 const TFSMailMsgId& aMessageId,
@@ -593,13 +593,13 @@ public: // Methods
 
     /**
      * Removes child part (and its children, if any) from this part
-     * 
+     *
      * @param aMailBoxId defines mailbox where message is located
      * @param aParentFolderId defines parent folder where message is located
      * @param aMessageId gives the id of the message that message part belongs to
      * @param aParentPartId parent of the part
      * @param aPartId part to remove
-     */        
+     */
      virtual void RemoveChildPartL(	const TFSMailMsgId& aMailBoxId,
 	     							const TFSMailMsgId& aParentFolderId,
 								 	const TFSMailMsgId& aMessageId,
@@ -641,7 +641,7 @@ public: // Methods
 
     /**
      * copies message part to given location
-     * 
+     *
      *
      * @param aMailBoxId defines mailbox where message is located
      * @param aParentFolderId defines parent folder where message is located
@@ -658,14 +658,14 @@ public: // Methods
 
     /**
      * gets message part content to given buffer
-     * 
+     *
      *
      * @param aMailBoxId defines mailbox where message is located
      * @param aParentFolderId defines parent folder where message is located
      * @param aMessageId gives the id of the message that message part belongs to
      * @param aMessagePartId gives the id of the message part
-     * @param aBuffer 
-     * @param aStartOffset 
+     * @param aBuffer
+     * @param aStartOffset
      */
 	 virtual void GetContentToBufferL(	const TFSMailMsgId& aMailBoxId,
 	 	     							const TFSMailMsgId& aParentFolderId,
@@ -673,10 +673,10 @@ public: // Methods
 	 							 		const TFSMailMsgId& aMessagePartId,
 	 							 		TDes& aBuffer,
 	 							 		const TUint aStartOffset) = 0;
-	 							 
+
     /**
      * stores message part content
-     * 
+     *
      *
      * @param aBuffer message part content
      * @param aMailBoxId defines mailbox where message is located
@@ -688,8 +688,8 @@ public: // Methods
 	 						  	const TFSMailMsgId& aMailBoxId,
      							const TFSMailMsgId& aParentFolderId,
 								const TFSMailMsgId& aMessageId,
-	 							const TFSMailMsgId& aMessagePartId) = 0; 
-	 
+	 							const TFSMailMsgId& aMessagePartId) = 0;
+
     /**
      * Removes fetched contents of these parts.
      *
@@ -697,15 +697,15 @@ public: // Methods
      * @param aParentFolderId defines parent folder where message is located
      * @param aMessageId gives the id of the message that message part belongs to
      * @param aPartIds Array of message part ids.
-     */  
+     */
      virtual void RemovePartContentL( 	const TFSMailMsgId& aMailBoxId,
      	     							const TFSMailMsgId& aParentFolderId,
 									  	const TFSMailMsgId& aMessageId,
      								  	const RArray<TFSMailMsgId>& aPartIds) = 0;
-     							
+
     /**
      * Sets contents from given file. Possible old contents are replaced.
-     * 
+     *
      *
      * @param aMailBoxId defines mailbox where message is located
      * @param aParentFolderId defines parent folder where message is located
@@ -732,18 +732,18 @@ public: // Methods
          							 CFSMailMessagePart& aMessagePart) = 0;
 
     /**
-     * unregisters plugin request observer to cancel pending events  
+     * unregisters plugin request observer to cancel pending events
      *
      * @param aRequestId request id of the pending asynchronous request
      */
 	 virtual void UnregisterRequestObserver(TInt aRequestId) = 0;
 
-    // MESSAGE SENDING 
+    // MESSAGE SENDING
     /**
      * DEPRECATED
      *
      * starts message sending done by plugin
-     * cancellation is deleting the message from outbox 
+     * cancellation is deleting the message from outbox
      *
      * @param aMessageId defines message id to be sent
      */
@@ -751,7 +751,7 @@ public: // Methods
 
     /**
      * starts message sending done by plugin
-     * cancellation is deleting the message from outbox 
+     * cancellation is deleting the message from outbox
      *
      * @param aMessage message to be sent
      */
@@ -770,10 +770,10 @@ public: // Methods
      * @param aRequestId identifies request if parallel requests exists
 	 */
      virtual void CancelL( const TInt aRequestId ) = 0;
-     
+
 	// Search API
  	// OPEN: IDS plugin nippets?
-	
+
     /**
      * Asyncronous call for starting search for given string. Only one search can be
      * performed at a time.
@@ -782,12 +782,12 @@ public: // Methods
      * This function will search for message's containing the given search string.
      * The search will be performed on the all message fields: To, Cc, Bcc, subject, body.
      * The search client will be notified of each found message,
-     * and upon completion of the search.  Only one search can be performed at a time.  
-     *  
+     * and upon completion of the search.  Only one search can be performed at a time.
+     *
      * To change the sort order in the search result, use the same search string in the
      * but change the aSortCriteria parameter.  The store "caches" the search
      * results generated by the same search string.
-     *    
+     *
      * The function will leave with KErrInUse if a search is already in progress.
 	 *
      * /note Only works if the store is in an authenticated state,
@@ -799,32 +799,32 @@ public: // Methods
 	 * @param aSortCriteria sort criteria for the results
      * @param aSearchObserver client observer that will be notified about search status.
      *
-     */    
+     */
 	virtual void SearchL( const TFSMailMsgId& aMailBoxId,
 						  const RArray<TFSMailMsgId>& aFolderIds,
 						  const RPointerArray<TDesC>& aSearchStrings,
 						  const TFSMailSortCriteria& aSortCriteria,
 					      MFSMailBoxSearchObserver& aSearchObserver ) = 0;
-	
+
 
     /**
      * Cancels current search. Does nothing if there is not any search.
      * The search client will not be called back after this function is called.
 	 *
-     * \note CancelSearch() method does NOT clear the search result cached in the store. 
-     *       A different sort order can be used for the same search string, and the 
+     * \note CancelSearch() method does NOT clear the search result cached in the store.
+     *       A different sort order can be used for the same search string, and the
      *       cache will be utilized.  Only by using a different search string can the
      *       cache be cleaned.
 	 *
      * @paran aMailBoxId mailbox where the search should be cancelled
 	 *
-     */    
+     */
 	virtual void CancelSearch( const TFSMailMsgId& aMailBoxId ) = 0;
 
     /** Inform the store to clean up its cache for search results.
-     *        
+     *
      *  This method cancels the the ongoing search (if exists), and then clean ups store's cache.
-     * 
+     *
      *  This function should be called when search results are no longer in display.
 	 *
      * @paran aMailBoxId mailbox where the search cache should be cleared
@@ -871,7 +871,7 @@ public: // Methods
      *
      * @param aMailboxId id of target mailbox
      */
-    virtual const TSSMailSyncState CurrentSyncState(const TFSMailMsgId& aMailboxId) = 0;
+    virtual TSSMailSyncState CurrentSyncState(const TFSMailMsgId& aMailboxId) = 0;
 
     /**
      * Sets the mailbox name for this mailbox.
@@ -880,7 +880,7 @@ public: // Methods
      * @param aMailboxName new name for the mailbox
      */
     virtual void SetMailboxName(const TFSMailMsgId& aMailboxId, const TDesC& aMailboxName );
-    
+
   	};
 
 

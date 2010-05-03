@@ -30,7 +30,7 @@
 //Freestyle.
 #include "CFSMailCommon.h"
 #include "CFSMailMessage.h"
-#include "CFSMailFolder.h"
+#include "cmrcalendarinfo.h" 
 //</cmail>
 //Base plugin.
 #include "BasePlugin.h"
@@ -38,10 +38,16 @@
 #include "baseplugincommonutils.h"
 #include "MailIterator.h"
 #include "baseplugindelayedopsprivate.h"
+
+//<qmail>
+#include "CFSMailFolder.h"
 #include "baseplugindef.h"
+//</qmail>
+
 // Other
 #include <e32base.h>
 #include <utf.h>
+#include <calsession.h>
 
 //<qmail>
 //<cmail>
@@ -112,7 +118,9 @@ CBasePlugin::~CBasePlugin()
     iMailboxes.ResetAndDestroy();
     iMailboxes.Close();
 
+//<qmail>
     if ( iObservers.Count() > 0 && iMsgStore )
+//</qmail>
         {
         TRAP_IGNORE( iMsgStore->RemoveObserverL( this ) );
         }
@@ -260,6 +268,37 @@ CBasePlugin::~CBasePlugin()
 
     MMRInfoProcessor* infoProcessor = CBaseMrInfoProcessor::NewL( *this );
     result->SetMRInfoProcessorL( infoProcessor );
+    
+    //JOJA-83VJ4L Plugins need to set the correct Calendar Database ID for MRUI to work
+    //get the calendar file name from the derived class
+    const TDesC& calFileName = CalendarFileName();
+    if ( calFileName != KNullDesC )
+        {
+        //the derived class does use its own calendar file, check if that file exists
+        //the file may not exist because cal sync was disabled, or the file was deleted from the calendar UI
+        CCalSession* calSession = CCalSession::NewL();
+        CleanupStack::PushL( calSession );
+        
+        TRAPD( error, calSession->OpenL( calFileName ) );
+        if ( error == KErrNone )
+            {
+            //calendar file exists, get its file id, and set it to cMail Celendar Info via the extention
+            TCalFileId fileId = KNullFileId; 
+            calSession->FileIdL( fileId );
+            
+            //get the extention api for the MR info, set the cal db id, and release the extention
+            CEmailExtension* extension = NULL;
+            TRAP( error, extension = result->ExtensionL( KMailboxExtMrCalInfo ) );
+            if ( error == KErrNone )
+                {
+                CMRCalendarInfo* calInfo = reinterpret_cast<CMRCalendarInfo*>( extension );
+                calInfo->SetCalendarDatabaseIdL( fileId ); // cannot actually leave
+                result->ReleaseExtension( calInfo );
+                }
+            }
+        
+        CleanupStack::PopAndDestroy( calSession );
+        }
     
     CleanupStack::Pop( result );
     
@@ -644,85 +683,97 @@ CBasePlugin::~CBasePlugin()
     CleanupStack::PopAndDestroy( props );
     CleanupStack::PushL( message );
     
-    
-    //the body part.
+    //create the body part.
     props = CMsgStorePropertyContainer::NewL();
     CleanupStack::PushL( props );
-    props->AddOrUpdatePropertyL( KMsgStorePropertyContentType, KFSMailContentTypeMultipartAlternative );
     
+    props->AddOrUpdatePropertyL(
+        KMsgStorePropertyContentType, KFSMailContentTypeMultipartAlternative );
     CMsgStoreMessagePart* bodyPart = message->AddChildPartL( *props );
+    
     CleanupStack::PopAndDestroy( props );
     CleanupStack::PushL( bodyPart );
     
-    //the text/plain child.
+    //create the plain text part.
     props = CMsgStorePropertyContainer::NewL();
     CleanupStack::PushL( props );
-    
-    props->AddPropertyL( KMsgStorePropertyContentType, KFSMailContentTypeTextPlain );
-    
+
+    props->AddPropertyL(
+        KMsgStorePropertyContentType, KFSMailContentTypeTextPlain );
+
     _LIT(KMessageBodyCharset, "UTF-8");
     props->AddPropertyL( KMsgStorePropertyCharset, KMessageBodyCharset );
-    
+
     _LIT(KMessageBodyDisposition, "inline");
-    props->AddPropertyL( KMsgStorePropertyContentDisposition, KMessageBodyDisposition );
- 
-    CMsgStoreMessagePart* textPlain = NULL;
-        
-    // Add signature, if it exists
+    props->AddPropertyL(
+        KMsgStorePropertyContentDisposition, KMessageBodyDisposition );
+
     HBufC* signature = GetSignatureL( aMailBox );
-    
-	if ( NULL != signature )
+    if ( signature )
         {
         CleanupStack::PushL( signature );       
 
-        if ( signature->Length() > 0 )
-    		{
-
-            props->AddPropertyL( KMsgStorePropertySize, static_cast<TUint32>( signature->Length() ) );
-            props->AddPropertyL( KMsgStorePropertyRetrievedSize, static_cast<TUint32>( signature->Length() ) );
-            textPlain = bodyPart->AddChildPartL( *props );
-            CleanupStack::PopAndDestroy( props );
+        props->AddPropertyL(
+            KMsgStorePropertySize, static_cast<TUint32>( signature->Length() ) );
+        props->AddPropertyL(
+            KMsgStorePropertyRetrievedSize,
+            static_cast<TUint32>( signature->Length() ) );
+        }
     
-            TPtrC8 ptr8(
-                    reinterpret_cast<const TUint8*>( signature->Ptr() ),
-                    signature->Size() );
-           
-            CleanupStack::PushL( textPlain );
-            textPlain->ReplaceContentL( ptr8 );
-         
-            }
-        CleanupStack::PopAndDestroy( signature );
+    CMsgStoreMessagePart* textPlain = bodyPart->AddChildPartL( *props );
+    if ( signature )
+        {
+        CleanupStack::Pop( signature );
+        }
+    CleanupStack::PopAndDestroy( props );           
+    if ( signature )
+        {
+        CleanupStack::PushL( signature );
+        }
+    CleanupStack::PushL( textPlain );
+    
+    //add signature, if it exists
+	if ( NULL != signature && signature->Length() )
+        {
+        TPtrC8 ptr8(
+            reinterpret_cast<const TUint8*>( signature->Ptr() ),
+            signature->Size() );
+        
+        textPlain->ReplaceContentL( ptr8 );
 		}
-	else{
-        textPlain =bodyPart->AddChildPartL( *props );
-	    CleanupStack::PopAndDestroy( props );           
-	    CleanupStack::PushL( textPlain );
-	    }
-	
-    CleanupStack::PopAndDestroy( textPlain );
+
+	CleanupStack::PopAndDestroy( textPlain );
+    if ( signature )
+        {
+        CleanupStack::PopAndDestroy( signature );
+        }
     
-    
-    //the text/html child.
+//<qmail> 
+    //create the text/html part.
     props = CMsgStorePropertyContainer::NewL();
     CleanupStack::PushL( props );
     
-    props->AddPropertyL( KMsgStorePropertyContentType, KFSMailContentTypeTextHtml );
-    
+	props->AddPropertyL(
+        KMsgStorePropertyContentType, KFSMailContentTypeTextHtml );
+	
     props->AddPropertyL( KMsgStorePropertyCharset, KMessageBodyCharset );
-    
-    props->AddPropertyL( KMsgStorePropertyContentDisposition, KMessageBodyDisposition );
+
+    props->AddPropertyL(
+        KMsgStorePropertyContentDisposition, KMessageBodyDisposition );
     
     CMsgStoreMessagePart* htmlPlain = bodyPart->AddChildPartL( *props );
     CleanupStack::PopAndDestroy( props );         
     CleanupStack::PushL( htmlPlain );
     htmlPlain->AppendToContentL(KNullDesC8);
     CleanupStack::PopAndDestroy( htmlPlain );
+//</qmail>
     
     //delete body part
     CleanupStack::PopAndDestroy( bodyPart );
-    
+	
+	//done.
     message->CommitL();
-
+    
     TFSMailMsgId folderId( GetPluginId(), message->ParentId() );
     TFSMailMsgId msgId( GetPluginId(), message->Id() );
     CleanupStack::PopAndDestroy( message );
@@ -763,6 +814,7 @@ CBasePlugin::~CBasePlugin()
     return CreateForwardReplyMessageL( aMailBox, aOriginal, EFalse, aHeaderDescriptor, ETrue );
     }
 
+
 /**
  * Relying on the UI for the subject and recipients.
  */
@@ -774,6 +826,7 @@ CBasePlugin::~CBasePlugin()
     {
     return CreateForwardReplyMessageL( aMailBoxId, aOriginalMessageId, aReplyToAll, aHeaderDescriptor, EFalse );
     }
+
 
 /**
  *

@@ -95,7 +95,11 @@ symbian*: {
     -lgdi \
     -legul \
     -lFSFWCommonLib \
-    -lcentralrepository
+    -lcentralrepository \
+    -laknicon \
+    -letel \
+    -letelmm \
+    -ltimezonelocalization
 
 		BLD_INF_RULES.prj_exports += \			
         "../rom/FSEmailFramework.iby             CORE_APP_LAYER_IBY_EXPORT_PATH(FSEmailFramework.iby)"

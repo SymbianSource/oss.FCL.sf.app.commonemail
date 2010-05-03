@@ -67,8 +67,8 @@ NONSHARABLE_CLASS ( CFSMailFolder ) : public CFSMailFolderBase
      * @return email list iterator, ownership is transferred to user
      */
      IMPORT_C MFSMailIterator* ListMessagesL(
-                    const TFSMailDetails aDetails,
-                    const RArray<TFSMailSortCriteria>& aSorting);
+                                const TFSMailDetails aDetails,
+                                const RArray<TFSMailSortCriteria>& aSorting);
     /**
      * removes given message from folder
      *
@@ -91,9 +91,9 @@ NONSHARABLE_CLASS ( CFSMailFolder ) : public CFSMailFolderBase
      * @param aObserver request observer for conveying fetching progress
      *  events to user
      */
-   IMPORT_C TInt FetchMessagesL(  const RArray<TFSMailMsgId>& aMessageIds,
-                    TFSMailDetails aDetails,
-                    MFSMailRequestObserver& aObserver );
+     IMPORT_C TInt FetchMessagesL(  const RArray<TFSMailMsgId>& aMessageIds,
+                                    TFSMailDetails aDetails,
+                                    MFSMailRequestObserver& aObserver );
     /**
      * method to check if this folder allows copying from given folder type
      *
@@ -112,7 +112,19 @@ NONSHARABLE_CLASS ( CFSMailFolder ) : public CFSMailFolderBase
       * removes downloaded attachments from local/terminal memory 
       */
      IMPORT_C void RemoveDownLoadedAttachmentsL();
+     
+public: // from  CExtendableEmail
 
+     /** 
+      * @see CExtendableEmail::ReleaseExtension
+      */                                        
+     IMPORT_C void ReleaseExtension( CEmailExtension* aExtension );
+     
+     /** 
+      * @see CExtendableEmail::ExtensionL
+      */
+     IMPORT_C CEmailExtension* ExtensionL( const TUid& aInterfaceUid );
+     
  protected:
 
     /**
@@ -125,14 +137,14 @@ private:
     /**
      * Two-phased constructor
      */
-  void ConstructL( TFSMailMsgId aFolderId );
+    void ConstructL( TFSMailMsgId aFolderId );
 
 private: // data
 
     /**
      * request handler for plugin requests
      */
-   CFSMailRequestHandler*   iRequestHandler;  
+     CFSMailRequestHandler*     iRequestHandler;    
 
 };
 

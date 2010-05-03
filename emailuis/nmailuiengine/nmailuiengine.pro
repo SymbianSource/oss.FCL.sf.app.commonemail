@@ -50,13 +50,18 @@ SOURCES += src/nmuiengine.cpp \
     src/nmbaseclientplugin.cpp \
     src/nmaddattachmentoperation.cpp \
     src/nmoperation.cpp
+    
+LIBS += -leuser
+LIBS += -llibc
+    
 symbian*: { 
     TARGET.EPOCALLOWDLLDATA = 1
     TARGET.CAPABILITY = CAP_GENERAL_DLL
     TARGET.UID2 = 0x1000008D
     TARGET.UID3 = 0x20026763
     LIBS += -lnmailbase \
-        -lnmsettingui
+        -lnmsettingui \
+        -lxqserviceutil 
 	
 	defBlock = \      
       "$${LITERAL_HASH}if defined(MARM)" \

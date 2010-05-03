@@ -57,7 +57,7 @@ public:
      *  
      *  \arg envelopes 
      */
-    bool envelopes( QList<EmailClientApi::NmMessageEnvelope> &envelopes );
+    bool getEnvelopes( QList<EmailClientApi::NmMessageEnvelope> &envelopes );
 
     /*!
      * \brief Return info if listing is running

@@ -28,7 +28,7 @@ class MFSMailRequestObserver;
 *
 * Email operation to create a new message asynchronously.
 */
-NONSHARABLE_CLASS ( CIpsPlgCreateMessageOperation ) : public CMsvOperation
+NONSHARABLE_CLASS ( CIpsPlgCreateMessageOperation ) : public CIpsPlgBaseOperation
     {
 public:
     
@@ -41,9 +41,9 @@ public:
         TRequestStatus& aObserverRequestStatus,
         TMsvId aSmtpServiceId, 
         TMsvPartList aPartList,
-        TMsvId aMailBoxId,
+        TFSMailMsgId aMailBoxId,
         MFSMailRequestObserver& aOperationObserver,
-        const TInt aRequestId );
+        TInt aRequestId );
         
     /**
     * Destructor.
@@ -51,9 +51,25 @@ public:
     virtual ~CIpsPlgCreateMessageOperation();
     
     /**
-    *
+    * From CMsvoperation
     */
     virtual const TDesC8& ProgressL();
+
+    /**
+    * From CIpsPlgBaseOperation
+    */
+    virtual const TDesC8& GetErrorProgressL(TInt aError);
+
+    /**
+    * From CIpsPlgBaseOperation
+    */
+    virtual TFSProgress GetFSProgressL() const;
+
+    /**
+     * From CIpsPlgBaseOperation
+     * Returns operation type
+     */
+    TIpsOpType IpsOpType() const;    
 
 protected:
 
@@ -66,9 +82,9 @@ protected:
         TRequestStatus& aObserverRequestStatus,
         TMsvId aSmtpServiceId, 
         TMsvPartList aPartList,
-        TMsvId aMailBoxId,
+        TFSMailMsgId aMailBoxId,
         MFSMailRequestObserver& aOperationObserver,
-        const TInt aRequestId );
+        TInt aRequestId );
     
     /**
     * Constructor.
@@ -103,10 +119,8 @@ protected:
     CMsvOperation* iOperation;   // owned
     TMsvId iSmtpServiceId; 
     TMsvPartList iPartList;
-    TBuf8<1> iBlank;
-    TMsvId iMailBoxId;
     MFSMailRequestObserver& iOperationObserver;  // not owned
-    TInt iRequestId;
+    TFSProgress iFSProgress;
     };
 
 

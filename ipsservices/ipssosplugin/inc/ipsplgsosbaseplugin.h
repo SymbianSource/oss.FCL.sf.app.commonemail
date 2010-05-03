@@ -174,6 +174,13 @@ public: // from CFSMailPlugin
         const TFSMailMsgId& aMailBoxId );
     
 // <qmail>
+    /**
+     * Creates new email message to message store asynchronously
+     *
+     * @param aMailBoxId msv entry id to mailbox which setting are used
+     * @param aOperationObserver Observer for the operation
+     * @param aRequestId Id of the operation
+     */
     virtual void CreateMessageToSendL(
 	    const TFSMailMsgId& aMailBoxId,
         MFSMailRequestObserver& aOperationObserver,
@@ -186,6 +193,14 @@ public: // from CFSMailPlugin
         const TDesC& aHeaderDescriptor );
 
 // <qmail>
+    /**
+     * Creates a forward email message to message store asynchronously
+     *
+     * @param aMailBoxId msv entry id to mailbox which setting are used
+     * @param aOriginalMessageId id of the forwarded message
+     * @param aOperationObserver Observer for the operation
+     * @param aRequestId Id of the operation
+     */
     virtual void CreateForwardMessageL( 
         const TFSMailMsgId& aMailBoxId,
         const TFSMailMsgId& aOriginalMessageId,
@@ -201,6 +216,15 @@ public: // from CFSMailPlugin
         const TDesC& aHeaderDescriptor );
 
 // <qmail>
+    /**
+     * Creates new reply message to message store asynchronously
+     *
+     * @param aMailBoxId msv entry id to mailbox which setting are used
+     * @param aOriginalMessageId id of the replied message
+     * @param aReplyToAll reply to all recipients
+     * @param aOperationObserver Observer for the operation
+     * @param aRequestId Id of the operation
+     */
     virtual void CreateReplyMessageL( 
         const TFSMailMsgId& aMailBoxId, 
         const TFSMailMsgId& aOriginalMessageId,
@@ -296,6 +320,17 @@ public: // from CFSMailPlugin
         const TFSMailMsgId& aMessageId,
         const TFSMailMsgId& aParentPartId,
         const TFSMailMsgId& aPartId);
+    
+    // <qmail>
+    virtual void RemoveChildPartL(
+        const TFSMailMsgId& aMailBoxId,
+        const TFSMailMsgId& aParentFolderId,
+        const TFSMailMsgId& aMessageId,
+        const TFSMailMsgId& aParentPartId,
+        const TFSMailMsgId& aPartId,
+        MFSMailRequestObserver& aOperationObserver,
+        const TInt aRequestId );
+    // </qmail>
         
     virtual CFSMailMessagePart* MessagePartL(  
         const TFSMailMsgId& aMailBoxId, 

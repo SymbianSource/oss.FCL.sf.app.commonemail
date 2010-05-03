@@ -40,9 +40,12 @@
     \param mailboxId Mailbox identifier.
     \param account CEmailAccounts created by the settings manager factory. Takes ownership after
     successful construction.
+    \param accountType AccountType identifier.
 */
-NmIpsSettingsManagerBase::NmIpsSettingsManagerBase(const NmId &mailboxId, CEmailAccounts *account)
-: mMailboxId(mailboxId.id())
+NmIpsSettingsManagerBase::NmIpsSettingsManagerBase(const NmId &mailboxId, CEmailAccounts *account, 
+    IpsServices::TIpsSetAccountTypes accountType)
+: mAccountType(accountType),
+  mMailboxId(mailboxId.id())
 {
     QScopedPointer<NmIpsExtendedSettingsManager> extendedSettings(new NmIpsExtendedSettingsManager(mailboxId));
 
@@ -73,6 +76,7 @@ NmIpsSettingsManagerBase::~NmIpsSettingsManagerBase()
 bool NmIpsSettingsManagerBase::readSetting(IpsServices::SettingItem settingItem, QVariant &settingValue)
 {
     bool found(false);
+    
     switch (settingItem) {
         case IpsServices::EmailAlias:
             settingValue = XQConversions::s60DescToQString(mSmtpSettings->EmailAlias());
@@ -86,6 +90,34 @@ bool NmIpsSettingsManagerBase::readSetting(IpsServices::SettingItem settingItem,
             settingValue = XQConversions::s60DescToQString(mSmtpSettings->ReplyToAddress());
             found = true;
             break;
+        case IpsServices::OutgoingMailServer:
+            settingValue = XQConversions::s60DescToQString(mSmtpSettings->ServerAddress());
+            found = true;
+            break; 
+        case IpsServices::OutgoingPort:
+            settingValue = mSmtpSettings->Port();
+            found = true;
+            break;
+        case IpsServices::OutgoingLoginName:
+            settingValue = XQConversions::s60Desc8ToQString(mSmtpSettings->LoginName());
+            found = true;
+            break; 
+        case IpsServices::OutgoingPassword:
+            settingValue = XQConversions::s60Desc8ToQString(mSmtpSettings->Password());
+            found = true;
+            break; 
+        case IpsServices::SMTPAuthentication:
+            settingValue = mSmtpSettings->SMTPAuth();
+            found = true;
+            break; 
+        case IpsServices::OutgoingSecureSockets:
+        	settingValue = mSmtpSettings->SecureSockets();
+            found = true;
+            break;  
+        case IpsServices::OutgoingSSLWrapper:
+        	settingValue = mSmtpSettings->SSLWrapper();
+            found = true;
+            break;  
         default:
             found = mExtendedSettingsManager->readSetting(settingItem, settingValue);
             break;
@@ -102,7 +134,8 @@ bool NmIpsSettingsManagerBase::readSetting(IpsServices::SettingItem settingItem,
 bool NmIpsSettingsManagerBase::writeSetting(IpsServices::SettingItem settingItem, const QVariant &settingValue)
 {
     HBufC *tmp = 0;
-
+    HBufC8 *tmp8 = 0;
+    
     bool ret(false);
     TInt err(KErrNone);
 
@@ -131,6 +164,46 @@ bool NmIpsSettingsManagerBase::writeSetting(IpsServices::SettingItem settingItem
                 ret = saveSettings();
             }
             break;
+        case IpsServices::OutgoingMailServer:
+            tmp = XQConversions::qStringToS60Desc(settingValue.toString());
+            TRAP(err, mSmtpSettings->SetServerAddressL(*tmp));
+            delete tmp;
+            if (err==KErrNone) {
+                ret = saveSettings();
+            }
+            break;
+        case IpsServices::OutgoingPort:            
+            mSmtpSettings->SetPort(settingValue.toInt());
+            ret = saveSettings();
+            break;
+        case IpsServices::OutgoingLoginName:
+            tmp8 = XQConversions::qStringToS60Desc8(settingValue.toString());
+            TRAP(err, mSmtpSettings->SetLoginNameL(*tmp8));
+            delete tmp8;
+            if (err==KErrNone) {
+                ret = saveSettings();
+            }
+            break;
+        case IpsServices::OutgoingPassword:
+            tmp8 = XQConversions::qStringToS60Desc8(settingValue.toString());
+            TRAP(err, mSmtpSettings->SetPasswordL(*tmp8));
+            delete tmp8;
+            if (err==KErrNone) {
+                ret = saveSettings();
+            }
+            break;
+        case IpsServices::SMTPAuthentication:            
+            mSmtpSettings->SetSMTPAuth((settingValue.toBool()));
+            ret = saveSettings();
+            break;
+        case IpsServices::OutgoingSecureSockets:
+            mSmtpSettings->SetSecureSockets(settingValue.toBool());
+            ret = saveSettings();
+            break;  
+        case IpsServices::OutgoingSSLWrapper:
+            mSmtpSettings->SetSSLWrapper(settingValue.toBool());
+            ret = saveSettings();
+            break;  
         default:
             ret = mExtendedSettingsManager->writeSetting(settingItem, settingValue);
             break;    
@@ -166,7 +239,41 @@ bool NmIpsSettingsManagerBase::saveSettings()
 /*!     
     NmId for the mailbox. 
 */
-NmId& NmIpsSettingsManagerBase::mailboxId()
+NmId NmIpsSettingsManagerBase::mailboxId() const
 {
     return mMailboxId;
 }
+
+/*!     
+    Mailbox account type. 
+*/
+IpsServices::TIpsSetAccountTypes NmIpsSettingsManagerBase::accountType() const
+{
+    return mAccountType;
+}
+
+/*!
+     Determine the default port for the outgoing mail server based on the security settings
+     
+     \return int the port number to use
+ */
+int NmIpsSettingsManagerBase::determineDefaultOutgoingPort()
+{
+    int port = 0;    
+    bool sslTls = mSmtpSettings->SSLWrapper();    
+    if (sslTls) {
+        port = IpsServices::secureSmtpPort;
+    } else {
+        port = IpsServices::standardSmtpPort;
+    }        
+    return port;
+}
+
+/*!
+
+*/
+NmIpsExtendedSettingsManager &NmIpsSettingsManagerBase::extendedSettingsManager() const
+{
+return *mExtendedSettingsManager;
+}
+

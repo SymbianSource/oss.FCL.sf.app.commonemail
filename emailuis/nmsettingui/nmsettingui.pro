@@ -43,7 +43,8 @@ SYMBIAN_PLATFORMS = WINSCW \
 LIBS += -lcpframework
 LIBS += -lnmailuiengine
 LIBS += -lnmailbase
-
+LIBS += -leuser
+LIBS += -llibc
 # Input
 HEADERS += inc/nmsettinguidef.h
 HEADERS += inc/nmsettingsviewfactory.h

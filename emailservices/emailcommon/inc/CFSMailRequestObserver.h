@@ -77,7 +77,7 @@ NONSHARABLE_CLASS ( CFSMailRequestObserver ) : public CBase, public MFSMailReque
      *
      * @param aObserver observer pointer
      */
-     void SetUserObserver( MFSMailRequestObserver& aObserver );
+     void SetUserObserver(MFSMailRequestObserver& aObserver);
 
  protected:
 
@@ -89,11 +89,11 @@ NONSHARABLE_CLASS ( CFSMailRequestObserver ) : public CBase, public MFSMailReque
 
  private: // data
 
-    /** request handler pointer */
-    CFSMailRequestHandler*    iRequestHandler;
+   	 /** request handler pointer */
+   	 CFSMailRequestHandler*    iRequestHandler;
 	 
-    /** user observer */
-    MFSMailRequestObserver*  iObserver;
+   	 /** user observer */
+     MFSMailRequestObserver*  iObserver;
      
     };
 

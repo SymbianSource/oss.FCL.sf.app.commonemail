@@ -23,6 +23,7 @@
 // Removed from 10.1
 //#include "../../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
 //</qmail>
+#include "../../../../inc/emailtraceconfig.hrh"
 #include "../../inc/EmailStoreUids.hrh"
 
 TARGET            baseplugin.dll
@@ -56,16 +57,18 @@ SYSTEMINCLUDE /epoc32/include/ecom
 APP_LAYER_SYSTEMINCLUDE
 
 SOURCEPATH ../src
-SOURCE baseplugin.cpp
+SOURCE BasePlugin.cpp
 SOURCE basepluginmisc.cpp
 SOURCE basepluginparts.cpp
 SOURCE basepluginnotifications.cpp
-SOURCE basepluginpanic.cpp
+SOURCE BasePluginPanic.cpp
 SOURCE baseplugintranslator.cpp
-SOURCE mailiterator.cpp
-SOURCE basemrinfoobject.cpp
+SOURCE MailIterator.cpp
+SOURCE BaseMrInfoObject.cpp
 SOURCE basepluginfetch.cpp
 SOURCE baseplugindelayedops.cpp
+SOURCE basepluginresourceloader.cpp
+SOURCE nestedao.cpp
 
 // *************************************
 // OTHER STUFF
@@ -78,8 +81,14 @@ LIBRARY     euser.lib
 LIBRARY     ecom.lib
 LIBRARY     charconv.lib
 LIBRARY     bafl.lib
+LIBRARY     efsrv.lib
+LIBRARY     gdi.lib
+LIBRARY     calinterimapi.lib
 
 LIBRARY     messagestoreclient.lib
 LIBRARY     fsfwcommonlib.lib
 
 LIBRARY     debuglog.lib
+#ifdef TRACE_INTO_FILE
+LIBRARY     flogger.lib
+#endif // TRACE_INTO_FILE

@@ -26,7 +26,7 @@ CIpsPlgOnlineOperation::~CIpsPlgOnlineOperation()
     {
     FUNC_LOG;
     Cancel();   
-    delete iOperation;
+    delete iSubOperation;
     delete iBaseMtm;
     delete iMtmReg;
     }
@@ -34,26 +34,26 @@ CIpsPlgOnlineOperation::~CIpsPlgOnlineOperation()
 // ----------------------------------------------------------------------------
 // CIpsPlgOnlineOperation::CIpsPlgOnlineOperation()
 // ----------------------------------------------------------------------------
-//
+// <qmail> priority parameter has been removed
 CIpsPlgOnlineOperation::CIpsPlgOnlineOperation(
     CMsvSession& aMsvSession,
-    TInt aPriority,
     TRequestStatus& aObserverRequestStatus,
     CIpsPlgTimerOperation& aActivityTimer,
     TFSMailMsgId aFSMailBoxId,
-    MFSMailRequestObserver& aFSOperationObserver,
-    TInt aFSRequestId,
-    TBool aSignallingAllowed )
+    MFSMailRequestObserver* aFSOperationObserver,
+    TInt aFSRequestId )
     :
-    CIpsPlgBaseOperation( aMsvSession, aPriority, aObserverRequestStatus,
-        aFSRequestId, aFSMailBoxId ), 
-        iActivityTimer( aActivityTimer ),
-        iBaseMtm( NULL ),
-        iMtmReg( NULL ), 
-        iOperation( NULL ),
-        iError( KErrNone ),
-        iSignallingAllowed( aSignallingAllowed ),
-        iFSOperationObserver( aFSOperationObserver )
+    CIpsPlgBaseOperation(
+        aMsvSession, 
+        aObserverRequestStatus,
+        aFSRequestId, 
+        aFSMailBoxId ), 
+    iActivityTimer( aActivityTimer ),
+    iBaseMtm( NULL ),
+    iMtmReg( NULL ), 
+    iSubOperation( NULL ),
+    iError( KErrNone ),
+    iFSOperationObserver( aFSOperationObserver )
     {
     FUNC_LOG;
     }
@@ -62,20 +62,16 @@ CIpsPlgOnlineOperation::CIpsPlgOnlineOperation(
 // CIpsPlgOnlineOperation::BaseConstructL()
 // ----------------------------------------------------------------------------
 //
-void CIpsPlgOnlineOperation::BaseConstructL(TUid aMtmType)
+void CIpsPlgOnlineOperation::BaseConstructL( TUid aMtmType )
     {
     FUNC_LOG;
     // reset timer, if operation not completed after timer fires causes
     // disconnection
-    if( &iActivityTimer )
-        {
-        iActivityTimer.ResetTimerOperation();
-        }
+    // <qmail> remove cheking of existence of this reference member
+    iActivityTimer.ResetTimerOperation();
 
     iMtmReg = CClientMtmRegistry::NewL( iMsvSession );
-    
     iBaseMtm = iMtmReg->NewMtmL( aMtmType );
-    
     iObserverRequestStatus = KRequestPending;
     CActiveScheduler::Add(this);
     }
@@ -87,9 +83,9 @@ void CIpsPlgOnlineOperation::BaseConstructL(TUid aMtmType)
 void CIpsPlgOnlineOperation::DoCancel()
     {
     FUNC_LOG;
-    if( iOperation )
+    if( iSubOperation )
         {
-        iOperation->Cancel();
+        iSubOperation->Cancel();
         }
     CompleteObserver( KErrCancel );
     }
@@ -101,31 +97,21 @@ void CIpsPlgOnlineOperation::DoCancel()
 void CIpsPlgOnlineOperation::RunL()
     {
     FUNC_LOG;
-    
-    TInt err = KErrNone;
+    TInt err( KErrNone );
     TRAP( err, DoRunL() );
     
     // Just end the operation, if something has gone wrong
-    if ( err != KErrNone )
+    if ( err )
         {
         CompleteObserver( err );
         }
-    else if ( iError != KErrNone )
+    else if ( iError )
         {
         CompleteObserver( iError );
         }
     }
 
-// ----------------------------------------------------------------------------
-// CIpsPlgOnlineOperation::RunError()
-// ----------------------------------------------------------------------------
-//
-TInt CIpsPlgOnlineOperation::RunError( TInt aError )
-    {
-    FUNC_LOG;
-    CompleteObserver( aError );
-    return KErrNone; // RunError must return KErrNone to active sheduler.
-    }
+// <qmail> removing TInt CIpsPlgOnlineOperation::RunError( TInt aError )
 
 // ----------------------------------------------------------------------------
 // CIpsPlgOnlineOperation::CompleteObserver()
@@ -140,17 +126,14 @@ void CIpsPlgOnlineOperation::CompleteObserver( TInt aStatus )
         SignalFSObserver( aStatus );
         // <qmail>
         // removed checks to prevent unwanted disconnections
-        //if we're connected, reset activitytimer. if not, there is no reason to.
-        if( &iActivityTimer )
+        //if connected, reset activitytimer. if not, there is no reason to.
+        if ( Connected() )
             {
-            if ( Connected() )
-                {
-                iActivityTimer.ResetTimerOperation();
-                }
-            else
-                {
-                iActivityTimer.Cancel();
-                }
+            iActivityTimer.ResetTimerOperation();
+            }
+        else
+            {
+            iActivityTimer.Cancel();
             }
         // </qmail>
         User::RequestComplete(status, aStatus);
@@ -164,7 +147,7 @@ void CIpsPlgOnlineOperation::CompleteObserver( TInt aStatus )
 void CIpsPlgOnlineOperation::CompleteThis()
     {
     FUNC_LOG;
-    
+    SetActive();
     TRequestStatus* status = &iStatus;
     User::RequestComplete(status, KErrNone);
     }
@@ -172,11 +155,10 @@ void CIpsPlgOnlineOperation::CompleteThis()
 // ----------------------------------------------------------------------------
 // CIpsPlgOnlineOperation::InvokeClientMtmAsyncFunctionL()
 // ----------------------------------------------------------------------------
-//
+// <qmail> remove contextId as not needed
 void CIpsPlgOnlineOperation::InvokeClientMtmAsyncFunctionL(
     TInt aFunctionId,
     TMsvId aEntryId,
-    TMsvId aContextId,
     const TDesC8& aParams)
     {
     FUNC_LOG;
@@ -184,19 +166,18 @@ void CIpsPlgOnlineOperation::InvokeClientMtmAsyncFunctionL(
     CMsvEntrySelection* sel = new(ELeave) CMsvEntrySelection;
     CleanupStack::PushL( sel );
     sel->AppendL( aEntryId );
-    InvokeClientMtmAsyncFunctionL(aFunctionId, *sel, aContextId, aParams);
+    InvokeClientMtmAsyncFunctionL(aFunctionId, *sel, aParams);
     CleanupStack::PopAndDestroy( sel ); 
     }
 
 // ----------------------------------------------------------------------------
 // CIpsPlgOnlineOperation::InvokeClientMtmAsyncFunctionL()
 // ----------------------------------------------------------------------------
-//
+// <qmail> remove contextId as not needed
 void CIpsPlgOnlineOperation::InvokeClientMtmAsyncFunctionL(
     TInt aFunctionId,
     const CMsvEntrySelection& aSel,
-    TMsvId aContextId,
-    const TDesC8& aParams)
+    const TDesC8& aParams )
     {
     FUNC_LOG;
     
@@ -207,24 +188,18 @@ void CIpsPlgOnlineOperation::InvokeClientMtmAsyncFunctionL(
         iMsvSession.GetEntry( aSel.At(0), service, tEntry );
         }
 
-    if( aContextId != tEntry.iServiceId )
-        {
-        // Client context must be service for FetchL().
-        iBaseMtm->SwitchCurrentEntryL( tEntry.iServiceId );
-        }
-    else
-        {                
-        iBaseMtm->SwitchCurrentEntryL( aContextId );
-        }
-    HBufC8* params = aParams.AllocLC();
+    // setting our context to serviceId
+    iBaseMtm->SwitchCurrentEntryL( tEntry.iServiceId );
+
+    HBufC8* params = aParams.AllocLC(); // can not pass const parameter to InvokeAsyncFunctionL
     TPtr8 ptr(params->Des());
     // Delete previous operation if it exist
-    if ( iOperation )
+    if ( iSubOperation )
         {
-        delete iOperation;
-        iOperation = NULL;
+        delete iSubOperation;
+        iSubOperation = NULL;
         }
-    iOperation = iBaseMtm->InvokeAsyncFunctionL(aFunctionId, aSel, ptr, iStatus);
+    iSubOperation = iBaseMtm->InvokeAsyncFunctionL( aFunctionId, aSel, ptr, iStatus );
     CleanupStack::PopAndDestroy( params ); 
     }
 
@@ -235,42 +210,24 @@ void CIpsPlgOnlineOperation::InvokeClientMtmAsyncFunctionL(
 void CIpsPlgOnlineOperation::SignalFSObserver( TInt aStatus )
     {
     FUNC_LOG;
-    if( iSignallingAllowed )
-        {        
-        TFSProgress prog = TFSProgress();
-        prog.iError = aStatus;
+    // <qmail> clean up this function
+    if( iFSOperationObserver )
+        {
         // Initialize the progress data
+        TFSProgress prog = { TFSProgress::EFSStatus_RequestComplete, 1, 1, aStatus, NULL };
         // it would be better to get fs progress from inherited class
         // by calling FSProgressL method??
-        if ( prog.iError == KErrCancel )
+        if ( aStatus == KErrCancel )
             {
             prog.iProgressStatus = TFSProgress::EFSStatus_RequestCancelled;
             }
-        else
-            {
-            prog.iProgressStatus = TFSProgress::EFSStatus_RequestComplete;
-            }
-        // At least in the attachment download, FS UI assumes that
-        // the counter fields are greater than 0
-        prog.iMaxCount = 1;  
-        prog.iCounter = 1;
         
-        
-        //in case of autoconnect, we don't have valid observer
-        if( &iFSOperationObserver )
-            {            
-            TRAP_IGNORE( iFSOperationObserver.RequestResponseL( prog, iFSRequestId ) );
-            }
+        // do the actual signalling
+        TRAP_IGNORE( iFSOperationObserver->RequestResponseL( prog, iFSRequestId ) );
         }
     }
 
-// ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
-TInt CIpsPlgOnlineOperation::IpsOpType() const
-    {
-    FUNC_LOG;
-    return EIpsOpTypeOnlineOp;
-    }
+// <qmail> removed IpsOpType()
 
 // <qmail> makes more sence to have this method here in "base" online op than in every derived class
 // ----------------------------------------------------------------------------

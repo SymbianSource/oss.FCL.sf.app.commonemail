@@ -14,14 +14,20 @@
 * Description:
 *
 */
+#ifndef NMAILAGENTHEADERS_H
+#define NMAILAGENTHEADERS_H
 
 #include <QDir>
 #include <QPluginLoader>
+#include <QCoreApplication>
+#include <QTimer>
 
 #include <hbindicator.h>
 
 #include <nmcommon.h>
 #include <nmdatapluginfactory.h>
+#include <nmdataplugininterface.h>
 #include <nmmailbox.h>
 #include <nmmessageenvelope.h>
-#include <nmframeworkadapter.h>
+
+#endif

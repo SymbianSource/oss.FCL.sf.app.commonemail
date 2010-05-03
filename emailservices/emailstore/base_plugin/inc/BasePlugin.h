@@ -34,7 +34,9 @@
 #include "DebugLogMacros.h"
 //</cmail>
 
+//<qmail> Entire CBasePlugin class is exported in 10.1
 #include "baseplugindef.h"
+//</qmail>
 
 #include "basemrinfoobject.h"
 #include "Map.h"
@@ -201,12 +203,12 @@ class BASEPLUGIN_EXPORT CBasePlugin :
 
          virtual CFSMailMessage* CreateMessageToSendL(
             const TFSMailMsgId& aMailBox );
-         // <qmail>
+// <qmail>
         virtual void CreateMessageToSendL(
             const TFSMailMsgId& aMailBoxId,
             MFSMailRequestObserver& aOperationObserver,
             const TInt aRequestId );
-         // </qmail>
+// </qmail>
 
          virtual CFSMailMessage* CreateForwardMessageL(
             const TFSMailMsgId& aMailBox,
@@ -223,20 +225,20 @@ class BASEPLUGIN_EXPORT CBasePlugin :
             const TFSMailMsgId& aMailBoxId,
             CFSMailMessage& aMessage );
         
-        // <qmail>
+// <qmail>
          void StoreMessagesL(
                 const TFSMailMsgId& aMailBoxId,
                 RPointerArray<CFSMailMessage> &messages,
                 MFSMailRequestObserver& aOperationObserver,
                 const TInt aRequestId );
-        // </qmail>
+// </qmail>
         
-        // <qmail>
+// <qmail>
         virtual void StoreMessagePartsL(
                RPointerArray<CFSMailMessagePart>& aMessageParts,
                MFSMailRequestObserver& aOperationObserver,
                const TInt aRequestId);
-        // <//qmail>
+// <//qmail>
 		
          virtual void FetchMessagesL(
             const TFSMailMsgId& aMailBoxId,
@@ -656,7 +658,7 @@ class BASEPLUGIN_EXPORT CBasePlugin :
             const TDesC8& aDstProperty,
             RPointerArray<CFSMailAddress>& aRecipients );
 
-         static void RemoveAllPropertiesL(
+        static void RemoveAllPropertiesL(
             CMsgStorePropertyContainer& aContainer,
             const TDesC8& aName );
 
@@ -776,6 +778,8 @@ class BASEPLUGIN_EXPORT CBasePlugin :
 	        TMsgStoreId aId,
 	        TMsgStoreId aParentId,
 	        TMsgStoreId aOtherId );
+	    
+	     virtual const TDesC& CBasePlugin::CalendarFileName() const;
 
     public:
 
@@ -808,7 +812,7 @@ class BASEPLUGIN_EXPORT CBasePlugin :
         TCacheLine iCacheLine;
 
     private:
-
+    protected:
         MDelayedOpsManager* iDelayedOpsManager;
 
         /**
@@ -848,14 +852,16 @@ NONSHARABLE_CLASS( CMailboxInfo ) : public CBase
 
         virtual ~CMailboxInfo()
             {
-            iMailBox->RemoveObserverL( iBasePlugin );
+            if ( iMailBox )
+                iMailBox->RemoveObserverL( iBasePlugin );
+
             iObservers.Close();
 
             delete iMailBoxName;
             delete iMailBoxDisplayName;
             delete iBrandingId;
             delete iMailBox;
-            }
+            };
 
         CMsgStoreMailBox& operator() ()
             {

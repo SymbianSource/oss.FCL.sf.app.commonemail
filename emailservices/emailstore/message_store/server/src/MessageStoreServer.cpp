@@ -38,6 +38,7 @@
 #include "ImsPointsecMonitor.h"
 #include "ImsPointsecObserver.h"
 #include "emailstorepskeys.h" // Support for on-the-fly upgrade
+#include "emailshutdownconst.h"
 //</cmail>
 
 // =========
@@ -46,8 +47,6 @@
 
 _LIT8( KNullDescriptor8, "" );
 
-// To support biggest free drive, we have to get rid of hard-coded C: drive
-//const TDriveNumber KDbDriveNumber = EDriveC;
 
 _LIT( KDbFilename, "message_store.db" );
 
@@ -61,10 +60,9 @@ const TUint KCommandLineSize = 30;
 _LIT( KUninstallParameter, "IMS_UNINSTALL" );
 _LIT( KImsUninstaller, "IMS Uninstaller" );
 _LIT( KUpgradeDetectionFile, "c:\\System\\EsIms\\canary.txt" );
-_LIT16( KDriveToUseFile, "db_drive.cfg" );
-//_LIT( KMsgStorePrivateDir, "c:\\Private\\200029e1\\" );
 
-//const TChar KColon(':');
+
+
 
 // SID list
 // This is the list of secure Ids that are allowed to use the message store.  This list must be terminated
@@ -268,7 +266,6 @@ CMessageStoreServer::CMessageStoreServer()
   
   iLockedByBackupRestore = EFalse;
   iLockedByPointSec = EFalse;
-  iLockedByDriveMonitor = EFalse;
   
   } // end constructor
 
@@ -294,8 +291,6 @@ void CMessageStoreServer::ConstructL()
     //must check if PointSec has locked the system or not,
     //only create the container store if PointSec is NOT locked.
     
-    // This will be used to monitor the drive where message store db is located.
-    iStoreDriveMonitor = CStoreDriveMonitor::NewL( *this );
     
     if ( iPointsecMonitor->IsServiceAllowed() )
         {
@@ -328,9 +323,9 @@ void CMessageStoreServer::ConstructL()
     TSecurityPolicy readPolicy( ECapabilityReadDeviceData );
     TSecurityPolicy writePolicy( ECapabilityWriteDeviceData );
     iUpgradePropertyWatcher = CPSIntPropertyWatcher::NewL( this );
-    iUpgradePropertyWatcher->StartL( KEmailStoreUpgradePSCategory,
-                                     KProperty_EmailStore_Upgrade,
-                                     process.SecureId(),
+    iUpgradePropertyWatcher->StartL( KEmailShutdownPsCategory, 
+                                     EEmailPsKeyShutdownMsgStore,
+                                     KEmailShutterPsValue,
                                      /*ETrue*/EFalse,
                                      readPolicy,
                                      writePolicy ); 
@@ -345,7 +340,6 @@ void CMessageStoreServer::ConstructL()
 CMessageStoreServer::~CMessageStoreServer()
   {
   delete iUpgradePropertyWatcher;
-  delete iStoreDriveMonitor;
   delete iShutdown;
   delete iMessageStore;
   iMessageStore = NULL;
@@ -386,14 +380,30 @@ CSession2* CMessageStoreServer::NewSessionL(const TVersion& aVersion, const RMes
 // Cancel the shutdown timer if it was running
 // ==========================================================================
 void CMessageStoreServer::AddSession( CMessageStoreSession* aSession )
-  {
-  __LOG_ENTER( "AddSession" )
-  iSessions.Append( aSession );
+    {
+    __LOG_ENTER( "AddSession" )
+    iSessions.Append( aSession );
 
-  // A sesssion was added, so the shutdown timer can be stopped.
-//  iShutdown->Stop();
-  __LOG_EXIT
-  } // end AddSession
+    // notify new session of current state
+    TMsgStoreEvent event;
+    event.iType        = EMsgStoreAvailable;
+    event.iId          = KMsgStoreInvalidId;
+    event.iParentId    = KMsgStoreInvalidId;
+    event.iOtherId     = KMsgStoreInvalidId;
+    event.iFlags       = KMsgStoreFlagsNotFound;
+
+    if ( iLockedByBackupRestore || iLockedByPointSec ) 
+        {
+        event.iType = EMsgStoreUnavailable;
+        }
+
+    aSession->SendEventToObserver( event );
+
+    // A sesssion was added, so the shutdown timer can be stopped.
+    //  iShutdown->Stop();
+
+    __LOG_EXIT
+    } // end AddSession
 
 // ==========================================================================
 // FUNCTION: DropSession
@@ -436,30 +446,17 @@ void CMessageStoreServer::DropSession( CMessageStoreSession* aSession )
 // ==========================================================================
 void CMessageStoreServer::CreateContainerStoreL()
     {
+    __LOG_ENTER( "CreateContainerStoreL" )
+
     TDriveNumber drive( EDriveC );
-    if ( GetDriveL( drive ) == KErrNotFound )
-        {
-        FindBiggestCapacityDriveL( drive );
-        }
-    //set again the drive to be monitored in case is different than previous
-    iStoreDriveMonitor->SetDriveL( drive );
-    
-    if ( iStoreDriveMonitor->IsDrivePresent() )
-        {
     iMessageStore = CContainerStore::NewL( KDbFilename,
                                            drive,
                                            *this,
                                            *iShutdown,
                                            Priority() - 1);  // lower than server
-        }
-    else
-        {
-        iLockedByDriveMonitor = ETrue;
-        }
-    
-    // monitor the message store drive
-    iStoreDriveMonitor->WaitForChange();
 
+
+    __LOG_EXIT
     } // end CreateContainerStoreL
 
 
@@ -864,7 +861,7 @@ void CMessageStoreServer::WipeEverythingL()
         //       change would have been backwards incompatible.
         
         TDriveNumber drive( EDriveC );
-        if ( GetDriveL( drive ) == KErrNotFound ) drive = EDriveC;
+		
         TInt result = CContainerStore::WipeEverything( KDbFilename,
                                                        drive );
 
@@ -904,11 +901,11 @@ void CMessageStoreServer::WipeEverythingL()
 void CMessageStoreServer::BackupOrRestoreInProgress( TBool /*aIsARestore*/ )
 {
     __LOG_ENTER( "BackupOrRestoreInProgress" );
-    
-    SendSystemLockMessage( EMsgStoreBackupOrRestoreInProgress );
-    
-    if (( !iLockedByPointSec ) && ( !iLockedByDriveMonitor ) )
+
+    if ( !iLockedByBackupRestore )
         {
+        iLockedByBackupRestore = ETrue;
+        SendSystemLockMessage( EMsgStoreBackupOrRestoreInProgress );
         LockSystem();
         }
 
@@ -922,10 +919,10 @@ void CMessageStoreServer::BackupOrRestoreCompleted()
     {
     __LOG_ENTER( "BackupOrRestoreCompleted" );
   
-    SendSystemLockMessage( EMsgStoreBackupOrRestoreCompleted );
-      
-    if (( !iLockedByPointSec ) && ( !iLockedByDriveMonitor ) )
+    if ( iLockedByBackupRestore )
         {
+        iLockedByBackupRestore = EFalse;
+        SendSystemLockMessage( EMsgStoreBackupOrRestoreCompleted );
         TRAP_IGNORE( UnlockSystemL() );
         }
     
@@ -942,10 +939,7 @@ void CMessageStoreServer::PointSecLockStarted()
         {
         iLockedByPointSec = ETrue;
         SendSystemLockMessage( EMsgStorePointSecLockStarted );
-        if (( !iLockedByBackupRestore ) && ( !iLockedByDriveMonitor ) )
-            {
-            LockSystem();
-            }
+        LockSystem();
         }
     __LOG_EXIT
     }
@@ -960,10 +954,7 @@ void CMessageStoreServer::PointSecLockEnded()
         {
         iLockedByPointSec = EFalse;
         SendSystemLockMessage( EMsgStorePointSecLockEnded );
-        if ( ( !iLockedByBackupRestore ) && ( !iLockedByDriveMonitor ) )
-            {
-            TRAP_IGNORE( UnlockSystemL() );
-            }
+        TRAP_IGNORE( UnlockSystemL() );
         }
     __LOG_EXIT
     }
@@ -975,13 +966,18 @@ void CMessageStoreServer::LockSystem()
     {
     __LOG_ENTER( "LockSystem" );
     
-    for( TInt i = 0; i < iSessions.Count(); i++ )
+    if ( iMessageStore )
         {
-        iSessions[i]->ContainerStoreUnavailable();
-        } // end if
-
-    delete iMessageStore;
-    iMessageStore = NULL;
+        SendSystemLockMessage( EMsgStoreUnavailable );
+        
+        for( TInt i = 0; i < iSessions.Count(); i++ )
+            {
+            iSessions[i]->ContainerStoreUnavailable();
+            } // end if
+    
+        delete iMessageStore;
+        iMessageStore = NULL;
+        }
     
     __LOG_EXIT
     }
@@ -992,177 +988,43 @@ void CMessageStoreServer::LockSystem()
 void CMessageStoreServer::UnlockSystemL()
     {
     __LOG_ENTER( "UnlockSystemL" );
-    
-    TRAPD( result,
-            CreateContainerStoreL(); CreatePredefinedFoldersIfNeededL(); );
 
-    if( result != 0 )
+    if  ( ( !iLockedByBackupRestore ) 
+       && ( !iLockedByPointSec ) )
         {
-        __LOG_WRITE_ERROR( "failed to recreate message store after system lock" )
+        TRAPD( result,
+                CreateContainerStoreL(); CreatePredefinedFoldersIfNeededL(); );
 
-        // The server is in a very bad state.  Shut down the server immediately.
-        iShutdown->ShutDownNow();
-        }
-   else if  ( ( !iLockedByBackupRestore ) 
-           && ( !iLockedByDriveMonitor ) 
-           && ( !iLockedByPointSec ) )
-        {
+        if( result != KErrNone )
+            {
+            __LOG_WRITE_ERROR( "failed to recreate message store after system lock" )
 
-        for( TInt i = 0; i < iSessions.Count(); i++ )
-            {
-            iSessions[i]->ContainerStoreAvailable();
-            } // end if
-        
-        if( iWipeAfterBackupRestore )
-            {
-            iWipeAfterBackupRestore = EFalse;
-            WipeEverythingL();
-            } // end if
-
-        } // end if
-    
-    __LOG_EXIT
-    }
-    
-// ==========================================================================
-// FUNCTION: FindBiggestCapacityDrive
-//           To locate the internal drive with the biggest available space.
-// ========================================================================== 
-void CMessageStoreServer::FindBiggestCapacityDriveL( TDriveNumber& aDrive )
-    {
-    __LOG_ENTER( "FindBiggestCapacityDrive" );
-    
-    RFs fs;
-    TInt driveToUse( 2 );  // set default drive to C:
-    
-    if( fs.Connect() == KErrNone )
-        {
-        CleanupClosePushL( fs );               //+fs
-        TDriveList driveList;
-        fs.DriveList( driveList );
-        TInt64 highest( 0 );
-        for (TInt i=0; i<KMaxDrives; i++)
-            {
-            if ( driveList[i] != 0 )     // check if drive exits
-                {
-                TDriveInfo driveInfo;
-                fs.Drive( driveInfo, i );
-                TVolumeInfo driveVolume;
-                fs.Volume( driveVolume, i );
-                                            
-                TUint drvStatus( 0 );
-                User::LeaveIfError( DriveInfo::GetDriveStatus( fs, i, drvStatus ) );
-                                            
-                if ( (drvStatus & DriveInfo::EDriveUserVisible) &&
-                     (drvStatus & DriveInfo::EDriveInternal)  && 
-                     (drvStatus & DriveInfo::EDrivePresent) )
-                    {
-                    if (driveVolume.iFree > highest)
-                        {
-                        driveToUse = i;
-                        highest = driveVolume.iFree;
-                        }
-                    }
-                }
-             }             
-                            
-        __LOG_WRITE_FORMAT2_INFO( "Drive #%d to use, free space=%u", driveToUse, highest );
-                                  
-        CleanupStack::PopAndDestroy( &fs );    //-fs
-        } // end if
-    
-    aDrive = static_cast<TDriveNumber>( driveToUse );
-    SetDriveL( aDrive );   // save it
-    
-    __LOG_EXIT
-    }
-
-// ==========================================================================
-// FUNCTION: GetDrive
-//           To find the previously-defined drive to use.   KErrNotFound will
-//           be returned if not config file found
-//
-// Note    : the config file will be loacted in C: drive 
-//           (C:\Private\2000c8d2\db_drive.cfg)
-// ==========================================================================
-TInt CMessageStoreServer::GetDriveL( TDriveNumber& aDrive )
-    {
-    __LOG_ENTER( "GetDrive" );
-    
-    TInt ret( KErrNotFound );
-        
-    RFs fs;
-    if( fs.Connect() == KErrNone )
-        {
-        CleanupClosePushL( fs );               //+fs
-        TFileName fileName;
-        fs.CreatePrivatePath( EDriveC );
-        User::LeaveIfError(fs.PrivatePath( fileName ));
-        fileName.Append( KDriveToUseFile );
-        _LIT( KCDrive, "C:" );
-        fileName.Insert( 0, KCDrive() );
-        __LOG_WRITE_FORMAT1_INFO( "DriveToUse file=%S", &fileName );
-                   
-        if( BaflUtils::FileExists( fs, fileName ) )
-            {
-            RFileReadStream reader;
-            if ( reader.Open( fs, fileName, EFileRead ) == KErrNone )
-          		{
-           		CleanupClosePushL( reader );             //+reader
-           		TUint drive = reader.ReadUint32L();
-           		__LOG_WRITE_FORMAT1_INFO( "previously-defined drive to use : %d", drive );
-                CleanupStack::PopAndDestroy( &reader );  //-reader
-           		aDrive = static_cast<TDriveNumber>( drive );
-           		ret = KErrNone;
-           		}
+            // The server is in a very bad state.  Shut down the server immediately.
+            iShutdown->ShutDownNow();
             }
-                   
-        CleanupStack::PopAndDestroy( &fs );    //-fs
-        } // end if
-    
-    __LOG_EXIT
-    return ret;
-    }
-
-// ==========================================================================
-// FUNCTION: SetDrive
-//           To write the chosen drive info to the config file.
-//
-// Note    : the config file will be loacted in C: drive 
-//           (C:\Private\2000c8d2\db_drive.cfg)
-// ==========================================================================
-void CMessageStoreServer::SetDriveL( const TDriveNumber aDrive )
-    {
-    __LOG_ENTER( "SetDrive" );
-    
-    TUint drive = static_cast<TUint32>( aDrive );
-        
-    RFs fs;
-    if( fs.Connect() == KErrNone )
-        {
-        CleanupClosePushL( fs );               //+fs
-        TFileName fileName;
-        User::LeaveIfError(fs.PrivatePath( fileName ));
-        fileName.Append( KDriveToUseFile );
-        _LIT( KCDrive, "C:" );
-        fileName.Insert( 0, KCDrive() );
-        __LOG_WRITE_FORMAT1_INFO( "DriveToUse file=%S", &fileName )
-                   
-        RFileWriteStream writer;
-        if ( writer.Replace( fs, fileName, EFileRead ) == KErrNone )
+       else if  ( ( !iLockedByBackupRestore ) 
+               && ( !iLockedByPointSec ) )
             {
-         	CleanupClosePushL( writer );             //+writer
-           	writer.WriteUint32L( drive );
-           	writer.CommitL();
-           	__LOG_WRITE_FORMAT1_INFO( "writing chosen drive #%d to file", drive );
-            CleanupStack::PopAndDestroy( &writer );  //-writer
-           	}
-                 
-        CleanupStack::PopAndDestroy( &fs );    //-fs
+            SendSystemLockMessage( EMsgStoreAvailable );
+
+            for( TInt i = 0; i < iSessions.Count(); i++ )
+                {
+                iSessions[i]->ContainerStoreAvailable();
+                } // end if
+
+            if( iWipeAfterBackupRestore )
+                {
+                iWipeAfterBackupRestore = EFalse;
+                WipeEverythingL();
+                } // end if
+
+            } // end if
         } // end if
     
     __LOG_EXIT
     }
+    
+
 
 // ==========================================================================
 // FUNCTION: SendSystemLockMessage
@@ -1242,34 +1104,5 @@ void CMessageStoreServer::Shutdown()
 
 #endif
 
-//from MStoreDriveStateObserver
-void CMessageStoreServer::DriveStateChangedL( TBool aState )
-    {
-    __LOG_ENTER( "DriveStateChangedL" );
-    if ( aState )
-        {
-        //drive mounted
-        if ( iLockedByDriveMonitor )
-             {
-             iLockedByDriveMonitor = EFalse;
-             if ( ( !iLockedByBackupRestore ) && ( !iLockedByPointSec ) )
-                 {
-                 UnlockSystemL();
-                 }
-             }
-        }
-    else
-        {
-        //drive unmounted
-        if ( !iLockedByDriveMonitor )
-            {
-            iLockedByDriveMonitor = ETrue;
-            if ( ( !iLockedByBackupRestore ) && ( !iLockedByPointSec ) )
-                {
-                LockSystem();
-                }
-            }
-        }
-    __LOG_EXIT
-    }
+
 

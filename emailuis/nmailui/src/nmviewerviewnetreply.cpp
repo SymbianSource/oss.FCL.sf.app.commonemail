@@ -18,6 +18,8 @@
 
 #include "nmuiheaders.h"
 
+static const char *NMUI_NET_REPLY_CONTENT_ID = "cid";
+
 /*!
     \class NmViewerViewNetReply
     \brief Mail viewer network reply class
@@ -52,6 +54,23 @@ NmViewerViewNetReply::~NmViewerViewNetReply()
 */
 void NmViewerViewNetReply::signalReady()
 {
+    // Insert embedded images into cache manually
+    if(manager()) {
+        if(manager()->cache() && request().url().scheme() == NMUI_NET_REPLY_CONTENT_ID) {
+            // Metadata required for inserted data
+            QNetworkCacheMetaData metaData;
+            metaData.setUrl(request().url());
+            metaData.setSaveToDisk(true);
+            
+            // Insert data into cache
+            QIODevice *device = manager()->cache()->prepare(metaData);
+            if(device) {
+                device->write(mDataArray);
+                manager()->cache()->insert(device);
+            }
+        }
+    }
+    // Emit these signals to properly emulate downloading from URL
     emit readyRead();
     emit finished();
 }

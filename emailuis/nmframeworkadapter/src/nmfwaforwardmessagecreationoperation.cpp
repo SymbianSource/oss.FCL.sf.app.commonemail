@@ -30,7 +30,7 @@ NmFwaForwardMessageCreationOperation::~NmFwaForwardMessageCreationOperation()
 {
 }
 
-void NmFwaForwardMessageCreationOperation::runAsyncOperation()
+void NmFwaForwardMessageCreationOperation::doRunAsyncOperation()
 {
     const TFSMailMsgId mailMsgId(mMailboxId.pluginId32(), mMailboxId.id32());
 

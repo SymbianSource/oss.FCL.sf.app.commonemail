@@ -93,12 +93,12 @@ public:
     /*
      * getter for to recipients
      */
-    void toRecipients( QList<EmailClientApi::NmEmailAddress> &toRecipients );
+    void getToRecipients( QList<EmailClientApi::NmEmailAddress> &toRecipients );
 
     /*
      * getter for cc recipients
      */
-    void ccRecipients( QList<EmailClientApi::NmEmailAddress> &ccRecipients );
+    void getCcRecipients( QList<EmailClientApi::NmEmailAddress> &ccRecipients );
 
     /*
      * getter for sent time
@@ -133,7 +133,7 @@ public:
     /*
      * getter for plaintext body
      */
-    void plainTextBody( EmailClientApi::NmMessageBody &body );
+    void getPlainTextBody( EmailClientApi::NmMessageBody &body );
 
     /*
      * getter for plaintext body
@@ -173,12 +173,12 @@ public:
     /*
      * setter for to recipients 
      */
-    void setGetToRecipients(const QList<EmailClientApi::NmEmailAddress>& toRecipients);
+    void setToRecipients(const QList<EmailClientApi::NmEmailAddress>& toRecipients);
 
     /*
      * setter for cc recipients 
      */
-    void setGetCcRecipients(const QList<EmailClientApi::NmEmailAddress> &ccRecipients);
+    void setCcRecipients(const QList<EmailClientApi::NmEmailAddress> &ccRecipients);
 
     /*
      * setter for sent time 

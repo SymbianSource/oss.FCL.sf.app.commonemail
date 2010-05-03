@@ -35,7 +35,7 @@ class MFSMailIterator
     {
 
 public:
-									
+                                    
     /**
      * Lists user given count of email objects located after user
      * given start point.
@@ -100,9 +100,9 @@ public:
     /**
      * Destructor.
      */  
-   	 virtual ~MFSMailIterator() { }; 
-        	
-   	};
+     virtual ~MFSMailIterator() { }; 
+            
+    };
 
 #endif  // MFSMAILITERATOR_H
 

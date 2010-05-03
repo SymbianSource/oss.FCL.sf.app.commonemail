@@ -58,6 +58,8 @@ signals:
     void mailboxPropertyChanged(const NmId &mailboxId,
                                 QVariant property,
                                 QVariant value);
+    void goOnline(const NmId &mailboxId);
+    void goOffline(const NmId &mailboxId);
 
 
 private:

@@ -19,7 +19,8 @@
 #include "nmmailagent.h"
 
 // CONSTS
-const int maxUnreadCount = 1; // 1 is enough
+const int NmAgentMaxUnreadCount = 1; // 1 is enough
+const int NmAgentIndicatorNotSet = -1;
 
 
 /*!
@@ -28,42 +29,39 @@ const int maxUnreadCount = 1; // 1 is enough
     \brief Main class for receiving email events and passing them to the HbIndicator
 */
 
-/*!
-    Creates list of folder paths where plug-ins can be loaded from.
-    \return folder path list.
-*/
-QStringList NmMailAgent::pluginFolders()
-{
-    const QString nmPluginPath("resource/plugins");
-    QStringList pluginDirectories;
-    QFileInfoList driveList = QDir::drives();
-
-    foreach(const QFileInfo &driveInfo, driveList) {
-        QString pluginDirectory =
-            driveInfo.absolutePath() + nmPluginPath;
-
-        if (QFileInfo(pluginDirectory).exists()) {
-            pluginDirectories.append(pluginDirectory);
-        }
-    }
-
-    return pluginDirectories;
-}
-
 NmMailboxInfo::NmMailboxInfo()
 {
     mId = 0;
+    mIndicatorIndex = NmAgentIndicatorNotSet;
     mSyncState = SyncComplete;
     mConnectState = Disconnected;
     mUnreadMails = 0;
+    mOutboxMails = 0;
+    mInboxFolderId = 0;
+    mOutboxFolderId = 0;
+    mInboxCreatedMessages = 0;
+    mInboxChangedMessages = 0;
+    mInboxDeletedMessages = 0;
     mActive = false;
 }
 
 NmMailAgent::NmMailAgent() :
- mAdapter(NULL),
- mActiveIndicators(0)
+ mPluginFactory(NULL),
+ mSendingState(false)
 {
     NMLOG("NmMailAgent::NmMailAgent");
+}
+
+/*!
+    Delayed start
+*/
+void NmMailAgent::delayedStart()
+{
+	NMLOG("NmMailAgent::delayedStart");
+	if (!init()) {
+		// Initialisation failed. Quit the agent.
+		QCoreApplication::exit(1);
+	}
 }
 
 /*!
@@ -71,37 +69,48 @@ NmMailAgent::NmMailAgent() :
 */
 bool NmMailAgent::init()
 {
-    if (!loadAdapter()) {
-        // Failed to load NmFrameworkAdapter
+	NMLOG("NmMailAgent::init");
+    mPluginFactory = NmDataPluginFactory::instance();
+    if (!mPluginFactory) {
+        NMLOG("NmMailAgent::init PluginFactory not created");
         return false;
     }
 
-    // Start listening events
-    connect(mAdapter, SIGNAL(mailboxEvent(NmMailboxEvent, const QList<NmId>&)),
-        this, SLOT(handleMailboxEvent(NmMailboxEvent, const QList<NmId> &)));
+    QList<QObject*> *plugins = mPluginFactory->pluginInstances();
 
-    connect(mAdapter, SIGNAL(messageEvent(
-            NmMessageEvent, const NmId &, const QList<NmId> &, const NmId&)),
-        this, SLOT(handleMessageEvent(
-            NmMessageEvent, const NmId &, const QList<NmId> &, const NmId&)));
+    foreach (QObject *plugin, *plugins) {
+    	if (plugin) {
+			// Start listening events
+			connect(plugin, SIGNAL(mailboxEvent(NmMailboxEvent, const QList<NmId>&)),
+				this, SLOT(handleMailboxEvent(NmMailboxEvent, const QList<NmId> &)),
+				Qt::UniqueConnection);
 
-    connect(mAdapter, SIGNAL(syncStateEvent(NmSyncState, const NmId)),
-        this, SLOT(handleSyncStateEvent(NmSyncState, const NmId)));
+			connect(plugin, SIGNAL(messageEvent(
+					NmMessageEvent, const NmId &, const QList<NmId> &, const NmId&)),
+				this, SLOT(handleMessageEvent(
+					NmMessageEvent, const NmId &, const QList<NmId> &, const NmId&)),
+				Qt::UniqueConnection);
 
-    connect(mAdapter, SIGNAL(connectionEvent(NmConnectState, const NmId)),
-        this, SLOT(handleConnectionEvent(NmConnectState, const NmId)));
+			connect(plugin, SIGNAL(syncStateEvent(NmSyncState, const NmOperationCompletionEvent&)),
+				this, SLOT(handleSyncStateEvent(NmSyncState, const NmOperationCompletionEvent&)),
+				Qt::UniqueConnection);
+
+			connect(plugin, SIGNAL(connectionEvent(NmConnectState, const NmId)),
+				this, SLOT(handleConnectionEvent(NmConnectState, const NmId)),
+				Qt::UniqueConnection);
+    	}
+    }
 
     // load all current mailboxes
     initMailboxStatus();
 
-    updateStatus();
     return true;
 }
 
 NmMailAgent::~NmMailAgent()
 {
-    delete mAdapter;
     qDeleteAll(mMailboxes);
+    NmDataPluginFactory::releaseInstance(mPluginFactory);
 }
 
 /*!
@@ -111,17 +120,37 @@ void NmMailAgent::initMailboxStatus()
 {
     NMLOG("NmMailAgent::initMailboxStatus");
     QList<NmMailbox*> mailboxes;
-    mAdapter->listMailboxes(mailboxes);
-    foreach (const NmMailbox* mailbox, mailboxes) {
-        if (mailbox) {
-            NmMailboxInfo *mailboxInfo = createMailboxInfo(*mailbox);
-            if (mailboxInfo) {
-                mailboxInfo->mUnreadMails = getUnreadCount(mailbox->id(),maxUnreadCount);
-                updateMailboxActivity(mailbox->id(), isMailboxActive(*mailboxInfo));
+    QList<QObject*> *plugins = mPluginFactory->pluginInstances();
+
+    foreach(QObject* pluginObject, *plugins) {
+        NmDataPluginInterface *plugin =
+            mPluginFactory->interfaceInstance(pluginObject);
+        if (plugin) {
+            plugin->listMailboxes(mailboxes);
+        }
+
+        // Add the indicators
+        // Must be made in reverse order to show them properly in
+        // HbIndicator menu
+        QListIterator<NmMailbox *> i(mailboxes);
+        i.toBack();
+        while (i.hasPrevious()) {
+            const NmMailbox *mailbox = i.previous();
+            if (mailbox) {
+                NmMailboxInfo *mailboxInfo = createMailboxInfo(*mailbox,plugin);
+                if (mailboxInfo) {
+                    mailboxInfo->mUnreadMails = getUnreadCount(mailbox->id(),NmAgentMaxUnreadCount);
+                    mailboxInfo->mOutboxMails = getOutboxCount(mailbox->id());
+
+                    // Create indicator for visible mailboxes
+                    updateMailboxState(mailbox->id(),
+                        isMailboxActive(*mailboxInfo),
+                        false);
+                }
             }
         }
+        qDeleteAll(mailboxes);
     }
-    qDeleteAll(mailboxes);
 }
 
 /*!
@@ -135,99 +164,105 @@ int NmMailAgent::getUnreadCount(const NmId &mailboxId, int maxCount)
     NMLOG("NmMailAgent::getUnreadCount");
     int count(0);
 
-    // get inbox folder ID
-    NmId inboxId = mAdapter->getStandardFolderId(
-            mailboxId, NmFolderInbox );
+    NmDataPluginInterface *plugin = mPluginFactory->interfaceInstance(mailboxId);
 
-    // get list of messages in inbox
-    QList<NmMessageEnvelope*> messageList;
-    mAdapter->listMessages(mailboxId, inboxId, messageList);
+    if (plugin) {
+		// get inbox folder ID
+		NmId inboxId = plugin->getStandardFolderId(
+				mailboxId, NmFolderInbox );
 
-    foreach (const NmMessageEnvelope* envelope, messageList) {
-        // if the message is not read, it is "unread"
-        if (!envelope->isRead()) {
-            count++;
+		// get list of messages in inbox
+		QList<NmMessageEnvelope*> messageList;
+		plugin->listMessages(mailboxId, inboxId, messageList);
 
-            // No more unread mails are needed
-            if (count >= maxCount) {
-                break;
-            }
-        }
+		foreach (const NmMessageEnvelope* envelope, messageList) {
+			// if the message is not read, it is "unread"
+			if (!envelope->isRead()) {
+				count++;
+
+				// No more unread mails are needed
+				if (count >= maxCount) {
+					break;
+				}
+			}
+		}
+		qDeleteAll(messageList);
     }
-	qDeleteAll(messageList);
 	NMLOG(QString("NmMailAgent::getUnreadCount count=%1").arg(count));
 
     return count;
 }
 
 /*!
-    Load NmFrameworkAdapter from plugins.
-    \return true if adapter is loaded succesfully.
+    Get mailbox count in outbox folder
+    \param mailboxId id of the mailbox
+    \param maxCount max number of outbox mails that is needed
+    \return number of mails in the outbox
 */
-bool NmMailAgent::loadAdapter()
+int NmMailAgent::getOutboxCount(const NmId &mailboxId)
 {
-    QStringList directories(pluginFolders());
+    NMLOG("NmMailAgent::getOutboxCount");
+    int count(0);
 
-     foreach (const QString &pluginPath, directories) {
-         QPluginLoader *loader =
-             new QPluginLoader(pluginPath + "/nmframeworkadapter.qtplugin");
-         if (loader) {
-             mAdapter = static_cast<NmFrameworkAdapter *>(loader->instance());
-             if (mAdapter) {
-                 return true;
-             }
-         }
-     }
-     NMLOG("NmMailAgent::loadAdapter failed");
-     return false;
+    NmDataPluginInterface *plugin = mPluginFactory->interfaceInstance(mailboxId);
+
+    if (plugin) {
+		// get outbox folder ID
+		NmId outboxId = plugin->getStandardFolderId( mailboxId, NmFolderOutbox );
+
+		// get list of messages in outbox
+		QList<NmMessageEnvelope*> messageList;
+		plugin->listMessages(mailboxId, outboxId, messageList);
+		count = messageList.count();
+		qDeleteAll(messageList);
+    }
+    NMLOG(QString("NmMailAgent::getOutboxCount count=%1").arg(count));
+
+    return count;
 }
 
 /*!
-    Update the mailbox visibility
+    Update the mailbox visibility and status
     \param mailboxId id of the mailbox
     \param active visibility state of the mailbox
+    \param refreshAlways true when the indicator should be always updated
     \return true if the mailbox state was changed
 */
-bool NmMailAgent::updateMailboxActivity(const NmId &mailboxId, bool active)
+bool NmMailAgent::updateMailboxState(const NmId &mailboxId,
+    bool active, bool refreshAlways)
 {
+    // Update the global sending state
+    mSendingState = false;
+    foreach (NmMailboxInfo *mailboxInfo, mMailboxes) {
+        if (mailboxInfo->mOutboxMails>0) {
+            mSendingState = true;
+            break;
+        }
+    }
+
     NmMailboxInfo *mailboxInfo = getMailboxInfo(mailboxId);
     bool changed = false;
-    if (mailboxInfo->mActive != active) {
+    if (mailboxInfo->mActive != active ||
+        refreshAlways) {
         mailboxInfo->mActive = active;
         changed = true;
         if (active) {
-            // Mailbox becomes active again. Move to the bottom of the list.
-            mMailboxes.removeAll(mailboxInfo);
-            mMailboxes.append(mailboxInfo);
+            // Mailbox is not yet assigned to any indicator
+            if (mailboxInfo->mIndicatorIndex < 0) {
+                mailboxInfo->mIndicatorIndex = getIndicatorIndex();
+            }
+
+            updateIndicator(true,*mailboxInfo);
+        }
+        else {
+            // Indicator not anymore active. Release it.
+            if (mailboxInfo->mIndicatorIndex>=0) {
+                updateIndicator(false,*mailboxInfo);
+                mailboxInfo->mIndicatorIndex = NmAgentIndicatorNotSet;
+            }
         }
     }
     return changed;
-}
-
-/*!
-    Updates status according to current information
-*/
-void NmMailAgent::updateStatus()
-{
-    NMLOG("NmMailAgent::updateStatus");
-
-    int activeIndicators = 0;
-
-    // Update the indicators
-    foreach (NmMailboxInfo *mailboxInfo, mMailboxes) {
-        // Show only active mailboxes
-        if (mailboxInfo->mActive) {
-            updateIndicator(activeIndicators,true,*mailboxInfo);
-            activeIndicators++;
-        }
-    }
-
-    // Hide the indicator that are not needed anymore
-    for (int i=activeIndicators;i<mActiveIndicators;i++) {
-        NmMailboxInfo mailboxInfo;
-        updateIndicator(i,false,mailboxInfo);
-    }
-    mActiveIndicators = activeIndicators;
 }
 
 /*!
@@ -237,7 +272,7 @@ void NmMailAgent::updateStatus()
 */
 bool NmMailAgent::isMailboxActive(const NmMailboxInfo& mailboxInfo)
 {
-    if (mailboxInfo.mUnreadMails>0) {
+    if (mailboxInfo.mUnreadMails>0 || mailboxInfo.mOutboxMails>0) {
         return true;
     }
     return false;
@@ -250,14 +285,15 @@ bool NmMailAgent::isMailboxActive(const NmMailboxInfo& mailboxInfo)
     \param mailboxInfo information of the mailbox
     \return true if indicator was updated with no errors
 */
-bool NmMailAgent::updateIndicator(int mailboxIndex, bool active,
+bool NmMailAgent::updateIndicator(bool active,
     const NmMailboxInfo& mailboxInfo)
 {
     NMLOG(QString("NmMailAgent::updateIndicator index=%1 active=%2 unread=%3").
-        arg(mailboxIndex).arg(active).arg(mailboxInfo.mUnreadMails));
+        arg(mailboxInfo.mIndicatorIndex).arg(active).arg(mailboxInfo.mUnreadMails));
 
     bool ok = false;
-    QString name = QString("com.nokia.nmail.indicatorplugin_")+mailboxIndex+"/1.0";
+    QString name = QString("com.nokia.nmail.indicatorplugin_%1/1.0").
+        arg(mailboxInfo.mIndicatorIndex);
 
     QList<QVariant> list;
     list.append(mailboxInfo.mId.id());
@@ -265,6 +301,8 @@ bool NmMailAgent::updateIndicator(int mailboxIndex, bool active,
     list.append(mailboxInfo.mUnreadMails);
     list.append(mailboxInfo.mSyncState);
     list.append(mailboxInfo.mConnectState);
+    list.append(mailboxInfo.mOutboxMails);
+    list.append(mSendingState);
 
     HbIndicator indicator;
     if (active) {
@@ -277,31 +315,59 @@ bool NmMailAgent::updateIndicator(int mailboxIndex, bool active,
 }
 
 /*!
+    Get next free indicator index, starting from 0
+    @return index of the indicator that is available
+ */
+int NmMailAgent::getIndicatorIndex()
+{
+    int index = 0;
+    bool found(false);
+    do {
+        found = false;
+        foreach (NmMailboxInfo *mailbox, mMailboxes) {
+            if (mailbox->mIndicatorIndex == index &&
+                mailbox->mActive) {
+                found = true;
+                index++;
+            }
+        }
+    }
+    while( found );
+    return index;
+}
+
+/*!
     Received from NmFrameworkAdapter mailboxEvent signal
     \sa NmFrameworkAdapter
 */
 void NmMailAgent::handleMailboxEvent(NmMailboxEvent event, const QList<NmId> &mailboxIds)
 {
     NMLOG(QString("NmMailAgent::handleMailboxEvent %1").arg(event));
-    bool updateNeeded(false);
 
     switch(event) {
         case NmMailboxCreated:
             foreach (NmId mailboxId, mailboxIds) {
                 getMailboxInfo(mailboxId); // create a new mailbox if needed
-                updateNeeded = true;
             }
             break;
         case NmMailboxChanged:
+
             // Mailbox name may have been changed
             foreach (NmId mailboxId, mailboxIds) {
                 NmMailboxInfo *mailboxInfo = getMailboxInfo(mailboxId);
                 NmMailbox *mailbox(NULL);
-                mAdapter->getMailboxById(mailboxId,mailbox);
+                NmDataPluginInterface *plugin = mPluginFactory->interfaceInstance(mailboxId);
+                if (plugin) {
+					plugin->getMailboxById(mailboxId,mailbox);
+                }
                 if (mailbox && mailboxInfo) {
                     if(mailbox->name() != mailboxInfo->mName) {
                         mailboxInfo->mName = mailbox->name();
-                        updateNeeded = true;
+
+                        if (mailboxInfo->mActive) {
+                            // Update the status of the mailbox
+                            updateMailboxState(mailboxId, true, true);
+                        }
                     }
                 }
                 delete mailbox;
@@ -309,23 +375,18 @@ void NmMailAgent::handleMailboxEvent(NmMailboxEvent event, const QList<NmId> &ma
             break;
         case NmMailboxDeleted:
             foreach (NmId mailboxId, mailboxIds) {
-                if (removeMailboxInfo(mailboxId)) {
-                    updateNeeded = true;
-                }
+                // Will hide also the indicator
+                removeMailboxInfo(mailboxId);
             }
             break;
         default:
             break;
     }
-
-    if (updateNeeded) {
-        updateStatus();
-    }
 }
 
 /*!
     Received from NmFrameworkAdapter messageEvent signal
-    \sa NmFrameWorkAdapter
+    \sa NmFrameworkAdapter
 */
 void NmMailAgent::handleMessageEvent(
             NmMessageEvent event,
@@ -334,56 +395,114 @@ void NmMailAgent::handleMessageEvent(
             const NmId& mailboxId)
 {
     NMLOG(QString("NmMailAgent::handleMessageEvent %1 %2").arg(event).arg(mailboxId.id()));
-    Q_UNUSED(folderId);
-    Q_UNUSED(messageIds);
+    bool updateNeeded = false;
 
     switch (event) {
+        case NmMessageCreated: {
+            NmMailboxInfo *mailboxInfo = getMailboxInfo(mailboxId);
+            
+            if (folderId==mailboxInfo->mInboxFolderId) {
+                mailboxInfo->mInboxCreatedMessages++;
+            }
+            
+            // When created a new mail in the outbox, we are in sending state
+            if (mailboxInfo->mOutboxFolderId == folderId) {
+                // The first mail created in the outbox
+                if (mailboxInfo->mOutboxMails <= 0) {
+                    updateNeeded = true;
+                }
+                mailboxInfo->mOutboxMails += messageIds.count();
+            }
+            break;
+        }
         case NmMessageChanged: {
             NmMailboxInfo *mailboxInfo = getMailboxInfo(mailboxId);
+            
+            if (folderId==mailboxInfo->mInboxFolderId) {
+                mailboxInfo->mInboxChangedMessages++;
+            }
+            
             // If not currently syncronizing the mailbox, this may mean
             // that a message was read/unread
             if (mailboxInfo && mailboxInfo->mSyncState==SyncComplete) {
-                // check the unread status here again
-                mailboxInfo->mUnreadMails = getUnreadCount(mailboxId,maxUnreadCount);
-                if(updateMailboxActivity(mailboxId, isMailboxActive(*mailboxInfo))) {
-                    updateStatus();
-                }
+                // check the unread status again
+                mailboxInfo->mUnreadMails = getUnreadCount(mailboxId,NmAgentMaxUnreadCount);
+                updateNeeded = true;
             }
 			break;
 		}
+        case NmMessageDeleted: {
+            NmMailboxInfo *mailboxInfo = getMailboxInfo(mailboxId);
+
+            if (folderId==mailboxInfo->mInboxFolderId) {
+                mailboxInfo->mInboxDeletedMessages++;
+            }
+            
+            // Deleted mails from the outbox
+            if (mailboxInfo->mOutboxFolderId == folderId) {
+                mailboxInfo->mOutboxMails -= messageIds.count();
+
+                // Sanity check for the outbox count
+                if (mailboxInfo->mOutboxMails < 0) {
+                    mailboxInfo->mOutboxMails = 0;
+                }
+
+                // The last mail was now deleted
+                if (mailboxInfo->mOutboxMails == 0) {
+                    updateNeeded = true;
+                }
+            }
+            break;
+        }
         default:
             break;
     }
 
-    // Do not perform an update here, just in handleSyncState
+    if (updateNeeded) {
+        NmMailboxInfo *mailboxInfo = getMailboxInfo(mailboxId);
+        updateMailboxState(mailboxId,
+            isMailboxActive(*mailboxInfo), true /* force refresh */);
+    }
 }
 
 /*!
     Received from NmFrameworkAdapter syncStateEvent signal
-    \sa NmFrameWorkAdapter
+    \sa NmFrameworkAdapter
 */
 void NmMailAgent::handleSyncStateEvent(
             NmSyncState state,
-            const NmId mailboxId)
+            const NmOperationCompletionEvent &event)
 {
-    NMLOG(QString("NmMailAgent::handleSyncStateEvent %1 %2").arg(state).arg(mailboxId.id()));
-    NmMailboxInfo *info = getMailboxInfo(mailboxId);
+    NMLOG(QString("NmMailAgent::handleSyncStateEvent %1 %2").arg(state).arg(event.mMailboxId.id()));
+    NmMailboxInfo *info = getMailboxInfo(event.mMailboxId);
     if (info) {
         info->mSyncState = state;
+        
+        if (state==Synchronizing) {
+            // Reset counters when sync is started
+            info->mInboxCreatedMessages = 0;
+            info->mInboxChangedMessages = 0;
+            info->mInboxDeletedMessages = 0;
+        } 
+        else if (state==SyncComplete) {
+            // Check the unread status here again
+            info->mUnreadMails = getUnreadCount(event.mMailboxId,NmAgentMaxUnreadCount);
 
-        if (state==SyncComplete) {
-            // check the unread status here again
-            info->mUnreadMails = getUnreadCount(mailboxId,maxUnreadCount);
-            if(updateMailboxActivity(mailboxId, isMailboxActive(*info))) {
-                updateStatus();
-            }
+            // Refresh the indicator if messages created or changed
+            NMLOG(QString(" created=%1, changed=%1, deleted=%1").
+                arg(info->mInboxCreatedMessages).
+                arg(info->mInboxChangedMessages).
+                arg(info->mInboxDeletedMessages));
+            bool refresh = (info->mInboxCreatedMessages > 0) || (info->mInboxChangedMessages > 0);
+
+            updateMailboxState(event.mMailboxId, isMailboxActive(*info), refresh);
         }
     }
 }
 
 /*!
     Received from NmFrameworkAdapter connectionState signal
-    \sa NmFrameWorkAdapter
+    \sa NmFrameworkAdapter
 */
 void NmMailAgent::handleConnectionEvent(NmConnectState state, const NmId mailboxId)
 {
@@ -393,7 +512,6 @@ void NmMailAgent::handleConnectionEvent(NmConnectState state, const NmId mailbox
         // Connecting, Connected, Disconnecting, Disconnected
         mailboxInfo->mConnectState = state;
     }
-    updateStatus();
 }
 
 /*!
@@ -405,6 +523,11 @@ bool NmMailAgent::removeMailboxInfo(const NmId &id)
     bool found = false;
     foreach (NmMailboxInfo *mailbox, mMailboxes) {
         if (mailbox->mId == id) {
+            // Hide the indicator too
+            if(mailbox->mIndicatorIndex>=0) {
+                updateIndicator(false,*mailbox);
+            }
+
             found = true;
             mMailboxes.removeAll(mailbox);
         }
@@ -420,18 +543,23 @@ NmMailboxInfo *NmMailAgent::createMailboxInfo(const NmId &id)
 {
     // get information of the mailbox
     NmMailbox *mailbox = NULL;
-    mAdapter->getMailboxById(id, mailbox);
-    if (mailbox) {
-        return createMailboxInfo(*mailbox);
+    NmMailboxInfo *info = NULL;
+    NmDataPluginInterface *plugin = mPluginFactory->interfaceInstance(id);
+    if (plugin) {
+        plugin->getMailboxById(id, mailbox);
+        if (mailbox) {
+            info = createMailboxInfo(*mailbox,plugin);
+        }
     }
-    return NULL;
+
+    return info;
 }
 
 /*!
     Create a new mailbox info with given parameters
     \return new mailbox info object
 */
-NmMailboxInfo *NmMailAgent::createMailboxInfo(const NmMailbox& mailbox)
+NmMailboxInfo *NmMailAgent::createMailboxInfo(const NmMailbox& mailbox,NmDataPluginInterface *plugin)
 {
     NmMailboxInfo *mailboxInfo = new NmMailboxInfo();
     mailboxInfo->mId = mailbox.id();
@@ -440,7 +568,16 @@ NmMailboxInfo *NmMailAgent::createMailboxInfo(const NmMailbox& mailbox)
     mMailboxes.append(mailboxInfo);
 
     // Subscribe to get all mailbox events
-    mAdapter->subscribeMailboxEvents(mailboxInfo->mId);
+    plugin->subscribeMailboxEvents(mailboxInfo->mId);
+
+    // get inbox folder ID
+    mailboxInfo->mInboxFolderId = plugin->getStandardFolderId(
+        mailbox.id(), NmFolderInbox );
+
+    // get outbox folder ID
+    mailboxInfo->mOutboxFolderId = plugin->getStandardFolderId(
+        mailbox.id(), NmFolderOutbox );
+
     return mailboxInfo;
 }
 

@@ -35,10 +35,10 @@ CIpsPlgCreateForwardMessageOperation::CIpsPlgCreateForwardMessageOperation(
     CMsvSession& aMsvSession,
     TRequestStatus& aObserverRequestStatus,
     TMsvPartList aPartList,
-    TMsvId aMailBoxId,
+    TFSMailMsgId aMailBoxId,
     TMsvId aOriginalMessageId, 
     MFSMailRequestObserver& aOperationObserver,
-    const TInt aRequestId ) 
+    TInt aRequestId ) 
     :
     CIpsPlgCreateMessageOperation(
         aSmtpService,
@@ -64,10 +64,10 @@ CIpsPlgCreateForwardMessageOperation* CIpsPlgCreateForwardMessageOperation::NewL
     CMsvSession& aMsvSession,
     TRequestStatus& aObserverRequestStatus,
     TMsvPartList aPartList,
-    TMsvId aMailBoxId,
+    TFSMailMsgId aMailBoxId,
     TMsvId aOriginalMessageId, 
     MFSMailRequestObserver& aOperationObserver,
-    const TInt aRequestId )
+    TInt aRequestId )
     {
     FUNC_LOG;
     CIpsPlgCreateForwardMessageOperation* self =
@@ -113,7 +113,7 @@ void CIpsPlgCreateForwardMessageOperation::RunL()
         if( err == KErrNone )
             {
             newMessage = iSmtpService->CreateFSMessageAndSetFlagsL( 
-                    msgId, iOriginalMessageId, iMailBoxId, ETrue );
+                    msgId, iOriginalMessageId, iFSMailboxId.Id(), ETrue );
             }
         
         // relay the created message (observer takes ownership)

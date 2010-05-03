@@ -41,7 +41,7 @@
 */
 NmIpsPop3SettingsManager::NmIpsPop3SettingsManager(const NmId &mailboxId,
     CEmailAccounts *account, TPopAccount popAccount)
-: NmIpsSettingsManagerBase(mailboxId, account),
+: NmIpsSettingsManagerBase(mailboxId, account, IpsServices::EMailPop),
   mPop3Account(popAccount)
 {
     QT_TRAP_THROWING(mPop3Settings = new(ELeave) CImPop3Settings());
@@ -67,17 +67,36 @@ NmIpsPop3SettingsManager::~NmIpsPop3SettingsManager()
 */
 bool NmIpsPop3SettingsManager::readSetting(IpsServices::SettingItem settingItem, QVariant &value)
 {
-	bool found(true);
+	bool found(false);
 	switch (settingItem) {
-        case IpsServices::LoginName:
+        case IpsServices::IncomingLoginName:
             value = XQConversions::s60Desc8ToQString(mPop3Settings->LoginName());
+            found = true;
             break;
-        case IpsServices::Password:
+        case IpsServices::IncomingPassword:
             value = XQConversions::s60Desc8ToQString(mPop3Settings->Password());
+            found = true;
             break;
         case IpsServices::MailboxName:
             value = XQConversions::s60DescToQString(mPop3Account.iPopAccountName);
+            found = true;
             break;
+        case IpsServices::IncomingMailServer:
+            value = XQConversions::s60DescToQString(mPop3Settings->ServerAddress());
+            found = true;
+            break;   
+        case IpsServices::IncomingPort:
+            value = mPop3Settings->Port();
+            found = true;
+            break;  
+        case IpsServices::IncomingSecureSockets:
+            value = mPop3Settings->SecureSockets();
+            found = true;
+            break;  
+        case IpsServices::IncomingSSLWrapper:
+            value = mPop3Settings->SSLWrapper();
+            found = true;
+            break;  
         default:
             found = NmIpsSettingsManagerBase::readSetting(settingItem, value);
             break;
@@ -99,7 +118,7 @@ bool NmIpsPop3SettingsManager::writeSetting(IpsServices::SettingItem settingItem
     TInt err(KErrNone);
 
     switch (settingItem) {
-        case IpsServices::LoginName:
+        case IpsServices::IncomingLoginName:
             tmp8 = XQConversions::qStringToS60Desc8(settingValue.toString());
             TRAP(err, mPop3Settings->SetLoginNameL(*tmp8));
             delete tmp8;
@@ -107,7 +126,7 @@ bool NmIpsPop3SettingsManager::writeSetting(IpsServices::SettingItem settingItem
                 ret = saveSettings();
             }
             break;
-        case IpsServices::Password:
+        case IpsServices::IncomingPassword:
             tmp8 = XQConversions::qStringToS60Desc8(settingValue.toString());
             TRAP(err, mPop3Settings->SetPasswordL(*tmp8));
             delete tmp8;
@@ -117,12 +136,30 @@ bool NmIpsPop3SettingsManager::writeSetting(IpsServices::SettingItem settingItem
             break;
         case IpsServices::MailboxName:
             tmp = XQConversions::qStringToS60Desc(settingValue.toString());
-            TRAP(err, mPop3Account.iPopAccountName.Copy(*tmp));
+            mPop3Account.iPopAccountName.Copy(*tmp);
+            delete tmp;
+            ret = saveSettings();
+            break;
+        case IpsServices::IncomingMailServer:
+            tmp = XQConversions::qStringToS60Desc(settingValue.toString());
+            TRAP(err, mPop3Settings->SetServerAddressL(*tmp));
             delete tmp;
             if (err==KErrNone) {
                 ret = saveSettings();
             }
             break;
+        case IpsServices::IncomingPort:            
+            mPop3Settings->SetPort(settingValue.toInt());
+            ret = saveSettings();
+            break;
+        case IpsServices::IncomingSecureSockets:
+            mPop3Settings->SetSecureSockets(settingValue.toBool());
+            ret = saveSettings();
+            break;  
+        case IpsServices::IncomingSSLWrapper:
+            mPop3Settings->SetSSLWrapper(settingValue.toBool());
+            ret = saveSettings();
+            break;  
         default:
             ret = NmIpsSettingsManagerBase::writeSetting(settingItem, settingValue);
             break;
@@ -138,9 +175,9 @@ bool NmIpsPop3SettingsManager::writeSetting(IpsServices::SettingItem settingItem
 */
 int NmIpsPop3SettingsManager::deleteMailbox()
 {
-    int error(NmIpsSettingsManagerBase::deleteMailbox());
+    TRAPD(error, mAccount->DeletePopAccountL(mPop3Account));
     if (!error) {
-        TRAP(error, mAccount->DeletePopAccountL(mPop3Account));
+    	NmIpsSettingsManagerBase::deleteMailbox();
     }
 
     NMLOG(QString("NmIpsPop3SettingsManager::deleteMailbox status %1").arg(error));
@@ -156,4 +193,21 @@ bool NmIpsPop3SettingsManager::saveSettings()
     TRAPD(err, mAccount->SavePopSettingsL(mPop3Account, *mPop3Settings));
     NMLOG(QString("NmIpsPop3SettingsManager::saveSettings rval %1").arg(err));
     return (err==KErrNone);
+}
+
+/*!
+     Determine the default port for the incoming mail server based on the security settings
+     
+     \return int the port number to use
+ */
+int NmIpsPop3SettingsManager::determineDefaultIncomingPort()
+{
+    int port = 0;    
+    bool sslTls = mPop3Settings->SSLWrapper();    
+    if (sslTls) {
+        port = IpsServices::securePop3Port;
+    } else {
+        port = IpsServices::standardPop3Port;
+    }        
+    return port;
 }

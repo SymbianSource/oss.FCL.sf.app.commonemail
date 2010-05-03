@@ -18,11 +18,22 @@
 #ifndef NMUTILITIES_H_
 #define NMUTILITIES_H_
 
+#include <QObject>
+
+class NmMessage;
+class NmMessageEnvelope;
+class NmAddress;
+class NmOperationCompletionEvent;
+class QFile;
+class XQSharableFile;
+class NmOperationCompletionEvent;
+
 /*!
 	UI utilities class
 */
-class NmUtilities
-{    
+class NmUtilities : public QObject
+{
+    Q_OBJECT
 public:
     enum NmAddressValidationType {
         ValidAddress,
@@ -44,9 +55,18 @@ public:
 
     static int openFile(QFile &file);
     
-    static int openFile(RFile &file);
+    static int openFile(XQSharableFile &file);
     
     static QString truncate( const QString &string, int length );
+
+    static QString attachmentSizeString(const int sizeInBytes);
+
+    static void displayErrorNote(QString noteText); 
+
+    // note: this is not static function
+    void displayOperationCompletionNote(const NmOperationCompletionEvent &event);
+    
+    static QString createReplyHeader(const NmMessageEnvelope &env);
 };
 
 #endif /* NMUTILITIES_H_ */

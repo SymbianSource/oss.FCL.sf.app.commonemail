@@ -40,8 +40,12 @@ public:
 public: // from MFSMailRequestObserver
     virtual void RequestResponseL(TFSProgress aEvent, TInt aRequestId);
     
-protected slots:
-    virtual void runAsyncOperation();
+protected:
+    virtual void doRunAsyncOperation();
+    virtual void doCancelOperation();
+
+private:
+    void doRunAsyncOperationL();	
 
 private:
     const NmMessage &mMessage;

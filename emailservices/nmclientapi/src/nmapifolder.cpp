@@ -113,7 +113,7 @@ void NmFolder::setChildFolderIds(QList<quint64> &childFolderIds)
  * Returns count of child folder ids.
  * to be implemented later when nmail functionality is available
  */
-void NmFolder::childFolderIds(QList<quint64> &childFolderIds)
+void NmFolder::getChildFolderIds(QList<quint64> &childFolderIds)
 {
     childFolderIds = d->childFolderIds;
 }

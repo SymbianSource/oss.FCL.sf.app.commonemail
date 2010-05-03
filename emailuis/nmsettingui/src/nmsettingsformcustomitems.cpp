@@ -15,9 +15,14 @@
 *
 */
 
-#include "nmsettingsformcustomitems.h"
+#include <QModelIndex>
+#include <HbPushButton>
+#include <HbAbstractViewItem>
+#include <HbDataFormModel>
+#include <HbDataFormModelItem>
+#include <HbAbstractItemView>
 
-#include <hbpushbutton.h>
+#include "nmsettingsformcustomitems.h"
 
 
 /*!
@@ -57,6 +62,29 @@ bool NmSettingsFormCustomItems::canSetModelIndex(const QModelIndex &index) const
     return type==NmButtonItem;
 }
 
+/*!
+    Sets the custom widget's properties from the model item.
+*/
+void NmSettingsFormCustomItems::restore()
+{
+    HbDataFormModelItem::DataItemType itemType = static_cast<HbDataFormModelItem::DataItemType>(
+        modelIndex().data(HbDataFormModelItem::ItemTypeRole).toInt());
+     if (itemType==NmButtonItem) {
+
+         HbDataFormModel* model = static_cast<HbDataFormModel*>
+             (static_cast<HbAbstractViewItem*>(this)->itemView()->model());
+         HbDataFormModelItem* modelItem = model->itemFromIndex(modelIndex());
+         QHash<QString ,QVariant> properties =
+             modelItem->data(HbDataFormModelItem::PropertyRole).toHash();
+         QList <QString> propertyNames = properties.keys();
+
+         for (int index=0; index < propertyNames.count(); index++) {
+             QString propName = propertyNames.at(index);
+             dataItemContentWidget()->setProperty(propName.toAscii().data(),
+                                                  properties.value(propName));
+         }
+     }
+}
 
 /*!
     From HbDataFormViewItem.
@@ -72,8 +100,7 @@ HbWidget *NmSettingsFormCustomItems::createCustomWidget()
     switch (itemType) {
       case NmButtonItem: {
             // Push button.
-            QString text = modelIndex().data(HbDataFormModelItem::KeyRole).toString();
-            widget = new HbPushButton(text);
+            widget = new HbPushButton();
         }
         default: {
             break;

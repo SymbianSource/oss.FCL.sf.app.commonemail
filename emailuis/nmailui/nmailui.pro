@@ -27,6 +27,9 @@ QT += webkit
 QT += network
 MOC_DIR = moc
 
+LIBS += -leuser
+LIBS += -llibc
+
 symbian*: {
     INCLUDEPATH += $$APP_LAYER_SYSTEMINCLUDE
     
@@ -96,7 +99,9 @@ HEADERS += inc/nmeditorcontent.h \
     inc/nmmailboxserviceinterface.h \
     inc/nmviewerserviceinterface.h \
     inc/nmutilities.h \
-    inc/nmattachmentlist.h
+    inc/nmattachmentlist.h \
+    inc/nmeditortextdocument.h \
+    inc/nmattachmentpicker.h
 
 SOURCES += src/nmeditorcontent.cpp \
     src/nmeditorheader.cpp \
@@ -121,7 +126,9 @@ SOURCES += src/nmeditorcontent.cpp \
     src/nmmailboxserviceinterface.cpp \
     src/nmviewerserviceinterface.cpp \
     src/nmutilities.cpp \
-    src/nmattachmentlist.cpp
+    src/nmattachmentlist.cpp \
+    src/nmeditortextdocument.cpp \
+    src/nmattachmentpicker.cpp    
 
 RESOURCES += nmailui.qrc
 RESOURCES += nmmessagelistviewitem.qrc

@@ -21,6 +21,12 @@
 // Qt
 #include <QtPlugin>
 #include <QByteArray>
+#include <QTextCodec>
+#include <QRegExp>
+#include <QTimer>
+#ifdef Q_OS_SYMBIAN
+#include <xqsharablefile.h>
+#endif
 // Orbit
 
 // nmailuiengine

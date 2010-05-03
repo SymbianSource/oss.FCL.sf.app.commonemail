@@ -27,13 +27,11 @@ class CIpsPlgEventHandler;
 * Encapsulates connection validation.
 */
 NONSHARABLE_CLASS ( CIpsPlgPop3ConnectOp ) :
-    public CIpsPlgOnlineOperation,
-    public MIpsPlgConnectOpCallback
+    public CIpsPlgOnlineOperation
+    // public MIpsPlgConnectOpCallback <qmail> not used any more
     {
-public://from MIpsPlgConnectOpCallback
-    
-    void CredientialsSetL( TInt aEvent );
-    public:
+    // <qmail> MIpsPlgConnectOpCallback not used any more
+public:
 
         /**
         *
@@ -45,10 +43,9 @@ public://from MIpsPlgConnectOpCallback
             TBool aForcePopulate,
             CIpsPlgTimerOperation& aActivityTimer,
             TFSMailMsgId aFSMailBoxId,
-            MFSMailRequestObserver& aFSOperationObserver,
+            MFSMailRequestObserver* aFSOperationObserver,
             TInt aFSRequestId,
-            CIpsPlgEventHandler* aEventHandler=NULL,
-            TBool aSignallingAllowed=ETrue );
+            CIpsPlgEventHandler* aEventHandler=NULL );
 
         /**
         *
@@ -66,7 +63,12 @@ public://from MIpsPlgConnectOpCallback
         TFSProgress GetFSProgressL() const;
 
 // <qmail> Connected() used from baseclass
-        virtual TInt IpsOpType() const;
+        
+        // <qmail> change ret val type
+        /**
+         * Returns operation type
+         */
+        TIpsOpType IpsOpType() const;
 
     protected:
 
@@ -102,10 +104,9 @@ public://from MIpsPlgConnectOpCallback
             TBool aForcePopulate,
             CIpsPlgTimerOperation& aActivityTimer,
             TFSMailMsgId aFSMailBoxId,
-            MFSMailRequestObserver& aFSOperationObserver,
+            MFSMailRequestObserver* aFSOperationObserver,
             TInt aFSRequestId,
-            CIpsPlgEventHandler* aEventHandler,
-            TBool aSignallingAllowed );
+            CIpsPlgEventHandler* aEventHandler );
 
         /**
         *

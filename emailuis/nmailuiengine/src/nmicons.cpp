@@ -26,30 +26,31 @@ static HbIcon *icons[NmIcons::NmLastItem];
 struct IconRes {
     NmIcons::Icon id;
     QString resName;
+    QString animXmlName;
 };
 
 /*!
     Icon array
 */
 static IconRes icon_res[] = {
-    {NmIcons::NmIconDefaultMailbox, "qtg_large_email"},
-    {NmIcons::NmIconPlusSign, "qtg_small_expand"},
-    {NmIcons::NmIconMinusSign, "qtg_small_collapse"},
-    {NmIcons::NmIconAttachment, "qtg_small_attachment"},
-    {NmIcons::NmIconPriorityHigh, "qtg_small_priority_high"},
-    {NmIcons::NmIconPriorityLow, "qtg_small_priority_low"},
-    {NmIcons::NmIconAttach, "qtg_mono_attach"},
-    {NmIcons::NmIconSend, "qtg_mono_send"},
-    {NmIcons::NmIconContacts, "qtg_mono_contacts"},
-    {NmIcons::NmIconNewEmail, "qtg_mono_create_email"},
-    {NmIcons::NmIconDelete, "qtg_mono_delete"},
-    {NmIcons::NmIconForward, "qtg_mono_forward"},
-    {NmIcons::NmIconReply, "qtg_mono_reply"},
-    {NmIcons::NmIconReplyAll, "qtg_mono_reply_all"},
-    {NmIcons::NmIconSynching, "qtg_small_attachment"},
-    {NmIcons::NmIconOnline, "qtg_small_priority_low"},
-    {NmIcons::NmIconDisconnected, "qtg_small_priority_high"},
-    {NmIcons::NmIconOffline, "qtg_small_fail"},
+    {NmIcons::NmIconDefaultMailbox, "qtg_large_email", ""},
+    {NmIcons::NmIconPlusSign, "qtg_small_expand", ""},
+    {NmIcons::NmIconMinusSign, "qtg_small_collapse", ""},
+    {NmIcons::NmIconAttachment, "qtg_small_attachment", ""},
+    {NmIcons::NmIconPriorityHigh, "qtg_small_priority_high", ""},
+    {NmIcons::NmIconPriorityLow, "qtg_small_priority_low", ""},
+    {NmIcons::NmIconAttach, "qtg_mono_attach", ""},
+    {NmIcons::NmIconSend, "qtg_mono_send", ""},
+    {NmIcons::NmIconContacts, "qtg_mono_contacts", ""},
+    {NmIcons::NmIconNewEmail, "qtg_mono_create_email", ""},
+    {NmIcons::NmIconDelete, "qtg_mono_delete", ""},
+    {NmIcons::NmIconForward, "qtg_mono_forward", ""},
+    {NmIcons::NmIconReply, "qtg_mono_reply", ""},
+    {NmIcons::NmIconReplyAll, "qtg_mono_reply_all", ""},
+    {NmIcons::NmIconSynching, "qtg_anim_small_loading", "qtg_anim_small_loading.axml"},
+    {NmIcons::NmIconOnline, "qtg_small_connected", ""},
+    {NmIcons::NmIconDisconnected, "qtg_small_disconnected", ""},
+    {NmIcons::NmIconOffline, "qtg_small_fail", ""},
     {NmIcons::NmLastItem, ""} // Last item definion.
 };
 
@@ -70,6 +71,10 @@ HbIcon &NmIcons::getIcon(NmIcons::Icon icon)
             if (icon_res[i].id == icon) {
                 // Branding icon check here. If branded icon is not found
                 // default icon is to be loaded.
+            
+                if (icon_res[i].animXmlName.length() > 0) {
+                    HbIconAnimationManager::global()->addDefinitionFile(icon_res[i].animXmlName);
+                }
                 icons[icon] = new HbIcon(icon_res[i].resName);
                 break;
             }
