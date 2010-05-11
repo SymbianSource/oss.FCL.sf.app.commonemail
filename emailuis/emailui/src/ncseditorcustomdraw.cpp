@@ -82,13 +82,15 @@ void CNcsEditorCustomDraw::DrawBackground(
     TRect& aDrawn ) const
     {
     FUNC_LOG;
+    TRect drawRect( aParam.iDrawRect );
+    
     if ( iPrevBrX == 0 )
         {
-        const_cast<CNcsEditorCustomDraw*>(this)->iPrevBrX = aParam.iDrawRect.iBr.iX;
+        const_cast<CNcsEditorCustomDraw*>(this)->iPrevBrX = drawRect.iBr.iX;
         }
     
     // draw background if text selection is ongoing
-    if ( iEditor->SelectionLength() )
+    if ( !iEditor->IsPhysicsEmulationOngoing() )
     	{
 		iCustomDrawer->DrawBackground( aParam, aBackground, aDrawn );
     	}
@@ -96,29 +98,34 @@ void CNcsEditorCustomDraw::DrawBackground(
     	{
         aDrawn = aParam.iDrawRect;
     	}
-    	
-    if ( aParam.iDrawRect.iTl.iX < iPrevBrX )
+
+    if ( drawRect.iTl.iY == 0 )
+        {
+        drawRect.iTl.iY = drawRect.Height() - iLineHeigth;
+        }
+
+    if ( drawRect.iTl.iX < iPrevBrX )
         {
         aParam.iGc.SetPenColor( iLineColor );
     
         TInt margin( 0 );
-        if ( aParam.iDrawRect.Height() < iLineHeigth ||
-             aParam.iDrawRect.Height() == iLineOffset )
+        if ( drawRect.Height() < iLineHeigth ||
+             drawRect.Height() == iLineOffset )
             {
             margin = 1;
             }
     
-        TRect currentRect( aParam.iDrawRect.iTl , TPoint( aParam.iDrawRect.iBr.iX, aParam.iDrawRect.iTl.iY + iLineOffset - margin ));
+        TRect currentRect( drawRect.iTl , TPoint( drawRect.iBr.iX, drawRect.iTl.iY + iLineOffset - margin ));
         
-        while ( currentRect.iBr.iY <= aParam.iDrawRect.iBr.iY )
+        while ( currentRect.iBr.iY <= drawRect.iBr.iY )
             {
-            if ( currentRect.iTl.iY >= aParam.iDrawRect.iTl.iY  )
+            if ( currentRect.iTl.iY >= drawRect.iTl.iY  )
                 {
                 aParam.iGc.DrawLine( TPoint( currentRect.iTl.iX, currentRect.iBr.iY), currentRect.iBr );
                 }
             currentRect.Move( 0, iLineHeigth );
             }
-        const_cast<CNcsEditorCustomDraw*>(this)->iPrevBrX = aParam.iDrawRect.iBr.iX;
+        const_cast<CNcsEditorCustomDraw*>(this)->iPrevBrX = drawRect.iBr.iX;
         }
     }
 

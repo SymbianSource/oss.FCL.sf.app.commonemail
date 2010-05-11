@@ -243,7 +243,11 @@ MEmailMessage* CEmailMailbox::MessageL( const TMessageId& aMessageId )
             EFSMsgDataEnvelope);
 
     CleanupStack::PushL( fsMessage );
-    CEmailMessage* message = CEmailMessage::NewL( iPluginData, fsMessage, EClientOwns );
+    
+    CEmailMessage* message = NULL;
+    
+    if ( fsMessage )
+        message = CEmailMessage::NewL( iPluginData, fsMessage, EClientOwns );
     CleanupStack::Pop();  // fsMessage
 
     return message;

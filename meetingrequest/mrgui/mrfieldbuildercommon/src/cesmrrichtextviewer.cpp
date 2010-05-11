@@ -12,7 +12,7 @@
 * Contributors:
 *
 *  Description : CEikRichTextEditor based Rich Text viewer
-*  Version     : %version: e002sa33#40 %
+*  Version     : %version: e002sa32#41 %
 *
 */
 
@@ -720,7 +720,7 @@ EXPORT_C TInt CESMRRichTextViewer::GetFocusLink( ) const
         {
         return linkIndex;
         }
-    
+
     TCursorSelection currentSelection = Selection();
 
     for ( TInt i = 0; i < iLinkList.Count(); ++i )
@@ -741,6 +741,40 @@ EXPORT_C TInt CESMRRichTextViewer::GetFocusLink( ) const
 
     return linkIndex;
     }
+
+// -----------------------------------------------------------------------------
+// CESMRRichTextViewer::PointerEventOccuresOnALinkL
+// -----------------------------------------------------------------------------
+//
+EXPORT_C TBool CESMRRichTextViewer::PointerEventOccuresOnALinkL(
+		const TPointerEvent &aPointerEvent )
+    {
+    FUNC_LOG;
+    TBool ret( EFalse );
+
+    RRegion linkArea;
+    CleanupClosePushL( linkArea );
+
+    // Find matching link
+    TInt count( iLinkList.Count() );
+
+    for ( TInt i = 0; i < count; ++i )
+        {
+        CESMRRichTextLink* link = iLinkList[ i ];
+        GetLinkAreaL( linkArea, *link );
+
+        if ( linkArea.Contains( aPointerEvent.iPosition ) )
+            {
+            ret = ETrue;
+            break;
+            }
+        }
+
+    CleanupStack::PopAndDestroy( &linkArea );
+
+    return ret;
+    }
+
 
 // -----------------------------------------------------------------------------
 // CESMRRichTextViewer::CESMRRichTextViewer

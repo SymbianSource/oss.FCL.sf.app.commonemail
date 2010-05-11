@@ -25,10 +25,10 @@
 
 #include <calentry.h>
 #include <caluser.h>
-#include <stringloader.h>
+#include <StringLoader.h>
 #include <eikenv.h>
 #include <avkon.hrh>
-#include <aknutils.h>
+#include <AknUtils.h>
 #include <esmrgui.rsg>
 
 // DEBUG
@@ -73,7 +73,7 @@ void CESMRViewerFromField::InitializeL()
             Rect(), NMRLayoutManager::EMRTextLayoutMultiRowTextEditor );
     iRichTextViewer->SetFontL( editorRect.Font() );
     iRichTextViewer->ApplyLayoutChangesL();
-    
+
     const CFont* topicFont =
         AknLayoutUtils::FontFromId( EAknLogicalFontPrimaryFont, NULL );
     iFieldTopic->SetFont( topicFont );
@@ -157,9 +157,9 @@ void CESMRViewerFromField::SizeChanged( )
             editorRect.TextRect().iTl.iX, editorRect.TextRect().iTl.iY );
     TSize prefSize( editorRect.TextRect().Width(), iExpandedSize.iHeight );
     TRect viewerRect( tlPoint, prefSize );
-    // Failures are ignored. 
-    TRAP_IGNORE( 
-            // Try setting font 
+    // Failures are ignored.
+    TRAP_IGNORE(
+            // Try setting font
             iRichTextViewer->SetFontL( editorRect.Font() );
             // Try applying changes
             iRichTextViewer->ApplyLayoutChangesL();
@@ -342,21 +342,6 @@ void CESMRViewerFromField::SetOutlineFocusL( TBool aFocus )
         {
         //need to tell action menu that focus has changed
         iRichTextViewer->ResetActionMenuL();
-        }
-    }
-
-// ---------------------------------------------------------------------------
-// CESMRViewerFromField::HandleLongtapEventL
-// ---------------------------------------------------------------------------
-//
-void CESMRViewerFromField::HandleLongtapEventL( const TPoint& aPosition )
-    {
-    FUNC_LOG;
-    
-    if ( iRichTextViewer->Rect().Contains( aPosition ) )
-        {
-        iRichTextViewer->LinkSelectedL();
-		HandleTactileFeedbackL();
         }
     }
 

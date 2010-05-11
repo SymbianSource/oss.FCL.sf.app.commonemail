@@ -82,7 +82,7 @@ void CESMRViewerAlarmTimeField::ConstructL()
     iLabel->SetParent( this );
     CESMRField::ConstructL( iLabel ); // ownership transfered
 
-    iIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapAlarmClock ); //TODO: Is this correct icon
+    iIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapAlarmClock );
     iIcon->SetParent( this );
     }
 

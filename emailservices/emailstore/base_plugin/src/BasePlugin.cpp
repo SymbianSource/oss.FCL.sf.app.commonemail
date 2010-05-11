@@ -1152,6 +1152,15 @@ void CBasePlugin::DoListFoldersL(
     CleanupStack::PopAndDestroy( &folders );
     }
 
+/**
+ * This methoed must be called before destruction of 
+ * CBasePlugin derived class. To fix bug EIZU-7XVF2Z.
+ */
+EXPORT_C void CBasePlugin::DeleteDelayedOpsManager()
+    {
+    delete iDelayedOpsManager;
+    iDelayedOpsManager = NULL;
+    }
 
 /**
  *

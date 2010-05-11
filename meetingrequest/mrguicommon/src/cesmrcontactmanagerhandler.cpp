@@ -19,11 +19,11 @@
 #include "emailtrace.h"
 #include "cesmrcontactmanagerhandler.h"
 
-#include <cvpbkcontactmanager.h>
-#include <cvpbkcontactstoreuriarray.h>
-#include <mvpbkcontactstorelist.h>
-#include <vpbkcontactstoreuris.h>
-#include <tvpbkcontactstoreuriptr.h>
+#include <CVPbkContactManager.h>
+#include <CVPbkContactStoreUriArray.h>
+#include <MVPbkContactStoreList.h>
+#include <VPbkContactStoreUris.h>
+#include <TVPbkContactStoreUriPtr.h>
 
 // ======== MEMBER FUNCTIONS ========
 

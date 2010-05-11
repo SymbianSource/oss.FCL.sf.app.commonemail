@@ -12,7 +12,7 @@
 * Contributors:
 *
 *  Description : ESMR entry processor implementation
-*  Version     : %version: e002sa33#11 %
+*  Version     : %version: 11.1.1 %
 *
 */
 
@@ -34,8 +34,8 @@
 #include <calrrule.h>
 #include <caluser.h>
 #include <caltime.h>
-#include <caleninterimutils2.h>
-#include <magnentryui.h>
+#include <CalenInterimUtils2.h>
+#include <MAgnEntryUi.h>
 #include <ct/rcpointerarray.h>
 
 /// Unnamed namespace for local definitions

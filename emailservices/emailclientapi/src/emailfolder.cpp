@@ -178,11 +178,13 @@ TInt CEmailFolder::GetSubfoldersL( RFolderArray& aSubfolders ) const
         const CFSMailFolder* fsfolder = folders[i];
         const TEntryId id = fsfolder->GetFolderId().Id();
         const TFolderId folderId( id, iFolderId.iMailboxId.iId );
-        MEmailFolder* folder = CEmailFolder::NewL( iPluginData, folderId, folders[i]);
+        MEmailFolder* folder = CEmailFolder::NewLC( iPluginData, folderId, folders[i]);
         aSubfolders.AppendL( folder );
+        CleanupStack::Pop( folder ); // asubfolders took ownership
+        folders[i] = NULL;
         }
-    CleanupStack::Pop();    // folders
-    folders.Close();
+    CleanupStack::Pop( &folders );    // folders
+    folders.Close(); // aSubfolders took ownership
     return res;
     }
 

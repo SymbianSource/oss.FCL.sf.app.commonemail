@@ -29,7 +29,7 @@
 #include "cesmrgenericfieldevent.h"
 
 #include <esmrgui.rsg>
-#include <stringloader.h>
+#include <StringLoader.h>
 #include <data_caging_path_literals.hrh>
 
 // DEBUG

@@ -11,11 +11,11 @@
 *
 * Contributors:
 *
-* Description: 
+* Description:
 *
 */
 
-#include <calremoteattachmentapidefs.h>
+#include "calremoteattachmentapidefs.h"
 #include <ecom/ecom.h>
 
 // simple wrapper class with array deletion on close
@@ -37,19 +37,19 @@ inline CCalRemoteAttachmentApi* CCalRemoteAttachmentApi::NewL(
         const TDesC8& aUri )
     {
     TAny* ptr( NULL );
-    
+
     RImplInfoPtrArrayCalRemoteAttachment implArray;
     CleanupClosePushL( implArray );
-    REComSession::ListImplementationsL( 
+    REComSession::ListImplementationsL(
             TUid::Uid( KCalRemoteAttachmentAPIInterface ),
             implArray );
-    
+
     TInt implCount( implArray.Count() );
     if ( !implCount )
         {
         User::Leave( KErrNotFound );
         }
-    
+
     for ( TInt i(0); i < implCount && !ptr; ++i )
         {
         TPtrC8 datatype( implArray[i]->DataType() );
@@ -59,10 +59,10 @@ inline CCalRemoteAttachmentApi* CCalRemoteAttachmentApi::NewL(
             TUid implUid = implArray[i]->ImplementationUid();
             ptr = REComSession::CreateImplementationL( implUid,
                                                        keyOffset,
-                                                       NULL );        
+                                                       NULL );
             }
         }
-    
+
     User::LeaveIfNull( ptr );
     CleanupStack::PopAndDestroy( &implArray );
     return reinterpret_cast<CCalRemoteAttachmentApi*>(ptr);

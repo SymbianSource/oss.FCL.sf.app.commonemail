@@ -16,7 +16,7 @@
 */
 
 #include "emailtrace.h"
-#include <stringloader.h>
+#include <StringLoader.h>
 #include "cesmrrecurrence.h"
 
 // ======== MEMBER FUNCTIONS ========

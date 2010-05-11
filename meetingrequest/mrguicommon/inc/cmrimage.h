@@ -19,7 +19,7 @@
 #define CMRIMAGE_H
 
 //#include <aknsconstants.h>
-#include <akniconutils.h>
+#include <AknIconUtils.h>
 #include <eikimage.h>
 
 #include "esmrfieldbuilderdef.h"

@@ -122,4 +122,5 @@ EXPORTS
 	_ZTV27CIpsSetUiSubscriptionDialog @ 121 NONAME
 	_ZTV31CSubscriptionDialogActiveHelper @ 122 NONAME
 	_ZTV9CIpsSetUi @ 123 NONAME
+	_ZN14CIpsSetDataApi14SignatureTextLERK9TMsvEntry @ 124 NONAME
 

@@ -12,14 +12,14 @@
 * Contributors:
 *
 *  Description : ESMR tracking viewe dialog
-*  Version     : %version: e002sa33#7 %
+*  Version     : %version: e002sa32#7.1.1 %
 *
 */
 #ifndef CESMRTRACKINGVIEWDIALOG_H
 #define CESMRTRACKINGVIEWDIALOG_H
 
 // SYSTEM INCLUDE
-#include <akndialog.h>
+#include <AknDialog.h>
 #include <caluser.h>
 //#include <aknlists.h> 
 

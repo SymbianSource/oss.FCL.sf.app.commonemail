@@ -40,7 +40,7 @@ class MCalRemoteAttachmentOperation;
 /**
  * CMRViewerAttachmentsField is entry viewer attachment field
  */
-NONSHARABLE_CLASS( CMRViewerAttachmentsField ): 
+NONSHARABLE_CLASS( CMRViewerAttachmentsField ):
         public CESMRField,
         public MEikEdwinSizeObserver,
         public MESMRRichTextObserver
@@ -70,20 +70,22 @@ protected: // From CESMRField
                  TInt aResourceId,
                  CEikMenuPane* aMenuPane );
     void LockL();
-    
+    TBool SupportsLongTapFunctionalityL(
+        		 const TPointerEvent &aPointerEvent );
+
 protected: // From CCoeControl
     TInt CountComponentControls() const;
     CCoeControl* ComponentControl( TInt aInd ) const;
     void SizeChanged();
     TKeyResponse OfferKeyEventL( const TKeyEvent& aKeyEvent, TEventCode aType );
     void SetContainerWindowL( const CCoeControl& aControl );
-    
+
 protected: // From MEikEdwinSizeObserver
     TBool HandleEdwinSizeEventL( CEikEdwin* aEdwin, TEdwinSizeEvent aType, TSize aDesirableEdwinSize);
-    
-public: // From MESMRRichTextObserver
+
+protected: // From MESMRRichTextObserver
     TBool HandleRichTextLinkSelection( const CESMRRichTextLink* aLink );
-    
+
 private: // Implementation
     CMRViewerAttachmentsField();
     void ConstructL();
@@ -98,7 +100,8 @@ private: // Implementation
     void DynInitMenuPaneForCurrentAttachmentL(
                  CEikMenuPane* aMenuPane );
     TBool IsAttachmentDownloadInProgress( const CCalAttachment& aAttachment );
-    
+    TInt MaxTextLengthInPixelsL();
+
 private: //data
     // Own: Field icon
     CMRImage* iFieldIcon;

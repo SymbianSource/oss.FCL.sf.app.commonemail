@@ -30,8 +30,8 @@
 #include <eikenv.h>
 #include <baclipb.h>
 #include <eikbtgpc.h>
-#include <stringloader.h>
-#include <aknutils.h>
+#include <StringLoader.h>
+#include <AknUtils.h>
 #include <touchfeedback.h>
 
 // ======== MEMBER FUNCTIONS ========
@@ -77,8 +77,6 @@ EXPORT_C void CESMRField::ConstructL(
     FUNC_LOG;
     iExtControl = aControl;
 
-    // TODO: This should be made in ConstructL instead as soon we
-    //       get rid of old CESMRLayoutManager.
     iBackground = CMRBackground::NewL();
     this->SetBackground( iBackground );
     }
@@ -825,6 +823,7 @@ EXPORT_C void CESMRField::UpdateExtControlL(
 //
 EXPORT_C void CESMRField::LockL()
 	{
+    FUNC_LOG;
 	iLocked = ETrue;
 	}
 
@@ -834,9 +833,21 @@ EXPORT_C void CESMRField::LockL()
 //
 EXPORT_C TBool CESMRField::IsLocked()
 	{
+    FUNC_LOG;
 	return iLocked;
 	}
 
+// ---------------------------------------------------------------------------
+// CESMRField::SupportsLongTapFunctionalityL
+// ---------------------------------------------------------------------------
+//
+EXPORT_C TBool CESMRField::SupportsLongTapFunctionalityL(
+		const TPointerEvent &aPointerEvent )
+	{
+    FUNC_LOG;
+    // Subclasses may override for field specific actions
+	return EFalse;
+	}
 
 // ---------------------------------------------------------------------------
 // CESMRField::HandleTactileFeedbackL
@@ -847,7 +858,7 @@ EXPORT_C void CESMRField::HandleTactileFeedbackL()
     FUNC_LOG;
 
     AquireTactileFeedback();
-    
+
     if ( iTactileFeedback && iTactileFeedback->FeedbackEnabledForThisApp() )
         {
         iTactileFeedback->InstantFeedback( ETouchFeedbackBasic );

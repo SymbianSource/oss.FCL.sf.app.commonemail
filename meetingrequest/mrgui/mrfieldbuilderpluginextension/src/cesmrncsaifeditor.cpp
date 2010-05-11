@@ -18,12 +18,12 @@
 #include "emailtrace.h"
 #include "cesmrncsaifeditor.h"
 
-#include <aknsdrawutils.h>
+#include <AknsDrawUtils.h>
 #include <s32mem.h>
 #include <txtrich.h>
 #include <baclipb.h>
-#include <ptidefs.h>
-#include <stringloader.h>
+#include <PtiDefs.h>
+#include <StringLoader.h>
 #include <eikedwin.h>
 #include <txtclipboard.h>
 

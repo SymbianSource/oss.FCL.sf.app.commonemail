@@ -111,8 +111,7 @@ void CMRNaviArrow::ConstructL( const CCoeControl* aParent )
 void CMRNaviArrow::InitNaviArrowsL()
     {
     FUNC_LOG;
-    // Button
-    // TODO: Icons id should be changed to correct one when available
+
     CFbsBitmap* bitMapL( NULL );
     CFbsBitmap* bitMapMaskL( NULL );
     NMRBitmapManager::TMRBitmapId bitmapId;

@@ -25,12 +25,12 @@
 #include "cesmrglobalnote.h"
 
 #include <esmrgui.rsg>
-#include <stringloader.h>
+#include <StringLoader.h>
 #include <barsread.h>
 #include <avkon.hrh>
-#include <aknutils.h>
+#include <AknUtils.h>
 #include <calentry.h>
-#include <caleninterimutils2.h>
+#include <CalenInterimUtils2.h>
 // DEBUG
 #include "emailtrace.h"
 

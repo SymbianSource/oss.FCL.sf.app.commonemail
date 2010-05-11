@@ -776,7 +776,6 @@ void CMRFieldContainer::ScrollControlVisible( TInt aInd )
         // Field is in edit mode
         if( field->FieldMode() == EESMRFieldModeEdit )
             {
-            // TODO: CORRECT if broken
             TInt viewBottom( parentRect.iBr.iY );
 
             TInt fieldUpper( 0 );
@@ -798,7 +797,7 @@ void CMRFieldContainer::ScrollControlVisible( TInt aInd )
                 // scroll amount.
                 if ( iFocusedFieldIndex == iFactory.Count()-1 )
                     {
-                    px += KVerticalScrollMargin; // TODO: Fix me! K-value must be removed.
+                    px += KVerticalScrollMargin;
                     }
                 
                 // Scrollbar and physics update is done here

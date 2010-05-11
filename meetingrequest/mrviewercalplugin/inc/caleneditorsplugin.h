@@ -21,7 +21,7 @@
 
 #include <e32base.h>
 #include <ecom/ecom.h>
-#include <magnentryui.h>
+#include <MAgnEntryUi.h>
 
 /**
  * Resolver for loading correct ECOM Implementation for 

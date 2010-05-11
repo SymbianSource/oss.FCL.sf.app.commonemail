@@ -19,9 +19,9 @@
 
 #include <gdi.h>
 #include <eikmfne.h>
-#include <aknsitemid.h>
-#include <aknutils.h>
-#include <aknsutils.h>
+#include <AknsItemID.h>
+#include <AknUtils.h>
+#include <AknsUtils.h>
 #include <esmrgui.mbg>
 #include <data_caging_path_literals.hrh>
 
@@ -99,10 +99,7 @@ EXPORT_C TMRColorStruct NMRColorManager::GetColorStruct( TMRColorId aColorId )
             {
             colorStruct.iColorGroup = KAknsIIDFsOtherColors;
             colorStruct.iColorIndex = EAknsCIFsOtherColorsCG1; 
-            // TODO: Once feature confirmed by UI specifier, confirm the
-            // correct color
             }
-        // TODO: For testing purposes only; keep as last item during development
         case EMRLastColorItemId:
             {
             colorStruct.iColorGroup = KAknsIIDQsnTextColors;

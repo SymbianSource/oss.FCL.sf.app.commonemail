@@ -19,7 +19,7 @@
 
 #include "mmrbcplugincommand.h"
 #include <e32base.h>
-#include <magnentryui.h>
+#include <MAgnEntryUi.h>
 
 class MCalenServices;
 class CESMRViewerController;

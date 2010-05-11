@@ -100,6 +100,8 @@ public: // new functions
      */
     void DoTransition( TBool aDirectionOut );
 
+    virtual void FadeOut(TBool aDirectionOut);
+    
     /**
      * Prepares application exit. This is called by AppUi during cleanup before AppUi's destructor
      */

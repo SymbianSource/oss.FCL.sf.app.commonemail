@@ -739,6 +739,7 @@ private: // data
     TInt iVisibleAreaHeight;
     TInt iTotalMoveY;
     TInt iSeparatorHeight;
+    TInt iHeaderHeight;
     };
 
 

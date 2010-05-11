@@ -22,14 +22,14 @@
 //<cmail>
 #include "esmrdef.h"
 //</cmail>
-#include <akniconutils.h>
+#include <AknIconUtils.h>
 #include <gulcolor.h>
-#include <aknutils.h>
-#include <aknsconstants.h>
+#include <AknUtils.h>
+#include <AknsConstants.h>
 #include <aknsconstants.hrh>
-#include <aknsutils.h>
+#include <AknsUtils.h>
 #include <data_caging_path_literals.hrh>
-#include <aknlayout2scalabledef.h>
+#include <AknLayout2ScalableDef.h>
 
 #include "emailtrace.h"
 

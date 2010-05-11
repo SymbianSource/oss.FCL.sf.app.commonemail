@@ -147,4 +147,5 @@ EXPORTS
 	_ZThn8_N15CMRAttachmentUiD1Ev @ 146 NONAME
 	_ZN19CESMRRichTextViewer12SetFocusLinkEi @ 147 NONAME
 	_ZNK19CESMRRichTextViewer12GetFocusLinkEv @ 148 NONAME
-
+	_ZN10CESMRField29SupportsLongTapFunctionalityLERK13TPointerEvent @ 149 NONAME
+	_ZN19CESMRRichTextViewer27PointerEventOccuresOnALinkLERK13TPointerEvent @ 150 NONAME

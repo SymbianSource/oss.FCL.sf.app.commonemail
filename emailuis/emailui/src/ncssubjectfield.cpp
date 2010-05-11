@@ -600,9 +600,10 @@ void CNcsSubjectField::HandleResourceChange( TInt aType )
 void CNcsSubjectField::EnableKineticScrollingL(CAknPhysics*  aPhysics)
     {
     iTextEditor->EnableKineticScrollingL(aPhysics);
+    iTextEditor->TextLayout()->RestrictScrollToTopsOfLines( ETrue );
     }
 
-void CNcsSubjectField::SetCursorVisible( TBool aCursorVisible )
+void CNcsSubjectField::SetPhysicsEmulationOngoing( TBool aPhysOngoing )
     {
-    iTextEditor->SetCursorVisible( aCursorVisible );
+    iTextEditor->SetPhysicsEmulationOngoing( aPhysOngoing );
     }

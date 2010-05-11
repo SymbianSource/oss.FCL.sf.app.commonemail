@@ -26,10 +26,10 @@
 #include <layoutmetadata.cdl.h>
 #include <eikmfne.h>
 #include <avkon.hrh>
-#include <aknutils.h>
-#include <aknsframebackgroundcontrolcontext.h>
-#include <aknsdrawutils.h>
-#include <aknsbasicbackgroundcontrolcontext.h>
+#include <AknUtils.h>
+#include <AknsFrameBackgroundControlContext.h>
+#include <AknsDrawUtils.h>
+#include <AknsBasicBackgroundControlContext.h>
 
 // DEBUG
 #include "emailtrace.h"

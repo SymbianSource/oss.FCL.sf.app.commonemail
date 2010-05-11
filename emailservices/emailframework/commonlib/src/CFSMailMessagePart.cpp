@@ -402,16 +402,19 @@ EXPORT_C void CFSMailMessagePart::RemoveContentL()
 	if(plugin != NULL)
 		{
 		RPointerArray<CFSMailMessagePart> parts;
-		RArray<TFSMailMsgId> partIds;
-    	plugin->ChildPartsL(GetMailBoxId(),GetFolderId(),GetMessageId(),GetPartId(),parts);
+        CleanupResetAndDestroyPushL( parts );
+        plugin->ChildPartsL(GetMailBoxId(),GetFolderId(),GetMessageId(),GetPartId(),parts);
+        RArray<TFSMailMsgId> partIds;
+        CleanupClosePushL( partIds );
+        partIds.ReserveL( 1 + parts.Count() );
 		for(TInt i=0;i<parts.Count();i++)
 			{
-			partIds.Append(parts[i]->GetMessageId());
+			partIds.AppendL( parts[i]->GetMessageId() );
 			}
-        partIds.Append(GetPartId());
+        partIds.AppendL( GetPartId() );
 		plugin->RemovePartContentL(GetMailBoxId(), GetFolderId(), GetMessageId(), partIds);
-        parts.ResetAndDestroy();
-		partIds.Reset();
+        CleanupStack::PopAndDestroy( &partIds );
+        CleanupStack::PopAndDestroy( &parts );
 		}
 	}
 
@@ -432,12 +435,12 @@ EXPORT_C void CFSMailMessagePart::RemoveDownLoadedAttachmentsL()
         {
         // get attachment list
         RPointerArray<CFSMailMessagePart> attachments;
-        attachments.Reset();
+        CleanupResetAndDestroyPushL( attachments );
         DoAttachmentListL(attachments);
 
         // copy attachment part ids
         RArray<TFSMailMsgId> ids;
-        ids.Reset();
+        CleanupClosePushL( ids ); 
         for(TInt i=0;i<attachments.Count();i++)
             {
             ids.Append(attachments[i]->GetPartId());
@@ -450,8 +453,8 @@ EXPORT_C void CFSMailMessagePart::RemoveDownLoadedAttachmentsL()
             }
         
         // clean tables
-        attachments.ResetAndDestroy();
-        ids.Reset();
+        CleanupStack::PopAndDestroy( &ids );
+        CleanupStack::PopAndDestroy( &attachments );
         }
     }
 

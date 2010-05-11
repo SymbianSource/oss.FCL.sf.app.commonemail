@@ -26,8 +26,8 @@
 #include <caluser.h>
 #include <calalarm.h>
 #include <calentry.h>
-#include <stringloader.h>
-#include <aknlayout2scalabledef.h>
+#include <StringLoader.h>
+#include <AknLayout2ScalableDef.h>
 #include <esmrgui.rsg>
 
 // DEBUG

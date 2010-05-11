@@ -19,12 +19,12 @@
 #include <calentry.h>
 #include <calattachment.h>
 #include <f32file.h>
-#include <documenthandler.h>
+#include <DocumentHandler.h>
 #include <coemain.h>
 #include <esmrgui.rsg>
-#include <npdapi.h>
+#include <NpdApi.h>
 #include <aknnotewrappers.h>
-#include <stringloader.h>
+#include <StringLoader.h>
 
 // DEBUG
 #include "emailtrace.h"

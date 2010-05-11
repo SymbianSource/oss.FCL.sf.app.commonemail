@@ -47,7 +47,7 @@ public:
     // Destructor
     ~CESMRViewerDescriptionField();
 
-public: // From CESMRField
+protected: // From CESMRField
     void InternalizeL( MESMRCalEntry& aEntry );
     void InitializeL();
     void GetCursorLineVerticalPos( TInt& aUpper, TInt& aLower );
@@ -55,6 +55,8 @@ public: // From CESMRField
     TBool ExecuteGenericCommandL( TInt aCommand );
     void SetOutlineFocusL( TBool aFocus );
     void HandleLongtapEventL( const TPoint& aPosition );
+    TBool SupportsLongTapFunctionalityL(
+        		 const TPointerEvent &aPointerEvent );
 
 public: // From CCoeControl
     TKeyResponse OfferKeyEventL(const TKeyEvent& aEvent, TEventCode aType );

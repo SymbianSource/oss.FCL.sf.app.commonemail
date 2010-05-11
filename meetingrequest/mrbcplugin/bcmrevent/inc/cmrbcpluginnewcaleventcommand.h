@@ -23,8 +23,8 @@
 
 #include <e32base.h>
 #include <calentry.h>
-#include <coneresloader.h>
-#include <magnentryui.h>
+#include <ConeResLoader.h>
+#include <MAgnEntryUi.h>
 
 class MCalenServices;
 class CESMRViewerController;

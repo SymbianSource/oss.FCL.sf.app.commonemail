@@ -24,7 +24,7 @@
 #include "cfsccontactactionplugin.h"
 #include "mfscreasoncallback.h"
 #include "cesmrcascontactaction.h"
-#include <cagnentryui.h>
+#include <CAgnEntryUi.h>
 #include <calsession.h>
 #include "mfsccontactsetobserver.h"
 //</cmail>

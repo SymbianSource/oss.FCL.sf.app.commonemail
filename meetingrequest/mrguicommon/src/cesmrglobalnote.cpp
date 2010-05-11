@@ -23,7 +23,7 @@
 //<cmail>
 #include "esmrdef.h"
 //</cmail>
-#include <aknglobalnote.h>
+#include <AknGlobalNote.h>
 #include <bautils.h>
 #include <esmrgui.rsg>
 #include <eikenv.h>

@@ -19,7 +19,7 @@
 #define CCALREMOTEATTACHMENTINFO_H
 
 #include <e32base.h>
-#include <mcalremoteattachmentinfo.h>
+#include "mcalremoteattachmentinfo.h"
 
 class CCalRemoteAttachment;
 

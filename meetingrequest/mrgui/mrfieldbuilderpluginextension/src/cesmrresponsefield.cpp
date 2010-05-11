@@ -25,7 +25,7 @@
 
 #include "cesmrlistquery.h"
 #include <esmrgui.rsg>
-#include <stringloader.h>
+#include <StringLoader.h>
 #include <caluser.h>
 
 // DEBUG

@@ -23,11 +23,11 @@
 
 #include <esmrgui.rsg> // r_qtn_meet_req_conflict_unnamed
 #include <calentry.h>
-#include <calenexporter.h>
+#include <CalenExporter.h>
 #include <bldvariant.hrh> // For FeatureIds
 #include <eikenv.h>
 #include <featmgr.h>
-#include <stringloader.h>
+#include <StringLoader.h>
 #include <vtoken.h>
 #include <s32mem.h>
 

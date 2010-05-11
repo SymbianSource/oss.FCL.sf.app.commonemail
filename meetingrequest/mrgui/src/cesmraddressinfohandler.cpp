@@ -20,22 +20,22 @@
 #include "cesmraddressinfohandler.h"
 
 #include <eikenv.h>
-#include <aiwservicehandler.h>
-#include <aiwcontactselectiondatatypes.h>
-#include <stringloader.h>
+#include <AiwServiceHandler.h>
+#include <AiwContactSelectionDataTypes.h>
+#include <StringLoader.h>
 #include <aknnotewrappers.h>
 #include <calentry.h>
 #include <esmrgui.rsg>
 
 //Virtual Phonebook
-#include <cvpbkcontactmanager.h>
-#include <mvpbkcontactoperationbase.h>
-#include <mvpbkstorecontact.h>
-#include <mvpbkfieldtype.h>
-#include <vpbkeng.rsg>
-#include <cvpbkcontactfielditerator.h>
-#include <mvpbkcontactfieldtextdata.h>
-#include <mvpbkcontactlink.h>
+#include <CVPbkContactManager.h>
+#include <MVPbkContactOperationBase.h>
+#include <MVPbkStoreContact.h>
+#include <MVPbkFieldType.h>
+#include <VPbkEng.rsg>
+#include <CVPbkContactFieldIterator.h>
+#include <MVPbkContactFieldTextData.h>
+#include <MVPbkContactLink.h>
 
 #include "cesmrdynamicitemselectionlist.h"
 #include "cesmrlocationpluginhandler.h"

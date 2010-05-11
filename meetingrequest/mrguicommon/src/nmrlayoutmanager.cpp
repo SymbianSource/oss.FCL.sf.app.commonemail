@@ -17,7 +17,7 @@
 
 #include "nmrlayoutmanager.h"
 
-#include <aknutils.h>
+#include <AknUtils.h>
 #include <aknlayoutscalable_apps.cdl.h>
 #include <aknlayoutscalable_avkon.cdl.h>
 

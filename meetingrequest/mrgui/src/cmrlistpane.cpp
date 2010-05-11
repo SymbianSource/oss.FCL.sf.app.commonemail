@@ -24,7 +24,7 @@
 #include "nmrlayoutmanager.h"
 
 #include <eikscrlb.h>
-#include <aknutils.h>
+#include <AknUtils.h>
 #include <touchfeedback.h>
 
 //DEBUG
@@ -65,7 +65,7 @@ TInt IndexByFieldId( const MESMRFieldStorage& aFactory,
 // ---------------------------------------------------------------------------
 //
 CMRListPane::CMRListPane( MESMRFieldStorage& aFactory,
-                          TAknDoubleSpanScrollBarModel& aScrollModel, 
+                          TAknDoubleSpanScrollBarModel& aScrollModel,
                           CAknDoubleSpanScrollBar& aScroll,
                           MMRScrollBarObserver& aScrollBarObserver )
     : iFactory( aFactory ),
@@ -94,14 +94,14 @@ CMRListPane::~CMRListPane()
 //
 CMRListPane* CMRListPane::NewL( const CCoeControl& aParent,
                                 MESMRFieldStorage& aFactory,
-                                TAknDoubleSpanScrollBarModel& aScrollModel, 
-                                CAknDoubleSpanScrollBar& aScroll, 
+                                TAknDoubleSpanScrollBarModel& aScrollModel,
+                                CAknDoubleSpanScrollBar& aScroll,
                                 MMRScrollBarObserver& aScrollBarObserver )
     {
     FUNC_LOG;
-    CMRListPane* self = new( ELeave )CMRListPane( 
-            aFactory, 
-            aScrollModel, 
+    CMRListPane* self = new( ELeave )CMRListPane(
+            aFactory,
+            aScrollModel,
             aScroll,
             aScrollBarObserver );
     CleanupStack::PushL( self );
@@ -123,7 +123,7 @@ void CMRListPane::ConstructL( const CCoeControl& aParent )
     iLongtapDetector = CAknLongTapDetector::NewL( this );
     iLongtapDetector->SetLongTapDelay( KLongTapDelay );
     iLongtapDetector->SetTimeDelayBeforeAnimation( KLongTapAnimationDelay );
-    
+
     iFieldContainer = CMRFieldContainer::NewL( iFactory, *this );
     iFieldContainer->SetFieldContainerObserver( this );
 
@@ -156,7 +156,7 @@ void CMRListPane::InternalizeL( MESMRCalEntry& aEntry )
     {
     FUNC_LOG;
     iFactory.InternalizeL( aEntry );
-    
+
     // This is called to make sure everything is drawn correctly
     DrawDeferred();
     }
@@ -214,10 +214,7 @@ void CMRListPane::DisableSizeChange(TBool aDisable )
 void CMRListPane::InitialScrollL()
     {
     FUNC_LOG;
-    // TODO: Fix or remove! L-Function called in non-leaving function!
-    // Suggestion: Move functionality to viewerdialog and use existing
-    // functions in listpane to do the required actions.
-    
+
     // Check if the ResponseArea exist
     TESMREntryFieldId id = GetResponseFieldsFieldId();
 
@@ -272,7 +269,7 @@ TInt CMRListPane::CountComponentControls() const
     {
     FUNC_LOG;
     return 1; // iFieldContainer
-    
+
     }
 
 // ---------------------------------------------------------------------------
@@ -296,13 +293,13 @@ void CMRListPane::SizeChanged()
         {
         return;
         }
-   
+
     TSize containerSize( iFieldContainer->MinimumSize() );
     iFieldContainer->SetSize( containerSize );
-    
+
     // Physics:
     iPhysics->InitPhysics();
-    
+
     DoUpdateScrollBar();
     }
 
@@ -318,7 +315,7 @@ TKeyResponse CMRListPane::OfferKeyEventL( const TKeyEvent &aKeyEvent,
 
     // First check if the focused item needs the key event
     response = FocusedField()->OfferKeyEventL( aKeyEvent, aType );
-    
+
     if ( aType == EEventKey
             && response == EKeyWasNotConsumed )
         {
@@ -328,7 +325,7 @@ TKeyResponse CMRListPane::OfferKeyEventL( const TKeyEvent &aKeyEvent,
             case EStdKeyUpArrow:
                 {
                 response = iFieldContainer->MoveFocusUpL( HiddenFocus() );
-                
+
                 // Focus changed via keyboard, iClickedItem is no
                 // longer valid
                 iClickedField = NULL;
@@ -337,7 +334,7 @@ TKeyResponse CMRListPane::OfferKeyEventL( const TKeyEvent &aKeyEvent,
             case EStdKeyDownArrow:
                 {
                 response = iFieldContainer->MoveFocusDownL( HiddenFocus() );
-                
+
                 // Focus changed via keyboard, iClickedItem is no
                 // longer valid
                 iClickedField = NULL;
@@ -349,7 +346,7 @@ TKeyResponse CMRListPane::OfferKeyEventL( const TKeyEvent &aKeyEvent,
                 }
             }
         }
-    
+
     return response;
     }
 
@@ -362,7 +359,7 @@ void CMRListPane::HandleLongTapEventL(
         const TPoint& /* aPenEventScreenLocation */ )
     {
     FUNC_LOG;
-    iLongTapEventConsumed = EFalse;
+    iLongTapEventInProgess = EFalse;
     // Long tap functionality may vary between fields
     // ==> Command field to execute action related to long tap
     TInt count( iFactory.Count() );
@@ -375,7 +372,7 @@ void CMRListPane::HandleLongTapEventL(
              && field->Rect().Contains( aPenEventLocation ) )
             {
             field->LongtapDetectedL( aPenEventLocation );
-            iLongTapEventConsumed = ETrue;
+            iLongTapEventInProgess = ETrue;
             break;
             }
         }
@@ -388,11 +385,11 @@ void CMRListPane::HandleLongTapEventL(
 void CMRListPane::DoUpdateScrollBar( TInt aFocusPosition )
     {
     FUNC_LOG;
-    // Set this lispane's size as scroll bar's window size 
+    // Set this lispane's size as scroll bar's window size
     iScrollModel.SetWindowSize( iSize.iHeight );
     // Set fieldcontainer's height as scrolbar's scroll span
     iScrollModel.SetScrollSpan( iFieldContainer->MinimumSize().iHeight );
-    
+
     // Update scrollbar focus position.
     if( aFocusPosition == KErrNotFound )
         {
@@ -407,7 +404,7 @@ void CMRListPane::DoUpdateScrollBar( TInt aFocusPosition )
 
     // finally update the new thumb position to view's
     // iScrollBarThumbPosition member.
-    iScrollBarObserver.ScrollBarPositionChanged( 
+    iScrollBarObserver.ScrollBarPositionChanged(
             iScroll.ThumbPosition() );
     }
 
@@ -460,10 +457,10 @@ void CMRListPane::ScrollFieldsUp( TInt aPx )
     FUNC_LOG;
     TPoint point = iFieldContainer->Position();
     point.iY -= aPx;
-    
+
     // This initializes Draw also
     iFieldContainer->SetPosition( point );
-    
+
     // Non-kinetic scrolling executed. Update
     // new position to physics.
     iPhysics->UpdateVerticalScrollIndex( UpdatedFocusPosition() );
@@ -480,7 +477,7 @@ void CMRListPane::ScrollFieldsDown( TInt aPx )
     FUNC_LOG;
     TPoint point = iFieldContainer->Position();
     point.iY += aPx;
-    
+
     // This initializes Draw also
     iFieldContainer->SetPosition( point );
     // Non-kinetic scrolling executed. Update
@@ -499,7 +496,7 @@ void CMRListPane::UpdateScrollBarAndPhysics()
     {
     // Update physics world size
     iPhysics->InitPhysics();
-    
+
     // Update scrollbar
     DoUpdateScrollBar();
     }
@@ -528,9 +525,8 @@ TBool CMRListPane::IsControlVisible( TESMREntryFieldId aFieldId )
 //
 TESMREntryFieldId CMRListPane::GetResponseFieldsFieldId()
     {
-    // TODO: Should be removed. This shouldn't be even a public function!
     CESMRField* rfield = iFactory.FieldById( EESMRFieldResponseArea );
-    
+
     if ( rfield && rfield->IsVisible() && !rfield->IsNonFocusing() )
         {
         return EESMRFieldResponseArea;
@@ -560,10 +556,10 @@ void CMRListPane::ReActivateL()
             field->SetListObserver( iFieldContainer );
             }
         }
-    
+
     // This "for" circle can not be mixed with the above one, since the
-    // field->ActivateL() will call some functions which will traverse 
-    // all the fields, but that time, not all the fields have set the 
+    // field->ActivateL() will call some functions which will traverse
+    // all the fields, but that time, not all the fields have set the
     // container window.
     for ( TInt i = 0; i < count; ++i )
         {
@@ -586,40 +582,53 @@ void CMRListPane::HandlePointerEventL( const TPointerEvent &aPointerEvent )
         {
         return;
         }
-   
+
+    // If new down event is received, and
+    // iLongTapEventInProgess flag is still ETrue, we need to
+    // set it back to EFalse -> Long tap event cannot be in progress
+    // in this case anymore.
+    if( aPointerEvent.iType == TPointerEvent::EButton1Down &&
+    		iLongTapEventInProgess )
+    	{
+		iLongTapEventInProgess = EFalse;
+    	}
+
     // Forward all listpane related events to physics api first.
     if ( iPhysics->HandlePointerEventL( aPointerEvent, iPhysicsActionOngoing ) )
         {
         DoUpdateScrollBar();
-        // Physics in action. If long tap detection is active, 
+        // Physics in action. If long tap detection is active,
         // it should be cancelled.
         if( iLongtapDetector->IsActive() )
         	{
 			iLongtapDetector->Cancel();
         	}
         }
-    
+
     if( !iPhysicsActionOngoing )
-    	{    
-		// Offer pointer event to long tap detector if event occures within fields
-		if( iFieldContainer->Rect().Contains( aPointerEvent.iPosition ) )
+    	{
+		UpdateClickedField( aPointerEvent );
+
+		// Offer pointer event to long tap detector if field supports long tap
+		// functionality
+		if( ClickedField()->SupportsLongTapFunctionalityL( aPointerEvent ) )
 			{
 			iLongtapDetector->PointerEventL( aPointerEvent );
 			}
 
 		SetFocusAfterPointerEventL( aPointerEvent );
-		
-        // If longtap event has been handled, then do not handle signal event anymore.
-        if( !iLongTapEventConsumed )
+
+        // If longtap event is in progress, do not pass events to coecontrol
+        if( !iLongTapEventInProgess )
             {
             CCoeControl::HandlePointerEventL( aPointerEvent );
             }
-        else
+        // Longtap event executed after up event ->
+        // Let's set iLongTapEventInProgess to EFalse
+        else if( aPointerEvent.iType == TPointerEvent::EButton1Up )
             {
-            iLongTapEventConsumed = EFalse;
+			iLongTapEventInProgess = EFalse;
             }
-        
-		UpdateClickedField( aPointerEvent );
     	}
     }
 
@@ -633,10 +642,10 @@ void CMRListPane::ActivateL()
     // This ActiveteL is required only for setting the initial position
     // of the field container. After setting the position, physics is
     // initialized with new values also.
-    
+
     CCoeControl::ActivateL();
     iFieldContainer->SetPosition( Position() );
-    
+
     // Physics:
     iPhysics->InitPhysics();
     }
@@ -667,12 +676,12 @@ void CMRListPane::UpdateScrollBarDuringOngoingPhysics()
 
 	// Update the new thumb position to view's
 	// iScrollBarThumbPosition member.
-	iScrollBarObserver.ScrollBarPositionChanged( 
+	iScrollBarObserver.ScrollBarPositionChanged(
 			iScroll.ThumbPosition() );
-	
+
 	iScroll.DrawDeferred();
-	
-	if( FeedbackScrollMarginExceeded( 
+
+	if( FeedbackScrollMarginExceeded(
 			Abs( verticalScrollIndex - iPreviousVerticalScrollIndex ) ) )
 		{
 		HandleTactileFeedback( ETouchFeedbackSlider );
@@ -680,12 +689,12 @@ void CMRListPane::UpdateScrollBarDuringOngoingPhysics()
 		iPreviousVerticalScrollIndex = verticalScrollIndex;
 		}
     }
-	
+
 // ---------------------------------------------------------------------------
 // CESMRField::HandleTactileFeedback
 // ---------------------------------------------------------------------------
 //
-void CMRListPane::HandleTactileFeedback( 
+void CMRListPane::HandleTactileFeedback(
 		const TTouchLogicalFeedback& aType )
 	{
 	FUNC_LOG;
@@ -695,7 +704,7 @@ void CMRListPane::HandleTactileFeedback(
 		// Aquire tactile feedback pointer from TLS
 		iTactileFeedback = MTouchFeedback::Instance();
 		}
-	
+
 	if ( iTactileFeedback && iTactileFeedback->FeedbackEnabledForThisApp() )
 		{
 		iTactileFeedback->InstantFeedback( aType );
@@ -706,7 +715,7 @@ void CMRListPane::HandleTactileFeedback(
 // CMRListPane::SetFocusAfterPointerEventL
 // ---------------------------------------------------------------------------
 //
-void CMRListPane::SetFocusAfterPointerEventL( 
+void CMRListPane::SetFocusAfterPointerEventL(
         const TPointerEvent &aPointerEvent )
     {
     FUNC_LOG;
@@ -721,18 +730,18 @@ void CMRListPane::SetFocusAfterPointerEventL(
 					field->Rect().Contains( aPointerEvent.iPosition ) )
 				{
 				CESMRField* focusedField = iFieldContainer->FocusedField();
-	
+
 				if ( field != focusedField )
 					{
 					TBool canLoseFocus(
 							focusedField->OkToLoseFocusL( field->FieldId() ) );
-	
+
 					if ( canLoseFocus )
 						{
 						iFieldContainer->SetControlFocusedL( field->FieldId() );
 						}
 					}
-	
+
 				break;
 				}
 			}
@@ -750,7 +759,7 @@ void CMRListPane::UpdateClickedField( const TPointerEvent &aPointerEvent )
 
     for( TInt i = 0; i < fieldCount; ++i )
         {
-        if( iFactory.Field( i )->Rect().Contains( 
+        if( iFactory.Field( i )->Rect().Contains(
                 aPointerEvent.iPosition ) )
             {
             if( aPointerEvent.iType == TPointerEvent::EButton1Down )
@@ -769,25 +778,25 @@ TBool CMRListPane::HiddenFocus()
     {
     FUNC_LOG;
     TBool hiddenFocus( EFalse );
-    
+
     CESMRField* focusedField( iFieldContainer->FocusedField() );
-    TInt focusedFieldIndex( IndexByFieldId( 
+    TInt focusedFieldIndex( IndexByFieldId(
             iFactory, focusedField->FieldId() ) );
 
     if ( focusedFieldIndex < iFactory.Count() )
         {
         TRect focusedFieldRect( focusedField->Rect() );
         TRect listPaneRect( Rect() );
-        
+
         TInt fieldTopY( focusedFieldRect.iTl.iY );
         TInt fieldBottomY( focusedFieldRect.iBr.iY );
-        
+
         TInt listTopY( listPaneRect.iTl.iY );
         TInt listBottomY( listPaneRect.iBr.iY );
-        
-        if ( ( fieldBottomY > listBottomY || 
-                fieldTopY < listTopY ) && 
-                    focusedFieldRect.Height() < listPaneRect.Height() ) 
+
+        if ( ( fieldBottomY > listBottomY ||
+                fieldTopY < listTopY ) &&
+                    focusedFieldRect.Height() < listPaneRect.Height() )
             {
             hiddenFocus = ETrue;
             }
@@ -801,19 +810,20 @@ TBool CMRListPane::HiddenFocus()
 //
 TBool CMRListPane::FeedbackScrollMarginExceeded( TInt aMargin )
     {
+    FUNC_LOG;
 	/*
 	 * This compares given margin to default one row
 	 * field height, and returns ETrue if margin is exceeded.
 	 * Otherwise EFalse.
 	 */
 	TBool ret( EFalse );
-	
+
 	if( !iDefaultFieldHeight )
 		{
-		TAknLayoutRect fieldLayoutRect( 
-			NMRLayoutManager::GetFieldLayoutRect( 
+		TAknLayoutRect fieldLayoutRect(
+			NMRLayoutManager::GetFieldLayoutRect(
 					iFieldContainer->Rect(), 1 ) );
-		
+
 		iDefaultFieldHeight = fieldLayoutRect.Rect().Height();
 		}
 
@@ -821,7 +831,7 @@ TBool CMRListPane::FeedbackScrollMarginExceeded( TInt aMargin )
 		{
 		ret = ETrue;
 		}
-	
+
     return ret;
     }
 

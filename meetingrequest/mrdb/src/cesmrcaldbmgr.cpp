@@ -36,9 +36,9 @@
 #include <calentry.h>
 #include <calcommon.h>
 #include <caluser.h>
-#include <caleninterimutils2.h>
+#include <CalenInterimUtils2.h>
 #include <sysutil.h>
-#include <errorui.h>
+#include <ErrorUI.h>
 #include <coemain.h>
 #include <calcalendarinfo.h>
 #include <centralrepository.h>

@@ -546,37 +546,42 @@ void CMailCpsSettings::DissociateWidgetFromSettingL( const TDesC& aContentId )
 TInt CMailCpsSettings::GetSettingToAssociate( const TDesC& aContentId )
     {
     FUNC_LOG;    
-    TInt ret(KErrNotFound);
+    TInt ret( KErrNotFound );
     
-    for (TInt i = 0; i < KMaxMailboxCount; i++)
+    for ( TInt i = 0; i < KMaxMailboxCount; i++ )
         {
-        TBuf<KMaxDescLen> value;
-        TUint32 key(KCMailWidgetContentIdBase+i);
-        iCenRep->Get( key, value );
-        TInt result = value.Compare(aContentId);
-        if (!result)
+        TUint32 key( KCMailWidgetContentIdBase+ i );
+        TInt err = iCenRep->Get( key, iCenrepText );
+        if ( err == KErrNone )
             {
-            ret = i;
-            break;
-            }
-        }
-    if (ret < 0 )
-        {
-        for (TInt i = 0; i < KMaxMailboxCount; i++)
-            {       
-            TBuf<KMaxDescLen> value;
-            TUint32 key(KCMailWidgetContentIdBase+i);
-            iCenRep->Get( key, value );
-            TInt result = value.Compare(KDissociated);
-            if (!result)
+            if ( iCenrepText.Compare( aContentId ) == 0 )
                 {
                 ret = i;
                 break;
                 }
             }
         }
+    
+    if ( ret < 0 )
+        {
+        for ( TInt i = 0; i < KMaxMailboxCount; i++ )
+            {       
+            TUint32 key( KCMailWidgetContentIdBase + i );
+            TInt err = iCenRep->Get( key, iCenrepText );
+            if ( err == KErrNone )
+                {
+                if ( iCenrepText.Compare( KDissociated ) == 0 )
+                    {
+                    ret = i;
+                    break;
+                    }
+                }
+            }
+        }
+    
     return ret;
     }
+
 
 // ---------------------------------------------------------------------------
 // CMailCpsSettings::Associated
@@ -585,20 +590,22 @@ TInt CMailCpsSettings::GetSettingToAssociate( const TDesC& aContentId )
 TBool CMailCpsSettings::Associated( const TDesC& aContentId )
     {
     FUNC_LOG;    
-    TBool ret(EFalse);
+    TBool ret( EFalse );
     
-    for (TInt i = 0; i < KMaxMailboxCount; i++)
+    for ( TInt i = 0; i < KMaxMailboxCount; i++ )
         {
-        TBuf<KMaxDescLen> value;
-        TUint32 key(KCMailWidgetContentIdBase+i);
-        iCenRep->Get( key, value );
-        TInt result = value.Compare(aContentId);
-        if (!result)
+        TUint32 key( KCMailWidgetContentIdBase + i );
+        TInt err = iCenRep->Get( key, iCenrepText );
+        if ( err == KErrNone )
             {
-            ret = ETrue;
-            break;
+            if ( iCenrepText.Compare( aContentId ) == 0 )
+                {
+                ret = ETrue;
+                break;
+                }
             }
         }
+    
     return ret;
     }
 
@@ -670,29 +677,38 @@ TBool CMailCpsSettings::IsSelected( TInt aId )
     return ret;
     }
 
+
 // ---------------------------------------------------------------------------
-// CMailCpsSettings::GetSettingToAssociate
+// CMailCpsSettings::GetMailboxUidByContentId
 // ---------------------------------------------------------------------------
 //
 TUint CMailCpsSettings::GetMailboxUidByContentId( const TDesC& aContentId )
     {
     FUNC_LOG;
-    TInt ret(KErrNone);
-    for (TInt i = 0; i < KMaxMailboxCount; i++)
+    
+    TInt ret( KErrNone );
+    for ( TInt i = 0; i < KMaxMailboxCount; i++ )
         {       
-        TBuf<KMaxDescLen> cid;
-        TUint32 key(KCMailWidgetContentIdBase+i);
-        iCenRep->Get( key, cid );
-        TInt result = cid.Compare(aContentId);
-        if (!result)
+        TUint32 key( KCMailWidgetContentIdBase + i );
+        TInt err = iCenRep->Get( key, iCenrepText );
+        if ( err == KErrNone )
             {
-            TUint32 key2(KCMailMailboxIdBase+i);
-            iCenRep->Get( key2, ret );
-            break;
+            if ( iCenrepText.Compare( aContentId ) == 0 )
+                {
+                TUint32 key2( KCMailMailboxIdBase + i );
+                err = iCenRep->Get( key2, ret );
+                if ( err == KErrNone )
+                    {
+                    break;
+                    }
+                }
             }
         }
+    
     return ret;
     }
+
+
 
 // ---------------------------------------------------------------------------
 // CMailCpsSettings::GetPluginUidByContentId
@@ -701,22 +717,29 @@ TUint CMailCpsSettings::GetMailboxUidByContentId( const TDesC& aContentId )
 TUint CMailCpsSettings::GetPluginUidByContentId( const TDesC& aContentId )
     {
     FUNC_LOG;
-    TInt ret(KErrNone);
-    for (TInt i = 0; i < KMaxMailboxCount; i++)
+  
+    TInt ret( KErrNone );
+    for ( TInt i = 0; i < KMaxMailboxCount; i++ )
         {       
-        TBuf<KMaxDescLen> cid;
-        TUint32 key(KCMailWidgetContentIdBase+i);
-        iCenRep->Get( key, cid );
-        TInt result = cid.Compare(aContentId);
-        if (!result)
+        TUint32 key( KCMailWidgetContentIdBase + i );
+        TInt err = iCenRep->Get( key, iCenrepText );
+        if ( err == KErrNone )
             {
-            TUint32 key2(KCMailPluginIdBase+i);
-            iCenRep->Get( key2, ret );
-            break;
+            if ( iCenrepText.Compare( aContentId ) == 0 )
+                {
+                TUint32 key2( KCMailPluginIdBase + i );
+                err = iCenRep->Get( key2, ret );
+                if ( err == KErrNone )
+                    {
+                    break;
+                    }
+                }
             }
         }
+    
     return ret;
     }
+
 
 // ---------------------------------------------------------------------------
 // CMailCpsSettings::Configuration
@@ -748,37 +771,40 @@ TInt CMailCpsSettings::TotalIntMailboxCount()
 void CMailCpsSettings::ToggleWidgetNewMailIconL( TBool aIconOn, const TFSMailMsgId& aMailBox )
     {
     FUNC_LOG;
-    TBuf<KMaxDescLen> mailbox;
-    mailbox.Num(aMailBox.Id());
-
-    TBuf<KMaxDescLen> str;
-    str.Copy(KStartSeparator);    
-    str.Append(mailbox);
-    str.Append(KEndSeparator);    
-
-    TBuf<KMaxDescLen> stored;
-    TUint32 key(KCMailMailboxesWithNewMail);
-    iCenRep->Get( key, stored );
+ 
+    _LIT( KFormat, "%S%d%S" );
+    const TInt KStrLen = 64;
+        
+    TBuf<KStrLen> mailbox;
+    mailbox.Format( KFormat, &KStartSeparator, aMailBox.Id(), &KEndSeparator );
     
-    TInt result = stored.Find(str);
+    TUint32 key( KCMailMailboxesWithNewMail );
+    TInt err = iCenRep->Get( key, iCenrepText );
     
-    if (aIconOn)
+    if ( err == KErrNone )
         {
-        if (result < 0) // Not found
+        TInt pos = iCenrepText.Find( mailbox );
+    
+        if ( aIconOn )
             {
-            stored.Append(str);
-            iCenRep->Set( key, stored );
+            if ( pos < 0 ) // Not found
+                {
+                iCenrepText.Append( mailbox );
+                iCenRep->Set( key, iCenrepText );
+                }
             }
-        }
-    else
-        {
-        if (result >= 0)
+        else
             {
-            stored.Delete(result, str.Length());
-            iCenRep->Set( key, stored );
+            if ( pos >= 0 )
+                {
+                iCenrepText.Delete( pos, mailbox.Length() );
+                iCenRep->Set( key, iCenrepText );
+                }
             }
         }
     }
+
+
 
 // -----------------------------------------------------------------------------
 // CMailCpsSettings::GetNewMailStateL
@@ -786,30 +812,36 @@ void CMailCpsSettings::ToggleWidgetNewMailIconL( TBool aIconOn, const TFSMailMsg
 TBool CMailCpsSettings::GetNewMailStateL( const TFSMailMsgId& aMailBox, TInt aUnreadCount )
     {
     FUNC_LOG;
+
+    _LIT( KFormat, "%S%d%S" );
+    const TInt KStrLen = 64;
+
+
     TBool ret(EFalse);
     if ( aUnreadCount )
         {
-        TBuf<KMaxDescLen> mailbox;
-        mailbox.Num(aMailBox.Id());
+        TBuf<KStrLen> mailbox;
+        mailbox.Format( KFormat, &KStartSeparator, aMailBox.Id(), &KEndSeparator );
 
-        TBuf<KMaxDescLen> str;
-        str.Copy(KStartSeparator);    
-        str.Append(mailbox);
-        str.Append(KEndSeparator);    
-
-        TBuf<KMaxDescLen> stored;
-        TUint32 key(KCMailMailboxesWithNewMail);
-        iCenRep->Get( key, stored );
-    
-        TInt result = stored.Find(str);
-        if (result >= 0)
+        TUint32 key( KCMailMailboxesWithNewMail );
+        TInt err = iCenRep->Get( key, iCenrepText );
+        if ( err == KErrNone )
             {
-            ret = ETrue;
+            TInt pos = iCenrepText.Find( mailbox );
+            if ( pos >= 0 )
+                {
+                ret = ETrue;
+                }
             }
         }
     else
         {
         ToggleWidgetNewMailIconL( EFalse, aMailBox );
         }
+    
     return ret;
     }
+
+
+
+

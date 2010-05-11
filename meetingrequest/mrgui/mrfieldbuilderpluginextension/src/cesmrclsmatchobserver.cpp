@@ -22,17 +22,17 @@
 #include "esmrfieldbuilderdef.h"
 
 // for PCS support
-#include <cpsrequesthandler.h>
-#include <cpssettings.h>
-#include <cpsquery.h>
-#include <cpsqueryitem.h>
-#include <cpcsdefs.h>
-#include <mvpbkcontactlink.h>
-#include <cvpbkcontactmanager.h>
+#include <CPsRequestHandler.h>
+#include <CPsSettings.h>
+#include <CPsQuery.h>
+#include <CPsQueryItem.h>
+#include <CPcsDefs.h>
+#include <MVPbkContactLink.h>
+#include <CVPbkContactManager.h>
 #include <aknnotewrappers.h>
 #include <centralrepository.h>                          // CRepository
-#include <aknfepinternalcrkeys.h>                       // KCRUidAknFep, KAknFepPredTxtFlag
-#include <vpbkeng.rsg>
+#include <AknFepInternalCRKeys.h>                       // KCRUidAknFep, KAknFepPredTxtFlag
+#include <VPbkEng.rsg>
 
 //Constants
 

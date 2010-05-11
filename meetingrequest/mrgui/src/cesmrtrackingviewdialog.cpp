@@ -12,7 +12,7 @@
 * Contributors:
 *
 *  Description : ESMR tracking view dialog
-*  Version     : %version: e002sa33#15 %
+*  Version     : %version: e002sa32#15.1.1 %
 *
 */
 
@@ -20,10 +20,10 @@
 #include "cesmrtrackingviewdialog.h"
 
 // SYSTEM INCLUDE
-#include <aknutils.h>
-#include <stringloader.h>
+#include <AknUtils.h>
+#include <StringLoader.h>
 #include <calentry.h>
-#include <magnentryui.h>
+#include <MAgnEntryUi.h>
 //<cmail>
 #include "cesmrpolicy.h"
 //</cmail>

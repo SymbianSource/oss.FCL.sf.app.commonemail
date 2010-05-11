@@ -21,7 +21,7 @@
 
 #include <e32base.h>
 //<cmail>
-#include "CFSMailClient.h"
+#include "cfsmailclient.h"
 //</cmail>
 
 class TESMRPluginExtensionData;

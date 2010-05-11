@@ -21,7 +21,7 @@
 
 //  INCLUDE FILES
 #include <e32base.h>
-#include <cmrutils.h>
+#include <CMRUtils.h>
 #include "esmrdef.h"
 
 // FORWARD DECLARATIONS

@@ -19,7 +19,7 @@
 #define CMRATTACHMENTPROGRESSINFO_H
 
 // INCLUDES
-#include <aknprogressdialog.h>
+#include <AknProgressDialog.h>
 #include <f32file.h>
 
 #include "cmrfilemanager.h"

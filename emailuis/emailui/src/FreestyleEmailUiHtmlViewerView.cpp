@@ -64,10 +64,6 @@
 #include "FreestyleMessageHeaderURL.h"
 #include "FreestyleEmailUiAknStatusIndicator.h"
 #include <akntoolbar.h>
-// CONSTANTS
-// Zoom levels available on the UI
-const TInt KZoomLevels[] = { 75, 100, 125, 150 };
-const TInt KZoomLevelCount = sizeof( KZoomLevels ) / sizeof( TInt );
 
 CFsEmailUiHtmlViewerView* CFsEmailUiHtmlViewerView::NewL( 
     CAlfEnv& aEnv,
@@ -292,14 +288,12 @@ void CFsEmailUiHtmlViewerView::HandleCommandL( TInt aCommand )
             break;
             case EFsEmailUiCmdZoomIn:
                 {
-                TUint zoomLevelIdx = ZoomLevelIndexL();
-                SetZoomLevelIndexL( zoomLevelIdx + 1 );
+                iContainer->ZoomInL();
                 }
             break;
             case EFsEmailUiCmdZoomOut:
                 {
-                TUint zoomLevelIdx = ZoomLevelIndexL();
-                SetZoomLevelIndexL( zoomLevelIdx - 1 );
+                iContainer->ZoomOutL();
                 }
             break;
             case EFsEmailUiCmdHelp:
@@ -388,11 +382,12 @@ void CFsEmailUiHtmlViewerView::HandleCommandL( TInt aCommand )
                  break;
             default:
                 {
+                /* -- pinch zoom only --
                 if ( aCommand >= EFsEmailUiCmdZoomSmall )
                     {
-                    TUint zoomLevelIndex = aCommand - EFsEmailUiCmdZoomSmall;
-                    SetZoomLevelIndexL( zoomLevelIndex );
+                    iContainer->SetZoomLevelL( aCommand - EFsEmailUiCmdZoomSmall );
                     }
+                */
                 }
             break;
             }
@@ -953,7 +948,9 @@ void CFsEmailUiHtmlViewerView::DynInitMenuPaneL( TInt aResourceId, CEikMenuPane*
 
     if ( aResourceId == R_FSEMAILUI_HTMLVIEWER_MENUPANE )
         {
-        
+        // Pinch zoom only
+        aMenuPane->SetItemDimmed( EFsEmailUiCmdZoomLevel, ETrue );
+    
         if ( FeatureManager::FeatureSupported( KFeatureIdFfCmailIntegration ) )
             {
             // remove help support in pf5250
@@ -1194,6 +1191,12 @@ void CFsEmailUiHtmlViewerView::DeleteMailL( TBool aSilentDelete )
         return;
         }
 
+    TFSMailMsgId currentMsgId = iMessage->GetMessageId();
+    if ( iLastDeletedMessageID == currentMsgId )
+        {
+        return;
+        }
+
     TInt reallyDelete( ETrue );
 
     if ( iAppUi.GetCRHandler()->WarnBeforeDelete() && 
@@ -1216,7 +1219,7 @@ void CFsEmailUiHtmlViewerView::DeleteMailL( TBool aSilentDelete )
         
         RArray<TFSMailMsgId> msgIds;
         CleanupClosePushL( msgIds );
-        TFSMailMsgId currentMsgId = iMessage->GetMessageId();    
+            
         msgIds.Append( currentMsgId );
         TFSMailMsgId mailBox = iMessage->GetMailBoxId();
         TFSMailMsgId folderId = iMessage->GetFolderId();        
@@ -1231,6 +1234,7 @@ void CFsEmailUiHtmlViewerView::DeleteMailL( TBool aSilentDelete )
                                                    prevMsgFolderId );
         
         //Delete the message
+        iLastDeletedMessageID = iMessage->GetMessageId(); 
         iAppUi.GetMailClient()->DeleteMessagesByUidL( mailBox, folderId, msgIds );
         CleanupStack::PopAndDestroy( &msgIds );
 
@@ -1238,7 +1242,6 @@ void CFsEmailUiHtmlViewerView::DeleteMailL( TBool aSilentDelete )
         SendEventToAppUiL( TFSEventMailDeletedFromViewer ); 
         
        
-        
         if ( iAppUi.CurrentActiveView()->Id() == HtmlViewerId )
             {   
             //Open the previous message or navigate back to list viewer
@@ -1322,92 +1325,21 @@ void CFsEmailUiHtmlViewerView::HandleMailBoxEventL( TFSMailEvent aEvent,
 
 void CFsEmailUiHtmlViewerView::DynInitZoomMenuL( CEikMenuPane* aMenuPane )
     {
-    FUNC_LOG;
-    TInt zoomLevelIdx = ZoomLevelIndexL();
+    FUNC_LOG; 
+    /* -- Pinch zoom only --
+    TInt zoomLevelIdx = iContainer->ZoomLevelL();
 
     // Set the radio button state to match current zoom level
-    if ( zoomLevelIdx >= 0 && zoomLevelIdx < KZoomLevelCount )
+    if ( zoomLevelIdx >= 0 && zoomLevelIdx < iContainer->MaxZoomLevel() )
         {
         TInt curZoomLevel = zoomLevelIdx + EFsEmailUiCmdZoomSmall;
         aMenuPane->SetItemButtonState( curZoomLevel, EEikMenuItemSymbolOn );
         }
-    }
-
-TInt CFsEmailUiHtmlViewerView::ZoomLevelIndexL()
-    {
-    FUNC_LOG;
-    TInt zoomLevelIdx = iContainer->BrowserControlIf()->BrowserSettingL(
-                            TBrCtlDefs::ESettingsCurrentZoomLevelIndex );
-
-    // Behaviour of zooming in Browser Control Interface is different in version 7.1
-    // than in previous versions and we need to support both. In older versions there
-    // are 4 preset zoom levels while version 7.1 can zoom to any percent.
-    RArray<TUint>* zoomLevels = iContainer->BrowserControlIf()->ZoomLevels();
-
-    if ( !zoomLevels || !zoomLevels->Count() || ( *zoomLevels )[0] != KZoomLevels[0] )
-        {
-        // new browser:
-        // BrowserControlIf gives zoom level percentage insted of index to array
-        TBool found = EFalse;
-
-        for ( TInt i = 0 ; i < KZoomLevelCount && !found ; ++i )
-            {
-            if ( zoomLevelIdx == KZoomLevels[i] )
-                {
-                zoomLevelIdx = i;
-                found = ETrue;
-                }
-            }
-
-        if ( !found )
-            {
-            zoomLevelIdx = KErrNotFound;
-            }
-        }
-
-    return zoomLevelIdx;
-    }
-
-void CFsEmailUiHtmlViewerView::SetZoomLevelIndexL( TInt aIndex )
-    {
-    FUNC_LOG;
-    TInt newValue = KMinTInt;
-
-    // Behaviour of zooming in Browser Control Interface is different in version 7.1
-    // than in previous versions and we need to support both. In older versions there
-    // are 4 preset zoom levels while version 7.1 can zoom to any percent.
-    RArray<TUint>* zoomLevels = iContainer->BrowserControlIf()->ZoomLevels();
-
-    if ( !zoomLevels || !zoomLevels->Count() || ( *zoomLevels )[0] != KZoomLevels[0] )
-        {
-        // new browser:
-        // BrowserControlIf takes zoom level percentage insted of index to array
-        if ( aIndex >= 0 && aIndex < KZoomLevelCount )
-            {
-            newValue = KZoomLevels[aIndex];
-            }
-        }
-    else
-        {
-        // old browser
-        newValue = aIndex;
-        }
-
-    if ( newValue > KMinTInt )
-        {
-        iContainer->BrowserControlIf()->SetBrowserSettingL(
-            TBrCtlDefs::ESettingsCurrentZoomLevelIndex, newValue );
-        }
-    }
-
-// -----------------------------------------------------------------------------
-// CFsEmailUiHtmlViewerView::RestoreZoomLevelL()
-// -----------------------------------------------------------------------------
-//
-void CFsEmailUiHtmlViewerView::RestoreZoomLevelL()
-    {
-    FUNC_LOG;
-    SetZoomLevelIndexL( ZoomLevelIndexL() );
+     */
+    aMenuPane->SetItemDimmed( EFsEmailUiCmdZoomSmall, ETrue );
+    aMenuPane->SetItemDimmed( EFsEmailUiCmdZoomNormal, ETrue );
+    aMenuPane->SetItemDimmed( EFsEmailUiCmdZoomLarge, ETrue );
+    aMenuPane->SetItemDimmed( EFsEmailUiCmdZoom150Percent, ETrue );
     }
 
 // -----------------------------------------------------------------------------
@@ -1645,7 +1577,6 @@ void CFsEmailUiHtmlViewerView::DownloadStatusChangedL( TInt /*aIndex*/ )
 
 void CFsEmailUiHtmlViewerView::DownloadAttachmentL( const TAttachmentData& aAttachment )
     {
-    iAppUi.DownloadInfoMediator()->AddObserver( this, aAttachment.partData.iMessageId );
     iAttachmentsListModel->StartDownloadL(aAttachment);
     }
 
@@ -1793,12 +1724,6 @@ void CFsEmailUiHtmlViewerView::UpdateDownloadIndicatorL(
             }
         
         iContainer->ShowAttachmentDownloadStatusL( aEvent.iProgressStatus, *attachment );
-        }
-    
-    if (aEvent.iProgressStatus == TFSProgress::EFSStatus_RequestComplete || 
-            aEvent.iProgressStatus == TFSProgress::EFSStatus_RequestCancelled)
-        {
-        iAppUi.DownloadInfoMediator()->StopObserving( this, aPart.iMessageId );
         }
     }
 
@@ -1981,11 +1906,6 @@ void CFsEmailUiHtmlViewerView::ShowNextMessageL()
 
             iAppUi.MoveToNextMsgL( currentMsgId, nextMsgId );
             // Next message is displayed in this view through doactivate, because view is re-activate by mail list
-
-            if ( iContainer )
-                {
-			    RestoreZoomLevelL();
-                }
             }
         }
     }
@@ -2033,11 +1953,6 @@ void CFsEmailUiHtmlViewerView::ShowPreviousMessageL()
 
             iAppUi.MoveToPreviousMsgL( currentMsgId, prevMsgId );
             // Previous message is displayed in this view through doactivate, because view is re-activate by mail list
-
-            if ( iContainer )
-                {
-                RestoreZoomLevelL();
-                }
             }
         }
     }

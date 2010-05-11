@@ -29,8 +29,8 @@
 #include <bautils.h>
 #include <coemain.h>
 #include <msvids.h>
-#include <senduiconsts.h>
-#include <caleninterimutils2.h>
+#include <SendUiConsts.h>
+#include <CalenInterimUtils2.h>
 #include <calalarm.h>
 #include <calrrule.h>
 #include <calattachment.h>
@@ -39,8 +39,8 @@
 #include <ct/rcpointerarray.h>
 #include <utf.h>
 #include <aknlists.h>
-#include <aknpopup.h>
-#include <calendarinternalcrkeys.h>
+#include <aknPopup.h>
+#include <CalendarInternalCRKeys.h>
 #include <data_caging_path_literals.hrh>
 //<cmail> hardcoded paths removal
 #include <pathinfo.h>
@@ -1553,8 +1553,6 @@ void ESMRHelper::SetMeetingTimeL(
             }
         case CCalEntry::ETodo:
             {
-            // Todo has only due date => Adding date from that,
-            // Hour, minute and second as default values
             tempStart = aSourceEntry.StartTimeL().TimeLocalL().DateTime();
             tempStart.SetHour( KDefaultMeetingStartHour );
             tempStart.SetMinute( 0 );

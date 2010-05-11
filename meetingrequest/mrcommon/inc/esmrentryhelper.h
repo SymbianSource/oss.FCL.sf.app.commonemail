@@ -21,7 +21,7 @@
 
 #include "esmrdef.h"
 #include <e32base.h>
-#include <magnentryui.h>
+#include <MAgnEntryUi.h>
 
 class CCalEntry;
 class CCalAttendee;

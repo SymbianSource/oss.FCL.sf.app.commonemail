@@ -19,7 +19,7 @@
 #define NMRCOLORMANAGER_H
 
 #include <e32base.h>
-#include <aknsitemid.h>
+#include <AknsItemID.h>
 #include <gdi.h> // TRgb
 
 // FORWARD DECLARATIONS

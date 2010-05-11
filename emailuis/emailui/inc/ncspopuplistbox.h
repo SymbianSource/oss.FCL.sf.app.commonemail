@@ -62,7 +62,7 @@ public: // Constructors and destructor
     *
     * @param aText
     */
-    void InitAndSearchL( const TDesC& aText );
+    void InitAndSearchL( const TDesC& aText, TInt aMode = -1 );
 		
     // Destructor
     virtual ~CNcsPopupListBox();
@@ -93,7 +93,7 @@ public: // new methods for the header container
     * 
     * @param aText
     */
-    void SetSearchTextL( const TDesC& aText );
+    void SetSearchTextL( const TDesC& aText, TInt aMode = -1 );
  
     /*
     * 

@@ -19,7 +19,7 @@
 #define CESMRNCSEDITOR_H
 
 #include <eikrted.h>
-#include <aknutils.h>
+#include <AknUtils.h>
 
 /**
  *  CESMRNcsEditor is a specialised CEikRichTextEditor for 

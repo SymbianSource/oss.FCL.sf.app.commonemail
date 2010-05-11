@@ -26,6 +26,7 @@
 #include <e32base.h>
 #include <badesca.h>
 #include <utf.h>
+#include <finditemengine.h>
 
 //<cmail>
 #include "cfsmailmessage.h"
@@ -79,9 +80,6 @@ _LIT( KHtmlLessThan, "&lt;" );
 _LIT( KHtmlGreaterThan, "&gt;" );
 _LIT( KHtmlAmpersand, "&amp;" );
 _LIT( KHtmlQuotation, "&quot;" );
-// _LIT( KHtmlLinkTag, "<a href=\"%S\">" );
-// _LIT( KHtmlLinkTagWWW, "<a href=\"%S%S\">" );
-// _LIT( KHtmlLinkEndTag, "</a>" );
 _LIT( KURLTypeBody, "body");
 
 _LIT( KURLDisplayImages, "cmail://displayImages/" );
@@ -93,13 +91,10 @@ const TText KGreaterThan = 0x3e;
 const TText KLessThan = 0x3c;
 const TText KAmpersand = 0x26;
 const TText KQuotation = 0x22;
-// const TText KCharacterSpace = 0x20;
 const TText KSOH = 0x01; // Start Of Heading
-// const TText KCR = 0x0d; // Carriage Return
 const TText KLF = 0x0a; // Line Feed
-// const TText KHT = 0x09; // Horizontal Tab
 const TText KUnicodeNewLineCharacter = 0x2028;
-const TText KUnicodeParagraphCharacter = 0x2029;        
+const TText KUnicodeParagraphCharacter = 0x2029;
 const TReal KOverlayButtonMarginX = 0.01; // 1%
 const TReal KOverlayButtonMarginY = 0.01; // 1%
 const TReal KOverlayButtonSizeP = 0.15; // 15%
@@ -108,6 +103,12 @@ const TReal KOverlayButtonSizeLs = 0.20; // 25%
 
 const TInt KStatusIndicatorHeight = 50;
 const TInt KStatusIndicatorXMargin = 50;
+
+// CONSTANTS
+// Zoom levels available on the UI
+const TInt KZoomLevels[] = { 75, 100, 125, 150 };
+const TInt KZoomLevelCount = sizeof( KZoomLevels ) / sizeof( TInt );
+const TInt KZoomLevelIndex100 = 100; // 100 in array KZoomLevels
 
 // CEUiHtmlViewerSettingsKeyListener
 
@@ -290,7 +291,8 @@ CFsEmailUiHtmlViewerContainer::CFsEmailUiHtmlViewerContainer(
     iAppUi( aAppUi ),
     iView( aView ),
     iFs( iCoeEnv->FsSession() ),
-    iFirstTime( ETrue )
+    iFirstTime( ETrue ),
+    iZoomLevel( KZoomLevelIndex100 )
     {
     FUNC_LOG;
     }
@@ -340,6 +342,140 @@ void CFsEmailUiHtmlViewerContainer::PrepareForMessageNavigation()
     ResetContent();
     }
 
+void CFsEmailUiHtmlViewerContainer::ZoomInL()
+    {
+    SetZoomLevelL( ZoomLevelL() + 1 );
+    }
+
+void CFsEmailUiHtmlViewerContainer::ZoomOutL()
+    {
+    SetZoomLevelL( ZoomLevelL() - 1 );
+    }
+
+TInt CFsEmailUiHtmlViewerContainer::ZoomLevelL() const
+    {
+    FUNC_LOG;
+    TInt zoomLevelIdx = iBrCtlInterface->BrowserSettingL(
+            TBrCtlDefs::ESettingsCurrentZoomLevelIndex );
+
+    // Behaviour of zooming in Browser Control Interface is different in version 7.1
+    // than in previous versions and we need to support both. In older versions there
+    // are 4 preset zoom levels while version 7.1 can zoom to any percent.
+    RArray<TUint>* zoomLevels = iBrCtlInterface->ZoomLevels();
+
+    if ( !zoomLevels || !zoomLevels->Count() || ( *zoomLevels )[0] != KZoomLevels[0] )
+        {
+        // new browser:
+        // BrowserControlIf gives zoom level percentage insted of index to array
+        TBool found = EFalse;
+
+        for ( TInt i = 0 ; i < KZoomLevelCount && !found ; ++i )
+            {
+            if ( zoomLevelIdx == KZoomLevels[i] )
+                {
+                zoomLevelIdx = i;
+                found = ETrue;
+                }
+            }
+
+        if ( !found )
+            {
+            zoomLevelIdx = KErrNotFound;
+            }
+        }
+    return zoomLevelIdx;
+    }
+
+void CFsEmailUiHtmlViewerContainer::SetZoomLevelL( const TInt aZoomLevel )
+    {
+    FUNC_LOG;
+    TInt newValue = KMinTInt;
+
+    // Behaviour of zooming in Browser Control Interface is different in version 7.1
+    // than in previous versions and we need to support both. In older versions there
+    // are 4 preset zoom levels while version 7.1 can zoom to any percent.
+    RArray<TUint>* zoomLevels = iBrCtlInterface->ZoomLevels();
+
+    if ( !zoomLevels || !zoomLevels->Count() || ( *zoomLevels )[0] != KZoomLevels[0] )
+        {
+        // new browser:
+        // BrowserControlIf takes zoom level percentage insted of index to array
+        if ( aZoomLevel >= 0 && aZoomLevel < KZoomLevelCount )
+            {
+            newValue = KZoomLevels[aZoomLevel];
+            }
+        }
+    else
+        {
+        // old browser
+        newValue = aZoomLevel;
+        }
+
+    iZoomLevel = ( newValue > KMinTInt ) ? newValue : aZoomLevel;
+    iBrCtlInterface->SetBrowserSettingL(
+        TBrCtlDefs::ESettingsCurrentZoomLevelIndex, iZoomLevel );
+    }
+
+TInt CFsEmailUiHtmlViewerContainer::DoZoom( TAny* aPtr  )
+    {
+    TRAPD( error, reinterpret_cast<CFsEmailUiHtmlViewerContainer*>( aPtr )->DoZoomL() );
+    return error;
+    }
+
+void CFsEmailUiHtmlViewerContainer::DoZoomL()
+    {
+    iBrCtlInterface->SetBrowserSettingL(
+        TBrCtlDefs::ESettingsCurrentZoomLevelIndex, iZoomLevel );
+    }
+
+TInt CFsEmailUiHtmlViewerContainer::MaxZoomLevel() const
+    {
+    return KZoomLevelCount;
+    }
+
+
+void CFsEmailUiHtmlViewerContainer::CreateBrowserControlInterfaceL()
+    {
+    FUNC_LOG;
+
+    if ( iBrCtlInterface )
+        {
+        delete iBrCtlInterface;
+        iBrCtlInterface = NULL;
+        }
+
+    TUint brCtlCapabilities = TBrCtlDefs::ECapabilityClientResolveEmbeddedURL |
+                              TBrCtlDefs::ECapabilityDisplayScrollBar |
+                              TBrCtlDefs::ECapabilityClientNotifyURL |
+                              TBrCtlDefs::ECapabilityLoadHttpFw |
+                              TBrCtlDefs::ECapabilityCursorNavigation |
+                              TBrCtlDefs::ECapabilityPinchZoom |
+                              TBrCtlDefs::ECapabilityFitToScreen;
+
+    // Set browsercontrol to whole screen
+    TRect rect( TPoint(), Size() );
+
+    iBrCtlInterface = CreateBrowserControlL(
+            this, // aParent
+            rect,  // aRect
+            brCtlCapabilities, // aBrCtlCapabilities
+            TBrCtlDefs::ECommandIdBase, // aCommandIdBase
+            NULL, // aBrCtlSoftkeysObserver
+            this, // aBrCtlLinkResolver
+            this, // aBrCtlSpecialLoadObserver
+            NULL, // aBrCtlLayoutObserver
+            NULL, // aBrCtlDialogsProvider
+            this, // aBrCtlWindowObserver
+            NULL // aBrCtlDownloadObserver
+            );
+
+    iBrCtlInterface->SetBrowserSettingL( TBrCtlDefs::ESettingsEmbedded, ETrue );
+    iBrCtlInterface->SetBrowserSettingL( TBrCtlDefs::ESettingsAutoLoadImages, iViewerSettings->AutoLoadImages() );
+    iBrCtlInterface->SetBrowserSettingL( TBrCtlDefs::ESettingsPageOverview, EFalse );
+    iBrCtlInterface->SetBrowserSettingL( TBrCtlDefs::ESettingsTextWrapEnabled, ETrue );
+    iBrCtlInterface->SetBrowserSettingL( TBrCtlDefs::ESettingsFontSize, TBrCtlDefs::EFontSizeLevelLarger );
+    }
+
 void CFsEmailUiHtmlViewerContainer::ConstructL()
     {
     FUNC_LOG;
@@ -351,45 +487,23 @@ void CFsEmailUiHtmlViewerContainer::ConstructL()
     BaflUtils::EnsurePathExistsL( iFs, iTempHtmlFolderPath );
     SetHTMLResourceFlagFullName();
     EnsureHTMLResourceL();
-    
+
     CreateWindowL();
+    
+#if defined( BRDO_MULTITOUCH_ENABLED_FF ) && !defined ( __WINSCW__ )   
+    //Enable advance pointer info for multi-touch.
+    Window().EnableAdvancedPointers();
+#endif 
+
+    
     SetRect( iView.ContainerRect() );
+    CreateBrowserControlInterfaceL();
 
-    TUint brCtlCapabilities = TBrCtlDefs::ECapabilityClientResolveEmbeddedURL |
-                              TBrCtlDefs::ECapabilityDisplayScrollBar |
-                              TBrCtlDefs::ECapabilityClientNotifyURL |
-                              TBrCtlDefs::ECapabilityLoadHttpFw |
-                              TBrCtlDefs::ECapabilityCursorNavigation |
-                              TBrCtlDefs::ECapabilityPinchZoom;
-
-    // Set browsercontrol to whole screen
-    TRect rect( TPoint(), Size() );
-   
-    iBrCtlInterface = CreateBrowserControlL( 
-            this, // aParent 
-            rect,  // aRect
-            brCtlCapabilities, // aBrCtlCapabilities
-            TBrCtlDefs::ECommandIdBase, // aCommandIdBase
-            NULL, // aBrCtlSoftkeysObserver
-            this, // aBrCtlLinkResolver
-            this, // aBrCtlSpecialLoadObserver
-            NULL, // aBrCtlLayoutObserver
-            NULL, // aBrCtlDialogsProvider
-            this, // aBrCtlWindowObserver
-            NULL // aBrCtlDownloadObserver 
-            );
-
-    iBrCtlInterface->SetBrowserSettingL( TBrCtlDefs::ESettingsEmbedded, ETrue );
-    iBrCtlInterface->SetBrowserSettingL( TBrCtlDefs::ESettingsAutoLoadImages, iViewerSettings->AutoLoadImages() );
-    iBrCtlInterface->SetBrowserSettingL( TBrCtlDefs::ESettingsPageOverview, EFalse );
-    iBrCtlInterface->SetBrowserSettingL( TBrCtlDefs::ESettingsTextWrapEnabled, ETrue );
-    iBrCtlInterface->SetBrowserSettingL( TBrCtlDefs::ESettingsFontSize, TBrCtlDefs::EFontSizeLevelLarger );
-    
     iEventHandler = CFreestyleMessageHeaderURLEventHandler::NewL( iAppUi, iView );
-    
+
     TRect nextButtonRect = OverlayButtonRect( EFalse );
-    iOverlayControlNext = COverlayControl::NewL( this, this, nextButtonRect, 
-            EMbmFreestyleemailuiQgn_indi_cmail_arrow_next, 
+    iOverlayControlNext = COverlayControl::NewL( this, this, nextButtonRect,
+            EMbmFreestyleemailuiQgn_indi_cmail_arrow_next,
             EMbmFreestyleemailuiQgn_indi_cmail_arrow_next_mask );
 
     TRect prevButtonRect = OverlayButtonRect( ETrue );
@@ -411,7 +525,7 @@ void CFsEmailUiHtmlViewerContainer::MakeVisible( TBool aVisible )
     CCoeControl::MakeVisible( aVisible );
     }
 
-void CFsEmailUiHtmlViewerContainer::HandleOverlayPointerEventL( COverlayControl* aControl, 
+void CFsEmailUiHtmlViewerContainer::HandleOverlayPointerEventL( COverlayControl* aControl,
         const TPointerEvent& aEvent )
     {
     if( aEvent.iType == TPointerEvent::EButton1Up )
@@ -439,7 +553,7 @@ void CFsEmailUiHtmlViewerContainer::UpdateOverlayButtons( TBool aVisible )
         nextAvailable = iAppUi.IsNextMsgAvailable( currentMsgId, tmpMsgId, tmpMsgFolderId );
         prevAvailable = iAppUi.IsPreviousMsgAvailable( currentMsgId, tmpMsgId, tmpMsgFolderId );
         }
-    
+
     if( iOverlayControlPrev )
         {
         iOverlayControlPrev->SetRect( OverlayButtonRect( ETrue ) );
@@ -457,7 +571,7 @@ TRect CFsEmailUiHtmlViewerContainer::OverlayButtonRect( TBool aLeft )
     {
     TRect rect = Rect();
     TSize size = rect.Size();
-    
+
     TBool landscape = size.iWidth > size.iHeight;
     TInt buttonSize;
 
@@ -471,7 +585,7 @@ TRect CFsEmailUiHtmlViewerContainer::OverlayButtonRect( TBool aLeft )
         }
 
     rect.iBr.iY = size.iHeight * (1-KOverlayButtonMarginY);
-    
+
     if( aLeft )
         {
         rect.iTl.iX = size.iWidth * KOverlayButtonMarginX;
@@ -482,7 +596,7 @@ TRect CFsEmailUiHtmlViewerContainer::OverlayButtonRect( TBool aLeft )
         rect.iBr.iX = size.iWidth * (1 - KOverlayButtonMarginX);
         rect.iTl.iX = rect.iBr.iX - buttonSize;
         }
-    
+
     rect.iTl.iY = rect.iBr.iY - buttonSize;
     return rect;
     }
@@ -525,23 +639,23 @@ void CFsEmailUiHtmlViewerContainer::LoadContentFromMailMessageL(
     // Cancel any browser fetch operation, just in case the browser is still
     // loading a previous message (since we are about to overwrite it).
     CancelFetch();
-    
+
     TPath headerHtmlFile;
     headerHtmlFile.Copy( iHtmlFolderPath );
     headerHtmlFile.Append( KHeaderHtmlFile );
-    
+
     // insert email header into email.html file
     // CFreestyleMessageHeaderHTML will replace contents of email.html
     // So, no need to clear the contents
     if(aResetScrollPos)
         {
-        iScrollPosition = 0; 
+        iScrollPosition = 0;
         }
     const TInt visibleWidth(iAppUi.ClientRect().Width());
     CFreestyleMessageHeaderHTML::ExportL( *iMessage, iFs, headerHtmlFile, visibleWidth, iScrollPosition,
                                             iViewerSettings->AutoLoadImages() || iAppUi.DisplayImagesCache().Contains(*iMessage),
                                             iHeaderExpanded );
-    
+
     // Remove all previously created files from temporary HTML folder
     EmptyTempHtmlFolderL();
 
@@ -562,8 +676,11 @@ void CFsEmailUiHtmlViewerContainer::LoadContentFromMailMessageL(
         {
         emailHtmlFile.Append( KMessageHtmlRTLFile );
         }
+
+    CreateBrowserControlInterfaceL();
+
     LoadContentFromFileL( emailHtmlFile );
-    
+
     UpdateOverlayButtons( ETrue );
     }
 
@@ -576,12 +693,12 @@ void CFsEmailUiHtmlViewerContainer::ResetContent(const TBool aDisconnect)
     FUNC_LOG;
     if ( iBrCtlInterface )
         {
-        TRAP_IGNORE( 
+        TRAP_IGNORE(
                 iBrCtlInterface->HandleCommandL( ( TInt )TBrCtlDefs::ECommandIdBase +
                         ( TInt )TBrCtlDefs::ECommandFreeMemory ) );
         if (aDisconnect)
             {
-            TRAP_IGNORE( 
+            TRAP_IGNORE(
                     iBrCtlInterface->HandleCommandL( ( TInt )TBrCtlDefs::ECommandIdBase +
                                                       ( TInt )TBrCtlDefs::ECommandDisconnect ) );
             }
@@ -640,7 +757,7 @@ TInt CFsEmailUiHtmlViewerContainer::CountComponentControls() const
         {
         return 4;
         }
-    else 
+    else
         {
         return 3;
         }
@@ -677,9 +794,9 @@ void CFsEmailUiHtmlViewerContainer::SizeChanged()
         {
         iBrCtlInterface->SetRect( rect );
         }
-    
+
     UpdateOverlayButtons( IsVisible() );
-    
+
     if ( iStatusIndicator )
         {
         TRect rect = CalcAttachmentStatusRect();
@@ -695,7 +812,7 @@ TKeyResponse CFsEmailUiHtmlViewerContainer::OfferKeyEventL(
     const TKeyEvent& aKeyEvent, TEventCode aType )
     {
     FUNC_LOG;
-    
+
     TKeyResponse retVal = EKeyWasNotConsumed;
 
     // Handle keyboard shortcuts already on key down event as all keys
@@ -713,9 +830,19 @@ TKeyResponse CFsEmailUiHtmlViewerContainer::OfferKeyEventL(
             }
         }
 
-    else if ( iBrCtlInterface && retVal == EKeyWasNotConsumed )
+    if ( iBrCtlInterface && retVal == EKeyWasNotConsumed )
         {
-        retVal = iBrCtlInterface->OfferKeyEventL( aKeyEvent, aType );
+        TKeyEvent event = aKeyEvent;
+        if ( iBrCtlInterface->FocusedElementType() == TBrCtlDefs::EElementButton
+             && ( aKeyEvent.iScanCode == EStdKeyNkpEnter 
+                  || aKeyEvent.iScanCode == EStdKeyEnter ) )
+            {
+            // Enter key events are converted to selection key event in
+            // order to get browser to handle them in similar way.
+            event.iScanCode = EStdKeyDevice3;
+            event.iCode = aKeyEvent.iCode ? EKeyDevice3 : 0;
+            }
+        retVal = iBrCtlInterface->OfferKeyEventL( event, aType );
         }
 
     iView.SetMskL();
@@ -806,7 +933,7 @@ void CFsEmailUiHtmlViewerContainer::RequestResponseL( const TFSProgress& aEvent,
             {
             iAppUi.DownloadInfoMediator()->StopObserving( this );
             }
-               
+
         if ( iMessage && linkContent )
             {
             CFSMailMessagePart* part = iMessage->ChildPartL( aPart.iMessagePartId );
@@ -820,10 +947,10 @@ void CFsEmailUiHtmlViewerContainer::RequestResponseL( const TFSProgress& aEvent,
             CleanupStack::PopAndDestroy( &contentFile );
             CleanupStack::PopAndDestroy( part );
             }
-        
+
         if ( iMessage )
             {
-            LoadContentFromMailMessageL( iMessage, EFalse );            
+            LoadContentFromMailMessageL( iMessage, EFalse );
             UpdateOverlayButtons( ETrue );
             }
         }
@@ -907,7 +1034,7 @@ TBool CFsEmailUiHtmlViewerContainer::ResolveLinkL( const TDesC& aUrl,
         else
             {
             return iEventHandler->HandleEventL( aUrl );
-            }     
+            }
         }
     }
 
@@ -954,7 +1081,7 @@ void CFsEmailUiHtmlViewerContainer::SetHtmlFolderPathL()
 //
 void CFsEmailUiHtmlViewerContainer::SetTempHtmlFolderPath()
     {
-    FUNC_LOG;    
+    FUNC_LOG;
     iTempHtmlFolderPath.Copy( iHtmlFolderPath );
     iTempHtmlFolderPath.Append( KTempHtmlPath );
     }
@@ -991,7 +1118,7 @@ void CFsEmailUiHtmlViewerContainer::CopyToHtmlFileL( CFSMailMessagePart& aHtmlBo
 
     RFile htmlFile = aHtmlBodyPart.GetContentFileL();
     CleanupClosePushL( htmlFile );
-    
+
     // Read content from given source file
     HBufC8* content = ReadContentFromFileLC( htmlFile );
 
@@ -1014,14 +1141,14 @@ void CFsEmailUiHtmlViewerContainer::ConvertToHtmlFileL( CFSMailMessagePart& aTex
     TFileName targetFileName;
     targetFileName.Copy( iTempHtmlFolderPath );
     targetFileName.Append( aHtmlFileName );
-    
+
     HBufC* content = HBufC::NewLC( aTextBodyPart.FetchedContentSize() );
     TPtr contentPtr( content->Des() );
-    
+
     aTextBodyPart.GetContentToBufferL( contentPtr, 0 );
-    
+
     ConvertToHTML( *content, targetFileName, aTextBodyPart );
-    
+
     CleanupStack::PopAndDestroy( content );
 
     }
@@ -1050,11 +1177,11 @@ void CFsEmailUiHtmlViewerContainer::WriteContentToFileL( const TDesC8& aContent,
     const TDesC& aFileName, CFSMailMessagePart& aHtmlBodyPart )
     {
     FUNC_LOG;
-    
+
     RBuf8 buffer;
     buffer.CreateL( aContent );
     buffer.CleanupClosePushL();
-    
+
     if ( SysUtil::DiskSpaceBelowCriticalLevelL( &iFs, buffer.Size(), EDriveC ) )
          {
          // Can not write the data, there's not enough free space on disk.
@@ -1064,12 +1191,12 @@ void CFsEmailUiHtmlViewerContainer::WriteContentToFileL( const TDesC8& aContent,
         {
         RFile targetFile;
         CleanupClosePushL( targetFile );
-        
+
         User::LeaveIfError( targetFile.Replace( iFs, aFileName, EFileWrite ) );
 
         // Try to find initial html tag (both '<html' and '<HTML' versions are searched)
         TInt startTagOffset = buffer.Left( KMaxCharsToSearch ).FindF( KStartTag );
-        
+
         // Modifying text/html atta IF there's no '<html>' tag anywhere in
         // the begining of file (KMaxCharsToSearch) AND there is charset
         // parameter available
@@ -1084,34 +1211,34 @@ void CFsEmailUiHtmlViewerContainer::WriteContentToFileL( const TDesC8& aContent,
             {
             HBufC8* charSet = GetCharacterSetL( aHtmlBodyPart );
             CleanupStack::PushL( charSet );
-            
+
             User::LeaveIfError( targetFile.Write( KHtmlHeader1 ) );
             User::LeaveIfError( targetFile.Write( *charSet ) );
             User::LeaveIfError( targetFile.Write( KHtmlHeader2 ) );
             CleanupStack::PopAndDestroy( charSet );
             }
-        else 
+        else
             {
             // Charset tag not found in html body
-            
+
             if ( buffer.Left( KMaxCharsToSearch ).FindF( KCharsetTag8 ) == KErrNotFound )
                 {
                 TInt startPos(0);
                 if ( ( startPos = buffer.Left( KMaxCharsToSearch ).FindF( KHeadTag ) ) != KErrNotFound )
-                    { 
-                    
+                    {
+
                     HBufC8* charSet = GetCharacterSetL( aHtmlBodyPart );
                     CleanupStack::PushL( charSet );
-                    
+
                     HBufC8* metaBuffer = HBufC8::NewLC( charSet->Des().Length() + KHtmlHeader3().Length() );
                     TPtr8 metaHeader( metaBuffer->Des() );
-                    metaHeader.AppendFormat( KHtmlHeader3, charSet );                
-                    TInt maxLength = buffer.Length() + metaHeader.Length();         
+                    metaHeader.AppendFormat( KHtmlHeader3, charSet );
+                    TInt maxLength = buffer.Length() + metaHeader.Length();
                     buffer.ReAllocL( maxLength );
-                   
+
                     startPos += KHeadTag().Length();
                     buffer.Insert( startPos, metaHeader );
-                    
+
                     CleanupStack::PopAndDestroy( metaBuffer );
                     CleanupStack::PopAndDestroy( charSet );
                     }
@@ -1244,14 +1371,14 @@ void CFsEmailUiHtmlViewerContainer::DownloadAttachmentL(
             partData.iMailBoxId = iMessage->GetMailBoxId();
             partData.iFolderId = iMessage->GetFolderId();
             partData.iMessageId = iMessage->GetMessageId();
-            
+
             partData.iMessagePartId = aAttachment.GetPartId();
 
             if ( iAppUi.DownloadInfoMediator() &&
                  iAppUi.DownloadInfoMediator()->IsDownloadableL( partData ) )
                 {
                 ASSERT( iLinkContents.Count() == iMessageParts.Count() );
-    
+
                 // Append message part details and embedded link content interface
                 // to corresponding arrays so that the content can be returned
                 // when the download is completed.
@@ -1260,7 +1387,7 @@ void CFsEmailUiHtmlViewerContainer::DownloadAttachmentL(
                     {
                     iLinkContents.Remove( iLinkContents.Count() - 1 );
                     }
-    
+
                 ASSERT( iLinkContents.Count() == iMessageParts.Count() );
                 if(!iView.GetAsyncFetchStatus())
                     {
@@ -1277,7 +1404,7 @@ void CFsEmailUiHtmlViewerContainer::SetHTMLResourceFlagFullName()
     {
     FUNC_LOG;
     iHtmlResourceFlagPath.Copy( iHtmlFolderPath );
-    iHtmlResourceFlagPath.Append( KHtmlFlagFile );    
+    iHtmlResourceFlagPath.Append( KHtmlFlagFile );
     }
 
 void CFsEmailUiHtmlViewerContainer::EnableHTMLResourceFlagL()
@@ -1306,11 +1433,11 @@ void CFsEmailUiHtmlViewerContainer::CopyHTMLResourceL()
     htmlFolderPathInZ.Append( privatePath );
 
     htmlFolderPathInZ.Append( KHtmlPath );
-    
+
     CDir* dirList;
     TPath listSpec;
     listSpec.Copy( htmlFolderPathInZ );
-     
+
     listSpec.Append( _L("*.*") );
     User::LeaveIfError( iFs.GetDir( listSpec,  KEntryAttMaskSupported, ESortByName, dirList ) );
     CleanupStack::PushL( dirList );
@@ -1319,28 +1446,28 @@ void CFsEmailUiHtmlViewerContainer::CopyHTMLResourceL()
         TPath sourceFileFullName;
         sourceFileFullName.Copy( htmlFolderPathInZ );
         sourceFileFullName.Append( (*dirList)[i].iName );
-        
+
         TBool isFolder( EFalse );
         BaflUtils::IsFolder( iFs, sourceFileFullName, isFolder);
         if ( isFolder )
             {
-            break;            
+            break;
             }
-        
+
         TPath targetFileFullName;
         targetFileFullName.Copy( iHtmlFolderPath );
         targetFileFullName.Append( (*dirList)[i].iName );
-        BaflUtils::DeleteFile( iFs, targetFileFullName );        
-        
+        BaflUtils::DeleteFile( iFs, targetFileFullName );
+
         BaflUtils::CopyFile( iFs, sourceFileFullName, targetFileFullName);
-        }    
+        }
     CleanupStack::PopAndDestroy( dirList );
     }
 
 void CFsEmailUiHtmlViewerContainer::EnsureHTMLResourceL()
     {
     FUNC_LOG;
-    
+
     if ( !HTMLResourceFlagEnabled() )
         {
         CopyHTMLResourceL();
@@ -1352,203 +1479,24 @@ void CFsEmailUiHtmlViewerContainer::EnsureHTMLResourceL()
 // Writes buffer content to given file after adding tags
 // ---------------------------------------------------------------------------
 //
-// <cmail>
 void CFsEmailUiHtmlViewerContainer::ConvertToHTML( const TDesC& aContent,
     const TDesC& aFileName, CFSMailMessagePart& /*aTextBodyPart*/ )
     {
     FUNC_LOG;
-    const TInt KBodyTextChunkSize = 2048;
-    
+   
     if ( SysUtil::DiskSpaceBelowCriticalLevelL( &iFs, aContent.Size(), EDriveC ) )
-         {
-         // Can not write the data, there's not enough free space on disk.
-         User::Leave( KErrDiskFull );
-        }
-    else
         {
-        RBuf bodyBuf;
-        bodyBuf.CreateL( aContent.Size() + KBodyTextChunkSize );
-        bodyBuf.CleanupClosePushL();
-        bodyBuf.Insert( 0, aContent);
-        TInt maxlength = bodyBuf.MaxSize();
-        
-        TInt position( 0 );
-        TBool EndOfString( EFalse );
-        
-        while ( !EndOfString )
-            {
-            TInt startPosition = position;
-            TPtr segment( bodyBuf.MidTPtr( startPosition ) );
-            TInt i = 0;
-            
-            while(i < segment.Length())
-                {
-                TInt currentPos = position + i;
-                TText ch = segment[i];
-                
-                switch( ch )
-                    {
-                    case KSOH:  // end of line for IMAP and POP
-                        bodyBuf.Delete( currentPos, 1 );
-                        maxlength = maxlength + KHtmlLineBreakCRLF().Length();
-                        bodyBuf.ReAlloc( maxlength );
-                        bodyBuf.Insert( currentPos, KHtmlLineBreakCRLF );
-                        i += KHtmlLineBreakCRLF().Length();
-                        segment.Set( bodyBuf.MidTPtr( startPosition ) );
-                        break;
-                    case KLF: // line feed
-                    case KUnicodeNewLineCharacter:
-                    case KUnicodeParagraphCharacter:
-                            maxlength = maxlength + KHtmlLineBreak().Length();
-                            bodyBuf.ReAlloc( maxlength );
-                            bodyBuf.Insert( currentPos, KHtmlLineBreak );
-                            i += KHtmlLineBreak().Length() + 1;
-                            segment.Set( bodyBuf.MidTPtr( startPosition ) );
-                        break;  
-                    case KQuotation:
-                        bodyBuf.Delete( currentPos, 1 );
-                        maxlength = maxlength + KHtmlQuotation().Length();
-                        bodyBuf.ReAlloc( maxlength );
-                        bodyBuf.Insert( currentPos, KHtmlQuotation );
-                        i += KHtmlQuotation().Length();
-                        segment.Set( bodyBuf.MidTPtr( startPosition ) );
-                        break;
-                    case KAmpersand:
-                        bodyBuf.Delete( currentPos, 1 );
-                        maxlength = maxlength + KHtmlAmpersand().Length();
-                        bodyBuf.ReAlloc( maxlength  );
-                        bodyBuf.Insert( currentPos, KHtmlAmpersand );
-                        i += KHtmlAmpersand().Length();
-                        segment.Set( bodyBuf.MidTPtr( startPosition ) );
-                        break;
-                    case KGreaterThan:
-                        bodyBuf.Delete( currentPos, 1 );
-                        maxlength = maxlength + KHtmlGreaterThan().Length();
-                        bodyBuf.ReAlloc( maxlength );
-                        bodyBuf.Insert( currentPos, KHtmlGreaterThan );
-                        i += KHtmlGreaterThan().Length();
-                        segment.Set( bodyBuf.MidTPtr( startPosition ) );
-                        break;
-                    case KLessThan:
-                        bodyBuf.Delete( currentPos, 1 );
-                        maxlength =  maxlength + KHtmlLessThan().Length();
-                        bodyBuf.ReAlloc( maxlength );
-                        bodyBuf.Insert( currentPos, KHtmlLessThan );
-                        i += KHtmlLessThan().Length();
-                        segment.Set( bodyBuf.MidTPtr( startPosition ) );
-                        break;
-                    default:
-                        i++;
-                        break;
-                    }
-                }
-            position += segment.Length();
-            if ( ( bodyBuf.Length() - position ) <= 0 )
-                {
-                EndOfString = ETrue;
-                }
-            }
-        
-        CreateHyperlinksFromUrlsL( bodyBuf );
-        
-        HBufC8* content8 = CnvUtfConverter::ConvertFromUnicodeToUtf8L( bodyBuf );
-        CleanupStack::PushL( content8 );        
-        
-        RFile targetFile;
-        CleanupClosePushL( targetFile );
-        User::LeaveIfError( targetFile.Replace( iFs, aFileName, EFileWrite ) );
-        
-        RBuf8 messageHeader;
-        _LIT( KCharsetUtf8, "UTF-8" );
-        TInt bufSize = KHtmlHeader1().Length() + KCharsetUtf8().Length() + KHtmlHeader2().Length();
-        messageHeader.CreateL( bufSize );
-        messageHeader.CleanupClosePushL();
-        
-        messageHeader.Append( KHtmlHeader1 );
-        messageHeader.Append( KCharsetUtf8 );
-        messageHeader.Append( KHtmlHeader2 );
-
-        RFileWriteStream fileStream( targetFile );
-        fileStream.PushL();
-        fileStream.WriteL( messageHeader.Ptr(), messageHeader.Length() );
-
-        TInt bufPos( 0 );
-        TInt bufTotalSize = content8->Size();
-
-        while ( bufPos < bufTotalSize )
-            {
-            TInt segmentLength = content8->Mid( bufPos ).Length();
-            fileStream.WriteL( content8->Mid( bufPos ).Ptr(), segmentLength );
-            bufPos += segmentLength;
-            }
-
-        fileStream.CommitL();
-
-        CleanupStack::PopAndDestroy( &fileStream );
-        CleanupStack::PopAndDestroy( &messageHeader );
-        CleanupStack::PopAndDestroy( &targetFile );
-        CleanupStack::PopAndDestroy( content8 );
-        CleanupStack::PopAndDestroy( &bodyBuf ); // calls bodyBuf.Close();
-
-// </cmail>
+        // Can not write the data, there's not enough free space on disk.
+        User::Leave( KErrDiskFull );
         }
-    }
 
-// ---------------------------------------------------------------------------
-// Finds and html formats hyperlinks in a document
-// ---------------------------------------------------------------------------
-//
-// <cmail>
-void CFsEmailUiHtmlViewerContainer::CreateHyperlinksFromUrlsL( RBuf& aSource )
-    {
-    FUNC_LOG;
-    const TInt searhCases( CFindItemEngine::EFindItemSearchURLBin );
-    CFindItemEngine* itemEngine = CFindItemEngine::NewL( aSource, CFindItemEngine::TFindItemSearchCase( searhCases ) );
-    CleanupStack::PushL ( itemEngine );
-    if ( itemEngine->ItemCount() > 0 )
-        {
-        _LIT( KSchemeDelimiter, "://" );
-        _LIT( KUrlFormat, "<a href=\"%S\">%S</a>" );
-        _LIT( KUrlFormatWithHttp, "<a href=\"http://%S\">%S</a>" );
+    RBuf htmlText;
+    CleanupClosePushL( htmlText );
         
-        const TInt sourceLength( aSource.Length() );
-        // Allocate enough space for the final result
-        aSource.ReAllocL( sourceLength + TotalLengthOfItems( *itemEngine ) + KUrlFormatWithHttp().Length() * itemEngine->ItemCount() );
-        aSource.SetMax();
-        // Organize buffer so that original data is in the back of the aSource
-        aSource.RightTPtr( sourceLength ).Copy( aSource.Left( sourceLength ) );
-        // Set source to new original data's position
-        const TPtrC source( aSource.RightTPtr( sourceLength ) );
-        // Set target to aSource's beginning
-        TPtr target( aSource.MidTPtr( 0 ) );
-        // Reset length, we now have an empty buffer to fill
-        target.SetLength( 0 );
+    PlainTextToHtmlConverter::PlainTextToHtmlL( aContent, htmlText );
+    WriteToFileL( aFileName, htmlText );
         
-        TInt currentSourcePosition( 0 );
-        CFindItemEngine::SFoundItem item;
-        for ( TBool available( itemEngine->Item( item ) ); available; available = itemEngine->NextItem( item ) )
-            {
-            target.Append( source.Mid( currentSourcePosition, item.iStartPos - currentSourcePosition ) );
-            const TPtrC url( source.Mid( item.iStartPos, item.iLength ) );
-            TPtrC format( KUrlFormat() );
-            if ( url.FindF( KSchemeDelimiter() ) == KErrNotFound ) 
-                {
-                format.Set( KUrlFormatWithHttp() );
-                }
-            HBufC* formatBuffer = HBufC::NewLC( format.Length() + url.Length() * 2 );
-            formatBuffer->Des().Format( format, &url, &url );            
-            target.Append( *formatBuffer );
-            CleanupStack::PopAndDestroy(); // formatBuffer
-            currentSourcePosition = item.iStartPos + item.iLength;
-            }        
-        // Append characters that are left in buffer
-        if ( currentSourcePosition < sourceLength )
-            {
-            target.Append( source.Mid( currentSourcePosition, sourceLength - currentSourcePosition ) );
-            }
-        aSource.SetLength( target.Length() );
-        }
-    CleanupStack::PopAndDestroy(); // itemEngine
+    CleanupStack::PopAndDestroy( &htmlText );
     }
 
 
@@ -1573,15 +1521,15 @@ TInt CFsEmailUiHtmlViewerContainer::TotalLengthOfItems( CFindItemEngine& aItemEn
 HBufC8* CFsEmailUiHtmlViewerContainer::GetCharacterSetL( CFSMailMessagePart& aHtmlBodyPart )
     {
     FUNC_LOG;
-    
+
     CDesCArray& contentTypeArray( aHtmlBodyPart.ContentTypeParameters() );
-    HBufC8* charSet = KNullDesC8().AllocLC();   
-    
+    HBufC8* charSet = KNullDesC8().AllocLC();
+
     for ( TInt i = 0; i < contentTypeArray.Count(); i++ )
         {
         TPtrC contentEntry( contentTypeArray.MdcaPoint( i ) );
         if ( ( contentEntry.FindF( KCharsetTag ) != KErrNotFound ) &&
-                contentTypeArray.Count() >= ( i+1) )  
+                contentTypeArray.Count() >= ( i+1) )
             {
             TPtrC value( contentTypeArray.MdcaPoint( i+1 ) );
             if ( value.Length() )
@@ -1595,7 +1543,7 @@ HBufC8* CFsEmailUiHtmlViewerContainer::GetCharacterSetL( CFSMailMessagePart& aHt
             }
         i++;
         }
-    
+
     CleanupStack::Pop( charSet );
     return charSet;
     }
@@ -1617,8 +1565,8 @@ void CFsEmailUiHtmlViewerContainer::CancelFetch()
     FUNC_LOG;
     if ( iBrCtlInterface )
         {
-        TRAP_IGNORE( iBrCtlInterface->HandleCommandL( (TInt)TBrCtlDefs::ECommandCancelFetch + (TInt)TBrCtlDefs::ECommandIdBase )); 
-        }   
+        TRAP_IGNORE( iBrCtlInterface->HandleCommandL( (TInt)TBrCtlDefs::ECommandCancelFetch + (TInt)TBrCtlDefs::ECommandIdBase ));
+        }
     }
 
 void CFsEmailUiHtmlViewerContainer::ClearCacheAndLoadEmptyContent()
@@ -1626,11 +1574,11 @@ void CFsEmailUiHtmlViewerContainer::ClearCacheAndLoadEmptyContent()
     FUNC_LOG;
     if ( iBrCtlInterface )
         {
-        iBrCtlInterface->ClearCache(); 
+        iBrCtlInterface->ClearCache();
         TUid uid;
         uid.iUid = KCharacterSetIdentifierUtf8;
         TRAP_IGNORE( iBrCtlInterface->LoadDataL(KHTMLDataScheme, KHTMLEmptyContent, _L8("text/html"), uid) );
-        }   
+        }
     }
 
 void CFsEmailUiHtmlViewerContainer::HandleResourceChange( TInt aType )
@@ -1651,20 +1599,20 @@ void CFsEmailUiHtmlViewerContainer::RefreshCurrentMailHeader()
         TPath headerHtmlFile;
         headerHtmlFile.Copy( iHtmlFolderPath );
         headerHtmlFile.Append( KHeaderHtmlFile );
-        
+
             TRAP_IGNORE( CFreestyleMessageHeaderHTML::ExportL( *iMessage, iFs,
                 headerHtmlFile, iAppUi.ClientRect().Width(), iScrollPosition,
                 iViewerSettings->AutoLoadImages() || iAppUi.DisplayImagesCache().Contains(*iMessage),
                 iHeaderExpanded ) )
-        
-        
+
+
         if(!iEventHandler->IsMenuVisible())
             {
             TRAP_IGNORE( ReloadPageL() );
             }
         else
             {
-            //Load page asynchronously after dismissing menu 
+            //Load page asynchronously after dismissing menu
             //this is outdated call because it cancels Action menu which is no longer used in 9.2
            // iEventHandler->DismissMenuAndReload();
             }
@@ -1677,8 +1625,8 @@ void CFsEmailUiHtmlViewerContainer::ReloadPageL()
             ( TInt )TBrCtlDefs::ECommandReload ) );
     }
 
-void CFsEmailUiHtmlViewerContainer::ShowAttachmentDownloadStatusL( 
-        TFSProgress::TFSProgressStatus aProgressStatus, 
+void CFsEmailUiHtmlViewerContainer::ShowAttachmentDownloadStatusL(
+        TFSProgress::TFSProgressStatus aProgressStatus,
         const TAttachmentData& aAttachmentData )
     {
     TBool freshDraw = EFalse;
@@ -1699,18 +1647,18 @@ void CFsEmailUiHtmlViewerContainer::ShowAttachmentDownloadStatusL(
         TRect rect = CalcAttachmentStatusRect();
         iStatusIndicator = CFreestyleEmailUiAknStatusIndicator::NewL( rect, this );
         freshDraw = ETrue;
-        }    
-    
-    if ( !iStatusIndicator->IsVisible() 
-         || ( aAttachmentData.downloadProgress == KNone ) 
+        }
+
+    if ( !iStatusIndicator->IsVisible()
+         || ( aAttachmentData.downloadProgress == KNone )
          || ( aProgressStatus == TFSProgress::EFSStatus_RequestCancelled ) )
         {
         freshDraw = ETrue;
         }
-    
+
     TInt duration = KStatusIndicatorDefaultDuration;
-    if ( ( aAttachmentData.downloadProgress == TFSProgress::EFSStatus_RequestComplete ) 
-         || ( aProgressStatus == TFSProgress::EFSStatus_RequestCancelled ) 
+    if ( ( aAttachmentData.downloadProgress == TFSProgress::EFSStatus_RequestComplete )
+         || ( aProgressStatus == TFSProgress::EFSStatus_RequestCancelled )
          || ( aAttachmentData.downloadProgress == KComplete ) )
         {
         duration = KStatusIndicatorAutomaticHidingDuration;
@@ -1728,22 +1676,22 @@ void CFsEmailUiHtmlViewerContainer::ShowAttachmentDownloadStatusL(
             CArrayFix<TInt>* intArray = new (ELeave) CArrayFixFlat<TInt>( 1 );
             CleanupStack::PushL( intArray );
             intArray->AppendL( aAttachmentData.downloadProgress );
-            
+
             statusText = StringLoader::LoadL( R_FSE_VIEWER_ATTACHMENTS_LIST_DOWNLOAD,
-                                              *descArray, 
+                                              *descArray,
                                               *intArray );
             CleanupStack::PopAndDestroy( intArray );
             CleanupStack::PopAndDestroy( descArray );
             CleanupStack::PushL( statusText );
             }
         break;
-        
+
         case TFSProgress::EFSStatus_RequestCancelled:
             {
             statusText = aAttachmentData.fileName.AllocLC();
             }
         break;
-        
+
         default:
             statusText = KNullDesC().AllocLC();
             break;
@@ -1778,7 +1726,7 @@ void CFsEmailUiHtmlViewerContainer::ShowAttachmentDownloadStatusL(
                 }
             }
         }
-    
+
     CleanupStack::Pop( statusText );
     }
 
@@ -1824,7 +1772,7 @@ TRect CFsEmailUiHtmlViewerContainer::CalcAttachmentStatusRect()
     TRect rect = Rect();
     TPoint topLeft = rect.iTl;
     TPoint bottomRight = rect.iBr;
-    
+
     TPoint statusTopLeft( topLeft.iX + KStatusIndicatorXMargin, bottomRight.iY - KStatusIndicatorHeight + 1 );
     TPoint statusBottomRight( bottomRight.iX - KStatusIndicatorXMargin, bottomRight.iY );
     return TRect( statusTopLeft, statusBottomRight );
@@ -1832,13 +1780,13 @@ TRect CFsEmailUiHtmlViewerContainer::CalcAttachmentStatusRect()
 
 void CFsEmailUiHtmlViewerContainer::TouchFeedback()
     {
-    iTouchFeedBack->InstantFeedback(this, ETouchFeedbackBasic);  
+    iTouchFeedBack->InstantFeedback(this, ETouchFeedbackBasic);
     }
 
 /**
  * The body fetch link is cmail://body/fetch. Look for the URL separator
  * and the presence of cmail and body on the url.
- * @param aUrl 
+ * @param aUrl
  * return ETrue for  a valid body URL
  */
 TBool CFsEmailUiHtmlViewerContainer::IsMessageBodyURLL(const TDesC& aUrl)
@@ -1875,11 +1823,11 @@ TBool CFsEmailUiHtmlViewerContainer::IsMessageBodyURLL(const TDesC& aUrl)
             {
             TouchFeedback();
             iHeaderExpanded = ETrue;
-            return ETrue;        
+            return ETrue;
             }
         else if (aUrl.Left(index).CompareF(KURLSchemeCmail) == 0)
             {
-            TInt bodyIndex = aUrl.Find(KURLTypeBody);                      
+            TInt bodyIndex = aUrl.Find(KURLTypeBody);
             if (bodyIndex == KErrNotFound)
                 {
                 return EFalse;
@@ -1896,24 +1844,24 @@ TBool CFsEmailUiHtmlViewerContainer::IsMessageBodyURLL(const TDesC& aUrl)
                     {
                     TPtrC16 temp = data.Mid(separator+1);
                     TLex lex(temp);
-                    lex.Val(iScrollPosition);                  
+                    lex.Val(iScrollPosition);
                     }
                 return ETrue;
                 }
-            
+
             }
         else
             {
             return EFalse;
             }
         }
-    } 
+    }
 
 // ---------------------------------------------------------------------------
 // From MBrCtlWindowObserver
 // ---------------------------------------------------------------------------
 //
-CBrCtlInterface* CFsEmailUiHtmlViewerContainer::OpenWindowL( TDesC& /*aUrl*/, TDesC* /*aTargetName*/, 
+CBrCtlInterface* CFsEmailUiHtmlViewerContainer::OpenWindowL( TDesC& /*aUrl*/, TDesC* /*aTargetName*/,
                                                              TBool /*aUserInitiated*/, TAny* /*aReserved*/ )
     {
     return iBrCtlInterface;
@@ -1932,10 +1880,10 @@ CBrCtlInterface* CFsEmailUiHtmlViewerContainer::FindWindowL( const TDesC& /*aTar
 // From MBrCtlWindowObserver
 // ---------------------------------------------------------------------------
 //
-void CFsEmailUiHtmlViewerContainer::HandleWindowCommandL( const TDesC& /*aTargetName*/, 
+void CFsEmailUiHtmlViewerContainer::HandleWindowCommandL( const TDesC& /*aTargetName*/,
                                                           TBrCtlWindowCommand /*aCommand*/ )
     {
-    
+
     }
 
 // ---------------------------------------------------------------------------
@@ -1948,7 +1896,7 @@ TBool CFsEmailUiHtmlViewerContainer::NeedToLaunchBrowserL( const TDesC& aUrl )
     // look for file:///
     _LIT( KFileLink, "file:///");
     _LIT( KUrlLink, "http");
-    
+
     // This might be linking to header.html or body.html frames
     // Ignore them.
     if ( aUrl.Left( KFileLink().Length() ).CompareF( KFileLink ) == 0 )
@@ -1957,7 +1905,7 @@ TBool CFsEmailUiHtmlViewerContainer::NeedToLaunchBrowserL( const TDesC& aUrl )
         // Replace all slash character with backslash characters
         HBufC* embeddedUrl = aUrl.AllocLC();
         TPtr ptr = embeddedUrl->Des();
-        
+
         _LIT( KBackslash, "\\" );
         for ( TInt pos = ptr.Locate('/'); pos >= 0; pos = ptr.Locate('/') )
             {
@@ -1967,14 +1915,14 @@ TBool CFsEmailUiHtmlViewerContainer::NeedToLaunchBrowserL( const TDesC& aUrl )
         // Check whether given url refers to file in the html folder
         TInt pos = embeddedUrl->FindF( iHtmlFolderPath );
         CleanupStack::PopAndDestroy( embeddedUrl );
-        pos >= 0 ? launchBrowser = EFalse : ETrue;        
+        pos >= 0 ? launchBrowser = EFalse : ETrue;
         }
     // Ignore links starting with cmail://
     else if ( aUrl.Left( KURLSchemeCmail().Length() ).CompareF( KURLSchemeCmail ) == 0 )
         {
         launchBrowser = EFalse;
         }
-    //    THAA-82BEAZ - show popup first 
+    //    THAA-82BEAZ - show popup first
     else if ( aUrl.Left(KUrlLink().Length() ).CompareF( KUrlLink ) == 0 )
         {
         launchBrowser = EFalse;
@@ -1998,7 +1946,7 @@ void CFsEmailUiHtmlViewerContainer::LaunchBrowserL( const TDesC& aUrl )
 
 void CFsEmailUiHtmlViewerContainer::PrepareBodyHtmlL( const TDesC& aFileName )
     {
-    
+
     if( iMessage )
         {
         CFSMailMessagePart* htmlBodyPart = iMessage->HtmlBodyPartL();
@@ -2013,7 +1961,7 @@ void CFsEmailUiHtmlViewerContainer::PrepareBodyHtmlL( const TDesC& aFileName )
         else
             {
             CFSMailMessagePart* textBodyPart = iMessage->PlainTextBodyPartL();
-    
+
             if ( textBodyPart )
                 {
                 CleanupStack::PushL( textBodyPart );
@@ -2065,3 +2013,178 @@ void CFsEmailUiHtmlViewerContainer::MailListModelUpdatedL()
     UpdateOverlayButtons( IsVisible() );    
     }
 
+
+void CFsEmailUiHtmlViewerContainer::WriteToFileL(const TDesC& aFileName, RBuf& aHtmlText)
+    {
+    _LIT( KCharsetUtf8, "UTF-8" );
+
+    HBufC8* content8 = CnvUtfConverter::ConvertFromUnicodeToUtf8L( aHtmlText );
+    CleanupStack::PushL( content8 );        
+        
+    RFile targetFile;
+    CleanupClosePushL( targetFile );
+    User::LeaveIfError( targetFile.Replace( iFs, aFileName, EFileWrite ) );
+        
+    RBuf8 messageHeader;
+    TInt bufSize = KHtmlHeader1().Length() + KCharsetUtf8().Length() + KHtmlHeader2().Length();
+    messageHeader.CreateL( bufSize );
+    messageHeader.CleanupClosePushL();
+        
+    messageHeader.Append( KHtmlHeader1 );
+    messageHeader.Append( KCharsetUtf8 );
+    messageHeader.Append( KHtmlHeader2 );
+
+    RFileWriteStream fileStream( targetFile );
+    fileStream.PushL();
+    fileStream.WriteL( messageHeader.Ptr(), messageHeader.Length() );
+
+    TInt bufPos( 0 );
+    TInt bufTotalSize = content8->Size();
+
+    while ( bufPos < bufTotalSize )
+        {
+        TInt segmentLength = content8->Mid( bufPos ).Length();
+        fileStream.WriteL( content8->Mid( bufPos ).Ptr(), segmentLength );
+        bufPos += segmentLength;
+        }
+
+    fileStream.CommitL();
+
+    CleanupStack::PopAndDestroy( &fileStream );
+    CleanupStack::PopAndDestroy( &messageHeader );
+    CleanupStack::PopAndDestroy( &targetFile );
+    CleanupStack::PopAndDestroy( content8 );
+    }
+
+
+
+/******************************************************************************
+ * class PlainTextToHtmlConverter
+ ******************************************************************************/
+
+
+
+// -----------------------------------------------------------------------------
+// PlainTextToHtmlConverter::PlainTextToHtmlL
+// 
+// -----------------------------------------------------------------------------
+//
+void PlainTextToHtmlConverter::PlainTextToHtmlL(const TDesC& aPlainText, RBuf& aHtmlText)
+    {
+    const TInt KAllocSize = 1024;
+    
+    aHtmlText.Close();
+    aHtmlText.Create( aPlainText.Length() + KAllocSize );
+    
+    const TInt searhCases( CFindItemEngine::EFindItemSearchURLBin );
+    CFindItemEngine* itemEngine = CFindItemEngine::NewL( aPlainText, CFindItemEngine::TFindItemSearchCase( searhCases ) );
+    CleanupStack::PushL ( itemEngine );
+    
+    TInt currentPos = 0;
+    CFindItemEngine::SFoundItem item;
+    for ( TBool available(itemEngine->Item(item)); available; available=itemEngine->NextItem(item) )
+        {
+        if ( item.iStartPos < currentPos )
+            {
+            break; 
+            }
+        
+        TPtrC textPtr = aPlainText.Mid( currentPos, item.iStartPos-currentPos );
+        ConvertTextL( textPtr, aHtmlText );
+        
+        TPtrC urlPtr = aPlainText.Mid( item.iStartPos, item.iLength );
+        ConvertUrlL( urlPtr, aHtmlText);
+        
+        currentPos = item.iStartPos + item.iLength;
+        }
+    
+    TInt len = aPlainText.Length();
+    if ( currentPos < len )
+        {
+        TPtrC textPtr = aPlainText.Mid( currentPos );
+        ConvertTextL( textPtr, aHtmlText );
+        }
+    
+    CleanupStack::PopAndDestroy( itemEngine );
+    }
+
+
+// -----------------------------------------------------------------------------
+// PlainTextToHtmlConverter::ConvertTextL
+// 
+// -----------------------------------------------------------------------------
+//
+void PlainTextToHtmlConverter::ConvertTextL(const TDesC& aSource, RBuf& aTarget)
+    {
+    const TInt KAllocSize = 1024;
+    const TInt KEntitySize = 32;
+    
+    TInt count = aSource.Length();
+    for ( TInt i=0; i<count; i++ )
+        {
+        if ( aTarget.Length() + KEntitySize >= aTarget.MaxLength() )
+            {
+            aTarget.ReAllocL( aTarget.MaxLength() + KAllocSize );
+            }
+        
+        TText ch = aSource[i];
+        switch( ch )
+            {
+            case KSOH:  // end of line for IMAP and POP
+                aTarget.Append( KHtmlLineBreakCRLF );
+                break;
+            case KLF: // line feed
+            case KUnicodeNewLineCharacter:
+            case KUnicodeParagraphCharacter:
+                aTarget.Append(KHtmlLineBreak);
+                break;  
+            case KQuotation:
+                aTarget.Append( KHtmlQuotation );
+                break;
+            case KAmpersand:
+                aTarget.Append( KHtmlAmpersand );
+                break;
+            case KGreaterThan:
+                aTarget.Append( KHtmlGreaterThan );
+                break;
+            case KLessThan:
+                aTarget.Append( KHtmlLessThan );
+                break;
+            default:
+                aTarget.Append( ch );
+                break;
+            }
+        }
+    }
+
+
+// -----------------------------------------------------------------------------
+// PlainTextToHtmlConverter::ConvertUrlL
+// 
+// -----------------------------------------------------------------------------
+//
+void PlainTextToHtmlConverter::ConvertUrlL(const TDesC& aSource, RBuf& aTarget)
+    {
+    _LIT( KSchemeDelimiter, "://" );
+    _LIT( KUrlFormat, "<a href=\"%S\">%S</a>" );
+    _LIT( KUrlFormatWithHttp, "<a href=\"http://%S\">%S</a>" );
+        
+    TPtrC format( KUrlFormat() );
+    if ( aSource.FindF( KSchemeDelimiter() ) == KErrNotFound ) 
+        {
+        format.Set( KUrlFormatWithHttp() );
+        }
+    
+    HBufC* formatBuffer = HBufC::NewLC( format.Length() + aSource.Length() * 2 );
+    formatBuffer->Des().Format( format, &aSource, &aSource );            
+    
+    TInt len = formatBuffer->Des().Length();
+    if ( aTarget.Length() + len >= aTarget.MaxLength() )
+        {
+        aTarget.ReAllocL( aTarget.MaxLength() + len );
+        }
+
+    aTarget.Append( *formatBuffer );
+        
+    CleanupStack::PopAndDestroy( formatBuffer );
+    }

@@ -439,7 +439,7 @@ EXPORT_C void CFSMailBox::SearchL( const RPointerArray<TDesC>& aSearchStrings,
         
         // remove outbox, drafts folder from folder list
         RArray<TFSMailMsgId> folderIds;
-        folderIds.Reset();
+        CleanupClosePushL( folderIds );  
         for(TInt i=0;i<iFolders.Count();i++)
         {
             TFSMailMsgId id = iFolders[i]->GetFolderId();
@@ -451,7 +451,7 @@ EXPORT_C void CFSMailBox::SearchL( const RPointerArray<TDesC>& aSearchStrings,
         
         // start search
         plugin->SearchL( GetId(), folderIds, aSearchStrings, aSortCriteria, aSearchObserver );
-        folderIds.Reset();
+        CleanupStack::PopAndDestroy( &folderIds );
         }
     }
 

@@ -1629,7 +1629,8 @@ void CNcsComposeView::HandleActivationCommandL( TUid aCustomMessageId )
         TFsEmailUiUtility::CreatePlainTextPartL( 
                 *iNewMessage, iNewMessageTextPart );
         InitFieldsL();
-        IncludeMessageTextL();
+        TBool spaceInBegin = ETrue;
+        IncludeMessageTextL(spaceInBegin);
         AttachmentsListControl()->Model()->Clear();
         GetAttachmentsFromMailL();
         SetAttachmentLabelContentL();

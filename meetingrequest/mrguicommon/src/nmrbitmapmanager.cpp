@@ -18,9 +18,9 @@
 #include "nmrbitmapmanager.h"
 #include "esmrhelper.h"
 
-#include <aknsitemid.h>
-#include <aknutils.h>
-#include <aknsutils.h>
+#include <AknsItemID.h>
+#include <AknUtils.h>
+#include <AknsUtils.h>
 #include <esmrgui.mbg>
 #include <data_caging_path_literals.hrh>
 
@@ -153,12 +153,8 @@ EXPORT_C TMRBitmapStruct NMRBitmapManager::GetBitmapStruct( TMRBitmapId aBitmapI
             }
         case EMRBitmapBrowser:
             {
-            // TODO: not available
-            // bitmapStruct.iItemId = KAknsIIDQgnMenuBrowserng;
             bitmapStruct.iFallbackIndex = EMbmEsmrguiQgn_menu_browserng;
             bitmapStruct.iFallbackMaskIndex = EMbmEsmrguiQgn_menu_browserng_mask;
-            
-            // TODO: remove me asap
             bitmapStruct.iItemId = KAknsIIDQgnMenuIntranet;
             break;
             }
@@ -186,11 +182,6 @@ EXPORT_C TMRBitmapStruct NMRBitmapManager::GetBitmapStruct( TMRBitmapId aBitmapI
         case EMRBitmapAlarmClock:
             {
             bitmapStruct.iItemId = KAknsIIDQgnIndiCalendarClockAlarm;
-            // TODO: use new icon
-            //bitmapStruct.iFallbackIndex = EMbmEsmrguiQgn_indi_calendar_clock_alarm;
-            //bitmapStruct.iFallbackMaskIndex = EMbmEsmrguiQgn_indi_calendar_clock_alarm_mask;
-            
-            // TODO: remove me asap, not in platform atm.
             bitmapStruct.iFallbackIndex = EMbmEsmrguiQgn_indi_cmail_meet_req_alarm;
             bitmapStruct.iFallbackMaskIndex = EMbmEsmrguiQgn_indi_cmail_meet_req_alarm_mask;
             break;
@@ -420,8 +411,6 @@ EXPORT_C TMRBitmapStruct NMRBitmapManager::GetBitmapStruct( TMRBitmapId aBitmapI
             bitmapStruct.iFallbackMaskIndex = EMbmEsmrguiQgn_prop_cmail_action_attachment_save_all_mask;
             break;
             }
-    
-        // TODO: Needs correct fallbacks
         case EMRBitmapInputCenter:
             {
             bitmapStruct.iItemId = KAknsIIDQsnFrInputCenter;
@@ -484,9 +473,7 @@ EXPORT_C TMRBitmapStruct NMRBitmapManager::GetBitmapStruct( TMRBitmapId aBitmapI
             bitmapStruct.iFallbackIndex = EMbmEsmrguiQsn_fr_list_corner_br;
             bitmapStruct.iFallbackMaskIndex = EMbmEsmrguiQsn_fr_list_corner_br_mask;
             break;
-            }
-        
-        // TODO: Needs correct fallbacks
+            }       
         case EMRBitmapSetOptCenter:
             {
             bitmapStruct.iItemId = KAknsIIDQsnFrSetOptCenter;

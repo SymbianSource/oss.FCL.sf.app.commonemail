@@ -19,7 +19,7 @@
 #include "esmrhelper.h"
 #include <esmrgui.mbg>
 #include <data_caging_path_literals.hrh>
-#include <aknsconstants.h>
+#include <AknsConstants.h>
 
 
 // ======== MEMBER FUNCTIONS ========

@@ -92,8 +92,11 @@ private:
      * takes care of the urls and marks them as hotspots
      */
     void WriteSubjectL(TDesC& aText ) const; 
-    
+
+    void ExportCollapseButtonL() const;
+    void ExportTimeAndExpandButtonL() const;
     void ExportSubjectL() const;
+    void ExportSubjectCollapsedL() const;
     void ExportFromL() const;
     void ExportToL() const;
     void ExportCcL() const;
@@ -118,22 +121,22 @@ private:
     void AddImageL( const TDesC8& aImageUrl ) const;
     void AddImageL( const TDesC8& aImageId, const TDesC8& aImageUrl, const TDesC8& aImageEvent ) const;
     
-    void StartHeaderTableL( const TDesC8& aTableId ) const;
+    void StartHeaderTableL( const TDesC8& aTableId, TBool aVisible ) const;
     void EndHeaderTableL() const;
 
     void StartTableL( const TDesC8& aTableId ) const;
     void EndTableL() const;
-    
-    void AddShowDetailL() const;
-    
+
     HBufC8* ClickImageEventL( const TDesC8& aImageName ) const;
 
     void AddJavascriptL() const;    
     
     HBufC8* HeadingTextLC( TInt aId ) const;
     HBufC8* HeadingTextLC( TInt aId, TInt aSize ) const;
-    
-    void ExportInitialTableL() const;
+
+    void ExportCollapsedHeaderTableL() const;
+    void ExportExpandedHeaderTableL() const;
+
     /**
      * Function for generating follow up icon's HTML code.
      * Returns NULL if no follow up flags are set.

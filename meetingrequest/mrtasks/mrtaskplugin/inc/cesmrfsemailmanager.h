@@ -21,7 +21,7 @@
 
 #include <e32base.h>
 //<cmail>
-#include "CFSMailCommon.h"
+#include "cfsmailcommon.h"
 #include "mmrinfoprocessor.h"
 #include "esmrdef.h"
 //</cmail>

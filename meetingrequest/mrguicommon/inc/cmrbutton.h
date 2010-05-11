@@ -18,7 +18,7 @@
 #ifndef CMRButton_H
 #define CMRButton_H
 
-#include <akniconutils.h>
+#include <AknIconUtils.h>
 #include <aknbutton.h>
 
 #include "esmrfieldbuilderdef.h"

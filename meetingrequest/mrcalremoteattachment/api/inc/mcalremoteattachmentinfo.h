@@ -19,7 +19,7 @@
 #define MCALREMOTEATTACHMENTINFO_H
 
 #include <e32base.h>
-#include <mcalremoteattachment.h>
+#include "mcalremoteattachment.h"
 
 /**
  * MCalRemoteAttachmentInfo encapsulates calendar entry attachment information.

@@ -48,7 +48,7 @@
 
 // From System
 //<cmail>
-#include <cmrutils.h>
+#include <CMRUtils.h>
 #include "esmrutilsapiext.h"
 //</cmail>
 #include <msvstd.h>
@@ -59,7 +59,7 @@
 #include <eikappui.h>
 #include <eikenv.h>
 #include <calentry.h>
-#include <caleninterimutils2.h>
+#include <CalenInterimUtils2.h>
 #include <calcommon.h>
 
 // CONSTANTS
@@ -618,7 +618,7 @@ TInt CESMRViewerController::ProcessDefaultCommandL( TInt aCommandId )
         case EESMRCmdCalEntryUISend:      // Send calendar entry item
         case EESMRCmdCalEntryUIAddParticipants:  // Add participants to meeting item
             {
-            ASSERT( EFalse ); // TODO: implement when tasks are ready
+            ASSERT( EFalse );
             }
             break;
 

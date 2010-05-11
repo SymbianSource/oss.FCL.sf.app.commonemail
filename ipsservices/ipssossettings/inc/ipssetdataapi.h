@@ -167,6 +167,17 @@ public:
             TMsvEntry& aService, 
             const TDesC& aMailboxName );
     
+    /**
+     * Returns pointer to descriptor containing signature text if signature
+     * has been set to be added to outgoing mails. Otherwise returns NULL
+     * pointer.
+     * Ownership of the descriptor is passed to the caller.
+     * @param aService Service entry for which signature text setting is 
+     * *               resolved.
+     * @return Pointer to descriptor containing the signature text.
+     */
+    IMPORT_C HBufC* SignatureTextL( const TMsvEntry& aService );
+    
 private:
 
     /**

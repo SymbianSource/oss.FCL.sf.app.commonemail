@@ -90,6 +90,12 @@ class CBasePlugin :
     // CFSMailPlugin //
     public:
 
+        /**
+         * This methoed must be called before destruction of 
+         * CBasePlugin derived class. To fix bug EIZU-7XVF2Z.
+         */
+        IMPORT_C void DeleteDelayedOpsManager();
+
         IMPORT_C virtual void ListMailBoxesL(
             RArray<TFSMailMsgId>& aMailboxes );
 

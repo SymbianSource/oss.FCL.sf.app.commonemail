@@ -20,7 +20,7 @@
 #define CESMRUTILSIMPL_H
 
 //  INCLUDE FILES
-#include <cmrutils.h>
+#include <CMRUtils.h>
 
 // FORWARD DECLARATIONS
 class CESMRUtils;

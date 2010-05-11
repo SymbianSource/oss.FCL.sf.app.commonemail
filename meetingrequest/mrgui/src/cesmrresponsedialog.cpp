@@ -27,7 +27,7 @@
 #include <eikcolib.h>
 #include <eikappui.h>
 #include <avkon.hrh>
-#include <magnentryui.h>
+#include <MAgnEntryUi.h>
 #include <eikedwin.h>
 #include <esmrgui.rsg>
 #include <calentry.h>

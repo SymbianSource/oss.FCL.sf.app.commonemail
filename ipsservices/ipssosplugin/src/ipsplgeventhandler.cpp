@@ -1196,12 +1196,7 @@ void CIpsPlgEventHandler::HandleMediaChangedL(
 // ---------------------------------------------------------------------------
 TUid CIpsPlgEventHandler::MtmId() const
     {
-    TUid ret = KSenduiMtmImap4Uid;
-    if ( iBasePlugin.MtmId().iUid == KIpsPlgPop3PluginUidValue )
-        {
-        ret = KSenduiMtmPop3Uid;
-        }
-    return ret;
+    return iBasePlugin.MtmId();
     }
 //</cmail>
 // ----------------------------------------------------------------------------
@@ -1329,6 +1324,7 @@ void CIpsPlgEventHandler::AppendSettingsObserverL(
         }
 
     RPointerArray<MFSMailEventObserver> observers;
+    CleanupClosePushL( observers );  // not owning classes
     MailboxObserversL( aAccount, observers );
 
     if ( find != KErrNotFound )
@@ -1342,7 +1338,7 @@ void CIpsPlgEventHandler::AppendSettingsObserverL(
         obs->SetKeyAndActivateL( aSettingKey, observers );
         iIPSSettingsObservers.AppendL( obs );
         }
-    observers.Close();
+    CleanupStack::PopAndDestroy( &observers );
     }
 
 // ----------------------------------------------------------------------------

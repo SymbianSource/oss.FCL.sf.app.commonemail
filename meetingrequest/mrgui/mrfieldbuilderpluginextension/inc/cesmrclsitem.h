@@ -23,7 +23,7 @@
 #include <e32base.h>
 #include <cntdef.h>
 
-#include <cpcsdefs.h> // TPsMatchLocation
+#include <CPcsDefs.h> // TPsMatchLocation
 
 // FORWARD DECLARATIONS
 class MVPbkContactLink;

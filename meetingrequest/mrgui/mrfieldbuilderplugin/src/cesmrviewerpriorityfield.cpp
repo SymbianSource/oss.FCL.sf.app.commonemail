@@ -27,7 +27,7 @@
 
 #include <calentry.h>
 #include <eikenv.h>
-#include <stringloader.h>
+#include <StringLoader.h>
 #include <esmrgui.rsg>
 
 // DEBUG

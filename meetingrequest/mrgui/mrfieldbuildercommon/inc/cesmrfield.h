@@ -297,20 +297,20 @@ public:
       * Tests if field control has been activated.
       */
      IMPORT_C TBool IsFieldActivated() const;
-     
+
      /**
       * Provides possibility for field to dynamically
       * intialize context menu.
-      * 
+      *
       * @param aResourceId Context menu resource ID
       * @param aMenuPane Pointer to menu pane
       */
      IMPORT_C virtual void DynInitMenuPaneL(
              TInt aResourceId,
              CEikMenuPane* aMenuPane );
-     
+
      /**
-      * Setter for field view mode. Enumeration TESMRFieldType 
+      * Setter for field view mode. Enumeration TESMRFieldType
       * lists possible view modes.
       * @param aViewMode View mode of the field
       */
@@ -321,24 +321,32 @@ public:
       * @return Field view mode
       */
      IMPORT_C TESMRFieldType FieldViewMode() const;
-     
+
      /**
       * Updates field extension control and takes ownership
       * @param aControl Pointer to extension control.
       */
      IMPORT_C void UpdateExtControlL(
                   CCoeControl* aControl );
-     
+
      /**
-      * Set field as locked field(can't be deleted or edited) 
+      * Set field as locked field(can't be deleted or edited)
       */
      IMPORT_C void virtual LockL();
-     
+
      /**
       * Get lock status of the field
-      * @return ETrue shows field locked EFalse shows field not locked 
+      * @return ETrue shows field locked EFalse shows field not locked
       */
      IMPORT_C TBool IsLocked();
+
+     /**
+      * Finds out if field supports longtap functionality or not
+      * @param aPointerEvent, where the event actually occured
+      * @return ETrue if field supports longtap functionality
+      */
+     IMPORT_C virtual TBool SupportsLongTapFunctionalityL(
+    		 const TPointerEvent &aPointerEvent );
 
 protected:
 
@@ -416,7 +424,7 @@ public: // From base class CCoeControl
     IMPORT_C virtual CCoeControl* ComponentControl( TInt aInd ) const;
     IMPORT_C virtual TSize MinimumSize();
 
-private: // From base class CCoeControl
+protected: // From base class CCoeControl
 
     /**
      *  Implements pointer event handling for fields.
@@ -447,13 +455,13 @@ protected:
      * Returns the event observer interface
      */
     IMPORT_C MESMRFieldEventObserver* EventObserver() const;
-    
+
     /**
      * Initiates tactile feedback when called
      */
     IMPORT_C void HandleTactileFeedbackL();
-    
-    
+
+
 private:
     void AquireTactileFeedback();
 

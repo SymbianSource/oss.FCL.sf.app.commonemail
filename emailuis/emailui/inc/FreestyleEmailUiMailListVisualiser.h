@@ -268,6 +268,19 @@ class CFSEmailUiMailListVisualiser : public CFsEmailUiViewBase,
 // </cmail>
 	{
 friend class CMailListUpdater;
+private:
+
+	    // Refresh state
+	    enum TRefreshState
+	        {
+            ERefreshNone,
+	        // Full refresh needed. Update model and redraw entire list.
+	        EFullRefreshNeeded,
+	        // Partial refresh needed.
+	        EPartialRefreshNeeded,
+	        // Focus to the beginning.
+	        EFocusChangeNeeded
+	        };
 public:
 	static CFSEmailUiMailListVisualiser* NewL(CAlfEnv& aEnv, CFreestyleEmailUiAppUi* aAppUi, CAlfControlGroup& aMailListControlGroup);
 	static CFSEmailUiMailListVisualiser* NewLC(CAlfEnv& aEnv, CFreestyleEmailUiAppUi* aAppUi, CAlfControlGroup& aMailListControlGroup);
@@ -442,6 +455,9 @@ private: // from
             const TDesC8& aCustomMessage );
     void ChildDoDeactivate();
     void GetParentLayoutsL( RPointerArray<CAlfVisual>& aLayoutArray ) const;
+    
+	void FadeOut(TBool aDirectionOut);
+    
     /**
 	 * @see CFsEmailUiViewBase::SetStatusBarLayout
 	 */

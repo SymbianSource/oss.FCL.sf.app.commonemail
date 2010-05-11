@@ -17,9 +17,9 @@
 #ifndef CESMRVIEWERDIALOG_H
 #define CESMRVIEWERDIALOG_H
 
-#include <akndialog.h>
+#include <AknDialog.h>
 #include <akntoolbarobserver.h>
-#include <aknserverapp.h>
+#include <AknServerApp.h>
 #include "mesmruibase.h"
 #include "mesmrresponseobserver.h"
 #include "resmrstatic.h"

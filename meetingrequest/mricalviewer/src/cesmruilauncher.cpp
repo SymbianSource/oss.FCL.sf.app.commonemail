@@ -27,7 +27,7 @@
 #include <CalenInterimUtils2.h>
 //<cmail>
 #include "FreestyleEmailUiConstants.h"
-#include "CFSMailMessage.h"
+#include "cfsmailmessage.h"
 #include "fsmtmsuids.h"
 #include <coemain.h>
 #include <coeaui.h>

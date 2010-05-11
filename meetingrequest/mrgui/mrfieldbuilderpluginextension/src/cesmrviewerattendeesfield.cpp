@@ -251,10 +251,10 @@ void CESMRViewerAttendeesField::SizeChanged( )
     TRect bgRect( 0, 0, 0, 0 );
     if( iCalAttendees.Count() > 1 )
     	{
-    	bgRect.SetRect( 
-    			TPoint( viewerRect.iTl.iX, 
-    					viewerRect.iTl.iY - FocusMargin() ), 
-    					TPoint( viewerRect.iBr.iX, 
+    	bgRect.SetRect(
+    			TPoint( viewerRect.iTl.iX,
+    					viewerRect.iTl.iY - FocusMargin() ),
+    					TPoint( viewerRect.iBr.iX,
     							viewerRect.iBr.iY + FocusMargin() ) );
     	}
     else
@@ -268,11 +268,11 @@ void CESMRViewerAttendeesField::SizeChanged( )
     // Move focus rect so that it's relative to field's position.
     bgRect.Move( -Position() );
     SetFocusRect( bgRect );
-    
+
     iRichTextViewer->SetRect( viewerRect );
 
-    // Failures are ignored. 
-    TRAP_IGNORE( 
+    // Failures are ignored.
+    TRAP_IGNORE(
             iRichTextViewer->SetFontL( viewerLayoutText.Font() );
             if( iCalAttendees.Count() > 0 )
                 {
@@ -280,15 +280,15 @@ void CESMRViewerAttendeesField::SizeChanged( )
                 }
             iRichTextViewer->ApplyLayoutChangesL();
             );
-    
+
     // Update AttendeesList only if iRichTextViewer width was changed.
     // This happens when screen orientation changes e.g. This check
     // also prevents recursive calls to UpdateAttendeesListL since
     // it causes edwin size changed event.
     if ( iRichTextViewer->Size().iWidth != richTextViewerWidth )
         {
-        // Most of this case is screen orientation, in this case we need to 
-        // Record the index of focusing link, after updating link array, then 
+        // Most of this case is screen orientation, in this case we need to
+        // Record the index of focusing link, after updating link array, then
         // reset the focusing to original one.
         TInt focusingIndex = iRichTextViewer->GetFocusLink();
         // Ignore leave, there's nothing we can do if leave occurs.
@@ -360,7 +360,6 @@ TSize CESMRViewerAttendeesField::MinimumSize()
     {
     // Parent rect will be list area later --> no need to calculate it manually.
     TRect parentRect = Parent()->Rect();
-    // TODO: Remove this after new list area is completed. See previous comment.
     TRect contentRect = NMRLayoutManager::GetLayoutRect(
             parentRect, NMRLayoutManager::EMRLayoutListArea ).Rect();
     // We have two lines;  title and richtextviewer.
@@ -405,21 +404,6 @@ TBool CESMRViewerAttendeesField::ExecuteGenericCommandL( TInt aCommand )
         }
 
     return isUsed;
-    }
-
-// -----------------------------------------------------------------------------
-// CESMRViewerAttendeesField::HandleLongtapEventL
-// -----------------------------------------------------------------------------
-//
-void CESMRViewerAttendeesField::HandleLongtapEventL( const TPoint& aPosition )
-    {
-    FUNC_LOG;
-    
-    if ( iRichTextViewer->Rect().Contains( aPosition ) )
-        {
-        iRichTextViewer->LinkSelectedL();
-		HandleTactileFeedbackL();
-        }
     }
 
 // -----------------------------------------------------------------------------
@@ -547,7 +531,6 @@ void CESMRViewerAttendeesField::UpdateAttendeesListL()
             NMRLayoutManager::EMRTextLayoutTextEditor );
     const CFont* font = text.Font();
 
-    // TODO: correct icon zise to correct one. Ask from UI specifier.
     TSize iconSize( 20, 20);
 
     TInt maxLineWidth = iRichTextViewer->LayoutWidth();
@@ -678,21 +661,21 @@ TInt CESMRViewerAttendeesField::LineSpacing()
     FUNC_LOG;
     // Calculates the line spacing based on default one line layout data
     TInt lineSpacing( 0 );
-    
+
     TRect rect( Rect() );
-    
+
     TAknLayoutRect rowLayoutRect =
         NMRLayoutManager::GetFieldRowLayoutRect( rect, 1 );
     TRect rowRect = rowLayoutRect.Rect();
 
-    TAknLayoutText labelLayout = 
-     NMRLayoutManager::GetLayoutText( 
+    TAknLayoutText labelLayout =
+     NMRLayoutManager::GetLayoutText(
              rect, NMRLayoutManager::EMRTextLayoutTextEditor );
-    
+
     TRect defaultTextRect = labelLayout.TextRect();
-    
+
     TInt difference = rowRect.Height() - defaultTextRect.Height();
-    
+
     lineSpacing = difference * 2;
 
     return lineSpacing;
@@ -707,28 +690,28 @@ TInt CESMRViewerAttendeesField::FocusMargin()
     FUNC_LOG;
     // Calculates focus margin based on default one line layout data
     TInt focusMagin( 0 );
-    
+
     TRect rect( Rect() );
-    
+
     TAknLayoutRect rowLayoutRect =
         NMRLayoutManager::GetFieldRowLayoutRect( rect, 1 );
     TRect rowRect = rowLayoutRect.Rect();
 
-    TAknLayoutText labelLayout = 
-     NMRLayoutManager::GetLayoutText( 
+    TAknLayoutText labelLayout =
+     NMRLayoutManager::GetLayoutText(
              rect, NMRLayoutManager::EMRTextLayoutTextEditor );
-    
+
     TRect defaultTextRect = labelLayout.TextRect();
-    
-    TAknLayoutRect bgLayoutRect = 
-        NMRLayoutManager::GetLayoutRect( 
+
+    TAknLayoutRect bgLayoutRect =
+        NMRLayoutManager::GetLayoutRect(
                 rect, NMRLayoutManager::EMRLayoutTextEditorBg );
     TRect defaultBgRect( bgLayoutRect.Rect() );
 
     TInt difference = defaultBgRect.Height() - defaultTextRect.Height();
-    
+
     focusMagin = TReal( difference / 2 );
-    
+
     return focusMagin;
     }
 

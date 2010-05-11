@@ -22,8 +22,8 @@
 #include <e32base.h>
 
 #include "cesmrcontactmanagerhandler.h"
-#include <mvpbkcontactfindobserver.h>
-#include <mvpbksinglecontactoperationobserver.h>
+#include <MVPbkContactFindObserver.h>
+#include <MVPbkSingleContactOperationObserver.h>
 //<cmail>
 #include "mfsccontactactionserviceobserver.h"
 #include "fsccontactactionservicedefines.h"

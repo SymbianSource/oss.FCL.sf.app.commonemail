@@ -158,7 +158,7 @@ public: // new functions
     
     void FixSemicolonAtTheEndL();
 
-    void SetCursorVisible( TBool aCursorVisible );
+    void SetPhysicsEmulationOngoing( TBool aPhysOngoing );
     
 public: // from CoeControl
     

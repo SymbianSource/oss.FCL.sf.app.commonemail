@@ -29,10 +29,10 @@
 #include <calentry.h>
 #include <eikappui.h>
 #include <eikcmobs.h>
-#include <magnentryui.h>
+#include <MAgnEntryUi.h>
 #include <calenservices.h>
-#include <aknglobalnote.h>
-#include <caleninterimutils2.h>
+#include <AknGlobalNote.h>
+#include <CalenInterimUtils2.h>
 #include <calencommandhandler.h>
 #include <bccaleventpolicies.rsg>
 #include <data_caging_path_literals.hrh>

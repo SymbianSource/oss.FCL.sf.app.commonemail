@@ -48,7 +48,7 @@ public:
      * @return Pointer to created object,
      */
     static CESMRViewerDetailedSubjectField* NewL( );
-    
+
     /**
      * C++ Destructor.
      */
@@ -62,19 +62,21 @@ public: // Interface
     void SetTitlePaneObserver( MESMRTitlePaneObserver* aObserver );
 
 
-public: // From CESMRField
+protected: // From CESMRField
     TSize MinimumSize();
     void InternalizeL( MESMRCalEntry& aEntry );
     void InitializeL();
     void ListObserverSet();
     TBool ExecuteGenericCommandL( TInt aCommand );
     void SetOutlineFocusL( TBool aFocus );
-    void GetCursorLineVerticalPos(TInt& aUpper, TInt& aLower); 
+    void GetCursorLineVerticalPos(TInt& aUpper, TInt& aLower);
     void HandleLongtapEventL( const TPoint& aPosition );
     void LockL();
-    
+    TBool SupportsLongTapFunctionalityL(
+        		 const TPointerEvent &aPointerEvent );
+
 public: // From CCoeControl
-    TKeyResponse OfferKeyEventL( const TKeyEvent& aEvent, 
+    TKeyResponse OfferKeyEventL( const TKeyEvent& aEvent,
                                        TEventCode aType );
     TInt CountComponentControls() const;
     CCoeControl* ComponentControl( TInt aInd ) const;
@@ -86,7 +88,7 @@ public: // From MEikEdwinSizeObserver
             CEikEdwin* aEdwin,
             TEdwinSizeEvent aType,
             TSize aSize );
-    
+
 protected: // From CESMRRichTextViewer
     TBool HandleRichTextLinkSelection( const CESMRRichTextLink* aLink );
 

@@ -44,7 +44,7 @@ LIBRARY                 euser.lib
 LIBRARY                 ecom.lib
 LIBRARY                 eposlandmarks.lib
 LIBRARY                 lbs.lib
-LIBRARY                 CommonEngine.lib
+LIBRARY                 commonengine.lib
 LIBRARY                 calinterimapi.lib
 LIBRARY                 inetprotutil.lib
 

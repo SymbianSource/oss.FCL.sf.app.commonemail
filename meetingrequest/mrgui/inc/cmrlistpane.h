@@ -38,7 +38,7 @@ class MESMRCalEntry;
 class MTouchFeedback;
 
 // CLASS DECLARATIONS
-NONSHARABLE_CLASS( CMRListPane ) : 
+NONSHARABLE_CLASS( CMRListPane ) :
         public CCoeControl,
         public MAknLongTapDetectorCallBack,
         public MMRPhysicsObserver,
@@ -47,26 +47,26 @@ NONSHARABLE_CLASS( CMRListPane ) :
     public: // Creation and destruction
         /**
          * Static constructor.
-         * 
+         *
          * @return New instance of this class
          */
         static CMRListPane* NewL( const CCoeControl& aParent,
                                   MESMRFieldStorage& aFactory,
-                                  TAknDoubleSpanScrollBarModel& aScrollModel, 
-                                  CAknDoubleSpanScrollBar& aScroll, 
+                                  TAknDoubleSpanScrollBarModel& aScrollModel,
+                                  CAknDoubleSpanScrollBar& aScroll,
                                   MMRScrollBarObserver& aScrollBarObserver );
         /**
          * Destructor
          */
         ~CMRListPane();
-        
+
     public: // Interface
 
         /**
          * Initializes all fields. Needed when theme changes
          */
         void InitializeL();
-        
+
         /**
          * InternalizeL is used to obtain the data from current CCalEntry.
          * CCalEntry is wrapped inside MESMRCalEntry object. This call is
@@ -86,7 +86,7 @@ NONSHARABLE_CLASS( CMRListPane ) :
          * @see MESMRCalEntry
          */
         void ExternalizeL( MESMRCalEntry& aEntry, TBool aForceValidation = EFalse );
-           
+
         /**
          * Disables or enables relayouting.
          *
@@ -98,57 +98,57 @@ NONSHARABLE_CLASS( CMRListPane ) :
           * Scroll the list to put the responeArea at the top and
           * set the focus on it
           */
-         void InitialScrollL(); // TODO: Fix me. 
-         
+         void InitialScrollL();
+
         /**
          * Return focused field.
          * @return Focused list item or NULL if no focused item
          */
         CESMRField* FocusedField() const;
-        
+
         /**
          * Sets the field focused based on the given field id.
          * @param aFieldId Id of the field to be focused
          */
         void SetControlFocusedL( TESMREntryFieldId aFieldId );
-        
+
         /**
          * Return clicked list item.
          * @return Clicked list item or NULL if no valid clicked item
          */
         CESMRField* ClickedField() const;
-               
+
         /**
          * Sets field to be visible in the list.
          *
          * @param aField - id of the field.
          */
         void ShowControl( TESMREntryFieldId aFieldId );
-        
+
         /**
          * Is field visible or not.
          *
          * @return Boolean ETrue/EFalse
          */
         TBool IsControlVisible( TESMREntryFieldId aFieldId );
-                
+
         /**
          * Get response field type of current event.
          * @Return TESMREntryFieldId
          */
         TESMREntryFieldId GetResponseFieldsFieldId();
-        
+
         /**
          * Activates new fields which has been added into the storage
          * after list pane construction.
          */
         void ReActivateL();
-        
+
     public: // MMRFieldContainerObserver
         void ScrollFieldsUp( TInt aPx );
         void ScrollFieldsDown( TInt aPx );
         void UpdateScrollBarAndPhysics();
-        
+
     public: // From CCoeControl
         TKeyResponse OfferKeyEventL( const TKeyEvent &aKeyEvent,
                                      TEventCode aType );
@@ -159,32 +159,32 @@ NONSHARABLE_CLASS( CMRListPane ) :
         CCoeControl* ComponentControl( TInt aIndex) const;
         void HandlePointerEventL( const TPointerEvent &aPointerEvent );
         void ActivateL();
-        
+
     private: // From MMRPhysicsObserver
         void PhysicsEmulationEnded();
         void UpdateScrollBarDuringOngoingPhysics();
-        
+
     private: // From MAknLongTapDetectorCallBack
         void HandleLongTapEventL(
-                const TPoint& aPenEventLocation, 
+                const TPoint& aPenEventLocation,
                 const TPoint& aPenEventScreenLocation );
-    
+
     private: // Implementation
         CMRListPane( MESMRFieldStorage& aFactory,
-                     TAknDoubleSpanScrollBarModel& aScrollModel, 
-                     CAknDoubleSpanScrollBar& aScroll, 
+                     TAknDoubleSpanScrollBarModel& aScrollModel,
+                     CAknDoubleSpanScrollBar& aScroll,
                      MMRScrollBarObserver& aScrollBarObserver );
         void ConstructL( const CCoeControl& aParent );
         void DoUpdateScrollBar( TInt aFocusPosition = KErrNotFound );
         TInt UpdatedFocusPosition();
-        void SetFocusAfterPointerEventL( 
+        void SetFocusAfterPointerEventL(
                 const TPointerEvent &aPointerEvent );
         void UpdateClickedField( const TPointerEvent &aPointerEvent );
         TBool HiddenFocus();
         void ForwardReceivedPointerEventsToChildrenL();
         void HandleTactileFeedback( const TTouchLogicalFeedback& aType );
         TBool FeedbackScrollMarginExceeded( TInt aMargin );
-        
+
     private: // Data
         /// Ref: Storage for list items.
         MESMRFieldStorage& iFactory;
@@ -200,16 +200,16 @@ NONSHARABLE_CLASS( CMRListPane ) :
         CMRListPanePhysics* iPhysics;
         /// Ref: Observer for updating scroll bar revents
         MMRScrollBarObserver& iScrollBarObserver;
-        /// Not owned: A field which got a pointer down event, 
+        /// Not owned: A field which got a pointer down event,
         /// nulled when focus is changed via keyboard
         CESMRField* iClickedField;
         /// Own: Boolean for disabling SizeChanged handling
         TBool iDisableSizeChanged;
         /// Own: Boolean to check, if physics action is ongoing or not
         TBool iPhysicsActionOngoing;
-        /// Own: Record if the long tapping event have been comsumed, if yes, 
+        /// Own: Record if the long tapping event have been comsumed, if yes,
         /// then do not handle signal pointer event anymore.
-        TBool iLongTapEventConsumed;
+        TBool iLongTapEventInProgess;
         /// Ref: Reference to tactile feedback
         MTouchFeedback* iTactileFeedback;
         /// Own: This records vertical scroll index for tactile feedback
@@ -217,6 +217,6 @@ NONSHARABLE_CLASS( CMRListPane ) :
         /// Own: This records default field height for tactile feedback during scroll
         TInt iDefaultFieldHeight;
     };
-    
+
 #endif // CMRLISTPANE_H
 // End of file

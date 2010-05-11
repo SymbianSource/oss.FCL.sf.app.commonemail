@@ -35,7 +35,7 @@
 //<cmail>
 #include "esmrdef.h"
 //</cmail>
-#include <aknutils.h>
+#include <AknUtils.h>
 
 // DEBUG
 #include "emailtrace.h"

@@ -18,7 +18,7 @@
 
 // INCLUDES
 #include <ecom/registryinfov2.rh>
-#include <meetingrequestuids.hrh>
+#include <MeetingRequestUids.hrh>
 #include "esmrinternaluid.h"
 
 //  RESOURCE DEFINITIONS 

@@ -36,8 +36,8 @@
 #include <calattachment.h>
 #include <f32file.h>
 #include <apgcli.h>
-#include <documenthandler.h>
-#include <stringloader.h>
+#include <DocumentHandler.h>
+#include <StringLoader.h>
 #include <AknGlobalNote.h>
 
 // DEBUG

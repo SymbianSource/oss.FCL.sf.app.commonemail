@@ -713,6 +713,7 @@ void CFSEmailUiLauncherGridVisualiser::ChildDoDeactivate()
     {
     FUNC_LOG;
     iScrollbar->MakeVisible(EFalse);
+    FadeOut(ETrue);  // hide CAlfVisuals on deactivation
     }
 
 void CFSEmailUiLauncherGridVisualiser::DynInitMenuPaneL(TInt aResourceId, CEikMenuPane* aMenuPane)
@@ -1838,6 +1839,20 @@ void CFSEmailUiLauncherGridVisualiser::GetParentLayoutsL(
     {
     aLayoutArray.AppendL( iParentLayout );
     }
+
+// hide or show CAlfVisuals ( used for activation or deactivation )
+void CFSEmailUiLauncherGridVisualiser::FadeOut(TBool aDirectionOut)
+	{
+	if ( iParentLayout != NULL )
+		{
+	    TAlfTimedValue timedValue( 0, 0 );
+	    if ( !aDirectionOut )
+	        {
+	        timedValue.SetTarget( 1, 0 );
+	        }
+	    iParentLayout->SetOpacity( timedValue );
+		}
+	}
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiLauncherGridVisualiser::ShowMailboxSelectionQueryL

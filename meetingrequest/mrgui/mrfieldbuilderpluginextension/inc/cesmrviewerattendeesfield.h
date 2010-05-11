@@ -49,7 +49,7 @@ public:
      */
     ~CESMRViewerAttendeesField( );
 
-public: // From CCoeControl
+protected: // From CCoeControl
     TInt CountComponentControls( ) const;
     CCoeControl* ComponentControl( TInt aInd ) const;
     void SizeChanged( );
@@ -57,7 +57,7 @@ public: // From CCoeControl
     void SetContainerWindowL(const CCoeControl& aContainer);
     TSize MinimumSize();
 
-public: // From CESMRField
+protected: // From CESMRField
     void InitializeL();
     void SetOutlineFocusL( TBool aFocus );
     void InternalizeL( MESMRCalEntry& aEntry );
@@ -65,13 +65,12 @@ public: // From CESMRField
     void GetCursorLineVerticalPos(TInt& aUpper, TInt& aLower);
     void ListObserverSet( );
     TBool ExecuteGenericCommandL( TInt aCommand );
-    void HandleLongtapEventL( const TPoint& aPosition );
 
-public: // From MEikEdwinSizeObserver
+protected: // From MEikEdwinSizeObserver
     TBool HandleEdwinSizeEventL(CEikEdwin* aEdwin, TEdwinSizeEvent aType,
             TSize aDesirableEdwinSize );
 
-public: // From MESMRRichTextObserver
+protected: // From MESMRRichTextObserver
     TBool HandleRichTextLinkSelection(const CESMRRichTextLink* aLink );
 
 private: // Implementation
@@ -87,14 +86,14 @@ private: // data
     CMRLabel* iTitle;
     // Not own: Container for all the attendees
     CESMRRichTextViewer* iRichTextViewer;
-    // Size of the field when after field has expanded.
+    // Size of the field after field has been expanded.
     TSize iExpandedSize;
     // Size of the title
     TSize iTitleSize;
     // Inofrmation about attendee type
     CCalAttendee::TCalRole iRole;
     // Not owned. Attendee list.
-    RPointerArray<CCalAttendee> iCalAttendees;    
+    RPointerArray<CCalAttendee> iCalAttendees;
     // Show all attendees.
     TBool iShowAllAttendees;
     };

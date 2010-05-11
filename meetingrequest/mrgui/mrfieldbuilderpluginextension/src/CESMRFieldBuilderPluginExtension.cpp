@@ -29,9 +29,9 @@
 #include "cesmrresponsefield.h"
 #include "cesmrviewerfromfield.h"
 #include "cesmrfieldbuilderinterface.h"
-#include "CFSMailCommon.h"
+#include "cfsmailcommon.h"
 
-#include <caleninterimutils2.h>
+#include <CalenInterimUtils2.h>
 
 // DEBUG
 #include "emailtrace.h"

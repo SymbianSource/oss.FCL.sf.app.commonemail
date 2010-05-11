@@ -21,7 +21,7 @@
 #include "cesmrdynamicitemselectionlist.h"
 
 #include <aknlists.h>
-#include <aknpopup.h>
+#include <aknPopup.h>
 #include <bautils.h>
 #include <esmrgui.rsg>
 #include <data_caging_path_literals.hrh>

@@ -71,4 +71,5 @@ EXPORTS
 	?UpdateMode@CIpsSetDataExtension@@QBE?AW4TIpsSetDataAoUpdateModes@@XZ @ 70 NONAME ; enum TIpsSetDataAoUpdateModes CIpsSetDataExtension::UpdateMode(void) const
 	?NewLC@CIpsSetDataExtension@@SAPAV1@XZ @ 71 NONAME ; class CIpsSetDataExtension * CIpsSetDataExtension::NewLC(void)
 	?Protocol@CIpsSetDataExtension@@QBE?AVTUid@@XZ @ 72 NONAME ; class TUid CIpsSetDataExtension::Protocol(void) const
+	?SignatureTextL@CIpsSetDataApi@@QAEPAVHBufC16@@ABVTMsvEntry@@@Z @ 73 NONAME ; class HBufC16 * CIpsSetDataApi::SignatureTextL(class TMsvEntry const &)
 

@@ -30,7 +30,7 @@
 #include "mesmrfieldeventqueue.h"
 #include "mmrabsolutealarmcontroller.h"
 #include "cesmrgenericfieldevent.h"
-#include "cesmrrecurrenceinfoHandler.h"
+#include "cesmrrecurrenceinfohandler.h"
 
 // Unnamed namespace for local definitions
 namespace { // codescanner::namespace

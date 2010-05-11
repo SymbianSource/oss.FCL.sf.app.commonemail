@@ -23,9 +23,9 @@
 #include <e32base.h>
 #include <cntdef.h>
 
-#include <mpsresultsobserver.h>
-#include <cpsrequesthandler.h>
-#include <cpcsdefs.h>
+#include <MPsResultsObserver.h>
+#include <CPsRequestHandler.h>
+#include <CPcsDefs.h>
 
 // FORWARD DECLARATIONS
 class CRepository;

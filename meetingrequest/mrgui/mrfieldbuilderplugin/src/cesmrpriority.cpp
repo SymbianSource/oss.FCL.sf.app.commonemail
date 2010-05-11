@@ -19,7 +19,7 @@
 #include "emailtrace.h"
 #include "cesmrpriority.h"
 #include <barsread.h>
-#include <stringloader.h>
+#include <StringLoader.h>
 
 // ---------------------------------------------------------------------------
 // CESMRPriority::CESMRPriority

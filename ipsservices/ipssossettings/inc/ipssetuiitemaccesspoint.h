@@ -109,6 +109,13 @@ class CIpsSetUiItemAccessPoint : public CIpsSetUiItemLink
         * @return HBufC* Access point name
         */
         HBufC* AccessPointNameLC( TInt aIndex );
+        
+        /**
+         * Returns Wap index based on its Id.
+         *
+         * @return Index of the wap.
+         */
+         void InitializeSelectionL();        
     
     protected:  // Constructors
     
@@ -149,14 +156,7 @@ class CIpsSetUiItemAccessPoint : public CIpsSetUiItemLink
         * @param aBearerFilter Filter for supported bearers.
         */
         void InitializeL( const TInt aBearerFilter );
-         
-        /**
-        * Returns Wap index based on its Id.
-        *
-        * @return Index of the wap.
-        */
-        void InitializeSelectionL();
-         
+        
         /**
         * Returns Wap index based on its Id.
         *

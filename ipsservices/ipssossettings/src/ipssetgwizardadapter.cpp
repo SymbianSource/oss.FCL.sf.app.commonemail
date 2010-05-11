@@ -26,6 +26,7 @@
 //</cmail>
 #include <centralrepository.h>      // CRepository
 #include <AlwaysOnlineManagerClient.h>
+#include <cmdestination.h> 
 
 #include "ipssetwizardadapter.h"
 #include "ipssetdatamanager.h"
@@ -414,7 +415,56 @@ void CIpsSetWizardAdapter::SetSettingsL( CIpsSetData& aSetData )
     aSetData.SetUserAuthentication( CIpsSetData::EUseIncoming );
 
     iap = SetIAPByNameL( iRecomendedAP );
-    aSetData.SetIapL( iap, iap );
+    
+    TBool setIAP = ETrue;
+	//if IAP isn't set by SettingWizard, we try to get the SNAP.
+    if ( iap.iIAP <= 0 )
+        {
+        //Use SNAP when we got it and it does contain access point.
+        //For other situations as below, we set 'ask when need' or default IAP
+        //1. defConnValue.iType == ECmDefConnAskOnce
+        //2. Got SNAP, but it does not contain any acess point
+        //3. Got default IAP when defConnValue.iType == ECmDefConnConnectionMethod
+        iap.iDialogPref = ECommDbDialogPrefPrompt;
+        iap.iIAP = 0;		 
+
+        RCmManager cmmgr;
+        cmmgr.OpenLC();
+        TCmDefConnValue defConnValue;
+        cmmgr.ReadDefConnL( defConnValue );
+		//Check default connection is destination or connection method
+        if ( defConnValue.iType == ECmDefConnDestination )
+            {
+            //Get SNAP from cmmgr
+            RCmDestination destination;
+            CleanupClosePushL( destination );
+            destination = cmmgr.DestinationL( defConnValue.iId );
+			//check if SNAP has IAPs
+            if ( destination.ConnectionMethodCount() > 0 )
+                {
+                //if SNAP contain access point, we use SNAP
+                CImIAPPreferences* iapPref = CImIAPPreferences::NewLC();
+                iapPref->SetSNAPL( defConnValue.iId );
+              
+                aSetData.SetIapL( *iapPref, *iapPref );
+                CleanupStack::PopAndDestroy( iapPref );
+				 
+                setIAP = EFalse;
+                }
+                CleanupStack::PopAndDestroy( &destination );			 
+            }
+        else if( defConnValue.iType == ECmDefConnConnectionMethod ) 
+            {
+            iap.iDialogPref = ECommDbDialogPrefDoNotPrompt;
+            iap.iIAP = defConnValue.iId;
+            }
+        CleanupStack::PopAndDestroy( &cmmgr );
+        }
+		//If no valid IAP or destination, set zero.
+        if ( setIAP )
+            {
+            aSetData.SetIapL( iap, iap );		 		 
+            }
     // EIpsSetDataOutSecurityAuth
     // EIpsSetDataOutSecurityAuth
     }
@@ -517,6 +567,8 @@ TImIAPChoice CIpsSetWizardAdapter::SetIAPByNameL( TDes& aIAPName )
     TImIAPChoice iap;
     TBuf<KWizardMaxUidValue> buf;
     CIpsSetUiItemAccessPoint* ipsSetAP = CIpsSetUiItemAccessPoint::NewLC();
+    //Initial IAP list
+    ipsSetAP->InitializeSelectionL();
     
     //<cmail>
     iapcount = ipsSetAP->iIapList.Count();

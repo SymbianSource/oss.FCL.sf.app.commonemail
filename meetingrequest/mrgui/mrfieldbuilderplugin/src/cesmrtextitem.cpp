@@ -19,7 +19,7 @@
 #include "cesmrtextitem.h"
 
 #include <barsread.h>
-#include <stringloader.h>
+#include <StringLoader.h>
 
 // ======== MEMBER FUNCTIONS ========
 

@@ -18,8 +18,8 @@
 #ifndef C_MRMBUTILSMAILBOXLISTENER_H
 #define C_MRMBUTILSMAILBOXLISTENER_H
 
-#include "MFSMailEventObserver.h"
-#include "CFSMailCommon.h"
+#include "mfsmaileventobserver.h"
+#include "cfsmailcommon.h"
 
 #include <e32base.h>
 

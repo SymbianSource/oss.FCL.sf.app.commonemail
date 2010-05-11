@@ -12,7 +12,7 @@
 * Contributors:
 *
  *  Description : ESMR location field implementation
- *  Version     : %version: e002sa32#53 %
+ *  Version     : %version: e002sa32#53.1.1 %
  *
  */
 
@@ -34,10 +34,10 @@
 #include "mesmrlistobserver.h"
 
 #include <calentry.h>
-#include <stringloader.h>
+#include <StringLoader.h>
 #include <esmrgui.rsg>
 #include <data_caging_path_literals.hrh>
-#include <aknsbasicbackgroundcontrolcontext.h>
+#include <AknsBasicBackgroundControlContext.h>
 #include <eikmfne.h>
 #include <aknbutton.h>
 

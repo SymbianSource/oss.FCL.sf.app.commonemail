@@ -27,14 +27,14 @@
 #include "cesmrrichtextlink.h"
 #include "cmrattachmentcommandhandler.h"
 
-#include <aknsbasicbackgroundcontrolcontext.h>
+#include <AknsBasicBackgroundControlContext.h>
 #include <calentry.h>
 #include <calattachment.h>
-#include <stringloader.h>
+#include <StringLoader.h>
 #include <esmrgui.rsg>
 #include <gulicon.h>
 #include <ct/rcpointerarray.h>
-#include <aknbiditextutils.h>
+#include <AknBidiTextUtils.h>
 
 // DEBUG
 #include "emailtrace.h"
@@ -44,7 +44,6 @@
 namespace { // codescanner::namespace
 //CONSTANTS
 
-// TODO: Read default text from resource
 _LIT( KAddAttachment, "Add attachment" );
 _LIT( KNewLine, "\f" );
 
@@ -141,7 +140,6 @@ void CMRAttachmentsField::ConstructL()
     iRichTextViewer->SetLinkObserver (this );
     iRichTextViewer->SetParent( this );
 
-    // TODO: read from resource
     iTitle->SetTextL( KAddAttachment );
 
     // Draw bg instead of using skin bg
@@ -479,7 +477,7 @@ void CMRAttachmentsField::ListObserverSet()
 TBool CMRAttachmentsField::ExecuteGenericCommandL( TInt aCommand )
     {
     FUNC_LOG;
-    // TODO: Changes from other fields have to be implemented here
+
     TBool handled( EFalse );
 
     // From cesmrattachmentfield
@@ -620,7 +618,6 @@ void CMRAttachmentsField::UpdateAttachmentsListL()
         delete attachmentSize;
         attachmentSize = NULL;
 
-        // TODO: correct icon zise to correct one. Ask from UI specifier.
         TSize iconSize( 20, 20);
         maxLineWidth -= iconSize.iWidth;
 

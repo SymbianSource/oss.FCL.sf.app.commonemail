@@ -556,10 +556,12 @@ CFSEmailUiMailListVisualiser::CFSEmailUiMailListVisualiser( CAlfEnv& aEnv,
 CFSEmailUiMailListVisualiser::~CFSEmailUiMailListVisualiser()
     {
     FUNC_LOG;
+/*
     if (iExtension)
         {
         iAppUi.GetMailClient()->ReleaseExtension(iExtension);
         }
+*/
     SafeDelete(iMailListModelUpdater);
     SafeDelete(iMailFolder);
     delete iTouchManager;
@@ -1370,9 +1372,16 @@ void CFSEmailUiMailListVisualiser::ChildDoActivateL(const TVwsViewId& aPrevViewI
     TRect clientRect = iAppUi.ClientRect();
     iScreenAnchorLayout->SetSize( clientRect.Size() );
     SetMailListLayoutAnchors();
-    ScaleControlBarL();
-    SetListAndCtrlBarFocusL();
+    //if the view is already active don't update the icons so they won't "blink" 
+    //when the view is activated.
+    if(!iThisViewActive)
+        { 
+        ScaleControlBarL();
+        SetListAndCtrlBarFocusL();
+        }
 
+	FadeOut(EFalse); // we can show now CAlfVisuals from CurrentView (to show Folders before updating emails)
+    
 	// Update mail list settings and date formats, is done every time
 	// the user might have changed these in settings, so the list needs to refresh
 	// Store previous modes
@@ -1387,9 +1396,13 @@ void CFSEmailUiMailListVisualiser::ChildDoActivateL(const TVwsViewId& aPrevViewI
 	UpdateMailListTimeDateSettings();
 
 	// Check for changed settings, in that case a complete list refresh is needed
-	TBool refreshNeeded(EFalse);
-	if ( aCustomMessageId == KStartListWithFolderIdFromHomeScreen
-	     || iSkinChanged
+	TRefreshState refreshState = ERefreshNone;
+	if (aCustomMessageId == KStartListWithFolderIdFromHomeScreen)
+	    {
+            refreshState = EFocusChangeNeeded;
+	    }
+	
+	if ( iSkinChanged
 	     || iDateChanged
 	     || iListMode != prevListMode
 		 || iNodesInUse != prevNodesmode
@@ -1400,7 +1413,7 @@ void CFSEmailUiMailListVisualiser::ChildDoActivateL(const TVwsViewId& aPrevViewI
 		 || prevDateFormats.iDateSeparator.GetNumericValue() != iDateFormats.iDateSeparator.GetNumericValue()
 		 || prevDateFormats.iTimeSeparator.GetNumericValue() != iDateFormats.iTimeSeparator.GetNumericValue() )
 		{
-		refreshNeeded = ETrue;
+        refreshState = EFullRefreshNeeded;
 		iSkinChanged = EFalse;
 		iDateChanged = EFalse;
 		}
@@ -1543,7 +1556,7 @@ void CFSEmailUiMailListVisualiser::ChildDoActivateL(const TVwsViewId& aPrevViewI
          iFolderListButton->SetTextL( *newFolderName );
          CleanupStack::PopAndDestroy( newFolderName );
          iMailList->SetFocusedItemL( KFsTreeNoneID );
-         refreshNeeded = ETrue;
+         refreshState = EFullRefreshNeeded;
          }
 
     // Set mailbox name to status pane
@@ -1557,7 +1570,7 @@ void CFSEmailUiMailListVisualiser::ChildDoActivateL(const TVwsViewId& aPrevViewI
     ConnectionIconHandling();
 
     // REBUILD TREE LIST IF NECESSARY
-    if ( refreshNeeded )
+    if ( refreshState == EFullRefreshNeeded )
         {
         // Try to maintain previously active item if possible.
         // This is of course not possible if folder has changed.
@@ -1580,6 +1593,18 @@ void CFSEmailUiMailListVisualiser::ChildDoActivateL(const TVwsViewId& aPrevViewI
             {
             UpdateMailListModelAsyncL();
             }
+        }
+    else if(refreshState == EFocusChangeNeeded)
+        {//Move focus to the beginning of the list
+        TInt firstIndex(0);
+        TFsTreeItemId firstItemId = iMailList->Child( KFsTreeRootID, firstIndex );
+        iMailTreeListVisualizer->SetFocusedItemL( firstItemId, EFalse );
+        //if the view is already active don't update the list so it won't "blink" 
+        //when the view is activated.
+        if(!iThisViewActive)
+          {
+            iMailList->ShowListL();
+          }
         }
     // THE CORRECT FOLDER IS ALREADY OPEN. CHECK IF SOME PARTIAL UPDATE IS NEEDED.
     else
@@ -1673,6 +1698,7 @@ void CFSEmailUiMailListVisualiser::ChildDoDeactivate()
   	    iMailTreeListVisualizer->NotifyControlVisibilityChange( EFalse );
   	    }
 	iThisViewActive = EFalse;
+	FadeOut(ETrue);  // hide CAlfVisuals on deactivation
 	}
 
 // ---------------------------------------------------------------------------
@@ -1780,44 +1806,6 @@ void CFSEmailUiMailListVisualiser::DynInitMenuPaneL(TInt aResourceId, CEikMenuPa
     // MAIN MENU ***************************************************************************
 	if ( aResourceId == R_FSEMAILUI_MAILLIST_MENUPANE )
 	    {
-            // Sync/cancel sync
-	    CFSMailBox* activeMailbox = iAppUi.GetActiveMailbox();
-	    TBool supportsSync = activeMailbox->HasCapability( EFSMBoxCapaSupportsSync );
-        TFSMailBoxStatus onlineStatus = activeMailbox->GetMailBoxStatus();
-         if ( onlineStatus == EFSMailBoxOnline && 
-		      KIpsPlgImap4PluginUid == activeMailbox->GetId().PluginId() )
-        	{
-            aMenuPane->SetItemDimmed( EFsEmailUiCmdSync, ETrue );
-        	}
-
-            // flag to hide or show SyncButton
-            TBool hideSync = GetLatestSyncState();
-            if(activeMailbox->CurrentSyncState()==StartingSync) hideSync=EFalse;
-
-            // hide or show options: Sync/cancel sync
-        if ( !supportsSync )
-        {
-				// POP3 behaviour
-				if( onlineStatus == EFSMailBoxOnline || iMailListModelUpdater->IsUpdating() )
-				  {
-					aMenuPane->SetItemDimmed( EFsEmailUiCmdCancelSync, EFalse );
-					aMenuPane->SetItemDimmed( EFsEmailUiCmdSync, ETrue );
-				  }
-				else
-					{
-					aMenuPane->SetItemDimmed( EFsEmailUiCmdCancelSync, ETrue );
-					aMenuPane->SetItemDimmed( EFsEmailUiCmdSync, EFalse );
-					}
-        }
-      else if ( hideSync || iMailListModelUpdater->IsUpdating() )
-        {
-        aMenuPane->SetItemDimmed( EFsEmailUiCmdSync, ETrue );
-        }
-      else
-        {
-        aMenuPane->SetItemDimmed( EFsEmailUiCmdCancelSync, ETrue );
-        }
-
 		// Saves a focus visibility.
 		iLastFocus = EFalse;
 		if( iFocusedControl == EMailListComponent && IsFocusShown() )
@@ -2226,13 +2214,10 @@ void CFSEmailUiMailListVisualiser::EnterMarkingModeL()
     // Change background to marking mode
     DisplayMarkingModeBgL( ETrue );       
     // Hide drop down menu buttons
-    if( Layout_Meta_Data::IsLandscapeOrientation() )
-        {
-        iNewEmailButton->SetDimmed();
-        iFolderListButton->SetDimmed();   
-        iSortButton->SetDimmed();
-        }
-    else
+    iNewEmailButton->SetDimmed();
+    iFolderListButton->SetDimmed();   
+    iSortButton->SetDimmed();
+    if( !Layout_Meta_Data::IsLandscapeOrientation() )
         {
         TRect rect(0,0,0,0);
         iControlBarControl->SetRectL( rect );
@@ -4059,13 +4044,12 @@ void CFSEmailUiMailListVisualiser::HandleCommandL( TInt aCommand )
 			TBool supportsSync = iAppUi.GetActiveMailbox()->HasCapability( EFSMBoxCapaSupportsSync );
 			if ( supportsSync )
 			    {
-			    //If synchronizing is ongoing and a new sync is started we ignore it
-			    if(!GetLatestSyncState())
+			    // If synchronizing is ongoing and a new sync is started we ignore it
+			    if( !GetLatestSyncState() )
 			        {
 			        iAppUi.SyncActiveMailBoxL();
 			        // Sync was started by the user
-			        ManualMailBoxSync(ETrue);
-                    iAppUi.ManualMailBoxSync( ETrue );
+			        ManualMailBoxSync( ETrue );
 			        }
 			    }
 			  else
@@ -4075,24 +4059,7 @@ void CFSEmailUiMailListVisualiser::HandleCommandL( TInt aCommand )
 				}
 			}
 			break;
-       	case EFsEmailUiCmdCancelSync:
-       		{
-            TBool supportsSync = iAppUi.GetActiveMailbox()->HasCapability( EFSMBoxCapaSupportsSync );
-            if ( supportsSync )
-		       {
-	            iAppUi.StopActiveMailBoxSyncL();
-	            // Sync was started by the user
-	            ManualMailBoxSync(ETrue);
-	            iAppUi.ManualMailBoxSync( ETrue );
-                }
-		     else
-		        {
-		         //POP3
-                 iAppUi.GetActiveMailbox()->GoOfflineL();
-                }
-       		}
-       		break;
-        case EFsEmailUiCmdGoOffline:
+       	case EFsEmailUiCmdGoOffline:
         	{
     	   	iAppUi.GetActiveMailbox()->GoOfflineL();
         	}
@@ -4100,7 +4067,6 @@ void CFSEmailUiMailListVisualiser::HandleCommandL( TInt aCommand )
         case EFsEmailUiCmdGoOnline:
         	{
 			CFSMailBox* mb = iAppUi.GetActiveMailbox();
-            iAppUi.ManualMailBoxSync( ETrue );
         	mb->GoOnlineL();
         	}
         	break;
@@ -7220,8 +7186,9 @@ void CFSEmailUiMailListVisualiser::LaunchStylusPopupMenuL( const TPoint& aPoint 
 			iStylusPopUpMenu->SetItemDimmed( EFsEmailUiCmdMarkAsRead, !IsMarkAsReadAvailableL() );
 
 			// Check support for object mail iten moving
-			TBool supportsMoving = iAppUi.GetActiveMailbox()->HasCapability( EFSMBoxCapaMoveToFolder );
-			iStylusPopUpMenu->SetItemDimmed( EFsEmailUiCmdActionsMoveMessage, !supportsMoving );
+			iStylusPopUpMenu->SetItemDimmed( EFsEmailUiCmdActionsMoveMessage,
+         !(iAppUi.GetActiveMailbox()->HasCapability( EFSMBoxCapaMoveToFolder )
+         && iMailFolder->SupportsMoveFromL( iMailFolder->GetFolderType() ) ) );
 
 			// Hide / show follow up
 			TBool supportsFlag = TFsEmailUiUtility::IsFollowUpSupported( *iAppUi.GetActiveMailbox() );
@@ -8038,6 +8005,25 @@ void CFSEmailUiMailListVisualiser::GetParentLayoutsL( RPointerArray<CAlfVisual>&
     aLayoutArray.AppendL( iScreenAnchorLayout );
     aLayoutArray.AppendL( iControlBarControl->Visual() );
     }
+
+// hide or show CAlfVisuals ( used for activation or deactivation )
+void CFSEmailUiMailListVisualiser::FadeOut(TBool aDirectionOut)
+	{
+    FUNC_LOG;
+	TAlfTimedValue timedValue( 0, 0 );
+	if ( !aDirectionOut )
+        {
+		timedValue.SetTarget( 1, 0 );
+		}
+	if ( iScreenAnchorLayout != NULL )
+		{
+	    iScreenAnchorLayout->SetOpacity( timedValue );
+		}
+	if (iControlBarControl && iControlBarControl->Visual() != NULL )
+        {
+	    iControlBarControl->Visual()->SetOpacity( timedValue );
+        }  
+	}
 
 // Sets aActiveMailboxId and aActiveFolderId from iMailFolder if available
 TInt CFSEmailUiMailListVisualiser::GetActiveFolderId(TFSMailMsgId& aActiveMailboxId, TFSMailMsgId& aActiveFolderId) const

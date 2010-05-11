@@ -25,8 +25,6 @@
 #include <brctlspecialloadobserver.h>
 #include <brctllinkresolver.h>
 
-#include <finditemengine.h>
-
 #include "FreestyleEmailUiAknStatusIndicator.h"
 #include "FreestyleEmailDownloadInformationMediator.h"
 #include "freestyleemailcenrepkeys.h"
@@ -36,9 +34,9 @@ class CFSMailMessage;
 class CFreestyleEmailUiAppUi;
 class CFreestyleMessageHeaderURLEventHandler;
 struct TAttachmentData;
-
 class CFsEmailUiHtmlViewerContainer;
 class MTouchFeedback;
+class CFindItemEngine;
 
 /**
  * Single key listener
@@ -262,6 +260,18 @@ public:
     // Inform that maillist model has updated
     void MailListModelUpdatedL();
     
+    // Zoom handling
+    void ZoomInL();
+    void ZoomOutL();
+    TInt ZoomLevelL() const;
+    void SetZoomLevelL( const TInt aZoomLevel );
+    TInt MaxZoomLevel() const;
+
+private:
+    
+    static TInt DoZoom( TAny* aPtr  );
+    void DoZoomL();
+    
 private: // from CEUiHtmlViewerSettings::MObserver
 
     /**
@@ -271,6 +281,8 @@ private: // from CEUiHtmlViewerSettings::MObserver
 
 private:
 
+    void CreateBrowserControlInterfaceL();
+    
     // Second phase constructor.
     void ConstructL();
     // C++ constructor.
@@ -324,7 +336,6 @@ private:
             const TDesC& aFileName, CFSMailMessagePart& aHtmlBodyPart );
     HBufC8* GetCharacterSetL( CFSMailMessagePart& aHtmlBodyPart );
     TBool IsMessageBodyURLL(const TDesC& aUrl);
-	void CreateHyperlinksFromUrlsL( RBuf& aSource );
 	TInt TotalLengthOfItems( CFindItemEngine& aItemEngine ) const;
 	
     //Returns ETrue of clicking on a link requires a browser to be launched
@@ -340,6 +351,8 @@ private:
        
     TRect CalcAttachmentStatusRect();
     void TouchFeedback();
+    
+    void WriteToFileL( const TDesC& aFileName, RBuf& aHtmlText );
 
 private: // data
 
@@ -381,7 +394,27 @@ private: // data
     TBool iHeaderExpanded;
     // tactile feed back -- not owned
     MTouchFeedback* iTouchFeedBack;
+    
+    TInt iZoomLevel;
     };
 
 
+/**
+* PlainTextToHtmlConverter
+* 
+* PlainTextToHtmlConverter converts plain text to html. It adds html entities
+* and hyperlinks.
+*/
+NONSHARABLE_CLASS (PlainTextToHtmlConverter)
+    {
+    private:
+        PlainTextToHtmlConverter();
+        
+    public:
+        static void PlainTextToHtmlL(const TDesC& aPlainText, RBuf& aHtmlText);
+        
+    private:
+        static void ConvertTextL(const TDesC& aSource, RBuf& aTarget);
+        static void ConvertUrlL(const TDesC& aSource, RBuf& aTarget);
+    };
 #endif // __FREESTYLEEMAILUI_HTML_VIEWER_CONTAINER_H__

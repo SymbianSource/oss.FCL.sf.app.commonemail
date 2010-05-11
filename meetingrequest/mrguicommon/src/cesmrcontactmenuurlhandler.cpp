@@ -31,14 +31,14 @@
 #include <eikmenup.h>
 #include <coemain.h>
 #include <gulicon.h>
-#include <aknsutils.h>
+#include <AknsUtils.h>
 #include <favouritesdb.h>
 #include <apgtask.h>
 #include <apgcli.h>
-#include <aknquerydialog.h>
+#include <AknQueryDialog.h>
 #include <aknnotewrappers.h>
 // for intranet application opening
-#include <aiwservicehandler.h>
+#include <AiwServiceHandler.h>
 #include <data_caging_path_literals.hrh>
 #include <e32cmn.h>
 
@@ -201,7 +201,6 @@ CGulIcon* CESMRContactMenuUrlHandler::CreateIconL(TUid aCommandUid)
         //</cmail>
         }
 
-    // TODO: correct to use XML layout
     NMRBitmapManager::GetSkinBasedBitmapLC( 
                     iconID, iconBitmap, iconMaskBitmap, TSize(20,20) );
     

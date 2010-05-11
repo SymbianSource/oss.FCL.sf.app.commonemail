@@ -184,11 +184,6 @@ NONSHARABLE_CLASS( CESMRView ):
                 TInt aResourceId,
                 CEikMenuPane* aMenuPane );
         
-        /*
-         * Relayouts view by calling size changed.
-         */
-        void ReLayout();
-    
         /**
          * Processes event.
          * @param aEvent Reference to event to be processed
@@ -255,6 +250,7 @@ NONSHARABLE_CLASS( CESMRView ):
         void LaunchHelpL( const TDesC& aContext );
         void SetTitlePaneObserver();
         TRect CalculateAttachmentIndicatorLayout();
+        TRect ContainerRect() const;
         
     private: // data
         

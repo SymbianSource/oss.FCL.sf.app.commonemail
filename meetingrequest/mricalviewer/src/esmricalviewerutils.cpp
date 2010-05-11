@@ -74,13 +74,6 @@ TBool ESMRIcalViewerUtils::ContainsAttachments(
     FUNC_LOG;
     TBool retValue( EFalse );
 
-    // TODO: This needs to be updated
-    /*if ( aParams.iAttachmentInfo &&
-         aParams.iAttachmentInfo->AttachmentCount() )
-        {
-        retValue = ETrue;
-        } */
-
     return retValue;
     }
 

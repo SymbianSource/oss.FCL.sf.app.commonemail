@@ -187,7 +187,7 @@ public:
 	 * @param aMailBox = current mailbox, needed to know which MRU list to use
 	 */
 	void SearchMatchesL( const TDesC& aText, MFSEmailUiContactHandlerObserver* aObserver,
-						 CFSMailBox* aMailBox );
+						 CFSMailBox* aMailBox, TInt aMode = -1 );
 	
 	/**
 	 * Reset the status of contact Handlers, cancel all active asynchronous calls. This should be called

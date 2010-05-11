@@ -57,7 +57,7 @@ LIBRARY                 charconv.lib
 LIBRARY                 eikcoctl.lib
 LIBRARY                 calinterimapi.lib
 LIBRARY                 caleninterimutils2.lib
-LIBRARY                 FeatDiscovery.lib
+LIBRARY                 featdiscovery.lib
 
 #if defined( ENABLE_TRACES ) && defined( TRACE_INTO_FILE )
 LIBRARY                 flogger.lib

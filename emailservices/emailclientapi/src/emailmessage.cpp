@@ -505,12 +505,12 @@ MEmailMessageContent* CEmailMessage::ContentL() const
 
     RPointerArray<CFSMailMessagePart> parts;
     CleanupResetAndDestroyPushL( parts );
-    iPluginMessage->ChildPartsL(parts);
+    iPluginMessage->ChildPartsL( parts );
     TInt count( parts.Count() );
     if( count == 0 )
         {
         /* No content, return NULL */
-        CleanupStack::Pop(); // parts
+        CleanupStack::PopAndDestroy( &parts ); // in case heap allocated but not used
         return NULL;
         }
     CFSMailMessagePart* part = parts[0];
@@ -524,7 +524,8 @@ MEmailMessageContent* CEmailMessage::ContentL() const
     if ( contentType.Equals( KFSMailContentTypeTextPlain ) || 
         contentType.Equals( KFSMailContentTypeTextHtml ) )
         {                                
-        iTextContent = CEmailTextContent::NewL(iPluginData, msgContentId, part, EAPIOwns );        
+        iTextContent = CEmailTextContent::NewL(iPluginData, msgContentId, part, EAPIOwns );
+        parts[0] = NULL; // ownership of part transferred
         }
     else if ( contentType.Equals( KFSMailContentTypeMultipartMixed ) ||
               contentType.Equals( KFSMailContentTypeMultipartAlternative ) ||
@@ -533,13 +534,10 @@ MEmailMessageContent* CEmailMessage::ContentL() const
               contentType.Equals( KFSMailContentTypeMultipartParallel ) )
         {
         iContent = CEmailMultipart::NewL(iPluginData, msgContentId, part, EAPIOwns);
+        parts[0] = NULL; // ownership of part transferred
         }
-    if ( count == 2 )
-        {
-        CFSMailMessagePart* part = parts[1];
-        const TDesC& contentType = part->GetContentType();
-        }
-    CleanupStack::Pop(); // parts
+
+    CleanupStack::PopAndDestroy( &parts ); // parts
     
     if (iTextContent)
         {

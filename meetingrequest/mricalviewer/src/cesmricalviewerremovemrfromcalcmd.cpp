@@ -24,7 +24,7 @@
 //<cmail>
 #include "esmricalvieweropcodes.hrh"
 #include <calsession.h>
-#include "CFSMailClient.h"
+#include "cfsmailclient.h"
 //</cmail>
 #include <calentry.h>
 

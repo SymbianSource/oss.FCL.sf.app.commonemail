@@ -146,7 +146,7 @@ LIBRARY touchfeedback.lib
 LIBRARY commonui.lib
 LIBRARY npdlib.lib
 LIBRARY lbs.lib
-LIBRARY FeatDiscovery.lib
+LIBRARY featdiscovery.lib
 LIBRARY gdi.lib
 
 #ifdef RD_USE_MYLOCATIONUI

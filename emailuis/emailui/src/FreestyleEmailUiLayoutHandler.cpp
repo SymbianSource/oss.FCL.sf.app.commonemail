@@ -1070,21 +1070,12 @@ TInt CFSEmailUiLayoutHandler::MaxPcsMatches() const
     }
 
 // -----------------------------------------------------------------------------
-// CFSEmailUiLayoutHandler::PcsPopupHighlightColor
+// CFSEmailUiLayoutHandler::PcsPopupDimmedFontTransparency
 // -----------------------------------------------------------------------------
-TRgb CFSEmailUiLayoutHandler::PcsPopupHighlightColor() const
+TInt CFSEmailUiLayoutHandler::PcsPopupDimmedFontTransparency() const
     {
     FUNC_LOG;
-    return KPcsPopupHighlightColor;
-    }
-
-// -----------------------------------------------------------------------------
-// CFSEmailUiLayoutHandler::PcsPopupDimmedFontColor
-// -----------------------------------------------------------------------------
-TRgb CFSEmailUiLayoutHandler::PcsPopupDimmedFontColor() const
-    {
-    FUNC_LOG;
-    return KPcsPopupDimmedFontColor;
+    return KPcsPopupDimmedFontTransparency;
     }
 
 // -----------------------------------------------------------------------------

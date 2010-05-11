@@ -22,13 +22,13 @@
 #include <apgcli.h>
 #include <apmrec.h>
 //<cmail>
-#include "CFSMailClient.h"
-#include "CFSMailBox.h"
-#include "CFSMailMessage.h"
-#include "CFSMailMessagePart.h"
+#include "cfsmailclient.h"
+#include "cfsmailbox.h"
+#include "cfsmailmessage.h"
+#include "cfsmailmessagepart.h"
 #include "mmrinfoprocessor.h"
-#include "CFSMailCommon.h"
-#include "CFSMailPlugin.h"
+#include "cfsmailcommon.h"
+#include "cfsmailplugin.h"
 //</cmail>
 #include <ecom/implementationinformation.h>
 #include "tesmrinputparams.h"

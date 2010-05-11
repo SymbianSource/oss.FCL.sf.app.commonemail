@@ -23,8 +23,8 @@
 #include <mnproviderfinder.h>
 #include <mnprovider.h>
 #include <mnmapview.h>
-#include <epos_cposlandmark.h>
-#include <stringloader.h>
+#include <EPos_CPosLandmark.h>
+#include <StringLoader.h>
 #include <esmrgui.rsg>
 #include <ct/rcpointerarray.h>
 #include <calentry.h>

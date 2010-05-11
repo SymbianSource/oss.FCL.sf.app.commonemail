@@ -20,7 +20,7 @@
 
 #include <esmrtasks.rsg>
 #include <cmrmailboxutils.h>
-#include <stringloader.h>
+#include <StringLoader.h>
 #include <calentry.h>
 #include <caluser.h>
 #include <avkon.rsg>

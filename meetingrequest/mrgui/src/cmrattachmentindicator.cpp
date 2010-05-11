@@ -18,9 +18,9 @@
 #include "cmrattachmentindicator.h"
 
 #include <biditext.h>
-#include <aknutils.h>
-#include <akniconutils.h>
-#include <aknbiditextutils.h>
+#include <AknUtils.h>
+#include <AknIconUtils.h>
+#include <AknBidiTextUtils.h>
 
 namespace
 {

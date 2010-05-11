@@ -1179,7 +1179,10 @@ void CMailCpsIf::NotifyAppListChanged()
 void CMailCpsIf::SetUpdateNeeded( const TInt aInstance, const TBool aValue )
     {
     FUNC_LOG;
-    iInstIdList[aInstance].iUpdateNeeded = aValue;
+    if ( aInstance >= 0 && aInstance < GetWidgetInstanceCount() )
+        {
+        iInstIdList[aInstance].iUpdateNeeded = aValue;
+        }
     }
 
 // ---------------------------------------------------------------------------
@@ -1189,6 +1192,11 @@ void CMailCpsIf::SetUpdateNeeded( const TInt aInstance, const TBool aValue )
 TBool CMailCpsIf::UpdateNeeded( const TInt aInstance )
     {
     FUNC_LOG;
-    return iInstIdList[aInstance].iUpdateNeeded;
+    TBool rVal( EFalse );
+    if ( aInstance >= 0 && aInstance < GetWidgetInstanceCount() )
+        {
+        rVal = iInstIdList[aInstance].iUpdateNeeded;
+        }
+    return rVal;
     }
 

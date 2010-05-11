@@ -49,4 +49,31 @@ template <class T> inline void CleanupResetAndDestroyClosePushL(T& aRef)
     CleanupResetAndDestroyClose<T>::PushL(aRef);
     }
 
+/**
+* Cleanup support for owning pointer arrays
+*/
+
+template<class T>
+class CleanupResetAndDestroy
+{
+private:
+    inline static void ResetAndDestroy( TAny *aPtr )
+    {
+    reinterpret_cast<T*>( aPtr )->ResetAndDestroy();
+    };
+public:
+    inline static void PushL( T& aItem )
+    { 
+    TCleanupItem item( &CleanupResetAndDestroy::ResetAndDestroy, &aItem );
+    CleanupStack::PushL( item );
+    };
+} ;
+
+template <class T>
+inline void CleanupResetAndDestroyPushL( T& aRef )
+    {
+    CleanupResetAndDestroy<T>::PushL( aRef );
+    }
+
+
 #endif

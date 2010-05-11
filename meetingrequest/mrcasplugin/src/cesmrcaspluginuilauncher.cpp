@@ -25,22 +25,22 @@
 #include <badesca.h>
 //<cmail>
 #include "tfsccontactactionpluginparams.h"
-#include <mvpbkstorecontact.h>
-#include <caleninterimutils2.h>
+#include <MVPbkStoreContact.h>
+#include <CalenInterimUtils2.h>
 #include <cmrmailboxutils.h>
 #include <calsession.h>
 #include <calentry.h>
-#include <cagnentryui.h>
+#include <CAgnEntryUi.h>
 #include <caluser.h>
 #include "mfscactionutils.h"
 //</cmail>
-#include <aknpopup.h>
+#include <aknPopup.h>
 #include <aknlists.h>
 #include <utf.h>
 #include <ecom/ecom.h>
 #include "esmrcommands.h"
 #include <esmrcasplugindata.rsg>
-#include <stringloader.h>
+#include <StringLoader.h>
 #include <aknnotewrappers.h>
 
 

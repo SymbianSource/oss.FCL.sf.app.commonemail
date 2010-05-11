@@ -23,7 +23,6 @@
 #include <FreestyleEmailUi.rsg>						// R_FSE_EDITOR_ADDRESS_LIST_REMOTE_LOOKUP_SEARCH
 #include <StringLoader.h>						// StringLoader
 #include <CPbkContactEngine.h>
-#include <aknnotewrappers.h>					//For LanguageNotSupported errorNote
 #include <aknsdrawutils.h>
 #include <aknsutils.h>
 #include <aknlayoutscalable_apps.cdl.h>
@@ -111,10 +110,10 @@ void CNcsPopupListBox::ConstructL( const CCoeControl* aParent )
 // -----------------------------------------------------------------------------
 // CNcsPopupListBox::InitAndSearchL
 // -----------------------------------------------------------------------------
-void CNcsPopupListBox::InitAndSearchL( const TDesC& aText )
+void CNcsPopupListBox::InitAndSearchL( const TDesC& aText, TInt aMode )
     {
     FUNC_LOG;
-    SetSearchTextL( aText );
+    SetSearchTextL( aText, aMode );
     RPointerArray<CFSEmailUiClsItem> emptyArray;
     CleanupClosePushL( emptyArray );
     OperationCompleteL( ESearchContacts, emptyArray );
@@ -246,7 +245,7 @@ void CNcsPopupListBox::HandleListBoxEventL( CEikListBox* /*aListBox*/,
     TListBoxEvent aEventType )
     {
     if ( aEventType == EEventItemClicked || 
-    	 aEventType == EEventItemSingleClicked )
+         aEventType == EEventItemSingleClicked )
         {
         iHeaderContainer.DoPopupSelectL();
         }
@@ -302,7 +301,7 @@ void CNcsPopupListBox::OperationErrorL( TContactHandlerCmd aCmd, TInt aError )
 // CNcsPopupListBox::SetSearchTextL
 // -----------------------------------------------------------------------------
 //
-void CNcsPopupListBox::SetSearchTextL( const TDesC& aText )
+void CNcsPopupListBox::SetSearchTextL( const TDesC& aText, TInt aMode )
     {
     FUNC_LOG;
     delete iCurrentSearchText;
@@ -312,7 +311,7 @@ void CNcsPopupListBox::SetSearchTextL( const TDesC& aText )
         {
         if ( iContactHandler  )
             {
-            iContactHandler->SearchMatchesL( aText, this, &iMailBox );
+            iContactHandler->SearchMatchesL( aText, this, &iMailBox, aMode );
             }
         }
     }
@@ -692,13 +691,16 @@ void CNcsListItemDrawer::DrawActualItem(TInt aItemIndex,
     CNcsPopupListBox& tmpListBox = const_cast<CNcsPopupListBox&>( iListBox );
     const TInt scrollbarBreadth = tmpListBox.ScrollBarFrame()->
         ScrollBarBreadth( CEikScrollBar::EVertical );
-    if ( AknLayoutUtils::LayoutMirrored() )
+    if ( scrollbarBreadth > 0 )
         {
-        itemRect.iTl.iX = iListBox.Rect().iTl.iX + scrollbarBreadth;
-        }
-    else
-        {
-        itemRect.iBr.iX = iListBox.Rect().iBr.iX - scrollbarBreadth;
+        if ( AknLayoutUtils::LayoutMirrored() )
+            {
+            itemRect.iTl.iX = iListBox.Rect().iTl.iX + scrollbarBreadth;
+            }
+        else
+            {
+            itemRect.iBr.iX = iListBox.Rect().iBr.iX - scrollbarBreadth;
+            }
         }
     }
 
@@ -769,12 +771,14 @@ void CNcsListItemDrawer::DrawActualItem(TInt aItemIndex,
 			aItemIndex--;
 			}
 
-		// change color to gray if match doesn't have email address.
-		if( clsItemArray[aItemIndex]->EmailAddress().Compare( KNullDesC ) == 0 )
-			{
-			TRgb dimmedColor = iListBox.LayoutHandler().PcsPopupDimmedFontColor();
-			iGc->SetPenColor( dimmedColor );
-			}
+    // Change text transparency if match doesn't have email address.
+    if ( clsItemArray[aItemIndex]->EmailAddress().Compare( KNullDesC ) == 0 )
+        {
+        const TInt KTransparency = 
+            iListBox.LayoutHandler().PcsPopupDimmedFontTransparency();
+        textColor.SetAlpha( KTransparency );
+        iGc->SetPenColor( textColor );
+        }
 
 		// For now, we support underlining the matching part only if the
 		//       text is written completely with left-to-right script

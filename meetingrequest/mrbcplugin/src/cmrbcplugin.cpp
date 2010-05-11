@@ -29,10 +29,10 @@
 #include <eikmenup.h>
 #include <bautils.h>
 #include <ecom/ecom.h>
-#include <meetingrequestuids.hrh>
+#include <MeetingRequestUids.hrh>
 #include <ct/rcpointerarray.h>
 #include <data_caging_path_literals.hrh>
-#include <caleninterimutils2.h>
+#include <CalenInterimUtils2.h>
 #include <calencommands.hrh>
 #include <featdiscovery.h>
 #include <bldvariant.hrh>
@@ -150,7 +150,7 @@ TBool IsCommandHandlerEnabledL( TInt aCommand )
                 }
             break;
             }
-            
+
         default:
             {
             enabled = EFalse;
@@ -482,7 +482,7 @@ MCalenCommandHandler* CMRBCPlugin::ResolveCommandHandlerL( TInt aCommand )
         {
         CMRBCEventPlugin* eventPlugin = PluginByUidL(
                 TUid::Uid( KMRBCMREventPluginImplementationUID ) );
-        
+
         if ( eventPlugin )
             {
             cmdHandler = eventPlugin->CommandHandler();
@@ -494,7 +494,7 @@ MCalenCommandHandler* CMRBCPlugin::ResolveCommandHandlerL( TInt aCommand )
         for ( TInt i(0); i < pluginCount && !cmdHandler; ++i )
             {
             TMRBCPluginCommand pluginCommand;
-    
+
             TInt err = iPluginResources[i]->Command( aCommand, pluginCommand );
             if ( KErrNone == err )
                 {
@@ -502,10 +502,10 @@ MCalenCommandHandler* CMRBCPlugin::ResolveCommandHandlerL( TInt aCommand )
                 if ( pluginCommand.CheckEntryType() )
                     {
                     iEntryLoader->UpdateEntryFromDatabaseL();
-    
+
                     TBCPluginEventType eventType(
                             EventTypeL( *iServices, iEntryLoader->Entry() ) );
-    
+
                     if ( iPluginResources[i]->SupportsType( eventType)
                          && IsCommandSupportedForEntryTypeL( aCommand, eventType ) )
                         {
@@ -529,7 +529,7 @@ MCalenCommandHandler* CMRBCPlugin::ResolveCommandHandlerL( TInt aCommand )
 CMRBCEventPlugin* CMRBCPlugin::PluginByUidL( TUid aUid )
     {
     CMRBCEventPlugin* plugin = NULL;
-    
+
     for ( TInt i = 0; i < iPluginResources.Count() && !plugin; ++i )
         {
         if ( iPluginResources[ i ]->PluginImplUid() == aUid )
@@ -537,7 +537,7 @@ CMRBCEventPlugin* CMRBCPlugin::PluginByUidL( TUid aUid )
             plugin = &( iPluginResources[ i ]->PluginL() );
             }
         }
-    
+
     return plugin;
     }
 

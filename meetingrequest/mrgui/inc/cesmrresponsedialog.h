@@ -20,7 +20,7 @@
 #define CESMRRESPONSEDIALOG_H
 
 // INCLUDES
-#include <akndialog.h>
+#include <AknDialog.h>
 
 // FORWARD DECLARATIONS
 class CAknsBasicBackgroundControlContext;

@@ -17,7 +17,7 @@
 #include "cesmrattendeefield.h"
 //<cmail>
 #include "esmrcommands.h"
-#include "CFSMailClient.h"
+#include "cfsmailclient.h"
 //</cmail>
 #include "cesmrncspopuplistbox.h"
 #include "cesmrncsemailaddressobject.h"
@@ -31,9 +31,9 @@
 #include "cmrimage.h"
 #include "cmrbutton.h"
 
-#include <aknsbasicbackgroundcontrolcontext.h>
+#include <AknsBasicBackgroundControlContext.h>
 #include <calentry.h>
-#include <stringloader.h>
+#include <StringLoader.h>
 #include <esmrgui.rsg>
 #include <aknbutton.h>
 #include <gulicon.h>

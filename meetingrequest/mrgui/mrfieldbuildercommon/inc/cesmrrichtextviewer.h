@@ -12,7 +12,7 @@
 * Contributors:
 *
 *  Description : CEikRichTextEditor based Rich Text viewer
-*  Version     : %version: e002sa32#19 %
+*  Version     : %version: e002sa32#19.1.1 %
 *
 */
 
@@ -217,7 +217,7 @@ public:
      * Applies the layout changes to the rich text component.
      */
     IMPORT_C void ApplyLayoutChangesL();
-    
+
     /*
      * Set selected link according to the index in the array.
      * @param aLinkIndex the index of link need to be selected.
@@ -229,6 +229,13 @@ public:
      * @return The index of selected link in the array.
      */
     IMPORT_C TInt GetFocusLink( ) const;
+
+    /*
+     * Finds out if given pointer event occured on a link
+     * @param aPointerEvent, the event to which the possible link areas are compared to
+     * @return TBool, ETrue if pointer event occured on a link
+     */
+    IMPORT_C TBool PointerEventOccuresOnALinkL( const TPointerEvent &aPointerEvent );
 
 protected: // From MEikCommandObserver
 

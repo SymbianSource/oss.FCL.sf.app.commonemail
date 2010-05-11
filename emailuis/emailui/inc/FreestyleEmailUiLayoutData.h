@@ -341,8 +341,7 @@ static const TInt KViewerMaxSubjectLineCount = 10;
 static const TInt KMaxPcsMatches = 50;
 
 // Predictive contact search popup colors
-static const TRgb KPcsPopupHighlightColor( 0,200,200 );
-static const TRgb KPcsPopupDimmedFontColor( 192,192,192 );
+const TInt KPcsPopupDimmedFontTransparency  = 100;
 
 //Icon sizes
 static const TInt KListTextureNodeExpandedSize = 14;

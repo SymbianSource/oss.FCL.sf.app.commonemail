@@ -102,6 +102,10 @@ public: // new functions
 
 	void UpdateCustomDrawer();
 	
+	void SetPhysicsEmulationOngoing( TBool aPhysOngoing );
+	
+	TBool IsPhysicsEmulationOngoing() const;
+	
 #ifdef _DEBUG
     void DebugDump();
 #endif
@@ -180,6 +184,9 @@ private: // data
 
 	// Caption text for virtual ITU-T
     HBufC*   iCaptionText; 
+    
+    // flag to indicate is there physics based dragging or flicking ongoing
+    TBool iPhysOngoing;
     };
 
 

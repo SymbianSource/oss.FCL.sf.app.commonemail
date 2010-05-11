@@ -25,7 +25,7 @@
 #include "mesmricalviewerobserver.h"
 #include "esmricalviewerdefs.hrh"
 //</cmail>
-#include <magnentryui.h>
+#include <MAgnEntryUi.h>
 
 class CFSMailClient;
 class CESMRUiLauncher;

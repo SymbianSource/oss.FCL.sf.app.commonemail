@@ -19,7 +19,7 @@
 #define CMRSAVEANDOPENATTACHMENTCOMMAND_H
 
 #include <e32base.h>
-#include <aknserverapp.h>
+#include <AknServerApp.h>
 #include "cmrattachmentcommand.h"
 
 // Forward declarations

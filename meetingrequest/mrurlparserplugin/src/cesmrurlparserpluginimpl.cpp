@@ -25,7 +25,7 @@
 #include <EPos_CPosLandmarkParser.h>
 #include <EPos_CPosLmOperation.h>
 #include <lbsposition.h>
-#include <EscapeUtils.h>
+#include <escapeutils.h>
 #include <finditemengine.h>
 #include <calentry.h>
 

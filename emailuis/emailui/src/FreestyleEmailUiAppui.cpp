@@ -1316,7 +1316,7 @@ void CFreestyleEmailUiAppUi::HandleWsEventL(const TWsEvent &aEvent, CCoeControl*
         TAdvancedPointerEvent* pointerEvent(aEvent.Pointer());
         iLastPointerPosition = pointerEvent->iParentPosition;
         }
-    
+
 	TInt key = aEvent.Key()->iScanCode;
     // <cmail>
     // to disable voice commands during creating new mail message
@@ -1361,7 +1361,7 @@ void CFreestyleEmailUiAppUi::HandleWsEventL(const TWsEvent &aEvent, CCoeControl*
                 {
                 iCurrentActiveView->HandleAppForegroundEventL( EFalse );
                 }
-            // in case the popupmenu is shown propagate event to it 
+            // in case the popupmenu is shown propagate event to it
             if( iFolderListVisualiser && iFolderListVisualiser->IsPopupShown() )
                 {
                 iFolderListVisualiser->HandleAppForegroundEventL( EFalse );
@@ -1384,7 +1384,7 @@ void CFreestyleEmailUiAppUi::HandleWsEventL(const TWsEvent &aEvent, CCoeControl*
                 {
                 iStatusIndicator->HandleForegroundEventL();
                 }
-            // in case the popupmenu is shown propagate event to it 
+            // in case the popupmenu is shown propagate event to it
             if( iFolderListVisualiser && iFolderListVisualiser->IsPopupShown() )
                 {
                 iFolderListVisualiser->HandleAppForegroundEventL( ETrue );
@@ -1454,7 +1454,7 @@ void CFreestyleEmailUiAppUi::HandleResourceChangeL( TInt aType )
         case KEikDynamicLayoutVariantSwitch:
             iEnv->NotifyLayoutChangedL();
             break;
-        case KAknsMessageSkinChange:            
+        case KAknsMessageSkinChange:
             iEnv->NotifySkinChangedL();
             break;
         }
@@ -1473,12 +1473,12 @@ void CFreestyleEmailUiAppUi::DoHandleResourceChangeL( TInt aType )
     //    {
     //    CAlfEnv::Static()->NotifySkinChangedL();
     //    }
-    
+
     if ( aType == KEikDynamicLayoutVariantSwitch )
     	{
         // Changing layout for status pane (just in case it is not switched
         // correctly), fix for HMNN-82BAGR error
-        // it's not related with skin change so "moved up" TJOS-83DELP fix 
+        // it's not related with skin change so "moved up" TJOS-83DELP fix
         TBool landscape(Layout_Meta_Data::IsLandscapeOrientation());
         CEikStatusPane* statusPane = StatusPane();
         if(landscape)
@@ -1494,7 +1494,7 @@ void CFreestyleEmailUiAppUi::DoHandleResourceChangeL( TInt aType )
 				{
 				statusPane->SwitchLayoutL(R_AVKON_STATUS_PANE_LAYOUT_USUAL_EXT);
 				}
-        	}       
+        	}
     	}
 
     if( aType == KEikDynamicLayoutVariantSwitch || aType == KAknsMessageSkinChange )
@@ -2199,7 +2199,7 @@ void CFreestyleEmailUiAppUi::EventL( TFSMailEvent aEvent, TFSMailMsgId aMailbox,
                         TIMESTAMP( "Sync error" );
                         if ( iManualMailBoxSync )
                             {
-							/* 
+							/*
 							 * As a fix to TJOS-82ZFCW, this general popup is no longer needed
                              * // since error id is not provided by plugin, lets popup general note
                              * HBufC* text = StringLoader::LoadL( R_FS_MSERVER_TEXT_UNABLE_TO_COMPLETE );
@@ -2308,9 +2308,9 @@ void CFreestyleEmailUiAppUi::EventL( TFSMailEvent aEvent, TFSMailMsgId aMailbox,
     	}
     // Handle mail deleted event in Html view list, as the mails might become obsolete
 	// Pass sync finished event there too in order to dismiss status dialogs
-    else if ( iHtmlViewerView && (aEvent == TFSEventMailDeleted || 
+    else if ( iHtmlViewerView && (aEvent == TFSEventMailDeleted ||
                                   aEvent == TFSEventMailDeletedFromViewer ||
-								  aEvent == TFSEventMailboxSyncStateChanged || 
+								  aEvent == TFSEventMailboxSyncStateChanged ||
                                   aEvent == TFSEventNewMail) && iCurrentActiveView->Id() == HtmlViewerId)
     	{
     	iHtmlViewerView->HandleMailBoxEventL( aEvent, aMailbox, aParam1, aParam2, aParam3 );
@@ -2540,6 +2540,7 @@ void CFreestyleEmailUiAppUi::UpdateTitlePaneConnectionStatus(
 
     if ( iConnectionStatusVisible )
     	{
+
     	// Get connection status of the current mailbox
     	TFSMailBoxStatus connectionStatus = EFSMailBoxOffline;
     	TSSMailSyncState syncState = Idle;
@@ -2549,9 +2550,10 @@ void CFreestyleEmailUiAppUi::UpdateTitlePaneConnectionStatus(
 			connectionStatus = mb->GetMailBoxStatus();
 			syncState = mb->CurrentSyncState();
 			}
+
 		TUid titlePaneUid = TUid::Uid( EEikStatusPaneUidTitle );
 		CEikStatusPaneBase::TPaneCapabilities subPaneTitle =
-			StatusPane()->PaneCapabilities( titlePaneUid );
+            StatusPane()->PaneCapabilities( titlePaneUid );
 
 		if ( subPaneTitle.IsPresent() && subPaneTitle.IsAppOwned() )
 			{

@@ -39,7 +39,7 @@
 #include <calentry.h>
 #include <caluser.h>
 #include <calalarm.h>
-#include <caleninterimutils2.h>
+#include <CalenInterimUtils2.h>
 #include <s32file.h>
 #include <eikenv.h>
 

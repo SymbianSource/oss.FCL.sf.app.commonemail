@@ -290,7 +290,7 @@ void CNcsAddressInputField::PositionChanged()
     FUNC_LOG;
     
     // keep the button in view as long as possible
-    if( iButton )
+    if( iButton && iParentControl->IsVisible() )
     	{
 		const TRect rect( Rect() );
 		const TRect buttonRect( iButton->Rect() );
@@ -463,7 +463,11 @@ void CNcsAddressInputField::FocusChanged( TDrawNow aDrawNow )
 		}
     else
         {
-        TRAP_IGNORE( iTextEditor->HandleTextChangedL() );
+        if ( iTextEditor->SelectionLength()== 0 )
+            {
+            TRAP_IGNORE( iTextEditor->HandleTextChangedL() );
+            }
+        
         iTextEditor->SetFocus( EFalse );
         TRAP_IGNORE( iAddressPopupList->ClosePopupContactListL() );
         }
@@ -862,9 +866,10 @@ void CNcsAddressInputField::EnableKineticScrollingL( CAknPhysics* aPhysics )
     {
 	iPhysics = aPhysics;
     iTextEditor->EnableKineticScrollingL( aPhysics );
+    iTextEditor->TextLayout()->RestrictScrollToTopsOfLines( ETrue );
     }
 
-void CNcsAddressInputField::SetCursorVisible( TBool aCursorVisible )
+void CNcsAddressInputField::SetPhysicsEmulationOngoing( TBool aPhysOngoing )
     {
-    iTextEditor->SetCursorVisible( aCursorVisible );
+    iTextEditor->SetPhysicsEmulationOngoing( aPhysOngoing );
     }

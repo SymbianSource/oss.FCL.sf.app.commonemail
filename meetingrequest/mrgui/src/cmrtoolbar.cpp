@@ -247,7 +247,7 @@ TRect CMRToolbar::Rect()
     
     if( iToolbar && iToolbar->IsShown() )
         {
-        rect = iToolbar->Rect(); 
+        rect.SetRect( iToolbar->PositionRelativeToScreen(), iToolbar->Rect().Size() );
         }
     
     return rect;

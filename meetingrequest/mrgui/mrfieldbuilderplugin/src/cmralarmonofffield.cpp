@@ -24,10 +24,10 @@
 #include "mesmrfieldvalidator.h"
 #include "nmrlayoutmanager.h"
 
-#include <stringloader.h>
+#include <StringLoader.h>
 #include <avkon.hrh>
 #include <esmrgui.rsg>
-#include <aknutils.h>
+#include <AknUtils.h>
 
 
 // ======== MEMBER FUNCTIONS ========

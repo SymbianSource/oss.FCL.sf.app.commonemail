@@ -30,14 +30,14 @@
 #include "mcalremoteattachmentoperation.h"
 #include "cesmrglobalnote.h"
 
-#include <aknsbasicbackgroundcontrolcontext.h>
+#include <AknsBasicBackgroundControlContext.h>
 #include <calentry.h>
 #include <calattachment.h>
-#include <stringloader.h>
+#include <StringLoader.h>
 #include <esmrgui.rsg>
 #include <gulicon.h>
 #include <ct/rcpointerarray.h>
-#include <aknbiditextutils.h>
+#include <AknBidiTextUtils.h>
 #include <badesca.h>
 
 // DEBUG
@@ -263,7 +263,7 @@ TInt CMRViewerAttachmentsField::CountComponentControls( ) const
         {
         ++count;
         }
-    
+
     if ( iLockIcon )
     	{
     	++count;
@@ -302,7 +302,7 @@ void CMRViewerAttachmentsField::SizeChanged( )
     FUNC_LOG;
     TRect rect( Rect() );
 
-    TAknLayoutRect rowLayoutRect(    		
+    TAknLayoutRect rowLayoutRect(
             NMRLayoutManager::GetFieldRowLayoutRect( rect, 1 ) );
     TRect rowRect( rowLayoutRect.Rect() );
 
@@ -318,22 +318,22 @@ void CMRViewerAttachmentsField::SizeChanged( )
     // Layouting lock icon
     if( iLockIcon )
         {
-        TAknWindowComponentLayout iconLayout( 
-                NMRLayoutManager::GetWindowComponentLayout( 
+        TAknWindowComponentLayout iconLayout(
+                NMRLayoutManager::GetWindowComponentLayout(
                     NMRLayoutManager::EMRLayoutSingleRowDColumnGraphic ) );
         AknLayoutUtils::LayoutImage( iLockIcon, rowRect, iconLayout );
         }
-        
+
 	// Layouting viewer rect
     TAknLayoutText viewerLayoutText;
     if( iLockIcon )
     	{
-    	viewerLayoutText = NMRLayoutManager::GetLayoutText( rowRect, 
+    	viewerLayoutText = NMRLayoutManager::GetLayoutText( rowRect,
     			NMRLayoutManager::EMRTextLayoutSingleRowEditorText );
     	}
     else
     	{
-    	viewerLayoutText = NMRLayoutManager::GetLayoutText( rowRect, 
+    	viewerLayoutText = NMRLayoutManager::GetLayoutText( rowRect,
     			NMRLayoutManager::EMRTextLayoutTextEditor );
     	}
 
@@ -342,7 +342,7 @@ void CMRViewerAttachmentsField::SizeChanged( )
     // Resize height according to actual height required by edwin.
     viewerRect.Resize( 0, iSize.iHeight - viewerRect.Height() );
     iRichTextViewer->SetRect( viewerRect );
-    
+
     // Layouting focus
     TRect bgRect( 0, 0, 0, 0 );
     if( iAttachmentCount > 1 )
@@ -364,7 +364,7 @@ void CMRViewerAttachmentsField::SizeChanged( )
     // Move focus rect so that it's relative to field's position.
     bgRect.Move( -Position() );
     SetFocusRect( bgRect );
-    
+
     // Failures are ignored.
     TRAP_IGNORE(
 				// Set font
@@ -458,7 +458,7 @@ void CMRViewerAttachmentsField::ListObserverSet()
 TBool CMRViewerAttachmentsField::ExecuteGenericCommandL( TInt aCommand )
     {
     FUNC_LOG;
-    // TODO: Changes from other fields have to be implemented here
+
     TBool handled( EFalse );
 
     //handle locked field first
@@ -468,7 +468,7 @@ TBool CMRViewerAttachmentsField::ExecuteGenericCommandL( TInt aCommand )
         		aCommand == EAknCmdOpen )
     		{
 			HandleTactileFeedbackL();
-    	
+
     		CESMRGlobalNote::ExecuteL(
     				CESMRGlobalNote::EESMRUnableToEdit );
     		return ETrue;
@@ -489,7 +489,7 @@ TBool CMRViewerAttachmentsField::ExecuteGenericCommandL( TInt aCommand )
             iAttachmentCommandHandler->HandleAttachmentCommandL(
                     aCommand,
                     *currentLink );
-            
+
     		HandleTactileFeedbackL();
             }
         else
@@ -497,7 +497,7 @@ TBool CMRViewerAttachmentsField::ExecuteGenericCommandL( TInt aCommand )
             iAttachmentCommandHandler->HandleRemoteAttachmentCommandL(
                     aCommand,
                     *currentLink );
-            
+
     		HandleTactileFeedbackL();
             }
 
@@ -538,7 +538,7 @@ TBool CMRViewerAttachmentsField::HandleRichTextLinkSelection(
         {
         TRAP_IGNORE( NotifyEventL( EMRLaunchAttachmentContextMenu ));
         ret = ETrue;
-        
+
         TRAP_IGNORE( HandleTactileFeedbackL() );
         }
 
@@ -576,56 +576,51 @@ void CMRViewerAttachmentsField::UpdateAttachmentsListL()
     attachmentLinks.ReserveL( iAttachmentCount );
     for ( TInt i = 0; i < iAttachmentCount; ++i )
         {
-        CCalAttachment* att = iEntry->Entry().AttachmentL( i ); // Ownership not gained
+		CCalAttachment* attachment = iEntry->Entry().AttachmentL( i ); // Ownership not gained
 
-        // Reducing space required by file size information from
-        // max line width, so that file name can be trimmed to correct
-        // length
-        TInt maxLineWidth = layoutText.TextRect().Width();
-        const CFont* font = layoutText.Font();
+		const CFont* font = layoutText.Font();
+		TInt maxFileNameLengthInPixels( MaxTextLengthInPixelsL() );
 
-        HBufC* attachmentSize = AttachmentNameAndSizeL( KNullDesC(), *att );
-        TInt attachmentSizeLength = attachmentSize->Length();
-        maxLineWidth -= font->TextWidthInPixels( *attachmentSize );
-        delete attachmentSize;
-        attachmentSize = NULL;
+		// Size information needs to be reduced from max filename length
+		HBufC* attachmentSizeOnly(
+				AttachmentNameAndSizeL( KNullDesC(), *attachment ) );
+		TInt sizeInformationLengthInPixels(
+				font->TextWidthInPixels( *attachmentSizeOnly ) );
+		maxFileNameLengthInPixels -= sizeInformationLengthInPixels;
 
-        // TODO: correct icon zise to correct one. Ask from UI specifier.
-        TSize iconSize( 20, 20);
-        maxLineWidth -= iconSize.iWidth;
-
-        // Trimming file name to fit to one line
-        TPtrC text = att->Label();
-        HBufC* clippedTextHBufC = ClipTextLC( text, *font, maxLineWidth );
-        TPtr clippedText = clippedTextHBufC->Des();
-        clippedText.Trim();
+		// Trimming file name to fit to one line
+		TPtrC text = attachment->Label();
+		HBufC* clippedTextHBufC = ClipTextLC(
+				text, *font, maxFileNameLengthInPixels );
+		TPtr clippedText = clippedTextHBufC->Des();
+		clippedText.Trim();
 
         if ( clippedText.Length() > 0 )
             {
-            // Creating rich text link
-            CESMRRichTextLink* link = CESMRRichTextLink::NewL(
-                    buffer.Length(),
-                    clippedText.Length() + attachmentSizeLength,
-                    text,
-                    CESMRRichTextLink::ETypeAttachment,
-                    CESMRRichTextLink::ETriggerKeyRight );
-            CleanupStack::PushL( link );
-            attachmentLinks.AppendL( link );
-            CleanupStack::Pop( link );
+			HBufC* buf = AttachmentNameAndSizeL( clippedText, *attachment );
+			CleanupStack::PushL( buf );
 
-            HBufC* buf = AttachmentNameAndSizeL( clippedText, *att );
-            CleanupStack::PushL( buf );
+			// Creating rich text link
+			CESMRRichTextLink* link = CESMRRichTextLink::NewL(
+					buffer.Length(),
+					buf->Length(),
+					text,
+					CESMRRichTextLink::ETypeAttachment,
+					CESMRRichTextLink::ETriggerKeyRight );
+			CleanupStack::PushL( link );
+			attachmentLinks.AppendL( link );
+			CleanupStack::Pop( link );
 
-            // Append attachment name and size with line feed to buffer
-            buffer.ReAllocL( buffer.Length() +
-                             clippedText.Length() +
-                             buf->Length() +
-                             KNewLine().Length() );
+			// Append attachment name and size with line feed to buffer
+			buffer.ReAllocL( buffer.Length() +
+							 clippedText.Length() +
+							 buf->Length() +
+							 KNewLine().Length() );
 
-            buffer.Append( buf->Des() );
-            buffer.Append( KNewLine );
+			buffer.Append( buf->Des() );
+			buffer.Append( KNewLine );
 
-            CleanupStack::PopAndDestroy( buf );
+			CleanupStack::PopAndDestroy( buf );
             }
 
         CleanupStack::PopAndDestroy( clippedTextHBufC );
@@ -744,7 +739,7 @@ HBufC* CMRViewerAttachmentsField::AttachmentNameAndSizeL(
         attachmentStrings->AppendL( aDes );
 
         stringholder = StringLoader::LoadLC(
-                R_MEET_REQ_ATTACHMENT_FILE_LESS_THAN_KILOBYTE , 
+                R_MEET_REQ_ATTACHMENT_FILE_LESS_THAN_KILOBYTE ,
                 *attachmentStrings );
         }
     else
@@ -959,7 +954,7 @@ void CMRViewerAttachmentsField::DynInitMenuPaneForCurrentAttachmentL(
     FUNC_LOG;
     TInt commandInProgress(
            iAttachmentCommandHandler->CurrentCommandInProgress() );
-    
+
     // Get selected attachment
     CCalAttachment* selectedAttachment = NULL;
 
@@ -980,21 +975,21 @@ void CMRViewerAttachmentsField::DynInitMenuPaneForCurrentAttachmentL(
 
     ASSERT( selectedAttachment );
 
-    
+
     /*
      * Case 1: Download in progress
      */
     if( commandInProgress )
     	{
-		// A) If selected attachment is remote attachment and download is in progress 
+		// A) If selected attachment is remote attachment and download is in progress
 		// or attachment is queued for downloading
-		if( selectedAttachment->Type() == CCalAttachment::EUri && 
+		if( selectedAttachment->Type() == CCalAttachment::EUri &&
 				EESMRViewerSaveAllAttachments == commandInProgress )
 			{
 			aMenuPane->SetItemDimmed(
 					EESMRViewerOpenAttachment,
 					ETrue );
-		
+
 			aMenuPane->SetItemDimmed(
 				EESMRViewerSaveAttachment,
 				ETrue );
@@ -1003,7 +998,7 @@ void CMRViewerAttachmentsField::DynInitMenuPaneForCurrentAttachmentL(
 					EESMRViewerSaveAllAttachments,
 					ETrue );
 			}
-		
+
 		// B) If selected attachment is local attachment
 		else if( selectedAttachment->Type() == CCalAttachment::EFile )
 			{
@@ -1011,7 +1006,7 @@ void CMRViewerAttachmentsField::DynInitMenuPaneForCurrentAttachmentL(
 			aMenuPane->SetItemDimmed(
 					EESMRViewerCancelAttachmentDownload,
 					ETrue );
-			
+
 			// If attachment count is one, hide 'Save All' also
 			if ( iAttachmentCount == 1 )
 				{
@@ -1020,11 +1015,11 @@ void CMRViewerAttachmentsField::DynInitMenuPaneForCurrentAttachmentL(
 						ETrue );
 				}
 			}
-		
+
 		// C) If selected attachment is Uri, and some other command is in progress
 		// than save all
-		else if( selectedAttachment->Type() == CCalAttachment::EUri && 
-				commandInProgress != EESMRViewerSaveAllAttachments ) 
+		else if( selectedAttachment->Type() == CCalAttachment::EUri &&
+				commandInProgress != EESMRViewerSaveAllAttachments )
 			{
 			// If this attachment is the one being downloaded
 			if( IsAttachmentDownloadInProgress( *selectedAttachment ) )
@@ -1032,25 +1027,25 @@ void CMRViewerAttachmentsField::DynInitMenuPaneForCurrentAttachmentL(
 				aMenuPane->SetItemDimmed(
 					EESMRViewerOpenAttachment,
 					ETrue );
-			
+
 				aMenuPane->SetItemDimmed(
 					EESMRViewerSaveAttachment,
 					ETrue );
-		
+
 				aMenuPane->SetItemDimmed(
 						EESMRViewerSaveAllAttachments,
 						ETrue );
 				}
-			
-			
+
+
 			// if this attacment is not the one being downloaded
 			else
-				{			
+				{
 				// Always hide cancel attachment download item
 				aMenuPane->SetItemDimmed(
 						EESMRViewerCancelAttachmentDownload,
 						ETrue );
-				
+
 				// If attachment count is one, hide 'Save All' also
 				if ( iAttachmentCount == 1 )
 					{
@@ -1061,7 +1056,7 @@ void CMRViewerAttachmentsField::DynInitMenuPaneForCurrentAttachmentL(
 				}
 			}
     	}
-    
+
     /*
      * Case 2: No download in progress
      */
@@ -1071,7 +1066,7 @@ void CMRViewerAttachmentsField::DynInitMenuPaneForCurrentAttachmentL(
 		aMenuPane->SetItemDimmed(
 				EESMRViewerCancelAttachmentDownload,
 				ETrue );
-    
+
 		// If attachment count is one, hide 'Save All' also
 		if ( iAttachmentCount == 1 )
 			{
@@ -1086,16 +1081,16 @@ void CMRViewerAttachmentsField::DynInitMenuPaneForCurrentAttachmentL(
 // CMRViewerAttachmentsField::IsAttachmentDownloadInProgress
 // ---------------------------------------------------------------------------
 //
-TBool CMRViewerAttachmentsField::IsAttachmentDownloadInProgress( 
+TBool CMRViewerAttachmentsField::IsAttachmentDownloadInProgress(
 		const CCalAttachment& aAttachment )
 	{
     TBool ret( EFalse );
-	
+
     RPointerArray<MCalRemoteAttachmentOperation>& remoteOperations(
                     iAttachmentCommandHandler->RemoteOperations() );
 
     TPtrC currentAttachmentName( aAttachment.Label() );
-    
+
 	TInt downloadOperationCount( remoteOperations.Count() );
 	if ( downloadOperationCount )
 		{
@@ -1106,7 +1101,7 @@ TBool CMRViewerAttachmentsField::IsAttachmentDownloadInProgress(
 			remoteOperations[i]->AttachmentInformation();
 
 			TPtrC label( attachInfo.AttachmentLabel() );
-			
+
 			if ( label.Compare( currentAttachmentName ) == 0 )
 				{
 				ret = ETrue;
@@ -1116,5 +1111,54 @@ TBool CMRViewerAttachmentsField::IsAttachmentDownloadInProgress(
 
     return ret;
 	}
+
+// ---------------------------------------------------------------------------
+// CMRViewerAttachmentsField::SupportsLongTapFunctionalityL
+// ---------------------------------------------------------------------------
+//
+TBool CMRViewerAttachmentsField::SupportsLongTapFunctionalityL(
+		const TPointerEvent &aPointerEvent )
+	{
+    FUNC_LOG;
+    TBool ret( EFalse );
+
+    if ( iRichTextViewer->Rect().Contains( aPointerEvent.iPosition ) )
+        {
+        if( iRichTextViewer->PointerEventOccuresOnALinkL( aPointerEvent ) )
+        	{
+			ret = ETrue;
+        	}
+        }
+
+    return ret;
+	}
+
+// ---------------------------------------------------------------------------
+// CMRViewerAttachmentsField::MaxTextLengthInPixelsL
+// ---------------------------------------------------------------------------
+//
+TInt CMRViewerAttachmentsField::MaxTextLengthInPixelsL()
+    {
+    FUNC_LOG;
+    /*
+     * RichTextViewer length cannot be used here directly, since
+     * this value is not always available. Value needs to be calculated.
+     */
+    TRect tempFieldRect( TPoint( 0, 0 ), MinimumSize() );
+
+    // Rich Text viewer width is the same as other common rich text components
+    // width
+    TAknLayoutRect rowLayoutRect(
+            NMRLayoutManager::GetFieldRowLayoutRect( tempFieldRect, 1 ) );
+    TRect rowRect( rowLayoutRect.Rect() );
+
+    TAknLayoutText layoutText( NMRLayoutManager::GetLayoutText(
+    		rowRect,
+            NMRLayoutManager::EMRTextLayoutTextEditor ) );
+
+    TRect tempRichTextViewerRect( layoutText.TextRect() );
+
+	return tempRichTextViewerRect.Width();
+    }
 
 //EOF

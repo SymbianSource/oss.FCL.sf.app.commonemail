@@ -18,7 +18,7 @@
 
 #include "emailtrace.h"
 #include "cesmrcontactlinkiterator.h"
-#include <mvpbkcontactlinkarray.h>
+#include <MVPbkContactLinkArray.h>
 
 // ======== MEMBER FUNCTIONS ========
 

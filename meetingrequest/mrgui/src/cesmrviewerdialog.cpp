@@ -54,18 +54,18 @@
 #include <eikenv.h>
 #include <eikappui.h>
 #include <avkon.hrh>
-#include <magnentryui.h>
+#include <MAgnEntryUi.h>
 #include <eikmenup.h>
 #include <calentry.h>
 #include <apgtask.h>
 #include <apmstd.h>
 #include <apgcli.h>
-#include <akndef.h>
-#include <aknutils.h>
-#include <stringloader.h>
+#include <AknDef.h>
+#include <AknUtils.h>
+#include <StringLoader.h>
 #include <eikspane.h>
 #include <e32keys.h>
-#include <caleninterimutils2.h>
+#include <CalenInterimUtils2.h>
 #include <w32std.h>
 
 // DEBUG
@@ -196,7 +196,7 @@ CESMRViewerDialog::~CESMRViewerDialog()
         iTitlePane->Rollback();
         delete iTitlePane;
         }
-    
+
     delete iESMRSendUI;
     delete iLocationPluginHandler;
     delete iFeatures;
@@ -240,8 +240,8 @@ void CESMRViewerDialog::ConstructL()
     iToolbar = CMRToolbar::NewL();
 
     TRect clientRect;
-    AknLayoutUtils::LayoutMetricsRect( 
-            AknLayoutUtils::EMainPane, 
+    AknLayoutUtils::LayoutMetricsRect(
+            AknLayoutUtils::EMainPane,
             clientRect );
 
     TBool responseReady(EFalse);
@@ -272,14 +272,14 @@ void CESMRViewerDialog::ConstructL()
     // Give the strategy to the iView
 
     // storage ownership is transferred to CESMRView
-    iView = CESMRView::NewL( 
-            storage, 
-            *calEntry, 
-            clientRect, 
-            *iFocusStrategy, 
+    iView = CESMRView::NewL(
+            storage,
+            *calEntry,
+            clientRect,
+            *iFocusStrategy,
             *iToolbar,
             this );
-    
+
     iView->SetViewMode( EESMRViewMR );
 
     if ( calEntry->Entry().SummaryL().Length() == 0 )
@@ -335,7 +335,7 @@ void CESMRViewerDialog::ConstructL()
             {
             iTitlePane = CESMRTitlePaneHandler::NewL( *iEikonEnv );
             }
-    
+
         HBufC* titleText = StringLoader::LoadLC( titleStringId, iCoeEnv );
         iTitlePane->SetNewTitle( titleText );
         CleanupStack::PopAndDestroy( titleText );
@@ -356,7 +356,7 @@ void CESMRViewerDialog::ActivateL()
 
     // Needs to be constructed here
     ConstructToolbarL();
-    
+
     switch ( iInfoProvider.EntryL()->Type() )
     	{
     	case MESMRCalEntry::EESMRCalEntryMeetingRequest:
@@ -364,9 +364,9 @@ void CESMRViewerDialog::ActivateL()
     		iView->InitialScrollL();
 
             MESMRMeetingRequestEntry* entry =
-                static_cast<MESMRMeetingRequestEntry*>( 
+                static_cast<MESMRMeetingRequestEntry*>(
                         iInfoProvider.EntryL() );
-    		
+
     		if ( entry->IsOpenedFromMail() )
     		    {
                 iView->SetNaviArrowStatus(
@@ -622,10 +622,10 @@ void CESMRViewerDialog::DoProcessCommandL( TInt aCommand )
                         }
                     }
                 }
-            
-            // If entry is recurring, we want to ask from user, if 
+
+            // If entry is recurring, we want to ask from user, if
             // single instance or whole series will be forwarded
-            if( aCommand == EESMRCmdForwardAsMail && 
+            if( aCommand == EESMRCmdForwardAsMail &&
             		iInfoProvider.EntryL()->IsRecurrentEventL() )
             	{
 				SetRecurrenceModRuleL(
@@ -716,7 +716,7 @@ void CESMRViewerDialog::DoProcessCommandL( TInt aCommand )
             {
             iView->ProcessEditorCommandL( EMRCmdHideAttachmentIndicator );
             }
-            break;            
+            break;
         default:
         	{
             if ( aCommand >= EESMRCmdActionMenuFirst &&
@@ -821,7 +821,7 @@ TBool CESMRViewerDialog::OkToExitL(TInt aButtonId)
             res = HandleMRExitL( aButtonId );
             break;
             }
-            
+
         default:
             {
             if(iExitTriggered)
@@ -894,7 +894,7 @@ TBool CESMRViewerDialog::Response( TInt aCommand )
                 }
             }
         }
-    
+
     return retValue;
     }
 
@@ -931,7 +931,7 @@ void CESMRViewerDialog::DynInitToolbarL (
         TInt /*aResourceId*/,
         CAknToolbar* /*aToolbar*/ )
 	{
-	// TODO: Not implemented yet
+
 	}
 
 // ---------------------------------------------------------------------------
@@ -1324,7 +1324,7 @@ void CESMRViewerDialog::HandleEmailSubmenuL(
             {
             const CESMRPolicy& currentPolicy(
                     iInfoProvider.PolicyProvider().CurrentPolicy() );
-            
+
             aMenuPane->SetItemDimmed(
                     EESMRCmdMailDelete,
                     !iCallback.IsCommandAvailable(
@@ -1537,7 +1537,7 @@ TBool CESMRViewerDialog::SupportsMailBoxCapabilityL(
                 static_cast<MESMRBuilderExtension*>( plugin->ExtensionL(uid) );
 
         MESMRCalEntry* calEntry = iInfoProvider.EntryL();
-        
+
         if ( extension && MESMRCalEntry::EESMRCalEntryMeetingRequest == calEntry->Type())
             {
             // Static cast is safe here. We know for sure that entry is MR
@@ -1725,14 +1725,14 @@ CESMRLocationPluginHandler& CESMRViewerDialog::LocationPluginHandlerL()
 void CESMRViewerDialog::HandleFieldEventL( const MESMRFieldEvent& aEvent )
     {
     FUNC_LOG;
-    
+
     MESMRFieldEvent::TEventType type( aEvent.Type() );
-    
+
     if ( MESMRFieldEvent::EESMRFieldCommandEvent == type )
         {
         ProcessCommandEventL( aEvent );
         }
-    else if ( MESMRFieldEvent::EESMRFieldChangeEvent == type ) 
+    else if ( MESMRFieldEvent::EESMRFieldChangeEvent == type )
         {
         ProcessFieldEventL( aEvent );
         }
@@ -1822,7 +1822,7 @@ void CESMRViewerDialog::ShowContextMenuL()
          mrEntry = static_cast<MESMRMeetingRequestEntry*>( calEntry );
 
          TBool openedFromEmail( mrEntry->IsOpenedFromMail() );
-         
+
          // If entry is opened from mail, contains remote attachments and
          // mailbox is MfE, we show the query.
          if ( openedFromEmail && mrEntry->ContainsRemoteAttachmentsL() &&
@@ -1856,28 +1856,28 @@ void CESMRViewerDialog::InitLocationMenuL( CEikMenuPane* aMenuPane )
 void CESMRViewerDialog::ConstructToolbarL()
     {
     FUNC_LOG;
-    if( iInfoProvider.EntryL()->Type() == 
+    if( iInfoProvider.EntryL()->Type() ==
             MESMRCalEntry::EESMRCalEntryMeetingRequest )
         {
         MESMRMeetingRequestEntry* entry =
-            static_cast<MESMRMeetingRequestEntry*>( 
+            static_cast<MESMRMeetingRequestEntry*>(
                     iInfoProvider.EntryL() );
-        
-        if( !entry->OccursInPastL() && 
-                !entry->IsEntryOutOfDateL() && 
+
+        if( !entry->OccursInPastL() &&
+                !entry->IsEntryOutOfDateL() &&
                     !entry->IsMeetingCancelledL() )
             {
             if ( entry->RoleL()== EESMRRoleRequiredAttendee ||
                         entry->RoleL()== EESMRRoleOptionalAttendee )
                 {
-                TSize screenSize = 
+                TSize screenSize =
                         iEikonEnv->ScreenDevice()->SizeInPixels();
-            
+
                 TBool isVGA( EFalse );
-                if( ( screenSize.iHeight == KVGAOneSide || 
-                        screenSize.iWidth == KVGAOneSide ) && 
-                            ( screenSize.iHeight == KVGAOtherSide || 
-                              screenSize.iWidth == KVGAOtherSide ) && 
+                if( ( screenSize.iHeight == KVGAOneSide ||
+                        screenSize.iWidth == KVGAOneSide ) &&
+                            ( screenSize.iHeight == KVGAOtherSide ||
+                              screenSize.iWidth == KVGAOtherSide ) &&
                               screenSize.iHeight != screenSize.iWidth )
                     {
                     isVGA = ETrue;
@@ -1892,12 +1892,12 @@ void CESMRViewerDialog::ConstructToolbarL()
                     iToolbar->InitializeToolbarL(
                             CMRToolbar::EMRViewerAttendee );
                     iToolbar->ShowToolbar( ETrue );
-                    
+
                     // Toolbar created, relayouting needed
-                    iView->ReLayout();
+                    SizeChanged();
                     }
                 }
-            }        
+            }
         }
     }
 
@@ -1908,7 +1908,7 @@ void CESMRViewerDialog::ConstructToolbarL()
 void CESMRViewerDialog::ProcessCommandEventL( const MESMRFieldEvent& aEvent )
     {
     FUNC_LOG;
-    
+
     TInt* command = static_cast< TInt* >( aEvent.Param( 0 ) );
 
     switch ( *command )
@@ -1954,7 +1954,7 @@ void CESMRViewerDialog::ProcessCommandEventL( const MESMRFieldEvent& aEvent )
             {
             break;
             }
-        }    
+        }
     }
 
 // ---------------------------------------------------------------------------
@@ -1963,8 +1963,8 @@ void CESMRViewerDialog::ProcessCommandEventL( const MESMRFieldEvent& aEvent )
 //
 void CESMRViewerDialog::ProcessFieldEventL( const MESMRFieldEvent& aEvent )
     {
-    FUNC_LOG;    
+    FUNC_LOG;
     iView->ProcessEventL( aEvent );
     }
-    
+
 // EOF

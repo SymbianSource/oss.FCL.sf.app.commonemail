@@ -95,7 +95,7 @@ public: // new functions
 		
     void EnableKineticScrollingL(CAknPhysics* aPhysics );
     
-    void SetCursorVisible( TBool aCursorVisible );
+    void SetPhysicsEmulationOngoing( TBool aPhysOngoing );
     
 public: // from CoeControl
         /**

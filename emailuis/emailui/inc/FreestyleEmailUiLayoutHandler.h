@@ -234,8 +234,7 @@ class CFSEmailUiLayoutHandler : public CBase
 		
 		// Predictive contact search popup
 		TInt MaxPcsMatches() const;
-		TRgb PcsPopupHighlightColor() const;
-		TRgb PcsPopupDimmedFontColor() const;
+		TInt PcsPopupDimmedFontTransparency() const;
 		
 		//To retrieve respecitve Icon Sizes
 		TInt ListTextureNodeExpandedSize() const;

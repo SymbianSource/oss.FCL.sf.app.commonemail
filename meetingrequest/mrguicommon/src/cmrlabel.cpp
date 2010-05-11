@@ -17,9 +17,9 @@
 #include "cmrlabel.h"
 #include "nmrcolormanager.h"
 
-#include <aknutils.h>
-#include <aknsutils.h>
-#include <aknsconstants.h>
+#include <AknUtils.h>
+#include <AknsUtils.h>
+#include <AknsConstants.h>
 #include <aknsconstants.hrh>
 #include <gdi.h>
 

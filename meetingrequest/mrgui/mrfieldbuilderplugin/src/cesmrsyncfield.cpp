@@ -23,10 +23,10 @@
 #include "nmrlayoutmanager.h"
 
 #include <esmrgui.rsg>
-#include <stringloader.h>
+#include <StringLoader.h>
 #include <barsread.h>
 #include <avkon.hrh>
-#include <aknutils.h>
+#include <AknUtils.h>
 #include <calentry.h>
 // DEBUG
 #include "emailtrace.h"

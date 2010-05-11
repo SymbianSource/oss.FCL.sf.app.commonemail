@@ -1178,7 +1178,7 @@ void CNcsHeaderContainer::UpdatePopupContactListL(
 	if( !iAacListBox->IsVisible() )
 		{
         iAacListBox->SetPopupMaxRect( CalculatePopupRect() );
-        iAacListBox->InitAndSearchL( aMatchString );
+        iAacListBox->InitAndSearchL( aMatchString, 1 );
         iAacListBox->ActivateL();
 		}
 	else
@@ -2054,8 +2054,8 @@ void CNcsHeaderContainer::DoScroll()
 //
 void CNcsHeaderContainer::SetPhysicsEmulationOngoing( TBool aPhysOngoing )
     {
-    iToField->SetCursorVisible( !aPhysOngoing );
-    iCcField->SetCursorVisible( !aPhysOngoing );
-    iBccField->SetCursorVisible( !aPhysOngoing );
-    iSubjectField->SetCursorVisible( !aPhysOngoing );
+    iToField->SetPhysicsEmulationOngoing( aPhysOngoing );
+    iCcField->SetPhysicsEmulationOngoing( aPhysOngoing );
+    iBccField->SetPhysicsEmulationOngoing( aPhysOngoing );
+    iSubjectField->SetPhysicsEmulationOngoing( aPhysOngoing );
     }

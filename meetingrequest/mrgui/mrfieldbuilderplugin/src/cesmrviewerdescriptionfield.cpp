@@ -85,7 +85,7 @@ void CESMRViewerDescriptionField::InitializeL()
         NMRLayoutManager::GetLayoutText( Rect(), NMRLayoutManager::EMRTextLayoutMultiRowTextEditor );
     iRichTextViewer->SetFontL( layoutText.Font() );
     iRichTextViewer->ApplyLayoutChangesL();
-    
+
     if ( IsFocused() )
         {
         iRichTextViewer->FocusChanged( EDrawNow );
@@ -205,18 +205,22 @@ void CESMRViewerDescriptionField::SizeChanged()
                 Rect(),
                 NMRLayoutManager::EMRTextLayoutTextEditor );
 
-    // Failures are ignored. 
-    TRAP_IGNORE( 
-            // Try setting font 
+    // Failures are ignored.
+    TRAP_IGNORE(
+            // Try setting font
             iRichTextViewer->SetFontL( text.Font() );
             // Try applying changes
             iRichTextViewer->ApplyLayoutChangesL();
             );
 
+    iRichTextViewer->SetRect(
+            TRect( viewerRect.iTl,
+                    TSize( viewerRect.Width(), iSize.iHeight ) ) );
+
     if ( iRichTextViewer->Size().iWidth != richTextViewerWidth )
         {
-        // Most of this case is screen orientation, in this case we need to 
-        // Record the index of focusing link, after updating link array, then 
+        // Most of this case is screen orientation, in this case we need to
+        // Record the index of focusing link, after updating link array, then
         // reset the focusing to original one.
         TInt focusingIndex = iRichTextViewer->GetFocusLink();
         if ( KErrNotFound != focusingIndex )
@@ -225,7 +229,7 @@ void CESMRViewerDescriptionField::SizeChanged()
             //wake up current contact menu selection by calling this
             iRichTextViewer->FocusChanged(ENoDrawNow);
             }
-        } 
+        }
     }
 
 // ---------------------------------------------------------------------------
@@ -402,14 +406,14 @@ void CESMRViewerDescriptionField::HandleLongtapEventL(
         const TPoint& aPosition )
     {
     FUNC_LOG;
-    
+
     if ( iRichTextViewer->Rect().Contains( aPosition ) )
         {
         if( iRichTextViewer->LinkSelectedL() )
         	{
-			HandleTactileFeedbackL();        
+			HandleTactileFeedbackL();
         	}
-        		
+
         }
     }
 
@@ -579,6 +583,27 @@ CESMRUrlParserPlugin& CESMRViewerDescriptionField::UrlParserL()
 
     return *iUrlParser;
     }
+
+// ---------------------------------------------------------------------------
+// CESMRViewerDescriptionField::SupportsLongTapFunctionalityL
+// ---------------------------------------------------------------------------
+//
+TBool CESMRViewerDescriptionField::SupportsLongTapFunctionalityL(
+		const TPointerEvent &aPointerEvent )
+	{
+    FUNC_LOG;
+    TBool ret( EFalse );
+
+    if ( iRichTextViewer->Rect().Contains( aPointerEvent.iPosition ) )
+        {
+        if( iRichTextViewer->PointerEventOccuresOnALinkL( aPointerEvent ) )
+        	{
+			ret = ETrue;
+        	}
+        }
+
+    return ret;
+	}
 
 //EOF
 

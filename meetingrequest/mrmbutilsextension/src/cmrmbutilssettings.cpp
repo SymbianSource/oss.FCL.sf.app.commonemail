@@ -21,8 +21,8 @@
 //
 #include "cmrmbutilssettings.h"
 #include "mrmbutilsextensioncrkeys.h"
-#include "CFSMailBox.h"
-#include "CFSMailClient.h"
+#include "cfsmailbox.h"
+#include "cfsmailclient.h"
 #include "emailtrace.h"
 
 #include <e32std.h>

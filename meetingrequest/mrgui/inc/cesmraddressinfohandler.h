@@ -22,8 +22,8 @@
 
 // Includes
 #include <e32base.h>
-#include <mvpbksinglecontactoperationobserver.h>
-#include <aiwcommon.h>
+#include <MVPbkSingleContactOperationObserver.h>
+#include <AiwCommon.h>
 
 #include "resmrstatic.h"
 #include "cesmrcontactmanagerhandler.h"

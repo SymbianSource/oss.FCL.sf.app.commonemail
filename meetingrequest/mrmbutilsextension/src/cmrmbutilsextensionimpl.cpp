@@ -19,7 +19,7 @@
 #include "cmrmbutilsextensionimpl.h"
 #include "cmrmbutilsmailboxlistener.h"
 #include "cmrmbutilssettings.h"
-#include "CFSMailClient.h"
+#include "cfsmailclient.h"
 
 #include "emailtrace.h"
 

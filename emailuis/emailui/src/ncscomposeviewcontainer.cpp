@@ -54,6 +54,8 @@
 #include "FreestyleEmailUiCLSItem.h"
 
 
+const TInt KHeaderVisibilityThreshold = -100;
+
 // ========================= MEMBER FUNCTIONS ==================================
 
 // ---------------------------------------------------------------------------
@@ -362,8 +364,8 @@ void CNcsComposeViewContainer::HandlePointerEventL(
                     {
 					// If user started dragging, cancel hotspot actions
 					iIsDragging = ETrue;
-					iMessageField->SetCursorVisible( EFalse );
-					iReadOnlyQuoteField->SetCursorVisible( EFalse );
+					iMessageField->SetPhysicsEmulationOngoing( ETrue );
+					iReadOnlyQuoteField->SetPhysicsEmulationOngoing( ETrue );
 					iHeader->SetPhysicsEmulationOngoing( ETrue );
                     }
                 }
@@ -789,11 +791,11 @@ void CNcsComposeViewContainer::SizeChanged()
         }
 
 	// update some layout variables
-    TRect headerRect = iHeader->Rect();
+    iHeaderHeight = iHeader->Rect().Height();
     TRect bodyRect = iMessageField->Rect();
     TRect quoteRect = iReadOnlyQuoteField->Rect();
 
-    iTotalComposerHeight = headerRect.Height() + iSeparatorHeight * 2 + 
+    iTotalComposerHeight = iHeaderHeight + iSeparatorHeight * 2 + 
 							   bodyRect.Height() + quoteRect.Height();
     
     iVisibleAreaHeight = Rect().Height();
@@ -998,7 +1000,8 @@ void CNcsComposeViewContainer::HandleEdwinEventL( CEikEdwin* aEdwin,
     TEdwinEvent aEventType )
     {
     FUNC_LOG;
-    if ( aEdwin == iMessageField || aEdwin == iReadOnlyQuoteField )
+    if (( aEdwin == iMessageField || aEdwin == iReadOnlyQuoteField ) && 
+         ( !iPhysics || iPhysics->OngoingPhysicsAction() == CAknPhysics::EAknPhysicsActionNone ))
         {
         if ( aEventType == MEikEdwinObserver::EEventTextUpdate ||
              aEventType == MEikEdwinObserver::EEventNavigation )
@@ -1916,7 +1919,19 @@ void CNcsComposeViewContainer::Scroll( TInt aTargetPos, TBool aDrawNow )
 			{
 			headerPos.iY += moveY;
 			iHeader->SetPosition( headerPos );
-	
+
+			// set header invisible if it is not in visible area
+			// this is done to prevent drawing of header when it is not necessary
+            if ( headerPos.iY + iHeaderHeight <= KHeaderVisibilityThreshold && iHeader->IsVisible() )
+                {            
+                iHeader->MakeVisible( EFalse );
+                }
+            // set header visible if it is in visible area
+            else if ( headerPos.iY + iHeaderHeight > KHeaderVisibilityThreshold && !iHeader->IsVisible() ) 
+                {
+                iHeader->MakeVisible( ETrue );
+                }
+    
 			TPoint msgPos( iMessageField->Position() );
 			msgPos.iY += moveY;
 			iMessageField->SetPosition( msgPos );
@@ -1931,7 +1946,7 @@ void CNcsComposeViewContainer::Scroll( TInt aTargetPos, TBool aDrawNow )
 			iSeparatorLineYPos += moveY;
 
 			UpdateScrollBar();
-			DrawNow();
+			DrawDeferred();
 			}
     	}
     else
@@ -1950,8 +1965,15 @@ void CNcsComposeViewContainer::ViewPositionChanged(
     {
     FUNC_LOG;
     TInt scrollOffset = aNewPosition.iY - iVisibleAreaHeight / 2;
+
+	// when the composer view is overlapped by other view for instance task switcher or screensaver
+	// physics sends a faulty event to move the composer view down. 
+	// This action is ignored here.	
+	if (aNewPosition.iY != 0)
+		{    	
     Scroll( scrollOffset, aDrawNow );
     }
+	}
 
 // -----------------------------------------------------------------------------
 // CNcsComposeViewContainer::PhysicEmulationEnded
@@ -1962,8 +1984,8 @@ void CNcsComposeViewContainer::PhysicEmulationEnded()
     {
     FUNC_LOG;
     iIsFlicking = EFalse;
-    iMessageField->SetCursorVisible( ETrue );
-    iReadOnlyQuoteField->SetCursorVisible( ETrue );
+    iMessageField->SetPhysicsEmulationOngoing( EFalse );
+    iReadOnlyQuoteField->SetPhysicsEmulationOngoing( EFalse );
     iHeader->SetPhysicsEmulationOngoing( EFalse );
     }
 

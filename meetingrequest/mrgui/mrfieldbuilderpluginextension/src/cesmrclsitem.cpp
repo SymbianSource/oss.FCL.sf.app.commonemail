@@ -20,7 +20,7 @@
 #include "cesmrclsitem.h"// CESMRClsItem
 
 #include "esmrfieldbuilderdef.h"
-#include <mvpbkcontactlink.h>
+#include <MVPbkContactLink.h>
 
 // ======== MEMBER FUNCTIONS ========
 

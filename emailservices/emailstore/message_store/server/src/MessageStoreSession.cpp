@@ -2724,11 +2724,12 @@ void CMessageStoreSession::ReadString8ArrayL(  const RMessage2& aMessage, TInt a
         aMessage.ReadL( aIndex, length16Pckg, position );        
         position += length16Pckg.Length();
         
-        HBufC8* buf8 = HBufC8::NewL( length16 );            
-        aArray.Append( buf8 );
+        HBufC8* buf8 = HBufC8::NewLC( length16 );            
         TPtr8 buf8Ptr( buf8->Des() );
         aMessage.ReadL( aIndex, buf8Ptr, position );
         buf8->Des().SetLength( length16 ); 
+        aArray.AppendL( buf8 );
+        CleanupStack::Pop(buf8);
         position += length16;
         } // end while
     }
@@ -2755,7 +2756,7 @@ void CMessageStoreSession::ReadString16ArrayL(  const RMessage2& aMessage, TInt 
         
         if ( readBuf.MaxLength() < length16 )
             {
-            readBuf.ReAlloc( length16 );
+            readBuf.ReAllocL( length16 );
             }
         aMessage.ReadL( aIndex, readBuf, position );
         
@@ -2763,7 +2764,9 @@ void CMessageStoreSession::ReadString16ArrayL(  const RMessage2& aMessage, TInt 
         const TUint16* valuePtr = reinterpret_cast<const TUint16*>( readBuf.Ptr() );
         TPtrC valueDes( valuePtr, length16 / 2 );  
         
-        aArray.Append( valueDes.AllocL() );
+        HBufC *p = valueDes.AllocLC();
+        aArray.AppendL( p );
+        CleanupStack::Pop( p );
         
         position += length16;
         } // end while

@@ -30,6 +30,7 @@
 #include <etel.h>                       // RTelServer
 #include <etelmm.h>                     // RMobilePhone
 #include <cemailaccounts.h>
+#include <txtrich.h>
 
 #include "ipssetdatastorer.h"
 #include "ipssetdata.h"
@@ -45,7 +46,7 @@
 #include "ipssetwizardadapter.h"
 
 #include "ipssetwizardsettingscenrepkeys.h" 
-
+#include "ipssetdatasignature.h"
 
 const TInt KIpsDataApiMaxPassLen = 256;
 const TInt KWizardDataPopIndicator = 0;
@@ -735,6 +736,31 @@ EXPORT_C void CIpsSetDataApi::SetMailboxNameL(
     
     CleanupStack::PopAndDestroy( 2, settingsData ); // dataManager
     }
+
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+EXPORT_C HBufC* CIpsSetDataApi::SignatureTextL( const TMsvEntry& aService )
+    {
+    FUNC_LOG;
+    HBufC* signatureText( NULL );
+    CIpsSetData* settingsData = CIpsSetData::NewLC();
+    CIpsSetDataManager* dataManager = CIpsSetDataManager::NewLC( iSession );
+    dataManager->LoadEmailSettingsL( aService, *settingsData );
+    // the IncludeSignature returns zero in case that inclusion is ON..
+    if ( !settingsData->IncludeSignature() )
+        {
+        CRichText* rText = settingsData->Signature().iRichText;
+        if ( rText )
+            {
+            signatureText = HBufC::NewL( KIpsSetUiMaxSettingsSignatureLength );
+            TPtr sPtr = signatureText->Des();
+            rText->Extract( sPtr, 0, KIpsSetUiMaxSettingsSignatureLength );
+            }
+        }
+    CleanupStack::PopAndDestroy( 2, settingsData ); // dataManager
+    return signatureText;
+    }
+
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
 void CIpsSetDataApi::GetImapChildFoldersL(

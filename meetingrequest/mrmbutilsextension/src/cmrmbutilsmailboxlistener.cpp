@@ -17,9 +17,9 @@
 
 //INCLUDE FILES
 #include "cmrmbutilsmailboxlistener.h"
-#include "CFSMailCommon.h"
-#include "CFSMailClient.h"
-#include "CFSMailBox.h"
+#include "cfsmailcommon.h"
+#include "cfsmailclient.h"
+#include "cfsmailbox.h"
 #include "fsmtmsuids.h"
 #include "emailtrace.h"
 

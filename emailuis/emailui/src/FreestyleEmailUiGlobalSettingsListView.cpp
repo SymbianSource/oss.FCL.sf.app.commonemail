@@ -131,18 +131,10 @@ void CFsEmailUiGlobalSettingsListView::DynInitMenuPaneL( TInt aResourceId, CEikM
 		   // remove help support in pf5250
 		   aMenuPane->SetItemDimmed( EFsEmailUiCmdHelp, ETrue);      
 		   }
-	            
-        // Dim "Open" or "Change" depending on the focused item
-        TInt focusedId = iGlobalSettingsSettingItemList->FocusedItemId();
-        if ( focusedId == EGlobalSettingsActiveIdle )
-            {
-            aMenuPane->SetItemDimmed( EFsEmailUiCmdChange, ETrue );
-            }
-        else
-            {
-            aMenuPane->SetItemDimmed( EFsEmailUiCmdOpen, ETrue );
-            }
-        
+  // Dim "Open" and "Change" 
+	    aMenuPane->SetItemDimmed( EFsEmailUiCmdChange, ETrue );
+	    aMenuPane->SetItemDimmed( EFsEmailUiCmdOpen, ETrue );
+                 
         // Add shortcut hints
         iAppUi.ShortcutBinding().AppendShortcutHintsL( *aMenuPane, 
                                      CFSEmailUiShortcutBinding::EContextSettings );         

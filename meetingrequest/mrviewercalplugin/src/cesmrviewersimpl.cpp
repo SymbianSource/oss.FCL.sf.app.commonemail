@@ -29,7 +29,7 @@
 
 // From MR Mailbox Utils
 #include <cmrmailboxutils.h>
-#include <cmrutils.h>
+#include <CMRUtils.h>
 
 // From System
 #include <coemain.h>

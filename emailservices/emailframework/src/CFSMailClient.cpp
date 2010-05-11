@@ -33,24 +33,28 @@ EXPORT_C CFSMailClient* CFSMailClient::NewLC(TInt aConfiguration)
 {
     FUNC_LOG;
 
-	CFSMailClient* client = Instance();
-	if(!client)
-	{
-		client = new (ELeave) CFSMailClient();
-		CleanupStack:: PushL(client);
-		client->ConstructL(aConfiguration);
-		TInt err = Dll::SetTls(static_cast<TAny*>(client));
-		User::LeaveIfError(err);
-		}
-	else
-		{
-		CleanupStack:: PushL(client);
-		}
+    CFSMailClient* client = Instance();
+    if( !client )
+        {
+        client = new (ELeave) CFSMailClient();
+        // The new client needs to be deleted rather than closed, up until
+        // the TLS has been set properly.
+        CleanupStack::PushL( client );
+        client->ConstructL( aConfiguration );
+        TInt err = Dll::SetTls( static_cast<TAny*>( client ));
+        User::LeaveIfError( err );
+        // Now that the TLS has been set, we no longer want the new client
+        // to be deleted if there's a problem, so pop it off the cleanup
+        // stack (it will be pushed back on for closing below).
+        CleanupStack::Pop( client );
+        }
 
-	client->IncReferenceCount();
-	
-	return client;
-
+    // Increment reference count before calling CleanupClosePushL so that
+    // the reference count is correct if CleanupClosePushL leaves.
+    client->IncReferenceCount();
+    CleanupClosePushL( *client );
+    
+    return client;
 } 
 
 // -----------------------------------------------------------------------------

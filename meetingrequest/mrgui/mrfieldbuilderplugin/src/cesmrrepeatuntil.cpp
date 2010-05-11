@@ -26,9 +26,9 @@
 #include "nmrbitmapmanager.h"
 
 #include <eikmfne.h>
-#include <stringloader.h>
+#include <StringLoader.h>
 #include <esmrgui.rsg>
-#include <aknsbasicbackgroundcontrolcontext.h>
+#include <AknsBasicBackgroundControlContext.h>
 
 #include "emailtrace.h"
 

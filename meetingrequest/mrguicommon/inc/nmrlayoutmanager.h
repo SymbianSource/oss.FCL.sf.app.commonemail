@@ -19,8 +19,8 @@
 #define NMRLAYOUTMANAGER_H
 
 #include <e32base.h>
-#include <aknutils.h>
-#include <aknlayout2scalabledef.h>
+#include <AknUtils.h>
+#include <AknLayout2ScalableDef.h>
 
 
 namespace NMRLayoutManager
@@ -63,8 +63,6 @@ namespace NMRLayoutManager
         EMRLayoutCheckboxIcon,
         
         // Option 6
-        // TODO: 24h time editor
-
         // Option 7
         EMRLayoutSingleRowAColumnGraphic,
         EMRLayoutSingleRowDColumnGraphic,

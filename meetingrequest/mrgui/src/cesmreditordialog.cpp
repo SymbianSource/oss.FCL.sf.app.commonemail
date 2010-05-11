@@ -51,21 +51,21 @@
 #include <eikappui.h>
 #include <avkon.hrh>
 #include <eikmenup.h>
-#include <magnentryui.h>
+#include <MAgnEntryUi.h>
 #include <layoutmetadata.cdl.h>
-#include <akndef.h>
-#include <aknutils.h>
-#include <aknindicatorcontainer.h>
+#include <AknDef.h>
+#include <AknUtils.h>
+#include <AknIndicatorContainer.h>
 #include <aknenv.h>
-#include <akneditstateindicator.h>
+#include <aknEditStateIndicator.h>
 #include <aknnotewrappers.h>
-#include <documenthandler.h>
-#include <npdapi.h>
+#include <DocumentHandler.h>
+#include <NpdApi.h>
 #include <calentry.h>
 #include <calattachment.h>
-#include <caleninterimutils2.h>
+#include <CalenInterimUtils2.h>
 #include <akntitle.h>
-#include <stringloader.h>
+#include <StringLoader.h>
 
 // DEBUG
 #include "emailtrace.h"
@@ -1811,7 +1811,7 @@ const CESMRPolicy& CESMREditorDialog::Policy() const
 void CESMREditorDialog::DynInitToolbarL ( TInt /*aResourceId*/,
         CAknToolbar* /*aToolbar*/ )
     {
-    // TODO: Not implemented yet
+
     }
 
 // ---------------------------------------------------------------------------

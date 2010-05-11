@@ -16,10 +16,10 @@
 */
 #include "cmrresponsedialogview.h"
 // System includes
-#include <aknsdrawutils.h>
-#include <aknsbasicbackgroundcontrolcontext.h>
+#include <AknsDrawUtils.h>
+#include <AknsBasicBackgroundControlContext.h>
 #include <eikrted.h>
-#include <akndef.h>
+#include <AknDef.h>
 // DEBUG
 #include "emailtrace.h"
 

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -35,10 +35,10 @@
 #include "esmrconfig.hrh"
 #include "cesmrcaldbmgr.h"
 //<cmail>
-#include "CFSMailCommon.h"
-#include "CFSMailClient.h"
-#include "CFSMailMessage.h"
-#include "CFSMailBox.h"
+#include "cfsmailcommon.h"
+#include "cfsmailclient.h"
+#include "cfsmailmessage.h"
+#include "cfsmailbox.h"
 //</cmail>
 
 
@@ -104,7 +104,7 @@ TBool ReplyMailRequiredL(
 // Queries response query from user.
 // ---------------------------------------------------------------------------
 //
-HBufC* QuerySendResponseQueryFromUserLC(
+HBufC* QuerySendResponseQueryFromUserL(
         TESMRCommand aCommand,
         TESMRResponseType& aResponseType,
         MESMRMeetingRequestEntry& aEntry )
@@ -177,7 +177,7 @@ HBufC* QuerySendResponseQueryFromUserLC(
                 CESMRResponseDialog::NewL( responseMessage );
         CleanupStack::PushL( respDlg );
 
-        TBool dialogRetValue( respDlg->ExecuteDlgLD() );
+        TInt dialogRetValue( respDlg->ExecuteDlgLD() );
         // Dialog has deleted itself --> Only pop from cleanup stack
         CleanupStack::Pop( respDlg );
 
@@ -186,15 +186,23 @@ HBufC* QuerySendResponseQueryFromUserLC(
 			aEntry.Entry().SetStatusL( CCalEntry::ETentative );
             User::Leave( KErrCancel );
             }
-        }
-    if ( responseMessage )
-        {
-        CleanupStack::PushL( responseMessage );
+        else if ( dialogRetValue == EAknCmdExit )
+        	{
+    		aResponseType = EESMRResponseDontSend;
+        	}
+        else if ( !responseMessage
+                  && dialogRetValue == EESMRCmdSendMR )
+            {
+            // Send command is triggered but response is empty
+            aResponseType = EESMRResponsePlain;
+            responseMessage = KNullDesC().AllocL();
+            }
         }
     else
-        {
-        responseMessage = KNullDesC().AllocLC();
-        }
+    	{
+		responseMessage = KNullDesC().AllocL();
+    	}
+
     return responseMessage;
     }
 
@@ -249,7 +257,7 @@ MESMRTask* CMRTaskPlugin::CreateTaskL(
 
     MESMRMeetingRequestEntry& mrEntry =
         static_cast< MESMRMeetingRequestEntry& >( aEntry );
-    
+
     switch (aCommand)
         {
         case EESMRCmdAcceptMR:
@@ -291,7 +299,7 @@ MESMRTask* CMRTaskPlugin::CreateTaskL(
         case EESMRCmdCalendarChange:
             task = CreateMoveMRToCurrentDBTaskL( mrEntry );
             break;
-            
+
         default:
             __ASSERT_DEBUG(EFalse, Panic(EESMRTaskFactoryInvalidTask) );
             User::Leave( KErrNotSupported );
@@ -314,7 +322,7 @@ MESMRTask* CMRTaskPlugin::CreateSendMRResponseViaMailTaskL(
 
     CESMRCombinedTask* task = NULL;
     TESMRRole role = aEntry.RoleL();
-    
+
     TBool syncObjectPresent( aEntry.IsSyncObjectPresent() );
     TBool isStored( aEntry.IsStoredL() );
 
@@ -328,52 +336,60 @@ MESMRTask* CMRTaskPlugin::CreateSendMRResponseViaMailTaskL(
         CleanupStack::PushL( task );
 
         TESMRResponseType responseType( EESMRResponsePlain );
-        HBufC* responseMessage = QuerySendResponseQueryFromUserLC(
+        HBufC* responseMessage = QuerySendResponseQueryFromUserL(
                 aCommand,
                 responseType,
                 aEntry );
-        
-        if ( !syncObjectPresent && EESMRCmdDeclineMR != aCommand)
-            {
-            // Entry is stored or deleted from calendar DB if
-            // sync object is not present
-            // Store MR task
-            AppendTaskL( *task,
-                         CESMRStoreMRTask::NewL(
-                         iCalDbMgr,
-                         aEntry,
-                         aEntry.MailboxUtils() ) );
-            }
 
-        if ( EESMRResponseDontSend != responseType  ||
-             aEntry.IsSyncObjectPresent() )
-            {
-            // Send MR response via mail freestyle task
-            AppendTaskL( *task,
-                        CESMRSendMRRespFSMailTask::NewL(
-                                aCommand,
-                                iCalDbMgr,
-                                aEntry,
-                                aEntry.MailboxUtils(),
-                                responseType,
-                                *responseMessage ) );
-            }
-        CleanupStack::PopAndDestroy( responseMessage );
-        
-        if ( !syncObjectPresent && EESMRCmdDeclineMR == aCommand && 
-                isStored )
-            {
-            // Entry is deleted from calendar DB if
-            // sync object is not present and entry exits in database
-            // Declined --> Delete MR from cal DB task
-            AppendTaskL( *task,
-                        CESMRDeleteMRFromDbTask::NewL(
-                        iCalDbMgr,
-                        aEntry,
-                        aEntry.MailboxUtils() ) );
-            }
+        // If response message is NULL, it means that user
+        // has cancelled response editing and wants to only exit
+        // application
+        if( responseMessage )
+        	{
+			CleanupStack::PushL( responseMessage );
 
-        CleanupStack::Pop( task );
+			if ( !syncObjectPresent && EESMRCmdDeclineMR != aCommand)
+				{
+				// Entry is stored or deleted from calendar DB if
+				// sync object is not present
+				// Store MR task
+				AppendTaskL( *task,
+							 CESMRStoreMRTask::NewL(
+							 iCalDbMgr,
+							 aEntry,
+							 aEntry.MailboxUtils() ) );
+				}
+
+			if ( EESMRResponseDontSend != responseType )
+				{
+				// Send MR response via mail freestyle task
+				AppendTaskL( *task,
+							CESMRSendMRRespFSMailTask::NewL(
+									aCommand,
+									iCalDbMgr,
+									aEntry,
+									aEntry.MailboxUtils(),
+									responseType,
+									*responseMessage ) );
+				}
+
+			CleanupStack::PopAndDestroy( responseMessage );
+
+			if ( !syncObjectPresent && EESMRCmdDeclineMR == aCommand &&
+					isStored )
+				{
+				// Entry is deleted from calendar DB if
+				// sync object is not present and entry exits in database
+				// Declined --> Delete MR from cal DB task
+				AppendTaskL( *task,
+							CESMRDeleteMRFromDbTask::NewL(
+							iCalDbMgr,
+							aEntry,
+							aEntry.MailboxUtils() ) );
+				}
+	       	}
+
+		CleanupStack::Pop( task );
         }
     else
         {
@@ -417,7 +433,7 @@ MESMRTask* CMRTaskPlugin::CreateSendMRTaskL(
              aCommand == EESMRCmdSendMRUpdate )
             {
             // Send MR response via mail task
-            AppendTaskL( *task, 
+            AppendTaskL( *task,
                         CESMRSendMRFSMailTask::NewL(
                         iCalDbMgr,
                         aEntry,
@@ -562,7 +578,7 @@ MESMRTask* CMRTaskPlugin::CreateOrganizerDeleteMRTaskL(
         if ( aEntry.AttendeeCountL( attendeeFlags ) && aEntry.IsSentL()
         		&& !aEntry.OccursInPastL() )
         	{
-        	// if enrey doesn't need to send canellation, don't query
+        	// If entry doesn't need to send cancellation, don't query
         	if( aEntry.SendCanellationAvailable())
         		{
         		// Meeting request contains attendees --> Cancellation message
@@ -697,14 +713,14 @@ MESMRTask* CMRTaskPlugin::CreateMoveMRToCurrentDBTaskL(
         __ASSERT_DEBUG( EFalse, Panic( EESMRTaskFactoryIllegalTask ) );
         User::Leave( KErrNotSupported );
         }
-    
+
     // Create combined task
     CESMRCombinedTask* task = CESMRCombinedTask::NewL(
             aEntry,
             CESMRCombinedTask::EESMRTrap );
-    
+
     CleanupStack::PushL( task );
-    
+
     if ( !aEntry.IsOpenedFromMail() )
         {
         // When deleting from the calendar --> Store first modifying entry
@@ -720,7 +736,7 @@ MESMRTask* CMRTaskPlugin::CreateMoveMRToCurrentDBTaskL(
                         aEntry,
                         aEntry.MailboxUtils() ) );
         }
-    
+
     // Delete entry from old db
     AppendTaskL(
             *task,
@@ -728,7 +744,7 @@ MESMRTask* CMRTaskPlugin::CreateMoveMRToCurrentDBTaskL(
                     iCalDbMgr,
                     aEntry,
                     aEntry.MailboxUtils() ) );
-    
+
     // Store entry to current db
     AppendTaskL(
             *task,
@@ -736,7 +752,7 @@ MESMRTask* CMRTaskPlugin::CreateMoveMRToCurrentDBTaskL(
                     iCalDbMgr,
                     aEntry,
                     aEntry.MailboxUtils() ) );
-    
+
     CleanupStack::Pop( task );
     return task;
     }

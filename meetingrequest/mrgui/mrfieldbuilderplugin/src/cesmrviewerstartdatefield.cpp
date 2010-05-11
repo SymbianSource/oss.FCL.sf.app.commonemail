@@ -34,10 +34,10 @@
 #include <calentry.h>
 #include <eikenv.h>
 #include <eikedwin.h>
-#include <stringloader.h>
-#include <aknsconstants.h>
-#include <aknutils.h>
-#include <aknlayout2scalabledef.h>
+#include <StringLoader.h>
+#include <AknsConstants.h>
+#include <AknUtils.h>
+#include <AknLayout2ScalableDef.h>
 
 // ======== LOCAL FUNCTIONS ========
 namespace // codescanner::namespace

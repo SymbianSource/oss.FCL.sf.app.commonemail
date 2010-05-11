@@ -4,48 +4,48 @@ var previousPageYOffset = -1;
 var setScrollPositionInterval;
 
 function collapseHeader(sendEvent) {
-	if (sendEvent) {
-    	location.href = "cmail://collapseHeader/";
-    	}
+    if (sendEvent) {
+        location.href = "cmail://collapseHeader/";
+        }
     collapsed = true;
-	handleHeaderDisplay( "header_table", "table_initial" );
-	updateHeader();
-	}
+    handleHeaderDisplay('expanded_header', 'collapsed_header');
+    updateHeader();
+    }
 
 function expandHeader(sendEvent) {
-	if (sendEvent) {
-	    location.href = "cmail://expandHeader/";
-    	}
-	collapsed = false;
-	handleHeaderDisplay( "table_initial", "header_table" )
-	parent.document.getElementById('email_frameSet').rows = "40%, *";
-	}
+    if (sendEvent) {
+        location.href = "cmail://expandHeader/";
+        }
+    collapsed = false;
+    handleHeaderDisplay('collapsed_header', 'expanded_header');
+    updateHeader();
+    }
 
 function updateHeader() {
     var rows = "40%, *";
-	if (collapsed) {
-    	if (displayImagesHidden || (parent.header_frame.g_autoLoadImages != 0) || (parent.hiddenCount == 0)) {
+    if (collapsed) {
+        if (displayImagesHidden || (parent.header_frame.g_autoLoadImages != 0) || (parent.hiddenCount == 0)) {
             rows = "10%, *";
         } else {
             rows = "17%, *";
-	    }
-	}
+            }
+        }
     parent.document.getElementById('email_frameSet').rows = rows;
     }
 
 function handleHeaderDisplay( tableToHide, tableToShow ) {
-	document.getElementById(tableToShow).style.display = "";
-	document.getElementById(tableToHide).style.display = "none";
-	}
+    document.getElementById(tableToHide).style.display = 'none';
+    document.getElementById(tableToShow).style.display = '';
+    }
 
 function init(scrollPos) {
-	if (document.getElementById("table_initial").style.display != "none") {
-    	    collapseHeader(false);
-	} else {
-	    expandHeader(false);
-	}
+    if (document.getElementById('collapsed_header').style.display != 'none') {
+        collapseHeader(false);
+    } else {
+        expandHeader(false);
+    }
     window.scrollTo(0, scrollPos);
-	setScrollPositionInterval = setInterval("updateScrollPosition()", 500);
+    setScrollPositionInterval = setInterval("updateScrollPosition()", 500);
     }
 
 function displayImagesButtonPressed() {

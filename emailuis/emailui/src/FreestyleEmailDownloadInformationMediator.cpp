@@ -242,7 +242,7 @@ void CFSEmailDownloadInfoMediator::RequestResponseL(
                  countObject.iSaveRequestedCount > 0 )
                  {
                  TFsEmailUiUtility::SetDownloadSave( ETrue );
-                 TFsEmailUiUtility::ShowFilesSavedToFolderNoteL( countObject.iSaveRequestedCount );
+                 TFsEmailUiUtility::ShowFilesSavedToFolderNoteL( countObject.iDownloadsCompletedCount /*iSaveRequestedCount*/ ); // Fix: ESLX-84ACJ9
                  }        
             // Show "Download completed" if necessary
             else if ( CompletionNotesInUseL() && completedDownloadsToNotify )
@@ -397,14 +397,7 @@ void CFSEmailDownloadInfoMediator::StopObserving( MFSEmailDownloadInformationObs
     	{
    		if ( iObserverArray[i].iObserver == aObserver && iObserverArray[i].iMessageId == aMessageId )
    			{
-   		
-			TDownloadCount countObject( aMessageId );
-   		    TInt idx = iDownloadCountArray.Find( countObject, 
-   		                                         TIdentityRelation<TDownloadCount>(EqualMessageId) );    
-   		    if ( idx == KErrNotFound )
-   		        {
-				RemoveObserver(i);
-   		        }
+			RemoveObserver(i);
    			}
     	}
 	}

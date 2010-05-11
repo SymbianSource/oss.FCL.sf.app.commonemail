@@ -226,6 +226,7 @@ void CEmailMessageSearchAsync::StartSearchL( MEmailSearchObserver& aObserver )
     iObserver = &aObserver;
     const TFSMailMsgId fsMailboxId( iPluginData.Uid(), iMailboxId.iId );
     RArray <TFSMailMsgId> folderIds;
+    CleanupClosePushL( folderIds );  
     
     /** Search API */
     
@@ -263,6 +264,7 @@ void CEmailMessageSearchAsync::StartSearchL( MEmailSearchObserver& aObserver )
         *this );
     // Gate is kept closed as search is asynchronous. Gate will be reopen after search is completed, i.e. 
     // CEmailMessageSearchAsync::SearchCompleted.
+    CleanupStack::PopAndDestroy( &folderIds );
     }
 
 /**
@@ -359,7 +361,7 @@ void CEmailMessageSearchAsync::MatchFoundL( CFSMailMessage* aMatchMessage )
     /**
     * Asks client if search engine should change search priority 
   	*/
-void CEmailMessageSearchAsync::ClientRequiredSearchPriority(TInt *apRequiredSearchPriority)
+void CEmailMessageSearchAsync::ClientRequiredSearchPriority(TInt * /* apRequiredSearchPriority */ )
     {
     return;
     } 

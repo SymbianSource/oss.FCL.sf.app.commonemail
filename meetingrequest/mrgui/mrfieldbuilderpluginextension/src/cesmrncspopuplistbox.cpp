@@ -22,11 +22,11 @@
 #include "nmrcolormanager.h"
 
 #include <eikclbd.h>
-#include <aknslayeredbackgroundcontrolcontext.h>
-#include <stringloader.h>                       // StringLoader
+#include <AknsLayeredBackgroundControlContext.h>
+#include <StringLoader.h>                       // StringLoader
 #include <ct/rcpointerarray.h>
 //text truncation
-#include <aknbiditextutils.h>//line wrapping and mirroring
+#include <AknBidiTextUtils.h>//line wrapping and mirroring
 #include <aknlayoutscalable_apps.cdl.h> //xml layout data for applications
 #include <aknlayoutscalable_avkon.cdl.h> //xml layout data of avkon components
 #include <esmrgui.rsg>

@@ -29,9 +29,9 @@
 #include <calrrule.h>
 #include <caluser.h>
 #include <msvids.h>
-#include <msgmailuids.h>
+#include <MsgMailUIDs.h>
 #include <cmrmailboxutils.h>
-#include <caleninterimutils2.h>
+#include <CalenInterimUtils2.h>
 
 // unnamed naespace for local definitions
 namespace { // codescanner::namespace

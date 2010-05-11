@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2005 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2005 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -12,7 +12,7 @@
 * Contributors:
 *
 * Description:  A class for simplifying cleanup of RPointerArrays
-*     
+*
 *
 */
 
@@ -23,19 +23,19 @@ the array will be reset with ResetAndDestroy.
 @param aRef The RPointerArray to be cleaned up.
 @internalTechnology
 */
-template <class T>	
+template <class T>
 inline void TCleanupPointerArray<T>::PushL(T& aRef)
 	{
 	CleanupStack::PushL(TCleanupItem(&ResetAndDestroy, &aRef));
 	}
-	
+
 /**
 Takes a pointer to an RPointerArray and calls ResetAndDestroy on it.
 @param aPtr The RPointerArray
 @internalTechnology
 */
 template <class T>
-inline void TCleanupPointerArray<class T>::ResetAndDestroy(TAny* aPtr)
+inline void TCleanupPointerArray<T>::ResetAndDestroy(TAny* aPtr)
 	{
 	reinterpret_cast<T *>(aPtr)->ResetAndDestroy();
 	}

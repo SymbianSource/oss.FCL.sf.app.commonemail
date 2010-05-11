@@ -27,12 +27,12 @@
 
 #include <calentry.h>
 #include <esmrgui.rsg>
-#include <stringloader.h>
+#include <StringLoader.h>
 #include <barsread.h>
 #include <eiklabel.h>
 #include <avkon.hrh>
-#include <aknsconstants.h>
-#include <aknutils.h>
+#include <AknsConstants.h>
+#include <AknUtils.h>
 
 #include "emailtrace.h"
 

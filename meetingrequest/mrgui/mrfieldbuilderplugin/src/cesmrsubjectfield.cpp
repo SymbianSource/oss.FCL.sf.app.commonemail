@@ -27,10 +27,10 @@
 #include "mesmrlistobserver.h"
 
 #include <calentry.h>
-#include <stringloader.h>
-#include <aknsconstants.h>
+#include <StringLoader.h>
+#include <AknsConstants.h>
 #include <esmrgui.rsg>
-#include <aknsbasicbackgroundcontrolcontext.h>
+#include <AknsBasicBackgroundControlContext.h>
 #include <eikmfne.h>
 
 #include "emailtrace.h"

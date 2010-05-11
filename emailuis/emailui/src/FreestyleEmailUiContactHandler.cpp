@@ -430,7 +430,8 @@ TInt CFSEmailUiContactHandler::SelectBetweenCsAndVoip() const
 // ---------------------------------------------------------------------------
 //
 void CFSEmailUiContactHandler::SearchMatchesL( const TDesC& aText, 
-    MFSEmailUiContactHandlerObserver* aObserver, CFSMailBox* aMailBox )
+    MFSEmailUiContactHandlerObserver* aObserver, CFSMailBox* aMailBox,
+    TInt aMode )
     {
     FUNC_LOG;
     if ( (iState == EContactHandlerIdle) ||
@@ -441,6 +442,10 @@ void CFSEmailUiContactHandler::SearchMatchesL( const TDesC& aText,
         
         iClsListHandler->SetCurrentMailboxL( aMailBox );
         
+        if( aMode != EModeUndefined )
+        	{
+        	iClsListHandler->InputModeChangedL( (TKeyboardModes)aMode );
+        	}
         //Async call, CallBack is ArrayUpdatedL (when error: OperationErrorL)
         iClsListHandler->SearchMatchesL( aText );
         }

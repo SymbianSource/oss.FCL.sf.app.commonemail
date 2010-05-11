@@ -18,8 +18,8 @@
 #include "mesmrcalentry.h"
 #include "mesmrmeetingrequestentry.h"
 
-#include <akninfopopupnotecontroller.h>
-#include <stringloader.h>
+#include <AknInfoPopupNoteController.h>
+#include <StringLoader.h>
 #include <eikenv.h>
 #include <esmrgui.rsg>
 #include <avkon.rsg>
@@ -230,10 +230,6 @@ void CESMRConflictPopup::ShowPopup()
             CEikonEnv::Static()-> // codescanner::eikonenvstatic
                 HandleError(error);
             }
-        
-        // TODO: use XML layout data. Use this one popup_preview_text_window
-        /*iNote->SetPositionAndAlignment( CESMRLayoutManager::ConflictPopupPosition(),
-                EHLeftVCenter );*/
         iNote->ShowInfoPopupNote();
     }
 

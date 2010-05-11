@@ -16,8 +16,8 @@
 */
 
 
-#include "emailtrace.h"
 #include "cesmrsendmrfsmailtask.h"
+
 #include "cesmrcaldbmgr.h"
 #include "mesmrmeetingrequestentry.h"
 #include "cesmrfsemailmanager.h"
@@ -26,8 +26,7 @@
 #include "cesmrcaluserutil.h"
 #include "cesmrguilistquery.h"
 #include "esmrhelper.h"
-
-
+#include "cesmrfsmailboxutils.h"
 
 #include <coemain.h>
 #include <utf.h>
@@ -37,7 +36,8 @@
 #include <calentry.h>
 #include <calentryview.h>
 #include <calattachment.h>
-#include <cesmrfsmailboxutils.h>
+
+#include "emailtrace.h"
 
 
 // Unnamed namespace for local definitions

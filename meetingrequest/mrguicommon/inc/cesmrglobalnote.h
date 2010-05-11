@@ -21,7 +21,7 @@
 
 //  INCLUDES
 #include <e32base.h>
-#include <aknnotifystd.h>
+#include <AknNotifyStd.h>
 //<cmail>
 #include "esmrdef.h"
 //</cmail>

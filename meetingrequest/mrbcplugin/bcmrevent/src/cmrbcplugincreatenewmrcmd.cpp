@@ -23,14 +23,14 @@
 
 #include <calenservices.h>
 #include <calencommands.hrh>
-#include <caleninterimutils2.h>
-#include <cmrviewers.h>
+#include <CalenInterimUtils2.h>
+#include <CMRViewers.h>
 #include <calentry.h>
 #include <caluser.h>
 #include <cmrmailboxutils.h>
 #include <ct/rcpointerarray.h>
 #include <aknlists.h>
-#include <aknpopup.h>
+#include <aknPopup.h>
 #include <utf.h>
 #include <bldvariant.hrh>
 

@@ -19,7 +19,7 @@
 #define NMRBITMAPMANAGER_H
 
 #include <e32base.h>
-#include <aknsitemid.h>
+#include <AknsItemID.h>
 
 // FORWARD DECLARATIONS
 class CFbsBitmap;

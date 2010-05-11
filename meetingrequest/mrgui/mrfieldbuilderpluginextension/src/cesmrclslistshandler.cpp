@@ -20,20 +20,20 @@
 
 #include <eikenv.h>                                 // CEikonEnv
 #include <centralrepository.h>                      // CRepository
-#include <aknfepinternalcrkeys.h>                   // KCRUidAknFep
-#include <cpbkcontactengine.h>                      // CPbkContactEngine
-#include <cpbkcontactitem.h>                        // CPbkContactItem, TPbkContactItemField
+#include <AknFepInternalCRKeys.h>                   // KCRUidAknFep
+#include <CPbkContactEngine.h>                      // CPbkContactEngine
+#include <CPbkContactItem.h>                        // CPbkContactItem, TPbkContactItemField
 #include <aknnotewrappers.h>                        // CAknErrorNote
 //<cmail>
-#include "CFSMailBox.h"                             // cfsmailbox
+#include "cfsmailbox.h"                             // cfsmailbox
 //</cmail>
-#include <cpsrequesthandler.h>
-#include <cpssettings.h>
-#include <cpcsdefs.h>
-#include <vpbkeng.rsg>
+#include <CPsRequestHandler.h>
+#include <CPsSettings.h>
+#include <CPcsDefs.h>
+#include <VPbkEng.rsg>
 #include <e32const.h>                               // TLanguage
 
-#include <cvpbkcontactmanager.h>
+#include <CVPbkContactManager.h>
 
 #include "mesmrclslistsobserver.h"
 #include "cesmrclsmatchobserver.h"

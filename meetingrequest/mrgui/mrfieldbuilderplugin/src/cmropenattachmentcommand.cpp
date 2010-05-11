@@ -20,10 +20,10 @@
 #include <calattachment.h>
 #include <f32file.h>
 #include <esmrgui.rsg>
-#include <npdapi.h>
+#include <NpdApi.h>
 #include <aknnotewrappers.h>
-#include <stringloader.h>
-#include <documenthandler.h>
+#include <StringLoader.h>
+#include <DocumentHandler.h>
 
 // DEBUG
 #include "emailtrace.h"

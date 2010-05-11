@@ -35,7 +35,7 @@ class CMRLabel;
  * Field for showing the "from" information. In other words this field shows
  * that who sent/organized this meeting request.
  */
-NONSHARABLE_CLASS( CESMRViewerFromField ) : public CESMRField, 
+NONSHARABLE_CLASS( CESMRViewerFromField ) : public CESMRField,
                                                    MEikEdwinSizeObserver
     {
     public:
@@ -45,39 +45,38 @@ NONSHARABLE_CLASS( CESMRViewerFromField ) : public CESMRField,
          * @return New viewer from field object
          */
         static CESMRViewerFromField* NewL( );
-    
+
         /**
          * C++ Destructor.
          */
         ~CESMRViewerFromField( );
-    
-    public: // From CESMRField
+
+    protected: // From CESMRField
         void InternalizeL( MESMRCalEntry& aEntry );
         void InitializeL();
         TBool ExecuteGenericCommandL( TInt aCommand );
         void SetOutlineFocusL( TBool aFocus );
-        void HandleLongtapEventL( const TPoint& aPosition );
-    
-    public: // From CCoeControl
+
+    protected: // From CCoeControl
         TKeyResponse OfferKeyEventL(
-                const TKeyEvent& aEvent, 
+                const TKeyEvent& aEvent,
                 TEventCode aType );
         TInt CountComponentControls() const;
         CCoeControl* ComponentControl( TInt aInd ) const;
         void SizeChanged();
         TSize MinimumSize();
         void SetContainerWindowL(const CCoeControl& aContainer);
-        
-    public: // From MEikEdwinSizeObserver
-        TBool HandleEdwinSizeEventL( 
-                CEikEdwin* aEdwin, 
+
+    protected: // From MEikEdwinSizeObserver
+        TBool HandleEdwinSizeEventL(
+                CEikEdwin* aEdwin,
                 TEdwinSizeEvent aType,
                 TSize aSize );
-    
+
     private: // Implementation
         CESMRViewerFromField( );
         void ConstructL( );
-    
+
     private: // data
         // Not own: Actual text of this field, not owned
         CESMRRichTextViewer* iRichTextViewer;

@@ -297,4 +297,6 @@ EXPORTS
 	_ZN15CResourceLoader7Load2LCEiRK7TDesC16 @ 296 NONAME
 	_ZN15CResourceLoader7Load2LCEii @ 297 NONAME
 	_ZNK11CBasePlugin16CalendarFileNameEv @ 298 NONAME
+	_ZN10CDelayedOp7StartOpEv @ 299 NONAME
+	_ZN11CBasePlugin23DeleteDelayedOpsManagerEv @ 300 NONAME
 

@@ -30,19 +30,19 @@
 
 #include <eiklabel.h>
 #include <avkon.hrh>
-#include <magnentryui.h>
-#include <stringloader.h>
+#include <MAgnEntryUi.h>
+#include <StringLoader.h>
 #include <gulcolor.h>
 #include <eikimage.h>
 #include <esmrgui.rsg>
-#include <akniconutils.h>
+#include <AknIconUtils.h>
 #include <eikenv.h>
-#include <aknsconstants.h>
-#include <aknutils.h>
-#include <aknsdrawutils.h>
-#include <aknsbasicbackgroundcontrolcontext.h>
+#include <AknsConstants.h>
+#include <AknUtils.h>
+#include <AknsDrawUtils.h>
+#include <AknsBasicBackgroundControlContext.h>
 #include <hlplch.h>
-#include <akniconarray.h>
+#include <AknIconArray.h>
 #include <eikclbd.h>
 #include <calentry.h>
 #include <caluser.h>

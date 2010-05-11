@@ -30,6 +30,7 @@ _LIT8( KMethod, "method" );
 _LIT8( KRequest, "REQUEST" );
 _LIT8( KResponse, "RESPONSE" );
 _LIT8( KCancel, "CANCEL" );
+_LIT( KLineFeed, "\r\n");
 
 #ifdef __WINS__
 _LIT( KEmulatorIMEI, "123456789012345" );
@@ -64,6 +65,22 @@ CIpsPlgSosBasePlugin::CIpsPlgSosBasePlugin( const TUint aFSPluginId ) :
 CIpsPlgSosBasePlugin::~CIpsPlgSosBasePlugin()
     {
     FUNC_LOG;
+    if ( iMsvOpDeleteMessage )
+        {
+        iMsvOpDeleteMessage->Cancel();
+        }
+    
+    if ( iWaitDeleteMessage )
+        {
+        iWaitDeleteMessage->Cancel();
+        }
+    
+    delete iMsvOpDeleteMessage;
+    iMsvOpDeleteMessage = NULL;
+    delete iWaitDeleteMessage;
+    iWaitDeleteMessage = NULL;
+    delete icEntry;
+    icEntry = NULL;
     if ( iWait.IsStarted() )
         {
         iWait.AsyncStop();
@@ -1743,7 +1760,7 @@ void CIpsPlgSosBasePlugin::RemoveObserver(MFSMailEventObserver& aObserver)
 void CIpsPlgSosBasePlugin::DeleteMessagesByUidL(
     const TFSMailMsgId& /*aMailBoxId*/,
     const TFSMailMsgId& /*aFolderId*/,
-	const RArray<TFSMailMsgId>& aMessages )
+    const RArray<TFSMailMsgId>& aMessages )
     {
     FUNC_LOG;
     CMsvEntrySelection* sel=new(ELeave) CMsvEntrySelection;
@@ -1754,49 +1771,93 @@ void CIpsPlgSosBasePlugin::DeleteMessagesByUidL(
     TMsvId service;
 
     TMsvEntry parentEntry;
-
-   for(TInt i=0; i<count; i++)
+    
+    // simulation of canceling deletion operation
+    if ( !count ) 
         {
-        iSession->GetEntry( aMessages[i].Id(), service, tEntry );
-
-        //make sure that only messages get deleted.
-        if( tEntry.iType == KUidMsvMessageEntry )
+        if ( iMsvOpDeleteMessage )
             {
-            iSession->GetEntry( tEntry.Parent( ), service, parentEntry );
-
-            CMsvEntry *cEntry = CMsvEntry::NewL(
-                        *iSession, tEntry.Id(), TMsvSelectionOrdering() );
-            CleanupStack::PushL( cEntry );
-            CIpsPlgOperationWait* wait = CIpsPlgOperationWait::NewLC( );
-            // Sets bit 32 of iMtmData1, used when msg deleted in Offline
-            // and status hasn't updated to server (client entry still exists)
-            tEntry.SetLocallyDeleted( ETrue );
-            CMsvOperation* msvOp = cEntry->ChangeL( tEntry, wait->iStatus );
-            CleanupStack::PushL(msvOp);
-            wait->Start();
-            sel->AppendL( tEntry.Id() );
-            CleanupStack::PopAndDestroy( 3, cEntry );
+            iMsvOpDeleteMessage->Cancel();
             }
-        }
-
-    CIpsPlgSingleOpWatcher* watcher = CIpsPlgSingleOpWatcher::NewL( *this );
-    CleanupStack::PushL( watcher );
-    CMsvOperation* op = CIpsPlgDeleteRemote::NewL( *iSession,
-        watcher->iStatus, *sel );
-    watcher->SetOperation( op );
-
-    // make draft deletion synchronous so that empty drafts are not left after application close
-    if ( parentEntry.Id() == KMsvDraftEntryIdValue && count == 1 )
-        {
-        iWait.Start();
-        CleanupStack::PopAndDestroy( watcher );
+        
+        if ( iWaitDeleteMessage )
+            {
+            iWaitDeleteMessage->Cancel();
+            }
+        
+        delete iMsvOpDeleteMessage;
+        iMsvOpDeleteMessage = NULL;
+        delete iWaitDeleteMessage;
+        iWaitDeleteMessage = NULL;
+        delete icEntry;
+        icEntry = NULL;
         }
     else
         {
-        iOperations.AppendL( watcher );
-        CleanupStack::Pop( watcher );
-        }
+        for( TInt i = 0; i < count; i++ )
+            {
+            iSession->GetEntry( aMessages[i].Id(), service, tEntry );
+            
+            //make sure that only messages get deleted.
+            if( tEntry.iType == KUidMsvMessageEntry )
+                {
+                if(iMsvOpDeleteMessage)
+                    {
+                    iMsvOpDeleteMessage->Cancel();
+                    delete iMsvOpDeleteMessage;
+                    iMsvOpDeleteMessage = NULL;
+                    }
+                
+                if ( iWaitDeleteMessage )
+                    {
+                    iWaitDeleteMessage->Cancel();
+                    delete iWaitDeleteMessage;
+                    iWaitDeleteMessage = NULL;
+                    }
 
+                delete icEntry;
+                icEntry = NULL;
+            
+                iSession->GetEntry( tEntry.Parent( ), service, parentEntry );
+
+                icEntry = CMsvEntry::NewL( 
+                        *iSession, tEntry.Id(), TMsvSelectionOrdering() );
+                
+                
+                // priority slightly increased not to pause the function longer than needed
+                iWaitDeleteMessage = CIpsPlgOperationWait::NewL( CActive::EPriorityStandard+1 );
+                // Sets bit 32 of iMtmData1, used when msg deleted in Offline
+                // and status hasn't updated to server (client entry still exists)
+                tEntry.SetLocallyDeleted( ETrue );
+                
+                iMsvOpDeleteMessage = icEntry->ChangeL( tEntry, 
+                        iWaitDeleteMessage->iStatus );
+                        
+                iWaitDeleteMessage->Start();
+                
+                sel->AppendL( tEntry.Id() );
+                }
+            }
+
+        CIpsPlgSingleOpWatcher* watcher = CIpsPlgSingleOpWatcher::NewLC( *this );
+
+        CMsvOperation* op = CIpsPlgDeleteRemote::NewL( *iSession, 
+                watcher->iStatus, *sel );
+        watcher->SetOperation( op );
+
+        // make draft deletion synchronous so that empty drafts are not left after application close
+        if ( parentEntry.Id() == KMsvDraftEntryIdValue && count == 1 )
+            {
+            iWait.Start();
+            CleanupStack::PopAndDestroy( watcher );
+            }
+        else
+            {
+            iOperations.AppendL( watcher );
+            CleanupStack::Pop( watcher );
+            }
+        }
+    
     CleanupStack::PopAndDestroy( sel );
     }
 
@@ -2177,14 +2238,37 @@ void CIpsPlgSosBasePlugin::FixReplyForwardHeaderL(
                             textBodyPart->FetchedContentSize() );
                     TPtr bPtr( body->Des() );
                     origMsgTextBodyPart->GetContentToBufferL( bPtr, 0 );
-                    HBufC* content = HBufC::NewLC(
-                            hPtr.Length() + bPtr.Length() );
-                    TPtr cPtr( content->Des() );                        
+                    TInt contentLength = hPtr.Length() + bPtr.Length() + 
+                            KLineFeed().Length();
+                    HBufC* signatureText = NULL;
+                    // if signature resolving leaves, ignore it, i.e., 
+                    // continue without signature adding
+                    TRAP_IGNORE( signatureText = 
+                            ResolveSignatureTextL( aMailBoxId ) );
+                    if ( signatureText ) 
+                        {
+                        CleanupStack::PushL( signatureText );
+                        contentLength += signatureText->Length() +
+                                KLineFeed().Length();
+                        }
+                    HBufC* content = HBufC::NewLC( contentLength );
+                    TPtr cPtr( content->Des() );
+                    if ( signatureText )
+                        {
+                        cPtr.Append( *signatureText );
+                        // extra empty line between signature and original txt
+                        cPtr.Append( KLineFeed );
+                        }
+                    cPtr.Append( KLineFeed );
                     cPtr.Append( hPtr );
                     cPtr.Append( bPtr );
                     textBodyPart->SetContent( cPtr );
                     textBodyPart->SaveL();
                     CleanupStack::PopAndDestroy( content );
+                    if ( signatureText )
+                        {
+                        CleanupStack::PopAndDestroy( signatureText );
+                        }
                     CleanupStack::PopAndDestroy( body );
                     CleanupStack::PopAndDestroy( origMsgTextBodyPart );
                     }
@@ -2192,6 +2276,25 @@ void CIpsPlgSosBasePlugin::FixReplyForwardHeaderL(
             }
         CleanupStack::PopAndDestroy( textBodyPart );
         }
+    }
+
+// ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+HBufC* CIpsPlgSosBasePlugin::ResolveSignatureTextL( 
+        const TFSMailMsgId& aMailBoxId )
+    {
+    FUNC_LOG;
+    HBufC* signatureText = NULL;
+        
+    if ( iSettingsApi && iSession )
+        {
+        TMsvEntry entry;
+        TMsvId serv;
+        iSession->GetEntry( aMailBoxId.Id(), serv, entry );
+        signatureText = iSettingsApi->SignatureTextL( entry );
+        }
+
+    return signatureText;
     }
 
 // ---------------------------------------------------------------------------

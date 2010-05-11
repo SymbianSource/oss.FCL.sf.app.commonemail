@@ -17,7 +17,7 @@
 
 #include "cesmralarm.h"
 
-#include <stringloader.h>
+#include <StringLoader.h>
 
 // DEBUG
 #include "emailtrace.h"

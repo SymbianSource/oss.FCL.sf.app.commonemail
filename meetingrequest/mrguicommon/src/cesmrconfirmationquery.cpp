@@ -22,14 +22,14 @@
 //<cmail>
 #include "esmrdef.h"
 //</cmail>
-#include <aknquerydialog.h>
+#include <AknQueryDialog.h>
 #include <bautils.h>
 #include <esmrgui.rsg>
 #include <eikenv.h>
 #include <avkon.rsg>
 #include <data_caging_path_literals.hrh>
-#include <stringloader.h>
-#include <aknbiditextutils.h>//line wrapping and mirroring
+#include <StringLoader.h>
+#include <AknBidiTextUtils.h>//line wrapping and mirroring
 #include <aknlayoutscalable_apps.cdl.h> //xml layout data for applications
 #include <aknlayoutscalable_avkon.cdl.h> //xml layout data of avkon components
 #include "esmrhelper.h"//locateresourcefile

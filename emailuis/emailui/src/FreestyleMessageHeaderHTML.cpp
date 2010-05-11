@@ -33,14 +33,16 @@
 
 
 
-_LIT8( KShowDetailIconFileName, "plus.gif");
+_LIT8( KExpandHeaderIconFileName, "plus.gif");
+_LIT8( KCollapseHeaderIconFileName, "minus.gif");
 _LIT8( KAttachementIconGeneral, "attachment.gif");
 _LIT8( KFollowUpIconFileName, "follow_up.png");
 _LIT8( KFollowUpCompleteIconFileName, "follow_up_complete.png");
 _LIT8( KPriorityHighIconFileName, "todo_high_add.png");
 _LIT8( KPriorityLowIconFileName, "todo_low_add.png");
 
-_LIT8( KHeaderTableName, "header_table");
+_LIT8( KCollapsedHeaderTableName, "collapsed_header" );
+_LIT8( KExpandedHeaderTableName, "expanded_header" );
 _LIT8( KToTableName, "to_table");
 _LIT8( KCcTableName, "cc_table");
 _LIT8( KBccTableName, "bcc_table");
@@ -58,7 +60,6 @@ _LIT8( KToImageName, "to_img");
 _LIT8( KCcImageName, "cc_img");
 _LIT8( KBccImageName, "bcc_img");
 _LIT8( KAttachmentImageName, "attachment_img");
-_LIT8( KDetailImageName, "detail_img");
 _LIT8( KFollowUpImageName, "follow_up_img");
 _LIT8( KFollowUpCompleteImageName, "follow_up_complete_img");
 _LIT8( KPriorityHighImageName, "todo_high_add_img");
@@ -73,10 +74,10 @@ _LIT8( KHTMLImgTagSrcAfter, "\">" );
 _LIT8( KMetaHeader, "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n" );
 
 _LIT8( KDisplayImagesLeftToRight,
-        "<script language=\"javascript\">var g_autoLoadImages = %d;</script><table style=\"display: none;\" id=\"displayImagesTable\" width=\"%dpx\"><tr><td align=\"left\">%S</td><td align=\"right\"><input type=\"submit\" class=\"button\" value=\"%S\" onClick=\"displayImagesButtonPressed()\"/></td></tr></table>" );
+        "<script language=\"javascript\">var g_autoLoadImages = %d;</script>\n<table style=\"display: none;\" id=\"displayImagesTable\" width=\"%dpx\"><tr><td align=\"left\">%S</td><td align=\"right\"><input type=\"submit\" class=\"button\" value=\"%S\" onClick=\"displayImagesButtonPressed()\"/></td></tr></table>" );
 
 _LIT8( KDisplayImagesRightToLeft,
-        "<script language=\"javascript\">var g_autoLoadImages = %d;</script><table style=\"display: none;\" id=\"displayImagesTable\" width=\"%dpx\"><tr><td align=\"left\"><input type=\"submit\" class=\"button\" value=\"%S\" onClick=\"displayImagesButtonPressed()\"/></td><td align=\"right\">%S</td></tr></table>" );
+        "<script language=\"javascript\">var g_autoLoadImages = %d;</script>\n<table style=\"display: none;\" id=\"displayImagesTable\" width=\"%dpx\"><tr><td align=\"left\"><input type=\"submit\" class=\"button\" value=\"%S\" onClick=\"displayImagesButtonPressed()\"/></td><td align=\"right\">%S</td></tr></table>" );
 _LIT8 ( KProtocolIdentifier, "://" );
 const TInt KMaxEventLength( 256 );
 const TInt KFreestyleMessageHeaderHTMLRightMarginInPx( 10 );
@@ -239,15 +240,8 @@ void CFreestyleMessageHeaderHTML::HTMLHeaderEndL() const
 void CFreestyleMessageHeaderHTML::ExportHTMLBodyL() const
     {
     HTMLBodyStartL();
-    ExportInitialTableL();
-    StartHeaderTableL( KHeaderTableName );
-    ExportFromL();
-    ExportToL();
-    ExportCcL();
-    ExportBccL();
-    ExportSentTimeL();
-    ExportSubjectL();
-    EndHeaderTableL();
+    ExportCollapsedHeaderTableL();
+    ExportExpandedHeaderTableL();
     ExportAttachmentsL();
     ExportDisplayImagesTableL();
     HTMLBodyEndL();
@@ -298,128 +292,27 @@ void CFreestyleMessageHeaderHTML::HTMLBodyStartL() const
     iWriteStream.CommitL();
     }
 
-void CFreestyleMessageHeaderHTML::ExportInitialTableL() const
+void CFreestyleMessageHeaderHTML::ExportCollapsedHeaderTableL() const
     {
-    // set the width, using the visible screen width
-    TBuf8<KFreestyleMessageHeaderHTMLMaxBufferSizeForWidth> tableWidth;
-    tableWidth.AppendNum( iVisibleWidth );
-    
-    if (iExpanded)
-        {
-        iWriteStream.WriteL(_L8("<table id=\"table_initial\" border=\"0\" width=\""));
-        iWriteStream.WriteL( tableWidth );
-        iWriteStream.WriteL( _L8("px\" style=\"display: none\">\n"));    
-        }
-    else
-        {
-        iWriteStream.WriteL(_L8("<table id=\"table_initial\" border=\"0\" width=\""));
-        iWriteStream.WriteL( tableWidth );
-        iWriteStream.WriteL( _L8("px\">\n"));    
-        }
-    
-
-    // start first row: table with the sent info and the '+' icon
-    iWriteStream.WriteL(_L8("<tr><td><table id=\"table_sent_and_plus\" border=\"0\" width=\""));
-    iWriteStream.WriteL( tableWidth );
-    iWriteStream.WriteL( _L8("px\">\n"));
-    
-    iWriteStream.WriteL(_L8("<tr>\n"));
-    
-    // add Sent time and date
-    iWriteStream.WriteL(_L8("<td id=\"sent_initial\""));
-
-    if ( !iMirrorLayout )
-        {
-        iWriteStream.WriteL(_L8(" align=\"left\""));
-        }
-    else
-        {
-        iWriteStream.WriteL(_L8(" align=\"right\""));
-        }
-    iWriteStream.WriteL(_L8(" valign=\"bottom\">"));
-    
-    HBufC* dateText = TFsEmailUiUtility::DateTextFromMsgLC( &iMailMessage );
-    HBufC* timeText = TFsEmailUiUtility::TimeTextFromMsgLC( &iMailMessage );
-
-    TInt len = dateText->Length() + KSentLineDateAndTimeSeparatorText().Length() + timeText->Length();
-    HBufC* sentTimeText = HBufC::NewLC( len );
-    TPtr sentTimeTextPtr = sentTimeText->Des();
-    sentTimeTextPtr.Append( *dateText );
-    sentTimeTextPtr.Append( KSentLineDateAndTimeSeparatorText );
-    sentTimeTextPtr.Append( *timeText );
-    HBufC8* sentTimeText8 = CnvUtfConverter::ConvertFromUnicodeToUtf8L( sentTimeTextPtr );
-    CleanupStack::PushL( sentTimeText8 );
-    iWriteStream.WriteL( *sentTimeText8 );
-    CleanupStack::PopAndDestroy( sentTimeText8 );
-    CleanupStack::PopAndDestroy( sentTimeText );
-    CleanupStack::PopAndDestroy( timeText );
-    CleanupStack::PopAndDestroy( dateText );
-    
-    iWriteStream.WriteL(_L8("</td>\n"));
-    
-    // add "show details" image on the same line as Sent time and date
-    iWriteStream.WriteL(_L8("<td width=\"1\" valign=\"top\""));
-    if ( !iMirrorLayout )
-        {
-        iWriteStream.WriteL(_L8(" align=\"right\""));
-        }
-    else
-        {
-        iWriteStream.WriteL(_L8(" align=\"left\""));
-        }
-    iWriteStream.WriteL(_L8(" style=\"padding: 0px 10px 0px 0px;\"><image width=\"55\" height=\"36\" id=\"detail_img\" border=\"0\" src=\"plus.gif\" onClick=\"expandHeader(true)\" ></td>\n"));
-
-    
-    // finish first row
-    iWriteStream.WriteL(_L8("</tr>\n"));  
-    iWriteStream.WriteL(_L8("</table></td></tr>\n"));
-
-    //=============================
-    // start second row which contains subject
-    iWriteStream.WriteL(_L8("<tr>\n"));
-    iWriteStream.WriteL(_L8("<td id=\"subject_initial\""));
-    if ( !iMirrorLayout )
-        {
-        iWriteStream.WriteL(_L8(" align=\"left\""));
-        }
-    else
-        {
-        iWriteStream.WriteL(_L8(" align=\"right\""));
-        }
-    iWriteStream.WriteL(_L8("><b>"));
-
-	HBufC* subject = iMailMessage.GetSubject().Alloc();
-	/*
-     * Writes the subject to iWriteStream and also
-     * takes care of the urls and marks them as hotspots
-     */
-    WriteSubjectL(*subject);
-
-    iWriteStream.WriteL(_L8("</b>"));
-        
-    // Write icons (if necessary).
-    HBufC8* followUp = HTMLHeaderFollowUpIconLC( EFalse );
-    HBufC8* priority = HTMLHeaderPriorityIconLC( EFalse );
-        
-    if ( priority )
-        {
-        iWriteStream.WriteL( *priority );
-        CleanupStack::PopAndDestroy( priority);
-        }
-    
-    if ( followUp )
-        {
-        iWriteStream.WriteL( *followUp );
-        CleanupStack::PopAndDestroy( followUp );
-        }
-    
-    iWriteStream.WriteL(_L8("</td></tr>\n"));  // finish subject row
-    
-    // end table_initial
-    iWriteStream.WriteL(_L8("</table>\n"));
-        
-    iWriteStream.CommitL();
+    StartHeaderTableL( KCollapsedHeaderTableName, !iExpanded );
+    ExportTimeAndExpandButtonL();
+    ExportSubjectCollapsedL();
+    EndHeaderTableL();
     }
+
+void CFreestyleMessageHeaderHTML::ExportExpandedHeaderTableL() const
+    {
+    StartHeaderTableL( KExpandedHeaderTableName, iExpanded );
+    ExportCollapseButtonL();
+    ExportFromL();
+    ExportToL();
+    ExportCcL();
+    ExportBccL();
+    ExportSentTimeL();
+    ExportSubjectL();
+    EndHeaderTableL();
+    }
+
 // -----------------------------------------------------------------------------
 // CFreestyleMessageHeaderHTML::WriteSubjectL
 // Writes the subject to iWriteStream and also
@@ -706,6 +599,105 @@ void CFreestyleMessageHeaderHTML::HTMLBodyEndL() const
     iWriteStream.CommitL();
     }
 
+void CFreestyleMessageHeaderHTML::ExportCollapseButtonL() const
+    {
+    TBuf8<KFreestyleMessageHeaderHTMLMaxBufferSizeForWidth> tableWidth;
+    tableWidth.AppendNum( iVisibleWidth );
+
+    // Add "Collapse" button as its own table with its own width
+    iWriteStream.WriteL( _L8("<tr><td>\n") );
+    iWriteStream.WriteL( _L8("<table id =\"table_minus_icon\" border=\"0\" width=\"") );
+    iWriteStream.WriteL( tableWidth );
+    iWriteStream.WriteL( _L8("px\">\n") );
+    iWriteStream.WriteL( _L8("<tr>\n") );
+
+    iWriteStream.WriteL( _L8("<td valign=\"top\"") );
+    if ( !iMirrorLayout )
+        {
+        iWriteStream.WriteL( _L8(" align=\"right\"") );
+        iWriteStream.WriteL( _L8(" style=\"padding-right: 10px;\">\n") );
+        }
+    else
+        {
+        iWriteStream.WriteL( _L8(" align=\"left\"") );
+        iWriteStream.WriteL( _L8(" style=\"padding-left: 10px;\">\n") );
+        }
+    iWriteStream.WriteL( _L8("<input type=\"submit\" id=\"collapse\" value=\"\" class=\"collapse\"") );
+    iWriteStream.WriteL( _L8(" onClick=\"collapseHeader(true)\"/>") );
+    iWriteStream.WriteL( _L8("</td>\n") );
+
+    iWriteStream.WriteL( _L8("</tr>\n"));
+    iWriteStream.WriteL( _L8("</table></td></tr>\n"));
+    iWriteStream.CommitL();
+    }
+
+void CFreestyleMessageHeaderHTML::ExportTimeAndExpandButtonL() const
+    {
+    // set the width, using the visible screen width
+    TBuf8<KFreestyleMessageHeaderHTMLMaxBufferSizeForWidth> tableWidth;
+    tableWidth.AppendNum( iVisibleWidth );
+
+    // start first row: table with the sent info and the '+' icon
+    iWriteStream.WriteL(_L8("<tr><td><table id=\"table_sent_and_plus\" border=\"0\" width=\""));
+    iWriteStream.WriteL( tableWidth );
+    iWriteStream.WriteL( _L8("px\">\n"));
+    
+    iWriteStream.WriteL(_L8("<tr>\n"));
+    
+    // add Sent time and date
+    iWriteStream.WriteL(_L8("<td id=\"sent_initial\""));
+
+    if ( !iMirrorLayout )
+        {
+        iWriteStream.WriteL(_L8(" align=\"left\""));
+        }
+    else
+        {
+        iWriteStream.WriteL(_L8(" align=\"right\""));
+        }
+    iWriteStream.WriteL(_L8(" valign=\"bottom\">"));
+    
+    HBufC* dateText = TFsEmailUiUtility::DateTextFromMsgLC( &iMailMessage );
+    HBufC* timeText = TFsEmailUiUtility::TimeTextFromMsgLC( &iMailMessage );
+
+    TInt len = dateText->Length() + KSentLineDateAndTimeSeparatorText().Length() + timeText->Length();
+    HBufC* sentTimeText = HBufC::NewLC( len );
+    TPtr sentTimeTextPtr = sentTimeText->Des();
+    sentTimeTextPtr.Append( *dateText );
+    sentTimeTextPtr.Append( KSentLineDateAndTimeSeparatorText );
+    sentTimeTextPtr.Append( *timeText );
+    HBufC8* sentTimeText8 = CnvUtfConverter::ConvertFromUnicodeToUtf8L( sentTimeTextPtr );
+    CleanupStack::PushL( sentTimeText8 );
+    iWriteStream.WriteL( *sentTimeText8 );
+    CleanupStack::PopAndDestroy( sentTimeText8 );
+    CleanupStack::PopAndDestroy( sentTimeText );
+    CleanupStack::PopAndDestroy( timeText );
+    CleanupStack::PopAndDestroy( dateText );
+    
+    iWriteStream.WriteL(_L8("</td>\n"));
+
+    // Add "expand" button on the same line as Sent time and date
+    iWriteStream.WriteL(_L8("<td valign=\"top\""));
+    if ( !iMirrorLayout )
+        {
+        iWriteStream.WriteL(_L8(" align=\"right\""));
+        iWriteStream.WriteL(_L8(" style=\"padding-right: 10px;\">\n"));
+        }
+    else
+        {
+        iWriteStream.WriteL(_L8(" align=\"left\""));
+        iWriteStream.WriteL(_L8(" style=\"padding-left: 10px;\">\n"));
+        }
+    iWriteStream.WriteL(_L8("<input type=\"submit\" id=\"expand\" value=\"\" class=\"expand\""));
+    iWriteStream.WriteL(_L8(" onClick=\"expandHeader(true)\"/>"));
+    iWriteStream.WriteL(_L8("</td>\n"));
+
+    // finish first row
+    iWriteStream.WriteL(_L8("</tr>\n"));  
+    iWriteStream.WriteL(_L8("</table></td></tr>\n"));
+    iWriteStream.CommitL();
+    }
+
 void CFreestyleMessageHeaderHTML::ExportSubjectL() const
     {
     iWriteStream.WriteL( _L8("<tr id=\"") );
@@ -754,6 +746,49 @@ void CFreestyleMessageHeaderHTML::ExportSubjectL() const
        CleanupStack::PopAndDestroy( followUp );
        }
 
+    iWriteStream.CommitL();
+    }
+
+void CFreestyleMessageHeaderHTML::ExportSubjectCollapsedL() const
+    {
+    iWriteStream.WriteL(_L8("<tr>\n"));
+    iWriteStream.WriteL(_L8("<td id=\"subject_initial\""));
+    if ( !iMirrorLayout )
+        {
+        iWriteStream.WriteL(_L8(" align=\"left\""));
+        }
+    else
+        {
+        iWriteStream.WriteL(_L8(" align=\"right\""));
+        }
+    iWriteStream.WriteL(_L8("><b>"));
+
+    HBufC* subject = iMailMessage.GetSubject().Alloc();
+    /*
+     * Writes the subject to iWriteStream and also
+     * takes care of the urls and marks them as hotspots
+     */
+    WriteSubjectL(*subject);
+
+    iWriteStream.WriteL(_L8("</b>"));
+
+    // Write icons (if necessary).
+    HBufC8* followUp = HTMLHeaderFollowUpIconLC( EFalse );
+    HBufC8* priority = HTMLHeaderPriorityIconLC( EFalse );
+
+    if ( priority )
+        {
+        iWriteStream.WriteL( *priority );
+        CleanupStack::PopAndDestroy( priority);
+        }
+
+    if ( followUp )
+        {
+        iWriteStream.WriteL( *followUp );
+        CleanupStack::PopAndDestroy( followUp );
+        }
+
+    iWriteStream.WriteL(_L8("</td></tr>\n"));  // finish subject row
     iWriteStream.CommitL();
     }
 
@@ -1053,42 +1088,13 @@ void CFreestyleMessageHeaderHTML::AddJavascriptL() const
     iWriteStream.CommitL();
     }
 
-void CFreestyleMessageHeaderHTML::StartHeaderTableL( const TDesC8& aTableId ) const
+void CFreestyleMessageHeaderHTML::StartHeaderTableL( const TDesC8& aTableId,
+    TBool /*aVisible*/ ) const
     {
     iWriteStream.WriteL( _L8("<table id=\"") );
-    iWriteStream.WriteL( aTableId );    
-    if (iExpanded)
-        {
-        iWriteStream.WriteL( _L8("\" border=\"0\" width=\"100%\">\n") );    
-        }
-    else
-        {
-        iWriteStream.WriteL( _L8("\" border=\"0\" width=\"100%\" style=\"display: none\">\n") );    
-        }   
-    
-    TBuf8<KFreestyleMessageHeaderHTMLMaxBufferSizeForWidth> tableWidth;
-    tableWidth.AppendNum( iVisibleWidth );
-
-    // Add "hide details" image as its own table with its own width
-    iWriteStream.WriteL( _L8("<tr><td>\n"));
-    iWriteStream.WriteL(_L8("<table id =\"table_minus_icon\" border=\"0\" width=\""));
-    iWriteStream.WriteL( tableWidth );
-    iWriteStream.WriteL( _L8("px\">\n"));
-    iWriteStream.WriteL( _L8("<tr>\n"));
-    
-    iWriteStream.WriteL( _L8("<td valign=\"top\""));
-    if ( !iMirrorLayout )
-        {
-        iWriteStream.WriteL(_L8(" align=\"right\""));
-        }
-    else
-        {
-        iWriteStream.WriteL(_L8(" align=\"left\""));
-        }
-    iWriteStream.WriteL( _L8(" style=\"padding: 0px 10px 0px 0px;\"><image width=\"55\" height=\"36\" id=\"hideDetails_img\" border=\"0\" src=\"minus.gif\" onClick=\"collapseHeader(true)\"></td>\n"));
-
-    iWriteStream.WriteL( _L8("</tr>\n"));
-    iWriteStream.WriteL( _L8("</table></td></tr>\n"));
+    iWriteStream.WriteL( aTableId );
+    iWriteStream.WriteL( _L8("\" border=\"0\" width=\"100%\"") );
+    iWriteStream.WriteL( _L8(">\n") );
     iWriteStream.CommitL();
     }
 
@@ -1108,15 +1114,6 @@ void CFreestyleMessageHeaderHTML::StartTableL( const TDesC8& aTableId ) const
 void CFreestyleMessageHeaderHTML::EndTableL() const
     {
     iWriteStream.WriteL( _L8("</table>\n") );
-    iWriteStream.CommitL();
-    }
-
-void CFreestyleMessageHeaderHTML::AddShowDetailL() const
-    {
-    HBufC8* event = ClickImageEventL( KDetailImageName );
-    CleanupStack::PushL( event );
-    AddImageL( KDetailImageName, KShowDetailIconFileName, *event );
-    CleanupStack::PopAndDestroy( event );
     iWriteStream.CommitL();
     }
 
@@ -1145,14 +1142,6 @@ HBufC8* CFreestyleMessageHeaderHTML::ClickImageEventL( const TDesC8& aImageName 
         event.Append( KBccTableName );
         event.Append( _L8("', '") );
         event.Append( KBccImageName );
-        event.Append( _L8("')\"") );
-        }
-    else if ( aImageName.Compare( KDetailImageName ) == 0 )
-        {
-        event.Append( _L8("onClick=\"toggleHeader('") );
-        event.Append( KHeaderTableName );
-        event.Append( _L8("', '") );
-        event.Append( KDetailImageName );
         event.Append( _L8("')\"") );
         }
     else if ( aImageName.Compare( KAttachmentImageName ) == 0 )
@@ -1228,8 +1217,15 @@ void CFreestyleMessageHeaderHTML::AddStyleSheetL() const
     // Note: since the text in the body is too small at "normal" level, 
     // we have the text size level in the browser set to "Larger" which is 20% larger than the specified size
     // the "larger" size affects all text which includes the header.
-    iWriteStream.WriteL( _L8("td { font-family:arial,sans-serif ; font-size:75% }\n"));
+    iWriteStream.WriteL( _L8("td { font-family:arial,sans-serif ; font-size:75% }\n") );
     iWriteStream.WriteL( _L8(".button { background: url('btn_middle.png') repeat-x top left; border: 1px solid #546284; height: 32px; font-size:19px; font-weight: bold; color: #344a6c; font-family:arial,sans-serif; }\n") );
+    iWriteStream.WriteL( _L8("input { color: black; position: relative; border: 0; cursor: pointer; overflow: visible; }\n") );
+    iWriteStream.WriteL( _L8("input.expand { width: 55px; height: 36px; background: transparent url('"));
+    iWriteStream.WriteL( KExpandHeaderIconFileName );
+    iWriteStream.WriteL( _L8("') no-repeat top left; }\n") );
+    iWriteStream.WriteL( _L8("input.collapse { width: 55px; height: 36px; background: transparent url('"));
+    iWriteStream.WriteL( KCollapseHeaderIconFileName );
+    iWriteStream.WriteL( _L8("') no-repeat top left; }\n") );
     iWriteStream.WriteL( _L8("</style>\n") );
     iWriteStream.CommitL();
     }
@@ -1248,4 +1244,3 @@ void CFreestyleMessageHeaderHTML::EndDivL() const
     }
 
 
-                                

@@ -20,8 +20,8 @@
 #define CESMRVIEWERCTRL_H
 
 //  INCLUDES
-#include <magnentryui.h>
-#include <cmrutils.h>
+#include <MAgnEntryUi.h>
+#include <CMRUtils.h>
 #include <e32base.h>
 #include "mmrinfoprovider.h"
 

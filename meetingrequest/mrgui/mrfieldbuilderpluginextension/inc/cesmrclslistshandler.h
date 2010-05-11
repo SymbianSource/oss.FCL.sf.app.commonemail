@@ -22,8 +22,8 @@
 #include <e32base.h>
 #include <cntdef.h>                     // TContactItemId
 #include <bamdesca.h>                   // MDesCArray
-#include <cpbkcontactitem.h>
-#include <cpcsdefs.h>
+#include <CPbkContactItem.h>
+#include <CPcsDefs.h>
 
 #include "cesmrclsitem.h"
 #include "resmrstatic.h"

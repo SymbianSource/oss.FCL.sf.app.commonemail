@@ -181,6 +181,8 @@ public:
 	// From base class CFsEmailUiViewBase
 	void GetParentLayoutsL( RPointerArray<CAlfVisual>& aLayoutArray ) const;
 	
+	void FadeOut(TBool aDirectionOut);
+	
     /**
      * Called when flip state changes.
 	 */

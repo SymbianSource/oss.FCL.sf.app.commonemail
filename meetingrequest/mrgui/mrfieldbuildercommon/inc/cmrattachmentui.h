@@ -21,10 +21,10 @@
 // INCLUDES
 #include <e32base.h>
 #include <f32file.h> // RFs
-#include <mediafiletypes.hrh> // TMediaFileType
-#include <aknprogressdialog.h> // MProgressDialogCallback
-#include <mmgfetchverifier.h>
-#include <maknfileselectionobserver.h>
+#include <MediaFileTypes.hrh> // TMediaFileType
+#include <AknProgressDialog.h> // MProgressDialogCallback
+#include <MMGFetchVerifier.h>
+#include <MAknFileSelectionObserver.h>
 
 // FORWARD DECLARATIONS
 class MESMRCalEntry;

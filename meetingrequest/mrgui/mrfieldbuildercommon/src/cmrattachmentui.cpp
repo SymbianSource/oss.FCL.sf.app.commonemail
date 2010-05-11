@@ -23,20 +23,20 @@
 #include "cesmrglobalnote.h"
 #include "esmrhelper.h"
 
-#include <mgfetch.h>
+#include <MGFetch.h>
 #include <aknlistquerydialog.h>
 #include <sysutil.h>
 #include <calattachment.h>
-#include <npdapi.h>
-#include <akncommondialogsdynmem.h>
+#include <NpdApi.h>
+#include <AknCommonDialogsDynMem.h>
 #include <apparc.h>
 #include <esmrgui.rsg>
 #include <apgcli.h>
 #include <apmrec.h>
-#include <commoncontentpolicy.h>
+#include <CommonContentPolicy.h>
 #include <ct/rcpointerarray.h>
 #include <aknnotewrappers.h>
-#include <stringloader.h>
+#include <StringLoader.h>
 
 #include "emailtrace.h"
 
@@ -471,8 +471,6 @@ void CMRAttachmentUi::DoLaunchViewerUiL()
 	{
     FUNC_LOG;
     
-	// TODO: Launch attachment view
-	// read attachments from calentry and populate the listbox
 	}
 
 // ---------------------------------------------------------------------------
@@ -593,7 +591,6 @@ TBool CMRAttachmentUi::FileDrmProtectedL( RFile& aFile )
     isProtected = ccp->IsClosedFileL( aFile );
     if ( isProtected )
             {
-            // TODO: Add suitable note to cesmrglobalnote.cpp
             CESMRGlobalNote::ExecuteL
                                 ( CESMRGlobalNote::EESMRAlarmAlreadyPassed );
             }

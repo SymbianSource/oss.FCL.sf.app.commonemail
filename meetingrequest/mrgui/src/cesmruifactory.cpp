@@ -29,7 +29,7 @@
 #include <esmrgui.rsg>
 #include <e32base.h>
 #include <eikenv.h>
-#include <coneresloader.h>
+#include <ConeResLoader.h>
 #include <data_caging_path_literals.hrh>
 #include <bautils.h>
 

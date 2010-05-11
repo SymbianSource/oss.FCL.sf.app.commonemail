@@ -29,8 +29,8 @@
 #include <calentry.h>
 #include <eikenv.h>
 #include <eikedwin.h>
-#include <stringloader.h>
-#include <aknsconstants.h>
+#include <StringLoader.h>
+#include <AknsConstants.h>
 #include <esmrgui.rsg>
 
 // DEBUG

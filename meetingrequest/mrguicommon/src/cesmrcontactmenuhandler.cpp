@@ -21,17 +21,17 @@
 #include "cesmrcontactmenuurlhandler.h"
 #include "mmrcontactmenuobserver.h"
 
-#include <cvpbkcontactmanager.h>
-#include <cvpbkcontactlinkarray.h>
-#include <mvpbkcontactstorelist.h>
-#include <mvpbkcontactstore.h>
-#include <mvpbkcontactstoreproperties.h>
-#include <mvpbkstorecontact.h>
-#include <mvpbkfieldtype.h>
-#include <mvpbkcontactoperationbase.h>
-#include <mvpbkcontactfieldtextdata.h>
-#include <tvpbkfieldversitproperty.h>
-#include <cvpbkfieldtyperefslist.h>
+#include <CVPbkContactManager.h>
+#include <CVPbkContactLinkArray.h>
+#include <MVPbkContactStoreList.h>
+#include <MVPbkContactStore.h>
+#include <MVPbkContactStoreProperties.h>
+#include <MVPbkStoreContact.h>
+#include <MVPbkFieldType.h>
+#include <MVPbkContactOperationBase.h>
+#include <MVPbkContactFieldTextData.h>
+#include <TVPbkFieldVersitProperty.h>
+#include <CVPbkFieldTypeRefsList.h>
 
 //<cmail>
 #include "cfsccontactactionservice.h"
@@ -41,9 +41,9 @@
 #include "mfsccontactaction.h"
 #include "mfsccontactactionmenumodel.h"
 
-#include <cvpbkfieldtypeiterator.h>
-#include <cvpbkfieldtypeselector.h>
-#include <vpbkeng.rsg>
+#include <CVPbkFieldTypeIterator.h>
+#include <CVPbkFieldTypeSelector.h>
+#include <VPbkEng.rsg>
 
 #include <esmrgui.rsg>
 #include "esmrcommands.h"

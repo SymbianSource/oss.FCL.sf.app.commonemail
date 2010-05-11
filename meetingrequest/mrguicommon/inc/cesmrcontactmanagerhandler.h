@@ -21,8 +21,8 @@
 
 #include <e32base.h>
 
-#include <mvpbkcontactstoreobserver.h>
-#include <mvpbkcontactstorelistobserver.h>
+#include <MVPbkContactStoreObserver.h>
+#include <MVPbkContactStoreListObserver.h>
 
 class CVPbkContactManager;
 

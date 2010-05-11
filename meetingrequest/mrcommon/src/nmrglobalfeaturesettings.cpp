@@ -17,7 +17,7 @@
 
 #include "nmrglobalfeaturesettings.h"
 
-#include <avkoninternalcrkeys.h>
+#include <AvkonInternalCRKeys.h>
 #include <centralrepository.h>
 
 using namespace NMRGlobalFeatureSettings;

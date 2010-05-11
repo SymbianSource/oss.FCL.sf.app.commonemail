@@ -32,11 +32,11 @@
 #include <calentry.h>
 #include <caluser.h>
 #include <eikenv.h>
-#include <stringloader.h>
-#include <aknsutils.h>
-#include <aknutils.h>
-#include <aknsconstants.h>
-#include <aknbiditextutils.h>
+#include <StringLoader.h>
+#include <AknsUtils.h>
+#include <AknUtils.h>
+#include <AknsConstants.h>
+#include <AknBidiTextUtils.h>
 #include <esmrgui.rsg>
 #include <data_caging_path_literals.hrh>
 #include <e32cmn.h>
@@ -44,10 +44,6 @@
 
 // DEBUG
 #include "emailtrace.h"
-
-// TODO: THIS WHOLE CLASS NEEDS TO BE REIMPLEMENTED USING XML LAYOUT DATA
-// IF THIS IS TAKEN INTO USE
-
 
 // ======== MEMBER FUNCTIONS ========
 
@@ -142,18 +138,6 @@ void CESMRTrackStatus::InternalizeL( MESMRCalEntry& aEntry )
             }
         iAddress = attendee[currentIndex]->Address().AllocL();
         }
-
-    // TODO: set font with XML data
-    //const CFont* font = iLayout->Font (iCoeEnv, iFieldId );        
-    //TInt maxLineWidth = iLabel->Size().iWidth;        
-    //maxLineWidth -= KIconSize.iWidth;
-    
-    //HBufC* clippedTextHBufC = ClipTextLC( text, *font, maxLineWidth );
-    //TPtr clippedText = clippedTextHBufC->Des();
-    //clippedText.Trim();
-    //iLabel->SetTextL( clippedText );
-    //CleanupStack::PopAndDestroy( clippedTextHBufC );
-    //clippedTextHBufC = NULL;
     
     NMRBitmapManager::TMRBitmapId bitmapId;
     
@@ -303,29 +287,10 @@ void CESMRTrackStatus::SetActionMenuIconL( TBool aFocused )
 
     if( aFocused )
         {
-        // TODO: correct this
         User::LeaveIfError( 
                 NMRBitmapManager::GetSkinBasedBitmap( 
                         NMRBitmapManager::EMRBitmapRightClickArrow, 
                             iActionMenuIcon, iActionMenuIconMask, TSize(20, 20) ) );
-
-        // TODO: USE XML LAYOUT DATA AND CMRIMAGE
-        // Even if creating mask failed, bitmap can be used (background is just not displayed correctly)
-        /*if( iActionMenuIcon )
-            {
-            iIcon = new (ELeave) CEikImage;
-            iIcon->SetPictureOwnedExternally(ETrue);
-            iIcon->SetPicture( iActionMenuIcon, iActionMenuIconMask );
-
-            TRect rect = Rect ( );*/
-            
-            // TODO: use layout data 
-            /*TInt iconTopMargin = ( rect.Height() - KIconSize.iHeight ) / 2;
-            TPoint iconPos( rect.iBr.iX - KIconSize.iWidth - KIconBorderMargin,
-                                rect.iBr.iY - iconTopMargin - KIconSize.iHeight);
-            iIcon->SetPosition ( iconPos );
-            iIcon->SetSize ( KIconSize );*/           
-            //}
         }
     }
 
@@ -340,14 +305,6 @@ void CESMRTrackStatus::SizeChanged( )
     if ( iIcon )
         {
         TRect rect = Rect ( );
-        // TODO: use XML layout
-        /*
-        TInt iconTopMargin = ( rect.Height() - KIconSize.iHeight ) / 2;
-        TPoint iconPos( rect.iBr.iX - KIconSize.iWidth - KIconBorderMargin,
-                            rect.iBr.iY - iconTopMargin - KIconSize.iHeight);
-
-        iIcon->SetPosition ( iconPos );
-        iIcon->SetSize ( KIconSize );*/
         }
     }
 

@@ -21,10 +21,10 @@
 #include "cesmrclslistshandler.h"
 
 #include <e32cmn.h>                             // TUid
-#include <aknfepinternalcrkeys.h>               // KCRUidAknFep, KAknFepPredTxtFlag
+#include <AknFepInternalCRKeys.h>               // KCRUidAknFep, KAknFepPredTxtFlag
 #include <centralrepository.h>                  // CRepository
 
-#include <cpcsdefs.h>                           // PCS TKeyboardModes enum
+#include <CPcsDefs.h>                           // PCS TKeyboardModes enum
 #include <eikenv.h>
 
 // Unnamed namespace for local definitions

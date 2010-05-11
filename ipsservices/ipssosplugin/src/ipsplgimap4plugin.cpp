@@ -19,6 +19,7 @@
 
 #include "emailtrace.h"
 #include "ipsplgheaders.h"
+#include <baseplugincommonutils.h>     // CleanupResetAndDestroyPushL
 
 const TInt KConnectOpPriority = CActive::EPriorityStandard;
 
@@ -663,7 +664,7 @@ void CIpsPlgImap4Plugin::DoListFoldersL(
         if( folder )
      	    {
      	    CleanupStack::PushL( folder );
-     	    aFolderList.Append( folder );
+     	    aFolderList.AppendL( folder );
      	    CleanupStack::Pop( folder );
      	    }
         
@@ -673,7 +674,7 @@ void CIpsPlgImap4Plugin::DoListFoldersL(
         if( folder )
      	    {
      	    CleanupStack::PushL( folder );
-     	    aFolderList.Append( folder );
+     	    aFolderList.AppendL( folder );
      	    CleanupStack::Pop( folder );
      	    } 	    
      	    
@@ -683,7 +684,7 @@ void CIpsPlgImap4Plugin::DoListFoldersL(
         if( folder )
      	    {
      	    CleanupStack::PushL( folder );
-     	    aFolderList.Append( folder );
+     	    aFolderList.AppendL( folder );
      	    CleanupStack::Pop( folder );
      	    } 	   
         

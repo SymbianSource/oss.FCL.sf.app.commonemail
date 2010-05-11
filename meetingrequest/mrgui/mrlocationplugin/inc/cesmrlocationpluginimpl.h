@@ -22,7 +22,7 @@
 
 #include <e32base.h>
 //<cmail>
-#include "aknserverapp.h"
+#include "AknServerApp.h"
 //</cmail>
 
 #include "cesmrlocationplugin.h"

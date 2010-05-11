@@ -24,10 +24,10 @@
 //<cmail>
 #include "esmrdef.h"
 //</cmail>
-#include <aknpopup.h>
+#include <aknPopup.h>
 #include <bautils.h>
 #include <esmrgui.rsg>
-#include <stringloader.h>
+#include <StringLoader.h>
 #include <data_caging_path_literals.hrh>
 
 #include "esmrgui.hrh"
@@ -784,7 +784,6 @@ EXPORT_C TInt CESMRListQuery::ExecuteLD( RArray<TPtrC>& aCalenNameList )
     CDesCArrayFlat* itemArray = new(ELeave)CDesCArrayFlat(2);
     CleanupStack::PushL(itemArray);
     
-    // Set title: TODO: Change title
     popupList->SetTitleL(*StringLoader::LoadLC(
             R_QTN_CALENDAR_TASK_CALENDAR_TITLE));
     CleanupStack::PopAndDestroy(); // Resource string

@@ -29,10 +29,10 @@
 //</cmail>
 
 #include <calentry.h>
-#include <stringloader.h>
+#include <StringLoader.h>
 #include <esmrgui.rsg>
-#include <aknutils.h>
-#include <aknsbasicbackgroundcontrolcontext.h>
+#include <AknUtils.h>
+#include <AknsBasicBackgroundControlContext.h>
 #include <eikmfne.h>
 
 // DEBUG

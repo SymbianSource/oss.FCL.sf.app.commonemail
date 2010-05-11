@@ -32,7 +32,7 @@
 #include <mrcaleventdata.rsg>
 #include <coemain.h>
 #include <e32std.h>
-#include <aknutils.h>
+#include <AknUtils.h>
 #include <data_caging_path_literals.hrh>
 #include <centralrepository.h>
 #include <calentry.h>
@@ -41,9 +41,9 @@
 #include <calrrule.h>
 #include <calinstance.h>
 #include <calinstanceview.h>
-#include <caleninterimutils2.h>
+#include <CalenInterimUtils2.h>
 
-#include <calendarinternalcrkeys.h>
+#include <CalendarInternalCRKeys.h>
 #include <ct/rcpointerarray.h>
 
 #include <calenservices.h>

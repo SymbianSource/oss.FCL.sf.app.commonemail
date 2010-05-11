@@ -14,7 +14,7 @@ EXPORTS
 	?GetSelectedLink@CESMRRichTextViewer@@QBEPBVCESMRRichTextLink@@XZ @ 13 NONAME ; class CESMRRichTextLink const * CESMRRichTextViewer::GetSelectedLink(void) const
 	?FieldViewMode@CESMRField@@QBE?AW4TESMRFieldType@@XZ @ 14 NONAME ; enum TESMRFieldType CESMRField::FieldViewMode(void) const
 	?FocusChanged@CESMRRichTextViewer@@UAEXW4TDrawNow@@@Z @ 15 NONAME ; void CESMRRichTextViewer::FocusChanged(enum TDrawNow)
-	?HandlePointerEventL@CESMRField@@EAEXABUTPointerEvent@@@Z @ 16 NONAME ; void CESMRField::HandlePointerEventL(struct TPointerEvent const &)
+	?HandlePointerEventL@CESMRField@@MAEXABUTPointerEvent@@@Z @ 16 NONAME ; void CESMRField::HandlePointerEventL(struct TPointerEvent const &)
 	??1CESMREditor@@UAE@XZ @ 17 NONAME ; CESMREditor::~CESMREditor(void)
 	?NewL@CESMRRichTextViewer@@SAPAV1@PBVCCoeControl@@@Z @ 18 NONAME ; class CESMRRichTextViewer * CESMRRichTextViewer::NewL(class CCoeControl const *)
 	?SetListObserver@CESMRField@@UAEXPAVMESMRListObserver@@@Z @ 19 NONAME ; void CESMRField::SetListObserver(class MESMRListObserver *)
@@ -117,4 +117,6 @@ EXPORTS
 	?GetLimitLength@CESMREditor@@QBEHXZ @ 116 NONAME ; int CESMREditor::GetLimitLength(void) const
 	?SetFieldMode@CESMRField@@QAEXW4TESMRFieldMode@@@Z @ 117 NONAME ; void CESMRField::SetFieldMode(enum TESMRFieldMode)
 	?ResetActionMenuL@CESMRRichTextViewer@@QBEXXZ @ 118 NONAME ; void CESMRRichTextViewer::ResetActionMenuL(void) const
+	?SupportsLongTapFunctionalityL@CESMRField@@UAEHABUTPointerEvent@@@Z @ 119 NONAME ; int CESMRField::SupportsLongTapFunctionalityL(struct TPointerEvent const &)
+	?PointerEventOccuresOnALinkL@CESMRRichTextViewer@@QAEHABUTPointerEvent@@@Z @ 120 NONAME ; int CESMRRichTextViewer::PointerEventOccuresOnALinkL(struct TPointerEvent const &)
 

@@ -219,7 +219,6 @@ private: // New functions
     void DynInitZoomMenuL( CEikMenuPane* aMenuPane );
     TInt ZoomLevelIndexL();
     void SetZoomLevelIndexL( TInt aIndex );
-    void RestoreZoomLevelL();
     void SaveEmailAsContactL(
         const TDesC& aEmailAddress );
     //new functions for support of HTML viewer
@@ -339,6 +338,9 @@ private: // data for moving message to different folder action
     CFlagSelectionNoteHandler* iFlagSelectionHandler;  
     TBool iNextOrPrevMessageSelected;
     TBool iMessageIsDeleted;
+    
+    // Id of last deleted message
+    TFSMailMsgId iLastDeletedMessageID;
     };
 
 ////////////////////////////////////////

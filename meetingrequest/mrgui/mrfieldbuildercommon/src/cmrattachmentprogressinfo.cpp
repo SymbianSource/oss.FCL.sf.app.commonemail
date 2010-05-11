@@ -19,8 +19,8 @@
 
 #include <esmrgui.rsg>
 #include <eikprogi.h>
-#include <aknwaitdialog.h> 
-#include <stringloader.h>
+#include <AknWaitDialog.h> 
+#include <StringLoader.h>
 
 // Unnamed namespace for local definitions
 namespace { // codescanner::namespace

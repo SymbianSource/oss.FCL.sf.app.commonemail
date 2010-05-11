@@ -19,16 +19,16 @@
 #include "esmrconfig.hrh"
 
 #include <calentry.h>
-#include <stringloader.h>
-#include <aknquerydialog.h>
+#include <StringLoader.h>
+#include <AknQueryDialog.h>
 #include <esmrgui.rsg>
 //<cmail>
 #include "cesmrurlparserplugin.h"
 //</cmail>
-#include <clmklandmarkselectordlg.h>
-#include <tlmkitemiddbcombiinfo.h>
-#include <epos_cposlandmark.h>
-#include <aknutils.h>
+#include <CLmkLandmarkSelectorDlg.h>
+#include <TLmkItemIdDbCombiInfo.h>
+#include <EPos_CPosLandmark.h>
+#include <AknUtils.h>
 #include <ct/rcpointerarray.h>
 
 #ifdef RD_USE_MYLOCATIONUI

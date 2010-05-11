@@ -650,3 +650,15 @@ TCoeInputCapabilities CNcsEditor::InputCapabilities() const
     caps.MergeWith(caps2);
     return caps;
     }
+
+
+void CNcsEditor::SetPhysicsEmulationOngoing( TBool aPhysOngoing )
+    {
+    iPhysOngoing = aPhysOngoing;
+    this->SetCursorVisible( !aPhysOngoing );
+    }
+
+TBool CNcsEditor::IsPhysicsEmulationOngoing() const
+    {
+    return iPhysOngoing;
+    }

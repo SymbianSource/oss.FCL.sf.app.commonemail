@@ -12,7 +12,7 @@
 * Contributors:
 *
  *  Description : Implementation of the class CESMRCasPluginImpl.
- *  Version     : %version: e002sa33#6 % << Don't touch! Updated by Synergy at check-out.
+ *  Version     : %version: e002sa32#6.1.1 % << Don't touch! Updated by Synergy at check-out.
  *
  */
 
@@ -27,7 +27,7 @@
 #include <esmrcasplugin.mbg>
 #include <caluser.h>
 
-#include <mvpbkstorecontact.h>
+#include <MVPbkStoreContact.h>
 #include <data_caging_path_literals.hrh>
 #include <badesca.h>
 
@@ -39,10 +39,10 @@
 #include "mfsccontactsetobserver.h"
 #include "tfsccontactactionpluginparams.h"
 //</cmail>
-#include <mvpbkstorecontactfield.h>
-#include <mvpbkfieldtype.h>
-#include <tvpbkfieldversitproperty.h>
-#include <vpbkfieldtype.hrh>
+#include <MVPbkStoreContactField.h>
+#include <MVPbkFieldType.h>
+#include <TVPbkFieldVersitProperty.h>
+#include <VPbkFieldType.hrh>
 
 // Unnamed namespace for local definitions
 namespace { // codescanner::namespace

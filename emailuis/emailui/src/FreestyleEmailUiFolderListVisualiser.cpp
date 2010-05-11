@@ -224,6 +224,7 @@ void CFSEmailUiFolderListVisualiser::ConstructL()
     FUNC_LOG;
 
     BaseConstructL( R_FSEMAILUI_FOLDER_LIST_VIEW );
+    this->HideToolbar();
     iFirstStartCompleted = EFalse;
 	}
 
@@ -236,6 +237,8 @@ void CFSEmailUiFolderListVisualiser::ConstructL()
 void CFSEmailUiFolderListVisualiser::DoFirstStartL()
     {
     FUNC_LOG;
+    HideToolbar();
+    
     iControl = CFSEmailUiFolderListControl::NewL( iEnv, *this );
     iModel = new (ELeave) CFSEmailUiFolderListModel();
 
@@ -1157,24 +1160,9 @@ void CFSEmailUiFolderListVisualiser::DynInitMenuPaneL(TInt aResourceId, CEikMenu
         	   aMenuPane->SetItemDimmed( EFsEmailUiCmdHelp, ETrue);
         	   }
 
-            // OFFLINE/ONLINE MENU SELECTION
-            if( iMoveOrCopyInitiated )
-                {
-                TFSMailBoxStatus onlineStatus = iAppUi.GetActiveMailbox()->GetMailBoxStatus();
-                aMenuPane->SetItemDimmed( EFsEmailUiCmdGoOnline, onlineStatus == EFSMailBoxOnline );
-                aMenuPane->SetItemDimmed( EFsEmailUiCmdGoOffline, onlineStatus == EFSMailBoxOffline );
-                }
-            else
-                {
-                aMenuPane->SetItemDimmed( EFsEmailUiCmdGoOnline, ETrue );
-                aMenuPane->SetItemDimmed( EFsEmailUiCmdGoOffline, ETrue );
-                }
-
             // select option
             aMenuPane->SetItemDimmed( EFsEmailUiCmdSelect, iModel->Count() == 0 );
 
-            aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsCollapseAll, AllNodesCollapsed() );
-            aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsExpandAll, AllNodesExpanded() );
             }
 
         // Add shortcut hints
@@ -2616,7 +2604,18 @@ void CFSEmailUiFolderListVisualiser::UpdateListSizeAttributes()
 	if( iFullScreen )
 		{
 	 	AknLayoutUtils::LayoutMetricsRect( AknLayoutUtils::EMainPane, iScreenRect );
-	 	iScreenRect.SetRect( 0, 0, iScreenRect.Width(), iScreenRect.Height() );
+	 	TRect noToolbar;
+	 	AknLayoutUtils::LayoutMetricsRect( AknLayoutUtils::EControlPane, noToolbar);
+	 
+	 	
+		if(!Layout_Meta_Data::IsLandscapeOrientation())
+			{
+			iScreenRect.SetRect( 0, 0, iScreenRect.Width(),iScreenRect.Height() + noToolbar.Height()  );
+			}
+		else
+			{
+			iScreenRect.SetRect( 0, 0, noToolbar.Width(),iScreenRect.Height());
+			}
         }
 	else
 		{
@@ -3005,6 +3004,7 @@ void CFSEmailUiFolderListVisualiser::UpdateToolbarButtons()
     {
     FUNC_LOG;
     //Toolbar()->SetItemDimmed(EFsEmailUiTbCmdSelect, ( iModel == NULL ) || ( iModel->Count() == 0 ), ETrue );
+    HideToolbar();
     Toolbar()->SetItemDimmed( EFsEmailUiTbCmdExpandAll, AllNodesExpanded(), ETrue );
     Toolbar()->SetItemDimmed( EFsEmailUiTbCmdCollapseAll, AllNodesCollapsed(), ETrue );
     }

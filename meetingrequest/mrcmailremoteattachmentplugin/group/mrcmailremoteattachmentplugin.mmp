@@ -41,9 +41,6 @@ USERINCLUDE             ../../inc
 USERINCLUDE             ../../../inc
 
 APP_LAYER_SYSTEMINCLUDE
-SYSTEMINCLUDE           /epoc32/include/ecom    //TODO: Remove when Cmail headers are fixed
-
-
 
 SOURCEPATH              ../data/
 START RESOURCE          mrcmailremoteattachmentplugin.rss

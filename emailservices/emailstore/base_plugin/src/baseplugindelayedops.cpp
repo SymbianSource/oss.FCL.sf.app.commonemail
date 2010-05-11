@@ -18,7 +18,6 @@
 
 #include "baseplugindelayedops.h"
 #include "baseplugindelayedopsprivate.h"
-#include "NestedAO.h"
 
 ///////////////////////////////////////////////////
 // CDelayedOp                                    //
@@ -46,9 +45,21 @@
 /**
  * 
  */
+/*public*/ EXPORT_C void CDelayedOp::StartOp()
+    {
+    iStatus = KRequestPending;
+    SetActive();
+    TRequestStatus* pStatus = &iStatus;
+    User::RequestComplete( pStatus, KErrNone );
+    } 
+
+/**
+ * 
+ */
 /*protected*/ EXPORT_C CDelayedOp::CDelayedOp()
-    : CAsyncOneShot( CActive::EPriorityIdle )
+    : CActive( CActive::EPriorityIdle )
     {    
+    CActiveScheduler::Add( this );
     }
     
 /**
@@ -57,7 +68,9 @@
 /*private virtual*/ EXPORT_C void CDelayedOp::RunL()
     {
     __LOG_ENTER_SUPPRESS( "Run" );
-    TRAPD( err, ExecuteOpL() );
+    TBool again( EFalse );
+    
+    TRAPD( err, again = ExecuteOpL() );
     
     if ( KErrNone != err )
         {
@@ -65,9 +78,16 @@
             "Error while executing delayed operation: %d.", err );
         }
     
-    //self-destroy.
-    iManager->DequeueOp( *this );
-    delete this;
+    if ( again )
+        {
+        StartOp();
+        }
+    else
+        {
+        //self-destroy.
+        iManager->DequeueOp( *this );
+        delete this;
+        }
     }
     
 /**
@@ -123,7 +143,7 @@ CDelayedOpsManager* CDelayedOpsManager::NewL( CBasePlugin& aPlugin )
     {
     iDelayedOps.AppendL( aOp );
     aOp->SetContext( iPlugin, *this );        
-    aOp->Call();
+    aOp->StartOp();
     }
     
 /**
@@ -231,63 +251,6 @@ CDelayedOpsManager* CDelayedOpsManager::NewL( CBasePlugin& aPlugin )
 /**
  * 
  */
-/*public virtual*/TBool CDelayedDeleteMessagesOp::DeleteMessagesInChunksL( TInt aStartIndex )
-    {
-    __LOG_ENTER( "DeleteMessagesInChunksL" );
-    TBool done=EFalse;
-    TInt endIndex;
-    if( aStartIndex + KSizeOfChunk < iMessages.Count() )
-        {
-            endIndex = aStartIndex + KSizeOfChunk;
-        }
-    else
-        {
-        endIndex = iMessages.Count();   
-        done=ETrue;
-        }
-    CMailboxInfo& mailBoxInfo
-        = GetPlugin().GetMailboxInfoL( iMailBoxId );
-    CMsgStoreMailBox& mailBox = mailBoxInfo();
-
-    for ( TInt i = aStartIndex; i < endIndex; ++i )
-        {
-        TMsgStoreId msgId = iMessages[i];
-        
-        if ( EFalse == iImmediateDelete )
-            {
-            //try to find the message in the deleted items folder.
-            CMsgStoreMessage* theMessage = NULL;
-            TRAP_IGNORE( theMessage = mailBox.FetchMessageL(
-              msgId, mailBoxInfo.iRootFolders.iFolders[EFSDeleted] ) );
-            
-            if ( NULL == theMessage )
-                {
-                //if not in deleted items then move it there.
-                __LOG_WRITE8_FORMAT1_INFO("Moving message 0x%X to the deleted items.", msgId );
-                mailBox.MoveMessageL(
-                   msgId, KMsgStoreInvalidId,
-                   mailBoxInfo.iRootFolders.iFolders[EFSDeleted] );
-                }
-            else
-                {
-                //in deleted items, really delete it.
-                __LOG_WRITE8_FORMAT1_INFO( "Deleting message 0x%X.", msgId );
-
-                delete theMessage;
-                mailBox.DeleteMessageL( msgId, iFolderId );
-                }
-            }
-        else
-            {
-            mailBox.DeleteMessageL( msgId, iFolderId );
-            }
-        }
-    __LOG_EXIT;
-    return done;    
-    }
-/**
- * 
- */
 /*private*/
 void CDelayedDeleteMessagesOp::ConstructL(
     const RArray<TFSMailMsgId>& aMessages )
@@ -320,33 +283,67 @@ void CDelayedDeleteMessagesOp::ConstructL(
     TMsgStoreId aMailBoxId,
     TMsgStoreId aFolderId )
     :
-    iMailBoxId( aMailBoxId ), iFolderId( aFolderId ),
-    iImmediateDelete( EFalse ), iState ( EFree )
+    iMailBoxId( aMailBoxId ), iFolderId( aFolderId )
     {
     }
 
 /**
  * 
  */
-/*private*/ void CDelayedDeleteMessagesOp::ExecuteOpL()
+/*private*/ TBool CDelayedDeleteMessagesOp::ExecuteOpL()
     {
     __LOG_ENTER( "ExecuteOpL" );
-    if ( iState != EFree )
+
+    //Maximum number of messages deleted in one go
+    const TInt KNumOfDeletesBeforeYield = 30;
+
+    TBool runAgain = ETrue;
+    TInt  endIndex = iIndex + KNumOfDeletesBeforeYield;
+
+    if( endIndex >= iMessages.Count() )
         {
-        //this code becomes re-entrant now because we use nested AS.
-        // so if we are already authenticating, return right away.
-        return;
+        endIndex = iMessages.Count();   
+        runAgain = EFalse;  // last time, no need to run again.
         }
-    iState=EInProgress;
-    CNestedAO* nestedAO = CNestedAO::NewL( *this );
-    //this is a blocking call with nested active scheduler
-    //This method makes a callback periodically to DeleteMessagesInChunks
-    //to delete the messages one chunk at a time
-    nestedAO->DeleteMessagesAsync();
-    //continue execution here
-    delete nestedAO;
-    iState = EFree;
+
+    CMailboxInfo& mailBoxInfo = GetPlugin().GetMailboxInfoL( iMailBoxId );
+    CMsgStoreMailBox& mailBox = mailBoxInfo();
+
+    for ( ; iIndex < endIndex; iIndex++ )
+        {
+        TMsgStoreId msgId = iMessages[iIndex];
+        
+        if ( EFalse == iImmediateDelete )
+            {
+            //try to find the message in the deleted items folder.
+            CMsgStoreMessage* theMessage = NULL;
+            TRAP_IGNORE( theMessage = mailBox.FetchMessageL(
+                    msgId, mailBoxInfo.iRootFolders.iFolders[ EFSDeleted ] ) );
+            
+            if ( NULL == theMessage )
+                {
+                //if not in deleted items then move it there.
+                __LOG_WRITE8_FORMAT1_INFO("Moving message 0x%X to the deleted items.", msgId );
+                mailBox.MoveMessageL( msgId, KMsgStoreInvalidId,
+                                      mailBoxInfo.iRootFolders.iFolders[ EFSDeleted ] );
+                }
+            else
+                {
+                //in deleted items, really delete it.
+                __LOG_WRITE8_FORMAT1_INFO( "Deleting message 0x%X.", msgId );
+
+                delete theMessage;
+                mailBox.DeleteMessageL( msgId, iFolderId );
+                }
+            }
+        else
+            {
+            mailBox.DeleteMessageL( msgId, iFolderId );
+            }
+        }
+
     __LOG_EXIT;
+    return runAgain;
     }
 
 
@@ -419,7 +416,7 @@ CDelayedSetContentOp* CDelayedSetContentOp::NewLC(
 /**
  * CDelayedOp::ExecuteOpL
  */
-/*public virtual*/ void CDelayedSetContentOp::ExecuteOpL()
+/*public virtual*/ TBool CDelayedSetContentOp::ExecuteOpL()
     {
     __LOG_ENTER( "ExecuteOpL" )
 
@@ -446,8 +443,10 @@ CDelayedSetContentOp* CDelayedSetContentOp::NewLC(
             "Updated the properties of part 0x%X.", part->Id() )
         }
     
-    CleanupStack::PopAndDestroy( part );    
+    CleanupStack::PopAndDestroy( part );
+
     __LOG_EXIT
+    return EFalse;
     }
 
 /**

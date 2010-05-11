@@ -21,7 +21,7 @@
 
 #include <e32cmn.h>
 #include <eikedwob.h>
-#include <aknscontrolcontext.h>
+#include <AknsControlContext.h>
 
 #include "cesmrfield.h"
 #include "nmrbitmapmanager.h"

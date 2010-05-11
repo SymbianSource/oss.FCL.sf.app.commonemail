@@ -117,7 +117,7 @@ void CESMRViewerDetailedSubjectField::ConstructL()
     FUNC_LOG;
     iFieldIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapOccasion );
     iFieldIcon->SetParent( this );
-    
+
     iRichTextViewer = CESMRRichTextViewer::NewL( this );
     CESMRField::ConstructL( iRichTextViewer ); // ownership transferred
     iRichTextViewer->SetEdwinSizeObserver( this );
@@ -143,17 +143,17 @@ void CESMRViewerDetailedSubjectField::SetTitlePaneObserver(
 TSize CESMRViewerDetailedSubjectField::MinimumSize()
     {
     TRect parentRect( Parent()->Rect() );
-    
-    TRect fieldRect = 
+
+    TRect fieldRect =
        NMRLayoutManager::GetFieldLayoutRect( parentRect, 1 ).Rect();
 
-    TRect viewerRect( NMRLayoutManager::GetLayoutText( 
-       fieldRect, 
+    TRect viewerRect( NMRLayoutManager::GetLayoutText(
+       fieldRect,
        NMRLayoutManager::EMRTextLayoutTextEditor ).TextRect() );
-    
+
     // Adjust field size so that there's room for expandable editor.
     fieldRect.Resize( 0, iSize.iHeight - viewerRect.Height() );
-    
+
     return fieldRect.Size();
     }
 
@@ -166,13 +166,13 @@ void CESMRViewerDetailedSubjectField::InitializeL()
     {
     FUNC_LOG;
     // Setting Font for the rich text viewer
-    TAknLayoutText text = NMRLayoutManager::GetLayoutText( 
-            Rect(), 
+    TAknLayoutText text = NMRLayoutManager::GetLayoutText(
+            Rect(),
             NMRLayoutManager::EMRTextLayoutTextEditor );
-    
+
     iRichTextViewer->SetFontL( text.Font() );
     iRichTextViewer->ApplyLayoutChangesL();
-        
+
     // This is called so theme changes will apply when changing theme "on the fly"
     if ( IsFocused() )
         {
@@ -193,24 +193,24 @@ void CESMRViewerDetailedSubjectField::InternalizeL(
             aEntry.Type() );
 
     CCalEntry& entry = aEntry.Entry();
- 
+
     if( !IsLocked() )
     	{
     	if( entry.PriorityL() == EFSCalenMRPriorityHigh )
     		{
-    		iPriorityIcon = CMRImage::NewL( 
+    		iPriorityIcon = CMRImage::NewL(
     				NMRBitmapManager::EMRBitmapPriorityHigh, ETrue );
     		iPriorityIcon->SetParent( this );
     		}
     	if( entry.PriorityL() == EFSCalenMRPriorityLow )
     		{
-    		iPriorityIcon = CMRImage::NewL( 
+    		iPriorityIcon = CMRImage::NewL(
     				NMRBitmapManager::EMRBitmapPriorityLow, ETrue );
     		iPriorityIcon->SetParent( this );
     		}
     	}
-    
-    
+
+
     if ( MESMRCalEntry::EESMRCalEntryMeetingRequest == entryType )
         {
         MESMRMeetingRequestEntry* mrEntry =
@@ -261,14 +261,14 @@ void CESMRViewerDetailedSubjectField::InternalizeL(
 
     // if the entry isn't anniversary let's change the icon.
     if ( CCalEntry::EAnniv  != aEntry.Entry().EntryTypeL() )
-        {               	
+        {
         delete iFieldIcon;
         iFieldIcon = NULL;
 
         iFieldIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapSubject );
         iFieldIcon->SetParent( this );
 
-        DrawDeferred();                
+        DrawDeferred();
         }
     iDisableRedraw = ETrue;
     }
@@ -290,22 +290,22 @@ TKeyResponse CESMRViewerDetailedSubjectField::OfferKeyEventL(
 // ---------------------------------------------------------------------------
 //
 TBool CESMRViewerDetailedSubjectField::HandleEdwinSizeEventL(
-        CEikEdwin* aEdwin, 
-        TEdwinSizeEvent /*aType*/, 
+        CEikEdwin* aEdwin,
+        TEdwinSizeEvent /*aType*/,
         TSize aSize )
     {
     FUNC_LOG;
     TBool reDraw( EFalse );
-       
+
     // Let's save the required size for the iRichTextViewer
     iSize = aSize;
-    
+
     if ( iObserver && aEdwin == iRichTextViewer )
        {
        iObserver->ControlSizeChanged( this );
        reDraw = ETrue;
        }
-    
+
     return reDraw;
     }
 
@@ -337,12 +337,12 @@ TBool CESMRViewerDetailedSubjectField::ExecuteGenericCommandL( TInt aCommand )
         iRichTextViewer->LinkSelectedL();
         isUsed = ETrue;
         }
-    else if ( aCommand == EAknCmdOpen )    	
-    	{            
+    else if ( aCommand == EAknCmdOpen )
+    	{
     	if ( IsLocked() )
     		{
 			HandleTactileFeedbackL();
-			
+
     		CESMRGlobalNote::ExecuteL(
     				CESMRGlobalNote::EESMRUnableToEdit );
     		isUsed = ETrue;
@@ -360,12 +360,12 @@ void CESMRViewerDetailedSubjectField::SetOutlineFocusL( TBool aFocus )
     FUNC_LOG;
     CESMRField::SetOutlineFocusL ( aFocus );
     iRichTextViewer->SetFocus( aFocus );
-    
+
     if( aFocus )
         {
         SetMiddleSoftkeyL();
         }
-    
+
     else
         {
         //need to tell action menu that focus has changed
@@ -382,7 +382,7 @@ void CESMRViewerDetailedSubjectField::GetCursorLineVerticalPos(
         TInt& aLower )
     {
     FUNC_LOG;
-    
+
     aLower = iRichTextViewer->CurrentLineNumber() * iRichTextViewer->RowHeight();
     aUpper = aLower - iRichTextViewer->RowHeight();
     }
@@ -395,7 +395,7 @@ void CESMRViewerDetailedSubjectField::HandleLongtapEventL(
         const TPoint& aPosition )
     {
     FUNC_LOG;
-    
+
     if ( iRichTextViewer->Rect().Contains( aPosition ) )
         {
         iRichTextViewer->LinkSelectedL();
@@ -413,9 +413,9 @@ void CESMRViewerDetailedSubjectField::LockL()
 		{
 		return;
 		}
-	
+
 	CESMRField::LockL();
-	
+
 	delete iPriorityIcon;
 	iPriorityIcon = NULL;
 	iPriorityIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapLockField, ETrue );
@@ -445,7 +445,7 @@ void CESMRViewerDetailedSubjectField::SetMiddleSoftkeyL()
         }
     }
 
-    
+
 // ---------------------------------------------------------------------------
 // CESMRViewerDetailedSubjectField::HandleRichTextLinkSelection
 // ---------------------------------------------------------------------------
@@ -456,7 +456,7 @@ TBool CESMRViewerDetailedSubjectField::HandleRichTextLinkSelection(
     TBool result = EFalse;
 
     // No implementation yet: waiting for UI spec.
-    
+
     return result;
     }
 
@@ -476,12 +476,12 @@ TInt CESMRViewerDetailedSubjectField::CountComponentControls() const
         {
         ++count;
         }
-    
+
     if ( iPriorityIcon )
         {
         ++count;
         }
-    
+
     return count;
     }
 
@@ -489,7 +489,7 @@ TInt CESMRViewerDetailedSubjectField::CountComponentControls() const
 // CESMRViewerDetailedSubjectField::ComponentControl
 // ---------------------------------------------------------------------------
 //
-CCoeControl* CESMRViewerDetailedSubjectField::ComponentControl( 
+CCoeControl* CESMRViewerDetailedSubjectField::ComponentControl(
         TInt aIndex ) const
     {
     switch ( aIndex )
@@ -500,7 +500,7 @@ CCoeControl* CESMRViewerDetailedSubjectField::ComponentControl(
             return iRichTextViewer;
         case 2:
             return iPriorityIcon;
-            
+
         default:
             return NULL;
         }
@@ -516,24 +516,24 @@ void CESMRViewerDetailedSubjectField::SizeChanged( )
     TInt richTextViewerWidth = iRichTextViewer->Size().iWidth;
     TRect rect( Rect() );
 
-    TAknLayoutRect rowLayoutRect( 
+    TAknLayoutRect rowLayoutRect(
             NMRLayoutManager::GetFieldRowLayoutRect( rect, 1 ) );
     TRect rowRect( rowLayoutRect.Rect() );
-    
+
     // Layouting field icon
     if( iFieldIcon )
         {
-        TAknWindowComponentLayout iconLayout( 
-            NMRLayoutManager::GetWindowComponentLayout( 
+        TAknWindowComponentLayout iconLayout(
+            NMRLayoutManager::GetWindowComponentLayout(
                     NMRLayoutManager::EMRLayoutSingleRowAColumnGraphic ) );
         AknLayoutUtils::LayoutControl( iFieldIcon, rowRect, iconLayout );
         }
-    
+
     // Layouting priority icon
     if( iPriorityIcon )
         {
-        TAknWindowComponentLayout iconLayout( 
-                NMRLayoutManager::GetWindowComponentLayout( 
+        TAknWindowComponentLayout iconLayout(
+                NMRLayoutManager::GetWindowComponentLayout(
                     NMRLayoutManager::EMRLayoutSingleRowDColumnGraphic ) );
         AknLayoutUtils::LayoutImage( iPriorityIcon, rowRect, iconLayout );
         }
@@ -542,32 +542,32 @@ void CESMRViewerDetailedSubjectField::SizeChanged( )
 
     if( iPriorityIcon )
         {
-        viewerLayoutText = NMRLayoutManager::GetLayoutText( rowRect, 
+        viewerLayoutText = NMRLayoutManager::GetLayoutText( rowRect,
                     NMRLayoutManager::EMRTextLayoutSingleRowEditorText );
         }
     else
         {
-        viewerLayoutText = NMRLayoutManager::GetLayoutText( rowRect, 
+        viewerLayoutText = NMRLayoutManager::GetLayoutText( rowRect,
                     NMRLayoutManager::EMRTextLayoutTextEditor );
         }
-    
+
     // Layouting viewer field
     TRect viewerRect( viewerLayoutText.TextRect() );
 
     // Resize height according to actual height required by edwin.
     viewerRect.Resize( 0, iSize.iHeight - viewerRect.Height() );
-    iRichTextViewer->SetRect( viewerRect );  
-        
+    iRichTextViewer->SetRect( viewerRect );
+
     // Layouting focus
-    TRect bgRect( viewerRect );    
-    
+    TRect bgRect( viewerRect );
+
     // Move focus rect so that it's relative to field's position.
     bgRect.Move( -Position() );
     SetFocusRect( bgRect );
-    
-    // Failures are ignored. 
-    TRAP_IGNORE( 
-            // Try setting font 
+
+    // Failures are ignored.
+    TRAP_IGNORE(
+            // Try setting font
             iRichTextViewer->SetFontL( viewerLayoutText.Font() );
             // Try applying changes
             iRichTextViewer->ApplyLayoutChangesL();
@@ -575,8 +575,8 @@ void CESMRViewerDetailedSubjectField::SizeChanged( )
 
     if ( iRichTextViewer->Size().iWidth != richTextViewerWidth )
         {
-        // Most of this case is screen orientation, in this case we need to 
-        // Record the index of focusing link, after updating link array, then 
+        // Most of this case is screen orientation, in this case we need to
+        // Record the index of focusing link, after updating link array, then
         // reset the focusing to original one.
         TInt focusingIndex = iRichTextViewer->GetFocusLink();
         if ( KErrNotFound != focusingIndex )
@@ -592,12 +592,33 @@ void CESMRViewerDetailedSubjectField::SizeChanged( )
 // CESMRViewerDetailedSubjectField::SetContainerWindowL
 // ---------------------------------------------------------------------------
 //
-void CESMRViewerDetailedSubjectField::SetContainerWindowL( 
+void CESMRViewerDetailedSubjectField::SetContainerWindowL(
         const CCoeControl& aContainer )
     {
     CCoeControl::SetContainerWindowL( aContainer );
-    iRichTextViewer->SetContainerWindowL( aContainer );    
+    iRichTextViewer->SetContainerWindowL( aContainer );
     iRichTextViewer->SetParent( this );
     }
+
+// ---------------------------------------------------------------------------
+// CESMRViewerDetailedSubjectField::SupportsLongTapFunctionalityL
+// ---------------------------------------------------------------------------
+//
+TBool CESMRViewerDetailedSubjectField::SupportsLongTapFunctionalityL(
+		const TPointerEvent &aPointerEvent )
+	{
+    FUNC_LOG;
+    TBool ret( EFalse );
+
+    if ( iRichTextViewer->Rect().Contains( aPointerEvent.iPosition ) )
+        {
+        if( iRichTextViewer->PointerEventOccuresOnALinkL( aPointerEvent ) )
+        	{
+			ret = ETrue;
+        	}
+        }
+
+    return ret;
+	}
 
 //EOF

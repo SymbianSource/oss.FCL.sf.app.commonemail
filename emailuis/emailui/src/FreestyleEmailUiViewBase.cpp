@@ -277,7 +277,19 @@ void CFsEmailUiViewBase::DoDeactivate()
     }
 
 // ---------------------------------------------------------------------------
+// virtual function to hide or show CAlfVisuals ( used for activation or deactivation )
+//
+void CFsEmailUiViewBase::FadeOut(TBool aDirectionOut )
+	{
+	FUNC_LOG;
+    // should be overriden ( if needed ) to use polymorphism 
+	// to hide or show CAlfVisuals used in views
+	}
+
+
+// ---------------------------------------------------------------------------
 // Check if transition effects are enabled and run the effect if needed.
+// if not enabled it calls FadeOut virtual methods only 
 //
 void CFsEmailUiViewBase::DoTransition( TBool aDirectionOut )
     {
@@ -286,6 +298,11 @@ void CFsEmailUiViewBase::DoTransition( TBool aDirectionOut )
         {
         DoTransitionEffect( aDirectionOut );
         }
+    else
+        {
+    	// FadeOut method should be overridden and use by polymorphism only when needed 
+    	FadeOut( aDirectionOut ); // used for hide/show visuals without transition time
+    	}
     }
 
 // ---------------------------------------------------------------------------

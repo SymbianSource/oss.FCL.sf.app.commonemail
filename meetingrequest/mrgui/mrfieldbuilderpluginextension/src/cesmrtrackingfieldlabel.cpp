@@ -27,7 +27,7 @@
 #include <avkon.hrh>
 #include <caluser.h>
 #include <calentry.h>
-#include <stringloader.h>
+#include <StringLoader.h>
 #include <esmrgui.rsg>
 
 // ======== MEMBER FUNCTIONS ========
@@ -76,11 +76,7 @@ void CESMRTrackingFieldLabel::ConstructL( )
 void CESMRTrackingFieldLabel::InitializeL()
     {
     FUNC_LOG;
-    // TODO: Do not use old layout manager anymore
-    //iTitleSize = iLayout->FieldSize ( EESMRFieldAttendeeLabel );
-    
-    // TODO: use XML Data
-    //iTitle->SetFont( iLayout->Font (iCoeEnv, EESMRFieldAttendeeLabel ) );
+
     }
 
 // ---------------------------------------------------------------------------

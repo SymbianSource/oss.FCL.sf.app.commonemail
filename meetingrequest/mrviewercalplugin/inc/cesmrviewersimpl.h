@@ -20,7 +20,7 @@
 #define CESMRVIEWERSIMPL_H		
 
 //  INCLUDES
-#include <cmrviewers.h>
+#include <CMRViewers.h>
 #include <e32base.h>
 
 // FORWARD DECLARATIONS

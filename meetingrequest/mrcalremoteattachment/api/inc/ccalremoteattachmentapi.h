@@ -79,7 +79,7 @@ private:
         TUid iDtor_ID_Key;	
 	};
 
-#include <ccalremoteattachmentapi.inl>
+#include "ccalremoteattachmentapi.inl"
 	
 #endif // CCALREMOTEATTACHMENTAPI_H
 

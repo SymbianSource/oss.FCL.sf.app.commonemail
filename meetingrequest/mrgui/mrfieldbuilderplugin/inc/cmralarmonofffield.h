@@ -19,7 +19,7 @@
 #ifndef CMRALARMONOFFFIELD_H
 #define CMRALARMONOFFFIELD_H
 
-#include "CESMRfield.h"
+#include "cesmrfield.h"
 #include "mmrabsolutealarmcontroller.h"
 
 class CMRLabel;

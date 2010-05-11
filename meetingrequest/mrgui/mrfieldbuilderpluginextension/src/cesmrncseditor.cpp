@@ -22,13 +22,13 @@
 #include <avkon.hrh>
 #include <aknenv.h>         // CAknEnv
 #include <txtrich.h>
-#include <aknutils.h>       // AknLayoutUtils
+#include <AknUtils.h>       // AknLayoutUtils
 #include <txtglobl.h>
 
-#include <aknsconstants.h>
-#include <aknsutils.h>
-#include <aknsskininstance.h>
-#include <aknsbasicbackgroundcontrolcontext.h>
+#include <AknsConstants.h>
+#include <AknsUtils.h>
+#include <AknsSkinInstance.h>
+#include <AknsBasicBackgroundControlContext.h>
 
 
 // ======== MEMBER FUNCTIONS ========

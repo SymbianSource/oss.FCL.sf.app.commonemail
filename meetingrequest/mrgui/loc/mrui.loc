@@ -1246,7 +1246,7 @@
 // l: fscal_editor_field_text_2
 // r: TB9.2
 //
-#define qtn_meet_req_attachment_file_less_than_kilobyte "%0U (< 1 kB)"
+#define qtn_meet_req_attachment_file_less_than_kilobyte "%0U (Max. 1 kB)"
 
 // d: Heading text for forwarding this occurence or series list popup query
 // l: heading_pane_t1

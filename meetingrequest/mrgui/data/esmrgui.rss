@@ -22,9 +22,9 @@ NAME MRGD
 #include <avkon.rh>
 #include <avkon.rsg>
 #include <avkon.loc>
-#include <aiwcommon.rh>
-#include <aiwgenericparam.hrh>
-#include <aiwcommon.hrh> // for service commands
+#include <AiwCommon.rh>
+#include <AiwGenericParam.hrh>
+#include <AiwCommon.hrh> // for service commands
 
 #include <esmrgui.mbg>
 #include <mrui.loc>

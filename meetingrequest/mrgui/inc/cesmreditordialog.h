@@ -18,9 +18,9 @@
 #ifndef CESMREDITORDIALOG_H
 #define CESMREDITORDIALOG_H
 
-#include <akndialog.h>
+#include <AknDialog.h>
 #include <akntoolbarobserver.h>
-#include <aknserverapp.h>
+#include <AknServerApp.h>
 #include "mesmruibase.h"
 #include "mesmrresponseobserver.h"
 #include "mesmrfieldeventobserver.h"
@@ -263,7 +263,6 @@ private:
      * Indicates if location has been modified.
      */
     TBool iLocationModified;
-    // TODO: Take this into use when implementing the toolbar
     /// Own: Toolbar handler
     CMRToolbar* iToolbar;
     

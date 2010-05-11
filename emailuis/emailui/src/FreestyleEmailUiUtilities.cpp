@@ -1522,6 +1522,7 @@ TBool TFsEmailUiUtility::HasUnfetchedAttachmentsL( CFSMailMessage& aMsg )
 	{
     FUNC_LOG;
 	RPointerArray<CFSMailMessagePart> attachments;
+	CleanupResetAndDestroyClosePushL( attachments );
 	aMsg.AttachmentListL( attachments );
 	TBool found = EFalse;
 	for ( TInt i=0; i<attachments.Count(); i++ )
@@ -1532,7 +1533,7 @@ TBool TFsEmailUiUtility::HasUnfetchedAttachmentsL( CFSMailMessage& aMsg )
 			break;
 			}
 		}
-	attachments.ResetAndDestroy();
+	CleanupStack::PopAndDestroy( &attachments);
 	return found;
 	}
 

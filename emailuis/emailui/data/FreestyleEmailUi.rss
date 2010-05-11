@@ -1548,7 +1548,6 @@ RESOURCE MENU_PANE r_fsemailui_maillist_menupane
           MENU_ITEM { command = EFsEmailUiCmdActionsForward; txt = qtn_fse_message_list_options_forward; },
           MENU_ITEM { command = EFsEmailUiCmdMailActions; txt = qtn_cmail_message_list_options_actions; cascade=r_fsemailui_maillist_submenu_mail_actions;},
           MENU_ITEM { command = EFsEmailUiCmdSync; txt = qtn_cmail_message_list_options_send_receive; },
-          MENU_ITEM { command = EFsEmailUiCmdCancelSync; txt = qtn_fse_launcher_options_cancel_sync; },  
           MENU_ITEM { command = EFsEmailUiCmdMarkingMode; txt = qtn_fse_message_list_options_mark; },
           MENU_ITEM { command = EFsEmailUiCmdSettings; txt = qtn_fse_message_list_options_settings; },
           MENU_ITEM { command = EFsEmailUiCmdHelp; txt = qtn_options_help; },
@@ -1941,11 +1940,6 @@ RESOURCE MENU_PANE r_fsemailui_folderlist_menupane
     items =
         {
         MENU_ITEM { command = EFsEmailUiCmdSelect; txt = text_softkey_select; },
-        MENU_ITEM { command = EFsEmailUiCmdGoOnline; txt = qtn_fse_launcher_options_go_online; },
-        MENU_ITEM { command = EFsEmailUiCmdGoOffline; txt = qtn_fse_launcher_options_go_offline; },
-        MENU_ITEM { command = EFsEmailUiCmdActionsCollapseAll; txt = qtn_fse_message_list_options_collapse_all; },
-        MENU_ITEM { command = EFsEmailUiCmdActionsExpandAll; txt = qtn_fse_message_list_options_expand_all; },
-        MENU_ITEM { command = EFsEmailUiCmdSettings; txt = qtn_fse_folder_list_options_folder_settings; },
         MENU_ITEM { command = EFsEmailUiCmdHelp; txt = qtn_options_help; },
         MENU_ITEM { command = EFsEmailUiCmdExit; txt = qtn_options_exit; }
         };

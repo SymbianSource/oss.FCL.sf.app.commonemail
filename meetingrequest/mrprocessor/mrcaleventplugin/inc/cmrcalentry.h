@@ -22,7 +22,7 @@
 #include <e32base.h>
 #include <e32std.h>
 #include <caltime.h>
-#include <magnentryui.h>
+#include <MAgnEntryUi.h>
 #include "mesmrcalentry.h"
 
 class CCalEntry;

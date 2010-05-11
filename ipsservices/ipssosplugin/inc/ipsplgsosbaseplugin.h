@@ -42,6 +42,7 @@ class CIpsSetDataApi;
 class CIpsPlgSmtpService;
 class CIpsPlgSyncStateHandler;
 class CIpsPlgEventHandler;
+class CIpsPlgOperationWait;
 
 /**
  *  FreestyleIpsServices plugin class
@@ -611,8 +612,15 @@ private:
             const TFSMailMsgId& aMailBoxId,
             const TFSMailMsgId& aOriginalMessageId,
             const TDesC& aHeaderDescriptor );
-    
-private:
+
+    /**
+     * Resolves the possible signature text to be added to message body.
+     * 
+     * @return Pointer to the descriptor containing the signature text, or
+     *         NULL if signature adding is not set or signature text is
+     *         of zero length. Ownership to caller.
+     */
+    HBufC* ResolveSignatureTextL( const TFSMailMsgId& aMailBoxId );
 
     /**
     * Maps symbian msv api's folder type to fs folder type
@@ -712,6 +720,10 @@ protected:
     // <cmail> delete draft synchronously
     CActiveSchedulerWait iWait;
 	// </cmail>
+    
+    CIpsPlgOperationWait* iWaitDeleteMessage;
+    CMsvEntry* icEntry;
+    CMsvOperation* iMsvOpDeleteMessage;
 	};
 
 #endif /* IPSPLGSOSBASEPLUGIN_H */

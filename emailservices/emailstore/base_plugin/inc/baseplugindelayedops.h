@@ -68,22 +68,25 @@ public:
  * The base class for the delayed operations. All of the delayed operations must
  * derive from it.
  */
-class CDelayedOp : public CAsyncOneShot
+class CDelayedOp : public CActive
     {
 
 public:
-    
+
     IMPORT_C virtual ~CDelayedOp();
     
     IMPORT_C void SetContext(
         CBasePlugin& aPlugin,
         MDelayedOpsManager& aManager );
-    
+
+    IMPORT_C void StartOp();
+
     /**
      * Derived classes must implement their asynchronous processing in this
      * method. The GetPlugin method can only be used from within this method.
+     * Returns boolean: ETrue if op is yielding and needs to be called again, or EFalse if op is done.
      */
-    virtual void ExecuteOpL() = 0;
+    virtual TBool ExecuteOpL() = 0;
 
 protected:
     

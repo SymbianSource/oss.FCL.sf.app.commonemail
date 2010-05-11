@@ -19,27 +19,25 @@
 #include "cesmrsendui.h"
 #include "esmrvcalexport.h"
 
-#include <caleninterimutils2.h>
+#include <CalenInterimUtils2.h>
 #include <eikenv.h>
-#include <msgbiouids.h>
+#include <MsgBioUids.h>
 #include <sendui.h>
-#include <tsendingcapabilities.h>
-#include <cmessagedata.h>
-#include <cmessageaddress.h>
-#include <senduiconsts.h>
+#include <TSendingCapabilities.h>
+#include <CMessageData.h>
+#include <CMessageAddress.h>
+#include <SendUiConsts.h>
 #include <sysutil.h>
 #include <txtrich.h>
 #include <calsession.h>
-//<cmail> hardcoded paths removal
 #include <pathinfo.h>
-//</cmail>
 
 // Unnamed namespace for local definitions
 namespace {
-//<cmail> hardcoded paths removal from cmail
+
 _LIT( KVCalAttachmentFile, 
 	  "\\private\\10005901\\Calendar.vcs" );
-//</cmail>
+
 
 _LIT( KCalendarDatabaseFilePath, "c:Calendar" );
 
@@ -186,15 +184,13 @@ EXPORT_C void CESMRSendUI::SendAsVCalendarL(
         User::LeaveIfError( fs.Connect() );
         CleanupClosePushL( fs );
         // must share the handle between processes
-        User::LeaveIfError( fs.ShareProtected() );
-        //<cmail> hardcoded paths removal from cmail
+        User::LeaveIfError( fs.ShareProtected() );        
         TFileName fileName(PathInfo::PhoneMemoryRootPath().Left(2));
         fileName.Append(KVCalAttachmentFile);
         fs.MkDirAll(fileName);
-        //</cmail>
         RFile file;
-        User::LeaveIfError(file.Replace(//<cmail>
-					fs,fileName,EFileWrite | EFileShareAny ));//</cmail>
+        User::LeaveIfError(file.Replace(
+					fs,fileName,EFileWrite | EFileShareAny ));
         CleanupClosePushL(file);
         TInt spaceNeeded = vcal->Size();
         if ( SysUtil::FFSSpaceBelowCriticalLevelL( &fs, spaceNeeded ) )
@@ -205,8 +201,8 @@ EXPORT_C void CESMRSendUI::SendAsVCalendarL(
 
         User::LeaveIfError(file.Write(*vcal));
 
-        TParse parse;//<cmail>
-        User::LeaveIfError(parse.SetNoWild(fileName,//</cmail>
+        TParse parse;
+        User::LeaveIfError(parse.SetNoWild(fileName,
                                            NULL, NULL));
 
         TRAPD(err, DoSendAsAttachmentHandleL(file));

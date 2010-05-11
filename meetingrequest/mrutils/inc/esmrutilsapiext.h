@@ -18,7 +18,7 @@
 #ifndef ESMRUTILSAPIEXT_H
 #define ESMRUTILSAPIEXT_H
 
-#include <cmrutils.h>
+#include <CMRUtils.h>
 
 /**
  * Extension API query function.

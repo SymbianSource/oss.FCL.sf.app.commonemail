@@ -293,7 +293,9 @@ private: // data
     // array of mailboxes
     RArray<TFSMailMsgId>      iMailboxArray;
     // Internal configuration data
-    TInt32                    iConfigData; 
+    TInt32                    iConfigData;
+    // large buffer for reading cenrep data
+    TBuf<KMaxFileName>        iCenrepText;
     };
 
 #endif /*CMAILCPSSETTINGS_H_*/

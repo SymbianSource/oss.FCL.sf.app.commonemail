@@ -400,7 +400,6 @@ RESOURCE BRANDING_DATA r_branding_data
 
                             brand_id_match_strings =
                                 {
-                                BRAND_MATCH_STRING { text = "btinternet.com"; },
                                 BRAND_MATCH_STRING { text = "btopenworld.com"; },
                                 BRAND_MATCH_STRING { text = "talk21.com"; }
                                 };
@@ -423,6 +422,19 @@ RESOURCE BRANDING_DATA r_branding_data
                                 red = 0xff; green = 0x30; blue = 0x20; alpha = 0xff; }
                                 };
                             },
+                        BRAND {
+                            // Definition of btinternet.com brand with default icon   
+                            brand_id_match_strings =
+                                {
+                                BRAND_MATCH_STRING { text = "btinternet.com"; }
+                                };
+                                
+                            texts = 
+                                {
+                                 BRANDABLE_TEXT { id = EFSMailboxName; text = "BT Internet"; }
+                                };
+                            },
+
 
                             BRAND {
                                 // Definition of ... Yahoo! Mail brand   

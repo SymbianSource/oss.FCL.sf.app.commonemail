@@ -18,7 +18,7 @@
 #include "cmrbackground.h"
 
 #include "nmrglobalfeaturesettings.h"
-#include <aknutils.h>
+#include <AknUtils.h>
 
 
 // unnamed namespace for local definitions
@@ -121,15 +121,6 @@ EXPORT_C void CMRBackground::Draw(
                     }
                 }
             }
-        // TODO: Need to be removed after ui designer says that it can be removed.
-    //    else
-    //        {
-    //        if( ctrl.FieldMode() == EESMRFieldModeEdit )
-    //            {
-    //            // Not focused editor field
-    //            DrawFocus( aGc, rect, aControl, EEditorFieldNoFocus );
-    //            }
-    //        }
         }
     }
 

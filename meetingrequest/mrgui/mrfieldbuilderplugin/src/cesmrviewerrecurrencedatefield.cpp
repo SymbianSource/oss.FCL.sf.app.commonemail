@@ -28,8 +28,8 @@
 #include <eikenv.h>
 #include <avkon.rsg>
 #include <avkon.hrh>
-#include <stringloader.h>
-#include <aknutils.h>
+#include <StringLoader.h>
+#include <AknUtils.h>
 #include <esmrgui.rsg>
 #include <caltime.h>
 // DEBUG

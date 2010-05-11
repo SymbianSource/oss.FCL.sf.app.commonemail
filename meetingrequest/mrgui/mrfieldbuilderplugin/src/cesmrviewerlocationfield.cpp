@@ -235,19 +235,6 @@ TBool CESMRViewerLocationField::ExecuteGenericCommandL( TInt aCommand )
 
             break;
             }
-        case EAknCmdOpen:
-            {
-            // Open command is handled only when field is locked
-            if ( IsLocked() )
-            	{
-				HandleTactileFeedbackL();
-
-            	CESMRGlobalNote::ExecuteL(
-            			CESMRGlobalNote::EESMRUnableToEdit );
-            	isUsed = ETrue;
-            	}
-            break;
-            }
         default:
             {
             break;
@@ -406,8 +393,8 @@ void CESMRViewerLocationField::SizeChanged( )
 
     if ( iRichTextViewer->Size().iWidth != richTextViewerWidth )
         {
-        // Most of this case is screen orientation, in this case we need to 
-        // Record the index of focusing link, after updating link array, then 
+        // Most of this case is screen orientation, in this case we need to
+        // Record the index of focusing link, after updating link array, then
         // reset the focusing to original one.
         TInt focusingIndex = iRichTextViewer->GetFocusLink();
         if ( KErrNotFound != focusingIndex )
@@ -416,7 +403,7 @@ void CESMRViewerLocationField::SizeChanged( )
             //wake up current contact menu selection by calling this
             iRichTextViewer->FocusChanged(ENoDrawNow);
             }
-        }  
+        }
     }
 
 // ---------------------------------------------------------------------------
@@ -565,30 +552,39 @@ TBool CESMRViewerLocationField::HandleTapEventL( const TPoint& aPosition )
 	{
 	TBool ret( EFalse );
 
-	if( iLocked )
+	// Button events are handled by HandleControlEvent.
+	// Tap on link is handled by rich text viewer.
+	if ( !iFieldButton->Rect().Contains( aPosition )
+		 && !iRichTextViewer->GetSelectedLink() )
 		{
 		HandleTactileFeedbackL();
 
-		CESMRGlobalNote::ExecuteL(
-			CESMRGlobalNote::EESMRUnableToEdit );
+		NotifyEventL( EAknSoftkeyContextOptions );
 
-		// Field locked, let's consume the event
+		// Event is always consumed, if we come inside this if-clause
 		ret = ETrue;
 		}
-	else
-		{
-		// Button events are handled by HandleControlEvent.
-		// Tap on link is handled by rich text viewer.
-		if ( !iFieldButton->Rect().Contains( aPosition )
-		     && !iRichTextViewer->GetSelectedLink() )
-			{
-			NotifyEventL( EAknSoftkeyContextOptions );
 
+    return ret;
+	}
+
+// ---------------------------------------------------------------------------
+// CESMRViewerLocationField::SupportsLongTapFunctionalityL
+// ---------------------------------------------------------------------------
+//
+TBool CESMRViewerLocationField::SupportsLongTapFunctionalityL(
+		const TPointerEvent &aPointerEvent )
+	{
+    FUNC_LOG;
+    TBool ret( EFalse );
+
+    if ( iRichTextViewer->Rect().Contains( aPointerEvent.iPosition ) )
+        {
+        if( iRichTextViewer->PointerEventOccuresOnALinkL( aPointerEvent ) )
+        	{
 			ret = ETrue;
-
-			HandleTactileFeedbackL();
-			}
-		}
+        	}
+        }
 
     return ret;
 	}

@@ -24,7 +24,7 @@
 #include "cmrbcpluginnewcaleventcommand.h"
 
 #include <calenservices.h>
-#include <caleninterimutils2.h>
+#include <CalenInterimUtils2.h>
 #include <calencommands.hrh>
 #include <calenlauncher.h>
 #include "emailtrace.h"

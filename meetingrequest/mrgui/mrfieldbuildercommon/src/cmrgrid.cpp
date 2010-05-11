@@ -21,17 +21,17 @@
 #include "nmrlayoutmanager.h"
 #include "esmrhelper.h"
 
-#include <stringloader.h>
-#include <akniconarray.h>
-#include <akngrid.h>
-#include <akngridm.h>
+#include <StringLoader.h>
+#include <AknIconArray.h>
+#include <AknGrid.h>
+#include <AknGridM.h>
 #include <aknlists.h>
-#include <aknutils.h>
-#include <aknpopup.h>
+#include <AknUtils.h>
+#include <aknPopup.h>
 #include <avkon.hrh>
 #include <e32base.h>
 #include <gulicon.h>
-#include <aknlayout2scalabledef.h> 
+#include <AknLayout2ScalableDef.h> 
 #include <esmrgui.mbg>
 #include <esmrgui.rsg>
 #include <data_caging_path_literals.hrh>
@@ -235,7 +235,6 @@ TBool CMRGrid::ShowGridL( TInt& aSelectedOption )
     
     // The order of the items should be in line with 
     // CMRAttachmentUi::ResolveAttachmentTypeL switch case items.
-    // TODO: update texts to be read from resource
     HBufC* textImage = StringLoader::LoadLC( 
             R_QTN_MEET_REQ_ATTACHMENT_TYPE_IMAGE );
     gridItemArray->AppendL( _L("0\tImage") /*textImage*/ );

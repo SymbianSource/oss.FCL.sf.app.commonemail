@@ -54,7 +54,7 @@ NONSHARABLE_CLASS( CESMRViewerLocationField ): public CESMRField,
          */
         ~CESMRViewerLocationField( );
 
-    public:// From CESMRField
+    protected:// From CESMRField
         void InternalizeL( MESMRCalEntry& aEntry );
         TSize MinimumSize();
         void InitializeL();
@@ -64,10 +64,13 @@ NONSHARABLE_CLASS( CESMRViewerLocationField ): public CESMRField,
         void HandleLongtapEventL( const TPoint& aPosition );
         void DynInitMenuPaneL( TInt aResourceId, CEikMenuPane* aMenuPane );
         void LockL();
+        TBool SupportsLongTapFunctionalityL(
+            		 const TPointerEvent &aPointerEvent );
+
     protected:
 		TBool HandleSingletapEventL( const TPoint& aPosition );
 
-    public: // From CCoeControl
+    protected: // From CCoeControl
         TKeyResponse OfferKeyEventL(const TKeyEvent& aEvent, TEventCode aType );
         TInt CountComponentControls() const;
         CCoeControl* ComponentControl( TInt aInd ) const;
@@ -75,11 +78,11 @@ NONSHARABLE_CLASS( CESMRViewerLocationField ): public CESMRField,
         void SetContainerWindowL( const CCoeControl& aContainer );
         void GetCursorLineVerticalPos(TInt& aUpper, TInt& aLower);
 
-    public: // From MEikEdwinSizeObserver
+    protected: // From MEikEdwinSizeObserver
         TBool HandleEdwinSizeEventL( CEikEdwin* aEdwin, TEdwinSizeEvent aType,
                 TSize aSize );
 
-    public: // From MCoeControlObserver
+    protected: // From MCoeControlObserver
         void HandleControlEventL(CCoeControl* aControl,TCoeEvent aEventType);
 
     private: // Implementation

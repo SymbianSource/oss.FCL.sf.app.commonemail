@@ -39,7 +39,7 @@
 #include <calentry.h>
 #include <caluser.h>
 #include <calalarm.h>
-#include <caleninterimutils2.h>
+#include <CalenInterimUtils2.h>
 #include <utf.h>
 
 // Unnamed namespace for local definitions and functions

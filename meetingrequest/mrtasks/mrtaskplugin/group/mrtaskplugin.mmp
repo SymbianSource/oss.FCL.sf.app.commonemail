@@ -59,8 +59,6 @@ USERINCLUDE             ../../../../inc
 
 APP_LAYER_SYSTEMINCLUDE
 
-SYSTEMINCLUDE /epoc32/include/ecom //TODO: Remove when Cmail headers are fixed
-
 LIBRARY                 esmrcommon.lib
 LIBRARY                 esmrservices.lib
 LIBRARY                 mrguicommon.lib

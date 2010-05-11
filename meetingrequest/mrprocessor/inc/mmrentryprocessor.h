@@ -18,7 +18,7 @@
 #define M_MRENTRYPROCESSOR_H
 
 #include <e32base.h>
-#include <magnentryui.h>
+#include <MAgnEntryUi.h>
 #include "esmrdef.h"
 #include "tesmrscenariodata.h"
 

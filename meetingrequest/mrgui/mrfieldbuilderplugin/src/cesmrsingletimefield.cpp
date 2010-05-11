@@ -24,7 +24,7 @@
 #include "nmrcolormanager.h"
 #include "nmrbitmapmanager.h"
 
-#include <aknsbasicbackgroundcontrolcontext.h>
+#include <AknsBasicBackgroundControlContext.h>
 #include <eikmfne.h>
 
 #include "emailtrace.h"

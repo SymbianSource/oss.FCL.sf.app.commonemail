@@ -16,7 +16,7 @@
 */
 
 #include <avkon.loc>
-#include <commondialogs.rh>
+#include <CommonDialogs.rh>
 
 RESOURCE AVKON_LIST_QUERY r_attachment_type_query_dialog
 	{
@@ -33,7 +33,6 @@ RESOURCE AVKON_LIST_QUERY r_attachment_type_query_dialog
 						AVKON_LIST_QUERY_LIST
 							{
 							};
-					// TODO: loc string
 					heading = "Select Option";
 				};
 			}
@@ -183,11 +182,11 @@ RESOURCE TBUF r_meet_req_note_attachment_progress_kilobyte
     }
 RESOURCE TBUF r_meet_req_attachment_file_kilobyte
     {
-    buf = qtn_meet_req_note_attachment_progress_kilobyte; // TODO: qtn_meet_req_attachment_file_kilobyte;
+    buf = qtn_meet_req_attachment_file_kilobyte;
     }
 RESOURCE TBUF r_meet_req_attachment_file_megabyte
     {
-    buf = qtn_meet_req_note_attachment_progress_megabyte; //TODO: qtn_meet_req_attachment_file_megabyte;
+    buf = qtn_meet_req_attachment_file_megabyte;
     }
 RESOURCE TBUF r_qtn_meet_req_info_already_attached
     {
@@ -223,7 +222,7 @@ RESOURCE TBUF r_qtn_meet_req_attachment_type_other
  */
 RESOURCE TBUF r_qtn_meet_req_attachments_download_prefix
     {
-    buf = "#%0N% %1U"; //TODO: qtn_meet_req_attachments_download_prefix;
+    buf = qtn_meet_req_attachments_download_prefix;
     }
 RESOURCE TBUF r_meet_req_info_cannot_open_attachment
     {

@@ -2535,7 +2535,11 @@ void CFsTreeVisualizerBase::UpdateItemL(const TFsTreeItemId aItemId)
 void CFsTreeVisualizerBase::SetItemsAlwaysExtendedL(TBool aAlwaysExtended)
     {
     FUNC_LOG;
-    if (iFlags.IsSet(EItemsAlwaysExtended) != aAlwaysExtended )
+    // Do not change this to: IsItemsAlwaysExtended() != aAlwaysExtended, because
+    // it will not work. TBool is defined as TInt and thus this comparison
+    // comes out as TInt != TInt, which always evaluates true in this case.
+    if ( ( IsItemsAlwaysExtended() && !aAlwaysExtended ) || 
+         ( !IsItemsAlwaysExtended() && aAlwaysExtended ) )
         {
         iFlags.Assign(EItemsAlwaysExtended, aAlwaysExtended);
         TFsTreeIterator treeIter(

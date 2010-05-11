@@ -27,7 +27,7 @@ RESOURCE ESMR_POLICY r_bccal_anniversary_editor
     policy_id            = EESMRPolicyAnniversaryEditor;
     policy_mode          = EESMREditMR;
     role_flags           = KEESMRFlagOrganizer;
-    allowed_app          = KEESMRFlagAppEsCalendar;      // TODO: Should there be defined a new value for this?
+    allowed_app          = KEESMRFlagAppEsCalendar;
     field_ids            = r_bccal_anniversary_editor_fields;
     default_commands     = r_bccal_anniversary_editor_def_commands;
     additional_commands  = 0;
