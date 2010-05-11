@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hbdocument version="0.9">
+    <widget name="titleLayoutWidget" type="HbWidget">
+        <widget name="mailboxNameLabel" type="HbLabel">
+            <real name="z" value="1"/>
+            <string name="plainText" value="Mailbox gmail (1)"/>
+            <sizehint height="var(hb-param-text-height-tiny)" type="PREFERRED" width="34.92537un"/>
+            <sizepolicy horizontalPolicy="Ignored" horizontalStretch="0" verticalPolicy="Fixed" verticalStretch="0"/>
+            <fontspec name="fontSpec" role="Primary" textheight="3un"/>
+        </widget>
+        <widget name="mailboxIcon" type="HbLabel">
+            <enums name="alignment" value="AlignVCenter|AlignHCenter"/>
+            <icon iconName="note_warning" name="icon"/>
+            <real name="z" value="2"/>
+            <sizepolicy horizontalPolicy="Fixed" horizontalStretch="0" verticalPolicy="Fixed" verticalStretch="0"/>
+            <sizehint height="11un" type="FIXED" width="11un"/>
+        </widget>
+        <real name="z" value="1"/>
+        <sizehint height="7un" type="FIXED" width="46un"/>
+        <sizepolicy horizontalPolicy="Fixed" horizontalStretch="0" verticalPolicy="Fixed" verticalStretch="0"/>
+        <layout type="anchor">
+            <anchoritem dst="mailboxNameLabel" dstEdge="RIGHT" spacing="-var(hb-param-margin-gene-middle-horizontal)" src="" srcEdge="RIGHT"/>
+            <anchoritem dst="mailboxNameLabel" dstEdge="TOP" spacing="var(hb-param-margin-gene-top)" src="" srcEdge="TOP"/>
+            <anchoritem dst="mailboxIcon" dstEdge="LEFT" spacing="var(hb-param-margin-gene-middle-horizontal)" src="" srcEdge="LEFT"/>
+            <anchoritem dst="mailboxIcon" dstEdge="BOTTOM" spacing="0un" src="" srcEdge="BOTTOM"/>
+            <anchoritem dst="mailboxNameLabel" dstEdge="LEFT" spacing="var(hb-param-margin-gene-middle-horizontal)" src="mailboxIcon" srcEdge="RIGHT"/>
+        </layout>
+    </widget>
+</hbdocument>
