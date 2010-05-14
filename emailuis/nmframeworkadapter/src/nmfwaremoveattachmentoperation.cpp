@@ -53,7 +53,7 @@ NmFwaRemoveAttachmentOperation::~NmFwaRemoveAttachmentOperation()
 }
 
 /*!
-    Called after base object construction via timer event, runs the
+    Called after base object construction, runs the
     async operation.
     
     \sa NmOperation
@@ -83,16 +83,22 @@ void NmFwaRemoveAttachmentOperation::doRunAsyncOperationL()
         
     // Search through all attachments from message and remove attachment
     // if message part match.
+    bool found(false);
     for (int i=0; i<attachments.Count(); ++i) {
         if (mAttachmentPartId.id() == attachments[i]->GetPartId().GetNmId().id()) {
             mRequestId = msg->RemoveChildPartL(attachments[i]->GetPartId(),*this);
+            found = true;
             break;
         }
     }
-    attachments.ResetAndDestroy();
-    
+    attachments.ResetAndDestroy();   
     delete msg;
     msg = NULL;
+    // if attachment is not found, request to plugin is not made
+    // and the operation should be completed here
+    if (!found) {
+        completeOperation(NmNotFoundError);
+    }
 }
 
 /*!

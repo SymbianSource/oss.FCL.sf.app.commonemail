@@ -597,12 +597,12 @@ void NmMessageListView::setFolderName()
             break;
         case NmFolderSent:
             {
-            mFolderLabel->setPlainText(hbTrId("txt_mail_subhead_sent"));
+            mFolderLabel->setPlainText(hbTrId("txt_mail_subhead_sent_items"));
             }
             break;
         case NmFolderDeleted:
             {
-            mFolderLabel->setPlainText(hbTrId("txt_mail_subhead_deleted"));
+            mFolderLabel->setPlainText(hbTrId("txt_mail_subhead_deleted_items"));
             }
             break;
         case NmFolderInbox:

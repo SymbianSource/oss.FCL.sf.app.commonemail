@@ -34,11 +34,9 @@ Q_EXPORT_PLUGIN(NmPopClientPlugin)
  */
 NmPopClientPlugin::NmPopClientPlugin()
 : mSettingsViewLauncher(NULL),
-mUiEngine(NULL),
 mListOptionsMenuRequest(NULL)
 {
     NMLOG("NmPopClientPlugin::NmPopClientPlugin()-->");
-    mUiEngine = NmUiEngine::instance();
     NMLOG("<--NmPopClientPlugin::NmPopClientPlugin()");
 }
 
@@ -76,24 +74,24 @@ void NmPopClientPlugin::getActions(
         NMLOG(QString("request.mailboxId().pluginId32()=%1").arg(request.mailboxId().pluginId32()));
         return;
     }
-    
+
     // Get the NmBaseClientPlugin implementation of the UI actions.
     NmBaseClientPlugin::getActions(request, actionList);
-    
+
     // Append POP plugin specific actions
     switch (request.menuType()) {
     case NmActionOptionsMenu:
-        {      
+        {
         if (request.contextView()==NmActionContextViewMessageList){
             mListOptionsMenuRequest = request;
             // Create sub-menu for standard folders selection
             HbMenu *standardFolders = new HbMenu();
-            NmAction *inboxAction = new NmAction(0);            
+            NmAction *inboxAction = new NmAction(0);
             inboxAction->setObjectName("popclientplugin_folders_inbox");
             inboxAction->setText(hbTrId("txt_mail_opt_folders_inbox"));
             inboxAction->setCheckable(true);
             connect(inboxAction, SIGNAL(triggered()), this, SLOT(switchToStandardFolderInbox()));
-            standardFolders->addAction(inboxAction);           
+            standardFolders->addAction(inboxAction);
             NmAction *outboxAction = new NmAction(0);
             outboxAction->setObjectName("popclientplugin_folders_outbox");
             outboxAction->setText(hbTrId("txt_mail_opt_folders_outbox"));
@@ -111,12 +109,12 @@ void NmPopClientPlugin::getActions(
             sentAction->setText(hbTrId("txt_mail_opt_folders_sent"));
             sentAction->setCheckable(true);
             connect(sentAction, SIGNAL(triggered()), this, SLOT(switchToStandardFolderSent()));
-            standardFolders->addAction(sentAction);          
+            standardFolders->addAction(sentAction);
             // Set active action
             NmFolderType curFolderType(NmFolderOther);
             if (mUiEngine) {
-            curFolderType = mUiEngine->folderTypeById(request.mailboxId(),request.folderId());   
-            } 
+                curFolderType = mUiEngine->folderTypeById(request.mailboxId(),request.folderId());
+            }
             switch (curFolderType){
                 case NmFolderInbox: {
                     inboxAction->setChecked(true);
@@ -125,7 +123,7 @@ void NmPopClientPlugin::getActions(
                 case NmFolderOutbox: {
                     outboxAction->setChecked(true);
                     break;
-                } 
+                }
                 case NmFolderDrafts: {
                     draftsAction->setChecked(true);
                     break;
@@ -135,20 +133,20 @@ void NmPopClientPlugin::getActions(
                     break;
                 }
             }
-            
+
             // Add folders selection with sub-menu
-            NmAction *foldersAction = new NmAction(0); 
+            NmAction *foldersAction = new NmAction(0);
             foldersAction->setObjectName("baseclientplugin_folders");
             foldersAction->setText(hbTrId("txt_mail_opt_folders"));
             foldersAction->setMenu(standardFolders);
-            actionList.append(foldersAction);        
+            actionList.append(foldersAction);
             }
         }
         break;
     default:
         break;
-    }     
-    
+    }
+
     NMLOG("<--NmPopClientPlugin::getActions()");
 }
 
@@ -186,12 +184,12 @@ void NmPopClientPlugin::settings()
 
         mSettingsViewLauncher->launchSettingsView(id, mailbox->name());
     }
- 
+
     NMLOG("<--NmPopClientPlugin::settings()");
 }
 
 /*!
-    Private slot to switch message list contents 
+    Private slot to switch message list contents
     to standard folder inbox
 */
 void NmPopClientPlugin::switchToStandardFolderInbox()
@@ -200,13 +198,13 @@ void NmPopClientPlugin::switchToStandardFolderInbox()
         NmId folderId=mUiEngine->standardFolderId(mListOptionsMenuRequest.mailboxId(),NmFolderInbox);
         NmActionResponse response(NmActionResponseCommandSwitchFolder, NmActionOptionsMenu,
                                   NmActionContextViewNone, mListOptionsMenuRequest.mailboxId(),
-                                  folderId); 
+                                  folderId);
         mListOptionsMenuRequest.observer()->handleActionCommand(response);
     }
 }
 
 /*!
-    Private slot to switch message list contents 
+    Private slot to switch message list contents
     to standard folder outbox
 */
 void NmPopClientPlugin::switchToStandardFolderOutbox()
@@ -215,13 +213,13 @@ void NmPopClientPlugin::switchToStandardFolderOutbox()
         NmId folderId=mUiEngine->standardFolderId(mListOptionsMenuRequest.mailboxId(),NmFolderOutbox);
         NmActionResponse response(NmActionResponseCommandSwitchFolder, NmActionOptionsMenu,
                                   NmActionContextViewNone, mListOptionsMenuRequest.mailboxId(),
-                                  folderId); 
+                                  folderId);
         mListOptionsMenuRequest.observer()->handleActionCommand(response);
-    }   
+    }
 }
 
 /*!
-    Private slot to switch message list contents 
+    Private slot to switch message list contents
     to standard folder drafts
 */
 void NmPopClientPlugin::switchToStandardFolderDrafts()
@@ -230,13 +228,13 @@ void NmPopClientPlugin::switchToStandardFolderDrafts()
         NmId folderId=mUiEngine->standardFolderId(mListOptionsMenuRequest.mailboxId(),NmFolderDrafts);
         NmActionResponse response(NmActionResponseCommandSwitchFolder, NmActionOptionsMenu,
                                   NmActionContextViewNone, mListOptionsMenuRequest.mailboxId(),
-                                  folderId); 
+                                  folderId);
         mListOptionsMenuRequest.observer()->handleActionCommand(response);
     }
 }
 
 /*!
-    Private slot to switch message list contents 
+    Private slot to switch message list contents
     to standard folder sent
 */
 void NmPopClientPlugin::switchToStandardFolderSent()
@@ -245,7 +243,7 @@ void NmPopClientPlugin::switchToStandardFolderSent()
         NmId folderId=mUiEngine->standardFolderId(mListOptionsMenuRequest.mailboxId(),NmFolderSent);
         NmActionResponse response(NmActionResponseCommandSwitchFolder, NmActionOptionsMenu,
                                   NmActionContextViewNone, mListOptionsMenuRequest.mailboxId(),
-                                  folderId); 
+                                  folderId);
         mListOptionsMenuRequest.observer()->handleActionCommand(response);
     }
 }

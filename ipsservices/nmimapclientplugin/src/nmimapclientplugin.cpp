@@ -33,11 +33,9 @@ Q_EXPORT_PLUGIN(NmImapClientPlugin)
     Constructs a new NmImapClientPlugin.
  */
 NmImapClientPlugin::NmImapClientPlugin()
-: mUiEngine(NULL),
-mListOptionsMenuRequest(NULL),
+: mListOptionsMenuRequest(NULL),
 mSettingsViewLauncher(NULL)
 {
-    mUiEngine = NmUiEngine::instance();
 }
 
 /*!
@@ -110,7 +108,7 @@ void NmImapClientPlugin::getActions(
             // Set active action
             NmFolderType curFolderType(NmFolderOther);
             if (mUiEngine) {
-            curFolderType = mUiEngine->folderTypeById(request.mailboxId(),request.folderId());
+                curFolderType = mUiEngine->folderTypeById(request.mailboxId(),request.folderId());
             }
             switch (curFolderType){
                 case NmFolderInbox: {
