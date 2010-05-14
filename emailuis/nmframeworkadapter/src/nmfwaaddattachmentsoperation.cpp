@@ -60,7 +60,7 @@ NmFwaAddAttachmentsOperation::~NmFwaAddAttachmentsOperation()
 }
 
 /*!
-    Called after base object construction, runs the
+    Called after base object construction via timer event, runs the
     async operation.
     
     \sa NmOperation
@@ -109,10 +109,7 @@ void NmFwaAddAttachmentsOperation::doRunAsyncOperationL()
         HBufC *fileName = NmConverter::qstringToHBufCLC(mFileList.first());
         mRequestId = mFSMessage->AddNewAttachmentL(*fileName, *this);
         CleanupStack::PopAndDestroy(fileName);   
-    } else {
-        completeOperation(NmNoError);
     }
-        
 }
 
 /*!

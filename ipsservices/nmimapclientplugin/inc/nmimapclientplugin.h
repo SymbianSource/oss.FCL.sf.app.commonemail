@@ -21,7 +21,7 @@
 #include "nmbaseclientplugin.h"
 #include "nmuiextensioninterface.h"
 #include "nmuienginedef.h"
-#include "nmactionrequest.h"
+#include "nmactionrequest.h" 
 
 class NmUiEngine;
 class NmSettingsViewLauncher;
@@ -47,11 +47,12 @@ private slots:
     void switchToStandardFolderOutbox();
     void switchToStandardFolderDrafts();
     void switchToStandardFolderSent();
-
+    
 protected:
     virtual quint32 pluginId();
-
+    
 private:
+    NmUiEngine *mUiEngine; // Singleton instance
     NmActionRequest mListOptionsMenuRequest;
     NmSettingsViewLauncher *mSettingsViewLauncher; // owned
 };
