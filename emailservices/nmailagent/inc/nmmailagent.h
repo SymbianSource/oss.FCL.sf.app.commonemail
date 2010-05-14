@@ -72,10 +72,10 @@ public slots:
             NmSyncState state,
             const NmOperationCompletionEvent &event);
 
-    void handleConnectionEvent(NmConnectState state, const NmId mailboxId);
+    void handleConnectionEvent(NmConnectState state, const NmId mailboxId, int errorcode);
 
     void delayedStart();
-    
+
     void enableAlertTone();
 
 private:
@@ -104,12 +104,12 @@ private:
         bool active, bool refreshAlways);
 
     static QStringList pluginFolders();
-    
-    bool getMessageUnreadInfo(const NmId &folderId, 
+
+    bool getMessageUnreadInfo(const NmId &folderId,
         const NmId &messageId, const NmId &mailboxId, bool &unreadMessage);
-    
+
     void playAlertTone();
-    
+
 private: // data
 
     NmDataPluginFactory *mPluginFactory;

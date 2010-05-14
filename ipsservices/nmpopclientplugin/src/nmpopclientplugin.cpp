@@ -33,8 +33,8 @@ Q_EXPORT_PLUGIN(NmPopClientPlugin)
     Constructs a new NmPopClientPlugin.
  */
 NmPopClientPlugin::NmPopClientPlugin()
-: mSettingsViewLauncher(NULL),
-mListOptionsMenuRequest(NULL)
+: mListOptionsMenuRequest(NULL),
+mSettingsViewLauncher(NULL)
 {
     NMLOG("NmPopClientPlugin::NmPopClientPlugin()-->");
     NMLOG("<--NmPopClientPlugin::NmPopClientPlugin()");
@@ -182,6 +182,7 @@ void NmPopClientPlugin::settings()
                 this, SLOT(goOffline(const NmId &)));
         }
 
+        handleRequest(NmActionResponseCommandSettings, mMenuRequest);
         mSettingsViewLauncher->launchSettingsView(id, mailbox->name());
     }
 

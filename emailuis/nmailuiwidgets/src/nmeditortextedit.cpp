@@ -30,7 +30,8 @@ static const double HeightOfTheHeaderOnStartup =
     Constructor
 */
 NmEditorTextEdit::NmEditorTextEdit(QGraphicsItem *parent) :
-    HbTextEdit(parent)
+    HbTextEdit(parent),
+    mFirstTimeToScrollPosUpdate(true)
 {
 }
 
@@ -151,6 +152,12 @@ void NmEditorTextEdit::setScrollPosition(int oldPos, int newPos)
 */
 void NmEditorTextEdit::updateScrollPosition(const QPointF &newPosition)
 {
+    // Temporary fix: When this is called for the first time, the editor is scrolled down for 
+    // some reason so this will restore the scroll position.
+    if(mFirstTimeToScrollPosUpdate) {
+        mFirstTimeToScrollPosUpdate = false;
+        mBackgroundScrollArea->scrollContentsTo(QPointF(0,0));        
+    }
     mBgScrollPosition = newPosition;
 }
 

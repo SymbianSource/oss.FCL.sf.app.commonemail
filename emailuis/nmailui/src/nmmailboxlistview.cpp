@@ -37,7 +37,7 @@ NmMailboxListView::NmMailboxListView(
     NmMailboxListModel &mailboxListModel,
     HbDocumentLoader *documentLoader,
     QGraphicsItem *parent)
-: NmBaseView(startParam,parent),
+: NmBaseView(startParam, application, parent),
 mApplication(application),
 mMailboxListWidget(NULL),
 mUiEngine(uiEngine),
@@ -97,9 +97,6 @@ void NmMailboxListView::loadViewLayout()
             QObject::connect(mMailboxListWidget,
                     SIGNAL(activated(const QModelIndex &)),
                 this, SLOT(itemActivated(const QModelIndex &)));
-            QObject::connect(mMailboxListWidget,
-                    SIGNAL(longPressed(HbAbstractViewItem*, const QPointF&)),
-                this, SLOT(showItemContextMenu(HbAbstractViewItem*,const QPointF&)));
             mMailboxListWidget->setClampingStyle(HbScrollArea::BounceBackClamping);
             mMailboxListWidget->setFrictionEnabled(true);
         }
@@ -193,71 +190,6 @@ void NmMailboxListView::openSelectedMailBox()
         // Create start params and launch message list view
         NmUiStartParam *startParam = new NmUiStartParam(NmUiViewMessageList,mailbox->id(),inboxId);
         mApplication.enterNmUiView(startParam);
-    }
-}
-
-/*!
-    showItemContextMenu. Functions starts fetching item context menu objects
-    from extension. Menu is displayed in view callback funtion.
-*/
-void NmMailboxListView::showItemContextMenu(HbAbstractViewItem *item, const QPointF &coords)
-{
-    if (mItemContextMenu&&item){
-        // Clear previous items from context menu
-        mItemContextMenu->clearActions();
-        // Get mailbox meta data
-        NmMailboxMetaData *mailbox =
-            mListModel.data(item->modelIndex(), Qt::DisplayRole).value<NmMailboxMetaData*>();
-        NmId mailboxId(0);
-        if (mailbox) {
-            mailboxId = mailbox->id();
-        }
-        // Fetch items from extension based on item
-        NmActionRequest request(this, NmActionContextMenu, NmActionContextViewNone,
-        		NmActionContextDataMailbox, mailboxId);
-        NmUiExtensionManager &extMngr = mApplication.extManager();
-        QList<NmAction*> list;
-        extMngr.getActions(request, list);
-        for (int i=0;i<list.count();i++) {
-            mItemContextMenu->addAction(list[i]);
-        }
-        // Display menu
-        if (mMailboxListWidget){
-            mMailboxListWidget->setCurrentIndex(item->modelIndex());
-            mItemContextMenu->setObjectName("MailboxItemContextMenu");
-            mItemContextMenu->setPreferredPos(coords);
-            mItemContextMenu->open(this, SLOT(contextButton(NmActionResponse&)));
-        }
-    }
-}
-
-/*!
-    Slot. Signaled when menu option is selected
-*/
-void NmMailboxListView::contextButton(NmActionResponse &result)
-{
-    // Handle context menu commands here
-    if (result.menuType()==NmActionContextMenu){
-        switch (result.responseCommand()){
-            case NmActionResponseCommandOpen:{
-                // Check that given start response has mailbox and folder id's
-                if (result.mailboxId()!=0){
-                    // Use standard folder id inbox if folder has not been specified
-                    NmId folderId = result.folderId();
-                    if (folderId==0){
-                        folderId=mUiEngine.standardFolderId(result.mailboxId(),
-                                                            NmFolderInbox);
-                    }
-                    NmUiStartParam *startParam = new NmUiStartParam(NmUiViewMessageList,
-                                                                    result.mailboxId(),
-                                                                    folderId);
-                    mApplication.enterNmUiView(startParam);
-                    }
-                }
-                break;
-            default:
-                break;
-        }
     }
 }
 

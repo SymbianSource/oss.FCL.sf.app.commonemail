@@ -27,9 +27,11 @@
     Constructor
 */
 NmBaseView::NmBaseView(NmUiStartParam* startParam,
+                       NmApplication &application,
                        QGraphicsItem *parent)
 : HbView(parent),
-mStartParam(startParam)
+mStartParam(startParam),
+mApplication(application)
 {
 }
 
@@ -42,12 +44,13 @@ NmBaseView::~NmBaseView()
 }
 
 /*!
-    Is it ok to exit current view. Function is called when exiting the view. 
-    Views can override this function and return false to stay in current view. 
+    Is it ok to exit current view. Function is called when exiting the view.
+    Views can override this function and deside are they going to signal popView
+    or not. For example based on the user query. 
 */
-bool NmBaseView::okToExitView()
+void NmBaseView::okToExitView()
 {
-    return true;
+	mApplication.popView();
 }
 
 /*!

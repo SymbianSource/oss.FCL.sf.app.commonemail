@@ -192,12 +192,20 @@ void NmFwaAddAttachmentsOperation::RequestResponseL(TFSProgress aEvent,
 }
 
 /*!
+ * Complete the operation
+ */
+void NmFwaAddAttachmentsOperation::doCompleteOperation()
+{
+    mRequestId = NmNotFoundError;
+}
+
+/*!
     Cancels the async operation. \sa NmOperation
  */
 void NmFwaAddAttachmentsOperation::doCancelOperation()
 {
-    if (mRequestId != KErrNotFound) {
+    if (mRequestId >= 0) {
         TRAP_IGNORE(mMailClient.CancelL(mRequestId));
+        mRequestId = NmNotFoundError;
     }
-    mRequestId = NmCancelError;
 }

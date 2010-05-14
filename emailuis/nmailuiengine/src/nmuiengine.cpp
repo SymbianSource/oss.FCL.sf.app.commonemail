@@ -182,59 +182,85 @@ void NmUiEngine::refreshMailboxListModel()
     }
 }
 
+
 /*!
-    Returns a message list model for a folder identified by \a mailboxId and \a folderId.
-    The model is updated dynamically. The ownership of the model object is not moved to the caller.
+    Returns a message list model for a folder identified by \a mailboxId and 
+    \a folderId. The model is updated dynamically. The ownership of the model
+    object is not moved to the caller.
 */
-NmMessageListModel &NmUiEngine::messageListModel(const NmId &mailboxId, const NmId &folderId)
+NmMessageListModel &NmUiEngine::messageListModel(const NmId &mailboxId,
+                                                 const NmId &folderId)
 {
-    if (!mMessageListModel){
+    if (!mMessageListModel) {
         mMessageListModel = new NmMessageListModel(*mDataManager);
     }
-    else{
+    else {
         mMessageListModel->clear();
     }
-    QObject *plugin =
-        mPluginFactory->pluginInstance(mailboxId);
+
+    QObject *plugin = mPluginFactory->pluginInstance(mailboxId);
+
     if (plugin) {
         QObject::connect(plugin,
             SIGNAL(messageEvent(NmMessageEvent, const NmId &, const QList<NmId> &, const NmId&)),
-        mMessageListModel,
+            mMessageListModel,
             SLOT(handleMessageEvent(NmMessageEvent, const NmId &, const QList<NmId> &)),
             Qt::UniqueConnection );
 
         QObject::connect(
             plugin, SIGNAL(syncStateEvent(NmSyncState, const NmOperationCompletionEvent &)),
             this, SLOT(handleSyncStateEvent(NmSyncState, const NmOperationCompletionEvent &)),
-            Qt::UniqueConnection);        
-        // no need for mailbox event subscription here, already done in constructor
+            Qt::UniqueConnection);
+
+        // No need for mailbox event subscription here, already done in
+        // constructor.
     }
+
     QList<NmMessageEnvelope*> messageEnvelopeList;
     mDataManager->listMessages(mailboxId, folderId, messageEnvelopeList);
     mMessageListModel->refresh(mailboxId, folderId, messageEnvelopeList);
+
     while (!messageEnvelopeList.isEmpty()) {
         delete messageEnvelopeList.takeFirst();
     }
+
     return *mMessageListModel;
 }
 
 
 /*!
-    Returns a reference of the message search list model. If the model does not
-    exist yet, one is constructed.
+    Returns a message list model used in the search view.
 
-    \param sourceModel The source model for the search list model.
+    \param mailboxId The ID of the mailbox to search messages from.
 
-    \return The message search list model.
+    \return A message list model.
 */
-NmMessageSearchListModel &NmUiEngine::messageSearchListModel(
-    QAbstractItemModel *sourceModel)
+NmMessageListModel &NmUiEngine::messageListModelForSearch(const NmId &mailboxId)
 {
+    Q_UNUSED(mailboxId);
+
     if (!mMessageSearchListModel) {
-        mMessageSearchListModel = new NmMessageSearchListModel();
+        mMessageSearchListModel = new NmMessageListModel(*mDataManager);
+        mMessageSearchListModel->setIgnoreFolderIds(true);
+    }
+    else {
+        mMessageSearchListModel->clear();
     }
 
-    mMessageSearchListModel->setSourceModel(sourceModel);
+    QObject *plugin = mPluginFactory->pluginInstance(mailboxId);
+
+    if (plugin) {
+        QObject::connect(plugin,
+            SIGNAL(messageEvent(NmMessageEvent, const NmId &, const QList<NmId> &, const NmId&)),
+            mMessageSearchListModel,
+            SLOT(handleMessageEvent(NmMessageEvent, const NmId &, const QList<NmId> &)),
+            Qt::UniqueConnection);
+    }
+
+    // Refresh to set the mailbox ID.
+    QList<NmMessageEnvelope*> messageEnvelopeList;
+    mMessageSearchListModel->refresh(mailboxId, 0, messageEnvelopeList);
+
     return *mMessageSearchListModel;
 }
 
@@ -303,6 +329,25 @@ QPointer<NmOperation> NmUiEngine::fetchMessagePart(
         mPluginFactory->interfaceInstance(mailboxId);
     if (plugin) {
         value = plugin->fetchMessagePart(mailboxId, folderId, messageId, messagePartId);
+    }
+    return value;
+}
+
+/*!
+
+*/
+QPointer<NmOperation> NmUiEngine::fetchMessageParts(
+    const NmId &mailboxId,
+    const NmId &folderId,
+    const NmId &messageId,
+    const QList<NmId> &messagePartIds)
+{
+    NMLOG("NmUiEngine::fetchMessageParts() <---");
+    QPointer<NmOperation> value(NULL);
+    NmDataPluginInterface *plugin =
+        mPluginFactory->interfaceInstance(mailboxId);
+    if (plugin) {
+        value = plugin->fetchMessageParts(mailboxId, folderId, messageId, messagePartIds);
     }
     return value;
 }
@@ -707,13 +752,17 @@ int NmUiEngine::search(const NmId &mailboxId,
 
     if (pluginInstance) {
         // Make sure the required signals are connected.
-        connect(pluginInstance, SIGNAL(matchFound(const NmId &)),
-                this, SIGNAL(matchFound(const NmId &)), Qt::UniqueConnection);    
-        connect(pluginInstance, SIGNAL(matchFound(const NmId &)),
-                mMessageSearchListModel, SLOT(addSearchResult(const NmId &)),
-                Qt::UniqueConnection);    
+        connect(pluginInstance, SIGNAL(matchFound(const NmId &, const NmId &)),
+                this, SIGNAL(matchFound(const NmId &, const NmId &)),
+                Qt::UniqueConnection);
+
+        connect(pluginInstance, SIGNAL(matchFound(const NmId &, const NmId &)),
+                this, SLOT(handleMatchFound(const NmId &, const NmId &)),
+                Qt::UniqueConnection); 
+
         connect(pluginInstance, SIGNAL(searchComplete()),
-                this, SIGNAL(searchComplete()), Qt::UniqueConnection);    
+                this, SIGNAL(searchComplete()),
+                Qt::UniqueConnection);    
     }
 
     int retVal(NmNoError);
@@ -754,34 +803,31 @@ int NmUiEngine::cancelSearch(const NmId &mailboxId)
 }
 
 /*!
-    Cancels the search operation if one is ongoing.
-
-    \param mailboxId The ID of the mailbox containing the folder
-
-    \param folderId The ID of the folder 
-
     \return Folder type
 */
 NmFolderType NmUiEngine::folderTypeById(NmId mailboxId, NmId folderId)
-{
-    NmFolderType folderType(NmFolderOther);
-    if (standardFolderId(mailboxId,NmFolderInbox)==folderId){
-        folderType=NmFolderInbox;
+{   
+    NmFolderType ret(NmFolderInbox);
+    if (mDataManager){
+        ret = mDataManager->folderTypeById(mailboxId,folderId);    
     }
-    else if (standardFolderId(mailboxId,NmFolderOutbox)==folderId){
-        folderType=NmFolderOutbox; 
-    }
-    else if (standardFolderId(mailboxId,NmFolderDrafts)==folderId){
-        folderType=NmFolderDrafts;
-    }
-    else if (standardFolderId(mailboxId,NmFolderSent)==folderId){
-        folderType=NmFolderSent; 
-    }    
-    else if (standardFolderId(mailboxId,NmFolderDeleted)==folderId){
-        folderType=NmFolderDeleted;  
-    }    
-    return folderType;
+    return ret;
 }
+
+/*!
+    Indicates application state information to protocol plugin
+    \param mailboxId Id of active mailbox, 0 if application is closed.
+    \param folderId Id of active folder, 0 if application is closed.
+*/
+void NmUiEngine::updateActiveFolder(const NmId &mailboxId, const NmId &folderId)
+{
+    NmApplicationStateInterface *interface = 
+        mPluginFactory->applicationStateInterfaceInstance(mailboxId);
+    if (interface) {
+        interface->updateActiveFolder(mailboxId, folderId);
+    }
+}
+
 /*!
     Handle completed send operation.
 */
@@ -848,6 +894,30 @@ void NmUiEngine::handleMailboxEvent(NmMailboxEvent event,
         break;
     }
 }
+
+
+/*!
+    Adds the found message into the search model.
+
+    \param messageId The ID of the found message.
+    \param folderId The ID of the folder where the message is located.
+*/
+void NmUiEngine::handleMatchFound(const NmId &messageId, const NmId &folderId)
+{
+    if (!mMessageSearchListModel) {
+        // No search list model!
+        return;
+    }
+
+    // Add the found message into the search model.
+    QList<NmId> messageIdList;
+    messageIdList.append(messageId);
+
+    mMessageSearchListModel->handleMessageEvent(NmMessageFound,
+                                                folderId,
+                                                messageIdList);
+}
+
 
 /*!
     receives events when going online, and offline.

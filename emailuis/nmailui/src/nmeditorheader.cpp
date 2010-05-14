@@ -18,10 +18,7 @@
 #include "nmuiheaders.h"
 
 // Layout
-static const char *NMUI_EDITOR_TO_LABEL = "EditorHeaderToLabel";
-static const char *NMUI_EDITOR_TO_EDIT = "EditorHeaderToEdit";
-static const char *NMUI_EDITOR_TO_BUTTON = "EditorHeaderToButton";
-static const char *NMUI_EDITOR_RECIPIENT_GB = "EditorHeaderRecipientGB";
+static const char *NMUI_EDITOR_RECIPIENT_FIELDS = "RecipientFields";
 static const char *NMUI_EDITOR_SUBJECT_LABEL = "EditorHeaderSubjectLabel";
 static const char *NMUI_EDITOR_SUBJECT_EDIT = "EditorHeaderSubjectEdit";
 static const char *NMUI_EDITOR_PRIORITY_ICON = "labelPriorityIcon";
@@ -30,9 +27,7 @@ static const char *NMUI_EDITOR_ATTACHMENT_LIST = "attachmentListWidget";
 // Following constants are removed when header fields will offer these
 static const double Un = 6.66;
 static const double FieldHeightWhenSecondaryFont = 5 * Un;
-static const int GroupBoxTitleHeight = 42;
 static const double Margin = 2 * Un;
-static const double HeaderAreaMarginsTotal = 3 * Un;
 static const double IconFieldWidth = 5 * Un;
 
 static const int nmLayoutSystemWaitTimer = 10;
@@ -48,8 +43,11 @@ NmEditorHeader::NmEditorHeader(HbDocumentLoader *documentLoader, QGraphicsItem *
     mIconVisible(false),
     mSubjectEdit(NULL),
     mRecipientFieldsEmpty(true),
-    mGroupBoxRecipient(NULL),
-    mAttachmentList(NULL)
+    mAttachmentList(NULL),
+    mToField(NULL),
+    mCcField(NULL),
+    mBccField(NULL),
+    mCcBccFieldVisible(false)
 {
     loadWidgets();
     rescaleHeader();
@@ -72,23 +70,24 @@ NmEditorHeader::~NmEditorHeader()
 */
 void NmEditorHeader::loadWidgets()
 {
-    // To: field objects
-    HbLabel *toLabel = qobject_cast<HbLabel *>
-        (mDocumentLoader->findWidget(NMUI_EDITOR_TO_LABEL));
-    NmRecipientLineEdit *toEdit = qobject_cast<NmRecipientLineEdit *>
-        (mDocumentLoader->findWidget(NMUI_EDITOR_TO_EDIT));
-    HbPushButton *toButton = qobject_cast<HbPushButton *>
-        (mDocumentLoader->findWidget(NMUI_EDITOR_TO_BUTTON));
-    mToField = new NmRecipientField(toLabel, toEdit, toButton);
+	// Add "To:", "CC:" and "BCC:" fields
+	mHeader = qobject_cast<HbWidget *>
+	        (mDocumentLoader->findWidget(NMUI_EDITOR_RECIPIENT_FIELDS));
 
-    // Create recipient group box which includes cc and bcc fields
-    mGroupBoxRecipient = qobject_cast<HbGroupBox *>
-        (mDocumentLoader->findWidget(NMUI_EDITOR_RECIPIENT_GB));
-    // Ownership is transfered
-    mGroupBoxRecipient->setContentWidget(createRecipientGroupBoxContentWidget());
-    mGroupBoxRecipient->setHeading(hbTrId("txt_mail_subhead_ccbcc"));
-    mGroupBoxRecipient->setCollapsable(true);
-    mGroupBoxRecipient->setCollapsed(true);
+	mLayout = new QGraphicsLinearLayout(Qt::Vertical);
+	mLayout->setContentsMargins(0,Un,0,0);
+
+	mToField = new NmRecipientField(QString("To:"), mHeader);
+	mCcField = new NmRecipientField(QString("Cc:"), mHeader);
+	mBccField = new NmRecipientField(QString("Bcc:"), mHeader);
+
+    // Only 'To:' field is visible at startup
+	mLayout->addItem(mToField);
+	mCcField->hide();
+	mBccField->hide();
+
+	mHeader->setLayout(mLayout);
+	mHeader->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::MinimumExpanding);
 
     // Add Subject: field
     mSubjectLabel = qobject_cast<HbLabel *>
@@ -121,16 +120,12 @@ void NmEditorHeader::createConnections()
 
     // Signals for handling the recipient field expanding
     connect(mToField, SIGNAL(textChanged(const QString &)),
-            this, SLOT(sendHeaderHeightChanged()));
+            this, SLOT(fixHeaderFieldHeights()));
     connect(mCcField, SIGNAL(textChanged(const QString &)),
-            this, SLOT(sendHeaderHeightChanged()));
+            this, SLOT(fixHeaderFieldHeights()));
     connect(mBccField, SIGNAL(textChanged(const QString &)),
-            this, SLOT(sendHeaderHeightChanged()));
-    connect(mSubjectEdit, SIGNAL(contentsChanged()), this, SLOT(sendHeaderHeightChanged()));
-
-    // Signal for handling the recipient group box expanding/collapsing
-    connect(mGroupBoxRecipient, SIGNAL(toggled(bool)),
-            this, SLOT(groupBoxExpandCollapse()));
+            this, SLOT(fixHeaderFieldHeights()));
+    connect(mSubjectEdit, SIGNAL(contentsChanged()), this, SLOT(fixHeaderFieldHeights()));
 
     // Signals for handling the attachment list
     connect(&mAttachmentList->listWidget(), SIGNAL(itemActivated(int)),
@@ -139,6 +134,30 @@ void NmEditorHeader::createConnections()
             this, SLOT(attachmentLongPressed(int, QPointF)));
     connect(mAttachmentList ,SIGNAL(attachmentListLayoutChanged()),
             this, SLOT(sendHeaderHeightChanged()));
+}
+
+/*!
+   Show or hide recipient field
+*/
+void NmEditorHeader::setFieldVisibility(bool isVisible)
+{
+	if ( mCcBccFieldVisible != isVisible ) {
+		mCcBccFieldVisible = isVisible;
+		if (mCcBccFieldVisible) {
+			mCcField->show();
+			mBccField->show();
+			mLayout->addItem(mCcField);
+			mLayout->addItem(mBccField);
+		}
+		else {
+			mCcField->hide();
+			mBccField->hide();
+			mLayout->removeItem(mCcField);
+			mLayout->removeItem(mBccField);
+		}
+
+		QTimer::singleShot(nmLayoutSystemWaitTimer*2, this, SLOT(fixHeaderFieldHeights()));
+	}
 }
 
 /*!
@@ -155,19 +174,20 @@ void NmEditorHeader::rescaleHeader()
 int NmEditorHeader::headerHeight() const
 {
     qreal toHeight = mToField->height();
+    qreal ccHeight = 0;
+    qreal bccHeight = 0;
+    if (mCcBccFieldVisible) {
+		ccHeight = mCcField->height();
+		bccHeight = mBccField->height();
+    }
     qreal subjectHeight = mSubjectEdit->geometry().height() + Margin;
 
     // When called first time, height is wrongly 'Margin'
     if (toHeight == Margin) {
         toHeight = FieldHeightWhenSecondaryFont;
+    	ccHeight = FieldHeightWhenSecondaryFont;
+    	bccHeight = FieldHeightWhenSecondaryFont;
         subjectHeight = FieldHeightWhenSecondaryFont;
-    }
-
-    // Recipient GroupBox
-    qreal recipientGroupBoxHeight = GroupBoxTitleHeight;
-    if (!mGroupBoxRecipient->isCollapsed()) {
-        recipientGroupBoxHeight +=
-            mGroupBoxRecipientContent->geometry().height() + HeaderAreaMarginsTotal;
     }
 
     qreal attHeight = 0;
@@ -175,7 +195,45 @@ int NmEditorHeader::headerHeight() const
         attHeight = mAttachmentList->listWidget().geometry().height();
     }
 
-    return (int)(toHeight + recipientGroupBoxHeight + subjectHeight + attHeight);
+    return (int)(toHeight + ccHeight + bccHeight + subjectHeight + attHeight);
+}
+
+/*!
+    Send signal to inform that one of the recipient fields height has been changed.
+ */
+void NmEditorHeader::fixHeaderFieldHeights()
+{
+    // Adjust height of recipient fields 
+	adjustFieldSizeValues(mToField->editor(), mToField->editor()->document()->size().height());
+	adjustFieldSizeValues(mCcField->editor(), mCcField->editor()->document()->size().height());
+	adjustFieldSizeValues(mBccField->editor(), mBccField->editor()->document()->size().height());
+
+    // Adjust height of the subject field 
+	if (mSubjectEdit->document()->size().height() > FieldHeightWhenSecondaryFont) {
+	mSubjectEdit->setPreferredHeight(
+			mSubjectEdit->document()->size().height() + Margin );
+	}
+	else {
+		mSubjectEdit->setPreferredHeight( FieldHeightWhenSecondaryFont );
+	}
+
+	QTimer::singleShot(nmLayoutSystemWaitTimer*5, this, SLOT(sendHeaderHeightChanged()));	
+}
+
+
+/*!
+    Private routine to adjust heights of the recipient fields
+ */
+void NmEditorHeader::adjustFieldSizeValues( NmRecipientLineEdit *widget, qreal height )
+{
+	if (height > FieldHeightWhenSecondaryFont) {
+		widget->setMaximumHeight( height + Margin );
+		widget->setMinimumHeight( height + Margin );
+	}
+	else {
+		widget->setMaximumHeight( FieldHeightWhenSecondaryFont );	
+		widget->setMinimumHeight( FieldHeightWhenSecondaryFont );	
+	}	
 }
 
 /*!
@@ -183,16 +241,6 @@ int NmEditorHeader::headerHeight() const
  */
 void NmEditorHeader::sendHeaderHeightChanged()
 {
-    // Adjust field heights
-    mToField->editor()->setPreferredHeight(
-        mToField->editor()->document()->size().height() + Margin);
-    mCcField->editor()->setPreferredHeight(
-        mCcField->editor()->document()->size().height() + Margin);
-    mBccField->editor()->setPreferredHeight(
-        mBccField->editor()->document()->size().height() + Margin);
-    mSubjectEdit->setPreferredHeight(
-        mSubjectEdit->document()->size().height() + Margin);
-
     int hHeight = headerHeight();
     if (mHeaderHeight != hHeight) {
         mHeaderHeight = hHeight;
@@ -201,34 +249,25 @@ void NmEditorHeader::sendHeaderHeightChanged()
 }
 
 /*!
-    This slot is called when group box state is changed. Timer is used to give some time
-    for layout system so that header hight can be recalculated correctly
+    Return pointer to to edit
  */
-void NmEditorHeader::groupBoxExpandCollapse()
-{
-    QTimer::singleShot(nmLayoutSystemWaitTimer, this, SLOT(sendHeaderHeightChanged()));
-}
-
-/*!
-    Return pointer to to field
- */
-NmRecipientLineEdit* NmEditorHeader::toField() const
+NmRecipientLineEdit* NmEditorHeader::toEdit() const
 {
     return mToField->editor();
 }
 
 /*!
-    Return pointer to cc field
+    Return pointer to cc edit
  */
-NmRecipientLineEdit* NmEditorHeader::ccField() const
+NmRecipientLineEdit* NmEditorHeader::ccEdit() const
 {
     return mCcField->editor();
 }
 
 /*!
-    Return pointer to bcc field
+    Return pointer to bcc edit
  */
-NmRecipientLineEdit* NmEditorHeader::bccField() const
+NmRecipientLineEdit* NmEditorHeader::bccEdit() const
 {
     return mBccField->editor();
 }
@@ -236,7 +275,7 @@ NmRecipientLineEdit* NmEditorHeader::bccField() const
 /*!
     Return pointer to subject field
  */
-NmHtmlLineEdit* NmEditorHeader::subjectField() const
+NmHtmlLineEdit* NmEditorHeader::subjectEdit() const
 {
     return mSubjectEdit;
 }
@@ -261,39 +300,6 @@ void NmEditorHeader::editorContentChanged()
         mRecipientFieldsEmpty = recipientsFieldsEmpty;
         emit recipientFieldsHaveContent(!mRecipientFieldsEmpty);
     }
-}
-
-/*!
-    This function create content widget for recipient group box.
-    When AD offers groupBox content widget handling. This function
-    need to be changed to use AD/docml
- */
-HbWidget* NmEditorHeader::createRecipientGroupBoxContentWidget()
-{
-    mGroupBoxRecipientContent = new HbWidget();
-
-    // Create layout for the widget
-    mGbVerticalLayout = new QGraphicsLinearLayout(Qt::Vertical,mGroupBoxRecipientContent);
-    mCcFieldLayout = new QGraphicsLinearLayout(Qt::Horizontal, mGbVerticalLayout);
-    mBccFieldLayout = new QGraphicsLinearLayout(Qt::Horizontal, mGbVerticalLayout);
-
-    // Add Cc: field into widget
-    mCcField = new NmRecipientField(hbTrId("txt_mail_editor_cc"));
-    if (mCcField) {
-        mCcField->setObjectName("lineEditCcField");
-        mGbVerticalLayout->insertItem(EEditorCcLine, mCcField );
-    }
-
-    // Add Bcc: field into widget
-    mBccField = new NmRecipientField(hbTrId("txt_mail_editor_bcc"));
-    if (mBccField){
-        mBccField->setObjectName("lineEditBccField");
-        mGbVerticalLayout->insertItem(EEditorBccLine, mBccField);
-    }
-    mGbVerticalLayout->setContentsMargins(0,0,0,0);
-
-    mGroupBoxRecipientContent->setLayout(mGbVerticalLayout);
-    return mGroupBoxRecipientContent;
 }
 
 /*!
@@ -349,18 +355,7 @@ void NmEditorHeader::setPriority(NmActionResponseCommand prio)
         break;
     }
     // Update subject field height because row amount might have been changed.
-    // Done with delayed timer so that layout system has finished before.
-    QTimer::singleShot(nmLayoutSystemWaitTimer, this, SLOT(sendHeaderHeightChanged()));
-    // This second call will set new position for body if subject field height has been changed.
-    QTimer::singleShot(nmLayoutSystemWaitTimer * 2, this, SLOT(sendHeaderHeightChanged()));
-}
-
-/*!
- * \brief Sets the groupbox to be expanded or collapsed. 
- */
-void NmEditorHeader::setGroupBoxCollapsed( bool collapsed )
-{
-    mGroupBoxRecipient->setCollapsed( collapsed );
+    QTimer::singleShot(nmLayoutSystemWaitTimer * 3, this, SLOT(fixHeaderFieldHeights()));
 }
 
 /*!

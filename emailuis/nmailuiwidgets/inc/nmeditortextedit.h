@@ -61,6 +61,7 @@ private:
     int mHeaderHeight;
     QPointF mBgScrollPosition;
     bool mFirstTime;
+    bool mFirstTimeToScrollPosUpdate;
     
     QPair<bool, QColor> mCustomTextColor;//!<This property keeps info about using customTextColor and color to use. 
 };

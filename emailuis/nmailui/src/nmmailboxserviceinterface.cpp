@@ -80,6 +80,8 @@ void NmMailboxServiceInterface::displayInboxByMailboxId(QVariant data)
 
         // Bring the application to the foreground.
         XQServiceUtil::toBackground(false);
+        HbMainWindow *mainWindow = mApplication->mainWindow();
+        mainWindow->show();
 
         // Launch the message list view.
         NmUiStartParam *startParam =

@@ -38,7 +38,7 @@
 #include "ImsPointsecMonitor.h"
 #include "ImsPointsecObserver.h"
 #include "emailstorepskeys.h" // Support for on-the-fly upgrade
-#include "emailshutdownconst.h"
+//<qmail> removing #include "emailshutdownconst.h"
 //</cmail>
 
 // =========
@@ -318,19 +318,9 @@ void CMessageStoreServer::ConstructL()
     // Support for on-the-fly upgrade
     // Watch for KProperty_EmailStore_Upgrade property. When set to our UID3/SECUREID,
     // then, this server should stop.
-    RProcess process;
-	CleanupClosePushL( process ); //+process
-    TSecurityPolicy readPolicy( ECapabilityReadDeviceData );
-    TSecurityPolicy writePolicy( ECapabilityWriteDeviceData );
-    iUpgradePropertyWatcher = CPSIntPropertyWatcher::NewL( this );
-    iUpgradePropertyWatcher->StartL( KEmailShutdownPsCategory, 
-                                     EEmailPsKeyShutdownMsgStore,
-                                     KEmailShutterPsValue,
-                                     /*ETrue*/EFalse,
-                                     readPolicy,
-                                     writePolicy ); 
-    CleanupStack::PopAndDestroy(); //-process
-        
+
+    // <qmail> removed code to observe shutdown commands
+
     __LOG_EXIT
     } // end ConstructL
 

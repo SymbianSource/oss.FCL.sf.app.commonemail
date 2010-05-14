@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef NMFWAMESSAGEPARTFETCHINGOPERATION_H_
-#define NMFWAMESSAGEPARTFETCHINGOPERATION_H_
+#ifndef NMFWAMESSAGEPARTSFETCHINGOPERATION_H_
+#define NMFWAMESSAGEPARTSFETCHINGOPERATION_H_
 
 #include <nmoperation.h>
 #include <MFSMailRequestObserver.h>
@@ -24,15 +24,15 @@
 class NmMessage;
 class CFSMailClient;
 
-class NmFwaMessagePartFetchingOperation : public NmOperation, public MFSMailRequestObserver
+class NmFwaMessagePartsFetchingOperation : public NmOperation, public MFSMailRequestObserver
 {
     Q_OBJECT
 public:
-    NmFwaMessagePartFetchingOperation(
+    NmFwaMessagePartsFetchingOperation(
         const NmId &mailboxId,
         const NmId &folderId,
         const NmId &messageId,
-        const NmId &messagePartId,
+        const QList<NmId> &messagePartIds,
         CFSMailClient &mailClient);
     
     // from MFSMailRequestObserver
@@ -44,17 +44,20 @@ protected:
     void doCancelOperation();
     
 private:
-    ~NmFwaMessagePartFetchingOperation();
+    ~NmFwaMessagePartsFetchingOperation();
     void doRunAsyncOperationL();
 
 private:
     NmId mMailboxId;
     NmId mFolderId;
     NmId mMessageId;
-    NmId mMessagePartId;   
-    CFSMailClient &mMailClient;  
-    int mLastProgressValue;   
+    RArray<TFSMailMsgId> mMessagePartIds;
+    
+    CFSMailClient &mMailClient;
+    
+    int mLastProgressValue;
+    
     TInt mRequestId;
 };
 
-#endif /* NMFWAMESSAGEPARTFETCHINGOPERATION_H_ */
+#endif /* NMFWAMESSAGEPARTSFETCHINGOPERATION_H_ */

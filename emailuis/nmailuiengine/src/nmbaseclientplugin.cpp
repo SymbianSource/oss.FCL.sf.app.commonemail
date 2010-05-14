@@ -240,6 +240,7 @@ void NmBaseClientPlugin::createNewMail()
 */
 void NmBaseClientPlugin::settings()
 {
+    handleRequest(NmActionResponseCommandSettings, mMenuRequest);
 }
 
 /*!

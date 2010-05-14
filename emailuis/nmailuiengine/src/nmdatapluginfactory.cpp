@@ -110,6 +110,26 @@ NmDataPluginInterface *NmDataPluginFactory::interfaceInstance(NmId mailboxId)
 /*!
 
  */
+NmApplicationStateInterface *NmDataPluginFactory::applicationStateInterfaceInstance(QObject *plugin)
+{
+    NmApplicationStateInterface *pluginInterface = NULL;
+    if (plugin) {
+        pluginInterface= qobject_cast<NmApplicationStateInterface*>(plugin);
+        }
+    return pluginInterface;
+}
+
+/*!
+
+ */
+NmApplicationStateInterface *NmDataPluginFactory::applicationStateInterfaceInstance(NmId mailboxId)
+{
+    return applicationStateInterfaceInstance(pluginInstance(mailboxId));
+}
+
+/*!
+
+ */
 QObject *NmDataPluginFactory::pluginInstance(NmId mailboxId)
 {
     QObject *value(NULL);

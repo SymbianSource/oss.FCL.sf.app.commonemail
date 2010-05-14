@@ -54,6 +54,8 @@ void NmMailboxListViewItem::updateChildItems()
     // To create primitives
     HbListViewItem::updateChildItems();
 
+    EmailMailboxInfo mailboxInfo;
+    
     NmMailboxMetaData *mailbox =
             modelIndex().data(Qt::DisplayRole).value<NmMailboxMetaData*>();
     if (mailbox){
@@ -62,7 +64,10 @@ void NmMailboxListViewItem::updateChildItems()
 
         HbLabel *mbIcon = new HbLabel();
         mbIcon->setObjectName("MailboxListViewMailboxIcon");
-        mbIcon->setIcon(NmIcons::getIcon(NmIcons::NmIconDefaultMailbox));
+        
+        QString domainName = mailbox->address();
+        QString iconName = mailboxInfo.mailboxIcon(domainName);
+        mbIcon->setIcon(HbIcon(iconName));
         mbIcon->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
 
         HbLabel *mbName = new HbLabel();

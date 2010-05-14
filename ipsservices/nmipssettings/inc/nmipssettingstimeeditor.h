@@ -63,10 +63,14 @@ private: // data
     // Now owned.
     HbPushButton *mButton;
 
+    // Owned.
     HbDialog *mTimePickerDialog;
 
     QTime mTime;
     QString mLabel;
+    
+    // Not owned.
+    HbAction *mPrimaryAction;
 };
 
 #endif // NMIPSSETTINGSTIMEEDITOR_H

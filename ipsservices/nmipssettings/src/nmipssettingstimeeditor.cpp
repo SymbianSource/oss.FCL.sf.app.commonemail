@@ -39,7 +39,8 @@
 NmIpsSettingsTimeEditor::NmIpsSettingsTimeEditor(QGraphicsItem *parent, Qt::WindowFlags wFlags)
     : HbWidget(parent, wFlags),
       mButton(0),
-      mTimePickerDialog(0)
+      mTimePickerDialog(0),
+      mPrimaryAction(0)
 {
     // Create widget layout.
     QGraphicsLinearLayout* layout = new QGraphicsLinearLayout(Qt::Vertical);
@@ -130,11 +131,12 @@ void NmIpsSettingsTimeEditor::launchTimePicker()
 
     // Set dialog actions.
     HbAction *okAction = new HbAction(QString(hbTrId("txt_common_button_ok")), mTimePickerDialog);
-    mTimePickerDialog->setPrimaryAction(okAction);
-
-    HbAction *cancelAction = new HbAction(QString(hbTrId("txt_common_button_cancel")),
-        mTimePickerDialog);
-    mTimePickerDialog->setSecondaryAction( cancelAction );
+    mTimePickerDialog->addAction(okAction);
+    mPrimaryAction = okAction;
+    
+    HbAction *cancelAction = new HbAction(QString(hbTrId("txt_common_button_cancel")), 
+                                          mTimePickerDialog);
+    mTimePickerDialog->addAction(cancelAction);
 
     // Show the dialog.
     mTimePickerDialog->open(this, SLOT(handleTimeAction(HbAction *)));
@@ -145,7 +147,7 @@ void NmIpsSettingsTimeEditor::launchTimePicker()
  */
 void NmIpsSettingsTimeEditor::handleTimeAction(HbAction *action)
 {
-    if (action == mTimePickerDialog->primaryAction()) {
+    if (action==mPrimaryAction) {
         // Get the time from the picker.
         QTime newTime = static_cast<HbDateTimePicker *> (mTimePickerDialog->contentWidget())->time();
 

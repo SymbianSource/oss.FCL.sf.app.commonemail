@@ -32,8 +32,8 @@ class HbTreeView;
 
 class NmActionResponse;
 class NmApplication;
+class NmMessageListModel;
 class NmMessageListModelItem;
-class NmMessageSearchListModel;
 class NmUiEngine;
 class NmUiStartParam;
 
@@ -47,7 +47,7 @@ public:
     NmMessageSearchListView(NmApplication &application,
                             NmUiStartParam *startParam,
                             NmUiEngine &uiEngine,
-                            NmMessageSearchListModel &searchListModel,
+                            NmMessageListModel &msglistModel,
                             HbDocumentLoader *documentLoader,
                             QGraphicsItem *parent = 0);
     ~NmMessageSearchListView();
@@ -85,11 +85,11 @@ private:
 public slots:
 
     void reloadViewContents(NmUiStartParam *startParam);
-    void contextButton(NmActionResponse &result);
 
 
 private slots:
 
+    void criteriaChanged(QString text);
     void showItemContextMenu(HbAbstractViewItem *index, const QPointF &coords);
     void itemActivated(const QModelIndex &index);
     void handleSelection();
@@ -98,19 +98,19 @@ private slots:
     void refreshList();
     void toggleSearch();
     void handleSearchComplete();
-    void criteriaChanged(QString text);
+
 
 private: // Data
 
     NmApplication &mApplication;
     NmUiEngine &mUiEngine;
-    NmMessageSearchListModel &mSearchListModel;
+    NmMessageListModel &mMsgListModel;
     HbDocumentLoader *mDocumentLoader; // Owned
     QObjectList mWidgetList;
     HbMenu *mItemContextMenu; // Owned
     HbTreeView *mMessageListWidget; // Not owned
-    HbLabel *mNoMessagesLabel; // Not owned
     HbLabel *mInfoLabel; // Not owned
+    HbLabel *mNoMessagesLabel; // Not owned
     HbLineEdit *mLineEdit; // Not owned
     HbPushButton *mPushButton; // Not owned
     NmMessageListModelItem *mLongPressedItem; // Not owned

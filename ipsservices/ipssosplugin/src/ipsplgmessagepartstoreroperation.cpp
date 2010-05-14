@@ -287,9 +287,13 @@ void CIpsPlgMessagePartStorerOperation::StoreTextHtmlPartL(
 	RFile file = aPart->GetContentFileL();
 	CleanupClosePushL(file);
 
-	// Write new content to text/html part file - async function
-	file.Write(0, *iDataBuffer, iDataBuffer->Length(), iStatus);
+    // if we don't do SetSize(0) characters from the original mail are left in the end of the mail
+	// if the modified mail contains less characters.
+	User::LeaveIfError( file.SetSize( 0 ) );
 
+	// Write new content to text/html part file - async function
+	file.Write( 0, *iDataBuffer, iDataBuffer->Length(), iStatus );
+	
 	CleanupStack::PopAndDestroy(2, data16);
 	SetActive();
 	}

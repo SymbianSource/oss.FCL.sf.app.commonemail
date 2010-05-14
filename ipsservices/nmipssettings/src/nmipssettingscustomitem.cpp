@@ -78,6 +78,8 @@ HbWidget *NmIpsSettingsCustomItem::createCustomWidget()
     switch (type) {
         case LabeledComboBox: {
             widget = new NmIpsSettingsLabeledComboBox();
+            connect(widget, SIGNAL(propertyChanged(QMap<QString, QVariant>)),
+                    this, SLOT(propertyChanged(QMap<QString, QVariant>)));
             break;
             }
         case TimeEditor: {

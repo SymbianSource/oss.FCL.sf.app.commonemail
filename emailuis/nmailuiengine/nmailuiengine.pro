@@ -1,4 +1,4 @@
-# Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+# Copyright (c) 2009 - 2010 Nokia Corporation and/or its subsidiary(-ies).
 # All rights reserved.
 # This component and the accompanying materials are made available
 # under the terms of "Eclipse Public License v1.0"
@@ -36,7 +36,6 @@ HEADERS += inc/nmmessagecreationoperation.h \
            inc/nmfoldermetadata.h \
            inc/nmmessagelistmodelitem.h \
            inc/nmmessagelistmodel.h \
-           inc/nmmessagesearchlistmodel.h \
            inc/nmuienginedef.h \
            inc/nmdataplugininterface.h \
            inc/nmicons.h \
@@ -45,7 +44,8 @@ HEADERS += inc/nmmessagecreationoperation.h \
            inc/nmaddattachmentsoperation.h \
            inc/nmmessagesendingoperation.h \
            inc/nmcheckoutboxoperation.h \
-           inc/nmstoreenvelopesoperation.h
+           inc/nmstoreenvelopesoperation.h \
+           inc/nmapplicationstateinterface.h 
 
 SOURCES += src/nmuiengine.cpp \
            src/nmdatamanager.cpp \
@@ -56,7 +56,6 @@ SOURCES += src/nmuiengine.cpp \
            src/nmfoldermetadata.cpp \
            src/nmmessagelistmodelitem.cpp \
            src/nmmessagelistmodel.cpp \
-           src/nmmessagesearchlistmodel.cpp \
            src/nmdatapluginfactory.cpp \
            src/nmicons.cpp \
            src/nmbaseclientplugin.cpp \

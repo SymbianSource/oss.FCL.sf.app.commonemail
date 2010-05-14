@@ -40,18 +40,18 @@ NmMessageSearchListView::NmMessageSearchListView(
     NmApplication &application,
     NmUiStartParam* startParam,
     NmUiEngine &uiEngine,
-    NmMessageSearchListModel &searchListModel,
+    NmMessageListModel &msgListModel,
     HbDocumentLoader *documentLoader,
     QGraphicsItem *parent)
-: NmBaseView(startParam, parent),
+: NmBaseView(startParam, application, parent),
   mApplication(application),
   mUiEngine(uiEngine),
-  mSearchListModel(searchListModel),
+  mMsgListModel(msgListModel),
   mDocumentLoader(documentLoader),
   mItemContextMenu(NULL),
   mMessageListWidget(NULL),
-  mNoMessagesLabel(NULL),
   mInfoLabel(NULL),
+  mNoMessagesLabel(NULL),
   mLineEdit(NULL),
   mPushButton(NULL),
   mLongPressedItem(NULL),
@@ -133,13 +133,24 @@ void NmMessageSearchListView::handleActionCommand(NmActionResponse &actionRespon
                 break;
             }
             case NmActionResponseCommandMailboxDeleted: {
-                mApplication.popView();
+                mApplication.prepareForPopView();
                 break;
             }
             default: {
                 break;
             }
         }
+    }
+    // Handle context menu commands here.
+    if (actionResponse.menuType() == NmActionContextMenu) {
+        if (mLongPressedItem){
+            NmUiStartParam *startParam = new NmUiStartParam(NmUiViewMessageViewer,
+                mStartParam->mailboxId(), mStartParam->folderId(),
+                mLongPressedItem->envelope().messageId());
+
+            mApplication.enterNmUiView(startParam);
+            mLongPressedItem = NULL;
+       }
     }
 }
 
@@ -181,15 +192,6 @@ void NmMessageSearchListView::loadViewLayout()
             mMessageListWidget->setFrictionEnabled(true);
         }
 
-        // Load the "no messages" label.
-        mNoMessagesLabel = qobject_cast<HbLabel *>(
-            mDocumentLoader->findWidget(NMUI_MESSAGE_SEARCH_LIST_NO_MESSAGES));
-
-        if (mNoMessagesLabel) {
-            NMLOG("NmMessageSearchListView: \"No messages\" label loaded.");
-            mNoMessagesLabel->hide();
-        }
-
         // Load the info label.
         mInfoLabel = qobject_cast<HbLabel *>(
             mDocumentLoader->findWidget(NMUI_MESSAGE_SEARCH_LIST_INFO_LABEL));
@@ -198,6 +200,15 @@ void NmMessageSearchListView::loadViewLayout()
             NMLOG("NmMessageSearchListView: Info label loaded.");
             mInfoLabel->setPlainText(hbTrId("txt_mail_subhead_inbox"));
             mInfoLabel->hide();
+        }
+
+        // Load the no messages label.
+        mNoMessagesLabel = qobject_cast<HbLabel *>(
+            mDocumentLoader->findWidget(NMUI_MESSAGE_SEARCH_LIST_NO_MESSAGES));
+
+        if (mNoMessagesLabel) {
+            NMLOG("NmMessageSearchListView: No messages label loaded.");
+            mNoMessagesLabel->hide();
         }
 
         // Load the search panel.
@@ -242,7 +253,7 @@ void NmMessageSearchListView::initTreeView()
     }
 
     // Clear the previous content if any.
-    mSearchListModel.clearSearchResults();
+    mMsgListModel.clear();
 }
 
 
@@ -344,10 +355,7 @@ void NmMessageSearchListView::reloadViewContents(NmUiStartParam *startParam)
         mStartParam = startParam;
 
         // Update the model with new parameters.
-        NmMessageListModel &messageListModel =
-            mUiEngine.messageListModel(startParam->mailboxId(),
-                                       startParam->folderId());
-        mSearchListModel.setSourceModel(&messageListModel);
+        mUiEngine.messageListModelForSearch(startParam->mailboxId());
         refreshList();
 
         // Refresh the mailbox name.
@@ -363,6 +371,29 @@ void NmMessageSearchListView::reloadViewContents(NmUiStartParam *startParam)
 
 
 /*!
+    Called when text is changed in the edit field. If there is no search term
+    in the edit field, the search button is dimmed and disabled. If the field
+    contains text, the button can be clicked.
+    
+    \param text The text in the field after the modification.
+*/
+void NmMessageSearchListView::criteriaChanged(QString text) 
+{
+    NMLOG(QString("NmMessageSearchListView::criteriaChanged %1").arg(text));
+    
+    // Check if the button should be disabled/enabled.
+    bool enabled = mPushButton->isEnabled();
+
+    if (!enabled && !text.isEmpty()) {
+        mPushButton->setEnabled(true);
+    }
+    else if (enabled && text.isEmpty()) {
+        mPushButton->setEnabled(false);
+    }
+}
+
+
+/*!
     Displays the item context menu. This method gets called if an item on the
     list is long pressed.
 */
@@ -371,11 +402,11 @@ void NmMessageSearchListView::showItemContextMenu(
 {
     // Store long press item for later use with response.
     mLongPressedItem = 
-        mSearchListModel.data(listViewItem->modelIndex(),
-                              Qt::DisplayRole).value<NmMessageListModelItem*>();
+        mMsgListModel.data(listViewItem->modelIndex(),
+                           Qt::DisplayRole).value<NmMessageListModelItem*>();
 
-    if (mItemContextMenu && mLongPressedItem && mLongPressedItem->itemType() ==
-        NmMessageListModelItem::NmMessageItemMessage) {
+    if (mItemContextMenu && mLongPressedItem &&
+        mLongPressedItem->itemType() == NmMessageListModelItem::NmMessageItemMessage) {
         // Clear the previous menu actions.
         mItemContextMenu->clearActions();
         NmUiExtensionManager &extMngr = mApplication.extManager();
@@ -385,15 +416,17 @@ void NmMessageSearchListView::showItemContextMenu(
         NmMessageEnvelope *envelope = mLongPressedItem->envelopePtr();
 
         if (envelope){
-            NmActionRequest request(this, NmActionContextMenu, NmActionContextViewMessageList,
-                NmActionContextDataMessage, mStartParam->mailboxId(), mStartParam->folderId(),
+            NmActionRequest request(this, NmActionContextMenu,
+                NmActionContextViewMessageList, NmActionContextDataMessage,
+                mStartParam->mailboxId(), mStartParam->folderId(),
                 envelope->messageId(),QVariant::fromValue(envelope));
 
             extMngr.getActions(request, list);
         }
         else{
-            NmActionRequest request(this, NmActionContextMenu, NmActionContextViewMessageList,
-                NmActionContextDataMessage, mStartParam->mailboxId(), mStartParam->folderId(),
+            NmActionRequest request(this, NmActionContextMenu,
+                NmActionContextViewMessageList, NmActionContextDataMessage,
+                mStartParam->mailboxId(), mStartParam->folderId(),
                 envelope->messageId());
 
             extMngr.getActions(request, list);
@@ -402,37 +435,12 @@ void NmMessageSearchListView::showItemContextMenu(
         for (int i(0); i < list.count(); ++i) {
             mItemContextMenu->addAction(list[i]);
         }
+
         mItemContextMenu->setPreferredPos(coords);
-        mItemContextMenu->open(this, SLOT(contextButton(NmActionResponse&)));
+        mItemContextMenu->open();
     }
 }
 
-/*!
-    Slot. Signaled when menu option is selected
-*/
-void NmMessageSearchListView::contextButton(NmActionResponse &result)
-{
-// Handle context menu commands here.
-    if (result.menuType() == NmActionContextMenu){
-        switch (result.responseCommand()) {
-           case NmActionResponseCommandOpen: {
-               if (mLongPressedItem){
-                   NmUiStartParam *startParam = new NmUiStartParam(NmUiViewMessageViewer,
-                       mStartParam->mailboxId(), mStartParam->folderId(),
-                       mLongPressedItem->envelope().messageId());
-
-                   mApplication.enterNmUiView(startParam);
-                   mLongPressedItem = NULL;
-               }
-
-               break;
-           }
-           default: {
-               break;
-           }
-        }
-    }
-}
 
 /*!
     Stores the given index and forwards the call to handleSelection(). This
@@ -446,24 +454,6 @@ void NmMessageSearchListView::itemActivated(const QModelIndex &index)
     QMetaObject::invokeMethod(this, "handleSelection", Qt::QueuedConnection);
 }
 
-/*!
-    Called when text is changed in the edit field
-    
-    \param text new text entered in the field
- */
-void NmMessageSearchListView::criteriaChanged(QString text) 
-{
-    NMLOG(QString("NmMessageSearchListView::criteriaChanged %1").arg(text));
-    
-    // Check when button should be disabled/enabled
-    bool enabled = mPushButton->isEnabled();
-    if (!enabled && !text.isEmpty()) {
-		mPushButton->setEnabled(true);
-    }
-    else if (enabled && text.isEmpty()) {
-		mPushButton->setEnabled(false);
-    }
-}
 
 /*!
     If the selected item is a message, will open the message.
@@ -471,7 +461,7 @@ void NmMessageSearchListView::criteriaChanged(QString text)
 void NmMessageSearchListView::handleSelection()
 {
     // Do expand/collapse for title divider items
-    NmMessageListModelItem* modelItem = mSearchListModel.data(
+    NmMessageListModelItem* modelItem = mMsgListModel.data(
         mActivatedIndex, Qt::DisplayRole).value<NmMessageListModelItem*>();
 
     if (modelItem &&
@@ -526,12 +516,28 @@ void NmMessageSearchListView::itemsAdded(const QModelIndex &parent, int start, i
 
 /*!
     This method gets called when an item is removed from the list. If the list
-    contains no items, "no messages" label is displayed.
+    contains no items, the info label (if visible) is hidden and the "no
+    messages" label is displayed. Otherwise, only the result count in the info
+    label is updated.
 */
 void NmMessageSearchListView::itemsRemoved()
 {
-    if (mSearchListModel.searchResultCount() == 0) {
+    const int itemCount = mMsgListModel.rowCount();
+
+    if (itemCount == 0) {
+        if (mInfoLabel && mInfoLabel->isVisible()) {
+            // Hide the info label.
+            mInfoLabel->hide();
+        }
+
+        // Display the "no messages" label.
         noMessagesLabelVisibility(true);
+    }
+    else if (mInfoLabel && mInfoLabel->isVisible()) {
+        // Update the search result count in the info label.
+        QString resultsString(hbTrId("txt_mail_list_search_results"));
+        resultsString.arg(itemCount);
+        mInfoLabel->setPlainText(resultsString);
     }
 }
 
@@ -543,21 +549,17 @@ void NmMessageSearchListView::refreshList()
 {
     if (mMessageListWidget) {
         // Set the model.
-        NmMessageListModel &messageListModel =
-            mUiEngine.messageListModel(mStartParam->mailboxId(),
-                                       mStartParam->folderId());
-        mSearchListModel.setSourceModel(&messageListModel);
         mMessageListWidget->setModel(
-            static_cast<QSortFilterProxyModel*>(&mSearchListModel));
+            static_cast<QStandardItemModel*>(&mMsgListModel));
 
         // Connect the signals.
-        connect(&mSearchListModel, SIGNAL(rowsInserted(const QModelIndex&, int, int)),
+        connect(&mMsgListModel, SIGNAL(rowsInserted(const QModelIndex&, int, int)),
                 this, SLOT(itemsAdded(const QModelIndex&, int, int)), Qt::UniqueConnection);
 
-        connect(&mSearchListModel, SIGNAL(rowsRemoved(const QModelIndex&, int, int)),
+        connect(&mMsgListModel, SIGNAL(rowsRemoved(const QModelIndex&, int, int)),
                 this, SLOT(itemsRemoved()), Qt::UniqueConnection);
 
-        connect(&messageListModel, SIGNAL(setNewParam(NmUiStartParam*)),
+        connect(&mMsgListModel, SIGNAL(setNewParam(NmUiStartParam*)),
                 this, SLOT(reloadViewContents(NmUiStartParam*)), Qt::UniqueConnection);
 
     }
@@ -585,7 +587,7 @@ void NmMessageSearchListView::toggleSearch()
         mSearchInProgress = true;
     
         // Clear previous results if any.
-        mSearchListModel.clearSearchResults();
+        mMsgListModel.clear();
 
         connect(&mUiEngine, SIGNAL(searchComplete()),
                 this, SLOT(handleSearchComplete()), Qt::UniqueConnection);
@@ -632,15 +634,7 @@ void NmMessageSearchListView::handleSearchComplete()
         mPushButton->setIcon(HbIcon("qtg_mono_search"));
     }
 
-    const int resultCount = mSearchListModel.searchResultCount();
-
-    if (resultCount == 1) {
-        // For some reason when the result count is only 1, the search list
-        // will not display the found message. Until the underlying reason for
-        // this bug is found, let us use the following solution to fix this
-        // issue.
-        refreshList();
-    }
+    const int resultCount = mMsgListModel.rowCount();
 
     if (resultCount) {
         if (mInfoLabel) {

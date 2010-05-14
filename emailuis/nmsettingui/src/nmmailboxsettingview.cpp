@@ -74,6 +74,9 @@ NmMailboxSettingView::NmMailboxSettingView(const NmId &mailboxId,
     }
 
     if (mForm) {
+        // Fix for dataform item recycling.
+        mForm->setItemRecycling(false);
+
         // Set the form for the view.
         setWidget(mForm);
 

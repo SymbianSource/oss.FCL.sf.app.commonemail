@@ -280,4 +280,32 @@ NmId NmDataManager::getStandardFolderId(
 }
 
 
+/*!
+    Returns folder type by id
 
+    \param mailboxId The ID of the mailbox containing the folder
+
+    \param folderId The ID of the folder 
+
+    \return Folder type
+*/
+NmFolderType NmDataManager::folderTypeById(NmId mailboxId, NmId folderId)
+{
+    NmFolderType folderType(NmFolderOther);
+    if (getStandardFolderId(mailboxId,NmFolderInbox)==folderId){
+        folderType=NmFolderInbox;
+    }
+    else if (getStandardFolderId(mailboxId,NmFolderOutbox)==folderId){
+        folderType=NmFolderOutbox; 
+    }
+    else if (getStandardFolderId(mailboxId,NmFolderDrafts)==folderId){
+        folderType=NmFolderDrafts;
+    }
+    else if (getStandardFolderId(mailboxId,NmFolderSent)==folderId){
+        folderType=NmFolderSent; 
+    }    
+    else if (getStandardFolderId(mailboxId,NmFolderDeleted)==folderId){
+        folderType=NmFolderDeleted;  
+    }    
+    return folderType;
+}

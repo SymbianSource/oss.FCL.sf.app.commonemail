@@ -39,7 +39,7 @@ NmEditorView::NmEditorView(
     NmUiStartParam* startParam,
     NmUiEngine &uiEngine,
     QGraphicsItem *parent)
-    : NmBaseView(startParam, parent),
+    : NmBaseView(startParam, application, parent),
       mApplication(application),
       mUiEngine(uiEngine),
       mDocumentLoader(NULL),
@@ -54,7 +54,9 @@ NmEditorView::NmEditorView(
       mRemoveAttachmentOperation(NULL),
       mCheckOutboxOperation(NULL),
       mWaitDialog(NULL),
-      mAttachmentPicker(NULL)
+      mQueryDialog(NULL),
+      mAttachmentPicker(NULL),
+      mCcBccFieldVisible(false)
 {
     mDocumentLoader	= new HbDocumentLoader();
     // Set object name
@@ -93,6 +95,7 @@ NmEditorView::~NmEditorView()
         delete mAttachmentListContextMenu;
     }
     delete mWaitDialog;
+    delete mQueryDialog;
     delete mAttachmentPicker;    
 }
 
@@ -204,35 +207,35 @@ HbWidget* NmEditorView::scrollAreaContents()
 }
 
 /*
-   Query user if we want to exit the editor
+   Launch dialog for query user if we want to exit the editor
 */
-bool NmEditorView::okToExitView()
+void NmEditorView::okToExitView()
 {
-    bool okToExit = true;
-
     NmEditorHeader *header = mContentWidget->header();
+    
+    bool okToExit = true;
     
     // show the query if the message has not been sent
     if (mMessage && header) {
         // see if editor has any content
         int toTextLength = 0;
-        if (header->toField()) {
-            toTextLength = header->toField()->text().length();
+        if (header->toEdit()) {
+            toTextLength = header->toEdit()->text().length();
         }
         
         int ccTextLength = 0;
-        if (header->ccField()) {
-            ccTextLength = header->ccField()->text().length();
+        if (header->ccEdit()) {
+            ccTextLength = header->ccEdit()->text().length();
         }
 
         int bccTextLength = 0;
-        if (header->bccField()) {
-            bccTextLength = header->bccField()->text().length();
+        if (header->bccEdit()) {
+            bccTextLength = header->bccEdit()->text().length();
         }
         
         int subjectLength = 0;
-        if (header->subjectField()) {
-            subjectLength = header->subjectField()->text().length();
+        if (header->subjectEdit()) {
+            subjectLength = header->subjectEdit()->text().length();
         }
         
         QList<NmMessagePart*> attachmentList;
@@ -244,11 +247,36 @@ bool NmEditorView::okToExitView()
 
         // content exists, verify exit from user
         if (!okToExit) {
-            okToExit = NmUtilities::displayQuestionNote(hbTrId("txt_mail_dialog_delete_message"));
+            if (mQueryDialog) {
+                delete mQueryDialog;
+                mQueryDialog = 0;
+            }
+            // Launch query dialog.
+            mQueryDialog = NmUtilities::displayQuestionNote(hbTrId("txt_mail_dialog_delete_message"),
+                                                            this,
+                                                            SLOT(okToExitQuery(HbAction*)));
         }
     }
+    
+    // no need to query anything, just exit.
+    if(okToExit) {
+        QMetaObject::invokeMethod(&mApplication,
+                                  "popView",
+                                  Qt::QueuedConnection);
+    }
+}
 
-    return okToExit;
+/*!
+    Handle the user selection is it ok to exit.
+*/
+void NmEditorView::okToExitQuery(HbAction* action)
+{
+    // Check that 'Yes' button was pressed. Use loc string 'txt_mail_dialog_yes' when possible.
+    if (action->text() == "Yes") {
+        QMetaObject::invokeMethod(&mApplication,
+                                  "popView",
+                                  Qt::QueuedConnection);
+    }
 }
 
 /*!
@@ -424,26 +452,56 @@ void NmEditorView::startSending()
         NmUtilities::getRecipientsFromMessage(*mMessage, invalidAddresses, NmUtilities::InvalidAddress);
     }
     
-    bool okToSend = true;
     if (invalidAddresses.count() > 0) {
         
         // invalid addresses found, verify send from user
         QString noteText = hbTrId("txt_mail_dialog_invalid_mail_address_send");
         // set the first failing address to the note
         noteText = noteText.arg(invalidAddresses.at(0).address());
-        okToSend = NmUtilities::displayQuestionNote(noteText);
+        
+        if (mQueryDialog) {
+            delete mQueryDialog;
+            mQueryDialog = 0;
+        }
+        // Launch query dialog. Pressing "yes" will finalize the sending.
+        mQueryDialog = NmUtilities::displayQuestionNote(noteText,
+                                                        this,
+                                                        SLOT(invalidAddressQuery(HbAction*)));
     }
-    
-    if (okToSend) {
-        QList<NmOperation *> preliminaryOperations;
-        preliminaryOperations.append(mAddAttachmentOperation);
-        preliminaryOperations.append(mRemoveAttachmentOperation);
-        // ownership of mMessage is transferred
-        // NmOperations are automatically deleted after completion
-        mUiEngine.sendMessage(mMessage, preliminaryOperations);
-        mMessage = NULL;
-        preliminaryOperations.clear();
-        mApplication.popView();
+    else {
+        // no need to ask anything, just send
+        finalizeSending();
+    }
+}
+
+/*!
+    Send the message after all checks have been done.
+*/
+void NmEditorView::finalizeSending()
+{
+    QList<NmOperation *> preliminaryOperations;
+    preliminaryOperations.append(mAddAttachmentOperation);
+    preliminaryOperations.append(mRemoveAttachmentOperation);
+    // ownership of mMessage is transferred
+    // NmOperations are automatically deleted after completion
+    mUiEngine.sendMessage(mMessage, preliminaryOperations);
+    mMessage = NULL;
+    preliminaryOperations.clear();
+    // Must use delayed editor view destruction so that query dialog
+    // (which has signaled this) gets time to complete.
+    QMetaObject::invokeMethod(&mApplication,
+                              "popView",
+                              Qt::QueuedConnection);
+}
+
+/*!
+    Handle the user selection for invalid address query which was started by startSending.
+*/
+void NmEditorView::invalidAddressQuery(HbAction* action)
+{
+    // Check that 'Yes' button was pressed. Use loc string 'txt_mail_dialog_yes' when possible.
+    if (action->text() == "Yes") {
+        finalizeSending();
     }
 }
 
@@ -485,34 +543,34 @@ void NmEditorView::updateMessageWithEditorContents()
             }
         }
         if (mContentWidget && mContentWidget->header() ) {
-            if (mContentWidget->header()->subjectField()) {
+            if (mContentWidget->header()->subjectEdit()) {
                 mMessage->envelope().setSubject(
-                    mContentWidget->header()->subjectField()->text());
+                    mContentWidget->header()->subjectEdit()->text());
             }
-            if (mContentWidget->header()->toField()) {
+            if (mContentWidget->header()->toEdit()) {
                 QString toFieldText =
-                    mContentWidget->header()->toField()->text();
+                    mContentWidget->header()->toEdit()->text();
 
                 // This verification of zero length string isn't needed
                 // after list of addresses
                 if (toFieldText.length() > 0) {
-                    mMessage->envelope().setToRecipients(mContentWidget->header()->toField()->emailAddressList());  
+                    mMessage->envelope().setToRecipients(mContentWidget->header()->toEdit()->emailAddressList());  
                 }
             }
-            if (mContentWidget->header()->ccField()) {
+            if (mContentWidget->header()->ccEdit()) {
                 QString ccFieldText =
-                    mContentWidget->header()->ccField()->text();
+                    mContentWidget->header()->ccEdit()->text();
 
                 if (ccFieldText.length() > 0) {
-                    mMessage->envelope().setCcRecipients(mContentWidget->header()->ccField()->emailAddressList());      
+                    mMessage->envelope().setCcRecipients(mContentWidget->header()->ccEdit()->emailAddressList());      
                 }
             }
-            if (mContentWidget->header()->bccField()) {
+            if (mContentWidget->header()->bccEdit()) {
                 QString bccFieldText =
-                    mContentWidget->header()->bccField()->text();
+                    mContentWidget->header()->bccEdit()->text();
 
                 if (bccFieldText.length() > 0) {
-                    mMessage->envelope().setBccRecipients(mContentWidget->header()->bccField()->emailAddressList());  
+                    mMessage->envelope().setBccRecipients(mContentWidget->header()->bccEdit()->emailAddressList());  
                 }
             }
         }
@@ -559,14 +617,14 @@ void NmEditorView::fillEditorWithMessageContents()
         bccAddressesString = addressListToString(messageEnvelope.bccRecipients());
     }
 
-    mContentWidget->header()->toField()->setPlainText(toAddressesString);
-    mContentWidget->header()->ccField()->setPlainText(ccAddressesString);
-    mContentWidget->header()->bccField()->setPlainText(bccAddressesString);
+    mContentWidget->header()->toEdit()->setPlainText(toAddressesString);
+    mContentWidget->header()->ccEdit()->setPlainText(ccAddressesString);
+    mContentWidget->header()->bccEdit()->setPlainText(bccAddressesString);
 
     if (ccAddressesString.length() || bccAddressesString.length()) {
         // Since cc or/and bcc recipients exist, expand the group box to display
         // the addresses by expanding the group box.
-        mContentWidget->header()->setGroupBoxCollapsed(false);
+        mContentWidget->header()->setFieldVisibility(true);
     }
 
     // Set subject.
@@ -574,7 +632,7 @@ void NmEditorView::fillEditorWithMessageContents()
         QString *subject = mStartParam->subject();
 
         if (subject) {
-            mContentWidget->header()->subjectField()->setPlainText(*subject);
+            mContentWidget->header()->subjectEdit()->setPlainText(*subject);
         }
     }
     else {
@@ -587,7 +645,7 @@ void NmEditorView::fillEditorWithMessageContents()
         }
 
         // Construct the subject field.
-        mContentWidget->header()->subjectField()->setPlainText(
+        mContentWidget->header()->subjectEdit()->setPlainText(
             addSubjectPrefix(editorStartMode, messageEnvelope.subject()));
     }
 
@@ -730,11 +788,21 @@ void NmEditorView::createToolBar()
 */
 void NmEditorView::createOptionsMenu()
 {
-    if (!mPrioritySubMenu) {
+    menu()->clearActions();
+
+	// Create CC/BCC options menu object
+    if (mCcBccFieldVisible) {
+        menu()->addAction(hbTrId("txt_mail_opt_hide_cc_bcc"), this, SLOT(switchCcBccFieldVisibility()));
+    }
+    else {
+        menu()->addAction(hbTrId("txt_mail_opt_show_cc_bcc"), this, SLOT(switchCcBccFieldVisibility()));
+    }
+
+	// Create Priority options menu object
+	if (!mPrioritySubMenu) {
         mPrioritySubMenu = new HbMenu();
     }
     mPrioritySubMenu->clearActions();
-    menu()->clearActions();
     NmActionRequest request(this, NmActionOptionsMenu, NmActionContextViewEditor,
             NmActionContextDataMessage, mStartParam->mailboxId(), mStartParam->folderId(),
             mStartParam->messageId());
@@ -747,6 +815,22 @@ void NmEditorView::createOptionsMenu()
     mPrioritySubMenu->setObjectName("editorPrioritySubMenu");
     mPrioritySubMenu->setTitle(hbTrId("txt_mail_opt_add_priority"));
     menu()->addMenu(mPrioritySubMenu);
+}
+
+/*!
+    Show or hide Cc field
+*/
+void NmEditorView::switchCcBccFieldVisibility()
+{
+    if (mCcBccFieldVisible) {
+    	mCcBccFieldVisible = false;
+    }
+    else {
+    	mCcBccFieldVisible = true;
+    }
+    mHeaderWidget->setFieldVisibility( mCcBccFieldVisible );
+
+    QTimer::singleShot(NmOrientationTimer, this, SLOT(sendHeaderHeightChanged()));
 }
 
 /*!
@@ -770,6 +854,20 @@ void NmEditorView::handleActionCommand(NmActionResponse &actionResponse)
                 && (!mMessageCreationOperation || !mMessageCreationOperation->isRunning())) {
                 startSending();
             }
+            break;
+        }
+        default:
+            break;
+        }
+    }
+    else if (actionResponse.menuType() == NmActionContextMenu) {
+        switch (responseCommand) {
+        case NmActionResponseCommandRemoveAttachment: {
+            removeAttachmentTriggered();
+            break;
+        }
+        case NmActionResponseCommandOpenAttachment: {
+            openAttachmentTriggered();
             break;
         }
         default:
@@ -898,13 +996,13 @@ void NmEditorView::initializeVKB()
             // editors that show the button in VKB.
             HbEditorInterface editorInterface(mContentWidget->editor());
             editorInterface.addAction(list[i]);
-            HbEditorInterface toEditorInterface(mContentWidget->header()->toField());
+            HbEditorInterface toEditorInterface(mContentWidget->header()->toEdit());
             toEditorInterface.addAction(list[i]);
-            HbEditorInterface ccEditorInterface(mContentWidget->header()->ccField());
+            HbEditorInterface ccEditorInterface(mContentWidget->header()->ccEdit());
             ccEditorInterface.addAction(list[i]);
-            HbEditorInterface bccEditorInterface(mContentWidget->header()->bccField());
+            HbEditorInterface bccEditorInterface(mContentWidget->header()->bccEdit());
             bccEditorInterface.addAction(list[i]);
-            HbEditorInterface subjectEditorInterface(mContentWidget->header()->subjectField());
+            HbEditorInterface subjectEditorInterface(mContentWidget->header()->subjectEdit());
             subjectEditorInterface.addAction(list[i]);
         }
     }
@@ -1068,28 +1166,7 @@ void NmEditorView::attachmentLongPressed(NmId attachmentPartId, QPointF point)
     // Add menu position check here, so that it does not go outside of the screen
     QPointF menuPos(point.x(),point.y());
     mAttachmentListContextMenu->setPreferredPos(menuPos);
-    mAttachmentListContextMenu->open(this, SLOT(contextButton(NmActionResponse&)));
-}
-
-/*!
-    Slot. Signaled when menu option is selected
-*/
-void NmEditorView::contextButton(NmActionResponse &result)
-{
-    if (result.menuType() == NmActionContextMenu) {
-        switch (result.responseCommand()) {
-        case NmActionResponseCommandRemoveAttachment: {
-            removeAttachmentTriggered();
-            break;
-        }
-        case NmActionResponseCommandOpenAttachment: {
-            openAttachmentTriggered();
-            break;
-        }
-        default:
-            break;
-        }
-    }
+    mAttachmentListContextMenu->open();
 }
 
 /*!

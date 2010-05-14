@@ -47,7 +47,7 @@ NmViewerView::NmViewerView(
     NmAttachmentManager &attaManager,
     bool toolbarEnabled,
     QGraphicsItem *parent)
-:NmBaseView(startParam, parent),
+:NmBaseView(startParam, application, parent),
 mApplication(application),
 mUiEngine(uiEngine),
 mMainWindow(mainWindow),
@@ -71,9 +71,7 @@ mLatestLoadingSize(QSize(0,0)),
 mAttaIndexUnderFetch(NmNotFoundError),
 mAttaWidget(NULL),
 mViewReady(false),
-mWaitNoteCancelled(false),
-mOkAction(NULL),
-mCancelAction(NULL)
+mWaitNoteCancelled(false)
     {
     // Create documentloader
     mDocumentLoader = new NmUiDocumentLoader(mMainWindow);
@@ -107,10 +105,6 @@ NmViewerView::~NmViewerView()
     // remove view from osbserving atta manager events
     mAttaManager.clearObserver();
     mAttaManager.cancelFetch();
-    delete mOkAction;
-    mOkAction = NULL;
-    delete mCancelAction;
-    mCancelAction = NULL;
 }
 
 /*!
@@ -330,8 +324,7 @@ void NmViewerView::fetchMessage()
  */
 void NmViewerView::messageFetched(int result)
 {
-    delete mWaitDialog;
-    mWaitDialog = NULL;
+    mWaitDialog->close();
 
     if (result == NmNoError && mMessageFetchingOperation) {
         if (mMessage) {
@@ -367,7 +360,7 @@ void NmViewerView::waitNoteCancelled()
 	        mMessageFetchingOperation->cancelOperation();
         }
         mWaitNoteCancelled = true;
-        QMetaObject::invokeMethod(&mApplication, "popView", Qt::QueuedConnection);
+        QMetaObject::invokeMethod(&mApplication, "prepareForPopView", Qt::QueuedConnection);
     }
 }
 
@@ -1024,16 +1017,9 @@ void NmViewerView::handleActionCommand(NmActionResponse &actionResponse)
             case NmActionResponseCommandDeleteMail: {
                 HbMessageBox *messageBox = new HbMessageBox(HbMessageBox::MessageTypeQuestion);
                 messageBox->setText(hbTrId("txt_mail_dialog_delete_mail"));
-                messageBox->setTimeout(HbMessageBox::NoTimeout);
-
-                mOkAction = new HbAction(tr("Ok"),messageBox);
-                mCancelAction = new HbAction(tr("Cancel"),messageBox);
-                messageBox->addAction(mOkAction);
-                messageBox->addAction(mCancelAction);
-                
-                // Read user selection
+                messageBox->setAttribute(Qt::WA_DeleteOnClose);
                 messageBox->open(this, SLOT(deleteButton(HbAction*)));
-              }
+                }
             break;
             default:
                 break;
@@ -1057,28 +1043,27 @@ void NmViewerView::handleActionCommand(NmActionResponse &actionResponse)
 */
 void NmViewerView::deleteButton(HbAction* result)
 {
-     if (result == mOkAction ) {
+    HbMessageBox *dlg = static_cast<HbMessageBox*>(sender());
+    if(result == dlg->actions().at(0)) 
+    {
         QList<NmId> messageList;
         messageList.append(mStartParam->messageId());
-
+    
         int err = mUiEngine.deleteMessages(mStartParam->mailboxId(),
                                            mStartParam->folderId(),
                                            messageList);
-
+    
         messageList.clear();
         if (NmNoError != err) {
             // Failed to delete the messages!
             NMLOG(QString("NmViewerView::handleActionCommand(): failed err=%1").arg(err));
         }
     }
-
-    mCancelAction = NULL;
-    mOkAction = NULL;
 }
 
 
 /*!
-    Slot. Signaled when attachment fetch progress changes
+    This is called when attachment fetch progress changes
 */
 void NmViewerView::progressChanged(int value)
 {
@@ -1091,13 +1076,14 @@ void NmViewerView::progressChanged(int value)
 }
 
 /*!
-    Slot. Signaled when attachment fetch is completed
+    This is called when attachment fetch is completed
 */
 void NmViewerView::fetchCompleted(int result)
 {
     if (mAttaWidget && mAttaIndexUnderFetch != NmNotFoundError) {
         if (result == NmNoError) {
             progressValueChanged(mAttaIndexUnderFetch, 100);
+            openAttachment(mAttaIndexUnderFetch);
         }
         else {
             mAttaWidget->hideProgressBar(mAttaIndexUnderFetch);
@@ -1116,7 +1102,7 @@ void NmViewerView::messageDeleted(const NmId &mailboxId, const NmId &folderId, c
         && (mStartParam->mailboxId()== mailboxId)
         && (mStartParam->folderId()== folderId)
         && (mStartParam->messageId()== messageId)){
-        mApplication.popView();
+        mApplication.prepareForPopView();
     }
 }
 

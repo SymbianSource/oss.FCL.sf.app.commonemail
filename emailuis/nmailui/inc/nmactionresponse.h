@@ -44,7 +44,8 @@ enum NmActionResponseCommand
     NmActionResponseCommandRemoveAttachment,
     NmActionResponseCommandOpenAttachment,
     NmActionResponseCommandSearch,
-    NmActionResponseCommandSwitchFolder
+    NmActionResponseCommandSwitchFolder,
+    NmActionResponseCommandSettings
 };
 
 

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+* Copyright (c) 2009 - 2010 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -47,7 +47,6 @@
 #include "nmmailboxlistmodel.h"
 #include "nmfolderlistmodel.h"
 #include "nmmessagelistmodel.h"
-#include "nmmessagesearchlistmodel.h"
 #include "nmdatapluginfactory.h"
 #include "nmdataplugininterface.h"
 #include "nmmailboxlistmodelitem.h"
@@ -63,6 +62,7 @@
 #include "nmmessagecreationoperation.h"
 #include "nmcheckoutboxoperation.h"
 #include "nmmessagecreationoperation.h"
+#include "nmapplicationstateinterface.h"
 
 // nmailui
 #include "nmactionrequest.h"

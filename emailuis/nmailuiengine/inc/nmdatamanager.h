@@ -64,6 +64,8 @@ public:
                              NmMessagePart &messagePart);
     NmId getStandardFolderId(const NmId &mailboxId,
                              NmFolderType folderType);
+    
+    NmFolderType folderTypeById(NmId mailboxId, NmId folderId);
 
 private:
     NmDataPluginFactory   *mFactory;

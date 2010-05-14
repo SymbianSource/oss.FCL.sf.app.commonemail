@@ -135,8 +135,6 @@ private:
     NmAttachmentListWidget *mAttaWidget;      // Not owned
     bool mViewReady;
     bool mWaitNoteCancelled;
-    HbAction* mOkAction;                        //owned
-    HbAction* mCancelAction;                    //owned
 };
 
 #endif /* NMVIEWERVIEW_H_ */

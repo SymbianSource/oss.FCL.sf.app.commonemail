@@ -52,6 +52,7 @@ public:
 signals:
 
     void currentIndexChanged(int index);
+    void propertyChanged(QMap<QString, QVariant> properties);
 
 private slots:
 

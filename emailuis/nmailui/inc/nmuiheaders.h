@@ -106,7 +106,6 @@
 #include <nmmailboxlistmodel.h>
 #include <nmmessagelistmodel.h>
 #include <nmmessagelistmodelitem.h>
-#include <nmmessagesearchlistmodel.h>
 #include <nmmessage.h>
 #include <nmaddress.h>
 #include <nmoperation.h>

@@ -34,6 +34,7 @@ public:
     QString mName;
     NmId mId;
     NmId mIconId;
+    QString mAddress;
 };
 
 
@@ -102,7 +103,18 @@ void NmMailboxMetaData::setIconId(const NmId &id)
     d->mIconId = id;
 }
 
+/*!
+    Get mailbox address
+*/
+QString NmMailboxMetaData::address() const
+{
+    return d->mAddress;
+}
 
-
-
-
+/*!
+    Set Mailbox address as \a address
+*/
+void NmMailboxMetaData::setAddress(const QString &address)
+{
+    d->mAddress = address;
+}

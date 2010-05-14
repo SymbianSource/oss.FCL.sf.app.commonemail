@@ -62,9 +62,23 @@ void NmFwaMessageFetchingOperation::doRunAsyncOperation()
     }
 }
 
+/*!
+ * Complete the operation
+ */
+void NmFwaMessageFetchingOperation::doCompleteOperation()
+{
+    mRequestId = NmNotFoundError;
+}
+
+/*!
+    Cancels the async operation. \sa NmOperation
+ */
 void NmFwaMessageFetchingOperation::doCancelOperation()
 {
-    TRAP_IGNORE(mMailClient.CancelL(mRequestId));
+    if (mRequestId >= 0) {
+        TRAP_IGNORE(mMailClient.CancelL(mRequestId));
+        mRequestId = NmNotFoundError;
+    }
 }
 
 /*!

@@ -28,7 +28,6 @@
 class QAbstractItemModel;
 class NmMailboxListModel;
 class NmMessageListModel;
-class NmMessageSearchListModel;
 class NmDataManager;
 class NmDataPluginFactory;
 class NmMailboxMetaData;
@@ -50,12 +49,17 @@ class NMUIENGINE_EXPORT NmUiEngine: public QObject
 public:
 
     static NmUiEngine *instance();
+
     static void releaseInstance(NmUiEngine *&instance);
 
     NmMailboxListModel &mailboxListModel();
+
     void refreshMailboxListModel();
-    NmMessageListModel &messageListModel(const NmId &mailboxId, const NmId &folderId);
-    NmMessageSearchListModel &messageSearchListModel(QAbstractItemModel *sourceModel);
+
+    NmMessageListModel &messageListModel(const NmId &mailboxId,
+                                         const NmId &folderId);
+
+    NmMessageListModel &messageListModelForSearch(const NmId &mailboxId);
 
     NmId standardFolderId(const NmId &mailboxId, NmFolderType folderType);
 
@@ -74,6 +78,12 @@ public:
         const NmId &folderId,
         const NmId &messageId,
         const NmId &messagePartId);
+    
+    QPointer<NmOperation> fetchMessageParts( 
+        const NmId &mailboxId,
+        const NmId &folderId,
+        const NmId &messageId,
+        const QList<NmId> &messagePartIds);
     
     XQSharableFile messagePartFile(
        const NmId &mailboxId,
@@ -123,12 +133,12 @@ public:
     
     int goOffline(const NmId &mailboxId);
     
-    int removeMessage(
-                const NmId &mailboxId,
-                const NmId &folderId,
-                const NmId &messageId);
+    int removeMessage(const NmId &mailboxId,
+                      const NmId &folderId,
+                      const NmId &messageId);
     
-    void sendMessage(NmMessage *message, const QList<NmOperation*> &preliminaryOperations);
+    void sendMessage(NmMessage *message,
+                     const QList<NmOperation*> &preliminaryOperations);
 
     bool isSendingMessage() const;
 
@@ -145,6 +155,7 @@ public:
     QPointer<NmCheckOutboxOperation> checkOutbox(const NmId &mailboxId);
     
     NmSyncState syncState(const NmId& mailboxId);
+
     NmConnectState connectionState(const NmId& mailboxId);
 
     int search(const NmId &mailboxId,
@@ -154,37 +165,54 @@ public:
     
     NmFolderType folderTypeById(NmId mailboxId, NmId folderId);
 
+    void updateActiveFolder(const NmId &mailboxId, const NmId &folderId);
+    
 public slots:
+
     void handleCompletedSendOperation();
-    void handleSyncStateEvent(NmSyncState syncState, const NmOperationCompletionEvent &event);
-    void handleConnectEvent(NmConnectState connectState, const NmId &mailboxId, const int errorCode);
+
+    void handleSyncStateEvent(NmSyncState syncState,
+                              const NmOperationCompletionEvent &event);
+
+    void handleConnectEvent(NmConnectState connectState,
+                            const NmId &mailboxId,
+                            const int errorCode);
+
 
 private slots:
-    void handleMessageEvent(
-            NmMessageEvent event,
-            const NmId &folderId,
-            const QList<NmId> &messageIds, 
-            const NmId& mailboxId);
+
+    void handleMessageEvent(NmMessageEvent event,
+                            const NmId &folderId,
+                            const QList<NmId> &messageIds, 
+                            const NmId& mailboxId);
     
     void handleMailboxEvent(NmMailboxEvent event,
                             const QList<NmId> &mailboxIds);
 
+    void handleMatchFound(const NmId &messageId, const NmId &folderId);
+
 
 signals:
+
     void syncStateEvent(NmSyncState, const NmId &);
     void connectionEvent(NmConnectState, const NmId &);
     void operationCompleted(const NmOperationCompletionEvent &event);
     void sendOperationCompleted();
     void messageDeleted(const NmId &mailboxId, const NmId &folderId, const NmId &messageId);
     void mailboxDeleted(const NmId &mailboxId);
-    void matchFound(const NmId &);
+    void matchFound(const NmId &, const NmId &);
     void searchComplete();
-    
-private:
-    NmUiEngine();
-    virtual ~NmUiEngine();
+
 
 private:
+
+    NmUiEngine();
+
+    virtual ~NmUiEngine();
+
+
+private: // Data
+
     static NmUiEngine *mInstance;
     static int	mReferenceCount;
 
@@ -192,7 +220,7 @@ private:
     NmDataManager *mDataManager;                // Owned
     NmMailboxListModel *mMailboxListModel;      // Owned
     NmMessageListModel *mMessageListModel;      // Owned
-    NmMessageSearchListModel *mMessageSearchListModel; // Owned
+    NmMessageListModel *mMessageSearchListModel; // Owned
     QPointer<NmMessageSendingOperation> mSendOperation;  // Not owned
 };
 

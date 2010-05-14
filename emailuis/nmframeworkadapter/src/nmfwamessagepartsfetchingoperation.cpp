@@ -20,37 +20,42 @@
 /*!
 
  */
-NmFwaMessagePartFetchingOperation::NmFwaMessagePartFetchingOperation(
+NmFwaMessagePartsFetchingOperation::NmFwaMessagePartsFetchingOperation(
         const NmId &mailboxId,
         const NmId &folderId,
         const NmId &messageId,
-        const NmId &messagePartId,
-        CFSMailClient &mailClient) 
+        const QList<NmId> &messagePartIds,
+        CFSMailClient &mailClient)
   : mMailboxId(mailboxId), 
     mFolderId(folderId), 
     mMessageId(messageId), 
-    mMessagePartId(messagePartId),
     mMailClient(mailClient), 
     mLastProgressValue(0), 
     mRequestId(0)
 
 {
+    // Take own copy of the message part id list.
+    mMessagePartIds.Reset();
+    for (int i=0; i<messagePartIds.count(); ++i) {
+        mMessagePartIds.Append(
+            NmConverter::nmIdToMailMsgId(
+                messagePartIds.at(i)));
+    }
     
 }
 
 /*!
 
  */
-NmFwaMessagePartFetchingOperation::~NmFwaMessagePartFetchingOperation()
+NmFwaMessagePartsFetchingOperation::~NmFwaMessagePartsFetchingOperation()
 {
     doCancelOperation();
-    NMLOG("NmFwaMessagePartFetchingOperation::~NmFwaMessagePartFetchingOperation --->");
 }
 
 /*!
 
  */
-void NmFwaMessagePartFetchingOperation::RequestResponseL(TFSProgress aEvent, TInt aRequestId)
+void NmFwaMessagePartsFetchingOperation::RequestResponseL(TFSProgress aEvent, TInt aRequestId)
 {
     if (aRequestId == mRequestId) {
         if (aEvent.iProgressStatus == TFSProgress::EFSStatus_RequestComplete ) {
@@ -79,7 +84,7 @@ void NmFwaMessagePartFetchingOperation::RequestResponseL(TFSProgress aEvent, TIn
 /*!
 
  */
-void NmFwaMessagePartFetchingOperation::doRunAsyncOperation()
+void NmFwaMessagePartsFetchingOperation::doRunAsyncOperation()
 {
     TRAPD(err, doRunAsyncOperationL());
     if (err != KErrNone) {
@@ -90,38 +95,43 @@ void NmFwaMessagePartFetchingOperation::doRunAsyncOperation()
 /*!
     Leaving version from doRunAsyncOperation
  */
-void NmFwaMessagePartFetchingOperation::doRunAsyncOperationL()
+void NmFwaMessagePartsFetchingOperation::doRunAsyncOperationL()
 {
-    const TFSMailMsgId mailboxId(mMailboxId.pluginId32(), mMailboxId.id32());
-    const TFSMailMsgId folderId(mFolderId.pluginId32(), mFolderId.id32());
-    const TFSMailMsgId messageId(mMessageId.pluginId32(), mMessageId.id32());
-    const TFSMailMsgId messagePartId(mMessagePartId.pluginId32(), mMessagePartId.id32());
-
-    CFSMailMessage *message(NULL);
-    message = mMailClient.GetMessageByUidL(mailboxId, folderId, messageId, EFSMsgDataEnvelope);
-    CleanupStack::PushL(message);
-   
-    if (message) {
-        CFSMailMessagePart* messagePart = message->ChildPartL( messagePartId );
-        CleanupStack::PushL(messagePart);
-        if (messagePart) {            
-            mRequestId = messagePart->FetchMessagePartL(messagePartId, *this, 0);
+    if (mMessagePartIds.Count() > 0) {
+        
+        const TFSMailMsgId mailboxId(mMailboxId.pluginId32(), mMailboxId.id32());
+        const TFSMailMsgId folderId(mFolderId.pluginId32(), mFolderId.id32());
+        const TFSMailMsgId messageId(mMessageId.pluginId32(), mMessageId.id32());
+        
+        CFSMailMessage *message(NULL);
+        message = mMailClient.GetMessageByUidL(mailboxId, folderId, messageId, EFSMsgDataEnvelope);
+        CleanupStack::PushL(message);
+       
+        if (message) {
+            CFSMailMessagePart* messagePart = message->ChildPartL( mMessagePartIds[0] );
+            CleanupStack::PushL(messagePart);
+            if (messagePart) {            
+                mRequestId = messagePart->FetchMessagesPartsL(mMessagePartIds,*this,0);
+            }
+            else {
+                completeOperation(NmNotFoundError);
+            }
+            CleanupStack::PopAndDestroy(messagePart);
         }
         else {
             completeOperation(NmNotFoundError);
         }
-        CleanupStack::PopAndDestroy(messagePart);
+        CleanupStack::PopAndDestroy(message);
     }
     else {
         completeOperation(NmNotFoundError);
     }
-    CleanupStack::PopAndDestroy(message);
 }
 
 /*!
  * Complete the operation
  */
-void NmFwaMessagePartFetchingOperation::doCompleteOperation()
+void NmFwaMessagePartsFetchingOperation::doCompleteOperation()
 {
     mRequestId = NmNotFoundError;
 }
@@ -129,7 +139,7 @@ void NmFwaMessagePartFetchingOperation::doCompleteOperation()
 /*!
     Cancels the async operation. \sa NmOperation
  */
-void NmFwaMessagePartFetchingOperation::doCancelOperation()
+void NmFwaMessagePartsFetchingOperation::doCancelOperation()
 {
     if (mRequestId >= 0) {
         TRAP_IGNORE(mMailClient.CancelL(mRequestId));

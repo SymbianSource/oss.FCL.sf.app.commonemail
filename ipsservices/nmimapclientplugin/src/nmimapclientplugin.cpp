@@ -176,7 +176,7 @@ void NmImapClientPlugin::settings()
                 SIGNAL(goOffline(const NmId &)),
                 this, SLOT(goOffline(const NmId &)));
         }
-
+        handleRequest(NmActionResponseCommandSettings, mMenuRequest);
         mSettingsViewLauncher->launchSettingsView(id, mailbox->name());
     }
 

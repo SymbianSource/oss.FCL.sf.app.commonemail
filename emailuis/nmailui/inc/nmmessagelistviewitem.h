@@ -53,6 +53,7 @@ private:
     void setFontsUnread();
     void setFonts(const QColor &colorRole, HbFontSpec &spekki);
     void getFontSizes();    
+    QString senderFieldText(const NmMessageEnvelope &envelope);
 
 private:
     HbTextItem *mSender;                   // Owned
