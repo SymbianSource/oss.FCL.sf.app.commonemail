@@ -13,12 +13,12 @@
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_setlabel_outgoing_mail_authentication">
-    <comment>Value for txt_mailips_setlabel_outgoing_mail_authentication. User defines the authentication</comment>        
-    <source>User authentication</source>
+    <comment>Setting label under Server info txt_mailips_subhead_server_info for defining the type of authentication for outgoing mail. Setting item in server info: what is used for outgoing mail authetication</comment>        
+    <source>Outgoing mail authentication</source>
     <translation variants="no" type="unfinished"></translation>
-    <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
+    <extra-loc-layout_id>qtl_dataform_pri</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06_d</extra-loc-viewid>
-    <extra-loc-positionid>setlabel_10_val</extra-loc-positionid>
+    <extra-loc-positionid>setlabel_10</extra-loc-positionid>
     <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
@@ -33,12 +33,22 @@
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_long_caption_mailips">
-    <comment></comment>        
+    <comment>Name of the mail application.</comment>        
     <source>Mail</source>
     <translation variants="no" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_pri_large_graphic</extra-loc-layout_id>    
     <extra-loc-viewid>mail</extra-loc-viewid>
     <extra-loc-positionid>list</extra-loc-positionid>
+    <extra-loc-feature>mail</extra-loc-feature>
+    <extra-loc-blank>False</extra-loc-blank>
+</message>
+<message numerus="no" id="txt_mailips_setlabel_folder_path_val_default">
+    <comment>Value for txt_mailips_setlabel_folder_path. Default folder path will be used.</comment>        
+    <source>Default</source>
+    <translation variants="no" type="unfinished"></translation>
+    <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
+    <extra-loc-viewid>mail_06_d</extra-loc-viewid>
+    <extra-loc-positionid>setlabel_9_val</extra-loc-positionid>
     <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
@@ -89,16 +99,6 @@
     <extra-loc-layout_id>qtl_dataform_group_pri</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06_a</extra-loc-viewid>
     <extra-loc-positionid>subhead</extra-loc-positionid>
-    <extra-loc-feature>mail</extra-loc-feature>
-    <extra-loc-blank>False</extra-loc-blank>
-</message>
-<message numerus="no" id="txt_mailips_setlabel_inbox_path_user_defined">
-    <comment>Value for txt_mailips_setlabel_inbox_path. Value for inbox path and port</comment>        
-    <source>User defined</source>
-    <translation variants="no" type="unfinished"></translation>
-    <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
-    <extra-loc-viewid>mail_06_d</extra-loc-viewid>
-    <extra-loc-positionid>setlabel_9_val</extra-loc-positionid>
     <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
@@ -212,6 +212,26 @@
     <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
+<message numerus="no" id="txt_mailips_setlabel_folder_path_user_defined">
+    <comment>Value for txt_mailips_setlabel_folder_path. User is able to define the folder path.</comment>        
+    <source>User defined</source>
+    <translation variants="no" type="unfinished"></translation>
+    <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
+    <extra-loc-viewid>mail_06_d</extra-loc-viewid>
+    <extra-loc-positionid>setlabel_9_val</extra-loc-positionid>
+    <extra-loc-feature>mail</extra-loc-feature>
+    <extra-loc-blank>False</extra-loc-blank>
+</message>
+<message numerus="no" id="txt_mailips_setlabel_folder_path">
+    <comment>Setting label under Server info txt_mailips_subhead_server_info for defining the folder path. Setting item in server info</comment>        
+    <source>Folder path</source>
+    <translation variants="no" type="unfinished"></translation>
+    <extra-loc-layout_id>qtl_dataform_pri</extra-loc-layout_id>    
+    <extra-loc-viewid>mail_06_d</extra-loc-viewid>
+    <extra-loc-positionid>setlabel_9</extra-loc-positionid>
+    <extra-loc-feature>mail</extra-loc-feature>
+    <extra-loc-blank>False</extra-loc-blank>
+</message>
 <message numerus="no" id="txt_mailips_setlabel_security_val_off">
     <comment>Value for txt_mailips_setlabel_secure_connection. Secure connection off</comment>        
     <source>Off</source>
@@ -244,7 +264,7 @@
 </message>
 <message numerus="no" id="txt_mailips_setlabel_receiving_weekdays">
     <comment>Setting label under Receiving schedule &gt; Selected mode &gt; Save energy  (txt_mailips_setlabel_selected_mode_val_save_energy). Label for selecting the busy days when the mail is received frequently</comment>        
-    <source>Receiving weekdays</source>
+    <source>Receiving days</source>
     <translation variants="no" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dataform_pri</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06_b</extra-loc-viewid>
@@ -302,13 +322,13 @@
     <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
-<message numerus="no" id="txt_mailips_setlabel_inbox_path">
-    <comment>Setting label under Server info txt_mailips_subhead_server_info for defining the Inbox path. Setting item in server info</comment>        
-    <source>Inbox path</source>
+<message numerus="no" id="txt_mailips_setlabel_outgoing_authentication_same">
+    <comment>Value for txt_mailips_setlabel_outgoing_mail_authentication. Same authentication as for incoming mail</comment>        
+    <source>Same as for incoming</source>
     <translation variants="no" type="unfinished"></translation>
-    <extra-loc-layout_id>qtl_dataform_pri</extra-loc-layout_id>    
+    <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06_d</extra-loc-viewid>
-    <extra-loc-positionid>setlabel_9</extra-loc-positionid>
+    <extra-loc-positionid>setlabel_10_val</extra-loc-positionid>
     <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
@@ -349,16 +369,6 @@
     <extra-loc-layout_id>qtl_dataform_group_pri</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06_d</extra-loc-viewid>
     <extra-loc-positionid>subhead</extra-loc-positionid>
-    <extra-loc-feature>mail</extra-loc-feature>
-    <extra-loc-blank>False</extra-loc-blank>
-</message>
-<message numerus="no" id="txt_mailips_setlabel_inbox_path_val_default">
-    <comment>Value for txt_mailips_setlabel_inbox_path. Value for inbox path and port</comment>        
-    <source>Default</source>
-    <translation variants="no" type="unfinished"></translation>
-    <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
-    <extra-loc-viewid>mail_06_d</extra-loc-viewid>
-    <extra-loc-positionid>setlabel_9_val</extra-loc-positionid>
     <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
@@ -449,6 +459,16 @@
     <extra-loc-layout_id>qtl_dataform_description_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06_b</extra-loc-viewid>
     <extra-loc-positionid>list</extra-loc-positionid>
+    <extra-loc-feature>mail</extra-loc-feature>
+    <extra-loc-blank>False</extra-loc-blank>
+</message>
+<message numerus="no" id="txt_mailips_setlabel_outgoing_authentication_user">
+    <comment>Value for txt_mailips_setlabel_outgoing_mail_authentication. User defines the authentication</comment>        
+    <source>User authentication</source>
+    <translation variants="no" type="unfinished"></translation>
+    <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
+    <extra-loc-viewid>mail_06_d</extra-loc-viewid>
+    <extra-loc-positionid>setlabel_10_val</extra-loc-positionid>
     <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
@@ -589,6 +609,16 @@
     <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_06</extra-loc-viewid>
     <extra-loc-positionid>Button</extra-loc-positionid>
+    <extra-loc-feature>mail</extra-loc-feature>
+    <extra-loc-blank>False</extra-loc-blank>
+</message>
+<message numerus="no" id="txt_mailips_setlabel_outgoing_authentication_none">
+    <comment>Value for txt_mailips_setlabel_outgoing_mail_authentication. No authetication</comment>        
+    <source>None</source>
+    <translation variants="no" type="unfinished"></translation>
+    <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
+    <extra-loc-viewid>mail_06_d</extra-loc-viewid>
+    <extra-loc-positionid>setlabel_10_val</extra-loc-positionid>
     <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>

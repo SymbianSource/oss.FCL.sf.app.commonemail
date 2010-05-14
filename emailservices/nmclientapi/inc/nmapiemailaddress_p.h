@@ -11,25 +11,32 @@
  *
  * Contributors:
  *
- * Description:
+ * Description: 
  *
  */
+#ifndef NMAPIEMAILADDRESS_P_H
+#define NMAPIEMAILADDRESS_P_H
 
-#ifndef NMAPIENGINEDEF_H_
-#define NMAPIENGINEDEF_H_
+#include <QSharedData>
 
-#include <QtGlobal>
+#include <QString>
 
-#if defined(Q_OS_WIN)
-#define NMENGINE_EXPORT __declspec(dllexport)
-#else
+namespace EmailClientApi
+{
 
-#if defined(BUILD_ENGINE_DLL)
-#define NMENGINE_EXPORT Q_DECL_EXPORT
-#else
-#define NMENGINE_EXPORT Q_DECL_IMPORT
-#endif
-
-#endif
-
-#endif /* NMENGINEDEF_H_ */
+class NmApiEmailAddressPrivate : public QSharedData
+{
+public:
+    NmApiEmailAddressPrivate()
+    {
+    }
+    
+    virtual ~NmApiEmailAddressPrivate()
+    {
+    }
+    
+    QString displayName;
+    QString address;
+};
+}
+#endif /* NMAPIEMAILADDRESS_P_H_ */

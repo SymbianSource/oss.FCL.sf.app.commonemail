@@ -22,7 +22,7 @@
 #ifdef FF_EMAIL_FRAMEWORK
 
 file=ABI_DIR\BUILD_DIR\nmpopclientplugin.dll		SHARED_LIB_DIR\nmpopclientplugin.dll     PAGED
-data=\epoc32\data\z\resource\plugins\nmpopclientplugin.qtplugin		resource\plugins\nmpopclientplugin.qtplugin
+data=\epoc32\data\z\resource\qt\plugins\nmail\uiext\nmpopclientplugin.qtplugin		resource\qt\plugins\nmail\uiext\nmpopclientplugin.qtplugin
 
 #endif //FF_EMAIL_FRAMEWORK
 

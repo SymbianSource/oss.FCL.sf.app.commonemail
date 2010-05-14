@@ -39,7 +39,7 @@ public slots:
     \fn bool registerNewMailbox(quint64 accountId, QString accountName, QString accountIconName)
     \param accountId The ID of the mailbox to register
     \param accountName The name of the mailbox to register
-    \param accountIconName The icon of the mailbox to register 
+    \param accountIconName The icon name of the mailbox to register 
     \return true if mailbox registration succeed. false if failed.
 
     This method registers mailbox to application library and to homescreen as an email widget.
@@ -51,15 +51,11 @@ public slots:
     QList<QServiceInterfaceDescriptor> interfaces = manager.findInterfaces(filter);  
     QObject *widgetObject = manager.loadInterface(interfaces.first());
     
-    const QMetaObject *object = widgetObject->metaObject();       
-    QMetaMethod registerNewMailboxMethod;
-    int index = object->indexOfMethod(
-        QMetaObject::normalizedSignature("registerNewMailbox(quint64, QString, QString)"));
-    registerNewMailboxMethod = object->method(index);   
-    registerNewMailboxMethod.invoke(widgetObject,
+    QMetaObject::invokeMethod(widgetObject,
+            "registerNewMailbox",
             Q_ARG(quint64, accountId),
             Q_ARG(QString, accountName),
-            Q_ARG(QString, accountIconName));
+            Q_ARG(QString, "qtg_large_email"));
      */
     bool registerNewMailbox(quint64 accountId, QString accountName, QString accountIconName);
     
@@ -77,13 +73,9 @@ public slots:
     QServiceFilter filter("com.nokia.symbian.IEmailRegisterAccount");
     QList<QServiceInterfaceDescriptor> interfaces = manager.findInterfaces(filter);  
     QObject *widgetObject = manager.loadInterface(interfaces.first());
-    
-    const QMetaObject *object = widgetObject->metaObject();       
-    QMetaMethod updateMailboxNameMethod;
-    int index = object->indexOfMethod(
-        QMetaObject::normalizedSignature("updateMailboxName(quint64, QString)"));
-    updateMailboxNameMethod = object->method(index);   
-    updateMailboxNameMethod.invoke(widgetObject,
+     
+    QMetaObject::invoke(widgetObject,
+            "updateMailboxName",
             Q_ARG(quint64, accountId),
             Q_ARG(QString, accountName));
      */
@@ -103,12 +95,8 @@ public slots:
     QList<QServiceInterfaceDescriptor> interfaces = manager.findInterfaces(filter);  
     QObject *widgetObject = manager.loadInterface(interfaces.first());
 
-    const QMetaObject *object = widgetObject->metaObject();       
-    QMetaMethod unregisterMailboxMethod;
-    int index = object->indexOfMethod(
-        QMetaObject::normalizedSignature("unregisterMailbox(quint64)"));
-    unregisterMailboxMethod = object->method(index);   
-    unregisterMailboxMethod.invoke(widgetObject,
+    QMetaObject::invoke(widgetObject,
+            "unregisterMailbox",
             Q_ARG(quint64, accountId));
      */
     bool unregisterMailbox (quint64 accountId);

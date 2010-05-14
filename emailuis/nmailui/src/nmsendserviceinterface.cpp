@@ -19,13 +19,6 @@
 //  INCLUDES
 #include "nmuiheaders.h"
 
-//  CONSTANTS
-static const QString emailSendSubjectKey = "subject";
-static const QString emailSendToKey = "to";
-static const QString emailSendCcKey = "cc";
-static const QString emailSendBccKey = "bcc";
-
-
 /*!
     \class NmStartParamDataHelper
     \brief A helper class for processing the data given to the actual service.
@@ -147,11 +140,11 @@ private:
         QMap<QString, QVariant>::const_iterator i = map.constBegin();
         QString key;
         QVariant value;
-        
+
         while (i != map.constEnd()) {
             key = i.key();
             value = i.value();
-            
+
             if (!key.compare(emailSendSubjectKey, Qt::CaseInsensitive) &&
                 value.type() == QVariant::String) {
                 // Extract the mail subject.
@@ -193,7 +186,7 @@ private:
     inline void addAddressesToList(const QVariant &addresses,
                                    QList<NmAddress*> **list)
     {
-      
+
         if (!list) {
             // Invalid argument!
             return;
@@ -251,13 +244,13 @@ public: // Data
 /*!
     \class NmSendServiceInterface
     \brief NMail application service interface which provides an email sending
-           interface for other application using the Qt Highway. 
+           interface for other application using the Qt Highway.
 */
 
 /*!
     Class constructor.
 */
-NmSendServiceInterface::NmSendServiceInterface(QString interfaceName, 
+NmSendServiceInterface::NmSendServiceInterface(QString interfaceName,
                                                QObject *parent,
                                                NmUiEngine &uiEngine,
                                                NmApplication *application)
@@ -268,7 +261,10 @@ NmSendServiceInterface::NmSendServiceInterface(QString interfaceName,
 #endif
       mApplication(application),
       mUiEngine(uiEngine),
-      mAsyncReqId(0)
+      mAsyncReqId(0),
+      mStartParam(NULL),
+      mSelectionDialog(NULL),
+      mCurrentView(NULL)
 {
 #ifndef NM_WINS_ENV
     publishAll();
@@ -281,6 +277,8 @@ NmSendServiceInterface::NmSendServiceInterface(QString interfaceName,
 */
 NmSendServiceInterface::~NmSendServiceInterface()
 {
+    delete mStartParam;
+    delete mSelectionDialog;
 }
 
 
@@ -289,13 +287,15 @@ NmSendServiceInterface::~NmSendServiceInterface()
     \param mailboxId Where the ID of the selected mailbox is set.
     \return True if a mailbox was selected, false otherwise.
 */
-bool NmSendServiceInterface::selectMailbox(NmId& mailboxId)
+void NmSendServiceInterface::selectionDialogClosed(NmId &mailboxId)
 {
-	NmMailboxSelectionDialog *dialog =
-	    new NmMailboxSelectionDialog(mUiEngine.mailboxListModel());
-	bool ok = dialog->exec(mailboxId);
-	delete dialog;
-	return ok;
+    NMLOG("NmSendServiceInterface::selectionDialogClosed");
+    if (mailboxId.id()) { // mailbox selected
+        launchEditorView(mailboxId);
+    }
+    else {
+        cancelService();
+    }
 }
 
 
@@ -307,21 +307,19 @@ bool NmSendServiceInterface::selectMailbox(NmId& mailboxId)
 
     \param data If used by Share UI, will contain the list of filenames to
                 attach. Can also contain a map with key value pairs containing
-                subject and recipient data. 
+                subject and recipient data.
 */
 void NmSendServiceInterface::send(QVariant data)
 {
     NMLOG("NmSendServiceInterface::send()");
 
 #ifndef NM_WINS_ENV
-    // Make sure the NMail application is on the foreground.
-    XQServiceUtil::toBackground(false);
     HbMainWindow *mainWindow = mApplication->mainWindow();
-    HbView *currentView = mainWindow->currentView();
+    mCurrentView = mainWindow->currentView();
 
     // Hide the current view.
-    if (currentView) {
-        currentView->hide();
+    if (mCurrentView) {
+        mCurrentView->hide();
     }
 
     // Check the given data.
@@ -331,85 +329,124 @@ void NmSendServiceInterface::send(QVariant data)
     NmMailboxListModel &mailboxListModel = mUiEngine.mailboxListModel();
     const int count = mailboxListModel.rowCount();
     NmId mailboxId(0);
-    bool launchEditor(true);
-
-    if (!validData) {
-        // Failed to extract the data!
-        NMLOG("NmSendServiceInterface::send(): Failed to process the given data!");
-        launchEditor = false;
-    }
-    else if (count == 0) {
-        // No mailboxes.
-        HbMessageBox note(hbTrId("txt_mail_dialog_no_mailboxes_defined"),
-                          HbMessageBox::MessageTypeInformation);
-        note.setTimeout(HbMessageBox::NoTimeout);
-        note.exec();
-        launchEditor = false;
-    }
-    else if (count == 1) {
-        // A single mailbox exists.
-        QModelIndex modelIndex = mailboxListModel.index(0, 0);
-        QVariant mailbox(mailboxListModel.data(modelIndex));
-        NmMailboxMetaData *mailboxMetaData = mailbox.value<NmMailboxMetaData*>();
-        mailboxId = mailboxMetaData->id();
-    }
-    else if (count > 1 && !selectMailbox(mailboxId)) {
-        // More than one mailboxes exist but the user cancelled the mailbox
-        // selection dialog.
-        launchEditor = false;
-    }
 
     mAsyncReqId = setCurrentRequestAsync();
     
-    if (launchEditor) {
-        // Make the previous view visible again.
-        if (currentView) {
-            currentView->show();
+    if (!validData) {
+        // Failed to extract the data!
+        NMLOG("NmSendServiceInterface::send(): Failed to process the given data!");
+        cancelService();
+    }
+    else if (count == 0) {
+        // No mailboxes.
+        if (mainWindow) {
+            mainWindow->hide();
         }
 
-        NmUiStartParam *startParam = new NmUiStartParam(
-            NmUiViewMessageEditor,
-            mailboxId,
-            0, // folder id
-            0, // message id
-            dataHelper.mEditorStartMode, // editor start mode
-            dataHelper.mToAddresses, // address list
-            dataHelper.mAttachmentList, // attachment list
-            true, // start as service
-            dataHelper.mSubject, // message subject
-            dataHelper.mCcAddresses, // list containing cc recipient addresses
-            dataHelper.mBccAddresses // list containing bcc recipient addresses
-        );
-
-        mApplication->enterNmUiView(startParam);
-        completeRequest(mAsyncReqId, 1);
-    } 
-    else {
-        // Delete the extracted data since the editor was not launched and thus
-        // NmUiStartParam did not take the ownership of the data.
-        dataHelper.deleteData();
-
-        // If the service was started as embedded, do not hide the app.
-		if (!XQServiceUtil::isEmbedded()) {
-			XQServiceUtil::toBackground(true);
-		}
-
-        completeRequest(mAsyncReqId, 0);
-
-        // If started as service, the application must be closed now.
-        if (XQServiceUtil::isService()) {
-            connect(this, SIGNAL(returnValueDelivered()),
-                    mApplication, SLOT(delayedExitApplication()));
+        // Hide the app if it not embedded
+        if (!XQServiceUtil::isEmbedded()) {
+            XQServiceUtil::toBackground(true);
         }
-        else {
-            // Make the previous view visible again.
-            if (currentView) {
-                currentView->show();
+
+        HbDeviceMessageBox note(hbTrId("txt_mail_dialog_no_mailboxes_defined"),
+                          HbMessageBox::MessageTypeInformation);
+        note.setTimeout(HbMessageBox::NoTimeout);
+        note.exec();
+        if (mainWindow) {
+            mainWindow->show();
+        }
+        cancelService();
+    }
+    else { // count > 0
+        // Make sure the NMail application is in the foreground.
+        XQServiceUtil::toBackground(false);
+
+    	mStartParam = new NmUiStartParam(
+        	NmUiViewMessageEditor,
+	        0, // account id
+	        0, // folder id
+    	    0, // message id
+        	dataHelper.mEditorStartMode, // editor start mode
+	        dataHelper.mToAddresses, // address list
+    	    dataHelper.mAttachmentList, // attachment list
+        	true, // start as service
+	        dataHelper.mSubject, // message subject
+	        dataHelper.mCcAddresses, // list containing cc recipient addresses
+    	    dataHelper.mBccAddresses // list containing bcc recipient addresses
+	    );
+
+        if (count == 1) {
+            // A single mailbox exists.
+            QModelIndex modelIndex = mailboxListModel.index(0, 0);
+            QVariant mailbox(mailboxListModel.data(modelIndex));
+            NmMailboxMetaData *mailboxMetaData = mailbox.value<NmMailboxMetaData*>();
+            mailboxId = mailboxMetaData->id();
+        	launchEditorView(mailboxId);
+        }
+        else { // count > 1
+            if (!mSelectionDialog) {
+                mSelectionDialog =
+                    new NmMailboxSelectionDialog(mUiEngine.mailboxListModel());
             }
+            connect(mSelectionDialog,SIGNAL(selectionDialogClosed(NmId&)),
+                this,SLOT(selectionDialogClosed(NmId&)));
+            mSelectionDialog->open();
+
+            // launch the editor when the dialog is closed
         }
     }
-#endif /* NM_WINS_ENV */
 }
+
+/*!
+    Called when mailbox id is know and editor can be opened
+    \param mailboxId mailbox using in editor
+ */
+void NmSendServiceInterface::launchEditorView(NmId mailboxId) 
+{
+    NMLOG(QString("NmSendServiceInterface::launchEditorView %1").arg(mailboxId.id()));
+    // Make the previous view visible again.
+    if (mCurrentView) {
+        mCurrentView->show();
+        mCurrentView = NULL;        
+    }
+    
+    if (mStartParam) {
+        mStartParam->setMailboxId(mailboxId);
+        mApplication->enterNmUiView(mStartParam);
+        mStartParam = NULL; // ownership passed
+    }
+    completeRequest(mAsyncReqId, 1);
+}
+
+void NmSendServiceInterface::cancelService() 
+{
+    NMLOG("NmSendServiceInterface::cancelService");
+    delete mStartParam;
+    mStartParam = NULL;
+
+    // If the service was started as embedded, do not hide the app.
+    if (!XQServiceUtil::isEmbedded()) {
+        XQServiceUtil::toBackground(true);
+    }
+
+    completeRequest(mAsyncReqId, 0);
+
+    // If started as service, the application must be closed now.
+    if (XQServiceUtil::isService()) {
+        connect(this, SIGNAL(returnValueDelivered()),
+            mApplication, SLOT(delayedExitApplication()));
+    }
+    else {
+        // Make the previous view visible again
+        if (mCurrentView) {
+            mCurrentView->show();
+            mCurrentView = NULL;
+        }
+    }
+}
+
+#endif /* NM_WINS_ENV */
+
 
 
 // End of file.

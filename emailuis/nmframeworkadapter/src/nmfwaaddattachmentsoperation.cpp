@@ -37,14 +37,15 @@ NmFwaAddAttachmentsOperation::NmFwaAddAttachmentsOperation(
     const NmMessage &message,
     const QList<QString> &fileList,
     CFSMailClient &mailClient) :
-        mMessage(message),
         mMailClient(mailClient)
 {
-    // Take own copy of the file list
+    // Take own copy of the file list.
     mFileList.clear();
     for (int i=0; i<fileList.count(); ++i) {
         mFileList.append(fileList.at(i));
     }
+    mFSMessage = CFSMailMessage::NewL(message);
+    mRequestId = NmNotFoundError;
 }
 
 /*!
@@ -52,13 +53,14 @@ NmFwaAddAttachmentsOperation::NmFwaAddAttachmentsOperation(
  */
 NmFwaAddAttachmentsOperation::~NmFwaAddAttachmentsOperation()
 {
+    // Cancel all running operations.
     doCancelOperation();
-    mFileList.clear();
-    mRequestIds.clear();
+    mFileList.clear(); 
+    delete mFSMessage;
 }
 
 /*!
-    Called after base object construction via timer event, runs the
+    Called after base object construction, runs the
     async operation.
     
     \sa NmOperation
@@ -66,8 +68,34 @@ NmFwaAddAttachmentsOperation::~NmFwaAddAttachmentsOperation()
 void NmFwaAddAttachmentsOperation::doRunAsyncOperation()
 {
     TRAPD(err, doRunAsyncOperationL());
+    // Trap harness catches an error.
     if (err != KErrNone) {
-        completeOperation(NmGeneralError);
+        // File not found, inform UI.
+        if (err == KErrNotFound) {
+            completeOperationPart(mFileList.takeFirst(),
+                                  NULL,
+                                  NmNotFoundError);
+            // Let's continue, if files still left.
+            if (mFileList.count() > 0) {
+                doRunAsyncOperation();
+            }
+            else {
+                // We do not want to report whole operation error,
+                // when the last file is, or files, are missing.
+                completeOperation(NmNoError);
+            }
+        }
+        else {
+            // Complete operation part, because of unknown error.
+            // File list is never empty in this situation.
+            completeOperationPart(mFileList.takeFirst(),
+                                  NULL,
+                                  NmGeneralError);
+            // Complete whole operation, because of unknown error.
+            mFileList.clear();
+            mRequestId = NmNotFoundError ;
+            completeOperation(NmGeneralError);
+        }
     }
 }
 
@@ -76,17 +104,15 @@ void NmFwaAddAttachmentsOperation::doRunAsyncOperation()
  */
 void NmFwaAddAttachmentsOperation::doRunAsyncOperationL()
 {
-    CFSMailMessage *msg = NULL;
-    msg = CFSMailMessage::NewL(mMessage);
-
-    // Go through the attachment list and add those into mail message one by one.
-    for (int i=0; i<mFileList.count(); ++i) {
-        HBufC *fileName = NmConverter::qstringToHBufCLC(mFileList.at(i));
-        mRequestIds.append(msg->AddNewAttachmentL(*fileName, *this));
-        CleanupStack::PopAndDestroy(fileName);
+    if (mFileList.count() > 0) {
+        // Add new attachment from first file in the list.
+        HBufC *fileName = NmConverter::qstringToHBufCLC(mFileList.first());
+        mRequestId = mFSMessage->AddNewAttachmentL(*fileName, *this);
+        CleanupStack::PopAndDestroy(fileName);   
+    } else {
+        completeOperation(NmNoError);
     }
-    delete msg;
-    msg = NULL;
+        
 }
 
 /*!
@@ -99,66 +125,69 @@ void NmFwaAddAttachmentsOperation::RequestResponseL(TFSProgress aEvent,
                                                     TInt aRequestId)
 {
     int err = NmNoError;
-    for (int i=0;i<mRequestIds.count();++i) {
-        
-        if (aRequestId == mRequestIds[i]) {
+
+    // Request id should always be valid. If not,
+    // then report general error and complete operation.
+    if (aRequestId == mRequestId) {
+
+        // Request completed so request id used.
+        mRequestId = KErrNotFound;
+       
+        // If request completed we can process the results.
+        //   Otherwise, we report about cancellation or general error
+        // and stop the operation.
+        if (aEvent.iProgressStatus == TFSProgress::EFSStatus_RequestComplete) {
             
-            TFSProgress::TFSProgressStatus status = aEvent.iProgressStatus;
-            
-            if (status == TFSProgress::EFSStatus_RequestComplete
-                && aEvent.iParam) {
-                // Request completed. Let's check the result
-                switch (aEvent.iError) {
-                    case KErrNone: {
-                        CFSMailMessagePart *fsMessagePart =
-                            static_cast<CFSMailMessagePart *>(aEvent.iParam);
-                        completeOperationPart(
-                            mFileList.at(i),
-                            fsMessagePart->GetPartId().GetNmId(),
-                            NmNoError);
-                        delete fsMessagePart;
-                        fsMessagePart = NULL;
-                        break;
-                    }
-                    case KErrNotFound:
-                        completeOperationPart(mFileList.at(i),
-                                              NULL,
-                                              NmNotFoundError);
-                        err = NmNotFoundError;
-                        break;
-                    default:
-                        completeOperationPart(mFileList.at(i),
-                                              NULL,
-                                              NmGeneralError);
-                        err = NmGeneralError;
-                } // end switch case
-                // remove request id and file name
-                mRequestIds.removeAt(i);
-                mFileList.removeAt(i);
-            }
-            else if (status == TFSProgress::EFSStatus_RequestCancelled) {
-                completeOperationPart(mFileList.at(i),
-                                      NULL,
-                                      NmCancelError);
-                mFileList.clear();
-                mRequestIds.clear();
-                operationCancelled();
-                err = NmCancelError;
+            // Request completed. Let's check the result. If no error
+            // and parameter not NULL, report UI about a file added.
+            //   Else complete operation part with general error,
+            // but continue if a file or files still left in the list.
+            if (aEvent.iError == KErrNone && aEvent.iParam) {
+                
+                // Cast the parameter to FS message part object, since
+                // it can't be anything else.
+                CFSMailMessagePart *fsMessagePart =
+                    static_cast<CFSMailMessagePart *>(aEvent.iParam);
+
+                completeOperationPart(
+                    mFileList.takeFirst(),
+                    fsMessagePart->GetPartId().GetNmId(),
+                    NmNoError);
+                    
+                delete fsMessagePart;
+                fsMessagePart = NULL;
             }
             else {
-                completeOperationPart(mFileList.at(i),
+                completeOperationPart(mFileList.takeFirst(),
                                       NULL,
                                       NmGeneralError);
-                mFileList.clear();
-                mRequestIds.clear();
-                err = NmGeneralError;
             }
-        } // end if
-    } // end for
+        }
+        else {
+            completeOperationPart(mFileList.takeFirst(),
+                                  NULL,
+                                  NmGeneralError);
+            mFileList.clear();
+            err = NmGeneralError;
+        }
+    } // if (aRequestId == mRequestId) 
+    else {
+        // Just to be sure.
+        if (mFileList.count() > 0) {
+            completeOperationPart(mFileList.takeFirst(),
+                                  NULL,
+                                  NmGeneralError);   
+        }
+        mFileList.clear();
+        err = NmGeneralError;
+    }
     
-    // complete operation
-    if (!mRequestIds.count()) {
+    // Complete operation if there are no files left.
+    // Otherwise, continue with next file.
+    if (!mFileList.count()) {
         completeOperation(err);
+    } else {
+        doRunAsyncOperation();
     }
 }
 
@@ -167,10 +196,8 @@ void NmFwaAddAttachmentsOperation::RequestResponseL(TFSProgress aEvent,
  */
 void NmFwaAddAttachmentsOperation::doCancelOperation()
 {
-    for (int i=0;i<mRequestIds.count();++i) {
-        if (mRequestIds[i] >= 0) {
-            TInt reqId = static_cast<TInt>(mRequestIds[i]);
-            TRAP_IGNORE(mMailClient.CancelL(reqId));
-        }
+    if (mRequestId != KErrNotFound) {
+        TRAP_IGNORE(mMailClient.CancelL(mRequestId));
     }
+    mRequestId = NmCancelError;
 }

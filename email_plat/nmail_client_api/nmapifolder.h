@@ -18,106 +18,101 @@
 #ifndef NMAPIFOLDERINFO_H
 #define NMAPIFOLDERINFO_H
 
-#include <QString>
 #include <QExplicitlySharedDataPointer>
 #include <QList>
-#include "nmenginedef.h"
+#include <nmapidef.h>
+#include <nmapicommon.h>
 
-/**
- * Mailbox metadata class
+/*!
+   Mailbox metadata class
  */
 namespace EmailClientApi
 {
 
-enum EmailFolderType
-{
-    Inbox, Drafts, Outbox, Sent, Deleted, EOther
-};
+class NmApiFolderPrivate;
 
-enum
-{
-    GeneralError = -1, NotSupportedError
-};
-
-class NmFolderPrivate : public QSharedData
+class NMAPI_EXPORT NmApiFolder
 {
 public:
-    NmFolderPrivate();
-    virtual ~NmFolderPrivate();
-
-    quint64 id;
-    QString name;
-    EmailFolderType folderType;
-    quint64 parentId;
-    QList<quint64> childFolderIds;
-};
-
-class NMENGINE_EXPORT NmFolder
-{
-public:
-    /*
-     * constructor for NmFolder class
+    /*!
+       constructor for NmApiFolder class
      */
-    NmFolder();
-    /*
-     * destructor for NmFolder class
+    NmApiFolder();
+    
+    /*!
+        Copy constructor for NmApiFolder 
      */
-    ~NmFolder();
+    NmApiFolder(const NmApiFolder &nmApiFolder);
+    
+    /*!
+       destructor for NmApiFolder class
+     */
+    virtual ~NmApiFolder();
 
-    /*
-     * getter for id
+    /*!
+       Assigns data from \a folder
+     */
+    NmApiFolder &operator=(const NmApiFolder &folder);
+    
+    /*!
+       Compares data from \a folder
+     */
+    bool operator==(const NmApiFolder &folder);
+    
+    /*!
+       getter for id
      */
     quint64 id() const;
 
-    /*
-     * getter for name 
+    /*!
+       getter for name 
      */
     QString name() const;
 
-    /*
-     * getter for foldertype
+    /*!
+       getter for foldertype
      */
-    EmailFolderType folderType() const;
+    EmailClientApi::NmApiEmailFolderType folderType() const;
 
-    /*
-     * setter for id
+    /*!
+       setter for id
      */
     void setId(quint64 id);
 
-    /*
-     * setter for name
+    /*!
+       setter for name
      */
-    void setName(const QString& name);
+    void setName(const QString &name);
 
-    /*
-     * setter for foldertype
+    /*!
+       setter for foldertype
      */
-    void setFolderType(EmailFolderType folderType);
+    void setFolderType(EmailClientApi::NmApiEmailFolderType folderType);
 
-    /*
-     * seter for childfolder ids
+    /*!
+       setter for childfolder ids
      */
     void setChildFolderIds(QList<quint64> &childFolderIds);
 
-    /*
-     * seter for childfolder ids
+    /*!
+       setter for childfolder ids
      */
     void setParentFolderId(quint64 parentId);
 
-    /*
-     * returns child folder ids.
-     * to be implemented later when nmail functionality is available
+    /*!
+       returns child folder ids.
+       to be implemented later when nmail functionality is available
      */
     void getChildFolderIds(QList<quint64> &childFolderIds);
 
-    /*
-     * returns parent folder id.
-     * 
+    /*!
+       returns parent folder id.
+       
      */
     quint64 parentFolderId() const;
 
 private:
-    QExplicitlySharedDataPointer<NmFolderPrivate> d;
+    QExplicitlySharedDataPointer<NmApiFolderPrivate> d;
 };
 
 }

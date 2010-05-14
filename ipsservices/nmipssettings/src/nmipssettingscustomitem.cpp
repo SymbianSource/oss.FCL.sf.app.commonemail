@@ -16,13 +16,14 @@
 */
 
 #include <QVariant>
-#include <hbdatetimeedit.h>
-#include <hbabstractitemview.h>
-#include <hbdataformmodel.h>
-#include <hbdataformmodelitem.h>
+#include <HbAbstractItemView>
+#include <HbDataFormModel>
+#include <HbDataFormModelItem>
 
 #include "nmipssettingscustomitem.h"
 #include "nmipssettingslabeledcombobox.h"
+#include "nmipssettingstimeeditor.h"
+#include "nmipssettingsmultiselectionitem.h"
 
 /*!
     \class NmIpsSettingsCustomItem
@@ -61,43 +62,7 @@ HbAbstractViewItem* NmIpsSettingsCustomItem::createItem()
 bool NmIpsSettingsCustomItem::canSetModelIndex(const QModelIndex &index) const
 {
     int type(index.data(HbDataFormModelItem::ItemTypeRole).toInt());
-    return type==LabeledComboBox || type==TimeEditor;
-}
-
-/*!
-    Sets the custom widget's properties from the model item.
-*/
-void NmIpsSettingsCustomItem::restore()
-{
-    HbDataFormModelItem::DataItemType itemType = static_cast<HbDataFormModelItem::DataItemType>(
-        modelIndex().data(HbDataFormModelItem::ItemTypeRole).toInt());
-
-    if (itemType==LabeledComboBox || itemType==TimeEditor) {
-
-        HbDataFormModel* model = static_cast<HbDataFormModel*>
-            (static_cast<HbAbstractViewItem*>(this)->itemView()->model());
-        HbDataFormModelItem* modelItem = model->itemFromIndex(modelIndex());
-        QHash<QString ,QVariant> properties =
-            modelItem->data(HbDataFormModelItem::PropertyRole).toHash();
-
-         if (itemType==TimeEditor) {
-             // Set time editor properties. Simply copy all set properties to the widget.
-             QStringList propertyNames = properties.keys();
-
-             for (int index=0 ; index < propertyNames.count() ; index++) {
-                 QString propName = propertyNames.at(index);
-                 dataItemContentWidget()->setProperty(propName.toAscii().data(),
-                                                      properties.value(propName));
-             }
-         } else {
-             // Set combobox properties in specific order. currentIndex must be set last so that
-             // both the labelTexts and comboItems have been set before. Also, labelTexts must be
-             // set before comboItems.
-             setWidgetProperty("labelTexts", properties);
-             setWidgetProperty("comboItems", properties);
-             setWidgetProperty("currentIndex", properties);
-         }
-    }
+    return type == LabeledComboBox || type == TimeEditor || type == MultiSelectionItem;
 }
 
 /*!
@@ -111,21 +76,86 @@ HbWidget *NmIpsSettingsCustomItem::createCustomWidget()
     HbWidget *widget = 0;
 
     switch (type) {
-            case LabeledComboBox: {
-                widget = new NmIpsSettingsLabeledComboBox();
-                break;
-                }
-            case TimeEditor: {
-                HbDateTimeEdit *edit = new HbDateTimeEdit();
-                widget = edit;
-                break;
-                }
-            default: {
-                break;
-                }
+        case LabeledComboBox: {
+            widget = new NmIpsSettingsLabeledComboBox();
+            break;
+            }
+        case TimeEditor: {
+            widget = new NmIpsSettingsTimeEditor();
+            break;
+            }
+        case MultiSelectionItem: {
+            widget = new NmIpsSettingsMultiSelectionItem();
+            connect(widget, SIGNAL(propertyChanged(QMap<QString, QVariant>)),
+                this, SLOT(propertyChanged(QMap<QString, QVariant>)));
+            break;
+        }
+        default: {
+            // Unknown/unhandled item type.
+            break;
+        }
     }
 
     return widget;
+}
+
+/*!
+    Sets the custom widget's properties from the model item.
+*/
+void NmIpsSettingsCustomItem::restore()
+{
+    HbDataFormModelItem::DataItemType itemType = static_cast<HbDataFormModelItem::DataItemType>(
+        modelIndex().data(HbDataFormModelItem::ItemTypeRole).toInt());
+
+    if (itemType == LabeledComboBox || itemType == TimeEditor || itemType == MultiSelectionItem) {
+
+        HbDataFormModel *model = static_cast<HbDataFormModel *>
+            (static_cast<HbAbstractViewItem *>(this)->itemView()->model());
+
+        HbDataFormModelItem *modelItem = model->itemFromIndex(modelIndex());
+
+        QHash<QString ,QVariant> properties =
+            modelItem->data(HbDataFormModelItem::PropertyRole).toHash();
+
+        if (itemType == LabeledComboBox) {
+            // Set combobox properties in specific order. currentIndex must be set last so that
+            // both the labelTexts and comboItems have been set before. Also, labelTexts must
+            // have been set before comboItems. Otherwise the setting of current item doesn't work.
+            // Block signals which are generated when comboItems are set.
+            setWidgetProperty("labelTexts", properties);
+            dataItemContentWidget()->blockSignals(true);
+            setWidgetProperty("comboItems", properties);
+            dataItemContentWidget()->blockSignals(false);
+            setWidgetProperty("currentIndex", properties);
+
+        } else {
+            // Set item properties. Simply copy all set properties to the widget.
+            QStringList propertyNames = properties.keys();
+            foreach (QString key, propertyNames) {
+                QVariant value = properties.value(key);
+                dataItemContentWidget()->setProperty(key.toAscii().data(), value);
+            }
+        }
+    }
+}
+
+/*!
+    Copies all given properties from widget to model.
+
+    \param properties Composited widget properties.
+*/
+void NmIpsSettingsCustomItem::propertyChanged(QMap<QString, QVariant> properties)
+{
+    HbDataFormModel* model =
+        static_cast<HbDataFormModel*>(static_cast<HbAbstractViewItem*>(this)->itemView()->model());
+
+    model->blockSignals(true);
+    HbDataFormModelItem* modlItem = model->itemFromIndex(modelIndex());
+    QStringList keys = properties.keys();
+    foreach (QString key, keys) {
+        modlItem->setContentWidgetData(key, properties.value(key));
+    }
+    model->blockSignals(false);
 }
 
 /*!
@@ -140,4 +170,3 @@ void NmIpsSettingsCustomItem::setWidgetProperty(const QString &property,
         dataItemContentWidget()->setProperty(property.toAscii().data(), properties.value(property));
     }
 }
-

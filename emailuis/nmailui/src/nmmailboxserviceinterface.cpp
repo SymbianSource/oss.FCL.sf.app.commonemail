@@ -34,7 +34,7 @@ NmMailboxServiceInterface::NmMailboxServiceInterface(QObject *parent,
         NmUiEngine &uiEngine,
         NmApplication *application)
 #ifndef NM_WINS_ENV
-    : XQServiceProvider(QLatin1String("com.nokia.symbian.IEmailInboxView"), parent),
+    : XQServiceProvider(emailFullServiceNameMailbox, parent),
 #else
     : QObject(parent),
 #endif

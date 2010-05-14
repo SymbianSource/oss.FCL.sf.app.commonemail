@@ -26,8 +26,7 @@ class NMUIENGINE_EXPORT NmAddAttachmentsOperation: public NmOperation
 {
     Q_OBJECT
 public:
-    NmAddAttachmentsOperation(QObject *parent = 0);
-    virtual ~NmAddAttachmentsOperation();
+    NmAddAttachmentsOperation();
     
 signals:
     // The observer of the asynchronous operation can connect to this signal.
@@ -35,6 +34,9 @@ signals:
     
 public slots:
     void completeOperationPart(const QString &fileName, const NmId &msgPartId, int result);
+
+protected:
+    virtual ~NmAddAttachmentsOperation();
 };
 
 #endif /* NMADDATTACHMENTSOPERATION_H_ */

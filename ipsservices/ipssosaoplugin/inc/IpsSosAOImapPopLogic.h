@@ -17,8 +17,8 @@
 */
 
 
-#ifndef IPSSOSAOIMAPPOPLOGIC_H_
-#define IPSSOSAOIMAPPOPLOGIC_H_
+#ifndef IPSSOSAOIMAPPOPLOGIC_H
+#define IPSSOSAOIMAPPOPLOGIC_H
 
 #include <e32base.h> 
 #include <msvapi.h>
@@ -39,7 +39,9 @@ _LIT( KIpsSosAOPanicLit, "AO");
 * 
 * lib ipssosaoplugin.lib
 */
+//<Qmail>
 NONSHARABLE_CLASS (CIpsSosAOImapPopLogic) : public CBase
+//</Qmail>
     {
 
 public:
@@ -150,4 +152,4 @@ private:
     
     };
 
-#endif /* IPSSOSAOIMAPPOPLOGIC_H_*/
+#endif /* IPSSOSAOIMAPPOPLOGIC_H*/

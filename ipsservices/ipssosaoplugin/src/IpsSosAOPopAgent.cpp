@@ -460,12 +460,7 @@ void CIpsSosAOPopAgent::LoadSettingsL( )
         iPopulateLimit = ( iPopulateLimit * 1024 ) / 75;
         }
 	//<QMail>
-    /*
-    else if ( iPopulateLimit == KIpsSetDataHeadersOnly )    
-        {
-        iPopulateLimit = 0;
-        }
-        */
+    
 	//</QMail>
     else
         {

@@ -26,7 +26,7 @@
 
 #include <HbStringUtil>
 
-const int NmMailboxInfoItemCount = 7;
+const int NmMailboxInfoItemCount = 8;
 const int NmSendingStateDelay = 2000; // delay for 'send in progress' indicator
 const int NmMaxOutboxCount = 99;
 
@@ -127,9 +127,9 @@ bool NmIndicator::handleInteraction(InteractionType type)
 */
 QVariant NmIndicator::indicatorData(int role) const
 {
-    NMLOG("NmIndicator::indicatorData");
+    NMLOG(QString("NmIndicator::indicatorData %1").arg(role));
     switch(role) {
-        case TextRole:
+        case PrimaryTextRole:
             {
             return mMailbox.mName;
             }
@@ -153,7 +153,12 @@ QVariant NmIndicator::indicatorData(int role) const
             {
 			// Icon for the mailbox in the menu
             if (mActive) {
-                return QString("qtg_large_email");
+                if (!mMailbox.mMailboxIconName.isEmpty()) {
+                    return mMailbox.mMailboxIconName;
+                }
+                else {
+                    return QString("qtg_large_email");
+                }
             }
             break;
 		    }
@@ -169,9 +174,9 @@ QVariant NmIndicator::indicatorData(int role) const
 }
 
 /*!
-    Timer callback for hiding 'send in progress' indicator 
+    Timer callback for hiding 'send in progress' indicator
 */
-void NmIndicator::hideSendIndicator() 
+void NmIndicator::hideSendIndicator()
 {
     if (mShowSendProgress) {
         NMLOG("NmIndicator::hideSendIndicator - hide progress state");
@@ -222,6 +227,7 @@ bool NmIndicator::handleClientRequest( RequestType type,
             {
             mActive = true;
 			storeMailboxData(parameter);
+
             emit dataChanged();
             handled =  true;
             }
@@ -256,7 +262,7 @@ void NmIndicator::showSendProgress()
     // Activate the progress indicator
     if (!mShowSendProgress && mActive) {
         mShowSendProgress = true;
-        
+
         // Hide the progress state after some delay
         QTimer::singleShot(NmSendingStateDelay, this, SLOT(hideSendIndicator()));
     }
@@ -277,10 +283,11 @@ void NmIndicator::storeMailboxData(QVariant mailboxData)
         mMailbox.mSyncState = infoList.at(3).value<NmSyncState>();
         mMailbox.mConnectState = infoList.at(4).value<NmConnectState>();
         mMailbox.mOutboxMails = infoList.at(5).toInt();
-        
+        mMailbox.mMailboxIconName = infoList.at(6).toString();
+
         bool oldSendingState = mSendingState;
-        mSendingState = infoList.at(6).toInt();
-        
+        mSendingState = infoList.at(7).toInt();
+
         // Sending state now activated
         if (!oldSendingState && mSendingState) {
             showSendProgress();

@@ -19,6 +19,9 @@
 #include "emailtrace.h"
 #include "ipsplgheaders.h"
 
+#include <featmgr.h>
+#include <bldvariant.hrh> // for feature definitions
+
 // <cmail> const TInt KIpsSetUtilsCharAt = '@'; </cmail>
 const TInt KIpsSetUtilsCharLessThan = '<';
 const TInt KIpsSetUtilsCharMoreThan = '>';
@@ -48,6 +51,11 @@ CIpsPlgSmtpService::~CIpsPlgSmtpService()
     {
     FUNC_LOG;
     delete iMsgMapper;
+    
+    if( iFeatureManagerInitialized )
+    	{
+    	FeatureManager::UnInitializeLib();  
+    	}
     }    
 
 // ---------------------------------------------------------------------------
@@ -89,6 +97,9 @@ void CIpsPlgSmtpService::ConstructL()
     {
     FUNC_LOG;
     iMsgMapper = CIpsPlgMsgMapper::NewL( iSession, iPlugin );
+    
+    FeatureManager::InitializeLibL();
+    iFeatureManagerInitialized = ETrue;
     }
 
 // ---------------------------------------------------------------------------
@@ -154,7 +165,9 @@ void CIpsPlgSmtpService::StoreMessageL(
         }
     
     // To Field
+// <qmail> return by value, because Qt types are used for internal CFSMailAddress data storage
     RPointerArray<CFSMailAddress> toArray = aMessage.GetToRecipients();
+// </qmail>
     // Reseting recipient list, because our client calls us many times
     // and we want to avoid duplicates
     header->ToRecipients().Reset();
@@ -179,21 +192,33 @@ void CIpsPlgSmtpService::StoreMessageL(
         }   
     
     // CC field
+// <qmail> return by value, because Qt types are used for internal CFSMailAddress data storage
     RPointerArray<CFSMailAddress> ccArray 
         = aMessage.GetCCRecipients();
+// </qmail>
     header->CcRecipients().Reset();
     for( TInt i = 0; i < ccArray.Count(); i++ )
         {
-        header->CcRecipients().AppendL( ccArray[i]->GetEmailAddress() ); // copy created
+        TPtrC displayName = ccArray[i]->GetDisplayName();
+        TPtrC emailName = ccArray[i]->GetEmailAddress();
+        HBufC* fullName = CreateDisplayStringLC( displayName, emailName );  // << fullName
+        header->CcRecipients().AppendL( *fullName );
+        CleanupStack::PopAndDestroy( fullName );    // >>> fullName
         }
     
     // BCC field
+// <qmail> return by value, because Qt types are used for internal CFSMailAddress data storage
     RPointerArray<CFSMailAddress> bccArray 
         = aMessage.GetBCCRecipients();
+// </qmail>
     header->BccRecipients().Reset();
     for( TInt i = 0; i < bccArray.Count(); i++ )
         {
-        header->BccRecipients().AppendL( bccArray[i]->GetEmailAddress() ); // copy created
+        TPtrC displayName = bccArray[i]->GetDisplayName();
+        TPtrC emailName = bccArray[i]->GetEmailAddress();
+        HBufC* fullName = CreateDisplayStringLC( displayName, emailName );  // << fullName
+        header->BccRecipients().AppendL( *fullName ); // copy created
+        CleanupStack::PopAndDestroy( fullName );    // >>> fullName
         }
     
     // Subject, check null pointer
@@ -255,7 +280,7 @@ CFSMailMessage* CIpsPlgSmtpService::CreateNewSmtpMessageL(
     return CreateFSMessageAndSetFlagsL( 
             msgId, KErrNotFound, aMailBoxId.Id() );
     }
-
+    
 // ---------------------------------------------------------------------------
 // CIpsPlgSmtpService::CreateForwardSmtpMessageL
 // ---------------------------------------------------------------------------
@@ -277,11 +302,17 @@ CFSMailMessage* CIpsPlgSmtpService::CreateForwardSmtpMessageL(
         User::Leave(KErrNotFound);
         }
     
+    // In case original message is in Sent folder, it's serviceId must be
+    // changed before starting forward/reply msg creation operation
+    // (after forward msg is created, this is changed back)
+    TMsvId orgServiceId( 0 );
     if ( ( orgMsg.Parent() == KMsvSentEntryIdValue ) && 
          ( orgMsg.iMtm == KSenduiMtmSmtpUid ) )
         {
+        orgServiceId = orgMsg.iServiceId;
         ChangeServiceIdL( orgMsg );
         }
+
     TMsvPartList partList( KMsvMessagePartBody | KMsvMessagePartAttachments );
     
     CIpsPlgOperationWait* wait = CIpsPlgOperationWait::NewLC( );
@@ -301,10 +332,17 @@ CFSMailMessage* CIpsPlgSmtpService::CreateForwardSmtpMessageL(
     TMsvId msgId = GetIdFromProgressL( forwMailOp->FinalProgress() );
     
     CleanupStack::PopAndDestroy( 2, wait );
+
+    // If original message's serviceId was changed prior to forward/reply msg
+    // creation op, changing it back to the original
+    if ( orgServiceId )
+        {
+        ChangeServiceIdL( orgMsg, orgServiceId );
+        }
     
     return CreateFSMessageAndSetFlagsL( msgId, orgMsg.Id(), aMailBoxId.Id() );
     }
-
+    
 // ---------------------------------------------------------------------------
 // CIpsPlgSmtpService::CreateReplySmtpMessageL
 // ---------------------------------------------------------------------------
@@ -326,9 +364,14 @@ CFSMailMessage* CIpsPlgSmtpService::CreateReplySmtpMessageL(
         User::Leave(KErrNotFound);
         }
     
+    // In case original message is in Sent folder, it's serviceId must be
+    // changed before starting forward/reply msg creation operation
+    // (after forward msg is created, this is changed back)
+    TMsvId orgServiceId( 0 );
     if ( ( orgMsg.Parent() == KMsvSentEntryIdValue ) && 
          ( orgMsg.iMtm == KSenduiMtmSmtpUid ) )
         {
+        orgServiceId = orgMsg.iServiceId;
         ChangeServiceIdL( orgMsg );
         }
     
@@ -355,6 +398,13 @@ CFSMailMessage* CIpsPlgSmtpService::CreateReplySmtpMessageL(
     TMsvId msgId = GetIdFromProgressL( replMailOp->FinalProgress() );
     CleanupStack::PopAndDestroy( 2, wait );
     
+    // If original message's serviceId was changed prior to forward/reply msg
+    // creation op, changing it back to the original
+    if ( orgServiceId )
+        {
+        ChangeServiceIdL( orgMsg, orgServiceId );
+        }
+
     // Start finalising new FS style message
     CFSMailMessage* fsMsg = CreateFSMessageAndSetFlagsL( 
             msgId, orgMsg.Id(), aMailBoxId.Id() );
@@ -386,15 +436,59 @@ CFSMailMessage* CIpsPlgSmtpService::CreateReplySmtpMessageL(
         CleanupStack::PopAndDestroy( emailAddr ); // emailAddr not used
         }
     // copy cc recipients
+    // <cmail>
+    TFSMailMsgId folderId;
+    TFSMailDetails details( EFSMsgDataEnvelope );
+    CFSMailMessage* originalMessage = iPlugin.GetMessageByUidL( aMailBoxId, 
+                                       folderId, aOriginalMessageId, details );
+    CleanupStack::PushL( originalMessage );
+// <qmail> return by value, because Qt types are used for internal CFSMailAddress data storage
+    const RPointerArray<CFSMailAddress>& originalToRecipients = 
+                                            originalMessage->GetToRecipients();
+// </qmail>
+    TInt originalToRecipientsCount = originalToRecipients.Count(); 
+    TBool present = EFalse;
+    // </cmail>
     for( TInt i = 0; i < header->CcRecipients().Count(); i++ )
         {
         emailAddr = header->CcRecipients()[i].AllocLC(); // ***
         fsAddr = CFSMailAddress::NewLC(); // ***
         fsAddr->SetEmailAddress( *emailAddr ); // Copy created
-        fsMsg->AppendCCRecipient( fsAddr ); // No copy
+        // <cmail>
+        if( aReplyToAll )
+            {
+            // check if CC recipient read from header was present in To field
+            // of original message. If so, copy it into To recipietns
+            present = EFalse;
+            for( TInt j = 0; j < originalToRecipientsCount; j++ )
+                {
+                if( emailAddr->Find( originalToRecipients[j]->GetEmailAddress())
+                                                              != KErrNotFound )
+                    {
+                    present = ETrue;
+                    break;
+                    }
+                }
+            if( present )
+                {
+                fsMsg->AppendToRecipient( fsAddr ); // No copy
+                }
+            else
+                {
+                fsMsg->AppendCCRecipient( fsAddr ); // No copy
+                }
+            }
+        else
+        {
+            fsMsg->AppendCCRecipient( fsAddr ); // No copy
+        }
+        // </cmail>
         CleanupStack::Pop( fsAddr ); // fsAddr belong now to fsMsg
         CleanupStack::PopAndDestroy( emailAddr ); // emailAddr not used
         }
+    // <cmail>
+    CleanupStack::PopAndDestroy( originalMessage );
+    // </cmail>
     // copy bcc recipients
     for( TInt i = 0; i < header->BccRecipients().Count(); i++ )
         {
@@ -431,7 +525,21 @@ void CIpsPlgSmtpService::ChangeServiceIdL( TMsvEntry& aEntry )
         }
     CleanupStack::PopAndDestroy( cEntry );
     }
-    
+
+// ---------------------------------------------------------------------------
+// CIpsPlgSmtpService::ChangeServiceIdL
+// ---------------------------------------------------------------------------
+//
+void CIpsPlgSmtpService::ChangeServiceIdL( TMsvEntry& aEntry, TMsvId aServiceId )
+    {
+    FUNC_LOG;
+    CMsvEntry* cEntry = iSession.GetEntryL( aEntry.Id() );
+    CleanupStack::PushL( cEntry );
+    aEntry.iServiceId = aServiceId;
+    cEntry->ChangeL( aEntry );
+    CleanupStack::PopAndDestroy( cEntry );
+    }
+
 // ---------------------------------------------------------------------------
 // CIpsPlgSmtpService::CreateFSMessageAndSetFlagsL
 // ---------------------------------------------------------------------------
@@ -444,9 +552,43 @@ CFSMailMessage* CIpsPlgSmtpService::CreateFSMessageAndSetFlagsL(
     {
     FUNC_LOG;
 
+    
+   
+    // tp teleca change for korean specific email encoding
     // Default charset
     TUid charset;
     charset.iUid = KCharacterSetIdentifierUtf8;
+
+      // korea specific charset
+      if ( FeatureManager::FeatureSupported( KFeatureIdKorean ))
+      {
+      
+      //const TUid KCRUidEMailCharsets = {0x20018441};    // korea needs different default charset
+          const TInt KoreanMib = 38; // magic number to read from cen rep would be better
+            
+		  CCnvCharacterSetConverter* charConv = NULL;
+		  TRAPD( err, charConv = CCnvCharacterSetConverter::NewL() );
+		  if( err == KErrNone )
+			  {
+			  TUint characterSetId = KCharacterSetIdentifierUtf8;
+			  RFs fs;
+			  TInt err = fs.Connect();
+			  
+			  if( err == KErrNone )
+				  {
+				  TRAP( err, characterSetId = charConv->ConvertMibEnumOfCharacterSetToIdentifierL( KoreanMib, fs ));
+				   if( err == KErrNone )
+					   { // set korean specific charset
+					   charset = TUid::Uid( characterSetId );
+					   }
+				   fs.Close();
+				  }
+			  }
+
+         delete charConv; 
+     
+      }
+      // tp teleca change END
 
     // set in preparation flag, altought 
     // not known where this affects
@@ -462,15 +604,15 @@ CFSMailMessage* CIpsPlgSmtpService::CreateFSMessageAndSetFlagsL(
         TMsvEntry orgMsg;
         //get entry errors not handled
         iSession.GetEntry( aOriginalMsgId, dummy, orgMsg );
-        iSession.GetEntry( aMessageId, dummy, newEmailMsg );
         const TMsvEmailEntry& orgEmailMsg(orgMsg);
         
         // symbian not mark same priority to reply / forward messages
+// <qmail>
         if ( aCopyOriginalMsgProperties && orgEmailMsg.Priority() != newEmailMsg.Priority() )
+// </qmail>
             {
             newEmailMsg.SetPriority( orgEmailMsg.Priority() );
             }
-        
         //get charset from original message
         charset = GetOriginalCharsetL( aOriginalMsgId );
         }
@@ -497,15 +639,16 @@ CFSMailMessage* CIpsPlgSmtpService::CreateFSMessageAndSetFlagsL(
     fsMsg->SetFolderId( 
         TFSMailMsgId( iPlugin.PluginId(), KMsvDraftEntryId ) );
 
+// <qmail>
     // update subject
     fsMsg->SetSubject( newEmailMsg.iDescription );
+// </qmail>
     
     //update flags
     iMsgMapper->SetFSMessageFlagsL( newEmailMsg, *fsMsg );
     
     return fsMsg;
     }
-    
 
 // ---------------------------------------------------------------------------
 // CIpsPlgSmtpService::GetIdFromProgressL

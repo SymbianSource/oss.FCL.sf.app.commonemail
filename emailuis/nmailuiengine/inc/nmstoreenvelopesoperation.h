@@ -20,11 +20,14 @@
 
 #include "nmoperation.h"
 
-class NmStoreEnvelopesOperation: public NmOperation
+class NMUIENGINE_EXPORT NmStoreEnvelopesOperation: public NmOperation
 {
+    Q_OBJECT
 public:
     NmStoreEnvelopesOperation(){};
-    ~NmStoreEnvelopesOperation(){};
+    
+protected:
+    virtual ~NmStoreEnvelopesOperation(){};
 };
 
 #endif //#ifndef NMSTOREENVELOPESOPERATION_H_

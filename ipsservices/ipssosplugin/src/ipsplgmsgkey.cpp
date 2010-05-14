@@ -15,6 +15,11 @@
 *
 */
 
+// <qmail> Are AknUtils available in 10.1?
+// <cmail>
+#include <AknUtils.h>
+// </cmail>
+// </qmail>
 
 #include "emailtrace.h"
 #include "ipsplgheaders.h"
@@ -24,6 +29,11 @@ const TInt KMoreThan = 1;
 const TInt KEqual = 0;
 
 _LIT(KDefaultSubjectPrefixSeparator,": ");
+// <cmail>
+// <qmail> Cmail bugfix uses AknUtils (available in 10.1?) - commented out until it is clear
+//_LIT( KCharsToReplace, "\r\n\t\x2028\x2029" );
+// <qmail>
+// </cmail>
 
 // ---------------------------------------------------------------------------
 // Basic sonstructor
@@ -94,8 +104,10 @@ TInt TIpsPlgMsgKey::Compare( TInt aLeft, TInt aRight ) const
                 }
             case EFSMailSortBySubject:
                 {
-                result = CompareSubjects( 
-                    leftEntry.iDescription, rightEntry.iDescription );
+                // <cmail> due to changes in CompareSubject method
+                TRAP_IGNORE( result = CompareSubjectsL( 
+                    leftEntry.iDescription, rightEntry.iDescription ) );
+                // </cmail>
                 break;
                 }
             case EFSMailSortByPriority:
@@ -134,11 +146,11 @@ TInt TIpsPlgMsgKey::Compare( TInt aLeft, TInt aRight ) const
                 // a read one
                 if ( !leftEntry.Unread() && rightEntry.Unread() ) 
                     {
-                    result = KLessThan;
+                    result = KMoreThan; // <cmail> changed from KLessThan 
                     }
                 else if ( leftEntry.Unread() && !rightEntry.Unread() ) 
                     {
-                    result = KMoreThan;
+                    result = KLessThan; // <cmail> changed from KMoreThan
                     }
                 break;
                 }
@@ -200,7 +212,7 @@ TAny* TIpsPlgMsgKey::At( TInt anIndex ) const
 // Strips the subject prefixes before comparing the strings
 // ---------------------------------------------------------------------------
 
-TInt TIpsPlgMsgKey::CompareSubjects( 
+TInt TIpsPlgMsgKey::CompareSubjectsL( 
     const TDesC& aLeft, 
     const TDesC& aRight ) const
     {
@@ -215,8 +227,29 @@ TInt TIpsPlgMsgKey::CompareSubjects(
         leftPtr.Ptr() + leftOffset, leftPtr.Length() - leftOffset );
     rightPtr.Set( 
         rightPtr.Ptr() + rightOffset, rightPtr.Length() - rightOffset );
+    
+// <qmail> Are AknUtils available in 10.1?
+    // <cmail> for unifying with UI - remove all white spaces
+    /*HBufC* croppedLeft = leftPtr.AllocLC();
+    TPtr croppedLeftPtr = croppedLeft->Des();
+    HBufC* croppedRight = rightPtr.AllocLC();
+    TPtr croppedRightPtr = croppedRight->Des();
         
-    result = leftPtr.CompareC( rightPtr );
+    AknTextUtils::ReplaceCharacters( croppedLeftPtr, KCharsToReplace, ' ' );
+    croppedLeftPtr.TrimAll();
+    AknTextUtils::ReplaceCharacters( croppedRightPtr, KCharsToReplace, ' ' );
+    croppedRightPtr.TrimAll();
+    
+    result = croppedLeftPtr.CompareC( croppedRightPtr );
+    
+    CleanupStack::PopAndDestroy( croppedRight );
+    CleanupStack::PopAndDestroy( croppedLeft );*/
+    // </cmail>
+// </qmail>
+
+// <qmail> Remove line if above code is valid in 10.1
+	result = leftPtr.CompareC( rightPtr );
+// </qmail>
         
     return result;
     }
@@ -232,27 +265,75 @@ TInt TIpsPlgMsgKey::CompareSubjects(
 TInt TIpsPlgMsgKey::FindSubjectStart( const TDesC& aSubject ) const
     {
     FUNC_LOG;
-	TPtrC ptr(aSubject);
-	TInt offset(0);
-	TInt current(0);
-	TInt skipLength = iSubjectPrefixSeparator.Length();
-	
-	// Loop while separators are found
-	do
-		{
-		current = ptr.FindF( iSubjectPrefixSeparator );
+    TInt offset(0);
+    // <cmail> removed and replaced with the code from UI
+    // TFsEmailUiUtility::CreateSubjectWithoutLocalisedPrefixLC
+    // to have the same subject here and there
+    // there was sorting problem when subjects where handled
+    // different here and in UI while creating mails' list.  
+    
+    /*TPtrC ptr(aSubject);
+    TInt current(0);
+    TInt skipLength = iSubjectPrefixSeparator.Length();
+    
+    // Loop while separators are found
+    do
+        {
+        current = ptr.FindF( iSubjectPrefixSeparator );
 
-		if ( current != KErrNotFound )
-			{
-			offset += current + skipLength;
-			ptr.Set( aSubject.Ptr() + offset, aSubject.Length() - offset );
-			}
-		} while ( current != KErrNotFound );
+        if ( current != KErrNotFound )
+            {
+            offset += current + skipLength;
+            ptr.Set( aSubject.Ptr() + offset, aSubject.Length() - offset );
+            }
+        } while ( current != KErrNotFound );*/
+    
+    TBool prefixFound = EFalse;
+    TPtrC croppedSubject;
+    croppedSubject.Set( aSubject );
+    
+    do
+        {
+        prefixFound = EFalse;
+    
+        // Remove leading white space before trying to find the prefix
+        while( croppedSubject.Length() && 
+               TChar( croppedSubject[0] ).IsSpace() )
+            {
+            croppedSubject.Set( croppedSubject.Mid(1) );
+            offset++;
+            }
+    
+        // try to find ":" at the beginning
+        // Locate : character on location 1,2 and 3
+        static const TInt KPrefixMinLength = 1;
+        static const TInt KPrefixMaxLength = 3;
+        static const TText KPrefixSeparator = ':';
+        TInt separatorPosition = croppedSubject.Locate( KPrefixSeparator );
+        if ( separatorPosition >= KPrefixMinLength &&
+             separatorPosition <= KPrefixMaxLength )
+            {
+            TPtrC prefixCandidate = croppedSubject.Left( separatorPosition );
+            // Only fully alphabetic prefixes are cropped
+            TBool isAlpha = ETrue;
+            for ( TInt i = 0 ; i < prefixCandidate.Length() ; ++i )
+                {
+                if ( !TChar( prefixCandidate[i] ).IsAlpha() )
+                    {
+                    isAlpha = EFalse;
+                    }
+                }
+            if ( isAlpha )
+                {
+                croppedSubject.Set( croppedSubject.Mid( 
+                        separatorPosition + 1 ) );
+                offset += separatorPosition + 1;
+                prefixFound = ETrue;
+                }
+            }
+        }
+    while ( prefixFound );
+    // </cmail>
 
-	return offset;
+    return offset;
     }
-
-
-
-
-

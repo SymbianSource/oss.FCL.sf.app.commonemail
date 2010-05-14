@@ -487,8 +487,7 @@ void CFSMailMessage::DoAttachmentListL( RPointerArray<CFSMailMessagePart>& aPart
 // -----------------------------------------------------------------------------
 EXPORT_C NmMessage* CFSMailMessage::GetNmMessage()
 {
-	NmMessage* message = new NmMessage(iNmPrivateMessagePart);
-	message->setEnvelope(iNmPrivateMessageEnvelope);
+	NmMessage* message = new NmMessage(iNmPrivateMessageEnvelope, iNmPrivateMessagePart);
 	return message;
 }
 //</qmail>

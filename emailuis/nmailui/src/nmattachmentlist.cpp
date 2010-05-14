@@ -17,8 +17,6 @@
 
 #include "nmuiheaders.h"
 
-#define AttachmentFileNameMaxLength 17
-
 /*!
 	\class NmAttachmentList
 	\brief Class for handling the attachment list
@@ -56,7 +54,7 @@ int NmAttachmentList::insertAttachment(
     mFileSize.append(fileSize);
     mListWidget.insertAttachment(
         count() - 1,
-        NmUtilities::truncate(displayName, AttachmentFileNameMaxLength), 
+        displayName, 
         NmUtilities::attachmentSizeString(fileSize.toDouble()));  
     updateLayout();
     return count() - 1;

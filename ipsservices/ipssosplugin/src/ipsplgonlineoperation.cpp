@@ -35,6 +35,8 @@ CIpsPlgOnlineOperation::~CIpsPlgOnlineOperation()
 // CIpsPlgOnlineOperation::CIpsPlgOnlineOperation()
 // ----------------------------------------------------------------------------
 // <qmail> priority parameter has been removed
+// <qmail> MFSMailRequestObserver& changed to pointer
+// <qmail> aSignallingAllowed parameter has been removed
 CIpsPlgOnlineOperation::CIpsPlgOnlineOperation(
     CMsvSession& aMsvSession,
     TRequestStatus& aObserverRequestStatus,
@@ -48,7 +50,7 @@ CIpsPlgOnlineOperation::CIpsPlgOnlineOperation(
         aObserverRequestStatus,
         aFSRequestId, 
         aFSMailBoxId ), 
-    iActivityTimer( aActivityTimer ),
+    iActivityTimer( &aActivityTimer ),
     iBaseMtm( NULL ),
     iMtmReg( NULL ), 
     iSubOperation( NULL ),
@@ -68,7 +70,10 @@ void CIpsPlgOnlineOperation::BaseConstructL( TUid aMtmType )
     // reset timer, if operation not completed after timer fires causes
     // disconnection
     // <qmail> remove cheking of existence of this reference member
-    iActivityTimer.ResetTimerOperation();
+    if (iActivityTimer)
+        {
+        iActivityTimer->ResetTimerOperation();
+        }
 
     iMtmReg = CClientMtmRegistry::NewL( iMsvSession );
     iBaseMtm = iMtmReg->NewMtmL( aMtmType );
@@ -129,11 +134,11 @@ void CIpsPlgOnlineOperation::CompleteObserver( TInt aStatus )
         //if connected, reset activitytimer. if not, there is no reason to.
         if ( Connected() )
             {
-            iActivityTimer.ResetTimerOperation();
+            iActivityTimer->ResetTimerOperation();
             }
         else
             {
-            iActivityTimer.Cancel();
+            iActivityTimer->Cancel();
             }
         // </qmail>
         User::RequestComplete(status, aStatus);

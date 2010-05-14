@@ -31,20 +31,31 @@ class MFSMailRequestObserver;
 NONSHARABLE_CLASS ( CIpsPlgCreateMessageOperation ) : public CIpsPlgBaseOperation
     {
 public:
-    
+    //<qmail> comments added
+	//<qmail> para to refe
+	//<qmail> aSmtpServiceId removed
     /**
-    * Constructor.
+    * Two-phased constructor
+    * 
+    * @param aSmtpService               contains SMTP message services
+    * @param aMsvSession                client/server session to MsvServer
+    * @param aObserverRequestStatus     operations observer status
+    * @param aPartList                  specifies one or more parts of a message
+    * @param aMailBoxId                 id's for mailbox and plugin
+    * @param aOperationObserver         observes the progress of this operation
+    * @param aRequestId                 identifier for this instance of operation, 
+    *                                   assigned by the client
+    * @return CIpsPlgCreateMessageOperation* self pointer                                  
     */
     static CIpsPlgCreateMessageOperation* NewL(
-        CIpsPlgSmtpService* aSmtpService,
+        CIpsPlgSmtpService& aSmtpService,
         CMsvSession& aMsvSession,
         TRequestStatus& aObserverRequestStatus,
-        TMsvId aSmtpServiceId, 
         TMsvPartList aPartList,
         TFSMailMsgId aMailBoxId,
         MFSMailRequestObserver& aOperationObserver,
         TInt aRequestId );
-        
+//</qmail>        
     /**
     * Destructor.
     */
@@ -76,16 +87,17 @@ protected:
     /**
     * Constructor.
     */
+		//<qmail> para to refe
+	//<qmail> aSmtpServiceId removed
     CIpsPlgCreateMessageOperation(
-        CIpsPlgSmtpService* aSmtpService,
+        CIpsPlgSmtpService& aSmtpService,
         CMsvSession& aMsvSession,
         TRequestStatus& aObserverRequestStatus,
-        TMsvId aSmtpServiceId, 
         TMsvPartList aPartList,
         TFSMailMsgId aMailBoxId,
         MFSMailRequestObserver& aOperationObserver,
         TInt aRequestId );
-    
+    //</qmail>
     /**
     * Constructor.
     */
@@ -115,10 +127,12 @@ protected:
     virtual void StartMessageCreationL();
 
 protected:
-    CIpsPlgSmtpService* iSmtpService;   // not owned
-    CMsvOperation* iOperation;   // owned
-    TMsvId iSmtpServiceId; 
+	//<qmail> para to refe
+    CIpsPlgSmtpService& iSmtpService;   // not owned
+    CMsvOperation* iOperation;   // owned 
+	//<qmail> iSmtpServiceId removed
     TMsvPartList iPartList;
+// <qmail> iBlank member removed
     MFSMailRequestObserver& iOperationObserver;  // not owned
     TFSProgress iFSProgress;
     };

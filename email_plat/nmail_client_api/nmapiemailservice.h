@@ -18,71 +18,75 @@
 #ifndef NMAPIEMAILSERVICE_H
 #define NMAPIEMAILSERVICE_H
 
+#include <nmapidef.h>
 #include <QObject>
 
-#include "nmenginedef.h"
-#include "nmapimailbox.h"
-#include "nmapimessageenvelope.h"
+class NmApiEngine;
 
-class NmEngine;
-
-/**
- * Client that wants to access mailboxes, messages and receive related events
- * use this class as "entry point". 
+/*!
+   Client that wants to access mailboxes, messages and receive related events
+   use this class as "entry point". 
  */
 
 namespace EmailClientApi
 {
-class NMENGINE_EXPORT NmEmailService : public QObject
+
+class NmApiMessageEnvelope;
+class NmApiMailbox;
+
+class NMAPI_EXPORT NmApiEmailService : public QObject
 {
     Q_OBJECT
 public:
 
-    /*
-     * constructor for NmEmailService
+    /*!
+       constructor for NmApiEmailService
      */
-    NmEmailService(QObject* parent);
+    NmApiEmailService(QObject* parent);
 
-    /*
-     * destructor for NmEmailService
+    /*!
+       destructor for NmApiEmailService
      */
-    virtual ~NmEmailService();
+    virtual ~NmApiEmailService();
 
-    /*
-     * Initialises email service. this must be called and initialised signal received 
-     * before services of the library are used.
+    /*!
+       Initialises email service. this must be called and initialised signal received 
+       before services of the library are used.
      */
     void initialise();
 
-    /*
-     *  frees resources.
+    /*!
+        frees resources.
      */
     void uninitialise();
 
-    /*
-     *gets mail message envelope by id (see also NmEventNotifier)
+    /*!
+       gets mail message envelope by id (see also NmApiEventNotifier)
      */
-    bool getEnvelope( const quint64 mailboxId, const quint64 folderId, const quint64 envelopeId, NmMessageEnvelope &envelope );
+    bool getEnvelope(const quint64 mailboxId, 
+                     const quint64 folderId, 
+                     const quint64 envelopeId, 
+                     EmailClientApi::NmApiMessageEnvelope &envelope);
 
-    /*
-     *  gets mailbox info by id (see also NmEventNotifier)
+    /*!
+        gets mailbox info by id (see also NmApiEventNotifier)
      */
-    bool getMailbox( const quint64 mailboxId, NmMailbox &mailboxInfo );
+    bool getMailbox(const quint64 mailboxId, EmailClientApi::NmApiMailbox &mailboxInfo);
 
-    /*
-     * returns isrunning flag value
+    /*!
+       returns isrunning flag value
      */
     bool isRunning() const;
     signals:
-    /*
-     * this signal is emitted when initialisation is completed
-     * boolean argument tells if initialisation succeeded
+    /*!
+       this signal is emitted when initialisation is completed
+       boolean argument tells if initialisation succeeded
      */
     void initialized(bool);
 
 private:
-    NmEngine* mEngine;
+    NmApiEngine *mEngine;
     bool mIsRunning;
 };
 }
-#endif /* NMEMAILSERVICE_H_ */
+#endif /* NMAPIEMAILSERVICE_H */

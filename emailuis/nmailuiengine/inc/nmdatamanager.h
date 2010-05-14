@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+* Copyright (c) 2009-10 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -20,7 +20,6 @@
 
 #include "nmuienginedef.h"
 #include "nmcommon.h"
-#include "nmdatapluginfactory.h"
 
 class NmMailbox;
 class NmMessage;
@@ -29,7 +28,7 @@ class NmFolder;
 class NmMailboxMetaData;
 class NmFolderMetaData;
 class NmMessageEnvelope;
-
+class NmDataPluginFactory;
 
 
 class NMUIENGINE_EXPORT NmDataManager: public QObject

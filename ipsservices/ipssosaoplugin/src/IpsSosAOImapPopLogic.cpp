@@ -31,7 +31,7 @@
 #include "IpsSosAOMboxLogic.h"
 #include "IpsSosAOEMNResolver.h"
 //<QMail>
-
+#include "IpsSosAOSettingsHandler.h"
 //</QMail>
 
 
@@ -222,9 +222,6 @@ TInt CIpsSosAOImapPopLogic::HandleAOServerCommandL(
             result = KErrNotSupported;
             break;
         }
-   
-    
-    // </cmail>
     return result;
     }
 
@@ -232,7 +229,6 @@ TInt CIpsSosAOImapPopLogic::HandleAOServerCommandL(
 // ----------------------------------------------------------------------------
 // 
 void CIpsSosAOImapPopLogic::HandleMsvSessionEventL(
-// <cmail> RD_IPS_AO_PLUGIN flag removed
      MMsvSessionObserver::TMsvSessionEvent aEvent, 
      TAny* aArg1, TAny* aArg2, TAny* /*aArg3*/ )
     {
@@ -275,7 +271,6 @@ void CIpsSosAOImapPopLogic::HandleMsvSessionEventL(
         default:
             break;
         };
-    // </cmail>
     }
 
 // ----------------------------------------------------------------------------
@@ -343,14 +338,13 @@ void CIpsSosAOImapPopLogic::HandleEMNMessageL(
         if ( index != KErrNotFound )
             {
             CIpsSosAOMBoxLogic* logic = iMailboxLogics[index];
-            //<cmail>
+            
 			if ( !logic->FirstEMNReceived() )
                 {
                 logic->SetFirstEMNReceived();
                 }
             if ( !iNoNWOpsAllowed && 
                  !logic->IsMailboxRoamingStoppedL() )
-            //</cmail>
                 {
                 SendCommandToSpecificMailboxL( 
                     logic->GetMailboxId(), // faulty CS warning
@@ -358,17 +352,11 @@ void CIpsSosAOImapPopLogic::HandleEMNMessageL(
                 }
             else
                 {
-                //<cmail>
-                logic->SetEmnReceivedFlagL( ETrue );
-                //</cmail>
+                logic->SetEmnReceivedFlagL( ETrue );                
                 }
             logic = NULL;
             }
-/*<cmail>
-        else
-            {
-            }
-</cmail>*/
+
         }
     }
 
@@ -412,32 +400,33 @@ void CIpsSosAOImapPopLogic::UpdateLogicArrayL(
                 }
             }
 		//<QMail>
-        /*
-        CIpsSetDataExtension* extSet = CIpsSetDataExtension::NewLC();
-        TRAPD( error, iDataApi->LoadExtendedSettingsL( 
-                mboxId, *extSet ) );
-        if ( error == KErrNone  )
+        CIpsSosAOSettingsHandler* settings = 
+                 CIpsSosAOSettingsHandler::NewL(iSession, mboxId);
+        CleanupStack::PushL(settings);
+         
+        if ( !found  && ( settings->AlwaysOnlineState() 
+                != IpsServices::EMailAoOff || 
+                    settings->EmailNotificationState() 
+                != IpsServices::EMailEmnOff || 
+                    !settings->FirstEmnReceived() )
+                 )
             {
-            if ( !found  && ( extSet->AlwaysOnlineState() != EMailAoOff || 
-                    extSet->EmailNotificationState() != EMailEmnOff || 
-                    !extSet->FirstEmnReceived() )
-                     )
-                {
-                CIpsSosAOMBoxLogic* newLogic = CIpsSosAOMBoxLogic::NewL( 
-                        iSession, mboxId );
-                CleanupStack::PushL( newLogic );
-                iMailboxLogics.AppendL( newLogic );
-                CleanupStack::Pop( newLogic );
-                }
-            else if ( found && extSet->AlwaysOnlineState() == EMailAoOff &&
-                    extSet->EmailNotificationState() == EMailEmnOff &&
-                    extSet->FirstEmnReceived() )
-                {
-                StopAndRemoveMailboxL( mboxId );
-                }
+            CIpsSosAOMBoxLogic* newLogic = CIpsSosAOMBoxLogic::NewL( 
+                    iSession, mboxId );
+            CleanupStack::PushL( newLogic );
+            iMailboxLogics.AppendL( newLogic );
+            CleanupStack::Pop( newLogic );
             }
-        CleanupStack::PopAndDestroy( extSet );
-        */
+        else if ( found && settings->AlwaysOnlineState() 
+                == IpsServices::EMailAoOff &&
+                    settings->EmailNotificationState() 
+                == IpsServices::EMailEmnOff &&
+                    settings->FirstEmnReceived() )
+            {
+            StopAndRemoveMailboxL( mboxId );
+            }
+        
+        CleanupStack::PopAndDestroy(settings);
 		//</QMail>
         }
     }

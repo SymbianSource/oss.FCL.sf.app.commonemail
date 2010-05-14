@@ -83,7 +83,9 @@ class BASEPLUGIN_EXPORT CBasePlugin :
     friend class CDelayedDeleteMessagesOp;
     friend class CDelayedSetContentOp;
     friend class CDelayedMessageStorerOp;
-
+	// <qmail>
+    friend class CDelayedAddNewOrRemoveChildPartOp;
+	// </qmail>
 	protected:
     struct TOngoingFetchInfo;
     struct TCacheLine
@@ -293,6 +295,16 @@ class BASEPLUGIN_EXPORT CBasePlugin :
         	const TFSMailMsgId& aMessageId,
             const TFSMailMsgId& aParentPartId,
             const TFSMailMsgId& aPartId );
+         // <qmail>
+         virtual void RemoveChildPartL(
+             const TFSMailMsgId& aMailBoxId,
+             const TFSMailMsgId& aParentFolderId,
+             const TFSMailMsgId& aMessageId,
+             const TFSMailMsgId& aParentPartId,
+             const TFSMailMsgId& aPartId,
+             MFSMailRequestObserver& aOperationObserver,
+             const TInt aRequestId );
+         // </qmail>
 
          virtual void SetPartContentFromFileL(
             const TFSMailMsgId& aMailBoxId,
@@ -420,7 +432,17 @@ class BASEPLUGIN_EXPORT CBasePlugin :
 		    const TFSMailMsgId& aParentPartId,
 			const TDesC& aContentType,
 		    RFile& aFile );
-
+	     // <qmail>
+	     virtual void NewChildPartFromFileL(
+	         const TFSMailMsgId& aMailBoxId,
+	         const TFSMailMsgId& aParentFolderId,
+	         const TFSMailMsgId& aMessageId,
+	         const TFSMailMsgId& aParentPartId,
+	         const TDesC& aContentType,
+	         const TDesC& aFilePath, 
+	         MFSMailRequestObserver& aOperationObserver,
+	         const TInt aRequestId );
+	     // </qmail>
          virtual TInt WizardDataAvailableL();
 
          virtual void AuthenticateL(

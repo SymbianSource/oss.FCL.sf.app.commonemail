@@ -15,32 +15,35 @@
  *
  */
 
+
+#include <nmapifolderlisting.h>
 #include "nmapifolderlisting_p.h"
-#include "nmapifolderlisting.h"
-#include <QtCore>
+
+#include <nmapimailbox.h>
+#include <nmapifolder.h>
 
 namespace EmailClientApi
 {
 
 /*!
- * \class Class for creating list of all folders
+   \class Class for creating list of all folders
  */
 
 /*!
- * Constructor of class. It set start values.
+   Constructor of class. It set start values.
  */
-NmFolderListing::NmFolderListing(QObject *parent, const quint64 &nmMailboxId) :
-    NmMessageTask(parent)
+NmApiFolderListing::NmApiFolderListing(QObject *parent, const quint64 &nmMailboxId) :
+    NmApiMessageTask(parent)
 {
-    mFolderListing = new NmFolderListingPrivate(this);
+    mFolderListing = new NmApiFolderListingPrivate(this);
     mFolderListing->mIsRunning = false;
     mFolderListing->mMailboxId = nmMailboxId;
 }
 
 /*!
- * Destructor of class. It release engine to be safe if manual releasing won't work.
+   Destructor of class. It release engine to be safe if manual releasing won't work.
  */
-NmFolderListing::~NmFolderListing()
+NmApiFolderListing::~NmApiFolderListing()
 {
     if (mFolderListing->mIsRunning) {
         mFolderListing->releaseEngine();
@@ -48,13 +51,13 @@ NmFolderListing::~NmFolderListing()
 }
 
 /*! 
- * \brief Returns results after foldersListed signal is received.
- * 
- *  Caller gets ownership of messages. Returns true if results were available.
- *  It clears list of folders after be called.
- *  It also at start clear inputlist of NmFolder.
+   \brief Returns results after foldersListed signal is received.
+   
+    Caller gets ownership of messages. Returns true if results were available.
+    It clears list of folders after be called.
+    It also at start clear inputlist of NmFolder.
  */
-bool NmFolderListing::getFolders(QList<EmailClientApi::NmFolder> &folders)
+bool NmApiFolderListing::getFolders(QList<EmailClientApi::NmApiFolder> &folders)
 {
     folders.clear();
     if (!mFolderListing->mIsRunning || mFolderListing->mFolders.isEmpty()) {
@@ -66,19 +69,19 @@ bool NmFolderListing::getFolders(QList<EmailClientApi::NmFolder> &folders)
 }
 
 /*!
- * \brief Starts gathering folders list.
- * 
- * In first turn it will get whole folderlist. and then
- * it emits information signal \sa folderListed 
- * 
- * To asynchronous operation ce be used \sa QTimer::singleShot on this method.
- * Example:
- * <code> 
- * QTimer::singleShot(0,nmFolderListing,SLOT(start());
- * </code>
- * 
+   \brief Starts gathering folders list.
+   
+   In first turn it will get whole folderlist. and then
+   it emits information signal \sa folderListed 
+   
+   To asynchronous operation ce be used \sa QTimer::singleShot on this method.
+   Example:
+   <code> 
+   QTimer::singleShot(0,nmFolderListing,SLOT(start());
+   </code>
+   
  */
-bool NmFolderListing::start()
+bool NmApiFolderListing::start()
 {
     if (mFolderListing->mIsRunning) {
         return true;
@@ -100,13 +103,13 @@ bool NmFolderListing::start()
 }
 
 /*!
- * \brief Stop gathering folder list.
- * 
- * In first it change state of listing.
- * Then it release engine.
- * On end it clears list of folders and emits \sa NmMessageTask::canceled() signal.
+   \brief Stop gathering folder list.
+   
+   In first it change state of listing.
+   Then it release engine.
+   On end it clears list of folders and emits \sa NmApiMessageTask::canceled() signal.
  */
-void NmFolderListing::cancel()
+void NmApiFolderListing::cancel()
 {
     if (!mFolderListing->mIsRunning) {
         return;
@@ -120,9 +123,9 @@ void NmFolderListing::cancel()
 }
 
 /*!
- * \brief Return info if listing is running
+   \brief Return info if listing is running
  */
-bool NmFolderListing::isRunning() const
+bool NmApiFolderListing::isRunning() const
 {
     return mFolderListing->mIsRunning;
 }

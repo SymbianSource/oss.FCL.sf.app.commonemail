@@ -16,7 +16,6 @@
  */
 #include "nmframeworkadapterheaders.h"
 
-#include "nmfwamessagecreationoperation.h"
 
 /*!
     \class NmFwaMessageCreationOperation
@@ -50,6 +49,7 @@ NmFwaMessageCreationOperation::~NmFwaMessageCreationOperation()
 {
     doCancelOperation();
     delete mMessage;
+    NMLOG("NmFwaMessageCreationOperation::~NmFwaMessageCreationOperation --->");
 }
 
 /*!
@@ -144,7 +144,7 @@ NmId NmFwaMessageCreationOperation::getMessageId()
     NmId messageId;
     
     if (mMessage) {
-        messageId = mMessage->envelope().id();
+        messageId = mMessage->envelope().messageId();
     }
     
     return messageId;
@@ -176,10 +176,11 @@ void NmFwaMessageCreationOperation::RequestResponseL(TFSProgress aEvent,
             completeOperation(NmNoError);
         }
         else if (status == TFSProgress::EFSStatus_RequestCancelled) {
-            operationCancelled();
+            completeOperation(NmCancelError);
         }
         else {
             completeOperation(NmGeneralError);
         }
     }
 }
+

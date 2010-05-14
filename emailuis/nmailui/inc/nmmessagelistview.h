@@ -20,6 +20,7 @@
 
 #include "nmbaseview.h"
 #include <nmactionobserver.h>
+#include <QModelIndex>
 
 class HbTreeView;
 class HbLabel;
@@ -33,7 +34,6 @@ class NmMailboxListModel;
 class HbAbstractViewItem;
 class NmActionResponse;
 class NmMessageListModelItem;
-class QModelIndex;
 class HbIconItem;
 
 class NmMessageListView : public NmBaseView, public NmActionObserver
@@ -50,29 +50,34 @@ public:
         QGraphicsItem *parent = 0);
     ~NmMessageListView();
     NmUiViewId nmailViewId() const;
-
+    void viewReady();
+    
 public: // From NmActionObserver
     void handleActionCommand(NmActionResponse &menuResponse);
 
 public slots:
     void reloadViewContents(NmUiStartParam *startParam);
-
+    void refreshList();
+    void contextButton(NmActionResponse &result);
+    
 private slots:
     void showItemContextMenu(HbAbstractViewItem *index, const QPointF &coords);
     void itemActivated(const QModelIndex &index);
+    void handleSelection();
     void createOptionsMenu();
     void itemsAdded(const QModelIndex &parent, int start, int end);
     void itemsRemoved();
     void showNoMessagesText();
     void handleSyncStateEvent(NmSyncState syncState, const NmId & mailboxId);
     void handleConnectionEvent(NmConnectState connectState, const NmId &mailboxId);
-
+    void folderSelected(NmId mailbox, NmId folder);
+    
 private:
-    void refreshList();
     void loadViewLayout();
     void initTreeView();
     void setMailboxName();
     void createToolBar();
+    void setFolderName();
 
 private:
     NmApplication &mApplication;
@@ -87,6 +92,9 @@ private:
     HbLabel *mNoMessagesLabel;              // Not owned
     HbLabel *mFolderLabel;                  // Not owned
     HbLabel *mSyncIcon;                     // Not owned
+    QModelIndex mActivatedIndex;
+    bool mViewReady;
+    NmFolderType mCurrentFolderType;
 };
 
 #endif /* NMMESSAGELISTVIEW_H_ */

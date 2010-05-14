@@ -41,12 +41,11 @@ NmEditorTextEdit::~NmEditorTextEdit()
 {
 }
 
-void NmEditorTextEdit::init(NmEditorContent *parent, NmBaseViewScrollArea *bgScrollArea)
+void NmEditorTextEdit::init(NmBaseViewScrollArea *bgScrollArea)
 {
     mPreviousContentsHeight = 0;
     mFirstTime = true;
     mCustomTextColor = QPair<bool, QColor>(false,Qt::black);
-    mParent = parent;
     mBackgroundScrollArea = bgScrollArea;
     mHeaderHeight = (int)HeightOfTheHeaderOnStartup;
     mBgScrollPosition.setX(0);
@@ -65,7 +64,6 @@ void NmEditorTextEdit::init(NmEditorContent *parent, NmBaseViewScrollArea *bgScr
     connect(this, SIGNAL(contentsChanged()), this, SLOT(updateEditorHeight()));
     connect(this, SIGNAL(cursorPositionChanged(int, int)),
             this, SLOT(setScrollPosition(int, int)));
-    connect(this, SIGNAL(setEditorContentHeight()), mParent, SLOT(setEditorContentHeight()));
     connect(this, SIGNAL(contentsChanged()), this, SLOT(updateCustomTextColor()));
 }
 
@@ -94,7 +92,7 @@ void NmEditorTextEdit::updateEditorHeight()
         setMaximumHeight(heightOfTheTextEdit);
     }
     // Inform parent that content height has been changed
-    emit setEditorContentHeight();
+    emit editorContentHeightChanged();
 }
 
 /*!

@@ -29,6 +29,7 @@ class CMsvSession;
 class CRepository;
 class CIpsPlgSettingsObserver;
 class CIpsPlgSyncStateObserver;
+// <qmail> CIpsSetDataApi removed
 /**
 * MIpsPlgPropertyObserver
 *
@@ -196,12 +197,13 @@ public:
      */
     void NotifyPropertyEventL( TIpsPlgPropertyEvent aEvent );
 
-    // <qmail> removing unused functions
+// <qmail> removing unused functions
     //    void SignalMailboxOfflineStateL( const TFSMailMsgId& aAccount );
     //    void QueryUsrPassL( TMsvId aMbox, MIpsPlgConnectOpCallback* aCallback=NULL );
     //    void SignalCredientialsSetL( TInt aMailboxId, TBool aCancelled );
-    // </qmail>
+// </qmail>
 private:
+// <qmail> removed enum TQueryUsrPassState
 
     /**
     * Checks the source type of event and also
@@ -392,14 +394,14 @@ private: // datak
             const CMsvEntrySelection* aSelection,
             TUint aMtmUid );
 
-    // <qmail> new function
+// <qmail> new function
     /**
      * Convert sync operation completion code to email framework's syncState
      * @param aStatus
      * @return syncstate
      */
     TSSMailSyncState ConvertCompletionCode( TInt aCompletionCode );
-    // </qmail>
+// </qmail>
     
     CRepository*                            iCenRep;
 
@@ -430,10 +432,10 @@ private: // datak
     // base plugin id
     TUint                                   iPluginId;
 
-    // <qmail> MIpsPlgConnectOpCallback not used any more
-
     RArray<TMsvId>                          iImapFolderIds;
 
+// <qmail> MIpsPlgConnectOpCallback not used any more
+// <qmail> iQueryPassState, iConnOpCallbacks, iIncomingPass removed
     };
 
 

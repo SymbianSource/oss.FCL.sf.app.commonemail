@@ -21,6 +21,7 @@
 #include <QObject>
 #include <QMap>
 #include <QVariant>
+#include <QDateTime>
 
 #include "nmsettingscommon.h"
 #include "nmipssettingitems.h"
@@ -30,6 +31,9 @@ class HbDataFormModelItem;
 class HbDataFormModel;
 class HbDataForm;
 class HbAction;
+class HbMessageBox;
+class HbInputDialog;
+class HbValidator;
 class CpSettingFormItemData;
 class NmIpsSettingsManagerBase;
 class NmId;
@@ -55,12 +59,15 @@ public:
     bool isOffline();
     
     void setReceivingScheduleGroupItem(HbDataFormModelItem *item);
+    void setServerInfoGroupItem(HbDataFormModelItem *item);
     void createOrUpdateReceivingScheduleGroupDynamicItem(IpsServices::SettingItem item);
+    void createServerInfoGroupDynamicItems();
     
     int getCorrectPortRadioButtonIndex(int currentPort);
     int getCorrectSecureRadioButtonIndex(QVariant secureSockets, QVariant secureSSLWrapper);
     int getCorrectInboxPathRadioButtonIndex(QVariant folderPath);
     int getCorrectOutgoingPortRadioButtonIndex(int currentPort);
+    int getCorrectOutgoingAuthenticationRadioButtonIndex();
     void handleReceivingScheduleSettingChange(IpsServices::SettingItem settingItem,
         const QVariant &settingValue);
     
@@ -79,9 +86,12 @@ public slots:
     void mailboxNameTextChange(const QString &text);
     void saveMailAddress();
     void mailAddressTextChange(const QString &text);
-    void saveUserName();
-    void userNameTextChange(const QString &text);
-    void savePassword();
+    void saveIncomingUserName();
+    void incomingUserNameTextChange(const QString &text);
+    void saveIncomingPassword();
+    void saveOutgoingUserName();
+    void outgoingUserNameTextChange(const QString &text);
+    void saveOutgoingPassword();     
     void saveReplyTo();
     void replyToTextChange(const QString &text);
     void deleteButtonPress();
@@ -91,31 +101,38 @@ public slots:
     void saveOutgoingMailServer();
     void outgoingMailServerTextChange(const QString &text);
     void incomingPortChange(int index);
-    void incomingPortPressed(const QModelIndex &index);
+    void incomingPortPress(const QModelIndex &index);
     void incomingSecureConnectionItemChange(int index);
-    void incomingSecureConnectionPressed(const QModelIndex &index);
-    void inboxPathChange(int index);
-    void inboxPathPressed(const QModelIndex &index);
+    void incomingSecureConnectionPress(const QModelIndex &index);
+    void folderPathChange(int index);
+    void folderPathPress(const QModelIndex &index);
     void outgoingPortChange(int index);
-    void outgoingPortPressed(const QModelIndex &index);
+    void outgoingPortPress(const QModelIndex &index);
     void outgoingSecureConnectionItemChange(int index);
-    void outgoingSecureConnectionPressed(const QModelIndex &index);
+    void outgoingSecureConnectionPress(const QModelIndex &index);
+    void outgoingAuthenticationChange(int index);
+    void outgoingAuthenticationPress(const QModelIndex &index);
 
 private slots:
 
-    void receivingWeekdaysModified(HbAction *action);
-    void startTimeModified();
-    void endTimeModified();
+    void receivingWeekdaysModified();
+    void startTimeModified(QTime time);
+    void endTimeModified(QTime time);
     void refreshPeriodModified(int index);
+    void handleMailboxDelete(HbAction *action);
+    void handleMailboxDeleteUpdate(HbAction *action);
+    void handleUserDefinedIncomingPortInput(HbAction *action);
+    void handleUserDefinedFolderPathInput(HbAction *action);
+    void handleUserDefinedOutgoingPortInput(HbAction *action);
     
 private:
 
     void updateShowMailInMailbox();
     void deleteReceivingScheduleGroupDynamicItem(IpsServices::SettingItem item);
-    QString timeFormat();
-    int showIncomingPortInputDialog(int currentPort, bool &changed);
-    QString showFolderPathInputDialog(bool &changed);
-    int showOutgoingPortInputDialog(int currentPort, bool &changed);
+    void deleteServerInfoGroupDynamicItems();
+    void showIncomingPortInputDialog();
+    void showFolderPathInputDialog();
+    void showOutgoingPortInputDialog();
     void copyReceivingScheduleSettingsFromActiveProfile(int profileMode);
 
     Q_DISABLE_COPY(NmIpsSettingsHelper)
@@ -127,9 +144,17 @@ private: // data
     NmIpsSettingsManagerBase &mSettingsManager;
     QMap<IpsServices::SettingItem, HbDataFormModelItem *> mContentItems;
     HbDataFormModelItem *mReceivingScheduleGroupItem;   // Not owned.
-    HbDataForm &mDataForm;
-    HbDataFormModel &mDataFormModel;
-    bool mDynamicItemsVisible;
+    HbDataFormModelItem *mServerInfoGroupItem;	// Not owned.
+	HbDataForm &mDataForm;
+	HbDataFormModel &mDataFormModel;
+	HbMessageBox *mDeleteConfirmationDialog; // Owned;
+	HbMessageBox *mDeleteInformationDialog; // Owned;
+	HbInputDialog *mIncomingPortInputDialog; // Owned;
+	HbValidator *mIncomingPortInputValidator; // Owned;
+    HbInputDialog *mFolderPathInputDialog; // Owned;
+    HbInputDialog *mOutgoingPortInputDialog; // Owned;
+    HbValidator *mOutgoingPortInputValidator; // Owned;    
+    bool mServerInfoDynamicItemsVisible;
     int mRadioButtonPreviousIndex;
 };
 

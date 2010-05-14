@@ -15,58 +15,87 @@
  *
  */
 
-#include "nmapiemailaddress.h"
+#include <nmapiemailaddress.h>
+#include "nmapiemailaddress_p.h"
+
 namespace EmailClientApi
 {
-NmEmailAddressPrivate::NmEmailAddressPrivate()
-{
-}
-
-NmEmailAddressPrivate::~NmEmailAddressPrivate()
-{
-}
-
-/*
- * Constructor for NmEmailAddress class
+/*!
+   copying constructor for nmmessageenvelope
  */
-NmEmailAddress::NmEmailAddress()
-{
-    d = new NmEmailAddressPrivate();
-}
-
-NmEmailAddress::~NmEmailAddress()
+NmApiEmailAddress::NmApiEmailAddress(const NmApiEmailAddress &envelope) :
+    d(envelope.d)
 {
 
 }
 
-/*
- * getter for displayname
+/*!
+   Constructor for NmApiEmailAddress class
  */
-QString NmEmailAddress::displayName() const
+NmApiEmailAddress::NmApiEmailAddress()
+{
+    d = new NmApiEmailAddressPrivate();
+}
+
+/*!
+   destructor
+ */
+NmApiEmailAddress::~NmApiEmailAddress()
+{
+
+}
+
+/*!
+   Assignment operator
+ */
+NmApiEmailAddress &NmApiEmailAddress::operator=(const NmApiEmailAddress &addr)
+{
+    if (this != &addr) {
+        d = addr.d;
+    }
+    return *this;
+}
+
+/*!
+   Compare data from \a addr
+ */
+bool NmApiEmailAddress::operator==(const NmApiEmailAddress &addr)
+{
+    bool retVal = false;
+    if (this->d == addr.d) {
+        retVal = true;
+    }
+    return retVal;
+}
+
+/*!
+   getter for displayname
+ */
+QString NmApiEmailAddress::displayName() const
 {
     return d->displayName;
 }
 
-/*
- * getter for address
+/*!
+   getter for address
  */
-QString NmEmailAddress::address() const
+QString NmApiEmailAddress::address() const
 {
     return d->address;
 }
 
-/*
- * setter for displayname 
+/*!
+   setter for displayname 
  */
-void NmEmailAddress::setDisplayName(const QString& displayName)
+void NmApiEmailAddress::setDisplayName(const QString &displayName)
 {
     d->displayName = displayName;
 }
 
-/*
- * setter for address
+/*!
+   setter for address
  */
-void NmEmailAddress::setAddress(const QString& address)
+void NmApiEmailAddress::setAddress(const QString &address)
 {
     d->address = address;
 }

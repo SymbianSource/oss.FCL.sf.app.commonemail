@@ -15,76 +15,104 @@
  *
  */
 
-#include "nmapimessagebody.h"
+#include <nmapimessagebody.h>
+#include "nmapimessagebody_p.h"
 
 namespace EmailClientApi
 {
-NmMessageBodyPrivate::NmMessageBodyPrivate()
-{
 
-}
-
-NmMessageBodyPrivate::~NmMessageBodyPrivate()
-{
-
-}
-
-/*
- * constructor for nmmessagebody
+/*!
+   constructor for NmApiMessageBody
  */
-NmMessageBody::NmMessageBody()
+NmApiMessageBody::NmApiMessageBody()
 {
-    d = new NmMessageBodyPrivate();
+    d = new NmApiMessageBodyPrivate();
 }
 
-NmMessageBody::~NmMessageBody()
+/*!
+   copying constructor for NmApiMessageBody
+ */
+NmApiMessageBody::NmApiMessageBody(const NmApiMessageBody &apiMessageBody) : d(apiMessageBody.d)
+{
+
+}
+
+/*!
+   assignment operator for nmapimessagebody
+ */
+NmApiMessageBody& NmApiMessageBody::operator=(const NmApiMessageBody &apiMessageBody)
+{
+	if (this != &apiMessageBody) 
+	{
+		d = apiMessageBody.d;
+	}
+	return *this;
+}
+
+/*!
+   Compare data from \a apiMessageBody
+ */    
+bool NmApiMessageBody::operator==(const NmApiMessageBody &apiMessageBody)
+{
+    bool retVal = false;
+    if (this->d == apiMessageBody.d)
+    {
+        retVal = true;
+    }
+    return retVal;
+}
+
+/*!
+   Destructor for NmApiMessageBody
+ */
+NmApiMessageBody::~NmApiMessageBody()
 {
 
 }
 /*!
- * getter for total size of message body in bytes
+   getter for total size of message body in bytes
  */
-quint64 NmMessageBody::totalSize() const
+quint64 NmApiMessageBody::totalSize() const
 {
     return d->totalSize;
 }
 
 /*!
- * getter for bytes available in local mailbox store
+   getter for bytes available in local mailbox store
  */
-quint64 NmMessageBody::fetchedSize() const
+quint64 NmApiMessageBody::fetchedSize() const
 {
     return d->fetchedSize;
 }
 
 /*!
- * getter for fetched content
+   getter for fetched content
  */
-QString NmMessageBody::content() const
+QString NmApiMessageBody::content() const
 {
     return d->content;
 }
 
-/*
- * setter for total size of message body in bytes
+/*!
+   setter for total size of message body in bytes
  */
-void NmMessageBody::setTotalSize(quint64 size)
+void NmApiMessageBody::setTotalSize(quint64 size)
 {
     d->totalSize = size;
 }
 
-/*
- * setter for bytes available on local mailbox store
+/*!
+   setter for bytes available on local mailbox store
  */
-void NmMessageBody::setFetchedSize(quint64 size)
+void NmApiMessageBody::setFetchedSize(quint64 size)
 {
     d->fetchedSize = size;
 }
 
-/*
- * setter for content
+/*!
+   setter for content
  */
-void NmMessageBody::setContent(const QString& content)
+void NmApiMessageBody::setContent(const QString& content)
 {
     d->content = content;
 }

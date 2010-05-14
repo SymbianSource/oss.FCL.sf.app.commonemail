@@ -25,9 +25,12 @@
 #include <QApplication>
 #include <QLocale>
 #include <QTimer>
-#ifdef Q_OS_SYMBIAN
+#include <QPointer>
+
 #include <xqsharablefile.h>
-#endif
+
+// Symbian
+#include <e32base.h>
 
 // Orbit
 #include <hbapplication.h>
@@ -35,7 +38,7 @@
 #include <hbnamespace.h>
 #include <hbicon.h>
 #include <hbiconanimationmanager.h>
-
+#include <hbmenu.h>
 
 // nmailuiengine
 #include "nmuienginedef.h"
@@ -44,21 +47,28 @@
 #include "nmmailboxlistmodel.h"
 #include "nmfolderlistmodel.h"
 #include "nmmessagelistmodel.h"
+#include "nmmessagesearchlistmodel.h"
 #include "nmdatapluginfactory.h"
 #include "nmdataplugininterface.h"
 #include "nmmailboxlistmodelitem.h"
 #include "nmmessagelistmodelitem.h"
 #include "nmmailboxmetadata.h"
 #include "nmfoldermetadata.h"
-#include "nmactionrequest.h"
-#include "nmactionresponse.h"
-#include "nmactionobserver.h"
-#include "nmaction.h"
 #include "nmicons.h"
 #include "nmbaseclientplugin.h"
 #include "nmoperation.h"
 #include "nmstoreenvelopesoperation.h"
 #include "nmmessagesendingoperation.h"
+#include "nmaddattachmentsoperation.h"
+#include "nmmessagecreationoperation.h"
+#include "nmcheckoutboxoperation.h"
+#include "nmmessagecreationoperation.h"
+
+// nmailui
+#include "nmactionrequest.h"
+#include "nmactionresponse.h"
+#include "nmactionobserver.h"
+#include "nmaction.h"
 
 // nmailbase
 #include "nmcommon.h"
@@ -67,17 +77,6 @@
 #include "nmmessagepart.h"
 #include "nmmessageenvelope.h"
 #include "nmfolder.h"
-#include "nmoperation.h"
-
-// nmsettings
-#include "nmsettingsviewlauncher.h"
-#include "nmsettingscommon.h"
-
-#ifdef Q_OS_SYMBIAN
-#include <e32base.h>
-#else
-#define NM_WINS_ENV
-#endif
 
 
 #endif /* NMUIENGINEHEADERS_H_ */

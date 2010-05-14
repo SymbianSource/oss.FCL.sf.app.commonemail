@@ -26,28 +26,29 @@ symbian:CONFIG -= symbian_i18n
 
 MOC_DIR = moc
 
-INCLUDEPATH += . \
-               ../../inc \
-               ../nmclientapi/inc \
-               ../../emailuis/nmframeworkadapter/inc \
-               ../../emailuis/nmailuiengine/inc
+INCLUDEPATH += ../../inc
 
 HEADERS   += inc/nmmailagent.h \
-             inc/nmmailagentheaders.h
+             inc/nmmailagentheaders.h \
+             inc/ssastartupwatcher.h
     
 SOURCES   += src/main.cpp \
-             src/nmmailagent.cpp
+             src/nmmailagent.cpp \
+             src/ssastartupwatcher.cpp
 
 LIBS += -lnmailbase
 LIBS += -lnmailuiengine
+LIBS += -lnmutilities
 LIBS += -llibc
 
 symbian*: { 
     INCLUDEPATH += $$APP_LAYER_SYSTEMINCLUDE
-
+    INCLUDEPATH += $$MW_LAYER_SYSTEMINCLUDE
     BLD_INF_RULES.prj_exports += "rom/nmailagent.iby $$CORE_APP_LAYER_IBY_EXPORT_PATH(nmailagent.iby)"
 
     TARGET.EPOCHEAPSIZE = 0x1000 0x100000 // MAX 1MB
+
+    LIBS += -ldomaincli
 
     TARGET.UID2 = 0x100039CE
     TARGET.UID3 = 0x2002C326
@@ -55,7 +56,7 @@ symbian*: {
 }
 
 win32 {
-   DESTDIR = ../../bin
+    DESTDIR = ../../bin
 }
 
 

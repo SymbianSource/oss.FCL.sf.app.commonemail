@@ -18,15 +18,19 @@
 #include "emailtrace.h"
 #include "ipsplgheaders.h"
 
-// Constants and defines
-const TInt KIpsPlgPop3PopulateLimitInitValue = 50;
 
-_LIT( KIpsPlgPopConnectPanic, "PopConnectOp" );
+// Constants and defines
+// <qmail> rename const
+const TInt KDefaultPopulateLimit( 50 );
+const TInt KPopulateAlgorithmBytesInKilo( 1024 );
+const TInt KPopulateAlgorithmRowLength( 75 );
+
 
 // ----------------------------------------------------------------------------
 // CIpsPlgPop3ConnectOp::NewL()
 // ----------------------------------------------------------------------------
-//
+// <qmail> MFSMailRequestObserver& changed to pointer
+// <qmail> aSignallingAllowed parameter removed
 CIpsPlgPop3ConnectOp* CIpsPlgPop3ConnectOp::NewL(
     CMsvSession& aMsvSession,                           
     TRequestStatus& aObserverRequestStatus,
@@ -39,12 +43,17 @@ CIpsPlgPop3ConnectOp* CIpsPlgPop3ConnectOp::NewL(
     CIpsPlgEventHandler* aEventHandler )
     {
     FUNC_LOG;
-    CIpsPlgPop3ConnectOp* op = 
-        new(ELeave) CIpsPlgPop3ConnectOp( aMsvSession, aObserverRequestStatus, 
-            aService, aForcePopulate, aActivityTimer, aFSMailBoxId,
-            aFSOperationObserver, aFSRequestId, 
-            aEventHandler );
-        
+    CIpsPlgPop3ConnectOp* op = new(ELeave) CIpsPlgPop3ConnectOp(
+        aMsvSession,
+        aObserverRequestStatus,
+        aService,
+        aForcePopulate,
+        aActivityTimer,
+        aFSMailBoxId,
+        aFSOperationObserver,
+        aFSRequestId,
+        aEventHandler );
+
     CleanupStack::PushL( op );
     op->ConstructL();
     CleanupStack::Pop( op );
@@ -58,9 +67,9 @@ CIpsPlgPop3ConnectOp* CIpsPlgPop3ConnectOp::NewL(
 CIpsPlgPop3ConnectOp::~CIpsPlgPop3ConnectOp()
     {
     FUNC_LOG;
-    delete iEntry;
-    delete iSelection;
-    iState = EIdle;
+    // <qmail> removed iEntry;
+    // <qmail> removed iSelection;
+    // <qmail> removed state setting
     }
 
 // ----------------------------------------------------------------------------
@@ -103,22 +112,20 @@ void CIpsPlgPop3ConnectOp::DoCancel()
 void CIpsPlgPop3ConnectOp::DoRunL()
     {
     FUNC_LOG;
-    // handle these error situations properly, 
-    // and report somehow back to framework
-    TInt err( KErrNone );
- 
-// <qmail> remove EQueryingDetails state
+    // <qmail> move TInt err declaration later, and narrow the scope
+
+    // <qmail> remove EQueryingDetails state
     if ( iState == EStartConnect )
         {
         if ( iSubOperation )
             {
             // operation exist and it means 
             // disconnect operation was ongoing.
-            // How handle errors
             delete iSubOperation;
             iSubOperation = NULL;
             }
         
+// <qmail> ValidateL removed
         // Begin Connect.
         DoConnectL();
         iState = EConnected;
@@ -126,8 +133,8 @@ void CIpsPlgPop3ConnectOp::DoRunL()
     else if ( iState == EConnected )
         {
         // Connect completed
-        err = GetOperationErrorCodeL( );
-        User::LeaveIfError( err );
+// <qmail> Login details checking removed
+        User::LeaveIfError( iStatus.Int() );
         if ( iForcePopulate && Connected() )
             {
             iState = EPopulate;
@@ -144,16 +151,16 @@ void CIpsPlgPop3ConnectOp::DoRunL()
         }
     else if ( iState == EPopulate )
         {
-        err = GetOperationErrorCodeL( );
+        // <qmail> suboperation has completed, the result is in 'this->iStatus'
         if ( iEventHandler )
             {
-            iEventHandler->SetNewPropertyEvent( iService, KIpsSosEmailSyncCompleted, err );
+            iEventHandler->SetNewPropertyEvent( iService, KIpsSosEmailSyncCompleted, iStatus.Int() );
             }
         CIpsPlgSyncStateHandler::SaveSuccessfulSyncTimeL( iMsvSession, iService );
 
         // <qmail>
         // start disconnecting
-        iState = Disconnecting;
+        iState = EDisconnecting;
         DoDisconnect();
         // </qmail>
         }
@@ -164,11 +171,7 @@ void CIpsPlgPop3ConnectOp::DoRunL()
         CompleteObserver( KErrNone );
         }
     // </qmail>
-    else if ( iState == EErrInvalidDetails )
-        {
-        // proper error code;
-        CompleteObserver( KErrGeneral );
-        }
+    // <qmail> removed state EErrInvalidDetails
     else
         {
         User::Panic( KIpsPlgPopConnectPanic ,KErrNotFound);
@@ -206,12 +209,10 @@ const TDesC8& CIpsPlgPop3ConnectOp::GetErrorProgressL( TInt aError )
 TFSProgress CIpsPlgPop3ConnectOp::GetFSProgressL() const
     {
     FUNC_LOG;
-    // might not never called, but gives something reasonable if called
     TFSProgress result = { TFSProgress::EFSStatus_Waiting, 0, 0, KErrNone };
-    result.iError = KErrNone;
     switch( iState )
         {
-        // <qmail> removed queryingdetails case
+        // <qmail> removed queryingdetails cases
         case EStartConnect:
         case EConnected:
             result.iProgressStatus = TFSProgress::EFSStatus_Connecting;
@@ -238,6 +239,8 @@ TFSProgress CIpsPlgPop3ConnectOp::GetFSProgressL() const
 // ----------------------------------------------------------------------------
 //
 // <qmail> priority parameter has been removed
+// <qmail> MFSMailRequestObserver& changed to pointer
+// <qmail> aSignallingAllowed parameter removed
 CIpsPlgPop3ConnectOp::CIpsPlgPop3ConnectOp(
     CMsvSession& aMsvSession,
     TRequestStatus& aObserverRequestStatus,
@@ -257,11 +260,9 @@ CIpsPlgPop3ConnectOp::CIpsPlgPop3ConnectOp(
         aFSOperationObserver, 
         aFSRequestId ),
     iState( EIdle ),
-    iEntry( NULL ),
-    iPopulateLimit( KIpsPlgPop3PopulateLimitInitValue ),
     iForcePopulate( aForcePopulate ),
-    iSelection( NULL ),
-    iEventHandler( aEventHandler )
+    iEventHandler( aEventHandler ),
+    iAlreadyConnected( EFalse )
     {
     iService = aServiceId; 
     }
@@ -274,51 +275,36 @@ void CIpsPlgPop3ConnectOp::ConstructL()
     {
     FUNC_LOG;
     BaseConstructL( KUidMsgTypePOP3 );
-   	
-    iEntry = iMsvSession.GetEntryL( iService );
-    if ( !iEntry )
-        {
-        User::Leave( KErrGeneral );
-        }
-    iSelection = new(ELeave) CMsvEntrySelection;
-    const TMsvEntry& tentry = iEntry->Entry();
-    
+
+    // <qmail> iSelection construction has been removed
+
+    CMsvEntry* cEntry = iMsvSession.GetEntryL( iService );
+    User::LeaveIfNull( cEntry );
+    // NOTE: Not using cleanupStack as it is not needed in this situation:
+    const TMsvEntry tentry = cEntry->Entry();
+    delete cEntry;
+    cEntry = NULL;
+
     if ( tentry.iType.iUid != KUidMsvServiceEntryValue )
         {
+        // should we panic with own codes?
         User::Leave( KErrNotSupported );
         }
+
+    // <qmail> no need to have population limit as member variable
+    // <qmail> it is read from settings when needed
     
-    // get correct populate and sync limet values from settings
-    CImPop3Settings* settings = new(ELeave) CImPop3Settings();
-    CleanupStack::PushL( settings );
-    TPopAccount popAccountId;
-    CEmailAccounts* accounts = CEmailAccounts::NewLC();
-    accounts->GetPopAccountL( iService , popAccountId );
-    accounts->LoadPopSettingsL( popAccountId, *settings );
-    iPopulateLimit = settings->PopulationLimit();
-    if ( iPopulateLimit > 0 )
-        {
-        iPopulateLimit = ( iPopulateLimit * 1024 ) / 75;
-        }
-    else
-        {
-        iPopulateLimit = KMaxTInt;
-        }
-    
-    CleanupStack::PopAndDestroy( 2, settings );
-       
     if ( tentry.Connected() )
         {      
-        iState = EConnected; 
-        // <qmail> SetActive(); moved inside CompleteThis();
-        CompleteThis();
+        iState = EConnected;
+		iAlreadyConnected = ETrue;
         }
     else
         {
-        iState = EStartConnect; 
-        // <qmail> SetActive(); moved inside CompleteThis();
-        CompleteThis();
-        }    
+        iState = EStartConnect;
+        }
+    // <qmail> SetActive(); moved inside CompleteThis();
+    CompleteThis();
     }
 
 // ----------------------------------------------------------------------------
@@ -331,12 +317,13 @@ void CIpsPlgPop3ConnectOp::DoConnectL()
     // <qmail> unnecessary: iStatus = KRequestPending;
     InvokeClientMtmAsyncFunctionL( KPOP3MTMConnect, iService ); // <qmail> 1 param removed
     SetActive();
-    
+
+// <qmail>
     if ( iEventHandler )
         {
-        iEventHandler->SetNewPropertyEvent( 
-                iService, KIpsSosEmailSyncStarted, KErrNone );
-        } 
+        iEventHandler->SetNewPropertyEvent( iService, KIpsSosEmailSyncStarted, KErrNone );
+        }
+// </qmail>
     }
 
 // ----------------------------------------------------------------------------
@@ -351,15 +338,21 @@ void CIpsPlgPop3ConnectOp::DoPopulateL()
     // Prepare parameters and include filtering
     TImPop3PopulateOptions pop3GetMailInfo;
     pop3GetMailInfo.SetMaxEmailSize( KMaxTInt32 );
-    pop3GetMailInfo.SetPopulationLimit( iPopulateLimit );
+// <qmail>
+    pop3GetMailInfo.SetPopulationLimit( GetPopulateLimitFromSettingsL() );
     TPckgBuf<TImPop3PopulateOptions> params( pop3GetMailInfo );
 
-    iSelection->InsertL(0, iService);
+    // <qmail> selection is no longer a member variable
+    CMsvEntrySelection* selection = new(ELeave) CMsvEntrySelection;
+    CleanupStack::PushL( selection );
+    selection->InsertL( 0, iService );
     iBaseMtm->SwitchCurrentEntryL( iService );
     // Start the fetch operation
-    InvokeClientMtmAsyncFunctionL( KPOP3MTMPopulateAll, *iSelection, params ); // <qmail> 1 param removed
-
+    InvokeClientMtmAsyncFunctionL( KPOP3MTMPopulateAll, *selection, params ); // <qmail> 1 param removed
     SetActive();
+    CleanupStack::PopAndDestroy( selection );
+// <qmail> iEventHandler->SetNewPropertyEvent call removed from here
+// </qmail>
     }
 // <qmail> Connected() moved to baseclass
 
@@ -373,33 +366,11 @@ TIpsOpType CIpsPlgPop3ConnectOp::IpsOpType() const
     }
 
 // <qmail> removed QueryUsrPassL() from here as unneeded
-// <qmail> ValidateL() removed (did nothing)
+// <qmail> removed ValidateL() (did nothing)
+// <qmail> removed TInt CIpsPlgPop3ConnectOp::GetOperationErrorCodeL( )
+// <qmail> removed CIpsPlgImap4ConnectOp::CredientialsSetL
 
-// ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------    
-// 
-TInt CIpsPlgPop3ConnectOp::GetOperationErrorCodeL( )
-    {
-    FUNC_LOG;
-    if ( !iSubOperation )
-        {
-        return KErrNotFound;
-        }
-    if ( !iSubOperation->IsActive() && iSubOperation->iStatus.Int() != KErrNone )
-        {
-        return iSubOperation->iStatus.Int();
-        }
-    
-    TPckgBuf<TPop3Progress> paramPack;
-    paramPack.Copy( iSubOperation->ProgressL() );
-    const TPop3Progress& progress = paramPack();
-    
-    return progress.iErrorCode;
-    }
-
-// <qmail> Removing CIpsPlgImap4ConnectOp::CredientialsSetL 
-
-//<qmail> new state
+//<qmail> new functions
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
 void CIpsPlgPop3ConnectOp::DoDisconnect()
@@ -409,4 +380,28 @@ void CIpsPlgPop3ConnectOp::DoDisconnect()
     InvokeClientMtmAsyncFunctionL( KPOP3MTMDisconnect, iService ); // <qmail> 1 param removed
     SetActive();
     }
+
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+TInt CIpsPlgPop3ConnectOp::GetPopulateLimitFromSettingsL()
+    {
+    FUNC_LOG;
+    TInt limit( KDefaultPopulateLimit );
+        
+    CImPop3Settings* settings = new(ELeave) CImPop3Settings();
+    CleanupStack::PushL( settings );
+    TPopAccount popAccountId;
+    CEmailAccounts* accounts = CEmailAccounts::NewLC();
+    accounts->GetPopAccountL( iService , popAccountId );
+    accounts->LoadPopSettingsL( popAccountId, *settings );
+    limit = settings->PopulationLimit();
+    if ( limit > 0 )
+        {
+        // basically doing a _very_rough_ conversion from kilobyte value to number-of-rows
+    limit = ( limit * KPopulateAlgorithmBytesInKilo ) / KPopulateAlgorithmRowLength;
+        }
+    CleanupStack::PopAndDestroy( 2, settings );
+    return limit;
+    }
+
 //</qmail>

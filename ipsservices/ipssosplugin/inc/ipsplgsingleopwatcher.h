@@ -24,6 +24,7 @@
 class CMsvOperation;
 class MIpsPlgSingleOpWatcher;
 class CIpsPlgBaseOperation;
+class CIpsPlgImap4MoveRemoteOpObserver;
 
 /**
 * CMsvOperation watcher class.
@@ -60,6 +61,11 @@ NONSHARABLE_CLASS ( CIpsPlgSingleOpWatcher ) : public CActive
         void SetOperation( CIpsPlgBaseOperation* aBaseOperation );
 
         /**
+        * Sets request observer.
+        */
+        void SetRequestObserver( CIpsPlgImap4MoveRemoteOpObserver* aObserver );
+
+        /**
         * Returns reference to the operation
         */
         IMPORT_C CMsvOperation& Operation() const;
@@ -91,6 +97,7 @@ NONSHARABLE_CLASS ( CIpsPlgSingleOpWatcher ) : public CActive
         MIpsPlgSingleOpWatcher& iObserver;
         CMsvOperation *iOperation;
         CIpsPlgBaseOperation* iBaseOperation;
+        CIpsPlgImap4MoveRemoteOpObserver* iRequestObserver;
     };
 
 

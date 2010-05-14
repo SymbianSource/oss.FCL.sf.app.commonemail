@@ -28,7 +28,7 @@
 */
 enum NmActionResponseCommand
 {
-    NmActionResponseCommandNone=0,
+    NmActionResponseCommandNone = 0,
     NmActionResponseCommandOpen,
     NmActionResponseCommandNewMail,
     NmActionResponseCommandSendMail,
@@ -42,7 +42,9 @@ enum NmActionResponseCommand
     NmActionResponseCommandUpdateMailboxName,
     NmActionResponseCommandMailboxDeleted,
     NmActionResponseCommandRemoveAttachment,
-    NmActionResponseCommandOpenAttachment
+    NmActionResponseCommandOpenAttachment,
+    NmActionResponseCommandSearch,
+    NmActionResponseCommandSwitchFolder
 };
 
 

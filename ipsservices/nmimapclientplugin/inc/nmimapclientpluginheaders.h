@@ -24,6 +24,7 @@
 #include <QtGlobal>
 
 // Orbit
+#include <hbmenu.h>
 
 // ipsservices
 #include "ipsplgsosbaseplugin.hrh"
@@ -42,10 +43,13 @@
 #include "nmactionresponse.h"
 #include "nmmessageenvelope.h"
 #include "nmuiextensioninterface.h"
+#include "nmmailboxmetadata.h"
 
 // client plugins
 #include "nmimapclientplugin.h"
 
+// settings
+#include "nmsettingsviewlauncher.h"
 
 
 #endif /* NMIMAPCLIENTPLUGINHEADERS_H_ */

@@ -17,23 +17,15 @@
 
 #include "nmuiengineheaders.h"
 
-#include <QTimer>
-
 /*!
     \brief Constructor
     Constructor of NmOperation
-    \param parent Parent object.
  */
-NmOperation::NmOperation(QObject *parent)
-: QObject(parent),
-mProgress(0),
-mIsRunning(true)
+NmOperation::NmOperation()
+: mProgress(0),
+  mIsRunning(true)
 {
-    // operation is started immediately
-    mTimer = new QTimer(this); // QObject takes care of deleting
-    mTimer->setSingleShot(true);
-    connect(mTimer, SIGNAL(timeout()), this, SLOT(runAsyncOperation()));
-    mTimer->start(1);
+    QMetaObject::invokeMethod(this, "runAsyncOperation", Qt::QueuedConnection);
 }
 
 /*!
@@ -41,10 +33,12 @@ mIsRunning(true)
  */
 NmOperation::~NmOperation()
 {
-    // Delete items from the mPreliminaryOperations list.
-    qDeleteAll(mPreliminaryOperations.begin(), mPreliminaryOperations.end());
-    // Remove the items.
-    mPreliminaryOperations.clear();
+    while (!mPreliminaryOperations.isEmpty()) {
+        QPointer<NmOperation> operation = mPreliminaryOperations.takeLast();
+        if (operation && operation->isRunning()) {
+            operation->cancelOperation();
+        }
+    }
 }
 
 /*!
@@ -57,7 +51,6 @@ bool NmOperation::isRunning() const
 
 /*!
     \brief Adds a "preliminary operation" which needs to end until this operation can start.
-    Ownership of the operation is transferred to this.
  */
 void NmOperation::addPreliminaryOperation(NmOperation *operation)
 {
@@ -78,10 +71,11 @@ void NmOperation::addPreliminaryOperation(NmOperation *operation)
  */
 void NmOperation::completeOperation(int result)
 {
+    mIsRunning = false;
     // Operation is completed, emit the signal
     doCompleteOperation();
     emit this->operationCompleted(result);
-    mIsRunning = false;
+    QMetaObject::invokeMethod(this, "deleteOperation", Qt::QueuedConnection);
 }
 
 /*!
@@ -91,11 +85,11 @@ void NmOperation::completeOperation(int result)
  */
 void NmOperation::cancelOperation()
 {
+    mIsRunning = false;
     // Operation is canceled, emit the signal
-    mTimer->stop();
     this->doCancelOperation();
     emit this->operationCancelled();
-    mIsRunning = false;
+    QMetaObject::invokeMethod(this, "deleteOperation", Qt::QueuedConnection);
 }
 /*!
     \brief Slot, update progress
@@ -112,22 +106,23 @@ void NmOperation::updateOperationProgress(int progress)
 /*!
     \brief Slot, run the operation if no preliminary operations are running.
     Calls the pure virtual doRunAsyncOperation() of the derived class if there are no preliminary
-    operations running.
+    operations running. Operation will be deleted after it has compeleted or cancelled and the control
+    returns to the event loop.
  */
 void NmOperation::runAsyncOperation()
 {
-    // cleanup the preliminary operations
     int count = mPreliminaryOperations.count();
+    int ready = 0;
+    // go through preliminary operations
     for (int i = 0; i < count; ++i) {
         if (!mPreliminaryOperations[i] || !mPreliminaryOperations[i]->isRunning()) {
-            delete mPreliminaryOperations.takeAt(i);
-            --i;
-            --count;
+            ready++;
         }
     }
-
-    if (mPreliminaryOperations.count() == 0) {
-        doRunAsyncOperation();
+    // when all preliminary operations are either completed or cancelled
+    // start this one
+    if (count == ready) {
+        this->doRunAsyncOperation();
     }
 }
 
@@ -138,8 +133,7 @@ void NmOperation::runAsyncOperation()
  */
 void NmOperation::handlePreliminaryOperationFinished()
 {
-    mTimer->stop();
-    mTimer->start(1);
+    QMetaObject::invokeMethod(this, "runAsyncOperation", Qt::QueuedConnection);
 }
 
 /*!
@@ -173,4 +167,13 @@ void NmOperation::doUpdateOperationProgress()
 {
 }
 
+/*!
+    \brief Private slot for operation deleting
+    This is signalled when operation is completed or cancelled. 
+    Delete happens when the control returns to the event loop.
+ */
+void NmOperation::deleteOperation()
+{
+    this->deleteLater();   
+}
 

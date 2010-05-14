@@ -17,8 +17,8 @@
 */
 
 
-#ifndef IPSSOSAOPLUGIN_HRH_
-#define IPSSOSAOPLUGIN_HRH_
+#ifndef IPSSOSAOPLUGIN_HRH
+#define IPSSOSAOPLUGIN_HRH
 
 const TInt KIpsSosAOMaxStateCycles = 50;
 const TInt KIpsSosAOStartDelaySeconds = 60;
@@ -31,4 +31,4 @@ const TInt IpsSosAODefaultGranularity = 2;
 
 
 
-#endif /*IPSSOSAOPLUGIN_HRH_*/
+#endif /*IPSSOSAOPLUGIN_HRH*/

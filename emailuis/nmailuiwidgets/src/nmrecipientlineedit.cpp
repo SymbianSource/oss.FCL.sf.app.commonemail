@@ -73,46 +73,39 @@ void NmRecipientLineEdit::insertSelectedContacts(const QVariant &selectedContact
         CntServicesContactList contactList;
         contactList = qVariantValue<CntServicesContactList>(selectedContacts);
 
-        if (contactList.count() == 0) {	
-            // String "No contact returned" will be replaced by a hbTrId.
-            HbMessageBox note(tr("No contact returned"), HbMessageBox::MessageTypeInformation);
-            note.setTimeout(HbMessageBox::NoTimeout);
-            note.exec();
-        }
-        else {
-            // Loop through all the contacts selected from Contacts application.
-            for (int i = 0; i < contactList.count(); ++i) {
-                QString contactEmailAddress = contactList[i].mEmailAddress;
-                QString contactName = contactList[i].mDisplayName;
+        // Loop through all the selected contacts.
+        for (int i = 0; i < contactList.count(); ++i) {
+            QString contactEmailAddress = contactList[i].mEmailAddress;
+            QString contactName = contactList[i].mDisplayName;
 
             // If this contact has no name.
             if(contactName.isEmpty()) {				
-                // Generate custom keyevent for this contact's emailaddress.
+                // Generate a custom keyevent for this contact's emailaddress.
                 QKeyEvent contactEmailAddressKeyEvent(QEvent::KeyPress, Qt::Key_unknown, 
                 		                              Qt::NoModifier, contactEmailAddress);
-                // Forward this contactEmailAddressKeyEventt to base class to handle.
+                // Forward this contactEmailAddressKeyEvent to base class to handle.
                 NmHtmlLineEdit::keyPressEvent(&contactEmailAddressKeyEvent);
             }
             else {
-                // Handle a rare case: there's another contact has same name 
-                // but has different emailaddress.
+                // Handle a rare case: there's another contact has same name but has different emailaddress.
                 for (int i = 0; i != mContactsSelectedFromPhoneBook.count(); ++i) {
                     if (mContactsSelectedFromPhoneBook.at(i).displayName() == contactName &&
-                    	mContactsSelectedFromPhoneBook.at(i).address() != contactEmailAddress) {
+                  	    mContactsSelectedFromPhoneBook.at(i).address() != contactEmailAddress) {
                         // Differentiate this contact's name by adding a * mark
                         contactName.append("*");
                     }
                 }
                 
                 // Generate custom keyevent for this contact's name.
-                QKeyEvent contactNameKeyEvent(QEvent::KeyPress, Qt::Key_unknown, Qt::NoModifier,
-                                              contactName);
+                QKeyEvent contactNameKeyEvent(QEvent::KeyPress, Qt::Key_unknown, 
+                                              Qt::NoModifier, contactName);
                 // Forward this contactNameKeyEvent to base class to handle.
                 NmHtmlLineEdit::keyPressEvent(&contactNameKeyEvent);
             }
 
             // Generate custom keyevent for Delimiter("; ").
-            QKeyEvent delimiterKeyEvent(QEvent::KeyPress, Qt::Key_unknown, Qt::NoModifier, Delimiter);
+            QKeyEvent delimiterKeyEvent(QEvent::KeyPress, Qt::Key_unknown, 
+                                        Qt::NoModifier, Delimiter);
             // Forward the delimiterKeyEvent to base class to handle.
             NmHtmlLineEdit::keyPressEvent(&delimiterKeyEvent);
 			
@@ -123,12 +116,11 @@ void NmRecipientLineEdit::insertSelectedContacts(const QVariant &selectedContact
             
             // Add this NmAddress formated contact into mContactsSelectedFromPhoneBook.
             mContactsSelectedFromPhoneBook.append(contact);
-            }
         }
     }
     else {
         //Request returned NULL 
-        NMLOG("Request returned NULL.");
+        NMLOG("ContactsPicker request returned NULL.");
     }
         
 }

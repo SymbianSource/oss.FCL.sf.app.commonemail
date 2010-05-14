@@ -17,59 +17,68 @@
 #include "nmapiengine.h"
 #include "nmapifolderlisting_p.h"
 
+#include <nmapifolder.h>
+
 namespace EmailClientApi
 {
-NmFolderListingPrivate::NmFolderListingPrivate(QObject* parent) :
+
+/*!
+   Constructor form NmApiFolderListingPrivate
+ */
+NmApiFolderListingPrivate::NmApiFolderListingPrivate(QObject *parent) :
     QObject(parent), mEngine(NULL)
 {
 
 }
 
-NmFolderListingPrivate::~NmFolderListingPrivate()
+/*!
+   Destructor for NmApiFolderListingPrivate 
+ */
+NmApiFolderListingPrivate::~NmApiFolderListingPrivate()
 {
     releaseEngine();
 }
 
 /*!
- * \brief It initialize engine for email operations. 
- * 
- * When use initializeEngine need to remember release it.
- * It return value if initialization go good.
- * \sa releaseEngine 
+   \brief It initialize engine for email operations. 
+   
+   When use initializeEngine need to remember release it.
+   It return value if initialization go good.
+   \sa releaseEngine 
  */
-bool NmFolderListingPrivate::initializeEngine()
+bool NmApiFolderListingPrivate::initializeEngine()
 {
     if (!mEngine) {
-        mEngine = NmEngine::instance();
+        mEngine = NmApiEngine::instance();
     }
 
     return mEngine ? true : false;
 }
 
 /*!
- * \brief It release engine for email operations.
- * 
- * It release Engine and return value if release go good.
- * 
- * \arg engine Is used to get info if engine was released, if yes, then argument have value 0.
- * 
- * \sa initializeEngine
+   \brief It release engine for email operations.
+   
+   \sa initializeEngine
  */
-void NmFolderListingPrivate::releaseEngine()
+void NmApiFolderListingPrivate::releaseEngine()
 {
-    NmEngine::releaseInstance(mEngine);
+    NmApiEngine::releaseInstance(mEngine);
 }
 
 /*!
- * \brief It grab folders from engine. 
- * 
- * When it start grabing, it release all old.
- * Because it uses NmFolder with sharedData we don't need care about release memory.
- * 
- * \return Count of folders
+   \brief It grab folders from engine. 
+   
+   When it start grabing, it release all old.
+   Because it uses NmFolder with sharedData we don't need care about release memory.
+   
+   \return Count of folders or "-1" if there is no engine initialised
  */
-qint32 NmFolderListingPrivate::grabFolders()
+qint32 NmApiFolderListingPrivate::grabFolders()
 {
+    if (!mEngine) {
+        return -1;
+    }
+    
     mFolders.clear();
     mEngine->listFolders(mMailboxId, mFolders);
     return mFolders.count();

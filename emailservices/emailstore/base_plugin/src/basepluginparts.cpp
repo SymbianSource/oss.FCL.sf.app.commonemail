@@ -107,6 +107,28 @@ EXPORT_C void CBasePlugin::RemoveChildPartL(
     CleanupStack::PopAndDestroy( message );
     }
 
+// <qmail>
+/**
+ *
+ */
+EXPORT_C void CBasePlugin::RemoveChildPartL(
+    const TFSMailMsgId&  aMailBoxId ,
+    const TFSMailMsgId&  aParentFolderId ,
+    const TFSMailMsgId&  aMessageId,
+    const TFSMailMsgId&  aParentPartId ,
+    const TFSMailMsgId&  aPartId,
+    MFSMailRequestObserver& aOperationObserver,
+    const TInt aRequestId )
+    {
+    //Asynchronous operation to remove child part.
+    //CDelayedAddNewOrRemoveChildPartOp::ExecuteOpL will eventually delete childpart 
+    CDelayedAddNewOrRemoveChildPartOp* op = CDelayedAddNewOrRemoveChildPartOp::NewLC(
+            aMailBoxId, aParentFolderId , aMessageId, aParentPartId,  aPartId,
+            aOperationObserver, aRequestId);
+    iDelayedOpsManager->EnqueueOpL( op );
+    CleanupStack::Pop( op );
+    }
+// </qmail>
 
 /**
  *
@@ -432,6 +454,31 @@ EXPORT_C CFSMailMessagePart* CBasePlugin::NewChildPartFromFileL(
     } //NewChildPartFromFileL.
 
 
+// <qmail>
+/**
+ *
+ */
+EXPORT_C void CBasePlugin::NewChildPartFromFileL(
+    const TFSMailMsgId& aMailBoxId,
+    const TFSMailMsgId& aParentFolderId ,
+    const TFSMailMsgId& aMessageId,
+    const TFSMailMsgId& aParentPartId ,
+    const TDesC& aContentType,
+    const TDesC& aFilePath,
+    MFSMailRequestObserver& aOperationObserver,
+    const TInt aRequestId )
+    {
+    //Asynchronous operation to add child part.
+    //CDelayedAddNewOrRemoveChildPartOp::ExecuteOpL will eventually add childpart 
+    CDelayedAddNewOrRemoveChildPartOp* op = CDelayedAddNewOrRemoveChildPartOp::NewLC(
+            aMailBoxId, aParentFolderId , aMessageId, aParentPartId,  aContentType,
+            aFilePath, aOperationObserver, aRequestId);
+    iDelayedOpsManager->EnqueueOpL( op );
+    CleanupStack::Pop( op );
+
+    }
+
+// </qmail> 
 /**
  *
  */

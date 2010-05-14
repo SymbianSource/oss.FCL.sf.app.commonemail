@@ -5,5 +5,9 @@
         <file alias="nmmailboxselectiondialog.docml" >conf/nmmailboxselectiondialog.docml</file>
         <file alias="nmmailviewer.docml" >conf/nmmailviewer.docml</file>
         <file alias="nmmessagelistview.docml" >conf/nmmessagelistview.docml</file>
+        <file alias="nmmessagesearchlistview.docml" >conf/nmmessagesearchlistview.docml</file>
+    </qresource>
+    <qresource prefix="/effects" >
+        <file alias="mail_send.fxml" >resources/mail_send.fxml</file>
     </qresource>
 </RCC>

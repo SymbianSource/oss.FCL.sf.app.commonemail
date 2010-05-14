@@ -18,22 +18,32 @@
 #ifndef NMTOAPICONVERTER_H
 #define NMTOAPICONVERTER_H
 
-#include "nmenginedef.h"
-#include "nmapiconverterheader.h"
+#include <QList>
 
+class NmMailbox;
+class NmFolder;
+class NmMessageEnvelope;
+class NmAddress;
 /*!
- * 
+   
  */
+namespace EmailClientApi
+{
+class NmApiMailbox;
+class NmApiFolder;
+class NmApiMessageEnvelope;
+class NmApiEmailAddress;
+}
+
+
 class NmToApiConverter
 {
 public:
-    static EmailClientApi::NmMailbox NmMailbox2ApiNmMailbox(const NmMailbox &mailbox);
-    static EmailClientApi::NmFolder NmFolder2ApiNmFolder(const NmFolder &folder);
-    static EmailClientApi::NmMessageEnvelope NmMessageEnvelope2ApiEnvelope(
+    static EmailClientApi::NmApiMailbox NmMailbox2NmApiMailbox(const NmMailbox &mailbox);
+    static EmailClientApi::NmApiFolder NmFolder2NmApiFolder(const NmFolder &folder);
+    static EmailClientApi::NmApiMessageEnvelope NmMessageEnvelope2NmApiMessageEnvelope(
         const NmMessageEnvelope &envelope);
-
-private:
-    static QList<EmailClientApi::NmEmailAddress> NmAddress2QString(
+    static QList<EmailClientApi::NmApiEmailAddress> NmAddress2QString(
         const QList<NmAddress> &addresses);
 };
 

@@ -123,7 +123,16 @@ public:
      * @param aEntry Original message entry 
      * @return None
      */
-    void ChangeServiceIdL( TMsvEntry& aEntry );    
+    void ChangeServiceIdL( TMsvEntry& aEntry );
+	
+	 /**
+     * Changes messages service id to the given id
+     *
+     * @param aEntry message entry
+     * @param aServiceId new service id
+     * @return None
+     */
+    void ChangeServiceIdL( TMsvEntry& aEntry, TMsvId aServiceId );    
 // </qmail>
 
 protected:
@@ -181,7 +190,6 @@ private:
      * @param aCharset the charset to be set
      */
     void SetCharactersetL( CMsvEntry& aEntry, TUid aCharset );
-
 private: // data
 
     CIpsPlgSosBasePlugin& iPlugin;
@@ -189,6 +197,12 @@ private: // data
     CMsvSession& iSession;
     
     CIpsPlgMsgMapper* iMsgMapper;
+    
+    /**
+     * Own: Feature manager initialization flag
+     */
+    TBool iFeatureManagerInitialized;
+
     };
 
 #endif /* IPSPLGSMTPSERVICE_H*/

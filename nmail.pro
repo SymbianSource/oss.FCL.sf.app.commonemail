@@ -48,7 +48,8 @@ symbian*: {
         email_plat \
         emailservices/nmregister \
         emailuis/nmhswidget \
-        emailuis/nmhswidget/tsrc/nmhswidgettestapp
+        emailuis/nmhswidget/tsrc/nmhswidgettestapp \
+        emailservices/nmutilities
         
     # Need to remove warnings SYSTEMINCLUDE path "\epoc32\include\mw\hb\..." not found
     system(mkdir \epoc32\include\mw\hb\hbcnf\)

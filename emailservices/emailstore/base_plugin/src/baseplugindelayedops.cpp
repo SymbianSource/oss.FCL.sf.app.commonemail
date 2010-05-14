@@ -794,4 +794,161 @@ void CDelayedMessageToSendOp::ConstructL( )
     
     __LOG_EXIT;
     }
+
+
+///////////////////////////////////////////////////
+// CDelayedAddNewOrRemoveChildPartOp             //
+///////////////////////////////////////////////////
+
+/**
+ * 
+ */
+/*public static */ CDelayedAddNewOrRemoveChildPartOp* CDelayedAddNewOrRemoveChildPartOp::NewLC(
+    const TFSMailMsgId& aMailBoxId,
+    const TFSMailMsgId& aParentFolderId ,
+    const TFSMailMsgId& aMessageId,
+    const TFSMailMsgId& aParentPartId ,
+    const TDesC& aContentType,
+    const TDesC& aFilePath,
+    MFSMailRequestObserver& aOperationObserver,
+    const TInt aRequestId)
+    {
+    CDelayedAddNewOrRemoveChildPartOp* self = new (ELeave) CDelayedAddNewOrRemoveChildPartOp(
+            aMailBoxId, aParentFolderId, aMessageId,aParentPartId,
+            aOperationObserver,aRequestId);
+    CleanupStack::PushL( self );
+    self->ConstructL( aContentType, aFilePath );
+    return self;
+    }
+
+/**
+ * 
+ */
+/*public static */ CDelayedAddNewOrRemoveChildPartOp* CDelayedAddNewOrRemoveChildPartOp::NewLC(
+    const TFSMailMsgId& aMailBoxId,
+    const TFSMailMsgId& aParentFolderId ,
+    const TFSMailMsgId& aMessageId,
+    const TFSMailMsgId& aParentPartId ,
+    const TFSMailMsgId& aPartId ,
+    MFSMailRequestObserver& aOperationObserver,
+    const TInt aRequestId)
+    {
+    CDelayedAddNewOrRemoveChildPartOp* self = new (ELeave) CDelayedAddNewOrRemoveChildPartOp(
+            aMailBoxId, aParentFolderId, aMessageId,aParentPartId,
+            aPartId,aOperationObserver, aRequestId);
+    CleanupStack::PushL( self );
+    return self;
+    }
+
+/**
+ * 
+ */
+/*public virtual*/ CDelayedAddNewOrRemoveChildPartOp::CDelayedAddNewOrRemoveChildPartOp(
+    const TFSMailMsgId& aMailBoxId,
+    const TFSMailMsgId& aParentFolderId ,
+    const TFSMailMsgId& aMessageId,
+    const TFSMailMsgId& aParentPartId ,
+    MFSMailRequestObserver& aOperationObserver,
+    const TInt aRequestId) :
+    iMailBoxId( aMailBoxId ),
+    iParentFolderId( aParentFolderId ),
+    iMessageId( aMessageId ),
+    iParentPartId( aParentPartId ),
+    iOperationObserver( aOperationObserver ),
+    iRequestId( aRequestId ),
+    iActionType( AddNewChild)
+    {
+    }
+
+/**
+ * 
+ */
+/*public virtual*/ CDelayedAddNewOrRemoveChildPartOp::CDelayedAddNewOrRemoveChildPartOp(
+    const TFSMailMsgId& aMailBoxId,
+    const TFSMailMsgId& aParentFolderId ,
+    const TFSMailMsgId& aMessageId,
+    const TFSMailMsgId& aParentPartId ,
+    const TFSMailMsgId& aPartId ,
+    MFSMailRequestObserver& aOperationObserver,
+    const TInt aRequestId) :
+    iMailBoxId( aMailBoxId ),
+    iParentFolderId( aParentFolderId ),
+    iMessageId( aMessageId ),
+    iParentPartId( aParentPartId ),
+    iPartId( aPartId ),
+    iOperationObserver( aOperationObserver ),
+    iRequestId( aRequestId ),
+    iActionType( RemoveChild)
+    {
+    }
+
+/**
+ * 
+ */
+/*public virtual*/ CDelayedAddNewOrRemoveChildPartOp::~CDelayedAddNewOrRemoveChildPartOp()
+    {
+    __LOG_DESTRUCT
+    if ( iContentType )
+        {
+        delete iContentType;
+        }
+    if ( iFilePath )
+        {
+        delete iFilePath;
+        } 
+    }
+	
+/**
+ * 
+ */
+/*private*/
+void CDelayedAddNewOrRemoveChildPartOp::ConstructL( const TDesC& aContentType, const TDesC& aFilePath )
+    {
+    __LOG_CONSTRUCT( "baseplugin", "CDelayedAddNewOrRemoveChildPartOp" );      
+    iContentType = aContentType.AllocL();
+    iFilePath = aFilePath.AllocL();                 
+    }
+
+/**
+ * 
+ */
+/*private*/ void CDelayedAddNewOrRemoveChildPartOp::ExecuteOpL()
+    {
+    __LOG_ENTER( "ExecuteOpL" );
+    
+    TFSProgress progress = { TFSProgress::EFSStatus_RequestCancelled, 0, 0, 0 };
+    progress.iError = KErrNotFound;
+    TInt err(KErrNone);
+    
+    if( iActionType == AddNewChild)
+        {
+        CFSMailMessagePart* tmp = NULL;
+        TRAP(err, tmp = GetPlugin().NewChildPartFromFileL(iMailBoxId,iParentFolderId,
+                    iMessageId,iParentPartId,iContentType->Des(),iFilePath->Des()));
+        if(err == KErrNone )
+            {
+            tmp->SetAttachmentNameL( iFilePath->Des() );
+            tmp->SaveL();
+            }
+        //iOperationObserver will make a copy of pointer "tmp" and will own the memory.
+        progress.iParam = tmp;
+        }
+    else
+        {
+        TRAP(err, GetPlugin().RemoveChildPartL(iMailBoxId,iParentFolderId,
+                    iMessageId,iParentPartId,iPartId)); 
+        }
+
+    if( err == KErrNone )
+        {
+        //clear plugin cache so that childparts of message can be updated next time with proper count
+        GetPlugin().ResetCache();
+        progress.iError = KErrNone;
+        progress.iProgressStatus = TFSProgress::EFSStatus_RequestComplete;
+        }
+		
+    iOperationObserver.RequestResponseL( progress, iRequestId );
+    
+    __LOG_EXIT;
+    }
 //</qmail>

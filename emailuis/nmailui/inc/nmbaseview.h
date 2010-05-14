@@ -41,6 +41,7 @@ public:
     virtual NmUiViewId nmailViewId() const = 0;
     virtual bool okToExitView();
     virtual void aboutToExitView();
+    virtual void viewReady();
     virtual void handleMouseReleaseEvent(QGraphicsSceneMouseEvent *event);
     virtual void handleMousePressEvent(QGraphicsSceneMouseEvent *event);
     virtual void handleMouseMoveEvent(QGraphicsSceneMouseEvent *event);

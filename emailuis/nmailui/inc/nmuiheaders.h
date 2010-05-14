@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+* Copyright (c) 2009 - 2010 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -40,6 +40,8 @@
 #include <QCoreApplication>
 #include <QAbstractItemModel>
 #include <QNetworkDiskCache>
+#include <QWebSettings>
+#include <QPointer>
 
 // Orbit
 #include <hbapplication.h>
@@ -79,6 +81,9 @@
 #include <hbdialog.h>
 #include <hbmessagebox.h>
 #include <hbtoolbarextension.h>
+#include <hbinstance.h>
+#include <hbeffect.h>
+#include <hbmodeliterator.h>
 
 #ifdef Q_OS_SYMBIAN
 #include <cntservicescontact.h>
@@ -93,6 +98,7 @@
 #endif
 
 #include <nmcommon.h>
+
 // nmailuiengine
 #include <nmuiengine.h>
 #include <nmmailboxmetadata.h>
@@ -100,6 +106,7 @@
 #include <nmmailboxlistmodel.h>
 #include <nmmessagelistmodel.h>
 #include <nmmessagelistmodelitem.h>
+#include <nmmessagesearchlistmodel.h>
 #include <nmmessage.h>
 #include <nmaddress.h>
 #include <nmoperation.h>
@@ -107,6 +114,8 @@
 #include <nmaddattachmentsoperation.h>
 #include <nmicons.h>
 #include <nmcheckoutboxoperation.h>
+#include <emailmailboxinfo.h>
+#include <email_services_api.h>
 
 // nmailui
 #include "nmhtmllineedit.h"
@@ -123,6 +132,7 @@
 #include "nmmailboxlistviewitem.h"
 #include "nmmessagelistview.h"
 #include "nmmessagelistviewitem.h"
+#include "nmmessagesearchlistview.h"
 #include "nmviewerview.h"
 #include "nmviewerwebview.h"
 #include "nmviewerheader.h"
@@ -145,6 +155,12 @@
 #include "nmattachmentlistwidget.h"
 #include "nmattachmentlist.h"
 #include "nmeditortextdocument.h"
+#include "nmattachmentmanager.h"
 #include "nmattachmentpicker.h"
+#include "nmattachmentfetchobserver.h"
+#include "nmuieffects.h"
+
+// settingui
+#include "nmsettingsviewlauncher.h"
 
 #endif /* NMUIHEADERS_H_ */

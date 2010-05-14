@@ -17,63 +17,65 @@
 #include "nmapiengine.h"
 #include "nmapimailboxlisting_p.h"
 
+#include <nmapimailbox.h>
+
 namespace EmailClientApi
 {
-NmMailboxListingPrivate::NmMailboxListingPrivate(QObject* parent) :
-    QObject(parent), mNmEngine(NULL)
+NmApiMailboxListingPrivate::NmApiMailboxListingPrivate(QObject *parent) :
+    QObject(parent), mNmApiEngine(NULL)
 {
 
 }
 
-NmMailboxListingPrivate::~NmMailboxListingPrivate()
+NmApiMailboxListingPrivate::~NmApiMailboxListingPrivate()
 {
 
 }
 
 /*!
- * \brief It initialize engine for email operations. 
- * 
- * When use initializeEngine need to remember release it.
- * It return value if initialization go good.
- * \sa releaseEngine 
- * \return Return true if engine is good initilialized.
+   \brief It initialize engine for email operations. 
+   
+   When use initializeEngine need to remember release it.
+   It return value if initialization go good.
+   \sa releaseEngine 
+   \return Return true if engine is good initilialized.
  */
-bool NmMailboxListingPrivate::initializeEngine()
+bool NmApiMailboxListingPrivate::initializeEngine()
 {
-    if (!mNmEngine) {
-        mNmEngine = NmEngine::instance();
+    if (!mNmApiEngine) {
+        mNmApiEngine = NmApiEngine::instance();
     }
 
-    return mNmEngine ? true : false;
+    return mNmApiEngine ? true : false;
 }
 
 /*!
- * \brief It release engine for email operations.
- * 
- * It release Engine and return value if release go good.
- * 
- * \arg engine Is used to get info if engine was released, if yes, then argument have value 0.
- * 
- * \sa initializeEngine
+   \brief It release engine for email operations.
+   
+   \sa initializeEngine
  */
-void NmMailboxListingPrivate::releaseEngine()
+void NmApiMailboxListingPrivate::releaseEngine()
 {
-    NmEngine::releaseInstance(mNmEngine);
+    NmApiEngine::releaseInstance(mNmApiEngine);
 }
 
 /*!
- * \brief It grab mailboxes from engine. 
- * 
- * When it start grabing, it release all old.
- * Because it uses NmMailbox with sharedData we don't need care about release memory.
- * 
- * \return Count of mailboxes
+   \brief It grab mailboxes from engine. 
+   
+   When it start grabing, it release all old.
+   Because it uses NmApiMailbox with sharedData we don't need care about release memory.
+   
+   \return Count of mailboxes or "-1" if there is no engine
  */
-qint32 NmMailboxListingPrivate::grabMailboxes()
+qint32 NmApiMailboxListingPrivate::grabMailboxes()
 {
+    if (!mNmApiEngine) {
+        return -1;
+    }
+    
     mMailboxes.clear();
 
-    mNmEngine->listMailboxes(mMailboxes);
+    mNmApiEngine->listMailboxes(mMailboxes);
     return mMailboxes.count();
 }
 }

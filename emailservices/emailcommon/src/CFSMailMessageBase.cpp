@@ -75,10 +75,10 @@ EXPORT_C void CFSMailMessageBase::ConstructL( TFSMailMsgId aMessageId )
     iNmPrivateMessageEnvelope = new NmMessageEnvelopePrivate();
 
 	// typedef long int TInt32 -> typedef unsigned int quint32
-    iNmPrivateMessageEnvelope->mId.setId32((quint32)aMessageId.Id() );
+    iNmPrivateMessageEnvelope->mMessageId.setId32((quint32)aMessageId.Id() );
 
 	// typedef unsigned int TUint -> typedef unsigned int quint32
-    iNmPrivateMessageEnvelope->mId.setPluginId32((quint32)aMessageId.PluginId().iUid);
+    iNmPrivateMessageEnvelope->mMessageId.setPluginId32((quint32)aMessageId.PluginId().iUid);
 
     // construct the CFSMailAddress object and connect it with NmAddress private data
     iSender = CFSMailAddress::NewL(iNmPrivateMessageEnvelope->mSender);
@@ -120,11 +120,11 @@ EXPORT_C TFSMailMsgId CFSMailMessageBase::GetMessageId(  ) const
     FUNC_LOG;
 // <qmail>
     //For message  
-    TFSMailMsgId id = TFSMailMsgId(iNmPrivateMessageEnvelope->mId);
+    TFSMailMsgId id = TFSMailMsgId(iNmPrivateMessageEnvelope->mMessageId);
     
     //For message part
     if(id.IsNullId()){
-        id = TFSMailMsgId(iNmPrivateMessageEnvelope->mParentId);
+        id = TFSMailMsgId(iNmPrivateMessageEnvelope->mFolderId);
     }
 	
     return id;
@@ -138,10 +138,11 @@ EXPORT_C TFSMailMsgId CFSMailMessageBase::GetMessageId(  ) const
 EXPORT_C void CFSMailMessageBase::SetMessageId( const TFSMailMsgId aMessageId )
 {
     // typedef long int TInt32 -> typedef unsigned int quint32
-    iNmPrivateMessageEnvelope->mId.setId32( aMessageId.Id() );
+    iNmPrivateMessageEnvelope->mMessageId.setId32( aMessageId.Id() );
 
     // typedef unsigned int TUint -> typedef unsigned int quint32
-    iNmPrivateMessageEnvelope->mId.setPluginId32((unsigned int)aMessageId.PluginId().iUid);
+    iNmPrivateMessageEnvelope->mMessageId.setPluginId32(
+            (unsigned int)aMessageId.PluginId().iUid);
 }
 //</qmail>
 
@@ -152,7 +153,7 @@ EXPORT_C TFSMailMsgId CFSMailMessageBase::GetFolderId( ) const
 {
     FUNC_LOG;
 // <qmail>
-    return TFSMailMsgId(iNmPrivateMessageEnvelope->mParentId);
+    return TFSMailMsgId(iNmPrivateMessageEnvelope->mFolderId);
 // </qmail>
 }
 
@@ -163,7 +164,7 @@ EXPORT_C void CFSMailMessageBase::SetFolderId( const TFSMailMsgId aFolderId )
 {
     FUNC_LOG;
 // <qmail>
-    iNmPrivateMessageEnvelope->mParentId = NmConverter::mailMsgIdToNmId(aFolderId);
+    iNmPrivateMessageEnvelope->mFolderId = NmConverter::mailMsgIdToNmId(aFolderId);
 // </qmail>
 }
 
@@ -483,7 +484,7 @@ EXPORT_C void CFSMailMessageBase::ReleaseExtension( CEmailExtension* aExtension 
     {
     FUNC_LOG;
     if ( CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(
-		iNmPrivateMessageEnvelope->mId ) )
+		iNmPrivateMessageEnvelope->mMessageId ) )
         {
         // If plugin has created the extension, let it handle destruction.
         plugin->ReleaseExtension( aExtension );
@@ -508,7 +509,7 @@ EXPORT_C CEmailExtension* CFSMailMessageBase::ExtensionL(
         // check that plugin supports requested extension.
 // <qmail>
         if ( CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(
-			iNmPrivateMessageEnvelope->mId ) )
+			iNmPrivateMessageEnvelope->mMessageId ) )
 // </qmail>
             {
             // request extension from plugin, leaves if not supported

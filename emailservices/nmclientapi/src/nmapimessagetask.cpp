@@ -15,14 +15,21 @@
  *
  */
 
-#include "nmapimessagetask.h"
+#include <nmapimessagetask.h>
 
-NmMessageTask::NmMessageTask(QObject *parent)
+/*!
+   Constructor for NmApiMessageTask
+ */
+NmApiMessageTask::NmApiMessageTask(QObject *parent)
+: QObject(parent)
 {
-    Q_UNUSED(parent);
 }
 
-NmMessageTask::~NmMessageTask()
+/*!
+   Destructor for NmApiMessageTask
+ */
+NmApiMessageTask::~NmApiMessageTask()
 {
 
 }
+

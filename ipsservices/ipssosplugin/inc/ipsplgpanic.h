@@ -22,7 +22,10 @@
 #include <e32def.h>
 
 _LIT(KIpsPlgPanicCategory, "IpsPlgSos");
-_LIT( KIpsPlgIpsConnPanic, "IpsConn" ); 
+// <qmail>
+_LIT( KIpsPlgIpsConnPanic, "IpsConn" );
+_LIT( KIpsPlgPopConnectPanic, "PopConnectOp" );
+// </qmail>
 
 enum TIpsPlgPanic {
     EIpsPlgInvalidMessageIndex,

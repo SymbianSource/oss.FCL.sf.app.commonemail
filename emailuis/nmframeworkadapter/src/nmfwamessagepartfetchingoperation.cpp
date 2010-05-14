@@ -25,10 +25,8 @@ NmFwaMessagePartFetchingOperation::NmFwaMessagePartFetchingOperation(
         const NmId &folderId,
         const NmId &messageId,
         const NmId &messagePartId,
-        CFSMailClient &mailClient,
-        QObject *parent) : 
-    NmOperation(parent),
-    mMailboxId(mailboxId), 
+        CFSMailClient &mailClient) 
+  : mMailboxId(mailboxId), 
     mFolderId(folderId), 
     mMessageId(messageId), 
     mMessagePartId(messagePartId),
@@ -46,6 +44,7 @@ NmFwaMessagePartFetchingOperation::NmFwaMessagePartFetchingOperation(
 NmFwaMessagePartFetchingOperation::~NmFwaMessagePartFetchingOperation()
 {
     doCancelOperation();
+    NMLOG("NmFwaMessagePartFetchingOperation::~NmFwaMessagePartFetchingOperation --->");
 }
 
 /*!
@@ -58,8 +57,7 @@ void NmFwaMessagePartFetchingOperation::RequestResponseL(TFSProgress aEvent, TIn
             completeOperation(aEvent.iError);
         }
         else if (aEvent.iProgressStatus == TFSProgress::EFSStatus_RequestCancelled) {
-            // emit cancelled
-            operationCancelled();
+            completeOperation(NmCancelError);
         }
         else if (aEvent.iProgressStatus == TFSProgress::EFSStatus_Status) {
             int progress = 0;

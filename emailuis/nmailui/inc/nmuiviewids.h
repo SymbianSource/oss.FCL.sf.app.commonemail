@@ -26,11 +26,12 @@
 
 enum NmUiViewId
 {
-    NmUiViewNone = 0,       // Used to reset view stack
-    NmUiViewMailboxList,    // Mailbox list view
-    NmUiViewMessageList,    // Message list view of a folder
-    NmUiViewMessageViewer,  // Message view of an email message
-    NmUiViewMessageEditor   // Message editor
+    NmUiViewNone = 0,          // Used to reset view stack
+    NmUiViewMailboxList,       // Mailbox list view
+    NmUiViewMessageList,       // Message list view of a folder
+    NmUiViewMessageSearchList, // Message search list view
+    NmUiViewMessageViewer,     // Message view of an email message
+    NmUiViewMessageEditor      // Message editor
 };
 
 enum NmUiEditorStartMode
@@ -39,7 +40,8 @@ enum NmUiEditorStartMode
     NmUiEditorReply,
     NmUiEditorReplyAll,
     NmUiEditorForward,
-    NmUiEditorMailto
+    NmUiEditorMailto,
+    NmUiEditorFromDrafts
 };
 
 
@@ -179,6 +181,10 @@ public:
         return *mBccAddressList;
     }
 
+    inline void setMailboxId(NmId mailboxId) 
+    {
+        mMailboxId = mailboxId;
+    }
 
 private: // Data
 

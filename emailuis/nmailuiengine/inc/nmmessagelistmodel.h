@@ -90,7 +90,6 @@ private:
 
 signals:
     void setNewParam(NmUiStartParam *startParam);
-    void removeMessage(const NmId &messageId);
     
 private:
     NmDataManager &mDataManager;         // not owned

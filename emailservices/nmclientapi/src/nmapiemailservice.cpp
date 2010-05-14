@@ -15,47 +15,68 @@
  *
  */
 
-#include "nmapiemailservice.h"
+#include <nmapiemailservice.h>
 #include "nmapiengine.h"
+
+#include <nmapimailbox.h>
+#include <nmapimessageenvelope.h>
+
 namespace EmailClientApi
 {
-NmEmailService::NmEmailService(QObject *parent) :
-    QObject(parent), mEngine(NULL)
+
+/*!
+   constructor for NmEmailService
+ */
+NmApiEmailService::NmApiEmailService(QObject *parent) :
+    QObject(parent), mEngine(NULL), mIsRunning(false)
 {
 
 }
 
-NmEmailService::~NmEmailService()
+/*!
+   destructor for NmApiEmailService
+ */
+NmApiEmailService::~NmApiEmailService()
 {
     if (mEngine) {
         uninitialise();
     }
 }
 
-bool NmEmailService::getEnvelope(
+/*!
+   gets mail message envelope by id (see also NmEventNotifier)
+ */
+bool NmApiEmailService::getEnvelope(
     const quint64 mailboxId,
     const quint64 folderId,
     const quint64 envelopeId,
-    NmMessageEnvelope &envelope)
+    EmailClientApi::NmApiMessageEnvelope &envelope)
 {
     if (!mEngine) {
         return false;
     }
-    return mEngine->envelopeById(mailboxId, folderId, envelopeId, envelope);
+    return mEngine->getEnvelopeById(mailboxId, folderId, envelopeId, envelope);
 }
 
-bool NmEmailService::getMailbox(const quint64 mailboxId, NmMailbox &mailboxInfo)
+/*!
+    gets mailbox info by id (see also NmEventNotifier)
+ */
+bool NmApiEmailService::getMailbox(const quint64 mailboxId, EmailClientApi::NmApiMailbox &mailboxInfo)
 {
     if (!mEngine) {
         return false;
     }
-    return mEngine->mailboxById(mailboxId, mailboxInfo);
+    return mEngine->getMailboxById(mailboxId, mailboxInfo);
 }
 
-void NmEmailService::initialise()
+/*!
+   Initialises email service. this must be called and initialised signal received 
+   before services of the library are used.
+ */
+void NmApiEmailService::initialise()
 {
     if (!mEngine) {
-        mEngine = NmEngine::instance();
+        mEngine = NmApiEngine::instance();
     }
 
     if (mEngine) {
@@ -67,15 +88,22 @@ void NmEmailService::initialise()
     }
 }
 
-void NmEmailService::uninitialise()
+/*!
+    frees resources.
+ */
+void NmApiEmailService::uninitialise()
 {
-    NmEngine::releaseInstance(mEngine);
+    NmApiEngine::releaseInstance(mEngine);
     mIsRunning = false;
 }
 
-bool NmEmailService::isRunning() const
+/*!
+   returns isrunning flag value
+ */
+bool NmApiEmailService::isRunning() const
 {
     return mIsRunning;
 }
 
 }
+

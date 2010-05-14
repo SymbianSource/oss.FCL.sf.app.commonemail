@@ -25,9 +25,6 @@ class HbLabel;
 class NmRecipientLineEdit;
 class HbPushButton;
 class HbIconItem;
-#ifdef Q_OS_SYMBIAN
-class XQAiwRequest;
-#endif
 
 class NmRecipientField : public HbWidget
 {
@@ -62,9 +59,9 @@ public slots:
 
 private:
     QGraphicsLinearLayout *mLayoutHorizontal;
-    HbLabel *mLabel;                  
+    HbLabel *mLabel;
     NmRecipientLineEdit *mRecipientsEditor;
-    HbPushButton *mLaunchContactsPickerButton;       
+    HbPushButton *mLaunchContactsPickerButton;
     HbIconItem *mAddButtonIcon;
     bool mOwned;
 };

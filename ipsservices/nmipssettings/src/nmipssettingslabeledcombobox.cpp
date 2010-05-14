@@ -26,7 +26,6 @@
     \brief The class implements a custom HbDataFormViewItem that combines a HbComboBox and HbLabel
     widgets that are linked. I.e. When the user selects changes the combobox's value, the label
     text is updated accordingly.
-
 */
 
 // ======== MEMBER FUNCTIONS ========
@@ -34,7 +33,8 @@
 /*!
     Constructor of NmIpsSettingsLabeledComboBox.
 */
-NmIpsSettingsLabeledComboBox::NmIpsSettingsLabeledComboBox(QGraphicsItem *parent, Qt::WindowFlags wFlags)
+NmIpsSettingsLabeledComboBox::NmIpsSettingsLabeledComboBox(
+    QGraphicsItem *parent, Qt::WindowFlags wFlags)
 : HbWidget(parent, wFlags)
 {
     // Create widget layout.
@@ -54,8 +54,9 @@ NmIpsSettingsLabeledComboBox::NmIpsSettingsLabeledComboBox(QGraphicsItem *parent
     layout->addItem(mLabel); // Takes ownership
 
     // Connect signals and slots.
-    connect(mComboBox, SIGNAL(currentIndexChanged(int)), 
+    connect(mComboBox, SIGNAL(currentIndexChanged(int)),
         this, SLOT(comboBoxIndexChanged(int)), Qt::UniqueConnection);
+
     connect(mComboBox, SIGNAL(currentIndexChanged(int)),
         this, SIGNAL(currentIndexChanged(int)), Qt::UniqueConnection);
 }
@@ -102,6 +103,7 @@ void NmIpsSettingsLabeledComboBox::setComboItems(QStringList comboItems)
 {
     mComboBox->setItems(comboItems);
 }
+
 /*!
     Returns the current label texts.
     \return Label texts.

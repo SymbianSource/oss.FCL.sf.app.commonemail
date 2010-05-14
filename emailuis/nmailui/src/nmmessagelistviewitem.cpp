@@ -50,16 +50,6 @@ NmMessageListViewItem::~NmMessageListViewItem()
 }
 
 /*!
-    type. Returns items type. In this case
-    the item type is custom Hb list item.
-*/
-int NmMessageListViewItem::type() const
-{
-    return NmMessageListViewItem::ItemType;
-}
-
-
-/*!
 */
 HbTreeViewItem *NmMessageListViewItem::createItem()
 {
@@ -202,8 +192,6 @@ void NmMessageListViewItem::setContentsToMessageItem(const NmMessageEnvelope &en
             break;
         case NmMessagePriorityNormal:
         default:
-            // Normal priority has no icon so hide the label hide.
-            mIcon1->setObjectName("ListViewItemMessageIconPriorityNormal");
             break;
     }
     // attachments
@@ -211,6 +199,7 @@ void NmMessageListViewItem::setContentsToMessageItem(const NmMessageEnvelope &en
     if (envelope.hasAttachments()) {
         HbIcon &icon = NmIcons::getIcon(NmIcons::NmIconAttachment);
         attaIcon->setIcon(icon);
+        attaIcon->setObjectName("ListViewItemMessageIconAttachment");
         attaIcon->show();
     }
     // message read status
@@ -249,33 +238,19 @@ void NmMessageListViewItem::paint(
 {
     Q_UNUSED(option);
     Q_UNUSED(widget);
-    if (painter){
-        painter->setOpacity(NmItemLineOpacity);
-        QColor col = HbColorScheme::color("list_item_content_normal");
-        if (col.isValid()) {
-            painter->setPen(col);
-        }
-        QLineF line1( rect().topLeft().x(), rect().bottomRight().y(),
-                     rect().bottomRight().x(), rect().bottomRight().y());
-        painter->drawLine(line1);
-        // Draw line before each item
-        QLineF line2( rect().topLeft().x(), rect().topLeft().y(),
-                     rect().bottomRight().x(), rect().topLeft().y());
-        painter->drawLine(line2);
-
-    }
+    Q_UNUSED(painter);
 }
 
 void  NmMessageListViewItem::setFontsUnread()
 {    
-    static QColor colorRole = HbColorScheme::color("list_item_title");
+    static QColor colorRole = HbColorScheme::color("qtc_list_item_title_normal");
     HbFontSpec spekki(HbFontSpec::Primary);
     setFonts(colorRole, spekki);
 }
 
 void  NmMessageListViewItem::setFontsRead()
 {
-    static QColor colorRole = HbColorScheme::color("list_item_content");
+    static QColor colorRole = HbColorScheme::color("qtc_list_item_content_normal");
     HbFontSpec spekki(HbFontSpec::Secondary);
     setFonts(colorRole, spekki);
 }

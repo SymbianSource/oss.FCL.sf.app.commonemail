@@ -15,15 +15,21 @@
  *
  */
 
-#ifndef NMAPICONVERTERHEADER_H
-#define NMAPICONVERTERHEADER_H
+#ifndef NMAPIENGINEDEF_H_
+#define NMAPIENGINEDEF_H_
 
-#include "nmapimailbox.h"
-#include "nmapifolder.h"
-#include "nmapimessageenvelope.h"
-#include "../../../inc/nmmailbox.h"
-#include "../../../inc/nmfolder.h"
-#include "../../../inc/nmmessageenvelope.h"
-#include "nmmessage.h"
+#include <QtGlobal>
 
-#endif /* NMCONVERTERHEADER_H_ */
+#if defined(Q_OS_WIN)
+#define NMAPI_EXPORT __declspec(dllexport)
+#else
+
+#if defined(BUILD_EMAIL_API_DLL)
+#define NMAPI_EXPORT Q_DECL_EXPORT
+#else
+#define NMAPI_EXPORT Q_DECL_IMPORT
+#endif
+
+#endif
+
+#endif /* NMAPIENGINEDEF_H_ */

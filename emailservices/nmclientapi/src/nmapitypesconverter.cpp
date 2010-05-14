@@ -17,12 +17,16 @@
 
 #include "nmapitypesconverter.h"
 
-/*
- * converts nmmailbox to client api nmmailbox
+#include <nmapicommonheader.h>
+
+#include <nmapiprivateheaders.h>
+
+/*!
+   converts nmmailbox to client api NmApiMailbox
  */
-EmailClientApi::NmMailbox NmToApiConverter::NmMailbox2ApiNmMailbox(const NmMailbox &mailbox)
+EmailClientApi::NmApiMailbox NmToApiConverter::NmMailbox2NmApiMailbox(const NmMailbox &mailbox)
 {
-    EmailClientApi::NmMailbox api_mailbox;
+    EmailClientApi::NmApiMailbox api_mailbox;
     api_mailbox.setId(mailbox.id().id());
     api_mailbox.setName(mailbox.name());
     NmMailbox tmp(mailbox);
@@ -30,44 +34,42 @@ EmailClientApi::NmMailbox NmToApiConverter::NmMailbox2ApiNmMailbox(const NmMailb
     return api_mailbox;
 }
 
-/*
- * converts NmFolder to client api NmFolder
+/*!
+   converts NmFolder to client api NmFolder
  */
-EmailClientApi::NmFolder NmToApiConverter::NmFolder2ApiNmFolder(const NmFolder &folder)
+EmailClientApi::NmApiFolder NmToApiConverter::NmFolder2NmApiFolder(const NmFolder &folder)
 {
-    EmailClientApi::NmFolder api_folder;
+    EmailClientApi::NmApiFolder api_folder;
 
     api_folder.setParentFolderId(folder.parentId().id());
     api_folder.setId(folder.folderId().id());
     api_folder.setName(folder.name());
-    api_folder.setFolderType((EmailClientApi::EmailFolderType) folder.folderType());
+    api_folder.setFolderType((EmailClientApi::NmApiEmailFolderType) folder.folderType());
     return api_folder;
 }
 
-/*
- * converts NmMessageEnvelope to client api NmMessageEnvelope
+/*!
+   converts NmMessageEnvelope to client api NmApiMessageEnvelope
  */
-EmailClientApi::NmMessageEnvelope NmToApiConverter::NmMessageEnvelope2ApiEnvelope(
+EmailClientApi::NmApiMessageEnvelope NmToApiConverter::NmMessageEnvelope2NmApiMessageEnvelope(
     const NmMessageEnvelope &envelope)
 {
-    EmailClientApi::NmMessageEnvelope api_env;
-
-    NmMessageEnvelope tmp(envelope);
+    EmailClientApi::NmApiMessageEnvelope api_env;
     
-    QList<NmAddress> to = tmp.toRecipients();
-    QList<NmAddress> cc = tmp.ccRecipients();
-    QList<EmailClientApi::NmEmailAddress> to_api = NmAddress2QString(to);
-    QList<EmailClientApi::NmEmailAddress> cc_api = NmAddress2QString(cc);
+    QList<NmAddress> to = envelope.toRecipients();
+    QList<NmAddress> cc = envelope.ccRecipients();
+    QList<EmailClientApi::NmApiEmailAddress> to_api = NmAddress2QString(to);
+    QList<EmailClientApi::NmApiEmailAddress> cc_api = NmAddress2QString(cc);
 
     api_env.setToRecipients(to_api);
     api_env.setCcRecipients(cc_api);
 
     api_env.setHasAttachments(envelope.hasAttachments());
-    api_env.setId(envelope.id().id());
+    api_env.setId(envelope.messageId().id());
     api_env.setIsForwarded(envelope.isForwarded());
     api_env.setIsRead(envelope.isRead());
     api_env.setIsReplied(envelope.isReplied());
-    api_env.setParentFolder(tmp.parentId().id());
+    api_env.setParentFolder(envelope.folderId().id());
 
     api_env.setSender(envelope.sender().address());
     api_env.setSentTime(envelope.sentTime());
@@ -76,15 +78,15 @@ EmailClientApi::NmMessageEnvelope NmToApiConverter::NmMessageEnvelope2ApiEnvelop
     return api_env;
 }
 
-/*
- * converts QList of NmAddresses to Qlist of email client apis NmEmailAddresses
+/*!
+   converts QList of NmAddresses to Qlist of email client apis NmApiEmailAddresses
  */
-QList<EmailClientApi::NmEmailAddress> NmToApiConverter::NmAddress2QString(
+QList<EmailClientApi::NmApiEmailAddress> NmToApiConverter::NmAddress2QString(
     const QList<NmAddress> &addresses)
 {
-    QList<EmailClientApi::NmEmailAddress> nmAddresses;
+    QList<EmailClientApi::NmApiEmailAddress> nmAddresses;
     for (int i = 0; i < addresses.count(); i++) {
-        EmailClientApi::NmEmailAddress addr;
+        EmailClientApi::NmApiEmailAddress addr;
         addr.setAddress(addresses[i].address());
         addr.setDisplayName(addresses[i].displayName());
 

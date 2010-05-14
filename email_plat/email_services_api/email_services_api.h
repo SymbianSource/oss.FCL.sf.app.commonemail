@@ -26,11 +26,20 @@ static const QString emailSendToKey = "to";
 static const QString emailSendCcKey = "cc";
 static const QString emailSendBccKey = "bcc";
 
+/*!
+    Mail service name
+*/
+static const QString emailServiceName("nmail");
 
 /*!
     Mail send service interface name.
 */
 static const QString emailInterfaceNameSend = "com.nokia.symbian.IEmailMessageSend";
+
+/*!
+    Mail send service interface name.
+*/
+static const QString emailFullServiceNameSend = emailServiceName + "." + emailInterfaceNameSend;
 
 
 /*!
@@ -55,7 +64,7 @@ static const QString emailInterfaceNameSend = "com.nokia.symbian.IEmailMessageSe
 
         bool syncronous;
 
-        XQServiceRequest request(emailInterfaceNameSend,
+        XQServiceRequest request(emailFullServiceNameSend,
                                  emailOperationSendMail,
                                  syncronous);
 
@@ -84,11 +93,21 @@ static const QString emailOperationSendMail = "send(QVariant)";
 */
 static const QString emailInterfaceNameMailbox = "com.nokia.symbian.IEmailInboxView";
 
+/*!
+    Mailbox service full name.
+*/
+static const QString emailFullServiceNameMailbox = emailServiceName + "." + emailInterfaceNameMailbox;
+
 
 /*!
     Message service interface name.
 */
 static const QString emailInterfaceNameMessage = "com.nokia.symbian.IEmailMessageView";
+
+/*!
+    Message service full name.
+*/
+static const QString emailFullServiceNameMessage = emailServiceName + "." + emailInterfaceNameMessage;
 
 
 /*!
@@ -102,7 +121,7 @@ static const QString emailInterfaceNameMessage = "com.nokia.symbian.IEmailMessag
     Usage example:
 
     XQServiceRequest request(
-        emailInterfaceNameMailbox,
+        emailFullServiceNameMailbox,
         emailOperationViewInbox,
         syncronous);
 
@@ -129,7 +148,7 @@ static const QString emailOperationViewInbox = "displayInboxByMailboxId(QVariant
     Usage example:
 
     XQServiceRequest request(
-       emailInterfaceNameMessage,
+       emailFullServiceNameMessage,
        emailOperationViewMessage,
        syncronous);
 

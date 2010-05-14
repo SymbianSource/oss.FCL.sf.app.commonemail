@@ -312,6 +312,9 @@ _LIT(KFSMailContentTypeTextCalendar, "text/calendar");
 
 
 _LIT(KFSMailContentDispAttachment, " attachment");
+//<qmail>
+_LIT(KFSMailContentDispInline, "inline");
+//</qmail>
 _LIT(KFSMailContentDispParamFilename, " filename=");
 
 /** mailbox synchronization states */
@@ -339,7 +342,8 @@ enum TSSMailSyncState // Are all of these sensible as mailbox sync states (e.g. 
     PushChannelOff,
     PushChannelEstablished,
     PushChannelOffBecauseBatteryIsLow,
-    OutOfDiskSpace
+    OutOfDiskSpace,
+    ServerConnectionError // <qmail> new error code for sync
     };
 
 /**
@@ -438,7 +442,12 @@ TFSMailboxUnavailable and TFSMailboxAvailable.
         TFSEventMailboxOnline,
 
         // Mailbox went offline
-        // aParam1: NULL
+        // <qmail>
+        // aParam1: TInt possible errorCode.
+        //          Plugin may specify an error code here if it sees that connection was cut off unexpectedly;
+        //          Client can then have a separate handling for this exception.
+        //          KErrDisconnected should be used in situations where network coverage was dropped off unexpectedly.
+        // </qmail>
         // aParam2: NULL
         // aParam3: NULL
         TFSEventMailboxOffline,

@@ -34,6 +34,9 @@ class NmMailboxServiceInterface;
 class NmViewerServiceInterface;
 class NmViewerViewNetManager;
 class NmUtilities;
+class NmAttachmentManager;
+class NmSettingsViewLauncher;
+class NmUiEffects;
 
 class NmApplication : public QObject
 {
@@ -46,6 +49,7 @@ public:
     NmUiExtensionManager &extManager();
     NmViewerViewNetManager &networkAccessManager();
     QSize screenSize();
+    bool eventFilter(QObject *obj, QEvent *event);
 
 
 public slots:
@@ -53,11 +57,13 @@ public slots:
     void exitApplication();
     void delayedExitApplication();
     void handleOperationCompleted(const NmOperationCompletionEvent &event);
-
+    void viewReady();
+    
 private:
     void createMainWindow();
     void pushView(NmBaseView *view);
     void resetViewStack();
+    void launchSettings(const NmId &mailboxId);
 
 private:
     HbMainWindow *mMainWindow;              // Not owned
@@ -66,15 +72,18 @@ private:
     NmUiEngine *mUiEngine;                  // Owned
     HbAction *mBackAction;                  // Owned
     NmUiExtensionManager *mExtensionManager;// Owned
-    NmSendServiceInterface *mSendServiceInterface; // Owned
-    NmSendServiceInterface *mSendServiceInterface2; // Owned
+    NmSendServiceInterface *mSendServiceInterface;       // Owned
+    NmSendServiceInterface *mSendServiceInterface2;      // Owned
     NmMailboxServiceInterface *mMailboxServiceInterface; // Owned
-    NmViewerServiceInterface *mViewerServiceInterface; // Owned
+    NmViewerServiceInterface *mViewerServiceInterface;   // Owned
     NmMailboxListModel *mMbListModel;       // Not owned
     NmUiViewId mServiceViewId;
-    NmViewerViewNetManager *mNetManager;     // Owned
+    NmViewerViewNetManager *mNetManager;    // Owned
     bool mForegroundService;	
-    NmUtilities *mUtilities; // Owned
+    NmUiEffects *mEffects;                  // Owned
+    NmAttachmentManager *mAttaManager;      // Owned
+    NmSettingsViewLauncher* mSettingsViewLauncher; // Owned
+    bool mViewReady;
 };
 
 #endif // NMAPPLICATION_H

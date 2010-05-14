@@ -30,10 +30,11 @@ public:
         const bool replyAll,
         CFSMailClient &mailClient);
     
-    ~NmFwaReplyMessageCreationOperation();
-    
 protected:
     void doRunAsyncOperation();
+    
+private:
+    ~NmFwaReplyMessageCreationOperation();
     
 private:
     NmId mOriginalMessageId;

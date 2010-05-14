@@ -75,7 +75,7 @@ NmMailboxSettingView::NmMailboxSettingView(const NmId &mailboxId,
 
     if (mForm) {
         // Set the form for the view.
-        setSettingForm(mForm);
+        setWidget(mForm);
 
         // Make the custom items available.
         NmSettingsFormCustomItems *customItems = new NmSettingsFormCustomItems(mForm);

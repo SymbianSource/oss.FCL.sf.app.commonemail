@@ -18,86 +18,88 @@
 #ifndef NMAPIENVELOPELISTING_H_
 #define NMAPIENVELOPELISTING_H_
 
-#include <QObject>
 #include <QList>
 
-#include "nmapimessagetask.h"
-#include "nmapimessageenvelope.h"
-#include "nmenginedef.h"
+#include <nmapimessagetask.h>
+#include <nmapidef.h>
 
-class NmEngine;
+class QObject;
+
+class NmApiEngine;
 
 // list messages in particular folder.
 namespace EmailClientApi
 {
-class NmEnvelopeListingPrivate;
+class NmApiEnvelopeListingPrivate;
+class NmApiMessageEnvelope;
 
-class NMENGINE_EXPORT NmEnvelopeListing : public NmMessageTask
+class NMAPI_EXPORT NmApiEnvelopeListing : public NmApiMessageTask
 {
     Q_OBJECT
 public:
     /*!
-     * Constructor of class. It set start values.
+       Constructor of class. It set start values.
      */
-    NmEnvelopeListing( QObject *parent, const quint64 folderId, const quint64 mailboxId );
+    NmApiEnvelopeListing(QObject *parent, const quint64 folderId, const quint64 mailboxId);
 
     /*!
-     * Destructor of class. It release engine to be safe if manual releasing won't work.
+       Destructor of class. It release engine to be safe if manual releasing won't work.
      */
-    virtual ~NmEnvelopeListing();
+    ~NmApiEnvelopeListing();
 
     enum {EnvelopeListingFailed = -1};
 
     /*! 
-     * \brief Returns results after envelopesListed signal is received.
-     * 
-     *  Caller gets ownership of envelopes. Returns true if results were available.
-     *  It clears list of envelopes after be called.
-     *  It also at start clear inputlist of NmMessageEnvelope.
-     *  
-     *  \arg envelopes 
+       \brief Returns results after envelopesListed signal is received.
+       
+        Caller gets ownership of envelopes. Returns true if results were available.
+        Before calling this method, cancel and start should be called, 
+        because after second call it returns empty list.
+        It also at start clear inputlist of NmApiMessageEnvelope.
+        
+        \param envelopes envelopes
      */
-    bool getEnvelopes( QList<EmailClientApi::NmMessageEnvelope> &envelopes );
+    bool getEnvelopes(QList<EmailClientApi::NmApiMessageEnvelope> &envelopes);
 
     /*!
-     * \brief Return info if listing is running
+       \brief Return info if listing is running
      */
     bool isRunning() const;
     signals:
     /*!
-     * Emitted when listing is available, count is number of mailboxes found
-     * or EnvelopeListingFailed if listing failed
+       Emitted when listing is available, count is number of envelopes found
+       or EnvelopeListingFailed if listing failed
      */
     void envelopesListed(qint32 count);
 
 public slots:
     /*!
-     * \brief Starts gathering envelopes list.
-     * 
-     * In first turn it will get whole folderlist. 
-     * If start works, it do nothing.
-     * 
-     * To asynchronous operation ce be used \sa QTimer::singleShot on this method.
-     * Example:
-     * <code> 
-     * QTimer::singleShot(0,nmEnvelopeListing,SLOT(start());
-     * </code>
-     * 
+       \brief Starts gathering envelopes list.
+       
+       In first turn it will get whole folderlist. 
+       If start works, it do nothing.
+       
+       To asynchronous operation ce be used \sa QTimer::singleShot on this method.
+       Example:
+       \code
+       QTimer::singleShot(0,nmEnvelopeListing,SLOT(start());
+       \endcode
+       
      */
-    virtual bool start();
+    bool start();
 
     /*!
-     * \brief Stop gathering envelope list.
-     * 
-     * In first it change state of listing.
-     * Then it release engine.
-     * On end it clears list of envelopes and emits \sa NmMessageTask::canceled() signal.
+       \brief Stop gathering envelope list.
+       
+       In first it change state of listing.
+       Then it release engine.
+       On end it clears list of envelopes and emits \sa NmApiMessageTask::canceled() signal.
      */
-    virtual void cancel();
+    void cancel();
 
 private:
-    NmEnvelopeListingPrivate* mListingPrivate;
+    NmApiEnvelopeListingPrivate *mListingPrivate;
 };
 }
 
-#endif /* NMENVELOPELISTING_H_ */
+#endif /* NMAPIENVELOPELISTING_H_ */

@@ -15,40 +15,43 @@
  *
  */
 
-#include "nmapimailbox.h"
+#include <nmapimailbox.h>
+#include "nmapimailbox_p.h"
+
+#include <QString>
 
 namespace EmailClientApi
 {
-NmMailboxPrivate::NmMailboxPrivate()
-{
 
-}
-
-NmMailboxPrivate::~NmMailboxPrivate()
-{
-
-}
-
-/*
- *  constructor for nmmailbox 
+/*!
+    constructor for NmApiMailbox 
  */
-NmMailbox::NmMailbox()
+NmApiMailbox::NmApiMailbox()
 {
-    d = new NmMailboxPrivate();
+    d = new NmApiMailboxPrivate();
 }
 
-/*
- * destructor for nmmailbox
+/*!
+    Copy constructor for NmApiMailbox 
  */
-NmMailbox::~NmMailbox()
+NmApiMailbox::NmApiMailbox(const NmApiMailbox &nmApiMailbox)
+: d(nmApiMailbox.d)
+{
+    
+}
+
+/*!
+   destructor for NmApiMailbox
+ */
+NmApiMailbox::~NmApiMailbox()
 {
 
 }
 
 /*!
- Assign data from \a mailbox
+   Assign data from \a mailbox
  */
-NmMailbox &NmMailbox::operator=(const NmMailbox &mailbox)
+NmApiMailbox &NmApiMailbox::operator=(const NmApiMailbox &mailbox)
 {
     if (this != &mailbox) {
         d = mailbox.d;
@@ -56,50 +59,62 @@ NmMailbox &NmMailbox::operator=(const NmMailbox &mailbox)
     return *this;
 }
 
-/*
- * getter for id
+/*!
+   Compare data from \a mailbox
  */
-quint64 NmMailbox::id() const
+bool NmApiMailbox::operator==(const NmApiMailbox &mailbox)
+{
+    bool returnValue = false;
+    if (d == mailbox.d) {
+        returnValue = true;
+    }
+    return returnValue;
+}
+
+/*!
+   getter for id
+ */
+quint64 NmApiMailbox::id() const
 {
     return d->id;
 }
 
-/*
- * getter for address
+/*!
+   getter for address
  */
-QString NmMailbox::address() const
+QString NmApiMailbox::address() const
 {
     return d->address;
 }
 
-/*
- * getter for name
+/*!
+   getter for name
  */
-QString NmMailbox::name() const
+QString NmApiMailbox::name() const
 {
     return d->name;
 }
 
-/*
- * setter for id
+/*!
+   setter for id
  */
-void NmMailbox::setId(quint64 id)
+void NmApiMailbox::setId(quint64 id)
 {
     d->id = id;
 }
 
-/*
- * setter for address
+/*!
+   setter for address
  */
-void NmMailbox::setAddress(const QString &address)
+void NmApiMailbox::setAddress(const QString &address)
 {
     d->address = address;
 }
 
-/* 
- * setter for name
+/*!
+   setter for name
  */
-void NmMailbox::setName(const QString &name)
+void NmApiMailbox::setName(const QString &name)
 {
     d->name = name;
 }

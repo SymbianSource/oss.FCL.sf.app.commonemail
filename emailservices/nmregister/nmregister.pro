@@ -22,8 +22,10 @@ MOBILITY = serviceframework
 TARGET = nmregister
 QT += core
 #RESOURCES += nmregister.qrc
-LIBS += -lxqservice
-
+LIBS += -lxqservice \
+        -lnmailuiengine \
+        -leuser \
+        -llibc
 symbian: {
 TARGET.UID3=0x2002DD16
 TARGET.VID = VID_DEFAULT
@@ -39,6 +41,7 @@ DEPLOYMENT += pluginDep
 
 BLD_INF_RULES.prj_exports += "resource/nmregister.xml 			z:/private/2002DD16/nmregister.xml"
 BLD_INF_RULES.prj_exports += "rom/nmregister.iby		CORE_APP_LAYER_IBY_EXPORT_PATH(nmregister.iby)"
+BLD_INF_RULES.prj_exports += "rom/nmregisterlanguage.iby 		LANGUAGE_APP_LAYER_IBY_EXPORT_PATH(nmregisterlanguage.iby)"
 TARGET.EPOCALLOWDLLDATA = 1
 }
 
@@ -51,9 +54,8 @@ HEADERS += inc/nmmailboxregisterinterface.h \
 					 inc/nmmailboxregisterinterface_p.h \
 					 inc/nmmailboxregisterinterfaceplugin.h
 
-LIBS += -leuser
-LIBS += -llibc
-
-INCLUDEPATH += 
+INCLUDEPATH += ../../inc
 
 DEPENDPATH += .
+#commented out until MCL has nmregister files in place here: epoc32/include/platform/qt/translations/
+#TRANSLATIONS = nmregister.ts

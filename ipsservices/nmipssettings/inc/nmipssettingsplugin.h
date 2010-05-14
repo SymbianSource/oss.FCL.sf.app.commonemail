@@ -77,8 +77,6 @@ private:
     NmIpsSettingsHelper *mSettingsHelper;
     // Owned.
     NmIpsSettingsManagerBase *mSettingsManager;
-    // Owned.
-    QTranslator *mTranslator;
     // Not owned.
     HbDataFormModel *mModel;
     // Not owned.

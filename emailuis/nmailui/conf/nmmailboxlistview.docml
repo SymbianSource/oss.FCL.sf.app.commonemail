@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hbdocument version="0.4">
+    <widget name="NmMailboxListView" type="HbView">
+        <widget name="content" role="HbView:widget" type="HbWidget">
+            <widget name="MailboxListWidget" type="HbListView">
+                <sizehint height="85.67164422993572un" type="PREFERRED" width="53.7313448132001un"/>
+                <zvalue value="1.0E-4"/>
+            </widget>
+            <layout type="anchor" widget="content">
+                <anchoritem dst="MailboxListWidget" dstEdge="TOP" spacing="0.0un" src="" srcEdge="TOP"/>
+                <anchoritem dst="MailboxListWidget" dstEdge="LEFT" spacing="0.0un" src="" srcEdge="LEFT"/>
+                <anchoritem dst="MailboxListWidget" dstEdge="BOTTOM" spacing="0.0un" src="" srcEdge="BOTTOM"/>
+                <anchoritem dst="MailboxListWidget" dstEdge="RIGHT" spacing="0.0un" src="" srcEdge="RIGHT"/>
+            </layout>
+        </widget>
+        <string name="title" value="View"/>
+    </widget>
+    <metadata display="QHD portrait" unit="un"/>
+</hbdocument>

@@ -23,7 +23,6 @@
 #include <CFSMailCommon.h>
 #include <MFSMailRequestObserver.h>
 
-class NmTestPlugin;
 class NmMessage;
 class CFSMailClient;
 
@@ -35,32 +34,24 @@ public:
     NmFwaMessageCreationOperation(
         const NmId &mailboxId,
         CFSMailClient &mailClient);
-    
-    virtual ~NmFwaMessageCreationOperation();
-    
+       
     NmMessage *getMessage();
     NmId getMessageId();
 
-// from MFSMailRequestObserver
-
-    virtual void RequestResponseL(TFSProgress aEvent, TInt aRequestId);
+    // from MFSMailRequestObserver
+    void RequestResponseL(TFSProgress aEvent, TInt aRequestId);
 
 protected:
-    virtual void doRunAsyncOperation();
-    
-protected:
+    virtual void doRunAsyncOperation();    
     virtual void doCompleteOperation();
-
     virtual void doCancelOperation();
-
+    virtual ~NmFwaMessageCreationOperation();
 protected:
     NmId mMailboxId;
-
-    NmMessage *mMessage;
-    
-    CFSMailClient &mMailClient;
-    
+    NmMessage *mMessage;   
+    CFSMailClient &mMailClient;   
     TInt mRequestId;
+    
 };
 
 #endif /* NMFAMESSAGECREATIONOPERATION_H_ */

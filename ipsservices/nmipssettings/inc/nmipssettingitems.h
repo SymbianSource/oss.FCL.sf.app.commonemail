@@ -47,7 +47,15 @@ namespace IpsServices {
         OutgoingMailServer,                     // String
         IncomingPort,                           // Integer
         OutgoingPort,                           // Integer
-        FolderPath,                             // String: Empty string means 'Default'
+        FolderPath,                              // String: Empty string means 'Default'
+        AlwaysOnlineState,                      // Integer: 0=always,1=homeonly,2=off
+        EmailNotificationState,                 // Integer: 0=automatic,1=homeonly,2=off
+        FirstEmnReceived,                       // Integer: 0=false,1=true
+        EmnReceivedNotSynced,                   // Integer: 0=false,1=true
+        AoLastSuccessfulUpdateL,                // Integer: low part of 64bit integer
+        AoLastSuccessfulUpdateH,                // Integer: high part of 64bit integer
+        AoLastUpdateFailed,                     // Integer: 0=false, 1=true
+        AoUpdateSuccessfulWithCurSettings,      // Integer: 0=false, 1=true
         IncomingSecureSockets,                  // Boolean
         IncomingSSLWrapper,                     // Boolean
         OutgoingLoginName,                      // String
@@ -106,6 +114,16 @@ namespace IpsServices {
         {
         EMailPop = 0,
         EMailImap
+        };
+    
+    /** 
+     *  SMTP Authentication types 
+     */
+    enum TIpsSetSMTPAuthenticationTypes
+        {
+        EMailAuthNone = 0,
+        EMailAuthSameAsIncoming,
+        EMailAuthUserAuthentication
         };
     
     const int standardPop3Port = 110;   // POP3 - port 110

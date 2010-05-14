@@ -15,7 +15,6 @@
  *
  */
 
-#include "nmfwacheckoutboxoperation.h"
 #include "nmframeworkadapterheaders.h"
 
 NmFwaCheckOutboxOperation::NmFwaCheckOutboxOperation(
@@ -30,7 +29,6 @@ NmFwaCheckOutboxOperation::NmFwaCheckOutboxOperation(
 
 NmFwaCheckOutboxOperation::~NmFwaCheckOutboxOperation()
 {
-    doCancelOperation();
 }
 
 void NmFwaCheckOutboxOperation::doRunAsyncOperation()
@@ -114,3 +112,4 @@ void NmFwaCheckOutboxOperation::doRunAsyncOperationL()
 
     completeOperation(err);
 }
+

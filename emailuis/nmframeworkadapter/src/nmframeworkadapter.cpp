@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+* Copyright (c) 2009 - 2010 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -29,21 +29,26 @@
     Also events coming from emailframework are converted and emitted as signals.
  */
 
-static const int nmListMessagesBlock = 100;
-static const int nmMaxItemsInMessageList = 1000;
+static const int NmListMessagesBlock = 100;
+
 
 
 /*!
     Constructor
 */
-NmFrameworkAdapter::NmFrameworkAdapter( ) : mFSfw(NULL)
+NmFrameworkAdapter::NmFrameworkAdapter()
+: mFSfw(NULL),
+  mSearchObserver(NULL)
 {
     NMLOG("NmFrameworkAdapter::NmFrameworkAdapter() <---");
-    // get s60email framework
+
+    // get s60 email framework
     TRAP_IGNORE(mFSfw = CFSMailClient::NewL());
-    if(mFSfw){
+
+    if (mFSfw) {
         TRAP_IGNORE(mFSfw->AddObserverL(*this));
-        }
+    }
+
     NMLOG("NmFrameworkAdapter::NmFrameworkAdapter() --->");
 }
 
@@ -52,10 +57,15 @@ NmFrameworkAdapter::NmFrameworkAdapter( ) : mFSfw(NULL)
 */
 NmFrameworkAdapter::~NmFrameworkAdapter()
 {
-    if(mFSfw){
+    if (mSearchObserver) {
+        delete mSearchObserver;
+        mSearchObserver = NULL;
+    }
+
+    if (mFSfw) {
         mFSfw->RemoveObserver(*this);
         mFSfw->Close();
-        }
+    }
 
     mFSfw = NULL;
 }
@@ -281,7 +291,7 @@ int NmFrameworkAdapter::listMessages(
     const NmId &folderId,
     QList<NmMessageEnvelope*> &messageEnvelopeList)
 {
-    TRAPD(err, listMessagesL(mailboxId,folderId,messageEnvelopeList, nmMaxItemsInMessageList));
+    TRAPD(err, listMessagesL(mailboxId,folderId,messageEnvelopeList, NmMaxItemsInMessageList));
     return err;
 }
 
@@ -314,12 +324,12 @@ void NmFrameworkAdapter::listMessagesL(
         return;
         }
 
-    int blockSize = nmListMessagesBlock;
-    int maxLimit = nmMaxItemsInMessageList;
-    if( maxAmountOfEnvelopes < nmMaxItemsInMessageList )
+    int blockSize = NmListMessagesBlock;
+    int maxLimit = NmMaxItemsInMessageList;
+    if( maxAmountOfEnvelopes < NmMaxItemsInMessageList )
         {
         maxLimit = maxAmountOfEnvelopes;
-        if(maxAmountOfEnvelopes < nmListMessagesBlock)
+        if(maxAmountOfEnvelopes < NmListMessagesBlock)
             {
             blockSize = maxAmountOfEnvelopes;
             }
@@ -387,6 +397,223 @@ void NmFrameworkAdapter::listMessagesL(
     CleanupStack::PopAndDestroy(currentMailbox);
 }
 
+/*! 
+    Returns list of messages from the backend for specific mailbox and folder.
+
+    \param mailboxId Id of the mailbox containing the folder.
+    \param folderId Folder id.
+    \param messageMetaDataList Reference to pointer list to receive the envelope objects,
+     ownership is transferred.
+
+    \return Error code.
+ */
+int NmFrameworkAdapter::listMessages(
+    const NmId &mailboxId,
+    const NmId &folderId,
+    QList<NmMessage*> &messageList,
+    const int maxAmountOfMessages)
+{
+    TRAPD(err, listMessagesL(mailboxId,folderId,messageList, maxAmountOfMessages));
+    return err;
+}
+
+/*!
+    Leaving version of list messages with NmMessageList input
+ */
+void NmFrameworkAdapter::listMessagesL(
+        const NmId &mailboxId,
+        const NmId &folderId,
+        QList<NmMessage*> &messageList,
+        const int maxAmountOfEnvelopes)
+{
+    CFSMailBox * currentMailbox(NULL);
+    CFSMailFolder* folder(NULL);
+
+    //If we are requesting 0 or less mails so we can return
+    if( maxAmountOfEnvelopes <= 0)
+        {
+        return;
+        }
+
+    int blockSize = NmListMessagesBlock;
+    int maxLimit = NmMaxItemsInMessageList;
+    if( maxAmountOfEnvelopes < NmMaxItemsInMessageList )
+        {
+        maxLimit = maxAmountOfEnvelopes;
+        if(maxAmountOfEnvelopes < NmListMessagesBlock)
+            {
+            blockSize = maxAmountOfEnvelopes;
+            }
+        }
+   
+
+    currentMailbox = mFSfw->GetMailBoxByUidL(mailboxId);
+    if (!currentMailbox) {
+        User::Leave(KErrNotFound);
+    }
+    CleanupStack::PushL(currentMailbox);
+    folder = mFSfw->GetFolderByUidL(currentMailbox->GetId(), TFSMailMsgId(folderId));
+
+    if (folder) {
+        CleanupStack::PushL(folder);
+        // First prepare all the parameters
+        // select message details to be listed
+        TFSMailDetails details(EFSMsgDataEnvelope);
+
+        // set sorting criteria
+        TFSMailSortCriteria criteria;
+        criteria.iField = EFSMailSortByDate;
+        criteria.iOrder = EFSMailDescending;
+        RArray<TFSMailSortCriteria> sorting;
+        CleanupClosePushL(sorting);
+        sorting.Append(criteria);
+
+        TFSMailMsgId currentMessageId; // first call contains NULL id as begin id
+        // get messages list from the backend
+        MFSMailIterator* iterator(NULL);
+
+        iterator = folder->ListMessagesL(details, sorting);
+        if (iterator) {
+            CleanupStack::PushL(iterator);
+            RPointerArray<CFSMailMessage> messages;
+            CleanupResetAndDestroy<CFSMailMessage>::PushL(messages);
+
+            //Message list is fetched in blocks to prevent OOM in protocol plugin side
+            bool moreMessagesToFollow(false);
+            moreMessagesToFollow = iterator->NextL(
+                TFSMailMsgId(), blockSize, messages);
+            for ( int i = blockSize;
+                  i < maxLimit && moreMessagesToFollow ;
+                  i += blockSize ) {
+                moreMessagesToFollow = iterator->NextL(
+                    messages[i-1]->GetMessageId(), blockSize, messages);
+                
+            }
+
+            //Add all found emails to the result list
+            for(TInt i=0; i<messages.Count(); i++) {
+                NmMessage* newMessage(NULL);
+                newMessage = messages[i]->GetNmMessage();
+                if (newMessage) {
+					//Add content of message
+                    NmMessagePart *plainTextPart = newMessage->plainTextBodyPart();
+                    if (plainTextPart) {
+                        contentToMessagePart(mailboxId, folderId, newMessage->envelope().messageId(),
+                                             *plainTextPart);
+                    }
+                    messageList.append(newMessage);
+                }
+            }
+            
+            CleanupStack::PopAndDestroy( &messages );
+            CleanupStack::Pop(iterator);
+            delete iterator;
+            iterator = NULL;
+        }
+        CleanupStack::PopAndDestroy(); // sorting
+        CleanupStack::PopAndDestroy(folder);
+    }
+    CleanupStack::PopAndDestroy(currentMailbox);
+}
+
+/*!
+    Starts an asynchronous search for messages with the given search strings.
+    This is part of the public interface.
+
+    \see NmFrameworkAdapter::searchL().
+
+    \param mailboxId The mailbox to search from.
+    \param searchStrings The strings to search.
+
+    \return A possible error code.
+*/
+int NmFrameworkAdapter::search(const NmId &mailboxId,
+                               const QStringList &searchStrings)
+{
+    if (!mSearchObserver) {
+        mSearchObserver = new NmMailboxSearchObserver();
+    }
+
+    // Set connections for forwarding the signals emitted by the search
+    // observer.
+    connect(mSearchObserver, SIGNAL(matchFound(const NmId &)),
+            this, SIGNAL(matchFound(const NmId &)), Qt::UniqueConnection);
+    connect(mSearchObserver, SIGNAL(searchComplete()),
+            this, SIGNAL(searchComplete()), Qt::UniqueConnection);
+
+    TRAPD(err, searchL(mailboxId, QList<NmId>(), searchStrings, *mSearchObserver));
+    return err;
+}
+
+
+/*!
+    Cancels the search if one is ongoing.
+
+    \param mailboxId The ID of the mailbox running the search.
+
+    \return A possible error code.
+*/
+int NmFrameworkAdapter::cancelSearch(const NmId &mailboxId)
+{
+    // Get the mailbox with the given ID.
+    CFSMailBox *mailbox(NULL);
+    TRAPD(err, mailbox = mFSfw->GetMailBoxByUidL(mailboxId));
+
+    if (err == KErrNone && mailbox) {
+        mailbox->CancelSearch();
+    }
+
+    return err;
+}
+
+
+/*!
+    Starts an asynchronous search for messages with the given search strings.
+
+    \param mailboxId The mailbox to search from.
+    \param folderIds (not used)
+    \param searchStrings The strings to search. 
+    \param searchObserver The observer which gets informed about the progress
+                          of the search (match found, search complete etc.)
+*/
+void NmFrameworkAdapter::searchL(const NmId &mailboxId,
+                                 const QList<NmId> &folderIds,
+                                 const QStringList &searchStrings,
+                                 NmMailboxSearchObserver &searchObserver)
+{
+    // CFSMailBox has no support for search using folder IDs.
+    Q_UNUSED(folderIds); 
+
+    // Get the mailbox with the given ID.
+    CFSMailBox *mailbox(NULL);
+    mailbox = mFSfw->GetMailBoxByUidL(mailboxId);
+
+    if (mailbox) {
+        RPointerArray<TDesC> strings;
+        CleanupResetAndDestroy<TDesC>::PushL(strings);
+
+        // Convert the search strings to HBufCs.
+        foreach (QString string, searchStrings) {
+            HBufC *buffer = NmConverter::qstringToHBufCLC(string);
+            strings.AppendL(buffer);
+            CleanupStack::Pop(buffer);
+        }
+
+        // Show results in ascending date/time order.
+        TFSMailSortCriteria sortCriteria;
+        sortCriteria.iField = EFSMailSortByDate;
+        sortCriteria.iOrder = EFSMailAscending;
+
+        // Start the search.
+        mailbox->SearchL(strings, sortCriteria, searchObserver);
+
+        // Clean up.
+        strings.ResetAndDestroy();
+        CleanupStack::Pop(&strings);
+    }
+}
+
+
 /*!
     Starts a message fetching operation.
 
@@ -396,7 +623,7 @@ void NmFrameworkAdapter::listMessagesL(
 
     \return An NmOperation object for the operation, ownership is transferred to caller
  */
-NmOperation *NmFrameworkAdapter::fetchMessage(
+QPointer<NmOperation> NmFrameworkAdapter::fetchMessage(
     const NmId &mailboxId,
     const NmId &folderId,
     const NmId &messageId )
@@ -415,13 +642,13 @@ NmOperation *NmFrameworkAdapter::fetchMessage(
 
     \return An NmOperation object for the operation, ownership is transferred to caller
  */
-NmOperation *NmFrameworkAdapter::fetchMessagePart( 
+QPointer<NmOperation> NmFrameworkAdapter::fetchMessagePart( 
     const NmId &mailboxId,
     const NmId &folderId,
     const NmId &messageId,
     const NmId &messagePartId)
 {
-    NmOperation *oper = new NmFwaMessagePartFetchingOperation(
+    QPointer<NmOperation> oper = new NmFwaMessagePartFetchingOperation(
             mailboxId, folderId, messageId, messagePartId, *mFSfw);
     return oper;
 }
@@ -625,7 +852,7 @@ void NmFrameworkAdapter::contentToMessagePartL(
                 QByteArray msgBytes = QByteArray(reinterpret_cast<const char*>(dataPtr.Ptr()), fileSize);
                 QTextCodec *codec = QTextCodec::codecForName(charset.toAscii());
                 if (!codec) {
-                    codec = QTextCodec::codecForName("iso-8859-1");
+                    codec = QTextCodec::codecForName("UTF-8");
                 }
                 QString encodedStr = codec->toUnicode(msgBytes); 
                 messagePart.setTextContent(encodedStr, contentType);           
@@ -685,7 +912,7 @@ int NmFrameworkAdapter::deleteMessages(
 
     \return NmStoreEnvelopesOperation
  */
-NmStoreEnvelopesOperation *NmFrameworkAdapter::storeEnvelopes(
+QPointer<NmStoreEnvelopesOperation> NmFrameworkAdapter::storeEnvelopes(
 	const NmId &mailboxId,
 	const NmId &folderId,
 	const QList<const NmMessageEnvelope*> &envelopeList)
@@ -693,15 +920,15 @@ NmStoreEnvelopesOperation *NmFrameworkAdapter::storeEnvelopes(
     Q_UNUSED(folderId);
     NMLOG("NmFrameworkAdapter::storeEnvelopes() <---");
 
-    NmStoreEnvelopesOperation* operation(NULL);
+    QPointer<NmStoreEnvelopesOperation> operation(NULL);
     RPointerArray<CFSMailMessage> envelopeMessages;
 
     int count = envelopeList.count();
-    for(int i=0;i<count;i++) {
-        TRAP_IGNORE( envelopeMessages.AppendL(mailMessageFromEnvelopeL( *envelopeList.at(i)) ));
+    for(int i(0); i < count; i++) {
+        TRAP_IGNORE(envelopeMessages.AppendL(mailMessageFromEnvelopeL(*envelopeList.at(i))));
     }
 
-    if ( envelopeMessages.Count() ) {
+    if (envelopeMessages.Count()) {
         operation = new NmFwaStoreEnvelopesOperation(
                 mailboxId,
                 envelopeMessages,
@@ -719,9 +946,9 @@ NmStoreEnvelopesOperation *NmFrameworkAdapter::storeEnvelopes(
 
     \return NmMessageCreationOperation
  */
-NmMessageCreationOperation *NmFrameworkAdapter::createNewMessage(const NmId &mailboxId)
+QPointer<NmMessageCreationOperation> NmFrameworkAdapter::createNewMessage(const NmId &mailboxId)
 {
-    NmMessageCreationOperation *oper =
+    QPointer<NmMessageCreationOperation> oper =
         new NmFwaMessageCreationOperation(mailboxId, *mFSfw);
     return oper;
 }
@@ -734,11 +961,11 @@ NmMessageCreationOperation *NmFrameworkAdapter::createNewMessage(const NmId &mai
 
     \return NmMessageCreationOperation
  */
-NmMessageCreationOperation *NmFrameworkAdapter::createForwardMessage(
+QPointer<NmMessageCreationOperation> NmFrameworkAdapter::createForwardMessage(
     const NmId &mailboxId,
     const NmId &originalMessageId)
 {
-    NmMessageCreationOperation *oper =
+    QPointer<NmMessageCreationOperation> oper =
         new NmFwaForwardMessageCreationOperation(mailboxId, originalMessageId, *mFSfw);
     return oper;
 }
@@ -752,12 +979,12 @@ NmMessageCreationOperation *NmFrameworkAdapter::createForwardMessage(
 
     \return NmMessageCreationOperation
  */
-NmMessageCreationOperation *NmFrameworkAdapter::createReplyMessage(
+QPointer<NmMessageCreationOperation> NmFrameworkAdapter::createReplyMessage(
     const NmId &mailboxId,
     const NmId &originalMessageId,
     const bool replyAll)
 {
-    NmMessageCreationOperation *oper =
+    QPointer<NmMessageCreationOperation> oper =
         new NmFwaReplyMessageCreationOperation(mailboxId, originalMessageId, replyAll, *mFSfw);
     return oper;
 }
@@ -774,10 +1001,10 @@ int NmFrameworkAdapter::saveMessage(const NmMessage &message)
 /*!
     Store asynchronously message with its parts.
  */
-NmOperation* NmFrameworkAdapter::saveMessageWithSubparts(const NmMessage &message)
+QPointer<NmOperation> NmFrameworkAdapter::saveMessageWithSubparts(const NmMessage &message)
 {
     CFSMailMessage * cfsMessage = NULL;
-    NmOperation *oper = NULL;
+    QPointer<NmOperation> oper(NULL);
 
     int err = KErrNone;
     TRAP(err, cfsMessage = CFSMailMessage::NewL(message));
@@ -874,13 +1101,25 @@ void NmFrameworkAdapter::EventL(
 
         case TFSEventMailboxOnline:{
             NmId id = NmConverter::mailMsgIdToNmId(mailbox);
-            emit connectionEvent(Connected, id);
+            emit connectionEvent(Connected, id, NmNoError);
             }
             break;
-        case TFSEventMailboxOffline:{
+            
+        // param1: errorcode
+        case TFSEventMailboxOffline: {
             NmId id = NmConverter::mailMsgIdToNmId(mailbox);
-            emit connectionEvent(Disconnected, id);
+            TInt error(KErrNone);
+            // if param1 is set, and it is != KErrNone, an unexpected offline event has occurred
+            if(param1) {
+                error=*(static_cast<TInt*>(param1));
             }
+            if(error) {
+                emit connectionEvent(Disconnected, id, NmConnectionError);
+            }
+            else {
+                emit connectionEvent(Disconnected, id, NmNoError);
+            }
+			}
             break;
 
         default:
@@ -964,41 +1203,41 @@ void NmFrameworkAdapter::removeMessageL(
 /*!
    Sends the given message.
  */
-NmMessageSendingOperation *NmFrameworkAdapter::sendMessage(
+QPointer<NmMessageSendingOperation> NmFrameworkAdapter::sendMessage(
     NmMessage *message)
 {
-    NmMessageSendingOperation *oper = new NmFwaMessageSendingOperation(*this, message, *mFSfw);
+    QPointer<NmMessageSendingOperation>oper = new NmFwaMessageSendingOperation(*this, message, *mFSfw);
 	return oper;
 }
 
 /*!
    Add attachment into the given message.
  */
-NmAddAttachmentsOperation *NmFrameworkAdapter::addAttachments(
+QPointer<NmAddAttachmentsOperation> NmFrameworkAdapter::addAttachments(
     const NmMessage &message,
     const QList<QString> &fileList)
 {
-    NmAddAttachmentsOperation *oper = new NmFwaAddAttachmentsOperation(message, fileList, *mFSfw);
+    QPointer<NmAddAttachmentsOperation>oper = new NmFwaAddAttachmentsOperation(message, fileList, *mFSfw);
     return oper;
 }
 
 /*!
    Remove attachment from the given message.
  */
-NmOperation *NmFrameworkAdapter::removeAttachment(
+QPointer<NmOperation> NmFrameworkAdapter::removeAttachment(
     const NmMessage &message,
     const NmId &attachmentPartId)
 {
-    NmOperation *oper = new NmFwaRemoveAttachmentOperation(message, attachmentPartId, *mFSfw);
+    QPointer<NmOperation> oper = new NmFwaRemoveAttachmentOperation(message, attachmentPartId, *mFSfw);
     return oper;
 }
 
 /*!
    Checks outbox for messages
  */
-NmCheckOutboxOperation *NmFrameworkAdapter::checkOutbox(const NmId& mailboxId)
+QPointer<NmCheckOutboxOperation> NmFrameworkAdapter::checkOutbox(const NmId& mailboxId)
 {
-    NmCheckOutboxOperation *oper =
+    QPointer<NmCheckOutboxOperation> oper =
         new NmFwaCheckOutboxOperation(mailboxId, *mFSfw);
 
     return oper;
@@ -1230,6 +1469,7 @@ void NmFrameworkAdapter::handleSyncstateEvent(TAny* param1, TFSMailMsgId mailbox
     TSSMailSyncState* state = static_cast<TSSMailSyncState*>( param1 );
     NmOperationCompletionEvent event;
     event.mMailboxId = NmConverter::mailMsgIdToNmId(mailbox);
+    event.mOperationType = Synch;
 
     switch(*state)
         {
@@ -1251,13 +1491,27 @@ void NmFrameworkAdapter::handleSyncstateEvent(TAny* param1, TFSMailMsgId mailbox
             emit syncStateEvent(SyncComplete, event);
             break;
             }
-        case SyncError:
-        default:
+        case SyncCancelled:
+            {
+            event.mCompletionCode = NmCancelError;
+            emit syncStateEvent(SyncComplete, event);
+            break;
+            }
+        case ServerConnectionError:
             {
             event.mCompletionCode = NmServerConnectionError;
             emit syncStateEvent(SyncComplete, event);
             break;
             }
+        case SyncError:
+            {
+            event.mCompletionCode = NmConnectionError;
+            emit syncStateEvent(SyncComplete, event);
+            break;
+            }
+        default:
+            // ignore other statuses
+            break;
         };
 }
 Q_EXPORT_PLUGIN(NmFrameworkAdapter)

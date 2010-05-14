@@ -33,33 +33,26 @@ public:
         const NmId &folderId,
         const NmId &messageId,
         const NmId &messagePartId,
-        CFSMailClient &mailClient,
-        QObject *parent = NULL);
-    
-    virtual ~NmFwaMessagePartFetchingOperation();
+        CFSMailClient &mailClient);
     
     // from MFSMailRequestObserver
     void RequestResponseL(TFSProgress aEvent, TInt aRequestId);
 
 protected:
     void doRunAsyncOperation();
-    
-protected:
     void doCancelOperation();
     
 private:
+    ~NmFwaMessagePartFetchingOperation();
     void doRunAsyncOperationL();
 
 private:
     NmId mMailboxId;
     NmId mFolderId;
     NmId mMessageId;
-    NmId mMessagePartId;
-    
-    CFSMailClient &mMailClient;
-    
-    int mLastProgressValue;
-    
+    NmId mMessagePartId;   
+    CFSMailClient &mMailClient;  
+    int mLastProgressValue;   
     TInt mRequestId;
 };
 

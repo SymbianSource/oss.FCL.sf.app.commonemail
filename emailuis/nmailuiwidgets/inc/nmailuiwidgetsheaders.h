@@ -18,12 +18,15 @@
 #ifndef NMAILUIWIDGETSHEADERS_H_
 #define NMAILUIWIDGETSHEADERS_H_
 
+// Qt
 #include <QtPlugin>
 #include <QTimer>
 #include <QCoreApplication>
 #include <QGraphicsItem>
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsGridLayout>
+
+// Symbian & qt extensions
 #ifdef Q_OS_SYMBIAN
 #include <cntservicescontact.h>
 #include <xqservicerequest.h>
@@ -34,6 +37,8 @@
 #include <xqappmgr.h>
 #include <xqserviceipcmarshal.h>
 #endif
+
+// Orbit
 #include <hbmessagebox.h>
 #include <hbscrollarea.h>
 #include <hbstyleloader.h>
@@ -43,16 +48,16 @@
 #include <hbinstance.h>
 #include <hbcolorscheme.h>
 
+// nmail
 #include <nmaddress.h>
 #include <nmcommon.h>
+
+// nmailuiwidgets
 #include "nmrecipientlineedit.h"
 #include "nmhtmllineedit.h"
 #include "nmeditortextedit.h"
-#include "nmeditorcontent.h"
 #include "nmbaseviewscrollarea.h"
 #include "nmattachmentlistitem.h"
 #include "nmattachmentlistwidget.h"
-
-
 
 #endif /* NMAILUIWIDGETSHEADERS_H_ */

@@ -29,5 +29,7 @@
 #include <nmdataplugininterface.h>
 #include <nmmailbox.h>
 #include <nmmessageenvelope.h>
+#include <nmmessage.h>
+#include <emailmailboxinfo.h>
 
 #endif

@@ -63,9 +63,12 @@ public:
 
     static void displayErrorNote(QString noteText); 
 
-    // note: this is not static function
-    void displayOperationCompletionNote(const NmOperationCompletionEvent &event);
+    static bool displayQuestionNote(QString noteText);
     
+    static void displayWarningNote(QString noteText);
+
+    static bool displayOperationCompletionNote(const NmOperationCompletionEvent &event);
+
     static QString createReplyHeader(const NmMessageEnvelope &env);
 };
 

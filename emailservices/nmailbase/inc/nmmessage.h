@@ -23,39 +23,54 @@
 #include "nmbasedef.h"
 #include "nmcommon.h"
 #include "nmmessagepart.h"
+#include "nmmessageenvelope.h"
 
 class CFSMailMessage;
+
+class NMBASE_EXPORT NmMessagePrivate : public QSharedData
+{
+public:
+    NmMessagePrivate();
+    virtual ~NmMessagePrivate();
+public:
+    NmMessageEnvelope mEnvelope;
+};
 
 class NMBASE_EXPORT NmMessage : public NmMessagePart
 {
 public:
     NmMessage();
-    NmMessage(const NmId &id);
-    NmMessage(const NmId &id, const NmId &parentId);
-    NmMessage(const NmId &id, const NmId &parentId, const NmId &mailboxId);
+    NmMessage(const NmId &messageId);
+    NmMessage(const NmId &messageId, const NmId &folderId);
+    NmMessage(const NmId &messageId, const NmId &folderId, const NmId &mailboxId);
     NmMessage(const NmMessageEnvelope &envelope);
+
     NmMessage(const NmMessage &message);
     virtual ~NmMessage();
     NmMessage(const NmMessagePart& message);
-
-    virtual NmId id() const;
-    virtual void setId(const NmId &id);
 
     const NmMessagePart *plainTextBodyPart() const;
     NmMessagePart *plainTextBodyPart();
     const NmMessagePart *htmlBodyPart() const;
     NmMessagePart *htmlBodyPart();
 
-    void setEnvelope(const NmMessageEnvelope &envelope);
     NmMessageEnvelope &envelope();
     const NmMessageEnvelope &envelope() const;
-
-    CFSMailMessage* getCFSMailMessage();
 
     void attachmentList(QList<NmMessagePart*> &parts) const;
     
 private:
+    // prohibited
     NmMessage &operator=(const NmMessage &message);
+    
+    // for CFSMailMessage
+    NmMessage(const NmMessageEnvelope &envelope,
+            QExplicitlySharedDataPointer<NmMessagePartPrivate> nmPrivateMessagePart);
+    
+    friend class CFSMailMessage;
+
+private:
+    QExplicitlySharedDataPointer<NmMessagePrivate> d;
 
 };
 

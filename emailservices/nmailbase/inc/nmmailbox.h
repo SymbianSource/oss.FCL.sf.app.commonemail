@@ -48,8 +48,8 @@ public:
     void setId(const NmId &id);
     QString name() const;
     void setName(const QString &name);
-    NmAddress address();
-    void setAddress(NmAddress& address);
+    NmAddress address() const;
+    void setAddress(const NmAddress& address);
     
     bool operator==(const NmMailbox &mailbox) const;
 

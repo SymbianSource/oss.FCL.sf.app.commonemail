@@ -18,15 +18,31 @@
 #ifndef NMHSWIDGETCONSTS_H
 #define NMHSWIDGETCONSTS_H
 
+/**************************************************
+ * engine
+ *************************************************/
+//Maximum amount of envelopes that can be provided to client in getData function
+//This is also the amount of envelopes that is kept in mData all the time
+const int KMaxNumberOfEnvelopesProvided = 2;
+//Maximum value for unread count
+const int KMaxUnreadCount = 999; 
+
+/**************************************************
+ * nmhswidget
+ *************************************************/
 /** contents margin/spacing in all layouts / container widgets */
 const int KNmHsWidgetContentsMargin = 0;
-/** radius for container widget's rounded rect */
-const int KNmHsWidgetShoulderRadius = 10;
-/** background opacity */
-const qreal KNmHsWidgetBackgroundOpacity = 0.50;
-/** color scheme used in widget background */
-//const QString backgroundColorAttribute = "popupbackground";
-#define KBackgroundColorAttribute  "popupbackground"
+/** Widget's background image*/
+const QString KNmHsWidgetBackgroundImage = "qtg_fr_hswidget_normal";
+/** max number of mails shown in widget */
+const int KMaxNumberOfMailsShown = KMaxNumberOfEnvelopesProvided;
+/** Widget's localization file name*/
+const QString KNmHsWidgetLocFileName = "mailwidget_";
+/** Widget's localization file location*/
+const QString KNmHsWidgetLocLocation = "z:/resource/qt/translations/";
+/** Widget's state property values */
+const QString KNmHsWidgetStateCollapsed = "collapsed";
+const QString KNmHsWidgetStateExpanded = "expanded";
 
 /**************************************************
  * Title row widget
@@ -39,6 +55,10 @@ const qreal KNmHsWidgetBackgroundOpacity = 0.50;
 #define KNmHsWidgetTitleRowMailboxIcon  "mailboxIcon"
 /** mailbox name label */
 #define KNmHsWidgetTitleRowMailboxNameLabel "mailboxNameLabel"
+/** unread count label */
+#define KNmHsWidgetTitleRowUnreadCountLabel  "unreadCountLabel"
+/** expand collapse icon */
+#define KNmHsWidgetTitleRowCollapseExpandIconLabel "collapseExpandIcon"
 
 /**************************************************
  * Mail row widget

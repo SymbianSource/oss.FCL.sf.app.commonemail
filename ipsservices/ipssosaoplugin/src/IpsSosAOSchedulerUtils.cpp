@@ -20,7 +20,7 @@
 #include "emailtrace.h"
 #include "IpsSosAOSchedulerUtils.h"
 //<QMail>
-
+#include "IpsSosAOSettingsHandler.h"
 //</QMail>
 
 
@@ -32,7 +32,8 @@ const TInt KA0DaysInWeek = 7;
 // ----------------------------------------------------------------------------
 //
 //<Qmail>
-CIpsSosAOSchedulerUtils::CIpsSosAOSchedulerUtils()
+CIpsSosAOSchedulerUtils::CIpsSosAOSchedulerUtils( CIpsSosAOSettingsHandler& aSettings ):
+        iSettings(aSettings)
 //</Qmail>
     {
     FUNC_LOG;
@@ -58,12 +59,12 @@ void CIpsSosAOSchedulerUtils::ConstructL()
 // ----------------------------------------------------------------------------
 //
 //<Qmail>
-CIpsSosAOSchedulerUtils* CIpsSosAOSchedulerUtils::NewL()
+CIpsSosAOSchedulerUtils* CIpsSosAOSchedulerUtils::NewL(CIpsSosAOSettingsHandler& aSettings)
 //</Qmail>
     {
     FUNC_LOG;
     //<Qmail>
-    CIpsSosAOSchedulerUtils* self = NewLC();
+    CIpsSosAOSchedulerUtils* self = NewLC(aSettings);
     //</Qmail>
     CleanupStack::Pop( self );
 
@@ -74,13 +75,13 @@ CIpsSosAOSchedulerUtils* CIpsSosAOSchedulerUtils::NewL()
 // ----------------------------------------------------------------------------
 //
 //<Qmail>
-CIpsSosAOSchedulerUtils* CIpsSosAOSchedulerUtils::NewLC()
+CIpsSosAOSchedulerUtils* CIpsSosAOSchedulerUtils::NewLC(CIpsSosAOSettingsHandler& aSettings)
 //</Qmail>
     {
     FUNC_LOG;
     CIpsSosAOSchedulerUtils* self =
             //<Qmail>
-        new ( ELeave ) CIpsSosAOSchedulerUtils();
+        new ( ELeave ) CIpsSosAOSchedulerUtils(aSettings);
     //</Qmail>
     CleanupStack::PushL( self );
     self->ConstructL();
@@ -227,8 +228,7 @@ TIpsSosAOValidConnectionDay CIpsSosAOSchedulerUtils::GetValidConnectionDay(
     TDay currentDay = aClock.DayNoInWeek();
     TDay previousDay = GetPrevDay( currentDay );
     TIpsSosAOValidConnectionDay result;
-    
-    
+        
     // Connection can be made anyday
     if ( IsDaySelected( currentDay ) && IsDaySelected( previousDay ) )
         {
@@ -250,10 +250,10 @@ TIpsSosAOValidConnectionDay CIpsSosAOSchedulerUtils::GetValidConnectionDay(
         }
     // no selected days this is wron in settings side but still return anyday
 	//<QMail>
-    /*else if ( iExtentedSettings.SelectedWeekDays() == 0 )
+    else if ( iSettings.SelectedWeekDays() == 0 )
         {
         result = EAOVCDConnectionAnyDay;
-        }*/
+        }
 	//</QMail>
     // Connection is not allowed
     else
@@ -261,7 +261,7 @@ TIpsSosAOValidConnectionDay CIpsSosAOSchedulerUtils::GetValidConnectionDay(
         
         result = EAOVCDNoConnection;
         } 
-        
+    
     return result;           
     }
 
@@ -392,8 +392,8 @@ void CIpsSosAOSchedulerUtils::Times2Seconds(
     TTime zeroTime( 0 );
     TTime adjustedHomeTime = AdjustHomeTime( aClock );
 	//<QMail>
-    TTime selectedTimeStart;// = iExtentedSettings.SelectedTimeStart();
-    TTime selectedTimeStop;// = iExtentedSettings.SelectedTimeStop();
+    TTime selectedTimeStart = iSettings.SelectedTimeStart();
+    TTime selectedTimeStop = iSettings.SelectedTimeStop();
 	//</QMail>
     adjustedHomeTime.SecondsFrom( zeroTime, aHome );
     selectedTimeStart.SecondsFrom( zeroTime, aStart );
@@ -508,9 +508,9 @@ void CIpsSosAOSchedulerUtils::CalcSecsToMark(
 //
 TTimeIntervalSeconds CIpsSosAOSchedulerUtils::CalcSecsToNextScheduledDay(
 //<QMail>
-    const TTime& /*aClock*/,
-    const TTimeIntervalSeconds& /*aHome*/,
-    const TBool /*aScheduledDay*/ )
+    const TTime& aClock,
+    const TTimeIntervalSeconds& aHome,
+    const TBool aScheduledDay )
     {
     FUNC_LOG;
 
@@ -518,14 +518,10 @@ TTimeIntervalSeconds CIpsSosAOSchedulerUtils::CalcSecsToNextScheduledDay(
 
     // First check if all of the days are unchecked, which should not happen
     // at all, but just in case
-    /*
-    if ( !iExtentedSettings.SelectedWeekDays() )
+    
+    if ( !iSettings.SelectedWeekDays() )
         {
-        // Temporarly set all the days selected
         return seconds;
-        __ASSERT_DEBUG( ( 
-                EFalse ), 
-                User::Panic( _L("AO"), KErrGeneral) );
         }
 
     TBool hit = EFalse;
@@ -544,7 +540,7 @@ TTimeIntervalSeconds CIpsSosAOSchedulerUtils::CalcSecsToNextScheduledDay(
     
     seconds = KAOSecondsIn24Hours - aHome.Int() +
         dayCount * KAOSecondsIn24Hours;
-*/
+
     //</QMail>
     return seconds;       
     }
@@ -553,12 +549,11 @@ TTimeIntervalSeconds CIpsSosAOSchedulerUtils::CalcSecsToNextScheduledDay(
 // ----------------------------------------------------------------------------
 //
 //<QMail>
-TBool CIpsSosAOSchedulerUtils::IsDaySelected( const TUint /*aDay*/ ) const
+TBool CIpsSosAOSchedulerUtils::IsDaySelected( const TUint aDay ) const
     {
     FUNC_LOG;
-    //return ( iExtentedSettings.SelectedWeekDays() >> aDay ) & 0x01;
-    return EFalse;
-	//</QMail>
+    return ( iSettings.SelectedWeekDays() >> aDay ) & 0x01;
+    //</QMail>
     }
 
 // End of File

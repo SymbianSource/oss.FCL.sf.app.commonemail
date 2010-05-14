@@ -20,13 +20,17 @@
 
 #include "nmoperation.h"
 
-class NmMessage;
 class NmId;
 
-class NmCheckOutboxOperation: public NmOperation
+class NMUIENGINE_EXPORT NmCheckOutboxOperation: public NmOperation
 {
+    Q_OBJECT
 public:
+    NmCheckOutboxOperation(){};
     virtual bool getMessageId(NmId &messageId) const = 0;
+
+protected:
+    virtual ~NmCheckOutboxOperation(){};
 };
 
 #endif /* NMCHECKOUTBOXOPERATION_H_ */

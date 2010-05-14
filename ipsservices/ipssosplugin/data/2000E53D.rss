@@ -21,6 +21,7 @@
 #include "CFSMailPlugin.hrh" // fsmailplugininterface
 //</cmail>
 #include "ipsplgsosbaseplugin.hrh"
+// <qmail> emailversionnumbers removed
 
 // ---------------------------------------------------------------------------
 // theInfo
@@ -40,7 +41,9 @@ RESOURCE REGISTRY_INFO theInfo
 				IMPLEMENTATION_INFO
 					{
 					implementation_uid = IPSSOSIMAP4PLUGIN_IMPLEMENTATION_UID;
+					// <qmail>
 					version_no = 1;
+					// </qmail>
 					display_name = "FSEmail ECom plugin for imap4";
 					default_data = "";
 					opaque_data  = " ";
@@ -48,7 +51,9 @@ RESOURCE REGISTRY_INFO theInfo
 				IMPLEMENTATION_INFO
 					{
 					implementation_uid = IPSSOSPOP3PLUGIN_IMPLEMENTATION_UID;
+					// <qmail>
 					version_no = 1;
+					// </qmail>
 					display_name = "FSEmail ECom plugin for pop3";
 					default_data = "";
 					opaque_data  = " ";

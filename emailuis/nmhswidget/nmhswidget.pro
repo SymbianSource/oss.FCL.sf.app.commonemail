@@ -19,15 +19,15 @@ TEMPLATE = lib
 CONFIG += plugin hb mobility qtservice
 QTSERVICE.DESCRIPTOR = resources/nmhswidget.xml
 MOBILITY = serviceframework
-#win32: PLUGIN_SUBDIR = /hsresources/import/widgetregistry/2002DD15
-#symbian: PLUGIN_SUBDIR = /private/20022F35/import/widgetregistry/2002DD15
 TARGET = nmhswidget
 QT += core
 RESOURCES += nmhswidget.qrc
 LIBS += -lnmailbase \
         -lnmailuiengine \
-        -lxqservice
-
+        -lxqservice \
+        -leuser \
+        -llibc \
+        -lbafl
 symbian: {
 TARGET.UID3=0x2002DD15
 TARGET.VID = VID_DEFAULT
@@ -42,7 +42,8 @@ addFiles.path = xmldata
 DEPLOYMENT += addFiles
 
 BLD_INF_RULES.prj_exports += "resources/nmhswidget.xml 			z:/private/2002DD15/nmhswidget.xml"
-BLD_INF_RULES.prj_exports += "rom/nmhswidget.iby						CORE_APP_LAYER_IBY_EXPORT_PATH(nmhswidget.iby)"
+BLD_INF_RULES.prj_exports += "rom/nmhswidget.iby				CORE_APP_LAYER_IBY_EXPORT_PATH(nmhswidget.iby)"
+BLD_INF_RULES.prj_exports += "rom/nmhswidgetlanguage.iby 		LANGUAGE_APP_LAYER_IBY_EXPORT_PATH(nmhswidgetlanguage.iby)"
 TARGET.EPOCALLOWDLLDATA = 1
 }
 
@@ -52,21 +53,22 @@ SOURCES += src/nmhswidget.cpp \
     src/nmhswidgetemailengine.cpp \
     src/nmhswidgetemailrow.cpp \
     src/nmhswidgettitlerow.cpp \
-    src/nmhswidgetplugin.cpp
+    src/nmhswidgetplugin.cpp \
+    src/nmhswidgetdatetimeobserver.cpp \
+    src/nmhswidgetdatetimeobserver_p.cpp
 
 HEADERS += inc/nmhswidget.h \
     inc/nmhswidgetconsts.h \
     inc/nmhswidgetemailengine.h \
     inc/nmhswidgetemailrow.h \
     inc/nmhswidgettitlerow.h \
-    inc/nmhswidgetplugin.h 
+    inc/nmhswidgetplugin.h \
+    inc/nmhswidgetdatetimeobserver.h \
+    inc/nmhswidgetdatetimeobserver_p.h
 
 INCLUDEPATH += ./inc \
     ../../inc \
-    ./tsrc/nmhswidgettestapp/inc \
     ../nmailuiengine/inc \
     ../inc
 DEPENDPATH += .
-
-LIBS += -leuser
-LIBS += -llibc
+TRANSLATIONS = mailwidget.ts

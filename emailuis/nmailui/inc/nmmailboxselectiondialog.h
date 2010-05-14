@@ -24,6 +24,7 @@
 
 class HbDialog;
 class HbListView;
+class HbAction;
 class QGraphicsItem;
 class QStandardItemModel;
 class NmMailboxListModel;
@@ -38,25 +39,23 @@ public:
 
     NmMailboxSelectionDialog(NmMailboxListModel &mailboxListModel,
                              QGraphicsItem *parent = 0);
-
     virtual ~NmMailboxSelectionDialog();
-
-    bool exec(NmId& mailboxId);
-
+    void open();
 
 private slots:
 
     void itemActivated(QModelIndex index);
+    void dialogClosed(HbAction *action);
 
+signals:
+
+    void selectionDialogClosed(NmId &mailboxId);
 
 private:
 
     bool initializeUi();
-
     bool populateListItems();
-
     NmMailboxMetaData *mailboxMetaData(int index) const;
-
 
 private:
 

@@ -12,13 +12,9 @@
 TEMPLATE = lib
 TARGET = nmailuiwidgets
 CONFIG += hb
-QT += webkit
-QT += network
 DEFINES += BUILD_NMAILUIWIDGETS_DLL
-INCLUDEPATH += . \
-  ./inc \
-  ../../inc \
-  ../nmailui/inc
+INCLUDEPATH += ./inc \
+  ../../inc
 
 HEADERS += inc/nmailuiwidgetsheaders.h \
            inc/nmailuiwidgetsdef.h \
@@ -36,18 +32,9 @@ SOURCES += src/nmbaseviewscrollarea.cpp \
            src/nmattachmentlistwidget.cpp \
            src/nmattachmentlistitem.cpp
 
-LIBS += -leuser
-LIBS += -llibc
-
 symbian*: {
     INCLUDEPATH += $$APP_LAYER_SYSTEMINCLUDE
     
-    INCLUDEPATH += /epoc32/include \
-                   /epoc32/include/app \
-                   /epoc32/include/mw \
-                   /sf/mw/qtextensions/qthighway/inc \
-                   /sf/mw/qtextensions/qtmobileextensions/include 
-
     TARGET.EPOCALLOWDLLDATA = 1
     TARGET.CAPABILITY = CAP_GENERAL_DLL
     TARGET.UID2 = 0x1000008D

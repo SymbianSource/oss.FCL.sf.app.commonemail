@@ -235,7 +235,7 @@ private:
      * Sets the fetch state of the FS message objects based on the state
      * of TMsvEmailEntry instance
      */
-    void SetFetchState( 
+    void SetFetchStateL( 
         const TMsvEmailEntry& aEntry, 
         TMsvId aMsgMainId,
         TBool aIsAtta, 
@@ -244,7 +244,7 @@ private:
     /**
      * Sets the fetch state of imap message entry
      */
-    void SetFetchStateImap( 
+    void DoSetFetchStateL( 
             const TMsvEmailEntry& aEntry, 
             TMsvId aMsgMainId,
             TBool aIsAtta, 

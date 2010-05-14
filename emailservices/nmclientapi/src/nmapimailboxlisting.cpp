@@ -14,65 +14,70 @@
  * Description:
  *
  */
+
+#include <nmapimailboxlisting.h>
+
+#include <QObject>
+
+#include <nmapimailbox.h>
 #include "nmapiengine.h"
 #include "nmapimailboxlisting_p.h"
-#include "nmapimailboxlisting.h"
+
 
 namespace EmailClientApi
 {
 
 /*!
- * \class Class for creating list of all mailboxes
+   \class Class for creating list of all mailboxes
  */
 
 /*!
- * Constructor of class. It set start values.
+   Constructor of class. It set start values.
  */
-NmMailboxListing::NmMailboxListing(QObject *parent) :
-    NmMessageTask(parent)
+NmApiMailboxListing::NmApiMailboxListing(QObject *parent) :
+    NmApiMessageTask(parent)
 {
-    mNmMailboxListingPrivate = new NmMailboxListingPrivate(this);
-    mNmMailboxListingPrivate->mIsRunning = false;
+    mNmApiMailboxListingPrivate = new NmApiMailboxListingPrivate(this);
+    mNmApiMailboxListingPrivate->mIsRunning = false;
 }
 
 /*!
- * Destructor of class. It release engine to be safe if manual releasing won't work.
+   Destructor of class. It release engine to be safe if manual releasing won't work.
  */
-NmMailboxListing::~NmMailboxListing()
+NmApiMailboxListing::~NmApiMailboxListing()
 {
-    if (mNmMailboxListingPrivate->mIsRunning) {
-        mNmMailboxListingPrivate->releaseEngine();
+    if (mNmApiMailboxListingPrivate->mIsRunning) {
+        mNmApiMailboxListingPrivate->releaseEngine();
     }
-    delete mNmMailboxListingPrivate;
 }
 
 /*! 
- * \brief Returns results after mailboxesListed signal is received.
- * 
- *  Caller gets ownership of messages. Returns true if results were available.
- *  It clears list of mailboxes (in private members) after be called.
- *  It also at start clear inputlist of NmMailbox.
- *  
- *  \return Return true if results were avaible
- *  \arg List of mailboxes to filled. On start is cleared. 
+   \brief Returns results after mailboxesListed signal is received.
+   
+    Caller gets ownership of messages. Returns true if results were available.
+    It clears list of mailboxes (in private members) after be called.
+    It also at start clear inputlist of NmApiMailbox.
+    
+    \return Return true if results were avaible
+    \param mailboxes List of mailboxes to filled. On start is cleared. 
  */
-bool NmMailboxListing::getMailboxes(QList<EmailClientApi::NmMailbox> &mailboxes)
+bool NmApiMailboxListing::getMailboxes(QList<EmailClientApi::NmApiMailbox> &mailboxes)
 {
     mailboxes.clear();
 
     bool result = false;
 
-    if (!mNmMailboxListingPrivate->mIsRunning) {
+    if (!mNmApiMailboxListingPrivate->mIsRunning) {
         result = false;
     }
     else
-        if (mNmMailboxListingPrivate->mMailboxes.isEmpty()) {
+        if (mNmApiMailboxListingPrivate->mMailboxes.isEmpty()) {
             result = false;
         }
         else {
-            mailboxes = mNmMailboxListingPrivate->mMailboxes;
+            mailboxes = mNmApiMailboxListingPrivate->mMailboxes;
 
-            mNmMailboxListingPrivate->mMailboxes.clear();
+            mNmApiMailboxListingPrivate->mMailboxes.clear();
 
             result = true;
         }
@@ -80,36 +85,36 @@ bool NmMailboxListing::getMailboxes(QList<EmailClientApi::NmMailbox> &mailboxes)
 }
 
 /*!
- * \brief Starts gathering mailbox list.
- * 
- * In first turn it will get whole mailboxlist. 
- * Then it initialize core arguments and emits signal when ready.
- * 
- * To asynchronous operation can be used \sa QTimer::singleShot on this method.
- * Example:
- * <code> 
- * QTimer::singleShot(0,nmMailboxListing,SLOT(start());
- * </code>
- * 
- * \return Return true if everything go good and core of listing works good.
- * 
+   \brief Starts gathering mailbox list.
+   
+   In first turn it will get whole mailboxlist. 
+   Then it initialize core arguments and emits signal when ready.
+   
+   To asynchronous operation can be used \sa QTimer::singleShot on this method.
+   Example:
+   <code> 
+   QTimer::singleShot(0,nmMailboxListing,SLOT(start());
+   </code>
+   
+   \return Return true if everything go good and core of listing works good.
+   
  */
-bool NmMailboxListing::start()
+bool NmApiMailboxListing::start()
 {
     bool result = false;
-    if (mNmMailboxListingPrivate->mIsRunning) {
+    if (mNmApiMailboxListingPrivate->mIsRunning) {
         result = true;
     }
     else
-        if (!mNmMailboxListingPrivate->initializeEngine()) {
+        if (!mNmApiMailboxListingPrivate->initializeEngine()) {
             QMetaObject::invokeMethod(this, "mailboxesListed", Qt::QueuedConnection, Q_ARG(qint32,
                 (qint32) MailboxListingFailed));
             result = false;
         }
         else {
-            quint64 mailboxCount = mNmMailboxListingPrivate->grabMailboxes();
+            qint32 mailboxCount = mNmApiMailboxListingPrivate->grabMailboxes();
 
-            mNmMailboxListingPrivate->mIsRunning = true;
+            mNmApiMailboxListingPrivate->mIsRunning = true;
 
             QMetaObject::invokeMethod(this, "mailboxesListed", Qt::QueuedConnection, Q_ARG(qint32,
                 mailboxCount));
@@ -120,32 +125,32 @@ bool NmMailboxListing::start()
 }
 
 /*!
- * \brief Stop gathering mailbox list.
- * 
- * In first it change state of listing.
- * Then it release engine.
- * On end it clears list of mailboxes and emits \sa NmMessageTask::canceled() signal.
+   \brief Stop gathering mailbox list.
+   
+   In first it change state of listing.
+   Then it release engine.
+   On end it clears list of mailboxes and emits \sa NmApiMessageTask::canceled() signal.
  */
-void NmMailboxListing::cancel()
+void NmApiMailboxListing::cancel()
 {
-    if (mNmMailboxListingPrivate->mIsRunning) {
+    if (mNmApiMailboxListingPrivate->mIsRunning) {
 
-        mNmMailboxListingPrivate->mIsRunning = false;
-        mNmMailboxListingPrivate->releaseEngine();
-        mNmMailboxListingPrivate->mMailboxes.clear();
+        mNmApiMailboxListingPrivate->mIsRunning = false;
+        mNmApiMailboxListingPrivate->releaseEngine();
+        mNmApiMailboxListingPrivate->mMailboxes.clear();
 
         QMetaObject::invokeMethod(this, "canceled", Qt::QueuedConnection);
     }
 }
 
 /*!
- * \brief Return info if listing is running
- * 
- * \return Return true if listing is running
+   \brief Return info if listing is running
+   
+   \return Return true if listing is running
  */
-bool NmMailboxListing::isRunning() const
+bool NmApiMailboxListing::isRunning() const
 {
-    return mNmMailboxListingPrivate->mIsRunning;
+    return mNmApiMailboxListingPrivate->mIsRunning;
 }
 
 }

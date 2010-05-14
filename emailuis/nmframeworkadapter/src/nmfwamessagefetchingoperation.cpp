@@ -15,17 +15,14 @@
  *
  */
 
-#include "nmfwamessagefetchingoperation.h"
 #include "nmframeworkadapterheaders.h"
 
 NmFwaMessageFetchingOperation::NmFwaMessageFetchingOperation(
     const NmId &mailboxId,
     const NmId &folderId,
     const NmId &messageId,
-    CFSMailClient &mailClient,
-    QObject *parent) :
-        NmOperation(parent),
-        mMailboxId(mailboxId),
+    CFSMailClient &mailClient) 
+      : mMailboxId(mailboxId),
         mFolderId(folderId),
         mMessageId(messageId),
         mMailClient(mailClient),
@@ -37,6 +34,7 @@ NmFwaMessageFetchingOperation::NmFwaMessageFetchingOperation(
 NmFwaMessageFetchingOperation::~NmFwaMessageFetchingOperation()
 {
     doCancelOperation();
+    NMLOG("NmFwaMessageFetchingOperation::~NmFwaMessageFetchingOperation --->");
 }
 
 void NmFwaMessageFetchingOperation::doRunAsyncOperation()
@@ -82,7 +80,7 @@ void NmFwaMessageFetchingOperation::RequestResponseL(TFSProgress aEvent, TInt aR
             completeOperation(NmNoError);
         }
         else if (aEvent.iProgressStatus == TFSProgress::EFSStatus_RequestCancelled) {
-            operationCancelled();
+            completeOperation(NmCancelError); 
         }
     }
 }

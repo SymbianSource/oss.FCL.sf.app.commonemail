@@ -16,84 +16,83 @@
  */
 
 
+#include <nmapicommonheader.h>
+
 #include "nmapitypesconverter.h"
-#include "nmapidataplugininterface.h"
+#include "nmdataplugininterface.h"
 #include "nmapidatapluginfactory.h"
 #include "nmapiengine.h"
 
+/*!
+    from nmailbase
+*/
+#include "nmapiprivateheaders.h"
 
-NmEngine *NmEngine::mInstance = NULL;
-quint32 NmEngine::mReferenceCount = 0;
+NmApiEngine *NmApiEngine::mInstance = NULL;
+quint32 NmApiEngine::mReferenceCount = 0;
 
 /*!
- \class NmEngine
- \brief The NmEngine class provides access to data for
- mailboxes, folders and messages. If the dataplugin can't be loaded, fatal assert is called.
-
+   \class NmApiEngine
+   \brief The NmEngine class provides access to data for
+   mailboxes, folders and messages.
  */
 
 /*!
- Private constructor
+   Private constructor
  */
-NmEngine::NmEngine() :
+NmApiEngine::NmApiEngine() :
     mFactory(NULL)
 {
-    mFactory = NmDataPluginFactory::instance();
-    Q_ASSERT(mFactory->pluginInstances()->count() > 0);
+    mFactory = NmApiDataPluginFactory::instance();
 }
 
 /*!
- Destructor
+  Destructor
  */
-NmEngine::~NmEngine()
+NmApiEngine::~NmApiEngine()
 {
-    NmDataPluginFactory::releaseInstance(mFactory);
+    NmApiDataPluginFactory::releaseInstance(mFactory);
 }
 
 /*!
- * Creates instance of NmEngine and prvide pointer to it.
- * 
- * If engine exist, it increase references count and provide pointer to it.
- * 
- * \return Instance of engine
+   Creates instance of NmApiEngine and provide pointer to it.
+   
+   If engine exist, it increase references count and provide pointer to it.
+   
+   \return Instance of engine
  */
-NmEngine* NmEngine::instance()
+NmApiEngine *NmApiEngine::instance()
 {
     if (!mInstance) {
-        mInstance = new NmEngine();
+        mInstance = new NmApiEngine();
     }
     mReferenceCount++;
     return mInstance;
 }
 
 /*!
- * Creates connections for events from email store.
+   Creates connections for events from email store.
  */
-void NmEngine::startCollectingEvents()
+void NmApiEngine::startCollectingEvents()
 {
-    QList<QObject*>* pluginList = mFactory->pluginInstances();
-    for (int i = 0; i < pluginList->count(); i++) {
-        QObject* plugin = pluginList->at(i);
-
-        QObject::connect(plugin, SIGNAL(messageEvent(NmMessageEvent, NmId, QList<NmId> , NmId)),
-            this, SLOT(messageChangedArrived(NmMessageEvent, NmId, QList<NmId> , NmId)),
-            Qt::UniqueConnection);
+    QObject *plugin = mFactory->plugin();
+    if(plugin){
+        connect(plugin, SIGNAL(messageEvent(NmMessageEvent, NmId, QList<NmId> , NmId)), this,
+            SLOT(messageChangedArrived(NmMessageEvent, NmId, QList<NmId> , NmId)), Qt::UniqueConnection);
 
         connect(plugin, SIGNAL(mailboxEvent(NmMailboxEvent, QList<NmId> )), this, SLOT(
             mailboxChangedArrived(NmMailboxEvent, QList<NmId> )), Qt::UniqueConnection);
-
     }
-
 }
 
 /*!
- * It process mailbox ids from email store for given event.
- * On end it emit \sa emailStoreEvent
- * 
- * \arg Event of mailbox change
- * \arg List of mailbox ids for that event 
+   It process mailbox ids from email store for given event.
+   On end it emit \sa emailStoreEvent
+   
+   \arg Event of mailbox change
+   \arg List of mailbox ids for that event 
  */
-void NmEngine::mailboxChangedArrived(NmMailboxEvent mailboxEvent, const QList<NmId> &mailboxIds)
+void NmApiEngine::mailboxChangedArrived(NmMailboxEvent mailboxEvent, const QList<NmId> &mailboxIds)
 {
     NmApiMessage message;
     message.objectType = EMailbox;
@@ -125,13 +124,15 @@ void NmEngine::mailboxChangedArrived(NmMailboxEvent mailboxEvent, const QList<Nm
 }
 
 /*!
- * It process message ids from email store for given event.
- * On end it emit \sa emailStoreEvent
- * 
- * \arg Event of message change
- * \arg List of message ids for that event 
+   It process message ids from email store for given event.
+   On end it emit \sa emailStoreEvent
+   
+   \param messageEvent Event of message change
+   \param folderId Id of folder from where are messages
+   \param messageIds List of message ids for that event 
+   \param mailboxId Id of mailbox from where are messages
  */
-void NmEngine::messageChangedArrived(
+void NmApiEngine::messageChangedArrived(
     NmMessageEvent messageEvent,
     const NmId &folderId,
     const QList<NmId> &messageIds,
@@ -167,12 +168,12 @@ void NmEngine::messageChangedArrived(
 }
 
 /*!
- * Release instance of engine if there are not referenced objects. 
- * If there are refenced objects it only decrease refenced count.
- * 
- * \arg Instance of engine
+   Release instance of engine if there are not referenced objects. 
+   If there are refenced objects it only decrease refenced count.
+   
+   \param instance Instance of engine
  */
-void NmEngine::releaseInstance(NmEngine *&instance)
+void NmApiEngine::releaseInstance(NmApiEngine *&instance)
 {
     //can't have passed out instances if we don't have any
     if (mInstance) {
@@ -188,79 +189,77 @@ void NmEngine::releaseInstance(NmEngine *&instance)
 }
 
 /*!
- *    It get all mailboxes from email store
- *    
- *    \sa EmailClientApi::NmMailbox
- *    \arg List of mailboxes to be filled.
+      It get all mailboxes from email store
+      
+      \sa EmailClientApi::NmMailbox
+      \param mailboxList List of mailboxes to be filled.
  */
-void NmEngine::listMailboxes(QList<EmailClientApi::NmMailbox> &mailboxList)
+void NmApiEngine::listMailboxes(QList<EmailClientApi::NmApiMailbox> &mailboxList)
 {
     QList<NmMailbox*> mailboxFromPlugin;
-    int count = mFactory->pluginInstances()->count();
-    for (int i = 0; i < count; i++) {
-        NmDataPluginInterface *instance = mFactory->interfaceInstance(
-            mFactory->pluginInstances()->at(i));
-        if (instance) {
-            instance->listMailboxes(mailboxFromPlugin);
-        }
+
+    NmDataPluginInterface *instance =  mFactory->interfaceInstance();
+    if (instance) {
+        instance->listMailboxes(mailboxFromPlugin);
     }
+
     while (mailboxFromPlugin.isEmpty() == false) {
-        NmMailbox* tempNmMailbox = mailboxFromPlugin.takeFirst();
-        mailboxList << NmToApiConverter::NmMailbox2ApiNmMailbox(*tempNmMailbox);
+        NmMailbox* tempNmMailbox = mailboxFromPlugin.takeLast();
+        mailboxList << NmToApiConverter::NmMailbox2NmApiMailbox(*tempNmMailbox);
         delete tempNmMailbox;
     }
 }
 
 /*!
- *    It get all folders from email store for given mailbox
- *    
- *    \sa EmailClientApi::NmFolder
- *    \arg Mailbox id from where folders should be returned
- *    \arg List of folders to be filled.
+      It get all folders from email store for given mailbox
+      
+      \sa EmailClientApi::NmApiFolder
+      \param mailboxId Mailbox id from where folders should be returned
+      \param folderList  of folders to be filled.
  */
-void NmEngine::listFolders(const quint64 mailboxId, QList<EmailClientApi::NmFolder> &folderList)
+void NmApiEngine::listFolders(const quint64 mailboxId, QList<EmailClientApi::NmApiFolder> &folderList)
 {
     QList<NmFolder*> folderFromPlugin;
-    NmDataPluginInterface *instance = mFactory->interfaceInstance(mailboxId);
+    NmDataPluginInterface *instance = mFactory->interfaceInstance();
     if (instance) {
         instance->listFolders(mailboxId, folderFromPlugin);
     }
 
     while (folderFromPlugin.isEmpty() == false) {
-        NmFolder* tempNmFolder = folderFromPlugin.takeFirst();
-        folderList << NmToApiConverter::NmFolder2ApiNmFolder(*tempNmFolder);
+        NmFolder* tempNmFolder = folderFromPlugin.takeLast();
+        folderList << NmToApiConverter::NmFolder2NmApiFolder(*tempNmFolder);
         delete tempNmFolder;
     }
 }
 
 /*!
- *    It get all envelopes from email store for given mailbox and folder
- *    
- *    \sa EmailClientApi::NmMessageEnvelope
- *    \arg Mailbox id from where envelope should be returned
- *    \arg Folder id from where envelope should be returned
- *    \arg List of envelopes to be filled.
+      It get all envelopes from email store for given mailbox and folder
+      
+      \sa EmailClientApi::NmApiMessageEnvelope
+      \param mailboxId Mailbox id from where envelope should be returned
+      \param folderId Folder id from where envelope should be returned
+      \param messageEnvelopeList List of envelopes to be filled.
  */
-void NmEngine::listEnvelopes(const quint64 mailboxId, const quint64 folderId, QList<
-    EmailClientApi::NmMessageEnvelope> &messageEnvelopeList)
+void NmApiEngine::listEnvelopes(const quint64 mailboxId, const quint64 folderId, 
+                    QList<EmailClientApi::NmApiMessageEnvelope> &messageEnvelopeList)
 {
-    QList<NmMessageEnvelope*> envelopes;
-    NmDataPluginInterface *instance = mFactory->interfaceInstance(folderId);
+    QList<NmMessage*> messages;
+    NmDataPluginInterface *instance = mFactory->interfaceInstance();
     if (instance) {
-        instance->listMessages(mailboxId, folderId, envelopes);
+        instance->listMessages(mailboxId, folderId, messages);
     }
 
-    while (!envelopes.isEmpty()) {
-        NmMessageEnvelope* env = envelopes.takeFirst();
-
-        EmailClientApi::NmMessageEnvelope nmEnvelope =
-            NmToApiConverter::NmMessageEnvelope2ApiEnvelope(*env);
-        NmMessage* message = new NmMessage();
-        instance->getMessageById(mailboxId, folderId, nmEnvelope.id(), message);
-
+    while (!messages.isEmpty()) {
+        NmMessage* message = messages.takeFirst();
+            
+        EmailClientApi::NmApiMessageEnvelope nmEnvelope =
+            NmToApiConverter::NmMessageEnvelope2NmApiMessageEnvelope(message->envelope());
+        
+        NmMessagePart *plainTextPart = message->plainTextBodyPart();
+        
         QString plainText = QString();
-        if (message->plainTextBodyPart()) {
-            plainText = message->plainTextBodyPart()->textContent();
+        if (plainTextPart) {
+            plainText = plainTextPart->textContent();
         }
 
         nmEnvelope.setPlainText(plainText);
@@ -268,69 +267,80 @@ void NmEngine::listEnvelopes(const quint64 mailboxId, const quint64 folderId, QL
         nmEnvelope.setTotalSize(message->size());
 
         messageEnvelopeList << nmEnvelope;
-        delete env;
+        delete message;
     }
 }
 
 /*!
- * Return envelope given by mailbox, folder and envelope id.
- * 
- * \arg Mailbox id from where envlope should come
- * \arg Folder id from where envlope should come
- * \arg Id of envelope which should be returned
- * \arg Envelope to fill.
- * 
- * \return Return true if it will find any envelope
+   Return envelope given by mailbox, folder and envelope id.
+   
+   \param mailboxId Mailbox id from where envlope should come
+   \param folderId Folder id from where envlope should come
+   \param folderId Id of envelope which should be returned
+   \param envelope Envelope to fill.
+   
+   \return Return true if it will find any envelope
  */
-bool NmEngine::envelopeById(
+bool NmApiEngine::getEnvelopeById(
     const quint64 mailboxId,
     const quint64 folderId,
     const quint64 envelopeId,
-    EmailClientApi::NmMessageEnvelope& envelope)
+    EmailClientApi::NmApiMessageEnvelope &envelope)
 {
-    QList<EmailClientApi::NmMessageEnvelope> envelopes;
-    listEnvelopes(mailboxId, folderId, envelopes);
-
     //flag indicating that envelope with given id was found
     bool found = false;
+    NmDataPluginInterface *instance = mFactory->interfaceInstance();
+    if (instance) {
+        NmMessage *message(NULL);
+        instance->getMessageById(mailboxId, folderId, envelopeId, message);
+        if(message){
+            NmMessageEnvelope env = message->envelope();
 
-    for (int i = 0; i < envelopes.count(); i++) {
-        if (envelopes.at(i).id() == envelopeId) {
-            envelope = envelopes.at(i);
+            envelope = NmToApiConverter::NmMessageEnvelope2NmApiMessageEnvelope(env);
+            QString plainText = QString();
+            
+            NmMessagePart *plainTextPart = message->plainTextBodyPart();
+            if (plainTextPart) {
+                instance->contentToMessagePart(mailboxId, folderId, envelopeId, *plainTextPart);
+                plainText = plainTextPart->textContent();
+            }
+
+            envelope.setPlainText(plainText);
+            envelope.setFetchedSize(message->fetchedSize());
+            envelope.setTotalSize(message->size());
+
             found = true;
-            break;
+            delete plainTextPart;
         }
+        delete message;
     }
-
-    return found ? true : false;
+    return found;
 }
 
 /*!
- * Return mailbox given by mailbox id.
- * 
- * \arg Id of Mailbox which should be returned
- * \arg Mailbox to fill.
- * 
- * \return Return true if it will find any envelope
+   Return mailbox given by mailbox id.
+   
+   \param mailboxId Id of Mailbox which should be returned
+   \param mailbox Mailbox to fill.
+   
+   \return Return true if it will find any envelope
  */
-bool NmEngine::mailboxById(const quint64 mailboxId, EmailClientApi::NmMailbox &mailbox)
+bool NmApiEngine::getMailboxById(const quint64 mailboxId, EmailClientApi::NmApiMailbox &mailbox)
 {
-    NmDataPluginInterface *instance = mFactory->interfaceInstance(mailboxId);
+    //flag indicating that mailbox with given id was found
+    bool found = false;
+    NmDataPluginInterface *instance = mFactory->interfaceInstance();
 
-    if (!instance) {
-        return false;
+    if (instance) {    
+        NmMailbox *nmmailbox = NULL;
+        instance->getMailboxById(NmId(mailboxId), nmmailbox);
+    
+        if (nmmailbox) {
+            mailbox = NmToApiConverter::NmMailbox2NmApiMailbox(*nmmailbox);
+            found = true;
+            delete nmmailbox;
+        }
     }
-
-    NmMailbox *nmmailbox;
-    instance->getMailboxById(NmId(mailboxId), nmmailbox);
-
-    if (!nmmailbox) {
-        return false;
-    }
-
-    mailbox = NmToApiConverter::NmMailbox2ApiNmMailbox(*nmmailbox);
-
-    return true;
-
+    
+    return found;
 }
-

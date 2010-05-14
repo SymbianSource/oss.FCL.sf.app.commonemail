@@ -21,10 +21,12 @@
 
 #include <smtcmtm.h>
 #include "ipsplgcommon.h"
+// <qmail>
 #include "ipsplgbaseoperation.h"
 
 class CClientMtmRegistry;
 class MFSMailRequestObserver;
+// </qmail>
 
 /**
  *  Class for smtp related operations
@@ -32,9 +34,12 @@ class MFSMailRequestObserver;
  *  @lib ipssosplugin.lib
  *  @since FS 1.0
  */
-//should this class inherited from online operation
+// <qmail> base class changed: CMsvOperation -> CIpsPlgBaseOperation, MIpsPlgConnectOpCallback removed
 NONSHARABLE_CLASS( CIpsPlgSmtpOperation ) : public CIpsPlgBaseOperation
     {
+
+// <qmail> CredientialsSetL removed 
+
 public:
 
     /**
@@ -43,7 +48,7 @@ public:
      * @since FS 1.0
      * @return None
      */
-    // <qmail> priority parameter has been removed
+    // <qmail> aPriority, aUsePublishSubscribe parameters removed, aFSOperationObserver, aFSRequestId added
     IMPORT_C static CIpsPlgSmtpOperation* NewL( 
         CMsvSession& aMsvSession, 
         TRequestStatus& aObserverRequestStatus,
@@ -56,7 +61,7 @@ public:
      * @since FS 1.0
      * @return None
      */
-    // <qmail> priority parameter has been removed
+    // <qmail> aPriority, aUsePublishSubscribe parameters removed, aFSOperationObserver, aFSRequestId added
     IMPORT_C static CIpsPlgSmtpOperation* NewLC(
         CMsvSession& aMsvSession, 
         TRequestStatus& aObserverRequestStatus,
@@ -76,15 +81,18 @@ public:
      */ 
     virtual const TDesC8& ProgressL();
     
+// <qmail>
     virtual const TDesC8& GetErrorProgressL( TInt aError );
 
     virtual TFSProgress GetFSProgressL() const;
+// </qmail>
 
-    // <qmail> change ret val type
+// <qmail> change ret val type
     /**
      * Returns operation type
      */
     TIpsOpType IpsOpType() const;
+// </qmail>
 
     /**
      * Stard sending operation
@@ -98,6 +106,11 @@ public:
     IMPORT_C TInt EmptyOutboxFromPendingMessagesL( TMsvId aMailboxId );
 
     IMPORT_C CMsvEntrySelection* GetOutboxChildrensL( );
+
+	/**
+	 *  Sets CIpsPlgEventHandler
+	 */
+	void SetEventHandler( TAny* aEventHandler );
     
 protected:
 
@@ -107,13 +120,13 @@ protected:
      * @since FS 1.0
      * @return None
      */
-    // <qmail> priority parameter has been removed
+    // <qmail> aPriority parameter removed, aFSOperationObserver, aFSRequestId added
     CIpsPlgSmtpOperation( 
         CMsvSession& aMsvSession, 
         TRequestStatus& aObserverRequestStatus,
         MFSMailRequestObserver* aFSOperationObserver,
         TInt aFSRequestId );
-
+    
     /**
      * Constructor for leaving methods
      *
@@ -122,12 +135,25 @@ protected:
      */    
     void ConstructL( );
 
+    /**
+     * Completes observer with status aStatus
+     * @param aStatus: Status of the operation.
+     */
+    void CompleteObserver( TInt aStatus = KErrNone );
+
+    /**
+     * Completes itself with KErrNone status
+     */
+    void CompleteThis();
+
 private: // From CActive
 
     enum TIpsSendState
         {
-        EMovingOutbox,
-        ESending
+        EIdle,
+        EMovingOutbox,          // moving mail to OutBox folder
+        ESending                // sending mail
+		// <qmail> EQueryingDetails, EQueryingDetailsBusy removed
         };
 
     /**
@@ -137,7 +163,9 @@ private: // From CActive
      */
     void RunL( );
 
+// <qmail>
     TInt RunError( TInt aError );
+// </qmail>
 
     void DoCancel( );
     
@@ -166,7 +194,8 @@ private: // From CActive
      * @param aRecipients array of addresses
      */
     void ValidateAddressArrayL( const CDesCArray& aRecipients );
-    
+
+	// <qmail> QueryUserPassL() function removed
 private:
 
     CSmtpClientMtm*         iSmtpMtm;
@@ -175,8 +204,12 @@ private:
     CClientMtmRegistry*     iMtmRegistry;
     TInt                    iState;
     TMsvId                  iSmtpService;
+// <qmail>
     MFSMailRequestObserver* iFSOperationObserver;
     TFSProgress             iFSProgress;
+// </qmail>
+	// not owned
+    TAny*               	iEventHandler; // pointer to CIpsPlgEventHandler
     };
 
 #endif /* IPSPLGSENDOPERATION_H */

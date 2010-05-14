@@ -24,18 +24,16 @@
 #include <impcmtm.h>
 #include <msvapi.h>
 #include <AlwaysOnlineManagerCommon.h>
-//<cmail>
 #include "CFSMailCommon.h"
-//</cmail>
-
 
 #include "IpsSosAOImapAgent.h"
 #include "IpsSosAOImapPopLogic.h"
 
 
-// from settings
 //<QMail>
+#include "IpsSosAOSettingsHandler.h"
 
+const TInt KIpsSetDataHeadersOnly           = -2;
 //</QMail>
 
 // from ipsplugin
@@ -187,7 +185,13 @@ void CIpsSosAOImapAgent::RunL()
              break;
          case EStateRefreshFolderArray:
 			 //<QMail>
-             //iDataApi->GetSubscribedImapFoldersL( iServiceId , iFoldersArray );
+             {
+             CIpsSosAOSettingsHandler* settings = 
+                     CIpsSosAOSettingsHandler::NewL(iSession, iServiceId);
+             CleanupStack::PushL(settings);
+             settings->GetSubscribedImapFoldersL( iServiceId , iFoldersArray );
+             CleanupStack::PopAndDestroy(settings);
+             }             
 			 //</QMail>
              iState = EStatePopulateAll;
              SetActiveAndCompleteThis();
@@ -475,8 +479,12 @@ void CIpsSosAOImapAgent::PopulateAllL()
     {
     FUNC_LOG;
     TImImap4GetPartialMailInfo info;
-	//<QMail>
-    //CIpsSetDataApi::ConstructImapPartialFetchInfo( info, *iImapSettings );
+    //<QMail>
+    CIpsSosAOSettingsHandler* settings = 
+             CIpsSosAOSettingsHandler::NewL(iSession, iServiceId);
+     CleanupStack::PushL(settings);
+     settings->ConstructImapPartialFetchInfo( info, *iImapSettings );
+     CleanupStack::PopAndDestroy(settings);	
 	//</QMail>
     
     if ( !IsConnected() )
@@ -485,8 +493,8 @@ void CIpsSosAOImapAgent::PopulateAllL()
         CancelAllAndDisconnectL();
         }
 	//<QMail>
-    else if ( iFoldersArray.Count())// > 0 && info.iTotalSizeLimit 
-            //!= KIpsSetDataHeadersOnly )
+    else if ( iFoldersArray.Count() > 0 && info.iTotalSizeLimit 
+            != KIpsSetDataHeadersOnly )
 	//</QMail>
          {
 
@@ -504,18 +512,19 @@ void CIpsSosAOImapAgent::PopulateAllL()
          iImapClientMtm->SwitchCurrentEntryL( iServiceId );
          TFSMailMsgId mbox( KIpsPlgImap4PluginUidValue, iServiceId );
          iStatus = KRequestPending;
+		 //<Qmail>
          iOngoingOp = CIpsPlgImap4PopulateOp::NewL(
-             iSession,
-             this->iStatus,
-             iServiceId,
-             *dummy,
-             info,
-             *sel,
-             mbox,
-             this,
-             0,
-             NULL );
-         
+                 iSession,
+                 this->iStatus,
+                 iServiceId,
+                 *dummy,
+                 info,
+                 *sel,
+                 mbox,
+                 this,
+                 0,
+                 NULL );
+         //</Qmail>
          iFoldersArray.Remove( 0 );
          SetActive();
          iState = EStatePopulateAll;

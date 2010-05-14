@@ -14,10 +14,9 @@
 * Description:
 *
 */
-
-
 #include "nmmailagentheaders.h"
 #include "nmmailagent.h"
+#include "ssastartupwatcher.h"
 
 #ifdef __WINSCW__
 const int NmStartupDelay = 14000; // 14s
@@ -25,17 +24,38 @@ const int NmStartupDelay = 14000; // 14s
 const int NmStartupDelay = 4000; // 4s
 #endif
 
+NmMailAgent *agent = NULL;
 
 /*!
-	int main
+    Callback for reporting startup state
+*/
+static void startupCallback(int status)
+{
+    NMLOG(QString("nmailagent: startupCallback %1").arg(status));
+    Q_UNUSED(status);
+
+    // either it is an error or 'non critical startup' state has been reached
+    // Start the agent in both cases
+    QTimer::singleShot(NmStartupDelay, agent, SLOT(delayedStart()));
+}
+
+/*!
+	main
 */
 int main(int argc, char *argv[])
 {
     QCoreApplication app(argc, argv);
-    NmMailAgent agent;
 
-    // Agent will be initialised with a delay to avoid startup problems
-    QTimer::singleShot(NmStartupDelay, &agent, SLOT(delayedStart()));
+    agent = new NmMailAgent;
 
-    return app.exec();
+    CSSAStartupWatcher *startupWatcher = CSSAStartupWatcher::New(startupCallback);
+    if (!startupWatcher) {
+        NMLOG("nmmailagent - watcher start failed");
+        QTimer::singleShot(NmStartupDelay, agent, SLOT(delayedStart()));
+    }
+
+    int retValue = app.exec();
+    delete startupWatcher;
+    delete agent;
+    return retValue;
 }

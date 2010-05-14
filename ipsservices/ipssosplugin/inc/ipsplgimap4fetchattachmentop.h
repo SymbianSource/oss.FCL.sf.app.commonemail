@@ -33,10 +33,13 @@ public:
     */
     static CIpsFetchProgReport* NewL( CIpsPlgImap4FetchAttachmentOp& aAttaOp );
 
+	// <qmail> destructor made virtual
     virtual ~CIpsFetchProgReport();
 
 protected: // From CActive
+
     virtual void DoCancel();
+	
     virtual void RunL();
 
 private:
@@ -71,6 +74,8 @@ public:
     * @param aFSRequestId identifier for this instance of operation, assigned by the client
     * @return CIpsPlgImap4FetchAttachmentOp* self pointer
     */
+	// <qmail> CMsvEntrySelection& changed to pointer, aFunctionId removed
+	// <qmail> MFSMailRequestObserver& changed to pointer
     static CIpsPlgImap4FetchAttachmentOp* NewL(
         CMsvSession& aMsvSession,
         TRequestStatus& aObserverRequestStatus,
@@ -81,6 +86,10 @@ public:
         MFSMailRequestObserver* aFSOperationObserver,
         TInt aFSRequestId );
 
+    /**
+    * ~CIpsPlgImap4FetchAttachmentOp()
+    * destructor
+    */
     virtual ~CIpsPlgImap4FetchAttachmentOp();
 
     /**
@@ -99,6 +108,8 @@ public:
     TFSProgress GetFSProgressL() const;
     
 private:
+	// <qmail> CMsvEntrySelection& changed to pointer, aFunctionId removed
+	// <qmail> MFSMailRequestObserver& changed to pointer
     CIpsPlgImap4FetchAttachmentOp(
         CMsvSession& aMsvSession,
         TRequestStatus& aObserverRequestStatus,
@@ -135,23 +146,34 @@ private:
     
 protected:
     
+	// <qmail> GetEngineProgress removed
     void DoFetchAttachmentL( );
         
+// <qmail>
 private: //Data
     friend class CIpsFetchProgReport;
+// <qmail>
 
     // internal state of this statemachine
     enum TFetchState {
         EStateIdle,
         EStateConnecting,
         EStateFetching,
+		EStateWaiting,
         EStateDisconnecting };
     TFetchState iState;
         
     const CMsvEntrySelection*               iSelection;
     TDesC8*                                 iFetchErrorProgress;
+	// <qmail> iGetMailInfo, iFunctionId removed
     TPckgBuf<TImap4CompoundProgress>        iProgress;
+	// <qmail> iService, iPopulated removed
     CIpsFetchProgReport*                    iProgReport;
+    // Temporary fix for handling KErrServerBusy errors from the
+    // messaging service.  Remove these once the appropriate observer
+    // mechanism has been implemented in the messaging service.
+    TInt                                    iRetryCount;
+    RTimer                                  iRetryTimer;
     };
 
 #endif // IPSPLGIMAP4FETCHATTACHMENTOP_H

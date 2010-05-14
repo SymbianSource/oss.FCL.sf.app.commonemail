@@ -15,39 +15,39 @@
  *
  */
 
-#ifndef PRIVATECLASSES_H
-#define PRIVATECLASSES_H
+#ifndef NMAPIPRIVATECLASSES_H
+#define NMAPIPRIVATECLASSES_H
 
-#include "nmenginedef.h"
-#include <QtCore>
+#include <nmapidef.h>
+#include <QList>
 #include <QMetaType>
 
 /*!
- * Enum for internal info about changes in emial store
+   Enum for internal info about changes in emial store
  */
-enum EApiAction
+enum NmApiAction
 {
     ENew, EChange, EDeleted
 };
 
 /*!
- * Enum for internal info about object type when change in email store is done.
+   Enum for internal info about object type when change in email store is done.
  */
-enum EApiObjectType
+enum NmApiObjectType
 {
     EMailbox, EFolder, EMessage
 };
 
 /*!
- * It keeps data with information about change in email store.
- * 
- * It is grouped in list of object by event when mailbox change and by
- * event, mailboxId anf folderId when messages change.
+   It keeps data with information about change in email store.
+   
+   It is grouped in list of object by event when mailbox change and by
+   event, mailboxId anf folderId when messages change.
  */
 struct NmApiMessage
 {
-    EApiAction action;
-    EApiObjectType objectType;
+    NmApiAction action;
+    NmApiObjectType objectType;
 
     QList<quint64> objectIds;
 
@@ -57,4 +57,4 @@ struct NmApiMessage
 };
 Q_DECLARE_METATYPE(NmApiMessage)
 
-#endif /* PRIVATECLASSES_H_ */
+#endif /* NMAPIPRIVATECLASSES_H */

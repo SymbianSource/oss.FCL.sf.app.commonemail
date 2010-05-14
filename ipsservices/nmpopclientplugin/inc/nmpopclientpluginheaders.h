@@ -25,6 +25,9 @@
 // ipsservices
 #include "ipsplgsosbaseplugin.hrh"
 
+// Orbit
+#include <hbmenu.h>
+
 // nmailuiengine
 #include <nmuiengine.h>
 #include "nmbaseclientplugin.h"
@@ -39,10 +42,12 @@
 #include "nmactionresponse.h"
 #include "nmmessageenvelope.h"
 #include "nmuiextensioninterface.h"
+#include "nmmailboxmetadata.h"
 
 // client plugins
 #include "nmpopclientplugin.h"
 
-
+// settings
+#include "nmsettingsviewlauncher.h"
 
 #endif /* NMIMAPCLIENTPLUGINHEADERS_H_ */

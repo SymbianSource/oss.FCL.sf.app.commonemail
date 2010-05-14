@@ -214,6 +214,17 @@ int NmAttachmentListWidget::progressValue(int index) const
     return ret;
 }
 
+/*!
+    Hides progress of item, if index is negative or creater 
+    than last index function does nothing
+ */
+void NmAttachmentListWidget::hideProgressBar(int index)
+{
+    if(index >= 0 && index < mItemList.count()){
+        mItemList.at(index)->hideProgressBar();
+    }
+}
+
 
 /*!
     paint. Paint function for line painting.
@@ -401,12 +412,11 @@ void NmAttachmentListWidget::insertItemToLayout(NmAttachmentListItem* item)
     if(Qt::Vertical == mOrientation){
         mLayout->addItem(item,layout_count,0);
     } else {
-        if (mLayout->contentsRect().width() > 0) {
-            item->setPreferredWidth(mLayout->contentsRect().width() / 2);
-        }
+        item->setPreferredWidth(preferredWidth() / 2);
         mLayout->addItem(item,layout_count / 2, layout_count % 2);
     }
-
+    // Update maximum length of the file name field.
+    item->resetFileNameLength(mOrientation);
 }
 
 /*!

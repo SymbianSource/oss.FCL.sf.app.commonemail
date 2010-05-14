@@ -15,27 +15,33 @@
  *
  */
 
-#ifndef NMAPICOMMON_API_H_
-#define NMAPICOMMON_API_H_
+#ifndef NMAPIMAILBOX_P_H
+#define NMAPIMAILBOX_P_H
 
-#include <QtCore>
+#include <nmapicommon.h>
 
-/*!
- * Enum to describe mailbox events
- */
-enum MailboxEvent
+
+namespace EmailClientApi
 {
-    MailboxCreated, MailboxDeleted
-};
-Q_DECLARE_METATYPE ( MailboxEvent)
-/*!
- * Enum to describe message events.
- */
-enum MessageEvent {
-    MessageCreated,
-    MessageDeleted,
-    MessageChanged    
+
+class NmApiMailboxPrivate : public QSharedData
+{
+public:
+    NmApiMailboxPrivate()
+    {
+
+    }
+
+    virtual ~NmApiMailboxPrivate()
+    {
+
+    }
+
+    quint64 id;
+    QString name;
+    QString address;
 };
 
-Q_DECLARE_METATYPE(MessageEvent)
-#endif /* NMCOMMON_API_H_ */
+}
+
+#endif /* NMAPIMAILBOX_P_H */

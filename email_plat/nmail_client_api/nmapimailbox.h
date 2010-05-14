@@ -18,69 +18,79 @@
 #ifndef NMAPIMAILBOX_H
 #define NMAPIMAILBOX_H
 
-#include <QString>
 #include <QExplicitlySharedDataPointer>
-#include "nmenginedef.h"
-/**
- * Mailbox metadata class
+#include <nmapidef.h>
+
+class QString;
+
+/*!
+   Mailbox metadata class
  */
 
 namespace EmailClientApi
 {
-class NmMailboxPrivate : public QSharedData
+
+class NmApiMailboxPrivate;
+
+class NMAPI_EXPORT NmApiMailbox
 {
 public:
-    NmMailboxPrivate();
-    virtual ~NmMailboxPrivate();
-
-    quint64 id;
-    QString name;
-    QString address;
-};
-
-class NMENGINE_EXPORT NmMailbox
-{
-public:
-    /*
-     *  constructor for nmmailbox 
+    /*!
+        constructor for NmApiMailbox 
      */
-    NmMailbox();
-    /*
-     * destructor for nmmailbox
+    NmApiMailbox();
+    
+    /*!
+        Copy constructor for NmApiMailbox 
      */
-    virtual ~NmMailbox();
-    NmMailbox &operator=(const NmMailbox &mailbox);
-    /*
-     * getter for id
+   NmApiMailbox(const NmApiMailbox &nmApiMailbox);
+    
+    /*!
+       destructor for NmApiMailbox
+     */
+    virtual ~NmApiMailbox();
+    
+    /*!
+       Assign data from \a mailbox
+     */
+    NmApiMailbox &operator=(const NmApiMailbox &mailbox);
+    
+    /*!
+       Compare data from \a mailbox
+     */
+    bool operator==(const NmApiMailbox &mailbox);
+    
+    /*!
+       getter for id
      */
     quint64 id() const;
 
-    /*
-     * getter for name
+    /*!
+       getter for name
      */
     QString name() const;
 
-    /*
-     * getter for address
+    /*!
+       getter for address
      */
     QString address() const;
 
-    /*
-     * setter for id
+    /*!
+       setter for id
      */
     void setId(quint64 id);
 
-    /* 
-     * setter for name
+    /*! 
+       setter for name
      */
     void setName(const QString &name);
 
-    /*
-     * setter for address
+    /*!
+       setter for address
      */
     void setAddress(const QString &address);
 private:
-    QExplicitlySharedDataPointer<NmMailboxPrivate> d;
+    QExplicitlySharedDataPointer<NmApiMailboxPrivate> d;
 };
 }
 #endif

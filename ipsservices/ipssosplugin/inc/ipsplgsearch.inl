@@ -19,7 +19,11 @@
 #include <StringLoader.h>
 
 const TInt KIpsPlgArrayGranularity = 3;
-_LIT( KIpsPlgPattern, "*%1U*" );
+// <cmail> mirrored
+//_LIT( KIpsPlgPattern, "*%0U*" );
+_LIT( KIpsPlgPattern, "*" );
+// </cmail> 
+
 
 // ---------------------------------------------------------------------------
 // CIpsPlgSearch::TSearchParams::TSearchParams()
@@ -109,16 +113,27 @@ void CIpsPlgSearch::TSearchParams::SetSearchStringsL(
 
     for ( TInt item = 0; item < aSearchStrings.Count(); item++ )
         {
+        // <cmail> mirrored
+
         // Add the wildcards here.
-        TBuf<5> pattern( KIpsPlgPattern );
+        //TBuf<5> pattern( KIpsPlgPattern );
         RBuf destroyThisHackStringNow;
         destroyThisHackStringNow.CreateL(
             aSearchStrings[item]->Length() + 2 );
         CleanupClosePushL( destroyThisHackStringNow );
 
+        destroyThisHackStringNow.Insert(0, KIpsPlgPattern);
+        destroyThisHackStringNow.Append(*aSearchStrings[item]);
+        destroyThisHackStringNow.Append(KIpsPlgPattern);
+        /*
         StringLoader::Format(
-            destroyThisHackStringNow, pattern, 1, *aSearchStrings[item] );
-        iSearchStrings->AppendL( *destroyThisHackStringNow.AllocL() );
+            destroyThisHackStringNow, pattern, 0, *aSearchStrings[item] );
+        */
+
+        // </cmail> 
+
+        
+        iSearchStrings->AppendL( destroyThisHackStringNow ); //<cmail>
 
         CleanupStack::PopAndDestroy( &destroyThisHackStringNow );
         }
@@ -138,7 +153,7 @@ void CIpsPlgSearch::TSearchParams::SetSearchStringsL(
 
     for ( TInt item = 0; item < aSearchStrings.Count(); item++ )
         {
-        iSearchStrings->AppendL( *aSearchStrings[item].AllocL() );
+        iSearchStrings->AppendL( aSearchStrings[item] ); //<cmail>
         }
     }
 

@@ -51,9 +51,12 @@ NmEditorContent::NmEditorContent(QGraphicsItem *parent,
     mEditorWidget->setDocument(textDocument); 
     textDocument->setParent(mEditorWidget); // ownership changes
 
-    mEditorWidget->init(this, mBackgroundScrollArea);
-    
-    // Remove the comment to enable style picker menu item.
+    mEditorWidget->init(mBackgroundScrollArea);
+    // we are interested in the editor widget's height changes
+    connect(mEditorWidget, SIGNAL(editorContentHeightChanged()), this,
+        SLOT(setEditorContentHeight()));
+
+    // Enable style picker menu item.
     mEditorWidget->setFormatDialog(new HbFormatDialog());
 
     // Create signal slot connections
@@ -112,7 +115,7 @@ void NmEditorContent::setMessageData(const NmMessage &message,
     // Original message text to editor content fiel
     if (replyMsgEnvelope && mEditorWidget) {          
         QTextCursor cursor = mEditorWidget->textCursor();
-        cursor.setPosition(1);
+        cursor.setPosition(0);
         cursor.insertHtml(NmUtilities::createReplyHeader(*replyMsgEnvelope));
     }
 }  

@@ -17,6 +17,10 @@
 
 #include <qservicemanager.h>
 #include <qserviceinterfacedescriptor.h>
+#include <HbIcon>
+#include <HbApplication>
+#include <QTranslator>
+#include "nmicons.h"
 #include "nmmailboxregisterinterface.h" 
 #include "nmmailboxregisterinterface_p.h" 
 
@@ -33,21 +37,28 @@ const QString hsIconName          ("icon:name");// HbIcon
 const QString hsIconApplicationId ("icon:applicationid"); // icon from associated application 
 
 //Custom for nmHsWidgets
-//NmHsWidgetParam is used to identify what email account will be monitored by 
+//NmHsWidgetParamAccountId is used to identify what email account will be monitored by 
 //the registered hs widget
-const QString NmHsWidgetParam     ("widgetparam:accountId");
+const QString NmHsWidgetParamAccountId     ("widgetparam:accountId");
 //same as above but for pushing the widget to homescreen
 const QString NmHsAccountId       ("accountId");
+//NmHsWidgetParamAccountIconName is used to identify mailbox icon in application library
+const QString NmHsWidgetParamAccountIconName     ("widgetparam:accountIconName");
+//same as above but for pushing the widget to homescreen
+const QString NmHsAccountIconName  ("accountIconName");
 //This is used to identify nmhswidget in homescreen
 const QString NmHsWidget          ("nmhswidget");
 
 //parameter values
 const QString NmPublisherName     ("NmMailboxRegisterInterface");
-const QString NmLaunchUri         ("application://0x2002DD17");
+const QString NmLaunchUri         ("appto://0x200255BA?activityname=EmailInboxView&accountId=");
 //URI for the defined service
 const QLatin1String interfaceUri("com.nokia.symbian.IEmailRegisterAccount");
 
-
+/** Localization file name*/
+const QString KNmRegisterLocFileName = "nmregister_";
+/** Localization file location*/
+const QString KNmRegisterLocLocation = "z:/resource/qt/translations/";
 
 /*!
     Constructor
@@ -102,8 +113,16 @@ bool NmMailboxRegisterInterface::unregisterMailbox(quint64 accountId)
 NmMailboxRegisterInterfacePrivate::NmMailboxRegisterInterfacePrivate(QObject *parent) :
     XQServiceProvider(interfaceUri, parent ), 
     mManager(0),
-    mService(0)
+    mService(0),
+    mTranslator(0)
     {
+    //commented out until MCL has nmregister files in place here: epoc32/include/platform/qt/translations/
+    /*mTranslator = new QTranslator();
+    QString lang = QLocale::system().name();
+    bool loadSucceed = mTranslator->load(KNmRegisterLocFileName + lang, KNmRegisterLocLocation);
+    qDebug() << "NmMailboxRegisterInterfacePrivate mTranslator->load loadSucceed:"<<loadSucceed;
+    QCoreApplication::installTranslator(mTranslator);*/
+    
     mManager = new QServiceManager();
     QServiceFilter filter("com.nokia.symbian.IMenuClient");
     QList<QServiceInterfaceDescriptor> interfaces = mManager->findInterfaces(filter);
@@ -115,6 +134,10 @@ NmMailboxRegisterInterfacePrivate::NmMailboxRegisterInterfacePrivate(QObject *pa
 */
 NmMailboxRegisterInterfacePrivate::~NmMailboxRegisterInterfacePrivate()
     {
+    if(mTranslator){
+        delete mTranslator;
+        mTranslator = NULL;
+    }
     if (mService) 
         {
         delete mService;
@@ -129,16 +152,26 @@ NmMailboxRegisterInterfacePrivate::~NmMailboxRegisterInterfacePrivate()
 bool NmMailboxRegisterInterfacePrivate::registerNewMailbox(quint64 accountId,
         QString accountName, QString accountIconName)
     {
+    //check that accountIconName is valid otherwise pass default mailbox icon
+    HbIcon mailBoxIcon(accountIconName);
+    if(mailBoxIcon.pixmap().height() == 0){
+        mailBoxIcon = NmIcons::getIcon(NmIcons::NmIconDefaultMailbox);
+        accountIconName = mailBoxIcon.iconName();
+    }
+    
     QMap<QString, QVariant> map;
     //------------------------------
     map[hsItemName]        = accountName;
-    map[hsitemLaunchUri]   = NmLaunchUri;
+    map[hsitemLaunchUri]   = formLaunchUri(accountId);
     map[hsitemPublisherId] = NmPublisherName;
     map[hsItemWidgetUri]   = NmHsWidget;
-    map[hsItemDescription] = "test description for widget"; //TODO: Localization
+    //commented out until MCL has nmregister files in place here: epoc32/include/platform/qt/translations/
+    //map[hsItemDescription] = hbTrId("txt_mail_widget_dblist_preview_of_recent_mail");
+    map[hsItemDescription] = "test description for widget";
     map[hsIconFileName]    = accountIconName;
     // to add widget params that are mapped to widgets properties
-    map[NmHsWidgetParam]   = QString::number(accountId);
+    map[NmHsWidgetParamAccountId]   = QString::number(accountId);
+    map[NmHsWidgetParamAccountIconName]   = accountIconName;
     //------------------------------
     
     bool retVal(false);
@@ -149,7 +182,7 @@ bool NmMailboxRegisterInterfacePrivate::registerNewMailbox(quint64 accountId,
                     Q_ARG(QVariantMap, map)); 
 
     //Push the registered widget also to homescreen right away
-    bool pushRetVal = pushWidgetToHomescreen(accountId);
+    bool pushRetVal = pushWidgetToHomescreen(accountId, accountIconName);
     
     return (retVal && ret && pushRetVal);
     }
@@ -159,10 +192,10 @@ bool NmMailboxRegisterInterfacePrivate::updateMailboxName(quint64 accountId,
     {
     QMap<QString, QVariant> map;
      //------------------------------
-     map[hsitemLaunchUri]   = NmLaunchUri;
+     map[hsitemLaunchUri]   = formLaunchUri(accountId);
      map[hsitemPublisherId] = NmPublisherName;
      map[hsItemWidgetUri]   = NmHsWidget;
-     map[NmHsWidgetParam]   = QString::number(accountId);
+     map[NmHsWidgetParamAccountId]   = QString::number(accountId);
      //------------------------------
      
      QList<QVariantMap> list; //list of items that mach the query
@@ -194,10 +227,10 @@ bool NmMailboxRegisterInterfacePrivate::unregisterMailbox(quint64 accountId)
     
     QMap<QString, QVariant> map;
      //------------------------------
-     map[hsitemLaunchUri]   = NmLaunchUri;
+     map[hsitemLaunchUri]   = formLaunchUri(accountId);
      map[hsitemPublisherId] = NmPublisherName;
      map[hsItemWidgetUri]   = NmHsWidget;
-     map[NmHsWidgetParam]     = QString::number(accountId);
+     map[NmHsWidgetParamAccountId]     = QString::number(accountId);
      //------------------------------
      
      QList<QVariantMap> list; //list of items that mach the query
@@ -224,7 +257,7 @@ bool NmMailboxRegisterInterfacePrivate::unregisterMailbox(quint64 accountId)
      return (retVal && ret);
     }
 
-bool NmMailboxRegisterInterfacePrivate::pushWidgetToHomescreen( quint64 accountId )
+bool NmMailboxRegisterInterfacePrivate::pushWidgetToHomescreen( quint64 accountId, QString accountIconName )
     {
     // load plugin
     QServiceManager manager;
@@ -243,6 +276,7 @@ bool NmMailboxRegisterInterfacePrivate::pushWidgetToHomescreen( quint64 accountI
     //--------------------------------
     QVariantHash map;
     map[NmHsAccountId] = QString::number(accountId);
+    map[NmHsAccountIconName] = accountIconName;
     //--------------------------------
     
     // invoke function synchronously
@@ -268,3 +302,7 @@ bool NmMailboxRegisterInterfacePrivate::pushWidgetToHomescreen( quint64 accountI
     return (retVal && ret);
     }
 
+QString NmMailboxRegisterInterfacePrivate::formLaunchUri(quint64 accountId) const
+    {
+    return NmLaunchUri + QString::number(accountId);
+    }

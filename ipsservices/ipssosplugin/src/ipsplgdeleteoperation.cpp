@@ -11,7 +11,9 @@
 *
 * Contributors:
 *
-* Description: This file implements class CIpsPlgDeleteRemote.
+//<qmail>
+* Description: This file implements class CIpsPlgDeleteOperation.
+//</qmail>
 *
 */
 
@@ -22,15 +24,16 @@
 #include "emailtrace.h"
 #include "ipsplgheaders.h"
 
-// LOCAL CONSTANTS AND MACROS
+//<qmail> comment removed
 
 // ================= MEMBER FUNCTIONS =======================
 
 // ----------------------------------------------------------------------------
-// CIpsPlgDeleteRemote::CIpsPlgDeleteRemote
+// CIpsPlgDeleteOperation::CIpsPlgDeleteOperation
 // ----------------------------------------------------------------------------
 //
-CIpsPlgDeleteRemote::CIpsPlgDeleteRemote(
+//<qmail>
+CIpsPlgDeleteOperation::CIpsPlgDeleteOperation(
     CMsvSession& aMsvSession,
     TRequestStatus& aObserverRequestStatus )
     :
@@ -38,28 +41,40 @@ CIpsPlgDeleteRemote::CIpsPlgDeleteRemote(
         aMsvSession, 
         CActive::EPriorityStandard, 
         aObserverRequestStatus),
-        iBlank( KNullDesC8 )
+    iState( ESetFlags ) // <qmail>
+    //</qmail> iBlank removed    
     {
     FUNC_LOG;
     CActiveScheduler::Add(this);
     }
+//</qmail>
 
 
 // ----------------------------------------------------------------------------
-// CIpsPlgDeleteRemote::ConstructL
+// CIpsPlgDeleteOperation::ConstructL
 // ----------------------------------------------------------------------------
 //
-void CIpsPlgDeleteRemote::ConstructL(
-    CMsvEntrySelection& aDeletedEntries )
+// <qmail>
+void CIpsPlgDeleteOperation::ConstructL(
+    CMsvEntrySelection* aEntriesToDelete ) //<qmail> param name changed
     {
     FUNC_LOG;
-    iEntrySelection = aDeletedEntries.CopyL();
-    iEntryCount = iEntrySelection->Count();
-    if ( iEntryCount == 0 )
+    //<qmail>
+    iEntrySelection = new (ELeave) CMsvEntrySelection();
+    
+    for ( TInt i=0; i<aEntriesToDelete->Count(); i++ )
+        {
+        iEntrySelection->AppendL( aEntriesToDelete->At(i) );
+        }
+    
+    if ( !iEntrySelection->Count() )
         {
         User::Leave( KErrNotSupported );
         }
+    //</qmail>
 
+    //<qmail>
+    // Messages will be deleted from one specific folder at a time
     TMsvId serviceId;
     TMsvEntry entry;
     User::LeaveIfError(
@@ -67,41 +82,44 @@ void CIpsPlgDeleteRemote::ConstructL(
             (*iEntrySelection)[0], serviceId, entry ) );
     iEntry = CMsvEntry::NewL(
         iMsvSession, entry.Parent(), TMsvSelectionOrdering() );
+    
+    // For CMsvOperation
     iMtm = iEntry->Entry().iMtm;
+    //</qmail>
+    iStatus = KRequestPending;
 
-    iStatus=KRequestPending;
-
-	// <qmail>    
     // It is known that there is at least one entry -> no return value check
     SetNextLocallyDeletedFlagL();
 
     SetActive();
-	// </qmail>    
     }
+// </qmail>
 
 // ----------------------------------------------------------------------------
-// CIpsPlgDeleteRemote::NewL
+// CIpsPlgDeleteOperation::NewL
 // ----------------------------------------------------------------------------
 //
-CIpsPlgDeleteRemote* CIpsPlgDeleteRemote::NewL(
+CIpsPlgDeleteOperation* CIpsPlgDeleteOperation::NewL(
     CMsvSession& aMsvSession,
     TRequestStatus& aObserverRequestStatus,
-    CMsvEntrySelection& aDeletedEntries )
+    CMsvEntrySelection* aEntriesToDelete ) //<qmail> param name changed
     {
     FUNC_LOG;
-    CIpsPlgDeleteRemote* self=new (ELeave) CIpsPlgDeleteRemote(
+    CIpsPlgDeleteOperation* self=new (ELeave) CIpsPlgDeleteOperation(
         aMsvSession, aObserverRequestStatus );
     CleanupStack::PushL(self);
-    self->ConstructL( aDeletedEntries );
+    //<qmail>
+    self->ConstructL( aEntriesToDelete );
+    //</qmail>
     CleanupStack::Pop( self ); 
     return self;
     }
 
 // ----------------------------------------------------------------------------
-// CIpsPlgDeleteRemote::~CIpsPlgDeleteRemote
+// CIpsPlgDeleteOperation::~CIpsPlgDeleteOperation
 // ----------------------------------------------------------------------------
 //
-CIpsPlgDeleteRemote::~CIpsPlgDeleteRemote()
+CIpsPlgDeleteOperation::~CIpsPlgDeleteOperation()
     {
     FUNC_LOG;
     Cancel();
@@ -115,10 +133,10 @@ CIpsPlgDeleteRemote::~CIpsPlgDeleteRemote()
     }
 
 // ----------------------------------------------------------------------------
-// CIpsPlgDeleteRemote::DoCancel
+// CIpsPlgDeleteOperation::DoCancel
 // ----------------------------------------------------------------------------
 //
-void CIpsPlgDeleteRemote::DoCancel()
+void CIpsPlgDeleteOperation::DoCancel()
     {
     FUNC_LOG;
     if (iOperation)
@@ -133,10 +151,10 @@ void CIpsPlgDeleteRemote::DoCancel()
     }
 
 // ----------------------------------------------------------------------------
-// CIpsPlgDeleteRemote::RunL
+// CIpsPlgDeleteOperation::RunL
 // ----------------------------------------------------------------------------
 //
-void CIpsPlgDeleteRemote::RunL()
+void CIpsPlgDeleteOperation::RunL()
     {
     FUNC_LOG;
     // Make first a check, that nothing has failed
@@ -149,7 +167,8 @@ void CIpsPlgDeleteRemote::RunL()
         }
 
 	// <qmail>    
-    if ( iState == EDeletingMessagesStateSetFlags )
+    if ( iState == ESetFlags )
+    //</qmail>    
         {
         // cleanup is handled by SetNextLocallyDeletedFlagL
         TBool ret = EFalse;
@@ -170,7 +189,9 @@ void CIpsPlgDeleteRemote::RunL()
             StartNextDeleteLocally();
             }
         }
-    else if ( iState == EDeletingMessagesStateLocally )
+    //<qmail>
+    else if ( iState == ELocally )
+    //</qmail>
         {
         // local delete completed, start deleting from server
         StartDeleteFromServer();
@@ -185,10 +206,11 @@ void CIpsPlgDeleteRemote::RunL()
 	}
 
 // ----------------------------------------------------------------------------
-// CIpsPlgDeleteRemote::ProgressL
+// CIpsPlgDeleteOperation::ProgressL
 // ----------------------------------------------------------------------------
 //
-const TDesC8& CIpsPlgDeleteRemote::ProgressL()
+//<qmail>
+const TDesC8& CIpsPlgDeleteOperation::ProgressL()
     {
     FUNC_LOG;
     // Make sure that operation is active
@@ -200,18 +222,21 @@ const TDesC8& CIpsPlgDeleteRemote::ProgressL()
             return iOperation->ProgressL();
             }
         }
-
-    return iBlank;
+    //<qmail>
+    return KNullDesC8;
+    //</qmail>
     }
-
+//</qmail>
 // ----------------------------------------------------------------------------
-// CIpsPlgDeleteRemote::StartNextDeleteLocally
+// CIpsPlgDeleteOperation::StartNextDeleteLocally
 // ----------------------------------------------------------------------------
 //
-void CIpsPlgDeleteRemote::StartNextDeleteLocally()
+void CIpsPlgDeleteOperation::StartNextDeleteLocally()
     {
+    //<qmail>
     FUNC_LOG;
-    iState = EDeletingMessagesStateLocally;
+    iState = ELocally;
+    //</qmail>
     iStatus = KRequestPending;
     
     TRAPD( err, MakeNextDeleteLocallyL() );
@@ -225,26 +250,28 @@ void CIpsPlgDeleteRemote::StartNextDeleteLocally()
     }
 
 // ----------------------------------------------------------------------------
-// CIpsPlgDeleteRemote::MakeNextDeleteLocallyL
+// CIpsPlgDeleteOperation::MakeNextDeleteLocallyL
 // ----------------------------------------------------------------------------
 //
-void CIpsPlgDeleteRemote::MakeNextDeleteLocallyL()
+void CIpsPlgDeleteOperation::MakeNextDeleteLocallyL()
     {
     FUNC_LOG;
     delete iOperation;
     iOperation = NULL;
     iOperation = CIpsPlgDeleteLocal::NewL(
-        *iEntrySelection, iMsvSession, iStatus );
+        iEntrySelection, iMsvSession, iStatus );
     }
 
 // ----------------------------------------------------------------------------
-// CIpsPlgDeleteRemote::StartDeleteFromServer
+// CIpsPlgDeleteOperation::StartDeleteFromServer
 // ----------------------------------------------------------------------------
 //
-void CIpsPlgDeleteRemote::StartDeleteFromServer()
+void CIpsPlgDeleteOperation::StartDeleteFromServer()
     {
     FUNC_LOG;
-    iState = EDeletingMessagesStateFromServer;
+    //<qmail>
+    iState = EFromServer;
+    //</qmail>
     iStatus = KRequestPending;
     TRAPD( err, MakeDeleteFromServerL() );
 
@@ -258,10 +285,10 @@ void CIpsPlgDeleteRemote::StartDeleteFromServer()
     }
 
 // ----------------------------------------------------------------------------
-// CIpsPlgDeleteRemote::MakeDeleteFromServerL
+// CIpsPlgDeleteOperation::MakeDeleteFromServerL
 // ----------------------------------------------------------------------------
 //
-void CIpsPlgDeleteRemote::MakeDeleteFromServerL()
+void CIpsPlgDeleteOperation::MakeDeleteFromServerL()
     {
     FUNC_LOG;
     delete iOperation;
@@ -272,10 +299,10 @@ void CIpsPlgDeleteRemote::MakeDeleteFromServerL()
 
 // <qmail>    
 // ----------------------------------------------------------------------------
-// CIpsPlgDeleteRemote::SetNextLocallyDeletedFlagL
+// CIpsPlgDeleteOperation::SetNextLocallyDeletedFlagL
 // ----------------------------------------------------------------------------
 //
-TBool CIpsPlgDeleteRemote::SetNextLocallyDeletedFlagL()
+TBool CIpsPlgDeleteOperation::SetNextLocallyDeletedFlagL()
     {
     FUNC_LOG;
     
@@ -286,8 +313,9 @@ TBool CIpsPlgDeleteRemote::SetNextLocallyDeletedFlagL()
     iSetFlagEntry = NULL;
 
     TBool ret = EFalse;
-    
-    if ( iSetFlagIndex < iEntryCount )
+    //<qmail>
+    if ( iSetFlagIndex < iEntrySelection->Count() )
+    //</qmail>    
         {
         TMsvId entryId = ( *iEntrySelection )[ iSetFlagIndex++ ];
         

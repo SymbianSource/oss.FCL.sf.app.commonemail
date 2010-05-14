@@ -61,6 +61,7 @@ enum TIpsPropertyEvents
     KIPSSosSmtpSendStartedSignal,
     KIPSSosSmtpSendEndedSignal,
     KIPSSosSmtpEmptyOutboxNow
+// <qmail> EIPSSosSmtpPswErr removed
     };
 
 enum TIpsOpType
@@ -68,6 +69,7 @@ enum TIpsOpType
     EIpsOpTypeUnknown,
     EIpsOpTypeImap4SyncOp,
     EIpsOpTypePop3SyncOp,
+    EIpsOpTypeOnlineOp,
     EIpsOpTypeImap4PopulateOp,
     EIpsOpTypeSmtp,
 // <qmail> new op types

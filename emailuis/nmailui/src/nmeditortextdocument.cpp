@@ -40,9 +40,11 @@ NmEditorTextDocument::NmEditorTextDocument(QNetworkAccessManager &manager) :
 */
 NmEditorTextDocument::~NmEditorTextDocument()
 {
-    for(int i = 0; i < mReplyList.count(); i++) {
-        mReplyList.at(i)->abort();
-        mReplyList.at(i)->deleteLater();
+    foreach(QNetworkReply *reply, mReplyList) {
+        if(reply) {
+            reply->abort();
+            reply->deleteLater();
+        }
     }
 }
 
@@ -51,15 +53,17 @@ NmEditorTextDocument::~NmEditorTextDocument()
 */
 void NmEditorTextDocument::replyFinished(QNetworkReply *reply)
 {
-    if(reply->error() == QNetworkReply::NoError) {
-        QPixmap image;
-        if(image.loadFromData(reply->readAll())) { 
-            addResource(QTextDocument::ImageResource, reply->url(), QVariant(image));
-            emit documentLayoutChanged();
+    if(reply) {
+        if(reply->error() == QNetworkReply::NoError) {
+            QPixmap image;
+            if(image.loadFromData(reply->readAll())) { 
+                addResource(QTextDocument::ImageResource, reply->url(), QVariant(image));
+                emit documentLayoutChanged();
+            }
         }
+        mReplyList.removeAll(reply);
+        reply->deleteLater();
     }
-    mReplyList.removeAll(reply);
-    reply->deleteLater();
 }
 
 /*!

@@ -18,11 +18,10 @@
 // <qmail>
 
 // INCLUDE FILES
-
 #include "emailtrace.h"
 #include "ipsplgheaders.h"
 
-// LOCAL CONSTANTS AND MACROS
+//<qmail> removed
 
 // ================= MEMBER FUNCTIONS =======================
 
@@ -31,11 +30,12 @@
 // ----------------------------------------------------------------------------
 //
 // <qmail> priority parameter has been removed
+//<qmail> iBlank removed
+//<qmail> aSmtpServiceId removed
 CIpsPlgCreateMessageOperation::CIpsPlgCreateMessageOperation(
-    CIpsPlgSmtpService* aSmtpService,
+    CIpsPlgSmtpService& aSmtpService,
     CMsvSession& aMsvSession,
     TRequestStatus& aObserverRequestStatus,
-    TMsvId aSmtpServiceId, 
     TMsvPartList aPartList,
     TFSMailMsgId aMailBoxId,
     MFSMailRequestObserver& aOperationObserver,
@@ -47,14 +47,13 @@ CIpsPlgCreateMessageOperation::CIpsPlgCreateMessageOperation(
         aRequestId,
         aMailBoxId),
     iSmtpService(aSmtpService),
-    iSmtpServiceId(aSmtpServiceId),
     iPartList(aPartList),
     iOperationObserver(aOperationObserver)
     {
     FUNC_LOG;
     CActiveScheduler::Add( this );
     }
-
+//</qmail>
 // ----------------------------------------------------------------------------
 // CIpsPlgCreateMessageOperation::ConstructL
 // ----------------------------------------------------------------------------
@@ -70,11 +69,12 @@ void CIpsPlgCreateMessageOperation::ConstructL()
 // CIpsPlgCreateMessageOperation::NewL
 // ----------------------------------------------------------------------------
 //
+//<qmail> aSmtpServiceId removed
+//<qmail> aSmtpService changed to reference
 CIpsPlgCreateMessageOperation* CIpsPlgCreateMessageOperation::NewL(
-    CIpsPlgSmtpService* aSmtpService,
+    CIpsPlgSmtpService& aSmtpService,
     CMsvSession& aMsvSession,
     TRequestStatus& aObserverRequestStatus,
-    TMsvId aSmtpServiceId, 
     TMsvPartList aPartList,
     TFSMailMsgId aMailBoxId,
     MFSMailRequestObserver& aOperationObserver,
@@ -83,14 +83,14 @@ CIpsPlgCreateMessageOperation* CIpsPlgCreateMessageOperation::NewL(
     FUNC_LOG;
     CIpsPlgCreateMessageOperation* self =
         new (ELeave) CIpsPlgCreateMessageOperation(
-            aSmtpService, aMsvSession, aObserverRequestStatus, aSmtpServiceId,
+            aSmtpService, aMsvSession, aObserverRequestStatus,
             aPartList, aMailBoxId, aOperationObserver, aRequestId );
     CleanupStack::PushL( self );
     self->ConstructL();
     CleanupStack::Pop( self ); 
     return self;
     }
-
+//</qmail>
 // ----------------------------------------------------------------------------
 // CIpsPlgCreateMessageOperation::~CIpsPlgCreateMessageOperation
 // ----------------------------------------------------------------------------
@@ -134,16 +134,14 @@ void CIpsPlgCreateMessageOperation::RunL()
         {
         // new message creation has finished so make an FS type message
         CFSMailMessage* newMessage = NULL;
+        //<qmail> removed trap, handled in RunError
+        TMsvId msgId;
         
-        TMsvId msgId = TMsvId();
-        TRAPD( err, msgId = GetIdFromProgressL( iOperation->FinalProgress() ) );
+        msgId = GetIdFromProgressL( iOperation->FinalProgress() );
             
-        if( err == KErrNone )
-            {
-            newMessage = iSmtpService->CreateFSMessageAndSetFlagsL( 
-                    msgId, KErrNotFound, iFSMailboxId.Id() );
-            }
-        
+        newMessage = iSmtpService.CreateFSMessageAndSetFlagsL( 
+                msgId, KErrNotFound, iFSMailboxId.Id() );
+        //</qmail>
         // relay the created message (observer takes ownership)
         SignalFSObserver( iStatus.Int(), newMessage );        
         }
@@ -152,7 +150,7 @@ void CIpsPlgCreateMessageOperation::RunL()
     TRequestStatus* status = &iObserverRequestStatus;
     User::RequestComplete( status, iStatus.Int() );
     }
-
+//<qmail> 
 // ----------------------------------------------------------------------------
 // CIpsPlgCreateMessageOperation::RunError()
 // ----------------------------------------------------------------------------
@@ -166,7 +164,8 @@ TInt CIpsPlgCreateMessageOperation::RunError( TInt aError )
     User::RequestComplete( status, aError );
     return KErrNone; // RunError must return KErrNone to active sheduler.
     }
-
+//</qmail>
+//<qmail> function description updated
 // ----------------------------------------------------------------------------
 // CIpsPlgCreateMessageOperation::GetIdFromProgressL
 // ----------------------------------------------------------------------------
@@ -174,7 +173,7 @@ TInt CIpsPlgCreateMessageOperation::RunError( TInt aError )
 TMsvId CIpsPlgCreateMessageOperation::GetIdFromProgressL( const TDesC8& aProg )
     {
     FUNC_LOG;
-    // Taken from symbian os help example code
+    //<qmail> comment removed
     // Create and initialise a temporary TPckg object that 
     // can hold a message Id.
     TMsvId msgId;
@@ -192,9 +191,9 @@ TMsvId CIpsPlgCreateMessageOperation::GetIdFromProgressL( const TDesC8& aProg )
         }
     return msgId;
     }
-
+//<qmail> function description updated
 // ----------------------------------------------------------------------------
-// CIpsPlgCreateMessageOperation::ProgressL
+// CIpsPlgCreateMessageOperation::SignalFSObserver
 // ----------------------------------------------------------------------------
 //
 void CIpsPlgCreateMessageOperation::SignalFSObserver(
@@ -232,8 +231,9 @@ const TDesC8& CIpsPlgCreateMessageOperation::ProgressL()
             return iOperation->ProgressL();
             }
         }
-
+    //<qmail>
     return KNullDesC8;
+    //</qmail>
     }
 
 // ---------------------------------------------------------------------------
@@ -284,20 +284,28 @@ void CIpsPlgCreateMessageOperation::StartMessageCreation()
 void CIpsPlgCreateMessageOperation::StartMessageCreationL()
     {
     FUNC_LOG;
+	//<qmail>
+    TMsvId service;
+    TMsvEntry mboxEntry;
+        
     delete iOperation;
     iOperation = NULL;
-    
+        
+    User::LeaveIfError(
+        iMsvSession.GetEntry( iFSMailboxId.Id(), service, mboxEntry ) );
+	//</qmail>	
+    //<qmail> removed useless parameter
     // Start a new operation, execution continues in RunL 
     // once the operation has finished.
     iOperation = CImEmailOperation::CreateNewL(
         iStatus, 
         iMsvSession,
         KMsvDraftEntryId,
-        iSmtpServiceId, 
+        mboxEntry.iRelatedId, // SMTP service id
         iPartList, 
         KMsvEmailTypeListMHTMLMessage,
-        //0,
         KUidMsgTypeSMTP);
+    //</qmail>
     }
 
 

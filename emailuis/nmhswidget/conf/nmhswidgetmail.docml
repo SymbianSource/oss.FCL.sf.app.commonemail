@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hbdocument version="1.0">
+	  <widget name="emailLayoutWidget" type="HbWidget">
+	      <widget name="iconSeparator" type="HbLabel">
+	          <enums name="alignment" value="AlignVCenter|AlignHCenter"/>
+	          <icon iconName="note_warning" name="icon"/>
+	          <real name="z" value="1"/>
+	          <enums name="aspectRatioMode" value="IgnoreAspectRatio"/>
+	          <sizepolicy horizontalPolicy="Ignored" horizontalStretch="0" verticalPolicy="Fixed" verticalStretch="0"/>
+	          <sizehint height="2" type="PREFERRED" width="50un"/>
+	      </widget>
+	      <widget name="iconNewMail" type="HbLabel">
+	          <enums name="alignment" value="AlignVCenter|AlignHCenter"/>
+	          <real name="z" value="2"/>
+	          <enums name="aspectRatioMode" value="IgnoreAspectRatio"/>
+	          <sizepolicy horizontalPolicy="Fixed" horizontalStretch="0" verticalPolicy="Ignored" verticalStretch="0"/>
+	          <sizehint type="PREFERRED" width="1.25un"/>
+	      </widget>
+	      <widget name="labelSender" type="HbLabel">
+	          <real name="z" value="3"/>
+	          <string name="plainText" value="Mail Spammer"/>
+	          <sizehint height="var(hb-param-text-height-tiny)" type="PREFERRED" width="33.43284un"/>
+	          <sizepolicy horizontalPolicy="Ignored" horizontalStretch="0" verticalPolicy="Fixed" verticalStretch="0"/>
+	          <fontspec name="fontSpec" role="Secondary" textheight="var(hb-param-text-height-tiny)"/>
+	      </widget>
+	      <widget name="labelTime" type="HbLabel">
+	          <real name="z" value="4"/>
+	          <string name="plainText" value="12:45pm"/>
+	          <sizehint height="var(hb-param-text-height-tiny)" type="FIXED" width="13un"/>
+	          <sizepolicy horizontalPolicy="Fixed" horizontalStretch="0" verticalPolicy="Fixed" verticalStretch="0"/>
+	          <enums name="alignment" value="AlignRight|AlignTop|AlignTrailing"/>
+                  <fontspec name="fontSpec" role="Secondary" textheight="2.5un"/>
+	      </widget>
+	      <widget name="labelSubject" type="HbLabel">
+	          <real name="z" value="5"/>
+	          <string name="plainText" value="Check out great new medication.."/>
+	          <sizepolicy horizontalPolicy="Ignored" horizontalStretch="0" verticalPolicy="Fixed" verticalStretch="0"/>
+	          <sizehint height="var(hb-param-text-height-tiny)" type="PREFERRED" width="35un"/>
+	          <fontspec name="fontSpec" role="Secondary" textheight="var(hb-param-text-height-tiny)"/>
+	      </widget>
+	      <widget name="iconThree" type="HbLabel">
+	          <enums name="alignment" value="AlignVCenter|AlignHCenter"/>
+	          <icon iconName="note_warning" name="icon"/>
+	          <real name="z" value="6"/>
+	          <sizepolicy horizontalPolicy="Fixed" horizontalStretch="0" verticalPolicy="Fixed" verticalStretch="0"/>
+	          <sizehint height="var(hb-param-graphic-size-secondary)" type="FIXED" width="var(hb-param-graphic-size-secondary)"/>
+	      </widget>
+	      <widget name="iconTwo" type="HbLabel">
+	          <enums name="alignment" value="AlignVCenter|AlignHCenter"/>
+	          <icon iconName="note_warning" name="icon"/>
+	          <real name="z" value="7"/>
+	          <sizepolicy horizontalPolicy="Fixed" horizontalStretch="0" verticalPolicy="Fixed" verticalStretch="0"/>
+	          <sizehint height="var(hb-param-graphic-size-secondary)" type="FIXED" width="var(hb-param-graphic-size-secondary)"/>
+	      </widget>
+	      <widget name="iconOne" type="HbLabel">
+	          <enums name="alignment" value="AlignVCenter|AlignHCenter"/>
+	          <icon iconName="note_warning" name="icon"/>
+	          <real name="z" value="8"/>
+	          <sizepolicy horizontalPolicy="Fixed" horizontalStretch="0" verticalPolicy="Fixed" verticalStretch="0"/>
+	          <sizehint height="var(hb-param-graphic-size-secondary)" type="FIXED" width="var(hb-param-graphic-size-secondary)"/>
+	      </widget>
+	      <real name="z" value="1"/>
+	      <sizehint height="11.1un" type="FIXED" width="46un"/>
+	      <sizepolicy horizontalPolicy="Fixed" horizontalStretch="0" verticalPolicy="Fixed" verticalStretch="0"/>
+	      <layout type="anchor">
+	          <anchoritem dst="iconSeparator" dstEdge="LEFT" spacing="2" src="" srcEdge="LEFT"/>
+	          <anchoritem dst="iconSeparator" dstEdge="TOP" spacing="0" src="" srcEdge="TOP"/>
+	          <anchoritem dst="iconSeparator" dstEdge="RIGHT" spacing="-2" src="" srcEdge="RIGHT"/>
+	          <anchoritem dst="iconNewMail" dstEdge="LEFT" spacing="var(hb-param-margin-gene-middle-horizontal)" src="" srcEdge="LEFT"/>
+	          <anchoritem dst="iconNewMail" dstEdge="TOP" spacing="0.5un" src="iconSeparator" srcEdge="BOTTOM"/>
+	          <anchoritem dst="iconNewMail" dstEdge="BOTTOM" spacing="-0.5un" src="" srcEdge="BOTTOM"/>
+	          <anchoritem dst="labelSender" dstEdge="LEFT" spacing="var(hb-param-margin-gene-middle-horizontal)" src="iconNewMail" srcEdge="RIGHT"/>
+	          <anchoritem dst="labelSender" dstEdge="TOP" spacing="var(hb-param-margin-gene-top)" src="iconSeparator" srcEdge="BOTTOM"/>
+	          <anchoritem dst="labelTime" dstEdge="RIGHT" spacing="-var(hb-param-margin-gene-middle-horizontal)" src="" srcEdge="RIGHT"/>
+	          <anchoritem dst="labelTime" dstEdge="TOP" spacing="0" src="labelSender" srcEdge="TOP"/>
+	          <anchoritem dst="labelTime" dstEdge="LEFT" spacing="var(hb-param-margin-gene-middle-horizontal)" src="labelSender" srcEdge="RIGHT"/>
+	          <anchoritem dst="labelSubject" dstEdge="LEFT" spacing="var(hb-param-margin-gene-middle-horizontal)" src="iconNewMail" srcEdge="RIGHT"/>
+	          <anchoritem dst="labelSubject" dstEdge="TOP" spacing="var(hb-param-margin-gene-middle-vertical)" src="labelSender" srcEdge="BOTTOM"/>
+	          <anchoritem dst="iconThree" dstEdge="TOP" spacing="0" src="labelSubject" srcEdge="TOP"/>
+	          <anchoritem dst="iconThree" dstEdge="RIGHT" spacing="-var(hb-param-margin-gene-middle-horizontal)" src="" srcEdge="RIGHT"/>
+	          <anchoritem dst="iconTwo" dstEdge="RIGHT" spacing="-var(hb-param-margin-gene-middle-horizontal)" src="iconThree" srcEdge="LEFT"/>
+	          <anchoritem dst="iconTwo" dstEdge="TOP" spacing="0" src="labelSubject" srcEdge="TOP"/>
+	          <anchoritem dst="iconOne" dstEdge="TOP" spacing="0" src="labelSubject" srcEdge="TOP"/>
+	          <anchoritem dst="iconOne" dstEdge="RIGHT" spacing="-var(hb-param-margin-gene-middle-horizontal)" src="iconTwo" srcEdge="LEFT"/>
+	          <anchoritem dst="labelSubject" dstEdge="RIGHT" spacing="-var(hb-param-margin-gene-middle-horizontal)" src="iconOne" srcEdge="LEFT"/>
+	      </layout>
+	  </widget>
+</hbdocument>

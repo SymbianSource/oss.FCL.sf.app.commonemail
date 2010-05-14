@@ -30,6 +30,7 @@ public:
     NmId mId;
     int mIndicatorIndex;
     QString mName;
+    QString mIconName;
     NmId mInboxFolderId;
     NmId mOutboxFolderId;
     NmSyncState mSyncState;
@@ -37,7 +38,7 @@ public:
     int mInboxCreatedMessages;
     int mInboxChangedMessages;
     int mInboxDeletedMessages;
-    int mUnreadMails;
+    QList<NmId> mUnreadMailIdList;
     int mOutboxMails;
     bool mActive;
 
@@ -74,18 +75,18 @@ public slots:
     void handleConnectionEvent(NmConnectState state, const NmId mailboxId);
 
     void delayedStart();
+    
+    void enableAlertTone();
 
 private:
 
     void initMailboxStatus();
 
-    int getUnreadCount(const NmId& mailboxId, int maxCount);
+    bool updateUnreadCount(const NmId &mailboxId, NmMailboxInfo &mailboxInfo);
 
     int getOutboxCount(const NmId& mailboxId);
 
     int getIndicatorIndex();
-
-    bool isMailboxActive(const NmMailboxInfo& mailboxInfo);
 
     bool updateIndicator(bool active,
         const NmMailboxInfo& mailboxInfo);
@@ -103,12 +104,18 @@ private:
         bool active, bool refreshAlways);
 
     static QStringList pluginFolders();
-
+    
+    bool getMessageUnreadInfo(const NmId &folderId, 
+        const NmId &messageId, const NmId &mailboxId, bool &unreadMessage);
+    
+    void playAlertTone();
+    
 private: // data
 
     NmDataPluginFactory *mPluginFactory;
     QList<NmMailboxInfo*> mMailboxes;
     bool mSendingState;
+    bool mAlertToneAllowed;
 };
 
 

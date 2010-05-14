@@ -1,0 +1,6 @@
+EXPORTS
+	?mailboxName@EmailMailboxInfo@@QBE?AVQString@@ABVQVariant@@@Z @ 1 NONAME ; class QString EmailMailboxInfo::mailboxName(class QVariant const &) const
+	?mailboxIcon@EmailMailboxInfo@@QBE?AVQString@@ABVQVariant@@@Z @ 2 NONAME ; class QString EmailMailboxInfo::mailboxIcon(class QVariant const &) const
+	??0EmailMailboxInfo@@QAE@XZ @ 3 NONAME ; EmailMailboxInfo::EmailMailboxInfo(void)
+	??1EmailMailboxInfo@@QAE@XZ @ 4 NONAME ; EmailMailboxInfo::~EmailMailboxInfo(void)
+

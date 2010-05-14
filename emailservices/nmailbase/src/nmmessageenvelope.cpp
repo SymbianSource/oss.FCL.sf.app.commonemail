@@ -24,7 +24,8 @@
     Constructor of NmMessageEnvelopePrivate object
  */
 NmMessageEnvelopePrivate::NmMessageEnvelopePrivate()
-:mId(0),
+:mMessageId(0),
+mFolderId(0),
 mMailboxId(0),
 mMessageFlags(0)
 {
@@ -84,10 +85,10 @@ NmMessageEnvelope::NmMessageEnvelope()
 /*!
     Constructor with id
  */
-NmMessageEnvelope::NmMessageEnvelope(const NmId &id)
+NmMessageEnvelope::NmMessageEnvelope(const NmId &messageId)
 {
     d = new NmMessageEnvelopePrivate();
-    d->mId = id;
+    d->mMessageId = messageId;
 }
 
 /*!
@@ -129,7 +130,7 @@ bool NmMessageEnvelope::operator==(const NmMessageEnvelope &envelope) const
         && sentTime() == envelope.sentTime()
         && flags() == envelope.flags()
         && mailboxId() == envelope.mailboxId()
-        && parentId() == envelope.parentId()) {
+        && folderId() == envelope.folderId()) {
         ret = true;
     }
     return ret;
@@ -154,33 +155,33 @@ NmMessageEnvelope::~NmMessageEnvelope()
 /*!
     Sets message id
  */
-void NmMessageEnvelope::setId(const NmId &id)
+void NmMessageEnvelope::setMessageId(const NmId &messageId)
 {
-    d->mId = id;
+    d->mMessageId = messageId;
 }
 
 /*!
     Returns id of message
  */
-NmId NmMessageEnvelope::id() const
+NmId NmMessageEnvelope::messageId() const
 {
-    return d->mId;
+    return d->mMessageId;
 }
 
 /*!
     Returns parent id of this envelope
  */
-NmId NmMessageEnvelope::parentId() const
+NmId NmMessageEnvelope::folderId() const
 {
-    return d->mParentId;
+    return d->mFolderId;
 }
 
 /*!
     Sets the parent id for this envelope
  */
-void NmMessageEnvelope::setParentId(const NmId &id)
+void NmMessageEnvelope::setFolderId(const NmId &folderId)
 {
-    d->mParentId = id;
+    d->mFolderId = folderId;
 }
 
 /*!
@@ -194,9 +195,9 @@ NmId NmMessageEnvelope::mailboxId() const
 /*!
     Sets the mailbox id for this envelope
  */
-void NmMessageEnvelope::setMailboxId(const NmId &id)
+void NmMessageEnvelope::setMailboxId(const NmId &mailboxId)
 {
-    d->mMailboxId = id;
+    d->mMailboxId = mailboxId;
 }
 
 /*!

@@ -15,38 +15,38 @@
  *
  */
 
-#include "nmapidataplugininterface.h"
+#include "nmdataplugininterface.h"
 #include "nmapidatapluginfactory.h"
+
 // Qt
-#include <QList>
 #include <QPluginLoader>
 #include <QDir>
 #include <QApplication>
 #include <QLocale>
+#include <QObject>
 
 // nmailbase
 #include "nmcommon.h"
 #include "nmmailbox.h"
-#include "../../../inc/nmmessageenvelope.h"
+#include "nmmessageenvelope.h"
 #include "nmmessage.h"
 #include "nmmessagepart.h"
 #include "nmfolder.h"
 
 /*!
- \class NmDataPluginFactory
- \brief The NmDataPluginFactory class creates NmDataPlugin instance.
+ \class NmApiDataPluginFactory
+ \brief The NmApiDataPluginFactory class creates NmDataPlugin instance.
 
  */
-NmDataPluginFactory *NmDataPluginFactory::mInstance = NULL;
-int NmDataPluginFactory::mReferenceCount = 0;
-QList<QObject*> *NmDataPluginFactory::mPluginArray = NULL;
-QList<QPluginLoader*> NmDataPluginFactory::mPluginLoaderArray = QList<QPluginLoader*> ();
-const int INTERFACEPLUGININDEX = 0;
+NmApiDataPluginFactory *NmApiDataPluginFactory::mInstance = NULL;
+int NmApiDataPluginFactory::mReferenceCount = 0;
+QObject *NmApiDataPluginFactory::mPlugin = NULL;
+QPluginLoader *NmApiDataPluginFactory::mPluginLoader = NULL;
 
 /*!
 
  */
-NmDataPluginFactory::NmDataPluginFactory()
+NmApiDataPluginFactory::NmApiDataPluginFactory()
 {
 
 }
@@ -54,26 +54,26 @@ NmDataPluginFactory::NmDataPluginFactory()
 /*!
 
  */
-NmDataPluginFactory::~NmDataPluginFactory()
+NmApiDataPluginFactory::~NmApiDataPluginFactory()
 {
-    if (mPluginArray) {
-        qDeleteAll(mPluginArray->begin(), mPluginArray->end());
-        mPluginArray->clear();
-        delete mPluginArray;
-        mPluginArray = NULL;
+    if (mPlugin) {
+        delete mPlugin;
+        mPlugin = NULL;
     }
-
-    qDeleteAll(mPluginLoaderArray.constBegin(), mPluginLoaderArray.constEnd());
-    mPluginLoaderArray.clear();
+    
+    if(mPluginLoader){
+        delete mPluginLoader;
+        mPluginLoader = NULL;
+    }
 }
 
 /*!
 
  */
-NmDataPluginFactory *NmDataPluginFactory::instance()
+NmApiDataPluginFactory *NmApiDataPluginFactory::instance()
 {
     if (!mInstance) {
-        mInstance = new NmDataPluginFactory();
+        mInstance = new NmApiDataPluginFactory();
     }
     mReferenceCount++;
     return mInstance;
@@ -82,7 +82,7 @@ NmDataPluginFactory *NmDataPluginFactory::instance()
 /*!
 
  */
-void NmDataPluginFactory::releaseInstance(NmDataPluginFactory *&instance)
+void NmApiDataPluginFactory::releaseInstance(NmApiDataPluginFactory *&instance)
 {
     //can't have passed out instances if we don't have any
     if (mInstance) {
@@ -97,83 +97,46 @@ void NmDataPluginFactory::releaseInstance(NmDataPluginFactory *&instance)
     }
 }
 
+
 /*!
 
  */
-NmDataPluginInterface *NmDataPluginFactory::interfaceInstance(QObject *plugin)
+NmDataPluginInterface *NmApiDataPluginFactory::interfaceInstance()
 {
-    NmDataPluginInterface *pluginInterface = NULL;
-    if (plugin) {
-        pluginInterface = qobject_cast<NmDataPluginInterface*> (plugin);
+    if (!mPlugin) {
+        mPlugin = loadPlugin();
     }
-    return pluginInterface;
+    return qobject_cast<NmDataPluginInterface*> (mPlugin);
 }
 
 /*!
 
  */
-NmDataPluginInterface *NmDataPluginFactory::interfaceInstance(NmId mailboxId)
+QObject *NmApiDataPluginFactory::loadPlugin()
 {
-    return interfaceInstance(pluginInstance(mailboxId));
-}
-
-/*!
-
- */
-QObject *NmDataPluginFactory::pluginInstance(NmId mailboxId)
-{
-    Q_UNUSED(mailboxId);
-    return pluginInstances()->at(INTERFACEPLUGININDEX);
-}
-
-/*!
-
- */
-QList<QObject*> *NmDataPluginFactory::pluginInstances()
-{
-    //if plugins have not been already created, do it now.
-    if (!mPluginArray) {
-        mPluginArray = new QList<QObject*> ();
-    }
-    if (mPluginArray->count() == 0) {
-#ifdef Q_OS_SYMBIAN
-
+    if (!mPluginLoader) {
         const QString KPluginDirectory = "c:\\resource\\plugins";
         QDir pluginDir = QDir(KPluginDirectory);
         const QString KFrameworkPluginName = "nmframeworkadapter.qtplugin";
-        QObject *frameworkPlugin = loadPlugin(pluginDir, KFrameworkPluginName);
-        mPluginArray->append(frameworkPlugin);
+        /*!
+         This creates plugin entity.
+         */
+        mPluginLoader = new QPluginLoader(pluginDir.absoluteFilePath(KFrameworkPluginName));
 
-#endif
+        mPlugin = mPluginLoader->instance();
+        if(!mPlugin){
+            // We don't have proper plugin instance, so we don't need it's loader.
+            delete mPluginLoader;
+            mPluginLoader = NULL;
+        }
     }
-
-    return mPluginArray;
+    return mPlugin;
 }
 
-/*!
-
- */
-QObject *NmDataPluginFactory::loadPlugin(const QDir& pluginDir, const QString& pluginName)
+QObject *NmApiDataPluginFactory::plugin()
 {
-    /*!
-     This creates plugin entity.
-     */
-    QPluginLoader *loader = new QPluginLoader(pluginDir.absoluteFilePath(pluginName));
-
-    QObject *pluginInstance = loader->instance();
-
-    if (pluginInstance) {
-        // Store QPluginLoader instances to keep plugins alive.
-        // If QPluginLoader instance for a plugin is deleted, then there
-        // is a risk that some component outside will load and unload
-        // plugin, which will lead into situation where plugin is deleted.
-        // This means that instance in mPluginArray will be invalid.
-        mPluginLoaderArray.append(loader);
+    if (!mPlugin) {
+        mPlugin = loadPlugin();
     }
-    else {
-        // We don't have proper plugin instance, so we don't need it's loader.
-        delete loader;
-        loader = NULL;
-    }
-    return pluginInstance;
+    return mPlugin;
 }

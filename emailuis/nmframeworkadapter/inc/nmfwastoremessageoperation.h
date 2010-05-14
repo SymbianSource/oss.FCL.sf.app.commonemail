@@ -34,19 +34,15 @@ public:
 			CFSMailMessage *messages,
             CFSMailClient &mailClient);
     
-    virtual ~NmFwaStoreMessageOperation();
-    
-    virtual void RequestResponseL(TFSProgress aEvent, TInt aRequestId);
+    void RequestResponseL(TFSProgress aEvent, TInt aRequestId);
 
 protected:
-    virtual void doRunAsyncOperation();
-    
-protected:
-    virtual void doCompleteOperation();
-    virtual void doCancelOperation();
+    void doRunAsyncOperation();
+    void doCompleteOperation();
+    void doCancelOperation();
 
 private:
-    
+    ~NmFwaStoreMessageOperation();
     enum TStatus
         {
         EStoreHeader,

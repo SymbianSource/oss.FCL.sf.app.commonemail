@@ -307,4 +307,6 @@ EXPORTS
 	_ZThn4_NK21CBaseMrRecurrenceRule19RecurrenceStartTimeEv @ 306 NONAME
 	_ZThn4_NK21CBaseMrRecurrenceRule20RecurrentDaysofMonthEv @ 307 NONAME
 	_ZThn4_NK21CBaseMrRecurrenceRule4TypeEv @ 308 NONAME
+	_ZN11CBasePlugin21NewChildPartFromFileLERK12TFSMailMsgIdS2_S2_S2_RK7TDesC16S5_R22MFSMailRequestObserveri @ 309 NONAME
+	_ZN11CBasePlugin16RemoveChildPartLERK12TFSMailMsgIdS2_S2_S2_S2_R22MFSMailRequestObserveri @ 310 NONAME
 

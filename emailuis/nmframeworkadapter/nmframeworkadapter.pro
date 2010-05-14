@@ -13,16 +13,20 @@
 #
 # Description: 
 #
-# Version : %version: 24 %
+# Version : %version: 26 %
 TEMPLATE = lib
 TARGET = nmframeworkadapter
 
 CONFIG += plugin
 DEFINES += BUILD_DLL
 
-INCLUDEPATH += ../../inc
+MOC_DIR = ./moc
+
+INCLUDEPATH += ./moc \
+               ../../inc \
 
 HEADERS += inc/nmframeworkadapter.h \
+           inc/nmframeworkadapterheaders.h \
            inc/nmfwamessagefetchingoperation.h \
            inc/nmfwamessagecreationoperation.h \
            inc/nmfwastoreenvelopesoperation.h \
@@ -33,7 +37,8 @@ HEADERS += inc/nmframeworkadapter.h \
            inc/nmfwaremoveattachmentoperation.h \
            inc/nmfwastoremessageoperation.h \
            inc/nmfwacheckoutboxoperation.h \
-           inc/nmfwamessagepartfetchingoperation.h
+           inc/nmfwamessagepartfetchingoperation.h \
+           inc/nmmailboxsearchobserver.h
 
 SOURCES += src/nmframeworkadapter.cpp \
            src/nmfwamessagefetchingoperation.cpp \
@@ -46,7 +51,8 @@ SOURCES += src/nmframeworkadapter.cpp \
            src/nmfwaremoveattachmentoperation.cpp \
            src/nmfwastoremessageoperation.cpp \
            src/nmfwacheckoutboxoperation.cpp \
-           src/nmfwamessagepartfetchingoperation.cpp
+           src/nmfwamessagepartfetchingoperation.cpp \
+           src/nmmailboxsearchobserver.cpp
 
 RESOURCES +=
 
@@ -65,20 +71,20 @@ symbian*: {
     pluginstub.path = /resource/plugins
     DEPLOYMENT += pluginstub
 
-	TARGET.EPOCHEAPSIZE = 0x20000 0x1000000
+    TARGET.EPOCHEAPSIZE = 0x20000 0x1000000
     TARGET.EPOCALLOWDLLDATA = 1
     TARGET.CAPABILITY = CAP_GENERAL_DLL
     TARGET.UID2 = 0x1000008D
     TARGET.UID3 = 0x20027019
 
-	LIBS += -lnmailbase
-	LIBS += -lnmailuiengine
-	LIBS += -lfsmailframework
-	LIBS += -lfsfwcommonlib
-	LIBS += -lcharconv
+    LIBS += -lnmailbase
+    LIBS += -lnmailuiengine
+    LIBS += -lfsmailframework
+    LIBS += -lfsfwcommonlib
+    LIBS += -lcharconv
     LIBS += -lxqserviceutil 
 
-	BLD_INF_RULES.prj_exports += \
+    BLD_INF_RULES.prj_exports += \
     "../rom/nmframeworkadapter.iby             CORE_APP_LAYER_IBY_EXPORT_PATH(nmframeworkadapter.iby)"
 
 }
@@ -90,4 +96,4 @@ win32 {
         -lnmailbase
 }
 
-
+# End of file.

@@ -38,13 +38,10 @@ void NmFwaReplyMessageCreationOperation::doRunAsyncOperation()
 
     CFSMailBox *mailBox(NULL);
     TRAP_IGNORE(mailBox = mMailClient.GetMailBoxByUidL(mailMsgId));
-    
     if (mailBox) {
         TRAPD(err, mRequestId = mailBox->CreateReplyMessageL(mOriginalMessageId, mReplyAll, *this));
-
         if (err == KErrFSMailPluginNotSupported) {
             CFSMailMessage *fsMessage = mailBox->CreateReplyMessage(mOriginalMessageId, mReplyAll);
- 
             mMessage = fsMessage->GetNmMessage();
             
             delete fsMessage;

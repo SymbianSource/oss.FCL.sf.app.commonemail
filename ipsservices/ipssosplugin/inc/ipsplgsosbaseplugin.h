@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2007 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -38,13 +38,14 @@ class CIpsPlgMruList;
 class CIpsPlgSettingsObserver;
 class CRepository;
 class CIpsPlgSearch;
+// <qmail> CIpsSetDataApi removed
 class CIpsPlgSmtpService;
 class CIpsPlgSyncStateHandler;
 class CIpsPlgEventHandler;
 
 /**
- *  FreestyleIpsServices plugin class 
- * 
+ *  FreestyleIpsServices plugin class
+ *
  *  @lib ipssosplugin.lib
  *  @since FSEmail 2.0
  */
@@ -53,10 +54,10 @@ NONSHARABLE_CLASS ( CIpsPlgSosBasePlugin ) :
                              public MIpsPlgSingleOpWatcher,
                              public MFSMailRequestObserver, // a dummy observer
                              public MIpsPlgTimerOperationCallBack
-    {  
-    
+    {
+
 public:
-		
+
     /**
     * ~CIpsPlgSosBasePlugin
     * Destructor
@@ -66,34 +67,34 @@ public:
 public: //from MIpsPlgSingleOpWatcher
 
     /**
-    * 
+    *
     */
-    void OpCompleted( 
-        CIpsPlgSingleOpWatcher& aOpWatcher, 
+    void OpCompleted(
+        CIpsPlgSingleOpWatcher& aOpWatcher,
         TInt aCompletionCode );
 
 public: //from MFSMailRequestObserver
-    
+
     /**
     * no real implementation for this. we're just a dummy observer,
     * so we can internally run our own operations, like DisconnectL
     */
     virtual void RequestResponseL( TFSProgress aEvent, TInt aRequestId );
-    
+
 public: // from MIpsPlgTimerOperationCallBack
-    
+
     /**
     * Called when activity timer fires
-    */    
+    */
     virtual void HandleTimerFiredL( const TFSMailMsgId& aMailboxId );
-    
+
 public: // from CFSMailPlugin
 
     virtual void SetMailboxName(
-         const TFSMailMsgId& aMailboxId, 
+         const TFSMailMsgId& aMailboxId,
          const TDesC& aMailboxName );
-    
-    virtual TFSMailBoxStatus GetMailBoxStatus( 
+
+    virtual TFSMailBoxStatus GetMailBoxStatus(
          const TFSMailMsgId& aMailBoxId );
 
     virtual TFSMailMsgId SpecifiedSendingMailbox();
@@ -110,12 +111,20 @@ public: // from CFSMailPlugin
     virtual TDesC& GetBrandingIdL( const TFSMailMsgId& aMailBoxId);
 
     virtual void MoveMessagesL(
-        const TFSMailMsgId& aMailBoxId, 
-        const RArray<TFSMailMsgId>& aMessageIds, 
-        const TFSMailMsgId& aSourceFolderId, 
-        const TFSMailMsgId& aDestinationFolderId );     
+        const TFSMailMsgId& aMailBoxId,
+        const RArray<TFSMailMsgId>& aMessageIds,
+        const TFSMailMsgId& aSourceFolderId,
+        const TFSMailMsgId& aDestinationFolderId );
 
-    virtual void CopyMessagesL( 
+    virtual TInt MoveMessagesL(
+        const TFSMailMsgId& aMailBoxId,
+        const RArray<TFSMailMsgId>& aMessageIds,
+        const TFSMailMsgId& aSourceFolderId,
+        const TFSMailMsgId& aDestinationFolderId,
+        MFSMailRequestObserver& aOperationObserver,
+        TInt aRequestId );
+
+    virtual void CopyMessagesL(
         const TFSMailMsgId& aMailBoxId,
         const RArray<TFSMailMsgId>& aMessageIds,
         RArray<TFSMailMsgId>& aNewMessages,
@@ -124,29 +133,29 @@ public: // from CFSMailPlugin
 
     virtual MDesCArray* GetMrusL( const TFSMailMsgId& aMailBoxId );
 
-    virtual void SetMrusL( 
-            const TFSMailMsgId& aMailBoxId, 
+    virtual void SetMrusL(
+            const TFSMailMsgId& aMailBoxId,
             MDesCArray* aNewMruList );
 
-    virtual const TFSProgress GetLastSyncStatusL( 
+    virtual const TFSProgress GetLastSyncStatusL(
         const TFSMailMsgId& aMailBoxId );
 
     virtual TInt CancelSyncL( const TFSMailMsgId& aMailBoxId );
 
     // FOLDER HANDLING
 
-    virtual CFSMailFolder* GetFolderByUidL( 
-        const TFSMailMsgId& aMailBoxId, 
+    virtual CFSMailFolder* GetFolderByUidL(
+        const TFSMailMsgId& aMailBoxId,
         const TFSMailMsgId& aFolderId );
 
-    virtual CFSMailFolder* CreateFolderL( 
-        const TFSMailMsgId& aMailBoxId, 
+    virtual CFSMailFolder* CreateFolderL(
+        const TFSMailMsgId& aMailBoxId,
         const TFSMailMsgId& aFolderId,
-        const TDesC& aFolderName, 
+        const TDesC& aFolderName,
         const TBool aSync );
 
     virtual void DeleteFolderByUidL(
-        const TFSMailMsgId& aMailBoxId, 
+        const TFSMailMsgId& aMailBoxId,
         const TFSMailMsgId& aFolderId);
 
     // MESSAGE FETCH AND STORE
@@ -157,20 +166,20 @@ public: // from CFSMailPlugin
         const TFSMailDetails aDetails,
         const RArray<TFSMailSortCriteria>& aSorting );
 
-    virtual CFSMailMessage* GetMessageByUidL( 
-        const TFSMailMsgId& aMailBoxId, 
+    virtual CFSMailMessage* GetMessageByUidL(
+        const TFSMailMsgId& aMailBoxId,
         const TFSMailMsgId& aFolderId,
-        const TFSMailMsgId& aMessageId, 
+        const TFSMailMsgId& aMessageId,
         const TFSMailDetails aDetails);
 
-    virtual void DeleteMessagesByUidL( 
+    virtual void DeleteMessagesByUidL(
         const TFSMailMsgId& aMailBoxId,
         const TFSMailMsgId& aFolderId,
         const RArray<TFSMailMsgId>& aMessages );
 
     // MESSAGE STORE OPERATIONS
 
-    virtual CFSMailMessage* CreateMessageToSendL( 
+    virtual CFSMailMessage* CreateMessageToSendL(
         const TFSMailMsgId& aMailBoxId );
     
 // <qmail>
@@ -187,8 +196,8 @@ public: // from CFSMailPlugin
         const TInt aRequestId );
 // </qmail>
 
-    virtual CFSMailMessage* CreateForwardMessageL( 
-        const TFSMailMsgId& aMailBoxId, 
+    virtual CFSMailMessage* CreateForwardMessageL(
+        const TFSMailMsgId& aMailBoxId,
         const TFSMailMsgId& aOriginalMessageId,
         const TDesC& aHeaderDescriptor );
 
@@ -209,8 +218,8 @@ public: // from CFSMailPlugin
         const TDesC& aHeaderDescriptor = KNullDesC );
 // </qmail>
 
-    virtual CFSMailMessage* CreateReplyMessageL( 
-        const TFSMailMsgId& aMailBoxId, 
+    virtual CFSMailMessage* CreateReplyMessageL(
+        const TFSMailMsgId& aMailBoxId,
         const TFSMailMsgId& aOriginalMessageId,
         const TBool aReplyToAll,
         const TDesC& aHeaderDescriptor );
@@ -234,8 +243,8 @@ public: // from CFSMailPlugin
         const TDesC& aHeaderDescriptor );
 // </qmail>
        
-    virtual void StoreMessageL( 
-        const TFSMailMsgId& aMailBoxId, 
+    virtual void StoreMessageL(
+        const TFSMailMsgId& aMailBoxId,
         CFSMailMessage& aMessage );
 
 
@@ -248,19 +257,19 @@ public: // from CFSMailPlugin
     // </qmail>
             
     virtual void GetMessagesL(
-        const TFSMailMsgId& aMailBoxId, 
+        const TFSMailMsgId& aMailBoxId,
         const TFSMailMsgId& aFolderId,
         const RArray<TFSMailMsgId>& aMessageIds,
         RPointerArray<CFSMailMessage>& aMessageList,
         const TFSMailDetails aDetails );
-    						
-    virtual void ChildPartsL( 
+
+    virtual void ChildPartsL(
         const TFSMailMsgId& aMailBoxId,
         const TFSMailMsgId& aParentFolderId,
         const TFSMailMsgId& aMessageId,
         const TFSMailMsgId& aParentId,
         RPointerArray<CFSMailMessagePart>& aParts);
-    						
+
     virtual CFSMailMessagePart* NewChildPartL(
         const TFSMailMsgId& aMailBoxId,
         const TFSMailMsgId& aParentFolderId,
@@ -332,47 +341,47 @@ public: // from CFSMailPlugin
         const TInt aRequestId );
     // </qmail>
         
-    virtual CFSMailMessagePart* MessagePartL(  
-        const TFSMailMsgId& aMailBoxId, 
+    virtual CFSMailMessagePart* MessagePartL(
+        const TFSMailMsgId& aMailBoxId,
         const TFSMailMsgId& aParentFolderId,
         const TFSMailMsgId& aMessageId,
         const TFSMailMsgId& aMessagePartId);
 
-    virtual TInt GetMessagePartFileL(  
-        const TFSMailMsgId& aMailBoxId, 
+    virtual TInt GetMessagePartFileL(
+        const TFSMailMsgId& aMailBoxId,
         const TFSMailMsgId& aParentFolderId,
         const TFSMailMsgId& aMessageId,
-        const TFSMailMsgId& aMessagePartId, 
+        const TFSMailMsgId& aMessagePartId,
         RFile& aFileHandle);
 
-    virtual void CopyMessagePartFileL( 
-        const TFSMailMsgId& aMailBoxId, 
+    virtual void CopyMessagePartFileL(
+        const TFSMailMsgId& aMailBoxId,
         const TFSMailMsgId& aParentFolderId,
         const TFSMailMsgId& aMessageId,
-        const TFSMailMsgId& aMessagePartId, 
+        const TFSMailMsgId& aMessagePartId,
         const TDesC& aFilePath);
 
-    virtual void GetContentToBufferL(	
+    virtual void GetContentToBufferL(
         const TFSMailMsgId& aMailBoxId,
         const TFSMailMsgId& aParentFolderId,
         const TFSMailMsgId& aMessageId,
         const TFSMailMsgId& aMessagePartId,
         TDes& aBuffer,
         const TUint aStartOffset);
-    						 
+
     virtual void SetContentL(
-        const TDesC& aBuffer, 
+        const TDesC& aBuffer,
         const TFSMailMsgId& aMailBoxId,
         const TFSMailMsgId& aParentFolderId,
-        const TFSMailMsgId& aMessageId, 
-        const TFSMailMsgId& aMessagePartId); 
+        const TFSMailMsgId& aMessageId,
+        const TFSMailMsgId& aMessagePartId);
 
-    virtual void RemovePartContentL( 
-        const TFSMailMsgId& aMailBoxId, 
+    virtual void RemovePartContentL(
+        const TFSMailMsgId& aMailBoxId,
         const TFSMailMsgId& aParentFolderId,
         const TFSMailMsgId& aMessageId,
         const RArray<TFSMailMsgId>& aPartIds);
-        
+
     virtual void SetPartContentFromFileL(
         const TFSMailMsgId& aMailBoxId,
         const TFSMailMsgId& aParentFolderId,
@@ -397,6 +406,8 @@ public: // from CFSMailPlugin
 
     // MESSAGE SENDING
 
+    virtual void SendL(TFSMailMsgId aMessageId );
+
     virtual void SendMessageL( CFSMailMessage& aMessage );
 
     virtual void SendMessageL(
@@ -405,18 +416,18 @@ public: // from CFSMailPlugin
         const TInt aRequestId );
 
     // OPERATION HANDLING
-    
+
     virtual void GoOnlineL( const TFSMailMsgId& aMailBoxId );
-    
+
     virtual void GoOfflineL( const TFSMailMsgId& aMailBoxId );
-    						
+
     virtual TFSProgress StatusL(const TInt aRequestId);
 
     virtual void CancelL(const TInt aRequestId);
 
-    // Search API 
+    // Search API
 
-    virtual void SearchL( 
+    virtual void SearchL(
         const TFSMailMsgId& aMailBoxId,
         const RArray<TFSMailMsgId>& aFolderIds,
         const RPointerArray<TDesC>& aSearchStrings,
@@ -442,7 +453,7 @@ public: // from CFSMailPlugin
         const TFSMailMsgId& aMailBoxId);
 
     virtual TInt WizardDataAvailableL( );
-    
+
     /**
      * reads connection id from plugin
      *
@@ -454,24 +465,24 @@ public: // from CFSMailPlugin
     /**
      * checks from plugin if connection is allowed when roaming
      *
-     * @param  aConnectionAllowed 
+     * @param  aConnectionAllowed
      * @return KErrNone or error code
      */
-     virtual TInt IsConnectionAllowedWhenRoaming( 
-             TFSMailMsgId aMailBoxId, 
+     virtual TInt IsConnectionAllowedWhenRoaming(
+             TFSMailMsgId aMailBoxId,
              TBool& aConnectionAllowed );
 
     virtual void AuthenticateL(
         MFSMailRequestObserver& aOperationObserver,
         TInt aRequestId );
 
-    virtual void SetCredentialsL( 
-       const TFSMailMsgId& aMailBoxId, 
+    virtual void SetCredentialsL(
+       const TFSMailMsgId& aMailBoxId,
        const TDesC& aUsername,
        const TDesC& aPassword );
-    
+
 public:
-    
+
     /**
     * Function to identify which protocol plugin we are working with
     * @return MTM id
@@ -486,7 +497,7 @@ public:
      * @since FSEmail 2.0
      */
    TUint PluginId() const;
-    
+
     /**
      * Disconnects mailbox
      *
@@ -497,12 +508,12 @@ public:
      *                           removed afted disconnect, default is EFalse
      * @since FSEmail 2.0
      */
-    virtual void DisconnectL( 
-        const TFSMailMsgId& aMailBoxId, 
+    virtual void DisconnectL(
+        const TFSMailMsgId& aMailBoxId,
         MFSMailRequestObserver& aObserver,
         const TInt aRequestId,
         TBool aRemoveAccountAlso = EFalse );
-    
+
     /**
      * Fetch content of new mail, used in event handler
      * needed because imap idle
@@ -512,11 +523,11 @@ public:
      * @param aParentId new mail's parent entry id
      * @since FSEmail 2.0
      */
-    virtual void PopulateNewMailL( 
-        const TFSMailMsgId& aMailboxId, 
-        TMsvId aNewId, 
+    virtual void PopulateNewMailL(
+        const TFSMailMsgId& aMailboxId,
+        TMsvId aNewId,
         TMsvId aParentId ) = 0;
-    
+
     /**
      * Gets reference to activity timer object, used when clearing
      * activity timer in operation complete function (online operation)
@@ -528,27 +539,27 @@ public:
      * @since FSEmail 2.0
      */
     CIpsPlgTimerOperation& ActivityTimerL( const TFSMailMsgId& aMailBoxId );
-    
+
     /*
      * Gets reference to sync state handler class
-     * @return reference to sync state handler 
+     * @return reference to sync state handler
      * @since FSEmail 2.0
      */
     CIpsPlgSyncStateHandler& GetSyncStateHandler();
-    
+
     /**
      * This is called after msv session ready event comes from msv server
      * @since FSEmail 2.0
      */
     void CompleteConstructL();
-    
-    
+
+
     /**
      * called if session terminated event is sent by msv server
      * @since FSEmail 2.0
      */
     void SessionTerminated();
-    
+
     /**
     * Does checks to see is connection attempt possible and allowed
     * @param aMailboxId mailbox to do the checks to
@@ -558,15 +569,23 @@ public:
     */
     TBool CanConnectL( const TFSMailMsgId& aMailboxId,
         TInt& aReason );
-    
+
     /*
      * Gludge type check is plugin instance running under ui process
      * needed in event handler
      * @since FSEmail 2.0
      */
     TBool IsUnderUiProcess();
-    
-protected:        
+
+    // <qmail> new function
+    /*
+     * Checks whether given mailbox has ongoing operations or not
+     * @param aMailboxId
+     * @return true/false
+     */
+    TBool HasOperations( const TFSMailMsgId& aMailboxId );
+    // </qmail>
+protected:
 
     /*
      * Constructor
@@ -581,25 +600,25 @@ protected:
 
     /**
      * passes completion event to protocol plugin
-     * If certain operation completion requires special handling, 
+     * If certain operation completion requires special handling,
      * protocol plugin should keep the id of the operation
      * so it can know, that this certain operation has completed.
      */
-    virtual void HandleOpCompletedL( 
-        CIpsPlgSingleOpWatcher& aOpWatcher, 
+    virtual void HandleOpCompletedL(
+        CIpsPlgSingleOpWatcher& aOpWatcher,
         TInt aCompletionCode ) = 0;
-    
+
     /**
     * Sends pending messages from outbox, if user manually start
     * send-receive operation.
     */
     void EmptyOutboxL( const TFSMailMsgId& aMailBoxId );
-    
+
     /**
     * Checks if offline mode is activated
     */
     TBool OfflineModeSetL();
-    
+
     /**
     * Checks if given local feature is turned on
     */
@@ -607,89 +626,115 @@ protected:
         const TUid& aCenRepUid,
         const TUint32 aKeyId,
         const TUint32 aFlag );
-    
+
     /**
     * Checks if we are roaming and are we allowed to
     * connect if we are.
     */
     TBool RoamingCheckL();
-    
+
     /**
     * Check network registration status i.e. are we in gsm or wlan network
     */
     TInt RegistrationStatusL();
-    
+
     /**
     * Called from Imap Plugin's MoveMessagesL if destination folder
     * is draft folder.
     */
     void MoveMessagesToDraftL(
-        const TFSMailMsgId& aMailBoxId, 
-        const RArray<TFSMailMsgId>& aMessageIds, 
-        const TFSMailMsgId& aSourceFolderId, 
+        const TFSMailMsgId& aMailBoxId,
+        const RArray<TFSMailMsgId>& aMessageIds,
+        const TFSMailMsgId& aSourceFolderId,
         const TFSMailMsgId& aDestinationFolderId );
-    
+
 private:
-    
+
     /**
      * Returns a cached entry objects or creates new objects and keeps them
      * in the cache.
      * Returned objects should not be deleted in the calling method.
      * Pointers are set NULL in the case of error.
      * Pointers are valid until the method is called next time
-     * Method should be used only for entries representing messages (not 
+     * Method should be used only for entries representing messages (not
      * folders or attachements).
      */
-    void GetMessageEntryL( 
-        TMsvId aId, 
+    void GetMessageEntryL(
+        TMsvId aId,
+        CMsvEntry*& aMessageEntry,
+        CImEmailMessage*& aImEmailMessage );
+
+    /**
+	 * Takes ownership of the cached objects or creates new ones
+	 */     	 
+	void TakeMessageEntryLC(
+		TMsvId aId,
         CMsvEntry*& aMessageEntry,
         CImEmailMessage*& aImEmailMessage );
     
+    /**
+     * Return objects to cache, deleting old ones in the cache if necessary
+     */         
+    void ReturnMessageEntry(
+        CMsvEntry* aMessageEntry,
+        CImEmailMessage* aImEmailMessage );
+        
     /*
      * Cleans up the cached messages entries that have accessed with
      * GetMessageEntryL()
      */
     void CleanCachedMessageEntries();
-    
+
     /**
     * Cancel all online operations, use before disconnect
     */
     void CancelAllOnlineOperations( const TFSMailMsgId& aMailboxId );
-    
+
     /**
     * Checks is there any connect operations running, meaning
     * that we are "connected" state
     */
     TBool ConnOpRunning( const TFSMailMsgId& aMailBoxId  );
-    
+
     /**
     * Cancel, delete and remove operation from iOperations array.
     * Send Sync Completed event to plugin if operation is sync op
     */
-    void DeleteAndRemoveOperation( 
+    void DeleteAndRemoveOperation(
             const TInt aOpArrayIndex, TInt aCompleteCode );
+
+    /**
+     * Fixes the forward (or reply) message header parts (that are copied
+     * to msg content) in case that caller has provided an own header 
+     * descriptor for these parts.
+     */
+    void FixReplyForwardHeaderL(
+            CFSMailMessage* aMessage,
+            const TFSMailMsgId& aMailBoxId,
+            const TFSMailMsgId& aOriginalMessageId,
+            const TDesC& aHeaderDescriptor );
     
-private:        
+private:
 
     /**
     * Maps symbian msv api's folder type to fs folder type
     */
-    TFSFolderType GetFolderType( 
-            CMsvEntry* aEntry, 
+    TFSFolderType GetFolderType(
+            CMsvEntry* aEntry,
             TFSMailMsgId aFolderId );
-    
+
     /**
     * Set folders to blocklist in online, offline or in both cases.
-    * Operations (move/copy) allowed only between remote folders 
+    * Operations (move/copy) allowed only between remote folders
     * (+IMAP inbox) in online mode and Outbox->Drafts
     */
-    void BlockCopyMoveFromFoldersL( 
-        CMsvEntry* aFolderEntry, 
-        TFSMailMsgId aFolderId, 
+    void BlockCopyMoveFromFoldersL(
+        CMsvEntry* aFolderEntry,
+        TFSMailMsgId aFolderId,
         CFSMailFolder& aFSMailFolder );
-    
+
     /**
-     * Set IMEI code to service's TEntry.iDescription 
+     * Set IMEI code to service's TEntry.iDescription
      */
     void StoreIMEIToMailboxL( const TMsvId aMailboxId );
 
@@ -701,18 +746,18 @@ private:
     void DeleteActivityTimer( const TFSMailMsgId& aMailBoxId  );
 
 protected: // internal enumerations and data structures
-    
+
     enum TSyncStatesInCenRep
         {
         ESyncFinishedSuccessfully = 103,
         ESyncError,
         ESyncCancelled
         };
-    
+
 private:
 
     CIpsPlgSosBasePlugin();
-    
+
 protected:
 
     // uint of fs plugin implementation, pop of imap
@@ -720,13 +765,13 @@ protected:
 
     // Symbian message server session
     CMsvSession* iSession;
-    
+
     // Message mapper instance
     CIpsPlgMsgMapper* iMsgMapper;
-    
+
     //array of operation watchers
     RPointerArray<CIpsPlgSingleOpWatcher>   iOperations;
-    
+
     //array of activity timers
     RPointerArray<CIpsPlgTimerOperation>   iActivitytimers;
 
@@ -736,30 +781,32 @@ protected:
     // Cached Symbian message data structures
     CMsvEntry* iCachedEntry;
     CImEmailMessage* iCachedEmailMessage;
-    
+
     // read and write most recent used address list
     CIpsPlgMruList* iMruList;
-    
+
     // Search Engine
     CIpsPlgSearch*  iSearch;
-    
+
+    // <qmail> iSettingsApi removed
+
     // maps symbian events to fs events
     CIpsPlgEventHandler*    iEventHandler;
-    
-    // keeps track is sync started in some plugin instance 
+
+    // keeps track is sync started in some plugin instance
     // or in always online needed when mailbox status is asked
     CIpsPlgSyncStateHandler* iSyncStateHandler;
-    
-    RConnectionMonitor              iConMon;    
-    
+
+    RConnectionMonitor              iConMon;
+
     // flag indicates is msv session ready
     TBool iSessionOk;
-    
+
     TBuf<KIpsPlgMaxPhoneIdLength>  iIMEI;
 
     // branding id i.e. "yahoo.com" or "google"
     HBufC*  iBrandingId;
-    
+
     // flag indicates is instance under FSEmail.exe
     TBool iIsUnderUiProcess;
 	};

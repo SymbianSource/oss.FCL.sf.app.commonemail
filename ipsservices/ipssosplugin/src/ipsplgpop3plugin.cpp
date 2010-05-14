@@ -92,8 +92,10 @@ TBool CIpsPlgPop3Plugin::MailboxHasCapabilityL(
         case EFSMBoxCapaCanBeDeleted:
         case EFSMBoxCapaSupportsSaveToDrafts:
         case EFSMBoxCapaMeetingRequestRespond:
+        case EFSMboxCapaSupportsAttahmentsInMR:
         case EFSMBoxCapaMeetingRequestCreate:
         case EFSMBoxCapaCanUpdateMeetingRequest:
+        case EFSMBoxCapaRemoveFromCalendar:    
             {
             result = ETrue;
             break;
@@ -161,11 +163,13 @@ void CIpsPlgPop3Plugin::RefreshNowL(
     TInt populationLimit( settings->PopulationLimit() );
     CleanupStack::PopAndDestroy( 2, settings );   // >>> settings, accounts
     TBool forcePopulate( EFalse );
+// <qmail>
     /*
     if( populationLimit != KIpsSetDataHeadersOnly )
         {
         forcePopulate = ETrue;
         }*/
+// </qmail>
     
     CIpsPlgBaseOperation* op = CIpsPlgPop3ConnectOp::NewL( 
         *iSession, 
@@ -184,10 +188,10 @@ void CIpsPlgPop3Plugin::RefreshNowL(
     iOperations.AppendL( watcher );
     CleanupStack::Pop( watcher );   // >> watcher
     	
-   	//<qmail>
+//<qmail>
     // send part of refresh
     //EmptyOutboxL( aMailBoxId ); // not used in qmail yet
-	  //</qmail>
+//</qmail>
     }
 
 // ---------------------------------------------------------------------------
@@ -334,22 +338,22 @@ void CIpsPlgPop3Plugin::FetchMessagesL(
     TImPop3GetMailInfo info;
     info.iMaxEmailSize = KMaxTInt32;
     info.iDestinationFolder = aMailBoxId.Id();
-    
+    // <qmail> ownership of selection is moved to the operation
     CIpsPlgBaseOperation* op = CIpsPlgPop3FetchOperation::NewL( 
         *iSession, 
         watcher->iStatus,
-        KPOP3MTMCopyMailSelectionWhenAlreadyConnected,
         aMailBoxId.Id(), 
         ActivityTimerL( aMailBoxId ), 
         info, 
-        *sel, 
+        sel, 
         aMailBoxId, 
         &aObserver, 
         aRequestId,
         iEventHandler );
     
     watcher->SetOperation( op );
-    CleanupStack::PopAndDestroy( sel );
+	// <qmail> change PopAndDestroy to Pop
+    CleanupStack::Pop( sel );
     CleanupStack::Pop( watcher );
     
     iOperations.AppendL( watcher );	

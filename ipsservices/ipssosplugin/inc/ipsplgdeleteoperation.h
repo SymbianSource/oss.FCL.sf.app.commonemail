@@ -14,10 +14,10 @@
 * Description:  Deletes messages first locally and then from server
 *
 */
-
-#ifndef IPSPLGDELETEREMOTE_H
-#define IPSPLGDELETEREMOTE_H
-
+//<qmail> class renamed
+#ifndef IPSPLGDELETEOPERATION_H
+#define IPSPLGDELETEOPERATION_H
+//</qmail>
 //  INCLUDES
 #include <e32def.h>
 #include <e32des8.h>    // TDesC8
@@ -29,55 +29,60 @@ class CMsvSession;
 class TRequestStatus;
 
 /**
-* class CIpsPlgDeleteRemote
+* class CIpsPlgDeleteOperation
 * Encapsulates delete locally operation and delete from server operation.
 * First deletes message locally and after it has been completed, deletes from the server
 */
-NONSHARABLE_CLASS ( CIpsPlgDeleteRemote ) :
-    public CMsvOperation
+//<qmail>
+NONSHARABLE_CLASS ( CIpsPlgDeleteOperation ) : public CMsvOperation
+//</qmail>        
     {
     public:
+        // <qmail>
         /**
-        * Constructor.
+        * Two-phased constructor
+        * 
+        * @param aMsvSession                client/server session to MsvServer
+        * @param aObserverRequestStatus     operations observer status
+        * @param aEntriesToDelete           Message entries to be deleted from server and locally  
+        *
+        * @return CIpsPlgCreateForwardMessageOperation* self pointer                                  
         */
-        static CIpsPlgDeleteRemote* NewL(
+        static CIpsPlgDeleteOperation* NewL(
             CMsvSession& aMsvSession,
             TRequestStatus& aObserverRequestStatus,
-            CMsvEntrySelection& aDeletedEntries );
-            
-        /**
-        * Destructor.
-        */
-        virtual ~CIpsPlgDeleteRemote();
+            CMsvEntrySelection* aEntriesToDelete );
+        // </qmail>    
+//<qmail> class renamed + comments removed
+        virtual ~CIpsPlgDeleteOperation();
         
-        /**
-        *
-        */
         virtual const TDesC8& ProgressL();
-
+//</qmail> 
 
     private:
-    
-        enum IpsPlgDeleteMessagesState 
+        // <qmail>   
+        enum TIpsPlgDeleteMessagesState 
             {
-			// <qmail>    
-            EDeletingMessagesStateSetFlags = 0,
-			// </qmail>    
-            EDeletingMessagesStateLocally,
-            EDeletingMessagesStateFromServer
+            ESetFlags = 0,    
+            ELocally,
+            EFromServer
             };
+        // </qmail>
 
         /**
         * Constructor.
         */
-        CIpsPlgDeleteRemote(
+		//<qmail> class renamed
+        CIpsPlgDeleteOperation(
             CMsvSession& aMsvSession,
             TRequestStatus& aObserverRequestStatus );
-
+		//</qmail>	
+        // <qmail> 
         /**
-        * Constructor.
+        * 2nd phase constructor
         */
-        void ConstructL( CMsvEntrySelection& aDeletedEntries );
+        void ConstructL( CMsvEntrySelection* aEntriesToDelete );
+        // </qmail>
         
         /**
         * From CActive
@@ -93,11 +98,12 @@ NONSHARABLE_CLASS ( CIpsPlgDeleteRemote ) :
         * Starts new local delete progress
         */
         void StartNextDeleteLocally();
-
+        //<qmail>
         /**
-        * Creates object of CImumDeleteMessagesLocally
+        * Creates object of CIpsPlgDeleteLocal
         */
         void MakeNextDeleteLocallyL();
+        //</qmail>
 
         /**
         * Starts entry delete after local delete is completed.
@@ -118,16 +124,17 @@ NONSHARABLE_CLASS ( CIpsPlgDeleteRemote ) :
 		// </qmail>    
 
     private:
-        CMsvOperation*              iOperation;
-        CMsvEntry*                  iEntry;
-        CMsvEntrySelection*         iEntrySelection; 
-        TInt                        iEntryCount;
         // <qmail>
+        CMsvOperation*              iOperation; // owned
+        CMsvEntry*                  iEntry; // owned
+        CMsvEntrySelection*         iEntrySelection; // owned
+        // <qmail> removed member iEntryCount
         TInt                        iSetFlagIndex;
-        CMsvEntry*                  iSetFlagEntry;
+        CMsvEntry*                  iSetFlagEntry; // owned
+        // <qmail> removed member iBlank
+		//<qmail> enum renamed
+        TIpsPlgDeleteMessagesState  iState;
         // </qmail>
-        TBuf8<1>                    iBlank;
-        IpsPlgDeleteMessagesState   iState;
         
     };
 

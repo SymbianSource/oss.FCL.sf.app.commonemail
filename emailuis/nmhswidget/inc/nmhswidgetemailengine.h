@@ -25,28 +25,24 @@ class NmMessageEnvelope;
 class NmDataPluginFactory;
 class NmDataPluginInterface;
 class QPluginLoader;
+class QTimer;
 
+//Three seconds
+const int NmHsWidgetEmailEngineUpdateTimerValue = 3000;
 
-
-enum NmHsWidgetEmailEngineErrorCode
+enum NmHsWidgetEmailEngineExceptionCode
     {
-    NmEngineNoErr,
-    NmEngineErrNotFound,
-    NmEngineErrFailure
+    NmEngineExcFailure,
+    NmEngineExcAccountDeleted
     };
-
-//Maximum amount of envelopes that can be provided to client in getData function
-//This is also the amount of envelopes that is kept in mData all the time
-const int KMaxNumberOfEnvelopesProvided = 2;
-
-//Maximum value for unread count. Counting will stop when this limit is reached
-const int KMaxUnreadCount = 999; 
 
 class NmHsWidgetEmailEngine : public QObject
     {
     Q_OBJECT
+    
 public:
     NmHsWidgetEmailEngine( const NmId& monitoredMailboxId );
+    bool initialize(); 
     ~NmHsWidgetEmailEngine();
 
     int getEnvelopes(QList<NmMessageEnvelope> &list, int maxEnvelopeAmount);
@@ -67,17 +63,18 @@ public slots:
     void activate();
     void launchMailAppInboxView();
     void launchMailAppMailViewer(const NmId &messageId);
+    void handleUpdateTimeout();
     
 signals:
     void mailDataChanged();    
     void accountNameChanged(const QString& accountName);
     void unreadCountChanged(const int& unreadCount);
-    void errorOccured(NmHsWidgetEmailEngineErrorCode err);
+    void exceptionOccured(const int& err);
     
 private:
-    void constructNmPlugin();
-    void updateData(); 
-    void updateAccount();
+    bool constructNmPlugin();
+    bool updateData(); 
+    bool updateAccount();
     void resetEnvelopeList();
     
 private:
@@ -92,6 +89,7 @@ private:
     bool mAccountEventReceivedWhenSuspended;
     bool mMessageEventReceivedWhenSuspended;
     bool mSuspended; 
+    QTimer* mUpdateTimer;
     };
 
 #endif /* NMHSWIDGETEMAILENGINE_H_ */

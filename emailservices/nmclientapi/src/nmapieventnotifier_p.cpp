@@ -18,76 +18,88 @@
 #include "nmapiengine.h"
 #include "nmapieventnotifier_p.h"
 
+#include <QTimer>
+
 namespace EmailClientApi
 {
 /*!
- * Constructor
+   Constructor
  */
-NmEventNotifierPrivate::NmEventNotifierPrivate(QObject *parent) :
+NmApiEventNotifierPrivate::NmApiEventNotifierPrivate(QObject *parent) :
     QObject(parent), mEmitSignals(NULL), mEngine(NULL), mIsRunning(false)
 {
 
 }
 
 /*!
- * Destructor
+   Destructor
  */
-NmEventNotifierPrivate::~NmEventNotifierPrivate()
+NmApiEventNotifierPrivate::~NmApiEventNotifierPrivate()
 {
 
 }
 
 /*!
- * \brief It initialize engine for email operations. 
- * 
- * When use initializeEngine need to remember release it.
- * It return value if initialization go good.
- * \sa releaseEngine 
- * \return Return true if engine works.
+   \brief It initialize engine for email operations. 
+   
+   When use initializeEngine need to remember release it.
+   It return value if initialization go good.
+   \sa releaseEngine 
+   \return Return true if engine works.
  */
-bool NmEventNotifierPrivate::initializeEngine()
+bool NmApiEventNotifierPrivate::initializeEngine()
 {
     if (!mEngine) {
-        mEngine = NmEngine::instance();
+        mEngine = NmApiEngine::instance();
     }
 
     return mEngine ? true : false;
 }
 
 /*!
- * \brief It release engine for email operations.
- * 
- * It release Engine and return value if release go good.
- * 
- * \arg engine Is used to get info if engine was released, if yes, then argument have value 0.
- * 
- * \sa initializeEngine
+   \brief It release engine for email operations.
+   
+   \sa initializeEngine
  */
-void NmEventNotifierPrivate::releaseEngine()
+void NmApiEventNotifierPrivate::releaseEngine()
 {
     if (mIsRunning) {
         cancel();
     }
     else {
-        NmEngine::releaseInstance(mEngine);
+        NmApiEngine::releaseInstance(mEngine);
     }
 }
 
 /*!
- * Add one email event into buffer.
- * 
- * It is run by \sa NmEngine::emailStoreEvent signal.
- * \sa NmApiMessage
- * \arg It contains full info about object and it event.
+   Add one email event into buffer.
+   
+   It is run by \sa NmApiEngine::emailStoreEvent signal.
+   \sa NmApiMessage
+   \param events It contains full info about object and it event.
  */
-void NmEventNotifierPrivate::emailStoreEvent(const NmApiMessage &events)
+void NmApiEventNotifierPrivate::emailStoreEvent(const NmApiMessage &events)
 {
     mBufferOfEvents << events;
 }
 
-void NmEventNotifierPrivate::cancel()
+void NmApiEventNotifierPrivate::cancel()
 {
+    if (!mIsRunning) {
+        return;
+    }
 
+    mIsRunning = false;
+    mEmitSignals->stop();
+
+    if (mEngine) {
+        disconnect(mEngine, SIGNAL(emailStoreEvent(NmApiMessage)), this,
+            SLOT(emailStoreEvent(NmApiMessage)));
+    }
+
+    releaseEngine();
+
+    mBufferOfEvents.clear();
 }
 
 }

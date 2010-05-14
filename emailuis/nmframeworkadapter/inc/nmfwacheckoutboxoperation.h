@@ -31,24 +31,19 @@ public:
         const NmId &mailboxId,
         CFSMailClient &mailClient);
     
-    virtual ~NmFwaCheckOutboxOperation();
-    
-    virtual bool getMessageId(NmId &messageId) const;
+    bool getMessageId(NmId &messageId) const;
 
 private:
-    virtual void doRunAsyncOperation();
-    
-private:
+    void doRunAsyncOperation();
     void doRunAsyncOperationL();
-
+    ~NmFwaCheckOutboxOperation();
+    
 private:
     NmId mMailboxId;
-
     CFSMailClient &mMailClient;
-
     bool mFound;
-
     NmId mMessageId;
+
 };
 
 #endif /* NMFWACHECKOUTBOXOPERATION_H_ */

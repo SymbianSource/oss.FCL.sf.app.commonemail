@@ -22,6 +22,7 @@
 
 //FORWARD DECLARATIONS:
 class HbLabel;
+class HbPushButton;
 
 class NmHsWidgetTitleRow : public HbWidget
 {
@@ -30,18 +31,30 @@ class NmHsWidgetTitleRow : public HbWidget
 public:
     NmHsWidgetTitleRow(QGraphicsItem *parent = 0, Qt::WindowFlags flags = 0);
     ~NmHsWidgetTitleRow();
+    bool loadDocML();
+    
+    void setAccountIcon(const QString& accountIconName );
     
 private:
-    void loadDocML();
+
     void updateData();
     
 public slots: 
     void updateAccountName(const QString& accountName );
     void updateUnreadCount(const int& unreadCount );
 
+signals:
+    void expandCollapseButtonPressed();
+    void mailboxLaunchTriggered();
+    
+protected:
+    void mousePressEvent(QGraphicsSceneMouseEvent *event);
+    
 private:
     HbLabel *mMailboxIcon;
     HbLabel *mMailboxInfo;
+    HbLabel *mUnreadCountLabel;
+    HbPushButton *mCollapseExpIconLabel;
     QString mAccountName;
     int mUnreadCount;
 };

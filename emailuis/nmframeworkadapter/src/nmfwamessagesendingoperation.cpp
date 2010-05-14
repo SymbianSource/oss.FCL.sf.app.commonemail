@@ -51,11 +51,13 @@ NmFwaMessageSendingOperation::NmFwaMessageSendingOperation(
  */
 NmFwaMessageSendingOperation::~NmFwaMessageSendingOperation()
 {
-    delete mSaveOperation;
-
+    if (mSaveOperation && mSaveOperation->isRunning()) {
+        mSaveOperation->cancelOperation();
+    }
     doCancelOperation();
     mMailClient.Close(); // decrease ref count
     delete mMessage;
+    NMLOG("NmFwaMessageSendingOperation::~NmFwaMessageSendingOperation --->");
 }
 
 /*!
@@ -113,6 +115,9 @@ void NmFwaMessageSendingOperation::doCancelOperation()
         TRAP_IGNORE(mMailClient.CancelL(mRequestId));
         mRequestId = NmNotFoundError;
     }
+    if (mSaveOperation && mSaveOperation->isRunning()) {
+        mSaveOperation->cancelOperation();
+    }
 }
     
 /*!
@@ -145,9 +150,8 @@ void NmFwaMessageSendingOperation::RequestResponseL(TFSProgress aEvent,
 void NmFwaMessageSendingOperation::handleCompletedSaveOperation(int error)
 {
     if (error == NmNoError) {
-        mTimer->stop();
-        mTimer->start(1);
         mSaved = true;
+        doRunAsyncOperation();
     }
     else {
         completeOperation(NmGeneralError);
@@ -160,11 +164,10 @@ void NmFwaMessageSendingOperation::handleCompletedSaveOperation(int error)
 int NmFwaMessageSendingOperation::saveMessageWithSubparts()
 {
     int ret = NmNotFoundError;
-    
     if (mMessage) {
-        delete mSaveOperation;
-        mSaveOperation = NULL;
-        
+        if (mSaveOperation && mSaveOperation->isRunning()) {
+            mSaveOperation->cancelOperation();
+        }
         mSaveOperation = mPluginInterface.saveMessageWithSubparts(*mMessage);
         
         if (mSaveOperation) {
@@ -186,10 +189,11 @@ int NmFwaMessageSendingOperation::saveMessageWithSubparts()
  */
 int NmFwaMessageSendingOperation::sendMessageL()
 {
+    NMLOG("NmFwaMessageSendingOperation::sendMessageL");
     int ret = NmNotFoundError;
     
     if (mMessage) {
-        TFSMailMsgId mailboxId = NmConverter::nmIdToMailMsgId(mMessage->mailboxId());
+        TFSMailMsgId mailboxId = NmConverter::nmIdToMailMsgId(mMessage->envelope().mailboxId());
         CFSMailBox *currentMailbox( NULL );
         currentMailbox = mMailClient.GetMailBoxByUidL(mailboxId);
         CleanupStack::PushL(currentMailbox);

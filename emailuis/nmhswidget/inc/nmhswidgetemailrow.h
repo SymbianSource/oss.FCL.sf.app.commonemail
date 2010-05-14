@@ -19,6 +19,7 @@
 #ifndef NMHSWIDGETEMAILROW_H_
 #define NMHSWIDGETEMAILROW_H_
 
+#include <QDateTime>
 #include <hbwidget.h>
 #include "nmcommon.h"
 
@@ -34,14 +35,22 @@ public:
     NmHsWidgetEmailRow(QGraphicsItem *parent = 0, Qt::WindowFlags flags = 0);
     ~NmHsWidgetEmailRow();
     NmId messageId();
+    bool loadDocML();
 
 public slots:
     void updateMailData( const NmMessageEnvelope& envelope );
+    void updateDateTime();
+    
+signals:
+    void mailViewerLaunchTriggered(const NmId& messageId);
     
 private:
-    void loadDocML();
     void setIconsToWidget( const NmMessageEnvelope& envelope );
     void hideIcons();
+    
+protected:
+    void mousePressEvent(QGraphicsSceneMouseEvent *event);
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
     
 private:
     HbLabel *mSenderLabel;
@@ -50,6 +59,7 @@ private:
     HbLabel *mNewMailIcon;
     HbLabel *mSeparatorIcon;
     NmId mMessageId;
+    QDateTime mMessageSentTime;
     QList <HbLabel*> mStatusIcons;  
     
 };

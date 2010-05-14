@@ -18,6 +18,8 @@
 #ifndef NMEDITORVIEW_H_
 #define NMEDITORVIEW_H_
 
+#include <QPointer>
+
 #include "nmbaseview.h"
 #include "nmactionobserver.h"
 #include "nmactionresponse.h"
@@ -63,6 +65,7 @@ public:
     HbWidget* scrollAreaContents();
     bool okToExitView();
     void aboutToExitView();
+    void viewReady();
 
 public slots:
 
@@ -119,6 +122,7 @@ public slots:
     void sendMouseReleaseEventToScroll(QGraphicsSceneMouseEvent *event);
     void sendMouseMoveEventToScroll(QGraphicsSceneMouseEvent *event);
     void sendLongPressGesture(const QPointF &point);
+    void contextButton(NmActionResponse &result);
 
 
 private: // Data
@@ -137,10 +141,10 @@ private: // Data
     HbMenu *mAttachmentListContextMenu; // Owned
     NmId mSelectedAttachment;
 
-    NmMessageCreationOperation *mMessageCreationOperation;  // Owned
-    NmAddAttachmentsOperation *mAddAttachmentOperation;     // Owned
-    NmOperation *mRemoveAttachmentOperation;                // Owned
-    NmCheckOutboxOperation *mCheckOutboxOperation;          // Owned
+    QPointer<NmMessageCreationOperation> mMessageCreationOperation;  // Not owned
+    QPointer<NmAddAttachmentsOperation> mAddAttachmentOperation;     // Not owned 
+    QPointer<NmOperation> mRemoveAttachmentOperation;                // Not owned 
+    QPointer<NmCheckOutboxOperation> mCheckOutboxOperation;          // Not owned 
 
     HbProgressDialog *mWaitDialog; // Owned.
     

@@ -60,6 +60,15 @@ void NmBaseView::aboutToExitView()
 }
 
 /*!
+    view ready. Function is called after mainwindow has received viewReady
+    lazy loading signal. Views can choose to implement this function
+    if it makes sense to construct items after main view is shown. 
+*/
+void NmBaseView::viewReady()
+{    
+}
+
+/*!
     About to change orientation. View can override this function if special
     handling is needed for the view when orientation is about to change.
 */

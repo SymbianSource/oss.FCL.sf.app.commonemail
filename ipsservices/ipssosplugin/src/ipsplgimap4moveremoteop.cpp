@@ -23,6 +23,8 @@
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
+// <qmail> TImImap4GetMailInfo& -> TMsvId&, aFunctionId removed
+// <qmail> MFSMailRequestObserver& changed to pointer
 CIpsPlgImap4MoveRemoteOp* CIpsPlgImap4MoveRemoteOp::NewL(
     CMsvSession& aMsvSession,
     TRequestStatus& aObserverRequestStatus,
@@ -53,7 +55,8 @@ CIpsPlgImap4MoveRemoteOp* CIpsPlgImap4MoveRemoteOp::NewL(
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-// <qmail> priority parameter has been removed
+// <qmail> TImImap4GetMailInfo& -> TMsvId&, aFunctionId removed, priority param removed
+// <qmail> MFSMailRequestObserver& changed to pointer
 CIpsPlgImap4MoveRemoteOp::CIpsPlgImap4MoveRemoteOp(
     CMsvSession& aMsvSession,
     TRequestStatus& aObserverRequestStatus,
@@ -71,11 +74,13 @@ CIpsPlgImap4MoveRemoteOp::CIpsPlgImap4MoveRemoteOp(
         aFSMailBoxId,
         aFSOperationObserver,
         aFSRequestId ),
+// <qmail>
     iState( EIdle ),
     iDestinationFolderId( aDestinationFolderId )
+// </qmail>
     {
     FUNC_LOG;
-    iService = aService;    
+    iService = aService;
     }
 
 // ----------------------------------------------------------------------------
@@ -83,9 +88,10 @@ CIpsPlgImap4MoveRemoteOp::CIpsPlgImap4MoveRemoteOp(
 CIpsPlgImap4MoveRemoteOp::~CIpsPlgImap4MoveRemoteOp()
     {
     FUNC_LOG;
-    delete iLocalSel;
     delete iRemoteSel;
+// <qmail>
     delete iMoveErrorProgress;
+// </qmail>
     }
 
 // ----------------------------------------------------------------------------
@@ -111,7 +117,7 @@ void CIpsPlgImap4MoveRemoteOp::DoConnectL()
         iMsvSession,
         iStatus, 
         iService,
-        iActivityTimer,
+        *iActivityTimer,
         iFSMailboxId,
         NULL, // no operationobserver for suboperation
         0,    // no requestId needed
@@ -133,9 +139,10 @@ const TDesC8& CIpsPlgImap4MoveRemoteOp::ProgressL()
         {
         // Completed, but with an error during move.
         return *iMoveErrorProgress;
-        }
+        }        
     TImap4SyncProgress progg;
     progg.iErrorCode = KErrNone;
+    progg.iFoldersNotFound = 0;
     TPckgBuf<TImap4SyncProgress> param(progg);
     iSyncProgress.Copy(param);
     return iSyncProgress;  
@@ -150,7 +157,8 @@ const TDesC8& CIpsPlgImap4MoveRemoteOp::GetErrorProgressL(TInt aError)
     if(!iProgressBuf().iGenericProgress.iErrorCode)
         {
         TImap4CompoundProgress& prog = iProgressBuf();
-        prog.iGenericProgress.iOperation = TImap4GenericProgress::EMoveWithinService;
+        prog.iGenericProgress.iOperation = 
+            TImap4GenericProgress::EMoveWithinService;
         prog.iGenericProgress.iState = TImap4GenericProgress::EMoving;
         prog.iGenericProgress.iErrorCode = aError;
         }
@@ -204,7 +212,7 @@ void CIpsPlgImap4MoveRemoteOp::DoRunL()
                 CompleteObserver( KErrCouldNotConnect );
                 return;
                 }
-            DoMoveLocalL();
+            DoMoveRemoteL();
             }
             break;
         case ELocalMsgs:
@@ -248,7 +256,6 @@ void CIpsPlgImap4MoveRemoteOp::SortMessageSelectionL(const CMsvEntrySelection& a
         User::Leave( KErrNotSupported );
         }
     // Sort messages into complete and incomplete selections.
-    iLocalSel = new(ELeave) CMsvEntrySelection;
     iRemoteSel = new(ELeave) CMsvEntrySelection;
 
     TInt err;
@@ -262,17 +269,6 @@ void CIpsPlgImap4MoveRemoteOp::SortMessageSelectionL(const CMsvEntrySelection& a
         err = iMsvSession.GetEntry( id, service, tEntry );
         if( KErrNone == err )
             {
-            // local move is not needed, if the message is not fetched
-            if( tEntry.Complete() )
-                {
-                if ( 0 < count )
-                    {
-                    // service id is not added to local, 
-                    // service is already
-                    // added in MoveMessagesL
-                    iLocalSel->AppendL( id );
-                    }
-                }
             iRemoteSel->AppendL( id );
             }
         }
@@ -286,36 +282,6 @@ void CIpsPlgImap4MoveRemoteOp::Complete()
     TRequestStatus* observer = &iObserverRequestStatus;
     User::RequestComplete( observer, KErrNone );
     }
-    
-// ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
-void CIpsPlgImap4MoveRemoteOp::DoMoveLocalL()
-    {
-    FUNC_LOG;
-    iState = ELocalMsgs;
-    iStatus = KRequestPending;
-    if( iLocalSel->Count() )
-        {
-        // this gets the first msg to be moved
-        CMsvEntry* cEntry = iMsvSession.GetEntryL( (*iLocalSel)[0] );
-        CleanupStack::PushL( cEntry );
-        // find the parent of the moved message...
-        TMsvId parent = cEntry->Entry().Parent();
-        // and use it as a context
-        cEntry->SetEntryL( parent );
-
-        delete iSubOperation;
-        iSubOperation = NULL;
-        iSubOperation = cEntry->MoveL( *iLocalSel, iDestinationFolderId, iStatus );
-        CleanupStack::PopAndDestroy( cEntry ); 
-        SetActive();
-        }
-    else
-        {
-        // <qmail> SetActive(); moved inside CompleteThis();
-        CompleteThis();
-        }
-    }
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
@@ -323,6 +289,7 @@ void CIpsPlgImap4MoveRemoteOp::DoMoveRemoteL()
     {
     FUNC_LOG;
     iState = ERemoteMsgs;
+    iStatus = KRequestPending;
     // first element of the CMsvEntrySelection is the service which is then
     // followed by any messages
     if( iRemoteSel->Count() > 1 )
@@ -331,13 +298,16 @@ void CIpsPlgImap4MoveRemoteOp::DoMoveRemoteL()
     
         // Filters are not used when performing 'move' operation, use normal 
         // getmail info instead
+		// <qmail>
         TPckgBuf<TImImap4GetMailInfo> paramBuf;
         TImImap4GetMailInfo& mailInfo = paramBuf();
         mailInfo.iMaxEmailSize = KMaxTInt32;
         mailInfo.iGetMailBodyParts = EGetImap4EmailBodyTextAndAttachments;
         mailInfo.iDestinationFolder = iDestinationFolderId;
 
+// <qmail> Parameters changed
         InvokeClientMtmAsyncFunctionL( KIMAP4MTMMoveMailSelectionWhenAlreadyConnected, *iRemoteSel, paramBuf );
+// </qmail>
         SetActive();
         }
     else
@@ -357,3 +327,88 @@ TIpsOpType CIpsPlgImap4MoveRemoteOp::IpsOpType() const
     FUNC_LOG;
     return EIpsOpTypeMoveRemoteOp;
     }
+// </qmail>	
+
+// class CIpsPlgImap4MoveRemoteOpObserver
+//
+
+// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------- 
+CIpsPlgImap4MoveRemoteOpObserver* CIpsPlgImap4MoveRemoteOpObserver::NewL(
+    CMsvSession& aSession, CIpsPlgEventHandler& aEventHandler,
+    const TFSMailMsgId& aSourceFolder,
+    const RArray<TFSMailMsgId>& aMessageIds )
+    {
+    FUNC_LOG;
+    CIpsPlgImap4MoveRemoteOpObserver* self
+        = new ( ELeave ) CIpsPlgImap4MoveRemoteOpObserver( aSession,
+            aEventHandler, aSourceFolder.Id() );
+    CleanupStack::PushL( self );
+    self->ConstructL( aMessageIds );
+    CleanupStack::Pop( self );
+    return self;
+    }
+
+// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------- 
+CIpsPlgImap4MoveRemoteOpObserver::~CIpsPlgImap4MoveRemoteOpObserver()
+    {
+    FUNC_LOG;
+    delete iSelection;
+    }
+
+// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------- 
+void CIpsPlgImap4MoveRemoteOpObserver::RequestResponseL( TFSProgress aEvent,
+    TInt /*aRequestId*/ )
+    {
+    FUNC_LOG;
+    if ( aEvent.iProgressStatus == TFSProgress::EFSStatus_RequestCancelled ||
+         aEvent.iError != KErrNone )
+        {
+        // Assumes that still existing entries have not been moved.
+        for ( TInt ii = iSelection->Count() - 1; ii >= 0; --ii )
+            {
+            TMsvId id = iSelection->At(ii);
+            TMsvId dummy = KMsvNullIndexEntryIdValue;
+            TMsvEntry entry;
+            if ( iSession.GetEntry( id, dummy, entry ) != KErrNone )
+                {
+                iSelection->Delete( ii );
+                }
+            }
+
+        if ( iSelection->Count() )
+            {
+            iEventHandler.HandleSessionEventL(
+                MMsvSessionObserver::EMsvEntriesMoved,
+                iSelection, &iSourceFolderId, &iSourceFolderId );
+            }
+        }
+    }
+
+// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------- 
+CIpsPlgImap4MoveRemoteOpObserver::CIpsPlgImap4MoveRemoteOpObserver(
+    CMsvSession& aSession, CIpsPlgEventHandler& aEventHandler,
+    TMsvId aSourceFolderId )
+    : iSession( aSession ), iEventHandler( aEventHandler ),
+    iSourceFolderId( aSourceFolderId )
+    {
+    FUNC_LOG;
+    }
+
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------     
+void CIpsPlgImap4MoveRemoteOpObserver::ConstructL(
+    const RArray<TFSMailMsgId>& aMessageIds )
+    {
+    FUNC_LOG;
+    TInt count = aMessageIds.Count();
+    iSelection = new ( ELeave ) CMsvEntrySelection;
+    for ( TInt ii = 0; ii < count; ++ii )
+        {
+        iSelection->AppendL( aMessageIds[ii].Id() );
+        }
+    }
+

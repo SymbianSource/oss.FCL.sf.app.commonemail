@@ -17,8 +17,8 @@
 */
 
 
-#ifndef IPSSOSAOBASEAGENT_H_
-#define IPSSOSAOBASEAGENT_H_
+#ifndef IPSSOSAOBASEAGENT_H
+#define IPSSOSAOBASEAGENT_H
 
 #include <e32base.h> 
 #include <msvapi.h>
@@ -58,7 +58,9 @@ public:
 *
 * @lib ipssosaoplugin.lib
 */
+//<Qmail>
 NONSHARABLE_CLASS (CIpsSosAOBaseAgent) : public CActive
+//</Qmail>
     {
     
 public: // enums
@@ -235,4 +237,4 @@ private:
     
     };
 
-#endif /*IPSSOSAOBASEAGENT_H_*/
+#endif /*IPSSOSAOBASEAGENT_H*/

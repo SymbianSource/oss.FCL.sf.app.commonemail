@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+* Copyright (c) 2009 - 2010 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -28,13 +28,10 @@
 #include "nmsettingscommon.h"
 
 class NmUiEngine;
-class NmSettingsViewLauncher;
 
-/*!
- \class NmBaseClientPlugin
- \brief
- */
-class NMUIENGINE_EXPORT NmBaseClientPlugin : public QObject, public NmUiExtensionInterface
+
+class NMUIENGINE_EXPORT NmBaseClientPlugin : public QObject,
+                                             public NmUiExtensionInterface
 {
     Q_OBJECT
     Q_INTERFACES(NmUiExtensionInterface)
@@ -65,6 +62,7 @@ public slots:
     void attach();
     void removeAttachment();
     void openAttachment();
+    void search();
 
 private slots:
     void mailboxListChanged(const NmId &mailboxId, NmSettings::MailboxEventType type);
@@ -82,13 +80,14 @@ private:
     void handleRequest(NmActionResponseCommand command, const NmActionRequest &request);
     void updateEnvelopeProperty(NmEnvelopeProperties property);
 
-private:
+protected:
     NmActionRequest mMenuRequest;
+    NmUiEngine *mUiEngine; // Singleton instance
+            
+private:
     NmActionRequest mEditorToolBarRequest;
     NmActionRequest mViewerToolBarRequest;
     NmActionRequest mViewerViewRequest;
-    NmUiEngine *mUiEngine; // Singleton instance
-    NmSettingsViewLauncher *mSettingsViewLauncher; // owned
 };
 
 #endif /* NMBASECLIENTPLUGIN_H_ */

@@ -78,11 +78,10 @@ void NmAttachmentPicker::fetchOther()
 void NmAttachmentPicker::fetch(const QString& interface, 
     const QString& operation)
 {
-    if (mRequest) {
-        delete mRequest;
-        mRequest = NULL;
-    }	
-    mRequest = mAppmgr.create(interface, operation, true);
+    delete mRequest;
+    mRequest = NULL;
+    XQApplicationManager appMgr;
+    mRequest = appMgr.create(interface, operation, true);
 
     if (mRequest) {
         mRequest->setSynchronous(false);
@@ -92,13 +91,6 @@ void NmAttachmentPicker::fetch(const QString& interface,
         connect(mRequest, SIGNAL(requestError(int, const QString&)),
                 this, SIGNAL(attachmentsFetchError(int, const QString&)));
         
-        if (!(mRequest)->send()) {
-            //sending request failed
-            NMLOG("appmgr: send request failed");
-        }
-    }
-    else {
-        //create request failed
-        NMLOG("appmgr: create request failed");
-    }      	  
+        mRequest->send();
+    } 
 }

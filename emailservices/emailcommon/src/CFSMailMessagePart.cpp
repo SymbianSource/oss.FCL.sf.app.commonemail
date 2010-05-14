@@ -91,8 +91,8 @@ void CFSMailMessagePart::ConstructL( TFSMailMsgId aMessageId,
 	
 	iNmPrivateMessagePart = new NmMessagePartPrivate();
 	
-	iNmPrivateMessagePart->mOwnId.setId32(aMessagePartId.Id());
-	iNmPrivateMessagePart->mOwnId.setPluginId32((quint32)aMessagePartId.PluginId().iUid);
+	iNmPrivateMessagePart->mPartId.setId32(aMessagePartId.Id());
+	iNmPrivateMessagePart->mPartId.setPluginId32((quint32)aMessagePartId.PluginId().iUid);
 		
 	iMessagePartsStatus = EFSDefault;
 
@@ -231,7 +231,7 @@ EXPORT_C TFSMailMsgId CFSMailMessagePart::GetPartId() const
 {
     FUNC_LOG;
 //<qmail>
-    return TFSMailMsgId(iNmPrivateMessagePart->mOwnId);
+    return TFSMailMsgId(iNmPrivateMessagePart->mPartId);
 //</qmail>	
 }
 
@@ -1030,7 +1030,15 @@ EXPORT_C void CFSMailMessagePart::SetAttachmentNameL(const TDesC& aFilePath)
 		
 //<qmail>
 	    buffer = HBufC::NewL(length);
-	    buffer->Des().Append(KFSMailContentDispAttachment);
+	    if (ContentDisposition().FindF(KFSMailContentDispInline) != KErrNotFound)
+	        {
+            buffer->Des().Append(KFSMailContentDispInline);
+	        }
+	    else
+	        {
+            buffer->Des().Append(KFSMailContentDispAttachment);
+	        }
+	    
 	    buffer->Des().Append(_L("; "));
 	    buffer->Des().Append(KFSMailContentDispParamFilename);
 	    buffer->Des().Append('"');

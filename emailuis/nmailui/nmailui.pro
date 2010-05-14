@@ -20,8 +20,7 @@ DEPENDPATH += .
 INCLUDEPATH += . \
     ./inc \
     ../../inc \
-    ../nmailuiwidgets/inc \
-    /epoc32/include/app
+    
 DEFINES += UI_EXTENSION_INTERFACE
 QT += webkit
 QT += network
@@ -29,15 +28,14 @@ MOC_DIR = moc
 
 LIBS += -leuser
 LIBS += -llibc
+LIBS += -lnmailbase
+LIBS += -lnmailuiengine
+LIBS += -lnmailuiwidgets
+LIBS += -lnmsettingui
+LIBS += -lnmutilities
 
 symbian*: {
     INCLUDEPATH += $$APP_LAYER_SYSTEMINCLUDE
-    
-    INCLUDEPATH += /epoc32/include \
-    /epoc32/include/app \
-    /epoc32/include/mw \
-    /sf/mw/qtextensions/qthighway/inc \
-    /sf/mw/qtextensions/qtmobileextensions/include 
     
     TARGET.UID2 = 0x100039CE
     TARGET.UID3 = 0x200255BA
@@ -46,29 +44,12 @@ symbian*: {
     # TARGET.EPOCSTACKSIZE = 0x6000
     TARGET.EPOCHEAPSIZE = 0x20000 \
         0x1000000
-    LIBS += -lnmailbase \
-        -lnmailuiengine \
-        -lnmailuiwidgets \
-        -lxqservice \
+    LIBS += -lxqservice \
         -lxqserviceutil \
         -lqtcontacts \
         -lmobcntmodel
-
-    # Remove following system includes, when qmake is able to generate those
-    MMP_RULES += "SYSTEMINCLUDE /epoc32/include/mw/hb/hbtools"
-    MMP_RULES += "SYSTEMINCLUDE /epoc32/include/mw/hb/hbfeedback"
 }
 
-win32 {
-    INCLUDEPATH += . \
-        ../../emailservices/nmailbase \
-        ../nmailuiengine
-    DESTDIR = ../../bin
-    LIBS += -L../../bin \
-        -lnmailbase \
-        -lnmailuiengine \
-        -lnmailuiwidgets \
-}
 HEADERS += inc/nmeditorcontent.h \
     inc/nmeditorheader.h \
     inc/nmuiheaders.h \
@@ -80,6 +61,7 @@ HEADERS += inc/nmeditorcontent.h \
     inc/nmviewerviewnetmanager.h \
     inc/nmviewerviewnetreply.h \
     inc/nmmessagelistview.h \
+    inc/nmmessagesearchlistview.h \
     inc/nmbaseview.h \
     inc/nmapplication.h \
     inc/nmmailboxlistviewitem.h \
@@ -101,7 +83,10 @@ HEADERS += inc/nmeditorcontent.h \
     inc/nmutilities.h \
     inc/nmattachmentlist.h \
     inc/nmeditortextdocument.h \
-    inc/nmattachmentpicker.h
+    inc/nmattachmentmanager.h \
+    inc/nmattachmentpicker.h \
+    inc/nmattachmentfetchobserver.h \
+    inc/nmuieffects.h
 
 SOURCES += src/nmeditorcontent.cpp \
     src/nmeditorheader.cpp \
@@ -111,6 +96,7 @@ SOURCES += src/nmeditorcontent.cpp \
     src/nmviewerviewnetmanager.cpp \
     src/nmviewerviewnetreply.cpp \
     src/nmmessagelistview.cpp \
+    src/nmmessagesearchlistview.cpp \
     src/nmmailboxlistview.cpp \
     src/nmeditorview.cpp \
     src/nmbaseview.cpp \
@@ -128,7 +114,9 @@ SOURCES += src/nmeditorcontent.cpp \
     src/nmutilities.cpp \
     src/nmattachmentlist.cpp \
     src/nmeditortextdocument.cpp \
-    src/nmattachmentpicker.cpp    
+    src/nmattachmentmanager.cpp \
+    src/nmattachmentpicker.cpp \
+    src/nmuieffects.cpp    
 
 RESOURCES += nmailui.qrc
 RESOURCES += nmmessagelistviewitem.qrc

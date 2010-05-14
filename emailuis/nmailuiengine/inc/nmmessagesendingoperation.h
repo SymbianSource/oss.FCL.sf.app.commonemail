@@ -22,10 +22,14 @@
 
 class NmMessage;
 
-class NmMessageSendingOperation : public NmOperation
+class NMUIENGINE_EXPORT NmMessageSendingOperation : public NmOperation
 {
 public:
+    NmMessageSendingOperation(){};
     virtual const NmMessage *getMessage() const = 0;
+    
+protected:
+    virtual ~NmMessageSendingOperation(){};
 };
 
 #endif /* NMMESSAGESENDINGOPERATION_H_ */

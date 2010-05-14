@@ -32,7 +32,7 @@ NmViewerServiceInterface::NmViewerServiceInterface(QObject *parent,
         NmApplication *application,
         NmUiEngine &uiEngine)
 #ifndef NM_WINS_ENV
-    : XQServiceProvider(QLatin1String("com.nokia.symbian.IEmailMessageView"), parent),
+    : XQServiceProvider(emailFullServiceNameMessage, parent),
 #else
     : QObject(parent),
 #endif

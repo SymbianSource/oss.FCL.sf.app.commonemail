@@ -16,7 +16,7 @@ NmViewerHeader::subject{
   text-line-count-max:3;
 }
 
-NmViewerHeader::prioicon::icon{
+NmViewerHeader::prioicon{
   pref-height: var(hb-param-graphic-size-secondary);
   pref-width: var(hb-param-graphic-size-secondary); 
   size-policy: fixed fixed;   

@@ -23,7 +23,7 @@
     Constructs message part private with null id
  */
 NmMessagePartPrivate::NmMessagePartPrivate()
-		: mOwnId(0), mSize(0), mFetchedSize(0),
+		: mPartId(0), mSize(0), mFetchedSize(0),
 		mTextContent(0)
 {
 }
@@ -83,36 +83,10 @@ NmMessagePart::NmMessagePart()
 /*!
     Constructs message part with id \a id, parent id and mailbox id is set null
  */
-NmMessagePart::NmMessagePart(const NmId &id)
+NmMessagePart::NmMessagePart(const NmId &partId)
 {
     d = new NmMessagePartPrivate();
-    d->mOwnId = id;
-}
-
-/*!
-    Constructs message part with id \a id and with parent id \a parentId,
-    mailbox id is set to null
- */
-NmMessagePart::NmMessagePart(const NmId &id, const NmId &parentId)
-{
-    d = new NmMessagePartPrivate();
-    d->mOwnId = id;
-    mEnvelope.setParentId(parentId);
-}
-
-/*!
-    Constructs message part with id \a id, with parent id \a parentId and
-    with mailbox id \a mailboxId
- */
-NmMessagePart::NmMessagePart(
-    const NmId &id,
-    const NmId &parentId,
-    const NmId &mailboxId)
-{
-	d = new NmMessagePartPrivate();
-	d->mOwnId = id;
-    mEnvelope.setParentId(parentId);
-	mEnvelope.setMailboxId(mailboxId);
+    d->mPartId = partId;
 }
 
 /*!
@@ -129,8 +103,6 @@ NmMessagePart::NmMessagePart(
  */
 NmMessagePart::NmMessagePart(const NmMessagePart &part) : d(part.d)
 {
-    mEnvelope.setParentId(part.mEnvelope.parentId());
-    mEnvelope.setMailboxId(part.mEnvelope.mailboxId());
 }
 
 /*!
@@ -140,8 +112,6 @@ NmMessagePart &NmMessagePart::operator=(const NmMessagePart &part)
 {
 	if (this != &part) {
 		d = part.d;
-	    mEnvelope.setParentId(part.mEnvelope.parentId());
-	    mEnvelope.setMailboxId(part.mEnvelope.mailboxId());
 	}
 	return *this;
 }
@@ -160,49 +130,17 @@ NmMessagePart::~NmMessagePart()
 /*!
     Retruns id of message part
  */
-NmId NmMessagePart::id() const
+NmId NmMessagePart::partId() const
 {
-    return d->mOwnId;
+    return d->mPartId;
 }
 
 /*!
     Sets id of message part from \a id
  */
-void NmMessagePart::setId(const NmId &id)
+void NmMessagePart::setPartId(const NmId &id)
 {
-    d->mOwnId = id;
-}
-
-/*!
-    Returns parts parent id
- */
-NmId NmMessagePart::parentId() const
-{
-    return mEnvelope.parentId();
-}
-
-/*!
-    Sets message part parent id from \a id
- */
-void NmMessagePart::setParentId(const NmId &id)
-{
-    mEnvelope.setParentId(id);
-}
-
-/*!
-    Returns mailbox id where part belong to
- */
-NmId NmMessagePart::mailboxId() const
-{
-    return mEnvelope.mailboxId();
-}
-
-/*!
-    Sets mailbox id from \a id
- */
-void NmMessagePart::setMailboxId(const NmId &id)
-{
-    mEnvelope.setMailboxId(id);
+    d->mPartId = id;
 }
 
 /*!
@@ -346,8 +284,6 @@ void NmMessagePart::setChildParts(QList<NmMessagePart*> parts)
     }
     for (int i = 0; i < parts.count(); i++) {
         if (parts[i] != NULL) {
-            parts[i]->setParentId(this->id());
-            parts[i]->setMailboxId(this->mailboxId());
             d->mChildParts.append(parts[i]);
         }
     }
@@ -372,8 +308,6 @@ void NmMessagePart::addChildPart(NmMessagePart *part)
     if (!part) {
         return;
     }
-    part->setParentId(this->id());
-    part->setMailboxId(this->mailboxId());
     d->mChildParts.append(part);
 }
 
@@ -384,7 +318,7 @@ void NmMessagePart::addChildPart(NmMessagePart *part)
 void NmMessagePart::removeChildPart(const NmId &partId)
 {
     for (int i = 0; i < d->mChildParts.count(); i++) {
-        if (d->mChildParts[i]->id() == partId) {
+        if (d->mChildParts[i]->partId() == partId) {
             delete d->mChildParts[i];
             d->mChildParts.removeAt(i);
             return;

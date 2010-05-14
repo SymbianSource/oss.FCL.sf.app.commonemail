@@ -21,19 +21,14 @@ CONFIG += hb
 
 MOC_DIR = moc
 
-INCLUDEPATH += .
 DEPENDPATH += .
 INCLUDEPATH += $$APP_LAYER_SYSTEMINCLUDE
-INCLUDEPATH += ../../../../inc
-INCLUDEPATH += ../../emailservices/nmailbase/inc
+INCLUDEPATH += ../../inc
 
 HEADERS += inc/nmindicatorplugin.h \
            inc/nmindicator.h
 SOURCES += src/nmindicatorplugin.cpp \
            src/nmindicator.cpp
-
-LIBS += -leuser
-LIBS += -llibc
 
 symbian {
     TARGET.EPOCALLOWDLLDATA=1
@@ -43,6 +38,9 @@ symbian {
     pluginstub.sources = nmindicatorplugin.dll
     pluginstub.path = /resource/plugins/indicators
     DEPLOYMENT += pluginstub
+
+    LIBS += -leuser
+    LIBS += -llibc
     LIBS += -lxqservice
 }
 

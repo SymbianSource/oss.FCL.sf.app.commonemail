@@ -15,26 +15,20 @@
 *     Contains mailbox specified always online logic
 *
 */
-
-#ifndef IPSSOSAOMBOXLOGIC_CPP_
-#define IPSSOSAOMBOXLOGIC_CPP_
-
+//<Qmail>
+#ifndef IPSSOSAOMBOXLOGIC_H
+#define IPSSOSAOMBOXLOGIC_H
+//</Qmail>
 #include <e32base.h> 
 #include <msvapi.h>
 
-//<cmail> removing internal dependency
-/*#ifdef _DEBUG
-#include "../../internal/IpsSosAOPluginTester/inc/IpsSosAOPluginTester.hrh"
-#endif // _DEBUG*/
-//</cmail>
 
 #include "IpsSosAOBaseAgent.h"
 //<QMail>
 
 //</QMail>
 #include "IpsSosAOPluginTimer.h"
-//<cmail>
-//</cmail>
+
 //<QMail>
 
 //</QMail>
@@ -48,7 +42,9 @@ class CIpsSosAOImapPopLogic;
 * class CIpsSosAOImapPopLogic;
 *
 */
+//<Qmail>
 NONSHARABLE_CLASS (CIpsSosAOMBoxLogic) : 
+//</Qmail>
     public CBase, 
                            public MIpsSosAOPluginTimerCallBack,
                            public MIpsSosAOAgentOperationResponse
@@ -187,18 +183,14 @@ public:
      * mailbox settings
      * @param aNewValue new value of flag
      */
-     //<cmail>
     void SetEmnReceivedFlagL( TBool aNewValue );
-    //</cmail>
     
     /*
      * Gets mailbox roaming stopped status
      * @return ETrue if roaming and mailbox logic is stopped during roaming
      */
-     //<cmail>
     TBool IsMailboxRoamingStoppedL();
-    //</cmail>
-
+    
 	/**
      * Has mailbox ever received and OMA EMN
      */
@@ -264,9 +256,7 @@ private:
     /*
      * checks is operation completion error fatal and should timed sync swithc off
      */
-     //<cmail>
     TBool IsErrorFatalL( TInt aError );
-    //</cmail>
     
     /*
      * Suspends ongoing sync (or fetch) and swiths logic to suspend state
@@ -304,11 +294,6 @@ private:
      */
     TBool CanConnectIfRoamingL();
 
-// <cmail> removing flags    
-/*#ifdef IPSSOSIMAPPOLOGGING_ON
-    void WriteDebugData( TInt aEvent );
-#endif*/
-//</cmail>
     
 private:
     
@@ -317,17 +302,19 @@ private:
     TMBoxLogicState                 iState;
     TInt                            iErrorCounter;
     TInt                            iError;
-    CIpsSosAOPluginTimer*           iTimer;
+	//<Qmail>
+    CIpsSosAOPluginTimer*           iTimer;//owned
     // message fetch is not currently used
-    RArray<TMsvId>                  iFetchMsgArray;
+    RArray<TMsvId>                  iFetchMsgArray;//owned
 	//<QMail>
 
 	//</QMail>
-    CIpsSosAOBaseAgent*             iAgent;
+    CIpsSosAOBaseAgent*             iAgent;//owned
+	//</Qmail>
 	//<QMail>
 
 	//</QMail>
     TBool                           iIsRoaming;
     };
 
-#endif /*IPSSOSAOMBOXLOGIC_CPP_*/
+#endif /*IPSSOSAOMBOXLOGIC_H*/

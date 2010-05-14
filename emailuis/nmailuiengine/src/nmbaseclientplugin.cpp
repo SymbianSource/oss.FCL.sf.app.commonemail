@@ -33,6 +33,7 @@
  \li reply email
  \li reply all email
  \li forward email
+ \li search emails
 
  The plugin provides a list of supported UI services as NmAction objects. Actions are connected to
  different public slots and when they are triggered plugin will handle action by itself directly to
@@ -98,11 +99,10 @@
 */
 NmBaseClientPlugin::NmBaseClientPlugin()
 :mMenuRequest(NULL),
+mUiEngine(NULL),
 mEditorToolBarRequest(NULL),
 mViewerToolBarRequest(NULL),
-mViewerViewRequest(NULL),
-mUiEngine(NULL),
-mSettingsViewLauncher(NULL)
+mViewerViewRequest(NULL)
 {
     NMLOG("NmBaseClientPlugin::NmBaseClientPlugin()-->");
     mUiEngine = NmUiEngine::instance();
@@ -117,7 +117,6 @@ NmBaseClientPlugin::~NmBaseClientPlugin()
     NMLOG("NmBaseClientPlugin::~NmBaseClientPlugin()-->");
     NmUiEngine::releaseInstance(mUiEngine);
     mUiEngine = NULL;
-    delete mSettingsViewLauncher;
     NMLOG("<--NmBaseClientPlugin::~NmBaseClientPlugin()");
 }
 
@@ -241,38 +240,6 @@ void NmBaseClientPlugin::createNewMail()
 */
 void NmBaseClientPlugin::settings()
 {
-    NMLOG("NmBaseClientPlugin::settings()-->");
-
- #ifndef NM_WINS_ENV
-    const NmId &id = mMenuRequest.mailboxId();
-    NmMailboxMetaData *mailbox = mUiEngine->mailboxById(id);
-
-    if (mailbox) {
-        if (!mSettingsViewLauncher) {
-            mSettingsViewLauncher = new NmSettingsViewLauncher();
-
-            connect(mSettingsViewLauncher,
-                SIGNAL(mailboxListChanged(const NmId &, NmSettings::MailboxEventType)),
-                this, SLOT(mailboxListChanged(const NmId &, NmSettings::MailboxEventType)));
-
-            connect(mSettingsViewLauncher,
-                SIGNAL(mailboxPropertyChanged(const NmId &, QVariant, QVariant)),
-                this, SLOT(mailboxPropertyChanged(const NmId &, QVariant, QVariant)));
-
-            connect(mSettingsViewLauncher,
-            	SIGNAL(goOnline(const NmId &)),
-                this, SLOT(goOnline(const NmId &)));
-
-            connect(mSettingsViewLauncher,
-            	SIGNAL(goOffline(const NmId &)),
-                this, SLOT(goOffline(const NmId &)));
-        }
-
-        mSettingsViewLauncher->launchSettingsView(id, mailbox->name());
-    }
- #endif
-
-    NMLOG("<--NmBaseClientPlugin::settings()");
 }
 
 /*!
@@ -362,6 +329,15 @@ void NmBaseClientPlugin::openAttachment()
 }
 
 /*!
+    Requests the handling of the search action.
+    This public slot gets called when the search button in a toolbar is clicked.
+*/
+void NmBaseClientPlugin::search()
+{
+    handleRequest(NmActionResponseCommandSearch, mViewerToolBarRequest);
+}
+
+/*!
     Private slot connected to settings view launcher.
 
     \param mailboxId Id of mailbox.
@@ -407,7 +383,7 @@ void NmBaseClientPlugin::mailboxPropertyChanged(const NmId &mailboxId, QVariant 
 */
 void NmBaseClientPlugin::goOnline(const NmId &mailboxId)
 {
-        mUiEngine->goOnline(mailboxId);
+		(void) mUiEngine->refreshMailbox(mailboxId);
 }
 /*!
     Private slot connected to settings view launcher.
@@ -450,6 +426,15 @@ void NmBaseClientPlugin::createMessageListCommands(
         }
         case NmActionToolbar:
         {
+            // Create the search button.
+            NmAction *mailSearchAction = new NmAction(0);
+            mailSearchAction->setObjectName("baseclientplugin_mailsearchaction");
+            mailSearchAction->setText(hbTrId("txt_mail_list_search"));
+            mailSearchAction->setIcon(HbIcon("qtg_mono_search"));
+            connect(mailSearchAction, SIGNAL(triggered()), this, SLOT(search()));
+            actionList.append(mailSearchAction);
+
+            // Create new mail button.
             mViewerToolBarRequest = request;
             NmAction *createMailAction = new NmAction(0);
             createMailAction->setObjectName("baseclientplugin_createmailaction");
@@ -465,12 +450,19 @@ void NmBaseClientPlugin::createMessageListCommands(
             if (request.contextDataType() == NmActionContextDataMessage){
                 mMenuRequest = request;
 
-                // Open message
-                NmAction* openAction = new NmAction(0);
-                openAction->setObjectName("baseclientplugin_openaction");
-                openAction->setText(hbTrId("txt_common_menu_open"));
-                connect(openAction, SIGNAL(triggered()), this, SLOT(openMessage()));
-                actionList.append(openAction);
+                NmFolderType folderType(NmFolderInbox);
+                if (mUiEngine){
+                    folderType = mUiEngine->folderTypeById(request.mailboxId(),request.folderId());                
+                }
+                
+                if (folderType!=NmFolderOutbox){
+                    // Open message
+                    NmAction* openAction = new NmAction(0);
+                    openAction->setObjectName("baseclientplugin_openaction");
+                    openAction->setText(hbTrId("txt_common_menu_open"));
+                    connect(openAction, SIGNAL(triggered()), this, SLOT(openMessage()));
+                    actionList.append(openAction);                
+                }                
 
                 // Delete message
                 NmAction* deleteAction = new NmAction(0);
@@ -479,35 +471,37 @@ void NmBaseClientPlugin::createMessageListCommands(
                 connect(deleteAction, SIGNAL(triggered()), this, SLOT(deleteMessage()));
                 actionList.append(deleteAction);
 
-                NmMessageEnvelope *envelope =
-                    request.requestData().value<NmMessageEnvelope*>();
-
-                if (envelope){
-                    if (envelope->isRead()){
-                        NMLOG("nmailui: envelope is read");
-                        NmAction* unreadAction = new NmAction(0);
-                        unreadAction->setObjectName("baseclientplugin_unreadaction");
-                        unreadAction->setText(hbTrId("txt_mail_menu_mark_as_unread"));
-
-                        connect(unreadAction,
-                            SIGNAL(triggered()),
-                            this,
-                            SLOT(markAsUnread()));
-
-                        actionList.append(unreadAction);
-                    }
-                    else {
-                        NMLOG("nmailui: envelope is unread");
-                        NmAction* readAction = new NmAction(0);
-                        readAction->setObjectName("baseclientplugin_readaction");
-                        readAction->setText(hbTrId("txt_mail_menu_mark_as_read"));
-
-                        connect(readAction,
-                            SIGNAL(triggered()),
-                            this,
-                            SLOT(markAsRead()));
-
-                        actionList.append(readAction);
+                if (folderType!=NmFolderOutbox &&
+                    folderType!=NmFolderDrafts ){
+                    NmMessageEnvelope *envelope =
+                        request.requestData().value<NmMessageEnvelope*>();    
+                    if (envelope){
+                        if (envelope->isRead()){
+                            NMLOG("nmailui: envelope is read");
+                            NmAction* unreadAction = new NmAction(0);
+                            unreadAction->setObjectName("baseclientplugin_unreadaction");
+                            unreadAction->setText(hbTrId("txt_mail_menu_mark_as_unread"));
+    
+                            connect(unreadAction,
+                                SIGNAL(triggered()),
+                                this,
+                                SLOT(markAsUnread()));
+    
+                            actionList.append(unreadAction);
+                        }
+                        else {
+                            NMLOG("nmailui: envelope is unread");
+                            NmAction* readAction = new NmAction(0);
+                            readAction->setObjectName("baseclientplugin_readaction");
+                            readAction->setText(hbTrId("txt_mail_menu_mark_as_read"));
+    
+                            connect(readAction,
+                                SIGNAL(triggered()),
+                                this,
+                                SLOT(markAsRead()));
+    
+                            actionList.append(readAction);
+                        }
                     }
                 }
             }
@@ -655,6 +649,8 @@ void NmBaseClientPlugin::createEditorViewCommands(
             attachAction->setObjectName("baseclientplugin_attachaction");
             attachAction->setText(hbTrId("txt_mail_button_attach"));
             attachAction->setIcon(NmIcons::getIcon(NmIcons::NmIconAttach));
+            // Action only available when attachment can be added
+            attachAction->setAvailabilityCondition(NmAction::NmAttachable);
             // connect action/add toolbar extensions
             connect(attachAction, SIGNAL(triggered()), this, SLOT(attach()));
             actionList.append(attachAction);
@@ -708,7 +704,7 @@ void NmBaseClientPlugin::createEditorViewCommands(
             action->setText(hbTrId("txt_common_menu_open"));
             connect(action, SIGNAL(triggered()), this, SLOT(openAttachment()));
             actionList.append(action);
-            break;	
+            break;
         }
         case NmActionVKB:
         {
@@ -779,15 +775,11 @@ void NmBaseClientPlugin::updateEnvelopeProperty(NmEnvelopeProperties property)
     if (envelope) {
         envelopeList.append(envelope);
 
-        NmStoreEnvelopesOperation* op =
+        QPointer<NmStoreEnvelopesOperation> op =
                 mUiEngine->setEnvelopes(mMenuRequest.mailboxId(),
                                         mMenuRequest.folderId(),
                                         property,
                                         envelopeList);
-
-        if (op) {
-            mUiEngine->storeOperation(op);
-        }
     }
     envelopeList.clear();
     NMLOG("<--NmBaseClientPlugin::updateEnvelopeProperty()");

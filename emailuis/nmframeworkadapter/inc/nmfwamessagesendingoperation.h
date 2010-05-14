@@ -18,7 +18,7 @@
 #ifndef NMFWAMESSAGESENDINGOPERATION_H_
 #define NMFWAMESSAGESENDINGOPERATION_H_
 
-#include <QObject>
+#include <QPointer>
 #include <nmmessagesendingoperation.h>
 #include <nmcommon.h>
 #include <CFSMailCommon.h>
@@ -37,8 +37,6 @@ public:
                                  NmMessage *message,
                                  CFSMailClient &mailClient);
     
-    ~NmFwaMessageSendingOperation();
-
     const NmMessage *getMessage() const;
 
     // from MFSMailRequestObserver
@@ -53,13 +51,14 @@ protected:
     void doCancelOperation();
 
 private:
+    ~NmFwaMessageSendingOperation();
     int saveMessageWithSubparts();
     int sendMessageL();
 
 private:
     NmDataPluginInterface &mPluginInterface;
-    NmOperation *mSaveOperation;    // Owned
-    NmMessage *mMessage;            // Owned
+    QPointer<NmOperation> mSaveOperation;    // Not owned
+    NmMessage *mMessage;                     // Owned
     CFSMailClient &mMailClient;
     TInt mRequestId;
     bool mSaved;

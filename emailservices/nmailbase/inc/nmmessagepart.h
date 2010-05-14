@@ -34,7 +34,7 @@ public:
 	bool isMessage() const;
 	bool isTextContent() const;
 
-	NmId mOwnId;	// message part id
+	NmId mPartId;
 
 	quint32 mSize;
 	quint32 mFetchedSize;
@@ -55,20 +55,14 @@ class NMBASE_EXPORT NmMessagePart
 public:
 
 	NmMessagePart();
-	NmMessagePart(const NmId &id);
-	NmMessagePart(const NmId &id, const NmId &parentId);
-	NmMessagePart(const NmId &id, const NmId &parentId, const NmId &mailboxId);
-	NmMessagePart(QExplicitlySharedDataPointer<NmMessagePartPrivate> nmPrivateMessagePart);
+	NmMessagePart(const NmId &partId);
+	
+	
 	virtual ~NmMessagePart();
 
-	virtual NmId id() const;
-	virtual void setId(const NmId &id);
-
-	NmId parentId() const;
-	void setParentId(const NmId &id);
-
-	NmId mailboxId() const;
-	void setMailboxId(const NmId &id);
+	virtual NmId partId() const;
+	virtual void setPartId(const NmId &id);
+	
 
 	quint32 size() const;
 	void setSize(quint32 size);
@@ -116,9 +110,9 @@ protected:
 	// this cannot be private, must be usable from derived class
     NmMessagePart(const NmMessagePart &part);
 
-    // NmMessageEnvelope for inherited classes
-    NmMessageEnvelope mEnvelope;
-
+    // for CFSMailMessagePart and NmMessage
+    NmMessagePart(QExplicitlySharedDataPointer<NmMessagePartPrivate> nmPrivateMessagePart);
+    
 private:
 	// prohibited
 	NmMessagePart &operator=(const NmMessagePart &part);

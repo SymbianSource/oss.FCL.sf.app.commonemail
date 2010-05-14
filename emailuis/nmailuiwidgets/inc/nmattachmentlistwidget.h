@@ -40,6 +40,7 @@ public:
     void setAttachmentSize(int index, const QString &fileSize);
     int count() const;
     int progressValue(int index) const;
+    void hideProgressBar(int index);
     void paint(QPainter *painter,const QStyleOptionGraphicsItem *option,QWidget *widget);
 
 public slots:

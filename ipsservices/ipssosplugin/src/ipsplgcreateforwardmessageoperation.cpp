@@ -18,11 +18,10 @@
 // <qmail>
 
 // INCLUDE FILES
-
 #include "emailtrace.h"
 #include "ipsplgheaders.h"
 
-// LOCAL CONSTANTS AND MACROS
+// <qmail> removed comment
 
 // ================= MEMBER FUNCTIONS =======================
 
@@ -30,8 +29,10 @@
 // CIpsPlgCreateForwardMessageOperation::CIpsPlgCreateForwardMessageOperation
 // ----------------------------------------------------------------------------
 //
+//<qmail> aSmtpService changed to reference
+//<qmail> KMsvNullIndexEntry para removed
 CIpsPlgCreateForwardMessageOperation::CIpsPlgCreateForwardMessageOperation(
-    CIpsPlgSmtpService* aSmtpService,
+    CIpsPlgSmtpService& aSmtpService,
     CMsvSession& aMsvSession,
     TRequestStatus& aObserverRequestStatus,
     TMsvPartList aPartList,
@@ -44,7 +45,6 @@ CIpsPlgCreateForwardMessageOperation::CIpsPlgCreateForwardMessageOperation(
         aSmtpService,
         aMsvSession,
         aObserverRequestStatus,
-        KMsvNullIndexEntryId,
         aPartList,
         aMailBoxId,
         aOperationObserver,
@@ -53,14 +53,16 @@ CIpsPlgCreateForwardMessageOperation::CIpsPlgCreateForwardMessageOperation(
     {
     FUNC_LOG;
     }
+//</qmail>	
 
 
 // ----------------------------------------------------------------------------
 // CIpsPlgCreateForwardMessageOperation::NewL
 // ----------------------------------------------------------------------------
 //
+//<qmail> aSmtpService changed to reference
 CIpsPlgCreateForwardMessageOperation* CIpsPlgCreateForwardMessageOperation::NewL(
-    CIpsPlgSmtpService* aSmtpService,
+    CIpsPlgSmtpService& aSmtpService,
     CMsvSession& aMsvSession,
     TRequestStatus& aObserverRequestStatus,
     TMsvPartList aPartList,
@@ -68,6 +70,7 @@ CIpsPlgCreateForwardMessageOperation* CIpsPlgCreateForwardMessageOperation::NewL
     TMsvId aOriginalMessageId, 
     MFSMailRequestObserver& aOperationObserver,
     TInt aRequestId )
+//</qmail>	
     {
     FUNC_LOG;
     CIpsPlgCreateForwardMessageOperation* self =
@@ -81,7 +84,9 @@ CIpsPlgCreateForwardMessageOperation* CIpsPlgCreateForwardMessageOperation::NewL
             aOperationObserver, 
             aRequestId );
     CleanupStack::PushL( self );
-    self->ConstructL();
+    // <qmail>
+    self->ConstructL(); // Use base class constructor
+    // </qmail>
     CleanupStack::Pop( self ); 
     return self;
     }
@@ -106,16 +111,14 @@ void CIpsPlgCreateForwardMessageOperation::RunL()
         {
         // new message creation has finished so make an FS type message
         CFSMailMessage* newMessage = NULL;
+        //<qmail> TRAP removed
+        TMsvId msgId;
         
-        TMsvId msgId = TMsvId();
-        TRAPD( err, msgId = GetIdFromProgressL( iOperation->FinalProgress() ) );
+        msgId = GetIdFromProgressL( iOperation->FinalProgress() );
             
-        if( err == KErrNone )
-            {
-            newMessage = iSmtpService->CreateFSMessageAndSetFlagsL( 
-                    msgId, iOriginalMessageId, iFSMailboxId.Id(), ETrue );
-            }
-        
+        newMessage = iSmtpService.CreateFSMessageAndSetFlagsL( 
+                msgId, iOriginalMessageId, iFSMailboxId.Id(), ETrue );
+        //</qmail>
         // relay the created message (observer takes ownership)
         SignalFSObserver( iStatus.Int(), newMessage );        
         }
@@ -134,7 +137,7 @@ void CIpsPlgCreateForwardMessageOperation::StartMessageCreationL()
     FUNC_LOG;
     delete iOperation;
     iOperation = NULL;
-    
+    //<qmail> commented parameter removed
     // Start a new operation, execution continues in RunL 
     // once the operation has finished.
     iOperation = CImEmailOperation::CreateForwardL(
@@ -145,8 +148,8 @@ void CIpsPlgCreateForwardMessageOperation::StartMessageCreationL()
             iPartList, 
             KIpsPlgForwardSubjectFormat,
             KMsvEmailTypeListMHTMLMessage,
-            //0,
             KUidMsgTypeSMTP);
+    //</qmail>
     }
 
 //  End of File

@@ -15,13 +15,12 @@
 *
 */
 
-#include "nmaddattachmentsoperation.h"
+#include "nmuiengineheaders.h"
 
 /*!
   Constructor
   */
-NmAddAttachmentsOperation::NmAddAttachmentsOperation(QObject *parent)
-:NmOperation(parent)
+NmAddAttachmentsOperation::NmAddAttachmentsOperation()
 {
 }
 

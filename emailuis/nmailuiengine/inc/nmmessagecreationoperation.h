@@ -23,11 +23,16 @@
 class NmMessage;
 class NmId;
 
-class NmMessageCreationOperation: public NmOperation
+class NMUIENGINE_EXPORT NmMessageCreationOperation: public NmOperation
 {
+    Q_OBJECT
 public:
+    NmMessageCreationOperation(){};
     virtual NmMessage *getMessage() = 0;
     virtual NmId getMessageId() = 0;
+    
+protected:
+    virtual ~NmMessageCreationOperation(){};
 };
 
 #endif /* NMMESSAGECREATIONOPERATION_H_ */

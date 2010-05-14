@@ -20,41 +20,41 @@
 
 #include <QObject>
 
-#include "nmenginedef.h"
+#include <nmapidef.h>
 
-/**
- * base class for async tasks
+/*!
+   base class for async tasks
  */
-class NMENGINE_EXPORT NmMessageTask : public QObject
+class NMAPI_EXPORT NmApiMessageTask : public QObject
 {
     Q_OBJECT
 protected:
-    NmMessageTask( QObject *parent );
+    NmApiMessageTask(QObject *parent);
 
 public:
-    virtual ~NmMessageTask();
+    virtual ~NmApiMessageTask();
 
 public slots:
     /*!
-     * Starts task and returns true if starting succeeded.
+       Starts task and returns true if starting succeeded.
      */
-    virtual bool start()=0;
+    virtual bool start() = 0;
 
     /*!
-     * Cancels started but not yet completed task. may not be applicable
-     * in all tasks.
+       Cancels started but not yet completed task. may not be applicable
+       in all tasks.
      */
-    virtual void cancel() =0;
+    virtual void cancel() = 0;
 
     signals:
     /*!
-     * task failed, error code is specific to concrete task
+       task failed, error code is specific to concrete task
      */
-    void failed(int error);
+    void failed (int error);
     /*!
-     * task canceled
+       task canceled
      */
     void canceled();
 };
 
-#endif /* NMMESSAGETASK_H_ */
+#endif /*NMAPIMESSAGETASK_H_ */

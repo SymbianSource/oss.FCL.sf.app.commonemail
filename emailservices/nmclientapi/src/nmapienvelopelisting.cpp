@@ -15,31 +15,37 @@
  *
  */
 
+
+#include <nmapienvelopelisting.h>
 #include "nmapienvelopelisting_p.h"
-#include "nmapienvelopelisting.h"
+
+#include <nmapicommonheader.h>
+
 #include "nmapiengine.h"
+
+
 
 namespace EmailClientApi
 {
 /*!
- * Constructor of class. It set start values.
+   Constructor of class. It set start values.
  */
-NmEnvelopeListing::NmEnvelopeListing(
+NmApiEnvelopeListing::NmApiEnvelopeListing(
     QObject *parent,
     const quint64 folderId,
     const quint64 mailboxId) :
-    NmMessageTask(parent)
+    NmApiMessageTask(parent)
 {
-    mListingPrivate = new NmEnvelopeListingPrivate(this);
+    mListingPrivate = new NmApiEnvelopeListingPrivate(this);
     mListingPrivate->mailboxId = mailboxId;
     mListingPrivate->folderId = folderId;
     mListingPrivate->mIsRunning = false;
 }
 
 /*!
- * Destructor of class. It release engine to be safe if manual releasing won't work.
+   Destructor of class. It release engine to be safe if manual releasing won't work.
  */
-NmEnvelopeListing::~NmEnvelopeListing()
+NmApiEnvelopeListing::~NmApiEnvelopeListing()
 {
     if (mListingPrivate->mIsRunning) {
         mListingPrivate->releaseEngine();
@@ -47,19 +53,19 @@ NmEnvelopeListing::~NmEnvelopeListing()
 }
 
 /*!
- * \brief Starts gathering envelopes list.
- * 
- * In first turn it will get whole folderlist. 
- * If start works, it do nothing.
- * 
- * To asynchronous operation ce be used \sa QTimer::singleShot on this method.
- * Example:
- * <code> 
- * QTimer::singleShot(0,nmEnvelopeListing,SLOT(start());
- * </code>
- * 
+   \brief Starts gathering envelopes list.
+   
+   In first turn it will get whole folderlist. 
+   If start works, it do nothing.
+   
+   To asynchronous operation ce be used \sa QTimer::singleShot on this method.
+   Example:
+   <code> 
+   QTimer::singleShot(0,nmEnvelopeListing,SLOT(start());
+   </code>
+   
  */
-bool NmEnvelopeListing::start()
+bool NmApiEnvelopeListing::start()
 {
     bool result = false;
 
@@ -87,13 +93,13 @@ bool NmEnvelopeListing::start()
 }
 
 /*!
- * \brief Stop gathering envelope list.
- * 
- * In first it change state of listing.
- * Then it release engine.
- * On end it clears list of envelopes and emits \sa NmMessageTask::canceled() signal.
+   \brief Stop gathering envelope list.
+   
+   In first it change state of listing.
+   Then it release engine.
+   On end it clears list of envelopes and emits \sa NmApiMessageTask::canceled() signal.
  */
-void NmEnvelopeListing::cancel()
+void NmApiEnvelopeListing::cancel()
 {
     if (mListingPrivate->mIsRunning) {
         mListingPrivate->mIsRunning = false;
@@ -105,13 +111,14 @@ void NmEnvelopeListing::cancel()
 }
 
 /*! 
- * \brief Returns results after envelopesListed signal is received.
- * 
- *  Caller gets ownership of envelopes. Returns true if results were available.
- *  It clears list of envelopes after be called.
- *  It also at start clear inputlist of NmMessageEnvelope.
+   \brief Returns results after envelopesListed signal is received.
+   
+    Caller gets ownership of envelopes. Returns true if results were available.
+    Before calling cancel and start should be called,
+    because after second calling it return empty list.
+    It also at start clear inputlist of NmMessageEnvelope.
  */
-bool NmEnvelopeListing::getEnvelopes(QList<EmailClientApi::NmMessageEnvelope> &envelopes)
+bool NmApiEnvelopeListing::getEnvelopes(QList<EmailClientApi::NmApiMessageEnvelope> &envelopes)
 {
     envelopes.clear();
 
@@ -129,12 +136,11 @@ bool NmEnvelopeListing::getEnvelopes(QList<EmailClientApi::NmMessageEnvelope> &e
 }
 
 /*!
- * \brief Return info if listing is running
+   \brief Return info if listing is running
  */
-bool NmEnvelopeListing::isRunning() const
+bool NmApiEnvelopeListing::isRunning() const
 {
     return mListingPrivate->mIsRunning;
 }
-}
 
-#include "moc_nmapienvelopelisting.cpp"
+}

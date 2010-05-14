@@ -18,13 +18,16 @@
 #ifndef IPSPLGCONNECTANDREFRESHFOLDERLIST_H
 #define IPSPLGCONNECTANDREFRESHFOLDERLIST_H
 
+// <qmail> AknWaitNoteWrapper include has been removed
 #include <imapset.h>
 
+// Specific includes
 #include "ipsplgonlineoperation.h"
 
 /**
 * Operation that 1) goes online, 2) updates mailbox's folder list, and 3) disconnects again
 */
+// <qmail> MAknBackgroundProcess base class has been removed
 NONSHARABLE_CLASS ( CIpsPlgConnectAndRefreshFolderList ) : public CIpsPlgOnlineOperation
     {
 // <qmail> removed 3 functions from MAknBackgroundProcess
@@ -54,6 +57,10 @@ public:
         MFSMailRequestObserver* aFSObserver, 
         CIpsPlgTimerOperation& aActivityTimer );
 
+    /**
+    * Destructor
+    * ~CIpsPlgConnectAndRefreshFolderList()
+    */
     virtual ~CIpsPlgConnectAndRefreshFolderList();
     
     /**
@@ -71,13 +78,15 @@ public:
     
     TFSProgress GetFSProgressL() const;
 
-    // <qmail> new func to this op
+// <qmail> new func to this op
     /**
      * Returns operation type
      */
     TIpsOpType IpsOpType() const;
+// </qmail>
 
 protected: // From CActive
+
     virtual void DoRunL();
     virtual void DoCancel();
     
@@ -93,8 +102,13 @@ private:
         ECompleted
         };
 
-    // <qmail> priority parameter has been removed
-    CIpsPlgConnectAndRefreshFolderList( 
+	/**
+    * C++ constructor
+    * CIpsPlgConnectAndRefreshFolderList()
+    */
+    // <qmail> rename selection parameter
+	// <qmail> MFSMailRequestObserver& changed to pointer
+	CIpsPlgConnectAndRefreshFolderList( 
         CMsvSession& aSession,
         TRequestStatus& aObserverRequestStatus, 
         TMsvId aService, 
@@ -103,10 +117,17 @@ private:
         MFSMailRequestObserver* aFSObserver, 
         CIpsPlgTimerOperation& aTimer );
 
+    /**
+    * ConstructL()
+    */
+	// <qmail> aMsvEntry parameter has been removed
     void ConstructL();
 
-private: // data
-    // <qmail> changes in members
+	// <qmail> DisplayLoginFailedDialogL function has been removed
+
+    //data
+private:
+    // <qmail> changes in members: iTimer, iAsyncWaitNote removed, iMsvEntry -> iSelection
     TIpsSetFolderRefreshStates          iState;
     CMsvEntrySelection*					iSelection; // owned
     TPckgBuf<TImap4CompoundProgress>    iProgressBuf;

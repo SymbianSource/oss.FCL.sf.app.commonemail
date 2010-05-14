@@ -15,111 +15,138 @@
  *
  */
 
-#include "nmapifolder.h"
+#include <nmapifolder.h>
+#include "nmapifolder_p.h"
 
 namespace EmailClientApi
 {
-NmFolderPrivate::NmFolderPrivate()
-{
 
-}
-
-NmFolderPrivate::~NmFolderPrivate()
-{
-
-}
-
-/*
- * constructor for NmFolder class
+/*!
+   constructor for NmFolder class
  */
-NmFolder::NmFolder()
+NmApiFolder::NmApiFolder()
 {
-    d = new NmFolderPrivate();
+    d = new NmApiFolderPrivate();
 }
 
-/*
- * destructor for NmFolder class
+/*!
+    Copy constructor for NmApiMailbox 
  */
-NmFolder::~NmFolder()
+NmApiFolder::NmApiFolder(const NmApiFolder &nmApiFolder)
+: d(nmApiFolder.d)
+{
+    
+}
+
+/*!
+   destructor for NmApiFolder class
+ */
+NmApiFolder::~NmApiFolder()
 {
 
 }
 
-/*
- * getter for id
+/*!
+   Assign data from \a folder
  */
-quint64 NmFolder::id() const
+NmApiFolder &NmApiFolder::operator=(const NmApiFolder &folder)
+{
+    if (this != &folder) {
+        d = folder.d;
+    }
+    return *this;
+}
+
+/*!
+   Compare data from \a folder
+ */
+bool NmApiFolder::operator==(const NmApiFolder &folder)
+{
+    bool returnValue = false;
+    if (d == folder.d) {
+        returnValue = true;
+    }
+    return returnValue;
+}
+
+/*!
+   getter for id
+ */
+quint64 NmApiFolder::id() const
 {
     return d->id;
 }
 
-/*
- * getter for name 
+/*!
+   getter for name 
  */
-QString NmFolder::name() const
+QString NmApiFolder::name() const
 {
     return d->name;
 }
 
-/*
- * getter for foldertype
+/*!
+   getter for foldertype
  */
-EmailFolderType NmFolder::folderType() const
+EmailClientApi::NmApiEmailFolderType NmApiFolder::folderType() const
 {
     return d->folderType;
 }
 
-/*
- * setter for name
+/*!
+   setter for name
  */
-void NmFolder::setName(const QString& name)
+void NmApiFolder::setName(const QString& name)
 {
     d->name = name;
 }
 
-/*
- * setter for id
+/*!
+   setter for id
  */
-void NmFolder::setId(quint64 id)
+void NmApiFolder::setId(quint64 id)
 {
     d->id = id;
 }
 
-/*
- * setter for foldertype
+/*!
+   setter for foldertype
  */
-void NmFolder::setFolderType(EmailFolderType folderType)
+void NmApiFolder::setFolderType(EmailClientApi::NmApiEmailFolderType folderType)
 {
     d->folderType = folderType;
 }
 
-/*
- * setter for parent folder id
+/*!
+   setter for parent folder id
  */
-void NmFolder::setParentFolderId(quint64 parentId)
+void NmApiFolder::setParentFolderId(quint64 parentId)
 {
     d->parentId = parentId;
 }
 
-/*
- * seter for childfolder ids
+/*!
+   seter for childfolder ids
  */
-void NmFolder::setChildFolderIds(QList<quint64> &childFolderIds)
+void NmApiFolder::setChildFolderIds(QList<quint64> &childFolderIds)
 {
     d->childFolderIds = childFolderIds;
 }
 
-/*
- * Returns count of child folder ids.
- * to be implemented later when nmail functionality is available
+/*!
+   Returns count of child folder ids.
+   to be implemented later when nmail functionality is available
  */
-void NmFolder::getChildFolderIds(QList<quint64> &childFolderIds)
+void NmApiFolder::getChildFolderIds(QList<quint64> &childFolderIds)
 {
     childFolderIds = d->childFolderIds;
 }
-;
 
-quint64 NmFolder::parentFolderId() const
+
+/*!
+   Returns id of parent folder.
+ */
+quint64 NmApiFolder::parentFolderId() const
 {
     return d->parentId;
 }

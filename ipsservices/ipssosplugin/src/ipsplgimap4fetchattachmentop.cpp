@@ -20,8 +20,10 @@
 #include "emailtrace.h"
 #include "ipsplgheaders.h"
 
-// <qmail> priority const has been removed
+// <qmail> priority const has been removed, interval changed to 0.2 sec
 const TInt KIpsAttaFetchProgressReportInterval = 200000; // 0.2 sec
+const TInt KIpsAttaFetchRetryInterval = 1000000; // 1 sec
+const TInt KIpsAttaFetchRetryCount = 30;
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
@@ -98,6 +100,8 @@ void CIpsFetchProgReport::RunL()
 // ----------------------------------------------------------------------------
 // CIpsPlgImap4FetchAttachmentOp
 // ----------------------------------------------------------------------------
+// <qmail> aFunctionId removed, CMsvEntrySelection& changed to pointer
+// <qmail> MFSMailRequestObserver& changed to pointer
 CIpsPlgImap4FetchAttachmentOp* CIpsPlgImap4FetchAttachmentOp::NewL(
     CMsvSession& aMsvSession,
     TRequestStatus& aObserverRequestStatus,
@@ -129,6 +133,7 @@ CIpsPlgImap4FetchAttachmentOp* CIpsPlgImap4FetchAttachmentOp::NewL(
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
 // <qmail> priority parameter has been removed
+// <qmail> MFSMailRequestObserver& changed to pointer
 CIpsPlgImap4FetchAttachmentOp::CIpsPlgImap4FetchAttachmentOp(
     CMsvSession& aMsvSession,
     TRequestStatus& aObserverRequestStatus,
@@ -146,10 +151,12 @@ CIpsPlgImap4FetchAttachmentOp::CIpsPlgImap4FetchAttachmentOp(
         aFSMailBoxId,
         aFSOperationObserver,
         aFSRequestId ),
-    iSelection( aSelection )
+    	iSelection( aSelection ),
+    	iRetryCount( 0 )
     {
     FUNC_LOG;
     iService = aService;
+    iRetryTimer.CreateLocal();
     }
 
 // ----------------------------------------------------------------------------
@@ -157,6 +164,7 @@ CIpsPlgImap4FetchAttachmentOp::CIpsPlgImap4FetchAttachmentOp(
 CIpsPlgImap4FetchAttachmentOp::~CIpsPlgImap4FetchAttachmentOp()
     {
     FUNC_LOG;
+    iRetryTimer.Close();
     delete iSelection;
     delete iProgReport;
     delete iFetchErrorProgress;
@@ -184,7 +192,7 @@ void CIpsPlgImap4FetchAttachmentOp::DoConnectL()
         iMsvSession,
         iStatus, 
         iService,
-        iActivityTimer,
+        *iActivityTimer,
         iFSMailboxId,
         NULL, // no observer for subopertaion
         0,    // no requestId needed
@@ -225,6 +233,12 @@ void CIpsPlgImap4FetchAttachmentOp::DoRunL()
                 CompleteObserver( KErrCouldNotConnect );
                 return;
                 }
+            iRetryCount = 0;
+            DoFetchAttachmentL();
+            break;
+            }
+        case EStateWaiting:
+            {
             DoFetchAttachmentL();
             break;
             }
@@ -233,14 +247,29 @@ void CIpsPlgImap4FetchAttachmentOp::DoRunL()
             delete iProgReport;
             iProgReport = NULL;
             
-            TInt err( iStatus.Int() );
-            if( err != KErrNone && iSubOperation )
+            TInt err = iStatus.Int();
+
+            // If the server was busy, try again after a short delay, up to
+            // some retry limit.
+            if ( err == KErrServerBusy && iRetryCount < KIpsAttaFetchRetryCount )
                 {
-                iFetchErrorProgress = iSubOperation->ProgressL().AllocL();
+                iRetryCount++;
+                INFO_1( "CIpsPlgImap4FetchAttachmentOp::DoRunL: iRetryCount = %d", iRetryCount );
+                iState = EStateWaiting;
+                iStatus = KRequestPending;
+                iRetryTimer.After( iStatus, KIpsAttaFetchRetryInterval );
+                SetActive();
                 }
-            
-            iState = EStateIdle;
-            CompleteObserver( err );
+            else
+                {
+                if( err != KErrNone && iSubOperation )
+                    {
+                    iFetchErrorProgress = iSubOperation->ProgressL().AllocL();
+                    }
+                
+                iState = EStateIdle;
+                CompleteObserver( err );
+                }
             break;
             }
         default:
@@ -279,7 +308,7 @@ const TDesC8& CIpsPlgImap4FetchAttachmentOp::ProgressL()
 void CIpsPlgImap4FetchAttachmentOp::ReportProgressL()
     {
     FUNC_LOG;
-    TInt error( KErrNone );
+    TInt error = KErrNone;
     TFSProgress fsProgress = { TFSProgress::EFSStatus_Waiting, 0, 0, KErrNone };
     if ( iSubOperation && iState == EStateFetching )
         {
@@ -307,12 +336,14 @@ void CIpsPlgImap4FetchAttachmentOp::ReportProgressL()
         {
         User::Leave( error );
         }
-    
+
+// <qmail>
     // signal observer if it exists
     if ( iFSOperationObserver )
         {
         iFSOperationObserver->RequestResponseL( fsProgress, iFSRequestId );
         }
+// </qmail>
     }
 
 // ----------------------------------------------------------------------------
@@ -370,11 +401,13 @@ void CIpsPlgImap4FetchAttachmentOp::DoFetchAttachmentL( )
     // Switch operations.
     delete iSubOperation;
     iSubOperation = NULL;
+    iStatus = KRequestPending;
 
     iProgReport = CIpsFetchProgReport::NewL( *this );
 
     // Filters are not used when performing 'fetch' operation, 
     // use normal getmail info instead
+// <qmail>
     TPckgBuf<TImImap4GetMailInfo> param;
     TImImap4GetMailInfo& options = param();
     options.iMaxEmailSize = KMaxTInt32;
@@ -382,9 +415,12 @@ void CIpsPlgImap4FetchAttachmentOp::DoFetchAttachmentL( )
     options.iDestinationFolder = 0; // not used
 
     InvokeClientMtmAsyncFunctionL( KIMAP4MTMPopulate, *iSelection, param ); // <qmail> 1 param removed
+// </qmail>
     SetActive();
     }
     
+// <qmail> GetEngineProgress function removed
+
 // <qmail> new func to this op
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------    
@@ -393,3 +429,8 @@ TIpsOpType CIpsPlgImap4FetchAttachmentOp::IpsOpType() const
     FUNC_LOG;
     return EIpsOpTypeFetchAttachmentOp;
     }
+// </qmail>
+
+
+// End of File
+

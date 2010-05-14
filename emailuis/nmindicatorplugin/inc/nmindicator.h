@@ -30,6 +30,7 @@ public:
 public:
     NmId mId;
     QString mName;
+    QString mMailboxIconName;
     NmSyncState mSyncState;
     NmConnectState mConnectState;
     int mUnreadMails;

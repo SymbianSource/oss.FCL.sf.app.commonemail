@@ -29,6 +29,7 @@
 Q_EXPORT_PLUGIN(NmIndicatorPlugin)
 
 const int NmMaxIndicatorCount = 10;
+static const QString emailServiceNameMailbox = "nmail.com.nokia.symbian.IEmailInboxView";
 
 /*!
     \class NmIndicatorPlugin
@@ -66,11 +67,11 @@ QStringList NmIndicatorPlugin::indicatorTypes() const
 }
 
 /*!
-	Check if client is allowed to use notification widget
-	see HbIndicatorPluginInterface
+    Check if client is allowed to use notification widget
+    see HbIndicatorPluginInterface
 */
 bool NmIndicatorPlugin::accessAllowed(const QString &indicatorType,
-    const HbSecurityInfo *securityInfo) const
+    const QVariantMap &securityInfo) const
 {
     Q_UNUSED(indicatorType)
     Q_UNUSED(securityInfo)
@@ -79,6 +80,7 @@ bool NmIndicatorPlugin::accessAllowed(const QString &indicatorType,
     // All clients are allowed to use.
     return true;
 }
+
 
 /*!
     Called when any of the indicator receive updated status of the global status
@@ -175,7 +177,7 @@ bool NmIndicatorPlugin::showMailbox(quint64 mailboxId)
 {
     NMLOG("NmIndicatorPlugin::showMailbox");
     XQServiceRequest request(
-        emailInterfaceNameMailbox,
+        emailServiceNameMailbox,
         emailOperationViewInbox,
         true);
 

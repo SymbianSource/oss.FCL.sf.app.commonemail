@@ -18,6 +18,7 @@
 
 #include "emailtrace.h"
 #include "ipsplgheaders.h"
+#include "miut_err.h" // SMTP error codes
 
 
 const TInt KIpsSmtpOperationCharLessThan = '<';
@@ -26,7 +27,7 @@ const TInt KIpsSmtpOperationCharMoreThan = '>';
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 //
-// <qmail> priority parameter has been removed
+// <qmail> aPriority, aUsePublishSubscribe parameters removed, aOperationObserver, aRequestId added
 EXPORT_C CIpsPlgSmtpOperation* CIpsPlgSmtpOperation::NewL( 
     CMsvSession& aMsvSession, 
     TRequestStatus& aObserverRequestStatus,
@@ -46,7 +47,7 @@ EXPORT_C CIpsPlgSmtpOperation* CIpsPlgSmtpOperation::NewL(
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 //
-// <qmail> priority parameter has been removed
+// <qmail> aPriority, aUsePublishSubscribe parameters removed, aOperationObserver, aRequestId added
 EXPORT_C CIpsPlgSmtpOperation* CIpsPlgSmtpOperation::NewLC( 
     CMsvSession& aMsvSession, 
     TRequestStatus& aObserverRequestStatus,
@@ -66,7 +67,7 @@ EXPORT_C CIpsPlgSmtpOperation* CIpsPlgSmtpOperation::NewLC(
    
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-// <qmail> priority parameter has been removed
+// <qmail> aPriority parameter removed, aOperationObserver, aRequestId added
 CIpsPlgSmtpOperation::CIpsPlgSmtpOperation( 
     CMsvSession& aMsvSession, 
     TRequestStatus& aObserverRequestStatus,
@@ -77,7 +78,9 @@ CIpsPlgSmtpOperation::CIpsPlgSmtpOperation(
     iOperation( NULL ),
     iSelection( NULL ),  
     iMtmRegistry( NULL ),
-    iFSOperationObserver( aFSOperationObserver )
+    iState( EIdle ),
+    iFSOperationObserver( aFSOperationObserver ),
+    iEventHandler( NULL )
     {
     FUNC_LOG;
     }
@@ -93,6 +96,9 @@ CIpsPlgSmtpOperation::~CIpsPlgSmtpOperation()
     delete iMtmRegistry;
     delete iSelection;
     delete iOperation;
+    iOperation = NULL;
+    iEventHandler = NULL;
+    iState = EIdle;
     } 
 
 // ---------------------------------------------------------------------------
@@ -104,42 +110,76 @@ void CIpsPlgSmtpOperation::ConstructL()
     iSelection = new (ELeave) CMsvEntrySelection();
     CActiveScheduler::Add( this );
     }
-    
+
+// ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+//
+void CIpsPlgSmtpOperation::CompleteObserver( TInt aStatus /*= KErrNone*/ )
+    {
+    FUNC_LOG;
+
+    TRequestStatus* status = &iObserverRequestStatus;
+    if ( status && status->Int() == KRequestPending )
+        {
+        User::RequestComplete( status, aStatus );
+        }
+    }
+
+// ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+//
+void CIpsPlgSmtpOperation::CompleteThis()
+    {
+    FUNC_LOG;
+
+    TRequestStatus* status = &iStatus;
+    User::RequestComplete( status, KErrNone );
+    }
+
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 //
 void CIpsPlgSmtpOperation::RunL()
     {
     FUNC_LOG;
-    
-    
-    if ( iState == EMovingOutbox )
+
+    switch ( iState )
         {
-        delete iOperation;
-        iOperation = NULL;
-        iSelection->InsertL(0, iSmtpService );
-        CallSendL( );
-        }
-    else if ( iState == ESending )
-        {
-        TImSmtpProgress prog;
-        TPckg<TImSmtpProgress> param(prog);
-        param.Copy( iOperation->FinalProgress() ); 
-        
-        if ( iFSOperationObserver )
+        case EMovingOutbox:
             {
-            iFSProgress.iProgressStatus =
-                TFSProgress::EFSStatus_RequestComplete;
-            iFSProgress.iError = prog.Error();
-
-            TRAP_IGNORE( iFSOperationObserver->RequestResponseL(
-                iFSProgress, iFSRequestId ) );
+            delete iOperation;
+            iOperation = NULL;
+            iSelection->InsertL( 0, iSmtpService );
+            CallSendL();
+            break;
             }
-        TRequestStatus* status = &iObserverRequestStatus;
-        User::RequestComplete( status, prog.Error() );
-        }
-    }
+        case ESending:
+            {
+            TImSmtpProgress prog;
+            TPckg<TImSmtpProgress> param(prog);
+            param.Copy( iOperation->FinalProgress() );
 
+// <qmail> Removed login error handling
+
+// <qmail>
+	        if ( iFSOperationObserver )
+	            {
+	            iFSProgress.iProgressStatus =
+	                TFSProgress::EFSStatus_RequestComplete;
+	            iFSProgress.iError = prog.Error();
+
+	            TRAP_IGNORE( iFSOperationObserver->RequestResponseL(
+	                iFSProgress, iFSRequestId ) );
+	            }
+	        TRequestStatus* status = &iObserverRequestStatus;
+	        User::RequestComplete( status, prog.Error() );
+    		break;
+// <qmail>
+            }
+        }
+	}
+
+// <qmail>
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 //
@@ -161,7 +201,7 @@ TInt CIpsPlgSmtpOperation::RunError( TInt aError )
     
     return KErrNone;
     }
-
+// </qmail>
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
@@ -178,9 +218,7 @@ void CIpsPlgSmtpOperation::DoCancel()
     // It is not relevant to inform FS observer. Cancelling is initiated
     // either by the observer or the engine destructor when the application
     // exits.
-    
-    TRequestStatus* status = &iObserverRequestStatus;
-    User::RequestComplete( status, KErrCancel );
+    CompleteObserver( KErrCancel );
     }
 
 // ---------------------------------------------------------------------------
@@ -197,6 +235,7 @@ const TDesC8& CIpsPlgSmtpOperation::ProgressL()
     return KNullDesC8;
     }
 
+// <qmail>
 // ---------------------------------------------------------------------------
 // CIpsPlgSmtpOperation::GetErrorProgressL
 // ---------------------------------------------------------------------------
@@ -227,6 +266,7 @@ TIpsOpType CIpsPlgSmtpOperation::IpsOpType() const
     FUNC_LOG;
     return EIpsOpTypeSmtp;
     }
+// </qmail>
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
@@ -349,6 +389,12 @@ EXPORT_C TInt CIpsPlgSmtpOperation::EmptyOutboxFromPendingMessagesL(
         {
         CallSendL();
         }
+    else
+        {
+        // nothing to do, finish operation
+        CompleteObserver( KErrNone );
+        }
+
     return retValue;
     }
 
@@ -441,12 +487,23 @@ void CIpsPlgSmtpOperation::ValidateAddressArrayL( const CDesCArray& aRecipients 
             fullName.Set( aRecipients[i].Mid( start, ( end - start ) ) );
             }
         // make basic sanity checks for email address
+// <qmail>
         //if( !IpsSetUtils::IsValidEmailAddressL( fullName ) )
         //    {
         //    User::Leave( KErrBadName );
         //    }
+// </qmail>
         }
     }
+// ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// 
+void CIpsPlgSmtpOperation::SetEventHandler( TAny* aEventHandler )
+    {
+    iEventHandler = aEventHandler;
+    }
+// <qmail> TBool CIpsPlgSmtpOperation::QueryUserPassL() removed
+// <qmail> void CIpsPlgSmtpOperation::CredientialsSetL( TInt aEvent )
 
 // End of File
 

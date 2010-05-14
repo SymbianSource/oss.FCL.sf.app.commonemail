@@ -20,8 +20,7 @@ DEFINES += BUILD_CLIENTPLUGIN_DLL
 
 INCLUDEPATH += inc \
     ../inc \
-    ../../inc \
-    ../../emailuis/nmsettingui/inc    
+    ../../inc 
 
 HEADERS += inc/nmpopclientplugin.h \
     inc/nmpopclientpluginheaders.h
@@ -37,10 +36,21 @@ symbian*: {
         -TCB
     TARGET.UID2 = 0x1000008D
     TARGET.UID3 = 0x2002B3D2
-    pluginstub.sources = nmpopclientplugin.dll
-    pluginstub.path = /resource/plugins
+
+    PLUGIN_STUB_PATH = /resource/qt/plugins/nmail/uiext
+    
+    deploy.path = C:
+    pluginstub.sources = $${TARGET}.dll
+    pluginstub.path = $$PLUGIN_STUB_PATH
+    DEPLOYMENT += pluginstub
+
+    qtplugins.path = $$PLUGIN_STUB_PATH
+    qtplugins.sources += qmakepluginstubs/$${TARGET}.qtplugin
+    for(qtplugin, qtplugins.sources):BLD_INF_RULES.prj_exports += "./$$qtplugin $$deploy.path$$qtplugins.path/$$basename(qtplugin)" 
+ 
     DEPLOYMENT += pluginstub
     LIBS += -lnmailbase \
+            -lnmsettingui \
             -lnmailuiengine
 }
 
@@ -52,6 +62,11 @@ win32 {
     DEPLOYMENT += pluginstub
     LIBS += -L../../bin \
                 -lnmailbase \
+                -lnmsettingui \
                 -lnmailuiengine 
 }
+
+plugin.sources = $${TARGET}.dll
+plugin.path = $$PLUGIN_STUB_PATH
+DEPLOYMENT += plugin
 

@@ -34,16 +34,15 @@ public:
             RPointerArray<CFSMailMessage> messages,
             CFSMailClient &mailClient);
     
-    virtual ~NmFwaStoreEnvelopesOperation();
-    
     // from MFSMailRequestObserver
     void RequestResponseL(TFSProgress aEvent, TInt aRequestId);
 
 protected:
     void doRunAsyncOperation();
-    
-protected:
     void doCancelOperation();
+    
+private:
+    ~NmFwaStoreEnvelopesOperation();
 
 private:
     NmId                            mMailboxId;

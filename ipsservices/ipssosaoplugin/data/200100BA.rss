@@ -17,8 +17,9 @@
 
 
 #include <ecom/registryinfo.rh>
+//<Qmail>
 #include "../../inc/emailversionnumbers.hrh" // KEmailEcomVersionNumber
-
+//</Qmail>
 // ---------------------------------------------------------------------------
 // theInfo
 // Defines the ecom plugin for IPSSosSmtpPlugin

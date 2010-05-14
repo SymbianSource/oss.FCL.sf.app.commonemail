@@ -14,18 +14,13 @@ CONFIG += plugin
 CONFIG += hb
 TEMPLATE = lib
 TARGET = nmailuiwidgetsplugin
-QT += core
 
-INCLUDEPATH += . \
-  ./inc \
-  ../../inc \
-  ../nmailuiwidgets/inc
+INCLUDEPATH += ./inc \
+  ../../inc
 
 HEADERS += inc/nmailuiwidgetsplugin.h
 
 SOURCES += src/nmailuiwidgetsplugin.cpp
-
-LIBS += -leuser
 
 symbian*: {
     TARGET.EPOCALLOWDLLDATA = 1
@@ -45,4 +40,3 @@ win32 {
     LIBS += -L../../bin \
         -lnmailuiwidgets
 }
-       

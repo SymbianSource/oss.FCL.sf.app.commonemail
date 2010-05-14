@@ -193,7 +193,7 @@ bool NmIpsSettingsManagerBase::writeSetting(IpsServices::SettingItem settingItem
             }
             break;
         case IpsServices::SMTPAuthentication:            
-            mSmtpSettings->SetSMTPAuth((settingValue.toBool()));
+            mSmtpSettings->SetSMTPAuth(settingValue.toBool());
             ret = saveSettings();
             break;
         case IpsServices::OutgoingSecureSockets:
@@ -274,6 +274,6 @@ int NmIpsSettingsManagerBase::determineDefaultOutgoingPort()
 */
 NmIpsExtendedSettingsManager &NmIpsSettingsManagerBase::extendedSettingsManager() const
 {
-return *mExtendedSettingsManager;
+    return *mExtendedSettingsManager;
 }
 

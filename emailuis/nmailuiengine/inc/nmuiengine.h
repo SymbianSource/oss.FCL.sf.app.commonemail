@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+* Copyright (c) 2009 - 2010 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -20,43 +20,42 @@
 
 #include <QObject>
 #include <QList>
-#ifdef Q_OS_SYMBIAN
 #include <xqsharablefile.h>
-#endif
 
 #include "nmcommon.h"
 #include "nmuienginedef.h"
 
+class QAbstractItemModel;
 class NmMailboxListModel;
 class NmMessageListModel;
+class NmMessageSearchListModel;
 class NmDataManager;
 class NmDataPluginFactory;
 class NmMailboxMetaData;
 class NmMessage;
 class NmMessagePart;
 class NmMessageEnvelope;
+class NmOperation;
 class NmMessageCreationOperation;
 class NmStoreEnvelopesOperation;
 class NmAddAttachmentsOperation;
-class NmOperation;
 class NmCheckOutboxOperation;
 class NmMessageSendingOperation;
+
 
 class NMUIENGINE_EXPORT NmUiEngine: public QObject
 {
     Q_OBJECT
+
 public:
 
     static NmUiEngine *instance();
     static void releaseInstance(NmUiEngine *&instance);
 
     NmMailboxListModel &mailboxListModel();
-
     void refreshMailboxListModel();
-
     NmMessageListModel &messageListModel(const NmId &mailboxId, const NmId &folderId);
-
-    void releaseMessageListModel(const NmId &mailboxId);
+    NmMessageSearchListModel &messageSearchListModel(QAbstractItemModel *sourceModel);
 
     NmId standardFolderId(const NmId &mailboxId, NmFolderType folderType);
 
@@ -65,22 +64,22 @@ public:
         const NmId &folderId,
         const NmId &messageId);
 
-    NmOperation *fetchMessage(
+    QPointer<NmOperation> fetchMessage(
         const NmId &mailboxId,
         const NmId &folderId,
         const NmId &messageId);
 
-    NmOperation *fetchMessagePart( 
+    QPointer<NmOperation> fetchMessagePart( 
         const NmId &mailboxId,
         const NmId &folderId,
         const NmId &messageId,
         const NmId &messagePartId);
     
     XQSharableFile messagePartFile(
-            const NmId &mailboxId,
-            const NmId &folderId,
-            const NmId &messageId,
-            const NmId &messagePartId);
+       const NmId &mailboxId,
+       const NmId &folderId,
+       const NmId &messageId,
+       const NmId &messagePartId);
     
     NmMailboxMetaData *mailboxById(const NmId &mailboxId);
 
@@ -99,23 +98,22 @@ public:
         const NmId &folderId,
         const QList<NmId> &messageIdList);
 
-    NmStoreEnvelopesOperation *setEnvelopes(
-            const NmId &mailboxId,
-            const NmId &folderId,
-            NmEnvelopeProperties property,
-            const QList<const NmMessageEnvelope*> &envelopeList);
+    QPointer<NmStoreEnvelopesOperation> setEnvelopes(
+        const NmId &mailboxId,
+        const NmId &folderId,
+        NmEnvelopeProperties property,
+        const QList<const NmMessageEnvelope*> &envelopeList);
 
+    QPointer<NmMessageCreationOperation> createNewMessage(const NmId &mailboxId);
 
-    NmMessageCreationOperation *createNewMessage(const NmId &mailboxId);
+    QPointer<NmMessageCreationOperation> createForwardMessage(
+        const NmId &mailboxId,
+        const NmId &originalMessageId);
 
-    NmMessageCreationOperation *createForwardMessage(
-            const NmId &mailboxId,
-            const NmId &originalMessageId);
-
-    NmMessageCreationOperation *createReplyMessage(
-            const NmId &mailboxId,
-            const NmId &originalMessageId,
-            bool replyAll);
+    QPointer<NmMessageCreationOperation> createReplyMessage(
+        const NmId &mailboxId,
+        const NmId &originalMessageId,
+        bool replyAll);
 
     int saveMessage(const NmMessage &message);
 
@@ -129,44 +127,64 @@ public:
                 const NmId &mailboxId,
                 const NmId &folderId,
                 const NmId &messageId);
-
-    void storeOperation(NmOperation *op);
-
-    void sendMessage(NmMessage *message, const QList<NmOperation *> &preliminaryOperations);
+    
+    void sendMessage(NmMessage *message, const QList<NmOperation*> &preliminaryOperations);
 
     bool isSendingMessage() const;
 
     const NmMessage *messageBeingSent() const;
-    NmAddAttachmentsOperation *addAttachments(
-            const NmMessage &message,
-            const QList<QString> &fileList);
     
-    NmOperation *removeAttachment(const NmMessage &message, const NmId &attachmentPartId);
+    QPointer<NmAddAttachmentsOperation> addAttachments(
+        const NmMessage &message,
+        const QList<QString> &fileList);
+    
+    QPointer<NmOperation> removeAttachment(
+        const NmMessage &message, 
+        const NmId &attachmentPartId);
 
-    NmCheckOutboxOperation *checkOutbox(const NmId &mailboxId);
+    QPointer<NmCheckOutboxOperation> checkOutbox(const NmId &mailboxId);
     
     NmSyncState syncState(const NmId& mailboxId);
     NmConnectState connectionState(const NmId& mailboxId);
 
+    int search(const NmId &mailboxId,
+               const QStringList &searchStrings);
+
+    int cancelSearch(const NmId &mailboxId);
+    
+    NmFolderType folderTypeById(NmId mailboxId, NmId folderId);
+
 public slots:
-    void handleCompletedOperation();
     void handleCompletedSendOperation();
     void handleSyncStateEvent(NmSyncState syncState, const NmOperationCompletionEvent &event);
-    void cleanupSendOperation();
+    void handleConnectEvent(NmConnectState connectState, const NmId &mailboxId, const int errorCode);
+
+private slots:
+    void handleMessageEvent(
+            NmMessageEvent event,
+            const NmId &folderId,
+            const QList<NmId> &messageIds, 
+            const NmId& mailboxId);
     
+    void handleMailboxEvent(NmMailboxEvent event,
+                            const QList<NmId> &mailboxIds);
+
+
 signals:
     void syncStateEvent(NmSyncState, const NmId &);
     void connectionEvent(NmConnectState, const NmId &);
     void operationCompleted(const NmOperationCompletionEvent &event);
     void sendOperationCompleted();
-
+    void messageDeleted(const NmId &mailboxId, const NmId &folderId, const NmId &messageId);
+    void mailboxDeleted(const NmId &mailboxId);
+    void matchFound(const NmId &);
+    void searchComplete();
+    
 private:
-
     NmUiEngine();
     virtual ~NmUiEngine();
 
 private:
-
     static NmUiEngine *mInstance;
     static int	mReferenceCount;
 
@@ -174,9 +192,8 @@ private:
     NmDataManager *mDataManager;                // Owned
     NmMailboxListModel *mMailboxListModel;      // Owned
     NmMessageListModel *mMessageListModel;      // Owned
-    QList<NmOperation*> mOperations;			// Owned
-
-    NmMessageSendingOperation *mSendOperation;  // Owned
+    NmMessageSearchListModel *mMessageSearchListModel; // Owned
+    QPointer<NmMessageSendingOperation> mSendOperation;  // Not owned
 };
 
 

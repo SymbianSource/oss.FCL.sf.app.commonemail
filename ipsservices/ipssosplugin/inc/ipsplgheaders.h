@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2008 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2008 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -19,14 +19,17 @@
 #define IPSPLGHEADERS_H
 
 // System includes
+// <qmail>
 #include <nmcommonheaders.h>
+// </qmail>
 #include <e32cmn.h>
 #include <e32def.h>
 #include <e32base.h>
-#include <e32property.h> 
+#include <e32property.h>
 
 #include <f32file.h>
 
+// <qmail> eikenv, eikrutil, coemain includes removed
 
 #include <charconv.h>
 
@@ -35,6 +38,7 @@
 // ecom
 #include <implementationproxy.h>
 // mtm
+// <qmail> MTMStore include removed
 #include <mtmuibas.h>
 // mtcl
 #include <mtclbase.h>
@@ -42,7 +46,7 @@
 // msv
 #include <msvstd.hrh>
 #include <msvapi.h>     // Messaging framework
-#include <msvuids.h> 
+#include <msvuids.h>
 #include <msvstd.h>
 // miut
 #include <miutset.h>    // MTM identifiers
@@ -50,9 +54,9 @@
 #include <miut_err.h>   // KErrImapServerBusy
 #include <miutmsg.h>
 #include <miutconv.h>
-
+// <qmail>
 #include <timrfc822datefield.h> // KUidMsvEmailTextEntry, KUidMsvEmailHtmlEntry 
-
+// </qmail>
 // imap
 #include <imapset.h>
 #include <imapcmds.h>
@@ -73,6 +77,7 @@
 #include <SendUiConsts.h>
 #include <SenduiMtmUids.h>
 
+// <qmail> fsmailserverconst include removed
 // mfsmail
 #include "MFSMailBoxSearchObserver.h"
 #include "MFSMailEventObserver.h"
@@ -87,6 +92,8 @@
 //</cmail>
 
 #include <cemailaccounts.h>
+
+#include <in_sock.h>
 
 // Internal headers
 
@@ -106,7 +113,7 @@
 #include "ipsplgmsgmapper.h"
 #include "ipsplgmsgkey.h"
 #include "ipsplgmsgiterator.h"      // CIpsPlgMsgIterator
-#include "ipsplgmsgswap.h"        // TIpsPlgMsgSwap 
+#include "ipsplgmsgswap.h"        // TIpsPlgMsgSwap
 
 
 // imap4
@@ -136,6 +143,7 @@
 #include "ipsplgsearchop.h"
 #include "ipsplgtextsearcher.h"
 
+// <qmail> setting-related includes removed
 // mrulist
 #include "ipsplgmrulist.h"
 
@@ -170,21 +178,10 @@
 // </qmail>
 #include "ipsplgdisconnectop.h"
 #include "ipsplgservicedeletionop.h"
-#include "ipsplgdeleteremote.h"
+// <qmail> name changed
+#include "ipsplgdeleteoperation.h"
+// </qmail>
 #include "ipsplgdeletelocal.h"
 #include "ipsplgsingleopwatcher.h"
 
-
-
-
-
-
-
-
-
-// #include "ipsplgheaders.h"
-
 #endif //IPSPLGHEADERS_H
-
-
-

@@ -16,13 +16,20 @@
 *
 */
 
+
+// <qmail> aknmessagequerydialog include removed
+
 #include "emailtrace.h"
 #include "ipsplgheaders.h"
 
+// <qmail> ipssossettings rsg removed
+// <qmail> fsmailserver rsg removed
+
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-// <qmail> priority parameter has been removed
-// <qmail> rename selection parameter
+// <qmail> priority parameter removed, aSelection moved from ConstructL -> constructor
+// <qmail> MFSMailRequestObserver& changed to pointer
+// <qmail> renamed selection parameter
 CIpsPlgConnectAndRefreshFolderList* CIpsPlgConnectAndRefreshFolderList::NewL(
     CMsvSession& aSession, 
     TRequestStatus& aObserverRequestStatus,
@@ -49,7 +56,9 @@ CIpsPlgConnectAndRefreshFolderList* CIpsPlgConnectAndRefreshFolderList::NewL(
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-// <qmail> priority parameter has been removed
+// <qmail> priority parameter removed, aSelection moved from ConstructL -> constructor
+// <qmail> MFSMailRequestObserver& changed to pointer
+// <qmail> renamed selection parameter
 CIpsPlgConnectAndRefreshFolderList::CIpsPlgConnectAndRefreshFolderList(
     CMsvSession& aSession, 
     TRequestStatus& aObserverRequestStatus,
@@ -69,12 +78,13 @@ CIpsPlgConnectAndRefreshFolderList::CIpsPlgConnectAndRefreshFolderList(
 	iState( EIdle ),
     iSelection( aSelection )
     {
-    iService = aService;
     FUNC_LOG;
+    iService = aService;
     }
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
+// <qmail> aMsvEntry removed
 void CIpsPlgConnectAndRefreshFolderList::ConstructL()
     {
     FUNC_LOG;
@@ -117,6 +127,7 @@ const TDesC8& CIpsPlgConnectAndRefreshFolderList::GetErrorProgressL( TInt aError
 TFSProgress CIpsPlgConnectAndRefreshFolderList::GetFSProgressL() const
     {
     FUNC_LOG;
+    // Hardly ever called
     return TFSProgress();
     }
     
@@ -127,8 +138,10 @@ void CIpsPlgConnectAndRefreshFolderList::DoRunL()
     FUNC_LOG;
     
     if( iStatus.Int() != KErrNone )
+// </qmail>
         {
         iState = ECompleted;
+// <qmail> DisplayLoginFailedDialogL removed
         CompleteObserver();
         return;
         }
@@ -143,7 +156,7 @@ void CIpsPlgConnectAndRefreshFolderList::DoRunL()
                 iMsvSession,
                 iStatus,
                 iService,
-                iActivityTimer,
+                *iActivityTimer,
                 iFSMailboxId,
                 NULL, // no observer for suboperations
                 0, // no requestId needed
@@ -171,7 +184,7 @@ void CIpsPlgConnectAndRefreshFolderList::DoRunL()
                 iMsvSession, 
                 iStatus, 
                 iService, 
-                iActivityTimer,
+                *iActivityTimer,
                 iFSMailboxId, 
                 NULL, // no observer for suboperations
                 0 ); // no requestId needed
@@ -201,6 +214,11 @@ void CIpsPlgConnectAndRefreshFolderList::DoCancel()
     CompleteObserver( KErrCancel );
     iState = ECompleted;
     }
+
+
+// <qmail> removed in Qmail
+//void CIpsPlgConnectAndRefreshFolderList::DisplayLoginFailedDialogL()
+// </qmail>
 
 // <qmail> new func to this op
 // ----------------------------------------------------------------------------

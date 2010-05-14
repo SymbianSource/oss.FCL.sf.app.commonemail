@@ -192,7 +192,6 @@ void NmMessageListModel::handleMessageEvent(
         } else {
             for (int a(0); a < messageIds.count(); a++) {
                 removeMessageFromModel(messageIds[a]);
-                emit removeMessage(messageIds[a]);
             }
         }
     }
@@ -413,7 +412,7 @@ void NmMessageListModel::removeMessageFromModel(const NmId &msgId)
         QModelIndex index = items[i]->index();
         NmMessageListModelItem *item = static_cast<NmMessageListModelItem*>(itemFromIndex(index));
         if (NmMessageListModelItem::NmMessageItemMessage == item->itemType()
-                && msgId == item->envelope().id()) {
+                && msgId == item->envelope().messageId()) {
             found = true;
             // dividers are not active, just remove message
             if (!mDividersActive) {
@@ -475,7 +474,7 @@ NmMessageListModelItem *NmMessageListModel::itemFromModel(const NmId &messageId)
         NmMessageListModelItem *item =
             static_cast<NmMessageListModelItem*>(itemFromIndex(items[i]->index()));
         if (NmMessageListModelItem::NmMessageItemMessage == item->itemType()
-            && messageId == item->envelope().id()) {
+            && messageId == item->envelope().messageId()) {
             found = true;
             ret = item;
         }

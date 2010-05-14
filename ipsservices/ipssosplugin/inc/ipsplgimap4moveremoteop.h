@@ -19,6 +19,7 @@
 #define IPSPLGIMAP4MOVEREMOTEOP_H
 
 #include "ipsplgonlineoperation.h"
+// <qmail> mfsmailrequestobserver include removed
 
 /**
 * Move a selection of messages that may or may not be complete.
@@ -41,7 +42,8 @@ public:
     * @param aFSRequestId client assigned request identifier
     * @return class instance
     */
-    // <qmail> parameters changed
+    // <qmail> parameters changed: aFunctionId removed, TImImap4GetMailInfo& -> TMsvId&
+	// <qmail> MFSMailRequestObserver* changed to pointer
     static CIpsPlgImap4MoveRemoteOp* NewL(
         CMsvSession& aMsvSession,
         TRequestStatus& aObserverRequestStatus,
@@ -78,6 +80,9 @@ public:
     
 private:
     // <qmail> parameters changed
+    /**
+    * for explanation of parameters, see NewL
+    */
     CIpsPlgImap4MoveRemoteOp(
         CMsvSession& aMsvSession,
         TRequestStatus& aObserverRequestStatus,
@@ -109,11 +114,6 @@ private:
      * Completes client's status
      */
     void Complete();
-    
-    /**
-     * handles local moving
-     */
-    void DoMoveLocalL();
 
     /**
      * handles remote moving
@@ -133,17 +133,48 @@ private:
         };
     TState                              iState;
 
-    // <qmail> iFunctionId; removed
+    // <qmail> iFunctionId removed, TImImap4GetMailInfo -> TMsvId
     // used in error situations
     TDesC8*                             iMoveErrorProgress;
     // <qmail> using destination folder Id instead of mailInfo struct
     // specifies folder where to move
     TMsvId                              iDestinationFolderId;
     // <qmail> removed iSelection;
-    CMsvEntrySelection*                 iLocalSel;      // Complete messages
     CMsvEntrySelection*                 iRemoteSel;     // Incomplete messages to be fetched.
     TPckgBuf<TImap4CompoundProgress>    iProgressBuf;
     TPckgBuf<TImap4SyncProgress>        iSyncProgress;
     };
 
+
+NONSHARABLE_CLASS( CIpsPlgImap4MoveRemoteOpObserver ) : public CBase,
+    public MFSMailRequestObserver
+    {
+public:
+
+    static CIpsPlgImap4MoveRemoteOpObserver* NewL( CMsvSession& aSession,
+        CIpsPlgEventHandler& aEventHandler, const TFSMailMsgId& aSourceFolder,
+        const RArray<TFSMailMsgId>& aMessageIds );
+    ~CIpsPlgImap4MoveRemoteOpObserver();
+
+    // From base class MFSMailRequestObserver
+    void RequestResponseL( TFSProgress aEvent, TInt aRequestId );
+
+private:
+
+    CIpsPlgImap4MoveRemoteOpObserver( CMsvSession& aSession,
+        CIpsPlgEventHandler& aEventHandler,
+        TMsvId aSourceFolderId );
+    void ConstructL( const RArray<TFSMailMsgId>& aMessageIds );
+
+private:
+
+    // data
+    CMsvSession& iSession;
+    CIpsPlgEventHandler& iEventHandler;
+    TMsvId iSourceFolderId;
+    CMsvEntrySelection* iSelection;
+    };
+
 #endif // IPSPLGIMAP4MOVEREMOTEOP_H
+
+// End of File

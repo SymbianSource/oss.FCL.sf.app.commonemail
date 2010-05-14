@@ -52,7 +52,7 @@ public:
 public slots:
 
     void buttonClick(QObject *item);
-    void formActivate(const QModelIndex &index );
+    void itemActivate(const QModelIndex &index );
 
 private slots:
 
@@ -75,7 +75,6 @@ private: // data
     HbDataFormModel *mModel;
     // Owned.
     QSignalMapper *mSignalMapper;
-    bool mSignalMapperConnected;
     bool mRefreshForm;
 };
 

@@ -48,6 +48,7 @@ public:
     * @return CIpsPlgImap4PopulateOperation* self pointer
     */
     // <qmail> priority parameter has been removed
+	// <qmail> MFSMailRequestObserver& changed to pointer
     IMPORT_C static CIpsPlgImap4PopulateOp* NewL(
         CMsvSession& aMsvSession,
         TRequestStatus& aObserverRequestStatus,

@@ -25,7 +25,6 @@
 
 file=ABI_DIR\BUILD_DIR\nmailui.exe                  SHARED_LIB_DIR\nmailui.exe   
 HB_UPGRADABLE_APP_REG_RSC(nmailui)
-S60_APP_RESOURCE(nmailui)
 
 file=ABI_DIR\BUILD_DIR\nmailuiengine.dll	SHARED_LIB_DIR\nmailuiengine.dll    PAGED
 file=ABI_DIR\BUILD_DIR\nmailbase.dll		SHARED_LIB_DIR\nmailbase.dll        PAGED

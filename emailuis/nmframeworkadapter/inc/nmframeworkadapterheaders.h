@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+* Copyright (c) 2009 - 2010 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -23,13 +23,22 @@
 #include <QByteArray>
 #include <QTextCodec>
 #include <QRegExp>
+#include <QStringList>
 #include <QTimer>
-#ifdef Q_OS_SYMBIAN
-#include <xqsharablefile.h>
-#endif
-// Orbit
+#include <QPointer>
 
-// nmailuiengine
+#include <xqsharablefile.h>
+
+// Symbian
+#include <utf.h> 
+
+// nmailuiengine 
+#include <nmoperation.h>
+#include <nmstoreenvelopesoperation.h>
+#include <nmcheckoutboxoperation.h>
+#include <nmmessagesendingoperation.h>
+#include <nmaddattachmentsoperation.h>
+#include <nmmessagecreationoperation.h>
 
 // nmailbase
 #include <nmmailbox.h>
@@ -37,24 +46,24 @@
 #include <nmmessageenvelope.h>
 #include <nmmessage.h>
 #include <nmconverter.h>
+
+// emailcommon
 #include <nmcleanuputils.h>
-#include <nmstoreenvelopesoperation.h>
-#include <nmcheckoutboxoperation.h>
 
 // nmframeworkadapter
 #include "nmframeworkadapter.h"
-#include "nmfwamessagefetchingoperation.h"
+#include "nmfwaaddattachmentsoperation.h"
+#include "nmfwaremoveattachmentoperation.h"
+#include "nmfwacheckoutboxoperation.h"
 #include "nmfwamessagecreationoperation.h"
 #include "nmfwaforwardmessagecreationoperation.h"
 #include "nmfwareplymessagecreationoperation.h"
-#include "nmfwastoreenvelopesoperation.h"
-#include "nmfwamessagesendingoperation.h"
-#include "nmfwaaddattachmentsoperation.h"
-#include "nmfwaremoveattachmentoperation.h"
-#include "nmfwastoremessageoperation.h"
-#include "nmfwacheckoutboxoperation.h"
-#include "nmfwamessagesendingoperation.h"
+#include "nmfwamessagefetchingoperation.h"
 #include "nmfwamessagepartfetchingoperation.h"
+#include "nmfwamessagesendingoperation.h"
+#include "nmfwastoreenvelopesoperation.h"
+#include "nmfwastoremessageoperation.h"
+#include "nmmailboxsearchobserver.h"
 
 // fs email
 #include <CFSMailCommon.h>
@@ -62,10 +71,10 @@
 #include <CFSMailRequestObserver.h>
 #include <CFSMailFolder.h>
 #include <CFSMailBox.h>
+#include <MFSMailBoxSearchObserver.h>
 #include <MFSMailIterator.h>
 
-//Symbian
-#include <utf.h> 
+
 
 
 #endif /* NMFRAMEWORKADAPTERHEADERS_H_ */

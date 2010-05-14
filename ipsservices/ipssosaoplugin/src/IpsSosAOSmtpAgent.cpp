@@ -142,12 +142,7 @@ void CIpsSosAOSmtpAgent::CreateInternalDataL( )
         iOperation = CIpsPlgSmtpOperation::NewL(
             iSession, iStatus  );
         }
-    /*
-    if ( !iSettingsApi )
-        {
-        iSettingsApi = CIpsSetDataApi::NewL( iSession );
-        }
-    */
+    
 	//</QMail>
     }
 

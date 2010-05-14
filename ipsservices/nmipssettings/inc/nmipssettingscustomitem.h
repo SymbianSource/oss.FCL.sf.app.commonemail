@@ -18,8 +18,8 @@
 #ifndef NMIPSSETTINGSCUSTOMITEM_H
 #define NMIPSSETTINGSCUSTOMITEM_H
 
-#include <hbdataformviewitem.h>
-#include <hbdataformmodelitem.h>
+#include <HbDataFormViewItem>
+#include <HbDataFormModelItem>
 
 class QGraphicsItem;
 class HbAbstractViewItem;
@@ -33,20 +33,21 @@ class NmIpsSettingsCustomItem : public HbDataFormViewItem
 public:
 
     enum { LabeledComboBox = HbDataFormModelItem::CustomItemBase + 10,
-           TimeEditor };
+           TimeEditor, MultiSelectionItem};
 
     explicit NmIpsSettingsCustomItem(QGraphicsItem *parent=0);
     virtual ~NmIpsSettingsCustomItem();
     virtual HbAbstractViewItem* createItem();
     virtual bool canSetModelIndex(const QModelIndex &index) const;
-
-public slots:
-
-    void restore();
 	
 protected:
 
     virtual HbWidget* createCustomWidget();
+
+private slots:
+
+    void restore();
+    void propertyChanged(QMap<QString, QVariant> properties);
 
 private:
 

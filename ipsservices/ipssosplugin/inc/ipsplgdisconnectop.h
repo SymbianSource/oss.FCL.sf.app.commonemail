@@ -37,10 +37,10 @@ public:
     * @param aFSMailBoxId specifies mailbox
     * @param aFSOperationObserver observer of the operation
     * @param aFSRequestId identifier for this request instance
-    * @param aDoRemoveAfterDisconnect
     * @return instance of this operation class
     */
-    // <qmail> parameter removed
+    // <qmail> aDoRemoveAfterDisconnect parameter removed
+	// <qmail> MFSMailRequestObserver& changed to pointer
     static CIpsPlgDisconnectOp* NewL(
         CMsvSession& aMsvSession,
         TRequestStatus& aObserverRequestStatus,
@@ -71,12 +71,15 @@ public:
    
    // <qmail> new function in this op
    TIpsOpType IpsOpType() const;
+   // </qmail>
    
 protected: // From CActive
     void DoRunL();
     
 private:
 
+	// <qmail> aDoRemoveAfterDisconnect parameter removed
+	// <qmail> MFSMailRequestObserver& changed to pointer
     CIpsPlgDisconnectOp(
         CMsvSession& aMsvSession,
         TRequestStatus& aObserverRequestStatus,

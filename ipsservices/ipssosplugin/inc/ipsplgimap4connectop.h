@@ -15,8 +15,8 @@
 *
 */
 
-#ifndef IPSPLGIMAP4CONNECT_H
-#define IPSPLGIMAP4CONNECT_H
+#ifndef IPSPLGIMAP4CONNECTOP_H
+#define IPSPLGIMAP4CONNECTOP_H
 
 #include "ipsplgonlineoperation.h"
 #include "imapconnectionobserver.h"
@@ -53,6 +53,8 @@ public:
     * @return CIpsPlgImap4ConnectionOp* self pointer
     */
     // <qmail> priority parameter has been removed
+	// <qmail> MFSMailRequestObserver& changed it to pointer
+	// <qmail> aSignallingAllowed parameter has been removed
     static CIpsPlgImap4ConnectOp* NewL(
         CMsvSession& aMsvSession,
         TRequestStatus& aObserverRequestStatus,
@@ -106,14 +108,16 @@ private:
     enum TImapConnectionState 
         { 
         EStateStartConnect,
-        // <qmail> removing EStateQueryingDetails, 
+        // <qmail> removing EStateQueryingDetails, EStateQueryingDetailsBusy
         EStateConnectAndSync,
         EStatePopulateAllCompleted,
         EStateCompleted,
         EStateIdle 
         };
     
-    // <qmail> priority parameter has been removed
+	// <qmail> priority parameter has been removed
+	// <qmail> MFSMailRequestObserver& changed it to pointer
+	// <qmail> aSignallingAllowed parameter has been removed
     CIpsPlgImap4ConnectOp(
         CMsvSession& aMsvSession,
         TRequestStatus& aObserverRequestStatus,
@@ -189,6 +193,8 @@ private: //Data
     CIpsPlgEventHandler*                iEventHandler; // not owned
     // prevents signalling sync started for more than once
     TBool                               iIsSyncStartedSignaled;
+	
+	// <qmail> iAlreadyConnected removed
     };
 
 #endif // IPSPLGIMAP4CONNECT_H

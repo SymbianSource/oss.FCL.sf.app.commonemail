@@ -18,6 +18,7 @@
 #include "nmuiheaders.h"
 
 static const int NmMegabyte = 1048576;
+static const int NmShortInterval = 1000; // 1 sec
 
 // taken from http://www.regular-expressions.info/email.html
 static const QRegExp EmailAddressPattern("[A-Za-z\\d!#$%&'*+/=?^_`{|}~-]+"
@@ -261,29 +262,67 @@ QString NmUtilities::attachmentSizeString(const int sizeInBytes)
 }
 
 /*!
-    takes care of necessary error/information note displaying
+    takes care of necessary error/information note displaying based on the given operation completion event
+    returns boolean whether settings should be opened or not
 */
-void NmUtilities::displayOperationCompletionNote(const NmOperationCompletionEvent &event)
+bool NmUtilities::displayOperationCompletionNote(const NmOperationCompletionEvent &event)
 {
-    if(event.mCompletionCode != NmNoError) {
-        if(event.mCompletionCode == NmAuthenticationError) {
-            HbMessageBox *messageBox = new HbMessageBox(HbMessageBox::MessageTypeWarning);
-            messageBox->setText(hbTrId("txt_mail_dialog_mail_address_or_password_is_incorr"));
-            // using default timeout
-            HbAction *action = messageBox->exec();
+    bool openSettings(false);
+    // nothing to do in successfull or cancelled case
+    if(event.mCompletionCode != NmNoError && event.mCompletionCode != NmCancelError) {
+        if(event.mOperationType == Synch && event.mCompletionCode == NmAuthenticationError) {
+            openSettings = displayQuestionNote(hbTrId("txt_mail_dialog_address_or_password_incorrect"));
         }
-        if(event.mCompletionCode == NmServerConnectionError) {
-            HbMessageBox *messageBox = new HbMessageBox(HbMessageBox::MessageTypeWarning);
-            messageBox->setText(hbTrId("txt_mail_dialog_server_settings_incorrect_link"));
-            messageBox->setTimeout(HbMessageBox::NoTimeout);
-            HbAction *action = messageBox->exec();
-            if(action == messageBox->primaryAction()) {
-                // Settings to be launched..
-            }
+        if(event.mOperationType == Synch && event.mCompletionCode == NmServerConnectionError) {
+            openSettings = displayQuestionNote(hbTrId("txt_mail_dialog_server_settings_incorrect"));
+        }
+        // following applies to all operation/event types
+        if(event.mCompletionCode == NmConnectionError) {
+            displayWarningNote(hbTrId("txt_mail_dialog_mail_connection_error"));
         }
     }
+    return openSettings;
 }
 
+/*!
+    displays a note with Yes/No buttons. Note has no timeout, i.e. it has to be dismissed manually
+    returns boolean whether primaryaction was taken (Left button ("Yes") pressed)
+*/
+bool NmUtilities::displayQuestionNote(QString noteText)
+{
+	HbMessageBox::warning(noteText);
+	return true;
+	/*
+	 * Commented out because of exec() deprecation. Will be fixed later...
+	 * 
+    bool ret(false);
+    HbMessageBox *messageBox = new HbMessageBox(HbMessageBox::MessageTypeQuestion);
+    messageBox->setText(noteText);
+    messageBox->setTimeout(HbMessageBox::NoTimeout); // note has to be dismissed manually
+    HbAction *action = messageBox->exec();
+    if(action == messageBox->primaryAction()) {
+        ret=true; // primary/left button was pressed
+    }
+    delete messageBox;
+    return ret;
+    */
+}
+
+/*!
+ * displays an error note with no buttons. Note dismisses itself after NmShortInterval.
+ */
+void NmUtilities::displayWarningNote(QString noteText)
+{
+    HbMessageBox *messageBox = new HbMessageBox(HbMessageBox::MessageTypeWarning);
+    messageBox->setText(noteText);
+    messageBox->setTimeout(NmShortInterval);
+    messageBox->clearActions(); // gets rid of buttons from the note
+    messageBox->setModal(false);
+    messageBox->setBackgroundFaded(false);
+    messageBox->show();
+
+    delete messageBox;
+}
 
 /*!
     Function returns localized "Original message" header
@@ -369,5 +408,3 @@ QString NmUtilities::createReplyHeader(const NmMessageEnvelope &env)
     ret+="<br></body></html>";
     return ret;
 }
-
-

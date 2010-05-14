@@ -36,4 +36,6 @@ EXPORTS
 	_ZN21NmSettingsViewFactory12aboutToCloseEv @ 35 NONAME
 	_ZN22NmSettingsViewLauncher8goOnlineERK4NmId @ 36 NONAME
 	_ZN22NmSettingsViewLauncher9goOfflineERK4NmId @ 37 NONAME
+	_ZN21NmSettingsViewFactory12launchWizardEP8HbAction @ 38 NONAME
+	_ZN21NmSettingsViewFactory16createMessageBoxEv @ 39 NONAME
 

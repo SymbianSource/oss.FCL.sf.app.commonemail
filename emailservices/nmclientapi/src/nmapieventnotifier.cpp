@@ -18,120 +18,106 @@
 #include <QList>
 #include <QVariant>
 #include <QString>
+#include <QTimer>
 
 #include "nmapiengine.h"
+#include <nmapieventnotifier.h>
 #include "nmapieventnotifier_p.h"
-#include "nmapieventnotifier.h"
 
-
-quint32 IntervalEmitingSignals = 10000;
+const quint32 IntervalEmitingSignals = 10000;
 
 namespace EmailClientApi
 {
 /*!
- * Constructor
+   Constructor
  */
-NmEventNotifier::NmEventNotifier(QObject *parent) :
-    NmMessageTask(parent)
+NmApiEventNotifier::NmApiEventNotifier(QObject *parent) :
+    NmApiMessageTask(parent)
 
 {
     //set timer
-    mNmEventNotifierPrivate = new NmEventNotifierPrivate(this);
-    mNmEventNotifierPrivate->mEmitSignals = new QTimer(this);
-    mNmEventNotifierPrivate->mEmitSignals->setInterval(IntervalEmitingSignals);
-    connect(mNmEventNotifierPrivate->mEmitSignals, SIGNAL(timeout()), this, SLOT(
+    mNmApiEventNotifierPrivate = new NmApiEventNotifierPrivate(this);
+    mNmApiEventNotifierPrivate->mEmitSignals = new QTimer(this);
+    mNmApiEventNotifierPrivate->mEmitSignals->setInterval(IntervalEmitingSignals);
+    connect(mNmApiEventNotifierPrivate->mEmitSignals, SIGNAL(timeout()), this, SLOT(
         sendEventsFromBuffer()), Qt::QueuedConnection);
 
 }
 
 /*!
- * Destructor
+   Destructor
  */
-NmEventNotifier::~NmEventNotifier()
+NmApiEventNotifier::~NmApiEventNotifier()
 {
-    if (mNmEventNotifierPrivate->mIsRunning) {
-        mNmEventNotifierPrivate->releaseEngine();
+    if (mNmApiEventNotifierPrivate->mIsRunning) {
+        mNmApiEventNotifierPrivate->releaseEngine();
     }
-
-    delete mNmEventNotifierPrivate;
 }
 
 /*!
- * Start monitoring email events
- * 
- * \return Value tells about monitoring system running
+   Start monitoring email events
+   
+   \return Value tells about monitoring system running
  */
-bool NmEventNotifier::start()
+bool NmApiEventNotifier::start()
 {
     bool result = false;
 
-    if (mNmEventNotifierPrivate->mIsRunning) {
+    if (mNmApiEventNotifierPrivate->mIsRunning) {
         result = true;
     }
     else
-        if (!mNmEventNotifierPrivate->initializeEngine()) {
-            mNmEventNotifierPrivate->mIsRunning = false;
+        if (!mNmApiEventNotifierPrivate->initializeEngine()) {
+            mNmApiEventNotifierPrivate->mIsRunning = false;
             result = false;
         }
         else {
             qRegisterMetaType<QList<quint64> > ("QList<quint64>");
             qRegisterMetaType<NmApiMessage> ("NmApiMessage");
 
-            connect(mNmEventNotifierPrivate->mEngine, SIGNAL(emailStoreEvent(NmApiMessage)), this,
+            connect(mNmApiEventNotifierPrivate->mEngine, SIGNAL(emailStoreEvent(NmApiMessage)), mNmApiEventNotifierPrivate,
                 SLOT(emailStoreEvent(NmApiMessage)), Qt::QueuedConnection);
 
-            mNmEventNotifierPrivate->mEmitSignals->start();
-            mNmEventNotifierPrivate->mIsRunning = true;
+            mNmApiEventNotifierPrivate->mEmitSignals->start();
+            mNmApiEventNotifierPrivate->mIsRunning = true;
             result = true;
         }
     return result;
 }
 
 /*!
- * Cancels monitoring.
- * 
- * In user responsibility is to cancel monitoring.
- * On end it clear buffer events and emits \sa NmMessageTask::canceled() signal.
+   Cancels monitoring.
+   
+   In user responsibility is to cancel monitoring.
+   On end it clear buffer events and emits \sa NmApiMessageTask::canceled() signal.
  */
-void NmEventNotifier::cancel()
+void NmApiEventNotifier::cancel()
 {
-    if (!mNmEventNotifierPrivate->mIsRunning) {
-        return;
-    }
-
-    mNmEventNotifierPrivate->mIsRunning = false;
-    mNmEventNotifierPrivate->mEmitSignals->stop();
-
-    if (mNmEventNotifierPrivate->mEngine) {
-        disconnect(mNmEventNotifierPrivate->mEngine, SIGNAL(emailStoreEvent(NmApiMessage)), this,
-            SLOT(emailStoreEvent(NmApiMessage)));
-    }
-
-    mNmEventNotifierPrivate->releaseEngine();
-
-    mNmEventNotifierPrivate->mBufferOfEvents.clear();
-
+    mNmApiEventNotifierPrivate->cancel();
     emit canceled();
 }
 
-bool NmEventNotifier::isRunning() const
+/*!
+   Informs if event notifier is running
+ */
+bool NmApiEventNotifier::isRunning() const
 {
-    return mNmEventNotifierPrivate->mIsRunning;
+    return mNmApiEventNotifierPrivate->mIsRunning;
 }
 
 /*!
- * It check each object in buffer and emit signal with it.
- * 
- * After end of work of this function buffer is empty.
- * It is called by timeout signal from timer.
+   It check each object in buffer and emit signal with it.
+   
+   After end of work of this function buffer is empty.
+   It is called by timeout signal from timer.
  */
-void NmEventNotifier::sendEventsFromBuffer()
+void NmApiEventNotifier::sendEventsFromBuffer()
 {
-    qRegisterMetaType<MailboxEvent> ("MailboxEvent");
-    qRegisterMetaType<MailboxEvent> ("MessageEvent");
+    qRegisterMetaType<EmailClientApi::NmApiMailboxEvent> ("EmailClientApi::NmApiMailboxEvent");
+    qRegisterMetaType<EmailClientApi::NmApiMessageEvent> ("EmailClientApi::NmApiMessageEvent");
     NmApiMessage events;
-    while (!mNmEventNotifierPrivate->mBufferOfEvents.isEmpty()) {
-        events = mNmEventNotifierPrivate->mBufferOfEvents.takeFirst();
+    while (!mNmApiEventNotifierPrivate->mBufferOfEvents.isEmpty()) {
+        events = mNmApiEventNotifierPrivate->mBufferOfEvents.takeFirst();
         switch (events.objectType) {
             case EMailbox:
                 switch (events.action) {
@@ -189,4 +175,3 @@ void NmEventNotifier::sendEventsFromBuffer()
 
 } //End of EmailClientApi
 
-#include "moc_nmapieventnotifier.cpp"

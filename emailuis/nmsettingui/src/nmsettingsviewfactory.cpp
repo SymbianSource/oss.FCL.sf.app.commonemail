@@ -61,8 +61,10 @@ NmSettingsViewFactory::NmSettingsViewFactory(
     const HbIcon &icon,
     const HbDataFormModelItem *parent)
  : CpSettingFormEntryItemData(itemDataHelper, text, description, icon, parent),
-   mSettingsManager(new NmMailboxSettingsManager()), mSettingsViewLauncher(0),mPrevView(0)
+   mSettingsManager(new NmMailboxSettingsManager()), mSettingsViewLauncher(0),mPrevView(0),
+   mMessageBox(0)
 {
+    createMessageBox();
 }
 
 
@@ -85,8 +87,10 @@ NmSettingsViewFactory::NmSettingsViewFactory(
     const HbIcon &icon,
     const HbDataFormModelItem *parent)
  : CpSettingFormEntryItemData(itemDataHelper, text, description, icon, parent),
-     mSettingsManager(new NmMailboxSettingsManager()), mSettingsViewLauncher(viewLauncher), mPrevView(0)
+     mSettingsManager(new NmMailboxSettingsManager()), mSettingsViewLauncher(viewLauncher),
+     mPrevView(0), mMessageBox(0)
 {
+    createMessageBox();
 }
 
 
@@ -96,6 +100,7 @@ NmSettingsViewFactory::NmSettingsViewFactory(
 NmSettingsViewFactory::~NmSettingsViewFactory()
 {
     delete mSettingsManager;
+    delete mMessageBox;
 }
 
 
@@ -119,33 +124,27 @@ CpBaseSettingView *NmSettingsViewFactory::createSettingView() const
     NMLOG(QString("NmSettingsViewFactory::createSettingView(): Mailbox count is ") +
           QString::number(mailboxCount));
 
-    if (mailboxCount == 0) {
-        // Query the user whether to launch the wizard or not.
-        HbMessageBox *messageBox = new HbMessageBox(HbMessageBox::MessageTypeQuestion);
-        messageBox->setText(hbTrId("txt_mail_dialog_no_mailboxes_create_new"));
-        messageBox->setTimeout(HbMessageBox::NoTimeout);
-
-        // Read the user selection.
-        HbAction *action = messageBox->exec();
-
-        if (action == messageBox->primaryAction()) {
-            // Launch mail wizard.
-            NMLOG(QString("NmSettingsViewFactory::createSettingView(): Launching the mail wizard."));
-            QStringList args;
-            args << mailWizardStartArgs;
-            QProcess::startDetached(mailWizardStartExe, args);
+    switch(mailboxCount) {
+        case 0: {
+            // Query the user whether to launch the wizard or not.
+            mMessageBox->open(const_cast<NmSettingsViewFactory *>(this),
+                              SLOT(launchWizard(HbAction *)));
+            break;
         }
-    }
-    else if (mailboxCount == 1) {
-        // Construct setting view for the only available mailbox
-        NmMailbox *mailbox = mailboxList.at(0);
-        view = new NmMailboxSettingView(mailbox->id(),
-                                        mailbox->name(),
-                                        *mSettingsManager);
-    }
-    else if (mailboxCount > 1) {
-        // Construct mailbox selection view
-        view = new NmMailboxSelectionView(*this, *mSettingsManager, mailboxList);
+        case 1: {
+            // Construct setting view for the only available mailbox
+            NmMailbox *mailbox = mailboxList.at(0);
+            view = new NmMailboxSettingView(mailbox->id(),
+                                            mailbox->name(),
+                                            *mSettingsManager);
+            break;
+        }
+        default: {
+            // Construct mailbox selection view
+            view = new NmMailboxSelectionView(*this, *mSettingsManager, mailboxList);
+            break;
+        }
+
     }
 
     if (view) {
@@ -215,17 +214,17 @@ void NmSettingsViewFactory::launchSettingView(const NmId &mailboxId,
     connect(mSettingsManager,
             SIGNAL(goOnline(const NmId &)),
             mSettingsViewLauncher,
-            SIGNAL(goOnline(const NmId &)));
+            SIGNAL(goOnline(const NmId &)), Qt::UniqueConnection);
 
     connect(mSettingsManager,
             SIGNAL(goOffline(const NmId &)),
             mSettingsViewLauncher,
-            SIGNAL(goOffline(const NmId &)));
+            SIGNAL(goOffline(const NmId &)), Qt::UniqueConnection);
 
     connect(this,
             SIGNAL(aboutToClose()),
             mSettingsManager,
-            SIGNAL(aboutToClose()));
+            SIGNAL(aboutToClose()), Qt::UniqueConnection);
 
     // Create back navigation action for a view.
     HbAction *action = new HbAction(Hb::BackNaviAction, view);
@@ -264,5 +263,32 @@ void NmSettingsViewFactory::backPress()
 
     NMLOG(QString("NmSettingsViewFactory::backPress - OK"));
 }
+
+/*!
+    Handles user selection from "No mailboxes defined" dialog. Launches the Mail Wizard if \a action
+    is the dialog's primary action ("Yes"). Otherwise does nothing.
+    \param action. Action selected by the user.
+*/
+void NmSettingsViewFactory::launchWizard(HbAction *action)
+{
+    if (action == mMessageBox->primaryAction()) {
+        // Launch mail wizard.
+        NMLOG(QString("NmSettingsViewFactory::launchWizard(): Launching the mail wizard."));
+        QStringList args;
+        args << mailWizardStartArgs;
+        QProcess::startDetached(mailWizardStartExe, args);
+    }
+}
+
+/*!
+    Creates the "No mailboxes defined" dialog. Called from the constructors.
+*/
+void NmSettingsViewFactory::createMessageBox()
+{
+    mMessageBox = new HbMessageBox(HbMessageBox::MessageTypeQuestion);
+    mMessageBox->setText(hbTrId("txt_mail_dialog_no_mailboxes_create_new"));
+    mMessageBox->setTimeout(HbMessageBox::NoTimeout);
+}
+
 
 // End of file.

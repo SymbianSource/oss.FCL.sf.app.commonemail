@@ -34,7 +34,7 @@ inc/ipsplgheaders.h \
 inc/ipsplgmrulist.h \
 inc/ipsplgpanic.h \
 inc/ipsplgdeletelocal.h \
-inc/ipsplgdeleteremote.h \
+inc/ipsplgdeleteoperation.h \
 inc/ipsplgdisconnectop.h \
 inc/ipsplgeventtimer.h \
 inc/ipsplgimap4connectop.h \
@@ -78,7 +78,7 @@ inc/ipsplgmessagepartstoreroperation.h
     
 SOURCES   += src/ipsplgbaseoperation.cpp \
 src/ipsplgdeletelocal.cpp \
-src/ipsplgdeleteremote.cpp \
+src/ipsplgdeleteoperation.cpp \
 src/ipsplgdisconnectop.cpp \
 src/ipsplgeventtimer.cpp \
 src/ipsplgimap4connectop.cpp \
@@ -170,7 +170,9 @@ symbian*: {
     -lCommonEngine \
     -lcharconv \
     -lConnMon \
-    -lflogger
+    -lflogger \
+    -lfeatmgr \
+    -lmessagestoreclient
 
     BLD_INF_RULES.prj_exports += \
       "inc/ipsplgsmtpoperation.h |../inc/ipsplgsmtpoperation.h" \

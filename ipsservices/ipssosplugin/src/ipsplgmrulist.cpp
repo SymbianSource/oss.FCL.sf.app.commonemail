@@ -251,7 +251,7 @@ void CIpsPlgMruList::SetMruListL( const TFSMailMsgId& aMailBoxId,
                 start += 1;
                 emailAddress.Set( aNewMruList->MdcaPoint(i + 1).Mid( start, ( end - start ) ) );
                 }
-
+// <qmail> someone disabled in Qmail?
             // check validity of email before saving diplay name and address
             /*if( IpsSetUtils::IsValidEmailAddressL(emailAddress) )
                 {
@@ -287,6 +287,7 @@ void CIpsPlgMruList::SetMruListL( const TFSMailMsgId& aMailBoxId,
                     }
                 }*/
             }
+// </qmail>
         }
     // </cmail>
 

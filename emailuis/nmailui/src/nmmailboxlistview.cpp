@@ -43,10 +43,14 @@ mMailboxListWidget(NULL),
 mUiEngine(uiEngine),
 mListModel(mailboxListModel),
 mItemContextMenu(NULL),
-mDocumentLoader(documentLoader)
+mDocumentLoader(documentLoader),
+mViewReady(false)
 {
+    // Load view layout
     loadViewLayout();
-    refreshList();
+    
+    // Set title
+    setTitle(hbTrId("txt_mail_title_mail"));
 }
 
 /*!
@@ -92,7 +96,7 @@ void NmMailboxListView::loadViewLayout()
             mMailboxListWidget->setItemRecycling(true);
             QObject::connect(mMailboxListWidget,
                     SIGNAL(activated(const QModelIndex &)),
-                this, SLOT(openSelectedMailBox(const QModelIndex &)));
+                this, SLOT(itemActivated(const QModelIndex &)));
             QObject::connect(mMailboxListWidget,
                     SIGNAL(longPressed(HbAbstractViewItem*, const QPointF&)),
                 this, SLOT(showItemContextMenu(HbAbstractViewItem*,const QPointF&)));
@@ -106,9 +110,20 @@ void NmMailboxListView::loadViewLayout()
     else {
          NMLOG("nmailui: mailboxlistview: Reasource loading failed");
     }
+}
 
-	// set menubar title
-	setTitle(hbTrId("txt_mail_title_mail"));
+/*!
+    Lazy loading when view layout has been loaded
+*/
+void NmMailboxListView::viewReady()
+{
+    if (!mViewReady){
+        // Set title
+        setTitle(hbTrId("txt_mail_title_mail"));
+        // Refresh list
+        QMetaObject::invokeMethod(this, "refreshList", Qt::QueuedConnection); 
+        mViewReady=true;
+    }
 }
 
 /*!
@@ -155,13 +170,23 @@ void NmMailboxListView::refreshList()
 }
 
 /*!
+    Item activated slot
+*/
+void NmMailboxListView::itemActivated(const QModelIndex &index)
+{
+    mActivatedIndex = index;
+    QMetaObject::invokeMethod(this, "openSelectedMailBox", Qt::QueuedConnection);
+}
+
+
+/*!
     Open selected mailbox
 */
-void NmMailboxListView::openSelectedMailBox(const QModelIndex &index)
+void NmMailboxListView::openSelectedMailBox()
 {
     // Get mailbox meta data
     NmMailboxMetaData *mailbox =
-        mListModel.data(index, Qt::DisplayRole).value<NmMailboxMetaData*>();
+        mListModel.data(mActivatedIndex, Qt::DisplayRole).value<NmMailboxMetaData*>();
     if (mailbox) {
         // Get standard folder inbox id
         NmId inboxId = mUiEngine.standardFolderId(mailbox->id(), NmFolderInbox);
@@ -200,31 +225,31 @@ void NmMailboxListView::showItemContextMenu(HbAbstractViewItem *item, const QPoi
         if (mMailboxListWidget){
             mMailboxListWidget->setCurrentIndex(item->modelIndex());
             mItemContextMenu->setObjectName("MailboxItemContextMenu");
-            mItemContextMenu->exec(coords);
+            mItemContextMenu->setPreferredPos(coords);
+            mItemContextMenu->open(this, SLOT(contextButton(NmActionResponse&)));
         }
     }
 }
 
 /*!
-    handleActionCommand. From NmMenuObserver, extension manager calls this
-    call to handle menu command in the UI.
+    Slot. Signaled when menu option is selected
 */
-void NmMailboxListView::handleActionCommand(NmActionResponse &actionResponse)
+void NmMailboxListView::contextButton(NmActionResponse &result)
 {
     // Handle context menu commands here
-    if (actionResponse.menuType()==NmActionContextMenu){
-        switch (actionResponse.responseCommand()){
+    if (result.menuType()==NmActionContextMenu){
+        switch (result.responseCommand()){
             case NmActionResponseCommandOpen:{
                 // Check that given start response has mailbox and folder id's
-                if (actionResponse.mailboxId()!=0){
+                if (result.mailboxId()!=0){
                     // Use standard folder id inbox if folder has not been specified
-                    NmId folderId = actionResponse.folderId();
+                    NmId folderId = result.folderId();
                     if (folderId==0){
-                        folderId=mUiEngine.standardFolderId(actionResponse.mailboxId(),
+                        folderId=mUiEngine.standardFolderId(result.mailboxId(),
                                                             NmFolderInbox);
                     }
                     NmUiStartParam *startParam = new NmUiStartParam(NmUiViewMessageList,
-                                                                    actionResponse.mailboxId(),
+                                                                    result.mailboxId(),
                                                                     folderId);
                     mApplication.enterNmUiView(startParam);
                     }
@@ -234,6 +259,17 @@ void NmMailboxListView::handleActionCommand(NmActionResponse &actionResponse)
                 break;
         }
     }
+}
+
+/*!
+    handleActionCommand. From NmMenuObserver, extension manager calls this
+    call to handle menu command in the UI.
+*/
+
+void NmMailboxListView::handleActionCommand(NmActionResponse &actionResponse)
+{
+    // Handle context menu commands here
+    Q_UNUSED(actionResponse);
 }
 
 

@@ -15,7 +15,6 @@
 *
 */
 
-#include "nmfwastoreenvelopesoperation.h"
 #include "nmframeworkadapterheaders.h"
 
 NmFwaStoreEnvelopesOperation::NmFwaStoreEnvelopesOperation(
@@ -81,7 +80,7 @@ void NmFwaStoreEnvelopesOperation::RequestResponseL(TFSProgress aEvent, TInt aRe
             completeOperation(NmNoError);
         }
         else if (aEvent.iProgressStatus == TFSProgress::EFSStatus_RequestCancelled) {
-            operationCancelled();
+            completeOperation(NmCancelError);
         }
         else {
             completeOperation(NmGeneralError);

@@ -23,11 +23,8 @@ QT += core
 
 DEPENDPATH += .
 
-INCLUDEPATH += .
 INCLUDEPATH += ./inc
 INCLUDEPATH += ../../inc
-INCLUDEPATH += ../nmailuiengine/inc
-INCLUDEPATH += ../nmsettingui/inc
 INCLUDEPATH += $$APP_LAYER_SYSTEMINCLUDE
 
 CONFIG += hb
@@ -39,13 +36,7 @@ RCC_DIR = rcc
 
 # Platforms
 SYMBIAN_PLATFORMS = WINSCW \
-    ARMV5
-LIBS += -lcpframework
-LIBS += -lnmailuiengine
-LIBS += -lnmailbase
-LIBS += -lnmsettingui
-LIBS += -leuser
-LIBS += -llibc
+                    ARMV5
 
 # Input
 HEADERS += inc/nmsettingsplugin.h
@@ -56,20 +47,26 @@ symbian: {
     TARGET.EPOCALLOWDLLDATA = 1
     DEFINES += PLUGINUID3=0x2002BCF6
     TARGET.UID3 = 0x2002BCF6
-}
-symbian { 
+    
+    LIBS += -lcpframework
+    LIBS += -lnmailuiengine
+    LIBS += -lnmailbase
+    LIBS += -lnmsettingui
+    LIBS += -leuser
+    LIBS += -llibc
+    
     deploy.path = C:
     qtplugins.path = /resource/qt/plugins/controlpanel
     qtplugins.sources += qmakepluginstubs/nmailcpplugin.qtplugin
     
     # This is for new exporting system coming in garden
     for(qtplugin, qtplugins.sources):BLD_INF_RULES.prj_exports += "./$$qtplugin $$deploy.path$$qtplugins.path/$$basename(qtplugin)"
-}
 
-# Build.inf rules
-BLD_INF_RULES.prj_exports += "$${LITERAL_HASH}include <platform_paths.hrh>" \
-"rom/nmailcpplugin.iby CORE_APP_LAYER_IBY_EXPORT_PATH(nmailcpplugin.iby)"
-#"stub_sis/nmailcpplugin_stub.sis /epoc32/data/z/system/install/nmailcpplugin_stub.sis"
+    # Build.inf rules
+    BLD_INF_RULES.prj_exports += "$${LITERAL_HASH}include <platform_paths.hrh>" \
+    "rom/nmailcpplugin.iby CORE_APP_LAYER_IBY_EXPORT_PATH(nmailcpplugin.iby)"
+
+}
 
 TARGET.CAPABILITY = All -TCB
 plugin.sources = nmailcpplugin.dll

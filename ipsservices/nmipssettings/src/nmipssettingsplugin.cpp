@@ -33,6 +33,7 @@
 #include "nmipssettingsmanagerfactory.h"
 #include "nmipssettingitems.h"
 #include "nmcommon.h"
+#include "ipssettingkeys.h"
 
 #include "nmipssettingscustomitem.h"
 #include "nmipssettingslabeledcombobox.h"
@@ -55,26 +56,25 @@ const QString NmIpsSettingsItems("items");
 */
 NmIpsSettingsPlugin::NmIpsSettingsPlugin()
 : mSettingsHelper(0),
-  mSettingsManager(0),
-  mTranslator(0)
+  mSettingsManager(0)
 {
-    QScopedPointer<QTranslator> translator(new QTranslator());
-
-#ifdef Q_OS_SYMBIAN
     QString lang = QLocale::system().name();
-    QString appName = "mailips_";
     QString path = "Z:/resource/qt/translations/";
-#else
-    QString lang;
-    QString appName = "mailips";
-    QString path = ":/translations";
-#endif
+    QString appName = "mailips_";
+    QString commonName = "common_";
+    
 
+    // Load common strings
+	QScopedPointer<QTranslator> commonTranslator(new QTranslator(this));
+    commonTranslator->load(commonName + lang, path);
+    QCoreApplication::installTranslator(commonTranslator.data());
+    (void)commonTranslator.take();  
+    
+    // Load IPS settings specific strings
+	QScopedPointer<QTranslator> translator(new QTranslator(this));
     translator->load(appName + lang, path);
-
     QCoreApplication::installTranslator(translator.data());
-    mTranslator = translator.take();
-
+    (void)translator.take();
 }
 
 /*!
@@ -84,7 +84,6 @@ NmIpsSettingsPlugin::~NmIpsSettingsPlugin()
 {
     delete mSettingsManager;
     delete mSettingsHelper;
-    delete mTranslator;
 }
 
 /*!
@@ -143,15 +142,15 @@ bool NmIpsSettingsPlugin::populateModel(HbDataFormModel &model,
 */
 void NmIpsSettingsPlugin::aboutToClose()
 {
-	if (mSettingsHelper->isOffline()) {
+    QVariant profileIndex;
+	mSettingsManager->readSetting(IpsServices::ReceptionActiveProfile, profileIndex);
+	if ((mSettingsHelper->isOffline()) && (profileIndex.toInt() != IpsServices::EmailSyncProfileManualFetch)) {
 		emit goOnline(mSettingsManager->mailboxId());
 	}
 }
 
 /*!
-    Appends the group items to the group item.
-    \param model Reference to the model.
-    \param form Reference to the form.
+    Appends the group items to the model.
 */
 void NmIpsSettingsPlugin::initGroupItems()
 {
@@ -180,6 +179,7 @@ void NmIpsSettingsPlugin::initGroupItems()
         mModel->appendDataFormItem(HbDataFormModelItem::GroupItem,
                                    hbTrId("txt_mailips_subhead_server_info"),
                                    rootItem);
+    mSettingsHelper->setServerInfoGroupItem(serverInfoItem);
     initServerInfoItems(*serverInfoItem);
 
     // Create the delete mailbox button.
@@ -203,7 +203,7 @@ void NmIpsSettingsPlugin::initGroupItems()
 */
 void NmIpsSettingsPlugin::initPreferenceItems(HbDataFormModelItem &item) const
 {
-    // My Name
+    // 1. My Name
     QVariant myName;
     mSettingsManager->readSetting(IpsServices::EmailAlias, myName);
     CpSettingFormItemData *myNameItem = new CpSettingFormItemData(
@@ -216,7 +216,7 @@ void NmIpsSettingsPlugin::initPreferenceItems(HbDataFormModelItem &item) const
                          mSettingsHelper, SLOT(myNameTextChange(QString)));
     item.appendChild(myNameItem);
 
-    // Mailbox Name
+    // 2. Mailbox Name
     QVariant mailboxName;
     mSettingsManager->readSetting(IpsServices::MailboxName, mailboxName);
     CpSettingFormItemData *mailboxNameItem = new CpSettingFormItemData(
@@ -333,7 +333,7 @@ void NmIpsSettingsPlugin::initReceivingScheduleItems(HbDataFormModelItem &item)
 */
 void NmIpsSettingsPlugin::initUserInfoItems(HbDataFormModelItem &item) const
 {
-    // Mail address
+    // 1. Mail address
     QVariant mailAddress;
     mSettingsManager->readSetting(IpsServices::EmailAddress, mailAddress);
     CpSettingFormItemData *mailAddressItem = new CpSettingFormItemData(
@@ -346,7 +346,7 @@ void NmIpsSettingsPlugin::initUserInfoItems(HbDataFormModelItem &item) const
                          mSettingsHelper, SLOT(mailAddressTextChange(QString)));
     item.appendChild(mailAddressItem);
 
-    // Username (Never visible in Yahoo!)
+    // 2. Username
     QVariant username;
     mSettingsManager->readSetting(IpsServices::IncomingLoginName, username);
     CpSettingFormItemData *usernameItem = new CpSettingFormItemData(
@@ -354,12 +354,12 @@ void NmIpsSettingsPlugin::initUserInfoItems(HbDataFormModelItem &item) const
     mSettingsHelper->insertContentItem(IpsServices::IncomingLoginName, usernameItem);
     usernameItem->setContentWidgetData(QString("text"), username);
     mForm->addConnection(usernameItem, SIGNAL(editingFinished()),
-                         mSettingsHelper, SLOT(saveUserName()));
+                         mSettingsHelper, SLOT(saveIncomingUserName()));
     mForm->addConnection(usernameItem, SIGNAL(textChanged(QString)),
-                         mSettingsHelper, SLOT(userNameTextChange(QString)));
+                         mSettingsHelper, SLOT(incomingUserNameTextChange(QString)));
     item.appendChild(usernameItem);
 
-    // Password
+    // 3. Password
     QVariant password;
     mSettingsManager->readSetting(IpsServices::IncomingPassword, password);
     CpSettingFormItemData *passwordItem = new CpSettingFormItemData(
@@ -368,7 +368,7 @@ void NmIpsSettingsPlugin::initUserInfoItems(HbDataFormModelItem &item) const
     passwordItem->setContentWidgetData(QString("text"), password);
     passwordItem->setContentWidgetData(QString("echoMode"), HbLineEdit::PasswordEchoOnEdit);
     mForm->addConnection(passwordItem, SIGNAL(editingFinished()),
-                         mSettingsHelper, SLOT(savePassword()));
+                         mSettingsHelper, SLOT(saveIncomingPassword()));
     item.appendChild(passwordItem);
 
     // Reply to address
@@ -426,7 +426,7 @@ void NmIpsSettingsPlugin::initServerInfoItems(HbDataFormModelItem &item) const
     mForm->addConnection(incomingSecureConnectionItem, SIGNAL(itemSelected(int)),    		  
     		mSettingsHelper, SLOT(incomingSecureConnectionItemChange(int)));
     mForm->addConnection(incomingSecureConnectionItem, SIGNAL(pressed(const QModelIndex &)),    		  
-    		mSettingsHelper, SLOT(incomingSecureConnectionPressed(const QModelIndex &)));
+    		mSettingsHelper, SLOT(incomingSecureConnectionPress(const QModelIndex &)));
     item.appendChild(incomingSecureConnectionItem);
     
     // 3. Incoming mail server port
@@ -439,7 +439,7 @@ void NmIpsSettingsPlugin::initServerInfoItems(HbDataFormModelItem &item) const
     mForm->addConnection(incomingPortItem, SIGNAL(itemSelected(int)),
                          mSettingsHelper, SLOT(incomingPortChange(int)));
     mForm->addConnection(incomingPortItem, SIGNAL(pressed(const QModelIndex &)),              
-                         mSettingsHelper, SLOT(incomingPortPressed(const QModelIndex &)));
+                         mSettingsHelper, SLOT(incomingPortPress(const QModelIndex &)));
     QStringList incomingPortItems;
     incomingPortItems << hbTrId("txt_mailips_setlabel_incoming_port_default")
                       << hbTrId("txt_mailips_setlabel_incoming_port_user_defined");
@@ -462,7 +462,7 @@ void NmIpsSettingsPlugin::initServerInfoItems(HbDataFormModelItem &item) const
                          mSettingsHelper, SLOT(outgoingMailServerTextChange(QString)));
     item.appendChild(outgoingMailServerItem);
     
-    // 5. Outgoing Secure connection
+    // 5. Outgoing secure connection
     QVariant outgoingSecureSockets;
     QVariant outgoingSSLWrapper;
     mSettingsManager->readSetting(IpsServices::OutgoingSecureSockets, outgoingSecureSockets);
@@ -485,7 +485,7 @@ void NmIpsSettingsPlugin::initServerInfoItems(HbDataFormModelItem &item) const
     mForm->addConnection(outgoingSecureConnectionItem, SIGNAL(itemSelected(int)),    		  
     		mSettingsHelper, SLOT(outgoingSecureConnectionItemChange(int)));
     mForm->addConnection(outgoingSecureConnectionItem, SIGNAL(pressed(const QModelIndex &)),    		  
-    		mSettingsHelper, SLOT(outgoingSecureConnectionPressed(const QModelIndex &)));
+    		mSettingsHelper, SLOT(outgoingSecureConnectionPress(const QModelIndex &)));
     item.appendChild(outgoingSecureConnectionItem);
 
     // 6. Outgoing mail server port
@@ -498,7 +498,7 @@ void NmIpsSettingsPlugin::initServerInfoItems(HbDataFormModelItem &item) const
     mForm->addConnection(outgoingPortItem, SIGNAL(itemSelected(int)),
                          mSettingsHelper, SLOT(outgoingPortChange(int)));
     mForm->addConnection(outgoingPortItem, SIGNAL(pressed(const QModelIndex &)),              
-                         mSettingsHelper, SLOT(outgoingPortPressed(const QModelIndex &)));
+                         mSettingsHelper, SLOT(outgoingPortPress(const QModelIndex &)));
     QStringList outgoingPortItems;
     outgoingPortItems << hbTrId("txt_mailips_setlabel_incoming_port_default")
                       << hbTrId("txt_mailips_setlabel_incoming_port_user_defined");
@@ -507,6 +507,28 @@ void NmIpsSettingsPlugin::initServerInfoItems(HbDataFormModelItem &item) const
         mSettingsHelper->getCorrectOutgoingPortRadioButtonIndex(outgoingPort.toInt()); 
     outgoingPortItem->setContentWidgetData(QString("selected"), outgoingPortItemIndex);
     item.appendChild(outgoingPortItem);
+    
+    // 7. Outgoing authentication.
+    CpSettingFormItemData *outgoingAuthenticationItem =
+        new CpSettingFormItemData(HbDataFormModelItem::RadioButtonListItem, hbTrId(
+            "txt_mailips_setlabel_outgoing_mail_authentication"));
+    mSettingsHelper->insertContentItem(IpsServices::SMTPAuthentication, outgoingAuthenticationItem);
+    mForm->addConnection(outgoingAuthenticationItem, SIGNAL(itemSelected(int)),
+                         mSettingsHelper, SLOT(outgoingAuthenticationChange(int)));
+    mForm->addConnection(outgoingAuthenticationItem, SIGNAL(pressed(const QModelIndex &)),              
+                         mSettingsHelper, SLOT(outgoingAuthenticationPress(const QModelIndex &)));
+    QStringList outgoingAuthenticationItems;
+    outgoingAuthenticationItems << hbTrId("txt_mailips_setlabel_outgoing_authentication_none")
+                                << hbTrId("txt_mailips_setlabel_outgoing_authentication_same")
+                                << hbTrId("txt_mailips_setlabel_outgoing_authentication_user");
+    outgoingAuthenticationItem->setContentWidgetData(QString("items"), outgoingAuthenticationItems);
+    int outgoingAuthenticationIndex = 
+        mSettingsHelper->getCorrectOutgoingAuthenticationRadioButtonIndex(); 
+    outgoingAuthenticationItem->setContentWidgetData(QString("selected"), outgoingAuthenticationIndex);
+    item.appendChild(outgoingAuthenticationItem);
+    if (outgoingAuthenticationIndex == IpsServices::EMailAuthUserAuthentication) {
+        mSettingsHelper->createServerInfoGroupDynamicItems();
+    }
     
     // 8. Folder path
     // This item is only shown for IMAP4 account.
@@ -518,9 +540,9 @@ void NmIpsSettingsPlugin::initServerInfoItems(HbDataFormModelItem &item) const
                 "txt_mailips_setlabel_folder_path"));
         mSettingsHelper->insertContentItem(IpsServices::FolderPath, folderPathItem);    
         mForm->addConnection(folderPathItem, SIGNAL(itemSelected(int)),
-                             mSettingsHelper, SLOT(inboxPathChange(int)));
+                             mSettingsHelper, SLOT(folderPathChange(int)));
         mForm->addConnection(folderPathItem, SIGNAL(pressed(const QModelIndex &)),              
-                             mSettingsHelper, SLOT(inboxPathPressed(const QModelIndex &)));
+                             mSettingsHelper, SLOT(folderPathPress(const QModelIndex &)));
         QStringList folderPathItems;
         folderPathItems << hbTrId("txt_mailips_setlabel_folder_path_val_default")
                        << hbTrId("txt_mailips_setlabel_folder_path_user_defined");
@@ -539,9 +561,9 @@ void NmIpsSettingsPlugin::createUserDefinedMode()
     QVariant userDefineMode;
     mSettingsManager->readSetting(IpsServices::ReceptionUserDefinedProfile, userDefineMode);
 
-    // If user defined mode do not already exist, create it
+    // If user defined mode do not already exist, create it.
     if (!userDefineMode.toInt()) {
-        // Add 'user defined' mode to combobox
+        // Add 'user defined' mode to combobox.
         HbDataFormModelItem *syncProfile =
             mSettingsHelper->contentItem(IpsServices::ReceptionActiveProfile);
 
@@ -549,30 +571,33 @@ void NmIpsSettingsPlugin::createUserDefinedMode()
         QStringList modeList = contentWidgetData.value<QStringList>();
         modeList << hbTrId("txt_mailips_setlabel_selected_mode_val_user_define");
 
-        // Add 'user defined' explanation text to label text
+        // Add 'user defined' explanation text to label text.
         contentWidgetData = syncProfile->contentWidgetData(NmIpsSettingsLabelTexts);
         QStringList infoList = contentWidgetData.value<QStringList>();
         infoList << hbTrId("txt_mailips_list_the_mailbox_is_refreshed_as_defin");
 
-        // disconnect
+        // Disconnect signal temporarily so that by setting content widget data will
+        // not cause any unnecessary actions in helper.
         mForm->removeConnection(syncProfile, SIGNAL(currentIndexChanged(int)),
             mSettingsHelper, SLOT(receivingScheduleChange(int)));
 
         syncProfile->setContentWidgetData(NmIpsSettingsComboItems, modeList);
         syncProfile->setContentWidgetData(NmIpsSettingsLabelTexts, infoList);
 
-        // reconnect
+        // Reconnect signal, so that helper is aware of data modifications.
         mForm->addConnection(syncProfile, SIGNAL(currentIndexChanged(int)),
             mSettingsHelper, SLOT(receivingScheduleChange(int)));
 
-        // Mark that user defined mode exists
+        // Mark that user defined mode exists.
         userDefineMode.setValue(1);
         mSettingsManager->writeSetting(IpsServices::ReceptionUserDefinedProfile, userDefineMode);
     }
 }
 
 /*!
+    Handles mail in inbox modifications.
 
+    \param index Selected value index.
 */
 void NmIpsSettingsPlugin::showMailInInboxModified(int index)
 {

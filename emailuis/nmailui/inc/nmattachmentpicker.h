@@ -19,13 +19,14 @@
 #define NMATTACHMENTPICKER_H_
 
 #include <QObject>
-#include <xqappmgr.h>
 
 #define IMAGE_FETCHER_INTERFACE "Image"
 #define AUDIO_FETCHER_INTERFACE "com.nokia.services.media.Music"
 
 #define IMAGE_FETCHER_OPERATION "fetch(QVariantMap,QVariant)"
 #define AUDIO_FETCHER_OPERATION "fetch(QString)"
+
+class XQAiwRequest;
 
 /**
  * This class manages launching of different attachment pickers 
@@ -53,8 +54,7 @@ private:
     void fetch(const QString& interface, const QString& operation); 
     
 private:
-    XQApplicationManager mAppmgr;
-    XQAiwRequest *mRequest;
+    XQAiwRequest *mRequest;    
 };
 
 #endif // NMATTACHMENTPICKER_H_

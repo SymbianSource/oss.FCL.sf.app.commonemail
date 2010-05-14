@@ -34,20 +34,17 @@ public:
     NmFwaRemoveAttachmentOperation(const NmMessage &message,
                                    const NmId &attachmentPartId,
                                    CFSMailClient &mailClient);
-    
-    virtual ~NmFwaRemoveAttachmentOperation();
 
 public: // from MFSMailRequestObserver
-    virtual void RequestResponseL(TFSProgress aEvent, TInt aRequestId);
+    void RequestResponseL(TFSProgress aEvent, TInt aRequestId);
     
 protected:
-    virtual void doRunAsyncOperation();
-
-protected:
-    virtual void doCancelOperation();
+    void doRunAsyncOperation();
+    void doCancelOperation();
     
 private:
 	void doRunAsyncOperationL();
+    ~NmFwaRemoveAttachmentOperation();
     
 private:
     const NmMessage &mMessage;

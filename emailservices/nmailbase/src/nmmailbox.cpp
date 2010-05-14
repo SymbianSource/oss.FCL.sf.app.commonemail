@@ -122,13 +122,13 @@ bool NmMailbox::operator==(const NmMailbox &mailbox) const
 }
 
 
-NmAddress NmMailbox::address()
+NmAddress NmMailbox::address() const
 {
     return d->mAddress;
 }
 
 
-void NmMailbox::setAddress(NmAddress& address)
+void NmMailbox::setAddress(const NmAddress& address)
 {
     d->mAddress = address;
 }

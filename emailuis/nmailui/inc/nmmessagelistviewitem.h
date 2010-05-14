@@ -40,8 +40,6 @@ class NmMessageListViewItem : public HbTreeViewItem
 public:
     explicit NmMessageListViewItem(QGraphicsItem *parent = 0);
     virtual ~NmMessageListViewItem();
-    enum { ItemType = Hb::ItemType_Last + 2 };
-    int type() const;
     void updateChildItems();
     HbTreeViewItem *createItem();
     bool canSetModelIndex(const QModelIndex &index) const;

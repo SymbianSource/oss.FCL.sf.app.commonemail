@@ -23,16 +23,14 @@
 #include <cacheman.h>
 
 
-// CONSTANTS
-// MACROS
-// DATA TYPES
-// FUNCTION PROTOTYPES
-// FORWARD DECLARATIONS
-// CLASS DECLARATION
-
+//<qmail> removed
+//<qmail> comment added
 /**
-*
+* class CIpsPlgDeleteLocal
+* Implements virtual Filter() of CImCacheManager and decides if
+* message should be deleted. 
 */
+//</qmail>
 NONSHARABLE_CLASS( CIpsPlgDeleteLocal ) : public CImCacheManager
     {
     public:
@@ -45,7 +43,7 @@ NONSHARABLE_CLASS( CIpsPlgDeleteLocal ) : public CImCacheManager
         * @return pointer to created CIpsPlgDeleteLocal object.
         */
         static CIpsPlgDeleteLocal* NewL(
-            CMsvEntrySelection& aMessageSelection,
+            CMsvEntrySelection* aMessageSelection,
             CMsvSession& aMsvSession,
             TRequestStatus& aObserverRequestStatus );
 
@@ -61,7 +59,7 @@ NONSHARABLE_CLASS( CIpsPlgDeleteLocal ) : public CImCacheManager
         * Symbian OS constructor.
         * @param aMessageSelection array of message ids to be purged
         */
-        void ConstructL( CMsvEntrySelection& aMessageSelection );
+        void ConstructL( CMsvEntrySelection* aMessageSelection );
 
     private:
     
@@ -80,9 +78,9 @@ NONSHARABLE_CLASS( CIpsPlgDeleteLocal ) : public CImCacheManager
             TRequestStatus& aObserverRequestStatus );
 
     private: // data
-
-        CMsvEntrySelection*                 iMessageSelection;
-        
+//<qmail>
+        CMsvEntrySelection*                 iMessageSelection; // owned
+//</qmail>        
     };
 
 #endif      // IPSPLGDELETELOCAL_H

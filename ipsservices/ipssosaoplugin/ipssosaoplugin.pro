@@ -42,7 +42,8 @@ inc/IpsSosAOPopAgent.h \
 inc/IpsSosAOSchedulerUtils.h \
 inc/IpsSosAOSmtpAgent.h \
 inc/IpsSosAOSmtpSendWatcher.h \
-inc/IpsSosAOSettingsHandler.h
+inc/IpsSosAOSettingsHandler.h \
+inc/IpsSosAoExtendedSettingsManager.h
 
 
     
@@ -59,7 +60,8 @@ src/IpsSosAOPopAgent.cpp \
 src/IpsSosAOSchedulerUtils.cpp \
 src/IpsSosAOSmtpAgent.cpp \
 src/IpsSosAOSmtpSendWatcher.cpp \
-src/IpsSosAOSettingsHandler.cpp
+src/IpsSosAOSettingsHandler.cpp \
+src/IpsSosAoExtendedSettingsManager.cpp
 
 
 RESOURCES +=
@@ -104,7 +106,9 @@ symbian*: {
     -limcm \
     -lgsecomplugin \
     -leikcore \
-    -lipssosplugin
+    -lipssosplugin \
+    -lxqsettingsmanager \
+    -lcmmanager
 
 
       

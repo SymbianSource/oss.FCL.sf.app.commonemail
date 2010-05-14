@@ -8,48 +8,60 @@
 # Nokia Corporation - initial contribution.
 # Contributors:
 # Description:
+
 CONFIG += debug
 CONFIG += hb
+
 TEMPLATE = lib
+
 TARGET = nmailuiengine
+
 QT += core
+
 DEFINES += BUILD_UIENGINE_DLL
 
+MOC_DIR = ./moc
+
 INCLUDEPATH += ./inc \
-  ../../inc \
-  ../nmsettingui/inc
+               ../../inc \
+
 HEADERS += inc/nmmessagecreationoperation.h \
-    inc/nmuiengine.h \
-    inc/nmdatamanager.h \
-    inc/nmmailboxlistmodel.h \
-    inc/nmmailboxlistmodelitem.h \
-    inc/nmmailboxmetadata.h \
-    inc/nmdatapluginfactory.h \
-    inc/nmfolderlistmodel.h \
-    inc/nmfoldermetadata.h \
-    inc/nmmessagelistmodelitem.h \
-    inc/nmmessagelistmodel.h \
-    inc/nmuienginedef.h \
-    inc/nmdataplugininterface.h \
-    inc/nmicons.h \
-    inc/nmbaseclientplugin.h \
-    inc/nmoperation.h \
-    inc/nmaddattachmentsoperation.h \
-    inc/nmmessagesendingoperation.h
+           inc/nmuiengine.h \
+           inc/nmdatamanager.h \
+           inc/nmmailboxlistmodel.h \
+           inc/nmmailboxlistmodelitem.h \
+           inc/nmmailboxmetadata.h \
+           inc/nmdatapluginfactory.h \
+           inc/nmfolderlistmodel.h \
+           inc/nmfoldermetadata.h \
+           inc/nmmessagelistmodelitem.h \
+           inc/nmmessagelistmodel.h \
+           inc/nmmessagesearchlistmodel.h \
+           inc/nmuienginedef.h \
+           inc/nmdataplugininterface.h \
+           inc/nmicons.h \
+           inc/nmbaseclientplugin.h \
+           inc/nmoperation.h \
+           inc/nmaddattachmentsoperation.h \
+           inc/nmmessagesendingoperation.h \
+           inc/nmcheckoutboxoperation.h \
+           inc/nmstoreenvelopesoperation.h
+
 SOURCES += src/nmuiengine.cpp \
-    src/nmdatamanager.cpp \
-    src/nmmailboxlistmodel.cpp \
-    src/nmmailboxlistmodelitem.cpp \
-    src/nmmailboxmetadata.cpp \
-    src/nmfolderlistmodel.cpp \
-    src/nmfoldermetadata.cpp \
-    src/nmmessagelistmodelitem.cpp \
-    src/nmmessagelistmodel.cpp \
-    src/nmdatapluginfactory.cpp \
-    src/nmicons.cpp \
-    src/nmbaseclientplugin.cpp \
-    src/nmaddattachmentoperation.cpp \
-    src/nmoperation.cpp
+           src/nmdatamanager.cpp \
+           src/nmmailboxlistmodel.cpp \
+           src/nmmailboxlistmodelitem.cpp \
+           src/nmmailboxmetadata.cpp \
+           src/nmfolderlistmodel.cpp \
+           src/nmfoldermetadata.cpp \
+           src/nmmessagelistmodelitem.cpp \
+           src/nmmessagelistmodel.cpp \
+           src/nmmessagesearchlistmodel.cpp \
+           src/nmdatapluginfactory.cpp \
+           src/nmicons.cpp \
+           src/nmbaseclientplugin.cpp \
+           src/nmaddattachmentoperation.cpp \
+           src/nmoperation.cpp
     
 LIBS += -leuser
 LIBS += -llibc
@@ -60,10 +72,9 @@ symbian*: {
     TARGET.UID2 = 0x1000008D
     TARGET.UID3 = 0x20026763
     LIBS += -lnmailbase \
-        -lnmsettingui \
         -lxqserviceutil 
-	
-	defBlock = \      
+
+    defBlock = \      
       "$${LITERAL_HASH}if defined(MARM)" \
       "DEFFILE  eabi/nmailuiengine.def" \
       "$${LITERAL_HASH}else" \
@@ -72,11 +83,7 @@ symbian*: {
     
     MMP_RULES += defBlock
 }
-win32 { 
-    INCLUDEPATH += ../../emailservices/nmailbase
-    DESTDIR = ../../bin
-    LIBS += -L../../bin \
-        -lnmailbase
-}
 
 RESOURCES += nmailuiengine.qrc
+
+# End of file.

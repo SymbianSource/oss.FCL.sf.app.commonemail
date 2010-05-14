@@ -18,15 +18,17 @@
 #ifndef NMVIEWERVIEW_H_
 #define NMVIEWERVIEW_H_
 
+#include <QPointer>
+
 #include "nmbaseview.h"
 #include "nmactionobserver.h"
+#include "nmattachmentfetchobserver.h"
 
 class QGraphicsLinearLayout;
 class QWebPage;
 
 class HbWidget;
 class HbMainWindow;
-
 
 class NmApplication;
 class NmUiEngine;
@@ -41,8 +43,9 @@ class NmUiDocumentLoader;
 class NmOperation;
 class HbProgressDialog;
 class NmAttachmentListWidget;
+class NmAttachmentManager;
 
-class NmViewerView : public NmBaseView, public NmActionObserver
+class NmViewerView : public NmBaseView, public NmActionObserver, public NmAttachmentFetchObserver
 {
     Q_OBJECT
 public:
@@ -51,12 +54,18 @@ public:
 				NmUiStartParam* startParam,
 				NmUiEngine &uiEngine,
 				HbMainWindow *mainWindow,
-				bool toolbar = false,
+            NmAttachmentManager &attaManager,
+            bool toolbar = false,
 				QGraphicsItem *parent = NULL);
     ~NmViewerView();
     void reloadViewContents(NmUiStartParam* startParam);
     NmUiViewId nmailViewId() const;
     NmMailViewerWK* webView();
+    void viewReady();
+    void aboutToExitView();
+    
+signals:
+    void progressValueChanged(int index, int value);
 
 public slots:
     void orientationChanged(Qt::Orientation orientation);
@@ -67,24 +76,24 @@ public slots:
     void handleMousePressEvent(QGraphicsSceneMouseEvent *event);
     void fetchMessage();
     void openAttachment(int index);
-    void changeProgress(int progressValue);
-	void externalDelete(const NmId &messageId);
 	void createOptionsMenu();
-    
-private slots: 
+	void deleteButton(HbAction* result);
+
+private slots:
     void setMessageData();
     void messageFetched(int result);
     void waitNoteCancelled();
     void webFrameLoaded(bool loaded);
     void scaleWebViewWhenLoading(const QSize &size);
     void scaleWebViewWhenLoaded();
-    void attachmentFetchCompleted(int result);
-    
+    void messageDeleted(const NmId &mailboxId, const NmId &folderId, const NmId &messageId);
+
 public: // From NmActionObserver
     void handleActionCommand(NmActionResponse &menuResponse);
 
-signals:
-    void progressValueChanged(int index, int value);
+public: // From NmAttachmentFetchObserver
+    void progressChanged(int value);
+    void fetchCompleted(int result);
 
 private:
     void loadMessage();
@@ -100,16 +109,17 @@ private:
     NmApplication &mApplication;
     NmUiEngine &mUiEngine;
     HbMainWindow *mMainWindow;               // Not owned
-    bool mToolbar;							  // is toolbar or options menu in use
+    NmAttachmentManager  &mAttaManager;
+    bool mToolbarEnabled;					 // is toolbar or options menu in use
     NmMessage* mMessage;                     // Owned
-    NmBaseViewScrollArea *mScrollArea;     // Not owned
+    NmBaseViewScrollArea *mScrollArea;       // Not owned
     HbWidget *mViewerContent;                // Not owned
     NmMailViewerWK *mWebView;                // Not owned
     NmViewerHeader *mHeaderWidget;           // Not owned
     NmAttachmentListWidget *mAttaListWidget;  // Not owned
     QPointF mHeaderStartScenePos;
     QGraphicsLinearLayout *mViewerContentLayout; // Not owned
-    NmOperation *mMessageFetchingOperation;   // Not owned
+    QPointer<NmOperation> mMessageFetchingOperation;   // Not owned 
     QPointF mLatestScrollPos;
     bool mDisplayingPlainText;
     QObjectList mWidgetList;
@@ -118,12 +128,15 @@ private:
     HbWidget *mViewerHeaderContainer;
     QSize mScreenSize;
     HbProgressDialog *mWaitDialog;            // owned
-    bool loadingCompleted;
+    bool webFrameloadingCompleted;
     QSize mLatestLoadingSize;
-    QList<NmId> mAttaIdList; 
-    NmOperation *mFetchOperation;             // owned
+    QList<NmId> mAttaIdList;
     int mAttaIndexUnderFetch;
     NmAttachmentListWidget *mAttaWidget;      // Not owned
+    bool mViewReady;
+    bool mWaitNoteCancelled;
+    HbAction* mOkAction;                        //owned
+    HbAction* mCancelAction;                    //owned
 };
 
 #endif /* NMVIEWERVIEW_H_ */

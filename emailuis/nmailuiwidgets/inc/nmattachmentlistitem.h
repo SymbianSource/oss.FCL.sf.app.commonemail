@@ -36,8 +36,10 @@ public:
     void setTextColor(const QColor color);
     void setFileNameText(const QString &fileName);
     void setFileSizeText(const QString &fileSize);
+    void resetFileNameLength(Qt::Orientation orientation);
     void setProgressBarValue(const int value);
     int progressBarValue() const;
+    void hideProgressBar();
 
 protected: 
     void mousePressEvent( QGraphicsSceneMouseEvent *event );
@@ -54,6 +56,7 @@ signals:
 private: 
     void init( );
     void constructUi();
+    QSize screenSize(Qt::Orientation orientation);
     
 private:
     Q_DISABLE_COPY(NmAttachmentListItem)

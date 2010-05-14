@@ -38,8 +38,8 @@ public:
     bool isFlagSet(const NmMessageFlag flag) const;
 
 public:
-    NmId mId;
-    NmId mParentId; // id for top-level message/messageId for message parts
+    NmId mMessageId;
+    NmId mFolderId; // id for top-level message/messageId for message parts
     NmId mMailboxId;
     QString mSubject;
     NmAddress mSender;
@@ -58,7 +58,7 @@ class NMBASE_EXPORT NmMessageEnvelope
 
 public:
     NmMessageEnvelope();
-    NmMessageEnvelope(const NmId &id);
+    NmMessageEnvelope(const NmId &messageId);
     NmMessageEnvelope(const NmMessageEnvelope &envelope);
     NmMessageEnvelope(QExplicitlySharedDataPointer<NmMessageEnvelopePrivate> nmPrivateMessageEnvelope);
     NmMessageEnvelope &operator=(const NmMessageEnvelope &envelope);
@@ -66,14 +66,14 @@ public:
     bool operator!=(const NmMessageEnvelope &envelope) const;
     virtual ~NmMessageEnvelope();
 
-    void setId(const NmId &id);
-    NmId id() const;
+    void setMessageId(const NmId &messageId);
+    NmId messageId() const;
 
-    NmId parentId() const;
-    void setParentId(const NmId &id);
+    NmId folderId() const;
+    void setFolderId(const NmId &folderId);
 
     NmId mailboxId() const;
-    void setMailboxId(const NmId &id);
+    void setMailboxId(const NmId &mailboxId);
 
     void setSubject(const QString &subject);
     QString subject() const;

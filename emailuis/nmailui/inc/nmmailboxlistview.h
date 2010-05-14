@@ -20,10 +20,11 @@
 
 #include "nmbaseview.h"
 #include <nmactionobserver.h>
+#include <QModelIndex>
 
 class HbListView;
 class HbDocumentLoader;
-class NmUiEngine;
+class NmUiEngine; 
 class NmApplication;
 class NmUiStartParam;
 class NmMailboxListModel;
@@ -31,7 +32,6 @@ class NmActionResponse;
 class HbMenu;
 class HbAbstractViewItem;
 class NmAction;
-class QModelIndex;
 
 class NmMailboxListView : public NmBaseView, public NmActionObserver
 {
@@ -46,15 +46,20 @@ public:
         QGraphicsItem *parent = 0);
     ~NmMailboxListView();
     void reloadViewContents(NmUiStartParam* startParam);
-    void refreshList();
     NmUiViewId nmailViewId() const;
+    void viewReady();
 
 public: // From NmActionObserver
     void handleActionCommand(NmActionResponse &menuResponse);
 
 public slots:
-    void openSelectedMailBox(const QModelIndex &index);
+    void itemActivated(const QModelIndex &index);
+    void openSelectedMailBox();
     void showItemContextMenu(HbAbstractViewItem *item, const QPointF &coords);
+    void contextButton(NmActionResponse &result);
+
+private slots:
+    void refreshList();
 
 private:
     void loadViewLayout();
@@ -67,6 +72,8 @@ private:
     NmMailboxListModel &mListModel;     // Not owned
     HbMenu *mItemContextMenu;           // Owned
     HbDocumentLoader *mDocumentLoader;  // Owned
+    QModelIndex mActivatedIndex;
+    bool mViewReady;
 };
 
 #endif /* NMMAILBOXLISTVIEW_H_ */

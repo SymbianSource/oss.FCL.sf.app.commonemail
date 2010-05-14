@@ -23,7 +23,8 @@
 // ----------------------------------------------------------------------------
 // CIpsPlgDisconnectOp::NewL()
 // ----------------------------------------------------------------------------
-//
+// <qmail> aDoRemoveAfterDisconnect parameter removed
+// <qmail> MFSMailRequestObserver& changed to pointer
 CIpsPlgDisconnectOp* CIpsPlgDisconnectOp::NewL(
     CMsvSession& aMsvSession,
     TRequestStatus& aObserverRequestStatus,
@@ -34,7 +35,7 @@ CIpsPlgDisconnectOp* CIpsPlgDisconnectOp::NewL(
     TInt aFSRequestId )
     {
     FUNC_LOG;
-    // <qmail> aDoRemoveAfterDisconnect removed
+// <qmail> aDoRemoveAfterDisconnect removed
     CIpsPlgDisconnectOp* op = new(ELeave) CIpsPlgDisconnectOp(
         aMsvSession,
         aObserverRequestStatus,
@@ -130,9 +131,11 @@ TFSProgress CIpsPlgDisconnectOp::GetFSProgressL() const
 void CIpsPlgDisconnectOp::DoRunL()
     {
     FUNC_LOG;
+// <qmail>
     if( Connected() )
         {        
         DoDisconnectL();
+// </qmail>
         }
     else
         {                
@@ -144,7 +147,8 @@ void CIpsPlgDisconnectOp::DoRunL()
 // ----------------------------------------------------------------------------
 // CIpsPlgDisconnectOp::CIpsPlgDisconnectOp()
 // ----------------------------------------------------------------------------
-//
+// <qmail> aDoRemoveAfterDisconnect removed
+// <qmail> MFSMailRequestObserver& changed to pointer
 CIpsPlgDisconnectOp::CIpsPlgDisconnectOp(
     CMsvSession& aMsvSession,
     TRequestStatus& aObserverRequestStatus,
@@ -172,7 +176,9 @@ CIpsPlgDisconnectOp::CIpsPlgDisconnectOp(
 void CIpsPlgDisconnectOp::ConstructL()
     {    
     FUNC_LOG;
+// <qmail> iDisconnected removed
     TMsvId service;
+    
     iMsvSession.GetEntry( iService, service, iTEntry );
     
     if ( iTEntry.iType.iUid == KUidMsvServiceEntryValue )
@@ -181,6 +187,7 @@ void CIpsPlgDisconnectOp::ConstructL()
         }
     else
         {
+        //should we panic with own codes?
         User::Leave( KErrNotSupported );
         }
     
@@ -195,6 +202,8 @@ void CIpsPlgDisconnectOp::ConstructL()
 void CIpsPlgDisconnectOp::DoDisconnectL()
     {
     FUNC_LOG;
+    iStatus = KRequestPending;
+    
     TInt cmd = (iTEntry.iMtm == KUidMsgTypePOP3) ? KPOP3MTMDisconnect : KIMAP4MTMDisconnect;
     InvokeClientMtmAsyncFunctionL( cmd, iService ); // <qmail> 1 param removed
     SetActive();
@@ -216,3 +225,5 @@ TIpsOpType CIpsPlgDisconnectOp::IpsOpType() const
         return EIpsOpTypeImap4Disconnect;
         }
     }
+// </qmail>
+

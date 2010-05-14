@@ -101,6 +101,7 @@ private:
      */
     enum TOperationStep
         {
+        EInitAttachmentManager,
         EPrepareMsvEntry,
         EPrepareStore,
         EStoreMessagePart
@@ -128,8 +129,10 @@ private:
     
 protected:
     CMsvOperation* iOperation;   // owned
+	// <qmail> iBlank, iMailBoxId removed
     TFSMailMsgId iMessageId;
     MFSMailRequestObserver& iOperationObserver;  // not owned
+	// <qmail> iRequestId removed
     HBufC* iContentType;
     HBufC* iFilePath;
     CMsvEntry* iCachedEntry;

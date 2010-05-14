@@ -25,34 +25,53 @@ class NmHsWidgetEmailEngine;
 class NmHsWidgetTitleRow;
 class NmHsWidgetEmailRow;
 class QGraphicsLinearLayout;
+class QTranslator;
+class HbFrameDrawer;
+class NmHsWidgetDateTimeObserver;
 
 class NmHsWidget : public HbWidget
 {
     Q_OBJECT
     
     Q_PROPERTY(QString accountId READ accountId WRITE setAccountId)
+    Q_PROPERTY(QString accountIconName READ accountIconName WRITE setAccountIconName)
+    Q_PROPERTY(QString widgetState READ widgetStateProperty WRITE setWidgetStateProperty)
   
 public:
     NmHsWidget(QGraphicsItem *parent = 0, Qt::WindowFlags flags = 0);
     ~NmHsWidget();
     
 public slots:
+    //from home screen fw
     void onInitialize();
     void onShow();
     void onHide();
     void onUninitialize();
-    
-
+    //engine
     void updateMailData();
+    void onEngineException(const int& exc);
+    //properties
     void setAccountId(const QString &text);
     QString accountId() const;
+    void setAccountIconName(const QString &text);
+    QString accountIconName() const;   
+    void setWidgetStateProperty(QString value);
+    QString widgetStateProperty();
+    //user actions
+    void handleExpandCollapseEvent();
+
+signals: 
+    void finished();
+    void setPreferences(const QStringList &names);
+    void error();
+private:
+    bool setupLocalization();
+    void setupUi();
+    void updateMailRowsVisibility(const int visibleCount);
+    void toggleExpansionState();  
 
 protected:
-    void updateMailRowsList(int mailCount);
-    void paint(QPainter *painter, 
-               const QStyleOptionGraphicsItem *option, 
-               QWidget *widget);
-    void mousePressEvent(QGraphicsSceneMouseEvent *event);
+    void updateMailRowsList(const int mailCount);
     
 private:
     NmHsWidgetEmailEngine* mEngine;
@@ -60,6 +79,12 @@ private:
     NmHsWidgetTitleRow* mTitleRow;
     QList<NmHsWidgetEmailRow*> mMailRows;
     NmId mAccountId;
+    QString mAccountIconName;
+    QTranslator *mTranslator;
+    HbFrameDrawer* mBackgroundFrameDrawer;
+    bool mIsExpanded;
+    bool mStaticWidget;
+    NmHsWidgetDateTimeObserver* mDateObserver;
     
 public:    
     friend class TestNmHsWidget;     

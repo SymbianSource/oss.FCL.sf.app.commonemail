@@ -89,15 +89,6 @@ bool NmMailboxListViewItem::canSetModelIndex(const QModelIndex &index)
     return true;
 }
 
-
-/*!
-    item type
-*/
-int NmMailboxListViewItem::type() const
-{
-    return NmMailboxListViewItem::ItemType;
-}
-
 /*!
     polishEvent. Call to base class polish event.
 */
@@ -116,18 +107,5 @@ void NmMailboxListViewItem::paint(
 {
     Q_UNUSED(option);
     Q_UNUSED(widget);
-    if (painter){
-        painter->setOpacity(0.10);
-        QColor col = HbColorScheme::color("list_item_content_normal");
-        if (col.isValid()) {
-            painter->setPen(col);
-        }
-        QLineF line1( rect().topLeft().x(), rect().bottomRight().y(),
-                     rect().bottomRight().x(), rect().bottomRight().y());
-        painter->drawLine(line1);
-        // Draw line before each item
-        QLineF line2( rect().topLeft().x(), rect().topLeft().y(),
-                     rect().bottomRight().x(), rect().topLeft().y());
-        painter->drawLine(line2);
-    }
+    Q_UNUSED(painter);
 }

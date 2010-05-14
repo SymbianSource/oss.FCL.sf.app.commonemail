@@ -28,12 +28,12 @@ public:
         const NmId &mailboxId,
         const NmId &originalMessageId,
         CFSMailClient &mailClient);
-    
-    ~NmFwaForwardMessageCreationOperation();
-    
+       
 protected:
     void doRunAsyncOperation();
-    
+private:
+    ~NmFwaForwardMessageCreationOperation();
+   
 private:
     NmId mOriginalMessageId;
 };

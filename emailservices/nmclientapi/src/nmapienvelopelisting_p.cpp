@@ -17,56 +17,61 @@
 #include "nmapiengine.h"
 #include "nmapienvelopelisting_p.h"
 
+#include <nmapimailbox.h>
+#include <nmapimessageenvelope.h>
+
+
+
 namespace EmailClientApi
 {
-NmEnvelopeListingPrivate::NmEnvelopeListingPrivate(QObject* parent) :
+NmApiEnvelopeListingPrivate::NmApiEnvelopeListingPrivate(QObject *parent) :
     QObject(parent), mEngine(NULL)
 {
 
 }
 
-NmEnvelopeListingPrivate::~NmEnvelopeListingPrivate()
+NmApiEnvelopeListingPrivate::~NmApiEnvelopeListingPrivate()
 {
     releaseEngine();
 }
 
 /*!
- * \brief It initialize engine for email operations. 
- * 
- * When use initializeEngine need to remember release it.
- * It return value if initialization go good.
- * \sa releaseEngine 
+   \brief It initialize engine for email operations. 
+   
+   When use initializeEngine need to remember release it.
+   It return value if initialization go good.
+   \sa releaseEngine 
  */
-bool NmEnvelopeListingPrivate::initializeEngine()
+bool NmApiEnvelopeListingPrivate::initializeEngine()
 {
-    mEngine = NmEngine::instance();
+    mEngine = NmApiEngine::instance();
     return mEngine ? true : false;
 }
 
 /*!
- * \brief It release engine for email operations.
- * 
- * It release Engine and return value if release go good.
- * 
- * \arg engine Is used to get info if engine was released, if yes, then argument have value 0.
- * 
- * \sa initializeEngine
+   \brief It release engine for email operations.
+   
+   \sa initializeEngine
  */
-void NmEnvelopeListingPrivate::releaseEngine()
+void NmApiEnvelopeListingPrivate::releaseEngine()
 {
-    NmEngine::releaseInstance(mEngine);
+    NmApiEngine::releaseInstance(mEngine);
 }
 
 /*!
- * \brief It grab envelopes from engine. 
- * 
- * When it start grabing, it release all old.
- * Because it uses NmMessageEnvelope with sharedData we don't need care about release memory.
- * 
- * \return Count of envelopes
+   \brief It grab envelopes from engine. 
+   
+   When it start grabing, it release all old.
+   Because it uses NmApiMessageEnvelope with sharedData we don't need care about release memory.
+   
+   \return Count of envelopes or "-1" if there is no engine initialised
  */
-qint32 NmEnvelopeListingPrivate::grabEnvelopes()
+qint32 NmApiEnvelopeListingPrivate::grabEnvelopes()
 {
+    if(!mEngine){
+        return -1;
+    }
+    
     mEnvelopes.clear();
     mEngine->listEnvelopes(mailboxId, folderId, mEnvelopes);
     return mEnvelopes.count();

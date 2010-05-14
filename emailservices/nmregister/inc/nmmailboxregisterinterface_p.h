@@ -32,6 +32,7 @@
 
 //  FORWARD DECLARATIONS
 class QString;
+class QTranslator;
 
 QTM_BEGIN_NAMESPACE
 class QServiceManager;
@@ -64,11 +65,14 @@ public slots:
 
 private:
    
-    bool pushWidgetToHomescreen(quint64 a);
+    bool pushWidgetToHomescreen(quint64 a, QString accountIconName);
+    
+    QString formLaunchUri(quint64 accountId) const;
 
 private: 
     QServiceManager* mManager;
     QObject* mService;
+    QTranslator *mTranslator;
 };
 
 #endif /* NMMAILBOXREGISTERINTERFACE_H_ */

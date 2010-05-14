@@ -18,53 +18,64 @@
 #ifndef NMAPIEMAILADDRESS_H
 #define NMAPIEMAILADDRESS_H
 
-#include <QString>
 #include <QExplicitlySharedDataPointer>
-#include "nmenginedef.h"
-/**
- * Email addres
+#include <nmapidef.h>
+/*!
+   Email addres
  */
+
+class QString;
 
 namespace EmailClientApi
 {
-class NmEmailAddressPrivate : public QSharedData
-{
-public:
-    NmEmailAddressPrivate();
-    virtual ~NmEmailAddressPrivate();
-    QString displayName;
-    QString address;
-};
 
-class NMENGINE_EXPORT NmEmailAddress
+class NmApiEmailAddressPrivate;
+
+class NMAPI_EXPORT NmApiEmailAddress
 {
 public:
-    /*
-     * Constructor for NmEmailAddress class
+    /*!
+       Constructor for NmApiEmailAddress class
      */
-    NmEmailAddress();
-    virtual ~NmEmailAddress();
+    NmApiEmailAddress();
+    virtual ~NmApiEmailAddress();
+
+    /*!
+       copying constructor for nmmessageenvelope
+     */
+    NmApiEmailAddress(const NmApiEmailAddress &addr);
+
+    /*!
+       Assignment operator
+     */
+    NmApiEmailAddress &operator=(const NmApiEmailAddress &addr);
+
+    /*!
+       Compares data from \a addr
+     */
+    bool operator==(const NmApiEmailAddress &addr);
+
     /*
-     * getter for displayname
+       getter for displayname
      */
     QString displayName() const;
 
-    /*
-     * getter for address
+    /*!
+       getter for address
      */
     QString address() const;
 
-    /*
-     * setter for displayname 
+    /*!
+       setter for displayname 
      */
     void setDisplayName(const QString &displayName);
 
-    /*
-     * setter for address
+    /*!
+       setter for address
      */
     void setAddress(const QString &address);
 private:
-    QExplicitlySharedDataPointer<NmEmailAddressPrivate> d;
+    QExplicitlySharedDataPointer<NmApiEmailAddressPrivate> d;
 };
 }
 

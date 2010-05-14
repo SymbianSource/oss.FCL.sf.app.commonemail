@@ -59,6 +59,8 @@ protected:
      * @param aFSRequestId id of the request
      */
     // <qmail> priority parameter has been removed
+	// <qmail> MFSMailRequestObserver& changed to pointer
+	// <qmail> aSignallingAllowed parameter has been removed
     CIpsPlgOnlineOperation(
         CMsvSession& aMsvSession,
         TRequestStatus& aObserverRequestStatus,
@@ -81,6 +83,7 @@ protected: // From CActive
      * It is called by OnlineOperation's RunL()
      */
     virtual void DoRunL() = 0;
+
     // <qmail> removing virtual TInt RunError( TInt aError ); Not needed because RunL uses TRAP harness and never leaves
 
     /**
@@ -102,6 +105,7 @@ protected: // From CActive
     * (e.g. which message entry to send)
     * @param aParams specifies other parameters needed by particular command
     */
+	// <qmail> aContextId parameter has been removed
     void InvokeClientMtmAsyncFunctionL(
         TInt aFunctionId,
         TMsvId aEntryId,
@@ -114,6 +118,7 @@ protected: // From CActive
     * (e.g. which messages to send)
     * @param aParams specifies other parameters needed by particular command
     */
+	// <qmail> aContextId parameter has been removed
     void InvokeClientMtmAsyncFunctionL(
         TInt aFunctionId,
         const CMsvEntrySelection& aSel,
@@ -135,7 +140,7 @@ protected: // From CActive
         
 protected:
         // mailbox specific activity timer
-        CIpsPlgTimerOperation&  iActivityTimer;
+        CIpsPlgTimerOperation*  iActivityTimer;
         CBaseMtm*               iBaseMtm;
         CClientMtmRegistry*     iMtmReg;
         // sub-operation that this operation is using currently

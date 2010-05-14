@@ -75,7 +75,6 @@ void NmEditorHeader::loadWidgets()
     // To: field objects
     HbLabel *toLabel = qobject_cast<HbLabel *>
         (mDocumentLoader->findWidget(NMUI_EDITOR_TO_LABEL));
-    toLabel->setPlainText(hbTrId("txt_mail_editor_to"));
     NmRecipientLineEdit *toEdit = qobject_cast<NmRecipientLineEdit *>
         (mDocumentLoader->findWidget(NMUI_EDITOR_TO_EDIT));
     HbPushButton *toButton = qobject_cast<HbPushButton *>
@@ -94,7 +93,6 @@ void NmEditorHeader::loadWidgets()
     // Add Subject: field
     mSubjectLabel = qobject_cast<HbLabel *>
         (mDocumentLoader->findWidget(NMUI_EDITOR_SUBJECT_LABEL));
-    mSubjectLabel->setPlainText(hbTrId("txt_mail_editor_subject"));
     mSubjectEdit = qobject_cast<NmHtmlLineEdit *>
         (mDocumentLoader->findWidget(NMUI_EDITOR_SUBJECT_EDIT));
 
@@ -424,12 +422,9 @@ void NmEditorHeader::launchAttachment(const NmId &itemId)
  */
 void NmEditorHeader::attachmentActivated(int arrayIndex)
 {
-    const char *engineerText="Unable to open. Attachment file type not supported";
-    const char *localizedText="txt_mail_dialog_unable_to_open_attachment_file_ty";
-	
     QFile launchFile(mAttachmentList->getFullFileNameByIndex(arrayIndex));
     if (NmUtilities::openFile( launchFile ) == NmNotFoundError) {
-        NmUtilities::displayErrorNote( QObject::tr(engineerText, localizedText) ); 
+        NmUtilities::displayErrorNote(hbTrId("txt_mail_dialog_unable_to_open_attachment_file_ty")); 
     }
 }
 

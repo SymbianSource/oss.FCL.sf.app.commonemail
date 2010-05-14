@@ -25,10 +25,14 @@ const TInt KIpsSetDataFullBodyAndAttas      = -1;
 const TInt KIpsSetDataFullBodyOnly          = -3;
 // </qmail>
 
+// <qmail> KIpsPlgIpsConnPanic removed
+
 // ----------------------------------------------------------------------------
-// CIpsPlgImap4ConnOp::NewL()
+// CIpsPlgImap4ConnectOp::NewL()
 // ----------------------------------------------------------------------------
 // <qmail> priority parameter has been removed
+// <qmail> MFSMailRequestObserver& changed it to pointer
+// <qmail> aSignallingAllowed parameter has been removed
 CIpsPlgImap4ConnectOp* CIpsPlgImap4ConnectOp::NewL(
     CMsvSession& aMsvSession,
     TRequestStatus& aObserverRequestStatus,
@@ -62,6 +66,8 @@ CIpsPlgImap4ConnectOp* CIpsPlgImap4ConnectOp::NewL(
 // CIpsPlgImap4ConnectOp::CIpsPlgImap4ConnectOp()
 // ----------------------------------------------------------------------------
 // <qmail> priority parameter has been removed
+// <qmail> MFSMailRequestObserver& changed it to pointer
+// <qmail> aSignallingAllowed parameter has been removed
 CIpsPlgImap4ConnectOp::CIpsPlgImap4ConnectOp(
     CMsvSession& aMsvSession,
     TRequestStatus& aObserverRequestStatus,
@@ -182,7 +188,7 @@ TFSProgress CIpsPlgImap4ConnectOp::GetFSProgressL() const
     result.iError = KErrNone;
     switch( iState )
         {
-        // <qmail> case EStateQueryingDetails removed
+        // <qmail> cases EStateQueryingDetails/EStateQueryingDetailsBusy removed
         case EStateStartConnect:
             result.iProgressStatus = TFSProgress::EFSStatus_Started;
             break;
@@ -331,7 +337,7 @@ void CIpsPlgImap4ConnectOp::DoConnectOpL()
 
     iSelection->ResizeL(0);
     iSelection->AppendL(iService);
-
+    
     // <qmail>
     iStatus = KRequestPending;
     if ( iDoPlainConnect && !Connected() )
@@ -395,7 +401,7 @@ void CIpsPlgImap4ConnectOp::DoPopulateAllL()
             iService,
             // <qmail> passing in activity timer; only place where NULL "reference" was used
             // <qmail> -> can get rid of checking existence of a reference memeber...
-            iActivityTimer,
+            *iActivityTimer,
             info,
             *iSelection,
             iFSMailboxId,
@@ -415,9 +421,9 @@ void CIpsPlgImap4ConnectOp::DoPopulateAllL()
     iState = EStatePopulateAllCompleted;
     }
 
-// <qmail> remove CIpsPlgImap4ConnectOp::StartL()
-// <qmail> remove CIpsPlgImap4ConnectOp::QueryUserPwdL()
-// <qmail> remove CIpsPlgImap4ConnectOp::GetOperationErrorCodeL()
+// <qmail> removed CIpsPlgImap4ConnectOp::StartL()
+// <qmail> removed CIpsPlgImap4ConnectOp::QueryUserPwdL()
+// <qmail> removed CIpsPlgImap4ConnectOp::GetOperationErrorCodeL()
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------       
@@ -448,7 +454,7 @@ void CIpsPlgImap4ConnectOp::SignalSyncCompleted( TInt aError )
 
 // <qmail> Removing CIpsPlgImap4ConnectOp::CredientialsSetL 
 
-// <qmail>
+// <qmail> new functions added
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
 void CIpsPlgImap4ConnectOp::ConstructImapPartialFetchInfo( 

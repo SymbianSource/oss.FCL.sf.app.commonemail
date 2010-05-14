@@ -21,16 +21,13 @@
 #include <QObject>
 #include "nmuienginedef.h"
 
-class QTimer;
 
 class NMUIENGINE_EXPORT NmOperation: public QObject
 {
     Q_OBJECT
 
 public:
-
-    NmOperation(QObject *parent = 0);
-    virtual ~NmOperation();    
+    NmOperation();  
     bool isRunning() const;
     void addPreliminaryOperation(NmOperation *operation);
     
@@ -48,14 +45,16 @@ protected slots:
     virtual void runAsyncOperation();
     virtual void handlePreliminaryOperationFinished();
 
+private slots:
+    void deleteOperation();
+    
 protected:
+    virtual ~NmOperation();  
     virtual void doCompleteOperation();
     virtual void doCancelOperation();
     virtual void doUpdateOperationProgress();
     virtual void doRunAsyncOperation() = 0;
 
-protected:
-    QTimer *mTimer;
     
 private:
     int mProgress;

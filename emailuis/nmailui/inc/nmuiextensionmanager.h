@@ -41,6 +41,7 @@ public:
 
 private:
     void loadExtensionPlugins();
+    QStringList pluginFolders();
 
     QList<NmUiExtensionInterface*> mExtensions;
     QList<QPluginLoader *> mPluginLoaders;

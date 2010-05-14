@@ -18,35 +18,39 @@
 #ifndef NMAPIDATAPLUGINFACTORY_H
 #define NMAPIDATAPLUGINFACTORY_H
 
-
-#include "nmenginedef.h"
+#include <QList>
 
 class NmDataPluginInterface;
 class QDir;
 class QPluginLoader;
+class QObject;
+
+
+class NmId;
 
 /*!
- \class NmDataPluginFactory
- \brief The class NmDataPluginFactory provides interface to create NmDataPluginInterface
+ \class NmApiDataPluginFactory
+ \brief The class NmApiDataPluginFactory provides interface to create NmDataPluginInterface
  instance.
  */
-class NmDataPluginFactory
+class NmApiDataPluginFactory
 {
 public:
-    static NmDataPluginFactory *instance();
-    static void releaseInstance(NmDataPluginFactory *&instance);
-    NmDataPluginInterface *interfaceInstance(QObject *plugin);
-    NmDataPluginInterface *interfaceInstance(NmId mailboxId);
-    QObject *pluginInstance(NmId mailboxId);
-    QList<QObject*>* pluginInstances();
-    QObject *loadPlugin(const QDir &pluginDir, const QString& pluginName);
+    static NmApiDataPluginFactory *instance();
+    static void releaseInstance(NmApiDataPluginFactory *&instance);
+    NmDataPluginInterface *interfaceInstance();
+    QObject *plugin();
+    
 private:
-    NmDataPluginFactory();
-    virtual ~NmDataPluginFactory();
-    static NmDataPluginFactory *mInstance;
+    NmApiDataPluginFactory();
+    virtual ~NmApiDataPluginFactory();
+    
+    QObject *loadPlugin();
+    
+    static NmApiDataPluginFactory *mInstance;
     static int mReferenceCount;
-    static QList<QObject*> *mPluginArray;
-    static QList<QPluginLoader*> mPluginLoaderArray;
+    static QObject *mPlugin;
+    static QPluginLoader *mPluginLoader;
 };
 
-#endif /* NMDATAPLUGINFACTORY_H_ */
+#endif /* NMAPIDATAPLUGINFACTORY_H */

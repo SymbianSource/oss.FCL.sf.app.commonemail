@@ -64,3 +64,5 @@ TFSMailMsgId CIpsPlgBaseOperation::FSMailboxId() const
     FUNC_LOG;
     return iFSMailboxId;
     }
+
+// <qmail> IpsOpType function body has been removed

@@ -27,7 +27,17 @@
 #include "nmipssettingitems.h"
 
 
+class CMsvSession;
+class TMsvEntry;
+class NmId;
+class QVariant;
 
+
+const TInt KIpsHeadersOnly           = -2;
+const TInt KIpsFullBodyAndAttas      = -1;
+const TInt KIpsFullBodyOnly          = -3;
+
+class NmIpsSosAoExtendedSettingsManager;
 /**
 * class CIpsSosAOSettingsHandler
 *
@@ -41,7 +51,8 @@ public:
     /*
      * NewL
      */
-    static CIpsSosAOSettingsHandler* NewL( TUid aProtocol );
+    static CIpsSosAOSettingsHandler* NewL( 
+            CMsvSession& aSession, TMsvId aMailboxId );
     
     /*
      * Destructor
@@ -50,13 +61,16 @@ public:
     
     /**
      * List folders subscribed to be synced.
+     * Not supported.
      */
     void GetSubscribedImapFoldersL( 
             TMsvId aServiceId, 
             RArray<TMsvId>& aFoldersArray );
     
     /**
-     * 
+     * Reads TImImap4GetPartialMailInfo data from settings
+     * @param aInfo return parameter
+     * @param aImap4Settings reference to settings 
      */
     void ConstructImapPartialFetchInfo( 
             TImImap4GetPartialMailInfo& aInfo, 
@@ -71,8 +85,7 @@ public:
      * @param aAlwaysOnlineState, new state for alwaysonline
      */
     void SetAlwaysOnlineState(
-        const IpsServices::TIpsSetDataAoStates aAlwaysOnlineState,
-        TBool aIgnoreStateFlag=EFalse );
+        const IpsServices::TIpsSetDataAoStates aAlwaysOnlineState );
     
     /**
      * Fetches the state of email notification -flag
@@ -95,16 +108,19 @@ public:
     /**
      * Sets a flag when mailbox receives it's first OMA EMN.
      * (email notification)
+     * @param flag value
      */
     void SetFirstEmnReceived( TBool aValue );
     
     /**
-    *
+    * returns value of this flag
+    * @return is flag set
     */
     TBool EmnReceivedButNotSyncedFlag() const;
         
     /**
-    *
+    * sets flag value
+    * @param flag value
     */
     void SetEmnReceivedButNotSyncedFlag( TBool aFlag );
     
@@ -114,12 +130,12 @@ public:
     TUint SelectedWeekDays() const;
     
     /**
-     * @return 
+     * @return start time 
      */
     TTime SelectedTimeStart() const;
     
     /**
-     * @return 
+     * @return stop time
      */
     TTime SelectedTimeStop() const;
     
@@ -129,35 +145,35 @@ public:
     void SetLastUpdateInfo( const IpsServices::TAOInfo& aLastUpdateInfo );
 
     /**
-     * @return
+     * @return info about last update
      */
     IpsServices::TAOInfo LastUpdateInfo() const;
     
     /**
-     * @return
+     * @return refresh interval
      */
     TInt InboxRefreshTime() const;
     
-    /**
-    * Are we allowed to sync only in home network
-    * @return true, if home only is selected
-    */
-    TBool RoamHomeOnlyFlag();
     
-protected:
+    /**
+     * Gets email address from smtp settings.
+     * @return pointer to emailaddress. ownership is transferred.
+     */
+    HBufC* EmailAddressL();
+    
+private:
     
     /*
      * Constructor 
      */
-    CIpsSosAOSettingsHandler();
-    
-    
+    CIpsSosAOSettingsHandler(CMsvSession& aSession);
+        
 private:
     
     /*
      * 2nd phase constructor 
      */
-    void ConstructL( TUid aProtocol );
+    void ConstructL( TMsvId aMailboxId );
     
     
     /**
@@ -165,12 +181,57 @@ private:
      * @return FS plugin id
      */
     TInt GetFSPluginId() const;
-        
+    
+    /**
+     * Constructs NmId type mailbox id from TMsvId and plugin's id.
+     */
+    NmId MboxId() const;
+    
+    /**
+     * Reads values from extended settings
+     * @param aItem wanted item id
+     * @param aValue return parameter
+     * @return did succeed
+     */
+    TBool GetSettingValue(IpsServices::SettingItem aItem, QVariant& aValue) const;
+    
+    /**
+     * Sets setting value into extended settings
+     * @param aItem item which to set
+     * @param items data
+     * @return did succeed
+     */
+    TBool SetSettingValue(
+            const IpsServices::SettingItem aItem, 
+            const QVariant& aData);
+    
+    /**
+     * Creates a new key-value pair into cenrep
+     * @param aKey key to be created
+     * @aValue initial value for the key
+     * @return did succeed
+     */
+    TBool CreateKeyValuePair(
+            const IpsServices::SettingItem aKey, 
+            const QVariant& aValue);
+    
+    /**
+     * method to determine daytime and "other" time
+     */
+    TBool IsDaytime() const;
+    
+    /**
+     * Maps TIPsSetProfiles into TIpsSetDataAoStates 
+     */
+    IpsServices::TIpsSetDataAoStates ProfileIntoAOState(
+            const TInt aProfile) const;
+    
+    
 private:
-    
+    NmIpsSosAoExtendedSettingsManager* iExtMgr;//owned
     TPckgBuf<TIpsPlgPropertyEvent>  iPropertyBuf;
-    TUid                            iMtmType;
-    
+    TMsvEntry                       iEntry;
+    CMsvSession&                    iSession;
     };
 
 #endif /*IPSSOSAOSETTINGSHANDLER_H_*/

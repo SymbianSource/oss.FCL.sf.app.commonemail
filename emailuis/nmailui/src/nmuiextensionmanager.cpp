@@ -17,10 +17,39 @@
 
 #include "nmuiheaders.h"
 
+const QString NmsPluginExtensionName = "nmsclientplugin.qtplugin"; 
 /*!
     \class NmUiExtensionManager
     \brief Handles ui extension plugins
  */
+
+// ======== HELPER FUNCTIONS ========
+
+/*!
+  Creates list of folder paths where plug-ins can be loaded from.
+  \return folder path list.
+*/
+QStringList NmUiExtensionManager::pluginFolders()
+{
+    NMLOG(QString("NmUiExtensionManager - HELPER FUNCTIONS - pluginFolders"));
+
+    const QString NmSettingsPluginFolderPath("/resource/qt/plugins/nmail/uiext");
+    QStringList pluginDirectories;
+    QFileInfoList driveList = QDir::drives();
+
+    foreach(const QFileInfo &driveInfo, driveList) {
+        QString pluginDirectory =
+            driveInfo.absolutePath() + NmSettingsPluginFolderPath;
+        NMLOG(QString("fileInfo.absoluteFilePath() : %1").arg(pluginDirectory)); 
+        if (QFileInfo(pluginDirectory).exists()) {
+            pluginDirectories.append(pluginDirectory);
+        }
+    }
+
+    NMLOG(QString("NmUiExtensionManager - HELPER FUNCTIONS - pluginFolders - OK"));
+    return pluginDirectories;
+}
+
 NmUiExtensionManager::NmUiExtensionManager()
 {
     // load the protocol extension plugins
@@ -52,80 +81,41 @@ void NmUiExtensionManager::getActions(
         interface->getActions(menuRequest, actionList);
     }
 }
-
 /*!
-    Loads predifened plugins implementing the NmUiExtensionInterface interface
+    Loads plug-ins which implements NmUiExtensionInterface and are registered
+    to <code>/resource/qt/plugins/nmail/uiext</code> folder.
  */
 void NmUiExtensionManager::loadExtensionPlugins()
 {
+    NMLOG(QString("NmUiExtensionManager::loadExtensionPlugins -->"));
+    
+    QStringList directories(pluginFolders());
+    foreach (const QString &directoryPath, directories) {
+        QDir directory(directoryPath);
+        QFileInfoList fileList(directory.entryInfoList());
 
-#ifdef Q_OS_SYMBIAN
-    // Note: In Symbian the plugin stub files (.qtplugin) must be used whenever
-    // a path to plugin is needed - Symbian platform security.
-    const QString KImapPluginExtensionName = "nmimapclientplugin.qtplugin";
-    const QString KPopPluginExtensionName  = "nmpopclientplugin.qtplugin";
-    const QString KEasPluginExtensionName = "nmeasclientplugin.qtplugin";
-    const QString KPluginDirectory = "c:\\resource\\plugins";
-    QDir pluginDir = QDir(KPluginDirectory);
-#else
-    #define NM_WINS_ENV
-    const QString KImapPluginExtensionName = "nmimapclientplugin.dll";
-    const QString KPopPluginExtensionName  = "nmpopclientplugin.dll";
-    QDir pluginDir = QDir(QApplication::applicationDirPath());
-#endif
-
-    QPluginLoader *imapPluginLoader = new QPluginLoader(
-            pluginDir.absoluteFilePath(KImapPluginExtensionName));
-    QObject *imapPluginInstance = imapPluginLoader->instance();
-
-    QPluginLoader *popPluginLoader = new QPluginLoader(
-            pluginDir.absoluteFilePath(KPopPluginExtensionName));
-    QObject *popPluginInstance = popPluginLoader->instance();
-
-#ifndef NM_WINS_ENV
-    QPluginLoader *easPluginLoader = new QPluginLoader(
-            pluginDir.absoluteFilePath(KEasPluginExtensionName));
-    QObject *easPluginInstance = easPluginLoader->instance();
-#endif
-
-    if(imapPluginInstance) {
-        NmUiExtensionInterface *interface = qobject_cast<NmUiExtensionInterface*>(imapPluginInstance);
-        if (interface) {
-            mExtensions.append(interface);
+        foreach (const QFileInfo &fileInfo, fileList) {
+            NMLOG(QString("Plugin absolute FilePath : %1").arg(fileInfo.absoluteFilePath()));  
+            QScopedPointer<QPluginLoader> loader(
+                new QPluginLoader(fileInfo.absoluteFilePath()));
+            mPluginLoaders.append(loader.data());
+            loader.take();
         }
-        mPluginLoaders.append(imapPluginLoader);
-    } else {
-        // We don't have proper plugin instance, so we don't need it's loader.
-        delete imapPluginLoader;
-        imapPluginLoader = NULL;
     }
     
-    if(popPluginInstance) {
-        NmUiExtensionInterface *interface = qobject_cast<NmUiExtensionInterface*>(popPluginInstance);
-        if (interface) {
-            mExtensions.append(interface);
+    NmUiExtensionInterface *interface = NULL;    
+    foreach (QPluginLoader *loader, mPluginLoaders) {      
+        NMLOG(QString("Plugin fileName() : %1").arg(loader->fileName()));
+        QString fileName = loader->fileName();
+        if (fileName.contains(NmsPluginExtensionName, Qt::CaseInsensitive) == false) {
+            QObject *pluginInstance = loader->instance();
+            interface = qobject_cast<NmUiExtensionInterface*>(pluginInstance);
+            if (interface) {
+                mExtensions.append(interface);
+            }
         }
-        mPluginLoaders.append(popPluginLoader);
-    } else {
-        // We don't have proper plugin instance, so we don't need it's loader.
-        delete popPluginLoader;
-        popPluginLoader = NULL;
-    }
-
-#ifndef NM_WINS_ENV
-    if(easPluginInstance) {
-        NmUiExtensionInterface *interface = qobject_cast<NmUiExtensionInterface*>(easPluginInstance);
-        if (interface) {
-            mExtensions.append(interface);
-        }
-        mPluginLoaders.append(easPluginLoader);
-    } else {
-        // We don't have proper plugin instance, so we don't need it's loader.
-        delete easPluginLoader;
-        easPluginLoader = NULL;
-    }
-#endif    
-
+    }            
+    NMLOG(QString("<-- NmUiExtensionManager::loadExtensionPlugins"));
 }
 
 

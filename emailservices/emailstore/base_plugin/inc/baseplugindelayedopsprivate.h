@@ -278,6 +278,75 @@ private:
 
     __LOG_DECLARATION
     };
+/**
+ * 
+ */
+NONSHARABLE_CLASS( CDelayedAddNewOrRemoveChildPartOp ) : public CDelayedOp
+    {
+
+public:
+
+    static CDelayedAddNewOrRemoveChildPartOp* NewLC( const TFSMailMsgId& aMailBoxId,
+            const TFSMailMsgId& aParentFolderId ,
+            const TFSMailMsgId& aMessageId,
+            const TFSMailMsgId& aParentPartId ,
+            const TDesC& aContentType,
+            const TDesC& aFilePath,
+            MFSMailRequestObserver& aOperationObserver,
+            const TInt aRequestId);
+    
+    static CDelayedAddNewOrRemoveChildPartOp* NewLC( const TFSMailMsgId& aMailBoxId,
+               const TFSMailMsgId& aParentFolderId ,
+               const TFSMailMsgId& aMessageId,
+               const TFSMailMsgId& aParentPartId ,
+               const TFSMailMsgId& aPartId,
+               MFSMailRequestObserver& aOperationObserver,
+               const TInt aRequestId);
+
+    virtual ~CDelayedAddNewOrRemoveChildPartOp();
+
+    //CDelayedOp::ExecuteOpL
+    virtual void ExecuteOpL();
+    
+private:
+
+    void ConstructL( const TDesC& aContentType, const TDesC& aFilePath );
+       
+    CDelayedAddNewOrRemoveChildPartOp( const TFSMailMsgId& aMailBoxId,
+            const TFSMailMsgId& aParentFolderId ,
+            const TFSMailMsgId& aMessageId,
+            const TFSMailMsgId& aParentPartId ,
+            MFSMailRequestObserver& aOperationObserver,
+            const TInt aRequestId);
+    
+    CDelayedAddNewOrRemoveChildPartOp( const TFSMailMsgId& aMailBoxId,
+                const TFSMailMsgId& aParentFolderId ,
+                const TFSMailMsgId& aMessageId,
+                const TFSMailMsgId& aParentPartId ,
+                const TFSMailMsgId& aPartId ,
+                MFSMailRequestObserver& aOperationObserver,
+                const TInt aRequestId);
+        
+    CDelayedAddNewOrRemoveChildPartOp& operator= ( const CDelayedAddNewOrRemoveChildPartOp& );    
+    
+private:
+    enum TActionType 
+          {
+          AddNewChild = 0,
+          RemoveChild
+          };
+    TFSMailMsgId iMailBoxId;
+    TFSMailMsgId iParentFolderId;
+    TFSMailMsgId iMessageId;
+    TFSMailMsgId iParentPartId;
+    TFSMailMsgId iPartId;
+    HBufC* iContentType;
+    HBufC* iFilePath;
+    MFSMailRequestObserver& iOperationObserver;
+    TInt iRequestId;
+    TInt iActionType;
+    __LOG_DECLARATION
+    };
 //</qmail>
 
 #endif // BASEPLUGINDELAYEDOPSPRIVATE_H

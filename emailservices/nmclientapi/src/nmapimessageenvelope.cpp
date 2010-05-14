@@ -15,40 +15,46 @@
  *
  */
 
-#include "nmapimessageenvelope.h"
+#include <QString>
+#include <QDateTime>
+
+#include <nmapimessageenvelope.h>
+#include "nmapimessageenvelope_p.h"
+
+#include <nmapiemailaddress.h>
+#include <nmapimessagebody.h>
 
 namespace EmailClientApi
 {
-NmMessageEnvelopePrivate::NmMessageEnvelopePrivate()
-{
-
-}
-
-NmMessageEnvelopePrivate::~NmMessageEnvelopePrivate()
-{
-
-}
-
-/*
- * constructor for nmmessageenvelope
+/*!
+   copying constructor for nmmessageenvelope
  */
-NmMessageEnvelope::NmMessageEnvelope()
-{
-    d = new NmMessageEnvelopePrivate();
-}
-
-/*
- * destructor for nmmessageenvelope
- */
-NmMessageEnvelope::~NmMessageEnvelope()
+NmApiMessageEnvelope::NmApiMessageEnvelope(const NmApiMessageEnvelope &envelope) :
+    d(envelope.d)
 {
 
 }
 
 /*!
- Assignment operator
+   constructor for nmmessageenvelope
  */
-NmMessageEnvelope &NmMessageEnvelope::operator=(const NmMessageEnvelope &envelope)
+NmApiMessageEnvelope::NmApiMessageEnvelope()
+{
+    d = new NmApiMessageEnvelopePrivate();
+}
+
+/*!
+   destructor for nmmessageenvelope
+ */
+NmApiMessageEnvelope::~NmApiMessageEnvelope()
+{
+
+}
+
+/*!
+   Assignment operator
+ */
+NmApiMessageEnvelope &NmApiMessageEnvelope::operator=(const NmApiMessageEnvelope &envelope)
 {
     if (this != &envelope) {
         d = envelope.d;
@@ -56,255 +62,268 @@ NmMessageEnvelope &NmMessageEnvelope::operator=(const NmMessageEnvelope &envelop
     return *this;
 }
 
-/*
- * getter for id
+/*!
+   Compare data from \a envelope
  */
-quint64 NmMessageEnvelope::id() const
+bool NmApiMessageEnvelope::operator==(const NmApiMessageEnvelope &envelope)
+{
+    bool retVal = false;
+    if (this->d == envelope.d) {
+        retVal = true;
+    }
+    return retVal;
+}
+
+/*!
+   getter for id
+ */
+quint64 NmApiMessageEnvelope::id() const
 {
     return d->id;
 }
 
-/*
- * getter for id of parent folder
+/*!
+   getter for id of parent folder
  */
-quint64 NmMessageEnvelope::parentFolder() const
+quint64 NmApiMessageEnvelope::parentFolder() const
 {
     return d->parentFolder;
 }
 
-/*
- * getter for subject
+/*!
+   getter for subject
  */
-QString NmMessageEnvelope::subject() const
+QString NmApiMessageEnvelope::subject() const
 {
     return d->subject;
 }
 
-/*
- * getter for sender
+/*!
+   getter for sender
  */
-QString NmMessageEnvelope::sender() const
+QString NmApiMessageEnvelope::sender() const
 {
     return d->sender;
 }
 
-/*
- * getter for to recipients
+/*!
+   getter for to recipients
  */
-void NmMessageEnvelope::getToRecipients(QList<EmailClientApi::NmEmailAddress> &toRecipients)
+void NmApiMessageEnvelope::getToRecipients(QList<EmailClientApi::NmApiEmailAddress> &toRecipients)
 {
     toRecipients = d->toRecipients;
 }
 
-/*
- * getter for cc recipients
+/*!
+   getter for cc recipients
  */
-void NmMessageEnvelope::getCcRecipients(QList<EmailClientApi::NmEmailAddress> &ccRecipients)
+void NmApiMessageEnvelope::getCcRecipients(QList<EmailClientApi::NmApiEmailAddress> &ccRecipients)
 {
     ccRecipients = d->ccRecipients;
 }
 
-/*
- * getter for sent time
+/*!
+   getter for sent time
  */
-QDateTime NmMessageEnvelope::sentTime() const
+QDateTime NmApiMessageEnvelope::sentTime() const
 {
     return d->sentTime;
 }
 
-/*
- * getter for is read flag
+/*!
+   getter for is read flag
  */
-bool NmMessageEnvelope::isRead() const
+bool NmApiMessageEnvelope::isRead() const
 {
     return d->read;
 }
 
-/*
- * getter for has attachments flag
+/*!
+   getter for has attachments flag
  */
-bool NmMessageEnvelope::hasAttachments() const
+bool NmApiMessageEnvelope::hasAttachments() const
 {
     return d->attachments;
 }
 
-/*
- * getter for is forwarded flag
+/*!
+   getter for is forwarded flag
  */
-bool NmMessageEnvelope::isForwarded() const
+bool NmApiMessageEnvelope::isForwarded() const
 {
     return d->forwarded;
 }
 
-/*
- * getter for is replied flag
+/*!
+   getter for is replied flag
  */
-bool NmMessageEnvelope::isReplied() const
+bool NmApiMessageEnvelope::isReplied() const
 {
     return d->replied;
 }
 
-/*
- * getter for content type
+/*!
+   getter for content type
  */
-QString NmMessageEnvelope::contentType() const
+QString NmApiMessageEnvelope::contentType() const
 {
     return d->contentType;
 }
 
-/*
- * getter for plaintext body
+/*!
+   getter for plaintext body
  */
-void NmMessageEnvelope::getPlainTextBody(EmailClientApi::NmMessageBody &body)
+void NmApiMessageEnvelope::getPlainTextBody(EmailClientApi::NmApiMessageBody &body)
 {
     body.setContent(d->plainText);
     body.setFetchedSize(d->fetchedSize);
     body.setTotalSize(d->totalSize);
 }
 
-/*
- * setter for id 
+/*!
+   setter for id 
  */
-void NmMessageEnvelope::setId(quint64 id)
+void NmApiMessageEnvelope::setId(quint64 id)
 {
     d->id = id;
 }
 
-/*
- * setter for parent folder 
+/*!
+   setter for parent folder 
  */
-void NmMessageEnvelope::setParentFolder(quint64 parentFolder)
+void NmApiMessageEnvelope::setParentFolder(quint64 parentFolder)
 {
     d->parentFolder = parentFolder;
 }
 
-/*
- * setter for subject 
+/*!
+   setter for subject 
  */
-void NmMessageEnvelope::setSubject(const QString& subject)
+void NmApiMessageEnvelope::setSubject(const QString &subject)
 {
     d->subject = subject;
 }
 
-/*
- * setter for sender  
+/*!
+   setter for sender  
  */
-void NmMessageEnvelope::setSender(const QString& sender)
+void NmApiMessageEnvelope::setSender(const QString &sender)
 {
     d->sender = sender;
 }
 
-/*
- * setter for to recipients 
+/*!
+   setter for to recipients 
  */
-void NmMessageEnvelope::setToRecipients(
-    const QList<EmailClientApi::NmEmailAddress>& toRecipients)
+void NmApiMessageEnvelope::setToRecipients(
+    const QList<EmailClientApi::NmApiEmailAddress> &toRecipients)
 {
     d->toRecipients = toRecipients;
 }
 
-/*
- * setter for cc recipients 
+/*!
+   setter for cc recipients 
  */
-void NmMessageEnvelope::setCcRecipients(
-    const QList<EmailClientApi::NmEmailAddress> &ccRecipients)
+void NmApiMessageEnvelope::setCcRecipients(
+    const QList<EmailClientApi::NmApiEmailAddress> &ccRecipients)
 {
     d->ccRecipients = ccRecipients;
 }
 
-/*
- * setter for sent time 
+/*!
+   setter for sent time 
  */
-void NmMessageEnvelope::setSentTime(QDateTime sentTime)
+void NmApiMessageEnvelope::setSentTime(QDateTime sentTime)
 {
     d->sentTime = sentTime;
 }
 
-/*
- * setter for si read flag
+/*!
+   setter for is read flag
  */
-void NmMessageEnvelope::setIsRead(bool isRead)
+void NmApiMessageEnvelope::setIsRead(bool isRead)
 {
     d->read = isRead;
 }
 
-/*
- * setter for has attachments flag 
+/*!
+   setter for has attachments flag 
  */
-void NmMessageEnvelope::setHasAttachments(bool hasAttachments)
+void NmApiMessageEnvelope::setHasAttachments(bool hasAttachments)
 {
     d->attachments = hasAttachments;
 }
 
-/*
- * setter for is forwarded flag 
+/*!
+   setter for is forwarded flag 
  */
-void NmMessageEnvelope::setIsForwarded(bool isForwarded)
+void NmApiMessageEnvelope::setIsForwarded(bool isForwarded)
 {
     d->forwarded = isForwarded;
 }
 
-/*
- * setter for is replied flag 
+/*!
+   setter for is replied flag 
  */
-void NmMessageEnvelope::setIsReplied(bool isReplied)
+void NmApiMessageEnvelope::setIsReplied(bool isReplied)
 {
     d->replied = isReplied;
 }
 
-/*
- * setter for content type 
+/*!
+   setter for content type 
  */
-void NmMessageEnvelope::setContentType(const QString &contentType)
+void NmApiMessageEnvelope::setContentType(const QString &contentType)
 {
     d->contentType = contentType;
 }
 
-/*
- * setter for messages plain text 
+/*!
+   setter for messages plain text 
  */
-void NmMessageEnvelope::setPlainText(const QString& plainText)
+void NmApiMessageEnvelope::setPlainText(const QString &plainText)
 {
     d->plainText = plainText;
 }
 
-/*
- * setter for messages total size 
+/*!
+   setter for messages total size 
  */
-void NmMessageEnvelope::setTotalSize(quint64 totalSize)
+void NmApiMessageEnvelope::setTotalSize(quint64 totalSize)
 {
     d->totalSize = totalSize;
 }
 
-/*
- * setter for messages fetched size 
+/*!
+   setter for messages fetched size 
  */
-void NmMessageEnvelope::setFetchedSize(quint64 fetchedSize)
+void NmApiMessageEnvelope::setFetchedSize(quint64 fetchedSize)
 {
     d->fetchedSize = fetchedSize;
 }
 
-/*
- * getter for messages plain text 
+/*!
+   getter for messages plain text 
  */
-QString NmMessageEnvelope::plainText() const
+QString NmApiMessageEnvelope::plainText() const
 {
     return d->plainText;
 }
 
-/*
- * getter for messages fetched size 
+/*!
+   getter for messages fetched size 
  */
-quint64 NmMessageEnvelope::totalSize() const
+quint64 NmApiMessageEnvelope::totalSize() const
 {
     return d->totalSize;
 }
 
-/*
- * getter for messages fetched size 
+/*!
+   getter for messages fetched size 
  */
-quint64 NmMessageEnvelope::fetchedSize() const
+quint64 NmApiMessageEnvelope::fetchedSize() const
 {
     return d->fetchedSize;
 }
 }
+

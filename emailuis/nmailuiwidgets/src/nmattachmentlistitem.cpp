@@ -25,6 +25,8 @@ static const int PROGRESSBAR_MAX = 100;
 static const int PROGRESSBAR_HIDE_COUNTDOWN = 500;
 static const int LONGPRESS_TIMER = 2000;
 
+// Hardcoded file size length. Maximum (999.9 Mb) fits into size field.
+static const int FILE_SIZE_FIELD_LENGTH = 120;
 
 /*!
  @nmailuiwidgets
@@ -98,8 +100,23 @@ void NmAttachmentListItem::setFileSizeText(const QString &fileSize)
             mFileSizeText->setTextColor(mTextColor);
         }
         mFileSizeText->setTextWrapping(Hb::TextNoWrap);
-        mFileSizeText->setText(fileSize);  
-    } 
+        mFileSizeText->setText(fileSize);
+    }
+}
+
+/*!
+    Set the length of the filename field.
+ */
+void NmAttachmentListItem::resetFileNameLength(Qt::Orientation orientation)
+{
+	QSizeF reso = screenSize(orientation);
+	
+	if (orientation == Qt::Horizontal) {
+        mFileNameText->setPreferredWidth(reso.width() / 2 - FILE_SIZE_FIELD_LENGTH);
+	}
+	else {		
+        mFileNameText->setPreferredWidth(reso.width() - FILE_SIZE_FIELD_LENGTH);
+	}
 }
 
 /*!
@@ -114,7 +131,7 @@ void NmAttachmentListItem::setProgressBarValue(const int value)
     }
 
     if ( !mProgressBar ){
-        mProgressBar = new HbProgressBar(HbProgressBar::SimpleProgressBar, this); 
+        mProgressBar = new HbProgressBar(this); 
         mProgressBar->setObjectName("attachmentlistitem_progress");
         mProgressBar->setRange(PROGRESSBAR_MIN,PROGRESSBAR_MAX);
         HbStyle::setItemName( mProgressBar, "progressbar" );
@@ -124,7 +141,7 @@ void NmAttachmentListItem::setProgressBarValue(const int value)
     
     //start hiding count down
     if(PROGRESSBAR_MAX <= value){
-        QTimer::singleShot(PROGRESSBAR_HIDE_COUNTDOWN,this, SLOT(removeProgressBar()));
+        hideProgressBar();
     }
 }
 
@@ -142,6 +159,14 @@ int NmAttachmentListItem::progressBarValue() const
 }
 
 /*!
+    Hides progress bar, used if download is cancelled before 100 precent is reached
+*/
+void NmAttachmentListItem::hideProgressBar()
+{
+    QTimer::singleShot(PROGRESSBAR_HIDE_COUNTDOWN,this, SLOT(removeProgressBar()));
+}
+
+/*!
     Initialize
 */
 void NmAttachmentListItem::init( )
@@ -154,6 +179,7 @@ void NmAttachmentListItem::init( )
 
     //set temporary longpress timer
     mTimer = new QTimer(this);
+    mTimer->setSingleShot(true);
     connect(mTimer, SIGNAL(timeout()), this, SLOT(longPressedActivated()));
 }
 
@@ -169,12 +195,12 @@ void NmAttachmentListItem::constructUi()
     mFileNameText = new HbTextItem(this); 
     mFileNameText->setObjectName("nmattachmentlistitem_filenametext");
     HbStyle::setItemName( mFileNameText, "filename" );    
+    mFileNameText->setElideMode(Qt::ElideRight);
 
     mFileSizeText = new HbTextItem(this); 
     mFileSizeText->setObjectName("nmattachmentlistitem_filenamesize");
     HbStyle::setItemName( mFileSizeText, "filesize" );
     mFileSizeText->setElideMode(Qt::ElideNone);
-        
 }
 
 
@@ -230,5 +256,37 @@ void NmAttachmentListItem::longPressedActivated()
         emit itemLongPressed(mLongPressedPoint);
         mButtonPressed = false;
     }
+}
+
+/*!
+    This function returns screen size depending on the orientation.
+    Function is copied from NmApplication.
+ */
+QSize NmAttachmentListItem::screenSize(Qt::Orientation orientation)
+{
+    QSize ret(0,0);
+    HbDeviceProfile currentP = HbDeviceProfile::current();
+    HbDeviceProfile altP(currentP.alternateProfileName());
+    QSize curPSize = currentP.logicalSize();
+    QSize altPSize = altP.logicalSize();
+    if (orientation == Qt::Horizontal) {
+        // Get wide profile size in landscape
+        if (curPSize.width() > altPSize.width()) {
+            ret = curPSize;
+        }
+        else{
+            ret = altPSize;
+        }
+    }
+    else {
+        // Get narrow profile size in portrait
+        if (curPSize.width() < altPSize.width()) {
+            ret = curPSize;
+        }
+        else{
+            ret = altPSize;
+        }
+    }
+    return ret;
 }
 

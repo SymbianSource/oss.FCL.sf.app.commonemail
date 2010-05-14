@@ -35,7 +35,8 @@ public:
     enum NmAvailabilityCondition
     {
         NmAlways = 0,   // Action is always available
-        NmSendable      // Action is not available if the related message cannot be send
+        NmSendable,     // Action is not available if the related message cannot be send
+        NmAttachable    // Action is not available if attachment cannot be added        
     };
     
     inline NmAction(int priorityIndex);

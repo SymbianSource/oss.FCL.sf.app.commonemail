@@ -58,28 +58,35 @@ NmMailboxSelectionDialog::~NmMailboxSelectionDialog()
 
 
 /*!
-    Initializes and displays the dialog.
-
-    \param mailboxId Where the ID of the selected mailbox is stored.
-    \return True if the user selected a mailbox, false otherwise.
+    Initializes and displays the dialog
+    Signal selectionDialogClosed will be emitted when the dialog is closed
 */
-bool NmMailboxSelectionDialog::exec(NmId& mailboxId)
+void NmMailboxSelectionDialog::open()
 {
     NMLOG("NmMailboxSelectionDialog::exec()");
     mMailboxId = 0;
 
     // Initialize the UI and fetch the mailbox items into the list.
     if (initializeUi() && populateListItems()) {
-        // The UI is ready. Do display the dialog.
-        mMailboxSelectionDialog->exec();
-
-        // Store the ID of the selected mailbox into the given argument.
-        mailboxId = mMailboxId;
+		mMailboxSelectionDialog->setModal(true);
+        mMailboxSelectionDialog->open(this,SLOT(dialogClosed(HbAction*)));
+        mMailboxSelectionDialog->show();
     }
-
-    return (mMailboxId != 0);
 }
 
+/*!
+    Slot that is called when dialog is closed
+ */
+void NmMailboxSelectionDialog::dialogClosed(HbAction *action)
+{
+    Q_UNUSED(action);
+    
+    // Store the ID of the selected mailbox into the given argument.
+    NMLOG(QString("NmMailboxSelectionDialog::dialogClosed() return %1").
+        arg(mMailboxId.id()));
+    
+    emit selectionDialogClosed(mMailboxId);
+}
 
 /*!
     Creates the view for the mailbox selection dialog.

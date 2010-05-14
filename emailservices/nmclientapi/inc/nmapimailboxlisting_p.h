@@ -17,21 +17,19 @@
 #ifndef NMAPIMAILBOXLISTINGPRIVATE_H
 #define NMAPIMAILBOXLISTINGPRIVATE_H
 
-#include "nmapimailbox.h"
-#include <QObject>
-#include <QList>
-
-class NmEngine;
+class NmApiEngine;
 
 namespace EmailClientApi
 {
-class NmMailboxListingPrivate : public QObject
-{
 
+class NmApiMailbox;
+
+class NmApiMailboxListingPrivate : public QObject
+{
 public:
 
-    NmMailboxListingPrivate(QObject *parent = 0);
-    virtual ~NmMailboxListingPrivate();
+    NmApiMailboxListingPrivate(QObject *parent = 0);
+    virtual ~NmApiMailboxListingPrivate();
 
     bool initializeEngine();
 
@@ -39,9 +37,11 @@ public:
 
     qint32 grabMailboxes();
 
-    QList<EmailClientApi::NmMailbox> mMailboxes;//!<List of mailboxes \sa getMailboxInfo \sa QSharedData \sa EmailClientApi::NmMailbox
-    NmEngine* mNmEngine;//!<Pointer to engine instance \sa NmUiEngine
+    QList<EmailClientApi::NmApiMailbox> mMailboxes;//!<List of mailboxes \sa getMailboxInfo \sa QSharedData \sa EmailClientApi::NmApiMailbox
+    NmApiEngine *mNmApiEngine;//!<Pointer to engine instance \sa NmUiEngine
     bool mIsRunning;//!<Keep info if mailbox listing is running \sa isRunning
 };
+
 }
-#endif /* NMMAILBOXLISTINGPRIVATE_H_ */
+
+#endif /* NMAPIMAILBOXLISTINGPRIVATE_H */

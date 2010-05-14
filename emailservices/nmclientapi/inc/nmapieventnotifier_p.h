@@ -18,19 +18,21 @@
 #ifndef NMAPIEVENTNOTIFIERPRIVATE_H
 #define NMAPIEVENTNOTIFIERPRIVATE_H
 
-#include "nmprivateclasses.h"
-#include "nmcommon_api.h"
+#include "nmapiprivateclasses.h"
+#include <nmapicommon.h>
 
-class NmEngine;
+class QTimer;
+
+class NmApiEngine;
 
 namespace EmailClientApi
 {
-class NmEventNotifierPrivate : public QObject
+class NmApiEventNotifierPrivate : public QObject
 {
     Q_OBJECT
 public:
-    NmEventNotifierPrivate(QObject *parent = 0);
-    virtual ~NmEventNotifierPrivate();
+    NmApiEventNotifierPrivate(QObject *parent = 0);
+    virtual ~NmApiEventNotifierPrivate();
 
     bool initializeEngine();
     void releaseEngine();
@@ -41,11 +43,11 @@ public slots:
 
 public:
     QTimer *mEmitSignals;
-    NmEngine *mEngine;
+    NmApiEngine *mEngine;
     QList<NmApiMessage> mBufferOfEvents;
     bool mIsRunning;
 };
 
 }
 
-#endif
+#endif /* NMAPIEVENTNOTIFIERPRIVATE_H */

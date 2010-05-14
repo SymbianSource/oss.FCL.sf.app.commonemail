@@ -33,4 +33,6 @@ EXPORTS
 	?goOnline@NmSettingsViewLauncher@@IAEXABVNmId@@@Z @ 32 NONAME ; void NmSettingsViewLauncher::goOnline(class NmId const &)
 	?aboutToClose@NmSettingsViewFactory@@IAEXXZ @ 33 NONAME ; void NmSettingsViewFactory::aboutToClose(void)
 	?goOffline@NmSettingsViewLauncher@@IAEXABVNmId@@@Z @ 34 NONAME ; void NmSettingsViewLauncher::goOffline(class NmId const &)
+	?createMessageBox@NmSettingsViewFactory@@AAEXXZ @ 35 NONAME ; void NmSettingsViewFactory::createMessageBox(void)
+	?launchWizard@NmSettingsViewFactory@@AAEXPAVHbAction@@@Z @ 36 NONAME ; void NmSettingsViewFactory::launchWizard(class HbAction *)
 

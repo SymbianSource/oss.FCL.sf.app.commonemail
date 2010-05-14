@@ -16,8 +16,8 @@
 *
 */
 
-#ifndef IPSSOSAOPLUGINECOMINTERFACE_H_
-#define IPSSOSAOPLUGINECOMINTERFACE_H_
+#ifndef IPSSOSAOPLUGINECOMINTERFACE_H
+#define IPSSOSAOPLUGINECOMINTERFACE_H
 
 #include <e32base.h>    // CBase
 #include <AlwaysOnlineEComInterface.h>
@@ -36,7 +36,9 @@ class CIpsSosAOImapPopLogic;
 *
 * @lib ipssosaoplugin.lib
 */
+//<Qmail>
 NONSHARABLE_CLASS (CIpsSosAOPluginEComInterface) : 
+//</Qmail>
     public CAlwaysOnlineEComInterface,
     public MMsvSessionObserver
     {
@@ -93,13 +95,13 @@ NONSHARABLE_CLASS (CIpsSosAOPluginEComInterface) :
         void CompleteConstructL();
         
     private: // data
-        
-        CIpsSosAOSmtpSendWatcher*   iSendWatcher;
-        CIpsSosAOImapPopLogic*  iImapPopLogic;
-        CMsvSession*            iSession;
-        RArray<TInt>            iBufferedAOCommands;
-
+        //<Qmail>
+        CIpsSosAOSmtpSendWatcher*   iSendWatcher;//owned
+        CIpsSosAOImapPopLogic*  iImapPopLogic;//owned
+        CMsvSession*            iSession;//owned
+        RArray<TInt>            iBufferedAOCommands;//owned
+		//</Qmail>
 
     };
 
-#endif /*IPSSOSAOPLUGINECOMINTERFACE_H_*/
+#endif //IPSSOSAOPLUGINECOMINTERFACE_H

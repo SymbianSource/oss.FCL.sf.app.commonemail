@@ -21,7 +21,7 @@ TARGET = nmailclientapi
 QT += core
 
 # BUILD_DLL
-DEFINES += BUILD_ENGINE_DLL
+DEFINES += BUILD_EMAIL_API_DLL
 
 
 INCLUDEPATH +=  inc \
@@ -37,14 +37,14 @@ MOC_DIR = tmp
 
 
 #headers  and sources outside api
-HEADERS   += nmapitypesconverter.h \ 
-             nmprivateclasses.h \
-             nmapidataplugininterface.h \
+HEADERS   += nmapiprivateheaders.h \
+             nmapitypesconverter.h \ 
+             nmapiprivateclasses.h \
+             nmdataplugininterface.h \
              nmapidatapluginfactory.h \
              nmapiengine.h \
-             nmapiconverterheader.h \
              nmmessagepart.h  \
-             nmcommon_api.h
+             nmapicommon.h
              
 #headers  and sources from api             
 SOURCES   += nmapitypesconverter.cpp \
@@ -54,7 +54,8 @@ SOURCES   += nmapitypesconverter.cpp \
 
 
 
-HEADERS   += nmapiemailservice.h \
+HEADERS   += nmapicommonheader.h \
+             nmapiemailservice.h \
              nmapimessagetask.h \
              nmapimailboxlisting_p.h \
              nmapimailboxlisting.h \
@@ -62,12 +63,17 @@ HEADERS   += nmapiemailservice.h \
              nmapifolderlisting.h \
              nmapienvelopelisting_p.h \
              nmapienvelopelisting.h \
+	     nmapiemailaddress_p.h \
 	     nmapiemailaddress.h \
 	     nmapieventnotifier_p.h \
 	     nmapieventnotifier.h \
+	     nmapifolder_p.h \
 	     nmapifolder.h \
+	     nmapimailbox_p.h \
 	     nmapimailbox.h \
+	     nmapimessagebody_p.h \
 	     nmapimessagebody.h \
+	     nmapimessageenvelope_p.h \
 	     nmapimessageenvelope.h
 			 
 LIBS += -leuser

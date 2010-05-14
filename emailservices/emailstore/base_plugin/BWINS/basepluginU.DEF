@@ -220,4 +220,6 @@ EXPORTS
 	?ExtensionL@CBaseMrInfoObject@@UAEPAXVTUid@@@Z @ 219 NONAME ; void * CBaseMrInfoObject::ExtensionL(class TUid)
 	?TranslateMsgStorePropsL@CBasePlugin@@MAEXABVTFSMailMsgId@@AAVCMsgStorePropertyContainer@@AAVCFSMailMessagePart@@W4TFSMailDetails@@@Z @ 220 NONAME ; void CBasePlugin::TranslateMsgStorePropsL(class TFSMailMsgId const &, class CMsgStorePropertyContainer &, class CFSMailMessagePart &, enum TFSMailDetails)
 	?GetMailboxDisplayNameL@CBasePlugin@@IAEXIAAVRBuf16@@@Z @ 221 NONAME ; void CBasePlugin::GetMailboxDisplayNameL(unsigned int, class RBuf16 &)
+	?NewChildPartFromFileL@CBasePlugin@@UAEXABVTFSMailMsgId@@000ABVTDesC16@@1AAVMFSMailRequestObserver@@H@Z @ 222 NONAME ; void CBasePlugin::NewChildPartFromFileL(class TFSMailMsgId const &, class TFSMailMsgId const &, class TFSMailMsgId const &, class TFSMailMsgId const &, class TDesC16 const &, class TDesC16 const &, class MFSMailRequestObserver &, int)
+	?RemoveChildPartL@CBasePlugin@@UAEXABVTFSMailMsgId@@0000AAVMFSMailRequestObserver@@H@Z @ 223 NONAME ; void CBasePlugin::RemoveChildPartL(class TFSMailMsgId const &, class TFSMailMsgId const &, class TFSMailMsgId const &, class TFSMailMsgId const &, class TFSMailMsgId const &, class MFSMailRequestObserver &, int)
 

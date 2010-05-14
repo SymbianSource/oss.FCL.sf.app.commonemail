@@ -82,6 +82,12 @@ enum NmSyncState
 };
 Q_DECLARE_METATYPE(NmSyncState)
 
+enum NmOperationType
+{
+    NoOp,
+    Synch
+};
+
 enum NmEnvelopeProperties
 {
 	MarkAsRead,
@@ -153,6 +159,7 @@ const int NmGeneralError = -2;
 const int NmCancelError = -3;
 const int NmAuthenticationError = -200;
 const int NmServerConnectionError = -201;
+const int NmConnectionError = -202;
 
 /*!
 	Predefined constants for ContentTypes and parameters
@@ -174,6 +181,12 @@ const QString NmContentDispParamFilename = " filename=";
 
 const QString NmContentDescrAttachmentHtml = "Attachment.html";
 
+/*!
+   It keep info about maximum messages in message list.
+   
+   It is used in NmFrameworkAdapter and NmDataPluginInterface
+ */
+static const int NmMaxItemsInMessageList = 1000;
 
 /*!
     \class NmId
@@ -350,7 +363,7 @@ public:
 class NmOperationCompletionEvent
 {
 public:
-    int  mOperationType;
+    NmOperationType  mOperationType;
     int  mCompletionCode;
     NmId mMailboxId;
     NmId mFolderId;

@@ -1,0 +1,8 @@
+EXPORTS
+	_ZN16EmailMailboxInfoC1Ev @ 1 NONAME
+	_ZN16EmailMailboxInfoC2Ev @ 2 NONAME
+	_ZN16EmailMailboxInfoD1Ev @ 3 NONAME
+	_ZN16EmailMailboxInfoD2Ev @ 4 NONAME
+	_ZNK16EmailMailboxInfo11mailboxIconERK8QVariant @ 5 NONAME
+	_ZNK16EmailMailboxInfo11mailboxNameERK8QVariant @ 6 NONAME
+

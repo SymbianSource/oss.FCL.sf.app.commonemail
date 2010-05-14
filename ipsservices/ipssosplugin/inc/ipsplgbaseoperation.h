@@ -18,16 +18,21 @@
 #ifndef IPSPLGBASEOPERATION_H
 #define IPSPLGBASEOPERATION_H
 
+// <qmail> CFSMailCommon include not needed
+
 class CMsvOperation;
 
 /**
 * class CIpsPlgBaseOperation
-* Common base class for email operations
+*
+* Common base class for email online operations.
 */
 NONSHARABLE_CLASS ( CIpsPlgBaseOperation ) : public CMsvOperation
     {
 public:
     virtual ~CIpsPlgBaseOperation();
+
+	// <qmail> ProgressL function has been removed
 
     /**
     * For reporting if DoRunL leaves
@@ -53,21 +58,28 @@ public:
 	* (given by caller during instantiation)
 	*/
 	TFSMailMsgId FSMailboxId() const;
-    
+
+// <qmail>    
     /**
     * All concrete derived classes must have a type identifier
     * @return operation type
     */
-    virtual TIpsOpType IpsOpType() const = 0; // <qmail>
+    virtual TIpsOpType IpsOpType() const = 0;
+// </qmail>
 	
 protected:
 
+	/**
+    * C++ constructor
+    */
     // <qmail> priority parameter has been removed
     CIpsPlgBaseOperation(
         CMsvSession& aMsvSession,
         TRequestStatus& aObserverRequestStatus,
         TInt aFSRequestId,
         TFSMailMsgId aFSMailboxId );
+
+//<qmail> DoCancel, RunL, RunError functions have been removed
 
 protected:
     TInt            iFSRequestId;

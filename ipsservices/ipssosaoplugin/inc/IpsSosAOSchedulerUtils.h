@@ -17,8 +17,8 @@
 */
 
 
-#ifndef IPSSOSAOSCHEDULERUTILS_H_
-#define IPSSOSAOSCHEDULERUTILS_H_
+#ifndef IPSSOSAOSCHEDULERUTILS_H
+#define IPSSOSAOSCHEDULERUTILS_H
 
 #include <e32base.h>
 //<Qmail>
@@ -38,18 +38,20 @@ enum TIpsSosAOValidConnectionDay
     EAOVCDConnectionPreviousDayOnly
     };
 
+//<Qmail>
+class CIpsSosAOSettingsHandler;
+//</Qmail>
 /**
 *  Class CIpsSosAOSchedulerUtils 
 *  
 *  calculates time to next interval according to 
 *  mailbox's always online settings
 * 
-*  NOTE: this class is taken from S60 Email client,
-*  Some parts of this class may not be used in FSEmail
-*    
 *  @since FSEmail 2.0
 */
+//<Qmail>
 NONSHARABLE_CLASS (CIpsSosAOSchedulerUtils) : public CBase
+//</Qmail>
     {
 public:  // Constructors and destructor
 
@@ -58,14 +60,14 @@ public:  // Constructors and destructor
     * @return, Constructed object
     */
     //<Qmail>
-    static CIpsSosAOSchedulerUtils* NewLC();
+    static CIpsSosAOSchedulerUtils* NewLC(CIpsSosAOSettingsHandler& aSettings);
     //</Qmail>
     /**
     * NewL
     * @return, Constructed object
     */
     //<Qmail>
-    static CIpsSosAOSchedulerUtils* NewL();
+    static CIpsSosAOSchedulerUtils* NewL(CIpsSosAOSettingsHandler& aSettings);
     //</Qmail>
     /**
     * Destructor
@@ -93,15 +95,15 @@ private:
     * Constructor
     */
     //<Qmail>
-    CIpsSosAOSchedulerUtils();
+    CIpsSosAOSchedulerUtils(CIpsSosAOSettingsHandler& aSettings);
     //</Qmail>
     /**
     * Symbian 2-phase constructor
     */
     void ConstructL();
-
+	//<Qmail>
     /**
-    *
+    * gets time values needed to do cheduling
     */
     void PrepareScheduling(
         TTime& aClock,
@@ -110,7 +112,7 @@ private:
         TTimeIntervalSeconds& aStop );
 
     /**
-    *
+    * Checks if now is an allowed time to connect
     */
     TBool CanConnect(
         const TTime& aClock,
@@ -119,27 +121,27 @@ private:
         TTimeIntervalSeconds& aStop );
                         
     /**
-    *
+    * performs connection checks based on day
     */
     TIpsSosAOValidConnectionDay GetValidConnectionDay( 
         const TTime& aClock );
         
     /**
-    *
+    * Gets next day
     */
     TDay GetNextDay( 
         const TDay aToday, 
         const TInt aNth = 1 );
               
     /**
-    *
+    * Gets previous day
     */
     TDay GetPrevDay( 
         const TDay aToday, 
         const TInt aNth = 1 );
         
     /**
-    *
+    * Checks if given time in sync window
     */
     TBool IsValidTimeToConnect( 
         const TIpsSosAOValidConnectionDay aValidDay,
@@ -148,13 +150,13 @@ private:
         TTimeIntervalSeconds& aStop );
 
     /**
-    *
+    * Creates hometime with hours, minutes and seconds only
     */
     TDateTime AdjustHomeTime( 
         const TTime& aClock );
             
     /**
-    *
+    * Converts time to seconds
     */
     void Times2Seconds(
         const TTime& aClock,
@@ -163,7 +165,7 @@ private:
         TTimeIntervalSeconds& aStop );
                 
     /**
-    *
+    * Creates valid start and stop times
     */
     void OrganizeStartAndStopTimes(
         TTimeIntervalSeconds& aHome,
@@ -171,7 +173,7 @@ private:
         TTimeIntervalSeconds& aStop );
                     
     /**
-    *
+    * How many seconds to next connection/disconnection
     */
     void CalculateSecondsToNextMark(
         const TIpsSosAOConnectionType aConnectionStatus,
@@ -182,7 +184,7 @@ private:
         const TTimeIntervalSeconds& aStop );
 
     /**
-    *
+    * How many seconds to next day we are allowed to connect
     */
     TTimeIntervalSeconds CalcSecsToNextScheduledDay(
         const TTime& aClock, 
@@ -190,7 +192,7 @@ private:
         const TBool aScheduledDay );
 
     /**
-    *
+    * Sub routine for CalculateSecondsToNextMark
     */
     void CalcSecsToMark(
         TTimeIntervalSeconds& aSeconds,
@@ -200,17 +202,17 @@ private:
         const TBool aScheduledDay );
 
     /**
-    *
+    * Checks is given day selected to be synced
     */
     TBool IsDaySelected( const TUint aDay ) const;
-        
+    //</Qmail>
 private:
 
-    // Reference to extended settings
-    //<Qmail>
     
+    //<Qmail>
+    CIpsSosAOSettingsHandler& iSettings;
     //</Qmail>
     };
 
 
-#endif /*IPSSOSAOSCHEDULERUTILS_H_*/
+#endif /*IPSSOSAOSCHEDULERUTILS_H*/

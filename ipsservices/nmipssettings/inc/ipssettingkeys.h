@@ -62,6 +62,15 @@ static const quint32 EmailKeyPreferenceDownloadPictures = 1;
 // Values: 0=Divider not shown, 1=1ivider is shown
 static const quint32 EmailKeyPreferenceMessageDivider = 2;
 
+// sync profile identifiers
+static const int EmailSyncProfileKeepUpToDate = 0;
+static const int EmailSyncProfileSaveEnergy = 1;
+static const int EmailSyncProfileManualFetch = 2;
+static const int EmailSyncProfileUserDefined = 3;
+
+// initial sync profile value when a mailbox is created (save energy)
+static const int EmailInitialSyncProfile = 1;
+
 // Currently used sync profile 
 //  Keep Up-to-Date (=KUTD) / Save Energy (=SE) / Manual Fetch (=MF) / User defined (=UD)
 //  Keep Up-to-Date  = 0 (EmailProfileOffsetKUTD)
@@ -113,25 +122,25 @@ static const int DefaultValueSaveEnergyReceptionDays = 0x7F;
 static const int DefaultValueManualSyncReceptionDays = -1;
 static const int DefaultUserDefinedReceptionDays = -1;
 
-// Receive start time. Value 00am – 12pm (integer 0-23).
-// Value for each profile: KUTP(8), SE(8), MF(-1=N/A), UD
+// Receive start time. Value 00:00 – 23:59 (integer 0-1439).
+// Value for each profile: KUTP(480), SE(480), MF(-1=N/A), UD
 // This key follows the profile offset.
 static const quint32 EmailKeyReceptionDayStartTime = 8;
 
 // default values for each profile
-static const int DefaultValueKeepUpToDateReceptionStartTime = 8;
-static const int DefaultValueSaveEnergyReceptionStartTime = 8;
+static const int DefaultValueKeepUpToDateReceptionStartTime = 480;
+static const int DefaultValueSaveEnergyReceptionStartTime = 480;
 static const int DefaultValueManualSyncReceptionStartTime = -1;
 static const int DefaultUserDefinedReceptionStartTime = -1;
 
-// Receive end time. Value 00am – 12pm (integer 0-23).
-// Value for each profile: KUTP(22), SE(22), MF(-1=N/A), UD
+// Receive end time in minutes. Value 00:00 – 23:59 (integer 0-1439).
+// Value for each profile: KUTP(1320), SE(1320), MF(-1=N/A), UD
 // This key follows the profile offset.
 static const quint32 EmailKeyReceptionDayEndTime = 9;
 
 // default values for each profile
-static const int DefaultValueKeepUpToDateReceptionEndTime = 22;
-static const int DefaultValueSaveEnergyReceptionEndTime = 22;
+static const int DefaultValueKeepUpToDateReceptionEndTime = 1320;
+static const int DefaultValueSaveEnergyReceptionEndTime = 1320;
 static const int DefaultValueManualSyncReceptionEndTime = -1;
 static const int DefaultUserDefinedReceptionEndTime = -1;
 
@@ -158,6 +167,13 @@ static const quint32 EmailKeyReceptionRefreshPeriodOther = 11;
 // Defines if user name for particular mailbox is hidden.
 static const quint32 EmailKeyUserNameHidden = 20;
 
+static const quint32 EmailKeyEMNState = 21;
+static const quint32 EmailKeyFirstEmnReceived = 22;
+static const quint32 EmailKeyEmnReceivedNotSynced = 23;
+static const quint32 EmailKeyAoLastSuccessfulUpdateL = 24;
+static const quint32 EmailKeyAoLastSuccessfulUpdateH = 25;
+static const quint32 EmailKeyAoLastUpdateFailed = 26;
+static const quint32 EmailKeyAoUpdateSuccessfulWithCurSettings = 27;
 } // namespace
 
 #endif //IPSSETTINGKEYS_H

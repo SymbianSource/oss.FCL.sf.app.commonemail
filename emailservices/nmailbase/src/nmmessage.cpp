@@ -18,6 +18,21 @@
 #include "nmmessage.h"
 #include "nmmessageenvelope.h"
 
+/*!
+
+ */
+NmMessagePrivate::NmMessagePrivate() : mEnvelope(0)
+{
+    
+}
+
+/*!
+
+ */
+NmMessagePrivate::~NmMessagePrivate()
+{
+    
+}
 
 /*!
     \class NmMessage
@@ -29,46 +44,67 @@
  */
 NmMessage::NmMessage()
 {
+    d = new NmMessagePrivate();
 }
 
 /*!
     Constructs message with id \a id, parent id and mailbox id is set to null id
  */
-NmMessage::NmMessage(const NmId &id):NmMessagePart(id)
+NmMessage::NmMessage(const NmId &messageId) : NmMessagePart(0)
 {
-    mEnvelope.setId(id);
+    d = new NmMessagePrivate();
+    d->mEnvelope.setMessageId(messageId);
 }
 
 /*!
     Constructs message part with id \a id and with parent id \a parentId,
     mailbox id is set to null id
  */
-NmMessage::NmMessage(const NmId &id, const NmId &parentId)
-:NmMessagePart(id, parentId)
+NmMessage::NmMessage(const NmId &messageId, const NmId &folderId)
+: NmMessagePart(0)
 {
-	mEnvelope.setId(id);
+    d = new NmMessagePrivate();
+	d->mEnvelope.setMessageId(messageId);
+	d->mEnvelope.setFolderId(folderId);
 }
 
 /*!
     Constructs message with id \a id, with parent id \a parentId and
     with mailbox id \a mailboxId
  */
-NmMessage::NmMessage(const NmId &id,
-                     const NmId &parentId,
+NmMessage::NmMessage(const NmId &messageId,
+                     const NmId &folderId,
                      const NmId &mailboxId)
-:NmMessagePart(id, parentId, mailboxId)
+:NmMessagePart(0)
 {
-	mEnvelope.setId(id);
+    d = new NmMessagePrivate();
+	d->mEnvelope.setMessageId(messageId);
+	d->mEnvelope.setFolderId(folderId);
+	d->mEnvelope.setMailboxId(mailboxId);
 }
 
 /*!
-    Constructs message with meta data
+    Constructs message from envelope
  */
 NmMessage::NmMessage(const NmMessageEnvelope &envelope)
 {
-	mEnvelope = envelope;
-    // set message id same as meta data id
-    this->setId(envelope.id());
+    d = new NmMessagePrivate();
+    d->mEnvelope = envelope;
+    // set message id same as envelope id
+    //this->setMessageId(envelope.messageId());
+}
+
+/*!
+    Constructs message from envelope and message part private
+ */
+NmMessage::NmMessage(const NmMessageEnvelope &envelope,
+        QExplicitlySharedDataPointer<NmMessagePartPrivate> nmPrivateMessagePart)
+        : NmMessagePart(nmPrivateMessagePart)
+{
+    d = new NmMessagePrivate();
+	d->mEnvelope = envelope;
+    // set message id same as envelope id
+    //this->setMessageId(envelope.messageId());
 }
 
 /*!
@@ -76,12 +112,11 @@ NmMessage::NmMessage(const NmMessageEnvelope &envelope)
  */
 NmMessage::NmMessage(const NmMessagePart& message):NmMessagePart(message)
 {
-	mEnvelope.setId( message.id() );
+    d = new NmMessagePrivate();
 }
 
-NmMessage::NmMessage(const NmMessage& message):NmMessagePart(message)
+NmMessage::NmMessage(const NmMessage& message):NmMessagePart(message), d(message.d)
 {
-	mEnvelope.setId( message.id() );
 }
 
 /*!
@@ -90,7 +125,7 @@ NmMessage::NmMessage(const NmMessage& message):NmMessagePart(message)
 NmMessage &NmMessage::operator=(const NmMessage &message)
 {
 	if (this != &message) {
-		mEnvelope.setId( message.id() );
+		d = message.d;
 	}
 	return *this;
 }
@@ -100,24 +135,6 @@ NmMessage &NmMessage::operator=(const NmMessage &message)
  */
 NmMessage::~NmMessage()
 {
-}
-
-/*!
-    returns id of envelope
- */
-NmId NmMessage::id() const
-{
-    return mEnvelope.id();
-}
-
-
-/*!
-    Sets id to envelope
- */
-void NmMessage::setId(const NmId &id)
-{
-    //NmMessagePart::setId(id);
-    mEnvelope.setId(id);
 }
 
 /*!
@@ -169,25 +186,11 @@ NmMessagePart *NmMessage::htmlBodyPart()
 }
 
 /*!
-    Sets message meta data. If meta data id is different than null id, messages
-    id is set to \a envelope's id
- */
-void NmMessage::setEnvelope(const NmMessageEnvelope &envelope)
-{
-    mEnvelope = envelope;
-    if (envelope.id() != 0) {
-        this->setId(envelope.id());
-    } else {
-        mEnvelope.setId(this->id());
-    }
-}
-
-/*!
     Returns reference to message envelope
  */
 NmMessageEnvelope &NmMessage::envelope()
 {
-    return mEnvelope;
+    return d->mEnvelope;
 }
 
 /*!
@@ -195,7 +198,7 @@ NmMessageEnvelope &NmMessage::envelope()
  */
 const NmMessageEnvelope &NmMessage::envelope() const
 {
-    return mEnvelope;
+    return d->mEnvelope;
 }
 
 /**
@@ -221,7 +224,7 @@ void NmMessage::attachmentList(QList<NmMessagePart*> &parts) const
         if ( txtPart ) {
             // remove plain text body part from attachment list
             for ( int i = parts.count() - 1; i >= 0; --i ) {
-                if ( parts.at(i)->id() == txtPart->id() ) {
+                if ( parts.at(i)->partId() == txtPart->partId() ) {
                     parts.removeAt(i);
                     break;
                 }
@@ -232,7 +235,7 @@ void NmMessage::attachmentList(QList<NmMessagePart*> &parts) const
         if ( htmlPart ) {
             // remove html body part from attachment list
             for ( int i = parts.count() - 1; i >= 0; --i ) {
-                if ( parts.at(i)->id() == htmlPart->id() ) {
+                if ( parts.at(i)->partId() == htmlPart->partId() ) {
                     parts.removeAt(i);
                     break;
                 }

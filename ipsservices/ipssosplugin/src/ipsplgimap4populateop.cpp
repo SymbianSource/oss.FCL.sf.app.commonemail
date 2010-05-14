@@ -18,9 +18,12 @@
 #include "emailtrace.h"
 #include "ipsplgheaders.h"
 
+// <qmail> priority const has been removed
+
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
 // <qmail> priority parameter has been removed
+// <qmail> MFSMailRequestObserver& changed to pointer
 EXPORT_C CIpsPlgImap4PopulateOp* CIpsPlgImap4PopulateOp::NewL(
     CMsvSession& aMsvSession,
     TRequestStatus& aObserverRequestStatus,
@@ -90,12 +93,19 @@ CIpsPlgImap4PopulateOp::~CIpsPlgImap4PopulateOp()
     {
     FUNC_LOG;
     delete iSelection;
-   	delete iTempSelection;
+
+    if ( iTempSelection )
+    	{
+    	iTempSelection->Reset();
+   		delete iTempSelection;
+    	}
     }
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-void CIpsPlgImap4PopulateOp::ConstructL( const CMsvEntrySelection& aSel, TBool aDoFilterSelection )
+void CIpsPlgImap4PopulateOp::ConstructL( 
+        const CMsvEntrySelection& aSel,
+        TBool aDoFilterSelection )
     {
     FUNC_LOG;
     BaseConstructL( KUidMsgTypeIMAP4 );
@@ -124,7 +134,7 @@ void CIpsPlgImap4PopulateOp::ConstructL( const CMsvEntrySelection& aSel, TBool a
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-// <qmail> return type
+// <qmail> return type changed: TInt -> TIpsOpType
 TIpsOpType CIpsPlgImap4PopulateOp::IpsOpType() const
     {
     FUNC_LOG;
@@ -144,7 +154,7 @@ void CIpsPlgImap4PopulateOp::DoConnectL()
         iMsvSession,
         iStatus, 
         iService,
-        iActivityTimer,
+        *iActivityTimer,
         iFSMailboxId,
         NULL, // no observer for suboperations
         0,    // requestId not needed
@@ -185,7 +195,7 @@ void CIpsPlgImap4PopulateOp::DoRunL()
             {
             TMsvEntry tentry;
             TMsvId service;
-            iMsvSession.GetEntry( iService, service, tentry );
+            iMsvSession.GetEntry(iService, service, tentry );
             if( !tentry.Connected() )
                 {
                 CompleteObserver( KErrCouldNotConnect );
@@ -240,6 +250,7 @@ const TDesC8& CIpsPlgImap4PopulateOp::ProgressL()
     else
         {
         TImap4SyncProgress progg;
+    	progg.iFoldersNotFound = 0;
         progg.iErrorCode = KErrNone;
         TPckgBuf<TImap4SyncProgress> param(progg);
         iSyncProgress.Copy(param);
@@ -300,17 +311,21 @@ void CIpsPlgImap4PopulateOp::FilterSelectionL( const CMsvEntrySelection& aSelect
     FUNC_LOG;
     iSelection->Reset();
     TMsvId messageId;
+    // NOTE: this code is taken from symbian os source IMPCMTM.CPP
+    // filter selection is in here because messages are
+    // fetched separately then we dont have to make unneccessery imap 
+    // client mtm calls
 
-    for ( TInt i = 0; i < aSelection.Count(); i++ )
+    for (TInt i=0; i<aSelection.Count(); i++)
         {
-        messageId  = (aSelection)[i];
+        messageId = (aSelection)[i];
         if ( messageId == iService )
             {
             continue; // ignore serviceId
             }
         TMsvEmailEntry entry;
-        TMsvId service( KMsvNullIndexEntryId );          
-        User::LeaveIfError( iMsvSession.GetEntry( messageId, service, entry ) );
+        TMsvId service = KMsvNullIndexEntryId;          
+        User::LeaveIfError(iMsvSession.GetEntry(messageId, service, entry));
         
         TBool isComplete = !(   ( entry.Complete() && entry.PartialDownloaded() ) 
                              || ( !entry.Complete() && ( !entry.BodyTextComplete() 
@@ -319,9 +334,12 @@ void CIpsPlgImap4PopulateOp::FilterSelectionL( const CMsvEntrySelection& aSelect
 
         TBool isMsgEntry = entry.iType == KUidMsvMessageEntry;
         TBool isSizeUnderMax = entry.iSize <= iPartialMailInfo.iMaxEmailSize;
-        TBool isParentComp = entry.Parent() == iPartialMailInfo.iDestinationFolder && isComplete;
+        TBool isParentComp = entry.Parent() == 
+            iPartialMailInfo.iDestinationFolder && isComplete;
         
-        if( isMsgEntry && IsPartialPopulate() && !isComplete )
+        if( IsPartialPopulate( )
+              && !isComplete
+              && entry.iType == KUidMsvMessageEntry )
             {
             iSelection->AppendL( messageId ); 
             }
@@ -338,6 +356,8 @@ TBool CIpsPlgImap4PopulateOp::IsPartialPopulate( )
     {
     // <qmail> cleaned up code and took one "always true" condition out from the if statement
     FUNC_LOG;
+    // NOTE: this code is taken from symbian os source IMPCMTM.CPP
+    // code is modified to this class purpose 
     TBool isPartialPopulate( EFalse );
     if ( iPartialMailInfo.iPartialMailOptions == ENoSizeLimits &&
          iPartialMailInfo.iTotalSizeLimit == KMaxTInt &&
@@ -388,3 +408,5 @@ void CIpsPlgImap4PopulateOp::DoPopulateL( )
         CompleteObserver();
         }
     }
+
+// End of File

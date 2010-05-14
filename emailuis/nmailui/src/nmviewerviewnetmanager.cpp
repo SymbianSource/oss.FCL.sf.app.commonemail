@@ -55,13 +55,20 @@ void NmViewerViewNetManager::setView(NmViewerView *viewerView)
 QNetworkReply *NmViewerViewNetManager::createRequest(
     Operation op, const QNetworkRequest &request, QIODevice *outgoingData)
 {
-    const QUrl requestUrl = request.url();
+    QNetworkRequest myRequest(request);
+    // Set request attribute to prefer cachevar  
+    const QVariant cacheControl((int)QNetworkRequest::PreferCache);
+    myRequest.setAttribute(QNetworkRequest::CacheLoadControlAttribute, 
+                         cacheControl);
+    const QUrl requestUrl = myRequest.url();
+    // Check whether request is for embedded image
     if (mMessageView&&mMessageView->webView()&&op==QNetworkAccessManager::GetOperation
         && requestUrl.scheme()==NmViewerViewNetManagerScheme) {
         NmViewerViewNetReply* reply = new NmViewerViewNetReply(
             mMessageView->webView()->loadResource(QTextDocument::ImageResource, requestUrl));
-        reply->setOriginalRequest(request);
+        reply->setOriginalRequest(myRequest);
         return reply;
         }
-    return QNetworkAccessManager::createRequest(op, request, outgoingData);
+    // If request is not for embedded image, forward to base class
+    return QNetworkAccessManager::createRequest(op, myRequest, outgoingData);
 }

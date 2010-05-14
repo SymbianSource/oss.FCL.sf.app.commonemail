@@ -20,6 +20,11 @@
 
 #include "nmbaseclientplugin.h"
 #include "nmuiextensioninterface.h"
+#include "nmuienginedef.h"
+#include "nmactionrequest.h"
+
+class NmUiEngine;
+class NmSettingsViewLauncher;
 
 /*!
  \class NmImapClientPlugin
@@ -36,9 +41,19 @@ public:
     void getActions( const NmActionRequest &request,
         QList<NmAction*> &actionList);
 
+private slots:
+    void settings();
+    void switchToStandardFolderInbox();
+    void switchToStandardFolderOutbox();
+    void switchToStandardFolderDrafts();
+    void switchToStandardFolderSent();
+
 protected:
     virtual quint32 pluginId();
 
+private:
+    NmActionRequest mListOptionsMenuRequest;
+    NmSettingsViewLauncher *mSettingsViewLauncher; // owned
 };
 
 #endif /* NMIMAPCLIENTPLUGIN_H_ */

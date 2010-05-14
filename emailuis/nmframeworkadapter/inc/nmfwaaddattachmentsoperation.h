@@ -25,36 +25,34 @@
 
 class NmMessage;
 class CFSMailClient;
+class CFSMailMessage;
 
 class NmFwaAddAttachmentsOperation : public NmAddAttachmentsOperation,
                                      public MFSMailRequestObserver
 {
     Q_OBJECT
+    
 public:
     NmFwaAddAttachmentsOperation(const NmMessage &message,
                                  const QList<QString> &fileList,
                                  CFSMailClient &mailClient);
-    
-    virtual ~NmFwaAddAttachmentsOperation();
 
 public: // from MFSMailRequestObserver
-    virtual void RequestResponseL(TFSProgress aEvent, TInt aRequestId);
+    void RequestResponseL(TFSProgress aEvent, TInt aRequestId);
     
 protected:
-    virtual void doRunAsyncOperation();
-    virtual void doCancelOperation();
+    void doRunAsyncOperation();
+    void doCancelOperation();
 
 private:
+    ~NmFwaAddAttachmentsOperation();
     void doRunAsyncOperationL();	
 
 private:
-    const NmMessage &mMessage;
-
+    TInt mRequestId;
     QList<QString> mFileList;
-    
     CFSMailClient &mMailClient;
-    
-    QList<int> mRequestIds;
+    CFSMailMessage *mFSMessage;
 };
 
 #endif /* NMFWAADDATTACHMENTSOPERATION_H_ */

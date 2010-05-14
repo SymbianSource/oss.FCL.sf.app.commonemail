@@ -19,9 +19,8 @@
 #define NMEDITORTEXTEDIT_H_
 
 #include <hbtextedit.h>
-#include"nmailuiwidgetsdef.h"
+#include "nmailuiwidgetsdef.h"
 
-class NmEditorContent;
 class NmBaseViewScrollArea;
 class HbScrollArea;
 
@@ -34,7 +33,7 @@ public:
     NmEditorTextEdit(QGraphicsItem *parent = 0);
     virtual ~NmEditorTextEdit();
 
-    void init(NmEditorContent *parent, NmBaseViewScrollArea *bgScrollArea);
+    void init(NmBaseViewScrollArea *bgScrollArea);
     qreal contentHeight() const;
 
     void sendMousePressEvent(QGraphicsSceneMouseEvent *event);
@@ -46,7 +45,7 @@ public:
     QPair<bool, QColor> customTextColor() const;
 
 signals:
-    void setEditorContentHeight();
+    void editorContentHeightChanged();
 
 public slots:
     void updateEditorHeight();
@@ -56,7 +55,6 @@ public slots:
     void updateCustomTextColor();
 
 private:
-    NmEditorContent *mParent;
     HbScrollArea *mScrollArea;
     NmBaseViewScrollArea *mBackgroundScrollArea;
     qreal mPreviousContentsHeight;

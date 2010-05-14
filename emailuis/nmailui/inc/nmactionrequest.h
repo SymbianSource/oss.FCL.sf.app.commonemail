@@ -42,6 +42,7 @@ enum NmActionContextView
 	NmActionContextViewNone=0,
 	NmActionContextViewMailboxList,
 	NmActionContextViewMessageList,
+	NmActionContextViewMessageSearchList,
 	NmActionContextViewViewer,
 	NmActionContextViewEditor
     // Add more view id's when

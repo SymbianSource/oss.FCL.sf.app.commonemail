@@ -28,12 +28,10 @@ class NmMailboxListViewItem : public HbListViewItem
 public:
     NmMailboxListViewItem(QGraphicsItem * parent = 0);
     virtual ~NmMailboxListViewItem();
-    enum { ItemType = Hb::ItemType_Last + 1 };
 
 public: // from HbListViewItem
     HbListViewItem *createItem();
     void updateChildItems();
-    int type() const;
     bool canSetModelIndex(const QModelIndex &index);
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 

@@ -32,27 +32,23 @@ public:
         const NmId &mailboxId,
         const NmId &folderId,
         const NmId &messageId,
-        CFSMailClient &mailClient,
-        QObject *parent = NULL);
-    
-    ~NmFwaMessageFetchingOperation();
+        CFSMailClient &mailClient);
     
     // from MFSMailRequestObserver
     void RequestResponseL(TFSProgress aEvent, TInt aRequestId);
 
 protected:
-    virtual void doRunAsyncOperation();
+    void doRunAsyncOperation();
+    void doCancelOperation();
     
-protected:
-    virtual void doCancelOperation();
-
-protected:
+private:
+    ~NmFwaMessageFetchingOperation();
+    
+private:
     NmId mMailboxId;
     NmId mFolderId;
     NmId mMessageId;
-
-    CFSMailClient &mMailClient;
-    
+    CFSMailClient &mMailClient;  
     TInt mRequestId;
 };
 

@@ -18,45 +18,50 @@
 #ifndef NMAPIENGINE_H
 #define NMAPIENGINE_H
 
-#include "nmenginedef.h"
 #include "nmcommon.h"
-#include "nmapimailbox.h"
-#include "nmapifolder.h"
-#include "nmprivateclasses.h"
-#include "nmapimessageenvelope.h"
+#include "nmapiprivateclasses.h"
 
-class NmDataPluginFactory;
+class NmApiDataPluginFactory;
 
-class NmEngine : public QObject
+namespace EmailClientApi
+{
+class NmApiMailbox;
+class NmApiFolder;
+class NmApiMessageEnvelope;
+}
+
+class NmApiEngine : public QObject
 {
     Q_OBJECT
 public:
-    static NmEngine* instance();
-    static void releaseInstance(NmEngine *&engine);
+    static NmApiEngine* instance();
+    static void releaseInstance(NmApiEngine *&engine);
 
-    void listMailboxes(QList<EmailClientApi::NmMailbox> &mailboxList);
+    void listMailboxes(QList<EmailClientApi::NmApiMailbox> &mailboxList);
 
-    void listFolders(const quint64 mailboxId, QList<EmailClientApi::NmFolder> &folderList);
-    void listEnvelopes(const quint64 mailboxId, const quint64 folderId, QList<
-        EmailClientApi::NmMessageEnvelope> &messageEnvelopeList);
+    void listFolders(const quint64 mailboxId, QList<EmailClientApi::NmApiFolder> &folderList);
+    void listEnvelopes(const quint64 mailboxId, const quint64 folderId, 
+	                   QList<EmailClientApi::NmApiMessageEnvelope> &messageEnvelopeList);
 
-    bool envelopeById(
+    bool getEnvelopeById(
         const quint64 mailboxId,
         const quint64 folderId,
         const quint64 envelopeId,
-        EmailClientApi::NmMessageEnvelope &envelope);
-    bool mailboxById(const quint64 mailboxId, EmailClientApi::NmMailbox &mailbox);
+        EmailClientApi::NmApiMessageEnvelope &envelope);
+		
+    bool getMailboxById(const quint64 mailboxId, EmailClientApi::NmApiMailbox &mailbox);
 
     void startCollectingEvents();
+    
     signals:
     /*!
-     * It contains info about event in emailstore.
-     * 
-     * \arg Contains info about event and related object (message or mailbox list)
+       It contains info about event in emailstore.
+       
+       \arg Contains info about event and related object (message or mailbox list)
      */
     void emailStoreEvent(NmApiMessage message);
 
-public slots:
+private slots:
     void mailboxChangedArrived(NmMailboxEvent, const QList<NmId> &mailboxIds);
     void messageChangedArrived(
         NmMessageEvent messageEvent,
@@ -65,14 +70,14 @@ public slots:
         const NmId &mailboxId);
 
 private:
-    NmEngine();
-    virtual ~NmEngine();
+    NmApiEngine();
+    virtual ~NmApiEngine();
 
 private:
-    static NmEngine *mInstance;//!<Static instance of NmEngine. There can be only one instance of engine
+    static NmApiEngine *mInstance;//!<Static instance of NmApiEngine. There can be only one instance of engine
     static quint32 mReferenceCount;//!<Count of refences to engine instance
 
-    NmDataPluginFactory *mFactory;//!<Plugin factory. Is needed to get plugins for emails
+    NmApiDataPluginFactory *mFactory;//!<Plugin factory. Is needed to get plugins for emails
 };
 
-#endif /* NMENGINE_H_ */
+#endif /* NMAPIENGINE_H */

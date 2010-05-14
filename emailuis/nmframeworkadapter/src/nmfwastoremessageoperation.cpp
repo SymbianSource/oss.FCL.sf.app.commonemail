@@ -65,6 +65,8 @@ void NmFwaStoreMessageOperation::doRunAsyncOperation()
                 break;
             }
         }
+    } else {
+        completeOperation(NmGeneralError);
     }
 }
 
@@ -97,7 +99,7 @@ void NmFwaStoreMessageOperation::RequestResponseL(TFSProgress aEvent,
         if (aEvent.iProgressStatus ==
                 TFSProgress::EFSStatus_RequestComplete) {
             if(mStatus != EComplete) {
-                runAsyncOperation();
+                doRunAsyncOperation();
             } else {
                 completeOperation(NmNoError);
             }

@@ -16,11 +16,11 @@
 */
 
 #include "nmailuiwidgetsplugin.h"
-#include "nmrecipientlineedit.h"
-#include "nmhtmllineedit.h"
-#include "nmeditortextedit.h"
-#include "nmbaseviewscrollarea.h"
-#include "nmattachmentlistwidget.h"
+#include <nmrecipientlineedit.h>
+#include <nmhtmllineedit.h>
+#include <nmeditortextedit.h>
+#include <nmbaseviewscrollarea.h>
+#include <nmattachmentlistwidget.h>
 
 QObject *NMailUiWidgetsPlugin::createObject(const QString& type, const QString &name )
 {

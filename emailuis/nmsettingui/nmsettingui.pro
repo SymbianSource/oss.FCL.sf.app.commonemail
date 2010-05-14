@@ -23,10 +23,8 @@ QT += core
 
 DEPENDPATH += .
 
-INCLUDEPATH += .
 INCLUDEPATH += ./inc
 INCLUDEPATH += ../../inc
-INCLUDEPATH += ../nmailuiengine/inc
 INCLUDEPATH += $$APP_LAYER_SYSTEMINCLUDE
 
 CONFIG += hb
@@ -39,12 +37,8 @@ DEFINES += BUILD_NMAILSETTINGUI_DLL
 
 # Platforms
 SYMBIAN_PLATFORMS = WINSCW \
-    ARMV5
-LIBS += -lcpframework
-LIBS += -lnmailuiengine
-LIBS += -lnmailbase
-LIBS += -leuser
-LIBS += -llibc
+                    ARMV5
+
 # Input
 HEADERS += inc/nmsettinguidef.h
 HEADERS += inc/nmsettingsviewfactory.h
@@ -80,6 +74,12 @@ symbian: {
     # Build.inf rules
     BLD_INF_RULES.prj_exports += "$${LITERAL_HASH}include <platform_paths.hrh>" \
     "rom/nmsettingui.iby CORE_APP_LAYER_IBY_EXPORT_PATH(nmsettingui.iby)"
+
+    LIBS += -lcpframework
+    LIBS += -lnmailuiengine
+    LIBS += -lnmailbase
+    LIBS += -leuser
+    LIBS += -llibc
 }
 
 TARGET.CAPABILITY = All -TCB

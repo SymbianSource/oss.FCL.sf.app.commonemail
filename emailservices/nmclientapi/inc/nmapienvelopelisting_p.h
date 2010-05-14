@@ -20,19 +20,19 @@
 
 #include <QObject>
 
-#include "nmapimessageenvelope.h"
+class NmApiEngine;
 
-class NmEngine;
 
 namespace EmailClientApi
 {
+class NmApiMessageEnvelope;
 
-class NmEnvelopeListingPrivate : public QObject
+class NmApiEnvelopeListingPrivate : public QObject
 {
 public:
 
-    NmEnvelopeListingPrivate(QObject *parent = 0);
-    virtual ~NmEnvelopeListingPrivate();
+    NmApiEnvelopeListingPrivate(QObject *parent = 0);
+    virtual ~NmApiEnvelopeListingPrivate();
 
     bool initializeEngine();
     void releaseEngine();
@@ -41,9 +41,9 @@ public:
     bool mIsRunning;
     quint64 folderId;
     quint64 mailboxId;
-    NmEngine* mEngine;
+    NmApiEngine *mEngine;
 
-    QList<EmailClientApi::NmMessageEnvelope> mEnvelopes;
+    QList<EmailClientApi::NmApiMessageEnvelope> mEnvelopes;
 };
 }
-#endif /* NMENVELOPELISTINGPRIVATE_H_ */
+#endif /* NMAPIENVELOPELISTINGPRIVATE_H */

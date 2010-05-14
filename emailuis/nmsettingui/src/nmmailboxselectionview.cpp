@@ -49,14 +49,14 @@ NmMailboxSelectionView::NmMailboxSelectionView(
 : CpBaseSettingView(0, parent),
   mSettingsManager(settingsManager),
   mSettingsFactory(settingsFactory),
-  mSignalMapperConnected(false),
   mRefreshForm(false)
 {
     QScopedPointer<QSignalMapper> signalMapper(new QSignalMapper());
 
-    // Connect the form activated signal.
-    connect(settingForm(), SIGNAL(activated(QModelIndex)),
-        this, SLOT(formActivate(QModelIndex)));
+    // Connect the form's activated signal.
+    HbDataForm *form = qobject_cast<HbDataForm*>(widget());
+    connect(form, SIGNAL(activated(QModelIndex)),
+        this, SLOT(itemActivate(QModelIndex)));
 
     QScopedPointer<CpItemDataHelper> itemHelper(new CpItemDataHelper());
     QScopedPointer<HbDataFormModel> model(new HbDataFormModel());
@@ -103,32 +103,33 @@ void NmMailboxSelectionView::buttonClick(QObject *item)
 }
 
 /*!
-    Handles the form activate signal. Maps the signal/mailbox item for the
-    buttons.
+    Handels the dataform's activated signal when item is shown. 
+    Maps the signal/mailbox item for the buttons.
 
     \param index Data model index.
 
 */
-void NmMailboxSelectionView::formActivate(const QModelIndex &index)
+void NmMailboxSelectionView::itemActivate(const QModelIndex &index)
 {
-    NMLOG("NmMailboxSelectionView::formActivate");
-    HbWidget *widget = settingForm()->dataFormViewItem(index)->dataItemContentWidget();
-    HbDataFormModel *model = static_cast<HbDataFormModel *>(settingForm()->model());
+    NMLOG("NmMailboxSelectionView::itemActivate");
+    
+    HbDataForm *form = qobject_cast<HbDataForm*>(widget());
+    HbDataFormModel *model = static_cast<HbDataFormModel *>(form->model());
     NmMailboxEntryItem *item = static_cast<NmMailboxEntryItem *>(model->itemFromIndex(index));
-    HbPushButton *button = static_cast<HbPushButton *>(widget);
-
+    
     if (!mSignalMapper->mapping(item)) {
+        
+        HbDataFormViewItem *viewItem = 
+            static_cast<HbDataFormViewItem *>(form->itemByIndex(index));
+        HbPushButton *button = 
+            static_cast<HbPushButton *>(viewItem->dataItemContentWidget());
+        
         connect(button, SIGNAL(pressed()), mSignalMapper, SLOT(map()));
-
+    
         mSignalMapper->setMapping(button, item);
-
-        // Form activate is called as many times as there are items in the view.
-        // This prevents multiple connections, so that the button click
-        // will be called only once.
-        if (!mSignalMapperConnected) {
-            connect(mSignalMapper, SIGNAL(mapped(QObject *)), this, SLOT(buttonClick(QObject *)));
-            mSignalMapperConnected = true;
-        }
+    
+        connect(mSignalMapper, SIGNAL(mapped(QObject *)), 
+            this, SLOT(buttonClick(QObject *)), Qt::UniqueConnection);
     }
 }
 
@@ -150,7 +151,8 @@ void NmMailboxSelectionView::populateDataModel(const QList<NmMailbox *> &mailbox
         mModel->appendDataFormItem(item.data());
         item.take();
     }
-    settingForm()->setModel(mModel);
+    HbDataForm *form = qobject_cast<HbDataForm*>(widget());
+    form->setModel(mModel);
 }
 
 /*!

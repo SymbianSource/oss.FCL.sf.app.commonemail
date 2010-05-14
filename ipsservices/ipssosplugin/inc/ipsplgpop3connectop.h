@@ -33,9 +33,21 @@ NONSHARABLE_CLASS ( CIpsPlgPop3ConnectOp ) :
     // <qmail> MIpsPlgConnectOpCallback not used any more
 public:
 
-        /**
-        *
-        */
+	    /**
+	    * NewL
+	    * @param aMsvSession client/server session to MsvServer
+	    * @param aObserverRequestStatus client status
+	    * @param aService serviceId of the mailbox
+	    * @param aForcePopulate whether to populate fetched messages
+	    * @param aActivityTimer mailbox specific activity timer
+	    * @param aFSMailBoxId specifies mailbox
+	    * @param aFSOperationObserver observer callback pointer
+	    * @param aFSRequestId client assigned identifier for the request instance
+	    * @param aEventHandler event handler for sending sync events
+	    * @return new instance of the class
+	    */
+		// <qmail> MFSMailRequestObserver& changed to pointer
+		// <qmail> aSignallingAllowed parameter removed
         static CIpsPlgPop3ConnectOp* NewL(
             CMsvSession& aMsvSession,
             TRequestStatus& aObserverRequestStatus,
@@ -45,7 +57,7 @@ public:
             TFSMailMsgId aFSMailBoxId,
             MFSMailRequestObserver* aFSOperationObserver,
             TInt aFSRequestId,
-            CIpsPlgEventHandler* aEventHandler=NULL );
+            CIpsPlgEventHandler* aEventHandler );
 
         /**
         *
@@ -53,7 +65,8 @@ public:
         virtual ~CIpsPlgPop3ConnectOp();
 
         /**
-        *
+	    * From CIpsPlgBaseOperation
+	    * For reporting if DoRunL leaves
         */
         const TDesC8& GetErrorProgressL(TInt aError);
         
@@ -62,21 +75,24 @@ public:
         */
         TFSProgress GetFSProgressL() const;
 
+	    /**
+	    * From MsvOperation
+	    * Gets information on the progress of the operation
+	    * (see MsvOperation header)
+	    */
+	    // <qmail> moved to 'public:'as defined so in base class
+	    const TDesC8& ProgressL();
 // <qmail> Connected() used from baseclass
         
-        // <qmail> change ret val type
+// <qmail> change ret val type
         /**
          * Returns operation type
          */
         TIpsOpType IpsOpType() const;
+// </qmail>
 
     protected:
 
-        /**
-        * 
-        */
-        const TDesC8& ProgressL();
-        
         /**
          * 
          */
@@ -87,16 +103,13 @@ public:
         */
         void DoRunL();
         
-        /**
-        * 
-        */
-        TInt GetOperationErrorCodeL( );
-        
     private:
 
         /**
         *
         */
+		// <qmail> MFSMailRequestObserver& changed to pointer
+		// <qmail> aSignallingAllowed parameter removed
         CIpsPlgPop3ConnectOp(
             CMsvSession& aMsvSession,
             TRequestStatus& aObserverRequestStatus,
@@ -119,34 +132,40 @@ public:
          */
         void DoConnectL();
         void DoPopulateL();
-// <qmail> TBool ValidateL() removed (did nothing)
-// <qmail> void DoQueryPasswordL() not used any more
+	    // <qmail> removed TBool ValidateL() (did nothing)
+	    // <qmail> removed void DoQueryPasswordL() not used any more
         void DoDisconnect();
-        // </qmail>
+		// </qmail>
         
         // <qmail> removed flag methods as they were not used or even defined anywhere
         
+	    // <qmail> new function
+	    /**
+	     * Reads populate limit from account's settings and converts it to member variable
+	     */
+	    TInt GetPopulateLimitFromSettingsL();
     private: // Data
     
-        enum TPopConnectStates 
+    	enum TOperationState 
             {
             EStartConnect,
             EConnected,
             EPopulate,
-            // <qmail> new EDisconnecting state, removed querydetails state
+            // <qmail> removed EQueryingDetails/EQueryingDetailsBusy state
+        	// <qmail> new EDisconnecting state
             EDisconnecting,
-            // </qmail>
-            EErrInvalidDetails,
+        	// <qmail> removed EErrInvalidDetails,
             EIdle
             };
 
-        TInt                                            iState;
-        CMsvEntry*                                      iEntry;        
-        TPckgBuf<TPop3Progress>                         iProgress;
-        TInt                                            iPopulateLimit;
-        TBool                                           iForcePopulate;
-        CMsvEntrySelection*                             iSelection;
-        CIpsPlgEventHandler*                            iEventHandler; // not owned
+	    TOperationState                                 iState;
+	    // <qmail> removed iEntry;
+	    TPckgBuf<TPop3Progress>                         iProgress;
+	    // <qmail> removed iPopulateLimit;
+	    TBool                                           iForcePopulate;
+	    // <qmail> removed iSelection;
+	    CIpsPlgEventHandler*                            iEventHandler; // not owned
+        TBool                                           iAlreadyConnected;
     };
 
 #endif

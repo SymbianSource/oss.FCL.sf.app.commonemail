@@ -18,102 +18,104 @@
 #ifndef NMAPIEVENTNOTIFIER_H
 #define NMAPIEVENTNOTIFIER_H
 
-#include <QtCore>
-#include "nmapimessagetask.h"
-#include "nmenginedef.h"
-#include "nmcommon_api.h"
+#include <nmapimessagetask.h>
+#include <nmapidef.h>
+#include <nmapicommon.h>
 
 struct NmApiMessage;
 
 namespace EmailClientApi
 {
-class NmEventNotifierPrivate;
+class NmApiEventNotifierPrivate;
 
-/*
- * Notifier for mailbox and message events
- * 
- * Example of use:
- * NmEventNotifier *notifier = new NmEventNotifier(this);
- * notifier->start();
- * connect(notifier,SIGNAL(messageEvent(MessageEvent,quint64,quint64,QList<quint64>)),this,
- *                  SLOT(processMessage(MessageEvent,quint64,quint64,QList<quint64>)),Qt::QueuedConnection);
- * 
- * And then when want to end need to do:
- * notifier->cancel();
- * delete notifier; // or notifier->deleteLater();
+/*!
+   Notifier for mailbox and message events
+   
+   Example of use:
+   \code
+   NmApiEventNotifier *notifier = new NmApiEventNotifier(this);
+   notifier->start();
+   connect(notifier,SIGNAL(messageEvent(MessageEvent,quint64,quint64,QList<quint64>)),this,
+                    SLOT(processMessage(MessageEvent,quint64,quint64,QList<quint64>)),Qt::QueuedConnection);
+   \endcode
+   And then when want to end need to do:
+   \code
+   notifier->cancel();
+   delete notifier; // or notifier->deleteLater();
+   \endcode
  */
-class NMENGINE_EXPORT NmEventNotifier : public NmMessageTask
+class NMAPI_EXPORT NmApiEventNotifier : public NmApiMessageTask
 {
     Q_OBJECT
 public:
     /*!
-     * Constructor
+       Constructor
      */
-    NmEventNotifier(QObject *parent);
+    NmApiEventNotifier(QObject *parent);
 
     /*!
-     * Destructor
+       Destructor
      */
-    virtual ~NmEventNotifier();
+    virtual ~NmApiEventNotifier();
 
     /*!
-     * Start monitoring email events
-     * 
-     * Return value tells about monitoring system running
+       Start monitoring email events
+       
+       Return value informs if monitoring system is up
      */
     virtual bool start();
 
     /*!
-     * Cancels monitoring.
-     * 
-     * In user responsibility is to cancel monitoring.
-     * On end it clear buffer events and emits \sa NmMessageTask::canceled() signal.
+       Cancels monitoring.
+       
+       In user responsibility is to cancel monitoring.
+       On end it clear buffer events and emits \sa NmApiMessageTask::canceled() signal.
      */
     virtual void cancel();
 
     /*!
-     * It check if if event notifier is running.
+       Checks if event notifier is running.
      */
     bool isRunning() const;
 
     signals:
     /*!
-     * This signal is emited when buffer of maiblox events is ready to send. Buffer is list of mailbox events with id.
-     * 
-     * 
-     * It emits signals grouped by events. So there will be as much signals as much there are events.
-     * For safety when connect it need to use \sa Qt::QueuedConnection.
-     * After that use \sa EmailClientApi::NmEmailService::getMailbox to get object.
-     * \arg Event of mailbox
-     * \arg List of mailbox ids where event occur.
+       This signal is emited when buffer of mailbox events is ready to send. Buffer is list of mailbox events with id.
+       
+       
+       It emits signals grouped by events. So there will be as much signals as much there are events.
+       For safety when connect it need to use \sa Qt::QueuedConnection.
+       After that use \sa EmailClientApi::NmEmailService::getMailbox to get object.
+       \param event Event of mailbox
+       \param id List of mailbox ids where event occur.
      */
-    void mailboxEvent(MailboxEvent event,QList<quint64> id);
+    void mailboxEvent(EmailClientApi::NmApiMailboxEvent event, QList<quint64> id);
 
     /*!
-     * This signal is emited when buffer of messages events is ready to send. Buffer is list of messages events with id.
+       This signal is emited when buffer of messages events is ready to send. Buffer is list of messages events with id.
      *
-     * It emits signals grouped by events, mailbox and folder. So there will be as much signals as much there are events.
-     * For safety when connect it need to use \sa Qt::QueuedConnection.
-     * After that use \sa EmailClientApi::NmEmailService::getEnvelope to get object.
-     * 
-     * \arg Event of messages
-     * \arg Message mailbox
-     * \arg Message folder
-     * \arg List of messages ids where event occur
+       It emits signals grouped by events, mailbox and folder. So there will be as much signals as much there are events.
+       For safety when connect it need to use \sa Qt::QueuedConnection.
+       After that use \sa EmailClientApi::NmApiEmailService::getEnvelope to get object.
+       
+       \param event Event of messages
+       \param mailboxId Message mailbox
+       \param folderId Message folder
+       \param envelopeIdList List of messages ids where event occur
      */
-    void messageEvent(MessageEvent event,quint64 mailboxId,quint64 folderId,QList<quint64> envelopeIdList);
+    void messageEvent(EmailClientApi::NmApiMessageEvent event, quint64 mailboxId, quint64 folderId, QList<quint64> envelopeIdList);
 
 public slots:
     /*!
-     * It check each object in buffer and emit signal with it.
-     * 
-     * After end of work of this function buffer is empty.
-     * It is called by timeout signal from timer.
+       It check each object in buffer and emit signal with it.
+       
+       After end of work of this function buffer is empty.
+       It is called by timeout signal from timer.
      */
     void sendEventsFromBuffer();
 
 private:
-    NmEventNotifierPrivate *mNmEventNotifierPrivate;
+    NmApiEventNotifierPrivate *mNmApiEventNotifierPrivate;
 };
 
 }

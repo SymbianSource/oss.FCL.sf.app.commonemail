@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+* Copyright (c) 2009 - 2010 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -18,14 +18,12 @@
 #ifndef NMFRAMEWORKADAPTER_H
 #define NMFRAMEWORKADAPTER_H
 
-
 #include <nmcommon.h>
 #include <nmdataplugininterface.h>
 #include <CFSMailCommon.h>
 #include <MFSMailEventObserver.h>
-#ifdef Q_OS_SYMBIAN
+
 #include <xqsharablefile.h>
-#endif
 
 class NmMailbox;
 class NmMessage;
@@ -39,9 +37,10 @@ class CFSMailMessage;
 class CFSMailMessagePart;
 class NmStoreEnvelopesOperation;
 class NmAddAttachmentsOperation;
-class NmOperation;
 class NmCheckOutboxOperation;
+class NmMailboxSearchObserver;
 class NmMessageSendingOperation;
+
 
 class NmFrameworkAdapter :
     public QObject,
@@ -53,9 +52,9 @@ class NmFrameworkAdapter :
 
 public:
 
-    NmFrameworkAdapter( );
+    NmFrameworkAdapter();
 
-    ~NmFrameworkAdapter( );
+    ~NmFrameworkAdapter();
 
     int listMailboxIds(QList<NmId>& mailboxIdList);
 
@@ -79,17 +78,23 @@ public:
             const NmId& mailboxId,
             const NmId& folderId,
             QList<NmMessageEnvelope*> &messageMetaDataList);
+    
+    int listMessages(
+            const NmId& mailboxId,
+            const NmId& folderId,
+            QList<NmMessage*> &messageList,
+            const int maxAmountOfMessages = NmMaxItemsInMessageList);
 
-    NmOperation *fetchMessage( 
+    QPointer<NmOperation> fetchMessage( 
             const NmId &mailboxId, 
             const NmId &folderId,
             const NmId &messageId);
     
-    NmOperation *fetchMessagePart( 
-        const NmId &mailboxId,
-        const NmId &folderId,
-        const NmId &messageId,
-        const NmId &messagePartId);
+    QPointer<NmOperation> fetchMessagePart( 
+            const NmId &mailboxId,
+            const NmId &folderId,
+            const NmId &messageId,
+            const NmId &messagePartId);
     
     XQSharableFile messagePartFile(
             const NmId &mailboxId,
@@ -118,33 +123,33 @@ public:
             const NmId &folderId,
             const QList<NmId> &messageIdList);
 
-    NmStoreEnvelopesOperation *storeEnvelopes(
+    QPointer<NmStoreEnvelopesOperation> storeEnvelopes(
             const NmId &mailboxId,
             const NmId &folderId,
             const QList<const NmMessageEnvelope*> &envelopeList);
 
-    NmMessageCreationOperation *createNewMessage(
-        const NmId &mailboxId);
+    QPointer<NmMessageCreationOperation> createNewMessage(
+            const NmId &mailboxId);
 
-    NmMessageCreationOperation *createForwardMessage(
-        const NmId &mailboxId,
-        const NmId &originalMessageId);
+    QPointer<NmMessageCreationOperation> createForwardMessage(
+            const NmId &mailboxId,
+            const NmId &originalMessageId);
      
-    NmMessageCreationOperation *createReplyMessage(
-        const NmId &mailboxId,
-        const NmId &originalMessageId,
-        const bool replyAll);
+    QPointer<NmMessageCreationOperation> createReplyMessage(
+            const NmId &mailboxId,
+            const NmId &originalMessageId,
+            const bool replyAll);
     
     int saveMessage(const NmMessage &message);
 
-    NmOperation *saveMessageWithSubparts(const NmMessage &message);
+    QPointer<NmOperation> saveMessageWithSubparts(const NmMessage &message);
 
     void EventL(
-        TFSMailEvent event,
-        TFSMailMsgId mailbox,
-        TAny* param1,
-        TAny* param2,
-        TAny* param3);
+            TFSMailEvent event,
+            TFSMailMsgId mailbox,
+            TAny* param1,
+            TAny* param2,
+            TAny* param3);
 
     int removeMessage(const NmId& mailboxId, const NmId& folderId, const NmId& messageId);
     
@@ -152,15 +157,17 @@ public:
     
     void unsubscribeMailboxEvents(const NmId& mailboxId);
 
-    NmMessageSendingOperation *sendMessage(NmMessage *message);
+    QPointer<NmMessageSendingOperation> sendMessage(NmMessage *message);
     
-    NmAddAttachmentsOperation *addAttachments(
+    QPointer<NmAddAttachmentsOperation> addAttachments(
             const NmMessage &message, 
             const QList<QString> &fileList);
 
-    NmOperation *removeAttachment(const NmMessage &message, const NmId &attachmentPartId);
+    QPointer<NmOperation> removeAttachment(
+            const NmMessage &message, 
+            const NmId &attachmentPartId);
 
-    NmCheckOutboxOperation *checkOutbox(const NmId& mailboxId);
+    QPointer<NmCheckOutboxOperation> checkOutbox(const NmId& mailboxId);
     
     NmSyncState syncState(const NmId& mailboxId) const;
     
@@ -176,9 +183,17 @@ public:
             const NmId& folderId,
             QList<NmMessageEnvelope*> &messageMetaDataList,
             const int maxAmountOfEnvelopes);
-			
+
+    int search(const NmId &mailboxId,
+               const QStringList &searchStrings);
+
+    int cancelSearch(const NmId &mailboxId);
+
+
 signals:
+
     void mailboxEvent(NmMailboxEvent event, const QList<NmId> &mailboxIds);
+
     void messageEvent(
             NmMessageEvent event,
             const NmId &folderId,
@@ -186,24 +201,29 @@ signals:
             const NmId& mailboxId); //added to provide mailboxId
     
     void syncStateEvent(
-        NmSyncState state,
-        const NmOperationCompletionEvent &event );
+            NmSyncState state,
+            const NmOperationCompletionEvent &event );
     
-    void connectionEvent(NmConnectState state, const NmId mailboxId);
+    void connectionEvent(NmConnectState state, const NmId mailboxId, int errorCode);
+
+    void matchFound(const NmId &messageId);
+
+    void searchComplete();
+
 
 private:
     
     void getMessageByIdL(
-        const NmId& mailboxId,
-        const NmId& folderId,
-        const NmId& messageId,
-        NmMessage*& message);
+            const NmId& mailboxId,
+            const NmId& folderId,
+            const NmId& messageId,
+            NmMessage*& message);
 
     void contentToMessagePartL(
-        const NmId &mailboxId,
-        const NmId &folderId,
-        const NmId &messageId,
-        NmMessagePart &messagePart);
+            const NmId &mailboxId,
+            const NmId &folderId,
+            const NmId &messageId,
+            NmMessagePart &messagePart);
         
     void listMessagesL(  
             const NmId &mailboxId,
@@ -211,6 +231,17 @@ private:
             QList<NmMessageEnvelope*> &messageMetaDataList, 
             const int maxAmountOfEnvelopes);
     
+    void listMessagesL(  
+            const NmId &mailboxId,
+            const NmId &folderId,
+            QList<NmMessage*> &messageList, 
+            const int maxAmountOfMessages);
+
+    void searchL(const NmId &mailboxId,
+                 const QList<NmId> &folderIds,
+                 const QStringList &searchStrings,
+                 NmMailboxSearchObserver &searchObserver);
+
     NmId getMailboxIdByMailMsgId(TFSMailMsgId mailbox);
 
     void removeMessageL(const NmId& mailboxId,
@@ -245,10 +276,13 @@ private:
 	void getFolderByIdL(
             const NmId& mailboxId, 
             const NmId& folderId, 
-            NmFolder*& unreadCount );		
-	
-private:
-    CFSMailClient*  mFSfw;//singleton, not owned
+            NmFolder*& unreadCount );
+
+
+private: // Data
+
+    CFSMailClient* mFSfw; // Singleton, not owned
+    NmMailboxSearchObserver *mSearchObserver; // Owned
 };
 
 
