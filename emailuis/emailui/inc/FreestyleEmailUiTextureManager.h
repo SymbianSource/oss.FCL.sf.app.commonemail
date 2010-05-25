@@ -159,6 +159,20 @@ enum TFSEmailUiTextures
     EFolderListServerFoldersTexturePopup,
     EFolderListEmailAccountTexturePopup,
     // SORT LIST ICONS
+    ESortListAttachmentAscTexturePopup,
+    ESortListAttachmentDescTexturePopup,
+    ESortListDateAscTexturePopup,
+    ESortListDateDescTexturePopup,
+    ESortListFollowAscTexturePopup,
+    ESortListFollowDescTexturePopup,
+    ESortListPriorityAscTexturePopup,
+    ESortListPriorityDescTexturePopup,
+    ESortListSenderAscTexturePopup,
+    ESortListSenderDescTexturePopup,
+    ESortListSubjectAscTexturePopup,
+    ESortListSubjectDescTexturePopup,
+    ESortListUnreadAscTexturePopup,
+    ESortListUnreadDescTexturePopup,    
     ESortListAttachmentAscTexture,
     ESortListAttachmentDescTexture,
     ESortListDateAscTexture,
@@ -242,6 +256,8 @@ public:
 	CAlfTexture& WatermarkBackgroundForThisResolutionL();	
 	// Get any texture by ID
 	CAlfTexture& TextureByIndex( TFSEmailUiTextures aIndex );
+	// Clear any texture by ID
+	void ClearTextureByIndex( TFSEmailUiTextures aIndex );
 	// Get new skinned selector brush object for gen ui list.
 	// Ownership is NOT transferred to caller.
 	CAlfFrameBrush* ListSelectorBrushL();

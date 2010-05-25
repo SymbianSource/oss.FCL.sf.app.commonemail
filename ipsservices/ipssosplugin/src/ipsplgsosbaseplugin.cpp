@@ -2603,4 +2603,24 @@ void CIpsPlgSosBasePlugin::DeleteActivityTimer( const TFSMailMsgId& aMailboxId  
             }
         }
     }
-
+// ---------------------------------------------------------------------------
+// finds and returns extension
+// ---------------------------------------------------------------------------
+//
+CEmailExtension* CIpsPlgSosBasePlugin::ExtensionL( const TUid& aInterfaceUid )
+    {
+    FUNC_LOG;
+    
+    // search for settings extension
+    CEmailExtension* extension = CExtendableEmail::ExtensionL( aInterfaceUid );
+    
+    // if not found create settings extension
+    if ( extension == NULL && aInterfaceUid == KEmailSettingExtensionUid)
+        {
+        extension = new (ELeave) CEmailSettingsExtensionImpl(iSession);
+        CleanupStack::PushL( extension );
+        iExtensions.AddL( extension );
+        CleanupStack::Pop(); 
+        }
+    return extension;
+    }

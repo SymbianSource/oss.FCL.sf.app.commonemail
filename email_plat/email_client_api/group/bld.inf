@@ -36,5 +36,6 @@ PRJ_EXPORTS
 ../inc/memailcontent.h              APP_LAYER_PLATFORM_EXPORT_PATH(memailcontent.h)
 ../inc/memailmessagesearch.h		APP_LAYER_PLATFORM_EXPORT_PATH(memailmessagesearch.h)
 ../inc/mmailboxsyncobserver.h		APP_LAYER_PLATFORM_EXPORT_PATH(mmailboxsyncobserver.h)
+../inc/mmailboxcontentobserver.h	APP_LAYER_PLATFORM_EXPORT_PATH(mmailboxcontentobserver.h)
 
 // End of File

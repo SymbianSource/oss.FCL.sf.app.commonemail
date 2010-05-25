@@ -32,6 +32,8 @@
 #include "cfsmailcommon.h"
 
 #include <CalenInterimUtils2.h>
+#include <featdiscovery.h>
+#include <bldvariant.hrh>
 
 // DEBUG
 #include "emailtrace.h"
@@ -56,7 +58,7 @@ CESMRFieldBuilderPluginExtension::CESMRFieldBuilderPluginExtension() :
 CESMRFieldBuilderPluginExtension::~CESMRFieldBuilderPluginExtension()
     {
     FUNC_LOG;
-    if(iESMRStaticAccessed) 
+    if(iESMRStaticAccessed)
         {
         iESMRStatic.Close();
         }
@@ -81,7 +83,7 @@ TBool CESMRFieldBuilderPluginExtension::CFSMailBoxCapabilityL(
         TMRCFSMailBoxCapability aCapa )
     {
     FUNC_LOG;
-    
+
     iESMRStatic.ConnectL();
     iESMRStaticAccessed = ETrue;
 
@@ -97,14 +99,14 @@ TBool CESMRFieldBuilderPluginExtension::CFSMailBoxCapabilityL(
             TMRCFSMailBoxCapability aCapa )
     {
     FUNC_LOG;
-        
+
     iESMRStatic.ConnectL();
     iESMRStaticAccessed = ETrue;
 
     CFSMailBox* mailBox = iESMRStatic.MailBoxL( aEmailAddress );
     TBool result = HasCapability( *mailBox, aCapa );
     delete mailBox;
-    
+
     return result;
     }
 
@@ -117,26 +119,29 @@ TBool CESMRFieldBuilderPluginExtension::MRCanBeOriginateedL()
     FUNC_LOG;
     TBool retValue( EFalse );
 
-    iESMRStatic.ConnectL();
-    iESMRStaticAccessed = ETrue;
-
-    CCalenInterimUtils2* calUtils2 = CCalenInterimUtils2::NewL();
-    CleanupStack::PushL( calUtils2 );
-    if ( calUtils2->MRViewersEnabledL() )
+    if ( CFeatureDiscovery::IsFeatureSupportedL(
+            TUid::Uid( KFeatureIdFfCalMeetingRequestUi ) ) )
         {
-        TRAPD( err, iESMRStatic.DefaultFSMailBoxL() );
+        iESMRStatic.ConnectL();
+        iESMRStaticAccessed = ETrue;
 
-        if ( KErrNone == err )
+        CCalenInterimUtils2* calUtils2 = CCalenInterimUtils2::NewL();
+        CleanupStack::PushL( calUtils2 );
+        if ( calUtils2->MRViewersEnabledL() )
             {
-            // If can fetch the default FS mailbox -->
-            // We are able to originate MR as well.
-            retValue = ETrue;
+            TRAPD( err, iESMRStatic.DefaultFSMailBoxL() );
+
+            if ( KErrNone == err )
+                {
+                // If can fetch the default FS mailbox -->
+                // We are able to originate MR as well.
+                retValue = ETrue;
+                }
             }
+
+        CleanupStack::PopAndDestroy( calUtils2 );
+        calUtils2 = NULL;
         }
-
-    CleanupStack::PopAndDestroy( calUtils2 );
-    calUtils2 = NULL;
-
     return retValue;
     }
 
@@ -285,19 +290,19 @@ TBool CESMRFieldBuilderPluginExtension::HasCapability(
                     EFSMBoxCapaMeetingRequestAttendeeStatus );
             break;
             }
-            
+
         case EMRCFSRemoveFromCalendar:
             {
             response = aMailBox.HasCapability( EFSMBoxCapaRemoveFromCalendar );
             break;
             }
-            
+
         case EMRCFSSupportsAttachmentsInMR:
             {
             response = aMailBox.HasCapability( EFSMboxCapaSupportsAttahmentsInMR );
             }
             break;
-            
+
         default:
             {
             break;

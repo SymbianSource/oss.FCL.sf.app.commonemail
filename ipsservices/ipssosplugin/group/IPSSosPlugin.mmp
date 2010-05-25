@@ -65,6 +65,7 @@ SOURCE                  ipsplgpropertywatcher.cpp
 SOURCE                  ipsplgtextsearcher.cpp
 SOURCE                  ipsplgconnectandrefreshfolderlist.cpp
 SOURCE                  ipsplgsyncstatehandler.cpp
+SOURCE                  cemailsettingsextensionimpl.cpp
 
 SOURCEPATH              ../data
 

@@ -112,6 +112,7 @@ SOURCE  cmailcustomstatuspaneindicators.cpp
 SOURCE  OverlayControl.cpp
 SOURCE FSHtmlReloadAO.cpp
 SOURCE fsemailstatuspaneindicatorhandler.cpp
+SOURCE FSAsyncTextFormatter.cpp
 
 SOURCEPATH      ../group
 

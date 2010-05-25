@@ -140,6 +140,17 @@ public:
      * The method follows "fire and forget" pattern, returns immediately.
      */
     virtual void EditNewMessageL() = 0;
+    
+    /** Register mailbox observer 
+     * @param aObserver observer called back when changes in mailbox (new message,
+     * messages changes or messages deleted).
+     * */
+    virtual void RegisterObserverL( MMailboxContentObserver& aObserver ) = 0;
+        
+    /** 
+     * Unregister mailbox observe.r 
+     */
+    virtual void UnregisterObserver( MMailboxContentObserver& aObserver ) = 0;
 
 };
 

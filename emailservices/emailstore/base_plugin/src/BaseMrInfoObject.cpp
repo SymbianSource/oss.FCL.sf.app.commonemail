@@ -83,7 +83,6 @@ void CBaseMrInfoObject::ConstructL(
     iSequenceNumber = aMrInfo.MRSequenceNumberL();
     iPriority = aMrInfo.PriorityL();
 
-    iOrganizer = CBaseMrAttendee::NewL();
     iOrganizer = CBaseMrAttendee::NewL( aMrInfo.MROrganizerL() );
     
     RPointerArray<MMRAttendee>& attendees = aMrInfo.AttendeesL();

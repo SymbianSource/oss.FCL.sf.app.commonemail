@@ -599,15 +599,20 @@ void CFSEmailUiFolderListVisualiser::DoShowInPopupL(
     iParentLayout->SetPadding( paddingMetric );
 
 	// Set list background
-	if ( !iBackgroundBrush )
-		{
-		iBackgroundBrush =
-            CAlfFrameBrush::NewL( iEnv, KAknsIIDQsnFrPopup, 1, 1 );
-        TRect outerRect( iScreenRect );
-        outerRect.Shrink( paddingValue, paddingValue );
+    TRect outerRect( iScreenRect );
+    outerRect.Shrink( paddingValue, paddingValue );
+    if ( !iBackgroundBrush )
+        {
+        iBackgroundBrush = CAlfFrameBrush::NewL( iEnv, KAknsIIDQsnFrPopup, 1, 1 );
         iBackgroundBrush->SetFrameRectsL( outerRect, iScreenRect );
-        iParentLayout->Brushes()->AppendL( iBackgroundBrush, EAlfDoesNotHaveOwnership );
-		}
+        iParentLayout->Brushes()->InsertL( 0, iBackgroundBrush, EAlfDoesNotHaveOwnership );
+        }
+    else
+        {
+        // this prevents transparent popuplist background in portrait layout
+        // when sw keyboard in landscape layout was called between popups
+        iBackgroundBrush->SetFrameRectsL( outerRect, iScreenRect );
+        }
 
 	if( !iShadowBrush )
 	    {
@@ -620,12 +625,26 @@ void CFSEmailUiFolderListVisualiser::DoShowInPopupL(
 	    }
 
       // Append brush if it's not yet appended. 
-      if ( iParentLayout->Brushes()->Count() == 0 )
-          {
-          // Keep the ownership of the brush to avoid unneeded object deletion / reconstruction
-          iParentLayout->Brushes()->InsertL( 0, iBackgroundBrush, EAlfDoesNotHaveOwnership );
-          iParentLayout->Brushes()->AppendL( iShadowBrush, EAlfDoesNotHaveOwnership );
-          }
+    switch ( iParentLayout->Brushes()->Count() ) 
+        {
+        case 0 :
+            // Keep the ownership of the brush to avoid unneeded object deletion / reconstruction
+            iParentLayout->Brushes()->InsertL( 0, iBackgroundBrush, EAlfDoesNotHaveOwnership );
+            iParentLayout->Brushes()->AppendL( iShadowBrush, EAlfDoesNotHaveOwnership );
+            break;
+        case 1 :
+            if ( static_cast<CAlfBrush *>(iBackgroundBrush) == & ( iParentLayout->Brushes()->At(0)) )
+                {
+                iParentLayout->Brushes()->AppendL( iShadowBrush, EAlfDoesNotHaveOwnership );
+                }
+            else 
+                {
+                iParentLayout->Brushes()->InsertL( 0, iBackgroundBrush, EAlfDoesNotHaveOwnership );
+                }
+            break;
+        default: // 2: it's ok no need to add brush 
+            break;
+        } // switch
 	
 	SetPopupSoftkeysL();
 	// SetRect need to be called also here, otherwise the list layout might
@@ -1159,10 +1178,6 @@ void CFSEmailUiFolderListVisualiser::DynInitMenuPaneL(TInt aResourceId, CEikMenu
         	   // remove help support in pf5250
         	   aMenuPane->SetItemDimmed( EFsEmailUiCmdHelp, ETrue);
         	   }
-
-            // select option
-            aMenuPane->SetItemDimmed( EFsEmailUiCmdSelect, iModel->Count() == 0 );
-
             }
 
         // Add shortcut hints
@@ -1324,7 +1339,6 @@ void CFSEmailUiFolderListVisualiser::HandleCommandL( TInt aCommand )
                   }
               case EAknSoftkeyOpen:
               case EFsEmailUiCmdOpen:
-              case EFsEmailUiCmdSelect:
                   {
                   HandleSelectionL( EFSEmailUiCtrlBarResponseSelect );
                   }
@@ -2702,20 +2716,20 @@ void CFSEmailUiFolderListVisualiser::LoadIconsL()
         iIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( EFolderListEmailAccountTexturePopup ) );     // EFolderListIconEmailAccount
 	    
 	    // NOTE: Must be appended same order as are in TFsEmailUiSortListIcons!
-        iSortIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( ESortListAttachmentAscTexture ) );       // ESortListAttachmentAscIcon
-        iSortIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( ESortListAttachmentDescTexture ) );      // ESortListAttachmentDescIcon
-        iSortIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( ESortListDateAscTexture ) );       		 // ESortListDateAscIcon
-        iSortIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( ESortListDateDescTexture ) );       	 // ESortListDateDescIcon
-        iSortIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( ESortListFollowAscTexture ) );       	 // ESortListFollowAscIcon
-        iSortIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( ESortListFollowDescTexture ) );        	 // ESortListFollowDescIcon
-        iSortIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( ESortListPriorityAscTexture ) );         // ESortListPriorityAscIcon
-        iSortIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( ESortListPriorityDescTexture ) );        // ESortListPriorityDescIcon
-        iSortIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( ESortListSenderAscTexture ) );       	 // ESortListSenderAscIcon
-        iSortIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( ESortListSenderDescTexture ) );       	 // ESortListSenderDescIcon
-        iSortIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( ESortListSubjectAscTexture ) );       	 // ESortListSubjectAscIcon
-        iSortIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( ESortListSubjectDescTexture ) );       	 // ESortListSubjectDescIcon
-        iSortIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( ESortListUnreadAscTexture ) );       	 // ESortListUnreadAscIcon
-        iSortIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( ESortListUnreadDescTexture ) );       	 // ESortListUnreadDescIcon
+        iSortIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( ESortListAttachmentAscTexturePopup ) );       // ESortListAttachmentAscIcon
+        iSortIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( ESortListAttachmentDescTexturePopup ) );      // ESortListAttachmentDescIcon
+        iSortIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( ESortListDateAscTexturePopup ) );       		 // ESortListDateAscIcon
+        iSortIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( ESortListDateDescTexturePopup ) );       	 // ESortListDateDescIcon
+        iSortIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( ESortListFollowAscTexturePopup ) );       	 // ESortListFollowAscIcon
+        iSortIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( ESortListFollowDescTexturePopup ) );        	 // ESortListFollowDescIcon
+        iSortIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( ESortListPriorityAscTexturePopup ) );         // ESortListPriorityAscIcon
+        iSortIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( ESortListPriorityDescTexturePopup ) );        // ESortListPriorityDescIcon
+        iSortIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( ESortListSenderAscTexturePopup ) );       	 // ESortListSenderAscIcon
+        iSortIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( ESortListSenderDescTexturePopup ) );       	 // ESortListSenderDescIcon
+        iSortIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( ESortListSubjectAscTexturePopup ) );       	 // ESortListSubjectAscIcon
+        iSortIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( ESortListSubjectDescTexturePopup ) );       	 // ESortListSubjectDescIcon
+        iSortIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( ESortListUnreadAscTexturePopup ) );       	 // ESortListUnreadAscIcon
+        iSortIconArray.AppendL( &iAppUi.FsTextureManager()->TextureByIndex( ESortListUnreadDescTexturePopup ) );       	 // ESortListUnreadDescIcon
 	    }
 	}
 

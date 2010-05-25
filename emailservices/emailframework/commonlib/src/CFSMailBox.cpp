@@ -21,6 +21,7 @@
 
 #include "cfsmailplugin.h"
 #include "cmrcalendarinfoimpl.h"
+#include "emailextensionuids.hrh"
 
 #include "cfsmailbox.h"
 #include "cfsmailrequestobserver.h"
@@ -844,8 +845,20 @@ EXPORT_C void CFSMailBox::ReleaseExtension( CEmailExtension* aExtension )
     // exists. It is released in desctrucor
     if( aExtension->Uid() != KMailboxExtMrCalInfo )
         {
-        // no specialized behaviour, call base class
-        CExtendableEmail::ReleaseExtension( aExtension );
+        if( aExtension->Uid() == KEmailSettingExtensionUid )
+            {
+            // check that plugin supports requested extension.
+            if ( CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid( GetId() ) )
+                {
+                // remove extension from plugin
+                 plugin->ReleaseExtension(aExtension);            
+                }
+            }
+        else
+            {
+            // no specialized behaviour, call base class
+            CExtendableEmail::ReleaseExtension( aExtension );
+            }
         }
     else
         {
@@ -874,7 +887,8 @@ EXPORT_C CEmailExtension* CFSMailBox::ExtensionL( const TUid& aInterfaceUid )
             CleanupStack::Pop(); // calInfo
             }
         }    
-    else if ( aInterfaceUid == KEmailMailboxStateExtensionUid )
+    else if ( aInterfaceUid == KEmailMailboxStateExtensionUid ||
+              aInterfaceUid == KEmailSettingExtensionUid )
         {
         if ( !extension )
             {

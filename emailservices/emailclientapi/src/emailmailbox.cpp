@@ -41,8 +41,6 @@
 
 // Constants
 
-_LIT( KNewLine, "\n" );
-
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
@@ -201,15 +199,21 @@ MEmailFolder* CEmailMailbox::FolderByTypeL(
         {
         case EInbox:
             fsFolderId = iPlugin->GetStandardFolderIdL( FsMailboxId(), EFSInbox );
+            break;
         case EOutbox:
             fsFolderId = iPlugin->GetStandardFolderIdL( FsMailboxId(), EFSOutbox );
+            break;
         case EDrafts:
             fsFolderId = iPlugin->GetStandardFolderIdL( FsMailboxId(), EFSDraftsFolder );
+            break;
         case EDeleted:
             fsFolderId = iPlugin->GetStandardFolderIdL( FsMailboxId(), EFSDeleted );
+            break;
         case ESent:
             fsFolderId = iPlugin->GetStandardFolderIdL( FsMailboxId(), EFSSentFolder );
+            break;
         case EOther:
+            break;
         default:
             User::Leave( KErrNotFound );
             break;
@@ -286,13 +290,27 @@ MEmailMessage* CEmailMailbox::CreateReplyMessageL( const TMessageId& aMessageId,
 // -----------------------------------------------------------------------------
 MEmailMessage* CEmailMailbox::CreateForwardMessageL( const TMessageId& aMessageId ) const
     {
+    // create temp header descriptor
+    TReplyForwardParams params;
+    params.iHeader = HBufC::NewLC(1);
+    params.iHeader->Des().Copy(KNullDesC());    
+    params.iSmartTag = HBufC::NewLC(1);
+    params.iSmartTag->Des().Copy(KNullDesC());        
+    TPckgBuf<TReplyForwardParams> buf( params );
+    HBufC* temp = HBufC::NewLC( buf.Length() );
+    temp->Des().Copy( buf );
+    
     CFSMailMessage* fsMessage = iFsMailbox->CreateForwardMessage(
-        FsMsgId( iPluginData, aMessageId ), KNewLine() );
+        FsMsgId( iPluginData, aMessageId ), *temp );
     User::LeaveIfNull( fsMessage );
     CleanupStack::PushL( fsMessage );
     MEmailMessage* message = CEmailMessage::NewL( iPluginData, fsMessage, EClientOwns );
     CleanupStack::Pop();  // fsMessage
-
+    
+    CleanupStack::PopAndDestroy( temp );
+    CleanupStack::PopAndDestroy( params.iSmartTag );
+    CleanupStack::PopAndDestroy( params.iHeader );
+    
     return message;
     }
 
@@ -448,6 +466,7 @@ void CEmailMailbox::TObserverEventMapper::EventL(
     &CEmailMailbox::TObserverEventMapper::IgnoreEventL,
     &CEmailMailbox::TObserverEventMapper::IgnoreEventL,
     &CEmailMailbox::TObserverEventMapper::IgnoreEventL,
+    &CEmailMailbox::TObserverEventMapper::IgnoreEventL,
     &CEmailMailbox::TObserverEventMapper::NewMessageL,
     &CEmailMailbox::TObserverEventMapper::MessageChangedL,
     &CEmailMailbox::TObserverEventMapper::MessageDeletedL,
@@ -471,24 +490,68 @@ void CEmailMailbox::TObserverEventMapper::EventL(
         }
     }
 
+void CEmailMailbox::TObserverEventMapper::ConvertParamsL( TMailboxId aMailbox, TAny* aParam1, 
+                                            TAny* aParam2, REmailMessageIdArray& aMessageIds, TFolderId& aFolderId )
+    {  
+    RArray<TFSMailMsgId>* newEntries( static_cast< RArray<TFSMailMsgId>* >( aParam1 ) );
+    CleanupClosePushL( *newEntries );
+    TFSMailMsgId* parentFolder = static_cast<TFSMailMsgId*>( aParam2 );
+    aFolderId = TFolderId( parentFolder->Id(), aMailbox );
+    
+    for (TInt j = 0; j < newEntries->Count(); j++ ) 
+        {
+        TFSMailMsgId fsId(( *newEntries )[j]);
+        TMessageId messageId( fsId.Id(), aFolderId.iId, aMailbox);
+        aMessageIds.Append(messageId);
+        }
+    
+    CleanupStack::PopAndDestroy( newEntries );
+    }
+
 void CEmailMailbox::TObserverEventMapper::IgnoreEventL(
     TMailboxId /*aMailbox*/, TAny* /*aParam1*/, TAny* /*aParam2*/, TAny* /*aParam3*/ )
     {
     }
 
 void CEmailMailbox::TObserverEventMapper::NewMessageL(
-    TMailboxId /*aMailbox*/, TAny* /*aParam1*/, TAny* /*aParam2*/, TAny* /*aParam3*/ )
-    {
+    TMailboxId aMailbox, TAny* aParam1, TAny* aParam2, TAny* /*aParam3*/ )
+    {  
+    REmailMessageIdArray messageIds;    
+    TFolderId folderId;
+    ConvertParamsL( aMailbox, aParam1, aParam2, messageIds, folderId );
+    for ( TInt i = 0; i < iClientObservers.Count(); i++ ) 
+        {
+        MMailboxContentObserver* observer = iClientObservers[i];
+        observer->NewMessageEventL( aMailbox, messageIds, folderId );
+        }
     }
 
 void CEmailMailbox::TObserverEventMapper::MessageChangedL(
-    TMailboxId /*aMailbox*/, TAny* /*aParam1*/, TAny* /*aParam2*/, TAny* /*aParam3*/ )
+    TMailboxId aMailbox, TAny* aParam1, TAny* aParam2, TAny* /*aParam3*/ )
     {
+    REmailMessageIdArray messageIds;    
+    TFolderId folderId;
+    ConvertParamsL( aMailbox, aParam1, aParam2, messageIds, folderId );
+    
+    for ( TInt i = 0; i < iClientObservers.Count(); i++ ) 
+        {
+        MMailboxContentObserver* observer = iClientObservers[i];
+        observer->MessageChangedEventL( aMailbox, messageIds, folderId );
+        }
     }
 
 void CEmailMailbox::TObserverEventMapper::MessageDeletedL(
-    TMailboxId /*aMailbox*/, TAny* /*aParam1*/, TAny* /*aParam2*/, TAny* /*aParam3*/ )
+    TMailboxId aMailbox, TAny* aParam1, TAny* aParam2, TAny* /*aParam3*/ )
     {
+    REmailMessageIdArray messageIds;    
+    TFolderId folderId;
+    ConvertParamsL( aMailbox, aParam1, aParam2, messageIds, folderId );
+        
+    for ( TInt i = 0; i < iClientObservers.Count(); i++ ) 
+        {
+        MMailboxContentObserver* observer = iClientObservers[i];
+        observer->MessageDeletedEventL( aMailbox, messageIds, folderId );
+        }
     }
 
 void CEmailMailbox::TObserverEventMapper::MessageMoved(

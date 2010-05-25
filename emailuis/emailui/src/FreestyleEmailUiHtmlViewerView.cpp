@@ -455,6 +455,16 @@ void CFsEmailUiHtmlViewerView::ShowContainerL()
         }
     }
 
+// ---------------------------------------------------------------------------
+//  hide or show Container ( used for activation of the view )
+//
+void CFsEmailUiHtmlViewerView::FadeOut(TBool aDirectionOut )
+	{
+	FUNC_LOG;
+	iContainer->MakeVisible(!aDirectionOut);
+	}
+
+
 // -----------------------------------------------------------------------------
 // CFsEmailUiHtmlViewerView::DoActivateL()
 // Activate an Compose view
@@ -1087,6 +1097,8 @@ void CFsEmailUiHtmlViewerView::HandleMrCommandL(
 void CFsEmailUiHtmlViewerView::HandleStatusPaneSizeChange()
     {
     CFsEmailUiViewBase::HandleStatusPaneSizeChange();
+	
+	HandleViewRectChange();
     }
 
 void CFsEmailUiHtmlViewerView::HandleViewRectChange()
@@ -1536,7 +1548,9 @@ void CFsEmailUiHtmlViewerView::LaunchRemoteLookupL( const TDesC& aEmailAddress )
     SetToolbarItemDimmed( EFsEmailUiTbCmdActions, ETrue);
     SetToolbarItemDimmed( EFsEmailUiTbCmdDelete, ETrue);
         
+    HideToolbar();
     CFsDelayedLoader::InstanceL()->GetContactHandlerL()->LaunchRemoteLookupWithQueryL( *mailBox, *textData );
+    ShowToolbar();  
     
     SetToolbarItemDimmed( EFsEmailUiTbCmdActions, EFalse);
     SetToolbarItemDimmed( EFsEmailUiTbCmdDelete, EFalse);

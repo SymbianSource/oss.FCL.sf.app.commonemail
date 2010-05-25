@@ -20,7 +20,6 @@
 #include <calattachment.h>
 #include <f32file.h>
 #include <esmrgui.rsg>
-#include <NpdApi.h>
 #include <aknnotewrappers.h>
 #include <StringLoader.h>
 #include <DocumentHandler.h>
@@ -28,13 +27,6 @@
 // DEBUG
 #include "emailtrace.h"
 
-// Unnamed namespace for local definitions
-namespace { // codescanner::namespace
-
-// Notepad data type
-_LIT8( KNotePadTextDataType, "text/plain" );
-
-}
 
 // ======== MEMBER FUNCTIONS ========
 
@@ -48,7 +40,7 @@ CMROpenAttachmentCommand::CMROpenAttachmentCommand(
     {
     FUNC_LOG;
     }
-    
+
 // ---------------------------------------------------------------------------
 // CMROpenAttachmentCommand::CMROpenAttachmentCommand
 // ---------------------------------------------------------------------------
@@ -66,7 +58,7 @@ CMROpenAttachmentCommand* CMROpenAttachmentCommand::NewL(
         CDocumentHandler& aDocHandler )
     {
     FUNC_LOG;
-    
+
     CMROpenAttachmentCommand* self =
             new (ELeave) CMROpenAttachmentCommand( aDocHandler );
     CleanupStack::PushL( self );
@@ -93,35 +85,21 @@ void CMROpenAttachmentCommand::ExecuteAttachmentCommandL(
             TInt aAttachmentIndex )
     {
     FUNC_LOG;
-    
+
     // Ownership not gained
     CCalAttachmentFile* attachmentFile =
-            aEntry.AttachmentL( aAttachmentIndex )->FileAttachment(); 
+            aEntry.AttachmentL( aAttachmentIndex )->FileAttachment();
 
     RFile file;
     attachmentFile->FetchFileHandleL( file );
     CleanupClosePushL( file );
-    
-    TDataType datatype( 
+
+    TDataType datatype(
             aEntry.AttachmentL( aAttachmentIndex )->MimeType() );
-    
-    TInt err( KErrNone );
-    if( datatype == KNotePadTextDataType() )
-        {
-        // Notepad will try to open text/plain type data
-        err = CNotepadApi::ExecFileViewerL( 
-                file,
-                NULL,
-               ETrue,
-               EFalse,
-               KCharacterSetIdentifierIso88591 );
-        }
-    else
-        {
-        // Doc handler will try to open other than text files
-        TRAP( err, iDocHandler.OpenFileEmbeddedL( file, datatype ) );
-        }
-    
+
+    // Doc handler will try to open file
+    TRAPD( err, iDocHandler.OpenFileEmbeddedL( file, datatype ) );
+
     CleanupStack::PopAndDestroy( &file );
 
     if( err != KErrNone )

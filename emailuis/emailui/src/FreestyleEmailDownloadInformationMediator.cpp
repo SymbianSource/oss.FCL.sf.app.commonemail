@@ -829,21 +829,8 @@ void CFSEmailDownloadInfoMediator::RunL()
     // no close button pressed
     if (iStatus.Int() != EAknSoftkeyClose )
         {
-        // open attachment list
-        if ( iPopupLaunchData.iMessagePartId.IsNullId() )
-            {
-            TAttachmentListActivationData params;
-            params.iMailBoxId = iPopupLaunchData.iMailBoxId;
-            params.iFolderId = iPopupLaunchData.iFolderId;
-            params.iMessageId = iPopupLaunchData.iMessageId;
-            // use package buffer to pass the params
-            TPckgBuf<TAttachmentListActivationData> buf( params );
-            TUid emptyCustomMessageId = { 0 };
-            CFreestyleEmailUiAppUi* appUi = (CFreestyleEmailUiAppUi*)CCoeEnv::Static()->AppUi();
-            appUi->EnterFsEmailViewL( AttachmentMngrViewId, emptyCustomMessageId, buf );
-            }
         // open attachment
-        else
+        if ( !iPopupLaunchData.iMessagePartId.IsNullId() )
             {
             // Force FsEmailUI to foreground because global completion note may appear
             // while some other application is active and our local error notes are not shown

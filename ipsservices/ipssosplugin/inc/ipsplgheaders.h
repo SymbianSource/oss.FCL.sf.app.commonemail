@@ -73,6 +73,8 @@
 //<cmail>
 #include "cfsmailcommon.h"
 #include "cfsmailmessage.h"
+#include "cemailsettingsextensionimpl.h"
+
 // sendui
 #include <SendUiConsts.h>
 #include <SenduiMtmUids.h>

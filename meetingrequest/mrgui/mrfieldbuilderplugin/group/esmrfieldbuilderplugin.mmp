@@ -119,7 +119,6 @@ LIBRARY aknlayout2.lib
 LIBRARY cdlengine.lib
 LIBRARY caleninterimutils2.lib
 LIBRARY eikcore.lib
-LIBRARY npdlib.lib
 LIBRARY apgrfx.lib
 LIBRARY efsrv.lib
 LIBRARY commonui.lib

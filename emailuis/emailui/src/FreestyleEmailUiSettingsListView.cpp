@@ -174,7 +174,7 @@ void CFsEmailSettingsListView::DisplayStylusPopUpMenu( const TPoint& aPosition )
 	{
     if ( iStylusPopUpMenu )
     	{
-    	iStylusPopUpMenu->SetPosition( aPosition );
+    	iStylusPopUpMenu->SetPosition( aPosition, CAknStylusPopUpMenu::EPositionTypeLeftBottom );
     	iStylusPopUpMenu->ShowMenu();
     	}
 	}

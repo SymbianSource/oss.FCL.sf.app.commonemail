@@ -231,11 +231,12 @@ void CIpsPlgImap4FetchAttachmentOp::DoRunL()
         {
         case EStateConnecting:
             {
-            TBool connected = STATIC_CAST(
-                CIpsPlgImap4ConnectOp*, iOperation)->Connected();
-            if(!connected)
+            // get result of connect operation
+            TInt err = iStatus.Int();
+
+            if( err != KErrNone )
                 {
-                CompleteObserver( KErrCouldNotConnect );
+                CompleteObserver( err == KErrCancel ? err : KErrCouldNotConnect );
                 return;
                 }
             iRetryCount = 0;

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -21,17 +21,13 @@
 #define __FREESTYLEEMAILUI_MAINGRIDUIVISUALISER_H__
 
 // SYSTEM INCLUDE FILES
-//<cmail> SF
 #include <alf/alfcontrol.h>
-//</cmail>
-// for AIW handling
 #include <AiwServiceHandler.h>
-//<cmail>
 #include <alf/alfdecklayout.h>
 #include <alf/alfgridlayout.h>
 #include <alf/alfmappingfunctions.h>
 #include <alf/alfbitmapprovider.h>
-//</cmail>
+#include <aknphysicsobserveriface.h>
 
 // INTERNAL INCLUDE FILES
 #include "FreestyleEmailUiViewBase.h"
@@ -47,7 +43,7 @@ class CBrushAnimation;
 class CFsAlfScrollbarLayout;
 class CAknStylusPopUpMenu;
 class CCoeControl;
-
+class CAknPhysics;
 
 class TFSLauncherGridMailboxStatus
     {
@@ -65,7 +61,8 @@ class CFSEmailUiLauncherGridVisualiser : public CFsEmailUiViewBase,
                      				   	 public MFSEmailLauncherItemObserver,
                      				   	 public MEikScrollBarObserver,
                      				   	 public MFSEmailUiMailboxDeleteObserver,
-  									     public MFSEmailUiGenericTimerCallback
+  									     public MFSEmailUiGenericTimerCallback,
+  		                                 public MAknPhysicsObserver
     {
 public:
     enum TDirection
@@ -162,7 +159,7 @@ public:
 	void SetRefreshNeeded();
 	// <cmail> 
     // Handling of foreground events
-	void HandleForegroundEventL();
+	void HandleForegroundEventL( TBool aForeground );
 	
     /**
      * From MEikScrollBarObserver
@@ -214,6 +211,23 @@ private: // from MFSEmailUiMailboxDeleteObserver
     
     void MailboxDeletionComplete();
     
+private: // from MAknPhysicsObserver
+
+   /**
+    * @see MAknPhysicsObserver::ViewPositionChanged
+    */
+   virtual void ViewPositionChanged( const TPoint& aNewPosition, 
+           TBool aDrawNow, TUint aFlags );
+
+   /**
+    * @see MAknPhysicsObserver::PhysicEmulationEnded
+    */
+   virtual void PhysicEmulationEnded();
+
+   /**
+    * @see MAknPhysicsObserver::ViewPosition
+    */
+   virtual TPoint ViewPosition() const;
     
 private: // New methods.
 
@@ -324,6 +338,7 @@ private: // methods
 
     void DetachSelectorMappingFunctions();
     void UpdateFocusVisibility();
+    void UpdatePhysicsL();
 
 private: // data
 	CAlfEnv& iEnv;
@@ -422,6 +437,16 @@ private: // data
 
     // Timer to postpone the Drawing 
     CFSEmailUiGenericTimer* iStartupCallbackTimer;
-    };
+    
+    CAknPhysics* iPhysics;   
+    TBool iPointerAction;
+    TBool iIsDragging;
+    TPoint iPreviousPosition;
+    TPoint iOriginalPosition;
+    TTime iStartTime;
+    TBool iScrolled;
+    TInt iTotalDragging;
+    TBool iLaunchWizardExecuted; // prevents reentrant Wizard calling
+    }; // class  CFSEmailUiLauncherGridVisualiser
 
 #endif // __FREESTYLEEMAILUI_MAINGRIDUIVISUALISER_H__

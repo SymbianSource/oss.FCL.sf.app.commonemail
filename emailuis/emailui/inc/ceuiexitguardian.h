@@ -22,8 +22,6 @@
 
 // FORWARD DECLARATIONS
 class CFreestyleEmailUiAppUi;
-class CIdle;
-
 /**
  * Application exit guardian for email UI. This is needed because some routines
  * in email framework create nested scheduler loops to hide asynchronity in
@@ -31,21 +29,11 @@ class CIdle;
  * as resources are freed while they are still being used on other recursion
  * levels.
  *
- * Usage:
- *
- * void CClass::RoutineThatMayCreatedNestedLevelL()
- *    {
- *    iExitGuardian->EnterLC();
- *    // call or execute code that may create nested sceduler loop
- *    ...
- *    // and finally popup and destroy cleanup item
- *    CleanupStack::PopAndDestroy(); // iExitGuardian->EnterLC()
- *    }
  *
  * @since S60 5.1
  */
 class CEUiExitGuardian : public CBase
-  	{
+    {
 
 public:
 
@@ -60,13 +48,6 @@ public:
      */
     ~CEUiExitGuardian();
 
-    /**
-     * Called before executing code that may cause new nested level in
-     * active scheduler. Leaves cleanup item in cleanup stack and this item
-     * must be purged by the caller after code execution. Cleanup item is used
-     * to make level counter leavesafe.
-     */
-    void EnterLC();
 
     /**
      * Called by the application to inform that application is ready to
@@ -76,51 +57,29 @@ public:
      * @return KRequestPending if the exit execution is delayed because of
      * nesting, KErrNone otherwise.
      */
-    TInt ExitApplication();
+    TInt TryExitApplication();
 
 private:
-
     /**
      * Constructor.
      */
-    CEUiExitGuardian(CFreestyleEmailUiAppUi& aAppUi);
+    CEUiExitGuardian( CFreestyleEmailUiAppUi& aAppUi );
 
     /**
      * Pass 2 constructor, may leave.
      */
-	void ConstructL();
+    void ConstructL();
 
     /**
-     * Static exit method that is given to cleanup item.
+     * Static callback method for CPeriodic.
      */
-    static void Exit(TAny* aPtr);
-
-    /**
-     * Non static exit method that is called from static Exit.
-     */
-    void DoExit();
-
-    /**
-     * Static callback method for CIdle. This is run when recursion is rewinded
-     * and appication can be closed.
-     */
-    static TInt IdleCallBack(TAny* aPtr);
+    static TInt PeriodicCallBack( TAny* aPtr );
 
 private:
-
     // Reference to application UI
     CFreestyleEmailUiAppUi& iAppUi;
-
-    // Recursion depth (nested level count)
-    TInt iEnterCount;
-
-    // ETrue if the application is ready to exit.
-    TBool iExitPending;
-
-    // Idle class instance to rewind final level of recursion before calling the
-    // exit
-    CIdle* iIdle;
-
+    TBool iPeriodicTimerStarted;
+    CPeriodic* iPeriodicTimer;
     };
 
 #endif // C_EUIEXITGUARDIAN_H

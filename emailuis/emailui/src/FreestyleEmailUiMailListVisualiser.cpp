@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+* Copyright (c) 2009 - 2010 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -90,6 +90,7 @@
 #include "FSEmail.pan"
 
 #include "ipsplgcommon.h"
+#include "cemailsettingsextension.h"
 
 // CONST VALUES
 const TInt KControlBarTransitionTime = 250;
@@ -684,7 +685,10 @@ void CFSEmailUiMailListVisualiser::UpdateCompleteL()
             }
         }
     SetListAndCtrlBarFocusL();
-    iAppUi.StartMonitoringL();
+    if(!CheckAutoSyncSettingL())
+        {
+        iAppUi.StartMonitoringL();
+        }
     TIMESTAMP( "Locally stored messages fetched for message list" );
     }
 
@@ -1610,7 +1614,8 @@ void CFSEmailUiMailListVisualiser::ChildDoActivateL(const TVwsViewId& aPrevViewI
     else
         {
         iMailList->ShowListL();
-        if (forwardNavigation)
+        TBool manualSync = CheckAutoSyncSettingL();
+        if (forwardNavigation && !manualSync)
             {
             iAppUi.StartMonitoringL();
             }
@@ -1698,7 +1703,6 @@ void CFSEmailUiMailListVisualiser::ChildDoDeactivate()
   	    iMailTreeListVisualizer->NotifyControlVisibilityChange( EFalse );
   	    }
 	iThisViewActive = EFalse;
-	FadeOut(ETrue);  // hide CAlfVisuals on deactivation
 	}
 
 // ---------------------------------------------------------------------------
@@ -3021,6 +3025,13 @@ void CFSEmailUiMailListVisualiser::HandleDynamicVariantSwitchL(
             }
         else
             {
+            iAppUi.FsTextureManager()->ClearTextureByIndex( EListControlBarMailboxDefaultIcon );
+            iFolderListButton->SetIconL( iAppUi.FsTextureManager()->TextureByIndex( EListControlBarMailboxDefaultIcon ) );
+            iAppUi.FsTextureManager()->ClearTextureByIndex( EListTextureCreateNewMessageIcon );
+            iNewEmailButton->SetIconL( iAppUi.FsTextureManager()->TextureByIndex( EListTextureCreateNewMessageIcon ) );
+            iAppUi.FsTextureManager()->ClearTextureByIndex( GetSortButtonTextureIndex() );
+            iSortButton->SetIconL( iAppUi.FsTextureManager()->TextureByIndex( GetSortButtonTextureIndex() ) );
+           
             iMailTreeListVisualizer->HideList();
             // screen layout changed
             iCurrentClientRect = iAppUi.ClientRect();
@@ -4282,6 +4293,7 @@ TInt CFSEmailUiMailListVisualiser::MoveMsgsToFolderL( const TFSMailMsgId& aDesti
             if ( aDestinationFolderId.IsNullId() )
                 {
                 // Activate folder selection view and handle moving after callback gets destination
+                RemoveMarkingModeTitleTextL();    
                 iMoveToFolderOngoing = ETrue;
                 TFolderListActivationData folderListData;
                 folderListData.iCallback = this;
@@ -5617,7 +5629,14 @@ void CFSEmailUiMailListVisualiser::ScaleControlBarL()
 
 	TInt var = Layout_Meta_Data::IsLandscapeOrientation() ? 1 : 0;
 	TAknLayoutText textLayout;
-	textLayout.LayoutText(TRect(0,0,0,0), AknLayoutScalable_Apps::main_sp_fs_ctrlbar_ddmenu_pane_t1(var));
+	if ( Layout_Meta_Data::IsLandscapeOrientation() )
+		{
+	    textLayout.LayoutText(TRect(0,0,0,0), AknLayoutScalable_Apps::cmail_ddmenu_btn02_pane_t2(0));
+		}
+	else
+		{
+	    textLayout.LayoutText(TRect(0,0,0,0), AknLayoutScalable_Apps::main_sp_fs_ctrlbar_ddmenu_pane_t1(var));
+		}
 	iNewEmailButton->SetTextFontL( textLayout.Font()->FontSpecInTwips() );
  	iFolderListButton->SetTextFontL( textLayout.Font()->FontSpecInTwips() );
  	iSortButton->SetTextFontL( textLayout.Font()->FontSpecInTwips() );
@@ -5655,10 +5674,23 @@ void CFSEmailUiMailListVisualiser::SetSortButtonTextAndIconL()
 		}
 	CleanupStack::PopAndDestroy( buttonText );
 
-	// Set icon
-    TFSEmailUiTextures textureIndex( ETextureFirst );
+	iSortButton->SetIconL(
+			iAppUi.FsTextureManager()->TextureByIndex( GetSortButtonTextureIndex() ),
+			ECBElemIconA );
 
-	switch ( iCurrentSortCriteria.iField )
+	}
+    
+// ---------------------------------------------------------------------------
+//
+//
+// ---------------------------------------------------------------------------
+//
+TFSEmailUiTextures CFSEmailUiMailListVisualiser::GetSortButtonTextureIndex()
+    {
+    FUNC_LOG;
+    
+    TFSEmailUiTextures textureIndex( ETextureFirst );
+    switch ( iCurrentSortCriteria.iField )
 		{
 		case EFSMailSortBySubject:
 			{
@@ -5711,11 +5743,8 @@ void CFSEmailUiMailListVisualiser::SetSortButtonTextAndIconL()
 						   ESortListDateAscTexture;
 			}
 			break;
-		}
-
-	iSortButton->SetIconL(
-			iAppUi.FsTextureManager()->TextureByIndex( textureIndex ),
-			ECBElemIconA );
+  		}
+    return textureIndex;
 	}
 
 // ---------------------------------------------------------------------------
@@ -6727,6 +6756,10 @@ void CFSEmailUiMailListVisualiser::FolderSelectedL(
 		switch ( aResponse )
 			{
 			case EFSEmailUiCtrlBarResponseCancel:
+			    if ( iMarkingMode )
+			        {
+                    DisplayMarkingModeTitleTextL();
+			        }
 			    iMarkingModeWaitingToExit = EFalse;
 			    SetMskL();
 				return;
@@ -7223,7 +7256,8 @@ void CFSEmailUiMailListVisualiser::LaunchStylusPopupMenuL( const TPoint& aPoint 
 		}
 
 	// Set the position for the popup
-	iStylusPopUpMenu->SetPosition( aPoint );
+	TPoint point(aPoint.iX, aPoint.iY + 45);
+	iStylusPopUpMenu->SetPosition( point, CAknStylusPopUpMenu::EPositionTypeRightBottom );
 
 	// Display the popup and set the flag to indicate that the menu was
 	// launched.
@@ -7636,7 +7670,8 @@ void CFSEmailUiMailListVisualiser::SetBrandedMailBoxIconL()
 		{
 		CleanupStack::PushL( mailBoxIcon );
         //<cmail>
-		TSize defaultIconSize(iAppUi.LayoutHandler()->GetControlBarMailboxIconRect().Size());
+		TInt iconSize( iAppUi.LayoutHandler()->GetControlBarMailboxIconRect().Width() );
+		TSize defaultIconSize ( iconSize, iconSize );
         //</cmail>
     	AknIconUtils::SetSize(mailBoxIcon->Bitmap(), defaultIconSize);
 	    AknIconUtils::SetSize(mailBoxIcon->Mask(), defaultIconSize);
@@ -8053,6 +8088,25 @@ void CFSEmailUiMailListVisualiser::CreateExtensionL()
         iExtension = reinterpret_cast<CMailboxStateExtension*>( ext );
         iExtension->SetStateDataProvider( this );
         }
+    }
+
+TBool CFSEmailUiMailListVisualiser::CheckAutoSyncSettingL()
+    {
+    CEmailExtension* ext=NULL;
+    TBool manualSync = EFalse;
+    CFSMailBox* box = iAppUi.GetActiveMailbox();
+    if (box)
+        {
+        ext = box->ExtensionL( KEmailSettingExtensionUid );
+        if (ext)
+            {
+            CEmailSettingsExtension* extension = reinterpret_cast<CEmailSettingsExtension*>( ext );
+            extension->SetMailBoxId(box->GetId());
+            manualSync = extension->IsSetL(EmailSyncInterval);
+            box->ReleaseExtension(extension);
+            }
+        }
+    return manualSync;
     }
 
 //////////////////////////////////////////////////////////////////

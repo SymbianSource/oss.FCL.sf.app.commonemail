@@ -19,10 +19,10 @@
 #define CMAILBOXSTATEEXT_H
 
 #include "cemailextensionbase.h"
+#include "emailextensionuids.hrh"
 #include "cfsmailcommon.h"
 
 // interface UID value passed to CFSMailClient::ExtensionL
-const TUid KEmailMailboxStateExtensionUid        = { 0x2001E28B };
 
 /**
 * Data providider interface.

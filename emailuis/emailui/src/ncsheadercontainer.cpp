@@ -1228,7 +1228,7 @@ void CNcsHeaderContainer::ShowPopupMenuBarL( TBool aShow )
 		{
 		if( aShow )
 			{
-			iMenuBar->SetCommandSetL( R_AVKON_SOFTKEYS_SELECT_CANCEL__SELECT );
+			iMenuBar->SetCommandSetL( R_AVKON_SOFTKEYS_CANCEL ); 
 			}
 		else
 			{

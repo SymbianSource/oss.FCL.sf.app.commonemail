@@ -243,6 +243,17 @@ void CNcsComposeView::PrepareForExit()
         iActiveHelper->Cancel();
         iActiveHelper->Start();
         }
+    else if ( iIncludeMessageTextAsync )
+    	{
+		if ( iContainer )
+			{
+    		iContainer->StopAsyncTextFormatter();
+			}
+		ResetComposer();
+		iAsyncCallback->Cancel(); // cancel any outstanding callback
+		iAsyncCallback->Set( TCallBack( AsyncExit, this ) );
+		iAsyncCallback->CallBack();
+    	}
     else
         {
         DoSafeExit( ESaveDraft );
@@ -277,6 +288,16 @@ void CNcsComposeView::ChildDoActivateL( const TVwsViewId& aPrevViewId,
     TUid aCustomMessageId, const TDesC8& aCustomMessage )
     {
     FUNC_LOG;
+    
+    // needed when "Opening" (replying/forwarding)note is shown and 
+    // we receive incoming call- Email application goes to background.
+    // When coming back to application the view is activated and reseted.
+    // That's why we prevent activation and the same is done in ChildDoDeactivate
+    if ( iIncludeMessageTextAsync )
+        {
+        return;
+        }
+
     if ( !iFirstStartCompleted )
         {
         DoFirstStartL();
@@ -412,6 +433,7 @@ void CNcsComposeView::ChildDoActivateL( const TVwsViewId& aPrevViewId,
         iViewReady = ETrue;
         Toolbar()->SetDimmed( EFalse );
         RefreshToolbar();
+        iContainer->ActivateL();
         }
         
     // if there is a embedded app in FSEmail.
@@ -434,6 +456,14 @@ void CNcsComposeView::ChildDoActivateL( const TVwsViewId& aPrevViewId,
         rwsSession.Close();
         CleanupStack::PopAndDestroy( &rwsSession );
         }
+    
+    if ( iIncludeMessageTextAsync )
+    	{
+		// including message body in async way
+		IncludeMessageTextAsyncL( ETrue );
+    	}
+    
+    iViewFullyActivated = ETrue;
         
     TIMESTAMP( "Editor launched" );
     }
@@ -735,6 +765,14 @@ void CNcsComposeView::RefreshToolbar()
 void CNcsComposeView::ChildDoDeactivate()
     {
     FUNC_LOG;
+    
+    // see comment in ChildDoActivate
+    if ( iIncludeMessageTextAsync && !iAppUi.AppUiExitOngoing() )
+        {
+        return;
+        }
+    
+    iViewFullyActivated = EFalse;
 
     iAppUi.StopEndKeyCapture();
 
@@ -1880,6 +1918,104 @@ void CNcsComposeView::IncludeMessageTextL(
     }
 
 // -----------------------------------------------------------------------------
+// CNcsComposeView::IncludeMessageTextAsyncL()
+//
+// -----------------------------------------------------------------------------
+//
+void CNcsComposeView::IncludeMessageTextAsyncL( TBool aEnsureSpaceInBegin /*= EFalse*/ )
+	{
+    FUNC_LOG;
+
+    __ASSERT_DEBUG( iContainer, Panic( ENcsBasicUi ) );
+
+    delete iBody;
+    iBody = NULL;
+    HBufC* rawBody = GetMessageBodyL();
+
+    // Ensure there's free space in the beginning of the message if required
+    if ( aEnsureSpaceInBegin && rawBody->Length() )
+        {
+        TText firstChar = (*rawBody)[0];
+        _LIT( KNewLines, "\r\n\x2028\x2029" );
+        if ( KNewLines().Locate( firstChar ) == KErrNotFound )
+            {
+			CleanupStack::PushL( rawBody );
+            // First character is not a new line character. Insert one.
+            iBody = HBufC::NewL( rawBody->Length() + KIMSLineFeed().Length() );
+            TPtr ptr = iBody->Des();
+            ptr.Append( KIMSLineFeed );
+            ptr.Append( *rawBody );
+            CleanupStack::PopAndDestroy( rawBody );
+            rawBody = NULL;
+            }
+        }
+    // If no modifications were needed, then just set body pointer to point
+    // the rawBody
+    if ( !iBody )
+        {
+        iBody = rawBody;
+        rawBody = NULL;
+        }
+    // Now we have possibly decorated message text in body pointer and
+    // in cleanup stack
+
+    // Divide the contents into normal body and the read-only quote fields
+    // Convert bytes length to words length
+    TInt readOnlyLength = iNewMessageTextPart->ReadOnlyPartSize() / 2;
+	//This check is unnecessary, but without that coverity complains
+    if ( iBody )
+    	{
+		TInt modifiableLength = iBody->Length() - readOnlyLength;
+	
+		// Remove one newline from the end of the modifiable body if there's
+		// read-only quote present. This is because the field boundary appears
+		// as newline on the screen. This newline is added back when saving
+		// the message.
+		TInt lfLength = KIMSLineFeed().Length();
+		if ( readOnlyLength && modifiableLength >= lfLength &&
+			 iBody->Mid( modifiableLength-lfLength, lfLength ) == KIMSLineFeed )
+			{
+			modifiableLength -= lfLength;
+			}
+	
+		iContainer->SetBodyContentAsyncL( iBody->Left( modifiableLength ),
+			iBody->Right( readOnlyLength ) );
+		
+		// callback: SetBodyContentCompleteL
+    	}
+	}
+
+// -----------------------------------------------------------------------------
+// CNcsComposeView::SetBodyContentComplete()
+//
+// -----------------------------------------------------------------------------
+//
+void CNcsComposeView::SetBodyContentComplete()
+	{
+	delete iBody;
+	iBody = NULL;
+	
+    if ( iOpeningWaitDialog )
+        {
+        TRAP_IGNORE( iOpeningWaitDialog->ProcessFinishedL() );
+        iOpeningWaitDialog = NULL;
+        }
+    
+    iOpeningWaitNoteVisible = EFalse;
+    iIncludeMessageTextAsync = EFalse;
+    }
+
+// -----------------------------------------------------------------------------
+// CNcsComposeView::IsOpeningWaitNoteVisible()
+//
+// -----------------------------------------------------------------------------
+//
+TBool CNcsComposeView::IsOpeningWaitNoteVisible() 
+    {
+    return iOpeningWaitNoteVisible;
+    }
+
+// -----------------------------------------------------------------------------
 // CNcsComposeView::InitForwardFieldsL()
 //
 // -----------------------------------------------------------------------------
@@ -2611,13 +2747,18 @@ void CNcsComposeView::InitReplyOrForwardUiL()
     {
     FUNC_LOG;
     // Show "Opening" wait note if the message body is large
-    TInt waitNoteId = KErrNotFound;
+    iOpeningWaitNoteVisible = EFalse;
     if ( TFsEmailUiUtility::IsMessageBodyLargeL(iOrigMessage) )
         {
-        waitNoteId = TFsEmailUiUtility::ShowGlobalWaitNoteLC( 
-                R_FSE_WAIT_OPENING_TEXT );
+        TFsEmailUiUtility::ShowWaitNoteL( iOpeningWaitDialog, 
+                R_FSE_WAIT_OPENING_TEXT, EFalse, ETrue );
+        iOpeningWaitNoteVisible = ETrue;
         }
 
+    // disable this flag if "old style" sync mode is needed
+    // for including body of text
+    iIncludeMessageTextAsync = ETrue;
+    
     if ( iCustomMessageId == TUid::Uid( KEditorCmdReply ) )
         {
         GenerateReplyMessageL( EFalse );
@@ -2638,11 +2779,13 @@ void CNcsComposeView::InitReplyOrForwardUiL()
         // This shouldn't ever happen. Panic in debug builds.
         ASSERT( EFalse );
         }
-
-    // Close the "Opening" wait note if it was shown
-    if ( waitNoteId != KErrNotFound )
+    
+    // Close the "Opening" wait note if it was shown 
+    // and include message text was done synchronously
+    if ( !iIncludeMessageTextAsync && iOpeningWaitDialog )
         {
-        CleanupStack::PopAndDestroy( (TAny*)waitNoteId );
+        iOpeningWaitDialog->ProcessFinishedL();
+        iOpeningWaitDialog = NULL;
         }
     }
 
@@ -2760,7 +2903,16 @@ void CNcsComposeView::InitReplyUiL( TBool aReplyAll )
     if ( iFirstStartCompleted ) // Safety check
         {
         InitReplyFieldsL( aReplyAll );
-        IncludeMessageTextL( ETrue );
+        // if flag is set -
+        // message text will be included asynchronously by calling method
+		// IncludeMessageTextAsyncL() at the end of view activation or when 
+		// all attachments are downloaded - this is done because formatting 
+		// text in CTextView with method FormatTextL() causes phone 
+		// irresponsive.
+        if ( !iIncludeMessageTextAsync )
+        	{
+			IncludeMessageTextL( ETrue );
+        	}
         iContainer->SetFocusToMessageFieldL();
         }
 	}
@@ -2800,7 +2952,16 @@ void CNcsComposeView::InitForwardUiL()
     if ( iFirstStartCompleted ) // Safety check
         {
         InitForwardFieldsL();
-        IncludeMessageTextL( ETrue );
+        // if flag is set - 
+        // message text will be included asynchronously by calling method
+		// IncludeMessageTextAsyncL() at the end of view activation or when 
+		// all attachments are downloaded - this is done because formatting 
+        // text in CTextView with method FormatTextL() causes phone 
+        // irresponsive.
+        if ( !iIncludeMessageTextAsync )
+        	{
+			IncludeMessageTextL( ETrue );
+        	}
         iContainer->SetFocusToToField();
         iContainer->SelectAllToFieldTextL();
         }
@@ -2970,6 +3131,29 @@ TBool CNcsComposeView::FetchLogicComplete(
         {
         TRAP_IGNORE( iFetchWaitDialog->ProcessFinishedL() );
         iFetchWaitDialog = NULL;
+        }
+    
+    if ( iMailFetchingErrCode == KErrNone )
+        {
+        if ( iIncludeMessageTextAsync )
+            {
+            // in case the "Opening" wait note was closed by 
+            // wait note "Retrieving"
+            if ( !iOpeningWaitDialog && iOpeningWaitNoteVisible )
+                {
+                TRAP_IGNORE( TFsEmailUiUtility::ShowWaitNoteL( iOpeningWaitDialog, 
+                        R_FSE_WAIT_OPENING_TEXT, EFalse, ETrue ) );
+                }
+            }
+        
+        if ( iViewFullyActivated && iIncludeMessageTextAsync )
+            {
+            // include message body in async way.
+            // it is done here only if view was already activated
+            // this mean that attachments were added in async way
+            // and we couldn't start async including body text 
+            TRAP_IGNORE( IncludeMessageTextAsyncL( ETrue ) );
+            }
         }
     return result;
 	}

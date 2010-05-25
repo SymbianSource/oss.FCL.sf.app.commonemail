@@ -26,7 +26,8 @@
 #include <emailobserverplugin.h>
 #include <memaildata.h>
 #include <memailmailboxdata.h>
-
+#include <e32property.h>
+#include <connect/sbdefs.h>
 #include <scs/cleanuputils.h> // CleanupResetAndDestroyPushL
 
 #include "emailtrace.h"
@@ -334,7 +335,11 @@ void CMailCpsHandler::SetUpdateNeeded( const TFSMailMsgId aMailbox )
         {
         TBuf<KMaxDescLen> cid;
         iSettings->GetContentId( aMailbox.Id(), i + 1, cid );
-        iLiwIf->SetUpdateNeeded( iLiwIf->GetWidgetInstanceId( cid ), ETrue );
+        TInt widgetInstance = iLiwIf->GetWidgetInstanceId( cid );
+        if ( widgetInstance != KErrNotFound )
+            {
+            iLiwIf->SetUpdateNeeded( widgetInstance, ETrue );
+            }
         }
     }
 
@@ -839,7 +844,12 @@ void CMailCpsHandler::HandleEventL(
     {
     FUNC_LOG;
 
-    // Is the mailbox in our list
+    // If backup or restore is ongoing ignore all events
+    if ( BackupOrRestoreMode() )
+        {
+        return;
+        }
+    
     switch ( aEvent )
         {
         case TFSEventNewMailbox:
@@ -1943,4 +1953,42 @@ void CMailCpsHandler::DisplayHSPageFullNoteL()
     iQuery->ShowNoteL(EAknGlobalConfirmationNote, str->Des());
     CleanupStack::PopAndDestroy( str );    
     }
+
+// ----------------------------------------------------------------------------
+// CMailCpsHandler::BackupOrRestoreMode()
+// Check if phone is in backup/restore mode
+// ----------------------------------------------------------------------------
+//
+TBool CMailCpsHandler::BackupOrRestoreMode()
+    {
+    FUNC_LOG;
     
+    TBool backupOrRestore = EFalse;
+    
+    // Get the back-up restore key, return EFalse if we can't get the key
+    TInt keyVal = 0;
+    const TInt error = RProperty::Get(  KUidSystemCategory, conn::KUidBackupRestoreKey, keyVal );
+    if( error == KErrNone )
+        {
+        const conn::TBURPartType partType = 
+                static_cast< conn::TBURPartType >( keyVal & conn::KBURPartTypeMask );
+                
+        if ( keyVal != 0 )
+            {
+            switch( partType )
+                {
+                case conn::EBURBackupFull:
+                case conn::EBURBackupPartial:
+                case conn::EBURRestoreFull:
+                case conn::EBURRestorePartial:
+                    backupOrRestore = ETrue;
+                    break;
+                case conn::EBURUnset:
+                case conn::EBURNormal:
+                default:
+                    break;                
+                }
+            }
+        }
+    return backupOrRestore;
+    }

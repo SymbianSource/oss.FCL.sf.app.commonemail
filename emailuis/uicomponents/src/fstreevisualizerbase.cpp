@@ -88,7 +88,8 @@ _LIT8( KPropertyItemId, "PropItemID" );
 
 // check from aknphysicsconstants.h
 const TInt KFlickMaxDuration( 500000 );
-const TInt KDefaultFriction( 25 ); // avkon default is 10
+//const TInt KDefaultFriction( 25 ); // avkon default is 10
+const TInt KDefaultFriction( 5 ); // avkon default is 10
 
 // ======== LOCAL FUNCTIONS ========
 

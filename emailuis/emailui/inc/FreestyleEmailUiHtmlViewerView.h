@@ -166,6 +166,8 @@ public: // from MESMRIcalViewerObserver
     void OperationCompleted( TIcalViewerOperationResult aResult );        
     void OperationError( TIcalViewerOperationResult aResult );
 	
+    void FadeOut(TBool aDirectionOut);
+    
 private: // from
     /**
      * @see CFsEmailUiViewBase::ChildDoActivateL

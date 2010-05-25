@@ -466,35 +466,7 @@ RESOURCE BRANDING_DATA r_branding_data
                                     red = 0xff; green = 0x30; blue = 0x20; alpha = 0xff; }
                                     };
                                 },
-                                
-                                BRAND {
-                                    // Definition of Verizon Yahoo! Mail brand   
-                                    graphics_file_path = APP_BITMAP_DIR"\\yahoo_brand_graphics.mif";
 
-                                    brand_id_match_strings =
-                                        {
-                                        BRAND_MATCH_STRING { text = "verizon.net"; }
-                                        };
-                                    
-                                    graphics = 
-                                        {
-                                        BRANDABLE_GRAPHIC { id = EFSMailboxIcon;
-                                        icon_id = EMbmYahoo_brand_graphicsYahoo;
-                                        mask_id = EMbmYahoo_brand_graphicsYahoo_mask; }                    
-                                        };
-                                        
-                                    texts = 
-                                        {
-                                        BRANDABLE_TEXT { id = EFSMailboxName; text = "Verizon Yahoo! Mail"; }
-                                        };
-                                        
-                                    colors =
-                                        {
-                                        BRANDABLE_COLOR { id = EFSMailboxNameColor;
-                                        red = 0xff; green = 0x30; blue = 0x20; alpha = 0xff; }
-                                        };
-                                    },
-                                    
                                     BRAND {
                                         // Definition of Yahoo!Xtra Mail brand   
                                         graphics_file_path = APP_BITMAP_DIR"\\yahoo_brand_graphics.mif";

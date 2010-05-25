@@ -117,8 +117,17 @@ void CMailCpsSettings::DoCancel()
 
 // ---------------------------------------------------------------------------
 // CMailCpsSettings::LoadSettingsL
+// 
+// synchronizes the iMailboxArray with Central repository settings
+// only existing mailboxes are synchronized
+// usecases 
+// 1. delete widget from homesceen - removed item from cenrep array
+// 2. add widget to homescreen - added item to the end of cenrep array
+// 3. change mailbox for widget - changed value of cenrep array item 
+// 4. remove mailbox from server - mailbox absence for array item 
+// 5. add mailbox to the server (leads to widget adding)
 // ---------------------------------------------------------------------------
-//
+
 void CMailCpsSettings::LoadSettingsL()
     {
     FUNC_LOG;
@@ -136,12 +145,13 @@ void CMailCpsSettings::LoadSettingsL()
     GetMailboxNonZeroKeysL( keys );
     TInt dMax( keys.Count() );
     
-    cenrepMailboxes.ReserveL( dMax );
-    cenrepMailboxesExistence.ReserveL( dMax );
+    cenrepMailboxes.ReserveL( dMax ); // cenrep mailbox ids array
+    cenrepMailboxesExistence.ReserveL( dMax ); // auxiliary if it was found in iMailboxArray looping
     
-    // make array of mailbox keys
+    // initialize array of mailbox keys
     TInt value( 0 );
-    TInt i;
+    TInt i; // main loop
+    TInt j; // auxiliary / inner loop
     for ( i = 0; i < dMax; i++ )
         {
          User::LeaveIfError( ret = iCenRep->Get( keys[i], value ));
@@ -151,73 +161,135 @@ void CMailCpsSettings::LoadSettingsL()
     CleanupStack::PopAndDestroy(&keys); 
     
     // Sync array of cenrep keys with iMailboxArray
-    // remove from array what is not in cenrep
+    // 1. remove from iMailboxArray what is not in cenrep, mark what is. Distinct existence. 
+    // 2. remove mailbox ids not detected on the server
     TInt dFound( KErrNotFound );
-    for ( i = iMailboxArray.Count()-1; i >= 0; i -- )
+    for ( i = iMailboxArray.Count()-1; i >= 0; i -- ) // iArray loop
         {
         dFound = cenrepMailboxes.Find( iMailboxArray[i].Id() );
-        if ( KErrNotFound != dFound ) 
+        if ( KErrNotFound != dFound ) // if found in cenrep
             { 
-             // mailbox is in iMailboxArray and in cenrep => check provider
+                 // mailbox is in iMailboxArray and in cenrep => check provider
             INFO_1("Mailbox both in cenrep and iMailboxArray: i = %d ", i );
-            ret = CheckMailboxExistence( iMailboxArray[i] );
-            if ( KErrNotFound == ret)
-                {
-                // mailbox was removed from provider => remove from cenrep also
-                // cenrepMailboxes indexed the same way as keys => finding key not needed 
-                ret = iCenRep->Reset( KCMailMailboxIdBase + i );
-                ret = iCenRep->Reset( KCMailPluginIdBase + i );
-                ret = iCenRep->Reset( KCMailWidgetContentIdBase + i );
-                INFO_1("Mailbox removed from cenrep: dFound %d ", dFound );
-                }
-            else
-                {
-                User::LeaveIfError(ret); // for instance if no memory
-                INFO_1("Mailbox provider check ok: dFound = %d ", dFound );
-                }
-            cenrepMailboxesExistence[dFound] = ETrue; // not remove to ensure indexes are the same as in keys
+            if ( ! cenrepMailboxesExistence[dFound] )
+                { 
+                ret = CheckMailboxExistence( iMailboxArray[i] );
+                if ( KErrNotFound == ret)
+                    {
+                    // mailbox was removed from provider => remove from cenrep also
+                    // cenrepMailboxes indexed the same way as keys => finding key not needed 
+                    ret = iCenRep->Reset( KCMailMailboxIdBase + i );
+                    ret = iCenRep->Reset( KCMailPluginIdBase + i );
+                    ret = iCenRep->Reset( KCMailWidgetContentIdBase + i );
+                    INFO_1("Mailbox removed from cenrep: dFound %d ", dFound );
+                    // remove also from all arrays
+                    iMailboxArray.Remove(i);
+                    cenrepMailboxes.Remove( dFound );
+                    cenrepMailboxesExistence.Remove( dFound );
+                    dMax--;
+                    }
+                else 
+                    {
+                    User::LeaveIfError(ret); // for instance if no memory
+                    INFO_1("Mailbox provider check ok: dFound = %d ", dFound );
+                    cenrepMailboxesExistence[dFound] = ETrue; // not remove to ensure indexes are the same as in keys
+                    // handle also possible mailbox duplications
+                    for (j = dFound+1; j<dMax; j++)
+                        {
+                        if ( cenrepMailboxes[dFound] == cenrepMailboxes[j] )
+                            { 
+                            cenrepMailboxesExistence[j] = ETrue; 
+                            }
+                        }
+                    }
+                 } // else already tested for existence
             }
-        else
+        else // not found in cenrep
             {
-            // mailbox was removed from cenrep => remove from array
+            // mailbox was removed from cenrep => remove from iArray as well
             iMailboxArray.Remove(i);
             INFO_1("Mailbox removed from iMailboxArray: i = %d ", i );
             }
-        }
-    // Check order and new mailboxes 
-    TInt j(0);
+        } // iArray loop
+    
+    // Add mailboxes existing only in cenrep to iMailboxArray in correct order
+    // or check and correct order of mailboxes (swap already dot checked, copy duplicated)
     for ( i = 0; i < dMax; i++ )
         {
-        // new mailboxes in cenrep needs to be added to iMailboxArray
+        // firstly new mailboxes in cenrep needs to be added to iMailboxArray
         if ( ! cenrepMailboxesExistence[i] ) 
             {
             TFSMailMsgId mailbox; 
-            // Find mailbox by this function because cenrep does not hold pluginID
+            // Find mailbox by this unefficient function because cenrep does not hold pluginID
             if ( KErrNone == ResolveMailbox( cenrepMailboxes[i], mailbox ) )
                 {
-                iMailboxArray.Insert( mailbox, i );
+                iMailboxArray.InsertL( mailbox, i );
                 INFO_1("Mailbox added to iMailboxArray: i = %d ", i );
+                // ensured iMailboxArray[i].Id() == cenrepMailboxes[i]
                 }
-            }
-        // Check if order is OK
-        if ( iMailboxArray[i].Id() != cenrepMailboxes[i] )
-            {
-            TInt jMax( iMailboxArray.Count() );
-            for ( j = i+1; j <= jMax; j++ )
+            else // KErrNotFound
                 {
-                if ( iMailboxArray[j].Id() == cenrepMailboxes[i])
-                    {
-                    iMailboxArray.Insert( iMailboxArray[j], i ); 
-                    iMailboxArray.Remove( j+1 );// insertion increased indices 
-                    break;
+                // remove not valid mailbox from cenrep arrays
+                cenrepMailboxes.Remove( i );
+                cenrepMailboxesExistence.Remove( i );
+                // remove from cenrep
+                ret = iCenRep->Reset( KCMailMailboxIdBase + i );
+                ret = iCenRep->Reset( KCMailPluginIdBase + i );
+                ret = iCenRep->Reset( KCMailWidgetContentIdBase + i );
+                INFO_1("Mailbox removed from cenrep: i = %d ", i );
+                // update loop control expression
+                dMax--;
+                i--;
+                }
+            continue; // ensured equation or removed item
+            } // end of if mailbox not in cenrep
+
+        // Check if iMailboxArray is in correct order on i position
+        TInt jMax( iMailboxArray.Count() );
+        j = i; // assume iMailboxArray[i].Id() == cenrepMailboxes[i]
+        if ( ( i < jMax ) && ( iMailboxArray[i].Id() != cenrepMailboxes[i] ) )
+            { // not in correct order try to swap
+            for ( j = i+1; j < jMax; j++ )
+                {
+                if ( iMailboxArray[j].Id() == cenrepMailboxes[i] )
+                    { // swap is better from efficiency point of view
+                    TFSMailMsgId tmp( iMailboxArray[i] ); 
+                    iMailboxArray[i] = iMailboxArray[j]; 
+                    iMailboxArray[j] = tmp; 
+                    break; // j < jMax here
                     }
                 }
-            if (j == jMax) // arrays not in sync error
+            // as previous code does not detect existence of repeating id occurence
+            // the loop may not find the repeated mailbox id - then j=jMax
+            } 
+        // if cenrep has multiplied mailbox widgets then add them 
+        if ( j >= jMax ) // swapping did not help or item is missing
+            {
+            // if i=j=jMax then missing duplicated iArray element
+            // if j>i then iArray contains not used element
+            // two widgets shows the same mailbox then take already used iMailboxArray value
+            dFound = cenrepMailboxes.Find( cenrepMailboxes[i] );
+            if ( dFound < i )
                 {
+                // the arrays are synchronized below up to i, duplication to correct i place
+                iMailboxArray.InsertL( iMailboxArray[dFound], i ); 
+                }
+            else
+                {
+                // unable to synchronize the arrays - algorithm is wrong
+                INFO_1("CMAIL: CMailCpsSettings::LoadSettingsL() : FATAL ALGORITHM ERROR - ARRAY NOT SYNCHRONIZED  i = %d ", i );
                 User::Leave( KErrNotFound );
                 }
-            }
+            } // end of j >= jMax 
+        
+        } // end check order for i = 0..dMax loop 
+
+    // if iMailboxArray has more items than cenrepMailboxes then remove these items
+    for( i = iMailboxArray.Count()-1; i >= dMax; i-- )
+        {
+        iMailboxArray.Remove(i);
         }
+
     CleanupStack::PopAndDestroy(&cenrepMailboxesExistence);
     CleanupStack::PopAndDestroy(&cenrepMailboxes);
     }

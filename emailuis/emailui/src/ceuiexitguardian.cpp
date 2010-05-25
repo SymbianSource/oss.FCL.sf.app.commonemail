@@ -19,21 +19,22 @@
 #include "ceuiexitguardian.h"
 #include "emailtrace.h"
 
+
 // ---------------------------------------------------------------------------
 // CEUiExitGuardian::NewL
 //
 // ---------------------------------------------------------------------------
 //
 CEUiExitGuardian* CEUiExitGuardian::NewL( CFreestyleEmailUiAppUi& aAppUi )
-	{
+    {
     FUNC_LOG;
 
-    CEUiExitGuardian* self = new (ELeave) CEUiExitGuardian(aAppUi);
-    CleanupStack::PushL(self);
+    CEUiExitGuardian* self = new (ELeave) CEUiExitGuardian( aAppUi );
+    CleanupStack::PushL( self );
     self->ConstructL();
-    CleanupStack::Pop(self);
+    CleanupStack::Pop( self );
     return self;
-	}
+    }
 
 // ---------------------------------------------------------------------------
 // CEUiExitGuardian::CEUiExitGuardian
@@ -41,7 +42,7 @@ CEUiExitGuardian* CEUiExitGuardian::NewL( CFreestyleEmailUiAppUi& aAppUi )
 // ---------------------------------------------------------------------------
 //
 CEUiExitGuardian::CEUiExitGuardian( CFreestyleEmailUiAppUi& aAppUi )
-    : iAppUi(aAppUi)
+    : iAppUi( aAppUi )
     {
     FUNC_LOG;
     }
@@ -55,8 +56,13 @@ CEUiExitGuardian::~CEUiExitGuardian()
     {
     FUNC_LOG;
 
-    delete iIdle;
+    if ( iPeriodicTimer )
+        {
+        iPeriodicTimer->Cancel();
+        delete iPeriodicTimer;
+        }
     }
+
 
 // ---------------------------------------------------------------------------
 // CEUiExitGuardian::ConstructL
@@ -67,86 +73,52 @@ void CEUiExitGuardian::ConstructL()
     {
     FUNC_LOG;
 
-    iIdle = CIdle::NewL(CActive::EPriorityStandard);
+    iPeriodicTimer = CPeriodic::NewL( CActive::EPriorityStandard );
+    iPeriodicTimerStarted = EFalse;
     }
 
+
 // ---------------------------------------------------------------------------
-// CEUiExitGuardian::EnterLC
+// CEUiExitGuardian::PeriodicCallBack
 //
 // ---------------------------------------------------------------------------
 //
-void CEUiExitGuardian::EnterLC()
+TInt CEUiExitGuardian::PeriodicCallBack( TAny* aPtr )
     {
     FUNC_LOG;
 
-    if (iExitPending)
-        {
-        User::Leave(KErrNotReady);
-        }
-    iEnterCount++;
-    CleanupStack::PushL(TCleanupItem(Exit, this));
-    }
-
-// ---------------------------------------------------------------------------
-// CEUiExitGuardian::Exit
-//
-// ---------------------------------------------------------------------------
-//
-void CEUiExitGuardian::Exit(TAny* aPtr)
-    {
-    FUNC_LOG;
-
-    reinterpret_cast<CEUiExitGuardian*>(aPtr)->DoExit();
-    }
-
-// ---------------------------------------------------------------------------
-// CEUiExitGuardian::DoExit
-//
-// ---------------------------------------------------------------------------
-//
-void CEUiExitGuardian::DoExit()
-    {
-    FUNC_LOG;
-
-    iEnterCount--;
-    if (iExitPending && !iEnterCount && !iIdle->IsActive())
-        {
-        // Start async exit processing to rewind recursion before the actual
-        // exit
-        iIdle->Start( TCallBack( IdleCallBack, this ) );
-        }
-    }
-
-// ---------------------------------------------------------------------------
-// CEUiExitGuardian::IdleCallBack
-//
-// ---------------------------------------------------------------------------
-//
-TInt CEUiExitGuardian::IdleCallBack( TAny* aPtr )
-    {
-    FUNC_LOG;
-
-    reinterpret_cast<CEUiExitGuardian*>( aPtr )->iAppUi.ExitNow();
+    reinterpret_cast<CEUiExitGuardian*>(aPtr)->TryExitApplication();
     return KErrNone;
     }
 
+
 // ---------------------------------------------------------------------------
-// CEUiExitGuardian::ExitApplication
+// CEUiExitGuardian::TryExitApplication
 //
 // ---------------------------------------------------------------------------
 //
-TInt CEUiExitGuardian::ExitApplication()
+TInt CEUiExitGuardian::TryExitApplication()
     {
     FUNC_LOG;
+    const TInt KDelay = 200*1000; // 200 ms
+    
+    TInt ret = KRequestPending;
 
-    TInt result( KRequestPending );
-    iExitPending = ETrue;
-    if (!iEnterCount)
+    CActiveScheduler* scheduler = CActiveScheduler::Current();
+    TInt nestedLevelCount = scheduler->StackDepth();
+    if ( nestedLevelCount == 1 )
         {
-        result = KErrNone;
+        iPeriodicTimer->Cancel();
         iAppUi.ExitNow();
+        ret = KErrNone;
         }
-    return result;
+    else if ( !iPeriodicTimerStarted )
+        {
+        iPeriodicTimer->Start( KDelay, KDelay, TCallBack(PeriodicCallBack, this) );
+        iPeriodicTimerStarted = ETrue;
+        }
+    
+    return ret;
     }
 
 // end of file

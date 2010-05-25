@@ -22,6 +22,7 @@
 #include <memailmailbox.h>
 #include "mfsmaileventobserver.h"
 #include "mfsmailrequestobserver.h"
+#include "mmailboxcontentobserver.h"
 
 using namespace EmailInterface;
 
@@ -124,6 +125,7 @@ private: // inner class for mailbox event handling
         virtual void EventL(TFSMailEvent aEvent, TFSMailMsgId aMailbox, TAny* aParam1, TAny* aParam2, TAny* aParam3 );
         typedef void (CEmailMailbox::TObserverEventMapper::*TEventMapFunc)( TMailboxId, TAny*, TAny*, TAny* );
     private: // mappers, so say we all!
+        void ConvertParamsL( TMailboxId aMailbox, TAny* aParam1, TAny* aParam2, REmailMessageIdArray& aMessageIds, TFolderId& aFolderId );
         void IgnoreEventL( TMailboxId     aMailbox, TAny* aParam1, TAny* aParam2, TAny* aParam3 );
         void NewMessageL( TMailboxId     aMailbox, TAny* aParam1, TAny* aParam2, TAny* aParam3 );
         void MessageChangedL( TMailboxId     aMailbox, TAny* aParam1, TAny* aParam2, TAny* aParam3 );

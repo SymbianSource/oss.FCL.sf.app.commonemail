@@ -105,6 +105,7 @@ public: // from CFsEmailUiViewBase
     // Dynamic variant switch, called by appui
     void HandleDynamicVariantSwitchL( CFsEmailUiViewBase::TDynamicSwitchType aType );
     void GetParentLayoutsL( RPointerArray<CAlfVisual>& aLayoutArray ) const;
+    void FadeOut(TBool aDirectionOut);
 
     // Navigation functions, used mainly from viewer
     TBool IsNextMsgAvailable( TFSMailMsgId aCurrentMsgId, TFSMailMsgId& aFoundNextMsgId, TFSMailMsgId& aFoundNextMsgFolder ) const;

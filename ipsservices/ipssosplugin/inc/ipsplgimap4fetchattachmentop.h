@@ -230,7 +230,6 @@ class CIpsPlgImap4FetchAttachmentOp :
         TImImap4GetMailInfo                     iGetMailInfo;
         TInt                                    iFunctionId;
         TPckgBuf<TImap4CompoundProgress>        iProgress;
-        TMsvId                                  iService;
         TBool                                   iPopulated;
         CIpsFetchProgReport*                    iProgReport;
         // Temporary fix for handling KErrServerBusy errors from the

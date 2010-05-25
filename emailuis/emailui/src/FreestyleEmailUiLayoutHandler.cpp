@@ -1239,15 +1239,21 @@ TRect CFSEmailUiLayoutHandler::GetControlBarMailboxIconRect() const
     TAknLayoutRect controlBarRect;
     controlBarRect.LayoutRect(mainPaneRect, AknLayoutScalable_Apps::main_sp_fs_ctrlbar_pane(0));
     TAknLayoutRect iconRect;
-    if ( AknLayoutUtils::LayoutMirrored() )
+    if ( Layout_Meta_Data::IsLandscapeOrientation() )
         {
-        iconRect.LayoutRect(controlBarRect.Rect(), AknLayoutScalable_Apps::main_sp_fs_ctrlbar_pane_g2(0));        
+        iconRect.LayoutRect(controlBarRect.Rect(), AknLayoutScalable_Apps::cmail_ddmenu_btn02_pane_g2(0));
         }
     else
         {
-        iconRect.LayoutRect(controlBarRect.Rect(), AknLayoutScalable_Apps::main_sp_fs_ctrlbar_pane_g1(0));
-        }
-    
+        if ( AknLayoutUtils::LayoutMirrored() )
+            {
+            iconRect.LayoutRect(controlBarRect.Rect(), AknLayoutScalable_Apps::main_sp_fs_ctrlbar_pane_g2(0));        
+            }
+        else
+            {
+            iconRect.LayoutRect(controlBarRect.Rect(), AknLayoutScalable_Apps::main_sp_fs_ctrlbar_pane_g1(0));
+            }
+         }
     return iconRect.Rect();
     }
 

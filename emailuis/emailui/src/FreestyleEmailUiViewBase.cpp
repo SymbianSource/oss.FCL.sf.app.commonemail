@@ -128,10 +128,11 @@ void CFsEmailUiViewBase::DoActivateL( const TVwsViewId& aPrevViewId,
         	}
 
         // View activated succesfully
+        DoTransition( EFalse ); 
         if ( !iAppUi.SwitchingToBackground() )
             {
             // Change visible control group
-            DoTransition( EFalse );
+            // having here DoTransition caused grid transparency when app left from listview
             ActivateControlGroup();
             }
         else
@@ -279,7 +280,7 @@ void CFsEmailUiViewBase::DoDeactivate()
 // ---------------------------------------------------------------------------
 // virtual function to hide or show CAlfVisuals ( used for activation or deactivation )
 //
-void CFsEmailUiViewBase::FadeOut(TBool aDirectionOut )
+void CFsEmailUiViewBase::FadeOut( TBool /* aDirectionOut */ )
 	{
 	FUNC_LOG;
     // should be overriden ( if needed ) to use polymorphism 

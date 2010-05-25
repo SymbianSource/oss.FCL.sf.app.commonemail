@@ -468,21 +468,23 @@ void CMRAttachmentCommandHandler::HandleOperationCompletedL(
             HandleAttachmentCommandInternalL(
                     EESMRViewerSaveAttachment, attachmentIndex );
 
-            if ( EESMRViewerSaveAllAttachments == iCommandInProgress &&
-                 iAttachmentInfo->AttachmentCount() )
+            if ( EESMRViewerSaveAllAttachments == iCommandInProgress )
                 {
                 iCommandInProgress = 0;
 
-                // There are more attachments to be downloaded --> Download next
-                SaveNextRemoteAttachmentL();
+                if ( iAttachmentInfo->AttachmentCount() > 0 )
+                    {
+                    // There are more attachments to be downloaded --> Download next
+                    SaveNextRemoteAttachmentL();
+                    }
+                else
+                    {
+                    // All remote attachments have been saved. Show info note.
+                    ShowInfoNoteL( iEntry.AttachmentCountL() );
+                    }
                 }
             else
                 {
-                if ( !iAttachmentInfo->AttachmentCount() )
-                    {
-                    // All remote attachments have been saved. Show info note. 
-                    ShowInfoNoteL( iEntry.AttachmentCountL() );
-                    }
                 iCommandInProgress = 0;
                 }
             }
@@ -555,7 +557,7 @@ void CMRAttachmentCommandHandler::HandleAttachmentCommandInternalL(
         if ( error != KErrCancel )
             {
             User::LeaveIfError( error );
-            
+
             if ( aCommandId == EESMRViewerSaveAttachment
                  && iCommandInProgress != EESMRViewerSaveAllAttachments )
                 {
@@ -833,13 +835,13 @@ void CMRAttachmentCommandHandler::SaveAllAttachmentsL()
         User::LeaveIfError( error );
 
         // Proceed with remote attachments
-        if ( iAttachmentInfo->AttachmentCount() > 0 )
+        if ( iAttachmentInfo && iAttachmentInfo->AttachmentCount() > 0 )
             {
             SaveNextRemoteAttachmentL();
             }
         else // Show Save all info note
             {
-            ShowInfoNoteL( iEntry.AttachmentCountL() ); 
+            ShowInfoNoteL( iEntry.AttachmentCountL() );
             }
         }
     }
@@ -852,7 +854,7 @@ void CMRAttachmentCommandHandler::SaveNextRemoteAttachmentL()
     {
     __ASSERT_DEBUG( iAttachmentInfo->AttachmentCount() > 0,
                     Panic( EMRAttachmentCommandHandlerRemoteAttachmentNotFound ) );
-    
+
     // Save first remote attachment of attachment info
     RPointerArray<MCalRemoteAttachment> attachmentArray;
     CleanupClosePushL( attachmentArray );

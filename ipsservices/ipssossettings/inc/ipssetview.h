@@ -24,8 +24,6 @@
 #include "esmailsettingsplugin.h"
 //</cmail>
 
-// Forward declarations
-class CAknLocalScreenClearer;
 
 // class declaration
 class CIpsSetView : public CESMailSettingsPlugin
@@ -87,7 +85,6 @@ private:
     CAsyncCallBack* iAsyncCallback;
     TVwsViewId iPrevViewId;
     HBufC8* iCustomMessage;
-    CAknLocalScreenClearer* iLocalScreenClearer;
 	};
 
 #endif //IPSSETVIEW_H_

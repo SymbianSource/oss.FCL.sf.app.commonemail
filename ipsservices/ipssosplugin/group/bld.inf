@@ -32,6 +32,7 @@ PRJ_EXPORTS
 ../inc/ipsplgbaseoperation.h |../../inc/ipsplgbaseoperation.h
 ../inc/ipsplgconnectandrefreshfolderlist.h |../../inc/ipsplgconnectandrefreshfolderlist.h
 ../inc/ipsplgpropertywatcher.h |../../inc/ipsplgpropertywatcher.h
+../inc/cemailsettingsextension.h |../../inc/cemailsettingsextension.h
 //</cmail>
 PRJ_MMPFILES
 ../group/IPSSosPlugin.mmp

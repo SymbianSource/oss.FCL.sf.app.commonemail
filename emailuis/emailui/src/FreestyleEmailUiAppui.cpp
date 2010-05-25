@@ -38,6 +38,7 @@
 #include "cfsmailmessage.h"
 #include "cfsmailaddress.h"
 #include "cfsmailcommon.h"
+#include "cemailsettingsextension.h"
 //</cmail>
 #include <freestyleemailui.mbg>
 #include <AknQueryDialog.h>
@@ -151,6 +152,7 @@ TInt DelayedViewLoaderCallBackL( TAny* aObject )
     }
 
 const TUint KConnectionStatusIconRotationInterval = 100;
+const TUint KFakeSyncAnimStopTimerInterval = 3000; // 3 secs
 const TInt KConnectionStatusIconRotationAmount = 18;
 // Length of the drive letter descriptor (e.g. "c:")
 const TInt KDriveDescLength = 2;
@@ -584,6 +586,7 @@ void CFreestyleEmailUiAppUi::ConstructL()
     // Create custom statuspane indicators object, which shows priority and followup flags
     CreateStatusPaneIndicatorsL();
     iConnectionStatusIconAnimTimer = CFSEmailUiGenericTimer::NewL(this, CActive::EPriorityLow);
+    iFakeSyncAnimStopTimer = CFSEmailUiGenericTimer::NewL(this, CActive::EPriorityLow);
 
     // this includes a wait note where code running will be pending
     // until a certain callback event is received
@@ -740,7 +743,7 @@ CFreestyleEmailUiAppUi::~CFreestyleEmailUiAppUi()
     delete iNaviDecorator2MailViewer;
 
     delete iConnectionStatusIconAnimTimer;
-
+    delete iFakeSyncAnimStopTimer;
 
     MTouchFeedback* touchFeedback( MTouchFeedback::Instance() );
     if (touchFeedback && touchFeedback->TouchFeedbackSupported())
@@ -1132,7 +1135,7 @@ void CFreestyleEmailUiAppUi::Exit()
     FUNC_LOG;
     TIMESTAMP ("Exiting from email application");
     g_ApplicationExitOnGoing = ETrue;
-    if ( iExitGuardian->ExitApplication() == KRequestPending )
+    if ( iExitGuardian->TryExitApplication() == KRequestPending )
         {
         SendToBackground();
         }
@@ -1586,18 +1589,6 @@ void CFreestyleEmailUiAppUi::HandleActionL(const TAlfActionCommand& aActionComma
         }
     }
 
-void CFreestyleEmailUiAppUi::ManualMailBoxSync( TBool aManualMailBoxSync )
-    {
-    FUNC_LOG;
-    iManualMailBoxSync = aManualMailBoxSync;
-    }
-
-void CFreestyleEmailUiAppUi::ManualMailBoxSyncAll( TBool aManualMailBoxSyncAll )
-    {
-    FUNC_LOG;
-    iManualMailBoxSyncAll = aManualMailBoxSyncAll;
-    }
-
 void CFreestyleEmailUiAppUi::ManualMailBoxConnectAll( TBool aManualMailBoxConnectAll )
     {
     FUNC_LOG;
@@ -1822,7 +1813,21 @@ void CFreestyleEmailUiAppUi::SetActiveMailboxL( TFSMailMsgId aActiveMailboxId, T
 	// Disabled if offline or roaming
     if ( aAutoSync )
         {
-        StartMonitoringL();
+        // check manual online setting
+        CEmailExtension* ext=NULL;
+        TBool manualSync = EFalse;
+        ext = iActiveMailbox->ExtensionL( KEmailSettingExtensionUid );
+        if (ext)
+            {
+            CEmailSettingsExtension* extension = reinterpret_cast<CEmailSettingsExtension*>( ext );
+            extension->SetMailBoxId(iActiveMailbox->GetId());
+            manualSync = extension->IsSetL(EmailSyncInterval);
+            iActiveMailbox->ReleaseExtension(ext);
+            }
+        if(!manualSync)
+            {
+            StartMonitoringL();
+            }
         }
 	}
 
@@ -2111,10 +2116,6 @@ void CFreestyleEmailUiAppUi::EventL( TFSMailEvent aEvent, TFSMailMsgId aMailbox,
     FUNC_LOG;
     INFO_1( "CMAIL Received event: %d", aEvent );
 
-    if (iExitGuardian)
-        {
-        iExitGuardian->EnterLC();
-        }
 
     TBool gridContentsChanged = EFalse;
 
@@ -2177,6 +2178,7 @@ void CFreestyleEmailUiAppUi::EventL( TFSMailEvent aEvent, TFSMailMsgId aMailbox,
   			break;
     	case TFSEventMailboxSyncStateChanged:
     		{
+    		TBool tryRunningFakeSyncAnim( EFalse );
     		TSSMailSyncState* newSyncState = static_cast<TSSMailSyncState*>( aParam1 );
     		if ( newSyncState !=0 && *newSyncState )
     			{
@@ -2185,49 +2187,41 @@ void CFreestyleEmailUiAppUi::EventL( TFSMailEvent aEvent, TFSMailMsgId aMailbox,
                     case StartingSync:
                         {
                         TIMESTAMP( "Starting sync" );
-                        //If syncs were started by user, show the synchoronisation indicator
-                        if(iManualMailBoxSyncAll)
-                            {
-                            ManualMailBoxSyncAll(EFalse);
-                            }
                         }
                         break;
                     case SyncError:
                         {
                         // error occured during "Connect" or "Send and receive" operation
-                        // check if user needs to be notified
                         TIMESTAMP( "Sync error" );
-                        if ( iManualMailBoxSync )
-                            {
-							/*
-							 * As a fix to TJOS-82ZFCW, this general popup is no longer needed
-                             * // since error id is not provided by plugin, lets popup general note
-                             * HBufC* text = StringLoader::LoadL( R_FS_MSERVER_TEXT_UNABLE_TO_COMPLETE );
-                             * CleanupStack::PushL( text );
-                             * CAknInformationNote* infoNote = new ( ELeave ) CAknInformationNote;
-                             * infoNote->ExecuteLD( *text );
-                             * CleanupStack::PopAndDestroy( text );
-                             */
-                            ManualMailBoxSync( EFalse );
-                            }
                         }
                         break;
-                    case FinishedSuccessfully:
+                    case FinishedSuccessfully: // fall through
+                    case Idle:    
+                        tryRunningFakeSyncAnim = ETrue;
+                        // fall through
                     case SyncCancelled:
-                    case Idle:
                         {
                         TIMESTAMP( "Sync finished" );
-                        ManualMailBoxSync( EFalse );
                         }
-                        break;
-
+                        break;                       
        				case PushChannelOffBecauseBatteryIsLow:
     					{
     					}
     					break;
         			} //switch
     			}
-    		UpdateTitlePaneConnectionStatus();
+
+    		if ( tryRunningFakeSyncAnim )
+    		    {
+                TRAP_IGNORE( RunFakeSyncAnimL() );
+    		    }
+    		
+    		// update title pane connection status only if fake anim isn't
+    		// ongoing (if it is the update will happen once it's finished)
+    		if ( !iFakeSyncAnimStopTimer->IsActive() )
+    		    {
+                UpdateTitlePaneConnectionStatus();
+    		    }
     		} //case
     		break;
 
@@ -2317,10 +2311,6 @@ void CFreestyleEmailUiAppUi::EventL( TFSMailEvent aEvent, TFSMailMsgId aMailbox,
     	}
     // Download manager removed
 
-    if (iExitGuardian)
-        {
-        CleanupStack::PopAndDestroy(); // iExitGuardian->EnterLC()
-        }
     }
 
 void CFreestyleEmailUiAppUi::LaunchWizardL()
@@ -2530,6 +2520,7 @@ void CFreestyleEmailUiAppUi::HideTitlePaneConnectionStatus()
 		titlePane->SetSmallPicture( iConnectionIconBitmap, iConnectionIconMask, iConnectionIconBitmap && iConnectionIconMask);
 		}
 	iConnectionStatusIconAnimTimer->Stop();
+	iFakeSyncAnimStopTimer->Stop();
     }
 
 void CFreestyleEmailUiAppUi::UpdateTitlePaneConnectionStatus(
@@ -2563,6 +2554,7 @@ void CFreestyleEmailUiAppUi::UpdateTitlePaneConnectionStatus(
 
 			// Set connection icon
 			iConnectionStatusIconAnimTimer->Stop();
+			iFakeSyncAnimStopTimer->Stop();
 			iConnectionIconBitmap = 0;
 			iConnectionIconMask = 0;
 			TSize iconSize = LayoutHandler()->statusPaneIconSize();
@@ -2920,6 +2912,56 @@ const TPoint& CFreestyleEmailUiAppUi::LastSeenPointerPosition() const
     }
 
 // -----------------------------------------------------------------------------
+// CFreestyleEmailUiAppUi::RunFakeSyncAnimL
+// -----------------------------------------------------------------------------
+void CFreestyleEmailUiAppUi::RunFakeSyncAnimL()
+    {
+    FUNC_LOG;
+    
+    if ( iConnectionStatusVisible )
+        {
+        // don't run if animation already ongoing
+        if ( !iConnectionStatusIconAnimTimer->IsActive() )
+            {
+            TUid titlePaneUid = TUid::Uid( EEikStatusPaneUidTitle );
+            CEikStatusPaneBase::TPaneCapabilities subPaneTitle = 
+                StatusPane()->PaneCapabilities( titlePaneUid );
+            if ( subPaneTitle.IsPresent() && subPaneTitle.IsAppOwned() )
+                {
+                CAknTitlePane* titlePane = 
+                    static_cast<CAknTitlePane*>( 
+                        StatusPane()->ControlL( titlePaneUid ) );
+                if ( titlePane )
+                    {
+                    iConnectionIconBitmap = NULL;
+                    iConnectionIconMask = NULL;
+                    FsTextureManager()->ProvideBitmapL( 
+                        EStatusTextureSynchronising,
+                        iConnectionIconBitmap, 
+                        iConnectionIconMask );
+                    if ( iConnectionIconBitmap && iConnectionIconMask )
+                        {
+                        AknIconUtils::SetSize( 
+                            iConnectionIconBitmap, 
+                            LayoutHandler()->statusPaneIconSize(), 
+                            EAspectRatioNotPreserved );
+                        titlePane->SetSmallPicture( 
+                            iConnectionIconBitmap, 
+                            iConnectionIconMask, 
+                            ETrue );
+                        iConnectionStatusIconAnimTimer->Start(
+                            KConnectionStatusIconRotationInterval );
+                        iFakeSyncAnimStopTimer->Start( 
+                            KFakeSyncAnimStopTimerInterval );
+                        titlePane->DrawNow();
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+// -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
 void CFreestyleEmailUiAppUi::ConstructNaviPaneL()
@@ -2975,7 +3017,7 @@ CAknNavigationDecorator* CFreestyleEmailUiAppUi::NaviDecoratorL(  const TUid aVi
 
 void CFreestyleEmailUiAppUi::TimerEventL( CFSEmailUiGenericTimer* aTriggeredTimer )
     {
-    if (aTriggeredTimer == iConnectionStatusIconAnimTimer)
+    if ( aTriggeredTimer == iConnectionStatusIconAnimTimer )
         {
         if ( iConnectionStatusVisible )
             {
@@ -2996,6 +3038,12 @@ void CFreestyleEmailUiAppUi::TimerEventL( CFSEmailUiGenericTimer* aTriggeredTime
                 iConnectionStatusIconAnimTimer->Start(KConnectionStatusIconRotationInterval);
                 }
             }
+        }
+    if ( aTriggeredTimer == iFakeSyncAnimStopTimer )
+        {
+        // Just call the UpdateTitlePaneConnectionStatus.
+        // The method will put the correct sync icon to title pane
+        UpdateTitlePaneConnectionStatus();
         }
     }
 

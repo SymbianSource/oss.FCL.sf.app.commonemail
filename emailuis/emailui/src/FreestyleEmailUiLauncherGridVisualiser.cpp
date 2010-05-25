@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
+* Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -58,6 +58,7 @@
 #include <aknlayoutscalable_apps.cdl.h>
 #include <layoutmetadata.cdl.h>
 #include <touchfeedback.h>
+#include <aknphysics.h>
 
 // INTERNAL INCLUDE FILES
 #include "FSEmailBuildFlags.h"
@@ -125,7 +126,11 @@ CFSEmailUiLauncherGridVisualiser::CFSEmailUiLauncherGridVisualiser(CAlfEnv& aEnv
 	iSelector( 0 ),
 	iStartupAnimation( 0 ),
 	iStartupEffectStyle( 0 ),
-  	iWizardWaitnoteShown( EFalse )
+  	iWizardWaitnoteShown( EFalse ),
+  	iPointerAction( EFalse ),
+    iIsDragging( EFalse ),
+    iScrolled( EFalse ),
+    iLaunchWizardExecuted( EFalse )
     {
     FUNC_LOG;
     iItemIdInButtonDownEvent.iItemId = KErrNotFound;
@@ -148,6 +153,13 @@ void CFSEmailUiLauncherGridVisualiser::ConstructL( TInt aColumns, TInt aRows )
     // Create startup timer
     iStartupCallbackTimer = CFSEmailUiGenericTimer::NewL( this );
 
+    iCurrentLevel.iParentPos.iY = 0; 
+    iCurrentLevel.iParentPos.iX = 0;
+
+    if ( CAknPhysics::FeatureEnabled() )
+        {
+        iPhysics = CAknPhysics::NewL(*this, NULL);
+        }
     }
 
 // ----------------------------------------------------------------------------
@@ -244,6 +256,8 @@ void CFSEmailUiLauncherGridVisualiser::DoFirstStartL()
     // Initial visual layout update is done when the view gets activated.
     iRefreshNeeded = ETrue;
 
+    UpdatePhysicsL(); // init sizes for scrooling
+    
     // First start toggle
     iConstructionCompleted = ETrue;
     }
@@ -291,7 +305,10 @@ void CFSEmailUiLauncherGridVisualiser::ResizeItemIcon( TBool aReduce )
         TAlfTimedValue scaleValue;
         scaleValue.SetTarget( transition, KIconScalingTransitionTimeMs * 2 );
         iCurrentLevel.iItemVisualData[selectedItem].iImage->SetScale( scaleValue );
-        HandleRowMovement( EDirectionTouch, selectedItem );
+        if ( !iScrolled )
+            {
+            HandleRowMovement( EDirectionTouch, selectedItem );
+            }
         }
     }
 
@@ -321,6 +338,7 @@ CFSEmailUiLauncherGridVisualiser::~CFSEmailUiLauncherGridVisualiser()
     delete iMailboxDeleter;
     delete iStylusPopUpMenu;
     delete iCoeControl;
+    delete iPhysics;
     }
 
 void CFSEmailUiLauncherGridVisualiser::CreateModelL()
@@ -354,7 +372,6 @@ void CFSEmailUiLauncherGridVisualiser::CreateModelL()
 
     TInt count = reader.ReadInt16();
 
-// <cmail> Use layout data instead of hard-coded values
     TRect mainPaneRect;
     AknLayoutUtils::LayoutMetricsRect(AknLayoutUtils::EMainPane, mainPaneRect);
 
@@ -370,7 +387,6 @@ void CFSEmailUiLauncherGridVisualiser::CreateModelL()
     TAknLayoutRect gridIconLRect;
     gridIconLRect.LayoutRect(itemRect.Rect(), AknLayoutScalable_Apps::cell_cmail_l_pane_g1(var));
     TSize iconSize = gridIconLRect.Rect().Size();
-// </cmail>
 
     for ( TInt itemIndex = 0; itemIndex < count; itemIndex++ )
         {
@@ -681,7 +697,6 @@ void CFSEmailUiLauncherGridVisualiser::ChildDoActivateL(const TVwsViewId& aPrevV
 	  	iAppUi.GridStarted( startedFromOds );
 	    iAppUi.ShowMailboxQueryL();
   		}
-  	// <cmail>
   	else
   	    {
   	    // Ensure that FSMailServer is running, but don't do it on first
@@ -713,7 +728,6 @@ void CFSEmailUiLauncherGridVisualiser::ChildDoDeactivate()
     {
     FUNC_LOG;
     iScrollbar->MakeVisible(EFalse);
-    FadeOut(ETrue);  // hide CAlfVisuals on deactivation
     }
 
 void CFSEmailUiLauncherGridVisualiser::DynInitMenuPaneL(TInt aResourceId, CEikMenuPane* aMenuPane)
@@ -751,9 +765,7 @@ void CFSEmailUiLauncherGridVisualiser::DynInitMenuPaneL(TInt aResourceId, CEikMe
 			}
 		else
 			{
-		    // <cmail>
 		   	aMenuPane->SetItemDimmed( EFsEmailUiCmdAbout, ETrue );
-		   	// </cmail>
 
 		   	if( mbStatus.iMailboxCount <= 0 )
 		   	    {
@@ -905,14 +917,6 @@ void CFSEmailUiLauncherGridVisualiser::HandleCommandL( TInt aCommand )
 		case EFsEmailUiCmdSync:
         case EFsEmailUiCmdSyncAll:
 			{
-			if (aCommand == EFsEmailUiCmdSyncAll)
-				{
-			   	iAppUi.ManualMailBoxSyncAll(ETrue);
-				}
-			else
-			    {
-			    iAppUi.ManualMailBoxSync(ETrue);
-			    }
             RPointerArray<CFSMailBox> mailBoxes;
             CleanupResetAndDestroyClosePushL( mailBoxes );
             TFSMailMsgId id;
@@ -1054,8 +1058,16 @@ TBool CFSEmailUiLauncherGridVisualiser::OfferEventL(const TAlfEvent& aEvent)
         		|| (scanCode == EStdKeyDeviceA)
         		|| (scanCode ==EStdKeyDevice3))
         	{
-
-        	if ( !iAppUi.SetFocusVisibility( ETrue ) )
+            TBool scrolled = iScrolled;
+            if ( iScrolled )
+                {
+                iScrolled = EFalse;
+                SetFocusedItemL( iFirstVisibleRow * iVisibleColumns );
+                }
+            
+            //iCurrentLevel.iSelected = 
+        	if ( !iAppUi.SetFocusVisibility( ETrue ) ||
+        	     scrolled )
         		{
 				// focus is now activated. ignore key press.
 				UpdateFocusVisibility();
@@ -1110,17 +1122,30 @@ TBool CFSEmailUiLauncherGridVisualiser::HandlePointerEventL(
 	const TAlfEvent& aEvent )
     {
     FUNC_LOG;
-    TBool result( EFalse );
-    TInt currentlyFocused( iCurrentLevel.iSelected );
+    if( !IsViewActive() )
+        {
+        return EFalse;
+        }
     TPointerEvent::TType type = aEvent.PointerEvent().iType;
     TInt id = FindPointedItem( aEvent );
 
-    if( KErrNotFound != id )
+    switch( type )
         {
-        // The event coordinates correspond with an item.
-        switch( type )
+        case TPointerEvent::EButton1Down:
             {
-            case TPointerEvent::EButton1Down:
+            iPreviousPosition = iOriginalPosition = aEvent.PointerEvent().iParentPosition;
+            iPointerAction = ETrue;
+            iIsDragging = EFalse;
+
+            if( iPhysics )
+                {
+                iPhysics->StopPhysics();
+                iPhysics->ResetFriction();
+                iStartTime.HomeTime();
+                UpdatePhysicsL();
+                iTotalDragging = 0;
+                }            
+            if ( id != KErrNotFound)
                 {
                 // tactile feedback
                 MTouchFeedback* feedback = MTouchFeedback::Instance();
@@ -1133,17 +1158,28 @@ TBool CFSEmailUiLauncherGridVisualiser::HandlePointerEventL(
                 iItemIdInButtonDownEvent.iLaunchSelection = ETrue;
                 SetFocusedItemL( id );
                 UpdateFocusVisibility();
-                break;
                 }
-            case TPointerEvent::EButton1Up:
+            break;
+            }
+        case TPointerEvent::EButton1Up:
+            {
+            if( iIsDragging && iPhysics )
+                {
+                TPoint drag( iOriginalPosition - aEvent.PointerEvent().iParentPosition ); 
+                iPhysics->StartPhysics( drag, iStartTime );
+                iIsDragging = EFalse;
+                iPointerAction = EFalse;
+                iTotalDragging = 0;
+                }
+            else if ( id != KErrNotFound )
                 {
                 if ( iStylusPopUpMenuLaunched )
-                	{
-                	// A pop-up menu was launched. Do not open the selected
-                	// item.
-                	iItemIdInButtonDownEvent.iLaunchSelection = EFalse;
-                	break;
-                	}
+                    {
+                    // A pop-up menu was launched. Do not open the selected
+                    // item.
+                    iItemIdInButtonDownEvent.iLaunchSelection = EFalse;
+                    break;
+                    }
 
                 // Hide focus always after pointer up event.
                 iAppUi.SetFocusVisibility( EFalse );
@@ -1161,100 +1197,75 @@ TBool CFSEmailUiLauncherGridVisualiser::HandlePointerEventL(
                 else
                     {
                     HandleButtonReleaseEvent();
-                    break;
                     }
                 }
-            case TPointerEvent::EDrag:
+            else if( iItemIdInButtonDownEvent.iItemId != KErrNotFound )
                 {
-                // if pointer is moved on to other item, decrease focused
-                // item's icon.
-                if ( ( currentlyFocused != id ) &&
-                     ( iItemIdInButtonDownEvent.iItemId != KErrNotFound ) )
-                    {
-                    iItemIdInButtonDownEvent.iLaunchSelection = EFalse;
-                    ResizeItemIcon( ETrue );
-                    }
+                iItemIdInButtonDownEvent.iLaunchSelection = EFalse;
+                ResizeItemIcon( ETrue );
 
-                // if pointer is moved on item that has focus, increase item's
-                // icon.
-                else if ( id == iItemIdInButtonDownEvent.iItemId )
-                    {
-                    iItemIdInButtonDownEvent.iLaunchSelection = ETrue;
-                    ResizeItemIcon( EFalse );
-                    }
-
-                break;
-                }
-            case TPointerEvent::EButtonRepeat:
-            	{
-            	// Long tap.
-                if ( currentlyFocused != id ||
-                     iItemIdInButtonDownEvent.iItemId == KErrNotFound )
-            		{
-            		// The item beneath the touch was changed during the long
-            		// tap. Thus, do not show the pop-up.
-            		break;
-            		}
-
-            	// Check the type of the currently selected item.
-    			TInt itemType = iCurrentLevel.iItems[id].iId;
-
-				if ( itemType == EDefaultMailboxItem ||
-					 itemType == EOtherMailboxItems )
-    				{
-    				// The selected item is a mail box. Launch the pop-up
-    				// menu.
-    	            LaunchStylusPopupMenu( id );
-    				}
-
-            	break;
-            	}
-            default:
-                {
-                break;
-                }
-            }
-
-        result = ETrue;
-        }
-    // if event do not concern any of items.
-    else if( iItemIdInButtonDownEvent.iItemId != KErrNotFound )
-        {
-        iItemIdInButtonDownEvent.iLaunchSelection = EFalse;
-        ResizeItemIcon( ETrue );
-
-        switch( type )
-            {
-            case TPointerEvent::EButton1Down:
-                {
-                // ask if focus is on (flip open)
-                // iItemIdInButtonDownEvent.iItemId = currentlyFocused
-                break;
-                }
-            case TPointerEvent::EButton1Up:
-                {
                 // Hide focus always after pointer up event.
                 iAppUi.SetFocusVisibility( EFalse );
                 iItemIdInButtonDownEvent.iItemId = KErrNotFound;
                 HandleButtonReleaseEvent();
-                break;
                 }
-            default:
+            else
                 {
-                break;
+                iAppUi.SetFocusVisibility( EFalse );
                 }
+			break;
             }
-        }
-    else
-        {
-        if( aEvent.IsPointerEvent() && aEvent.PointerUp() )
+        case TPointerEvent::EDrag:
             {
-            // Hide focus always after pointer up event.
-            iAppUi.SetFocusVisibility( EFalse );
+            if( iPhysics )
+                {
+                TPoint position = aEvent.PointerEvent().iParentPosition;
+                TPoint delta( 0, iPreviousPosition.iY - position.iY );
+                iTotalDragging = iTotalDragging + delta.iY;
+                if (Abs(iTotalDragging) >= iPhysics->DragThreshold() || iIsDragging )
+                    {
+                    // Hide focus always when dragging.
+                    iAppUi.SetFocusVisibility( EFalse );
+                    if ( iSelector )
+                        {
+                        TAlfTimedValue selectorOpacity;
+                        selectorOpacity.SetValueNow( 0 );
+                        iSelector->SetOpacity( selectorOpacity );
+                        }
+
+                    iIsDragging = ETrue;
+                
+                    iPhysics->RegisterPanningPosition( delta );
+                    iScrolled = ETrue;
+                    }
+                // Save current position as previous pos for future calculations
+                iPreviousPosition = position;                
+                }
+            break;
+            }
+        case TPointerEvent::EButtonRepeat:
+          	{
+           	if (!iIsDragging && id != KErrNotFound )
+           	    {
+   	            // Check the type of the currently selected item.
+    			TInt itemType = iCurrentLevel.iItems[id].iId;
+
+				if ( itemType == EDefaultMailboxItem ||
+					 itemType == EOtherMailboxItems )
+   					{
+   					// The selected item is a mail box. Launch the pop-up
+   					// menu.
+   	            	LaunchStylusPopupMenu( id );
+    				}
+           	    }
+           	break;
+            }
+        default:
+            {
+            break;
             }
         }
-
-    return result;
+    return ETrue;
     }
 
 // ---------------------------------------------------------------------------
@@ -1414,12 +1425,12 @@ void CFSEmailUiLauncherGridVisualiser::HandleRowMovement( TDirection aDir, TInt 
             iCurrentLevel.iSelected = itemCount - 1;
             }
         }
-
-    TInt x = iCurrentLevel.iSelected % iVisibleColumns;
-    TInt y = (iCurrentLevel.iSelected-x) / iVisibleColumns;
-
-    ScrollToRow( y );
-
+    if (!iPointerAction)
+        {
+        TInt x = iCurrentLevel.iSelected % iVisibleColumns;
+        TInt y = (iCurrentLevel.iSelected-x) / iVisibleColumns;
+        ScrollToRow( y );
+        }
     }
 
 
@@ -1430,10 +1441,8 @@ void CFSEmailUiLauncherGridVisualiser::MoveSelectorToCurrentItem( TDirection aDi
     iSelector->SetPos( curPos, 0 ); // wrap position now
 
     // Calculate where are we heading
-    // <cmail> Platform layout change
     CAlfVisual* selectedBase = iCurrentLevel.iItemVisualData[iCurrentLevel.iSelected].iBase;
     TPoint displayPos = selectedBase->LocalToDisplay( selectedBase->Pos().Target() );
-    // </cmail>
     TPoint targetPos = iSelector->DisplayToLocal( displayPos );
 
     // Check if we need to wrap the selector over the edge of the screen
@@ -1461,9 +1470,7 @@ void CFSEmailUiLauncherGridVisualiser::MoveSelectorToCurrentItem( TDirection aDi
 
     // Animate the movement to the new position
     TInt animTime = KSelectTransitionTimeMs;
-    // <cmail>
     if ( aDir == EDirectionReset || aDir == EDirectionNone || aDir == EDirectionTouch )
-    // </cmail>
         {
         animTime = KStartupAnimationTime;
         }
@@ -1507,18 +1514,10 @@ void CFSEmailUiLauncherGridVisualiser::ScrollToRow( TInt aRow )
         return;
         }
 
-// <cmail> Fix scrolling so that it works properly with 2 visible rows (landscape layout data)
     if ( iFirstVisibleRow + iVisibleRows - 1 < aRow )
         {
         // Scroll downwards
-//        if ( aRow == iRowCount - 1 )
-//            {
-            iFirstVisibleRow = aRow - iVisibleRows + 1 ;
- //           }
-//        else
-//            {
-//            iFirstVisibleRow = aRow - iVisibleRows + 2;
-//            }
+        iFirstVisibleRow = aRow - iVisibleRows + 1 ;
         }
     else if ( iFirstVisibleRow > aRow )
         {
@@ -1539,11 +1538,9 @@ void CFSEmailUiLauncherGridVisualiser::ScrollToRow( TInt aRow )
     TAlfTimedPoint alfScrollOffset;
     alfScrollOffset.iY.SetTarget( offset , KScrollTransitionTimeMs );
     iCurrentLevel.iGridLayout->SetScrollOffset(alfScrollOffset);
-// <cmail>
-    iScrollbarModel.SetFocusPosition(iFirstVisibleRow);
+    iScrollbarModel.SetFocusPosition(offset);
     TRAP_IGNORE( iScrollbar->SetModelL(&iScrollbarModel) );
     iScrollbar->DrawNow();
-// </cmail>
     }
 
 void CFSEmailUiLauncherGridVisualiser::RefreshLauncherViewL()
@@ -1709,6 +1706,7 @@ void CFSEmailUiLauncherGridVisualiser::SelectL()
     FUNC_LOG;
 	if ( !iAppUi.ViewSwitchingOngoing() )
 		{
+        iPointerAction = EFalse;
         iItemIdInButtonDownEvent.iItemId = KErrNotFound;
         UpdateFocusVisibility();
 
@@ -1794,12 +1792,8 @@ void CFSEmailUiLauncherGridVisualiser::SelectL()
 	            case EAddNewMailboxItem:
 	                {
                     // To prevent accidental double clicks of the wizard item
-	                // wizard would crash without this
-	                if ( !iDoubleClickLock )
-	                    {
-	                    iDoubleClickLock = ETrue;
+	                // wizard would crash without this - moved to function
 	                    LaunchWizardL();
-    	                }
 	                }
 	            	break;
 	            case EHelpItem:
@@ -1821,14 +1815,14 @@ void CFSEmailUiLauncherGridVisualiser::SelectL()
 	}
 
 
-void CFSEmailUiLauncherGridVisualiser::HandleForegroundEventL()
+void CFSEmailUiLauncherGridVisualiser::HandleForegroundEventL( TBool aForeground )
     {
     FUNC_LOG;
 
     UpdateFocusVisibility();
 
     // Toggle safety lock always when receiving foreground back.
-    if ( iFirstStartComplete && iDoubleClickLock )
+    if ( aForeground && iDoubleClickLock && iFirstStartComplete )
         {
         iDoubleClickLock = EFalse;
         }
@@ -1908,9 +1902,17 @@ void CFSEmailUiLauncherGridVisualiser::LaunchWizardL()
         DoFirstStartL();
         }
 
-    iAiwSHandler->ExecuteServiceCmdL( KAiwCmdSettingWizardFsEmail.iUid,
-                                      iAiwSHandler->InParamListL(),
-                                      iAiwSHandler->OutParamListL() );
+    if ( ! iLaunchWizardExecuted  ) // prevent reentrant calling
+        {
+        iLaunchWizardExecuted = ETrue;
+        TRAPD( err, iAiwSHandler->ExecuteServiceCmdL( KAiwCmdSettingWizardFsEmail.iUid,
+                                          iAiwSHandler->InParamListL(),
+                                          iAiwSHandler->OutParamListL() ) );
+       // ExecuteServiceCmdL is synchronous - uses CActiveSchedulerWait
+        iLaunchWizardExecuted = EFalse;
+        User::LeaveIfError( err );
+        }
+
     }
 
 void CFSEmailUiLauncherGridVisualiser::GoToInboxL( TFSMailMsgId& aMailboxId, TFSMailMsgId& aMailboxInboxId )
@@ -1931,7 +1933,6 @@ void CFSEmailUiLauncherGridVisualiser::RescaleIconsL()
     FUNC_LOG;
     if ( iConstructionCompleted )
         {
-	// <cmail> Use layout data instead of hard-coded values
 		TRect mainPaneRect;
 	    AknLayoutUtils::LayoutMetricsRect(AknLayoutUtils::EMainPane, mainPaneRect);
 	    TInt var = Layout_Meta_Data::IsLandscapeOrientation() ? 1 : 0;
@@ -1950,7 +1951,6 @@ void CFSEmailUiLauncherGridVisualiser::RescaleIconsL()
 	   	//TInt gridIconSize = iAppUi.LayoutHandler()->GridIconSize();
 		TSize iconSize = gridIconRect.Rect().Size();
 		//iconSize.SetSize( gridIconSize, gridIconSize );
-	// </cmail>
 
         // Scale bitmaps
         for( TInt i = 0 ; i < iIconArray.Count() ; i++ )
@@ -1975,7 +1975,6 @@ void CFSEmailUiLauncherGridVisualiser::AddItemToModelL( CFSEmailLauncherItem* aI
 
         if ( launcherItemIcon )
             {
-// <cmail> Use layout data instead of hard-coded values
             TRect mainPaneRect;
             AknLayoutUtils::LayoutMetricsRect(AknLayoutUtils::EMainPane, mainPaneRect);
 
@@ -1993,7 +1992,6 @@ void CFSEmailUiLauncherGridVisualiser::AddItemToModelL( CFSEmailLauncherItem* aI
             gridIconRect.LayoutRect(itemRect.Rect(), AknLayoutScalable_Apps::cell_cmail_l_pane_g1(var));
 
             TSize iconSize = gridIconRect.Rect().Size();
-// </cmail>
 
             const CFbsBitmap* bitmap = launcherItemIcon->Bitmap();
             const CFbsBitmap* mask = launcherItemIcon->Mask();
@@ -2008,10 +2006,7 @@ void CFSEmailUiLauncherGridVisualiser::AddItemToModelL( CFSEmailLauncherItem* aI
 			CAlfTexture* texture = &CAlfStatic::Env().TextureManager().CreateTextureL( iPluginTextureId, this, EAlfTextureFlagDefault );
 			// Update texture id
 			iPluginTextureId++; // Id is updated dynamically
-			// Set initiel size
-// <cmail> Use layout data instead of hard-coded values
-			//TSize iconSize(iAppUi.LayoutHandler()->GridIconSize(), iAppUi.LayoutHandler()->GridIconSize() );
-// <cmail>
+			// Set initial size
   			texture->Size().SetSize( iconSize.iHeight, iconSize.iWidth );
            iModel->AddL(
                 EShortcut,
@@ -2047,16 +2042,14 @@ void CFSEmailUiLauncherGridVisualiser::VisualLayoutUpdatedL()
         {
 	    iCurrentLevel.iParent = 0;
 
-	// <cmail> Use layout data instead of hard-coded values
 	    TRect mainPaneRect;
 	    AknLayoutUtils::LayoutMetricsRect(AknLayoutUtils::EMainPane, mainPaneRect);
 	    TInt var = Layout_Meta_Data::IsLandscapeOrientation() ? 1 : 0;
 
 	    TAknLayoutRect scrollBarRect;
-	    // <cmail>
-//	    scrollBarRect.LayoutRect(mainPaneRect, AknLayoutScalable_Avkon::aid_size_touch_scroll_bar());
+
 	    scrollBarRect.LayoutRect(mainPaneRect, AknLayoutScalable_Apps::scroll_pane_cp03());
-	    // </cmail>
+
 	    TRect gridRect = mainPaneRect;
 	    gridRect.iBr.iX -= scrollBarRect.Rect().Width();
 
@@ -2080,8 +2073,6 @@ void CFSEmailUiLauncherGridVisualiser::VisualLayoutUpdatedL()
 	    TInt columns = iVisibleColumns = AknLayoutScalable_Apps::cell_cmail_l_pane_ParamLimits(var).LastColumn() + 1; 
 	    TInt rows = iVisibleRows = AknLayoutScalable_Apps::cell_cmail_l_pane_ParamLimits(var).LastRow() + 1; 
 
-	// </cmail>
-
         iCurrentLevel.iGridLayout->SetSize( gridRect.Size() );
         iCurrentLevel.iGridLayout->SetColumnsL( columns );
         iCurrentLevel.iGridLayout->SetRowsL( rows );
@@ -2090,7 +2081,6 @@ void CFSEmailUiLauncherGridVisualiser::VisualLayoutUpdatedL()
         UpdateScrollBarRangeL();
 
         TInt scrollbarWidth = scrollBarRect.Rect().Width();
-        // <cmail>
         if( iRowCount > iVisibleRows )
             {
             iScrollbar->MakeVisible(ETrue);
@@ -2099,7 +2089,6 @@ void CFSEmailUiLauncherGridVisualiser::VisualLayoutUpdatedL()
             {
             iScrollbar->MakeVisible(EFalse);
             }
-        // </cmail>
 
         TInt scrollbarTopLeftX = displaySize.iWidth - scrollbarWidth;
         TInt scrollbarTopLeftY = 0;
@@ -2169,13 +2158,11 @@ void CFSEmailUiLauncherGridVisualiser::VisualLayoutUpdatedL()
         SetRingWrapLimits();
         MoveSelection( EDirectionNone );
 
-	    // <cmail>
         TRect scrollbarRect;
         scrollbarRect.SetRect(scrollbarTopLeftX, scrollbarTopLeftY, scrollbarBottomRightX, scrollbarBottomRightY);
         scrollbarRect.Move(mainPaneRect.iTl);
         iScrollbar->SetRect(scrollbarRect);
         iScrollbar->DrawDeferred();
-	    // </cmail>
         iRefreshNeeded = EFalse;
         }
     }
@@ -2326,7 +2313,7 @@ void CFSEmailUiLauncherGridVisualiser::HandleContentChangeL()
             }
         }
     }
-// <cmail>
+
 void CFSEmailUiLauncherGridVisualiser::ConstructScrollbarL( CAlfLayout* aParent )
 	{
     FUNC_LOG;
@@ -2347,8 +2334,13 @@ void CFSEmailUiLauncherGridVisualiser::UpdateScrollBarRangeL()
 	{
     FUNC_LOG;
 
-	iScrollbarModel.SetScrollSpan(iRowCount);
-	iScrollbarModel.SetWindowSize(iVisibleRows);
+    TRect mainPaneRect;
+    AknLayoutUtils::LayoutMetricsRect(AknLayoutUtils::EMainPane, mainPaneRect);
+    TAknLayoutRect scrollBarRect;
+    scrollBarRect.LayoutRect(mainPaneRect, AknLayoutScalable_Avkon::aid_size_touch_scroll_bar());
+
+    iScrollbarModel.SetScrollSpan(iRowCount * (scrollBarRect.Rect().Height() / iVisibleRows));
+    iScrollbarModel.SetWindowSize(scrollBarRect.Rect().Height());  
 	iScrollbarModel.SetFocusPosition(iFirstVisibleRow);
 	iScrollbar->SetModelL(&iScrollbarModel);
 	iScrollbar->DrawNow();
@@ -2357,10 +2349,14 @@ void CFSEmailUiLauncherGridVisualiser::UpdateScrollBarRangeL()
 void CFSEmailUiLauncherGridVisualiser::HandleScrollEventL(CEikScrollBar* aScrollBar, TEikScrollEvent aEventType)
     {
     FUNC_LOG;
-    const TInt KScrollTransitionTimeMs = KSelectTransitionTimeMs;
+    if( iPhysics )
+        {
+        iPhysics->StopPhysics();
+        iPhysics->ResetFriction();
+        }
+    
     if (aScrollBar == iScrollbar)
          {
-
          switch( aEventType )
              {
              case EEikScrollHome :
@@ -2370,16 +2366,25 @@ void CFSEmailUiLauncherGridVisualiser::HandleScrollEventL(CEikScrollBar* aScroll
                  //Jump to end
                  break;
              default:
-                 iFirstVisibleRow = aScrollBar->ThumbPosition();
-                 TReal offset = iFirstVisibleRow * iRowHeight;
+                 iScrolled = ETrue;
+                 iAppUi.SetFocusVisibility( EFalse );
+                 if ( iSelector )
+                     {
+                     TAlfTimedValue selectorOpacity;
+                     selectorOpacity.SetValueNow( 0 );
+                     iSelector->SetOpacity( selectorOpacity );
+                     }                 
+                 iFirstVisibleRow = iCurrentLevel.iParentPos.iY/iRowHeight;
+                 TReal offset = aScrollBar->ThumbPosition() + 1;
                  TAlfTimedPoint alfScrollOffset;
-                 alfScrollOffset.iY.SetTarget( offset , KScrollTransitionTimeMs );
-                 iCurrentLevel.iGridLayout->SetScrollOffset(alfScrollOffset);
+                 alfScrollOffset.iY.SetTarget( offset , 0);
+				 iCurrentLevel.iGridLayout->SetScrollOffset(alfScrollOffset);
+                 iCurrentLevel.iParentPos.iY = offset;
                  break;
              }
          }
     }
-// </cmail>
+
 void CFSEmailUiLauncherGridVisualiser::UpdateLauncherItemListL()
     {
     FUNC_LOG;
@@ -2510,7 +2515,6 @@ TFSLauncherGridMailboxStatus CFSEmailUiLauncherGridVisualiser::CheckMailboxStatu
 void CFSEmailUiLauncherGridVisualiser::ProvideBitmapL(TInt aId, CFbsBitmap*& aBitmap, CFbsBitmap*& aMaskBitmap)
 	{
     FUNC_LOG;
-// <cmail> Use layout data instead of hard-coded values
     TRect mainPaneRect;
     AknLayoutUtils::LayoutMetricsRect(AknLayoutUtils::EMainPane, mainPaneRect);
     TInt var = Layout_Meta_Data::IsLandscapeOrientation() ? 1 : 0;
@@ -2525,7 +2529,6 @@ void CFSEmailUiLauncherGridVisualiser::ProvideBitmapL(TInt aId, CFbsBitmap*& aBi
 
     TAknLayoutRect gridIconRect;
     gridIconRect.LayoutRect(itemRect.Rect(), AknLayoutScalable_Apps::cell_cmail_l_pane_g1(var));
-// </cmail>
 
 	CAknIcon* launcherItemIcon(0);
 	for ( TInt i=0; i<iPluginIdIconIdPairs.Count(); i++ )
@@ -2538,12 +2541,8 @@ void CFSEmailUiLauncherGridVisualiser::ProvideBitmapL(TInt aId, CFbsBitmap*& aBi
 
 	if ( launcherItemIcon )
 		{
-// <cmail> Use layout data instead of hard-coded values
 		// Set bitmap size
-	    //TSize iconSize(iAppUi.LayoutHandler()->GridIconSize(), iAppUi.LayoutHandler()->GridIconSize() );
-
 		TSize iconSize = gridIconRect.Rect().Size();
-// </cmail>
 		if( launcherItemIcon->Bitmap() )
             {
             AknIconUtils::DisableCompression( launcherItemIcon->Bitmap() );
@@ -2680,6 +2679,69 @@ void CFSEmailUiLauncherGridVisualiser::FocusVisibilityChange( TBool aVisible )
     ResizeItemIcon( !aVisible );
 	}
 
+// -----------------------------------------------------------------------------
+// CFSEmailUiLauncherGridVisualiser::ViewPositionChanged
+// From MAknPhysicsObserver
+// -----------------------------------------------------------------------------
+//
+void CFSEmailUiLauncherGridVisualiser::ViewPositionChanged(
+        const TPoint& aNewPosition,
+        TBool /*aDrawNow*/,
+        TUint /*aFlags*/ )
+    {
+    FUNC_LOG;
+
+    // controls must be created first
+    if ( !iConstructionCompleted )
+        {
+        return;
+        }
+
+    TRect mainPaneRect;
+    AknLayoutUtils::LayoutMetricsRect(AknLayoutUtils::EMainPane, mainPaneRect);
+    iCurrentLevel.iParentPos.iY = aNewPosition.iY - mainPaneRect.Height()/2;
+    TAlfTimedPoint alfScrollOffset;
+    alfScrollOffset.iY.SetTarget( iCurrentLevel.iParentPos.iY , 0 );
+    iCurrentLevel.iGridLayout->SetScrollOffset(alfScrollOffset);
+    iScrollbarModel.SetFocusPosition( iCurrentLevel.iParentPos.iY );
+    TRAP_IGNORE( iScrollbar->SetModelL(&iScrollbarModel) );
+    iScrollbar->DrawNow();
+    iFirstVisibleRow = iCurrentLevel.iParentPos.iY/iRowHeight;
+    if ( iFirstVisibleRow < 0 )
+        {
+        iFirstVisibleRow = 0;
+        }
+    else if ( iFirstVisibleRow > iRowCount )
+        {
+        iFirstVisibleRow = iRowCount;
+        }
+    }
+
+// -----------------------------------------------------------------------------
+// CNcsComposeViewContainer::PhysicEmulationEnded
+// From MAknPhysicsObserver
+// -----------------------------------------------------------------------------
+//
+void CFSEmailUiLauncherGridVisualiser::PhysicEmulationEnded()
+    {
+    FUNC_LOG;
+    }
+
+// -----------------------------------------------------------------------------
+// CNcsComposeViewContainer::ViewPosition
+// From MAknPhysicsObserver
+// -----------------------------------------------------------------------------
+//
+TPoint CFSEmailUiLauncherGridVisualiser::ViewPosition() const
+    {
+    FUNC_LOG;
+    TRect mainPaneRect;
+    AknLayoutUtils::LayoutMetricsRect(AknLayoutUtils::EMainPane, mainPaneRect);
+    TInt current = iCurrentLevel.iParentPos.iY;
+    TInt viewCentre = mainPaneRect.Size().iHeight / 2;
+    TPoint point( 0, current + viewCentre );
+    return point;
+    }
 
 // ----------------------------------------------------------------------------
 // LaunchStylusPopupMenuL()
@@ -2735,5 +2797,22 @@ void CFSEmailUiLauncherGridVisualiser::TimerEventL( CFSEmailUiGenericTimer* /* a
         }
 
     iStartupCallbackTimer->Cancel();
+    }
+
+// ---------------------------------------------------------------------------
+// CFSEmailUiLauncherGridVisualiser::UpdatePhysicsL()
+// ---------------------------------------------------------------------------
+//
+void CFSEmailUiLauncherGridVisualiser::UpdatePhysicsL()
+    {
+    FUNC_LOG;
+    if ( iPhysics )
+        {
+        TRect mainPaneRect;
+        AknLayoutUtils::LayoutMetricsRect( AknLayoutUtils::EMainPane, mainPaneRect );
+        const TSize viewSize( mainPaneRect.Size() );        
+        const TSize worldSize( 0, iRowCount * iRowHeight );
+        iPhysics->InitPhysicsL( worldSize, viewSize, EFalse );
+        }
     }
 

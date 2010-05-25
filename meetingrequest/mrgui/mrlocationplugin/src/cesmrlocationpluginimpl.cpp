@@ -212,6 +212,8 @@ void CESMRLocationPluginImpl::SearchFromMapL( const TDesC& aSearchQuery )
     iLandMarks.AppendL( location );
     CleanupStack::Pop( location );
 
+    CreateMapViewL();
+
     iMapView->ResetLandmarksToShow();
     iMapView->AddLandmarksToShowL( iLandMarks );
     iMapView->ShowMapL();

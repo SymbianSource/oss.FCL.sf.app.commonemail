@@ -1253,13 +1253,11 @@ EXPORT_C void CFsControlButtonVisualiser::UpdateElementsSizeL(
     // If there is no text in the button, center the icon to the button
     if( !iLabelFirstLine || iLabelFirstLine->Text().Length() == 0 )
         {
-        TSize oldIconSize = iconA.Size();
-        iconA.SetRect( TPoint( 
-                            ( buttonSize.iWidth - oldIconSize.iWidth ) / 2, 
-                            ( buttonSize.iHeight - oldIconSize.iHeight ) / 2 ),
-                            oldIconSize );
+        TRect oldIconRect = iconA;
+        iconA.SetRect( TPoint(( buttonSize.iWidth - oldIconRect.Width())/2,
+                                oldIconRect.iTl.iY),
+                                oldIconRect.Size() );
         }
-    
     if ( iButtonModel->ContainsElement( ECBElemIconA ) )
         {
         const TSize& size( iconA.Size() );

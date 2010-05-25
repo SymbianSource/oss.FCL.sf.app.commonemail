@@ -434,6 +434,8 @@ private:
      */
     CMailPluginProxy* GetExtPluginL( const TDesC& aContentId );
 
+    TBool BackupOrRestoreMode();
+    
 private: // data
     CEikonEnv* iEnv;
     // pointer to liw wrapper that handles actual publishing

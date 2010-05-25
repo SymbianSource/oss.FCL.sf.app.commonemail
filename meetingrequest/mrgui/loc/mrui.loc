@@ -1266,5 +1266,21 @@
 //
 #define qtn_meet_req_fw_recurrent_series  "Forward the series"
 
+// d: Conflict popup display text. Text must be wrapped at given locations.
+// d: %0U is replaced with qtn_meet_req_conflicts_with_label
+// d: %1U is replaced with conflict time information
+// d: %2U is replaced with title. Text may be wrapped to 3 lines.
+// d: %3U is replaced with location. Text may be wrapped to 2 lines.
+// l: popup_preview_text_window/opt5
+// r: TB9.2
+//
+#define qtn_meet_req_conflict_text_format "%0U[20]\n%1U[20]\n%2U\n%3U"
+
+// d: Conflict popup location text format
+// d: %U is replaced with location. Text may be wrapped to 3 lines.
+// l: fscal_mr_tooltip_text
+// r: TB9.2
+//
+#define qtn_meet_req_location_parenthesis "(%U)"
 
 // end of file

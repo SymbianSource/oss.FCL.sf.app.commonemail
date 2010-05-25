@@ -136,6 +136,17 @@ CAlfTexture& CFreestyleEmailUiTextureManager::TextureByIndex( TFSEmailUiTextures
 	}
 
 // -----------------------------------------------------------------------------
+// CFreestyleEmailUiTextureManager::ClearTextureByIndex
+// -----------------------------------------------------------------------------
+//
+void CFreestyleEmailUiTextureManager::ClearTextureByIndex( TFSEmailUiTextures aIndex )
+    {
+    FUNC_LOG;
+    // unload the texture 
+    CAlfStatic::Env().TextureManager().UnloadTexture( aIndex );
+    iTextures[aIndex] = &CAlfStatic::Env().TextureManager().BlankTexture(); 
+    }
+// -----------------------------------------------------------------------------
 // CFreestyleEmailUiTextureManager::TextureByMailboxIdL
 // Returns branded mailbox icon texture based on PluginId, MailboxId and IconSize.
 // If not found. Will call LoadTexture to create new textures based on temporary
@@ -1339,71 +1350,152 @@ void CFreestyleEmailUiTextureManager::ProvideBitmapL(TInt aId, CFbsBitmap*& aBit
 			AknIconUtils::CreateIconL( bitmap, mask, iconFileName,
 									   EMbmFreestyleemailuiQgn_prop_email_sort_attach_asc,
 									   EMbmFreestyleemailuiQgn_prop_email_sort_attach_asc_mask );
-			iconSize = iAppUi->LayoutHandler()->FolderListIconSize( aId == ESortListAttachmentAscTexture );
+			TInt tempsize = iAppUi->LayoutHandler()->ListControlBarMailboxDefaultIconSize();
+			iconSize.SetSize( tempsize, tempsize );
 			}
 			break;
+        case ESortListAttachmentAscTexturePopup:
+			{
+			AknIconUtils::CreateIconL( bitmap, mask, iconFileName,
+									   EMbmFreestyleemailuiQgn_prop_email_sort_attach_asc,
+									   EMbmFreestyleemailuiQgn_prop_email_sort_attach_asc_mask );
+			iconSize = iAppUi->LayoutHandler()->FolderListIconSize( aId == ESortListAttachmentAscTexturePopup );
+			}
+			break;	
         case ESortListAttachmentDescTexture:
 			{
 			AknIconUtils::CreateIconL( bitmap, mask, iconFileName,
 									   EMbmFreestyleemailuiQgn_prop_email_sort_attach_desc,
 									   EMbmFreestyleemailuiQgn_prop_email_sort_attach_desc_mask );
-			iconSize = iAppUi->LayoutHandler()->FolderListIconSize( aId == ESortListAttachmentDescTexture );
+			TInt tempsize = iAppUi->LayoutHandler()->ListControlBarMailboxDefaultIconSize();
+			iconSize.SetSize( tempsize, tempsize );
 			}
 			break;
+        case ESortListAttachmentDescTexturePopup:
+        	{
+        	AknIconUtils::CreateIconL( bitmap, mask, iconFileName,
+        							   EMbmFreestyleemailuiQgn_prop_email_sort_attach_desc,
+        							   EMbmFreestyleemailuiQgn_prop_email_sort_attach_desc_mask );
+        	iconSize = iAppUi->LayoutHandler()->FolderListIconSize( aId == ESortListAttachmentDescTexturePopup );
+        	}
+        	break;
         case ESortListDateAscTexture:
 			{
 			AknIconUtils::CreateIconL( bitmap, mask, iconFileName,
 									   EMbmFreestyleemailuiQgn_prop_email_sort_date_asc,
 									   EMbmFreestyleemailuiQgn_prop_email_sort_date_asc_mask );
-			iconSize = iAppUi->LayoutHandler()->FolderListIconSize( aId == ESortListDateAscTexture );
+			TInt tempsize = iAppUi->LayoutHandler()->ListControlBarMailboxDefaultIconSize();
+			iconSize.SetSize( tempsize, tempsize );
 			}
 			break;
+        case ESortListDateAscTexturePopup:
+        	{
+        	AknIconUtils::CreateIconL( bitmap, mask, iconFileName,
+        							   EMbmFreestyleemailuiQgn_prop_email_sort_date_asc,
+        							   EMbmFreestyleemailuiQgn_prop_email_sort_date_asc_mask );
+        	iconSize = iAppUi->LayoutHandler()->FolderListIconSize( aId == ESortListDateAscTexturePopup );
+        	}
+        	break;
         case ESortListDateDescTexture:
 			{
 			AknIconUtils::CreateIconL( bitmap, mask, iconFileName,
 									   EMbmFreestyleemailuiQgn_prop_email_sort_date_desc,
 									   EMbmFreestyleemailuiQgn_prop_email_sort_date_desc_mask );
-			iconSize = iAppUi->LayoutHandler()->FolderListIconSize( aId == ESortListDateDescTexture );
+			TInt tempsize = iAppUi->LayoutHandler()->ListControlBarMailboxDefaultIconSize();
+			iconSize.SetSize( tempsize, tempsize );
 			}
 			break;
+        case ESortListDateDescTexturePopup:
+        	{
+        	AknIconUtils::CreateIconL( bitmap, mask, iconFileName,
+        							   EMbmFreestyleemailuiQgn_prop_email_sort_date_desc,
+        							   EMbmFreestyleemailuiQgn_prop_email_sort_date_desc_mask );
+        	iconSize = iAppUi->LayoutHandler()->FolderListIconSize( aId == ESortListDateDescTexturePopup );
+        	}
+        	break;
         case ESortListFollowAscTexture:
 			{
 			AknIconUtils::CreateIconL( bitmap, mask, iconFileName,
 									   EMbmFreestyleemailuiQgn_prop_email_sort_follow_asc,
 									   EMbmFreestyleemailuiQgn_prop_email_sort_follow_asc_mask );
-			iconSize = iAppUi->LayoutHandler()->FolderListIconSize( aId == ESortListFollowAscTexture );
+			TInt tempsize = iAppUi->LayoutHandler()->ListControlBarMailboxDefaultIconSize();
+			iconSize.SetSize( tempsize, tempsize );
 			}
 			break;
+        case ESortListFollowAscTexturePopup:
+        	{
+        	AknIconUtils::CreateIconL( bitmap, mask, iconFileName,
+        							   EMbmFreestyleemailuiQgn_prop_email_sort_follow_asc,
+        							   EMbmFreestyleemailuiQgn_prop_email_sort_follow_asc_mask );
+        	iconSize = iAppUi->LayoutHandler()->FolderListIconSize( aId == ESortListFollowAscTexturePopup );
+        	}
+        	break;
         case ESortListFollowDescTexture:
 			{
 			AknIconUtils::CreateIconL( bitmap, mask, iconFileName,
 									   EMbmFreestyleemailuiQgn_prop_email_sort_follow_desc,
 									   EMbmFreestyleemailuiQgn_prop_email_sort_follow_desc_mask );
-			iconSize = iAppUi->LayoutHandler()->FolderListIconSize( aId == ESortListFollowDescTexture );
+			TInt tempsize = iAppUi->LayoutHandler()->ListControlBarMailboxDefaultIconSize();
+			iconSize.SetSize( tempsize, tempsize );
 			}
 			break;
+        case ESortListFollowDescTexturePopup:
+        	{
+        	AknIconUtils::CreateIconL( bitmap, mask, iconFileName,
+        							   EMbmFreestyleemailuiQgn_prop_email_sort_follow_desc,
+        							   EMbmFreestyleemailuiQgn_prop_email_sort_follow_desc_mask );
+        	iconSize = iAppUi->LayoutHandler()->FolderListIconSize( aId == ESortListFollowDescTexturePopup );
+        	}
+        	break;
         case ESortListPriorityAscTexture:
 			{
 			AknIconUtils::CreateIconL( bitmap, mask, iconFileName,
 									   EMbmFreestyleemailuiQgn_prop_email_sort_priority_asc,
 									   EMbmFreestyleemailuiQgn_prop_email_sort_priority_asc_mask );
-			iconSize = iAppUi->LayoutHandler()->FolderListIconSize( aId == ESortListPriorityAscTexture );
+			TInt tempsize = iAppUi->LayoutHandler()->ListControlBarMailboxDefaultIconSize();
+			iconSize.SetSize( tempsize, tempsize );
 			}
 			break;
+        case ESortListPriorityAscTexturePopup:
+        	{
+        	AknIconUtils::CreateIconL( bitmap, mask, iconFileName,
+        							   EMbmFreestyleemailuiQgn_prop_email_sort_priority_asc,
+        							   EMbmFreestyleemailuiQgn_prop_email_sort_priority_asc_mask );
+        	iconSize = iAppUi->LayoutHandler()->FolderListIconSize( aId == ESortListPriorityAscTexturePopup );
+        	}
+        	break;
         case ESortListPriorityDescTexture:
 			{
 			AknIconUtils::CreateIconL( bitmap, mask, iconFileName,
 									   EMbmFreestyleemailuiQgn_prop_email_sort_priority_desc,
 									   EMbmFreestyleemailuiQgn_prop_email_sort_priority_desc_mask );
-			iconSize = iAppUi->LayoutHandler()->FolderListIconSize( aId == ESortListPriorityDescTexture );
+			TInt tempsize = iAppUi->LayoutHandler()->ListControlBarMailboxDefaultIconSize();
+			iconSize.SetSize( tempsize, tempsize );
 			}
 			break;
+        case ESortListPriorityDescTexturePopup:
+        	{
+        	AknIconUtils::CreateIconL( bitmap, mask, iconFileName,
+        							   EMbmFreestyleemailuiQgn_prop_email_sort_priority_desc,
+        							   EMbmFreestyleemailuiQgn_prop_email_sort_priority_desc_mask );
+        	iconSize = iAppUi->LayoutHandler()->FolderListIconSize( aId == ESortListPriorityDescTexturePopup );
+        	}
+        	break;
         case ESortListSenderAscTexture:
 			{
 			AknIconUtils::CreateIconL( bitmap, mask, iconFileName,
 									   EMbmFreestyleemailuiQgn_prop_email_sort_sender_asc,
 									   EMbmFreestyleemailuiQgn_prop_email_sort_sender_asc_mask );
-			iconSize = iAppUi->LayoutHandler()->FolderListIconSize( aId == ESortListSenderAscTexture );
+			TInt tempsize = iAppUi->LayoutHandler()->ListControlBarMailboxDefaultIconSize();
+			iconSize.SetSize( tempsize, tempsize );
+			}
+			break;
+        case ESortListSenderAscTexturePopup:
+			{
+			AknIconUtils::CreateIconL( bitmap, mask, iconFileName,
+									   EMbmFreestyleemailuiQgn_prop_email_sort_sender_asc,
+									   EMbmFreestyleemailuiQgn_prop_email_sort_sender_asc_mask );
+			iconSize = iAppUi->LayoutHandler()->FolderListIconSize( aId == ESortListSenderAscTexturePopup );
 			}
 			break;
         case ESortListSenderDescTexture:
@@ -1411,7 +1503,16 @@ void CFreestyleEmailUiTextureManager::ProvideBitmapL(TInt aId, CFbsBitmap*& aBit
 			AknIconUtils::CreateIconL( bitmap, mask, iconFileName,
 									   EMbmFreestyleemailuiQgn_prop_email_sort_sender_desc,
 									   EMbmFreestyleemailuiQgn_prop_email_sort_sender_desc_mask );
-			iconSize = iAppUi->LayoutHandler()->FolderListIconSize( aId == ESortListSenderDescTexture );
+			TInt tempsize = iAppUi->LayoutHandler()->ListControlBarMailboxDefaultIconSize();
+			iconSize.SetSize( tempsize, tempsize );
+			}
+			break;
+        case ESortListSenderDescTexturePopup:
+			{
+			AknIconUtils::CreateIconL( bitmap, mask, iconFileName,
+									   EMbmFreestyleemailuiQgn_prop_email_sort_sender_desc,
+									   EMbmFreestyleemailuiQgn_prop_email_sort_sender_desc_mask );
+			iconSize = iAppUi->LayoutHandler()->FolderListIconSize( aId == ESortListSenderDescTexturePopup );
 			}
 			break;
         case ESortListSubjectAscTexture:
@@ -1419,7 +1520,16 @@ void CFreestyleEmailUiTextureManager::ProvideBitmapL(TInt aId, CFbsBitmap*& aBit
 			AknIconUtils::CreateIconL( bitmap, mask, iconFileName,
 									   EMbmFreestyleemailuiQgn_prop_email_sort_subject_asc,
 									   EMbmFreestyleemailuiQgn_prop_email_sort_subject_asc_mask );
-			iconSize = iAppUi->LayoutHandler()->FolderListIconSize( aId == ESortListSubjectAscTexture );
+			TInt tempsize = iAppUi->LayoutHandler()->ListControlBarMailboxDefaultIconSize();
+			iconSize.SetSize( tempsize, tempsize );
+			}
+			break;
+        case ESortListSubjectAscTexturePopup:
+			{
+			AknIconUtils::CreateIconL( bitmap, mask, iconFileName,
+									   EMbmFreestyleemailuiQgn_prop_email_sort_subject_asc,
+									   EMbmFreestyleemailuiQgn_prop_email_sort_subject_asc_mask );
+			iconSize = iAppUi->LayoutHandler()->FolderListIconSize( aId == ESortListSubjectAscTexturePopup );
 			}
 			break;
         case ESortListSubjectDescTexture:
@@ -1427,7 +1537,16 @@ void CFreestyleEmailUiTextureManager::ProvideBitmapL(TInt aId, CFbsBitmap*& aBit
 			AknIconUtils::CreateIconL( bitmap, mask, iconFileName,
 									   EMbmFreestyleemailuiQgn_prop_email_sort_subject_desc,
 									   EMbmFreestyleemailuiQgn_prop_email_sort_subject_desc_mask );
-			iconSize = iAppUi->LayoutHandler()->FolderListIconSize( aId == ESortListSubjectDescTexture );
+			TInt tempsize = iAppUi->LayoutHandler()->ListControlBarMailboxDefaultIconSize();
+			iconSize.SetSize( tempsize, tempsize );
+			}
+			break;
+        case ESortListSubjectDescTexturePopup:
+			{
+			AknIconUtils::CreateIconL( bitmap, mask, iconFileName,
+									   EMbmFreestyleemailuiQgn_prop_email_sort_subject_desc,
+									   EMbmFreestyleemailuiQgn_prop_email_sort_subject_desc_mask );
+			iconSize = iAppUi->LayoutHandler()->FolderListIconSize( aId == ESortListSubjectDescTexturePopup );
 			}
 			break;
         case ESortListUnreadAscTexture:
@@ -1435,7 +1554,16 @@ void CFreestyleEmailUiTextureManager::ProvideBitmapL(TInt aId, CFbsBitmap*& aBit
 			AknIconUtils::CreateIconL( bitmap, mask, iconFileName,
 									   EMbmFreestyleemailuiQgn_prop_email_sort_unread_asc,
 									   EMbmFreestyleemailuiQgn_prop_email_sort_unread_asc_mask );
-			iconSize = iAppUi->LayoutHandler()->FolderListIconSize( aId == ESortListUnreadAscTexture );
+			TInt tempsize = iAppUi->LayoutHandler()->ListControlBarMailboxDefaultIconSize();
+			iconSize.SetSize( tempsize, tempsize );
+			}
+			break;
+        case ESortListUnreadAscTexturePopup:
+			{
+			AknIconUtils::CreateIconL( bitmap, mask, iconFileName,
+									   EMbmFreestyleemailuiQgn_prop_email_sort_unread_asc,
+									   EMbmFreestyleemailuiQgn_prop_email_sort_unread_asc_mask );
+			iconSize = iAppUi->LayoutHandler()->FolderListIconSize( aId == ESortListUnreadAscTexturePopup );
 			}
 			break;
         case ESortListUnreadDescTexture:
@@ -1443,10 +1571,19 @@ void CFreestyleEmailUiTextureManager::ProvideBitmapL(TInt aId, CFbsBitmap*& aBit
 			AknIconUtils::CreateIconL( bitmap, mask, iconFileName,
 									   EMbmFreestyleemailuiQgn_prop_email_sort_unread_desc,
 									   EMbmFreestyleemailuiQgn_prop_email_sort_unread_desc_mask );
-			iconSize = iAppUi->LayoutHandler()->FolderListIconSize( aId == ESortListUnreadDescTexture );
+			TInt tempsize = iAppUi->LayoutHandler()->ListControlBarMailboxDefaultIconSize();
+			iconSize.SetSize( tempsize, tempsize );
 			}
 			break;
-		// SORT LIST ICON READING STOPS HERE
+        case ESortListUnreadDescTexturePopup:
+			{
+			AknIconUtils::CreateIconL( bitmap, mask, iconFileName,
+									   EMbmFreestyleemailuiQgn_prop_email_sort_unread_desc,
+									   EMbmFreestyleemailuiQgn_prop_email_sort_unread_desc_mask );
+			iconSize = iAppUi->LayoutHandler()->FolderListIconSize( aId == ESortListUnreadDescTexturePopup );
+			}
+			break;
+			// SORT LIST ICON READING STOPS HERE
 		//
 			
 		// ATTACHMENT ICONS STARTS HERE
@@ -2123,6 +2260,22 @@ void CFreestyleEmailUiTextureManager::LoadTextureL( TFSEmailUiTextures aTextureI
         case ESortListSubjectDescTexture: iTextures[aTextureId] = &CAlfStatic::Env().TextureManager().CreateTextureL( ESortListSubjectDescTexture, this, EAlfTextureFlagRetainResolution); break;
         case ESortListUnreadAscTexture: iTextures[aTextureId] = &CAlfStatic::Env().TextureManager().CreateTextureL( ESortListUnreadAscTexture, this, EAlfTextureFlagRetainResolution); break;
         case ESortListUnreadDescTexture: iTextures[aTextureId] = &CAlfStatic::Env().TextureManager().CreateTextureL( ESortListUnreadDescTexture, this, EAlfTextureFlagRetainResolution); break;
+        
+        // SORT LIST ICONS POPUP
+        case ESortListAttachmentAscTexturePopup: iTextures[aTextureId] = &CAlfStatic::Env().TextureManager().CreateTextureL( ESortListAttachmentAscTexturePopup, this, EAlfTextureFlagRetainResolution); break;
+        case ESortListAttachmentDescTexturePopup: iTextures[aTextureId] = &CAlfStatic::Env().TextureManager().CreateTextureL( ESortListAttachmentDescTexturePopup, this, EAlfTextureFlagRetainResolution); break;
+        case ESortListDateAscTexturePopup: iTextures[aTextureId] = &CAlfStatic::Env().TextureManager().CreateTextureL( ESortListDateAscTexturePopup, this, EAlfTextureFlagRetainResolution); break;
+        case ESortListDateDescTexturePopup: iTextures[aTextureId] = &CAlfStatic::Env().TextureManager().CreateTextureL( ESortListDateDescTexturePopup, this, EAlfTextureFlagRetainResolution); break;
+        case ESortListFollowAscTexturePopup: iTextures[aTextureId] = &CAlfStatic::Env().TextureManager().CreateTextureL( ESortListFollowAscTexturePopup, this, EAlfTextureFlagRetainResolution); break;
+        case ESortListFollowDescTexturePopup: iTextures[aTextureId] = &CAlfStatic::Env().TextureManager().CreateTextureL( ESortListFollowDescTexturePopup, this, EAlfTextureFlagRetainResolution); break;
+        case ESortListPriorityAscTexturePopup: iTextures[aTextureId] = &CAlfStatic::Env().TextureManager().CreateTextureL( ESortListPriorityAscTexturePopup, this, EAlfTextureFlagRetainResolution); break;
+        case ESortListPriorityDescTexturePopup: iTextures[aTextureId] = &CAlfStatic::Env().TextureManager().CreateTextureL( ESortListPriorityDescTexturePopup, this, EAlfTextureFlagRetainResolution); break;
+        case ESortListSenderAscTexturePopup: iTextures[aTextureId] = &CAlfStatic::Env().TextureManager().CreateTextureL( ESortListSenderAscTexturePopup, this, EAlfTextureFlagRetainResolution); break;
+        case ESortListSenderDescTexturePopup: iTextures[aTextureId] = &CAlfStatic::Env().TextureManager().CreateTextureL( ESortListSenderDescTexturePopup, this, EAlfTextureFlagRetainResolution); break;
+        case ESortListSubjectAscTexturePopup: iTextures[aTextureId] = &CAlfStatic::Env().TextureManager().CreateTextureL( ESortListSubjectAscTexturePopup, this, EAlfTextureFlagRetainResolution); break;
+        case ESortListSubjectDescTexturePopup: iTextures[aTextureId] = &CAlfStatic::Env().TextureManager().CreateTextureL( ESortListSubjectDescTexturePopup, this, EAlfTextureFlagRetainResolution); break;
+        case ESortListUnreadAscTexturePopup: iTextures[aTextureId] = &CAlfStatic::Env().TextureManager().CreateTextureL( ESortListUnreadAscTexturePopup, this, EAlfTextureFlagRetainResolution); break;
+        case ESortListUnreadDescTexturePopup: iTextures[aTextureId] = &CAlfStatic::Env().TextureManager().CreateTextureL( ESortListUnreadDescTexturePopup, this, EAlfTextureFlagRetainResolution); break;
                 
 		// STATUS INDICATOR ICONS
 		case EStatusTextureSynchronising: iTextures[aTextureId] = &CAlfStatic::Env().TextureManager().CreateTextureL( EStatusTextureSynchronising, this, EAlfTextureFlagRetainResolution); break;

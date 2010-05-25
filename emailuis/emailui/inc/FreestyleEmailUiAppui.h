@@ -450,11 +450,9 @@ public:
     TInt ViewLoadIdleCallbackFunctionL();
 
     /**
-     * Sets the manual mailbox syncronisation/connection flag if the
-     * user chose to synchorise/connect mail boxes from the menu
+     * Sets the manual mailbox connection flag if the
+     * user chose to connect mail boxes from the menu
      */
-    void ManualMailBoxSync( TBool aManualMailBoxSync );
-    void ManualMailBoxSyncAll( TBool aManualMailBoxSyncAll );
     void ManualMailBoxConnectAll( TBool aManualMailBoxConnectAll );
     void ManualMailBoxDisconnectAll( TBool aManualMailBoxConnectAll );
 
@@ -501,6 +499,11 @@ public:
 
     // returns last seen pointer position
     const TPoint& LastSeenPointerPosition() const;
+    
+    // Runs fake sync animation (needed for better user experience as
+    // otherwise in some connection/sync states pressing "send & receive"
+    // wouldn't have any visible effect.
+    void RunFakeSyncAnimL();
     
 public: //from MFSMailEventObserver
     /**
@@ -771,9 +774,7 @@ private:
     // For feature manager
     TBool iFeatureManagerInitialized;
 
-    //ETrue if user started the sync/connect all
-    TBool iManualMailBoxSync;
-    TBool iManualMailBoxSyncAll;
+    // ETrue if user started the connect all
     TBool iManualMailBoxConnectAll;
     TBool iManualMailBoxDisconnectAll;
 
@@ -810,6 +811,7 @@ private:
     CCustomStatuspaneIndicators* iStatusPaneIndicators;
     TBool iConnectionStatusVisible;
     CFSEmailUiGenericTimer* iConnectionStatusIconAnimTimer;
+    CFSEmailUiGenericTimer* iFakeSyncAnimStopTimer;
     CFbsBitmap* iConnectionIconBitmap;
     CFbsBitmap* iConnectionIconMask;
     TInt iConnectionStatusIconAngle;

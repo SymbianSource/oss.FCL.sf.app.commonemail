@@ -445,6 +445,10 @@ public:
 
     // Creates CMailboxStateExtension with this class set as dataprovider
     void CreateExtensionL();
+
+    // check from settings if manual or auto sync
+    TBool CheckAutoSyncSettingL();
+    
 private: // from
 
     /**
@@ -455,7 +459,7 @@ private: // from
             const TDesC8& aCustomMessage );
     void ChildDoDeactivate();
     void GetParentLayoutsL( RPointerArray<CAlfVisual>& aLayoutArray ) const;
-    
+    TFSEmailUiTextures GetSortButtonTextureIndex();
 	void FadeOut(TBool aDirectionOut);
     
     /**

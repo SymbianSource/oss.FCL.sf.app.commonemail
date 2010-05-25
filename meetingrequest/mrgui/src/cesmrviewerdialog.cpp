@@ -623,14 +623,11 @@ void CESMRViewerDialog::DoProcessCommandL( TInt aCommand )
                     }
                 }
 
-            // If entry is recurring, we want to ask from user, if
-            // single instance or whole series will be forwarded
             if( aCommand == EESMRCmdForwardAsMail &&
             		iInfoProvider.EntryL()->IsRecurrentEventL() )
             	{
-				SetRecurrenceModRuleL(
-					*( iInfoProvider.EntryL() ),
-					CESMRListQuery::EESMRForwardThisOccurenceOrSeriesQuery );
+				iInfoProvider.EntryL()->SetModifyingRuleL(
+				                  MESMRMeetingRequestEntry::EESMRAllInSeries );
             	}
 
             TInt res = iCallback.ProcessCommandWithResultL( aCommand );

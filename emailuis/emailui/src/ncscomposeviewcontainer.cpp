@@ -52,7 +52,7 @@
 #include "FreestyleEmailUi.hrh"
 #include "FSAutoSaver.h"
 #include "FreestyleEmailUiCLSItem.h"
-
+#include "FSAsyncTextFormatter.h"
 
 const TInt KHeaderVisibilityThreshold = -100;
 
@@ -169,11 +169,20 @@ void CNcsComposeViewContainer::ConstructL( const TRect& aRect, TInt aFlags )
 
     iLongTapDetector = CAknLongTapDetector::NewL( this );
 
-    ActivateL();
-    DrawDeferred();
-
     // activate auto save functionality
     iAutoSaver.Enable( ETrue );
+    }
+
+// ---------------------------------------------------------------------------
+// CNcsComposeViewContainer::StopAsyncTextFormatter
+// ---------------------------------------------------------------------------
+//
+void CNcsComposeViewContainer::StopAsyncTextFormatter()
+    {
+    if ( iAsyncTextFormatter )
+        {
+        iAsyncTextFormatter->Cancel();
+        }
     }
 
 // ---------------------------------------------------------------------------
@@ -184,6 +193,13 @@ void CNcsComposeViewContainer::ConstructL( const TRect& aRect, TInt aFlags )
 CNcsComposeViewContainer::~CNcsComposeViewContainer()
     {
     FUNC_LOG;
+    
+    if ( iAsyncTextFormatter )
+        {
+        iAsyncTextFormatter->Cancel();
+        delete iAsyncTextFormatter;
+        }
+    
     if ( iContactHandler )
         {
         iContactHandler->ClearObservers();
@@ -503,8 +519,7 @@ TKeyResponse CNcsComposeViewContainer::OfferKeyEventL(
         if ( iFocused )
             ret = iFocused->OfferKeyEventL( aKeyEvent, aType );
 
-        if( aType == EEventKeyUp )
-        	iView.HandleContainerChangeRequiringToolbarRefresh();
+        iView.HandleContainerChangeRequiringToolbarRefresh();
         
         // Report user activity to auto saver if editor field handled the
         // event. In case of message field (body text), EKeyWasConsumed
@@ -738,6 +753,7 @@ void CNcsComposeViewContainer::SizeChanged()
     const TPoint headerPos( 
             NcsUtility::HeaderControlPosition( cmailPaneRect, 0 ) );
     cmailPaneRect.Move( 0, iHeader->Position().iY - headerPos.iY );
+    iCmailPaneRect = cmailPaneRect;
 
     NcsUtility::LayoutHeaderControl( 
             iHeader, cmailPaneRect, 0, headerLineCount );
@@ -747,7 +763,13 @@ void CNcsComposeViewContainer::SizeChanged()
     NcsUtility::LayoutBodyEdwin( 
             iMessageField, cmailPaneRect, iHeader->LayoutLineCount(), 
             iMessageField->LineCount(), iSeparatorLineYPos );
-    TRAP_IGNORE( iMessageField->FormatAllTextNowL() );
+    
+    // we don't need format again when format was already done
+    // during creation of forward/reply message
+    if ( !iSwitchOffFormattingText )
+        {
+        TRAP_IGNORE( iMessageField->FormatAllTextNowL() );
+        }
 
     iMessageField->UpdateFontSize();
 
@@ -759,7 +781,12 @@ void CNcsComposeViewContainer::SizeChanged()
                 iReadOnlyQuoteField, cmailPaneRect, 
                 iHeader->LayoutLineCount() + iMessageField->LineCount(), 
                 iReadOnlyQuoteField->LineCount(), dummySeparatorPos );
-        TRAP_IGNORE( iReadOnlyQuoteField->FormatAllTextNowL() );
+        // we don't need format again when format was already done
+		// during creation of forward/reply message
+        if ( !iSwitchOffFormattingText )
+            {
+            TRAP_IGNORE( iReadOnlyQuoteField->FormatAllTextNowL() );
+            }
         iReadOnlyQuoteField->UpdateFontSize();
         readOnlyQuoteFieldHeight = iReadOnlyQuoteField->Rect().Height();
         }
@@ -782,8 +809,11 @@ void CNcsComposeViewContainer::SizeChanged()
         TSize newSize( iMessageField->Size().iWidth,
                        Max( iMessageField->Size().iHeight, 
                             iMessageEditorMinHeigth ) );
-            
-        iMessageField->SetSize( newSize );
+
+        if ( !iSwitchOffFormattingText ) 
+            {
+            iMessageField->SetSize( newSize );
+            }
         }
     else
         {
@@ -862,6 +892,94 @@ void CNcsComposeViewContainer::SetBodyContentL( const TDesC& aMessage,
 
     // Recalculate the size of the body field
     SizeChanged();
+    }
+
+// -----------------------------------------------------------------------------
+// CNcsComposeViewContainer::SetBodyContentAsyncL()
+// -----------------------------------------------------------------------------
+//
+void CNcsComposeViewContainer::SetBodyContentAsyncL( const TDesC& aMessage,
+    const TDesC& aReadOnlyQuote )
+    {
+    FUNC_LOG;
+    delete iReadOnlyQuote;
+    iReadOnlyQuote = NULL;
+    if ( aReadOnlyQuote.Length() )
+        {
+        iReadOnlyQuote = aReadOnlyQuote.AllocL();
+        }
+
+    RMemReadStream inputStream( aMessage.Ptr(), aMessage.Size() );
+    CleanupClosePushL( inputStream );
+    iMessageField->RichText()->ImportTextL( 0, inputStream,
+        CPlainText::EOrganiseByParagraph );
+    CleanupStack::PopAndDestroy( &inputStream );
+    
+
+    // Activating the field will set the control to the end of the text
+    iMessageField->ActivateL();
+    iMessageField->SetCursorPosL( 0, EFalse );
+    
+    iProcessedField = iMessageField;
+    
+	iAsyncTextFormatter = CFSAsyncTextFormatter::NewL();
+    iAsyncTextFormatter->StartFormatting( iMessageField->TextLayout(), this );
+        
+    // callback from AO: FormatAllTextCompleteL
+}
+
+// -----------------------------------------------------------------------------
+// CNcsComposeViewContainer::FormatAllTextCancelled()
+// -----------------------------------------------------------------------------
+//
+void CNcsComposeViewContainer::FormatAllTextCancelled()
+	{
+	iView.SetBodyContentComplete();
+	}
+
+// -----------------------------------------------------------------------------
+// CNcsComposeViewContainer::FormatAllTextComplete()
+// -----------------------------------------------------------------------------
+//
+void CNcsComposeViewContainer::FormatAllTextComplete()
+	{
+    if ( iReadOnlyQuote && iProcessedField == iMessageField )
+        {
+        iProcessedField = iReadOnlyQuoteField;
+        if ( iReadOnlyQuote )
+            {
+			TInt dummySeparatorPos;
+			NcsUtility::LayoutBodyEdwin( iReadOnlyQuoteField, iCmailPaneRect, 
+					iHeader->LayoutLineCount() + iMessageField->LineCount(),
+					iReadOnlyQuoteField->LineCount(), dummySeparatorPos );
+	
+			RMemReadStream inputStream;
+            inputStream.Open( iReadOnlyQuote->Ptr(), iReadOnlyQuote->Size() );
+            TRAP_IGNORE( iReadOnlyQuoteField->RichText()->ImportTextL( 0, inputStream,
+                    CPlainText::EOrganiseByParagraph ) );
+            inputStream.Close();
+            
+            // Activating the field will set the control to the end of the text
+            TRAP_IGNORE( iReadOnlyQuoteField->ActivateL() );
+            TRAP_IGNORE( iReadOnlyQuoteField->SetCursorPosL( 0, EFalse ) );
+            
+            if ( !iAsyncTextFormatter )
+                {
+                TRAP_IGNORE( iAsyncTextFormatter = CFSAsyncTextFormatter::NewL() );
+                }
+            iAsyncTextFormatter->StartFormatting( 
+                    iReadOnlyQuoteField->TextLayout(), this );
+            }
+        }
+    else
+        {
+        // Recalculate the size of the body field
+        iSwitchOffFormattingText = ETrue;
+        SizeChanged();
+        iSwitchOffFormattingText = EFalse;
+        
+        iView.SetBodyContentComplete();
+        }
     }
 
 // -----------------------------------------------------------------------------
@@ -1042,12 +1160,18 @@ TBool CNcsComposeViewContainer::HandleEdwinSizeEventL( CEikEdwin* aEdwin,
         {
         if ( aDesirableEdwinSize.iHeight >= iMessageEditorMinHeigth )
             {
-            aEdwin->SetSize( aDesirableEdwinSize );
+            if ( !iSwitchOffFormattingText )
+                {
+                aEdwin->SetSize( aDesirableEdwinSize );
+                }
             }        
         }
     else
         {
-        aEdwin->SetSize( aDesirableEdwinSize );
+        if ( !iSwitchOffFormattingText )
+            {
+            aEdwin->SetSize( aDesirableEdwinSize );
+            }
         }
     if ( aEdwin == iMessageField )
         {
@@ -1966,14 +2090,14 @@ void CNcsComposeViewContainer::ViewPositionChanged(
     FUNC_LOG;
     TInt scrollOffset = aNewPosition.iY - iVisibleAreaHeight / 2;
 
-	// when the composer view is overlapped by other view for instance task switcher or screensaver
-	// physics sends a faulty event to move the composer view down. 
-	// This action is ignored here.	
-	if (aNewPosition.iY != 0)
-		{    	
-    Scroll( scrollOffset, aDrawNow );
+    // when the composer view is overlapped by other view for instance task switcher or screensaver
+    // physics sends a faulty event to move the composer view down. 
+    // This action is ignored here.	
+    if (aNewPosition.iY != 0)
+        {
+        Scroll( scrollOffset, aDrawNow );
+        }
     }
-	}
 
 // -----------------------------------------------------------------------------
 // CNcsComposeViewContainer::PhysicEmulationEnded
@@ -2009,28 +2133,4 @@ TBool CNcsComposeViewContainer::IsRemoteSearchInprogress() const
     {
     FUNC_LOG;
     return iHeader->IsRemoteSearchInprogress();
-    }
-
-// -----------------------------------------------------------------------------
-// CNcsComposeViewContainer::DoUpdateSubjectL
-// -----------------------------------------------------------------------------
-//
-void CNcsComposeViewContainer::DoUpdateSubjectL()
-    {
-    FUNC_LOG;
-    // fix for ESLX-7Y4C2V, dissapearing subject
-    // get copy of subject
-    HBufC* subjectCopy = GetSubjectLC();
-    iHeader->SetFocus( EFalse, EDrawNow );
-    // get subject after focus lost
-    HBufC* subject = GetSubjectLC();
-    // restore subject from copy if necessary
-    if ( subject->Length() != subjectCopy->Length() )
-        {
-        iHeader->SetSubjectL( *subjectCopy );
-        }
-
-    // restore focus
-    iHeader->SetFocus( ETrue, EDrawNow );
-    CleanupStack::PopAndDestroy( 2, subjectCopy );
     }

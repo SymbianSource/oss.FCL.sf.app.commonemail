@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -42,7 +42,7 @@ USERINCLUDE     ../../../../inc
 
 //implementations
 
-SOURCEPATH 		../src 
+SOURCEPATH 		../src
 
 SOURCE          cesmrfieldbuilderpluginextensionproxy.cpp
 SOURCE          cesmrfieldbuilderpluginextension.cpp
@@ -117,6 +117,7 @@ LIBRARY pbk2rclengine.lib
 LIBRARY ws32.lib //RWindowGroup
 LIBRARY cntmodel.lib //contactitem
 LIBRARY caleninterimutils2.lib
+LIBRARY featdiscovery.lib
 
 // needed by XML based LAF components
 LIBRARY cdlengine.lib

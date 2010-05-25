@@ -213,6 +213,16 @@ public: // new functions
     
     void HandleContainerChangeRequiringToolbarRefresh();
 
+    /**
+     * Callback method for setting body content in asynchronous way.  
+     */
+    void SetBodyContentComplete();
+    
+    /**
+     * Checks if "Opening" wait note is visible.
+     */
+    TBool IsOpeningWaitNoteVisible();
+    
 protected:
 
     void ProcessCommandL( TInt aCommand );
@@ -373,6 +383,15 @@ private: // new functions
     *                                in front of any quote or signature
     */        
     void IncludeMessageTextL( TBool aEnsureSpaceInBegin = EFalse );
+    
+    /**
+     * Async version of IncludeMessageTextL.
+     * Inits body text async when forwarding, replying message.
+     * @param aEnsureEmptyLineInBegin When true, the function ensures there's empty lines
+     *                                in the beginning of the message. I.e. line break(s)
+     *                                are inserted in front of any quote or signature
+     */
+    void IncludeMessageTextAsyncL( TBool aEnsureSpaceInBegin = EFalse );
         
     /**
     * SetPriority
@@ -669,6 +688,32 @@ private: // data
 
     // Flag to indicate whether message has been modified.
     TBool iMessageModified;
+    
+    /**
+     * Flag indicating async way of inluding message body text.
+     */
+    TBool iIncludeMessageTextAsync;
+    
+    /**
+     * Buffer for text of message's body.
+     * Own.
+     */
+    HBufC* iBody;
+    
+    /**
+     * Flag indicating that view was fully activated.
+     */
+    TBool iViewFullyActivated;
+    
+    /**
+     * Flag indicating that "Opening" wait note is visible.
+     */
+    TBool iOpeningWaitNoteVisible;
+    
+    /**
+     * "Opening" wait dialog.
+     */
+    CAknWaitDialog* iOpeningWaitDialog;
     };
 
 /**

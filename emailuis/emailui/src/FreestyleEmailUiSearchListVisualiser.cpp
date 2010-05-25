@@ -794,6 +794,24 @@ void CFSEmailUiSearchListVisualiser::GetParentLayoutsL( RPointerArray<CAlfVisual
     aLayoutArray.Append( iScreenAnchorLayout );
     }
 
+// ---------------------------------------------------------------------------
+// hide or show CAlfVisuals ( used for activation or deactivation )
+//
+void CFSEmailUiSearchListVisualiser::FadeOut(TBool aDirectionOut )
+	{
+	FUNC_LOG;
+	if ( iScreenAnchorLayout != NULL )
+        {
+		TAlfTimedValue timedValue( 0, 0 );
+		if ( !aDirectionOut )
+		    {
+		    timedValue.SetTarget( 1, 0 );
+		    }
+		iScreenAnchorLayout->SetOpacity( timedValue );
+        }
+	}
+
+
 // -----------------------------------------------------------------------------
 // CFSEmailUiMailListVisualiser::FlipStateChangedL
 // Called when keyboard flip state is changed
@@ -2592,7 +2610,8 @@ void CFSEmailUiSearchListVisualiser::LaunchStylusPopupMenuL( const TPoint& aPoin
         iStylusPopUpMenu->SetItemDimmed( EFsEmailUiCmdMarkAsRead, messageRead );
 
         // Set the position for the popup
-        iStylusPopUpMenu->SetPosition( aPoint );
+	    TPoint point(aPoint.iX, aPoint.iY + 45);
+	    iStylusPopUpMenu->SetPosition( point, CAknStylusPopUpMenu::EPositionTypeRightBottom );
 
         // Display the popup and set the flag to indicate that the menu was
         // launched so that list focus stays visible.

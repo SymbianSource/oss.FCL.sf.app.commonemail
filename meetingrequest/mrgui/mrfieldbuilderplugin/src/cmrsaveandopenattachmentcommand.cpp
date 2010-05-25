@@ -22,20 +22,12 @@
 #include <DocumentHandler.h>
 #include <coemain.h>
 #include <esmrgui.rsg>
-#include <NpdApi.h>
 #include <aknnotewrappers.h>
 #include <StringLoader.h>
 
 // DEBUG
 #include "emailtrace.h"
 
-
-namespace { // codescanner::namespace
-
-// Notepad data type
-_LIT8( KNotePadTextDataType, "text/plain" );
-
-}
 
 // ======== MEMBER FUNCTIONS ========
 
@@ -134,21 +126,8 @@ void CMRSaveAndOpenAttachmentCommand::ExecuteAttachmentCommandL(
     TDataType datatype(
             aEntry.AttachmentL( aAttachmentIndex )->MimeType() );
 
-    if( datatype == KNotePadTextDataType() )
-        {
-        // Notepad will try to open text/plain type data
-        err = CNotepadApi::ExecFileViewerL(
-                copiedFile,
-                NULL,
-               ETrue,
-               EFalse,
-               KCharacterSetIdentifierIso88591 );
-        }
-    else
-        {
-        // Doc handler will try to open other than text files
-        TRAP( err, iDocHandler.OpenFileEmbeddedL( copiedFile, datatype ) );
-        }
+    // Doc handler will try to open file
+    TRAP( err, iDocHandler.OpenFileEmbeddedL( copiedFile, datatype ) );
 
     CleanupStack::PopAndDestroy( &copiedFile );
     CleanupStack::PopAndDestroy( &file );

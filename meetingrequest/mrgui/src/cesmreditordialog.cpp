@@ -2050,6 +2050,18 @@ TInt CESMREditorDialog::TryToSaveEntryL()
                             CESMRGlobalNote::EESMRTodoEntrySaved );
                 note->ExecuteLD();
                 }
+			else if( entry->Type() == MESMRCalEntry::EESMRCalEntryMeetingRequest )
+				{
+				MESMRMeetingRequestEntry* mrEntry =
+									static_cast<MESMRMeetingRequestEntry*>( entry );
+				if( !mrEntry->IsForwardedL() )
+					{
+					CESMRGlobalNote* note =
+								CESMRGlobalNote::NewL(
+										CESMRGlobalNote::EESMREntrySaved );
+					note->ExecuteLD();
+					}
+				}
             else
                 {
                 CESMRGlobalNote* note =

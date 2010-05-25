@@ -30,6 +30,7 @@
 #include "FreestyleEmailUiContactHandlerObserver.h"
 #include "FreestyleEmailUi.hrh"
 #include <aknlongtapdetector.h>
+#include "FSAsyncTextFormatter.h"
 
 class CAknPhysics;
 class CNcsEditor;
@@ -59,7 +60,8 @@ class CNcsComposeViewContainer: public CCoeControl, public MNcsFieldSizeObserver
                                 public MAknLongTapDetectorCallBack,
                                 public MEikEdwinObserver,
                                 public MEikEdwinSizeObserver,
-                                public MAknPhysicsObserver
+                                public MAknPhysicsObserver,
+                                public MAsyncTextFormatterObserver
     {
     
 public:
@@ -380,6 +382,13 @@ public: // new functions
      * @parem aReadOnlyQuote Contents of read-only quote field.
      */
     void SetBodyContentL( const TDesC& aMessage, const TDesC& aReadOnlyQuote );
+    
+    /**
+     * Set the contents of the message body in asnchronous way.
+     * @param aMessage Contents of MESSAGE-field.
+     * @param aReadOnlyQuote Contents of read-only quote field.
+     */
+    void SetBodyContentAsyncL( const TDesC& aMessage, const TDesC& aReadOnlyQuote );
 
     /**
      * Get the contents of message body. The message body consists of
@@ -502,7 +511,24 @@ public: // new functions
      * @param aTargetPos Scrolls display to given position
      */
     void Scroll( TInt aTargetPos, TBool aDrawNow = ETrue );
-
+    
+    /**
+     * Stopping asynchronous text formatting of message body.
+     */
+    void StopAsyncTextFormatter();
+    
+public: // from MAsyncTextFormatterObserver
+    
+    /**
+     * Called when text formatting was cancelled.
+     */
+    void FormatAllTextCancelled();
+    
+    /**
+     * Called when text formatting is complete. 
+     */
+	void FormatAllTextComplete();
+	
 public: // from CoeControl
 
     /**
@@ -642,12 +668,8 @@ private: // from MAknPhysicsObserver
     */
    virtual TPoint ViewPosition() const;
 
-private:
-
-   void DoUpdateSubjectL();
-
 private: // data
-    
+
     /**
     * header container
     */
@@ -740,6 +762,27 @@ private: // data
     TInt iTotalMoveY;
     TInt iSeparatorHeight;
     TInt iHeaderHeight;
+
+    /**
+     * Flag for switching off text formatting.
+     */
+    TBool iSwitchOffFormattingText;
+    
+    /**
+     * Currently processed field - needed by async text formatting.
+     */
+    CNcsEditor* iProcessedField;
+    
+    /**
+     * Async text formatter.
+     * Own.
+     */
+    CFSAsyncTextFormatter* iAsyncTextFormatter;
+    
+    /**
+     * Pane rect calculated during ChangeSize.
+     */
+    TRect iCmailPaneRect;
     };
 
 

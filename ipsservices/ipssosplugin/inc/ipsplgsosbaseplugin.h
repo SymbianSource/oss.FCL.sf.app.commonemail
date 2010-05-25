@@ -387,6 +387,8 @@ public: // from CFSMailPlugin
        const TFSMailMsgId& aMailBoxId,
        const TDesC& aUsername,
        const TDesC& aPassword );
+    
+    virtual CEmailExtension* ExtensionL( const TUid& aInterfaceUid );
 
 public:
 

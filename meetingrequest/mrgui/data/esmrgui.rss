@@ -1801,6 +1801,14 @@ RESOURCE TBUF r_qtn_calendar_opt_delete_entry
     {
     buf = qtn_calendar_opt_delete_entry;
     }
+RESOURCE TBUF r_meet_req_conflict_text_format
+    {
+    buf = "%0U[20]\n%1U[20]\n%2U\n%3U"; // qtn_meet_req_conflict_text_format
+    }
+RESOURCE TBUF r_meet_req_conflict_location_format
+    {
+    buf = "(%U)"; // qtn_meet_req_location_parenthesis
+    }
 
 // Viewer context menu bar
 RESOURCE MENU_BAR r_mr_viewer_context_menu

@@ -28,6 +28,7 @@ PRJ_EXPORTS
 ../inc/cfsmailmessagepart.h |../../../../inc/cfsmailmessagepart.h
 ../inc/cfsmailaddress.h |../../../../inc/cfsmailaddress.h
 ../inc/cemailextensionbase.h |../../../../inc/cemailextensionbase.h
+../inc/emailextensionuids.hrh |../../../../inc/emailextensionuids.hrh
 ../inc/cmrcalendarinfo.h |../../../../inc/cmrcalendarinfo.h
 ../inc/cmailmessageext.h |../../../../inc/cmailmessageext.h
 ../inc/cmailboxstateext.h |../../../../inc/cmailboxstateext.h

@@ -432,10 +432,11 @@ TBool CFreestyleEmailUiSendAttachmentsListControl::AppendAttachmentToListL(MsgAt
 	    		static_cast<CNcsComposeView*>( iAppUi->View(MailEditorId) );
 	    		
     		TFSMailMsgId nullId;
+            TInt err( KErrNone );
 	    	if ( composeView->NewMessage() )
 	    		{
 	    		// use composeview NewMessage if available
-				msgPart = composeView->NewMessage()->AddNewAttachmentL( filePath, nullId );
+		        TRAP( err, msgPart = composeView->NewMessage()->AddNewAttachmentL( filePath, nullId ));
 	    		}
 	    	else
 	    		{
@@ -447,10 +448,19 @@ TBool CFreestyleEmailUiSendAttachmentsListControl::AppendAttachmentToListL(MsgAt
 				        iVisualiser->EditorParams().iMsgId, 
 						EFSMsgDataStructure );
 				CleanupStack::PushL( msg );
-				msgPart = msg->AddNewAttachmentL( filePath, nullId );
+				TRAP( err, msgPart = msg->AddNewAttachmentL( filePath, nullId ));
 				CleanupStack::PopAndDestroy( msg );
 	    		}
 			CleanupStack::PushL( msgPart );
+            if( KErrNone != err)
+			    {
+				if( iWaitNote )
+				    {
+					iWaitNote->ProcessFinishedL();
+					}
+				iAttachmentAddingLocked = EFalse;
+				User::Leave( err );
+				}
 			msgPart->SaveL();
 			
 			// append file to list model

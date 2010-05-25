@@ -1805,10 +1805,9 @@ TBool CFsEmailSettingsList::SelectedItemIsMailbox() const
 //
 void CFsEmailSettingsList::ClearFocus()
 	{
-	// This is not a nice way to clear the focus but unless some one comes
-	// with a better solution, this will have to do.
 	iListBox->ItemDrawer()->SetFlags( CListItemDrawer::EDisableHighlight );
-	iListBox->View()->Draw();
+	iListBox->ClearSelection();
+	iListBox->DrawNow();
 	iListBox->ItemDrawer()->ClearFlags( CListItemDrawer::EDisableHighlight );
 	}
 

@@ -1939,7 +1939,6 @@ RESOURCE MENU_PANE r_fsemailui_folderlist_menupane
     {
     items =
         {
-        MENU_ITEM { command = EFsEmailUiCmdSelect; txt = text_softkey_select; },
         MENU_ITEM { command = EFsEmailUiCmdHelp; txt = qtn_options_help; },
         MENU_ITEM { command = EFsEmailUiCmdExit; txt = qtn_options_exit; }
         };
