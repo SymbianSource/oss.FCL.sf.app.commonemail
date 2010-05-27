@@ -21,7 +21,7 @@
     \brief list view item for message list view
 */
 
-static const qreal NmItemLineOpacity = 0.4;
+static const int NmFolderTypeRole = Qt::UserRole+1; 
 
 /*!
     Constructor
@@ -148,12 +148,7 @@ void NmMessageListViewItem::setContentsToMessageItem(const NmMessageEnvelope &en
 {
     // member variables are created in previous function
     // sender
-    QString displayName = envelope.sender().displayName();
-    if (displayName.length()) {
-        mSender->setText(NmUtilities::cleanupDisplayName(displayName));
-    } else {
-        mSender->setText(envelope.sender().address());            
-    }
+    mSender->setText(senderFieldText(envelope));
     // time
     HbExtendedLocale locale = HbExtendedLocale::system();
     QDate sentLocalDate = envelope.sentTime().toLocalTime().date();
@@ -241,6 +236,9 @@ void NmMessageListViewItem::paint(
     Q_UNUSED(painter);
 }
 
+/*!
+    setFontsUnread
+*/
 void  NmMessageListViewItem::setFontsUnread()
 {    
     static QColor colorRole = HbColorScheme::color("qtc_list_item_title_normal");
@@ -248,6 +246,9 @@ void  NmMessageListViewItem::setFontsUnread()
     setFonts(colorRole, spekki);
 }
 
+/*!
+    setFontsRead
+*/
 void  NmMessageListViewItem::setFontsRead()
 {
     static QColor colorRole = HbColorScheme::color("qtc_list_item_content_normal");
@@ -255,6 +256,9 @@ void  NmMessageListViewItem::setFontsRead()
     setFonts(colorRole, spekki);
 }
 
+/*!
+    getFontSizes.
+*/
 void  NmMessageListViewItem::getFontSizes()
 {
     // Get font sizes from style  
@@ -274,6 +278,9 @@ void  NmMessageListViewItem::getFontSizes()
     } 
 }
 
+/*!
+    setFonts.
+*/
 void  NmMessageListViewItem::setFonts(const QColor &colorRole, 
         HbFontSpec &spekki)
 {
@@ -298,5 +305,61 @@ void  NmMessageListViewItem::setFonts(const QColor &colorRole,
         mTime->setFontSpec(spekki);        
         mTime->setTextColor(colorRole);
     }
+}
+
+/*!
+    senderFieldText. Function returns sender field text from
+    envelope based on currently used function
+*/
+QString NmMessageListViewItem::senderFieldText(const NmMessageEnvelope &envelope)
+{
+    QString ret;  
+    QVariant folderType = modelIndex().data(
+            NmFolderTypeRole).value<QVariant>();
+    switch (folderType.toInt()) {
+        // Outbox, drafts and sent folder, sender name is 
+        // replaced with first recipient from to/cc list
+        case NmFolderOutbox:
+        case NmFolderDrafts:
+        case NmFolderSent:
+        {
+            QList<NmAddress>& toRecipients = envelope.toRecipients();
+            QList<NmAddress>& ccRecipients = envelope.ccRecipients();
+            NmAddress addressToUse;
+            bool foundAddress(false);
+            if (toRecipients.count()){
+                addressToUse=toRecipients[0];
+                foundAddress=true;
+            }
+            else if (ccRecipients.count()) {
+                addressToUse=ccRecipients[0]; 
+                foundAddress=true;         
+            }
+            if (foundAddress){
+                QString displayName = addressToUse.displayName();
+                if (displayName.length()) {
+                    ret += NmUtilities::cleanupDisplayName(displayName);
+                } 
+                else {
+                    ret += addressToUse.address();                    
+                }               
+            }
+            
+        }
+        break;    
+        // All other folders will show sender display name
+        default: 
+        {
+            QString displayName = envelope.sender().displayName();
+            if (displayName.length()) {
+                ret += NmUtilities::cleanupDisplayName(displayName);
+            } 
+            else {
+                ret += envelope.sender().address();                    
+            }
+        }
+        break;
+    }
+    return ret;
 }
 

@@ -6,48 +6,16 @@
                 <widget name="scrollAreaContents" role="HbScrollArea:contents" type="HbWidget">
                     <widget name="container" type="HbWidget">
                         <widget name="HeaderLayout" type="HbWidget">
-                            <widget name="ToHorizontalLayout" type="HbWidget">
-                                <widget name="EditorHeaderToLabel" type="HbLabel">
-                                    <sizehint height="5un" type="PREFERRED" width="10un"/>
-                                    <sizehint height="5un" type="MINIMUM" width="1.89552un"/>
-                                    <string locid="txt_mail_editor_to" name="plainText" value="To:"/>
-                                    <fontspec name="fontSpec" role="Secondary" textheight="23.45"/>
-                                </widget>
-                                <widget name="EditorHeaderToEdit" plugin="nmailuiwidgetsplugin" type="NmRecipientLineEdit">
-                                    <sizepolicy horizontalPolicy="Expanding" horizontalStretch="0" verticalPolicy="Fixed" verticalStretch="0"/>
-                                    <sizehint height="5un" type="PREFERRED" width="8.26269un"/>
-                                    <sizehint height="5un" type="MINIMUM" width="0un"/>
-                                    <fontspec name="fontSpec" role="Secondary" textheight="3.5un"/>
-                                    <integer name="maxRows" value="256"/>
-                                    <string name="alignment" value="AlignAbsolute"/>
-                                    <string name="text" value=""/>
-                                </widget>
-                                <widget name="EditorHeaderToButton" type="HbPushButton">
-                                    <sizepolicy horizontalPolicy="Fixed" horizontalStretch="0" verticalPolicy="Fixed" verticalStretch="0"/>
-                                    <sizehint height="5un" type="FIXED" width="9.5un"/>
-                                    <sizehint height="5un" type="MINIMUM" width="9.5un"/>
-                                    <sizehint height="5un" type="MAXIMUM" width="9.5un"/>
-                                    <string name="text" value=""/>
-                                </widget>
-                                <real name="z" value="0"/>
-                                <sizepolicy horizontalPolicy="Expanding" horizontalStretch="0" verticalPolicy="Minimum" verticalStretch="0"/>
-                                <sizehint height="5un" type="MINIMUM" width="23.8806un"/>
-                                <layout orientation="Horizontal" spacing="1un" type="linear">
-                                    <contentsmargins bottom="0un" left="var(hb-param-margin-gene-left)" right="var(hb-param-margin-gene-right)" top="0un"/>
-                                    <linearitem itemname="EditorHeaderToLabel"/>
-                                    <linearitem itemname="EditorHeaderToEdit"/>
-                                    <linearitem itemname="EditorHeaderToButton"/>
-                                </layout>
-                            </widget>
-                            <widget name="EditorHeaderRecipientGB" type="HbGroupBox">
-                                <sizepolicy horizontalPolicy="Expanding" horizontalStretch="0" verticalPolicy="Minimum" verticalStretch="0"/>
-                                <bool name="collapsable" value="FALSE"/>
-                                <bool name="collapsed" value="FALSE"/>
-                                <fontspec name="fontSpec" role="Secondary" textheight="23.45"/>
+                            <widget name="RecipientFields" type="HbWidget">
+                                <real name="z" value="1"/>
+                                <sizepolicy horizontalPolicy="Expanding" horizontalStretch="0" verticalPolicy="MinimumExpanding" verticalStretch="0"/>
+                                <sizehint height="5un" type="PREFERRED" width="23un"/>
+                                <sizehint height="5un" type="MINIMUM" width="23un"/>
+                                <contentsmargins bottom="0un" left="var(hb-param-margin-gene-left)" right="var(hb-param-margin-gene-right)" top="0un"/>
                             </widget>
                             <widget name="SubjectHorizontalLayout" type="HbWidget">
                                 <widget name="EditorHeaderSubjectLabel" type="HbLabel">
-                                    <sizehint height="5un" type="PREFERRED" width="11un"/>
+                                    <sizehint height="5un" type="PREFERRED" width="12.5un"/>
                                     <string locid="txt_mail_editor_subject" name="plainText" value="Subject:"/>
                                     <fontspec name="fontSpec" role="Secondary" textheight="23.45"/>
                                 </widget>
@@ -84,12 +52,11 @@
                             </widget>
                             <real name="z" value="1"/>
                             <sizepolicy horizontalPolicy="Minimum" horizontalStretch="0" verticalPolicy="Minimum" verticalStretch="0"/>
-                            <sizehint height="18un" type="MINIMUM" width="53.73134un"/>
+                            <sizehint height="5un" type="MINIMUM" width="53.73134un"/>
                             <sizehint height="200un" type="MAXIMUM" width="2504062.01158un"/>
                             <layout orientation="Vertical" spacing="1un" type="linear">
                                 <contentsmargins bottom="0un" left="0un" right="0un" top="var(hb-param-margin-gene-top)"/>
-                                <linearitem itemname="ToHorizontalLayout"/>
-                                <linearitem itemname="EditorHeaderRecipientGB"/>
+                                <linearitem itemname="RecipientFields"/>
                                 <linearitem itemname="SubjectHorizontalLayout"/>
                                 <linearitem itemname="attachmentListWidget"/>
                             </layout>
@@ -125,7 +92,7 @@
                     </layout>
                 </widget>
                 <enums name="alignment" value="AlignVCenter|AlignHCenter"/>
-                <sizepolicy horizontalPolicy="Expanding" horizontalStretch="0" verticalPolicy="Expanding" verticalStretch="0"/>
+                <sizepolicy horizontalPolicy="Ignored" horizontalStretch="0" verticalPolicy="Expanding" verticalStretch="0"/>
             </widget>
             <layout type="anchor">
                 <anchoritem dst="scrollArea" dstEdge="LEFT" spacing="0un" src="" srcEdge="LEFT"/>

@@ -30,11 +30,6 @@ class NmRecipientField : public HbWidget
 {
     Q_OBJECT
 public:
-    NmRecipientField(
-    HbLabel *label,
-    NmRecipientLineEdit *edit,
-    HbPushButton *button,
-    QGraphicsItem *parent = 0);
     NmRecipientField(const QString &labelString = "", QGraphicsItem *parent = 0);
     virtual ~NmRecipientField();
     qreal height();

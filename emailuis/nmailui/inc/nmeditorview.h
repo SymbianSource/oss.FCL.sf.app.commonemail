@@ -43,7 +43,7 @@ class NmMessageCreationOperation;
 class NmAddAttachmentsOperation;
 class NmCheckOutboxOperation;
 class NmAttachmentPicker;
-
+class HbMessageBox;
 
 class NmEditorView : public NmBaseView, public NmActionObserver
 {
@@ -63,7 +63,7 @@ public:
     void reloadViewContents(NmUiStartParam* startParam);
     NmUiViewId nmailViewId() const;
     HbWidget* scrollAreaContents();
-    bool okToExitView();
+    void okToExitView();
     void aboutToExitView();
     void viewReady();
 
@@ -73,7 +73,8 @@ public slots:
     void createOptionsMenu();
     void setButtonsDimming(bool enabled);
     void attachmentLongPressed(NmId attachmentPartId, QPointF point);
-
+    void invalidAddressQuery(HbAction* action);
+    void okToExitQuery(HbAction* action);
 
 public: // From NmActionObserver
 
@@ -95,6 +96,7 @@ private slots:
     void handleSendOperationCompleted();
     void openAttachmentTriggered();  
     void onAttachmentReqCompleted(const QVariant &value);
+    void switchCcBccFieldVisibility();
 
 private:
 
@@ -103,6 +105,7 @@ private:
     void setMessageData();
     void startMessageCreation(NmUiEditorStartMode startMode);
     void startSending();
+    void finalizeSending();
     void createToolBar();
     QPointF viewCoordinateToEditCoordinate(QPointF orgPoint);
     void updateMessageWithEditorContents();
@@ -122,8 +125,6 @@ public slots:
     void sendMouseReleaseEventToScroll(QGraphicsSceneMouseEvent *event);
     void sendMouseMoveEventToScroll(QGraphicsSceneMouseEvent *event);
     void sendLongPressGesture(const QPointF &point);
-    void contextButton(NmActionResponse &result);
-
 
 private: // Data
 
@@ -136,6 +137,7 @@ private: // Data
     NmEditorTextEdit *mEditWidget;      // Not owned
     NmEditorHeader *mHeaderWidget;      // Not owned
     NmMessage *mMessage;                // Owned
+    QGraphicsLinearLayout *mLayout;
     NmEditorContent *mContentWidget;    // Owned
     HbMenu *mPrioritySubMenu;           // Owned
     HbMenu *mAttachmentListContextMenu; // Owned
@@ -146,9 +148,10 @@ private: // Data
     QPointer<NmOperation> mRemoveAttachmentOperation;                // Not owned 
     QPointer<NmCheckOutboxOperation> mCheckOutboxOperation;          // Not owned 
 
-    HbProgressDialog *mWaitDialog; // Owned.
-    
-    NmAttachmentPicker* mAttachmentPicker;    // Owned    
+    HbProgressDialog *mWaitDialog;         // Owned.    
+    HbMessageBox* mQueryDialog;            // Owned
+    NmAttachmentPicker* mAttachmentPicker; // Owned    
+    bool mCcBccFieldVisible;
 };
 
 

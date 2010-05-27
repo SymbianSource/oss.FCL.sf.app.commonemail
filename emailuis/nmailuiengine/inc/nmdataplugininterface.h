@@ -104,6 +104,12 @@ public:
         const NmId &folderId,
         const NmId &messageId,
         const NmId &messagePartId) = 0;
+ 
+     virtual  QPointer<NmOperation> fetchMessageParts( 
+        const NmId &mailboxId,
+        const NmId &folderId,
+        const NmId &messageId,
+        const QList<NmId> &messagePartIds) = 0;
     
     virtual XQSharableFile messagePartFile(
         const NmId &mailboxId,

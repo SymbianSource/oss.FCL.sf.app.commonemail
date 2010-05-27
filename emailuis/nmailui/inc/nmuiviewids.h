@@ -185,6 +185,16 @@ public:
     {
         mMailboxId = mailboxId;
     }
+    
+    inline void setFolderId(NmId folderId) 
+    {
+        mFolderId = folderId;
+    }
+    
+    inline void setMessageId(NmId messageId) 
+    {
+        mMessageId = messageId;
+    }
 
 private: // Data
 

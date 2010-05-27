@@ -53,6 +53,7 @@ public:
 
 
 public slots:
+    void prepareForPopView();
     void popView();
     void exitApplication();
     void delayedExitApplication();

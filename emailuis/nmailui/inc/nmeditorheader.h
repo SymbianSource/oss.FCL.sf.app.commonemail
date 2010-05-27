@@ -24,7 +24,6 @@
 enum
 {
     EEditorToLine=0,
-    EEditorGroupBoxRecipient,
     EEditorCcLine,
     EEditorBccLine,
     EEditorSubjectLine,
@@ -48,13 +47,12 @@ public:
     NmEditorHeader(HbDocumentLoader *documentLoader, QGraphicsItem *parent=0);
     virtual ~NmEditorHeader();
     int headerHeight() const;
-    NmHtmlLineEdit* subjectField() const;
-    NmRecipientLineEdit* toField() const;
-    NmRecipientLineEdit* ccField() const;
-    NmRecipientLineEdit* bccField() const;
+    NmHtmlLineEdit* subjectEdit() const;
+    NmRecipientLineEdit* toEdit() const;
+    NmRecipientLineEdit* ccEdit() const;
+    NmRecipientLineEdit* bccEdit() const;
     void setPriority(NmMessagePriority priority=NmMessagePriorityNormal);
     void setPriority(NmActionResponseCommand prio=NmActionResponseCommandNone);
-    void setGroupBoxCollapsed( bool collapsed );
     void addAttachment(const QString &fileName, const QString &fileSize, const NmId &nmid);
     void removeAttachment(const QString &fileName);
     void removeAttachment(const NmId &nmid);
@@ -64,12 +62,13 @@ public:
         const NmId &msgPartId,
         const QString &fileSize,
         int result);
+    void setFieldVisibility(bool isVisible);
 
 private:
     void loadWidgets();
     void rescaleHeader();
     void createConnections();
-    HbWidget* createRecipientGroupBoxContentWidget();
+    void adjustFieldSizeValues( NmRecipientLineEdit *widget, qreal height );
 
 signals:
     void headerHeightChanged(int);
@@ -77,34 +76,30 @@ signals:
     void attachmentLongPressed(NmId attachmentPartId, QPointF point);
 
 public slots:
+	void fixHeaderFieldHeights();
     void sendHeaderHeightChanged();
     void editorContentChanged();
-    void groupBoxExpandCollapse();
     void attachmentActivated(int arrayIndex);
     void attachmentLongPressed(int arrayIndex, QPointF point);
 
 private:
     HbDocumentLoader* mDocumentLoader;  // Not owned
+	HbWidget *mHeader;  // Not owned
     int mHeaderHeight;
     HbLabel *mSubjectLabel;
     HbLabel *mPriorityIconLabel;
     bool mIconVisible;
     NmRecipientLineEdit *mToEdit;
+    NmRecipientLineEdit *mCcEdit;
+    NmRecipientLineEdit *mBccEdit;
     NmHtmlLineEdit *mSubjectEdit;
     bool mRecipientFieldsEmpty;
-
-    // Recipient GroupBox related
-    HbGroupBox *mGroupBoxRecipient;          // Owned
-    HbWidget *mGroupBoxRecipientContent;     // Not owned
-    QGraphicsLinearLayout *mGbVerticalLayout;// Not owned
-    QGraphicsLinearLayout *mCcFieldLayout;   // Not owned
-    QGraphicsLinearLayout *mBccFieldLayout;  // Not owned
-
-    NmRecipientField *mToField;    // owned
-    NmRecipientField *mCcField;    // Not owned
-    NmRecipientField *mBccField;   // Not owned
-
+    QGraphicsLinearLayout *mLayout;
     NmAttachmentList *mAttachmentList;
+    NmRecipientField *mToField;    // Owned
+    NmRecipientField *mCcField;    // Owned
+    NmRecipientField *mBccField;   // Owned
+    bool mCcBccFieldVisible;
 };
 
 #endif /* NMEDITORHEADER_H_ */

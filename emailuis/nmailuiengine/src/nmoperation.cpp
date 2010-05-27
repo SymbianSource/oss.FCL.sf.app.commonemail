@@ -54,13 +54,17 @@ bool NmOperation::isRunning() const
  */
 void NmOperation::addPreliminaryOperation(NmOperation *operation)
 {
-    connect(operation, SIGNAL(operationCompleted()), this,
-        SLOT(handlePreliminaryOperationFinished()));
-
-    connect(operation, SIGNAL(operationCancelled()), this,
-        SLOT(handlePreliminaryOperationFinished()));
-
-    mPreliminaryOperations.append(operation);
+    // if the preliminary operation is already completed
+    // the input parameter can be null
+    if (operation && operation->isRunning()) {
+        connect(operation, SIGNAL(operationCompleted()), this,
+            SLOT(handlePreliminaryOperationFinished()));
+    
+        connect(operation, SIGNAL(operationCancelled()), this,
+            SLOT(handlePreliminaryOperationFinished()));
+    
+        mPreliminaryOperations.append(operation);
+    }
 }
 
 /*!

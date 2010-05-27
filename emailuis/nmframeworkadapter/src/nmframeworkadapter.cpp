@@ -276,6 +276,89 @@ int NmFrameworkAdapter::listFolders(
     }
 }
 
+
+/*!
+    Fetches all the messages from the given folder and appends their meta data
+    into the given list.
+
+    \param folder The folder instance.
+    \param messageEnvelopeList The list where the data is stored to.
+    \param maxEnvelopeCount The maximum number of messages to get.
+*/
+void NmFrameworkAdapter::getMessagesFromFolderL(
+     CFSMailFolder *folder,
+     QList<NmMessageEnvelope*> &messageEnvelopeList,
+     const int maxEnvelopeCount)
+{
+    if (!folder || maxEnvelopeCount < 1) {
+        return;
+    }
+
+    int blockSize = NmListMessagesBlock;
+    int maxItemCount = NmMaxItemsInMessageList;
+
+    if (maxEnvelopeCount < NmMaxItemsInMessageList) {
+        maxItemCount = maxEnvelopeCount;
+
+        if(maxEnvelopeCount < NmListMessagesBlock) {
+            blockSize = maxEnvelopeCount;
+        }
+    }
+
+    // First prepare all the parameters and select message details to be listed.
+    TFSMailDetails details(EFSMsgDataEnvelope);
+
+    // Set the sorting criteria.
+    TFSMailSortCriteria criteria;
+    criteria.iField = EFSMailSortByDate;
+    criteria.iOrder = EFSMailDescending;
+    RArray<TFSMailSortCriteria> sorting;
+    CleanupClosePushL(sorting);
+    sorting.Append(criteria);
+   
+    // Get the message list from the backend.
+    MFSMailIterator* iterator(NULL);
+    iterator = folder->ListMessagesL(details, sorting);
+
+    if (iterator) {
+        CleanupStack::PushL(iterator);
+        RPointerArray<CFSMailMessage> messages;
+        CleanupResetAndDestroy<CFSMailMessage>::PushL(messages);
+
+        // The message list is fetched in blocks to prevent OOM in protocol
+        // plugin side.
+        bool moreMessagesToFollow(false);
+        moreMessagesToFollow = iterator->NextL(TFSMailMsgId(), blockSize, messages);
+
+        for (int i = blockSize;
+             i < maxItemCount && moreMessagesToFollow;
+             i += blockSize) {
+            moreMessagesToFollow =
+                iterator->NextL(messages[i-1]->GetMessageId(), blockSize, messages);
+        }
+
+        // Add all the found emails into the result list.
+        const TInt messageCount(messages.Count());
+
+        for (TInt i = 0; i < messageCount; ++i) {
+            NmMessageEnvelope *newEnvelope(NULL);
+            newEnvelope = messages[i]->GetNmMessageEnvelope();
+
+            if (newEnvelope) {
+                messageEnvelopeList.append(newEnvelope);
+            }
+        }
+
+        CleanupStack::PopAndDestroy(&messages);
+        CleanupStack::Pop(iterator);
+        delete iterator;
+        iterator = NULL;
+    }
+
+    CleanupStack::PopAndDestroy(); // sorting  
+}
+
+
 /*!
     Returns list of envelopes from the backend for specific mailbox and folder.
 
@@ -295,107 +378,67 @@ int NmFrameworkAdapter::listMessages(
     return err;
 }
 
+
+/*!
+    Fetches the meta data for each message in the given mailbox and given
+    folder.
+
+    \param mailboxId The ID of the mailbox of which messages to list.
+    \param folderId The ID of the folder of which messages to list.
+    \param messageEnvelopeList The list where the message data is stored to.
+                               Note that the ownership is transferred!
+    \param maxAmountOfEnvelopes The maximum number of messages to list.
+
+    \return If success, KErrNone, an error code otherwise.
+*/
 int NmFrameworkAdapter::listMessages(
         const NmId& mailboxId,
         const NmId& folderId,
         QList<NmMessageEnvelope*> &messageEnvelopeList,
         const int maxAmountOfEnvelopes)
-    {
+{
     TInt err = KErrNone;
     TRAP(err, listMessagesL(mailboxId,folderId, messageEnvelopeList,maxAmountOfEnvelopes) );
     return err;
-    }
+}
+
 
 /*!
-    Leaving version of list messages
- */
+    Fetches the meta data for each message in the given mailbox and given
+    folder. Note that this private method can leave.
+*/
 void NmFrameworkAdapter::listMessagesL(
         const NmId &mailboxId,
         const NmId &folderId,
         QList<NmMessageEnvelope*> &messageEnvelopeList,
         const int maxAmountOfEnvelopes)
 {
-    CFSMailBox * currentMailbox(NULL);
-    CFSMailFolder* folder(NULL);
-
-    //If we are requesting 0 or less mails so we can return
-    if( maxAmountOfEnvelopes <= 0)
-        {
+    // If we are requesting 0 or less mails, we can just return.
+    if (maxAmountOfEnvelopes <= 0) {
         return;
-        }
+    }
 
-    int blockSize = NmListMessagesBlock;
-    int maxLimit = NmMaxItemsInMessageList;
-    if( maxAmountOfEnvelopes < NmMaxItemsInMessageList )
-        {
-        maxLimit = maxAmountOfEnvelopes;
-        if(maxAmountOfEnvelopes < NmListMessagesBlock)
-            {
-            blockSize = maxAmountOfEnvelopes;
-            }
-        }
-   
+    CFSMailBox *mailbox(NULL);
+    mailbox = mFSfw->GetMailBoxByUidL(mailboxId);
 
-    currentMailbox = mFSfw->GetMailBoxByUidL(mailboxId);
-    if (!currentMailbox) {
+    if (!mailbox) {
         User::Leave(KErrNotFound);
     }
-    CleanupStack::PushL(currentMailbox);
-    folder = mFSfw->GetFolderByUidL(currentMailbox->GetId(), TFSMailMsgId(folderId));
+
+    CleanupStack::PushL(mailbox);
+
+    CFSMailFolder* folder(NULL);
+    folder = mFSfw->GetFolderByUidL(mailbox->GetId(), TFSMailMsgId(folderId));
 
     if (folder) {
         CleanupStack::PushL(folder);
-        // First prepare all the parameters
-        // select message details to be listed
-        TFSMailDetails details(EFSMsgDataEnvelope);
-
-        // set sorting criteria
-        TFSMailSortCriteria criteria;
-        criteria.iField = EFSMailSortByDate;
-        criteria.iOrder = EFSMailDescending;
-        RArray<TFSMailSortCriteria> sorting;
-        CleanupClosePushL(sorting);
-        sorting.Append(criteria);
-
-        TFSMailMsgId currentMessageId; // first call contains NULL id as begin id
-        // get messages list from the backend
-        MFSMailIterator* iterator(NULL);
-
-        iterator = folder->ListMessagesL(details, sorting);
-        if (iterator) {
-            CleanupStack::PushL(iterator);
-            RPointerArray<CFSMailMessage> messages;
-            CleanupResetAndDestroy<CFSMailMessage>::PushL(messages);
-
-            //Message list is fetched in blocks to prevent OOM in protocol plugin side
-            bool moreMessagesToFollow(false);
-            moreMessagesToFollow = iterator->NextL(
-                TFSMailMsgId(), blockSize, messages);
-            for ( int i = blockSize;
-                  i < maxLimit && moreMessagesToFollow ;
-                  i += blockSize ) {
-                moreMessagesToFollow = iterator->NextL(
-                    messages[i-1]->GetMessageId(), blockSize, messages);
-            }
-
-            //Add all found emails to the result list
-            for(TInt i=0; i<messages.Count(); i++) {
-                NmMessageEnvelope* newEnvelope(NULL);
-                newEnvelope = messages[i]->GetNmMessageEnvelope();
-                if (newEnvelope) {
-                    messageEnvelopeList.append(newEnvelope);
-                }
-            }
-            CleanupStack::PopAndDestroy( &messages );
-            CleanupStack::Pop(iterator);
-            delete iterator;
-           	iterator = NULL;
-        }
-        CleanupStack::PopAndDestroy(); // sorting
-        CleanupStack::PopAndDestroy(folder);
+        getMessagesFromFolderL(folder, messageEnvelopeList, maxAmountOfEnvelopes);
+        CleanupStack::PopAndDestroy(folder);        
     }
-    CleanupStack::PopAndDestroy(currentMailbox);
+
+    CleanupStack::PopAndDestroy(mailbox);
 }
+
 
 /*! 
     Returns list of messages from the backend for specific mailbox and folder.
@@ -417,6 +460,7 @@ int NmFrameworkAdapter::listMessages(
     return err;
 }
 
+
 /*!
     Leaving version of list messages with NmMessageList input
  */
@@ -437,6 +481,7 @@ void NmFrameworkAdapter::listMessagesL(
 
     int blockSize = NmListMessagesBlock;
     int maxLimit = NmMaxItemsInMessageList;
+
     if( maxAmountOfEnvelopes < NmMaxItemsInMessageList )
         {
         maxLimit = maxAmountOfEnvelopes;
@@ -446,7 +491,6 @@ void NmFrameworkAdapter::listMessagesL(
             }
         }
    
-
     currentMailbox = mFSfw->GetMailBoxByUidL(mailboxId);
     if (!currentMailbox) {
         User::Leave(KErrNotFound);
@@ -516,6 +560,7 @@ void NmFrameworkAdapter::listMessagesL(
     CleanupStack::PopAndDestroy(currentMailbox);
 }
 
+
 /*!
     Starts an asynchronous search for messages with the given search strings.
     This is part of the public interface.
@@ -536,8 +581,8 @@ int NmFrameworkAdapter::search(const NmId &mailboxId,
 
     // Set connections for forwarding the signals emitted by the search
     // observer.
-    connect(mSearchObserver, SIGNAL(matchFound(const NmId &)),
-            this, SIGNAL(matchFound(const NmId &)), Qt::UniqueConnection);
+    connect(mSearchObserver, SIGNAL(matchFound(const NmId &, const NmId &)),
+            this, SIGNAL(matchFound(const NmId &, const NmId &)), Qt::UniqueConnection);
     connect(mSearchObserver, SIGNAL(searchComplete()),
             this, SIGNAL(searchComplete()), Qt::UniqueConnection);
 
@@ -550,6 +595,7 @@ int NmFrameworkAdapter::search(const NmId &mailboxId,
     Cancels the search if one is ongoing.
 
     \param mailboxId The ID of the mailbox running the search.
+    
 
     \return A possible error code.
 */
@@ -566,6 +612,17 @@ int NmFrameworkAdapter::cancelSearch(const NmId &mailboxId)
     return err;
 }
 
+/*!
+    Indicates application state information to protocol plugins
+    \param mailboxId Id of active mailbox, 0 if application is closed.
+    \param folderId Id of active folder, 0 if application is closed.
+*/
+void NmFrameworkAdapter::updateActiveFolder(const NmId &mailboxId, const NmId &folderId)
+{
+	  // TODO ExtensionL from CFSMailClient & state update
+    Q_UNUSED(mailboxId);
+    Q_UNUSED(folderId);
+}
 
 /*!
     Starts an asynchronous search for messages with the given search strings.
@@ -651,6 +708,27 @@ QPointer<NmOperation> NmFrameworkAdapter::fetchMessagePart(
     QPointer<NmOperation> oper = new NmFwaMessagePartFetchingOperation(
             mailboxId, folderId, messageId, messagePartId, *mFSfw);
     return oper;
+}
+
+/*!
+    Starts a message parts fetching operation.
+
+    \param mailboxId Id of the mailbox containing the folder.
+    \param folderId Id of the folder containing the message.
+    \param messageId Id of message containing the message parts
+    \param messagePartIds ids of message parts
+
+    \return An NmOperation object for the operation, ownership is transferred to caller
+ */
+QPointer<NmOperation> NmFrameworkAdapter::fetchMessageParts( 
+    const NmId &mailboxId,
+    const NmId &folderId,
+    const NmId &messageId,
+    const QList<NmId> &messagePartIds)
+{
+    QPointer<NmOperation> oper = new NmFwaMessagePartsFetchingOperation(
+            mailboxId, folderId, messageId, messagePartIds, *mFSfw);
+    return oper;  
 }
 
 /*!

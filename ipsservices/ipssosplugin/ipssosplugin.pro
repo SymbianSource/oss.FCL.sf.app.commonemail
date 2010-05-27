@@ -161,8 +161,6 @@ symbian*: {
     -lmsgs \
     -letext \
     -limcm \
-    -lgsecomplugin \
-    -lgsframework \
     -lfsmailframework \
     -lfsfwcommonlib \
     -lbafl \

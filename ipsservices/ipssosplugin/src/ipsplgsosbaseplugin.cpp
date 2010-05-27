@@ -2779,7 +2779,8 @@ TBool CIpsPlgSosBasePlugin::HasOperations( const TFSMailMsgId& aMailboxId )
     TBool ret( EFalse );
     for ( TInt i = 0; i < iOperations.Count(); i++ )
         {
-        if( iOperations[i]->BaseOperation()->FSMailboxId() == aMailboxId )
+        if( iOperations[i]->BaseOperation() && 
+            iOperations[i]->BaseOperation()->FSMailboxId() == aMailboxId )
             {
             ret = ETrue;
             }

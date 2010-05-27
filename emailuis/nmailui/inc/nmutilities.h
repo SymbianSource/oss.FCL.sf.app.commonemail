@@ -27,6 +27,7 @@ class NmOperationCompletionEvent;
 class QFile;
 class XQSharableFile;
 class NmOperationCompletionEvent;
+class HbMessageBox;
 
 /*!
 	UI utilities class
@@ -63,7 +64,9 @@ public:
 
     static void displayErrorNote(QString noteText); 
 
-    static bool displayQuestionNote(QString noteText);
+    static HbMessageBox* displayQuestionNote(QString noteText,
+                                             QObject* receiver = 0,
+                                             const char* member = 0);
     
     static void displayWarningNote(QString noteText);
 

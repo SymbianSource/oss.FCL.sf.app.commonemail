@@ -35,11 +35,12 @@ class NmBaseView : public HbView
 	Q_OBJECT
 public:
     NmBaseView(NmUiStartParam* startParam,
+               NmApplication &application,
                QGraphicsItem *parent = 0);
     virtual ~NmBaseView();
     virtual void reloadViewContents(NmUiStartParam* startParam) = 0;
     virtual NmUiViewId nmailViewId() const = 0;
-    virtual bool okToExitView();
+    virtual void okToExitView();
     virtual void aboutToExitView();
     virtual void viewReady();
     virtual void handleMouseReleaseEvent(QGraphicsSceneMouseEvent *event);
@@ -54,7 +55,8 @@ protected:
     virtual void loadViewLayout() = 0;
 
 protected:
-    NmUiStartParam* mStartParam;   // Owned
+    NmUiStartParam *mStartParam;   // Owned
+    NmApplication &mApplication;
 };
 
 

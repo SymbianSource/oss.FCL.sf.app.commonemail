@@ -63,7 +63,7 @@ NmMailboxSelectionDialog::~NmMailboxSelectionDialog()
 */
 void NmMailboxSelectionDialog::open()
 {
-    NMLOG("NmMailboxSelectionDialog::exec()");
+    NMLOG("NmMailboxSelectionDialog::open()");
     mMailboxId = 0;
 
     // Initialize the UI and fetch the mailbox items into the list.
@@ -80,11 +80,11 @@ void NmMailboxSelectionDialog::open()
 void NmMailboxSelectionDialog::dialogClosed(HbAction *action)
 {
     Q_UNUSED(action);
-    
+
     // Store the ID of the selected mailbox into the given argument.
     NMLOG(QString("NmMailboxSelectionDialog::dialogClosed() return %1").
         arg(mMailboxId.id()));
-    
+
     emit selectionDialogClosed(mMailboxId);
 }
 
@@ -164,13 +164,14 @@ bool NmMailboxSelectionDialog::populateListItems()
     NmMailboxMetaData *metaData = NULL;
     QStandardItem *item = NULL;
 
+    EmailMailboxInfo mailboxInfo;
     for (int i = 0; i < count; ++i) {
         metaData = mailboxMetaData(i);
 
         if (metaData) {
-            // Implement the branded icons when possible.
-            const HbIcon &mailboxIcon =
-                NmIcons::getIcon(NmIcons::NmIconDefaultMailbox);
+            QString domainName = metaData->address();
+            QString iconName = mailboxInfo.mailboxIcon(domainName);
+			HbIcon mailboxIcon( iconName );
 
             // Construct the item and append it into the list.
             item = new QStandardItem(mailboxIcon.qicon(), metaData->name());

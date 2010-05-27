@@ -122,11 +122,6 @@ void NmApplication::createMainWindow()
 
 #ifndef NM_WINS_ENV
     bool service = XQServiceUtil::isService();
-    if (service && !XQServiceUtil::isEmbedded()) {
-        // If started as service, keep it hidden until everything is initialised
-        // In embedded mode, the client app should not get hidden
-        XQServiceUtil::toBackground(true);
-    }
 #else
     bool service = false;
 #endif
@@ -150,12 +145,16 @@ void NmApplication::createMainWindow()
     // Create view stack
     mViewStack = new QStack<NmBaseView*>;
 
-    // Create back action and connect it to popView()
+    // Create back action and connect it to prepareForPopView()
     if (mMainWindow) {
         mBackAction = new HbAction(Hb::BackNaviAction,this);
-        connect(mBackAction, SIGNAL(triggered()), this, SLOT(popView()));
+        connect(mBackAction, SIGNAL(triggered()), this, SLOT(prepareForPopView()));
+        
         // Show mainwindow
-        mMainWindow->show();
+        // Services will active it when the view is ready
+        if (!service) {
+            mMainWindow->show();
+        }
     }
 
     // async operation completion related notifications
@@ -264,6 +263,26 @@ void NmApplication::pushView(NmBaseView *newView)
 }
 
 /*!
+    Ask from view that is it ok to pop view. This kind of 2-phase popView is needed
+    because view may show query dialog for user response.
+ */
+void NmApplication::prepareForPopView()
+{
+    if (mViewStack->size() > 0) {
+        // Get view pointer
+        NmBaseView *view = mViewStack->top();
+
+        // View will call/signal popView if exitting is ok.
+        view->okToExitView();
+    }	
+    // If the view stack is now empty quit the app
+    // This happens also when the app has been started as a service
+    else if (mViewStack->size() == 0) {
+        exitApplication();
+    }
+}
+
+/*!
     Pop view from view stack. View object is deleted.
 */
 void NmApplication::popView()
@@ -274,59 +293,57 @@ void NmApplication::popView()
         NmBaseView *view = mViewStack->top();
 
         // ask view if it's ok to exit
-        if (view->okToExitView()) {
-            NmUiViewId topViewId = view->nmailViewId();
+        NmUiViewId topViewId = view->nmailViewId();
 
-            // Prepare for send animation if returing from editor and message has been sent.
-            if (topViewId == NmUiViewMessageEditor && mUiEngine->isSendingMessage()) {
-                mEffects->prepareEffect(NmUiEffects::NmEditorSendMessageAnimation);
-            }
-            mViewStack->pop();
-            // Call custom exit function
-            view->aboutToExitView();
-            // Remove view from stack.
-            mMainWindow->removeView(view);
+        // Prepare for send animation if returing from editor and message has been sent.
+        if (topViewId == NmUiViewMessageEditor && mUiEngine->isSendingMessage()) {
+            mEffects->prepareEffect(NmUiEffects::NmEditorSendMessageAnimation);
+        }
+        mViewStack->pop();
+        // Call custom exit function
+        view->aboutToExitView();
+        // Remove view from stack.
+        mMainWindow->removeView(view);
 
-            // if we were in editor and sent a message, pop viewer from stack first
-            // so we can go straight to mail list
-            if (!mViewStack->isEmpty() && topViewId == NmUiViewMessageEditor &&
-                mUiEngine->isSendingMessage() &&
-                mViewStack->top()->nmailViewId() == NmUiViewMessageViewer) {
-                NmBaseView *tmpView = mViewStack->pop();
-                mMainWindow->removeView(tmpView);
-                delete tmpView;
-                tmpView = NULL;
-            }
+        // if we were in editor and sent a message, pop viewer from stack first
+        // so we can go straight to mail list
+        if (!mViewStack->isEmpty() && topViewId == NmUiViewMessageEditor &&
+            mUiEngine->isSendingMessage() &&
+            mViewStack->top()->nmailViewId() == NmUiViewMessageViewer) {
+            NmBaseView *tmpView = mViewStack->pop();
+            mMainWindow->removeView(tmpView);
+            delete tmpView;
+            tmpView = NULL;
+        }
 
-            if (!mViewStack->isEmpty()) {
-                // Activate next view in stack
-                NmBaseView *showView = mViewStack->top();
-                mMainWindow->addView(showView);
-                mMainWindow->setCurrentView(showView);
-                // Store activated view id
-                mActiveViewId=showView->nmailViewId();
-                // Perform send animation if requested.
-                mEffects->startEffect(NmUiEffects::NmEditorSendMessageAnimation);
-            }
+        if (!mViewStack->isEmpty()) {
+            // Activate next view in stack
+            NmBaseView *showView = mViewStack->top();
+            mMainWindow->addView(showView);
+            mMainWindow->setCurrentView(showView);
+            // Store activated view id
+            mActiveViewId=showView->nmailViewId();
+            // Perform send animation if requested.
+            mEffects->startEffect(NmUiEffects::NmEditorSendMessageAnimation);
+        }
 
-            delete view;
-            view = NULL;
+        delete view;
+        view = NULL;
 
 #ifndef NM_WINS_ENV
-            // If view was started as service, move the app now
-            // to the background, unless it was started when the app
-            // was already in foreground..
-            if (mServiceViewId == topViewId) {
-                mServiceViewId = NmUiViewNone;
+        // If view was started as service, move the app now
+        // to the background, unless it was started when the app
+        // was already in foreground..
+        if (mServiceViewId == topViewId) {
+            mServiceViewId = NmUiViewNone;
 
-                // if started as embedded, do not hide the app
-		        if (!XQServiceUtil::isEmbedded() &&
-		            !mForegroundService) {
-		            XQServiceUtil::toBackground(true);
-                }
+            // if started as embedded, do not hide the app
+            if (!XQServiceUtil::isEmbedded() &&
+                !mForegroundService) {
+                XQServiceUtil::toBackground(true);
             }
-#endif
         }
+#endif
     }
 
     // If the view stack is now empty quit the app
@@ -378,7 +395,7 @@ void NmApplication::enterNmUiView(NmUiStartParam* startParam)
 			    if (topId!=NmUiViewMessageEditor &&
 			        topId!=NmUiViewMailboxList &&
 			        topId!=startParam->viewId()) {
-			        popView();
+			        prepareForPopView();
 			    }
 			    else {
 			        // Editor or mailbox list in the top. Stop the loop.
@@ -429,15 +446,11 @@ void NmApplication::enterNmUiView(NmUiStartParam* startParam)
                         break;
                     }
 
-                    NmMessageListModel &messageListModel =
-                        mUiEngine->messageListModel(startParam->mailboxId(),
-                                                    startParam->folderId());
-
-                    NmMessageSearchListModel &searchListModel =
-                        mUiEngine->messageSearchListModel(&messageListModel);
+                    NmMessageListModel &model =
+                        mUiEngine->messageListModelForSearch(startParam->mailboxId());
 
                     NmMessageSearchListView *searchListView = new NmMessageSearchListView(
-                        *this, startParam, *mUiEngine, searchListModel,
+                        *this, startParam, *mUiEngine, model,
                         new HbDocumentLoader(mMainWindow));
 
                     pushView(searchListView);

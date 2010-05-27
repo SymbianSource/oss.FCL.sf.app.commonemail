@@ -39,6 +39,8 @@
 #include <nmmessagesendingoperation.h>
 #include <nmaddattachmentsoperation.h>
 #include <nmmessagecreationoperation.h>
+#include <nmdataplugininterface.h>
+#include <nmapplicationstateinterface.h>
 
 // nmailbase
 #include <nmmailbox.h>
@@ -60,6 +62,7 @@
 #include "nmfwareplymessagecreationoperation.h"
 #include "nmfwamessagefetchingoperation.h"
 #include "nmfwamessagepartfetchingoperation.h"
+#include "nmfwamessagepartsfetchingoperation.h"
 #include "nmfwamessagesendingoperation.h"
 #include "nmfwastoreenvelopesoperation.h"
 #include "nmfwastoremessageoperation.h"

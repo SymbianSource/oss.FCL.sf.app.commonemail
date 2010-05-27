@@ -30,7 +30,7 @@
 /*!
     Constructor
  */
-NmMailboxListModel::NmMailboxListModel(NmDataManager &dataManager, QObject *parent) 
+NmMailboxListModel::NmMailboxListModel(NmDataManager &dataManager, QObject *parent)
 :QStandardItemModel(parent),
 mDataManager(dataManager)
 {
@@ -177,6 +177,7 @@ NmMailboxListModelItem *NmMailboxListModel::createMailboxItem(const NmMailbox *m
     NmMailboxMetaData *newMeta = new NmMailboxMetaData();
     newMeta->setId(mailbox->id());
     newMeta->setName(mailbox->name());
+    newMeta->setAddress(mailbox->address().address());
 
     NmMailboxListModelItem *item = new NmMailboxListModelItem();
     item->setItemMetaData(newMeta);

@@ -104,7 +104,6 @@ symbian*: {
     -lmsgs \
     -letext \
     -limcm \
-    -lgsecomplugin \
     -leikcore \
     -lipssosplugin \
     -lxqsettingsmanager \

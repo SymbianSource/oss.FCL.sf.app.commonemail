@@ -21,15 +21,11 @@
                 <bool name="collapsable" value="FALSE"/>
             </widget>
             <widget name="syncIcon" type="HbLabel">
-                <real name="z" value="6"/>
-                <sizehint type="PREFERRED" width="expr(var(hb-param-graphic-size-primary-small) )"/>
-            </widget>
-            <widget name="folderLabel" type="HbLabel">
-                <real name="z" value="5"/>
+                <enums name="alignment" value="AlignAbsolute|AlignLeft|AlignVCenter|AlignJustify|AlignHCenter|AlignLeading"/>
+                <real name="z" value="7"/>
+                <sizehint height="expr(var(hb-param-graphic-size-primary-small) )" type="PREFERRED" width="expr(var(hb-param-graphic-size-primary-small) )"/>
+                <sizehint height="expr(var(hb-param-graphic-size-primary-small) )" type="MINIMUM" width="expr(var(hb-param-graphic-size-primary-small) )"/>
                 <sizepolicy horizontalPolicy="Preferred" horizontalStretch="0" verticalPolicy="Preferred" verticalStretch="0"/>
-                <sizehint type="PREFERRED" width="45.97015un"/>
-                <string name="plainText" value="Folder"/>
-                <fontspec name="fontSpec" role="Secondary" textheight="var(hb-param-text-height-secondary)"/>
             </widget>
             <real name="z" value="0"/>
             <layout type="anchor">
@@ -43,10 +39,6 @@
                 <anchoritem dst="MessageTreeList" dstEdge="TOP" spacing="0un" src="labelGroupBox" srcEdge="BOTTOM"/>
                 <anchoritem dst="MessageTreeList" dstEdge="RIGHT" spacing="0un" src="" srcEdge="RIGHT"/>
                 <anchoritem dst="MessageTreeList" dstEdge="BOTTOM" spacing="0un" src="" srcEdge="BOTTOM"/>
-                <anchoritem dst="folderLabel" dstEdge="LEFT" spacing="var(hb-param-margin-gene-left)" src="" srcEdge="LEFT"/>
-                <anchoritem dst="folderLabel" dstEdge="TOP" spacing="0un" src="" srcEdge="TOP"/>
-                <anchoritem dst="folderLabel" dstEdge="BOTTOM" spacing="0un" src="labelGroupBox" srcEdge="BOTTOM"/>
-                <anchoritem dst="folderLabel" dstEdge="RIGHT" spacing="var(hb-param-margin-gene-middle-horizontal)" src="syncIcon" srcEdge="LEFT"/>
                 <anchoritem dst="syncIcon" dstEdge="TOP" spacing="0un" src="" srcEdge="TOP"/>
                 <anchoritem dst="syncIcon" dstEdge="RIGHT" spacing="-var(hb-param-margin-gene-right)" src="" srcEdge="RIGHT"/>
                 <anchoritem dst="syncIcon" dstEdge="BOTTOM" spacing="0un" src="labelGroupBox" srcEdge="BOTTOM"/>

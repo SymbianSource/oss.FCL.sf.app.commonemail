@@ -35,6 +35,7 @@ class HbAbstractViewItem;
 class NmActionResponse;
 class NmMessageListModelItem;
 class HbIconItem;
+class HbGroupBox;
 
 class NmMessageListView : public NmBaseView, public NmActionObserver
 {
@@ -51,6 +52,8 @@ public:
     ~NmMessageListView();
     NmUiViewId nmailViewId() const;
     void viewReady();
+    NmFolderType folderType();
+    void okToExitView();
     
 public: // From NmActionObserver
     void handleActionCommand(NmActionResponse &menuResponse);
@@ -58,7 +61,6 @@ public: // From NmActionObserver
 public slots:
     void reloadViewContents(NmUiStartParam *startParam);
     void refreshList();
-    void contextButton(NmActionResponse &result);
     
 private slots:
     void showItemContextMenu(HbAbstractViewItem *index, const QPointF &coords);
@@ -90,11 +92,12 @@ private:
     HbMenu *mItemContextMenu;               // Owned
     NmMessageListModelItem *mLongPressedItem;  // Not owned
     HbLabel *mNoMessagesLabel;              // Not owned
-    HbLabel *mFolderLabel;                  // Not owned
+    HbGroupBox *mFolderLabel;               // Not owned
     HbLabel *mSyncIcon;                     // Not owned
     QModelIndex mActivatedIndex;
     bool mViewReady;
     NmFolderType mCurrentFolderType;
+    bool mSettingsLaunched;
 };
 
 #endif /* NMMESSAGELISTVIEW_H_ */

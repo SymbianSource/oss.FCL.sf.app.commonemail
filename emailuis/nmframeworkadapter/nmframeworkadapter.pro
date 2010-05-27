@@ -13,7 +13,7 @@
 #
 # Description: 
 #
-# Version : %version: 26 %
+# Version : %version: e003sa37#27 %
 TEMPLATE = lib
 TARGET = nmframeworkadapter
 
@@ -38,7 +38,8 @@ HEADERS += inc/nmframeworkadapter.h \
            inc/nmfwastoremessageoperation.h \
            inc/nmfwacheckoutboxoperation.h \
            inc/nmfwamessagepartfetchingoperation.h \
-           inc/nmmailboxsearchobserver.h
+           inc/nmmailboxsearchobserver.h \
+           inc/nmfwamessagepartsfetchingoperation.h
 
 SOURCES += src/nmframeworkadapter.cpp \
            src/nmfwamessagefetchingoperation.cpp \
@@ -52,7 +53,8 @@ SOURCES += src/nmframeworkadapter.cpp \
            src/nmfwastoremessageoperation.cpp \
            src/nmfwacheckoutboxoperation.cpp \
            src/nmfwamessagepartfetchingoperation.cpp \
-           src/nmmailboxsearchobserver.cpp
+           src/nmmailboxsearchobserver.cpp \
+           src/nmfwamessagepartsfetchingoperation.cpp
 
 RESOURCES +=
 

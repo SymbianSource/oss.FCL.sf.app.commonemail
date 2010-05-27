@@ -271,10 +271,16 @@ bool NmUtilities::displayOperationCompletionNote(const NmOperationCompletionEven
     // nothing to do in successfull or cancelled case
     if(event.mCompletionCode != NmNoError && event.mCompletionCode != NmCancelError) {
         if(event.mOperationType == Synch && event.mCompletionCode == NmAuthenticationError) {
-            openSettings = displayQuestionNote(hbTrId("txt_mail_dialog_address_or_password_incorrect"));
+/*
+ * Commented out temporarily, because of wk18 HbDialog API deprecation.
+ *         openSettings = displayQuestionNote(hbTrId("txt_mail_dialog_address_or_password_incorrect"));
+ */
         }
         if(event.mOperationType == Synch && event.mCompletionCode == NmServerConnectionError) {
-            openSettings = displayQuestionNote(hbTrId("txt_mail_dialog_server_settings_incorrect"));
+/*
+ * Commented out temporarily, because of wk18 HbDialog API deprecation.
+ *         openSettings = displayQuestionNote(hbTrId("txt_mail_dialog_server_settings_incorrect"));
+ */
         }
         // following applies to all operation/event types
         if(event.mCompletionCode == NmConnectionError) {
@@ -285,27 +291,18 @@ bool NmUtilities::displayOperationCompletionNote(const NmOperationCompletionEven
 }
 
 /*!
-    displays a note with Yes/No buttons. Note has no timeout, i.e. it has to be dismissed manually
-    returns boolean whether primaryaction was taken (Left button ("Yes") pressed)
+    Displays a note with Yes/No buttons. Note has no timeout, i.e. it has to be dismissed manually.
+    Returns pointer to dialog so that caller can take ownership and handle deletion.
+    Parameter 'receiver' is the object and 'member' is the slot where user selection is passed. 
 */
-bool NmUtilities::displayQuestionNote(QString noteText)
+HbMessageBox* NmUtilities::displayQuestionNote(
+    QString noteText, QObject* receiver, const char* member)
 {
-	HbMessageBox::warning(noteText);
-	return true;
-	/*
-	 * Commented out because of exec() deprecation. Will be fixed later...
-	 * 
-    bool ret(false);
     HbMessageBox *messageBox = new HbMessageBox(HbMessageBox::MessageTypeQuestion);
     messageBox->setText(noteText);
-    messageBox->setTimeout(HbMessageBox::NoTimeout); // note has to be dismissed manually
-    HbAction *action = messageBox->exec();
-    if(action == messageBox->primaryAction()) {
-        ret=true; // primary/left button was pressed
-    }
-    delete messageBox;
-    return ret;
-    */
+    messageBox->setTimeout(HbMessageBox::NoTimeout); // Note has to be dismissed manually
+    messageBox->open(receiver, member);
+    return messageBox;
 }
 
 /*!

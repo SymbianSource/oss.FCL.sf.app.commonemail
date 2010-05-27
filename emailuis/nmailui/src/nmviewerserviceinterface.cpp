@@ -71,6 +71,8 @@ void NmViewerServiceInterface::viewMessage(QVariant mailboxId, QVariant folderId
     if (message) {
         // bring application to foreground
         XQServiceUtil::toBackground(false);
+        HbMainWindow *mainWindow = mApplication->mainWindow();
+        mainWindow->show();
 
         // Launch the message list view.
         NmUiStartParam *startParam =

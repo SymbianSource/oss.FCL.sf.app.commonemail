@@ -47,7 +47,7 @@ public: // From MFSMailboxSearchObserver
     
 signals:
 
-    void matchFound(const NmId &messageId);
+    void matchFound(const NmId &messageId, const NmId &folderId);
 
     void searchComplete();
 };

@@ -95,8 +95,8 @@ bool NmMailAgent::init()
 				this, SLOT(handleSyncStateEvent(NmSyncState, const NmOperationCompletionEvent&)),
 				Qt::UniqueConnection);
 
-			connect(plugin, SIGNAL(connectionEvent(NmConnectState, const NmId)),
-				this, SLOT(handleConnectionEvent(NmConnectState, const NmId)),
+			connect(plugin, SIGNAL(connectionEvent(NmConnectState, const NmId, int)),
+				this, SLOT(handleConnectionEvent(NmConnectState, const NmId, int)),
 				Qt::UniqueConnection);
     	}
     }
@@ -438,6 +438,8 @@ void NmMailAgent::handleMessageEvent(
             if (mailboxInfo->mOutboxFolderId == folderId) {
                 // The first mail created in the outbox
                 if (mailboxInfo->mOutboxMails <= 0) {
+					NMLOG("NmMailAgent: first mail in outbox");
+					activate = true;
                     updateNeeded = true;
                 }
                 mailboxInfo->mOutboxMails += messageIds.count();
@@ -483,6 +485,8 @@ void NmMailAgent::handleMessageEvent(
 
                 // The last mail was now deleted
                 if (mailboxInfo->mOutboxMails == 0) {
+					NMLOG("NmMailAgent: last mail deleted from outbox");
+
                     // Keep it active if there is unread mails
                     activate = mailboxInfo->mUnreadMailIdList.count() > 0;
                     updateNeeded = true;
@@ -550,9 +554,10 @@ void NmMailAgent::handleSyncStateEvent(
     Received from NmFrameworkAdapter connectionState signal
     \sa NmFrameworkAdapter
 */
-void NmMailAgent::handleConnectionEvent(NmConnectState state, const NmId mailboxId)
+void NmMailAgent::handleConnectionEvent(NmConnectState state, const NmId mailboxId, int errorcode)
 {
-    NMLOG(QString("NmMailAgent::handleConnectionEvent %1 %2").arg(state).arg(mailboxId.id()));
+	Q_UNUSED(errorcode);
+    NMLOG(QString("NmMailAgent::handleConnectionEvent %1 %2 %3").arg(state).arg(mailboxId.id()).arg(errorcode));
     NmMailboxInfo *mailboxInfo = getMailboxInfo(mailboxId);
     if (mailboxInfo) {
         // Connecting, Connected, Disconnecting, Disconnected
@@ -627,15 +632,10 @@ NmMailboxInfo *NmMailAgent::createMailboxInfo(const NmMailbox &mailbox, NmDataPl
     // Get branded mailbox icon
     NmMailbox mailbox2( mailbox );
     QString domainName = mailbox2.address().address();
-    int delimIndex = domainName.indexOf('@');
-    if( delimIndex >= 0 ) {
-        domainName = domainName.mid(delimIndex+1);
-        NMLOG(QString("Mailbox domain name: %1").arg(domainName));
-    }
     EmailMailboxInfo emailMailboxInfo;
     mailboxInfo->mIconName =
         emailMailboxInfo.mailboxIcon(domainName);
-    
+
     return mailboxInfo;
 }
 

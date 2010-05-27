@@ -20,7 +20,7 @@
 static const double Un = 6.66;
 static const double Margin = 2 * Un;
 static const int MaxRows = 10000;
-static const double LabelFieldWidth = 10 * Un + Un;
+static const double LabelFieldWidth = 12.5 * Un;
 static const double ButtonWidth = 9.5 * Un;
 static const double FieldHeight = 5 * Un;
 static const char *ContactsServiceName = "com.nokia.services.phonebookservices";
@@ -28,26 +28,6 @@ static const char *ContactsInterfaceName = "Fetch";
 static const char *ContactsOperationName = "fetch(QString,QString,QString)";
 
 /*!
-   Constructor
-*/
-NmRecipientField::NmRecipientField(
-    HbLabel *label,
-    NmRecipientLineEdit *edit,
-    HbPushButton *button,
-    QGraphicsItem *parent):
-    HbWidget(parent),
-    mLabel(label),
-    mRecipientsEditor(edit),
-    mLaunchContactsPickerButton(button),
-    mOwned(false)
-{
-    mLaunchContactsPickerButton->setIcon(NmIcons::getIcon(NmIcons::NmIconContacts));
-    createConnections();
-}
-
-
-/*!
-   Constructor for 'Cc:' and 'Bcc:' fields. This can be removed when groupBox content
    widget is created using AD/docml
 */
 NmRecipientField::NmRecipientField(const QString &labelString, QGraphicsItem *parent):
@@ -57,23 +37,25 @@ NmRecipientField::NmRecipientField(const QString &labelString, QGraphicsItem *pa
     mLaunchContactsPickerButton(NULL),
     mOwned(true)
 {
-    mLayoutHorizontal = new QGraphicsLinearLayout(Qt::Horizontal, this);
+    //construct default ui.    
+    mLayoutHorizontal = new QGraphicsLinearLayout(Qt::Horizontal);
 
     mLabel = new HbLabel(labelString);
     if (mLabel) {
         mLayoutHorizontal->addItem(mLabel);
         mLabel->setPreferredWidth(LabelFieldWidth);
         mLabel->setFontSpec(HbFontSpec(HbFontSpec::Secondary));
-        mLabel->setAlignment(Qt::AlignTop);
     }
 
     mRecipientsEditor = new NmRecipientLineEdit();
     if (mRecipientsEditor) {
     	mLayoutHorizontal->addItem(mRecipientsEditor);
         mRecipientsEditor->setMaxRows(MaxRows);
-        mRecipientsEditor->setPreferredHeight(FieldHeight);
-        mRecipientsEditor->setMinimumHeight(FieldHeight);
         mRecipientsEditor->setFontSpec(HbFontSpec(HbFontSpec::Secondary));
+        mRecipientsEditor->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        mRecipientsEditor->setMinimumHeight(FieldHeight);
+        mRecipientsEditor->setPreferredHeight(FieldHeight);
+        mRecipientsEditor->setMaximumHeight(FieldHeight);
     }
 
     mLaunchContactsPickerButton = new HbPushButton();
@@ -92,10 +74,15 @@ NmRecipientField::NmRecipientField(const QString &labelString, QGraphicsItem *pa
     mLayoutHorizontal->setItemSpacing(1, Un);
     // Set the spacing between the label and the line edit to 0.0
     mLayoutHorizontal->setItemSpacing(0, 0.0);
+    
+    this->setLayout(mLayoutHorizontal);
 
     createConnections();
 }
 
+/*!
+   Creates connections for this class items
+*/
 void NmRecipientField::createConnections()
 {
     connect(mRecipientsEditor, SIGNAL(textChanged(const QString &)),

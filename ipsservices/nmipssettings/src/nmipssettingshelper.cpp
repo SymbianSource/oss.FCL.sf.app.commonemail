@@ -1023,7 +1023,7 @@ void NmIpsSettingsHelper::receivingWeekdaysModified()
     HbDataFormModelItem *item = mContentItems.value(IpsServices::ReceptionWeekDays);
     QVariant widgetData = item->contentWidgetData(QString("selectedItems"));
     QList<QVariant> selectedIndexes = widgetData.value< QList<QVariant> >();
-    QVariant itemData = item->data(HbDataFormModelItem::HbDataFormModelItem::DescriptionRole + 1);
+    QVariant itemData = item->data(HbDataFormModelItem::DescriptionRole + 1);
     QList<QVariant> itemValues = itemData.value< QList<QVariant> >();
 
     int days(0);
@@ -1059,7 +1059,7 @@ void NmIpsSettingsHelper::startTimeModified(QTime time)
 void NmIpsSettingsHelper::refreshPeriodModified(int index)
 {
     HbDataFormModelItem* item = mContentItems.value(IpsServices::ReceptionRefreshPeriodDayTime);
-    QVariant itemData = item->data(HbDataFormModelItem::HbDataFormModelItem::DescriptionRole + 1);
+    QVariant itemData = item->data(HbDataFormModelItem::DescriptionRole + 1);
     int selectedValue = itemData.value< QList< QVariant > >().at(index).toInt();
     handleReceivingScheduleSettingChange(IpsServices::ReceptionRefreshPeriodDayTime, selectedValue);
 }
