@@ -38,6 +38,8 @@ NmViewerHeader::NmViewerHeader(QGraphicsItem *parent) :
     mRecipientsBox(NULL),
     mViewerView(NULL)
 {
+    NM_FUNCTION;
+    
     loadWidgets();
 }
 
@@ -46,6 +48,7 @@ NmViewerHeader::NmViewerHeader(QGraphicsItem *parent) :
 */
 NmViewerHeader::~NmViewerHeader()
 {
+    NM_FUNCTION;
 }
 
 /*!
@@ -53,6 +56,8 @@ NmViewerHeader::~NmViewerHeader()
 */
 void NmViewerHeader::setView(NmViewerView* view)
 {
+    NM_FUNCTION;
+    
     mViewerView = view;
 }
 
@@ -61,6 +66,8 @@ void NmViewerHeader::setView(NmViewerView* view)
 */
 void NmViewerHeader::loadWidgets()
 {
+    NM_FUNCTION;
+    
     // Scale header widget to screen width
     setSizePolicy(QSizePolicy::Minimum, QSizePolicy::MinimumExpanding); 
 
@@ -105,6 +112,8 @@ void NmViewerHeader::paint(
     const QStyleOptionGraphicsItem *option,
     QWidget *widget)
 {
+    NM_FUNCTION;
+    
     Q_UNUSED(option);
     Q_UNUSED(widget);
     if (painter) {
@@ -126,6 +135,8 @@ void NmViewerHeader::paint(
 */
 void NmViewerHeader::setMessage(NmMessage* message)
 {
+    NM_FUNCTION;
+    
     mMessage=message;
     setHeaderData();
 }
@@ -139,6 +150,8 @@ void NmViewerHeader::setMessage(NmMessage* message)
 */
 void NmViewerHeader::updateMessageData(NmMessage* message)
 {
+    NM_FUNCTION;
+    
     if (message){
         mMessage=message;
         // Set recipients to text edit field as html 
@@ -156,6 +169,8 @@ void NmViewerHeader::updateMessageData(NmMessage* message)
 */
 void NmViewerHeader::setHeaderData()
 {
+    NM_FUNCTION;
+    
     if (mMessage) {
         // Background is all white always, so force text color to black
         QColor textColor(Qt::black);
@@ -222,6 +237,8 @@ void NmViewerHeader::setHeaderData()
 */ 
 void NmViewerHeader::rescaleHeader(const QSizeF layoutReso)
 {  
+    NM_FUNCTION;
+    
     setMinimumWidth(layoutReso.width());
     setMaximumWidth(layoutReso.width());
 }
@@ -231,6 +248,8 @@ void NmViewerHeader::rescaleHeader(const QSizeF layoutReso)
 */
 void NmViewerHeader::createExpandableHeader()
 {
+    NM_FUNCTION;
+    
     if (mHeaderBox) {        // Initialize recipient box
         if (!mRecipientsBox){
             mRecipientsBox = new HbTextEdit();
@@ -267,6 +286,8 @@ QString NmViewerHeader::formatRecipientList(const QString &sender,
                                             const QList<NmAddress> &to,
                                             const QList<NmAddress> &cc)
 {
+    NM_FUNCTION;
+    
     QString result;
     result.append("<html><body link=\"blue\" topmargin=\"0\" leftmargin=\"0\" marginheight=\"0\"");
     result.append("marginwidth=\"0\" bgcolor=\"white\" text=\"black\">");    
@@ -332,6 +353,8 @@ QString NmViewerHeader::formatRecipientList(const QString &sender,
 */
 QString NmViewerHeader::addressToDisplayInHtml(const NmAddress &addr)
 {
+    NM_FUNCTION;
+    
     QString dispName;
     if (addr.displayName().length()!=0){
         dispName.append(NmUtilities::cleanupDisplayName(addr.displayName()));
@@ -353,6 +376,8 @@ QString NmViewerHeader::addressToDisplayInHtml(const NmAddress &addr)
 */
 void NmViewerHeader::cursorPositionChanged(int oldPos, int newPos)
 {
+    NM_FUNCTION;
+    
     Q_UNUSED(oldPos);
     QString string = mRecipientsBox->anchorAt(newPos); 
     if (mViewerView&&string.contains("mailto:",Qt::CaseSensitive)){

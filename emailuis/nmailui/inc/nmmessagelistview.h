@@ -46,7 +46,7 @@ public:
         NmUiStartParam *startParam,
         NmUiEngine &uiEngine,
         NmMailboxListModel &mailboxListModel,
-        NmMessageListModel &messageListModel,
+        NmMessageListModel *messageListModel,
         HbDocumentLoader *documentLoader,
         QGraphicsItem *parent = 0);
     ~NmMessageListView();
@@ -70,9 +70,10 @@ private slots:
     void itemsAdded(const QModelIndex &parent, int start, int end);
     void itemsRemoved();
     void showNoMessagesText();
+    void hideNoMessagesText();
     void handleSyncStateEvent(NmSyncState syncState, const NmId & mailboxId);
     void handleConnectionEvent(NmConnectState connectState, const NmId &mailboxId);
-    void folderSelected(NmId mailbox, NmId folder);
+    void folderSelected();
     
 private:
     void loadViewLayout();
@@ -87,7 +88,7 @@ private:
     QObjectList mWidgetList;
     NmUiEngine &mUiEngine;
     NmMailboxListModel &mMailboxListModel;
-    NmMessageListModel &mMessageListModel;
+    NmMessageListModel *mMessageListModel;  // Not owned
     HbDocumentLoader *mDocumentLoader;      // Owned
     HbMenu *mItemContextMenu;               // Owned
     NmMessageListModelItem *mLongPressedItem;  // Not owned
@@ -98,6 +99,8 @@ private:
     bool mViewReady;
     NmFolderType mCurrentFolderType;
     bool mSettingsLaunched;
+    NmId mSelectedFolderId;
+    NmId mSelectedMailboxId;
 };
 
 #endif /* NMMESSAGELISTVIEW_H_ */

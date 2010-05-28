@@ -106,6 +106,8 @@ NmAttachmentListWidget::NmAttachmentListWidget(QGraphicsItem *parent)
     mLayout(NULL),
     mOrientation(Qt::Vertical)
 {
+    NM_FUNCTION;
+    
     init( );
 }
 
@@ -115,6 +117,8 @@ NmAttachmentListWidget::NmAttachmentListWidget(QGraphicsItem *parent)
  */
 NmAttachmentListWidget::~NmAttachmentListWidget( )
 {
+    NM_FUNCTION;
+    
     mItemList.clear();
 }
 
@@ -124,6 +128,8 @@ NmAttachmentListWidget::~NmAttachmentListWidget( )
  */
 void NmAttachmentListWidget::setTextColor(const QColor color)
 {
+    NM_FUNCTION;
+    
     mTextColor=color;
 }
 
@@ -137,6 +143,8 @@ void NmAttachmentListWidget::insertAttachment(
         const QString &fileName, 
         const QString &fileSize)
 {   
+    NM_FUNCTION;
+    
     NmAttachmentListItem *item = new NmAttachmentListItem(this);
     item->setObjectName(QString("nmattachmentlistitem_%1").arg(index));
 
@@ -163,8 +171,10 @@ void NmAttachmentListWidget::insertAttachment(
  */
 void NmAttachmentListWidget::removeAttachment(int index)
 {
+    NM_FUNCTION;
+    
     if(!mLayout) {
-        NMLOG("NmAttachmentListWidget::removeAttachment: Layout loading failed!");
+        NM_ERROR(1,"NmAttachmentListWidget::removeAttachment(): layout loading failed");
         return;
     }
 
@@ -189,6 +199,8 @@ void NmAttachmentListWidget::setAttachmentSize(
         int index, 
         const QString &fileSize)
 {
+    NM_FUNCTION;
+    
 	if (index>=0 && index<mItemList.count()) {
 	    mItemList.at(index)->setFileSizeText(fileSize);
 	}
@@ -199,6 +211,8 @@ void NmAttachmentListWidget::setAttachmentSize(
  */
 int NmAttachmentListWidget::count() const
 {
+    NM_FUNCTION;
+    
     return mItemList.count();
 }
 
@@ -207,6 +221,8 @@ int NmAttachmentListWidget::count() const
  */
 int NmAttachmentListWidget::progressValue(int index) const
 {
+    NM_FUNCTION;
+    
     int ret(NmNotFoundError);
     if(index >= 0 && index < mItemList.count()){
         ret = mItemList.at(index)->progressBarValue();
@@ -220,6 +236,8 @@ int NmAttachmentListWidget::progressValue(int index) const
  */
 void NmAttachmentListWidget::hideProgressBar(int index)
 {
+    NM_FUNCTION;
+    
     if(index >= 0 && index < mItemList.count()){
         mItemList.at(index)->hideProgressBar();
     }
@@ -234,6 +252,8 @@ void NmAttachmentListWidget::paint(
     const QStyleOptionGraphicsItem *option,
     QWidget *widget)
 {
+    NM_FUNCTION;
+    
     Q_UNUSED(option);
     Q_UNUSED(widget);
     if (painter&&mLayout){
@@ -270,6 +290,8 @@ void NmAttachmentListWidget::paint(
  */
 void NmAttachmentListWidget::setProgressBarValue(int index, int value)
 {
+    NM_FUNCTION;
+    
     if(index >= 0 && index < mItemList.count()){
         mItemList[index]->setProgressBarValue(value);
     }
@@ -280,6 +302,8 @@ void NmAttachmentListWidget::setProgressBarValue(int index, int value)
  */
 void NmAttachmentListWidget::init( )
 {
+    NM_FUNCTION;
+    
     //Get mainwindow for orientation changes
     HbMainWindow *mw = hbInstance->allMainWindows().at(0);
 
@@ -288,7 +312,7 @@ void NmAttachmentListWidget::init( )
         connect(mw, SIGNAL(orientationChanged(Qt::Orientation)),this, SLOT(orientationChanged(Qt::Orientation)));
         mOrientation = mw->orientation();
     } else {
-        NMLOG("NmAttachmentListWidget::init: mainWindow missing!");
+        NM_ERROR(1,"NmAttachmentListWidget::init: mainWindow missing!");
     }
 
     //construct UI after orientation has been figured out
@@ -303,6 +327,8 @@ void NmAttachmentListWidget::init( )
  */
 void NmAttachmentListWidget::constructUi()
 {
+    NM_FUNCTION;
+    
     setObjectName(QString(ATTACHMENT_WIDGET));
     HbDocumentLoader loader;
     bool loadingOk = false;
@@ -319,10 +345,10 @@ void NmAttachmentListWidget::constructUi()
             mLayout = dynamic_cast<QGraphicsGridLayout*>(layout());
             mLayout->setContentsMargins(0,0,0,0);
         } else {
-            NMLOG("NmAttachmentListWidget::constructUi: Widget doesn't have layout!");
+            NM_ERROR(1,"NmAttachmentListWidget::constructUi: Widget doesn't have layout!");
         }
     } else {
-        NMLOG("NmAttachmentListWidget::constructUi: DocML loading failed.");
+        NM_ERROR(1,"NmAttachmentListWidget::constructUi: DocML loading failed.");
     }
 
 }
@@ -332,13 +358,15 @@ void NmAttachmentListWidget::constructUi()
 */
 void NmAttachmentListWidget::handleLongPressed(QPointF point)
 {
+    NM_FUNCTION;
+    
     QObject *sender = QObject::sender();
     int index = findItem(sender);
     if(NmNotFoundError != index){
         emit longPressed(index, point);
     }
     else {
-        NMLOG("NmAttachmentListWidget::handleLongPressed: item cannot found!");
+        NM_ERROR(1,"NmAttachmentListWidget::handleLongPressed: item cannot found!");
     }
 
 }
@@ -348,13 +376,15 @@ void NmAttachmentListWidget::handleLongPressed(QPointF point)
 */
 void NmAttachmentListWidget::handleItemActivated()
 {
+    NM_FUNCTION;
+    
     QObject *sender = QObject::sender();
     int index = findItem(sender);
     if(NmNotFoundError != index){
         emit itemActivated(index);
     }
     else {
-        NMLOG("NmAttachmentListWidget::handleItemActivated: item cannot found!");
+        NM_ERROR(1,"NmAttachmentListWidget::handleItemActivated: item cannot found!");
     }
 }
 
@@ -364,8 +394,8 @@ void NmAttachmentListWidget::handleItemActivated()
 */
 void NmAttachmentListWidget::orientationChanged(Qt::Orientation orientation)
 {
-    NMLOG("NmAttachmentListWidget::orientationChanged");
-
+    NM_FUNCTION;
+    
     //be sure that orientation has been changed
     if(mOrientation != orientation){
         mOrientation = orientation;
@@ -381,6 +411,8 @@ void NmAttachmentListWidget::orientationChanged(Qt::Orientation orientation)
 */
 int NmAttachmentListWidget::findItem(const QObject *obj)
 {
+    NM_FUNCTION;
+    
     int found(NmNotFoundError);
     int index(0);
 
@@ -401,8 +433,10 @@ int NmAttachmentListWidget::findItem(const QObject *obj)
 */
 void NmAttachmentListWidget::insertItemToLayout(NmAttachmentListItem* item)
 {
+    NM_FUNCTION;
+    
     if(!mLayout) {
-        NMLOG("NmAttachmentListWidget::insertItemToLayout: Layout loading failed!");
+        NM_ERROR(1,"NmAttachmentListWidget::insertItemToLayout: Layout loading failed!");
         return;
     }
     int layout_count = mLayout->count();
@@ -424,8 +458,10 @@ void NmAttachmentListWidget::insertItemToLayout(NmAttachmentListItem* item)
 */
 void NmAttachmentListWidget::rearrangeLayout()
 {
+    NM_FUNCTION;
+    
     if(!mLayout) {
-        NMLOG("NmAttachmentListWidget::rearrangeLayout: Layout loading failed!");
+        NM_ERROR(1,"NmAttachmentListWidget::rearrangeLayout: Layout loading failed!");
         return;
     }
 

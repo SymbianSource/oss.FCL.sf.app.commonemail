@@ -165,7 +165,7 @@
 
 // operations
 #include "ipsplgtimeroperation.h"
-#include "ipsplgoperationwait.h"
+// <qmail> removing #include "ipsplgoperationwait.h"
 #include "ipsplgonlineoperation.h"
 // <qmail>
 #include "ipsplgcreatemessageoperation.h"

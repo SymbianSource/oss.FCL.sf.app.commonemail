@@ -20,10 +20,24 @@
 
 #include <QGraphicsWebView>
 
+#include "nmcommon.h"
+
 class NmViewerView;
 class NmMessage;
 
 class QMouseEvent;
+
+class NmMailViewerWkContentItem
+{
+public:
+    NmMailViewerWkContentItem() 
+        : mData(0), mPartId(0), mIsFetched(false) {}
+    NmMailViewerWkContentItem(QVariant data, NmId partId, bool isFetched) 
+        : mData(data), mPartId(partId), mIsFetched(isFetched) {}
+    QVariant mData;
+    NmId     mPartId;
+    bool     mIsFetched;
+};
 
 class NmMailViewerWK : public QGraphicsWebView
 {
@@ -31,14 +45,14 @@ class NmMailViewerWK : public QGraphicsWebView
 public:
 	NmMailViewerWK();
 	~NmMailViewerWK();
-    virtual QVariant loadResource ( int type, const QUrl & name );
+    virtual QVariant loadResource (int type, const QUrl &name, NmId &partId, bool &isFetched);
     void setParentView(NmViewerView *parentView);
-    void addContent(QString key, QVariant val);
+    void addContent(QString key, QVariant val, NmId partId, bool isFetched);
     void sendMousePressEvent(QGraphicsSceneMouseEvent *event);
     void sendMouseReleaseEvent(QGraphicsSceneMouseEvent *event);
 
 private:
-    QMap<QString,QVariant> mContent;
+    QMap<QString,NmMailViewerWkContentItem> mContent;
     NmViewerView *mParentView;      // Not owned
 };
 

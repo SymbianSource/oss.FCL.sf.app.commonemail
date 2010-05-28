@@ -15,8 +15,9 @@
 *
 */
 
-#include "cemailextensionbase.h"
 #include "emailtrace.h"
+
+#include "cemailextensionbase.h"
 
 /**
 *
@@ -29,7 +30,8 @@ _LIT( KEmailExtensionPanic, "EmailFw" );
     
 void Panic( TEmailFwPanic aPanic )
     {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
     User::Panic( KEmailExtensionPanic, aPanic );
     }
 
@@ -40,6 +42,7 @@ void Panic( TEmailFwPanic aPanic )
 CEmailExtension::CEmailExtension( const TUid& aUid ) : 
     iUid( TUid::Uid(aUid.iUid ) )
     {
+    NM_FUNCTION;
     }
 
 // ---------------------------------------------------------------------------
@@ -48,6 +51,7 @@ CEmailExtension::CEmailExtension( const TUid& aUid ) :
 //
 CEmailExtension::~CEmailExtension()
     {
+    NM_FUNCTION;
     }
 
 // ---------------------------------------------------------------------------
@@ -56,6 +60,8 @@ CEmailExtension::~CEmailExtension()
 //
 TUid CEmailExtension::Uid() const
     {
+    NM_FUNCTION;
+    
     return iUid;
     }
 
@@ -65,6 +71,8 @@ TUid CEmailExtension::Uid() const
 //
 TUint CEmailExtension::DecRef()
     {
+    NM_FUNCTION;
+    
     if ( iRefCount )
         {
         iRefCount--;
@@ -78,6 +86,8 @@ TUint CEmailExtension::DecRef()
 //
 void CEmailExtension::IncRef()
     {
+    NM_FUNCTION;
+    
     ++iRefCount;
     }
         
@@ -87,7 +97,8 @@ void CEmailExtension::IncRef()
 //
 void CExtendableEmail::ReleaseExtension( CEmailExtension* aExtension )
     {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
     if ( !aExtension->DecRef() )
         {
         iExtensions.Remove( aExtension );
@@ -101,7 +112,8 @@ void CExtendableEmail::ReleaseExtension( CEmailExtension* aExtension )
 //
 CEmailExtension* CExtendableEmail::ExtensionL( const TUid& aInterfaceUid )
     {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
     TInt index = iExtensions.FindExtension( aInterfaceUid );
     CEmailExtension* ext = NULL;
     if ( index != KErrNotFound )
@@ -119,7 +131,8 @@ CEmailExtension* CExtendableEmail::ExtensionL( const TUid& aInterfaceUid )
 //
 CExtendableEmail::CExtendableEmail()
     {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
     }
 //</qmail>
 
@@ -129,6 +142,8 @@ CExtendableEmail::CExtendableEmail()
 //
 TEmailExtensions::~TEmailExtensions()
     {
+    NM_FUNCTION;
+    
     iExtensions.Close();
     }
 
@@ -138,6 +153,8 @@ TEmailExtensions::~TEmailExtensions()
 //
 TEmailExtensions::TEmailExtensions() : iExtensions( 1 )
     {
+    NM_FUNCTION;
+    
     }
 
 // ---------------------------------------------------------------------------
@@ -146,6 +163,8 @@ TEmailExtensions::TEmailExtensions() : iExtensions( 1 )
 //
 TInt TEmailExtensions::FindExtension( const TUid& aUid ) const
     {
+    NM_FUNCTION;
+    
     TInt index = KErrNotFound;
     for ( TInt i = 0; i < iExtensions.Count(); i++ )
         {        
@@ -165,6 +184,8 @@ TInt TEmailExtensions::FindExtension( const TUid& aUid ) const
 //
 CEmailExtension* TEmailExtensions::Extension( const TInt aIndex ) const
     {
+    NM_FUNCTION;
+    
     __ASSERT_ALWAYS( aIndex>=0 && aIndex < iExtensions.Count(),
         Panic( EEmailExtensionIndexOutOfRange ) );
     return iExtensions[aIndex];
@@ -176,7 +197,8 @@ CEmailExtension* TEmailExtensions::Extension( const TInt aIndex ) const
 //
 void TEmailExtensions::AddL( CEmailExtension* aExtension )
     {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
     if ( !aExtension )
         {
         User::Leave( KErrArgument );
@@ -194,7 +216,8 @@ void TEmailExtensions::AddL( CEmailExtension* aExtension )
 void TEmailExtensions::Remove( 
     const CEmailExtension* aExtension )
     {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
     const TInt index( FindExtension( aExtension->Uid() ) );
     if ( index != KErrNotFound )    
         {

@@ -22,10 +22,10 @@
 #include <QDateTime>
 #include <hbwidget.h>
 #include "nmcommon.h"
+#include "nmmessageenvelope.h"
 
 //FORWARD DECLARATIONS:
 class HbLabel;
-class NmMessageEnvelope;
 
 class NmHsWidgetEmailRow : public HbWidget
 {
@@ -36,6 +36,8 @@ public:
     ~NmHsWidgetEmailRow();
     NmId messageId();
     bool loadDocML();
+    void setFontsSize( bool read );
+    void setFontsColor( bool pressed );
 
 public slots:
     void updateMailData( const NmMessageEnvelope& envelope );
@@ -51,6 +53,7 @@ private:
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
+    bool event( QEvent *event );
     
 private:
     HbLabel *mSenderLabel;
@@ -61,6 +64,7 @@ private:
     NmId mMessageId;
     QDateTime mMessageSentTime;
     QList <HbLabel*> mStatusIcons;  
+    NmMessageEnvelope mEnvelope;
     
 };
 

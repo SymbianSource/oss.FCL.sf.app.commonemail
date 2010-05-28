@@ -22,13 +22,7 @@
 //  INCLUDES
 #include <QObject>
 #include <qmobilityglobal.h>
-
-#ifdef Q_OS_SYMBIAN
 #include <xqserviceprovider.h>
-#else
-#include <QVariant>
-#endif
-
 
 //  FORWARD DECLARATIONS
 class QString;
@@ -40,12 +34,7 @@ QTM_END_NAMESPACE
 
 QTM_USE_NAMESPACE
 
-
-#ifdef Q_OS_SYMBIAN
 class NmMailboxRegisterInterfacePrivate : public XQServiceProvider
-#else
-class NmMailboxRegisterInterfacePrivate : public QObject
-#endif
 {
     Q_OBJECT
 
@@ -68,6 +57,8 @@ private:
     bool pushWidgetToHomescreen(quint64 a, QString accountIconName);
     
     QString formLaunchUri(quint64 accountId) const;
+    
+    bool loadMenuClientService();
 
 private: 
     QServiceManager* mManager;

@@ -61,6 +61,7 @@ public:
     void reloadViewContents(NmUiStartParam* startParam);
     NmUiViewId nmailViewId() const;
     NmMailViewerWK* webView();
+    NmMessage* message();
     void viewReady();
     void aboutToExitView();
     
@@ -77,7 +78,6 @@ public slots:
     void fetchMessage();
     void openAttachment(int index);
 	void createOptionsMenu();
-	void deleteButton(HbAction* result);
 
 private slots:
     void setMessageData();
@@ -96,6 +96,7 @@ public: // From NmAttachmentFetchObserver
     void fetchCompleted(int result);
 
 private:
+    void deleteMessage();
     void loadMessage();
     void loadViewLayout();
     QString formatMessage();
@@ -104,6 +105,10 @@ private:
     void setMailboxName();
     void createToolBar();
     void setAttachmentList();
+    void createAndShowWaitDialog();
+    void setWebViewWidth(int width);
+    void setWebViewHeighth(int height);
+    void handleMouseEvent(QGraphicsSceneMouseEvent *event, bool pressed);
 
 private:
     NmApplication &mApplication;

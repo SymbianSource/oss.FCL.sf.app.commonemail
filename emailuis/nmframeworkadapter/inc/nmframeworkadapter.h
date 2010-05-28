@@ -34,14 +34,15 @@ class NmMessagePart;
 class NmOperation;
 class NmMessageCreationOperation;
 class CFSMailClient;
+class CFSMailBox;
 class CFSMailFolder;
 class CFSMailMessage;
 class CFSMailMessagePart;
 class NmStoreEnvelopesOperation;
 class NmAddAttachmentsOperation;
-class NmCheckOutboxOperation;
 class NmMailboxSearchObserver;
 class NmMessageSendingOperation;
+class CEmailExtension;
 
 
 class NmFrameworkAdapter :
@@ -182,8 +183,6 @@ public:
             const NmMessage &message, 
             const NmId &attachmentPartId);
 
-    QPointer<NmCheckOutboxOperation> checkOutbox(const NmId& mailboxId);
-    
     NmSyncState syncState(const NmId& mailboxId) const;
     
     NmConnectState connectionState(const NmId& mailboxId) const;
@@ -199,6 +198,8 @@ public:
     int cancelSearch(const NmId &mailboxId);
 
     void updateActiveFolder(const NmId &mailboxId, const NmId &folderId);
+    
+    QPointer<NmOperation> removeDraftMessage(NmMessage *message);
     
 signals:
 
@@ -291,12 +292,18 @@ private:
             const NmId& mailboxId, 
             const NmId& folderId, 
             NmFolder*& unreadCount );
+    
+    void doUpdateActiveFolderL(const NmId &mailboxId, const NmId &folderId);
+    
+    CEmailExtension* getEMailStateExtensionL();      
 
 
 private: // Data
 
     CFSMailClient* mFSfw; // Singleton, not owned
     NmMailboxSearchObserver *mSearchObserver; // Owned
+    CFSMailBox* mCurrentMailBox; // Owned
+    CEmailExtension* mEmailExtension; // not owned
 };
 
 

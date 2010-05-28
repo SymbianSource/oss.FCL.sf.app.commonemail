@@ -13,6 +13,8 @@
 // Description:
 //
 
+#include "emailtrace.h"
+
 #include "ssastartupwatcher.h"
 
 /*!
@@ -21,6 +23,8 @@
 */
 CSSAStartupWatcher* CSSAStartupWatcher::NewL(TStartupCallBack aCallback)
 {
+    NM_FUNCTION;
+    
 	CSSAStartupWatcher* self = new (ELeave) CSSAStartupWatcher(KDmHierarchyIdStartup, 
 	    KSM2AppServicesDomain3, aCallback);
 	CleanupStack::PushL(self);
@@ -35,6 +39,8 @@ CSSAStartupWatcher* CSSAStartupWatcher::NewL(TStartupCallBack aCallback)
 */
 CSSAStartupWatcher* CSSAStartupWatcher::New(TStartupCallBack aCallback)
 {
+    NM_FUNCTION;
+    
     CSSAStartupWatcher* self = NULL;
     TRAP_IGNORE( self = NewL(aCallback); );
     return self;
@@ -51,6 +57,7 @@ CSSAStartupWatcher::CSSAStartupWatcher(TDmHierarchyId aHierarchyId,
 : CDmDomain(aHierarchyId,aDomainId), 
   iCallback(aCallback)
 {
+    NM_FUNCTION;
 }
 
 /*!
@@ -58,6 +65,8 @@ CSSAStartupWatcher::CSSAStartupWatcher(TDmHierarchyId aHierarchyId,
 */
 CSSAStartupWatcher::~CSSAStartupWatcher()
 {
+    NM_FUNCTION;
+    
 	Cancel();
 }
 
@@ -69,6 +78,8 @@ Domain manager to keep aware of the startup state change.
 */
 void CSSAStartupWatcher::ConstructL()
 {
+    NM_FUNCTION;
+    
 	// Connect to the Domain Manager
 	CDmDomain::ConstructL();
 
@@ -94,6 +105,8 @@ void CSSAStartupWatcher::ConstructL()
 */
 void CSSAStartupWatcher::NotifyState(TInt aValue) 
 {
+    NM_FUNCTION;
+    
     (*iCallback)(aValue);
 }
 
@@ -103,6 +116,8 @@ void CSSAStartupWatcher::NotifyState(TInt aValue)
 */
 void CSSAStartupWatcher::RunL()
 {
+    NM_FUNCTION;
+    
 	// Leave if our previous request to be notified a state change has
 	// returned an error and let RunError handle this.
 	if (iStatus.Int()!=KErrNone) {

@@ -24,6 +24,7 @@
 
 class HbAbstractViewItem;
 class HbDocumentLoader;
+class HbGroupBox;
 class HbLabel;
 class HbLineEdit;
 class HbMenu;
@@ -79,6 +80,7 @@ private:
     void initTreeView();
     void setViewTitle();
     void noMessagesLabelVisibility(bool visible);
+    void updateSearchResultCountInfo();
     void setSearchInputMode(NmSearchInputMode mode);
 
 
@@ -109,7 +111,7 @@ private: // Data
     QObjectList mWidgetList;
     HbMenu *mItemContextMenu; // Owned
     HbTreeView *mMessageListWidget; // Not owned
-    HbLabel *mInfoLabel; // Not owned
+    HbGroupBox *mInfoLabel; // Not owned
     HbLabel *mNoMessagesLabel; // Not owned
     HbLineEdit *mLineEdit; // Not owned
     HbPushButton *mPushButton; // Not owned

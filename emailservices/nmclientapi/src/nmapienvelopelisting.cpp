@@ -15,6 +15,7 @@
  *
  */
 
+#include "emailtrace.h"
 
 #include <nmapienvelopelisting.h>
 #include "nmapienvelopelisting_p.h"
@@ -36,6 +37,8 @@ NmApiEnvelopeListing::NmApiEnvelopeListing(
     const quint64 mailboxId) :
     NmApiMessageTask(parent)
 {
+    NM_FUNCTION;
+    
     mListingPrivate = new NmApiEnvelopeListingPrivate(this);
     mListingPrivate->mailboxId = mailboxId;
     mListingPrivate->folderId = folderId;
@@ -47,6 +50,8 @@ NmApiEnvelopeListing::NmApiEnvelopeListing(
  */
 NmApiEnvelopeListing::~NmApiEnvelopeListing()
 {
+    NM_FUNCTION;
+    
     if (mListingPrivate->mIsRunning) {
         mListingPrivate->releaseEngine();
     }
@@ -67,6 +72,8 @@ NmApiEnvelopeListing::~NmApiEnvelopeListing()
  */
 bool NmApiEnvelopeListing::start()
 {
+    NM_FUNCTION;
+    
     bool result = false;
 
     if (mListingPrivate->mIsRunning) {
@@ -101,6 +108,8 @@ bool NmApiEnvelopeListing::start()
  */
 void NmApiEnvelopeListing::cancel()
 {
+    NM_FUNCTION;
+    
     if (mListingPrivate->mIsRunning) {
         mListingPrivate->mIsRunning = false;
         mListingPrivate->releaseEngine();
@@ -120,6 +129,8 @@ void NmApiEnvelopeListing::cancel()
  */
 bool NmApiEnvelopeListing::getEnvelopes(QList<EmailClientApi::NmApiMessageEnvelope> &envelopes)
 {
+    NM_FUNCTION;
+    
     envelopes.clear();
 
     bool result = false;
@@ -140,6 +151,8 @@ bool NmApiEnvelopeListing::getEnvelopes(QList<EmailClientApi::NmApiMessageEnvelo
  */
 bool NmApiEnvelopeListing::isRunning() const
 {
+    NM_FUNCTION;
+    
     return mListingPrivate->mIsRunning;
 }
 

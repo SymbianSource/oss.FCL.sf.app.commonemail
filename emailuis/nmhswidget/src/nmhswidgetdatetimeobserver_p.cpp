@@ -15,10 +15,10 @@
 *
 */
 
-#include <QDebug>
 #include <bacntf.h>
 #include "nmhswidgetdatetimeobserver.h"
 #include "nmhswidgetdatetimeobserver_p.h"
+#include "emailtrace.h"
 
 /*!
     \fn NmHsWidgetDateTimeObserverPrivate::NmHsWidgetDateTimeObserverPrivate()
@@ -29,12 +29,11 @@
 NmHsWidgetDateTimeObserverPrivate::NmHsWidgetDateTimeObserverPrivate(NmHsWidgetDateTimeObserver *q) :
     q_ptr(q)
 {
-    qDebug() << "NmHsWidgetDateTimeObserverPrivate::NmHsWidgetDateTimeObserverPrivate --> IN" ;
+    NM_FUNCTION;
     TCallBack callback( LocaleChangeCallback, this );
     //TODO: Handle leave properly
     TRAP_IGNORE(iLocaleNotifier = CEnvironmentChangeNotifier::NewL( CActive::EPriorityStandard, callback ));
     iLocaleNotifier->Start();
-    qDebug() << "NmHsWidgetDateTimeObserverPrivate::NmHsWidgetDateTimeObserverPrivate <-- OUT" ;
 }
 
 /*!
@@ -44,12 +43,9 @@ NmHsWidgetDateTimeObserverPrivate::NmHsWidgetDateTimeObserverPrivate(NmHsWidgetD
 */
 NmHsWidgetDateTimeObserverPrivate::~NmHsWidgetDateTimeObserverPrivate()
 {
-    qDebug() << "NmHsWidgetDateTimeObserverPrivate::~NmHsWidgetDateTimeObserverPrivate --> IN" ;
-    if(iLocaleNotifier){
-        delete iLocaleNotifier;
-        iLocaleNotifier = NULL;
-    }
-    qDebug() << "NmHsWidgetDateTimeObserverPrivate::~NmHsWidgetDateTimeObserverPrivate <-- OUT" ;
+    NM_FUNCTION;
+    delete iLocaleNotifier;
+    iLocaleNotifier = NULL;
 }
 
 /*!
@@ -61,7 +57,7 @@ NmHsWidgetDateTimeObserverPrivate::~NmHsWidgetDateTimeObserverPrivate()
 */
 TInt NmHsWidgetDateTimeObserverPrivate::HandleLocaleChange()
 {
-    qDebug() << "NmHsWidgetDateTimeObserverPrivate::HandleLocaleChange";
+    NM_FUNCTION;
     TInt handled = 0;
     if( iLocaleNotifier->Change() & ( EChangesSystemTime | EChangesLocale | EChangesMidnightCrossover ))
         {
@@ -79,7 +75,7 @@ TInt NmHsWidgetDateTimeObserverPrivate::HandleLocaleChange()
 */
 TInt NmHsWidgetDateTimeObserverPrivate::LocaleChangeCallback(TAny* aThisPtr)
 {
-    qDebug() << "NmHsWidgetDateTimeObserverPrivate::LocaleChangeCallback" ;
+    NM_FUNCTION;
     TInt ret = static_cast<NmHsWidgetDateTimeObserverPrivate*>(aThisPtr)->HandleLocaleChange();
     return ret;
 }

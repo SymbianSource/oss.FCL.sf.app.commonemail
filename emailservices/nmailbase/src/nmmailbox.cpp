@@ -14,16 +14,21 @@
 * Description:
 *
 */
+
+#include "emailtrace.h"
+
 #include <QString>
 
 #include "nmmailbox.h"
 
 NmMailboxPrivate::NmMailboxPrivate()
 {
+    NM_FUNCTION;
 }
 
 NmMailboxPrivate::~NmMailboxPrivate()
 {
+    NM_FUNCTION;
 }
 
 /*!
@@ -36,6 +41,8 @@ NmMailboxPrivate::~NmMailboxPrivate()
  */
 NmMailbox::NmMailbox()
 {
+    NM_FUNCTION;
+    
     d = new NmMailboxPrivate();
 }
 
@@ -44,6 +51,8 @@ NmMailbox::NmMailbox()
  */
 NmMailbox::NmMailbox(const NmMailbox &mailbox)
 {
+    NM_FUNCTION;
+    
     d = mailbox.d;
 }
 
@@ -52,6 +61,8 @@ NmMailbox::NmMailbox(const NmMailbox &mailbox)
  */
 NmMailbox::NmMailbox(QExplicitlySharedDataPointer<NmMailboxPrivate> mailboxprivate)
 {
+    NM_FUNCTION;
+    
     d = mailboxprivate;
 }
 
@@ -60,6 +71,8 @@ NmMailbox::NmMailbox(QExplicitlySharedDataPointer<NmMailboxPrivate> mailboxpriva
  */
 NmMailbox &NmMailbox::operator=(const NmMailbox &mailbox)
 {
+    NM_FUNCTION;
+    
     if (this != &mailbox) {
         d = mailbox.d;
     }
@@ -71,6 +84,7 @@ NmMailbox &NmMailbox::operator=(const NmMailbox &mailbox)
  */
 NmMailbox::~NmMailbox()
 {
+    NM_FUNCTION;
 }
 
 /*!
@@ -78,6 +92,8 @@ NmMailbox::~NmMailbox()
  */
 NmId NmMailbox::id() const
 {
+    NM_FUNCTION;
+    
     return d->mId;
 }
 
@@ -86,6 +102,8 @@ NmId NmMailbox::id() const
  */
 void NmMailbox::setId(const NmId& id)
 {
+    NM_FUNCTION;
+    
     d->mId = id;
 }
 
@@ -94,6 +112,8 @@ void NmMailbox::setId(const NmId& id)
  */
 QString NmMailbox::name() const
 {
+    NM_FUNCTION;
+    
     return d->mName;
 }
 
@@ -102,6 +122,8 @@ QString NmMailbox::name() const
  */
 void NmMailbox::setName(const QString &name)
 {
+    NM_FUNCTION;
+    
     d->mName = name;
 }
 
@@ -110,6 +132,8 @@ void NmMailbox::setName(const QString &name)
  */
 bool NmMailbox::operator==(const NmMailbox &mailbox) const
 {
+    NM_FUNCTION;
+    
     bool ret = true;
 
     if (this->name().compare(mailbox.name()) != 0) {
@@ -124,12 +148,16 @@ bool NmMailbox::operator==(const NmMailbox &mailbox) const
 
 NmAddress NmMailbox::address() const
 {
+    NM_FUNCTION;
+    
     return d->mAddress;
 }
 
 
 void NmMailbox::setAddress(const NmAddress& address)
 {
+    NM_FUNCTION;
+    
     d->mAddress = address;
 }
 

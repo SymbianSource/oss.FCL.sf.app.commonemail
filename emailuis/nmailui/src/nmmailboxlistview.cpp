@@ -46,6 +46,8 @@ mItemContextMenu(NULL),
 mDocumentLoader(documentLoader),
 mViewReady(false)
 {
+    NM_FUNCTION;
+    
     // Load view layout
     loadViewLayout();
     
@@ -58,6 +60,8 @@ mViewReady(false)
 */
 NmMailboxListView::~NmMailboxListView()
 {
+    NM_FUNCTION;
+    
     delete mDocumentLoader;
     mWidgetList.clear();
     if (mItemContextMenu){
@@ -71,6 +75,8 @@ NmMailboxListView::~NmMailboxListView()
 */
 void NmMailboxListView::loadViewLayout()
 {
+    NM_FUNCTION;
+    
     // Use document loader to load the view
     bool ok = false;
     setObjectName(QString(NMUI_MAILBOX_LIST_VIEW));
@@ -90,7 +96,7 @@ void NmMailboxListView::loadViewLayout()
         mMailboxListWidget = qobject_cast<HbListView *>
             (mDocumentLoader->findWidget(NMUI_MAILBOX_LIST_WIDGET));
         if (mMailboxListWidget) {
-            NMLOG("nmailui: mailboxlistview: List object loaded");
+            NM_COMMENT("nmailui: mailboxlistview: list object loaded");
             // Set item prototype.
             mMailboxListWidget->setItemPrototype(new NmMailboxListViewItem(this));
             mMailboxListWidget->setItemRecycling(true);
@@ -101,11 +107,11 @@ void NmMailboxListView::loadViewLayout()
             mMailboxListWidget->setFrictionEnabled(true);
         }
         else {
-            NMLOG("nmailui: mailboxlistview: List object loading failed");
+            NM_ERROR(1,"nmailui: mailboxlistview: list object loading failed");
         }
     }
     else {
-         NMLOG("nmailui: mailboxlistview: Reasource loading failed");
+         NM_ERROR(1,"nmailui: mailboxlistview: resource loading failed");
     }
 }
 
@@ -114,6 +120,8 @@ void NmMailboxListView::loadViewLayout()
 */
 void NmMailboxListView::viewReady()
 {
+    NM_FUNCTION;
+    
     if (!mViewReady){
         // Set title
         setTitle(hbTrId("txt_mail_title_mail"));
@@ -130,6 +138,8 @@ void NmMailboxListView::viewReady()
 */
 void NmMailboxListView::reloadViewContents(NmUiStartParam* startParam)
 {
+    NM_FUNCTION;
+    
     // Check start parameter validity.
     if (startParam&&startParam->viewId()==NmUiViewMailboxList) {
         // Delete existing start parameter data
@@ -141,7 +151,7 @@ void NmMailboxListView::reloadViewContents(NmUiStartParam* startParam)
         refreshList();
     }
     else {
-        NMLOG("nmailui: mailboxlistview: Invalid start parameter");
+        NM_ERROR(1,"nmailui: mailboxlistview: invalid start parameter");
         // Unused start parameter needs to be deleted
         delete startParam;
         startParam = NULL;
@@ -153,6 +163,8 @@ void NmMailboxListView::reloadViewContents(NmUiStartParam* startParam)
 */
 NmUiViewId NmMailboxListView::nmailViewId() const
 {
+    NM_FUNCTION;
+    
     return NmUiViewMailboxList;
 }
 
@@ -161,6 +173,8 @@ NmUiViewId NmMailboxListView::nmailViewId() const
 */
 void NmMailboxListView::refreshList()
 {
+    NM_FUNCTION;
+    
 	if (mMailboxListWidget) {
         mMailboxListWidget->setModel(&mListModel);
 	}
@@ -171,6 +185,8 @@ void NmMailboxListView::refreshList()
 */
 void NmMailboxListView::itemActivated(const QModelIndex &index)
 {
+    NM_FUNCTION;
+    
     mActivatedIndex = index;
     QMetaObject::invokeMethod(this, "openSelectedMailBox", Qt::QueuedConnection);
 }
@@ -181,6 +197,8 @@ void NmMailboxListView::itemActivated(const QModelIndex &index)
 */
 void NmMailboxListView::openSelectedMailBox()
 {
+    NM_FUNCTION;
+    
     // Get mailbox meta data
     NmMailboxMetaData *mailbox =
         mListModel.data(mActivatedIndex, Qt::DisplayRole).value<NmMailboxMetaData*>();
@@ -200,6 +218,8 @@ void NmMailboxListView::openSelectedMailBox()
 
 void NmMailboxListView::handleActionCommand(NmActionResponse &actionResponse)
 {
+    NM_FUNCTION;
+    
     // Handle context menu commands here
     Q_UNUSED(actionResponse);
 }

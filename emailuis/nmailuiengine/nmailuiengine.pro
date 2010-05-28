@@ -43,7 +43,6 @@ HEADERS += inc/nmmessagecreationoperation.h \
            inc/nmoperation.h \
            inc/nmaddattachmentsoperation.h \
            inc/nmmessagesendingoperation.h \
-           inc/nmcheckoutboxoperation.h \
            inc/nmstoreenvelopesoperation.h \
            inc/nmapplicationstateinterface.h 
 

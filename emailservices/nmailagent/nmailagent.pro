@@ -49,6 +49,7 @@ symbian*: {
     TARGET.EPOCHEAPSIZE = 0x1000 0x100000 // MAX 1MB
 
     LIBS += -ldomaincli
+    LIBS += -lxqservice
 
     TARGET.UID2 = 0x100039CE
     TARGET.UID3 = 0x2002C326

@@ -17,7 +17,6 @@
 
 #include "nmuiheaders.h"
 
-const QString NmsPluginExtensionName = "nmsclientplugin.qtplugin"; 
 /*!
     \class NmUiExtensionManager
     \brief Handles ui extension plugins
@@ -31,8 +30,8 @@ const QString NmsPluginExtensionName = "nmsclientplugin.qtplugin";
 */
 QStringList NmUiExtensionManager::pluginFolders()
 {
-    NMLOG(QString("NmUiExtensionManager - HELPER FUNCTIONS - pluginFolders"));
-
+    NM_FUNCTION;
+    
     const QString NmSettingsPluginFolderPath("/resource/qt/plugins/nmail/uiext");
     QStringList pluginDirectories;
     QFileInfoList driveList = QDir::drives();
@@ -45,13 +44,14 @@ QStringList NmUiExtensionManager::pluginFolders()
             pluginDirectories.append(pluginDirectory);
         }
     }
-
-    NMLOG(QString("NmUiExtensionManager - HELPER FUNCTIONS - pluginFolders - OK"));
+    
     return pluginDirectories;
 }
 
 NmUiExtensionManager::NmUiExtensionManager()
 {
+    NM_FUNCTION;
+    
     // load the protocol extension plugins
     loadExtensionPlugins();
 }
@@ -61,6 +61,8 @@ NmUiExtensionManager::NmUiExtensionManager()
  */
 NmUiExtensionManager::~NmUiExtensionManager()
 {
+    NM_FUNCTION;
+    
     // delete plugins from array
     qDeleteAll(mExtensions.begin(), mExtensions.end());
     mExtensions.clear();
@@ -76,6 +78,8 @@ void NmUiExtensionManager::getActions(
     const NmActionRequest &menuRequest,
     QList<NmAction*> &actionList)
 {
+    NM_FUNCTION;
+    
     for (int i = 0; i < mExtensions.count(); i++) {
     	NmUiExtensionInterface* interface = mExtensions[i];
         interface->getActions(menuRequest, actionList);
@@ -87,7 +91,7 @@ void NmUiExtensionManager::getActions(
  */
 void NmUiExtensionManager::loadExtensionPlugins()
 {
-    NMLOG(QString("NmUiExtensionManager::loadExtensionPlugins -->"));
+    NM_FUNCTION;
     
     QStringList directories(pluginFolders());
     foreach (const QString &directoryPath, directories) {
@@ -95,7 +99,7 @@ void NmUiExtensionManager::loadExtensionPlugins()
         QFileInfoList fileList(directory.entryInfoList());
 
         foreach (const QFileInfo &fileInfo, fileList) {
-            NMLOG(QString("Plugin absolute FilePath : %1").arg(fileInfo.absoluteFilePath()));  
+            NM_COMMENT(QString("Plugin absolute FilePath : %1").arg(fileInfo.absoluteFilePath()));  
             QScopedPointer<QPluginLoader> loader(
                 new QPluginLoader(fileInfo.absoluteFilePath()));
             mPluginLoaders.append(loader.data());
@@ -105,17 +109,14 @@ void NmUiExtensionManager::loadExtensionPlugins()
     
     NmUiExtensionInterface *interface = NULL;    
     foreach (QPluginLoader *loader, mPluginLoaders) {      
-        NMLOG(QString("Plugin fileName() : %1").arg(loader->fileName()));
-        QString fileName = loader->fileName();
-        if (fileName.contains(NmsPluginExtensionName, Qt::CaseInsensitive) == false) {
-            QObject *pluginInstance = loader->instance();
-            interface = qobject_cast<NmUiExtensionInterface*>(pluginInstance);
-            if (interface) {
-                mExtensions.append(interface);
-            }
+        NM_COMMENT(QString("Plugin fileName() : %1").arg(loader->fileName()));
+        QString fileName = loader->fileName();        
+        QObject *pluginInstance = loader->instance();
+        interface = qobject_cast<NmUiExtensionInterface*>(pluginInstance);
+        if (interface) {
+            mExtensions.append(interface);
         }
-    }            
-    NMLOG(QString("<-- NmUiExtensionManager::loadExtensionPlugins"));
+    }
 }
 
 

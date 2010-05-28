@@ -33,6 +33,7 @@ NmBaseView::NmBaseView(NmUiStartParam* startParam,
 mStartParam(startParam),
 mApplication(application)
 {
+    NM_FUNCTION;
 }
 
 /*!
@@ -40,6 +41,8 @@ mApplication(application)
 */
 NmBaseView::~NmBaseView()
 {
+    NM_FUNCTION;
+    
     delete mStartParam;
 }
 
@@ -50,6 +53,8 @@ NmBaseView::~NmBaseView()
 */
 void NmBaseView::okToExitView()
 {
+	NM_FUNCTION;
+	
 	mApplication.popView();
 }
 
@@ -60,6 +65,7 @@ void NmBaseView::okToExitView()
 */
 void NmBaseView::aboutToExitView()
 {
+    NM_FUNCTION;
 }
 
 /*!
@@ -68,7 +74,8 @@ void NmBaseView::aboutToExitView()
     if it makes sense to construct items after main view is shown. 
 */
 void NmBaseView::viewReady()
-{    
+{
+    NM_FUNCTION;
 }
 
 /*!
@@ -77,6 +84,7 @@ void NmBaseView::viewReady()
 */
 void NmBaseView::aboutToChangeOrientation()
 {
+    NM_FUNCTION;
 }
 
 /*!
@@ -85,6 +93,8 @@ void NmBaseView::aboutToChangeOrientation()
 */
 void NmBaseView::orientationChanged(Qt::Orientation orientation)
 {
+    NM_FUNCTION;
+    
     Q_UNUSED(orientation);
 }
 
@@ -94,6 +104,8 @@ void NmBaseView::orientationChanged(Qt::Orientation orientation)
 */
 void NmBaseView::handleMouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
+    NM_FUNCTION;
+    
     Q_UNUSED(event);
 }
 
@@ -103,6 +115,8 @@ void NmBaseView::handleMouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 */
 void NmBaseView::handleMousePressEvent(QGraphicsSceneMouseEvent *event)
 {
+    NM_FUNCTION;
+    
     Q_UNUSED(event);
 }
 
@@ -113,6 +127,8 @@ void NmBaseView::handleMousePressEvent(QGraphicsSceneMouseEvent *event)
 */
 void NmBaseView::handleMouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
+    NM_FUNCTION;
+    
     Q_UNUSED(event);
 }
 

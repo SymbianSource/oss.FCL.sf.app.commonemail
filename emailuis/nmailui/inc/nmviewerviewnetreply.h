@@ -20,12 +20,20 @@
 #define NMVIEWERVIEWNETREPLY_H_
 
 #include <QNetworkReply>
+#include "nmcommon.h"
+
+class NmOperation;
+class NmMessage;
+class NmUiEngine;
 
 class NmViewerViewNetReply : public QNetworkReply
 {
     Q_OBJECT
 public:
-    NmViewerViewNetReply(QVariant data);
+    NmViewerViewNetReply(QVariant data, NmUiEngine &uiEngine);
+    NmViewerViewNetReply(QVariant data, NmUiEngine &uiEngine, 
+            const NmId &mailboxId, const NmId &folderId, const NmId &messageId, 
+            const NmId &messagePartId);
     ~NmViewerViewNetReply();
     void setOriginalRequest(const QNetworkRequest &request);
     qint64 readData(char *data, qint64 maxlen);
@@ -36,9 +44,17 @@ public:
 
 public slots:
     void signalReady();
+    void fetchCompleted(int result);
+    void fetchCancelled();
 
 private:
     QByteArray mDataArray;
+    NmUiEngine &mUiEngine;
+    NmId mMailboxId;
+    NmId mFolderId;
+    NmId mMessageId;
+    NmId mMessagePartId;
+    NmOperation *mOperation;
     qint64 mReadIndex;
 };
 

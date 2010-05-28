@@ -25,19 +25,22 @@ NmFwaStoreEnvelopesOperation::NmFwaStoreEnvelopesOperation(
         mMailClient(mailClient),
         mRequestId(0)
 {
+    NM_FUNCTION;
+    
     mMessages = messages;
 }
 
 NmFwaStoreEnvelopesOperation::~NmFwaStoreEnvelopesOperation()
 {
-    NMLOG("NmFwaStoreEnvelopesOperation::~NmFwaStoreEnvelopesOperation() <---");
+    NM_FUNCTION;
+    
     mMessages.ResetAndDestroy();
-    NMLOG("NmFwaStoreEnvelopesOperation::~NmFwaStoreEnvelopesOperation() --->");
 }
 
 void NmFwaStoreEnvelopesOperation::doRunAsyncOperation()
 {
-    NMLOG("NmFwaStoreEnvelopesOperation::doRunAsyncOperation() <---");
+    NM_FUNCTION;
+    
     const TFSMailMsgId mailboxId(mMailboxId.pluginId32(), mMailboxId.id32());
     CFSMailBox *mailbox(NULL);
     TRAP_IGNORE( mailbox = mMailClient.GetMailBoxByUidL(mailboxId) );
@@ -56,14 +59,13 @@ void NmFwaStoreEnvelopesOperation::doRunAsyncOperation()
         delete mailbox;
         mailbox = NULL;
     }
-    NMLOG("NmFwaStoreEnvelopesOperation::doRunAsyncOperation() --->");
 }
 
 void NmFwaStoreEnvelopesOperation::doCancelOperation()
 {
-    NMLOG("NmFwaStoreEnvelopesOperation::doCancelOperation() <---");
+    NM_FUNCTION;
+    
     TRAP_IGNORE(mMailClient.CancelL(mRequestId));
-    NMLOG("NmFwaStoreEnvelopesOperation::doCancelOperation() --->");
 }
 
 /**
@@ -74,7 +76,8 @@ void NmFwaStoreEnvelopesOperation::doCancelOperation()
  */
 void NmFwaStoreEnvelopesOperation::RequestResponseL(TFSProgress aEvent, TInt aRequestId)
 {
-    NMLOG("NmFwaStoreEnvelopesOperation::RequestResponseL() <---");
+    NM_FUNCTION;
+    
     if (aRequestId == mRequestId) {
         if (aEvent.iProgressStatus == TFSProgress::EFSStatus_RequestComplete && aEvent.iParam) {
             completeOperation(NmNoError);
@@ -86,5 +89,4 @@ void NmFwaStoreEnvelopesOperation::RequestResponseL(TFSProgress aEvent, TInt aRe
             completeOperation(NmGeneralError);
         }
     }
-    NMLOG("NmFwaStoreEnvelopesOperation::RequestResponseL() --->");
 }

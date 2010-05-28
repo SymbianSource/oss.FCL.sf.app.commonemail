@@ -15,6 +15,8 @@
 *
 */
 
+#include "emailtrace.h"
+
 #include "nmmessagepart.h"
 #include "nmmessageenvelope.h"
 
@@ -24,8 +26,9 @@
  */
 NmMessagePartPrivate::NmMessagePartPrivate()
 		: mPartId(0), mSize(0), mFetchedSize(0),
-		mTextContent(0)
+		mTextContent()
 {
+    NM_FUNCTION;
 }
 
 /*!
@@ -33,6 +36,7 @@ NmMessagePartPrivate::NmMessagePartPrivate()
  */
 NmMessagePartPrivate::~NmMessagePartPrivate() 
 {
+    NM_FUNCTION;
 }
 
 /*!
@@ -41,6 +45,8 @@ NmMessagePartPrivate::~NmMessagePartPrivate()
  */
 bool NmMessagePartPrivate::isMessage() const
 {
+    NM_FUNCTION;
+    
     bool isMessage = false;
     if (!mContentType.isEmpty()) {
 		if (mContentType.contains(NmContentTypeTypeMessage, Qt::CaseInsensitive)) {
@@ -56,6 +62,8 @@ bool NmMessagePartPrivate::isMessage() const
  */
 bool NmMessagePartPrivate::isTextContent() const
 {
+    NM_FUNCTION;
+    
 	bool isText = false;
 	if (!mContentType.isEmpty()) {
 		if (mContentType.contains(NmContentTypeTextPlain, Qt::CaseInsensitive) ||
@@ -77,6 +85,8 @@ bool NmMessagePartPrivate::isTextContent() const
  */
 NmMessagePart::NmMessagePart()
 {
+    NM_FUNCTION;
+    
     d = new NmMessagePartPrivate();
 }
 
@@ -85,6 +95,8 @@ NmMessagePart::NmMessagePart()
  */
 NmMessagePart::NmMessagePart(const NmId &partId)
 {
+    NM_FUNCTION;
+    
     d = new NmMessagePartPrivate();
     d->mPartId = partId;
 }
@@ -95,6 +107,8 @@ NmMessagePart::NmMessagePart(const NmId &partId)
 NmMessagePart::NmMessagePart(
         QExplicitlySharedDataPointer<NmMessagePartPrivate> nmPrivateMessagePart)
 {
+    NM_FUNCTION;
+    
 	d = nmPrivateMessagePart;
 }
 
@@ -103,6 +117,7 @@ NmMessagePart::NmMessagePart(
  */
 NmMessagePart::NmMessagePart(const NmMessagePart &part) : d(part.d)
 {
+    NM_FUNCTION;
 }
 
 /*!
@@ -110,6 +125,8 @@ NmMessagePart::NmMessagePart(const NmMessagePart &part) : d(part.d)
  */
 NmMessagePart &NmMessagePart::operator=(const NmMessagePart &part)
 {
+    NM_FUNCTION;
+    
 	if (this != &part) {
 		d = part.d;
 	}
@@ -121,6 +138,8 @@ NmMessagePart &NmMessagePart::operator=(const NmMessagePart &part)
  */
 NmMessagePart::~NmMessagePart()
 {
+    NM_FUNCTION;
+    
 	for (int i = 0; i < d->mChildParts.count(); i++) {
 		delete d->mChildParts[i];
 	}
@@ -132,6 +151,8 @@ NmMessagePart::~NmMessagePart()
  */
 NmId NmMessagePart::partId() const
 {
+    NM_FUNCTION;
+    
     return d->mPartId;
 }
 
@@ -140,6 +161,8 @@ NmId NmMessagePart::partId() const
  */
 void NmMessagePart::setPartId(const NmId &id)
 {
+    NM_FUNCTION;
+    
     d->mPartId = id;
 }
 
@@ -148,6 +171,8 @@ void NmMessagePart::setPartId(const NmId &id)
  */
 quint32 NmMessagePart::size() const
 {
+    NM_FUNCTION;
+    
     return d->mSize;
 }
 
@@ -156,6 +181,8 @@ quint32 NmMessagePart::size() const
  */
 void NmMessagePart::setSize(quint32 size)
 {
+    NM_FUNCTION;
+    
     d->mSize = size;
 }
 
@@ -164,6 +191,8 @@ void NmMessagePart::setSize(quint32 size)
  */
 quint32 NmMessagePart::fetchedSize() const
 {
+    NM_FUNCTION;
+    
     return d->mFetchedSize;
 }
 
@@ -172,6 +201,8 @@ quint32 NmMessagePart::fetchedSize() const
  */
 void NmMessagePart::setFetchedSize(quint32 fetchedSize)
 {
+    NM_FUNCTION;
+    
     d->mFetchedSize = fetchedSize;
 }
 
@@ -180,6 +211,8 @@ void NmMessagePart::setFetchedSize(quint32 fetchedSize)
  */
 bool NmMessagePart::isMessage() const
 {
+    NM_FUNCTION;
+    
 	return d->isMessage();
 }
 
@@ -191,6 +224,8 @@ void NmMessagePart::setTextContent(
     const QString &content,
     const QString &contentType)
 {
+    NM_FUNCTION;
+    
     d->mTextContent = content;
     d->mContentType = contentType;
     d->mBinaryContent.clear();
@@ -201,6 +236,8 @@ void NmMessagePart::setTextContent(
  */
 const QString &NmMessagePart::textContent() const
 {
+    NM_FUNCTION;
+    
     return d->mTextContent;
 }
 
@@ -210,6 +247,8 @@ const QString &NmMessagePart::textContent() const
  */
 void NmMessagePart::setContentType(const QString &contentType)
 {
+    NM_FUNCTION;
+    
     d->mContentType = contentType;
 }
 
@@ -218,6 +257,8 @@ void NmMessagePart::setContentType(const QString &contentType)
  */
 QString NmMessagePart::contentType() const
 {
+    NM_FUNCTION;
+    
     return d->mContentType;
 }
 
@@ -226,6 +267,8 @@ QString NmMessagePart::contentType() const
  */
 void NmMessagePart::setContentDescription(const QString &contentDescription)
 {
+    NM_FUNCTION;
+    
     d->mContentDescription = contentDescription;
 }
 
@@ -234,6 +277,8 @@ void NmMessagePart::setContentDescription(const QString &contentDescription)
  */
 QString NmMessagePart::contentDescription() const
 {
+    NM_FUNCTION;
+    
     return d->mContentDescription;
 }
 
@@ -242,6 +287,8 @@ QString NmMessagePart::contentDescription() const
  */
 void NmMessagePart::setContentDisposition(const QString &contentDisposition)
 {
+    NM_FUNCTION;
+    
     d->mContentDisposition = contentDisposition;
 }
 
@@ -250,6 +297,8 @@ void NmMessagePart::setContentDisposition(const QString &contentDisposition)
  */
 QString NmMessagePart::contentDisposition() const
 {
+    NM_FUNCTION;
+    
     return d->mContentDisposition;
 }
 
@@ -258,6 +307,8 @@ QString NmMessagePart::contentDisposition() const
  */
 void NmMessagePart::setContentId(const QString &contentId)
 {
+    NM_FUNCTION;
+    
     d->mContentId = contentId;
 }
 
@@ -266,6 +317,8 @@ void NmMessagePart::setContentId(const QString &contentId)
  */
 QString NmMessagePart::contentId()
 {
+    NM_FUNCTION;
+    
     return d->mContentId;
 }
 
@@ -275,7 +328,8 @@ QString NmMessagePart::contentId()
  */
 void NmMessagePart::setChildParts(QList<NmMessagePart*> parts)
 {
-
+    NM_FUNCTION;
+    
     if (d->mChildParts.count() > 0) {
         for (int i = 0; i < d->mChildParts.count(); i++) {
             delete d->mChildParts[i];
@@ -295,6 +349,8 @@ void NmMessagePart::setChildParts(QList<NmMessagePart*> parts)
  */
 QList<NmMessagePart*>& NmMessagePart::childParts() const
 {
+    NM_FUNCTION;
+    
     return d->mChildParts;
 }
 
@@ -305,6 +361,8 @@ QList<NmMessagePart*>& NmMessagePart::childParts() const
  */
 void NmMessagePart::addChildPart(NmMessagePart *part)
 {
+    NM_FUNCTION;
+    
     if (!part) {
         return;
     }
@@ -317,6 +375,8 @@ void NmMessagePart::addChildPart(NmMessagePart *part)
  */
 void NmMessagePart::removeChildPart(const NmId &partId)
 {
+    NM_FUNCTION;
+    
     for (int i = 0; i < d->mChildParts.count(); i++) {
         if (d->mChildParts[i]->partId() == partId) {
             delete d->mChildParts[i];
@@ -331,6 +391,8 @@ void NmMessagePart::removeChildPart(const NmId &partId)
  */
 void NmMessagePart::removeAllChildParts()
 {
+    NM_FUNCTION;
+    
     while (!d->mChildParts.isEmpty()) {
         delete d->mChildParts.takeFirst();
     }
@@ -343,6 +405,8 @@ void NmMessagePart::setBinaryContent(
     const QByteArray &content,
     const QString &contentType)
 {
+    NM_FUNCTION;
+    
     d->mBinaryContent = content;
     d->mContentType = contentType;
     d->mTextContent.clear();
@@ -353,6 +417,8 @@ void NmMessagePart::setBinaryContent(
  */
 const QByteArray &NmMessagePart::binaryContent() const
 {
+    NM_FUNCTION;
+    
     return d->mBinaryContent;
 }
 
@@ -364,6 +430,8 @@ const QByteArray &NmMessagePart::binaryContent() const
    */      
 void NmMessagePart::setAttachmentName(const QString &filePath)
 {
+    NM_FUNCTION;
+    
     Q_UNUSED(filePath);
 }
 
@@ -373,6 +441,8 @@ void NmMessagePart::setAttachmentName(const QString &filePath)
  */
 QString NmMessagePart::attachmentName() const
 {
+    NM_FUNCTION;
+    
     // Look first from Content-Type param "name"
     QString content = contentType();
     int ptr = content.indexOf(NmContentTypeParamName);
@@ -400,6 +470,8 @@ QString NmMessagePart::attachmentName() const
  */
 const NmMessagePart *NmMessagePart::findContentPart(const QString &contentType) const
 {
+    NM_FUNCTION;
+    
     const NmMessagePart *ret = NULL;
 
     if (!d->mContentType.isEmpty() && d->mContentType.startsWith(contentType)) {
@@ -417,6 +489,8 @@ const NmMessagePart *NmMessagePart::findContentPart(const QString &contentType) 
  */
 NmMessagePart *NmMessagePart::findContentPart(const QString &contentType)
 {
+    NM_FUNCTION;
+    
     NmMessagePart *ret = NULL;
 
     if (!d->mContentType.isEmpty() && d->mContentType.startsWith(contentType)) {
@@ -436,6 +510,8 @@ NmMessagePart *NmMessagePart::findContentPart(const QString &contentType)
  */
 void NmMessagePart::appendAttachments(QList<NmMessagePart*> &attachments) const
 {
+    NM_FUNCTION;
+    
     QList<NmMessagePart*> messageParts = childParts();
 
     int messagePartCount = messageParts.count();

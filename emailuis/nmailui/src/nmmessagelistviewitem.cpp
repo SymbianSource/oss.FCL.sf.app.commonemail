@@ -39,6 +39,7 @@ NmMessageListViewItem::NmMessageListViewItem(QGraphicsItem *parent):
     mSecondarySize(0),
     mTinySize(0)    
 {
+    NM_FUNCTION;
 }
 
 /*!
@@ -46,13 +47,15 @@ NmMessageListViewItem::NmMessageListViewItem(QGraphicsItem *parent):
 */
 NmMessageListViewItem::~NmMessageListViewItem()
 {
-
+    NM_FUNCTION;
 }
 
 /*!
 */
 HbTreeViewItem *NmMessageListViewItem::createItem()
 {
+    NM_FUNCTION;
+    
     return new NmMessageListViewItem(*this);
 }
 
@@ -62,6 +65,8 @@ HbTreeViewItem *NmMessageListViewItem::createItem()
 */
 bool NmMessageListViewItem::canSetModelIndex(const QModelIndex &index) const
 {
+    NM_FUNCTION;
+    
     Q_UNUSED(index);
     // This item class can handle all items in message list
     return true;
@@ -73,6 +78,8 @@ bool NmMessageListViewItem::canSetModelIndex(const QModelIndex &index) const
 */
 void NmMessageListViewItem::updateChildItems()
 {
+    NM_FUNCTION;
+    
     // Get model pointer
     NmMessageListModelItem *msgModelItem = modelIndex().data(
             Qt::DisplayRole).value<NmMessageListModelItem*>();
@@ -97,6 +104,8 @@ void NmMessageListViewItem::updateChildItems()
 */
 void NmMessageListViewItem::createMessageItemLayout()
 { 
+    NM_FUNCTION;
+    
     getFontSizes();
     // Create sender label and set name from widgetml
     if (!mSender){
@@ -146,6 +155,8 @@ void NmMessageListViewItem::createMessageItemLayout()
 void NmMessageListViewItem::setContentsToMessageItem(const NmMessageEnvelope &envelope, 
                                                      bool dividersActive)
 {
+    NM_FUNCTION;
+    
     // member variables are created in previous function
     // sender
     mSender->setText(senderFieldText(envelope));
@@ -231,6 +242,8 @@ void NmMessageListViewItem::paint(
     const QStyleOptionGraphicsItem *option,
     QWidget *widget)
 {
+    NM_FUNCTION;
+    
     Q_UNUSED(option);
     Q_UNUSED(widget);
     Q_UNUSED(painter);
@@ -241,6 +254,8 @@ void NmMessageListViewItem::paint(
 */
 void  NmMessageListViewItem::setFontsUnread()
 {    
+    NM_FUNCTION;
+    
     static QColor colorRole = HbColorScheme::color("qtc_list_item_title_normal");
     HbFontSpec spekki(HbFontSpec::Primary);
     setFonts(colorRole, spekki);
@@ -251,6 +266,8 @@ void  NmMessageListViewItem::setFontsUnread()
 */
 void  NmMessageListViewItem::setFontsRead()
 {
+    NM_FUNCTION;
+    
     static QColor colorRole = HbColorScheme::color("qtc_list_item_content_normal");
     HbFontSpec spekki(HbFontSpec::Secondary);
     setFonts(colorRole, spekki);
@@ -261,6 +278,8 @@ void  NmMessageListViewItem::setFontsRead()
 */
 void  NmMessageListViewItem::getFontSizes()
 {
+    NM_FUNCTION;
+    
     // Get font sizes from style  
     qreal currentSize;
     HbStyle mystyle;
@@ -284,6 +303,8 @@ void  NmMessageListViewItem::getFontSizes()
 void  NmMessageListViewItem::setFonts(const QColor &colorRole, 
         HbFontSpec &spekki)
 {
+    NM_FUNCTION;
+    
     // Change sizes explicitly since css is overwritten in polish now.    
     if (mSender && mSubject && mTime) {
         
@@ -313,6 +334,8 @@ void  NmMessageListViewItem::setFonts(const QColor &colorRole,
 */
 QString NmMessageListViewItem::senderFieldText(const NmMessageEnvelope &envelope)
 {
+    NM_FUNCTION;
+    
     QString ret;  
     QVariant folderType = modelIndex().data(
             NmFolderTypeRole).value<QVariant>();

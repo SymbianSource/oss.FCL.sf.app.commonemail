@@ -54,12 +54,12 @@ private slots:
 
 private:
     // mEmailAddressList contains all emailaddress that appear in the lineedit and 
-    // all emailaddress corresponding to the name inserted from PhoneBook,
-    // including invalid emailaddress user typed or invalid emailaddress picked from PhoneBook.
+    // all emailaddress corresponding to the contact's name added from Contacts,
+    // including invalid emailaddress user typed or invalid emailaddress added from Contacts.
     // Emailaddress validation check is conducted in nmeditorview.
     QList<NmAddress> mEmailAddressList; 
 	
-    QList<NmAddress> mContactsSelectedFromPhoneBook;
+    QList<NmAddress> mRecipientsAddedFromContacts;
 	
     // Flag "need to generate mEmailAddressList" is used whenever editing made after 
     // the emailaddress validation check failed.

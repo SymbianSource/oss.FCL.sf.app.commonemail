@@ -43,6 +43,8 @@ NmFwaMessageSendingOperation::NmFwaMessageSendingOperation(
         mRequestId(NmNotFoundError),
         mSaved(false)
 {
+    NM_FUNCTION;
+    
     mMailClient.IncReferenceCount();
 }
 
@@ -51,13 +53,14 @@ NmFwaMessageSendingOperation::NmFwaMessageSendingOperation(
  */
 NmFwaMessageSendingOperation::~NmFwaMessageSendingOperation()
 {
+    NM_FUNCTION;
+    
     if (mSaveOperation && mSaveOperation->isRunning()) {
         mSaveOperation->cancelOperation();
     }
     doCancelOperation();
     mMailClient.Close(); // decrease ref count
     delete mMessage;
-    NMLOG("NmFwaMessageSendingOperation::~NmFwaMessageSendingOperation --->");
 }
 
 /*!
@@ -65,6 +68,8 @@ NmFwaMessageSendingOperation::~NmFwaMessageSendingOperation()
  */
 const NmMessage *NmFwaMessageSendingOperation::getMessage() const
 {
+    NM_FUNCTION;
+    
     return mMessage;
 }
 
@@ -76,6 +81,8 @@ const NmMessage *NmFwaMessageSendingOperation::getMessage() const
  */
 void NmFwaMessageSendingOperation::doRunAsyncOperation()
 {
+    NM_FUNCTION;
+    
     int err = NmNoError;
     
     if (mSaved) {
@@ -103,6 +110,8 @@ void NmFwaMessageSendingOperation::doRunAsyncOperation()
  */
 void NmFwaMessageSendingOperation::doCompleteOperation()
 {
+    NM_FUNCTION;
+    
     mRequestId = NmNotFoundError;
 }
 
@@ -111,6 +120,8 @@ void NmFwaMessageSendingOperation::doCompleteOperation()
  */
 void NmFwaMessageSendingOperation::doCancelOperation()
 {
+    NM_FUNCTION;
+    
     if (mRequestId >= 0) {
         TRAP_IGNORE(mMailClient.CancelL(mRequestId));
         mRequestId = NmNotFoundError;
@@ -129,6 +140,8 @@ void NmFwaMessageSendingOperation::doCancelOperation()
 void NmFwaMessageSendingOperation::RequestResponseL(TFSProgress aEvent,
                                                     TInt aRequestId)
 {
+    NM_FUNCTION;
+    
     TFSProgress::TFSProgressStatus status = aEvent.iProgressStatus;
 
     if (aRequestId == mRequestId) {
@@ -149,6 +162,8 @@ void NmFwaMessageSendingOperation::RequestResponseL(TFSProgress aEvent,
  */
 void NmFwaMessageSendingOperation::handleCompletedSaveOperation(int error)
 {
+    NM_FUNCTION;
+    
     if (error == NmNoError) {
         mSaved = true;
         doRunAsyncOperation();
@@ -163,6 +178,8 @@ void NmFwaMessageSendingOperation::handleCompletedSaveOperation(int error)
 */
 int NmFwaMessageSendingOperation::saveMessageWithSubparts()
 {
+    NM_FUNCTION;
+    
     int ret = NmNotFoundError;
     if (mMessage) {
         if (mSaveOperation && mSaveOperation->isRunning()) {
@@ -189,7 +206,8 @@ int NmFwaMessageSendingOperation::saveMessageWithSubparts()
  */
 int NmFwaMessageSendingOperation::sendMessageL()
 {
-    NMLOG("NmFwaMessageSendingOperation::sendMessageL");
+    NM_FUNCTION;
+    
     int ret = NmNotFoundError;
     
     if (mMessage) {

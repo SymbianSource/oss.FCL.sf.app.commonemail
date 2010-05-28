@@ -14,6 +14,9 @@
 * Description:
 *
 */
+
+#include "emailtrace.h"
+
 #include "nmmailagentheaders.h"
 #include "nmmailagent.h"
 #include "ssastartupwatcher.h"
@@ -31,7 +34,9 @@ NmMailAgent *agent = NULL;
 */
 static void startupCallback(int status)
 {
-    NMLOG(QString("nmailagent: startupCallback %1").arg(status));
+    NM_FUNCTION;
+    NM_COMMENT(QString("nmailagent: startupCallback(): status=%1").arg(status));
+    
     Q_UNUSED(status);
 
     // either it is an error or 'non critical startup' state has been reached
@@ -44,13 +49,15 @@ static void startupCallback(int status)
 */
 int main(int argc, char *argv[])
 {
+    NM_FUNCTION;
+    
     QCoreApplication app(argc, argv);
 
     agent = new NmMailAgent;
 
     CSSAStartupWatcher *startupWatcher = CSSAStartupWatcher::New(startupCallback);
     if (!startupWatcher) {
-        NMLOG("nmmailagent - watcher start failed");
+        NM_ERROR(1,"nmmailagent: watcher start failed");
         QTimer::singleShot(NmStartupDelay, agent, SLOT(delayedStart()));
     }
 

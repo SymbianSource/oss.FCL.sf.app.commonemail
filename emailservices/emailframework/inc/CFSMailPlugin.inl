@@ -164,4 +164,16 @@ inline void CFSMailPlugin::RemoveChildPartL( const TFSMailMsgId& /*aMailBoxId*/,
     {
     User::Leave( KErrFSMailPluginNotSupported );
     }
+
+// -----------------------------------------------------------------------------
+// CFSMailPlugin::DeleteMessagesByUidL
+// -----------------------------------------------------------------------------
+inline void CFSMailPlugin::DeleteMessagesByUidL( const TFSMailMsgId& /*aMailBoxId*/,
+                                   const TFSMailMsgId& /*aFolderId*/,
+                                   const RArray<TFSMailMsgId>& /*aMessages*/,
+                                   MFSMailRequestObserver& /*aOperationObserver*/,
+                                   const TInt /*aRequestId*/ )
+    {
+    User::Leave( KErrFSMailPluginNotSupported );
+    }
 // </qmail>

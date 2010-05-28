@@ -22,6 +22,7 @@
   */
 NmAddAttachmentsOperation::NmAddAttachmentsOperation()
 {
+    NM_FUNCTION;
 }
 
 /*!
@@ -29,6 +30,7 @@ NmAddAttachmentsOperation::NmAddAttachmentsOperation()
  */
 NmAddAttachmentsOperation::~NmAddAttachmentsOperation()
 {
+    NM_FUNCTION;
 }
 
 /*!
@@ -39,6 +41,8 @@ NmAddAttachmentsOperation::~NmAddAttachmentsOperation()
  */
 void NmAddAttachmentsOperation::completeOperationPart(const QString &fileName, const NmId &msgPartId, int result)
 {
+    NM_FUNCTION;
+    
     emit operationPartCompleted(fileName, msgPartId, result);
 }
 

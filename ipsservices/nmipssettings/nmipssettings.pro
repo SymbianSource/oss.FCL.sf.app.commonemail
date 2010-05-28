@@ -74,6 +74,9 @@ symbian: {
     LIBS += -lxqsettingsmanager
     LIBS += -leuser
     LIBS += -llibc
+    LIBS += -lcmapplsettingsui
+    LIBS += -lqtbearer
+    LIBS += -lAlwaysOnlineManagerClient
 }
 
 symbian: plugin { # copy qtstub and manifest

@@ -11,35 +11,36 @@
 *
 * Contributors:
 *
-* Description: Message editor header widget
+* Description: Message editor header container class. Collects the header widgets.
 *
 */
 
 #include "nmuiheaders.h"
 
 // Layout
-static const char *NMUI_EDITOR_RECIPIENT_FIELDS = "RecipientFields";
-static const char *NMUI_EDITOR_SUBJECT_LABEL = "EditorHeaderSubjectLabel";
-static const char *NMUI_EDITOR_SUBJECT_EDIT = "EditorHeaderSubjectEdit";
-static const char *NMUI_EDITOR_PRIORITY_ICON = "labelPriorityIcon";
+// These match to the defintions in nmeditorview.docml
+static const char *NMUI_EDITOR_CONTAINER = "containerContents";
+static const char *NMUI_EDITOR_SUBJECT_FIELD = "editorSubjectField";
+static const char *NMUI_EDITOR_SUBJECT_EDIT = "editorSubjectEdit";
+static const char *NMUI_EDITOR_CC_FIELD = "editorCcField";
+static const char *NMUI_EDITOR_BCC_FIELD = "editorBccField";
+static const char *NMUI_EDITOR_PRIORITY_ICON = "editPriorityIcon";
+static const char *NMUI_EDITOR_FOLLOWUP_ICON = "editFollowUpIcon";
 static const char *NMUI_EDITOR_ATTACHMENT_LIST = "attachmentListWidget";
+static const char *NMUI_EDITOR_PREFIX_TO = "editorTo";
+static const char *NMUI_EDITOR_PREFIX_CC = "editorCc";
+static const char *NMUI_EDITOR_PREFIX_BCC = "editorBcc";
 
-// Following constants are removed when header fields will offer these
-static const double Un = 6.66;
-static const double FieldHeightWhenSecondaryFont = 5 * Un;
-static const double Margin = 2 * Un;
-static const double IconFieldWidth = 5 * Un;
+static const int MaxRows = 10000;
 
 static const int nmLayoutSystemWaitTimer = 10;
 
 /*!
     Constructor
 */
-NmEditorHeader::NmEditorHeader(HbDocumentLoader *documentLoader, QGraphicsItem *parent) :
-    HbWidget(parent),
+NmEditorHeader::NmEditorHeader(HbDocumentLoader *documentLoader) :
     mDocumentLoader(documentLoader),
     mHeaderHeight(0),
-    mSubjectLabel(NULL),
     mIconVisible(false),
     mSubjectEdit(NULL),
     mRecipientFieldsEmpty(true),
@@ -49,8 +50,9 @@ NmEditorHeader::NmEditorHeader(HbDocumentLoader *documentLoader, QGraphicsItem *
     mBccField(NULL),
     mCcBccFieldVisible(false)
 {
+    NM_FUNCTION;
+    
     loadWidgets();
-    rescaleHeader();
     createConnections();
 }
 
@@ -59,10 +61,7 @@ NmEditorHeader::NmEditorHeader(HbDocumentLoader *documentLoader, QGraphicsItem *
 */
 NmEditorHeader::~NmEditorHeader()
 {
-    if (mAttachmentList) {
-        mAttachmentList->clearList();
-        delete mAttachmentList;
-    }
+    NM_FUNCTION;
 }
 
 /*!
@@ -70,39 +69,58 @@ NmEditorHeader::~NmEditorHeader()
 */
 void NmEditorHeader::loadWidgets()
 {
-	// Add "To:", "CC:" and "BCC:" fields
-	mHeader = qobject_cast<HbWidget *>
-	        (mDocumentLoader->findWidget(NMUI_EDITOR_RECIPIENT_FIELDS));
+    NM_FUNCTION;
+	
+    // Load widgets from docml and construct handlers. Those widgets that are not shown by default
+    // are hidden and removed from the layout at this phase.    
+    HbWidget *contentWidget =
+        qobject_cast<HbWidget *>(mDocumentLoader->findWidget(NMUI_EDITOR_CONTAINER));
+    mLayout = static_cast<QGraphicsLinearLayout *>(contentWidget->layout());
 
-	mLayout = new QGraphicsLinearLayout(Qt::Vertical);
-	mLayout->setContentsMargins(0,Un,0,0);
+    // base class QObject takes the deleting responsibility
+    mToField = new NmRecipientField(this, *mDocumentLoader, NMUI_EDITOR_PREFIX_TO);
+    mCcField = new NmRecipientField(this, *mDocumentLoader, NMUI_EDITOR_PREFIX_CC);
+    mBccField = new NmRecipientField(this, *mDocumentLoader, NMUI_EDITOR_PREFIX_BCC);
 
-	mToField = new NmRecipientField(QString("To:"), mHeader);
-	mCcField = new NmRecipientField(QString("Cc:"), mHeader);
-	mBccField = new NmRecipientField(QString("Bcc:"), mHeader);
+    // Cc field is not shown by default. It needs to be both hidden and removed from the layout.
+	mCcWidget = qobject_cast<HbWidget *>(mDocumentLoader->findWidget(NMUI_EDITOR_CC_FIELD));
+    mCcWidget->hide();
+    mLayout->removeItem(mCcWidget);
+    
+    // Bcc field is not shown by default. It needs to be both hidden and removed from the layout.
+    mBccWidget = qobject_cast<HbWidget *>(mDocumentLoader->findWidget(NMUI_EDITOR_BCC_FIELD));
+    mBccWidget->hide();
+    mLayout->removeItem(mBccWidget);
 
-    // Only 'To:' field is visible at startup
-	mLayout->addItem(mToField);
-	mCcField->hide();
-	mBccField->hide();
-
-	mHeader->setLayout(mLayout);
-	mHeader->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::MinimumExpanding);
-
+    mSubjectWidget =
+        qobject_cast<HbWidget *>(mDocumentLoader->findWidget(NMUI_EDITOR_SUBJECT_FIELD));
+    mSubjectLayout = static_cast<QGraphicsLinearLayout *>(mSubjectWidget->layout());
+    
     // Add Subject: field
-    mSubjectLabel = qobject_cast<HbLabel *>
-        (mDocumentLoader->findWidget(NMUI_EDITOR_SUBJECT_LABEL));
     mSubjectEdit = qobject_cast<NmHtmlLineEdit *>
         (mDocumentLoader->findWidget(NMUI_EDITOR_SUBJECT_EDIT));
+    mSubjectEdit->setMaxRows(MaxRows);
 
     // Add attachment list
     NmAttachmentListWidget *attachmentList = qobject_cast<NmAttachmentListWidget *>
         (mDocumentLoader->findWidget(NMUI_EDITOR_ATTACHMENT_LIST));
     // Create attachment list handling object
     mAttachmentList = new NmAttachmentList(*attachmentList);
+    mAttachmentList->setParent(this); // ownership changes
+    attachmentList->hide();
+    mLayout->removeItem(attachmentList);
 
-    mPriorityIconLabel = qobject_cast<HbLabel *>
+    // Add priority icon
+    mPriorityIcon = qobject_cast<HbLabel *>
         (mDocumentLoader->findWidget(NMUI_EDITOR_PRIORITY_ICON));
+    mPriorityIcon->hide();
+    mSubjectLayout->removeItem(mPriorityIcon);
+
+    // follow-up icon is not yet supported
+    HbLabel *followUpIcon = qobject_cast<HbLabel *>
+        (mDocumentLoader->findWidget(NMUI_EDITOR_FOLLOWUP_ICON));
+    followUpIcon->hide();
+    mSubjectLayout->removeItem(followUpIcon);
 }
 
 /*!
@@ -110,6 +128,8 @@ void NmEditorHeader::loadWidgets()
 */
 void NmEditorHeader::createConnections()
 {
+    NM_FUNCTION;
+    
     // Signals for checking if the recipient fields have text.
     connect(mToField, SIGNAL(textChanged(const QString &)),
             this, SLOT(editorContentChanged()));
@@ -120,12 +140,12 @@ void NmEditorHeader::createConnections()
 
     // Signals for handling the recipient field expanding
     connect(mToField, SIGNAL(textChanged(const QString &)),
-            this, SLOT(fixHeaderFieldHeights()));
+            this, SLOT(sendDelayedHeaderHeightChanged()));
     connect(mCcField, SIGNAL(textChanged(const QString &)),
-            this, SLOT(fixHeaderFieldHeights()));
+            this, SLOT(sendDelayedHeaderHeightChanged()));
     connect(mBccField, SIGNAL(textChanged(const QString &)),
-            this, SLOT(fixHeaderFieldHeights()));
-    connect(mSubjectEdit, SIGNAL(contentsChanged()), this, SLOT(fixHeaderFieldHeights()));
+            this, SLOT(sendDelayedHeaderHeightChanged()));
+    connect(mSubjectEdit, SIGNAL(contentsChanged()), this, SLOT(sendDelayedHeaderHeightChanged()));
 
     // Signals for handling the attachment list
     connect(&mAttachmentList->listWidget(), SIGNAL(itemActivated(int)),
@@ -144,96 +164,66 @@ void NmEditorHeader::setFieldVisibility(bool isVisible)
 	if ( mCcBccFieldVisible != isVisible ) {
 		mCcBccFieldVisible = isVisible;
 		if (mCcBccFieldVisible) {
-			mCcField->show();
-			mBccField->show();
-			mLayout->addItem(mCcField);
-			mLayout->addItem(mBccField);
+            mLayout->insertItem(1, mBccWidget);
+			mLayout->insertItem(1, mCcWidget);
+			mCcWidget->show();
+            mBccWidget->show();
 		}
 		else {
-			mCcField->hide();
-			mBccField->hide();
-			mLayout->removeItem(mCcField);
-			mLayout->removeItem(mBccField);
+            mCcWidget->hide();
+            mBccWidget->hide();
+			mLayout->removeItem(mCcWidget);
+			mLayout->removeItem(mBccWidget);
 		}
 
-		QTimer::singleShot(nmLayoutSystemWaitTimer*2, this, SLOT(fixHeaderFieldHeights()));
+		QTimer::singleShot(
+		    nmLayoutSystemWaitTimer * 2, this, SLOT(sendDelayedHeaderHeightChanged()));
 	}
 }
 
 /*!
-    Function can be used to rescale the header area.
-*/
-void NmEditorHeader::rescaleHeader()
-{
-}
-
-/*!
     Return the height of the whole header widget.
-    (Should find beter way to get the height of the header area.)
  */
-int NmEditorHeader::headerHeight() const
+qreal NmEditorHeader::headerHeight() const
 {
-    qreal toHeight = mToField->height();
-    qreal ccHeight = 0;
-    qreal bccHeight = 0;
+    NM_FUNCTION;
+
+    // get the layout's vertical spacing
+    qreal spacing = 0;
+    HbStyle().parameter("hb-param-margin-gene-middle-vertical", spacing);
+
+    // calculate the height
+    qreal height = 0;
+    
+    height += mToField->height(); // returns widget's geometry height
+    height += spacing;
+    
     if (mCcBccFieldVisible) {
-		ccHeight = mCcField->height();
-		bccHeight = mBccField->height();
-    }
-    qreal subjectHeight = mSubjectEdit->geometry().height() + Margin;
-
-    // When called first time, height is wrongly 'Margin'
-    if (toHeight == Margin) {
-        toHeight = FieldHeightWhenSecondaryFont;
-    	ccHeight = FieldHeightWhenSecondaryFont;
-    	bccHeight = FieldHeightWhenSecondaryFont;
-        subjectHeight = FieldHeightWhenSecondaryFont;
+        height += mCcField->height(); // returns widget's geometry height
+        height += spacing;
+        
+        height += mBccField->height(); // returns widget's geometry height
+        height += spacing;
     }
 
-    qreal attHeight = 0;
-    if (mAttachmentList && mAttachmentList->count() > 0) {
-        attHeight = mAttachmentList->listWidget().geometry().height();
+    height += mSubjectWidget->geometry().height();
+    height += spacing;
+
+    if (mAttachmentList->listWidget().isVisible()) {
+        height += mAttachmentList->listWidget().geometry().height();
+        height += spacing;
     }
 
-    return (int)(toHeight + ccHeight + bccHeight + subjectHeight + attHeight);
+    return height;
 }
 
 /*!
     Send signal to inform that one of the recipient fields height has been changed.
  */
-void NmEditorHeader::fixHeaderFieldHeights()
+void NmEditorHeader::sendDelayedHeaderHeightChanged()
 {
-    // Adjust height of recipient fields 
-	adjustFieldSizeValues(mToField->editor(), mToField->editor()->document()->size().height());
-	adjustFieldSizeValues(mCcField->editor(), mCcField->editor()->document()->size().height());
-	adjustFieldSizeValues(mBccField->editor(), mBccField->editor()->document()->size().height());
-
-    // Adjust height of the subject field 
-	if (mSubjectEdit->document()->size().height() > FieldHeightWhenSecondaryFont) {
-	mSubjectEdit->setPreferredHeight(
-			mSubjectEdit->document()->size().height() + Margin );
-	}
-	else {
-		mSubjectEdit->setPreferredHeight( FieldHeightWhenSecondaryFont );
-	}
-
-	QTimer::singleShot(nmLayoutSystemWaitTimer*5, this, SLOT(sendHeaderHeightChanged()));	
-}
-
-
-/*!
-    Private routine to adjust heights of the recipient fields
- */
-void NmEditorHeader::adjustFieldSizeValues( NmRecipientLineEdit *widget, qreal height )
-{
-	if (height > FieldHeightWhenSecondaryFont) {
-		widget->setMaximumHeight( height + Margin );
-		widget->setMinimumHeight( height + Margin );
-	}
-	else {
-		widget->setMaximumHeight( FieldHeightWhenSecondaryFont );	
-		widget->setMinimumHeight( FieldHeightWhenSecondaryFont );	
-	}	
+    NM_FUNCTION;
+	QTimer::singleShot(nmLayoutSystemWaitTimer * 5, this, SLOT(sendHeaderHeightChanged()));
 }
 
 /*!
@@ -241,7 +231,7 @@ void NmEditorHeader::adjustFieldSizeValues( NmRecipientLineEdit *widget, qreal h
  */
 void NmEditorHeader::sendHeaderHeightChanged()
 {
-    int hHeight = headerHeight();
+    qreal hHeight = headerHeight();
     if (mHeaderHeight != hHeight) {
         mHeaderHeight = hHeight;
         emit headerHeightChanged(mHeaderHeight);
@@ -253,6 +243,8 @@ void NmEditorHeader::sendHeaderHeightChanged()
  */
 NmRecipientLineEdit* NmEditorHeader::toEdit() const
 {
+    NM_FUNCTION;
+    
     return mToField->editor();
 }
 
@@ -261,6 +253,8 @@ NmRecipientLineEdit* NmEditorHeader::toEdit() const
  */
 NmRecipientLineEdit* NmEditorHeader::ccEdit() const
 {
+    NM_FUNCTION;
+    
     return mCcField->editor();
 }
 
@@ -269,6 +263,8 @@ NmRecipientLineEdit* NmEditorHeader::ccEdit() const
  */
 NmRecipientLineEdit* NmEditorHeader::bccEdit() const
 {
+    NM_FUNCTION;
+    
     return mBccField->editor();
 }
 
@@ -277,6 +273,8 @@ NmRecipientLineEdit* NmEditorHeader::bccEdit() const
  */
 NmHtmlLineEdit* NmEditorHeader::subjectEdit() const
 {
+    NM_FUNCTION;
+    
     return mSubjectEdit;
 }
 
@@ -286,6 +284,8 @@ NmHtmlLineEdit* NmEditorHeader::subjectEdit() const
 */
 void NmEditorHeader::editorContentChanged()
 {
+    NM_FUNCTION;
+    
     bool recipientsFieldsEmpty = true;
     if (mToField->text().length()) {
         recipientsFieldsEmpty = false;
@@ -307,6 +307,8 @@ void NmEditorHeader::editorContentChanged()
  */
 void NmEditorHeader::setPriority(NmMessagePriority priority)
 {
+    NM_FUNCTION;
+    
     switch (priority) {
     case NmMessagePriorityHigh:
         setPriority(NmActionResponseCommandPriorityHigh);
@@ -325,37 +327,41 @@ void NmEditorHeader::setPriority(NmMessagePriority priority)
  */
 void NmEditorHeader::setPriority(NmActionResponseCommand prio)
 {
+    NM_FUNCTION;
+    
     switch(prio) {
     case NmActionResponseCommandPriorityHigh:
         if (!mIconVisible) {
             mIconVisible = true;
-            mPriorityIconLabel->setMaximumWidth(IconFieldWidth);
-            mSubjectEdit->setMaximumWidth(mSubjectEdit->geometry().width() - IconFieldWidth);
+            // icon widget is just after the subject line edit (see docml)
+            mSubjectLayout->insertItem(2, mPriorityIcon);
+            mPriorityIcon->show();
         }
-        mPriorityIconLabel->setIcon(
+        mPriorityIcon->setIcon(
             NmIcons::getIcon(NmIcons::NmIconPriorityHigh));
         break;
     case NmActionResponseCommandPriorityLow:
         if (!mIconVisible) {
             mIconVisible = true;
-            mPriorityIconLabel->setMaximumWidth(IconFieldWidth);
-            mSubjectEdit->setMaximumWidth(mSubjectEdit->geometry().width() - IconFieldWidth);
+            // icon widget is just after the subject line edit (see docml)
+            mSubjectLayout->insertItem(2, mPriorityIcon);
+            mPriorityIcon->show();
         }
-        mPriorityIconLabel->setIcon(
+        mPriorityIcon->setIcon(
             NmIcons::getIcon(NmIcons::NmIconPriorityLow));
         break;
     default:
         if (mIconVisible) {
             mIconVisible = false;
             HbIcon emptyIcon;
-            mPriorityIconLabel->setIcon(emptyIcon);
-            mPriorityIconLabel->setMaximumWidth(0);
-            mSubjectEdit->setMaximumWidth(mSubjectEdit->geometry().width() + IconFieldWidth);
+            mPriorityIcon->setIcon(emptyIcon);
+            mSubjectLayout->removeItem(mPriorityIcon);
+            mPriorityIcon->hide();
         }
         break;
     }
     // Update subject field height because row amount might have been changed.
-    QTimer::singleShot(nmLayoutSystemWaitTimer * 3, this, SLOT(fixHeaderFieldHeights()));
+    QTimer::singleShot(nmLayoutSystemWaitTimer * 3, this, SLOT(sendDelayedHeaderHeightChanged()));
 }
 
 /*!
@@ -364,7 +370,14 @@ void NmEditorHeader::setPriority(NmActionResponseCommand prio)
 void NmEditorHeader::addAttachment(
     const QString &fileName, const QString &fileSize, const NmId &nmid)
 {
+    NM_FUNCTION;
+    
     mAttachmentList->insertAttachment(fileName, fileSize, nmid);
+    if (!mAttachmentList->listWidget().isVisible()) {
+        // attachment list is inserted just before the body widget (see docml).
+        mLayout->insertItem(mLayout->count() - 1, &mAttachmentList->listWidget());
+        mAttachmentList->listWidget().show();
+    }
     sendHeaderHeightChanged();
 }
 
@@ -374,7 +387,13 @@ void NmEditorHeader::addAttachment(
  */
 void NmEditorHeader::removeAttachment(const QString &fileName)
 {
+    NM_FUNCTION;
+    
     mAttachmentList->removeAttachment(fileName);
+    if (mAttachmentList->count() == 0) {
+        mAttachmentList->listWidget().hide();
+        mLayout->removeItem(&mAttachmentList->listWidget());
+    }
     sendHeaderHeightChanged();
 }
 
@@ -384,6 +403,8 @@ void NmEditorHeader::removeAttachment(const QString &fileName)
  */
 void NmEditorHeader::removeAttachment(const NmId &nmid)
 {
+    NM_FUNCTION;
+    
     mAttachmentList->removeAttachment(nmid);
     sendHeaderHeightChanged();
 }
@@ -397,6 +418,8 @@ void NmEditorHeader::setAttachmentParameters(
     const QString &fileSize,
     int result)
 {
+    NM_FUNCTION;
+    
     if (result == NmNoError) {
         // Attachment adding succesful, set message part id and size for attachment
         mAttachmentList->setAttachmentPartId(fileName, msgPartId);
@@ -409,6 +432,8 @@ void NmEditorHeader::setAttachmentParameters(
  */
 void NmEditorHeader::launchAttachment(const NmId &itemId)
 {
+    NM_FUNCTION;
+    
     attachmentActivated(mAttachmentList->indexByNmId(itemId));
 }
 
@@ -417,6 +442,8 @@ void NmEditorHeader::launchAttachment(const NmId &itemId)
  */
 void NmEditorHeader::attachmentActivated(int arrayIndex)
 {
+    NM_FUNCTION;
+    
     QFile launchFile(mAttachmentList->getFullFileNameByIndex(arrayIndex));
     if (NmUtilities::openFile( launchFile ) == NmNotFoundError) {
         NmUtilities::displayErrorNote(hbTrId("txt_mail_dialog_unable_to_open_attachment_file_ty")); 
@@ -428,6 +455,8 @@ void NmEditorHeader::attachmentActivated(int arrayIndex)
  */
 void NmEditorHeader::attachmentLongPressed(int arrayIndex, QPointF point)
 {
+    NM_FUNCTION;
+    
     // Remove selected attachment
     emit attachmentLongPressed(mAttachmentList->nmIdByIndex(arrayIndex), point);
 }

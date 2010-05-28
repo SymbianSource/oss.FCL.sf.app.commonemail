@@ -292,4 +292,5 @@ EXPORTS
 	_ZThn4_N15CFSMailIterator9PreviousLERK7TDesC16jR13RPointerArrayI14CFSMailMessageE @ 291 NONAME
 	_ZThn4_N15CFSMailIteratorD0Ev @ 292 NONAME
 	_ZThn4_N15CFSMailIteratorD1Ev @ 293 NONAME
+	_ZN13CFSMailFolder14RemoveMessageLE12TFSMailMsgIdR22MFSMailRequestObserver @ 294 NONAME
 

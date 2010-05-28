@@ -27,7 +27,8 @@ MOBILITY += systeminfo
 
 INCLUDEPATH += inc \
                ../../inc \
-               $$MW_LAYER_SYSTEMINCLUDE 
+               ../../../inc \
+               $$MW_LAYER_SYSTEMINCLUDE
 
 DEPENDPATH += src \
               inc \

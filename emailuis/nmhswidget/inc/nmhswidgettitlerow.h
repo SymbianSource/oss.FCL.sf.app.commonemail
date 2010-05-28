@@ -34,6 +34,8 @@ public:
     bool loadDocML();
     
     void setAccountIcon(const QString& accountIconName );
+    void setExpandCollapseIcon(const bool& expand);
+    void setFontsColor( bool pressed );
     
 private:
 
@@ -49,6 +51,8 @@ signals:
     
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
+    bool event( QEvent *event );
     
 private:
     HbLabel *mMailboxIcon;

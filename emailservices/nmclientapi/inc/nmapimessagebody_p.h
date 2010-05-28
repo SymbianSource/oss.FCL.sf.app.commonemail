@@ -17,7 +17,7 @@
 #ifndef NMAPIMESSAGEBODY_P_H_
 #define NMAPIMESSAGEBODY_P_H_
 
-#include <QString>;
+#include <QString>
 
 namespace EmailClientApi
 {

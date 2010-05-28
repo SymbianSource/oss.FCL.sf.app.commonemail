@@ -21,7 +21,7 @@
 static const double Un = 6.66;
 static const double BodyMargin = Un;
 static const int ChromeHeight = 160;
-static const double FieldHeightWhenSecondaryFont = 5 * Un;
+static const double FieldHeightWhenSecondaryFont = 7.46 * Un;
 static const int GroupBoxTitleHeight = 42;
 static const double HeightOfTheHeaderOnStartup =
     2 * FieldHeightWhenSecondaryFont + GroupBoxTitleHeight;
@@ -33,6 +33,7 @@ NmEditorTextEdit::NmEditorTextEdit(QGraphicsItem *parent) :
     HbTextEdit(parent),
     mFirstTimeToScrollPosUpdate(true)
 {
+    NM_FUNCTION;
 }
 
 /*!
@@ -40,10 +41,13 @@ NmEditorTextEdit::NmEditorTextEdit(QGraphicsItem *parent) :
 */
 NmEditorTextEdit::~NmEditorTextEdit()
 {
+    NM_FUNCTION;
 }
 
 void NmEditorTextEdit::init(NmBaseViewScrollArea *bgScrollArea)
 {
+    NM_FUNCTION;
+    
     mPreviousContentsHeight = 0;
     mFirstTime = true;
     mCustomTextColor = QPair<bool, QColor>(false,Qt::black);
@@ -54,13 +58,10 @@ void NmEditorTextEdit::init(NmBaseViewScrollArea *bgScrollArea)
     document()->setDocumentMargin(BodyMargin);
 
     mScrollArea = this->scrollArea();
-    mScrollArea->setLongPressEnabled(true);
+
     // Enable scrolling using cursor
     setScrollable(true);
     mScrollArea->setScrollDirections(Qt::Horizontal);
-    // Let all mouse events go into background scroll area which handles the scrolling
-    setAcceptedMouseButtons(Qt::NoButton);
-    mScrollArea->setAcceptedMouseButtons(Qt::NoButton);
 
     connect(this, SIGNAL(contentsChanged()), this, SLOT(updateEditorHeight()));
     connect(this, SIGNAL(cursorPositionChanged(int, int)),
@@ -73,6 +74,8 @@ void NmEditorTextEdit::init(NmBaseViewScrollArea *bgScrollArea)
  */
 qreal NmEditorTextEdit::contentHeight() const
 {
+    NM_FUNCTION;
+    
     QSizeF s = document()->size();
     return s.height();
 }
@@ -83,6 +86,8 @@ qreal NmEditorTextEdit::contentHeight() const
  */
 void NmEditorTextEdit::updateEditorHeight()
 {
+    NM_FUNCTION;
+    
     // Get current body content height
     qreal heightOfTheTextEdit = contentHeight();
 
@@ -104,6 +109,8 @@ void NmEditorTextEdit::updateEditorHeight()
  */
 void NmEditorTextEdit::setScrollPosition(int oldPos, int newPos)
 {
+    NM_FUNCTION;
+    
     Q_UNUSED(oldPos);
 
     if (mFirstTime) {
@@ -152,6 +159,8 @@ void NmEditorTextEdit::setScrollPosition(int oldPos, int newPos)
 */
 void NmEditorTextEdit::updateScrollPosition(const QPointF &newPosition)
 {
+    NM_FUNCTION;
+    
     // Temporary fix: When this is called for the first time, the editor is scrolled down for 
     // some reason so this will restore the scroll position.
     if(mFirstTimeToScrollPosUpdate) {
@@ -167,6 +176,8 @@ void NmEditorTextEdit::updateScrollPosition(const QPointF &newPosition)
  */
 void NmEditorTextEdit::updateCustomTextColor()
 {
+    NM_FUNCTION;
+    
     if (mCustomTextColor.first) {
         QTextCursor tcursor = textCursor();
         QTextCharFormat fmt;
@@ -197,46 +208,10 @@ void NmEditorTextEdit::updateCustomTextColor()
  */
 void NmEditorTextEdit::setHeaderHeight(int newHeight)
 {
+    NM_FUNCTION;
+    
     mHeaderHeight = newHeight;
     updateEditorHeight();
-}
-
-/*!
-    sendMousePressEvent. Function is used to relay mouse press event to base class
-*/
-void NmEditorTextEdit::sendMousePressEvent(QGraphicsSceneMouseEvent *event)
-{
-    if (event) {
-        HbAbstractEdit::mousePressEvent(event);
-    }
-}
-
-/*!
-    sendMouseReleaseEvent. Function is used to relay mouse release event to base class
-*/
-void NmEditorTextEdit::sendMouseReleaseEvent(QGraphicsSceneMouseEvent *event)
-{
-    if (event) {
-        HbAbstractEdit::mouseReleaseEvent(event);
-    }
-}
-
-/*!
-    sendMouseMoveEvent. Function is used to relay mouse move event to base class
-*/
-void NmEditorTextEdit::sendMouseMoveEvent(QGraphicsSceneMouseEvent *event)
-{
-    if (event) {
-        HbAbstractEdit::mouseMoveEvent(event);
-    }
-}
-
-/*!
-    sendLongPressEvent. Opens the context menu of the editor
-*/
-void NmEditorTextEdit::sendLongPressEvent(const QPointF &point)
-{
-    showContextMenu(point);
 }
 
 /*!
@@ -246,6 +221,8 @@ void NmEditorTextEdit::sendLongPressEvent(const QPointF &point)
  */
 void NmEditorTextEdit::setCustomTextColor(const QPair<bool, QColor> &customColor)
 {
+    NM_FUNCTION;
+    
     mCustomTextColor = customColor;
 }
 
@@ -257,6 +234,8 @@ void NmEditorTextEdit::setCustomTextColor(const QPair<bool, QColor> &customColor
  */
 void NmEditorTextEdit::setCustomTextColor(bool useCustom, const QColor& color)
 {   
+    NM_FUNCTION;
+    
     mCustomTextColor.first = useCustom;
     //check and set custom color
     mCustomTextColor.first ? mCustomTextColor.second = color : 
@@ -271,5 +250,7 @@ void NmEditorTextEdit::setCustomTextColor(bool useCustom, const QColor& color)
  */
 QPair<bool, QColor> NmEditorTextEdit::customTextColor() const
 {
+    NM_FUNCTION;
+    
     return mCustomTextColor;
 }

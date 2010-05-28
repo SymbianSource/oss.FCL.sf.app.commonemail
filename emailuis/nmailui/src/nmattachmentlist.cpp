@@ -28,6 +28,8 @@
 NmAttachmentList::NmAttachmentList(NmAttachmentListWidget &listWidget)
 : mListWidget(listWidget)
 {
+    NM_FUNCTION;
+    
     updateLayout();
 }
 
@@ -36,6 +38,8 @@ NmAttachmentList::NmAttachmentList(NmAttachmentListWidget &listWidget)
 */
 NmAttachmentList::~NmAttachmentList()
 { 
+    NM_FUNCTION;
+    
     clearList();
 }
 
@@ -47,6 +51,8 @@ int NmAttachmentList::insertAttachment(
     const QString &fileSize,
     const NmId &attachmentPartId)
 {
+    NM_FUNCTION;
+    
     QString displayName = fullNameToDisplayName(fullFileName);
     mFullFileName.append(fullFileName);
     mDisplayFileName.append(displayName);
@@ -67,6 +73,8 @@ int NmAttachmentList::insertAttachment(
 void NmAttachmentList::setAttachmentPartId(const QString fullFileName, 
                                            const NmId &attachmentPartId)
 {
+    NM_FUNCTION;
+    
     for (int i=0; i<count(); ++i) {
         if (mFullFileName.at(i) == fullFileName && mAttachmentPartId.at(i).id() == 0) {
             mAttachmentPartId.replace(i, attachmentPartId);
@@ -79,6 +87,8 @@ void NmAttachmentList::setAttachmentPartId(const QString fullFileName,
 */
 void NmAttachmentList::setAttachmentSize(const NmId &attachmentPartId, const QString &size)
 {
+    NM_FUNCTION;
+    
     for (int i=0; i<count(); ++i) {
         if (mAttachmentPartId.at(i) == attachmentPartId) {
             mFileSize.replace(i, size);
@@ -92,6 +102,8 @@ void NmAttachmentList::setAttachmentSize(const NmId &attachmentPartId, const QSt
 */
 void NmAttachmentList::removeAttachment(int arrayIndex)
 {
+    NM_FUNCTION;
+    
     if (arrayIndex < count()) {
         // Remove UI
         mListWidget.removeAttachment(arrayIndex);
@@ -108,6 +120,8 @@ void NmAttachmentList::removeAttachment(int arrayIndex)
 */
 QString NmAttachmentList::getFullFileNameByIndex(int arrayIndex)
 {
+    NM_FUNCTION;
+    
 	QString result;
 	
     if ( arrayIndex >= 0 && arrayIndex < mFullFileName.count() ) {
@@ -121,6 +135,8 @@ QString NmAttachmentList::getFullFileNameByIndex(int arrayIndex)
 */
 void NmAttachmentList::removeAttachment(const QString &fullFileName)
 {
+    NM_FUNCTION;
+    
     for (int i=0; i<count(); ++i) {
         if (mFullFileName.at(i) == fullFileName) {
             removeAttachment(i);
@@ -133,6 +149,8 @@ void NmAttachmentList::removeAttachment(const QString &fullFileName)
 */
 void NmAttachmentList::removeAttachment(const NmId &attachmentPartId)
 {
+    NM_FUNCTION;
+    
     for (int i=0; i<count(); ++i) {
         if (mAttachmentPartId.at(i) == attachmentPartId) {
             removeAttachment(i);
@@ -145,6 +163,8 @@ void NmAttachmentList::removeAttachment(const NmId &attachmentPartId)
 */
 void NmAttachmentList::clearList()
 {
+    NM_FUNCTION;
+    
     for (int i=count()-1; i>=0; --i) {
         // Remove from UI
         mListWidget.removeAttachment(i);
@@ -161,6 +181,8 @@ void NmAttachmentList::clearList()
 */
 NmAttachmentListWidget& NmAttachmentList::listWidget()
 {
+    NM_FUNCTION;
+    
     return mListWidget;
 }
 
@@ -169,6 +191,8 @@ NmAttachmentListWidget& NmAttachmentList::listWidget()
 */
 int NmAttachmentList::count()
 {
+    NM_FUNCTION;
+    
     return mFullFileName.count();
 }
 
@@ -177,6 +201,8 @@ int NmAttachmentList::count()
 */
 NmId NmAttachmentList::nmIdByIndex(int listIndex)
 {
+    NM_FUNCTION;
+    
     return mAttachmentPartId.at(listIndex);
 }
 
@@ -185,6 +211,8 @@ NmId NmAttachmentList::nmIdByIndex(int listIndex)
 */
 int NmAttachmentList::indexByNmId(const NmId &id)
 {
+    NM_FUNCTION;
+    
     for (int i=0; i<count(); ++i) {
         if (mAttachmentPartId.at(i) == id) {
             return i;
@@ -198,6 +226,8 @@ int NmAttachmentList::indexByNmId(const NmId &id)
 */
 QString NmAttachmentList::fullNameToDisplayName(const QString &fullName)
 {
+    NM_FUNCTION;
+    
     return fullName.section('\\', -1);
 }
 
@@ -206,6 +236,8 @@ QString NmAttachmentList::fullNameToDisplayName(const QString &fullName)
 */
 void NmAttachmentList::updateLayout()
 {
+    NM_FUNCTION;
+    
     // Fix this when progress bar is used
     mListWidget.setMaximumHeight(count() * 56); 
     QTimer::singleShot(1, this, SLOT(delayedLayoutChangeInfo()));
@@ -216,6 +248,8 @@ void NmAttachmentList::updateLayout()
 */
 void NmAttachmentList::delayedLayoutChangeInfo()
 {
+    NM_FUNCTION;
+    
     emit attachmentListLayoutChanged();
 }
 

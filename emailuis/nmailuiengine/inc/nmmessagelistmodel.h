@@ -67,7 +67,8 @@ public slots:
 
     void handleMessageEvent(NmMessageEvent event,
                             const NmId &folderId,
-                            const QList<NmId> &messageIds);
+                            const QList<NmId> &messageIds,
+                            const NmId &mailboxId);
 
 
 private:

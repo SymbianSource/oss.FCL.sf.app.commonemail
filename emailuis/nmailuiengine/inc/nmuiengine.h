@@ -38,7 +38,6 @@ class NmOperation;
 class NmMessageCreationOperation;
 class NmStoreEnvelopesOperation;
 class NmAddAttachmentsOperation;
-class NmCheckOutboxOperation;
 class NmMessageSendingOperation;
 
 
@@ -137,6 +136,11 @@ public:
                       const NmId &folderId,
                       const NmId &messageId);
     
+    void removeDraftMessage(NmMessage *message);
+    
+    void saveDraftMessage(NmMessage *message,
+                          const QList<NmOperation*> &preliminaryOperations);
+    
     void sendMessage(NmMessage *message,
                      const QList<NmOperation*> &preliminaryOperations);
 
@@ -152,8 +156,6 @@ public:
         const NmMessage &message, 
         const NmId &attachmentPartId);
 
-    QPointer<NmCheckOutboxOperation> checkOutbox(const NmId &mailboxId);
-    
     NmSyncState syncState(const NmId& mailboxId);
 
     NmConnectState connectionState(const NmId& mailboxId);
@@ -170,6 +172,8 @@ public:
 public slots:
 
     void handleCompletedSendOperation();
+    void handleCompletedRemoveDraftOperation();
+    void handleCompletedSaveDraftOperation();
 
     void handleSyncStateEvent(NmSyncState syncState,
                               const NmOperationCompletionEvent &event);
@@ -190,6 +194,11 @@ private slots:
                             const QList<NmId> &mailboxIds);
 
     void handleMatchFound(const NmId &messageId, const NmId &folderId);
+    
+    void messageEventForListModel(NmMessageEvent event,
+                            const NmId &folderId,
+                            const QList<NmId> &messageIds, 
+                            const NmId& mailboxId);
 
 
 signals:
@@ -219,9 +228,12 @@ private: // Data
     NmDataPluginFactory *mPluginFactory;
     NmDataManager *mDataManager;                // Owned
     NmMailboxListModel *mMailboxListModel;      // Owned
+    NmMessageListModel *mInboxListModel;      // Owned
     NmMessageListModel *mMessageListModel;      // Owned
     NmMessageListModel *mMessageSearchListModel; // Owned
     QPointer<NmMessageSendingOperation> mSendOperation;  // Not owned
+    QPointer<NmOperation> mRemoveDraftOperation; // not owned
+    QPointer<NmOperation> mSaveDraftOperation;   // not owned
 };
 
 

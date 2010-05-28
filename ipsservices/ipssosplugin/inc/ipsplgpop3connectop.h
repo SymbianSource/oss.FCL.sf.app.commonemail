@@ -44,10 +44,13 @@ public:
 	    * @param aFSOperationObserver observer callback pointer
 	    * @param aFSRequestId client assigned identifier for the request instance
 	    * @param aEventHandler event handler for sending sync events
+	    * @param aSignallingAllowed for asynchronous request response message
+	    * @param aFetchWillFollow used when connection must be kept open
 	    * @return new instance of the class
 	    */
 		// <qmail> MFSMailRequestObserver& changed to pointer
-		// <qmail> aSignallingAllowed parameter removed
+		// <qmail> aSignallingAllowed parameter added
+        // <qmail> aFetchWillFollow parameter added
         static CIpsPlgPop3ConnectOp* NewL(
             CMsvSession& aMsvSession,
             TRequestStatus& aObserverRequestStatus,
@@ -57,7 +60,9 @@ public:
             TFSMailMsgId aFSMailBoxId,
             MFSMailRequestObserver* aFSOperationObserver,
             TInt aFSRequestId,
-            CIpsPlgEventHandler* aEventHandler );
+            CIpsPlgEventHandler* aEventHandler,
+            TBool aSignallingAllowed=ETrue,
+            TBool aFetchWillFollow=EFalse );
 
         /**
         *
@@ -91,6 +96,8 @@ public:
         TIpsOpType IpsOpType() const;
 // </qmail>
 
+        TInt GetOperationErrorCodeL( );
+        
     protected:
 
         /**
@@ -109,7 +116,8 @@ public:
         *
         */
 		// <qmail> MFSMailRequestObserver& changed to pointer
-		// <qmail> aSignallingAllowed parameter removed
+		// <qmail> aSignallingAllowed parameter added
+        // <qmail> aFetchWillFollow parameter added
         CIpsPlgPop3ConnectOp(
             CMsvSession& aMsvSession,
             TRequestStatus& aObserverRequestStatus,
@@ -119,7 +127,9 @@ public:
             TFSMailMsgId aFSMailBoxId,
             MFSMailRequestObserver* aFSOperationObserver,
             TInt aFSRequestId,
-            CIpsPlgEventHandler* aEventHandler );
+            CIpsPlgEventHandler* aEventHandler,
+            TBool aSignallingAllowed,
+            TBool aFetchWillFollow );
 
         /**
         *
@@ -134,7 +144,8 @@ public:
         void DoPopulateL();
 	    // <qmail> removed TBool ValidateL() (did nothing)
 	    // <qmail> removed void DoQueryPasswordL() not used any more
-        void DoDisconnect();
+        // <qmail> DoDisconnect -> DoDisconnectL
+        void DoDisconnectL();
 		// </qmail>
         
         // <qmail> removed flag methods as they were not used or even defined anywhere
@@ -165,7 +176,10 @@ public:
 	    TBool                                           iForcePopulate;
 	    // <qmail> removed iSelection;
 	    CIpsPlgEventHandler*                            iEventHandler; // not owned
-        TBool                                           iAlreadyConnected;
+	    // <qmail> iAlreadyConnected removed
+        // <qmail>
+        TBool                                           iFetchWillFollow;
+        // </qmail>
     };
 
 #endif

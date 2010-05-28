@@ -18,6 +18,8 @@
 #ifndef NMMESSAGEENVELOPE_CPP_
 #define NMMESSAGEENVELOPE_CPP_
 
+#include "emailtrace.h"
+
 #include "nmmessageenvelope.h"
 
 /*!
@@ -29,6 +31,7 @@ mFolderId(0),
 mMailboxId(0),
 mMessageFlags(0)
 {
+    NM_FUNCTION;
 }
 
 /*!
@@ -36,15 +39,20 @@ mMessageFlags(0)
  */
 NmMessageEnvelopePrivate::~NmMessageEnvelopePrivate()
 {
+    NM_FUNCTION;
 }
 
 NmMessageFlags NmMessageEnvelopePrivate::flags() const
 {
+    NM_FUNCTION;
+    
     return mMessageFlags;
 }
 
 void NmMessageEnvelopePrivate::setFlags(const NmMessageFlags flags, bool set)
 {
+    NM_FUNCTION;
+    
     if (set) {
         mMessageFlags |= flags;
     } else {
@@ -54,6 +62,8 @@ void NmMessageEnvelopePrivate::setFlags(const NmMessageFlags flags, bool set)
 
 void NmMessageEnvelopePrivate::setFlag(const NmMessageFlag flag, bool set)
 {
+    NM_FUNCTION;
+    
     if (set) {
         mMessageFlags |= flag;
     } else {
@@ -63,6 +73,8 @@ void NmMessageEnvelopePrivate::setFlag(const NmMessageFlag flag, bool set)
 
 bool NmMessageEnvelopePrivate::isFlagSet(const NmMessageFlag flag) const
 {
+    NM_FUNCTION;
+    
     return mMessageFlags.testFlag(flag);
 }
 
@@ -79,6 +91,8 @@ bool NmMessageEnvelopePrivate::isFlagSet(const NmMessageFlag flag) const
  */
 NmMessageEnvelope::NmMessageEnvelope()
 {
+    NM_FUNCTION;
+    
     d = new NmMessageEnvelopePrivate();
 }
 
@@ -87,6 +101,8 @@ NmMessageEnvelope::NmMessageEnvelope()
  */
 NmMessageEnvelope::NmMessageEnvelope(const NmId &messageId)
 {
+    NM_FUNCTION;
+    
     d = new NmMessageEnvelopePrivate();
     d->mMessageId = messageId;
 }
@@ -96,6 +112,7 @@ NmMessageEnvelope::NmMessageEnvelope(const NmId &messageId)
  */
 NmMessageEnvelope::NmMessageEnvelope(const NmMessageEnvelope &envelope):d(envelope.d)
 {
+    NM_FUNCTION;
 }
 
 /*!
@@ -103,6 +120,8 @@ NmMessageEnvelope::NmMessageEnvelope(const NmMessageEnvelope &envelope):d(envelo
  */
 NmMessageEnvelope::NmMessageEnvelope(QExplicitlySharedDataPointer<NmMessageEnvelopePrivate> nmPrivateMessageEnvelope)
 {
+    NM_FUNCTION;
+    
     d = nmPrivateMessageEnvelope;
 }
 
@@ -111,6 +130,8 @@ NmMessageEnvelope::NmMessageEnvelope(QExplicitlySharedDataPointer<NmMessageEnvel
  */
 NmMessageEnvelope &NmMessageEnvelope::operator=(const NmMessageEnvelope &envelope)
 {
+    NM_FUNCTION;
+    
     if (this != &envelope) {
         d = envelope.d;
     }
@@ -124,6 +145,8 @@ NmMessageEnvelope &NmMessageEnvelope::operator=(const NmMessageEnvelope &envelop
  */
 bool NmMessageEnvelope::operator==(const NmMessageEnvelope &envelope) const
 {
+    NM_FUNCTION;
+    
     bool ret = false;
     if (0 == subject().compare(envelope.subject(), Qt::CaseInsensitive)
         && sender() == envelope.sender()
@@ -142,6 +165,8 @@ bool NmMessageEnvelope::operator==(const NmMessageEnvelope &envelope) const
  */
 bool NmMessageEnvelope::operator!=(const NmMessageEnvelope &envelope) const
 {
+    NM_FUNCTION;
+    
     return !(*this==envelope);
 }
 
@@ -150,6 +175,7 @@ bool NmMessageEnvelope::operator!=(const NmMessageEnvelope &envelope) const
  */
 NmMessageEnvelope::~NmMessageEnvelope()
 {
+    NM_FUNCTION;
 }
 
 /*!
@@ -157,6 +183,8 @@ NmMessageEnvelope::~NmMessageEnvelope()
  */
 void NmMessageEnvelope::setMessageId(const NmId &messageId)
 {
+    NM_FUNCTION;
+    
     d->mMessageId = messageId;
 }
 
@@ -165,6 +193,8 @@ void NmMessageEnvelope::setMessageId(const NmId &messageId)
  */
 NmId NmMessageEnvelope::messageId() const
 {
+    NM_FUNCTION;
+    
     return d->mMessageId;
 }
 
@@ -173,6 +203,8 @@ NmId NmMessageEnvelope::messageId() const
  */
 NmId NmMessageEnvelope::folderId() const
 {
+    NM_FUNCTION;
+    
     return d->mFolderId;
 }
 
@@ -181,6 +213,8 @@ NmId NmMessageEnvelope::folderId() const
  */
 void NmMessageEnvelope::setFolderId(const NmId &folderId)
 {
+    NM_FUNCTION;
+    
     d->mFolderId = folderId;
 }
 
@@ -189,6 +223,8 @@ void NmMessageEnvelope::setFolderId(const NmId &folderId)
  */
 NmId NmMessageEnvelope::mailboxId() const
 {
+    NM_FUNCTION;
+    
     return d->mMailboxId;
 }
 
@@ -197,6 +233,8 @@ NmId NmMessageEnvelope::mailboxId() const
  */
 void NmMessageEnvelope::setMailboxId(const NmId &mailboxId)
 {
+    NM_FUNCTION;
+    
     d->mMailboxId = mailboxId;
 }
 
@@ -205,6 +243,8 @@ void NmMessageEnvelope::setMailboxId(const NmId &mailboxId)
  */
 void NmMessageEnvelope::setSubject(const QString &subject)
 {
+    NM_FUNCTION;
+    
     d->mSubject = subject;
 }
 
@@ -213,6 +253,8 @@ void NmMessageEnvelope::setSubject(const QString &subject)
  */
 QString NmMessageEnvelope::subject() const
 {
+    NM_FUNCTION;
+    
   return d->mSubject;
 }
 
@@ -221,6 +263,8 @@ QString NmMessageEnvelope::subject() const
  */
 void NmMessageEnvelope::setSender(const NmAddress &sender)
 {
+    NM_FUNCTION;
+    
     d->mSender = sender;
 }
 
@@ -229,6 +273,8 @@ void NmMessageEnvelope::setSender(const NmAddress &sender)
  */
 NmAddress NmMessageEnvelope::sender() const
 {
+    NM_FUNCTION;
+    
     return d->mSender;
 }
 
@@ -237,6 +283,8 @@ NmAddress NmMessageEnvelope::sender() const
  */
 void NmMessageEnvelope::setSentTime(const QDateTime &sentTime)
 {
+    NM_FUNCTION;
+    
     d->mSentTime = sentTime;
 }
 
@@ -245,6 +293,8 @@ void NmMessageEnvelope::setSentTime(const QDateTime &sentTime)
  */
 QDateTime NmMessageEnvelope::sentTime() const
 {
+    NM_FUNCTION;
+    
     return d->mSentTime;
 }
 
@@ -253,6 +303,8 @@ QDateTime NmMessageEnvelope::sentTime() const
  */
 void NmMessageEnvelope::setHasAttachments(bool hasAttachments)
 {
+    NM_FUNCTION;
+    
     d->setFlag(NmMessageFlagAttachments, hasAttachments);
 }
 
@@ -261,6 +313,8 @@ void NmMessageEnvelope::setHasAttachments(bool hasAttachments)
  */
 bool NmMessageEnvelope::hasAttachments() const
 {
+    NM_FUNCTION;
+    
     return d->isFlagSet(NmMessageFlagAttachments);
 }
 
@@ -269,6 +323,8 @@ bool NmMessageEnvelope::hasAttachments() const
  */
 void NmMessageEnvelope::setRead(bool read)
 {
+    NM_FUNCTION;
+    
     d->setFlag(NmMessageFlagRead, read);
 }
 
@@ -277,6 +333,8 @@ void NmMessageEnvelope::setRead(bool read)
  */
 bool NmMessageEnvelope::isRead() const
 {
+    NM_FUNCTION;
+    
     return d->isFlagSet(NmMessageFlagRead);
 }
 
@@ -285,6 +343,8 @@ bool NmMessageEnvelope::isRead() const
  */
 void NmMessageEnvelope::setReplied(bool replyed)
 {
+    NM_FUNCTION;
+    
     d->setFlag(NmMessageFlagAnswered, replyed);
 }
 
@@ -293,6 +353,8 @@ void NmMessageEnvelope::setReplied(bool replyed)
  */
 bool NmMessageEnvelope::isReplied() const
 {
+    NM_FUNCTION;
+    
     return d->isFlagSet(NmMessageFlagAnswered);
 }
 
@@ -301,6 +363,8 @@ bool NmMessageEnvelope::isReplied() const
  */
 void NmMessageEnvelope::setForwarded(bool forwarded)
 {
+    NM_FUNCTION;
+    
     d->setFlag(NmMessageFlagForwarded, forwarded);
 }
 
@@ -309,6 +373,8 @@ void NmMessageEnvelope::setForwarded(bool forwarded)
  */
 bool NmMessageEnvelope::isForwarded() const
 {
+    NM_FUNCTION;
+    
     return d->isFlagSet(NmMessageFlagForwarded);
 }
 
@@ -317,6 +383,8 @@ bool NmMessageEnvelope::isForwarded() const
  */
 void NmMessageEnvelope::setPriority(NmMessagePriority priority)
 {
+    NM_FUNCTION;
+    
     if (priority == NmMessagePriorityLow) {
         d->setFlag(NmMessageFlagLow, true);
         d->setFlag(NmMessageFlagImportant, false);
@@ -336,6 +404,8 @@ void NmMessageEnvelope::setPriority(NmMessagePriority priority)
  */
 NmMessagePriority NmMessageEnvelope::priority() const
 {
+    NM_FUNCTION;
+    
     NmMessagePriority ret = NmMessagePriorityNormal;
     if (d->isFlagSet(NmMessageFlagImportant)) {
         ret = NmMessagePriorityHigh;
@@ -351,6 +421,8 @@ NmMessagePriority NmMessageEnvelope::priority() const
  */
 NmMessageFlags NmMessageEnvelope::flags() const
 {
+    NM_FUNCTION;
+    
     return d->flags();
 }
 
@@ -359,6 +431,8 @@ NmMessageFlags NmMessageEnvelope::flags() const
  */
 QList<NmAddress>& NmMessageEnvelope::toRecipients() const
 {
+    NM_FUNCTION;
+    
     return d->mToRecipients;
 }
 
@@ -367,6 +441,8 @@ QList<NmAddress>& NmMessageEnvelope::toRecipients() const
  */
 void NmMessageEnvelope::setToRecipients(QList<NmAddress> toRecipients)
 {
+    NM_FUNCTION;
+    
     clearToRecipients();
     d->mToRecipients = toRecipients;
 }
@@ -376,6 +452,8 @@ void NmMessageEnvelope::setToRecipients(QList<NmAddress> toRecipients)
  */
 void NmMessageEnvelope::clearToRecipients()
 {
+    NM_FUNCTION;
+    
     d->mToRecipients.clear();
 }
 
@@ -384,6 +462,8 @@ void NmMessageEnvelope::clearToRecipients()
  */
 QList<NmAddress>& NmMessageEnvelope::ccRecipients() const
 {
+    NM_FUNCTION;
+    
     return d->mCcRecipients;
 }
 
@@ -392,6 +472,8 @@ QList<NmAddress>& NmMessageEnvelope::ccRecipients() const
  */
 void NmMessageEnvelope::setCcRecipients(QList<NmAddress> ccRecipients)
 {
+    NM_FUNCTION;
+    
     clearCcRecipients();
     d->mCcRecipients = ccRecipients;
 }
@@ -401,6 +483,8 @@ void NmMessageEnvelope::setCcRecipients(QList<NmAddress> ccRecipients)
  */
 void NmMessageEnvelope::clearCcRecipients()
 {
+    NM_FUNCTION;
+    
     d->mCcRecipients.clear();
 }
 
@@ -409,6 +493,8 @@ void NmMessageEnvelope::clearCcRecipients()
  */
 QList<NmAddress>& NmMessageEnvelope::bccRecipients() const
 {
+    NM_FUNCTION;
+    
     return d->mBccRecipients;
 }
 
@@ -417,6 +503,8 @@ QList<NmAddress>& NmMessageEnvelope::bccRecipients() const
  */
 void NmMessageEnvelope::setBccRecipients(QList<NmAddress> bccRecipients)
 {
+    NM_FUNCTION;
+    
     clearBccRecipients();
     d->mBccRecipients = bccRecipients;
 }
@@ -426,6 +514,8 @@ void NmMessageEnvelope::setBccRecipients(QList<NmAddress> bccRecipients)
  */
 void NmMessageEnvelope::clearBccRecipients()
 {
+    NM_FUNCTION;
+    
     d->mBccRecipients.clear();
 }
 

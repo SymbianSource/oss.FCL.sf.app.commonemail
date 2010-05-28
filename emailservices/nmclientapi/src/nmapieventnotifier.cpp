@@ -15,6 +15,8 @@
  *
  */
 
+#include "emailtrace.h"
+
 #include <QList>
 #include <QVariant>
 #include <QString>
@@ -35,6 +37,8 @@ NmApiEventNotifier::NmApiEventNotifier(QObject *parent) :
     NmApiMessageTask(parent)
 
 {
+    NM_FUNCTION;
+    
     //set timer
     mNmApiEventNotifierPrivate = new NmApiEventNotifierPrivate(this);
     mNmApiEventNotifierPrivate->mEmitSignals = new QTimer(this);
@@ -49,6 +53,8 @@ NmApiEventNotifier::NmApiEventNotifier(QObject *parent) :
  */
 NmApiEventNotifier::~NmApiEventNotifier()
 {
+    NM_FUNCTION;
+    
     if (mNmApiEventNotifierPrivate->mIsRunning) {
         mNmApiEventNotifierPrivate->releaseEngine();
     }
@@ -61,6 +67,8 @@ NmApiEventNotifier::~NmApiEventNotifier()
  */
 bool NmApiEventNotifier::start()
 {
+    NM_FUNCTION;
+    
     bool result = false;
 
     if (mNmApiEventNotifierPrivate->mIsRunning) {
@@ -93,6 +101,8 @@ bool NmApiEventNotifier::start()
  */
 void NmApiEventNotifier::cancel()
 {
+    NM_FUNCTION;
+    
     mNmApiEventNotifierPrivate->cancel();
     emit canceled();
 }
@@ -102,6 +112,8 @@ void NmApiEventNotifier::cancel()
  */
 bool NmApiEventNotifier::isRunning() const
 {
+    NM_FUNCTION;
+    
     return mNmApiEventNotifierPrivate->mIsRunning;
 }
 
@@ -113,6 +125,8 @@ bool NmApiEventNotifier::isRunning() const
  */
 void NmApiEventNotifier::sendEventsFromBuffer()
 {
+    NM_FUNCTION;
+    
     qRegisterMetaType<EmailClientApi::NmApiMailboxEvent> ("EmailClientApi::NmApiMailboxEvent");
     qRegisterMetaType<EmailClientApi::NmApiMessageEvent> ("EmailClientApi::NmApiMessageEvent");
     NmApiMessage events;

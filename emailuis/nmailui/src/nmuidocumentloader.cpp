@@ -22,6 +22,7 @@
 */
 NmUiDocumentLoader::NmUiDocumentLoader(const HbMainWindow *window) : HbDocumentLoader(window)
 {
+    NM_FUNCTION;
 }
 
 /*!
@@ -29,6 +30,7 @@ NmUiDocumentLoader::NmUiDocumentLoader(const HbMainWindow *window) : HbDocumentL
 */
 NmUiDocumentLoader::~NmUiDocumentLoader()
 {
+    NM_FUNCTION;
 }
 
 /*!
@@ -36,6 +38,8 @@ NmUiDocumentLoader::~NmUiDocumentLoader()
 */
 QObject *NmUiDocumentLoader::createObject(const QString& type, const QString &name)
 {
+    NM_FUNCTION;
+    
     QObject *res = NULL;
     if( type == NmMailViewerWK::staticMetaObject.className() ) {
         res = new NmMailViewerWK();

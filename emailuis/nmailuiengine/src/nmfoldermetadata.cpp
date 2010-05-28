@@ -42,6 +42,8 @@ public:
 */
 NmFolderMetaData::NmFolderMetaData()
 {
+    NM_FUNCTION;
+    
     d = new NmFolderMetaDataPrivate;
 }
 
@@ -51,6 +53,8 @@ NmFolderMetaData::NmFolderMetaData()
 */
 NmFolderMetaData::~NmFolderMetaData()
 {
+    NM_FUNCTION;
+    
     delete d;
 }
 
@@ -59,6 +63,8 @@ NmFolderMetaData::~NmFolderMetaData()
 */
 QString NmFolderMetaData::name() const
 {
+    NM_FUNCTION;
+    
     return d->mName;
 }
 
@@ -67,6 +73,8 @@ QString NmFolderMetaData::name() const
 */
 void NmFolderMetaData::setName(const QString &name)
 {
+    NM_FUNCTION;
+    
     d->mName = name;
 }
 
@@ -75,6 +83,8 @@ void NmFolderMetaData::setName(const QString &name)
 */
 NmId NmFolderMetaData::id() const
 {
+    NM_FUNCTION;
+    
     return d->mId;
 }
 
@@ -83,6 +93,8 @@ NmId NmFolderMetaData::id() const
 */
 void NmFolderMetaData::setId(const NmId &id)
 {
+    NM_FUNCTION;
+    
     d->mId = id;
 }
 

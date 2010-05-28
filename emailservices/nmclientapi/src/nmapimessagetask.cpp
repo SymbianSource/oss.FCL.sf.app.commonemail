@@ -15,6 +15,8 @@
  *
  */
 
+#include "emailtrace.h"
+
 #include <nmapimessagetask.h>
 
 /*!
@@ -23,6 +25,7 @@
 NmApiMessageTask::NmApiMessageTask(QObject *parent)
 : QObject(parent)
 {
+    NM_FUNCTION;
 }
 
 /*!
@@ -30,6 +33,6 @@ NmApiMessageTask::NmApiMessageTask(QObject *parent)
  */
 NmApiMessageTask::~NmApiMessageTask()
 {
-
+    NM_FUNCTION;
 }
 

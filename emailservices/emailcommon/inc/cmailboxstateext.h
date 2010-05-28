@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 - 2010 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -11,7 +11,8 @@
 *
 * Contributors:
 *
-* Description:  Message extension interface
+* Description:  Mailbox state extension for notifying email protocol plugins
+*               about application state changes.
 *
 */
 
@@ -30,16 +31,21 @@ const TUid KEmailMailboxStateExtensionUid        = { 0x2001E28B };
 class MEmailMailboxState
 {
 public:
+// <qmail>
     /**
     * Returns currently active folder and related mailbox that
     * is currently being used.
-    * @param aActiveMailboxId id of currently active mailbox 
+    * @param aActiveMailboxId id of currently active mailbox
+    * 
     * @param aActiveFolderId id of currently active mail folder
+    *        If aActiveFolderId.IsNullId() returns true there is no active
+    *        folder. This happens if e.g. email applications is closed. 
     * @return Symbian OS error code
     */
     virtual TInt GetActiveFolderId( 
         TFSMailMsgId& aActiveMailboxId,
         TFSMailMsgId& aActiveFolderId ) const = 0;
+// </qmail>    
 };
 
 /**
@@ -50,10 +56,21 @@ class CMailboxStateExtension : public CEmailExtension
 public:
     
     /**
-     * Sets data provider interface
-     * @param aDataProvider data provider
+     * Sets data provider interface.
+     * @param aDataProvider data provider.
      */
     virtual void SetStateDataProvider( MEmailMailboxState* aDataProvider ) = 0;
+// <qmail>    
+    /**
+    * Notification that folder has changed in email application.
+    * @param aActiveMailboxId id of the mailbox container the folder
+    * @param aActiveFolderId currently active folder id or null id if
+    *        there's currently no active folder (e.g. application is closed)
+    */
+    virtual void NotifyActiveFolderChanged(
+        const TFSMailMsgId& aActiveMailboxId,
+        const TFSMailMsgId& aActiveFolderId) = 0;
+// </qmail>
 
 protected:    
     inline CMailboxStateExtension();
@@ -66,5 +83,5 @@ inline CMailboxStateExtension::CMailboxStateExtension() :
          CEmailExtension( KEmailMailboxStateExtensionUid )
     {
     }
-         
+
 #endif // CMAILBOXSTATEEXT_H

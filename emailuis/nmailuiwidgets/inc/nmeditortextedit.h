@@ -36,10 +36,6 @@ public:
     void init(NmBaseViewScrollArea *bgScrollArea);
     qreal contentHeight() const;
 
-    void sendMousePressEvent(QGraphicsSceneMouseEvent *event);
-    void sendMouseReleaseEvent(QGraphicsSceneMouseEvent *event);
-    void sendMouseMoveEvent(QGraphicsSceneMouseEvent *event);
-    void sendLongPressEvent(const QPointF &point);
     void setCustomTextColor(const QPair<bool, QColor> &customColor);
     void setCustomTextColor(bool useCustom, const QColor& color = Qt::black);
     QPair<bool, QColor> customTextColor() const;

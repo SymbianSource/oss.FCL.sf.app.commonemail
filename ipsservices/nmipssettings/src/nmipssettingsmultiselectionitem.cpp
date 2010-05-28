@@ -21,6 +21,7 @@
 #include <HbSelectionDialog>
 #include <HbLabel>
 #include <HbExtendedLocale>
+#include <HbAction>
 
 #include "nmipssettingsmultiselectionitem.h"
 
@@ -175,7 +176,12 @@ void NmIpsSettingsMultiSelectionItem::launchSelectionDialog()
 */
 void NmIpsSettingsMultiSelectionItem::selectionDialogClosed(HbAction *action)
 {
-    if (action == mSelectionDialog->primaryAction()) {
+    // TODO: Needs to be properly fixed when ever orbit supports
+    // e.g. <code>void finished(int result)</code> type of signaling.
+    // This is kind of hack but we do not want to compare button text to some string to
+    // be certain which button was pressed (NOTE: Buttons are created and placed
+    // by HbSelectionDialog).
+    if (action == mSelectionDialog->actions().at(0)) {
         // Get selected items.
         mSelectedItems = mSelectionDialog->selectedItems();
 

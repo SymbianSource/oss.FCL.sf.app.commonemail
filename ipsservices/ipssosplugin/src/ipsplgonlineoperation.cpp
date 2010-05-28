@@ -36,14 +36,15 @@ CIpsPlgOnlineOperation::~CIpsPlgOnlineOperation()
 // ----------------------------------------------------------------------------
 // <qmail> priority parameter has been removed
 // <qmail> MFSMailRequestObserver& changed to pointer
-// <qmail> aSignallingAllowed parameter has been removed
+// <qmail> aSignallingAllowed parameter has been returned
 CIpsPlgOnlineOperation::CIpsPlgOnlineOperation(
     CMsvSession& aMsvSession,
     TRequestStatus& aObserverRequestStatus,
     CIpsPlgTimerOperation& aActivityTimer,
     TFSMailMsgId aFSMailBoxId,
     MFSMailRequestObserver* aFSOperationObserver,
-    TInt aFSRequestId )
+    TInt aFSRequestId,
+    TBool aSignallingAllowed )
     :
     CIpsPlgBaseOperation(
         aMsvSession, 
@@ -55,6 +56,7 @@ CIpsPlgOnlineOperation::CIpsPlgOnlineOperation(
     iMtmReg( NULL ), 
     iSubOperation( NULL ),
     iError( KErrNone ),
+    iSignallingAllowed( aSignallingAllowed ),
     iFSOperationObserver( aFSOperationObserver )
     {
     FUNC_LOG;
@@ -216,7 +218,9 @@ void CIpsPlgOnlineOperation::SignalFSObserver( TInt aStatus )
     {
     FUNC_LOG;
     // <qmail> clean up this function
-    if( iFSOperationObserver )
+    // <qmail>
+    if( iSignallingAllowed )
+    // </qmail>    
         {
         // Initialize the progress data
         TFSProgress prog = { TFSProgress::EFSStatus_RequestComplete, 1, 1, aStatus, NULL };
@@ -226,9 +230,13 @@ void CIpsPlgOnlineOperation::SignalFSObserver( TInt aStatus )
             {
             prog.iProgressStatus = TFSProgress::EFSStatus_RequestCancelled;
             }
-        
-        // do the actual signalling
-        TRAP_IGNORE( iFSOperationObserver->RequestResponseL( prog, iFSRequestId ) );
+        // <qmail>
+        if( iFSOperationObserver )
+            {
+            // do the actual signalling
+            TRAP_IGNORE( iFSOperationObserver->RequestResponseL( prog, iFSRequestId ) );
+            }
+        // </qmail>
         }
     }
 

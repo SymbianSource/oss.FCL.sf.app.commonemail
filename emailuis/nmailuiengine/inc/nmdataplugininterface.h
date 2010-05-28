@@ -33,7 +33,6 @@ class NmOperation;
 class NmMessageCreationOperation;
 class NmStoreEnvelopesOperation;
 class NmAddAttachmentsOperation;
-class NmCheckOutboxOperation;
 class NmMessageSendingOperation;
 
 /*!
@@ -177,8 +176,6 @@ public:
         const NmMessage &message,
         const NmId &attachmentPartId) = 0;
 
-    virtual QPointer<NmCheckOutboxOperation> checkOutbox(const NmId &mailboxId) = 0;
-    
     virtual NmSyncState syncState(const NmId& mailboxId) const = 0;
     
     virtual NmConnectState connectionState(const NmId& mailboxId) const = 0;
@@ -187,6 +184,8 @@ public:
         const QStringList &searchStrings) = 0;
 
     virtual int cancelSearch(const NmId &mailboxId) = 0;
+
+    virtual QPointer<NmOperation> removeDraftMessage(NmMessage *message) = 0;
 };
 
 Q_DECLARE_INTERFACE(NmDataPluginInterface, "sf.app.commonmail.emailuis.nmailuiengine.NmDataPluginInterface/1.0")

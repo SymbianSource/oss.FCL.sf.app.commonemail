@@ -15,6 +15,8 @@
  *
  */
 
+#include "emailtrace.h"
+
 #include <nmapifolder.h>
 #include "nmapifolder_p.h"
 
@@ -26,6 +28,8 @@ namespace EmailClientApi
  */
 NmApiFolder::NmApiFolder()
 {
+    NM_FUNCTION;
+    
     d = new NmApiFolderPrivate();
 }
 
@@ -35,7 +39,7 @@ NmApiFolder::NmApiFolder()
 NmApiFolder::NmApiFolder(const NmApiFolder &nmApiFolder)
 : d(nmApiFolder.d)
 {
-    
+    NM_FUNCTION;
 }
 
 /*!
@@ -43,7 +47,7 @@ NmApiFolder::NmApiFolder(const NmApiFolder &nmApiFolder)
  */
 NmApiFolder::~NmApiFolder()
 {
-
+    NM_FUNCTION;
 }
 
 /*!
@@ -51,6 +55,8 @@ NmApiFolder::~NmApiFolder()
  */
 NmApiFolder &NmApiFolder::operator=(const NmApiFolder &folder)
 {
+    NM_FUNCTION;
+    
     if (this != &folder) {
         d = folder.d;
     }
@@ -62,6 +68,8 @@ NmApiFolder &NmApiFolder::operator=(const NmApiFolder &folder)
  */
 bool NmApiFolder::operator==(const NmApiFolder &folder)
 {
+    NM_FUNCTION;
+    
     bool returnValue = false;
     if (d == folder.d) {
         returnValue = true;
@@ -74,6 +82,8 @@ bool NmApiFolder::operator==(const NmApiFolder &folder)
  */
 quint64 NmApiFolder::id() const
 {
+    NM_FUNCTION;
+    
     return d->id;
 }
 
@@ -82,6 +92,8 @@ quint64 NmApiFolder::id() const
  */
 QString NmApiFolder::name() const
 {
+    NM_FUNCTION;
+    
     return d->name;
 }
 
@@ -90,6 +102,8 @@ QString NmApiFolder::name() const
  */
 EmailClientApi::NmApiEmailFolderType NmApiFolder::folderType() const
 {
+    NM_FUNCTION;
+    
     return d->folderType;
 }
 
@@ -98,6 +112,8 @@ EmailClientApi::NmApiEmailFolderType NmApiFolder::folderType() const
  */
 void NmApiFolder::setName(const QString& name)
 {
+    NM_FUNCTION;
+    
     d->name = name;
 }
 
@@ -106,6 +122,8 @@ void NmApiFolder::setName(const QString& name)
  */
 void NmApiFolder::setId(quint64 id)
 {
+    NM_FUNCTION;
+    
     d->id = id;
 }
 
@@ -114,6 +132,8 @@ void NmApiFolder::setId(quint64 id)
  */
 void NmApiFolder::setFolderType(EmailClientApi::NmApiEmailFolderType folderType)
 {
+    NM_FUNCTION;
+    
     d->folderType = folderType;
 }
 
@@ -122,6 +142,8 @@ void NmApiFolder::setFolderType(EmailClientApi::NmApiEmailFolderType folderType)
  */
 void NmApiFolder::setParentFolderId(quint64 parentId)
 {
+    NM_FUNCTION;
+    
     d->parentId = parentId;
 }
 
@@ -130,6 +152,8 @@ void NmApiFolder::setParentFolderId(quint64 parentId)
  */
 void NmApiFolder::setChildFolderIds(QList<quint64> &childFolderIds)
 {
+    NM_FUNCTION;
+    
     d->childFolderIds = childFolderIds;
 }
 
@@ -139,6 +163,8 @@ void NmApiFolder::setChildFolderIds(QList<quint64> &childFolderIds)
  */
 void NmApiFolder::getChildFolderIds(QList<quint64> &childFolderIds)
 {
+    NM_FUNCTION;
+    
     childFolderIds = d->childFolderIds;
 }
 
@@ -148,6 +174,8 @@ void NmApiFolder::getChildFolderIds(QList<quint64> &childFolderIds)
  */
 quint64 NmApiFolder::parentFolderId() const
 {
+    NM_FUNCTION;
+    
     return d->parentId;
 }
 }

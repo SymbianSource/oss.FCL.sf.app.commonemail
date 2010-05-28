@@ -15,6 +15,8 @@
  *
  */
 
+#include "emailtrace.h"
+
 #include <QString>
 #include <QDateTime>
 
@@ -32,7 +34,7 @@ namespace EmailClientApi
 NmApiMessageEnvelope::NmApiMessageEnvelope(const NmApiMessageEnvelope &envelope) :
     d(envelope.d)
 {
-
+    NM_FUNCTION;
 }
 
 /*!
@@ -40,6 +42,8 @@ NmApiMessageEnvelope::NmApiMessageEnvelope(const NmApiMessageEnvelope &envelope)
  */
 NmApiMessageEnvelope::NmApiMessageEnvelope()
 {
+    NM_FUNCTION;
+    
     d = new NmApiMessageEnvelopePrivate();
 }
 
@@ -48,7 +52,7 @@ NmApiMessageEnvelope::NmApiMessageEnvelope()
  */
 NmApiMessageEnvelope::~NmApiMessageEnvelope()
 {
-
+    NM_FUNCTION;
 }
 
 /*!
@@ -56,6 +60,8 @@ NmApiMessageEnvelope::~NmApiMessageEnvelope()
  */
 NmApiMessageEnvelope &NmApiMessageEnvelope::operator=(const NmApiMessageEnvelope &envelope)
 {
+    NM_FUNCTION;
+    
     if (this != &envelope) {
         d = envelope.d;
     }
@@ -67,6 +73,8 @@ NmApiMessageEnvelope &NmApiMessageEnvelope::operator=(const NmApiMessageEnvelope
  */
 bool NmApiMessageEnvelope::operator==(const NmApiMessageEnvelope &envelope)
 {
+    NM_FUNCTION;
+    
     bool retVal = false;
     if (this->d == envelope.d) {
         retVal = true;
@@ -79,6 +87,8 @@ bool NmApiMessageEnvelope::operator==(const NmApiMessageEnvelope &envelope)
  */
 quint64 NmApiMessageEnvelope::id() const
 {
+    NM_FUNCTION;
+    
     return d->id;
 }
 
@@ -87,6 +97,8 @@ quint64 NmApiMessageEnvelope::id() const
  */
 quint64 NmApiMessageEnvelope::parentFolder() const
 {
+    NM_FUNCTION;
+    
     return d->parentFolder;
 }
 
@@ -95,6 +107,8 @@ quint64 NmApiMessageEnvelope::parentFolder() const
  */
 QString NmApiMessageEnvelope::subject() const
 {
+    NM_FUNCTION;
+    
     return d->subject;
 }
 
@@ -103,6 +117,8 @@ QString NmApiMessageEnvelope::subject() const
  */
 QString NmApiMessageEnvelope::sender() const
 {
+    NM_FUNCTION;
+    
     return d->sender;
 }
 
@@ -111,6 +127,8 @@ QString NmApiMessageEnvelope::sender() const
  */
 void NmApiMessageEnvelope::getToRecipients(QList<EmailClientApi::NmApiEmailAddress> &toRecipients)
 {
+    NM_FUNCTION;
+    
     toRecipients = d->toRecipients;
 }
 
@@ -119,6 +137,8 @@ void NmApiMessageEnvelope::getToRecipients(QList<EmailClientApi::NmApiEmailAddre
  */
 void NmApiMessageEnvelope::getCcRecipients(QList<EmailClientApi::NmApiEmailAddress> &ccRecipients)
 {
+    NM_FUNCTION;
+    
     ccRecipients = d->ccRecipients;
 }
 
@@ -127,6 +147,8 @@ void NmApiMessageEnvelope::getCcRecipients(QList<EmailClientApi::NmApiEmailAddre
  */
 QDateTime NmApiMessageEnvelope::sentTime() const
 {
+    NM_FUNCTION;
+    
     return d->sentTime;
 }
 
@@ -135,6 +157,8 @@ QDateTime NmApiMessageEnvelope::sentTime() const
  */
 bool NmApiMessageEnvelope::isRead() const
 {
+    NM_FUNCTION;
+    
     return d->read;
 }
 
@@ -143,6 +167,8 @@ bool NmApiMessageEnvelope::isRead() const
  */
 bool NmApiMessageEnvelope::hasAttachments() const
 {
+    NM_FUNCTION;
+    
     return d->attachments;
 }
 
@@ -151,6 +177,8 @@ bool NmApiMessageEnvelope::hasAttachments() const
  */
 bool NmApiMessageEnvelope::isForwarded() const
 {
+    NM_FUNCTION;
+    
     return d->forwarded;
 }
 
@@ -159,6 +187,8 @@ bool NmApiMessageEnvelope::isForwarded() const
  */
 bool NmApiMessageEnvelope::isReplied() const
 {
+    NM_FUNCTION;
+    
     return d->replied;
 }
 
@@ -167,6 +197,8 @@ bool NmApiMessageEnvelope::isReplied() const
  */
 QString NmApiMessageEnvelope::contentType() const
 {
+    NM_FUNCTION;
+    
     return d->contentType;
 }
 
@@ -175,6 +207,8 @@ QString NmApiMessageEnvelope::contentType() const
  */
 void NmApiMessageEnvelope::getPlainTextBody(EmailClientApi::NmApiMessageBody &body)
 {
+    NM_FUNCTION;
+    
     body.setContent(d->plainText);
     body.setFetchedSize(d->fetchedSize);
     body.setTotalSize(d->totalSize);
@@ -185,6 +219,8 @@ void NmApiMessageEnvelope::getPlainTextBody(EmailClientApi::NmApiMessageBody &bo
  */
 void NmApiMessageEnvelope::setId(quint64 id)
 {
+    NM_FUNCTION;
+    
     d->id = id;
 }
 
@@ -193,6 +229,8 @@ void NmApiMessageEnvelope::setId(quint64 id)
  */
 void NmApiMessageEnvelope::setParentFolder(quint64 parentFolder)
 {
+    NM_FUNCTION;
+    
     d->parentFolder = parentFolder;
 }
 
@@ -201,6 +239,8 @@ void NmApiMessageEnvelope::setParentFolder(quint64 parentFolder)
  */
 void NmApiMessageEnvelope::setSubject(const QString &subject)
 {
+    NM_FUNCTION;
+    
     d->subject = subject;
 }
 
@@ -209,6 +249,8 @@ void NmApiMessageEnvelope::setSubject(const QString &subject)
  */
 void NmApiMessageEnvelope::setSender(const QString &sender)
 {
+    NM_FUNCTION;
+    
     d->sender = sender;
 }
 
@@ -218,6 +260,8 @@ void NmApiMessageEnvelope::setSender(const QString &sender)
 void NmApiMessageEnvelope::setToRecipients(
     const QList<EmailClientApi::NmApiEmailAddress> &toRecipients)
 {
+    NM_FUNCTION;
+    
     d->toRecipients = toRecipients;
 }
 
@@ -227,6 +271,8 @@ void NmApiMessageEnvelope::setToRecipients(
 void NmApiMessageEnvelope::setCcRecipients(
     const QList<EmailClientApi::NmApiEmailAddress> &ccRecipients)
 {
+    NM_FUNCTION;
+    
     d->ccRecipients = ccRecipients;
 }
 
@@ -235,6 +281,8 @@ void NmApiMessageEnvelope::setCcRecipients(
  */
 void NmApiMessageEnvelope::setSentTime(QDateTime sentTime)
 {
+    NM_FUNCTION;
+    
     d->sentTime = sentTime;
 }
 
@@ -243,6 +291,8 @@ void NmApiMessageEnvelope::setSentTime(QDateTime sentTime)
  */
 void NmApiMessageEnvelope::setIsRead(bool isRead)
 {
+    NM_FUNCTION;
+    
     d->read = isRead;
 }
 
@@ -251,6 +301,8 @@ void NmApiMessageEnvelope::setIsRead(bool isRead)
  */
 void NmApiMessageEnvelope::setHasAttachments(bool hasAttachments)
 {
+    NM_FUNCTION;
+    
     d->attachments = hasAttachments;
 }
 
@@ -259,6 +311,8 @@ void NmApiMessageEnvelope::setHasAttachments(bool hasAttachments)
  */
 void NmApiMessageEnvelope::setIsForwarded(bool isForwarded)
 {
+    NM_FUNCTION;
+    
     d->forwarded = isForwarded;
 }
 
@@ -267,6 +321,8 @@ void NmApiMessageEnvelope::setIsForwarded(bool isForwarded)
  */
 void NmApiMessageEnvelope::setIsReplied(bool isReplied)
 {
+    NM_FUNCTION;
+    
     d->replied = isReplied;
 }
 
@@ -275,6 +331,8 @@ void NmApiMessageEnvelope::setIsReplied(bool isReplied)
  */
 void NmApiMessageEnvelope::setContentType(const QString &contentType)
 {
+    NM_FUNCTION;
+    
     d->contentType = contentType;
 }
 
@@ -283,6 +341,8 @@ void NmApiMessageEnvelope::setContentType(const QString &contentType)
  */
 void NmApiMessageEnvelope::setPlainText(const QString &plainText)
 {
+    NM_FUNCTION;
+    
     d->plainText = plainText;
 }
 
@@ -291,6 +351,8 @@ void NmApiMessageEnvelope::setPlainText(const QString &plainText)
  */
 void NmApiMessageEnvelope::setTotalSize(quint64 totalSize)
 {
+    NM_FUNCTION;
+    
     d->totalSize = totalSize;
 }
 
@@ -299,6 +361,8 @@ void NmApiMessageEnvelope::setTotalSize(quint64 totalSize)
  */
 void NmApiMessageEnvelope::setFetchedSize(quint64 fetchedSize)
 {
+    NM_FUNCTION;
+    
     d->fetchedSize = fetchedSize;
 }
 
@@ -307,6 +371,8 @@ void NmApiMessageEnvelope::setFetchedSize(quint64 fetchedSize)
  */
 QString NmApiMessageEnvelope::plainText() const
 {
+    NM_FUNCTION;
+    
     return d->plainText;
 }
 
@@ -315,6 +381,8 @@ QString NmApiMessageEnvelope::plainText() const
  */
 quint64 NmApiMessageEnvelope::totalSize() const
 {
+    NM_FUNCTION;
+    
     return d->totalSize;
 }
 
@@ -323,6 +391,8 @@ quint64 NmApiMessageEnvelope::totalSize() const
  */
 quint64 NmApiMessageEnvelope::fetchedSize() const
 {
+    NM_FUNCTION;
+    
     return d->fetchedSize;
 }
 }

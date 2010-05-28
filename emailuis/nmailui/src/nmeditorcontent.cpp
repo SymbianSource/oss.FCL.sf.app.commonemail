@@ -20,9 +20,6 @@
 // Layout
 static const char *NMUI_EDITOR_BODY = "BodyTextEdit";
 
-static const double Un = 6.66;
-static const double HeaderAreaMarginsTotal = 3 * Un;
-
 /*!
     Constructor
 */
@@ -38,14 +35,14 @@ NmEditorContent::NmEditorContent(QGraphicsItem *parent,
     mEditorWidget(NULL),
     mBackgroundScrollArea((NmBaseViewScrollArea*)parent)
 {
-    mBackgroundScrollArea->setLongPressEnabled(true);
+    NM_FUNCTION;
 
     // Add header area handling widget into layout
-    mHeaderWidget = new NmEditorHeader(documentLoader, this);
+    mHeaderWidget = new NmEditorHeader(documentLoader);
 
     // Get pointer to body text area handling widget
     mEditorWidget = qobject_cast<NmEditorTextEdit *>(documentLoader->findWidget(NMUI_EDITOR_BODY));
-
+    
     // Set body editor to use NmEditorTextDocument
     NmEditorTextDocument *textDocument = new NmEditorTextDocument(manager);
     mEditorWidget->setDocument(textDocument); 
@@ -68,6 +65,8 @@ NmEditorContent::NmEditorContent(QGraphicsItem *parent,
 */
 NmEditorContent::~NmEditorContent()
 {
+    NM_FUNCTION;
+    
    delete mHeaderWidget;
 }
 
@@ -76,34 +75,16 @@ NmEditorContent::~NmEditorContent()
     present, reply header is generated and set to editor. Reply
     envelope ownership is not transferred here.
  */
-void NmEditorContent::setMessageData(const NmMessage &message,
-                                     NmMessageEnvelope *replyMsgEnvelope)
+void NmEditorContent::setMessageData(const NmMessage &originalMessage)
 {
-    // Check which part is present. Html or plain text part
-    const NmMessagePart *htmlPart = message.htmlBodyPart();
-    const NmMessagePart *plainPart = message.plainTextBodyPart();
+    NM_FUNCTION;
+    // Check which part is present. Html or plain text part. We use the original message parts.
+    const NmMessagePart *htmlPart = originalMessage.htmlBodyPart();
 
-    QList<NmMessagePart*> parts;
-    message.attachmentList(parts);
-    NmMessagePart* attachmentHtml = NULL;
+    const NmMessagePart *plainPart = originalMessage.plainTextBodyPart();
 
-    foreach(NmMessagePart* part, parts) {
-        if (part->contentDescription().startsWith( NmContentDescrAttachmentHtml )) {
-                attachmentHtml = part;
-            }
-        }
-    
-    if (htmlPart) {	    
-        // Html part was present, set it to HbTextEdit
-        // This will generate contentsChanged() event which is used to
-        // set new height for the editor widget and content.
-        if(attachmentHtml){
-            QString htmlText = htmlPart->textContent() + attachmentHtml->textContent();
-            emit setHtml(htmlText);
-        } 
-        else{
-            emit setHtml(htmlPart->textContent());    
-        }
+    if (htmlPart) {
+        emit setHtml(htmlPart->textContent());    
         mMessageBodyType = HTMLText;
     }
     else if (plainPart) {
@@ -112,11 +93,11 @@ void NmEditorContent::setMessageData(const NmMessage &message,
         mMessageBodyType = PlainText;
     }
     
-    // Original message text to editor content fiel
-    if (replyMsgEnvelope && mEditorWidget) {          
+    // We create the "reply" header (also for forward message)
+    if (mEditorWidget) {          
         QTextCursor cursor = mEditorWidget->textCursor();
         cursor.setPosition(0);
-        cursor.insertHtml(NmUtilities::createReplyHeader(*replyMsgEnvelope));
+        cursor.insertHtml(NmUtilities::createReplyHeader(originalMessage.envelope()));
     }
 }  
 
@@ -126,15 +107,16 @@ void NmEditorContent::setMessageData(const NmMessage &message,
  */
 void NmEditorContent::setEditorContentHeight()
 {
+    NM_FUNCTION;
+    
 	const QSizeF reso = HbDeviceProfile::current().logicalSize();
-    qreal containerHeight =
-        mEditorWidget->contentHeight() + mHeaderWidget->headerHeight() + HeaderAreaMarginsTotal;
+    qreal containerHeight = mEditorWidget->contentHeight() + mHeaderWidget->headerHeight();
     if (containerHeight < reso.height()) {
         //Currently content height is too long because Chrome hiding is not supported.
         //Fix this when Chrome works.
         containerHeight = reso.height();
         qreal bodyContentHeight =
-            reso.height() - mHeaderWidget->headerHeight() - HeaderAreaMarginsTotal;
+            reso.height() - mHeaderWidget->headerHeight();
         mEditorWidget->setPreferredHeight(bodyContentHeight);
         mEditorWidget->setMaximumHeight(bodyContentHeight);
     }
@@ -148,6 +130,8 @@ void NmEditorContent::setEditorContentHeight()
  */
 void NmEditorContent::createConnections()
 {
+    NM_FUNCTION;
+    
     // Body edit widget is also interested about bg scroll position change
     connect(mBackgroundScrollArea, SIGNAL(scrollPositionChanged(QPointF)),
             mEditorWidget, SLOT(updateScrollPosition(QPointF)));
@@ -167,6 +151,8 @@ void NmEditorContent::createConnections()
  */
 NmEditorTextEdit* NmEditorContent::editor() const
 {
+    NM_FUNCTION;
+    
     return mEditorWidget;
 }
 
@@ -175,6 +161,8 @@ NmEditorTextEdit* NmEditorContent::editor() const
  */
 NmEditorHeader* NmEditorContent::header() const
 {
+    NM_FUNCTION;
+    
     return mHeaderWidget;
 }
 

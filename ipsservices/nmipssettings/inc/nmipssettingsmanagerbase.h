@@ -24,9 +24,7 @@
 #include "nmipssettingitems.h"
 
 class QVariant;
-class CEmailAccounts;
 class CImSmtpSettings;
-class TSmtpAccount;
 class NmIpsExtendedSettingsManager;
 class NmId;
 
@@ -34,7 +32,9 @@ class NmIpsSettingsManagerBase
 {
 public:
 
-    NmIpsSettingsManagerBase(const NmId &mailboxId, CEmailAccounts *account, IpsServices::TIpsSetAccountTypes);
+    NmIpsSettingsManagerBase(const NmId &mailboxId,
+                             CEmailAccounts *account,
+                             IpsServices::TIpsSetAccountTypes);
     virtual ~NmIpsSettingsManagerBase();
     virtual bool readSetting(IpsServices::SettingItem settingItem, QVariant &settingValue);
     virtual bool writeSetting(IpsServices::SettingItem settingItem, const QVariant &settingValue);
@@ -48,8 +48,9 @@ public:
 private:
 
     bool saveSettings();
+    bool saveIAPSettings(uint snapId);
     
-protected: // data.
+protected: // data
 
     CEmailAccounts *mAccount;   // Owned.
     CImSmtpSettings *mSmtpSettings; // Owned.

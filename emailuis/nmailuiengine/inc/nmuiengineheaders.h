@@ -39,6 +39,7 @@
 #include <hbicon.h>
 #include <hbiconanimationmanager.h>
 #include <hbmenu.h>
+#include <hbindicator.h>
 
 // nmailuiengine
 #include "nmuienginedef.h"
@@ -60,7 +61,6 @@
 #include "nmmessagesendingoperation.h"
 #include "nmaddattachmentsoperation.h"
 #include "nmmessagecreationoperation.h"
-#include "nmcheckoutboxoperation.h"
 #include "nmmessagecreationoperation.h"
 #include "nmapplicationstateinterface.h"
 

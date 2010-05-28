@@ -15,11 +15,12 @@
 *
 */
 
+#include "emailtrace.h"
+
 //<qmail>
 #include <nmcommonheaders.h>
 //</qmail>
 
-#include "emailtrace.h"
 #include "CFSFWImplementation.h"
 //<cmail>
 #include "CFSMailPlugin.h"
@@ -32,7 +33,8 @@
 // -----------------------------------------------------------------------------
 CFSFWImplementation::CFSFWImplementation()
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 	iPluginManager = NULL;
 }
 
@@ -41,7 +43,8 @@ CFSFWImplementation::CFSFWImplementation()
 // -----------------------------------------------------------------------------
 CFSFWImplementation::~CFSFWImplementation()
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 	delete iPluginManager;
 }
 // -----------------------------------------------------------------------------
@@ -49,11 +52,12 @@ CFSFWImplementation::~CFSFWImplementation()
 // -----------------------------------------------------------------------------
 CFSFWImplementation* CFSFWImplementation::NewLC(TInt aConfiguration)
 {
-    FUNC_LOG;
-  CFSFWImplementation* impl = new (ELeave) CFSFWImplementation();
-  CleanupStack:: PushL(impl);
-  impl->ConstructL(aConfiguration);
-  return impl;
+    NM_FUNCTION;
+    
+    CFSFWImplementation* impl = new (ELeave) CFSFWImplementation();
+    CleanupStack:: PushL(impl);
+    impl->ConstructL(aConfiguration);
+    return impl;
 } 
 
 // -----------------------------------------------------------------------------
@@ -61,10 +65,11 @@ CFSFWImplementation* CFSFWImplementation::NewLC(TInt aConfiguration)
 // -----------------------------------------------------------------------------
 CFSFWImplementation* CFSFWImplementation::NewL(TInt aConfiguration)
 {
-    FUNC_LOG;
-  CFSFWImplementation* impl =  CFSFWImplementation::NewLC(aConfiguration);
-  CleanupStack:: Pop(impl);
-  return impl;
+    NM_FUNCTION;
+    
+    CFSFWImplementation* impl =  CFSFWImplementation::NewLC(aConfiguration);
+    CleanupStack:: Pop(impl);
+    return impl;
 }
 
 // -----------------------------------------------------------------------------
@@ -72,7 +77,8 @@ CFSFWImplementation* CFSFWImplementation::NewL(TInt aConfiguration)
 // -----------------------------------------------------------------------------
 void CFSFWImplementation::ConstructL(TInt aConfiguration)
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 	// create plugin manager
 	iPluginManager = CFSMailPluginManager::NewL(aConfiguration);
 }
@@ -82,7 +88,8 @@ void CFSFWImplementation::ConstructL(TInt aConfiguration)
 // -----------------------------------------------------------------------------
 CFSMailPluginManager& CFSFWImplementation::GetPluginManager( )
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 	return *iPluginManager;
 }
 

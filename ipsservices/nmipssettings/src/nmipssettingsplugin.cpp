@@ -15,17 +15,19 @@
 *
 */
 
-#include <hbdataform.h>
-#include <hbdataformmodel.h>
-#include <hbdataformmodelitem.h>
-#include <hblineedit.h>
-#include <cpsettingformitemdata.h>
 #include <qplugin.h>
 #include <QCoreApplication>
 #include <QTranslator>
 #include <QScopedPointer>
 #include <QLocale>
+
 #include <HbStringUtil>
+#include <HbDataForm>
+#include <HbDataFormModel>
+#include <HbDataFormModelItem>
+#include <HbLineEdit>
+
+#include <cpsettingformitemdata.h>
 
 #include "nmipssettingsplugin.h"
 #include "nmipssettingshelper.h"
@@ -41,6 +43,7 @@
 const QString NmIpsSettingsComboItems("comboItems");
 const QString NmIpsSettingsLabelTexts("labelTexts");
 const QString NmIpsSettingsItems("items");
+const int NmIpsSettingsReceptionUserDefinedProfileEnabled(1);
 
 /*!
     \class NmIpsSettingsPlugin
@@ -63,7 +66,6 @@ NmIpsSettingsPlugin::NmIpsSettingsPlugin()
     QString appName = "mailips_";
     QString commonName = "common_";
     
-
     // Load common strings
 	QScopedPointer<QTranslator> commonTranslator(new QTranslator(this));
     commonTranslator->load(commonName + lang, path);
@@ -96,6 +98,9 @@ NmIpsSettingsPlugin::~NmIpsSettingsPlugin()
 bool NmIpsSettingsPlugin::populateModel(HbDataFormModel &model,
     HbDataForm &form, const NmId &mailboxId)
 {
+    // Turns AlwaysOnline OFF
+    setAlwaysOnlineState(EServerAPIEmailTurnOff, mailboxId);
+    
     // Store model and form pointers.
     mModel = &model;
     mForm = &form;
@@ -133,7 +138,6 @@ bool NmIpsSettingsPlugin::populateModel(HbDataFormModel &model,
         initGroupItems();
         result = true;
     }
-    
     return result;
 }
 
@@ -143,10 +147,15 @@ bool NmIpsSettingsPlugin::populateModel(HbDataFormModel &model,
 void NmIpsSettingsPlugin::aboutToClose()
 {
     QVariant profileIndex;
+    const NmId mailboxId = mSettingsManager->mailboxId();
+    
 	mSettingsManager->readSetting(IpsServices::ReceptionActiveProfile, profileIndex);
 	if ((mSettingsHelper->isOffline()) && (profileIndex.toInt() != IpsServices::EmailSyncProfileManualFetch)) {
-		emit goOnline(mSettingsManager->mailboxId());
+		emit goOnline(mailboxId);
 	}
+	
+	// Turns AlwaysOnline ON
+	setAlwaysOnlineState(EServerAPIEmailTurnOn, mailboxId);
 }
 
 /*!
@@ -203,7 +212,24 @@ void NmIpsSettingsPlugin::initGroupItems()
 */
 void NmIpsSettingsPlugin::initPreferenceItems(HbDataFormModelItem &item) const
 {
-    // 1. My Name
+
+    // 1. Connection
+    QVariant destId;
+
+    mSettingsManager->readSetting(IpsServices::Connection, destId);
+    QString destName(mSettingsHelper->destinationNameFromIdentifier(destId.toUInt()));
+    HbDataFormModelItem::DataItemType buttonItem =
+        static_cast<HbDataFormModelItem::DataItemType>(
+            HbDataFormModelItem::CustomItemBase + 2);
+    CpSettingFormItemData *connectionButtonItem = new CpSettingFormItemData(buttonItem,
+        hbTrId("txt_mailips_setlabel_connection"));
+    connectionButtonItem->setContentWidgetData(QString("text"), destName);
+    mSettingsHelper->insertContentItem(IpsServices::Connection, connectionButtonItem);
+    mForm->addConnection(connectionButtonItem, SIGNAL(clicked()),
+                         mSettingsHelper, SLOT(connectionButtonPress()));
+    item.appendChild(connectionButtonItem);
+
+    // 2. My Name
     QVariant myName;
     mSettingsManager->readSetting(IpsServices::EmailAlias, myName);
     CpSettingFormItemData *myNameItem = new CpSettingFormItemData(
@@ -216,7 +242,7 @@ void NmIpsSettingsPlugin::initPreferenceItems(HbDataFormModelItem &item) const
                          mSettingsHelper, SLOT(myNameTextChange(QString)));
     item.appendChild(myNameItem);
 
-    // 2. Mailbox Name
+    // 3. Mailbox Name
     QVariant mailboxName;
     mSettingsManager->readSetting(IpsServices::MailboxName, mailboxName);
     CpSettingFormItemData *mailboxNameItem = new CpSettingFormItemData(
@@ -292,21 +318,14 @@ void NmIpsSettingsPlugin::initReceivingScheduleItems(HbDataFormModelItem &item)
 
     mSettingsHelper->insertContentItem(IpsServices::ReceptionInboxSyncWindow, showMailInInboxItem);
 
+    // If changes are made to showMailItems, conversion table in
+    // showMailInInboxModified method needs to be updated also.
     QStringList showMailItems;
     showMailItems << HbStringUtil::convertDigits("50")
                   << HbStringUtil::convertDigits("100")
                   << HbStringUtil::convertDigits("500")
                   << hbTrId("txt_mailips_setlabel_val_all");
     
-
-    QList<QVariant> showMailItemValues;
-    showMailItemValues << 50
-                       << 100
-                       << 500
-                       << 0;
-    
-    QVariant value(showMailItemValues);
-    showMailInInboxItem->setData(HbDataFormModelItem::DescriptionRole + 1, value);
     showMailInInboxItem->setContentWidgetData(NmIpsSettingsItems, showMailItems);
     showMailInInboxItem->setEnabled(true);
     item.appendChild(showMailInInboxItem);
@@ -315,8 +334,8 @@ void NmIpsSettingsPlugin::initReceivingScheduleItems(HbDataFormModelItem &item)
     mForm->addConnection(infoItem, SIGNAL(currentIndexChanged(int)),
         mSettingsHelper, SLOT(receivingScheduleChange(int)));
 
-    mForm->addConnection(showMailInInboxItem, SIGNAL(itemSelected(int)),
-        this, SLOT(showMailInInboxModified(int)));
+    mForm->addConnection(showMailInInboxItem, SIGNAL(valueChanged(QPersistentModelIndex, QVariant)),
+        this, SLOT(showMailInInboxModified(QPersistentModelIndex, QVariant)));
 
     // Must be called manually here, because the signal->slot connection set above using
     // HbDataForm::addConnection() is actually established AFTER the properties have first been
@@ -554,6 +573,26 @@ void NmIpsSettingsPlugin::initServerInfoItems(HbDataFormModelItem &item) const
 }
 
 /*!
+    Sets the state of the AlwaysOnline.
+    \param command Command for the state of the AlwaysOnline.
+    \param mailboxId Mailbox id.
+*/
+void NmIpsSettingsPlugin::setAlwaysOnlineState(TAlwaysOnlineServerAPICommands command,
+                                               NmId mailboxId) const
+{
+    RAlwaysOnlineClientSession aosession;
+    TInt err(aosession.Connect());
+    
+    if (err == KErrNone) {
+        TPckgBuf<TMsvId> mboxBuf(mailboxId.id32());
+        
+        TRAP_IGNORE(aosession.RelayCommandL(command, mboxBuf));
+    }
+    
+    aosession.Close();
+}
+
+/*!
     Creates user defined mode if not already exist.
 */
 void NmIpsSettingsPlugin::createUserDefinedMode()
@@ -588,8 +627,8 @@ void NmIpsSettingsPlugin::createUserDefinedMode()
         mForm->addConnection(syncProfile, SIGNAL(currentIndexChanged(int)),
             mSettingsHelper, SLOT(receivingScheduleChange(int)));
 
-        // Mark that user defined mode exists.
-        userDefineMode.setValue(1);
+        // Set reception user defined profile enabled.
+        userDefineMode.setValue(NmIpsSettingsReceptionUserDefinedProfileEnabled);
         mSettingsManager->writeSetting(IpsServices::ReceptionUserDefinedProfile, userDefineMode);
     }
 }
@@ -597,15 +636,23 @@ void NmIpsSettingsPlugin::createUserDefinedMode()
 /*!
     Handles mail in inbox modifications.
 
-    \param index Selected value index.
+    \param value Selected value as a text.
 */
-void NmIpsSettingsPlugin::showMailInInboxModified(int index)
+void NmIpsSettingsPlugin::showMailInInboxModified(QPersistentModelIndex, QVariant value)
 {
-    HbDataFormModelItem* item = mSettingsHelper->contentItem(IpsServices::ReceptionInboxSyncWindow);
-    QVariant itemData = item->data(HbDataFormModelItem::HbDataFormModelItem::DescriptionRole + 1);
-    int selectedValue = itemData.value< QList< QVariant > >().at(index).toInt();
-    mSettingsHelper->handleReceivingScheduleSettingChange(
-        IpsServices::ReceptionInboxSyncWindow, selectedValue);
+    QMap<QString, int> conversionTable;
+    conversionTable[HbStringUtil::convertDigits("50")] = 50;
+    conversionTable[HbStringUtil::convertDigits("100")] = 100;
+    conversionTable[HbStringUtil::convertDigits("500")] = 500;
+    conversionTable[hbTrId("txt_mailips_setlabel_val_all")] = 0;
+
+    int selectedValue(conversionTable.value(value.toString()));
+    QVariant previouslySelectedValue;
+    mSettingsManager->readSetting(IpsServices::ReceptionInboxSyncWindow, previouslySelectedValue);
+    if (previouslySelectedValue.toInt() != selectedValue) {
+        mSettingsHelper->handleReceivingScheduleSettingChange(
+            IpsServices::ReceptionInboxSyncWindow, selectedValue);
+    }
 }
 
 Q_EXPORT_PLUGIN2(nmipssettings, NmIpsSettingsPlugin);

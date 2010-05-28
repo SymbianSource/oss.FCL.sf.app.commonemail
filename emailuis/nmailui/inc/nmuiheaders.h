@@ -90,7 +90,6 @@
 #include <xqservicerequest.h>
 #include <qtcontacts.h>
 #include <qmobilityglobal.h>
-#include <mobcntmodel.h>
 #include <xqserviceutil.h>
 #include <xqappmgr.h>
 #include <xqserviceipcmarshal.h>
@@ -112,7 +111,6 @@
 #include <nmmessagecreationoperation.h>
 #include <nmaddattachmentsoperation.h>
 #include <nmicons.h>
-#include <nmcheckoutboxoperation.h>
 #include <emailmailboxinfo.h>
 #include <email_services_api.h>
 
@@ -146,6 +144,7 @@
 #include "nmrecipientlineedit.h"
 #include "nmstoreenvelopesoperation.h"
 #include "nmsendserviceinterface.h"
+#include "nmuriserviceinterface.h"
 #include "nmmailboxselectiondialog.h"
 #include "nmuidocumentloader.h"
 #include "nmmailboxserviceinterface.h"

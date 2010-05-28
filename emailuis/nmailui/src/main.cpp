@@ -23,6 +23,8 @@
 */
 int main(int argc, char *argv[])
 {
+    NM_FUNCTION;
+    
     HbApplication app(argc, argv);
  
     // Load the translation file.

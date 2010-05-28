@@ -57,17 +57,19 @@ protected:
      * @param aFSMailBoxId mailbox id
      * @param aFSOperationObserver callback interface to caller for reporting progress (completion) statuses
      * @param aFSRequestId id of the request
+     * @param aSignallingAllowed for asynchronous request response message
      */
     // <qmail> priority parameter has been removed
 	// <qmail> MFSMailRequestObserver& changed to pointer
-	// <qmail> aSignallingAllowed parameter has been removed
+	// <qmail> aSignallingAllowed parameter has been returned
     CIpsPlgOnlineOperation(
         CMsvSession& aMsvSession,
         TRequestStatus& aObserverRequestStatus,
         CIpsPlgTimerOperation& aActivityTimer,
         TFSMailMsgId aFSMailBoxId,
         MFSMailRequestObserver* aFSOperationObserver,
-        TInt aFSRequestId );
+        TInt aFSRequestId,
+        TBool aSignallingAllowed=ETrue );
 
     /**
     * Base constructor
@@ -150,7 +152,9 @@ protected:
         // Return this if iSubOperation==NULL.
         TBuf8<1>                iDummyProg;
         
-        // <qmail> removed: TBool           iSignallingAllowed;
+        // <qmail> boolean returned
+        TBool           iSignallingAllowed;
+        // </qmail>
         MFSMailRequestObserver* iFSOperationObserver; //not owned
     };
 

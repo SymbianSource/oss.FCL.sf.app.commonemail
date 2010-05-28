@@ -64,6 +64,8 @@ NmSettingsViewFactory::NmSettingsViewFactory(
    mSettingsManager(new NmMailboxSettingsManager()), mSettingsViewLauncher(0),mPrevView(0),
    mMessageBox(0)
 {
+    NM_FUNCTION;
+    
     createMessageBox();
 }
 
@@ -90,6 +92,8 @@ NmSettingsViewFactory::NmSettingsViewFactory(
      mSettingsManager(new NmMailboxSettingsManager()), mSettingsViewLauncher(viewLauncher),
      mPrevView(0), mMessageBox(0)
 {
+    NM_FUNCTION;
+    
     createMessageBox();
 }
 
@@ -99,6 +103,8 @@ NmSettingsViewFactory::NmSettingsViewFactory(
 */
 NmSettingsViewFactory::~NmSettingsViewFactory()
 {
+    NM_FUNCTION;
+    
     delete mSettingsManager;
     delete mMessageBox;
 }
@@ -113,16 +119,15 @@ NmSettingsViewFactory::~NmSettingsViewFactory()
 */
 CpBaseSettingView *NmSettingsViewFactory::createSettingView() const
 {
-    NMLOG(QString("NmSettingsViewFactory::createSettingView(): Begin."));
-
+    NM_FUNCTION;
+    
     CpBaseSettingView *view = 0;
     QList<NmMailbox *> mailboxList;
     mSettingsManager->listMailboxes(mailboxList);
     const int mailboxCount(mailboxList.count());
 
     // Log the number of mailboxes.
-    NMLOG(QString("NmSettingsViewFactory::createSettingView(): Mailbox count is ") +
-          QString::number(mailboxCount));
+    NM_COMMENT(QString("NmSettingsViewFactory::createSettingView(): mailbox count is %1").arg(mailboxCount));
 
     switch(mailboxCount) {
         case 0: {
@@ -156,8 +161,7 @@ CpBaseSettingView *NmSettingsViewFactory::createSettingView() const
                 SIGNAL(mailboxPropertyChanged(const NmId &, QVariant, QVariant)),
                 view, SLOT(mailboxPropertyChanged(const NmId &, QVariant, QVariant)));
     }
-
-    NMLOG(QString("NmSettingsViewFactory::createSettingView(): End."));
+    
     return view;
 }
 
@@ -171,8 +175,8 @@ CpBaseSettingView *NmSettingsViewFactory::createSettingView() const
 void NmSettingsViewFactory::launchSettingView(const NmId &mailboxId,
                                               const QString &mailboxName) const
 {
-    NMLOG(QString("NmSettingsViewFactory::launchSettingView"));
-
+    NM_FUNCTION;
+    
     // There's always at least one valid main window available.
     HbMainWindow *mainWindow = hbInstance->allMainWindows().takeFirst();
 
@@ -233,8 +237,6 @@ void NmSettingsViewFactory::launchSettingView(const NmId &mailboxId,
     mPrevView = mainWindow->currentView();
     mainWindow->addView(view);
     mainWindow->setCurrentView(view);
-
-    NMLOG(QString("NmSettingsViewFactory::launchSettingView - OK"));
 }
 
 
@@ -245,8 +247,8 @@ void NmSettingsViewFactory::launchSettingView(const NmId &mailboxId,
 */
 void NmSettingsViewFactory::backPress()
 {
-    NMLOG(QString("NmSettingsViewFactory::backPress"));
-
+    NM_FUNCTION;
+    
     emit aboutToClose();
     HbMainWindow *mainWindow = hbInstance->allMainWindows().takeFirst();
     QList<HbView *> views = mainWindow->views();
@@ -260,8 +262,6 @@ void NmSettingsViewFactory::backPress()
         }
         mPrevView = 0;
     }
-
-    NMLOG(QString("NmSettingsViewFactory::backPress - OK"));
 }
 
 /*!
@@ -271,9 +271,11 @@ void NmSettingsViewFactory::backPress()
 */
 void NmSettingsViewFactory::launchWizard(HbAction *action)
 {
+    NM_FUNCTION;
+    
     if (action == mMessageBox->primaryAction()) {
         // Launch mail wizard.
-        NMLOG(QString("NmSettingsViewFactory::launchWizard(): Launching the mail wizard."));
+        NM_COMMENT(QString("NmSettingsViewFactory::launchWizard(): launching the mail wizard"));
         QStringList args;
         args << mailWizardStartArgs;
         QProcess::startDetached(mailWizardStartExe, args);
@@ -285,6 +287,8 @@ void NmSettingsViewFactory::launchWizard(HbAction *action)
 */
 void NmSettingsViewFactory::createMessageBox()
 {
+    NM_FUNCTION;
+    
     mMessageBox = new HbMessageBox(HbMessageBox::MessageTypeQuestion);
     mMessageBox->setText(hbTrId("txt_mail_dialog_no_mailboxes_create_new"));
     mMessageBox->setTimeout(HbMessageBox::NoTimeout);

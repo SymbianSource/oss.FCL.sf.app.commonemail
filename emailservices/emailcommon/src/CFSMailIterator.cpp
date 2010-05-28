@@ -15,11 +15,12 @@
 *
 */
 
+#include "emailtrace.h"
+
 // <qmail>
 #include <nmcommonheaders.h>
 // </qmail>
 
-#include "emailtrace.h"
 #include "CFSMailIterator.h"
 
 // ================= MEMBER FUNCTIONS ==========================================
@@ -29,11 +30,12 @@
 EXPORT_C CFSMailIterator* CFSMailIterator::NewLC( 	MFSMailIterator& aIterator,
 													CFSMailRequestHandler* aRequestHandler )
 {
-    FUNC_LOG;
-  CFSMailIterator* api = new (ELeave) CFSMailIterator();
-  CleanupStack:: PushL(api);
-  api->ConstructL( aIterator, aRequestHandler );
-  return api;
+    NM_FUNCTION;
+    
+    CFSMailIterator* api = new (ELeave) CFSMailIterator();
+    CleanupStack:: PushL(api);
+    api->ConstructL( aIterator, aRequestHandler );
+    return api;
 } 
 
 // -----------------------------------------------------------------------------
@@ -42,10 +44,11 @@ EXPORT_C CFSMailIterator* CFSMailIterator::NewLC( 	MFSMailIterator& aIterator,
 EXPORT_C CFSMailIterator* CFSMailIterator::NewL( 	MFSMailIterator& aIterator,
 													CFSMailRequestHandler* aRequestHandler )
 {
-    FUNC_LOG;
-  CFSMailIterator* api =  CFSMailIterator::NewLC( aIterator, aRequestHandler );
-  CleanupStack:: Pop(api);
-  return api;
+    NM_FUNCTION;
+    
+    CFSMailIterator* api =  CFSMailIterator::NewLC( aIterator, aRequestHandler );
+    CleanupStack:: Pop(api);
+    return api;
 }
 
 // -----------------------------------------------------------------------------
@@ -53,7 +56,8 @@ EXPORT_C CFSMailIterator* CFSMailIterator::NewL( 	MFSMailIterator& aIterator,
 // -----------------------------------------------------------------------------
 CFSMailIterator::CFSMailIterator()
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 	iIterator = NULL;
 }
 
@@ -63,7 +67,8 @@ CFSMailIterator::CFSMailIterator()
 void CFSMailIterator::ConstructL( 	MFSMailIterator& aIterator,
 									CFSMailRequestHandler* aRequestHandler )
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 	iIterator = &aIterator;
 	iRequestHandler = aRequestHandler;
  }
@@ -73,7 +78,8 @@ void CFSMailIterator::ConstructL( 	MFSMailIterator& aIterator,
 // -----------------------------------------------------------------------------
 EXPORT_C CFSMailIterator::~CFSMailIterator()
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 	if(iIterator)
 		{
 		delete iIterator;
@@ -88,7 +94,8 @@ EXPORT_C TBool CFSMailIterator::NextL(
         TUint aCount, 
         RPointerArray<CFSMailMessage>& aMessages)
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 	// call plugin iterator
 	TBool ret = iIterator->NextL(aCurrentMessageId,aCount,aMessages);
 	
@@ -104,7 +111,7 @@ EXPORT_C TBool CFSMailIterator::NextL(
         TUint aCount, 
         RPointerArray<CFSMailMessage>& aMessages)
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
 
 	// call plugin iterator
 	TBool ret = iIterator->NextL(aStartWith,aCount,aMessages);
@@ -120,8 +127,9 @@ EXPORT_C TBool CFSMailIterator::PreviousL(
         TUint aCount, 
         RPointerArray<CFSMailMessage>& aMessages)
 	{
-    FUNC_LOG;
-		// call plugin iterator
+    NM_FUNCTION;
+    
+	// call plugin iterator
 	TBool ret = iIterator->PreviousL(aCurrentMessageId,aCount,aMessages);
 		
 	return ret;
@@ -136,7 +144,7 @@ EXPORT_C TBool CFSMailIterator::PreviousL(
         TUint aCount, 
         RPointerArray<CFSMailMessage>& aMessages)
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
 
 	// call plugin iterator
 	TBool ret = iIterator->PreviousL(aStartWith,aCount,aMessages);

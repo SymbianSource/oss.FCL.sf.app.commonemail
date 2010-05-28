@@ -241,6 +241,8 @@ CDelayedOpsManager* CDelayedOpsManager::NewL( CBasePlugin& aPlugin )
     __LOG_ENTER( "DeleteMessagesInChunksL" );
     TBool done=EFalse;
     TInt endIndex;
+//<qmail>
+    TInt result(KErrNone);
     if( aStartIndex + KSizeOfChunk < iMessages.Count() )
         {
             endIndex = aStartIndex + KSizeOfChunk;
@@ -260,18 +262,30 @@ CDelayedOpsManager* CDelayedOpsManager::NewL( CBasePlugin& aPlugin )
         
         if ( EFalse == iImmediateDelete )
             {
-            //try to find the message in the deleted items folder.
+            //try to find the message
             CMsgStoreMessage* theMessage = NULL;
-            TRAP_IGNORE( theMessage = mailBox.FetchMessageL(
-              msgId, mailBoxInfo.iRootFolders.iFolders[EFSDeleted] ) );
-            
-            if ( NULL == theMessage )
+            theMessage = mailBox.FetchMessageL(
+                                      msgId, KMsgStoreInvalidId ) ;
+            //save parentId
+            TMsgStoreId msgParentId;
+            msgParentId =theMessage->ParentId();
+            //check if message is in deleted folder or not.
+            if ( msgParentId != mailBoxInfo.iRootFolders.iFolders[EFSDeleted] )
                 {
-                //if not in deleted items then move it there.
+            	//if not in deleted items then move it there.
                 __LOG_WRITE8_FORMAT1_INFO("Moving message 0x%X to the deleted items.", msgId );
-                mailBox.MoveMessageL(
+                TRAP(result,mailBox.MoveMessageL(
                    msgId, KMsgStoreInvalidId,
-                   mailBoxInfo.iRootFolders.iFolders[EFSDeleted] );
+                   mailBoxInfo.iRootFolders.iFolders[EFSDeleted] ));
+                if(result == KErrNone)
+                    {
+                    GetPlugin().NotifyEventL( iMailBoxId, msgId, KMsgStoreInvalidId , TFSEventMailMoved, msgParentId);
+                    }
+                else
+                    {
+                    User::Leave(result);
+                    }
+                
                 }
             else
                 {
@@ -279,13 +293,30 @@ CDelayedOpsManager* CDelayedOpsManager::NewL( CBasePlugin& aPlugin )
                 __LOG_WRITE8_FORMAT1_INFO( "Deleting message 0x%X.", msgId );
 
                 delete theMessage;
-                mailBox.DeleteMessageL( msgId, iFolderId );
+                TRAP(result,mailBox.DeleteMessageL( msgId, iFolderId ));
+                if(result == KErrNone)
+                    {
+                    GetPlugin().NotifyEventL( iMailBoxId, msgId, KMsgStoreInvalidId, TFSEventMailDeleted, iFolderId );
+                    }
+                else
+                    {
+                    User::Leave(result);
+                    }
                 }
             }
         else
-            {
-            mailBox.DeleteMessageL( msgId, iFolderId );
+            {        
+            TRAP(result,mailBox.DeleteMessageL( msgId, iFolderId ));
+            if(result == KErrNone)
+                {  
+                GetPlugin().NotifyEventL( iMailBoxId, msgId, KMsgStoreInvalidId, TFSEventMailDeleted, iFolderId );
+                }
+            else
+                {
+                User::Leave(result);
+                }
             }
+//</qmail>
         }
     __LOG_EXIT;
     return done;    

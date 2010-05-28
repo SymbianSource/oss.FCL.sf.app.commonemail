@@ -47,7 +47,7 @@ symbian*: {
     LIBS += -lxqservice \
         -lxqserviceutil \
         -lqtcontacts \
-        -lmobcntmodel
+        -lfmfiledialog
 }
 
 HEADERS += inc/nmeditorcontent.h \
@@ -76,6 +76,7 @@ HEADERS += inc/nmeditorcontent.h \
     inc/nmuidef.h \
     inc/nmrecipientfield.h \
     inc/nmsendserviceinterface.h \
+    inc/nmuriserviceinterface.h \
     inc/nmmailboxselectiondialog.h \
     inc/nmuidocumentloader.h \
     inc/nmmailboxserviceinterface.h \
@@ -107,6 +108,7 @@ SOURCES += src/nmeditorcontent.cpp \
     src/nmuiextensionmanager.cpp \
     src/nmrecipientfield.cpp \
     src/nmsendserviceinterface.cpp \
+    src/nmuriserviceinterface.cpp \
     src/nmmailboxselectiondialog.cpp \
     src/nmuidocumentloader.cpp \
     src/nmmailboxserviceinterface.cpp \

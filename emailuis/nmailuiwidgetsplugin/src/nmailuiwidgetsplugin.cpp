@@ -15,6 +15,8 @@
 *
 */
 
+#include "emailtrace.h"
+
 #include "nmailuiwidgetsplugin.h"
 #include <nmrecipientlineedit.h>
 #include <nmhtmllineedit.h>
@@ -24,6 +26,8 @@
 
 QObject *NMailUiWidgetsPlugin::createObject(const QString& type, const QString &name )
 {
+    NM_FUNCTION;
+    
     if( type == NmBaseViewScrollArea::staticMetaObject.className() ) {
         QObject *object = new NmBaseViewScrollArea;
         object->setObjectName(name);

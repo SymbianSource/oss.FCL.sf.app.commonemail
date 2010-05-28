@@ -42,8 +42,7 @@ symbian*: {
     LIBS += -lnmailbase \
             -lxqservice \
             -lxqserviceutil \
-            -lqtcontacts \
-            -lmobcntmodel
+            -lqtcontacts
 
     defBlock = \      
       "$${LITERAL_HASH}if defined(MARM)" \
