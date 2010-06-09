@@ -60,7 +60,7 @@ _LIT(KTimeSeparator," - ");
 CESMRViewerTimeField::CESMRViewerTimeField()
     {
     FUNC_LOG;
-    
+
     SetFieldId( EESMRFieldMeetingTime );
     SetFocusType( EESMRHighlightFocus );
     }
@@ -98,7 +98,7 @@ CESMRViewerTimeField* CESMRViewerTimeField::NewL()
 void CESMRViewerTimeField::ConstructL()
     {
     FUNC_LOG;
-    
+
     iLabel = CMRLabel::NewL();
     iLabel->SetParent( this );
     CESMRField::ConstructL( iLabel ); // ownership transfered
@@ -118,8 +118,8 @@ void CESMRViewerTimeField::InternalizeL( MESMRCalEntry& aEntry )
     CCalEntry& entry = aEntry.Entry();
 
     iStartTime = entry.StartTimeL().TimeLocalL();
-    iEndTime   = entry.EndTimeL().TimeLocalL();    
-    
+    iEndTime   = entry.EndTimeL().TimeLocalL();
+
     if ( aEntry.IsAllDayEventL() )
         {
         // set the field as hidden:
@@ -138,7 +138,7 @@ void CESMRViewerTimeField::InternalizeL( MESMRCalEntry& aEntry )
 void CESMRViewerTimeField::InitializeL()
     {
     FUNC_LOG;
-    
+
     TAknLayoutText text = NMRLayoutManager::GetLayoutText(
             Rect(),
             NMRLayoutManager::EMRTextLayoutTextEditor );
@@ -158,7 +158,7 @@ void CESMRViewerTimeField::InitializeL()
 void CESMRViewerTimeField::SizeChanged()
     {
     FUNC_LOG;
-    
+
     TRect rect = Rect();
     TAknLayoutRect rowLayoutRect =
         NMRLayoutManager::GetFieldRowLayoutRect( rect, 1 );
@@ -172,34 +172,31 @@ void CESMRViewerTimeField::SizeChanged()
     // Layouting lock icon
     if( iLockIcon )
         {
-        TAknWindowComponentLayout iconLayout( 
-                NMRLayoutManager::GetWindowComponentLayout( 
+        TAknWindowComponentLayout iconLayout(
+                NMRLayoutManager::GetWindowComponentLayout(
                     NMRLayoutManager::EMRLayoutSingleRowDColumnGraphic ) );
         AknLayoutUtils::LayoutImage( iLockIcon, rect, iconLayout );
         }
-    
-    // Layouting label
-    TAknLayoutText viewerLayoutText;
-    if( iLockIcon )
-    	{
-    	viewerLayoutText = NMRLayoutManager::GetLayoutText( rect, 
-    			NMRLayoutManager::EMRTextLayoutSingleRowEditorText );
-    	}
-    else
-    	{
-    	viewerLayoutText = NMRLayoutManager::GetLayoutText( rect, 
-    			NMRLayoutManager::EMRTextLayoutTextEditor );
-    	}
 
-    TRect viewerRect( viewerLayoutText.TextRect() );    
-    iLabel->SetRect( viewerRect );
+    // Layouting label
+    TAknTextComponentLayout viewerLayoutText;
+    if( iLockIcon )
+        {
+        viewerLayoutText = NMRLayoutManager::GetTextComponentLayout(
+                NMRLayoutManager::EMRTextLayoutSingleRowEditorText );
+        }
+    else
+        {
+        viewerLayoutText = NMRLayoutManager::GetTextComponentLayout(
+                NMRLayoutManager::EMRTextLayoutTextEditor );
+        }
+
+    AknLayoutUtils::LayoutLabel( iLabel, rect, viewerLayoutText );
+    TRect viewerRect( iLabel->Rect() );
 
     // Move focus rect so that it's relative to field's position.
     viewerRect.Move( -Position() );
     SetFocusRect( viewerRect );
-
-    // Setting font also for the label
-    iLabel->SetFont( viewerLayoutText.Font() );
     }
 
 // ---------------------------------------------------------------------------
@@ -209,7 +206,7 @@ void CESMRViewerTimeField::SizeChanged()
 TInt CESMRViewerTimeField::CountComponentControls() const
     {
     FUNC_LOG;
-    
+
     TInt count( 0 );
     if ( iIcon )
     	{
@@ -220,7 +217,7 @@ TInt CESMRViewerTimeField::CountComponentControls() const
     	{
     	++count;
     	}
-    
+
     if ( iLockIcon )
     	{
     	++count;
@@ -235,7 +232,7 @@ TInt CESMRViewerTimeField::CountComponentControls() const
 CCoeControl* CESMRViewerTimeField::ComponentControl( TInt aIndex ) const
     {
     FUNC_LOG;
-    
+
     switch ( aIndex )
         {
         case 0:
@@ -256,7 +253,7 @@ CCoeControl* CESMRViewerTimeField::ComponentControl( TInt aIndex ) const
 void CESMRViewerTimeField::SetOutlineFocusL( TBool aFocus )
     {
     FUNC_LOG;
-    
+
     CESMRField::SetOutlineFocusL ( aFocus );
 
     iLabel->SetFocus( aFocus );
@@ -269,24 +266,24 @@ void CESMRViewerTimeField::SetOutlineFocusL( TBool aFocus )
 TBool CESMRViewerTimeField::ExecuteGenericCommandL( TInt aCommand )
     {
     FUNC_LOG;
-    
+
     TBool retValue( EFalse );
-    
+
     if( (aCommand == EAknCmdOpen) && IsLocked()  )
     	{
 		HandleTactileFeedbackL();
-		
+
     	CESMRGlobalNote::ExecuteL(
     			CESMRGlobalNote::EESMRUnableToEdit );
     	retValue = ETrue;
     	}
-    
+
     if ( EMRCmdDoEnvironmentChange == aCommand )
         {
         FormatTimeFieldStringL();
         retValue = ETrue;
         }
-    
+
     return retValue;
     }
 
@@ -301,9 +298,9 @@ void CESMRViewerTimeField::LockL()
 		{
 		return;
 		}
-	
+
 	CESMRField::LockL();
-	
+
 	delete iLockIcon;
 	iLockIcon = NULL;
 	iLockIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapLockField, ETrue );
@@ -318,7 +315,7 @@ void CESMRViewerTimeField::FormatTimeFieldStringL()
     {
     HBufC* timeFormatString =
         iEikonEnv->AllocReadResourceLC( R_QTN_TIME_USUAL_WITH_ZERO );
-    
+
     HBufC* finalBuf = HBufC::NewLC( KTimeBufferSize );
     HBufC* startBuf = HBufC::NewLC( KTempBufferSize );
     HBufC* endBuf = HBufC::NewLC( KTempBufferSize );
@@ -335,7 +332,7 @@ void CESMRViewerTimeField::FormatTimeFieldStringL()
     AknTextUtils::DisplayTextLanguageSpecificNumberConversion( finalPtr );
     iLabel->SetTextL( finalPtr );
     CleanupStack::PopAndDestroy( KNumBuffers, timeFormatString );
-    
+
     }
 
 // EOF

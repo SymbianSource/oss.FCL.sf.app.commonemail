@@ -965,6 +965,7 @@ void CNcsComposeView::HandleCommandL( TInt aCommand )
                     CAknConfirmationNote* note = 
                         new (ELeave) CAknConfirmationNote( ETrue ); //waiting
                     note->SetTimeout( CAknNoteDialog::ELongTimeout );
+                    note->SetTone( CAknNoteDialog::ENoTone );
                     note->ExecuteLD( *confMessage );
                     CleanupStack::PopAndDestroy( confMessage );
                     DoSafeExit(); // Exit after successful sending
@@ -2464,17 +2465,13 @@ void CNcsComposeView::LaunchStylusPopupMenu( const TPoint& aPenEventScreenLocati
         item = static_cast<CFSEmailUiSendAttachmentsListModelItem*>( 
                 attachmentModel->Item( 
                     iContainer->FocusedAttachmentLabelIndex() ) );
-        if ( !item || item->IsRemote() )
-            {
-            // Only non-remote attachments can be opened
-            iStylusPopUpMenu->SetItemDimmed( EFsEmailUiCmdOpenAttachment, ETrue );
-            }
-        }
+        // Only non-remote attachments can be opened
+        TBool dimOpenMenuItem = !item || item->IsRemote(); 
+        iStylusPopUpMenu->SetItemDimmed( EFsEmailUiCmdOpenAttachment, dimOpenMenuItem );
 
-    if ( !item || item->IsReadOnly() )
-        {
-        // Only non-readonly attachments can be removed
-        iStylusPopUpMenu->SetItemDimmed( EFsEmailUiCmdRemoveAttachment, ETrue );
+        // Read-only attachments cannot be removed
+        TBool dimRemoveMenuItem = !item || item->IsReadOnly();  
+        iStylusPopUpMenu->SetItemDimmed( EFsEmailUiCmdRemoveAttachment, dimRemoveMenuItem );
         }
 
     // Set the position for the popup

@@ -358,23 +358,36 @@ void CESMRViewerAttendeesField::SetContainerWindowL(
 //
 TSize CESMRViewerAttendeesField::MinimumSize()
     {
-    // Parent rect will be list area later --> no need to calculate it manually.
-    TRect parentRect = Parent()->Rect();
-    TRect contentRect = NMRLayoutManager::GetLayoutRect(
-            parentRect, NMRLayoutManager::EMRLayoutListArea ).Rect();
-    // We have two lines;  title and richtextviewer.
-    TRect fieldRect =
-        NMRLayoutManager::GetFieldLayoutRect( contentRect, 2 ).Rect();
-    // Get row size for second row (richtext viewer).
-    TRect rowRect =
-        NMRLayoutManager::GetFieldRowLayoutRect( fieldRect, 2 ).Rect();
-    // Get size for default 1 line editor.
-    TRect viewerRect = NMRLayoutManager::GetLayoutText(
-            rowRect,
-            NMRLayoutManager::EMRTextLayoutMultiRowTextEditor ).TextRect();
-    // Adjust field size so that there's room for expandable editor.
-    fieldRect.Resize( 0, iExpandedSize.iHeight - viewerRect.Height() );
-    return fieldRect.Size();
+    // Minimum size ->  Height: TitleRow + Editor size + Margin
+    //                  Width: Parent's Width
+    //                   (so the content pane that holds all the fields)
+    TRect rect( Rect() );
+    TAknLayoutRect row1LayoutRect =
+        NMRLayoutManager::GetFieldRowLayoutRect( rect, 1 );
+    TInt titleHeight = row1LayoutRect.Rect().Height();
+
+    // Add title field height
+    TInt totalHeight = titleHeight;
+
+    TAknLayoutRect row2LayoutRect =
+        NMRLayoutManager::GetFieldRowLayoutRect( rect, 2 );
+    TInt editorRowHeight = row2LayoutRect.Rect().Height();
+
+    TAknTextComponentLayout editorLayout =
+        NMRLayoutManager::GetTextComponentLayout(
+                NMRLayoutManager::EMRTextLayoutMultiRowTextEditor );
+
+    // Editor height from Layout data
+    TInt editorHeight = editorLayout.H();
+    // Margin is the outer row's height - editor's layout height
+    TInt margin = editorRowHeight - editorHeight;
+    // Parent has the width
+    TInt width( Parent()->Size().iWidth );
+    // Count the total height of the attendee field.
+    // iExpandedSize is used because the Editor size might be something else
+    // than what is stated in Layout data.
+    totalHeight += iExpandedSize.iHeight + margin;
+    return TSize( width, totalHeight );
     }
 
 // ---------------------------------------------------------------------------

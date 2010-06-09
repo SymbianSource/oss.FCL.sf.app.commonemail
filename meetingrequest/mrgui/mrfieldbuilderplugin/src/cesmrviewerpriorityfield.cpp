@@ -81,10 +81,10 @@ void CESMRViewerPriorityField::ConstructL()
     iLabel = CMRLabel::NewL();
     iLabel->SetParent( this );
     CESMRField::ConstructL( iLabel ); // ownership transfered
-    
+
     iIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapPriorityNormal );
     iIcon->SetParent( this );
-    
+
     HBufC* priorityText = StringLoader::LoadLC(
                         R_QTN_CALENDAR_MEETING_OPT_PRIORITY_NORMAL,
                         iEikonEnv );
@@ -182,43 +182,41 @@ void CESMRViewerPriorityField::SizeChanged()
     TAknLayoutRect rowLayoutRect =
         NMRLayoutManager::GetFieldRowLayoutRect( rect, 1 );
     rect = rowLayoutRect.Rect();
-    
+
     TAknWindowComponentLayout iconLayout =
-        NMRLayoutManager::GetWindowComponentLayout( 
+        NMRLayoutManager::GetWindowComponentLayout(
                 NMRLayoutManager::EMRLayoutTextEditorIcon );
     AknLayoutUtils::LayoutImage( iIcon, rect, iconLayout );
-    
+
     // Layouting lock icon
     if( iLockIcon )
     	{
-    	TAknWindowComponentLayout iconLayout( 
-    			NMRLayoutManager::GetWindowComponentLayout( 
+    	TAknWindowComponentLayout iconLayout(
+    			NMRLayoutManager::GetWindowComponentLayout(
     					NMRLayoutManager::EMRLayoutSingleRowDColumnGraphic ) );
     	AknLayoutUtils::LayoutImage( iLockIcon, rect, iconLayout );
     	}
-    
-    // Layouting label
-    TAknLayoutText viewerLayoutText;
-    if( iLockIcon )
-    	{
-    	viewerLayoutText = NMRLayoutManager::GetLayoutText( rect, 
-    			NMRLayoutManager::EMRTextLayoutSingleRowEditorText );
-    	}
-    else
-    	{
-    	viewerLayoutText = NMRLayoutManager::GetLayoutText( rect, 
-    			NMRLayoutManager::EMRTextLayoutTextEditor );
-    	}
 
-    TRect viewerRect( viewerLayoutText.TextRect() );    
-    iLabel->SetRect( viewerRect );
+    // Layouting label
+    TAknTextComponentLayout viewerLayoutText;
+
+    if( iLockIcon )
+        {
+        viewerLayoutText = NMRLayoutManager::GetTextComponentLayout(
+                NMRLayoutManager::EMRTextLayoutSingleRowEditorText );
+        }
+    else
+        {
+        viewerLayoutText = NMRLayoutManager::GetTextComponentLayout(
+                NMRLayoutManager::EMRTextLayoutTextEditor );
+        }
+
+    AknLayoutUtils::LayoutLabel( iLabel, rect, viewerLayoutText );
+    TRect viewerRect( iLabel->Rect() );
 
     // Move focus rect so that it's relative to field's position.
     viewerRect.Move( -Position() );
     SetFocusRect( viewerRect );
-
-    // Setting font also for the label
-    iLabel->SetFont( viewerLayoutText.Font() );
     }
 
 // ---------------------------------------------------------------------------
@@ -273,8 +271,8 @@ void CESMRViewerPriorityField::SetOutlineFocusL( TBool aFocus )
     {
     FUNC_LOG;
     CESMRField::SetOutlineFocusL ( aFocus );
-    
-    iLabel->SetFocus( aFocus );    
+
+    iLabel->SetFocus( aFocus );
     }
 
 // ---------------------------------------------------------------------------
@@ -288,9 +286,9 @@ void CESMRViewerPriorityField::LockL()
 		{
 		return;
 		}
-	
+
 	CESMRField::LockL();
-	
+
 	delete iLockIcon;
 	iLockIcon = NULL;
 	iLockIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapLockField, ETrue );
@@ -310,7 +308,7 @@ TBool CESMRViewerPriorityField::ExecuteGenericCommandL( TInt aCommand )
 	if( (aCommand == EAknCmdOpen) && IsLocked()  )
 		{
 		HandleTactileFeedbackL();
-		
+
 		CESMRGlobalNote::ExecuteL(
 				CESMRGlobalNote::EESMRUnableToEdit );
 		retValue = ETrue;

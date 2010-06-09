@@ -84,6 +84,14 @@ const TInt KTlsHandleCRHandler = 0xC0CEDE;
 const TInt KTlsHandleDownloadInfo = 0xCECECE;
 const TInt KTlsHandleMailListModel = 0xCECEDE;
 
+enum TForcedStatus 
+    {
+    ENoForce = 0,
+    EForceToSync,
+    EForceToConnected,
+    EForceToDisconnected
+    };
+
 /**
 * Action menu custom item ids
 */

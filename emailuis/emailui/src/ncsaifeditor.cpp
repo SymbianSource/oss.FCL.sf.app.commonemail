@@ -39,6 +39,7 @@
 const TChar KCharAddressDelimeterSemiColon = ';';
 const TChar KCharAddressDelimeterComma = ',';
 const TChar KCharSpace = ' ';
+const TChar KCharAt = '@';
 
 // ---------------------------------------------------------------------------
 // CNcsAifEntry::NewL
@@ -348,6 +349,11 @@ TKeyResponse CNcsAifEditor::OfferKeyEventL( const TKeyEvent& aKeyEvent,
         	}
         iTextSelection = Selection();        
         ret = CNcsEditor::OfferKeyEventL( aKeyEvent, aType );
+        }
+    
+    if( ret == EKeyWasNotConsumed  && aType == EEventKeyDown )
+        {
+        HandleTextUpdateDeferred(); // update for lang that don't support CPS
         }
     return ret;
     }
@@ -1362,21 +1368,40 @@ TBool CNcsAifEditor::HandleTextUpdateL( const TCursorSelection& aSelection )
     // start looking for entries separated with semicolon
     TInt start( 0 );
     TInt end( ptr.Length() );
+    TInt lastSentinel = KErrNotFound;
     
     for ( TInt ii = 0; ii < end; ++ii )
         {
         TChar character = ptr[ii];
+        TBool addAddress = EFalse;
         
         if ( IsSentinel( character ) )
             {
-            if ( character == KCharAddressDelimeterComma )
+            if ( character == KCharSpace )
+                {
+                if ( ptr.Mid( start, ii-start ).Locate( KCharAt ) 
+                        != KErrNotFound )
+                    {
+                    ptr[ii] = KCharAddressDelimeterSemiColon;
+                    lastSentinel = ii;
+                    addAddress = ETrue;
+                    }
+                }
+            else if ( character == KCharAddressDelimeterComma )
                 {
                 // Replace comma with semicolon
                 ptr[ii] = KCharAddressDelimeterSemiColon;
+                lastSentinel = ii;
+                addAddress = ETrue;
+                }
+            else if ( character == KCharAddressDelimeterSemiColon )
+                {
+                lastSentinel = ii;
+                addAddress = ETrue;
                 }
 
             // Create new entry.
-            if ( start < end )
+            if ( addAddress && start < end )
                 {
                 // only if longer than 0, if not we'll get 
                 // "empty" email address
@@ -1386,7 +1411,17 @@ TBool CNcsAifEditor::HandleTextUpdateL( const TCursorSelection& aSelection )
                     start = Min( ii + 1, end );
                     entriesFound = ETrue;
                     }
+                addAddress = EFalse;
                 }
+            }
+        }
+    
+    // add email that wasn't ended with semicolon
+    if ( lastSentinel != KErrNotFound )
+        {
+        if ( lastSentinel < end && start < end )
+            {
+            AddAddressL( KNullDesC(), ptr.Mid(start, end-start) );
             }
         }
     
@@ -1505,7 +1540,7 @@ TBool CNcsAifEditor::IsSentinel( TChar aCharacter ) const
     {
     FUNC_LOG;
     return ( aCharacter == KCharAddressDelimeterSemiColon || 
-        aCharacter == KCharAddressDelimeterComma );
+        aCharacter == KCharAddressDelimeterComma || aCharacter == KCharSpace );
     }
 
 // ---------------------------------------------------------------------------

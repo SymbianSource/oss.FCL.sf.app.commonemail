@@ -617,12 +617,12 @@ RESOURCE AVKON_TOOLBAR r_freestyle_email_ui_toolbar_html_message_viewer
             id = EFsEmailUiTbCmdActions;
             control = AVKON_TOOLBAR_EXTENSION
                 {
-                helptxt = qtn_fse_tb_actions;
+                helptxt = qtn_fse_tb_reply;
                 bmpFile = EMAILUI_ICON_FILE;
-                bmpId = EMbmFreestyleemailuiQgn_indi_tb_email_extend;
-                bmpMask = EMbmFreestyleemailuiQgn_indi_tb_email_extend_mask;
+                bmpId = EMbmFreestyleemailuiQgn_indi_tb_email_reply_all;
+                bmpMask = EMbmFreestyleemailuiQgn_indi_tb_email_reply_all_mask;
                 bmpSkinIdMajor = EAknsMajorGeneric;
-                bmpSkinIdMinor = EAknsMinorGenericQgnIndiTbEmailExtend;
+                bmpSkinIdMinor = EAknsMinorGenericQgnIndiTbEmailReplyAll;
                 items =
                     {
                     TBAR_CTRL

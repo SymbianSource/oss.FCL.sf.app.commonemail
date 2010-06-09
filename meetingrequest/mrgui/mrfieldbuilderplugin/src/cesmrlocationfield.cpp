@@ -12,7 +12,7 @@
 * Contributors:
 *
  *  Description : ESMR location field implementation
- *  Version     : %version: e002sa32#53.1.1 %
+ *  Version     : %version: e002sa32#53.1.2 %
  *
  */
 
@@ -350,7 +350,7 @@ void CESMRLocationField::HandleEdwinEventL(CEikEdwin* aEdwin, TEdwinEvent aEvent
     if ( aEdwin == iLocation && aEventType == EEventTextUpdate )
         {
         TInt textLength( iLocation->TextLength() );
-        
+
         if ( iLocation->GetLimitLength() <= textLength )
             {
             NotifyEventAsyncL( EESMRCmdSizeExceeded );
@@ -500,15 +500,11 @@ void CESMRLocationField::SizeChanged()
     // Layout field title
     if( iTitle )
         {
-        TAknLayoutText labelLayout(
-                NMRLayoutManager::GetLayoutText(
-                        firstRowRect,
-                            NMRLayoutManager::EMRTextLayoutTextEditor ) );
+        TAknTextComponentLayout editorLayout =
+                NMRLayoutManager::GetTextComponentLayout(
+                        NMRLayoutManager::EMRTextLayoutTextEditor );
 
-        iTitle->SetRect( labelLayout.TextRect() );
-
-        // Setting font also for the label. Failures are ignored.
-        iTitle->SetFont( labelLayout.Font() );
+        AknLayoutUtils::LayoutLabel( iTitle, firstRowRect, editorLayout );
         }
 
     TRect editorRect( 0, 0, 0, 0 );
@@ -776,15 +772,15 @@ void CESMRLocationField::DynInitMenuPaneL(
                         aMenuPane->ItemAndPos( EESMRCmdAddLocation, pos );
 
                 item->iData.iCascadeId = 0;
-                
+
                 if ( FeaturesL().FeatureSupported(
                         CESMRFeatureSettings::EESMRUIMnFwIntegration ) )
                     {
                     item->iData.iCommandId = EESMRCmdAssignFromMap;
-                    StringLoader::Load(item->iData.iText, 
+                    StringLoader::Load(item->iData.iText,
                             R_MEET_REQ_OPTIONS_ASSIGN_FROM_MAP, iCoeEnv );
                     }
-                
+
 #ifdef RD_USE_MYLOCATIONUI
                 else
                     {
@@ -793,7 +789,7 @@ void CESMRLocationField::DynInitMenuPaneL(
                             R_MEET_REQ_OPTIONS_MY_LOCATIONS, iCoeEnv );
                     }
 #endif //RD_USE_MYLOCATIONUI
-                
+
                 aMenuPane->SetItemDimmed( item->iData.iCommandId, EFalse );
                 break;
                 }

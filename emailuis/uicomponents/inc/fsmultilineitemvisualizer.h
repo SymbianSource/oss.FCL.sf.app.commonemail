@@ -57,7 +57,7 @@ public:
     */
     virtual ~CFsMultiLineItemVisualizer();    
 
-public:
+public:    
     
     //visualizer's interface
     
@@ -173,6 +173,12 @@ public:
                           CAlfTexture*& aMenuIcon,
                           const TUint aTimeout = 0,
                           TBool aUpdateData = ETrue);
+
+    
+    /**
+     * This method sets flag disable wrapping the text item.
+     */
+    virtual void OffWrapping();
     
     /**
      * From MFsTreeItemVisualizer.

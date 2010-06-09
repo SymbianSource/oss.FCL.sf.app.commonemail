@@ -135,30 +135,28 @@ void CESMRViewerAllDayEventField::SizeChanged()
     // Layouting lock icon
     if( iLockIcon )
     	{
-    	TAknWindowComponentLayout iconLayout( 
-    			NMRLayoutManager::GetWindowComponentLayout( 
+    	TAknWindowComponentLayout iconLayout(
+    			NMRLayoutManager::GetWindowComponentLayout(
     					NMRLayoutManager::EMRLayoutSingleRowDColumnGraphic ) );
     	AknLayoutUtils::LayoutImage( iLockIcon, rect, iconLayout );
     	}
 
     // Layouting label
-    TAknLayoutText viewerLayoutText;
+    TAknTextComponentLayout viewerLayoutText;
+
     if( iLockIcon )
-    	{
-    	viewerLayoutText = NMRLayoutManager::GetLayoutText( rect, 
-    			NMRLayoutManager::EMRTextLayoutSingleRowEditorText );
-    	}
+        {
+        viewerLayoutText = NMRLayoutManager::GetTextComponentLayout(
+                NMRLayoutManager::EMRTextLayoutSingleRowEditorText );
+        }
     else
-    	{
-    	viewerLayoutText = NMRLayoutManager::GetLayoutText( rect, 
-    			NMRLayoutManager::EMRTextLayoutTextEditor );
-    	}
+        {
+        viewerLayoutText = NMRLayoutManager::GetTextComponentLayout(
+                NMRLayoutManager::EMRTextLayoutTextEditor );
+        }
 
-    TRect viewerRect( viewerLayoutText.TextRect() );    
-    iLabel->SetRect( viewerRect );    
-    // Setting font for the label also
-    iLabel->SetFont( viewerLayoutText.Font() );
-
+    AknLayoutUtils::LayoutLabel( iLabel, rect, viewerLayoutText );
+    TRect viewerRect( iLabel->Rect() );
 
     // Move focus rect so that it's relative to field's position.
     viewerRect.Move( -Position() );
@@ -229,9 +227,9 @@ void CESMRViewerAllDayEventField::LockL()
 		{
 		return;
 		}
-	
+
 	CESMRField::LockL();
-	
+
 	delete iLockIcon;
 	iLockIcon = NULL;
 	iLockIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapLockField, ETrue );
@@ -245,18 +243,18 @@ void CESMRViewerAllDayEventField::LockL()
 TBool CESMRViewerAllDayEventField::ExecuteGenericCommandL( TInt aCommand )
 	{
     FUNC_LOG;
-    
+
     TBool retValue( EFalse );
-    
+
     if( (aCommand == EAknCmdOpen) && IsLocked()  )
     	{
 		HandleTactileFeedbackL();
-		
+
     	CESMRGlobalNote::ExecuteL(
     	                    CESMRGlobalNote::EESMRUnableToEdit );
     	retValue = ETrue;
     	}
-    
+
     return retValue;
 	}
 

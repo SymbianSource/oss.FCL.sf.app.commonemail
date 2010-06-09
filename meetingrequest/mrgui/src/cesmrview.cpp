@@ -679,8 +679,16 @@ void CESMRView::SizeChanged()
         // List panes default rect needs to be modified due to
         // scrollbar and calendar indication stripe
         
-        // Remove stripe width from list pane width
-        listareaRect.iTl.iX += iStripeRect.Width();
+        if ( AknLayoutUtils::LayoutMirrored() )
+            {
+            // Remove stripe width from list pane width when align is R to L
+            listareaRect.iBr.iX -= iStripeRect.Width();
+            }
+        else
+            {
+            // Remove stripe width from list pane width when align is L to R
+            listareaRect.iTl.iX += iStripeRect.Width();
+            }
         
         if( iScrollBar )
            {
@@ -692,9 +700,6 @@ void CESMRView::SizeChanged()
            scrollareaRect.SetHeight( listareaRect.Height() );
            
            iScrollBar->SetRect( scrollareaRect );
-           
-           // Remove scroll bar width from list area's width
-           listareaRect.iBr.iX -= iScrollBar->Rect().Width();
            }
 
         iListPane->SetRect( listareaRect );
@@ -752,9 +757,16 @@ void CESMRView::SizeChanged()
                        NMRLayoutManager::EMRLayoutListArea );
         TRect listareaRect( listareaLayoutRect.Rect() );
         
-        // The listPane's area should be:
-        // X: Should subtract the width of stripe
-        listareaRect.iTl.iX += iStripeRect.Width();
+        if ( AknLayoutUtils::LayoutMirrored() )
+            {
+            // Remove stripe width from list pane width when align is R to L
+            listareaRect.iBr.iX -= iStripeRect.Width();
+            }
+        else
+            {
+            // Remove stripe width from list pane width when align is L to R
+            listareaRect.iTl.iX += iStripeRect.Width();
+            }
                 
         iListPane->SetRect( listareaRect );
         
@@ -1140,16 +1152,23 @@ TRect CESMRView::CalculateAttachmentIndicatorLayout()
     {
     TRect containerRect( ContainerRect() );
     
-    TAknLayoutRect naviArrowLeftLayoutRect =
-            NMRLayoutManager::GetLayoutRect( containerRect,
-                    NMRLayoutManager::EMRLayoutMRNaviArrowLeft );    
-    TRect naviArrowLeftRect = naviArrowLeftLayoutRect.Rect();
-    
-    TAknLayoutRect naviArrowRightLayoutRect =
-            NMRLayoutManager::GetLayoutRect( containerRect,
-                    NMRLayoutManager::EMRLayoutMRNaviArrowRight );
-    TRect naviArrowRightRect = naviArrowRightLayoutRect.Rect();
-    
+
+	TAknLayoutRect naviArrowLeftLayoutRect =
+			NMRLayoutManager::GetLayoutRect( containerRect,
+					NMRLayoutManager::EMRLayoutMRNaviArrowLeft );    
+	TRect naviArrowLeftRect = naviArrowLeftLayoutRect.Rect();
+	
+	TAknLayoutRect naviArrowRightLayoutRect =
+			NMRLayoutManager::GetLayoutRect( containerRect,
+					NMRLayoutManager::EMRLayoutMRNaviArrowRight );
+	TRect naviArrowRightRect = naviArrowRightLayoutRect.Rect();
+	//Exchange the narrows' rect when LayoutMirrored
+	if ( AknLayoutUtils::LayoutMirrored() )
+		{
+		naviArrowLeftRect = naviArrowRightLayoutRect.Rect();
+		naviArrowRightRect= naviArrowLeftLayoutRect.Rect();
+		}
+	
     if( Layout_Meta_Data::IsLandscapeOrientation() )
         {                
         naviArrowLeftRect.Move( iStripeRect.Width(), 0 );

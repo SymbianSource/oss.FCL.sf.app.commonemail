@@ -294,7 +294,7 @@ void CFSEmailUiFolderListVisualiser::DoFirstStartL()
     iListLayout = CAlfDeckLayout::AddNewL( *iControl, iParentLayout );
     iListLayout->SetFlags(EAlfVisualFlagLayoutUpdateNotification|EAlfVisualFlagAutomaticLocaleMirroringEnabled);
 
-    iTreeVisualizer = CFsTreeVisualizerBase::NewL(iControl, *iListLayout, !iFullScreen);
+    iTreeVisualizer = CFsTreeVisualizerBase::NewL( iControl, *iListLayout );
     iTreeVisualizer->SetItemExpansionDelay( iAppUi.LayoutHandler()->ListItemExpansionDelay() );
     iTreeVisualizer->SetScrollTime( iAppUi.LayoutHandler()->ListScrollingTime() );
     iTreeVisualizer->SetFadeInEffectTime( iAppUi.LayoutHandler()->CtrlBarListFadeEffectTime() );
@@ -421,6 +421,10 @@ void CFSEmailUiFolderListVisualiser::PopulateFolderListL()
 
         iTreeVisualizer->RefreshListViewL();
         }
+    
+    ResizeListIcons();
+    ResizeListItemsL();
+    
 	}
 
 // ---------------------------------------------------------------------------
@@ -677,6 +681,10 @@ void CFSEmailUiFolderListVisualiser::ShowInPopupL(
     iCustomMessageId = KFolderListSelectFolder;
     iCurrentFolderId = aFolderId;
     DoShowInPopupL( aButton, aCallback, NULL );
+    
+    ResizeListIcons();
+    ResizeListItemsL();
+    
     }
 
 // ---------------------------------------------------------------------------
@@ -1155,7 +1163,7 @@ TBool CFSEmailUiFolderListVisualiser::HandlePointerEventL(const TAlfEvent& aEven
             }
         else 
         	{
-        	eventHandled = iTreeList->TreeControl()->OfferEventL(aEvent);
+        	eventHandled = ETrue;
         	}
         }
     return eventHandled;
@@ -1314,6 +1322,19 @@ void CFSEmailUiFolderListVisualiser::GetParentLayoutsL(
     FUNC_LOG;
     aLayoutArray.AppendL( iParentLayout );
     }
+
+// ---------------------------------------------------------------------------
+// Hide or show CAlfVisuals ( used for activation or deactivation )
+// ---------------------------------------------------------------------------
+//
+void CFSEmailUiFolderListVisualiser::FadeOut( TBool aDirectionOut )
+	{
+    FUNC_LOG;
+    if ( aDirectionOut && iTreeVisualizer != NULL )
+        {
+        iTreeVisualizer->HideList();
+        }
+	}
 
 // ---------------------------------------------------------------------------
 // Handle commands
@@ -2463,6 +2484,8 @@ void CFSEmailUiFolderListVisualiser::SetItemVisualizerPropertiesL( MFsTreeItemVi
     aItemVisualizer->SetFontHeight( iAppUi.LayoutHandler()->ListItemFontHeightInTwips( !iFullScreen ) );
 	// Set node bolded
 	aItemVisualizer->SetTextBold( EFalse );
+	aItemVisualizer->MarqueeL( EFsTextMarqueeForth, 30, 1000, 500, 1 ); // same values as in CFsTreeVisualizerBase constructor
+	aItemVisualizer->OffWrapping();
 	}
 
 // ---------------------------------------------------------------------------

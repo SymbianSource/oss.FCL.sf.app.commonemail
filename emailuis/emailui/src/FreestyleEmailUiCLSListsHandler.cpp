@@ -32,7 +32,6 @@
 #include "FreestyleEmailUiUtilities.h"
 #include "FreestyleEmailUiCLSItem.h"
 
-
 // ================= MEMBER FUNCTIONS ==========================================
 // -----------------------------------------------------------------------------
 // CFSEmailUiClsListsHandler::NewL
@@ -335,13 +334,23 @@ void CFSEmailUiClsListsHandler::SetSearchSettingsForPcsMatchObserverL()
     searchSettings->SetDisplayFieldsL(displayFields);
     CleanupStack::Pop(&displayFields);
     displayFields.Close();
-
    
     // Set the new sort order of data fields
     RArray<TInt> sortOrder;
     CleanupClosePushL(sortOrder);
-    sortOrder.AppendL(R_VPBK_FIELD_TYPE_FIRSTNAME);
-    sortOrder.AppendL(R_VPBK_FIELD_TYPE_LASTNAME);
+    
+    // change sorting order for Chinese to LNFN
+    if ( User::Language() == ELangPrcChinese )
+        {
+        sortOrder.AppendL( R_VPBK_FIELD_TYPE_LASTNAME );
+        sortOrder.AppendL( R_VPBK_FIELD_TYPE_FIRSTNAME );
+        }
+    else // default sorting order FN LN
+        {
+        sortOrder.AppendL( R_VPBK_FIELD_TYPE_FIRSTNAME );
+        sortOrder.AppendL( R_VPBK_FIELD_TYPE_LASTNAME );
+        }
+    
     sortOrder.AppendL(R_VPBK_FIELD_TYPE_EMAILGEN);
     sortOrder.AppendL(R_VPBK_FIELD_TYPE_EMAILHOME);
     sortOrder.AppendL(R_VPBK_FIELD_TYPE_EMAILWORK);

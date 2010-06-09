@@ -880,6 +880,9 @@ TIpsSetUiEventResult CIpsSetUiDialogCtrl::HandleEventSubscribeFoldersL()
     CAknQueryDialog* confDialog = CAknQueryDialog::NewL();
     if( confDialog->ExecuteLD( R_IPS_SET_CONNECT_FOR_UPDATE ) )
     	{
+	    iData->SetImapPathL(
+                        GetItem( TUid::Uid( EIpsSetUiWhatImapPath ) )->Text() );
+        iData->SaveL( iSession );
     	CMsvEntrySelection* mySelection=new (ELeave) CMsvEntrySelection;
     	CleanupStack::PushL(mySelection);
 

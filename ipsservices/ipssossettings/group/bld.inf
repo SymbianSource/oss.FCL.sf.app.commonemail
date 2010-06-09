@@ -29,7 +29,7 @@ PRJ_EXPORTS
 
 //<cmail>
 ../inc/ipssetdataapi.h |../../inc/ipssetdataapi.h
-../inc/ipssetdataextension.h |../../inc/IpsSetDataExtension.h
+../inc/ipssetdataextension.h |../../inc/ipssetdataextension.h
 ../inc/ipssetutilsconsts.h |../../inc/ipssetutilsconsts.h
 ../inc/ipssetutilsconsts.hrh |../../inc/ipssetutilsconsts.hrh
 ../inc/ipssetdata.h |../../inc/ipssetdata.h

@@ -75,8 +75,8 @@ CESMRAttendeeField::CESMRAttendeeField( CCalAttendee::TCalRole aRole )
 :iRole( aRole )
     {
     FUNC_LOG;
-    SetFocusType( EESMRHighlightFocus );    
-    SetFieldId ( (iRole == CCalAttendee::EReqParticipant) ? 
+    SetFocusType( EESMRHighlightFocus );
+    SetFieldId ( (iRole == CCalAttendee::EReqParticipant) ?
             EESMRFieldAttendee : EESMRFieldOptAttendee );
     }
 
@@ -128,23 +128,23 @@ void CESMRAttendeeField::ConstructL( )
 
     iTitle = CMRLabel::NewL();
     iTitle->SetParent( this );
-    
+
     HBufC* buf = NULL;
     if( FieldId() == EESMRFieldAttendee )
         {
         buf = StringLoader::LoadLC( R_QTN_MEET_REQ_LABEL_REQUIRED );
         }
-    
+
     if( FieldId() == EESMRFieldOptAttendee )
         {
         buf = StringLoader::LoadLC( R_QTN_MEET_REQ_LABEL_OPT );
         }
-    
+
     iTitle->SetTextL( *buf ); // ownership transferred
     CleanupStack::Pop( buf );
 
-    
-    iEditor = 
+
+    iEditor =
         new ( ELeave ) CESMRNcsAifEditor( *iContactHandler, iDefaultText );
     CESMRField::ConstructL( iEditor );
     iEditor->ConstructL (
@@ -154,13 +154,13 @@ void CESMRAttendeeField::ConstructL( )
             CEikEdwin::EAvkonEditor | CEikEdwin::EResizable |
             CEikEdwin::ENoAutoSelection |CEikEdwin::EInclusiveSizeFixed |
             CEikEdwin::ENoHorizScrolling
-            );    
+            );
     iEditor->SetEdwinSizeObserver( this );
     iEditor->SetParent( this );
     iEditor->SetPopupList( this );
     iEditor->SetAlignment ( EAknEditorAlignBidi | EAknEditorAlignCenter );
     iEditor->SetAknEditorInputMode ( EAknEditorTextInputMode );
-    iEditor->SetAknEditorFlags ( 
+    iEditor->SetAknEditorFlags (
             EAknEditorFlagNoT9| EAknEditorFlagUseSCTNumericCharmap );
     iEditor->SetAknEditorCurrentCase ( EAknEditorLowerCase );
 
@@ -168,10 +168,10 @@ void CESMRAttendeeField::ConstructL( )
     TRect tempRect( 0, 0, 0, 0 );
     NMRBitmapManager::TMRBitmapStruct bitmapStruct;
     bitmapStruct = NMRBitmapManager::GetBitmapStruct( NMRBitmapManager::EMRBitmapInputCenter );
-    iBgCtrlContext = CAknsBasicBackgroundControlContext::NewL( 
-                bitmapStruct.iItemId, 
-                tempRect, 
-                EFalse );        
+    iBgCtrlContext = CAknsBasicBackgroundControlContext::NewL(
+                bitmapStruct.iItemId,
+                tempRect,
+                EFalse );
     iEditor->SetSkinBackgroundControlContextL( iBgCtrlContext );
     }
 
@@ -182,23 +182,23 @@ void CESMRAttendeeField::ConstructL( )
 TSize CESMRAttendeeField::MinimumSize()
     {
     TRect parentRect( Parent()->Rect() );
-    
-    TRect richTextRect = 
+
+    TRect richTextRect =
        NMRLayoutManager::GetFieldLayoutRect( parentRect, 1 ).Rect();
 
-    TRect textRect( NMRLayoutManager::GetLayoutText( 
-            richTextRect, 
+    TRect textRect( NMRLayoutManager::GetLayoutText(
+            richTextRect,
        NMRLayoutManager::EMRTextLayoutTextEditor ).TextRect() );
-    
+
     // Adjust field size so that there's room for expandable editor.
     richTextRect.Resize( 0, iSize.iHeight - textRect.Height() );
-    
+
     // Add title area to the required size
     TSize titleSize( CESMRField::MinimumSize() );
-    
+
     TSize completeFieldSize( titleSize );
     completeFieldSize.iHeight += richTextRect.Height();
-    
+
     return completeFieldSize;
     }
 
@@ -219,27 +219,27 @@ void CESMRAttendeeField::InitializeL()
 void CESMRAttendeeField::InternalizeL( MESMRCalEntry& aEntry )
     {
     FUNC_LOG;
-    iEditor->CreateScrollBarFrameL()->SetScrollBarVisibilityL ( 
+    iEditor->CreateScrollBarFrameL()->SetScrollBarVisibilityL (
             CEikScrollBarFrame::EOff,
             CEikScrollBarFrame::EOff );
-    
+
     TInt fieldAttendeeCount( 0 );
-    
+
     CCalEntry& entry = aEntry.Entry ( );
     RPointerArray< CCalAttendee > attendees = entry.AttendeesL ( );
     RCPointerArray< CESMRNcsEmailAddressObject > addressList;
-    CleanupClosePushL( addressList );    
+    CleanupClosePushL( addressList );
 
     for (TInt i(0); i < attendees.Count(); i++ )
         {
         if ( attendees[i]->RoleL() == iRole )
             {
             fieldAttendeeCount++;
-            
+
             const TDesC& addr = attendees[i]->Address ( );
             const TDesC& commonName = attendees[i]->CommonName ( );
 
-            CESMRNcsEmailAddressObject* obj = 
+            CESMRNcsEmailAddressObject* obj =
                 CESMRNcsEmailAddressObject::NewL ( commonName, addr );
             CleanupStack::PushL (obj );
             addressList.AppendL( obj );
@@ -275,7 +275,7 @@ void CESMRAttendeeField::InternalizeL( MESMRCalEntry& aEntry )
     // this is needed to be re-called here, otherwise the CEikEdwin
     // does not get correctly instantiated with default text
     iEditor->FocusChanged(EDrawNow);
-    
+
     UpdateSendOptionL();
     }
 
@@ -303,7 +303,7 @@ void CESMRAttendeeField::ExternalizeL( MESMRCalEntry& aEntry )
     UpdateAttendeesL( *mrEntry );
 
     HBufC* text = iEditor->GetTextInHBufL();
-        
+
     //If there is no attendees, put back the default text
     if( !text )
         {
@@ -326,7 +326,7 @@ TInt CESMRAttendeeField::CountComponentControls( ) const
         {
         ++count;
         }
-    
+
     if ( iTitle )
         {
         ++count;
@@ -368,65 +368,61 @@ void CESMRAttendeeField::SizeChanged( )
     {
     FUNC_LOG;
     TRect rect( Rect() );
-       
-    TAknLayoutRect firstRowLayoutRect( 
+
+    TAknLayoutRect firstRowLayoutRect(
            NMRLayoutManager::GetFieldRowLayoutRect( rect, 1 ) );
     TRect firstRowRect( firstRowLayoutRect.Rect() );
-    
+
     TRect secondRowRect( firstRowRect );
     secondRowRect.Move( 0, firstRowRect.Height() );
-    
+
     // Layout field button
     if( iFieldButton )
        {
-       TAknWindowComponentLayout buttonLayout( 
+       TAknWindowComponentLayout buttonLayout(
                NMRLayoutManager::GetWindowComponentLayout(
                    NMRLayoutManager::EMRLayoutTextEditorIcon ) );
-       AknLayoutUtils::LayoutControl( 
+       AknLayoutUtils::LayoutControl(
                iFieldButton, firstRowRect, buttonLayout );
        }
-    
+
     // Layout field title
-    if( iTitle )
-       {
-       TAknLayoutText labelLayout( 
-               NMRLayoutManager::GetLayoutText(
-                       firstRowRect, 
-                           NMRLayoutManager::EMRTextLayoutTextEditor ) );
-    
-       iTitle->SetRect( labelLayout.TextRect() );
-    
-       // Setting font also for the label. Failures are ignored.
-       iTitle->SetFont( labelLayout.Font() );
-       }
-    
+    if ( iTitle )
+        {
+        TAknTextComponentLayout editorLayout =
+                NMRLayoutManager::GetTextComponentLayout(
+                        NMRLayoutManager::EMRTextLayoutTextEditor );
+
+        AknLayoutUtils::LayoutLabel( iTitle, rect, editorLayout );
+        }
+
     // Layout field editor
     if( iEditor )
         {
-        TAknLayoutText editorLayoutText = NMRLayoutManager::GetLayoutText( 
-                  secondRowRect, 
+        TAknLayoutText editorLayoutText = NMRLayoutManager::GetLayoutText(
+                  secondRowRect,
                   NMRLayoutManager::EMRTextLayoutTextEditor );
 
         TRect editorRect = editorLayoutText.TextRect();
 
         // Resize height according to actual height required by edwin.
         editorRect.Resize( 0, iSize.iHeight - editorRect.Height() );
-        
+
         iEditor->SetRect( editorRect );
-        
+
         // Try setting font. Failures are ignored.
-        TRAP_IGNORE( iEditor->SetFontL( editorLayoutText.Font() ) );    
+        TRAP_IGNORE( iEditor->SetFontL( editorLayoutText.Font() ) );
         }
-    
+
     // Layout field focus
     if( iEditor )
        {
        // Layouting focus for rich text editor area
        TRect bgRect( iEditor->Rect() );
-    
+
        // Move focus rect so that it's relative to field's position.
        bgRect.Move( -Position() );
-       SetFocusRect( bgRect );   
+       SetFocusRect( bgRect );
        }
 
     if ( iAacListBox && iAacListBox->IsVisible ( ) )
@@ -450,40 +446,40 @@ TRect CESMRAttendeeField::ResolvePopupRectL( )
         {
         return TRect( 0, 0, 0, 0 );
         }
-    
+
     TRect popupRect( 0, 0, 0, 0 );
-    
+
     // Let's determine Popup's maximum height
-    TInt requiredPopupHeight = iAacListBox->CalcHeightBasedOnNumOfItems( 
+    TInt requiredPopupHeight = iAacListBox->CalcHeightBasedOnNumOfItems(
             iAacListBox->Model()->NumberOfItems() );
     TInt numberOfItemsInPopUp = iAacListBox->Model()->NumberOfItems();
-    
+
     if( numberOfItemsInPopUp > KMaxAmountOfItems )
         {
         // reducing popup item count shown at once to maximum value
-        requiredPopupHeight = iAacListBox->CalcHeightBasedOnNumOfItems( 
+        requiredPopupHeight = iAacListBox->CalcHeightBasedOnNumOfItems(
                 KMaxAmountOfItems );
         }
-    
+
     // Popup x-coords are always the same
     TInt topLeftX = iEditor->Rect().iTl.iX;
     TInt bottomRightX = iEditor->Rect().iBr.iX;
-    
+
     // Popup y-coords need to be calculated
     TInt topLeftY( 0 );
     TInt bottomRightY( 0 );
-           
-    // Next we have to resolve if popup needs to be drawn below or 
+
+    // Next we have to resolve if popup needs to be drawn below or
     // above the cursor (space requirement)
-    
+
     TRect editorLineRect;
     iEditor->GetLineRectL( editorLineRect );
     TInt editorLineTopLeftY = editorLineRect.iTl.iY;
     TInt diff = iEditor->Rect().iTl.iY;
     TInt editorLineTopLeftYRelativeToParent = editorLineTopLeftY + diff;
-    
+
     TInt listPaneHeight = Parent()->Rect().Height();
-    
+
     // Popup will be drawn above the cursor
     if( editorLineTopLeftYRelativeToParent > TReal( listPaneHeight / 2 ) )
         {
@@ -498,7 +494,7 @@ TRect CESMRAttendeeField::ResolvePopupRectL( )
         }
 
     popupRect.SetRect( topLeftX, topLeftY, bottomRightX, bottomRightY );
-    
+
     return popupRect;
     }
 
@@ -528,7 +524,7 @@ void CESMRAttendeeField::ClearDefaultTextL()
 // CESMRAttendeeField::OfferKeyEventL
 // ---------------------------------------------------------------------------
 //
-TKeyResponse CESMRAttendeeField::OfferKeyEventL( 
+TKeyResponse CESMRAttendeeField::OfferKeyEventL(
         const TKeyEvent& aKeyEvent,
         TEventCode aType )
     {
@@ -536,7 +532,7 @@ TKeyResponse CESMRAttendeeField::OfferKeyEventL(
 
     TKeyResponse ret( EKeyWasNotConsumed);
 
-    if ( aKeyEvent.iCode == EKeyEnter || 
+    if ( aKeyEvent.iCode == EKeyEnter ||
          aKeyEvent.iScanCode == EStdKeyEnter ||
          aKeyEvent.iCode == EKeyYes ||
          aKeyEvent.iScanCode == EStdKeyYes )
@@ -574,7 +570,7 @@ TKeyResponse CESMRAttendeeField::OfferKeyEventL(
         UpdateSendOptionL();
         }
 
-    // Scroll editor visible, if for example cursor is out of the 
+    // Scroll editor visible, if for example cursor is out of the
     // viewable area when user enters more text.
     if ( iObserver && aType == EEventKey )
         {
@@ -586,7 +582,7 @@ TKeyResponse CESMRAttendeeField::OfferKeyEventL(
 
         TInt editorTlY = iEditor->Position().iY;
         TInt listHeight = iObserver->ViewableAreaRect().Height();
-        
+
         TInt cursorTopY = cursorPos.iY - lineHeight + editorTlY;
         TInt cursorBottomY = cursorPos.iY + lineHeight + editorTlY;
 
@@ -616,19 +612,19 @@ void CESMRAttendeeField::SetContainerWindowL( const CCoeControl& aControl )
 
     iFieldButton->SetContainerWindowL( aControl );
     iFieldButton->SetParent( this );
-	
+
     iTitle->SetContainerWindowL( aControl );
     iTitle->SetParent( this );
-    
+
     iEditor->SetContainerWindowL( aControl );
     iEditor->SetParent( this );
-        
+
     iAacListBox = CESMRNcsPopupListBox::NewL ( this, *iContactHandler );
     iAacListBox->MakeVisible ( EFalse );
     iAacListBox->SetListBoxObserver( this );
     iAacListBox->SetObserver( this );
     iAacListBox->ActivateL();
-    
+
     iButtonGroupContainer = CEikButtonGroupContainer::Current();
 	}
 
@@ -641,12 +637,12 @@ TBool CESMRAttendeeField::HandleEdwinSizeEventL( CEikEdwin* aEdwin,
     {
     FUNC_LOG;
     TBool reDraw( EFalse );
-    
+
     if( iSize != aSize )
         {
         // Let's save the required size for the iEditor
         iSize = aSize;
-    
+
         if ( iObserver && aEdwin == iEditor )
             {
             iObserver->ControlSizeChanged ( this );
@@ -661,8 +657,8 @@ TBool CESMRAttendeeField::HandleEdwinSizeEventL( CEikEdwin* aEdwin,
 // CESMRAttendeeField::UpdatePopupContactListL
 // ---------------------------------------------------------------------------
 //
-void CESMRAttendeeField::UpdatePopupContactListL( 
-        const TDesC& aMatchString, 
+void CESMRAttendeeField::UpdatePopupContactListL(
+        const TDesC& aMatchString,
         TBool /*iListAll*/)
     {
     FUNC_LOG;
@@ -695,15 +691,15 @@ void CESMRAttendeeField::ShowPopupCbaL( TBool aShow )
     {
     if( aShow )
         {
-        iButtonGroupContainer->SetCommandSetL( 
+        iButtonGroupContainer->SetCommandSetL(
                 R_CONTACT_POPUP_SOFTKEYS_SELECT_CANCEL);
         }
     else
         {
-        iButtonGroupContainer->SetCommandSetL( 
-                R_CONTACT_EDITOR_SOFTKEYS_OPTIONS_DONE__ADD);       
+        iButtonGroupContainer->SetCommandSetL(
+                R_CONTACT_EDITOR_SOFTKEYS_OPTIONS_DONE__ADD);
         }
-    
+
     iButtonGroupContainer->DrawDeferred();
     }
 
@@ -741,7 +737,7 @@ TBool CESMRAttendeeField::ExecuteGenericCommandL( TInt aCommand )
              if(iEditor->IsFocused())
                  NotifyEventL(EESMRCmdLongtapDetected);
              isUsed = ETrue;
-             
+
      		HandleTactileFeedbackL();
              break;
              }
@@ -760,7 +756,7 @@ void CESMRAttendeeField::SetOutlineFocusL( TBool aFocus )
     FUNC_LOG;
     CESMRField::SetOutlineFocusL( aFocus );
 
-    
+
     if (aFocus) //Focus is gained on the field
         {
         if ( iEditor->HasDefaultText() )
@@ -784,7 +780,7 @@ void CESMRAttendeeField::OperationCompleteL(
         {
         if( aContacts->Count() > 0 )
             {
-            RCPointerArray<CESMRNcsEmailAddressObject> ncsObjects;  // codescanner::resourcenotoncleanupstack        
+            RCPointerArray<CESMRNcsEmailAddressObject> ncsObjects;  // codescanner::resourcenotoncleanupstack
             CleanupClosePushL( ncsObjects );
             for ( int i = 0; i < aContacts->Count(); i++ )
                 {
@@ -819,7 +815,7 @@ void CESMRAttendeeField::OperationErrorL( TContactHandlerCmd /*aCmd*/,
 // ---------------------------------------------------------------------------
 //
 void CESMRAttendeeField::HandleControlEventL(
-        CCoeControl *aControl, 
+        CCoeControl *aControl,
         TCoeEvent aEventType )
     {
     FUNC_LOG;
@@ -869,7 +865,7 @@ void CESMRAttendeeField::DoPopupSelectL()
         }
     else if( iAacListBox && !iAacListBox->IsPopupEmpty() )
         {
-        CESMRNcsEmailAddressObject* emailAddress  = 
+        CESMRNcsEmailAddressObject* emailAddress  =
                 iAacListBox->ReturnCurrentEmailAddressLC();
         if( emailAddress )
             {
@@ -914,8 +910,8 @@ void CESMRAttendeeField::ClosePopupContactListL()
         iAacListBox->MakeVisible( EFalse );
         AknsUtils::SetAvkonSkinEnabledL( ETrue );
         }
-    
-    ShowPopupCbaL( EFalse );    
+
+    ShowPopupCbaL( EFalse );
     UpdateSendOptionL();
     }
 
@@ -934,13 +930,13 @@ CESMRNcsEmailAddressObject* CESMRAttendeeField::ExecuteRemoteSearchL(
     RBuf emailAddress;  // codescanner::resourcenotoncleanupstack
     emailAddress.CreateL( KMaxRemoteSearchResponseLength );
     emailAddress.CleanupClosePushL();
-    
-    // Pop-up needs to be closed before executing remote lookup with 
+
+    // Pop-up needs to be closed before executing remote lookup with
     // query dialog, because combination of this pop-up and any query dialog
-    // causes background drawing problems with CEikMfne editors. 
+    // causes background drawing problems with CEikMfne editors.
     // Reason unknown.
     ClosePopupContactListL();
-    
+
     TBool contactSelected = iContactHandler->LaunchRemoteLookupL( aSearchText,
                                                                   displayname,
                                                                   emailAddress );
@@ -977,7 +973,7 @@ void CESMRAttendeeField::UpdateSendOptionL()
     if( enable )
     	{
         TPtr ptr = text->Des();
-        ptr.Trim();        	
+        ptr.Trim();
     	}
     enable = text && text->Length() > 0 && text->Compare( *iDefaultText ) != 0;
     delete text;
@@ -1006,7 +1002,7 @@ void CESMRAttendeeField::UpdateSendOptionL()
             command = EESMRCmdAttendeeOptionalDisabled;
             }
         }
-    
+
     NotifyEventL( command );
     }
 
@@ -1014,21 +1010,21 @@ void CESMRAttendeeField::UpdateSendOptionL()
 // CESMRAttendeeField::HandleListBoxEventL
 // ---------------------------------------------------------------------------
 //
-void CESMRAttendeeField::HandleListBoxEventL( CEikListBox* aListBox, 
+void CESMRAttendeeField::HandleListBoxEventL( CEikListBox* aListBox,
                                               TListBoxEvent aEventType )
     {
-    if( aEventType == EEventEnterKeyPressed || aEventType == EEventItemClicked 
+    if( aEventType == EEventEnterKeyPressed || aEventType == EEventItemClicked
             || aEventType == EEventItemDoubleClicked || aEventType == EEventItemSingleClicked )
         {
         TInt newIndex = aListBox->CurrentItemIndex();
-        
-        // if item is already highlighted and then clicked, 
+
+        // if item is already highlighted and then clicked,
         // it is considered that it has been selected
         if( newIndex == iPreviousIndex )
             {
 			HandleTactileFeedbackL();
             DoPopupSelectL();
-            
+
             // Item selected, index reseted
             iPreviousIndex = 0;
             }
@@ -1073,12 +1069,12 @@ TBool CESMRAttendeeField::HandleSingletapEventL( const TPoint& aPosition )
     {
     FUNC_LOG;
     TBool ret( EFalse );
-    
+
     if( iTitle->Rect().Contains( aPosition ) ||
             iFieldButton->Rect().Contains( aPosition ) )
         {
     	HandleTactileFeedbackL();
-    	
+
         iContactHandler->GetAddressesFromPhonebookL( this );
         ret = ETrue;
         }
@@ -1093,7 +1089,7 @@ TBool CESMRAttendeeField::HandleSingletapEventL( const TPoint& aPosition )
 void CESMRAttendeeField::HandleLongtapEventL( const TPoint& aPosition )
     {
     FUNC_LOG;
-           
+
     if( iTitle->Rect().Contains( aPosition ) ||
             iFieldButton->Rect().Contains( aPosition ) )
         {
@@ -1109,29 +1105,29 @@ void CESMRAttendeeField::UpdateAttendeesL( MESMRMeetingRequestEntry& aMREntry )
     {
     FUNC_LOG;
 	/*
-	 * Compare editor attendees to existing attendees and add / remove 
+	 * Compare editor attendees to existing attendees and add / remove
 	 * when necessary.
 	 */
 	iEditor->CheckAddressWhenFocusLostL();
-	
+
 	CCalEntry& entry( aMREntry.Entry() );
-	
+
 	// Get editor's attendees
-	RPointerArray<CESMRNcsEmailAddressObject> editorAttendees = 
+	RPointerArray<CESMRNcsEmailAddressObject> editorAttendees =
 			iEditor->GetAddressesL();
 	TInt editorAttendeesCount( editorAttendees.Count() );
-	
+
 	// Get existing attendees
 	RPointerArray<CCalAttendee>& existingAttendees = entry.AttendeesL();
 	TInt existingAttendeesCount( existingAttendees.Count() );
-	
+
 	// Remove removed attendees from entry
 	for( TInt i( existingAttendeesCount - 1 ); i >= 0 ; --i )
 		{
 		// existing address and role
 		const TDesC& address = existingAttendees[i]->Address();
 		CCalAttendee::TCalRole role = existingAttendees[i]->RoleL();
-		
+
 		// Let's try to find them amongst editor attendees
 		TBool matchFound( EFalse );
 		for( TInt j( 0 ); j < editorAttendeesCount ; ++j )
@@ -1158,13 +1154,13 @@ void CESMRAttendeeField::UpdateAttendeesL( MESMRMeetingRequestEntry& aMREntry )
 				}
 			}
 		}
-	
+
 	// Update existing attendees count, because some attendees might
 	// have been removed
 	existingAttendees.Reset();
 	existingAttendees = entry.AttendeesL();
 	existingAttendeesCount = existingAttendees.Count();
-	
+
 	// Add new attendees to entry
 	for( TInt i( 0 ); i < editorAttendeesCount ; ++i )
 		{
@@ -1172,14 +1168,14 @@ void CESMRAttendeeField::UpdateAttendeesL( MESMRMeetingRequestEntry& aMREntry )
 		CCalAttendee* attendee = CCalAttendee::NewL( obj->EmailAddress() );
 		attendee->SetRoleL( iRole );
 		attendee->SetCommonNameL( obj->DisplayName() );
-	
-		if ( EESMRRoleOrganizer == aMREntry.RoleL() || 
+
+		if ( EESMRRoleOrganizer == aMREntry.RoleL() ||
 			 aMREntry.IsForwardedL() )
 			{
 			attendee->SetResponseRequested( ETrue );
 			}
-		
-		TBool isNewAttendee( ETrue );		
+
+		TBool isNewAttendee( ETrue );
 		for( TInt i( 0 ); i < existingAttendeesCount; ++i )
 			{
 			if( existingAttendees[i]->Address().Compare( attendee->Address() ) == 0 )
@@ -1193,7 +1189,7 @@ void CESMRAttendeeField::UpdateAttendeesL( MESMRMeetingRequestEntry& aMREntry )
 				}
 			}
 		// If this is new attendee, let's add it to entry
-		if( isNewAttendee ) 
+		if( isNewAttendee )
 			{
 			entry.AddAttendeeL( attendee );
 			}

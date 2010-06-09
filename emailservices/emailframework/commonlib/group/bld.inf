@@ -32,6 +32,7 @@ PRJ_EXPORTS
 ../inc/cmrcalendarinfo.h |../../../../inc/cmrcalendarinfo.h
 ../inc/cmailmessageext.h |../../../../inc/cmailmessageext.h
 ../inc/cmailboxstateext.h |../../../../inc/cmailboxstateext.h
+../inc/cconnectionstatusqueryext.h |../../../../inc/cconnectionstatusqueryext.h
 
 ../inc/mmrattachment.h |../../../../inc/mmrattachment.h
 ../inc/mmrattendee.h |../../../../inc/mmrattendee.h

@@ -20,10 +20,6 @@
 #include "emailtrace.h"
 #include <e32base.h>
 #include <SendUiConsts.h>
-//<cmail>
-//#include <aplistitemlist.h>         // CApListItemList
-//#include <aplistitem.h>             // CApListItem
-//</cmail>
 #include <centralrepository.h>      // CRepository
 #include <AlwaysOnlineManagerClient.h>
 #include <cmdestination.h> 
@@ -131,9 +127,7 @@ void CIpsSetWizardAdapter::ClearFields()
     iOperatorOutSecurityAuth = 0;
     iOperatorOutSecurityProtocol = 0;
     iOperatorOutgoingPort = 0;
-    //<cmail>
     iHiddenData = EFalse;
-    //</cmail>
     iRecomendedAP.Zero();
     iMailboxName.Zero();
     }
@@ -144,8 +138,6 @@ void CIpsSetWizardAdapter::ReadWizardSettignsL()
     {
     FUNC_LOG;
     ClearFields();
-    
-    //<cmail>
     
     TIpsSetUtilsTextPlain tempText;
     TInt error = KErrNone;
@@ -295,8 +287,6 @@ void CIpsSetWizardAdapter::ReadWizardSettignsL()
     ChangeUnicodePrintable( tempText, iMailboxName );
     
     EmptyWizardCenRep();
-    //</cmail>
-    
     } 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
@@ -304,11 +294,11 @@ TInt CIpsSetWizardAdapter::GetIntFromCenRepL( TIpsSetWizardSettings aSetting,
                                               TInt& aVariable )
     {
     FUNC_LOG;
-	if ( &iWizardCenRep )
-		{
-    	return iWizardCenRep.Get( aSetting, aVariable );
-		}
-	return KErrNone;
+    if ( &iWizardCenRep )
+        {
+        return iWizardCenRep.Get( aSetting, aVariable );
+        }
+    return KErrNone;
     }
         
         
@@ -318,11 +308,11 @@ TInt CIpsSetWizardAdapter::GetTextFromCenRepL( TIpsSetWizardSettings aSetting,
                                  TIpsSetUtilsTextPlain& aVariable )
     {
     FUNC_LOG;
-	if ( &iWizardCenRep )
-		{
-    	return iWizardCenRep.Get( aSetting, aVariable );
-		}
-	return KErrNone;
+    if ( &iWizardCenRep )
+        {
+        return iWizardCenRep.Get( aSetting, aVariable );
+        }
+    return KErrNone;
     }
     
 // ---------------------------------------------------------------------------
@@ -330,38 +320,35 @@ TInt CIpsSetWizardAdapter::GetTextFromCenRepL( TIpsSetWizardSettings aSetting,
 void CIpsSetWizardAdapter::EmptyWizardCenRep()
     {
     FUNC_LOG;
-    // error is used in debug purposes
-    // <cmail>TInt error = KErrNone; Removed since it is not used.</cmail>
-	if ( &iWizardCenRep )
-		{
-	    iWizardCenRep.Set( ECRKPopImapEmailAddressId, KNullDesC );
-	    iWizardCenRep.Set( ECRKPopImapUsernameId, KNullDesC );
-	    iWizardCenRep.Set( ECRKPopImapPasswordId, KNullDesC );
-	    iWizardCenRep.Set( ECRKPopImapIncomingServerId, KNullDesC );
-	    iWizardCenRep.Set( 
-	            ECRKPopImapProtocolIndicatorId, KErrNotFound );
-	    iWizardCenRep.Set( 
-	            ECRKPopImapIncomingSecurityAuthId, KErrNotFound );
-	    iWizardCenRep.Set( 
-	            ECRKPopImapIncomingSecurityProtocolId, KErrNotFound );
-	    iWizardCenRep.Set( ECRKPopImapIncomingPortId, KErrNotFound );
-	    iWizardCenRep.Set( ECRKPopImapOutgoingServerId, KNullDesC );
-	    iWizardCenRep.Set( 
-	            ECRKPopImapOutgoingSecurityAuthId, KErrNotFound );
-	    iWizardCenRep.Set( 
-	            ECRKPopImapOutgoingSecurityProtocolId, KErrNotFound );
-	    iWizardCenRep.Set( ECRKPopImapOutgoingPortId, KErrNotFound );
-	    iWizardCenRep.Set( 
-	            ECRKPopImapOperatorOutgoingServerId, KNullDesC );
-	    iWizardCenRep.Set( 
-	            ECRKPopImapOperatorSecurityAuthId, KErrNotFound );
-	    iWizardCenRep.Set( 
-	            ECRKPopImapOperatorSecurityProtocolId, KErrNotFound );
-	    iWizardCenRep.Set( ECRKPopImapOperatorPortId, KErrNotFound );
-	    iWizardCenRep.Set( ECRKPopImapAccessPointId, KNullDesC );  
-	    iWizardCenRep.Set( ECRKPopImapMailboxName, KNullDesC );  
-		}
-    
+    if ( &iWizardCenRep )
+        {
+        iWizardCenRep.Set( ECRKPopImapEmailAddressId, KNullDesC );
+        iWizardCenRep.Set( ECRKPopImapUsernameId, KNullDesC );
+        iWizardCenRep.Set( ECRKPopImapPasswordId, KNullDesC );
+        iWizardCenRep.Set( ECRKPopImapIncomingServerId, KNullDesC );
+        iWizardCenRep.Set( 
+                ECRKPopImapProtocolIndicatorId, KErrNotFound );
+        iWizardCenRep.Set( 
+                ECRKPopImapIncomingSecurityAuthId, KErrNotFound );
+        iWizardCenRep.Set( 
+                ECRKPopImapIncomingSecurityProtocolId, KErrNotFound );
+        iWizardCenRep.Set( ECRKPopImapIncomingPortId, KErrNotFound );
+        iWizardCenRep.Set( ECRKPopImapOutgoingServerId, KNullDesC );
+        iWizardCenRep.Set( 
+                ECRKPopImapOutgoingSecurityAuthId, KErrNotFound );
+        iWizardCenRep.Set( 
+                ECRKPopImapOutgoingSecurityProtocolId, KErrNotFound );
+        iWizardCenRep.Set( ECRKPopImapOutgoingPortId, KErrNotFound );
+        iWizardCenRep.Set( 
+                ECRKPopImapOperatorOutgoingServerId, KNullDesC );
+        iWizardCenRep.Set( 
+                ECRKPopImapOperatorSecurityAuthId, KErrNotFound );
+        iWizardCenRep.Set( 
+                ECRKPopImapOperatorSecurityProtocolId, KErrNotFound );
+        iWizardCenRep.Set( ECRKPopImapOperatorPortId, KErrNotFound );
+        iWizardCenRep.Set( ECRKPopImapAccessPointId, KNullDesC );  
+        iWizardCenRep.Set( ECRKPopImapMailboxName, KNullDesC );  
+        }
     }
 
 // ---------------------------------------------------------------------------
@@ -376,24 +363,22 @@ void CIpsSetWizardAdapter::SetSettingsL( CIpsSetData& aSetData )
     aSetData.SetProtocol( 
         (iProtocol == 0) ? KSenduiMtmPop3Uid : KSenduiMtmImap4Uid );
         
-  //<cmail>
     if(iProtocol == 0)// KSenduiMtmPop3Uid - for Pop account- default is Headers Only
-    	{
+        {
         aSetData.SetDownloadSizeL( CIpsSetData::EHeaders,KIpsSetDataHeadersOnly);
         }
     else 
-    	{
-    	aSetData.SetDownloadSizeL( CIpsSetData::EHeadersPlus, KIpsSetDataDefaultDownloadSizeKb );
+        {
+        aSetData.SetDownloadSizeL( CIpsSetData::EHeadersPlus, KIpsSetDataDefaultDownloadSizeKb );
 
-    	TInt retImFolders = aSetData.RetrieveLimit(CIpsSetData::EImap4Folders); //TRetrieveLimit
+        TInt retImFolders = aSetData.RetrieveLimit(CIpsSetData::EImap4Folders); //TRetrieveLimit
         if(retImFolders==-1)
-        	{
+            {
             TInt retPopInbox = aSetData.RetrieveLimit(CIpsSetData::EPop3Limit); 
-           	TInt retImInbox  = aSetData.RetrieveLimit(CIpsSetData::EImap4Inbox); 
+            TInt retImInbox  = aSetData.RetrieveLimit(CIpsSetData::EImap4Inbox); 
             aSetData.SetRetrieveLimit(retPopInbox,retImInbox,KImapDefFoldersRetrieve);
-        	}
+            }
         }
-    //</cmail>
     aSetData.SetEmailAddressL( iEmailAddress );
     aSetData.SetUserNameL( iUsername, iUsername );
     aSetData.SetUserPwdL( iPassword, iPassword );
@@ -408,38 +393,38 @@ void CIpsSetWizardAdapter::SetSettingsL( CIpsSetData& aSetData )
                             security );
     aSetData.SetPort( port.inport, port.outport );                             
     
-    //<cmail>
     aSetData.SetDataHide( iHiddenData );
-    //</cmail>
     aSetData.SetMailboxName( CheckMailboxNamesL( iMailboxName ) );
     aSetData.SetUserAuthentication( CIpsSetData::EUseIncoming );
 
     iap = SetIAPByNameL( iRecomendedAP );
     
     TBool setIAP = ETrue;
-	//if IAP isn't set by SettingWizard, we try to get the SNAP.
+
+    RCmManager cmmgr;
+    cmmgr.OpenLC();
+    TCmDefConnValue defConnValue;
+    cmmgr.ReadDefConnL( defConnValue );
+
+    //if IAP isn't set by SettingWizard, we try to get the SNAP.
     if ( iap.iIAP <= 0 )
         {
         //Use SNAP when we got it and it does contain access point.
         //For other situations as below, we set 'ask when need' or default IAP
         //1. defConnValue.iType == ECmDefConnAskOnce
-        //2. Got SNAP, but it does not contain any acess point
+        //2. Got SNAP, but it does not contain any access point
         //3. Got default IAP when defConnValue.iType == ECmDefConnConnectionMethod
         iap.iDialogPref = ECommDbDialogPrefPrompt;
-        iap.iIAP = 0;		 
+        iap.iIAP = 0;        
 
-        RCmManager cmmgr;
-        cmmgr.OpenLC();
-        TCmDefConnValue defConnValue;
-        cmmgr.ReadDefConnL( defConnValue );
-		//Check default connection is destination or connection method
+        //Check default connection is destination or connection method
         if ( defConnValue.iType == ECmDefConnDestination )
             {
             //Get SNAP from cmmgr
             RCmDestination destination;
             CleanupClosePushL( destination );
             destination = cmmgr.DestinationL( defConnValue.iId );
-			//check if SNAP has IAPs
+            //check if SNAP has IAPs
             if ( destination.ConnectionMethodCount() > 0 )
                 {
                 //if SNAP contain access point, we use SNAP
@@ -448,25 +433,82 @@ void CIpsSetWizardAdapter::SetSettingsL( CIpsSetData& aSetData )
               
                 aSetData.SetIapL( *iapPref, *iapPref );
                 CleanupStack::PopAndDestroy( iapPref );
-				 
+                 
                 setIAP = EFalse;
                 }
-                CleanupStack::PopAndDestroy( &destination );			 
+                CleanupStack::PopAndDestroy( &destination );             
             }
         else if( defConnValue.iType == ECmDefConnConnectionMethod ) 
             {
             iap.iDialogPref = ECommDbDialogPrefDoNotPrompt;
             iap.iIAP = defConnValue.iId;
             }
-        CleanupStack::PopAndDestroy( &cmmgr );
         }
-		//If no valid IAP or destination, set zero.
+    else
+        {
+        // recommended IAP is defined
+        // try setting SNAP that contains the IAP
+        TBool found( EFalse );
+        RArray< TUint32 > destArray;
+        CleanupClosePushL( destArray );
+     
+        //Get list of all destinations
+        cmmgr.AllDestinationsL( destArray );
+     
+        TInt arrayCount( destArray.Count() );
+
+        CMManager::TSnapMetadataField metaFieldPurpose( CMManager::ESnapMetadataPurpose );
+        CMManager::TSnapMetadataField metaFieldLocalized( CMManager::ESnapMetadataDestinationIsLocalised );
+
+        //Traverse list of destinations
+        for ( TInt i = 0; i < arrayCount && !found; ++i )
+            {
+            RCmDestination destination = cmmgr.DestinationL( destArray[ i ] );
+            CleanupClosePushL( destination );
+            
+            TUint32  destinationPurpose = destination.MetadataL ( metaFieldPurpose );
+            TUint32  destinationLocalized = destination.MetadataL ( metaFieldLocalized );
+            
+            TInt iapCount ( destination.ConnectionMethodCount() );
+            if ( destinationPurpose == CMManager::ESnapPurposeInternet &&
+                 destinationLocalized == CMManager::ELocalisedDestInternet && 
+                 iapCount )
+                {
+                // found the Internet destination and it has at least one access point
+                for ( TInt c=0;c < iapCount && !found; c++ )
+                    {
+                    RCmConnectionMethod connMethod = destination.ConnectionMethodL( c );
+                    CleanupClosePushL( connMethod );
+                    
+                    TUint32 iapId = connMethod.GetIntAttributeL( CMManager::ECmIapId );
+                    HBufC* connName = connMethod.GetStringAttributeL( CMManager::ECmName );
+                    CleanupStack::PushL( connName );
+                    CleanupStack::PopAndDestroy( connName ); 
+                    if ( iapId == iap.iIAP )
+                        {
+                        CImIAPPreferences* iapPref = CImIAPPreferences::NewLC();
+                        INFO_1( "Setting SNAP %d by IAP", destination.Id() )
+                        iapPref->SetSNAPL( destination.Id());
+                        aSetData.SetIapL( *iapPref, *iapPref );   
+                        found = ETrue;
+                        setIAP = EFalse;
+                        CleanupStack::PopAndDestroy( iapPref );
+                        }
+                    CleanupStack::PopAndDestroy( &connMethod ); 
+                    }
+                }
+            CleanupStack::PopAndDestroy( &destination );
+            }
+        CleanupStack::PopAndDestroy( &destArray );
+        }    
+
+        //If no valid IAP or destination, set zero.
         if ( setIAP )
             {
-            aSetData.SetIapL( iap, iap );		 		 
+            INFO_1( "IAP is uncategorized, using IAP: %d", iap.iIAP )
+            aSetData.SetIapL( iap, iap );                
             }
-    // EIpsSetDataOutSecurityAuth
-    // EIpsSetDataOutSecurityAuth
+    CleanupStack::PopAndDestroy( &cmmgr );
     }
 
 // ---------------------------------------------------------------------------
@@ -570,16 +612,13 @@ TImIAPChoice CIpsSetWizardAdapter::SetIAPByNameL( TDes& aIAPName )
     //Initial IAP list
     ipsSetAP->InitializeSelectionL();
     
-    //<cmail>
     iapcount = ipsSetAP->iIapList.Count();
-    //</cmail>
 
     //Set default AP to always ask
     iap.iDialogPref = ECommDbDialogPrefPrompt;
     iap.iIAP = 0;   
 
     //run through all found access points
-	//<cmail>
     TBool found( EFalse );
     for( TInt i = 0;!found &&  i < iapcount; i++ )
         {
@@ -598,7 +637,6 @@ TImIAPChoice CIpsSetWizardAdapter::SetIAPByNameL( TDes& aIAPName )
             }
         CleanupStack::PopAndDestroy( name );
         }
-	//</cmail>
     CleanupStack::PopAndDestroy( ipsSetAP );
     return iap;
     }
@@ -621,10 +659,10 @@ void CIpsSetWizardAdapter::CreateEmailAccountL( CIpsSetData& aSetData )
     accountcount = RIpsSmtpArray.Count();
 
     //increase mailbox count
-	if ( &iWizardCenRep )
-		{ 
-    	iWizardCenRep.Set( ECRKAccountsConfigured, accountcount );
-		}
+    if ( &iWizardCenRep )
+        { 
+        iWizardCenRep.Set( ECRKAccountsConfigured, accountcount );
+        }
     
     if( accountcount >= KMaxMailboxes && &iWizardCenRep )
         {
@@ -636,7 +674,6 @@ void CIpsSetWizardAdapter::CreateEmailAccountL( CIpsSetData& aSetData )
     CleanupStack::PopAndDestroy( setManager );
     
     // notify ao about new mailbox
-// <cmail> RD_IPS_AO_PLUGIN flag removed
     TInt mailboxId = KErrNotFound;
     if ( aSetData.ExtendedSettings() )
         {
@@ -645,6 +682,7 @@ void CIpsSetWizardAdapter::CreateEmailAccountL( CIpsSetData& aSetData )
     
     RAlwaysOnlineClientSession aosession; 
     TInt err = aosession.Connect();
+    CleanupClosePushL( aosession );
     if ( mailboxId != KErrNotFound && err == KErrNone )
         {
         TPckgBuf<TMsvId> mboxBuf( mailboxId );
@@ -652,8 +690,7 @@ void CIpsSetWizardAdapter::CreateEmailAccountL( CIpsSetData& aSetData )
                 EServerAPIEmailTurnOn, 
                mboxBuf ) );
         }
-    aosession.Close();
-//#endif <cmail>
+    CleanupStack::PopAndDestroy( &aosession );
     }
 
 // ---------------------------------------------------------------------------
@@ -677,7 +714,7 @@ TDes& CIpsSetWizardAdapter::CheckMailboxNamesL( TDes& aName )
         
         if( !tempName.Compare( mailbox ) )
             {
-            //if mailboxname already exists increase value after name
+            //if mailbox name already exists increase value after name
             tempName = aName;
             endNumber++;
             tempName.AppendNum( endNumber );

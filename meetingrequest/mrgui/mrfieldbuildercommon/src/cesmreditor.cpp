@@ -27,6 +27,7 @@
 #include <gulfont.h>
 #include <eikenv.h>
 #include <avkon.hrh>
+#include <AknUtils.h>
 
 
 #include "emailtrace.h"
@@ -126,7 +127,7 @@ EXPORT_C TKeyResponse CESMREditor::OfferKeyEventL(
             TInt listHeight = iObserver->ListHeight();
 
             // edwinTlY negative
-            if ( cursorLowerPosition > ( listHeight - edwinTlY )) 
+            if ( cursorLowerPosition > ( listHeight - edwinTlY ))
                 {
                 iObserver->RePositionFields( -RowHeight() );
                 }
@@ -160,9 +161,9 @@ EXPORT_C TKeyResponse CESMREditor::OfferKeyEventL(
 EXPORT_C void CESMREditor::FocusChanged(TDrawNow aDrawNow)
     {
     FUNC_LOG;
-    
+
     CEikRichTextEditor::FocusChanged( aDrawNow );
-    
+
     TRAPD( error, TryToSetSelectionL() );
     if ( error != KErrNone )
         {
@@ -234,7 +235,7 @@ EXPORT_C void CESMREditor::HandleEdwinEventL(
         			{
         	        TInt curPos = CursorPos ();
         	        TInt textLength = TextLength();
-        	        // Update viewarea scrolling in cases where the cursor location 
+        	        // Update viewarea scrolling in cases where the cursor location
         	        // is changed directly from bottom to upmost position or vise versa.
         	        if ( CursorPos () == TextLength() || CursorPos () == 0 )
         	            {
@@ -244,7 +245,7 @@ EXPORT_C void CESMREditor::HandleEdwinEventL(
         			}
         		break;
         		}
-        		
+
         	case EEventTextUpdate:
         		{
         		if ( IsVisible() )
@@ -253,7 +254,7 @@ EXPORT_C void CESMREditor::HandleEdwinEventL(
         			}
         		break;
         		}
-        		
+
         	default:
         		{
         		break;
@@ -292,6 +293,10 @@ EXPORT_C void CESMREditor::SetFontL( const CFont* aFont )
 
     paraFormatMask.SetAttrib( EAttLineSpacing );
     paraFormat->iHorizontalAlignment = CParaFormat::ELeftAlign;
+    if ( AknLayoutUtils::LayoutMirrored() )
+        {
+        paraFormat->iHorizontalAlignment = CParaFormat::ERightAlign;
+        }
     paraFormatMask.SetAttrib( EAttAlignment );
 
     TCharFormat charFormat;
@@ -305,10 +310,10 @@ EXPORT_C void CESMREditor::SetFontL( const CFont* aFont )
     formatMask.SetAttrib(EAttFontHighlightColor);
     formatMask.SetAttrib( EAttColor );
 
-    charFormat.iFontPresentation.iTextColor = 
+    charFormat.iFontPresentation.iTextColor =
         NMRColorManager::Color( NMRColorManager::EMRMainAreaTextColor );
-    
-    charFormat.iFontPresentation.iHighlightColor =  
+
+    charFormat.iFontPresentation.iHighlightColor =
         NMRColorManager::Color( NMRColorManager::EMRCutCopyPasteHighlightColor );
 
     CParaFormatLayer* paraFormatLayer =
@@ -321,7 +326,7 @@ EXPORT_C void CESMREditor::SetFontL( const CFont* aFont )
     CleanupStack::Pop( paraFormatLayer );
     CleanupStack::PopAndDestroy( paraFormat );
     SetCharFormatLayer( charFormatLayer );
-    
+
     // This forces CEikEdwin::OnReformatL to notify observer
     // through HandleEdwinSizeEventL about changed size.
     // It is notified only if linecount changes.
@@ -385,7 +390,7 @@ EXPORT_C  void CESMREditor::SetDefaultTextL(
     {
     FUNC_LOG;
     SetTextL( aDefaultText );
-    
+
     if ( iDefaultText )
         {
         delete iDefaultText;

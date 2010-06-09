@@ -1383,6 +1383,15 @@ TSize CFsMultiLineItemVisualizer::SizeWithNumberOfLines( const TInt aNumberLines
     return size;
     }
 
+// ---------------------------------------------------------------------------
+//  From MFsTreeItemVisualizer.
+//  This method sets flag disable wrapping the text item.
+// ---------------------------------------------------------------------------
+//
+void CFsMultiLineItemVisualizer::OffWrapping()
+	{
+	FUNC_LOG;
+	}
 
 //End of file
 

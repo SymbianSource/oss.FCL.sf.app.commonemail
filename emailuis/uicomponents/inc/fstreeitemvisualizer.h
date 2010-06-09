@@ -398,6 +398,10 @@ public:
                         const TUint aTimeout = 0,
                         TBool aUpdateData = ETrue) = 0;
 
+    /**
+    * This method sets flag disable wrapping the text item.
+    */
+    virtual void OffWrapping() = 0;
     
     /**
      * A call to this function means that the item goes out of the visible 

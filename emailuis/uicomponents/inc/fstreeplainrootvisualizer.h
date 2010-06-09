@@ -123,7 +123,10 @@ public: // from base class MFsTreeItemVisualizer
                           const TInt aMarqueeCycleStartDelay,
                           const TInt aMarqueeRepetitions);
 
-
+    /**
+     * This method sets flag disable wrapping the text item.
+     */        
+    virtual void OffWrapping();
 protected:
 
     /**

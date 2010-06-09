@@ -878,6 +878,12 @@ void CFreestyleEmailUiAppUi::ViewActivatedExternallyL( TUid aViewId )
         return;
         }
 
+    if ( iActiveMailbox ) 
+        {
+        StartMonitoringL(); // start connect automatically
+        SyncActiveMailBoxL(); // start sync
+        }
+
     // Do nothing if the externally activated view was already active
     if ( iCurrentActiveView->Id() != aViewId )
         {
@@ -1327,6 +1333,14 @@ void CFreestyleEmailUiAppUi::HandleWsEventL(const TWsEvent &aEvent, CCoeControl*
 	    {
 	    return; //"consume" event
 	    }
+    
+    // to disable deleting message shortcut (bakspace) when fowarding/replying
+    if ( EStdKeyBackspace == key && aEvent.Type() == EEventKeyDown 
+         && iCurrentActiveView == iComposeView )
+        {
+        return; // consume event
+        }
+    
 	//</cmail>
 	if ( EStdKeyNo == key && aEvent.Type() == EEventKeyDown )
 		{
@@ -1412,7 +1426,16 @@ void CFreestyleEmailUiAppUi::HandleWsEventL(const TWsEvent &aEvent, CCoeControl*
             }
         }
 
-    CAknAppUi::HandleWsEventL(aEvent, aDestination);
+    if ( aEvent.Key()->iCode == EKeyEscape && 
+         iCurrentActiveView == iComposeView &&
+         iComposeView->IsOpeningWaitNoteVisible() )
+        {
+        return;
+        }
+    else
+        {
+        CAknAppUi::HandleWsEventL(aEvent, aDestination);
+        }
 	}
 
 CAlfDisplay& CFreestyleEmailUiAppUi::Display()
@@ -2520,7 +2543,59 @@ void CFreestyleEmailUiAppUi::HideTitlePaneConnectionStatus()
 		titlePane->SetSmallPicture( iConnectionIconBitmap, iConnectionIconMask, iConnectionIconBitmap && iConnectionIconMask);
 		}
 	iConnectionStatusIconAnimTimer->Stop();
-	iFakeSyncAnimStopTimer->Stop();
+    }
+
+void CFreestyleEmailUiAppUi::GetConnectionStatusL( 
+        CConnectionStatusQueryExtension::TConnectionStatus& aConnStatus )
+    {
+    aConnStatus = CConnectionStatusQueryExtension::EDisconnected;
+    CFSMailBox* mailbox = GetActiveMailbox();
+    if ( mailbox )
+        {
+        CConnectionStatusQueryExtension* extension( NULL );
+        TRAPD( error, extension = static_cast<CConnectionStatusQueryExtension*>( 
+                mailbox->ExtensionL( KEmailConnectionStatusQueryExtensionUid ) ) );
+        
+        if ( error && error != KErrNotSupported )
+            {
+            User::Leave( error );
+            }
+        
+        if ( extension )
+            {
+            // Query from extension - the new way
+            aConnStatus = extension->ConnectionStatus(
+                                mailbox->GetId(), iForcedConnectionStatus);
+            mailbox->ReleaseExtension( extension );
+            }
+        else
+            {
+            // Retain the old way        
+            TFSMailBoxStatus boxStatus( mailbox->GetMailBoxStatus() );
+            TSSMailSyncState syncState( mailbox->CurrentSyncState() );
+
+            if ( ( boxStatus == EFSMailBoxOnline && iForcedConnectionStatus != EForceToDisconnected ) ||
+                    (iForcedConnectionStatus == EForceToConnected || iForcedConnectionStatus == EForceToSync) )
+                {
+                if (syncState == EmailSyncing || syncState == InboxSyncing ||
+                        syncState == OutboxSyncing || syncState == SentItemsSyncing ||
+                        syncState == DraftsSyncing || syncState == CalendarSyncing ||
+                        syncState == ContactsSyncing || syncState == TasksSyncing ||
+                        syncState == FilesSyncing || iForcedConnectionStatus == EForceToSync )
+                    {
+                    aConnStatus = CConnectionStatusQueryExtension::ESynchronizing;
+                    }
+                else
+                    {
+                    aConnStatus = CConnectionStatusQueryExtension::EConnected;
+                    }
+                }
+            else // EFSMailBoxOffline
+                {
+                aConnStatus = CConnectionStatusQueryExtension::EDisconnected;
+                }            
+            }
+        }
     }
 
 void CFreestyleEmailUiAppUi::UpdateTitlePaneConnectionStatus(
@@ -2531,20 +2606,9 @@ void CFreestyleEmailUiAppUi::UpdateTitlePaneConnectionStatus(
 
     if ( iConnectionStatusVisible )
     	{
-
-    	// Get connection status of the current mailbox
-    	TFSMailBoxStatus connectionStatus = EFSMailBoxOffline;
-    	TSSMailSyncState syncState = Idle;
-		CFSMailBox* mb = GetActiveMailbox();
-		if ( mb )
-			{
-			connectionStatus = mb->GetMailBoxStatus();
-			syncState = mb->CurrentSyncState();
-			}
-
 		TUid titlePaneUid = TUid::Uid( EEikStatusPaneUidTitle );
 		CEikStatusPaneBase::TPaneCapabilities subPaneTitle =
-            StatusPane()->PaneCapabilities( titlePaneUid );
+			StatusPane()->PaneCapabilities( titlePaneUid );
 
 		if ( subPaneTitle.IsPresent() && subPaneTitle.IsAppOwned() )
 			{
@@ -2554,44 +2618,42 @@ void CFreestyleEmailUiAppUi::UpdateTitlePaneConnectionStatus(
 
 			// Set connection icon
 			iConnectionStatusIconAnimTimer->Stop();
-			iFakeSyncAnimStopTimer->Stop();
 			iConnectionIconBitmap = 0;
 			iConnectionIconMask = 0;
-			TSize iconSize = LayoutHandler()->statusPaneIconSize();
-			TBool startTimer = EFalse;
-			if ( ( connectionStatus == EFSMailBoxOnline && iForcedConnectionStatus != EForceToDisconnected ) ||
-					(iForcedConnectionStatus == EForceToConnected || iForcedConnectionStatus == EForceToSync) )
-				{
-				if (syncState == EmailSyncing || syncState == InboxSyncing ||
-				        syncState == OutboxSyncing || syncState == SentItemsSyncing ||
-				        syncState == DraftsSyncing || syncState == CalendarSyncing ||
-				        syncState == ContactsSyncing || syncState == TasksSyncing ||
-				        syncState == FilesSyncing || iForcedConnectionStatus == EForceToSync )
-				    {
-				    TRAP_IGNORE( FsTextureManager()->ProvideBitmapL(
-                        EStatusTextureSynchronising, iConnectionIconBitmap, iConnectionIconMask ) );
-				    startTimer = ETrue;
-				    }
-				else
-				    {
-				    TRAP_IGNORE( FsTextureManager()->ProvideBitmapL(
+			TBool startTimer = EFalse;			
+
+            // Get connection status of the current mailbox
+            CConnectionStatusQueryExtension::TConnectionStatus connectionStatus;       
+            TRAP_IGNORE( GetConnectionStatusL( connectionStatus ) );
+
+            switch ( connectionStatus )
+			    {
+                case CConnectionStatusQueryExtension::EConnected:
+                    TRAP_IGNORE( FsTextureManager()->ProvideBitmapL(
                         EStatusTextureConnected, iConnectionIconBitmap, iConnectionIconMask ) );
-				    }
-				}
-			else // EFSMailBoxOffline
-				{
-				TRAP_IGNORE( FsTextureManager()->ProvideBitmapL(
-						EStatusTextureDisconnectedGeneral, iConnectionIconBitmap, iConnectionIconMask ) );
-				}
+                    break;
+                case CConnectionStatusQueryExtension::EDisconnected:
+                    TRAP_IGNORE( FsTextureManager()->ProvideBitmapL(
+                            EStatusTextureDisconnectedGeneral, iConnectionIconBitmap, iConnectionIconMask ) );
+                    break;
+                case CConnectionStatusQueryExtension::ESynchronizing:
+                    TRAP_IGNORE( FsTextureManager()->ProvideBitmapL(
+                        EStatusTextureSynchronising, iConnectionIconBitmap, iConnectionIconMask ) );
+                    startTimer = ETrue;
+                    break;
+                default:
+                    break;
+			    }
 
 			if ( iConnectionIconBitmap )
 				{
+                TSize iconSize( LayoutHandler()->statusPaneIconSize() );
 				AknIconUtils::SetSize( iConnectionIconBitmap, iconSize, EAspectRatioNotPreserved );
 				}
 			titlePane->SetSmallPicture( iConnectionIconBitmap, iConnectionIconMask, iConnectionIconMask && iConnectionIconBitmap );
 			if (startTimer)
 			    {
-			    iConnectionStatusIconAnimTimer->Start(KConnectionStatusIconRotationInterval);
+			    iConnectionStatusIconAnimTimer->Start( KConnectionStatusIconRotationInterval );
 			    }
             titlePane->DrawNow();
 			}

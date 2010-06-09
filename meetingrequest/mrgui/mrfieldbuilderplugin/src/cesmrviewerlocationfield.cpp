@@ -229,8 +229,12 @@ TBool CESMRViewerLocationField::ExecuteGenericCommandL( TInt aCommand )
             break;
             }
         case EAknSoftkeySelect:
+        case EAknCmdOpen:
             {
-            iRichTextViewer->LinkSelectedL();
+            if ( !iRichTextViewer->LinkSelectedL() )
+                {
+                NotifyEventL( EAknSoftkeyContextOptions );
+                }
             isUsed = ETrue;
 
             break;

@@ -202,9 +202,7 @@ void CFsEmailUiViewBase::HideToolbar()
         CAknToolbar* toolbar(Toolbar());
         if (toolbar)
             {
-            //toolbar->SetToolbarVisibility(EFalse);
-            // Call MakeVisible directly because SetToolbarVisibility never
-            // actually hides fixed toolbar.
+            // toolbar->SetToolbarVisibility(EFalse);
             toolbar->MakeVisible(EFalse);
             }
         }
@@ -220,7 +218,8 @@ void CFsEmailUiViewBase::ShowToolbar()
         CAknToolbar* toolbar(Toolbar());
         if (toolbar)
             {
-            toolbar->SetToolbarVisibility(ETrue);
+            // toolbar->SetToolbarVisibility(ETrue);
+            toolbar->MakeVisible(ETrue);
             }
         }
     }

@@ -24,7 +24,7 @@
 #include <e32hashtab.h>
 #include <alf/alfenv.h>
 #include <alf/alftextstyle.h>
-#include <aknlayout2scalabledef.h>
+#include <AknLayout2ScalableDef.h>
 #include <AknUtils.h>
 // INTERNAL INCLUDES
 #include "FreestyleEmailUiLayoutData.h"

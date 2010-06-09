@@ -195,16 +195,15 @@ MMessageIterator* CEmailFolder::MessagesL(
         const RSortCriteriaArray& aCriteria )
     {
     RArray<TFSMailSortCriteria> sortCriterias;
-    CleanupClosePushL( sortCriterias );
     CEmailFolder::ToFsSortCriteriaL( aCriteria, sortCriterias );
     
     MFSMailIterator* fsIter = iFolder->ListMessagesL(EFSMsgDataEnvelope, sortCriterias);
     TUint count = iFolder->GetMessageCount();
     
-    CleanupStack::PopAndDestroy(); // sortCriterias
     CMessageIterator* iter = CMessageIterator::NewL( 
         fsIter, iPluginData, count );
     
+    sortCriterias.Reset();
     return iter;
     }        
 

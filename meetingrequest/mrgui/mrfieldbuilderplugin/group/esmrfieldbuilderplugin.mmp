@@ -124,6 +124,7 @@ LIBRARY efsrv.lib
 LIBRARY commonui.lib
 LIBRARY apmime.lib
 LIBRARY aknnotify.lib
+LIBRARY aknlayout2scalable.lib
 
 #if defined( ENABLE_TRACES ) && defined( TRACE_INTO_FILE )
 LIBRARY flogger.lib

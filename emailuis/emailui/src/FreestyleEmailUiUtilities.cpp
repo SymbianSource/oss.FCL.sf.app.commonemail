@@ -3058,17 +3058,54 @@ HBufC* TFsEmailUiUtility::CreateDisplayNameLC( const TDesC& aFirstname,
 
 	else
 		{
-		//Displayname = "firstname lastname"
-		displayname = HBufC::NewLC( aFirstname.Length() +
-									KSpace().Length() +
-									aLastname.Length() );
-		displayname->Des().Copy( aFirstname );
-		displayname->Des().Append( KSpace );
-		displayname->Des().Append( aLastname );
-		}
+		//Displayname="firstname lastname" or "LastnameFirstname" for Chinese
+
+        if( TFsEmailUiUtility::IsChineseWord( aFirstname ) 
+            || TFsEmailUiUtility::IsChineseWord( aLastname ) )
+            {
+            TInt length = aFirstname.Length() + aLastname.Length();
+            displayname = HBufC::NewLC( length );
+            displayname->Des().Copy( aLastname );
+            displayname->Des().Append( aFirstname );
+            }
+        else
+            {
+            TInt length = aFirstname.Length() + KSpace().Length() 
+            		+ aLastname.Length();
+            displayname = HBufC::NewLC( length );
+	    displayname->Des().Copy( aFirstname );
+	    displayname->Des().Append( KSpace );
+	    displayname->Des().Append( aLastname );
+	    }
+        }
 
 	return displayname;
 	}
+
+
+// ---------------------------------------------------------
+// Find if text is including Chinese word  
+// ---------------------------------------------------------
+//
+TBool TFsEmailUiUtility::IsChineseWord( const TDesC& aWord )
+    {
+    TBool isChineseSearchStr = EFalse;
+    const TUint KChineseUnicodeSpanBegin = 0x3400;
+    const TUint KChineseUnicodeSpanEnd = 0x9fff;
+    const TInt len = aWord.Length();
+
+    for ( TInt ii = 0; ii < len; ii++ )
+        {
+        if ( (TInt) aWord[ii] >= KChineseUnicodeSpanBegin 
+             && (TInt) aWord[ii] <= KChineseUnicodeSpanEnd )
+            {
+            isChineseSearchStr = ETrue;
+            break;
+            }
+        }
+    return isChineseSearchStr;
+    }
+
 
 // -----------------------------------------------------------------------------
 // TFsEmailUiUtility::GetFullIconFileNameL

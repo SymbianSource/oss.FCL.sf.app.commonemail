@@ -29,7 +29,7 @@
 //</cmail>
 
 #include "IpsSosAOBaseAgent.h"
-#include "IpsSetDataExtension.h"
+#include "ipssetdataextension.h"
 #include "IpsSosAOPluginTimer.h"
 //<cmail>
 //</cmail>

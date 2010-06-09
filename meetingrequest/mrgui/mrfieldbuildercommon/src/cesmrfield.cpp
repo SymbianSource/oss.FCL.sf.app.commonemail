@@ -293,11 +293,25 @@ EXPORT_C TKeyResponse CESMRField::OfferKeyEventL(
 		const TKeyEvent& aEvent, TEventCode aType )
     {
     FUNC_LOG;
+
+    TKeyResponse response( EKeyWasNotConsumed );
+
     if ( iExtControl )
         {
-        return iExtControl->OfferKeyEventL( aEvent, aType );
+        response = iExtControl->OfferKeyEventL( aEvent, aType );
         }
-    return EKeyWasNotConsumed;
+
+    // If key event was not consumed, and it is the Enter,
+    // let's execute generic command Open
+    if ( response == EKeyWasNotConsumed
+         && aType == EEventKey
+         && ( aEvent.iCode == EKeyEnter
+              || aEvent.iScanCode == EStdKeyEnter ) )
+        {
+        ExecuteGenericCommandL( EAknCmdOpen );
+        }
+
+    return response;
     }
 
 // ---------------------------------------------------------------------------

@@ -19,7 +19,7 @@
 
 #include "emailtrace.h"
 #include "IpsSosAOSchedulerUtils.h"
-#include "IpsSetDataExtension.h"
+#include "ipssetdataextension.h"
 
 
 

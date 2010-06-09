@@ -287,13 +287,14 @@ TBool CPsMruAdapter::FillDataStoreL( TFSMailMsgId& aId, TDesC& aDataStoreURI )
 // function has trap in  Event() -case> TFSEventNewMailbox and in DeleayedMailboxCreationEventL()
 // should not leave when new mailbox only when new mail address
     CFSMailBox *mailBox = iMailClient->GetMailBoxByUidL(aId);
-    if (mailBox)
+    if ( mailBox )
         {
+        CleanupStack::PushL( mailBox );
         AddMailboxObserverL( aId );
         
         // Get MRU list for this mailbox
         MDesCArray* mruList = mailBox->ListMrusL();
-        mailBox = NULL;
+        CleanupStack::PopAndDestroy( mailBox );
         
         // update the caching status as InProgress
         iDataStoreObserver->UpdateCachingStatus( aDataStoreURI,

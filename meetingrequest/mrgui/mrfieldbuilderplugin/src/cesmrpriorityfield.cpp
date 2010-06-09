@@ -58,8 +58,8 @@ CESMRPriorityField::~CESMRPriorityField()
     FUNC_LOG;
     iArray.ResetAndDestroy();
     iArray.Close();
-    
-    delete iIcon;    
+
+    delete iIcon;
     }
 
 // ---------------------------------------------------------------------------
@@ -82,7 +82,7 @@ CESMRPriorityField* CESMRPriorityField::NewL()
 //
 void CESMRPriorityField::ConstructL()
     {
-    FUNC_LOG;    
+    FUNC_LOG;
     iLabel = CMRLabel::NewL();
     iLabel->SetParent( this );
     CESMRField::ConstructL( iLabel ); // ownership transfered
@@ -98,7 +98,7 @@ void CESMRPriorityField::ConstructL()
 void CESMRPriorityField::InitializeL()
     {
     FUNC_LOG;
-    NMRColorManager::SetColor( *iLabel, 
+    NMRColorManager::SetColor( *iLabel,
                                NMRColorManager::EMRMainAreaTextColor );
     }
 
@@ -144,7 +144,7 @@ void CESMRPriorityField::InternalizeL( MESMRCalEntry& aEntry )
             }
         }
     // reader
-    CleanupStack::PopAndDestroy(); // codescanner::cleanup 
+    CleanupStack::PopAndDestroy(); // codescanner::cleanup
     }
 
 // ---------------------------------------------------------------------------
@@ -172,7 +172,7 @@ void CESMRPriorityField::ExternalizeL( MESMRCalEntry& aEntry )
 void CESMRPriorityField::SetOutlineFocusL( TBool aFocus )
     {
     FUNC_LOG;
-    CESMRField::SetOutlineFocusL ( aFocus );    
+    CESMRField::SetOutlineFocusL ( aFocus );
     iLabel->SetFocus( aFocus );
 
     //Focus gained
@@ -193,24 +193,25 @@ void CESMRPriorityField::SizeChanged()
     TAknLayoutRect rowLayoutRect =
         NMRLayoutManager::GetFieldRowLayoutRect( rect, 1 );
     rect = rowLayoutRect.Rect();
-    
+
     TAknWindowComponentLayout iconLayout =
-        NMRLayoutManager::GetWindowComponentLayout( 
+        NMRLayoutManager::GetWindowComponentLayout(
                 NMRLayoutManager::EMRLayoutTextEditorIcon );
     AknLayoutUtils::LayoutImage( iIcon, rect, iconLayout );
-    
+
     TAknLayoutRect bgLayoutRect =
-        NMRLayoutManager::GetLayoutRect( 
+        NMRLayoutManager::GetLayoutRect(
                 rect, NMRLayoutManager::EMRLayoutTextEditorBg );
     TRect bgRect( bgLayoutRect.Rect() );
     // Move focus rect so that it's relative to field's position.
     bgRect.Move( -Position() );
     SetFocusRect( bgRect );
-    
-    TAknLayoutText labelLayout = 
-        NMRLayoutManager::GetLayoutText( 
-                rect, NMRLayoutManager::EMRTextLayoutTextEditor );
-    iLabel->SetRect( labelLayout.TextRect() );
+
+    TAknTextComponentLayout editorLayout =
+            NMRLayoutManager::GetTextComponentLayout(
+                    NMRLayoutManager::EMRTextLayoutTextEditor );
+
+    AknLayoutUtils::LayoutLabel( iLabel, rect, editorLayout );
     }
 
 // ---------------------------------------------------------------------------
@@ -265,7 +266,7 @@ TBool CESMRPriorityField::ExecuteGenericCommandL( TInt aCommand )
         aCommand == EAknCmdOpen )
         {
     	HandleTactileFeedbackL();
-    	
+
         ExecutePriorityQueryL();
         isUsed = ETrue;
         }
@@ -381,7 +382,7 @@ void CESMRPriorityField::UpdateTextL( TInt aIndex )
     CESMRPriority* priority = iArray[ aIndex ];
     iLabel->SetTextL ( priority->Text ( ) );
 
-    NMRBitmapManager::TMRBitmapId bitmapId( 
+    NMRBitmapManager::TMRBitmapId bitmapId(
             NMRBitmapManager::EMRBitmapPriorityNormal );
 
     switch ( priority->Id() )
@@ -408,7 +409,7 @@ void CESMRPriorityField::UpdateTextL( TInt aIndex )
         	ASSERT(EFalse);
         	break;
         }
-    
+
     delete iIcon;
     iIcon = NULL;
     iIcon = CMRImage::NewL( bitmapId );

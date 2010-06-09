@@ -105,6 +105,7 @@ public: // From base class CAknView
     void ChildDoDeactivate();
     void DoTransitionEffect( TBool aDirectionOut );
     void GetParentLayoutsL( RPointerArray<CAlfVisual>& aLayoutArray ) const;
+	void FadeOut( TBool aDirectionOut );
 
 public: // Own public functions
 

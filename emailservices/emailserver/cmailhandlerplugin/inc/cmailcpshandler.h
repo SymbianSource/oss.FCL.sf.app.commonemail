@@ -37,6 +37,7 @@ class CMailCpsSettings;
 class CMailExternalAccount;
 class CMailPluginProxy;
 class CEmailObserverPlugin;
+class CMailCpsUpdateHelper;
 
 /**
  * CMail ContentPublishingService Handler class
@@ -77,6 +78,12 @@ public:
      * Wraps all "Update*" methods
      */
     void UpdateFullL();    
+
+    /**
+     * Method that actually does the full update.
+     * Used by CMailCpsUpdateHelper.
+     */
+    void DoUpdateFullL();    
 	
     /**
      *
@@ -453,6 +460,45 @@ private: // data
     TFSMailMsgId                       iWaitingForNewWidget;
     //
     CAknGlobalNote*                    iQuery;
+    // Helper for limiting rate of updates to Homescreen widget
+    CMailCpsUpdateHelper*              iUpdateHelper;
     };
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+// Helper class for limiting rate of updates to Homescreen widget
+
+// Don't make widget updates more often than this delay (milliseconds)
+#define KMailCpsHandlerUpdateDelay 1000
+
+class CMailCpsUpdateHelper : public CTimer
+    {
+    public:
+        static CMailCpsUpdateHelper* NewLC( CMailCpsHandler *aHandler );
+        static CMailCpsUpdateHelper* NewL( CMailCpsHandler *aHandler );
+
+        virtual ~CMailCpsUpdateHelper();
+
+        // Notify that Homescreen widget(s) should be updated
+        void UpdateL();	
+
+    protected:
+        void ConstructL();
+        virtual void RunL();
+        TInt RunError( TInt aError );
+
+    private:
+        CMailCpsUpdateHelper( CMailCpsHandler *aHandler );
+
+        // Performs the update, resets the timer, etc.
+        void DoUpdateL();
+
+        // Handler to use to do updates (not owned)
+        CMailCpsHandler *iCpsHandler;
+        // Whether or not an update is pending
+        TBool iPending;
+    };
+
 
 #endif  //__CMAILCPSHANDLER_H__

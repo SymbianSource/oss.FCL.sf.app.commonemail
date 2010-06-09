@@ -74,7 +74,7 @@ public:
     /**
      * destructor.
      */
-     IMPORT_C ~CFSMailRequestHandler();
+     IMPORT_C virtual ~CFSMailRequestHandler();
 
     /**
      * two based constructor

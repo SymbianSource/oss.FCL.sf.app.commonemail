@@ -605,3 +605,12 @@ void CFsTreeRichItemVisualizer::MarqueeL(const TFsTextMarqueeType /*aMarqueeType
     FUNC_LOG;
     }
 
+// ---------------------------------------------------------------------------
+//  From MFsTreeItemVisualizer.
+//  This method sets flag disable wrapping the text item.
+// ---------------------------------------------------------------------------
+//
+void CFsTreeRichItemVisualizer::OffWrapping()
+	{
+	FUNC_LOG;
+	}

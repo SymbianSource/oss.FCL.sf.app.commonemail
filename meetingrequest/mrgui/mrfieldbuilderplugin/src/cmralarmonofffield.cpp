@@ -50,11 +50,11 @@ CMRAlarmOnOffField* CMRAlarmOnOffField::NewL( MESMRFieldValidator* aValidator )
 // CMRAlarmOnOffField::CMRAlarmOnOffField
 // ---------------------------------------------------------------------------
 //
-CMRAlarmOnOffField::CMRAlarmOnOffField() 
+CMRAlarmOnOffField::CMRAlarmOnOffField()
     {
     FUNC_LOG;
     iStatus = ETrue;
-    
+
     SetFieldId ( EESMRFieldAlarmOnOff );
     SetFocusType ( EESMRHighlightFocus );
     }
@@ -68,10 +68,10 @@ void CMRAlarmOnOffField::ConstructL( MESMRFieldValidator* aValidator )
     FUNC_LOG;
     iValidator = aValidator;
     iValidator->SetAbsoluteAlarmOnOffFieldL( *this );
-        
+
     iIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapAlarm );
     iIcon->SetParent( this );
-    
+
     iLabel = CMRLabel::NewL();
     CESMRField::ConstructL( iLabel ); // ownership transfered
     iLabel->SetTextL( KNullDesC() );
@@ -140,8 +140,8 @@ void CMRAlarmOnOffField::InternalizeL( MESMRCalEntry& aEntry )
                 iStatus = ETrue;// Change the status to "ON" for these dialog default
                 }
                 break;
-                
-            case MESMRCalEntry::EESMRCalEntryAnniversary: // Anniversary    
+
+            case MESMRCalEntry::EESMRCalEntryAnniversary: // Anniversary
                 {
                 iStatus = ETrue;// Change the status to "ON" for these dialog default
                 }
@@ -149,7 +149,7 @@ void CMRAlarmOnOffField::InternalizeL( MESMRCalEntry& aEntry )
                 // Flow through
             case MESMRCalEntry::EESMRCalEntryMemo: // Memo
             case MESMRCalEntry::EESMRCalEntryReminder: // Reminder
-            
+
             default:
                 iStatus = EFalse; // Change the status to "OFF" for these dialog default
                 break;
@@ -198,7 +198,7 @@ void CMRAlarmOnOffField::SetOutlineFocusL( TBool aFocus )
     CESMRField::SetOutlineFocusL( aFocus );
 
     iLabel->SetFocus( aFocus );
-    
+
     if( aFocus ) //Focus is gained on the field
         {
         if ( iStatus )
@@ -235,11 +235,11 @@ TBool CMRAlarmOnOffField::ExecuteGenericCommandL( TInt aCommand )
     FUNC_LOG;
     TBool isUsed( EFalse );
     // EAknCmdOpen is added for the Pointer events, see ListPane
-    if( aCommand == EESMRCmdAlarmOn || aCommand == EESMRCmdAlarmOff 
+    if( aCommand == EESMRCmdAlarmOn || aCommand == EESMRCmdAlarmOff
             || aCommand == EAknCmdOpen )
         {
 		HandleTactileFeedbackL();
-		
+
         SwitchMiddleSoftKeyL();
         isUsed = ETrue;
         }
@@ -257,13 +257,13 @@ void CMRAlarmOnOffField::SwitchMiddleSoftKeyL()
     ResetFieldL();
     if( iStatus )
         {
-        ChangeMiddleSoftKeyL( EESMRCmdAlarmOff,R_QTN_MEET_REQ_ALARM_OFF ); 
+        ChangeMiddleSoftKeyL( EESMRCmdAlarmOff,R_QTN_MEET_REQ_ALARM_OFF );
         }
     else
         {
-        ChangeMiddleSoftKeyL( EESMRCmdAlarmOn,R_QTN_MEET_REQ_ALARM_ON ); 
+        ChangeMiddleSoftKeyL( EESMRCmdAlarmOn,R_QTN_MEET_REQ_ALARM_ON );
         }
-    
+
     if( iLabel->IsVisible() )
         {
         iLabel->DrawDeferred();
@@ -313,27 +313,24 @@ void CMRAlarmOnOffField::SizeChanged()
     TAknLayoutRect rowLayoutRect =
      NMRLayoutManager::GetFieldRowLayoutRect( rect, 1 );
     rect = rowLayoutRect.Rect();
-    
+
     TAknWindowComponentLayout iconLayout =
-     NMRLayoutManager::GetWindowComponentLayout( 
+     NMRLayoutManager::GetWindowComponentLayout(
              NMRLayoutManager::EMRLayoutTextEditorIcon );
     AknLayoutUtils::LayoutImage( iIcon, rect, iconLayout );
-    
+
     TAknLayoutRect bgLayoutRect =
-     NMRLayoutManager::GetLayoutRect( 
+     NMRLayoutManager::GetLayoutRect(
              rect, NMRLayoutManager::EMRLayoutTextEditorBg );
     TRect bgRect( bgLayoutRect.Rect() );
     // Move focus rect so that it's relative to field's position.
     bgRect.Move( -Position() );
     SetFocusRect( bgRect );
-    
-    TAknLayoutText labelLayout = 
-     NMRLayoutManager::GetLayoutText( 
-             rect, NMRLayoutManager::EMRTextLayoutTextEditor );
-    iLabel->SetRect( labelLayout.TextRect() );
-    
-    // Setting font for the label also
-    iLabel->SetFont( labelLayout.Font() );
+
+    TAknTextComponentLayout labelLayout =
+            NMRLayoutManager::GetTextComponentLayout(
+                    NMRLayoutManager::EMRTextLayoutTextEditor );
+    AknLayoutUtils::LayoutLabel( iLabel, rect, labelLayout );
     }
 
 // ---------------------------------------------------------------------------
@@ -378,7 +375,7 @@ CCoeControl* CMRAlarmOnOffField::ComponentControl( TInt aIndex ) const
 // CMRAlarmOnOffField::SetContainerWindowL
 // ---------------------------------------------------------------------------
 //
-void CMRAlarmOnOffField::SetContainerWindowL( 
+void CMRAlarmOnOffField::SetContainerWindowL(
         const CCoeControl& aContainer )
     {
     FUNC_LOG;

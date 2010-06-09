@@ -65,6 +65,7 @@ _LIT( KContainersTableQuickPropertiesCol, "C007" );
 _LIT( KContainersTableCountsCol,		  "C008" );
 _LIT( KContainersTableIsRowEncryptedCol,  "C009" );
 _LIT( KContainersTableIdIndex,            "C00A" );
+_LIT( KContainersTableParentIdIndex,      "C00B" );
 
 // Sorting table
 _LIT( KSortingTableName,                  "D001" );
@@ -112,6 +113,10 @@ _LIT( KMruAddressTableIsEncryptedCol,     "F006" );
 // indexes
 _LIT( KMruAddressTableMruNumIndex,        "F007" );
 _LIT( KMruAddressTableMailboxIdIndex,     "F008" );
+
+_LIT(KMarkedForDeleteTableName,                 "H001");
+_LIT(KMarkedForDeleteTableIDCol,                "H002");
+
 
 
 /** Defines the states of encryption/decryption operation 

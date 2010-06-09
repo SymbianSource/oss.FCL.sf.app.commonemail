@@ -124,7 +124,7 @@ void CMRMultiCalenField::SetOutlineFocusL( TBool aFocus )
     //Focus gained
     if ( aFocus )
         {
-        ChangeMiddleSoftKeyL( 
+        ChangeMiddleSoftKeyL(
                 EESMRCmdOpenMultiCalenSelectQuery, R_QTN_MSK_OPEN );
         }
     }
@@ -144,16 +144,16 @@ TBool CMRMultiCalenField::ExecuteGenericCommandL( TInt aCommand )
         if( IsLocked() )
         	{
 			HandleTactileFeedbackL();
-			
+
         	CESMRGlobalNote::ExecuteL(
         			CESMRGlobalNote::EESMRUnableToEdit );
         	isUsed = ETrue;
 			}
-        		    	
+
 		else if( iTypeChangeEnabled )
             {
 			HandleTactileFeedbackL();
-		
+
 		    ExecuteTypeQueryL();
             isUsed = ETrue;
             }
@@ -176,10 +176,10 @@ void CMRMultiCalenField::LockL()
 
 	CESMRField::LockL();
 
-	delete iLockIcon;	
+	delete iLockIcon;
 	iLockIcon = NULL;
 	iLockIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapLockField, ETrue );
-	iIcon->SetParent( this );		
+	iIcon->SetParent( this );
 	}
 
 // ---------------------------------------------------------------------------
@@ -238,7 +238,7 @@ void CMRMultiCalenField::ConstructL( )
     iCalenName->SetAlignment( align );
 
     iIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapCalendarSelection );
-    
+
     }
 
 // ---------------------------------------------------------------------------
@@ -270,7 +270,7 @@ TInt CMRMultiCalenField::CountComponentControls() const
     	{
     	++count;
     	}
-    
+
     if ( iLockIcon )
     	{
     	++count;
@@ -324,49 +324,49 @@ void CMRMultiCalenField::SizeChanged()
                 rect, NMRLayoutManager::EMRLayoutTextEditorIcon );
     TRect iconRect( iconLayout.Rect() );
     iIcon->SetRect( iconRect );
-    
+
     // Layouting lock icon
-    TAknLayoutRect rowLayoutRect( 
+    TAknLayoutRect rowLayoutRect(
             NMRLayoutManager::GetFieldRowLayoutRect( rect, 1 ) );
     TRect rowRect( rowLayoutRect.Rect() );
     if( iLockIcon )
         {
-        TAknWindowComponentLayout iconLayout( 
-                NMRLayoutManager::GetWindowComponentLayout( 
+        TAknWindowComponentLayout iconLayout(
+                NMRLayoutManager::GetWindowComponentLayout(
                     NMRLayoutManager::EMRLayoutSingleRowDColumnGraphic ) );
         AknLayoutUtils::LayoutImage( iLockIcon, rowRect, iconLayout );
         }
 
     // Layouting label
-    TAknLayoutText viewerLayoutText;
+    TAknTextComponentLayout viewerLayoutText;
     if( iLockIcon )
-    	{
-    	viewerLayoutText = NMRLayoutManager::GetLayoutText( rowRect, 
-    			NMRLayoutManager::EMRTextLayoutSingleRowEditorText );
-    	}
+        {
+        viewerLayoutText = NMRLayoutManager::GetTextComponentLayout(
+                NMRLayoutManager::EMRTextLayoutSingleRowEditorText );
+        }
     else
-    	{
-    	viewerLayoutText = NMRLayoutManager::GetLayoutText( rowRect, 
-    			NMRLayoutManager::EMRTextLayoutTextEditor );
-    	}
+        {
+        viewerLayoutText = NMRLayoutManager::GetTextComponentLayout(
+                NMRLayoutManager::EMRTextLayoutTextEditor );
+        }
 
-    TRect viewerRect( viewerLayoutText.TextRect() );    
-    iCalenName->SetRect( viewerRect );
-    
+    AknLayoutUtils::LayoutLabel( iCalenName, rect, viewerLayoutText );
+    TRect viewerRect( iCalenName->Rect() );
+
     // Move focus rect so that it's relative to field's position.
     viewerRect.Move( -Position() );
-    
-    TAknLayoutRect bgLayoutRect = 
-        NMRLayoutManager::GetLayoutRect( 
+
+    TAknLayoutRect bgLayoutRect =
+        NMRLayoutManager::GetLayoutRect(
                 rect, NMRLayoutManager::EMRLayoutTextEditorBg );
     TRect bgRect( bgLayoutRect.Rect() );
-    
-    // Adjust background rect according to viewerRect 
+
+    // Adjust background rect according to viewerRect
     bgRect.SetWidth( viewerRect.Width() );
-    
+
     // Move focus rect so that it's relative to field's position.
     bgRect.Move( -Position() );
-        
+
     SetFocusRect( bgRect );
     }
 
@@ -392,9 +392,9 @@ void CMRMultiCalenField::SetContainerWindowL(
 void CMRMultiCalenField::SetTextDimmed()
     {
     FUNC_LOG;
-    
+
     NMRColorManager::SetColor(
-            *iCalenName, 
+            *iCalenName,
             NMRColorManager::EMRMainAreaTextColorDimmed );
     }
 
@@ -403,58 +403,58 @@ void CMRMultiCalenField::SetTextDimmed()
 // ---------------------------------------------------------------------------
 //
 TBool CMRMultiCalenField::TypeChangeEnabledL()
-    {  
+    {
     TBool ret( ETrue );
-    
+
     /*
      * Case 1:
-     * If entry is single occurancy of a series, calendar type change  
+     * If entry is single occurancy of a series, calendar type change
      * is disabled for the user.
      */
-    if( iEntry->IsRecurrentEventL() && 
+    if( iEntry->IsRecurrentEventL() &&
             iEntry->RecurrenceModRule() == MESMRCalEntry::EESMRThisOnly &&
                 FieldMode() == EESMRFieldModeEdit )
         {
         ret = EFalse;
         }
-    
+
     /*
      * Case 2:
      * If entry is meeting request, and opened from mailbox that does not
-     * support multiple calendar, calendar type change is disabled 
+     * support multiple calendar, calendar type change is disabled
      * for the user.
      */
     if( ret && CCalenInterimUtils2::IsMeetingRequestL( iEntry->Entry() ) &&
             FieldMode() == EESMRFieldModeEdit )
         {
-        MESMRMeetingRequestEntry* entry = 
+        MESMRMeetingRequestEntry* entry =
             static_cast< MESMRMeetingRequestEntry* >( iEntry );
-        
-        // If entry's current plugin is active sync, it means that 
-        // Mail For Exchange is in use. This means, that multiple calendar 
+
+        // If entry's current plugin is active sync, it means that
+        // Mail For Exchange is in use. This means, that multiple calendar
         // functionality is not supported.
         if( entry->CurrentPluginL() == EESMRActiveSync )
             {
             ret = EFalse;
             }
         }
-    
+
     /*
      * Case 3:
-	 * When the organizer of the MR edits an already sent MR, calendar 
+	 * When the organizer of the MR edits an already sent MR, calendar
 	 * cannot be changed --> calendar selection needs to be locked.
      */
     if( ret && CCalenInterimUtils2::IsMeetingRequestL( iEntry->Entry() ) &&
             FieldMode() == EESMRFieldModeEdit )
     	{
-		MESMRMeetingRequestEntry* entry = 
+		MESMRMeetingRequestEntry* entry =
 				static_cast< MESMRMeetingRequestEntry* >( iEntry );
 		if( entry->RoleL() == EESMRRoleOrganizer && entry->IsSentL() )
 			{
-			ret = EFalse;    
+			ret = EFalse;
 			}
     	}
-    
+
     return ret;
     }
 

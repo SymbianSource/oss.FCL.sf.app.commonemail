@@ -148,7 +148,7 @@
 #include "ipssetdataapi.h"
 #include "ipssetdatastorer.h"
 #include "ipssetdata.h"
-#include "IpsSetDataExtension.h"
+#include "ipssetdataextension.h"
 #include "ipssetutils.h"
 #include "ipssetutilsconsts.hrh"
 

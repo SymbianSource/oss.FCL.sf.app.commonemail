@@ -157,13 +157,21 @@ void CESMRResponseField::SizeChanged()
         TInt movement = choiceLayoutRect.Rect().Height();
         rect.Move( 0, movement * ( i - 1 ) );
 
+        TInt leftMargin = choiceLayoutRect.Rect().iTl.iX;
+        TInt rightMargin = choiceLayoutRect.Rect().iBr.iX;
+        if ( AknLayoutUtils::LayoutMirrored() )
+            {
+            leftMargin -= parentRect.iTl.iX;
+            rightMargin -= parentRect.iTl.iX;
+            }
+
         AknLayoutUtils::LayoutControl(
                 ControlItem( i - 1 ),
                 rect,
                 choiceLayoutRect.Color().Value(),
-                choiceLayoutRect.Rect().iTl.iX,
+                leftMargin,
                 0,
-                choiceLayoutRect.Rect().iBr.iX,
+                rightMargin,
                 choiceLayoutRect.Rect().iBr.iY,
                 choiceLayoutRect.Rect().Width(),
                 choiceLayoutRect.Rect().Height() );
@@ -525,14 +533,21 @@ TBool CESMRResponseField::ExecuteGenericCommandL( TInt aCommand )
     {
     FUNC_LOG;
     TBool isUsed( EFalse );
-    if ( aCommand == EAknSoftkeySelect )
+
+    switch ( aCommand )
         {
-        ItemSelectedL();
-        isUsed = ETrue;
-        }
-    else
-        {
-        isUsed = CESMRField::ExecuteGenericCommandL( aCommand );
+        case EAknSoftkeySelect:
+        case EAknCmdOpen:
+            {
+            ItemSelectedL();
+            isUsed = ETrue;
+            break;
+            }
+        default:
+            {
+            isUsed = CESMRField::ExecuteGenericCommandL( aCommand );
+            break;
+            }
         }
 
     return isUsed;

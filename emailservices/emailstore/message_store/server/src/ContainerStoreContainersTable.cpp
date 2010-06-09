@@ -347,7 +347,7 @@ void CContainerStoreContainersTable::CreateTableL()
 	
 	// Create table index.
     CreateIndexL( KContainersTableName, KContainersTableIdIndex, KContainersTableIdCol );
-	
+    CreateIndexL( KContainersTableName, KContainersTableParentIdIndex, KContainersTableParentIdCol );
 	OpenTableL();
 	
 	__LOG_EXIT	
@@ -1208,4 +1208,69 @@ void CContainerStoreContainersTable::SetEncryptedL( TBool aIsEncrypted )
     iTable.SetColL( iIsRowEncryptedColNum, static_cast<TUint8>(aIsEncrypted) );
     }
 
+/*
+ * Search based on the parent ID. This will set the index if one exists and use the find if the index does not
+ * exists which could happen for a existing DB(IAD case)
+ */
+TContainerId CContainerStoreContainersTable::FirstChildForDeleteL( TContainerId aId, TDbBookmark& aBookmark )
+    {
+    __LOG_ENTER( "FirstChildForDeleteL" )
+    __LOG_WRITE8_FORMAT1_INFO( "id=%x", aId )
+    
+    TContainerId returnValue = KContainerInvalidId;
+    
+    TInt rc = iTable.SetIndex( KContainersTableParentIdIndex );
+    if ( rc == KErrNone )
+        {
+        TRAP_IGNORE(returnValue = GetFirstChildForDeleteL(aId, aBookmark));       
+        //remember to set the index back
+        iTable.SetIndex( KContainersTableIdIndex );
+        }
+    else
+        {
+        //older version of the db does not have the index on parent id, so do the slow Find instead
+        const TUint bufSize = 60;
+        TBuf<bufSize> queryString;
+        
+        _LIT( KEquals, "=" );
+        
+        queryString.Copy( KContainersTableParentIdCol );
+        queryString.Append( KEquals );
+        queryString.AppendNum( aId );
+    
+        returnValue = FindL( queryString );
+        if ( returnValue != KContainerInvalidId )
+            {
+            aBookmark = Bookmark();
+            }
+        }
+    
+    __LOG_EXIT
+    return returnValue;   
+    }
 
+/*
+ * Search based on the parent ID. 
+ */
+TContainerId CContainerStoreContainersTable::GetFirstChildForDeleteL( TContainerId aId, TDbBookmark& aBookmark )
+    {
+    __LOG_ENTER( "FirstChildForDeleteL" )
+    __LOG_WRITE8_FORMAT1_INFO( "id=%x", aId )
+    
+    TContainerId returnValue = KContainerInvalidId;
+    //Index on parent id, so we can Seek, faster than Find
+    if ( !iTable.SeekL( aId ) )
+        {
+        __LOG_WRITE_INFO( "No match found" )
+        returnValue = KContainerInvalidId;
+        }
+    else
+        {
+        iTable.GetL();
+        returnValue = iTable.ColUint32( iIdColNum );
+        aBookmark = Bookmark();
+        __LOG_WRITE8_FORMAT1_INFO( "found id=%x", returnValue )
+        }        
+    __LOG_EXIT
+    return returnValue;   
+    }

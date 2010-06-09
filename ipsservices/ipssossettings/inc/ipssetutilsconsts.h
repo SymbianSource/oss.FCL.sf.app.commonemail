@@ -110,8 +110,7 @@ const TUint KIpsSetDataEveryDayMask = 0x7f;
 
 // default values for ipssetdataextension
 //<cmail> cmail has different default value
-//The default value for sync interval is 1 hour, so ao state should be always on.
-const TInt KIpsSetExtDefaultAlwaysOnlineState = EMailAoAlways;
+const TInt KIpsSetExtDefaultAlwaysOnlineState = EMailAoOff;
 //</cmail>
 const TInt KIpsSetExtDefaultEmailNotificationState = EMailEmnOff;
 const TBool KIpsSetExtDefaultHideMsgs = EFalse;

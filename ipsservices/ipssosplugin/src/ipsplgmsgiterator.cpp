@@ -33,8 +33,7 @@ CIpsPlgMsgIterator* CIpsPlgMsgIterator::NewL(
     {
     FUNC_LOG;
     CIpsPlgMsgIterator* self = 
-        new( ELeave ) CIpsPlgMsgIterator( aPlugin, aMailboxId, aDetails, 
-            aSorting );
+        new( ELeave ) CIpsPlgMsgIterator( aPlugin, aMailboxId, aDetails );
     CleanupStack::PushL( self );
     self->ConstructL( aMsvSession, aFolderId, aSorting );
     CleanupStack::Pop( self );
@@ -53,8 +52,7 @@ CIpsPlgMsgIterator* CIpsPlgMsgIterator::NewL(
     {
     FUNC_LOG;
     CIpsPlgMsgIterator* self = 
-        new( ELeave ) CIpsPlgMsgIterator( aPlugin, aMailboxId, aDetails, 
-            aSorting );
+        new( ELeave ) CIpsPlgMsgIterator( aPlugin, aMailboxId, aDetails );
     CleanupStack::PushL( self );
     self->ConstructL( aFolderEntry, aSorting );
     CleanupStack::Pop( self );
@@ -73,6 +71,8 @@ CIpsPlgMsgIterator::~CIpsPlgMsgIterator()
     delete iMsgMapper;
     delete iMsgSortKey;
     delete iMsgSwapper;
+    
+    iSortingCriteria.Reset();
     }
 
 // ---------------------------------------------------------------------------
@@ -323,10 +323,9 @@ TBool CIpsPlgMsgIterator::PreviousL(
 CIpsPlgMsgIterator::CIpsPlgMsgIterator( 
     CIpsPlgSosBasePlugin& aPlugin,
     const TFSMailMsgId& aMailboxId,
-    const TFSMailDetails aDetails,
-    const RArray<TFSMailSortCriteria>& aSorting )
+    const TFSMailDetails aDetails )
     : iPlugin( aPlugin ), iRequestedDetails( aDetails ), 
-      iSortingCriteria( aSorting ), iMailboxId( aMailboxId )
+      iMailboxId( aMailboxId )
     {
     FUNC_LOG;
     // none
@@ -344,7 +343,9 @@ void CIpsPlgMsgIterator::ConstructL(
     {
     FUNC_LOG;
     iFolderEntry  = aMsvSession.GetEntryL( aFolderId.Id() );
-    iMsgSortKey   = new (ELeave) TIpsPlgMsgKey( *iFolderEntry, aSorting );
+    
+    StoreSortCriteriaL(aSorting);
+    iMsgSortKey   = new (ELeave) TIpsPlgMsgKey( *iFolderEntry, iSortingCriteria );
     iMsgSwapper   = new (ELeave) TIpsPlgMsgSwap( *iFolderEntry );
     iSortingOn    = 
         ( aSorting.Count() > 0 ) && ( aSorting[0].iField != EFSMailDontCare);
@@ -363,7 +364,8 @@ void CIpsPlgMsgIterator::ConstructL(
     {
     FUNC_LOG;
     iFolderEntry  = aFolderEntry;
-    iMsgSortKey   = new (ELeave) TIpsPlgMsgKey( *iFolderEntry, aSorting );
+    StoreSortCriteriaL(aSorting);
+    iMsgSortKey   = new (ELeave) TIpsPlgMsgKey( *iFolderEntry, iSortingCriteria );
     iMsgSwapper   = new (ELeave) TIpsPlgMsgSwap( *iFolderEntry );
     iSortingOn    = 
         ( aSorting.Count() > 0 ) && ( aSorting[0].iField != EFSMailDontCare);
@@ -481,4 +483,20 @@ CMsvEntrySelection* CIpsPlgMsgIterator::FilterMessagesL()
 		}
 	return filteredEntries;
 	}
+
+// -----------------------------------------------------------------------------
+// stores sort criteria given by user
+// -----------------------------------------------------------------------------
+void CIpsPlgMsgIterator::StoreSortCriteriaL( 
+     const RArray<TFSMailSortCriteria>& aSorting )
+    {
+    for ( TInt i=0; i < aSorting.Count(); i++ )
+        {
+        const TFSMailSortCriteria& criteria  = aSorting[i];
+        TFSMailSortCriteria fsCriteria;
+        fsCriteria.iField = criteria.iField;
+        fsCriteria.iOrder = criteria.iOrder;
+        iSortingCriteria.AppendL(fsCriteria);
+        }
+    }
 

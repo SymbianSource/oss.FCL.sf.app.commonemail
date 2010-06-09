@@ -783,7 +783,7 @@ void CFsTreePlainOneLineNodeVisualizer::MarqueeL(const TFsTextMarqueeType aMarqu
     FUNC_LOG;
     TInt marqueeSize(0), textWidth(0);
 
-    if ( aMarqueeType == EFsTextMarqueeNone )
+    if ( aMarqueeType == EFsTextMarqueeNone || !iTextVisual )
         {
         return;
         }
@@ -888,3 +888,7 @@ void CFsTreePlainOneLineNodeVisualizer::ConstructL( )
     CFsTreeNodeVisualizerBase::ConstructL();
     }
 
+void CFsTreePlainOneLineNodeVisualizer::OffWrapping( )
+	{
+	FUNC_LOG;
+	}

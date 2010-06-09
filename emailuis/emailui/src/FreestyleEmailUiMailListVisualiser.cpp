@@ -5616,16 +5616,18 @@ void CFSEmailUiMailListVisualiser::ScaleControlBarL()
   	iControlBarControl->SetRectL( iAppUi.LayoutHandler()->GetControlBarRect() );
 
     const TRect newEmailButtonRect( iAppUi.LayoutHandler()->GetControlBarNewEmailButtonRect() );
-    iNewEmailButton->SetPos( newEmailButtonRect.iTl );
+	//Add comments by luo gen(e0645320)
+	//The position of button should be set according to the size of button, so set size first
     iNewEmailButton->SetSize( newEmailButtonRect.Size() );
+    iNewEmailButton->SetPos( newEmailButtonRect.iTl );
 
     const TRect folderButtonRect( iAppUi.LayoutHandler()->GetControlBarFolderListButtonRect() );
+    iFolderListButton->SetSize( folderButtonRect.Size() );
   	iFolderListButton->SetPos( folderButtonRect.iTl );
-  	iFolderListButton->SetSize( folderButtonRect.Size() );
 
     const TRect sortButtonRect( iAppUi.LayoutHandler()->GetControlBarSortButtonRect() );
-   	iSortButton->SetPos( sortButtonRect.iTl );
     iSortButton->SetSize( sortButtonRect.Size() );
+   	iSortButton->SetPos( sortButtonRect.iTl );
 
 	TInt var = Layout_Meta_Data::IsLandscapeOrientation() ? 1 : 0;
 	TAknLayoutText textLayout;

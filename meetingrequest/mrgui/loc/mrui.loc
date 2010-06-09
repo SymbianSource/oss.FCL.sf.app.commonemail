@@ -17,7 +17,7 @@
 
 
 // d: Status pane text
-// l: title_pane_t2/opt9
+// l: title_pane_t1/opt3
 // r: TB9.1
 //
 #define qtn_meet_req_title_meeting  "Meeting request"

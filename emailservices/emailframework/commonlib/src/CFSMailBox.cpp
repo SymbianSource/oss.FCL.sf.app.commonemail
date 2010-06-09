@@ -27,6 +27,7 @@
 #include "cfsmailrequestobserver.h"
 
 #include "cmailboxstateext.h"
+#include "cconnectionstatusqueryext.h" 
 
 const TInt KMaxMruEntries( 150 );
 
@@ -79,7 +80,7 @@ EXPORT_C CFSMailBox::~CFSMailBox()
         // Release extension needs to be called twice because, previous
         // CExtendableEmail::ExtensionL( KMailboxExtMrCalInfo ) call increased
         // reference counter with one, so there is need to relase this one also.
-        CExtendableEmail::ReleaseExtension( extension );
+        while( extension->DecRef() > 1 ) {}
         CExtendableEmail::ReleaseExtension( extension );
         }
     iFolders.ResetAndDestroy();
@@ -845,7 +846,8 @@ EXPORT_C void CFSMailBox::ReleaseExtension( CEmailExtension* aExtension )
     // exists. It is released in desctrucor
     if( aExtension->Uid() != KMailboxExtMrCalInfo )
         {
-        if( aExtension->Uid() == KEmailSettingExtensionUid )
+        if( aExtension->Uid() == KEmailSettingExtensionUid ||
+		    aExtension->Uid() == KEmailConnectionStatusQueryExtensionUid )
             {
             // check that plugin supports requested extension.
             if ( CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid( GetId() ) )
@@ -888,7 +890,8 @@ EXPORT_C CEmailExtension* CFSMailBox::ExtensionL( const TUid& aInterfaceUid )
             }
         }    
     else if ( aInterfaceUid == KEmailMailboxStateExtensionUid ||
-              aInterfaceUid == KEmailSettingExtensionUid )
+              aInterfaceUid == KEmailSettingExtensionUid || 
+			  aInterfaceUid == KEmailConnectionStatusQueryExtensionUid )
         {
         if ( !extension )
             {

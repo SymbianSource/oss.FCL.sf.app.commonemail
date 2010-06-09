@@ -210,8 +210,7 @@ private:
     CIpsPlgMsgIterator( 
         CIpsPlgSosBasePlugin& aPlugin,
         const TFSMailMsgId& aMailBoxId,
-        const TFSMailDetails aDetails,
-        const RArray<TFSMailSortCriteria>& aSorting );
+        const TFSMailDetails aDetails );
     
     void ConstructL(        
         CMsvSession& aMsvSession,
@@ -221,7 +220,10 @@ private:
     void ConstructL(        
         CMsvEntry* aFolderEntry, 
         const RArray<TFSMailSortCriteria>& aSorting);
-
+    
+    void StoreSortCriteriaL( 
+        const RArray<TFSMailSortCriteria>& aSorting );
+    
 private: // data
 
     
@@ -249,10 +251,10 @@ private: // data
     /**
      * Sorting objects
      */    
-    TIpsPlgMsgKey*  iMsgSortKey;
-    TIpsPlgMsgSwap* iMsgSwapper;
-    TBool           iSortingOn;
-    const RArray<TFSMailSortCriteria>& iSortingCriteria;
+    TIpsPlgMsgKey*                  iMsgSortKey;
+    TIpsPlgMsgSwap*                 iMsgSwapper;
+    TBool                           iSortingOn;
+    RArray<TFSMailSortCriteria>     iSortingCriteria;
 
     /**
      * Mailbox identifier

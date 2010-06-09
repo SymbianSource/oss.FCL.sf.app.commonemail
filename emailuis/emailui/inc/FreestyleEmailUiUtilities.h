@@ -282,6 +282,11 @@ public:
     // Creates a displayname of firstname, lastname, emailfield components
     static HBufC* CreateDisplayNameLC( const TDesC& aFirstname, const TDesC& aLastname, const TDesC& aEmailField );
     
+    /**
+     * Determines if the descriptor is a Chinese word
+     */
+    static TBool IsChineseWord( const TDesC& aWord );
+    
     // Get the icon file name including the drive letter and full path
     static void GetFullIconFileNameL( TDes& aFileName );
     

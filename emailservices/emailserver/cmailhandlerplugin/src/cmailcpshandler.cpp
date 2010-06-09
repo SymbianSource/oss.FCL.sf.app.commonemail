@@ -54,7 +54,8 @@ using namespace EmailInterface;
 CMailCpsHandler::CMailCpsHandler( MFSNotificationHandlerMgr& aOwner ): 
     CFSNotificationHandlerBase( aOwner ),
     iWaitingForNewMailbox( NULL ),
-    iWaitingForNewWidget()
+    iWaitingForNewWidget(),
+    iUpdateHelper( NULL )
     {
     FUNC_LOG;
     iWaitingForNewWidget.SetPluginId( KNullUid );
@@ -108,6 +109,7 @@ void CMailCpsHandler::ConstructL()
 CMailCpsHandler::~CMailCpsHandler()
     {
     FUNC_LOG;
+    delete iUpdateHelper;
     delete iLiwIf;
     delete iSettings;
     iAccountsArray.ResetAndDestroy();
@@ -348,6 +350,20 @@ void CMailCpsHandler::SetUpdateNeeded( const TFSMailMsgId aMailbox )
 // ---------------------------------------------------------
 //
 void CMailCpsHandler::UpdateFullL()
+    {
+    FUNC_LOG;
+    if ( !iUpdateHelper )
+        {
+        iUpdateHelper = CMailCpsUpdateHelper::NewL( this );
+        }
+    iUpdateHelper->UpdateL();
+    }
+
+// ---------------------------------------------------------
+// CMailCpsHandler::DoUpdateFullL
+// ---------------------------------------------------------
+//
+void CMailCpsHandler::DoUpdateFullL()
     {
     FUNC_LOG;
     for (TInt instance = 0; instance < iLiwIf->GetWidgetInstanceCount(); instance++)
@@ -981,13 +997,6 @@ void CMailCpsHandler::HandleNewMailEventL(
         User::Leave( KErrArgument );
         }
 
-    // Find mailbox instance from array
-    CMailMailboxDetails* mailbox = FindMailboxDetails( aMailbox );
-    if ( !mailbox )
-        {
-        return;
-        }
-
     // typecast param2
     TFSMailMsgId* parentFolder = static_cast<TFSMailMsgId*>( aParam2 );
 
@@ -1018,6 +1027,7 @@ void CMailCpsHandler::HandleNewMailEventL(
     // Loop through message array
     TFSMailMsgId msgId;
     CFSMailMessage* msg( NULL );
+    CMailMailboxDetails* mailbox;
     for ( TInt ii = 0; ii < iiMax; ii++ )
         {
         msgId = (*newEntries)[ii];
@@ -1036,6 +1046,15 @@ void CMailCpsHandler::HandleNewMailEventL(
             // Ignore already read messages
             CleanupStack::PopAndDestroy( msg );
             continue;
+            }
+
+        // Find mailbox instance from array
+        mailbox = FindMailboxDetails( aMailbox );
+        if ( !mailbox )
+            {
+            CleanupStack::PopAndDestroy( msg );
+            CleanupStack::PopAndDestroy( newEntries );
+            return;
             }
 
         // Check if message is duplicate
@@ -1992,3 +2011,103 @@ TBool CMailCpsHandler::BackupOrRestoreMode()
         }
     return backupOrRestore;
     }
+
+// ----------------------------------------------------------------------------
+// class CMailCpsUpdateHelper : public CTimer
+// Used to limit the rate of updates to Homescreen widget
+// ----------------------------------------------------------------------------
+//
+
+CMailCpsUpdateHelper::CMailCpsUpdateHelper(
+    CMailCpsHandler *aHandler )
+    : CTimer( EPriorityStandard )  // Could be EPriorityLow
+    , iCpsHandler( aHandler )
+    , iPending( EFalse )
+    {
+    FUNC_LOG;
+    }
+
+CMailCpsUpdateHelper* CMailCpsUpdateHelper::NewLC( CMailCpsHandler* aHandler )
+    {
+    FUNC_LOG;
+    CMailCpsUpdateHelper* self = new ( ELeave ) CMailCpsUpdateHelper( aHandler );
+    CleanupStack::PushL( self );
+    self->ConstructL();
+    return self;
+    }
+
+CMailCpsUpdateHelper* CMailCpsUpdateHelper::NewL( CMailCpsHandler *aHandler )
+    {
+    FUNC_LOG;
+    CMailCpsUpdateHelper* self = CMailCpsUpdateHelper::NewLC( aHandler );
+    CleanupStack::Pop( self );
+    return self;
+    }
+
+void CMailCpsUpdateHelper::ConstructL()
+    {
+    FUNC_LOG;
+    CTimer::ConstructL();
+    CActiveScheduler::Add( this );
+    }
+
+CMailCpsUpdateHelper::~CMailCpsUpdateHelper()
+    {
+    FUNC_LOG;
+    iCpsHandler = NULL; // Not owned
+    Cancel();   // Stop any pending request
+    Deque();    // Remove from CActiveScheduler
+    }
+
+// Notification that Homescreen widget(s) should be updated
+void CMailCpsUpdateHelper::UpdateL()
+    {
+    FUNC_LOG;
+    if ( IsActive() )
+        {
+        // Timer is running, so just flag that an update should be sent when
+        // the timer expires.
+        iPending = ETrue;
+        }
+    else
+        {
+        // Timer is not running, so perform an update and set the timer
+        // running.
+        DoUpdateL();
+        }
+    }
+
+// Actually perform an update of the Homescreen widget.  Also sets the timer
+// running and clears the pending flag.
+void CMailCpsUpdateHelper::DoUpdateL()
+    {
+    FUNC_LOG;
+    // Set the timer running.
+    After( KMailCpsHandlerUpdateDelay );
+    // Clear the pending flag.
+    iPending = EFalse;
+    // Do the update.
+    iCpsHandler->DoUpdateFullL();
+    }
+
+void CMailCpsUpdateHelper::RunL()
+    {
+    FUNC_LOG;
+    if ( iPending )
+        {
+        // There was an update request since the last update, so do another
+        // update (and set the timer running again, etc.).
+        DoUpdateL();
+        }
+    }
+
+TInt CMailCpsUpdateHelper::RunError( TInt aError )
+    {
+    FUNC_LOG;
+    if ( KErrNone != aError )
+        {
+        Cancel();   // Stop any pending request
+        }
+    return KErrNone;    // Don't panic the thread
+    }
+

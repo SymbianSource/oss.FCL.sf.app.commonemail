@@ -10,23 +10,6 @@
         <unit unitID="EDo.commonemail" mrp="" bldFile="&layer_real_source_path;/group" name="commonemail" />
       </module>
     </layer>
-    <layer name="unit_test_layer">
-      <module name="cmail.emailserver.unittest">
-
-        <unit unitID="EDo.cmail.emailframework.unittest" mrp="" bldFile="sf/app/commonemail/emailservices/emailframework/tsrc/group" name="unittest.emailframework.cmail" />
-
-        <unit unitID="EDo.cmail.emailserver.unittest" mrp="" bldFile="sf/app/commonemail/emailservices/emailserver/tsrc/group" name="unittest.emailserver.cmail" />
-
-        <unit unitID="EDo.cmail.cmailhandlerplugin.unittest" mrp="" bldFile="sf/app/commonemail/emailservices/emailserver/cmailhandlerplugin/tsrc/group" name="unittest.cmailhandlerplugin.cmail" />
-
-        <unit unitID="EDo.cmail.mailserverautostart.unittest" mrp="" bldFile="sf/app/commonemail/emailservices/emailserver/mailserverautostart/tsrc/group" name="unittest.mailserverautostart.cmail" />
-
-        <unit unitID="EDo.cmail.saveascontactplugin.unittest" mrp="" bldFile="sf/app/commonemail/emailcontacts/contactactionservice/saveascontactplugin/tsrc/group" name="unittest.saveascontactplugin.cmail" />
-
-        <unit unitID="EDo.cmail.utils.unittest" mrp="" bldFile="ext/app/eas/Utils/tsrc/group" name="unittest.utils.cmail" />
-
-      </module>
-    </layer>
   </systemModel>
 </SystemDefinition>
 

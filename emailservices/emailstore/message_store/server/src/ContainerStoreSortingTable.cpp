@@ -113,6 +113,7 @@ CContainerStoreSortingTable::CContainerStoreSortingTable( CContainerStoreUtils& 
 CContainerStoreSortingTable::~CContainerStoreSortingTable()
 	{
 	iUtils.CloseTable( iTable );
+    iUtils.CloseTable (iMarkedForDeleteTable);
     iEncryptedBuffer.Close();
 	__LOG_DESTRUCT	
 	} // end destructor
@@ -148,7 +149,7 @@ void CContainerStoreSortingTable::OpenTableL()
 	
 	// Set the table's index to the ID index.
 	User::LeaveIfError( iTable.SetIndex( KSortingTableMessageIdIndex ) );
-
+	CreateOrOpenMarkedForDeletionTableL();
 	__LOG_EXIT	
 	}
 		
@@ -206,7 +207,6 @@ void CContainerStoreSortingTable::CreateTableL()
 	
 	CleanupStack::PopAndDestroy( colSet );
 	
-	// Create index for every column except for mailBoxId
 	CreateIndexL( KSortingTableName, KSortingTableMessageIdIndex,      KSortingTableMessageIdCol    );
 	CreateIndexL( KSortingTableName, KSortingTableFolderIdIndex,       KSortingTableFolderIdCol     );
     CreateIndexL( KSortingTableName, KSortingTableMailBoxIdIndex,      KSortingTableMailBoxIdCol    );
@@ -284,21 +284,9 @@ void CContainerStoreSortingTable::DeleteMessageL( TContainerId aMessageId )
 void CContainerStoreSortingTable::DeleteMessagesByFolderIdL( TContainerId aFolderId )
 	{
 	__LOG_ENTER_SUPPRESS( "DeleteMessagesByFolderIdL" )
-	__LOG_WRITE8_FORMAT1_DEBUG3( "aFolderId=%x", aFolderId )
-	
-	TBuf<KQuerryBufSize> queryString;
-	queryString.Copy( KDelete );
-	queryString.Append( KFrom );
-	queryString.Append( KSortingTableName );
-	queryString.Append( KWhere );
-	queryString.Append( KSortingTableFolderIdCol );
-	queryString.Append( KEquals );
-	queryString.AppendNum( aFolderId );
-	
-	iUtils.Execute( queryString );
-    
-    //Notify the observer
-    iObserver.FolderDeleted( aFolderId );
+	__LOG_WRITE8_FORMAT1_DEBUG3( "aFolderId=%x", aFolderId )	
+	//Add the folder ID into the MarkedForDeleteTable to be processed in the background.
+	MarkIdForDeletionL(aFolderId);
 	}
 
 // ==========================================================================
@@ -308,20 +296,8 @@ void CContainerStoreSortingTable::DeleteMessagesByMailBoxIdL( TContainerId aMail
     {
     __LOG_ENTER_SUPPRESS( "DeleteMessagesByMailBoxIdL" )
     __LOG_WRITE8_FORMAT1_DEBUG3( "aMailBoxId=%x", aMailBoxId )
-    
-    TBuf<KQuerryBufSize> queryString;
-    queryString.Copy( KDelete );
-    queryString.Append( KFrom );
-    queryString.Append( KSortingTableName );
-    queryString.Append( KWhere );
-    queryString.Append( KSortingTableMailBoxIdCol );
-    queryString.Append( KEquals );
-    queryString.AppendNum( aMailBoxId );
-    
-    iUtils.Execute( queryString );
-    
-    //Notify the observer
-    iObserver.MailBoxDeleted( aMailBoxId );
+     //Add the mailbox ID into the MarkedForDeleteTable to be processed in the background. 
+    MarkIdForDeletionL( aMailBoxId);   
     }
 
 // ==========================================================================
@@ -1243,5 +1219,144 @@ TBool CContainerStoreSortingTable::IsEncrypted( RDbRowSet& aRowSet )
 void CContainerStoreSortingTable::SetEncryptedL( TBool aIsEncrypted )
     {
     iTable.SetColL( iIsEncryptedColNum, static_cast<TUint8>(aIsEncrypted) );
+    }
+
+// ==========================================================================
+// FUNCTION: CreateMarkedForDeletionTableL
+// ==========================================================================
+void CContainerStoreSortingTable::CreateMarkedForDeletionTableL()
+    {
+    __LOG_ENTER( "CreateMarkedForDeletionTableL" )
+    
+    // Create table columns
+    CDbColSet* colSet = CDbColSet::NewLC();
+    TDbCol mailboxIdCol( KMarkedForDeleteTableIDCol, EDbColUint32 );
+    colSet->AddL( mailboxIdCol );      
+    // Create table.
+    iUtils.CreateTableL( KMarkedForDeleteTableName, *colSet );   
+    CleanupStack::PopAndDestroy( colSet );             
+    __LOG_EXIT
+    }
+
+// ==========================================================================
+// FUNCTION: CreateOrOpenMarkedForDeletionTableL
+// try to open the Table - create if not found (IAD case) and then open
+// ==========================================================================
+void CContainerStoreSortingTable::CreateOrOpenMarkedForDeletionTableL()
+    {
+    __LOG_ENTER( "OpenMarkedForDeletionTableL" )
+            
+    TRAPD(err, iUtils.OpenTableL( iMarkedForDeleteTable, KMarkedForDeleteTableName ));
+    if(err != KErrNone)
+        {
+        CreateMarkedForDeletionTableL();
+        iUtils.OpenTableL( iMarkedForDeleteTable, KMarkedForDeleteTableName );
+        }
+    CDbColSet* colSet = iMarkedForDeleteTable.ColSetL();
+    CleanupStack::PushL( colSet );
+    //Get the column number
+    iMarkedForDeleteIdColNum = colSet->ColNo( KMarkedForDeleteTableIDCol ); 
+    CleanupStack::PopAndDestroy( colSet );
+    __LOG_EXIT  
+    }
+
+// ==========================================================================
+// FUNCTION: MarkIdForDeletionL
+// Add the ID into the marked for DeletionTable.
+// ==========================================================================
+void CContainerStoreSortingTable::MarkIdForDeletionL( TContainerId aId)
+    {
+    __LOG_ENTER( "MarkIdForDeletionL" )
+    
+    __LOG_WRITE8_FORMAT1_DEBUG3( "Id=%x",aId )
+    iMarkedForDeleteTable.LastL();
+    iMarkedForDeleteTable.InsertL();   
+    iMarkedForDeleteTable.SetColL( iMarkedForDeleteIdColNum, aId );   
+    iMarkedForDeleteTable.PutL();
+    __LOG_EXIT 
+    }
+
+// ==========================================================================
+// FUNCTION: DeleteNextContainerMarkedForDeletionL
+// Use the ID in the MarkedForDeletionTable to delete items from the sorting table .
+// ==========================================================================
+TBool CContainerStoreSortingTable::DeleteNextContainerMarkedForDeletionL()
+    {
+    __LOG_ENTER( " DeleteNextContainerMarkedForDeletionL" )
+    TBool more = EFalse;
+    //set the index to mailboxID to help with seek
+    // Set the table's index to the ID index.
+    if(!iMarkedForDeleteTable.IsEmptyL())
+        {
+        iMarkedForDeleteTable.FirstL();
+        iMarkedForDeleteTable.GetL();
+        TInt deletionID =  iMarkedForDeleteTable.ColUint32(iMarkedForDeleteIdColNum);
+        //check if the ID refers to a folder or is a mailbox and set the index for the table accordingly.
+        if ( ( deletionID & EMsgStoreContainerMask ) == EMsgStoreMailBoxBits)
+            {
+            iTable.SetIndex( KSortingTableMailBoxIdIndex );
+            }
+        else if ( ( deletionID & EMsgStoreContainerMask ) == EMsgStoreFolderBits)
+            {
+            iTable.SetIndex( KSortingTableFolderIdIndex );
+            }
+        //Delete next message from the mailbox/folder
+        TRAPD(err, more = DeleteNextMessageL(deletionID));
+        if (err == KErrNone)
+            {
+            if (!more)
+                {
+                TRAP_IGNORE(more = DeleteFromMarkedForDeletionTableL());
+                }
+            }
+        //reset to the original index 
+        iTable.SetIndex( KSortingTableMessageIdIndex );
+        }
+    __LOG_EXIT
+    return more;
+    }
+
+// ==========================================================================
+// FUNCTION: DeleteNextContainerMarkedForDeletionL
+// Use the ID in the MarkedForDeletionTable to delete items from the sorting table .
+// ==========================================================================
+TBool CContainerStoreSortingTable::DeleteFromMarkedForDeletionTableL()
+    {
+    __LOG_ENTER( " DeleteFromMarkedForDeletionTableL" )
+    TBool more(EFalse);
+    // removed the row once all the messages for that ID have been deleted.
+    iMarkedForDeleteTable.DeleteL();
+    //check if there is another entry
+    if(iMarkedForDeleteTable.NextL())
+        {
+        more = ETrue;
+        }
+    __LOG_EXIT
+    return more;
+    }
+
+// ==========================================================================
+// FUNCTION: DeleteNextMessageL
+// Deletes one row where ID = aId. 
+// @ return Etrue if seek successful
+//          EFalse if seek failed which mean no more messages for the 
+//          given container ID
+// ==========================================================================
+TBool CContainerStoreSortingTable::DeleteNextMessageL( TContainerId aId )
+    {
+    __LOG_ENTER( "DeleteNextMessageL" )
+    __LOG_WRITE8_FORMAT1_DEBUG3( "aId=%x", aId )
+       
+    //Find first matching row
+    TRAPD(err, SeekL( aId ));
+    TBool more(EFalse);
+    if (err ==KErrNone)
+        {
+        iTable.GetL();   
+        iTable.DeleteL();
+        more =  ETrue;
+        }
+    __LOG_EXIT
+    return more;
     }
 

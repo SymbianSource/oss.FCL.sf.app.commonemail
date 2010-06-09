@@ -56,13 +56,13 @@ CESMRCheckBox* CESMRCheckBox::NewL( MESMRFieldValidator* aValidator )
 // CESMRCheckbox::CESMRCheckbox
 // ---------------------------------------------------------------------------
 //
-CESMRCheckBox::CESMRCheckBox( MESMRFieldValidator* aValidator ) 
+CESMRCheckBox::CESMRCheckBox( MESMRFieldValidator* aValidator )
 : iChecked( EFalse )
     {
     FUNC_LOG;
-    
+
     iValidator = aValidator;
-    
+
     SetFieldId( EESMRFieldAllDayEvent );
     SetFocusType ( EESMRHighlightFocus );
     }
@@ -76,15 +76,15 @@ void CESMRCheckBox::ConstructL()
     FUNC_LOG;
     iLabel = CMRLabel::NewL();
     iLabel->SetParent( this );
-    
+
     CESMRField::ConstructL( iLabel ); //ownership transfered
-    
+
     HBufC* txt = StringLoader::LoadLC ( R_QTN_MEET_REQ_ALL_DAY_EVENT );
     iLabel->SetTextL( *txt );
     CleanupStack::PopAndDestroy( txt );
 
     // Creating field icon
-    SetIconL ( iChecked );    
+    SetIconL ( iChecked );
     }
 
 // ---------------------------------------------------------------------------
@@ -125,7 +125,7 @@ TBool CESMRCheckBox::ExecuteGenericCommandL( TInt aCommand )
     if( aCommand == EESMRCmdCheckEvent || aCommand == EAknCmdOpen )
         {
     	HandleTactileFeedbackL();
-    
+
         HandleCheckEventL();
         SwitchMSKLabelL();
         SendFieldChangeEventL( EESMRFieldAllDayEvent );
@@ -201,31 +201,29 @@ void CESMRCheckBox::SizeChanged()
     {
     FUNC_LOG;
     TRect rect = Rect();
-    
+
     TAknLayoutRect rowLayoutRect =
      NMRLayoutManager::GetFieldRowLayoutRect( rect, 1 );
     rect = rowLayoutRect.Rect();
-    
+
     TAknWindowComponentLayout iconLayout =
-     NMRLayoutManager::GetWindowComponentLayout( 
+     NMRLayoutManager::GetWindowComponentLayout(
              NMRLayoutManager::EMRLayoutTextEditorIcon );
     AknLayoutUtils::LayoutImage( iFieldIcon, rect, iconLayout );
-    
+
     TAknLayoutRect bgLayoutRect =
-     NMRLayoutManager::GetLayoutRect( 
+     NMRLayoutManager::GetLayoutRect(
              rect, NMRLayoutManager::EMRLayoutTextEditorBg );
     TRect bgRect( bgLayoutRect.Rect() );
     // Move focus rect so that it's relative to field's position.
     bgRect.Move( -Position() );
     SetFocusRect( bgRect );
-    
-    TAknLayoutText labelLayout = 
-     NMRLayoutManager::GetLayoutText( 
-             rect, NMRLayoutManager::EMRTextLayoutTextEditor );
-    iLabel->SetRect( labelLayout.TextRect() );
-        
-    // Setting font also for the label
-    iLabel->SetFont( labelLayout.Font() );
+
+    TAknTextComponentLayout editorLayout =
+            NMRLayoutManager::GetTextComponentLayout(
+                    NMRLayoutManager::EMRTextLayoutTextEditor );
+
+    AknLayoutUtils::LayoutLabel( iLabel, rect, editorLayout );
     }
 
 // ---------------------------------------------------------------------------
@@ -267,7 +265,7 @@ void CESMRCheckBox::SetIconL( TBool aChecked )
     FUNC_LOG;
     delete iFieldIcon;
     iFieldIcon = NULL;
-    
+
     NMRBitmapManager::TMRBitmapId iconID;
     if( aChecked )
         {
@@ -277,7 +275,7 @@ void CESMRCheckBox::SetIconL( TBool aChecked )
         {
         iconID = NMRBitmapManager::EMRBitmapCheckBoxOff;
         }
-    
+
     iFieldIcon = CMRImage::NewL( iconID );
     iFieldIcon->SetParent( this );
 
@@ -343,7 +341,7 @@ void CESMRCheckBox::SwitchMSKLabelL()
 // CESMRCheckbox::SetContainerWindowL
 // ---------------------------------------------------------------------------
 //
-void CESMRCheckBox::SetContainerWindowL( 
+void CESMRCheckBox::SetContainerWindowL(
         const CCoeControl& aContainer )
     {
     CCoeControl::SetContainerWindowL( aContainer );
@@ -371,7 +369,7 @@ void CESMRCheckBox::SendFieldChangeEventL(
         CESMRFieldEventValue* checked = CESMRFieldEventValue::NewLC(
                 CESMRFieldEventValue::EESMRInteger, &iChecked );
         event->AddParamL( checked );
-        CleanupStack::Pop( checked );     
+        CleanupStack::Pop( checked );
         iEventQueue->NotifyEventL( *event );
         CleanupStack::PopAndDestroy( event );
         }

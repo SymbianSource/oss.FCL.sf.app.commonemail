@@ -210,3 +210,12 @@ void CFsTreePlainRootVisualizer::ConstructL( )
     CFsTreeNodeVisualizerBase::ConstructL();
     }
 
+// ---------------------------------------------------------------------------
+//  From MFsTreeItemVisualizer.
+//  This method sets flag disable wrapping the text item.
+// ---------------------------------------------------------------------------
+//
+void CFsTreePlainRootVisualizer::OffWrapping()
+	{
+	FUNC_LOG;
+	}

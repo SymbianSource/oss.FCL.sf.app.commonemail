@@ -403,3 +403,7 @@ void CFsSeparatorVisualizer::ConstructL( )
     CFsTreeItemVisualizerBase::ConstructL();
     }
 
+void CFsSeparatorVisualizer::OffWrapping()
+	{
+	FUNC_LOG;
+	}

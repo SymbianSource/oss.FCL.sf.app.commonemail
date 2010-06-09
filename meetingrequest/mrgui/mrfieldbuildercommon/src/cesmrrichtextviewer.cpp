@@ -12,7 +12,7 @@
 * Contributors:
 *
 *  Description : CEikRichTextEditor based Rich Text viewer
-*  Version     : %version: e002sa32#41 %
+*  Version     : %version: e002sa32#42.1.2 %
 *
 */
 
@@ -306,8 +306,10 @@ EXPORT_C TKeyResponse CESMRRichTextViewer::OfferKeyEventL(
                 break;
                 }
             case EKeyDevice3: // Selection key
+            case EKeyEnter:
                 {
-                // No implementation. Non-MSK devices might require this.
+                LinkSelectedL();
+                response = EKeyWasConsumed;
                 break;
                 }
             default:
@@ -633,6 +635,10 @@ EXPORT_C void CESMRRichTextViewer::SetFontL( const CFont* aFont )
 
     iParaFormatMask.SetAttrib( EAttLineSpacing );
     iParaFormat->iHorizontalAlignment = CParaFormat::ELeftAlign;
+    if ( AknLayoutUtils::LayoutMirrored() )
+        {
+        iParaFormat->iHorizontalAlignment = CParaFormat::ERightAlign;
+        }
     iParaFormat->iVerticalAlignment = CParaFormat::ECenterAlign;
     iParaFormatMask.SetAttrib( EAttAlignment );
     iParaFormatMask.SetAttrib( EAttVerticalAlignment );
@@ -1152,7 +1158,8 @@ void CESMRRichTextViewer::GetLinkAreaL(
         if ( AknLayoutUtils::LayoutMirrored() )
             {
             // move top left x to end of text
-            tl.iX -= textWidth;
+			// will be handled further, if all mr fields need to be changed the order from right to left.
+            //tl.iX -= textWidth;
             }
 
         tl.iY -= iFont->FontMaxAscent();

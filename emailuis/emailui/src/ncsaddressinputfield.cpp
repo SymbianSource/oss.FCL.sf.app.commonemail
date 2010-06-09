@@ -32,7 +32,7 @@
 #include <sysutil.h>
 #include <AknUtils.h>
 #include <FreestyleEmailUi.rsg>
-#include <AknPhysics.h>
+#include <aknphysics.h>
 
 #include "FreestyleEmailUiAppui.h"
 #include "FreestyleEmailUiLayoutData.h"

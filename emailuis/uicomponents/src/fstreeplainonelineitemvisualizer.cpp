@@ -540,13 +540,18 @@ void CFsTreePlainOneLineItemVisualizer::UpdateL( const MFsTreeItemData& aData,
                 iTextVisual->SetColor( textColor );
                 iTextVisual->SetTextStyle( styleId );
 
-//                iTextVisual->SetWrapping(CAlfTextVisual::ELineWrapManual);
+                if ( iManualWrapper )
+                	{
+                	iTextVisual->SetWrapping( CAlfTextVisual::ELineWrapManual );
+                	}
+                else
+                	{
+					iTextVisual->SetWrapping( CAlfTextVisual::ELineWrapTruncate );
+                	}
 
                 TAlfAlignHorizontal currTextAlign( EAlfAlignHLocale );
                 currTextAlign = CurrentTextAlignmentL( iTextAlign, &data->Data(), iTextVisual );
                 iTextVisual->SetAlign( currTextAlign, EAlfAlignVCenter );
-
-                iTextVisual->SetWrapping(CAlfTextVisual::ELineWrapTruncate);
 
                 if ( currTextAlign == EAlfAlignHRight )
                     {
@@ -580,11 +585,30 @@ void CFsTreePlainOneLineItemVisualizer::UpdateL( const MFsTreeItemData& aData,
             
             if ( iTextVisual )
             	{
-            	iTextVisual->SetWrapping(CAlfTextVisual::ELineWrapTruncate);
+				if ( iManualWrapper )
+					{
+					iTextVisual->SetWrapping( CAlfTextVisual::ELineWrapManual );
+					}
+				else
+					{
+					iTextVisual->SetWrapping( CAlfTextVisual::ELineWrapTruncate );
+					}
             	}
+            
+            iManualWrapper = EFalse;
             }
         }
     }
+
+// ---------------------------------------------------------------------------
+//  From MFsTreeItemVisualizer.
+//  This method sets flag disable wrapping the text item.
+// ---------------------------------------------------------------------------
+//
+void CFsTreePlainOneLineItemVisualizer::OffWrapping()
+	{
+	iManualWrapper = ETrue;
+	}
 
 // ---------------------------------------------------------------------------
 // From class MFsTreeItemVisualizer.
@@ -687,6 +711,7 @@ void CFsTreePlainOneLineItemVisualizer::MarqueeL(const TFsTextMarqueeType aMarqu
     }
 
 
+
 // ---------------------------------------------------------------------------
 //  Handles custom Alf event. Used with text marquee.
 // ---------------------------------------------------------------------------
@@ -718,6 +743,8 @@ CFsTreePlainOneLineItemVisualizer::CFsTreePlainOneLineItemVisualizer
     : CFsTreeItemVisualizerBase( aOwnerControl )
     {
     FUNC_LOG;
+    
+    iManualWrapper = EFalse;
 
     }
 

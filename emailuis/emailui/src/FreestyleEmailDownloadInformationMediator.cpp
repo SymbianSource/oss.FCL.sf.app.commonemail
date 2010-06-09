@@ -99,12 +99,28 @@ CFSEmailDownloadInfoMediator* CFSEmailDownloadInfoMediator::NewL( CFSMailClient&
 void CFSEmailDownloadInfoMediator::AddObserver( MFSEmailDownloadInformationObserver* aObserver, TFSMailMsgId aMessageId )
 	{
     FUNC_LOG;
-	TRequestObserver newObserver = {aObserver, aMessageId };
+	TRequestObserver newObserver = { aObserver, aMessageId };
+	//To avoid adding duplicate observers 
+	for ( TInt i=0; i<iObserverArray.Count(); i++ )
+	    {
+	    if ( newObserver.iObserver == iObserverArray[i].iObserver && newObserver.iMessageId == iObserverArray[i].iMessageId )
+	        {
+	        return;
+	        }
+	    }
 	iObserverArray.Append( newObserver );
 	}
 
 void CFSEmailDownloadInfoMediator::AddObserver( MFSEmailDownloadInformationObserver* aObserver )
 	{
+    //To avoid adding duplicate observers 
+    for ( TInt i=0; i<iAllObserverArray.Count(); i++ )
+        {
+        if ( aObserver == iAllObserverArray[i] )
+            {
+            return;
+            }
+        }
 	iAllObserverArray.Append(aObserver);
 	}
 

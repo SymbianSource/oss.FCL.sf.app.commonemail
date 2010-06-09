@@ -30,7 +30,7 @@
 #include <AknBidiTextUtils.h> 
 #include <AknLayoutFont.h> 
 #include <AknLayout2ScalableDataDef.h>
-#include <aknlayout2scalabledef.h>
+#include <AknLayout2ScalableDef.h>
 #include <layoutmetadata.cdl.h>
 #include <CdlEngine.h>
 #include <coemain.h>

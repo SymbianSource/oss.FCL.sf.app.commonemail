@@ -23,8 +23,8 @@
 #include <FreestyleEmailUi.rsg>						// R_FSE_EDITOR_ADDRESS_LIST_REMOTE_LOOKUP_SEARCH
 #include <StringLoader.h>						// StringLoader
 #include <CPbkContactEngine.h>
-#include <aknsdrawutils.h>
-#include <aknsutils.h>
+#include <AknsDrawUtils.h>
+#include <AknsUtils.h>
 #include <aknlayoutscalable_apps.cdl.h>
 #include <aknlayoutscalable_avkon.cdl.h>
 

@@ -126,6 +126,11 @@ public:
                           const TInt aMarqueeRepetitions);
     
     /**
+     * This method sets flag disable wrapping the text item.
+     */    
+    virtual void OffWrapping();
+    
+    /**
      * 
      */
     virtual TBool OfferEventL(const TAlfEvent& aEvent);
@@ -183,6 +188,8 @@ protected:
      * Clet for text marquee.
      */
     TFsMarqueeClet* iTextMarquee;
+    
+    TBool iManualWrapper;
 
     };
     

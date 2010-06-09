@@ -197,38 +197,36 @@ void CESMRViewerAlarmField::SizeChanged()
         NMRLayoutManager::GetWindowComponentLayout(
                 NMRLayoutManager::EMRLayoutTextEditorIcon );
     AknLayoutUtils::LayoutImage( iIcon, rect, iconLayout );
-  
+
     // Layouting lock icon
     if( iLockIcon )
     	{
-    	TAknWindowComponentLayout iconLayout( 
-    			NMRLayoutManager::GetWindowComponentLayout( 
+    	TAknWindowComponentLayout iconLayout(
+    			NMRLayoutManager::GetWindowComponentLayout(
     					NMRLayoutManager::EMRLayoutSingleRowDColumnGraphic ) );
     	AknLayoutUtils::LayoutImage( iLockIcon, rect, iconLayout );
     	}
 
     // Layouting label
-    TAknLayoutText viewerLayoutText;
-    if( iLockIcon )
-    	{
-    	viewerLayoutText = NMRLayoutManager::GetLayoutText( rect, 
-    			NMRLayoutManager::EMRTextLayoutSingleRowEditorText );
-    	}
-    else
-    	{
-    	viewerLayoutText = NMRLayoutManager::GetLayoutText( rect, 
-    			NMRLayoutManager::EMRTextLayoutTextEditor );
-    	}
+    TAknTextComponentLayout viewerLayoutText;
 
-    TRect viewerRect( viewerLayoutText.TextRect() );    
-    iLabel->SetRect( viewerRect );
+    if( iLockIcon )
+        {
+        viewerLayoutText = NMRLayoutManager::GetTextComponentLayout(
+                NMRLayoutManager::EMRTextLayoutSingleRowEditorText );
+        }
+    else
+        {
+        viewerLayoutText = NMRLayoutManager::GetTextComponentLayout(
+                NMRLayoutManager::EMRTextLayoutTextEditor );
+        }
+
+    AknLayoutUtils::LayoutLabel( iLabel, rect, viewerLayoutText );
+    TRect viewerRect( iLabel->Rect() );
 
     // Move focus rect so that it's relative to field's position.
     viewerRect.Move( -Position() );
     SetFocusRect( viewerRect );
-
-    // Setting font also for the label
-    iLabel->SetFont( viewerLayoutText.Font() );
     }
 
 // ---------------------------------------------------------------------------
@@ -248,7 +246,7 @@ TInt CESMRViewerAlarmField::CountComponentControls() const
         {
         ++count;
         }
-    
+
     if ( iLockIcon )
     	{
     	++count;
@@ -299,9 +297,9 @@ void CESMRViewerAlarmField::LockL()
 		{
 		return;
 		}
-	
+
 	CESMRField::LockL();
-	
+
 	delete iLockIcon;
 	iLockIcon = NULL;
 	iLockIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapLockField, ETrue );
@@ -315,18 +313,18 @@ void CESMRViewerAlarmField::LockL()
 TBool CESMRViewerAlarmField::ExecuteGenericCommandL( TInt aCommand )
 	{
     FUNC_LOG;
-    
+
     TBool retValue( EFalse );
-    
+
     if( (aCommand == EAknCmdOpen) && IsLocked()  )
     	{
 		HandleTactileFeedbackL();
-		
+
     	CESMRGlobalNote::ExecuteL(
     			CESMRGlobalNote::EESMRUnableToEdit );
     	retValue = ETrue;
     	}
-    
+
     return retValue;
 	}
 

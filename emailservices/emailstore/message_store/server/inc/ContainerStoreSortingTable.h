@@ -113,6 +113,7 @@ class CContainerStoreSortingTable : public CContainerStoreTable, public MEncrypt
         
         TBool DecryptFirstL( TDbBookmark& aNextRow );
         TBool DecryptNextL( TDbBookmark& aNextRow );
+        TBool DeleteNextContainerMarkedForDeletionL();
         
 	private:
 
@@ -159,8 +160,11 @@ class CContainerStoreSortingTable : public CContainerStoreTable, public MEncrypt
         
         TBool IsEncrypted( RDbRowSet& aRowSet );
         void SetEncryptedL( TBool aIsEncrypted );
-        
-
+        void CreateMarkedForDeletionTableL();
+        void CreateOrOpenMarkedForDeletionTableL();
+        void MarkIdForDeletionL( TContainerId aId);
+        TBool DeleteNextMessageL( TContainerId aId );
+        TBool DeleteFromMarkedForDeletionTableL();
     private:
     
         // ==================
@@ -186,7 +190,8 @@ class CContainerStoreSortingTable : public CContainerStoreTable, public MEncrypt
         TInt                  iIsEncryptedColNum;
         
         TUint                 iFieldsChanged;
-	    
+        RDbTable              iMarkedForDeleteTable;
+        TInt                  iMarkedForDeleteIdColNum;
 	    __LOG_DECLARATION
     		
 	}; // end class CContainerStoreSortingTable

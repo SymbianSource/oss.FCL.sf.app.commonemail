@@ -316,15 +316,10 @@ void CMRAttachmentsField::SizeChanged( )
     // Layout field title
     if( iTitle )
         {
-        TAknLayoutText labelLayout(
-                NMRLayoutManager::GetLayoutText(
-                        firstRowRect,
-                            NMRLayoutManager::EMRTextLayoutTextEditor ) );
-
-        iTitle->SetRect( labelLayout.TextRect() );
-
-        // Setting font also for the label. Failures are ignored.
-        TRAP_IGNORE( iTitle->SetFont( labelLayout.Font() ) );
+        TAknTextComponentLayout labelLayout =
+                NMRLayoutManager::GetTextComponentLayout(
+                        NMRLayoutManager::EMRTextLayoutTextEditor );
+        AknLayoutUtils::LayoutLabel( iTitle, firstRowRect, labelLayout );
         }
 
     TRect edwinRect( 0, 0, 0, 0 );
@@ -501,7 +496,7 @@ TBool CMRAttachmentsField::ExecuteGenericCommandL( TInt aCommand )
         iAttCommandHandler->HandleAttachmentCommandL(
                 aCommand,
                 *currentLink );
-        
+
 		HandleTactileFeedbackL();
 
         handled = ETrue;
@@ -845,7 +840,7 @@ TBool CMRAttachmentsField::HandleSingletapEventL( const TPoint& aPosition )
         if( Rect().Contains( aPosition ) )
             {
 			HandleTactileFeedbackL();
-			
+
             ret = AddAttachmentL();
             }
         }
@@ -857,7 +852,7 @@ TBool CMRAttachmentsField::HandleSingletapEventL( const TPoint& aPosition )
                 iFieldIcon->Rect().Contains( aPosition ) )
             {
 			HandleTactileFeedbackL();
-			
+
 			ret = AddAttachmentL();
             }
         }

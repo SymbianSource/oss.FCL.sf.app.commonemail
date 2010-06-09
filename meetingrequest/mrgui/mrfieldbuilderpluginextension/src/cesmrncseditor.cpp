@@ -459,6 +459,10 @@ void CESMRNcsEditor::SetFontL( const CFont* aFont )
 
     paraFormatMask.SetAttrib( EAttLineSpacing );
     paraFormat->iHorizontalAlignment = CParaFormat::ELeftAlign;
+    if ( AknLayoutUtils::LayoutMirrored() )
+        {
+        paraFormat->iHorizontalAlignment = CParaFormat::ERightAlign;
+        }
     paraFormatMask.SetAttrib( EAttAlignment );
 
     TCharFormat charFormat;
@@ -472,10 +476,10 @@ void CESMRNcsEditor::SetFontL( const CFont* aFont )
     formatMask.SetAttrib(EAttFontHighlightColor);
     formatMask.SetAttrib( EAttColor );
 
-    charFormat.iFontPresentation.iTextColor = 
+    charFormat.iFontPresentation.iTextColor =
            NMRColorManager::Color( NMRColorManager::EMRMainAreaTextColor );
 
-    charFormat.iFontPresentation.iHighlightColor =  
+    charFormat.iFontPresentation.iHighlightColor =
            NMRColorManager::Color( NMRColorManager::EMRCutCopyPasteHighlightColor );
 
     CParaFormatLayer* paraFormatLayer =

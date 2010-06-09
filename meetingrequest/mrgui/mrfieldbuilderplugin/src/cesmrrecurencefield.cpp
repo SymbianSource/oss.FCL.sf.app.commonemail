@@ -72,9 +72,9 @@ CESMRRecurenceField::CESMRRecurenceField( MESMRFieldValidator* aValidator )
     : iIndex( 0 )
     {
     FUNC_LOG;
-    
+
     iValidator = aValidator;
-    
+
     SetFieldId ( EESMRFieldRecurrence );
     SetFocusType( EESMRHighlightFocus );
     }
@@ -100,7 +100,7 @@ CESMRRecurenceField* CESMRRecurenceField::NewL(
         MESMRFieldValidator* aValidator )
     {
     FUNC_LOG;
-    CESMRRecurenceField* self = 
+    CESMRRecurenceField* self =
         new( ELeave )CESMRRecurenceField( aValidator );
     CleanupStack::PushL( self );
     self->ConstructL();
@@ -118,9 +118,9 @@ void CESMRRecurenceField::ConstructL( )
     iRecurrence = CMRLabel::NewL();
     iRecurrence->SetParent( this );
     CESMRField::ConstructL( iRecurrence );
-    
+
     iRecurrence->SetTextL( KNullDesC() );
-    
+
     iFieldIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapRecurrence );
     iFieldIcon->SetParent( this );
     }
@@ -159,7 +159,7 @@ void CESMRRecurenceField::InternalizeL( MESMRCalEntry& aEntry )
                 }
             }
         // resource reader
-        CleanupStack::PopAndDestroy(); // codescanner::cleanup 
+        CleanupStack::PopAndDestroy(); // codescanner::cleanup
         }
     else
         {
@@ -196,7 +196,7 @@ TBool CESMRRecurenceField::ExecuteGenericCommandL( TInt aCommand )
     	aCommand == EAknCmdOpen )
         {
     	HandleTactileFeedbackL();
-    	
+
         ExecuteRecurrenceQueryL();
         isUsed = ETrue;
         }
@@ -210,7 +210,7 @@ TBool CESMRRecurenceField::ExecuteGenericCommandL( TInt aCommand )
 void CESMRRecurenceField::ExecuteRecurrenceQueryL()
     {
     FUNC_LOG;
-    TInt ret = CESMRListQuery::ExecuteL( 
+    TInt ret = CESMRListQuery::ExecuteL(
             CESMRListQuery::EESMRRecurrenceQuery );
 
     if ( ret != KErrCancel )
@@ -311,31 +311,29 @@ void CESMRRecurenceField::SizeChanged()
     {
     FUNC_LOG;
     TRect rect = Rect();
-    
+
     TAknLayoutRect rowLayoutRect =
      NMRLayoutManager::GetFieldRowLayoutRect( rect, 1 );
     rect = rowLayoutRect.Rect();
-    
+
     TAknWindowComponentLayout iconLayout =
-     NMRLayoutManager::GetWindowComponentLayout( 
+     NMRLayoutManager::GetWindowComponentLayout(
              NMRLayoutManager::EMRLayoutTextEditorIcon );
     AknLayoutUtils::LayoutImage( iFieldIcon, rect, iconLayout );
-    
+
     TAknLayoutRect bgLayoutRect =
-     NMRLayoutManager::GetLayoutRect( 
+     NMRLayoutManager::GetLayoutRect(
              rect, NMRLayoutManager::EMRLayoutTextEditorBg );
     TRect bgRect( bgLayoutRect.Rect() );
     // Move focus rect so that it's relative to field's position.
     bgRect.Move( -Position() );
     SetFocusRect( bgRect );
-    
-    TAknLayoutText labelLayout = 
-     NMRLayoutManager::GetLayoutText( 
-             rect, NMRLayoutManager::EMRTextLayoutTextEditor );
-    iRecurrence->SetRect( labelLayout.TextRect() );
-    
-    // Setting font also for the field
-    iRecurrence->SetFont( labelLayout.Font() );
+
+    TAknTextComponentLayout editorLayout =
+            NMRLayoutManager::GetTextComponentLayout(
+                    NMRLayoutManager::EMRTextLayoutTextEditor );
+
+    AknLayoutUtils::LayoutLabel( iRecurrence, rect, editorLayout );
     }
 
 // ---------------------------------------------------------------------------
@@ -379,12 +377,12 @@ CCoeControl* CESMRRecurenceField::ComponentControl( TInt aInd ) const
 // CESMRRecurenceField::SetContainerWindowL
 // ---------------------------------------------------------------------------
 //
-void CESMRRecurenceField::SetContainerWindowL( 
+void CESMRRecurenceField::SetContainerWindowL(
         const CCoeControl& aContainer )
     {
     CCoeControl::SetContainerWindowL( aContainer );
     iRecurrence->SetContainerWindowL( aContainer );
-    
+
     iRecurrence->SetParent( this );
     }
 

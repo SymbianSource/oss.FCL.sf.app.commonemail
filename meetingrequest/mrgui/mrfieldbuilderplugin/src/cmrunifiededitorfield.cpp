@@ -179,7 +179,7 @@ void CMRUnifiedEditorField::InternalizeL( MESMRCalEntry& aEntry )
             }
         // resource reader
         CleanupStack::PopAndDestroy(); // codescanner::cleanup
-        
+
         SetIconL( aEntry );
         }
     }
@@ -214,18 +214,18 @@ TBool CMRUnifiedEditorField::ExecuteGenericCommandL( TInt aCommand )
         if( IsLocked() )
         	{
 			HandleTactileFeedbackL();
-			
+
             CESMRGlobalNote::ExecuteL(
             		CESMRGlobalNote::EESMRUnableToEdit );
-            isUsed = ETrue;            
+            isUsed = ETrue;
         	}
         else
         	{
 			HandleTactileFeedbackL();
-			
+
         	ExecuteTypeQueryL();
         	isUsed = ETrue;
-        	}        
+        	}
         }
     return isUsed;
     }
@@ -241,9 +241,9 @@ void CMRUnifiedEditorField::LockL()
 		{
 		return;
 		}
-	
+
 	CESMRField::LockL();
-	
+
 	delete iLockIcon;
 	iLockIcon = NULL;
 	iLockIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapLockField, ETrue );
@@ -296,8 +296,8 @@ void CMRUnifiedEditorField::ConstructL( )
     align.SetHAlignment( EHLeft );
     align.SetVAlignment( EVCenter );
     iType->SetAlignment( align );
-    
-    // An icon is required for layouting the field. Actual correct icon 
+
+    // An icon is required for layouting the field. Actual correct icon
     // is set after InternalizeL.
     iIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapEventTypeMeeting );
     }
@@ -331,7 +331,7 @@ TInt CMRUnifiedEditorField::CountComponentControls() const
     	{
     	++count;
     	}
-    
+
     if ( iLockIcon )
     	{
     	++count;
@@ -386,45 +386,45 @@ void CMRUnifiedEditorField::SizeChanged()
     // Layouting lock icon
     if( iLockIcon )
     	{
-    	TAknWindowComponentLayout iconLayout( 
-    			NMRLayoutManager::GetWindowComponentLayout( 
+    	TAknWindowComponentLayout iconLayout(
+    			NMRLayoutManager::GetWindowComponentLayout(
     					NMRLayoutManager::EMRLayoutSingleRowDColumnGraphic ) );
     	AknLayoutUtils::LayoutImage( iLockIcon, rect, iconLayout );
     	}
-        
-    // Layouting label
-    TAknLayoutText viewerLayoutText;
-    if( iLockIcon )
-    	{
-    	viewerLayoutText = NMRLayoutManager::GetLayoutText( rect, 
-    			NMRLayoutManager::EMRTextLayoutSingleRowEditorText );
-    	}
-    else
-    	{
-    	viewerLayoutText = NMRLayoutManager::GetLayoutText( rect, 
-    			NMRLayoutManager::EMRTextLayoutTextEditor );
-    	}
 
-    TRect viewerRect( viewerLayoutText.TextRect() );    
-    iType->SetRect( viewerRect );
+    // Layouting label
+    TAknTextComponentLayout viewerLayoutText;
+    if( iLockIcon )
+        {
+        viewerLayoutText = NMRLayoutManager::GetTextComponentLayout(
+                NMRLayoutManager::EMRTextLayoutSingleRowEditorText );
+        }
+    else
+        {
+        viewerLayoutText = NMRLayoutManager::GetTextComponentLayout(
+                NMRLayoutManager::EMRTextLayoutTextEditor );
+        }
+
+    AknLayoutUtils::LayoutLabel( iType, rect, viewerLayoutText );
+    TRect viewerRect( iType->Rect() );
 
     // Move focus rect so that it's relative to field's position.
     viewerRect.Move( -Position() );
 
-    TAknLayoutRect bgLayoutRect = 
-        NMRLayoutManager::GetLayoutRect( 
+    TAknLayoutRect bgLayoutRect =
+        NMRLayoutManager::GetLayoutRect(
                 rect, NMRLayoutManager::EMRLayoutTextEditorBg );
     TRect bgRect( bgLayoutRect.Rect() );
-    
-    // Adjust background rect according to viewerRect 
+
+    // Adjust background rect according to viewerRect
     bgRect.SetWidth( viewerRect.Width() );
-    
+
     // Move focus rect so that it's relative to field's position.
     bgRect.Move( -Position() );
-        
+
     SetFocusRect( bgRect );
-    
-        
+
+
     TAknTextComponentLayout editorLayout(
     		NMRLayoutManager::GetTextComponentLayout(
     				NMRLayoutManager::EMRTextLayoutTextEditor ) );
@@ -438,11 +438,11 @@ void CMRUnifiedEditorField::SizeChanged()
 void CMRUnifiedEditorField::SetIconL( MESMRCalEntry& aEntry )
     {
     FUNC_LOG;
-    NMRBitmapManager::TMRBitmapId bitmapId( 
+    NMRBitmapManager::TMRBitmapId bitmapId(
             NMRBitmapManager::EMRBitmapNotSet );
-    
+
     CCalEntry& entry = aEntry.Entry();
-    
+
     switch ( entry.EntryTypeL() )
         {
         case CCalEntry::EAppt:

@@ -428,6 +428,7 @@ class CContainerStore : public CBase, public MSortingTableObserver, public MEncr
         void CommitDatabaseTransactionL();
         
         const TDesC& PrivatePath();
+        TBool DeleteFromSortingTable();
         
 #ifdef _DEBUG                      
         
@@ -489,7 +490,6 @@ class CContainerStore : public CBase, public MSortingTableObserver, public MEncr
         // DELETE HANDLER SUPPORT FUNCTIONS
 		
         friend class CDeleteHandler; 
-
 		void FirstChildL( TContainerId  aId, 
 		                  TContainerId& aChildId, 
 		                  TDbBookmark&  aBookmark );

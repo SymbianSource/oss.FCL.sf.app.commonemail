@@ -317,7 +317,7 @@ TKeyResponse CMRListPane::OfferKeyEventL( const TKeyEvent &aKeyEvent,
     response = FocusedField()->OfferKeyEventL( aKeyEvent, aType );
 
     if ( aType == EEventKey
-            && response == EKeyWasNotConsumed )
+         && response == EKeyWasNotConsumed )
         {
         // Check if the focus should be changed
         switch ( aKeyEvent.iScanCode )
@@ -338,6 +338,11 @@ TKeyResponse CMRListPane::OfferKeyEventL( const TKeyEvent &aKeyEvent,
                 // Focus changed via keyboard, iClickedItem is no
                 // longer valid
                 iClickedField = NULL;
+                break;
+                }
+            case EStdKeyEnter:
+                {
+                FocusedField()->ExecuteGenericCommandL( EAknCmdOpen );
                 break;
                 }
             default:
