@@ -75,29 +75,36 @@ NmEditorContent::~NmEditorContent()
     present, reply header is generated and set to editor. Reply
     envelope ownership is not transferred here.
  */
-void NmEditorContent::setMessageData(const NmMessage &originalMessage)
+void NmEditorContent::setMessageData(const NmMessage &originalMessage,
+                                     bool createReplyHeader)
 {
     NM_FUNCTION;
+    
+    QString bodyContent;
+    
+    // We create the "reply" header (also for forward message), but not to draft message.
+    if (mEditorWidget && createReplyHeader) {          
+        QTextCursor cursor = mEditorWidget->textCursor();
+        cursor.setPosition(0);
+        cursor.insertHtml(NmUtilities::createReplyHeader(originalMessage.envelope()));
+    }
+    // Take reply header as html format.
+    bodyContent.append(mEditorWidget->toHtml());
+    
     // Check which part is present. Html or plain text part. We use the original message parts.
     const NmMessagePart *htmlPart = originalMessage.htmlBodyPart();
-
     const NmMessagePart *plainPart = originalMessage.plainTextBodyPart();
-
-    if (htmlPart) {
-        emit setHtml(htmlPart->textContent());    
+ 
+    if (htmlPart && mEditorWidget) {
+        bodyContent.append(htmlPart->textContent());
+        emit setHtml(bodyContent);
         mMessageBodyType = HTMLText;
     }
     else if (plainPart) {
         // Plain text part was present, set it to HbTextEdit
-        emit setPlainText(plainPart->textContent());
+        bodyContent.append(plainPart->textContent());
+        emit setPlainText(bodyContent);
         mMessageBodyType = PlainText;
-    }
-    
-    // We create the "reply" header (also for forward message)
-    if (mEditorWidget) {          
-        QTextCursor cursor = mEditorWidget->textCursor();
-        cursor.setPosition(0);
-        cursor.insertHtml(NmUtilities::createReplyHeader(originalMessage.envelope()));
     }
 }  
 
@@ -137,10 +144,10 @@ void NmEditorContent::createConnections()
             mEditorWidget, SLOT(updateScrollPosition(QPointF)));
     // Signal for setting HbTextEdit widgets html content
     connect(this, SIGNAL(setHtml(QString)),
-            mEditorWidget, SLOT(setHtml(QString)));
+            mEditorWidget, SLOT(setHtml(QString)), Qt::QueuedConnection);
     // Signal for setting HbTextEdit widgets plain text content
     connect(this, SIGNAL(setPlainText(QString)),
-            mEditorWidget, SLOT(setPlainText(QString)));
+            mEditorWidget, SLOT(setPlainText(QString)), Qt::QueuedConnection);
     // Inform text edit widget that header height has been changed
     connect(mHeaderWidget, SIGNAL(headerHeightChanged(int)),
             mEditorWidget, SLOT(setHeaderHeight(int)));

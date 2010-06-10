@@ -101,6 +101,7 @@ private:
     bool mSettingsLaunched;
     NmId mSelectedFolderId;
     NmId mSelectedMailboxId;
+    int mPreviousModelCount;
 };
 
 #endif /* NMMESSAGELISTVIEW_H_ */

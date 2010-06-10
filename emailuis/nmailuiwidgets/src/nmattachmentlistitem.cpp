@@ -24,9 +24,6 @@ static const int PROGRESSBAR_MIN = 0;
 static const int PROGRESSBAR_MAX = 100;
 static const int PROGRESSBAR_HIDE_COUNTDOWN = 500;
 
-// Hardcoded file size length. Maximum (999.9 Mb) fits into size field.
-static const int FILE_SIZE_FIELD_LENGTH = 120;
-
 /*!
  @nmailuiwidgets
  \class NmAttachmentListItem
@@ -109,23 +106,6 @@ void NmAttachmentListItem::setFileSizeText(const QString &fileSize)
         mFileSizeText->setTextWrapping(Hb::TextNoWrap);
         mFileSizeText->setText(fileSize);
     }
-}
-
-/*!
-    Set the length of the filename field.
- */
-void NmAttachmentListItem::resetFileNameLength(Qt::Orientation orientation)
-{
-    NM_FUNCTION;
-    
-	QSizeF reso = screenSize(orientation);
-	
-	if (orientation == Qt::Horizontal) {
-        mFileNameText->setPreferredWidth(reso.width() / 2 - FILE_SIZE_FIELD_LENGTH);
-	}
-	else {		
-        mFileNameText->setPreferredWidth(reso.width() - FILE_SIZE_FIELD_LENGTH);
-	}
 }
 
 /*!
@@ -233,40 +213,6 @@ void NmAttachmentListItem::removeProgressBar()
 	}
 }
 
-
-/*!
-    This function returns screen size depending on the orientation.
-    Function is copied from NmApplication.
- */
-QSize NmAttachmentListItem::screenSize(Qt::Orientation orientation)
-{
-    NM_FUNCTION;
-    
-    QSize ret(0,0);
-    HbDeviceProfile currentP = HbDeviceProfile::current();
-    HbDeviceProfile altP(currentP.alternateProfileName());
-    QSize curPSize = currentP.logicalSize();
-    QSize altPSize = altP.logicalSize();
-    if (orientation == Qt::Horizontal) {
-        // Get wide profile size in landscape
-        if (curPSize.width() > altPSize.width()) {
-            ret = curPSize;
-        }
-        else{
-            ret = altPSize;
-        }
-    }
-    else {
-        // Get narrow profile size in portrait
-        if (curPSize.width() < altPSize.width()) {
-            ret = curPSize;
-        }
-        else{
-            ret = altPSize;
-        }
-    }
-    return ret;
-}
 
 /*!
     This function handles gestures

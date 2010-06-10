@@ -266,7 +266,8 @@ void CBasePlugin::GoOnlineL(
 void CBasePlugin::RefreshNowL(
     const TFSMailMsgId& /*aMailBoxId*/,
  	MFSMailRequestObserver& /*aOperationObserver*/,
- 	TInt /*aRequestId*/ )
+ 	TInt /*aRequestId*/,
+ 	const TBool /*aSilentConnection=EFalse*/ )
     {
 
     }

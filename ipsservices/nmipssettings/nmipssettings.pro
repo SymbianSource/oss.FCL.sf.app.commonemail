@@ -29,6 +29,9 @@ INCLUDEPATH += $$APP_LAYER_SYSTEMINCLUDE
 
 CONFIG += hb
 CONFIG += plugin
+CONFIG += mobility
+
+MOBILITY = serviceframework
 
 MOC_DIR = moc
 OBJECTS_DIR = obj

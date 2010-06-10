@@ -47,11 +47,7 @@ public:
 
 private:
     QString fullNameToDisplayName(const QString &fullName);
-    void updateLayout();
     
-private slots:
-    void delayedLayoutChangeInfo();
-
 signals:
     void attachmentListLayoutChanged();
     

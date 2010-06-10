@@ -25,6 +25,9 @@
 
 #include "nmipssettingsmultiselectionitem.h"
 
+// CONSTANTS
+const QChar NmIpsSettingsMultiSelectionItemSpace(' ');
+
 /*!
     \class NmIpsSettingsMultiSelectionItem
     \brief The class implements a custom HbDataFormViewItem for showing multi selection dialog.
@@ -36,8 +39,6 @@
 /*!
     Constructor of NmIpsSettingsMultiSelectionItem.
 */
-
-
 NmIpsSettingsMultiSelectionItem::NmIpsSettingsMultiSelectionItem(
     QGraphicsItem *parent, Qt::WindowFlags wFlags)
  : HbWidget(parent, wFlags),
@@ -207,10 +208,11 @@ void NmIpsSettingsMultiSelectionItem::generateButtonText()
     const int itemCount(mItems.count());
     if (mItems.count() >= mSelectedItems.count()) {
         // Construct separator for button text.
-        QChar groupSeparator = HbExtendedLocale::system().groupSeparator();
-        QString separator(" ");
-        separator.insert(0, groupSeparator);
-
+        QChar groupSeparator(HbExtendedLocale::system().groupSeparator());
+        QString separator(groupSeparator);
+        if (!groupSeparator.isSpace()) {
+            separator.append(NmIpsSettingsMultiSelectionItemSpace);
+        }
         QString buttonText;
         QListIterator<QVariant> itemIterator(mSelectedItems);
         while (itemIterator.hasNext()) {
@@ -225,6 +227,13 @@ void NmIpsSettingsMultiSelectionItem::generateButtonText()
                     buttonText.append(separator);
                 }
             }
+        }
+        // If empty text is set to the button, next time when some "real" text is set to the button
+        // the text is drawn from left to the center of button. Text is drawn multiple times to
+        // wrong place while it travelling from left side to the center of button.
+        // To prevent this feature, one space is set to button instead of real empty string.
+        if (buttonText.isEmpty()) {
+            buttonText = " ";
         }
         mButton->setText(buttonText);
     }

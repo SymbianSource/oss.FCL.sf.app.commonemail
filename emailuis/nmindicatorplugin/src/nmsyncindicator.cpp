@@ -17,7 +17,7 @@
 
 #include "nmsyncindicator.h"
 
-const char NmSyncIndicator::IndicatorType[] = "com.nokia.hb.nmsyncindicator/1.0";
+const char NmSyncIndicator::IndicatorType[] = "com.nokia.nmail.indicatorplugin.sync/1.0";
 
 NmSyncIndicator::NmSyncIndicator() :
 HbIndicatorInterface(NmSyncIndicator::IndicatorType, ProgressCategory, NoInteraction)
@@ -30,13 +30,11 @@ NmSyncIndicator::~NmSyncIndicator()
 
 QVariant NmSyncIndicator::indicatorData(int role) const
 {
-    if (role == MonoDecorationNameRole )
-    {
+    if (role == MonoDecorationNameRole ) {
         // Must return non-empty to make the indicator visible
         return " ";
     }
-    else
-    {
+    else {
         return QVariant();
     }
 }

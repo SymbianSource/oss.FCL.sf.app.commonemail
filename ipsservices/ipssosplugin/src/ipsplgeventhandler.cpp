@@ -1033,13 +1033,9 @@ void CIpsPlgEventHandler::HandleEntriesChangedL(
         {
         return;
         }
-    else if ( tChanged.iMtm.iUid == KSenduiMtmSmtpUidValue )
-        {
-        // do not send entry changed events from draft messages
-        // mess up draft email
-        return;
-        }
-
+//<Qmail>
+    
+//</Qmail>
     TFSMailEvent event = static_cast<TFSMailEvent>( KErrNotFound );
 
     RArray<TFSMailMsgId> array(1);

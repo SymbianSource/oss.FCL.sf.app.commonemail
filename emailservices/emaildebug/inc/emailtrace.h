@@ -23,33 +23,44 @@
 #include <qfile.h>
 
 /*
- * The macros COMMENT_TRACES, ERROR_TRACES, and FUNCTION_TRACES control which
- * trace messages are printed. The trace message logging is controlled with
- * the LOG_TO_FILE macro, whereas the LOG_FILE macro defines which file is to
- * be used in logging. The print_trace() helper function implements printing.
- * If LOG_TO_FILE is zero or the LOG_FILE cannot be opened, the messages are
- * printed to qDebug().
+ * The NM_TRACING_SYSTEM macro can be used to enable and disable the tracing
+ * system in debug mode. The tracing system can be disabled in a specific
+ * source file by defining the macro "NM_TRACING_SYSTEM 0" before this file
+ * is included.
  */
-#if defined(DEBUG) || defined(_DEBUG)
+#ifndef NM_TRACING_SYSTEM
+#define NM_TRACING_SYSTEM 1
+#endif
 
-#define COMMENT_TRACES  1
-#define ERROR_TRACES    1
-#define FUNCTION_TRACES 1
+/*
+ * The macros NM_COMMENT_TRACES, NM_ERROR_TRACES, and NM_FUNCTION_TRACES
+ * control which debug messages are printed. The trace logging is controlled
+ * with the NM_LOG_TO_FILE macro, whereas the NM_LOG_FILE macro defines which
+ * file is to be used in logging. The print_trace() helper function implements
+ * printing. If NM_LOG_TO_FILE is zero or the NM_LOG_FILE cannot be opened,
+ * the messages are printed to qDebug().
+ */
+#if NM_TRACING_SYSTEM && (defined(DEBUG) || defined(_DEBUG))
 
-#if COMMENT_TRACES || ERROR_TRACES || FUNCTION_TRACES
+#define NM_COMMENT_TRACES  1
+#define NM_ERROR_TRACES    1
+#define NM_FUNCTION_TRACES 1
 
-#define LOG_TO_FILE     0
-#define LOG_FILE        "c:/logs/nmail_trace.log"
+#if NM_COMMENT_TRACES || NM_ERROR_TRACES || NM_FUNCTION_TRACES
+
+#define NM_LOG_TO_FILE 0
+#define NM_LOG_FILE    "c:/data/logs/nmail_trace.log"
 
 inline void print_trace(const QString& msg)
 {
-    QFile out(LOG_FILE);
-    if (LOG_TO_FILE && out.open(QIODevice::Append | QIODevice::Text)) {
-        QDebug(&out) << "[Nmail]" << msg;
-        out.putChar('\n');
-        out.close();
+    static QFile file(NM_LOG_FILE);
+    if (NM_LOG_TO_FILE && !file.isOpen()) {
+        file.open(QIODevice::Append | QIODevice::Text);
+    }
+    if (file.isWritable()) {
+        QDebug(&file).nospace() << "[Nmail] " << msg << '\n';
     } else {
-        qDebug() << "[Nmail]" << msg;
+        qDebug().nospace() << "[Nmail] " << msg;
     }
 }
 
@@ -58,12 +69,12 @@ inline void print_trace(const QString& msg)
 #endif /* DEBUG */
 
 /*
- * The function NM_COMMENT() prints a trace message. The INFO macros and the
+ * The function NM_COMMENT() prints a debug message. The INFO macros and the
  * NMLOG macro are provided for legacy compatibility. They are deprecated and
  * should not be used. If sprintf() type of formatting is desired, consider
  * using QString::arg() or QTextStream.
  */
-#if COMMENT_TRACES
+#if NM_COMMENT_TRACES
 
 inline void NM_COMMENT(const QString& msg)
 {
@@ -99,7 +110,7 @@ do {\
 #define INFO_3(msg,arg1,arg2,arg3)
 #define NMLOG(msg)
 
-#endif /* COMMENT_TRACES */
+#endif /* NM_COMMENT_TRACES */
 
 /*
  * The function NM_ERROR() prints its second argument if the first argument
@@ -107,7 +118,7 @@ do {\
  * are deprecated and should not be used. If sprintf() type of formatting is
  * desired, consider using QString::arg() or QTextStream.
  */
-#if ERROR_TRACES
+#if NM_ERROR_TRACES
 
 inline void NM_ERROR(int err, const QString& msg)
 {
@@ -147,17 +158,16 @@ do {\
 #define ERROR_GEN(msg)
 #define ERROR_GEN_1(msg,arg1)
 
-#endif /* ERROR_TRACES */
+#endif /* NM_ERROR_TRACES */
 
 /*
  * The macro NM_FUNCTION, when used inside a function body, enables tracing
- * for a function. Trace messages with labels ENTER and RETURN are printed
- * when entering into and returning from a function, respectively. In case of
- * an exception or a Symbian leave, a message with label UNWIND is printed
- * (UNWIND stands for stack unwinding). The FUNC_LOG macro is provided for
- * legacy compatibility. It is deprecated and should not be used.
+ * for a function. ENTER and RETURN messages are printed when entering into
+ * and returning from a function, respectively. In case of an exception,
+ * UNWIND (for stack unwinding) is printed. The FUNC_LOG macro is provided
+ * for legacy compatibility. It is deprecated and should not be used.
  */
-#if FUNCTION_TRACES
+#if NM_FUNCTION_TRACES
 
 class __ftracer
 {
@@ -187,6 +197,6 @@ private:
 #define NM_FUNCTION
 #define FUNC_LOG
 
-#endif /* FUNCTION TRACES */
+#endif /* NM_FUNCTION_TRACES */
 
 #endif /* EMAILTRACE_H */

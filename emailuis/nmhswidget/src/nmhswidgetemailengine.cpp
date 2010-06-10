@@ -15,11 +15,11 @@
  *
  */
 
-#include <xqservicerequest.h>
 #include <QTimer>
 #include <QDir>
 #include <qpluginloader.h>
-#include "email_services_api.h"
+#include <xqapplicationmanager.h>
+#include <xqaiwdeclplat.h>
 #include "nmcommon.h"
 #include "nmmessageenvelope.h"
 #include "nmhswidgetemailengine.h"
@@ -36,7 +36,7 @@
 NmHsWidgetEmailEngine::NmHsWidgetEmailEngine(const NmId& monitoredMailboxId) :
     mMailboxId(monitoredMailboxId), 
     mFolderId(0), 
-    mAccountName(),
+    mAccountName(), 
     mUnreadCount(-1),
     mEmailInterface(0), 
     mFactory(0), 
@@ -249,7 +249,7 @@ bool NmHsWidgetEmailEngine::updateData()
     }
     if (folder) {
         //If messageCount in the folder is zero we must indicate unread count to be -1
-        if (folder->messageCount() == 0) {
+        if (mEnvelopeList.count() == 0) {
             mUnreadCount = -1;
         }
         else {
@@ -407,17 +407,19 @@ void NmHsWidgetEmailEngine::activate()
 void NmHsWidgetEmailEngine::launchMailAppInboxView()
 {
     NM_FUNCTION;
-
-    XQServiceRequest request(
-        emailFullServiceNameMailbox,
-        emailOperationViewInbox,
-        false);
     
-    QList<QVariant> list;
-    list.append(QVariant(mMailboxId.id()));
-
-    request.setArguments(list);
-    request.send();
+    XQApplicationManager appManager;
+    XQAiwRequest* request = appManager.create(
+            XQI_EMAIL_INBOX_VIEW, XQOP_EMAIL_INBOX_VIEW,
+            false);
+    
+    if (request) {
+        QList<QVariant> list;
+        list.append(QVariant(mMailboxId.id()));
+    
+        request->setArguments(list);
+        request->send();
+    }
 }
 
 /*!
@@ -429,16 +431,18 @@ void NmHsWidgetEmailEngine::launchMailAppMailViewer(const NmId &messageId)
 {
     NM_FUNCTION;
 
-    XQServiceRequest request(
-       emailFullServiceNameMessage,
-       emailOperationViewMessage,
-       false);
+    XQApplicationManager appManager;
+    XQAiwRequest* request = appManager.create(
+            XQI_EMAIL_MESSAGE_VIEW, XQOP_EMAIL_MESSAGE_VIEW,
+            false);
     
-    QList<QVariant> list;
-    list.append(QVariant(mMailboxId.id()));
-    list.append(QVariant(mFolderId.id()));
-    list.append(QVariant(messageId.id()));
-
-    request.setArguments(list);
-    request.send();
+    if (request) {
+        QList<QVariant> list;
+        list.append(QVariant(mMailboxId.id()));
+        list.append(QVariant(mFolderId.id()));
+        list.append(QVariant(messageId.id()));
+    
+        request->setArguments(list);
+        request->send();
+    }
 }

@@ -41,6 +41,7 @@ NmViewerHeader::NmViewerHeader(QGraphicsItem *parent) :
     NM_FUNCTION;
     
     loadWidgets();
+    setFlag(QGraphicsItem::ItemHasNoContents, false);
 }
 
 /*!
@@ -117,6 +118,7 @@ void NmViewerHeader::paint(
     Q_UNUSED(option);
     Q_UNUSED(widget);
     if (painter) {
+        painter->save();
         painter->setOpacity(nmHeaderLineOpacity);
         QLineF line1( rect().topLeft().x(), rect().bottomRight().y(),
                      rect().bottomRight().x(), rect().bottomRight().y());
@@ -126,7 +128,8 @@ void NmViewerHeader::paint(
             QLineF line2( headerBoxGeometry.topLeft().x(), headerBoxGeometry.bottomRight().y(),
                           headerBoxGeometry.bottomRight().x(), headerBoxGeometry.bottomRight().y());
             painter->drawLine(line2);        
-        }       
+        } 
+        painter->restore();      
     }
 }
 
@@ -198,8 +201,9 @@ void NmViewerHeader::setHeaderData()
         }
         if (mSent){
             HbExtendedLocale locale = HbExtendedLocale::system();
-            QTime time = envelope.sentTime().toLocalTime().time();
-            QDate sentLocalDate = envelope.sentTime().toLocalTime().date();
+            QDateTime localTime = envelope.sentTime().addSecs(locale.universalTimeOffset());
+            QTime time = localTime.time();
+            QDate sentLocalDate = localTime.date();
             QString shortDateSpec = r_qtn_date_without_year;
             QString shortTimeSpec = r_qtn_time_usual;
             QString text = locale.format(sentLocalDate, shortDateSpec);

@@ -29,8 +29,6 @@ NmAttachmentList::NmAttachmentList(NmAttachmentListWidget &listWidget)
 : mListWidget(listWidget)
 {
     NM_FUNCTION;
-    
-    updateLayout();
 }
 
 /*!
@@ -62,7 +60,6 @@ int NmAttachmentList::insertAttachment(
         count() - 1,
         displayName, 
         NmUtilities::attachmentSizeString(fileSize.toDouble()));  
-    updateLayout();
     return count() - 1;
 }
 
@@ -111,7 +108,6 @@ void NmAttachmentList::removeAttachment(int arrayIndex)
         mFullFileName.removeAt(arrayIndex);
         mDisplayFileName.removeAt(arrayIndex);
         mAttachmentPartId.removeAt(arrayIndex);
-        updateLayout();
     }
 }
 
@@ -172,7 +168,6 @@ void NmAttachmentList::clearList()
         mFullFileName.removeAt(i);
         mDisplayFileName.removeAt(i);
         mAttachmentPartId.removeAt(i);
-        updateLayout();
     }
 }
 
@@ -230,26 +225,3 @@ QString NmAttachmentList::fullNameToDisplayName(const QString &fullName)
     
     return fullName.section('\\', -1);
 }
-
-/*!
-    Update the list layout height
-*/
-void NmAttachmentList::updateLayout()
-{
-    NM_FUNCTION;
-    
-    // Fix this when progress bar is used
-    mListWidget.setMaximumHeight(count() * 56); 
-    QTimer::singleShot(1, this, SLOT(delayedLayoutChangeInfo()));
-}
-
-/*!
-    Send delayed signal about attachment list layout change
-*/
-void NmAttachmentList::delayedLayoutChangeInfo()
-{
-    NM_FUNCTION;
-    
-    emit attachmentListLayoutChanged();
-}
-

@@ -714,8 +714,7 @@ void CIpsPlgMsgMapper::SetFlags(
 							{
 							// Only text/calendar part included as attachment
 							aMsg.ResetFlag( EFSMsgFlag_Attachments );
-							//Set Attachment flag for CMsvEntry (needed for sorting)
-							TRAP_IGNORE( SetAttachmentFlagL( aEntry, EFalse ) );
+							// <qmail> remove call to SetAttachmentFlagL(), because shouln't be needed any more
 							}
                 		}
                 	delete cEntry;

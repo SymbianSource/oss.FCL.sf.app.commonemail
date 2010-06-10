@@ -192,8 +192,8 @@ EXPORTS
 	?AttachmentsL@CBaseMrInfoObject@@UBEABV?$RPointerArray@VMMRAttachment@@@@XZ @ 191 NONAME ; class RPointerArray<class MMRAttachment> const & CBaseMrInfoObject::AttachmentsL(void) const
 	?RecurrenceStartTime@CBaseMrRecurrenceRule@@UBE?AVTTime@@XZ @ 192 NONAME ; class TTime CBaseMrRecurrenceRule::RecurrenceStartTime(void) const
 	?CreationTimeInUtcL@CBaseMrInfoObject@@UBE?AVTTime@@XZ @ 193 NONAME ; class TTime CBaseMrInfoObject::CreationTimeInUtcL(void) const
-	?SetReplyOrForwardToFieldL@CBasePlugin@@IAEXAAVCMsgStoreMessage@@@Z @ 194 NONAME ; void CBasePlugin::SetReplyOrForwardToFieldL(class CMsgStoreMessage &)
-	?RefreshNowL@CBasePlugin@@UAEXABVTFSMailMsgId@@AAVMFSMailRequestObserver@@H@Z @ 195 NONAME ; void CBasePlugin::RefreshNowL(class TFSMailMsgId const &, class MFSMailRequestObserver &, int)
+	?SetReplyOrForwardToFieldL@CBasePlugin@@IAEXAAVCMsgStoreMessage@@@Z @ 194 NONAME ; void CBasePlugin::SetReplyOrForwardToFieldL(class CMsgStoreMessage &)	
+	?RefreshNowL@CBasePlugin@@UAEXABVTFSMailMsgId@@AAVMFSMailRequestObserver@@HH@Z @ 195 NONAME ; void CBasePlugin::RefreshNowL(class TFSMailMsgId const &, class MFSMailRequestObserver &, int, int)
 	?CreateResourceReaderLC@CResourceLoader@@QBEPAVHBufC8@@AAVTResourceReader@@H@Z @ 196 NONAME ; class HBufC8 * CResourceLoader::CreateResourceReaderLC(class TResourceReader &, int) const
 	?ModificationNotify@CBasePlugin@@UAEXIW4TMsgStoreOperation@@W4TMsgStoreContainerType@@KIII@Z @ 197 NONAME ; void CBasePlugin::ModificationNotify(unsigned int, enum TMsgStoreOperation, enum TMsgStoreContainerType, unsigned long, unsigned int, unsigned int, unsigned int)
 	?SystemEventNotify@CBasePlugin@@UAEXW4TMsgStoreSystemEvent@@@Z @ 198 NONAME ; void CBasePlugin::SystemEventNotify(enum TMsgStoreSystemEvent)

@@ -25,11 +25,13 @@
 #include "ipsplgmailstoreroperation.h"
 #include "ipsplgmessagepartstoreroperation.h"
 #include "BasePlugin.h" 
+//<Qmail>
+#include "ipssosextendedsettingsmanager.h"
+#include "ipssettingkeys.h"
+//</Qmail>
 //</qmail>
 
-// <cmail> S60 UID update
 #define FREESTYLE_EMAIL_UI_SID 0x200255BA
-// </cmail> S60 UID update
 
 const TInt KOpGranularity = 2;
 
@@ -39,6 +41,29 @@ const TInt KOpGranularity = 2;
 _LIT( KEmulatorIMEI, "123456789012345" );
 #endif // __WINS__
 
+//<Qmail>
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+void CIpsPlgSosBasePlugin::ActiveFolderChanged(
+        const TFSMailMsgId& aActiveMailboxId,
+        const TFSMailMsgId& aActiveFolderId)
+    {
+    TRAP_IGNORE( HandleActiveFolderChangeL(aActiveMailboxId,aActiveFolderId) );
+    }
+
+
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+CEmailExtension* CIpsPlgSosBasePlugin::ExtensionL( const TUid& aInterfaceUid )
+    {
+    if(aInterfaceUid != KEmailMailboxStateExtensionUid)
+        {
+        User::Leave(KErrNotSupported);
+        }
+    
+    return iStateExtension;
+    }
+//</Qmail>
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
 // <qmail> iSettingsApi removed
@@ -77,6 +102,7 @@ CIpsPlgSosBasePlugin::~CIpsPlgSosBasePlugin()
         {
         iEventHandler->UnRegisterPropertyObserver( iSyncStateHandler );
         }
+    delete iStateExtension;
     delete iEventHandler;
     delete iCachedEntry;
     delete iCachedEmailMessage;
@@ -92,6 +118,7 @@ CIpsPlgSosBasePlugin::~CIpsPlgSosBasePlugin()
 void CIpsPlgSosBasePlugin::BaseConstructL()
     {
     FUNC_LOG;
+    iStateExtension = CIpsStateExtension::NewL(*this);
     iEventHandler = CIpsPlgEventHandler::NewL( *this );
     iSession = CMsvSession::OpenAsyncL( *iEventHandler );
     iMsgMapper = CIpsPlgMsgMapper::NewL( *iSession, *this );
@@ -2455,5 +2482,51 @@ TBool CIpsPlgSosBasePlugin::HasOperations( const TFSMailMsgId& aMailboxId )
             }
         }
     return ret;
+    }
+//</Qmail>
+//<Qmail>
+// ---------------------------------------------------------------------------
+// CIpsPlgImap4Plugin::HandleActiveFolderChangeL
+// ---------------------------------------------------------------------------
+//
+void CIpsPlgSosBasePlugin::HandleActiveFolderChangeL(
+        const TFSMailMsgId& aActiveMailboxId,
+        const TFSMailMsgId& aActiveFolderId)
+    {
+    TMsvId service;
+    TMsvEntry folder;
+    iSession->GetEntry( aActiveFolderId.Id(), service, folder );
+    
+    
+    //currently, no actions unless this is inbox
+    //also, if id is '0', it means inbox before first sync...it doesn't really exist yet
+    if( folder.iDetails.CompareF( KIpsPlgInbox ) == 0 || folder.Id() == 0 )
+        {
+        //folder is inbox
+        if ( iSyncStateHandler->GetMailboxIpsState( aActiveMailboxId.Id() )
+                    == KIpsSosEmailSyncStarted )
+            {
+            //we won't do anything if sync is already started
+            return;
+            }
+        
+        //check are we in polling mode
+        NmIpsSosExtendedSettingsManager* eMgr= 
+                new NmIpsSosExtendedSettingsManager(aActiveMailboxId.Id());
+        
+        QVariant value;
+        bool ok = eMgr->readSetting(IpsServices::ReceptionActiveProfile, value);
+        delete eMgr;
+        
+        if ( ok )
+            {
+            TInt profile = value.toInt();
+            if ( profile != IpsServices::EmailSyncProfileManualFetch )
+                {
+                // let's sync
+                GoOnlineL(aActiveMailboxId);
+                }
+            }        
+        }        
     }
 // </qmail>

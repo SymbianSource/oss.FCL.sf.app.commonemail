@@ -162,11 +162,12 @@ void NmMessageListViewItem::setContentsToMessageItem(const NmMessageEnvelope &en
     mSender->setText(senderFieldText(envelope));
     // time
     HbExtendedLocale locale = HbExtendedLocale::system();
-    QDate sentLocalDate = envelope.sentTime().toLocalTime().date();
+    QDateTime localTime = envelope.sentTime().addSecs(locale.universalTimeOffset());
+    QDate sentLocalDate = localTime.date();
     QDate currentdate = QDate::currentDate();
     if (dividersActive || sentLocalDate == currentdate) {
         QString shortTimeSpec = r_qtn_time_usual;
-        QTime time = envelope.sentTime().toLocalTime().time();
+        QTime time = localTime.time();
         mTime->setText(locale.format(time, shortTimeSpec));
     } else {
         QString shortDateSpec = r_qtn_date_without_year;

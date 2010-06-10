@@ -73,7 +73,9 @@ inc/ipsplgsyncstatehandler.h \
 inc/ipsplgsosbaseplugin.hrh \
 inc/ipsplgmailstoreroperation.h \
 inc/mipsplgmailstorerobserver.h \
-inc/ipsplgmessagepartstoreroperation.h
+inc/ipsplgmessagepartstoreroperation.h \
+inc/ipsstateextension.h \
+inc/ipssosextendedsettingsmanager.h
 
     
 SOURCES   += src/ipsplgbaseoperation.cpp \
@@ -118,7 +120,9 @@ src/ipsplgsyncstatehandler.cpp \
 inc/ipsplgsearch.inl \
 inc/ipsplgmsgmapper.inl \
 src/ipsplgmailstoreroperation.cpp \
-src/ipsplgmessagepartstoreroperation.cpp
+src/ipsplgmessagepartstoreroperation.cpp \
+src/ipsstateextension.cpp \
+src/ipssosextendedsettingsmanager.cpp
 
 RESOURCES +=
 
@@ -170,7 +174,8 @@ symbian*: {
     -lConnMon \
     -lflogger \
     -lfeatmgr \
-    -lmessagestoreclient
+    -lmessagestoreclient \
+    -lxqsettingsmanager
 
     BLD_INF_RULES.prj_exports += \
       "inc/ipsplgsmtpoperation.h |../inc/ipsplgsmtpoperation.h" \

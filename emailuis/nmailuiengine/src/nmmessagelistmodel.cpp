@@ -255,7 +255,18 @@ void NmMessageListModel::handleMessageEvent(NmMessageEvent event,
                 updateMessageEnvelope(mailboxId, folderId, messageIds[i]);
                 break;
             }
-            case NmMessageCreated:
+            case NmMessageCreated: {
+                // mIgnoreFolderIds is true if (and only if) this model is used
+                // for mail search purposes and thus, we do not want the model
+                // to handle "message created" events. Issue to consider:
+                // renaming mIgonreFolderIds => mModelUsedForSearch or something
+                // similar.
+                if (!mIgnoreFolderIds && !itemFromModel(messageIds[i])) {
+                    insertNewMessageIntoModel(mailboxId, folderId, messageIds[i]);
+                }
+                
+                break;
+            }
             case NmMessageFound: {
                 if (!itemFromModel(messageIds[i])) {
                     insertNewMessageIntoModel(mailboxId, folderId, messageIds[i]);

@@ -45,7 +45,8 @@ public:
                     QNetworkAccessManager &manager);
     virtual ~NmEditorContent();
 
-    void setMessageData(const NmMessage &originalMessage);
+    void setMessageData(const NmMessage &originalMessage,
+                        bool createReplyHeader = true);
     NmEditorTextEdit* editor() const;
     NmEditorHeader* header() const;
 

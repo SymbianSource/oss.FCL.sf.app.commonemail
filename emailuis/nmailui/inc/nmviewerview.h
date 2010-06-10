@@ -1,19 +1,19 @@
 /*
-* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
-* All rights reserved.
-* This component and the accompanying materials are made available
-* under the terms of "Eclipse Public License v1.0"
-* which accompanies this distribution, and is available
-* at the URL "http://www.eclipse.org/legal/epl-v10.html".
-*
-* Initial Contributors:
-* Nokia Corporation - initial contribution.
-*
-* Contributors:
-*
-* Description:
-*
-*/
+ * Copyright (c) 2009-2010 Nokia Corporation and/or its subsidiary(-ies).
+ * All rights reserved.
+ * This component and the accompanying materials are made available
+ * under the terms of "Eclipse Public License v1.0"
+ * which accompanies this distribution, and is available
+ * at the URL "http://www.eclipse.org/legal/epl-v10.html".
+ *
+ * Initial Contributors:
+ * Nokia Corporation - initial contribution.
+ *
+ * Contributors:
+ *
+ * Description:
+ *
+ */
 
 #ifndef NMVIEWERVIEW_H_
 #define NMVIEWERVIEW_H_
@@ -29,13 +29,13 @@ class QWebPage;
 
 class HbWidget;
 class HbMainWindow;
+class HbScrollArea;
 
 class NmApplication;
 class NmUiEngine;
 class NmUiStartParam;
 class NmMailViewerWK;
 class NmMessage;
-class NmBaseViewScrollArea;
 class NmViewerViewNetManager;
 class NmViewerHeader;
 class NmMailViewerWK;
@@ -44,6 +44,7 @@ class NmOperation;
 class HbProgressDialog;
 class NmAttachmentListWidget;
 class NmAttachmentManager;
+class HbMessageBox;
 
 class NmViewerView : public NmBaseView, public NmActionObserver, public NmAttachmentFetchObserver
 {
@@ -73,8 +74,6 @@ public slots:
     void adjustViewDimensions();
     void linkClicked(const QUrl& link);
     void contentScrollPositionChanged(const QPointF &newPosition);
-    void handleMouseReleaseEvent(QGraphicsSceneMouseEvent *event);
-    void handleMousePressEvent(QGraphicsSceneMouseEvent *event);
     void fetchMessage();
     void openAttachment(int index);
 	void createOptionsMenu();
@@ -108,23 +107,21 @@ private:
     void createAndShowWaitDialog();
     void setWebViewWidth(int width);
     void setWebViewHeighth(int height);
-    void handleMouseEvent(QGraphicsSceneMouseEvent *event, bool pressed);
 
 private:
     NmApplication &mApplication;
     NmUiEngine &mUiEngine;
-    HbMainWindow *mMainWindow;               // Not owned
+    HbMainWindow *mMainWindow;                       // Not owned
     NmAttachmentManager  &mAttaManager;
-    bool mToolbarEnabled;					 // is toolbar or options menu in use
-    NmMessage* mMessage;                     // Owned
-    NmBaseViewScrollArea *mScrollArea;       // Not owned
-    HbWidget *mViewerContent;                // Not owned
-    NmMailViewerWK *mWebView;                // Not owned
-    NmViewerHeader *mHeaderWidget;           // Not owned
-    NmAttachmentListWidget *mAttaListWidget;  // Not owned
+    bool mToolbarEnabled;					         // is toolbar or options menu in use
+    NmMessage* mMessage;                             // Owned
+    HbScrollArea *mScrollArea;                       // Not owned
+    HbWidget *mViewerContent;                        // Not owned
+    NmMailViewerWK *mWebView;                        // Not owned
+    NmViewerHeader *mHeaderWidget;                   // Not owned
+    NmAttachmentListWidget *mAttaListWidget;         // Not owned
     QPointF mHeaderStartScenePos;
-    QGraphicsLinearLayout *mViewerContentLayout; // Not owned
-    QPointer<NmOperation> mMessageFetchingOperation;   // Not owned 
+    QPointer<NmOperation> mMessageFetchingOperation; // Not owned 
     QPointF mLatestScrollPos;
     bool mDisplayingPlainText;
     QObjectList mWidgetList;
@@ -132,14 +129,15 @@ private:
     HbWidget *mScrollAreaContents;
     HbWidget *mViewerHeaderContainer;
     QSize mScreenSize;
-    HbProgressDialog *mWaitDialog;            // owned
+    HbProgressDialog *mWaitDialog;                   // Owned
     bool webFrameloadingCompleted;
     QSize mLatestLoadingSize;
     QList<NmId> mAttaIdList;
     int mAttaIndexUnderFetch;
-    NmAttachmentListWidget *mAttaWidget;      // Not owned
+    NmAttachmentListWidget *mAttaWidget;             // Not owned
     bool mViewReady;
     bool mWaitNoteCancelled;
+    HbMessageBox *mErrorNote;                       // Owned
 };
 
 #endif /* NMVIEWERVIEW_H_ */

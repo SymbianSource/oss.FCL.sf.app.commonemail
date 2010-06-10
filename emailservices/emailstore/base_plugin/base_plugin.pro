@@ -21,7 +21,8 @@ CONFIG += debug
 DEPENDPATH += . inc src
 DEFINES += BUILD_BASEPLUGIN_DLL
 INCLUDEPATH += . \
-			../../../inc
+               ../../../inc \
+               $$APP_LAYER_SYSTEMINCLUDE
 			
 
 HEADERS += inc/BaseMrInfoObject.h \
@@ -57,7 +58,9 @@ LIBS += -leuser \
 		-lmessagestoreclient \
 		-lfsfwcommonlib \
 		-ldebuglog \
-		-lcalinterimapi
+		-lcalinterimapi \
+        -lefsrv \
+        -lgdi
 		
 symbian*: { 
     

@@ -19,7 +19,7 @@
                                     <sizehint height="7.46un" type="FIXED" width="9.5un"/>
                                 </widget>
                                 <layout orientation="Horizontal" spacing="var(hb-param-margin-gene-middle-horizontal)" type="linear">
-                                    <contentsmargins bottom="0un" left="0un" right="0un" top="0un"/>
+                                    <contentsmargins bottom="0un" left="var(hb-param-margin-gene-left)" right="var(hb-param-margin-gene-right)" top="0un"/>
                                     <linearitem itemname="editorToLabel"/>
                                     <linearitem itemname="editorToEdit"/>
                                     <linearitem itemname="editorToButton"/>
@@ -38,7 +38,7 @@
                                     <sizehint height="7.46un" type="FIXED" width="9.5un"/>
                                 </widget>
                                 <layout orientation="Horizontal" spacing="var(hb-param-margin-gene-middle-horizontal)" type="linear">
-                                    <contentsmargins bottom="0un" left="0un" right="0un" top="0un"/>
+                                    <contentsmargins bottom="0un" left="var(hb-param-margin-gene-left)" right="var(hb-param-margin-gene-right)" top="0un"/>
                                     <linearitem itemname="editorCcLabel"/>
                                     <linearitem itemname="editorCcEdit"/>
                                     <linearitem itemname="editorCcButton"/>
@@ -57,7 +57,7 @@
                                     <sizehint height="7.46un" type="FIXED" width="9.5un"/>
                                 </widget>
                                 <layout orientation="Horizontal" spacing="var(hb-param-margin-gene-middle-horizontal)" type="linear">
-                                    <contentsmargins bottom="0un" left="0un" right="0un" top="0un"/>
+                                    <contentsmargins bottom="0un" left="var(hb-param-margin-gene-left)" right="var(hb-param-margin-gene-right)" top="0un"/>
                                     <linearitem itemname="editorBccLabel"/>
                                     <linearitem itemname="editorBccEdit"/>
                                     <linearitem itemname="editorBccButton"/>
@@ -70,7 +70,7 @@
                                     <string locid="txt_mail_editor_subject" name="plainText"/>
                                     <fontspec name="fontSpec" role="Secondary" textheight="var(hb-param-text-height-secondary)"/>
                                 </widget>
-                                <widget name="editorSubjectEdit" plugin="nmailuiwidgetsplugin" type="NmRecipientLineEdit"/>
+                                <widget name="editorSubjectEdit" plugin="nmailuiwidgetsplugin" type="NmHtmlLineEdit"/>
                                 <widget name="editPriorityIcon" type="HbLabel">
                                     <enums name="alignment" value="AlignVCenter|AlignHCenter"/>
                                     <sizepolicy horizontalPolicy="Fixed" horizontalStretch="0" verticalPolicy="Fixed" verticalStretch="0"/>
@@ -82,7 +82,7 @@
                                     <sizehint height="var(hb-param-graphic-size-secondary)" type="FIXED" width="var(hb-param-graphic-size-secondary)"/>
                                 </widget>
                                 <layout orientation="Horizontal" spacing="var(hb-param-margin-gene-middle-horizontal)" type="linear">
-                                    <contentsmargins bottom="0un" left="0un" right="0un" top="0un"/>
+                                    <contentsmargins bottom="0un" left="var(hb-param-margin-gene-left)" right="var(hb-param-margin-gene-right)" top="0un"/>
                                     <linearitem itemname="editorSubjectLabel"/>
                                     <linearitem itemname="editorSubjectEdit"/>
                                     <linearitem itemname="editPriorityIcon" spacing="0.5un"/>
@@ -90,22 +90,31 @@
                                 </layout>
                             </widget>
                             <widget name="attachmentListWidget" plugin="nmailuiwidgetsplugin" type="NmAttachmentListWidget">
-                                <contentsmargins bottom="0un" left="0un" right="0un" top="0un"/>
                             </widget>
-                            <widget name="BodyTextEdit" plugin="nmailuiwidgetsplugin" type="NmEditorTextEdit">
+                            <widget name="BodyTextEditContainer" type="HbWidget">
+                                <widget name="BodyTextEdit" plugin="nmailuiwidgetsplugin" type="NmEditorTextEdit">
+                                    <sizepolicy horizontalPolicy="Expanding" horizontalStretch="0" verticalPolicy="Expanding" verticalStretch="0"/>
+                                    <contentsmargins bottom="0un" left="0un" right="0un" top="0un"/>
+                                    <fontspec name="fontSpec" role="Secondary" textheight="var(hb-param-text-height-secondary)"/>
+                                    <string name="plainText"/>
+                                </widget>
                                 <sizepolicy horizontalPolicy="Expanding" horizontalStretch="0" verticalPolicy="Expanding" verticalStretch="0"/>
-                                <contentsmargins bottom="0un" left="0un" right="0un" top="0un"/>
-                                <fontspec name="fontSpec" role="Secondary" textheight="var(hb-param-text-height-secondary)"/>
-                                <string name="plainText"/>
+                                <layout type="anchor">
+                                    <anchoritem dst="BodyTextEdit" dstEdge="LEFT" spacing="var(hb-param-margin-gene-left)" src="" srcEdge="LEFT"/>
+                                    <anchoritem dst="BodyTextEdit" dstEdge="BOTTOM" spacing="0un" src="" srcEdge="BOTTOM"/>
+                                    <anchoritem dst="BodyTextEdit" dstEdge="RIGHT" spacing="-var(hb-param-margin-gene-right)" src="" srcEdge="RIGHT"/>
+                                    <anchoritem dst="BodyTextEdit" dstEdge="TOP" spacing="0un" src="" srcEdge="TOP"/>
+                                </layout>
                             </widget>
                             <layout orientation="Vertical" spacing="var(hb-param-margin-gene-middle-vertical)" type="linear">
-                                <contentsmargins bottom="0un" left="var(hb-param-margin-gene-left)" right="var(hb-param-margin-gene-right)" top="var(hb-param-margin-gene-top)"/>
+                                <!-- Widget may have different left and right margins so they are not defined here -->
+                                <contentsmargins bottom="0un" left="0un" right="0un" top="var(hb-param-margin-gene-top)"/>
                                 <linearitem itemname="editorToField"/>
                                 <linearitem itemname="editorCcField"/>
                                 <linearitem itemname="editorBccField"/>
                                 <linearitem itemname="editorSubjectField"/>
                                 <linearitem itemname="attachmentListWidget"/>
-                                <linearitem itemname="BodyTextEdit"/>
+                                <linearitem itemname="BodyTextEditContainer"/>
                             </layout>
                         </widget>
                         <real name="z" value="0"/>

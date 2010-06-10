@@ -133,10 +133,13 @@ public: // Methods
      *        will receive progress notifications during the operation.
      * @param aRequestId identifies asynchronous request if parallel
      * requests exist
+     * @param aSilentConnection defines if connection is needed to be 
+     *        silent connection or non-silent one (default).
      */
      virtual void RefreshNowL( const TFSMailMsgId& aMailBoxId,
                                MFSMailRequestObserver& aOperationObserver,
-                               TInt aRequestId ) = 0;
+                               TInt aRequestId,
+                               const TBool aSilentConnection=EFalse ) = 0;
 
     /**
      * Returns last synchronization operation status.

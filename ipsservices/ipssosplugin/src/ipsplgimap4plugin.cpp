@@ -141,7 +141,8 @@ TInt CIpsPlgImap4Plugin::RefreshNowL( )
 void CIpsPlgImap4Plugin::RefreshNowL(
     const TFSMailMsgId& aMailBoxId,
     MFSMailRequestObserver& aOperationObserver,
-    TInt aRequestId )
+    TInt aRequestId,
+    const TBool /*aSilentConnection*/ )
     {
     FUNC_LOG;
     
@@ -165,10 +166,8 @@ void CIpsPlgImap4Plugin::RefreshNowL(
     iOperations.AppendL( watcher );
     CleanupStack::Pop( watcher );
     
-	//<qmail>
     // send part of refresh
-    //EmptyOutboxL( aMailBoxId ); // not used in qmail yet
-	//</qmail>
+    EmptyOutboxL( aMailBoxId );
     }
 
 // ---------------------------------------------------------------------------
