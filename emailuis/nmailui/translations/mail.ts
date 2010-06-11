@@ -46,7 +46,7 @@
     <comment>Original message header data in the editor. Followed by the name/mail address of the recipient of the message.</comment>        
     <source>To:</source>
     <translation variants="no" type="unfinished"></translation>
-    <extra-loc-layout_id>txt_mail_editor_reply_sent</extra-loc-layout_id>    
+    <extra-loc-layout_id>none</extra-loc-layout_id>    
     <extra-loc-viewid>mail_04_c</extra-loc-viewid>
     <extra-loc-positionid>list</extra-loc-positionid>
     <extra-loc-feature>mail</extra-loc-feature>
@@ -92,11 +92,21 @@
     <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
+<message numerus="no" id="txt_mail_dialog_no_mailboxes_defined">
+    <comment>When mail is selected and there are no mailboxes defined</comment>        
+    <source>No mailboxes defined</source>
+    <translation variants="no" type="unfinished"></translation>
+    <extra-loc-layout_id>qtl_dialog_pri5</extra-loc-layout_id>    
+    <extra-loc-viewid>mail</extra-loc-viewid>
+    <extra-loc-positionid>dialog</extra-loc-positionid>
+    <extra-loc-feature>mail</extra-loc-feature>
+    <extra-loc-blank>False</extra-loc-blank>
+</message>
 <message numerus="no" id="txt_mail_list_cc">
     <comment>Cc label in mail viewer</comment>        
     <source>Cc:</source>
     <translation variants="no" type="unfinished"></translation>
-    <extra-loc-layout_id>txt_mail_list_from</extra-loc-layout_id>    
+    <extra-loc-layout_id>none</extra-loc-layout_id>    
     <extra-loc-viewid>mail_03</extra-loc-viewid>
     <extra-loc-positionid>list</extra-loc-positionid>
     <extra-loc-feature>mail</extra-loc-feature>
@@ -162,6 +172,16 @@
     <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
+<message numerus="no" id="txt_mail_shareui_send_as_mail">
+    <comment>text for share ui component. By selecting this the selected content will be sent as mail</comment>        
+    <source>Send as new mail</source>
+    <translation variants="yes" type="unfinished"></translation>
+    <extra-loc-layout_id>qtl_list_popup_pri_graphic</extra-loc-layout_id>    
+    <extra-loc-viewid>mail</extra-loc-viewid>
+    <extra-loc-positionid>list</extra-loc-positionid>
+    <extra-loc-feature>mail</extra-loc-feature>
+    <extra-loc-blank>False</extra-loc-blank>
+</message>
 <message numerus="no" id="txt_mail_opt_add_priority_sub_high">
     <comment>Suboption for option &quot;Add priority&quot; to set mail as high priority.</comment>        
     <source>High</source>
@@ -183,10 +203,10 @@
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mail_editor_reply_importance_high">
-    <comment>Custom layout ID parent. Original message header data in the editor. Level of importance for the message: High.</comment>        
+    <comment>Original message header data in the editor. Level of importance for the message: High.</comment>        
     <source>High</source>
     <translation variants="no" type="unfinished"></translation>
-    <extra-loc-layout_id>txt_mail_editor_reply_importance_high</extra-loc-layout_id>    
+    <extra-loc-layout_id>none</extra-loc-layout_id>    
     <extra-loc-viewid>mail_04_c</extra-loc-viewid>
     <extra-loc-positionid>list</extra-loc-positionid>
     <extra-loc-feature>mail</extra-loc-feature>
@@ -218,6 +238,16 @@
     <translation variants="no" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dialog_pri5</extra-loc-layout_id>    
     <extra-loc-viewid>mail_04</extra-loc-viewid>
+    <extra-loc-positionid>dialog</extra-loc-positionid>
+    <extra-loc-feature>mail</extra-loc-feature>
+    <extra-loc-blank>False</extra-loc-blank>
+</message>
+<message numerus="no" id="txt_mail_dialog_downloading_canceled">
+    <comment>A notification shown to a user when download cannot be completed because of there is not enough disk space.</comment>        
+    <source>Not enough memory - downloading canceled</source>
+    <translation variants="no" type="unfinished"></translation>
+    <extra-loc-layout_id>qtl_dialog_pri5</extra-loc-layout_id>    
+    <extra-loc-viewid>mail</extra-loc-viewid>
     <extra-loc-positionid>dialog</extra-loc-positionid>
     <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
@@ -276,27 +306,7 @@
     <comment>Original message header data in the editor. Followed by the subject of the message.</comment>        
     <source>Subject:</source>
     <translation variants="no" type="unfinished"></translation>
-    <extra-loc-layout_id>txt_mail_editor_reply_sent</extra-loc-layout_id>    
-    <extra-loc-viewid>mail_04_c</extra-loc-viewid>
-    <extra-loc-positionid>list</extra-loc-positionid>
-    <extra-loc-feature>mail</extra-loc-feature>
-    <extra-loc-blank>False</extra-loc-blank>
-</message>
-<message numerus="no" id="txt_mail_menu_search_from_server">
-    <comment>Item specific command for searching number &amp;address from the service. IS THIS NEEDED?</comment>        
-    <source>search from server</source>
-    <translation variants="no" type="unfinished"></translation>
-    <extra-loc-layout_id>qtl_menu_sec</extra-loc-layout_id>    
-    <extra-loc-viewid>mail_02</extra-loc-viewid>
-    <extra-loc-positionid>menu</extra-loc-positionid>
-    <extra-loc-feature>mail</extra-loc-feature>
-    <extra-loc-blank>False</extra-loc-blank>
-</message>
-<message numerus="no" id="txt_mail_list_re">
-    <comment>Prefix in subject field in the editor. This indicates that the mail is replyed</comment>        
-    <source>Re:</source>
-    <translation variants="no" type="unfinished"></translation>
-    <extra-loc-layout_id>txt_mail_list_fw</extra-loc-layout_id>    
+    <extra-loc-layout_id>none</extra-loc-layout_id>    
     <extra-loc-viewid>mail_04_c</extra-loc-viewid>
     <extra-loc-positionid>list</extra-loc-positionid>
     <extra-loc-feature>mail</extra-loc-feature>
@@ -312,16 +322,6 @@
     <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
-<message numerus="no" id="txt_mail_menu_send_mail">
-    <comment>Item specific command for sending mail to a contact</comment>        
-    <source>send mail</source>
-    <translation variants="no" type="unfinished"></translation>
-    <extra-loc-layout_id>qtl_menu_sec</extra-loc-layout_id>    
-    <extra-loc-viewid>mail_02</extra-loc-viewid>
-    <extra-loc-positionid>menu</extra-loc-positionid>
-    <extra-loc-feature>mail</extra-loc-feature>
-    <extra-loc-blank>False</extra-loc-blank>
-</message>
 <message numerus="no" id="txt_mail_shareui_sending_please_wait">
     <comment>Text for shared UI component wait note. Shown when the user has sent an email from shared UI.</comment>        
     <source>Sending, please wait</source>
@@ -329,16 +329,6 @@
     <extra-loc-layout_id>qtl_notifdialog_pri2</extra-loc-layout_id>    
     <extra-loc-viewid>mail_04</extra-loc-viewid>
     <extra-loc-positionid>dialog</extra-loc-positionid>
-    <extra-loc-feature>mail</extra-loc-feature>
-    <extra-loc-blank>False</extra-loc-blank>
-</message>
-<message numerus="no" id="txt_mail_list_fw">
-    <comment>Custom layout ID parent. Prefix in subject field in the editor. This indicates that the mail is forwarded</comment>        
-    <source>Fw:</source>
-    <translation variants="no" type="unfinished"></translation>
-    <extra-loc-layout_id>txt_mail_list_fw</extra-loc-layout_id>    
-    <extra-loc-viewid>mail_04_c</extra-loc-viewid>
-    <extra-loc-positionid>list</extra-loc-positionid>
     <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
@@ -352,13 +342,13 @@
     <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
-<message numerus="no" id="txt_mail_menu_open_contact_card">
-    <comment>Item specific command for opening contact card from mail viewer</comment>        
-    <source>open contact card</source>
+<message numerus="no" id="txt_mail_list_searching">
+    <comment>Text for indicating that the search is ongoing in mail list view. Component is simple label</comment>        
+    <source>Seaching</source>
     <translation variants="no" type="unfinished"></translation>
-    <extra-loc-layout_id>qtl_menu_sec</extra-loc-layout_id>    
-    <extra-loc-viewid>mail_02</extra-loc-viewid>
-    <extra-loc-positionid>menu</extra-loc-positionid>
+    <extra-loc-layout_id>txt_mail_subhead_inbox</extra-loc-layout_id>    
+    <extra-loc-viewid>mail</extra-loc-viewid>
+    <extra-loc-positionid>list</extra-loc-positionid>
     <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
@@ -373,12 +363,32 @@
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mail_list_from">
-    <comment>Custom layout ID parent. From label in mail viewer </comment>        
+    <comment>From label in mail viewer </comment>        
     <source>From:</source>
     <translation variants="no" type="unfinished"></translation>
-    <extra-loc-layout_id>txt_mail_list_from</extra-loc-layout_id>    
+    <extra-loc-layout_id>none</extra-loc-layout_id>    
     <extra-loc-viewid>mail_03</extra-loc-viewid>
     <extra-loc-positionid>list</extra-loc-positionid>
+    <extra-loc-feature>mail</extra-loc-feature>
+    <extra-loc-blank>False</extra-loc-blank>
+</message>
+<message numerus="no" id="txt_nmailui_forward_subject_prefix">
+    <comment>Text for subject field if the message is forwarded.</comment>        
+    <source>Fw:</source>
+    <translation variants="yes" type="unfinished"></translation>
+    <extra-loc-layout_id>qtl_list_pri</extra-loc-layout_id>    
+    <extra-loc-viewid>mail_02</extra-loc-viewid>
+    <extra-loc-positionid>dblist_3_val</extra-loc-positionid>
+    <extra-loc-feature>mail</extra-loc-feature>
+    <extra-loc-blank>False</extra-loc-blank>
+</message>
+<message numerus="no" id="txt_mail_opt_folder_sub_deleted">
+    <comment>Submenu item for Options menus item Folder (txt_mail_opt_change_folder)</comment>        
+    <source>Deleted items</source>
+    <translation variants="no" type="unfinished"></translation>
+    <extra-loc-layout_id>qtl_menu_sec_add</extra-loc-layout_id>    
+    <extra-loc-viewid>mail_01_a</extra-loc-viewid>
+    <extra-loc-positionid>opt_2_sub</extra-loc-positionid>
     <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
@@ -386,7 +396,7 @@
     <comment>Original message header data in the editor. Level of importance for the message: Low.</comment>        
     <source>Low</source>
     <translation variants="no" type="unfinished"></translation>
-    <extra-loc-layout_id>txt_mail_editor_reply_importance_high</extra-loc-layout_id>    
+    <extra-loc-layout_id>none</extra-loc-layout_id>    
     <extra-loc-viewid>mail_04_c</extra-loc-viewid>
     <extra-loc-positionid>list</extra-loc-positionid>
     <extra-loc-feature>mail</extra-loc-feature>
@@ -396,7 +406,7 @@
     <comment>Original message header data in the editor. Followed by the name(s)/mail address(es) of the receipients to whom a copy of the message is sent.</comment>        
     <source>Cc:</source>
     <translation variants="no" type="unfinished"></translation>
-    <extra-loc-layout_id>txt_mail_editor_reply_sent</extra-loc-layout_id>    
+    <extra-loc-layout_id>none</extra-loc-layout_id>    
     <extra-loc-viewid>mail_04_c</extra-loc-viewid>
     <extra-loc-positionid>list</extra-loc-positionid>
     <extra-loc-feature>mail</extra-loc-feature>
@@ -409,6 +419,16 @@
     <extra-loc-layout_id>qtl_menu_pri</extra-loc-layout_id>    
     <extra-loc-viewid>mail_04</extra-loc-viewid>
     <extra-loc-positionid>opt_1</extra-loc-positionid>
+    <extra-loc-feature>mail</extra-loc-feature>
+    <extra-loc-blank>False</extra-loc-blank>
+</message>
+<message numerus="no" id="txt_mail_status_menu_new_mail">
+    <comment>Secondary text for status menu item: indicates the there are new mail messages</comment>        
+    <source>New Mail</source>
+    <translation variants="no" type="unfinished"></translation>
+    <extra-loc-layout_id></extra-loc-layout_id>    
+    <extra-loc-viewid>mail</extra-loc-viewid>
+    <extra-loc-positionid>list</extra-loc-positionid>
     <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
@@ -462,16 +482,6 @@
     <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
-<message numerus="no" id="txt_mail_dialog_delete_message">
-    <comment>This conifrmation is shown if the user presses &quot;Back&quot; in the editor. Selecting yes deletes the composed message. &quot;No&quot; returns to the editor.</comment>        
-    <source>Delete message?</source>
-    <translation variants="no" type="unfinished"></translation>
-    <extra-loc-layout_id>qtl_dialog_pri5</extra-loc-layout_id>    
-    <extra-loc-viewid>mail_04</extra-loc-viewid>
-    <extra-loc-positionid>dialog</extra-loc-positionid>
-    <extra-loc-feature>mail</extra-loc-feature>
-    <extra-loc-blank>False</extra-loc-blank>
-</message>
 <message numerus="no" id="txt_mail_dialog_invalid_mail_address">
     <comment>Note in editor when the user has typed incorrect mail address (e.g. without @-character). %[]1 is replaced with the name of the invalid mail address.</comment>        
     <source>Invalid mail address: %[]1</source>
@@ -512,13 +522,13 @@
     <extra-loc-feature>Mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
-<message numerus="no" id="txt_mail_dialog_deleting_mailbox">
-    <comment>Wait note for the case where the mailbox is beign deleted.</comment>        
-    <source>Deleting mailbox</source>
+<message numerus="no" id="txt_mail_dblist_no_messages_matched_your_search">
+    <comment>A text shown in mail list view, if there are no matches to a search.</comment>        
+    <source>No messages matched your search. Try another search term. </source>
     <translation variants="no" type="unfinished"></translation>
-    <extra-loc-layout_id>qtl_dialog_pri3</extra-loc-layout_id>    
+    <extra-loc-layout_id>qtl_view_empty_title_pri</extra-loc-layout_id>    
     <extra-loc-viewid>mail</extra-loc-viewid>
-    <extra-loc-positionid>dialog</extra-loc-positionid>
+    <extra-loc-positionid>dblist_4</extra-loc-positionid>
     <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
@@ -532,11 +542,21 @@
     <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
+<message numerus="no" id="txt_mail_dialog_deleting_mailbox">
+    <comment>Wait note for the case where the mailbox is beign deleted.</comment>        
+    <source>Deleting mailbox</source>
+    <translation variants="no" type="unfinished"></translation>
+    <extra-loc-layout_id>qtl_dialog_pri3</extra-loc-layout_id>    
+    <extra-loc-viewid>mail</extra-loc-viewid>
+    <extra-loc-positionid>dialog</extra-loc-positionid>
+    <extra-loc-feature>mail</extra-loc-feature>
+    <extra-loc-blank>False</extra-loc-blank>
+</message>
 <message numerus="no" id="txt_mail_editor_reply_importance">
     <comment>Original message header data in the editor. The user can select the level of importance for the message (High txt_mail_editor_reply_importance_high or Low txt_mail_editor_reply_importance_low).</comment>        
     <source>Importance:</source>
     <translation variants="no" type="unfinished"></translation>
-    <extra-loc-layout_id>txt_mail_editor_reply_sent</extra-loc-layout_id>    
+    <extra-loc-layout_id>none</extra-loc-layout_id>    
     <extra-loc-viewid>mail_04_c</extra-loc-viewid>
     <extra-loc-positionid>list</extra-loc-positionid>
     <extra-loc-feature>mail</extra-loc-feature>
@@ -546,29 +566,9 @@
     <comment>To label in mail viewer</comment>        
     <source>To:</source>
     <translation variants="no" type="unfinished"></translation>
-    <extra-loc-layout_id>txt_mail_list_from</extra-loc-layout_id>    
+    <extra-loc-layout_id>none</extra-loc-layout_id>    
     <extra-loc-viewid>mail_03</extra-loc-viewid>
     <extra-loc-positionid>list</extra-loc-positionid>
-    <extra-loc-feature>mail</extra-loc-feature>
-    <extra-loc-blank>False</extra-loc-blank>
-</message>
-<message numerus="no" id="txt_mail_dialog_data_has_been_deleted_to_protect_a">
-    <comment></comment>        
-    <source>Data has been deleted to protect against theft or loss. Contact you system administrator</source>
-    <translation variants="no" type="unfinished"></translation>
-    <extra-loc-layout_id></extra-loc-layout_id>    
-    <extra-loc-viewid>mail</extra-loc-viewid>
-    <extra-loc-positionid>dialog</extra-loc-positionid>
-    <extra-loc-feature>mail</extra-loc-feature>
-    <extra-loc-blank>False</extra-loc-blank>
-</message>
-<message numerus="no" id="txt_mail_dialog_cannot_open_the_attachment_deleted">
-    <comment></comment>        
-    <source>Cannot open the attachment deleted on the server</source>
-    <translation variants="no" type="unfinished"></translation>
-    <extra-loc-layout_id></extra-loc-layout_id>    
-    <extra-loc-viewid>mail</extra-loc-viewid>
-    <extra-loc-positionid>dialog</extra-loc-positionid>
     <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
@@ -576,19 +576,9 @@
     <comment>Original message header data in the editor. Followed by the date when the message was sent.</comment>        
     <source>Sent:</source>
     <translation variants="no" type="unfinished"></translation>
-    <extra-loc-layout_id>txt_mail_editor_reply_sent</extra-loc-layout_id>    
+    <extra-loc-layout_id>none</extra-loc-layout_id>    
     <extra-loc-viewid>mail_04_c</extra-loc-viewid>
     <extra-loc-positionid>list</extra-loc-positionid>
-    <extra-loc-feature>mail</extra-loc-feature>
-    <extra-loc-blank>False</extra-loc-blank>
-</message>
-<message numerus="no" id="txt_mail_dialog_account_disabled_due_to_security_i">
-    <comment></comment>        
-    <source>Account disabled due to security issues. Contact your system administrator.</source>
-    <translation variants="no" type="unfinished"></translation>
-    <extra-loc-layout_id></extra-loc-layout_id>    
-    <extra-loc-viewid>mail</extra-loc-viewid>
-    <extra-loc-positionid>dialog</extra-loc-positionid>
     <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
@@ -609,6 +599,16 @@
     <extra-loc-layout_id>qtl_dialog_pri_heading</extra-loc-layout_id>    
     <extra-loc-viewid>mail</extra-loc-viewid>
     <extra-loc-positionid>dialog</extra-loc-positionid>
+    <extra-loc-feature>mail</extra-loc-feature>
+    <extra-loc-blank>False</extra-loc-blank>
+</message>
+<message numerus="no" id="txt_nmailui_reply_subject_prefix">
+    <comment>Text for subject field if the message is replyed.</comment>        
+    <source>Re:</source>
+    <translation variants="yes" type="unfinished"></translation>
+    <extra-loc-layout_id>qtl_list_pri</extra-loc-layout_id>    
+    <extra-loc-viewid>mail_02</extra-loc-viewid>
+    <extra-loc-positionid>dblist_3_val</extra-loc-positionid>
     <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
@@ -646,7 +646,7 @@
     <comment>Original message header data in the editor. Separates the original mail message from the edit area of the new message the user is typing.</comment>        
     <source>---- Original message ----</source>
     <translation variants="no" type="unfinished"></translation>
-    <extra-loc-layout_id>txt_mail_editor_reply_sent</extra-loc-layout_id>    
+    <extra-loc-layout_id>none</extra-loc-layout_id>    
     <extra-loc-viewid>mail_04_c</extra-loc-viewid>
     <extra-loc-positionid>list</extra-loc-positionid>
     <extra-loc-feature>mail</extra-loc-feature>
@@ -712,16 +712,6 @@
     <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
-<message numerus="no" id="txt_mail_dialog_conversion_error_unable_to_show_t">
-    <comment></comment>        
-    <source>Conversion error. Unable to show the content properly</source>
-    <translation variants="no" type="unfinished"></translation>
-    <extra-loc-layout_id></extra-loc-layout_id>    
-    <extra-loc-viewid>mail</extra-loc-viewid>
-    <extra-loc-positionid>dialog</extra-loc-positionid>
-    <extra-loc-feature>mail</extra-loc-feature>
-    <extra-loc-blank>False</extra-loc-blank>
-</message>
 <message numerus="no" id="txt_mail_editor_bcc">
     <comment>Bcc: label in mail editor</comment>        
     <source>Bcc:</source>
@@ -729,6 +719,16 @@
     <extra-loc-layout_id>txt_mail_editor_to</extra-loc-layout_id>    
     <extra-loc-viewid>mail_04</extra-loc-viewid>
     <extra-loc-positionid>list</extra-loc-positionid>
+    <extra-loc-feature>mail</extra-loc-feature>
+    <extra-loc-blank>False</extra-loc-blank>
+</message>
+<message numerus="no" id="txt_mail_opt_folder_sub_drafts">
+    <comment>Submenu item for Options menus item Folder (txt_mail_opt_change_folder)</comment>        
+    <source>Drafts</source>
+    <translation variants="no" type="unfinished"></translation>
+    <extra-loc-layout_id>qtl_menu_sec_add</extra-loc-layout_id>    
+    <extra-loc-viewid>mail_01_a</extra-loc-viewid>
+    <extra-loc-positionid>opt_2_sub</extra-loc-positionid>
     <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
@@ -752,6 +752,26 @@
     <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
+<message numerus="no" id="txt_mail_opt_folder_sub_inbox">
+    <comment>Submenu item for Options menus item Folder (txt_mail_opt_change_folder)</comment>        
+    <source>Inbox </source>
+    <translation variants="no" type="unfinished"></translation>
+    <extra-loc-layout_id>qtl_menu_sec_add</extra-loc-layout_id>    
+    <extra-loc-viewid>mail_01_a</extra-loc-viewid>
+    <extra-loc-positionid>opt_2_sub</extra-loc-positionid>
+    <extra-loc-feature>mail</extra-loc-feature>
+    <extra-loc-blank>False</extra-loc-blank>
+</message>
+<message numerus="no" id="txt_mail_opt_folder_sub_sent">
+    <comment>Submenu item for Options menus item Folder (txt_mail_opt_change_folder)</comment>        
+    <source>Sent</source>
+    <translation variants="no" type="unfinished"></translation>
+    <extra-loc-layout_id>qtl_menu_sec_add</extra-loc-layout_id>    
+    <extra-loc-viewid>mail_01_a</extra-loc-viewid>
+    <extra-loc-positionid>opt_2_sub</extra-loc-positionid>
+    <extra-loc-feature>mail</extra-loc-feature>
+    <extra-loc-blank>False</extra-loc-blank>
+</message>
 <message numerus="no" id="txt_mail_dialog_unable_to_add_attachment">
     <comment>Error note for the case where the selected file cannot be attached (it&apos;s deleted, moved etc. at the same time)</comment>        
     <source>Unable to add attachment </source>
@@ -772,11 +792,21 @@
     <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
+<message numerus="no" id="txt_mail_opt_folder_sub_outbox">
+    <comment>Submenu item for Options menus item Folder (txt_mail_opt_change_folder)</comment>        
+    <source>Outbox</source>
+    <translation variants="no" type="unfinished"></translation>
+    <extra-loc-layout_id>qtl_menu_sec_add</extra-loc-layout_id>    
+    <extra-loc-viewid>mail_01_a</extra-loc-viewid>
+    <extra-loc-positionid>opt_2_sub</extra-loc-positionid>
+    <extra-loc-feature>mail</extra-loc-feature>
+    <extra-loc-blank>False</extra-loc-blank>
+</message>
 <message numerus="no" id="txt_mail_editor_reply_from">
     <comment>Original message header data in the editor. Followed by the name/mail address of the sender of the message.</comment>        
     <source>From:</source>
     <translation variants="no" type="unfinished"></translation>
-    <extra-loc-layout_id>txt_mail_editor_reply_sent</extra-loc-layout_id>    
+    <extra-loc-layout_id>none</extra-loc-layout_id>    
     <extra-loc-viewid>mail_04_c</extra-loc-viewid>
     <extra-loc-positionid>list</extra-loc-positionid>
     <extra-loc-feature>mail</extra-loc-feature>
@@ -789,6 +819,16 @@
     <extra-loc-layout_id>qtl_list_pri_large_graphic</extra-loc-layout_id>    
     <extra-loc-viewid>mail</extra-loc-viewid>
     <extra-loc-positionid>list</extra-loc-positionid>
+    <extra-loc-feature>mail</extra-loc-feature>
+    <extra-loc-blank>False</extra-loc-blank>
+</message>
+<message numerus="no" id="txt_mail_status_menu_waiting_to_send">
+    <comment>Text for status menu item: indicates that there are unsent messages in outbox. %L1 is the number of unsent mails in that mailbox.</comment>        
+    <source>Waiting to send (%L1)</source>
+    <translation variants="no" type="unfinished"></translation>
+    <extra-loc-layout_id></extra-loc-layout_id>    
+    <extra-loc-viewid>mail</extra-loc-viewid>
+    <extra-loc-positionid></extra-loc-positionid>
     <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
@@ -832,13 +872,13 @@
     <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
-<message numerus="no" id="txt_mail_menu_search_from_service">
-    <comment>Item specific command for searching number &amp;address from the service</comment>        
-    <source>search from service</source>
+<message numerus="no" id="txt_mail_list_search_results">
+    <comment>Text for indicating the search results in mail list view. Component is simple label</comment>        
+    <source>%L1 results</source>
     <translation variants="no" type="unfinished"></translation>
-    <extra-loc-layout_id>qtl_menu_sec</extra-loc-layout_id>    
-    <extra-loc-viewid>mail_02</extra-loc-viewid>
-    <extra-loc-positionid>menu</extra-loc-positionid>
+    <extra-loc-layout_id>txt_mail_subhead_inbox</extra-loc-layout_id>    
+    <extra-loc-viewid>mail</extra-loc-viewid>
+    <extra-loc-positionid>list</extra-loc-positionid>
     <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
@@ -919,26 +959,6 @@
     <extra-loc-layout_id>txt_mail_subhead_inbox</extra-loc-layout_id>    
     <extra-loc-viewid>mail_01</extra-loc-viewid>
     <extra-loc-positionid>subhead</extra-loc-positionid>
-    <extra-loc-feature>mail</extra-loc-feature>
-    <extra-loc-blank>False</extra-loc-blank>
-</message>
-<message numerus="no" id="txt_mail_dialog_1_is_disabled_enable">
-    <comment></comment>        
-    <source>%1 is disabled, enable?</source>
-    <translation variants="no" type="unfinished"></translation>
-    <extra-loc-layout_id></extra-loc-layout_id>    
-    <extra-loc-viewid>mail</extra-loc-viewid>
-    <extra-loc-positionid>dialog</extra-loc-positionid>
-    <extra-loc-feature>mail</extra-loc-feature>
-    <extra-loc-blank>False</extra-loc-blank>
-</message>
-<message numerus="no" id="txt_mail_dialog_password_expired_new_security_cre">
-    <comment></comment>        
-    <source>Password expired. New security credentials must be created on your computer.</source>
-    <translation variants="no" type="unfinished"></translation>
-    <extra-loc-layout_id></extra-loc-layout_id>    
-    <extra-loc-viewid>mail</extra-loc-viewid>
-    <extra-loc-positionid>dialog</extra-loc-positionid>
     <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>

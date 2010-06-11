@@ -14,6 +14,9 @@
  * Description:
  *
  */
+
+#include "emailtrace.h"
+
 #include "nmapiengine.h"
 #include "nmapifolderlisting_p.h"
 
@@ -28,7 +31,7 @@ namespace EmailClientApi
 NmApiFolderListingPrivate::NmApiFolderListingPrivate(QObject *parent) :
     QObject(parent), mEngine(NULL)
 {
-
+    NM_FUNCTION;
 }
 
 /*!
@@ -36,6 +39,8 @@ NmApiFolderListingPrivate::NmApiFolderListingPrivate(QObject *parent) :
  */
 NmApiFolderListingPrivate::~NmApiFolderListingPrivate()
 {
+    NM_FUNCTION;
+    
     releaseEngine();
 }
 
@@ -48,6 +53,8 @@ NmApiFolderListingPrivate::~NmApiFolderListingPrivate()
  */
 bool NmApiFolderListingPrivate::initializeEngine()
 {
+    NM_FUNCTION;
+    
     if (!mEngine) {
         mEngine = NmApiEngine::instance();
     }
@@ -62,6 +69,8 @@ bool NmApiFolderListingPrivate::initializeEngine()
  */
 void NmApiFolderListingPrivate::releaseEngine()
 {
+    NM_FUNCTION;
+    
     NmApiEngine::releaseInstance(mEngine);
 }
 
@@ -75,6 +84,8 @@ void NmApiFolderListingPrivate::releaseEngine()
  */
 qint32 NmApiFolderListingPrivate::grabFolders()
 {
+    NM_FUNCTION;
+    
     if (!mEngine) {
         return -1;
     }

@@ -25,6 +25,7 @@
 NmHtmlLineEdit::NmHtmlLineEdit(QGraphicsItem *parent) :
     HbLineEdit(parent)
 {
+    NM_FUNCTION;
 }
 
 /*!
@@ -32,6 +33,7 @@ NmHtmlLineEdit::NmHtmlLineEdit(QGraphicsItem *parent) :
  */
 NmHtmlLineEdit::~NmHtmlLineEdit()
 {
+    NM_FUNCTION;
 }
 
 /*!
@@ -41,40 +43,56 @@ NmHtmlLineEdit::~NmHtmlLineEdit()
  */
 void NmHtmlLineEdit::setDocument(QTextDocument *document)
 {
+    NM_FUNCTION;
+    
     HbAbstractEdit::setDocument(document);
 }
 
 QTextDocument *NmHtmlLineEdit::document() const
 {
+    NM_FUNCTION;
+    
     return HbAbstractEdit::document();
 }
 
 void NmHtmlLineEdit::setTextCursor(const QTextCursor &cursor)
 {
+    NM_FUNCTION;
+    
     HbAbstractEdit::setTextCursor(cursor);
 }
 
 QTextCursor NmHtmlLineEdit::textCursor() const
 {
+    NM_FUNCTION;
+    
     return HbAbstractEdit::textCursor();
 }
 
 QString NmHtmlLineEdit::toHtml() const
 {
+    NM_FUNCTION;
+    
     return HbAbstractEdit::toHtml();
 }
 
 void NmHtmlLineEdit::setHtml(const QString &text)
 {
+    NM_FUNCTION;
+    
     HbAbstractEdit::setHtml(text);
 }
 
 QString NmHtmlLineEdit::toPlainText () const
 {
+    NM_FUNCTION;
+    
     return HbAbstractEdit::toPlainText();
 }
 
 void NmHtmlLineEdit::setPlainText (const QString &text)
 {
+    NM_FUNCTION;
+    
     HbAbstractEdit::setPlainText(text);
 }

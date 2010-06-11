@@ -70,8 +70,6 @@ public:
     
     static void displayWarningNote(QString noteText);
 
-    static bool displayOperationCompletionNote(const NmOperationCompletionEvent &event);
-
     static QString createReplyHeader(const NmMessageEnvelope &env);
 };
 

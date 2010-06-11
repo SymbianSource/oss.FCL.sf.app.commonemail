@@ -31,24 +31,23 @@ class NmIpsPop3SettingsManager : public NmIpsSettingsManagerBase
 {
 public:
         
-    NmIpsPop3SettingsManager(const NmId &mailboxId, CEmailAccounts *account, TPopAccount popAccount);
-
+    NmIpsPop3SettingsManager(const NmId &mailboxId,
+                             CEmailAccounts *account,
+                             TPopAccount popAccount);
     virtual ~NmIpsPop3SettingsManager();
-    
-    bool readSetting(IpsServices::SettingItem settingItem, QVariant &value);
+    bool readSetting(IpsServices::SettingItem settingItem, QVariant &settingValue);
     bool writeSetting(IpsServices::SettingItem settingItem, const QVariant &settingValue);
-    
     int deleteMailbox();
     int determineDefaultIncomingPort();
 
 private:
 
     bool saveSettings();
+    bool saveIAPSettings(uint snapId);
     
-private:
+private: // data
 
     CImPop3Settings *mPop3Settings;   // Owned.
-
     TPopAccount mPop3Account;
 };
 

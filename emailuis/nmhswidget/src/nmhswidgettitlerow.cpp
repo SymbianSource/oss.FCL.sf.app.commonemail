@@ -15,15 +15,17 @@
  *
  */
 
-#include <QDebug>
 #include <QtGui>
 #include <QGraphicsLinearLayout>
 #include <hbdocumentloader.h>
 #include <hblabel.h>
 #include <HbPushButton>
+#include <HbColorScheme>
+#include <HbEvent>
 #include "nmicons.h"
 #include "nmhswidgettitlerow.h"
 #include "nmhswidgetconsts.h"
+#include "emailtrace.h"
 
 NmHsWidgetTitleRow::NmHsWidgetTitleRow(QGraphicsItem *parent, Qt::WindowFlags flags) :
     HbWidget(parent, flags), 
@@ -31,12 +33,10 @@ NmHsWidgetTitleRow::NmHsWidgetTitleRow(QGraphicsItem *parent, Qt::WindowFlags fl
     mMailboxInfo(0), 
     mUnreadCountLabel(0),
     mCollapseExpIconLabel(0), 
-    mAccountName(0), 
+    mAccountName(),
     mUnreadCount(0)
 {
-    qDebug() << "NmHsWidgetTitleRow::NmHsWidgetTitleRow IN -->>";
-
-    qDebug() << "NmHsWidgetTitleRow::NmHsWidgetTitleRow OUT <<--";
+    NM_FUNCTION;
 }
 
 /*!
@@ -44,9 +44,7 @@ NmHsWidgetTitleRow::NmHsWidgetTitleRow(QGraphicsItem *parent, Qt::WindowFlags fl
  */
 NmHsWidgetTitleRow::~NmHsWidgetTitleRow()
 {
-    qDebug() << "NmHsWidgetTitleRow::~NmHsWidgetTitleRow IN -->>";
-
-    qDebug() << "NmHsWidgetTitleRow::~NmHsWidgetTitleRow OUT <<--";
+    NM_FUNCTION;
 }
 
 /*!
@@ -55,15 +53,14 @@ NmHsWidgetTitleRow::~NmHsWidgetTitleRow()
  */
 bool NmHsWidgetTitleRow::loadDocML()
 {
+    NM_FUNCTION;
     QT_TRY{
-        qDebug() << "NmHsWidgetTitleRow::loadDocML IN -->>";
-    
         // Use document loader to load the contents
         HbDocumentLoader loader;
         bool ok(false);
         loader.load(KNmHsWidgetTitleRowDocML, &ok);
         if (!ok) {
-            qDebug() << "NmHsWidgetTitleRow::loadDocML Fail @ loader -->>";
+            NM_ERROR(1,"NmHsWidgetTitleRow::loadDocML Fail @ loader");
             return false; //failure
         }
     
@@ -78,7 +75,7 @@ bool NmHsWidgetTitleRow::loadDocML()
         // find container widget
         QGraphicsWidget *container = loader.findWidget(KNmHsWidgetTitleRowContainer);
         if (!container) {
-            qDebug() << "NmHsWidgetTitleRow::loadDocML Fail @ container -->>";
+            NM_ERROR(1,"NmHsWidgetTitleRow::loadDocML Fail @ container");
             return false;
         }
         layout->addItem(container);
@@ -92,14 +89,16 @@ bool NmHsWidgetTitleRow::loadDocML()
             KNmHsWidgetTitleRowCollapseExpandIconLabel));
     
         if (!mMailboxIcon || !mMailboxInfo || !mUnreadCountLabel || !mCollapseExpIconLabel) {
-            qDebug() << "NmHsWidgetTitleRow::loadDocML Fail @ icons & labels -->>";
+            NM_ERROR(1,"NmHsWidgetTitleRow::loadDocML Fail @ icons & labels");
             return false;
         }
     
         //Expand collapse button
         connect(mCollapseExpIconLabel, SIGNAL(clicked()), this, SIGNAL(expandCollapseButtonPressed()));
-    
-        qDebug() << "NmHsWidgetTitleRow::loadDocML OUT <<--";
+        
+        //set fonts color
+        setFontsColor(false);
+
         return true;
     }
     QT_CATCH(...){
@@ -112,10 +111,9 @@ bool NmHsWidgetTitleRow::loadDocML()
  */
 void NmHsWidgetTitleRow::updateAccountName(const QString& accountName)
 {
-    qDebug() << "NmHsWidgetTitleRow::updateAccountName IN -->>";
+    NM_FUNCTION;
     mAccountName = accountName;
     updateData();
-    qDebug() << "NmHsWidgetTitleRow::updateAccountName OUT <<--";
 }
 
 /*!
@@ -123,9 +121,8 @@ void NmHsWidgetTitleRow::updateAccountName(const QString& accountName)
  */
 void NmHsWidgetTitleRow::setAccountIcon(const QString& accountIconName)
 {
-    qDebug() << "NmHsWidgetTitleRow::setAccountIcon -- accountIconName" << accountIconName;
+    NM_FUNCTION;
     mMailboxIcon->setIcon(accountIconName);
-    qDebug() << "NmHsWidgetTitleRow::setAccountIcon OUT <<--";
 }
 
 /*!
@@ -133,10 +130,26 @@ void NmHsWidgetTitleRow::setAccountIcon(const QString& accountIconName)
  */
 void NmHsWidgetTitleRow::updateUnreadCount(const int& unreadCount)
 {
-    qDebug() << "NmHsWidgetTitleRow::updateUnreadCount IN -->>";
+    NM_FUNCTION;
     mUnreadCount = unreadCount;
     updateData();
-    qDebug() << "NmHsWidgetTitleRow::updateUnreadCount OUT <<--";
+}
+
+
+/*!
+ Slot for updating expand collapse icon
+ */
+void NmHsWidgetTitleRow::setExpandCollapseIcon(const bool& expand)
+{
+    NM_FUNCTION;
+    if(expand){
+        HbIcon icon("qtg_mono_arrow_up");
+        mCollapseExpIconLabel->setIcon(icon);
+    }
+    else{
+        HbIcon icon("qtg_mono_arrow_down");
+        mCollapseExpIconLabel->setIcon(icon);
+    }
 }
 
 /*!
@@ -144,7 +157,7 @@ void NmHsWidgetTitleRow::updateUnreadCount(const int& unreadCount)
  */
 void NmHsWidgetTitleRow::updateData()
 {
-    qDebug() << "NmHsWidgetTitleRow::updateData() IN -->>";
+    NM_FUNCTION;
     mMailboxInfo->setPlainText(mAccountName);
     //If unread count is -1, hide the unread count label completely.
     //This indicates that there are no mails at all (or the initial sync is not done)
@@ -156,16 +169,60 @@ void NmHsWidgetTitleRow::updateData()
     else {
         mUnreadCountLabel->setVisible(false);
     }
-    qDebug() << "NmHsWidgetTitleRow::updateData() OUT <<--";
 }
+
+/*!
+    sets fonts color.
+    param bool pressed indicates if row is pressed down or not
+*/
+void NmHsWidgetTitleRow::setFontsColor( bool pressed )
+    {
+    NM_FUNCTION;
+    QColor newFontColor;
+    
+    if(pressed){
+        newFontColor = HbColorScheme::color("qtc_hs_list_item_pressed");
+    }
+    else{
+        newFontColor = HbColorScheme::color("qtc_hs_list_item_title_normal");
+    }
+ 
+    mMailboxInfo->setTextColor(newFontColor);
+    mUnreadCountLabel->setTextColor(newFontColor);
+    }
+
 
 /*!
  mousePressEvent(QGraphicsSceneMouseEvent *event)
  */
 void NmHsWidgetTitleRow::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-    qDebug() << "NmHsWidgetTitleRow::mousePressEvent() IN -->>";
+    NM_FUNCTION;
     Q_UNUSED(event); 
-	emit mailboxLaunchTriggered();
-    qDebug() << "NmHsWidgetTitleRow::mousePressEvent() OUT <<--";
+    setFontsColor(true);
+}
+
+/*!
+    mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
+*/
+void NmHsWidgetTitleRow::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
+{
+    NM_FUNCTION;
+    Q_UNUSED(event);
+    setFontsColor(false);
+    emit mailboxLaunchTriggered();
+}
+
+/*
+ * NmHsWidgetTitleRow::event()
+ */
+bool NmHsWidgetTitleRow::event( QEvent *event )
+{
+    NM_FUNCTION;
+    QEvent::Type eventType = event->type();
+    if( eventType == HbEvent::ThemeChanged ){
+        setFontsColor(false);
+        return true;
+    }
+    return HbWidget::event(event);
 }

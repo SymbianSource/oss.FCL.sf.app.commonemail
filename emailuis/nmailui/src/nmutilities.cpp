@@ -47,6 +47,8 @@ void NmUtilities::getRecipientsFromMessage( const NmMessage &message,
     QList<NmAddress> &recipients,
     NmAddressValidationType type )
 {
+    NM_FUNCTION;
+    
     // validate TO addresses
     QList<NmAddress> toRecipients = message.envelope().toRecipients();
     int recipientCount = toRecipients.count();
@@ -95,6 +97,8 @@ void NmUtilities::getRecipientsFromMessage( const NmMessage &message,
 */
 bool NmUtilities::isValidEmailAddress( const QString &emailAddress )
 {
+    NM_FUNCTION;
+    
     return EmailAddressPattern.exactMatch(emailAddress);
 }
 
@@ -103,6 +107,8 @@ bool NmUtilities::isValidEmailAddress( const QString &emailAddress )
 */
 QString NmUtilities::addressToDisplayName( const NmAddress &address )
 {
+    NM_FUNCTION;
+    
     QString emailAddress = address.address();
     QString displayName = address.displayName();
 
@@ -121,6 +127,8 @@ QString NmUtilities::addressToDisplayName( const NmAddress &address )
 */
 bool NmUtilities::parseEmailAddress( const QString &emailAddress, NmAddress &address )
 {
+    NM_FUNCTION;
+    
     bool foundAddress = false;
 
     QRegExp rx(EmailAddressPattern);
@@ -147,6 +155,8 @@ bool NmUtilities::parseEmailAddress( const QString &emailAddress, NmAddress &add
 */
 QString NmUtilities::cleanupDisplayName( const QString &displayName )
 {
+    NM_FUNCTION;
+    
     // find the first and last position that is NOT one of the characters below
     QRegExp rx("[^\\s\"<>]");
     int firstPos = std::max(rx.indexIn(displayName), 0);
@@ -165,6 +175,8 @@ QString NmUtilities::cleanupDisplayName( const QString &displayName )
 */
 int NmUtilities::openFile(QFile &file)
 {
+    NM_FUNCTION;
+    
     int ret(NmNotFoundError);
     XQApplicationManager aiwMgr;
     XQAiwRequest *request(NULL);
@@ -193,6 +205,8 @@ int NmUtilities::openFile(QFile &file)
 */
 int NmUtilities::openFile(XQSharableFile &file)
 {
+    NM_FUNCTION;
+    
     int ret(NmNotFoundError);
     XQApplicationManager aiwMgr;
     XQAiwRequest *request(NULL);
@@ -220,6 +234,8 @@ int NmUtilities::openFile(XQSharableFile &file)
  */
 QString NmUtilities::truncate( const QString &string, int length )
 {
+    NM_FUNCTION;
+    
     if (string.length() <= length) {
         return string;
     }
@@ -235,6 +251,8 @@ QString NmUtilities::truncate( const QString &string, int length )
  */
 void NmUtilities::displayErrorNote(QString noteText)
 {
+    NM_FUNCTION;
+    
 	HbNotificationDialog *note = new HbNotificationDialog();
 	
 	note->setIcon(HbIcon(QLatin1String("note_warning")));
@@ -253,41 +271,14 @@ void NmUtilities::displayErrorNote(QString noteText)
  */
 QString NmUtilities::attachmentSizeString(const int sizeInBytes)
 {
+    NM_FUNCTION;
+    
     qreal sizeMb = (qreal)sizeInBytes / (qreal)NmMegabyte;
     if (sizeMb < 0.1) {
         // 0.1 Mb is the minimum size shown for attachment
         sizeMb = 0.1;
     }
     return QString().sprintf("(%.1f Mb)", sizeMb); // Use loc string when available    
-}
-
-/*!
-    takes care of necessary error/information note displaying based on the given operation completion event
-    returns boolean whether settings should be opened or not
-*/
-bool NmUtilities::displayOperationCompletionNote(const NmOperationCompletionEvent &event)
-{
-    bool openSettings(false);
-    // nothing to do in successfull or cancelled case
-    if(event.mCompletionCode != NmNoError && event.mCompletionCode != NmCancelError) {
-        if(event.mOperationType == Synch && event.mCompletionCode == NmAuthenticationError) {
-/*
- * Commented out temporarily, because of wk18 HbDialog API deprecation.
- *         openSettings = displayQuestionNote(hbTrId("txt_mail_dialog_address_or_password_incorrect"));
- */
-        }
-        if(event.mOperationType == Synch && event.mCompletionCode == NmServerConnectionError) {
-/*
- * Commented out temporarily, because of wk18 HbDialog API deprecation.
- *         openSettings = displayQuestionNote(hbTrId("txt_mail_dialog_server_settings_incorrect"));
- */
-        }
-        // following applies to all operation/event types
-        if(event.mCompletionCode == NmConnectionError) {
-            displayWarningNote(hbTrId("txt_mail_dialog_mail_connection_error"));
-        }
-    }
-    return openSettings;
 }
 
 /*!
@@ -298,6 +289,8 @@ bool NmUtilities::displayOperationCompletionNote(const NmOperationCompletionEven
 HbMessageBox* NmUtilities::displayQuestionNote(
     QString noteText, QObject* receiver, const char* member)
 {
+    NM_FUNCTION;
+    
     HbMessageBox *messageBox = new HbMessageBox(HbMessageBox::MessageTypeQuestion);
     messageBox->setText(noteText);
     messageBox->setTimeout(HbMessageBox::NoTimeout); // Note has to be dismissed manually
@@ -310,6 +303,8 @@ HbMessageBox* NmUtilities::displayQuestionNote(
  */
 void NmUtilities::displayWarningNote(QString noteText)
 {
+    NM_FUNCTION;
+    
     HbMessageBox *messageBox = new HbMessageBox(HbMessageBox::MessageTypeWarning);
     messageBox->setText(noteText);
     messageBox->setTimeout(NmShortInterval);
@@ -327,6 +322,8 @@ void NmUtilities::displayWarningNote(QString noteText)
 */
 QString NmUtilities::createReplyHeader(const NmMessageEnvelope &env)
 {
+    NM_FUNCTION;
+    
     QString ret = "<html><body><br><br>";
     // Append "----- Original message ----" text
     ret+=hbTrId("txt_mail_editor_reply_original_msg");                  

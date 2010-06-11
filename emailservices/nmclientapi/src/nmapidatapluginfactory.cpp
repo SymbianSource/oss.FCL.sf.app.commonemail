@@ -15,6 +15,8 @@
  *
  */
 
+#include "emailtrace.h"
+
 #include "nmdataplugininterface.h"
 #include "nmapidatapluginfactory.h"
 
@@ -48,7 +50,7 @@ QPluginLoader *NmApiDataPluginFactory::mPluginLoader = NULL;
  */
 NmApiDataPluginFactory::NmApiDataPluginFactory()
 {
-
+    NM_FUNCTION;
 }
 
 /*!
@@ -56,6 +58,8 @@ NmApiDataPluginFactory::NmApiDataPluginFactory()
  */
 NmApiDataPluginFactory::~NmApiDataPluginFactory()
 {
+    NM_FUNCTION;
+    
     if (mPlugin) {
         delete mPlugin;
         mPlugin = NULL;
@@ -72,6 +76,8 @@ NmApiDataPluginFactory::~NmApiDataPluginFactory()
  */
 NmApiDataPluginFactory *NmApiDataPluginFactory::instance()
 {
+    NM_FUNCTION;
+    
     if (!mInstance) {
         mInstance = new NmApiDataPluginFactory();
     }
@@ -84,6 +90,8 @@ NmApiDataPluginFactory *NmApiDataPluginFactory::instance()
  */
 void NmApiDataPluginFactory::releaseInstance(NmApiDataPluginFactory *&instance)
 {
+    NM_FUNCTION;
+    
     //can't have passed out instances if we don't have any
     if (mInstance) {
         if (instance == mInstance) {
@@ -103,6 +111,8 @@ void NmApiDataPluginFactory::releaseInstance(NmApiDataPluginFactory *&instance)
  */
 NmDataPluginInterface *NmApiDataPluginFactory::interfaceInstance()
 {
+    NM_FUNCTION;
+    
     if (!mPlugin) {
         mPlugin = loadPlugin();
     }
@@ -114,6 +124,8 @@ NmDataPluginInterface *NmApiDataPluginFactory::interfaceInstance()
  */
 QObject *NmApiDataPluginFactory::loadPlugin()
 {
+    NM_FUNCTION;
+    
     if (!mPluginLoader) {
         const QString KPluginDirectory = "c:\\resource\\plugins";
         QDir pluginDir = QDir(KPluginDirectory);
@@ -135,6 +147,8 @@ QObject *NmApiDataPluginFactory::loadPlugin()
 
 QObject *NmApiDataPluginFactory::plugin()
 {
+    NM_FUNCTION;
+    
     if (!mPlugin) {
         mPlugin = loadPlugin();
     }

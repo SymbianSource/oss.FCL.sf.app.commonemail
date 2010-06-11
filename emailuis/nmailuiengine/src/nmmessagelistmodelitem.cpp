@@ -51,6 +51,8 @@ public:
 */
 NmMessageListModelItem::NmMessageListModelItem()
 {
+    NM_FUNCTION;
+    
     d = new NmMessageListModelItemPrivate();
 }
 
@@ -60,6 +62,8 @@ NmMessageListModelItem::NmMessageListModelItem()
 */
 NmMessageListModelItem::~NmMessageListModelItem()
 {
+    NM_FUNCTION;
+    
     delete d;
 }
 
@@ -68,6 +72,8 @@ NmMessageListModelItem::~NmMessageListModelItem()
 */
 void NmMessageListModelItem::setEnvelope(const NmMessageEnvelope &envelope)
 {
+    NM_FUNCTION;
+    
     delete d->mEnvelope;
     d->mEnvelope = new NmMessageEnvelope(envelope);
 	emitDataChanged();
@@ -78,6 +84,8 @@ void NmMessageListModelItem::setEnvelope(const NmMessageEnvelope &envelope)
 */
 void NmMessageListModelItem::setEnvelope(NmMessageEnvelope *envelope)
 {
+    NM_FUNCTION;
+    
     if (envelope) {
         delete d->mEnvelope;
         d->mEnvelope = envelope;
@@ -90,6 +98,8 @@ void NmMessageListModelItem::setEnvelope(NmMessageEnvelope *envelope)
 */
 const NmMessageEnvelope &NmMessageListModelItem::envelope() const
 {
+    NM_FUNCTION;
+    
     if (!d->mEnvelope) {
         d->mEnvelope = new NmMessageEnvelope();
     }
@@ -102,6 +112,8 @@ const NmMessageEnvelope &NmMessageListModelItem::envelope() const
 */
 NmMessageEnvelope *NmMessageListModelItem::envelopePtr()
 {
+    NM_FUNCTION;
+    
     if (!d->mEnvelope) {
         d->mEnvelope = new NmMessageEnvelope();
     }
@@ -113,6 +125,8 @@ NmMessageEnvelope *NmMessageListModelItem::envelopePtr()
 */
 NmMessageListModelItem::NmMessageItemType NmMessageListModelItem::itemType() const
 {
+    NM_FUNCTION;
+    
     return d->mType;
 }
 
@@ -121,6 +135,8 @@ NmMessageListModelItem::NmMessageItemType NmMessageListModelItem::itemType() con
 */
 void NmMessageListModelItem::setItemType(NmMessageListModelItem::NmMessageItemType type)
 {
+    NM_FUNCTION;
+    
     d->mType = type;
 }
 
@@ -129,6 +145,8 @@ void NmMessageListModelItem::setItemType(NmMessageListModelItem::NmMessageItemTy
 */
 QString NmMessageListModelItem::titleDivider() const
 {
+    NM_FUNCTION;
+    
     return d->mDivider;
 }
 
@@ -137,6 +155,8 @@ QString NmMessageListModelItem::titleDivider() const
 */
 void NmMessageListModelItem::setTitleDivider(const QString &divider)
 {
+    NM_FUNCTION;
+    
     d->mDivider = divider;
 }
 
@@ -145,6 +165,8 @@ void NmMessageListModelItem::setTitleDivider(const QString &divider)
 */
 bool NmMessageListModelItem::expanded() const
 {
+    NM_FUNCTION;
+    
     return d->mExpanded;
 }
 
@@ -153,6 +175,8 @@ bool NmMessageListModelItem::expanded() const
 */
 void NmMessageListModelItem::setExpanded(bool expanded)
 {
+    NM_FUNCTION;
+    
     d->mExpanded = expanded;
 }
 
@@ -161,5 +185,7 @@ void NmMessageListModelItem::setExpanded(bool expanded)
  */
 void NmMessageListModelItem::callEmitDataChanged()
 {
+    NM_FUNCTION;
+    
     emitDataChanged();
 }

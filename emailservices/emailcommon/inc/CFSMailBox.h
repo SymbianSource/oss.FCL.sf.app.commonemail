@@ -158,7 +158,7 @@ NONSHARABLE_CLASS ( CFSMailBox ) : public CFSMailBoxBase
      *
      * @param aOperationObserver Observer for the operation 
      * 
-     * @return id of the request, KErrNotSupported if the protocol plugin this
+     * @return id of the request, KErrFSMailPluginNotSupported if the protocol plugin this
      * instance is attached to does not support the async method.
      */
      IMPORT_C TInt CreateMessageToSendL( MFSMailRequestObserver& aOperationObserver );

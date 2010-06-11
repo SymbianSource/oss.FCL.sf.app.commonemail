@@ -21,6 +21,7 @@
 
 #include "nmhswidgetplugin.h"
 #include "nmhswidget.h"
+#include "emailtrace.h"
 
 #ifdef COVERAGE_MEASUREMENT
 #pragma CTC SKIP
@@ -40,7 +41,7 @@ QObject *NmHsWidgetPlugin::createInstance(const QServiceInterfaceDescriptor &des
                                              QServiceContext *context,
                                              QAbstractSecuritySession *session)
 {
-    qDebug() << "NmHsWidgetPlugin::createInstance";
+    NM_FUNCTION;
     Q_UNUSED(context);
     Q_UNUSED(session);
 

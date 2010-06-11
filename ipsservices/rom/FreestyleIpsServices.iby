@@ -23,7 +23,7 @@
 #ifdef FF_EMAIL_FRAMEWORK
 
 ECOM_PLUGIN( ipssosplugin.dll, ipssosplugin.rsc )
-//ECOM_PLUGIN( IPSSosAOPlugin.dll, IPSSosAOPlugin.rsc )
+ECOM_PLUGIN( IPSSosAOPlugin.dll, IPSSosAOPlugin.rsc )
 
 file=ABI_DIR\BUILD_DIR\nmipsmtms.dll		SHARED_LIB_DIR\nmipsmtms.dll        PAGED
 data=DATAZ_\MTM_INFO_FILE_DIR\smtp.rsc           MTM_INFO_FILE_DIR\smtp.rsc

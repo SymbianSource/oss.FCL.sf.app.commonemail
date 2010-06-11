@@ -30,12 +30,13 @@ const int NmAttachmentManagerInitialProgressPercent = 5;
 NmAttachmentManager::NmAttachmentManager(NmUiEngine &uiEngine) :
     mUiEngine(uiEngine),
     mFetchOperation(NULL),
+    mMsgFetchOperation(NULL),
     mFetchObserver(NULL),
     mAttaId(0),
     mProgressValue(0),
     mIsFetching(false)
 {
-
+    NM_FUNCTION;
 }
 
 /*!
@@ -43,7 +44,9 @@ NmAttachmentManager::NmAttachmentManager(NmUiEngine &uiEngine) :
 */
 NmAttachmentManager::~NmAttachmentManager()
 {
-    // cancel fetch
+    NM_FUNCTION;
+    
+    // fetch operation deleted in cancel fetch
     cancelFetch();
 }
 
@@ -57,6 +60,7 @@ void NmAttachmentManager::fetchAttachment(
         const NmId &messageId, 
         const NmId &messagePartId)
 {
+    NM_FUNCTION;
     // cancel old fetch operation, Does nothing if fetch not ongoing
     cancelFetch();
 
@@ -67,7 +71,7 @@ void NmAttachmentManager::fetchAttachment(
         mAttaId = messagePartId;
         mIsFetching = true;
         QObject::connect(mFetchOperation, SIGNAL(operationCompleted(int)),
-                this, SLOT(attachmentFetchCompleted(int)));
+                this, SLOT(completeAttachmentFetch(int)));
         
         QObject::connect(mFetchOperation, SIGNAL(operationProgressChanged(int)),
                 this, SLOT(changeProgress(int)));
@@ -79,19 +83,19 @@ void NmAttachmentManager::fetchAttachment(
 /*!
     Fetch attachments to a message. 
     Set observer with setObserver method to get process and complete events
+    
+    \return bool true if fetch started, otherwise false.
 */
-void NmAttachmentManager::fetchAttachments(
+bool NmAttachmentManager::fetchAttachments(
         const NmId &mailboxId, 
         const NmId &folderId, 
         const NmId &messageId,
         QList<NmId> &messagePartIds)
 {
+    NM_FUNCTION;
+    bool result = false;
     // cancel old fetch operation, Does nothing if fetch not ongoing
-    // We don't wan't to cancel message fetching operation, because
-    // it might still be finishing.
-    if (!mMsgFetchOperation) {
-        cancelFetch();
-    }
+    cancelFetch();
     
     if (messagePartIds.count() > 0) {
         mFetchOperation = mUiEngine.fetchMessageParts(
@@ -99,18 +103,20 @@ void NmAttachmentManager::fetchAttachments(
             folderId,
             messageId,
             messagePartIds);
-    }
-    
-    if (mFetchOperation) {
-        mAttaId = 0;
-        mIsFetching = true;
-        QObject::connect(mFetchOperation, SIGNAL(operationCompleted(int)),
-                this, SLOT(attachmentFetchCompleted(int)));
         
-        QObject::connect(mFetchOperation, SIGNAL(operationProgressChanged(int)),
-                this, SLOT(changeProgress(int)));
+        if (mFetchOperation) {
+            mAttaId = 0;
+            mIsFetching = true;
+            QObject::connect(mFetchOperation, SIGNAL(operationCompleted(int)),
+                    this, SLOT(completeAttachmentFetch(int)));
+            
+            QObject::connect(mFetchOperation, SIGNAL(operationProgressChanged(int)),
+                    this, SLOT(changeProgress(int)));
         
+            result = true;
+        }
     }
+    return result;
 }
 
 /*!
@@ -124,20 +130,21 @@ void NmAttachmentManager::fetchAllMessageParts(
         const NmId &folderId, 
         const NmId &messageId)
 {
-    fetchMsg = mUiEngine.message(mailboxId,folderId,messageId);
+    NM_FUNCTION;
+    mFetchMsg = mUiEngine.message(mailboxId,folderId,messageId);
     
     // Check if we have part data structure.    
-    if (fetchMsg->childParts().count() == 0 &&
-        fetchMsg->fetchedSize() < fetchMsg->size()) {
+    if (mFetchMsg->childParts().count() == 0 &&
+        mFetchMsg->fetchedSize() < mFetchMsg->size()) {
 
         // cancel old fetch operation, Does nothing if fetch not ongoing
         cancelFetch();
         
         // Fetch the message.
         mMsgFetchOperation = mUiEngine.fetchMessage(
-            fetchMsg->envelope().mailboxId(),
-            fetchMsg->envelope().folderId(),
-            fetchMsg->envelope().messageId());
+            mFetchMsg->envelope().mailboxId(),
+            mFetchMsg->envelope().folderId(),
+            mFetchMsg->envelope().messageId());
         
         mAttaId = 0;
         mIsFetching = true;
@@ -146,12 +153,12 @@ void NmAttachmentManager::fetchAllMessageParts(
             QObject::connect(mMsgFetchOperation,
                     SIGNAL(operationCompleted(int)),
                     this,
-                    SLOT(messageFetched(int)));
+                    SLOT(completeMessageFetch(int)));
         }
         
     }
     else {
-        messageFetched(NmNoError);
+        completeMessageFetch(NmNoError);
     }
 }
 
@@ -160,6 +167,8 @@ void NmAttachmentManager::fetchAllMessageParts(
 */
 bool NmAttachmentManager::isFetching() const
 {
+    NM_FUNCTION;
+    
     return mIsFetching;
 }
 
@@ -168,6 +177,8 @@ bool NmAttachmentManager::isFetching() const
 */
 NmId NmAttachmentManager::partIdUnderFetch() const
 {
+    NM_FUNCTION;
+    
     return mAttaId;
 }
 
@@ -176,6 +187,7 @@ NmId NmAttachmentManager::partIdUnderFetch() const
 */
 void NmAttachmentManager::cancelFetch()
 {
+    NM_FUNCTION;
     if (mFetchOperation && mFetchOperation->isRunning()) { 
         mFetchOperation->cancelOperation();
     }
@@ -192,6 +204,8 @@ void NmAttachmentManager::cancelFetch()
 */
 void NmAttachmentManager::changeProgress(int value)
 {
+    NM_FUNCTION;
+    
     if (mFetchObserver && value > mProgressValue) {
         mProgressValue = value;
         mFetchObserver->progressChanged(value);
@@ -201,8 +215,10 @@ void NmAttachmentManager::changeProgress(int value)
 /*!
     Used by message part fetch operation
 */
-void NmAttachmentManager::attachmentFetchCompleted(int result)
+void NmAttachmentManager::completeAttachmentFetch(int result)
 {
+    NM_FUNCTION;
+    
     if (mFetchObserver) {
         mFetchObserver->fetchCompleted(result);
     }
@@ -214,38 +230,48 @@ void NmAttachmentManager::attachmentFetchCompleted(int result)
 /*!
     Used by message fetch operation
 */
-void NmAttachmentManager::messageFetched(int result)
+void NmAttachmentManager::completeMessageFetch(int result)
 {
-    QObject::disconnect(mFetchOperation,
-                SIGNAL(operationCompleted(int)),
-                this,
-                SLOT(messageFetched(int)));
+    NM_FUNCTION;
     
     if (result == NmNoError) {
         
         // Reload message
-        fetchMsg = mUiEngine.message(
-            fetchMsg->envelope().mailboxId(),
-            fetchMsg->envelope().folderId(),
-            fetchMsg->envelope().messageId());
+        mFetchMsg = mUiEngine.message(
+            mFetchMsg->envelope().mailboxId(),
+            mFetchMsg->envelope().folderId(),
+            mFetchMsg->envelope().messageId());
         
-        if (fetchMsg) {
+        if (mFetchMsg) {
             QList<NmId> partIds;
             NmMessagePart *part;
-            foreach (part, fetchMsg->childParts()) {
+            foreach (part, mFetchMsg->childParts()) {
                 if (part->size() > part->fetchedSize()) {
                     partIds.append(part->partId());
                 }
             }
             if (partIds.count() > 0) {
+                mMsgFetchOperation = NULL;
                 fetchAttachments(
-                    fetchMsg->envelope().mailboxId(),
-                    fetchMsg->envelope().folderId(),
-                    fetchMsg->envelope().messageId(),
+                    mFetchMsg->envelope().mailboxId(),
+                    mFetchMsg->envelope().folderId(),
+                    mFetchMsg->envelope().messageId(),
                     partIds);
+                
+                if (mFetchOperation) {
+                    mAttaId = 0;
+                    mIsFetching = true;
+                    QObject::connect(mFetchOperation, SIGNAL(operationCompleted(int)),
+                            this, SLOT(completeAttachmentFetch(int)));
+                    
+                    QObject::connect(mFetchOperation, SIGNAL(operationProgressChanged(int)),
+                            this, SLOT(changeProgress(int)));
+                
+                    result = true;
+                }
             }
             else {
-                mFetchObserver->fetchCompleted(result);
+                mFetchObserver->fetchCompleted(NmNoError);
             }
         }
         else {
@@ -262,6 +288,8 @@ void NmAttachmentManager::messageFetched(int result)
 */
 void NmAttachmentManager::setObserver(NmAttachmentFetchObserver *observer)
 {
+    NM_FUNCTION;
+    
     mFetchObserver = observer;
     // send progress event wheng observer changes if fetch ongoing 
     // to get progress bar updating
@@ -275,6 +303,8 @@ void NmAttachmentManager::setObserver(NmAttachmentFetchObserver *observer)
 */
 void NmAttachmentManager::clearObserver()
 {
+    NM_FUNCTION;
+    
     mFetchObserver = NULL;
 }
 
@@ -283,6 +313,8 @@ void NmAttachmentManager::clearObserver()
 */
 int NmAttachmentManager::progressValue() const
 {
+    NM_FUNCTION;
+    
     return mProgressValue;
 }
 

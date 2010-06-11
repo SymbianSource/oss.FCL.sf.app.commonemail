@@ -68,7 +68,6 @@ HEADERS += inc/nmhswidget.h \
 
 INCLUDEPATH += ./inc \
     ../../inc \
-    ../nmailuiengine/inc \
     ../inc
 DEPENDPATH += .
 TRANSLATIONS = mailwidget.ts

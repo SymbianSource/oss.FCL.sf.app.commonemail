@@ -66,6 +66,8 @@ static IconRes icon_res[] = {
 */
 HbIcon &NmIcons::getIcon(NmIcons::Icon icon)
 {
+    NM_FUNCTION;
+    
     if (!icons[icon]) {
         for (int i(0); icon_res[i].id != NmIcons::NmLastItem; i++) {
             if (icon_res[i].id == icon) {
@@ -81,7 +83,7 @@ HbIcon &NmIcons::getIcon(NmIcons::Icon icon)
         }
     }
     if (!icons[icon]) {
-        NMLOG(QString("nmailuiengine: Cannot open icon file: ###").arg(__FILE__));
+        NM_ERROR(1,QString("nmailuiengine: cannot open icon file: %1").arg(__FILE__));
     }
     return *icons[icon];
 }
@@ -91,7 +93,8 @@ HbIcon &NmIcons::getIcon(NmIcons::Icon icon)
 */
 void NmIcons::freeIcons()
 {
-    NMLOG("nmailuiengine: Enter freeIcons");
+    NM_FUNCTION;
+    
     for (int i(0); icon_res[i].id != NmIcons::NmLastItem; i++) {
         if (icons[i]) {
             delete icons[i];

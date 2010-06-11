@@ -529,7 +529,25 @@ public: // Methods
      virtual void DeleteMessagesByUidL( const TFSMailMsgId& aMailBoxId,
                                         const TFSMailMsgId& aFolderId,
                                         const RArray<TFSMailMsgId>& aMessages ) = 0;
-
+     
+// <qmail>
+     /**
+      * deletes email defined by message id
+      *
+      * @param aMailBoxId id of the mailbox containing email
+      * @param aFolderId email parent folder id
+      * @param aMessages ids of messages to be deleted
+      * @param aOperationObserver Observer for the operation 
+      * @param aRequestId id of the operation
+      * @return KErrNone if this method is supported, KErrNotSupported if not
+      */
+      virtual void DeleteMessagesByUidL( const TFSMailMsgId& aMailBoxId,
+                                         const TFSMailMsgId& aFolderId,
+                                         const RArray<TFSMailMsgId>& aMessages,
+                                         MFSMailRequestObserver& aOperationObserver,
+                                         const TInt aRequestId );
+// </qmail>
+      
     /**
      * creates new email template into drafts folder
      *

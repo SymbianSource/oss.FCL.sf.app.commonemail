@@ -15,6 +15,8 @@
 *
 */
 
+#include "emailtrace.h"
+
 #include <cpsettingformentryitemdataimpl.h>
 #include <HbApplication>
 #include <QTranslator>
@@ -39,6 +41,8 @@
 NmSettingsPlugin::NmSettingsPlugin()
 : mTranslator(0)
 {
+    NM_FUNCTION;
+    
     mTranslator = new QTranslator();
     QString lang = QLocale::system().name();
     QString appName = "mail_";
@@ -52,6 +56,8 @@ NmSettingsPlugin::NmSettingsPlugin()
 */
 NmSettingsPlugin::~NmSettingsPlugin()
 {
+    NM_FUNCTION;
+    
     delete mTranslator;
 }
 
@@ -67,6 +73,8 @@ NmSettingsPlugin::~NmSettingsPlugin()
 CpSettingFormItemData *NmSettingsPlugin::createSettingFormItemData(
     CpItemDataHelper &itemDataHelper) const
 {
+    NM_FUNCTION;
+    
     HbIcon icon("qtg_large_email");
 
     return new NmSettingsViewFactory(itemDataHelper,

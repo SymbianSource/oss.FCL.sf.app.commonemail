@@ -16,6 +16,7 @@
 */
 
 #include "emailtrace.h"
+
 #include "cmrcalendarinfoimpl.h"          
 
 // ---------------------------------------------------------------------------
@@ -24,6 +25,7 @@
 //
 CMRCalendarInfo::CMRCalendarInfo( const TUid& aUid ) : CEmailExtension( aUid )
     {
+    NM_FUNCTION;
     }
 
 // ---------------------------------------------------------------------------
@@ -33,6 +35,8 @@ CMRCalendarInfo::CMRCalendarInfo( const TUid& aUid ) : CEmailExtension( aUid )
 CMRCalendarInfoImpl::CMRCalendarInfoImpl() : 
     CMRCalendarInfo( KMailboxExtMrCalInfo )
     {
+    NM_FUNCTION;
+    
     iDatabaseId = MAKE_TINT64(0,0);
     }
 
@@ -42,7 +46,7 @@ CMRCalendarInfoImpl::CMRCalendarInfoImpl() :
 //
 CMRCalendarInfoImpl::~CMRCalendarInfoImpl()
     {
-    FUNC_LOG
+    NM_FUNCTION;
     }
 
 // ---------------------------------------------------------------------------
@@ -51,7 +55,8 @@ CMRCalendarInfoImpl::~CMRCalendarInfoImpl()
 //
 void CMRCalendarInfoImpl::GetCalendarDatabaseIdL( TCalFileId& aId ) const
     {
-    FUNC_LOG
+    NM_FUNCTION;
+    
     aId = iDatabaseId;
     }
     
@@ -61,7 +66,8 @@ void CMRCalendarInfoImpl::GetCalendarDatabaseIdL( TCalFileId& aId ) const
 //
 void CMRCalendarInfoImpl::SetCalendarDatabaseIdL( const TCalFileId& aId )
     {
-    FUNC_LOG
+    NM_FUNCTION;
+    
     iDatabaseId = aId;
     }
 

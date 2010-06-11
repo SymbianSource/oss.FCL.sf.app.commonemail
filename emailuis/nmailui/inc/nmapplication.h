@@ -30,6 +30,7 @@ class NmMailboxListModel;
 class HbAction;
 class NmUiExtensionManager;
 class NmSendServiceInterface;
+class NmUriServiceInterface;
 class NmMailboxServiceInterface;
 class NmViewerServiceInterface;
 class NmViewerViewNetManager;
@@ -37,6 +38,7 @@ class NmUtilities;
 class NmAttachmentManager;
 class NmSettingsViewLauncher;
 class NmUiEffects;
+class HbMessageBox;
 
 class NmApplication : public QObject
 {
@@ -50,7 +52,7 @@ public:
     NmViewerViewNetManager &networkAccessManager();
     QSize screenSize();
     bool eventFilter(QObject *obj, QEvent *event);
-
+    bool updateVisibilityState();
 
 public slots:
     void prepareForPopView();
@@ -59,12 +61,12 @@ public slots:
     void delayedExitApplication();
     void handleOperationCompleted(const NmOperationCompletionEvent &event);
     void viewReady();
+    void launchSettings(HbAction* action);
     
 private:
     void createMainWindow();
     void pushView(NmBaseView *view);
     void resetViewStack();
-    void launchSettings(const NmId &mailboxId);
 
 private:
     HbMainWindow *mMainWindow;              // Not owned
@@ -75,16 +77,19 @@ private:
     NmUiExtensionManager *mExtensionManager;// Owned
     NmSendServiceInterface *mSendServiceInterface;       // Owned
     NmSendServiceInterface *mSendServiceInterface2;      // Owned
+    NmUriServiceInterface *mUriServiceInterface;         // Owned
     NmMailboxServiceInterface *mMailboxServiceInterface; // Owned
     NmViewerServiceInterface *mViewerServiceInterface;   // Owned
     NmMailboxListModel *mMbListModel;       // Not owned
     NmUiViewId mServiceViewId;
     NmViewerViewNetManager *mNetManager;    // Owned
-    bool mForegroundService;	
+    bool mForegroundService;
     NmUiEffects *mEffects;                  // Owned
     NmAttachmentManager *mAttaManager;      // Owned
     NmSettingsViewLauncher* mSettingsViewLauncher; // Owned
     bool mViewReady;
+    NmId mLastOperationMailbox;
+    HbMessageBox *mQueryDialog;             // Owned
 };
 
 #endif // NMAPPLICATION_H

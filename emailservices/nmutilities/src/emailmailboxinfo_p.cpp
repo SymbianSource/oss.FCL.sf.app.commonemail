@@ -15,6 +15,8 @@
  *
  */
 
+#include "emailtrace.h"
+
 #include "emailmailboxinfo_p.h"
 #include "nmutilitiescommonheaders.h"
 #include "nmcenrepkeys.h"
@@ -46,6 +48,8 @@ using namespace QtMobility;
 EmailMailboxInfoPrivate::EmailMailboxInfoPrivate() :
     QObject(NULL)
 {
+    NM_FUNCTION;
+    
     XQSettingsManager manager;
     XQCentralRepositorySettingsKey rccKey(EMAIL_CENREP, RCC_PATH);
 
@@ -58,7 +62,7 @@ EmailMailboxInfoPrivate::EmailMailboxInfoPrivate() :
  */
 EmailMailboxInfoPrivate::~EmailMailboxInfoPrivate()
 {
-
+    NM_FUNCTION;
 }
 
 /*!
@@ -67,6 +71,8 @@ EmailMailboxInfoPrivate::~EmailMailboxInfoPrivate()
  */
 EmailMailboxInfoPrivate* EmailMailboxInfoPrivate::getInstance()
 {
+    NM_FUNCTION;
+    
     if (!mSelf) {
         mSelf = new EmailMailboxInfoPrivate();
     }
@@ -80,6 +86,8 @@ EmailMailboxInfoPrivate* EmailMailboxInfoPrivate::getInstance()
  */
 void EmailMailboxInfoPrivate::releaseInstance(EmailMailboxInfoPrivate *&instance)
 {
+    NM_FUNCTION;
+    
     if (instance) {
         mReferenceCount--;
         instance = NULL;
@@ -97,6 +105,8 @@ void EmailMailboxInfoPrivate::releaseInstance(EmailMailboxInfoPrivate *&instance
  */
 QString EmailMailboxInfoPrivate::name(const QVariant &identifier)
 {
+    NM_FUNCTION;
+    
     QString returnValue = "";
     QString domainName = "";
     if (identifier.canConvert<QString> ()) {
@@ -120,6 +130,8 @@ QString EmailMailboxInfoPrivate::name(const QVariant &identifier)
  */
 QString EmailMailboxInfoPrivate::icon(const QVariant &identifier)
 {
+    NM_FUNCTION;
+    
     QString returnValue = "";
     QString domainName = "";
     if (identifier.canConvert<QString> ()) {
@@ -144,6 +156,8 @@ QString EmailMailboxInfoPrivate::icon(const QVariant &identifier)
  */
 void EmailMailboxInfoPrivate::processCenRepRecords(const QString &brandingId)
 {
+    NM_FUNCTION;
+    
     bool found = false;
     QString name;
     QString icon;
@@ -219,6 +233,8 @@ void EmailMailboxInfoPrivate::processCenRepRecords(const QString &brandingId)
  */
 quint8 EmailMailboxInfoPrivate::getCurrentCountryL() const
 {
+    NM_FUNCTION;
+    
     CTzLocalizer* localizer = CTzLocalizer::NewLC();
 
     CTzLocalizedCity* city = localizer->GetFrequentlyUsedZoneCityL(
@@ -243,6 +259,8 @@ quint8 EmailMailboxInfoPrivate::getCurrentCountryL() const
  */
 bool EmailMailboxInfoPrivate::verifyTimeZone() const
 {
+    NM_FUNCTION;
+    
     quint8 timeZone = 0;
     bool retVal = false;
     TRAPD(err, timeZone = getCurrentCountryL());
@@ -259,6 +277,8 @@ bool EmailMailboxInfoPrivate::verifyTimeZone() const
  */
 void EmailMailboxInfoPrivate::verifyMailAccountName(QString &brandingName) const
 {
+    NM_FUNCTION;
+    
     QSystemNetworkInfo *networkInfo = new QSystemNetworkInfo();
     QString currentMCC = networkInfo->currentMobileCountryCode();
 

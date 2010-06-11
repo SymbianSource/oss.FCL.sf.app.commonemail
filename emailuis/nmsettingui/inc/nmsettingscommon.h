@@ -26,7 +26,8 @@ namespace NmSettings
     };
 
     enum MailboxProperty {
-        MailboxName = 0
+        MailboxName = 0,
+        MailboxAddress
     };
 
 }

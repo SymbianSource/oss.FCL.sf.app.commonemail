@@ -58,10 +58,10 @@ inline void print_trace(const QString& msg)
 #endif /* DEBUG */
 
 /*
- * The function NM_COMMENT() prints a trace message. The INFO macros are
- * provided for legacy compatibility. They are deprecated and should not be
- * used. If sprintf() type of formatting is desired, consider using QString::
- * arg() or QTextStream.
+ * The function NM_COMMENT() prints a trace message. The INFO macros and the
+ * NMLOG macro are provided for legacy compatibility. They are deprecated and
+ * should not be used. If sprintf() type of formatting is desired, consider
+ * using QString::arg() or QTextStream.
  */
 #if COMMENT_TRACES
 
@@ -88,6 +88,7 @@ do {\
     __msg.sprintf(msg,arg1,arg2,arg3);\
     NM_COMMENT(__msg);\
 } while (0)
+#define NMLOG(msg) NM_COMMENT(msg)
 
 #else
 
@@ -96,6 +97,7 @@ do {\
 #define INFO_1(msg,arg1)
 #define INFO_2(msg,arg1,arg2)
 #define INFO_3(msg,arg1,arg2,arg3)
+#define NMLOG(msg)
 
 #endif /* COMMENT_TRACES */
 
@@ -177,7 +179,7 @@ private:
     QString fn;
 };
 
-#define NM_FUNCTION __ftracer __ft(__PRETTY_FUNCTION__);
+#define NM_FUNCTION __ftracer __ft(__PRETTY_FUNCTION__)
 #define FUNC_LOG NM_FUNCTION
 
 #else

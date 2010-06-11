@@ -15,6 +15,8 @@
  *
  */
 
+#include "emailtrace.h"
+
 #include "nmapitypesconverter.h"
 
 #include <nmapicommonheader.h>
@@ -26,6 +28,8 @@
  */
 EmailClientApi::NmApiMailbox NmToApiConverter::NmMailbox2NmApiMailbox(const NmMailbox &mailbox)
 {
+    NM_FUNCTION;
+    
     EmailClientApi::NmApiMailbox api_mailbox;
     api_mailbox.setId(mailbox.id().id());
     api_mailbox.setName(mailbox.name());
@@ -39,6 +43,8 @@ EmailClientApi::NmApiMailbox NmToApiConverter::NmMailbox2NmApiMailbox(const NmMa
  */
 EmailClientApi::NmApiFolder NmToApiConverter::NmFolder2NmApiFolder(const NmFolder &folder)
 {
+    NM_FUNCTION;
+    
     EmailClientApi::NmApiFolder api_folder;
 
     api_folder.setParentFolderId(folder.parentId().id());
@@ -54,6 +60,8 @@ EmailClientApi::NmApiFolder NmToApiConverter::NmFolder2NmApiFolder(const NmFolde
 EmailClientApi::NmApiMessageEnvelope NmToApiConverter::NmMessageEnvelope2NmApiMessageEnvelope(
     const NmMessageEnvelope &envelope)
 {
+    NM_FUNCTION;
+    
     EmailClientApi::NmApiMessageEnvelope api_env;
     
     QList<NmAddress> to = envelope.toRecipients();
@@ -84,6 +92,8 @@ EmailClientApi::NmApiMessageEnvelope NmToApiConverter::NmMessageEnvelope2NmApiMe
 QList<EmailClientApi::NmApiEmailAddress> NmToApiConverter::NmAddress2QString(
     const QList<NmAddress> &addresses)
 {
+    NM_FUNCTION;
+    
     QList<EmailClientApi::NmApiEmailAddress> nmAddresses;
     for (int i = 0; i < addresses.count(); i++) {
         EmailClientApi::NmApiEmailAddress addr;

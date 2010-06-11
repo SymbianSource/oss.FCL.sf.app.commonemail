@@ -30,6 +30,7 @@ NmMailboxListModelItem::NmMailboxListModelItem()
 :QStandardItem(),
 mMailbox(NULL)
 {
+    NM_FUNCTION;
 }
 
 /*!
@@ -37,6 +38,8 @@ mMailbox(NULL)
  */
 NmMailboxListModelItem::~NmMailboxListModelItem()
 {
+    NM_FUNCTION;
+    
     delete mMailbox;
 }
 
@@ -45,6 +48,8 @@ NmMailboxListModelItem::~NmMailboxListModelItem()
  */
 void NmMailboxListModelItem::setItemMetaData(NmMailboxMetaData *mailbox)
 {
+    NM_FUNCTION;
+    
     if (mMailbox) {
         delete mMailbox;
     }
@@ -57,6 +62,8 @@ void NmMailboxListModelItem::setItemMetaData(NmMailboxMetaData *mailbox)
  */
 NmMailboxMetaData *NmMailboxListModelItem::itemMetaData()
 {
+    NM_FUNCTION;
+    
     return mMailbox;
 }
 
@@ -65,6 +72,8 @@ NmMailboxMetaData *NmMailboxListModelItem::itemMetaData()
  */
 void NmMailboxListModelItem::callEmitDataChanged()
 {
+    NM_FUNCTION;
+    
     emitDataChanged();
 }
 

@@ -50,36 +50,22 @@ public: // From HbIndicatorInterface
 
     bool handleInteraction(InteractionType type);
     QVariant indicatorData(int role) const;
-    HbIndicatorInterface::Category category() const;
-    bool acceptIcon(bool sending);
-    void updateGlobalStatus(bool sending);
 
 protected: // From HbIndicatorInterface
 
     bool handleClientRequest(RequestType type, const QVariant &parameter);
 
-signals:
-
-    void indicatorIconLost();
-    void globalStatusChanged(bool sending);
-    void mailboxLaunched(quint64 mailboxId);
-
 private slots:
 
-    void hideSendIndicator();
+    void delayedAction();
     
 private:
 
     void storeMailboxData(QVariant mailboxData);
-    void showSendProgress();
-    bool isSending() const;
 
 private:
 
 	NmMailboxInfo mMailbox;
-    bool mShowIndicator;
-    bool mSendingState;
-    bool mShowSendProgress;
 	bool mActive;
 };
 

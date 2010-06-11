@@ -29,6 +29,8 @@ NmRecipientLineEdit::NmRecipientLineEdit(QGraphicsItem *parent)
     : NmHtmlLineEdit(parent),
     mNeedToGenerateEmailAddressList(true)
 {
+    NM_FUNCTION;
+    
     connect(this, SIGNAL(textChanged(QString)), this, SLOT(handleTextChanged(QString)));
 }
 
@@ -38,6 +40,7 @@ NmRecipientLineEdit::NmRecipientLineEdit(QGraphicsItem *parent)
 */
 NmRecipientLineEdit::~NmRecipientLineEdit()
 {
+    NM_FUNCTION;
 }
 
 
@@ -46,6 +49,8 @@ NmRecipientLineEdit::~NmRecipientLineEdit()
 */
 QList<NmAddress> NmRecipientLineEdit::emailAddressList()
 {
+    NM_FUNCTION;
+    
     if (mNeedToGenerateEmailAddressList) {
         // Empty mEmailAddressList.
         mEmailAddressList.clear();
@@ -61,14 +66,11 @@ QList<NmAddress> NmRecipientLineEdit::emailAddressList()
 #ifdef Q_OS_SYMBIAN
 /*!
    This Slot inserts the selected contacts from Contacts-picker into the lineedit cursor position.    
-   "You shouldn't be able to convert the parameter selectedContacts into a QStringlist or QString,
-   you need to convert selectedContacts into a CntServicesContactList." -- Comments from 
-   Contacts-picker author Erkinheimo Joonas (Nokia-D/Espoo)
-   Contacts-Picker should be working in TB 10.1 MCL wk16 release, 
-   Custom metatypes problem will be fixed in wk16 by QtHighway.
 */
 void NmRecipientLineEdit::insertSelectedContacts(const QVariant &selectedContacts)
 {
+    NM_FUNCTION;
+    
     if (!selectedContacts.isNull()) {
         CntServicesContactList contactList;
         contactList = qVariantValue<CntServicesContactList>(selectedContacts);
@@ -87,12 +89,14 @@ void NmRecipientLineEdit::insertSelectedContacts(const QVariant &selectedContact
                 NmHtmlLineEdit::keyPressEvent(&contactEmailAddressKeyEvent);
             }
             else {
-                // Handle a rare case: there's another contact has same name but has different emailaddress.
-                for (int i = 0; i != mContactsSelectedFromPhoneBook.count(); ++i) {
-                    if (mContactsSelectedFromPhoneBook.at(i).displayName() == contactName &&
-                  	    mContactsSelectedFromPhoneBook.at(i).address() != contactEmailAddress) {
-                        // Differentiate this contact's name by adding a * mark
-                        contactName.append("*");
+                // Handle a rare case: there are contacts has same name but different emailaddress.
+                for (int i = 0; i != mRecipientsAddedFromContacts.count(); ++i) {
+                    if (mRecipientsAddedFromContacts.at(i).displayName() == contactName &&
+                  	    mRecipientsAddedFromContacts.at(i).address() != contactEmailAddress) {
+                        // Differentiate this contact by supplying it's emailaddress
+                        contactName.append("<");
+                        contactName.append(contactEmailAddress);
+                        contactName.append(">");
                     }
                 }
                 
@@ -114,13 +118,13 @@ void NmRecipientLineEdit::insertSelectedContacts(const QVariant &selectedContact
             contact.setAddress(contactEmailAddress);
             contact.setDisplayName(contactName);
             
-            // Add this NmAddress formated contact into mContactsSelectedFromPhoneBook.
-            mContactsSelectedFromPhoneBook.append(contact);
+            // Add this NmAddress formated contact into mRecipientsAddedFromContacts.
+            mRecipientsAddedFromContacts.append(contact);
         }
     }
     else {
         //Request returned NULL 
-        NMLOG("ContactsPicker request returned NULL.");
+        NM_COMMENT("ContactsPicker request returned NULL.");
     }
         
 }
@@ -137,6 +141,8 @@ Q_IMPLEMENT_USER_METATYPE_NO_OPERATORS(CntServicesContactList)
 */
 void NmRecipientLineEdit::keyPressEvent(QKeyEvent *keyEvent)
 {
+    NM_FUNCTION;
+    
 	bool eventHandled = false;
 	
     if (keyEvent) {
@@ -184,6 +190,8 @@ void NmRecipientLineEdit::keyPressEvent(QKeyEvent *keyEvent)
 */
 void NmRecipientLineEdit::inputMethodEvent(QInputMethodEvent *event)
 {
+    NM_FUNCTION;
+    
 	bool eventHandled = false;
 	
     if (event) {
@@ -220,47 +228,67 @@ void NmRecipientLineEdit::inputMethodEvent(QInputMethodEvent *event)
 
  
 /*!
-   Generate emailaddress list from the content of the lineedit.
+   Generate a list of all the email addresses from the content of the lineedit.
 */
 void NmRecipientLineEdit::generateEmailAddressList()
 {   
+    NM_FUNCTION;
+    
     // Remove whitespace from the start and the end of the lineedit content. 
     QString contentOfLineedit = (this->text()).trimmed();
     
-    // Split the lineedit content into individual items wherever a Semicolon(";") occurs, 
-    // empty entries don't appear in the result.
+    // Split the lineedit content by semicolon(";").
     QStringList itemsOfLineeditContent = contentOfLineedit.split(Semicolon, QString::SkipEmptyParts);
         
-    // Loop through all the items in the itemsOfLineeditContent list.
+    // Loop through all the items of the lineedit content.
     for (int i = 0; i != itemsOfLineeditContent.count(); ++i) {
         // Remove whitespace from the start and the end of the item.
         QString itemInLineedit = itemsOfLineeditContent.at(i).trimmed();
 
-        if (mContactsSelectedFromPhoneBook.count() > 0) {
-            // Loop through all the elements in the mContactsSelectedFromPhoneBook list.
-            for (int j = 0; j != mContactsSelectedFromPhoneBook.count(); ++j) {
-                NmAddress contact = mContactsSelectedFromPhoneBook.at(j);		
-                // If the item matches either the name or the emailaddress of this contact.
-                if (itemInLineedit == contact.displayName() || itemInLineedit == contact.address()) {
-                    // Add the contact into mEmailAddressList.
-                    mEmailAddressList.append(contact);  
-                }
-                else {
-                    // Form the item into Qmail NmAddress format.
-                    NmAddress recipient;
-                    recipient.setAddress(itemInLineedit);
-                    // no display name info available, so don't us it
-                    recipient.setDisplayName(QString()); 
-                    // Add this NmAddress formated lineedit item into mEmailAddressList.
-                    mEmailAddressList.append(recipient);  
-                }
+        // Get the count of the recipients added from Contacts.
+        int countOfRecipientsAddedFromContacts = mRecipientsAddedFromContacts.count();
+        
+        // If there is recipient added from Contacts.
+        if (countOfRecipientsAddedFromContacts > 0) {
+            QStringList listOfAddedContactsName;
+            QStringList listOfAddedContactsAddress;
+            
+            // Loop through all the recipients added from Contacts.
+            for (int j = 0; j != countOfRecipientsAddedFromContacts; ++j) {
+                NmAddress contact = mRecipientsAddedFromContacts.at(j);          
+                listOfAddedContactsName.append(contact.displayName());
+                listOfAddedContactsAddress.append(contact.address());
+            }
+                
+            int indexInAddedContactsName = listOfAddedContactsName.indexOf(itemInLineedit);
+            int indexInAddedContactsAddress = listOfAddedContactsAddress.indexOf(itemInLineedit);
+            
+            // If this itemInLineedit matches the name of one added contact.
+            if (indexInAddedContactsName >= 0) {
+                // Add the recipient into mEmailAddressList.
+                mEmailAddressList.append(mRecipientsAddedFromContacts.at(indexInAddedContactsName));  
+            }
+            // If this itemInLineedit matches the emailaddress of one added contact.
+            else if (indexInAddedContactsAddress >= 0) { 
+                // Add the recipient into mEmailAddressList.
+                mEmailAddressList.append(mRecipientsAddedFromContacts.at(indexInAddedContactsAddress));  
+            }
+            // This itemInLineedit is not added from Contacts
+            else { 
+                // Form the item into NmAddress format.
+                NmAddress recipient;
+                recipient.setAddress(itemInLineedit);
+                // There is no display name info available, so leave display name empty.
+                recipient.setDisplayName(QString()); 
+                // Add this NmAddress formated lineedit item into mEmailAddressList.
+                mEmailAddressList.append(recipient);  
             }
         }
-        else {
-            // Form the item into Qmail NmAddress format.
+        else { // There is no recipient is added from Contacts
+            // Form the item into NmAddress format.
             NmAddress recipient;
             recipient.setAddress(itemInLineedit);
-            // no display name info available, so don't us it
+            // There is no display name info available, so leave display name emapty.
             recipient.setDisplayName(QString()); 
             // Add this NmAddress formated lineedit item into mEmailAddressList.
             mEmailAddressList.append(recipient);  
@@ -274,6 +302,8 @@ void NmRecipientLineEdit::generateEmailAddressList()
 */
 void NmRecipientLineEdit::handleTextChanged(const QString &text)
 {
+    NM_FUNCTION;
+    
     Q_UNUSED(text);
     mNeedToGenerateEmailAddressList = true;
 }

@@ -21,6 +21,6 @@
 #include "nmmailbox.h"
 #include "nmmessage.h"
 #include "nmfolder.h"
-#include "nmmessagePart.h"
+#include "nmmessagepart.h"
 
 #endif // NMAPIPRIVATEHEADERS_H

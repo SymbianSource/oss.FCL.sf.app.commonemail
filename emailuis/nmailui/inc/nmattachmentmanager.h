@@ -39,7 +39,7 @@ public:
             const NmId &folderId, 
             const NmId &messageId, 
             const NmId &messagePartId);
-    void fetchAttachments(
+    bool fetchAttachments(
             const NmId &mailboxId, 
             const NmId &folderId, 
             const NmId &messageId,
@@ -57,15 +57,15 @@ public:
     
 private slots:
     void changeProgress(int value);
-    void attachmentFetchCompleted(int result);
-    void messageFetched(int result);
+    void completeAttachmentFetch(int result);
+    void completeMessageFetch(int result);
     
 private:
     NmUiEngine &mUiEngine;
     QPointer<NmOperation> mFetchOperation;      // Not owned
     QPointer<NmOperation> mMsgFetchOperation;      // Not owned
     NmAttachmentFetchObserver *mFetchObserver;  // Not owned
-    NmMessage *fetchMsg;
+    NmMessage *mFetchMsg;
     NmId mAttaId;
     int mProgressValue;
     bool mIsFetching;

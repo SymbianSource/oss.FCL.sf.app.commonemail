@@ -22,6 +22,7 @@
 #include <QMap>
 #include <QVariant>
 #include <QDateTime>
+#include <QPersistentModelIndex>
 
 #include "nmsettingscommon.h"
 #include "nmipssettingitems.h"
@@ -37,6 +38,7 @@ class HbValidator;
 class CpSettingFormItemData;
 class NmIpsSettingsManagerBase;
 class NmId;
+class CmApplSettingsUi;
 
 
 // Constant for User Defined sync profile (EmailProfileOffsetUD)
@@ -70,6 +72,7 @@ public:
     int getCorrectOutgoingAuthenticationRadioButtonIndex();
     void handleReceivingScheduleSettingChange(IpsServices::SettingItem settingItem,
         const QVariant &settingValue);
+    QString destinationNameFromIdentifier(uint identifier);
     
 signals:
 
@@ -112,18 +115,20 @@ public slots:
     void outgoingSecureConnectionPress(const QModelIndex &index);
     void outgoingAuthenticationChange(int index);
     void outgoingAuthenticationPress(const QModelIndex &index);
+    void connectionButtonPress();
 
 private slots:
 
     void receivingWeekdaysModified();
     void startTimeModified(QTime time);
     void endTimeModified(QTime time);
-    void refreshPeriodModified(int index);
+    void refreshPeriodModified(QPersistentModelIndex, QVariant);
     void handleMailboxDelete(HbAction *action);
     void handleMailboxDeleteUpdate(HbAction *action);
     void handleUserDefinedIncomingPortInput(HbAction *action);
     void handleUserDefinedFolderPathInput(HbAction *action);
     void handleUserDefinedOutgoingPortInput(HbAction *action);
+    void handleConnectionSelected(uint status);
     
 private:
 
@@ -147,13 +152,14 @@ private: // data
     HbDataFormModelItem *mServerInfoGroupItem;	// Not owned.
 	HbDataForm &mDataForm;
 	HbDataFormModel &mDataFormModel;
-	HbMessageBox *mDeleteConfirmationDialog; // Owned;
-	HbMessageBox *mDeleteInformationDialog; // Owned;
-	HbInputDialog *mIncomingPortInputDialog; // Owned;
-	HbValidator *mIncomingPortInputValidator; // Owned;
-    HbInputDialog *mFolderPathInputDialog; // Owned;
-    HbInputDialog *mOutgoingPortInputDialog; // Owned;
-    HbValidator *mOutgoingPortInputValidator; // Owned;    
+	HbMessageBox *mDeleteConfirmationDialog; // Owned.
+	HbMessageBox *mDeleteInformationDialog; // Owned.
+	HbInputDialog *mIncomingPortInputDialog; // Owned.
+	HbValidator *mIncomingPortInputValidator; // Owned.
+    HbInputDialog *mFolderPathInputDialog; // Owned.
+    HbInputDialog *mOutgoingPortInputDialog; // Owned.
+    HbValidator *mOutgoingPortInputValidator; // Owned.
+    CmApplSettingsUi *mDestinationDialog; // Owned.
     bool mServerInfoDynamicItemsVisible;
     int mRadioButtonPreviousIndex;
 };

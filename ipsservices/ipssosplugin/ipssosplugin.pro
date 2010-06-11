@@ -53,7 +53,7 @@ inc/ipsplgcreateforwardmessageoperation.h \
 inc/ipsplgcreatereplymessageoperation.h \
 inc/ipsplgnewchildpartfromfileoperation.h \
 inc/ipsplgremovechildpartoperation.h \
-inc/ipsplgoperationwait.h \
+# <qmail> inc/ipsplgoperationwait.h \ removed
 inc/ipsplgpop3connectop.h \
 inc/ipsplgpop3fetchoperation.h \
 inc/ipsplgpop3plugin.h \
@@ -98,7 +98,7 @@ src/ipsplgcreateforwardmessageoperation.cpp \
 src/ipsplgcreatereplymessageoperation.cpp \
 src/ipsplgnewchildpartfromfileoperation.cpp \
 src/ipsplgremovechildpartoperation.cpp \
-src/ipsplgoperationwait.cpp \
+# <qmail> removed src/ipsplgoperationwait.cpp \
 src/ipsplgpop3connectop.cpp \
 src/ipsplgpop3fetchoperation.cpp \
 src/ipsplgpop3plugin.cpp \

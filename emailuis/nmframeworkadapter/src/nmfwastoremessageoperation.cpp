@@ -25,16 +25,21 @@ NmFwaStoreMessageOperation::NmFwaStoreMessageOperation(
         mRequestId(NmNotFoundError),
         mStatus(EStoreHeader)
 {
+    NM_FUNCTION;
 }
 
 NmFwaStoreMessageOperation::~NmFwaStoreMessageOperation()
 {
+    NM_FUNCTION;
+    
     doCancelOperation();
     delete mMessage;
 }
 
 void NmFwaStoreMessageOperation::doRunAsyncOperation()
 {
+    NM_FUNCTION;
+    
     TInt err = KErrNone;
 
     if (mMessage) {
@@ -75,11 +80,15 @@ void NmFwaStoreMessageOperation::doRunAsyncOperation()
  */
 void NmFwaStoreMessageOperation::doCompleteOperation()
 {
+    NM_FUNCTION;
+    
     mRequestId = NmNotFoundError;
 }
 
 void NmFwaStoreMessageOperation::doCancelOperation()
 {
+    NM_FUNCTION;
+    
     if (mRequestId >= 0) {
         TRAP_IGNORE(mMailClient.CancelL(mRequestId));
         mRequestId = NmNotFoundError;
@@ -95,6 +104,8 @@ void NmFwaStoreMessageOperation::doCancelOperation()
 void NmFwaStoreMessageOperation::RequestResponseL(TFSProgress aEvent,
                                                      TInt aRequestId)
 {
+    NM_FUNCTION;
+    
     if (aRequestId == mRequestId) {
         if (aEvent.iProgressStatus ==
                 TFSProgress::EFSStatus_RequestComplete) {

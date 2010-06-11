@@ -32,6 +32,7 @@ NmUiEffects::NmUiEffects(HbMainWindow &mainWindow) :
     mSendAnimationScreenShot(NULL),
     mDoSendAnimation(false)
 {
+    NM_FUNCTION;
 }
 
 /*!
@@ -39,6 +40,8 @@ NmUiEffects::NmUiEffects(HbMainWindow &mainWindow) :
 */
 NmUiEffects::~NmUiEffects()
 {
+    NM_FUNCTION;
+    
     // Clean send animation if sendAnimationComplete slot is not called for some reason.
     // E.g. red key pressed.
     resetSendAnimation();
@@ -49,6 +52,8 @@ NmUiEffects::~NmUiEffects()
 */
 void NmUiEffects::prepareEffect(NmUiEffectType effect)
 {
+    NM_FUNCTION;
+    
     switch (effect) {
     case NmEditorSendMessageAnimation:
         // delete any existing stuff
@@ -65,6 +70,9 @@ void NmUiEffects::prepareEffect(NmUiEffectType effect)
         mSendAnimationScreenShot->hide();
         mSendAnimationScreenShot->setPos(0,0);
         mSendAnimationScreenShot->setZValue(0);
+
+        // Adds or moves the item and all its childen to this scene.
+        // This scene takes ownership of the item.
         mMainWindow.scene()->addItem(mSendAnimationScreenShot);
 
         // Set editor screen capture visible before old view is popped.
@@ -81,6 +89,8 @@ void NmUiEffects::prepareEffect(NmUiEffectType effect)
 */
 void NmUiEffects::startEffect(NmUiEffectType effect)
 {
+    NM_FUNCTION;
+    
     switch (effect) {
     case NmEditorSendMessageAnimation:
         // Send message animation for editor view.
@@ -99,6 +109,8 @@ void NmUiEffects::startEffect(NmUiEffectType effect)
  */
 QGraphicsPixmapItem *NmUiEffects::screenShot()
 {
+    NM_FUNCTION;
+    
     // Grab whole view into pixmap image (also chrome is included)
     QPixmap screenCapture = QPixmap::grabWindow(mMainWindow.internalWinId());
 
@@ -122,9 +134,16 @@ QGraphicsPixmapItem *NmUiEffects::screenShot()
  */
 void NmUiEffects::resetSendAnimation()
 {
+    NM_FUNCTION;
+    
     if (mSendAnimationScreenShot) {
         // Clean send animation
         HbEffect::remove(mSendAnimationScreenShot, SendAnimation, "mail_send");
+        // Ownership of QGraphicsPixmapItem is tranferred to GraphicsScene when it has been added
+        // to it GraphicsScene.
+        // GraphicsPixmapItem needs to be removed from the GraphicsScene before deleting
+        // it to prevent double deletion.
+        mMainWindow.scene()->removeItem(mSendAnimationScreenShot);
         delete mSendAnimationScreenShot;
         mSendAnimationScreenShot = NULL;
         mDoSendAnimation = false;
@@ -136,6 +155,8 @@ void NmUiEffects::resetSendAnimation()
 */
 void NmUiEffects::sendAnimationComplete(HbEffect::EffectStatus status)
 {
+    NM_FUNCTION;
+    
     Q_UNUSED(status);
     resetSendAnimation();
 }

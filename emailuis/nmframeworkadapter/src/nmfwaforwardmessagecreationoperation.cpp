@@ -24,14 +24,18 @@ NmFwaForwardMessageCreationOperation::NmFwaForwardMessageCreationOperation(
     NmFwaMessageCreationOperation(mailboxId, mailClient),
     mOriginalMessageId(originalMessageId)
 {
+    NM_FUNCTION;
 }
 
 NmFwaForwardMessageCreationOperation::~NmFwaForwardMessageCreationOperation()
 {
+    NM_FUNCTION;
 }
 
 void NmFwaForwardMessageCreationOperation::doRunAsyncOperation()
 {
+    NM_FUNCTION;
+    
     const TFSMailMsgId mailMsgId(mMailboxId.pluginId32(), mMailboxId.id32());
 
     CFSMailBox *mailBox = NULL;

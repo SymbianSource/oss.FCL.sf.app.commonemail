@@ -76,6 +76,20 @@ NONSHARABLE_CLASS ( CFSMailFolder ) : public CFSMailFolderBase
      */
      IMPORT_C void RemoveMessageL( const TFSMailMsgId aMessageId );
 
+     // <qmail>
+     /**
+      * removes given message from folder
+      *
+      * @param aMessageId id of message to be removed
+      * @param aObserver Observer for the operation completion
+      * 
+      * @return id of the request, KErrFSMailPluginNotSupported if the protocol plugin this
+      * instance is attached to does not support the async method.
+      */
+     IMPORT_C TInt RemoveMessageL( const TFSMailMsgId aMessageId,
+                                   MFSMailRequestObserver& aObserver );
+     // </qmail>
+     
     /**
      * lists subfolders contained by this folder
      *

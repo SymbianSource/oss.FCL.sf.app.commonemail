@@ -28,10 +28,12 @@ static const QString NmViewerViewNetManagerScheme("cid");
 /*!
     Constructor
 */
-NmViewerViewNetManager::NmViewerViewNetManager()
+NmViewerViewNetManager::NmViewerViewNetManager(NmUiEngine &uiEngine)
     : QNetworkAccessManager(),
+      mUiEngine(uiEngine),
       mMessageView(NULL)
 {
+    NM_FUNCTION;
 }
 
 /*!
@@ -39,6 +41,7 @@ NmViewerViewNetManager::NmViewerViewNetManager()
 */
 NmViewerViewNetManager::~NmViewerViewNetManager()
 {
+    NM_FUNCTION;
 }
 
 /*!
@@ -46,6 +49,8 @@ NmViewerViewNetManager::~NmViewerViewNetManager()
 */
 void NmViewerViewNetManager::setView(NmViewerView *viewerView)
 {
+    NM_FUNCTION;
+    
     mMessageView=viewerView;
 }
 
@@ -55,6 +60,8 @@ void NmViewerViewNetManager::setView(NmViewerView *viewerView)
 QNetworkReply *NmViewerViewNetManager::createRequest(
     Operation op, const QNetworkRequest &request, QIODevice *outgoingData)
 {
+    NM_FUNCTION;
+    
     QNetworkRequest myRequest(request);
     // Set request attribute to prefer cachevar  
     const QVariant cacheControl((int)QNetworkRequest::PreferCache);
@@ -64,11 +71,26 @@ QNetworkReply *NmViewerViewNetManager::createRequest(
     // Check whether request is for embedded image
     if (mMessageView&&mMessageView->webView()&&op==QNetworkAccessManager::GetOperation
         && requestUrl.scheme()==NmViewerViewNetManagerScheme) {
-        NmViewerViewNetReply* reply = new NmViewerViewNetReply(
-            mMessageView->webView()->loadResource(QTextDocument::ImageResource, requestUrl));
-        reply->setOriginalRequest(myRequest);
-        return reply;
+        QString id = requestUrl.path();
+        NmId partId;
+        bool isFetched = false;
+        NmMessage *message = mMessageView->message();
+        if (message) {
+            QVariant data = mMessageView->webView()->loadResource(
+                    QTextDocument::ImageResource, requestUrl, partId, isFetched);
+            NmViewerViewNetReply* reply = NULL;
+            if (isFetched) {
+                reply = new NmViewerViewNetReply(data, mUiEngine);
+            }
+            else  {
+                reply = new NmViewerViewNetReply(data, mUiEngine,
+                        message->envelope().mailboxId(), message->envelope().folderId(),
+                        message->envelope().messageId(), partId);
+            }
+            reply->setOriginalRequest(myRequest);
+            return reply;
         }
+    }
     // If request is not for embedded image, forward to base class
     return QNetworkAccessManager::createRequest(op, myRequest, outgoingData);
 }

@@ -15,6 +15,8 @@
  *
  */
 
+#include "emailtrace.h"
+
 #include <nmapimessagebody.h>
 #include "nmapimessagebody_p.h"
 
@@ -26,6 +28,8 @@ namespace EmailClientApi
  */
 NmApiMessageBody::NmApiMessageBody()
 {
+    NM_FUNCTION;
+    
     d = new NmApiMessageBodyPrivate();
 }
 
@@ -34,7 +38,7 @@ NmApiMessageBody::NmApiMessageBody()
  */
 NmApiMessageBody::NmApiMessageBody(const NmApiMessageBody &apiMessageBody) : d(apiMessageBody.d)
 {
-
+    NM_FUNCTION;
 }
 
 /*!
@@ -42,6 +46,8 @@ NmApiMessageBody::NmApiMessageBody(const NmApiMessageBody &apiMessageBody) : d(a
  */
 NmApiMessageBody& NmApiMessageBody::operator=(const NmApiMessageBody &apiMessageBody)
 {
+    NM_FUNCTION;
+    
 	if (this != &apiMessageBody) 
 	{
 		d = apiMessageBody.d;
@@ -54,6 +60,8 @@ NmApiMessageBody& NmApiMessageBody::operator=(const NmApiMessageBody &apiMessage
  */    
 bool NmApiMessageBody::operator==(const NmApiMessageBody &apiMessageBody)
 {
+    NM_FUNCTION;
+    
     bool retVal = false;
     if (this->d == apiMessageBody.d)
     {
@@ -67,13 +75,15 @@ bool NmApiMessageBody::operator==(const NmApiMessageBody &apiMessageBody)
  */
 NmApiMessageBody::~NmApiMessageBody()
 {
-
+    NM_FUNCTION;
 }
 /*!
    getter for total size of message body in bytes
  */
 quint64 NmApiMessageBody::totalSize() const
 {
+    NM_FUNCTION;
+    
     return d->totalSize;
 }
 
@@ -82,6 +92,8 @@ quint64 NmApiMessageBody::totalSize() const
  */
 quint64 NmApiMessageBody::fetchedSize() const
 {
+    NM_FUNCTION;
+    
     return d->fetchedSize;
 }
 
@@ -90,6 +102,8 @@ quint64 NmApiMessageBody::fetchedSize() const
  */
 QString NmApiMessageBody::content() const
 {
+    NM_FUNCTION;
+    
     return d->content;
 }
 
@@ -98,6 +112,8 @@ QString NmApiMessageBody::content() const
  */
 void NmApiMessageBody::setTotalSize(quint64 size)
 {
+    NM_FUNCTION;
+    
     d->totalSize = size;
 }
 
@@ -106,6 +122,8 @@ void NmApiMessageBody::setTotalSize(quint64 size)
  */
 void NmApiMessageBody::setFetchedSize(quint64 size)
 {
+    NM_FUNCTION;
+    
     d->fetchedSize = size;
 }
 
@@ -114,6 +132,8 @@ void NmApiMessageBody::setFetchedSize(quint64 size)
  */
 void NmApiMessageBody::setContent(const QString& content)
 {
+    NM_FUNCTION;
+    
     d->content = content;
 }
 }

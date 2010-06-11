@@ -16,20 +16,28 @@
 */
 
 #include <QVariant>
+#include <QIntValidator>
+#include <QStringList>
+
 #include <HbAction>
 #include <HbGlobal>
 #include <HbMessageBox>
 #include <HbProgressDialog>
 #include <HbInputDialog>
-#include <cpsettingformitemdata.h>
-#include <hbdataformmodel.h>
-#include <qstringlist.h>
-#include <hbextendedlocale.h>
-#include <hblineedit.h>
+#include <HbDataFormModel>
+#include <HbExtendedLocale>
+#include <HbLineEdit>
 #include <HbValidator>
-#include <QIntValidator>
 #include <HbStringUtil>
 #include <HbDataForm>
+
+#include <cpsettingformitemdata.h>
+
+#include <cmapplsettingsui.h>
+#include <cmmanagerdefines_shim.h>
+#include <qnetworkconfigmanager.h>
+#include <qnetworkconfiguration.h>
+
 
 #include "nmipssettingshelper.h"
 #include "nmipssettingsmanagerbase.h"
@@ -38,13 +46,16 @@
 
 // CONSTANTS
 
-// Dynamic receiving schedule group items
+// Dynamic receiving schedule group items.
 const IpsServices::SettingItem NmIpsSettingsReceivingSchedule[] = {
         IpsServices::ReceptionInboxSyncWindow,
         IpsServices::ReceptionWeekDays,
         IpsServices::ReceptionDayStartTime,
         IpsServices::ReceptionDayEndTime,
         IpsServices::ReceptionRefreshPeriodDayTime};
+
+QTM_USE_NAMESPACE
+
 
 /*!
     \class NmIpsSettingsHelper
@@ -72,8 +83,10 @@ NmIpsSettingsHelper::NmIpsSettingsHelper(NmIpsSettingsManagerBase &settingsManag
   mFolderPathInputDialog(0),
   mOutgoingPortInputDialog(0),
   mOutgoingPortInputValidator(0),
+  mDestinationDialog(0),
   mServerInfoDynamicItemsVisible(false),
   mRadioButtonPreviousIndex(0)
+
 {
 }
 
@@ -273,23 +286,18 @@ void NmIpsSettingsHelper::createOrUpdateReceivingScheduleGroupDynamicItem(
 
                     mReceivingScheduleGroupItem->appendChild(formItemData);
                     insertContentItem(IpsServices::ReceptionRefreshPeriodDayTime, formItemData);
+
+                    // If changes are made to refreshMailItems, conversion table in
+                    // refreshPeriodModified method needs to be updated also.
                     QStringList refreshMailItems;
                     refreshMailItems << hbTrId("txt_mailips_setlabel_val_keep_uptodate")
                                      << hbTrId("txt_mailips_setlabel_val_every_15_minutes")
                                      << hbTrId("txt_mailips_setlabel_val_every_1_hour")
                                      << hbTrId("txt_mailips_setlabel_val_every_4_hours");
                     formItemData->setContentWidgetData(QString("items"), refreshMailItems);
-
-                    QList<QVariant> refreshMailItemValues;
-                    refreshMailItemValues << 5
-                                          << 15
-                                          << 60
-                                          << 240;
-                    QVariant value(refreshMailItemValues);
-                    formItemData->setData(HbDataFormModelItem::DescriptionRole + 1, value);
-
-                    mDataForm.addConnection(formItemData, SIGNAL(itemSelected(int)),
-                        this, SLOT(refreshPeriodModified(int)));
+                    mDataForm.addConnection(
+                        formItemData, SIGNAL(valueChanged(QPersistentModelIndex, QVariant)),
+                        this, SLOT(refreshPeriodModified(QPersistentModelIndex, QVariant)));
                 }
 
                 // Update data
@@ -364,7 +372,6 @@ void NmIpsSettingsHelper::saveMyName()
 
 /*!
     Sets the edit changed flag to indicate that user has edited the field
-
     \param text Reference to the text value in the line edit box.
 */
 void NmIpsSettingsHelper::myNameTextChange(const QString &text)
@@ -403,14 +410,12 @@ void NmIpsSettingsHelper::saveMailboxName()
                 item->setContentWidgetData(QString("text"), data);
             }
         }
-
     }
     mCurrentLineEditChanged = false;
 }
 
 /*!
     Sets the edit changed flag to indicate that user has edited the field
-
     \param text Reference to the text value in the line edit box.
 */
 void NmIpsSettingsHelper::mailboxNameTextChange(const QString &text)
@@ -430,6 +435,8 @@ void NmIpsSettingsHelper::saveMailAddress()
 		HbDataFormModelItem *item = mContentItems.value(IpsServices::EmailAddress);
         QVariant data = item->contentWidgetData(QString("text"));
         mSettingsManager.writeSetting(IpsServices::EmailAddress, data);
+        QVariant property(NmSettings::MailboxName);
+        emit mailboxPropertyChanged(mSettingsManager.mailboxId(), property, data);
     }
     mCurrentLineEditChanged = false;
 }
@@ -548,7 +555,6 @@ void NmIpsSettingsHelper::saveReplyTo()
 
 /*!
     Sets the edit changed flag to indicate that user has edited the field
-
     \param text Reference to the text value in the line edit box.
 */
 void NmIpsSettingsHelper::replyToTextChange(const QString &text)
@@ -577,8 +583,7 @@ void NmIpsSettingsHelper::deleteButtonPress()
 */
 void NmIpsSettingsHelper::handleMailboxDelete(HbAction *action)
 {
-    if (action == mDeleteConfirmationDialog->primaryAction()) {
-        
+    if (action == mDeleteConfirmationDialog->actions().at(0)) {        
         emit goOffline(mSettingsManager.mailboxId());
         mEmitOnline = false;
     
@@ -589,8 +594,7 @@ void NmIpsSettingsHelper::handleMailboxDelete(HbAction *action)
         // button.
         HbProgressDialog progressNote(HbProgressDialog::WaitDialog);
         progressNote.setText(hbTrId("txt_common_info_deleting"));
-        action = progressNote.primaryAction();
-        progressNote.removeAction(action);
+        progressNote.removeAction(progressNote.actions().at(0));
         progressNote.delayedShow();
     
         if (!mSettingsManager.deleteMailbox()) {
@@ -615,7 +619,7 @@ void NmIpsSettingsHelper::handleMailboxDelete(HbAction *action)
 }
 
 /*!
-    Handels the event after the mailbox delete information dialog has been dismissed.
+    Handles the event after the mailbox delete information dialog has been dismissed.
 */
 void NmIpsSettingsHelper::handleMailboxDeleteUpdate(HbAction *action)
 {
@@ -750,7 +754,6 @@ void NmIpsSettingsHelper::saveIncomingMailServer()
 
 /*!
     Sets the edit changed flag to indicate that user has edited the field
-
     \param text Reference to the text value in the line edit box.
 */
 void NmIpsSettingsHelper::incomingMailServerTextChange(const QString &text)
@@ -775,7 +778,6 @@ void NmIpsSettingsHelper::saveOutgoingMailServer()
 
 /*!
     Sets the edit changed flag to indicate that user has edited the field
-
     \param text Reference to the text value in the line edit box.
 */
 void NmIpsSettingsHelper::outgoingMailServerTextChange(const QString &text)
@@ -787,7 +789,6 @@ void NmIpsSettingsHelper::outgoingMailServerTextChange(const QString &text)
 /*!
     Saves the incoming port value into database if user has changed the value. If the user wish to
     define the port, a input dialog is shown.
-    
     \param index Used to determine if the default value or a user defined value should be written
 */
 void NmIpsSettingsHelper::incomingPortChange(int index)
@@ -803,7 +804,7 @@ void NmIpsSettingsHelper::incomingPortChange(int index)
 }
 
 /*!
-    Show a input dialog for allowing the user to specify a incoming port.
+    Shows an input dialog for allowing the user to specify a incoming port.
 */
 void NmIpsSettingsHelper::showIncomingPortInputDialog()
 {    
@@ -828,11 +829,11 @@ void NmIpsSettingsHelper::showIncomingPortInputDialog()
 }
 
 /*!
-   Handels the saving of the port new value.
+   Handles the saving of the port new value.
 */
 void NmIpsSettingsHelper::handleUserDefinedIncomingPortInput(HbAction *action)
 {
-    if (action == mIncomingPortInputDialog->primaryAction()) {
+    if (action == mIncomingPortInputDialog->actions().at(0)) {
         QVariant newPort = mIncomingPortInputDialog->value();
         emit goOffline(mSettingsManager.mailboxId());
         mEmitOnline = true;
@@ -846,7 +847,6 @@ void NmIpsSettingsHelper::handleUserDefinedIncomingPortInput(HbAction *action)
 
 /*!
     Used for getting the index to display in the port radio button list 
-    
     \return index Used to set the selected value
 */
 int NmIpsSettingsHelper::getCorrectPortRadioButtonIndex(int currentPort)
@@ -863,7 +863,6 @@ int NmIpsSettingsHelper::getCorrectPortRadioButtonIndex(int currentPort)
 
 /*!
     Sets the previous index value to indicate that user has edited the field
-
     \param text Reference to the item in the radio button list.
 */
 void NmIpsSettingsHelper::incomingPortPress(const QModelIndex &index)
@@ -913,8 +912,7 @@ void NmIpsSettingsHelper::incomingSecureConnectionItemChange(int index)
 }
 
 /*!
-    Sets the previous index value to indicate that user has edited the field
-
+    Sets the previous index value to indicate that user has edited the field.
     \param text Reference to the item in the radio button list.
 */
 void NmIpsSettingsHelper::incomingSecureConnectionPress(const QModelIndex &index)
@@ -926,8 +924,7 @@ void NmIpsSettingsHelper::incomingSecureConnectionPress(const QModelIndex &index
 }
 
 /*!
-    Used for getting the index to display in the secure connection radio button list 
-    
+    Used for getting the index to display in the secure connection radio button list.
     \return index Used to set the selected value
 */
 int NmIpsSettingsHelper::getCorrectSecureRadioButtonIndex(QVariant secureSockets, 
@@ -989,7 +986,7 @@ void NmIpsSettingsHelper::handleUserDefinedFolderPathInput(HbAction *action)
 {
     HbDataFormModelItem *item = mContentItems.value(IpsServices::FolderPath);
     
-    if (action == mFolderPathInputDialog->primaryAction()) { 
+    if (action == mFolderPathInputDialog->actions().at(0)) { 
         QVariant newFolderPath = mFolderPathInputDialog->value();
         mSettingsManager.writeSetting(IpsServices::FolderPath, newFolderPath);
         //set selected index to default if user inputed empty string.
@@ -1031,8 +1028,13 @@ void NmIpsSettingsHelper::receivingWeekdaysModified()
         days |= itemValues.at(selectedIndex.toInt()).toInt();
     }
 
-    handleReceivingScheduleSettingChange(IpsServices::ReceptionWeekDays, days);
+    QVariant previouslySelectedValue;
+    mSettingsManager.readSetting(IpsServices::ReceptionWeekDays, previouslySelectedValue);
+    if (days != previouslySelectedValue.toInt()) {
+        handleReceivingScheduleSettingChange(IpsServices::ReceptionWeekDays, days);
+    }
 
+    // Although the mode might not be changed we need to still update the button text.
     // Every weekday selected.
     if (days == 0x7f) {
         item->setContentWidgetData(QString("text"),
@@ -1042,42 +1044,56 @@ void NmIpsSettingsHelper::receivingWeekdaysModified()
 
 /*!
     Handles start time modifications.
-	
     \param time Modified start time.
 */
 void NmIpsSettingsHelper::startTimeModified(QTime time)
 {
     int startTime(time.hour()*60 + time.minute());
-    handleReceivingScheduleSettingChange(IpsServices::ReceptionDayStartTime, startTime);
+    QVariant previouslySelectedStartTime;
+    mSettingsManager.readSetting(IpsServices::ReceptionDayStartTime, previouslySelectedStartTime);
+    if (startTime != previouslySelectedStartTime.toInt()) {
+        handleReceivingScheduleSettingChange(IpsServices::ReceptionDayStartTime, startTime);
+    }
 }
 
 /*!
     Handles refresh period modifications.
-
-    \param index selected item index.
+    \param value Selected value as a text.
 */
-void NmIpsSettingsHelper::refreshPeriodModified(int index)
+void NmIpsSettingsHelper::refreshPeriodModified(QPersistentModelIndex, QVariant value)
 {
-    HbDataFormModelItem* item = mContentItems.value(IpsServices::ReceptionRefreshPeriodDayTime);
-    QVariant itemData = item->data(HbDataFormModelItem::DescriptionRole + 1);
-    int selectedValue = itemData.value< QList< QVariant > >().at(index).toInt();
-    handleReceivingScheduleSettingChange(IpsServices::ReceptionRefreshPeriodDayTime, selectedValue);
+    QMap<QString, int> conversionTable;
+    conversionTable[hbTrId("txt_mailips_setlabel_val_keep_uptodate")] = 5;
+    conversionTable[hbTrId("txt_mailips_setlabel_val_every_15_minutes")] = 15;
+    conversionTable[hbTrId("txt_mailips_setlabel_val_every_1_hour")] = 60;
+    conversionTable[hbTrId("txt_mailips_setlabel_val_every_4_hours")] = 240;
+
+    int selectedValue(conversionTable.value(value.toString()));
+    QVariant previouslySelectedValue;
+    mSettingsManager.readSetting(IpsServices::ReceptionRefreshPeriodDayTime,
+        previouslySelectedValue);
+    if (selectedValue != previouslySelectedValue.toInt()) {
+        handleReceivingScheduleSettingChange(IpsServices::ReceptionRefreshPeriodDayTime,
+            selectedValue);
+    }
 }
 
 /*!
     Handles end time modifications.
-
     \param time Modified start time.
 */
 void NmIpsSettingsHelper::endTimeModified(QTime time)
 {
     int endTime(time.hour()*60 + time.minute());
-    handleReceivingScheduleSettingChange(IpsServices::ReceptionDayEndTime, endTime);
+    QVariant previouslySelectedEndTime;
+    mSettingsManager.readSetting(IpsServices::ReceptionDayEndTime, previouslySelectedEndTime);
+    if (endTime != previouslySelectedEndTime) {
+        handleReceivingScheduleSettingChange(IpsServices::ReceptionDayEndTime, endTime);
+    }
 }
 
 /*!
     Used for getting the index to display in the inbox path radio button list 
-    
     \return index Used to set the selected value
 */
 int NmIpsSettingsHelper::getCorrectInboxPathRadioButtonIndex(QVariant folderPath)
@@ -1095,7 +1111,6 @@ int NmIpsSettingsHelper::getCorrectInboxPathRadioButtonIndex(QVariant folderPath
     Handles receiving schedule item value modifications.
     Takes care of creating 'user defined' mode, coping values from active profile to
     user defined mode, storing changed value and selecting 'user defined' mode.
-
     \param settingItem Changed setting item.
     \param settingValue Setting item's value.
 */
@@ -1128,8 +1143,22 @@ void NmIpsSettingsHelper::handleReceivingScheduleSettingChange(
 }
 
 /*!
-    Copies receiving schedule settings from currently active profile to given profile.
+     Return the localized name for network destination with id of \a identifier.
+     \param identifier Network destination identifier.
+     \return Name of the network destination.
+ */
+QString NmIpsSettingsHelper::destinationNameFromIdentifier(uint identifier)
+{
+    const QString snapPrefix("S_");
 
+    QNetworkConfigurationManager netMan;
+    QNetworkConfiguration conf = netMan.configurationFromIdentifier( snapPrefix +
+                                                                     QString::number(identifier));
+    return conf.name();
+}
+
+/*!
+    Copies receiving schedule settings from currently active profile to given profile.
     \param profileMode Mode where receiving schedule settings from active profile are copied to.
 */
 void NmIpsSettingsHelper::copyReceivingScheduleSettingsFromActiveProfile(int profileMode)
@@ -1155,7 +1184,6 @@ void NmIpsSettingsHelper::copyReceivingScheduleSettingsFromActiveProfile(int pro
 /*!
     Saves the outgoing port value into database if user has changed the value. If the user wish to
     define the port, a input dialog is shown.
-
     \param index Used to determine if the default value or a user defined value should be written
 */
 void NmIpsSettingsHelper::outgoingPortChange(int index)
@@ -1171,8 +1199,7 @@ void NmIpsSettingsHelper::outgoingPortChange(int index)
 }
 
 /*!
-    Show a input dialog for allowing the user to specify a outgoing port.
-
+    Shows an input dialog for allowing the user to specify a outgoing port.
 */
 void NmIpsSettingsHelper::showOutgoingPortInputDialog()
 {
@@ -1197,11 +1224,12 @@ void NmIpsSettingsHelper::showOutgoingPortInputDialog()
 }
 
 /*!
-    Handels the saving of the port new value.
+    Handles the saving of the port new value.
+    \action Selected action.
 */
 void NmIpsSettingsHelper::handleUserDefinedOutgoingPortInput(HbAction *action)
 {
-    if (action == mOutgoingPortInputDialog->primaryAction()) {
+    if (action == mOutgoingPortInputDialog->actions().at(0)) {
         QVariant newPort = mOutgoingPortInputDialog->value();
         emit goOffline(mSettingsManager.mailboxId());
         mEmitOnline = true;
@@ -1214,8 +1242,24 @@ void NmIpsSettingsHelper::handleUserDefinedOutgoingPortInput(HbAction *action)
 }
 
 /*!
-    Sets the previous index value to indicate that user has edited the field
+    Handles the saving of the selected network connection.
+    \param status Dialog exit status \sa CmApplSettingsUi::ApplSettingsError.
+*/
+void NmIpsSettingsHelper::handleConnectionSelected(uint status)
+{
+    if (status == CmApplSettingsUi::ApplSettingsErrorNone) {
+        CmApplSettingsUi::SettingSelection selection = mDestinationDialog->selection();
+        uint destId(selection.id);
+        if (mSettingsManager.writeSetting(IpsServices::Connection, QVariant(destId))) {
+            QString destName(destinationNameFromIdentifier(destId));
+            HbDataFormModelItem *item = mContentItems.value(IpsServices::Connection);
+            item->setContentWidgetData(QString("text"), destName);
+        }
+    }
+}
 
+/*!
+    Sets the previous index value to indicate that user has edited the field.
     \param index Reference to the item in the radio button list.
 */
 void NmIpsSettingsHelper::outgoingPortPress(const QModelIndex &index)
@@ -1227,9 +1271,8 @@ void NmIpsSettingsHelper::outgoingPortPress(const QModelIndex &index)
 }
 
 /*!
-    Used for getting the index to display in the outgoing port radio button list
-
-    \return index Used to set the selected value
+    Used for getting the index to display in the outgoing port radio button list.
+    \return index Used to set the selected value.
 */
 int NmIpsSettingsHelper::getCorrectOutgoingPortRadioButtonIndex(int currentPort)
 {
@@ -1244,9 +1287,8 @@ int NmIpsSettingsHelper::getCorrectOutgoingPortRadioButtonIndex(int currentPort)
 }
 
 /*!
-    Used for getting the index to display in the outgoing authentication radio button list 
-    
-    \return index Used to set the selected value
+    Used for getting the index to display in the outgoing authentication radio button list.
+    \return index Used to set the selected value.
 */
 int NmIpsSettingsHelper::getCorrectOutgoingAuthenticationRadioButtonIndex()
 {
@@ -1280,6 +1322,7 @@ int NmIpsSettingsHelper::getCorrectOutgoingAuthenticationRadioButtonIndex()
 
 /*!
     Saves the outgoing secure connection value into database if user has changed the value.
+    \param index Selected radio button index.
 */
 void NmIpsSettingsHelper::outgoingSecureConnectionItemChange(int index)
 {
@@ -1317,9 +1360,8 @@ void NmIpsSettingsHelper::outgoingSecureConnectionItemChange(int index)
 }
 
 /*!
-    Sets the previous index value to indicate that user has edited the field
-
-    \param text Reference to the item in the radio button list.
+    Sets the previous index value to indicate that user has edited the field.
+    \param index Reference to the item in the radio button list.
 */
 void NmIpsSettingsHelper::outgoingSecureConnectionPress(const QModelIndex &index)
 {
@@ -1332,6 +1374,7 @@ void NmIpsSettingsHelper::outgoingSecureConnectionPress(const QModelIndex &index
 /*!
     Saves the outgoing authetication value into database if user has changed the value and
     updates dynamic group items.
+    \param index Selected radio button index.
 */
 void NmIpsSettingsHelper::outgoingAuthenticationChange(int index)
 {
@@ -1369,9 +1412,8 @@ void NmIpsSettingsHelper::outgoingAuthenticationChange(int index)
 }
 
 /*!
-    Sets the previous index value to indicate that user has edited the field
-
-    \param text Reference to the item in the radio button list.
+    Sets the previous index value to indicate that user has edited the field.
+    \param index Reference to the item in the radio button list.
 */
 void NmIpsSettingsHelper::outgoingAuthenticationPress(const QModelIndex &index)
 {
@@ -1381,3 +1423,31 @@ void NmIpsSettingsHelper::outgoingAuthenticationPress(const QModelIndex &index)
     mRadioButtonPreviousIndex = data.toInt();
 }
 
+/*!
+    Launches the connection selection dialog.
+*/
+void NmIpsSettingsHelper::connectionButtonPress()
+{
+    if (!mDestinationDialog) {
+        // Create the dialog and configure it.
+        mDestinationDialog = new CmApplSettingsUi(this);
+
+        mDestinationDialog->setOptions(
+            QFlags<CmApplSettingsUi::SelectionDialogItems>(CmApplSettingsUi::ShowDestinations),
+            QSet<CmApplSettingsUi::BearerTypeFilter>());
+        connect(mDestinationDialog, SIGNAL(finished(uint)),
+                this, SLOT(handleConnectionSelected(uint)));
+    }
+
+    // Set currently active destination as selected.
+    QVariant destId;
+    if (mSettingsManager.readSetting(IpsServices::Connection, destId)) {
+        CmApplSettingsUi::SettingSelection selection;
+        selection.result = CmApplSettingsUi::SelectionTypeDestination;
+        selection.id = destId.toUInt();
+        mDestinationDialog->setSelection(selection);
+    }
+
+    // Open the dialog.
+    mDestinationDialog->open();
+}

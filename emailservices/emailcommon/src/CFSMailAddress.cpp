@@ -15,10 +15,10 @@
 *
 */
 
+#include "emailtrace.h"
 
 //<cmail>
 #include <nmcommonheaders.h>
-#include "emailtrace.h"
 #include "CFSMailAddress.h"
 //</cmail>
 
@@ -32,7 +32,8 @@
 // -----------------------------------------------------------------------------
 EXPORT_C CFSMailAddress* CFSMailAddress::NewLC()
     {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
     CFSMailAddress* adr = new (ELeave) CFSMailAddress();
     CleanupStack::PushL(adr);
     adr->ConstructL();
@@ -44,7 +45,8 @@ EXPORT_C CFSMailAddress* CFSMailAddress::NewLC()
 // -----------------------------------------------------------------------------
 EXPORT_C CFSMailAddress* CFSMailAddress::NewL()
     {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
     CFSMailAddress* adr =  CFSMailAddress::NewLC();
     CleanupStack::Pop(adr);
     return adr;
@@ -56,7 +58,8 @@ EXPORT_C CFSMailAddress* CFSMailAddress::NewL()
 // -----------------------------------------------------------------------------
 EXPORT_C CFSMailAddress* CFSMailAddress::NewL( const NmAddress& aNmAddress )
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
+    
     CFSMailAddress* adr = new (ELeave) CFSMailAddress();
     CleanupStack::PushL(adr);
     adr->ConstructL(aNmAddress);
@@ -70,7 +73,8 @@ EXPORT_C CFSMailAddress* CFSMailAddress::NewL( const NmAddress& aNmAddress )
 // -----------------------------------------------------------------------------
 void CFSMailAddress::ConstructL()
     {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 // <qmail>
     // Construction of shared data object
     iNmPrivateAddress = new NmAddressPrivate();
@@ -83,7 +87,8 @@ void CFSMailAddress::ConstructL()
 // --------------------------------_--------------------------------------------
 void CFSMailAddress::ConstructL( const NmAddress& aNmAddress )
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
+    
     // shared data object
     iNmPrivateAddress = aNmAddress.d;
 	}
@@ -94,7 +99,8 @@ void CFSMailAddress::ConstructL( const NmAddress& aNmAddress )
 // -----------------------------------------------------------------------------
 CFSMailAddress::CFSMailAddress()
     {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 // <qmail>
 // Unnecessary members initialization removed: iEmailAddress, iDisplayName
 // </qmail>
@@ -105,7 +111,8 @@ CFSMailAddress::CFSMailAddress()
 // -----------------------------------------------------------------------------
 EXPORT_C CFSMailAddress::~CFSMailAddress()
     {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 // <qmail>
 // Unnecessary members destruction removed: iEmailAddress, iDisplayName
 // </qmail>
@@ -116,7 +123,8 @@ EXPORT_C CFSMailAddress::~CFSMailAddress()
 // -----------------------------------------------------------------------------
 EXPORT_C TDesC& CFSMailAddress::GetEmailAddress() const
     {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 // <qmail>
     iEmailAddressPtr.Set(reinterpret_cast<const TUint16*> (iNmPrivateAddress->mAddress.utf16()),
         iNmPrivateAddress->mAddress.length());
@@ -129,7 +137,8 @@ EXPORT_C TDesC& CFSMailAddress::GetEmailAddress() const
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailAddress::SetEmailAddress(const TDesC& aAddress)
     {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 // <qmail>
     QString qtEmailAddress = QString::fromUtf16(aAddress.Ptr(), aAddress.Length());
     iNmPrivateAddress->mAddress = qtEmailAddress;
@@ -141,7 +150,8 @@ EXPORT_C void CFSMailAddress::SetEmailAddress(const TDesC& aAddress)
 // -----------------------------------------------------------------------------
 EXPORT_C TDesC& CFSMailAddress::GetDisplayName() const
     {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 // <qmail>
     iDisplayNamePtr.Set(reinterpret_cast<const TUint16*> (iNmPrivateAddress->mDisplayName.utf16()),
         iNmPrivateAddress->mDisplayName.length());
@@ -154,7 +164,8 @@ EXPORT_C TDesC& CFSMailAddress::GetDisplayName() const
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailAddress::SetDisplayName(const TDesC& aDisplayName)
     {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 // <qmail>
     QString qtDisplayName = QString::fromUtf16(aDisplayName.Ptr(), aDisplayName.Length());
     iNmPrivateAddress->mDisplayName = qtDisplayName;
@@ -167,7 +178,8 @@ EXPORT_C void CFSMailAddress::SetDisplayName(const TDesC& aDisplayName)
 // -----------------------------------------------------------------------------
 EXPORT_C NmAddress CFSMailAddress::GetNmAddress()
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
+    
     NmAddress nmAddress(iNmPrivateAddress);
     return nmAddress;
 	}

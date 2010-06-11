@@ -26,14 +26,18 @@ NmFwaReplyMessageCreationOperation::NmFwaReplyMessageCreationOperation(
     mOriginalMessageId(originalMessageId),
     mReplyAll(replyAll)
 {
+    NM_FUNCTION;
 }
 
 NmFwaReplyMessageCreationOperation::~NmFwaReplyMessageCreationOperation()
 {
+    NM_FUNCTION;
 }
 
 void NmFwaReplyMessageCreationOperation::doRunAsyncOperation()
 {
+    NM_FUNCTION;
+    
     const TFSMailMsgId mailMsgId(mMailboxId.pluginId32(), mMailboxId.id32());
 
     CFSMailBox *mailBox(NULL);

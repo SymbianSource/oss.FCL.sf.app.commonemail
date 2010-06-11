@@ -221,7 +221,8 @@ TBool CIpsSosAOMBoxLogic::IsEmnOn() const
     TRAP_IGNORE( settings = 
             CIpsSosAOSettingsHandler::NewL(iSession, iMailboxId));
     
-    if(settings){
+    if( settings )
+        {
         IpsServices::TIpsSetDataEmnStates state = IpsServices::EMailEmnOff;
         state = settings->EmailNotificationState();
         
@@ -250,11 +251,13 @@ void CIpsSosAOMBoxLogic::GetEmailAddress(
     TRAPD( err, settings = CIpsSosAOSettingsHandler::NewL(
             iSession, iMailboxId) );
     
-    if(settings){
+    if( settings )
+        {
         HBufC* addr = NULL;
         TRAP(err, addr = settings->EmailAddressL());
         
-        if(addr){
+        if( addr )
+            {
             __ASSERT_DEBUG( ( 
                     addr->Length() <= KIpsSosAOTextBufferSize ), 
                     User::Panic( KIpsSosAOPanicLit, KErrGeneral) );
@@ -313,7 +316,8 @@ void CIpsSosAOMBoxLogic::HandleEventAndSwitchStateL(
     TInt cycles = 0;
     
     if ( event == EEventStart && iState == EStateError && 
-            CanConnectIfRoamingL() )
+          ( (iIsRoaming && CanConnectIfRoamingL())||
+             !iIsRoaming ) )
         {
         event = EEventNop;
         iAgent->LoadSettingsL();
@@ -853,7 +857,6 @@ TBool CIpsSosAOMBoxLogic::CanConnectIfRoamingL()
     TRAPD(err, mgr.OpenL());
     
     TCmGenConnSettings set;
-    
     if(err==KErrNone){
         TRAP(err, mgr.ReadGenConnSettingsL(set));
         }

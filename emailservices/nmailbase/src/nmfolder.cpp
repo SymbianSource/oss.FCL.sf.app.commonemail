@@ -15,6 +15,8 @@
 *
 */
 
+#include "emailtrace.h"
+
 #include "nmfolder.h"
 
 
@@ -31,10 +33,12 @@ mUnseenCount(0),
 mSubFolderCount(0),
 mUpdated(QDateTime())
 {
+    NM_FUNCTION;
 }
 
 NmFolderPrivate::~NmFolderPrivate()
 {
+    NM_FUNCTION;
 }
 
 
@@ -49,6 +53,8 @@ NmFolderPrivate::~NmFolderPrivate()
 */
 NmFolder::NmFolder(NmId folderId)
 {
+    NM_FUNCTION;
+    
     d = new NmFolderPrivate();
     d->mFolderId = folderId;
 }
@@ -58,6 +64,8 @@ NmFolder::NmFolder(NmId folderId)
 */
 NmFolder::NmFolder(const NmFolder &folder)
 {
+    NM_FUNCTION;
+    
     d = folder.d;
 }
 
@@ -66,6 +74,8 @@ NmFolder::NmFolder(const NmFolder &folder)
  */
 NmFolder::NmFolder(QExplicitlySharedDataPointer<NmFolderPrivate> folderPrivate)
 {
+    NM_FUNCTION;
+    
   d = folderPrivate;
 }
 
@@ -74,6 +84,8 @@ NmFolder::NmFolder(QExplicitlySharedDataPointer<NmFolderPrivate> folderPrivate)
 */
 NmFolder &NmFolder::operator=(const NmFolder &folder)
 {
+    NM_FUNCTION;
+    
   if (this != &folder) {
     d = folder.d;
   }
@@ -85,6 +97,7 @@ NmFolder &NmFolder::operator=(const NmFolder &folder)
 */
 NmFolder::~NmFolder()
 {
+    NM_FUNCTION;
 }
 
 /*!
@@ -92,6 +105,8 @@ NmFolder::~NmFolder()
 */
 NmId NmFolder::folderId() const
 {
+    NM_FUNCTION;
+    
     return d->mFolderId;
 }
 
@@ -100,6 +115,8 @@ NmId NmFolder::folderId() const
 */
 void NmFolder::setFolderId(NmId folderId)
 {
+    NM_FUNCTION;
+    
   d->mFolderId = folderId;
 }
 
@@ -108,6 +125,8 @@ void NmFolder::setFolderId(NmId folderId)
 */
 NmId NmFolder::parentId() const
 {
+    NM_FUNCTION;
+    
     return d->mParentFolderId;
 }
 
@@ -116,6 +135,8 @@ NmId NmFolder::parentId() const
 */
 void NmFolder::setParentId(NmId parentFolderId)
 {
+    NM_FUNCTION;
+    
     d->mParentFolderId = parentFolderId;
 }
 
@@ -124,6 +145,8 @@ void NmFolder::setParentId(NmId parentFolderId)
 */
 NmId NmFolder::mailboxId() const
 {
+    NM_FUNCTION;
+    
     return d->mMailboxId;
 }
 
@@ -132,6 +155,8 @@ NmId NmFolder::mailboxId() const
 */
 void NmFolder::setMailboxId(NmId mailboxId)
 {
+    NM_FUNCTION;
+    
     d->mMailboxId = mailboxId;
 }
 
@@ -140,6 +165,8 @@ void NmFolder::setMailboxId(NmId mailboxId)
 */
 QString NmFolder::name() const
 {
+    NM_FUNCTION;
+    
     return d->mName;
 }
 
@@ -148,6 +175,8 @@ QString NmFolder::name() const
 */
 void NmFolder::setName(QString name)
 {
+    NM_FUNCTION;
+    
     d->mName = name;
 }
 
@@ -156,6 +185,8 @@ void NmFolder::setName(QString name)
 */
 NmFolderType NmFolder::folderType() const
 {
+    NM_FUNCTION;
+    
     return d->mFolderType;
 }
 
@@ -164,6 +195,8 @@ NmFolderType NmFolder::folderType() const
 */
 void NmFolder::setFolderType(NmFolderType folderType)
 {
+    NM_FUNCTION;
+    
     d->mFolderType = folderType;
 }
 
@@ -172,6 +205,8 @@ void NmFolder::setFolderType(NmFolderType folderType)
 */
 QDateTime NmFolder::lastUpdated() const
 {
+    NM_FUNCTION;
+    
     return d->mUpdated;
 }
 
@@ -180,6 +215,8 @@ QDateTime NmFolder::lastUpdated() const
 */
 void NmFolder::setLastUpdated(QDateTime time)
 {
+    NM_FUNCTION;
+    
     d->mUpdated = time;
 }
 
@@ -188,6 +225,8 @@ void NmFolder::setLastUpdated(QDateTime time)
  */
 quint32 NmFolder::messageCount() const
 {
+    NM_FUNCTION;
+    
   return d->mMessageCount;
 }
 
@@ -196,6 +235,8 @@ quint32 NmFolder::messageCount() const
  */
 void NmFolder::setMessageCount(quint32 messageCount)
 {
+    NM_FUNCTION;
+    
   d->mMessageCount = messageCount;
 }
 
@@ -204,6 +245,8 @@ void NmFolder::setMessageCount(quint32 messageCount)
  */
 quint32 NmFolder::unreadMessageCount() const
 {
+    NM_FUNCTION;
+    
   return d->mUnreadMessageCount;
 }
 
@@ -212,6 +255,8 @@ quint32 NmFolder::unreadMessageCount() const
  */
 void NmFolder::setUnreadMessageCount(quint32 unreadMessageCount)
 {
+    NM_FUNCTION;
+    
   d->mUnreadMessageCount = unreadMessageCount;
 }
 
@@ -220,6 +265,8 @@ void NmFolder::setUnreadMessageCount(quint32 unreadMessageCount)
  */
 quint32 NmFolder::unseenCount() const
 {
+    NM_FUNCTION;
+    
   return d->mUnseenCount;
 }
 
@@ -228,6 +275,8 @@ quint32 NmFolder::unseenCount() const
  */
 void NmFolder::setUnseenCount(quint32 unseenCount)
 {
+    NM_FUNCTION;
+    
   d->mUnseenCount =  unseenCount;
 }
 
@@ -236,6 +285,8 @@ void NmFolder::setUnseenCount(quint32 unseenCount)
  */
 quint32 NmFolder::subFolderCount() const
 {
+    NM_FUNCTION;
+    
   return d->mSubFolderCount;
 }
 
@@ -244,6 +295,8 @@ quint32 NmFolder::subFolderCount() const
  */
 void NmFolder::setSubFolderCount(quint32 subFolderCount)
 {
+    NM_FUNCTION;
+    
   d->mSubFolderCount = subFolderCount;
 }
 

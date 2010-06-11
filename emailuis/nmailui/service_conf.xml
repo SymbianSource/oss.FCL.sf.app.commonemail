@@ -13,6 +13,12 @@
     <customproperty key="aiw_action_icon">qtg_large_email</customproperty>
   </interface>
   <interface>
+    <name>com.nokia.symbian.IUriView</name>
+    <version>1.0</version>
+    <description>Uri interface</description>
+    <customproperty key="schemes">mailto</customproperty>
+  </interface>
+  <interface>
     <name>com.nokia.symbian.IEmailMessageSend</name>
     <version>1.0</version>
     <description>Send interface</description>

@@ -15,6 +15,7 @@
  *
  */
 
+#include "emailtrace.h"
 
 #include <nmapifolderlisting.h>
 #include "nmapifolderlisting_p.h"
@@ -35,6 +36,8 @@ namespace EmailClientApi
 NmApiFolderListing::NmApiFolderListing(QObject *parent, const quint64 &nmMailboxId) :
     NmApiMessageTask(parent)
 {
+    NM_FUNCTION;
+    
     mFolderListing = new NmApiFolderListingPrivate(this);
     mFolderListing->mIsRunning = false;
     mFolderListing->mMailboxId = nmMailboxId;
@@ -45,6 +48,8 @@ NmApiFolderListing::NmApiFolderListing(QObject *parent, const quint64 &nmMailbox
  */
 NmApiFolderListing::~NmApiFolderListing()
 {
+    NM_FUNCTION;
+    
     if (mFolderListing->mIsRunning) {
         mFolderListing->releaseEngine();
     }
@@ -59,6 +64,8 @@ NmApiFolderListing::~NmApiFolderListing()
  */
 bool NmApiFolderListing::getFolders(QList<EmailClientApi::NmApiFolder> &folders)
 {
+    NM_FUNCTION;
+    
     folders.clear();
     if (!mFolderListing->mIsRunning || mFolderListing->mFolders.isEmpty()) {
         return false;
@@ -83,6 +90,8 @@ bool NmApiFolderListing::getFolders(QList<EmailClientApi::NmApiFolder> &folders)
  */
 bool NmApiFolderListing::start()
 {
+    NM_FUNCTION;
+    
     if (mFolderListing->mIsRunning) {
         return true;
     }
@@ -111,6 +120,8 @@ bool NmApiFolderListing::start()
  */
 void NmApiFolderListing::cancel()
 {
+    NM_FUNCTION;
+    
     if (!mFolderListing->mIsRunning) {
         return;
     }
@@ -127,6 +138,8 @@ void NmApiFolderListing::cancel()
  */
 bool NmApiFolderListing::isRunning() const
 {
+    NM_FUNCTION;
+    
     return mFolderListing->mIsRunning;
 }
 

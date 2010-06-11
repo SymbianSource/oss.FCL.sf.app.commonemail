@@ -16,7 +16,6 @@
  */
 
 #include <xqservicerequest.h>
-#include <QDebug>
 #include <QTimer>
 #include <QDir>
 #include <qpluginloader.h>
@@ -29,6 +28,7 @@
 #include "nmfolder.h"
 #include "nmdatapluginfactory.h"
 #include "nmhswidgetconsts.h"
+#include "emailtrace.h"
 
 /*!
  Constructor
@@ -36,7 +36,7 @@
 NmHsWidgetEmailEngine::NmHsWidgetEmailEngine(const NmId& monitoredMailboxId) :
     mMailboxId(monitoredMailboxId), 
     mFolderId(0), 
-    mAccountName(0), 
+    mAccountName(),
     mUnreadCount(-1),
     mEmailInterface(0), 
     mFactory(0), 
@@ -45,9 +45,7 @@ NmHsWidgetEmailEngine::NmHsWidgetEmailEngine(const NmId& monitoredMailboxId) :
     mSuspended(false),
     mUpdateTimer(0)
 {
-    qDebug() << "NmHsWidgetEmailEngine() -- START";
-
-    qDebug() << "NmHsWidgetEmailEngine() -- END";
+    NM_FUNCTION;
 }
 
 /*!
@@ -58,7 +56,7 @@ NmHsWidgetEmailEngine::NmHsWidgetEmailEngine(const NmId& monitoredMailboxId) :
  */
 bool NmHsWidgetEmailEngine::initialize()
 {
-    qDebug() << "initialize() -- START";
+    NM_FUNCTION;
         
     if (!constructNmPlugin()) {
         //if plugin connection fails, there's no reason to proceed
@@ -71,7 +69,6 @@ bool NmHsWidgetEmailEngine::initialize()
     mUpdateTimer->setInterval(NmHsWidgetEmailEngineUpdateTimerValue);
     connect(mUpdateTimer, SIGNAL(timeout()), this, SLOT(handleUpdateTimeout()) );
     
-    qDebug() << "initialize() -- END";
     return true;
 }
 
@@ -82,20 +79,20 @@ bool NmHsWidgetEmailEngine::initialize()
  */
 bool NmHsWidgetEmailEngine::constructNmPlugin()
 {
-    qDebug() << "NmHsWidgetEmailEngine::constructNmPlugin() -- START";
+    NM_FUNCTION;
 
     QObject* pluginInstance(0);
     //Get data plugin factory instance
     mFactory = NmDataPluginFactory::instance();
     if (!mFactory) {
-        qDebug() << "NmHsWidgetEmailEngine::constructNmPlugin() -- mFactory FAILED";
+        NM_ERROR(1,"NmHsWidgetEmailEngine::constructNmPlugin() -- mFactory FAILED");
         return false;
     }
 
     //Get plugin instance
     pluginInstance = mFactory->pluginInstance(mMailboxId);
     if (!pluginInstance) {
-        qDebug() << "NmHsWidgetEmailEngine::constructNmPlugin() -- pluginInstance FAILED";
+        NM_ERROR(1,"NmHsWidgetEmailEngine::constructNmPlugin() -- pluginInstance FAILED");
         return false;
     }
 
@@ -103,7 +100,7 @@ bool NmHsWidgetEmailEngine::constructNmPlugin()
     mEmailInterface = mFactory->interfaceInstance(pluginInstance);
 
     if (!mEmailInterface) {
-        qDebug() << "NmHsWidgetEmailEngine::constructNmPlugin() -- mEmailInterface FAILED";
+        NM_ERROR(1,"NmHsWidgetEmailEngine::constructNmPlugin() -- mEmailInterface FAILED");
         return false;       
     }
     //Verify that the mailbox we are interested actually exists.
@@ -111,7 +108,7 @@ bool NmHsWidgetEmailEngine::constructNmPlugin()
     QList<NmId> ids; 
     mEmailInterface->listMailboxIds(ids);
     if(!ids.contains(mMailboxId)){
-        qDebug() << "NmHsWidgetEmailEngine::constructNmPlugin() -- !ids.contains(mMailboxId) FAILED";
+        NM_ERROR(1,"NmHsWidgetEmailEngine::constructNmPlugin() -- !ids.contains(mMailboxId) FAILED");
         emit exceptionOccured(NmEngineExcAccountDeleted);
         return false;
     }
@@ -121,7 +118,6 @@ bool NmHsWidgetEmailEngine::constructNmPlugin()
     //This is valid at least for IMAP accounts. 
     //Folder ID is then retrieved later when first message event is received
     mFolderId = mEmailInterface->getStandardFolderId(mMailboxId, NmFolderInbox);
-    qDebug() << "NmHsWidgetEmailEngine::constructNmPlugin() -- mFolderId==" << mFolderId.id();
 
     //Subscription is needed - otherwise the signals will not be received
     mEmailInterface->subscribeMailboxEvents(mMailboxId);
@@ -135,8 +131,6 @@ bool NmHsWidgetEmailEngine::constructNmPlugin()
     connect(pluginInstance, SIGNAL( mailboxEvent(NmMailboxEvent, const QList<NmId>& ) ), this,
         SLOT( handleMailboxEvent(NmMailboxEvent, const QList<NmId>&) ));
 
-    qDebug() << "NmHsWidgetEmailEngine::constructNmPlugin() -- OK";
-
     return true;
 }
 
@@ -146,13 +140,11 @@ bool NmHsWidgetEmailEngine::constructNmPlugin()
  */
 void NmHsWidgetEmailEngine::resetEnvelopeList()
 {
-    qDebug() << "NmHsWidgetEmailEngine::resetEnvelopeList() -- START";
+    NM_FUNCTION;
 
     while (!mEnvelopeList.isEmpty()) {
         delete mEnvelopeList.takeFirst();
     }
-
-    qDebug() << "NmHsWidgetEmailEngine::resetEnvelopeList() -- END";
 }
 
 /*!
@@ -160,7 +152,7 @@ void NmHsWidgetEmailEngine::resetEnvelopeList()
  */
 NmHsWidgetEmailEngine::~NmHsWidgetEmailEngine()
 {
-    qDebug() << "~NmHsWidgetEmailEngine -- START";
+    NM_FUNCTION;
 
     resetEnvelopeList();
     if (mFactory) {
@@ -171,8 +163,6 @@ NmHsWidgetEmailEngine::~NmHsWidgetEmailEngine()
         mUpdateTimer->stop();
         delete mUpdateTimer;
     }
-    
-    qDebug() << "~NmHsWidgetEmailEngine -- END";
 }
 
 /*!
@@ -186,7 +176,7 @@ NmHsWidgetEmailEngine::~NmHsWidgetEmailEngine()
  */
 int NmHsWidgetEmailEngine::getEnvelopes(QList<NmMessageEnvelope> &list, int maxEnvelopeAmount)
 {
-    qDebug() << "NmHsWidgetEmailEngine::getEnvelopes()";
+    NM_FUNCTION;
     list.clear(); //Reset the parameter list to avoid side effects
     int i = 0;
     for (; i < mEnvelopeList.count() && i < maxEnvelopeAmount; i++) {
@@ -203,7 +193,7 @@ int NmHsWidgetEmailEngine::getEnvelopes(QList<NmMessageEnvelope> &list, int maxE
  */
 int NmHsWidgetEmailEngine::unreadCount()
 {
-    qDebug() << "NmHsWidgetEmailEngine::unreadCount()";
+    NM_FUNCTION;
     return mUnreadCount;
 }
 
@@ -214,7 +204,7 @@ int NmHsWidgetEmailEngine::unreadCount()
  */
 QString NmHsWidgetEmailEngine::accountName()
 {
-    qDebug() << "NmHsWidgetEmailEngine::accountName()";
+    NM_FUNCTION;
     return mAccountName;
 }
 
@@ -231,9 +221,9 @@ QString NmHsWidgetEmailEngine::accountName()
  */
 bool NmHsWidgetEmailEngine::updateData()
 {
-    qDebug() << "NmHsWidgetEmailEngine::updateData() -- START";
+    NM_FUNCTION;
     if (!mEmailInterface) {
-        qDebug() << "NmHsWidgetEmailEngine::updateData() -- Interface missing";
+        NM_ERROR(1,"NmHsWidgetEmailEngine::updateData() -- Interface missing");
         emit exceptionOccured(NmEngineExcFailure); //fatal error
         return false; //if interface is missing there's nothing to do
     }
@@ -276,8 +266,6 @@ bool NmHsWidgetEmailEngine::updateData()
     }else{
         return false;
     }
-
-    qDebug() << "NmHsWidgetEmailEngine::updateData() -- END";
     return true;
 }
 
@@ -290,12 +278,12 @@ void NmHsWidgetEmailEngine::handleMessageEvent(
     const QList<NmId> &messageIds,
     const NmId& mailboxId)
 {
-    qDebug() << "NmHsWidgetEmailEngine::handleMessageEvent() -- START";
+    NM_FUNCTION;
     Q_UNUSED(event);
     Q_UNUSED(messageIds);
     
     if (!mEmailInterface) {
-        qDebug() << "NmHsWidgetEmailEngine::handleMessageEvent() -- Interface missing";
+        NM_ERROR(1,"NmHsWidgetEmailEngine::handleMessageEvent() -- Interface missing");
         emit exceptionOccured(NmEngineExcFailure); //fatal error
         return; //if interface is missing there's nothing to do
     }
@@ -315,7 +303,6 @@ void NmHsWidgetEmailEngine::handleMessageEvent(
             mUpdateTimer->start();
         }
     }
-    qDebug() << "NmHsWidgetEmailEngine::handleMessageEvent() -- END";
 }
 
 /*!
@@ -323,7 +310,7 @@ void NmHsWidgetEmailEngine::handleMessageEvent(
  */
 void NmHsWidgetEmailEngine::handleMailboxEvent(NmMailboxEvent event, const QList<NmId> &mailboxIds)
 {
-    qDebug() << "NmHsWidgetEmailEngine::handleMailboxEvent() -- START";
+    NM_FUNCTION;
     if (mailboxIds.contains(mMailboxId)) {
         switch (event) {
             case (NmMailboxChanged): {
@@ -344,7 +331,6 @@ void NmHsWidgetEmailEngine::handleMailboxEvent(NmMailboxEvent event, const QList
                 break;
         }
     }
-    qDebug() << "NmHsWidgetEmailEngine::handleMailboxEvent() -- END";
 }
 
 /*!
@@ -352,12 +338,11 @@ void NmHsWidgetEmailEngine::handleMailboxEvent(NmMailboxEvent event, const QList
  */
 void NmHsWidgetEmailEngine::handleUpdateTimeout()
 {
-    qDebug() << "NmHsWidgetEmailEngine::handleUpdateTimeout() -- START";
+    NM_FUNCTION;
     if (mUpdateTimer){
         mUpdateTimer->stop();
     }
     updateData();
-    qDebug() << "NmHsWidgetEmailEngine::updateAccount() -- END";
 }
 
 /*!
@@ -367,7 +352,7 @@ void NmHsWidgetEmailEngine::handleUpdateTimeout()
  */
 bool NmHsWidgetEmailEngine::updateAccount()
 {
-    qDebug() << "NmHsWidgetEmailEngine::updateAccount() -- START";
+    NM_FUNCTION;
 
     NmMailbox* box = NULL;
     if (mEmailInterface) {
@@ -383,7 +368,6 @@ bool NmHsWidgetEmailEngine::updateAccount()
         box = NULL;
         emit accountNameChanged(mAccountName);
     }
-    qDebug() << "NmHsWidgetEmailEngine::updateAccount() -- END";
     return true;
 }
 
@@ -393,9 +377,8 @@ bool NmHsWidgetEmailEngine::updateAccount()
  */
 void NmHsWidgetEmailEngine::suspend()
 {
-    qDebug() << "NmHsWidgetEmailEngine::suspend() -- START";
+    NM_FUNCTION;
     mSuspended = true;
-    qDebug() << "NmHsWidgetEmailEngine::suspend() -- END";
 }
 
 /*!
@@ -405,7 +388,7 @@ void NmHsWidgetEmailEngine::suspend()
  */
 void NmHsWidgetEmailEngine::activate()
 {
-    qDebug() << "NmHsWidgetEmailEngine::activate() -- START";
+    NM_FUNCTION;
     mSuspended = false;
     if (mAccountEventReceivedWhenSuspended) {
         mAccountEventReceivedWhenSuspended = false;
@@ -415,7 +398,6 @@ void NmHsWidgetEmailEngine::activate()
         mMessageEventReceivedWhenSuspended = false;
         updateData();
     }
-    qDebug() << "NmHsWidgetEmailEngine::activate() -- END";
 }
 
 /*!
@@ -424,7 +406,7 @@ void NmHsWidgetEmailEngine::activate()
  */
 void NmHsWidgetEmailEngine::launchMailAppInboxView()
 {
-    qDebug() << "NmHsWidgetEmailEngine::launchMailAppInboxView() -- START";
+    NM_FUNCTION;
 
     XQServiceRequest request(
         emailFullServiceNameMailbox,
@@ -436,8 +418,6 @@ void NmHsWidgetEmailEngine::launchMailAppInboxView()
 
     request.setArguments(list);
     request.send();
-
-    qDebug() << "NmHsWidgetEmailEngine::launchMailAppInboxView() -- END";
 }
 
 /*!
@@ -447,7 +427,7 @@ void NmHsWidgetEmailEngine::launchMailAppInboxView()
  */
 void NmHsWidgetEmailEngine::launchMailAppMailViewer(const NmId &messageId)
 {
-    qDebug() << "NmHsWidgetEmailEngine::launchMailAppMailViewer() -- START";
+    NM_FUNCTION;
 
     XQServiceRequest request(
        emailFullServiceNameMessage,
@@ -461,6 +441,4 @@ void NmHsWidgetEmailEngine::launchMailAppMailViewer(const NmId &messageId)
 
     request.setArguments(list);
     request.send();
-
-    qDebug() << "NmHsWidgetEmailEngine::launchMailAppMailViewer() -- END";
 }

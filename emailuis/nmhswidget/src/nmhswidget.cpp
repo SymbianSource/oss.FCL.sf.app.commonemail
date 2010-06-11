@@ -14,7 +14,6 @@
  * Description: 
  *
  */
-#include <QDebug>
 #include <QtGui>
 #include <QGraphicsLinearLayout>
 #include <hbcolorscheme.h>
@@ -29,6 +28,7 @@
 #include "nmhswidgetemailrow.h"
 #include "nmhswidgetconsts.h"
 #include "nmhswidgetdatetimeobserver.h"
+#include "emailtrace.h"
 
 NmHsWidget::NmHsWidget(QGraphicsItem *parent, Qt::WindowFlags flags)
     : HbWidget(parent, flags), 
@@ -36,16 +36,14 @@ NmHsWidget::NmHsWidget(QGraphicsItem *parent, Qt::WindowFlags flags)
       mRowLayout(0),
       mTitleRow(0),
       mAccountId(0),
-      mAccountIconName(0),
+      mAccountIconName(),
       mTranslator(0),
       mBackgroundFrameDrawer(0),
-      mIsExpanded(true),
+      mIsExpanded(false),
       mStaticWidget(true),
       mDateObserver(0)
 {
-    qDebug() << "NmHsWidget::NmHsWidget IN -->>";
-       
-    qDebug() << "NmHsWidget::NmHsWidget OUT <<--";
+    NM_FUNCTION;
 }
 
 /*!
@@ -53,27 +51,19 @@ NmHsWidget::NmHsWidget(QGraphicsItem *parent, Qt::WindowFlags flags)
 */
 NmHsWidget::~NmHsWidget()
 {
-    qDebug() << "NmHsWidget::~NmHsWidget IN -->>";
-    if(mTranslator){
-        delete mTranslator;
-        mTranslator = NULL;
-    }
-    
-    if(mEngine){
-        delete mEngine;
-        mEngine = NULL;
-        }
-    
-    if(mBackgroundFrameDrawer){
-        delete mBackgroundFrameDrawer;
-        mBackgroundFrameDrawer = NULL;
-        }
-		
-	if(mDateObserver){
-        delete mDateObserver;
-        mDateObserver = NULL;
-        }
-    qDebug() << "NmHsWidget::~NmHsWidget OUT <<--";
+    NM_FUNCTION;
+
+    delete mTranslator;
+    mTranslator = NULL;
+
+    delete mEngine;
+    mEngine = NULL;
+
+    delete mBackgroundFrameDrawer;
+    mBackgroundFrameDrawer = NULL;
+
+    delete mDateObserver;
+    mDateObserver = NULL;
 }
 
 /*!
@@ -83,12 +73,11 @@ NmHsWidget::~NmHsWidget()
 */
 void NmHsWidget::onShow()
 {
-    qDebug() << "NmHsWidget::onShow IN -->>";
+    NM_FUNCTION;
     if (mEngine)
         {
         mEngine->activate();
         }
-    qDebug() << "NmHsWidget::onShow OUT <<--";
 }
 
 /*!
@@ -98,12 +87,11 @@ void NmHsWidget::onShow()
 */
 void NmHsWidget::onHide()
 {
-    qDebug() << "NmHsWidget::onHide IN -->>";
+    NM_FUNCTION;
     if (mEngine)
         {
         mEngine->suspend();
         }
-    qDebug() << "NmHsWidget::onHide OUT <<--";
 }
 
 /*!
@@ -113,17 +101,15 @@ void NmHsWidget::onHide()
 */
 bool NmHsWidget::setupLocalization()
 {
-    qDebug() << "NmHsWidget::setupLocalization IN -->>";
+    NM_FUNCTION;
     
     //Use correct localisation
     bool ret(false); 
     mTranslator = new QTranslator();
     QString lang = QLocale::system().name();
     ret = mTranslator->load(KNmHsWidgetLocFileName + lang, KNmHsWidgetLocLocation);
-    qDebug() << "NmHsWidget::setupLocalization mTranslator->load loadSucceed:"<<ret;
     QCoreApplication::installTranslator(mTranslator);
 
-    qDebug() << "NmHsWidget::setupLocalization OUT <<--";
     return ret;
 }
 
@@ -133,7 +119,8 @@ bool NmHsWidget::setupLocalization()
 */
 void NmHsWidget::setupUi()
 {
-    qDebug() << "NmHsWidget::setupUi IN -->>";
+    NM_FUNCTION;
+    
     setContentsMargins( KNmHsWidgetContentsMargin, KNmHsWidgetContentsMargin,
             KNmHsWidgetContentsMargin, KNmHsWidgetContentsMargin);
     
@@ -151,8 +138,6 @@ void NmHsWidget::setupUi()
    //set to NULL to indicate that ownership transferred
    mBackgroundFrameDrawer = NULL;
    setBackgroundItem( backgroundLayoutItem );
-   
-   qDebug() << "NmHsWidget::setupUi OUT -->>";
 }
 
 /*!
@@ -162,9 +147,9 @@ void NmHsWidget::setupUi()
 */
 void NmHsWidget::onInitialize()
 {
-    QT_TRY{
-        qDebug() << "NmHsWidget::onInitialize IN -->>";
-        
+    NM_FUNCTION;
+    
+    QT_TRY{       
         setupUi();
         //emit error if localization fails
         if(!setupLocalization()){
@@ -204,6 +189,7 @@ void NmHsWidget::onInitialize()
         updateMailData();
         mTitleRow->updateUnreadCount(mEngine->unreadCount());
         mTitleRow->setAccountIcon(mAccountIconName);
+        mTitleRow->setExpandCollapseIcon(mIsExpanded);
         
         //Get signals about changes in mail data
         connect(mEngine, SIGNAL( mailDataChanged() )
@@ -229,7 +215,6 @@ void NmHsWidget::onInitialize()
 	        //to place widget properly after adding to homescreen
 	        parentWidget()->resize(preferredSize()); 
 		}
-        qDebug() << "NmHsWidget::onInitialize OUT <<--";  
     }
     QT_CATCH(...){
         emit error();
@@ -244,9 +229,7 @@ void NmHsWidget::onInitialize()
 */
 void NmHsWidget::onUninitialize()
 {
-    qDebug() << "NmHsWidget::onUninitialize IN -->>";
-    
-    qDebug() << "NmHsWidget::onUninitialize OUT <<--";
+    NM_FUNCTION;
 }
 
 /*!
@@ -254,7 +237,8 @@ void NmHsWidget::onUninitialize()
 */
 void NmHsWidget::updateMailData()
 {
-    qDebug() << "NmHsWidget::updateData IN -->>";
+    NM_FUNCTION;
+    
     QList<NmMessageEnvelope> envelopes;
     int count = 0;
     if (mIsExpanded) {
@@ -267,7 +251,6 @@ void NmHsWidget::updateMailData()
         {
         mMailRows[i]->updateMailData( envelopes[i] );
         }
-    qDebug() << "NmHsWidget::updateData OUT <<--"; 
 }
 
 /*!
@@ -276,12 +259,13 @@ void NmHsWidget::updateMailData()
 */
 void NmHsWidget::setAccountId(const QString &text)
 {
-    qDebug() << "NmHsWidget::setAccountId IN -->>"; 
+    NM_FUNCTION;
+    
     bool ok;
     quint64 id = text.toULongLong(&ok);
     if (!ok)
         {
-        qDebug() << "NmHsWidget::setAccountId: invalid account ID data, signal finished()!!!"; 
+        NM_ERROR(1,"NmHsWidget::setAccountId: invalid account ID data, signal finished()!!!"); 
         //No valid account id so give up
         emit finished();
         }
@@ -289,7 +273,6 @@ void NmHsWidget::setAccountId(const QString &text)
         {
         mAccountId.setId(id);
         }
-    qDebug() << "NmHsWidget::setAccountId OUT <<--"; 
 }
 
 /*!
@@ -298,7 +281,7 @@ void NmHsWidget::setAccountId(const QString &text)
 */
 QString NmHsWidget::accountId() const
 {
-    qDebug() << "NmHsWidget::accountId()"; 
+    NM_FUNCTION;
     return QString::number(mAccountId.id());
 }
 
@@ -307,9 +290,8 @@ QString NmHsWidget::accountId() const
 */
 void NmHsWidget::setAccountIconName(const QString &text)
 {
-    qDebug() << "NmHsWidget::setAccountIconName IN -->>"; 
+    NM_FUNCTION;
     mAccountIconName = text;
-    qDebug() << "NmHsWidget::setAccountIconName OUT <<--"; 
 }
 
 /*!
@@ -317,7 +299,7 @@ void NmHsWidget::setAccountIconName(const QString &text)
 */
 QString NmHsWidget::accountIconName() const
 {
-    qDebug() << "NmHsWidget::accountIconName()"; 
+    NM_FUNCTION;
     return mAccountIconName;
 }
 
@@ -326,9 +308,8 @@ QString NmHsWidget::accountIconName() const
 */
 void NmHsWidget::handleExpandCollapseEvent()
 {
-    qDebug() << "NmHsWidget::handleExpandCollapseEvent IN -->>";
+    NM_FUNCTION;
     toggleExpansionState();
-    qDebug() << "NmHsWidget::handleExpandCollapseEvent OUT <<--"; 
 }
 
 /*!
@@ -337,7 +318,7 @@ void NmHsWidget::handleExpandCollapseEvent()
 */
 void NmHsWidget::toggleExpansionState()
 {
-    qDebug() << "NmHsWidget::setExpanded IN -->>"; 
+    NM_FUNCTION;
 
     mIsExpanded = !mIsExpanded;
     
@@ -349,7 +330,7 @@ void NmHsWidget::toggleExpansionState()
     //handle state change drawing
     updateMailData();
     
-    qDebug() << "NmHsWidget::setExpanded OUT <<--"; 
+    mTitleRow->setExpandCollapseIcon(mIsExpanded);
 }
 
 /*!
@@ -357,7 +338,7 @@ void NmHsWidget::toggleExpansionState()
 */
 void NmHsWidget::setWidgetStateProperty(QString value)
 {
-    qDebug() << "NmHsWidget::setWidgetStateProperty IN -->>"; 
+    NM_FUNCTION;
     if (value == KNmHsWidgetStateCollapsed)
         {
         mIsExpanded = false;
@@ -366,7 +347,6 @@ void NmHsWidget::setWidgetStateProperty(QString value)
         {
         mIsExpanded = true;
         }
-    qDebug() << "NmHsWidget::setWidgetStateProperty OUT <<--"; 
 }
 
 /*!
@@ -374,7 +354,7 @@ void NmHsWidget::setWidgetStateProperty(QString value)
 */
 QString NmHsWidget::widgetStateProperty()
 {
-    qDebug() << "NmHsWidget::widgetStateProperty()";
+    NM_FUNCTION;
     if (mIsExpanded)
         {
         return KNmHsWidgetStateExpanded;
@@ -392,9 +372,7 @@ QString NmHsWidget::widgetStateProperty()
 */
 void NmHsWidget::updateMailRowsList(const int mailCount)
 {
-    qDebug() << "NmHsWidget::updateMailRowsList IN -->>";
-    qDebug() << "NmHsWidget - mMailRows.count() == " <<  mMailRows.count();
-    qDebug() << "NmHsWidget - ordered count == " <<  mailCount;
+    NM_FUNCTION;
     
     int neededRowsCount = mailCount;
     //force size when static and expanded
@@ -408,10 +386,9 @@ void NmHsWidget::updateMailRowsList(const int mailCount)
         //more mails to show than rows
         if (mMailRows.count() < neededRowsCount)
             {
-            qDebug() << "NmHsWidget - add new mail row";
             NmHsWidgetEmailRow *row = new NmHsWidgetEmailRow();
             if( !row->loadDocML()){
-                qDebug() << "NmHsWidget::updateMailRowsList row->loadDocML() fails";
+                NM_ERROR(1,"NmHsWidget::updateMailRowsList row->loadDocML() fails");
                 //if docml loading fails no point to proceed
                 //but memoryleak must be prevented
                 delete row;
@@ -429,7 +406,6 @@ void NmHsWidget::updateMailRowsList(const int mailCount)
         //too many rows
         else if (mMailRows.count() > neededRowsCount)
             {
-            qDebug() << "NmHsWidget - remove mail row";
             mRowLayout->removeItem(mMailRows.last());
             delete mMailRows.takeLast();
             }
@@ -443,7 +419,6 @@ void NmHsWidget::updateMailRowsList(const int mailCount)
         {
         this->updateMailRowsVisibility(mailCount);
         }
-    qDebug() << "NmHsWidget::updateMailRowsList OUT <<--";
 }
 
 /*!
@@ -453,7 +428,7 @@ void NmHsWidget::updateMailRowsList(const int mailCount)
 */
 void NmHsWidget::updateMailRowsVisibility(const int visibleCount)
 {
-    qDebug() << "NmHsWidget::updateMailRowsVisibility IN -->>";
+    NM_FUNCTION;
   
     // set visible as many rows as requested by visibleCount param
     bool isVisible;
@@ -466,8 +441,6 @@ void NmHsWidget::updateMailRowsVisibility(const int visibleCount)
             }
         mMailRows.at(i)->setVisible(isVisible);
         }
-    
-    qDebug() << "NmHsWidget::updateMailRowsVisibility OUT <<--";
 }
 
 /*!
@@ -477,7 +450,7 @@ void NmHsWidget::updateMailRowsVisibility(const int visibleCount)
 */
 void NmHsWidget::onEngineException(const int& exc)
     {
-    qDebug() << "NmHsWidget:onEngineException IN -->>";
+    NM_FUNCTION;
     switch (exc)
         {
         case (NmEngineExcAccountDeleted):

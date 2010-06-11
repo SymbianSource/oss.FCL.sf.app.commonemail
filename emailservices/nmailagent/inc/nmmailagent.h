@@ -23,6 +23,8 @@
 class NmMailbox;
 class NmDataPluginFactory;
 class NmDataPluginInterface;
+class HbIndicator;
+class XQSystemToneService;
 
 class NmMailboxInfo
 {
@@ -41,6 +43,7 @@ public:
     QList<NmId> mUnreadMailIdList;
     int mOutboxMails;
     bool mActive;
+    QDateTime mLastSeenTime;
 
     NmMailboxInfo();
 };
@@ -66,7 +69,7 @@ public slots:
             NmMessageEvent event,
             const NmId &folderId,
             const QList<NmId> &messageIds,
-            const NmId& mailboxId);
+            const NmId &mailboxId);
 
     void handleSyncStateEvent(
             NmSyncState state,
@@ -77,6 +80,8 @@ public slots:
     void delayedStart();
 
     void enableAlertTone();
+    
+    void indicatorActivated(const QString &type, const QVariantMap &data);
 
 private:
 
@@ -84,10 +89,18 @@ private:
 
     bool updateUnreadCount(const NmId &mailboxId, NmMailboxInfo &mailboxInfo);
 
-    int getOutboxCount(const NmId& mailboxId);
+    int getOutboxCount(const NmId &mailboxId);
 
-    int getIndicatorIndex();
+    NmMailboxInfo *getMailboxByType(const QString &type);
 
+    int getFreeIndicatorIndex();
+    
+    int getTotalUnreadCount() const;
+
+    bool updateUnreadIndicator();
+    
+    bool updateUnreadIndicator(bool active);
+    
     bool updateIndicator(bool active,
         const NmMailboxInfo& mailboxInfo);
 
@@ -108,14 +121,21 @@ private:
     bool getMessageUnreadInfo(const NmId &folderId,
         const NmId &messageId, const NmId &mailboxId, bool &unreadMessage);
 
-    void playAlertTone();
+    bool playAlertTone();
+
+    void updateSendIndicator();
+    
+    bool launchMailbox(quint64 mailboxId);
 
 private: // data
 
+    HbIndicator *mIndicator;
+    XQSystemToneService *mSystemTone;
     NmDataPluginFactory *mPluginFactory;
     QList<NmMailboxInfo*> mMailboxes;
-    bool mSendingState;
     bool mAlertToneAllowed;
+    int mLastOutboxCount;
+    bool mUnreadIndicatorActive;
 };
 
 

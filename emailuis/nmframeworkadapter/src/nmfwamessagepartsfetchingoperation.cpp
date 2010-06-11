@@ -34,6 +34,8 @@ NmFwaMessagePartsFetchingOperation::NmFwaMessagePartsFetchingOperation(
     mRequestId(0)
 
 {
+    NM_FUNCTION;
+    
     // Take own copy of the message part id list.
     mMessagePartIds.Reset();
     for (int i=0; i<messagePartIds.count(); ++i) {
@@ -49,6 +51,8 @@ NmFwaMessagePartsFetchingOperation::NmFwaMessagePartsFetchingOperation(
  */
 NmFwaMessagePartsFetchingOperation::~NmFwaMessagePartsFetchingOperation()
 {
+    NM_FUNCTION;
+    
     doCancelOperation();
 }
 
@@ -57,6 +61,8 @@ NmFwaMessagePartsFetchingOperation::~NmFwaMessagePartsFetchingOperation()
  */
 void NmFwaMessagePartsFetchingOperation::RequestResponseL(TFSProgress aEvent, TInt aRequestId)
 {
+    NM_FUNCTION;
+    
     if (aRequestId == mRequestId) {
         if (aEvent.iProgressStatus == TFSProgress::EFSStatus_RequestComplete ) {
             completeOperation(aEvent.iError);
@@ -86,6 +92,8 @@ void NmFwaMessagePartsFetchingOperation::RequestResponseL(TFSProgress aEvent, TI
  */
 void NmFwaMessagePartsFetchingOperation::doRunAsyncOperation()
 {
+    NM_FUNCTION;
+    
     TRAPD(err, doRunAsyncOperationL());
     if (err != KErrNone) {
         completeOperation(NmGeneralError);
@@ -97,6 +105,8 @@ void NmFwaMessagePartsFetchingOperation::doRunAsyncOperation()
  */
 void NmFwaMessagePartsFetchingOperation::doRunAsyncOperationL()
 {
+    NM_FUNCTION;
+    
     if (mMessagePartIds.Count() > 0) {
         
         const TFSMailMsgId mailboxId(mMailboxId.pluginId32(), mMailboxId.id32());
@@ -133,6 +143,8 @@ void NmFwaMessagePartsFetchingOperation::doRunAsyncOperationL()
  */
 void NmFwaMessagePartsFetchingOperation::doCompleteOperation()
 {
+    NM_FUNCTION;
+    
     mRequestId = NmNotFoundError;
 }
 
@@ -141,6 +153,8 @@ void NmFwaMessagePartsFetchingOperation::doCompleteOperation()
  */
 void NmFwaMessagePartsFetchingOperation::doCancelOperation()
 {
+    NM_FUNCTION;
+    
     if (mRequestId >= 0) {
         TRAP_IGNORE(mMailClient.CancelL(mRequestId));
         mRequestId = NmNotFoundError;

@@ -23,6 +23,7 @@
 #include <msvids.h>
 #include <msvuids.h>
 
+
 // becuase of RD_IPS_AO_PLUGIN flag, can be removed
 // when flag is removed
 #include "ipsplgsosbaseplugin.hrh"
@@ -31,7 +32,9 @@
 #include "IpsSosAOMboxLogic.h"
 #include "IpsSosAOEMNResolver.h"
 //<QMail>
+
 #include "IpsSosAOSettingsHandler.h"
+#include "IpsSosAoExtendedSettingsManager.h"
 //</QMail>
 
 
@@ -240,7 +243,7 @@ void CIpsSosAOImapPopLogic::HandleMsvSessionEventL(
         case MMsvSessionObserver::EMsvEntriesChanged:
             {
             TMsvId parent = (*(TMsvId*) (aArg2));
-            //we check that parent is the root. if not, it cannot be a 
+            //we check that parent is the root. if not, it cannot be an 
             //event from service, thus can't be from connection change..
             if ( parent == KMsvRootIndexEntryId )
                 {
@@ -264,9 +267,16 @@ void CIpsSosAOImapPopLogic::HandleMsvSessionEventL(
             }
             break;
         case MMsvSessionObserver::EMsvEntriesDeleted:
-            // NOTE: if mailbox is deleted somewhere else than ips plugin
-            // in here need to put logic for removing corresponding 
-            // mailboxlogic object
+            {
+            TMsvId parent = (*(TMsvId*) (aArg2));
+            //we check that parent is the root. if not, it cannot be an 
+            //event indicating deleted mailbox entry
+            if ( parent == KMsvRootIndexEntryId )
+                {
+                RemoveOrphanLogicsL();
+                }
+            }
+            break;
         case MMsvSessionObserver::EMsvEntriesMoved:
         default:
             break;
@@ -429,6 +439,9 @@ void CIpsSosAOImapPopLogic::UpdateLogicArrayL(
         CleanupStack::PopAndDestroy(settings);
 		//</QMail>
         }
+    
+    //finally, check for orphans ( mailbox has been deleted )
+    RemoveOrphanLogicsL();
     }
 
 // ----------------------------------------------------------------------------
@@ -493,5 +506,33 @@ TInt CIpsSosAOImapPopLogic::GetMailboxLogicIndex( TMsvId aMailboxId )
     return index;
     }
 
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+//
+void CIpsSosAOImapPopLogic::RemoveOrphanLogicsL()
+    {
+    CMsvEntry* cEntry = iSession.GetEntryL( KMsvRootIndexEntryId );
+    CleanupStack::PushL( cEntry );
+    
+    CMsvEntrySelection* popEntries = cEntry->ChildrenWithMtmL( KSenduiMtmPop3Uid );
+    CleanupStack::PushL( popEntries );
+    
+    CMsvEntrySelection* imapEntries = cEntry->ChildrenWithMtmL( KSenduiMtmImap4Uid );
+    CleanupStack::PushL( imapEntries );
+        
+        
+    TInt count = iMailboxLogics.Count();
+    
+    for(TInt i=count-1; i>-1;i--)
+        {
+        if( popEntries->Find(iMailboxLogics[i]->GetMailboxId()) == KErrNotFound &&
+            imapEntries->Find(iMailboxLogics[i]->GetMailboxId()) == KErrNotFound)
+            {
+            StopAndRemoveMailboxL( iMailboxLogics[i]->GetMailboxId() );
+            }
+        }
+    
+    CleanupStack::PopAndDestroy( 3, cEntry );
+    }
 // End of file
 

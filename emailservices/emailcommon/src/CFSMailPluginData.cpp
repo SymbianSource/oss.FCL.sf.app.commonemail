@@ -15,11 +15,12 @@
 *
 */
 
+#include "emailtrace.h"
+
 // <qmail>
 #include <nmcommonheaders.h>
 // </qmail>
 
-#include "emailtrace.h"
 #include "CFSMailPluginData.h"
 
 // -----------------------------------------------------------------------------
@@ -27,8 +28,7 @@
 // -----------------------------------------------------------------------------
 CFSMailPluginData::CFSMailPluginData()
 {
-    FUNC_LOG;
-
+    NM_FUNCTION;
 }
 
 // -----------------------------------------------------------------------------
@@ -36,7 +36,8 @@ CFSMailPluginData::CFSMailPluginData()
 // -----------------------------------------------------------------------------
 CFSMailPluginData::~CFSMailPluginData()
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 	if(iPlugin)
 		{
 		delete iPlugin;

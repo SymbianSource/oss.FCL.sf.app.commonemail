@@ -13,7 +13,7 @@
 #
 # Description: 
 #
-# Version : %version: e003sa37#27 %
+# Version : %version: e003sa37#30 %
 TEMPLATE = lib
 TARGET = nmframeworkadapter
 
@@ -36,10 +36,10 @@ HEADERS += inc/nmframeworkadapter.h \
            inc/nmfwaaddattachmentsoperation.h \
            inc/nmfwaremoveattachmentoperation.h \
            inc/nmfwastoremessageoperation.h \
-           inc/nmfwacheckoutboxoperation.h \
            inc/nmfwamessagepartfetchingoperation.h \
            inc/nmmailboxsearchobserver.h \
-           inc/nmfwamessagepartsfetchingoperation.h
+           inc/nmfwamessagepartsfetchingoperation.h \
+           inc/nmfwaremovedraftmessageoperation.h
 
 SOURCES += src/nmframeworkadapter.cpp \
            src/nmfwamessagefetchingoperation.cpp \
@@ -51,10 +51,10 @@ SOURCES += src/nmframeworkadapter.cpp \
            src/nmfwaaddattachmentsoperation.cpp \
            src/nmfwaremoveattachmentoperation.cpp \
            src/nmfwastoremessageoperation.cpp \
-           src/nmfwacheckoutboxoperation.cpp \
            src/nmfwamessagepartfetchingoperation.cpp \
            src/nmmailboxsearchobserver.cpp \
-           src/nmfwamessagepartsfetchingoperation.cpp
+           src/nmfwamessagepartsfetchingoperation.cpp \
+           src/nmfwaremovedraftmessageoperation.cpp
 
 RESOURCES +=
 
@@ -65,7 +65,10 @@ LIBS += -lefsrv
 symbian*: {
     INCLUDEPATH += /epoc32/include/ecom \
     ../../emailservices/emailframework/inc \
-    ../../emailservices/emailframework/commonlib/inc \
+# <qmail>    
+#    ../../emailservices/emailframework/commonlib/inc \
+    ../../emailservices/emailcommon/inc \
+# </qmail>     
     ../../inc
     INCLUDEPATH += /epoc32/include/ecom
 

@@ -44,10 +44,11 @@
 */
 NmIpsSettingsManagerBase::NmIpsSettingsManagerBase(const NmId &mailboxId, CEmailAccounts *account, 
     IpsServices::TIpsSetAccountTypes accountType)
-: mAccountType(accountType),
-  mMailboxId(mailboxId.id())
+    : mAccountType(accountType),
+      mMailboxId(mailboxId.id())
 {
-    QScopedPointer<NmIpsExtendedSettingsManager> extendedSettings(new NmIpsExtendedSettingsManager(mailboxId));
+    QScopedPointer<NmIpsExtendedSettingsManager> extendedSettings(
+        new NmIpsExtendedSettingsManager(mailboxId));
 
     QT_TRAP_THROWING(mSmtpSettings = new(ELeave) CImSmtpSettings());
 
@@ -57,7 +58,7 @@ NmIpsSettingsManagerBase::NmIpsSettingsManagerBase(const NmId &mailboxId, CEmail
 }
 
 /*!
-    Destructor
+    Destructor.
 */
 NmIpsSettingsManagerBase::~NmIpsSettingsManagerBase()
 {
@@ -73,7 +74,8 @@ NmIpsSettingsManagerBase::~NmIpsSettingsManagerBase()
     \param QVariant SettingValue of the found setting value.
     \return bool <true> when the setting item was found otherwise <false>.
 */
-bool NmIpsSettingsManagerBase::readSetting(IpsServices::SettingItem settingItem, QVariant &settingValue)
+bool NmIpsSettingsManagerBase::readSetting(IpsServices::SettingItem settingItem,
+                                           QVariant &settingValue)
 {
     bool found(false);
     
@@ -117,7 +119,17 @@ bool NmIpsSettingsManagerBase::readSetting(IpsServices::SettingItem settingItem,
         case IpsServices::OutgoingSSLWrapper:
         	settingValue = mSmtpSettings->SSLWrapper();
             found = true;
-            break;  
+            break;
+        case IpsServices::Connection:
+            settingValue = 0;
+            TRAP_IGNORE(
+                CImIAPPreferences *prefs = CImIAPPreferences::NewLC();
+                mAccount->LoadSmtpIapSettingsL(mSmtpAccount, *prefs);
+                settingValue = (uint)prefs->SNAPPreference();
+                CleanupStack::PopAndDestroy(prefs);
+                found = true;
+            );
+            break;
         default:
             found = mExtendedSettingsManager->readSetting(settingItem, settingValue);
             break;
@@ -131,7 +143,8 @@ bool NmIpsSettingsManagerBase::readSetting(IpsServices::SettingItem settingItem,
     \param settingValue QVariant of the new setting value.
     \return bool <true> when the setting item was succesfully written, otherwise <false>.
 */
-bool NmIpsSettingsManagerBase::writeSetting(IpsServices::SettingItem settingItem, const QVariant &settingValue)
+bool NmIpsSettingsManagerBase::writeSetting(IpsServices::SettingItem settingItem,
+                                            const QVariant &settingValue)
 {
     HBufC *tmp = 0;
     HBufC8 *tmp8 = 0;
@@ -203,7 +216,10 @@ bool NmIpsSettingsManagerBase::writeSetting(IpsServices::SettingItem settingItem
         case IpsServices::OutgoingSSLWrapper:
             mSmtpSettings->SetSSLWrapper(settingValue.toBool());
             ret = saveSettings();
-            break;  
+            break;
+        case IpsServices::Connection:
+            ret = saveIAPSettings(settingValue.toUInt());
+            break;
         default:
             ret = mExtendedSettingsManager->writeSetting(settingItem, settingValue);
             break;    
@@ -212,8 +228,7 @@ bool NmIpsSettingsManagerBase::writeSetting(IpsServices::SettingItem settingItem
 }
 
 /*!     
-    Delete mailbox.
-
+    Deletes the mailbox.
     \return Error code <code>0</code> if mailbox deletion was successful, otherwise error
             code is returned.
 */
@@ -227,6 +242,46 @@ int NmIpsSettingsManagerBase::deleteMailbox()
 }
 
 /*!     
+    Returns the NmId of the mailbox.
+    \return Mailbox id.
+*/
+NmId NmIpsSettingsManagerBase::mailboxId() const
+{
+    return mMailboxId;
+}
+
+/*!     
+    Returns the mailbox account type.
+    \return Account type.
+*/
+IpsServices::TIpsSetAccountTypes NmIpsSettingsManagerBase::accountType() const
+{
+    return mAccountType;
+}
+
+/*!
+     Determines the default port for the outgoing mail server based on the security settings.
+     \return The port number to use.
+ */
+int NmIpsSettingsManagerBase::determineDefaultOutgoingPort()
+{
+    int port(IpsServices::standardSmtpPort);
+    if (mSmtpSettings->SSLWrapper()) {
+        port = IpsServices::secureSmtpPort;
+    }        
+    return port;
+}
+
+/*!
+    Returns reference to the Extended Settings Manager.
+    \return Extended Settings Manager reference.
+*/
+NmIpsExtendedSettingsManager &NmIpsSettingsManagerBase::extendedSettingsManager() const
+{
+    return *mExtendedSettingsManager;
+}
+
+/*!
     Stores the SMTP specific settings.
     \return bool <true> when the SMTP settings were succesfully written, otherwise <false>.
 */
@@ -236,44 +291,18 @@ bool NmIpsSettingsManagerBase::saveSettings()
     return (err == KErrNone);
 }
 
-/*!     
-    NmId for the mailbox. 
-*/
-NmId NmIpsSettingsManagerBase::mailboxId() const
-{
-    return mMailboxId;
-}
-
-/*!     
-    Mailbox account type. 
-*/
-IpsServices::TIpsSetAccountTypes NmIpsSettingsManagerBase::accountType() const
-{
-    return mAccountType;
-}
-
 /*!
-     Determine the default port for the outgoing mail server based on the security settings
-     
-     \return int the port number to use
- */
-int NmIpsSettingsManagerBase::determineDefaultOutgoingPort()
-{
-    int port = 0;    
-    bool sslTls = mSmtpSettings->SSLWrapper();    
-    if (sslTls) {
-        port = IpsServices::secureSmtpPort;
-    } else {
-        port = IpsServices::standardSmtpPort;
-    }        
-    return port;
-}
-
-/*!
-
+    Stores the SMTP specific IAP settings.
+    \return bool <true> when the SMTP IAP settings were succesfully written, otherwise <false>.
 */
-NmIpsExtendedSettingsManager &NmIpsSettingsManagerBase::extendedSettingsManager() const
+bool NmIpsSettingsManagerBase::saveIAPSettings(uint snapId)
 {
-    return *mExtendedSettingsManager;
+    TRAPD(err,
+        CImIAPPreferences *prefs = CImIAPPreferences::NewLC();
+        mAccount->LoadSmtpIapSettingsL(mSmtpAccount, *prefs);
+        prefs->SetSNAPL(snapId);
+        mAccount->SaveSmtpIapSettingsL(mSmtpAccount, *prefs);
+        CleanupStack::PopAndDestroy(prefs);
+    );
+    return (err == KErrNone);
 }
-

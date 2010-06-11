@@ -15,6 +15,8 @@
  *
  */
 
+#include "emailtrace.h"
+
 #include "nmapiengine.h"
 #include "nmapieventnotifier_p.h"
 
@@ -28,7 +30,7 @@ namespace EmailClientApi
 NmApiEventNotifierPrivate::NmApiEventNotifierPrivate(QObject *parent) :
     QObject(parent), mEmitSignals(NULL), mEngine(NULL), mIsRunning(false)
 {
-
+    NM_FUNCTION;
 }
 
 /*!
@@ -36,7 +38,7 @@ NmApiEventNotifierPrivate::NmApiEventNotifierPrivate(QObject *parent) :
  */
 NmApiEventNotifierPrivate::~NmApiEventNotifierPrivate()
 {
-
+    NM_FUNCTION;
 }
 
 /*!
@@ -49,6 +51,8 @@ NmApiEventNotifierPrivate::~NmApiEventNotifierPrivate()
  */
 bool NmApiEventNotifierPrivate::initializeEngine()
 {
+    NM_FUNCTION;
+    
     if (!mEngine) {
         mEngine = NmApiEngine::instance();
     }
@@ -63,6 +67,8 @@ bool NmApiEventNotifierPrivate::initializeEngine()
  */
 void NmApiEventNotifierPrivate::releaseEngine()
 {
+    NM_FUNCTION;
+    
     if (mIsRunning) {
         cancel();
     }
@@ -80,11 +86,15 @@ void NmApiEventNotifierPrivate::releaseEngine()
  */
 void NmApiEventNotifierPrivate::emailStoreEvent(const NmApiMessage &events)
 {
+    NM_FUNCTION;
+    
     mBufferOfEvents << events;
 }
 
 void NmApiEventNotifierPrivate::cancel()
 {
+    NM_FUNCTION;
+    
     if (!mIsRunning) {
         return;
     }

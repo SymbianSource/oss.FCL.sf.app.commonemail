@@ -15,6 +15,8 @@
 *
 */
 
+#include "emailtrace.h"
+
 #include <QString>
 
 #include "nmaddress.h"
@@ -26,6 +28,7 @@ NmAddressPrivate::NmAddressPrivate()
 :mDisplayName(""),
 mAddress("")
 {
+    NM_FUNCTION;
 }
 
 /*!
@@ -33,6 +36,7 @@ mAddress("")
  */
 NmAddressPrivate::~NmAddressPrivate()
 {
+    NM_FUNCTION;
 }
 
 /*!
@@ -53,6 +57,8 @@ NmAddressPrivate::~NmAddressPrivate()
  */
 NmAddress::NmAddress()
 {
+    NM_FUNCTION;
+    
     d = new NmAddressPrivate();
 }
 
@@ -61,6 +67,8 @@ NmAddress::NmAddress()
  */
 NmAddress::NmAddress(const QString &displayName, const QString &address)
 {
+    NM_FUNCTION;
+    
     d = new NmAddressPrivate();
     d->mDisplayName = displayName;
     d->mAddress = address;
@@ -71,6 +79,8 @@ NmAddress::NmAddress(const QString &displayName, const QString &address)
  */
 NmAddress::NmAddress(const QString &address)
 {
+    NM_FUNCTION;
+    
     d = new NmAddressPrivate();
     d->mAddress = address;
 }
@@ -80,6 +90,7 @@ NmAddress::NmAddress(const QString &address)
  */
 NmAddress::NmAddress(const NmAddress &nmAddress) : d(nmAddress.d)
 {
+    NM_FUNCTION;
 }
 
 /*!
@@ -87,6 +98,8 @@ NmAddress::NmAddress(const NmAddress &nmAddress) : d(nmAddress.d)
  */
 NmAddress::NmAddress(QExplicitlySharedDataPointer<NmAddressPrivate> nmPrivateAddress)
 {
+    NM_FUNCTION;
+    
     d = nmPrivateAddress;
 }
 
@@ -95,6 +108,8 @@ NmAddress::NmAddress(QExplicitlySharedDataPointer<NmAddressPrivate> nmPrivateAdd
  */
 NmAddress &NmAddress::operator=(const NmAddress &nmAddress)
 {
+    NM_FUNCTION;
+    
     if (this != &nmAddress) {
       d = nmAddress.d;
     }
@@ -106,6 +121,7 @@ NmAddress &NmAddress::operator=(const NmAddress &nmAddress)
  */
 NmAddress::~NmAddress()
 {
+    NM_FUNCTION;
 }
 
 
@@ -115,6 +131,8 @@ NmAddress::~NmAddress()
  */
 bool NmAddress::operator==(const NmAddress &otherAddress) const
 {
+    NM_FUNCTION;
+    
     bool ret = false;
     if (otherAddress.address().compare(d->mAddress, Qt::CaseInsensitive) == 0 &&
         otherAddress.displayName().compare(
@@ -130,6 +148,8 @@ bool NmAddress::operator==(const NmAddress &otherAddress) const
  */
 bool NmAddress::operator!=(const NmAddress &otherAddress) const
 {
+    NM_FUNCTION;
+    
     bool ret = true;
     if (otherAddress.address().compare(d->mAddress, Qt::CaseInsensitive) == 0 &&
         otherAddress.displayName().compare(
@@ -144,6 +164,8 @@ bool NmAddress::operator!=(const NmAddress &otherAddress) const
  */
 void NmAddress::setDisplayName(const QString &displayName)
 {
+    NM_FUNCTION;
+    
     d->mDisplayName = displayName;
 }
 
@@ -152,6 +174,8 @@ void NmAddress::setDisplayName(const QString &displayName)
  */
 QString NmAddress::displayName() const
 {
+    NM_FUNCTION;
+    
     return d->mDisplayName;
 }
 
@@ -160,6 +184,8 @@ QString NmAddress::displayName() const
  */
 void NmAddress::setAddress(const QString &address)
 {
+    NM_FUNCTION;
+    
     d->mAddress = address;
 }
 
@@ -168,5 +194,7 @@ void NmAddress::setAddress(const QString &address)
  */
 QString NmAddress::address() const
 {
+    NM_FUNCTION;
+    
     return d->mAddress;
 }

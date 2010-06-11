@@ -15,12 +15,13 @@
 *
 */
 
+#include "emailtrace.h"
+
 // <qmail>
 #include <nmcommonheaders.h>
 // </qmail>
 
 //<cmail>
-#include "emailtrace.h"
 #include "CFSMailFolder.h"
 #include "CFSMailPlugin.h"
 //</cmail>
@@ -34,11 +35,12 @@
 // -----------------------------------------------------------------------------
 EXPORT_C CFSMailFolder* CFSMailFolder::NewLC( TFSMailMsgId aFolderId )
 {
-    FUNC_LOG;
-  CFSMailFolder* api = new (ELeave) CFSMailFolder();
-  CleanupStack:: PushL(api);
-  api->ConstructL( aFolderId );
-  return api;
+    NM_FUNCTION;
+    
+    CFSMailFolder* api = new (ELeave) CFSMailFolder();
+    CleanupStack:: PushL(api);
+    api->ConstructL( aFolderId );
+    return api;
 } 
 
 // -----------------------------------------------------------------------------
@@ -46,10 +48,11 @@ EXPORT_C CFSMailFolder* CFSMailFolder::NewLC( TFSMailMsgId aFolderId )
 // -----------------------------------------------------------------------------
 EXPORT_C CFSMailFolder* CFSMailFolder::NewL( TFSMailMsgId aFolderId )
 {
-    FUNC_LOG;
-  CFSMailFolder* api =  CFSMailFolder::NewLC( aFolderId );
-  CleanupStack:: Pop(api);
-  return api;
+    NM_FUNCTION;
+    
+    CFSMailFolder* api =  CFSMailFolder::NewLC( aFolderId );
+    CleanupStack:: Pop(api);
+    return api;
 }
 
 // -----------------------------------------------------------------------------
@@ -57,8 +60,7 @@ EXPORT_C CFSMailFolder* CFSMailFolder::NewL( TFSMailMsgId aFolderId )
 // -----------------------------------------------------------------------------
 CFSMailFolder::CFSMailFolder()
 {
-    FUNC_LOG;
-
+    NM_FUNCTION;
 }
 
 // -----------------------------------------------------------------------------
@@ -66,7 +68,8 @@ CFSMailFolder::CFSMailFolder()
 // -----------------------------------------------------------------------------
 void CFSMailFolder::ConstructL( TFSMailMsgId aFolderId )
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 // <qmail>
     CFSMailFolderBase::ConstructL( aFolderId );
 // </qmail>
@@ -80,8 +83,7 @@ void CFSMailFolder::ConstructL( TFSMailMsgId aFolderId )
 // -----------------------------------------------------------------------------
 EXPORT_C CFSMailFolder::~CFSMailFolder()
 {
-    FUNC_LOG;
-
+    NM_FUNCTION;
 }
 
 // -----------------------------------------------------------------------------
@@ -90,8 +92,8 @@ EXPORT_C CFSMailFolder::~CFSMailFolder()
 EXPORT_C MFSMailIterator* CFSMailFolder::ListMessagesL( const TFSMailDetails aDetails,
         						const RArray<TFSMailSortCriteria>& aSorting)
 {
-    FUNC_LOG;
-
+    NM_FUNCTION;
+    
 	CFSMailIterator* iterator = NULL;
 	if(CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetFolderId()))
 		{
@@ -112,7 +114,8 @@ EXPORT_C TInt CFSMailFolder::FetchMessagesL( 	const RArray<TFSMailMsgId>& aMessa
      							 				TFSMailDetails aDetails,
      							 				MFSMailRequestObserver& aObserver )
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 	// init asynchronous request
 	CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetFolderId());
     TFSPendingRequest request = 
@@ -150,7 +153,8 @@ EXPORT_C TInt CFSMailFolder::FetchMessagesL( 	const RArray<TFSMailMsgId>& aMessa
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailFolder::GetSubFoldersL(RPointerArray<CFSMailFolder>& aSubFolders)
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 	if(CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetFolderId()))
 		{
 		TRAPD(err,plugin->ListFoldersL( GetMailBoxId(), GetFolderId(), aSubFolders));
@@ -166,7 +170,8 @@ EXPORT_C void CFSMailFolder::GetSubFoldersL(RPointerArray<CFSMailFolder>& aSubFo
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailFolder::RemoveMessageL(TFSMailMsgId aMessage)
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 	if(CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetFolderId()))
 		{
 		RArray<TFSMailMsgId> messages;
@@ -177,13 +182,60 @@ EXPORT_C void CFSMailFolder::RemoveMessageL(TFSMailMsgId aMessage)
 		}
 }
 
+// <qmail>
+// -----------------------------------------------------------------------------
+// CFSMailFolder::RemoveMessageL
+// -----------------------------------------------------------------------------
+EXPORT_C TInt CFSMailFolder::RemoveMessageL(TFSMailMsgId aMessage,
+                                            MFSMailRequestObserver& aObserver)
+{
+    NM_FUNCTION;
+
+    // init asynchronous request
+    CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetFolderId());
+    TFSPendingRequest request = 
+        iRequestHandler->InitAsyncRequestL( GetFolderId().PluginId(), aObserver );
+
+    TInt err = KErrNone;
+    
+    if (plugin)
+        {
+        MFSMailRequestObserver* observer = request.iObserver;
+        
+        RArray<TFSMailMsgId> messages;
+        messages.Reset();
+        messages.Append(aMessage);
+        
+        TRAP(err,plugin->DeleteMessagesByUidL(
+            GetMailBoxId(),
+            GetFolderId(),
+            messages,
+            *observer,
+            request.iRequestId));
+        
+        messages.Close();
+        }
+    else 
+        {
+        err = KErrNotFound;        
+        }
+    
+    if(err != KErrNone)
+        {
+        iRequestHandler->CompleteRequest(request.iRequestId);
+        User::Leave(err);
+        }
+    return request.iRequestId;
+}
+// </qmail>
+
 // -----------------------------------------------------------------------------
 // CFSMailFolder::SupportsCopyFromL
 // -----------------------------------------------------------------------------
 EXPORT_C TBool CFSMailFolder::SupportsCopyFromL( TFSFolderType aFolderType )
 	{
-    FUNC_LOG;
-	
+    NM_FUNCTION;
+    
 	if(CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetFolderId()))
 		{
 		TFSMailBoxStatus onlineStatus = plugin->GetMailBoxStatus(GetMailBoxId());
@@ -216,8 +268,8 @@ EXPORT_C TBool CFSMailFolder::SupportsCopyFromL( TFSFolderType aFolderType )
 // -----------------------------------------------------------------------------
 EXPORT_C TBool CFSMailFolder::SupportsMoveFromL( TFSFolderType aFolderType )
 	{
-    FUNC_LOG;
-
+    NM_FUNCTION;
+    
 	if(CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetFolderId()))
 		{
 		TFSMailBoxStatus onlineStatus = plugin->GetMailBoxStatus(GetMailBoxId());
@@ -250,7 +302,7 @@ EXPORT_C TBool CFSMailFolder::SupportsMoveFromL( TFSFolderType aFolderType )
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailFolder::RemoveDownLoadedAttachmentsL()
     {
-    FUNC_LOG;
+    NM_FUNCTION;
     
     CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetFolderId());
     if(plugin != NULL)
@@ -291,7 +343,8 @@ EXPORT_C void CFSMailFolder::RemoveDownLoadedAttachmentsL()
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailFolder::ReleaseExtension( CEmailExtension* aExtension )
     {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
     // no specialized behaviour, call base class
     CExtendableEmail::ReleaseExtension( aExtension );
     }
@@ -301,7 +354,8 @@ EXPORT_C void CFSMailFolder::ReleaseExtension( CEmailExtension* aExtension )
 // -----------------------------------------------------------------------------
 EXPORT_C CEmailExtension* CFSMailFolder::ExtensionL( const TUid& aInterfaceUid )
     {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
     return CExtendableEmail::ExtensionL( aInterfaceUid );
     }
 

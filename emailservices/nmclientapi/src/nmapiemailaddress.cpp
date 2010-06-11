@@ -15,6 +15,8 @@
  *
  */
 
+#include "emailtrace.h"
+
 #include <nmapiemailaddress.h>
 #include "nmapiemailaddress_p.h"
 
@@ -26,7 +28,7 @@ namespace EmailClientApi
 NmApiEmailAddress::NmApiEmailAddress(const NmApiEmailAddress &envelope) :
     d(envelope.d)
 {
-
+    NM_FUNCTION;
 }
 
 /*!
@@ -34,6 +36,8 @@ NmApiEmailAddress::NmApiEmailAddress(const NmApiEmailAddress &envelope) :
  */
 NmApiEmailAddress::NmApiEmailAddress()
 {
+    NM_FUNCTION;
+    
     d = new NmApiEmailAddressPrivate();
 }
 
@@ -42,7 +46,7 @@ NmApiEmailAddress::NmApiEmailAddress()
  */
 NmApiEmailAddress::~NmApiEmailAddress()
 {
-
+    NM_FUNCTION;
 }
 
 /*!
@@ -50,6 +54,8 @@ NmApiEmailAddress::~NmApiEmailAddress()
  */
 NmApiEmailAddress &NmApiEmailAddress::operator=(const NmApiEmailAddress &addr)
 {
+    NM_FUNCTION;
+    
     if (this != &addr) {
         d = addr.d;
     }
@@ -61,6 +67,8 @@ NmApiEmailAddress &NmApiEmailAddress::operator=(const NmApiEmailAddress &addr)
  */
 bool NmApiEmailAddress::operator==(const NmApiEmailAddress &addr)
 {
+    NM_FUNCTION;
+    
     bool retVal = false;
     if (this->d == addr.d) {
         retVal = true;
@@ -73,6 +81,8 @@ bool NmApiEmailAddress::operator==(const NmApiEmailAddress &addr)
  */
 QString NmApiEmailAddress::displayName() const
 {
+    NM_FUNCTION;
+    
     return d->displayName;
 }
 
@@ -81,6 +91,8 @@ QString NmApiEmailAddress::displayName() const
  */
 QString NmApiEmailAddress::address() const
 {
+    NM_FUNCTION;
+    
     return d->address;
 }
 
@@ -89,6 +101,8 @@ QString NmApiEmailAddress::address() const
  */
 void NmApiEmailAddress::setDisplayName(const QString &displayName)
 {
+    NM_FUNCTION;
+    
     d->displayName = displayName;
 }
 
@@ -97,6 +111,8 @@ void NmApiEmailAddress::setDisplayName(const QString &displayName)
  */
 void NmApiEmailAddress::setAddress(const QString &address)
 {
+    NM_FUNCTION;
+    
     d->address = address;
 }
 }

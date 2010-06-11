@@ -29,7 +29,8 @@ symbian*: {
         preinstall
         
     BLD_INF_RULES.prj_exports += \
-        "rom/emailstore.iby $$CORE_APP_LAYER_IBY_EXPORT_PATH(emailstore.iby)"        
+        "rom/emailstore.iby $$CORE_APP_LAYER_IBY_EXPORT_PATH(emailstore.iby)" \
+        "sis/emailstore_stub.sis             /epoc32/data/z/system/install/emailstore_stub.sis"     
  
 }
 CONFIG += ordered

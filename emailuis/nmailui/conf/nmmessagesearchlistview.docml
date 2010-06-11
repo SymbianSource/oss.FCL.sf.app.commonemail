@@ -15,19 +15,18 @@
                 </widget>
                 <real name="z" value="8"/>
                 <sizepolicy horizontalPolicy="Expanding" horizontalStretch="0" verticalPolicy="Expanding" verticalStretch="0"/>
-                <sizehint height="9.25373un" type="PREFERRED" width="53.73134un"/>
-                <sizehint height="6.5un" type="MINIMUM"/>
+                <sizehint height="9.25un" type="PREFERRED" />
+                <sizehint height="9.25un" type="MINIMUM" />
                 <layout orientation="Horizontal" type="linear">
                     <linearitem itemname="LineEdit"/>
                     <linearitem itemname="PushButton"/>
                 </layout>
             </widget>
-            <widget name="InfoLabel" type="HbLabel">
-                <real name="z" value="9"/>
-                <sizepolicy horizontalPolicy="Expanding" horizontalStretch="0" verticalPolicy="Preferred" verticalStretch="0"/>
-                <contentsmargins bottom="0.5un" left="1.5un" right="1.5un" top="0.5un"/>
-                <string name="plainText" value="Searching..."/>
-                <fontspec name="fontSpec" role="Secondary" textheight="23.45"/>
+            <widget name="LabelGroupBox" type="HbGroupBox">
+                <real name="z" value="3"/>
+                <sizepolicy horizontalPolicy="MinimumExpanding" horizontalStretch="0" verticalPolicy="Fixed" verticalStretch="0"/>
+                <sizehint height="6un" type="PREFERRED" width="52un"/>
+                <bool name="collapsable" value="FALSE"/>
             </widget>
             <widget name="MessageListNoMessages" type="HbLabel">
                 <enums name="textWrapping" value="TextWordWrap"/>
@@ -38,15 +37,15 @@
             </widget>
             <real name="z" value="0"/>
             <layout type="anchor">
-                <anchoritem dst="InfoLabel" dstEdge="LEFT" spacing="0" src="" srcEdge="LEFT"/>
-                <anchoritem dst="InfoLabel" dstEdge="TOP" spacing="0" src="SearchBarContainer" srcEdge="BOTTOM"/>
-                <anchoritem dst="InfoLabel" dstEdge="RIGHT" spacing="0" src="" srcEdge="RIGHT"/>
+                <anchoritem dst="LabelGroupBox" dstEdge="LEFT" spacing="0" src="" srcEdge="LEFT"/>
+                <anchoritem dst="LabelGroupBox" dstEdge="TOP" spacing="0.5un" src="SearchBarContainer" srcEdge="BOTTOM"/>
+                <anchoritem dst="LabelGroupBox" dstEdge="RIGHT" spacing="0" src="" srcEdge="RIGHT"/>
                 <anchoritem dst="MessageTreeList" dstEdge="LEFT" spacing="0un" src="" srcEdge="LEFT"/>
-                <anchoritem dst="MessageTreeList" dstEdge="TOP" spacing="0un" src="InfoLabel" srcEdge="BOTTOM"/>
+                <anchoritem dst="MessageTreeList" dstEdge="TOP" spacing="0un" src="LabelGroupBox" srcEdge="BOTTOM"/>
                 <anchoritem dst="MessageTreeList" dstEdge="RIGHT" spacing="0un" src="" srcEdge="RIGHT"/>
                 <anchoritem dst="MessageTreeList" dstEdge="BOTTOM" spacing="0un" src="" srcEdge="BOTTOM"/>
                 <anchoritem dst="MessageListNoMessages" dstEdge="LEFT" spacing="4.77612un" src="" srcEdge="LEFT"/>
-                <anchoritem dst="MessageListNoMessages" dstEdge="TOP" spacing="2.54478un" src="InfoLabel" srcEdge="BOTTOM"/>
+                <anchoritem dst="MessageListNoMessages" dstEdge="TOP" spacing="2.54478un" src="LabelGroupBox" srcEdge="BOTTOM"/>
                 <anchoritem dst="MessageListNoMessages" dstEdge="RIGHT" spacing="-5.22388un" src="" srcEdge="RIGHT"/>
                 <anchoritem dst="SearchBarContainer" dstEdge="LEFT" spacing="0un" src="" srcEdge="LEFT"/>
                 <anchoritem dst="SearchBarContainer" dstEdge="TOP" spacing="0un" src="" srcEdge="TOP"/>

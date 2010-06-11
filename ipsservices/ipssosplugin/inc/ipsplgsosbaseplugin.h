@@ -176,6 +176,15 @@ public: // from CFSMailPlugin
         const TFSMailMsgId& aMailBoxId,
         const TFSMailMsgId& aFolderId,
         const RArray<TFSMailMsgId>& aMessages );
+		
+//<qmail>
+    virtual void DeleteMessagesByUidL(
+        const TFSMailMsgId& aMailBoxId,
+        const TFSMailMsgId& aFolderId,
+        const RArray<TFSMailMsgId>& aMessages,
+        MFSMailRequestObserver& aOperationObserver,
+        const TInt aRequestId);
+//</qmail>
 
     // MESSAGE STORE OPERATIONS
 

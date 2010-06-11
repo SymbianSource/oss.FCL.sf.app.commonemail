@@ -23,6 +23,7 @@
 NmMailViewerWK::NmMailViewerWK()
 	:QGraphicsWebView()
 {
+    NM_FUNCTION;
 }
 
 /*!
@@ -30,6 +31,8 @@ NmMailViewerWK::NmMailViewerWK()
 */
 NmMailViewerWK::~NmMailViewerWK()
 {
+    NM_FUNCTION;
+    
     mContent.clear();
 }
 
@@ -38,28 +41,37 @@ NmMailViewerWK::~NmMailViewerWK()
 */
 void NmMailViewerWK::setParentView(NmViewerView *parentView)
 {
+    NM_FUNCTION;
+    
     mParentView = parentView;
 }
 
 /*!
     addContent. Function adds content into web view.
 */
-void NmMailViewerWK::addContent(QString key, QVariant val) {
-    mContent[key] = val;
+void NmMailViewerWK::addContent(QString key, QVariant val, NmId partId, bool isFetched) 
+{
+    NM_FUNCTION;
+    
+    mContent[key] = NmMailViewerWkContentItem(val, partId, isFetched);
 }
 
 /*!
     loadResource. Function returns resource from added content (added with addContent)
 */
-QVariant NmMailViewerWK::loadResource(int type, const QUrl &name)
+QVariant NmMailViewerWK::loadResource(int type, const QUrl &name, NmId &partId, bool &isFetched)
 {
+    NM_FUNCTION;
+    
     if (type == QTextDocument::ImageResource) {
         QString key = '<' + name.path() + '>';
         if (!mContent.contains(key)) {
             key = name.path();
         }
         if (mContent.contains(key)) {
-            return mContent[key];
+            partId = mContent[key].mPartId;
+            isFetched = mContent[key].mIsFetched;
+            return mContent[key].mData;
         }
         return 0;
     }
@@ -71,6 +83,8 @@ QVariant NmMailViewerWK::loadResource(int type, const QUrl &name)
 */
 void NmMailViewerWK::sendMousePressEvent(QGraphicsSceneMouseEvent *event)
 {
+    NM_FUNCTION;
+    
     if (event){
         QGraphicsWebView::mousePressEvent(event);
     }
@@ -81,6 +95,8 @@ void NmMailViewerWK::sendMousePressEvent(QGraphicsSceneMouseEvent *event)
 */
 void NmMailViewerWK::sendMouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
+    NM_FUNCTION;
+    
     if (event) {
         QGraphicsWebView::mouseReleaseEvent(event);
     }

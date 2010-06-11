@@ -15,11 +15,11 @@
 *
 */
 
+#include "emailtrace.h"
+
 // <qmail>
 #include <nmcommonheaders.h>
 // </qmail>
-
-#include "emailtrace.h"
 
 // <qmail>
 #include "CFSMailFolderBase.h"
@@ -32,7 +32,8 @@
 // -----------------------------------------------------------------------------
 CFSMailFolderBase::CFSMailFolderBase()
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 // <qmail> unnecessary iFolderName initialization removed </qmail>
 	iMoveOfflineBlocked.Reset();
 	iMoveOnlineBlocked.Reset();
@@ -45,7 +46,8 @@ CFSMailFolderBase::CFSMailFolderBase()
 // -----------------------------------------------------------------------------
 EXPORT_C CFSMailFolderBase::~CFSMailFolderBase()
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 // <qmail> unnecessary iFolderName destruction removed </qmail>
 	iMoveOfflineBlocked.Reset();
 	iMoveOnlineBlocked.Reset();
@@ -58,7 +60,8 @@ EXPORT_C CFSMailFolderBase::~CFSMailFolderBase()
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailFolderBase::ConstructL( TFSMailMsgId aFolderId )
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 // <qmail>
     iNmPrivateFolder = new NmFolderPrivate();
     iNmPrivateFolder->mFolderId = aFolderId.GetNmId();
@@ -70,11 +73,12 @@ EXPORT_C void CFSMailFolderBase::ConstructL( TFSMailMsgId aFolderId )
 // -----------------------------------------------------------------------------
 EXPORT_C CFSMailFolderBase* CFSMailFolderBase::NewLC( TFSMailMsgId aFolderId )
 {
-    FUNC_LOG;
-  CFSMailFolderBase* folder = new (ELeave) CFSMailFolderBase();
-  CleanupStack:: PushL(folder);
-  folder->ConstructL(aFolderId);
-  return folder;
+    NM_FUNCTION;
+    
+    CFSMailFolderBase* folder = new (ELeave) CFSMailFolderBase();
+    CleanupStack:: PushL(folder);
+    folder->ConstructL(aFolderId);
+    return folder;
 } 
 
 // -----------------------------------------------------------------------------
@@ -82,10 +86,11 @@ EXPORT_C CFSMailFolderBase* CFSMailFolderBase::NewLC( TFSMailMsgId aFolderId )
 // -----------------------------------------------------------------------------
 EXPORT_C CFSMailFolderBase* CFSMailFolderBase::NewL(const TFSMailMsgId aFolderId)
 {
-    FUNC_LOG;
-  CFSMailFolderBase* folder =  CFSMailFolderBase::NewLC(aFolderId);
-  CleanupStack:: Pop(folder);
-  return folder;
+    NM_FUNCTION;
+    
+    CFSMailFolderBase* folder =  CFSMailFolderBase::NewLC(aFolderId);
+    CleanupStack:: Pop(folder);
+    return folder;
 }
 
 // -----------------------------------------------------------------------------
@@ -93,7 +98,8 @@ EXPORT_C CFSMailFolderBase* CFSMailFolderBase::NewL(const TFSMailMsgId aFolderId
 // -----------------------------------------------------------------------------
 EXPORT_C TFSMailMsgId CFSMailFolderBase::GetFolderId() const
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 // <qmail>
 	return TFSMailMsgId(iNmPrivateFolder->mFolderId);
 // </qmail>
@@ -105,7 +111,8 @@ EXPORT_C TFSMailMsgId CFSMailFolderBase::GetFolderId() const
 // -----------------------------------------------------------------------------
 EXPORT_C TFSMailMsgId CFSMailFolderBase::GetParentFolderId() const
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 // <qmail>
     return TFSMailMsgId(iNmPrivateFolder->mParentFolderId);
 // </qmail>
@@ -116,7 +123,8 @@ EXPORT_C TFSMailMsgId CFSMailFolderBase::GetParentFolderId() const
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailFolderBase::SetParentFolderId(TFSMailMsgId aFolderId)
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 // <qmail>
     iNmPrivateFolder->mParentFolderId = aFolderId.GetNmId();
 // </qmail>
@@ -127,7 +135,8 @@ EXPORT_C void CFSMailFolderBase::SetParentFolderId(TFSMailMsgId aFolderId)
 // -----------------------------------------------------------------------------
 EXPORT_C TFSMailMsgId CFSMailFolderBase::GetMailBoxId() const
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 // <qmail>
 	return TFSMailMsgId(iNmPrivateFolder->mMailboxId);
 // </qmail>
@@ -138,7 +147,8 @@ EXPORT_C TFSMailMsgId CFSMailFolderBase::GetMailBoxId() const
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailFolderBase::SetMailBoxId(TFSMailMsgId aMailBoxId)
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 // <qmail>
     iNmPrivateFolder->mMailboxId = aMailBoxId.GetNmId();
 // </qmail>
@@ -150,7 +160,8 @@ EXPORT_C void CFSMailFolderBase::SetMailBoxId(TFSMailMsgId aMailBoxId)
 // -----------------------------------------------------------------------------
 EXPORT_C TFSFolderType CFSMailFolderBase::GetFolderType() const
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 // <qmail>
     return static_cast<TFSFolderType>(iNmPrivateFolder->mFolderType);
 // </qmail>
@@ -161,7 +172,8 @@ EXPORT_C TFSFolderType CFSMailFolderBase::GetFolderType() const
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailFolderBase::SetFolderType(const TFSFolderType aFolderType)
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 // <qmail>
     iNmPrivateFolder->mFolderType = static_cast<NmFolderType>(aFolderType);
 // </qmail>
@@ -172,7 +184,8 @@ EXPORT_C void CFSMailFolderBase::SetFolderType(const TFSFolderType aFolderType)
 // -----------------------------------------------------------------------------
 EXPORT_C TDesC& CFSMailFolderBase::GetFolderName() const
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 // <qmail>
     iTextPtr.Set(
         reinterpret_cast<const TUint16*> (iNmPrivateFolder->mName.utf16()),
@@ -186,7 +199,8 @@ EXPORT_C TDesC& CFSMailFolderBase::GetFolderName() const
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailFolderBase::SetFolderName(const TDesC& aFolderName)
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 // <qmail>
     QString qtName = QString::fromUtf16(aFolderName.Ptr(), aFolderName.Length());
     iNmPrivateFolder->mName = qtName;
@@ -198,7 +212,8 @@ EXPORT_C void CFSMailFolderBase::SetFolderName(const TDesC& aFolderName)
 // -----------------------------------------------------------------------------
 EXPORT_C TUint CFSMailFolderBase::GetMessageCount() const
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 // <qmail>
     return (TUint)iNmPrivateFolder->mMessageCount;
 // </qmail>
@@ -209,7 +224,8 @@ EXPORT_C TUint CFSMailFolderBase::GetMessageCount() const
 // -----------------------------------------------------------------------------
 EXPORT_C TUint CFSMailFolderBase::GetUnreadCount() const
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 // <qmail>
     return (TUint)iNmPrivateFolder->mUnreadMessageCount;
 // </qmail>
@@ -220,7 +236,8 @@ EXPORT_C TUint CFSMailFolderBase::GetUnreadCount() const
 // -----------------------------------------------------------------------------
 EXPORT_C TUint CFSMailFolderBase::GetUnseenCount() const
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 // <qmail>
     return (TUint)iNmPrivateFolder->mUnseenCount;
 // </qmail>
@@ -231,7 +248,8 @@ EXPORT_C TUint CFSMailFolderBase::GetUnseenCount() const
 // -----------------------------------------------------------------------------
 EXPORT_C TUint CFSMailFolderBase::GetSubFolderCount() const
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 // <qmail>
     return (TUint)iNmPrivateFolder->mSubFolderCount;
 // </qmail>
@@ -241,7 +259,8 @@ EXPORT_C TUint CFSMailFolderBase::GetSubFolderCount() const
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailFolderBase::SetMessageCount( TUint aMessageCount )
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 // <qmail>
     iNmPrivateFolder->mMessageCount = aMessageCount;
 // </qmail>
@@ -252,7 +271,8 @@ EXPORT_C void CFSMailFolderBase::SetMessageCount( TUint aMessageCount )
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailFolderBase::SetUnreadCount( TUint aMessageCount )
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 // <qmail>
     iNmPrivateFolder->mUnreadMessageCount = aMessageCount;
 // </qmail>
@@ -263,7 +283,8 @@ EXPORT_C void CFSMailFolderBase::SetUnreadCount( TUint aMessageCount )
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailFolderBase::SetUnseenCount( TUint aMessageCount )
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 // <qmail>
     iNmPrivateFolder->mUnseenCount = aMessageCount;
 // </qmail>
@@ -274,7 +295,8 @@ EXPORT_C void CFSMailFolderBase::SetUnseenCount( TUint aMessageCount )
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailFolderBase::SetSubFolderCount(TUint aFolderCount)
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 // <qmail>
     iNmPrivateFolder->mSubFolderCount = aFolderCount;
 // </qmail>
@@ -286,7 +308,8 @@ EXPORT_C void CFSMailFolderBase::SetSubFolderCount(TUint aFolderCount)
 EXPORT_C void CFSMailFolderBase::BlockCopyFromL( RArray<TFSFolderType> aFolderTypes, 
 													TFSMailBoxStatus aMailBoxStatus )
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 	switch(aMailBoxStatus)
 		{
 			case EFSMailBoxOnline:
@@ -314,7 +337,8 @@ EXPORT_C void CFSMailFolderBase::BlockCopyFromL( RArray<TFSFolderType> aFolderTy
 EXPORT_C void CFSMailFolderBase::BlockMoveFromL( RArray<TFSFolderType> aFolderTypes, 
 													TFSMailBoxStatus aMailBoxStatus )
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 	switch(aMailBoxStatus)
 		{
 			case EFSMailBoxOnline:
@@ -342,6 +366,8 @@ EXPORT_C void CFSMailFolderBase::BlockMoveFromL( RArray<TFSFolderType> aFolderTy
 // -----------------------------------------------------------------------------
 EXPORT_C NmFolder* CFSMailFolderBase::GetNmFolder()
 {
+    NM_FUNCTION;
+    
     NmFolder* nmFolder = new NmFolder(iNmPrivateFolder);
     return nmFolder;
 }

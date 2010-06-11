@@ -14,6 +14,9 @@
  * Description:
  *
  */
+
+#include "emailtrace.h"
+
 #include "nmapiengine.h"
 #include "nmapienvelopelisting_p.h"
 
@@ -27,11 +30,13 @@ namespace EmailClientApi
 NmApiEnvelopeListingPrivate::NmApiEnvelopeListingPrivate(QObject *parent) :
     QObject(parent), mEngine(NULL)
 {
-
+    NM_FUNCTION;
 }
 
 NmApiEnvelopeListingPrivate::~NmApiEnvelopeListingPrivate()
 {
+    NM_FUNCTION;
+    
     releaseEngine();
 }
 
@@ -44,6 +49,8 @@ NmApiEnvelopeListingPrivate::~NmApiEnvelopeListingPrivate()
  */
 bool NmApiEnvelopeListingPrivate::initializeEngine()
 {
+    NM_FUNCTION;
+    
     mEngine = NmApiEngine::instance();
     return mEngine ? true : false;
 }
@@ -55,6 +62,8 @@ bool NmApiEnvelopeListingPrivate::initializeEngine()
  */
 void NmApiEnvelopeListingPrivate::releaseEngine()
 {
+    NM_FUNCTION;
+    
     NmApiEngine::releaseInstance(mEngine);
 }
 
@@ -68,6 +77,8 @@ void NmApiEnvelopeListingPrivate::releaseEngine()
  */
 qint32 NmApiEnvelopeListingPrivate::grabEnvelopes()
 {
+    NM_FUNCTION;
+    
     if(!mEngine){
         return -1;
     }

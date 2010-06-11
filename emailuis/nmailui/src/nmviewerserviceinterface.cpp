@@ -51,6 +51,7 @@ NmViewerServiceInterface::NmViewerServiceInterface(QObject *parent,
 */
 NmViewerServiceInterface::~NmViewerServiceInterface()
 {
+    NM_FUNCTION;
 }
 
 
@@ -59,13 +60,17 @@ NmViewerServiceInterface::~NmViewerServiceInterface()
  */
 void NmViewerServiceInterface::viewMessage(QVariant mailboxId, QVariant folderId, QVariant messageId)
 {
-    NMLOG("NmViewerServiceInterface::viewMessage()");
+    NM_FUNCTION;
+
 #ifndef NM_WINS_ENV
     mAsyncReqId = setCurrentRequestAsync();
 
     NmId mailboxNmId(mailboxId.toULongLong());
     NmId messageNmId(messageId.toULongLong());
     NmId folderNmId(folderId.toULongLong());
+
+	// Make sure the app stays background if user presses back in viewer view
+	bool visible = mApplication->updateVisibilityState();
 
     NmMessage *message = mUiEngine.message( mailboxNmId, folderNmId, messageNmId );
     if (message) {
@@ -92,7 +97,7 @@ void NmViewerServiceInterface::viewMessage(QVariant mailboxId, QVariant folderId
         // Message was not found
 
         // if started as embedded, do not hide the app
-		if (!XQServiceUtil::isEmbedded()) {
+		if (!XQServiceUtil::isEmbedded() && !visible) {
 			XQServiceUtil::toBackground(true);
 		}
 

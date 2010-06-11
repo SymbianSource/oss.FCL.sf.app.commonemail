@@ -17,6 +17,7 @@
 
 #include <QVariant>
 #include <pop3set.h>
+#include <iapprefs.h>
 #include <cemailaccounts.h>
 #include <xqconversions.h>
 
@@ -32,7 +33,7 @@
 // ======== MEMBER FUNCTIONS ========
 
 /*!
-    Constructor
+    Constructor.
     Creates the CImPop4Settings instance for loading and saving the POP3 settings.
     Finds and loads the SMTP account and settings linked to the POP3 account.
     \param mailboxId Mailbox identifier.
@@ -52,7 +53,7 @@ NmIpsPop3SettingsManager::NmIpsPop3SettingsManager(const NmId &mailboxId,
 }
 
 /*!
-    Destructor
+    Destructor.
 */
 NmIpsPop3SettingsManager::~NmIpsPop3SettingsManager()
 {
@@ -65,40 +66,41 @@ NmIpsPop3SettingsManager::~NmIpsPop3SettingsManager()
     \param QVariant SettingValue of the found setting value.
     \return <true> when the setting item was found otherwise <false>.
 */
-bool NmIpsPop3SettingsManager::readSetting(IpsServices::SettingItem settingItem, QVariant &value)
+bool NmIpsPop3SettingsManager::readSetting(IpsServices::SettingItem settingItem,
+                                           QVariant &settingValue)
 {
 	bool found(false);
 	switch (settingItem) {
         case IpsServices::IncomingLoginName:
-            value = XQConversions::s60Desc8ToQString(mPop3Settings->LoginName());
+            settingValue = XQConversions::s60Desc8ToQString(mPop3Settings->LoginName());
             found = true;
             break;
         case IpsServices::IncomingPassword:
-            value = XQConversions::s60Desc8ToQString(mPop3Settings->Password());
+            settingValue = XQConversions::s60Desc8ToQString(mPop3Settings->Password());
             found = true;
             break;
         case IpsServices::MailboxName:
-            value = XQConversions::s60DescToQString(mPop3Account.iPopAccountName);
+            settingValue = XQConversions::s60DescToQString(mPop3Account.iPopAccountName);
             found = true;
             break;
         case IpsServices::IncomingMailServer:
-            value = XQConversions::s60DescToQString(mPop3Settings->ServerAddress());
+            settingValue = XQConversions::s60DescToQString(mPop3Settings->ServerAddress());
             found = true;
             break;   
         case IpsServices::IncomingPort:
-            value = mPop3Settings->Port();
+            settingValue = mPop3Settings->Port();
             found = true;
             break;  
         case IpsServices::IncomingSecureSockets:
-            value = mPop3Settings->SecureSockets();
+            settingValue = mPop3Settings->SecureSockets();
             found = true;
             break;  
         case IpsServices::IncomingSSLWrapper:
-            value = mPop3Settings->SSLWrapper();
+            settingValue = mPop3Settings->SSLWrapper();
             found = true;
-            break;  
+            break;
         default:
-            found = NmIpsSettingsManagerBase::readSetting(settingItem, value);
+            found = NmIpsSettingsManagerBase::readSetting(settingItem, settingValue);
             break;
     }
 	return found;
@@ -109,7 +111,8 @@ bool NmIpsPop3SettingsManager::readSetting(IpsServices::SettingItem settingItem,
     \param settingItem SettingItem enum of the setting to replace.
     \param settingValue QVariant of the new setting value.
 */
-bool NmIpsPop3SettingsManager::writeSetting(IpsServices::SettingItem settingItem, const QVariant &settingValue)
+bool NmIpsPop3SettingsManager::writeSetting(IpsServices::SettingItem settingItem,
+                                            const QVariant &settingValue)
 {
     HBufC *tmp = 0;
     HBufC8 *tmp8 = 0;
@@ -159,7 +162,10 @@ bool NmIpsPop3SettingsManager::writeSetting(IpsServices::SettingItem settingItem
         case IpsServices::IncomingSSLWrapper:
             mPop3Settings->SetSSLWrapper(settingValue.toBool());
             ret = saveSettings();
-            break;  
+            break;
+        case IpsServices::Connection:
+            ret = saveIAPSettings(settingValue.toUInt());
+            // Fallthrough so SMTP IAP settings are also updated accordingly.
         default:
             ret = NmIpsSettingsManagerBase::writeSetting(settingItem, settingValue);
             break;
@@ -169,7 +175,6 @@ bool NmIpsPop3SettingsManager::writeSetting(IpsServices::SettingItem settingItem
 
 /*!
     Deletes the POP3 mailbox.
-
     \return Error code <code>0</code> if mailbox deletion was successful, otherwise error
             code is returned.
 */
@@ -185,6 +190,19 @@ int NmIpsPop3SettingsManager::deleteMailbox()
 }
 
 /*!
+     Determines the default port for the incoming mail server based on the security settings.
+     \return The port number to use.
+ */
+int NmIpsPop3SettingsManager::determineDefaultIncomingPort()
+{
+    int port(IpsServices::standardPop3Port);
+    if (mPop3Settings->SSLWrapper()) {
+        port = IpsServices::securePop3Port;
+    }        
+    return port;
+}
+
+/*!
     Stores the POP3 specific settings.
     \return bool <true> when the POP3 settings were succesfully written, otherwise <false>.
 */
@@ -196,18 +214,17 @@ bool NmIpsPop3SettingsManager::saveSettings()
 }
 
 /*!
-     Determine the default port for the incoming mail server based on the security settings
-     
-     \return int the port number to use
- */
-int NmIpsPop3SettingsManager::determineDefaultIncomingPort()
+    Stores the POP3 specific IAP settings.
+    \return bool <true> when the POP3 IAP settings were succesfully written, otherwise <false>.
+*/
+bool NmIpsPop3SettingsManager::saveIAPSettings(uint snapId)
 {
-    int port = 0;    
-    bool sslTls = mPop3Settings->SSLWrapper();    
-    if (sslTls) {
-        port = IpsServices::securePop3Port;
-    } else {
-        port = IpsServices::standardPop3Port;
-    }        
-    return port;
+    TRAPD(err,
+        CImIAPPreferences *prefs = CImIAPPreferences::NewLC();
+        mAccount->LoadPopIapSettingsL(mPop3Account, *prefs);
+        prefs->SetSNAPL(snapId);
+        mAccount->SavePopIapSettingsL(mPop3Account, *prefs);
+        CleanupStack::PopAndDestroy(prefs);
+    );
+    return (err==KErrNone);
 }

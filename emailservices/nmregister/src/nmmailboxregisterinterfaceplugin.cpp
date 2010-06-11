@@ -15,6 +15,8 @@
 *
 */
 
+#include "emailtrace.h"
+
 #include <qserviceinterfacedescriptor.h>
 #include <qabstractsecuritysession.h>
 #include <qservicecontext.h>
@@ -30,17 +32,23 @@ QObject *NmMailboxRegisterInterfacePlugin::createInstance(const QServiceInterfac
                                                 QServiceContext *context,
                                                 QAbstractSecuritySession *session)
 {
+    NM_FUNCTION;
+    
     Q_UNUSED(context);
     Q_UNUSED(session);
-
+    
     if (descriptor.interfaceName() == QLatin1String("com.nokia.symbian.IEmailRegisterAccount")) {
-        return new NmMailboxRegisterInterface(this);
+        QT_TRY{
+            return new NmMailboxRegisterInterface(this);
+        }QT_CATCH(...){
+            return 0;
+        }
     } else {
         return 0;
     }
 }
 
-Q_EXPORT_PLUGIN2(hsmenucontentpublishplugin, NmMailboxRegisterInterfacePlugin)
+Q_EXPORT_PLUGIN2(nmregister, NmMailboxRegisterInterfacePlugin)
 
 #ifdef COVERAGE_MEASUREMENT
 #pragma CTC ENDSKIP

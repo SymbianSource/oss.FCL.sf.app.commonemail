@@ -53,6 +53,7 @@ NmMailboxServiceInterface::NmMailboxServiceInterface(QObject *parent,
 */
 NmMailboxServiceInterface::~NmMailboxServiceInterface()
 {
+    NM_FUNCTION;
 }
 
 
@@ -63,7 +64,7 @@ NmMailboxServiceInterface::~NmMailboxServiceInterface()
 */
 void NmMailboxServiceInterface::displayInboxByMailboxId(QVariant data)
 {
-    NMLOG("NmMailboxServiceInterface::displayInboxByMailboxId()");
+    NM_FUNCTION;
 
 #ifndef NM_WINS_ENV
 
@@ -71,6 +72,9 @@ void NmMailboxServiceInterface::displayInboxByMailboxId(QVariant data)
     NmId mailboxNmId(data.toULongLong());
 
     mAsyncReqId = setCurrentRequestAsync();
+
+    // Make sure that app stays background if user presses back in message list view
+    bool visible = mApplication->updateVisibilityState();
 
     // Verify that the ID matches one of the existing mailboxes.
     if (mailboxExistsById(mailboxNmId)) {
@@ -101,7 +105,7 @@ void NmMailboxServiceInterface::displayInboxByMailboxId(QVariant data)
         // No mailbox found with the given ID.
 
         // if started as embedded, do not hide the app
-		if (!XQServiceUtil::isEmbedded()) {
+		if (!XQServiceUtil::isEmbedded() && !visible) {
 			XQServiceUtil::toBackground(true);
 		}
 
@@ -124,7 +128,7 @@ void NmMailboxServiceInterface::displayInboxByMailboxId(QVariant data)
 */
 bool NmMailboxServiceInterface::mailboxExistsById(const NmId &mailboxId) const
 {
-    NMLOG("NmMailboxServiceInterface::mailboxExistsById()");
+    NM_FUNCTION;
 
     const NmMailboxListModel& mailboxListModel = mUiEngine.mailboxListModel();
     int mailboxCount = mailboxListModel.rowCount();

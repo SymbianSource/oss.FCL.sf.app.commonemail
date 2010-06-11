@@ -15,6 +15,8 @@
 *
 */
 
+#include "emailtrace.h"
+
 #include "nmconverter.h"
 
 /*!
@@ -22,6 +24,8 @@
  */
 EXPORT_C NmMailSortCriteria NmConverter::FSMailSortCriteria2NM(TFSMailSortCriteria criteria) 
 {
+    NM_FUNCTION;
+    
     NmMailSortCriteria toReturn;
 
     // setting defaults
@@ -78,6 +82,8 @@ EXPORT_C NmMailSortCriteria NmConverter::FSMailSortCriteria2NM(TFSMailSortCriter
  */
 EXPORT_C QString NmConverter::toQString(const TDesC& aText)
 {
+    NM_FUNCTION;
+    
     return QString::fromUtf16(aText.Ptr(), aText.Length());
 }
 
@@ -86,6 +92,8 @@ EXPORT_C QString NmConverter::toQString(const TDesC& aText)
  */
 EXPORT_C QDateTime NmConverter::toQDateTime(const TTime& aTime)
 {
+    NM_FUNCTION;
+    
     QDateTime toReturn;
     TDateTime sTime = aTime.DateTime();
 
@@ -106,6 +114,8 @@ EXPORT_C QDateTime NmConverter::toQDateTime(const TTime& aTime)
  */
 EXPORT_C TTime NmConverter::toTTime(const QDateTime &aTime)
 {
+    NM_FUNCTION;
+    
     QDate qDate = aTime.date();
     QTime qTime = aTime.time();
 
@@ -120,6 +130,8 @@ EXPORT_C TTime NmConverter::toTTime(const QDateTime &aTime)
  */
 EXPORT_C TFSMailSortCriteria NmConverter::NMMailSortCriteria2FS(NmMailSortCriteria criteria)
 {
+    NM_FUNCTION;
+    
     TFSMailSortCriteria toReturn;
 
     // setting defaults
@@ -176,6 +188,8 @@ EXPORT_C TFSMailSortCriteria NmConverter::NMMailSortCriteria2FS(NmMailSortCriter
  */
 EXPORT_C NmId NmConverter::mailMsgIdToNmId(const TFSMailMsgId aId)
 {
+    NM_FUNCTION;
+    
     NmId id;
     id.setId32( aId.Id() );
     id.setPluginId32( aId.PluginId().iUid );
@@ -188,6 +202,8 @@ EXPORT_C NmId NmConverter::mailMsgIdToNmId(const TFSMailMsgId aId)
  */
 EXPORT_C TFSMailMsgId NmConverter::nmIdToMailMsgId(const NmId aId)
 {
+    NM_FUNCTION;
+    
     TFSMailMsgId id( aId.pluginId32(), aId.id32() );
     return id;
 }
@@ -197,6 +213,8 @@ EXPORT_C TFSMailMsgId NmConverter::nmIdToMailMsgId(const NmId aId)
  */
 EXPORT_C HBufC* NmConverter::qstringToHBufCLC( const QString &string )
 {
+    NM_FUNCTION;
+    
     HBufC* buf = HBufC::NewLC(string.length());    
     buf->Des().Copy( string.utf16() );
     return buf;
@@ -208,6 +226,8 @@ EXPORT_C HBufC* NmConverter::qstringToHBufCLC( const QString &string )
 EXPORT_C RPointerArray<CFSMailAddress> NmConverter::toRPointerArray(
     const QList<NmAddress> &list)
 {
+    NM_FUNCTION;
+    
     RPointerArray<CFSMailAddress> ret;
 
      for (QList<NmAddress>::const_iterator it = list.constBegin();

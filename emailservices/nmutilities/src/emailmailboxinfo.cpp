@@ -15,6 +15,8 @@
  *
  */
 
+#include "emailtrace.h"
+
 #include "emailmailboxinfo.h"
 #include "emailmailboxinfo_p.h"
 
@@ -23,6 +25,8 @@
  */
 EmailMailboxInfo::EmailMailboxInfo()
 {
+    NM_FUNCTION;
+    
     d = EmailMailboxInfoPrivate::getInstance();
 }
 
@@ -31,6 +35,8 @@ EmailMailboxInfo::EmailMailboxInfo()
  */
 EmailMailboxInfo::~EmailMailboxInfo()
 {
+    NM_FUNCTION;
+    
     EmailMailboxInfoPrivate::releaseInstance(d);
 }
 
@@ -41,6 +47,8 @@ EmailMailboxInfo::~EmailMailboxInfo()
  */
 QString EmailMailboxInfo::mailboxIcon(const QVariant &identifier) const
 {
+    NM_FUNCTION;
+    
     return d->icon(identifier);
 }
 
@@ -51,6 +59,8 @@ QString EmailMailboxInfo::mailboxIcon(const QVariant &identifier) const
  */
 QString EmailMailboxInfo::mailboxName(const QVariant &identifier) const
 {
+    NM_FUNCTION;
+    
     return d->name(identifier);
 }
 

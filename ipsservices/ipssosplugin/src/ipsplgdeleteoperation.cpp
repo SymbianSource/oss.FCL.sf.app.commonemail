@@ -41,8 +41,34 @@ CIpsPlgDeleteOperation::CIpsPlgDeleteOperation(
         aMsvSession, 
         CActive::EPriorityStandard, 
         aObserverRequestStatus),
+    iOperationObserver(NULL),
+    iFSRequestId(KErrNotFound),
     iState( ESetFlags ) // <qmail>
     //</qmail> iBlank removed    
+    {
+    FUNC_LOG;
+    CActiveScheduler::Add(this);
+    }
+//</qmail>
+
+// ----------------------------------------------------------------------------
+// CIpsPlgDeleteOperation::CIpsPlgDeleteOperation
+// ----------------------------------------------------------------------------
+//
+//<qmail>
+CIpsPlgDeleteOperation::CIpsPlgDeleteOperation(
+    CMsvSession& aMsvSession,
+    TRequestStatus& aObserverRequestStatus,
+    MFSMailRequestObserver& aOperationObserver,
+    const TInt aRequestId)
+    :
+    CMsvOperation( 
+        aMsvSession, 
+        CActive::EPriorityStandard, 
+        aObserverRequestStatus),
+    iOperationObserver(&aOperationObserver),
+    iFSRequestId(aRequestId),
+    iState( ESetFlags )
     {
     FUNC_LOG;
     CActiveScheduler::Add(this);
@@ -115,6 +141,28 @@ CIpsPlgDeleteOperation* CIpsPlgDeleteOperation::NewL(
     return self;
     }
 
+// <qmail>
+// ----------------------------------------------------------------------------
+// CIpsPlgDeleteOperation::NewL
+// ----------------------------------------------------------------------------
+//
+CIpsPlgDeleteOperation* CIpsPlgDeleteOperation::NewL(
+    CMsvSession& aMsvSession,
+    TRequestStatus& aObserverRequestStatus,
+    CMsvEntrySelection* aEntriesToDelete,
+    MFSMailRequestObserver& aOperationObserver,
+    const TInt aRequestId)
+    {
+    FUNC_LOG;
+    CIpsPlgDeleteOperation* self=new (ELeave) CIpsPlgDeleteOperation(
+        aMsvSession, aObserverRequestStatus, aOperationObserver, aRequestId );
+    CleanupStack::PushL(self);
+    self->ConstructL( aEntriesToDelete );
+    CleanupStack::Pop( self ); 
+    return self;
+    }
+// </qmail>
+
 // ----------------------------------------------------------------------------
 // CIpsPlgDeleteOperation::~CIpsPlgDeleteOperation
 // ----------------------------------------------------------------------------
@@ -161,6 +209,7 @@ void CIpsPlgDeleteOperation::RunL()
     if ( iStatus.Int() != KErrNone )
         {
         // something failed, just complete
+        SignalFSObserver(iStatus.Int());
         TRequestStatus* status = &iObserverRequestStatus;
         User::RequestComplete(status, iStatus.Int());
         return;
@@ -177,6 +226,7 @@ void CIpsPlgDeleteOperation::RunL()
         
         if ( err != KErrNone )
             {
+            SignalFSObserver(err);
             TRequestStatus* status = &iObserverRequestStatus;
             User::RequestComplete(status, iStatus.Int());
             }
@@ -198,6 +248,8 @@ void CIpsPlgDeleteOperation::RunL()
         }
     else
         {
+        // Inform observer
+        SignalFSObserver(iStatus.Int());
         // nothing left to process, so complete the observer
         TRequestStatus* status = &iObserverRequestStatus;
         User::RequestComplete(status, iStatus.Int());
@@ -244,6 +296,7 @@ void CIpsPlgDeleteOperation::StartNextDeleteLocally()
     // if error then complete this pass with the error code
     if ( err )
         {
+        SignalFSObserver(err);
         TRequestStatus* status = &iStatus;
         User::RequestComplete(status, err);
         }
@@ -279,6 +332,7 @@ void CIpsPlgDeleteOperation::StartDeleteFromServer()
     // if error then complete this pass with the error code
     if ( err )
         {
+        SignalFSObserver(err);
         TRequestStatus* status = &iStatus;
         User::RequestComplete( status, err );
         }
@@ -335,7 +389,25 @@ TBool CIpsPlgDeleteOperation::SetNextLocallyDeletedFlagL()
     
     return ret;
     }
-// </qmail>    
+// </qmail>
+
+//<qmail> 
+// ----------------------------------------------------------------------------
+// CIpsPlgDeleteOperation::SignalFSObserver
+// ----------------------------------------------------------------------------
+//
+void CIpsPlgDeleteOperation::SignalFSObserver(TInt aStatus)
+    {
+    if (iOperationObserver)
+        {
+        iFSProgress.iProgressStatus = TFSProgress::EFSStatus_RequestComplete;
+        iFSProgress.iError = aStatus;
+        iFSProgress.iParam = NULL;
+    
+        TRAP_IGNORE( iOperationObserver->RequestResponseL( iFSProgress, iFSRequestId ) );
+        }
+    }
+// </qmail>
 
 //  End of File
 

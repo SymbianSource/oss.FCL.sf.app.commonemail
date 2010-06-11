@@ -308,8 +308,8 @@ TBool CIpsPlgMsgMapper::ChangeTEntryFlagsL(
     TBool unread( aEmlEntry.Unread() );
 
 // <qmail>
-    if ( !LogicalXor( unread, msgFlags & EFSMsgFlag_Read ) ||
-         !LogicalXor( unread, msgFlags & EFSMsgFlag_Read_Locally ))
+    if ( LogicalXor( unread, msgFlags & EFSMsgFlag_Read ) ||
+         LogicalXor( unread, msgFlags & EFSMsgFlag_Read_Locally ))
 // </qmail>
         {
         aEmlEntry.SetUnread( !unread );

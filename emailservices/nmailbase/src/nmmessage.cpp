@@ -15,6 +15,8 @@
 *
 */
 
+#include "emailtrace.h"
+
 #include "nmmessage.h"
 #include "nmmessageenvelope.h"
 
@@ -23,7 +25,7 @@
  */
 NmMessagePrivate::NmMessagePrivate() : mEnvelope(0)
 {
-    
+    NM_FUNCTION;
 }
 
 /*!
@@ -31,7 +33,7 @@ NmMessagePrivate::NmMessagePrivate() : mEnvelope(0)
  */
 NmMessagePrivate::~NmMessagePrivate()
 {
-    
+    NM_FUNCTION;
 }
 
 /*!
@@ -44,6 +46,8 @@ NmMessagePrivate::~NmMessagePrivate()
  */
 NmMessage::NmMessage()
 {
+    NM_FUNCTION;
+    
     d = new NmMessagePrivate();
 }
 
@@ -52,6 +56,8 @@ NmMessage::NmMessage()
  */
 NmMessage::NmMessage(const NmId &messageId) : NmMessagePart(0)
 {
+    NM_FUNCTION;
+    
     d = new NmMessagePrivate();
     d->mEnvelope.setMessageId(messageId);
 }
@@ -63,6 +69,8 @@ NmMessage::NmMessage(const NmId &messageId) : NmMessagePart(0)
 NmMessage::NmMessage(const NmId &messageId, const NmId &folderId)
 : NmMessagePart(0)
 {
+    NM_FUNCTION;
+    
     d = new NmMessagePrivate();
 	d->mEnvelope.setMessageId(messageId);
 	d->mEnvelope.setFolderId(folderId);
@@ -77,6 +85,8 @@ NmMessage::NmMessage(const NmId &messageId,
                      const NmId &mailboxId)
 :NmMessagePart(0)
 {
+    NM_FUNCTION;
+    
     d = new NmMessagePrivate();
 	d->mEnvelope.setMessageId(messageId);
 	d->mEnvelope.setFolderId(folderId);
@@ -88,6 +98,8 @@ NmMessage::NmMessage(const NmId &messageId,
  */
 NmMessage::NmMessage(const NmMessageEnvelope &envelope)
 {
+    NM_FUNCTION;
+    
     d = new NmMessagePrivate();
     d->mEnvelope = envelope;
     // set message id same as envelope id
@@ -101,6 +113,8 @@ NmMessage::NmMessage(const NmMessageEnvelope &envelope,
         QExplicitlySharedDataPointer<NmMessagePartPrivate> nmPrivateMessagePart)
         : NmMessagePart(nmPrivateMessagePart)
 {
+    NM_FUNCTION;
+    
     d = new NmMessagePrivate();
 	d->mEnvelope = envelope;
     // set message id same as envelope id
@@ -112,6 +126,8 @@ NmMessage::NmMessage(const NmMessageEnvelope &envelope,
  */
 NmMessage::NmMessage(const NmMessagePart& message):NmMessagePart(message)
 {
+    NM_FUNCTION;
+    
     d = new NmMessagePrivate();
 }
 
@@ -124,6 +140,8 @@ NmMessage::NmMessage(const NmMessage& message):NmMessagePart(message), d(message
  */
 NmMessage &NmMessage::operator=(const NmMessage &message)
 {
+    NM_FUNCTION;
+    
 	if (this != &message) {
 		d = message.d;
 	}
@@ -135,6 +153,7 @@ NmMessage &NmMessage::operator=(const NmMessage &message)
  */
 NmMessage::~NmMessage()
 {
+    NM_FUNCTION;
 }
 
 /*!
@@ -144,6 +163,8 @@ NmMessage::~NmMessage()
  */
 const NmMessagePart *NmMessage::plainTextBodyPart() const
 {
+    NM_FUNCTION;
+    
     const NmMessagePart *ret = NULL;
     ret = findContentPart(NmContentTypeTextPlain);
     return ret;
@@ -156,6 +177,8 @@ const NmMessagePart *NmMessage::plainTextBodyPart() const
  */
 NmMessagePart *NmMessage::plainTextBodyPart()
 {
+    NM_FUNCTION;
+    
     NmMessagePart *ret = NULL;
     ret = findContentPart(NmContentTypeTextPlain);
     return ret;
@@ -168,6 +191,8 @@ NmMessagePart *NmMessage::plainTextBodyPart()
  */
 const NmMessagePart *NmMessage::htmlBodyPart() const
 {
+    NM_FUNCTION;
+    
     const NmMessagePart *ret = NULL;
     ret = findContentPart(NmContentTypeTextHtml);
     return ret;
@@ -180,6 +205,8 @@ const NmMessagePart *NmMessage::htmlBodyPart() const
  */
 NmMessagePart *NmMessage::htmlBodyPart()
 {
+    NM_FUNCTION;
+    
     NmMessagePart *ret = NULL;
     ret = findContentPart(NmContentTypeTextHtml);
     return ret;
@@ -190,6 +217,8 @@ NmMessagePart *NmMessage::htmlBodyPart()
  */
 NmMessageEnvelope &NmMessage::envelope()
 {
+    NM_FUNCTION;
+    
     return d->mEnvelope;
 }
 
@@ -198,6 +227,8 @@ NmMessageEnvelope &NmMessage::envelope()
  */
 const NmMessageEnvelope &NmMessage::envelope() const
 {
+    NM_FUNCTION;
+    
     return d->mEnvelope;
 }
 
@@ -210,6 +241,8 @@ const NmMessageEnvelope &NmMessage::envelope() const
 */        
 void NmMessage::attachmentList(QList<NmMessagePart*> &parts) const
 {
+    NM_FUNCTION;
+    
     parts.clear();
     appendAttachments(parts);
 

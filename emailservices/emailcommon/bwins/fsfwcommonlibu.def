@@ -257,4 +257,5 @@ EXPORTS
 	??_ECEmailExtension@@UAE@I@Z @ 256 NONAME ; CEmailExtension::~CEmailExtension(unsigned int)
 	?GetCCRecipients@CFSMailMessageBase@@QAE?AV?$RPointerArray@VCFSMailAddress@@@@XZ @ 257 NONAME ; class RPointerArray<class CFSMailAddress> CFSMailMessageBase::GetCCRecipients(void)
 	?NewL@CFSMailMessagePart@@SAPAV1@VTFSMailMsgId@@0@Z @ 258 NONAME ; class CFSMailMessagePart * CFSMailMessagePart::NewL(class TFSMailMsgId, class TFSMailMsgId)
+	?RemoveMessageL@CFSMailFolder@@QAEHVTFSMailMsgId@@AAVMFSMailRequestObserver@@@Z @ 259 NONAME ; int CFSMailFolder::RemoveMessageL(class TFSMailMsgId, class MFSMailRequestObserver &)
 
