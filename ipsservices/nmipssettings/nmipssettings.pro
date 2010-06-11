@@ -29,9 +29,6 @@ INCLUDEPATH += $$APP_LAYER_SYSTEMINCLUDE
 
 CONFIG += hb
 CONFIG += plugin
-CONFIG += mobility
-
-MOBILITY = serviceframework
 
 MOC_DIR = moc
 OBJECTS_DIR = obj
@@ -78,8 +75,10 @@ symbian: {
     LIBS += -leuser
     LIBS += -llibc
     LIBS += -lcmapplsettingsui
-    LIBS += -lqtbearer
     LIBS += -lAlwaysOnlineManagerClient
+    
+    CONFIG += mobility
+    MOBILITY += bearer serviceframework
 }
 
 symbian: plugin { # copy qtstub and manifest
