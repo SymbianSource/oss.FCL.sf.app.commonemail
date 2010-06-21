@@ -96,12 +96,14 @@
 const TInt KControlBarTransitionTime = 250;
 const TInt KMaxPreviewPaneLength = 60;
 const TInt KMsgUpdaterTimerDelay = 2500000; // Time to update list, 2,5sec
+const TInt KNewMailTimerDelay = 20; // sleeping timer to start processing new messages
+const TInt KNewMailMaxBatch = 7;    // number of new mails inserted into list at once
 static const TInt KMsgDeletionWaitNoteAmount = 5;
 _LIT( KMissingPreviewDataMarker, "..." );
 
 static const TInt KMaxItemsFethed = 1000;
 static const TInt KCMsgBlock = 15;
-static const TInt KCMsgMaxBlock = 120;
+static const TInt KCMsgBlockSort = 50;
 
 // ---------------------------------------------------------------------------
 // Generic method for deleting a pointer and setting it NULL.
@@ -186,19 +188,46 @@ template <class T> void TDeleteTask<T>::Reset()
     {
     iEntries.Reset();
     }
+
+
 // CMailListModelUpdater
 
+
 // ---------------------------------------------------------------------------
-// Constructor
+// CMailListModelUpdater::NewL
+// ---------------------------------------------------------------------------
+//
+CMailListModelUpdater* CMailListModelUpdater::NewL()
+    {
+    CMailListModelUpdater* self = new (ELeave) CMailListModelUpdater();
+    CleanupStack::PushL( self );
+    self->ConstructL();
+    CleanupStack::Pop( self );
+
+    return self;
+    }
+
+// ---------------------------------------------------------------------------
+// CMailListModelUpdater::ConstructL
+// ---------------------------------------------------------------------------
+//
+void CMailListModelUpdater::ConstructL()
+    {
+    User::LeaveIfError( iTimer.CreateLocal() );
+    }
+
+// ---------------------------------------------------------------------------
+// CMailListModelUpdater::CMailListModelUpdater
 // ---------------------------------------------------------------------------
 //
 CMailListModelUpdater::CMailListModelUpdater() : CActive(EPriorityStandard)
     {
     CActiveScheduler::Add(this);
+    iBlockSize = KCMsgBlock;
     }
 
 // ---------------------------------------------------------------------------
-// Destructor
+// CMailListModelUpdater::~CMailListModelUpdater
 // ---------------------------------------------------------------------------
 //
 CMailListModelUpdater::~CMailListModelUpdater()
@@ -206,6 +235,7 @@ CMailListModelUpdater::~CMailListModelUpdater()
     iObserver = NULL;
     Cancel();
     iSorting.Close();
+    iTimer.Close();
     }
 
 // ---------------------------------------------------------------------------
@@ -224,25 +254,35 @@ RArray<TFSMailSortCriteria>& CMailListModelUpdater::Sorting()
 // informed to the observer.
 // ---------------------------------------------------------------------------
 //
-void CMailListModelUpdater::UpdateModelL(MObserver& aObserver, MFSMailIterator* aIterator)
+void CMailListModelUpdater::UpdateModelL(MObserver& aObserver, 
+                                         MFSMailIterator* aIterator, TInt aBlockSize)
     {
     Cancel();
     iObserver = &aObserver;
     iIterator = aIterator;
     Signal(EInitialize);
+    iBlockSize = aBlockSize;
     }
 
 // ---------------------------------------------------------------------------
 // Internal method. Sets new state and signals itself.
 // ---------------------------------------------------------------------------
 //
-void CMailListModelUpdater::Signal(TState aState, TInt aError)
+void CMailListModelUpdater::Signal(TState aState, TInt /*aError*/)
     {
+    const TInt KDelayInMicroSeconds = 5 * 1000; // 5 ms
+    
+    // timer used to get CAknWaitDialog animation working
     iState = aState;
-    iStatus = KRequestPending;
+    iTimer.After(iStatus, KDelayInMicroSeconds);
     SetActive();
-    TRequestStatus* status = &iStatus;
-    User::RequestComplete(status, aError);
+    
+    
+    //iState = aState;
+    //iStatus = KRequestPending;
+    //SetActive();
+    //TRequestStatus* status = &iStatus;
+    //User::RequestComplete(status, aError);
     }
 
 // ---------------------------------------------------------------------------
@@ -251,7 +291,6 @@ void CMailListModelUpdater::Signal(TState aState, TInt aError)
 //
 void CMailListModelUpdater::InitializeL()
     {
-    iBlockSize = KCMsgBlock;
     iParentId = KFsTreeRootID;
     iId = TFSMailMsgId();
     iItemsFetched = 0;
@@ -266,17 +305,26 @@ void CMailListModelUpdater::InitializeL()
 //
 void CMailListModelUpdater::FetchL()
     {
-    RPointerArray<CFSMailMessage> messages(iBlockSize);
+    TInt blockSize = iBlockSize;
+    if ( iItemsFetched == 0 )
+        {
+        blockSize = KCMsgBlock;
+        }
+
+    RPointerArray<CFSMailMessage> messages(blockSize);
     CleanupClosePushL(messages);
-    const TBool moreMessages(iIterator->NextL(iId, iBlockSize, messages));
-    iBlockSize = Min(KCMsgMaxBlock, iBlockSize * 2);
+   
+    const TBool moreMessages(iIterator->NextL(iId, blockSize, messages));
+
     if (messages.Count() > 0)
         {
         iItemsFetched += messages.Count();
         iId = messages[messages.Count() - 1]->GetMessageId();
         iObserver->UpdateProgressL(iParentId, messages);
         }
+    
     CleanupStack::PopAndDestroy(); // messages.Close()
+    
     if (moreMessages && iItemsFetched < KMaxItemsFethed)
         {
         Signal(EFetch);
@@ -343,7 +391,7 @@ void CMailListModelUpdater::RunL()
         }
     else
         {
-        iObserver->UpdateErrorL(error);
+        User::Leave(error);  // causes RunError to be called
         }
     }
 
@@ -358,7 +406,26 @@ void CMailListModelUpdater::DoCancel()
         iObserver->UpdateCancelled(IsUpdating());
         }
     Reset();
+    
+    iTimer.Cancel();
     }
+// ---------------------------------------------------------------------------
+// CMailListModelUpdater::RunError
+// ---------------------------------------------------------------------------
+//
+TInt CMailListModelUpdater::RunError(TInt aError)
+    {
+    if ( aError != KErrNone )
+        {
+        TRAP_IGNORE( iObserver->UpdateErrorL( aError ) );
+        }
+    
+    return aError;
+    }
+
+
+
+
 
 // ---------------------------------------------------------------------------
 // Static constructor.
@@ -400,7 +467,7 @@ void CFSEmailUiMailListVisualiser::ConstructL()
 
 	BaseConstructL( R_FSEMAILUI_MAIL_LIST_VIEW );
 
-	iMailListModelUpdater = new (ELeave) CMailListModelUpdater();
+	iMailListModelUpdater = CMailListModelUpdater::NewL();
 
 	// Don't construct this anywhere else than here.
 	// Don't delete this until in the destructor to avoid NULL checks.
@@ -417,6 +484,8 @@ void CFSEmailUiMailListVisualiser::ConstructL()
 	iAsyncRedrawer = new (ELeave) CAsyncCallBack( CActive::EPriorityLow );
 	iLastFocus = EFalse;
     iDeleteTask = new (ELeave) TDeleteTask<CFSEmailUiMailListVisualiser> (*this, HandleDeleteTaskL);
+
+    iNewMailTimer = CFSEmailUiGenericTimer::NewL( this );
 
 	iTouchFeedBack = MTouchFeedback::Instance();
  	}
@@ -481,8 +550,10 @@ void CFSEmailUiMailListVisualiser::DoFirstStartL()
     iMailTreeListVisualizer->SetEmptyListTextL( *emptyText );
     CleanupStack::PopAndDestroy( emptyText );
 
-    TRgb normalColor = iAppUi.LayoutHandler()->ListNormalStateTextSkinColor();
-    iMailTreeListVisualizer->RootNodeVisualizer()->SetNormalStateTextColor( normalColor );
+    iFocusedTextColor = iAppUi.LayoutHandler()->ListFocusedStateTextSkinColor();
+    iNormalTextColor = iAppUi.LayoutHandler()->ListNormalStateTextSkinColor();
+    iNodeTextColor = iAppUi.LayoutHandler()->ListNodeTextColor();
+    iMailTreeListVisualizer->RootNodeVisualizer()->SetNormalStateTextColor( iNormalTextColor );
 
     // Set page up and page down keys
     iMailTreeListVisualizer->AddCustomPageUpKey( EStdKeyPageUp );
@@ -573,8 +644,11 @@ CFSEmailUiMailListVisualiser::~CFSEmailUiMailListVisualiser()
 	// Don't construct this anywhere else than in constructor.
 	// Don't delete anywhere else thatn here to avoid NULL checks.
     delete iModel;
-    
+
     delete iDeleteTask;
+    DeleteSortWaitNote();
+    delete iNewMailTimer;
+    iNewMailIds.Close();
     }
 
 void CFSEmailUiMailListVisualiser::PrepareForExit()
@@ -583,27 +657,25 @@ void CFSEmailUiMailListVisualiser::PrepareForExit()
     iMailListModelUpdater->Cancel();
     if ( iMsgNoteTimer )
         {
-        iMsgNoteTimer->Cancel();
+        // delete also cancels timer
         SafeDelete(iMsgNoteTimer);
         }
     if ( iDateChangeTimer )
         {
-        iDateChangeTimer->Cancel();
+        // delete also cancels timer
         SafeDelete(iDateChangeTimer);
         }
     if ( iMailListUpdater )
         {
-        iMailListUpdater->Stop();
+        // delete also cancels timer
         SafeDelete(iMailListUpdater);
         }
     if ( iAsyncRedrawer )
         {
-        iAsyncRedrawer->Cancel();
         SafeDelete(iAsyncRedrawer);
         }
     if ( iAsyncCallback )
         {
-        iAsyncCallback->Cancel();
         SafeDelete(iAsyncCallback);
         }
     if ( iMailList )
@@ -614,6 +686,13 @@ void CFSEmailUiMailListVisualiser::PrepareForExit()
         {
         iControlBarControl->RemoveObserver( *this );
         }
+
+    if ( iNewMailTimer )
+        {
+        // delete also cancels timer
+        SafeDelete( iNewMailTimer );
+        }
+
     SafeDelete(iMailFolder);
     iTreeItemArray.Reset();
 	// Reset, not delete to avoid NULL checks.
@@ -639,6 +718,8 @@ CFsTreeList& CFSEmailUiMailListVisualiser::GetMailList()
 void CFSEmailUiMailListVisualiser::UpdateErrorL(TInt aError)
     {
     FUNC_LOG;
+    
+    DeleteSortWaitNote();
     User::Leave(aError);
     }
 
@@ -649,8 +730,13 @@ void CFSEmailUiMailListVisualiser::UpdateErrorL(TInt aError)
 void CFSEmailUiMailListVisualiser::UpdateBeginL()
     {
     FUNC_LOG;
-    iModel->Reset();
+    iMailList->BeginUpdate();
+    iMailList->RemoveAllL();
     iTreeItemArray.Reset();
+    iModel->Reset();
+    iMailList->EndUpdateL();
+
+    SetListAndCtrlBarFocusL();
     }
 
 // ---------------------------------------------------------------------------
@@ -660,6 +746,7 @@ void CFSEmailUiMailListVisualiser::UpdateBeginL()
 void CFSEmailUiMailListVisualiser::UpdateProgressL(TFsTreeItemId& aParentId, RPointerArray<CFSMailMessage>& aMessages)
     {
     FUNC_LOG;
+    
     const TInt itemsInModel(iModel->Count());
     CreateModelItemsL(aMessages);
     RefreshListItemsL(aParentId, itemsInModel, iModel->Count());
@@ -672,6 +759,13 @@ void CFSEmailUiMailListVisualiser::UpdateProgressL(TFsTreeItemId& aParentId, RPo
 void CFSEmailUiMailListVisualiser::UpdateCompleteL()
     {
     FUNC_LOG;
+    TBool sorting = EFalse;
+    if ( iSortWaitNote )
+        {
+        sorting = ETrue;
+        }
+    DeleteSortWaitNote();
+    
     if ( !iModel->Count() )
         {
         iFocusedControl = EControlBarComponent;
@@ -685,10 +779,12 @@ void CFSEmailUiMailListVisualiser::UpdateCompleteL()
             }
         }
     SetListAndCtrlBarFocusL();
-    if(!CheckAutoSyncSettingL())
+    
+    if( !CheckAutoSyncSettingL() && !sorting )
         {
         iAppUi.StartMonitoringL();
         }
+    
     TIMESTAMP( "Locally stored messages fetched for message list" );
     }
 
@@ -699,16 +795,51 @@ void CFSEmailUiMailListVisualiser::UpdateCompleteL()
 void CFSEmailUiMailListVisualiser::UpdateCancelled(const TBool aForceRefresh)
     {
     FUNC_LOG;
+    
     iForceRefresh = aForceRefresh;
+    DeleteSortWaitNote();
+    }
+
+// ---------------------------------------------------------------------------
+// CFSEmailUiMailListVisualiser::DeleteSortWaitNote
+// ---------------------------------------------------------------------------
+//
+void CFSEmailUiMailListVisualiser::DeleteSortWaitNote()
+    {
+    if ( iSortWaitNote )
+        {
+        TRAP_IGNORE( iSortWaitNote->ProcessFinishedL() );
+        iSortWaitNote = NULL;
+        }
+    }
+
+
+// ---------------------------------------------------------------------------
+// Asynchronous mail list model sort.
+// ---------------------------------------------------------------------------
+//
+void CFSEmailUiMailListVisualiser::SortMailListModelAsyncL()
+    {
+    FUNC_LOG;
+   
+    DeleteSortWaitNote();
+  
+    TBool ret = UpdateMailListModelAsyncL( KCMsgBlockSort );
+    
+    if ( ret )
+        {
+        TFsEmailUiUtility::ShowWaitNoteL( iSortWaitNote, R_FSE_WAIT_SORTING_TEXT, EFalse, ETrue );
+        }
     }
 
 // ---------------------------------------------------------------------------
 // Asynchronous mail list model update.
 // ---------------------------------------------------------------------------
 //
-void CFSEmailUiMailListVisualiser::UpdateMailListModelAsyncL()
+TBool CFSEmailUiMailListVisualiser::UpdateMailListModelAsyncL(TInt aBlockSize)
     {
     FUNC_LOG;
+    TBool ret = EFalse;
     if ( iMailFolder )
         {
         TFSMailDetails details( EFSMsgDataEnvelope );
@@ -723,12 +854,15 @@ void CFSEmailUiMailListVisualiser::UpdateMailListModelAsyncL()
             sorting.AppendL( secondarySortCriteria );
             }
         // List all or maximum number of messages
-        iMailListModelUpdater->UpdateModelL(*this, iMailFolder->ListMessagesL(details, sorting));
+        iMailListModelUpdater->UpdateModelL(*this, iMailFolder->ListMessagesL(details, sorting), aBlockSize);
+        ret = ETrue;
         }
     else
         {
         UpdateCompleteL();
         }
+    
+    return ret;
     }
 
 // ---------------------------------------------------------------------------
@@ -813,13 +947,16 @@ void CFSEmailUiMailListVisualiser::CreateModelItemsL( RPointerArray<CFSMailMessa
 		    {
 		    CFSMailMessage* nextMessage = aMessages[0];
 		    CFSEmailUiMailListModelItem* previousMessage(static_cast<CFSEmailUiMailListModelItem*>(iModel->Item(iModel->Count() - 1)));
-            TBool needANewDivider =
-                !MessagesBelongUnderSameSeparatorL( previousMessage->MessagePtr(), *nextMessage );
-            if ( needANewDivider )
+            if ( previousMessage ) // Safety
                 {
-                newItem = CreateSeparatorModelItemLC( *nextMessage );
-                iModel->AppendL( newItem );
-                CleanupStack::Pop( newItem );
+                TBool needANewDivider =
+                    !MessagesBelongUnderSameSeparatorL( previousMessage->MessagePtr(), *nextMessage );
+                if ( needANewDivider )
+                    {
+                    newItem = CreateSeparatorModelItemLC( *nextMessage );
+                    iModel->AppendL( newItem );
+                    CleanupStack::Pop( newItem );
+                    }
                 }
             }
 		else
@@ -1084,28 +1221,59 @@ void CFSEmailUiMailListVisualiser::InsertNewMessagesL( const RArray<TFSMailMsgId
         SetMailListItemsExtendedL();
         TInt count(0);
         count = aMessages.Count();
+
         for ( TInt i = 0 ; i < count ; ++i )
             {
             // Make sure we don't add duplicate items.
             TInt existingIdx = ItemIndexFromMessageId( aMessages[i] );
             if ( existingIdx < 0 )
                 {
-                CFSMailMessage* msgPtr = iAppUi.GetMailClient()->GetMessageByUidL( iAppUi.GetActiveMailboxId(),
-                                                                                    iMailFolder->GetFolderId(),
-                                                                                    aMessages[i] ,
-                                                                                   EFSMsgDataEnvelope );
-                if (msgPtr == NULL)
-                    {
-                    User::Leave(KErrNotFound);
-                    }
-                CleanupStack::PushL( msgPtr );
-                //first item - show scrollbar
-                //last item - updete scrollbar
-                TBool allowRefresh = ( i == 0 || i == count - 1 );
-                InsertNewMessageL( msgPtr, allowRefresh );
-                CleanupStack::Pop( msgPtr ); // ownership transferred to model
+                iNewMailIds.Append( aMessages[ i ] );
                 }
             }
+
+        // if iNewMailIds is not empty - start timer
+        if ( !iNewMailTimer->IsActive() && iNewMailIds.Count() )
+            {
+            iNewMailTimer->Start( KNewMailTimerDelay );
+            }
+        }
+    }
+
+
+// ---------------------------------------------------------------------------
+// TimerEventL
+//
+// ---------------------------------------------------------------------------
+//
+void CFSEmailUiMailListVisualiser::TimerEventL( CFSEmailUiGenericTimer* /*aTriggeredTimer*/ )
+    {
+    TInt count = Min( KNewMailMaxBatch, iNewMailIds.Count() );
+    CFSMailClient* mailClient = iAppUi.GetMailClient();
+
+    for ( TInt i = 0; i < count; i++ )
+        {
+        CFSMailMessage* msgPtr = mailClient->GetMessageByUidL( iAppUi.GetActiveMailboxId(),
+                                                               iMailFolder->GetFolderId(),
+                                                               iNewMailIds[ 0 ],
+                                                               EFSMsgDataEnvelope );
+        if ( msgPtr != NULL )
+            {
+            CleanupStack::PushL( msgPtr );
+            //first item - show scrollbar
+            //last item - update scrollbar
+            TBool allowRefresh = ( i == 0 || i == count - 1 );
+            InsertNewMessageL( msgPtr, allowRefresh );
+            CleanupStack::Pop( msgPtr ); // ownership transferred to model
+            }
+        // pop processed id from the queue, this is single thread operation
+        iNewMailIds.Remove( 0 ); 
+        }
+
+    // if timer stoped then restart if more messages available
+    if ( iNewMailIds.Count() && ! iNewMailTimer->IsActive() )
+        {
+        iNewMailTimer->Start( KNewMailTimerDelay );
         }
     }
 
@@ -1274,7 +1442,7 @@ TInt CFSEmailUiMailListVisualiser::NewEmailsInModelL() const
 		{
 		CFSEmailUiMailListModelItem* item =
 			static_cast<CFSEmailUiMailListModelItem*>(iModel->Item(i));
-		if ( item->ModelItemType() == ETypeMailItem )
+		if ( item && item->ModelItemType() == ETypeMailItem )
 			{
 			if ( !item->MessagePtr().IsFlagSet(EFSMsgFlag_Read) )
 				{
@@ -1531,6 +1699,13 @@ void CFSEmailUiMailListVisualiser::ChildDoActivateL(const TVwsViewId& aPrevViewI
     // Tries to create an extension for the Ozone plugin
     CreateExtensionL();
 
+    // if mailbox changed stop timer driven insertion of new mails into list
+    if ( activationData.iMailBoxId != prevMailBoxId )
+        {
+        iNewMailTimer->Cancel();
+        iNewMailIds.Reset();
+        }
+
     // CHECK IF MODEL NEEDS TO BE UPDATED
     if ( activationData.iMailBoxId != prevMailBoxId ||
          activationData.iFolderId != prevFolderId ||
@@ -1595,20 +1770,24 @@ void CFSEmailUiMailListVisualiser::ChildDoActivateL(const TVwsViewId& aPrevViewI
             }
         else
             {
-            UpdateMailListModelAsyncL();
+            UpdateMailListModelAsyncL( KCMsgBlockSort );
             }
         }
     else if(refreshState == EFocusChangeNeeded)
         {//Move focus to the beginning of the list
         TInt firstIndex(0);
-        TFsTreeItemId firstItemId = iMailList->Child( KFsTreeRootID, firstIndex );
+        TFsTreeItemId firstItemId(KFsTreeNoneID);
+        if ( iMailList->CountChildren( KFsTreeRootID ) )
+            {
+            firstItemId = iMailList->Child( KFsTreeRootID, firstIndex );
+            }
         iMailTreeListVisualizer->SetFocusedItemL( firstItemId, EFalse );
         //if the view is already active don't update the list so it won't "blink" 
         //when the view is activated.
         if(!iThisViewActive)
-          {
+            {
             iMailList->ShowListL();
-          }
+            }
         }
     // THE CORRECT FOLDER IS ALREADY OPEN. CHECK IF SOME PARTIAL UPDATE IS NEEDED.
     else
@@ -2069,15 +2248,18 @@ TBool CFSEmailUiMailListVisualiser::AreAllMarkedItemsReadL()
                 {
                 CFSEmailUiMailListModelItem* item =
                         static_cast<CFSEmailUiMailListModelItem*>( Model()->Item(i) );
-                CFSMailMessage* confirmedMsgPtr(0);
-                confirmedMsgPtr = iAppUi.GetMailClient()->GetMessageByUidL(iAppUi.GetActiveMailboxId(),
-                iMailFolder->GetFolderId(), item->MessagePtr().GetMessageId(), EFSMsgDataEnvelope );
-                TBool isReadMessage = confirmedMsgPtr->IsFlagSet( EFSMsgFlag_Read );
-                delete confirmedMsgPtr;
-                if ( !isReadMessage )
+                if ( item ) // Safety
                     {
-                    ret = EFalse;
-                    break;
+                    CFSMailMessage* confirmedMsgPtr(0);
+                    confirmedMsgPtr = iAppUi.GetMailClient()->GetMessageByUidL(iAppUi.GetActiveMailboxId(),
+                    iMailFolder->GetFolderId(), item->MessagePtr().GetMessageId(), EFSMsgDataEnvelope );
+                    TBool isReadMessage = confirmedMsgPtr->IsFlagSet( EFSMsgFlag_Read );
+                    delete confirmedMsgPtr;
+                    if ( !isReadMessage )
+                        {
+                        ret = EFalse;
+                        break;
+                        }
                     }
                 }
             }
@@ -2105,15 +2287,18 @@ TBool CFSEmailUiMailListVisualiser::AreAllMarkedItemsUnreadL()
                 {
                 CFSEmailUiMailListModelItem* item =
                         static_cast<CFSEmailUiMailListModelItem*>( Model()->Item(i) );
-                CFSMailMessage* confirmedMsgPtr(0);
-                confirmedMsgPtr = iAppUi.GetMailClient()->GetMessageByUidL(iAppUi.GetActiveMailboxId(),
-                iMailFolder->GetFolderId(), item->MessagePtr().GetMessageId(), EFSMsgDataEnvelope );
-                TBool isReadMessage = confirmedMsgPtr->IsFlagSet( EFSMsgFlag_Read );
-                delete confirmedMsgPtr;
-                if ( isReadMessage )
+                if ( item ) // Safety
                     {
-                    ret = EFalse;
-                    break;
+                    CFSMailMessage* confirmedMsgPtr(0);
+                    confirmedMsgPtr = iAppUi.GetMailClient()->GetMessageByUidL(iAppUi.GetActiveMailboxId(),
+                    iMailFolder->GetFolderId(), item->MessagePtr().GetMessageId(), EFSMsgDataEnvelope );
+                    TBool isReadMessage = confirmedMsgPtr->IsFlagSet( EFSMsgFlag_Read );
+                    delete confirmedMsgPtr;
+                    if ( isReadMessage )
+                        {
+                        ret = EFalse;
+                        break;
+                        }
                     }
                 }
             }
@@ -2657,15 +2842,11 @@ TFsTreeItemId CFSEmailUiMailListVisualiser::InsertNodeItemL( TInt aModelIndex,
 TFsTreeItemId CFSEmailUiMailListVisualiser::InsertListItemL( TInt aModelIndex,
                                                              TFsTreeItemId aParentNodeId,
                                                              TInt aChildIdx, /*= KErrNotFound*/
-                                                             TBool aAllowRefresh )
+                                                             TBool aAllowRefresh /*= ETrue*/ )
     {
     FUNC_LOG;
-    TRect screenRec( iAppUi.ClientRect() );
     CFsTreePlainTwoLineItemData* itemData = NULL;
     CFsTreePlainTwoLineItemVisualizer* itemVisualizer = NULL;
-    TRgb focusedColor = iAppUi.LayoutHandler()->ListFocusedStateTextSkinColor();
-    TRgb normalColor = iAppUi.LayoutHandler()->ListNormalStateTextSkinColor();
-
     CFSEmailUiMailListModelItem* item =
         static_cast<CFSEmailUiMailListModelItem*>( iModel->Item(aModelIndex) );
 
@@ -2691,8 +2872,9 @@ TFsTreeItemId CFSEmailUiMailListVisualiser::InsertListItemL( TInt aModelIndex,
    	itemVisualizer->SetPreviewPaneOn( previewOn );
    	itemVisualizer->SetExtendable( ETrue );
 
-    itemVisualizer->SetFocusedStateTextColor( focusedColor );
-    itemVisualizer->SetNormalStateTextColor( normalColor );
+   	// Set correct skin text colors for the list items
+   	itemVisualizer->SetFocusedStateTextColor( iFocusedTextColor );
+    itemVisualizer->SetNormalStateTextColor( iNormalTextColor );
 
     // Set font height
     itemVisualizer->SetFontHeight( iAppUi.LayoutHandler()->ListItemFontHeightInTwips() );
@@ -2944,11 +3126,14 @@ void CFSEmailUiMailListVisualiser::UpdatePreviewPaneTextIfNecessaryL( TFsTreeIte
                         {
                         CFSEmailUiMailListModelItem* modelItem =
                             static_cast<CFSEmailUiMailListModelItem*>( iModel->Item(idx) );
-                        CFSMailMessage& msgRef = modelItem->MessagePtr();
-                        UpdatePreviewPaneTextForItemL( aListItemId, &msgRef );
-                        if ( aUpdateItem )
+                        if ( modelItem ) // For safety
                             {
-                            iMailTreeListVisualizer->UpdateItemL( aListItemId );
+                            CFSMailMessage& msgRef = modelItem->MessagePtr();
+                            UpdatePreviewPaneTextForItemL( aListItemId, &msgRef );
+                            if ( aUpdateItem )
+                                {
+                                iMailTreeListVisualizer->UpdateItemL( aListItemId );
+                                }
                             }
                         }
                     }
@@ -2965,40 +3150,40 @@ void CFSEmailUiMailListVisualiser::UpdatePreviewPaneTextIfNecessaryL( TFsTreeIte
 void CFSEmailUiMailListVisualiser::CreatePlainNodeL( const TDesC* aItemDataBuff,
                                                      CFsTreePlainOneLineNodeData* &aItemData,
                                                      CFsTreePlainOneLineNodeVisualizer* &aNodeVisualizer ) const
-	{
+    {
     FUNC_LOG;
     aItemData = CFsTreePlainOneLineNodeData::NewL();
     CleanupStack::PushL( aItemData );
 
     aItemData->SetDataL( *aItemDataBuff );
-	aItemData->SetIconExpanded( iAppUi.FsTextureManager()->TextureByIndex( EListTextureNodeExpanded ));
+    aItemData->SetIconExpanded( iAppUi.FsTextureManager()->TextureByIndex( EListTextureNodeExpanded ));
     aItemData->SetIconCollapsed( iAppUi.FsTextureManager()->TextureByIndex( EListTextureNodeCollapsed ));
     aNodeVisualizer = CFsTreePlainOneLineNodeVisualizer::NewL(*iMailList->TreeControl());
     CleanupStack::PushL( aNodeVisualizer );
-    TRect screenRect = iAppUi.ClientRect();
     TInt nodeHeight = iAppUi.LayoutHandler()->OneLineListNodeHeight();
-    aNodeVisualizer->SetSize( TSize(screenRect.Width(), nodeHeight) );
+    // use cached client rect instead of iAppUi.ClientRect() to save time
+    // ASSERT in debug to be sure that rects are these same
+    __ASSERT_DEBUG( iAppUi.ClientRect() == iCurrentClientRect, User::Invariant() );
+    aNodeVisualizer->SetSize( TSize(iCurrentClientRect.Width(), nodeHeight) );
     aNodeVisualizer->SetExtendable(EFalse);
-  	// Set correct skin text colors for the list items
-   	TRgb focusedColor = iAppUi.LayoutHandler()->ListFocusedStateTextSkinColor();
-   	TRgb normalColor = iAppUi.LayoutHandler()->ListNodeTextColor();
-    aNodeVisualizer->SetFocusedStateTextColor( focusedColor );
-    aNodeVisualizer->SetNormalStateTextColor( normalColor );
-	// Set font height
-	aNodeVisualizer->SetFontHeight( iAppUi.LayoutHandler()->ListItemFontHeightInTwips() );
-	// Set font always bolded in nodes
-	aNodeVisualizer->SetTextBold( ETrue );
+    // Set correct skin text colors for the list items
+    aNodeVisualizer->SetFocusedStateTextColor( iFocusedTextColor );
+    aNodeVisualizer->SetNormalStateTextColor( iNodeTextColor );
+    // Set font height
+    aNodeVisualizer->SetFontHeight( iAppUi.LayoutHandler()->ListItemFontHeightInTwips() );
+    // Set font always bolded in nodes
+    aNodeVisualizer->SetTextBold( ETrue );
 
     //<cmail>
     CAlfBrush* titleDividerBgBrush =
         iAppUi.FsTextureManager()->TitleDividerBgBrushL();
     // ownership is not transfered
-	aNodeVisualizer->SetBackgroundBrush( titleDividerBgBrush );
+    aNodeVisualizer->SetBackgroundBrush( titleDividerBgBrush );
     //</cmail>
 
-	CleanupStack::Pop( aNodeVisualizer );
-	CleanupStack::Pop( aItemData );
-	}
+    CleanupStack::Pop( aNodeVisualizer );
+    CleanupStack::Pop( aItemData );
+    }
 
 // ---------------------------------------------------------------------------
 //
@@ -3073,6 +3258,15 @@ void CFSEmailUiMailListVisualiser::HandleDynamicVariantSwitchOnBackgroundL(
     else if ( aType == EScreenLayoutChanged )
         {
         UpdateButtonTextsL();
+        
+        iAppUi.FsTextureManager()->ClearTextureByIndex( EListControlBarMailboxDefaultIcon );
+        iFolderListButton->SetIconL( iAppUi.FsTextureManager()->TextureByIndex( EListControlBarMailboxDefaultIcon ) );
+        iAppUi.FsTextureManager()->ClearTextureByIndex( EListTextureCreateNewMessageIcon );
+        iNewEmailButton->SetIconL( iAppUi.FsTextureManager()->TextureByIndex( EListTextureCreateNewMessageIcon ) );
+        iAppUi.FsTextureManager()->ClearTextureByIndex( GetSortButtonTextureIndex() );
+        iSortButton->SetIconL( iAppUi.FsTextureManager()->TextureByIndex( GetSortButtonTextureIndex() ) );
+
+        ScaleControlBarL();
         }
     }
 
@@ -3445,17 +3639,18 @@ void CFSEmailUiMailListVisualiser::UpdateThemeL(const TBool aSystemUpdate)
     {
     iSkinChanged = iSkinChanged || aSystemUpdate;
 
-    TRgb focusedTextColor = iAppUi.LayoutHandler()->ListFocusedStateTextSkinColor();
-    TRgb normalTextColor = iAppUi.LayoutHandler()->ListNormalStateTextSkinColor();
+    iFocusedTextColor = iAppUi.LayoutHandler()->ListFocusedStateTextSkinColor();
+    iNormalTextColor = iAppUi.LayoutHandler()->ListNormalStateTextSkinColor();
+    iNodeTextColor = iAppUi.LayoutHandler()->ListNodeTextColor();
 
-    iNewEmailButton->SetNormalTextColor( normalTextColor );
-    iNewEmailButton->SetFocusedTextColor( focusedTextColor );
+    iNewEmailButton->SetNormalTextColor( iNormalTextColor );
+    iNewEmailButton->SetFocusedTextColor( iFocusedTextColor );
 
-    iFolderListButton->SetNormalTextColor( normalTextColor );
-    iFolderListButton->SetFocusedTextColor( focusedTextColor );
+    iFolderListButton->SetNormalTextColor( iNormalTextColor );
+    iFolderListButton->SetFocusedTextColor( iFocusedTextColor );
 
-    iSortButton->SetNormalTextColor( normalTextColor );
-    iSortButton->SetFocusedTextColor( focusedTextColor );
+    iSortButton->SetNormalTextColor( iNormalTextColor );
+    iSortButton->SetFocusedTextColor( iFocusedTextColor );
 
     //sometimes theme wasn't properly refreshed on buttons, this helps
     iNewEmailButton->HideButton();
@@ -4776,7 +4971,7 @@ TBool CFSEmailUiMailListVisualiser::OfferEventL( const TAlfEvent& aEvent )
                             CFSEmailUiMailListModelItem* item =
                                 static_cast<CFSEmailUiMailListModelItem*>( iModel->Item( HighlightedIndex() ) );
 
-                            if ( item->ModelItemType() == ETypeMailItem )  // Separators are not markable
+                            if ( item && item->ModelItemType() == ETypeMailItem )  // Separators are not markable
                                 {
                                 if ( iMailList->IsMarked( iMailList->FocusedItem() ) )
                                     {
@@ -5917,31 +6112,34 @@ void CFSEmailUiMailListVisualiser::ChangeReadStatusOfIndexL( TBool aRead, TInt a
         {
         CFSEmailUiMailListModelItem* selectedItem =
             static_cast<CFSEmailUiMailListModelItem*>( iModel->Item( aIndex ));
-        CFSMailMessage& msgPtr = selectedItem->MessagePtr();
-        TBool msgWasReadBefore = msgPtr.IsFlagSet( EFSMsgFlag_Read );
-        if ( aRead != msgWasReadBefore )
+        if ( selectedItem ) // Safety
             {
-            if ( aRead )
+            CFSMailMessage& msgPtr = selectedItem->MessagePtr();
+            TBool msgWasReadBefore = msgPtr.IsFlagSet( EFSMsgFlag_Read );
+            if ( aRead != msgWasReadBefore )
                 {
-                // Send flags, local and server
-                msgPtr.SetFlag( EFSMsgFlag_Read );
-                }
-            else
-                {
-                // Send flags, local and server
-                msgPtr.ResetFlag( EFSMsgFlag_Read );
-                }
-            msgPtr.SaveMessageL();  // Save flag
+                if ( aRead )
+                    {
+                    // Send flags, local and server
+                    msgPtr.SetFlag( EFSMsgFlag_Read );
+                    }
+                else
+                    {
+                    // Send flags, local and server
+                    msgPtr.ResetFlag( EFSMsgFlag_Read );
+                    }
+                msgPtr.SaveMessageL();  // Save flag
 
-            // Switch icon to correct one if mail list is visible
-            TBool needRefresh = ( iAppUi.CurrentActiveView()->Id() == MailListId );
-            UpdateMsgIconAndBoldingL( aIndex, needRefresh);
+                // Switch icon to correct one if mail list is visible
+                TBool needRefresh = ( iAppUi.CurrentActiveView()->Id() == MailListId );
+                UpdateMsgIconAndBoldingL( aIndex, needRefresh);
 
-            if ( iCurrentSortCriteria.iField == EFSMailSortByUnread )
-                {
-                // Attribute affecting the current sorting order has been changed.
-                // Thus, the list order may now be incorrect.
-                iListOrderMayBeOutOfDate = ETrue;
+                if ( iCurrentSortCriteria.iField == EFSMailSortByUnread )
+                    {
+                    // Attribute affecting the current sorting order has been changed.
+                    // Thus, the list order may now be incorrect.
+                    iListOrderMayBeOutOfDate = ETrue;
+                    }
                 }
             }
         }
@@ -5999,7 +6197,7 @@ void CFSEmailUiMailListVisualiser::UpdateItemAtIndexL( TInt aIndex )
         {
         CFSEmailUiMailListModelItem* modelItem =
             static_cast<CFSEmailUiMailListModelItem*>( Model()->Item( aIndex ) );
-        if ( modelItem->ModelItemType() == ETypeMailItem )
+        if ( modelItem && modelItem->ModelItemType() == ETypeMailItem )
             {
             // This is beacause message deleted event migh have occured.
             CFSMailMessage* confirmedMsgPtr = NULL;
@@ -6056,7 +6254,7 @@ TBool CFSEmailUiMailListVisualiser::CheckValidityOfHighlightedMsgL()
 		{
 		CFSEmailUiMailListModelItem* item =
 			static_cast<CFSEmailUiMailListModelItem*>( Model()->Item( HighlightedIndex() ) );
-		if ( item->ModelItemType() == ETypeMailItem )
+		if ( item && item->ModelItemType() == ETypeMailItem )
 			{
 			// This is beacause message deleted event migh have occured.
 			CFSMailMessage* confirmedMsgPtr = NULL;
@@ -6108,21 +6306,24 @@ void CFSEmailUiMailListVisualiser::UpdateMsgIconAndBoldingL( CFSMailMessage* aMs
 			CFSEmailUiMailListModelItem* item =
 				static_cast<CFSEmailUiMailListModelItem*>( Model()->Item( mailItemIdx ) );
 
-			// Update all flags
-			TUint32 prevFlags = item->MessagePtr().GetFlags();
-			TUint32 newFlags = aMsgPtr->GetFlags();
-			if ( prevFlags != newFlags )
-			    {
-			    item->MessagePtr().ResetFlag( prevFlags );
-			    item->MessagePtr().SetFlag( newFlags );
+            if ( item ) // For safety
+                {
+                // Update all flags
+                TUint32 prevFlags = item->MessagePtr().GetFlags();
+                TUint32 newFlags = aMsgPtr->GetFlags();
+                if ( prevFlags != newFlags )
+                    {
+                    item->MessagePtr().ResetFlag( prevFlags );
+                    item->MessagePtr().SetFlag( newFlags );
 
-			    // Save changed flags in internal model array
-			    item->MessagePtr().SaveMessageL();
-			    }
+                    // Save changed flags in internal model array
+                    item->MessagePtr().SaveMessageL();
+                    }
 
-			// Update the list item graphics
-			UpdateMsgIconAndBoldingL( mailItemIdx );
-			}
+                // Update the list item graphics
+                UpdateMsgIconAndBoldingL( mailItemIdx );
+                }
+            }
 		}
 	}
 
@@ -6490,7 +6691,7 @@ TFSMailMsgId CFSEmailUiMailListVisualiser::MsgIdFromIndex( TInt aItemIdx ) const
         {
         CFSEmailUiMailListModelItem* item =
     			static_cast<CFSEmailUiMailListModelItem*>(iModel->Item(aItemIdx));
-    	if ( item->ModelItemType() == ETypeMailItem )
+    	if ( item && item->ModelItemType() == ETypeMailItem )
     	    {
     	    msgId = item->MessagePtr().GetMessageId();
     	    }
@@ -6518,7 +6719,7 @@ TFSMailMsgId CFSEmailUiMailListVisualiser::MsgIdFromListId( TFsTreeItemId aListI
             {
             CFSEmailUiMailListModelItem* item =
                 static_cast<CFSEmailUiMailListModelItem*>( iModel->Item( i ) );
-            if ( aListId == item->CorrespondingListId() )
+            if ( item && aListId == item->CorrespondingListId() )
                 {
                 msgId = item->MessagePtr().GetMessageId();
                 // if list id points to separator
@@ -6642,27 +6843,27 @@ TInt CFSEmailUiMailListVisualiser::ItemIndexFromMessageId( const TFSMailMsgId& a
     		CFSEmailUiMailListModelItem* item =
                 static_cast<CFSEmailUiMailListModelItem*>( iModel->Item( i ) );
 			// when the item is a separator check whether its MessagePtr is valid (actually it's a reference)
-			if( &(item->MessagePtr()) != NULL)
-				{
-    		if ( aMessageId == item->MessagePtr().GetMessageId() )
-    			{
-    			TModelItemType itemType = item->ModelItemType();
-    			TBool separator( aMessageId.IsSeparator() );
-
-    			// Because separator and the first message after separator
-    			// have same message id, we need to separate these cases
-    			// and that is made with separator flag which is stored to
-    			// TFSMailMsgId object. If separator flag is on item need to be
-    			// separator if it is not on item needs to be mail item.
-    			if( ( separator && itemType == ETypeSeparator ) ||
-    			    ( !separator && itemType == ETypeMailItem ) )
+            if( item && &(item->MessagePtr()) != NULL)
+                {
+                if ( aMessageId == item->MessagePtr().GetMessageId() )
                     {
-                    idx = i;
-                    break;
+                    TModelItemType itemType = item->ModelItemType();
+                    TBool separator( aMessageId.IsSeparator() );
+
+                    // Because separator and the first message after separator
+                    // have same message id, we need to separate these cases
+                    // and that is made with separator flag which is stored to
+                    // TFSMailMsgId object. If separator flag is on item need to be
+                    // separator if it is not on item needs to be mail item.
+                    if( ( separator && itemType == ETypeSeparator ) ||
+                        ( !separator && itemType == ETypeMailItem ) )
+                        {
+                        idx = i;
+                        break;
+                        }
                     }
-    			}
-    		}
-        }
+                }
+            }
 		}
 	return idx;
     }
@@ -6731,7 +6932,7 @@ TInt CFSEmailUiMailListVisualiser::ModelIndexFromListId( TFsTreeItemId aItemId )
     	{
     	const CFSEmailUiMailListModelItem* item =
 		    static_cast<const CFSEmailUiMailListModelItem*>( iModel->Item(i) );
-    	if ( aItemId == item->CorrespondingListId() )
+    	if ( item && aItemId == item->CorrespondingListId() )
     		{
     		ret = i;
     		break;
@@ -6984,12 +7185,13 @@ void CFSEmailUiMailListVisualiser::SortOrderChangedL(
 	iMailList->SetFocusedL( EFalse );
     iControlBarControl->SetFocusByIdL( iSortButtonId );
 
+    SortMailListModelAsyncL();  // sort can take long time
     // <cmail>
-	if ( iMailListUpdater )
-	    {
+	//if ( iMailListUpdater )
+	//    {
     	// Start updating mail list with sorting parameter.
-    	iMailListUpdater->StartL( ETrue );
-	    }
+    //	iMailListUpdater->StartL( ETrue );
+	//    }
     // </cmail>
 	SetMskL();
 	}
@@ -7035,7 +7237,7 @@ void CFSEmailUiMailListVisualiser::OpenMailItemL( TFsTreeItemId aMailItem )
 	    {
 	    CFSEmailUiMailListModelItem* item =
 	        static_cast<CFSEmailUiMailListModelItem*>( Model()->Item(idx) );
-	    if ( item->ModelItemType() == ETypeMailItem )
+	    if ( item && item->ModelItemType() == ETypeMailItem )
 	        {
 	        // First make sure that the highlighted message really exists in the store
 	        // Get confirmed msg ptr
@@ -7764,7 +7966,7 @@ TBool CFSEmailUiMailListVisualiser::DoScrollMarkUnmarkL()
 		CFSEmailUiMailListModelItem* item =
 			static_cast<CFSEmailUiMailListModelItem*>( iModel->Item( HighlightedIndex() ) );
 
-		if ( item->ModelItemType() == ETypeMailItem )  // Separators are not markable
+		if ( item && item->ModelItemType() == ETypeMailItem )  // Separators are not markable
 		    {
 			if ( !iListMarkItemsState )
 				{

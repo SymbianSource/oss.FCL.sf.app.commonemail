@@ -28,7 +28,6 @@
 #include "MsgStoreInMemorySortRowSet.h"
 	
 _LIT( KSelect,  "SELECT "   );
-_LIT( KDelete,  "DELETE "   );
 _LIT( KFrom,    " FROM "    );
 _LIT( KWhere,   " WHERE "   );
 _LIT( KEquals,  " = "       );

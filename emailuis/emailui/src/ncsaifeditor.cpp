@@ -351,10 +351,6 @@ TKeyResponse CNcsAifEditor::OfferKeyEventL( const TKeyEvent& aKeyEvent,
         ret = CNcsEditor::OfferKeyEventL( aKeyEvent, aType );
         }
     
-    if( ret == EKeyWasNotConsumed  && aType == EEventKeyDown )
-        {
-        HandleTextUpdateDeferred(); // update for lang that don't support CPS
-        }
     return ret;
     }
 
@@ -594,7 +590,7 @@ void CNcsAifEditor::AppendAddressesL( const RPointerArray<CNcsEmailAddressObject
     // First, add all the addresses without updating the editor text contents 
     for ( TInt i=0 ; i<aAddresses.Count() ; i++ )
         {
-    	AddAddressL( *aAddresses[i], ETrue );
+        AddAddressL( *aAddresses[i], EFalse );
         }
     // Update editor text content after all the items have been added
     RepositionEntriesL( NULL );

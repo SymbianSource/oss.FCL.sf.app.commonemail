@@ -525,7 +525,7 @@ TMsgStoreId RMessageStoreSession::CreateContainerL( TMsgStoreId             aPar
         User::LeaveIfError( fs.Connect() );
         fs.ShareProtected();        
         
-        User::LeaveIfError( file.Open( fs, aContentFilename, EFileRead | EFileShareAny ) );
+        User::LeaveIfError( file.Open( fs, aContentFilename, EFileShareReadersOnly ) );
         User::LeaveIfError( file.TransferToServer( ipcArgs, KIpcArgsIndex2, KIpcArgsIndex3 ) );	    	    
 	    } // end if
 

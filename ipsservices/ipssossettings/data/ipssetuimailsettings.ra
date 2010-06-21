@@ -456,11 +456,11 @@ RESOURCE IPS_SET_ARRAY r_ips_set_menu_what_to_sync
         // Emails to retrieve (POP3)
         IPS_SET_ITEM
             {
-            itemtype = EIpsSetUiRadioButtonArray;
+            itemtype = EIpsSetUiItemValue;
             itemid = EIpsSetUiWhatRetrievePop3;
             itemlabel = qtn_fse_settings_mail_downl_ctrl_retrieve_limit;
-            itemarray = r_ips_set_what_to_sync_array_email_retrieve_pop3;
-            itemflags = KIpsSetUiFlagPop3Only | KIpsSetUiFlagLangSpecificNumConv;
+            itemflags = KIpsSetUiFlagPop3Only | KIpsSetUiFlagLangSpecificNumConv |
+                        KIpsSetUiFlagForceMustFill;
             },
         // Emails to retrieve (IMAP4)
         IPS_SET_ITEM
@@ -737,42 +737,6 @@ RESOURCE IPS_SET_ARRAY r_ips_set_array_signature_radio
         };
     }
 
-// ---------------------------------------------------------------------------
-//
-//   r_ips_set_what_to_sync_array_email_retrieve_pop3
-//
-// ---------------------------------------------------------------------------
-//
-RESOURCE IPS_SET_ARRAY r_ips_set_what_to_sync_array_email_retrieve_pop3
-    {
-    items =
-        {
-        //
-        IPS_SET_ITEM
-            {
-            itemtype = EIpsSetUiItemRadioButton;
-            itemid = EIpsSetUiWhatRetrievePop3BtnAll;
-            itemlabel = qtn_fse_settings_mail_retrieve_all;
-            },
-        //
-        IPS_SET_ITEM
-            {
-            itemtype = EIpsSetUiItemRadioButton;
-            itemid = EIpsSetUiWhatRetrievePop3BtnCustom;
-            itemlabel = qtn_fse_settings_mail_retrieve_amount;
-            itemflags = KIpsSetUiFlagFindEditor;
-            },
-        //
-        IPS_SET_ITEM
-            {
-            itemtype = EIpsSetUiItemValue;
-            itemid = EIpsSetUiWhatRetrievePop3EditCustom;
-            itemlabel = qtn_fse_settings_mail_retrieve_amount;
-            itemflags = KIpsSetUiFlagPermanentlyHidden |
-                KIpsSetUiFlagForceMustFill;
-            }
-        };
-    }
 
 // ---------------------------------------------------------------------------
 //
@@ -784,17 +748,15 @@ RESOURCE IPS_SET_ARRAY r_ips_set_what_to_sync_array_email_retrieve_imap4
     {
     items =
         {
-        //
         IPS_SET_ITEM
             {
-            itemtype = EIpsSetUiRadioButtonArray;
+            itemtype = EIpsSetUiItemValue;
             itemid = EIpsSetUiWhatRetrieveImap4Inbox;
             itemlabel = qtn_fse_settings_mail_retrieve_from_inbox;
-            itemarray =
-                r_ips_set_what_to_sync_array_email_retrieve_imap4_inbox;
-            itemflags = KIpsSetUiFlagLangSpecificNumConv;
+            itemmaxlength = KIpsSetUiMaxSettingsTextLength;
+            itemflags = KIpsSetUiFlagForceMustFill | KIpsSetUiFlagLangSpecificNumConv;
             },
-        //
+         
         IPS_SET_ITEM
             {
             itemtype = EIpsSetUiRadioButtonArray;
@@ -807,42 +769,6 @@ RESOURCE IPS_SET_ARRAY r_ips_set_what_to_sync_array_email_retrieve_imap4
         };
     }
 
-// ---------------------------------------------------------------------------
-//
-//   r_ips_set_what_to_sync_array_email_retrieve_imap4_inbox
-//
-// ---------------------------------------------------------------------------
-//
-RESOURCE IPS_SET_ARRAY r_ips_set_what_to_sync_array_email_retrieve_imap4_inbox
-    {
-    items =
-        {
-        //
-        IPS_SET_ITEM
-            {
-            itemtype = EIpsSetUiItemRadioButton;
-            itemid = EIpsSetUiWhatRetrieveImap4InboxBtnAll;
-            itemlabel = qtn_fse_settings_mail_retrieve_all;
-            },
-        //
-        IPS_SET_ITEM
-            {
-            itemtype = EIpsSetUiItemRadioButton;
-            itemid = EIpsSetUiWhatRetrieveImap4InboxBtnCustom;
-            itemlabel = qtn_fse_settings_mail_retrieve_amount;
-            itemflags = KIpsSetUiFlagFindEditor;
-            },
-        //
-        IPS_SET_ITEM
-            {
-            itemtype = EIpsSetUiItemValue;
-            itemid = EIpsSetUiWhatRetrieveImap4InboxEditCustom;
-            itemlabel = qtn_fse_settings_mail_retrieve_amount;
-            itemflags = KIpsSetUiFlagPermanentlyHidden |
-                KIpsSetUiFlagForceMustFill;
-            }
-        };
-    }
 
 // ---------------------------------------------------------------------------
 //
@@ -858,25 +784,25 @@ RESOURCE IPS_SET_ARRAY r_ips_set_what_to_sync_array_email_retrieve_imap4_folder
         IPS_SET_ITEM
             {
             itemtype = EIpsSetUiItemRadioButton;
-            itemid = EIpsSetUiWhatRetrieveImap4FolderBtnAll;
-            itemlabel = qtn_fse_settings_mail_retrieve_all;
+            itemid = EIpsSetUiWhatRetrieveImap4FolderBtn50;
+            itemlabel = "50";
+            itemflags = KIpsSetUiFlagLangSpecificNumConv;
             },
         //
         IPS_SET_ITEM
             {
             itemtype = EIpsSetUiItemRadioButton;
-            itemid = EIpsSetUiWhatRetrieveImap4FolderBtnCustom;
-            itemlabel = qtn_fse_settings_mail_retrieve_amount;
-            itemflags = KIpsSetUiFlagFindEditor;
+            itemid = EIpsSetUiWhatRetrieveImap4FolderBtn100;
+            itemlabel = "100";
+            itemflags = KIpsSetUiFlagLangSpecificNumConv;
             },
         //
         IPS_SET_ITEM
             {
-            itemtype = EIpsSetUiItemValue;
-            itemid = EIpsSetUiWhatRetrieveImap4FolderEditCustom;
-            itemlabel = qtn_fse_settings_mail_retrieve_amount;
-            itemflags = KIpsSetUiFlagPermanentlyHidden |
-                KIpsSetUiFlagForceMustFill;
+            itemtype = EIpsSetUiItemRadioButton;
+            itemid = EIpsSetUiWhatRetrieveImap4FolderBtn250;
+            itemlabel = "250";
+            itemflags = KIpsSetUiFlagLangSpecificNumConv;
             }
         };
     }

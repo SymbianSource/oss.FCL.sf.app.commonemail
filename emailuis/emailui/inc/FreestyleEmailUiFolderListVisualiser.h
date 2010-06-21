@@ -268,6 +268,7 @@ private: // Private functions
 	void UpdateListSizeAttributes();
 	void ResizeListIcons();
 	void ResizeListItemsL();
+	void StartScrollingListItemsL();
 	void AdaptScreenRectToListContent();
 	void AdjustWidthByContent( TRect& aRect ) const;
 	void SetAnchors();

@@ -90,7 +90,7 @@ public:
      *
      * @param aColor New color to be set.
      */
-    virtual void SetFocusedStateTextColor( TRgb& aColor );
+    virtual void SetFocusedStateTextColor( const TRgb& aColor );
     
     /**
      * The function returns item's text color for the focused state.
@@ -102,7 +102,7 @@ public:
      *
      * @param aColor New color to be set.
      */
-    virtual void SetNormalStateTextColor( TRgb& aColor );
+    virtual void SetNormalStateTextColor( const TRgb& aColor );
     
     /**
      * The function returns item's text color for the normal (unfocused) state

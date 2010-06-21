@@ -250,20 +250,23 @@ void CFSEmailUiMailListModel::ReplaceMessagePtr( TInt aIndex, CFSMailMessage* aN
     CFSEmailUiMailListModelItem* item = 
         static_cast< CFSEmailUiMailListModelItem* >( Item(aIndex) );
     
-    // Mail type items own the message. Delete the existing message first.
-    if ( item->ModelItemType() == ETypeMailItem )
+    if ( item ) // Safety
         {
-        delete &item->MessagePtr();
-        }
-    item->SetMessagePtr( aNewPtr );
-    
-    // If the item was the first child of a node, then also message pointer in the parent
-    // node needs to be updated
-    if ( aIndex > 0 &&
-         item->ModelItemType() == ETypeMailItem &&
-         iItems[aIndex-1]->ModelItemType() == ETypeSeparator )
-        {
-        iItems[aIndex-1]->SetMessagePtr( aNewPtr );
+        // Mail type items own the message. Delete the existing message first.
+        if ( item->ModelItemType() == ETypeMailItem )
+            {
+            delete &item->MessagePtr();
+            }
+        item->SetMessagePtr( aNewPtr );
+        
+        // If the item was the first child of a node, then also message pointer in the parent
+        // node needs to be updated
+        if ( aIndex > 0 &&
+             item->ModelItemType() == ETypeMailItem &&
+             iItems[aIndex-1]->ModelItemType() == ETypeSeparator )
+            {
+            iItems[aIndex-1]->SetMessagePtr( aNewPtr );
+            }
         }
     }
 

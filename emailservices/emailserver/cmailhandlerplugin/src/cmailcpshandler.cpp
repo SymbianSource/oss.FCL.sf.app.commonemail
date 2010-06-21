@@ -26,8 +26,6 @@
 #include <emailobserverplugin.h>
 #include <memaildata.h>
 #include <memailmailboxdata.h>
-#include <e32property.h>
-#include <connect/sbdefs.h>
 #include <scs/cleanuputils.h> // CleanupResetAndDestroyPushL
 
 #include "emailtrace.h"
@@ -410,7 +408,7 @@ void CMailCpsHandler::UpdateMailboxesL(TInt aInstance, const TDesC& aContentId)
             // if contentId found from array, update the mailbox
             if ( found )
                 {
-                 INFO_1("found = TRUE iAccountsArray.Count() == %d", iAccountsArray.Count());
+                INFO_1("found = TRUE iAccountsArray.Count() == %d", iAccountsArray.Count());
                 // Update fields from left to right
                 UpdateMailBoxIconL( mailbox, aInstance, row );
                 UpdateMailboxNameL( mailbox, aInstance, row );
@@ -789,7 +787,7 @@ void CMailCpsHandler::UpdateIndicatorIconL( const TInt aMailBoxNumber,
             {
             iLiwIf->PublishIndicatorIconL( aWidgetInstance,
                                            aRowNumber,
-                                           EMbmCmailhandlerpluginQgn_stat_message_mail_uni );
+                                           EMbmCmailhandlerpluginQgn_indi_cmail_unseen_msg );
             }
         else if( !IsOutboxEmptyL(mailBoxId) )
             {
@@ -861,11 +859,10 @@ void CMailCpsHandler::HandleEventL(
     FUNC_LOG;
 
     // If backup or restore is ongoing ignore all events
-    if ( BackupOrRestoreMode() )
+    if ( iSettings->BackupOrRestoreMode() )
         {
         return;
         }
-    
     switch ( aEvent )
         {
         case TFSEventNewMailbox:
@@ -906,7 +903,13 @@ void CMailCpsHandler::HandleEventL(
             SetUpdateNeeded( aMailbox );
             UpdateFullL();
             break;
-            }            
+            }
+        case TFSEventMailMoved:
+            {
+            SetUpdateNeeded( aMailbox );
+            UpdateFullL();
+            break;
+            }
         default:
             {
             break;
@@ -1107,9 +1110,7 @@ void CMailCpsHandler::HandleMailDeletedEventL(
     CMailMailboxDetails* mailbox = FindMailboxDetails( aMailbox );
     if ( !mailbox )
         {
-        //<Cmail>
         CleanupStack::PopAndDestroy( entries );
-        //<Cmail>
         return;
         }
 
@@ -1154,10 +1155,11 @@ TInt CMailCpsHandler::GetUnreadCountL(TFSMailMsgId aMailbox)
         TFSMailMsgId folderId( mailbox->GetStandardFolderId( EFSInbox ) );
         delete mailbox; // transferred ownership
         // Check that folder is correct
-        CFSMailFolder* folder = MailClient().GetFolderByUidL( aMailbox, folderId );
-        if ( !folder )
+        CFSMailFolder* folder(NULL);                                                    
+        TRAPD( err, folder = MailClient().GetFolderByUidL( aMailbox, folderId ) );
+        if ( !folder || err != KErrNone )
             {
-            return KErrNotFound;
+            return 0;
             }
         CleanupStack::PushL( folder );
 
@@ -1189,10 +1191,11 @@ TInt CMailCpsHandler::GetUnseenCountL(TFSMailMsgId aMailbox)
         TFSMailMsgId folderId( mailbox->GetStandardFolderId( EFSInbox ) );
         delete mailbox; // transferred ownership
         // Check that folder is correct
-        CFSMailFolder* folder = MailClient().GetFolderByUidL( aMailbox, folderId );
-        if ( !folder )
+        CFSMailFolder* folder(NULL);                                                    
+        TRAPD( err, folder = MailClient().GetFolderByUidL( aMailbox, folderId ) );
+        if ( !folder || err != KErrNone )        
             {
-            return KErrNotFound;
+            return 0;
             }
         CleanupStack::PushL( folder );
 
@@ -1225,10 +1228,11 @@ TBool CMailCpsHandler::IsOutboxEmptyL(TFSMailMsgId aMailbox)
         TFSMailMsgId folderId( mailbox->GetStandardFolderId( EFSOutbox ) );
         delete mailbox; // ownership was transferred
         // Check that folder is correct
-        CFSMailFolder* folder = MailClient().GetFolderByUidL( aMailbox, folderId );
-        if ( !folder )
+        CFSMailFolder* folder(NULL);
+        TRAPD( err, folder = MailClient().GetFolderByUidL( aMailbox, folderId ) );
+        if ( !folder || err != KErrNone )        
             {
-            return KErrNotFound;
+            return ret;
             }
         CleanupStack::PushL( folder );
 
@@ -1971,45 +1975,6 @@ void CMailCpsHandler::DisplayHSPageFullNoteL()
     str = StringLoader::LoadLC( R_EMAILWIDGET_TEXT_HS_PAGE_FULL );
     iQuery->ShowNoteL(EAknGlobalConfirmationNote, str->Des());
     CleanupStack::PopAndDestroy( str );    
-    }
-
-// ----------------------------------------------------------------------------
-// CMailCpsHandler::BackupOrRestoreMode()
-// Check if phone is in backup/restore mode
-// ----------------------------------------------------------------------------
-//
-TBool CMailCpsHandler::BackupOrRestoreMode()
-    {
-    FUNC_LOG;
-    
-    TBool backupOrRestore = EFalse;
-    
-    // Get the back-up restore key, return EFalse if we can't get the key
-    TInt keyVal = 0;
-    const TInt error = RProperty::Get(  KUidSystemCategory, conn::KUidBackupRestoreKey, keyVal );
-    if( error == KErrNone )
-        {
-        const conn::TBURPartType partType = 
-                static_cast< conn::TBURPartType >( keyVal & conn::KBURPartTypeMask );
-                
-        if ( keyVal != 0 )
-            {
-            switch( partType )
-                {
-                case conn::EBURBackupFull:
-                case conn::EBURBackupPartial:
-                case conn::EBURRestoreFull:
-                case conn::EBURRestorePartial:
-                    backupOrRestore = ETrue;
-                    break;
-                case conn::EBURUnset:
-                case conn::EBURNormal:
-                default:
-                    break;                
-                }
-            }
-        }
-    return backupOrRestore;
     }
 
 // ----------------------------------------------------------------------------

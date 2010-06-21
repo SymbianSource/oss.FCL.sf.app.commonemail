@@ -1286,7 +1286,7 @@ TInt CFreestyleEmailUiAppUi::EmailIndexInModel()
 		{
 		CFSEmailUiMailListModelItem* item =
 			static_cast<CFSEmailUiMailListModelItem*>(iMailListVisualiser->Model()->Item(i+1));
-		if ( item->ModelItemType() == ETypeMailItem )
+		if ( item && item->ModelItemType() == ETypeMailItem )
 			{
 			ret++;
 			}
@@ -2159,14 +2159,19 @@ void CFreestyleEmailUiAppUi::EventL( TFSMailEvent aEvent, TFSMailMsgId aMailbox,
    		case TFSEventMailboxOnline:
    		case TFSEventMailboxOffline:
    			{
-   			if (aEvent == TFSEventMailboxOnline)
-   			    {
-   			    UpdateTitlePaneConnectionStatus(EForceToConnected);
+   			//must check event go to right MailBox
+    		if( aMailbox == GetActiveMailboxId() ) 
+    			{
+      			if (aEvent == TFSEventMailboxOnline)
+    			    {
+    			    UpdateTitlePaneConnectionStatus(EForceToConnected);
+    			    }
+    			else if (aEvent == TFSEventMailboxOffline)
+    			    { 
+    			    UpdateTitlePaneConnectionStatus(EForceToDisconnected);
+    				}
    			    }
-   			else if (aEvent == TFSEventMailboxOffline)
-   			    {
-   			    UpdateTitlePaneConnectionStatus(EForceToDisconnected);
-   			    }
+				
             // Cancel all ongoing downloads for the disconnected mailbox
             if (iDwnldMediator && aEvent == TFSEventMailboxOffline)
               {
@@ -2203,6 +2208,11 @@ void CFreestyleEmailUiAppUi::EventL( TFSMailEvent aEvent, TFSMailMsgId aMailbox,
     		{
     		TBool tryRunningFakeSyncAnim( EFalse );
     		TSSMailSyncState* newSyncState = static_cast<TSSMailSyncState*>( aParam1 );
+
+    		//must check event go to right MailBox
+    		if( aMailbox != GetActiveMailboxId() )
+    			break;
+    		
     		if ( newSyncState !=0 && *newSyncState )
     			{
         		switch ( *newSyncState )

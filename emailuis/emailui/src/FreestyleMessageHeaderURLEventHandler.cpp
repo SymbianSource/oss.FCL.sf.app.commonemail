@@ -194,6 +194,12 @@ void CFreestyleMessageHeaderURLEventHandler::ProcessCommandL( TInt aCommand )
             break;
             }
             
+        case EFsEmailUiCmdCancelAllDownloads:
+            {
+            iView.CancelAllAttachmentsL();
+            break;
+            }
+            
         case EFsEmailUiCmdOpenAttachment:
             {
             iView.OpenAttachmentL( FindAttachmentL( *iMessageHeaderURL ) );
@@ -293,6 +299,7 @@ void CFreestyleMessageHeaderURLEventHandler::LaunchAttachmentMenuL(
     iAttachmentStylusPopup->SetItemDimmed( EFsEmailUiCmdSave, ETrue );
     iAttachmentStylusPopup->SetItemDimmed( EFsEmailUiCmdSaveAll, ETrue );
     iAttachmentStylusPopup->SetItemDimmed( EFsEmailUiCmdCancelDownload, ETrue );   
+    iAttachmentStylusPopup->SetItemDimmed( EFsEmailUiCmdCancelAllDownloads, ETrue );
 
     const TBool isMessage( iAttachmentsListModel->IsMessage( aAttachment ) );
     
@@ -341,7 +348,11 @@ void CFreestyleMessageHeaderURLEventHandler::LaunchAttachmentMenuL(
                     iAttachmentsListModel->IsThereAnyMessageAttachments() && !iView.IsEmbeddedMsgSavingAllowed() );
             }         
         }
-   
+
+    if ( iAttachmentsListModel->IsMultiplyDownloadsOngoing() )
+        {
+        iAttachmentStylusPopup->SetItemDimmed( EFsEmailUiCmdCancelAllDownloads, EFalse );
+        }
     
     iAttachmentStylusPopup->SetPosition( iAppUi.LastSeenPointerPosition(), 
                                          CAknStylusPopUpMenu::EPositionTypeLeftTop );

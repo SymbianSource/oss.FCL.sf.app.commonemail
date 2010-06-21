@@ -87,6 +87,8 @@ CFsEmailSettingsListView::~CFsEmailSettingsListView()
    		delete iStylusPopUpMenu;
    		iStylusPopUpMenu = NULL;
    		}
+   	
+   	delete iCoeControl;
 	}
 
 
@@ -179,6 +181,19 @@ void CFsEmailSettingsListView::DisplayStylusPopUpMenu( const TPoint& aPosition )
     	}
 	}
 
+// -----------------------------------------------------------------------------
+// CFsEmailSettingsListView::HideStylusPopUpMenu()
+// Hides the pop-up menu.
+// -----------------------------------------------------------------------------
+//
+void CFsEmailSettingsListView::HideStylusPopUpMenu()
+    {
+    if ( iStylusPopUpMenu )
+        {
+        TRAP_IGNORE( iStylusPopUpMenu->HandleControlEventL( iCoeControl,
+                        MCoeControlObserver::EEventRequestExit ) );
+        }
+    }
 
 // -----------------------------------------------------------------------------
 // CFsEmailSettingsListView::DisplayCreateQuery
@@ -297,8 +312,11 @@ void CFsEmailSettingsListView::HandleCommandL( TInt aCommand )
         	}
         case KErrCancel:
         	{
-        	// The pop-up menu was cancelled.
-        	iFsEmailSettingsList->ClearFocus();
+        	if ( iFsEmailSettingsList )
+        	    {
+                // The pop-up menu was cancelled.
+                iFsEmailSettingsList->ClearFocus();
+        	    }
         	break;
         	}
 		default:
@@ -464,6 +482,12 @@ void CFsEmailSettingsListView::ChildDoActivateL(
 		}
 	// setup status pane title
     SetupStatusPaneL();
+    
+    if ( !iCoeControl )
+        {
+        // dymmy control for closing stylus pop up menu
+        iCoeControl = new( ELeave )CCoeControl;
+        }
 
     if( !iStylusPopUpMenu )
         {
@@ -531,40 +555,33 @@ TInt CFsEmailSettingsListView::GetSelectedMainListIndex() const
 // ---------------------------------------------------------------------------
 //
 void CFsEmailSettingsListView::DynInitMenuPaneL( 
-		TInt aResourceId, 
-		CEikMenuPane* aMenuPane )
-	{
+        TInt aResourceId, 
+        CEikMenuPane* aMenuPane )
+    {
     FUNC_LOG;
 
-	if ( iFsEmailSettingsList && aResourceId == R_FS_EMAIL_SETTINGS_LIST_MENU_PANE )
-		{
-		
-	    if ( FeatureManager::FeatureSupported( KFeatureIdFfCmailIntegration ) )
-		   {
-		   // remove help support in pf5250
-		   aMenuPane->SetItemDimmed( EFsEmailUiCmdHelp, ETrue);      
-		   }
-	    		
+    if ( iFsEmailSettingsList && aResourceId == R_FS_EMAIL_SETTINGS_LIST_MENU_PANE )
+        {
+        aMenuPane->SetItemDimmed( EFsEmailUiCmdSettingsRemoveAccount, ETrue );
+
+        if ( FeatureManager::FeatureSupported( KFeatureIdFfCmailIntegration ) )
+           {
+           // remove help support in pf5250
+           aMenuPane->SetItemDimmed( EFsEmailUiCmdHelp, ETrue);      
+           }
+        
         TInt lastIndex = iFsEmailSettingsList->Count()-1;
-		// Dimm add/remove in 2nd level
+        // Dimm add/remove in 2nd level
         if ( iFsEmailSettingsList->Get2ndLevelListIndicator() )
             {
             aMenuPane->SetItemDimmed(EFsEmailUiCmdSettingsAddAccount, ETrue );
-            aMenuPane->SetItemDimmed( EFsEmailUiCmdSettingsRemoveAccount, ETrue );
             }
-		// Else dimm remove mailbox if no mailbox selected 
-		else if ( iFsEmailSettingsList->ListBox()->CurrentItemIndex() == 0
-			|| ( iFsEmailSettingsList->ListBox()->CurrentItemIndex() == lastIndex
-			&& iFsEmailSettingsList->PIMSyncItemVisible())  )
-			{
-			aMenuPane->SetItemDimmed( EFsEmailUiCmdSettingsRemoveAccount, ETrue );
-			}
-		}
+        }
 
-	// Add shortcut hints
-	iAppUi.ShortcutBinding().AppendShortcutHintsL( *aMenuPane, 
-	                             CFSEmailUiShortcutBinding::EContextSettings );	
-	}
+    // Add shortcut hints
+    iAppUi.ShortcutBinding().AppendShortcutHintsL( *aMenuPane, 
+                                 CFSEmailUiShortcutBinding::EContextSettings );
+    }
 
 // ---------------------------------------------------------------------------
 // SetupStatusPaneL()

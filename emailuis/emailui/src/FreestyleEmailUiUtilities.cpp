@@ -236,7 +236,7 @@ void CFsEmailFileHandleShutter::HandleServerAppExit( TInt aReason )
         iHandleOpen = EFalse;
         }
     MAknServerAppExitObserver::HandleServerAppExit( aReason );
-    
+
     // Get current AppUi.
     CFreestyleEmailUiAppUi* appUi = (CFreestyleEmailUiAppUi*)CCoeEnv::Static()->AppUi();
     if( appUi->EmbeddedApp() )
@@ -244,7 +244,7 @@ void CFsEmailFileHandleShutter::HandleServerAppExit( TInt aReason )
         // Set embedded application flag to false when embedded application exit.
         appUi->SetEmbeddedApp( EFalse );
         }
-    
+
     // if email editor is not started from embedded app.
     if( !appUi->EditorStartedFromEmbeddedApp() )
         {
@@ -521,7 +521,7 @@ void TFsEmailUiUtility::ShowGlobalInfoNoteL( TInt aResourceStringId )
 // -----------------------------------------------------------------------------
 void TFsEmailUiUtility::ShowDiscreetInfoNoteL( TInt aResourceStringId )
     {
-    FUNC_LOG;   
+    FUNC_LOG;
     HBufC* noteText = StringLoader::LoadLC( aResourceStringId );
     ShowDiscreetInfoNoteL( *noteText );
     CleanupStack::PopAndDestroy( noteText );
@@ -532,7 +532,7 @@ void TFsEmailUiUtility::ShowDiscreetInfoNoteL( TInt aResourceStringId )
 // -----------------------------------------------------------------------------
 void TFsEmailUiUtility::ShowDiscreetInfoNoteL( const TDesC& aNoteText )
     {
-    FUNC_LOG;   
+    FUNC_LOG;
     //create a host of dummy parameters in order to change the popup duration flag...
     const TDesC& dummyText = KNullDesC;
     CGulIcon* dummyIcon = NULL;
@@ -540,18 +540,18 @@ void TFsEmailUiUtility::ShowDiscreetInfoNoteL( const TDesC& aNoteText )
     const TDesC& dummyBitmapFile = KNullDesC;
     const TInt dummyBitmapId = 0;
     const TInt dummyMaskId = 0;
-    
+
     //Set timeout flag
     TInt flags = 0;
     flags |= KAknDiscreetPopupDurationLong;
-    
-    CAknDiscreetPopup::ShowLocalPopupL( aNoteText, 
-                                        dummyText, 
-                                        dummyIcon, 
+
+    CAknDiscreetPopup::ShowLocalPopupL( aNoteText,
+                                        dummyText,
+                                        dummyIcon,
                                         dummySkinId,
-                                        dummyBitmapFile, 
-                                        dummyBitmapId, 
-                                        dummyMaskId, 
+                                        dummyBitmapFile,
+                                        dummyBitmapId,
+                                        dummyMaskId,
                                         flags);
     }
 
@@ -704,8 +704,8 @@ TBool TFsEmailUiUtility::OkToSaveFileL( const TDesC& aFilePath, CFSMailMessagePa
 void TFsEmailUiUtility::ShowFilesSavedToFolderNoteL( TInt aCount )
     {
     FUNC_LOG;
-    if ( !iDownloadSave || iSaveSelect ) 
-        { 
+    if ( !iDownloadSave || iSaveSelect )
+        {
 	    if ( aCount == 1 )
 	        {
 	        HBufC* noteText = StringLoader::LoadLC( R_FREESTYLE_EMAIL_UI_ONE_ATTACHMENT_SAVED );
@@ -719,8 +719,8 @@ void TFsEmailUiUtility::ShowFilesSavedToFolderNoteL( TInt aCount )
 	        CleanupStack::PopAndDestroy( noteText );
 	        }
         }
-    TFsEmailUiUtility::SetSaveSelect( ETrue ); 
-    TFsEmailUiUtility::SetDownloadSave( EFalse ); 
+    TFsEmailUiUtility::SetSaveSelect( ETrue );
+    TFsEmailUiUtility::SetDownloadSave( EFalse );
     }
 
 void TFsEmailUiUtility::SetDownloadSave( TBool aValue )
@@ -842,7 +842,7 @@ void TFsEmailUiUtility::OpenAttachmentL( CFSMailMessagePart& aAttachmentPart,
                 EFSMsgDataEnvelope ) );
 
         // If we still have no message, then try to convert the attachment file to message object (Activesync case).
-        if ( !message ) 
+        if ( !message )
             {
             // This takes some time so we show a wait dialog.
             if ( iOpeningWaitNote )
@@ -866,15 +866,15 @@ void TFsEmailUiUtility::OpenAttachmentL( CFSMailMessagePart& aAttachmentPart,
         // Open message to viewer if we got it. Otherwise continue with the standard file opening logic.
         if ( message )
             {
-            // Check that the embedded message has text body part or html body part. 
+            // Check that the embedded message has text body part or html body part.
             // Otherwise we cannot display it viewer and needs to be handled as a normal attachment.
-            
+
             CFSMailMessagePart* htmlPart = message->HtmlBodyPartL();
             CFSMailMessagePart* textPart = message->PlainTextBodyPartL();
-            
+
             if ( htmlPart || textPart  )
                 {
-                THtmlViewerActivationData htmlData; 
+                THtmlViewerActivationData htmlData;
                 htmlData.iActivationDataType = THtmlViewerActivationData::EmbeddedEmailMessage;
                 htmlData.iMailBoxId = aAttachmentPart.GetMailBoxId();
                 htmlData.iFolderId = aAttachmentPart.GetFolderId();
@@ -883,7 +883,7 @@ void TFsEmailUiUtility::OpenAttachmentL( CFSMailMessagePart& aAttachmentPart,
                 htmlData.iEmbeddedMessage = message;
                 htmlData.iEmbeddedMessageMode = ETrue;
                 TPckgBuf<THtmlViewerActivationData> pckgData( htmlData );
-                
+
                 appUi->EnterFsEmailViewL( HtmlViewerId, KStartViewerWithEmbeddedMsgPtr, pckgData );
                 openedAsMessage = ETrue;
                 }
@@ -892,7 +892,7 @@ void TFsEmailUiUtility::OpenAttachmentL( CFSMailMessagePart& aAttachmentPart,
                 //delete message object owned by us.
                 delete message;
                 }
-            
+
             if( htmlPart )
                 {
                 delete htmlPart;
@@ -901,7 +901,7 @@ void TFsEmailUiUtility::OpenAttachmentL( CFSMailMessagePart& aAttachmentPart,
                 {
                 delete textPart;
                 }
-            
+
             }
         }
 
@@ -1231,7 +1231,7 @@ TFileType TFsEmailUiUtility::GetFileType( const TDesC& aFileName, const TDesC& a
     	{
     	mimeType.Set( aMimeType.Left(semiColonPos) );
     	}
-    
+
 	if ( !mimeType.CompareF(KPdfMimeString) )
 		{
 		fileType = EPdfType;
@@ -2330,7 +2330,7 @@ TInt TFsEmailUiUtility::CountRecepients( CFSMailMessage* aMsgPtr )
 
 // -----------------------------------------------------------------------------
 // TFsEmailUiUtility::CountRecipientsSmart
-// Calculates recipient count from To and Cc recipient as well as tries to 
+// Calculates recipient count from To and Cc recipient as well as tries to
 // see if the message is sent via message list.
 // -----------------------------------------------------------------------------
 TInt TFsEmailUiUtility::CountRecipientsSmart( CFreestyleEmailUiAppUi& aAppUi, CFSMailMessage* aMsgPtr )
@@ -2340,9 +2340,9 @@ TInt TFsEmailUiUtility::CountRecipientsSmart( CFreestyleEmailUiAppUi& aAppUi, CF
     if ( numRecipients == 1 )
         {
         CFSMailBox* mailBox = NULL;
-        
+
         TRAPD( error, mailBox = aAppUi.GetMailClient()->GetMailBoxByUidL( aMsgPtr->GetMailBoxId() ) );
-        
+
         if (mailBox && !error)
             {
             //check if the malbox ownmailaddress is same as the recipients email address. If not, then assume that the
@@ -2369,10 +2369,10 @@ TInt TFsEmailUiUtility::CountRecipientsSmart( CFreestyleEmailUiAppUi& aAppUi, CF
                     }
                 }
             }
-        
+
         delete mailBox;
         }
-    
+
     return numRecipients;
     }
 
@@ -2447,7 +2447,7 @@ TFSEmailUiTextures TFsEmailUiUtility::GetUnreadMsgIcon( CFSMailMessage* aMsgPtr 
 			}
         // <cmail>
 		TBool cancellationMsg = EFalse;
-		TRAP_IGNORE( cancellationMsg = IsMrCancellationMsgL( aMsgPtr ) );
+		//TRAP_IGNORE( cancellationMsg = IsMrCancellationMsgL( aMsgPtr ) );
 		if ( cancellationMsg )
 		    {
 		    textureId = EMessageCalInvitationCancelled;
@@ -2604,7 +2604,7 @@ TFSEmailUiTextures TFsEmailUiUtility::GetReadMsgIcon( CFSMailMessage* aMsgPtr )
 			}
 		// <cmail>
 		TBool cancellationMsg = EFalse;
-		TRAP_IGNORE( cancellationMsg = IsMrCancellationMsgL( aMsgPtr ) );
+		//TRAP_IGNORE( cancellationMsg = IsMrCancellationMsgL( aMsgPtr ) );
 		if ( cancellationMsg )
 		    {
             textureId = EMessageCalInvitationCancelled;
@@ -2809,16 +2809,16 @@ void TFsEmailUiUtility::ToggleEmailIconL( TBool aIconOn, const TFSMailMsgId& aMa
             mailbox.Num(aMailBox.Id());
 
             TBuf<256> str;
-            str.Copy(_L("<"));    
+            str.Copy(_L("<"));
             str.Append(mailbox);
-            str.Append(_L(">"));    
+            str.Append(_L(">"));
 
             TBuf<256> stored;
             TUint32 key(KCMailMailboxesWithNewMail);
             repository->Get( key, stored );
-    
+
             TInt result = stored.Find(str);
-    
+
             if (aIconOn)
                 {
                 if (result < 0) // Not found
@@ -2839,7 +2839,7 @@ void TFsEmailUiUtility::ToggleEmailIconL( TBool aIconOn, const TFSMailMsgId& aMa
         delete repository;
         }
 	}
-	
+
 // -----------------------------------------------------------------------------
 // TFsEmailUiUtility::DisplayMsgsMovedNoteL
 // -----------------------------------------------------------------------------

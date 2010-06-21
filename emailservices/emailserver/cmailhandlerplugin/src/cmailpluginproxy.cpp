@@ -345,7 +345,7 @@ TInt CMailPluginProxy::ResolveIndicatorIcon( EmailInterface::MMailboxData& aMail
     TInt indicator( 0 );
     if ( aMailboxData.Unseen() )
         {
-        indicator = EMbmCmailhandlerpluginQgn_stat_message_mail_uni;
+        indicator = EMbmCmailhandlerpluginQgn_indi_cmail_unseen_msg;
         }
     else if ( !aMailboxData.IsOutboxEmpty() )
         {

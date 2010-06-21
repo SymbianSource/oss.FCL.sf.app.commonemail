@@ -19,6 +19,9 @@
 #ifndef CMAILCPSSETTINGS_H_
 #define CMAILCPSSETTINGS_H_
 
+#include "PSSubscriber.h"
+#include "PSSubscribeHandler.h"
+
 class CRepository;
 class CMailExternalAccount;
 
@@ -47,7 +50,8 @@ public:
  *  @lib fsmailserver.exe
  *  @since S60 v5.1
  */
-NONSHARABLE_CLASS( CMailCpsSettings ) : public CActive
+NONSHARABLE_CLASS( CMailCpsSettings ) : public CActive,
+                                        public MPSSubscribeHandler
     {
 public:
     /**
@@ -195,6 +199,18 @@ public:
      */    
     TBool Associated( const TDesC& aContentId );
     
+    /**
+     * Callback from PSSubscriber about a PS key event
+     * @param aCategory defines the key category
+     * @param aKey defines the changed key
+     */
+    void HandlePropertyChangedL( const TUid& aCategory, TInt aKey );
+
+    /**
+     *
+     */
+    TBool BackupOrRestoreMode();
+    
 protected:
     /**
      * From CActive
@@ -296,6 +312,12 @@ private: // data
     TInt32                    iConfigData;
     // large buffer for reading cenrep data
     TBuf<KMaxFileName>        iCenrepText;
+    // PubSub subsriber for notifying restore operation
+    CPSSubscriber*            iBackupRestoreSubscriber;
+    // Indicates if restore operation is started
+    TBool                     iRestoreStarted;
+    // Indicates if backup operation is ongoing
+    TBool                     iBackupOngoing;
     };
 
 #endif /*CMAILCPSSETTINGS_H_*/

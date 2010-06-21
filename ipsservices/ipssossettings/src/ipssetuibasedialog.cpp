@@ -476,7 +476,7 @@ void CIpsSetUiBaseDialog::UpdateTitlePaneTextL( TInt aId )
             iTitlePane.SetTextL( *titleText );
             break;
         case R_IPS_SET_MENU_WHAT_TO_SYNC:
-        case R_IPS_SET_WHAT_TO_SYNC_ARRAY_EMAIL_RETRIEVE_POP3:
+        //case R_IPS_SET_WHAT_TO_SYNC_ARRAY_EMAIL_RETRIEVE_POP3:
         case R_IPS_SET_WHAT_TO_SYNC_ARRAY_EMAIL_RETRIEVE_IMAP4:
             titleText = StringLoader::LoadLC( 
                     R_FSE_SETTINGS_SERVICE_WHAT_TO_SYNC_TITLE );

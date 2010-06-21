@@ -212,10 +212,27 @@ NONSHARABLE_CLASS(CFSMailClient) : public CExtendableEmail
      * returns email mailbox object related to given mailbox id
      *
      * @param aMailBoxId mailbox id
-     * @return mailbox object ( CFSMailBox ), ownership is transferred to user
+     * @return mailbox object ( CFSMailBox )
+     *         or NULL if no matching mailbox found. 
+     *         Ownership is transferred to user!
      */
      IMPORT_C CFSMailBox* GetMailBoxByUidL( const TFSMailMsgId aMailBoxId);
-                
+      	  		
+
+    /**
+     * returns email mailbox object related to given mailbox id. Otherwise 
+     * identical to GetMailBoxByUidL but mailbox object is stored to cleanup 
+     * stack.
+     *
+     * @param aMailBoxId mailbox id
+     * @return mailbox object ( CFSMailBox )
+     *         or NULL if no matching mailbox found.
+     *         CFSMailBox pointer is stored to cleanup stack (even if NULL). 
+     *         Ownership is transferred to user! 
+     */
+     IMPORT_C CFSMailBox* GetMailBoxByUidLC( const TFSMailMsgId aMailBoxId);
+
+     
     /**
      * returns email folder object related to given folder id
      *

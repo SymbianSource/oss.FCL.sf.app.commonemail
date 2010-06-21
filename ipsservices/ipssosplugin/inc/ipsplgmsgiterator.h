@@ -238,6 +238,7 @@ private: // data
      */
     CMsvEntry* iFolderEntry;
     
+    CMsvEntrySelection* iMessages;
     /**
      * Controls data to be returned
      */    

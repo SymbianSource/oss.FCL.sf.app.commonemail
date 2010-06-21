@@ -655,3 +655,22 @@ HBufC* CFSEmailUiAttachmentsListModel::CreateMailSubjectTextLC() const
     return subjectText;
     }
 
+TBool CFSEmailUiAttachmentsListModel::IsMultiplyDownloadsOngoing()
+    {
+    TBool multiplyDownloads( EFalse );
+    TInt downloads = 0;
+    for ( TInt i = 0; i < iAttachments.Count() && downloads <= 1; i++ )
+        {   
+        if ( IsDownloading( iAttachments[i] ))
+            {
+            downloads++;
+            }
+        }
+
+    if ( downloads > 1 )
+        {
+        multiplyDownloads = ETrue;
+        }
+    
+    return multiplyDownloads;
+    }

@@ -286,15 +286,13 @@ TBool CPsMruAdapter::FillDataStoreL( TFSMailMsgId& aId, TDesC& aDataStoreURI )
 // code was simplified not to trace all mailboxes
 // function has trap in  Event() -case> TFSEventNewMailbox and in DeleayedMailboxCreationEventL()
 // should not leave when new mailbox only when new mail address
-    CFSMailBox *mailBox = iMailClient->GetMailBoxByUidL(aId);
-    if ( mailBox )
+    CFSMailBox *mailBox = iMailClient->GetMailBoxByUidLC(aId);
+    if( mailBox )
         {
-        CleanupStack::PushL( mailBox );
         AddMailboxObserverL( aId );
         
         // Get MRU list for this mailbox
         MDesCArray* mruList = mailBox->ListMrusL();
-        CleanupStack::PopAndDestroy( mailBox );
         
         // update the caching status as InProgress
         iDataStoreObserver->UpdateCachingStatus( aDataStoreURI,
@@ -319,6 +317,7 @@ TBool CPsMruAdapter::FillDataStoreL( TFSMailMsgId& aId, TDesC& aDataStoreURI )
             }
         result = ETrue;
         }   // if (mailBox)
+    CleanupStack::PopAndDestroy( mailBox );
     return result;
     }
 
@@ -452,12 +451,18 @@ void CPsMruAdapter::EventL( TFSMailEvent aEvent, TFSMailMsgId aMailbox,
                 {
                 mailboxPtr = NULL;
                 }
-            if (NULL == mailboxPtr) // mailbox still does not exist 
+            if( mailboxPtr ) 
                 {
+                delete mailboxPtr;
+                mailboxPtr = NULL;
+                }
+            else
+                {
+                // mailbox still does not exist
                 DeleayMailboxCreationEventL( aMailbox ); // start timer to postpone creation	
                 break;
                 }
-            mailboxPtr = NULL;
+            
             HBufC* identifier = HBufC::NewLC( KMaximumMailboxUriLength ); // new string ident
             if ( GetUriFromMailboxIdentifier( aMailbox, *identifier ) )
                 {
@@ -572,6 +577,9 @@ TBool CPsMruAdapter::DeleayedMailboxCreationEventL()
             }
         if ( mailboxPtr ) 
             {
+            delete mailboxPtr;
+            mailboxPtr = NULL;
+            
             HBufC* identifier = HBufC::NewLC( KMaximumMailboxUriLength ); // new string ident
             if ( GetUriFromMailboxIdentifier( iDelayedCreatedMailboxes[i], *identifier ) )
                 {

@@ -594,8 +594,6 @@ void CFsTreePlainOneLineItemVisualizer::UpdateL( const MFsTreeItemData& aData,
 					iTextVisual->SetWrapping( CAlfTextVisual::ELineWrapTruncate );
 					}
             	}
-            
-            iManualWrapper = EFalse;
             }
         }
     }

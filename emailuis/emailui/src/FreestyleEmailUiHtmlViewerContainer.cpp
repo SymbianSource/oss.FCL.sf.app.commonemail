@@ -677,8 +677,14 @@ void CFsEmailUiHtmlViewerContainer::LoadContentFromMailMessageL(
         emailHtmlFile.Append( KMessageHtmlRTLFile );
         }
 
-    CreateBrowserControlInterfaceL();
-
+    // If scroll position is not to be reset, re-creation of browser control
+    // interface object is skipped (we're just reloading the page with new
+    // content)
+    if ( aResetScrollPos )
+        {
+        CreateBrowserControlInterfaceL();
+        }
+    
     LoadContentFromFileL( emailHtmlFile );
 
     UpdateOverlayButtons( ETrue );

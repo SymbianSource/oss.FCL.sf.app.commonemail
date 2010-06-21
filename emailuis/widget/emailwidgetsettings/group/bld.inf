@@ -38,3 +38,7 @@ PRJ_EXPORTS
 
 ../conf/cmailwidget.confml                      APP_LAYER_CONFML(cmailwidget.confml)
 ../conf/cmailwidget_2001E272.crml               APP_LAYER_CRML(cmailwidget_2001E272.crml)
+
+// Backup registration
+../group/backup_registration.xml /epoc32/data/z/private/2001E272/backup_registration.xml
+

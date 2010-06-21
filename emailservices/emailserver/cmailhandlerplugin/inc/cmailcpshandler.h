@@ -440,8 +440,6 @@ private:
      *         if not found, NULL is retuned
      */
     CMailPluginProxy* GetExtPluginL( const TDesC& aContentId );
-
-    TBool BackupOrRestoreMode();
     
 private: // data
     CEikonEnv* iEnv;

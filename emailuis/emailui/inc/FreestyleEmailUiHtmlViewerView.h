@@ -131,6 +131,7 @@ public:
     void DownloadAttachmentL( const TAttachmentData& aAttachment );
     void DownloadAllAttachmentsL();
     void CancelAttachmentL( const TAttachmentData& aAttachment );    
+    void CancelAllAttachmentsL();    
     void OpenAttachmentL( const TAttachmentData& aAttachment );
     void SaveAttachmentL( const TAttachmentData& aAttachment );
     void SaveAllAttachmentsL();

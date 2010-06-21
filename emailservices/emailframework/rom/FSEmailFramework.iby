@@ -40,6 +40,7 @@ data=DATAZ_\RESOURCE\APPS\yahoo_brand_graphics.mif	APP_BITMAP_DIR\yahoo_brand_gr
 data=DATAZ_\RESOURCE\APPS\google_brand_graphics.mif	APP_BITMAP_DIR\google_brand_graphics.mif
 data=DATAZ_\RESOURCE\APPS\aol_brand_graphics.mif	APP_BITMAP_DIR\aol_brand_graphics.mif
 data=DATAZ_\RESOURCE\APPS\microsoft_brand_graphics.mif	APP_BITMAP_DIR\microsoft_brand_graphics.mif
+data=DATAZ_\RESOURCE\APPS\mail_for_exchange_brand_graphics.mif  APP_BITMAP_DIR\mail_for_exchange_brand_graphics.mif
 
 // ECOM_PLUGIN( CFSMailMockupPlugin.dll, CFSMailMockupPlugin.rsc)
 

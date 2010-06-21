@@ -20,6 +20,7 @@
 #include <e32base.h>
 // CRepository
 #include <centralrepository.h>
+#include <connect/sbdefs.h>
 
 // Email Framework APIs
 //<cmail>
@@ -59,6 +60,7 @@ CMailCpsSettings::~CMailCpsSettings()
     FUNC_LOG;
     Cancel();
     iMailboxArray.Close();
+    delete iBackupRestoreSubscriber;
     delete iCenRep;
     }
 
@@ -70,7 +72,9 @@ CMailCpsSettings::CMailCpsSettings( CFSMailClient& aMailClient ) :
     CActive( EPriorityStandard ),
     iMailClient( aMailClient ),
     iCenRep( NULL ),
-    iConfigData( 0 )
+    iConfigData( 0 ),
+    iRestoreStarted( EFalse ),
+    iBackupOngoing( EFalse )
     {
     FUNC_LOG;
     CActiveScheduler::Add( this );
@@ -87,6 +91,9 @@ void CMailCpsSettings::ConstructL()
     // Trapping is done by MailServer infrastructure, not by CPS handler
     // In practice, this is fatal to cps handling, and widget won't work
     iCenRep = CRepository::NewL( KCRUidCmailWidget );
+    iBackupRestoreSubscriber = CPSSubscriber::NewL(
+        *this, KUidSystemCategory, conn::KUidBackupRestoreKey );
+    iBackupRestoreSubscriber->Subscribe();
     LoadSettingsL(); // mailboxes etc. user changeable data
     LoadConfigurationL(); // internal configuration data
     }
@@ -98,10 +105,13 @@ void CMailCpsSettings::ConstructL()
 void CMailCpsSettings::RunL()
     {
     FUNC_LOG;
-    StartObservingL();
-    LoadSettingsL(); // mailboxes etc. user changeable data
-    LoadConfigurationL(); // internal configuration data
-    iObserver->SettingsChangedCallback();
+    if ( !BackupOrRestoreMode() )
+        {
+        StartObservingL();
+        LoadSettingsL(); // mailboxes etc. user changeable data
+        LoadConfigurationL(); // internal configuration data
+        iObserver->SettingsChangedCallback();
+        }
     }
 
 // ---------------------------------------------------------------------------
@@ -348,7 +358,7 @@ TInt CMailCpsSettings::ResolveMailbox( const TInt aMailboxId, TFSMailMsgId& aMsg
     FUNC_LOG;
     RPointerArray<CFSMailBox> mailboxarray;
     TInt err = iMailClient.ListMailBoxes( TFSMailMsgId(), mailboxarray );
-	INFO_1("CMailCpsSettings::ResolveMailbox():: ListMailBoxes() returns %d", err);
+	INFO_1("CMAIL CMailCpsSettings::ResolveMailbox():: ListMailBoxes() returns %d", err);
     if( !err ) // KErrNone = 0
         {
         err = KErrNotFound;
@@ -914,6 +924,60 @@ TBool CMailCpsSettings::GetNewMailStateL( const TFSMailMsgId& aMailBox, TInt aUn
     return ret;
     }
 
+// ---------------------------------------------------------------------------
+// CMailCpsSettings::HandlePropertyChangedL
+// ---------------------------------------------------------------------------
+//
+void CMailCpsSettings::HandlePropertyChangedL( const TUid& aCategory, TInt aKey )
+    {
+    FUNC_LOG;
 
+    if ( aCategory == KUidSystemCategory && aKey == conn::KUidBackupRestoreKey )
+        {
+        TInt keyVal = 0;
+        const TInt error = RProperty::Get(  KUidSystemCategory, conn::KUidBackupRestoreKey, keyVal );
+        if( error == KErrNone )
+            {
+            const conn::TBURPartType partType = 
+                    static_cast< conn::TBURPartType >( keyVal & conn::KBURPartTypeMask );
 
+            if ( keyVal != 0 )
+                {
+                switch( partType )
+                    {
+                    case conn::EBURRestoreFull:
+                    case conn::EBURRestorePartial:
+                        iRestoreStarted = ETrue;
+                        break;
+                    case conn::EBURBackupFull:
+                    case conn::EBURBackupPartial:                        
+                        iBackupOngoing = ETrue;
+                        break;
+                    case conn::EBURUnset:
+                    case conn::EBURNormal:
+                    default:
+                        iBackupOngoing = EFalse;
+                        break;
+                    }
+                }
+            }
+        }
+    }
 
+// ----------------------------------------------------------------------------
+// CMailCpsHandler::BackupOrRestoreMode()
+// Check if phone is in backup/restore mode
+// ----------------------------------------------------------------------------
+//
+TBool CMailCpsSettings::BackupOrRestoreMode()
+    {
+    FUNC_LOG;
+
+    TBool backupOrRestore = EFalse;
+    
+    if ( iRestoreStarted || iBackupOngoing )
+        {
+        backupOrRestore = ETrue;
+        }
+    return backupOrRestore;
+    }

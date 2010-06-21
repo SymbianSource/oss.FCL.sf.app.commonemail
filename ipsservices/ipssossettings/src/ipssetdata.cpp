@@ -891,16 +891,13 @@ void CIpsSetData::SetMailServerL(
     if ( iProtocol == KSenduiMtmImap4Uid )
         {
         iImap4Settings->SetServerAddressL( aIncomingServer );
-		iImap4Settings->SetBearerMobility(ETrue);
         }
     else
         {
         iPop3Settings->SetServerAddressL( aIncomingServer );
-		iPop3Settings->SetBearerMobility(ETrue);
         }
         
     iSmtpSettings->SetServerAddressL( aOutgoingServer ); 
-	iSmtpSettings->SetBearerMobility(ETrue);
     }
 
 // ---------------------------------------------------------------------------

@@ -714,6 +714,11 @@ private: // data
      * "Opening" wait dialog.
      */
     CAknWaitDialog* iOpeningWaitDialog;
+    
+    /**
+     * Flag indicating that adding attachment dialog is opened.
+     */
+    TBool iAddingAttachmentDialogOpened;
     };
 
 /**

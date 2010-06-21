@@ -74,18 +74,12 @@ const TUint32 KNumberOfMailboxesWithNewEmails                = {0x00001000};
 
 
 // These keys define limits on how much data is allowed to load by plugins 
-/* The setting allows to limit max body size in MfE protocol plugin, KB */
-const TUint32 KFreestyleMfeMaxBodySize                   = 0x00002000;
-/* The setting allows to limit max body size for Ozone protocol plugin, KB */
-const TUint32 KFreestyleOzoneMaxBodySize                 = 0x00002001;
-/* The setting allows to limit max body size in POP/IMAP protocol plugin, KB */
-const TUint32 KFreestyleIPSMaxBodySize                   = 0x00002002;
-/* The setting allows to limit max body size in e-mail viewer, KB */
-const TUint32 KFreestyleViewerMaxBodySize                = 0x00002003;
-/* The setting allows to limit max body size in editor for reply/forward, KB. */
-const TUint32 KFreestyleEditorMaxBodySize                = 0x00002004;
-/* The setting allows to limit max size of mail attachments shown in mail viewer, KB */
-const TUint32 KFreestyleViewerMaxAttachmentSize          = 0x00002005;
+/* The setting allows to limit max body size, KB */
+const TUint32 KFreestyleMaxBodySize                      = 0x00002000;
+/* The setting allows to limit max body size in reply/forward, KB. */
+const TUint32 KFreestyleReplyMaxBodySize                 = 0x00002001;
+/* The setting allows to limit max total size of mail attachments shown in mail viewer, KB */
+const TUint32 KFreestyleViewerMaxAttachmentsSize         = 0x00002002;
 
 
 //

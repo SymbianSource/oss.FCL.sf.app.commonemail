@@ -746,13 +746,19 @@ void CNcsComposeView::RefreshToolbar()
         {
         // Hide toolbar if remotesearch is in progress, 
         // because it takes you into a different view
-        TBool hideToolbar = iContainer->IsRemoteSearchInprogress();
+        TBool hideToolbar = ( iContainer->IsRemoteSearchInprogress() 
+                || iAddingAttachmentDialogOpened );
         SetToolbarItemDimmed( EFsEmailUiTbCmdSend, iContainer->AreAddressFieldsEmpty() );
      
         CAknToolbar* toolbar(Toolbar());
         if (toolbar)
             {
             toolbar->SetToolbarVisibility(!hideToolbar);
+            // If toolbar is not hidden, redraw it (otherwise only dimmed/undimmed button will be redrawn)
+            if(!hideToolbar)
+            	{
+                toolbar->DrawDeferred();
+            	}
             }
         }
     }
@@ -1396,12 +1402,14 @@ TInt CNcsComposeView::AsyncAddAttachment( TAny* aSelfPtr )
         {
         toolbar->SetDimmed(ETrue); 
         }
-
+    
+    self->iAddingAttachmentDialogOpened = ETrue;
     self->iContainer->SwitchChangeMskOff( ETrue );
     TRAP( error, ok = attachmentControl->AppendAttachmentToListL(
                 self->iAttachmentAddType) );
     self->iContainer->SwitchChangeMskOff( EFalse );
-
+    self->iAddingAttachmentDialogOpened = EFalse;
+    
     if ( ok && error == KErrNone )
         {
         TRAP( error, self->SetAttachmentLabelContentL() );

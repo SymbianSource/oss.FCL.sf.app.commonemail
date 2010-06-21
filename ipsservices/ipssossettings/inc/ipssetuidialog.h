@@ -230,7 +230,7 @@ private:
      *
      * @param aBaseItem Download size page
      */
-    void HandleEmailsToRetrieve( CIpsSetUiItem& aBaseItem );
+    //void HandleEmailsToRetrieve( CIpsSetUiItem& aBaseItem );
 
     /**
      * Changes resource for port editor

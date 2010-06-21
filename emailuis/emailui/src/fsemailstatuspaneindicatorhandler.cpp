@@ -94,6 +94,7 @@ void TFsEmailStatusPaneIndicatorHandler::StatusPaneMailIndicatorHandlingL( TInt 
                 if ( prevMbox )
                     {
                     commonEmailRepository->Set( KCmailNewEmailDisplayText, prevMbox->GetName() );
+                    delete prevMbox;
                     }
                 }
             }

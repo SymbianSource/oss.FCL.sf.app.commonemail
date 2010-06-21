@@ -348,6 +348,12 @@ EXPORT_C RPointerArray<CFSMailFolder>& CFSMailBox::ListFolders( )
 EXPORT_C TDesC& CFSMailBox::GetBrandingIdL( )
 {
     FUNC_LOG;
+	if ( CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid( GetId() ) )
+        {
+        TDesC& result = plugin->GetBrandingIdL( GetId() );
+        return result;
+        }
+
     return BrandingId();
 }
 

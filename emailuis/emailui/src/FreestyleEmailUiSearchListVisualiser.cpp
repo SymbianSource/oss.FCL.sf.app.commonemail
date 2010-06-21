@@ -1021,16 +1021,19 @@ void CFSEmailUiSearchListVisualiser::HandleCommandL( TInt aCommand )
 				{
 				CFSEmailUiMailListModelItem* item =
 					static_cast<CFSEmailUiMailListModelItem*>( Model()->Item( HighlightedIndex() ) );
-				CFSMailMessage& msg = item->MessagePtr();
-
-	  			TMsgDetailsActivationData msgDetailsData;
-	  			msgDetailsData.iMailBoxId = msg.GetMailBoxId();
-	  			msgDetailsData.iFolderId = msg.GetFolderId();
-	  			msgDetailsData.iMessageId = msg.GetMessageId();
-
-				const TPckgBuf<TMsgDetailsActivationData> pkgOut( msgDetailsData );
-				iAppUi.EnterFsEmailViewL( MsgDetailsViewId, KStartMsgDetailsToBeginning,  pkgOut);
-				}
+                if ( item ) // Safety
+                    {
+                    CFSMailMessage& msg = item->MessagePtr();
+                    
+                    TMsgDetailsActivationData msgDetailsData;
+                    msgDetailsData.iMailBoxId = msg.GetMailBoxId();
+                    msgDetailsData.iFolderId = msg.GetFolderId();
+                    msgDetailsData.iMessageId = msg.GetMessageId();
+                    
+                    const TPckgBuf<TMsgDetailsActivationData> pkgOut( msgDetailsData );
+                    iAppUi.EnterFsEmailViewL( MsgDetailsViewId, KStartMsgDetailsToBeginning,  pkgOut);					
+                    }
+                }
 			}
 			break;
        	case EFsEmailUiCmdHelp:
@@ -1319,9 +1322,20 @@ TBool CFSEmailUiSearchListVisualiser::OfferEventL(const TAlfEvent& aEvent)
                 break;
             }
         }
-    else if (aEvent.IsPointerEvent())
+    else if ( aEvent.IsPointerEvent() )
         {
-        iSearchList->TreeControl()->OfferEventL(aEvent);
+        // event should be forwarded to list only if it 
+        // contains at least one item
+        if ( iModel->Count() )
+            {
+            result = iSearchList->TreeControl()->OfferEventL( aEvent );
+            }
+        else
+            {
+            // otherwise we consume it so no other ALF controls gets it
+            // e.g. ControlBar
+            result = ETrue;
+            }
         }
 
     return result;
@@ -1395,7 +1409,7 @@ TFSMailMsgId CFSEmailUiSearchListVisualiser::MsgIdFromIndex( TInt aItemIdx ) con
         {
         CFSEmailUiMailListModelItem* item =
     			static_cast<CFSEmailUiMailListModelItem*>(iModel->Item(aItemIdx));
-    	if ( item->ModelItemType() == ETypeMailItem )
+    	if ( item && item->ModelItemType() == ETypeMailItem )
     	    {
     	    msgId = item->MessagePtr().GetMessageId();
     	    }
@@ -1412,7 +1426,7 @@ TFSMailMsgId CFSEmailUiSearchListVisualiser::MsgIdFromListId( TFsTreeItemId aLis
 		{
 		CFSEmailUiMailListModelItem* item =
 			static_cast<CFSEmailUiMailListModelItem*>(iModel->Item(i));
-		if ( item->ModelItemType() == ETypeMailItem &&
+		if ( item && item->ModelItemType() == ETypeMailItem &&
 		     aListId == item->CorrespondingListId() )
 			{
 			msgId = item->MessagePtr().GetMessageId();
@@ -1430,7 +1444,7 @@ CFSMailMessage& CFSEmailUiSearchListVisualiser::MsgPtrFromListId( TFsTreeItemId 
 		{
 		CFSEmailUiMailListModelItem* item =
 			static_cast<CFSEmailUiMailListModelItem*>(iModel->Item(i));
-		if ( aListId == item->CorrespondingListId() )
+		if ( item && aListId == item->CorrespondingListId() )
 			{
 			msgPtr = &item->MessagePtr();
 			}
@@ -1479,7 +1493,7 @@ TInt CFSEmailUiSearchListVisualiser::ItemIndexFromMessageId( const TFSMailMsgId&
 		{
 		CFSEmailUiMailListModelItem* item =
 			static_cast<CFSEmailUiMailListModelItem*>(iModel->Item(i));
-		if ( item->ModelItemType() == ETypeMailItem &&
+		if ( item && item->ModelItemType() == ETypeMailItem &&
 		     aMessageId == item->MessagePtr().GetMessageId() )
 			{
 			idx = i;
@@ -1542,7 +1556,7 @@ void CFSEmailUiSearchListVisualiser::OpenHighlightedMailL()
 
 	CFSEmailUiMailListModelItem* item =
 		static_cast<CFSEmailUiMailListModelItem*>( iModel->Item( HighlightedIndex() ) );
-	if ( item->ModelItemType() == ETypeMailItem )
+	if ( item && item->ModelItemType() == ETypeMailItem )
 		{
 		// First make sure that the highlighted message really exists in the store
 		// Get confirmed msg ptr
@@ -2047,30 +2061,32 @@ void CFSEmailUiSearchListVisualiser::ChangeReadStatusOfHighlightedL( TInt aRead 
 		{
 		CFSEmailUiMailListModelItem* selectedItem =
 	 		static_cast<CFSEmailUiMailListModelItem*>( iModel->Item( HighlightedIndex() ));
+        if ( selectedItem ) // Safety
+            {
+            TBool wasRead = selectedItem->MessagePtr().IsFlagSet( EFSMsgFlag_Read );
+            if ( (wasRead && !aRead) || (!wasRead && aRead) )
+                {
+                // Read status is changed
+                iMsgDataCouldBeChanged = ETrue;
 
-	 	TBool wasRead = selectedItem->MessagePtr().IsFlagSet( EFSMsgFlag_Read );
-	 	if ( (wasRead && !aRead) || (!wasRead && aRead) )
-	 	    {
-	 	    // Read status is changed
-	 	    iMsgDataCouldBeChanged = ETrue;
-
-    		if ( aRead )
-     			{
-    			// Send flags, local and server
-     			selectedItem->MessagePtr().SetFlag( EFSMsgFlag_Read );
-    			}
-    		else
-    			{
-    			// Send flags, local and server
-     			selectedItem->MessagePtr().ResetFlag( EFSMsgFlag_Read );
-    			}
-    		selectedItem->MessagePtr().SaveMessageL();	// Save flag
-    		// Switch icon to correct one
-    		UpdateMsgIconAndBoldingL( HighlightedIndex() );
-	 	    }
-		}
-	}
-
+                if ( aRead )
+                    {
+                    // Send flags, local and server
+                    selectedItem->MessagePtr().SetFlag( EFSMsgFlag_Read );
+                    }
+                else
+                    {
+                    // Send flags, local and server
+                    selectedItem->MessagePtr().ResetFlag( EFSMsgFlag_Read );
+                    }
+                selectedItem->MessagePtr().SaveMessageL();	// Save flag
+                // Switch icon to correct one
+                UpdateMsgIconAndBoldingL( HighlightedIndex() );
+                }
+            }
+        }
+	} 
+	
 void CFSEmailUiSearchListVisualiser::CheckAndUpdateFocusedMessageL()
 	{
     FUNC_LOG;
@@ -2079,7 +2095,7 @@ void CFSEmailUiSearchListVisualiser::CheckAndUpdateFocusedMessageL()
 		TInt highlightedIndex = HighlightedIndex();
 		CFSEmailUiMailListModelItem* selectedItem =
 	 		static_cast<CFSEmailUiMailListModelItem*>( iModel->Item( highlightedIndex ));
-		if ( selectedItem->ModelItemType() == ETypeMailItem )
+		if ( selectedItem && selectedItem->ModelItemType() == ETypeMailItem )
 			{
 			CFSMailMessage* msgPtr = &selectedItem->MessagePtr();
 			if ( msgPtr )

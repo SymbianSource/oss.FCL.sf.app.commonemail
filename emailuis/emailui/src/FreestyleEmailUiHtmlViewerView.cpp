@@ -907,7 +907,7 @@ void CFsEmailUiHtmlViewerView::NavigateBackL()
             }
         else
             {
-            htmlData.iActivationDataType = THtmlViewerActivationData::EmbeddedEmailMessage;
+            htmlData.iActivationDataType = THtmlViewerActivationData::EMailMessage;
             htmlData.iMailBoxId = iOpenMessages->Head()->GetMailBoxId();
             htmlData.iFolderId  = iOpenMessages->Head()->GetFolderId();
             htmlData.iMessageId = iOpenMessages->Head()->GetMessageId();
@@ -1602,6 +1602,12 @@ void CFsEmailUiHtmlViewerView::DownloadAllAttachmentsL()
 void CFsEmailUiHtmlViewerView::CancelAttachmentL( const TAttachmentData& aAttachment )
     {
     iAttachmentsListModel->CancelDownloadL(aAttachment);
+    }
+
+void CFsEmailUiHtmlViewerView::CancelAllAttachmentsL()
+    {
+    FUNC_LOG;
+    iAttachmentsListModel->CancelAllDownloadsL();
     }
 
 void CFsEmailUiHtmlViewerView::OpenAttachmentL( const TAttachmentData& aAttachment )

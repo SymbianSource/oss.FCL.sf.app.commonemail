@@ -24,4 +24,6 @@ file=ABI_DIR\BUILD_DIR\emailwidgetsettings.exe                          PROGRAMS
 S60_UPGRADABLE_APP_REG_RSC(emailwidgetsettings)
 SCALABLE_IMAGE(APP_BITMAP_DIR,APP_BITMAP_DIR,emailwidgetsettings)
 
+data=DATAZ_\private\2001E272\backup_registration.xml  private\2001E272\backup_registration.xml
+
 #endif // EMAILWIDGETSETTINGS_IBY

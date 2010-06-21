@@ -28,7 +28,7 @@
 
 namespace // codescanner::namespace
     {
-    const TInt KMaxLinesInResponseTopicItem( 2 );
+    const TInt KMaxLinesInResponseTopicItem( 1 );
     const TInt KEdge(8);
     } // unnamed namespace
 // ======== MEMBER FUNCTIONS ========

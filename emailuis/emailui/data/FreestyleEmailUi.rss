@@ -1271,7 +1271,7 @@ RESOURCE TBUF r_freestyle_email_ui_empty_msg_list_text		{ buf=qtn_fse_message_li
 RESOURCE TBUF r_freestyle_email_ui_message_to_folder		{ buf=qtn_fse_confirm_note_message_moved; }
 RESOURCE TBUF r_freestyle_email_ui_messages_to_folder		{ buf=qtn_fse_confirm_note_messages_moved; }
 RESOURCE TBUF r_freestyle_email_ui_settings_ips_text		{ buf=qtn_fse_message_list_options_settings_mailbox; }
-RESOURCE TBUF r_freestyle_email_ui_markingmode			{ buf=qtn_fse_message_list_options_mark; }
+RESOURCE TBUF r_freestyle_email_ui_markingmode			{ buf=qtn_navi_pane_marking_mode; }
 
 // OUTBOX NOTE
 RESOURCE TBUF r_freestyle_email_ui_open_from_outbox_note	{ buf=qtn_fse_info_note_cannot_open; }
@@ -3077,6 +3077,11 @@ RESOURCE STYLUS_POPUP_MENU r_stylus_popup_menu_html_view_attachment
 	    {
 	        txt = qtn_cmail_popup_cancel_download;    // Cancel attachment downloads
                 command = EFsEmailUiCmdCancelDownload;
+            },
+        STYLUS_POPUP_MENU_ITEM
+            {
+                txt = qtn_fse_viewer_options_attach_cancel_all_downloads;    // Cancel all attachment downloads
+                command = EFsEmailUiCmdCancelAllDownloads;
             }
         };
     }

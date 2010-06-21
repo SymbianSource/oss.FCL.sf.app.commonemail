@@ -95,6 +95,10 @@ public: // New methods.
 	 */
 	void DisplayStylusPopUpMenu( const TPoint& aPosition );
 	
+    /**
+     * Hides the pop-up menu.
+     */
+    void HideStylusPopUpMenu();
 
 protected: // From base class CAknView.
 
@@ -149,6 +153,8 @@ private: // Data.
     // A long tap detector and a pop-up menu that is invoked by long tap
     // events. Used for e.g. deleting mail boxes.
     CAknStylusPopUpMenu* iStylusPopUpMenu;
+    // dymmy control for hiding stylus pop up menu
+    CCoeControl* iCoeControl;
 	};
 
 #endif // FSEMAILSETTINGSLISTVIEW_H

@@ -71,7 +71,7 @@ CIpsPlgMsgIterator::~CIpsPlgMsgIterator()
     delete iMsgMapper;
     delete iMsgSortKey;
     delete iMsgSwapper;
-    
+    delete iMessages;
     iSortingCriteria.Reset();
     }
 
@@ -89,15 +89,16 @@ TBool CIpsPlgMsgIterator::NextL(
     TBool result = EFalse;
     TInt baseIndex;
     
-    // Messages are sorted always before reading the messages 
-    Sort();
-    
-    CMsvEntrySelection* messages = FilterMessagesL();
-    CleanupStack::PushL( messages );
+    if ( !iMessages )
+        {
+        // Messages are sorted before first reading the messages 
+        Sort();
+        iMessages = FilterMessagesL();
+        }
 
     if ( !aCurrentMessageId.IsNullId() )
         {
-        baseIndex = messages->Find( aCurrentMessageId.Id() );
+        baseIndex = iMessages->Find( aCurrentMessageId.Id() );
         
         // aCurrentMessageId is not included to the result set
         if ( baseIndex != KErrNotFound )
@@ -112,12 +113,11 @@ TBool CIpsPlgMsgIterator::NextL(
         }
         
     if ( ( baseIndex != KErrNotFound ) && 
-         ( baseIndex < messages->Count() ) )
+         ( baseIndex < iMessages->Count() ) )
         {
-        result = NextL(baseIndex, messages, aCount, aMessages);
+        result = NextL(baseIndex, iMessages, aCount, aMessages);
         }
 
-    CleanupStack::PopAndDestroy(messages);
     return result;
     }
 
@@ -136,20 +136,20 @@ TBool CIpsPlgMsgIterator::NextL(
     TInt status;
     TInt baseIndex;
     
-    // Messages are sorted always before reading the messages 
-    Sort();
+    if ( !iMessages )
+        {
+        // Messages are sorted before first reading the messages 
+        Sort();
+        iMessages = FilterMessagesL();
+        }
 
-    CMsvEntrySelection* messages = FilterMessagesL();
-    CleanupStack::PushL( messages );
-
-    status = SearchL( messages, aStartWith, baseIndex );
+    status = SearchL( iMessages, aStartWith, baseIndex );
     
     if ( status == KErrNone )
         {
-        result = NextL(baseIndex, messages, aCount, aMessages);
+        result = NextL( baseIndex, iMessages, aCount, aMessages );
         }
 
-    CleanupStack::PopAndDestroy(messages);
     return result;
     }
 
@@ -168,15 +168,16 @@ TBool CIpsPlgMsgIterator::PreviousL(
     TBool result = EFalse;
     TInt baseIndex;
     
-    // Messages are sorted always before reading the messages 
-    Sort();
-
-    CMsvEntrySelection* messages = FilterMessagesL();
-    CleanupStack::PushL(messages);
+    if ( !iMessages )
+        {
+        // Messages are sorted before first reading the messages 
+        Sort();
+        iMessages = FilterMessagesL();
+        }
 
     if ( !aCurrentMessageId.IsNullId() )
         {
-        baseIndex = messages->Find(aCurrentMessageId.Id());
+        baseIndex = iMessages->Find(aCurrentMessageId.Id());
         
         // aCurrentMessageId is not included to the result set
         if ( baseIndex != KErrNotFound )
@@ -188,7 +189,7 @@ TBool CIpsPlgMsgIterator::PreviousL(
         {
         // check whether we should start from the end of 
         // the message list in the case of a NULL ID
-        baseIndex = messages->Count() - 1;
+        baseIndex = iMessages->Count() - 1;
         }
 
     // Actually, if the matching message is the first one, baseIndex is equal
@@ -198,10 +199,9 @@ TBool CIpsPlgMsgIterator::PreviousL(
     if ( ( baseIndex != KErrNotFound ) &&
          ( baseIndex >= 0 ) )
         {
-        result = PreviousL(baseIndex, messages, aCount, aMessages);
+        result = PreviousL(baseIndex, iMessages, aCount, aMessages);
         }
 
-    CleanupStack::PopAndDestroy(messages);
     return result;
     }
 
@@ -225,20 +225,20 @@ TBool CIpsPlgMsgIterator::PreviousL(
     TInt status;
     TInt baseIndex;
     
-    // Messages are sorted always before reading the messages 
-    Sort();
+    if ( !iMessages )
+        {
+        // Messages are sorted before first reading the messages 
+        Sort();
+        iMessages = FilterMessagesL();
+        }
 
-    CMsvEntrySelection* messages = FilterMessagesL();
-    CleanupStack::PushL( messages );
-
-    status = SearchL( messages, aStartWith, baseIndex );
+    status = SearchL( iMessages, aStartWith, baseIndex );
     
     if (  status == KErrNone ) 
         {
-        result = PreviousL(baseIndex, messages, aCount, aMessages);
+        result = PreviousL(baseIndex, iMessages, aCount, aMessages);
         }
 
-    CleanupStack::PopAndDestroy(messages);
     return result;
     }
 

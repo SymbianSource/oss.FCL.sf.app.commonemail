@@ -638,13 +638,13 @@ void CMailCpsIf::PublishImageL(
     if (!iconIds.Length())
         {
         TBuf<KMaxDescLen> id;    
-        if ( aBitmapId == EMbmCmailhandlerpluginQgn_stat_message_mail_uni )
+        if ( aBitmapId == EMbmCmailhandlerpluginQgn_indi_cmail_unseen_msg )
             {
             iconIds.Append( KSkinPrefix );
             id.Num( EAknsMajorGeneric );
             iconIds.Append( id );
             iconIds.Append( KSpace );
-            id.Num( EAknsMinorGenericQgnStatMessageMailUni );
+            id.Num( EAknsMinorGenericQgnIndiCmailUnseenMsg );
             iconIds.Append( id );
             iconIds.Append( KSkinPostfix );                    
             }
@@ -960,7 +960,7 @@ TBool CMailCpsIf::PublisherStatusL(const CLiwGenericParamList& aEventParamList)
                              CleanupStack::PopAndDestroy( cid );
                              }
                          else if (trigger.Compare(KPluginShutdown16) == 0)
-                             {                            
+                             {
                              // Widget removed from homescreen.
                              HBufC* cid = contentid.AllocLC();                             
                              ResetPublishedDataL( cid->Des() );							 
@@ -1197,6 +1197,7 @@ TBool CMailCpsIf::UpdateNeeded( const TInt aInstance )
         {
         rVal = iInstIdList[aInstance].iUpdateNeeded;
         }
+    INFO_1("CMAIL CMailCpsIf::UpdateNeeded(): ret = %d",rVal);
     return rVal;
     }
 

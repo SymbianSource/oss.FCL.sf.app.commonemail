@@ -151,6 +151,8 @@ public:
     void UpdateListL( CFSMailMessage* aEmbeddedMessage );
     // Creates and returns mail subject text. Ownership is transferred to CleanupStack.
     HBufC* CreateMailSubjectTextLC() const;
+    // Returns ETrue if there is multiple attachment downloads requested
+    TBool IsMultiplyDownloadsOngoing();
 
 public: // from CFSEmailUiAttachmentsModelBase
     // get attachment data from list using tree entry 

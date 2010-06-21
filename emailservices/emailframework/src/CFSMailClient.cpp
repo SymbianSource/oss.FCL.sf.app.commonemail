@@ -133,6 +133,19 @@ EXPORT_C CFSMailBox* CFSMailClient::GetMailBoxByUidL(const TFSMailMsgId aMailBox
 }
 
 // -----------------------------------------------------------------------------
+// CFSMailClient::GetMailBoxByUidLC
+// -----------------------------------------------------------------------------
+EXPORT_C CFSMailBox* CFSMailClient::GetMailBoxByUidLC(const TFSMailMsgId aMailBoxId)
+{
+    FUNC_LOG;
+    CFSMailBox* mailBox = GetMailBoxByUidL( aMailBoxId );
+    CleanupStack::PushL( mailBox );
+    return mailBox;
+}
+
+
+
+// -----------------------------------------------------------------------------
 // CFSMailClient::GetFolderByUidL
 // -----------------------------------------------------------------------------
 EXPORT_C CFSMailFolder* CFSMailClient::GetFolderByUidL( const TFSMailMsgId aMailBoxId,

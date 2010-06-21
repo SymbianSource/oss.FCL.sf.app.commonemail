@@ -78,6 +78,7 @@
 #include "cuicscrollbar.h"
 
 #include <aknphysics.h>
+#include <touchfeedback.h> // for MTouchFeedback
 
 
 //CONSTANTS
@@ -1552,7 +1553,8 @@ TBool CFsTreeVisualizerBase::HandlePointerEventL(const TAlfEvent& aEvent)
         INFO_1("visual: $%x", aEvent.Visual());
         if (KErrNotFound != id || type == TPointerEvent::EDrag ||
                 type  == TPointerEvent::EButtonRepeat ||
-                type  == TPointerEvent::EButton1Up)
+                type  == TPointerEvent::EButton1Up ||
+                type  == TPointerEvent::EButton1Down)
             {
             switch (type)
                 {
@@ -4078,9 +4080,12 @@ void CFsTreeVisualizerBase::UpdateSelectorVisualL(TInt /*aTime*/)
                 if ( iMarqueeType != EFsTextMarqueeNone )
                     {
                     vis = iTreeData->ItemVisualizer( iFocusedItem );
-                    vis->MarqueeL( iMarqueeType, iMarqueeSpeed,
-                    		iMarqueStartDelay, iMarqueCycleStartDelay,
-                            iMarqueeRepetitions );
+                    if (vis)
+                        {
+                        vis->MarqueeL( iMarqueeType, iMarqueeSpeed,
+                    	        iMarqueStartDelay, iMarqueCycleStartDelay,
+                                iMarqueeRepetitions );
+                        }
                     }
                 }
             else
@@ -5206,6 +5211,12 @@ void CFsTreeVisualizerBase::SetFocusedItemAndSendEventL(
             iVisualizerObserver->TreeVisualizerEventL(
                 MFsTreeVisualizerObserver::EFsTreeItemTouchAction, aItemId, aPoint );
             }
+        }
+    // Added for tactile feedback
+    MTouchFeedback* feedback = MTouchFeedback::Instance();
+    if( feedback )
+        {
+        feedback->InstantFeedback( ETouchFeedbackBasic );
         }
     }
 

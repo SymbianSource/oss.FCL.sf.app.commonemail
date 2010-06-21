@@ -872,4 +872,5 @@ void CNcsAddressInputField::EnableKineticScrollingL( CAknPhysics* aPhysics )
 void CNcsAddressInputField::SetPhysicsEmulationOngoing( TBool aPhysOngoing )
     {
     iTextEditor->SetPhysicsEmulationOngoing( aPhysOngoing );
+    iButton->EnableFeedback( !aPhysOngoing );
     }

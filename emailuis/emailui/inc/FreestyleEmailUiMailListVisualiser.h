@@ -82,6 +82,7 @@ class CFsTreePlainTwoLineItemVisualizer;
 class CEUiEmailListTouchManager;
 class MFSMailIterator;
 class CAknStylusPopUpMenu;
+class CFSEmailUiGenericTimer;
 template <class T> struct TDeleteTask;
 
 /**
@@ -141,6 +142,10 @@ public:
         };
 
 public:
+    /**
+     * 
+     */
+    static CMailListModelUpdater* NewL();
 
     /**
      * Constructor
@@ -162,7 +167,7 @@ public:
     /**
      * Update model.
      */
-    void UpdateModelL(MObserver& aObserver, MFSMailIterator* aIterator);
+    void UpdateModelL(MObserver& aObserver, MFSMailIterator* aIterator, TInt aBlockSize);
 
     /**
      * Returns ETrue if updating.
@@ -180,6 +185,10 @@ public: // from CActive
      * @see CActive::DoCancel
      */
     void DoCancel();
+    /**
+     * @see CActive::RunError
+     */
+    TInt RunError(TInt aError);
 
 private:
 
@@ -207,6 +216,8 @@ private:
      * Reset to uninitialized state.
      */
     void Reset();
+private:
+    void ConstructL();
 
 private:
 
@@ -218,6 +229,7 @@ private:
     MFSMailIterator* iIterator;
     TFsTreeItemId iParentId;
     TInt iBlockSize;
+    RTimer iTimer;
     };
 
 struct SMailListItem
@@ -264,7 +276,8 @@ class CFSEmailUiMailListVisualiser : public CFsEmailUiViewBase,
 									 public MFsTreeListObserver,
 									 public MFSEmailUiContactHandlerObserver,
 									 public CMailListModelUpdater::MObserver,
-									 public MEmailMailboxState
+                                     public MEmailMailboxState,
+                                     public MFSEmailUiGenericTimerCallback
 // </cmail>
 	{
 friend class CMailListUpdater;
@@ -449,6 +462,15 @@ public:
     // check from settings if manual or auto sync
     TBool CheckAutoSyncSettingL();
     
+public: // from MFSEmailUiGenericTimerCallback
+
+    /**
+     * From MFSEmailUiGenericTimerCallback.
+     * Generic timer event callback.
+     * Handles insertion of new mails into mail list.
+     */
+    void TimerEventL( CFSEmailUiGenericTimer* aTriggeredTimer );
+
 private: // from
 
     /**
@@ -522,9 +544,11 @@ private: // Private functions
     void UpdateCancelled(const TBool aForceRefresh);
 
 	// Mail model update
-    void UpdateMailListModelAsyncL();
+    void SortMailListModelAsyncL();
+    TBool UpdateMailListModelAsyncL(TInt aBlockSize);
 	void UpdateMailListModelL();
 	void CreateModelItemsL( RPointerArray<CFSMailMessage>& aMessages );
+	void DeleteSortWaitNote();
 
 	// Create title divider model item for the given message. Separator text depends on active sorting mode.
 	CFSEmailUiMailListModelItem* CreateSeparatorModelItemLC( CFSMailMessage& aMessage ) const;
@@ -912,7 +936,17 @@ private: // Private objects
 	TPoint iMarkingModeTextPos;
 	TSize iMarkingModeTextSize;
 	TRect iMarkingModeTextRect;
-  	};
+    CAknWaitDialog* iSortWaitNote;
+    // timer generates events for inserting new mails into mail list
+    CFSEmailUiGenericTimer* iNewMailTimer;
+    // array keeps IDs of new mails which should be added into mail list 
+    RArray<TFSMailMsgId> iNewMailIds;
+
+    // skin text colors for the list items
+    TRgb iFocusedTextColor;
+    TRgb iNormalTextColor;
+    TRgb iNodeTextColor;
+    };
 
 
 // Definition of the mail updater timer. This timer is used for

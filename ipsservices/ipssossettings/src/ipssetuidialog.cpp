@@ -68,7 +68,8 @@ class CIpsPlgTimerOperation;
 
 // All day mask
 const TUint KIpsSetUiAllDays = 0x7F;
-const TInt KIpsSetDefaultLimit = 30;
+const TInt KImapPopDefaultMessageLimit = 50;
+const TInt KImapPopMaxMessageLimit = 999;
 const TInt KIpsSetDefaultSizeLimit = 1;
 
 // ----------------------------------------------------------------------------
@@ -303,21 +304,18 @@ void CIpsSetUiDialogCtrl::InitUserData( CIpsSetUiItem& aBaseItem )
             break;
 
         case EIpsSetUiWhatRetrievePop3:
-        case EIpsSetUiWhatRetrievePop3EditCustom:
             InitRetrieve(
                 aBaseItem,
                 iData->RetrieveLimit( CIpsSetData::EPop3Limit ) );
             break;
 
         case EIpsSetUiWhatRetrieveImap4Inbox:
-        case EIpsSetUiWhatRetrieveImap4InboxEditCustom:
             InitRetrieve(
                 aBaseItem,
                 iData->RetrieveLimit( CIpsSetData::EImap4Inbox ) );
             break;
 
         case EIpsSetUiWhatRetrieveImap4Folders:
-        case EIpsSetUiWhatRetrieveImap4FolderEditCustom:
             InitRetrieve(
                 aBaseItem,
                 iData->RetrieveLimit( CIpsSetData::EImap4Folders ) );
@@ -707,24 +705,37 @@ void CIpsSetUiDialogCtrl::StoreRetrievalLimit()
     {
     FUNC_LOG;
     // Retrieve radio button values
-    TInt popBtn = GetItem( TUid::Uid( EIpsSetUiWhatRetrievePop3 ) )->Value();
-    TInt inboxBtn = GetItem( TUid::Uid(
-        EIpsSetUiWhatRetrieveImap4Inbox ) )->Value();
-    TInt folderBtn = GetItem( TUid::Uid(
+    TInt imapFolderBtn = GetItem( TUid::Uid(
         EIpsSetUiWhatRetrieveImap4Folders ) )->Value();
+   
 
     // Retrieve editor values
-    TInt popValue = GetItem(
-        TUid::Uid( EIpsSetUiWhatRetrievePop3EditCustom ) )->Value();
-    TInt inboxValue = GetItem( TUid::Uid(
-            EIpsSetUiWhatRetrieveImap4InboxEditCustom ) )->Value();
-    TInt folderValue = GetItem( TUid::Uid(
-            EIpsSetUiWhatRetrieveImap4FolderEditCustom ) )->Value();
+    TInt popInboxValue = GetItem(
+        TUid::Uid( EIpsSetUiWhatRetrievePop3 ) )->Value();
+    TInt imapInboxValue = GetItem( TUid::Uid(
+            EIpsSetUiWhatRetrieveImap4Inbox ) )->Value();
 
-    iData->SetRetrieveLimit(
-        popBtn == CIpsSetData::EAll ? KIpsSetMaxFetchHeadersDefaultLimit : popValue,
-        inboxBtn == CIpsSetData::EAll ? KIpsSetMaxFetchHeadersDefaultLimit : inboxValue,
-        folderBtn == CIpsSetData::EAll ? KIpsSetMaxFetchHeadersDefaultLimit : folderValue );
+    TInt imapFolderValue = KRetrieve50Messages;
+    if ( imapFolderBtn == CIpsSetData::EImapFolder100Messages )
+        {
+        imapFolderValue = KRetrieve100Messages;
+        }
+    else if ( imapFolderBtn == CIpsSetData::EImapFolder250Messages )
+        {
+        imapFolderValue = KRetrieve250Messages;
+        }
+    
+    if ( imapInboxValue < 0 || imapInboxValue > KImapPopMaxMessageLimit )
+        {
+        imapInboxValue = KImapPopDefaultMessageLimit;
+        }
+    
+    if ( popInboxValue < 0 || popInboxValue > KImapPopMaxMessageLimit )
+        {
+        popInboxValue = KImapPopDefaultMessageLimit;
+        }
+
+    iData->SetRetrieveLimit( popInboxValue, imapInboxValue, imapFolderValue );
     }
 
 // ---------------------------------------------------------------------------
@@ -1009,11 +1020,6 @@ TInt CIpsSetUiDialogCtrl::EventItemEditEndsL( CIpsSetUiItem& aBaseItem )
             HandleDownloadSizeL( aBaseItem );
             break;
 
-        case EIpsSetUiWhatRetrievePop3:
-        case EIpsSetUiWhatRetrieveImap4Inbox:
-        case EIpsSetUiWhatRetrieveImap4Folders:
-            HandleEmailsToRetrieve( aBaseItem );
-            break;
 
         default: break;
         }
@@ -1021,54 +1027,7 @@ TInt CIpsSetUiDialogCtrl::EventItemEditEndsL( CIpsSetUiItem& aBaseItem )
     return KErrNone;
     }
 
-// ---------------------------------------------------------------------------
-// CIpsSetUiDialogCtrl::HandleEmailsToRetrieve()
-// ---------------------------------------------------------------------------
-//
-void CIpsSetUiDialogCtrl::HandleEmailsToRetrieve( CIpsSetUiItem& aBaseItem )
-    {
-    FUNC_LOG;
-    CIpsSetUiItemLink* linkArray = static_cast<CIpsSetUiItemLink*>( &aBaseItem );
 
-    CIpsSetUiItem* subItem =
-        GetSubItem( *linkArray, linkArray->Value() );
-
-    TInt retlimit = 0;
-
-    switch( subItem->iItemId.iUid )
-        {
-        case EIpsSetUiWhatRetrieveImap4InboxBtnCustom:
-            {
-            retlimit = GetItem( TUid::Uid(
-                EIpsSetUiWhatRetrieveImap4InboxEditCustom ) )->Value();
-            break;
-            }
-        case EIpsSetUiWhatRetrieveImap4FolderBtnCustom:
-            {
-            retlimit = GetItem( TUid::Uid(
-                EIpsSetUiWhatRetrieveImap4FolderEditCustom ) )->Value();
-            break;
-            }
-        case EIpsSetUiWhatRetrievePop3BtnCustom:
-            {
-            retlimit = GetItem( TUid::Uid(
-                EIpsSetUiWhatRetrievePop3EditCustom ) )->Value();
-            break;
-            }
-        default:
-            {
-            retlimit = KErrNotFound;
-            break;
-            }
-        }
-
-    if( retlimit >= 0)
-        {
-        CIpsSetUiItemLink& linkItem =
-            *static_cast<CIpsSetUiItemLink*>( &aBaseItem );
-        linkItem.iItemSettingText->Num( retlimit );
-        }
-    }
 
 // ---------------------------------------------------------------------------
 // CIpsSetUiDialogCtrl::HandleDownloadSizeL()
@@ -1399,25 +1358,31 @@ void CIpsSetUiDialogCtrl::InitRetrieve(
     TInt id = aBaseItem.iItemId.iUid;
 
     // Initialize radiobutton editor
-    if ( id == EIpsSetUiWhatRetrievePop3 ||
-         id == EIpsSetUiWhatRetrieveImap4Inbox ||
-         id == EIpsSetUiWhatRetrieveImap4Folders )
+    if ( id == EIpsSetUiWhatRetrieveImap4Folders )
         {
-        TInt button = ( aValue == KIpsSetMaxFetchHeadersDefaultLimit ) ?
-            EIpsSetUiDefault : EIpsSetUiCustom;
+        TInt button = CIpsSetData::EImapFolder50Messages;
+        if ( aValue == KRetrieve100Messages )
+            {
+            button = CIpsSetData::EImapFolder100Messages;
+            }
+        else if ( aValue == KRetrieve250Messages )
+            {
+            button = CIpsSetData::EImapFolder250Messages;
+            }
+        
         InitAnyItem( aBaseItem, button, KNullDesC );
-        HandleEmailsToRetrieve( aBaseItem );
         }
+
     // Initialize value editor
-    else if ( id == EIpsSetUiWhatRetrievePop3EditCustom ||
-        id == EIpsSetUiWhatRetrieveImap4InboxEditCustom ||
-        id == EIpsSetUiWhatRetrieveImap4FolderEditCustom )
+    else if ( id == EIpsSetUiWhatRetrieveImap4Inbox ||
+              id == EIpsSetUiWhatRetrievePop3 )
         {
-        InitAnyItem(
-            aBaseItem,
-            ( aValue == KIpsSetMaxFetchHeadersDefaultLimit ) 
-                ? KIpsSetDefaultLimit : aValue,
-            KNullDesC );
+        TInt messageLimit = aValue;
+        if ( messageLimit < 0 || messageLimit > KImapPopMaxMessageLimit )
+            {
+            messageLimit = KImapPopDefaultMessageLimit;
+            }
+        InitAnyItem( aBaseItem, messageLimit, KNullDesC );
         }
     }
 

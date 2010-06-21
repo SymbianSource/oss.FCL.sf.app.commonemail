@@ -519,6 +519,8 @@ void CFsEmailSettingsList::HandleListBoxEventL( CEikListBox *aListBox, TListBoxE
 void CFsEmailSettingsList::HandleUserSelectionsL()
     {
     FUNC_LOG;
+    
+    iView.HideStylusPopUpMenu();
 
     TInt index = iListBox->CurrentItemIndex();
     TInt count = Count();
@@ -1804,12 +1806,17 @@ TBool CFsEmailSettingsList::SelectedItemIsMailbox() const
 // ---------------------------------------------------------------------------
 //
 void CFsEmailSettingsList::ClearFocus()
-	{
-	iListBox->ItemDrawer()->SetFlags( CListItemDrawer::EDisableHighlight );
-	iListBox->ClearSelection();
-	iListBox->DrawNow();
-	iListBox->ItemDrawer()->ClearFlags( CListItemDrawer::EDisableHighlight );
-	}
+    {
+    FUNC_LOG;
+    iListBox->ItemDrawer()->ClearFlags( CListItemDrawer::EPressedDownState );
+    iListBox->ItemDrawer()->SetFlags( CListItemDrawer::ESingleClickDisabledHighlight
+                                    | CListItemDrawer::ESingleClickEnabled ); 
+    TInt ci( iListBox->CurrentItemIndex() );
+    if ( KErrNotFound != ci )
+        {
+        iListBox->DrawItem( ci );
+        }
+    }
 
 
 // End of file. 

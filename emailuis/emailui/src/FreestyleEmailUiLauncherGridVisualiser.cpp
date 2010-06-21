@@ -912,6 +912,7 @@ void CFSEmailUiLauncherGridVisualiser::HandleCommandL( TInt aCommand )
 	        iAppUi.SetFocusVisibility( EFalse );
 	        HandleButtonReleaseEvent(); // Finishes the focus removal.
 	        iStylusPopUpMenuLaunched = EFalse;
+	        UpdateGridOffset();
 			break;
 			}
 		case EFsEmailUiCmdSync:
@@ -1826,6 +1827,7 @@ void CFSEmailUiLauncherGridVisualiser::HandleForegroundEventL( TBool aForeground
         {
         iDoubleClickLock = EFalse;
         }
+    UpdateGridOffset();
     }
 
 void CFSEmailUiLauncherGridVisualiser::GetParentLayoutsL(
@@ -2778,6 +2780,7 @@ void CFSEmailUiLauncherGridVisualiser::HandleAppForegroundEventL( TBool aForegro
         iStartupCallbackTimer->Start( 200 );
         }
 
+	UpdateGridOffset();
     CFsEmailUiViewBase::HandleAppForegroundEventL( aForeground );	
     }
 
@@ -2815,4 +2818,19 @@ void CFSEmailUiLauncherGridVisualiser::UpdatePhysicsL()
         iPhysics->InitPhysicsL( worldSize, viewSize, EFalse );
         }
     }
+
+// ---------------------------------------------------------------------------
+// CFSEmailUiLauncherGridVisualiser::UpdateGridOffset()
+// ---------------------------------------------------------------------------
+//
+void CFSEmailUiLauncherGridVisualiser::UpdateGridOffset()
+	{
+	if ( iConstructionCompleted )
+		{
+        TAlfTimedPoint alfScrollOffset;
+        alfScrollOffset.iY.SetTarget( 1.0 , 0);
+        iCurrentLevel.iGridLayout->SetScrollOffset(alfScrollOffset);
+        iCurrentLevel.iParentPos.iY = 1.0;
+		}
+	}
 

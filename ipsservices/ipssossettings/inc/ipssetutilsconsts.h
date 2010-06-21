@@ -92,7 +92,7 @@ struct TAOInfo
 
 // default settings values
 
-const TInt KIpsSetFetchHeadersDefaultLimit  = 30;
+const TInt KIpsSetFetchHeadersDefaultLimit  = 50;
 const TInt KIpsSetMaxFetchHeadersDefaultLimit  = 2000;
 const TInt KIpsSetDataFiveMinutes           = 5;
 const TInt KIpsSetDataTenMinutes            = 10;
@@ -108,6 +108,9 @@ const TInt KIpsSetDataFullBodyOnly          = -3;
 const TInt KIpsSetDataDefaultDownloadSizeKb = 2; 
 const TUint KIpsSetDataEveryDayMask = 0x7f;
 
+const TInt KRetrieve50Messages = 50;
+const TInt KRetrieve100Messages = 100;
+const TInt KRetrieve250Messages = 250;
 // default values for ipssetdataextension
 //<cmail> cmail has different default value
 const TInt KIpsSetExtDefaultAlwaysOnlineState = EMailAoOff;

@@ -297,9 +297,22 @@ void CContainerStoreContainersTable::OpenTableL()
     iIsRowEncryptedColNum  = colSet->ColNo( KContainersTableIsRowEncryptedCol );
 
 	CleanupStack::PopAndDestroy( colSet );
-	
-	// Set the table's index to the ID index.
-	User::LeaveIfError( iTable.SetIndex( KContainersTableIdIndex ) );
+
+    // make sure KContainersTableParentIdIndex exists
+    TInt err = iTable.SetIndex( KContainersTableParentIdIndex );
+    if ( err == KErrNotFound )
+        {
+        iUtils.CloseTable( iTable );
+        CreateIndexL( KContainersTableName, KContainersTableParentIdIndex, KContainersTableParentIdCol );
+        iUtils.OpenTableL( iTable, KContainersTableName );
+        }
+    else
+        {
+        User::LeaveIfError( err );
+        }
+
+    // Set the table's index to the ID index.
+    User::LeaveIfError( iTable.SetIndex( KContainersTableIdIndex ) );
 	
 	__LOG_EXIT
 	} // end OpenTableL
@@ -348,7 +361,8 @@ void CContainerStoreContainersTable::CreateTableL()
 	// Create table index.
     CreateIndexL( KContainersTableName, KContainersTableIdIndex, KContainersTableIdCol );
     CreateIndexL( KContainersTableName, KContainersTableParentIdIndex, KContainersTableParentIdCol );
-	OpenTableL();
+
+    OpenTableL();
 	
 	__LOG_EXIT	
 	} // end CreateTableL
@@ -932,7 +946,9 @@ void CContainerStoreContainersTable::ListChildrenL( RArray<TContainerId>& aChild
 	    queryString.AppendNum( toBeSearched[0] );    	    
         toBeSearched.Remove( 0 );
         
-        if ( aType == EMsgStorePartBits )
+        if ( aType == EMsgStorePartBits || 
+           ( ( aId & KContainerTypeMask ) == EMsgStoreMessageBits ) ||
+           ( ( aId & KContainerTypeMask ) == EMsgStorePartBits ) )
         	{
         	//must sort the message parts by containerId in ascending order
         	// to preserve the same order as they are created
@@ -1216,35 +1232,13 @@ TContainerId CContainerStoreContainersTable::FirstChildForDeleteL( TContainerId 
     {
     __LOG_ENTER( "FirstChildForDeleteL" )
     __LOG_WRITE8_FORMAT1_INFO( "id=%x", aId )
-    
+
     TContainerId returnValue = KContainerInvalidId;
-    
-    TInt rc = iTable.SetIndex( KContainersTableParentIdIndex );
-    if ( rc == KErrNone )
-        {
-        TRAP_IGNORE(returnValue = GetFirstChildForDeleteL(aId, aBookmark));       
-        //remember to set the index back
-        iTable.SetIndex( KContainersTableIdIndex );
-        }
-    else
-        {
-        //older version of the db does not have the index on parent id, so do the slow Find instead
-        const TUint bufSize = 60;
-        TBuf<bufSize> queryString;
-        
-        _LIT( KEquals, "=" );
-        
-        queryString.Copy( KContainersTableParentIdCol );
-        queryString.Append( KEquals );
-        queryString.AppendNum( aId );
-    
-        returnValue = FindL( queryString );
-        if ( returnValue != KContainerInvalidId )
-            {
-            aBookmark = Bookmark();
-            }
-        }
-    
+    User::LeaveIfError( iTable.SetIndex( KContainersTableParentIdIndex ) );
+    TRAP_IGNORE( returnValue = GetFirstChildForDeleteL( aId, aBookmark ) );
+    //remember to set the index back
+    iTable.SetIndex( KContainersTableIdIndex );
+
     __LOG_EXIT
     return returnValue;   
     }
@@ -1270,7 +1264,7 @@ TContainerId CContainerStoreContainersTable::GetFirstChildForDeleteL( TContainer
         returnValue = iTable.ColUint32( iIdColNum );
         aBookmark = Bookmark();
         __LOG_WRITE8_FORMAT1_INFO( "found id=%x", returnValue )
-        }        
+        }
     __LOG_EXIT
     return returnValue;   
     }

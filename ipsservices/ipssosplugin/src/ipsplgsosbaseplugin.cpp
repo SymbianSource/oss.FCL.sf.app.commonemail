@@ -204,12 +204,8 @@ void CIpsPlgSosBasePlugin::OpCompleted(
         if ( tEntry.Connected() )
             {
             status = EFSMailBoxOnline;
-            }
-        else if ( ConnOpRunning( aMailBoxId ) )
-            {
-            status = EFSMailBoxOnline;
-            }
-        else
+            }			
+		else
             {
             status = EFSMailBoxOffline;
             }
@@ -392,15 +388,32 @@ TDesC& CIpsPlgSosBasePlugin::GetBrandingIdL( const TFSMailMsgId& aMailBoxId )
         {
         User::Leave( KErrNotReady );
         }
-    CMsvEntry* mboxEntry = iSession->GetEntryL( aMailBoxId.Id() );
-    CleanupStack::PushL( mboxEntry );
-
-    TDesC& address = iSettingsApi->GetServerAddressL( *mboxEntry );
-    delete iBrandingId;
-    iBrandingId = NULL;
-    iBrandingId = address.AllocL();
-    CleanupStack::PopAndDestroy( mboxEntry );
-
+    
+    TMsvEntry tEntry;
+    TMsvId serviceId;
+    TInt status = iSession->GetEntry( aMailBoxId.Id(), serviceId, tEntry );
+ 
+    if ( status == KErrNone )
+        {
+        HBufC* address( NULL );
+        iSettingsApi->GetMailboxAddressL( tEntry, address );
+        CleanupStack::PushL( address );
+        TPtrC ptr = address->Des();
+        TInt index = ptr.Locate('@') + 1;
+        if( index > 0 && ptr.Length() > 0 )
+            {
+            if( iBrandingId )
+                {
+                delete iBrandingId;
+                iBrandingId = NULL;
+                }
+            ptr.Set( ptr.Right( ptr.Length() - index ) );        
+            iBrandingId = HBufC::NewL( ptr.Length() );
+            iBrandingId->Des().Copy( ptr );
+            }
+        CleanupStack::PopAndDestroy( address );
+        }    
+    
     return *iBrandingId;
     }
 

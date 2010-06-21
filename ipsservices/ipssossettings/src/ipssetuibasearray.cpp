@@ -197,8 +197,12 @@ void CIpsSetUiBaseArray::ListboxItemFillEditValueLabel(
     TIpsSetUtilsTextPlain& aText ) const
     {
     FUNC_LOG;
-    aText.Append( aBaseItem.Value() );
-    aText.SetLength( KIpsSetUiVisibleTextLength );
+    const TInt KNumberSize = 10;
+    
+    if ( aText.MaxLength() - aText.Length() >= KNumberSize )
+        {
+        aText.AppendNum( aBaseItem.Value() );
+        }
     }
 
 // ----------------------------------------------------------------------------

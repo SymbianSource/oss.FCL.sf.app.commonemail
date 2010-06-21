@@ -84,6 +84,12 @@ public:
         ECustomHours
         };
 
+    enum TRetrieveImap4Folder
+        {
+        EImapFolder50Messages = 0,
+        EImapFolder100Messages = 1,
+        EImapFolder250Messages = 2
+        };
 
     /** */
     enum TSyncInterval

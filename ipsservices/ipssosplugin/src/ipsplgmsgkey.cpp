@@ -100,10 +100,8 @@ TInt TIpsPlgMsgKey::Compare( TInt aLeft, TInt aRight ) const
                 }
             case EFSMailSortBySubject:
                 {
-                // <cmail> due to changes in CompareSubject method
-                TRAP_IGNORE( result = CompareSubjectsL( 
-                    leftEntry.iDescription, rightEntry.iDescription ) );
-                // </cmail>
+                result = CompareSubjects( leftEntry.iDescription,
+                    rightEntry.iDescription );
                 break;
                 }
             case EFSMailSortByPriority:
@@ -208,38 +206,37 @@ TAny* TIpsPlgMsgKey::At( TInt anIndex ) const
 // Strips the subject prefixes before comparing the strings
 // ---------------------------------------------------------------------------
 
-TInt TIpsPlgMsgKey::CompareSubjectsL( 
+TInt TIpsPlgMsgKey::CompareSubjects(
     const TDesC& aLeft, 
     const TDesC& aRight ) const
     {
     FUNC_LOG;
     TInt  result( KEqual );
-    TPtrC leftPtr( aLeft );
-    TPtrC rightPtr( aRight );
-    TInt  leftOffset( FindSubjectStart( aLeft ) );
-    TInt  rightOffset( FindSubjectStart( aRight ) );
-    
-    leftPtr.Set( 
-        leftPtr.Ptr() + leftOffset, leftPtr.Length() - leftOffset );
-    rightPtr.Set( 
-        rightPtr.Ptr() + rightOffset, rightPtr.Length() - rightOffset );
-    
-    // <cmail> for unifying with UI - remove all white spaces
-    HBufC* croppedLeft = leftPtr.AllocLC();
-    TPtr croppedLeftPtr = croppedLeft->Des();
-    HBufC* croppedRight = rightPtr.AllocLC();
-    TPtr croppedRightPtr = croppedRight->Des();
-        
-    AknTextUtils::ReplaceCharacters( croppedLeftPtr, KCharsToReplace, ' ' );
-    croppedLeftPtr.TrimAll();
-    AknTextUtils::ReplaceCharacters( croppedRightPtr, KCharsToReplace, ' ' );
-    croppedRightPtr.TrimAll();
-    
-    result = croppedLeftPtr.CompareC( croppedRightPtr );
-    
-    CleanupStack::PopAndDestroy( croppedRight );
-    CleanupStack::PopAndDestroy( croppedLeft );
-    // </cmail>
+    const TInt leftOffset = FindSubjectStart( aLeft );
+    const TInt rightOffset = FindSubjectStart( aRight );
+    TPtrC leftPtr( aLeft.Ptr() + leftOffset, aLeft.Length() - leftOffset );
+    TPtrC rightPtr( aRight.Ptr() + rightOffset, aRight.Length() - rightOffset );
+ 
+    // for unifying with UI - remove all white spaces
+    HBufC* croppedLeft = leftPtr.Alloc();
+    HBufC* croppedRight = rightPtr.Alloc();
+ 
+    // Comparison is done only when allocation succeeds
+    if ( croppedLeft && croppedRight )
+        {
+        TPtr croppedLeftPtr = croppedLeft->Des();
+        TPtr croppedRightPtr = croppedRight->Des();
+ 
+        AknTextUtils::ReplaceCharacters( croppedLeftPtr, KCharsToReplace, ' ' );
+        croppedLeftPtr.TrimAll();
+        AknTextUtils::ReplaceCharacters( croppedRightPtr, KCharsToReplace, ' ' );
+        croppedRightPtr.TrimAll();
+ 
+        result = croppedLeftPtr.CompareC( croppedRightPtr );
+        }
+ 
+    delete croppedRight;
+    delete croppedLeft;
         
     return result;
     }

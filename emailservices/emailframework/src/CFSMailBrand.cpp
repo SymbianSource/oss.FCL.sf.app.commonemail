@@ -223,16 +223,32 @@ CFSMailBrand::CFSMailBrand()
 TBool CFSMailBrand::IsMatching( const TDesC& aBrandId )
     {
     FUNC_LOG;
-
+    const TChar KStar = '*';
+    TBool ret = EFalse;
+    TInt intRet = 0; 
     TInt count = iBrandMatchStrings.Count();
-    for(TInt i=0;i<count;i++)
+    for( TInt i=0;i<count;i++ )
         {
-        if ( aBrandId.MatchC( *iBrandMatchStrings[i] ) == KErrNone )
+        TPtrC brandMatchStringPtr = *iBrandMatchStrings[i];
+        TInt matchPos = aBrandId.MatchC( *iBrandMatchStrings[i] );
+        if ( matchPos >= 0 )
             {
-            return ETrue;
+        	TPtrC rightPartPtr = aBrandId.Right( aBrandId.Length()-matchPos );
+            TChar isStar = brandMatchStringPtr[0];
+            TInt cut = 0;
+            if ( isStar == KStar )
+                {
+                cut = 1;	
+                }
+            TPtrC matchString = brandMatchStringPtr.Right( brandMatchStringPtr.Length()-cut );
+        	intRet = rightPartPtr.CompareC( matchString );
+            if ( intRet == 0 )
+                {
+        	    ret = ETrue;
+        	    }
             }
         }
-    return EFalse;
+    return ret;
     }
 
 // -----------------------------------------------------------------------------

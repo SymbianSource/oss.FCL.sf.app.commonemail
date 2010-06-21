@@ -113,15 +113,20 @@ enum TIpsSetSettigsId
     EIpsSetUiWhatDownloadSizeBtnFull,
 
     // Emails to Retrieve
-    EIpsSetUiWhatRetrievePop3BtnAll,
-    EIpsSetUiWhatRetrievePop3BtnCustom,
-    EIpsSetUiWhatRetrievePop3EditCustom,
-    EIpsSetUiWhatRetrieveImap4InboxBtnAll,
-    EIpsSetUiWhatRetrieveImap4InboxBtnCustom,
-    EIpsSetUiWhatRetrieveImap4InboxEditCustom,
-    EIpsSetUiWhatRetrieveImap4FolderBtnAll,
-    EIpsSetUiWhatRetrieveImap4FolderBtnCustom, //3630
-    EIpsSetUiWhatRetrieveImap4FolderEditCustom,
+    //EIpsSetUiWhatRetrievePop3BtnAll,
+    //EIpsSetUiWhatRetrievePop3BtnCustom,
+    //EIpsSetUiWhatRetrievePop3EditCustom,
+    //EIpsSetUiWhatRetrieveImap4InboxBtnAll,
+    //EIpsSetUiWhatRetrieveImap4InboxBtnCustom,
+    //EIpsSetUiWhatRetrieveImap4InboxEditCustom,
+    
+    //EIpsSetUiWhatRetrieveImap4FolderBtnAll,
+    //EIpsSetUiWhatRetrieveImap4FolderBtnCustom, //3630
+    //EIpsSetUiWhatRetrieveImap4FolderEditCustom,
+    
+    EIpsSetUiWhatRetrieveImap4FolderBtn50,
+    EIpsSetUiWhatRetrieveImap4FolderBtn100,
+    EIpsSetUiWhatRetrieveImap4FolderBtn250,
 
     // Sync Interval
     EIpsSetUiWhenScheduleBtn5Min,

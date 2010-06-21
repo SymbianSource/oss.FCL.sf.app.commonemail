@@ -422,9 +422,10 @@ void CFSEmailUiFolderListVisualiser::PopulateFolderListL()
         iTreeVisualizer->RefreshListViewL();
         }
     
-    ResizeListIcons();
-    ResizeListItemsL();
-    
+    if ( iFullScreen )
+    	{
+    	StartScrollingListItemsL();
+    	}
 	}
 
 // ---------------------------------------------------------------------------
@@ -682,9 +683,7 @@ void CFSEmailUiFolderListVisualiser::ShowInPopupL(
     iCurrentFolderId = aFolderId;
     DoShowInPopupL( aButton, aCallback, NULL );
     
-    ResizeListIcons();
-    ResizeListItemsL();
-    
+    StartScrollingListItemsL();
     }
 
 // ---------------------------------------------------------------------------
@@ -1330,10 +1329,19 @@ void CFSEmailUiFolderListVisualiser::GetParentLayoutsL(
 void CFSEmailUiFolderListVisualiser::FadeOut( TBool aDirectionOut )
 	{
     FUNC_LOG;
-    if ( aDirectionOut && iTreeVisualizer != NULL )
-        {
-        iTreeVisualizer->HideList();
-        }
+    if ( aDirectionOut )
+    	{
+    	if ( iTreeVisualizer != NULL )
+    		{
+			iTreeVisualizer->HideList();
+    		}
+    	
+		if ( iTitleCaptionVisible && iHeaderTextVisual )
+			{
+			iTitleCaptionVisible = EFalse;
+			iHeaderTextVisual->SetOpacity( KFSInvisible );
+			}
+    	}
 	}
 
 // ---------------------------------------------------------------------------
@@ -2800,6 +2808,20 @@ void CFSEmailUiFolderListVisualiser::ResizeListItemsL()
 	for( TInt i = 0 ; i < arraySize ; i++ )
 		{
 		SetItemVisualizerPropertiesL( iListItemVisulizers[i] );
+		}
+	}
+
+// ---------------------------------------------------------------------------
+// Start scrolling
+// ---------------------------------------------------------------------------
+//
+void CFSEmailUiFolderListVisualiser::StartScrollingListItemsL()
+	{
+    FUNC_LOG;
+	TInt arraySize = iListItemVisulizers.Count();
+	for( TInt i = 0 ; i < arraySize ; i++ )
+		{
+		iListItemVisulizers[i]->MarqueeL( EFsTextMarqueeForth, 30, 1000, 500, 1 ); // same values as in CFsTreeVisualizerBase constructor
 		}
 	}
 

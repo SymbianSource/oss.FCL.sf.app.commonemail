@@ -334,6 +334,7 @@ private: // methods
     void ScrollToRow(TInt row);
 	void PopulateL(TLevel& aLevel);
 	void UpdateLauncherItemListL();
+	void UpdateGridOffset();
 	void SetDefaultStatusPaneTextL();
 
     void DetachSelectorMappingFunctions();

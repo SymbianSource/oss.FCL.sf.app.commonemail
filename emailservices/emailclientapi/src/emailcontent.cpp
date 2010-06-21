@@ -257,8 +257,11 @@ TPtrC CEmailMessageContent::ContentL() const
             iBuf = iBuf->ReAlloc( size );
             }
         ptr.Set( iBuf->Des() );
-        iPart->GetContentToBufferL( ptr, iUsed );
-        iUsed += size;
+        if(iUsed < size)
+            {
+            iPart->GetContentToBufferL( ptr, iUsed );
+            iUsed += size;
+            }
         }    
     return ptr;
     }

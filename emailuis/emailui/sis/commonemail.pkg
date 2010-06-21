@@ -109,6 +109,7 @@
 "\epoc32\data\z\resource\apps\microsoft_brand_graphics.mif"      - "c:\resource\apps\microsoft_brand_graphics.mif"
 "\epoc32\data\z\resource\apps\ovi_brand_graphics.mif"            - "c:\resource\apps\ovi_brand_graphics.mif"
 "\epoc32\data\z\resource\apps\yahoo_brand_graphics.mif"          - "c:\resource\apps\yahoo_brand_graphics.mif"
+"\epoc32\data\z\resource\apps\mail_for_exchange_brand_graphics.mif" - "c:\resource\apps\mail_for_exchange_brand_graphics.mif"
 
 ; emailservices / psmruadapter
 "\epoc32\release\armv5\urel\PsMruAdapter.dll"                    - "c:\sys\bin\PsMruAdapter.dll"
@@ -225,7 +226,7 @@
 ; meetingrequest / location url parser plugin
 "\epoc32\release\armv5\urel\esmrurlparserplugin.dll"             - "c:\sys\bin\esmrurlparserplugin.dll"
 "\epoc32\data\Z\resource\Plugins\esmrurlparserplugin.rsc"        - "c:\resource\plugins\esmrurlparserplugin.rsc"
-"\epoc32\data\z\resource\esmrurlparserplugindata.rsc"            - "c:\resource\esmrurlparserplugindata.rsc"
+;"\epoc32\data\z\resource\esmrurlparserplugindata.rsc"            - "c:\resource\esmrurlparserplugindata.rsc"
 
 ; meetingrequest / cenrep
 "\epoc32\data\Z\private\10202BE9\2001E610.txt"                   - "c:\private\10202be9\2001E610.txt"

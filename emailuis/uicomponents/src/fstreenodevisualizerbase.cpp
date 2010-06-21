@@ -81,7 +81,7 @@ void CFsTreeNodeVisualizerBase::SetTextAlign(
 //  The function sets item's text color for the focused state.
 // ---------------------------------------------------------------------------
 //
-void CFsTreeNodeVisualizerBase::SetFocusedStateTextColor( TRgb& aColor )
+void CFsTreeNodeVisualizerBase::SetFocusedStateTextColor( const TRgb& aColor )
     {
     FUNC_LOG;
     iIsCustomTextFocusedColor = ETrue;
@@ -103,7 +103,7 @@ TRgb CFsTreeNodeVisualizerBase::FocusedStateTextColor() const
 //  The function sets item's text color for the normal (unfocused) state.
 // ---------------------------------------------------------------------------
 //
-void CFsTreeNodeVisualizerBase::SetNormalStateTextColor( TRgb& aColor )
+void CFsTreeNodeVisualizerBase::SetNormalStateTextColor( const TRgb& aColor )
     {
     FUNC_LOG;
     iIsCustomTextNormalColor = ETrue;
