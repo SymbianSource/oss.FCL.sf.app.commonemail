@@ -80,6 +80,7 @@ private: // data.
     NmIpsSettingsManagerBase *mSettingsManager; // Owned.
     HbDataFormModel *mModel; // Not owned.
     HbDataForm *mForm; // Not owned.
+    bool mHiddenItem;
 };
 
 #endif // NMIPSSETTINGS_H

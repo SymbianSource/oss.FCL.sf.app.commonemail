@@ -1,19 +1,19 @@
 /*
-* Copyright (c) 2009 - 2010 Nokia Corporation and/or its subsidiary(-ies).
-* All rights reserved.
-* This component and the accompanying materials are made available
-* under the terms of "Eclipse Public License v1.0"
-* which accompanies this distribution, and is available
-* at the URL "http://www.eclipse.org/legal/epl-v10.html".
-*
-* Initial Contributors:
-* Nokia Corporation - initial contribution.
-*
-* Contributors:
-*
-* Description:
-*
-*/
+ * Copyright (c) 2009-2010 Nokia Corporation and/or its subsidiary(-ies).
+ * All rights reserved.
+ * This component and the accompanying materials are made available
+ * under the terms of "Eclipse Public License v1.0"
+ * which accompanies this distribution, and is available
+ * at the URL "http://www.eclipse.org/legal/epl-v10.html".
+ *
+ * Initial Contributors:
+ * Nokia Corporation - initial contribution.
+ *
+ * Contributors:
+ *
+ * Description:
+ *
+ */
 
 #ifndef NMUIHEADERS_H_
 #define NMUIHEADERS_H_
@@ -42,6 +42,8 @@
 #include <QNetworkDiskCache>
 #include <QWebSettings>
 #include <QPointer>
+#include <QPinchGesture>
+#include <QInputContext>
 
 // Orbit
 #include <hbapplication.h>
@@ -84,6 +86,7 @@
 #include <hbinstance.h>
 #include <hbeffect.h>
 #include <hbmodeliterator.h>
+#include <hbscrollarea.h>
 
 #ifdef Q_OS_SYMBIAN
 #include <cntservicescontact.h>

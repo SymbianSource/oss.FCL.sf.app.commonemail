@@ -75,8 +75,10 @@ symbian: {
     LIBS += -leuser
     LIBS += -llibc
     LIBS += -lcmapplsettingsui
-    LIBS += -lqtbearer
     LIBS += -lAlwaysOnlineManagerClient
+    
+    CONFIG += mobility
+    MOBILITY += bearer serviceframework
 }
 
 symbian: plugin { # copy qtstub and manifest

@@ -80,6 +80,18 @@ void NmViewerServiceInterface::viewMessage(QVariant mailboxId, QVariant folderId
         mainWindow->show();
 
         // Launch the message list view.
+        NmUiStartParam *startParam1 = 
+            new NmUiStartParam(NmUiViewMessageList,
+                               mailboxNmId,
+                               folderNmId, // folder id
+                               messageNmId, // message id
+                               NmUiEditorCreateNew, // editor start mode
+                               NULL, // address list
+                               NULL, // attachment list
+                               true); // start as service
+        mApplication->enterNmUiView(startParam1);
+        
+        // Launch the message view.
         NmUiStartParam *startParam =
             new NmUiStartParam(NmUiViewMessageViewer,
                                mailboxNmId,
@@ -88,7 +100,7 @@ void NmViewerServiceInterface::viewMessage(QVariant mailboxId, QVariant folderId
                                NmUiEditorCreateNew, // editor start mode
                                NULL, // address list
                                NULL, // attachment list
-                               true); // start as service
+                               false); // not started as service
         mApplication->enterNmUiView(startParam);
 
         completeRequest(mAsyncReqId,0);

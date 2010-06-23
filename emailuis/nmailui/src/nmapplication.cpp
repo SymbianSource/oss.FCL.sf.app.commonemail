@@ -98,7 +98,7 @@ NmApplication::~NmApplication()
         delete mQueryDialog;
         mQueryDialog=NULL;
     }
-    
+
 #ifndef NM_WINS_ENV
 	delete mSendServiceInterface;
 	delete mSendServiceInterface2;
@@ -123,6 +123,10 @@ NmApplication::~NmApplication()
     }
     // Effects needs to be deleted before MainWindow.
     delete mEffects;
+    if (mMainWindow) {
+        // workaround: assert failure may happen otherwise
+        mMainWindow->close();
+    }
     delete mMainWindow;
     delete mAttaManager;
     delete mSettingsViewLauncher;
@@ -357,8 +361,10 @@ void NmApplication::popView()
         // was already in foreground..
         if (mServiceViewId == topViewId) {
             mServiceViewId = NmUiViewNone;
+            NM_COMMENT("Returned from service view");
 
-            // if started as embedded, do not hide the app
+            // if started as embedded or while the app was in foreground,
+            // do not hide the app
             if (!XQServiceUtil::isEmbedded() &&
                 !mForegroundService) {
                 XQServiceUtil::toBackground(true);
@@ -410,6 +416,11 @@ void NmApplication::enterNmUiView(NmUiStartParam* startParam)
 			// from the stack. Open editors are not closed.
 			// Also if the view is same than the new one, keep it open (reload the content).
 
+
+		    // reset the foreground service flag while popping the views
+		    bool previousForegroundService = mForegroundService;
+		    mForegroundService = true;
+
 		    // at least one view must remain in the stack
 			while (mViewStack->count()>1) {
 			    NmUiViewId topId = mViewStack->top()->nmailViewId();
@@ -423,6 +434,7 @@ void NmApplication::enterNmUiView(NmUiStartParam* startParam)
 			        break;
 			    }
 			}
+			mForegroundService = previousForegroundService;
         }
 
         // Check whether requested view is already active
@@ -491,12 +503,12 @@ void NmApplication::enterNmUiView(NmUiStartParam* startParam)
                     resetViewStack();
                     break;
             }
-
-            if (startParam && startParam->service()) {
-				// Store the view id that was launched as service
-        		mServiceViewId = mActiveViewId;
-			}
         }
+
+        if (startParam && startParam->service()) {
+            // Store the view id that was launched as service
+            mServiceViewId = mActiveViewId;
+		}
     }
 }
 
@@ -617,7 +629,7 @@ void NmApplication::handleOperationCompleted(const NmOperationCompletionEvent &e
                 mQueryDialog=NULL;
             }
             mQueryDialog = NmUtilities::displayQuestionNote(hbTrId("txt_mail_dialog_address_or_password_incorrect"),
-                                                    this, SLOT(launchSettings(HbAction*)));                        
+                                                    this, SLOT(launchSettings(HbAction*)));
         }
         if(event.mOperationType == Synch && event.mCompletionCode == NmServerConnectionError) {
             mLastOperationMailbox=event.mMailboxId;
@@ -626,7 +638,7 @@ void NmApplication::handleOperationCompleted(const NmOperationCompletionEvent &e
                 mQueryDialog=NULL;
             }
             mQueryDialog = NmUtilities::displayQuestionNote(hbTrId("txt_mail_dialog_server_settings_incorrect"),
-                                                    this, SLOT(launchSettings(HbAction*)));                
+                                                    this, SLOT(launchSettings(HbAction*)));
         }
         // following applies to all operation/event types
         if(event.mCompletionCode == NmConnectionError) {
@@ -641,14 +653,14 @@ void NmApplication::handleOperationCompleted(const NmOperationCompletionEvent &e
 void NmApplication::launchSettings(HbAction* action)
 {
     NM_FUNCTION;
-    
+
     // Check whether yes button was pressed
     if (mQueryDialog&& action == mQueryDialog->actions().at(0)) {
         // create settingslauncher if doesn't exist
         if(!mSettingsViewLauncher) {
             mSettingsViewLauncher = new NmSettingsViewLauncher();
             }
-    
+
         if(mSettingsViewLauncher) {
             // mailboxname required
             NmMailboxMetaData *mailboxMetaData = mUiEngine->mailboxById(mLastOperationMailbox); // no ownership
@@ -656,8 +668,8 @@ void NmApplication::launchSettings(HbAction* action)
                 // launch
                 mSettingsViewLauncher->launchSettingsView(mLastOperationMailbox, mailboxMetaData->name());
             }
-        }     
-    }    
+        }
+    }
 }
 
 /*!

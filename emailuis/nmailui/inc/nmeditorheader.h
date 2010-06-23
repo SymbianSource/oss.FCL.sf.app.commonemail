@@ -56,7 +56,6 @@ public:
     void addAttachment(const QString &fileName, const QString &fileSize, const NmId &nmid);
     void removeAttachment(const QString &fileName);
     void removeAttachment(const NmId &nmid);
-    void launchAttachment(const NmId &nmid);
     void setAttachmentParameters(
         const QString &fileName,
         const NmId &msgPartId,
@@ -72,6 +71,7 @@ signals:
     void headerHeightChanged(int);
     void recipientFieldsHaveContent(bool recipientFieldsHaveContent);
     void attachmentLongPressed(NmId attachmentPartId, QPointF point);
+    void attachmentShortPressed(NmId attachmentId);
 
 public slots:
 	void sendDelayedHeaderHeightChanged();

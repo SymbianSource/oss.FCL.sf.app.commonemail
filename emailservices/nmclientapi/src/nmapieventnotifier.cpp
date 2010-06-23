@@ -74,7 +74,7 @@ bool NmApiEventNotifier::start()
     if (mNmApiEventNotifierPrivate->mIsRunning) {
         result = true;
     }
-    else
+    else {
         if (!mNmApiEventNotifierPrivate->initializeEngine()) {
             mNmApiEventNotifierPrivate->mIsRunning = false;
             result = false;
@@ -85,11 +85,15 @@ bool NmApiEventNotifier::start()
 
             connect(mNmApiEventNotifierPrivate->mEngine, SIGNAL(emailStoreEvent(NmApiMessage)), mNmApiEventNotifierPrivate,
                 SLOT(emailStoreEvent(NmApiMessage)), Qt::QueuedConnection);
-
+            
+            // initiate event listening
+            mNmApiEventNotifierPrivate->mEngine->startCollectingEvents();
+            
             mNmApiEventNotifierPrivate->mEmitSignals->start();
             mNmApiEventNotifierPrivate->mIsRunning = true;
             result = true;
         }
+    }
     return result;
 }
 
@@ -129,6 +133,7 @@ void NmApiEventNotifier::sendEventsFromBuffer()
     
     qRegisterMetaType<EmailClientApi::NmApiMailboxEvent> ("EmailClientApi::NmApiMailboxEvent");
     qRegisterMetaType<EmailClientApi::NmApiMessageEvent> ("EmailClientApi::NmApiMessageEvent");
+    
     NmApiMessage events;
     while (!mNmApiEventNotifierPrivate->mBufferOfEvents.isEmpty()) {
         events = mNmApiEventNotifierPrivate->mBufferOfEvents.takeFirst();

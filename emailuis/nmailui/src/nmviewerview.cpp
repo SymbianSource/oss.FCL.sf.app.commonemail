@@ -1,19 +1,19 @@
 /*
-* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
-* All rights reserved.
-* This component and the accompanying materials are made available
-* under the terms of "Eclipse Public License v1.0"
-* which accompanies this distribution, and is available
-* at the URL "http://www.eclipse.org/legal/epl-v10.html".
-*
-* Initial Contributors:
-* Nokia Corporation - initial contribution.
-*
-* Contributors:
-*
-* Description:
-*
-*/
+ * Copyright (c) 2009-2010 Nokia Corporation and/or its subsidiary(-ies).
+ * All rights reserved.
+ * This component and the accompanying materials are made available
+ * under the terms of "Eclipse Public License v1.0"
+ * which accompanies this distribution, and is available
+ * at the URL "http://www.eclipse.org/legal/epl-v10.html".
+ *
+ * Initial Contributors:
+ * Nokia Corporation - initial contribution.
+ *
+ * Contributors:
+ *
+ * Description:
+ *
+ */
 
 #include "nmuiheaders.h"
 
@@ -58,7 +58,6 @@ mScrollArea(NULL),
 mViewerContent(NULL),
 mWebView(NULL),
 mHeaderWidget(NULL),
-mViewerContentLayout(NULL),
 mMessageFetchingOperation(NULL),
 mDisplayingPlainText(false),
 mDocumentLoader(NULL),
@@ -71,10 +70,9 @@ mLatestLoadingSize(QSize(0,0)),
 mAttaIndexUnderFetch(NmNotFoundError),
 mAttaWidget(NULL),
 mViewReady(false),
-mWaitNoteCancelled(false)
+mWaitNoteCancelled(false),
+mErrorNote(NULL)
     {
-    NM_FUNCTION;
-    
     // Create documentloader
     mDocumentLoader = new NmUiDocumentLoader(mMainWindow);
     // Get screensize
@@ -95,8 +93,8 @@ mWaitNoteCancelled(false)
 */
 NmViewerView::~NmViewerView()
 {
-    NM_FUNCTION;
-    
+    delete mErrorNote;
+    mErrorNote=NULL;
     delete mWebView;
     mWebView = NULL;
     delete mMessage;
@@ -116,8 +114,6 @@ NmViewerView::~NmViewerView()
 */
 void NmViewerView::aboutToExitView()
 {
-    NM_FUNCTION;
-    
     // View is about to exit, for safety, stop 
     // loading of content before closing the view
     if (mWebView){
@@ -153,17 +149,13 @@ void NmViewerView::loadViewLayout()
         mViewerContent = reinterpret_cast<HbWidget *>(
                 mDocumentLoader->findObject(NMUI_MESSAGE_VIEWER_CONTENT));
         // Find scroll area
-        mScrollArea = reinterpret_cast<NmBaseViewScrollArea *>(
+        mScrollArea = reinterpret_cast<HbScrollArea *>(
                 mDocumentLoader->findObject(NMUI_MESSAGE_VIEWER_SCROLL_AREA));
         if (mScrollArea) {
             mScrollArea->setParentItem(this);
             mScrollArea->setScrollDirections(Qt::Vertical | Qt::Horizontal);
             connect(mScrollArea, SIGNAL(scrollPositionChanged(QPointF)),
                 this, SLOT(contentScrollPositionChanged(QPointF)));
-            connect(mScrollArea, SIGNAL(handleMousePressEvent(QGraphicsSceneMouseEvent*)),
-                this, SLOT(handleMousePressEvent(QGraphicsSceneMouseEvent*)));
-            connect(mScrollArea, SIGNAL(handleMouseReleaseEvent(QGraphicsSceneMouseEvent*)),
-                this, SLOT(handleMouseReleaseEvent(QGraphicsSceneMouseEvent*)));
 
             // Get scroll area contents and set layout margins
             mScrollAreaContents = qobject_cast<HbWidget *>(
@@ -200,10 +192,7 @@ void NmViewerView::loadViewLayout()
                 if (settings) {
                     settings->setAttribute(QWebSettings::AutoLoadImages, true);
                     settings->setAttribute(QWebSettings::PrivateBrowsingEnabled, true);   
-                }                             
-                HbEditorInterface editorInterface(mWebView);
-                editorInterface.setInputConstraints(HbEditorConstraintIgnoreFocus);
-                mWebView->setAcceptedMouseButtons(Qt::NoButton);
+                }
                 QWebPage *page = mWebView->page();
                 if (page) {
                     QWebFrame *frame = page->mainFrame();
@@ -225,8 +214,6 @@ void NmViewerView::loadViewLayout()
 */
 void NmViewerView::viewReady()
 {
-    NM_FUNCTION;
-    
     if (!mViewReady){
         // Set mailbox name to title
         setMailboxName();
@@ -323,10 +310,10 @@ void NmViewerView::fetchMessage()
  */
 void NmViewerView::messageFetched(int result)
 {
-    NM_FUNCTION;
-    
     mWaitDialog->close();
-
+    disconnect(mWaitDialog->mainWindow(), SIGNAL(orientationChanged(Qt::Orientation)),
+                this, SLOT(orientationChanged(Qt::Orientation)));
+    
     if (result == NmNoError && mMessageFetchingOperation) {
         if (mMessage) {
             delete mMessage;
@@ -353,8 +340,6 @@ void NmViewerView::messageFetched(int result)
  */
 void NmViewerView::waitNoteCancelled()
 {
-    NM_FUNCTION;
-    
     if (!mWaitNoteCancelled) {
         if (mMessageFetchingOperation && mMessageFetchingOperation->isRunning()) { 
 	        mMessageFetchingOperation->cancelOperation();
@@ -386,6 +371,10 @@ void NmViewerView::setMessageData()
         NmViewerViewNetManager &netMngr = mApplication.networkAccessManager();
         netMngr.setView(this);
         page->setNetworkAccessManager(&netMngr);
+        QWebSettings *webSettings = page->settings();
+        if (webSettings) {
+            webSettings->setObjectCacheCapacities(0,0,0);
+        }
 
         connect(page, SIGNAL(loadFinished(bool)),
                     this, SLOT(webFrameLoaded(bool)));
@@ -494,8 +483,13 @@ void NmViewerView::openAttachment(int index)
         else if (messageParts[i]->partId() == attaId) {
             XQSharableFile file = mUiEngine.messagePartFile(mailboxId, folderId,
                                                             messageId, attaId);
-            NmUtilities::openFile(file);
+            int error = NmUtilities::openFile(file);
             file.close();
+            if (error==NmNotFoundError){
+                delete mErrorNote;
+                mErrorNote=NULL;
+                mErrorNote = NmUtilities::displayWarningNote(hbTrId("txt_mail_dialog_unable_to_open_attachment_file_ty"));
+            }
         }
     }
 }
@@ -592,8 +586,6 @@ QString NmViewerView::formatMessage()
 */
 void NmViewerView::reloadViewContents(NmUiStartParam* startParam)
 {
-    NM_FUNCTION;
-    
     // Check start parameter validity, message view cannot
     // be updated if given parameter is zero.
     if (startParam && startParam->viewId() == NmUiViewMessageViewer &&
@@ -618,8 +610,6 @@ void NmViewerView::reloadViewContents(NmUiStartParam* startParam)
 */
 NmUiViewId NmViewerView::nmailViewId() const
 {
-    NM_FUNCTION;
-    
     return NmUiViewMessageViewer;
 }
 
@@ -628,8 +618,6 @@ NmUiViewId NmViewerView::nmailViewId() const
 */
 void NmViewerView::webFrameLoaded(bool loaded)
 {
-    NM_FUNCTION;
-    
     if (loaded){
         webFrameloadingCompleted = true;
         // Scale web view after loading the
@@ -643,8 +631,6 @@ void NmViewerView::webFrameLoaded(bool loaded)
 */
 void NmViewerView::scaleWebViewWhenLoading(const QSize &size)
 {
-    NM_FUNCTION;
-    
     // Try to scale web view while mainframe is being loaded.
     // So that screen is scrollable even before images are fully loaded
     // First check that new size is different than previous, no need to react if
@@ -673,8 +659,6 @@ void NmViewerView::scaleWebViewWhenLoading(const QSize &size)
 */
 void NmViewerView::scaleWebViewWhenLoaded()
 {
-    NM_FUNCTION;
-    
     if (mWebView&&mWebView->page()) {
         QSizeF contentSize = mWebView->page()->mainFrame()->contentsSize();
         int width = (int)contentSize.width();
@@ -707,8 +691,6 @@ void NmViewerView::scaleWebViewWhenLoaded()
 */
 void NmViewerView::adjustViewDimensions()
 {
-    NM_FUNCTION;
-    
     // Update current screensize
     mScreenSize = mApplication.screenSize();
     // Scale header to screen width
@@ -759,8 +741,6 @@ void NmViewerView::adjustViewDimensions()
 */
 void NmViewerView::orientationChanged(Qt::Orientation orientation)
 {
-    NM_FUNCTION;
-    
     Q_UNUSED(orientation);
     QTimer::singleShot(NmOrientationTimer, this, SLOT(adjustViewDimensions()));
 }
@@ -794,32 +774,11 @@ void NmViewerView::linkClicked(const QUrl& link)
 }
 
 /*!
-   Send mouse release event to web view
-*/
-void NmViewerView::handleMouseReleaseEvent(QGraphicsSceneMouseEvent *event)
-{
-    NM_FUNCTION;
-    handleMouseEvent(event, false);
-
-}
-
-/*!
-   Send mouse press event
-*/
-void NmViewerView::handleMousePressEvent(QGraphicsSceneMouseEvent *event)
-{
-    NM_FUNCTION;
-    handleMouseEvent(event, true);
-}
-
-/*!
    Function can be used to check whether mouse event has
    occured on top of header area.
 */
 bool NmViewerView::eventOnTopOfHeaderArea(QGraphicsSceneMouseEvent *event)
 {
-    NM_FUNCTION;
-    
     bool ret(false);
     if (event && mHeaderWidget) {
         QPointF lastReleasePoint = event->lastPos();
@@ -837,8 +796,6 @@ bool NmViewerView::eventOnTopOfHeaderArea(QGraphicsSceneMouseEvent *event)
 */
 NmMailViewerWK* NmViewerView::webView()
 {
-    NM_FUNCTION;
-    
     return mWebView;
 }
 
@@ -889,8 +846,6 @@ void NmViewerView::changeMessageReadStatus(bool read)
 */
 void NmViewerView::setMailboxName()
 {
-    NM_FUNCTION;
-    
     if (mStartParam){
         NmMailboxMetaData *meta = mUiEngine.mailboxById(mStartParam->mailboxId());
         if (meta) {
@@ -906,8 +861,6 @@ void NmViewerView::setMailboxName()
 */
 void NmViewerView::contentScrollPositionChanged(const QPointF &newPosition)
 {
-    NM_FUNCTION;
-    
     if (mWebView&&mHeaderWidget){
         QRectF webViewRect = mWebView->geometry();
         QTransform tr;
@@ -935,8 +888,6 @@ void NmViewerView::contentScrollPositionChanged(const QPointF &newPosition)
 */
 void NmViewerView::createToolBar()
 {
-    NM_FUNCTION;
-    
     HbToolBar *tb = toolBar();
     NmUiExtensionManager &extMngr = mApplication.extManager();
     if (tb && &extMngr && mStartParam) {
@@ -957,8 +908,6 @@ void NmViewerView::createToolBar()
 */
 void NmViewerView::createOptionsMenu()
 {
-    NM_FUNCTION;
-    
 	HbMenu *optionsMenu = menu();
 	NmUiExtensionManager &extMngr = mApplication.extManager();
 	if (optionsMenu && &extMngr && mStartParam) {
@@ -980,19 +929,11 @@ void NmViewerView::createOptionsMenu()
 */
 void NmViewerView::handleActionCommand(NmActionResponse &actionResponse)
 {
-    NM_FUNCTION;
-    
-    bool showSendInProgressNote = false;
-
     // Handle options menu or toolbar
     if (actionResponse.menuType() == NmActionOptionsMenu ||
     	actionResponse.menuType() == NmActionToolbar) {
         switch (actionResponse.responseCommand()) {
             case NmActionResponseCommandReply: {
-                if (mUiEngine.isSendingMessage()) {
-                    showSendInProgressNote = true;
-                    break;
-                }
                 NmUiStartParam *startParam = new NmUiStartParam(NmUiViewMessageEditor,
                     mStartParam->mailboxId(), mStartParam->folderId(),
                     mStartParam->messageId(), NmUiEditorReply);
@@ -1000,10 +941,6 @@ void NmViewerView::handleActionCommand(NmActionResponse &actionResponse)
             }
             break;
             case NmActionResponseCommandReplyAll: {
-                if (mUiEngine.isSendingMessage()) {
-                    showSendInProgressNote = true;
-                    break;
-                }
                 NmUiStartParam *startParam = new NmUiStartParam(NmUiViewMessageEditor,
                     mStartParam->mailboxId(), mStartParam->folderId(),
                     mStartParam->messageId(), NmUiEditorReplyAll);
@@ -1011,10 +948,6 @@ void NmViewerView::handleActionCommand(NmActionResponse &actionResponse)
             }
             break;
             case NmActionResponseCommandForward: {
-                if (mUiEngine.isSendingMessage()) {
-                    showSendInProgressNote = true;
-                    break;
-                }
                 NmUiStartParam *startParam = new NmUiStartParam(NmUiViewMessageEditor,
                     mStartParam->mailboxId(), mStartParam->folderId(),
                     mStartParam->messageId(), NmUiEditorForward);
@@ -1028,17 +961,6 @@ void NmViewerView::handleActionCommand(NmActionResponse &actionResponse)
             default:
                 break;
         }
-    }
-
-    if (showSendInProgressNote) {
-        QString noteText = hbTrId("txt_mail_dialog_still_sending");
-
-        // get message subject from the message being sent
-        const NmMessage *message = mUiEngine.messageBeingSent();
-        if (message) {
-            noteText = noteText.arg(NmUtilities::truncate(message->envelope().subject(), 20));
-        }
-        HbMessageBox::warning(noteText);
     }
 }
 
@@ -1069,8 +991,6 @@ void NmViewerView::deleteMessage()
 */
 void NmViewerView::progressChanged(int value)
 {
-    NM_FUNCTION;
-    
     if (mAttaIndexUnderFetch != NmNotFoundError) {
         // emit signal
         if (mAttaWidget && mAttaWidget->progressValue(mAttaIndexUnderFetch) < value) {
@@ -1084,8 +1004,6 @@ void NmViewerView::progressChanged(int value)
 */
 void NmViewerView::fetchCompleted(int result)
 {
-    NM_FUNCTION;
-    
     if (mAttaWidget && mAttaIndexUnderFetch != NmNotFoundError) {
         if (result == NmNoError) {
             progressValueChanged(mAttaIndexUnderFetch, 100);
@@ -1102,8 +1020,6 @@ void NmViewerView::fetchCompleted(int result)
 */
 void NmViewerView::messageDeleted(const NmId &mailboxId, const NmId &folderId, const NmId &messageId)
 {
-    NM_FUNCTION;
-    
     if ((mStartParam->viewId() == NmUiViewMessageViewer)
         && (mStartParam->mailboxId()== mailboxId)
         && (mStartParam->folderId()== folderId)
@@ -1117,12 +1033,13 @@ void NmViewerView::messageDeleted(const NmId &mailboxId, const NmId &folderId, c
 */
 void NmViewerView::createAndShowWaitDialog()
 {
-    NM_FUNCTION;
-    
     delete mWaitDialog;
     mWaitDialog = NULL;
     // Create new wait dialog and set it to me modal with dimmed background
     mWaitDialog = new HbProgressDialog(HbProgressDialog::WaitDialog);
+    // Connect to observe orientation change events
+    connect(mWaitDialog->mainWindow(), SIGNAL(orientationChanged(Qt::Orientation)),
+                this, SLOT(orientationChanged(Qt::Orientation)));
     mWaitDialog->setModal(true);
     mWaitDialog->setBackgroundFaded(true);
     connect(mWaitDialog, SIGNAL(cancelled()), this, SLOT(waitNoteCancelled()));
@@ -1136,8 +1053,6 @@ void NmViewerView::createAndShowWaitDialog()
 */
 void NmViewerView::setWebViewWidth(int width)
 {
-    NM_FUNCTION;
-    
     // null pointer check for mWebView in calling function
     mWebView->setMinimumWidth(width);
     mWebView->setMaximumWidth(width);
@@ -1149,35 +1064,8 @@ void NmViewerView::setWebViewWidth(int width)
 */
 void NmViewerView::setWebViewHeighth(int height)
 {
-    NM_FUNCTION;
-    
     // null pointer check for mWebView in calling function
     mWebView->setMinimumHeight(height);
     mWebView->setMaximumHeight(height);
     mWebView->setPreferredHeight(height);
-}
-
-/*!
-    Helper function for mouse events.
-*/
-void NmViewerView::handleMouseEvent(QGraphicsSceneMouseEvent *event, bool pressed)
-{
-    NM_FUNCTION;
-    NmMailViewerWK* view = webView();
-    if (event && view && mHeaderWidget && mScrollAreaContents) {
-        QPointF lastReleasePoint = event->pos();
-        QPointF contentWidgetPos = mScrollAreaContents->pos();
-        qreal headerHeight = mHeaderWidget->geometry().height();
-        qreal y = lastReleasePoint.y()-headerHeight;
-        y -= contentWidgetPos.y();
-        qreal x = lastReleasePoint.x()-contentWidgetPos.x();
-        const QPointF pointToWebView(x, y);
-        event->setPos(pointToWebView);
-        event->setAccepted(true);
-        if (pressed) {
-            view->sendMousePressEvent(event);
-        } else {
-            view->sendMouseReleaseEvent(event);
-        }
-    }
 }

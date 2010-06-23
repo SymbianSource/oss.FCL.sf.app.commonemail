@@ -59,7 +59,8 @@ const int NmIpsSettingsReceptionUserDefinedProfileEnabled(1);
 */
 NmIpsSettingsPlugin::NmIpsSettingsPlugin()
 : mSettingsHelper(0),
-  mSettingsManager(0)
+  mSettingsManager(0),
+  mHiddenItem(false)
 {
     QString lang = QLocale::system().name();
     QString path = "Z:/resource/qt/translations/";
@@ -134,6 +135,13 @@ bool NmIpsSettingsPlugin::populateModel(HbDataFormModel &model,
         connect(mSettingsHelper, SIGNAL(createUserDefinedMode()),
                 this, SLOT(createUserDefinedMode()));
 
+        connect(mModel, SIGNAL(dataChanged(QModelIndex, QModelIndex)), 
+                mSettingsHelper, SLOT(handleModelDataChange(QModelIndex, QModelIndex)));
+        
+        // Get the value if some ui items need to be hidden.
+        QVariant data;
+        mSettingsManager->readSetting(IpsServices::UserNameHidden, data);
+        mHiddenItem = data.toBool();
         // Add items to the model.
         initGroupItems();
         result = true;
@@ -212,10 +220,8 @@ void NmIpsSettingsPlugin::initGroupItems()
 */
 void NmIpsSettingsPlugin::initPreferenceItems(HbDataFormModelItem &item) const
 {
-
     // 1. Connection
     QVariant destId;
-
     mSettingsManager->readSetting(IpsServices::Connection, destId);
     QString destName(mSettingsHelper->destinationNameFromIdentifier(destId.toUInt()));
     HbDataFormModelItem::DataItemType buttonItem =
@@ -376,8 +382,13 @@ void NmIpsSettingsPlugin::initUserInfoItems(HbDataFormModelItem &item) const
                          mSettingsHelper, SLOT(saveIncomingUserName()));
     mForm->addConnection(usernameItem, SIGNAL(textChanged(QString)),
                          mSettingsHelper, SLOT(incomingUserNameTextChange(QString)));
+    if (mHiddenItem) { // Starred and dimmed.
+        usernameItem->setContentWidgetData(QString("echoMode"), HbLineEdit::Password);
+        usernameItem->setEnabled(false);
+    }
     item.appendChild(usernameItem);
-
+    
+    
     // 3. Password
     QVariant password;
     mSettingsManager->readSetting(IpsServices::IncomingPassword, password);
@@ -390,7 +401,7 @@ void NmIpsSettingsPlugin::initUserInfoItems(HbDataFormModelItem &item) const
                          mSettingsHelper, SLOT(saveIncomingPassword()));
     item.appendChild(passwordItem);
 
-    // Reply to address
+    // 4. Reply to address
     QVariant replyToAddress;
     mSettingsManager->readSetting(IpsServices::ReplyAddress, replyToAddress);
     CpSettingFormItemData *replyToItem = new CpSettingFormItemData(
@@ -421,13 +432,13 @@ void NmIpsSettingsPlugin::initServerInfoItems(HbDataFormModelItem &item) const
                          mSettingsHelper, SLOT(saveIncomingMailServer()));
     mForm->addConnection(incomingMailServerItem, SIGNAL(textChanged(QString)),
                          mSettingsHelper, SLOT(incomingMailServerTextChange(QString)));
+    if (mHiddenItem) { // Starred and dimmed.
+        incomingMailServerItem->setContentWidgetData(QString("echoMode"), HbLineEdit::Password);
+        incomingMailServerItem->setEnabled(false);
+    }
     item.appendChild(incomingMailServerItem);
     
     // 2. Incoming Secure connection
-    QVariant secureSockets;
-    QVariant secureSSLWrapper;
-    mSettingsManager->readSetting(IpsServices::IncomingSecureSockets, secureSockets);
-    mSettingsManager->readSetting(IpsServices::IncomingSSLWrapper, secureSSLWrapper);
     CpSettingFormItemData *incomingSecureConnectionItem =
         new CpSettingFormItemData(HbDataFormModelItem::RadioButtonListItem, hbTrId(
             "txt_mailips_setlabel_incoming_security"));
@@ -436,37 +447,31 @@ void NmIpsSettingsPlugin::initServerInfoItems(HbDataFormModelItem &item) const
     showSCItems << hbTrId("txt_mailips_setlabel_security_val_on_starttls")
                 << hbTrId("txt_mailips_setlabel_security_val_on_ssltls")
                 << hbTrId("txt_mailips_setlabel_security_val_off");
-
     incomingSecureConnectionItem->setContentWidgetData(QString("items"), showSCItems);
     int incomingSecureConnectionItemIndex = 
-        mSettingsHelper->getCorrectSecureRadioButtonIndex(secureSockets, secureSSLWrapper);
+        mSettingsHelper->getCorrectIncomingSecureRadioButtonIndex();
     incomingSecureConnectionItem->setContentWidgetData(QString("selected"), 
                                                        incomingSecureConnectionItemIndex);
-    mForm->addConnection(incomingSecureConnectionItem, SIGNAL(itemSelected(int)),    		  
-    		mSettingsHelper, SLOT(incomingSecureConnectionItemChange(int)));
-    mForm->addConnection(incomingSecureConnectionItem, SIGNAL(pressed(const QModelIndex &)),    		  
-    		mSettingsHelper, SLOT(incomingSecureConnectionPress(const QModelIndex &)));
+    if (mHiddenItem) {
+        incomingSecureConnectionItem->setEnabled(false);
+    }
     item.appendChild(incomingSecureConnectionItem);
     
     // 3. Incoming mail server port
-    QVariant incomingPort;
-    mSettingsManager->readSetting(IpsServices::IncomingPort, incomingPort);
     CpSettingFormItemData *incomingPortItem =
         new CpSettingFormItemData(HbDataFormModelItem::RadioButtonListItem, hbTrId(
             "txt_mailips_setlabel_incoming_port"));
-    mSettingsHelper->insertContentItem(IpsServices::IncomingPort, incomingPortItem);    
-    mForm->addConnection(incomingPortItem, SIGNAL(itemSelected(int)),
-                         mSettingsHelper, SLOT(incomingPortChange(int)));
-    mForm->addConnection(incomingPortItem, SIGNAL(pressed(const QModelIndex &)),              
-                         mSettingsHelper, SLOT(incomingPortPress(const QModelIndex &)));
+    mSettingsHelper->insertContentItem(IpsServices::IncomingPort, incomingPortItem);
     QStringList incomingPortItems;
     incomingPortItems << hbTrId("txt_mailips_setlabel_incoming_port_default")
                       << hbTrId("txt_mailips_setlabel_incoming_port_user_defined");
     incomingPortItem->setContentWidgetData(QString("items"), incomingPortItems);
-    int incomingPortItemIndex = 
-        mSettingsHelper->getCorrectPortRadioButtonIndex(incomingPort.toInt()); 
+    int incomingPortItemIndex = mSettingsHelper->getCorrectIncomingPortRadioButtonIndex(); 
     incomingPortItem->setContentWidgetData(QString("selected"), incomingPortItemIndex);
-    item.appendChild(incomingPortItem);    
+    if (mHiddenItem) {
+        incomingPortItem->setEnabled(false);
+    }
+    item.appendChild(incomingPortItem);
     
     // 4. Outgoing mail server address
     QVariant outgoingMailServer;
@@ -479,52 +484,45 @@ void NmIpsSettingsPlugin::initServerInfoItems(HbDataFormModelItem &item) const
                          mSettingsHelper, SLOT(saveOutgoingMailServer()));
     mForm->addConnection(outgoingMailServerItem, SIGNAL(textChanged(QString)),
                          mSettingsHelper, SLOT(outgoingMailServerTextChange(QString)));
+    if (mHiddenItem) {// Starred and dimmed.
+        outgoingMailServerItem->setContentWidgetData(QString("echoMode"), HbLineEdit::Password);
+        outgoingMailServerItem->setEnabled(false);
+    }
     item.appendChild(outgoingMailServerItem);
     
     // 5. Outgoing secure connection
-    QVariant outgoingSecureSockets;
-    QVariant outgoingSSLWrapper;
-    mSettingsManager->readSetting(IpsServices::OutgoingSecureSockets, outgoingSecureSockets);
-    mSettingsManager->readSetting(IpsServices::OutgoingSSLWrapper, outgoingSSLWrapper);
     CpSettingFormItemData *outgoingSecureConnectionItem =
         new CpSettingFormItemData(HbDataFormModelItem::RadioButtonListItem, hbTrId(
             "txt_mailips_setlabel_outgoing_security"));
     mSettingsHelper->insertContentItem(IpsServices::OutgoingSecureSockets, outgoingSecureConnectionItem);
     QStringList outgoingShowSCItems;
     outgoingShowSCItems << hbTrId("txt_mailips_setlabel_security_val_on_starttls")
-                << hbTrId("txt_mailips_setlabel_security_val_on_ssltls")
-                << hbTrId("txt_mailips_setlabel_security_val_off");
-
+                        << hbTrId("txt_mailips_setlabel_security_val_on_ssltls")
+                        << hbTrId("txt_mailips_setlabel_security_val_off");
     outgoingSecureConnectionItem->setContentWidgetData(QString("items"), outgoingShowSCItems);
     int outgoingSecureConnectionItemIndex = 
-        mSettingsHelper->getCorrectSecureRadioButtonIndex(outgoingSecureSockets, 
-														  outgoingSSLWrapper);
+        mSettingsHelper->getCorrectOutgoingSecureRadioButtonIndex();
     outgoingSecureConnectionItem->setContentWidgetData(QString("selected"), 
                                                        outgoingSecureConnectionItemIndex);
-    mForm->addConnection(outgoingSecureConnectionItem, SIGNAL(itemSelected(int)),    		  
-    		mSettingsHelper, SLOT(outgoingSecureConnectionItemChange(int)));
-    mForm->addConnection(outgoingSecureConnectionItem, SIGNAL(pressed(const QModelIndex &)),    		  
-    		mSettingsHelper, SLOT(outgoingSecureConnectionPress(const QModelIndex &)));
+    if (mHiddenItem) {
+        outgoingSecureConnectionItem->setEnabled(false);
+    }
     item.appendChild(outgoingSecureConnectionItem);
 
     // 6. Outgoing mail server port
-    QVariant outgoingPort;
-    mSettingsManager->readSetting(IpsServices::OutgoingPort, outgoingPort);
     CpSettingFormItemData *outgoingPortItem =
         new CpSettingFormItemData(HbDataFormModelItem::RadioButtonListItem, hbTrId(
             "txt_mailips_setlabel_outgoing_port"));
-    mSettingsHelper->insertContentItem(IpsServices::OutgoingPort, outgoingPortItem);    
-    mForm->addConnection(outgoingPortItem, SIGNAL(itemSelected(int)),
-                         mSettingsHelper, SLOT(outgoingPortChange(int)));
-    mForm->addConnection(outgoingPortItem, SIGNAL(pressed(const QModelIndex &)),              
-                         mSettingsHelper, SLOT(outgoingPortPress(const QModelIndex &)));
+    mSettingsHelper->insertContentItem(IpsServices::OutgoingPort, outgoingPortItem);
     QStringList outgoingPortItems;
     outgoingPortItems << hbTrId("txt_mailips_setlabel_incoming_port_default")
                       << hbTrId("txt_mailips_setlabel_incoming_port_user_defined");
     outgoingPortItem->setContentWidgetData(QString("items"), outgoingPortItems);
-    int outgoingPortItemIndex = 
-        mSettingsHelper->getCorrectOutgoingPortRadioButtonIndex(outgoingPort.toInt()); 
+    int outgoingPortItemIndex = mSettingsHelper->getCorrectOutgoingPortRadioButtonIndex(); 
     outgoingPortItem->setContentWidgetData(QString("selected"), outgoingPortItemIndex);
+    if (mHiddenItem) {
+        outgoingPortItem->setEnabled(false);
+    }
     item.appendChild(outgoingPortItem);
     
     // 7. Outgoing authentication.
@@ -532,10 +530,6 @@ void NmIpsSettingsPlugin::initServerInfoItems(HbDataFormModelItem &item) const
         new CpSettingFormItemData(HbDataFormModelItem::RadioButtonListItem, hbTrId(
             "txt_mailips_setlabel_outgoing_mail_authentication"));
     mSettingsHelper->insertContentItem(IpsServices::SMTPAuthentication, outgoingAuthenticationItem);
-    mForm->addConnection(outgoingAuthenticationItem, SIGNAL(itemSelected(int)),
-                         mSettingsHelper, SLOT(outgoingAuthenticationChange(int)));
-    mForm->addConnection(outgoingAuthenticationItem, SIGNAL(pressed(const QModelIndex &)),              
-                         mSettingsHelper, SLOT(outgoingAuthenticationPress(const QModelIndex &)));
     QStringList outgoingAuthenticationItems;
     outgoingAuthenticationItems << hbTrId("txt_mailips_setlabel_outgoing_authentication_none")
                                 << hbTrId("txt_mailips_setlabel_outgoing_authentication_same")
@@ -545,28 +539,25 @@ void NmIpsSettingsPlugin::initServerInfoItems(HbDataFormModelItem &item) const
         mSettingsHelper->getCorrectOutgoingAuthenticationRadioButtonIndex(); 
     outgoingAuthenticationItem->setContentWidgetData(QString("selected"), outgoingAuthenticationIndex);
     item.appendChild(outgoingAuthenticationItem);
+    if (mHiddenItem) {
+        outgoingAuthenticationItem->setEnabled(false);
+    }
     if (outgoingAuthenticationIndex == IpsServices::EMailAuthUserAuthentication) {
-        mSettingsHelper->createServerInfoGroupDynamicItems();
+        mSettingsHelper->createServerInfoGroupDynamicItems(mHiddenItem);
     }
     
     // 8. Folder path
     // This item is only shown for IMAP4 account.
     if (mSettingsManager->accountType() == IpsServices::EMailImap) {
-        QVariant folderPath;
-        mSettingsManager->readSetting(IpsServices::FolderPath, folderPath);
         CpSettingFormItemData *folderPathItem =
             new CpSettingFormItemData(HbDataFormModelItem::RadioButtonListItem, hbTrId(
                 "txt_mailips_setlabel_folder_path"));
         mSettingsHelper->insertContentItem(IpsServices::FolderPath, folderPathItem);    
-        mForm->addConnection(folderPathItem, SIGNAL(itemSelected(int)),
-                             mSettingsHelper, SLOT(folderPathChange(int)));
-        mForm->addConnection(folderPathItem, SIGNAL(pressed(const QModelIndex &)),              
-                             mSettingsHelper, SLOT(folderPathPress(const QModelIndex &)));
         QStringList folderPathItems;
         folderPathItems << hbTrId("txt_mailips_setlabel_folder_path_val_default")
-                       << hbTrId("txt_mailips_setlabel_folder_path_user_defined");
+                        << hbTrId("txt_mailips_setlabel_folder_path_user_defined");
         folderPathItem->setContentWidgetData(QString("items"), folderPathItems);
-        int folderPathItemIndex = mSettingsHelper->getCorrectInboxPathRadioButtonIndex(folderPath);
+        int folderPathItemIndex = mSettingsHelper->getCorrectFolderPathRadioButtonIndex();
         folderPathItem->setContentWidgetData(QString("selected"), folderPathItemIndex);
         item.appendChild(folderPathItem);
     }

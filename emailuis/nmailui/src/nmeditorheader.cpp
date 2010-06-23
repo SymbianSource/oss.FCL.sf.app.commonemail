@@ -33,7 +33,8 @@ static const char *NMUI_EDITOR_PREFIX_BCC = "editorBcc";
 
 static const int MaxRows = 10000;
 
-static const int nmLayoutSystemWaitTimer = 10;
+// this timeout seems to be long enough for all cases. see sendDelayedHeaderHeightChanged
+static const int LayoutSystemWaitTimer = 500; // 0.5 sec
 
 /*!
     Constructor
@@ -152,8 +153,6 @@ void NmEditorHeader::createConnections()
             this, SLOT(attachmentActivated(int)));
     connect(&mAttachmentList->listWidget(), SIGNAL(longPressed(int, QPointF)),
             this, SLOT(attachmentLongPressed(int, QPointF)));
-    connect(mAttachmentList ,SIGNAL(attachmentListLayoutChanged()),
-            this, SLOT(sendHeaderHeightChanged()));
 }
 
 /*!
@@ -175,9 +174,7 @@ void NmEditorHeader::setFieldVisibility(bool isVisible)
 			mLayout->removeItem(mCcWidget);
 			mLayout->removeItem(mBccWidget);
 		}
-
-		QTimer::singleShot(
-		    nmLayoutSystemWaitTimer * 2, this, SLOT(sendDelayedHeaderHeightChanged()));
+        sendDelayedHeaderHeightChanged();
 	}
 }
 
@@ -218,16 +215,22 @@ qreal NmEditorHeader::headerHeight() const
 }
 
 /*!
-    Send signal to inform that one of the recipient fields height has been changed.
+    This is called when the contents of some of the header widgets have been changed. When the
+    contents change the widget's actual size may also change. The header area height is needed to
+    calculate the size hints of the body and the scroll area widgets. We need to use a timer to let 
+    the Orbit FW adjust the heights eg. if the subject and recipient fields are expanded by the FW.
+    It would be best to find a solution which doesn't depend on the header area's actual height size
+    information.
  */
 void NmEditorHeader::sendDelayedHeaderHeightChanged()
 {
     NM_FUNCTION;
-	QTimer::singleShot(nmLayoutSystemWaitTimer * 5, this, SLOT(sendHeaderHeightChanged()));
+	QTimer::singleShot(LayoutSystemWaitTimer, this, SLOT(sendHeaderHeightChanged()));
 }
 
 /*!
-    Send signal to inform that one of the recipient fields height has been changed.
+    Send a signal that the header area height has been changed if necessary. This is needed for the
+    body and scroll area widgets. See NmEditorTextEdit::setHeaderHeight for more info.
  */
 void NmEditorHeader::sendHeaderHeightChanged()
 {
@@ -360,8 +363,7 @@ void NmEditorHeader::setPriority(NmActionResponseCommand prio)
         }
         break;
     }
-    // Update subject field height because row amount might have been changed.
-    QTimer::singleShot(nmLayoutSystemWaitTimer * 3, this, SLOT(sendDelayedHeaderHeightChanged()));
+    sendDelayedHeaderHeightChanged();
 }
 
 /*!
@@ -378,7 +380,7 @@ void NmEditorHeader::addAttachment(
         mLayout->insertItem(mLayout->count() - 1, &mAttachmentList->listWidget());
         mAttachmentList->listWidget().show();
     }
-    sendHeaderHeightChanged();
+    sendDelayedHeaderHeightChanged();
 }
 
 /*!
@@ -394,7 +396,7 @@ void NmEditorHeader::removeAttachment(const QString &fileName)
         mAttachmentList->listWidget().hide();
         mLayout->removeItem(&mAttachmentList->listWidget());
     }
-    sendHeaderHeightChanged();
+    sendDelayedHeaderHeightChanged();
 }
 
 /*!
@@ -406,7 +408,11 @@ void NmEditorHeader::removeAttachment(const NmId &nmid)
     NM_FUNCTION;
     
     mAttachmentList->removeAttachment(nmid);
-    sendHeaderHeightChanged();
+    if (mAttachmentList->count() == 0) {
+        mAttachmentList->listWidget().hide();
+        mLayout->removeItem(&mAttachmentList->listWidget());
+    }
+    sendDelayedHeaderHeightChanged();
 }
 
 /*!
@@ -428,26 +434,14 @@ void NmEditorHeader::setAttachmentParameters(
 }
 
 /*!
-   Attachment launched from attachment list by "open" menu item.
- */
-void NmEditorHeader::launchAttachment(const NmId &itemId)
-{
-    NM_FUNCTION;
-    
-    attachmentActivated(mAttachmentList->indexByNmId(itemId));
-}
-
-/*!
    Slot attachment activated from attachment list by short tap.
  */
 void NmEditorHeader::attachmentActivated(int arrayIndex)
 {
     NM_FUNCTION;
     
-    QFile launchFile(mAttachmentList->getFullFileNameByIndex(arrayIndex));
-    if (NmUtilities::openFile( launchFile ) == NmNotFoundError) {
-        NmUtilities::displayErrorNote(hbTrId("txt_mail_dialog_unable_to_open_attachment_file_ty")); 
-    }
+    //
+    emit attachmentShortPressed(mAttachmentList->nmIdByIndex(arrayIndex));    
 }
 
 /*!

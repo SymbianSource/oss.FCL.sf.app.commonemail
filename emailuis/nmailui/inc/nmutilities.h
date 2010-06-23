@@ -54,8 +54,6 @@ public:
     
     static QString cleanupDisplayName( const QString &displayName );     
 
-    static int openFile(QFile &file);
-    
     static int openFile(XQSharableFile &file);
     
     static QString truncate( const QString &string, int length );
@@ -68,7 +66,9 @@ public:
                                              QObject* receiver = 0,
                                              const char* member = 0);
     
-    static void displayWarningNote(QString noteText);
+    static HbMessageBox* displayWarningNote(QString noteText,
+                                            QObject* receiver = 0,
+                                            const char* member = 0);
 
     static QString createReplyHeader(const NmMessageEnvelope &env);
 };

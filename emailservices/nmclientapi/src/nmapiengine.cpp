@@ -110,10 +110,18 @@ void NmApiEngine::mailboxChangedArrived(NmMailboxEvent mailboxEvent, const QList
     switch (mailboxEvent) {
         case NmMailboxCreated: {
             message.action = ENew;
+            // subscribe all events also for these new mailboxes
+            for(int i=0; i<mailboxIds.count(); i++) {
+                mFactory->interfaceInstance()->subscribeMailboxEvents(mailboxIds[i]);
+            }
         }
             break;
         case NmMailboxDeleted: {
             message.action = EDeleted;
+            // unsubscribe all events from deleted mailboxes
+            for(int i=0; i<mailboxIds.count(); i++) {
+                mFactory->interfaceInstance()->unsubscribeMailboxEvents(mailboxIds[i]);
+            }
         }
             break;
         case NmMailboxChanged: {
@@ -222,7 +230,13 @@ void NmApiEngine::listMailboxes(QList<EmailClientApi::NmApiMailbox> &mailboxList
 
     while (mailboxFromPlugin.isEmpty() == false) {
         NmMailbox* tempNmMailbox = mailboxFromPlugin.takeLast();
+
+        // subscribe all events also for these new mailboxes
+        instance->subscribeMailboxEvents(tempNmMailbox->id());
+
+        // construct mailboxlist to platform api
         mailboxList << NmToApiConverter::NmMailbox2NmApiMailbox(*tempNmMailbox);
+
         delete tempNmMailbox;
     }
 }
@@ -333,7 +347,6 @@ bool NmApiEngine::getEnvelopeById(
             envelope.setTotalSize(message->size());
 
             found = true;
-            delete plainTextPart;
         }
         delete message;
     }

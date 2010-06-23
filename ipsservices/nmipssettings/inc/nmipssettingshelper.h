@@ -43,7 +43,7 @@ class CmApplSettingsUi;
 
 // Constant for User Defined sync profile (EmailProfileOffsetUD)
 // \sa ipssettingkeys.h - Currently used sync profile
-const int NmIpsSettingsReceivingScheduleUserDefinedProfile = 3;
+const int NmIpsSettingsReceivingScheduleUserDefinedProfile(3);
 
 class NmIpsSettingsHelper : public QObject
 {
@@ -63,12 +63,13 @@ public:
     void setReceivingScheduleGroupItem(HbDataFormModelItem *item);
     void setServerInfoGroupItem(HbDataFormModelItem *item);
     void createOrUpdateReceivingScheduleGroupDynamicItem(IpsServices::SettingItem item);
-    void createServerInfoGroupDynamicItems();
+    void createServerInfoGroupDynamicItems(bool hiddenItem);
     
-    int getCorrectPortRadioButtonIndex(int currentPort);
-    int getCorrectSecureRadioButtonIndex(QVariant secureSockets, QVariant secureSSLWrapper);
-    int getCorrectInboxPathRadioButtonIndex(QVariant folderPath);
-    int getCorrectOutgoingPortRadioButtonIndex(int currentPort);
+    int getCorrectIncomingPortRadioButtonIndex();
+    int getCorrectIncomingSecureRadioButtonIndex();
+    int getCorrectOutgoingSecureRadioButtonIndex();
+    int getCorrectFolderPathRadioButtonIndex();
+    int getCorrectOutgoingPortRadioButtonIndex();
     int getCorrectOutgoingAuthenticationRadioButtonIndex();
     void handleReceivingScheduleSettingChange(IpsServices::SettingItem settingItem,
         const QVariant &settingValue);
@@ -103,18 +104,13 @@ public slots:
     void incomingMailServerTextChange(const QString &text);
     void saveOutgoingMailServer();
     void outgoingMailServerTextChange(const QString &text);
+    void handleModelDataChange(QModelIndex startIn, QModelIndex endIn);
     void incomingPortChange(int index);
-    void incomingPortPress(const QModelIndex &index);
     void incomingSecureConnectionItemChange(int index);
-    void incomingSecureConnectionPress(const QModelIndex &index);
     void folderPathChange(int index);
-    void folderPathPress(const QModelIndex &index);
     void outgoingPortChange(int index);
-    void outgoingPortPress(const QModelIndex &index);
     void outgoingSecureConnectionItemChange(int index);
-    void outgoingSecureConnectionPress(const QModelIndex &index);
     void outgoingAuthenticationChange(int index);
-    void outgoingAuthenticationPress(const QModelIndex &index);
     void connectionButtonPress();
 
 private slots:
@@ -132,6 +128,12 @@ private slots:
     
 private:
 
+    enum AppLibUpdateOperation
+    {
+        UnregisterMailbox,
+        UpdateMailboxName
+    };
+
     void updateShowMailInMailbox();
     void deleteReceivingScheduleGroupDynamicItem(IpsServices::SettingItem item);
     void deleteServerInfoGroupDynamicItems();
@@ -139,6 +141,8 @@ private:
     void showFolderPathInputDialog();
     void showOutgoingPortInputDialog();
     void copyReceivingScheduleSettingsFromActiveProfile(int profileMode);
+    void updateAppLib(AppLibUpdateOperation op, QString mailboxName = QString());
+    void noReceptionWeekdaysSelected();
 
     Q_DISABLE_COPY(NmIpsSettingsHelper)
 
@@ -161,7 +165,7 @@ private: // data
     HbValidator *mOutgoingPortInputValidator; // Owned.
     CmApplSettingsUi *mDestinationDialog; // Owned.
     bool mServerInfoDynamicItemsVisible;
-    int mRadioButtonPreviousIndex;
+    bool mAbortDynamicRSItemHandling;
 };
 
 #endif // NMIPSSETTINGSHELPER_H

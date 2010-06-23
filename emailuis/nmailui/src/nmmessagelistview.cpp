@@ -55,12 +55,15 @@ mFolderLabel(NULL),
 mSyncIcon(NULL),
 mViewReady(false),
 mCurrentFolderType(NmFolderInbox),
-mSettingsLaunched(false)
+mSettingsLaunched(false),
+mPreviousModelCount(0)
 {
     NM_FUNCTION;
 
     // Load view layout
     loadViewLayout();
+    //create toolbar
+    createToolBar();
     // Init tree view
     initTreeView();
     // set title
@@ -172,10 +175,6 @@ void NmMessageListView::viewReady()
     NM_FUNCTION;
 
     if (!mViewReady){
-        // Set mailbox name to title pane
-        setMailboxName();
-        //create toolbar
-        createToolBar();
         // Refresh list
         QMetaObject::invokeMethod(this, "refreshList", Qt::QueuedConnection);
         mViewReady=true;
@@ -229,7 +228,6 @@ void NmMessageListView::initTreeView()
                 SIGNAL(longPressed(HbAbstractViewItem*, QPointF)), this,
                 SLOT(showItemContextMenu(HbAbstractViewItem*, QPointF)));
         mMessageListWidget->setFocus();
-        mItemContextMenu = new HbMenu();
     }
 }
 
@@ -314,7 +312,8 @@ void NmMessageListView::refreshList()
         QObject::connect(mMessageListModel, SIGNAL(setNewParam(NmUiStartParam*)),
                 this, SLOT(reloadViewContents(NmUiStartParam*)));
 
-        if (mMessageListModel->rowCount()==0){
+        mPreviousModelCount=mMessageListModel->rowCount();
+        if (mPreviousModelCount==0){
             showNoMessagesText();
         }
         else{
@@ -402,8 +401,15 @@ void NmMessageListView::folderSelected()
 void NmMessageListView::showItemContextMenu(HbAbstractViewItem *listViewItem, const QPointF &coords)
 {
     NM_FUNCTION;
-
+   
     if (listViewItem) {
+        // Recreate item context menu each time it is called
+        if (mItemContextMenu){
+            mItemContextMenu->clearActions();
+            delete mItemContextMenu;    
+            mItemContextMenu=NULL;
+        }
+        mItemContextMenu = new HbMenu();
         // Store long press item for later use with response
         mLongPressedItem = mMessageListModel->data(
                 listViewItem->modelIndex(), Qt::DisplayRole).value<NmMessageListModelItem*>();
@@ -574,51 +580,22 @@ void NmMessageListView::handleActionCommand(NmActionResponse &actionResponse)
         if ( actionResponse.responseCommand() == NmActionResponseCommandNewMail ) {
             // Check that given start response has mailbox and folder id's
             if (actionResponse.mailboxId()!=0){
-                if (mUiEngine.isSendingMessage()) {
-                    // sending is ongoing so just show a note
-                    QString noteText = hbTrId("txt_mail_dialog_still_sending");
-
-                    // get message subject from the message being sent
-                    const NmMessage *message = mUiEngine.messageBeingSent();
-                    if (message) {
-                        noteText = noteText.arg(NmUtilities::truncate(message->envelope().subject(), 20));
-                    }
-                    HbMessageBox::warning(noteText);
-                }
-                else {
-                    NmUiStartParam *startParam = new NmUiStartParam(NmUiViewMessageEditor,
-                            actionResponse.mailboxId(), mStartParam->folderId());
-                    // startParam ownerhips transfers
-                    mApplication.enterNmUiView(startParam);
-                }
+                NmUiStartParam *startParam = new NmUiStartParam(NmUiViewMessageEditor,
+                        actionResponse.mailboxId(), mStartParam->folderId());
+                // startParam ownerhips transfers
+                mApplication.enterNmUiView(startParam);
             }
         }
         if (actionResponse.responseCommand() == NmActionResponseCommandSearch) {
             // Check that the given start response has mailbox and folder IDs.
             if (actionResponse.mailboxId() != 0) {
-                if (mUiEngine.isSendingMessage()) {
-                    // Sending is ongoing so just show a note.
-                    QString noteText = hbTrId("txt_mail_dialog_still_sending");
+                NmUiStartParam *startParam =
+                    new NmUiStartParam(NmUiViewMessageSearchList,
+                                       actionResponse.mailboxId(),
+                                       mStartParam->folderId());
 
-                    // Get the message subject from the message being sent.
-                    const NmMessage *message = mUiEngine.messageBeingSent();
-
-                    if (message) {
-                        noteText = noteText.arg(
-                            NmUtilities::truncate(message->envelope().subject(), 20));
-                    }
-
-                    HbMessageBox::warning(noteText);
-                }
-                else {
-                    NmUiStartParam *startParam =
-                        new NmUiStartParam(NmUiViewMessageSearchList,
-                                           actionResponse.mailboxId(),
-                                           mStartParam->folderId());
-
-                    // startParam ownership transfers.
-                    mApplication.enterNmUiView(startParam);
-                }
+                // startParam ownership transfers.
+                mApplication.enterNmUiView(startParam);
             }
         }
     }
@@ -722,11 +699,10 @@ void NmMessageListView::itemsAdded(const QModelIndex &parent, int start, int end
     Q_UNUSED(parent);
     Q_UNUSED(end);
 
-    // If "no messages" label is shown, hide it and display the message list
-    // widget.
-    if (mNoMessagesLabel && mNoMessagesLabel->isVisible()) {
-        mNoMessagesLabel->hide();
-        mMessageListWidget->show();
+    // Hide no messages if previous model count has been zero
+    // and new items have been added to the list
+    if (mPreviousModelCount==0) {
+        hideNoMessagesText();
     }
 
     // Make sure the top of the list is kept visible by scrolling back to the
@@ -749,6 +725,10 @@ void NmMessageListView::itemsAdded(const QModelIndex &parent, int start, int end
             }
         }
     }
+    // Store model count
+    if (mMessageListModel){
+        mPreviousModelCount=mMessageListModel->rowCount();    
+    }
 }
 
 
@@ -758,8 +738,11 @@ void NmMessageListView::itemsAdded(const QModelIndex &parent, int start, int end
 void NmMessageListView::itemsRemoved()
 {
     NM_FUNCTION;
-
-    if (mMessageListModel && mMessageListModel->rowCount() == 0){
+    // Store model count
+    if (mMessageListModel){
+        mPreviousModelCount=mMessageListModel->rowCount();    
+    }
+    if (mPreviousModelCount == 0){
         showNoMessagesText();
     }
 }

@@ -1,64 +1,60 @@
 /*
-* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
-* All rights reserved.
-* This component and the accompanying materials are made available
-* under the terms of "Eclipse Public License v1.0"
-* which accompanies this distribution, and is available
-* at the URL "http://www.eclipse.org/legal/epl-v10.html".
-*
-* Initial Contributors:
-* Nokia Corporation - initial contribution.
-*
-* Contributors:
-*
-* Description:
-*
-*/
+ * Copyright (c) 2009-2010 Nokia Corporation and/or its subsidiary(-ies).
+ * All rights reserved.
+ * This component and the accompanying materials are made available
+ * under the terms of "Eclipse Public License v1.0"
+ * which accompanies this distribution, and is available
+ * at the URL "http://www.eclipse.org/legal/epl-v10.html".
+ *
+ * Initial Contributors:
+ * Nokia Corporation - initial contribution.
+ *
+ * Contributors:
+ *
+ * Description:
+ *
+ */
 
 #include "nmuiheaders.h"
 
 /*!
-    Constructor
+    Constructor.
 */
 NmMailViewerWK::NmMailViewerWK()
-	:QGraphicsWebView()
+: QGraphicsWebView()
 {
-    NM_FUNCTION;
+    grabGesture(Qt::PinchGesture);
+    installEventFilter(new NmEventFilterWK(this));
+    setFlag(QGraphicsItem::ItemIsFocusable,false);
 }
 
 /*!
-    Destructor
-*/
+    Destructor.
+ */
 NmMailViewerWK::~NmMailViewerWK()
 {
-    NM_FUNCTION;
-    
     mContent.clear();
 }
 
 /*!
-
-*/
+    Sets the parent view.
+ */
 void NmMailViewerWK::setParentView(NmViewerView *parentView)
 {
-    NM_FUNCTION;
-    
     mParentView = parentView;
 }
 
 /*!
-    addContent. Function adds content into web view.
-*/
+    Adds content into web view.
+ */
 void NmMailViewerWK::addContent(QString key, QVariant val, NmId partId, bool isFetched) 
 {
-    NM_FUNCTION;
-    
     mContent[key] = NmMailViewerWkContentItem(val, partId, isFetched);
 }
 
 /*!
-    loadResource. Function returns resource from added content (added with addContent)
-*/
+    Returns resource from added content.
+ */
 QVariant NmMailViewerWK::loadResource(int type, const QUrl &name, NmId &partId, bool &isFetched)
 {
     NM_FUNCTION;
@@ -79,28 +75,55 @@ QVariant NmMailViewerWK::loadResource(int type, const QUrl &name, NmId &partId, 
 }
 
 /*!
-    sendMousePressEvent. Function is used to relay mouse event to base class
-*/
-void NmMailViewerWK::sendMousePressEvent(QGraphicsSceneMouseEvent *event)
+    Filter class' constructor.
+ */
+NmEventFilterWK::NmEventFilterWK(QObject* parent)
+: QObject(parent)
 {
-    NM_FUNCTION;
-    
-    if (event){
-        QGraphicsWebView::mousePressEvent(event);
+}
+
+/*
+    Filters events if this object has been installed as an event filter.
+ */
+bool NmEventFilterWK::eventFilter(QObject* object, QEvent* event) {
+    Q_UNUSED(object);
+    bool consumed = false;
+    if (event) {
+        switch (event->type()) {
+        case QEvent::Gesture:
+            consumed = gestureEvent(static_cast<QGestureEvent*>(event));
+            break;
+        case QEvent::GraphicsSceneMouseDoubleClick:
+            // Handle double click (instant zoom).
+            // At the moment we simply consume the event.
+            event->accept();
+            consumed = true;
+            break;
+        case QEvent::GraphicsSceneContextMenu:
+        case QEvent::GraphicsSceneMouseMove:
+            event->accept();
+            consumed = true;
+            break;
+        default:
+            break;
+        }
     }
+    return consumed;
 }
 
 /*!
-    sendMouseReleaseEvent. Function is used to relay mouse event to base class
-*/
-void NmMailViewerWK::sendMouseReleaseEvent(QGraphicsSceneMouseEvent *event)
-{
-    NM_FUNCTION;
-    
+    Handles gesture events. This function is invoked by the eventFilter()
+    function in case of gesture events.
+ */
+bool NmEventFilterWK::gestureEvent(QGestureEvent* event) {
+    bool consumed = false;
     if (event) {
-        QGraphicsWebView::mouseReleaseEvent(event);
+        if (QPinchGesture* pinch = static_cast<QPinchGesture*>(event->gesture(Qt::PinchGesture))) {
+            // Handle pinch (zoom).
+            // At the moment we simply consume the event.
+            event->accept();
+            consumed = true;
+        }
     }
+    return consumed;
 }
-
-
-

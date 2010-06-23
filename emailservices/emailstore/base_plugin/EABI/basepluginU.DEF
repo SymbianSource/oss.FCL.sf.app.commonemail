@@ -13,7 +13,7 @@ EXPORTS
 	_ZN11CBasePlugin11CancelSyncLERK12TFSMailMsgId @ 12 NONAME
 	_ZN11CBasePlugin11ChildPartsLERK12TFSMailMsgIdS2_S2_S2_R13RPointerArrayI18CFSMailMessagePartE @ 13 NONAME
 	_ZN11CBasePlugin11GetPluginIdEv @ 14 NONAME
-	_ZN11CBasePlugin11RefreshNowLERK12TFSMailMsgIdR22MFSMailRequestObserveri @ 15 NONAME
+	_ZN11CBasePlugin11RefreshNowLERK12TFSMailMsgIdR22MFSMailRequestObserverii @ 15 NONAME
 	_ZN11CBasePlugin11SetContentLERK7TDesC16RK12TFSMailMsgIdS5_S5_S5_ @ 16 NONAME
 	_ZN11CBasePlugin12AddObserverLER20MFSMailEventObserver @ 17 NONAME
 	_ZN11CBasePlugin12CancelSearchERK12TFSMailMsgId @ 18 NONAME

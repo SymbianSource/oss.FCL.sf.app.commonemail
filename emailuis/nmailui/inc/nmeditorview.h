@@ -101,7 +101,7 @@ private slots:
     void attachmentRemoved(int result);
     void removeAttachmentTriggered();
     void handleSendOperationCompleted();
-    void openAttachmentTriggered();  
+    void openAttachmentTriggered( NmId attachmentId );  
     void onAttachmentReqCompleted(const QVariant &value);
     void onAttachmentsFetchError(int errorCode, const QString& errorMessage);
     void switchCcBccFieldVisibility();
@@ -112,8 +112,8 @@ private:
     void loadViewLayout();
     void setMailboxName();
     void fetchProgressDialogShow();
-    void fetchMessageIfNeeded();
-    void startMessageCreation(NmUiEditorStartMode startMode);
+    void fetchMessageIfNeeded(NmUiStartParam &startParam);
+    void startMessageCreation(NmUiStartParam &startParam);
     void startSending();
     void finalizeSending();
     void createToolBar();

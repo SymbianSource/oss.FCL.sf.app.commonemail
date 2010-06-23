@@ -350,7 +350,6 @@ void NmAttachmentListWidget::constructUi()
     } else {
         NM_ERROR(1,"NmAttachmentListWidget::constructUi: DocML loading failed.");
     }
-
 }
 
 /*!
@@ -446,11 +445,9 @@ void NmAttachmentListWidget::insertItemToLayout(NmAttachmentListItem* item)
     if(Qt::Vertical == mOrientation){
         mLayout->addItem(item,layout_count,0);
     } else {
-        item->setPreferredWidth(preferredWidth() / 2);
+        // Qt FW sets the correct width automatically based on the width of the child widgets
         mLayout->addItem(item,layout_count / 2, layout_count % 2);
     }
-    // Update maximum length of the file name field.
-    item->resetFileNameLength(mOrientation);
 }
 
 /*!

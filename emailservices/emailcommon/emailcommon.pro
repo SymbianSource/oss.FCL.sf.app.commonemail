@@ -23,8 +23,9 @@ DEFINES += BUILD_EMAILCOMMON_DLL
 DEFINES += BUILD_DLL 
 
 INCLUDEPATH += ../../inc \
-../inc \
-/epoc32/include/ecom 
+               ../inc \
+               /epoc32/include/ecom \
+               $$APP_LAYER_SYSTEMINCLUDE
 
 HEADERS   += inc/cemailextensionbase.h \ 
     inc/CFSMailBox.h \

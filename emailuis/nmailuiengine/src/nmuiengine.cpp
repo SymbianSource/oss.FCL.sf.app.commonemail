@@ -27,7 +27,7 @@
 NmUiEngine *NmUiEngine::mInstance;
 int NmUiEngine::mReferenceCount;
 
-const QString syncIndicatorName = "com.nokia.hb.nmsyncindicator/1.0";
+const QString syncIndicatorName = "com.nokia.nmail.indicatorplugin.sync/1.0";
 
 /*!
     Constructor
@@ -39,7 +39,8 @@ NmUiEngine::NmUiEngine()
   mMessageSearchListModel(NULL),
   mSendOperation(NULL),
   mRemoveDraftOperation(NULL),
-  mSaveDraftOperation(NULL)
+  mSaveDraftOperation(NULL),
+  mDraftMessage(NULL)
 {
     NM_FUNCTION;
     
@@ -87,6 +88,9 @@ NmUiEngine::~NmUiEngine()
 {
     NM_FUNCTION;
     
+    HbIndicator indicator;
+    indicator.deactivate(syncIndicatorName, QVariant());
+    
     if (mMessageSearchListModel) {
         delete mMessageSearchListModel;
         mMessageSearchListModel = NULL;
@@ -124,6 +128,10 @@ NmUiEngine::~NmUiEngine()
     }
     if(mSaveDraftOperation && mSaveDraftOperation->isRunning()) {
         mSaveDraftOperation->cancelOperation();
+    }
+    if(mDraftMessage) {
+        delete mDraftMessage;
+        mDraftMessage = NULL;
     }
 }
 
@@ -787,11 +795,20 @@ void NmUiEngine::saveDraftMessage(NmMessage *message,
             if (mSaveDraftOperation && mSaveDraftOperation->isRunning()) {
                 mSaveDraftOperation->cancelOperation();
             }
-            // ownership of message changes
+            
             mSaveDraftOperation = plugin->saveMessageWithSubparts(*message);
-            // don't put this to mOperations as we need to handle this
-            // operation separately
+            
             if (mSaveDraftOperation) {
+                // Ownership of message changes but saveMessageWithSubparts operation only makes a 
+                // copy so we handle the msg object deletion in engine. mDraftMessage is deleted
+                // in handleCompletedSaveDraftOperation once operation finishes. 
+                if(mDraftMessage) {
+                    delete mDraftMessage;
+                    mDraftMessage = NULL;
+                }
+                mDraftMessage = message;
+                message = NULL;
+                
                 for (int i(0); i < preliminaryOperations.count(); i++ ) {
                     QPointer<NmOperation> op = preliminaryOperations[i];
                     mSaveDraftOperation->addPreliminaryOperation(op);
@@ -802,9 +819,6 @@ void NmUiEngine::saveDraftMessage(NmMessage *message,
                         this, 
                         SLOT(handleCompletedSaveDraftOperation()));
                 
-                // message object is not needed any more, so delete it
-                delete message;
-                message = NULL;
             }
         }
     }
@@ -1079,7 +1093,11 @@ void NmUiEngine::handleCompletedSaveDraftOperation()
 {
     NM_FUNCTION;
     
-    // draft message saving observing not yet implemented...
+    // delete message object since it's not needed anymore
+    if(mDraftMessage) {
+        delete mDraftMessage;
+        mDraftMessage = NULL;
+    }
 }
 
 /*!

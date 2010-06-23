@@ -155,6 +155,9 @@ void NmAttachmentManager::fetchAllMessageParts(
                     this,
                     SLOT(completeMessageFetch(int)));
         }
+        else {
+            completeMessageFetch(NmGeneralError);
+        }
         
     }
     else {
@@ -257,18 +260,6 @@ void NmAttachmentManager::completeMessageFetch(int result)
                     mFetchMsg->envelope().folderId(),
                     mFetchMsg->envelope().messageId(),
                     partIds);
-                
-                if (mFetchOperation) {
-                    mAttaId = 0;
-                    mIsFetching = true;
-                    QObject::connect(mFetchOperation, SIGNAL(operationCompleted(int)),
-                            this, SLOT(completeAttachmentFetch(int)));
-                    
-                    QObject::connect(mFetchOperation, SIGNAL(operationProgressChanged(int)),
-                            this, SLOT(changeProgress(int)));
-                
-                    result = true;
-                }
             }
             else {
                 mFetchObserver->fetchCompleted(NmNoError);

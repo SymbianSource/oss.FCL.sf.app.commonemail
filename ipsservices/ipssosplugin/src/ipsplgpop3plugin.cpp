@@ -138,7 +138,8 @@ TInt CIpsPlgPop3Plugin::RefreshNowL( )
 void CIpsPlgPop3Plugin::RefreshNowL(
     const TFSMailMsgId& aMailBoxId,
     MFSMailRequestObserver& aOperationObserver,
-    TInt aRequestId )
+    TInt aRequestId,
+    const TBool /*aSilentConnection*/ )
     {
     FUNC_LOG;
     TMsvId service = aMailBoxId.Id();
@@ -188,10 +189,8 @@ void CIpsPlgPop3Plugin::RefreshNowL(
     iOperations.AppendL( watcher );
     CleanupStack::Pop( watcher );   // >> watcher
     	
-//<qmail>
     // send part of refresh
-    //EmptyOutboxL( aMailBoxId ); // not used in qmail yet
-//</qmail>
+    EmptyOutboxL( aMailBoxId );
     }
 
 // ---------------------------------------------------------------------------
@@ -273,14 +272,13 @@ TFSMailMsgId CIpsPlgPop3Plugin::GetStandardFolderIdL(
  	
  	if( aFolderType==EFSInbox )
         {
-        //in case of pop3, mailbox id == service id == inbox id
-        CMsvEntry* cEntry = iSession->GetEntryL( aMailBoxId.Id() );
-        CleanupStack::PushL( cEntry );
-        if ( cEntry->Count() != 0 )
-            {
-            result.SetId( aMailBoxId.Id() );
-            }
-        CleanupStack::PopAndDestroy( cEntry );
+        //<qmail> removed CMsvEntry conversion 
+ 	
+        // In case of pop3, mailbox id == service id == inbox id,
+        // so no need to create CMsvEntry from mailbox id to
+        // dig if any children exists.
+        result.SetId( aMailBoxId.Id() );
+        //</qmail>
         }
     else if( aFolderType==EFSOutbox )
         {

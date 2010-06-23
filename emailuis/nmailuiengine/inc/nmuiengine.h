@@ -234,6 +234,7 @@ private: // Data
     QPointer<NmMessageSendingOperation> mSendOperation;  // Not owned
     QPointer<NmOperation> mRemoveDraftOperation; // not owned
     QPointer<NmOperation> mSaveDraftOperation;   // not owned
+    NmMessage *mDraftMessage; // owned
 };
 
 
