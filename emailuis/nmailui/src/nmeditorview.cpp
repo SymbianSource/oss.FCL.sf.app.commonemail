@@ -19,12 +19,8 @@
 // Layout file and view
 static const char *NMUI_EDITOR_VIEW_XML = ":/docml/nmeditorview.docml";
 static const char *NMUI_EDITOR_VIEW= "editorview";
-static const char *NMUI_EDITOR_SCROLL_AREA = "scrollArea";
-static const char *NMUI_EDITOR_SCROLL_AREA_CONTENTS = "scrollAreaContents";
 
-static const int NmOrientationTimer=100;
-
-static const QString Delimiter("; ");
+static const QString NmDelimiter("; ");
 
 /*!
 	\class NmEditorView
@@ -45,7 +41,6 @@ NmEditorView::NmEditorView(
       mUiEngine(uiEngine),
       mAttaManager(attaManager),
       mDocumentLoader(NULL),
-      mScrollArea(NULL),
       mEditWidget(NULL),
       mHeaderWidget(NULL),
       mMessage(NULL),
@@ -92,7 +87,6 @@ NmEditorView::~NmEditorView()
     delete mMessage;
     mWidgetList.clear();
     delete mDocumentLoader;
-    delete mContentWidget;
     delete mPrioritySubMenu;
     
     if (mAttachmentListContextMenu) {
@@ -124,7 +118,7 @@ void NmEditorView::loadViewLayout()
     mPrioritySubMenu = NULL;
 
     // Use document loader to load the view
-    bool ok = false;
+    bool ok(false);
     mWidgetList = mDocumentLoader->load(NMUI_EDITOR_VIEW_XML, &ok);
 
     if (ok == true && mWidgetList.count()) {
@@ -134,14 +128,11 @@ void NmEditorView::loadViewLayout()
             setWidget(view);
         }
 
-        mScrollArea = qobject_cast<NmBaseViewScrollArea *>
-            (mDocumentLoader->findObject(NMUI_EDITOR_SCROLL_AREA));
-        mScrollAreaContents = qobject_cast<HbWidget *>
-             (mDocumentLoader->findObject(NMUI_EDITOR_SCROLL_AREA_CONTENTS));
+        mContentWidget = new NmEditorContent(this, mDocumentLoader, 
+            mApplication.networkAccessManager(), mApplication);
 
-        mContentWidget = new NmEditorContent(mScrollArea, this, mDocumentLoader, 
-            mApplication.networkAccessManager());
         mEditWidget = mContentWidget->editor();
+
         mHeaderWidget = mContentWidget->header();
 
         // Set default color for user - entered text if editor is in re/reAll/fw mode
@@ -197,23 +188,45 @@ void NmEditorView::orientationChanged(Qt::Orientation orientation)
 {
     NM_FUNCTION;
     
-    Q_UNUSED(orientation);
-    // Adjust content height
-    QTimer::singleShot(NmOrientationTimer, this, SLOT(adjustViewDimensions()));
-    QTimer::singleShot(NmOrientationTimer, mHeaderWidget, SLOT(sendHeaderHeightChanged()));
+    // If switching to horizontal, chrome must be hided
+    if (mVkbHost && orientation == Qt::Horizontal &&
+        mVkbHost->keypadStatus() == HbVkbHost::HbVkbStatusOpened) {
+        showChrome(false);
+    }
+    
+    // content widget height needs to be set according to the new orientation to get the scroll
+	// area work correctly
+	mHeaderWidget->sendDelayedHeaderHeightChanged();
 }
 
 /*!
-    Set new dimensions after orientation change.
-*/
-void NmEditorView::adjustViewDimensions()
+    This slot is signaled by VKB when it opens
+ */
+void NmEditorView::vkbOpened()
 {
-    NM_FUNCTION;
-    
-    if (mScrollAreaContents) {
-        const QSize reso = mApplication.screenSize();
-        mScrollAreaContents->setMinimumWidth(reso.width());
-        mScrollAreaContents->setMaximumWidth(reso.width());
+    if (mApplication.mainWindow()->orientation() == Qt::Horizontal) {
+        showChrome(false);	
+    }
+}
+
+/*!
+    This slot is signaled by VKB when it closes.
+ */
+void NmEditorView::vkbClosed()
+{
+	showChrome(true);
+}
+
+/*!
+    Hide or show chrome.
+ */
+void NmEditorView::showChrome(bool show)
+{
+    if (show) {
+        showItems(Hb::StatusBarItem | Hb::TitleBarItem | Hb::ToolBarItem);		
+    }
+    else {
+        hideItems(Hb::StatusBarItem | Hb::TitleBarItem | Hb::ToolBarItem);
     }
 }
 
@@ -227,52 +240,45 @@ NmUiViewId NmEditorView::nmailViewId() const
     return NmUiViewMessageEditor;
 }
 
-/*!
-    ScrollArea contents
-*/
-HbWidget* NmEditorView::scrollAreaContents()
-{
-    NM_FUNCTION;
-    
-    return mScrollAreaContents;
-}
-
 /*
    Launch dialog for query user if we want to exit the editor
 */
 void NmEditorView::okToExitView()
 {
     NM_FUNCTION;
+       
+    bool okToExit(true);
     
-    NmEditorHeader *header = mContentWidget->header();
-    
-    bool okToExit = true;
-    
-    // show the query if the message has not been sent
-    if (mMessage && header) {
-        // see if editor has any content
-        int subjectLength = 0;
-        if (header->subjectEdit()) {
-            subjectLength = header->subjectEdit()->text().length();
-        }
-        
-        QList<NmMessagePart*> attachmentList;
-        mMessage->attachmentList(attachmentList);
-                    
-        okToExit = (subjectLength == 0 && mContentWidget->editor()->document()->isEmpty());
-
-        // content exists, verify exit from user
-        if (!okToExit) {
-            if (mQueryDialog) {
-                delete mQueryDialog;
-                mQueryDialog = 0;
+    if (mContentWidget) {
+        NmEditorHeader *header = mContentWidget->header();
+        // show the query if the message has not been sent
+        if (mMessage && header) {
+            // see if editor has any content
+            int subjectLength = 0;
+            if (header->subjectEdit()) {
+                subjectLength = header->subjectEdit()->text().length();
             }
-            // Launch query dialog.
-            mQueryDialog = 
-                NmUtilities::displayQuestionNote(hbTrId("txt_mail_dialog_save_message_to_drafts"),
-                                                            this,
-                                                            SLOT(okToExitQuery(HbAction*)));
-        }
+            
+            QList<NmMessagePart*> attachmentList;
+            mMessage->attachmentList(attachmentList);
+            
+            if (mContentWidget->editor()) {
+                okToExit = (subjectLength == 0 && mContentWidget->editor()->document()->isEmpty());            
+            }
+    
+            // content exists, verify exit from user
+            if (!okToExit) {
+                if (mQueryDialog) {
+                    delete mQueryDialog;
+                    mQueryDialog = 0;
+                }
+                // Launch query dialog.
+                mQueryDialog = 
+                    NmUtilities::displayQuestionNote(hbTrId("txt_mail_dialog_save_message_to_drafts"),
+                                                                this,
+                                                                SLOT(okToExitQuery(HbAction*)));
+            }
+        }    
     }
     
     // no need to query anything, just exit.
@@ -286,7 +292,7 @@ void NmEditorView::okToExitView()
 /*!
     Handle the user selection is it ok to exit.
 */
-void NmEditorView::okToExitQuery(HbAction* action)
+void NmEditorView::okToExitQuery(HbAction *action)
 {
     NM_FUNCTION;
     
@@ -356,12 +362,16 @@ void NmEditorView::viewReady()
     menu()->addAction(dummy);
 
     initializeVKB();
+    
+    //Get VKB host instance and start to listen VKB open and close signals for hiding the chrome.
+    HbEditorInterface editorInterface(mContentWidget->editor());
+    mVkbHost = editorInterface.vkbHost();
+    connect(mVkbHost, SIGNAL(keypadOpened()), this, SLOT(vkbOpened()));
+    connect(mVkbHost, SIGNAL(keypadClosed()), this, SLOT(vkbClosed()));
+
     connect(mContentWidget->header(), SIGNAL(recipientFieldsHaveContent(bool)),
             this, SLOT(setButtonsDimming(bool)) );
 
-    // Set dimensions
-    adjustViewDimensions();
-	
     // Connect to observe orientation change events
     connect(mApplication.mainWindow(), SIGNAL(orientationChanged(Qt::Orientation)),
             this, SLOT(orientationChanged(Qt::Orientation)));
@@ -427,19 +437,34 @@ void NmEditorView::fetchCompleted(int result)
         startMessageCreation(*mStartParam);
     }
     else {
-        mWaitDialog->close();
-		
-        // Show fetching failed note         
-        HbNotificationDialog *note = new HbNotificationDialog(); 
-        note->setIcon(HbIcon(QLatin1String("note_warning")));
-        QString noteText = hbTrId("txt_mail_dpopinfo_loading_failed");
-        note->setTitle(noteText);
-        note->setTitleTextWrapping(Hb::TextWordWrap);
-        note->setDismissPolicy(HbPopup::TapAnywhere);
-        note->setAttribute(Qt::WA_DeleteOnClose);
-        note->setSequentialShow(true);
-        note->show();
+        // Show the fetching failed note only when
+        // the error is not Device/System errors, 
+        if (result != NmNoError && 
+            result != NmNotFoundError &&
+            result != NmGeneralError &&
+            result != NmCancelError &&
+            result != NmAuthenticationError &&
+            result != NmServerConnectionError &&
+            result != NmConnectionError) {
+            
+            HbNotificationDialog *note = new HbNotificationDialog(); 
+            
+            bool enalbeAttribute(true);
+            note->setAttribute(Qt::WA_DeleteOnClose, enalbeAttribute);
+            
+            note->setIcon(HbIcon(QLatin1String("note_warning")));
+            
+            note->setTitle(hbTrId("txt_mail_dpopinfo_loading_failed"));
+            note->setTitleTextWrapping(Hb::TextWordWrap);
+            
+            note->setDismissPolicy(HbNotificationDialog::TapAnywhere);
+            note->setTimeout(HbNotificationDialog::StandardTimeout);
+            
+            note->setSequentialShow(true);
+            note->show();
+        }
         
+        mWaitDialog->close();         
         QMetaObject::invokeMethod(&mApplication, "popView", Qt::QueuedConnection);
     }
 }
@@ -486,7 +511,7 @@ void NmEditorView::startMessageCreation(NmUiStartParam &startParam)
     if (mMessageCreationOperation && mMessageCreationOperation->isRunning()) {
         mMessageCreationOperation->cancelOperation();
     }
-	
+	  
     // original message is now fetched so start message creation
     if (startMode == NmUiEditorForward) {
         mMessageCreationOperation = mUiEngine.createForwardMessage(mailboxId, msgId);
@@ -530,7 +555,7 @@ void NmEditorView::startSending()
     // verify addresses before sending
     QList<NmAddress> invalidAddresses;
     if (mMessage) {
-        NmUtilities::getRecipientsFromMessage(*mMessage, invalidAddresses, NmUtilities::InvalidAddress);
+        NmUtilities::getRecipientsFromMessage(*mMessage, invalidAddresses, NmUtilities::NmInvalidAddress);
     }
     
     if (invalidAddresses.count() > 0) {
@@ -575,11 +600,7 @@ void NmEditorView::finalizeSending()
     mMessage = NULL;
     preliminaryOperations.clear();
 
-#ifndef NM_WINS_ENV
     bool service = XQServiceUtil::isService();
-#else
-    bool service = false;
-#endif
 
     // If sending is started as a service, progress dialog needs to be shown
     // so long that sending is finished otherwise we can close pop current view.
@@ -595,12 +616,10 @@ void NmEditorView::finalizeSending()
         connect(mServiceSendingDialog, SIGNAL(cancelled()),
             this, SLOT(sendProgressDialogCancelled()));
 
-#ifndef NM_WINS_ENV
         if (!XQServiceUtil::isEmbedded()) {
             // Hide the application.
             XQServiceUtil::toBackground(true);
         }
-#endif
          // Display the wait dialog.
          mServiceSendingDialog->setModal(true);
          mServiceSendingDialog->setBackgroundFaded(true);
@@ -803,12 +822,7 @@ void NmEditorView::fillEditorWithMessageContents()
                                                *htmlPart);
             }
 
-            if (editorStartMode==NmUiEditorFromDrafts) {
-                mContentWidget->setMessageData(*originalMessage, false);
-            }
-            else {
-                mContentWidget->setMessageData(*originalMessage);
-            }
+		mContentWidget->setMessageData(*originalMessage, editorStartMode);
         }
 
         delete originalMessage;
@@ -1367,7 +1381,7 @@ QString NmEditorView::addressListToString(const QList<NmAddress*> &list) const
     while (i != list.constEnd() && *i) {
         if (i > list.constBegin()) {
             // Add the delimiter.
-            addressesString += Delimiter;
+            addressesString += NmDelimiter;
         }
 
         addressesString += (*i)->address();
@@ -1395,7 +1409,7 @@ QString NmEditorView::addressListToString(const QList<NmAddress> &list) const
     while (i != list.constEnd()) {
         if (i > list.constBegin()) {
             // Add the delimiter.
-            addressesString += Delimiter;
+            addressesString += NmDelimiter;
         }
 
         addressesString += (*i).address();
@@ -1493,6 +1507,3 @@ void NmEditorView::enableToolBarAttach(bool enable)
         }
     }
 }
-
-
-// End of file.

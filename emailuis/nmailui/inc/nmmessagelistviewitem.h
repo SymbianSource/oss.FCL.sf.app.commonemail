@@ -23,10 +23,6 @@
 class HbLabel;
 class HbTextItem;
 class HbFrameItem;
-class QStyleOptionGraphicsItem;
-class QGraphicsLayoutItem;
-class HbWidgetBase;
-class HbStyleOptionAbstractViewItem;
 class NmMessageListModel;
 class NmMessageListModelItem;
 class NmMessageEnvelope;
@@ -43,7 +39,6 @@ public:
     void updateChildItems();
     HbTreeViewItem *createItem();
     bool canSetModelIndex(const QModelIndex &index) const;
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
     QRectF contiguousSelectionArea() const { return QRectF(); };
 
 private:
@@ -51,7 +46,7 @@ private:
     void setContentsToMessageItem(const NmMessageEnvelope &envelope, bool dividersActive);
     void setFontsRead();
     void setFontsUnread();
-    void setFonts(const QColor &colorRole, HbFontSpec &spekki);
+    void setFonts(const QColor &colorRole, HbFontSpec &fontSpec);
     void getFontSizes();    
     QString senderFieldText(const NmMessageEnvelope &envelope);
 

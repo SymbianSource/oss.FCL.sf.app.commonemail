@@ -28,6 +28,7 @@ class QGraphicsLinearLayout;
 class QTranslator;
 class HbFrameDrawer;
 class NmHsWidgetDateTimeObserver;
+class HbLabel;
 
 class NmHsWidget : public HbWidget
 {
@@ -40,13 +41,14 @@ class NmHsWidget : public HbWidget
 public:
     NmHsWidget(QGraphicsItem *parent = 0, Qt::WindowFlags flags = 0);
     ~NmHsWidget();
+
+    QPainterPath shape() const;
     
 public slots:
     //from home screen fw
     void onInitialize();
     void onShow();
     void onHide();
-    void onUninitialize();
     //engine
     void updateMailData();
     void onEngineException(const int& exc);
@@ -65,13 +67,18 @@ signals:
     void setPreferences(const QStringList &names);
     void error();
 private:
-    bool setupLocalization();
+    void setupLocalization();
     void setupUi();
     void updateMailRowsVisibility(const int visibleCount);
+    void addNoMailsLabelToLayout();
+    void removeNoMailsLabelFromLayout();
+    void addEmailRowsToLayout();
+    void removeEmailRowsFromLayout();
+    void updateLayout(const int visibleCount);
     void toggleExpansionState();  
 
 protected:
-    void updateMailRowsList(const int mailCount);
+    void createMailRowsList();
     
 private:
     NmHsWidgetEmailEngine* mEngine;
@@ -83,8 +90,8 @@ private:
     QTranslator *mTranslator;
     HbFrameDrawer* mBackgroundFrameDrawer;
     bool mIsExpanded;
-    bool mStaticWidget;
     NmHsWidgetDateTimeObserver* mDateObserver;
+    HbLabel *mNoMailsLabel; 
     
 public:    
     friend class TestNmHsWidget;     

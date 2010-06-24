@@ -9,14 +9,14 @@
                             <widget name="editorToField" type="HbWidget">
                                 <widget name="editorToLabel" type="HbLabel">
                                     <sizepolicy horizontalPolicy="Fixed" horizontalStretch="0" verticalPolicy="Fixed" verticalStretch="0"/>
-                                    <sizehint height="7.46un" type="FIXED" width="12.5un"/>
+                                    <sizehint height="7.5un" type="FIXED" width="12.5un"/>
                                     <string locid="txt_mail_editor_to" name="plainText"/>
                                     <fontspec name="fontSpec" role="Secondary" textheight="var(hb-param-text-height-secondary)"/>
                                 </widget>
                                 <widget name="editorToEdit" plugin="nmailuiwidgetsplugin" type="NmRecipientLineEdit"/>
                                 <widget name="editorToButton" type="HbPushButton">
                                     <sizepolicy horizontalPolicy="Fixed" horizontalStretch="0" verticalPolicy="Fixed" verticalStretch="0"/>
-                                    <sizehint height="7.46un" type="FIXED" width="9.5un"/>
+                                    <sizehint height="7.5un" type="FIXED" width="9.5un"/>
                                 </widget>
                                 <layout orientation="Horizontal" spacing="var(hb-param-margin-gene-middle-horizontal)" type="linear">
                                     <contentsmargins bottom="0un" left="var(hb-param-margin-gene-left)" right="var(hb-param-margin-gene-right)" top="0un"/>
@@ -28,14 +28,14 @@
                             <widget name="editorCcField" type="HbWidget">
                                 <widget name="editorCcLabel" type="HbLabel">
                                     <sizepolicy horizontalPolicy="Fixed" horizontalStretch="0" verticalPolicy="Fixed" verticalStretch="0"/>
-                                    <sizehint height="7.46un" type="FIXED" width="12.5un"/>
+                                    <sizehint height="7.5un" type="FIXED" width="12.5un"/>
                                     <string locid="txt_mail_editor_cc" name="plainText"/>
                                     <fontspec name="fontSpec" role="Secondary" textheight="var(hb-param-text-height-secondary)"/>
                                 </widget>
                                 <widget name="editorCcEdit" plugin="nmailuiwidgetsplugin" type="NmRecipientLineEdit"/>
                                 <widget name="editorCcButton" type="HbPushButton">
                                     <sizepolicy horizontalPolicy="Fixed" horizontalStretch="0" verticalPolicy="Fixed" verticalStretch="0"/>
-                                    <sizehint height="7.46un" type="FIXED" width="9.5un"/>
+                                    <sizehint height="7.5un" type="FIXED" width="9.5un"/>
                                 </widget>
                                 <layout orientation="Horizontal" spacing="var(hb-param-margin-gene-middle-horizontal)" type="linear">
                                     <contentsmargins bottom="0un" left="var(hb-param-margin-gene-left)" right="var(hb-param-margin-gene-right)" top="0un"/>
@@ -47,14 +47,14 @@
                             <widget name="editorBccField" type="HbWidget">
                                 <widget name="editorBccLabel" type="HbLabel">
                                     <sizepolicy horizontalPolicy="Fixed" horizontalStretch="0" verticalPolicy="Fixed" verticalStretch="0"/>
-                                    <sizehint height="7.46un" type="FIXED" width="12.5un"/>
+                                    <sizehint height="7.5un" type="FIXED" width="12.5un"/>
                                     <string locid="txt_mail_editor_bcc" name="plainText"/>
                                     <fontspec name="fontSpec" role="Secondary" textheight="var(hb-param-text-height-secondary)"/>
                                 </widget>
                                 <widget name="editorBccEdit" plugin="nmailuiwidgetsplugin" type="NmRecipientLineEdit"/>
                                 <widget name="editorBccButton" type="HbPushButton">
                                     <sizepolicy horizontalPolicy="Fixed" horizontalStretch="0" verticalPolicy="Fixed" verticalStretch="0"/>
-                                    <sizehint height="7.46un" type="FIXED" width="9.5un"/>
+                                    <sizehint height="7.5un" type="FIXED" width="9.5un"/>
                                 </widget>
                                 <layout orientation="Horizontal" spacing="var(hb-param-margin-gene-middle-horizontal)" type="linear">
                                     <contentsmargins bottom="0un" left="var(hb-param-margin-gene-left)" right="var(hb-param-margin-gene-right)" top="0un"/>
@@ -66,7 +66,7 @@
                             <widget name="editorSubjectField" type="HbWidget">
                                 <widget name="editorSubjectLabel" type="HbLabel">
                                     <sizepolicy horizontalPolicy="Fixed" horizontalStretch="0" verticalPolicy="Fixed" verticalStretch="0"/>
-                                    <sizehint height="7.46un" type="FIXED" width="12.5un"/>
+                                    <sizehint height="7.5un" type="FIXED" width="12.5un"/>
                                     <string locid="txt_mail_editor_subject" name="plainText"/>
                                     <fontspec name="fontSpec" role="Secondary" textheight="var(hb-param-text-height-secondary)"/>
                                 </widget>
@@ -129,7 +129,7 @@
                         </layout>
                     </widget>
                     <real name="z" value="0"/>
-                    <sizepolicy horizontalPolicy="Expanding" horizontalStretch="0" verticalPolicy="Expanding" verticalStretch="0"/>
+                    <sizepolicy horizontalPolicy="Expanding" horizontalStretch="0" verticalPolicy="Fixed" verticalStretch="0"/>
                     <sizehint height="88un" type="PREFERRED" width="54un"/>
                     <layout type="anchor">
                         <anchoritem dst="container" dstEdge="LEFT" spacing="0un" src="" srcEdge="LEFT"/>

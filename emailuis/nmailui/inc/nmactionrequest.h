@@ -45,8 +45,6 @@ enum NmActionContextView
 	NmActionContextViewMessageSearchList,
 	NmActionContextViewViewer,
 	NmActionContextViewEditor
-    // Add more view id's when
-    // funtionality is added
 };
 
 /*!
@@ -58,9 +56,7 @@ enum NmActionContextDataType
 	NmActionContextDataNone=0,
 	NmActionContextDataMailbox,
 	NmActionContextDataFolder,
-	NmActionContextDataMessage,
-    //Add more context menu types
-    //when functionality is added
+	NmActionContextDataMessage
 };
 
 
@@ -77,7 +73,7 @@ class NmActionObserver;
 class NmActionRequest
 {
 public:
-    inline NmActionRequest(NmActionObserver* observer,
+    inline NmActionRequest(NmActionObserver *observer,
 		NmActionContextMenuType menuType=NmActionOptionsMenu,
 		NmActionContextView contextView=NmActionContextViewNone,
 		NmActionContextDataType contextDataType=NmActionContextDataNone,
@@ -95,7 +91,7 @@ public:
     mMessageId(messageId),
     mRequestData(requestData){};
 
-    inline NmActionObserver* observer() const {return mObserver;}
+    inline NmActionObserver *observer() const {return mObserver;}
     inline NmActionContextMenuType menuType() const {return mMenuType;}
     inline NmActionContextView contextView() const {return mContextView;}
     inline NmActionContextDataType contextDataType() const {return mContextDataType;}

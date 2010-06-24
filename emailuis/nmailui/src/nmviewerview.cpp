@@ -72,7 +72,7 @@ mAttaWidget(NULL),
 mViewReady(false),
 mWaitNoteCancelled(false),
 mErrorNote(NULL)
-    {
+{
     // Create documentloader
     mDocumentLoader = new NmUiDocumentLoader(mMainWindow);
     // Get screensize
@@ -117,6 +117,7 @@ void NmViewerView::aboutToExitView()
     // View is about to exit, for safety, stop 
     // loading of content before closing the view
     if (mWebView){
+        mAttaManager.cancelFetch();
         mWebView->stop();
         if (mWebView->page()){
             mWebView->page()->deleteLater();
@@ -132,14 +133,11 @@ void NmViewerView::loadViewLayout()
     NM_FUNCTION;
     
     // Use document loader to load the view
-    bool ok = false;
+    bool ok(false);
     setObjectName(QString(NMUI_MESSAGE_VIEWER_VIEW));
-    QObjectList objectList;
-    objectList.append(this);
     // Pass the view to documentloader. Document loader uses this view
     // when docml is parsed, instead of creating new view.
     // documentloader is created in constructor
-    mDocumentLoader->setObjectTree(objectList);
     mWidgetList = mDocumentLoader->load(NMUI_MESSAGE_VIEWER_XML, &ok);
     int widgetCount = mWidgetList.count();
     if (ok == true && widgetCount)
@@ -385,8 +383,9 @@ void NmViewerView::setMessageData()
   	// if everything is ok, set message to html viewer
     if (mMessage && mWebView && page) {
         // Set initial size of component and content before loading data
-        mWebView->setMaximumWidth(mScreenSize.width());
-        page->setPreferredContentsSize(mScreenSize);
+        mWebView->setPreferredWidth(mScreenSize.width());
+        QRectF myGeometry = geometry();
+        page->setViewportSize(myGeometry.size().toSize());
         //Set message data to html viewer.
         mWebView->setHtml(formatMessage());
         // Connect to link clicked
@@ -416,7 +415,7 @@ void NmViewerView::setAttachmentList()
         // Set attawidget minimum & maximum size
         mAttaWidget->setMinimumWidth(mScreenSize.width());
         mAttaWidget->setMaximumWidth(mScreenSize.width());
-        bool inserted = false;
+        bool inserted(false);
         QList<NmMessagePart*> messageParts;
         mMessage->attachmentList(messageParts);
         for (int i = 0; i < messageParts.count();i++) {
@@ -481,6 +480,7 @@ void NmViewerView::openAttachment(int index)
         }
         // attachment is fetched, open file
         else if (messageParts[i]->partId() == attaId) {
+            mAttaManager.cancelFetch();
             XQSharableFile file = mUiEngine.messagePartFile(mailboxId, folderId,
                                                             messageId, attaId);
             int error = NmUtilities::openFile(file);
@@ -637,18 +637,17 @@ void NmViewerView::scaleWebViewWhenLoading(const QSize &size)
     // same size value is received more than once.
     if (size != mLatestLoadingSize) {
         if (!webFrameloadingCompleted && mWebView && mWebView->page() &&
-            (size.width() > mScreenSize.width() || size.height() > mScreenSize.height())) {
+            (size.width() > mScreenSize.width() || size.height() > geometry().height())) {
             int width = (int)size.width();
             int height = (int)size.height();
             // Set content (webview) width
             if (mDisplayingPlainText){
-                setWebViewWidth(mScreenSize.width());
+                mWebView->setPreferredWidth(geometry().width());           
             }
             else {
-                setWebViewWidth(width);
+                mWebView->setPreferredWidth(width);
             }
-            mWebView->setMinimumHeight(height);
-            mWebView->setPreferredHeight(height);
+            mWebView->setPreferredHeight(height);        
         }
     }
     mLatestLoadingSize = size;
@@ -659,32 +658,16 @@ void NmViewerView::scaleWebViewWhenLoading(const QSize &size)
 */
 void NmViewerView::scaleWebViewWhenLoaded()
 {
-    if (mWebView&&mWebView->page()) {
+    QRectF myGeometry = geometry();
+    if (mWebView && mWebView->page()) {
+        mWebView->page()->setViewportSize(myGeometry.size().toSize());
         QSizeF contentSize = mWebView->page()->mainFrame()->contentsSize();
         int width = (int)contentSize.width();
-        int height = (int)contentSize.height();
-        // Set content (webview) width
-        if (mDisplayingPlainText) {
-            mWebView->page()->setPreferredContentsSize(mScreenSize);
-            setWebViewWidth(mScreenSize.width());
-        } else {
-            setWebViewWidth(width);
-        }
-        // Set content (webview) height
-        if (mScrollAreaContents){
-            QRectF contentRect = mScrollAreaContents->geometry();
-            if (contentRect.height()<geometry().height()){
-                contentRect.setHeight(geometry().height());
-                mViewerContent->setPreferredHeight(contentRect.height());
-                qreal webViewHeight = geometry().height()-mHeaderWidget->geometry().height();
-                setWebViewHeighth(webViewHeight);
-            } else {
-                setWebViewHeighth(height);
-            }
-        }
+        int height = (int)contentSize.height();  
+        mWebView->setPreferredWidth(width);
+        mWebView->setPreferredHeight(height);
     }
 }
-
 
 /*!
     Set new dimensions after orientation change.
@@ -701,38 +684,14 @@ void NmViewerView::adjustViewDimensions()
         // Set attawidget minimum & maximum size
         mAttaWidget->setMinimumWidth(mScreenSize.width());
         mAttaWidget->setMaximumWidth(mScreenSize.width());
-    }
-
-    // Scale web view and its contens
-    if (mWebView){
-        if (mDisplayingPlainText){
-            mWebView->setMaximumWidth((int)mScreenSize.width());
-            mWebView->page()->setPreferredContentsSize(QSize((int)mScreenSize.width(),
-                                           (int)mScreenSize.height()));
-        }
-        else{
-            // Check whether contentsize fits to screen
-            // and if not, set preferred size again to allow panning
-            QSizeF contentSize = mWebView->page()->mainFrame()->contentsSize();
-            if (contentSize.width()>mScreenSize.width()){
-                mWebView->setMaximumWidth((int)contentSize.width());
-                mWebView->page()->setPreferredContentsSize(QSize((int)contentSize.width(),
-                                                           (int)contentSize.height()));
-            }
-            else{
-                mWebView->setMaximumWidth((int)mScreenSize.width());
-                mWebView->page()->setPreferredContentsSize(QSize((int)mScreenSize.width(),
-                                               (int)mScreenSize.height()));
-            }
-        }
-    }
+    }    
+    scaleWebViewWhenLoaded();
 
     if (mToolbarEnabled) {
 		// Re-create toolbar in orientation switch
 		createToolBar();
     }
 }
-
 
 /*!
    Screen orientation changed. Web view needs to be scaled when
@@ -752,25 +711,28 @@ void NmViewerView::linkClicked(const QUrl& link)
 {
     NM_FUNCTION;
     
-      if (link.scheme() == "http" ||
-          link.scheme() == "https" ) {
-          QDesktopServices::openUrl(link);
-      }
-      else if (link.scheme() == "mailto"){
-          QList<NmAddress*> *addrList = new QList<NmAddress*>();
-          NmAddress *mailtoAddr = new NmAddress();
-          QString address = link.toString(QUrl::RemoveScheme);
-          mailtoAddr->setAddress(address);
-          mailtoAddr->setDisplayName(address);
-          addrList->append(mailtoAddr);
-          // Create start parameters. Address list ownership
-          // is transferred to startparam object
-          NmUiStartParam* param = new NmUiStartParam(NmUiViewMessageEditor,
-                                                     mStartParam->mailboxId(),
-                                                      mStartParam->folderId(),
-                                                     0, NmUiEditorMailto, addrList );
-          mApplication.enterNmUiView(param);
-      }
+    if (link.scheme() == "http" ||
+        link.scheme() == "https" ) {
+        mAttaManager.cancelFetch();
+        QDesktopServices::openUrl(link);
+    } else if (link.scheme() == "mailto"){
+        mAttaManager.cancelFetch();
+        QList<NmAddress*> *addrList = new QList<NmAddress*>();
+        NmAddress *mailtoAddr = new NmAddress();
+        QString address = link.toString(QUrl::RemoveScheme);
+        mailtoAddr->setAddress(address);
+        mailtoAddr->setDisplayName(address);
+        addrList->append(mailtoAddr);
+        // Create start parameters. Address list ownership
+        // is transferred to startparam object
+        NmUiStartParam* param = new NmUiStartParam(NmUiViewMessageEditor,
+                                                   mStartParam->mailboxId(),
+                                                   mStartParam->folderId(),
+                                                   0,
+                                                   NmUiEditorMailto,
+                                                   addrList);
+        mApplication.enterNmUiView(param);
+    }    
 }
 
 /*!
@@ -934,6 +896,7 @@ void NmViewerView::handleActionCommand(NmActionResponse &actionResponse)
     	actionResponse.menuType() == NmActionToolbar) {
         switch (actionResponse.responseCommand()) {
             case NmActionResponseCommandReply: {
+                mAttaManager.cancelFetch();
                 NmUiStartParam *startParam = new NmUiStartParam(NmUiViewMessageEditor,
                     mStartParam->mailboxId(), mStartParam->folderId(),
                     mStartParam->messageId(), NmUiEditorReply);
@@ -941,6 +904,7 @@ void NmViewerView::handleActionCommand(NmActionResponse &actionResponse)
             }
             break;
             case NmActionResponseCommandReplyAll: {
+                mAttaManager.cancelFetch();
                 NmUiStartParam *startParam = new NmUiStartParam(NmUiViewMessageEditor,
                     mStartParam->mailboxId(), mStartParam->folderId(),
                     mStartParam->messageId(), NmUiEditorReplyAll);
@@ -948,6 +912,7 @@ void NmViewerView::handleActionCommand(NmActionResponse &actionResponse)
             }
             break;
             case NmActionResponseCommandForward: {
+                mAttaManager.cancelFetch();
                 NmUiStartParam *startParam = new NmUiStartParam(NmUiViewMessageEditor,
                     mStartParam->mailboxId(), mStartParam->folderId(),
                     mStartParam->messageId(), NmUiEditorForward);
@@ -955,6 +920,7 @@ void NmViewerView::handleActionCommand(NmActionResponse &actionResponse)
             }
             break;
             case NmActionResponseCommandDeleteMail: {
+                mAttaManager.cancelFetch();
                 deleteMessage();
                 }
             break;
@@ -1046,26 +1012,4 @@ void NmViewerView::createAndShowWaitDialog()
     mWaitDialog->setText(hbTrId("txt_mail_dialog_loading_mail_content"));
     // Display wait dialog
     mWaitDialog->show(); 
-}
-
-/*!
-    Helper function for width.
-*/
-void NmViewerView::setWebViewWidth(int width)
-{
-    // null pointer check for mWebView in calling function
-    mWebView->setMinimumWidth(width);
-    mWebView->setMaximumWidth(width);
-    mWebView->setPreferredWidth(width);
-}
-
-/*!
-    Helper function for heigth.
-*/
-void NmViewerView::setWebViewHeighth(int height)
-{
-    // null pointer check for mWebView in calling function
-    mWebView->setMinimumHeight(height);
-    mWebView->setMaximumHeight(height);
-    mWebView->setPreferredHeight(height);
 }

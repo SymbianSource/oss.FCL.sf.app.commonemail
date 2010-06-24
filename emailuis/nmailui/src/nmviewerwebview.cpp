@@ -21,11 +21,16 @@
     Constructor.
 */
 NmMailViewerWK::NmMailViewerWK()
-: QGraphicsWebView()
+: QGraphicsWebView(),
+  mContent(),
+  mParentView(NULL),
+  mSuppressRelease(false)
 {
+    // Subscribe this widget to tap and pinch gestures.
+    grabGesture(Qt::TapGesture);
     grabGesture(Qt::PinchGesture);
-    installEventFilter(new NmEventFilterWK(this));
-    setFlag(QGraphicsItem::ItemIsFocusable,false);
+    // Prevent this widget from accepting focus.
+    setFocusPolicy(Qt::NoFocus);
 }
 
 /*!
@@ -75,36 +80,29 @@ QVariant NmMailViewerWK::loadResource(int type, const QUrl &name, NmId &partId, 
 }
 
 /*!
-    Filter class' constructor.
+    This is the main event handler that processes all incoming events in an
+    appropriate manner.
  */
-NmEventFilterWK::NmEventFilterWK(QObject* parent)
-: QObject(parent)
+bool NmMailViewerWK::event(QEvent* event)
 {
-}
-
-/*
-    Filters events if this object has been installed as an event filter.
- */
-bool NmEventFilterWK::eventFilter(QObject* object, QEvent* event) {
-    Q_UNUSED(object);
     bool consumed = false;
     if (event) {
         switch (event->type()) {
         case QEvent::Gesture:
-            consumed = gestureEvent(static_cast<QGestureEvent*>(event));
-            break;
-        case QEvent::GraphicsSceneMouseDoubleClick:
-            // Handle double click (instant zoom).
-            // At the moment we simply consume the event.
-            event->accept();
-            consumed = true;
+            // Handle gesture events.
+            gestureEvent(static_cast<QGestureEvent*>(event));
+            consumed = event->isAccepted();
             break;
         case QEvent::GraphicsSceneContextMenu:
-        case QEvent::GraphicsSceneMouseMove:
-            event->accept();
-            consumed = true;
+            // Handle context-menu events.
+            // contextMenuEvent() is invoked directly in order to override
+            // text selection in QWebPage.
+            contextMenuEvent(static_cast<QGraphicsSceneContextMenuEvent*>(event));
+            consumed = event->isAccepted();
             break;
         default:
+            // Invoke base class' event handler.
+            consumed = QGraphicsWebView::event(event);
             break;
         }
     }
@@ -112,18 +110,78 @@ bool NmEventFilterWK::eventFilter(QObject* object, QEvent* event) {
 }
 
 /*!
-    Handles gesture events. This function is invoked by the eventFilter()
-    function in case of gesture events.
+    Handles context-menu events.
  */
-bool NmEventFilterWK::gestureEvent(QGestureEvent* event) {
-    bool consumed = false;
+void NmMailViewerWK::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
+{
     if (event) {
+        // Suppress context-menu invocations.
+        event->accept();
+    }
+}
+
+/*!
+    Handles gesture events.
+ */
+void NmMailViewerWK::gestureEvent(QGestureEvent* event)
+{
+    if (event) {
+        if (QTapGesture* tap = static_cast<QTapGesture*>(event->gesture(Qt::TapGesture))) {
+            switch (tap->state()) {
+            case Qt::GestureCanceled:
+                // Tap cancellation suppresses the following mouse release.
+                mSuppressRelease = true;
+                break;
+            default:
+                // Other states disclose the following mouse release.
+                mSuppressRelease = false;
+                break;
+            }
+            event->accept();
+        }
         if (QPinchGesture* pinch = static_cast<QPinchGesture*>(event->gesture(Qt::PinchGesture))) {
             // Handle pinch (zoom).
             // At the moment we simply consume the event.
             event->accept();
-            consumed = true;
         }
     }
-    return consumed;
+}
+
+/*!
+    Handles double-click events.
+ */
+void NmMailViewerWK::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
+{
+    if (event) {
+        // Handle double clicks (instant zoom).
+        // At the moment we simply consume the event.
+        event->accept();
+    }
+}
+
+/*!
+    Handles mouse-move events.
+ */
+void NmMailViewerWK::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+{
+    if (event) {
+        // Suppress drag selection.
+        event->accept();
+    }
+}
+
+/*!
+    Handles mouse-release events.
+ */
+void NmMailViewerWK::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+{
+    if (event) {
+        // Suppress mouse release if the previous tap was cancelled.
+        // Otherwise, invoke the base class' event handler.
+        if (mSuppressRelease) {
+            event->accept();
+        } else {
+            QGraphicsWebView::mouseReleaseEvent(event);
+        }
+    }
 }

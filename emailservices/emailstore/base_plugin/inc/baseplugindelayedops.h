@@ -108,6 +108,10 @@ private:
     MDelayedOpsManager* iManager;   //not owned
     CBasePlugin* iPlugin;           //not owned
     
+public:
+    TInt iRequestId;
+    MFSMailRequestObserver* iOperationObserver;
+    
     __LOG_DECLARATION
     };
 

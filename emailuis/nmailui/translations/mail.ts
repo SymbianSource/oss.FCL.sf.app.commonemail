@@ -426,7 +426,7 @@
     <comment>Secondary text for status menu item: indicates the there are new mail messages</comment>        
     <source>New Mail</source>
     <translation variants="no" type="unfinished"></translation>
-    <extra-loc-layout_id></extra-loc-layout_id>    
+    <extra-loc-layout_id>qtl_notifdialog_sec_medium_graphic</extra-loc-layout_id>    
     <extra-loc-viewid>mail_01_d</extra-loc-viewid>
     <extra-loc-positionid>list</extra-loc-positionid>
     <extra-loc-feature>mail</extra-loc-feature>
@@ -679,6 +679,16 @@
     <extra-loc-layout_id>qtl_dialog_pri5</extra-loc-layout_id>    
     <extra-loc-viewid>mail_02</extra-loc-viewid>
     <extra-loc-positionid>dialog</extra-loc-positionid>
+    <extra-loc-feature>mail</extra-loc-feature>
+    <extra-loc-blank>False</extra-loc-blank>
+</message>
+<message numerus="no" id="txt_mail_select_contacts">
+    <comment>Title text shown in status pane when contacts are fetched from Phonebook.</comment>        
+    <source>Select contacts</source>
+    <translation variants="no" type="unfinished"></translation>
+    <extra-loc-layout_id>qtl_dialog_pri_heading</extra-loc-layout_id>    
+    <extra-loc-viewid>mail</extra-loc-viewid>
+    <extra-loc-positionid>dpophead</extra-loc-positionid>
     <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>

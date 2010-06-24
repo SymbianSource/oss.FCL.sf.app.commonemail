@@ -31,15 +31,16 @@ static const char *NMUI_EDITOR_PREFIX_TO = "editorTo";
 static const char *NMUI_EDITOR_PREFIX_CC = "editorCc";
 static const char *NMUI_EDITOR_PREFIX_BCC = "editorBcc";
 
-static const int MaxRows = 10000;
+static const int NmMaxRows = 10000;
 
 // this timeout seems to be long enough for all cases. see sendDelayedHeaderHeightChanged
-static const int LayoutSystemWaitTimer = 500; // 0.5 sec
+static const int NmLayoutSystemWaitTimer = 500; // 0.5 sec
 
 /*!
     Constructor
 */
-NmEditorHeader::NmEditorHeader(HbDocumentLoader *documentLoader) :
+NmEditorHeader::NmEditorHeader(QObject *parent, HbDocumentLoader *documentLoader) :
+    QObject(parent),
     mDocumentLoader(documentLoader),
     mHeaderHeight(0),
     mIconVisible(false),
@@ -76,52 +77,62 @@ void NmEditorHeader::loadWidgets()
     // are hidden and removed from the layout at this phase.    
     HbWidget *contentWidget =
         qobject_cast<HbWidget *>(mDocumentLoader->findWidget(NMUI_EDITOR_CONTAINER));
-    mLayout = static_cast<QGraphicsLinearLayout *>(contentWidget->layout());
-
-    // base class QObject takes the deleting responsibility
-    mToField = new NmRecipientField(this, *mDocumentLoader, NMUI_EDITOR_PREFIX_TO);
-    mCcField = new NmRecipientField(this, *mDocumentLoader, NMUI_EDITOR_PREFIX_CC);
-    mBccField = new NmRecipientField(this, *mDocumentLoader, NMUI_EDITOR_PREFIX_BCC);
-
-    // Cc field is not shown by default. It needs to be both hidden and removed from the layout.
-	mCcWidget = qobject_cast<HbWidget *>(mDocumentLoader->findWidget(NMUI_EDITOR_CC_FIELD));
-    mCcWidget->hide();
-    mLayout->removeItem(mCcWidget);
+    if (contentWidget) {
+        mLayout = static_cast<QGraphicsLinearLayout *>(contentWidget->layout());
     
-    // Bcc field is not shown by default. It needs to be both hidden and removed from the layout.
-    mBccWidget = qobject_cast<HbWidget *>(mDocumentLoader->findWidget(NMUI_EDITOR_BCC_FIELD));
-    mBccWidget->hide();
-    mLayout->removeItem(mBccWidget);
-
-    mSubjectWidget =
-        qobject_cast<HbWidget *>(mDocumentLoader->findWidget(NMUI_EDITOR_SUBJECT_FIELD));
-    mSubjectLayout = static_cast<QGraphicsLinearLayout *>(mSubjectWidget->layout());
+        // base class QObject takes the deleting responsibility
+        mToField = new NmRecipientField(this, *mDocumentLoader, NMUI_EDITOR_PREFIX_TO);
+        mCcField = new NmRecipientField(this, *mDocumentLoader, NMUI_EDITOR_PREFIX_CC);
+        mBccField = new NmRecipientField(this, *mDocumentLoader, NMUI_EDITOR_PREFIX_BCC);
     
-    // Add Subject: field
-    mSubjectEdit = qobject_cast<NmHtmlLineEdit *>
-        (mDocumentLoader->findWidget(NMUI_EDITOR_SUBJECT_EDIT));
-    mSubjectEdit->setMaxRows(MaxRows);
+        // Sets up editor properties like no prediction, lower case preferred etc.
+        HbEditorInterface toEditorInterface(mToField->editor());
+        HbEditorInterface ccEditorInterface(mCcField->editor());
+        HbEditorInterface bccEditorInterface(mBccField->editor());
+        toEditorInterface.setUpAsLatinAlphabetOnlyEditor();
+        ccEditorInterface.setUpAsLatinAlphabetOnlyEditor();
+        bccEditorInterface.setUpAsLatinAlphabetOnlyEditor();
 
-    // Add attachment list
-    NmAttachmentListWidget *attachmentList = qobject_cast<NmAttachmentListWidget *>
-        (mDocumentLoader->findWidget(NMUI_EDITOR_ATTACHMENT_LIST));
-    // Create attachment list handling object
-    mAttachmentList = new NmAttachmentList(*attachmentList);
-    mAttachmentList->setParent(this); // ownership changes
-    attachmentList->hide();
-    mLayout->removeItem(attachmentList);
-
-    // Add priority icon
-    mPriorityIcon = qobject_cast<HbLabel *>
-        (mDocumentLoader->findWidget(NMUI_EDITOR_PRIORITY_ICON));
-    mPriorityIcon->hide();
-    mSubjectLayout->removeItem(mPriorityIcon);
-
-    // follow-up icon is not yet supported
-    HbLabel *followUpIcon = qobject_cast<HbLabel *>
-        (mDocumentLoader->findWidget(NMUI_EDITOR_FOLLOWUP_ICON));
-    followUpIcon->hide();
-    mSubjectLayout->removeItem(followUpIcon);
+        // Cc field is not shown by default. It needs to be both hidden and removed from the layout.
+        mCcWidget = qobject_cast<HbWidget *>(mDocumentLoader->findWidget(NMUI_EDITOR_CC_FIELD));
+        mCcWidget->hide();
+        mLayout->removeItem(mCcWidget);
+          
+        // Bcc field is not shown by default. It needs to be both hidden and removed from the layout.
+        mBccWidget = qobject_cast<HbWidget *>(mDocumentLoader->findWidget(NMUI_EDITOR_BCC_FIELD));
+        mBccWidget->hide();
+        mLayout->removeItem(mBccWidget);
+    
+        mSubjectWidget =
+            qobject_cast<HbWidget *>(mDocumentLoader->findWidget(NMUI_EDITOR_SUBJECT_FIELD));
+        mSubjectLayout = static_cast<QGraphicsLinearLayout *>(mSubjectWidget->layout());
+          
+        // Add Subject: field
+        mSubjectEdit = qobject_cast<NmHtmlLineEdit *>
+            (mDocumentLoader->findWidget(NMUI_EDITOR_SUBJECT_EDIT));
+        mSubjectEdit->setMaxRows(NmMaxRows);
+    
+        // Add attachment list
+        NmAttachmentListWidget *attachmentList = qobject_cast<NmAttachmentListWidget *>
+            (mDocumentLoader->findWidget(NMUI_EDITOR_ATTACHMENT_LIST));
+        // Create attachment list handling object
+        mAttachmentList = new NmAttachmentList(*attachmentList);
+        mAttachmentList->setParent(this); // ownership changes
+        attachmentList->hide();
+        mLayout->removeItem(attachmentList);
+    
+        // Add priority icon
+        mPriorityIcon = qobject_cast<HbLabel *>
+            (mDocumentLoader->findWidget(NMUI_EDITOR_PRIORITY_ICON));
+        mPriorityIcon->hide();
+        mSubjectLayout->removeItem(mPriorityIcon);
+    
+        // follow-up icon is not yet supported
+        HbLabel *followUpIcon = qobject_cast<HbLabel *>
+            (mDocumentLoader->findWidget(NMUI_EDITOR_FOLLOWUP_ICON));
+        followUpIcon->hide();
+        mSubjectLayout->removeItem(followUpIcon);    
+    }
 }
 
 /*!
@@ -179,7 +190,7 @@ void NmEditorHeader::setFieldVisibility(bool isVisible)
 }
 
 /*!
-    Return the height of the whole header widget.
+    Return the sum of the header widget heights. This contains all the spacings a well. 
  */
 qreal NmEditorHeader::headerHeight() const
 {
@@ -225,7 +236,7 @@ qreal NmEditorHeader::headerHeight() const
 void NmEditorHeader::sendDelayedHeaderHeightChanged()
 {
     NM_FUNCTION;
-	QTimer::singleShot(LayoutSystemWaitTimer, this, SLOT(sendHeaderHeightChanged()));
+	QTimer::singleShot(NmLayoutSystemWaitTimer, this, SLOT(sendHeaderHeightChanged()));
 }
 
 /*!
@@ -289,7 +300,7 @@ void NmEditorHeader::editorContentChanged()
 {
     NM_FUNCTION;
     
-    bool recipientsFieldsEmpty = true;
+    bool recipientsFieldsEmpty(true);
     if (mToField->text().length()) {
         recipientsFieldsEmpty = false;
     }
@@ -380,7 +391,7 @@ void NmEditorHeader::addAttachment(
         mLayout->insertItem(mLayout->count() - 1, &mAttachmentList->listWidget());
         mAttachmentList->listWidget().show();
     }
-    sendDelayedHeaderHeightChanged();
+    sendHeaderHeightChanged();
 }
 
 /*!
@@ -439,8 +450,7 @@ void NmEditorHeader::setAttachmentParameters(
 void NmEditorHeader::attachmentActivated(int arrayIndex)
 {
     NM_FUNCTION;
-    
-    //
+
     emit attachmentShortPressed(mAttachmentList->nmIdByIndex(arrayIndex));    
 }
 

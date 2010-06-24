@@ -34,11 +34,11 @@ class NmBaseView : public HbView
 {
 	Q_OBJECT
 public:
-    NmBaseView(NmUiStartParam* startParam,
+    NmBaseView(NmUiStartParam *startParam,
                NmApplication &application,
                QGraphicsItem *parent = 0);
     virtual ~NmBaseView();
-    virtual void reloadViewContents(NmUiStartParam* startParam) = 0;
+    virtual void reloadViewContents(NmUiStartParam *startParam) = 0;
     virtual NmUiViewId nmailViewId() const = 0;
     virtual void okToExitView();
     virtual void aboutToExitView();

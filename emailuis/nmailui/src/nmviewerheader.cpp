@@ -11,14 +11,14 @@
 *
 * Contributors:
 *
-* Description:
+* Description: NMail viewer view header widget implementation
 *
 */
 
 
 #include "nmuiheaders.h"
 
-static const qreal nmHeaderLineOpacity = 0.4;
+static const qreal NmHeaderLineOpacity = 0.4;
 
 /*!
     \class NmViewerHeader
@@ -119,7 +119,7 @@ void NmViewerHeader::paint(
     Q_UNUSED(widget);
     if (painter) {
         painter->save();
-        painter->setOpacity(nmHeaderLineOpacity);
+        painter->setOpacity(NmHeaderLineOpacity);
         QLineF line1( rect().topLeft().x(), rect().bottomRight().y(),
                      rect().bottomRight().x(), rect().bottomRight().y());
         painter->drawLine(line1);
@@ -160,7 +160,7 @@ void NmViewerHeader::updateMessageData(NmMessage* message)
         // Set recipients to text edit field as html 
         NmAddress sender = mMessage->envelope().sender();      
         if (mRecipientsBox){  
-            mRecipientsBox->setHtml(formatRecipientList(addressToDisplayInHtml(sender),
+            mRecipientsBox->setHtml(formatRecipientList(addressToDisplay(sender),
                                     mMessage->envelope().toRecipients(), 
                                     mMessage->envelope().ccRecipients()));
         }       
@@ -272,7 +272,7 @@ void NmViewerHeader::createExpandableHeader()
         // Set recipients to text edit field as html 
         NmAddress sender = mMessage->envelope().sender();               
         if (mMessage) {
-            mRecipientsBox->setHtml(formatRecipientList(addressToDisplayInHtml(sender),
+            mRecipientsBox->setHtml(formatRecipientList(addressToDisplay(sender),
                                     mMessage->envelope().toRecipients(), 
                                     mMessage->envelope().ccRecipients()));
         }
@@ -294,8 +294,8 @@ QString NmViewerHeader::formatRecipientList(const QString &sender,
     
     QString result;
     result.append("<html><body link=\"blue\" topmargin=\"0\" leftmargin=\"0\" marginheight=\"0\"");
-    result.append("marginwidth=\"0\" bgcolor=\"white\" text=\"black\">");    
-    result.append("<font color=\"black\" face=\"");
+    result.append("marginwidth=\"0\">");    
+    result.append("<font face=\"");
     result.append("Nokia Sans");
     result.append("\"size=\"3\">"); 
     // Set text in HTML format based on layout direction
@@ -309,7 +309,7 @@ QString NmViewerHeader::formatRecipientList(const QString &sender,
         result.append(" </b>");
         int reciCount = to.count();
         for (int i=0; i < reciCount; i++) { 
-            result.append(addressToDisplayInHtml(to[i]));
+            result.append(addressToDisplay(to[i]));
             result.append(" ");
         } 
         reciCount = cc.count();
@@ -318,7 +318,7 @@ QString NmViewerHeader::formatRecipientList(const QString &sender,
             result.append(hbTrId("txt_mail_list_cc"));
             result.append(" </b>");
             for (int i=0; i < reciCount; i++) {
-                result.append(addressToDisplayInHtml(cc[i]));
+                result.append(addressToDisplay(cc[i]));
                 result.append(" "); 
             }
         }   
@@ -333,7 +333,7 @@ QString NmViewerHeader::formatRecipientList(const QString &sender,
         result.append(" </b>");
         int reciCount = to.count();
         for (int i=0; i < reciCount; i++) { 
-            result.append(addressToDisplayInHtml(to[i]));
+            result.append(addressToDisplay(to[i]));
             result.append("; ");
         }
         reciCount = cc.count();
@@ -342,7 +342,7 @@ QString NmViewerHeader::formatRecipientList(const QString &sender,
             result.append(hbTrId("txt_mail_list_cc"));
             result.append(" </b>");
             for (int i=0; i < reciCount; i++) {
-                result.append(addressToDisplayInHtml(cc[i]));
+                result.append(addressToDisplay(cc[i]));
                 result.append("; ");
             }
         }   
@@ -355,7 +355,7 @@ QString NmViewerHeader::formatRecipientList(const QString &sender,
     Function retursn address string from NmAddress to
     be displayed in HTML format
 */
-QString NmViewerHeader::addressToDisplayInHtml(const NmAddress &addr)
+QString NmViewerHeader::addressToDisplay(const NmAddress &addr)
 {
     NM_FUNCTION;
     

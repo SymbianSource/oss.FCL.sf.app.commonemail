@@ -73,12 +73,12 @@ QNetworkReply *NmViewerViewNetManager::createRequest(
         && requestUrl.scheme()==NmViewerViewNetManagerScheme) {
         QString id = requestUrl.path();
         NmId partId;
-        bool isFetched = false;
+        bool isFetched(false);
         NmMessage *message = mMessageView->message();
         if (message) {
             QVariant data = mMessageView->webView()->loadResource(
                     QTextDocument::ImageResource, requestUrl, partId, isFetched);
-            NmViewerViewNetReply* reply = NULL;
+            NmViewerViewNetReply* reply(NULL);
             if (isFetched) {
                 reply = new NmViewerViewNetReply(data, mUiEngine);
             }

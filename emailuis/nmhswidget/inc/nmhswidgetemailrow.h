@@ -26,6 +26,7 @@
 
 //FORWARD DECLARATIONS:
 class HbLabel;
+class HbFrameItem;
 
 class NmHsWidgetEmailRow : public HbWidget
 {
@@ -35,9 +36,7 @@ public:
     NmHsWidgetEmailRow(QGraphicsItem *parent = 0, Qt::WindowFlags flags = 0);
     ~NmHsWidgetEmailRow();
     NmId messageId();
-    bool loadDocML();
-    void setFontsSize( bool read );
-    void setFontsColor( bool pressed );
+    bool setupUI();
 
 public slots:
     void updateMailData( const NmMessageEnvelope& envelope );
@@ -49,6 +48,11 @@ signals:
 private:
     void setIconsToWidget( const NmMessageEnvelope& envelope );
     void hideIcons();
+    bool loadDocML();
+    bool setupGraphics();
+    void setFontsSize( bool read );
+    void setHighlighedFontsColor( bool pressed );
+    void showHighlight( bool pressed );
     
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
@@ -65,6 +69,7 @@ private:
     QDateTime mMessageSentTime;
     QList <HbLabel*> mStatusIcons;  
     NmMessageEnvelope mEnvelope;
+    HbFrameItem* mBackgroundLayoutItem;
     
 };
 

@@ -11,6 +11,7 @@
 CONFIG += debug
 CONFIG += hb
 CONFIG += service
+CONFIG += no_icon
 
 SERVICE.FILE = service_conf.xml
 

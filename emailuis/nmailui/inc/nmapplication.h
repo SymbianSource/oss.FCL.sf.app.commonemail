@@ -44,7 +44,7 @@ class NmApplication : public QObject
 {
     Q_OBJECT
 public:
-    NmApplication(QObject *parent);
+    NmApplication(QObject *parent, quint32 accountId=0);
     ~NmApplication();
     void enterNmUiView(NmUiStartParam *startParam);
     HbMainWindow* mainWindow();
@@ -61,7 +61,7 @@ public slots:
     void delayedExitApplication();
     void handleOperationCompleted(const NmOperationCompletionEvent &event);
     void viewReady();
-    void launchSettings(HbAction* action);
+    void launchSettings(HbAction *action);
     
 private:
     void createMainWindow();
@@ -69,10 +69,10 @@ private:
     void resetViewStack();
 
 private:
-    HbMainWindow *mMainWindow;              // Not owned
+    HbMainWindow *mMainWindow;              // Owned
     QStack<NmBaseView*> *mViewStack;        // Owned
     NmUiViewId mActiveViewId;
-    NmUiEngine *mUiEngine;                  // Owned
+    NmUiEngine *mUiEngine;                  // Not owned, singleton instance
     HbAction *mBackAction;                  // Owned
     NmUiExtensionManager *mExtensionManager;// Owned
     NmSendServiceInterface *mSendServiceInterface;       // Owned
@@ -90,6 +90,7 @@ private:
     bool mViewReady;
     NmId mLastOperationMailbox;
     HbMessageBox *mQueryDialog;             // Owned
+    bool mBackButtonPressed;
 };
 
 #endif // NMAPPLICATION_H

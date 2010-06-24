@@ -67,6 +67,7 @@
 #include "nmfwastoremessageoperation.h"
 #include "nmmailboxsearchobserver.h"
 #include "nmfwaremovedraftmessageoperation.h"
+#include "nmfwadeletemailboxoperation.h"
 
 // fs email
 #include <CFSMailCommon.h>

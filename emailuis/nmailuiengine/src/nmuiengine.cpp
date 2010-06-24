@@ -82,7 +82,7 @@ NmUiEngine::NmUiEngine()
 
 
 /*!
-    Destructor
+    Class destructor.
 */
 NmUiEngine::~NmUiEngine()
 {
@@ -95,45 +95,65 @@ NmUiEngine::~NmUiEngine()
         delete mMessageSearchListModel;
         mMessageSearchListModel = NULL;
     }
+
     if (mInboxListModel) {
         delete mInboxListModel;
         mInboxListModel = NULL;
-    }  
+    }
+
     if (mMessageListModel) {
         delete mMessageListModel;
         mMessageListModel = NULL;
     }
+
     if (mMailboxListModel) {
         delete mMailboxListModel;
         mMailboxListModel = NULL;
     }
-    // do the unsubscriptions
+
+    // Do the unsubscriptions.
     QList<NmId> mailboxIdList;
     mDataManager->listMailboxIds(mailboxIdList);
+
     for (int i(0); i < mailboxIdList.count(); i++) {
         NmId id = mailboxIdList[i];
-        NmDataPluginInterface *pluginInterface = mPluginFactory->interfaceInstance(id);
+        NmDataPluginInterface *pluginInterface =
+            mPluginFactory->interfaceInstance(id);
+
         if (pluginInterface) {
             pluginInterface->unsubscribeMailboxEvents(id);
         }
     }
+
     mailboxIdList.clear();
+
     NmDataPluginFactory::releaseInstance(mPluginFactory);
+
     delete mDataManager;
+
+    // Cancel all operations.
     if (mSendOperation && mSendOperation->isRunning()) {
         mSendOperation->cancelOperation();
     }
-    if(mRemoveDraftOperation && mRemoveDraftOperation->isRunning()) {
+
+    if (mRemoveDraftOperation && mRemoveDraftOperation->isRunning()) {
         mRemoveDraftOperation->cancelOperation();        
     }
-    if(mSaveDraftOperation && mSaveDraftOperation->isRunning()) {
+
+    if (mSaveDraftOperation && mSaveDraftOperation->isRunning()) {
         mSaveDraftOperation->cancelOperation();
     }
+
+    // Call processEvents() to ensure that the cancelled operations get the time
+    // they need to destroy themselves.
+    qApp->processEvents();
+
     if(mDraftMessage) {
         delete mDraftMessage;
         mDraftMessage = NULL;
     }
 }
+
 
 /*!
 
@@ -1234,4 +1254,24 @@ void NmUiEngine::handleConnectEvent(NmConnectState connectState, const NmId &mai
         NmOperationCompletionEvent event={NoOp, errorCode, mailboxId, 0, 0}; 
         emit operationCompleted(event);
     }
+}
+
+/*!
+    returns full mailbox id from plain account id
+*/
+NmId NmUiEngine::getPluginIdByMailboxId(quint32 accountId)
+{
+    NM_FUNCTION;
+    
+    NmId fullId = NULL;
+    fullId.setId32(accountId);
+    QList<NmId> mailboxList;
+    if(mDataManager){
+        mDataManager->listMailboxIds(mailboxList);
+        for(int i=0;i<mailboxList.count();i++){
+            if(mailboxList.at(i).id32() == accountId)
+                fullId.setPluginId32(mailboxList.at(i).pluginId32());
+            }
+        }
+    return fullId;
 }

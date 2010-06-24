@@ -50,6 +50,7 @@ class CFetchRequester;
 class CMailboxInfo;
 class CSearchHandler;
 class HMailIterator;
+class CDelayedOp;
 class CDelayedOpsManager;
 class MDelayedOpsManager;
 
@@ -831,6 +832,7 @@ class BASEPLUGIN_EXPORT CBasePlugin :
         RPointerArray<MFSMailEventObserver> iObservers;
         //async fetch reqs.
         RPointerArray<CFetchRequester> iReqs;
+        RPointerArray<CDelayedOp> iDelayedOpReqs;
 
         TCacheLine iCacheLine;
 

@@ -180,7 +180,7 @@ int NmHsWidgetEmailEngine::getEnvelopes(QList<NmMessageEnvelope> &list, int maxE
     list.clear(); //Reset the parameter list to avoid side effects
     int i = 0;
     for (; i < mEnvelopeList.count() && i < maxEnvelopeAmount; i++) {
-        NmMessageEnvelope env(*mEnvelopeList[i]);
+        NmMessageEnvelope env(*mEnvelopeList.at(i));
         list.append(env);
     }
     return i;
@@ -408,17 +408,26 @@ void NmHsWidgetEmailEngine::launchMailAppInboxView()
 {
     NM_FUNCTION;
     
-    XQApplicationManager appManager;
-    XQAiwRequest* request = appManager.create(
-            XQI_EMAIL_INBOX_VIEW, XQOP_EMAIL_INBOX_VIEW,
-            false);
-    
-    if (request) {
-        QList<QVariant> list;
-        list.append(QVariant(mMailboxId.id()));
-    
-        request->setArguments(list);
-        request->send();
+    QT_TRY{ 
+        XQApplicationManager appManager;
+        XQAiwRequest* request = appManager.create(
+                XQI_EMAIL_INBOX_VIEW, XQOP_EMAIL_INBOX_VIEW,
+                false);
+        
+        if (request) {
+            QList<QVariant> list;
+            list.append(QVariant(mMailboxId.id()));
+        
+            request->setSynchronous(true);
+            request->setArguments(list);
+            request->send();
+            delete request;
+        }
+    }
+    QT_CATCH(...){
+        // no actions taken.
+        // try-catch mechanism added to avoid crashing widget, in case XQAiwRequest
+        // creation raise exception.
     }
 }
 
@@ -431,18 +440,27 @@ void NmHsWidgetEmailEngine::launchMailAppMailViewer(const NmId &messageId)
 {
     NM_FUNCTION;
 
-    XQApplicationManager appManager;
-    XQAiwRequest* request = appManager.create(
-            XQI_EMAIL_MESSAGE_VIEW, XQOP_EMAIL_MESSAGE_VIEW,
-            false);
-    
-    if (request) {
-        QList<QVariant> list;
-        list.append(QVariant(mMailboxId.id()));
-        list.append(QVariant(mFolderId.id()));
-        list.append(QVariant(messageId.id()));
-    
-        request->setArguments(list);
-        request->send();
+    QT_TRY{
+        XQApplicationManager appManager;
+        XQAiwRequest* request = appManager.create(
+                XQI_EMAIL_MESSAGE_VIEW, XQOP_EMAIL_MESSAGE_VIEW,
+                false);
+        
+        if (request) {
+            QList<QVariant> list;
+            list.append(QVariant(mMailboxId.id()));
+            list.append(QVariant(mFolderId.id()));
+            list.append(QVariant(messageId.id()));
+        
+            request->setSynchronous(true);
+            request->setArguments(list);
+            request->send();
+            delete request;
+        }
+    }
+    QT_CATCH(...){
+        // no actions taken.
+        // try-catch mechanism added to avoid crashing widget, in case XQAiwRequest
+        // creation raise exception.
     }
 }

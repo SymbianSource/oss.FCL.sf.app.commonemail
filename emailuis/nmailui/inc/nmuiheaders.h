@@ -42,6 +42,7 @@
 #include <QNetworkDiskCache>
 #include <QWebSettings>
 #include <QPointer>
+#include <QTapGesture>
 #include <QPinchGesture>
 #include <QInputContext>
 
@@ -87,8 +88,10 @@
 #include <hbeffect.h>
 #include <hbmodeliterator.h>
 #include <hbscrollarea.h>
+#include <hbinputvkbhost.h>
+#include <hbindicator.h>
+#include <hbformatdialog.h>
 
-#ifdef Q_OS_SYMBIAN
 #include <cntservicescontact.h>
 #include <xqservicerequest.h>
 #include <qtcontacts.h>
@@ -97,7 +100,8 @@
 #include <xqappmgr.h>
 #include <xqserviceipcmarshal.h>
 #include <xqsharablefile.h>
-#endif
+#include <fmfiledialog.h>
+#include <xqaiwdecl.h>
 
 #include <nmcommon.h>
 
@@ -116,6 +120,9 @@
 #include <nmicons.h>
 #include <emailmailboxinfo.h>
 #include <email_services_api.h>
+
+// other
+#include <math.h>
 
 // nmailui
 #include "nmhtmllineedit.h"

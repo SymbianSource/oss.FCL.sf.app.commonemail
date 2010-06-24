@@ -16,12 +16,8 @@
 */
 
 #include "nmuiheaders.h"
-#ifdef Q_OS_SYMBIAN
 #include <email_services_api.h>
 #include <e32base.h>
-#else
-#define NM_WINS_ENV
-#endif
 
 static const QString NmSendServiceName = "nmail.com.nokia.symbian.IFileShare";
 
@@ -33,7 +29,7 @@ static const QString NmSendServiceName = "nmail.com.nokia.symbian.IFileShare";
 /*!
     Constructor
 */
-NmApplication::NmApplication(QObject *parent)
+NmApplication::NmApplication(QObject *parent, quint32 accountId)
 :QObject(parent),
 mMainWindow(NULL),
 mViewStack(NULL),
@@ -48,17 +44,12 @@ mEffects(NULL),
 mAttaManager(NULL),
 mSettingsViewLauncher(NULL),
 mViewReady(false),
-mQueryDialog(NULL)
+mQueryDialog(NULL),
+mBackButtonPressed(false)
 {
     NM_FUNCTION;
 
-    // TEMPORARY WORKAROUND TO PREVENT PANIC User panic 66, where there is
-    // a PushL call to cleanup stack without any TRAP.
-#ifdef Q_OS_SYMBIAN
     TRAP_IGNORE(mUiEngine = NmUiEngine::instance());
-#else
-    mUiEngine = NmUiEngine::instance();
-#endif
 
     // Create network access manager and cache for application use.
     mNetManager = new NmViewerViewNetManager(*mUiEngine);
@@ -71,7 +62,6 @@ mQueryDialog(NULL)
     // attachment manager can be shared between viewer and editor, ownership in application class
     mAttaManager = new NmAttachmentManager(*mUiEngine);
 
-#ifndef NM_WINS_ENV
     mSendServiceInterface =
             new NmSendServiceInterface(NmSendServiceName, NULL, *mUiEngine, this);
     mSendServiceInterface2 =
@@ -82,7 +72,12 @@ mQueryDialog(NULL)
             new NmMailboxServiceInterface(NULL, *mUiEngine, this);
     mViewerServiceInterface =
             new NmViewerServiceInterface(NULL, this, *mUiEngine);
-#endif
+
+    if(accountId != 0) {
+        QVariant mailbox;
+        mailbox.setValue(mUiEngine->getPluginIdByMailboxId(accountId).id());
+        mMailboxServiceInterface->displayInboxByMailboxId(mailbox);
+    }
 
     mEffects = new NmUiEffects(*mMainWindow);
 }
@@ -94,18 +89,16 @@ NmApplication::~NmApplication()
 {
     NM_FUNCTION;
 
-    if (mQueryDialog){
+    if (mQueryDialog) {
         delete mQueryDialog;
         mQueryDialog=NULL;
     }
 
-#ifndef NM_WINS_ENV
 	delete mSendServiceInterface;
 	delete mSendServiceInterface2;
 	delete mUriServiceInterface;
 	delete mMailboxServiceInterface;
 	delete mViewerServiceInterface;
-#endif
 
 	resetViewStack();
     delete mViewStack;
@@ -114,12 +107,12 @@ NmApplication::~NmApplication()
     mUiEngine = NULL;
     delete mBackAction;
     delete mExtensionManager;
-    if (mNetManager){
-        if (mNetManager->cache()){
+    if (mNetManager) {
+        if (mNetManager->cache()) {
             mNetManager->cache()->clear();
         }
     delete mNetManager;
-    mNetManager=NULL;
+    mNetManager = NULL;
     }
     // Effects needs to be deleted before MainWindow.
     delete mEffects;
@@ -139,11 +132,7 @@ void NmApplication::createMainWindow()
 {
     NM_FUNCTION;
 
-#ifndef NM_WINS_ENV
     bool service = XQServiceUtil::isService();
-#else
-    bool service = false;
-#endif
 
     // Register custom widget files
     HbStyleLoader::registerFilePath(":nmmessagelistviewitem.widgetml");
@@ -190,11 +179,17 @@ void NmApplication::createMainWindow()
         enterNmUiView(startParam);
     }
 
-    // Start to filter main window events to get "end key" event in all possible situations. Using
-    // event() is not enough to catch the event as it is only called if the view widget has the
-    // focus. Note: if key capturing (xqkeycapture.h) is required it is probably best to implement
-    // an own QMainWindow class and do the capturing there, not in the views.
-    mMainWindow->installEventFilter(this);
+    if (mMainWindow) {
+        // Start to filter main window events to get "end key" event in all possible situations. Using
+        // event() is not enough to catch the event as it is only called if the view widget has the
+        // focus. Note: if key capturing (xqkeycapture.h) is required it is probably best to implement
+        // an own QMainWindow class and do the capturing there, not in the views.
+        mMainWindow->installEventFilter(this);
+    
+        // Optimize the custom paint functions. 
+        // Currently effects to NmViewerHeader::paint & NmAttachmentListWidget::paint
+        mMainWindow->setOptimizationFlag(QGraphicsView::DontSavePainterState);    
+    }
 }
 
 /*!
@@ -206,9 +201,9 @@ void NmApplication::viewReady()
     NM_FUNCTION;
 
     mViewReady = true;
-    if (!mViewStack->isEmpty()) {
+    if (mViewStack && !mViewStack->isEmpty()) {
     	NmBaseView *currentView = mViewStack->top();
-        if (currentView){
+        if (currentView) {
             currentView->viewReady();
         }
     }
@@ -222,7 +217,7 @@ bool NmApplication::eventFilter(QObject *obj, QEvent *event)
 {
     NM_FUNCTION;
 
-    bool consumed = false;
+    bool consumed(false);
 
     if (obj && obj == mMainWindow && event && event->type() == QEvent::KeyPress) {
         QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
@@ -247,7 +242,7 @@ void NmApplication::pushView(NmBaseView *newView)
 {
     NM_FUNCTION;
 
-    if (newView) {
+    if (newView && mViewStack) {
         NM_COMMENT("nmailui: view exists");
         newView->setNavigationAction(mBackAction);
 
@@ -272,13 +267,13 @@ void NmApplication::pushView(NmBaseView *newView)
 
         // Set toolbars orientation
         HbToolBar *tb = newView->toolBar();
-        if(tb){
+        if (tb) {
             tb->setOrientation(Qt::Horizontal);
         }
 
         // hide old view
         NM_COMMENT("nmailui: removeView");
-        if (hideView){
+        if (hideView) {
             mMainWindow->removeView(hideView);
         }
 
@@ -292,16 +287,25 @@ void NmApplication::pushView(NmBaseView *newView)
  */
 void NmApplication::prepareForPopView()
 {
-    if (mViewStack->size() > 0) {
+    if (mViewStack && mViewStack->size() > 0) {
         // Get view pointer
         NmBaseView *view = mViewStack->top();
-
-        // View will call/signal popView if exitting is ok.
-        view->okToExitView();
+        if (view){
+			NmUiViewId topViewId = view->nmailViewId();
+			
+			// We must know in popView, are we coming with back button from message view
+			// to prevent the send animation.
+			if (topViewId == NmUiViewMessageEditor) {
+				mBackButtonPressed = true;
+			}
+            
+            // View will call/signal popView if exitting is ok.
+            view->okToExitView();        
+        }
     }
     // If the view stack is now empty quit the app
     // This happens also when the app has been started as a service
-    else if (mViewStack->size() == 0) {
+    else if (mViewStack && mViewStack->size() == 0) {
         exitApplication();
     }
 }
@@ -312,70 +316,72 @@ void NmApplication::prepareForPopView()
 void NmApplication::popView()
 {
     NM_FUNCTION;
-
-    if (mViewStack->size() > 0) {
-        // Get view pointer
-        NmBaseView *view = mViewStack->top();
-
-        // ask view if it's ok to exit
-        NmUiViewId topViewId = view->nmailViewId();
-
-        // Prepare for send animation if returing from editor and message has been sent.
-        if (topViewId == NmUiViewMessageEditor && mUiEngine->isSendingMessage()) {
-            mEffects->prepareEffect(NmUiEffects::NmEditorSendMessageAnimation);
-        }
-        mViewStack->pop();
-        // Call custom exit function
-        view->aboutToExitView();
-        // Remove view from stack.
-        mMainWindow->removeView(view);
-
-        // if we were in editor and sent a message, pop viewer from stack first
-        // so we can go straight to mail list
-        if (!mViewStack->isEmpty() && topViewId == NmUiViewMessageEditor &&
-            mUiEngine->isSendingMessage() &&
-            mViewStack->top()->nmailViewId() == NmUiViewMessageViewer) {
-            NmBaseView *tmpView = mViewStack->pop();
-            mMainWindow->removeView(tmpView);
-            delete tmpView;
-            tmpView = NULL;
-        }
-
-        if (!mViewStack->isEmpty()) {
-            // Activate next view in stack
-            NmBaseView *showView = mViewStack->top();
-            mMainWindow->addView(showView);
-            mMainWindow->setCurrentView(showView);
-            // Store activated view id
-            mActiveViewId=showView->nmailViewId();
-            // Perform send animation if requested.
-            mEffects->startEffect(NmUiEffects::NmEditorSendMessageAnimation);
-        }
-
-        delete view;
-        view = NULL;
-
-#ifndef NM_WINS_ENV
-        // If view was started as service, move the app now
-        // to the background, unless it was started when the app
-        // was already in foreground..
-        if (mServiceViewId == topViewId) {
-            mServiceViewId = NmUiViewNone;
-            NM_COMMENT("Returned from service view");
-
-            // if started as embedded or while the app was in foreground,
-            // do not hide the app
-            if (!XQServiceUtil::isEmbedded() &&
-                !mForegroundService) {
-                XQServiceUtil::toBackground(true);
+    if (mViewStack && mViewStack->size() > 0) {
+        NmBaseView *view = mViewStack->top();    
+        if (view) {
+            // Get top view id
+            NmUiViewId topViewId = view->nmailViewId();
+    
+            // Prepare for send animation if returing from editor and message has been sent.
+            if (topViewId == NmUiViewMessageEditor && mUiEngine->isSendingMessage()) {
+				// If we are coming from message editor with back button
+				// do not prepare the send animation.
+				if (!mBackButtonPressed) {
+					mEffects->prepareEffect(NmUiEffects::NmEditorSendMessageAnimation);
+				}
+	        }
+            mBackButtonPressed = false;
+            mViewStack->pop();
+            // Call custom exit function
+            view->aboutToExitView();
+            // Remove view from stack.
+            mMainWindow->removeView(view);
+    
+            // if we were in editor and sent a message, pop viewer from stack first
+            // so we can go straight to mail list
+            if (!mViewStack->isEmpty() && topViewId == NmUiViewMessageEditor &&
+                mUiEngine->isSendingMessage() &&
+                mViewStack->top()->nmailViewId() == NmUiViewMessageViewer) {
+                NmBaseView *tmpView = mViewStack->pop();
+                mMainWindow->removeView(tmpView);
+                delete tmpView;
+                tmpView = NULL;
+            }
+    
+            if (!mViewStack->isEmpty()) {
+                // Activate next view in stack
+                NmBaseView *showView = mViewStack->top();
+                mMainWindow->addView(showView);
+                mMainWindow->setCurrentView(showView);
+                // Store activated view id
+                mActiveViewId=showView->nmailViewId();
+                // Perform send animation if requested.
+                mEffects->startEffect(NmUiEffects::NmEditorSendMessageAnimation);
+            }
+    
+            delete view;
+            view = NULL;
+    
+            // If view was started as service, move the app now
+            // to the background, unless it was started when the app
+            // was already in foreground..
+            if (mServiceViewId == topViewId) {
+                mServiceViewId = NmUiViewNone;
+                NM_COMMENT("Returned from service view");
+    
+                // if started as embedded or while the app was in foreground,
+                // do not hide the app
+                if (!XQServiceUtil::isEmbedded() &&
+                    !mForegroundService) {
+                    XQServiceUtil::toBackground(true);
+                }
             }
         }
-#endif
     }
 
     // If the view stack is now empty quit the app
     // This happens also when the app has been started as a service
-    if (mViewStack->size()==0) {
+    if (mViewStack && mViewStack->size() == 0) {
         exitApplication();
     }
 }
@@ -390,12 +396,12 @@ void NmApplication::resetViewStack()
     if (mViewStack && !mViewStack->isEmpty()) {
 	    int viewCount = mViewStack->count();
         // Pop and destroy all views
-	    for (int i=0;i<viewCount;i++) {
+	    for (int i=0 ; i < viewCount ; i++) {
 		    NmBaseView *view = mViewStack->pop();
             mMainWindow->removeView(view);
             delete view;
         }
-	    mActiveViewId=NmUiViewNone;
+	    mActiveViewId = NmUiViewNone;
     }
 }
 
@@ -404,7 +410,7 @@ void NmApplication::resetViewStack()
     If requested view is already open, it is requested to reload.
     Otherwise view object is created and pushed to view stack
 */
-void NmApplication::enterNmUiView(NmUiStartParam* startParam)
+void NmApplication::enterNmUiView(NmUiStartParam *startParam)
 {
     NM_FUNCTION;
 
@@ -422,11 +428,11 @@ void NmApplication::enterNmUiView(NmUiStartParam* startParam)
 		    mForegroundService = true;
 
 		    // at least one view must remain in the stack
-			while (mViewStack->count()>1) {
+			while (mViewStack->count( )> 1) {
 			    NmUiViewId topId = mViewStack->top()->nmailViewId();
-			    if (topId!=NmUiViewMessageEditor &&
-			        topId!=NmUiViewMailboxList &&
-			        topId!=startParam->viewId()) {
+			    if (topId != NmUiViewMessageEditor &&
+			        topId != NmUiViewMailboxList &&
+			        topId != startParam->viewId()) {
 			        prepareForPopView();
 			    }
 			    else {
@@ -440,7 +446,7 @@ void NmApplication::enterNmUiView(NmUiStartParam* startParam)
         // Check whether requested view is already active
         // and if so, ask it to reload contents with new start parameter data
         // Do not reuse the view if started as service to editor view (ShareUI)
-        if (mActiveViewId==startParam->viewId() &&
+        if (mActiveViewId == startParam->viewId() &&
         	(!startParam->service() || mActiveViewId!=NmUiViewMessageEditor)) {
             mViewStack->top()->reloadViewContents(startParam);
         }
@@ -499,7 +505,7 @@ void NmApplication::enterNmUiView(NmUiStartParam* startParam)
                 default:
                     // Reset view stack and exit application
                     delete startParam;
-                    startParam=NULL;
+                    startParam = NULL;
                     resetViewStack();
                     break;
             }
@@ -521,7 +527,6 @@ void NmApplication::exitApplication()
 {
     NM_FUNCTION;
 
-#ifndef NM_WINS_ENV
     delete mSendServiceInterface;
     mSendServiceInterface = NULL;
     delete mSendServiceInterface2;
@@ -532,9 +537,7 @@ void NmApplication::exitApplication()
     mMailboxServiceInterface = NULL;
     delete mViewerServiceInterface;
     mViewerServiceInterface = NULL;
-#endif
     resetViewStack();
-    // Do housekeeping if needed.
     qApp->quit();
 }
 
@@ -546,13 +549,13 @@ void NmApplication::delayedExitApplication()
     NM_FUNCTION;
 
     // Exit the application in the next event loop
-    QTimer::singleShot(0, this, SLOT(exitApplication()));
+    QMetaObject::invokeMethod(this, "exitApplication", Qt::QueuedConnection);
 }
 
 /*!
     Getter for main window instance.
 */
-HbMainWindow* NmApplication::mainWindow()
+HbMainWindow *NmApplication::mainWindow()
 {
     NM_FUNCTION;
 
@@ -562,7 +565,7 @@ HbMainWindow* NmApplication::mainWindow()
 /*!
     Getter for main UI extension manager
 */
-NmUiExtensionManager& NmApplication::extManager()
+NmUiExtensionManager &NmApplication::extManager()
 {
     NM_FUNCTION;
 
@@ -572,7 +575,7 @@ NmUiExtensionManager& NmApplication::extManager()
 /*!
     Getter for network access manager
 */
-NmViewerViewNetManager& NmApplication::networkAccessManager()
+NmViewerViewNetManager &NmApplication::networkAccessManager()
 {
     NM_FUNCTION;
 
@@ -592,9 +595,9 @@ QSize NmApplication::screenSize()
         HbDeviceProfile altP(currentP.alternateProfileName());
         QSize curPSize = currentP.logicalSize();
         QSize altPSize = altP.logicalSize();
-        if (mMainWindow->orientation()==Qt::Horizontal){
+        if (mMainWindow->orientation() == Qt::Horizontal) {
             // Get wide profile size in landscape
-            if (curPSize.width()>altPSize.width()){
+            if (curPSize.width() > altPSize.width()) {
                 ret = curPSize;
             }
             else{
@@ -603,7 +606,7 @@ QSize NmApplication::screenSize()
         }
         else {
             // Get narrow profile size in portrait
-            if (curPSize.width()<altPSize.width()){
+            if (curPSize.width() < altPSize.width()) {
                 ret = curPSize;
             }
             else{
@@ -621,27 +624,27 @@ void NmApplication::handleOperationCompleted(const NmOperationCompletionEvent &e
 {
     NM_FUNCTION;
 
-    if(event.mCompletionCode != NmNoError && event.mCompletionCode != NmCancelError) {
-        if(event.mOperationType == Synch && event.mCompletionCode == NmAuthenticationError) {
-            mLastOperationMailbox=event.mMailboxId;
-            if (mQueryDialog){
+    if (event.mCompletionCode != NmNoError && event.mCompletionCode != NmCancelError) {
+        if (event.mOperationType == Synch && event.mCompletionCode == NmAuthenticationError) {
+            mLastOperationMailbox = event.mMailboxId;
+            if (mQueryDialog) {
                 delete mQueryDialog;
-                mQueryDialog=NULL;
+                mQueryDialog = NULL;
             }
             mQueryDialog = NmUtilities::displayQuestionNote(hbTrId("txt_mail_dialog_address_or_password_incorrect"),
                                                     this, SLOT(launchSettings(HbAction*)));
         }
-        if(event.mOperationType == Synch && event.mCompletionCode == NmServerConnectionError) {
+        if (event.mOperationType == Synch && event.mCompletionCode == NmServerConnectionError) {
             mLastOperationMailbox=event.mMailboxId;
-            if (mQueryDialog){
+            if (mQueryDialog) {
                 delete mQueryDialog;
-                mQueryDialog=NULL;
+                mQueryDialog = NULL;
             }
             mQueryDialog = NmUtilities::displayQuestionNote(hbTrId("txt_mail_dialog_server_settings_incorrect"),
                                                     this, SLOT(launchSettings(HbAction*)));
         }
         // following applies to all operation/event types
-        if(event.mCompletionCode == NmConnectionError) {
+        if (event.mCompletionCode == NmConnectionError) {
             NmUtilities::displayWarningNote(hbTrId("txt_mail_dialog_mail_connection_error"));
         }
     }
@@ -660,14 +663,11 @@ void NmApplication::launchSettings(HbAction* action)
         if(!mSettingsViewLauncher) {
             mSettingsViewLauncher = new NmSettingsViewLauncher();
             }
-
-        if(mSettingsViewLauncher) {
-            // mailboxname required
-            NmMailboxMetaData *mailboxMetaData = mUiEngine->mailboxById(mLastOperationMailbox); // no ownership
-            if( mailboxMetaData ) {
-                // launch
-                mSettingsViewLauncher->launchSettingsView(mLastOperationMailbox, mailboxMetaData->name());
-            }
+        // mailboxname required
+        NmMailboxMetaData *mailboxMetaData = mUiEngine->mailboxById(mLastOperationMailbox); // no ownership
+        if( mailboxMetaData ) {
+            // launch
+            mSettingsViewLauncher->launchSettingsView(mLastOperationMailbox, mailboxMetaData->name());
         }
     }
 }
@@ -680,7 +680,7 @@ bool NmApplication::updateVisibilityState()
 {
     // At the moment there is no good way to check the foreground state
     QWindowSurface *surface = mMainWindow->windowSurface();
-	mForegroundService = (surface != NULL);
+	mForegroundService = (surface != 0);
 	NM_COMMENT(QString("NmApplication::updateVisibilityState fg=%1").arg(mForegroundService));
 	return mForegroundService;
 }

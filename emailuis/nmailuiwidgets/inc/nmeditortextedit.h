@@ -21,10 +21,6 @@
 #include <hbtextedit.h>
 #include "nmailuiwidgetsdef.h"
 
-class NmBaseViewScrollArea;
-class HbScrollArea;
-
-
 class NMAILUIWIDGETS_EXPORT NmEditorTextEdit : public HbTextEdit
 {
 Q_OBJECT
@@ -33,32 +29,16 @@ public:
     NmEditorTextEdit(QGraphicsItem *parent = 0);
     virtual ~NmEditorTextEdit();
 
-    void init(NmBaseViewScrollArea *bgScrollArea);
-    qreal contentHeight() const;
-
     void setCustomTextColor(const QPair<bool, QColor> &customColor);
     void setCustomTextColor(bool useCustom, const QColor& color = Qt::black);
     QPair<bool, QColor> customTextColor() const;
 
-signals:
-    void editorContentHeightChanged();
+    QRectF rectForPosition(int position);
 
 public slots:
-    void updateEditorHeight();
-    void setHeaderHeight(int);
-    void setScrollPosition(int oldPos, int newPos);
-    void updateScrollPosition(const QPointF &newPosition);
     void updateCustomTextColor();
 
 private:
-    HbScrollArea *mScrollArea;
-    NmBaseViewScrollArea *mBackgroundScrollArea;
-    qreal mPreviousContentsHeight;
-    int mHeaderHeight;
-    QPointF mBgScrollPosition;
-    bool mFirstTime;
-    bool mFirstTimeToScrollPosUpdate;
-    
     QPair<bool, QColor> mCustomTextColor;//!<This property keeps info about using customTextColor and color to use. 
 };
 

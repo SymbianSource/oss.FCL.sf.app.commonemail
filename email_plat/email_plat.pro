@@ -19,6 +19,7 @@ TEMPLATE = subdirs
 
 symbian*: { 
     include(email_services_api/email_services_api.pri)
-
+    include(nmail_settings_api/nmail_settings_api.pri)
     include(nmail_client_api/nmail_client_api.pri)
+    include(email_client_api/email_client_api.pri)
 }

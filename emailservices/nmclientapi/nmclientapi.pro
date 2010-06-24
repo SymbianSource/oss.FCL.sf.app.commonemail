@@ -44,15 +44,15 @@ HEADERS   += nmapiprivateheaders.h \
              nmapidatapluginfactory.h \
              nmapiengine.h \
              nmmessagepart.h  \
-             nmapicommon.h
+             nmapicommon.h \
+			 nmapimessagemanager.h \
+			 nmoperation.h
              
 #headers  and sources from api             
 SOURCES   += nmapitypesconverter.cpp \
              nmapidatapluginfactory.cpp \
              nmapiemailservice.cpp \
              nmapiengine.cpp 
-
-
 
 HEADERS   += nmapicommonheader.h \
              nmapiemailservice.h \
@@ -63,18 +63,24 @@ HEADERS   += nmapicommonheader.h \
              nmapifolderlisting.h \
              nmapienvelopelisting_p.h \
              nmapienvelopelisting.h \
-	     nmapiemailaddress_p.h \
-	     nmapiemailaddress.h \
-	     nmapieventnotifier_p.h \
-	     nmapieventnotifier.h \
-	     nmapifolder_p.h \
-	     nmapifolder.h \
-	     nmapimailbox_p.h \
-	     nmapimailbox.h \
-	     nmapimessagebody_p.h \
-	     nmapimessagebody.h \
-	     nmapimessageenvelope_p.h \
-	     nmapimessageenvelope.h
+             nmapiemailaddress_p.h \
+             nmapiemailaddress.h \
+             nmapieventnotifier_p.h \
+             nmapieventnotifier.h \
+             nmapifolder_p.h \
+             nmapifolder.h \
+             nmapimailbox_p.h \
+             nmapimailbox.h \
+             nmapimessagebody_p.h \
+             nmapimessagebody.h \
+             nmapimessageenvelope_p.h \
+             nmapimessageenvelope.h \
+             nmapimailboxsettingsdata_p.h \
+             nmapimailboxsettingsdata.h \
+             ../inc/nmapimailboxsettings_p.h \
+             ../../email_plat/nmail_settings_api/nmapimailboxsettings.h \
+             ../inc/nmapipopimapsettingsmanager.h \
+	     	 ../inc/nmapimessagemanager_p.h
 			 
 LIBS += -leuser
 LIBS += -llibc			
@@ -87,17 +93,24 @@ SOURCES   += nmapimessagetask.cpp \
              nmapifolderlisting.cpp \
              nmapienvelopelisting_p.cpp \
              nmapienvelopelisting.cpp \ 
-	     nmapiemailaddress.cpp \
-	     nmapieventnotifier_p.cpp \
-	     nmapieventnotifier.cpp \
-	     nmapifolder.cpp \
-	     nmapimailbox.cpp \
-	     nmapimessagebody.cpp \
-	     nmapimessageenvelope.cpp
+             nmapiemailaddress.cpp \
+             nmapieventnotifier_p.cpp \
+             nmapieventnotifier.cpp \
+             nmapifolder.cpp \
+             nmapimailbox.cpp \
+             nmapimessagebody.cpp \
+             nmapimessageenvelope.cpp \
+             nmapimailboxsettingsdata_p.cpp \
+             nmapimailboxsettingsdata.cpp \
+             ../src/nmapimailboxsettings_p.cpp \
+             ../src/nmapimailboxsettings.cpp \
+             nmapipopimapsettingsmanager.cpp \
+	         ../src/nmapimessagemanager_p.cpp \
+			 ../src/nmapimessagemanager.cpp
 
 
-             
-             
+
+
 
 symbian*: { 
     TARGET.EPOCALLOWDLLDATA = 1
@@ -107,8 +120,14 @@ symbian*: {
     TARGET.UID3 = 0x2002C366
     
     INCLUDEPATH += $$APP_LAYER_SYSTEMINCLUDE
+    DEPENDPATH += $$APP_LAYER_SYSTEMINCLUDE
+
 	
-	 LIBS += -lnmailbase
+	 LIBS += -lnmailbase \
+	 -limcm \
+	 -lxqsettingsmanager \
+	 -lxqutils \
+	 -lnmailuiengine
 				   
     defBlock = \      
       "$${LITERAL_HASH}if defined(MARM)" \

@@ -67,8 +67,10 @@ void NmEditorTextDocument::replyFinished(QNetworkReply *reply)
                 emit documentLayoutChanged();
             }
         }
-        mReplyList.removeAll(reply);
-        reply->deleteLater();
+        // If this has created the request, then this needs to handle deletion also.
+        if (mReplyList.removeAll(reply)) {
+            reply->deleteLater();
+        }
     }
 }
 

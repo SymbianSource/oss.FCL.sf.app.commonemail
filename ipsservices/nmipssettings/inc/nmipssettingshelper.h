@@ -104,7 +104,6 @@ public slots:
     void incomingMailServerTextChange(const QString &text);
     void saveOutgoingMailServer();
     void outgoingMailServerTextChange(const QString &text);
-    void handleModelDataChange(QModelIndex startIn, QModelIndex endIn);
     void incomingPortChange(int index);
     void incomingSecureConnectionItemChange(int index);
     void folderPathChange(int index);

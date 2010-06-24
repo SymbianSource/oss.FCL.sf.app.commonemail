@@ -43,8 +43,6 @@ NmMailboxSelectionDialog::NmMailboxSelectionDialog(
       mMailboxId(0)
 {
     NM_FUNCTION;
-    
-    // No implementation required.
 }
 
 
@@ -107,7 +105,7 @@ bool NmMailboxSelectionDialog::initializeUi()
     
     // Use the document loader to load the widgets.
     HbDocumentLoader documentLoader;
-    bool documentLoaded = false;
+    bool documentLoaded(false);
 
     QObjectList objectList;
     objectList.append(this);

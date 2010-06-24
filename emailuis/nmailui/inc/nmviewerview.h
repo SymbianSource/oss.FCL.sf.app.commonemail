@@ -105,8 +105,6 @@ private:
     void createToolBar();
     void setAttachmentList();
     void createAndShowWaitDialog();
-    void setWebViewWidth(int width);
-    void setWebViewHeighth(int height);
 
 private:
     NmApplication &mApplication;

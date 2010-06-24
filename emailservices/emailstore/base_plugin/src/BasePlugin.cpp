@@ -131,6 +131,8 @@ CBasePlugin::~CBasePlugin()
     iReqs.ResetAndDestroy();
     iReqs.Close();
     
+    iDelayedOpReqs.ResetAndDestroy();
+    iDelayedOpReqs.Close();
     ResetCache();
 
     __LOG_DESTRUCT
@@ -800,6 +802,7 @@ CBasePlugin::~CBasePlugin()
      CDelayedMessageToSendOp* delayedOp = CDelayedMessageToSendOp::NewLC(
     *this,aMailBoxId,aOperationObserver,aRequestId);
     iDelayedOpsManager->EnqueueOpL( delayedOp );
+    iDelayedOpReqs.AppendL(delayedOp);
     CleanupStack::Pop( delayedOp );      
     }
  // </qmail> 

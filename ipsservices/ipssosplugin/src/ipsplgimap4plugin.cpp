@@ -578,15 +578,14 @@ void CIpsPlgImap4Plugin::PopulateNewMailL(
     accounts->GetImapAccountL( aMailboxId.Id(), imapAcc );
     accounts->LoadImapSettingsL( imapAcc, *settings );
     TImImap4GetPartialMailInfo info;
-// <qmail>	
-    info.iPartialMailOptions = ENoSizeLimits;
-    //CIpsSetDataApi::ConstructImapPartialFetchInfo( info, *settings );
+// <qmail> Get TImImap4GetPartialMailInfo based on settings
+    CIpsPlgImap4ConnectOp::ConstructImapPartialFetchInfo( info, *settings );
     CleanupStack::PopAndDestroy( 2, settings );
-    /*
+
     if ( info.iTotalSizeLimit == KIpsSetDataHeadersOnly )
         {
         return;
-        }*/
+        }
 // </qmail>
     
     TPckgBuf<TImImap4GetPartialMailInfo> package(info);

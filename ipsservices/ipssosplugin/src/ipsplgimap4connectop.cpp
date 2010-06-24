@@ -19,11 +19,7 @@
 #include "emailtrace.h"
 #include "ipsplgheaders.h"
 
-// <qmail>
-const TInt KIpsSetDataHeadersOnly           = -2;
-const TInt KIpsSetDataFullBodyAndAttas      = -1;
-const TInt KIpsSetDataFullBodyOnly          = -3;
-// </qmail>
+// <qmail> removed
 
 // <qmail> KIpsPlgIpsConnPanic removed
 
@@ -488,12 +484,14 @@ void CIpsPlgImap4ConnectOp::ConstructImapPartialFetchInfo(
         }
     else
         {
+    //<qmail> include html in body
         aInfo.iTotalSizeLimit = sizeLimit*1024; 
         aInfo.iAttachmentSizeLimit = 0;
         aInfo.iMaxEmailSize = sizeLimit*1024;
         aInfo.iBodyTextSizeLimit = sizeLimit*1024;
         aInfo.iPartialMailOptions = EBodyAlternativeText;
         aInfo.iGetMailBodyParts = EGetImap4EmailBodyAlternativeText;
+    // </qmail>    
         }
     }
 

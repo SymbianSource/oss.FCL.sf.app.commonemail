@@ -40,7 +40,7 @@ NmFrameworkAdapter::NmFrameworkAdapter()
 : mFSfw(NULL),
   mSearchObserver(NULL),
   mCurrentMailBox(NULL),
-  mEmailExtension(NULL)
+  mStateExtension(NULL)
 {
     NM_FUNCTION;
     
@@ -59,13 +59,10 @@ NmFrameworkAdapter::~NmFrameworkAdapter()
 {
     NM_FUNCTION;
     
-    if (mCurrentMailBox && mEmailExtension) {
-        mCurrentMailBox->ReleaseExtension( mEmailExtension );
-    }
     delete mCurrentMailBox;
     mCurrentMailBox = NULL;
     
-    mEmailExtension = NULL;    
+    mStateExtension = NULL;    
     
     if (mSearchObserver) {
         delete mSearchObserver;
@@ -167,17 +164,17 @@ int NmFrameworkAdapter::getMailboxById(const NmId& id, NmMailbox*& mailbox)
 }
 
 /*!
-    Delete the mailbox with the given id. Not implemented yet.
+    Deletes the mailbox with the given id asynchronously.
 
-    \param id Id of the mailbox to be deleted.
+    \param mailboxId Id of the mailbox to be deleted.
 
     \return Error code.
  */
-int NmFrameworkAdapter::deleteMailboxById(const NmId& /*id*/)
+QPointer<NmOperation> NmFrameworkAdapter::deleteMailboxById(const NmId& mailboxId)
 {
     NM_FUNCTION;
-    
-    return 0;
+    QPointer<NmOperation> oper = new NmFwaDeleteMailboxOperation(mailboxId, *mFSfw);
+    return oper;
 }
 
 /*!
@@ -685,16 +682,15 @@ void NmFrameworkAdapter::doUpdateActiveFolderL(
     const NmId &mailboxId, const NmId &folderId)
 {
     if ((mFSfw) && (!mCurrentMailBox || mCurrentMailBox->GetId()!=mailboxId)) {
-        mEmailExtension = NULL;        
         delete mCurrentMailBox;
         mCurrentMailBox = NULL;
         mCurrentMailBox = mFSfw->GetMailBoxByUidL(mailboxId);
         }
     CEmailExtension *extension = getEMailStateExtensionL();
-    CMailboxStateExtension *boxExtension = 
+    CMailboxStateExtension *stateExtension = 
         static_cast<CMailboxStateExtension*>(extension);        
-    if (boxExtension) {
-        boxExtension->NotifyActiveFolderChanged(mailboxId, folderId);    
+    if (stateExtension) {
+        stateExtension->NotifyActiveFolderChanged(mailboxId, folderId);    
     }
 }
 
@@ -703,11 +699,12 @@ void NmFrameworkAdapter::doUpdateActiveFolderL(
  */
 CEmailExtension* NmFrameworkAdapter::getEMailStateExtensionL()
 {      
-    if (!mEmailExtension && mCurrentMailBox) {
-        mEmailExtension = 
-            mCurrentMailBox->ExtensionL(KEmailMailboxStateExtensionUid);
+    if (!mStateExtension && mCurrentMailBox) {
+        // This extension is owned and deleted by the plugin, so no need to
+        // use release unless the extension will be relocated into extensionbase.
+        mStateExtension =  mCurrentMailBox->ExtensionL(KEmailMailboxStateExtensionUid);
     }    
-    return mEmailExtension;
+    return mStateExtension;
 }
 
 /*!
@@ -1348,6 +1345,26 @@ int NmFrameworkAdapter::removeMessage(
 }
 
 /*!
+    Copy messages between folders from specific mailbox.
+
+    \param mailboxId Id of the mailbox containing messages.
+    \param messageIds The list of source message Ids.
+    \param newMessages The list of destination message Ids.
+    \param sourceFolderId Id of source folder.
+    \param destinationFolderId Id of destination folder.
+ */
+int NmFrameworkAdapter::copyMessages(
+    const NmId &mailboxId,
+    const QList<quint64>& messageIds,
+    const NmId& sourceFolderId,
+    const NmId& destinationFolderId)
+{
+    NM_FUNCTION;
+    TRAPD(error, copyMessagesL(mailboxId, messageIds, sourceFolderId, destinationFolderId));
+    return error;
+}
+
+/*!
     Subscribe to events from a mailbox.
 
     \param mailboxId Id of the mailbox.
@@ -1409,6 +1426,39 @@ void NmFrameworkAdapter::removeMessageL(
     CleanupStack::PopAndDestroy(folder);
 }
 
+/*!
+    Leaving version of copyMessages
+*/
+void NmFrameworkAdapter::copyMessagesL(
+    const NmId &mailboxId,
+    const QList<quint64>& messageIds,
+    const NmId& sourceFolderId,
+    const NmId& destinationFolderId)
+{
+    NM_FUNCTION;
+
+    RArray<TFSMailMsgId> messages;
+    RArray<TFSMailMsgId> copiedMessages;
+    
+    CleanupClosePushL(messages);
+    CleanupClosePushL(copiedMessages);
+    
+    for (TInt i = 0; i < messageIds.count(); i++) {
+        NmId tmpId(messageIds[i]);
+        messages.AppendL(TFSMailMsgId(tmpId));
+    }
+    
+    CFSMailBox* mailBox = NULL;
+    mailBox = mFSfw->GetMailBoxByUidL(mailboxId);
+    if (mailBox) {
+        mailBox->CopyMessagesL(messages, copiedMessages, 
+            TFSMailMsgId(sourceFolderId), 
+            TFSMailMsgId(destinationFolderId));
+        delete mailBox;
+    }
+    
+    CleanupStack::PopAndDestroy(2,&messages);    
+}
 
 /*!
    Sends the given message.

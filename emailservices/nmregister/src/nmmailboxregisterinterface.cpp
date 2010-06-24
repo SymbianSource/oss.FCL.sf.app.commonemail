@@ -19,7 +19,7 @@
 
 #include <qservicemanager.h>
 #include <qserviceinterfacedescriptor.h>
-#include <HbIcon>
+#include <hbicon.h>
 #include <HbApplication>
 #include <QTranslator>
 #include "nmicons.h"
@@ -33,6 +33,7 @@ const QString hsitemPublisherId("item:publisherId");
 //not mandatory 
 const QString hsItemWidgetUri("widget:uri");
 const QString hsItemDescription("item:description");
+const QString hsItemLocDescription("item:locdescription");
 //for icon - not mandatory 
 const QString hsIconFileName("icon:filename");//to display specific icon from file 
 const QString hsIconName("icon:name");// HbIcon 
@@ -198,7 +199,7 @@ bool NmMailboxRegisterInterfacePrivate::registerNewMailbox(
     map[hsitemLaunchUri] = formLaunchUri(accountId);
     map[hsitemPublisherId] = NmPublisherName;
     map[hsItemWidgetUri] = NmHsWidget;
-    map[hsItemDescription] = hbTrId("txt_mail_widget_dblist_preview_of_recent_mail");
+    map[hsItemLocDescription] = "loc://KNmRegisterLocFileName/txt_mail_widget_dblist_preview_of_recent_mail";
     map[hsIconFileName] = accountIconName;
     // to add widget params that are mapped to widgets properties
     map[NmHsWidgetParamAccountId] = QString::number(accountId);

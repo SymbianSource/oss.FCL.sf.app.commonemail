@@ -17,7 +17,7 @@
 
 #include "nmuiheaders.h"
 
-static const char *SendAnimation = ":/effects/mail_send.fxml";
+static const char *NmSendAnimation = ":/effects/mail_send.fxml";
 
 /*!
     \class NmEffects
@@ -55,32 +55,35 @@ void NmUiEffects::prepareEffect(NmUiEffectType effect)
     NM_FUNCTION;
     
     switch (effect) {
-    case NmEditorSendMessageAnimation:
-        // delete any existing stuff
-        resetSendAnimation();
+        case NmEditorSendMessageAnimation: {
+            // delete any existing stuff
+            resetSendAnimation();
+            
+            // This effect is for editor send message. Get the screen capture of
+            // editor view for animation which will be lauched soon.
+            mDoSendAnimation = true;
+    
+            // take screen shot
+            mSendAnimationScreenShot = screenShot();
+            
+            if (mSendAnimationScreenShot){
+                // Create graphics item based pixmap image but don't show it yet.
+                mSendAnimationScreenShot->hide();
+                mSendAnimationScreenShot->setPos(0,0);
+                mSendAnimationScreenShot->setZValue(0);
         
-        // This effect is for editor send message. Get the screen capture of
-        // editor view for animation which will be lauched soon.
-        mDoSendAnimation = true;
-
-        // take screen shot
-        mSendAnimationScreenShot = screenShot();
+                // Adds or moves the item and all its childen to this scene.
+                // This scene takes ownership of the item.
+                mMainWindow.scene()->addItem(mSendAnimationScreenShot);
         
-        // Create graphics item based pixmap image but don't show it yet.
-        mSendAnimationScreenShot->hide();
-        mSendAnimationScreenShot->setPos(0,0);
-        mSendAnimationScreenShot->setZValue(0);
-
-        // Adds or moves the item and all its childen to this scene.
-        // This scene takes ownership of the item.
-        mMainWindow.scene()->addItem(mSendAnimationScreenShot);
-
-        // Set editor screen capture visible before old view is popped.
-        // New view is drawn under this image.
-        mSendAnimationScreenShot->show();
-
-        HbEffect::add(mSendAnimationScreenShot, SendAnimation, "mail_send");
-        break;
+                // Set editor screen capture visible before old view is popped.
+                // New view is drawn under this image.
+                mSendAnimationScreenShot->show();
+        
+                HbEffect::add(mSendAnimationScreenShot, NmSendAnimation, "mail_send");        
+            }
+            break;
+        }
     }
 }
 
@@ -92,14 +95,15 @@ void NmUiEffects::startEffect(NmUiEffectType effect)
     NM_FUNCTION;
     
     switch (effect) {
-    case NmEditorSendMessageAnimation:
-        // Send message animation for editor view.
-        if (mDoSendAnimation && mSendAnimationScreenShot) {
-            mDoSendAnimation = false;
-            // Start animation and connect completion signal to sendAnimationComplete slot.
-            HbEffect::start(mSendAnimationScreenShot, "mail_send", this, "sendAnimationComplete");
+        case NmEditorSendMessageAnimation: {
+            // Send message animation for editor view.
+            if (mDoSendAnimation && mSendAnimationScreenShot) {
+                mDoSendAnimation = false;
+                // Start animation and connect completion signal to sendAnimationComplete slot.
+                HbEffect::start(mSendAnimationScreenShot, "mail_send", this, "sendAnimationComplete");
+            }
+            break;
         }
-        break;
     }
 }
 
@@ -113,8 +117,7 @@ QGraphicsPixmapItem *NmUiEffects::screenShot()
     
     // Grab whole view into pixmap image (also chrome is included)
     QPixmap screenCapture = QPixmap::grabWindow(mMainWindow.internalWinId());
-
-    QGraphicsPixmapItem *ret = NULL;
+    QGraphicsPixmapItem *ret(NULL);
     
     // for landscape, the screenshot must be rotated
     if(mMainWindow.orientation() == Qt::Horizontal) {
@@ -138,7 +141,7 @@ void NmUiEffects::resetSendAnimation()
     
     if (mSendAnimationScreenShot) {
         // Clean send animation
-        HbEffect::remove(mSendAnimationScreenShot, SendAnimation, "mail_send");
+        HbEffect::remove(mSendAnimationScreenShot, NmSendAnimation, "mail_send");
         // Ownership of QGraphicsPixmapItem is tranferred to GraphicsScene when it has been added
         // to it GraphicsScene.
         // GraphicsPixmapItem needs to be removed from the GraphicsScene before deleting

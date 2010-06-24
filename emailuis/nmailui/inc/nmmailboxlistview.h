@@ -33,7 +33,7 @@ class HbMenu;
 class HbAbstractViewItem;
 class NmAction;
 
-class NmMailboxListView : public NmBaseView, public NmActionObserver
+class NmMailboxListView : public NmBaseView
 {
     Q_OBJECT
 public:
@@ -48,9 +48,6 @@ public:
     void reloadViewContents(NmUiStartParam* startParam);
     NmUiViewId nmailViewId() const;
     void viewReady();
-
-public: // From NmActionObserver
-    void handleActionCommand(NmActionResponse &menuResponse);
 
 public slots:
     void itemActivated(const QModelIndex &index);

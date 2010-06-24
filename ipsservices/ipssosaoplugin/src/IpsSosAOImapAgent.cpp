@@ -33,7 +33,7 @@
 //<QMail>
 #include "IpsSosAOSettingsHandler.h"
 
-const TInt KIpsSetDataHeadersOnly           = -2;
+//<qmail> removed
 //</QMail>
 
 // from ipsplugin
@@ -368,10 +368,16 @@ void CIpsSosAOImapAgent::StartFetchMessagesL(
 void CIpsSosAOImapAgent::CancelAllAndDisconnectL()
     {
     FUNC_LOG;
+    // if we are already idle state, do nothing,
+    // completing in idle state might cause unvanted events to ui
+    if (iState == EStateIdle) 
+        {
+        return;
+        }
+    
     iDoNotDisconnect = EFalse;
     iState = EStateCompleted;
     iFoldersArray.Reset();
-
     if ( IsActive() )
         {
         Cancel();

@@ -18,53 +18,59 @@
 #ifndef EMAILTRACE_H
 #define EMAILTRACE_H
 
-#include <e32debug.h>
-#include <qdebug.h>
-#include <qfile.h>
-
-/*
- * The NM_TRACING_SYSTEM macro can be used to enable and disable the tracing
- * system in debug mode. The tracing system can be disabled in a specific
- * source file by defining the macro "NM_TRACING_SYSTEM 0" before this file
- * is included.
- */
-#ifndef NM_TRACING_SYSTEM
-#define NM_TRACING_SYSTEM 1
-#endif
+#include <QCoreApplication>
+#include <QDebug>
+#include <QFile>
+#include <QThread>
 
 /*
  * The macros NM_COMMENT_TRACES, NM_ERROR_TRACES, and NM_FUNCTION_TRACES
  * control which debug messages are printed. The trace logging is controlled
- * with the NM_LOG_TO_FILE macro, whereas the NM_LOG_FILE macro defines which
- * file is to be used in logging. The print_trace() helper function implements
- * printing. If NM_LOG_TO_FILE is zero or the NM_LOG_FILE cannot be opened,
- * the messages are printed to qDebug().
+ * with the NM_LOG_TO_FILE macro, whereas the NM_LOG_DIRECTORY macro defines
+ * which directory is to be used to store the log files. The print_trace()
+ * helper function implements printing. Log files are named according to
+ * process and thread IDs. If NM_LOG_TO_FILE is zero or a log file cannot be
+ * opened, the messages are printed to qDebug(). The DSC2STR() function can
+ * be used to convert Symbian descriptors to QString objects.
  */
-#if NM_TRACING_SYSTEM && (defined(DEBUG) || defined(_DEBUG))
+#if defined(DEBUG) || defined(_DEBUG)
 
-#define NM_COMMENT_TRACES  1
-#define NM_ERROR_TRACES    1
-#define NM_FUNCTION_TRACES 1
+#define NM_COMMENT_TRACES  0
+#define NM_ERROR_TRACES    0
+#define NM_FUNCTION_TRACES 0
 
 #if NM_COMMENT_TRACES || NM_ERROR_TRACES || NM_FUNCTION_TRACES
 
-#define NM_LOG_TO_FILE 0
-#define NM_LOG_FILE    "c:/data/logs/nmail_trace.log"
+#define NM_LOG_TO_FILE   1
+#define NM_LOG_DIRECTORY "c:/data/logs/"
 
 inline void print_trace(const QString& msg)
 {
-    static QFile file(NM_LOG_FILE);
+    static QFile file(NM_LOG_DIRECTORY+
+                      QString("nmail_p%1_t%2.log").
+                      arg(QCoreApplication::applicationPid()).
+                      arg(QThread::currentThreadId()));
     if (NM_LOG_TO_FILE && !file.isOpen()) {
         file.open(QIODevice::Append | QIODevice::Text);
     }
     if (file.isWritable()) {
-        QDebug(&file).nospace() << "[Nmail] " << msg << '\n';
+        QDebug(&file).nospace() << msg << '\n';
     } else {
         qDebug().nospace() << "[Nmail] " << msg;
     }
 }
 
 #endif
+
+inline QString DSC2STR(const TDesC& dsc)
+{
+    return QString::fromRawData(reinterpret_cast<const QChar*>(dsc.Ptr()),
+                                dsc.Length());
+}
+
+#else
+
+#define DSC2STR(dsc)
 
 #endif /* DEBUG */
 
@@ -142,7 +148,7 @@ do {\
 #define ERROR_3(err,msg,arg1,arg2,arg3)\
 do {\
     QString __msg;\
-    __msg.sprintf(msg,arg1,srg2,arg3);\
+    __msg.sprintf(msg,arg1,arg2,arg3);\
     NM_ERROR(err,__msg);\
 } while(0)
 #define ERROR_GEN(msg) ERROR(KErrGeneral,msg)
@@ -162,10 +168,12 @@ do {\
 
 /*
  * The macro NM_FUNCTION, when used inside a function body, enables tracing
- * for a function. ENTER and RETURN messages are printed when entering into
+ * for a function. If used, it should be placed on the first line of the
+ * function body. ENTER and RETURN messages are printed when entering into
  * and returning from a function, respectively. In case of an exception,
- * UNWIND (for stack unwinding) is printed. The FUNC_LOG macro is provided
- * for legacy compatibility. It is deprecated and should not be used.
+ * UNWIND (for stack unwinding) is printed instead of RETURN. The FUNC_LOG
+ * macro is provided for legacy compatibility. It is deprecated and should
+ * not be used.
  */
 #if NM_FUNCTION_TRACES
 

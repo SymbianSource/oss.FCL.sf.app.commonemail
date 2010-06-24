@@ -4,7 +4,6 @@
         <widget name="content" role="HbView:widget" type="HbWidget">
             <widget name="MessageTreeList" type="HbTreeView">
                 <real name="z" value="1"/>
-                <sizehint height="76.71642un" type="PREFERRED" width="53.73134un"/>
                 <fontspec name="fontSpec" role="Secondary" textheight="var(hb-param-text-height-secondary)"/>
             </widget>
             <widget name="MessageListNoMessages" type="HbLabel">
@@ -19,6 +18,7 @@
                 <sizepolicy horizontalPolicy="MinimumExpanding" horizontalStretch="0" verticalPolicy="Fixed" verticalStretch="0"/>
                 <sizehint height="6un" type="PREFERRED" width="52un"/>
                 <bool name="collapsable" value="FALSE"/>
+                <bool name="enabled" value="FALSE"/>
             </widget>
             <widget name="syncIcon" type="HbLabel">
                 <enums name="alignment" value="AlignAbsolute|AlignLeft|AlignVCenter|AlignJustify|AlignHCenter|AlignLeading"/>

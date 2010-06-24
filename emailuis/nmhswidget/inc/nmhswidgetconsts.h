@@ -23,7 +23,7 @@
  *************************************************/
 //Maximum amount of envelopes that can be provided to client in getData function
 //This is also the amount of envelopes that is kept in mData all the time
-const int KMaxNumberOfEnvelopesProvided = 2;
+const int KMaxNumberOfEnvelopesProvided = 3;
 //Maximum value for unread count
 const int KMaxUnreadCount = 999; 
 

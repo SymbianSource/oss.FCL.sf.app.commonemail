@@ -41,6 +41,7 @@ symbian*: {
         emailservices/emailcommon \
         emailservices/emailframework \
         emailservices/emailstore \
+        emailservices/emailclientapi \
         ipsservices \
         emailuis/nmframeworkadapter \
         emailservices/nmclientapi \

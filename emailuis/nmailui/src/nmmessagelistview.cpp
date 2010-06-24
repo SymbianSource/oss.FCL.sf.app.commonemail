@@ -20,10 +20,10 @@ static const char *NMUI_MESSAGE_LIST_VIEW = "NmMessageListView";
 static const char *NMUI_MESSAGE_LIST_TREE_LIST = "MessageTreeList";
 static const char *NMUI_MESSAGE_LIST_NO_MESSAGES = "MessageListNoMessages";
 static const char *NMUI_MESSAGE_LIST_FOLDER_LABEL = "labelGroupBox";
-// Old sync icon implementation commented out but preserved so it could be put back if need be
-// static const char *NMUI_MESSAGE_LIST_SYNC_ICON = "syncIcon";
 
 #include "nmuiheaders.h"
+
+const QString syncIndicatorName = "com.nokia.nmail.indicatorplugin.sync/1.0";
 
 /*! 
 	\class NmMessageListView
@@ -52,23 +52,18 @@ mItemContextMenu(NULL),
 mLongPressedItem(NULL),
 mNoMessagesLabel(NULL),
 mFolderLabel(NULL),
-mSyncIcon(NULL),
 mViewReady(false),
 mCurrentFolderType(NmFolderInbox),
 mSettingsLaunched(false),
-mPreviousModelCount(0)
+mPreviousModelCount(0),
+mIsFirstSyncInMessageList(true)
 {
     NM_FUNCTION;
 
-    // Load view layout
     loadViewLayout();
-    //create toolbar
     createToolBar();
-    // Init tree view
     initTreeView();
-    // set title
     setMailboxName();
-    // Set folder name
     setFolderName();
 }
 
@@ -95,14 +90,11 @@ void NmMessageListView::loadViewLayout()
     NM_FUNCTION;
 
     // Use document loader to load the view
-    bool ok = false;
+    bool ok(false);
     setObjectName(QString(NMUI_MESSAGE_LIST_VIEW));
-    QObjectList objectList;
-    objectList.append(this);
     // Pass the view to documentloader. Document loader uses this view
     // when docml is parsed, instead of creating new view.
     if (mDocumentLoader) {
-        mDocumentLoader->setObjectTree(objectList);
         mWidgetList = mDocumentLoader->load(NMUI_MESSAGE_LIST_VIEW_XML, &ok);
     }
 
@@ -144,19 +136,11 @@ void NmMessageListView::loadViewLayout()
 
         mFolderLabel = qobject_cast<HbGroupBox *>(mDocumentLoader->findWidget(NMUI_MESSAGE_LIST_FOLDER_LABEL));
 
-        // Disable the old sync icon implementation for the time being (commment out loading the icon here)
-        //mSyncIcon = qobject_cast<HbLabel *>(mDocumentLoader->findWidget(NMUI_MESSAGE_LIST_SYNC_ICON));
-        if (mSyncIcon) {
-            mSyncIcon->setIcon(NmIcons::getIcon(NmIcons::NmIconOffline));
-        }
-
         // Connect options menu about to show to create options menu function
         QObject::connect(menu(), SIGNAL(aboutToShow()),
                          this, SLOT(createOptionsMenu()));
         QObject::connect(&mUiEngine, SIGNAL(syncStateEvent(NmSyncState, const NmId &)),
                          this, SLOT(handleSyncStateEvent(NmSyncState, const NmId &)));
-        QObject::connect(&mUiEngine, SIGNAL(connectionEvent(NmConnectState, const NmId &)),
-                                        this, SLOT(handleConnectionEvent(NmConnectState, const NmId &)));
 
         // Menu needs one dummy item so that aboutToShow signal is emitted.
         NmAction *dummy = new NmAction(0);
@@ -235,7 +219,7 @@ void NmMessageListView::initTreeView()
 /*!
     Reload view contents with new start parameters
     Typically when view is already open and external view activation occurs
-    for this same view
+    for this same view. Startparam ownership is transferred to this view
 */
 void NmMessageListView::reloadViewContents(NmUiStartParam* startParam)
 {
@@ -281,44 +265,38 @@ void NmMessageListView::refreshList()
 {
     NM_FUNCTION;
 
-    NmId mailboxId = mMessageListModel->currentMailboxId();
-    if (mSyncIcon && mailboxId == mMessageListModel->currentMailboxId()) {
-        if (mUiEngine.syncState(mailboxId) == Synchronizing) {
-            mSyncIcon->setIcon(NmIcons::getIcon(NmIcons::NmIconSynching));
-        }
-        else {
-            if (mUiEngine.connectionState(mailboxId) == Connected) {
-                mSyncIcon->setIcon(NmIcons::getIcon(NmIcons::NmIconOnline));
+    if (mMessageListModel) {
+        NmId mailboxId = mMessageListModel->currentMailboxId();    
+        // In each refresh, e.g. in folder change the UI signals
+        // lower layer about the folder that has been opened.
+        if (mStartParam){
+            mUiEngine.updateActiveFolder(mailboxId, mStartParam->folderId());
+            
+            NmFolderType folderType = mUiEngine.folderTypeById(mStartParam->mailboxId(),
+                                              mStartParam->folderId());
+            if (folderType == NmFolderInbox) { // If the new folder is an inbox, first automatic sync should be shown
+                mIsFirstSyncInMessageList = true; 
             }
-            else {
-                mSyncIcon->setIcon(NmIcons::getIcon(NmIcons::NmIconOffline));
+        }
+
+        // Set item model to message list widget
+        if (mMessageListWidget) {
+            mMessageListWidget->setModel(static_cast<QStandardItemModel*>(mMessageListModel));
+            QObject::connect(mMessageListModel, SIGNAL(rowsInserted(const QModelIndex&,int,int)),
+                    this, SLOT(itemsAdded(const QModelIndex&,int,int)));
+            QObject::connect(mMessageListModel, SIGNAL(rowsRemoved(const QModelIndex&,int,int)),
+                    this, SLOT(itemsRemoved()));
+            QObject::connect(mMessageListModel, SIGNAL(setNewParam(NmUiStartParam*)),
+                    this, SLOT(reloadViewContents(NmUiStartParam*)));
+
+            mPreviousModelCount=mMessageListModel->rowCount();
+            if (mPreviousModelCount==0){
+                showNoMessagesText();
             }
-        }
-    }
-
-    // In each refresh, e.g. in folder change the UI signals
-    // lower layer about the folder that has been opened.
-    if (mStartParam){
-        mUiEngine.updateActiveFolder(mailboxId, mStartParam->folderId());
-    }
-
-    // Set item model to message list widget
-    if (mMessageListWidget) {
-        mMessageListWidget->setModel(static_cast<QStandardItemModel*>(mMessageListModel));
-        QObject::connect(mMessageListModel, SIGNAL(rowsInserted(const QModelIndex&,int,int)),
-                this, SLOT(itemsAdded(const QModelIndex&,int,int)));
-        QObject::connect(mMessageListModel, SIGNAL(rowsRemoved(const QModelIndex&,int,int)),
-                this, SLOT(itemsRemoved()));
-        QObject::connect(mMessageListModel, SIGNAL(setNewParam(NmUiStartParam*)),
-                this, SLOT(reloadViewContents(NmUiStartParam*)));
-
-        mPreviousModelCount=mMessageListModel->rowCount();
-        if (mPreviousModelCount==0){
-            showNoMessagesText();
-        }
-        else{
-            hideNoMessagesText();
-        }
+            else{
+                hideNoMessagesText();
+            }
+        }    
     }
 }
 
@@ -328,11 +306,9 @@ void NmMessageListView::refreshList()
 void NmMessageListView::handleSyncStateEvent(NmSyncState syncState, const NmId & mailboxId)
 {
     NM_FUNCTION;
-
-    if (mSyncIcon && mailboxId == mMessageListModel->currentMailboxId()) {
+    if (mMessageListModel && mailboxId == mMessageListModel->currentMailboxId()) {
         if (syncState == Synchronizing) {
-            mSyncIcon->setIcon(NmIcons::getIcon(NmIcons::NmIconSynching));
-            // before first sync inbox id might be zero
+             // before first sync inbox id might be zero
             if (mStartParam->folderId() == 0) {
                 // after sync inbox id should be updated to correct value
                 NmId folderId = mUiEngine.standardFolderId(
@@ -340,31 +316,13 @@ void NmMessageListView::handleSyncStateEvent(NmSyncState syncState, const NmId &
                     NmFolderInbox);
                 mStartParam->setFolderId(folderId);
             }
-        }
-        else {
-            if (mUiEngine.connectionState(mailboxId) == Connected) {
-                mSyncIcon->setIcon(NmIcons::getIcon(NmIcons::NmIconOnline));
+            // Show sync icon only for the first automatic sync after opening message list.
+            // Sync icon for manual sync is shown in NmUiEngine::refreshMailbox, not here.
+            if (mIsFirstSyncInMessageList) {
+                HbIndicator indicator;
+                indicator.activate(syncIndicatorName, QVariant());
+                mIsFirstSyncInMessageList = false;
             }
-            else {
-                mSyncIcon->setIcon(NmIcons::getIcon(NmIcons::NmIconOffline));
-            }
-        }
-    }
-}
-
-/*!
-    Connection event handling
-*/
-void NmMessageListView::handleConnectionEvent(NmConnectState connectState, const NmId &mailboxId)
-{
-    NM_FUNCTION;
-
-    if (mSyncIcon && mailboxId == mMessageListModel->currentMailboxId() && mUiEngine.syncState(mailboxId) != Synchronizing) {
-        if (connectState == Connected) {
-            mSyncIcon->setIcon(NmIcons::getIcon(NmIcons::NmIconOnline));
-        }
-        else {
-            mSyncIcon->setIcon(NmIcons::getIcon(NmIcons::NmIconOffline));
         }
     }
 }

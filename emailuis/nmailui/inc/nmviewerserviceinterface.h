@@ -21,44 +21,27 @@
 
 //  INCLUDES
 #include <QObject>
-#ifdef Q_OS_SYMBIAN
 #include <xqserviceprovider.h>
-#else
-#define NM_WINS_ENV
-#include <QVariant>
-#endif
-
 
 //  FORWARD DECLARATIONS
-class HbView;
 class NmApplication;
 class NmUiEngine;
 class NmId;
 
-#ifndef NM_WINS_ENV
 class NmViewerServiceInterface : public XQServiceProvider
-#else
-class NmViewerServiceInterface : public QObject
-#endif
 {
     Q_OBJECT
-
 public:
-
     NmViewerServiceInterface(QObject *parent,
                               NmApplication *application,
                               NmUiEngine &uiEngine);
-
     ~NmViewerServiceInterface();
 
 
 public slots:
-
     void viewMessage(QVariant mailboxId, QVariant folderId, QVariant messageId);
 
-
 private:
-
     NmApplication *mApplication; // Not owned
     NmUiEngine &mUiEngine;
     int mAsyncReqId;
