@@ -15,13 +15,7 @@
  *
  */
 
-#include "emailtrace.h"
-
-#include "nmapiengine.h"
-#include "nmapienvelopelisting_p.h"
-
-#include <nmapimailbox.h>
-#include <nmapimessageenvelope.h>
+#include "nmapiheaders.h"
 
 
 

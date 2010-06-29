@@ -180,68 +180,74 @@ void NmSettingsViewFactory::launchSettingView(const NmId &mailboxId,
     // There's always at least one valid main window available.
     HbMainWindow *mainWindow = hbInstance->allMainWindows().takeFirst();
 
-    CpBaseSettingView *view =
-        new NmMailboxSettingView(mailboxId, mailboxName, *mSettingsManager);
-
-    connect(mSettingsManager,
-            SIGNAL(mailboxListChanged(const NmId &, NmSettings::MailboxEventType)),
-            view, SLOT(mailboxListChanged(const NmId &, NmSettings::MailboxEventType)));
-
-    connect(mSettingsManager,
-            SIGNAL(mailboxPropertyChanged(const NmId &, QVariant, QVariant)),
-            view, SLOT(mailboxPropertyChanged(const NmId &, QVariant, QVariant)));
-
-    // Disconnect mSettingsViewLauncher's previous connections to be sure that signals which are
-    // offered out will be sent last.
-    mSettingsManager->disconnect(
-        SIGNAL(mailboxListChanged(const NmId &, NmSettings::MailboxEventType)),
-        mSettingsViewLauncher,
-        SIGNAL(mailboxListChanged(const NmId &, NmSettings::MailboxEventType)));
-
-    mSettingsManager->disconnect(
-        SIGNAL(mailboxPropertyChanged(const NmId &, QVariant, QVariant)),
-        mSettingsViewLauncher,
-        SIGNAL(mailboxPropertyChanged(const NmId &, QVariant, QVariant)));
-
-
-    // Reconnect mSettingsViewLauncher.
-    connect(mSettingsManager,
-            SIGNAL(mailboxListChanged(const NmId &, NmSettings::MailboxEventType)),
-            mSettingsViewLauncher,
-            SIGNAL(mailboxListChanged(const NmId &, NmSettings::MailboxEventType)));
-
-    connect(mSettingsManager,
-            SIGNAL(mailboxPropertyChanged(const NmId &, QVariant, QVariant)),
-            mSettingsViewLauncher,
-            SIGNAL(mailboxPropertyChanged(const NmId &, QVariant, QVariant)));
-
-    connect(mSettingsManager,
-            SIGNAL(goOnline(const NmId &)),
-            mSettingsViewLauncher,
-            SIGNAL(goOnline(const NmId &)), Qt::UniqueConnection);
-
-    connect(mSettingsManager,
-            SIGNAL(goOffline(const NmId &)),
-            mSettingsViewLauncher,
-            SIGNAL(goOffline(const NmId &)), Qt::UniqueConnection);
-
-    connect(this,
-            SIGNAL(aboutToClose()),
-            mSettingsManager,
-            SIGNAL(aboutToClose()), Qt::UniqueConnection);
-
-    // Create back navigation action for a view.
-    HbAction *action = new HbAction(Hb::BackNaviAction, view);
-    connect(action, SIGNAL(triggered()), this, SLOT(backPress()));
-    view->setNavigationAction(action);
-    mPrevView = mainWindow->currentView();
-    mainWindow->addView(view);
-    mainWindow->setCurrentView(view);
+    NmMailboxSettingView *currentSettingsView = 
+        qobject_cast<NmMailboxSettingView*>(mainWindow->currentView());
+    
+    // Let's have only one same settings view at a time open, 
+    // but if some other mailboxes settings view want's to open while 
+    // there is a settings view open let's open it also.
+    if (!currentSettingsView || (currentSettingsView->mailboxId().id() != mailboxId.id())) {
+        CpBaseSettingView *view =
+             new NmMailboxSettingView(mailboxId, mailboxName, *mSettingsManager);
+         
+         connect(mSettingsManager,
+                 SIGNAL(mailboxListChanged(const NmId &, NmSettings::MailboxEventType)),
+                 view, SLOT(mailboxListChanged(const NmId &, NmSettings::MailboxEventType)));
+     
+         connect(mSettingsManager,
+                 SIGNAL(mailboxPropertyChanged(const NmId &, QVariant, QVariant)),
+                 view, SLOT(mailboxPropertyChanged(const NmId &, QVariant, QVariant)));
+     
+         // Disconnect mSettingsViewLauncher's previous connections to 
+         // be sure that signals which are offered out will be sent last.
+         mSettingsManager->disconnect(
+             SIGNAL(mailboxListChanged(const NmId &, NmSettings::MailboxEventType)),
+             mSettingsViewLauncher,
+             SIGNAL(mailboxListChanged(const NmId &, NmSettings::MailboxEventType)));
+     
+         mSettingsManager->disconnect(
+             SIGNAL(mailboxPropertyChanged(const NmId &, QVariant, QVariant)),
+             mSettingsViewLauncher,
+             SIGNAL(mailboxPropertyChanged(const NmId &, QVariant, QVariant)));
+     
+         // Reconnect mSettingsViewLauncher.
+         connect(mSettingsManager,
+                 SIGNAL(mailboxListChanged(const NmId &, NmSettings::MailboxEventType)),
+                 mSettingsViewLauncher,
+                 SIGNAL(mailboxListChanged(const NmId &, NmSettings::MailboxEventType)));
+     
+         connect(mSettingsManager,
+                 SIGNAL(mailboxPropertyChanged(const NmId &, QVariant, QVariant)),
+                 mSettingsViewLauncher,
+                 SIGNAL(mailboxPropertyChanged(const NmId &, QVariant, QVariant)));
+     
+         connect(mSettingsManager,
+                 SIGNAL(goOnline(const NmId &)),
+                 mSettingsViewLauncher,
+                 SIGNAL(goOnline(const NmId &)), Qt::UniqueConnection);
+     
+         connect(mSettingsManager,
+                 SIGNAL(goOffline(const NmId &)),
+                 mSettingsViewLauncher,
+                 SIGNAL(goOffline(const NmId &)), Qt::UniqueConnection);
+     
+         connect(this,
+                 SIGNAL(aboutToClose()),
+                 mSettingsManager,
+                 SIGNAL(aboutToClose()), Qt::UniqueConnection);
+     
+         // Create back navigation action for a view.
+         HbAction *action = new HbAction(Hb::BackNaviAction, view);
+         connect(action, SIGNAL(triggered()), this, SLOT(backPress()));
+         view->setNavigationAction(action);
+         mPrevView = mainWindow->currentView();
+         mainWindow->addView(view);
+         mainWindow->setCurrentView(view);
+    }    
 }
 
-
 /*!
-   Handles back button press.
+   Handels back button press.
    Removes the current view from the main window and activates the previous view.
    Destroys removed view.
 */

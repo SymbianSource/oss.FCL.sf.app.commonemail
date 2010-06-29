@@ -14,14 +14,9 @@
  * Description:
  *     Email message related operations
  */
+ 
+#include "nmapiheaders.h"
 
-#include <nmapimessagemanager.h>
-#include <nmapidatapluginfactory.h>
-#include <nmdataplugininterface.h>
-#include <nmapifolder.h>
-#include <nmcommon.h>
-#include "nmapimessagemanager_p.h"
-#include "emailtrace.h"
 
 namespace EmailClientApi
 {

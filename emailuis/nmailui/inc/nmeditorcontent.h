@@ -46,9 +46,11 @@ public:
 
     void setMessageData(const NmMessage &originalMessage,
                         NmUiEditorStartMode &editorStartMode);
-    NmEditorTextEdit* editor() const;
-    NmEditorHeader* header() const;
 
+    NmEditorTextEdit* editor() const;
+
+    NmEditorHeader* header() const;
+    
 private:
     void createConnections();
     void removeEmbeddedImages(QString &bodyContent);
@@ -60,14 +62,13 @@ signals:
 
 public slots:
     void setEditorContentHeight();
-    void setScrollPosition(int oldPos, int newPos);
-    void updateScrollPosition(const QPointF &newPosition);
+    void ensureCursorVisibility();
 
 private:
     enum MessageBodyType { NmPlainText, NmHTMLText };
 
 private:
-    NmEditorHeader *mHeaderWidget; // Not owned
+    NmEditorHeader *mHeader; // Not owned
     MessageBodyType mMessageBodyType;
     NmEditorTextEdit *mEditorWidget; // Not owned
     NmBaseViewScrollArea *mScrollArea; // Not owned

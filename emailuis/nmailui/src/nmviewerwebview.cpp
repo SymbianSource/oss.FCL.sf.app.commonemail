@@ -11,8 +11,8 @@
  *
  * Contributors:
  *
- * Description:
- *
+ * Description: NMailUI web viewer. Inherits from
+ *              QGrapohicsWebView and handles gestures, etc.
  */
 
 #include "nmuiheaders.h"
@@ -23,7 +23,6 @@
 NmMailViewerWK::NmMailViewerWK()
 : QGraphicsWebView(),
   mContent(),
-  mParentView(NULL),
   mSuppressRelease(false)
 {
     // Subscribe this widget to tap and pinch gestures.
@@ -39,14 +38,6 @@ NmMailViewerWK::NmMailViewerWK()
 NmMailViewerWK::~NmMailViewerWK()
 {
     mContent.clear();
-}
-
-/*!
-    Sets the parent view.
- */
-void NmMailViewerWK::setParentView(NmViewerView *parentView)
-{
-    mParentView = parentView;
 }
 
 /*!
@@ -74,7 +65,6 @@ QVariant NmMailViewerWK::loadResource(int type, const QUrl &name, NmId &partId, 
             isFetched = mContent[key].mIsFetched;
             return mContent[key].mData;
         }
-        return 0;
     }
     return 0;
 }

@@ -15,25 +15,9 @@
  *
  */
 
-#include "emailtrace.h"
+#include "nmapiheaders.h"
 
-#include "nmdataplugininterface.h"
-#include "nmapidatapluginfactory.h"
 
-// Qt
-#include <QPluginLoader>
-#include <QDir>
-#include <QApplication>
-#include <QLocale>
-#include <QObject>
-
-// nmailbase
-#include "nmcommon.h"
-#include "nmmailbox.h"
-#include "nmmessageenvelope.h"
-#include "nmmessage.h"
-#include "nmmessagepart.h"
-#include "nmfolder.h"
 
 /*!
  \class NmApiDataPluginFactory

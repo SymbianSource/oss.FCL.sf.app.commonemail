@@ -15,16 +15,8 @@
  *
  */
 
-#include "emailtrace.h"
+#include "nmapiheaders.h"
 
-#include <QList>
-#include <QVariant>
-#include <QString>
-#include <QTimer>
-
-#include "nmapiengine.h"
-#include <nmapieventnotifier.h>
-#include "nmapieventnotifier_p.h"
 
 const quint32 IntervalEmitingSignals = 10000;
 

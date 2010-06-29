@@ -54,7 +54,7 @@ private:
     NmId mFolderId;
     NmId mMessageId;
     NmId mMessagePartId;
-    NmOperation *mOperation;
+    NmOperation *mOperation;    // Not owned
     qint64 mReadIndex;
 };
 

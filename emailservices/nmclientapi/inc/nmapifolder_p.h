@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef NMAPIMAILBOX_P_H
-#define NMAPIMAILBOX_P_H
+#ifndef NMAPIFOLDER_P_H
+#define NMAPIFOLDER_P_H
 
 #include <nmapicommon.h>
 
@@ -45,4 +45,4 @@ public:
 
 }
 
-#endif /* NMAPIMAILBOX_P_H_ */
+#endif /* NMAPIFOLDER_P_H */

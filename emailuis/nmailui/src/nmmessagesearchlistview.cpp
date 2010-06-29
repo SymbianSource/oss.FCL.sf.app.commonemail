@@ -187,7 +187,7 @@ void NmMessageSearchListView::loadViewLayout()
         mWidgetList = mDocumentLoader->load(NMUI_MESSAGE_SEARCH_LIST_VIEW_XML, &ok);
     }
 
-    if (ok && mWidgetList.count()) {
+    if (ok) {
         // Get the message list widget.
         mMessageListWidget = qobject_cast<HbTreeView *>(
             mDocumentLoader->findWidget(NMUI_MESSAGE_SEARCH_LIST_TREE_LIST));

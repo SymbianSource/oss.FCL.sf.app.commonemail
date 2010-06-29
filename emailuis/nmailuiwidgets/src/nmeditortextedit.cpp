@@ -33,9 +33,9 @@ NmEditorTextEdit::NmEditorTextEdit(QGraphicsItem *parent) :
 
     mCustomTextColor = QPair<bool, QColor>(false, Qt::black);
     
-    // Enable scrolling using cursor
-    setScrollable(true);
-    scrollArea()->setScrollDirections(Qt::Horizontal);
+    // Disable HbTextEdit scrolling. Background scroll area will handle scrolling.
+    setScrollable(false);
+    scrollArea()->setScrollDirections(0);
 
     // set background colour to plain white
     QPixmap whitePixmap(10,10);
@@ -46,6 +46,22 @@ NmEditorTextEdit::NmEditorTextEdit(QGraphicsItem *parent) :
     // disables highlight frame for now - new api to set the frame item should be release somewhere wk26
     setFocusHighlight(HbStyle::P_TextEdit_frame_highlight, HbWidget::FocusHighlightNone);
     
+    // Create custom palette based on the current one
+    QPalette testPalette = QApplication::palette();
+
+    // Sets the selection background colour
+    testPalette.setColor(QPalette::Active, QPalette::Highlight, Qt::cyan);
+    testPalette.setColor(QPalette::Inactive, QPalette::Highlight, Qt::cyan);
+
+    // Sets the link and visited link colours
+    testPalette.setColor(QPalette::Active, QPalette::Link, Qt::darkBlue);
+    testPalette.setColor(QPalette::Inactive, QPalette::Link, Qt::darkBlue);
+    testPalette.setColor(QPalette::Active, QPalette::LinkVisited, Qt::darkMagenta);
+    testPalette.setColor(QPalette::Inactive, QPalette::LinkVisited, Qt::darkMagenta);
+
+    // Update custom palette for this widget
+    setPalette(testPalette);
+
     connect(this, SIGNAL(contentsChanged()), this, SLOT(updateCustomTextColor()));
 }
 
@@ -135,10 +151,12 @@ QPair<bool, QColor> NmEditorTextEdit::customTextColor() const
 }
 
 /*!
- *  Returns the calculated rect in item coordinates of the editor for the the given \a position inside a document.
+ *  Returns the rectangle for the cursor.
  */
-QRectF NmEditorTextEdit::rectForPosition(int position)
+QRectF NmEditorTextEdit::rectForCursorPosition() const
 {
-    return HbTextEdit::rectForPosition(position);
+    NM_FUNCTION;
+    
+    return HbTextEdit::rectForPosition(cursorPosition());
 }
 

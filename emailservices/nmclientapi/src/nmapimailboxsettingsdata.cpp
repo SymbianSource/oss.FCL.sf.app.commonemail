@@ -14,8 +14,9 @@
  * Description:
  *
  */
-#include <nmapimailboxsettingsdata.h>
-#include "NmApiMailboxSettingsData_p.h"
+ 
+#include "nmapiheaders.h"
+
 
 namespace EmailClientApi
 {

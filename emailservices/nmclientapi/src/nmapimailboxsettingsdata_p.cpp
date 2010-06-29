@@ -15,14 +15,10 @@
  *
  */
 
-#include "nmapimailboxsettingsdata_p.h"
+#include "nmapiheaders.h"
 
-#include <nmapimailboxsettingsdata.h>
-#include <QObject>
-#include <QVariant>
-#include <QString>
-#include <QHash>
-#include "emailtrace.h"
+
+
 
 namespace EmailClientApi
 {

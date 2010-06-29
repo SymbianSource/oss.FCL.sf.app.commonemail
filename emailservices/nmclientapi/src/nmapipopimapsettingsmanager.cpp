@@ -15,13 +15,9 @@
 *
 */
 
-#include "nmapipopimapsettingsmanager.h"
+#include "nmapiheaders.h"
 
-#include <imapset.h>
-#include <pop3set.h>
-#include <iapprefs.h>
-#include <cemailaccounts.h>
-#include <xqconversions.h>
+
 
 
 static const int DefaultPopPort = 110;

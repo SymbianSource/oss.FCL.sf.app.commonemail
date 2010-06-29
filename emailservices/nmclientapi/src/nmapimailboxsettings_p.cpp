@@ -15,20 +15,8 @@
  *
  */
 
-#include "nmapimailboxsettings_p.h"
+#include "nmapiheaders.h"
 
-#include "nmdataplugininterface.h"
-#include "nmapidatapluginfactory.h"
-//#include "nmapipopimapsettingsmanager.h"
-#include "emailtrace.h"
-
-#include <nmapimailboxsettings.h>
-#include <nmapimailboxsettingsdata.h>
-
-#include <QVariant>
-#include <QString>
-#include <QHash>
-#include <QList>
 
 namespace EmailClientApi
 {
@@ -93,7 +81,8 @@ bool NmApiMailboxSettingsPrivate::createMailbox(
     NmApiMailboxSettingsData &data)
 {
     NM_FUNCTION;
-    
+    Q_UNUSED(mailboxType);
+    Q_UNUSED(data);
     bool ret = false;
     
     /*QT_TRY {
@@ -140,6 +129,8 @@ bool NmApiMailboxSettingsPrivate::populateDefaultSettings(
     const QString &mailboxType, NmApiMailboxSettingsData &data) 
 {
     NM_FUNCTION;
+    Q_UNUSED(mailboxType);
+    Q_UNUSED(data);
     /*QScopedPointer<NmApiPopImapSettingsManager> popImapManager(new NmApiPopImapSettingsManager());  
     return popImapManager->populateDefaults(mailboxType, data);*/
     return true;

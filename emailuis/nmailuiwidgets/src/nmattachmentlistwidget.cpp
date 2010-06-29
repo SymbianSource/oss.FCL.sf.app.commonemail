@@ -346,8 +346,7 @@ void NmAttachmentListWidget::constructUi()
     loader.setObjectTree(objectList);
     QObjectList widgetlist = loader.load(FILE_PATH_DOCML, &loadingOk);
 
-    int widgetCount = widgetlist.count();
-    if(loadingOk && widgetCount){
+    if(loadingOk){
         if(layout()){
             mLayout = dynamic_cast<QGraphicsGridLayout*>(layout());
             mLayout->setContentsMargins(0,0,0,0);

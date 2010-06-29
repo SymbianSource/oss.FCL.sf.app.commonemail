@@ -41,10 +41,9 @@ NmEditorView::NmEditorView(
       mUiEngine(uiEngine),
       mAttaManager(attaManager),
       mDocumentLoader(NULL),
-      mEditWidget(NULL),
       mHeaderWidget(NULL),
       mMessage(NULL),
-      mContentWidget(NULL),
+      mContent(NULL),
       mAttachmentListContextMenu(NULL),
       mMessageCreationOperation(NULL),
       mAddAttachmentOperation(NULL),
@@ -128,12 +127,10 @@ void NmEditorView::loadViewLayout()
             setWidget(view);
         }
 
-        mContentWidget = new NmEditorContent(this, mDocumentLoader, 
+        mContent = new NmEditorContent(this, mDocumentLoader, 
             mApplication.networkAccessManager(), mApplication);
 
-        mEditWidget = mContentWidget->editor();
-
-        mHeaderWidget = mContentWidget->header();
+        mHeaderWidget = mContent->header();
 
         // Set default color for user - entered text if editor is in re/reAll/fw mode
         if (mStartParam) {
@@ -141,7 +138,7 @@ void NmEditorView::loadViewLayout()
             if (mode == NmUiEditorReply
                 || mode == NmUiEditorReplyAll 
                 || mode == NmUiEditorForward) {
-                mEditWidget->setCustomTextColor(true, Qt::blue);
+                mContent->editor()->setCustomTextColor(true, Qt::blue);
             }
         }
 
@@ -188,11 +185,7 @@ void NmEditorView::orientationChanged(Qt::Orientation orientation)
 {
     NM_FUNCTION;
     
-    // If switching to horizontal, chrome must be hided
-    if (mVkbHost && orientation == Qt::Horizontal &&
-        mVkbHost->keypadStatus() == HbVkbHost::HbVkbStatusOpened) {
-        showChrome(false);
-    }
+    Q_UNUSED(orientation);
     
     // content widget height needs to be set according to the new orientation to get the scroll
 	// area work correctly
@@ -204,9 +197,7 @@ void NmEditorView::orientationChanged(Qt::Orientation orientation)
  */
 void NmEditorView::vkbOpened()
 {
-    if (mApplication.mainWindow()->orientation() == Qt::Horizontal) {
-        showChrome(false);	
-    }
+    showChrome(false);	
 }
 
 /*!
@@ -223,7 +214,7 @@ void NmEditorView::vkbClosed()
 void NmEditorView::showChrome(bool show)
 {
     if (show) {
-        showItems(Hb::StatusBarItem | Hb::TitleBarItem | Hb::ToolBarItem);		
+        showItems(Hb::StatusBarItem | Hb::TitleBarItem | Hb::ToolBarItem);
     }
     else {
         hideItems(Hb::StatusBarItem | Hb::TitleBarItem | Hb::ToolBarItem);
@@ -249,8 +240,8 @@ void NmEditorView::okToExitView()
        
     bool okToExit(true);
     
-    if (mContentWidget) {
-        NmEditorHeader *header = mContentWidget->header();
+    if (mContent) {
+        NmEditorHeader *header = mContent->header();
         // show the query if the message has not been sent
         if (mMessage && header) {
             // see if editor has any content
@@ -262,8 +253,8 @@ void NmEditorView::okToExitView()
             QList<NmMessagePart*> attachmentList;
             mMessage->attachmentList(attachmentList);
             
-            if (mContentWidget->editor()) {
-                okToExit = (subjectLength == 0 && mContentWidget->editor()->document()->isEmpty());            
+            if (mContent->editor()) {
+                okToExit = (subjectLength == 0 && mContent->editor()->document()->isEmpty());            
             }
     
             // content exists, verify exit from user
@@ -361,15 +352,15 @@ void NmEditorView::viewReady()
     NmAction *dummy = new NmAction(0);
     menu()->addAction(dummy);
 
+    mVkbHost = new HbShrinkingVkbHost(this);
+    
     initializeVKB();
     
-    //Get VKB host instance and start to listen VKB open and close signals for hiding the chrome.
-    HbEditorInterface editorInterface(mContentWidget->editor());
-    mVkbHost = editorInterface.vkbHost();
+    //start to listen VKB open and close signals for hiding the chrome.
     connect(mVkbHost, SIGNAL(keypadOpened()), this, SLOT(vkbOpened()));
     connect(mVkbHost, SIGNAL(keypadClosed()), this, SLOT(vkbClosed()));
-
-    connect(mContentWidget->header(), SIGNAL(recipientFieldsHaveContent(bool)),
+    
+    connect(mContent->header(), SIGNAL(recipientFieldsHaveContent(bool)),
             this, SLOT(setButtonsDimming(bool)) );
 
     // Connect to observe orientation change events
@@ -646,6 +637,18 @@ void NmEditorView::invalidAddressQuery(HbAction* action)
 }
 
 /*!
+    This is called when the view's geometry size has been changed, eg. when VKB is opened/closed.
+*/
+void NmEditorView::resizeEvent(QGraphicsSceneResizeEvent *event)
+{
+    NM_FUNCTION;
+    
+    NmBaseView::resizeEvent(event);
+    
+    emit sizeChanged();
+}
+
+/*!
     This is signalled by mMessageCreationOperation when message is created.
 */
 void NmEditorView::messageCreated(int result)
@@ -681,45 +684,45 @@ void NmEditorView::updateMessageWithEditorContents()
     NM_FUNCTION;
     
     if (mMessage) {
-        if (mContentWidget && mContentWidget->editor()) {
+        if (mContent && mContent->editor()) {
             NmMessagePart* bodyPart = mMessage->htmlBodyPart();
             if (bodyPart) {
-                bodyPart->setTextContent(mContentWidget->editor()->toHtml(), NmContentTypeTextHtml);
+                bodyPart->setTextContent(mContent->editor()->toHtml(), NmContentTypeTextHtml);
             }
             bodyPart = mMessage->plainTextBodyPart();
             if (bodyPart) {
-                bodyPart->setTextContent(mContentWidget->editor()->toPlainText(), NmContentTypeTextPlain);
+                bodyPart->setTextContent(mContent->editor()->toPlainText(), NmContentTypeTextPlain);
             }
         }
-        if (mContentWidget && mContentWidget->header() ) {
-            if (mContentWidget->header()->subjectEdit()) {
+        if (mContent && mContent->header() ) {
+            if (mContent->header()->subjectEdit()) {
                 mMessage->envelope().setSubject(
-                    mContentWidget->header()->subjectEdit()->text());
+                    mContent->header()->subjectEdit()->text());
             }
-            if (mContentWidget->header()->toEdit()) {
+            if (mContent->header()->toEdit()) {
                 QString toFieldText =
-                    mContentWidget->header()->toEdit()->text();
+                    mContent->header()->toEdit()->text();
 
                 // This verification of zero length string isn't needed
                 // after list of addresses
                 if (toFieldText.length() > 0) {
-                    mMessage->envelope().setToRecipients(mContentWidget->header()->toEdit()->emailAddressList());  
+                    mMessage->envelope().setToRecipients(mContent->header()->toEdit()->emailAddressList());  
                 }
             }
-            if (mContentWidget->header()->ccEdit()) {
+            if (mContent->header()->ccEdit()) {
                 QString ccFieldText =
-                    mContentWidget->header()->ccEdit()->text();
+                    mContent->header()->ccEdit()->text();
 
                 if (ccFieldText.length() > 0) {
-                    mMessage->envelope().setCcRecipients(mContentWidget->header()->ccEdit()->emailAddressList());      
+                    mMessage->envelope().setCcRecipients(mContent->header()->ccEdit()->emailAddressList());      
                 }
             }
-            if (mContentWidget->header()->bccEdit()) {
+            if (mContent->header()->bccEdit()) {
                 QString bccFieldText =
-                    mContentWidget->header()->bccEdit()->text();
+                    mContent->header()->bccEdit()->text();
 
                 if (bccFieldText.length() > 0) {
-                    mMessage->envelope().setBccRecipients(mContentWidget->header()->bccEdit()->emailAddressList());  
+                    mMessage->envelope().setBccRecipients(mContent->header()->bccEdit()->emailAddressList());  
                 }
             }
         }
@@ -735,7 +738,7 @@ void NmEditorView::fillEditorWithMessageContents()
 {
     NM_FUNCTION;
     
-    if (!mStartParam || !mMessage || !mContentWidget) {
+    if (!mStartParam || !mMessage || !mContent) {
         return;
     }
 
@@ -765,14 +768,14 @@ void NmEditorView::fillEditorWithMessageContents()
         bccAddressesString = addressListToString(messageEnvelope.bccRecipients());
     }
 
-    mContentWidget->header()->toEdit()->setPlainText(toAddressesString);
-    mContentWidget->header()->ccEdit()->setPlainText(ccAddressesString);
-    mContentWidget->header()->bccEdit()->setPlainText(bccAddressesString);
+    mContent->header()->toEdit()->setPlainText(toAddressesString);
+    mContent->header()->ccEdit()->setPlainText(ccAddressesString);
+    mContent->header()->bccEdit()->setPlainText(bccAddressesString);
 
     if (ccAddressesString.length() || bccAddressesString.length()) {
         // Since cc or/and bcc recipients exist, expand the group box to display
         // the addresses by expanding the group box.
-        mContentWidget->header()->setFieldVisibility(true);
+        mContent->header()->setFieldVisibility(true);
     }
 
     // Set subject.
@@ -780,16 +783,20 @@ void NmEditorView::fillEditorWithMessageContents()
         QString *subject = mStartParam->subject();
 
         if (subject) {
-            mContentWidget->header()->subjectEdit()->setPlainText(*subject);
+            mContent->header()->subjectEdit()->setPlainText(*subject);
         }
     }
     else {
         // Construct the subject field.
-        mContentWidget->header()->subjectEdit()->setPlainText(
+        mContent->header()->subjectEdit()->setPlainText(
             addSubjectPrefix(editorStartMode, messageEnvelope.subject()));
     }
 
     // Set priority.
+    if (editorStartMode==NmUiEditorReply || editorStartMode==NmUiEditorReplyAll) {
+        //Clear the importance flag. Replied messages dont keep the importance
+        setPriority(NmActionResponseCommandNone);
+    }
     mHeaderWidget->setPriority(messageEnvelope.priority());
     
     // Set the message body.
@@ -822,7 +829,7 @@ void NmEditorView::fillEditorWithMessageContents()
                                                *htmlPart);
             }
 
-		mContentWidget->setMessageData(*originalMessage, editorStartMode);
+		mContent->setMessageData(*originalMessage, editorStartMode);
         }
 
         delete originalMessage;
@@ -1042,7 +1049,7 @@ void NmEditorView::setButtonsDimming(bool enabled)
         // Set the VKB action states
         // All editors of the view share the same action, so it is enough to set
         // this only to one of them.
-        HbEditorInterface editorInterface(mContentWidget->editor());
+        HbEditorInterface editorInterface(mContent->editor());
         QList<HbAction *> vkbList = editorInterface.actions();
         count = vkbList.count();
         for (int i = 0; i < count; i++) {
@@ -1084,15 +1091,15 @@ void NmEditorView::initializeVKB()
 
             // Link VKB to the action. This must be done to all
             // editors that show the button in VKB.
-            HbEditorInterface editorInterface(mContentWidget->editor());
+            HbEditorInterface editorInterface(mContent->editor());
             editorInterface.addAction(list[i]);
-            HbEditorInterface toEditorInterface(mContentWidget->header()->toEdit());
+            HbEditorInterface toEditorInterface(mContent->header()->toEdit());
             toEditorInterface.addAction(list[i]);
-            HbEditorInterface ccEditorInterface(mContentWidget->header()->ccEdit());
+            HbEditorInterface ccEditorInterface(mContent->header()->ccEdit());
             ccEditorInterface.addAction(list[i]);
-            HbEditorInterface bccEditorInterface(mContentWidget->header()->bccEdit());
+            HbEditorInterface bccEditorInterface(mContent->header()->bccEdit());
             bccEditorInterface.addAction(list[i]);
-            HbEditorInterface subjectEditorInterface(mContentWidget->header()->subjectEdit());
+            HbEditorInterface subjectEditorInterface(mContent->header()->subjectEdit());
             subjectEditorInterface.addAction(list[i]);
         }
     }

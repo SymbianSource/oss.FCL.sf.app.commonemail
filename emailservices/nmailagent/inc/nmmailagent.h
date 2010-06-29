@@ -26,7 +26,8 @@ class NmDataPluginFactory;
 class NmDataPluginInterface;
 class HbIndicator;
 class XQSystemToneService;
-
+class XQSettingsManager;
+class XQSettingsKey;
 
 class NmMailboxInfo
 {
@@ -85,6 +86,8 @@ public slots:
     void enableAlertTone();
 
     void indicatorActivated(const QString &type, const QVariantMap &data);
+
+    void valueChanged(const XQSettingsKey& key, const QVariant& value);
 
 private:
 
@@ -146,6 +149,8 @@ private: // data
     bool mAlertToneAllowed;
     int mLastOutboxCount;
     bool mUnreadIndicatorActive;
+    XQSettingsManager *mSettingManager;
+    int mSilenceMode;
 };
 
 

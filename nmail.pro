@@ -17,19 +17,9 @@
 
 TEMPLATE = subdirs
 
-win32: { 
-    SUBDIRS = \
-        emailservices/nmailbase \
-        emailuis/nmailuiengine  \
-        emailuis/nmailuiwidgets \
-        emailuis/nmailuiwidgetsplugin \
-        emailuis/nmailuiengine/tsrc/nmtestplugin \
-        emailuis/nmailuiengine/tsrc/nmtestpluginextension \
-        emailuis/nmailui
-}
-
 symbian*: { 
     SUBDIRS = \
+        email_plat \
         emailservices/nmailbase \
         emailuis/nmailuiengine \
         emailuis/nmailuiwidgets \
@@ -46,7 +36,6 @@ symbian*: {
         emailuis/nmframeworkadapter \
         emailservices/nmclientapi \
         emailservices/nmailagent \
-        email_plat \
         emailservices/nmregister \
         emailuis/nmhswidget \
         emailuis/nmhswidget/tsrc/nmhswidgettestapp \

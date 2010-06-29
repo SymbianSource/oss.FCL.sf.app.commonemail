@@ -18,8 +18,7 @@
 #ifndef NMAPIMAILBOX_P_H
 #define NMAPIMAILBOX_P_H
 
-#include <nmapicommon.h>
-
+#include <QSharedData>
 
 namespace EmailClientApi
 {

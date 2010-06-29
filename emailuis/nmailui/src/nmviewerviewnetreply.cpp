@@ -123,11 +123,8 @@ void NmViewerViewNetReply::fetchCompleted(int result)
     NM_FUNCTION;
     
     Q_UNUSED(result);
-    NmMessage *message(NULL);
-    message = mUiEngine.message(
-            mMailboxId,
-            mFolderId,
-            mMessageId);
+    NmMessage *message = mUiEngine.message(
+                        mMailboxId, mFolderId, mMessageId);
     if (message) {
         QList<NmMessagePart*> partList;
         message->attachmentList(partList);
@@ -135,6 +132,7 @@ void NmViewerViewNetReply::fetchCompleted(int result)
         for (int i = 0; !part && i < partList.count(); i++) {
             if (partList[i]->partId() == mMessagePartId) {
                 part = partList[i];
+                break;
             }
         }
         if (part) {

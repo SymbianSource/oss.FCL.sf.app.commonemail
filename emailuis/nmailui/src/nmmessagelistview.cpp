@@ -92,13 +92,16 @@ void NmMessageListView::loadViewLayout()
     // Use document loader to load the view
     bool ok(false);
     setObjectName(QString(NMUI_MESSAGE_LIST_VIEW));
+    QObjectList objectList;
+    objectList.append(this);
     // Pass the view to documentloader. Document loader uses this view
     // when docml is parsed, instead of creating new view.
     if (mDocumentLoader) {
+        mDocumentLoader->setObjectTree(objectList);
         mWidgetList = mDocumentLoader->load(NMUI_MESSAGE_LIST_VIEW_XML, &ok);
     }
 
-    if (ok == true && mWidgetList.count()) {
+    if (ok) {
         // Get message list widget
         mMessageListWidget = qobject_cast<HbTreeView *>
             (mDocumentLoader->findWidget(NMUI_MESSAGE_LIST_TREE_LIST));

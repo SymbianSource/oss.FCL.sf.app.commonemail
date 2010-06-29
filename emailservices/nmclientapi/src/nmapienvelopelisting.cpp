@@ -14,17 +14,8 @@
  * Description:
  *
  */
-
-#include "emailtrace.h"
-
-#include <nmapienvelopelisting.h>
-#include "nmapienvelopelisting_p.h"
-
-#include <nmapicommonheader.h>
-
-#include "nmapiengine.h"
-
-
+ 
+#include "nmapiheaders.h"
 
 namespace EmailClientApi
 {

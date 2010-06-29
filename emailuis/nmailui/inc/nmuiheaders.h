@@ -91,6 +91,7 @@
 #include <hbinputvkbhost.h>
 #include <hbindicator.h>
 #include <hbformatdialog.h>
+#include <hbshrinkingvkbhost.h>
 
 #include <cntservicescontact.h>
 #include <xqservicerequest.h>

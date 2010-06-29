@@ -26,88 +26,77 @@ DEFINES += BUILD_EMAIL_API_DLL
 
 INCLUDEPATH +=  inc \
                 ../../email_plat/nmail_client_api \
-                ../../inc 
+                ../../email_plat/nmail_settings_api \
+                ../../inc
                 
-DEPENDPATH += src \
-              inc \
-              ../../email_plat/nmail_client_api \
-              ../../inc 
+DEPENDPATH +=  ../../email_plat/nmail_client_api \
+                ../../email_plat/nmail_settings_api \
+
 
 MOC_DIR = tmp
 
+# public headers 
+HEADERS += nmapicommon.h \
+           nmapidef.h \
+           nmapiemailaddress.h \
+           nmapiemailservice.h \
+           nmapienvelopelisting.h \
+           nmapieventnotifier.h \
+           nmapifolder.h \
+           nmapifolderlisting.h \
+           nmapimailbox.h \
+           nmapimailboxlisting.h \
+           nmapimessagebody.h \
+           nmapimessageenvelope.h \
+           nmapimessagetask.h \
+           nmapimessagemanager.h \
+           nmapimailboxsettings.h
 
-#headers  and sources outside api
-HEADERS   += nmapiprivateheaders.h \
-             nmapitypesconverter.h \ 
-             nmapiprivateclasses.h \
-             nmdataplugininterface.h \
-             nmapidatapluginfactory.h \
-             nmapiengine.h \
-             nmmessagepart.h  \
-             nmapicommon.h \
-			 nmapimessagemanager.h \
-			 nmoperation.h
-             
-#headers  and sources from api             
-SOURCES   += nmapitypesconverter.cpp \
-             nmapidatapluginfactory.cpp \
-             nmapiemailservice.cpp \
-             nmapiengine.cpp 
-
-HEADERS   += nmapicommonheader.h \
-             nmapiemailservice.h \
-             nmapimessagetask.h \
-             nmapimailboxlisting_p.h \
-             nmapimailboxlisting.h \
-             nmapifolderlisting_p.h \
-             nmapifolderlisting.h \
-             nmapienvelopelisting_p.h \
-             nmapienvelopelisting.h \
-             nmapiemailaddress_p.h \
-             nmapiemailaddress.h \
-             nmapieventnotifier_p.h \
-             nmapieventnotifier.h \
-             nmapifolder_p.h \
-             nmapifolder.h \
-             nmapimailbox_p.h \
-             nmapimailbox.h \
-             nmapimessagebody_p.h \
-             nmapimessagebody.h \
-             nmapimessageenvelope_p.h \
-             nmapimessageenvelope.h \
-             nmapimailboxsettingsdata_p.h \
-             nmapimailboxsettingsdata.h \
-             ../inc/nmapimailboxsettings_p.h \
-             ../../email_plat/nmail_settings_api/nmapimailboxsettings.h \
-             ../inc/nmapipopimapsettingsmanager.h \
-	     	 ../inc/nmapimessagemanager_p.h
-			 
-LIBS += -leuser
-LIBS += -llibc			
-
-
-SOURCES   += nmapimessagetask.cpp \
-	     nmapimailboxlisting_p.cpp \
-             nmapimailboxlisting.cpp \
-             nmapifolderlisting_p.cpp \
-             nmapifolderlisting.cpp \
-             nmapienvelopelisting_p.cpp \
-             nmapienvelopelisting.cpp \ 
-             nmapiemailaddress.cpp \
-             nmapieventnotifier_p.cpp \
-             nmapieventnotifier.cpp \
-             nmapifolder.cpp \
-             nmapimailbox.cpp \
-             nmapimessagebody.cpp \
-             nmapimessageenvelope.cpp \
-             nmapimailboxsettingsdata_p.cpp \
-             nmapimailboxsettingsdata.cpp \
-             ../src/nmapimailboxsettings_p.cpp \
-             ../src/nmapimailboxsettings.cpp \
-             nmapipopimapsettingsmanager.cpp \
-	         ../src/nmapimessagemanager_p.cpp \
-			 ../src/nmapimessagemanager.cpp
-
+# private headers 
+HEADERS += inc/nmapidatapluginfactory.h \
+           inc/nmapiemailaddress_p.h \
+           inc/nmapiengine.h \
+           inc/nmapienvelopelisting_p.h \
+           inc/nmapieventnotifier_p.h \
+           inc/nmapifolder_p.h \
+           inc/nmapifolderlisting_p.h \
+           inc/nmapimailbox_p.h \
+           inc/nmapimailboxlisting_p.h \
+           inc/nmapimailboxsettings_p.h \
+           inc/nmapimailboxsettingsdata_p.h \
+           inc/nmapimessagebody_p.h \
+           inc/nmapimessageenvelope_p.h \
+           inc/nmapimessagemanager_p.h \
+           inc/nmapipopimapsettingsmanager.h \
+           inc/nmapiprivateclasses.h \
+           inc/nmapitypesconverter.h \
+           inc/nmapiheaders.h 
+                        
+SOURCES += src/nmapidatapluginfactory.cpp \
+           src/nmapiemailaddress.cpp \
+           src/nmapiemailservice.cpp \
+           src/nmapiengine.cpp \
+           src/nmapienvelopelisting_p.cpp \
+           src/nmapienvelopelisting.cpp \ 
+           src/nmapieventnotifier_p.cpp \
+           src/nmapieventnotifier.cpp \
+           src/nmapifolder.cpp \
+           src/nmapifolderlisting_p.cpp \
+           src/nmapifolderlisting.cpp \
+           src/nmapimailbox.cpp \
+           src/nmapimailboxlisting_p.cpp \
+           src/nmapimailboxlisting.cpp \
+           src/nmapimessagetask.cpp \
+           src/nmapimailboxsettingsdata_p.cpp \
+           src/nmapimailboxsettingsdata.cpp \
+           src/nmapimailboxsettings_p.cpp \
+           src/nmapimailboxsettings.cpp \
+           src/nmapimessagebody.cpp \
+           src/nmapimessageenvelope.cpp \
+           src/nmapipopimapsettingsmanager.cpp \
+	         src/nmapimessagemanager_p.cpp \
+			     src/nmapimessagemanager.cpp \
+           src/nmapitypesconverter.cpp 
 
 
 
@@ -120,7 +109,6 @@ symbian*: {
     TARGET.UID3 = 0x2002C366
     
     INCLUDEPATH += $$APP_LAYER_SYSTEMINCLUDE
-    DEPENDPATH += $$APP_LAYER_SYSTEMINCLUDE
 
 	
 	 LIBS += -lnmailbase \
@@ -143,11 +131,4 @@ symbian*: {
     
 
 }
-
-win32 {
-   DESTDIR = ../../bin
-   OBJECTS_DIR = tmp 
-}
-
-
 

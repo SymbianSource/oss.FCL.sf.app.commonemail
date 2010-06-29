@@ -11,8 +11,9 @@
 *
 * Contributors:
 *
-* Description:
-*
+* Description: NMail viewer net manager implementation.
+*              This class is needed to separate cid
+*              images from url-based images
 */
 
 #include "nmuiheaders.h"
@@ -82,10 +83,11 @@ QNetworkReply *NmViewerViewNetManager::createRequest(
             if (isFetched) {
                 reply = new NmViewerViewNetReply(data, mUiEngine);
             }
-            else  {
+            else {
+                const NmMessageEnvelope &env = message->envelope();
                 reply = new NmViewerViewNetReply(data, mUiEngine,
-                        message->envelope().mailboxId(), message->envelope().folderId(),
-                        message->envelope().messageId(), partId);
+                        env.mailboxId(), env.folderId(),
+                        env.messageId(), partId);
             }
             reply->setOriginalRequest(myRequest);
             return reply;

@@ -81,6 +81,9 @@ public slots:
     void okToExitQuery(HbAction* action);
     void sendProgressDialogCancelled();
     
+protected:
+    void resizeEvent(QGraphicsSceneResizeEvent *event);
+
 private slots:
     void messageCreated(int result);
     void oneAttachmentAdded(const QString &fileName,
@@ -118,16 +121,18 @@ private:
     void enableToolBarAttach(bool enable);
     void showChrome(bool show);
 
+signals:
+    void sizeChanged();
+    
 private: // Data
     NmApplication &mApplication;
     NmUiEngine &mUiEngine;
     NmAttachmentManager  &mAttaManager;
     HbDocumentLoader *mDocumentLoader;  // Owned
     QObjectList mWidgetList;            // Owned
-    NmEditorTextEdit *mEditWidget;      // Not owned
     NmEditorHeader *mHeaderWidget;      // Not owned
     NmMessage *mMessage;                // Owned
-    NmEditorContent *mContentWidget;    // Owned
+    NmEditorContent *mContent;          // Not owned
     HbMenu *mPrioritySubMenu;           // Owned
     HbMenu *mAttachmentListContextMenu; // Owned
     NmId mSelectedAttachment;

@@ -130,9 +130,12 @@ CBasePlugin::~CBasePlugin()
 
     iReqs.ResetAndDestroy();
     iReqs.Close();
-    
-    iDelayedOpReqs.ResetAndDestroy();
+
+    // Note that all the ops in iDelayedOpReqs array (if any) have already been
+    // deleted in the destructor of CDelayedOpsManager class.
+    iDelayedOpReqs.Reset();
     iDelayedOpReqs.Close();
+
     ResetCache();
 
     __LOG_DESTRUCT

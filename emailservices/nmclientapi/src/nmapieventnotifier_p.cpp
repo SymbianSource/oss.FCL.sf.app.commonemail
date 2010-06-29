@@ -15,12 +15,7 @@
  *
  */
 
-#include "emailtrace.h"
-
-#include "nmapiengine.h"
-#include "nmapieventnotifier_p.h"
-
-#include <QTimer>
+#include "nmapiheaders.h"
 
 namespace EmailClientApi
 {

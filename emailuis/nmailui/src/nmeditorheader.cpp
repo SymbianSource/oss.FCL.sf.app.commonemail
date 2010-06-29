@@ -19,7 +19,7 @@
 
 // Layout
 // These match to the defintions in nmeditorview.docml
-static const char *NMUI_EDITOR_CONTAINER = "containerContents";
+static const char *NMUI_EDITOR_CONTAINER = "scrollAreaContents";
 static const char *NMUI_EDITOR_SUBJECT_FIELD = "editorSubjectField";
 static const char *NMUI_EDITOR_SUBJECT_EDIT = "editorSubjectEdit";
 static const char *NMUI_EDITOR_CC_FIELD = "editorCcField";

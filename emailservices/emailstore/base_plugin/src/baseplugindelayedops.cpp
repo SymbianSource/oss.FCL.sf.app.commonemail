@@ -72,6 +72,16 @@
     
     //self-destroy.
     iManager->DequeueOp( *this );
+    
+    //Remove this from iDelayedOpReqs as well.
+    for ( TInt i = 0; i < iPlugin->iDelayedOpReqs.Count(); i++ )
+        {
+        if ( iPlugin->iDelayedOpReqs[i] == this )
+            {
+            iPlugin->iDelayedOpReqs.Remove( i );
+            break;
+            }
+        }
     delete this;
     }
     

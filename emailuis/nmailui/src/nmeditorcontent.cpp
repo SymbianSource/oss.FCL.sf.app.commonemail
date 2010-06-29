@@ -24,7 +24,7 @@ static const char *NMUI_EDITOR_SCROLL_AREA_CONTENTS = "scrollAreaContents";
 
 // Regular expression for selecting img tags with "cid" in the mail.
 static const char *NMUI_EDITOR_REMOVE_EMBD_IMAGES_REG = 
-    "(<img (src\\s*=\\s*)(.{0,1}cid)([^<]+)(>\\s*|/>\\s*|></img>\\s*))";
+    "(<img[^<]+(src\\s*=\\s*)(.{0,1}cid)([^<]+)(>\\s*|/>\\s*|></img>\\s*))";
 	
 /*!
     Constructor
@@ -34,7 +34,7 @@ NmEditorContent::NmEditorContent(QObject *parent,
                                  QNetworkAccessManager &manager,
                                  NmApplication &application) :
     QObject(parent),
-    mHeaderWidget(NULL),
+    mHeader(NULL),
     mMessageBodyType(NmPlainText),
     mEditorWidget(NULL),
     mScrollArea(NULL),
@@ -44,7 +44,7 @@ NmEditorContent::NmEditorContent(QObject *parent,
     NM_FUNCTION;
 
     // Construct container for the header widgets
-    mHeaderWidget = new NmEditorHeader(this, documentLoader);
+    mHeader = new NmEditorHeader(this, documentLoader);
 
     // Get pointer to body text area handling widget
     mEditorWidget = qobject_cast<NmEditorTextEdit *>(documentLoader->findWidget(NMUI_EDITOR_BODY));
@@ -56,7 +56,8 @@ NmEditorContent::NmEditorContent(QObject *parent,
 
     mScrollArea = qobject_cast<NmBaseViewScrollArea *>
         (documentLoader->findObject(NMUI_EDITOR_SCROLL_AREA));
-
+    mScrollArea->setScrollDirections(Qt::Vertical | Qt::Horizontal);
+    
     // Enable style picker menu item.
     mEditorWidget->setFormatDialog(new HbFormatDialog());
 
@@ -129,21 +130,28 @@ void NmEditorContent::createConnections()
             mEditorWidget, SLOT(setPlainText(QString)), Qt::QueuedConnection);
 
     // Inform text edit widget that header height has been changed
-    connect(mHeaderWidget, SIGNAL(headerHeightChanged(int)), this, SLOT(setEditorContentHeight()),
+    connect(mHeader, SIGNAL(headerHeightChanged(int)), this, SLOT(setEditorContentHeight()),
         Qt::QueuedConnection);
 
     // we are interested in the document's height changes
     connect(mEditorWidget->document()->documentLayout(), SIGNAL(documentSizeChanged(QSizeF)), this,
         SLOT(setEditorContentHeight()), Qt::QueuedConnection);
 
-    // We need to update the scroll position according the editor cursor position
+    // We need to update the scroll position according the editor's cursor position
+    connect(mHeader->toEdit(), SIGNAL(cursorPositionChanged(int, int)), this, 
+        SLOT(ensureCursorVisibility()), Qt::QueuedConnection);
+    connect(mHeader->ccEdit(), SIGNAL(cursorPositionChanged(int, int)), this, 
+        SLOT(ensureCursorVisibility()), Qt::QueuedConnection);
+    connect(mHeader->bccEdit(), SIGNAL(cursorPositionChanged(int, int)), this, 
+        SLOT(ensureCursorVisibility()), Qt::QueuedConnection);
+    connect(mHeader->subjectEdit(), SIGNAL(cursorPositionChanged(int, int)), this, 
+        SLOT(ensureCursorVisibility()), Qt::QueuedConnection);
     connect(mEditorWidget, SIGNAL(cursorPositionChanged(int, int)), this, 
-        SLOT(setScrollPosition(int, int)), Qt::QueuedConnection);
-    
-    // We need to know the scroll area's current position for calculating the new position in
-	// setScrollPosition
-    connect(mScrollArea, SIGNAL(scrollPositionChanged(QPointF)), this, 
-        SLOT(updateScrollPosition(QPointF)), Qt::QueuedConnection);
+        SLOT(ensureCursorVisibility()), Qt::QueuedConnection);
+
+    // listen to the parent's (NmEditorView) size changes which happen eg. when VKB is opened/closed
+    connect(parent(), SIGNAL(sizeChanged()), this, SLOT(ensureCursorVisibility()),
+        Qt::QueuedConnection);
 }
 
 /*!
@@ -163,7 +171,7 @@ NmEditorHeader *NmEditorContent::header() const
 {
     NM_FUNCTION;
     
-    return mHeaderWidget;
+    return mHeader;
 }
 
 /*!
@@ -174,23 +182,21 @@ void NmEditorContent::setEditorContentHeight()
 {
     NM_FUNCTION;
     
+    // the height of the margin between the title bar and the header
     qreal topMargin = 0;
     HbStyle().parameter("hb-param-margin-gene-top", topMargin);
     
     // header height
-    qreal headerHeight = mHeaderWidget->headerHeight();
+    qreal headerHeight = mHeader->headerHeight();
 
     // body area editor's document height with margins added
     qreal documentHeightAndMargins = mEditorWidget->document()->size().height() +
         (mEditorWidget->document()->documentMargin() * 2);
 
-    // get the chrome height
+    // chrome height
     qreal chromeHeight = 0;
     HbStyle().parameter("hb-param-widget-chrome-height", chromeHeight);
     
-    qreal toolbarHeight = 0;
-    HbStyle().parameter("hb-param-widget-toolbar-height", toolbarHeight);
-
     // screen height
     qreal screenHeight = mApplication.screenSize().height();
 
@@ -203,65 +209,51 @@ void NmEditorContent::setEditorContentHeight()
 }
 
 /*!
-    This slot is called when cursor position is changed in body area using
-    'pointing stick' or keyboard. Function will update the scroll position
-    of the content so that cursor does not go outside of the screen or
-    behind the virtual keyboard.
- */
-void NmEditorContent::setScrollPosition(int oldPos, int newPos)
-{
-    NM_FUNCTION;
-    
-    Q_UNUSED(oldPos);
-
-    qreal chromeHeight = 0;
-    HbStyle().parameter("hb-param-widget-chrome-height", chromeHeight);
-    
-    const QSizeF screenReso = mApplication.screenSize();
-    qreal maxHeight = screenReso.height() - chromeHeight;
-
-    // Get cursor position coordinates
-    QRectF cursorPosPix = mEditorWidget->rectForPosition(newPos);
-    
-    // Calculate the screen top and bottom boundaries, this means the part of the
-    // background scroll area which is currently visible.
-    qreal visibleRectTopBoundary;
-    qreal visibleRectBottomBoundary;
-    
-    qreal headerHeight = mHeaderWidget->headerHeight();
-
-    if (mScrollPosition.y() < headerHeight) {
-        // Header is completely or partially visible
-        visibleRectTopBoundary = headerHeight - mScrollPosition.y();
-        visibleRectBottomBoundary = maxHeight - visibleRectTopBoundary;
-    }
-    else {
-        // Header is not visible
-        visibleRectTopBoundary = mScrollPosition.y() - headerHeight;
-        visibleRectBottomBoundary = visibleRectTopBoundary + maxHeight;
-    }
-
-    // Do scrolling if cursor is out of the screen boundaries
-    if (cursorPosPix.y() > visibleRectBottomBoundary) {
-        // Do scroll forward
-        mScrollArea->scrollContentsTo(QPointF(0, cursorPosPix.y() - maxHeight + headerHeight));
-    }
-    else if (cursorPosPix.y() + headerHeight < mScrollPosition.y()) {
-        // Do scroll backward
-        mScrollArea->scrollContentsTo(QPointF(0, cursorPosPix.y() + headerHeight));
-    }
-}
-
-/*!
-    This slot is called when background scroll areas scroll position has been shanged.
+    This slot is called when the cursor visibility has to be ensured ie. the scroll position is 
+    adjusted so that the cursor can be seen.
 */
-void NmEditorContent::updateScrollPosition(const QPointF &newPosition)
+void NmEditorContent::ensureCursorVisibility()
 {
     NM_FUNCTION;
-    
-    mScrollPosition = newPosition;
-}
 
+    // check which of the editors has the focus and get the x/y coordinates for the cursor position
+    QGraphicsWidget *focused = mScrollAreaContents->focusWidget();
+    
+    if (focused) {
+        QRectF localRect(0, 0, 0, 0);
+        bool notFound = false;
+        
+        if (focused == mHeader->toEdit()) {
+            localRect = mHeader->toEdit()->rectForCursorPosition();
+        }
+        else if (focused == mHeader->ccEdit()) {
+            localRect = mHeader->ccEdit()->rectForCursorPosition();
+        }
+        else if (focused == mHeader->bccEdit()) {
+            localRect = mHeader->bccEdit()->rectForCursorPosition();
+        }
+        else if (focused == mHeader->subjectEdit()) {
+            localRect = mHeader->subjectEdit()->rectForCursorPosition();
+        }
+        else if (focused == mEditorWidget) {
+            localRect = mEditorWidget->rectForCursorPosition();
+        }
+        else {
+            notFound = true;
+        }
+
+        if (!notFound) {
+            QPointF topLeftPos = focused->mapToItem(mScrollAreaContents, localRect.topLeft());
+            QPointF bottomRightPos =
+                focused->mapToItem(mScrollAreaContents, localRect.bottomRight());
+            qreal marginRight = 0;
+            HbStyle().parameter("hb-param-margin-gene-right", marginRight);
+            bottomRightPos.rx() += marginRight;
+            mScrollArea->ensureVisible(topLeftPos);
+            mScrollArea->ensureVisible(bottomRightPos);
+        }
+    }
+}
 /*!
     Removes embedded images from the message body
  */

@@ -33,7 +33,7 @@ public:
     void setCustomTextColor(bool useCustom, const QColor& color = Qt::black);
     QPair<bool, QColor> customTextColor() const;
 
-    QRectF rectForPosition(int position);
+    QRectF rectForCursorPosition() const;
 
 public slots:
     void updateCustomTextColor();

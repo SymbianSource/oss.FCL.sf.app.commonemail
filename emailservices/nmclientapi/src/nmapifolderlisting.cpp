@@ -15,13 +15,8 @@
  *
  */
 
-#include "emailtrace.h"
+#include "nmapiheaders.h"
 
-#include <nmapifolderlisting.h>
-#include "nmapifolderlisting_p.h"
-
-#include <nmapimailbox.h>
-#include <nmapifolder.h>
 
 namespace EmailClientApi
 {
@@ -145,4 +140,4 @@ bool NmApiFolderListing::isRunning() const
 
 }
 
-#include "moc_nmapifolderlisting.cpp"
+

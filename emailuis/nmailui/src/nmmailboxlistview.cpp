@@ -77,16 +77,20 @@ void NmMailboxListView::loadViewLayout()
 {
     NM_FUNCTION;
     
-    // Use document loader to load the view
-    bool ok(false);
-    setObjectName(QString(NMUI_MAILBOX_LIST_VIEW));
-    // Pass the view to documentloader. Document loader uses this view
-    // when docml is parsed, instead of creating new view.
-    if (mDocumentLoader) {
-        mWidgetList = mDocumentLoader->load(NMUI_MAILBOX_LIST_VIEW_XML, &ok);
-    }
 
-    if (ok == true && mWidgetList.count()) {
+    // Use document loader to load the view
+     bool ok(false);
+     setObjectName(QString(NMUI_MAILBOX_LIST_VIEW));
+     QObjectList objectList;
+     objectList.append(this);
+     // Pass the view to documentloader. Document loader uses this view
+     // when docml is parsed, instead of creating new view.
+     if (mDocumentLoader) {
+         mDocumentLoader->setObjectTree(objectList);
+         mWidgetList = mDocumentLoader->load(NMUI_MAILBOX_LIST_VIEW_XML, &ok);
+     }
+
+    if (ok) {
         // Create item context menu
         mItemContextMenu = new HbMenu();
         // Get mailbox widget pointer and set parameters

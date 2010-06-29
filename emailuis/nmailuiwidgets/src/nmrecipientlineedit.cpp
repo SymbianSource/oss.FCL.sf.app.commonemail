@@ -132,7 +132,7 @@ void NmRecipientLineEdit::addSelectedContacts(const QVariant &selectedContacts)
             
             // Add this NmAddress formated contact into mRecipientsAddedFromContacts.
             mRecipientsAddedFromContacts.append(contact);
-        } // end of for (int i = 0; i < contactList.count(); ++i)  
+        } 
     }
     else {
         //Request returned NULL 

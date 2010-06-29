@@ -14,10 +14,8 @@
  * Description:
  *     Email message related operations
  */
-#include <nmapimessagemanager.h>
-#include <nmapifolder.h>
-#include <nmapiprivateclasses.h>
-#include "nmapimessagemanager_p.h"
+ 
+#include "nmapiheaders.h"
 
 
 /*!
