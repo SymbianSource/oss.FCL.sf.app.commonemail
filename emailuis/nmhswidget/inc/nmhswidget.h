@@ -29,6 +29,7 @@ class QTranslator;
 class HbFrameDrawer;
 class NmHsWidgetDateTimeObserver;
 class HbLabel;
+class HbDocumentLoader;
 
 class NmHsWidget : public HbWidget
 {
@@ -69,6 +70,7 @@ signals:
 private:
     void setupLocalization();
     void setupUi();
+    bool loadDocML(HbDocumentLoader &loader);
     void updateMailRowsVisibility(const int visibleCount);
     void addNoMailsLabelToLayout();
     void removeNoMailsLabelFromLayout();
@@ -82,16 +84,18 @@ protected:
     
 private:
     NmHsWidgetEmailEngine* mEngine;
-    QGraphicsLinearLayout *mRowLayout;
-    NmHsWidgetTitleRow* mTitleRow;
-    QList<NmHsWidgetEmailRow*> mMailRows;
-    NmId mAccountId;
-    QString mAccountIconName;
-    QTranslator *mTranslator;
-    HbFrameDrawer* mBackgroundFrameDrawer;
-    bool mIsExpanded;
-    NmHsWidgetDateTimeObserver* mDateObserver;
-    HbLabel *mNoMailsLabel; 
+    NmHsWidgetTitleRow* mTitleRow;          
+    QList<NmHsWidgetEmailRow*> mMailRows;   //list including mail row instances
+    NmId mAccountId;                        //mail account id widget is monitoring
+    QString mAccountIconName;               //name of mailbox icon shown in titlerow
+    QTranslator* mTranslator;
+    HbFrameDrawer* mBackgroundFrameDrawer;  //drawer for widget backgound
+    bool mIsExpanded;                       //true when widget expanded, false when collapsed
+    NmHsWidgetDateTimeObserver* mDateObserver;  //observer for time/locale changes
+    HbLabel* mNoMailsLabel;                 //label shown in widget when no mails in inbox
+    HbWidget* mWidgetContainer;             //container including title row and content container
+    HbWidget* mContentContainer;            //container including mail rows and mNoMailsLabel
+    QGraphicsLinearLayout* mContentLayout;  //layout for mail rows
     
 public:    
     friend class TestNmHsWidget;     

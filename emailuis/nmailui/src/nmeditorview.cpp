@@ -118,15 +118,18 @@ void NmEditorView::loadViewLayout()
 
     // Use document loader to load the view
     bool ok(false);
+
+    setObjectName(QString(NMUI_EDITOR_VIEW));
+    QObjectList objectList;
+    objectList.append(this);
+    // Pass the view to documentloader. Document loader uses this view
+    // when docml is parsed, instead of creating new view.
+    // documentloader is created in constructor
+    mDocumentLoader->setObjectTree(objectList);
+
     mWidgetList = mDocumentLoader->load(NMUI_EDITOR_VIEW_XML, &ok);
 
-    if (ok == true && mWidgetList.count()) {
-        // Set view
-        QGraphicsWidget *view = mDocumentLoader->findWidget(NMUI_EDITOR_VIEW);
-        if (view){
-            setWidget(view);
-        }
-
+   if (ok) {
         mContent = new NmEditorContent(this, mDocumentLoader, 
             mApplication.networkAccessManager(), mApplication);
 
@@ -1304,13 +1307,16 @@ void NmEditorView::oneAttachmentAdded(const QString &fileName, const NmId &msgPa
         NmId mailboxId = mMessage->envelope().mailboxId();
         NmId folderId = mMessage->envelope().folderId();
         NmId msgId = mMessage->envelope().messageId();
-
+        NmMessagePriority messagePriority = mMessage->envelope().priority();        
+        
         delete mMessage;
         mMessage = NULL;
         
         mMessage = mUiEngine.message(mailboxId, folderId, msgId);
 
         if (mMessage) {
+            mMessage->envelope().setPriority(messagePriority);
+            mMessage->envelope().setHasAttachments(true);
             // Get attachment list from the message
             QList<NmMessagePart*> attachmentList;
             mMessage->attachmentList(attachmentList);
@@ -1468,11 +1474,24 @@ void NmEditorView::attachmentRemoved(int result)
         NmId mailboxId = mMessage->envelope().mailboxId();
         NmId folderId = mMessage->envelope().folderId();
         NmId msgId = mMessage->envelope().messageId();
+        NmMessagePriority messagePriority = mMessage->envelope().priority();    
 
         delete mMessage;
         mMessage = NULL;
     
         mMessage = mUiEngine.message(mailboxId, folderId, msgId);
+        
+        if(mMessage) {
+            // Set the correct priority
+            mMessage->envelope().setPriority(messagePriority);    
+            
+            // If there is no more attachments in the message, set the correct value
+            QList<NmMessagePart*> attachmentList;
+            mMessage->attachmentList(attachmentList);
+            if(attachmentList.count() == 0) {
+                mMessage->envelope().setHasAttachments(false);
+            }
+        }
     }
 }
 

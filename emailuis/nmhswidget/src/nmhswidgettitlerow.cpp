@@ -15,13 +15,13 @@
  *
  */
 
+#include <qgraphicslinearlayout.h>
 #include <QtGui>
-#include <QGraphicsLinearLayout>
 #include <hbdocumentloader.h>
 #include <hblabel.h>
-#include <HbPushButton>
-#include <HbColorScheme>
-#include <HbEvent>
+#include <hbpushbutton.h>
+#include <hbcolorscheme.h>
+#include <hbevent.h>
 #include <hbframedrawer.h>
 #include <hbframeitem.h>
 #include "nmicons.h"
@@ -77,11 +77,11 @@ QPainterPath NmHsWidgetTitleRow::shape() const
   Must be called after constructor.
    /return true if loading succeeded, otherwise false. False indicates that object is unusable.
  */
-bool NmHsWidgetTitleRow::setupUI()
+bool NmHsWidgetTitleRow::setupUI(HbDocumentLoader &loader)
     {
     NM_FUNCTION;
 
-    if(!loadDocML() || !setupGraphics()){
+    if(!loadDocML(loader) || !setupGraphics()){
         return false;
     }
     return true;
@@ -91,19 +91,10 @@ bool NmHsWidgetTitleRow::setupUI()
  Loads layout data and child items from docml file. Must be called after constructor.
  /return true if loading succeeded, otherwise false. False indicates that object is unusable
  */
-bool NmHsWidgetTitleRow::loadDocML()
+bool NmHsWidgetTitleRow::loadDocML(HbDocumentLoader &loader)
 {
     NM_FUNCTION;
     QT_TRY{
-        // Use document loader to load the contents
-        HbDocumentLoader loader;
-        bool ok(false);
-        loader.load(KNmHsWidgetTitleRowDocML, &ok);
-        if (!ok) {
-            NM_ERROR(1,"NmHsWidgetTitleRow::loadDocML Fail @ loader");
-            return false; //failure
-        }
-    
         //Create layout
         QGraphicsLinearLayout *layout = new QGraphicsLinearLayout(Qt::Vertical);
     
@@ -148,7 +139,7 @@ bool NmHsWidgetTitleRow::loadDocML()
   /return true if loading succeeded, otherwise false. False indicates that object is unusable.
  */
 bool NmHsWidgetTitleRow::setupGraphics()
-    {
+{
     NM_FUNCTION;
     
     HbFrameDrawer* backgroundFrameDrawer = 0;
@@ -173,7 +164,7 @@ bool NmHsWidgetTitleRow::setupGraphics()
         return false;
     }
     
-    }
+}
 
 
 /*!
@@ -231,13 +222,15 @@ void NmHsWidgetTitleRow::updateData()
     mMailboxInfo->setPlainText(mAccountName);
     //If unread count is -1, hide the unread count label completely.
     //This indicates that there are no mails at all (or the initial sync is not done)
-    if (mUnreadCount != -1) {
+    if (mUnreadCount >= 0) {
         QString unreadCount(hbTrId("txt_mail_widget_list_l1").arg(mUnreadCount));
         mUnreadCountLabel->setPlainText(unreadCount);
-        mUnreadCountLabel->setVisible(true);
+        QFontMetrics fm(mUnreadCountLabel->font());
+        qreal textWidth = fm.width(unreadCount);
+        mUnreadCountLabel->setMaximumWidth(textWidth);
     }
     else {
-        mUnreadCountLabel->setVisible(false);
+        mUnreadCountLabel->setMaximumWidth(0);
     }
 }
 

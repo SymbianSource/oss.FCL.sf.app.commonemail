@@ -299,6 +299,7 @@ public: // from  CExtendableEmail
      CFSMailMessageBase();
 
 // <qmail>
+     // iMessageId removed
     /**
      * ConstructL
      */

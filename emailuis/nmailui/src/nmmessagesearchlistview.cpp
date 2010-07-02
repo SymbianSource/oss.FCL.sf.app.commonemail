@@ -16,7 +16,7 @@
 */
 
 static const char *NMUI_MESSAGE_SEARCH_LIST_VIEW_XML = ":/docml/nmmessagesearchlistview.docml";
-static const char *NMUI_MESSAGE_SEARCH_LIST_VIEW = "NmMessageListView";
+static const char *NMUI_MESSAGE_SEARCH_LIST_VIEW = "NmMessageSearchListView";
 static const char *NMUI_MESSAGE_SEARCH_LIST_TREE_LIST = "MessageTreeList";
 static const char *NMUI_MESSAGE_SEARCH_LIST_NO_MESSAGES = "MessageListNoMessages";
 static const char *NMUI_MESSAGE_SEARCH_LIST_INFO_LABEL = "LabelGroupBox";
@@ -188,6 +188,40 @@ void NmMessageSearchListView::loadViewLayout()
     }
 
     if (ok) {
+        // Load the search panel (contains the line edit and the push button
+        // widgets.
+        mLineEdit = qobject_cast<HbLineEdit *>(
+            mDocumentLoader->findWidget(NMUI_MESSAGE_SEARCH_LIST_LINE_EDIT));
+
+        if (mLineEdit) {
+            connect(mLineEdit, SIGNAL(textChanged(QString)), 
+                    this, SLOT(criteriaChanged(QString)));
+        }
+    
+        mPushButton = qobject_cast<HbPushButton *>(
+        mDocumentLoader->findWidget(NMUI_MESSAGE_SEARCH_LIST_PUSH_BUTTON));
+
+        if (mPushButton) {
+            // button is disabled when line edit is empty
+            mPushButton->setEnabled(false);
+
+            // The push button both starts and stops the search.
+            connect(mPushButton, SIGNAL(clicked()), this, SLOT(toggleSearch()));
+            mPushButton->setIcon(HbIcon("qtg_mono_search"));
+        }
+
+        // Load the info label.
+        mInfoLabel = qobject_cast<HbGroupBox *>(
+            mDocumentLoader->findWidget(NMUI_MESSAGE_SEARCH_LIST_INFO_LABEL));
+
+        if (mInfoLabel) {
+            NM_COMMENT("NmMessageSearchListView: info label loaded");
+
+            // If the heading is empty, the widget will not be shown which in
+            // turn would ruin the layout.
+            mInfoLabel->setHeading(" ");
+        }
+
         // Get the message list widget.
         mMessageListWidget = qobject_cast<HbTreeView *>(
             mDocumentLoader->findWidget(NMUI_MESSAGE_SEARCH_LIST_TREE_LIST));
@@ -210,15 +244,6 @@ void NmMessageSearchListView::loadViewLayout()
                                                      HbAbstractItemView::Expand);
         }
 
-        // Load the info label.
-        mInfoLabel = qobject_cast<HbGroupBox *>(
-            mDocumentLoader->findWidget(NMUI_MESSAGE_SEARCH_LIST_INFO_LABEL));
-
-        if (mInfoLabel) {
-            NM_COMMENT("NmMessageSearchListView: info label loaded");
-            mInfoLabel->hide();
-        }
-
         // Load the no messages label.
         mNoMessagesLabel = qobject_cast<HbLabel *>(
             mDocumentLoader->findWidget(NMUI_MESSAGE_SEARCH_LIST_NO_MESSAGES));
@@ -226,24 +251,6 @@ void NmMessageSearchListView::loadViewLayout()
         if (mNoMessagesLabel) {
             NMLOG("NmMessageSearchListView: No messages label loaded.");
             mNoMessagesLabel->hide();
-        }
-
-        // Load the search panel.
-        mLineEdit = qobject_cast<HbLineEdit *>(
-            mDocumentLoader->findWidget(NMUI_MESSAGE_SEARCH_LIST_LINE_EDIT));
-        if (mLineEdit) {
-            connect(mLineEdit, SIGNAL(textChanged(QString)), 
-                this, SLOT(criteriaChanged(QString)));
-        }
-        
-        mPushButton = qobject_cast<HbPushButton *>(
-            mDocumentLoader->findWidget(NMUI_MESSAGE_SEARCH_LIST_PUSH_BUTTON));
-        if (mPushButton) {
-			// button is disabled when line edit is empty
-			mPushButton->setEnabled(false);
-            // The push button both starts and stops the search.
-            connect(mPushButton, SIGNAL(clicked()), this, SLOT(toggleSearch()));
-            mPushButton->setIcon(HbIcon("qtg_mono_search"));
         }
     }
     else {
@@ -618,7 +625,13 @@ void NmMessageSearchListView::refreshList()
 
         connect(&mMsgListModel, SIGNAL(setNewParam(NmUiStartParam*)),
                 this, SLOT(reloadViewContents(NmUiStartParam*)), Qt::UniqueConnection);
+    }
 
+    // The info label cannot be hidden when constructed because doing so would
+    // ruin the layout (for example the line edit widget's width would be too
+    // short in lanscape).
+    if (mInfoLabel) {
+        mInfoLabel->hide();
     }
 }
 

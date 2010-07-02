@@ -139,6 +139,8 @@ void NmFwaRemoveDraftMessageOperation::removeMessageL()
             // async version not supported, use sync version
             folder->RemoveMessageL( messageId );
             completeOperation(NmNoError);
+        } else if (KErrNone != err) {
+            completeOperation(NmGeneralError);
         }
     }
     else {

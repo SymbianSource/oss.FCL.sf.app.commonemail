@@ -81,7 +81,7 @@ public:
     /**
      * destructor.
      */
-      ~CFSMailRequestHandler();
+     virtual ~CFSMailRequestHandler();
 
     /**
      * two based constructor

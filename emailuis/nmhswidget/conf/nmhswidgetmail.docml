@@ -60,10 +60,10 @@
             <sizehint height="var(hb-param-graphic-size-secondary)" type="FIXED" width="var(hb-param-graphic-size-secondary)"/>
         </widget>
         <real name="z" value="1"/>
-        <sizepolicy horizontalPolicy="Fixed" horizontalStretch="0" verticalPolicy="Fixed" verticalStretch="0"/>
-        <sizehint height="9.75un" type="FIXED" width="46un"/>
-        <sizehint type="MINIMUM" width="46un"/>
-        <sizehint height="48.39un" type="MAXIMUM" width="46un"/>
+        <sizepolicy horizontalPolicy="Expanding" horizontalStretch="0" verticalPolicy="Fixed" verticalStretch="0"/>
+        <sizehint height="expr(1un + var(hb-param-text-height-secondary)  + var(hb-param-margin-gene-middle-vertical) + var(hb-param-text-height-secondary) + 1un )" type="PREFERRED" width="46un"/>
+        <sizehint height="expr(1un + var(hb-param-text-height-secondary)  + var(hb-param-margin-gene-middle-vertical) + var(hb-param-text-height-secondary) + 1un )" type="MINIMUM" width="expr(4*var(hb-param-margin-gene-middle-horizontal)  + 15un )"/>
+        <sizehint height="expr(1un + var(hb-param-text-height-secondary)  + var(hb-param-margin-gene-middle-vertical) + var(hb-param-text-height-secondary) + 1un )" type="MAXIMUM" width="2504062.01158un"/>
         <layout type="anchor">
             <anchoritem dst="iconSeparator" dstEdge="LEFT" spacing="2" src="" srcEdge="LEFT"/>
             <anchoritem dst="iconSeparator" dstEdge="TOP" spacing="0" src="" srcEdge="TOP"/>
@@ -79,11 +79,11 @@
             <anchoritem dst="labelSender" dstEdge="RIGHT" spacing="-var(hb-param-margin-gene-middle-horizontal)" src="labelTime" srcEdge="LEFT"/>
             <anchoritem dst="labelTime" dstEdge="RIGHT" spacing="-var(hb-param-margin-gene-middle-horizontal)" src="" srcEdge="RIGHT"/>
             <anchoritem dst="labelTime" dstEdge="CENTERV" spacing="0un" src="labelSender" srcEdge="CENTERV"/>
-            <anchoritem dst="iconOne" dstEdge="RIGHT" spacing="-var(hb-param-margin-gene-middle-horizontal)" src="iconTwo" srcEdge="LEFT"/>
+            <anchoritem dst="iconOne" dstEdge="RIGHT" spacing="-0.5un" src="iconTwo" srcEdge="LEFT"/>
             <anchoritem dst="iconOne" dstEdge="CENTERV" spacing="0un" src="labelSubject" srcEdge="CENTERV"/>
             <anchoritem dst="iconThree" dstEdge="RIGHT" spacing="-var(hb-param-margin-gene-middle-horizontal)" src="" srcEdge="RIGHT"/>
             <anchoritem dst="iconThree" dstEdge="CENTERV" spacing="0un" src="iconOne" srcEdge="CENTERV"/>
-            <anchoritem dst="iconTwo" dstEdge="RIGHT" spacing="-var(hb-param-margin-gene-middle-horizontal)" src="iconThree" srcEdge="LEFT"/>
+            <anchoritem dst="iconTwo" dstEdge="RIGHT" spacing="-0.5un" src="iconThree" srcEdge="LEFT"/>
             <anchoritem dst="iconTwo" dstEdge="CENTERV" spacing="0un" src="iconOne" srcEdge="CENTERV"/>
         </layout>
     </widget>

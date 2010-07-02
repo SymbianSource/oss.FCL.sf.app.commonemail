@@ -24,6 +24,7 @@
 class HbLabel;
 class HbPushButton;
 class HbFrameItem;
+class HbDocumentLoader;
 
 class NmHsWidgetTitleRow : public HbWidget
 {
@@ -33,12 +34,12 @@ public:
     NmHsWidgetTitleRow(QGraphicsItem *parent = 0, Qt::WindowFlags flags = 0);
     ~NmHsWidgetTitleRow();
     QPainterPath shape() const;
-    bool setupUI(); 
+    bool setupUI(HbDocumentLoader &loader); 
     void setAccountIcon(const QString& accountIconName );
     void setExpandCollapseIcon(const bool& expand);
     
 private:
-    bool loadDocML();
+    bool loadDocML(HbDocumentLoader &loader);
     bool setupGraphics();
     void updateData();
     void setHighlighedFontsColor( bool pressed );

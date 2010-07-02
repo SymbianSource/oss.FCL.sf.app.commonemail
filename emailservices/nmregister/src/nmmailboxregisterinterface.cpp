@@ -199,7 +199,7 @@ bool NmMailboxRegisterInterfacePrivate::registerNewMailbox(
     map[hsitemLaunchUri] = formLaunchUri(accountId);
     map[hsitemPublisherId] = NmPublisherName;
     map[hsItemWidgetUri] = NmHsWidget;
-    map[hsItemLocDescription] = "loc://KNmRegisterLocFileName/txt_mail_widget_dblist_preview_of_recent_mail";
+    map[hsItemLocDescription] = "loc://" + KNmRegisterLocFileName + "/txt_mail_widget_dblist_preview_of_recent_mail";
     map[hsIconFileName] = accountIconName;
     // to add widget params that are mapped to widgets properties
     map[NmHsWidgetParamAccountId] = QString::number(accountId);

@@ -17,6 +17,7 @@
 #include <QtGui>
 #include <QGraphicsLinearLayout>
 #include <hbcolorscheme.h>
+#include <hbdocumentloader.h>
 #include <QTranslator>
 #include <hbframedrawer.h>
 #include <hbframeitem.h>
@@ -34,7 +35,6 @@
 NmHsWidget::NmHsWidget(QGraphicsItem *parent, Qt::WindowFlags flags)
     : HbWidget(parent, flags), 
       mEngine(0),
-      mRowLayout(0),
       mTitleRow(0),
       mAccountId(0),
       mAccountIconName(),
@@ -42,7 +42,10 @@ NmHsWidget::NmHsWidget(QGraphicsItem *parent, Qt::WindowFlags flags)
       mBackgroundFrameDrawer(0),
       mIsExpanded(false),
       mDateObserver(0),
-      mNoMailsLabel(0)
+      mNoMailsLabel(0),
+      mWidgetContainer(0),
+      mContentContainer(0),
+      mContentLayout(0)
 {
     NM_FUNCTION;
 }
@@ -116,6 +119,32 @@ void NmHsWidget::onHide()
 }
 
 /*!
+ \fn bool NmHsWidget::loadDocML(HbDocumentLoader &loader)
+ 
+ loads layout data and child items from docml file. Must be called after constructor.
+ /return true if loading succeeded, otherwise false. False indicates that object is unusable
+ */
+bool NmHsWidget::loadDocML(HbDocumentLoader &loader)
+{
+    NM_FUNCTION;
+    
+    bool ok(false);
+    loader.load(KNmHsWidgetDocML, &ok);
+    
+    if(ok) {
+        mWidgetContainer = static_cast<HbWidget*> (loader.findWidget(KNmHsWidgetContainer));        
+        mContentContainer = static_cast<HbWidget*> (loader.findWidget(KNmHsWidgetContentContainer));
+        mNoMailsLabel = static_cast<HbLabel*> (loader.findWidget(KNmHsWidgetNoMailsLabel));
+        if (!mWidgetContainer || !mContentContainer || !mNoMailsLabel) {
+            //something failed in documentloader, no point to continue
+            NM_ERROR(1,"NmHsWidget::loadDocML fail @ containers or label");
+            ok = false;
+        }
+    }
+    return ok;
+}
+
+/*!
  Initializes Localization.
  /post mTranslator constructed & localization file loaded
  */
@@ -138,43 +167,35 @@ void NmHsWidget::setupUi()
 {
     NM_FUNCTION;
 
-    setContentsMargins(KNmHsWidgetContentsMargin, KNmHsWidgetContentsMargin,
-        KNmHsWidgetContentsMargin, KNmHsWidgetContentsMargin);
+    //main level layout needed to control docml objects
+    QGraphicsLinearLayout *widgetLayout = new QGraphicsLinearLayout(Qt::Vertical);
+    widgetLayout->setContentsMargins(KNmHsWidgetContentsMargin, KNmHsWidgetContentsMargin,
+            KNmHsWidgetContentsMargin, KNmHsWidgetContentsMargin);
+    widgetLayout->setSpacing(KNmHsWidgetContentsMargin);
+    widgetLayout->addItem(mWidgetContainer);
+    this->setLayout(widgetLayout);
 
-    //Setup layout
-    mRowLayout = new QGraphicsLinearLayout(Qt::Vertical);
-
-    mRowLayout->setContentsMargins(KNmHsWidgetContentsMargin, KNmHsWidgetContentsMargin,
-        KNmHsWidgetContentsMargin, KNmHsWidgetContentsMargin);
-    mRowLayout->setSpacing(KNmHsWidgetContentsMargin);
-    setLayout(mRowLayout);
-
-    //background
+    //fetch pointer to content container layout
+    //to be able to add/remove email rows and no mails label
+    mContentLayout = (QGraphicsLinearLayout*) mContentContainer->layout();
+    
+    //set noMailsLabel properties not supported by doc loader 
+    QColor newFontColor;
+    newFontColor = HbColorScheme::color("qtc_hs_list_item_content_normal");
+    mNoMailsLabel->setTextColor(newFontColor);
+    mNoMailsLabel->setVisible(true);   
+    
+    mContentLayout->removeItem(mNoMailsLabel);
+    
+    //widget background
     mBackgroundFrameDrawer = new HbFrameDrawer(KNmHsWidgetBackgroundImage,
         HbFrameDrawer::NinePieces);
     HbFrameItem* backgroundLayoutItem = new HbFrameItem(mBackgroundFrameDrawer);
     //set to NULL to indicate that ownership transferred
     mBackgroundFrameDrawer = NULL;
-    setBackgroundItem(backgroundLayoutItem);
-    
-    //Create NoMails Label.
-    mNoMailsLabel = new HbLabel(this);
-    mNoMailsLabel->setPlainText(hbTrId("txt_mail_widget_info_no_messages"));
-    HbFontSpec fontSpec(HbFontSpec::Secondary);
-    HbStyle style;
-    qreal size;
-    bool found = style.parameter(QString("hb-param-text-height-tiny"), size);
-    if (found) {
-        fontSpec.setTextHeight(size);
-    }
-    mNoMailsLabel->setFontSpec(fontSpec);
-    QColor newFontColor;
-    newFontColor = HbColorScheme::color("qtc_hs_list_item_content_normal");
-    mNoMailsLabel->setTextColor(newFontColor);
-    mNoMailsLabel->setAlignment(Qt::AlignCenter);
-    mNoMailsLabel->setVisible(false);
-
+    setBackgroundItem(backgroundLayoutItem);   
 }
+
 
 /*!
  Initializes the widget.
@@ -186,6 +207,26 @@ void NmHsWidget::onInitialize()
     NM_FUNCTION;
 
     QT_TRY {
+        
+	    // Use document loader to load the contents
+	    HbDocumentLoader loader;
+		
+	    //load containers and mNoMailsLabel
+        if (!loadDocML(loader)) {
+            NM_ERROR(1,"NmHsWidget::onInitialize Fail @ loader");
+            emit error(); //failure, no point to continue
+            return;
+        }
+
+        //construct title row
+        mTitleRow = new NmHsWidgetTitleRow(this);
+        if (!mTitleRow->setupUI(loader)) {
+            //title row creation failed
+            NM_ERROR(1,"NmHsWidget::onInitialize fail @ titlerow");
+            emit error(); //failure, no point to continue
+            return;            
+        }
+				
         setupUi();
         setupLocalization();
 
@@ -197,18 +238,12 @@ void NmHsWidget::onInitialize()
             SLOT( onEngineException(const int&) ));
         if (!mEngine->initialize()) {
             //engine construction failed. Give up.
+            NM_ERROR(1,"NmHsWidget::onInitialize fail @ engine");
             emit error();
             return;
         }
 
-        //construct and load docml for title row
-        mTitleRow = new NmHsWidgetTitleRow(this);
-        if (!mTitleRow->setupUI()) {
-            //if docml loading fails no point to proceed
-            emit error();
-            return;
-        }
-        mRowLayout->addItem(mTitleRow);
+
         mTitleRow->updateAccountName(mEngine->accountName());
 
         //create observer for date/time change events
@@ -238,12 +273,13 @@ void NmHsWidget::onInitialize()
 	            ,mEngine, SLOT( launchMailAppInboxView() ) );
 	    connect(mTitleRow, SIGNAL( expandCollapseButtonPressed() )
 	            ,this, SLOT( handleExpandCollapseEvent() ) );
-
+	    
+	    setMinimumSize(mTitleRow->minimumSize());
     }
     QT_CATCH(...) {
+        NM_ERROR(1,"NmHsWidget::onInitialize fail @ catch");
         emit error();
     }
-
 }
 
 
@@ -411,7 +447,13 @@ void NmHsWidget::createMailRowsList()
 void NmHsWidget::updateLayout(const int mailCount)
 {
     NM_FUNCTION;
+
     if (mIsExpanded) {
+        //set container height to content height 
+        qreal contentHeight = KMaxNumberOfMailsShown
+                * mMailRows.first()->maximumHeight();
+        mContentContainer->setMaximumHeight(contentHeight);
+        mContentContainer->setVisible(true);
         if (mailCount == 0) {
             addNoMailsLabelToLayout();
             removeEmailRowsFromLayout();
@@ -424,10 +466,16 @@ void NmHsWidget::updateLayout(const int mailCount)
     else {
         removeNoMailsLabelFromLayout();
         removeEmailRowsFromLayout();
+        mContentContainer->setVisible(false);
+        mContentContainer->setMaximumHeight(0);        
     }
 
     //resize the widget to new layout size
-    setPreferredSize(mRowLayout->preferredSize());
+    qreal totalHeight = mTitleRow->preferredHeight() + mContentContainer->maximumHeight();
+    //set maximum size, otherwise widget will stay huge also when collapsed
+    this->setMaximumHeight(totalHeight);
+    //resize here or widget cannot draw mail rows when expanding
+    this->resize(mTitleRow->preferredWidth(), totalHeight);
 
     updateMailRowsVisibility(mailCount);
 }
@@ -436,61 +484,56 @@ void NmHsWidget::updateLayout(const int mailCount)
  Updates mNoMailsLabel visibility based on widget state
  /param mailCount defines how many mail rows is needed
  /post if mail count is 0 and mIsExpanded equals true, then
- the mNoMailLabel is added to the mRowLayout. 
+ the mNoMailLabel is added to the mContentLayout. 
  */
 void NmHsWidget::addNoMailsLabelToLayout()
 {
     NM_FUNCTION;
-    //Use sizes defined for titlerow and mailrow docml to indentify the correct size
-    //for the mNoMailslabel
+
     if (mNoMailsLabel->isVisible() || mMailRows.isEmpty()) {
         return;
     }
-    QSizeF mailLabelSize(mTitleRow->maximumWidth(), KMaxNumberOfMailsShown
-        * mMailRows.first()->maximumHeight());
-    mNoMailsLabel->setPreferredSize(mailLabelSize);
-    mNoMailsLabel->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     //Add mNoMailsLabel to layout if not yet there and show it
-    mRowLayout->addItem(mNoMailsLabel);
+    mContentLayout->addItem(mNoMailsLabel);
     //resize the widget to new layout size
     mNoMailsLabel->show();
 }
 
 /*!
  removeNoMailsLabelFromLayout removes mNoMailsLabel from the layout
- /post mNoMailsLabel is not in mRowLayout
+ /post mNoMailsLabel is not in mContentLayout
  */
 void NmHsWidget::removeNoMailsLabelFromLayout()
 {
     NM_FUNCTION;
     //remove mNoMailsLabel from Layout and hide it
-    mRowLayout->removeItem(mNoMailsLabel);
+    mContentLayout->removeItem(mNoMailsLabel);
     mNoMailsLabel->hide();
 }
 
 /*!
  addEmailRowsToLayout adds every emailrow to the layout
- /post all elements in mMailRows are added to mRowLayout
+ /post all elements in mMailRows are added to mContentLayout
  */
 void NmHsWidget::addEmailRowsToLayout()
 {
     NM_FUNCTION;
     foreach(NmHsWidgetEmailRow *row, mMailRows)
         {
-            mRowLayout->addItem(row);
+            mContentLayout->addItem(row);
         }
 }
 
 /*!
  removeEmailRowsFromLayout removes every emailrow from the layout
- /post none of the elements in mMailRows are in mRowLayout
+ /post none of the elements in mMailRows are in mContentLayout
  */
 void NmHsWidget::removeEmailRowsFromLayout()
 {
     NM_FUNCTION;
     foreach(NmHsWidgetEmailRow *row, mMailRows)
         {
-            mRowLayout->removeItem(row);
+            mContentLayout->removeItem(row);
         }
 }
 

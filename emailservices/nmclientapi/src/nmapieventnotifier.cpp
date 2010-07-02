@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+ * Copyright (c) 2009 - 2010 Nokia Corporation and/or its subsidiary(-ies).
  * All rights reserved.
  * This component and the accompanying materials are made available
  * under the terms of "Eclipse Public License v1.0"
@@ -18,24 +18,19 @@
 #include "nmapiheaders.h"
 
 
-const quint32 IntervalEmitingSignals = 10000;
 
 namespace EmailClientApi
 {
 /*!
    Constructor
  */
-NmApiEventNotifier::NmApiEventNotifier(QObject *parent) :
-    NmApiMessageTask(parent)
-
+NmApiEventNotifier::NmApiEventNotifier(QObject *parent) 
+:NmApiMessageTask(parent)
 {
     NM_FUNCTION;
     
-    //set timer
     mNmApiEventNotifierPrivate = new NmApiEventNotifierPrivate(this);
-    mNmApiEventNotifierPrivate->mEmitSignals = new QTimer(this);
-    mNmApiEventNotifierPrivate->mEmitSignals->setInterval(IntervalEmitingSignals);
-    connect(mNmApiEventNotifierPrivate->mEmitSignals, SIGNAL(timeout()), this, SLOT(
+    connect(mNmApiEventNotifierPrivate, SIGNAL(timedOut()), this, SLOT(
         sendEventsFromBuffer()), Qt::QueuedConnection);
 
 }
@@ -46,9 +41,8 @@ NmApiEventNotifier::NmApiEventNotifier(QObject *parent) :
 NmApiEventNotifier::~NmApiEventNotifier()
 {
     NM_FUNCTION;
-    
-    if (mNmApiEventNotifierPrivate->mIsRunning) {
-        mNmApiEventNotifierPrivate->releaseEngine();
+    if (mNmApiEventNotifierPrivate) {
+        mNmApiEventNotifierPrivate->stop();
     }
 }
 
@@ -61,39 +55,14 @@ bool NmApiEventNotifier::start()
 {
     NM_FUNCTION;
     
-    bool result = false;
-
-    if (mNmApiEventNotifierPrivate->mIsRunning) {
-        result = true;
-    }
-    else {
-        if (!mNmApiEventNotifierPrivate->initializeEngine()) {
-            mNmApiEventNotifierPrivate->mIsRunning = false;
-            result = false;
-        }
-        else {
-            qRegisterMetaType<QList<quint64> > ("QList<quint64>");
-            qRegisterMetaType<NmApiMessage> ("NmApiMessage");
-
-            connect(mNmApiEventNotifierPrivate->mEngine, SIGNAL(emailStoreEvent(NmApiMessage)), mNmApiEventNotifierPrivate,
-                SLOT(emailStoreEvent(NmApiMessage)), Qt::QueuedConnection);
-            
-            // initiate event listening
-            mNmApiEventNotifierPrivate->mEngine->startCollectingEvents();
-            
-            mNmApiEventNotifierPrivate->mEmitSignals->start();
-            mNmApiEventNotifierPrivate->mIsRunning = true;
-            result = true;
-        }
-    }
-    return result;
+    return mNmApiEventNotifierPrivate->start();
 }
 
 /*!
    Cancels monitoring.
    
    In user responsibility is to cancel monitoring.
-   On end it clear buffer events and emits \sa NmApiMessageTask::canceled() signal.
+   On end it clears buffer events and emits \sa NmApiMessageTask::canceled() signal.
  */
 void NmApiEventNotifier::cancel()
 {
@@ -110,14 +79,13 @@ bool NmApiEventNotifier::isRunning() const
 {
     NM_FUNCTION;
     
-    return mNmApiEventNotifierPrivate->mIsRunning;
+    return mNmApiEventNotifierPrivate->isRunning();
 }
 
 /*!
-   It check each object in buffer and emit signal with it.
-   
-   After end of work of this function buffer is empty.
-   It is called by timeout signal from timer.
+   Checks each object in buffer and emits corresponding signal.
+   Uses scheduled transmission. Can be called also directly to force the 
+   signal sending.
  */
 void NmApiEventNotifier::sendEventsFromBuffer()
 {
@@ -126,53 +94,41 @@ void NmApiEventNotifier::sendEventsFromBuffer()
     qRegisterMetaType<EmailClientApi::NmApiMailboxEvent> ("EmailClientApi::NmApiMailboxEvent");
     qRegisterMetaType<EmailClientApi::NmApiMessageEvent> ("EmailClientApi::NmApiMessageEvent");
     
-    NmApiMessage events;
-    while (!mNmApiEventNotifierPrivate->mBufferOfEvents.isEmpty()) {
-        events = mNmApiEventNotifierPrivate->mBufferOfEvents.takeFirst();
-        switch (events.objectType) {
+    QList<NmApiMessage> events;
+    mNmApiEventNotifierPrivate->events(events);
+    while (!events.isEmpty()) {
+        NmApiMessage event = events.takeFirst();
+        switch (event.objectType) {
             case EMailbox:
-                switch (events.action) {
-                    case ENew:
-                        emit mailboxEvent(MailboxCreated, events.objectIds);
-                        break;
-                    case EChange:
-
-                        break;
-                    case EDeleted:
-                        emit mailboxEvent(MailboxDeleted, events.objectIds);
-                        break;
-                    default:
-                        break;
-                }
-                break;
-            case EFolder:
-                switch (events.action) {
-                    case ENew:
-
-                        break;
-                    case EChange:
-
-                        break;
-                    case EDeleted:
-
-                        break;
+                switch (event.action) {
+                    case ENew: {
+                        emit mailboxEvent(MailboxCreated, event.objectIds);
+                    } 
+                    break;
+                    case EDeleted: {
+                        emit mailboxEvent(MailboxDeleted, event.objectIds);
+                    }
+                    break;
                     default:
                         break;
                 }
                 break;
             case EMessage:
-                switch (events.action) {
-                    case ENew:
-                        emit messageEvent(MessageCreated, events.mailboxId, events.folderId,
-                            events.objectIds);
+                switch (event.action) {
+                    case ENew: {
+                        emit messageEvent(MessageCreated, event.mailboxId, event.folderId,
+                            event.objectIds);
+                        }
                         break;
-                    case EChange:
-                        emit messageEvent(MessageChanged, events.mailboxId, events.folderId,
-                            events.objectIds);
+                    case EChange: {
+                        emit messageEvent(MessageChanged, event.mailboxId, event.folderId,
+                            event.objectIds);
+                        }
                         break;
-                    case EDeleted:
-                        emit messageEvent(MessageDeleted, events.mailboxId, events.folderId,
-                            events.objectIds);
+                    case EDeleted: {
+                        emit messageEvent(MessageDeleted, event.mailboxId, event.folderId,
+                            event.objectIds);
+                        }
                         break;
                     default:
                         break;
@@ -182,6 +138,7 @@ void NmApiEventNotifier::sendEventsFromBuffer()
                 break;
         }
     }
+    events.clear();
 }
 
 } //End of EmailClientApi

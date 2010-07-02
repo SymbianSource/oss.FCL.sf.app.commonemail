@@ -55,7 +55,7 @@ NmEditorContent::NmEditorContent(QObject *parent,
     textDocument->setParent(mEditorWidget); // ownership changes
 
     mScrollArea = qobject_cast<NmBaseViewScrollArea *>
-        (documentLoader->findObject(NMUI_EDITOR_SCROLL_AREA));
+        (documentLoader->findWidget(NMUI_EDITOR_SCROLL_AREA));
     mScrollArea->setScrollDirections(Qt::Vertical | Qt::Horizontal);
     
     // Enable style picker menu item.

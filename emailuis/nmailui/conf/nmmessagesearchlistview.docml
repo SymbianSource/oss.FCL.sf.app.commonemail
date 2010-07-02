@@ -1,55 +1,46 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <hbdocument version="1.1">
-    <widget name="NmMessageListView" type="HbView">
+    <widget name="NmMessageSearchListView" type="HbView">
         <widget name="content" role="HbView:widget" type="HbWidget">
-            <widget name="MessageTreeList" type="HbTreeView">
-                <real name="z" value="4"/>
-                <sizehint height="67.7612un" type="PREFERRED"/>
+            <widget name="LineEdit" type="HbLineEdit">
+                <fontspec name="fontSpec" role="Primary" textheight="26.8"/>
+                <sizehint height="8un" type="PREFERRED"/>
             </widget>
-            <widget name="SearchBarContainer" type="HbWidget">
-                <widget name="LineEdit" type="HbLineEdit">
-                    <fontspec name="fontSpec" role="Primary" textheight="26.8"/>
-                </widget>
-                <widget name="PushButton" type="HbPushButton">
-                    <sizehint type="MINIMUM" width="9un"/>
-                </widget>
-                <real name="z" value="8"/>
-                <sizepolicy horizontalPolicy="Expanding" horizontalStretch="0" verticalPolicy="Expanding" verticalStretch="0"/>
-                <sizehint height="9.25un" type="PREFERRED" />
-                <sizehint height="9.25un" type="MINIMUM" />
-                <layout orientation="Horizontal" type="linear">
-                    <linearitem itemname="LineEdit"/>
-                    <linearitem itemname="PushButton"/>
-                </layout>
+            <widget name="PushButton" type="HbPushButton">
+                <sizehint height="8un" type="PREFERRED" width="9un"/>
+                <sizehint type="MAXIMUM" width="9un"/>
             </widget>
             <widget name="LabelGroupBox" type="HbGroupBox">
-                <real name="z" value="3"/>
-                <sizepolicy horizontalPolicy="MinimumExpanding" horizontalStretch="0" verticalPolicy="Fixed" verticalStretch="0"/>
                 <sizehint height="6un" type="PREFERRED" width="52un"/>
                 <bool name="collapsable" value="FALSE"/>
+                <bool name="enabled" value="FALSE"/>
             </widget>
             <widget name="MessageListNoMessages" type="HbLabel">
                 <enums name="textWrapping" value="TextWordWrap"/>
                 <enums name="alignment" value="AlignLeft|AlignVCenter|AlignHCenter|AlignLeading"/>
-                <real name="z" value="10"/>
-                <sizehint height="15.22388un" type="PREFERRED" width="43.73134un"/>
-                <string locid="txt_mail_dblist_no_messages_matched_your_search" name="plainText" value="No messages matched your search. Try another search term. "/>
+                <string locid="txt_mail_dblist_no_messages_matched_your_search" name="plainText"/>
+                <fontspec name="fontSpec" role="Primary" textheight="var(hb-param-text-height-primary)"/>
+            </widget>
+            <widget name="MessageTreeList" type="HbTreeView">
+                <fontspec name="fontSpec" role="Secondary" textheight="var(hb-param-text-height-secondary)"/>
             </widget>
             <real name="z" value="0"/>
             <layout type="anchor">
-                <anchoritem dst="LabelGroupBox" dstEdge="LEFT" spacing="0" src="" srcEdge="LEFT"/>
-                <anchoritem dst="LabelGroupBox" dstEdge="TOP" spacing="0.5un" src="SearchBarContainer" srcEdge="BOTTOM"/>
-                <anchoritem dst="LabelGroupBox" dstEdge="RIGHT" spacing="0" src="" srcEdge="RIGHT"/>
+                <anchoritem dst="MessageListNoMessages" dstEdge="LEFT" spacing="4.77612un" src="" srcEdge="LEFT"/>
+                <anchoritem dst="MessageListNoMessages" dstEdge="TOP" spacing="2.54478un" src="LabelGroupBox" srcEdge="BOTTOM"/>
+                <anchoritem dst="MessageListNoMessages" dstEdge="RIGHT" spacing="-5.22388un" src="" srcEdge="RIGHT"/>
                 <anchoritem dst="MessageTreeList" dstEdge="LEFT" spacing="0un" src="" srcEdge="LEFT"/>
                 <anchoritem dst="MessageTreeList" dstEdge="TOP" spacing="0un" src="LabelGroupBox" srcEdge="BOTTOM"/>
                 <anchoritem dst="MessageTreeList" dstEdge="RIGHT" spacing="0un" src="" srcEdge="RIGHT"/>
                 <anchoritem dst="MessageTreeList" dstEdge="BOTTOM" spacing="0un" src="" srcEdge="BOTTOM"/>
-                <anchoritem dst="MessageListNoMessages" dstEdge="LEFT" spacing="4.77612un" src="" srcEdge="LEFT"/>
-                <anchoritem dst="MessageListNoMessages" dstEdge="TOP" spacing="2.54478un" src="LabelGroupBox" srcEdge="BOTTOM"/>
-                <anchoritem dst="MessageListNoMessages" dstEdge="RIGHT" spacing="-5.22388un" src="" srcEdge="RIGHT"/>
-                <anchoritem dst="SearchBarContainer" dstEdge="LEFT" spacing="0un" src="" srcEdge="LEFT"/>
-                <anchoritem dst="SearchBarContainer" dstEdge="TOP" spacing="0un" src="" srcEdge="TOP"/>
-                <anchoritem dst="SearchBarContainer" dstEdge="RIGHT" spacing="0un" src="" srcEdge="RIGHT"/>
+                <anchoritem dst="LabelGroupBox" dstEdge="LEFT" spacing="0un" src="" srcEdge="LEFT"/>
+                <anchoritem dst="LabelGroupBox" dstEdge="TOP" spacing="expr(var(hb-param-margin-gene-middle-vertical) )" src="LineEdit" srcEdge="BOTTOM"/>
+                <anchoritem dst="LabelGroupBox" dstEdge="RIGHT" spacing="0un" src="" srcEdge="RIGHT"/>
+                <anchoritem dst="LineEdit" dstEdge="LEFT" spacing="expr(var(hb-param-margin-gene-left) )" src="" srcEdge="LEFT"/>
+                <anchoritem dst="LineEdit" dstEdge="TOP" spacing="expr(var(hb-param-margin-gene-middle-vertical) )" src="" srcEdge="TOP"/>
+                <anchoritem dst="LineEdit" dstEdge="RIGHT" spacing="expr(-var(hb-param-margin-gene-middle-horizontal) )" src="PushButton" srcEdge="LEFT"/>
+                <anchoritem dst="PushButton" dstEdge="TOP" spacing="expr(var(hb-param-margin-gene-middle-vertical) )" src="" srcEdge="TOP"/>
+                <anchoritem dst="PushButton" dstEdge="RIGHT" spacing="expr(-var(hb-param-margin-gene-right) )" src="" srcEdge="RIGHT"/>
             </layout>
         </widget>
         <string name="title" value="Search"/>

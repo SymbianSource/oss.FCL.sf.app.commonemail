@@ -52,6 +52,7 @@ enum TFSMsgFlag
     EFSMsgFlag_OnlyToMe = 2048,          // The message was sent only to this user
     EFSMsgFlag_RemoteDeleted = 4096,     // The message has been deleted on the server
     EFSMsgFlag_HasMsgSender = 8192,      // The message has one or more senders 
+	// <qmail> Not using EFSMsgFlag_BodyTruncated </qmail>
     };
 
 /** email list sorting options */  

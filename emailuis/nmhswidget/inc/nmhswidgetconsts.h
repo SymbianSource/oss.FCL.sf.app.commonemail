@@ -30,6 +30,14 @@ const int KMaxUnreadCount = 999;
 /**************************************************
  * nmhswidget
  *************************************************/
+/**  docml file including UI definitions */
+const QString KNmHsWidgetDocML = ":/docml/nmhswidget.docml";
+/** container widget including all UI components */
+const QString KNmHsWidgetContainer = "nmhswidgetContainer";
+/** container widget including content (mail rows / no mails label */
+const QString KNmHsWidgetContentContainer = "mailRowContainer";
+/** no mails label - shown when inbox is empty */
+const QString KNmHsWidgetNoMailsLabel = "noMailsLabel";
 /** contents margin/spacing in all layouts / container widgets */
 const int KNmHsWidgetContentsMargin = 0;
 /** Widget's background image*/
@@ -48,41 +56,41 @@ const QString KNmHsWidgetStateExpanded = "expanded";
  * Title row widget
  *************************************************/
 /**  docml file including title row UI definitions */
-#define KNmHsWidgetTitleRowDocML ":/docml/nmhswidgettitle.docml"
+/**#define KNmHsWidgetTitleRowDocML ":/docml/nmhswidgettitle.docml" */
 /**  docml file including title row UI definitions */
-#define KNmHsWidgetTitleRowContainer  "titleLayoutWidget"
+const QString KNmHsWidgetTitleRowContainer = "titleLayoutWidget";
 /** mailbox icon */
-#define KNmHsWidgetTitleRowMailboxIcon  "mailboxIcon"
+const QString KNmHsWidgetTitleRowMailboxIcon = "mailboxIcon";
 /** mailbox name label */
-#define KNmHsWidgetTitleRowMailboxNameLabel "mailboxNameLabel"
+const QString KNmHsWidgetTitleRowMailboxNameLabel = "mailboxNameLabel";
 /** unread count label */
-#define KNmHsWidgetTitleRowUnreadCountLabel  "unreadCountLabel"
+const QString KNmHsWidgetTitleRowUnreadCountLabel = "unreadCountLabel";
 /** expand collapse icon */
-#define KNmHsWidgetTitleRowCollapseExpandIconLabel "collapseExpandIcon"
+const QString KNmHsWidgetTitleRowCollapseExpandIconLabel = "collapseExpandIcon";
 
 /**************************************************
  * Mail row widget
  *************************************************/
 /**  docml file including mail row UI definitions */
-#define KNmHsWidgetMailRowDocML   ":/docml/nmhswidgetmail.docml"
+const QString KNmHsWidgetMailRowDocML = ":/docml/nmhswidgetmail.docml";
 /** container widget name for mail row UI items */
-#define KNmHsWidgetMailRowContainer   "emailLayoutWidget"
+const QString KNmHsWidgetMailRowContainer  = "emailLayoutWidget";
 /** sender label */
-#define KNmHsWidgetMailRowSenderLabel   "labelSender"
+const QString KNmHsWidgetMailRowSenderLabel = "labelSender";
 /** time label */
-#define KNmHsWidgetMailRowTimeLabel   "labelTime"
+const QString KNmHsWidgetMailRowTimeLabel = "labelTime";
 /** subject label */
-#define KNmHsWidgetMailRowSubjectLabel   "labelSubject"
+const QString KNmHsWidgetMailRowSubjectLabel = "labelSubject";
 /** new mail icon */
-#define KNmHsWidgetMailRowNewMailIcon   "iconNewMail"
+const QString KNmHsWidgetMailRowNewMailIcon = "iconNewMail";
 /** left status icon */
-#define KNmHsWidgetMailRowLeftIcon   "iconOne"
+const QString KNmHsWidgetMailRowLeftIcon = "iconOne";
 /** middle status icon */
-#define KNmHsWidgetMailRowMiddleIcon   "iconTwo"
+const QString KNmHsWidgetMailRowMiddleIcon = "iconTwo";
 /** right status icon */
-#define KNmHsWidgetMailRowRightIcon   "iconThree"
+const QString KNmHsWidgetMailRowRightIcon = "iconThree";
 /** separator icon */
-#define KNmHsWidgetMailSeparatorIcon   "iconSeparator"
+const QString KNmHsWidgetMailSeparatorIcon = "iconSeparator";
 
 
 #endif  // NMHSWIDGETCONSTS_H
