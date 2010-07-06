@@ -15,9 +15,9 @@
  *
  */
 
-#include "emailtrace.h"
+#include "nmapiheaders.h"
 
-#include <nmapimessagetask.h>
+
 
 /*!
    Constructor for NmApiMessageTask

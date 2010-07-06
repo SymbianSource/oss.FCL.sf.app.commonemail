@@ -22,57 +22,39 @@
 //  INCLUDES
 #include <QObject>
 #include <QVariant>
-
-#ifdef Q_OS_SYMBIAN
 #include <xqserviceprovider.h>
-#else
-#define NM_WINS_ENV
-#endif
 
 //  FORWARD DECLARATIONS
-class NmDataManager;
-class NmMailboxListModel;
 class NmUiEngine;
 class NmApplication;
 class NmUiStartParam;
 class NmMailboxSelectionDialog;
 class NmId;
 class HbView;
-class NmAddress;
 
-class NmUriServiceInterface
-#ifndef NM_WINS_ENV
-    : public XQServiceProvider
-#else
-    : public QObject
-#endif
+class NmUriServiceInterface : public XQServiceProvider
 {
     Q_OBJECT
-
 public:
-
-    NmUriServiceInterface( QObject *parent,
-                           NmUiEngine &mailboxListModel,
-                           NmApplication* application);
+    NmUriServiceInterface(QObject *parent,
+                          NmUiEngine &uiEngine,
+                          NmApplication *application);
     virtual ~NmUriServiceInterface();
 
 public slots:
-
     bool view(const QString& uri);
     void selectionDialogClosed(NmId &mailboxId);
 
 private:
-
     void launchEditorView(NmId mailboxId);
     void cancelService();
 
 private: // Data
-
-    NmApplication *mApplication; // Not owned
+    NmApplication *mApplication;                // Not owned
     NmUiEngine &mUiEngine;
     int mAsyncReqId;
-    NmUiStartParam *mStartParam;
-    NmMailboxSelectionDialog *mSelectionDialog;
+    NmUiStartParam *mStartParam;                // Owned
+    NmMailboxSelectionDialog *mSelectionDialog; //Owned
     HbView *mCurrentView;
 };
 

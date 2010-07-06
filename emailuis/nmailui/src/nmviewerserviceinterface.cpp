@@ -31,18 +31,12 @@
 NmViewerServiceInterface::NmViewerServiceInterface(QObject *parent,
         NmApplication *application,
         NmUiEngine &uiEngine)
-#ifndef NM_WINS_ENV
     : XQServiceProvider(emailFullServiceNameMessage, parent),
-#else
-    : QObject(parent),
-#endif
       mApplication(application),
       mUiEngine(uiEngine),
       mAsyncReqId(0)
 {
-#ifndef NM_WINS_ENV
     publishAll();
-#endif
 }
 
 
@@ -62,7 +56,6 @@ void NmViewerServiceInterface::viewMessage(QVariant mailboxId, QVariant folderId
 {
     NM_FUNCTION;
 
-#ifndef NM_WINS_ENV
     mAsyncReqId = setCurrentRequestAsync();
 
     NmId mailboxNmId(mailboxId.toULongLong());
@@ -122,7 +115,6 @@ void NmViewerServiceInterface::viewMessage(QVariant mailboxId, QVariant folderId
                     mApplication, SLOT(delayedExitApplication()));
         }
     }
-#endif
 }
 
 // End of file.

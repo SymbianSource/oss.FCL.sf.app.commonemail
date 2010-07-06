@@ -188,7 +188,7 @@ EXPORT_C void CFSMailClient::DeleteMessagesByUidL( const TFSMailMsgId aMailBoxId
 {
     NM_FUNCTION;
     
-	CFSMailPlugin* plugin = iFWImplementation->GetPluginManager().GetPluginByUid(aFolderId);
+	CFSMailPlugin* plugin = iFWImplementation->GetPluginManager().GetPluginByUid(aMailBoxId);
 	if(plugin)
 	{
 		plugin->DeleteMessagesByUidL(aMailBoxId,aFolderId,aMessages);

@@ -18,9 +18,9 @@
 #include "nmuiheaders.h"
 
 static const int NmMegabyte = 1048576;
-
+static const qreal NmMinAttachmentSize = 0.1;
 // taken from http://www.regular-expressions.info/email.html
-static const QRegExp EmailAddressPattern("[A-Za-z\\d!#$%&'*+/=?^_`{|}~-]+"
+static const QRegExp NmEmailAddressPattern("[A-Za-z\\d!#$%&'*+/=?^_`{|}~-]+"
                                          "(?:"
                                          "\\."
                                          "[A-Za-z\\d!#$%&'*+/=?^_`{|}~-]+"
@@ -48,44 +48,47 @@ void NmUtilities::getRecipientsFromMessage( const NmMessage &message,
 {
     NM_FUNCTION;
 
+    // Get envelope from message
+    const NmMessageEnvelope &env = message.envelope();
+    
     // validate TO addresses
-    QList<NmAddress> toRecipients = message.envelope().toRecipients();
+    QList<NmAddress> toRecipients = env.toRecipients();
     int recipientCount = toRecipients.count();
 
     for (int i = 0; i < recipientCount; ++i) {
         bool validAddress = isValidEmailAddress(toRecipients.at(i).address());
 
-        if (type == Default ||
-            type == ValidAddress && validAddress ||
-            type == InvalidAddress && !validAddress) {
+        if (type == NmDefault ||
+            type == NmValidAddress && validAddress ||
+            type == NmInvalidAddress && !validAddress) {
             recipients.append(toRecipients.at(i));
         }
     }
 
     // validate CC addresses
-    QList<NmAddress> ccRecipients = message.envelope().ccRecipients();
+    QList<NmAddress> ccRecipients = env.ccRecipients();
     recipientCount = ccRecipients.count();
 
     for (int i = 0; i < recipientCount; ++i) {
         bool validAddress = isValidEmailAddress(ccRecipients.at(i).address());
 
-        if (type == Default ||
-            type == ValidAddress && validAddress ||
-            type == InvalidAddress && !validAddress) {
+        if (type == NmDefault ||
+            type == NmValidAddress && validAddress ||
+            type == NmInvalidAddress && !validAddress) {
             recipients.append(ccRecipients.at(i));
         }
     }
 
     // validate BCC addresses
-    QList<NmAddress> bccRecipients = message.envelope().bccRecipients();
+    QList<NmAddress> bccRecipients = env.bccRecipients();
     recipientCount = bccRecipients.count();
 
     for (int i = 0; i < recipientCount; ++i) {
         bool validAddress = isValidEmailAddress(bccRecipients.at(i).address());
 
-        if (type == Default ||
-            type == ValidAddress && validAddress ||
-            type == InvalidAddress && !validAddress) {
+        if (type == NmDefault ||
+            type == NmValidAddress && validAddress ||
+            type == NmInvalidAddress && !validAddress) {
             recipients.append(bccRecipients.at(i));
         }
     }
@@ -98,7 +101,7 @@ bool NmUtilities::isValidEmailAddress( const QString &emailAddress )
 {
     NM_FUNCTION;
 
-    return EmailAddressPattern.exactMatch(emailAddress);
+    return NmEmailAddressPattern.exactMatch(emailAddress);
 }
 
 /*!
@@ -128,9 +131,9 @@ bool NmUtilities::parseEmailAddress( const QString &emailAddress, NmAddress &add
 {
     NM_FUNCTION;
 
-    bool foundAddress = false;
+    bool foundAddress(false);
 
-    QRegExp rx(EmailAddressPattern);
+    QRegExp rx(NmEmailAddressPattern);
     // locate the email address in the string
     int pos = rx.indexIn(emailAddress);
     if (pos != -1) {
@@ -169,7 +172,7 @@ QString NmUtilities::cleanupDisplayName( const QString &displayName )
 }
 
 /*!
-  Opens file specified by RFile handle. Usually used by viewer
+  Opens file specified by XQSharableFile handle. Usually used by viewer
   for opening attachments from message store as RFiles
 */
 int NmUtilities::openFile(XQSharableFile &file)
@@ -243,10 +246,10 @@ QString NmUtilities::attachmentSizeString(const int sizeInBytes)
     NM_FUNCTION;
 
     qreal sizeMb = (qreal)sizeInBytes / (qreal)NmMegabyte;
-    if (sizeMb < 0.1) {
-        // 0.1 Mb is the minimum size shown for attachment
-        sizeMb = 0.1;
-    }
+    if (sizeMb < NmMinAttachmentSize) {
+        // NmMinAttachmentSize (0.1Mb) is the minimum size shown for attachment
+        sizeMb = NmMinAttachmentSize;
+    }   
     return QString().sprintf("(%.1f Mb)", sizeMb); // Use loc string when available
 }
 

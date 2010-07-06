@@ -15,19 +15,8 @@
  *
  */
 
-#include "emailtrace.h"
+#include "nmapiheaders.h"
 
-#include <nmapicommonheader.h>
-
-#include "nmapitypesconverter.h"
-#include "nmdataplugininterface.h"
-#include "nmapidatapluginfactory.h"
-#include "nmapiengine.h"
-
-/*!
-    from nmailbase
-*/
-#include "nmapiprivateheaders.h"
 
 NmApiEngine *NmApiEngine::mInstance = NULL;
 quint32 NmApiEngine::mReferenceCount = 0;

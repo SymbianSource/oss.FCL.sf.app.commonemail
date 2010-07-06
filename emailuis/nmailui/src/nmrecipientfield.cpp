@@ -17,11 +17,11 @@
 
 #include "nmuiheaders.h"
 
-static const QString ContactsServiceName = "com.nokia.services.phonebookservices";
-static const QString ContactsInterfaceName = "Fetch";
-static const QString ContactsOperationName = "fetch(QString,QString,QString)";
+static const QString NmContactsServiceName = "com.nokia.services.phonebookservices";
+static const QString NmContactsInterfaceName = "Fetch";
+static const QString NmContactsOperationName = "fetch(QString,QString,QString)";
 
-static const int MaxRows = 10000;
+static const int NmMaxRows = 10000;
 
 /*!
    widget is created using AD/docml
@@ -46,12 +46,15 @@ NmRecipientField::NmRecipientField(
 
     mRecipientsEditor = qobject_cast<NmRecipientLineEdit *>
         (mDocumentLoader.findWidget(mObjectPrefix + "Edit"));
-    mRecipientsEditor->setMaxRows(MaxRows);
+    if (mRecipientsEditor) {
+        mRecipientsEditor->setMaxRows(NmMaxRows);    
+    }
 
     mLaunchContactsPickerButton = qobject_cast<HbPushButton *>
         (mDocumentLoader.findWidget(mObjectPrefix + "Button"));
-
-    mLaunchContactsPickerButton->setIcon(NmIcons::getIcon(NmIcons::NmIconContacts));
+    if (mLaunchContactsPickerButton) {
+        mLaunchContactsPickerButton->setIcon(NmIcons::getIcon(NmIcons::NmIconContacts));    
+    }
 
     createConnections();
 }
@@ -73,10 +76,8 @@ void NmRecipientField::createConnections()
         this, SIGNAL(selectionChanged()));
     connect(mLaunchContactsPickerButton, SIGNAL(pressed()),
             this, SIGNAL(launchContactsPickerButtonClicked()));
-
-#ifdef Q_OS_SYMBIAN
-    connect(mLaunchContactsPickerButton, SIGNAL(pressed()), this, SLOT(launchContactsPicker()));
-#endif
+    connect(mLaunchContactsPickerButton, SIGNAL(pressed()), 
+            this, SLOT(launchContactsPicker()));
 }
 
 
@@ -134,7 +135,6 @@ void NmRecipientField::setText(const QString &newText)
 }
 
 
-#ifdef Q_OS_SYMBIAN
 /*!
    This Slot launches the contacts-picker
 */
@@ -146,12 +146,12 @@ void NmRecipientField::launchContactsPicker()
     XQAiwRequest *launchContactsPickerRequest;
     
     bool isEmbeded = true;
-    launchContactsPickerRequest = mAppmgr.create(ContactsServiceName, ContactsInterfaceName, 
-                                                 ContactsOperationName, isEmbeded);
+    launchContactsPickerRequest = mAppmgr.create(NmContactsServiceName, NmContactsInterfaceName, 
+                                                 NmContactsOperationName, isEmbeded);
     
     if (launchContactsPickerRequest) {
         connect(launchContactsPickerRequest, SIGNAL(requestOk(QVariant)),
-                mRecipientsEditor, SLOT(insertSelectedContacts(QVariant)));
+                mRecipientsEditor, SLOT(addSelectedContacts(QVariant)));
     }
     else {
         // Failed creating request 
@@ -172,6 +172,5 @@ void NmRecipientField::launchContactsPicker()
     }
         
     delete launchContactsPickerRequest;
-    launchContactsPickerRequest = 0;
+    launchContactsPickerRequest = NULL;
 }
-#endif

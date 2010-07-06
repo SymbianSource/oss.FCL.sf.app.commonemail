@@ -31,7 +31,7 @@ class  NmAttachmentPicker : public QObject
     Q_OBJECT
 
 public:
-    NmAttachmentPicker(QObject* parent = 0);
+    NmAttachmentPicker(QObject *parent = 0);
     ~NmAttachmentPicker();
         
 public slots:
@@ -43,12 +43,12 @@ public slots:
     void fetchCameraVideo();
 
 signals:
-    void attachmentsFetchOk(const QVariant& fileNames);
-    void attachmentsFetchError(int errorCode, const QString& errorMessage);
+    void attachmentsFetchOk(const QVariant &fileNames);
+    void attachmentsFetchError(int errorCode, const QString &errorMessage);
     
 private:   
-    void fetch(const QString& interface, const QString& operation, 
-        const QList<QVariant>* args = 0); 
+    void fetch(const QString &interface, const QString &operation, 
+                const QList<QVariant> *args = 0); 
     void fetchFromCamera(int mode);
     
 private:

@@ -312,9 +312,9 @@ void NmIpsSettingsHelper::createOrUpdateReceivingScheduleGroupDynamicItem(
                     // refreshPeriodModified method needs to be updated also.
                     QStringList refreshMailItems;
                     refreshMailItems << hbTrId("txt_mailips_setlabel_val_keep_uptodate")
-                                     << hbTrId("txt_mailips_setlabel_val_every_15_minutes")
-                                     << hbTrId("txt_mailips_setlabel_val_every_1_hour")
-                                     << hbTrId("txt_mailips_setlabel_val_every_4_hours");
+                                     << HbStringUtil::convertDigits(hbTrId("txt_mailips_setlabel_val_every_15_minutes"))
+                                     << HbStringUtil::convertDigits(hbTrId("txt_mailips_setlabel_val_every_1_hour"))
+                                     << HbStringUtil::convertDigits(hbTrId("txt_mailips_setlabel_val_every_4_hours"));
                     formItemData->setContentWidgetData("items", refreshMailItems);
                     mDataForm.addConnection(
                         formItemData, SIGNAL(valueChanged(QPersistentModelIndex, QVariant)),
@@ -816,37 +816,6 @@ void NmIpsSettingsHelper::outgoingMailServerTextChange(const QString &text)
     mCurrentLineEditChanged = true;
 }
 
-void NmIpsSettingsHelper::handleModelDataChange(QModelIndex startIn, QModelIndex endIn)
-{
-    Q_UNUSED(endIn);
-    HbDataFormModelItem *item = mDataFormModel.itemFromIndex(startIn);
-    
-    if(item == mContentItems.value(IpsServices::IncomingSecureSockets)) {
-        QVariant data = item->contentWidgetData("selected");
-        incomingSecureConnectionItemChange(data.toInt());
-    }
-    else if(item == mContentItems.value(IpsServices::IncomingPort)) {
-        QVariant data = item->contentWidgetData("selected");
-        incomingPortChange(data.toInt());
-    }
-    else if(item == mContentItems.value(IpsServices::OutgoingSecureSockets)) {
-        QVariant data = item->contentWidgetData("selected");
-        outgoingSecureConnectionItemChange(data.toInt());
-    }
-    else if(item == mContentItems.value(IpsServices::OutgoingPort)) {
-        QVariant data = item->contentWidgetData("selected");
-        outgoingPortChange(data.toInt());
-    }
-    else if(item == mContentItems.value(IpsServices::SMTPAuthentication)) {
-        QVariant data = item->contentWidgetData("selected");
-        outgoingAuthenticationChange(data.toInt());
-    }
-    else if(item == mContentItems.value(IpsServices::FolderPath)) {
-        QVariant data = item->contentWidgetData("selected");
-        folderPathChange(data.toInt());
-    }
-}
-
 /*!
     Saves the incoming port value into database if user has changed the value. If the user wish to
     define the port, a input dialog is shown.
@@ -856,15 +825,15 @@ void NmIpsSettingsHelper::incomingPortChange(int index)
 {
     int previousindex = getCorrectIncomingPortRadioButtonIndex();
     
-    if (previousindex != index ) {
-        if (index == IpsServices::NmIpsSettingsDefault) {
+    if (index == IpsServices::NmIpsSettingsDefault) {
+        if (index != previousindex) {
             emit goOffline(mSettingsManager.mailboxId());
             mEmitOnline = true;
             int port = mSettingsManager.determineDefaultIncomingPort();
-            mSettingsManager.writeSetting(IpsServices::IncomingPort, port);
-        } else if (index == IpsServices::NmIpsSettingsUserDefined) {
-            showIncomingPortInputDialog();
-        }  
+            mSettingsManager.writeSetting(IpsServices::IncomingPort, port);    
+        }
+    } else if (index == IpsServices::NmIpsSettingsUserDefined) {
+        showIncomingPortInputDialog();
     }
 }
 
@@ -1030,14 +999,14 @@ int NmIpsSettingsHelper::getCorrectOutgoingSecureRadioButtonIndex()
 void NmIpsSettingsHelper::folderPathChange(int index)
 {
     int previousindex = getCorrectFolderPathRadioButtonIndex();
-    
-    if (previousindex != index ) {
-        if (index == IpsServices::NmIpsSettingsDefault) {
+        
+    if (index == IpsServices::NmIpsSettingsDefault) {
+        if (index != previousindex ) {
             // Empty string sets the folder path to default.
-            mSettingsManager.writeSetting(IpsServices::FolderPath, "");
-        } else if (index == IpsServices::NmIpsSettingsUserDefined) {
-            showFolderPathInputDialog();       
+            mSettingsManager.writeSetting(IpsServices::FolderPath, "");    
         }
+    } else if (index == IpsServices::NmIpsSettingsUserDefined) {
+        showFolderPathInputDialog();       
     }
 }
 
@@ -1136,10 +1105,10 @@ void NmIpsSettingsHelper::startTimeModified(QTime time)
 void NmIpsSettingsHelper::refreshPeriodModified(QPersistentModelIndex, QVariant value)
 {
     QMap<QString, int> conversionTable;
-    conversionTable[hbTrId("txt_mailips_setlabel_val_keep_uptodate")] = 5;
-    conversionTable[hbTrId("txt_mailips_setlabel_val_every_15_minutes")] = 15;
-    conversionTable[hbTrId("txt_mailips_setlabel_val_every_1_hour")] = 60;
-    conversionTable[hbTrId("txt_mailips_setlabel_val_every_4_hours")] = 240;
+    conversionTable[HbStringUtil::convertDigits(hbTrId("txt_mailips_setlabel_val_keep_uptodate"))] = 5;
+    conversionTable[HbStringUtil::convertDigits(hbTrId("txt_mailips_setlabel_val_every_15_minutes"))] = 15;
+    conversionTable[HbStringUtil::convertDigits(hbTrId("txt_mailips_setlabel_val_every_1_hour"))] = 60;
+    conversionTable[HbStringUtil::convertDigits(hbTrId("txt_mailips_setlabel_val_every_4_hours"))] = 240;
 
     int selectedValue(conversionTable.value(value.toString()));
     QVariant previouslySelectedValue;
@@ -1314,15 +1283,15 @@ void NmIpsSettingsHelper::outgoingPortChange(int index)
 {
     int previousindex = getCorrectOutgoingPortRadioButtonIndex();
     
-    if (previousindex != index) {
-        if (index == IpsServices::NmIpsSettingsDefault) {
+    if (index == IpsServices::NmIpsSettingsDefault) {
+        if (index != previousindex) {
             emit goOffline(mSettingsManager.mailboxId());
             mEmitOnline = true;
             int port = mSettingsManager.determineDefaultOutgoingPort();
-            mSettingsManager.writeSetting(IpsServices::OutgoingPort, port);
-        } else if (index == IpsServices::NmIpsSettingsUserDefined) {
-            showOutgoingPortInputDialog();
+            mSettingsManager.writeSetting(IpsServices::OutgoingPort, port);    
         }
+    } else if (index == IpsServices::NmIpsSettingsUserDefined) {
+        showOutgoingPortInputDialog();
     }
 }
 

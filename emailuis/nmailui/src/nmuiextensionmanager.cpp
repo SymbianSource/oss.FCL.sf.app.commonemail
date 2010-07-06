@@ -17,12 +17,12 @@
 
 #include "nmuiheaders.h"
 
+static const QString NmSettingsPluginFolderPath("/resource/qt/plugins/nmail/uiext");
+
 /*!
     \class NmUiExtensionManager
     \brief Handles ui extension plugins
  */
-
-// ======== HELPER FUNCTIONS ========
 
 /*!
   Creates list of folder paths where plug-ins can be loaded from.
@@ -32,7 +32,6 @@ QStringList NmUiExtensionManager::pluginFolders()
 {
     NM_FUNCTION;
     
-    const QString NmSettingsPluginFolderPath("/resource/qt/plugins/nmail/uiext");
     QStringList pluginDirectories;
     QFileInfoList driveList = QDir::drives();
 
@@ -81,7 +80,7 @@ void NmUiExtensionManager::getActions(
     NM_FUNCTION;
     
     for (int i = 0; i < mExtensions.count(); i++) {
-    	NmUiExtensionInterface* interface = mExtensions[i];
+    	NmUiExtensionInterface *interface = mExtensions[i];
         interface->getActions(menuRequest, actionList);
     }
 }
@@ -107,7 +106,7 @@ void NmUiExtensionManager::loadExtensionPlugins()
         }
     }
     
-    NmUiExtensionInterface *interface = NULL;    
+    NmUiExtensionInterface *interface(NULL);    
     foreach (QPluginLoader *loader, mPluginLoaders) {      
         NM_COMMENT(QString("Plugin fileName() : %1").arg(loader->fileName()));
         QString fileName = loader->fileName();        

@@ -15,13 +15,8 @@
  *
  */
 
-#include "emailtrace.h"
+#include "nmapiheaders.h"
 
-#include <nmapiemailservice.h>
-#include "nmapiengine.h"
-
-#include <nmapimailbox.h>
-#include <nmapimessageenvelope.h>
 
 namespace EmailClientApi
 {

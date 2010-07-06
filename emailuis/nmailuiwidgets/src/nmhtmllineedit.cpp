@@ -26,6 +26,10 @@ NmHtmlLineEdit::NmHtmlLineEdit(QGraphicsItem *parent) :
     HbLineEdit(parent)
 {
     NM_FUNCTION;
+
+    // Disable scrolling so that baunch effect works correctly
+    HbAbstractEdit::setScrollable(false);
+    HbAbstractEdit::scrollArea()->setScrollDirections(0);
 }
 
 /*!
@@ -95,4 +99,14 @@ void NmHtmlLineEdit::setPlainText (const QString &text)
     NM_FUNCTION;
     
     HbAbstractEdit::setPlainText(text);
+}
+
+/*!
+ *  Returns the rectangle for the cursor.
+ */
+QRectF NmHtmlLineEdit::rectForCursorPosition() const
+{
+    NM_FUNCTION;
+    
+    return HbLineEdit::rectForPosition(cursorPosition());
 }

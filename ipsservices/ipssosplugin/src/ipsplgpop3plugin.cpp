@@ -19,6 +19,7 @@
 #include "emailtrace.h"
 #include "ipsplgheaders.h"
 
+//<qmail> removed
 
 // ---------------------------------------------------------------------------
 // CIpsPlgPop3Plugin::CIpsPlgPop3Plugin
@@ -164,12 +165,11 @@ void CIpsPlgPop3Plugin::RefreshNowL(
     TInt populationLimit( settings->PopulationLimit() );
     CleanupStack::PopAndDestroy( 2, settings );   // >>> settings, accounts
     TBool forcePopulate( EFalse );
-// <qmail>
-    /*
+// <qmail> back to use
     if( populationLimit != KIpsSetDataHeadersOnly )
         {
         forcePopulate = ETrue;
-        }*/
+        }
 // </qmail>
     
     CIpsPlgBaseOperation* op = CIpsPlgPop3ConnectOp::NewL( 

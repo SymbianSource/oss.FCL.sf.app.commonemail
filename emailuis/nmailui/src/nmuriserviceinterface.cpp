@@ -17,7 +17,6 @@
 */
 
 //  INCLUDES
-#include <xqaiwdecl.h>
 #include "nmuiheaders.h"
 
 /*!
@@ -32,10 +31,10 @@ public:
         Class constructor.
     */
     inline NmStartParamDataHelper()
-    : mSubject(0),
-      mToAddresses(0),
-      mCcAddresses(0),
-      mBccAddresses(0)
+    : mSubject(NULL),
+      mToAddresses(NULL),
+      mCcAddresses(NULL),
+      mBccAddresses(NULL)
     {
         NM_FUNCTION;
     }
@@ -57,7 +56,7 @@ public:
     {
         NM_FUNCTION;
         
-        bool success = false;
+        bool success(false);
         
         QUrl uri(data);
         
@@ -165,11 +164,7 @@ public: // Data
 NmUriServiceInterface::NmUriServiceInterface(QObject *parent,
                                                NmUiEngine &uiEngine,
                                                NmApplication *application)
-#ifndef NM_WINS_ENV
     : XQServiceProvider(emailServiceName+"."+XQI_URI_VIEW, parent),
-#else
-    : QObject(parent),
-#endif
       mApplication(application),
       mUiEngine(uiEngine),
       mAsyncReqId(0),
@@ -177,9 +172,7 @@ NmUriServiceInterface::NmUriServiceInterface(QObject *parent,
       mSelectionDialog(NULL),
       mCurrentView(NULL)
 {
-#ifndef NM_WINS_ENV
     publishAll();
-#endif
 }
 
 
@@ -221,14 +214,17 @@ void NmUriServiceInterface::selectionDialogClosed(NmId &mailboxId)
 bool NmUriServiceInterface::view(const QString& uri)
 {
     NM_FUNCTION;
-    
-#ifndef NM_WINS_ENV
-    
-    // Make sure that nmail stays background if user presses back in editorview
-    mApplication->updateVisibilityState();
-    
-    HbMainWindow *mainWindow = mApplication->mainWindow();
-    mCurrentView = mainWindow->currentView();
+      
+    HbMainWindow *mainWindow(NULL);
+    if (mApplication) {
+        // Make sure that nmail stays background if user presses back in editorview
+        mApplication->updateVisibilityState();
+        
+        mainWindow = mApplication->mainWindow();
+        if (mainWindow) {
+            mCurrentView = mainWindow->currentView();  
+        } 
+    }
 
     // Hide the current view.
     if (mCurrentView) {
@@ -260,7 +256,9 @@ bool NmUriServiceInterface::view(const QString& uri)
     else { // count > 0
         // Make sure the NMail application is in the foreground.
         XQServiceUtil::toBackground(false);
-        mainWindow->show();
+        if (mainWindow) {
+            mainWindow->show();        
+        }
 
     	mStartParam = new NmUiStartParam(
         	NmUiViewMessageEditor,
@@ -352,9 +350,5 @@ void NmUriServiceInterface::cancelService()
         }
     }
 }
-
-#endif /* NM_WINS_ENV */
-
-
 
 // End of file.

@@ -28,9 +28,9 @@ class NmUiDocumentLoader : public HbDocumentLoader
 {
 public:
     NmUiDocumentLoader(const HbMainWindow *window);
-    virtual ~NmUiDocumentLoader();
+    ~NmUiDocumentLoader();
 protected:
-    virtual QObject *createObject(const QString& type, const QString &name);
+    QObject *createObject(const QString& type, const QString &name);
 
 };
 

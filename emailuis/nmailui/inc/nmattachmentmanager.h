@@ -59,7 +59,7 @@ private slots:
     void changeProgress(int value);
     void completeAttachmentFetch(int result);
     void completeMessageFetch(int result);
-    
+
 private:
     NmUiEngine &mUiEngine;
     QPointer<NmOperation> mFetchOperation;      // Not owned

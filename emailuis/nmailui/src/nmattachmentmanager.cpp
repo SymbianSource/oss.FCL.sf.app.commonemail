@@ -17,7 +17,7 @@
 
 #include "nmuiheaders.h"
 
-const int NmAttachmentManagerInitialProgressPercent = 5;
+static const int NmAttachmentManagerInitialProgressPercent = 5;
 
 /*!
     \class NmAttachmentManager
@@ -32,6 +32,7 @@ NmAttachmentManager::NmAttachmentManager(NmUiEngine &uiEngine) :
     mFetchOperation(NULL),
     mMsgFetchOperation(NULL),
     mFetchObserver(NULL),
+    mFetchMsg(NULL),
     mAttaId(0),
     mProgressValue(0),
     mIsFetching(false)
@@ -48,6 +49,9 @@ NmAttachmentManager::~NmAttachmentManager()
     
     // fetch operation deleted in cancel fetch
     cancelFetch();
+    
+    delete mFetchMsg;
+    mFetchMsg = NULL;
 }
 
 /*!
@@ -82,7 +86,7 @@ void NmAttachmentManager::fetchAttachment(
 
 /*!
     Fetch attachments to a message. 
-    Set observer with setObserver method to get process and complete events
+    Set observer with setObserver method to get progress and complete events
     
     \return bool true if fetch started, otherwise false.
 */
@@ -93,7 +97,7 @@ bool NmAttachmentManager::fetchAttachments(
         QList<NmId> &messagePartIds)
 {
     NM_FUNCTION;
-    bool result = false;
+    bool result(false);
     // cancel old fetch operation, Does nothing if fetch not ongoing
     cancelFetch();
     
@@ -123,7 +127,7 @@ bool NmAttachmentManager::fetchAttachments(
     Fetch all message parts to a message. Fetches also message part data structure,
     if not fetched already.
       If earlier fetch operation exist it is cancelled and deleted.
-    Set observer with setObserver method to get process and complete events
+    Set observer with setObserver method to get progress and complete events
 */
 void NmAttachmentManager::fetchAllMessageParts(
         const NmId &mailboxId, 
@@ -134,7 +138,7 @@ void NmAttachmentManager::fetchAllMessageParts(
     mFetchMsg = mUiEngine.message(mailboxId,folderId,messageId);
     
     // Check if we have part data structure.    
-    if (mFetchMsg->childParts().count() == 0 &&
+    if (mFetchMsg && mFetchMsg->childParts().count() == 0 &&
         mFetchMsg->fetchedSize() < mFetchMsg->size()) {
 
         // cancel old fetch operation, Does nothing if fetch not ongoing
@@ -239,30 +243,44 @@ void NmAttachmentManager::completeMessageFetch(int result)
     
     if (result == NmNoError) {
         
-        // Reload message
-        mFetchMsg = mUiEngine.message(
-            mFetchMsg->envelope().mailboxId(),
-            mFetchMsg->envelope().folderId(),
-            mFetchMsg->envelope().messageId());
-        
         if (mFetchMsg) {
-            QList<NmId> partIds;
-            NmMessagePart *part;
-            foreach (part, mFetchMsg->childParts()) {
-                if (part->size() > part->fetchedSize()) {
-                    partIds.append(part->partId());
+            
+            NmId mailboxId = mFetchMsg->envelope().mailboxId();
+            NmId folderId = mFetchMsg->envelope().folderId();
+            NmId messageId = mFetchMsg->envelope().messageId();
+            
+            // Delete object
+            delete mFetchMsg;
+            mFetchMsg = NULL;
+            
+            // Reload message
+            mFetchMsg = mUiEngine.message(mailboxId,folderId,messageId);
+            
+            if (mFetchMsg) {
+                QList<NmId> partIds;
+                NmMessagePart *part;
+                foreach (part, mFetchMsg->childParts()) {
+                    if (part->size() > part->fetchedSize()) {
+                        partIds.append(part->partId());
+                    }
                 }
-            }
-            if (partIds.count() > 0) {
-                mMsgFetchOperation = NULL;
-                fetchAttachments(
-                    mFetchMsg->envelope().mailboxId(),
-                    mFetchMsg->envelope().folderId(),
-                    mFetchMsg->envelope().messageId(),
-                    partIds);
+                if (partIds.count() > 0) {
+                    mMsgFetchOperation = NULL;
+                    fetchAttachments(
+                        mFetchMsg->envelope().mailboxId(),
+                        mFetchMsg->envelope().folderId(),
+                        mFetchMsg->envelope().messageId(),
+                        partIds);
+                }
+                else {
+                    mFetchObserver->fetchCompleted(NmNoError);
+                }
+                // Delete object
+                delete mFetchMsg;
+                mFetchMsg = NULL;
             }
             else {
-                mFetchObserver->fetchCompleted(NmNoError);
+                mFetchObserver->fetchCompleted(NmNotFoundError);
             }
         }
         else {
@@ -308,4 +326,3 @@ int NmAttachmentManager::progressValue() const
     
     return mProgressValue;
 }
-

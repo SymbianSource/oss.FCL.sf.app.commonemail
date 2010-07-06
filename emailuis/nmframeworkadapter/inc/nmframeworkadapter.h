@@ -66,7 +66,7 @@ public:
 
     int getMailboxById(const NmId& id, NmMailbox*& mailbox);
 
-    int deleteMailboxById(const NmId& id);
+    QPointer<NmOperation> deleteMailboxById(const NmId& id);
 
     int getMessageById(
             const NmId& mailboxId,
@@ -200,6 +200,12 @@ public:
     void updateActiveFolder(const NmId &mailboxId, const NmId &folderId);
     
     QPointer<NmOperation> removeDraftMessage(NmMessage *message);
+	
+	int copyMessages(
+        const NmId &mailboxId,
+        const QList<quint64> &messageIds,
+        const NmId &sourceFolderId,
+        const NmId &destinationFolderId);
     
 signals:
 
@@ -295,7 +301,15 @@ private:
     
     void doUpdateActiveFolderL(const NmId &mailboxId, const NmId &folderId);
     
-    CEmailExtension* getEMailStateExtensionL();      
+    CEmailExtension* getEMailStateExtensionL();  
+	
+    void copyMessagesL(
+        const NmId &mailboxId, 
+        const QList<quint64> &messageIds,
+        const NmId &sourceFolderId,
+        const NmId &destinationFolderId);
+	
+	void deleteMailboxByIdL(const NmId &mailboxId);    
 
 
 private: // Data
@@ -303,7 +317,9 @@ private: // Data
     CFSMailClient* mFSfw; // Singleton, not owned
     NmMailboxSearchObserver *mSearchObserver; // Owned
     CFSMailBox* mCurrentMailBox; // Owned
-    CEmailExtension* mEmailExtension; // not owned
+    CEmailExtension* mStateExtension; // not owned
+
+
 };
 
 

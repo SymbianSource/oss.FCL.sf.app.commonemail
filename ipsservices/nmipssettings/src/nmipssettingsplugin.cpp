@@ -99,13 +99,6 @@ NmIpsSettingsPlugin::~NmIpsSettingsPlugin()
 bool NmIpsSettingsPlugin::populateModel(HbDataFormModel &model,
     HbDataForm &form, const NmId &mailboxId)
 {
-    // Turns AlwaysOnline OFF
-    setAlwaysOnlineState(EServerAPIEmailTurnOff, mailboxId);
-    
-    // Store model and form pointers.
-    mModel = &model;
-    mForm = &form;
-
     // populateModel is called each time when a new settings view is created and this
     // plugin is destructed only after the mail settings is exited, so
     // SettingsManager and SettingsHelper needs to be deleted.
@@ -119,6 +112,13 @@ bool NmIpsSettingsPlugin::populateModel(HbDataFormModel &model,
     // This plugin is only used when the mailbox is a IMAP or POP3 account.
     // Settings manager object is valid if the mailboxId is IMAP or POP3 account.
     if (mSettingsManager) {
+        // Turns AlwaysOnline OFF
+        setAlwaysOnlineState(EServerAPIEmailTurnOff, mailboxId);
+        
+        // Store model and form pointers.
+        mModel = &model;
+        mForm = &form;
+        
         // Create settings helper.
         mSettingsHelper = new NmIpsSettingsHelper(*mSettingsManager, form, model);
 
@@ -134,9 +134,6 @@ bool NmIpsSettingsPlugin::populateModel(HbDataFormModel &model,
 
         connect(mSettingsHelper, SIGNAL(createUserDefinedMode()),
                 this, SLOT(createUserDefinedMode()));
-
-        connect(mModel, SIGNAL(dataChanged(QModelIndex, QModelIndex)), 
-                mSettingsHelper, SLOT(handleModelDataChange(QModelIndex, QModelIndex)));
         
         // Get the value if some ui items need to be hidden.
         QVariant data;
@@ -452,6 +449,8 @@ void NmIpsSettingsPlugin::initServerInfoItems(HbDataFormModelItem &item) const
         mSettingsHelper->getCorrectIncomingSecureRadioButtonIndex();
     incomingSecureConnectionItem->setContentWidgetData(QString("selected"), 
                                                        incomingSecureConnectionItemIndex);
+    mForm->addConnection(incomingSecureConnectionItem, SIGNAL(itemSelected(int)),             
+            mSettingsHelper, SLOT(incomingSecureConnectionItemChange(int)));
     if (mHiddenItem) {
         incomingSecureConnectionItem->setEnabled(false);
     }
@@ -468,6 +467,8 @@ void NmIpsSettingsPlugin::initServerInfoItems(HbDataFormModelItem &item) const
     incomingPortItem->setContentWidgetData(QString("items"), incomingPortItems);
     int incomingPortItemIndex = mSettingsHelper->getCorrectIncomingPortRadioButtonIndex(); 
     incomingPortItem->setContentWidgetData(QString("selected"), incomingPortItemIndex);
+    mForm->addConnection(incomingPortItem, SIGNAL(itemSelected(int)),
+        mSettingsHelper, SLOT(incomingPortChange(int)));
     if (mHiddenItem) {
         incomingPortItem->setEnabled(false);
     }
@@ -504,6 +505,8 @@ void NmIpsSettingsPlugin::initServerInfoItems(HbDataFormModelItem &item) const
         mSettingsHelper->getCorrectOutgoingSecureRadioButtonIndex();
     outgoingSecureConnectionItem->setContentWidgetData(QString("selected"), 
                                                        outgoingSecureConnectionItemIndex);
+    mForm->addConnection(outgoingSecureConnectionItem, SIGNAL(itemSelected(int)),             
+            mSettingsHelper, SLOT(outgoingSecureConnectionItemChange(int)));
     if (mHiddenItem) {
         outgoingSecureConnectionItem->setEnabled(false);
     }
@@ -520,6 +523,8 @@ void NmIpsSettingsPlugin::initServerInfoItems(HbDataFormModelItem &item) const
     outgoingPortItem->setContentWidgetData(QString("items"), outgoingPortItems);
     int outgoingPortItemIndex = mSettingsHelper->getCorrectOutgoingPortRadioButtonIndex(); 
     outgoingPortItem->setContentWidgetData(QString("selected"), outgoingPortItemIndex);
+    mForm->addConnection(outgoingPortItem, SIGNAL(itemSelected(int)),
+        mSettingsHelper, SLOT(outgoingPortChange(int)));
     if (mHiddenItem) {
         outgoingPortItem->setEnabled(false);
     }
@@ -538,6 +543,8 @@ void NmIpsSettingsPlugin::initServerInfoItems(HbDataFormModelItem &item) const
     int outgoingAuthenticationIndex = 
         mSettingsHelper->getCorrectOutgoingAuthenticationRadioButtonIndex(); 
     outgoingAuthenticationItem->setContentWidgetData(QString("selected"), outgoingAuthenticationIndex);
+    mForm->addConnection(outgoingAuthenticationItem, SIGNAL(itemSelected(int)),
+        mSettingsHelper, SLOT(outgoingAuthenticationChange(int)));
     item.appendChild(outgoingAuthenticationItem);
     if (mHiddenItem) {
         outgoingAuthenticationItem->setEnabled(false);
@@ -559,6 +566,8 @@ void NmIpsSettingsPlugin::initServerInfoItems(HbDataFormModelItem &item) const
         folderPathItem->setContentWidgetData(QString("items"), folderPathItems);
         int folderPathItemIndex = mSettingsHelper->getCorrectFolderPathRadioButtonIndex();
         folderPathItem->setContentWidgetData(QString("selected"), folderPathItemIndex);
+        mForm->addConnection(folderPathItem, SIGNAL(itemSelected(int)),
+            mSettingsHelper, SLOT(folderPathChange(int)));
         item.appendChild(folderPathItem);
     }
 }

@@ -55,6 +55,8 @@ public:
 
     void refreshMailboxListModel();
 
+    NmId getPluginIdByMailboxId(quint32 accountId);
+    
     NmMessageListModel &messageListModel(const NmId &mailboxId,
                                          const NmId &folderId);
 

@@ -31,8 +31,12 @@ NmHsWidgetDateTimeObserverPrivate::NmHsWidgetDateTimeObserverPrivate(NmHsWidgetD
 {
     NM_FUNCTION;
     TCallBack callback( LocaleChangeCallback, this );
-    //TODO: Handle leave properly
-    TRAP_IGNORE(iLocaleNotifier = CEnvironmentChangeNotifier::NewL( CActive::EPriorityStandard, callback ));
+    
+    //CTC skipped as last else of macro QT_TRAP_THROWING cannot be tested (panics on purpose)
+#pragma CTC SKIP
+    QT_TRAP_THROWING(iLocaleNotifier = CEnvironmentChangeNotifier::NewL( CActive::EPriorityStandard, callback ));
+#pragma CTC ENDSKIP
+    
     iLocaleNotifier->Start();
 }
 

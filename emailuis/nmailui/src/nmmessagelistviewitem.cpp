@@ -236,21 +236,6 @@ void NmMessageListViewItem::setContentsToMessageItem(const NmMessageEnvelope &en
 }
 
 /*!
-    paint. Paint function for line painting.
-*/
-void NmMessageListViewItem::paint(
-    QPainter *painter,
-    const QStyleOptionGraphicsItem *option,
-    QWidget *widget)
-{
-    NM_FUNCTION;
-    
-    Q_UNUSED(option);
-    Q_UNUSED(widget);
-    Q_UNUSED(painter);
-}
-
-/*!
     setFontsUnread
 */
 void  NmMessageListViewItem::setFontsUnread()
@@ -258,8 +243,8 @@ void  NmMessageListViewItem::setFontsUnread()
     NM_FUNCTION;
     
     static QColor colorRole = HbColorScheme::color("qtc_list_item_title_normal");
-    HbFontSpec spekki(HbFontSpec::Primary);
-    setFonts(colorRole, spekki);
+    HbFontSpec fontSpec(HbFontSpec::Primary);
+    setFonts(colorRole, fontSpec);
 }
 
 /*!
@@ -270,8 +255,8 @@ void  NmMessageListViewItem::setFontsRead()
     NM_FUNCTION;
     
     static QColor colorRole = HbColorScheme::color("qtc_list_item_content_normal");
-    HbFontSpec spekki(HbFontSpec::Secondary);
-    setFonts(colorRole, spekki);
+    HbFontSpec fontSpec(HbFontSpec::Secondary);
+    setFonts(colorRole, fontSpec);
 }
 
 /*!
@@ -283,16 +268,15 @@ void  NmMessageListViewItem::getFontSizes()
     
     // Get font sizes from style  
     qreal currentSize;
-    HbStyle mystyle;
-    bool found = mystyle.parameter(QString("hb-param-text-height-primary"), currentSize );
+    bool found = style()->parameter(QString("hb-param-text-height-primary"), currentSize );
     if (found) {
         mPrimarySize = currentSize;
     }      
-    found = mystyle.parameter(QString("hb-param-text-height-secondary"), currentSize );
+    found = style()->parameter(QString("hb-param-text-height-secondary"), currentSize );
     if (found) {
         mSecondarySize = currentSize;
     }        
-    found = mystyle.parameter(QString("hb-param-text-height-tiny"), currentSize );
+    found = style()->parameter(QString("hb-param-text-height-tiny"), currentSize );
     if (found) {
         mTinySize = currentSize;
     } 
@@ -302,7 +286,7 @@ void  NmMessageListViewItem::getFontSizes()
     setFonts.
 */
 void  NmMessageListViewItem::setFonts(const QColor &colorRole, 
-        HbFontSpec &spekki)
+        HbFontSpec &fontSpec)
 {
     NM_FUNCTION;
     
@@ -310,21 +294,21 @@ void  NmMessageListViewItem::setFonts(const QColor &colorRole,
     if (mSender && mSubject && mTime) {
         
         if (mPrimarySize) {
-            spekki.setTextHeight(mPrimarySize);
+            fontSpec.setTextHeight(mPrimarySize);
         }      
-        mSender->setFontSpec(spekki);
+        mSender->setFontSpec(fontSpec);
         mSender->setTextColor(colorRole);
         
         if (mSecondarySize) {
-            spekki.setTextHeight(mSecondarySize);
+            fontSpec.setTextHeight(mSecondarySize);
         }        
-        mSubject->setFontSpec(spekki);
+        mSubject->setFontSpec(fontSpec);
         mSubject->setTextColor(colorRole);
 
         if (mTinySize) {
-            spekki.setTextHeight(mTinySize);
+            fontSpec.setTextHeight(mTinySize);
         } 
-        mTime->setFontSpec(spekki);        
+        mTime->setFontSpec(fontSpec);        
         mTime->setTextColor(colorRole);
     }
 }

@@ -29,20 +29,21 @@ class NmApiMessageEnvelope;
 
 class NmApiEnvelopeListingPrivate : public QObject
 {
+    Q_OBJECT
+    
 public:
-
-    NmApiEnvelopeListingPrivate(QObject *parent = 0);
+    NmApiEnvelopeListingPrivate(const quint64 folderId, const quint64 mailboxId, QObject *parent = 0);
     virtual ~NmApiEnvelopeListingPrivate();
+    bool envelopes(QList<EmailClientApi::NmApiMessageEnvelope> &envelopes);
+    qint32 listEnvelopes();
+    bool isRunning() const;
+    void cancel();
 
-    bool initializeEngine();
-    void releaseEngine();
-    qint32 grabEnvelopes();
-
+private:
+    quint64 mFolderId;
+    quint64 mMailboxId;
     bool mIsRunning;
-    quint64 folderId;
-    quint64 mailboxId;
     NmApiEngine *mEngine;
-
     QList<EmailClientApi::NmApiMessageEnvelope> mEnvelopes;
 };
 }

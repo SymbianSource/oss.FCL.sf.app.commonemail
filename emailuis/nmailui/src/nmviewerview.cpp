@@ -11,7 +11,7 @@
  *
  * Contributors:
  *
- * Description:
+ * Description: Mail viewer implementation.
  *
  */
 
@@ -25,11 +25,14 @@ static const char *NMUI_MESSAGE_VIEWER_SCROLL_AREA_CONTENTS = "viewerScrollAreaC
 static const char *NMUI_MESSAGE_VIEWER_HEADER = "viewerHeader";
 static const char *NMUI_MESSAGE_VIEWER_ATTALIST = "viewerAttaList";
 static const char *NMUI_MESSAGE_VIEWER_SCROLL_WEB_VIEW = "viewerWebView";
-
 static const int NmOrientationTimer = 100;
 static const int NmHeaderMargin = 3;
-
+static const int NmWhitePixmapSize = 10;
+static const int NmProgressValueComplete = 100;
 static const QString NmParamTextHeightSecondary = "hb-param-text-height-secondary";
+static const QString NmHttpLinkScheme = "http";
+static const QString NmHttpsLinkScheme = "https";
+static const QString NmMailtoLinkScheme = "mailto";
 
 /*!
 	\class NmViewerView
@@ -62,7 +65,6 @@ mMessageFetchingOperation(NULL),
 mDisplayingPlainText(false),
 mDocumentLoader(NULL),
 mScrollAreaContents(NULL),
-mViewerHeaderContainer(NULL),
 mScreenSize(QSize(0,0)),
 mWaitDialog(NULL),
 webFrameloadingCompleted(false),
@@ -72,7 +74,7 @@ mAttaWidget(NULL),
 mViewReady(false),
 mWaitNoteCancelled(false),
 mErrorNote(NULL)
-    {
+{
     // Create documentloader
     mDocumentLoader = new NmUiDocumentLoader(mMainWindow);
     // Get screensize
@@ -117,6 +119,7 @@ void NmViewerView::aboutToExitView()
     // View is about to exit, for safety, stop 
     // loading of content before closing the view
     if (mWebView){
+        mAttaManager.cancelFetch();
         mWebView->stop();
         if (mWebView->page()){
             mWebView->page()->deleteLater();
@@ -132,18 +135,18 @@ void NmViewerView::loadViewLayout()
     NM_FUNCTION;
     
     // Use document loader to load the view
-    bool ok = false;
+    bool ok(false);
     setObjectName(QString(NMUI_MESSAGE_VIEWER_VIEW));
-    QObjectList objectList;
-    objectList.append(this);
-    // Pass the view to documentloader. Document loader uses this view
-    // when docml is parsed, instead of creating new view.
-    // documentloader is created in constructor
-    mDocumentLoader->setObjectTree(objectList);
-    mWidgetList = mDocumentLoader->load(NMUI_MESSAGE_VIEWER_XML, &ok);
-    int widgetCount = mWidgetList.count();
-    if (ok == true && widgetCount)
-    {
+   QObjectList objectList;
+   objectList.append(this);
+   // Pass the view to documentloader. Document loader uses this view
+   // when docml is parsed, instead of creating new view.
+   // documentloader is created in constructor
+   mDocumentLoader->setObjectTree(objectList);
+   mWidgetList = mDocumentLoader->load(NMUI_MESSAGE_VIEWER_XML, &ok);
+
+   if (ok)
+   {
         // Create content and content layout
         // qobject_cast not work in this case, using reinterpret_cast
         mViewerContent = reinterpret_cast<HbWidget *>(
@@ -166,7 +169,7 @@ void NmViewerView::loadViewLayout()
                     layout->setContentsMargins(0,0,0,0);
                 }
                 // Set white pixmap to backgrounditem 
-                QPixmap whitePixmap(10,10);
+                QPixmap whitePixmap(NmWhitePixmapSize,NmWhitePixmapSize);
                 whitePixmap.fill(Qt::white);
                 QGraphicsPixmapItem *pixmapItem = new QGraphicsPixmapItem(whitePixmap);
                 mScrollAreaContents->setBackgroundItem(pixmapItem);
@@ -186,7 +189,6 @@ void NmViewerView::loadViewLayout()
             mWebView = reinterpret_cast<NmMailViewerWK *>(
                     mDocumentLoader->findObject(QString(NMUI_MESSAGE_VIEWER_SCROLL_WEB_VIEW)));
             if (mWebView) {
-                mWebView->setParentView(this);
                 // Set auto load images and private browsing(no history) attributes
                 QWebSettings *settings = mWebView->settings();
                 if (settings) {
@@ -385,8 +387,9 @@ void NmViewerView::setMessageData()
   	// if everything is ok, set message to html viewer
     if (mMessage && mWebView && page) {
         // Set initial size of component and content before loading data
-        mWebView->setMaximumWidth(mScreenSize.width());
-        page->setPreferredContentsSize(mScreenSize);
+        mWebView->setPreferredWidth(mScreenSize.width());
+        QRectF myGeometry = geometry();
+        page->setViewportSize(myGeometry.size().toSize());
         //Set message data to html viewer.
         mWebView->setHtml(formatMessage());
         // Connect to link clicked
@@ -416,7 +419,7 @@ void NmViewerView::setAttachmentList()
         // Set attawidget minimum & maximum size
         mAttaWidget->setMinimumWidth(mScreenSize.width());
         mAttaWidget->setMaximumWidth(mScreenSize.width());
-        bool inserted = false;
+        bool inserted(false);
         QList<NmMessagePart*> messageParts;
         mMessage->attachmentList(messageParts);
         for (int i = 0; i < messageParts.count();i++) {
@@ -458,39 +461,44 @@ void NmViewerView::setAttachmentList()
 void NmViewerView::openAttachment(int index)
 {
     NM_FUNCTION;
-    
-    NmId attaId = mAttaIdList.at(index);
-    // reload message to get updates part sizes
-    loadMessage();
-    QList<NmMessagePart*> messageParts;
-    mMessage->attachmentList(messageParts);
-    NmId mailboxId = mMessage->envelope().mailboxId();
-    NmId folderId = mMessage->envelope().folderId();
-    NmId messageId = mMessage->envelope().messageId();
-    for (int i = 0; i < messageParts.count(); i++) {
-        // message part found have to found
-        // and its fetched size is smaller than size, then start part fetch
-        if (messageParts[i]->partId() == attaId &&
-            messageParts[i]->size() > messageParts[i]->fetchedSize()) {
-            // do not start if there's already ongoing fetch
-            if (mAttaIndexUnderFetch == NmNotFoundError) {
-                mAttaIndexUnderFetch = index;
-                mAttaManager.fetchAttachment(mailboxId, folderId,
-                                             messageId, attaId);
-            }
-        }
-        // attachment is fetched, open file
-        else if (messageParts[i]->partId() == attaId) {
-            XQSharableFile file = mUiEngine.messagePartFile(mailboxId, folderId,
-                                                            messageId, attaId);
-            int error = NmUtilities::openFile(file);
-            file.close();
-            if (error==NmNotFoundError){
-                delete mErrorNote;
-                mErrorNote=NULL;
-                mErrorNote = NmUtilities::displayWarningNote(hbTrId("txt_mail_dialog_unable_to_open_attachment_file_ty"));
-            }
-        }
+    if (index >= 0) {
+        NmId attaId = mAttaIdList.at(index);
+        // reload message to get updates part sizes
+        loadMessage();
+        QList<NmMessagePart*> messageParts;
+        if (mMessage) {
+            mMessage->attachmentList(messageParts);
+             NmId mailboxId = mMessage->envelope().mailboxId();
+             NmId folderId = mMessage->envelope().folderId();
+             NmId messageId = mMessage->envelope().messageId();
+             for (int i = 0; i < messageParts.count(); i++) {
+                 // message part found have to found
+                 // and its fetched size is smaller than size, then start part fetch
+                 if (messageParts[i]->partId() == attaId &&
+                     messageParts[i]->size() > messageParts[i]->fetchedSize()) {
+                     // do not start if there's already ongoing fetch
+                     if (mAttaIndexUnderFetch == NmNotFoundError) {
+                         mAttaIndexUnderFetch = index;
+                         mAttaManager.fetchAttachment(mailboxId, folderId,
+                                                      messageId, attaId);
+                     }
+                 }
+                 // attachment is fetched, open file
+                 else if (messageParts[i]->partId() == attaId) {
+                     mAttaManager.cancelFetch();
+                     XQSharableFile file = mUiEngine.messagePartFile(mailboxId, folderId,
+                                                                     messageId, attaId);
+                     int error = NmUtilities::openFile(file);
+                     file.close();
+                     if (error==NmNotFoundError){
+                         delete mErrorNote;
+                         mErrorNote=NULL;
+                         mErrorNote = NmUtilities::displayWarningNote(
+                                 hbTrId("txt_mail_dialog_unable_to_open_attachment_file_ty"));
+                     }
+                 }
+             }            
+         }
     }
 }
 
@@ -502,12 +510,33 @@ QString NmViewerView::formatMessage()
     NM_FUNCTION;
     
     QString msg = "";
-    // null pointer check for mMessage is done before calling this function
-    NmId mailboxId = mMessage->envelope().mailboxId();
-    NmId folderId = mMessage->envelope().folderId();
-    NmId messageId = mMessage->envelope().messageId();
-    NmMessagePart *html = mMessage->htmlBodyPart();
-    if (html) {
+    if (mMessage) {
+        NmMessagePart *html = mMessage->htmlBodyPart();
+        if (html) {
+            msg += formatHtmlMessage(html);
+        }
+        else {
+            NmMessagePart *plain = mMessage->plainTextBodyPart();
+            if (plain) {
+                msg += formatPlainTextMessage(plain);
+            }
+        }    
+    }
+    return msg;
+}
+
+/*!
+    Function formats html message
+*/
+QString NmViewerView::formatHtmlMessage(NmMessagePart *html)
+{    
+    NM_FUNCTION;
+
+    QString msg = "";
+    if (html && mMessage) {
+        NmId mailboxId = mMessage->envelope().mailboxId();
+        NmId folderId = mMessage->envelope().folderId();
+        NmId messageId = mMessage->envelope().messageId();
         QList<NmMessagePart*> parts;
         mMessage->attachmentList(parts);
         for (int i=0; i < parts.count(); i++) {
@@ -533,49 +562,60 @@ QString NmViewerView::formatMessage()
         }
         int ret = mUiEngine.contentToMessagePart(mailboxId, folderId, messageId, *html);
         if (ret == NmNoError) {
-            msg = html->textContent();
-        }
+         msg = html->textContent();
+        }    
     }
-    else {
-        NmMessagePart *plain = mMessage->plainTextBodyPart();
-        if (plain) {
-            int ret = mUiEngine.contentToMessagePart(mailboxId, folderId,
-                                                     messageId, *plain);
-            if (ret == NmNoError) {
-                QTextDocument document;
-                // set font
-                QFont currentFont = document.defaultFont();
-                currentFont.setWeight(QFont::Normal);
-                qreal secondarySize;
-                HbStyle myStyle;
-                bool found = myStyle.parameter(NmParamTextHeightSecondary, secondarySize);
-                if (found) {
-                    HbFontSpec fontSpec(HbFontSpec::Secondary);
-                    fontSpec.setTextHeight(secondarySize);
-                    currentFont.setPixelSize(fontSpec.font().pixelSize());
-                }
-                document.setDefaultFont(currentFont);
-                // convert to html
-                document.setPlainText(plain->textContent());
-                msg = document.toHtml();
+    return msg;
+}
 
-                if (qApp->layoutDirection()==Qt::RightToLeft){
-                    // add right alignment to document css section
-                    QRegExp rx("(<style type=\"text/css\">)(.+)(</style>)", Qt::CaseInsensitive);
-                    rx.setMinimal(true);
-                    int pos = rx.indexIn(msg);
-                    if (pos > -1) {
-                        QString newStr = rx.cap(1);
-                        newStr.append(rx.cap(2));
-                        newStr.append("p { text-align: right } ");
-                        newStr.append(rx.cap(3));
-                        msg.replace(rx, newStr);
-                    }
+/*!
+    Function formats plain text message message
+*/
+QString NmViewerView::formatPlainTextMessage(NmMessagePart *plain)
+{
+    NM_FUNCTION;
+      
+    QString msg = "";
+    if (plain && mMessage) {
+        NmId mailboxId = mMessage->envelope().mailboxId();
+        NmId folderId = mMessage->envelope().folderId();
+        NmId messageId = mMessage->envelope().messageId();
+        int ret = mUiEngine.contentToMessagePart(mailboxId, folderId,
+                                                 messageId, *plain);
+        if (ret == NmNoError) {
+            QTextDocument document;
+            // set font
+            QFont currentFont = document.defaultFont();
+            currentFont.setWeight(QFont::Normal);
+            qreal secondarySize;
+            HbStyle myStyle;
+            bool found = myStyle.parameter(NmParamTextHeightSecondary, secondarySize);
+            if (found) {
+                HbFontSpec fontSpec(HbFontSpec::Secondary);
+                fontSpec.setTextHeight(secondarySize);
+                currentFont.setPixelSize(fontSpec.font().pixelSize());
+            }
+            document.setDefaultFont(currentFont);
+            // convert to html
+            document.setPlainText(plain->textContent());
+            msg = document.toHtml();
+    
+            if (qApp->layoutDirection()==Qt::RightToLeft){
+                // add right alignment to document css section
+                QRegExp rx("(<style type=\"text/css\">)(.+)(</style>)", Qt::CaseInsensitive);
+                rx.setMinimal(true);
+                int pos = rx.indexIn(msg);
+                if (pos > -1) {
+                    QString newStr = rx.cap(1);
+                    newStr.append(rx.cap(2));
+                    newStr.append("p { text-align: right } ");
+                    newStr.append(rx.cap(3));
+                    msg.replace(rx, newStr);
                 }
             }
-            mDisplayingPlainText=true;
-        }
+        }    
     }
+    mDisplayingPlainText=true;  
     return msg;
 }
 
@@ -637,18 +677,17 @@ void NmViewerView::scaleWebViewWhenLoading(const QSize &size)
     // same size value is received more than once.
     if (size != mLatestLoadingSize) {
         if (!webFrameloadingCompleted && mWebView && mWebView->page() &&
-            (size.width() > mScreenSize.width() || size.height() > mScreenSize.height())) {
+            (size.width() > mScreenSize.width() || size.height() > geometry().height())) {
             int width = (int)size.width();
             int height = (int)size.height();
             // Set content (webview) width
             if (mDisplayingPlainText){
-                setWebViewWidth(mScreenSize.width());
+                mWebView->setPreferredWidth(geometry().width());           
             }
             else {
-                setWebViewWidth(width);
+                mWebView->setPreferredWidth(width);
             }
-            mWebView->setMinimumHeight(height);
-            mWebView->setPreferredHeight(height);
+            mWebView->setPreferredHeight(height);        
         }
     }
     mLatestLoadingSize = size;
@@ -659,32 +698,17 @@ void NmViewerView::scaleWebViewWhenLoading(const QSize &size)
 */
 void NmViewerView::scaleWebViewWhenLoaded()
 {
-    if (mWebView&&mWebView->page()) {
-        QSizeF contentSize = mWebView->page()->mainFrame()->contentsSize();
+    QRectF myGeometry = geometry();
+    QWebPage *page = mWebView->page();
+    if (mWebView && page) {
+        page->setViewportSize(myGeometry.size().toSize());
+        QSizeF contentSize = page->mainFrame()->contentsSize();
         int width = (int)contentSize.width();
-        int height = (int)contentSize.height();
-        // Set content (webview) width
-        if (mDisplayingPlainText) {
-            mWebView->page()->setPreferredContentsSize(mScreenSize);
-            setWebViewWidth(mScreenSize.width());
-        } else {
-            setWebViewWidth(width);
-        }
-        // Set content (webview) height
-        if (mScrollAreaContents){
-            QRectF contentRect = mScrollAreaContents->geometry();
-            if (contentRect.height()<geometry().height()){
-                contentRect.setHeight(geometry().height());
-                mViewerContent->setPreferredHeight(contentRect.height());
-                qreal webViewHeight = geometry().height()-mHeaderWidget->geometry().height();
-                setWebViewHeighth(webViewHeight);
-            } else {
-                setWebViewHeighth(height);
-            }
-        }
+        int height = (int)contentSize.height();  
+        mWebView->setPreferredWidth(width);
+        mWebView->setPreferredHeight(height);
     }
 }
-
 
 /*!
     Set new dimensions after orientation change.
@@ -701,38 +725,14 @@ void NmViewerView::adjustViewDimensions()
         // Set attawidget minimum & maximum size
         mAttaWidget->setMinimumWidth(mScreenSize.width());
         mAttaWidget->setMaximumWidth(mScreenSize.width());
-    }
-
-    // Scale web view and its contens
-    if (mWebView){
-        if (mDisplayingPlainText){
-            mWebView->setMaximumWidth((int)mScreenSize.width());
-            mWebView->page()->setPreferredContentsSize(QSize((int)mScreenSize.width(),
-                                           (int)mScreenSize.height()));
-        }
-        else{
-            // Check whether contentsize fits to screen
-            // and if not, set preferred size again to allow panning
-            QSizeF contentSize = mWebView->page()->mainFrame()->contentsSize();
-            if (contentSize.width()>mScreenSize.width()){
-                mWebView->setMaximumWidth((int)contentSize.width());
-                mWebView->page()->setPreferredContentsSize(QSize((int)contentSize.width(),
-                                                           (int)contentSize.height()));
-            }
-            else{
-                mWebView->setMaximumWidth((int)mScreenSize.width());
-                mWebView->page()->setPreferredContentsSize(QSize((int)mScreenSize.width(),
-                                               (int)mScreenSize.height()));
-            }
-        }
-    }
+    }    
+    scaleWebViewWhenLoaded();
 
     if (mToolbarEnabled) {
 		// Re-create toolbar in orientation switch
 		createToolBar();
     }
 }
-
 
 /*!
    Screen orientation changed. Web view needs to be scaled when
@@ -752,25 +752,28 @@ void NmViewerView::linkClicked(const QUrl& link)
 {
     NM_FUNCTION;
     
-      if (link.scheme() == "http" ||
-          link.scheme() == "https" ) {
-          QDesktopServices::openUrl(link);
-      }
-      else if (link.scheme() == "mailto"){
-          QList<NmAddress*> *addrList = new QList<NmAddress*>();
-          NmAddress *mailtoAddr = new NmAddress();
-          QString address = link.toString(QUrl::RemoveScheme);
-          mailtoAddr->setAddress(address);
-          mailtoAddr->setDisplayName(address);
-          addrList->append(mailtoAddr);
-          // Create start parameters. Address list ownership
-          // is transferred to startparam object
-          NmUiStartParam* param = new NmUiStartParam(NmUiViewMessageEditor,
-                                                     mStartParam->mailboxId(),
-                                                      mStartParam->folderId(),
-                                                     0, NmUiEditorMailto, addrList );
-          mApplication.enterNmUiView(param);
-      }
+    if (link.scheme() == NmHttpLinkScheme ||
+        link.scheme() == NmHttpsLinkScheme) {
+        mAttaManager.cancelFetch();
+        QDesktopServices::openUrl(link);
+    } else if (link.scheme() == NmMailtoLinkScheme){
+        mAttaManager.cancelFetch();
+        QList<NmAddress*> *addrList = new QList<NmAddress*>();
+        NmAddress *mailtoAddr = new NmAddress();
+        QString address = link.toString(QUrl::RemoveScheme);
+        mailtoAddr->setAddress(address);
+        mailtoAddr->setDisplayName(address);
+        addrList->append(mailtoAddr);
+        // Create start parameters. Address list ownership
+        // is transferred to startparam object
+        NmUiStartParam* param = new NmUiStartParam(NmUiViewMessageEditor,
+                                                   mStartParam->mailboxId(),
+                                                   mStartParam->folderId(),
+                                                   0,
+                                                   NmUiEditorMailto,
+                                                   addrList);
+        mApplication.enterNmUiView(param);
+    }    
 }
 
 /*!
@@ -792,7 +795,7 @@ bool NmViewerView::eventOnTopOfHeaderArea(QGraphicsSceneMouseEvent *event)
 }
 
 /*!
-   get function for content widget web view.
+    Get function for content widget web view.
 */
 NmMailViewerWK* NmViewerView::webView()
 {
@@ -800,7 +803,7 @@ NmMailViewerWK* NmViewerView::webView()
 }
 
 /*!
-
+    Get function for message being viewed
 */
 NmMessage* NmViewerView::message()
 {
@@ -934,6 +937,7 @@ void NmViewerView::handleActionCommand(NmActionResponse &actionResponse)
     	actionResponse.menuType() == NmActionToolbar) {
         switch (actionResponse.responseCommand()) {
             case NmActionResponseCommandReply: {
+                mAttaManager.cancelFetch();
                 NmUiStartParam *startParam = new NmUiStartParam(NmUiViewMessageEditor,
                     mStartParam->mailboxId(), mStartParam->folderId(),
                     mStartParam->messageId(), NmUiEditorReply);
@@ -941,6 +945,7 @@ void NmViewerView::handleActionCommand(NmActionResponse &actionResponse)
             }
             break;
             case NmActionResponseCommandReplyAll: {
+                mAttaManager.cancelFetch();
                 NmUiStartParam *startParam = new NmUiStartParam(NmUiViewMessageEditor,
                     mStartParam->mailboxId(), mStartParam->folderId(),
                     mStartParam->messageId(), NmUiEditorReplyAll);
@@ -948,6 +953,7 @@ void NmViewerView::handleActionCommand(NmActionResponse &actionResponse)
             }
             break;
             case NmActionResponseCommandForward: {
+                mAttaManager.cancelFetch();
                 NmUiStartParam *startParam = new NmUiStartParam(NmUiViewMessageEditor,
                     mStartParam->mailboxId(), mStartParam->folderId(),
                     mStartParam->messageId(), NmUiEditorForward);
@@ -955,6 +961,7 @@ void NmViewerView::handleActionCommand(NmActionResponse &actionResponse)
             }
             break;
             case NmActionResponseCommandDeleteMail: {
+                mAttaManager.cancelFetch();
                 deleteMessage();
                 }
             break;
@@ -972,17 +979,11 @@ void NmViewerView::deleteMessage()
     NM_FUNCTION;
     
     QList<NmId> messageList;
-    messageList.append(mStartParam->messageId());
-    
+    messageList.append(mStartParam->messageId());  
     int err = mUiEngine.deleteMessages(mStartParam->mailboxId(),
                                        mStartParam->folderId(),
                                        messageList);
-    
     messageList.clear();
-    if (NmNoError != err) {
-        // Failed to delete the messages!
-        NMLOG(QString("NmViewerView::handleActionCommand(): failed err=%1").arg(err));
-    }
 }
 
 
@@ -1006,7 +1007,7 @@ void NmViewerView::fetchCompleted(int result)
 {
     if (mAttaWidget && mAttaIndexUnderFetch != NmNotFoundError) {
         if (result == NmNoError) {
-            progressValueChanged(mAttaIndexUnderFetch, 100);
+            progressValueChanged(mAttaIndexUnderFetch, NmProgressValueComplete);
             openAttachment(mAttaIndexUnderFetch);
         } else {
             mAttaWidget->hideProgressBar(mAttaIndexUnderFetch);
@@ -1016,7 +1017,7 @@ void NmViewerView::fetchCompleted(int result)
 }
 
 /*!
-    externalDelete. From NmMessageListModel, handles viewer shutdown when current message is deleted.
+    externalDelete. From NmUiEngine, handles viewer shutdown when current message is deleted.
 */
 void NmViewerView::messageDeleted(const NmId &mailboxId, const NmId &folderId, const NmId &messageId)
 {
@@ -1046,26 +1047,4 @@ void NmViewerView::createAndShowWaitDialog()
     mWaitDialog->setText(hbTrId("txt_mail_dialog_loading_mail_content"));
     // Display wait dialog
     mWaitDialog->show(); 
-}
-
-/*!
-    Helper function for width.
-*/
-void NmViewerView::setWebViewWidth(int width)
-{
-    // null pointer check for mWebView in calling function
-    mWebView->setMinimumWidth(width);
-    mWebView->setMaximumWidth(width);
-    mWebView->setPreferredWidth(width);
-}
-
-/*!
-    Helper function for heigth.
-*/
-void NmViewerView::setWebViewHeighth(int height)
-{
-    // null pointer check for mWebView in calling function
-    mWebView->setMinimumHeight(height);
-    mWebView->setMaximumHeight(height);
-    mWebView->setPreferredHeight(height);
 }

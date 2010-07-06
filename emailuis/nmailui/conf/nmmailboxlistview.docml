@@ -3,8 +3,6 @@
     <widget name="NmMailboxListView" type="HbView">
         <widget name="content" role="HbView:widget" type="HbWidget">
             <widget name="MailboxListWidget" type="HbListView">
-                <real name="z" value="0.0001"/>
-                <sizehint height="85.67164un" type="PREFERRED" width="53.73134un"/>
             </widget>
             <layout type="anchor">
                 <anchoritem dst="MailboxListWidget" dstEdge="TOP" spacing="0un" src="" srcEdge="TOP"/>

@@ -59,7 +59,7 @@ public:
     
     virtual int getMailboxById(const NmId &id, NmMailbox *&mailbox) = 0;
     
-    virtual int deleteMailboxById(const NmId &id) = 0;
+    virtual QPointer<NmOperation> deleteMailboxById(const NmId &id) = 0;
     
     virtual int getMessageById(
         const NmId &mailboxId,
@@ -186,6 +186,12 @@ public:
     virtual int cancelSearch(const NmId &mailboxId) = 0;
 
     virtual QPointer<NmOperation> removeDraftMessage(NmMessage *message) = 0;
+
+    virtual int copyMessages(
+        const NmId &mailboxId,
+        const QList<quint64> &messageIds, 
+        const NmId &sourceFolderId,
+        const NmId &destinationFolderId) = 0;
 };
 
 Q_DECLARE_INTERFACE(NmDataPluginInterface, "sf.app.commonmail.emailuis.nmailuiengine.NmDataPluginInterface/1.0")

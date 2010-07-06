@@ -50,6 +50,7 @@ class CFetchRequester;
 class CMailboxInfo;
 class CSearchHandler;
 class HMailIterator;
+class CDelayedOp;
 class CDelayedOpsManager;
 class MDelayedOpsManager;
 
@@ -85,6 +86,7 @@ class BASEPLUGIN_EXPORT CBasePlugin :
     friend class CDelayedMessageStorerOp;
 	// <qmail>
     friend class CDelayedAddNewOrRemoveChildPartOp;
+    friend class CDelayedOp;
 	// </qmail>
 	protected:
     struct TOngoingFetchInfo;
@@ -830,7 +832,8 @@ class BASEPLUGIN_EXPORT CBasePlugin :
         //does not actually own the observers.
         RPointerArray<MFSMailEventObserver> iObservers;
         //async fetch reqs.
-        RPointerArray<CFetchRequester> iReqs;
+        RPointerArray<CFetchRequester> iReqs;       
+        RPointerArray<CDelayedOp> iDelayedOpReqs;
 
         TCacheLine iCacheLine;
 

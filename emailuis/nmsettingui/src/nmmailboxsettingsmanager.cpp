@@ -152,7 +152,7 @@ void NmMailboxSettingsManager::populateModel(HbDataFormModel &model,
             pluginInstance->disconnect(SIGNAL(mailboxPropertyChanged(const NmId &, QVariant, QVariant)));
             pluginInstance->disconnect(SIGNAL(goOnline(const NmId &)));
             pluginInstance->disconnect(SIGNAL(goOffline(const NmId &)));
-            pluginInstance->disconnect(SIGNAL(aboutToClose()));
+            pluginInstance->disconnect(this, SIGNAL(aboutToClose()), pluginInstance, SLOT(aboutToClose()));
 
             connect(pluginInstance, SIGNAL(mailboxListChanged(const NmId &, NmSettings::MailboxEventType)),
                 this, SIGNAL(mailboxListChanged(const NmId &, NmSettings::MailboxEventType)));

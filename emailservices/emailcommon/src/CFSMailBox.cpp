@@ -77,7 +77,7 @@ CFSMailBox::CFSMailBox()
 EXPORT_C CFSMailBox::~CFSMailBox()
 {
     NM_FUNCTION;
-    
+    // <qmail> Not using KMailboxExtMrCalInfo </qmail>
     iFolders.ResetAndDestroy();
 }
 
@@ -456,11 +456,7 @@ EXPORT_C void CFSMailBox::SendMessageL( CFSMailMessage& aMessage )
     
     if(CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetId()))
         {
-        // <qmail> Not activated yet.
-        //UpdateMrusL( aMessage.GetToRecipients(),
-        //         aMessage.GetCCRecipients(),
-        //       aMessage.GetBCCRecipients() );
-        // </qmail>
+        // <qmail> Removed UpdateMrusL. </qmail>
         plugin->SendMessageL( aMessage );
         }
 	}
@@ -481,11 +477,7 @@ EXPORT_C TInt CFSMailBox::SendMessageL(
 
     if ( plugin )
         {
-        // <qmail> Not activated yet.
-        //UpdateMrusL( aMessage.GetToRecipients(),
-        //         aMessage.GetCCRecipients(),
-        //       aMessage.GetBCCRecipients() );
-        // </qmail>
+        // <qmail> Removed UpdateMrusL. </qmail>
 
         // init asynchronous request
         request = iRequestHandler->InitAsyncRequestL( GetId().PluginId(),
@@ -555,6 +547,11 @@ EXPORT_C RPointerArray<CFSMailFolder>& CFSMailBox::ListFolders( )
 EXPORT_C TDesC& CFSMailBox::GetBrandingIdL( )
 {
     NM_FUNCTION;
+	if ( CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid( GetId() ) )
+        {
+        TDesC& result = plugin->GetBrandingIdL( GetId() );
+        return result;
+        }
     
     return BrandingId();
 }
@@ -585,6 +582,7 @@ EXPORT_C TInt CFSMailBox::MoveMessagesL( MFSMailRequestObserver& aOperationObser
     NM_FUNCTION;
     
     TFSPendingRequest request;
+    request.iRequestId = 0;
     if( CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid( GetId() ) )
         {
         // init asynchronous request
@@ -650,7 +648,7 @@ EXPORT_C void CFSMailBox::SearchL( const RPointerArray<TDesC>& aSearchStrings,
         
         // remove outbox, drafts folder from folder list
         RArray<TFSMailMsgId> folderIds;
-        folderIds.Reset();
+        CleanupClosePushL( folderIds );  
         for(TInt i=0;i<iFolders.Count();i++)
         {
             TFSMailMsgId id = iFolders[i]->GetFolderId();
@@ -662,7 +660,7 @@ EXPORT_C void CFSMailBox::SearchL( const RPointerArray<TDesC>& aSearchStrings,
         
         // start search
         plugin->SearchL( GetId(), folderIds, aSearchStrings, aSortCriteria, aSearchObserver );
-        folderIds.Reset();
+        CleanupStack::PopAndDestroy( &folderIds );
         }
     }
 
@@ -1067,9 +1065,11 @@ void CFSMailBox::AppendMruItemL( CDesCArraySeg& aMruList,
 EXPORT_C void CFSMailBox::ReleaseExtension( CEmailExtension* aExtension )
     {
     NM_FUNCTION;
+	// <qmail> Not using KMailboxExtMrCalInfo
     
     // no specialized behaviour, call base class
     CExtendableEmail::ReleaseExtension( aExtension );
+	// </qmail>
     }
     
 // -----------------------------------------------------------------------------
@@ -1094,6 +1094,7 @@ EXPORT_C CEmailExtension* CFSMailBox::ExtensionL( const TUid& aInterfaceUid )
             }
         }    
     else if ( aInterfaceUid == KEmailMailboxStateExtensionUid )
+		// <qmail> Not using KEmailSettingExtensionUid or KEmailConnectionStatusQueryExtensionUid </qmail>
         {
         if ( !extension )
             {

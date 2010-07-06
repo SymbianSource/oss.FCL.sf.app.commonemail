@@ -40,7 +40,7 @@ QObject *NmUiDocumentLoader::createObject(const QString& type, const QString &na
 {
     NM_FUNCTION;
     
-    QObject *res = NULL;
+    QObject *res(NULL);
     if( type == NmMailViewerWK::staticMetaObject.className() ) {
         res = new NmMailViewerWK();
         res->setObjectName(name);
@@ -57,7 +57,7 @@ QObject *NmUiDocumentLoader::createObject(const QString& type, const QString &na
         res = new NmAttachmentListWidget();
         res->setObjectName(name);
     }    
-    if (res == NULL) {
+    if (!res) {
         res = HbDocumentLoader::createObject(type, name);
     }
     return res;

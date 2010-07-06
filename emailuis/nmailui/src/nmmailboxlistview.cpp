@@ -77,19 +77,20 @@ void NmMailboxListView::loadViewLayout()
 {
     NM_FUNCTION;
     
-    // Use document loader to load the view
-    bool ok = false;
-    setObjectName(QString(NMUI_MAILBOX_LIST_VIEW));
-    QObjectList objectList;
-    objectList.append(this);
-    // Pass the view to documentloader. Document loader uses this view
-    // when docml is parsed, instead of creating new view.
-    if (mDocumentLoader) {
-        mDocumentLoader->setObjectTree(objectList);
-        mWidgetList = mDocumentLoader->load(NMUI_MAILBOX_LIST_VIEW_XML, &ok);
-    }
 
-    if (ok == true && mWidgetList.count()) {
+    // Use document loader to load the view
+     bool ok(false);
+     setObjectName(QString(NMUI_MAILBOX_LIST_VIEW));
+     QObjectList objectList;
+     objectList.append(this);
+     // Pass the view to documentloader. Document loader uses this view
+     // when docml is parsed, instead of creating new view.
+     if (mDocumentLoader) {
+         mDocumentLoader->setObjectTree(objectList);
+         mWidgetList = mDocumentLoader->load(NMUI_MAILBOX_LIST_VIEW_XML, &ok);
+     }
+
+    if (ok) {
         // Create item context menu
         mItemContextMenu = new HbMenu();
         // Get mailbox widget pointer and set parameters
@@ -209,19 +210,6 @@ void NmMailboxListView::openSelectedMailBox()
         NmUiStartParam *startParam = new NmUiStartParam(NmUiViewMessageList,mailbox->id(),inboxId);
         mApplication.enterNmUiView(startParam);
     }
-}
-
-/*!
-    handleActionCommand. From NmMenuObserver, extension manager calls this
-    call to handle menu command in the UI.
-*/
-
-void NmMailboxListView::handleActionCommand(NmActionResponse &actionResponse)
-{
-    NM_FUNCTION;
-    
-    // Handle context menu commands here
-    Q_UNUSED(actionResponse);
 }
 
 

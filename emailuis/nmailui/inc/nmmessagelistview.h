@@ -72,7 +72,6 @@ private slots:
     void showNoMessagesText();
     void hideNoMessagesText();
     void handleSyncStateEvent(NmSyncState syncState, const NmId & mailboxId);
-    void handleConnectionEvent(NmConnectState connectState, const NmId &mailboxId);
     void folderSelected();
     
 private:
@@ -102,6 +101,7 @@ private:
     NmId mSelectedFolderId;
     NmId mSelectedMailboxId;
     int mPreviousModelCount;
+    bool mIsFirstSyncInMessageList;
 };
 
 #endif /* NMMESSAGELISTVIEW_H_ */

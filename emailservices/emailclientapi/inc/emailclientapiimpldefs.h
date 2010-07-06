@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+* Copyright (c) 2010 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -11,16 +11,20 @@
 *
 * Contributors:
 *
-* Description: 
+* Description: .
 *
 */
 
-#ifndef NMAPIPRIVATEHEADERS_H
-#define NMAPIPRIVATEHEADERS_H
+#ifndef _EMAILCLIENTAPIIMPLDEFS_H
+#define _EMAILCLIENTAPIIMPLDEFS_H
 
-#include "nmmailbox.h"
-#include "nmmessage.h"
-#include "nmfolder.h"
-#include "nmmessagepart.h"
+enum TEmailImplPanic {
+    EMailPanicPluginNotReleased,
+    EMailPanicSortMapIndexOutOfBounds
+};
 
-#endif // NMAPIPRIVATEHEADERS_H
+void Panic( TEmailImplPanic aPanic );
+
+#endif // _EMAILCLIENTAPIIMPLDEFS_H
+
+// End of file

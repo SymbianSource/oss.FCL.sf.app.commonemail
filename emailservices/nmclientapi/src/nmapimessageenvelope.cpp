@@ -15,16 +15,9 @@
  *
  */
 
-#include "emailtrace.h"
+#include "nmapiheaders.h"
 
-#include <QString>
-#include <QDateTime>
 
-#include <nmapimessageenvelope.h>
-#include "nmapimessageenvelope_p.h"
-
-#include <nmapiemailaddress.h>
-#include <nmapimessagebody.h>
 
 namespace EmailClientApi
 {

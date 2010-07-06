@@ -49,9 +49,7 @@ public:
 
 public slots:
     void setText(const QString &text);
-#ifdef Q_OS_SYMBIAN
     void launchContactsPicker();
-#endif
 
 private:
     HbDocumentLoader &mDocumentLoader;

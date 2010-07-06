@@ -132,17 +132,3 @@ void NmMailboxListViewItem::polishEvent()
     QGraphicsWidget::polishEvent();
 }
 
-/*!
-    paint. Paint function for line painting.
-*/
-void NmMailboxListViewItem::paint(
-    QPainter *painter,
-    const QStyleOptionGraphicsItem *option,
-    QWidget *widget)
-{
-    NM_FUNCTION;
-    
-    Q_UNUSED(option);
-    Q_UNUSED(widget);
-    Q_UNUSED(painter);
-}

@@ -40,7 +40,7 @@ public:
     };
     
     inline NmAction(int priorityIndex);
-    inline void setPriorityIndex(int priorityIndex);
+    inline void setPriorityIndex(const int priorityIndex);
     inline int priorityIndex() const;
     inline void setAvailabilityCondition(NmAvailabilityCondition condition);
     inline NmAvailabilityCondition availabilityCondition() const;

@@ -37,12 +37,10 @@ NmAttachmentList::NmAttachmentList(NmAttachmentListWidget &listWidget)
 NmAttachmentList::~NmAttachmentList()
 { 
     NM_FUNCTION;
-    
-    clearList();
 }
 
 /*!
-    Insert new list item. Returns the count of the attachment in list
+    Insert new list item. Returns the index of the attachment in list
 */
 int NmAttachmentList::insertAttachment(
     const QString &fullFileName,
@@ -95,13 +93,14 @@ void NmAttachmentList::setAttachmentSize(const NmId &attachmentPartId, const QSt
 }
 
 /*!
-    Remove attachment from list position
+    Removes attachment from list position
 */
 void NmAttachmentList::removeAttachment(int arrayIndex)
 {
     NM_FUNCTION;
     
-    if (arrayIndex < count()) {
+    if (arrayIndex < count() && 
+        arrayIndex >= 0 ) {
         // Remove UI
         mListWidget.removeAttachment(arrayIndex);
         // Remove from data structure

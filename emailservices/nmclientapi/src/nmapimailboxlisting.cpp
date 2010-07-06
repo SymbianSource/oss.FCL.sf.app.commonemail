@@ -15,16 +15,7 @@
  *
  */
 
-#include "emailtrace.h"
-
-#include <nmapimailboxlisting.h>
-
-#include <QObject>
-
-#include <nmapimailbox.h>
-#include "nmapiengine.h"
-#include "nmapimailboxlisting_p.h"
-
+#include "nmapiheaders.h"
 
 namespace EmailClientApi
 {
@@ -169,4 +160,3 @@ bool NmApiMailboxListing::isRunning() const
 
 }
 
-#include "moc_nmapimailboxlisting.cpp"

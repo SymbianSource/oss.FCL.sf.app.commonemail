@@ -3,5 +3,7 @@
         <file alias="nmattachmentlistwidget.docml" >resources/nmattachmentlistwidget.docml</file>
         <file alias="nmattachmentlistitem.widgetml" >resources/nmattachmentlistitem.widgetml</file>
         <file alias="nmattachmentlistitem.css" >resources/nmattachmentlistitem.css</file>
+        <file alias="nmeditortextedit.css" >resources/nmeditortextedit.css</file>
+        <file alias="nmeditortextedit.widgetml" >resources/nmeditortextedit.widgetml</file>
     </qresource>
 </RCC>

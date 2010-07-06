@@ -15,13 +15,15 @@
  *
  */
 
+#include <qgraphicslinearlayout.h>
 #include <QtGui>
-#include <QGraphicsLinearLayout>
 #include <hbdocumentloader.h>
 #include <hblabel.h>
-#include <HbPushButton>
-#include <HbColorScheme>
-#include <HbEvent>
+#include <hbpushbutton.h>
+#include <hbcolorscheme.h>
+#include <hbevent.h>
+#include <hbframedrawer.h>
+#include <hbframeitem.h>
 #include "nmicons.h"
 #include "nmhswidgettitlerow.h"
 #include "nmhswidgetconsts.h"
@@ -34,7 +36,8 @@ NmHsWidgetTitleRow::NmHsWidgetTitleRow(QGraphicsItem *parent, Qt::WindowFlags fl
     mUnreadCountLabel(0),
     mCollapseExpIconLabel(0), 
     mAccountName(),
-    mUnreadCount(0)
+    mUnreadCount(0),
+    mBackgroundLayoutItem(0)
 {
     NM_FUNCTION;
 }
@@ -44,26 +47,54 @@ NmHsWidgetTitleRow::NmHsWidgetTitleRow(QGraphicsItem *parent, Qt::WindowFlags fl
  */
 NmHsWidgetTitleRow::~NmHsWidgetTitleRow()
 {
-    NM_FUNCTION;
+    NM_FUNCTION; 
 }
+
+/*!
+ \fn QPainterPath NmHsWidgetTitleRow::shape()
+
+ Called by home screen fw to check widget boundaries, needed to draw
+ outside widget boundingRect.
+ /return QPainterPath path describing actual boundaries of widget 
+  including child items
+ */
+QPainterPath NmHsWidgetTitleRow::shape() const
+{
+    NM_FUNCTION;
+    
+    QPainterPath path;
+    path.setFillRule(Qt::WindingFill);
+    
+    path.addRect(this->geometry());
+    if (mMailboxIcon){
+        path.addRect(mMailboxIcon->geometry());
+    }    
+    return path.simplified();
+}
+
+/*
+ Setup email row ui
+  Must be called after constructor.
+   /return true if loading succeeded, otherwise false. False indicates that object is unusable.
+ */
+bool NmHsWidgetTitleRow::setupUI(HbDocumentLoader &loader)
+    {
+    NM_FUNCTION;
+
+    if(!loadDocML(loader) || !setupGraphics()){
+        return false;
+    }
+    return true;
+    }
 
 /*!
  Loads layout data and child items from docml file. Must be called after constructor.
  /return true if loading succeeded, otherwise false. False indicates that object is unusable
  */
-bool NmHsWidgetTitleRow::loadDocML()
+bool NmHsWidgetTitleRow::loadDocML(HbDocumentLoader &loader)
 {
     NM_FUNCTION;
     QT_TRY{
-        // Use document loader to load the contents
-        HbDocumentLoader loader;
-        bool ok(false);
-        loader.load(KNmHsWidgetTitleRowDocML, &ok);
-        if (!ok) {
-            NM_ERROR(1,"NmHsWidgetTitleRow::loadDocML Fail @ loader");
-            return false; //failure
-        }
-    
         //Create layout
         QGraphicsLinearLayout *layout = new QGraphicsLinearLayout(Qt::Vertical);
     
@@ -92,19 +123,49 @@ bool NmHsWidgetTitleRow::loadDocML()
             NM_ERROR(1,"NmHsWidgetTitleRow::loadDocML Fail @ icons & labels");
             return false;
         }
-    
-        //Expand collapse button
+		
+		//Expand collapse button
         connect(mCollapseExpIconLabel, SIGNAL(clicked()), this, SIGNAL(expandCollapseButtonPressed()));
-        
-        //set fonts color
-        setFontsColor(false);
-
+		
         return true;
     }
     QT_CATCH(...){
         return false;
     }
 }
+
+/*
+ Setup graphics that cannot be loaded from docml.
+  /return true if loading succeeded, otherwise false. False indicates that object is unusable.
+ */
+bool NmHsWidgetTitleRow::setupGraphics()
+{
+    NM_FUNCTION;
+    
+    HbFrameDrawer* backgroundFrameDrawer = 0;
+    QT_TRY{
+        //pressed background
+        backgroundFrameDrawer = new HbFrameDrawer("qtg_fr_hsitems_pressed", HbFrameDrawer::NinePieces);
+        mBackgroundLayoutItem = new HbFrameItem( backgroundFrameDrawer );
+        setBackgroundItem( mBackgroundLayoutItem );
+		mBackgroundLayoutItem->hide();
+        
+        //set fonts color
+		setHighlighedFontsColor(false);
+
+        return true;
+    }
+    QT_CATCH(...){
+        if(!mBackgroundLayoutItem && backgroundFrameDrawer){
+            delete backgroundFrameDrawer;
+            backgroundFrameDrawer = NULL;
+        }
+
+        return false;
+    }
+    
+}
+
 
 /*!
  Slot for updating account name, calls updateData to update ui.
@@ -161,21 +222,23 @@ void NmHsWidgetTitleRow::updateData()
     mMailboxInfo->setPlainText(mAccountName);
     //If unread count is -1, hide the unread count label completely.
     //This indicates that there are no mails at all (or the initial sync is not done)
-    if (mUnreadCount != -1) {
+    if (mUnreadCount >= 0) {
         QString unreadCount(hbTrId("txt_mail_widget_list_l1").arg(mUnreadCount));
         mUnreadCountLabel->setPlainText(unreadCount);
-        mUnreadCountLabel->setVisible(true);
+        QFontMetrics fm(mUnreadCountLabel->font());
+        qreal textWidth = fm.width(unreadCount);
+        mUnreadCountLabel->setMaximumWidth(textWidth);
     }
     else {
-        mUnreadCountLabel->setVisible(false);
+        mUnreadCountLabel->setMaximumWidth(0);
     }
 }
 
 /*!
     sets fonts color.
-    param bool pressed indicates if row is pressed down or not
+    /param bool pressed indicates if row is pressed down or not
 */
-void NmHsWidgetTitleRow::setFontsColor( bool pressed )
+void NmHsWidgetTitleRow::setHighlighedFontsColor( bool pressed )
     {
     NM_FUNCTION;
     QColor newFontColor;
@@ -191,6 +254,21 @@ void NmHsWidgetTitleRow::setFontsColor( bool pressed )
     mUnreadCountLabel->setTextColor(newFontColor);
     }
 
+/*!
+    change background pressed state
+    /param bool show if true then shown, false hide
+*/
+void NmHsWidgetTitleRow::showHighlight( bool show )
+    {
+    NM_FUNCTION;;
+    
+    if(show){
+        mBackgroundLayoutItem->show();
+    }
+    else{
+        mBackgroundLayoutItem->hide();
+    }
+    }
 
 /*!
  mousePressEvent(QGraphicsSceneMouseEvent *event)
@@ -198,8 +276,14 @@ void NmHsWidgetTitleRow::setFontsColor( bool pressed )
 void NmHsWidgetTitleRow::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     NM_FUNCTION;
-    Q_UNUSED(event); 
-    setFontsColor(true);
+	
+	//to avoid opening email account mistakenly  when tabbing expand/collapse button
+	//we dont handle events that are on the top, down or right side of the button
+    if(event->pos().x() < mUnreadCountLabel->geometry().right())
+        {
+        setHighlighedFontsColor(true);
+        showHighlight(true);
+        }
 }
 
 /*!
@@ -208,9 +292,15 @@ void NmHsWidgetTitleRow::mousePressEvent(QGraphicsSceneMouseEvent *event)
 void NmHsWidgetTitleRow::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
     NM_FUNCTION;
-    Q_UNUSED(event);
-    setFontsColor(false);
-    emit mailboxLaunchTriggered();
+	
+	//to avoid opening email account mistakenly when tabbing expand/collapse button
+	//we dont handle events that are on the top, down or right side of the button
+    if(event->pos().x() < mUnreadCountLabel->geometry().right())
+        {
+        setHighlighedFontsColor(false);
+        showHighlight(false);
+        emit mailboxLaunchTriggered();
+        }
 }
 
 /*
@@ -221,7 +311,7 @@ bool NmHsWidgetTitleRow::event( QEvent *event )
     NM_FUNCTION;
     QEvent::Type eventType = event->type();
     if( eventType == HbEvent::ThemeChanged ){
-        setFontsColor(false);
+        setHighlighedFontsColor(false);
         return true;
     }
     return HbWidget::event(event);

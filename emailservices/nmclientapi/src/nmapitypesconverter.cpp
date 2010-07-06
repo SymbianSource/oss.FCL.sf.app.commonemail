@@ -15,13 +15,7 @@
  *
  */
 
-#include "emailtrace.h"
-
-#include "nmapitypesconverter.h"
-
-#include <nmapicommonheader.h>
-
-#include <nmapiprivateheaders.h>
+#include "nmapiheaders.h"
 
 /*!
    converts nmmailbox to client api NmApiMailbox

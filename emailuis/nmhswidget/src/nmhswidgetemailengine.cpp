@@ -43,7 +43,8 @@ NmHsWidgetEmailEngine::NmHsWidgetEmailEngine(const NmId& monitoredMailboxId) :
     mAccountEventReceivedWhenSuspended(false),
     mMessageEventReceivedWhenSuspended(false), 
     mSuspended(false),
-    mUpdateTimer(0)
+    mUpdateTimer(0),
+    mAiwRequest(0)
 {
     NM_FUNCTION;
 }
@@ -180,7 +181,7 @@ int NmHsWidgetEmailEngine::getEnvelopes(QList<NmMessageEnvelope> &list, int maxE
     list.clear(); //Reset the parameter list to avoid side effects
     int i = 0;
     for (; i < mEnvelopeList.count() && i < maxEnvelopeAmount; i++) {
-        NmMessageEnvelope env(*mEnvelopeList[i]);
+        NmMessageEnvelope env(*mEnvelopeList.at(i));
         list.append(env);
     }
     return i;
@@ -408,17 +409,31 @@ void NmHsWidgetEmailEngine::launchMailAppInboxView()
 {
     NM_FUNCTION;
     
-    XQApplicationManager appManager;
-    XQAiwRequest* request = appManager.create(
-            XQI_EMAIL_INBOX_VIEW, XQOP_EMAIL_INBOX_VIEW,
-            false);
-    
-    if (request) {
-        QList<QVariant> list;
-        list.append(QVariant(mMailboxId.id()));
-    
-        request->setArguments(list);
-        request->send();
+    QT_TRY{ 
+        if (!mAiwRequest) {
+            XQApplicationManager appManager;
+            mAiwRequest = appManager.create(
+                    XQI_EMAIL_INBOX_VIEW, XQOP_EMAIL_INBOX_VIEW,
+                    false);
+            
+            if (mAiwRequest) {
+                connect(mAiwRequest, SIGNAL( requestError(int, const QString&) ), 
+                        this, SLOT( aiwRequestError(int, const QString&) ));
+                connect(mAiwRequest, SIGNAL( requestOk(const QVariant&) ), 
+                        this, SLOT( aiwRequestOk(const QVariant&) ));
+                QList<QVariant> list;
+                list.append(QVariant(mMailboxId.id()));
+            
+                mAiwRequest->setSynchronous(false);
+                mAiwRequest->setArguments(list);
+                mAiwRequest->send();
+            }
+        }
+    }
+    QT_CATCH(...){
+        // no actions taken.
+        // try-catch mechanism added to avoid crashing widget, in case XQAiwRequest
+        // creation raise exception.
     }
 }
 
@@ -431,18 +446,69 @@ void NmHsWidgetEmailEngine::launchMailAppMailViewer(const NmId &messageId)
 {
     NM_FUNCTION;
 
-    XQApplicationManager appManager;
-    XQAiwRequest* request = appManager.create(
-            XQI_EMAIL_MESSAGE_VIEW, XQOP_EMAIL_MESSAGE_VIEW,
-            false);
-    
-    if (request) {
-        QList<QVariant> list;
-        list.append(QVariant(mMailboxId.id()));
-        list.append(QVariant(mFolderId.id()));
-        list.append(QVariant(messageId.id()));
-    
-        request->setArguments(list);
-        request->send();
+    QT_TRY{
+        if (!mAiwRequest) {
+            XQApplicationManager appManager;
+            mAiwRequest = appManager.create(
+                    XQI_EMAIL_MESSAGE_VIEW, XQOP_EMAIL_MESSAGE_VIEW,
+                    false);
+            
+            if (mAiwRequest) {
+                connect(mAiwRequest, SIGNAL( requestError(int, const QString&) ), 
+                        this, SLOT( aiwRequestError(int, const QString&) ));
+                connect(mAiwRequest, SIGNAL( requestOk(const QVariant&) ), 
+                        this, SLOT( aiwRequestOk(const QVariant&) ));
+                QList<QVariant> list;
+                list.append(QVariant(mMailboxId.id()));
+                list.append(QVariant(mFolderId.id()));
+                list.append(QVariant(messageId.id()));
+            
+                mAiwRequest->setSynchronous(false);
+                mAiwRequest->setArguments(list);
+                mAiwRequest->send();
+            }
+        }
+    }
+    QT_CATCH(...){
+        // no actions taken.
+        // try-catch mechanism added to avoid crashing widget, in case XQAiwRequest
+        // creation raise exception.
     }
 }
+
+/*!
+ aiwRequestOk slot.
+ */
+void NmHsWidgetEmailEngine::aiwRequestOk(const QVariant& result)
+{
+    NM_FUNCTION;
+
+    Q_UNUSED(result);
+    
+    deleteAiwRequest();
+}
+
+/*!
+ aiwRequestError slot.
+ */
+void NmHsWidgetEmailEngine::aiwRequestError(int errorCode, const QString& errorMessage)
+{
+    NM_FUNCTION;
+
+    Q_UNUSED(errorCode);
+    Q_UNUSED(errorMessage);
+    
+    deleteAiwRequest();
+}
+
+/*!
+ deleteAiwRequest function.
+ */
+void NmHsWidgetEmailEngine::deleteAiwRequest()
+{
+    NM_FUNCTION;
+
+    delete mAiwRequest;
+    mAiwRequest = NULL;    
+}
+

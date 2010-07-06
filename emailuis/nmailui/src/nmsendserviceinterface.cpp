@@ -58,7 +58,7 @@ public:
     {
         NM_FUNCTION;
         
-        bool success = false;
+        bool success(false);
 
         if (data.canConvert(QVariant::Map)) {
             // The given data may contain a mail subject and recipient lists.
@@ -249,11 +249,7 @@ NmSendServiceInterface::NmSendServiceInterface(QString interfaceName,
                                                QObject *parent,
                                                NmUiEngine &uiEngine,
                                                NmApplication *application)
-#ifndef NM_WINS_ENV
     : XQServiceProvider(interfaceName, parent),
-#else
-    : QObject(parent),
-#endif
       mApplication(application),
       mUiEngine(uiEngine),
       mAsyncReqId(0),
@@ -261,9 +257,7 @@ NmSendServiceInterface::NmSendServiceInterface(QString interfaceName,
       mSelectionDialog(NULL),
       mCurrentView(NULL)
 {
-#ifndef NM_WINS_ENV
     publishAll();
-#endif
 }
 
 
@@ -311,17 +305,19 @@ void NmSendServiceInterface::send(QVariant data)
 {
     NM_FUNCTION;
     
-#ifndef NM_WINS_ENV
+    HbMainWindow *mainWindow(NULL);
     
     // Make sure that qmail stays background if user presses back in editorview
-    mApplication->updateVisibilityState();
+    if (mApplication) {
+        mApplication->updateVisibilityState();
+        
+        mainWindow = mApplication->mainWindow();
+        mCurrentView = mainWindow->currentView();
     
-    HbMainWindow *mainWindow = mApplication->mainWindow();
-    mCurrentView = mainWindow->currentView();
-
-    // Hide the current view.
-    if (mCurrentView) {
-        mCurrentView->hide();
+        // Hide the current view.
+        if (mCurrentView) {
+            mCurrentView->hide();
+        }    
     }
 
     // Check the given data.
@@ -347,9 +343,9 @@ void NmSendServiceInterface::send(QVariant data)
         cancelService();
     }
     else { // count > 0
-        // Make sure the NMail application is in the foreground.
-        XQServiceUtil::toBackground(false);
-        mainWindow->show();
+        if (mainWindow) {
+            mainWindow->show();        
+        }
 
     	mStartParam = new NmUiStartParam(
         	NmUiViewMessageEditor,
@@ -378,8 +374,9 @@ void NmSendServiceInterface::send(QVariant data)
                 mSelectionDialog =
                     new NmMailboxSelectionDialog(mUiEngine.mailboxListModel());
             }
-            connect(mSelectionDialog,SIGNAL(selectionDialogClosed(NmId&)),
-                this,SLOT(selectionDialogClosed(NmId&)));
+
+            connect(mSelectionDialog, SIGNAL(selectionDialogClosed(NmId&)),
+                    this, SLOT(selectionDialogClosed(NmId&)));
             mSelectionDialog->open();
 
             // launch the editor when the dialog is closed
@@ -439,9 +436,5 @@ void NmSendServiceInterface::cancelService()
         }
     }
 }
-
-#endif /* NM_WINS_ENV */
-
-
 
 // End of file.

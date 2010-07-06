@@ -94,6 +94,9 @@ void NmViewerViewNetReply::signalReady()
     // Insert embedded images into cache manually
     if(manager()) {
         if(manager()->cache() && request().url().scheme() == NMUI_NET_REPLY_CONTENT_ID) {
+            // Store url to use for reply in access manager finished emitting. 
+            setUrl(request().url());
+            
             // Metadata required for inserted data
             QNetworkCacheMetaData metaData;
             metaData.setUrl(request().url());
@@ -120,18 +123,16 @@ void NmViewerViewNetReply::fetchCompleted(int result)
     NM_FUNCTION;
     
     Q_UNUSED(result);
-    NmMessage *message = NULL;
-    message = mUiEngine.message(
-            mMailboxId,
-            mFolderId,
-            mMessageId);
+    NmMessage *message = mUiEngine.message(
+                        mMailboxId, mFolderId, mMessageId);
     if (message) {
         QList<NmMessagePart*> partList;
         message->attachmentList(partList);
-        NmMessagePart *part = NULL;
+        NmMessagePart *part(NULL);
         for (int i = 0; !part && i < partList.count(); i++) {
             if (partList[i]->partId() == mMessagePartId) {
                 part = partList[i];
+                break;
             }
         }
         if (part) {

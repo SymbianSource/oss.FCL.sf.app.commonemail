@@ -65,29 +65,43 @@ QList<NmAddress> NmRecipientLineEdit::emailAddressList()
 
 #ifdef Q_OS_SYMBIAN
 /*!
-   This Slot inserts the selected contacts from Contacts-picker into the lineedit cursor position.    
+   This Slot appends the selected contacts to the end of the lineedit content.    
 */
-void NmRecipientLineEdit::insertSelectedContacts(const QVariant &selectedContacts)
+void NmRecipientLineEdit::addSelectedContacts(const QVariant &selectedContacts)
 {
     NM_FUNCTION;
     
-    if (!selectedContacts.isNull()) {
-        CntServicesContactList contactList;
-        contactList = qVariantValue<CntServicesContactList>(selectedContacts);
+    // If user selected contact
+    if (!selectedContacts.isNull()) {        
+
+        // If the lineedit is not empty and if there is no ";" or "; " at the end,
+        // add a delimiter("; ") at the end.
+        if (this->text().length() != 0 && !(this->text().endsWith(Semicolon)) && 
+            !(this->text().endsWith(Delimiter))){
+            
+            // Move cursor to the end of the lineedit.
+            this->setCursorPosition(this->text().length());       
+            QTextCursor textCursor(this->textCursor());
+            // Append delimiter("; ") to the end of the lineedit
+            textCursor.insertText(Delimiter);
+        }
+        
+        CntServicesContactList contactList = qVariantValue<CntServicesContactList>(selectedContacts);
 
         // Loop through all the selected contacts.
         for (int i = 0; i < contactList.count(); ++i) {
-            QString contactEmailAddress = contactList[i].mEmailAddress;
             QString contactName = contactList[i].mDisplayName;
-
-            // If this contact has no name.
-            if(contactName.isEmpty()) {				
-                // Generate a custom keyevent for this contact's emailaddress.
-                QKeyEvent contactEmailAddressKeyEvent(QEvent::KeyPress, Qt::Key_unknown, 
-                		                              Qt::NoModifier, contactEmailAddress);
-                // Forward this contactEmailAddressKeyEvent to base class to handle.
-                NmHtmlLineEdit::keyPressEvent(&contactEmailAddressKeyEvent);
+            QString contactEmailAddress = contactList[i].mEmailAddress;
+            
+            // If this contact has no name, use it's emailaddress as the display name
+            if(contactName.isEmpty()) {	
+                // Move cursor to the end of the lineedit.
+                this->setCursorPosition(this->text().length());       
+                QTextCursor textCursor(this->textCursor());
+                // Append contactEmailAddress to the end of the lineedit
+                textCursor.insertText(contactEmailAddress);
             }
+            // If this contact has name, use the name as the display name
             else {
                 // Handle a rare case: there are contacts has same name but different emailaddress.
                 for (int i = 0; i != mRecipientsAddedFromContacts.count(); ++i) {
@@ -100,19 +114,17 @@ void NmRecipientLineEdit::insertSelectedContacts(const QVariant &selectedContact
                     }
                 }
                 
-                // Generate custom keyevent for this contact's name.
-                QKeyEvent contactNameKeyEvent(QEvent::KeyPress, Qt::Key_unknown, 
-                                              Qt::NoModifier, contactName);
-                // Forward this contactNameKeyEvent to base class to handle.
-                NmHtmlLineEdit::keyPressEvent(&contactNameKeyEvent);
+                // Move cursor to the end of the lineedit.
+                this->setCursorPosition(this->text().length());       
+                QTextCursor textCursor(this->textCursor());
+                // Append contactName to the end of the lineedit
+                textCursor.insertText(contactName);
             }
-
-            // Generate custom keyevent for Delimiter("; ").
-            QKeyEvent delimiterKeyEvent(QEvent::KeyPress, Qt::Key_unknown, 
-                                        Qt::NoModifier, Delimiter);
-            // Forward the delimiterKeyEvent to base class to handle.
-            NmHtmlLineEdit::keyPressEvent(&delimiterKeyEvent);
-			
+                
+            QTextCursor textCursor(this->textCursor());
+            // Append delimiter("; ")
+            textCursor.insertText(Delimiter);
+            
             // Form the contact into Qmail NmAddress format.
             NmAddress contact;
             contact.setAddress(contactEmailAddress);
@@ -120,7 +132,7 @@ void NmRecipientLineEdit::insertSelectedContacts(const QVariant &selectedContact
             
             // Add this NmAddress formated contact into mRecipientsAddedFromContacts.
             mRecipientsAddedFromContacts.append(contact);
-        }
+        } 
     }
     else {
         //Request returned NULL 

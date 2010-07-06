@@ -24,7 +24,6 @@
 #include "nmactionobserver.h"
 #include "nmattachmentfetchobserver.h"
 
-class QGraphicsLinearLayout;
 class QWebPage;
 
 class HbWidget;
@@ -45,6 +44,7 @@ class HbProgressDialog;
 class NmAttachmentListWidget;
 class NmAttachmentManager;
 class HbMessageBox;
+class NmMessagePart;
 
 class NmViewerView : public NmBaseView, public NmActionObserver, public NmAttachmentFetchObserver
 {
@@ -55,8 +55,8 @@ public:
 				NmUiStartParam* startParam,
 				NmUiEngine &uiEngine,
 				HbMainWindow *mainWindow,
-            NmAttachmentManager &attaManager,
-            bool toolbar = false,
+				NmAttachmentManager &attaManager,
+				bool toolbar = false,
 				QGraphicsItem *parent = NULL);
     ~NmViewerView();
     void reloadViewContents(NmUiStartParam* startParam);
@@ -99,14 +99,14 @@ private:
     void loadMessage();
     void loadViewLayout();
     QString formatMessage();
+    QString formatHtmlMessage(NmMessagePart *html);
+    QString formatPlainTextMessage(NmMessagePart *plain);
     bool eventOnTopOfHeaderArea(QGraphicsSceneMouseEvent *event);
     void changeMessageReadStatus(bool read);
     void setMailboxName();
     void createToolBar();
     void setAttachmentList();
     void createAndShowWaitDialog();
-    void setWebViewWidth(int width);
-    void setWebViewHeighth(int height);
 
 private:
     NmApplication &mApplication;
@@ -125,9 +125,8 @@ private:
     QPointF mLatestScrollPos;
     bool mDisplayingPlainText;
     QObjectList mWidgetList;
-    NmUiDocumentLoader *mDocumentLoader;
-    HbWidget *mScrollAreaContents;
-    HbWidget *mViewerHeaderContainer;
+    NmUiDocumentLoader *mDocumentLoader;             // Owned
+    HbWidget *mScrollAreaContents;                   // Not owned
     QSize mScreenSize;
     HbProgressDialog *mWaitDialog;                   // Owned
     bool webFrameloadingCompleted;

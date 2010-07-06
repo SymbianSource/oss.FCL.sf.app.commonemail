@@ -302,6 +302,13 @@ void CIpsSosAOPopAgent::StartFetchMessagesL(
 void CIpsSosAOPopAgent::CancelAllAndDisconnectL()
     {
     FUNC_LOG;
+    // if we are already idle state, do nothing
+    // completing in idle state might cause unvanted events to ui
+    if (iState == EStateIdle) 
+        {
+        return;
+        }
+    
     iDoNotDisconnect = EFalse;
     iState = EStateCompleted;
     if ( IsActive() )

@@ -42,27 +42,22 @@ class NmMailViewerWK : public QGraphicsWebView
 {
     Q_OBJECT
 public:
-	NmMailViewerWK();
-	~NmMailViewerWK();
+    NmMailViewerWK();
+    ~NmMailViewerWK();
     virtual QVariant loadResource (int type, const QUrl &name, NmId &partId, bool &isFetched);
-    void setParentView(NmViewerView *parentView);
     void addContent(QString key, QVariant val, NmId partId, bool isFetched);
-
+    bool event(QEvent* event);
+    
+protected:
+    void contextMenuEvent(QGraphicsSceneContextMenuEvent* event);
+    void gestureEvent(QGestureEvent* event);
+    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event);
+    void mouseMoveEvent(QGraphicsSceneMouseEvent* event);
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent* event);
+    
 private:
     QMap<QString,NmMailViewerWkContentItem> mContent;
-    NmViewerView *mParentView;                        // Not owned
-};
-
-class NmEventFilterWK : public QObject
-{
-    Q_OBJECT
-public:
-    NmEventFilterWK(QObject* parent = 0);
-protected:
-    bool eventFilter(QObject* object, QEvent* event);
-    bool gestureEvent(QGestureEvent* event);
-private:
-    Q_DISABLE_COPY(NmEventFilterWK)
+    bool mSuppressRelease;
 };
 
 #endif /* NMVIEWERWEBVIEW_H_*/

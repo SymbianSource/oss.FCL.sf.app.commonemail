@@ -26,7 +26,7 @@
 /*!
     Constructor
 */
-NmBaseView::NmBaseView(NmUiStartParam* startParam,
+NmBaseView::NmBaseView(NmUiStartParam *startParam,
                        NmApplication &application,
                        QGraphicsItem *parent)
 : HbView(parent),

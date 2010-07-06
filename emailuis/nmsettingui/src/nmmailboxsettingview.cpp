@@ -103,11 +103,7 @@ NmMailboxSettingView::~NmMailboxSettingView()
 {
     NM_FUNCTION;
     
-    if (mForm) {
-        mForm->removeAllConnection();
-        delete mForm;
-    }
-
+    delete mForm;
     delete mModel;
 }
 
@@ -159,5 +155,12 @@ void NmMailboxSettingView::mailboxPropertyChanged(const NmId &mailboxId,
     }
 }
 
+/*!
+    Returns the mailbox id for this mailbox setting view.    
+*/
+NmId NmMailboxSettingView::mailboxId()
+{
+    return mMailboxId;
+}
 
 // End of file.

@@ -37,11 +37,11 @@ class NMAPI_EXPORT NmApiFolderListing : public NmApiMessageTask
     Q_OBJECT
 public:
     /*!
-       Constructor of class. It set start values.
+       Constructor of class. 
      */
-    NmApiFolderListing(QObject *parent, const quint64 &nmMailboxId);
+    NmApiFolderListing(QObject *parent, const quint64 &mailboxId);
     /*!
-       Destructor of class. It release engine to be safe if manual releasing won't work.
+       Destructor of class. 
      */
     ~NmApiFolderListing();
 

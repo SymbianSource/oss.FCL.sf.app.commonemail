@@ -119,7 +119,10 @@ NmAttachmentListWidget::~NmAttachmentListWidget( )
 {
     NM_FUNCTION;
     
+    qDeleteAll(mItemList);
+
     mItemList.clear();
+	
 }
 
 /*!
@@ -257,6 +260,8 @@ void NmAttachmentListWidget::paint(
     Q_UNUSED(option);
     Q_UNUSED(widget);
     if (painter&&mLayout){
+        painter->save();
+        
         // Use text color as a line color if set, otherwise use theme
         // normal list content color.
         if (mTextColor.isValid()){
@@ -280,7 +285,8 @@ void NmAttachmentListWidget::paint(
                               layoutRect.bottomRight().x(), itemRect.bottomRight().y());
                 painter->drawLine(line1);                     
             }     
-        }        
+        }
+        painter->restore();
     }
 }
 
@@ -318,8 +324,9 @@ void NmAttachmentListWidget::init( )
     //construct UI after orientation has been figured out
     constructUi();
 
-    //set default values, needed?
-    setFlag(QGraphicsItem::ItemIsFocusable);      
+    //set flags
+    setFlag(QGraphicsItem::ItemIsFocusable);  
+    setFlag(QGraphicsItem::ItemHasNoContents,false);
 }
 
 /*!
@@ -339,8 +346,7 @@ void NmAttachmentListWidget::constructUi()
     loader.setObjectTree(objectList);
     QObjectList widgetlist = loader.load(FILE_PATH_DOCML, &loadingOk);
 
-    int widgetCount = widgetlist.count();
-    if(loadingOk && widgetCount){
+    if(loadingOk){
         if(layout()){
             mLayout = dynamic_cast<QGraphicsGridLayout*>(layout());
             mLayout->setContentsMargins(0,0,0,0);

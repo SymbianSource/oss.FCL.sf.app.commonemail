@@ -49,7 +49,7 @@ NmSendingIndicator::~NmSendingIndicator()
 */
 QVariant NmSendingIndicator::indicatorData(int role) const
 {
-    if (role==MonoDecorationNameRole) {
+    if (role==DecorationNameRole) {
 		// Must return non-empty to make the indicator visible
 		return " ";
 	}

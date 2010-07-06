@@ -38,7 +38,7 @@ public:
 	
 public slots:
 #ifdef Q_OS_SYMBIAN
-    void insertSelectedContacts(const QVariant &selectedContacts);
+    void addSelectedContacts(const QVariant &selectedContacts);
 #endif
 
 protected:	// from HbLineEdit

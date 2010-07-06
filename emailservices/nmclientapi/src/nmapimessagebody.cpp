@@ -14,11 +14,9 @@
  * Description: 
  *
  */
+ 
+#include "nmapiheaders.h"
 
-#include "emailtrace.h"
-
-#include <nmapimessagebody.h>
-#include "nmapimessagebody_p.h"
 
 namespace EmailClientApi
 {

@@ -15,11 +15,10 @@
 *
 */
 
-#include <fmfiledialog.h>
-#include <xqaiwdecl.h>
 #include "nmuiheaders.h"
-const int NmAttachmentPickerStillMode = 0;
-const int NmAttachmentPickerVideoMode = 1;
+
+static const int NmAttachmentPickerStillMode = 0;
+static const int NmAttachmentPickerVideoMode = 1;
 
 /*!
     \class NmAttachmentPicker
@@ -29,7 +28,7 @@ const int NmAttachmentPickerVideoMode = 1;
 /*!
     Constructor
 */
-NmAttachmentPicker::NmAttachmentPicker(QObject* parent):
+NmAttachmentPicker::NmAttachmentPicker(QObject *parent):
     QObject(parent),
     mRequest(NULL)
 {
@@ -85,7 +84,7 @@ void NmAttachmentPicker::fetchOther()
     QString path;
     path = FmFileDialog::getSaveFileName(0, hbTrId("txt_mail_dialog_select_file"));
     
-    if(!path.isEmpty()) {
+    if (!path.isEmpty()) {
         QString temp = QDir::toNativeSeparators(path);
         emit attachmentsFetchOk(QVariant(temp));    
     }
@@ -116,11 +115,11 @@ void NmAttachmentPicker::fetchFromCamera(int mode)
 {
     NM_FUNCTION;
 
-    int cameraIndex = 0;            //primary camera
-    int quality = 0;                //default
-    bool allowModeSwitch = false;   //not allowed to change
-    bool allowCameraSwitch = true;  //allow changes
-    bool allowQualityChange = true; //allow changes
+    int cameraIndex(0);            //primary camera
+    int quality(0);                //default
+    bool allowModeSwitch(false);   //not allowed to change
+    bool allowCameraSwitch(true);  //allow changes
+    bool allowQualityChange(true); //allow changes
     
     QVariantMap parameters;
     parameters.insert(XQCAMERA_INDEX, cameraIndex);
@@ -141,8 +140,8 @@ void NmAttachmentPicker::fetchFromCamera(int mode)
     param <operation> the operation of the interface
     param <args> the arguments that needed by the operation
 */
-void NmAttachmentPicker::fetch(const QString& interface, 
-    const QString& operation, const QList<QVariant>* args)
+void NmAttachmentPicker::fetch(const QString &interface, 
+    const QString &operation, const QList<QVariant> *args)
 {
     NM_FUNCTION;
     

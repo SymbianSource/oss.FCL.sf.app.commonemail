@@ -91,6 +91,17 @@ public: // from CIpsPlgBaseOperation
      * Returns operation type
      */
     TIpsOpType IpsOpType() const;
+    
+    //<qmail> moved from private to public and changed to static
+    /**
+     * 
+     * @param aInfo is filled correctly in this function
+     * @param aImap4Settings info is filled partly based on settings
+     */
+    static void ConstructImapPartialFetchInfo(
+        TImImap4GetPartialMailInfo& aInfo, 
+        const CImImap4Settings& aImap4Settings );
+    //</qmail>
         
     // <qmail> HandleImapConnectionEvent() not used any more
 
@@ -156,15 +167,7 @@ private:
      */
     void SignalSyncCompleted( TInt aError );
     
-    // <qmail>
-    /**
-     * 
-     * @param aInfo is filled corretcly in this function
-     * @param aImap4Settings info is filled partly based on settings
-     */
-    void ConstructImapPartialFetchInfo(
-        TImImap4GetPartialMailInfo& aInfo, 
-        const CImImap4Settings& aImap4Settings );
+    // <qmail> moved to public
 
     /**
      * GetImapSettingsLC()

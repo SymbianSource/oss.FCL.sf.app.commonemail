@@ -38,6 +38,8 @@ public:
     QString toPlainText() const;
     QString toHtml() const;
 
+    QRectF rectForCursorPosition() const;
+
 public slots:
     void setPlainText(const QString &text);
     void setHtml(const QString &text);

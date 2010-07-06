@@ -20,15 +20,6 @@
 
 #include <hbwidget.h>
 #include "nmactionresponse.h"
-// Header widget fields
-enum
-{
-    EEditorToLine=0,
-    EEditorCcLine,
-    EEditorBccLine,
-    EEditorSubjectLine,
-    EEditorAttachmentLine
-};
 
 class HbGroupBox;
 class HbLabel;
@@ -37,20 +28,20 @@ class NmHtmlLineEdit;
 class NmRecipientLineEdit;
 class QGraphicsLinearLayout;
 class NmRecipientField;
-class NmAttachmentList;
+class NmAttachmentList; 
 
 class NmEditorHeader : public QObject
 {
 Q_OBJECT
 
 public:
-    NmEditorHeader(HbDocumentLoader *documentLoader);
+    NmEditorHeader(QObject *parent, HbDocumentLoader *documentLoader);
     virtual ~NmEditorHeader();
     qreal headerHeight() const;
-    NmHtmlLineEdit* subjectEdit() const;
-    NmRecipientLineEdit* toEdit() const;
-    NmRecipientLineEdit* ccEdit() const;
-    NmRecipientLineEdit* bccEdit() const;
+    NmHtmlLineEdit *subjectEdit() const;
+    NmRecipientLineEdit *toEdit() const;
+    NmRecipientLineEdit *ccEdit() const;
+    NmRecipientLineEdit *bccEdit() const;
     void setPriority(NmMessagePriority priority=NmMessagePriorityNormal);
     void setPriority(NmActionResponseCommand prio=NmActionResponseCommandNone);
     void addAttachment(const QString &fileName, const QString &fileSize, const NmId &nmid);

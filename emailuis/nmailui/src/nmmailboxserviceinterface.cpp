@@ -33,18 +33,12 @@
 NmMailboxServiceInterface::NmMailboxServiceInterface(QObject *parent,
         NmUiEngine &uiEngine,
         NmApplication *application)
-#ifndef NM_WINS_ENV
     : XQServiceProvider(emailFullServiceNameMailbox, parent),
-#else
-    : QObject(parent),
-#endif
       mUiEngine(uiEngine),
       mApplication(application),
       mAsyncReqId(0)
 {
-#ifndef NM_WINS_ENV
     publishAll();
-#endif
 }
 
 
@@ -66,7 +60,6 @@ void NmMailboxServiceInterface::displayInboxByMailboxId(QVariant data)
 {
     NM_FUNCTION;
 
-#ifndef NM_WINS_ENV
 
     // Get the given ID and convert it into NmId type.
     NmId mailboxNmId(data.toULongLong());
@@ -84,21 +77,23 @@ void NmMailboxServiceInterface::displayInboxByMailboxId(QVariant data)
 
         // Bring the application to the foreground.
         XQServiceUtil::toBackground(false);
-        HbMainWindow *mainWindow = mApplication->mainWindow();
-        mainWindow->show();
+        if (mApplication) {
+            HbMainWindow *mainWindow = mApplication->mainWindow();
+            mainWindow->show();
 
-        // Launch the message list view.
-        NmUiStartParam *startParam =
-            new NmUiStartParam(NmUiViewMessageList,
-                               mailboxNmId,
-                               inboxId, // folder id
-                               0, // message id
-                               NmUiEditorCreateNew, // editor start mode
-                               NULL, // address list
-                               NULL, // attachment list
-                               true); // start as service
-        mApplication->enterNmUiView(startParam);
-
+            // Launch the message list view.
+            NmUiStartParam *startParam =
+                new NmUiStartParam(NmUiViewMessageList,
+                                   mailboxNmId,
+                                   inboxId, // folder id
+                                   0, // message id
+                                   NmUiEditorCreateNew, // editor start mode
+                                   NULL, // address list
+                                   NULL, // attachment list
+                                   true); // start as service
+            mApplication->enterNmUiView(startParam);
+        }
+       
         completeRequest(mAsyncReqId, 0);
     }
     else {
@@ -117,7 +112,6 @@ void NmMailboxServiceInterface::displayInboxByMailboxId(QVariant data)
                     mApplication, SLOT(delayedExitApplication()));
         }
     }
-#endif
 }
 
 
@@ -143,7 +137,9 @@ bool NmMailboxServiceInterface::mailboxExistsById(const NmId &mailboxId) const
         modelIndex = mailboxListModel.index(i, 0);
         mailbox = mailboxListModel.data(modelIndex);
         mailboxMetaData = mailbox.value<NmMailboxMetaData*>();
-        currentId = mailboxMetaData->id();
+        if (mailboxMetaData) {
+            currentId = mailboxMetaData->id();        
+        }
 
         if (currentId.id() == mailboxId.id()) {
             // Found a mailbox with the matching ID.
