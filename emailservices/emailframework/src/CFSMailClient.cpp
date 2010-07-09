@@ -254,7 +254,7 @@ EXPORT_C TInt CFSMailClient::ListMailBoxes(const TFSMailMsgId aPlugin,
                         mailBox = plugin->GetMailBoxByUidL(mailBoxList[ii]) );
 				    if ( mailBox )
     				    {
-                        aMailBoxes.Append( mailBox );
+                        err = aMailBoxes.Append( mailBox );
                         }
 				// </cmail>
 					if(err != KErrNone)
@@ -294,7 +294,7 @@ EXPORT_C TInt CFSMailClient::ListMailBoxes(const TFSMailMsgId aPlugin,
                         mailBox = plugin->GetMailBoxByUidL(mailBoxList[i]) );
                     if ( mailBox )
                         {
-                        aMailBoxes.Append( mailBox );
+                        err = aMailBoxes.Append( mailBox );
                         }
                 // </cmail>				
 				if(err != KErrNone)

@@ -33,8 +33,7 @@ CIpsPlgMsgIterator* CIpsPlgMsgIterator::NewL(
     {
     FUNC_LOG;
     CIpsPlgMsgIterator* self = 
-        new( ELeave ) CIpsPlgMsgIterator( aPlugin, aMailboxId, aDetails, 
-            aSorting );
+        new( ELeave ) CIpsPlgMsgIterator( aPlugin, aMailboxId, aDetails );
     CleanupStack::PushL( self );
     self->ConstructL( aMsvSession, aFolderId, aSorting );
     CleanupStack::Pop( self );
@@ -53,8 +52,7 @@ CIpsPlgMsgIterator* CIpsPlgMsgIterator::NewL(
     {
     FUNC_LOG;
     CIpsPlgMsgIterator* self = 
-        new( ELeave ) CIpsPlgMsgIterator( aPlugin, aMailboxId, aDetails, 
-            aSorting );
+        new( ELeave ) CIpsPlgMsgIterator( aPlugin, aMailboxId, aDetails );
     CleanupStack::PushL( self );
     self->ConstructL( aFolderEntry, aSorting );
     CleanupStack::Pop( self );
@@ -73,6 +71,8 @@ CIpsPlgMsgIterator::~CIpsPlgMsgIterator()
     delete iMsgMapper;
     delete iMsgSortKey;
     delete iMsgSwapper;
+    delete iMessages;
+    iSortingCriteria.Reset();
     }
 
 // ---------------------------------------------------------------------------
@@ -89,15 +89,16 @@ TBool CIpsPlgMsgIterator::NextL(
     TBool result = EFalse;
     TInt baseIndex;
     
-    // Messages are sorted always before reading the messages 
-    Sort();
-    
-    CMsvEntrySelection* messages = FilterMessagesL();
-    CleanupStack::PushL( messages );
+    if ( !iMessages )
+        {
+        // Messages are sorted before first reading the messages 
+        Sort();
+        iMessages = FilterMessagesL();
+        }
 
     if ( !aCurrentMessageId.IsNullId() )
         {
-        baseIndex = messages->Find( aCurrentMessageId.Id() );
+        baseIndex = iMessages->Find( aCurrentMessageId.Id() );
         
         // aCurrentMessageId is not included to the result set
         if ( baseIndex != KErrNotFound )
@@ -112,12 +113,11 @@ TBool CIpsPlgMsgIterator::NextL(
         }
         
     if ( ( baseIndex != KErrNotFound ) && 
-         ( baseIndex < messages->Count() ) )
+         ( baseIndex < iMessages->Count() ) )
         {
-        result = NextL(baseIndex, messages, aCount, aMessages);
+        result = NextL(baseIndex, iMessages, aCount, aMessages);
         }
 
-    CleanupStack::PopAndDestroy(messages);
     return result;
     }
 
@@ -136,20 +136,20 @@ TBool CIpsPlgMsgIterator::NextL(
     TInt status;
     TInt baseIndex;
     
-    // Messages are sorted always before reading the messages 
-    Sort();
+    if ( !iMessages )
+        {
+        // Messages are sorted before first reading the messages 
+        Sort();
+        iMessages = FilterMessagesL();
+        }
 
-    CMsvEntrySelection* messages = FilterMessagesL();
-    CleanupStack::PushL( messages );
-
-    status = SearchL( messages, aStartWith, baseIndex );
+    status = SearchL( iMessages, aStartWith, baseIndex );
     
     if ( status == KErrNone )
         {
-        result = NextL(baseIndex, messages, aCount, aMessages);
+        result = NextL( baseIndex, iMessages, aCount, aMessages );
         }
 
-    CleanupStack::PopAndDestroy(messages);
     return result;
     }
 
@@ -168,15 +168,16 @@ TBool CIpsPlgMsgIterator::PreviousL(
     TBool result = EFalse;
     TInt baseIndex;
     
-    // Messages are sorted always before reading the messages 
-    Sort();
-
-    CMsvEntrySelection* messages = FilterMessagesL();
-    CleanupStack::PushL(messages);
+    if ( !iMessages )
+        {
+        // Messages are sorted before first reading the messages 
+        Sort();
+        iMessages = FilterMessagesL();
+        }
 
     if ( !aCurrentMessageId.IsNullId() )
         {
-        baseIndex = messages->Find(aCurrentMessageId.Id());
+        baseIndex = iMessages->Find(aCurrentMessageId.Id());
         
         // aCurrentMessageId is not included to the result set
         if ( baseIndex != KErrNotFound )
@@ -188,7 +189,7 @@ TBool CIpsPlgMsgIterator::PreviousL(
         {
         // check whether we should start from the end of 
         // the message list in the case of a NULL ID
-        baseIndex = messages->Count() - 1;
+        baseIndex = iMessages->Count() - 1;
         }
 
     // Actually, if the matching message is the first one, baseIndex is equal
@@ -198,10 +199,9 @@ TBool CIpsPlgMsgIterator::PreviousL(
     if ( ( baseIndex != KErrNotFound ) &&
          ( baseIndex >= 0 ) )
         {
-        result = PreviousL(baseIndex, messages, aCount, aMessages);
+        result = PreviousL(baseIndex, iMessages, aCount, aMessages);
         }
 
-    CleanupStack::PopAndDestroy(messages);
     return result;
     }
 
@@ -231,14 +231,13 @@ TBool CIpsPlgMsgIterator::PreviousL(
     CMsvEntrySelection* messages = FilterMessagesL();
     CleanupStack::PushL( messages );
 
-    status = SearchL( messages, aStartWith, baseIndex );
+    status = SearchL( iMessages, aStartWith, baseIndex );
     
     if (  status == KErrNone ) 
         {
-        result = PreviousL(baseIndex, messages, aCount, aMessages);
+        result = PreviousL(baseIndex, iMessages, aCount, aMessages);
         }
 
-    CleanupStack::PopAndDestroy(messages);
     return result;
     }
 
@@ -267,7 +266,7 @@ TBool CIpsPlgMsgIterator::NextL(
             {
             fsMsg = iMsgMapper->GetMailMessageL( iMailboxId, entry, 
                 iRequestedDetails );
-            aMessages.Append( fsMsg );
+            aMessages.AppendL( fsMsg );
             counter++;
             }
         i++;
@@ -307,7 +306,7 @@ TBool CIpsPlgMsgIterator::PreviousL(
             {
             fsMsg = iMsgMapper->GetMailMessageL( iMailboxId, entry, 
                 iRequestedDetails );
-            aMessages.Insert( fsMsg, 0 );
+            aMessages.InsertL( fsMsg, 0 );
             counter++;
             }
         i--;
@@ -323,10 +322,9 @@ TBool CIpsPlgMsgIterator::PreviousL(
 CIpsPlgMsgIterator::CIpsPlgMsgIterator( 
     CIpsPlgSosBasePlugin& aPlugin,
     const TFSMailMsgId& aMailboxId,
-    const TFSMailDetails aDetails,
-    const RArray<TFSMailSortCriteria>& aSorting )
+    const TFSMailDetails aDetails )
     : iPlugin( aPlugin ), iRequestedDetails( aDetails ), 
-      iSortingCriteria( aSorting ), iMailboxId( aMailboxId )
+      iMailboxId( aMailboxId )
     {
     FUNC_LOG;
     // none
@@ -344,7 +342,9 @@ void CIpsPlgMsgIterator::ConstructL(
     {
     FUNC_LOG;
     iFolderEntry  = aMsvSession.GetEntryL( aFolderId.Id() );
-    iMsgSortKey   = new (ELeave) TIpsPlgMsgKey( *iFolderEntry, aSorting );
+    
+    StoreSortCriteriaL(aSorting);
+    iMsgSortKey   = new (ELeave) TIpsPlgMsgKey( *iFolderEntry, iSortingCriteria );
     iMsgSwapper   = new (ELeave) TIpsPlgMsgSwap( *iFolderEntry );
     iSortingOn    = 
         ( aSorting.Count() > 0 ) && ( aSorting[0].iField != EFSMailDontCare);
@@ -363,7 +363,8 @@ void CIpsPlgMsgIterator::ConstructL(
     {
     FUNC_LOG;
     iFolderEntry  = aFolderEntry;
-    iMsgSortKey   = new (ELeave) TIpsPlgMsgKey( *iFolderEntry, aSorting );
+    StoreSortCriteriaL(aSorting);
+    iMsgSortKey   = new (ELeave) TIpsPlgMsgKey( *iFolderEntry, iSortingCriteria );
     iMsgSwapper   = new (ELeave) TIpsPlgMsgSwap( *iFolderEntry );
     iSortingOn    = 
         ( aSorting.Count() > 0 ) && ( aSorting[0].iField != EFSMailDontCare);
@@ -481,4 +482,20 @@ CMsvEntrySelection* CIpsPlgMsgIterator::FilterMessagesL()
 		}
 	return filteredEntries;
 	}
+
+// -----------------------------------------------------------------------------
+// stores sort criteria given by user
+// -----------------------------------------------------------------------------
+void CIpsPlgMsgIterator::StoreSortCriteriaL( 
+     const RArray<TFSMailSortCriteria>& aSorting )
+    {
+    for ( TInt i=0; i < aSorting.Count(); i++ )
+        {
+        const TFSMailSortCriteria& criteria  = aSorting[i];
+        TFSMailSortCriteria fsCriteria;
+        fsCriteria.iField = criteria.iField;
+        fsCriteria.iOrder = criteria.iOrder;
+        iSortingCriteria.AppendL(fsCriteria);
+        }
+    }
 

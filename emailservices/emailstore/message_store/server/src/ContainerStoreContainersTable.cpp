@@ -297,9 +297,22 @@ void CContainerStoreContainersTable::OpenTableL()
     iIsRowEncryptedColNum  = colSet->ColNo( KContainersTableIsRowEncryptedCol );
 
 	CleanupStack::PopAndDestroy( colSet );
-	
-	// Set the table's index to the ID index.
-	User::LeaveIfError( iTable.SetIndex( KContainersTableIdIndex ) );
+
+    // make sure KContainersTableParentIdIndex exists
+    TInt err = iTable.SetIndex( KContainersTableParentIdIndex );
+    if ( err == KErrNotFound )
+        {
+        iUtils.CloseTable( iTable );
+        CreateIndexL( KContainersTableName, KContainersTableParentIdIndex, KContainersTableParentIdCol );
+        iUtils.OpenTableL( iTable, KContainersTableName );
+        }
+    else
+        {
+        User::LeaveIfError( err );
+        }
+
+    // Set the table's index to the ID index.
+    User::LeaveIfError( iTable.SetIndex( KContainersTableIdIndex ) );
 	
 	__LOG_EXIT
 	} // end OpenTableL
@@ -347,8 +360,9 @@ void CContainerStoreContainersTable::CreateTableL()
 	
 	// Create table index.
     CreateIndexL( KContainersTableName, KContainersTableIdIndex, KContainersTableIdCol );
-	
-	OpenTableL();
+    CreateIndexL( KContainersTableName, KContainersTableParentIdIndex, KContainersTableParentIdCol );
+
+    OpenTableL();
 	
 	__LOG_EXIT	
 	} // end CreateTableL
@@ -932,7 +946,9 @@ void CContainerStoreContainersTable::ListChildrenL( RArray<TContainerId>& aChild
 	    queryString.AppendNum( toBeSearched[0] );    	    
         toBeSearched.Remove( 0 );
         
-        if ( aType == EMsgStorePartBits )
+        if ( aType == EMsgStorePartBits || 
+           ( ( aId & KContainerTypeMask ) == EMsgStoreMessageBits ) ||
+           ( ( aId & KContainerTypeMask ) == EMsgStorePartBits ) )
         	{
         	//must sort the message parts by containerId in ascending order
         	// to preserve the same order as they are created
@@ -1208,4 +1224,47 @@ void CContainerStoreContainersTable::SetEncryptedL( TBool aIsEncrypted )
     iTable.SetColL( iIsRowEncryptedColNum, static_cast<TUint8>(aIsEncrypted) );
     }
 
+/*
+ * Search based on the parent ID. This will set the index if one exists and use the find if the index does not
+ * exists which could happen for a existing DB(IAD case)
+ */
+TContainerId CContainerStoreContainersTable::FirstChildForDeleteL( TContainerId aId, TDbBookmark& aBookmark )
+    {
+    __LOG_ENTER( "FirstChildForDeleteL" )
+    __LOG_WRITE8_FORMAT1_INFO( "id=%x", aId )
 
+    TContainerId returnValue = KContainerInvalidId;
+    User::LeaveIfError( iTable.SetIndex( KContainersTableParentIdIndex ) );
+    TRAP_IGNORE( returnValue = GetFirstChildForDeleteL( aId, aBookmark ) );
+    //remember to set the index back
+    iTable.SetIndex( KContainersTableIdIndex );
+
+    __LOG_EXIT
+    return returnValue;   
+    }
+
+/*
+ * Search based on the parent ID. 
+ */
+TContainerId CContainerStoreContainersTable::GetFirstChildForDeleteL( TContainerId aId, TDbBookmark& aBookmark )
+    {
+    __LOG_ENTER( "FirstChildForDeleteL" )
+    __LOG_WRITE8_FORMAT1_INFO( "id=%x", aId )
+    
+    TContainerId returnValue = KContainerInvalidId;
+    //Index on parent id, so we can Seek, faster than Find
+    if ( !iTable.SeekL( aId ) )
+        {
+        __LOG_WRITE_INFO( "No match found" )
+        returnValue = KContainerInvalidId;
+        }
+    else
+        {
+        iTable.GetL();
+        returnValue = iTable.ColUint32( iIdColNum );
+        aBookmark = Bookmark();
+        __LOG_WRITE8_FORMAT1_INFO( "found id=%x", returnValue )
+        }
+    __LOG_EXIT
+    return returnValue;   
+    }

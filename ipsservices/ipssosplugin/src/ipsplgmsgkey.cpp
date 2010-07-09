@@ -104,10 +104,8 @@ TInt TIpsPlgMsgKey::Compare( TInt aLeft, TInt aRight ) const
                 }
             case EFSMailSortBySubject:
                 {
-                // <cmail> due to changes in CompareSubject method
-                TRAP_IGNORE( result = CompareSubjectsL( 
-                    leftEntry.iDescription, rightEntry.iDescription ) );
-                // </cmail>
+                result = CompareSubjects( leftEntry.iDescription,
+                    rightEntry.iDescription );
                 break;
                 }
             case EFSMailSortByPriority:
@@ -142,7 +140,7 @@ TInt TIpsPlgMsgKey::Compare( TInt aLeft, TInt aRight ) const
                 }
             case EFSMailSortByUnread:
                 {
-                // In this context, an unread message is 'greater' than
+                // In this context, an read message is 'greater' than
                 // a read one
                 if ( !leftEntry.Unread() && rightEntry.Unread() ) 
                     {
@@ -212,7 +210,7 @@ TAny* TIpsPlgMsgKey::At( TInt anIndex ) const
 // Strips the subject prefixes before comparing the strings
 // ---------------------------------------------------------------------------
 
-TInt TIpsPlgMsgKey::CompareSubjectsL( 
+TInt TIpsPlgMsgKey::CompareSubjects(
     const TDesC& aLeft, 
     const TDesC& aRight ) const
     {

@@ -654,7 +654,7 @@ EXPORT_C void CFSMailBox::SearchL( const RPointerArray<TDesC>& aSearchStrings,
             TFSMailMsgId id = iFolders[i]->GetFolderId();
             if( id != draftsFolderId && id != outboxId )
             {
-                folderIds.Append(id);
+                folderIds.AppendL(id);
             }
         }
         

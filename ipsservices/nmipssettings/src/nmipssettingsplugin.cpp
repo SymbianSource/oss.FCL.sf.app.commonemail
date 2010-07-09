@@ -135,6 +135,8 @@ bool NmIpsSettingsPlugin::populateModel(HbDataFormModel &model,
         connect(mSettingsHelper, SIGNAL(createUserDefinedMode()),
                 this, SLOT(createUserDefinedMode()));
         
+        connect(mForm, SIGNAL(pressed(QModelIndex)),
+                this, SLOT(itemPress(QModelIndex)));
         // Get the value if some ui items need to be hidden.
         QVariant data;
         mSettingsManager->readSetting(IpsServices::UserNameHidden, data);
@@ -655,4 +657,32 @@ void NmIpsSettingsPlugin::showMailInInboxModified(QPersistentModelIndex, QVarian
     }
 }
 
+/*!
+    Called when item is pressed on the view.
+
+    \param index Index to the pressed item.
+*/
+void NmIpsSettingsPlugin::itemPress(const QModelIndex &index)
+{
+    NM_FUNCTION;
+    
+    int type(index.data(HbDataFormModelItem::ItemTypeRole).toInt());
+    
+    if (type == HbDataFormModelItem::GroupItem) {
+        // Scroll the groupitem to top if needed.
+        HbDataFormViewItem *item = static_cast<HbDataFormViewItem *>(mForm->itemByIndex(index));
+        bool expanded = item->isExpanded();
+        
+        if (!expanded) {
+            mForm->scrollTo(index, HbAbstractItemView::PositionAtTop);
+        }
+    }
+    
+    if (type == HbDataFormModelItem::TextItem) {
+        // Turn off predictive input for line-edit.
+        HbDataFormViewItem *item = static_cast<HbDataFormViewItem *>(mForm->itemByIndex(index));
+        HbWidget *widget = item->dataItemContentWidget();
+        widget->setInputMethodHints(Qt::ImhNoPredictiveText);
+    }
+}
 Q_EXPORT_PLUGIN2(nmipssettings, NmIpsSettingsPlugin);

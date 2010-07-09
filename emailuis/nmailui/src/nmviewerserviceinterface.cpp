@@ -57,10 +57,12 @@ void NmViewerServiceInterface::viewMessage(QVariant mailboxId, QVariant folderId
     NM_FUNCTION;
 
     mAsyncReqId = setCurrentRequestAsync();
-
-    NmId mailboxNmId(mailboxId.toULongLong());
-    NmId messageNmId(messageId.toULongLong());
-    NmId folderNmId(folderId.toULongLong());
+    NmId mailboxNmId(0);
+    mailboxNmId = mailboxId.toULongLong();   
+    NmId messageNmId(0);
+    messageNmId = messageId.toULongLong(); 
+    NmId folderNmId(0);
+    folderNmId = folderId.toULongLong();
 
 	// Make sure the app stays background if user presses back in viewer view
 	bool visible = mApplication->updateVisibilityState();

@@ -29,13 +29,15 @@ class NmRecipientLineEdit;
 class QGraphicsLinearLayout;
 class NmRecipientField;
 class NmAttachmentList; 
+class NmAttachmentListWidget;
+class NmApplication;
 
 class NmEditorHeader : public QObject
 {
 Q_OBJECT
 
 public:
-    NmEditorHeader(QObject *parent, HbDocumentLoader *documentLoader);
+    NmEditorHeader(QObject *parent, NmApplication &application, HbDocumentLoader *documentLoader);
     virtual ~NmEditorHeader();
     qreal headerHeight() const;
     NmHtmlLineEdit *subjectEdit() const;
@@ -53,6 +55,7 @@ public:
         const QString &fileSize,
         int result);
     void setFieldVisibility(bool isVisible);
+    void adjustHeaderWidth();
 
 private:
     void loadWidgets();
@@ -70,26 +73,30 @@ public slots:
     void editorContentChanged();
     void attachmentActivated(int arrayIndex);
     void attachmentLongPressed(int arrayIndex, QPointF point);
+    void repositHeader(const QPointF &scrollPosition);
 
 private:
+    NmApplication &mApplication;
     HbDocumentLoader* mDocumentLoader;  // Not owned
     qreal mHeaderHeight;
     HbLabel *mPriorityIcon; // Not owned
     HbLabel *mFollowUpIcon; // Not owned
     bool mIconVisible;
-    NmRecipientLineEdit *mToEdit; // Not owned
-    NmRecipientLineEdit *mCcEdit; // Not owned
-    NmRecipientLineEdit *mBccEdit; // Not owned
-    NmHtmlLineEdit *mSubjectEdit; // Not owned
+    NmRecipientLineEdit *mToEdit;      // Not owned
+    NmRecipientLineEdit *mCcEdit;      // Not owned
+    NmRecipientLineEdit *mBccEdit;     // Not owned
+    NmHtmlLineEdit *mSubjectEdit;      // Not owned
     bool mRecipientFieldsEmpty;
-    QGraphicsLinearLayout *mLayout; // Not owned
+    QGraphicsLinearLayout *mLayout;    // Not owned
     NmAttachmentList *mAttachmentList; // Not owned
+    NmAttachmentListWidget *mAttachmentListWidget; // Not owned
     NmRecipientField *mToField;    // Not owned
+    HbWidget *mToWidget;           // Not owned
     NmRecipientField *mCcField;    // Not owned
-    HbWidget *mCcWidget;    // Not owned
+    HbWidget *mCcWidget;           // Not owned
     NmRecipientField *mBccField;   // Not owned
-    HbWidget *mBccWidget;    // Not owned
-    HbWidget *mSubjectWidget;    // Not owned
+    HbWidget *mBccWidget;          // Not owned
+    HbWidget *mSubjectWidget;      // Not owned
     QGraphicsLinearLayout *mSubjectLayout; // Not owned
     bool mCcBccFieldVisible;
 };

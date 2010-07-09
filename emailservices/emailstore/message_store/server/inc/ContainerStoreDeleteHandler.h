@@ -46,7 +46,8 @@ class CDeleteHandler : private CActive
         enum TState
             {
             ERetryDelete,
-            EDelete
+            EDelete,
+            EDeleteFromSortingTable
             };
         // ==============
         // PUBLIC METHODS

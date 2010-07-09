@@ -154,7 +154,7 @@ void CIpsPlgEventHandler::CompleteConstructL( CMsvSession* aSession )
         TMsvId mboxId = iMBoxObservers[i]->iMBoxId.Id();
         if ( mboxes.Find(mboxId) == KErrNotFound )
             {
-            mboxes.Append( mboxId );
+            mboxes.AppendL( mboxId );
             }
         }
 
@@ -206,7 +206,7 @@ TInt CIpsPlgEventHandler::SetProperty( TIpsPlgPropertyEvent aEvent )
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-TInt CIpsPlgEventHandler::RegisterPropertyObserverL(
+void CIpsPlgEventHandler::RegisterPropertyObserverL(
         MIpsPlgPropertyObserver* aObserver )
     {
     FUNC_LOG;
@@ -221,7 +221,7 @@ TInt CIpsPlgEventHandler::RegisterPropertyObserverL(
                 CActive::EPriorityIdle, *this );
         }
 
-    return iPropertyObservers.Append( aObserver );
+    iPropertyObservers.AppendL( aObserver );
     }
 
 // ----------------------------------------------------------------------------
@@ -492,7 +492,7 @@ inline TFSMailMsgId CIpsPlgEventHandler::SymId2FsId(
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-inline void CIpsPlgEventHandler::FillFSMessageArray(
+inline void CIpsPlgEventHandler::FillFSMessageArrayL(
     RArray<TFSMailMsgId>& aFSArray,
     const CMsvEntrySelection* aSelection,
     TUint aMtmUid )
@@ -504,7 +504,7 @@ inline void CIpsPlgEventHandler::FillFSMessageArray(
 
     for ( TInt i = 0; i < aSelection->Count(); i++ )
         {
-        aFSArray.Append( SymId2FsId(aSelection->At(i), aMtmUid) );
+        aFSArray.AppendL( SymId2FsId(aSelection->At(i), aMtmUid) );
         }
     }
 
@@ -694,7 +694,7 @@ void CIpsPlgEventHandler::HandleEntriesCreatedL(
             RArray<TFSMailMsgId> array(KEventGranularity);
             CleanupClosePushL( array );
 
-            FillFSMessageArray(
+            FillFSMessageArrayL(
                 array,
                 static_cast<const CMsvEntrySelection*>(aArg1),
                 tNew.iMtm.iUid );
@@ -717,7 +717,7 @@ void CIpsPlgEventHandler::HandleEntriesCreatedL(
             // set entries array pointer
             RArray<TFSMailMsgId> array(1);
             CleanupClosePushL( array );
-            array.Append( SymId2FsId( tNew ) );
+            array.AppendL( SymId2FsId( tNew ) );
             arg1 = &array;
 
             // set parent pointer
@@ -766,7 +766,7 @@ void CIpsPlgEventHandler::HandleEntriesMovedL(
 
         RArray<TFSMailMsgId> array(KEventGranularity);
         CleanupClosePushL( array );
-        FillFSMessageArray(
+        FillFSMessageArrayL(
             array,
             static_cast<const CMsvEntrySelection*>(aArg1),
             tMoved.iMtm.iUid );
@@ -935,7 +935,7 @@ void CIpsPlgEventHandler::HandleEntriesDeletedL(
                 }
             else
                 {
-                array.Append( SymId2FsId(deletedId, tEntry.iMtm.iUid) );
+                array.AppendL( SymId2FsId(deletedId, tEntry.iMtm.iUid) );
                 arg1 = &array;
                 arg2 = &parentId;
 
@@ -992,7 +992,7 @@ void CIpsPlgEventHandler::HandleEntriesDeletedL(
 
             RArray<TFSMailMsgId> array(1);
             CleanupClosePushL( array );
-            array.Append( msg );
+            array.AppendL( msg );
             arg1 = &array;
             arg2 = &parent;
             event = TFSEventMailDeleted;
@@ -1054,7 +1054,7 @@ void CIpsPlgEventHandler::HandleEntriesChangedL(
             }
 
         // message entry
-        array.Append( SymId2FsId( tChanged )  );
+        array.AppendL( SymId2FsId( tChanged )  );
         arg1 = &array;
 
         // parent entry
@@ -1066,7 +1066,7 @@ void CIpsPlgEventHandler::HandleEntriesChangedL(
         {
         event = TFSEventFolderChanged;
 
-        array.Append( SymId2FsId( tChanged ) );
+        array.AppendL( SymId2FsId( tChanged ) );
         arg1 = &array;
 
         TFSMailMsgId id = SymId2FsId( *(static_cast<TMsvId*>(aArg2)), tChanged.iMtm.iUid );
@@ -1078,7 +1078,7 @@ void CIpsPlgEventHandler::HandleEntriesChangedL(
             TInt index = iImapFolderIds.Find(tChanged.Id());
             if ( eml.LocalSubscription() && index == KErrNotFound )
                 {
-                iImapFolderIds.Append( tChanged.Id() );
+                iImapFolderIds.AppendL( tChanged.Id() );
                 }
             else if ( !eml.LocalSubscription() && index != KErrNotFound )
                 {
@@ -1482,7 +1482,7 @@ void CIpsPlgEventHandler::FindCorrectDeletedEntryAndParentL(
         aFSParent.SetId( aParent.Id() );
         for ( TInt i = 0; i < aDeletedIds.Count(); i++ )
             {
-            aFSDeletedArray.Append(
+            aFSDeletedArray.AppendL(
                     TFSMailMsgId( iPluginId, aDeletedIds.At(i) ) );
             }
         }

@@ -369,10 +369,10 @@ CSession2* CMessageStoreServer::NewSessionL(const TVersion& aVersion, const RMes
 // A new session is being created
 // Cancel the shutdown timer if it was running
 // ==========================================================================
-void CMessageStoreServer::AddSession( CMessageStoreSession* aSession )
+void CMessageStoreServer::AddSessionL( CMessageStoreSession* aSession )
     {
     __LOG_ENTER( "AddSession" )
-    iSessions.Append( aSession );
+    iSessions.AppendL( aSession );
 
     // notify new session of current state
     TMsgStoreEvent event;

@@ -125,7 +125,7 @@ class CMessageStoreServer : private CPolicyServer,
 
         static CMessageStoreServer* NewLC();
 
-        void AddSession( CMessageStoreSession* aSession );
+        void AddSessionL( CMessageStoreSession* aSession );
 
         void DropSession( CMessageStoreSession* aSession );
 

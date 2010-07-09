@@ -22,6 +22,7 @@
 static const char *NMUI_EDITOR_CONTAINER = "scrollAreaContents";
 static const char *NMUI_EDITOR_SUBJECT_FIELD = "editorSubjectField";
 static const char *NMUI_EDITOR_SUBJECT_EDIT = "editorSubjectEdit";
+static const char *NMUI_EDITOR_TO_FIELD = "editorToField";
 static const char *NMUI_EDITOR_CC_FIELD = "editorCcField";
 static const char *NMUI_EDITOR_BCC_FIELD = "editorBccField";
 static const char *NMUI_EDITOR_PRIORITY_ICON = "editPriorityIcon";
@@ -39,8 +40,10 @@ static const int NmLayoutSystemWaitTimer = 500; // 0.5 sec
 /*!
     Constructor
 */
-NmEditorHeader::NmEditorHeader(QObject *parent, HbDocumentLoader *documentLoader) :
+NmEditorHeader::NmEditorHeader(
+    QObject *parent, NmApplication &application, HbDocumentLoader *documentLoader) :
     QObject(parent),
+    mApplication(application),
     mDocumentLoader(documentLoader),
     mHeaderHeight(0),
     mIconVisible(false),
@@ -93,6 +96,8 @@ void NmEditorHeader::loadWidgets()
         ccEditorInterface.setUpAsLatinAlphabetOnlyEditor();
         bccEditorInterface.setUpAsLatinAlphabetOnlyEditor();
 
+        mToWidget = qobject_cast<HbWidget *>(mDocumentLoader->findWidget(NMUI_EDITOR_TO_FIELD));
+        
         // Cc field is not shown by default. It needs to be both hidden and removed from the layout.
         mCcWidget = qobject_cast<HbWidget *>(mDocumentLoader->findWidget(NMUI_EDITOR_CC_FIELD));
         mCcWidget->hide();
@@ -113,13 +118,12 @@ void NmEditorHeader::loadWidgets()
         mSubjectEdit->setMaxRows(NmMaxRows);
     
         // Add attachment list
-        NmAttachmentListWidget *attachmentList = qobject_cast<NmAttachmentListWidget *>
+        mAttachmentListWidget = qobject_cast<NmAttachmentListWidget *>
             (mDocumentLoader->findWidget(NMUI_EDITOR_ATTACHMENT_LIST));
         // Create attachment list handling object
-        mAttachmentList = new NmAttachmentList(*attachmentList);
+        mAttachmentList = new NmAttachmentList(*mAttachmentListWidget);
         mAttachmentList->setParent(this); // ownership changes
-        attachmentList->hide();
-        mLayout->removeItem(attachmentList);
+        mAttachmentListWidget->hide();
     
         // Add priority icon
         mPriorityIcon = qobject_cast<HbLabel *>
@@ -250,6 +254,23 @@ void NmEditorHeader::sendHeaderHeightChanged()
         mHeaderHeight = hHeight;
         emit headerHeightChanged(mHeaderHeight);
     }
+}
+
+/*!
+    Because header filds have fixed size policy. This function must be called to set
+    new width for every header field when orintation has been changed.
+ */
+void NmEditorHeader::adjustHeaderWidth()
+{
+    NM_FUNCTION;
+    
+    int newWidth = mApplication.screenSize().width();
+    mToWidget->setPreferredWidth(newWidth);
+    mCcWidget->setPreferredWidth(newWidth);
+    mBccWidget->setPreferredWidth(newWidth);
+    mSubjectWidget->setPreferredWidth(newWidth);
+    mAttachmentListWidget->setPreferredWidth(newWidth);
+    mSubjectWidget->setPreferredWidth(newWidth);
 }
 
 /*!
@@ -385,12 +406,11 @@ void NmEditorHeader::addAttachment(
 {
     NM_FUNCTION;
     
-    mAttachmentList->insertAttachment(fileName, fileSize, nmid);
     if (!mAttachmentList->listWidget().isVisible()) {
-        // attachment list is inserted just before the body widget (see docml).
-        mLayout->insertItem(mLayout->count() - 1, &mAttachmentList->listWidget());
         mAttachmentList->listWidget().show();
     }
+
+    mAttachmentList->insertAttachment(fileName, fileSize, nmid);
     sendHeaderHeightChanged();
 }
 
@@ -464,4 +484,22 @@ void NmEditorHeader::attachmentLongPressed(int arrayIndex, QPointF point)
     // Remove selected attachment
     emit attachmentLongPressed(mAttachmentList->nmIdByIndex(arrayIndex), point);
 }
+
+/*!
+    This slot is called when scroll position has been changed.
+    Function set new positions for header fields so that header stays visible
+    when body is scrolled horizontally.
+ */
+void NmEditorHeader::repositHeader(const QPointF &scrollPosition)
+{
+    NM_FUNCTION;
     
+    QTransform tr;
+    tr.translate(scrollPosition.x(),0);
+    mToWidget->setTransform(tr);
+    mCcWidget->setTransform(tr);
+    mBccWidget->setTransform(tr);
+    mSubjectWidget->setTransform(tr);
+    mAttachmentListWidget->setTransform(tr);
+}
+

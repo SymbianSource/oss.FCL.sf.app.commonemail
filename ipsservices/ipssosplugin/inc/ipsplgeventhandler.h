@@ -180,9 +180,8 @@ public:
      * Adds property observer, p&s (property) events are signaled to these
      * observers
      * @param aObservers interface to observer object
-     * @return error code from RProperty::Define function
      */
-    TInt RegisterPropertyObserverL( MIpsPlgPropertyObserver* aObserver );
+    void RegisterPropertyObserverL( MIpsPlgPropertyObserver* aObserver );
 
     /**
      * Removes property observer
@@ -389,7 +388,7 @@ private: // datak
     /**
     * Fills RArray FSMessage objects created from CMsvEntrySelection
     */
-    inline void FillFSMessageArray(
+    inline void FillFSMessageArrayL(
             RArray<TFSMailMsgId>& aFSArray,
             const CMsvEntrySelection* aSelection,
             TUint aMtmUid );

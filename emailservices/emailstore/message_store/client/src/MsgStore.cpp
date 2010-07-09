@@ -282,7 +282,7 @@ EXPORT_C TMsgStoreId CMsgStore::DefaultMailboxL()
     for ( TInt i = 0 ; i < accounts.Count() && defaultMailboxId == KMsgStoreInvalidId ; i++ )
         {
         CMsgStoreMailBox* mb = OpenAccountL( *accounts[i] );
-        mailBoxes.Append( mb );
+        mailBoxes.AppendL( mb );
         if ( mb->IsDefaultMailbox() )
             {
             defaultMailboxId = mb->Id();

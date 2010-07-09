@@ -176,7 +176,7 @@ EXPORT_C void CFSMailFolder::RemoveMessageL(TFSMailMsgId aMessage)
 		{
 		RArray<TFSMailMsgId> messages;
 		messages.Reset();
-		messages.Append(aMessage);
+		messages.AppendL(aMessage);
 		plugin->DeleteMessagesByUidL(GetMailBoxId(),GetFolderId(),messages);
 		messages.Close();
 		}
@@ -204,7 +204,7 @@ EXPORT_C TInt CFSMailFolder::RemoveMessageL(TFSMailMsgId aMessage,
         
         RArray<TFSMailMsgId> messages;
         messages.Reset();
-        messages.Append(aMessage);
+        messages.AppendL(aMessage);
         
         TRAP(err,plugin->DeleteMessagesByUidL(
             GetMailBoxId(),

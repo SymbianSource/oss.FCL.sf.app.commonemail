@@ -264,6 +264,7 @@ HbMessageBox* NmUtilities::displayQuestionNote(
     NM_FUNCTION;
 
     HbMessageBox *messageBox = new HbMessageBox(HbMessageBox::MessageTypeQuestion);
+    messageBox->setStandardButtons(HbMessageBox::Yes | HbMessageBox::No);  
     messageBox->setText(noteText);
     messageBox->setTimeout(HbMessageBox::NoTimeout); // Note has to be dismissed manually
     messageBox->open(receiver, member);
@@ -292,7 +293,7 @@ QString NmUtilities::createReplyHeader(const NmMessageEnvelope &env)
 {
     NM_FUNCTION;
 
-    QString ret = "<html><body><br><br>";
+    QString ret = "<html><body>";
     // Append "----- Original message ----" text
     ret+=hbTrId("txt_mail_editor_reply_original_msg");
     // Append sender

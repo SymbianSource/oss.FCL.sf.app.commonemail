@@ -87,15 +87,17 @@ public slots:
 
     void indicatorActivated(const QString &type, const QVariantMap &data);
 
-    void valueChanged(const XQSettingsKey& key, const QVariant& value);
+    void valueChanged(const XQSettingsKey &key, const QVariant &value);
 
+    void delayedMailboxCreated(const NmId mailboxId);
+    
 private:
 
     void initMailboxStatus();
 
     bool updateUnreadCount(const NmId &mailboxId, NmMailboxInfo &mailboxInfo);
 
-    int getOutboxCount(const NmId &mailboxId);
+    int getOutboxCount(const NmId &mailboxId, const NmId &outboxId);
 
     NmMailboxInfo *getMailboxByType(const QString &type);
 
@@ -139,17 +141,26 @@ private:
 
     bool launchMailbox(quint64 mailboxId);
 
+    void handleMessageCreatedEvent(const NmId &folderId, const QList<NmId> &messageIds,
+        const NmId &mailboxId, bool &updateNeeded, bool &activate);
+
+    void handleMessageChangedEvent(const NmId &folderId, const NmId &mailboxId,
+        bool &updateNeeded, bool &activate);
+
+    void handleMessageDeletedEvent(const NmId &folderId, const QList<NmId> &messageIds,
+        const NmId &mailboxId, bool &updateNeeded, bool &activate);
+
 private: // data
 
-    HbIndicator *mIndicator;
-    XQSystemToneService *mSystemTone;
-    NmDataPluginFactory *mPluginFactory;
+    HbIndicator *mIndicator; // Owned;
+    XQSystemToneService *mSystemTone; // Owned.
+    NmDataPluginFactory *mPluginFactory; // Not owned (singleton).
     QList<NmMailboxInfo*> mMailboxes;
-    CHWRMVibra *mVibra; // Owned
+    CHWRMVibra *mVibra; // Owned.
     bool mAlertToneAllowed;
     int mLastOutboxCount;
     bool mUnreadIndicatorActive;
-    XQSettingsManager *mSettingManager;
+    XQSettingsManager *mSettingManager; // Owned.
     int mSilenceMode;
 };
 

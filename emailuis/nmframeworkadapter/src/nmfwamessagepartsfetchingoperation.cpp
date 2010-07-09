@@ -32,18 +32,18 @@ NmFwaMessagePartsFetchingOperation::NmFwaMessagePartsFetchingOperation(
     mMailClient(mailClient), 
     mLastProgressValue(0), 
     mRequestId(0)
-
 {
     NM_FUNCTION;
     
     // Take own copy of the message part id list.
     mMessagePartIds.Reset();
     for (int i=0; i<messagePartIds.count(); ++i) {
-        mMessagePartIds.Append(
+        // let's ignore .Append return value here, the failing messages
+        // just won't be handled at this time
+        int ignore = mMessagePartIds.Append(
             NmConverter::nmIdToMailMsgId(
                 messagePartIds.at(i)));
     }
-    
 }
 
 /*!

@@ -613,7 +613,7 @@ void CBasePlugin::TranslateMsgStoreMrL(
         if ( aCalendar.FindProperty( KMsgStorePropertyMrMonthDay, idx ) )
             {
             TUint32 monthDayNo = aCalendar.PropertyValueUint32L( idx );
-            days.Append(monthDayNo);
+            days.AppendL(monthDayNo);
             /**@ double check that when testing starts.*/
             }
             

@@ -23,9 +23,7 @@ static const char *NMUI_MESSAGE_LIST_FOLDER_LABEL = "labelGroupBox";
 
 #include "nmuiheaders.h"
 
-const QString syncIndicatorName = "com.nokia.nmail.indicatorplugin.sync/1.0";
-
-/*! 
+/*!
 	\class NmMessageListView
 	\brief Message list view
 */
@@ -204,7 +202,7 @@ void NmMessageListView::okToExitView()
 */
 void NmMessageListView::initTreeView()
 {
-    NM_FUNCTION; 
+    NM_FUNCTION;
 
     // Get mailbox widget pointer and set parameters
     if (mMessageListWidget){
@@ -237,7 +235,14 @@ void NmMessageListView::reloadViewContents(NmUiStartParam* startParam)
         mStartParam=NULL;
         // Store new start parameter data
         mStartParam=startParam;
-        // Update the model with new parameters
+        // Disconnect signals from previous model
+        QObject::disconnect(mMessageListModel, SIGNAL(rowsInserted(const QModelIndex&,int,int)),
+                this, SLOT(itemsAdded(const QModelIndex&,int,int)));
+        QObject::disconnect(mMessageListModel, SIGNAL(rowsRemoved(const QModelIndex&,int,int)),
+                this, SLOT(itemsRemoved()));
+        QObject::disconnect(mMessageListModel, SIGNAL(setNewParam(NmUiStartParam*)),
+                this, SLOT(reloadViewContents(NmUiStartParam*)));
+        // Update model pointer and refresh mailbox with new model
         mMessageListModel = &mUiEngine.messageListModel(startParam->mailboxId(), startParam->folderId());
         refreshList();
         // Refresh the mailboxname
@@ -250,7 +255,7 @@ void NmMessageListView::reloadViewContents(NmUiStartParam* startParam)
     }
 }
 
- 
+
 /*!
     Return view id
 */
@@ -269,16 +274,16 @@ void NmMessageListView::refreshList()
     NM_FUNCTION;
 
     if (mMessageListModel) {
-        NmId mailboxId = mMessageListModel->currentMailboxId();    
+        NmId mailboxId = mMessageListModel->currentMailboxId();
         // In each refresh, e.g. in folder change the UI signals
         // lower layer about the folder that has been opened.
         if (mStartParam){
             mUiEngine.updateActiveFolder(mailboxId, mStartParam->folderId());
-            
+
             NmFolderType folderType = mUiEngine.folderTypeById(mStartParam->mailboxId(),
                                               mStartParam->folderId());
             if (folderType == NmFolderInbox) { // If the new folder is an inbox, first automatic sync should be shown
-                mIsFirstSyncInMessageList = true; 
+                mIsFirstSyncInMessageList = true;
             }
         }
 
@@ -286,11 +291,11 @@ void NmMessageListView::refreshList()
         if (mMessageListWidget) {
             mMessageListWidget->setModel(static_cast<QStandardItemModel*>(mMessageListModel));
             QObject::connect(mMessageListModel, SIGNAL(rowsInserted(const QModelIndex&,int,int)),
-                    this, SLOT(itemsAdded(const QModelIndex&,int,int)));
+                    this, SLOT(itemsAdded(const QModelIndex&,int,int)),Qt::UniqueConnection);
             QObject::connect(mMessageListModel, SIGNAL(rowsRemoved(const QModelIndex&,int,int)),
-                    this, SLOT(itemsRemoved()));
+                    this, SLOT(itemsRemoved()),Qt::UniqueConnection);
             QObject::connect(mMessageListModel, SIGNAL(setNewParam(NmUiStartParam*)),
-                    this, SLOT(reloadViewContents(NmUiStartParam*)));
+                    this, SLOT(reloadViewContents(NmUiStartParam*)),Qt::UniqueConnection);
 
             mPreviousModelCount=mMessageListModel->rowCount();
             if (mPreviousModelCount==0){
@@ -299,14 +304,14 @@ void NmMessageListView::refreshList()
             else{
                 hideNoMessagesText();
             }
-        }    
+        }
     }
 }
 
 /*!
     Sync state event handling
 */
-void NmMessageListView::handleSyncStateEvent(NmSyncState syncState, const NmId & mailboxId)
+void NmMessageListView::handleSyncStateEvent(NmSyncState syncState, const NmId &mailboxId)
 {
     NM_FUNCTION;
     if (mMessageListModel && mailboxId == mMessageListModel->currentMailboxId()) {
@@ -322,15 +327,14 @@ void NmMessageListView::handleSyncStateEvent(NmSyncState syncState, const NmId &
             // Show sync icon only for the first automatic sync after opening message list.
             // Sync icon for manual sync is shown in NmUiEngine::refreshMailbox, not here.
             if (mIsFirstSyncInMessageList) {
-                HbIndicator indicator;
-                indicator.activate(syncIndicatorName, QVariant());
+				mUiEngine.enableSyncIndicator(true);
                 mIsFirstSyncInMessageList = false;
             }
         }
     }
 }
 
-/*! 
+/*!
     folder selection handling within current mailbox
 */
 void NmMessageListView::folderSelected()
@@ -357,17 +361,17 @@ void NmMessageListView::folderSelected()
 
 
 /*!
-    Long keypress handling 
+    Long keypress handling
 */
 void NmMessageListView::showItemContextMenu(HbAbstractViewItem *listViewItem, const QPointF &coords)
 {
     NM_FUNCTION;
-   
+
     if (listViewItem) {
         // Recreate item context menu each time it is called
         if (mItemContextMenu){
             mItemContextMenu->clearActions();
-            delete mItemContextMenu;    
+            delete mItemContextMenu;
             mItemContextMenu=NULL;
         }
         mItemContextMenu = new HbMenu();
@@ -650,7 +654,7 @@ void NmMessageListView::setFolderName()
     visible and keeps the scroll position on the top of the list.
 
     \param parent Not used.
-    \param start 
+    \param start
     \param end Not used.
 */
 void NmMessageListView::itemsAdded(const QModelIndex &parent, int start, int end)
@@ -688,7 +692,7 @@ void NmMessageListView::itemsAdded(const QModelIndex &parent, int start, int end
     }
     // Store model count
     if (mMessageListModel){
-        mPreviousModelCount=mMessageListModel->rowCount();    
+        mPreviousModelCount=mMessageListModel->rowCount();
     }
 }
 
@@ -701,7 +705,7 @@ void NmMessageListView::itemsRemoved()
     NM_FUNCTION;
     // Store model count
     if (mMessageListModel){
-        mPreviousModelCount=mMessageListModel->rowCount();    
+        mPreviousModelCount=mMessageListModel->rowCount();
     }
     if (mPreviousModelCount == 0){
         showNoMessagesText();

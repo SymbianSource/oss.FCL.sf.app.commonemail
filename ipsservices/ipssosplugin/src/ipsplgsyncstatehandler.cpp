@@ -73,7 +73,7 @@ void CIpsPlgSyncStateHandler::HandlePropertyEventL(
     if ( ( iPlugin.PluginId() == aPluginId ) &&
         ( aEvent == KIpsSosEmailSyncStarted || aEvent == KIpsSosEmailSyncCompleted ) )
         {
-        AppendMailboxToSyncingMailbox( aMailbox, aEvent );
+        AppendMailboxToSyncingMailboxL( aMailbox, aEvent );
         }
     }
 
@@ -210,7 +210,10 @@ TInt CIpsPlgSyncStateHandler::FindSyncingMailbox( TMsvId aMailbox )
             {
             ipsState = KIpsSosEmailSyncCompleted;
             }
-        TInt count = iSyncingMailboxes.Append( 
+        // the next call, FindMailbox, handles the case
+        // if .Append is failing, thus the return value can
+        // be ignored
+        TInt ignore = iSyncingMailboxes.Append( 
                 TIpsMailboxState( aMailbox, ipsState ) );
         index = FindMailbox( aMailbox );
         }
@@ -237,14 +240,14 @@ TInt CIpsPlgSyncStateHandler::FindMailbox( TMsvId aMailbox )
 
 // ---------------------------------------------------------------------------
 // --------------------------------------------------------------------------- 
-void CIpsPlgSyncStateHandler::AppendMailboxToSyncingMailbox( 
+void CIpsPlgSyncStateHandler::AppendMailboxToSyncingMailboxL( 
         TMsvId aMailbox, TInt aState )
     {
     FUNC_LOG;
     TInt index = FindMailbox( aMailbox );
     if ( index == KErrNotFound )
         {
-        iSyncingMailboxes.Append( TIpsMailboxState( aMailbox, aState ) );
+        iSyncingMailboxes.AppendL( TIpsMailboxState( aMailbox, aState ) );
         }
     else
         {

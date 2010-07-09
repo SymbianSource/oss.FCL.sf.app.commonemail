@@ -65,7 +65,7 @@ NmSettingsViewFactory::NmSettingsViewFactory(
    mMessageBox(0)
 {
     NM_FUNCTION;
-    
+
     createMessageBox();
 }
 
@@ -93,7 +93,7 @@ NmSettingsViewFactory::NmSettingsViewFactory(
      mPrevView(0), mMessageBox(0)
 {
     NM_FUNCTION;
-    
+
     createMessageBox();
 }
 
@@ -104,7 +104,7 @@ NmSettingsViewFactory::NmSettingsViewFactory(
 NmSettingsViewFactory::~NmSettingsViewFactory()
 {
     NM_FUNCTION;
-    
+
     delete mSettingsManager;
     delete mMessageBox;
 }
@@ -120,7 +120,7 @@ NmSettingsViewFactory::~NmSettingsViewFactory()
 CpBaseSettingView *NmSettingsViewFactory::createSettingView() const
 {
     NM_FUNCTION;
-    
+
     CpBaseSettingView *view = 0;
     QList<NmMailbox *> mailboxList;
     mSettingsManager->listMailboxes(mailboxList);
@@ -161,7 +161,7 @@ CpBaseSettingView *NmSettingsViewFactory::createSettingView() const
                 SIGNAL(mailboxPropertyChanged(const NmId &, QVariant, QVariant)),
                 view, SLOT(mailboxPropertyChanged(const NmId &, QVariant, QVariant)));
     }
-    
+
     return view;
 }
 
@@ -176,66 +176,66 @@ void NmSettingsViewFactory::launchSettingView(const NmId &mailboxId,
                                               const QString &mailboxName) const
 {
     NM_FUNCTION;
-    
+
     // There's always at least one valid main window available.
     HbMainWindow *mainWindow = hbInstance->allMainWindows().takeFirst();
 
-    NmMailboxSettingView *currentSettingsView = 
+    NmMailboxSettingView *currentSettingsView =
         qobject_cast<NmMailboxSettingView*>(mainWindow->currentView());
-    
-    // Let's have only one same settings view at a time open, 
-    // but if some other mailboxes settings view want's to open while 
+
+    // Let's have only one same settings view at a time open,
+    // but if some other mailboxes settings view want's to open while
     // there is a settings view open let's open it also.
     if (!currentSettingsView || (currentSettingsView->mailboxId().id() != mailboxId.id())) {
         CpBaseSettingView *view =
              new NmMailboxSettingView(mailboxId, mailboxName, *mSettingsManager);
-         
+
          connect(mSettingsManager,
                  SIGNAL(mailboxListChanged(const NmId &, NmSettings::MailboxEventType)),
                  view, SLOT(mailboxListChanged(const NmId &, NmSettings::MailboxEventType)));
-     
+
          connect(mSettingsManager,
                  SIGNAL(mailboxPropertyChanged(const NmId &, QVariant, QVariant)),
                  view, SLOT(mailboxPropertyChanged(const NmId &, QVariant, QVariant)));
-     
-         // Disconnect mSettingsViewLauncher's previous connections to 
+
+         // Disconnect mSettingsViewLauncher's previous connections to
          // be sure that signals which are offered out will be sent last.
          mSettingsManager->disconnect(
              SIGNAL(mailboxListChanged(const NmId &, NmSettings::MailboxEventType)),
              mSettingsViewLauncher,
              SIGNAL(mailboxListChanged(const NmId &, NmSettings::MailboxEventType)));
-     
+
          mSettingsManager->disconnect(
              SIGNAL(mailboxPropertyChanged(const NmId &, QVariant, QVariant)),
              mSettingsViewLauncher,
              SIGNAL(mailboxPropertyChanged(const NmId &, QVariant, QVariant)));
-     
+
          // Reconnect mSettingsViewLauncher.
          connect(mSettingsManager,
                  SIGNAL(mailboxListChanged(const NmId &, NmSettings::MailboxEventType)),
                  mSettingsViewLauncher,
                  SIGNAL(mailboxListChanged(const NmId &, NmSettings::MailboxEventType)));
-     
+
          connect(mSettingsManager,
                  SIGNAL(mailboxPropertyChanged(const NmId &, QVariant, QVariant)),
                  mSettingsViewLauncher,
                  SIGNAL(mailboxPropertyChanged(const NmId &, QVariant, QVariant)));
-     
+
          connect(mSettingsManager,
                  SIGNAL(goOnline(const NmId &)),
                  mSettingsViewLauncher,
                  SIGNAL(goOnline(const NmId &)), Qt::UniqueConnection);
-     
+
          connect(mSettingsManager,
                  SIGNAL(goOffline(const NmId &)),
                  mSettingsViewLauncher,
                  SIGNAL(goOffline(const NmId &)), Qt::UniqueConnection);
-     
+
          connect(this,
                  SIGNAL(aboutToClose()),
                  mSettingsManager,
                  SIGNAL(aboutToClose()), Qt::UniqueConnection);
-     
+
          // Create back navigation action for a view.
          HbAction *action = new HbAction(Hb::BackNaviAction, view);
          connect(action, SIGNAL(triggered()), this, SLOT(backPress()));
@@ -243,7 +243,7 @@ void NmSettingsViewFactory::launchSettingView(const NmId &mailboxId,
          mPrevView = mainWindow->currentView();
          mainWindow->addView(view);
          mainWindow->setCurrentView(view);
-    }    
+    }
 }
 
 /*!
@@ -254,7 +254,7 @@ void NmSettingsViewFactory::launchSettingView(const NmId &mailboxId,
 void NmSettingsViewFactory::backPress()
 {
     NM_FUNCTION;
-    
+
     emit aboutToClose();
     HbMainWindow *mainWindow = hbInstance->allMainWindows().takeFirst();
     QList<HbView *> views = mainWindow->views();
@@ -278,7 +278,7 @@ void NmSettingsViewFactory::backPress()
 void NmSettingsViewFactory::launchWizard(HbAction *action)
 {
     NM_FUNCTION;
-    
+
     if (action == mMessageBox->primaryAction()) {
         // Launch mail wizard.
         NM_COMMENT(QString("NmSettingsViewFactory::launchWizard(): launching the mail wizard"));
@@ -294,10 +294,11 @@ void NmSettingsViewFactory::launchWizard(HbAction *action)
 void NmSettingsViewFactory::createMessageBox()
 {
     NM_FUNCTION;
-    
+
     mMessageBox = new HbMessageBox(HbMessageBox::MessageTypeQuestion);
     mMessageBox->setText(hbTrId("txt_mail_dialog_no_mailboxes_create_new"));
     mMessageBox->setTimeout(HbMessageBox::NoTimeout);
+    mMessageBox->setStandardButtons(HbMessageBox::Yes | HbMessageBox::No);
 }
 
 

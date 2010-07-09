@@ -453,8 +453,8 @@
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mail_status_menu_new_mail">
-    <comment>Secondary text for status menu item: indicates the there are new mail messages</comment>        
-    <source>New Mail</source>
+    <comment>Secondary text for status menu item: indicates the there are new mail messages. We are not going to show the number of messages here. </comment>        
+    <source>New mail</source>
     <translation variants="no" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_notifdialog_sec_medium_graphic</extra-loc-layout_id>    
     <extra-loc-viewid>mail_001_d</extra-loc-viewid>
@@ -493,7 +493,7 @@
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mail_status_menu_unset">
-    <comment>Primary text for status menu item: indicates that there are unsent messages in outbox. %[]1 is account name.</comment>        
+    <comment>Primary text for status menu item: indicates that there are unsent messages in outbox. %[]1 is account name. The number of unsent mails is not going to be shown here.</comment>        
     <source>%[]1: Unsent</source>
     <translation variants="no" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_notifdialog_pri_medium_graphic</extra-loc-layout_id>    
@@ -513,7 +513,7 @@
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_short_caption_mail">
-    <comment>Short caption text for Mail application. Name of the mail application.</comment>        
+    <comment>Short caption text for Mail application. Name of the mail application. Not in the UI, needed for B&amp;I purposes</comment>        
     <source>Mail</source>
     <translation variants="no" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_grid_applications_sec</extra-loc-layout_id>    
@@ -896,7 +896,7 @@
     <comment>Button that is shown if all the message content is not downloaded while message is opened.</comment>        
     <source>Download rest</source>
     <translation variants="no" type="unfinished"></translation>
-    <extra-loc-layout_id></extra-loc-layout_id>    
+    <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_002_b</extra-loc-viewid>
     <extra-loc-positionid>button</extra-loc-positionid>
     <extra-loc-feature>mail</extra-loc-feature>
@@ -923,7 +923,7 @@
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_long_caption_mail">
-    <comment>Long caption text for Mail application. Name of the mail application.</comment>        
+    <comment>Long caption text for Mail application. Name of the mail application. Not in the UI, needed for B&amp;I purposes</comment>        
     <source>Mail</source>
     <translation variants="no" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_list_pri_large_graphic</extra-loc-layout_id>    

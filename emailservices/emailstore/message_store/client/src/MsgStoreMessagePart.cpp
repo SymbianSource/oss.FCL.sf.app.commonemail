@@ -269,7 +269,7 @@ EXPORT_C void CMsgStoreMessagePart::ChildPartsL( RPointerArray<CMsgStoreMessageP
 							{
 							//body is not the first child, move it to the first place
 							aParts.Remove(i);
-							aParts.Insert( part, 0 );
+							aParts.InsertL( part, 0 );
 							}
 						break;
 					}

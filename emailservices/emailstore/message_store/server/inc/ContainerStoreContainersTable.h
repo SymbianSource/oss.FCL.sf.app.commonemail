@@ -157,6 +157,8 @@ class CContainerStoreContainersTable : public CContainerStoreTable
         
         TBool IsEncrypted();
         
+        TContainerId FirstChildForDeleteL( TContainerId aId, TDbBookmark& aBookmark );
+        
 	private:
 	
 	    // ===============
@@ -189,7 +191,7 @@ class CContainerStoreContainersTable : public CContainerStoreTable
         void WriteUnencryptedPropertiesColumnL( const TDesC8& aProperties );
         
         void SetEncryptedL( TBool aIsEncrypted );
-
+        TContainerId GetFirstChildForDeleteL( TContainerId aId, TDbBookmark& aBookmark );
 	    // ==================
 	    // PRIVATE ATTRIBUTES
 	    // ==================

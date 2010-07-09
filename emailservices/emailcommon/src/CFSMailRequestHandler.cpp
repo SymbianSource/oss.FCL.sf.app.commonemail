@@ -154,7 +154,7 @@ void CFSMailRequestHandler::ConstructL(
         CFSMailRequestObserver* observer = 
             CFSMailRequestObserver::NewL(*this, aOperationObserver);
         newRequest.iObserver = observer;
-        iPendingRequests.Append(newRequest);
+        iPendingRequests.AppendL(newRequest);
         
         return newRequest;
     }
@@ -231,8 +231,7 @@ void CFSMailRequestHandler::ConstructL(
     CFSMailPluginData* pluginData = new (ELeave) CFSMailPluginData;
     pluginData->iPluginId = aPluginId;
     pluginData->iPlugin = aPlugin;
-    iPluginList.Append(pluginData);             
-
+    iPluginList.AppendL(pluginData);             
     }
 
 // -----------------------------------------------------------------------------

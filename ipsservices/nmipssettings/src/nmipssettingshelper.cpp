@@ -346,10 +346,10 @@ void NmIpsSettingsHelper::createOrUpdateReceivingScheduleGroupDynamicItem(
     Creates the setting items under the Serverinfo group items user authentication.
 */
 void NmIpsSettingsHelper::createServerInfoGroupDynamicItems(bool hiddenItem)
-{   
+{
     HbDataFormModelItem *item = mContentItems.value(IpsServices::SMTPAuthentication);
     int insertIndex = mServerInfoGroupItem->indexOf(item) + 1;
-        
+
     // Username
     QVariant username;
     mSettingsManager.readSetting(IpsServices::OutgoingLoginName, username);
@@ -378,7 +378,7 @@ void NmIpsSettingsHelper::createServerInfoGroupDynamicItems(bool hiddenItem)
     mDataForm.addConnection(passwordItem, SIGNAL(editingFinished()),
                             this, SLOT(saveOutgoingPassword()));
     mServerInfoGroupItem->insertChild(insertIndex + 1, passwordItem);
-    
+
     mServerInfoDynamicItemsVisible = true;
 }
 
@@ -597,11 +597,12 @@ void NmIpsSettingsHelper::replyToTextChange(const QString &text)
 void NmIpsSettingsHelper::deleteButtonPress()
 {
     if(!mDeleteConfirmationDialog) {
-        mDeleteConfirmationDialog = 
+        mDeleteConfirmationDialog =
             new HbMessageBox(HbMessageBox::MessageTypeQuestion);
         mDeleteConfirmationDialog->setText(
             hbTrId("txt_mail_dialog_do_you_want_to_delete_the_mailbox"));
         mDeleteConfirmationDialog->setTimeout(HbMessageBox::NoTimeout);
+        mDeleteConfirmationDialog->setStandardButtons(HbMessageBox::Yes | HbMessageBox::No);
     }
     mDeleteConfirmationDialog->open(this, SLOT(handleMailboxDelete(HbAction *)));
 }
@@ -611,20 +612,20 @@ void NmIpsSettingsHelper::deleteButtonPress()
 */
 void NmIpsSettingsHelper::handleMailboxDelete(HbAction *action)
 {
-    if (action == mDeleteConfirmationDialog->actions().at(0)) {        
+    if (action == mDeleteConfirmationDialog->actions().at(0)) {
         emit goOffline(mSettingsManager.mailboxId());
         mEmitOnline = false;
-    
+
         QVariant mailboxName;
         mSettingsManager.readSetting(IpsServices::MailboxName, mailboxName);
-    
+
         // Display the progress note. Before display the note, remove the cancel
         // button.
         HbProgressDialog progressNote(HbProgressDialog::WaitDialog);
         progressNote.setText(hbTrId("txt_common_info_deleting"));
         progressNote.removeAction(progressNote.actions().at(0));
         progressNote.delayedShow();
-    
+
         if (!mSettingsManager.deleteMailbox()) {
             // The mailbox was deleted successfully.
 
@@ -633,16 +634,16 @@ void NmIpsSettingsHelper::handleMailboxDelete(HbAction *action)
 
             // Hide the progress note and display the "mailbox deleted" dialog.
             progressNote.close();
-            
+
             if (!mDeleteInformationDialog) {
-                mDeleteInformationDialog = 
+                mDeleteInformationDialog =
                     new HbMessageBox(HbMessageBox::MessageTypeInformation);
                 mDeleteInformationDialog->setText(
                     hbTrId("txt_mail_dpophead _1_deleted").arg(mailboxName.toString()));
                 mDeleteInformationDialog->setTimeout(HbMessageBox::NoTimeout);
             }
-            mDeleteInformationDialog->open(this, SLOT(handleMailboxDeleteUpdate(HbAction *)));            
-            
+            mDeleteInformationDialog->open(this, SLOT(handleMailboxDeleteUpdate(HbAction *)));
+
         } else {
             // Failed to delete the mailbox!
             progressNote.close();
@@ -824,13 +825,13 @@ void NmIpsSettingsHelper::outgoingMailServerTextChange(const QString &text)
 void NmIpsSettingsHelper::incomingPortChange(int index)
 {
     int previousindex = getCorrectIncomingPortRadioButtonIndex();
-    
+
     if (index == IpsServices::NmIpsSettingsDefault) {
         if (index != previousindex) {
             emit goOffline(mSettingsManager.mailboxId());
             mEmitOnline = true;
             int port = mSettingsManager.determineDefaultIncomingPort();
-            mSettingsManager.writeSetting(IpsServices::IncomingPort, port);    
+            mSettingsManager.writeSetting(IpsServices::IncomingPort, port);
         }
     } else if (index == IpsServices::NmIpsSettingsUserDefined) {
         showIncomingPortInputDialog();
@@ -841,24 +842,24 @@ void NmIpsSettingsHelper::incomingPortChange(int index)
     Shows an input dialog for allowing the user to specify a incoming port.
 */
 void NmIpsSettingsHelper::showIncomingPortInputDialog()
-{    
+{
     // User can open the dialog multiple times, so delete the old ones first.
     delete mIncomingPortInputDialog;
     mIncomingPortInputDialog = 0;
     delete mIncomingPortInputValidator;
     mIncomingPortInputValidator = 0;
-    
+
     mIncomingPortInputDialog = new HbInputDialog();
     mIncomingPortInputDialog->setInputMode(HbInputDialog::IntInput);
     QVariant currentPort;
     mSettingsManager.readSetting(IpsServices::IncomingPort, currentPort);
     mIncomingPortInputValidator = new HbValidator();
-    mIncomingPortInputValidator->addField(new QIntValidator(0, 65535, 0), 
+    mIncomingPortInputValidator->addField(new QIntValidator(0, 65535, 0),
                         HbStringUtil::convertDigits(QString::number(currentPort.toInt())));
     mIncomingPortInputDialog->setValidator(mIncomingPortInputValidator);
     mIncomingPortInputDialog->setPromptText(
         hbTrId("txt_mailips_setlabel_incoming_port_user_defined"));
-    
+
     mIncomingPortInputDialog->open(this, SLOT(handleUserDefinedIncomingPortInput(HbAction *)));
 }
 
@@ -868,7 +869,7 @@ void NmIpsSettingsHelper::showIncomingPortInputDialog()
 void NmIpsSettingsHelper::handleUserDefinedIncomingPortInput(HbAction *action)
 {
     int previousindex = getCorrectIncomingPortRadioButtonIndex();
-    
+
     if (action == mIncomingPortInputDialog->actions().at(0)) {
         QVariant newPort = mIncomingPortInputDialog->value();
         emit goOffline(mSettingsManager.mailboxId());
@@ -882,7 +883,7 @@ void NmIpsSettingsHelper::handleUserDefinedIncomingPortInput(HbAction *action)
 }
 
 /*!
-    Used for getting the index to display in the port radio button list 
+    Used for getting the index to display in the port radio button list
     \return index Used to set the selected value
 */
 int NmIpsSettingsHelper::getCorrectIncomingPortRadioButtonIndex()
@@ -903,9 +904,9 @@ int NmIpsSettingsHelper::getCorrectIncomingPortRadioButtonIndex()
     Saves the incoming secure connection value into database if user has changed the value.
 */
 void NmIpsSettingsHelper::incomingSecureConnectionItemChange(int index)
-{  
+{
     int previousindex = getCorrectIncomingSecureRadioButtonIndex();
-    
+
     if (previousindex != index) {
         emit goOffline(mSettingsManager.mailboxId());
         mEmitOnline = true;
@@ -914,17 +915,17 @@ void NmIpsSettingsHelper::incomingSecureConnectionItemChange(int index)
                 mSettingsManager.writeSetting(IpsServices::IncomingSecureSockets, true);
                 mSettingsManager.writeSetting(IpsServices::IncomingSSLWrapper, false);
                 break;
-    
+
             case IpsServices::EMailSslTls: // On (SSL/TLS)
                 mSettingsManager.writeSetting(IpsServices::IncomingSecureSockets, false);
                 mSettingsManager.writeSetting(IpsServices::IncomingSSLWrapper, true);
                 break;
-    
+
             case IpsServices::EMailSecurityOff: // Off
                 mSettingsManager.writeSetting(IpsServices::IncomingSecureSockets, false);
                 mSettingsManager.writeSetting(IpsServices::IncomingSSLWrapper, false);
                 break;
-    
+
              default:
                 break;
         }
@@ -949,10 +950,10 @@ int NmIpsSettingsHelper::getCorrectIncomingSecureRadioButtonIndex()
     QVariant secureSSLWrapper;
     mSettingsManager.readSetting(IpsServices::IncomingSecureSockets, secureSockets);
     mSettingsManager.readSetting(IpsServices::IncomingSSLWrapper, secureSSLWrapper);
-    
+
     IpsServices::TIpsSetDataSecurityTypes securityType = IpsServices::EMailStartTls;
     // secureSockets == True
-    if (secureSockets.toBool()) { 
+    if (secureSockets.toBool()) {
         securityType = IpsServices::EMailStartTls;
     }
     // secureSockets == False & secureSSLWrapper == True
@@ -976,10 +977,10 @@ int NmIpsSettingsHelper::getCorrectOutgoingSecureRadioButtonIndex()
     QVariant secureSSLWrapper;
     mSettingsManager.readSetting(IpsServices::OutgoingSecureSockets, secureSockets);
     mSettingsManager.readSetting(IpsServices::OutgoingSSLWrapper, secureSSLWrapper);
-    
+
     IpsServices::TIpsSetDataSecurityTypes securityType = IpsServices::EMailStartTls;
     // secureSockets == True
-    if (secureSockets.toBool()) { 
+    if (secureSockets.toBool()) {
         securityType = IpsServices::EMailStartTls;
     }
     // secureSockets == False & secureSSLWrapper == True
@@ -999,14 +1000,14 @@ int NmIpsSettingsHelper::getCorrectOutgoingSecureRadioButtonIndex()
 void NmIpsSettingsHelper::folderPathChange(int index)
 {
     int previousindex = getCorrectFolderPathRadioButtonIndex();
-        
+
     if (index == IpsServices::NmIpsSettingsDefault) {
         if (index != previousindex ) {
             // Empty string sets the folder path to default.
-            mSettingsManager.writeSetting(IpsServices::FolderPath, "");    
+            mSettingsManager.writeSetting(IpsServices::FolderPath, "");
         }
     } else if (index == IpsServices::NmIpsSettingsUserDefined) {
-        showFolderPathInputDialog();       
+        showFolderPathInputDialog();
     }
 }
 
@@ -1014,19 +1015,19 @@ void NmIpsSettingsHelper::folderPathChange(int index)
     Show a input dialog for allowing the user to specify a folder path.
 */
 void NmIpsSettingsHelper::showFolderPathInputDialog()
-{   
+{
     // User can open the dialog multiple times, so delete the old one first.
     delete mFolderPathInputDialog;
     mFolderPathInputDialog = 0;
-    
+
     QVariant folderPath;
     mSettingsManager.readSetting(IpsServices::FolderPath, folderPath);
-    
+
     mFolderPathInputDialog = new HbInputDialog();
     mFolderPathInputDialog->setInputMode(HbInputDialog::TextInput);
     mFolderPathInputDialog->setPromptText(hbTrId("txt_mailips_setlabel_folder_path_user_defined"));
     mFolderPathInputDialog->setValue(folderPath.toString());
-    
+
     mFolderPathInputDialog->open(this, SLOT(handleUserDefinedFolderPathInput(HbAction *)));
 }
 
@@ -1036,10 +1037,10 @@ void NmIpsSettingsHelper::showFolderPathInputDialog()
 void NmIpsSettingsHelper::handleUserDefinedFolderPathInput(HbAction *action)
 {
     int previousindex = getCorrectFolderPathRadioButtonIndex();
-    
+
     HbDataFormModelItem *item = mContentItems.value(IpsServices::FolderPath);
-    
-    if (action == mFolderPathInputDialog->actions().at(0)) { 
+
+    if (action == mFolderPathInputDialog->actions().at(0)) {
         QVariant newFolderPath = mFolderPathInputDialog->value();
         mSettingsManager.writeSetting(IpsServices::FolderPath, newFolderPath);
         //set selected index to default if user inputed empty string.
@@ -1135,14 +1136,14 @@ void NmIpsSettingsHelper::endTimeModified(QTime time)
 }
 
 /*!
-    Used for getting the index to display in the inbox path radio button list 
+    Used for getting the index to display in the inbox path radio button list
     \return index Used to set the selected value
 */
 int NmIpsSettingsHelper::getCorrectFolderPathRadioButtonIndex()
 {
     QVariant folderPath;
     mSettingsManager.readSetting(IpsServices::FolderPath, folderPath);
-    
+
     int index(0);
     if (folderPath.toString().isEmpty()) {
         index = IpsServices::NmIpsSettingsDefault;
@@ -1282,13 +1283,13 @@ void NmIpsSettingsHelper::noReceptionWeekdaysSelected()
 void NmIpsSettingsHelper::outgoingPortChange(int index)
 {
     int previousindex = getCorrectOutgoingPortRadioButtonIndex();
-    
+
     if (index == IpsServices::NmIpsSettingsDefault) {
         if (index != previousindex) {
             emit goOffline(mSettingsManager.mailboxId());
             mEmitOnline = true;
             int port = mSettingsManager.determineDefaultOutgoingPort();
-            mSettingsManager.writeSetting(IpsServices::OutgoingPort, port);    
+            mSettingsManager.writeSetting(IpsServices::OutgoingPort, port);
         }
     } else if (index == IpsServices::NmIpsSettingsUserDefined) {
         showOutgoingPortInputDialog();
@@ -1305,18 +1306,18 @@ void NmIpsSettingsHelper::showOutgoingPortInputDialog()
     mOutgoingPortInputDialog = 0;
     delete mOutgoingPortInputValidator;
     mOutgoingPortInputValidator = 0;
-    
+
     mOutgoingPortInputDialog = new HbInputDialog();
     mOutgoingPortInputDialog->setInputMode(HbInputDialog::IntInput);
     QVariant currentPort;
     mSettingsManager.readSetting(IpsServices::OutgoingPort, currentPort);
     mOutgoingPortInputValidator = new HbValidator();
-    mOutgoingPortInputValidator->addField(new QIntValidator(0, 65535, 0), 
+    mOutgoingPortInputValidator->addField(new QIntValidator(0, 65535, 0),
                         HbStringUtil::convertDigits(QString::number(currentPort.toInt())));
     mOutgoingPortInputDialog->setValidator(mOutgoingPortInputValidator);
     mOutgoingPortInputDialog->setPromptText(
         hbTrId("txt_mailips_setlabel_incoming_port_user_defined"));
-    
+
     mOutgoingPortInputDialog->open(this, SLOT(handleUserDefinedOutgoingPortInput(HbAction *)));
 }
 
@@ -1327,7 +1328,7 @@ void NmIpsSettingsHelper::showOutgoingPortInputDialog()
 void NmIpsSettingsHelper::handleUserDefinedOutgoingPortInput(HbAction *action)
 {
     int previousindex = getCorrectOutgoingPortRadioButtonIndex();
-    
+
     if (action == mOutgoingPortInputDialog->actions().at(0)) {
         QVariant newPort = mOutgoingPortInputDialog->value();
         emit goOffline(mSettingsManager.mailboxId());
@@ -1365,7 +1366,7 @@ int NmIpsSettingsHelper::getCorrectOutgoingPortRadioButtonIndex()
 {
     QVariant outgoingPort;
     mSettingsManager.readSetting(IpsServices::OutgoingPort, outgoingPort);
-    
+
     int index = 0;
     int port = mSettingsManager.determineDefaultOutgoingPort();
     if (port == outgoingPort.toInt()) {
@@ -1399,7 +1400,7 @@ int NmIpsSettingsHelper::getCorrectOutgoingAuthenticationRadioButtonIndex()
     incomingLoginName = temp.toString();
     mSettingsManager.readSetting(IpsServices::IncomingPassword, temp);
     incomingPassword = temp.toString();
-    
+
     if (outgoingAuthentication) {
         if (outgoingLoginName == incomingLoginName && outgoingPassword == incomingPassword) {
             index = IpsServices::EMailAuthSameAsIncoming;
@@ -1419,9 +1420,9 @@ int NmIpsSettingsHelper::getCorrectOutgoingAuthenticationRadioButtonIndex()
     \param index Selected radio button index.
 */
 void NmIpsSettingsHelper::outgoingSecureConnectionItemChange(int index)
-{      
+{
     int previousindex = getCorrectOutgoingSecureRadioButtonIndex();
-    
+
     if (previousindex != index) {
         emit goOffline(mSettingsManager.mailboxId());
         mEmitOnline = true;
@@ -1463,7 +1464,7 @@ void NmIpsSettingsHelper::outgoingSecureConnectionItemChange(int index)
 void NmIpsSettingsHelper::outgoingAuthenticationChange(int index)
 {
     int previousindex = getCorrectOutgoingAuthenticationRadioButtonIndex();
-    
+
     if (previousindex != index) {
         QVariant loginName;
         QVariant loginPassword;
@@ -1478,10 +1479,10 @@ void NmIpsSettingsHelper::outgoingAuthenticationChange(int index)
             case IpsServices::EMailAuthSameAsIncoming: // Same as Incoming
                 deleteServerInfoGroupDynamicItems();
                 mSettingsManager.writeSetting(IpsServices::SMTPAuthentication, true);
-              
+
                 mSettingsManager.readSetting(IpsServices::IncomingLoginName, loginName);
                 mSettingsManager.writeSetting(IpsServices::OutgoingLoginName, loginName);
-                
+
                 mSettingsManager.readSetting(IpsServices::IncomingPassword, loginPassword);
                 mSettingsManager.writeSetting(IpsServices::OutgoingPassword, loginPassword);
                 break;
@@ -1490,7 +1491,7 @@ void NmIpsSettingsHelper::outgoingAuthenticationChange(int index)
                 mSettingsManager.writeSetting(IpsServices::SMTPAuthentication, true);
                 createServerInfoGroupDynamicItems(false);
                 break;
-                
+
              default:
                 break;
         }

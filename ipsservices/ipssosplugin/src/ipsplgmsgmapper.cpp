@@ -1085,7 +1085,7 @@ void CIpsPlgMsgMapper::GetChildPartsOfMessageEntryL(
             childPart = GetMessagePartL( (*cEntry)[0].Id(), aMailBoxId, aMessageId );
             if( childPart )
                 {
-                aParts.Append( childPart );
+                aParts.AppendL( childPart );
                 }
             }
         }
@@ -1147,7 +1147,7 @@ void CIpsPlgMsgMapper::GetChildPartsOfFolderEntryL(
         // Insert the new child part to the result array
         if ( childPart )
             {
-            aParts.Insert( childPart, position );
+            aParts.InsertL( childPart, position );
             childPart = NULL;
             }
         }

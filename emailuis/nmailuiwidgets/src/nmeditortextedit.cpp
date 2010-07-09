@@ -17,7 +17,8 @@
 
 #include "nmailuiwidgetsheaders.h"
 
-static const QString FILE_PATH_CSS = ":nmeditortextedit.css";
+static const QString FILE_PATH_CSS_DEFAULT = ":nmeditortexteditblack.css";
+static const QString FILE_PATH_CSS_SECONDARY = ":nmeditortexteditblue.css";
 static const QString FILE_PATH_WIDGETML = ":nmeditortextedit.widgetml";
 
 /*!
@@ -29,7 +30,7 @@ NmEditorTextEdit::NmEditorTextEdit(QGraphicsItem *parent) :
     NM_FUNCTION;
     
     HbStyleLoader::registerFilePath(FILE_PATH_WIDGETML);
-    HbStyleLoader::registerFilePath(FILE_PATH_CSS);
+    HbStyleLoader::registerFilePath(FILE_PATH_CSS_DEFAULT);
 
     mCustomTextColor = QPair<bool, QColor>(false, Qt::black);
     
@@ -42,9 +43,6 @@ NmEditorTextEdit::NmEditorTextEdit(QGraphicsItem *parent) :
     whitePixmap.fill(Qt::white);
     QGraphicsPixmapItem *pixmapItem = new QGraphicsPixmapItem (whitePixmap);
     setBackgroundItem(pixmapItem); 
-    
-    // disables highlight frame for now - new api to set the frame item should be release somewhere wk26
-    setFocusHighlight(HbStyle::P_TextEdit_frame_highlight, HbWidget::FocusHighlightNone);
     
     // Create custom palette based on the current one
     QPalette testPalette = QApplication::palette();
@@ -61,8 +59,6 @@ NmEditorTextEdit::NmEditorTextEdit(QGraphicsItem *parent) :
 
     // Update custom palette for this widget
     setPalette(testPalette);
-
-    connect(this, SIGNAL(contentsChanged()), this, SLOT(updateCustomTextColor()));
 }
 
 /*!
@@ -73,7 +69,12 @@ NmEditorTextEdit::~NmEditorTextEdit()
     NM_FUNCTION;
     
     HbStyleLoader::unregisterFilePath(FILE_PATH_WIDGETML);
-    HbStyleLoader::unregisterFilePath(FILE_PATH_CSS);    
+    if (mCustomTextColor.first) {
+		HbStyleLoader::unregisterFilePath(FILE_PATH_CSS_SECONDARY);    
+    }
+    else {
+		HbStyleLoader::unregisterFilePath(FILE_PATH_CSS_DEFAULT);    
+    }
 }
 
 /*!
@@ -131,11 +132,13 @@ void NmEditorTextEdit::setCustomTextColor(bool useCustom, const QColor& color)
 {   
     NM_FUNCTION;
     
-    mCustomTextColor.first = useCustom;
-    //check and set custom color
-    mCustomTextColor.first ? mCustomTextColor.second = color : 
-                             mCustomTextColor.second = mCustomTextColor.second;
-    
+    if (!mCustomTextColor.first && useCustom) {
+        HbStyleLoader::unregisterFilePath(FILE_PATH_CSS_DEFAULT);    
+        HbStyleLoader::registerFilePath(FILE_PATH_CSS_SECONDARY);
+
+        mCustomTextColor.first = useCustom;
+        mCustomTextColor.second = color;
+    }		
 }
 
 /*!

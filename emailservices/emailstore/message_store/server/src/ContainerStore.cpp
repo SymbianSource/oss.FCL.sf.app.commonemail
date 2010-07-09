@@ -1735,15 +1735,10 @@ TContainerId CContainerStore::FirstChildL( TContainerId aId, TBool& aIsChildEncr
 // ==========================================================================
 void CContainerStore::FirstChildL( TContainerId aId, TContainerId& aFirstChildId, TDbBookmark& aBookmark )
     {
-    aFirstChildId = FirstChildL( aId );
-    
-    if( aFirstChildId != KContainerInvalidId )
-        {
-        aBookmark = iContainersTable->Bookmark();
-        } // end if
-        
-     } // end FirstChildL
-		
+    //Used to by the deletehandler to traverse the table for the lowest level child
+    aFirstChildId = iContainersTable->FirstChildForDeleteL( aId, aBookmark );       
+    } 
+
 // ==========================================================================
 // FUNCTION: SearchL
 // ==========================================================================
@@ -1773,6 +1768,7 @@ CContainerStoreSearchHandler* CContainerStore::SearchL( TContainerId            
 
 // ==========================================================================
 // FUNCTION: StartSortingL
+// Will leave with KErrNotFound if the container is marked for deletion.
 // ==========================================================================
 TContainerId CContainerStore::StartSortingL( TMsgStoreSortCriteria& aSortCriteria, 
                                              RPointerArray<HBufC8>& aPropertyNames,
@@ -1781,6 +1777,13 @@ TContainerId CContainerStore::StartSortingL( TMsgStoreSortCriteria& aSortCriteri
     __LOG_ENTER_SUPPRESS( "StartSortingL" )
     __LOG_WRITE_FORMAT4_INFO( "folder=%x sortField=%d order=%d, aInMemorySort=%d", aSortCriteria.iFolderId, aSortCriteria.iSortBy, aSortCriteria.iSortOrder, aInMemorySort )
 
+    //Seek to make sure the container is not markd for deletion, if the container is marked for deletion
+    //this will leave with KerrNotFound
+    TRAPD(err, iContainersTable->SeekL( aSortCriteria.iFolderId, iHierarchy )); 
+    if (err != KErrNone)
+        {
+        User::LeaveIfError(KErrNotFound);
+        }
     CMsgStoreSortResultRowSet* resultRowSet = iSortingTable->SortL( aSortCriteria, aInMemorySort );
     CleanupStack::PushL( resultRowSet );
     
@@ -1797,7 +1800,7 @@ TContainerId CContainerStore::StartSortingL( TMsgStoreSortCriteria& aSortCriteri
     session.iSessionId = iNextSortSessionId++;
     session.iResultRowSet = resultRowSet ;
     
-    iSortSessions.Append( session );
+    iSortSessions.AppendL( session );
     
     CleanupStack::Pop( resultRowSet );
     
@@ -2488,6 +2491,15 @@ void CContainerStore::CommitDatabaseTransactionL()
     iUtils->CommitDatabaseTransactionL();
     }
 
+/*
+ * Check to see there are mailboxes/folder IDs marked for deletion.
+ */
+TBool CContainerStore::DeleteFromSortingTable()
+    {
+    TBool moreToDelete = EFalse;
+    TRAP_IGNORE(moreToDelete = iSortingTable->DeleteNextContainerMarkedForDeletionL());
+    return moreToDelete;   
+    }
 /**
  * 
  */

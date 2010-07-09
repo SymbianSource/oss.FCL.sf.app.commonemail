@@ -67,7 +67,11 @@ private:
     void createMainWindow();
     void pushView(NmBaseView *view);
     void resetViewStack();
+    void hideApplication();
 
+signals:
+	void applicationReady();
+    
 private:
     HbMainWindow *mMainWindow;              // Owned
     QStack<NmBaseView*> *mViewStack;        // Owned

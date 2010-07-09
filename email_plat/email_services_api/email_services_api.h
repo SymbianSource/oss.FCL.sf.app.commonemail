@@ -25,6 +25,8 @@ static const QString emailSendSubjectKey = "subject";
 static const QString emailSendToKey = "to";
 static const QString emailSendCcKey = "cc";
 static const QString emailSendBccKey = "bcc";
+static const QString emailSendBodyTextKey = "body";
+static const QString emailSendAttachmentKey = "attachment";
 
 /*!
     Mail service name

@@ -88,25 +88,25 @@ void NmPopClientPlugin::getActions(
             HbMenu *standardFolders = new HbMenu();
             NmAction *inboxAction = new NmAction(0);
             inboxAction->setObjectName("popclientplugin_folders_inbox");
-            inboxAction->setText(hbTrId("txt_mail_opt_folders_inbox"));
+            inboxAction->setText(hbTrId("txt_mail_opt_folder_sub_inbox"));
             inboxAction->setCheckable(true);
             connect(inboxAction, SIGNAL(triggered()), this, SLOT(switchToStandardFolderInbox()));
             standardFolders->addAction(inboxAction);
             NmAction *outboxAction = new NmAction(0);
             outboxAction->setObjectName("popclientplugin_folders_outbox");
-            outboxAction->setText(hbTrId("txt_mail_opt_folders_outbox"));
+            outboxAction->setText(hbTrId("txt_mail_opt_folder_sub_outbox"));
             outboxAction->setCheckable(true);
             connect(outboxAction, SIGNAL(triggered()), this, SLOT(switchToStandardFolderOutbox()));
             standardFolders->addAction(outboxAction);
             NmAction *draftsAction = new NmAction(0);
             draftsAction->setObjectName("popclientplugin_folders_drafts");
-            draftsAction->setText(hbTrId("txt_mail_opt_folders_drafts"));
+            draftsAction->setText(hbTrId("txt_mail_opt_folder_sub_drafts"));
             draftsAction->setCheckable(true);
             connect(draftsAction, SIGNAL(triggered()), this, SLOT(switchToStandardFolderDrafts()));
             standardFolders->addAction(draftsAction);
             NmAction *sentAction = new NmAction(0);
             sentAction->setObjectName("popclientplugin_folders_sent");
-            sentAction->setText(hbTrId("txt_mail_opt_folders_sent"));
+            sentAction->setText(hbTrId("txt_mail_opt_folder_sub_sent"));
             sentAction->setCheckable(true);
             connect(sentAction, SIGNAL(triggered()), this, SLOT(switchToStandardFolderSent()));
             standardFolders->addAction(sentAction);
@@ -137,7 +137,7 @@ void NmPopClientPlugin::getActions(
             // Add folders selection with sub-menu
             NmAction *foldersAction = new NmAction(0);
             foldersAction->setObjectName("baseclientplugin_folders");
-            foldersAction->setText(hbTrId("txt_mail_opt_folders"));
+            foldersAction->setText(hbTrId("txt_mail_opt_change_folder"));
             foldersAction->setMenu(standardFolders);
             actionList.append(foldersAction);
             }

@@ -113,7 +113,7 @@ int NmFrameworkAdapter::listMailboxIds(QList<NmId>& mailboxIdList)
 int NmFrameworkAdapter::listMailboxes(QList<NmMailbox*>& mailboxList)
 {
     NM_FUNCTION;
-    
+
     // get list of mailboxes from all plugins
     TFSMailMsgId id;
     id.SetNullId();
@@ -189,7 +189,7 @@ QPointer<NmOperation> NmFrameworkAdapter::deleteMailboxById(const NmId& mailboxI
 int NmFrameworkAdapter::getFolderById( const NmId& mailboxId, const NmId& folderId, NmFolder*& folder )
     {
     NM_FUNCTION;
-    
+
     TRAPD(err, getFolderByIdL( mailboxId, folderId, folder ) );
     return err;
     }
@@ -200,11 +200,11 @@ int NmFrameworkAdapter::getFolderById( const NmId& mailboxId, const NmId& folder
 void NmFrameworkAdapter::getFolderByIdL( const NmId& mailboxId, const NmId& folderId, NmFolder*& folder )
     {
     NM_FUNCTION;
-    
+
     CFSMailFolder* fsFolder(NULL);
 	if (mFSfw)
 		{
-    	fsFolder = mFSfw->GetFolderByUidL(TFSMailMsgId(mailboxId), TFSMailMsgId(folderId)); 
+    	fsFolder = mFSfw->GetFolderByUidL(TFSMailMsgId(mailboxId), TFSMailMsgId(folderId));
     	if (fsFolder)
         	{
         	folder = fsFolder->GetNmFolder();
@@ -237,7 +237,7 @@ int NmFrameworkAdapter::getMessageById(
     NmMessage*& message)
 {
     NM_FUNCTION;
-    
+
     TRAPD(err, getMessageByIdL(mailboxId,folderId,messageId,message));
     return err;
 }
@@ -252,7 +252,7 @@ void NmFrameworkAdapter::getMessageByIdL(
     NmMessage*& message)
 {
     NM_FUNCTION;
-    
+
     // select message details to be listed
     TFSMailDetails details(EFSMsgDataStructure);
 
@@ -275,10 +275,10 @@ void NmFrameworkAdapter::getMessageByIdL(
 
 /*!
     Returns list of folders in a mailbox.
-	
+
 	\param mailboxId Id of the mailbox containing the folder.
 	\param folderList Reference to a pointer list to receive pointers to the folders.
-	
+
 	\return Error code.
  */
 int NmFrameworkAdapter::listFolders(
@@ -286,7 +286,7 @@ int NmFrameworkAdapter::listFolders(
     QList<NmFolder*>& folderList)
 {
     NM_FUNCTION;
-    
+
     CFSMailBox* currentMailbox = NULL;
     TRAPD (err, currentMailbox = mFSfw->GetMailBoxByUidL(mailboxId));
     if (KErrNone == err) {
@@ -316,7 +316,7 @@ void NmFrameworkAdapter::getMessagesFromFolderL(
      const int maxEnvelopeCount)
 {
     NM_FUNCTION;
-    
+
     if (!folder || maxEnvelopeCount < 1) {
         return;
     }
@@ -342,7 +342,7 @@ void NmFrameworkAdapter::getMessagesFromFolderL(
     RArray<TFSMailSortCriteria> sorting;
     CleanupClosePushL(sorting);
     sorting.Append(criteria);
-   
+
     // Get the message list from the backend.
     MFSMailIterator* iterator(NULL);
     iterator = folder->ListMessagesL(details, sorting);
@@ -382,7 +382,7 @@ void NmFrameworkAdapter::getMessagesFromFolderL(
         iterator = NULL;
     }
 
-    CleanupStack::PopAndDestroy(); // sorting  
+    CleanupStack::PopAndDestroy(); // sorting
 }
 
 
@@ -402,7 +402,7 @@ int NmFrameworkAdapter::listMessages(
     QList<NmMessageEnvelope*> &messageEnvelopeList)
 {
     NM_FUNCTION;
-    
+
     TRAPD(err, listMessagesL(mailboxId,folderId,messageEnvelopeList, NmMaxItemsInMessageList));
     return err;
 }
@@ -427,7 +427,7 @@ int NmFrameworkAdapter::listMessages(
         const int maxAmountOfEnvelopes)
 {
     NM_FUNCTION;
-    
+
     TInt err = KErrNone;
     TRAP(err, listMessagesL(mailboxId,folderId, messageEnvelopeList,maxAmountOfEnvelopes) );
     return err;
@@ -445,7 +445,7 @@ void NmFrameworkAdapter::listMessagesL(
         const int maxAmountOfEnvelopes)
 {
     NM_FUNCTION;
-    
+
     // If we are requesting 0 or less mails, we can just return.
     if (maxAmountOfEnvelopes <= 0) {
         return;
@@ -466,14 +466,14 @@ void NmFrameworkAdapter::listMessagesL(
     if (folder) {
         CleanupStack::PushL(folder);
         getMessagesFromFolderL(folder, messageEnvelopeList, maxAmountOfEnvelopes);
-        CleanupStack::PopAndDestroy(folder);        
+        CleanupStack::PopAndDestroy(folder);
     }
 
     CleanupStack::PopAndDestroy(mailbox);
 }
 
 
-/*! 
+/*!
     Returns list of messages from the backend for specific mailbox and folder.
 
     \param mailboxId Id of the mailbox containing the folder.
@@ -490,7 +490,7 @@ int NmFrameworkAdapter::listMessages(
     const int maxAmountOfMessages)
 {
     NM_FUNCTION;
-    
+
     TRAPD(err, listMessagesL(mailboxId,folderId,messageList, maxAmountOfMessages));
     return err;
 }
@@ -506,7 +506,7 @@ void NmFrameworkAdapter::listMessagesL(
         const int maxAmountOfEnvelopes)
 {
     NM_FUNCTION;
-    
+
     CFSMailBox * currentMailbox(NULL);
     CFSMailFolder* folder(NULL);
 
@@ -527,7 +527,7 @@ void NmFrameworkAdapter::listMessagesL(
             blockSize = maxAmountOfEnvelopes;
             }
         }
-   
+
     currentMailbox = mFSfw->GetMailBoxByUidL(mailboxId);
     if (!currentMailbox) {
         User::Leave(KErrNotFound);
@@ -568,7 +568,7 @@ void NmFrameworkAdapter::listMessagesL(
                   i += blockSize ) {
                 moreMessagesToFollow = iterator->NextL(
                     messages[i-1]->GetMessageId(), blockSize, messages);
-                
+
             }
 
             //Add all found emails to the result list
@@ -585,7 +585,7 @@ void NmFrameworkAdapter::listMessagesL(
                     messageList.append(newMessage);
                 }
             }
-            
+
             CleanupStack::PopAndDestroy( &messages );
             CleanupStack::Pop(iterator);
             delete iterator;
@@ -613,7 +613,7 @@ int NmFrameworkAdapter::search(const NmId &mailboxId,
                                const QStringList &searchStrings)
 {
     NM_FUNCTION;
-    
+
     if (!mSearchObserver) {
         mSearchObserver = new NmMailboxSearchObserver();
     }
@@ -634,14 +634,13 @@ int NmFrameworkAdapter::search(const NmId &mailboxId,
     Cancels the search if one is ongoing.
 
     \param mailboxId The ID of the mailbox running the search.
-    
 
     \return A possible error code.
 */
 int NmFrameworkAdapter::cancelSearch(const NmId &mailboxId)
 {
     NM_FUNCTION;
-    
+
     // Get the mailbox with the given ID.
     CFSMailBox *mailbox(NULL);
     TRAPD(err, mailbox = mFSfw->GetMailBoxByUidL(mailboxId));
@@ -687,10 +686,10 @@ void NmFrameworkAdapter::doUpdateActiveFolderL(
         mCurrentMailBox = mFSfw->GetMailBoxByUidL(mailboxId);
         }
     CEmailExtension *extension = getEMailStateExtensionL();
-    CMailboxStateExtension *stateExtension = 
-        static_cast<CMailboxStateExtension*>(extension);        
+    CMailboxStateExtension *stateExtension =
+        static_cast<CMailboxStateExtension*>(extension);
     if (stateExtension) {
-        stateExtension->NotifyActiveFolderChanged(mailboxId, folderId);    
+        stateExtension->NotifyActiveFolderChanged(mailboxId, folderId);
     }
 }
 
@@ -698,12 +697,12 @@ void NmFrameworkAdapter::doUpdateActiveFolderL(
    function to process updateActiveFolder. This method may leave.
  */
 CEmailExtension* NmFrameworkAdapter::getEMailStateExtensionL()
-{      
+{
     if (!mStateExtension && mCurrentMailBox) {
         // This extension is owned and deleted by the plugin, so no need to
         // use release unless the extension will be relocated into extensionbase.
         mStateExtension =  mCurrentMailBox->ExtensionL(KEmailMailboxStateExtensionUid);
-    }    
+    }
     return mStateExtension;
 }
 
@@ -712,7 +711,7 @@ CEmailExtension* NmFrameworkAdapter::getEMailStateExtensionL()
 
     \param mailboxId The mailbox to search from.
     \param folderIds (not used)
-    \param searchStrings The strings to search. 
+    \param searchStrings The strings to search.
     \param searchObserver The observer which gets informed about the progress
                           of the search (match found, search complete etc.)
 */
@@ -722,9 +721,9 @@ void NmFrameworkAdapter::searchL(const NmId &mailboxId,
                                  NmMailboxSearchObserver &searchObserver)
 {
     NM_FUNCTION;
-    
+
     // CFSMailBox has no support for search using folder IDs.
-    Q_UNUSED(folderIds); 
+    Q_UNUSED(folderIds);
 
     // Get the mailbox with the given ID.
     CFSMailBox *mailbox(NULL);
@@ -771,7 +770,7 @@ QPointer<NmOperation> NmFrameworkAdapter::fetchMessage(
     const NmId &messageId )
 {
     NM_FUNCTION;
-    
+
     NmOperation *oper = new NmFwaMessageFetchingOperation(mailboxId, folderId, messageId, *mFSfw);
     return oper;
 }
@@ -786,14 +785,14 @@ QPointer<NmOperation> NmFrameworkAdapter::fetchMessage(
 
     \return An NmOperation object for the operation, ownership is transferred to caller
  */
-QPointer<NmOperation> NmFrameworkAdapter::fetchMessagePart( 
+QPointer<NmOperation> NmFrameworkAdapter::fetchMessagePart(
     const NmId &mailboxId,
     const NmId &folderId,
     const NmId &messageId,
     const NmId &messagePartId)
 {
     NM_FUNCTION;
-    
+
     QPointer<NmOperation> oper = new NmFwaMessagePartFetchingOperation(
             mailboxId, folderId, messageId, messagePartId, *mFSfw);
     return oper;
@@ -809,17 +808,17 @@ QPointer<NmOperation> NmFrameworkAdapter::fetchMessagePart(
 
     \return An NmOperation object for the operation, ownership is transferred to caller
  */
-QPointer<NmOperation> NmFrameworkAdapter::fetchMessageParts( 
+QPointer<NmOperation> NmFrameworkAdapter::fetchMessageParts(
     const NmId &mailboxId,
     const NmId &folderId,
     const NmId &messageId,
     const QList<NmId> &messagePartIds)
 {
     NM_FUNCTION;
-    
+
     QPointer<NmOperation> oper = new NmFwaMessagePartsFetchingOperation(
             mailboxId, folderId, messageId, messagePartIds, *mFSfw);
-    return oper;  
+    return oper;
 }
 
 /*!
@@ -839,23 +838,23 @@ XQSharableFile NmFrameworkAdapter::messagePartFile(
         const NmId &messagePartId)
 {
     NM_FUNCTION;
-    
+
     XQSharableFile retFile;
     TFSMailDetails details(EFSMsgDataEnvelope);
     TFSMailMsgId fsMboxId(mailboxId);
     TFSMailMsgId fsFolderId(folderId);
     TFSMailMsgId fsMsgId(messageId);
     TFSMailMsgId fsMsgPartId(messagePartId);
-    
+
     CFSMailMessage* fsMessage = NULL;
     int error = KErrNone;
     TRAP(error, fsMessage = mFSfw->GetMessageByUidL(fsMboxId, fsFolderId,
             fsMsgId, details) );
-    
+
     CFSMailMessagePart* fsMessagePart = NULL;
     if (fsMessage && error == KErrNone) {
         TRAP(error, fsMessagePart = fsMessage->ChildPartL(fsMsgPartId) );
-        
+
     }
     if (fsMessagePart && error == KErrNone) {
         RFile file = fsMessagePart->GetContentFileL();
@@ -877,7 +876,7 @@ NmId NmFrameworkAdapter::getStandardFolderId(
     NmFolderType folderType )
 {
     NM_FUNCTION;
-    
+
     TFSMailMsgId folderId;
     NmId resultId(0);
     CFSMailBox * currentMailbox(NULL);
@@ -980,7 +979,7 @@ int NmFrameworkAdapter::contentToMessagePart(
     NmMessagePart &messagePart)
 {
     NM_FUNCTION;
-    
+
     TRAPD(err, contentToMessagePartL(mailboxId,folderId,messageId,messagePart));
     return err;
 }
@@ -995,7 +994,7 @@ void NmFrameworkAdapter::contentToMessagePartL(
     NmMessagePart &messagePart)
 {
     NM_FUNCTION;
-    
+
     CFSMailMessagePart* cfsPart = CFSMailMessagePart::NewLC(messageId,messagePart);
     cfsPart->SetMailBoxId(TFSMailMsgId(mailboxId));
     cfsPart->SetFolderId(TFSMailMsgId(folderId));
@@ -1037,8 +1036,8 @@ void NmFrameworkAdapter::contentToMessagePartL(
                 if (!codec) {
                     codec = QTextCodec::codecForName("UTF-8");
                 }
-                QString encodedStr = codec->toUnicode(msgBytes); 
-                messagePart.setTextContent(encodedStr, contentType);           
+                QString encodedStr = codec->toUnicode(msgBytes);
+                messagePart.setTextContent(encodedStr, contentType);
             }
             else {
                 messagePart.setBinaryContent(QByteArray(
@@ -1071,7 +1070,7 @@ int NmFrameworkAdapter::deleteMessages(
 	const QList<NmId> &messageIdList)
 {
     NM_FUNCTION;
-    
+
     TInt err = NmNoError;
     RArray<TFSMailMsgId> messageIds;
     for (TInt i=0; i<messageIdList.size(); i++) {
@@ -1103,7 +1102,7 @@ QPointer<NmStoreEnvelopesOperation> NmFrameworkAdapter::storeEnvelopes(
 	const QList<const NmMessageEnvelope*> &envelopeList)
 {
     NM_FUNCTION;
-    
+
     Q_UNUSED(folderId);
 
     QPointer<NmStoreEnvelopesOperation> operation(NULL);
@@ -1134,7 +1133,7 @@ QPointer<NmStoreEnvelopesOperation> NmFrameworkAdapter::storeEnvelopes(
 QPointer<NmMessageCreationOperation> NmFrameworkAdapter::createNewMessage(const NmId &mailboxId)
 {
     NM_FUNCTION;
-    
+
     QPointer<NmMessageCreationOperation> oper =
         new NmFwaMessageCreationOperation(mailboxId, *mFSfw);
     return oper;
@@ -1153,7 +1152,7 @@ QPointer<NmMessageCreationOperation> NmFrameworkAdapter::createForwardMessage(
     const NmId &originalMessageId)
 {
     NM_FUNCTION;
-    
+
     QPointer<NmMessageCreationOperation> oper =
         new NmFwaForwardMessageCreationOperation(mailboxId, originalMessageId, *mFSfw);
     return oper;
@@ -1174,7 +1173,7 @@ QPointer<NmMessageCreationOperation> NmFrameworkAdapter::createReplyMessage(
     const bool replyAll)
 {
     NM_FUNCTION;
-    
+
     QPointer<NmMessageCreationOperation> oper =
         new NmFwaReplyMessageCreationOperation(mailboxId, originalMessageId, replyAll, *mFSfw);
     return oper;
@@ -1186,7 +1185,7 @@ QPointer<NmMessageCreationOperation> NmFrameworkAdapter::createReplyMessage(
 int NmFrameworkAdapter::saveMessage(const NmMessage &message)
 {
     NM_FUNCTION;
-    
+
     Q_UNUSED(message);
     return NmNoError;
 }
@@ -1197,7 +1196,7 @@ int NmFrameworkAdapter::saveMessage(const NmMessage &message)
 QPointer<NmOperation> NmFrameworkAdapter::saveMessageWithSubparts(const NmMessage &message)
 {
     NM_FUNCTION;
-    
+
     CFSMailMessage * cfsMessage = NULL;
     QPointer<NmOperation> oper(NULL);
 
@@ -1224,7 +1223,7 @@ void NmFrameworkAdapter::EventL(
     TAny* param3)
 {
     NM_FUNCTION;
-    
+
     switch (aEvent) {
         // Mailbox related events:
         case TFSEventNewMailbox:
@@ -1339,7 +1338,7 @@ int NmFrameworkAdapter::removeMessage(
     const NmId& messageId)
 {
     NM_FUNCTION;
-    
+
     TRAPD(error, removeMessageL(mailboxId, folderId, messageId));
     return error;
 }
@@ -1417,7 +1416,7 @@ void NmFrameworkAdapter::removeMessageL(
     const NmId& messageId)
 {
     NM_FUNCTION;
-    
+
     CFSMailFolder* folder = mFSfw->GetFolderByUidL( TFSMailMsgId(mailboxId), TFSMailMsgId(folderId));
     CleanupStack::PushL(folder);
     if ( folder ) {
@@ -1439,25 +1438,25 @@ void NmFrameworkAdapter::copyMessagesL(
 
     RArray<TFSMailMsgId> messages;
     RArray<TFSMailMsgId> copiedMessages;
-    
+
     CleanupClosePushL(messages);
     CleanupClosePushL(copiedMessages);
-    
+
     for (TInt i = 0; i < messageIds.count(); i++) {
         NmId tmpId(messageIds[i]);
         messages.AppendL(TFSMailMsgId(tmpId));
     }
-    
+
     CFSMailBox* mailBox = NULL;
     mailBox = mFSfw->GetMailBoxByUidL(mailboxId);
     if (mailBox) {
-        mailBox->CopyMessagesL(messages, copiedMessages, 
-            TFSMailMsgId(sourceFolderId), 
+        mailBox->CopyMessagesL(messages, copiedMessages,
+            TFSMailMsgId(sourceFolderId),
             TFSMailMsgId(destinationFolderId));
         delete mailBox;
     }
-    
-    CleanupStack::PopAndDestroy(2,&messages);    
+
+    CleanupStack::PopAndDestroy(2,&messages);
 }
 
 /*!
@@ -1467,7 +1466,7 @@ QPointer<NmMessageSendingOperation> NmFrameworkAdapter::sendMessage(
     NmMessage *message)
 {
     NM_FUNCTION;
-    
+
     QPointer<NmMessageSendingOperation>oper = new NmFwaMessageSendingOperation(*this, message, *mFSfw);
 	return oper;
 }
@@ -1480,7 +1479,7 @@ QPointer<NmAddAttachmentsOperation> NmFrameworkAdapter::addAttachments(
     const QList<QString> &fileList)
 {
     NM_FUNCTION;
-    
+
     QPointer<NmAddAttachmentsOperation>oper = new NmFwaAddAttachmentsOperation(message, fileList, *mFSfw);
     return oper;
 }
@@ -1493,7 +1492,7 @@ QPointer<NmOperation> NmFrameworkAdapter::removeAttachment(
     const NmId &attachmentPartId)
 {
     NM_FUNCTION;
-    
+
     QPointer<NmOperation> oper = new NmFwaRemoveAttachmentOperation(message, attachmentPartId, *mFSfw);
     return oper;
 }
@@ -1504,7 +1503,7 @@ QPointer<NmOperation> NmFrameworkAdapter::removeAttachment(
 NmSyncState NmFrameworkAdapter::syncState(const NmId& mailboxId) const
 {
     NM_FUNCTION;
-    
+
    CFSMailBox* mailBox = NULL;
    TRAPD(err, mailBox = mFSfw->GetMailBoxByUidL(TFSMailMsgId(mailboxId)) );
    if (KErrNone == err && mailBox) {
@@ -1528,7 +1527,7 @@ NmSyncState NmFrameworkAdapter::syncState(const NmId& mailboxId) const
 NmConnectState NmFrameworkAdapter::connectionState(const NmId& mailboxId) const
 {
     NM_FUNCTION;
-    
+
     CFSMailBox* mailBox = NULL;
     TRAPD(err, mailBox = mFSfw->GetMailBoxByUidL(TFSMailMsgId(mailboxId)) );
     if (KErrNone == err && mailBox) {
@@ -1554,7 +1553,7 @@ CFSMailMessage* NmFrameworkAdapter::mailMessageFromEnvelopeL(
     const NmMessageEnvelope& envelope)
 {
     NM_FUNCTION;
-    
+
     NmMessage* nmMessage = new(ELeave) NmMessage( envelope );
     CFSMailMessage* message = CFSMailMessage::NewL( *nmMessage );
     delete nmMessage;
@@ -1571,7 +1570,7 @@ void NmFrameworkAdapter::childrenToNmMessagePartL(
         NmMessagePart *nmParent)
 {
     NM_FUNCTION;
-    
+
     User::LeaveIfNull(cfsParent);
     User::LeaveIfNull(nmParent);
 
@@ -1596,7 +1595,7 @@ void NmFrameworkAdapter::childrenToNmMessagePartL(
 int NmFrameworkAdapter::RefreshMailboxL(NmId mailboxId)
 {
     NM_FUNCTION;
-    
+
     int result(KErrNotFound);
     CFSMailBox *currentMailbox(NULL);
     currentMailbox = mFSfw->GetMailBoxByUidL(mailboxId);
@@ -1615,7 +1614,7 @@ int NmFrameworkAdapter::RefreshMailboxL(NmId mailboxId)
 int NmFrameworkAdapter::GoOnlineL(const NmId& mailboxId)
 {
     NM_FUNCTION;
-    
+
     int result(KErrNotFound);
     CFSMailBox *currentMailbox(NULL);
     currentMailbox = mFSfw->GetMailBoxByUidL(mailboxId);
@@ -1634,7 +1633,7 @@ int NmFrameworkAdapter::GoOnlineL(const NmId& mailboxId)
 int NmFrameworkAdapter::GoOfflineL(const NmId& mailboxId)
 {
     NM_FUNCTION;
-    
+
 	int result(KErrNotFound);
     CFSMailBox *currentMailbox(NULL);
     currentMailbox = mFSfw->GetMailBoxByUidL(mailboxId);
@@ -1653,10 +1652,12 @@ int NmFrameworkAdapter::GoOfflineL(const NmId& mailboxId)
 void NmFrameworkAdapter::handleMailboxEvent( TFSMailMsgId mailbox, NmMailboxEvent event)
 {
     NM_FUNCTION;
-    
+
     QList<NmId> mailboxIds;
     NmId nmId;
-    if (event == NmMailboxDeleted) {
+    if (event == NmMailboxDeleted || 
+        event == NmMailboxCreated ||
+        event == NmMailboxChanged) {
 		nmId = mailbox.GetNmId();
     } else {
 		nmId = getMailboxIdByMailMsgId(mailbox);
@@ -1675,7 +1676,7 @@ void NmFrameworkAdapter::handleMessageEvent(
     TFSMailMsgId mailbox)
 {
     NM_FUNCTION;
-    
+
     NmId nmMsgId(0);
     QList<NmId> messageIds;
     RArray<TFSMailMsgId>* newFsEntries = reinterpret_cast<RArray<TFSMailMsgId>*> (param1);
@@ -1697,7 +1698,7 @@ void NmFrameworkAdapter::handleMessageEvent(
 void NmFrameworkAdapter::handleMailMoved(TAny* param1,TAny* param2,TAny* param3, TFSMailMsgId mailbox)
 {
     NM_FUNCTION;
-    
+
     NmId nmMsgId(0);
     QList<NmId> messageIds;
     RArray<TFSMailMsgId>* newFsEntries = reinterpret_cast<RArray<TFSMailMsgId>*> (param1);
@@ -1724,7 +1725,7 @@ void NmFrameworkAdapter::handleMailMoved(TAny* param1,TAny* param2,TAny* param3,
 void NmFrameworkAdapter::handleMailCopied(TAny* param1,TAny* param2, TFSMailMsgId mailbox)
 {
     NM_FUNCTION;
-    
+
     NmId nmMsgId(0);
     QList<NmId> messageIds;
     RArray<TFSMailMsgId>* newFsEntries = reinterpret_cast<RArray<TFSMailMsgId>*> (param1);

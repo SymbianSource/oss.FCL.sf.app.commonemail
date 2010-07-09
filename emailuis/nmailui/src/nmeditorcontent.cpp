@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+* Copyright (c) 2009 - 2010 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -39,16 +39,20 @@ NmEditorContent::NmEditorContent(QObject *parent,
     mEditorWidget(NULL),
     mScrollArea(NULL),
     mScrollAreaContents(NULL),
-    mApplication(application)
+    mApplication(application),
+    mNeedForWidthAdjustment(false)
 {
     NM_FUNCTION;
 
     // Construct container for the header widgets
-    mHeader = new NmEditorHeader(this, documentLoader);
+    mHeader = new NmEditorHeader(this, application, documentLoader);
 
     // Get pointer to body text area handling widget
     mEditorWidget = qobject_cast<NmEditorTextEdit *>(documentLoader->findWidget(NMUI_EDITOR_BODY));
-    
+
+    // Enable the emoticons.
+    mEditorWidget->setSmileysEnabled(true);
+
     // Set body editor to use NmEditorTextDocument
     NmEditorTextDocument *textDocument = new NmEditorTextDocument(manager);
     mEditorWidget->setDocument(textDocument); 
@@ -56,8 +60,10 @@ NmEditorContent::NmEditorContent(QObject *parent,
 
     mScrollArea = qobject_cast<NmBaseViewScrollArea *>
         (documentLoader->findWidget(NMUI_EDITOR_SCROLL_AREA));
-    mScrollArea->setScrollDirections(Qt::Vertical | Qt::Horizontal);
     
+    mScrollArea->setScrollDirections(Qt::Vertical | Qt::Horizontal);
+    mScrollArea->setClampingStyle(HbScrollArea::BounceBackClamping);
+        
     // Enable style picker menu item.
     mEditorWidget->setFormatDialog(new HbFormatDialog());
 
@@ -66,6 +72,12 @@ NmEditorContent::NmEditorContent(QObject *parent,
     
     // Create signal slot connections
     createConnections();
+
+    // The following line is necessary in terms of being able to add emoticons
+    // (smileys) to an empty document (mail content). Otherwise the private
+    // pointer of the QTextDocument which the smiley engine has is NULL and
+    // inserting a smiley will lead to an error.
+    mEditorWidget->setPlainText("");
 }
 
 /*!
@@ -87,10 +99,12 @@ void NmEditorContent::setMessageData(const NmMessage &originalMessage,
     NM_FUNCTION;
     
     QString bodyContent;
+	QTextCursor cursor(mEditorWidget->document());
     
     // Create the "reply" header (also for forward message)
     if (editorStartMode==NmUiEditorReply || editorStartMode==NmUiEditorReplyAll || 
         editorStartMode==NmUiEditorForward) {
+		bodyContent.append(QString("<style type=\"text/css\">* { color: black; }</style>"));
         bodyContent.append(NmUtilities::createReplyHeader(originalMessage.envelope()));
     }
     
@@ -103,15 +117,27 @@ void NmEditorContent::setMessageData(const NmMessage &originalMessage,
         if(editorStartMode==NmUiEditorReply || editorStartMode==NmUiEditorReplyAll ) {
             removeEmbeddedImages(bodyContent);
         }
-        emit setHtml(bodyContent);
+        cursor.insertHtml(bodyContent);
         mMessageBodyType = NmHTMLText;
     }
     else if (plainPart) {
         // Plain text part was present, set it to HbTextEdit
         bodyContent.append(plainPart->textContent());
-        emit setPlainText(bodyContent);
+        cursor.insertText(bodyContent);
         mMessageBodyType = NmPlainText;
+        
+		// Next we set text color for black for all current content
+        QTextCharFormat blackForeground;
+    	blackForeground = cursor.charFormat();
+    	blackForeground.setForeground(Qt::black);
+    	cursor.select(QTextCursor::Document);
+    	cursor.mergeCharFormat(blackForeground);
     }
+    // Update of the body width is done when next contentChanged signal comes from the body.
+    mNeedForWidthAdjustment = true;
+	cursor.clearSelection();
+	cursor.setPosition(0);
+	cursor.insertHtml(QString("<html><body><br><br></body></html>"));
 }  
 
 /*!
@@ -152,6 +178,14 @@ void NmEditorContent::createConnections()
     // listen to the parent's (NmEditorView) size changes which happen eg. when VKB is opened/closed
     connect(parent(), SIGNAL(sizeChanged()), this, SLOT(ensureCursorVisibility()),
         Qt::QueuedConnection);
+
+    // Listen scroll posion change signals for header reposition.
+    connect(mScrollArea, SIGNAL(scrollPositionChanged(QPointF)),
+    		mHeader, SLOT(repositHeader(QPointF)));
+
+    // Listen content change signal for body widget width adjustment.
+    connect(mEditorWidget->document(), SIGNAL(contentsChanged()), this, 
+        SLOT(setEditorContentWidth()), Qt::QueuedConnection);
 }
 
 /*!
@@ -206,6 +240,21 @@ void NmEditorContent::setEditorContentHeight()
     qreal bodyAreaSize = fmax(bodyAreaMinSize, documentHeightAndMargins);
 
     mScrollAreaContents->setPreferredHeight(topMargin + headerHeight + bodyAreaSize);
+}
+
+/*!
+    This slot is used to set width for the body field.
+    For some reason HbTextEdit does not set it's width, so we need to se it here.
+    This slot can be removed if HbTextEdit is fixed.
+ */
+void NmEditorContent::setEditorContentWidth()
+{
+    NM_FUNCTION;
+    
+    if (mNeedForWidthAdjustment) {
+        mNeedForWidthAdjustment = false;
+        mScrollAreaContents->setPreferredWidth(mEditorWidget->document()->idealWidth());
+    }
 }
 
 /*!

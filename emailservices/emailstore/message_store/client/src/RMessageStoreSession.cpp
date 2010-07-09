@@ -442,7 +442,7 @@ void RMessageStoreSession::AccountsL( RPointerArray<CMsgStoreAccount>& aAccounts
 	for ( int i = 0 ; i < count ; i++ )
 		{
 		CMsgStoreAccount* account = CMsgStoreAccount::NewL( ownerIds[i], *(names[i]) );
-		aAccounts.Append( account );
+		aAccounts.AppendL( account );
 		}
 	CleanupStack::PopAndDestroy( serializer );
 	CleanupStack::PopAndDestroy( &resultBuf );
@@ -525,7 +525,7 @@ TMsgStoreId RMessageStoreSession::CreateContainerL( TMsgStoreId             aPar
         User::LeaveIfError( fs.Connect() );
         fs.ShareProtected();        
         
-        User::LeaveIfError( file.Open( fs, aContentFilename, EFileRead | EFileShareAny ) );
+        User::LeaveIfError( file.Open( fs, aContentFilename, EFileShareReadersOnly ) );
         User::LeaveIfError( file.TransferToServer( ipcArgs, KIpcArgsIndex2, KIpcArgsIndex3 ) );	    	    
 	    } // end if
 
@@ -776,7 +776,7 @@ void RMessageStoreSession::ChildrenIdsL( TMsgStoreId aId, TMsgStoreContainerMask
 	const TUint KDivider = 4;
 	for( TInt count = 0; count < childrenBuf.Length() / KDivider; count++ )
 		{
-		aChildrenIds.Append( readStream.ReadUint32L() );
+		aChildrenIds.AppendL( readStream.ReadUint32L() );
 		} // end for
 		
 	CleanupStack::PopAndDestroy( &readStream );
@@ -1287,7 +1287,7 @@ TInt RMessageStoreSession::SortIteratorGroupCountL( TMsgStoreId aSortSessionId, 
             countPckg.Copy( pointer, countPckg.Length() );
             pointer += countPckg.Length();
             
-            aItemsInGroup.Append( count );        
+            aItemsInGroup.AppendL( count );        
             }
         }
     
@@ -1332,7 +1332,7 @@ void RMessageStoreSession::SortedIdsAndFlagsL( TMsgStoreId aSortSessionId, RArra
             flagPckg.Copy( pointer, flagPckg.Length() );
             pointer += flagPckg.Length();
             
-            aIdsAndFlags.Append( TMsgStoreIdAndFlag( id, flag ) );        
+            aIdsAndFlags.AppendL( TMsgStoreIdAndFlag( id, flag ) );        
             }
         }
     
@@ -1387,7 +1387,7 @@ void RMessageStoreSession::SortedIdsL( TMsgStoreId aSortSessionId, RArray<TMsgSt
             idPckg.Copy( pointer, idPckg.Length() );
             pointer += idPckg.Length();
             
-            aMessageIds.Append( id );        
+            aMessageIds.AppendL( id );        
             }
         }
     
@@ -1425,7 +1425,7 @@ void RMessageStoreSession::IdsAndGroupCountL( TMsgStoreId aSortSessionId, RArray
         idPckg.Copy( pointer, idPckg.Length() );
         pointer += idPckg.Length();
         
-        aMessageIds.Append( id );
+        aMessageIds.AppendL( id );
         --idCount;
         }
     
@@ -1437,7 +1437,7 @@ void RMessageStoreSession::IdsAndGroupCountL( TMsgStoreId aSortSessionId, RArray
         countPckg.Copy( pointer, countPckg.Length() );
         pointer += countPckg.Length();
         
-        aItemsInGroup.Append( count ); 
+        aItemsInGroup.AppendL( count ); 
         --groupCount;
         }
     
@@ -1710,7 +1710,7 @@ void RMessageStoreSession::MruAddressesL( TMsgStoreId aMailBoxId, RPointerArray<
     
         //create the address object and add it to the output array
         CMsgStoreAddress *address = CMsgStoreAddress::NewL( addrDes16, nameDes16 );
-        aAddressArray.Append( address );            
+        aAddressArray.AppendL( address );            
         } // end while          
     
     CleanupStack::PopAndDestroy( &serializedBuf );

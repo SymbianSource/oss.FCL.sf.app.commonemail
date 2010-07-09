@@ -193,6 +193,7 @@ void NmEditorView::orientationChanged(Qt::Orientation orientation)
     // content widget height needs to be set according to the new orientation to get the scroll
 	// area work correctly
 	mHeaderWidget->sendDelayedHeaderHeightChanged();
+	mHeaderWidget->adjustHeaderWidth();
 }
 
 /*!

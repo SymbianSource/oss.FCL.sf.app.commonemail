@@ -115,7 +115,7 @@ void CDeleteHandler::DoCancel()
 // ==========================================================================
 void CDeleteHandler::FindContainerToDeleteL()
     {
-    TBool done = EFalse;
+    TBool done(EFalse);
     
     TContainerId containerId = KToBeDeletedContainers;
     if ( iState == ERetryDelete )
@@ -163,7 +163,7 @@ TBool CDeleteHandler::DoNextDelete()
     // Delete the lowest node in the hierarchy.        
     TRAPD( result, FindContainerToDeleteL() );
 
-    TBool more = EFalse;    
+    TBool more ( EFalse );    
         
     if( result == KErrNone )
         {        
@@ -201,7 +201,18 @@ TBool CDeleteHandler::DoNextDelete()
         {   
         if ( iState == ERetryDelete )
             {
-            iState = EDelete;
+            //next state
+            iState = EDeleteFromSortingTable;
+            more = ETrue;
+            }
+        else if(iState == EDeleteFromSortingTable)
+            {
+            //check sorting table for containers that have been marked for deletion
+            if(!iContainerStore.DeleteFromSortingTable())
+                {
+                //if nor more then set to next state
+                iState = EDelete;
+                }
             more = ETrue;
             }
         else
@@ -214,21 +225,3 @@ TBool CDeleteHandler::DoNextDelete()
     return more;
     
     } // end DoNextDelete
-
-// ==========================================================================
-// FUNCTION: FinishDeletes
-// ==========================================================================
-void CDeleteHandler::FinishDeletes()
-    {
-    if( IsActive() )
-        {
-        Cancel();
-        
-        // Loop until all deletes are done.
-        while( DoNextDelete() )
-            {
-            }        
-        
-        } // end if
-    
-    } // end FinishDeletes

@@ -319,4 +319,5 @@ EXPORTS
 	_ZThn8_N18NmBaseClientPlugin10getActionsERK15NmActionRequestR5QListIP8NmActionE @ 318 NONAME
 	_ZThn8_N18NmBaseClientPluginD0Ev @ 319 NONAME
 	_ZThn8_N18NmBaseClientPluginD1Ev @ 320 NONAME
+	_ZN10NmUiEngine19enableSyncIndicatorEb @ 321 NONAME
 

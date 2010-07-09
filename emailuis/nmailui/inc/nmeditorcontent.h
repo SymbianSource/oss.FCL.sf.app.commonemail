@@ -62,6 +62,7 @@ signals:
 
 public slots:
     void setEditorContentHeight();
+    void setEditorContentWidth();
     void ensureCursorVisibility();
 
 private:
@@ -75,6 +76,7 @@ private:
     HbWidget *mScrollAreaContents; // Not owned
     QPointF mScrollPosition;
     NmApplication &mApplication;
+    bool mNeedForWidthAdjustment;
 };
 
 #endif /* NMEDITORCONTENT_H_ */

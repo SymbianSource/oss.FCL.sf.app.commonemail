@@ -312,4 +312,5 @@ EXPORTS
 	?qt_metacall@NmUiEngine@@UAEHW4Call@QMetaObject@@HPAPAX@Z @ 311 NONAME ; int NmUiEngine::qt_metacall(enum QMetaObject::Call, int, void * *)
 	?message@NmDataManager@@QAEPAVNmMessage@@ABVNmId@@00@Z @ 312 NONAME ; class NmMessage * NmDataManager::message(class NmId const &, class NmId const &, class NmId const &)
 	?metaObject@NmOperation@@UBEPBUQMetaObject@@XZ @ 313 NONAME ; struct QMetaObject const * NmOperation::metaObject(void) const
+	?enableSyncIndicator@NmUiEngine@@QAEX_N@Z @ 314 NONAME ; void NmUiEngine::enableSyncIndicator(bool)
 

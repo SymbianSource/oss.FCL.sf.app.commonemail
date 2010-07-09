@@ -56,7 +56,7 @@ public:
     void refreshMailboxListModel();
 
     NmId getPluginIdByMailboxId(quint32 accountId);
-    
+
     NmMessageListModel &messageListModel(const NmId &mailboxId,
                                          const NmId &folderId);
 
@@ -74,24 +74,24 @@ public:
         const NmId &folderId,
         const NmId &messageId);
 
-    QPointer<NmOperation> fetchMessagePart( 
+    QPointer<NmOperation> fetchMessagePart(
         const NmId &mailboxId,
         const NmId &folderId,
         const NmId &messageId,
         const NmId &messagePartId);
-    
-    QPointer<NmOperation> fetchMessageParts( 
+
+    QPointer<NmOperation> fetchMessageParts(
         const NmId &mailboxId,
         const NmId &folderId,
         const NmId &messageId,
         const QList<NmId> &messagePartIds);
-    
+
     XQSharableFile messagePartFile(
        const NmId &mailboxId,
        const NmId &folderId,
        const NmId &messageId,
        const NmId &messagePartId);
-    
+
     NmMailboxMetaData *mailboxById(const NmId &mailboxId);
 
     int contentToMessagePart(
@@ -131,31 +131,31 @@ public:
     int refreshMailbox(const NmId &mailboxId);
 
     int goOnline(const NmId &mailboxId);
-    
+
     int goOffline(const NmId &mailboxId);
-    
+
     int removeMessage(const NmId &mailboxId,
                       const NmId &folderId,
                       const NmId &messageId);
-    
+
     void removeDraftMessage(NmMessage *message);
-    
+
     void saveDraftMessage(NmMessage *message,
                           const QList<NmOperation*> &preliminaryOperations);
-    
+
     void sendMessage(NmMessage *message,
                      const QList<NmOperation*> &preliminaryOperations);
 
     bool isSendingMessage() const;
 
     const NmMessage *messageBeingSent() const;
-    
+
     QPointer<NmAddAttachmentsOperation> addAttachments(
         const NmMessage &message,
         const QList<QString> &fileList);
-    
+
     QPointer<NmOperation> removeAttachment(
-        const NmMessage &message, 
+        const NmMessage &message,
         const NmId &attachmentPartId);
 
     NmSyncState syncState(const NmId& mailboxId);
@@ -166,11 +166,13 @@ public:
                const QStringList &searchStrings);
 
     int cancelSearch(const NmId &mailboxId);
-    
+
     NmFolderType folderTypeById(NmId mailboxId, NmId folderId);
 
     void updateActiveFolder(const NmId &mailboxId, const NmId &folderId);
-    
+
+    void enableSyncIndicator(bool enabled);
+
 public slots:
 
     void handleCompletedSendOperation();
@@ -189,17 +191,17 @@ private slots:
 
     void handleMessageEvent(NmMessageEvent event,
                             const NmId &folderId,
-                            const QList<NmId> &messageIds, 
+                            const QList<NmId> &messageIds,
                             const NmId& mailboxId);
-    
+
     void handleMailboxEvent(NmMailboxEvent event,
                             const QList<NmId> &mailboxIds);
 
     void handleMatchFound(const NmId &messageId, const NmId &folderId);
-    
+
     void messageEventForListModel(NmMessageEvent event,
                             const NmId &folderId,
-                            const QList<NmId> &messageIds, 
+                            const QList<NmId> &messageIds,
                             const NmId& mailboxId);
 
 

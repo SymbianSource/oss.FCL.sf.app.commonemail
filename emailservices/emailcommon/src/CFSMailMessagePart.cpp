@@ -570,7 +570,7 @@ EXPORT_C void CFSMailMessagePart::RemoveDownLoadedAttachmentsL()
         CleanupClosePushL( ids ); 
         for(TInt i=0;i<attachments.Count();i++)
             {
-            ids.Append(attachments[i]->GetPartId());
+            ids.AppendL(attachments[i]->GetPartId());
             }
         
         // remove attachment fetched contents 
@@ -1382,9 +1382,8 @@ EXPORT_C TInt CFSMailMessagePart::FetchMessagePartL( 	const TFSMailMsgId /*aMess
 	TInt requestId(0);
 	if(CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetPartId()))
 		{
-		
 	    RArray<TFSMailMsgId> messageList;
-    	messageList.Append(GetPartId());
+    	messageList.AppendL(GetPartId());
 		
 	    // init async request
 	    TFSPendingRequest request = iRequestHandler->InitAsyncRequestL(	GetPartId().PluginId(),

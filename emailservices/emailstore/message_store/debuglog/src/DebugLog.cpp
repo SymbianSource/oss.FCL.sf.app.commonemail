@@ -1162,7 +1162,7 @@ CLogFileHandler* CDebugLogTlsData::DoGetLogFileHandler( const TDesC& aDirectory,
     CLogFileHandler* handler = NULL;
     
     // Look for the log file handler for the given directory.
-    TInt  index = 0;
+    TInt index = 0;
     while( index < iFiles.Count() && ( !handler ) )
         {
         CLogFileHandler* currentHandler = iFiles[index];
@@ -1182,7 +1182,7 @@ CLogFileHandler* CDebugLogTlsData::DoGetLogFileHandler( const TDesC& aDirectory,
 
         if( handler )
             {            
-            iFiles.Append( handler );
+            iFiles.AppendL( handler );
             } // end if
         }
     
@@ -1194,11 +1194,11 @@ CLogFileHandler* CDebugLogTlsData::DoGetLogFileHandler( const TDesC& aDirectory,
 		if ( copyOfName )
 		    {       
             copyOfName->Des().Copy( aObject->ClassName8() );
-            handler->iObjectNames.Append( copyOfName );
+            handler->iObjectNames.AppendL( copyOfName );
 			}
 //#endif        
 
-        handler->iObjects.Append( aObject );
+        handler->iObjects.AppendL( aObject );
 	    } // end if
 	    
 	return handler;       
@@ -1212,7 +1212,7 @@ CLogFileHandler* CDebugLogTlsData::DoGetLogFileHandler( const TDesC& aDirectory,
 // ==========================================================================
 void CDebugLogTlsData::DoReleaseLogFileHandler( CLogFileHandler* aHandler, RDebugLog* aObject )
     {
-    TInt index = aHandler->iObjects.Find( aObject );
+    TInt index = aHandler->iObjects.FindL( aObject );
     
     if( index >= 0 )
         {
@@ -1224,9 +1224,8 @@ void CDebugLogTlsData::DoReleaseLogFileHandler( CLogFileHandler* aHandler, RDebu
         
         if( aHandler->iObjects.Count() == 0 )
             {
+            iFiles.Remove( iFiles.Find(aHandler) );
             delete aHandler;
-            
-            iFiles.Remove( iFiles.Find(aHandler) );                        
             } // end if
         }
     else

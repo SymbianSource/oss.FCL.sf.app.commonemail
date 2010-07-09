@@ -221,6 +221,7 @@ void NmApplication::viewReady()
     	NmBaseView *currentView = mViewStack->top();
         if (currentView) {
             currentView->viewReady();
+            emit applicationReady();
         }
     }
 }
@@ -320,6 +321,18 @@ void NmApplication::prepareForPopView()
 }
 
 /*!
+     Hide the application
+*/
+void NmApplication::hideApplication()
+{
+    // Hide the application
+    XQServiceUtil::toBackground(true);
+
+    // hide the sync indicator as well
+    mUiEngine->enableSyncIndicator(false);
+}
+
+/*!
     Pop view from view stack. View object is deleted.
 */
 void NmApplication::popView()
@@ -340,6 +353,13 @@ void NmApplication::popView()
 				}
 	        }
             mBackButtonPressed = false;
+
+            // Move the application to background if closing the message list view
+            if (topViewId == NmUiViewMessageList && mViewStack->size() == 1) {
+                hideApplication();
+                return;
+            }
+
             mViewStack->pop();
             // Call custom exit function.
             view->aboutToExitView();

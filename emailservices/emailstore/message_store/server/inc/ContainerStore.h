@@ -428,6 +428,7 @@ class CContainerStore : public CBase, public MSortingTableObserver, public MEncr
         void CommitDatabaseTransactionL();
         
         const TDesC& PrivatePath();
+        TBool DeleteFromSortingTable();
         
 #ifdef _DEBUG                      
         

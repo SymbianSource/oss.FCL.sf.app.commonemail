@@ -182,7 +182,8 @@ void NmViewerView::loadViewLayout()
                 mHeaderWidget->setView(this);
                 mHeaderWidget->rescaleHeader(mScreenSize);
                 mHeaderWidget->setMessage(mMessage);
-                mHeaderStartScenePos = mHeaderWidget->scenePos();
+                QPointF headerStartPos = mHeaderWidget->scenePos();
+                mHeaderStartScenePos = QPointF(0,headerStartPos.y());
             }
 
             // Load webview
