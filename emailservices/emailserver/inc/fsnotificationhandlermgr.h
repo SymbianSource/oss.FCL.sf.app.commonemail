@@ -73,7 +73,6 @@ public:
      */     
     virtual CFSNotificationHandlerHSConnection* HSConnection() const = 0;
 
-    //<cmail>
     virtual void MessageQueryL( TDesC& aMailboxName,
                                 TRequestStatus& aStatus,
                                 const TDesC& aCustomMessageText,
@@ -82,7 +81,12 @@ public:
     virtual TInt AuthenticateL( TDes& aPassword,
                                 TDesC& aMailboxName, 
                                 TRequestStatus& aStatus ) = 0;
-    //</cmail>
+
+    /**
+     * Gets cached folder type
+     * @param TODO SK 
+     */
+    virtual TFSFolderType GetFolderTypeL( TFSMailMsgId& aMailbox, TFSMailMsgId* parentFolderId ) = 0;
 
     /**
      * Increases the active dialog count.
@@ -118,7 +122,6 @@ public:
     //</cmail>
 
 protected:
-
     };
 
 

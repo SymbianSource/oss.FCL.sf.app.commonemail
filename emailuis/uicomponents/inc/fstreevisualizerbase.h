@@ -654,7 +654,7 @@ private:
          * Leave-safe constructor
          */
         static CDragHandler* NewL(CFsTreeVisualizerBase& aTree, const TInt aHighlightTimeout,
-                const TBitFlagsT<TUint>& aFlags );
+                const TBitFlags& aFlags );
 
         /**
          * Destructor
@@ -711,7 +711,7 @@ private:
         /**
          * Private constructor
          */
-        CDragHandler(CFsTreeVisualizerBase& aTree, const TInt aHighlightTimeout, const TBitFlagsT<TUint>& aFlags);
+        CDragHandler(CFsTreeVisualizerBase& aTree, const TInt aHighlightTimeout, const TBitFlags& aFlags);
 
         /**
          * Leave safe construct.
@@ -726,7 +726,7 @@ private:
     private:
 
         CFsTreeVisualizerBase& iTree;
-        TBitFlagsT<TUint> iFlags;
+        TBitFlags iFlags;
         TTimeIntervalMicroSeconds32 iHighlightTimeout;
         CPeriodic* iHighlightTimer;
         TTime iStartTime;
@@ -734,7 +734,7 @@ private:
         TPoint iLastPointerPosition;
         TPoint iDrag;
         TFsTreeItemId iItemId;
-        const TBitFlagsT<TUint>& iTreeVisualizerFlags;
+        const TBitFlags& iTreeVisualizerFlags;
         TDragDirection iDragDirection;
         };
 
@@ -2358,11 +2358,23 @@ private: //Data members
 		/**
 		 * List is shown in popup mode.
 		 */
-        EPopupMode
+        EPopupMode,
+        
+        /**
+         * Informs tactile feedback that item was added i.e. does not 
+         * play feedback.
+         */
+        EListModelUpdate,
+
+        /**
+         * This flag is checked when trying to focus item. Focus is ignored 
+         * if list is being panned. 
+         */        
+        EListPanning
     };
 
     // Flags
-    TBitFlagsT<TUint> iFlags;
+    TBitFlags iFlags;
 
     // ETrue when the stylus/finger is currently pressed down
     TBool iTouchPressed;

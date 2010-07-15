@@ -2876,3 +2876,8 @@ CHARACTER_SET UTF8
 //
 #define qtn_mail_tb_ext_hide_bcc "Hide Bcc"
 
+// d:Additional information for large Email
+// l:cell_tb_ext_pane_t1/opt1
+// r:TB9.2
+//
+#define qtn_mail_viewer_additional_info "--- Message too long ---"

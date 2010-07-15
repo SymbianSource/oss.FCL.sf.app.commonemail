@@ -988,6 +988,12 @@ RESOURCE AVKON_VIEW r_fsemailui_html_view
     cba = r_freestyle_emauil_ui_sk_options_back;
     }
 
+RESOURCE AVKON_VIEW r_fsemailui_html_view_fullscreen
+    {
+    menubar = r_fsemailui_htmlviewer_menubar;
+    cba = r_freestyle_emauil_ui_sk_options_back_fullscreen;
+    }
+    
 RESOURCE MENU_BAR r_freestyle_emailui_menubar
     {
     titles =
@@ -1047,6 +1053,31 @@ RESOURCE CBA r_freestyle_emauil_ui_sk_options_back
             {
             id = EAknSoftkeyBack;
             txt = text_softkey_back;
+            }
+        };
+    }
+RESOURCE CBA r_freestyle_emauil_ui_sk_options_back_fullscreen
+    {
+    flags = EEikButtonGroupAddToStack | EEikCbaFlagAppMskIcon;
+    buttons =
+        {
+        CBA_BUTTON
+            {
+            id = EAknSoftkeyOptions;
+            txt = text_softkey_option;
+            },
+        CBA_BUTTON
+            {
+            id = EAknSoftkeyBack;
+            txt = text_softkey_back;
+            },
+        CBA_BUTTON
+            {
+            id = EFsEmailUiCmdActionsDelete;
+            // txt = text_softkey_empty;
+            bmpfile = EMAILUI_ICON_FILE;
+            bmpid = EMbmFreestyleemailuiQgn_prop_cmail_action_delete;
+            bmpmask = EMbmFreestyleemailuiQgn_prop_cmail_action_delete_mask;
             }
         };
     }
@@ -1204,6 +1235,7 @@ RESOURCE TBUF r_freestyle_email_ui_viewer_high_prio    { buf=qtn_cmail_header_hi
 RESOURCE TBUF r_freestyle_email_ui_viewer_low_prio    { buf=qtn_cmail_header_low_prio; }
 RESOURCE TBUF r_freestyle_email_ui_images_are_not_displayed    { buf=qtn_cmail_viewer_images_not_displayed; }
 RESOURCE TBUF r_freestyle_email_ui_display_images    { buf=qtn_cmail_viewer_display_images; }
+RESOURCE TBUF r_freestyle_email_ui_view_additional_info	{ buf=qtn_mail_viewer_additional_info; }
 
 // NOTES
 RESOURCE TBUF r_freestyle_email_delete_mail_note				{ buf=qtn_fse_delete_mail_note; }

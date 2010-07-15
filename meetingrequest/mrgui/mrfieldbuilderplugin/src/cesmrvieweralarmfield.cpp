@@ -86,12 +86,12 @@ CESMRViewerAlarmField::CESMRViewerAlarmField()
 void CESMRViewerAlarmField::ConstructL()
     {
     FUNC_LOG;
-    iLabel = CMRLabel::NewL();
-    iLabel->SetParent( this );
+    iLabel = CMRLabel::NewL( this );
     CESMRField::ConstructL( iLabel ); // ownership transfered
 
-    iIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapAlarm );
-    iIcon->SetParent( this );
+    iIcon = CMRImage::NewL(
+            NMRBitmapManager::EMRBitmapAlarm,
+            this );
     }
 
 // ---------------------------------------------------------------------------
@@ -302,8 +302,10 @@ void CESMRViewerAlarmField::LockL()
 
 	delete iLockIcon;
 	iLockIcon = NULL;
-	iLockIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapLockField, ETrue );
-	iLockIcon->SetParent( this );
+	iLockIcon = CMRImage::NewL(
+	        NMRBitmapManager::EMRBitmapLockField,
+	        this,
+	        ETrue );
 	}
 
 // ---------------------------------------------------------------------------

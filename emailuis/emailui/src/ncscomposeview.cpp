@@ -450,6 +450,9 @@ void CNcsComposeView::ChildDoActivateL( const TVwsViewId& aPrevViewId,
         // Simulate a back key to exit embedded app 
         // so that email editor could show on the top level.
         TKeyEvent KeyEvent = TKeyEvent();
+        // this is neccesary for photogalery image viewer (don't remove)
+        KeyEvent.iScanCode = EStdKeyUpArrow;
+        rwsSession.SimulateKeyEvent( KeyEvent );
         KeyEvent.iCode = EKeyCBA2;
         rwsSession.SimulateKeyEvent( KeyEvent );
 
@@ -1407,6 +1410,13 @@ TInt CNcsComposeView::AsyncAddAttachment( TAny* aSelfPtr )
     self->iContainer->SwitchChangeMskOff( ETrue );
     TRAP( error, ok = attachmentControl->AppendAttachmentToListL(
                 self->iAttachmentAddType) );
+
+    if( error == KErrNoMemory )
+    	{
+        TRAP_IGNORE( TFsEmailUiUtility::ShowErrorNoteL( 
+            R_FREESTYLE_EMAIL_ERROR_GENERAL_UNABLE_TO_COMPLETE,
+            ETrue ) );
+    	}
     self->iContainer->SwitchChangeMskOff( EFalse );
     self->iAddingAttachmentDialogOpened = EFalse;
     

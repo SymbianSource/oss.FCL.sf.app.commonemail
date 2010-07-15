@@ -92,12 +92,10 @@ CESMRViewerStopDateField* CESMRViewerStopDateField::NewL()
 //
 void CESMRViewerStopDateField::ConstructL()
     {
-    iLabel = CMRLabel::NewL();
-    iLabel->SetParent( this );
+    iLabel = CMRLabel::NewL( this );
     CESMRField::ConstructL( iLabel ); // ownership transfered
 
-    iIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapDateEnd );
-    iIcon->SetParent( this );
+    iIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapDateEnd, this );
     }
 
 // ---------------------------------------------------------------------------
@@ -291,8 +289,10 @@ void CESMRViewerStopDateField::LockL()
 
 	delete iLockIcon;
 	iLockIcon = NULL;
-	iLockIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapLockField, ETrue );
-	iLockIcon->SetParent( this );
+	iLockIcon = CMRImage::NewL(
+	        NMRBitmapManager::EMRBitmapLockField,
+	        this,
+	        ETrue );
 	}
 
 // ---------------------------------------------------------------------------

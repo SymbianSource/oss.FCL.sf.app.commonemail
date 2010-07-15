@@ -65,6 +65,7 @@ enum TIpsOpType
     EIpsOpTypeImap4SyncOp,
     EIpsOpTypePop3SyncOp,
     EIpsOpTypeOnlineOp,
-    EIpsOpTypeImap4PopulateOp
+    EIpsOpTypeImap4PopulateOp,
+    EIpsOpTypePop3PopulateOp
     };
 #endif /*IPSSOSPLUGIN_HRH_*/

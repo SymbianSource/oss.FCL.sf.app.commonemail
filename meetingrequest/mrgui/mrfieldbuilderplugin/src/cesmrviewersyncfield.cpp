@@ -76,12 +76,12 @@ CESMRViewerSyncField::CESMRViewerSyncField()
 void CESMRViewerSyncField::ConstructL()
     {
     FUNC_LOG;
-    iLabel = CMRLabel::NewL();
-    iLabel->SetParent( this );
+    iLabel = CMRLabel::NewL( this );
     CESMRField::ConstructL( iLabel ); // ownership transfered
 
-    iIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapSynchronization );
-    iIcon->SetParent( this );
+    iIcon = CMRImage::NewL(
+            NMRBitmapManager::EMRBitmapSynchronization,
+            this );
     }
 
 // ---------------------------------------------------------------------------
@@ -264,8 +264,10 @@ void CESMRViewerSyncField::LockL()
 
 	delete iLockIcon;
 	iLockIcon = NULL;
-	iLockIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapLockField, ETrue );
-	iLockIcon->SetParent( this );
+	iLockIcon = CMRImage::NewL(
+	        NMRBitmapManager::EMRBitmapLockField,
+	        this,
+	        ETrue );
 	}
 
 // ---------------------------------------------------------------------------

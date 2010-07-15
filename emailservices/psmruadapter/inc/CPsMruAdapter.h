@@ -111,7 +111,7 @@ class CPsMruAdapter : public CPsDataPlugin, public MFSMailEventObserver
          */
         void DeleayMailboxCreationEventL( TFSMailMsgId &aMailbox );
         
-	private:
+    private:
 
         /**
          * Constructor
@@ -126,18 +126,18 @@ class CPsMruAdapter : public CPsDataPlugin, public MFSMailEventObserver
         
         /**
          * Updates given data store
-         */  	    
+         */         
         TBool FillDataStoreL( TDesC& aDataStoreURI );
         
         /**
          * Updates given data store
-         */  	    	    
+         */                 
         TBool FillDataStoreL( TFSMailMsgId& aId );
         
         /**
          * Updates a list of supported data stores
-         */  	    
-        void UpdateSupportedDataStoresList();	    
+         */         
+        void UpdateSupportedDataStoresList();       
         
         /**
          * Starts observing mailbox
@@ -166,12 +166,12 @@ class CPsMruAdapter : public CPsDataPlugin, public MFSMailEventObserver
         
         /**
         * Updates given data store
-        */  	    	    
-        TBool FillDataStoreL( TFSMailMsgId& aId, TDesC& aDataStoreURI );	    
+        */                  
+        TBool FillDataStoreL( TFSMailMsgId& aId, TDesC& aDataStoreURI );        
         
         /**
         * Calls MDataStoreObserver::AddData for every mru email - used for trapping 
-        */  	    	    
+        */                  
         void AddMruEmailsL( MDesCArray* aMruList, TDesC& aDataStoreURI );
 
     private: // data
@@ -185,12 +185,12 @@ class CPsMruAdapter : public CPsDataPlugin, public MFSMailEventObserver
         /**
         * An observer instance used to send the datastore to the adapter
         */
-        MStoreListObserver* iStoreListObserver;		
-        	
+        MStoreListObserver* iStoreListObserver;     
+            
         /**
         * Supported Uris(data stores)
         */
-        RPointerArray<HBufC> iSupportedUris;	
+        RPointerArray<HBufC> iSupportedUris;    
         
         /**
          * List of mailboxes currently being observed
@@ -212,6 +212,10 @@ class CPsMruAdapter : public CPsDataPlugin, public MFSMailEventObserver
         */
         RArray<TFSMailMsgId> iDelayedCreatedMailboxes;
 
+        TFSMailMsgId  iPreviousMailboxId; 
+        TFSMailMsgId  iPreviousParentFolderId; // not owned
+        /* folder type for a mailbox referenced by iPreviousMailbox and iPreviousParentFolderId */
+        TFSFolderType iPreviousParentFolderType; 
     }; // class CPsMruAdapter
 
 //-----------------------------------------------------------------------------
@@ -236,7 +240,7 @@ class CDelayMailboxCreationHelper : public CTimer
         // d-tor
         virtual ~CDelayMailboxCreationHelper();
         // Start timer to call CPsMruAdapter::DeleayedMailboxCreationEventL by RunL 
-        void StartDelayedCall();	
+        void StartDelayedCall();    
     protected:
         // on timer event - calls CPsMruAdapter::DeleayedMailboxCreationEventL
         virtual void RunL();

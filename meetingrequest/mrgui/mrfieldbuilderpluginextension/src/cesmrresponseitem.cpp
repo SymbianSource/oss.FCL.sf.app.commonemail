@@ -94,7 +94,7 @@ CESMRResponseItem::CESMRResponseItem(TESMRCommand aCmd)
 void CESMRResponseItem::ConstructL( const TDesC& aItemText, TBool aHasIcon )
     {
     FUNC_LOG;
-    iSelectionLabel = CMRLabel::NewL();
+    iSelectionLabel = CMRLabel::NewL( this );
     iSelectionLabel->SetTextL( aItemText );
 
     // Response item might not have icon. e.g. topic line
@@ -299,6 +299,24 @@ void CESMRResponseItem::SizeChanged()
     }
 
 // -----------------------------------------------------------------------------
+// CESMRResponseItem::SetContainerWindowL
+// -----------------------------------------------------------------------------
+//
+void CESMRResponseItem::SetContainerWindowL( const CCoeControl& aContainer )
+    {
+    FUNC_LOG;
+    
+    CCoeControl::SetContainerWindowL( aContainer );
+    
+    TInt count( CountComponentControls() );
+    
+    for ( TInt i = 0; i < count; ++i )
+        {
+        ComponentControl( i )->SetContainerWindowL( *this );
+        }
+    }
+
+// -----------------------------------------------------------------------------
 // CESMRResponseItem::IconL
 // -----------------------------------------------------------------------------
 //
@@ -312,7 +330,7 @@ CMRImage* CESMRResponseItem::IconL( TBool aChecked )
         {
         iconID = NMRBitmapManager::EMRBitmapCheckBoxOn;
         }
-    CMRImage* icon = CMRImage::NewL( iconID );
+    CMRImage* icon = CMRImage::NewL( iconID, this );
     return icon;
     }
 

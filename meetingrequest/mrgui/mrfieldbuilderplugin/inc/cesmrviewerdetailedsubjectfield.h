@@ -81,7 +81,6 @@ public: // From CCoeControl
     TInt CountComponentControls() const;
     CCoeControl* ComponentControl( TInt aInd ) const;
     void SizeChanged();
-    void SetContainerWindowL( const CCoeControl& aContainer );
 
 public: // From MEikEdwinSizeObserver
     TBool HandleEdwinSizeEventL(

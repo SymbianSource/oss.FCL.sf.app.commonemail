@@ -30,11 +30,14 @@
 // ---------------------------------------------------------------------------
 //
 EXPORT_C  CMRButton* CMRButton::NewL(
-             NMRBitmapManager::TMRBitmapId aBitmapId, TScaleMode aScaleMode )
+        NMRBitmapManager::TMRBitmapId aBitmapId,
+        const CCoeControl* aParent,
+        TScaleMode aScaleMode
+        )
     {
     CMRButton* self = new (ELeave) CMRButton( aScaleMode );
     CleanupStack::PushL( self );
-    self->ConstructL( aBitmapId );
+    self->ConstructL( aBitmapId, aParent );
     CleanupStack::Pop( self );
     return self;
     }
@@ -74,7 +77,9 @@ CMRButton::CMRButton( TScaleMode aScaleMode )
 // CMRButton::ConstructL
 // ---------------------------------------------------------------------------
 //
-void CMRButton::ConstructL( NMRBitmapManager::TMRBitmapId aBitmapId )
+void CMRButton::ConstructL(
+        NMRBitmapManager::TMRBitmapId aBitmapId,
+        const CCoeControl* aParent )
     {
     CFbsBitmap* bitMap( NULL );
     CFbsBitmap* bitMapMask( NULL );
@@ -93,6 +98,11 @@ void CMRButton::ConstructL( NMRBitmapManager::TMRBitmapId aBitmapId )
             KNullDesC(), 
             KNullDesC(), 
             KAknButtonNoFrame | KAknButtonPressedDownFrame );
+    
+    if ( aParent )
+        {
+        SetContainerWindowL( *aParent );
+        }
     }
 
 // EOF

@@ -71,8 +71,6 @@ public: // data
     // For bookkeeping
     // id of the mailbox in the message store
     TFSMailMsgId                        iMailboxId;
-    // array of message details objects
-    RPointerArray<CMailMessageDetails>  iMessageDetailsArray;
     // Data
     // mailbox name
     HBufC*                              iMailboxName;

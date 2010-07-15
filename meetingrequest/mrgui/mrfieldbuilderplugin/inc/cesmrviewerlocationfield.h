@@ -75,7 +75,6 @@ NONSHARABLE_CLASS( CESMRViewerLocationField ): public CESMRField,
         TInt CountComponentControls() const;
         CCoeControl* ComponentControl( TInt aInd ) const;
         void SizeChanged();
-        void SetContainerWindowL( const CCoeControl& aContainer );
         void GetCursorLineVerticalPos(TInt& aUpper, TInt& aLower);
 
     protected: // From MEikEdwinSizeObserver

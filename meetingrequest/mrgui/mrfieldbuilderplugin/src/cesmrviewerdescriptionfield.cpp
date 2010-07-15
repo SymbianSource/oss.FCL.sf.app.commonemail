@@ -117,6 +117,7 @@ void CESMRViewerDescriptionField::InternalizeL( MESMRCalEntry& aEntry )
         TPtrC text = aEntry.Entry().DescriptionL();
         iRichTextViewer->SetTextL( &text, ETrue );
         iRichTextViewer->SetMargins( KMargin );
+        iRichTextViewer->ApplyLayoutChangesL();
         }
     iDisableRedraw = ETrue;
     }
@@ -145,17 +146,6 @@ TKeyResponse CESMRViewerDescriptionField::OfferKeyEventL(
             }
         }
     return response;
-    }
-
-// ---------------------------------------------------------------------------
-// CESMRViewerDescriptionField::SetContainerWindowL()
-// ---------------------------------------------------------------------------
-//
-void CESMRViewerDescriptionField::SetContainerWindowL( const CCoeControl& aContainer )
-    {
-    CESMRField::SetContainerWindowL( aContainer );
-    iRichTextViewer->SetContainerWindowL( aContainer );
-    iRichTextViewer->SetParent( this );
     }
 
 // ---------------------------------------------------------------------------
@@ -271,6 +261,11 @@ TBool CESMRViewerDescriptionField::HandleEdwinSizeEventL(CEikEdwin* /*aEdwin*/,
         iObserver->ControlSizeChanged ( this );
         }
 
+    if ( !iOutlineFocus )
+        {
+        RecordField();
+        }
+    
     return iDisableRedraw;
     }
 

@@ -27,53 +27,66 @@ class MESMRFieldStorage;
 class MMRFieldContainerObserver;
 
 // CLASS DECLARATIONS
-NONSHARABLE_CLASS( CMRFieldContainer ) : 
+NONSHARABLE_CLASS( CMRFieldContainer ) :
     public CCoeControl,
     public MESMRListObserver
     {
     public: // Creation and destruction
         /**
          * Static constructor.
-         * 
+         *
          * @return New instance of this class
          */
-        static CMRFieldContainer* NewL( 
-                MESMRFieldStorage& aFactory, 
+        static CMRFieldContainer* NewL(
+                MESMRFieldStorage& aFactory,
                 const CCoeControl& aParent );
         /**
          * Destructor
          */
         ~CMRFieldContainer();
-        
-    public: // Interface
-                 
-         /**
-          * Return focused field.
-          * @return Focused list item or NULL if no focused item
-          */
-         CESMRField* FocusedField() const;
-         
-         /**
-          * Moves focus up one step.
-          * 
-          * @param aHiddenFocus, in case of hidden focus use case, ETrue. 
-          * @return TKeyResponse, if key response was used or not
-          */
-         TKeyResponse MoveFocusUpL( TBool aHiddenFocus );
 
-         /**
-          * Moves focus down one step.
-          * 
-          * @param aHiddenFocus, in case of hidden focus use case, ETrue. 
-          * @return TKeyResponse, if key response was used or not
-          */
-         TKeyResponse MoveFocusDownL( TBool aHiddenFocus );
-         
-         /**
-          * Moves focus visible if it is partly or completely out of
-          * viewable area.
-          */
-         void SetFieldContainerObserver( MMRFieldContainerObserver* aObserver );
+    public: // Interface
+
+        /**
+        * Return focused field.
+        * @return Focused list item or NULL if no focused item
+        */
+        CESMRField* FocusedField() const;
+
+        /**
+        * Moves focus up one step.
+        *
+        * @param aHiddenFocus, in case of hidden focus use case, ETrue.
+        * @return TKeyResponse, if key response was used or not
+        */
+        TKeyResponse MoveFocusUpL( TBool aHiddenFocus );
+
+        /**
+        * Moves focus down one step.
+        *
+        * @param aHiddenFocus, in case of hidden focus use case, ETrue.
+        * @return TKeyResponse, if key response was used or not
+        */
+        TKeyResponse MoveFocusDownL( TBool aHiddenFocus );
+
+        /**
+        * Moves focus visible if it is partly or completely out of
+        * viewable area.
+        */
+        void SetFieldContainerObserver( MMRFieldContainerObserver* aObserver );
+
+        /**
+         * Scrolls field container. This is called by list pane during
+         * kinetic scrolling.
+         * @param aTl new top left corner of the container
+         */
+        void ScrollContainer( const TPoint& aTl );
+
+        /**
+         * Synchronizes field container and visible field positions after
+         * kinetic scrolling.
+         */
+        void Synchronize();
         
     public: // From MESMRListObserver
         void ControlSizeChanged( CESMRField* aField );
@@ -86,15 +99,17 @@ NONSHARABLE_CLASS( CMRFieldContainer ) :
         void ScrollControlVisible( TInt aInd );
         void RePositionFields( TInt aAmount );
         TRect ViewableAreaRect();
-        
+
     public: // From CCoeControl
         TSize MinimumSize();
-        
+
     private: // From CCoeControl
         TInt CountComponentControls() const;
         CCoeControl* ComponentControl( TInt aIndex ) const;
         void SizeChanged();
-        
+        void Draw( const TRect& aRect ) const;
+        void HandlePointerEventL( const TPointerEvent &aPointerEvent );
+
     private: // Implementation
         CMRFieldContainer( MESMRFieldStorage& aFactory );
         void ConstructL( const CCoeControl& aParent );
@@ -103,7 +118,8 @@ NONSHARABLE_CLASS( CMRFieldContainer ) :
         TInt LastVisibleField( TESMREntryFieldId aFieldId );
         void DoSetFocusL( TInt aNewFocusIndex );
         TKeyResponse MoveFocusVisibleL();
-        
+        void SetScrolling( TBool aScrolling );                
+
     private: // Data
         // Own: Informs listapane about needed position changes
         MMRFieldContainerObserver* iObserver;
@@ -111,9 +127,10 @@ NONSHARABLE_CLASS( CMRFieldContainer ) :
         MESMRFieldStorage& iFactory;
         /// Own: Current focus index
         TInt iFocusedFieldIndex;
-
+        /// Own: Flag for kinetic scrolling state
+        TBool iScrolling;
     };
-    
+
 #endif // CMRFIELDCONTAINER_H
 
 // End of file

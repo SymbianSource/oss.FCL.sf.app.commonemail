@@ -78,7 +78,6 @@ protected: // From CCoeControl
     CCoeControl* ComponentControl( TInt aInd ) const;
     void SizeChanged();
     TKeyResponse OfferKeyEventL( const TKeyEvent& aKeyEvent, TEventCode aType );
-    void SetContainerWindowL( const CCoeControl& aControl );
 
 protected: // From MEikEdwinSizeObserver
     TBool HandleEdwinSizeEventL( CEikEdwin* aEdwin, TEdwinSizeEvent aType, TSize aDesirableEdwinSize);
@@ -109,8 +108,6 @@ private: //data
     CMRImage* iLockIcon;
     // Owned. Attachment list.
     CESMRRichTextViewer* iRichTextViewer;
-    // Not owned. CBA.
-    CEikButtonGroupContainer* iButtonGroupContainer;
     // Own. Background control context.
     CAknsBasicBackgroundControlContext* iBgCtrlContext;
     // Attachment count

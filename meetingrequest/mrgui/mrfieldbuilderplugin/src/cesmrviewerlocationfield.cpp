@@ -120,6 +120,7 @@ void CESMRViewerLocationField::InternalizeL( MESMRCalEntry& aEntry )
     else
         {
         iRichTextViewer->SetTextL( &text, ETrue );
+        iRichTextViewer->ApplyLayoutChangesL();
         }
 
     // If the geo value has set, the waypoint icon has to be shown on right
@@ -130,9 +131,10 @@ void CESMRViewerLocationField::InternalizeL( MESMRCalEntry& aEntry )
     	{
     	if( geoValue && geoValue->GetLatLong( dummy, dummy ) )
     		{
-    		iWaypointIcon =
-    		CMRImage::NewL( NMRBitmapManager::EMRBitmapLocationWaypoint, ETrue );
-    		iWaypointIcon->SetParent( this );
+    		iWaypointIcon = CMRImage::NewL(
+    		        NMRBitmapManager::EMRBitmapLocationWaypoint,
+    		        this,
+    		        ETrue );
     		}
     	}
     }
@@ -163,6 +165,7 @@ TBool CESMRViewerLocationField::HandleEdwinSizeEventL( CEikEdwin* aEdwin,
     if ( iObserver && aEdwin == iRichTextViewer )
         {
         iObserver->ControlSizeChanged( this );
+        RecordField();
         reDraw = ETrue;
         }
 
@@ -185,8 +188,9 @@ CESMRViewerLocationField::CESMRViewerLocationField()
 //
 void CESMRViewerLocationField::ConstructL( )
     {
-	iFieldButton = CMRButton::NewL( NMRBitmapManager::EMRBitmapLocation );
-    iFieldButton->SetParent( this );
+	iFieldButton = CMRButton::NewL(
+	        NMRBitmapManager::EMRBitmapLocation,
+	        this );
     iFieldButton->SetObserver(this);
 
     iRichTextViewer = CESMRRichTextViewer::NewL( this );
@@ -277,12 +281,19 @@ void CESMRViewerLocationField::SetWaypointIconL( TBool aEnabled )
 
     if ( aEnabled )
         {
-        iWaypointIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapLocationWaypoint, ETrue );
-        iWaypointIcon->SetParent( this );
+        iWaypointIcon = CMRImage::NewL(
+                NMRBitmapManager::EMRBitmapLocationWaypoint,
+                this,
+                ETrue );
         }
 
     // Relayout
     SizeChanged();
+    
+    if ( !iOutlineFocus )
+        {
+        RecordField();
+        }
     }
 
 // ---------------------------------------------------------------------------
@@ -411,20 +422,6 @@ void CESMRViewerLocationField::SizeChanged( )
     }
 
 // ---------------------------------------------------------------------------
-// CESMRViewerLocationField::SetContainerWindowL
-// ---------------------------------------------------------------------------
-//
-void CESMRViewerLocationField::SetContainerWindowL(
-        const CCoeControl& aContainer )
-    {
-    CCoeControl::SetContainerWindowL( aContainer );
-    iRichTextViewer->SetContainerWindowL( aContainer );
-    iRichTextViewer->SetParent( this );
-    iFieldButton->SetContainerWindowL( aContainer );
-    iFieldButton->SetParent( this );
-    }
-
-// ---------------------------------------------------------------------------
 // CESMRViewerLocationField::HandleLongtapEventL
 // ---------------------------------------------------------------------------
 //
@@ -486,9 +483,11 @@ void CESMRViewerLocationField::LockL()
 
 	delete iWaypointIcon;
 	iWaypointIcon = NULL;
-	iWaypointIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapLockField, ETrue );
+	iWaypointIcon = CMRImage::NewL(
+	        NMRBitmapManager::EMRBitmapLockField,
+	        this,
+	        ETrue );
 
-	iWaypointIcon->SetParent( this );
 	iWaypointIcon->SetObserver( this );
 	}
 

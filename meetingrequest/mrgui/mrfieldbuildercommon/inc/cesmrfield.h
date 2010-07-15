@@ -34,12 +34,12 @@
 
 class MESMRListObserver;
 class MESMRCalEntry;
-class CESMRBorderLayer;
 class CMRBackground;
 class MTouchFeedback;
 class MESMRFieldValidator;
 class CEikMenuPane;
 class MTouchFeedback;
+class CMRRecordingGc;
 
 // Enumeration for border type
 enum TESMRFieldFocusType
@@ -348,6 +348,17 @@ public:
      IMPORT_C virtual TBool SupportsLongTapFunctionalityL(
     		 const TPointerEvent &aPointerEvent );
 
+    /**
+     * Moves field to and away from screen
+     * @param aVisible if ETrue, field is moved to screen
+     */
+    IMPORT_C void MoveToScreen( TBool aVisible );
+
+    /**
+     * Records field drawing commands to custom graphics context
+     */
+    IMPORT_C void RecordField();
+
 protected:
 
     /**
@@ -423,6 +434,7 @@ public: // From base class CCoeControl
     IMPORT_C virtual TInt CountComponentControls() const;
     IMPORT_C virtual CCoeControl* ComponentControl( TInt aInd ) const;
     IMPORT_C virtual TSize MinimumSize();
+    IMPORT_C void Draw( const TRect& aRect ) const;
 
 protected: // From base class CCoeControl
 
@@ -464,11 +476,12 @@ protected:
 
 private:
     void AquireTactileFeedback();
+    void DrawControl( CCoeControl* aControl ) const;
 
 protected: // data
     /// Own: control which is surrounded by border
     CCoeControl* iExtControl;
-    /// Ref: Observer for notifying list component
+    /// Ref: Observer for notifying field container
     MESMRListObserver* iObserver;
     /// Ref: Id for this field.
     TESMREntryFieldId iFieldId;
@@ -504,6 +517,8 @@ protected: // data
     MESMRFieldValidator* iValidator;
     /// Own: lock status
     TBool iLocked;
+    /// Own: Cache for drawing commands
+    CMRRecordingGc* iRecordingGc;
     };
 
-#endif
+#endif // CESMRFIELD_H

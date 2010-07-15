@@ -57,8 +57,7 @@ public: // From CCoeControl
     TInt CountComponentControls() const;
     CCoeControl* ComponentControl( TInt aIndex ) const;
     void SizeChanged();
-    void SetContainerWindowL( const CCoeControl& aContainer );
-
+    
 private:
     /**
      * Constructor.

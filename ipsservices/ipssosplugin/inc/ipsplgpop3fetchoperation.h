@@ -68,6 +68,11 @@ class CIpsPlgPop3FetchOperation :
         */
         virtual TFSProgress GetFSProgressL() const;
         
+        /**
+        *
+        */
+        virtual TInt IpsOpType() const;
+        
     protected:
 
         /**

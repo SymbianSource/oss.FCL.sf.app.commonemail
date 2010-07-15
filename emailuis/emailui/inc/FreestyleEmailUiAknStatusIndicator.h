@@ -42,9 +42,11 @@ public:
     void ShowIndicatorL( CFbsBitmap* aBitmap, 
                          CFbsBitmap* aMaskBitmap,
                          TDesC* aText,
-                         TInt aDuration );
+                         TInt aDuration,
+                         const TBool aAnimate = EFalse );
 
     void HideIndicator( TInt aDelayBeforeHidingInMs = 0 );
+    void StartTimer( const TInt aTimeOut );
     
     // The ownship of aText is transferred in.
     void SetTextL( TDesC* aText );
@@ -77,10 +79,16 @@ protected:
     void TimerEventL( CFSEmailUiGenericTimer* aTriggeredTimer );
 
 private:
+    TRect ImageRect( const TRect& aRect ) const;
+    TRect TextRect( const TRect& aRect ) const;
     void CalculateLayout( const TRect& aRect ) const;
     
     void SetTextFont() const;
     void CalculateVisualText() const;
+
+    TRgb BackgroundColor() const;
+    TRgb BorderColor() const;
+    TRgb FontColor() const;
 
     void DrawBoundary( const TRect& aRect ) const;
     void DrawImage( const TRect& aRect ) const;
@@ -104,6 +112,11 @@ private:
     
     mutable HBufC*              iVisualText;
     mutable CFont*              iTextFont;
+    mutable TInt                iVisualTextWidth;            
+    
+    TInt iHideTimeout;
+    TInt iAngle;
+    TBool iAnimate;
     };
 
 #endif // __FREESTYLEEMAILUI_AKN_STATUS_INDICATOR_H__

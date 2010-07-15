@@ -12,7 +12,7 @@
 * Contributors:
 *
 *  Description : CEikRichTextEditor based Rich Text viewer
-*  Version     : %version: e002sa32#42.1.2 %
+*  Version     : %version: e002sa33#45.3 %
 *
 */
 
@@ -333,7 +333,6 @@ void CESMRRichTextViewer::HandlePointerEventL( const TPointerEvent& aPointerEven
         switch ( aPointerEvent.iType )
             {
             case TPointerEvent::EButton1Down:
-            case TPointerEvent::EDrag:
                 {
                 RRegion linkArea;
                 CleanupClosePushL( linkArea );
@@ -352,6 +351,7 @@ void CESMRRichTextViewer::HandlePointerEventL( const TPointerEvent& aPointerEven
                             {
                             iCntMenuHdlr->Reset();
                             iCntMenuHdlr->SetContactMenuObserver( this );
+
                             HighlightLinkL( *link );
                             DrawDeferred();
                             }
@@ -395,7 +395,7 @@ void CESMRRichTextViewer::HandlePointerEventL( const TPointerEvent& aPointerEven
                 }
             }
 
-        if ( !linkFound )
+        if ( !linkFound && TPointerEvent::EDrag != aPointerEvent.iType )
             {
             // Tap on plain text
             TextView()->ClearSelectionL();
@@ -924,10 +924,18 @@ void CESMRRichTextViewer::SearchLinksL(const TDesC& aText )
                 {
                 type = CESMRRichTextLink::ETypePhoneNumber;
 
-                // Remove unsupported characters from phone number
+                // patch the symbian level error , 10.120.22.141 this kind of url should not 
+                // be recognized to be a phone number.
                 TPtr phonePtr = valueBuf->Des ( );
-                CommonPhoneParser::ParsePhoneNumber (phonePtr,
-                        CommonPhoneParser::EContactCardNumber );
+                if( phonePtr.Find(_L(".")) == KErrNotFound )
+                	{
+                     CommonPhoneParser::ParsePhoneNumber (phonePtr,
+                       CommonPhoneParser::EContactCardNumber );
+                	}
+                else
+                	{
+                    type = (CESMRRichTextLink::TType) -1 ;
+                    }
                 break;
                 }
             case CFindItemEngine::EFindItemSearchURLBin:
@@ -1106,12 +1114,12 @@ void CESMRRichTextViewer::ContactActionQueryComplete()
     if ( iOpenActionMenu )
         {
         // Activate link as actions have been discovered
+        iOpenActionMenu = EFalse;
         TRAP_IGNORE(  LinkSelectedL() );
         }
 
     // Reset menu observer
-    iCntMenuHdlr->SetContactMenuObserver( NULL );
-    iOpenActionMenu = EFalse;
+    iCntMenuHdlr->SetContactMenuObserver( NULL );    
     }
 
 // -----------------------------------------------------------------------------
@@ -1121,8 +1129,11 @@ void CESMRRichTextViewer::ContactActionQueryComplete()
 void CESMRRichTextViewer::ShowContextMenuL()
     {
     FUNC_LOG;
-    iOpenActionMenu = EFalse;
-    ProcessCommandL( EAknSoftkeyContextOptions );
+    
+    if ( !iOpenActionMenu )
+        {
+        ProcessCommandL( EAknSoftkeyContextOptions );
+        }
     }
 
 // -----------------------------------------------------------------------------
@@ -1154,15 +1165,8 @@ void CESMRRichTextViewer::GetLinkAreaL(
                 CFont::TMeasureTextInput::EFVisualOrder );
 
         TPoint tl( posInfo.iEdge );
-
-        if ( AknLayoutUtils::LayoutMirrored() )
-            {
-            // move top left x to end of text
-			// will be handled further, if all mr fields need to be changed the order from right to left.
-            //tl.iX -= textWidth;
-            }
-
         tl.iY -= iFont->FontMaxAscent();
+
         TPoint br( tl.iX + textWidth, tl.iY + iFont->FontMaxHeight() );
 
         TRect rect( Rect() );

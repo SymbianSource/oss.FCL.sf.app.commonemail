@@ -78,13 +78,11 @@ CESMRViewerPriorityField::CESMRViewerPriorityField()
 void CESMRViewerPriorityField::ConstructL()
     {
     FUNC_LOG;
-    iLabel = CMRLabel::NewL();
-    iLabel->SetParent( this );
+    iLabel = CMRLabel::NewL( this );
     CESMRField::ConstructL( iLabel ); // ownership transfered
 
-    iIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapPriorityNormal );
-    iIcon->SetParent( this );
-
+    iIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapPriorityNormal, this );
+    
     HBufC* priorityText = StringLoader::LoadLC(
                         R_QTN_CALENDAR_MEETING_OPT_PRIORITY_NORMAL,
                         iEikonEnv );
@@ -163,9 +161,8 @@ void CESMRViewerPriorityField::InternalizeL( MESMRCalEntry& aEntry )
 
         delete iIcon;
         iIcon = NULL;
-        iIcon = CMRImage::NewL( bitmapId );
-        iIcon->SetParent( this );
-
+        iIcon = CMRImage::NewL( bitmapId, this );
+        
         // This needs to be called so icon will be redrawn
         SizeChanged();
         }
@@ -291,8 +288,10 @@ void CESMRViewerPriorityField::LockL()
 
 	delete iLockIcon;
 	iLockIcon = NULL;
-	iLockIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapLockField, ETrue );
-	iLockIcon->SetParent( this );
+	iLockIcon = CMRImage::NewL(
+	        NMRBitmapManager::EMRBitmapLockField,
+	        this,
+	        ETrue );
 	}
 
 // ---------------------------------------------------------------------------

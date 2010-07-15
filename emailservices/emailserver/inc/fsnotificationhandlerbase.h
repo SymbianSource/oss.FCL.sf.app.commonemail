@@ -29,7 +29,77 @@ class CFSMailFolder;
 class CFSMailMessage;
 class MFSNotificationHandlerMgr;
 class CFSNotificationHandlerHSConnection;
+class TFSMailMsgId;
 
+
+class TNewMailInfo
+    {
+public:
+    inline TNewMailInfo( TFSMailMsgId aMsgId, 
+                         TFSMailMsgId aMailBoxId,
+                         TFSMailMsgId aParentFolderId) 
+    : iMsgId( aMsgId ), iMailBox( aMailBoxId ), iParentFolderId( aParentFolderId)
+    { }
+    
+    TFSMailMsgId iMsgId;
+    TFSMailMsgId iMailBox;
+    TFSMailMsgId iParentFolderId;
+    };
+
+class MFSTimerObserver
+    {
+    public:
+
+    /**
+     * TODO document me
+     */
+     virtual void TimerExpiredL() = 0;
+
+     };
+
+class CNewMailNotificationTimer : public CTimer
+    {
+public:
+
+    static CNewMailNotificationTimer* NewL(
+            MFSTimerObserver& aObserver );
+    static CNewMailNotificationTimer* NewLC(
+            MFSTimerObserver& aObserver );
+
+    /**
+     * Destructor.
+     */
+    virtual ~CNewMailNotificationTimer();
+
+
+protected:
+  
+    /**
+     * Constructor.
+     *
+     * @since S60 ?S60_version
+     * @param aObserver Observer of this timer.
+     */ 
+    CNewMailNotificationTimer(
+            MFSTimerObserver& aObserver );
+    void ConstructL();
+
+// from base class CActive
+    virtual void DoCancel();
+    virtual void RunL();
+
+private:
+
+
+            
+private: // data
+
+    /**
+     * Observer and user of this timer.
+     */    
+    MFSTimerObserver& iObserver;
+
+    };
 
 /**
  *  A base class for notification handlers that need timer services.
@@ -41,7 +111,7 @@ class CFSNotificationHandlerHSConnection;
  *  @lib ?library
  *  @since S60 ?S60_version *** for example, S60 v3.0
  */
-class CFSNotificationHandlerBase : public CBase, public MFSMailEventObserver
+class CFSNotificationHandlerBase : public CBase, public MFSMailEventObserver, public MFSTimerObserver
     {
 public:
     
@@ -133,7 +203,7 @@ protected:
     *         messages was found among the identified messages.
     */
     virtual TBool MessagesCauseNotificationL( TFSMailMsgId aMailboxId,
-                                              CFSMailFolder& aParentFolder,
+                                              TFSMailMsgId aParentFolderId,
                                               const RArray<TFSMailMsgId>& aMsgIdList );
     
 
@@ -234,6 +304,9 @@ private:
      */  
     virtual void TurnNotificationOff() = 0;
     
+// from TODO
+    virtual void TimerExpiredL();
+    
 protected: // data
 
     /**
@@ -253,6 +326,10 @@ private: // data
     
     // Destructor key for the ECOM plugin
     TUid                               iDestructorKey;
+    
+    RArray<TNewMailInfo> iNewInboxEntries;
+    
+    CNewMailNotificationTimer* iTimer;
     };
 
 #include "fsnotificationhandlerbase.inl"

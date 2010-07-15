@@ -246,8 +246,10 @@ void CMRUnifiedEditorField::LockL()
 
 	delete iLockIcon;
 	iLockIcon = NULL;
-	iLockIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapLockField, ETrue );
-	iLockIcon->SetParent( this );
+	iLockIcon = CMRImage::NewL(
+	        NMRBitmapManager::EMRBitmapLockField,
+	        this,
+	        ETrue );
 	}
 
 // ---------------------------------------------------------------------------
@@ -288,18 +290,15 @@ CMRUnifiedEditorField::CMRUnifiedEditorField( ) :
 void CMRUnifiedEditorField::ConstructL( )
     {
     FUNC_LOG;
-    iType = CMRLabel::NewL();
+    iType = CMRLabel::NewL( this );
     CESMRField::ConstructL( iType );
     iType->SetTextL( KNullDesC() );
 
-    TGulAlignment align;
-    align.SetHAlignment( EHLeft );
-    align.SetVAlignment( EVCenter );
-    iType->SetAlignment( align );
-
     // An icon is required for layouting the field. Actual correct icon
     // is set after InternalizeL.
-    iIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapEventTypeMeeting );
+    iIcon = CMRImage::NewL(
+            NMRBitmapManager::EMRBitmapEventTypeMeeting,
+            this );
     }
 
 // ---------------------------------------------------------------------------
@@ -485,7 +484,7 @@ void CMRUnifiedEditorField::SetIconL( MESMRCalEntry& aEntry )
 
     delete iIcon;
     iIcon = NULL;
-    iIcon = CMRImage::NewL( bitmapId );
+    iIcon = CMRImage::NewL( bitmapId, this );
     }
 
 // EOF

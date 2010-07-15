@@ -35,11 +35,13 @@ public:
      * Two-phased constructor.
      *
      * @param aBitmapId
+     * @param aParent parent control
      * @param aScaleMode 
      * @return Pointer to created and initialized mr image object.
      */
     IMPORT_C static CMRImage* NewL(
             NMRBitmapManager::TMRBitmapId aBitmapId,
+            const CCoeControl* aParent = NULL,
             TBool aIsMaskIcon = EFalse,
             TScaleMode aScaleMode = EAspectRatioPreserved
             );
@@ -56,7 +58,10 @@ private:
     * C++ default constructor
     */
    CMRImage( TScaleMode aScaleMode );
-   void ConstructL( NMRBitmapManager::TMRBitmapId aBitmapId, TBool aIsMaskIcon );
+   void ConstructL(
+           NMRBitmapManager::TMRBitmapId aBitmapId,
+           const CCoeControl* aParent,
+           TBool aIsMaskIcon );
    void CreateIconL( NMRBitmapManager::TMRBitmapId aBitmapId );
    void CreateMaskIconL( NMRBitmapManager::TMRBitmapId aBitmapId );
     

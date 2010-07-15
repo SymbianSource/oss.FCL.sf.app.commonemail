@@ -99,7 +99,11 @@ public:
     virtual TInt AuthenticateL( TDes& aPassword,
                                 TDesC& aMailboxName,
                                 TRequestStatus& aStatus  );
-    //</cmail>
+
+    /**
+     * @see MFSNotificationHandlerMgr::GetFolderType
+     */
+    virtual TFSFolderType GetFolderTypeL( TFSMailMsgId& aMailbox, TFSMailMsgId* parentFolderId );
 
     /**
      * @see MFSNotificationHandlerMgr::IncreaseDialogCount
@@ -171,7 +175,7 @@ private:
     */
     void CreateAndStoreHandlerL( TInt aImplementationUid );
 
-	void CleanTempFilesIfNeededL();
+    void CleanTempFilesIfNeededL();
 
 private: // data
 
@@ -209,6 +213,10 @@ private: // data
      */
     TInt iDialogCount;
 
+    // for caching of parent folder type
+    TFSMailMsgId  iPreviousMailbox;
+    TFSMailMsgId  iPreviousParentFolderId;
+    TFSFolderType iPreviousParentFolderType;
     };
 
 #endif // C_FSNOTIFICATIONHANDLERMGRIMPL_H

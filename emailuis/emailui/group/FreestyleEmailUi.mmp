@@ -30,7 +30,7 @@ VENDORID        VID_DEFAULT
 CAPABILITY      CAP_APPLICATION NetworkControl SwEvent
 
 UID             0x0 0x2001E277
-EPOCHEAPSIZE    0x5000 0x800000
+EPOCHEAPSIZE    0x5000 0x2000000
 EPOCSTACKSIZE   0x13880
 
 VERSION         KEmailBinaryVersionNumber
@@ -220,3 +220,4 @@ LIBRARY MsgEditorModel.lib
 LIBRARY touchfeedback.lib
 LIBRARY ccaclient.lib
 LIBRARY pbk2rclengine.lib
+LIBRARY memman.lib

@@ -12,7 +12,7 @@
 * Contributors:
 *
  *  Description : ESMR location field implementation
- *  Version     : %version: e002sa32#53.1.2 %
+ *  Version     : %version: e002sa32#53.1.3 %
  *
  */
 
@@ -410,8 +410,9 @@ void CESMRLocationField::SetWaypointIconL( TBool aEnabled )
     if ( aEnabled )
         {
         iWaypointIcon = CMRImage::NewL(
-                NMRBitmapManager::EMRBitmapLocationWaypoint, ETrue );
-        iWaypointIcon->SetParent( this );
+                NMRBitmapManager::EMRBitmapLocationWaypoint,
+                this,
+                ETrue );
         }
 
     SizeChanged();

@@ -1019,6 +1019,16 @@ public: // Methods
       * @param aMailboxName new name for the mailbox
       */
     virtual void SetMailboxName(const TFSMailMsgId& aMailboxId, const TDesC& aMailboxName ) = 0;
+    
+    /**
+     * Prepares and sets the MR description by converting HTML body to Plain text
+     *
+     * @param aMailboxId mailbox id
+     * @param aMessageId message id
+     */     
+    virtual void PrepareMrDescriptionL( const TFSMailMsgId& /*aMailBoxId*/,
+                                        const TFSMailMsgId& /*aMessageId*/ )
+                                        { return; };
 
 protected:
 

@@ -378,5 +378,14 @@ TFSProgress CIpsPlgPop3FetchOperation::GetFSProgressL() const
     return result;
     }
 
+// ----------------------------------------------------------------------------
+// CIpsPlgPop3FetchOperation::IpsOpType()
+// ----------------------------------------------------------------------------
+// 
+TInt CIpsPlgPop3FetchOperation::IpsOpType() const
+    {
+    FUNC_LOG;
+    return EIpsOpTypePop3PopulateOp;
+    }
 // EOF
 

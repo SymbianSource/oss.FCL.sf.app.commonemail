@@ -143,6 +143,11 @@ NONSHARABLE_CLASS( CMRListPane ) :
          * after list pane construction.
          */
         void ReActivateL();
+        
+        /**
+         * Records drawing commands of the visible fields 
+         */
+        void RecordFields();
 
     public: // MMRFieldContainerObserver
         void ScrollFieldsUp( TInt aPx );
@@ -184,6 +189,7 @@ NONSHARABLE_CLASS( CMRListPane ) :
         void ForwardReceivedPointerEventsToChildrenL();
         void HandleTactileFeedback( const TTouchLogicalFeedback& aType );
         TBool FeedbackScrollMarginExceeded( TInt aMargin );
+        void UpdatePosition();
 
     private: // Data
         /// Ref: Storage for list items.
@@ -216,6 +222,12 @@ NONSHARABLE_CLASS( CMRListPane ) :
         TInt iPreviousVerticalScrollIndex;
         /// Own: This records default field height for tactile feedback during scroll
         TInt iDefaultFieldHeight;
+        /// Own: Flag to determine if pointer event is being processed
+        TBool iPointerEventInProgress;
+        /// Own: Flag to determine if position is being changed
+        TBool iPositionChanged;
+        /// Own: Updated field container position
+        TPoint iUpdatedPanePoint;
     };
 
 #endif // CMRLISTPANE_H

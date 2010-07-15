@@ -425,11 +425,23 @@ void CIpsPlgImap4PopulateOp::DoPopulateL( )
                 *iTempSelection, param, this->iStatus);
         iState = EStateInfoEntryChange;
         SetActive();
+        
+        if ( iEventHandler )
+              {
+              iEventHandler->SetNewPropertyEvent( 
+                      iService, KIpsSosEmailSyncStarted, KErrNone );
+              } 
         }
     else
         {
         iState = EStateIdle;
         CompleteObserver();
+        
+        if ( iEventHandler )
+            {
+            iEventHandler->SetNewPropertyEvent( 
+                iService, KIpsSosEmailSyncCompleted, KErrNone );
+            }               
         }
     }
 

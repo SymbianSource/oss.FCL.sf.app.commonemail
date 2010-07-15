@@ -47,6 +47,7 @@ enum TFSMsgFlag
     EFSMsgFlag_OnlyToMe = 2048,          // The message was sent only to this user
     EFSMsgFlag_RemoteDeleted = 4096,     // The message has been deleted on the server
     EFSMsgFlag_HasMsgSender = 8192,      // The message has one or more senders 
+    EFSMsgFlag_BodyTruncated = 16384,    // The message body has exceeded the maximum size and was truncated 
     };
 
 /** email list sorting options */  

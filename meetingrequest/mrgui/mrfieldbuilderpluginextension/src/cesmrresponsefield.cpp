@@ -97,9 +97,12 @@ void CESMRResponseField::ConstructL()
     {
     FUNC_LOG;
 
+    CESMRField::ConstructL( NULL );
+
     // Add pls resopond item to this field.
     CESMRResponseItem* responseItem =
         CESMRResponseItem::NewLC( EESMRCmdUndefined, KNullDesC, EFalse );
+    responseItem->SetContainerWindowL( *this );
     iResponseItemArray.AppendL( responseItem );
     CleanupStack::Pop( responseItem );
     }
@@ -147,26 +150,23 @@ void CESMRResponseField::SizeChanged()
     TInt count( iResponseItemArray.Count() );
     TRect parentRect( Rect() );
     TRect rect;
-    for( TInt i = 1; i <= count; ++i )
+    for( TInt i = 0; i < count; ++i )
         {
         TAknLayoutRect choiceLayoutRect =
-            NMRLayoutManager::GetFieldRowLayoutRect( parentRect, i );
+            NMRLayoutManager::GetFieldRowLayoutRect( parentRect, i + 1 );
         rect = parentRect;
         // Move the row down then it will be drawn to correct position.
         // controlIndex+1 tells the fields index.
         TInt movement = choiceLayoutRect.Rect().Height();
-        rect.Move( 0, movement * ( i - 1 ) );
+        rect.Move( 0, movement * i );
 
         TInt leftMargin = choiceLayoutRect.Rect().iTl.iX;
         TInt rightMargin = choiceLayoutRect.Rect().iBr.iX;
-        if ( AknLayoutUtils::LayoutMirrored() )
-            {
-            leftMargin -= parentRect.iTl.iX;
-            rightMargin -= parentRect.iTl.iX;
-            }
+        leftMargin -= parentRect.iTl.iX;
+        rightMargin -= parentRect.iTl.iX;
 
         AknLayoutUtils::LayoutControl(
-                ControlItem( i - 1 ),
+                ComponentControl( i ),
                 rect,
                 choiceLayoutRect.Color().Value(),
                 leftMargin,
@@ -176,6 +176,7 @@ void CESMRResponseField::SizeChanged()
                 choiceLayoutRect.Rect().Width(),
                 choiceLayoutRect.Rect().Height() );
         }
+    RecordField();
     }
 
 // -----------------------------------------------------------------------------
@@ -301,6 +302,7 @@ void CESMRResponseField::InternalizeL( MESMRCalEntry& aEntry )
         // Construct the item to show conflicts info, and insert it to the beginning of array
         CESMRResponseItem* conflictItem =
             CESMRResponseItem::NewLC( EESMRCmdUndefined, KNullDesC, EFalse );
+        conflictItem->SetContainerWindowL( *this );
         iResponseItemArray.Insert( conflictItem, 0 );
         CleanupStack::Pop( conflictItem );
 
@@ -687,21 +689,6 @@ TBool CESMRResponseField::HandleTapEventL( const TPoint& aPosition )
         }
 
     return handled;
-    }
-
-// -----------------------------------------------------------------------------
-// CESMRResponseField::ControlItem
-// -----------------------------------------------------------------------------
-//
-CCoeControl* CESMRResponseField::ControlItem( TInt aIndex )
-    {
-    CCoeControl* control = NULL;
-    if( aIndex < iResponseItemArray.Count() )
-        {
-        control = static_cast<CCoeControl*>( iResponseItemArray[aIndex] );
-        }
-
-    return control;
     }
 
 // EOF

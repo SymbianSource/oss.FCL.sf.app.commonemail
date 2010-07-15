@@ -63,11 +63,12 @@
 #include "FSDelayedLoader.h"
 #include "FreestyleMessageHeaderURL.h"
 #include "FreestyleEmailUiAknStatusIndicator.h"
-#include <akntoolbar.h>
 
-CFsEmailUiHtmlViewerView* CFsEmailUiHtmlViewerView::NewL( 
+#include <eiksoftkeyimage.h>
+
+CFsEmailUiHtmlViewerView* CFsEmailUiHtmlViewerView::NewL(
     CAlfEnv& aEnv,
-    CFreestyleEmailUiAppUi& aAppUi, 
+    CFreestyleEmailUiAppUi& aAppUi,
     CAlfControlGroup& aControlGroup )
     {
     FUNC_LOG;
@@ -79,7 +80,7 @@ CFsEmailUiHtmlViewerView* CFsEmailUiHtmlViewerView::NewL(
     }
 
 CFsEmailUiHtmlViewerView::CFsEmailUiHtmlViewerView( CAlfEnv& aEnv,
-        CFreestyleEmailUiAppUi& aAppUi, 
+        CFreestyleEmailUiAppUi& aAppUi,
         CAlfControlGroup& aControlGroup )
         : CFsEmailUiViewBase( aControlGroup, aAppUi ),
         iEnv( aEnv )
@@ -96,14 +97,12 @@ CFsEmailUiHtmlViewerView::~CFsEmailUiHtmlViewerView()
         iAppUi.DownloadInfoMediator()->StopObserving( this, iMessage->GetMessageId() );
         }
 
-    // <cmail>
     if ( iContainer )
         {
         iContainer->PrepareForExit();
         }
 
     delete iNewMailTempAddress;
-    // </cmail>
     if ( iContainer )
         {
         iContainer->CancelFetch();
@@ -116,8 +115,8 @@ CFsEmailUiHtmlViewerView::~CFsEmailUiHtmlViewerView()
     delete iEmbeddedMessages;
     iEmbeddedMessages = NULL;
     iMessage = NULL;
-    
-    delete iMailBox; 
+
+    delete iMailBox;
     iMailBox = NULL;
     delete iAsyncCallback;
     }
@@ -125,11 +124,11 @@ CFsEmailUiHtmlViewerView::~CFsEmailUiHtmlViewerView()
 void CFsEmailUiHtmlViewerView::ConstructL()
     {
     FUNC_LOG;
-    BaseConstructL( R_FSEMAILUI_HTML_VIEW );
+    BaseConstructL( R_FSEMAILUI_HTML_VIEW_FULLSCREEN );
     iAsyncCallback = new (ELeave) CAsyncCallBack( CActive::EPriorityLow );
     iOpenMessages = new (ELeave) CStack<CFSMailMessage, ETrue>();
     iEmbeddedMessages = new (ELeave) CStack<CFSMailMessage, EFalse>();
-    iNextOrPrevMessageSelected = EFalse; 
+    iNextOrPrevMessageSelected = EFalse;
     iForwardingMessage = EFalse;
     iMessageIsDeleted = EFalse;
     }
@@ -223,7 +222,7 @@ void CFsEmailUiHtmlViewerView::HandleCommandL( TInt aCommand )
                         CleanupStack::PushL( handler );
                         handler->HandleUrlStandaloneL();
                         CleanupStack::PopAndDestroy( handler );
-                        CleanupStack::PopAndDestroy( url );                                     
+                        CleanupStack::PopAndDestroy( url );
                         }
                     break;
                     case TBrCtlDefs::EElementNone:
@@ -318,7 +317,7 @@ void CFsEmailUiHtmlViewerView::HandleCommandL( TInt aCommand )
                     params.iMailBoxId = iMessage->GetMailBoxId();
                     params.iFolderId = iMessage->GetFolderId();
                     params.iMessageId = iMessage->GetMessageId();
-                    
+
                     // use package buffer to pass the params
                     TPckgBuf<TAttachmentListActivationData> buf( params );
                     TUid emptyCustomMessageId = { 0 };
@@ -364,12 +363,12 @@ void CFsEmailUiHtmlViewerView::HandleCommandL( TInt aCommand )
                  {
                  if ( iMessage )
                      {
-                     
+
                      if ( iActivationData.iEmbeddedMessageMode )
                          {
                          iCreateNewMsgFromEmbeddedMsg = ETrue;
                          }
-                     
+
                      HBufC* mailAddress=iMessage->GetSender()->GetEmailAddress().AllocLC();
                      delete iNewMailTempAddress;
                      iNewMailTempAddress = NULL;
@@ -392,7 +391,7 @@ void CFsEmailUiHtmlViewerView::HandleCommandL( TInt aCommand )
             break;
             }
         }
-    TIMESTAMP( "Html viewer selected operation done" );    
+    TIMESTAMP( "Html viewer selected operation done" );
     }
 
 // ---------------------------------------------------------------------------
@@ -477,13 +476,13 @@ void CFsEmailUiHtmlViewerView::ChildDoActivateL( const TVwsViewId& aPrevViewId,
 
     TBool msgBodyStructurePresent ( EFalse );
     TBool msgBodyContentPresent ( EFalse );
-    
+
     if( aCustomMessageId != KHtmlViewerReturnToPrevious)
      {
      ViewEntered( aPrevViewId );
      }
 
-    if ( iMrObserverToInform && 
+    if ( iMrObserverToInform &&
          aCustomMessageId == KStartViewerReturnToPreviousMsg )
         {
         // If returning from view launched by MRUI, complete the ongoing
@@ -515,7 +514,7 @@ void CFsEmailUiHtmlViewerView::ChildDoActivateL( const TVwsViewId& aPrevViewId,
         }
 
     CleanupClosePushL( iActivationData.iFile );
-    
+
     if ( !iMessage && iContainer )
         {
         iContainer->ResetContent();
@@ -523,14 +522,14 @@ void CFsEmailUiHtmlViewerView::ChildDoActivateL( const TVwsViewId& aPrevViewId,
         iContainer->CancelFetch();
         iContainer->ClearCacheAndLoadEmptyContent();
         }
-    
+
     if ( !iContainer )
         {
         iContainer = CFsEmailUiHtmlViewerContainer::NewL( iAppUi, *this );
         }
-   
+
     // Check whether this activation is actually for a meeting request
-    TBool openedInMrViewer( EFalse );    
+    TBool openedInMrViewer( EFalse );
     if ( THtmlViewerActivationData::EMailMessage == iActivationData.iActivationDataType )
         {
         openedInMrViewer = IsOpenedInMRViewerL();
@@ -539,25 +538,25 @@ void CFsEmailUiHtmlViewerView::ChildDoActivateL( const TVwsViewId& aPrevViewId,
     if ( openedInMrViewer )
         {
         // The previous contents are cleared (otherwise they are shown just
-        // before the meeting request viewer kicks in, especially annoying 
+        // before the meeting request viewer kicks in, especially annoying
         // when navigating between prev/next meeting requests by using navi
         // decorator array buttons.
         iContainer->ClearCacheAndLoadEmptyContent();
         ClearMailViewer();
         }
-    
+
     ShowContainerL();
-        
+
     switch ( iActivationData.iActivationDataType )
         {
         case THtmlViewerActivationData::EMailMessage:
             {
-                
+
             if ( iMessage && iAppUi.DownloadInfoMediator() )
                 {
                 iAppUi.DownloadInfoMediator()->StopObserving( this, iMessage->GetMessageId() );
                 }
-            
+
             //clean message stack which owns object iMessage
             EraseMessageStack();
             iMessage = NULL;
@@ -566,14 +565,12 @@ void CFsEmailUiHtmlViewerView::ChildDoActivateL( const TVwsViewId& aPrevViewId,
             iActivationData.iFolderId,
             iActivationData.iMessageId,
             EFSMsgDataEnvelope  );
-            
-            UpdateToolbarL();
 
             if ( iMessage && iAppUi.DownloadInfoMediator() )
                 {
                 iAppUi.DownloadInfoMediator()->AddObserver( this, iMessage->GetMessageId() );
                 }
-            
+
             delete iAttachmentsListModel;
             iAttachmentsListModel = NULL;
 
@@ -586,13 +583,17 @@ void CFsEmailUiHtmlViewerView::ChildDoActivateL( const TVwsViewId& aPrevViewId,
                     PushMessageL( iMessage, EFalse );
                     }
 
-                if ( openedInMrViewer )       
+                if ( openedInMrViewer )
                     {
+                    iContainer->DisplayStatusIndicatorL();
+                    iAppUi.GetMailClient()->PrepareMrDescriptionL( iActivationData.iMailBoxId,
+                                                                   iActivationData.iMessageId );
+
                     // Setting MSK empty. This blocks unwanted MSK keypresses before MrViewer is initialized.
                     ChangeMskCommandL( R_FSE_QTN_MSK_EMPTY );
                     iMrUiActive = ETrue;
-                    iAppUi.MrViewerInstanceL()->ExecuteViewL( *iMessage, *this );  
-                    }                              
+                    iAppUi.MrViewerInstanceL()->ExecuteViewL( *iMessage, *this );
+                    }
                 else
                     {
                     // Attachment list model is not created when opening mrViewer, so attachment options menu is
@@ -602,18 +603,18 @@ void CFsEmailUiHtmlViewerView::ChildDoActivateL( const TVwsViewId& aPrevViewId,
                     iAttachmentsListModel->UpdateListL( msgPartData );
                     CheckMessageBodyL( *iMessage, msgBodyStructurePresent, msgBodyContentPresent );
                     LoadContentFromMailMessageL( iMessage, ETrue );
-                    }                
+                    }
                 }
             else
                 {
                 User::Leave( KErrNotFound );
                 }
-            
+
             if ( aCustomMessageId != KStartViewerReturnToPreviousMsg && iMessage )
                 {
                 delete iMailBox; iMailBox = NULL;
                 iMailBox = iAppUi.GetMailClient()->GetMailBoxByUidL( iMessage->GetMailBoxId() );
-                
+
                 // Change active mailbox if necessary
                 if ( !iMessage->GetMailBoxId().IsNullId() )
                     {
@@ -629,30 +630,27 @@ void CFsEmailUiHtmlViewerView::ChildDoActivateL( const TVwsViewId& aPrevViewId,
                 {
                 PushMessageL(iActivationData.iEmbeddedMessage, ETrue);
                 }
-            
+
             iMessage = iOpenMessages->Head();
             iCreateNewMsgFromEmbeddedMsg = EFalse;
-            
+
             delete iAttachmentsListModel;
             iAttachmentsListModel = NULL;
             iAttachmentsListModel = CFSEmailUiAttachmentsListModel::NewL( iAppUi, *this );
-            
+
             if ( iOpenMessages->Head()== iOpenMessages->Last() )
                 {
                 TPartData msgPartData( iActivationData.iMailBoxId, iActivationData.iFolderId, iActivationData.iMessageId);
                 iAttachmentsListModel->UpdateListL( msgPartData );
-                                
+
                 }
             else{
-                iAttachmentsListModel->UpdateListL( iOpenMessages->Head() );         
-                }                
-            
+                iAttachmentsListModel->UpdateListL( iOpenMessages->Head() );
+                }
+
             CheckMessageBodyL( *iOpenMessages->Head(), msgBodyStructurePresent, msgBodyContentPresent );
             LoadContentFromMailMessageL( iOpenMessages->Head(), ETrue );
-            
-            // update tool bar as some action menu boton should not appear in embbeded messages.
-            UpdateToolbarL();
-            
+
             }
         break;
         case THtmlViewerActivationData::EFile:
@@ -671,17 +669,17 @@ void CFsEmailUiHtmlViewerView::ChildDoActivateL( const TVwsViewId& aPrevViewId,
             }
         break;
         }
-    
+
     CleanupStack::PopAndDestroy( &iActivationData.iFile );
     SetMskL();
-    
+
     if(iMessage)
         {
         CFSMailAddress* address = iMessage->GetSender();
         if ( address )
             {
             HBufC* displayName = address->GetDisplayName().AllocLC();
-            
+
             if ( displayName->Length() )
                 {
                 iAppUi.SetTitlePaneTextL( *displayName );
@@ -695,7 +693,7 @@ void CFsEmailUiHtmlViewerView::ChildDoActivateL( const TVwsViewId& aPrevViewId,
         CleanupStack::PopAndDestroy( displayName );
             }
         }
-    
+
     if ( !openedInMrViewer && iMessage)
         {
         CFSMailMessagePart* htmlBodyPart = iMessage->HtmlBodyPartL();
@@ -716,7 +714,7 @@ void CFsEmailUiHtmlViewerView::ChildDoActivateL( const TVwsViewId& aPrevViewId,
             StartWaitedFetchingL(EMessageStructure);
             iFetchingAlready = ETrue;
             }
-        else 
+        else
             {
             if ( msgBodyStructurePresent && !msgBodyContentPresent )
                 {
@@ -732,88 +730,14 @@ void CFsEmailUiHtmlViewerView::ChildDoActivateL( const TVwsViewId& aPrevViewId,
        }
     iNextOrPrevMessageSelected = EFalse;
     iForwardingMessage = EFalse;
-    
+
     //update rect only if it has changed from previous time.
     if ( iContainer->Rect() != ContainerRect()  )
         {
         iContainer->SetRect( ContainerRect() );
         }
-    
-    TIMESTAMP( "Html viewer opened" );    
-    }
 
-// -----------------------------------------------------------------------------
-// CFsEmailUiHtmlViewerView::OfferToolbarEventL
-// -----------------------------------------------------------------------------
-void CFsEmailUiHtmlViewerView::OfferToolbarEventL( TInt aCommand )
-    {
-    FUNC_LOG;
-    switch (aCommand)
-        {
-        case EFsEmailUiTbCmdReply:
-            {
-            HandleCommandL(EFsEmailUiCmdActionsReply);
-            break;
-            }
-
-        case EFsEmailUiTbCmdForward:
-            {
-            HandleCommandL(EFsEmailUiCmdActionsForward);
-            break;
-            }
-        case EFsEmailUiTbCmdDelete:
-            {
-            iAsyncCallback->Cancel();
-            iAsyncCallback->Set( TCallBack( DeleteMail, this ) );
-            iAsyncCallback->SetPriority( CActive::EPriorityHigh );
-            iAsyncCallback->CallBack();
-            break;
-            }
-        case EFsEmailUiTbCmdReplyAll:
-            {
-            HandleCommandL(EFsEmailUiCmdActionsReplyAll);
-            break;
-            }
-        default:
-            break;
-        }
-    }
-
-// -----------------------------------------------------------------------------
-// CFsEmailUiHtmlViewerView::ToolbarResourceId
-// -----------------------------------------------------------------------------
-TInt CFsEmailUiHtmlViewerView::ToolbarResourceId() const
-    {
-    TInt resourceId( R_FREESTYLE_EMAIL_UI_TOOLBAR_HTML_MESSAGE_VIEWER_NO_REPLY_ALL );
-    if (iMessage)
-        {
-        if (!iActivationData.iEmbeddedMessageMode && 
-                TFsEmailUiUtility::CountRecipientsSmart( iAppUi, iMessage ) > 1)
-            {            
-            resourceId = R_FREESTYLE_EMAIL_UI_TOOLBAR_HTML_MESSAGE_VIEWER;
-            }
-        }    
-    return resourceId;
-    }
-
-// -----------------------------------------------------------------------------
-// CFsEmailUiHtmlViewerView::GetInitiallyDimmedItemsL
-// -----------------------------------------------------------------------------
-void CFsEmailUiHtmlViewerView::GetInitiallyDimmedItemsL( const TInt aResourceId,
-                RArray<TInt>& aDimmedItems ) const
-    {
-    if ( R_FREESTYLE_EMAIL_UI_TOOLBAR_HTML_MESSAGE_VIEWER == aResourceId || 
-         R_FREESTYLE_EMAIL_UI_TOOLBAR_HTML_MESSAGE_VIEWER_NO_REPLY_ALL == aResourceId )
-        {
-        if ( iActivationData.iEmbeddedMessageMode )
-            {
-            aDimmedItems.AppendL(EFsEmailUiTbCmdActions);
-            aDimmedItems.AppendL(EFsEmailUiTbCmdDelete);
-            aDimmedItems.AppendL(EFsEmailUiTbCmdReply);
-            aDimmedItems.AppendL(EFsEmailUiTbCmdForward);
-            aDimmedItems.AppendL(EFsEmailUiTbCmdReplyAll);
-            }
-        }
+    TIMESTAMP( "Html viewer opened" );
     }
 
 // -----------------------------------------------------------------------------
@@ -844,7 +768,6 @@ void CFsEmailUiHtmlViewerView::ChildDoDeactivate()
                 iContainer->ClearCacheAndLoadEmptyContent();
             }
         }
-    Toolbar()->SetToolbarObserver( this );
     iMessage = NULL;
     }
 
@@ -854,7 +777,7 @@ void CFsEmailUiHtmlViewerView::DoExitL()
     delete iMessage;
     iMessage = NULL;
     CancelFetchings();
-    
+
     if ( iFlagSelectionHandler )
         {
         iFlagSelectionHandler->Cancel();
@@ -870,7 +793,7 @@ void CFsEmailUiHtmlViewerView::DoExitL()
 void CFsEmailUiHtmlViewerView::NavigateBackL()
     {
     FUNC_LOG;
-    // clean up current message 
+    // clean up current message
     if ( iMessage && iAppUi.DownloadInfoMediator() )
         {
         iAppUi.DownloadInfoMediator()->StopObserving( this, iMessage->GetMessageId() );
@@ -886,7 +809,7 @@ void CFsEmailUiHtmlViewerView::NavigateBackL()
         delete tmp;
         tmp = NULL;
         }
-    
+
     if ( iFlagSelectionHandler )
         {
         iFlagSelectionHandler->Cancel();
@@ -897,13 +820,13 @@ void CFsEmailUiHtmlViewerView::NavigateBackL()
     // Return to previous message in the stack if there is still some left
     if ( !iOpenMessages->IsEmpty() )
         {
-       
-        THtmlViewerActivationData htmlData; 
+
+        THtmlViewerActivationData htmlData;
         if ( iOpenMessages->Head()!= iOpenMessages->Last() )
             {
             htmlData.iActivationDataType = THtmlViewerActivationData::EmbeddedEmailMessage;
             htmlData.iEmbeddedMessageMode = ETrue;
-           
+
             }
         else
             {
@@ -912,10 +835,10 @@ void CFsEmailUiHtmlViewerView::NavigateBackL()
             htmlData.iFolderId  = iOpenMessages->Head()->GetFolderId();
             htmlData.iMessageId = iOpenMessages->Head()->GetMessageId();
             }
-        
+
         TPckgBuf<THtmlViewerActivationData> pckgData( htmlData );
         iAppUi.EnterFsEmailViewL( HtmlViewerId, KStartViewerReturnFromEmbeddedMsg, pckgData );
-      
+
         }
     // In usual case we use the base view implementation
     else
@@ -933,23 +856,52 @@ void CFsEmailUiHtmlViewerView::NavigateBackL()
     }
 
 // ---------------------------------------------------------------------------
+// Wrapper for implementation in view base class
+// ---------------------------------------------------------------------------
+//
+void CFsEmailUiHtmlViewerView::ChangeMskCommandL( TInt /*aLabelResourceId*/ )
+    {
+    CEikButtonGroupContainer* cba( Cba() );
+    if ( cba )
+			{
+      cba->SetCommandSetL( R_FREESTYLE_EMAUIL_UI_SK_OPTIONS_BACK_FULLSCREEN );
+      CEikCba* eikCba( static_cast< CEikCba* >( cba->ButtonGroup() ) );
+      TFileName filename;
+			TFsEmailUiUtility::GetFullIconFileNameL( filename );
+		  if (iActivationData.iEmbeddedMessageMode)
+		  	{
+	      eikCba->UpdateMSKIconL( KAknsIIDQsnIconColors,  filename,
+	          EMbmFreestyleemailuiQgn_graf_cmail_blank,
+	          EMbmFreestyleemailuiQgn_graf_cmail_blank_mask, ETrue );
+		  	}
+		  else
+		    {
+	      eikCba->UpdateMSKIconL( KAknsIIDQsnIconColors,  filename,
+	          EMbmFreestyleemailuiQgn_prop_cmail_action_delete,
+	          EMbmFreestyleemailuiQgn_prop_cmail_action_delete_mask, ETrue );
+	      }
+      }
+    }
+
+// ---------------------------------------------------------------------------
+// Sets status bar layout
+// ---------------------------------------------------------------------------
+//
+TBool CFsEmailUiHtmlViewerView::IsStatusPaneVisible() const
+    {
+    return EFalse;
+    }
+
+// ---------------------------------------------------------------------------
 // Sets status bar layout
 // ---------------------------------------------------------------------------
 //
 void CFsEmailUiHtmlViewerView::SetStatusBarLayout()
     {
-    TInt res = R_AVKON_STATUS_PANE_LAYOUT_USUAL_FLAT;
-    if( Layout_Meta_Data::IsLandscapeOrientation() )
-        {
-        // landscape must use different layout
-		res = R_AVKON_STATUS_PANE_LAYOUT_USUAL_EXT;
-        }
-
-    if( StatusPane()->CurrentLayoutResId() != res )
-        {
-        TRAP_IGNORE(
-            StatusPane()->SwitchLayoutL( res ));
-        }
+    if( StatusPane()->CurrentLayoutResId() != R_AVKON_STATUS_PANE_LAYOUT_IDLE_FLAT )
+       {
+       TRAP_IGNORE( StatusPane()->SwitchLayoutL( R_AVKON_STATUS_PANE_LAYOUT_IDLE_FLAT ) );
+       }
     }
 
 void CFsEmailUiHtmlViewerView::DynInitMenuPaneL( TInt aResourceId, CEikMenuPane* aMenuPane )
@@ -960,29 +912,25 @@ void CFsEmailUiHtmlViewerView::DynInitMenuPaneL( TInt aResourceId, CEikMenuPane*
         {
         // Pinch zoom only
         aMenuPane->SetItemDimmed( EFsEmailUiCmdZoomLevel, ETrue );
-    
+
         if ( FeatureManager::FeatureSupported( KFeatureIdFfCmailIntegration ) )
             {
             // remove help support in pf5250
-            aMenuPane->SetItemDimmed( EFsEmailUiCmdHelp, ETrue);      
-            }   
-        
-        TBool toolbarExists = EFalse;
-        if( iAppUi.CurrentFixedToolbar() )
-            {
-            toolbarExists = iAppUi.CurrentFixedToolbar()->IsVisible();
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdHelp, ETrue);
             }
-        
+
+        const TBool toolbarExists( EFalse );
+
         // Some commands are blocked when viewing embedded message object
         // or separate HTML file.
         const TBool blockCmds( !iMessage || iActivationData.iEmbeddedMessageMode || toolbarExists );
         const TBool blockReplyALLCmd( toolbarExists || !iMessage || iActivationData.iEmbeddedMessageMode ||
-                TFsEmailUiUtility::CountRecipientsSmart( iAppUi, iMessage ) < 2 );       
+                TFsEmailUiUtility::CountRecipientsSmart( iAppUi, iMessage ) < 2 );
         aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsReply, blockCmds );
         aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsReplyAll, blockReplyALLCmd );
         aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsForward, blockCmds );
         aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsDelete, blockCmds );
-        
+
         if( iActivationData.iEmbeddedMessageMode )
             {
             aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkAsRead, ETrue );
@@ -990,7 +938,7 @@ void CFsEmailUiHtmlViewerView::DynInitMenuPaneL( TInt aResourceId, CEikMenuPane*
             aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsMoveMessage, ETrue );
             aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsFlag, ETrue );
             }
-        
+
         TBool hideNext = !ShowNextMessageMenuInOptions();
         TBool blockNextCmd = !iMessage || iActivationData.iEmbeddedMessageMode || hideNext;
         TInt menuPos;
@@ -1004,16 +952,16 @@ void CFsEmailUiHtmlViewerView::DynInitMenuPaneL( TInt aResourceId, CEikMenuPane*
             {
             aMenuPane->SetItemDimmed( EFsEmailUiCmdPreviousMessage, blockPrevCmd );
             }
-        
+
         CFSMailFolder* currentFolder = NULL;
         if ( iMessage )
             {
-            TRAP_IGNORE( currentFolder = 
+            TRAP_IGNORE( currentFolder =
                 iAppUi.GetMailClient()->GetFolderByUidL(
-                        iMessage->GetMailBoxId(), 
+                        iMessage->GetMailBoxId(),
                         iMessage->GetFolderId() ) );
             }
-      
+
         if ( currentFolder &&
              currentFolder->GetFolderType() != EFSOutbox )
             {
@@ -1021,14 +969,14 @@ void CFsEmailUiHtmlViewerView::DynInitMenuPaneL( TInt aResourceId, CEikMenuPane*
             TBool messageIsRead( iMessage->IsFlagSet( EFSMsgFlag_Read ) );
             aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkAsRead, messageIsRead );
             aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkAsUnread, !messageIsRead );
-            
+
             // Move to another folder option
-            aMenuPane->SetItemDimmed( 
-                    EFsEmailUiCmdActionsMoveMessage, 
+            aMenuPane->SetItemDimmed(
+                    EFsEmailUiCmdActionsMoveMessage,
                     !iAppUi.GetActiveMailbox()->HasCapability( EFSMBoxCapaMoveToFolder ) );
 
             // Follow-up flag option
-            aMenuPane->SetItemDimmed( 
+            aMenuPane->SetItemDimmed(
                     EFsEmailUiCmdActionsFlag,
                     !( iMailBox && TFsEmailUiUtility::IsFollowUpSupported( *iMailBox ) ) );
             }
@@ -1050,7 +998,7 @@ void CFsEmailUiHtmlViewerView::DynInitMenuPaneL( TInt aResourceId, CEikMenuPane*
     iAppUi.ShortcutBinding().AppendShortcutHintsL( *aMenuPane,
             CFSEmailUiShortcutBinding::EContextHtmlViewer );
     }
-    
+
 // -----------------------------------------------------------------------------
 // CFsEmailUiHtmlViewerView::HandleMrCommandL
 // Handle accept/decline/tentative/remove commands given for meeting request
@@ -1063,7 +1011,7 @@ void CFsEmailUiHtmlViewerView::HandleMrCommandL(
     TFSMailMsgId aMessageId )
     {
     FUNC_LOG;
-    ///any init required? 
+    ///any init required?
     UpdateMessagePtrL( aMailboxId, aFolderId, aMessageId );
 
     if ( aCommandId == EFsEmailUiCmdCalRemoveFromCalendar && iMessage )
@@ -1097,14 +1045,14 @@ void CFsEmailUiHtmlViewerView::HandleMrCommandL(
 void CFsEmailUiHtmlViewerView::HandleStatusPaneSizeChange()
     {
     CFsEmailUiViewBase::HandleStatusPaneSizeChange();
-	
+
 	HandleViewRectChange();
     }
 
 void CFsEmailUiHtmlViewerView::HandleViewRectChange()
     {
     CFsEmailUiViewBase::HandleViewRectChange();
-     
+
      if ( iContainer )
          {
          iContainer->SetRect( ContainerRect() );
@@ -1114,12 +1062,12 @@ void CFsEmailUiHtmlViewerView::HandleViewRectChange()
 void CFsEmailUiHtmlViewerView::HandleDynamicVariantSwitchL( CFsEmailUiViewBase::TDynamicSwitchType aType )
     {
     FUNC_LOG;
-    
+
     if ( aType == EScreenLayoutChanged )
         {
         SetStatusBarLayout();
         }
-    
+
     if ( iContainer )
         {
         iContainer->SetRect( ContainerRect() );
@@ -1127,22 +1075,10 @@ void CFsEmailUiHtmlViewerView::HandleDynamicVariantSwitchL( CFsEmailUiViewBase::
         }
     }
 
-TRect  CFsEmailUiHtmlViewerView::ContainerRect() const
+TRect CFsEmailUiHtmlViewerView::ContainerRect() const
     {
-    TRect rect = ClientRect();
-    
-    CAknToolbar* toolbar = iAppUi.CurrentFixedToolbar();
-    if( toolbar && toolbar->IsVisible() && Layout_Meta_Data::IsLandscapeOrientation() )
-        {
-        TPoint pos = toolbar->PositionRelativeToScreen();
-        
-        // In some LS status pane layouts the toolbar will be shown on top of the client area
-        if( pos.iX > 0 )
-            {
-            rect.iBr.iX = pos.iX;
-            }
-        }
-    return rect; 
+    TRect rect( ClientRect() );
+    return rect;
     }
 
 void CFsEmailUiHtmlViewerView::LoadContentFromFileL( const TDesC& aFileName )
@@ -1211,7 +1147,7 @@ void CFsEmailUiHtmlViewerView::DeleteMailL( TBool aSilentDelete )
 
     TInt reallyDelete( ETrue );
 
-    if ( iAppUi.GetCRHandler()->WarnBeforeDelete() && 
+    if ( iAppUi.GetCRHandler()->WarnBeforeDelete() &&
          !aSilentDelete )
         {
         reallyDelete = TFsEmailUiUtility::ShowConfirmationQueryL(
@@ -1228,43 +1164,43 @@ void CFsEmailUiHtmlViewerView::DeleteMailL( TBool aSilentDelete )
             HideContainer();
             iContainer->ResetContent();
             }
-        
+
         RArray<TFSMailMsgId> msgIds;
         CleanupClosePushL( msgIds );
-            
+
         msgIds.Append( currentMsgId );
         TFSMailMsgId mailBox = iMessage->GetMailBoxId();
-        TFSMailMsgId folderId = iMessage->GetFolderId();        
- 
-        //Get the id and check if there is a previous message available 
+        TFSMailMsgId folderId = iMessage->GetFolderId();
+
+        //Get the id and check if there is a previous message available
         TFSMailMsgId prevMsgId;
-        TFSMailMsgId prevMsgFolderId;  
-        
+        TFSMailMsgId prevMsgFolderId;
+
         //Get the previous message if it exists
-        TBool available = iAppUi.IsPreviousMsgAvailable( currentMsgId, 
-                                                   prevMsgId, 
+        TBool available = iAppUi.IsPreviousMsgAvailable( currentMsgId,
+                                                   prevMsgId,
                                                    prevMsgFolderId );
-        
+
         //Delete the message
-        iLastDeletedMessageID = iMessage->GetMessageId(); 
+        iLastDeletedMessageID = iMessage->GetMessageId();
         iAppUi.GetMailClient()->DeleteMessagesByUidL( mailBox, folderId, msgIds );
         CleanupStack::PopAndDestroy( &msgIds );
 
         // Notify appui of deleted mail item
-        SendEventToAppUiL( TFSEventMailDeletedFromViewer ); 
-        
-       
+        SendEventToAppUiL( TFSEventMailDeletedFromViewer );
+
+
         if ( iAppUi.CurrentActiveView()->Id() == HtmlViewerId )
-            {   
+            {
             //Open the previous message or navigate back to list viewer
             if ( available )
                 {
 				iMessageIsDeleted = ETrue;
                 TRAPD( err, iAppUi.MoveToPreviousMsgAfterDeleteL( prevMsgId ) );
                 iMessageIsDeleted = EFalse;
-                
+
                 User::LeaveIfError( err );
-                }   
+                }
             else
                 {
                 ChangeMskCommandL( R_FSE_QTN_MSK_EMPTY );
@@ -1289,14 +1225,14 @@ void CFsEmailUiHtmlViewerView::HandleMailBoxEventL( TFSMailEvent aEvent,
     if ( /*iFirstStartCompleted &&*/ iMessage && aMailbox.Id() == iAppUi.GetActiveMailboxId().Id() &&
                                      (aEvent == TFSEventMailDeleted || aEvent == TFSEventMailDeletedFromViewer) && aParam1 ) // Safety, in list events that only concern active mailbox are handled
         {
-        TFSMailMsgId curMsgId = iMessage->GetMessageId();       
+        TFSMailMsgId curMsgId = iMessage->GetMessageId();
         RArray<TFSMailMsgId>* removedEntries = static_cast<RArray<TFSMailMsgId>*>( aParam1 );
         TBool cont = ETrue;
         for ( TInt i = 0 ; i < removedEntries->Count() && cont; i++ )
             {
             if ( ( curMsgId == ( *removedEntries )[i] ) &&
                     (iDeletedMessageFromMrui != curMsgId) )
-                {                
+                {
                 cont = EFalse;
                 ChangeMskCommandL( R_FSE_QTN_MSK_EMPTY );
                 if( aEvent == TFSEventMailDeleted  && !iMessageIsDeleted )
@@ -1305,14 +1241,14 @@ void CFsEmailUiHtmlViewerView::HandleMailBoxEventL( TFSMailEvent aEvent,
                 	// The message we are viewing was deleted => stop here
                 	return;
                     }
-                }            
-            } 
+                }
+            }
         }
-     
+
     if ( iContainer && iMessage && aMailbox.Id() == iAppUi.GetActiveMailboxId().Id() )
         {
-        if ( aEvent == TFSEventNewMail || 
-             aEvent == TFSEventMailDeleted || 
+        if ( aEvent == TFSEventNewMail ||
+             aEvent == TFSEventMailDeleted ||
              aEvent == TFSEventMailChanged )
             {
             iContainer->MailListModelUpdatedL();
@@ -1320,13 +1256,13 @@ void CFsEmailUiHtmlViewerView::HandleMailBoxEventL( TFSMailEvent aEvent,
 
         // DSW fix for FAMZ-82YJQ2
         // Dismiss the download status dialog after sync has been finished or cancelled
-        
+
         if ( aEvent == TFSEventMailboxSyncStateChanged )
             {
             TSSMailSyncState* newSyncState = static_cast<TSSMailSyncState*>( aParam1 );
-            if ( newSyncState && ( *newSyncState == FinishedSuccessfully || 
-                                   *newSyncState == SyncCancelled || 
-                                   *newSyncState == Idle || 
+            if ( newSyncState && ( *newSyncState == FinishedSuccessfully ||
+                                   *newSyncState == SyncCancelled ||
+                                   *newSyncState == Idle ||
                                    *newSyncState == SyncError ))
                 {
                 iContainer->HideDownloadStatus();
@@ -1337,7 +1273,7 @@ void CFsEmailUiHtmlViewerView::HandleMailBoxEventL( TFSMailEvent aEvent,
 
 void CFsEmailUiHtmlViewerView::DynInitZoomMenuL( CEikMenuPane* aMenuPane )
     {
-    FUNC_LOG; 
+    FUNC_LOG;
     /* -- Pinch zoom only --
     TInt zoomLevelIdx = iContainer->ZoomLevelL();
 
@@ -1447,7 +1383,7 @@ void CFsEmailUiHtmlViewerView::HandleWebAddressCommandL( TInt aCommand, const TD
             {
             CopyCurrentToClipBoardL( aUrl );
             break;
-            }                   
+            }
         }
     }
 
@@ -1538,28 +1474,7 @@ void CFsEmailUiHtmlViewerView::LaunchRemoteLookupL( const TDesC& aEmailAddress )
     HBufC* textData = aEmailAddress.AllocLC();
     CFSMailBox* mailBox = iAppUi.GetMailClient()->GetMailBoxByUidL( iMessage->GetMailBoxId() );
     CleanupStack::PushL( mailBox );
-  
-    //UI options Delete and Actions dimmed in Remote Lookup.
-    const TInt resourceId(ToolbarResourceId());
-    RArray<TInt> dimmedItems;
-    CleanupClosePushL(dimmedItems);
-    GetInitiallyDimmedItemsL(resourceId, dimmedItems); // get the currently dimmed buttons
-    
-    SetToolbarItemDimmed( EFsEmailUiTbCmdActions, ETrue);
-    SetToolbarItemDimmed( EFsEmailUiTbCmdDelete, ETrue);
-        
-    HideToolbar();
     CFsDelayedLoader::InstanceL()->GetContactHandlerL()->LaunchRemoteLookupWithQueryL( *mailBox, *textData );
-    ShowToolbar();  
-    
-    SetToolbarItemDimmed( EFsEmailUiTbCmdActions, EFalse);
-    SetToolbarItemDimmed( EFsEmailUiTbCmdDelete, EFalse);
-   
-    for (TInt i = 0; i < dimmedItems.Count(); i++) // restore the buttons
-        {
-        SetToolbarItemDimmed(dimmedItems[i], ETrue);
-        }
-    CleanupStack::PopAndDestroy(); // dimmedItems.Close()
     CleanupStack::PopAndDestroy( mailBox );
     CleanupStack::PopAndDestroy( textData );
     }
@@ -1641,10 +1556,10 @@ void CFsEmailUiHtmlViewerView::SaveAttachmentL( const TAttachmentData& aAttachme
             {
             iContainer->ShowAttachmentDownloadStatusL( TFSProgress::EFSStatus_Status, aAttachment );
             }
-        
+
         if ( savedCount )
             {
-            TFsEmailUiUtility::ShowFilesSavedToFolderNoteL( savedCount );        
+            TFsEmailUiUtility::ShowFilesSavedToFolderNoteL( savedCount );
             }
         }
     }
@@ -1692,19 +1607,19 @@ TBool CFsEmailUiHtmlViewerView::IsEmbeddedMsgView()
 
 TBool CFsEmailUiHtmlViewerView::IsEmbeddedMsgSavingAllowed()
     {
-    return iMailBox->HasCapability( 
+    return iMailBox->HasCapability(
                 EFSMboxCapaSupportsSavingOfEmbeddedMessages );
     }
 
-void CFsEmailUiHtmlViewerView::UpdateDownloadIndicatorL( 
-        const TPartData& aPart, 
+void CFsEmailUiHtmlViewerView::UpdateDownloadIndicatorL(
+        const TPartData& aPart,
         const TFSProgress& aEvent )
     {
     FUNC_LOG;
-    
+
     if ( !iMessage || !iContainer || ( aEvent.iError != KErrNone ) )
         return;
-    
+
     TAttachmentData* attachment = NULL;
     const RArray<TAttachmentData>& attachments = iAttachmentsListModel->GetModel();
     for ( TInt i=0; i < attachments.Count(); i++ )
@@ -1715,7 +1630,7 @@ void CFsEmailUiHtmlViewerView::UpdateDownloadIndicatorL(
             break;
             }
         }
-    
+
     if ( attachment )
         {
         switch ( aEvent.iProgressStatus )
@@ -1732,17 +1647,17 @@ void CFsEmailUiHtmlViewerView::UpdateDownloadIndicatorL(
                     }
                 }
             break;
-            
+
             case TFSProgress::EFSStatus_RequestComplete:
                 {
                 attachment->downloadProgress = KComplete;
                 }
             break;
-            
+
             default:
                 break;
             }
-        
+
         iContainer->ShowAttachmentDownloadStatusL( aEvent.iProgressStatus, *attachment );
         }
     }
@@ -1764,7 +1679,7 @@ void CFsEmailUiHtmlViewerView::RequestResponseL( const TFSProgress& aEvent, cons
 // CFsEmailUiHtmlViewerView::PushMessageL
 // Message stack handling. Ownership of message is transferred when succesful.
 // -----------------------------------------------------------------------------
-// 
+//
 void CFsEmailUiHtmlViewerView::PushMessageL( CFSMailMessage* aMessage, TBool aIsEmbedded )
     {
     if ( !iOpenMessages || !iEmbeddedMessages )
@@ -1793,12 +1708,12 @@ void CFsEmailUiHtmlViewerView::PushMessageL( CFSMailMessage* aMessage, TBool aIs
 // CFsEmailUiHtmlViewerView::PopMessage
 // Message stack handling. Ownership of message is returned.
 // -----------------------------------------------------------------------------
-// 
+//
 CFSMailMessage* CFsEmailUiHtmlViewerView::PopMessage()
     {
     ASSERT( iOpenMessages && iEmbeddedMessages );
     ASSERT( iOpenMessages->Count() == iEmbeddedMessages->Count() );
-    
+
     CFSMailMessage* msg = NULL;
     if ( !iOpenMessages->IsEmpty() )
         {
@@ -1815,7 +1730,7 @@ CFSMailMessage* CFsEmailUiHtmlViewerView::PopMessage()
 // CFsEmailUiHtmlViewerView::EraseMessageStack
 // Message stack handling. All messages in stack are deallocated
 // -----------------------------------------------------------------------------
-// 
+//
 void CFsEmailUiHtmlViewerView::EraseMessageStack()
     {
     ASSERT( iOpenMessages && iEmbeddedMessages );
@@ -1877,7 +1792,7 @@ void CFsEmailUiHtmlViewerView::ChangeMsgReadStatusL(
             }
         iMessage->SaveMessageL(); // Save read status
         SendEventToAppUiL( TFSEventMailChanged );
-    
+
         }
     }
 
@@ -1889,7 +1804,7 @@ TBool CFsEmailUiHtmlViewerView::ShowNextMessageMenuInOptions() const
     FUNC_LOG;
     TBool available = EFalse;
     // Next/previous message options are inavailable in the embedded mode
-    if ( iMessage && !iActivationData.iEmbeddedMessageMode )    
+    if ( iMessage && !iActivationData.iEmbeddedMessageMode )
         {
         TFSMailMsgId currentMsgId = iMessage->GetMessageId();
         TFSMailMsgId nextMsgId;
@@ -1920,7 +1835,7 @@ void CFsEmailUiHtmlViewerView::ShowNextMessageL()
             // Stop timer and cancel fetchings before showing next message
             //iFetchingAnimationTimer->Stop();
             CancelFetchings();
-           
+
             // Change empty msk when moving to next
             ChangeMskCommandL( R_FSE_QTN_MSK_EMPTY );
 
@@ -1959,15 +1874,15 @@ void CFsEmailUiHtmlViewerView::ShowPreviousMessageL()
         TFSMailMsgId prevMsgId;
         TFSMailMsgId prevMsgFolderId;
         if ( iAppUi.IsPreviousMsgAvailable( currentMsgId, prevMsgId, prevMsgFolderId ) )
-            {          
+            {
             if (iContainer)
                 {
                 iContainer->PrepareForMessageNavigation();
                 }
-        
+
             // Stop timer and cancel fetchings before showing prev message
             CancelFetchings();
-           
+
             // Change empty msk when moving to previous
             ChangeMskCommandL( R_FSE_QTN_MSK_EMPTY );
 
@@ -2200,9 +2115,9 @@ void CFsEmailUiHtmlViewerView::StartFetchingMessagePartL( CFSMailMessage& aMessa
 void CFsEmailUiHtmlViewerView::RequestResponseL( TFSProgress aEvent, TInt aRequestId )
     {
     FUNC_LOG;
-    
+
     TBool reloadContent ( EFalse );
-    
+
     if ( aRequestId == iCurrentPlainTextBodyFetchRequestId && iFetchingPlainTextMessageBody )
         {
         if ( aEvent.iError != KErrNone ||
@@ -2230,7 +2145,7 @@ void CFsEmailUiHtmlViewerView::RequestResponseL( TFSProgress aEvent, TInt aReque
                 UpdateMessagePtrL( mailboxId, folderId, messageId );
                 reloadContent = ETrue;
                 }
-                          
+
             }
         }
 
@@ -2245,10 +2160,10 @@ void CFsEmailUiHtmlViewerView::RequestResponseL( TFSProgress aEvent, TInt aReque
         else if ( aEvent.iProgressStatus == TFSProgress::EFSStatus_RequestComplete )
             {
             iAsyncProcessComplete = ETrue;
-            iFetchingHtmlMessageBody = EFalse;           
-            
+            iFetchingHtmlMessageBody = EFalse;
+
             reloadContent = ETrue;
-            
+
             }
         }
     else if ( aRequestId == iCurrentStructureFetchRequestId && iFetchingMessageStructure )
@@ -2281,19 +2196,19 @@ void CFsEmailUiHtmlViewerView::RequestResponseL( TFSProgress aEvent, TInt aReque
         }
     if ( reloadContent )
         {
-    
+
         if (  iContainer )
             {
-            iContainer->ResetContent();                
+            iContainer->ResetContent();
             if( iMessage )
                 {
-                LoadContentFromMailMessageL( iMessage , EFalse);  
+                LoadContentFromMailMessageL( iMessage , EFalse);
                 SetMskL();
                 }
             }
         }
-            
-    
+
+
     if(iAsyncProcessComplete && iWaitDialog && iDialogNotDismissed)
         {
         iWaitDialog->ProcessFinishedL(); // deletes the dialog
@@ -2361,8 +2276,6 @@ void CFsEmailUiHtmlViewerView::UpdateMessagePtrL( TFSMailMsgId aNewMailboxId,
             iAppUi.DownloadInfoMediator()->AddObserver( this, iMessage->GetMessageId() );
             }
         }
-    
-    UpdateToolbarL();
     }
 
 // -----------------------------------------------------------------------------
@@ -2387,13 +2300,13 @@ void CFsEmailUiHtmlViewerView::CancelFetchings()
         iFetchingMessageStructure = EFalse;
         }
     iAsyncProcessComplete = ETrue;
-    
+
     //also cancel embedded images download in DownloadInfoMediator
     if ( iMailBox )
         {
-        TRAP_IGNORE( iAppUi.DownloadInfoMediator()->CancelAllDownloadsL( iMailBox->GetId() ) );    
+        TRAP_IGNORE( iAppUi.DownloadInfoMediator()->CancelAllDownloadsL( iMailBox->GetId() ) );
         }
-    
+
 
     //<cmail>
     if(iWaitDialog && iDialogNotDismissed)
@@ -2452,7 +2365,7 @@ void CFsEmailUiHtmlViewerView::StartWaitedFetchingL( TFetchedType aFetchedConten
     iWaitDialog->SetCallback(this);
     iDialogNotDismissed = ETrue;
     iWaitDialog->ExecuteLD(R_FSE_FETCHING_WAIT_DIALOG);
-    */ 
+    */
     if( iMessage )
         {
         StartFetchingMessagePartL( *iMessage, iStartAsyncFetchType );
@@ -2584,7 +2497,7 @@ TBool CFsEmailUiHtmlViewerView::CanProcessCommand(
     return ret;
     }
 
-    
+
 void CFsEmailUiHtmlViewerView::ProcessAsyncCommandL( TESMRIcalViewerOperationType aCommandId,
                                                      const CFSMailMessage& aMessage,
                                                      MESMRIcalViewerObserver* aObserver )
@@ -2718,7 +2631,7 @@ if ( messagePtr )
             }
             break;
         case EESMRCmdMailComposeMessage:
-            {           
+            {
             iAppUi.CreateNewMailL();
             iOpResult.iResultCode = KErrNone;
             }
@@ -2854,16 +2767,16 @@ void CFsEmailUiHtmlViewerView::OperationError( TIcalViewerOperationResult aResul
     if ( aResult.iOpType == EESMRViewLaunch )
         {
         iMrUiActive = EFalse;
-        
+
         // load mr content to viewer so we don't end up with empty view
         if (  iContainer )
              {
              iContainer->ResetContent();
              }
-                 
+
          if( iMessage )
              {
-             TRAP_IGNORE( LoadContentFromMailMessageL( iMessage ) );  
+             TRAP_IGNORE( LoadContentFromMailMessageL( iMessage ) );
              TRAP_IGNORE( SetMskL() );
              }
         }
@@ -2900,7 +2813,7 @@ void CFsEmailUiHtmlViewerView::CancelPendingMrCommandL()
     iMrUiActive = EFalse;
     iMrObserverToInform = NULL;
     }
-    
+
 // -----------------------------------------------------------------------------
 // CFsEmailUiHtmlViewerView::ClearMailViewer
 // -----------------------------------------------------------------------------
@@ -2958,12 +2871,12 @@ void CFsEmailUiHtmlViewerView::PrepareForExit()
     iEmbeddedMessages = NULL;
     iMessage = NULL;
     CancelFetchings();
-   
+
     delete iMailBox;
     iMailBox = NULL;
     }
 
-void CFsEmailUiHtmlViewerView::ReloadPageL(  ) 
+void CFsEmailUiHtmlViewerView::ReloadPageL(  )
     {
     FUNC_LOG;
     if( iContainer )
@@ -2976,7 +2889,7 @@ TBool CFsEmailUiHtmlViewerView::GetAsyncFetchStatus()
     {
     return ( iFetchingHtmlMessageBody || iFetchingMessageStructure || iFetchingPlainTextMessageBody );
     }
-    
+
 // ---------------------------------------------------------------------------
 // CFsEmailUiHtmlViewerView::UpdateEmailHeaderIndicatorsL
 // ---------------------------------------------------------------------------
@@ -2999,20 +2912,20 @@ TBool CFsEmailUiHtmlViewerView::IsOpenedInMRViewerL()
     {
     FUNC_LOG;
     TBool retVal( EFalse );
-    CFSMailMessage* msg = iAppUi.GetMailClient()->GetMessageByUidL( 
+    CFSMailMessage* msg = iAppUi.GetMailClient()->GetMessageByUidL(
             iActivationData.iMailBoxId, iActivationData.iFolderId,
             iActivationData.iMessageId, EFSMsgDataEnvelope );
-            
+
     if ( msg )
         {
         CleanupStack::PushL( msg );
-        if ( msg->IsFlagSet( EFSMsgFlag_CalendarMsg ) && 
+        if ( msg->IsFlagSet( EFSMsgFlag_CalendarMsg ) &&
             iAppUi.MrViewerInstanceL() )
             {
             TESMRMeetingRequestMethod mrMethod( EESMRMeetingRequestMethodUnknown );
             mrMethod = iAppUi.MrViewerInstanceL()->ResolveMeetingRequestMethodL( *msg );
             // Opened in MR viewer if request/cancellation or unknown MR
-            retVal = 
+            retVal =
                 mrMethod == EESMRMeetingRequestMethodRequest ||
                 mrMethod == EESMRMeetingRequestMethodCancellation ||
                 mrMethod == EESMRMeetingRequestMethodUnknown;
@@ -3028,8 +2941,8 @@ TBool CFsEmailUiHtmlViewerView::IsOpenedInMRViewerL()
 void CFsEmailUiHtmlViewerView::CopyCurrentToClipBoardL( const TDesC& aArgument ) const
     {
     FUNC_LOG;
-    
-    // Making sure that we are copying something to the clipboard 
+
+    // Making sure that we are copying something to the clipboard
     if ( aArgument.Length() > 0 )
         {
         HBufC* clipBoardText = aArgument.AllocLC();
@@ -3042,7 +2955,7 @@ void CFsEmailUiHtmlViewerView::CopyCurrentToClipBoardL( const TDesC& aArgument )
         CleanupStack::PopAndDestroy( plainText );
         cb->CommitL();
         CleanupStack::PopAndDestroy( cb );
-        CleanupStack::PopAndDestroy( clipBoardText );     
+        CleanupStack::PopAndDestroy( clipBoardText );
         }
     }
 
@@ -3052,21 +2965,21 @@ void CFsEmailUiHtmlViewerView::CopyCurrentToClipBoardL( const TDesC& aArgument )
 void CFsEmailUiHtmlViewerView::OpenLinkInBrowserL( const TDesC& aUrl ) const
     {
     FUNC_LOG;
-    
+
     // Create session
     RApaLsSession session;
     User::LeaveIfError( session.Connect() );
     CleanupClosePushL( session );
-     
+
     // Gets the default application UID for for the given MIME type
     TUid uid;
     TDataType dataType( _L8( "text/html" ) );
     session.AppForDataType( dataType, uid );
-     
+
     // Runs the default application using the dataType
     TThreadId threadId;
     User::LeaveIfError( session.StartDocument( aUrl , dataType, threadId ) );
-     
+
     CleanupStack::PopAndDestroy(); // session
 }
 
@@ -3077,7 +2990,7 @@ void CFsEmailUiHtmlViewerView::SaveWebAddressToFavouritesL( const TDesC& aUrl ) 
     {
     FUNC_LOG;
     HBufC* url = aUrl.AllocLC();
-    
+
     RFavouritesSession fSession;
     User::LeaveIfError( fSession.Connect() );
     CleanupClosePushL( fSession );
@@ -3108,7 +3021,7 @@ void CFsEmailUiHtmlViewerView::SaveWebAddressToFavouritesL( const TDesC& aUrl ) 
     CleanupStack::PopAndDestroy( &fSession );
 
     CleanupStack::PopAndDestroy( url );
-    
+
     if ( error == KErrNone )
         {
         TFsEmailUiUtility::ShowInfoNoteL(
@@ -3122,8 +3035,8 @@ void CFsEmailUiHtmlViewerView::SaveWebAddressToFavouritesL( const TDesC& aUrl ) 
     }
 
 /*
- * Delaying the fetch for MfE till the user scrolls to the bottom of 
- * the message. 
+ * Delaying the fetch for MfE till the user scrolls to the bottom of
+ * the message.
  */
 void CFsEmailUiHtmlViewerView::StartFetchingMessageL()
     {
@@ -3139,13 +3052,13 @@ void CFsEmailUiHtmlViewerView::StartFetchingMessageL()
            {
            type = EMessagePlainTextBodyPart;
            }
-         
-              
+
+
         if ( !MessagePartFullyFetchedL( type ))
            {
            iAsyncProcessComplete = EFalse;
            iStartAsyncFetchType = type;
-           //check to make sure we don't kick off fetch twice for the cases where bodypart 
+           //check to make sure we don't kick off fetch twice for the cases where bodypart
            //not found(OZ)
            if(iMessage && !GetAsyncFetchStatus())
                {
@@ -3164,12 +3077,12 @@ void CFsEmailUiHtmlViewerView::CheckMessageBodyL( CFSMailMessage& /*aMessage*/, 
             {
             bodyPart = iMessage->PlainTextBodyPartL();
             }
-        
+
         if ( bodyPart )
             {
             aMessageBodyStructurePresent = ETrue;
             CleanupStack::PushL( bodyPart );
-    
+
             if ( bodyPart->FetchedContentSize() == 0 && bodyPart->ContentSize() != 0 )
                 {
                 aMessageBodyContentPresent = EFalse;
@@ -3178,7 +3091,7 @@ void CFsEmailUiHtmlViewerView::CheckMessageBodyL( CFSMailMessage& /*aMessage*/, 
                 {
                 aMessageBodyContentPresent = ETrue;
                 }
-            
+
             CleanupStack::PopAndDestroy( bodyPart );
             }
         else
@@ -3277,7 +3190,7 @@ TInt CFlagSelectionNoteHandler::RunError( TInt /*aError*/ )
     return err;
     }
 
-CFlagSelectionNoteHandler::CFlagSelectionNoteHandler(  CFsEmailUiHtmlViewerView& aViewerVisualiser )
+CFlagSelectionNoteHandler::CFlagSelectionNoteHandler( CFsEmailUiHtmlViewerView& aViewerVisualiser )
     : CActive ( EPriorityHigh ),
     iViewerView( aViewerVisualiser )
     {

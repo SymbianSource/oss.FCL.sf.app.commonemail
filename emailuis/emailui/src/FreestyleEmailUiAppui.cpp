@@ -878,12 +878,6 @@ void CFreestyleEmailUiAppUi::ViewActivatedExternallyL( TUid aViewId )
         return;
         }
 
-    if ( iActiveMailbox ) 
-        {
-        StartMonitoringL(); // start connect automatically
-        SyncActiveMailBoxL(); // start sync
-        }
-
     // Do nothing if the externally activated view was already active
     if ( iCurrentActiveView->Id() != aViewId )
         {
@@ -3104,7 +3098,7 @@ void CFreestyleEmailUiAppUi::TimerEventL( CFSEmailUiGenericTimer* aTriggeredTime
                     (CAknTitlePane*)StatusPane()->ControlL( titlePaneUid ) );
 
                 TSize iconSize = LayoutHandler()->statusPaneIconSize();
-                iConnectionStatusIconAngle += KConnectionStatusIconRotationAmount;
+                iConnectionStatusIconAngle -= KConnectionStatusIconRotationAmount;
                 AknIconUtils::SetSizeAndRotation(iConnectionIconBitmap, iconSize, EAspectRatioNotPreserved, iConnectionStatusIconAngle);
                 titlePane->DrawNow();
                 iConnectionStatusIconAnimTimer->Start(KConnectionStatusIconRotationInterval);

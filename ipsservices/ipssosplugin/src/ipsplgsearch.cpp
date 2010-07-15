@@ -107,14 +107,22 @@ TBool CIpsPlgSearch::TSearchParams::operator==(
 // CIpsPlgSearch::TMsgContainer::TMsgContainer()
 // ---------------------------------------------------------------------------
 //
-CIpsPlgSearch::TMsgContainer::TMsgContainer( 
-    const TMsvId& aId, 
+/*
+CIpsPlgSearch::TMsgContainer::TMsgContainer(
+    const TMsvId& aId,
     const TFSMailSortCriteria& aCriteria,
     CMsvSession& aMsvSession )
     :
     iId( aId ),
     iCriteria( aCriteria ),
     iMsvSession( aMsvSession )
+    {
+    FUNC_LOG;
+    }
+*/
+CIpsPlgSearch::TMsgContainer::TMsgContainer( const TMsvEntry& aEntry,
+    const TFSMailSortCriteria& aCriteria ) :
+    iCriteria( aCriteria ), iEntry( aEntry )
     {
     FUNC_LOG;
     }
@@ -136,12 +144,12 @@ TBool CIpsPlgSearch::TMsgContainer::operator>(
         break;
         
     case EFSMailSortByDate:
-        result = Entry( iId ).iDate > Entry( aMsgContainer.Id() ).iDate;
+        result = iEntry.iDate > aMsgContainer.iEntry.iDate;
         break;
 
     case EFSMailSortBySender:
         {
-        HBufC* leftSender = NULL;
+        /*HBufC* leftSender = NULL;
         HBufC* rightSender = NULL;
         
         GetSenderStringsCC( 
@@ -151,13 +159,14 @@ TBool CIpsPlgSearch::TMsgContainer::operator>(
             rightSender );
         
         result = *leftSender > *rightSender;
-        CleanupStack::PopAndDestroy( 2, leftSender ); 
+        CleanupStack::PopAndDestroy( 2, leftSender );*/
+        result = iEntry.iDetails > aMsgContainer.iEntry.iDetails;
         }
         break;
     
     case EFSMailSortBySubject:
         {
-        HBufC* leftSubject = NULL;
+        /*HBufC* leftSubject = NULL;
         HBufC* rightSubject = NULL;
         
         GetSubjectStringsCC( 
@@ -167,28 +176,29 @@ TBool CIpsPlgSearch::TMsgContainer::operator>(
             rightSubject );
 
         result = *leftSubject > *rightSubject;
-        CleanupStack::PopAndDestroy( 2, leftSubject ); 
+        CleanupStack::PopAndDestroy( 2, leftSubject );*/
+        result = iEntry.iDescription > aMsgContainer.iEntry.iDescription;
         }
         break;
 
     case EFSMailSortByPriority:
-        result = Entry( iId ).Priority() > Entry( aMsgContainer.Id() ).Priority();        
+        result = iEntry.Priority() > aMsgContainer.iEntry.Priority();
         break;
     
     case EFSMailSortByFlagStatus:
-        result = Entry( iId ).New() > Entry( aMsgContainer.Id() ).New();
+        result = iEntry.New() > aMsgContainer.iEntry.New();
         break;
     
     case EFSMailSortByUnread:
-        result = Entry( iId ).Unread() > Entry( aMsgContainer.Id() ).Unread();
+        result = iEntry.Unread() > aMsgContainer.iEntry.Unread();
         break;
     
     case EFSMailSortBySize:
-        result = Entry( iId ).iSize > Entry( aMsgContainer.Id() ).iSize;
+        result = iEntry.iSize > aMsgContainer.iEntry.iSize;
         break;
     
     case EFSMailSortByAttachment:
-        result = Entry( iId ).iDate > Entry( aMsgContainer.Id() ).iDate;        
+        result = iEntry.iDate > aMsgContainer.iEntry.iDate;
         break;
         }
            
@@ -212,12 +222,12 @@ TBool CIpsPlgSearch::TMsgContainer::operator>=(
         break;
         
     case EFSMailSortByDate:
-        result = Entry( iId ).iDate >= Entry( aMsgContainer.Id() ).iDate;
+        result = iEntry.iDate >= aMsgContainer.iEntry.iDate;
         break;
         
     case EFSMailSortBySender:
         {
-        HBufC* leftSender = NULL;
+        /*HBufC* leftSender = NULL;
         HBufC* rightSender = NULL;
         
         GetSenderStringsCC( 
@@ -227,13 +237,14 @@ TBool CIpsPlgSearch::TMsgContainer::operator>=(
             rightSender );
         
         result = *leftSender >= *rightSender;
-        CleanupStack::PopAndDestroy( 2, leftSender ); 
+        CleanupStack::PopAndDestroy( 2, leftSender );*/
+        result = iEntry.iDetails > aMsgContainer.iEntry.iDetails;
         }
         break;
         
     case EFSMailSortBySubject:
         {
-        HBufC* leftSubject = NULL;
+        /*HBufC* leftSubject = NULL;
         HBufC* rightSubject = NULL;
         
         GetSubjectStringsCC( 
@@ -243,32 +254,33 @@ TBool CIpsPlgSearch::TMsgContainer::operator>=(
             rightSubject );
 
         result = *leftSubject >= *rightSubject;
-        CleanupStack::PopAndDestroy( 2, leftSubject ); 
+        CleanupStack::PopAndDestroy( 2, leftSubject );*/
+        result = iEntry.iDescription > aMsgContainer.iEntry.iDescription;
         }
         break;
-            
+
     case EFSMailSortByPriority:
-        result = Entry( iId ).Priority() >= Entry( aMsgContainer.Id() ).Priority();        
+        result = iEntry.Priority() >= aMsgContainer.iEntry.Priority();
         break;
-    
+
     case EFSMailSortByFlagStatus:
-        result = Entry( iId ).New() >= Entry( aMsgContainer.Id() ).New();
+        result = iEntry.New() >= aMsgContainer.iEntry.New();
         break;
-    
+
     case EFSMailSortByUnread:
-        result = Entry( iId ).Unread() >= Entry( aMsgContainer.Id() ).Unread();
+        result = iEntry.Unread() >= aMsgContainer.iEntry.Unread();
         break;
-    
+
     case EFSMailSortBySize:
-        result = Entry( iId ).iSize >= Entry( aMsgContainer.Id() ).iSize;
+        result = iEntry.iSize >= aMsgContainer.iEntry.iSize;
         break;
-    
+
     case EFSMailSortByAttachment:
-        result = Entry( iId ).iDate >= Entry( aMsgContainer.Id() ).iDate;        
+        result = iEntry.iDate >= aMsgContainer.iEntry.iDate;
         break;
         }
-        
-    return result;        
+
+    return result;
     }
 
 // ---------------------------------------------------------------------------
@@ -288,12 +300,12 @@ TBool CIpsPlgSearch::TMsgContainer::operator<=(
         break;
         
     case EFSMailSortByDate:
-        result = Entry( iId ).iDate <= Entry( aMsgContainer.Id() ).iDate;
+        result = iEntry.iDate <= aMsgContainer.iEntry.iDate;
         break;
 
     case EFSMailSortBySender:
         {
-        HBufC* leftSender = NULL;
+        /*HBufC* leftSender = NULL;
         HBufC* rightSender = NULL;
         
         GetSenderStringsCC( 
@@ -303,13 +315,14 @@ TBool CIpsPlgSearch::TMsgContainer::operator<=(
             rightSender );
         
         result = *leftSender <= *rightSender;
-        CleanupStack::PopAndDestroy( 2, leftSender ); 
+        CleanupStack::PopAndDestroy( 2, leftSender );*/
+        result = iEntry.iDetails > aMsgContainer.iEntry.iDetails;
         }
         break;
     
     case EFSMailSortBySubject:
         {
-        HBufC* leftSubject = NULL;
+        /*HBufC* leftSubject = NULL;
         HBufC* rightSubject = NULL;
         
         GetSubjectStringsCC( 
@@ -319,34 +332,36 @@ TBool CIpsPlgSearch::TMsgContainer::operator<=(
             rightSubject );
 
         result = *leftSubject <= *rightSubject;
-        CleanupStack::PopAndDestroy( 2, leftSubject ); 
+        CleanupStack::PopAndDestroy( 2, leftSubject );*/
+        result = iEntry.iDescription > aMsgContainer.iEntry.iDescription;
         }
         break;
 
     case EFSMailSortByPriority:
-        result = Entry( iId ).Priority() <= Entry( aMsgContainer.Id() ).Priority();        
+        result = iEntry.Priority() <= aMsgContainer.iEntry.Priority();
         break;
-    
+
     case EFSMailSortByFlagStatus:
-        result = Entry( iId ).New() <= Entry( aMsgContainer.Id() ).New();
+        result = iEntry.New() <= aMsgContainer.iEntry.New();
         break;
-    
+
     case EFSMailSortByUnread:
-        result = Entry( iId ).Unread() <= Entry( aMsgContainer.Id() ).Unread();
+        result = iEntry.Unread() <= aMsgContainer.iEntry.Unread();
         break;
-    
+
     case EFSMailSortBySize:
-        result = Entry( iId ).iSize <= Entry( aMsgContainer.Id() ).iSize;
+        result = iEntry.iSize <= aMsgContainer.iEntry.iSize;
         break;
-    
+
     case EFSMailSortByAttachment:
-        result = Entry( iId ).iDate <= Entry( aMsgContainer.Id() ).iDate;        
+        result = iEntry.iDate <= aMsgContainer.iEntry.iDate;
         break;
         }
         
     return result;        
     }
 
+/*
 // ---------------------------------------------------------------------------
 // CIpsPlgSearch::TMsgContainer::GetSenderStringsCC()
 // ---------------------------------------------------------------------------
@@ -386,7 +401,7 @@ void CIpsPlgSearch::TMsgContainer::GetSubjectStringsCC(
     aRightSubject = entry.iDescription.Alloc();
     TRAP_IGNORE( CleanupStack::PushL( aRightSubject ) );
     }
-
+*/
 // ---------------------------------------------------------------------------
 // CIpsPlgSearch::TMsgContainer::TMsgContainer()
 // ---------------------------------------------------------------------------
@@ -395,10 +410,11 @@ CIpsPlgSearch::TMsgContainer& CIpsPlgSearch::TMsgContainer::operator=(
     const TMsgContainer& aMsgContainer )
     {
     FUNC_LOG;
-    iId = aMsgContainer.Id();
+    iEntry = aMsgContainer.iEntry;
+    /*Id() = aMsgContainer.Id();*/
     return *this;
     }
-
+/*
 // ---------------------------------------------------------------------------
 // CIpsPlgSearch::TMsgContainer::Entry()
 // ---------------------------------------------------------------------------
@@ -423,6 +439,7 @@ TMsvEntry CIpsPlgSearch::TMsgContainer::Entry(
     aMsvSession.GetEntry( aId, service, entry );
     return entry;
     }
+    */
 
 // ======== CLASS CIPSPLGSEARCH ========     
     
@@ -993,11 +1010,11 @@ void CIpsPlgSearch::CollectMessagesL()
                  ( entry.iMtm.iUid == KSenduiMtmSmtpUidValue ||
                    entry.iMtm.iUid == iPlugin.MtmId().iUid ) )
                 {
-                iEmailMessages.AppendL( TMsgContainer( 
-                    entry.Id(), iCurrentSearch.iSortCriteria, iMsvSession ) );
-                }        
+                iEmailMessages.AppendL( TMsgContainer( entry,
+                    iCurrentSearch.iSortCriteria ) );
+                }
             }
-        }    
+        }
     }
 
 //Ask client if it wants to change the search prority (i.e. to enable search for contact)

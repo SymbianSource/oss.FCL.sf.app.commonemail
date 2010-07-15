@@ -209,7 +209,7 @@ void CIpsPlgSearch::TSearchParams::AddFolderIdsL(
 //
 TMsvId CIpsPlgSearch::TMsgContainer::Id() const
     {
-    return iId;
+    return iEntry.Id();
     }
 
 // End of File

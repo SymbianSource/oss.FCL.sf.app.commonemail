@@ -367,11 +367,16 @@ private:
         /**
          * @param aCriteria Sorting criterias.
          */
-        TMsgContainer( 
-            const TMsvId& aId, 
+
+
+        /*TMsgContainer(
+            const TMsvId& aId,
             const TFSMailSortCriteria& aCriteria,
-            CMsvSession& aMsvSession );
-        
+            CMsvSession& aMsvSession );*/
+
+        TMsgContainer( const TMsvEntry& aEntry,
+            const TFSMailSortCriteria& aCriteria );
+
         /**
          * @param aMsgContainer MsgContainer to be compared.
          * @return ETrue, when content is greater than in parameter.
@@ -446,17 +451,19 @@ private:
         /**
          * Entry to be used for compare operations.
          */
-        TMsvId iId;
+        //TMsvId iId;
                 
         /**
          * Reference to existing sort criteria.
          */
         const TFSMailSortCriteria& iCriteria;
         
+        TMsvEntry iEntry;
+
         /**
          * Message server session.
          */
-        CMsvSession& iMsvSession;
+        //CMsvSession& iMsvSession;
         };
 
     /**

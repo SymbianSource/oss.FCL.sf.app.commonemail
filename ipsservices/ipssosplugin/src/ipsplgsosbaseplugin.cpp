@@ -655,6 +655,7 @@ TInt CIpsPlgSosBasePlugin::CancelSyncL( const TFSMailMsgId& aMailBoxId )
             iOperations[i]->BaseOperation();
         if ( baseOp && baseOp->FSMailboxId() == aMailBoxId &&
                ( baseOp->IpsOpType() == EIpsOpTypePop3SyncOp
+                || baseOp->IpsOpType() == EIpsOpTypePop3PopulateOp		   
                 || baseOp->IpsOpType() == EIpsOpTypeImap4SyncOp
                 || baseOp->IpsOpType() == EIpsOpTypeImap4PopulateOp ) )
             {
@@ -2198,7 +2199,8 @@ void CIpsPlgSosBasePlugin::DeleteAndRemoveOperation(
     if ( op && (
             op->IpsOpType() == EIpsOpTypeImap4SyncOp  ||
              op->IpsOpType() == EIpsOpTypePop3SyncOp ||
-             op->IpsOpType() == EIpsOpTypeImap4PopulateOp ) )
+             op->IpsOpType() == EIpsOpTypeImap4PopulateOp ||
+             op->IpsOpType() == EIpsOpTypePop3PopulateOp ) )
         {
         service = op->Service();
         }

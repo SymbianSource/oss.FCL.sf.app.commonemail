@@ -23,6 +23,7 @@
 #include "cesmrfieldcommandevent.h"
 #include "cmrbackground.h"
 #include "esmrcommands.h"
+#include "cmrrecordinggc.h"
 
 #include "emailtrace.h"
 
@@ -33,6 +34,12 @@
 #include <StringLoader.h>
 #include <AknUtils.h>
 #include <touchfeedback.h>
+
+namespace
+{
+// Off-screen x coordinate for fields
+const TInt KOffScreenPositionX = 1000;
+}
 
 // ======== MEMBER FUNCTIONS ========
 
@@ -65,6 +72,7 @@ EXPORT_C CESMRField::~CESMRField()
         iEventQueue->RemoveObserver( this );
         }
     delete iBackground;
+    delete iRecordingGc;
     }
 
 // ---------------------------------------------------------------------------
@@ -79,6 +87,7 @@ EXPORT_C void CESMRField::ConstructL(
 
     iBackground = CMRBackground::NewL();
     this->SetBackground( iBackground );
+    iRecordingGc = new( ELeave ) CMRRecordingGc( SystemGc() );
     }
 
 // ---------------------------------------------------------------------------
@@ -219,6 +228,23 @@ EXPORT_C TSize CESMRField::MinimumSize()
     }
 
 // ---------------------------------------------------------------------------
+// CESMRField::Draw
+// ---------------------------------------------------------------------------
+//
+EXPORT_C void CESMRField::Draw( const TRect& aRect ) const
+    {
+    FUNC_LOG;
+
+    // Draw only if field is not on screen
+    if ( Position().iX != Parent()->Position().iX )
+        {
+        // Flush cached drawing commands from custom graphics context
+        iRecordingGc->FlushBuffer( aRect );
+        }
+
+    }
+
+// ---------------------------------------------------------------------------
 // CESMRField::HandlePointerEventL
 // ---------------------------------------------------------------------------
 //
@@ -256,11 +282,17 @@ EXPORT_C void CESMRField::HandlePointerEventL(
 EXPORT_C void CESMRField::SetContainerWindowL(const CCoeControl& aContainer)
     {
     FUNC_LOG;
+
+    // Use container window from aContainer
+    // This will set also aContainer as MOP parent and CCoeControl parent
     CCoeControl::SetContainerWindowL( aContainer );
-    if ( iExtControl )
+
+    // Set this same window and this as parent for component controls
+    TInt count( CountComponentControls() );
+
+    for ( TInt i = 0; i < count; ++i )
         {
-        iExtControl->SetContainerWindowL( aContainer );
-        iExtControl->SetParent( this );
+        ComponentControl( i )->SetContainerWindowL( *this );
         }
     }
 
@@ -322,6 +354,7 @@ EXPORT_C void CESMRField::SetOutlineFocusL( TBool aFocus )
     {
     FUNC_LOG;
     iOutlineFocus = aFocus;
+
     if ( iExtControl )
         {
         iExtControl->SetFocus( aFocus );
@@ -829,6 +862,9 @@ EXPORT_C void CESMRField::UpdateExtControlL(
     FUNC_LOG;
     delete iExtControl;
     iExtControl = aControl;
+
+    // Set also container window
+    iExtControl->SetContainerWindowL( *this );
     }
 
 // ---------------------------------------------------------------------------
@@ -856,12 +892,47 @@ EXPORT_C TBool CESMRField::IsLocked()
 // ---------------------------------------------------------------------------
 //
 EXPORT_C TBool CESMRField::SupportsLongTapFunctionalityL(
-		const TPointerEvent &aPointerEvent )
+		const TPointerEvent& /*aPointerEvent*/ )
 	{
     FUNC_LOG;
     // Subclasses may override for field specific actions
 	return EFalse;
 	}
+
+// ---------------------------------------------------------------------------
+// CESMRField::MoveToScreen
+// ---------------------------------------------------------------------------
+//
+EXPORT_C void CESMRField::MoveToScreen( TBool aVisible )
+    {
+    FUNC_LOG
+
+    // Check that field is activated
+    if ( IsActivated() )
+        {
+        TPoint pos( Position() );
+
+        if ( aVisible )
+            {
+            // Set x coordinate to parent (field container) x coordinate
+            pos.iX = Parent()->Position().iX;
+            }
+        else
+            {
+            // Move field outside screen
+            pos.iX = KOffScreenPositionX;
+            // Record field drawing commands
+            RecordField();
+            }
+
+        if ( pos != Position() )
+            {
+            // Set new position only if it different from current one
+            // Setting new position potentially causes relayout in field
+            SetPosition( pos );
+            }
+        }
+    }
 
 // ---------------------------------------------------------------------------
 // CESMRField::HandleTactileFeedbackL
@@ -892,6 +963,74 @@ void CESMRField::AquireTactileFeedback()
 		}
     }
 
+// ---------------------------------------------------------------------------
+// CESMRField::RecordField
+// ---------------------------------------------------------------------------
+//
+EXPORT_C void CESMRField::RecordField()
+    {
+    FUNC_LOG;
+
+    // Record only activated field
+    if ( IsActivated() )
+        {
+        // Purge old draw commands
+        iRecordingGc->PurgeBuffer();
+
+        // Set recording graphics context to be used for drawing
+        SetCustomGc( iRecordingGc );
+
+        // Set gc origin to point (-x,-y)
+        // This will cause drawing commands to be relative to point (0,0)
+        iRecordingGc->SetOrigin( -iPosition );
+
+        // Draw custom background if available
+        const MCoeControlBackground* bg = Background();
+        if ( bg )
+            {
+            bg->Draw( *iRecordingGc, *this, Rect() );
+            }
+
+        // Draw child controls
+        DrawControl( this );
+
+        // Reset custom gc
+        SetCustomGc( NULL );
+        }
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRField::DrawControl
+// ---------------------------------------------------------------------------
+//
+void CESMRField::DrawControl( CCoeControl* aControl ) const
+    {
+    TInt count( aControl->CountComponentControls() );
+
+    for ( TInt i = 0; i < count; ++i )
+        {
+        CCoeControl* control = aControl->ComponentControl( i );
+
+        // Draw only non-window owning children
+        if ( !control->OwnsWindow() )
+            {
+            TRect rect( control->Rect() );
+
+            // Draw control background if available
+            const MCoeControlBackground* bg = control->Background();
+            if ( bg )
+                {
+                bg->Draw( *iRecordingGc, *control, rect );
+                }
+
+            // Draw control foreground
+            control->DrawForeground( rect );
+
+            // Draw child components
+            DrawControl( control );
+            }
+        }
+    }
 
 // EOF
 

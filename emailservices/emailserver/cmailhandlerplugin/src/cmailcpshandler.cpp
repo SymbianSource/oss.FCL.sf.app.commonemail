@@ -483,7 +483,7 @@ void CMailCpsHandler::UpdateMailboxNameL( const TInt aMailBoxNumber,
                                                                *ints );
 
                 iLiwIf->PublishActiveMailboxNameL(
-				        aWidgetInstance,
+                        aWidgetInstance,
                         aRowNumber, *mailboxAndCount);
 
                 CleanupStack::PopAndDestroy(mailboxAndCount);
@@ -495,7 +495,7 @@ void CMailCpsHandler::UpdateMailboxNameL( const TInt aMailBoxNumber,
                 // show only mailbox name
 
                 iLiwIf->PublishActiveMailboxNameL(
-				        aWidgetInstance,
+                        aWidgetInstance,
                         aRowNumber, accountName);
                 }
             }
@@ -505,8 +505,8 @@ void CMailCpsHandler::UpdateMailboxNameL( const TInt aMailBoxNumber,
         // Publishing empty descriptor for rows that should not contain
         // anything on widget UI.
         iLiwIf->PublishActiveMailboxNameL( aWidgetInstance,
-		                                   aRowNumber,
-										   KNullDesC);
+                                           aRowNumber,
+                                           KNullDesC);
         }
     }
 
@@ -537,7 +537,7 @@ void CMailCpsHandler::UpdateMessagesL( const TInt aMailBoxNumber,
             CFSMailFolder* folder = MailClient().GetFolderByUidL( mailBoxId, parentFolder );
             if ( !folder )
                 {
-				UpdateEmptyMessagesL( aWidgetInstance, aRow );
+                UpdateEmptyMessagesL( aWidgetInstance, aRow );
                 return;
                 }
             CleanupStack::PushL( folder );
@@ -757,9 +757,9 @@ void CMailCpsHandler::UpdateMailBoxIconL( const TInt aMailBoxNumber,
         {
         mailBoxId = iAccountsArray[aMailBoxNumber]->iMailboxId;
         iLiwIf->PublishMailboxIconL( aWidgetInstance,
-		                             aRowNumber,
-									 EMbmCmailhandlerpluginQgn_indi_cmail_drop_email_account,
-									 mailBoxId);
+                                     aRowNumber,
+                                     EMbmCmailhandlerpluginQgn_indi_cmail_drop_email_account,
+                                     mailBoxId);
         }
     else
         {
@@ -886,14 +886,12 @@ void CMailCpsHandler::HandleEventL(
             }
         case TFSEventNewMail:
             {
-            HandleNewMailEventL( aMailbox, aParam1, aParam2 );
             SetUpdateNeeded( aMailbox );
             UpdateFullL();
             break;
             }
         case TFSEventMailDeleted:
             {
-            HandleMailDeletedEventL( aMailbox, aParam1, aParam2 );
             SetUpdateNeeded( aMailbox );
             UpdateFullL();
             break;
@@ -983,162 +981,6 @@ void CMailCpsHandler::HandleMailboxDeletedEventL( const TFSMailMsgId aMailbox )
         }
     }
 
-// ---------------------------------------------------------
-// CMailCpsHandler::HandleNewMailEventL
-// ---------------------------------------------------------
-//
-void CMailCpsHandler::HandleNewMailEventL(
-    TFSMailMsgId aMailbox, TAny* aParam1, TAny* aParam2 )
-    {
-    FUNC_LOG;
-
-    iSettings->ToggleWidgetNewMailIconL( ETrue, aMailbox );
-
-    // Basic assertions
-    if ( !aParam1 || !aParam2 )
-        {
-        User::Leave( KErrArgument );
-        }
-
-    // typecast param2
-    TFSMailMsgId* parentFolder = static_cast<TFSMailMsgId*>( aParam2 );
-
-    // Check that folder is correct
-    CFSMailFolder* folder = MailClient().GetFolderByUidL( aMailbox, *parentFolder );
-    if ( !folder )
-        {
-        User::Leave( KErrNotFound );
-        }
-    CleanupStack::PushL( folder );
-    if ( folder->GetFolderType() != EFSInbox )
-        {
-        CleanupStack::PopAndDestroy( folder );
-        return;
-        }
-    CleanupStack::PopAndDestroy( folder );
-
-    // typecast param1
-    RArray<TFSMailMsgId>* newEntries(
-            static_cast< RArray<TFSMailMsgId>* >( aParam1 ) );
-    CleanupClosePushL( *newEntries );
-    const TInt iiMax( newEntries->Count() );
-    if ( iiMax == 0 )
-        {
-        User::Leave( KErrArgument );
-        }
-
-    // Loop through message array
-    TFSMailMsgId msgId;
-    CFSMailMessage* msg( NULL );
-    CMailMailboxDetails* mailbox;
-    for ( TInt ii = 0; ii < iiMax; ii++ )
-        {
-        msgId = (*newEntries)[ii];
-
-        msg = MailClient().GetMessageByUidL(
-            aMailbox, *parentFolder, (*newEntries)[ii], EFSMsgDataEnvelope );
-        if ( !msg )
-            {
-            User::Leave( KErrNotFound );
-            }
-        CleanupStack::PushL( msg );
-
-        // Check if message read
-        if ( !MsgIsUnread( *msg ) )
-            {
-            // Ignore already read messages
-            CleanupStack::PopAndDestroy( msg );
-            continue;
-            }
-
-        // Find mailbox instance from array
-        mailbox = FindMailboxDetails( aMailbox );
-        if ( !mailbox )
-            {
-            CleanupStack::PopAndDestroy( msg );
-            CleanupStack::PopAndDestroy( newEntries );
-            return;
-            }
-
-        // Check if message is duplicate
-        if ( IsDuplicate( *mailbox, msgId ) )
-            {
-            // Ignore already known messages
-            CleanupStack::PopAndDestroy( msg );
-            continue;
-            }
-
-        CMailMessageDetails* messageDetails = CMailMessageDetails::NewL(
-            msg->GetMessageId(),
-            mailbox,
-            msg->GetSender()->GetEmailAddress(),
-            msg->GetSubject(),
-            msg->GetDate() );
-        CleanupStack::PopAndDestroy( msg );
-        CleanupStack::PushL( messageDetails );
-
-        // Place message to array
-        mailbox->iMessageDetailsArray.AppendL( messageDetails );
-        CleanupStack::Pop( messageDetails );
-        }
-    CleanupStack::PopAndDestroy( newEntries );
-    }
-
-// ---------------------------------------------------------
-// CMailCpsHandler::HandleMailDeletedEventL
-// ---------------------------------------------------------
-//
-void CMailCpsHandler::HandleMailDeletedEventL(
-    TFSMailMsgId aMailbox, TAny* aParam1, TAny* aParam2 )
-    {
-    FUNC_LOG;
-    // Basic assertions
-    if ( !aParam1 || !aParam2 )
-        {
-        User::Leave( KErrArgument );
-        }
-    // Typecast parameters
-    RArray<TFSMailMsgId>* entries(
-            static_cast< RArray<TFSMailMsgId>* >( aParam1 ) );
-    CleanupClosePushL( *entries );
-    if ( entries->Count() == 0 )
-        {
-        User::Leave( KErrArgument );
-        }
-
-    // Find correct mailbox
-    CMailMailboxDetails* mailbox = FindMailboxDetails( aMailbox );
-    if ( !mailbox )
-        {
-        CleanupStack::PopAndDestroy( entries );
-        return;
-        }
-
-    const TInt iiMax( entries->Count() );
-    const TInt jjMax( mailbox->iMessageDetailsArray.Count() );
-    // Loop through entries in the array
-    for ( TInt ii = 0; ii < iiMax; ii++ )
-        {
-        // Loop through messages in the local cache
-        for ( TInt jj = 0; jj < jjMax; jj++ )
-            {
-            if ( mailbox->iMessageDetailsArray[jj]->iMsgId.Id() ==
-                (*entries)[ii].Id() )
-                {
-                CMailMessageDetails* details = mailbox->iMessageDetailsArray[jj];
-                delete details;
-                details = NULL;
-                mailbox->iMessageDetailsArray.Remove(jj);
-                break; // breaks out from the inner loop and starts new outer loop if necessary
-                }
-            else
-                {
-                }
-            }
-        }
-
-    CleanupStack::PopAndDestroy( entries );
-    }
 
 // ---------------------------------------------------------
 // CMailCpsHandler::GetUnreadCountL
@@ -1663,24 +1505,6 @@ TBool CMailCpsHandler::IsValidDisplayName(const TDesC& aDisplayName)
         }
 
     return ETrue;
-    }
-
-// -----------------------------------------------------------------------------
-// CMailCpsHandler::IsDuplicate
-// -----------------------------------------------------------------------------
-TBool CMailCpsHandler::IsDuplicate( const CMailMailboxDetails& aMailbox, const TFSMailMsgId& aMsgId )
-    {
-    FUNC_LOG;
-    TBool isDuplicate( EFalse );
-    const TInt size( aMailbox.iMessageDetailsArray.Count() );
-    for ( TInt jj = 0; jj < size; jj++ )
-        {
-        if ( aMailbox.iMessageDetailsArray[jj]->iMsgId.Id() == aMsgId.Id() )
-            {
-            isDuplicate = ETrue;
-            }
-        }
-    return isDuplicate;
     }
 
 // -----------------------------------------------------------------------------

@@ -51,49 +51,55 @@ PRJ_EXPORTS
 ../group/backup_registration.xml /epoc32/data/z/private/2001E277/backup_registration.xml
 
 // Files for html display
-// make the files ready for creating ROM image 
-../data/html/attachment.gif /epoc32/data/z/private/2001E277/HtmlFile/attachment.gif
+// make the files ready for creating ROM image
 ../data/html/email.html /epoc32/data/z/private/2001E277/HtmlFile/email.html
 ../data/html/email_rtl.html /epoc32/data/z/private/2001E277/HtmlFile/email_rtl.html
 ../data/html/header.js /epoc32/data/z/private/2001E277/HtmlFile/header.js
-../data/html/plus.gif /epoc32/data/z/private/2001E277/HtmlFile/plus.gif
-../data/html/minus.gif /epoc32/data/z/private/2001E277/HtmlFile/minus.gif
+../data/html/header.css /epoc32/data/z/private/2001E277/HtmlFile/header.css
 ../data/html/email.js /epoc32/data/z/private/2001E277/HtmlFile/email.js
 ../data/html/follow_up.png /epoc32/data/z/private/2001E277/HtmlFile/follow_up.png
 ../data/html/follow_up_complete.png /epoc32/data/z/private/2001E277/HtmlFile/follow_up_complete.png
-../data/html/btn_middle.png /epoc32/data/z/private/2001E277/HtmlFile/btn_middle.png
-../data/html/todo_high_add.png /epoc32/data/z/private/2001E277/HtmlFile/todo_high_add.png
-../data/html/todo_low_add.png /epoc32/data/z/private/2001E277/HtmlFile/todo_low_add.png
-
+../data/html/btn_right.png /epoc32/data/z/private/2001E277/HtmlFile/btn_right.png
+../data/html/btn_left.png /epoc32/data/z/private/2001E277/HtmlFile/btn_left.png
+../data/html/priority_high.png /epoc32/data/z/private/2001E277/HtmlFile/priority_high.png
+../data/html/priority_low.png /epoc32/data/z/private/2001E277/HtmlFile/priority_low.png
+../data/html/attachment.png /epoc32/data/z/private/2001E277/HtmlFile/attachment.png
+../data/html/hidden.png /epoc32/data/z/private/2001E277/HtmlFile/hidden.png
+../data/html/expand.png /epoc32/data/z/private/2001E277/HtmlFile/expand.png
+../data/html/collapse.png /epoc32/data/z/private/2001E277/HtmlFile/collapse.png
 
 // make the files ready for udeb emulator
-../data/html/attachment.gif /epoc32/release/winscw/udeb/z/private/2001E277/HtmlFile/attachment.gif
 ../data/html/email.html /epoc32/release/winscw/udeb/z/private/2001E277/HtmlFile/email.html
 ../data/html/email_rtl.html /epoc32/release/winscw/udeb/z/private/2001E277/HtmlFile/email_rtl.html
 ../data/html/header.js /epoc32/release/winscw/udeb/z/private/2001E277/HtmlFile/header.js
-../data/html/plus.gif /epoc32/release/winscw/udeb/z/private/2001E277/HtmlFile/plus.gif
-../data/html/minus.gif /epoc32/release/winscw/udeb/z/private/2001E277/HtmlFile/minus.gif
+../data/html/header.css /epoc32/release/winscw/udeb/z/private/2001E277/HtmlFile/header.css
 ../data/html/email.js /epoc32/release/winscw/udeb/z/private/2001E277/HtmlFile/email.js
 ../data/html/follow_up.png /epoc32/release/winscw/udeb/z/private/2001E277/HtmlFile/follow_up.png
 ../data/html/follow_up_complete.png /epoc32/release/winscw/udeb/z/private/2001E277/HtmlFile/follow_up_complete.png
-../data/html/todo_high_add.png /epoc32/release/winscw/udeb/z/private/2001E277/HtmlFile/todo_high_add.png
-../data/html/btn_middle.png /epoc32/release/winscw/udeb/z/private/2001E277/HtmlFile/btn_middle.png
-../data/html/todo_low_add.png /epoc32/release/winscw/udeb/z/private/2001E277/HtmlFile/todo_low_add.png
+../data/html/btn_right.png /epoc32/release/winscw/udeb/z/private/2001E277/HtmlFile/btn_right.png
+../data/html/btn_left.png /epoc32/release/winscw/udeb/z/private/2001E277/HtmlFile/btn_left.png
+../data/html/priority_high.png /epoc32/release/winscw/udeb/z/private/2001E277/HtmlFile/priority_high.png
+../data/html/priority_low.png /epoc32/release/winscw/udeb/z/private/2001E277/HtmlFile/priority_low.png
+../data/html/attachment.png /epoc32/release/winscw/udeb/z/private/2001E277/HtmlFile/attachment.png
+../data/html/hidden.png /epoc32/release/winscw/udeb/z/private/2001E277/HtmlFile/hidden.png
+../data/html/expand.png /epoc32/release/winscw/udeb/z/private/2001E277/HtmlFile/expand.png
+../data/html/collapse.png /epoc32/release/winscw/udeb/z/private/2001E277/HtmlFile/collapse.png
 
 // make the files ready for urel emulator
-../data/html/attachment.gif /epoc32/release/winscw/urel/z/private/2001E277/HtmlFile/attachment.gif
 ../data/html/email.html /epoc32/release/winscw/urel/z/private/2001E277/HtmlFile/email.html
 ../data/html/email_rtl.html /epoc32/release/winscw/urel/z/private/2001E277/HtmlFile/email_rtl.html
 ../data/html/header.js /epoc32/release/winscw/urel/z/private/2001E277/HtmlFile/header.js
-../data/html/plus.gif /epoc32/release/winscw/urel/z/private/2001E277/HtmlFile/plus.gif
-../data/html/minus.gif /epoc32/release/winscw/urel/z/private/2001E277/HtmlFile/minus.gif
+../data/html/header.css /epoc32/release/winscw/urel/z/private/2001E277/HtmlFile/header.css
 ../data/html/email.js /epoc32/release/winscw/urel/z/private/2001E277/HtmlFile/email.js
 ../data/html/follow_up.png /epoc32/release/winscw/urel/z/private/2001E277/follow_up.png
-../data/html/follow_up_complete.png /epoc32/release/winscw/urel/z/private/2001E277/follow_up_complete.png
-../data/html/todo_high_add.png /epoc32/release/winscw/urel/z/private/2001E277/todo_high_add.png
-../data/html/btn_middle.png /epoc32/release/winscw/urel/z/private/2001E277/HtmlFile/btn_middle.png
-../data/html/todo_low_add.png /epoc32/release/winscw/urel/z/private/2001E277/todo_low_add.png
-
+../data/html/btn_right.png /epoc32/release/winscw/urel/z/private/2001E277/HtmlFile/btn_right.png
+../data/html/btn_left.png /epoc32/release/winscw/urel/z/private/2001E277/HtmlFile/btn_left.png
+../data/html/priority_high.png /epoc32/release/winscw/urel/z/private/2001E277/HtmlFile/priority_high.png
+../data/html/priority_low.png /epoc32/release/winscw/urel/z/private/2001E277/HtmlFile/priority_low.png
+../data/html/attachment.png /epoc32/release/winscw/urel/z/private/2001E277/HtmlFile/attachment.png
+../data/html/hidden.png /epoc32/release/winscw/urel/z/private/2001E277/HtmlFile/hidden.png
+../data/html/expand.png /epoc32/release/winscw/urel/z/private/2001E277/HtmlFile/expand.png
+../data/html/collapse.png /epoc32/release/winscw/urel/z/private/2001E277/HtmlFile/collapse.png
 ../data/cmail_marking_mode_bg.svg /epoc32/s60/icons/cmail_marking_mode_bg.svg
 
 ../sis/commonemailstub.sis          /epoc32/data/z/system/install/commonemailstub.sis

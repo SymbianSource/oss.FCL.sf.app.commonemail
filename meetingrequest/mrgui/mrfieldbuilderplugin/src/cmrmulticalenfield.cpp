@@ -178,8 +178,10 @@ void CMRMultiCalenField::LockL()
 
 	delete iLockIcon;
 	iLockIcon = NULL;
-	iLockIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapLockField, ETrue );
-	iIcon->SetParent( this );
+	iLockIcon = CMRImage::NewL(
+	        NMRBitmapManager::EMRBitmapLockField,
+	        this,
+	        ETrue );
 	}
 
 // ---------------------------------------------------------------------------
@@ -228,16 +230,13 @@ void CMRMultiCalenField::ConstructL( )
     {
     FUNC_LOG;
 
-    iCalenName = CMRLabel::NewL();
+    iCalenName = CMRLabel::NewL( this );
     CESMRField::ConstructL( iCalenName );
     iCalenName->SetTextL( KNullDesC() );
 
-    TGulAlignment align;
-    align.SetHAlignment( EHLeft );
-    align.SetVAlignment( EVCenter );
-    iCalenName->SetAlignment( align );
-
-    iIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapCalendarSelection );
+    iIcon = CMRImage::NewL(
+            NMRBitmapManager::EMRBitmapCalendarSelection,
+            this );
 
     }
 
@@ -291,12 +290,12 @@ CCoeControl* CMRMultiCalenField::ComponentControl( TInt aIndex ) const
         {
         case 0:
             {
-            control = iCalenName;
+            control = iIcon;
             break;
             }
         case 1:
             {
-            control = iIcon;
+            control = iCalenName;
             break;
             }
         case 2:
@@ -368,21 +367,6 @@ void CMRMultiCalenField::SizeChanged()
     bgRect.Move( -Position() );
 
     SetFocusRect( bgRect );
-    }
-
-// ---------------------------------------------------------------------------
-// CMRMultiCalenField::SetContainerWindowL
-// ---------------------------------------------------------------------------
-//
-void CMRMultiCalenField::SetContainerWindowL(
-        const CCoeControl& aContainer )
-    {
-    FUNC_LOG;
-    CCoeControl::SetContainerWindowL( aContainer );
-    iCalenName->SetContainerWindowL( aContainer );
-    iCalenName->SetParent( this );
-    iIcon->SetContainerWindowL( aContainer );
-    iIcon->SetParent( this );
     }
 
 // ---------------------------------------------------------------------------

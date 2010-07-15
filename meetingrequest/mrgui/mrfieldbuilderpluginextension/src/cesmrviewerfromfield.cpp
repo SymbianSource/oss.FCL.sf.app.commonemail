@@ -269,6 +269,11 @@ TBool CESMRViewerFromField::HandleEdwinSizeEventL(CEikEdwin* /*aEdwin*/,
     if ( iObserver )
         {
         iObserver->ControlSizeChanged ( this );
+        
+        if ( !iOutlineFocus )
+            {
+            RecordField();
+            }
         }
     return iDisableRedraw;
     }
@@ -342,21 +347,6 @@ void CESMRViewerFromField::SetOutlineFocusL( TBool aFocus )
         {
         //need to tell action menu that focus has changed
         iRichTextViewer->ResetActionMenuL();
-        }
-    }
-
-// ---------------------------------------------------------------------------
-// CESMRViewerFromField::SetContainerWindowL()
-// ---------------------------------------------------------------------------
-//
-void CESMRViewerFromField::SetContainerWindowL(const CCoeControl& aContainer)
-    {
-    FUNC_LOG;
-    CESMRField::SetContainerWindowL( aContainer );
-    if ( iRichTextViewer )
-        {
-        iRichTextViewer->SetContainerWindowL( aContainer );
-        iRichTextViewer->SetParent( this );
         }
     }
 

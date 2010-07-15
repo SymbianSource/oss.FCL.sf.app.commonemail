@@ -149,3 +149,7 @@ EXPORTS
 	_ZNK19CESMRRichTextViewer12GetFocusLinkEv @ 148 NONAME
 	_ZN10CESMRField29SupportsLongTapFunctionalityLERK13TPointerEvent @ 149 NONAME
 	_ZN19CESMRRichTextViewer27PointerEventOccuresOnALinkLERK13TPointerEvent @ 150 NONAME
+	_ZN10CESMRField11RecordFieldEv @ 151 NONAME
+	_ZN10CESMRField12MoveToScreenEi @ 152 NONAME
+	_ZNK10CESMRField4DrawERK5TRect @ 153 NONAME
+

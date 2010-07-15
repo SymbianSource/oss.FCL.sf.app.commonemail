@@ -115,9 +115,10 @@ CESMRViewerDetailedSubjectField* CESMRViewerDetailedSubjectField::NewL()
 void CESMRViewerDetailedSubjectField::ConstructL()
     {
     FUNC_LOG;
-    iFieldIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapOccasion );
-    iFieldIcon->SetParent( this );
-
+    iFieldIcon = CMRImage::NewL(
+            NMRBitmapManager::EMRBitmapOccasion,
+            this );
+    
     iRichTextViewer = CESMRRichTextViewer::NewL( this );
     CESMRField::ConstructL( iRichTextViewer ); // ownership transferred
     iRichTextViewer->SetEdwinSizeObserver( this );
@@ -199,14 +200,16 @@ void CESMRViewerDetailedSubjectField::InternalizeL(
     	if( entry.PriorityL() == EFSCalenMRPriorityHigh )
     		{
     		iPriorityIcon = CMRImage::NewL(
-    				NMRBitmapManager::EMRBitmapPriorityHigh, ETrue );
-    		iPriorityIcon->SetParent( this );
+    				NMRBitmapManager::EMRBitmapPriorityHigh,
+    				this,
+    				ETrue );
     		}
     	if( entry.PriorityL() == EFSCalenMRPriorityLow )
     		{
     		iPriorityIcon = CMRImage::NewL(
-    				NMRBitmapManager::EMRBitmapPriorityLow, ETrue );
-    		iPriorityIcon->SetParent( this );
+    				NMRBitmapManager::EMRBitmapPriorityLow,
+    				this,
+    				ETrue );
     		}
     	}
 
@@ -265,12 +268,12 @@ void CESMRViewerDetailedSubjectField::InternalizeL(
         delete iFieldIcon;
         iFieldIcon = NULL;
 
-        iFieldIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapSubject );
-        iFieldIcon->SetParent( this );
-
-        DrawDeferred();
+        iFieldIcon = CMRImage::NewL(
+                NMRBitmapManager::EMRBitmapSubject,
+                this );
         }
-    iDisableRedraw = ETrue;
+    
+    SizeChanged();
     }
 
 // ---------------------------------------------------------------------------
@@ -303,6 +306,12 @@ TBool CESMRViewerDetailedSubjectField::HandleEdwinSizeEventL(
     if ( iObserver && aEdwin == iRichTextViewer )
        {
        iObserver->ControlSizeChanged( this );
+       
+       if ( !iOutlineFocus )
+           {
+           RecordField();
+           }
+       
        reDraw = ETrue;
        }
 
@@ -418,8 +427,10 @@ void CESMRViewerDetailedSubjectField::LockL()
 
 	delete iPriorityIcon;
 	iPriorityIcon = NULL;
-	iPriorityIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapLockField, ETrue );
-	iPriorityIcon->SetParent( this );
+	iPriorityIcon = CMRImage::NewL(
+	        NMRBitmapManager::EMRBitmapLockField,
+	        this,
+	        ETrue );
 	}
 
 // ---------------------------------------------------------------------------
@@ -586,18 +597,6 @@ void CESMRViewerDetailedSubjectField::SizeChanged( )
             iRichTextViewer->FocusChanged(ENoDrawNow);
             }
         }
-    }
-
-// ---------------------------------------------------------------------------
-// CESMRViewerDetailedSubjectField::SetContainerWindowL
-// ---------------------------------------------------------------------------
-//
-void CESMRViewerDetailedSubjectField::SetContainerWindowL(
-        const CCoeControl& aContainer )
-    {
-    CCoeControl::SetContainerWindowL( aContainer );
-    iRichTextViewer->SetContainerWindowL( aContainer );
-    iRichTextViewer->SetParent( this );
     }
 
 // ---------------------------------------------------------------------------

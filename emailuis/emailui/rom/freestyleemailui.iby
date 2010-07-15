@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2007 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -33,18 +33,21 @@ data=DATAZ_\system\install\commonemailstub.sis        system\install\commonemail
 data=DATAZ_\private\2001E277\backup_registration.xml  private\2001E277\backup_registration.xml
 
 //<cmail> files for html display
-data=DATAZ_\private\2001E277\HtmlFile\attachment.gif private\2001E277\HtmlFile\attachment.gif
 data=DATAZ_\private\2001E277\HtmlFile\email.html private\2001E277\HtmlFile\email.html
 data=DATAZ_\private\2001E277\HtmlFile\email_rtl.html private\2001E277\HtmlFile\email_rtl.html
 data=DATAZ_\private\2001E277\HtmlFile\header.js private\2001E277\HtmlFile\header.js
-data=DATAZ_\private\2001E277\HtmlFile\plus.gif private\2001E277\HtmlFile\plus.gif
-data=DATAZ_\private\2001E277\HtmlFile\minus.gif private\2001E277\HtmlFile\minus.gif
+data=DATAZ_\private\2001E277\HtmlFile\header.css private\2001E277\HtmlFile\header.css
 data=DATAZ_\private\2001E277\HtmlFile\email.js private\2001E277\HtmlFile\email.js
 data=DATAZ_\private\2001E277\HtmlFile\follow_up.png private\2001E277\HtmlFile\follow_up.png
 data=DATAZ_\private\2001E277\HtmlFile\follow_up_complete.png private\2001E277\HtmlFile\follow_up_complete.png
-data=DATAZ_\private\2001E277\HtmlFile\btn_middle.png private\2001E277\HtmlFile\btn_middle.png
-data=DATAZ_\private\2001E277\HtmlFile\todo_high_add.png private\2001E277\HtmlFile\todo_high_add.png
-data=DATAZ_\private\2001E277\HtmlFile\todo_low_add.png private\2001E277\HtmlFile\todo_low_add.png
+data=DATAZ_\private\2001E277\HtmlFile\priority_high.png private\2001E277\HtmlFile\priority_high.png
+data=DATAZ_\private\2001E277\HtmlFile\priority_low.png private\2001E277\HtmlFile\priority_low.png
+data=DATAZ_\private\2001E277\HtmlFile\btn_right.png private\2001E277\HtmlFile\btn_right.png
+data=DATAZ_\private\2001E277\HtmlFile\btn_left.png private\2001E277\HtmlFile\btn_left.png
+data=DATAZ_\private\2001E277\HtmlFile\attachment.png private\2001E277\HtmlFile\attachment.png
+data=DATAZ_\private\2001E277\HtmlFile\expand.png private\2001E277\HtmlFile\expand.png
+data=DATAZ_\private\2001E277\HtmlFile\collapse.png private\2001E277\HtmlFile\collapse.png
+data=DATAZ_\private\2001E277\HtmlFile\hidden.png private\2001E277\HtmlFile\hidden.png
 
 #endif //FF_EMAIL_FRAMEWORK
 

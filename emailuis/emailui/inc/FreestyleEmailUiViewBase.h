@@ -101,7 +101,7 @@ public: // new functions
     void DoTransition( TBool aDirectionOut );
 
     virtual void FadeOut(TBool aDirectionOut);
-    
+
     /**
      * Prepares application exit. This is called by AppUi during cleanup before AppUi's destructor
      */
@@ -190,7 +190,13 @@ protected: // methods
      * Derived classes can call this utility function to set the middle soft key
      * label and ID from the given resource.
      */
-    void ChangeMskCommandL( TInt aLabelResourceId );
+    virtual void ChangeMskCommandL( TInt aLabelResourceId );
+
+    /**
+     * Derived classes can overwrite this method to control status pane
+     * visibility.
+     */
+    virtual TBool IsStatusPaneVisible() const;
 
 // <cmail> Toolbar
 protected: // toobar changes
@@ -319,7 +325,7 @@ private: // data
     TBool iSendToBackgroundOnDeactivation;
     // View's active status
     TBool iViewActive;
-protected: // to enable overridning 
+protected: // to enable overridning
     TBool iWasActiveControlGroup;
     };
 

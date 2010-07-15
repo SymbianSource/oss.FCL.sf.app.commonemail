@@ -20,6 +20,7 @@
 
 #include <e32base.h>
 #include <biditext.h>  
+#include <babitflags.h>
 
 #include "cfsmailmessage.h"
 #include "cfsmailaddress.h"
@@ -33,32 +34,58 @@ class RFile;
 class CFreestyleMessageHeaderHTML : public CBase
     {
 public:
+    
+    /**
+     * Flags to control exporting
+     */
+    enum TExportFlag
+        {
+        // Header is expanded
+        EHeaderExpanded,
+        // Attachments are expanded
+        EAttachmentExpanded,
+        // To field is expanded
+        EToExpanded,
+        // Cc field is expanded
+        ECcExpanded,
+        // Bcc field is expanded
+        EBccExpanded,
+        
+        // ** For internal use only **         
+        // Load images automatically
+        EAutoLoadImages,
+        // Mirrored layout in use
+        EMirroredLayout        
+        };
+    
+public:
+    
     IMPORT_C static void ExportL( CFSMailMessage& aMailMessage, 
                                   RWriteStream& aWriteStream, 
                                   TInt aVisibleWidth, 
                                   TInt aScrollPosition,
                                   const TBool aAutoLoadImages,                                  
-                                  const TBool aExpanded );
+                                  const TBitFlags& aFlags );
     IMPORT_C static void ExportL( CFSMailMessage& aMailMessage, 
                                   RFile& aFile, 
                                   TInt aVisibleWidth, 
                                   TInt aScrollPosition,
                                   const TBool aAutoLoadImages,
-                                  const TBool aExpanded );
+                                  const TBitFlags& aFlags );
     IMPORT_C static void ExportL( CFSMailMessage& aMailMessage, 
                                   RFs& aFs, 
                                   const TPath& aFilePath, 
                                   TInt aVisibleWidth, 
                                   TInt aScrollPosition,
                                   const TBool aAutoLoadImages,
-                                  const TBool aExpanded );
+                                  const TBitFlags& aFlags );
     
     IMPORT_C static CFreestyleMessageHeaderHTML* NewL( CFSMailMessage& aMailMessage,
                                                        RWriteStream& aWriteStream,
                                                        TInt aVisibleWidth,
                                                        TInt aScrollPosition,
                                                        const TBool aAutoLoadImages,
-                                                       const TBool aExpanded );
+                                                       const TBitFlags& aFlags );
     
     ~CFreestyleMessageHeaderHTML();
     
@@ -70,101 +97,73 @@ private:
                                  TInt aVisibleWidth,
                                  TInt aScrollPosition,
                                  const TBool aAutoLoadImages,
-                                 const TBool aExpanded );
+                                 const TBitFlags& aFlags );
     void ConstructL();
-    
-    void HTMLStartL() const;
-    void HTMLEndL() const;
-    
-    void ExportHTMLHeaderL() const;
-    void HTMLHeaderStartL() const;
-    void HTMLMetaL() const;
-    void HTMLHeaderEndL() const;
-
-    void ExportDisplayImagesTableL() const;
-
-    void ExportHTMLBodyL() const;
-    void HTMLBodyStartL() const;
-    void HTMLBodyEndL() const;
-    
-    /*
-     * Writes the subject to iWriteStream and also
-     * takes care of the urls and marks them as hotspots
-     */
-    void WriteSubjectL(TDesC& aText ) const; 
-
-    void ExportCollapseButtonL() const;
-    void ExportTimeAndExpandButtonL() const;
-    void ExportSubjectL() const;
-    void ExportSubjectCollapsedL() const;
-    void ExportFromL() const;
-    void ExportToL() const;
-    void ExportCcL() const;
-    void ExportBccL() const;
-    void ExportSentTimeL() const;
-    void ExportAttachmentsL() const;
-    
-    void ExportEmailAddressesL( FreestyleMessageHeaderURLFactory::TEmailAddressType aEmailAddressType, 
-                                const RPointerArray<CFSMailAddress>& aEmailAddresses,
-                                const TDesC8& aRowId,
-                                const TDesC8& aTableId,
-                                TInt aHeaderTextResourceId ) const;
-    
-    void AddEmailAddressL( FreestyleMessageHeaderURLFactory::TEmailAddressType aEmailAddressType, 
-                           const CFSMailAddress& aEmailAddress ) const;
-    
-    void AddAttachmentL( CFSMailMessagePart& aAttachment ) const;
-
-    void StartHyperlinkL( const TDesC8& aUrl ) const;
-    void EndHyperlinkL() const;
-    
-    void AddImageL( const TDesC8& aImageUrl ) const;
-    void AddImageL( const TDesC8& aImageId, const TDesC8& aImageUrl, const TDesC8& aImageEvent ) const;
-    
-    void StartHeaderTableL( const TDesC8& aTableId, TBool aVisible ) const;
-    void EndHeaderTableL() const;
-
-    void StartTableL( const TDesC8& aTableId ) const;
-    void EndTableL() const;
-
-    HBufC8* ClickImageEventL( const TDesC8& aImageName ) const;
-
-    void AddJavascriptL() const;    
-    
-    HBufC8* HeadingTextLC( TInt aId ) const;
-    HBufC8* HeadingTextLC( TInt aId, TInt aSize ) const;
-
+        
+    void ExportHeaderTablesL() const;
     void ExportCollapsedHeaderTableL() const;
-    void ExportExpandedHeaderTableL() const;
+    void ExportExpandedHeaderTablesL() const;
 
-    /**
-     * Function for generating follow up icon's HTML code.
-     * Returns NULL if no follow up flags are set.
-     *
-     * @param aShowText Whether to show icon's text after the icon or not.
-     */
-    HBufC8* HTMLHeaderFollowUpIconLC( TBool aShowText ) const;
+    void ExportTableVisibilityParameterL( const TDesC& aTableName, const TBitFlags& aFlags ) const;
+    void ExportTableVisibilityParameterL( const TDesC& aTableName, const TBool aVisible ) const;
+    void ExportTableBeginL( const TDesC& aTableName, const TBitFlags& aFlags = TBitFlags() ) const;
+    void ExportTableEndL() const;
+    void ExportInnerTableBeginL( const TDesC& aTableName, const TInt aColSpan, const TBitFlags& aFlags = TBitFlags()  ) const;
+    void ExportInnerTableBeginWithRowBeginL( const TDesC& aTableName, const TInt aColSpan, const TBool aVisible, const TBitFlags& aFlags = TBitFlags() ) const;
+    void ExportInnerTableEndL() const;
+    void ExportInnerTableEndWithRowEndL() const;
     
-    /**
-     * Function for generating priority icon's HTML code.
-     * Returns NULL if mail message's priority is normal.
-     *
-     * @param aShowText Whether to show icon's text after the icon or not.
-     */
-    HBufC8* HTMLHeaderPriorityIconLC( TBool aShowText ) const;
-    void AddStyleSheetL() const;
-    void StartDivL() const;
-    void EndDivL() const;
+    void ExportAttachmentTablesL() const;
+    void ExportCollapsedAttachmentTableL( const TBool aHide ) const;
+    void ExportCollapsedAttachmentsTableRowL() const;
+    void ExportExpandedAttachmentTableL( const TBool aHide ) const;
+    void ExportExpandedAttachmentsTableRowsL() const;
+    void ExportAttachmentsL() const;    
+    void ExportAttachmentL( CFSMailMessagePart& aAttachment ) const;    
+    void ExportAttachmentIconL() const;
+
+    void ExportSenderTableRowL( const TBool aCollapsed ) const;
+    void ExportSenderAddressTableRowL() const;
+    void ExportDateTimeTableRowL( const TInt aColSpan = 1 ) const;
+    void ExportSubjectTableRowL( const TBool aShowLabel = EFalse ) const;
+    void ExportMessageIconsL() const;
+    void ExportFromTableRowL() const;
+    void ExportToTableL() const;
+    void ExportCcTableL() const;
+    void ExportBccTableL() const;
+    void ExportRecipientsTableL( const TDesC& aType, const TInt aLabelResourceId,
+            const RPointerArray<CFSMailAddress>& aRecipients, const TBool aExpanded ) const;
+    void ExportRecipientsL( const TDesC& aType, const RPointerArray<CFSMailAddress>& aRecipients ) const;
+    void ExportExpandRecipientsL( const TDesC& aType, const TInt aCount ) const;
+    void ExportExpandAttachmentsL( const TDesC& aType, const TInt aCount ) const;
+    void ExportLabelTableRowL( const TInt aResourceId, const TInt aColSpan = 1 ) const;
+    void ExportIconL( const TDesC& aIconName ) const;
+    HBufC* SubjectLC() const;
+    TInt CalculateTotalSpaceRequired( const TDesC& aText, CFindItemEngine& aItemEngine, 
+            TInt& aMaxLength ) const;
+    HBufC* CreateLinksLC( const TDesC& aText, const TInt aSearchCases ) const;
+    void ExportHTMLBodyStartL() const;
+    void ExportHTMLBodyEndL() const;
+    void ExportDisplayImagesTableL() const;
+    void ExportBodyStyleL() const;
     
 private:
+    
+    // Table formatting flags
+    enum TTableStyleFlags
+        {
+        // Table is hidden
+        EHidden,
+        // Table width is fixed
+        EFixed
+        };
+
     CFSMailMessage&             iMailMessage; 
     RWriteStream&               iWriteStream;
     TInt                        iVisibleWidth;
     TInt                        iScrollPosition;
-    TBool                       iAutoLoadImages;
-    TBool                       iMirrorLayout;
-    TBool                       iExpanded;
     RPointerArray<CFSMailMessagePart> iAttachments;
+    TBitFlags iExportFlags;
 };
 
 #endif //__CFREESTYLE_MESSAGE_HEADER_HTML_H__

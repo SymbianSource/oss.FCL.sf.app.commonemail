@@ -87,12 +87,10 @@ CESMRViewerRecurrenceField::CESMRViewerRecurrenceField()
 void CESMRViewerRecurrenceField::ConstructL()
     {
     FUNC_LOG;
-    iLabel = CMRLabel::NewL();
-    iLabel->SetParent( this );
+    iLabel = CMRLabel::NewL( this );
     CESMRField::ConstructL( iLabel ); // ownership transfered
 
-    iIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapRecurrence );
-    iIcon->SetParent( this );
+    iIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapRecurrence, this );
     }
 
 // -----------------------------------------------------------------------------
@@ -291,8 +289,10 @@ void CESMRViewerRecurrenceField::LockL()
 
 	delete iLockIcon;
 	iLockIcon = NULL;
-	iLockIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapLockField, ETrue );
-	iLockIcon->SetParent( this );
+	iLockIcon = CMRImage::NewL(
+	        NMRBitmapManager::EMRBitmapLockField,
+	        this,
+	        ETrue );
 	}
 
 // ---------------------------------------------------------------------------

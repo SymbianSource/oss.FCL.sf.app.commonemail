@@ -68,6 +68,7 @@ CFSMailSoundHandler* CFSMailSoundHandler::NewL(
 void CFSMailSoundHandler::ConstructL()
     {
     FUNC_LOG;
+    CFSNotificationHandlerBase::ConstructL();
 
     SetObserving(ETrue);
 

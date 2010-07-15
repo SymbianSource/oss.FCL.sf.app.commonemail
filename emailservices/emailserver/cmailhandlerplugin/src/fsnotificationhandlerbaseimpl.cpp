@@ -16,10 +16,8 @@
 */
 
 #include <centralrepository.h>
-//<cmail>
 #include "emailtrace.h"
 #include "cfsmailclient.h"
-//</cmail>
 
 #include "fsnotificationhandlermgr.h"
 #include "fsnotificationhandlerbase.h"
@@ -28,6 +26,8 @@
 #include "freestyleemailcenrepkeys.h"
 #include "FreestyleEmailUiConstants.h"
 
+
+const TInt KTimerDelay = 20;
 
 // ======== MEMBER FUNCTIONS ========
 
@@ -42,12 +42,17 @@ CFSNotificationHandlerBase::CFSNotificationHandlerBase(
 void CFSNotificationHandlerBase::ConstructL()
     {
     FUNC_LOG;
+    
+    iTimer = CNewMailNotificationTimer::NewL( *this );
     }
 
 CFSNotificationHandlerBase::~CFSNotificationHandlerBase()
     {
     FUNC_LOG;
     REComSession::DestroyedImplementation( iDestructorKey );
+    
+    delete iTimer;
+    iNewInboxEntries.Reset(); 
     }
 
 CFSMailClient& CFSNotificationHandlerBase::MailClient() const
@@ -63,16 +68,6 @@ void CFSNotificationHandlerBase::EventL( TFSMailEvent aEvent, TFSMailMsgId aMail
         {
         return;
         }   
-    
-   /* TBool capabilitiesToContinue( CapabilitiesToContinueL( aEvent,
-                                                          aMailbox,
-                                                          aParam1,
-                                                          aParam2,
-                                                          aParam3) );
-    if ( !capabilitiesToContinue )
-        {
-        return;
-        }*/
     
     HandleEventL( aEvent, aMailbox, aParam1, aParam2, aParam3 );
     }
@@ -102,14 +97,20 @@ TBool CFSNotificationHandlerBase::MsgIsUnread( CFSMailMessage& aMessage ) const
     }
 
 TBool CFSNotificationHandlerBase::MessagesCauseNotificationL( TFSMailMsgId aMailboxId,
-                                                              CFSMailFolder& aParentFolder,
+                                                              TFSMailMsgId aParentFolderId,
                                                               const RArray<TFSMailMsgId>& aMsgIdList )
     {
     FUNC_LOG;
+
+    CFSMailFolder* parentFolder(
+        MailClient().GetFolderByUidL( aMailboxId, aParentFolderId ) );
+    User::LeaveIfNull( parentFolder );
+    CleanupStack::PushL( parentFolder );
+    
     CFSMailMessage* newestMsg( NULL );
     TRAPD( notFoundError,
            newestMsg =
-               NewestMsgInFolderL( aParentFolder ) );
+               NewestMsgInFolderL( *parentFolder ) );
     if ( notFoundError == KErrNotFound )
         {
         // For some odd reason we are not able to get the newest
@@ -125,11 +126,12 @@ TBool CFSNotificationHandlerBase::MessagesCauseNotificationL( TFSMailMsgId aMail
     delete newestMsg;
     newestMsg = NULL;
 
-    TFSMailMsgId parentFolderId( aParentFolder.GetFolderId() );
-
-    TInt index( 0 );
+    CleanupStack::PopAndDestroy( parentFolder );
+    
     const TInt entriesCount( aMsgIdList.Count() );
-    while ( index < entriesCount )
+    TInt index( entriesCount-1 );
+    // go from back of list, as messages are coming from earliest to latest..
+    while ( index >= 0 ) 
         {
         // Let's get the message. We need to check from it that
         // it is really unread. This info is stored in the
@@ -139,7 +141,7 @@ TBool CFSNotificationHandlerBase::MessagesCauseNotificationL( TFSMailMsgId aMail
         CFSMailMessage*
             currentMessage( MailClient().GetMessageByUidL(
                 aMailboxId, 
-                parentFolderId,
+                aParentFolderId,
                 aMsgIdList[index], 
                 EFSMsgDataEnvelope ) );
         User::LeaveIfNull( currentMessage );
@@ -157,7 +159,7 @@ TBool CFSNotificationHandlerBase::MessagesCauseNotificationL( TFSMailMsgId aMail
             return ETrue;
             }
             
-        ++index;
+        --index;
         }
     
     return EFalse;
@@ -221,33 +223,33 @@ void CFSNotificationHandlerBase::HandleEventL(
             {
             User::Leave( KErrArgument );
             }
-        CFSMailFolder* parentFolder(
-            MailClient().GetFolderByUidL( aMailbox, *parentFolderId ) );
-        User::LeaveIfNull( parentFolder );
-        CleanupStack::PushL( parentFolder );
-        
+
         // Set the notification on only in cases that the new mail is
         // in folder of type EFSInbox
-        if ( parentFolder->GetFolderType() == EFSInbox )
+        if ( iOwner.GetFolderTypeL( aMailbox, parentFolderId ) == EFSInbox )
             {
-            
             RArray<TFSMailMsgId>* newEntries(
                 static_cast< RArray<TFSMailMsgId>* >( aParam1 ) );
 
-            if ( MessagesCauseNotificationL(
-                     aMailbox,
-                     *parentFolder,
-                     *newEntries ) )
+            TInt count = newEntries->Count();
+            for ( TInt i = 0; i<count;i++ )
                 {
-                TurnNotificationOn();
+                TFSMailMsgId msgId = newEntries->operator []( i );
+                TNewMailInfo info( msgId, aMailbox, *parentFolderId ); 
+                iNewInboxEntries.AppendL( info );
                 }
+
+            if (iTimer->IsActive() )
+                {
+                iTimer->Cancel();
+                }
+            iTimer->After( KTimerDelay );
             }
          else
             {
             // If messages are in some other folder than in inbox
             // they have no effect on the notification
             }
-        CleanupStack::PopAndDestroy( parentFolder );
         }
     else
         {
@@ -257,9 +259,51 @@ void CFSNotificationHandlerBase::HandleEventL(
         }
     }
 
+void CFSNotificationHandlerBase::TimerExpiredL()
+    {
+    // process collected insert requests
+    RArray<TFSMailMsgId> msgIds;
+    TFSMailMsgId mailBoxId;
+    TFSMailMsgId parentFolderId;
+    for ( TInt i = 0; i< iNewInboxEntries.Count(); i++ )
+        {
+        TNewMailInfo& info = iNewInboxEntries[ i ];
+        if ( mailBoxId.IsNullId() && parentFolderId.IsNullId() )
+            {
+            // starting new group is starting to collect
+            mailBoxId = info.iMailBox;
+            parentFolderId = info.iParentFolderId;
+            }
+        if ( mailBoxId == info.iMailBox && parentFolderId == info.iParentFolderId )
+            {
+            // collect message ids for the same mailbox and parent folder
+            msgIds.Append( info.iMsgId );
+            }
+        else
+            {
+            // process collected message ids for the same mailbox and parent folder
+            if ( msgIds.Count()&& MessagesCauseNotificationL( mailBoxId, parentFolderId, msgIds ) )
+                {
+                TurnNotificationOn();
+                }
+            // clear data and start collecting again
+            msgIds.Reset();
+            mailBoxId = TFSMailMsgId();
+            parentFolderId = TFSMailMsgId();
+            }
+        }
+    // process collected message ids for the same mailbox and parent folder
+    if ( msgIds.Count() && MessagesCauseNotificationL( mailBoxId, parentFolderId, msgIds ) )
+        {
+        TurnNotificationOn();
+        }
+    // clear processed entries
+    msgIds.Reset();
+    iNewInboxEntries.Reset();    
+    }
 
 CFSMailMessage* CFSNotificationHandlerBase::NewestMsgInFolderL(
-    /*const*/ CFSMailFolder& aFolder ) const
+    CFSMailFolder& aFolder ) const
     {
     FUNC_LOG;
     // Load info only necessary for sorting by date into the messages.
@@ -273,11 +317,11 @@ CFSMailMessage* CFSNotificationHandlerBase::NewestMsgInFolderL(
     RArray<TFSMailSortCriteria> sorting;
     CleanupClosePushL( sorting );
     // First criteria appended would be the primary criteria
-    // but here we don't have any other criterias
+    // but here we don't have any other criteria
     sorting.Append( criteriaDate );
     MFSMailIterator* iterator = aFolder.ListMessagesL( details, sorting );
     
-    // Resetting array of sort criterias already here because
+    // Resetting array of sort criteria already here because
     // the iterator does not need it anymore.
     CleanupStack::PopAndDestroy(); // sorting
                                     
@@ -302,6 +346,52 @@ CFSMailMessage* CFSNotificationHandlerBase::NewestMsgInFolderL(
     CleanupStack::PopAndDestroy( iterator );
     return outcome;
     }
+
+CNewMailNotificationTimer::CNewMailNotificationTimer( MFSTimerObserver& aObserver ) :
+    CTimer( EPriorityIdle ), iObserver( aObserver )
+    {
+    FUNC_LOG;
+    }
+
+void CNewMailNotificationTimer::ConstructL()
+    {
+    FUNC_LOG;
+    CTimer::ConstructL();
+    CActiveScheduler::Add( this );
+    }
+
+CNewMailNotificationTimer* CNewMailNotificationTimer::NewL(
+        MFSTimerObserver& aObserver )
+    {
+    FUNC_LOG;
+    CNewMailNotificationTimer* self =
+        new( ELeave ) CNewMailNotificationTimer( aObserver );
+    CleanupStack::PushL( self );
+    self->ConstructL();
+    CleanupStack::Pop( self );
+    return self;
+    }
+
+
+CNewMailNotificationTimer::~CNewMailNotificationTimer()
+    {
+    FUNC_LOG;
+    Cancel();
+    }
+
+void CNewMailNotificationTimer::DoCancel()
+    {
+    FUNC_LOG;
+    // Cancel Base class
+    CTimer::DoCancel(); 
+    }
+
+void CNewMailNotificationTimer::RunL()
+    {
+    FUNC_LOG;
+    iObserver.TimerExpiredL();
+    }
+
 
 void Panic( TCmailhandlerPanic aPanic )
     {

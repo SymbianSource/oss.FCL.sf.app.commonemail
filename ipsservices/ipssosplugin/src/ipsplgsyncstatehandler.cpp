@@ -141,6 +141,7 @@ TSSMailSyncState CIpsPlgSyncStateHandler::GetCurrentSyncState(
        
        if ( baseOp && baseOp->FSMailboxId() == aMailboxId &&
             ( baseOp->IpsOpType() == EIpsOpTypePop3SyncOp ||
+              baseOp->IpsOpType() == EIpsOpTypePop3PopulateOp ||		
               baseOp->IpsOpType() == EIpsOpTypeImap4SyncOp ||
               baseOp->IpsOpType() == EIpsOpTypeImap4PopulateOp ) )
            {
@@ -168,6 +169,7 @@ TBool CIpsPlgSyncStateHandler::ConnOpRunning( const TFSMailMsgId& aMailBoxId  )
 
        if ( baseOp && baseOp->FSMailboxId() == aMailBoxId &&
               ( baseOp->IpsOpType() == EIpsOpTypePop3SyncOp
+               || baseOp->IpsOpType() == EIpsOpTypePop3PopulateOp		  
                || baseOp->IpsOpType() == EIpsOpTypeImap4SyncOp
                || baseOp->IpsOpType() == EIpsOpTypeOnlineOp
                || baseOp->IpsOpType() == EIpsOpTypeImap4PopulateOp ) )

@@ -54,7 +54,6 @@ protected: // From CCoeControl
     CCoeControl* ComponentControl( TInt aInd ) const;
     void SizeChanged( );
     TKeyResponse OfferKeyEventL( const TKeyEvent& aEvent, TEventCode aType );
-    void SetContainerWindowL(const CCoeControl& aContainer);
     TSize MinimumSize();
 
 protected: // From CESMRField

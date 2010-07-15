@@ -1232,8 +1232,12 @@ void CFSEmailUiMailListVisualiser::InsertNewMessagesL( const RArray<TFSMailMsgId
                 }
             }
 
-        // if iNewMailIds is not empty - start timer
-        if ( !iNewMailTimer->IsActive() && iNewMailIds.Count() )
+        // start timer only when all conditions are met:
+        //   timer isn`t already active
+        //   there are new mails in the array
+        //   timer event isn`t processing
+        if ( !iNewMailTimer->IsActive() && iNewMailIds.Count() && 
+             iNewMailTimer->iStatus != KErrInUse )
             {
             iNewMailTimer->Start( KNewMailTimerDelay );
             }
@@ -1250,6 +1254,12 @@ void CFSEmailUiMailListVisualiser::TimerEventL( CFSEmailUiGenericTimer* /*aTrigg
     {
     TInt count = Min( KNewMailMaxBatch, iNewMailIds.Count() );
     CFSMailClient* mailClient = iAppUi.GetMailClient();
+
+    // Enter critical section
+    // Because CFSMailClient::GetMessageByUidL can use CActiveSchedulerWait
+    // to ensure that only one TimerEventL method is processed at time
+    // CFSEmailUiGenericTimer`s iStatus will be used as mutex
+    iNewMailTimer->iStatus = KErrInUse;
 
     for ( TInt i = 0; i < count; i++ )
         {
@@ -1269,6 +1279,9 @@ void CFSEmailUiMailListVisualiser::TimerEventL( CFSEmailUiGenericTimer* /*aTrigg
         // pop processed id from the queue, this is single thread operation
         iNewMailIds.Remove( 0 ); 
         }
+
+    // End critical section
+    iNewMailTimer->iStatus = KErrNone;
 
     // if timer stoped then restart if more messages available
     if ( iNewMailIds.Count() && ! iNewMailTimer->IsActive() )

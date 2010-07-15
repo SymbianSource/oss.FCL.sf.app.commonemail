@@ -153,6 +153,7 @@ private: // from CEUiHtmlViewerSettingsKeyListener::MObserver
      */
     void KeyValueChangedL( TUint32 aKey );
 
+public:    
     /**
      * @see CEUiHtmlViewerSettingsKeyListener::MObserver::Repository
      */
@@ -302,7 +303,7 @@ private:
     void ConvertToHtmlFileL( CFSMailMessagePart& aTextBodyPart, const TDesC& aHtmlFileName );
 
     // Reads given file content to buffer and return pointer to it
-    HBufC8* ReadContentFromFileLC( RFile& aFile );
+    HBufC8* ReadContentFromFileLC( RFile& aFile, CFSMailMessagePart& aHtmlBodyPart );
     // Writes buffer to given file
     void WriteContentToFileL( const TDesC8& aContent, const TDesC& aFileName, CFSMailMessagePart& aHtmlBodyPart );
 
@@ -394,7 +395,7 @@ private: // data
     TBool iHeaderExpanded;
     // tactile feed back -- not owned
     MTouchFeedback* iTouchFeedBack;
-    
+    TBitFlags iFlags;
     TInt iZoomLevel;
     };
 

@@ -553,7 +553,24 @@ EXPORT_C void CFSMailClient::SetMailboxName( const TFSMailMsgId aMailboxId, cons
 		plugin->SetMailboxName( aMailboxId, aMailboxName );
 		}
 	}
-	
+
+// -----------------------------------------------------------------------------
+// CFSMailClient::PrepareMrDescriptionL
+// -----------------------------------------------------------------------------
+EXPORT_C void CFSMailClient::PrepareMrDescriptionL(  const TFSMailMsgId& aMailBoxId,
+                                                     const TFSMailMsgId& aMessageId )
+    {
+    FUNC_LOG;
+    CFSMailMessage* message = NULL;
+    // select plugin
+    CFSMailPlugin* plugin = iFWImplementation->GetPluginManager().GetPluginByUid( aMessageId );
+    if ( plugin )
+        {
+        // set MR description from the plugin
+        plugin->PrepareMrDescriptionL( aMailBoxId, aMessageId );
+        }  
+    }
+
 // -----------------------------------------------------------------------------
 // CFSMailClient::Close
 // -----------------------------------------------------------------------------

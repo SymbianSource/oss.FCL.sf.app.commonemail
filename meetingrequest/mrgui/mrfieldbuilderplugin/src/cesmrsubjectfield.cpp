@@ -561,7 +561,9 @@ void CESMRSubjectField::SetPriorityIconL( TUint aPriority )
             iPriorityIcon = NULL;
             
             iPriorityIcon = CMRImage::NewL( 
-                  NMRBitmapManager::EMRBitmapPriorityHigh, ETrue );
+                  NMRBitmapManager::EMRBitmapPriorityHigh,
+                  this,
+                  ETrue );
             iPriorityIcon->SetParent( this );
             if( iCurrentPriority == EFSCalenMRPriorityNormal )
             	{

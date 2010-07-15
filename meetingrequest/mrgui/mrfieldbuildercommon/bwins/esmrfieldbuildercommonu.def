@@ -119,4 +119,7 @@ EXPORTS
 	?ResetActionMenuL@CESMRRichTextViewer@@QBEXXZ @ 118 NONAME ; void CESMRRichTextViewer::ResetActionMenuL(void) const
 	?SupportsLongTapFunctionalityL@CESMRField@@UAEHABUTPointerEvent@@@Z @ 119 NONAME ; int CESMRField::SupportsLongTapFunctionalityL(struct TPointerEvent const &)
 	?PointerEventOccuresOnALinkL@CESMRRichTextViewer@@QAEHABUTPointerEvent@@@Z @ 120 NONAME ; int CESMRRichTextViewer::PointerEventOccuresOnALinkL(struct TPointerEvent const &)
+	?RecordField@CESMRField@@QAEXXZ @ 121 NONAME ; void CESMRField::RecordField(void)
+	?Draw@CESMRField@@UBEXABVTRect@@@Z @ 122 NONAME ; void CESMRField::Draw(class TRect const &) const
+	?MoveToScreen@CESMRField@@QAEXH@Z @ 123 NONAME ; void CESMRField::MoveToScreen(int)
 

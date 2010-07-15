@@ -45,7 +45,8 @@
 #include "ipssetdataapi.h"
 #include "ipssetwizardadapter.h"
 
-#include "ipssetwizardsettingscenrepkeys.h" 
+#include "ipssetwizardsettingscenrepkeys.h"
+#include "freestyleemailcenrepkeys.h"
 #include "ipssetdatasignature.h"
 
 const TInt KIpsDataApiMaxPassLen = 256;
@@ -443,10 +444,7 @@ EXPORT_C void CIpsSetDataApi::RemoveAccountL(
         TInt err3 = repository->Set(
             ECRKMaxAccountsReached, EFalse );
 
-        if ( err3 != KErrNone )
-            {
-            }
-        
+       
         delete repository;
         repository = NULL;
         }
@@ -667,6 +665,18 @@ EXPORT_C void CIpsSetDataApi::ConstructImapPartialFetchInfo(
     FUNC_LOG;
     TInt sizeLimit = aImap4Settings.BodyTextSizeLimit();
     
+	
+    CRepository* centRep = NULL;
+    TRAP_IGNORE( centRep = CRepository::NewL( KFreestyleEmailCenRep ) );
+    
+    TInt limit( 0 );
+    TInt err = centRep->Get( KFreestyleMaxBodySize , limit );
+	limit *= KKilo;
+	if ( limit == 0 || err )
+        {
+        limit = KMaxTInt;
+        }
+    
     if ( sizeLimit == KIpsSetDataHeadersOnly )
         {
         aInfo.iTotalSizeLimit = KIpsSetDataHeadersOnly;
@@ -675,7 +685,7 @@ EXPORT_C void CIpsSetDataApi::ConstructImapPartialFetchInfo(
         {        
         aInfo.iTotalSizeLimit = KMaxTInt;
         aInfo.iAttachmentSizeLimit = KMaxTInt;
-        aInfo.iBodyTextSizeLimit = KMaxTInt;
+        aInfo.iBodyTextSizeLimit = limit;
         aInfo.iMaxEmailSize = KMaxTInt;
         aInfo.iPartialMailOptions = ENoSizeLimits;
         aInfo.iGetMailBodyParts = EGetImap4EmailBodyTextAndAttachments;
@@ -684,7 +694,7 @@ EXPORT_C void CIpsSetDataApi::ConstructImapPartialFetchInfo(
         {
         aInfo.iTotalSizeLimit = KMaxTInt; 
         aInfo.iAttachmentSizeLimit = 0;
-        aInfo.iBodyTextSizeLimit = KMaxTInt;
+        aInfo.iBodyTextSizeLimit = limit;
         aInfo.iMaxEmailSize = KMaxTInt;
         aInfo.iPartialMailOptions = EBodyAlternativeText;
         aInfo.iGetMailBodyParts = EGetImap4EmailBodyAlternativeText;
@@ -695,7 +705,7 @@ EXPORT_C void CIpsSetDataApi::ConstructImapPartialFetchInfo(
         // set zero when it not documentated does total size overrides these 
         aInfo.iAttachmentSizeLimit = 0;
         aInfo.iMaxEmailSize = sizeLimit*1024;
-        aInfo.iBodyTextSizeLimit = sizeLimit*1024;
+        aInfo.iBodyTextSizeLimit = Min(sizeLimit*1024, limit);
         aInfo.iPartialMailOptions = EBodyAlternativeText;
         aInfo.iGetMailBodyParts = EGetImap4EmailBodyAlternativeText;
         }

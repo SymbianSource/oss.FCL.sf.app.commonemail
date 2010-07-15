@@ -70,7 +70,7 @@ void CFSNotificationHandlerMgr::ConstructL()
     }
 
 // ---------------------------------------------------------------------------
-// Finishes the initialisation
+// Finishes the initialization
 // ---------------------------------------------------------------------------
 //
 void CFSNotificationHandlerMgr::RunL()
@@ -189,15 +189,13 @@ CFSNotificationHandlerMgr::~CFSNotificationHandlerMgr()
 
     iHSConnection = NULL;
 
-	if( iMailClient )
-		{
+    if( iMailClient )
+        {
         iMailClient->Close();
         iMailClient = NULL;
-		}
+        }
 
-	//<cmail>
-	iAppUi = NULL;
-	//</cmail>
+    iAppUi = NULL;
 
     // Finished using ECom
     // ECom used at least in CFSMailHSUpdateHandler
@@ -231,8 +229,11 @@ void CFSNotificationHandlerMgr::EventL(
             }
         case TFSEventMailboxDeleted:
             {
-            // Don't have to do anything here. Observing has ended when the
-            // mailbox is deleted.
+            // Observing has ended when the mailbox is deleted.
+
+            // reset mailbox cached values
+            iPreviousParentFolderId = TFSMailMsgId();
+            iPreviousMailbox = TFSMailMsgId();
             break;
             }
         case TFSMailboxAvailable: // Flow through
@@ -243,13 +244,13 @@ void CFSNotificationHandlerMgr::EventL(
             }
         case TFSEventNewMail:
             {
-            // If this is a preinstalled version and we receive a new mail we
+            // If this is a pre-installed version and we receive a new mail we
             // update the current status of the HS here before passing
             // the events to handlers so they don't have to do it. If they
             // do it, it is done several times which is not desired.
             // The drawback is that by doing it here we might also do it
             // in situations where the handlers would actually not need it.
-            // Possibly the best solution would be to initialise the
+            // Possibly the best solution would be to initialize the
             // iHSConnection once and then let it observe for changes in
             // central repository. Currently that solution is not implemented
             // as it would require more time to implement.
@@ -269,7 +270,7 @@ void CFSNotificationHandlerMgr::EventL(
         {
         // Event is passed to each handler. If one fails the
         // event is still passed to others as they are not
-        // necessarily dependant on the same services. This way
+        // necessarily dependent on the same services. This way
         // If one fails the others can still succeed.
         TRAP_IGNORE(
             iHandlers[handlerIndex]->EventL( aEvent,
@@ -339,6 +340,37 @@ TInt CFSNotificationHandlerMgr::AuthenticateL( TDes& aPassword,
     return err;
     }
 
+
+TFSFolderType CFSNotificationHandlerMgr::GetFolderTypeL( TFSMailMsgId& aMailbox, TFSMailMsgId* parentFolderId )
+    {
+    TFSFolderType folderType( EFSInbox );
+    if ( parentFolderId )
+        {
+        if ( (*parentFolderId) == iPreviousParentFolderId && 
+             aMailbox == iPreviousMailbox )
+            {
+            // we assume that folder with some id does not change 
+            // its type during mail synchronization
+            folderType = iPreviousParentFolderType;
+            }
+        else
+            {
+            iPreviousParentFolderId = (*parentFolderId);
+            // Get the parent folder object
+            CFSMailFolder* parentFolder = iMailClient->GetFolderByUidL(
+                    aMailbox, *parentFolderId );
+            if ( parentFolder )
+                {
+                folderType = parentFolder->GetFolderType();
+                iPreviousParentFolderType = folderType;
+                delete parentFolder;
+                parentFolder = NULL;
+                }
+            }
+        }
+    
+    return folderType;
+    }
 // ---------------------------------------------------------------------------
 //
 // ---------------------------------------------------------------------------
@@ -419,7 +451,7 @@ void CFSNotificationHandlerMgr::StopObserving()
 // ---------------------------------------------------------------------------
 //
 void CFSNotificationHandlerMgr::CleanTempFilesIfNeededL()
-	{
+    {
     FUNC_LOG;
     RFs fsSession;
     User::LeaveIfError(fsSession.Connect());
@@ -427,19 +459,19 @@ void CFSNotificationHandlerMgr::CleanTempFilesIfNeededL()
     // Check whether disk space is below 3MB, in that case start cleaning up
     // downloaded attachments from mailboxes.
     if ( SysUtil::DiskSpaceBelowCriticalLevelL( &fsSession, 3*KMegaByte, EDriveC ) )
-    	{
-	    RPointerArray<CFSMailBox> mailBoxList;
-	    // Null id given as a plugin id. mailboxes of all plugins retrieved.
-	    // Notice that ownership of the mailboxes is not passed to here.
-	    iMailClient->ListMailBoxes( TFSMailMsgId(), mailBoxList );
-		for ( TInt i = 0 ; i < mailBoxList.Count() ; ++i )
-		    {
-			TRAP_IGNORE( mailBoxList[i]->RemoveDownLoadedAttachmentsL() );
-		    }
-	    mailBoxList.ResetAndDestroy();
- 	    }
+        {
+        RPointerArray<CFSMailBox> mailBoxList;
+        // Null id given as a plugin id. mailboxes of all plugins retrieved.
+        // Notice that ownership of the mailboxes is not passed to here.
+        iMailClient->ListMailBoxes( TFSMailMsgId(), mailBoxList );
+        for ( TInt i = 0 ; i < mailBoxList.Count() ; ++i )
+            {
+            TRAP_IGNORE( mailBoxList[i]->RemoveDownLoadedAttachmentsL() );
+            }
+        mailBoxList.ResetAndDestroy();
+        }
     CleanupStack::PopAndDestroy( &fsSession );
-	}
+    }
 
 
 //<cmail>

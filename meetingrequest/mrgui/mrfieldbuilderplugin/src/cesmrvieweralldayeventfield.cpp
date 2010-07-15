@@ -79,12 +79,12 @@ CESMRViewerAllDayEventField::CESMRViewerAllDayEventField()
 void CESMRViewerAllDayEventField::ConstructL()
     {
     FUNC_LOG;
-    iLabel = CMRLabel::NewL();
-    iLabel->SetParent( this );
+    iLabel = CMRLabel::NewL( this );
     CESMRField::ConstructL( iLabel ); // ownership transfered
 
-    iIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapCheckBoxOn );
-    iIcon->SetParent( this );
+    iIcon = CMRImage::NewL(
+            NMRBitmapManager::EMRBitmapCheckBoxOn,
+            this );
     }
 
 // ---------------------------------------------------------------------------
@@ -232,8 +232,10 @@ void CESMRViewerAllDayEventField::LockL()
 
 	delete iLockIcon;
 	iLockIcon = NULL;
-	iLockIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapLockField, ETrue );
-	iLockIcon->SetParent( this );
+	iLockIcon = CMRImage::NewL(
+	        NMRBitmapManager::EMRBitmapLockField,
+	        this,
+	        ETrue );
 	}
 
 // ---------------------------------------------------------------------------

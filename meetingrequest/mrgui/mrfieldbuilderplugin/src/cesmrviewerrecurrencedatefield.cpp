@@ -85,8 +85,9 @@ CESMRViewerRecurrenceDateField* CESMRViewerRecurrenceDateField::NewL()
 void CESMRViewerRecurrenceDateField::ConstructL()
     {
     FUNC_LOG;
-    iRepeatTopic = CMRLabel::NewL();
-    iRepeatDate = CMRLabel::NewL();
+    CESMRField::ConstructL( NULL );
+    iRepeatTopic = CMRLabel::NewL( this );
+    iRepeatDate = CMRLabel::NewL( this );
 
     iRepeatTopic->SetTextL( KNullDesC );
     iRepeatDate->SetTextL( KNullDesC );

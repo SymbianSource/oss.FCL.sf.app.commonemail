@@ -29,13 +29,13 @@
 // CMRLabel::NewL
 // ---------------------------------------------------------------------------
 //
-EXPORT_C CMRLabel* CMRLabel::NewL()
+EXPORT_C CMRLabel* CMRLabel::NewL( const CCoeControl* aParent )
     {
     FUNC_LOG;
     
     CMRLabel* self = new (ELeave) CMRLabel();
     CleanupStack::PushL( self );
-    self->ConstructL();
+    self->ConstructL( aParent );
     CleanupStack::Pop( self );
     return self;
     }
@@ -44,12 +44,17 @@ EXPORT_C CMRLabel* CMRLabel::NewL()
 // CMRLabel::ConstructL
 // ---------------------------------------------------------------------------
 //
-void CMRLabel::ConstructL()
+void CMRLabel::ConstructL( const CCoeControl* aParent )
     {
     FUNC_LOG;
 
     NMRColorManager::SetColor( *this, 
                                NMRColorManager::EMRMainAreaTextColor );
+    
+    if ( aParent )
+        {
+        SetContainerWindowL( *aParent );
+        }
     }
 
 // ---------------------------------------------------------------------------

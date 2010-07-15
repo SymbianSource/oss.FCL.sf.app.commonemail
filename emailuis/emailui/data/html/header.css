@@ -1,0 +1,73 @@
+table { border-style: none; }
+table.fixed { border-style: none; table-layout:fixed; }
+td  { font-family:arial,sans-serif; font-size:75%; border-style: solid; border-width: 0px; }
+.button_cell { width: 60px; }
+.icon_cell { width: 60px; }
+.sender_name { font-weight: bold; font-family: arial,sans-serif; }
+.subject { font-weight: bold; font-family: arial,sans-serif; }
+.subject_intended { font-weight: bold; font-family: arial,sans-serif; padding-left: 10px; }
+.attachment { font-family: arial,sans-serif; padding: 2px 0 5px 7px; }
+.recipient { padding-left: 10px; }
+.sender_address { padding-left: 14px; }
+.message_icon { width: 20px; height 20px; }
+.label { font-weight: bold; font-family: arial,sans-serif; }
+.datetime  { font-family: arial,sans-serif; }
+.truncate { text-overflow: ellipsis; overflow: hidden;  }
+img.icon { height: 21px; }
+
+button {
+    color: black;
+	position: relative;
+	border: 0;
+	padding: 0;
+	cursor: pointer;
+	overflow: visible;
+}
+
+button::-moz-focus-inner {
+	border: none;
+}
+
+button span {
+	position: relative;
+	display:block;
+	white-space: nowrap;
+}
+
+@media screen and (-webkit-min-device-pixel-ratio:0 ) {
+	button span {
+		margin-top: -1px;
+	}
+}
+
+button.submitBtn {
+	padding: 0 9px 0 0;
+	margin-right: 0px;
+	font-size: 21px;
+	text-align: center;
+	background: transparent url('btn_right.png') no-repeat right 6px;
+}
+
+button.submitBtn span {
+	padding: 8px 0 0 5px;
+	height: 40px;
+	background: transparent url('btn_left.png') no-repeat left 6px;
+}
+
+button.submitBtn span.buttonText {
+	background: none;
+    display: inline;
+    top: 8px;
+}
+
+button.expand {
+    width: 57px;
+    height: 40px;
+	background: transparent url('expand.png') no-repeat top left;
+}
+
+button.collapse {
+    width: 57px;
+    height: 40px;
+	background: transparent url('collapse.png') no-repeat top left;
+}

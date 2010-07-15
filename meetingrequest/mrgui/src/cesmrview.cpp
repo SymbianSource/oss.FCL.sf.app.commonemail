@@ -968,7 +968,8 @@ void CESMRView::HandleResourceChange( TInt aType )
     FUNC_LOG;
     CCoeControl::HandleResourceChange( aType );
     TInt error = KErrNone;
-
+    TBool record = ETrue;
+    
     switch ( aType )
         {
         case  KAknsMessageSkinChange:
@@ -989,13 +990,20 @@ void CESMRView::HandleResourceChange( TInt aType )
             }
         default:
             {
+            record = EFalse;
             break;
             }
         }
 
     if ( error != KErrNone )
         {
+        record = EFalse;
         iCoeEnv->HandleError( error );
+        }
+    
+    if ( record )
+        {
+        iListPane->RecordFields();
         }
     }
 

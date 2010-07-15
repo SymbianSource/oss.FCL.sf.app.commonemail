@@ -155,7 +155,11 @@ void CMRListPane::InitializeL()
 void CMRListPane::InternalizeL( MESMRCalEntry& aEntry )
     {
     FUNC_LOG;
+
     iFactory.InternalizeL( aEntry );
+
+    // Record visible fields
+    RecordFields();
 
     // This is called to make sure everything is drawn correctly
     DrawDeferred();
@@ -368,7 +372,6 @@ void CMRListPane::HandleLongTapEventL(
     // Long tap functionality may vary between fields
     // ==> Command field to execute action related to long tap
     TInt count( iFactory.Count() );
-
     for ( TInt i = 0; i < count; ++i )
         {
         CESMRField* field = iFactory.Field( i );
@@ -460,17 +463,19 @@ TInt CMRListPane::UpdatedFocusPosition()
 void CMRListPane::ScrollFieldsUp( TInt aPx )
     {
     FUNC_LOG;
-    TPoint point = iFieldContainer->Position();
-    point.iY -= aPx;
+    iPositionChanged = ETrue;
 
-    // This initializes Draw also
-    iFieldContainer->SetPosition( point );
+    iUpdatedPanePoint = iFieldContainer->Position();
+    iUpdatedPanePoint.iY -= aPx;
 
-    // Non-kinetic scrolling executed. Update
-    // new position to physics.
-    iPhysics->UpdateVerticalScrollIndex( UpdatedFocusPosition() );
-
-    DoUpdateScrollBar( UpdatedFocusPosition() );
+    if ( !iPointerEventInProgress )
+        {
+        // We can updace view only if pointer event processing
+        // is not ongoing.
+        // If pointer event processing is ongoing, view is updated
+        // in CMRListPane::HandlePointerEventL method.
+        UpdatePosition();
+        }
     }
 
 // ---------------------------------------------------------------------------
@@ -480,16 +485,20 @@ void CMRListPane::ScrollFieldsUp( TInt aPx )
 void CMRListPane::ScrollFieldsDown( TInt aPx )
     {
     FUNC_LOG;
-    TPoint point = iFieldContainer->Position();
-    point.iY += aPx;
 
-    // This initializes Draw also
-    iFieldContainer->SetPosition( point );
-    // Non-kinetic scrolling executed. Update
-    // new position to physics.
-    iPhysics->UpdateVerticalScrollIndex( UpdatedFocusPosition() );
+    iPositionChanged = ETrue;
 
-    DoUpdateScrollBar( UpdatedFocusPosition() );
+    iUpdatedPanePoint = iFieldContainer->Position();
+    iUpdatedPanePoint.iY += aPx;
+
+    if ( !iPointerEventInProgress )
+        {
+        // We can updace view only if pointer event processing
+        // is not ongoing.
+        // If pointer event processing is ongoing, view is updated
+        // in CMRListPane::HandlePointerEventL method.
+        UpdatePosition();
+        }
     }
 
 
@@ -499,6 +508,7 @@ void CMRListPane::ScrollFieldsDown( TInt aPx )
 //
 void CMRListPane::UpdateScrollBarAndPhysics()
     {
+    FUNC_LOG;
     // Update physics world size
     iPhysics->InitPhysics();
 
@@ -513,6 +523,7 @@ void CMRListPane::UpdateScrollBarAndPhysics()
 //
 void CMRListPane::ShowControl( TESMREntryFieldId aFieldId )
     {
+    FUNC_LOG;
     iFieldContainer->ShowControl( aFieldId );
     }
 
@@ -522,6 +533,7 @@ void CMRListPane::ShowControl( TESMREntryFieldId aFieldId )
 //
 TBool CMRListPane::IsControlVisible( TESMREntryFieldId aFieldId )
     {
+    FUNC_LOG;
     return iFieldContainer->IsControlVisible( aFieldId );
     }
 // ---------------------------------------------------------------------------
@@ -530,6 +542,7 @@ TBool CMRListPane::IsControlVisible( TESMREntryFieldId aFieldId )
 //
 TESMREntryFieldId CMRListPane::GetResponseFieldsFieldId()
     {
+    FUNC_LOG;
     CESMRField* rfield = iFactory.FieldById( EESMRFieldResponseArea );
 
     if ( rfield && rfield->IsVisible() && !rfield->IsNonFocusing() )
@@ -577,6 +590,26 @@ void CMRListPane::ReActivateL()
     }
 
 // ---------------------------------------------------------------------------
+// CMRListPane::RecordFields
+// ---------------------------------------------------------------------------
+//
+void CMRListPane::RecordFields()
+    {
+    FUNC_LOG;
+
+    // Loop all visible fields and record them
+    TInt count( iFactory.Count() );
+    for ( TInt i = 0; i < count; ++i )
+        {
+        CESMRField* field = iFactory.Field( i );
+        if ( field->IsVisible() )
+            {
+            field->RecordField();
+            }
+        }
+    }
+
+// ---------------------------------------------------------------------------
 // CMRListPane::HandlePointerEventL
 // ---------------------------------------------------------------------------
 //
@@ -587,6 +620,8 @@ void CMRListPane::HandlePointerEventL( const TPointerEvent &aPointerEvent )
         {
         return;
         }
+
+    iPointerEventInProgress = ETrue;
 
     // If new down event is received, and
     // iLongTapEventInProgess flag is still ETrue, we need to
@@ -610,7 +645,7 @@ void CMRListPane::HandlePointerEventL( const TPointerEvent &aPointerEvent )
         	}
         }
 
-    if( !iPhysicsActionOngoing )
+    if( !iPhysicsActionOngoing && TPointerEvent::EDrag != aPointerEvent.iType )
     	{
 		UpdateClickedField( aPointerEvent );
 
@@ -635,6 +670,15 @@ void CMRListPane::HandlePointerEventL( const TPointerEvent &aPointerEvent )
 			iLongTapEventInProgess = EFalse;
             }
     	}
+
+    if ( iPositionChanged )
+        {
+        // Position has changed during pointer event processing
+        // ==> adjusting UI to correct position.
+        UpdatePosition();
+        }
+
+    iPointerEventInProgress = EFalse;
     }
 
 // ---------------------------------------------------------------------------
@@ -689,7 +733,7 @@ void CMRListPane::UpdateScrollBarDuringOngoingPhysics()
 	if( FeedbackScrollMarginExceeded(
 			Abs( verticalScrollIndex - iPreviousVerticalScrollIndex ) ) )
 		{
-		HandleTactileFeedback( ETouchFeedbackSlider );
+		HandleTactileFeedback( ETouchFeedbackSensitiveList );
 
 		iPreviousVerticalScrollIndex = verticalScrollIndex;
 		}
@@ -731,8 +775,18 @@ void CMRListPane::SetFocusAfterPointerEventL(
 		for( TInt i = 0; i < count; ++i )
 			{
 			CESMRField* field = iFactory.Field( i );
-			if ( field->IsVisible() &&
-					field->Rect().Contains( aPointerEvent.iPosition ) )
+
+            // Calculate actual screen rect for field.
+            // If field does not have focus, it is layouted off screen
+            TPoint pos( field->Position() );
+            if ( !field->HasOutlineFocus() )
+                {
+                pos.iX = field->Parent()->Position().iX;
+                }
+            TRect rect( pos, field->Size() );
+
+            if ( field->IsVisible()
+                 && rect.Contains( aPointerEvent.iPosition ) )
 				{
 				CESMRField* focusedField = iFieldContainer->FocusedField();
 
@@ -746,7 +800,18 @@ void CMRListPane::SetFocusAfterPointerEventL(
 						iFieldContainer->SetControlFocusedL( field->FieldId() );
 						}
 					}
-
+                else
+                    {
+                    // If field is not focused from coecontrol's point of view
+                    // due to focus strategy, we have to set the field
+                    // focused again.
+                    if( !field->IsFocused() )
+                        {
+                        field->SetOutlineFocusL( ETrue );
+                        field->SetFocus( ETrue );
+                        DrawDeferred();
+                        }
+                    }
 				break;
 				}
 			}
@@ -764,12 +829,23 @@ void CMRListPane::UpdateClickedField( const TPointerEvent &aPointerEvent )
 
     for( TInt i = 0; i < fieldCount; ++i )
         {
-        if( iFactory.Field( i )->Rect().Contains(
-                aPointerEvent.iPosition ) )
+        CESMRField* field = iFactory.Field( i );
+
+        // Calculate actual screen rect for field.
+        // If field does not have focus, it is layouted off screen
+        TPoint pos( field->Position() );
+        if ( !field->HasOutlineFocus() )
+            {
+            pos.iX = field->Parent()->Position().iX;
+            }
+        TRect rect( pos, field->Size() );
+
+        if( rect.Contains( aPointerEvent.iPosition )
+            && field->IsVisible() )
             {
             if( aPointerEvent.iType == TPointerEvent::EButton1Down )
                 {
-                iClickedField = iFactory.Field( i );
+                iClickedField = field;
                 }
             }
         }
@@ -838,6 +914,23 @@ TBool CMRListPane::FeedbackScrollMarginExceeded( TInt aMargin )
 		}
 
     return ret;
+    }
+
+// ---------------------------------------------------------------------------
+// CMRListPane::UpdatePosition
+// ---------------------------------------------------------------------------
+//
+void CMRListPane::UpdatePosition()
+    {
+    // This initializes Draw also
+    iFieldContainer->SetPosition( iUpdatedPanePoint );
+
+    // Non-kinetic scrolling executed. Update
+    // new position to physics.
+    iPhysics->UpdateVerticalScrollIndex( UpdatedFocusPosition() );
+    DoUpdateScrollBar( UpdatedFocusPosition() );
+
+    iPositionChanged = EFalse;
     }
 
 // End of file

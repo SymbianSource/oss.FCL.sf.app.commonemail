@@ -31,70 +31,34 @@
 #include "FreestyleEmailUiUtilities.h"
 #include "ncsconstants.h"
 
+_LIT( KAlignRight, "right" );
+_LIT( KAlignLeft, "left" );
+_LIT( KRtl, "rtl" );
+_LIT( KLtr, "ltr" );
 
-
-_LIT8( KExpandHeaderIconFileName, "plus.gif");
-_LIT8( KCollapseHeaderIconFileName, "minus.gif");
-_LIT8( KAttachementIconGeneral, "attachment.gif");
-_LIT8( KFollowUpIconFileName, "follow_up.png");
-_LIT8( KFollowUpCompleteIconFileName, "follow_up_complete.png");
-_LIT8( KPriorityHighIconFileName, "todo_high_add.png");
-_LIT8( KPriorityLowIconFileName, "todo_low_add.png");
-
-_LIT8( KCollapsedHeaderTableName, "collapsed_header" );
-_LIT8( KExpandedHeaderTableName, "expanded_header" );
-_LIT8( KToTableName, "to_table");
-_LIT8( KCcTableName, "cc_table");
-_LIT8( KBccTableName, "bcc_table");
-_LIT8( KAttachmentTableName, "attachment_table");
-_LIT8( KFromTableName,"from_table");
-
-_LIT8( KFromFieldName, "from_field");
-_LIT8( KToFieldName, "to_field");
-_LIT8( KCcFieldName, "cc_field");
-_LIT8( KBccFieldName, "bcc_field");
-_LIT8( KSentFieldName, "sent_field");
-_LIT8( KSubjectFieldName, "subject_field");
-
-_LIT8( KToImageName, "to_img");
-_LIT8( KCcImageName, "cc_img");
-_LIT8( KBccImageName, "bcc_img");
-_LIT8( KAttachmentImageName, "attachment_img");
-_LIT8( KFollowUpImageName, "follow_up_img");
-_LIT8( KFollowUpCompleteImageName, "follow_up_complete_img");
-_LIT8( KPriorityHighImageName, "todo_high_add_img");
-_LIT8( KPriorityLowImageName, "todo_low_add_img");
-
-_LIT8( KSpace8, " ");
-
-_LIT8( KHTMLImgTagId, "<image id=\"" );
-_LIT8( KHTMLImgTagSrcBefore, "\" border=\"0\" src=\"" );
-_LIT8( KHTMLImgTagSrcAfter, "\">" );
-
-_LIT8( KMetaHeader, "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n" );
-
-_LIT8( KDisplayImagesLeftToRight,
-        "<script language=\"javascript\">var g_autoLoadImages = %d;</script>\n<table style=\"display: none;\" id=\"displayImagesTable\" width=\"%dpx\"><tr><td align=\"left\">%S</td><td align=\"right\"><input type=\"submit\" class=\"button\" value=\"%S\" onClick=\"displayImagesButtonPressed()\"/></td></tr></table>" );
-
-_LIT8( KDisplayImagesRightToLeft,
-        "<script language=\"javascript\">var g_autoLoadImages = %d;</script>\n<table style=\"display: none;\" id=\"displayImagesTable\" width=\"%dpx\"><tr><td align=\"left\"><input type=\"submit\" class=\"button\" value=\"%S\" onClick=\"displayImagesButtonPressed()\"/></td><td align=\"right\">%S</td></tr></table>" );
-_LIT8 ( KProtocolIdentifier, "://" );
-const TInt KMaxEventLength( 256 );
+const TInt KMaxRecipientsShown( 10 );
 const TInt KFreestyleMessageHeaderHTMLRightMarginInPx( 10 );
-const TInt KFreestyleMessageHeaderHTMLMaxBufferSizeForWidth( 5 );
+
+_LIT8( KTableRowBegin, "<tr>" );
+_LIT8( KTableRowEnd, "</tr>\n" );
+_LIT8( KTableCellEnd, "</td>" );
+
+_LIT( KSchemeSeparator, "://" );
+_LIT( KUrlFormat, "<a href=\"%S\">%S</a>" );
+_LIT( KUrlFormatWithHttp, "<a href=\"http://%S\">%S</a>" );
 
 // Define this to allow theme colorin for the header
-#undef __USE_THEME_COLOR_FOR_HEADER    
+#define __USE_THEME_COLOR_FOR_HEADER    
 
 EXPORT_C CFreestyleMessageHeaderHTML* CFreestyleMessageHeaderHTML::NewL( CFSMailMessage& aMailMessage, 
                                                                          RWriteStream& aWriteStream,
                                                                          TInt aVisibleWidth,
                                                                          TInt aScrollPosition,
                                                                          const TBool aAutoLoadImages,
-                                                                         const TBool aExpanded 
+                                                                         const TBitFlags& aFlags 
                                                                          )
     {
-    CFreestyleMessageHeaderHTML* self = new (ELeave) CFreestyleMessageHeaderHTML( aMailMessage, aWriteStream, aVisibleWidth, aScrollPosition, aAutoLoadImages, aExpanded);
+    CFreestyleMessageHeaderHTML* self = new (ELeave) CFreestyleMessageHeaderHTML( aMailMessage, aWriteStream, aVisibleWidth, aScrollPosition, aAutoLoadImages, aFlags);
     self->ConstructL();
     return self;
     }
@@ -104,9 +68,9 @@ EXPORT_C void CFreestyleMessageHeaderHTML::ExportL( CFSMailMessage& aMailMessage
                                                     TInt aVisibleWidth,
                                                     TInt aScrollPosition,
                                                     const TBool aAutoLoadImages,
-                                                    const TBool aExpanded )
+                                                    const TBitFlags& aFlags )
     {
-    CFreestyleMessageHeaderHTML* headerHtml = CFreestyleMessageHeaderHTML::NewL( aMailMessage, aWriteStream, aVisibleWidth, aScrollPosition, aAutoLoadImages, aExpanded);
+    CFreestyleMessageHeaderHTML* headerHtml = CFreestyleMessageHeaderHTML::NewL( aMailMessage, aWriteStream, aVisibleWidth, aScrollPosition, aAutoLoadImages, aFlags);
     CleanupStack::PushL( headerHtml );
     headerHtml->ExportL();
     CleanupStack::PopAndDestroy( headerHtml );
@@ -117,13 +81,13 @@ EXPORT_C void CFreestyleMessageHeaderHTML::ExportL( CFSMailMessage& aMailMessage
                                                     TInt aVisibleWidth,
                                                     TInt aScrollPosition,
                                                     const TBool aAutoLoadImages,
-                                                    const TBool aExpanded )
+                                                    const TBitFlags& aFlags )
     {
     RFileWriteStream fwstream;
     fwstream.Attach( aFile, 0 );
     CleanupClosePushL( fwstream );
     
-    CFreestyleMessageHeaderHTML* headerHtml = CFreestyleMessageHeaderHTML::NewL( aMailMessage, fwstream, aVisibleWidth, aScrollPosition, aAutoLoadImages, aExpanded );
+    CFreestyleMessageHeaderHTML* headerHtml = CFreestyleMessageHeaderHTML::NewL( aMailMessage, fwstream, aVisibleWidth, aScrollPosition, aAutoLoadImages, aFlags );
     CleanupStack::PushL( headerHtml );
     headerHtml->ExportL();
     CleanupStack::PopAndDestroy( headerHtml );
@@ -137,13 +101,13 @@ EXPORT_C void CFreestyleMessageHeaderHTML::ExportL( CFSMailMessage& aMailMessage
                                                     TInt aVisibleWidth,
                                                     TInt aScrollPosition,
                                                     const TBool aAutoLoadImages,
-                                                    const TBool aExpanded )
+                                                    const TBitFlags& aFlags )
     {
     RFileWriteStream fwstream;
     User::LeaveIfError( fwstream.Replace( aFs, aFilePath, EFileStreamText | EFileWrite) );
     CleanupClosePushL( fwstream );
     
-    CFreestyleMessageHeaderHTML* headerHtml = CFreestyleMessageHeaderHTML::NewL( aMailMessage, fwstream, aVisibleWidth, aScrollPosition, aAutoLoadImages, aExpanded);
+    CFreestyleMessageHeaderHTML* headerHtml = CFreestyleMessageHeaderHTML::NewL( aMailMessage, fwstream, aVisibleWidth, aScrollPosition, aAutoLoadImages, aFlags);
     CleanupStack::PushL( headerHtml );
     headerHtml->ExportL();
     CleanupStack::PopAndDestroy( headerHtml );
@@ -156,28 +120,20 @@ CFreestyleMessageHeaderHTML::~CFreestyleMessageHeaderHTML()
     iAttachments.ResetAndDestroy();
     }
 
-EXPORT_C void CFreestyleMessageHeaderHTML::ExportL() const
-    {
-    HTMLStartL();
-    ExportHTMLHeaderL();
-    ExportHTMLBodyL();
-    HTMLEndL();
-    }
-
 CFreestyleMessageHeaderHTML::CFreestyleMessageHeaderHTML( CFSMailMessage& aMailMessage,  
                                                           RWriteStream& aWriteStream,
                                                           TInt aVisibleWidth,
                                                           TInt aScrollPosition,
                                                           const TBool aAutoLoadImages,
-                                                          const TBool aExpanded )
+                                                          const TBitFlags& aFlags )
     : iMailMessage( aMailMessage ),
     iWriteStream( aWriteStream ),
     iVisibleWidth( aVisibleWidth - KFreestyleMessageHeaderHTMLRightMarginInPx ),
     iScrollPosition( aScrollPosition ),
-    iAutoLoadImages( aAutoLoadImages ),
-    iMirrorLayout( AknLayoutUtils::LayoutMirrored() ),
-    iExpanded( aExpanded  )
+    iExportFlags( aFlags )
     {
+    iExportFlags.Assign( EAutoLoadImages, aAutoLoadImages );
+    iExportFlags.Assign( EMirroredLayout, AknLayoutUtils::LayoutMirrored() );
     }
 
 void CFreestyleMessageHeaderHTML::ConstructL()
@@ -185,1008 +141,614 @@ void CFreestyleMessageHeaderHTML::ConstructL()
     iMailMessage.AttachmentListL( iAttachments );
     }
 
-void CFreestyleMessageHeaderHTML::HTMLStartL() const
+EXPORT_C void CFreestyleMessageHeaderHTML::ExportL() const
     {
-    iWriteStream.WriteL(_L8("<html"));
-    if ( iMirrorLayout )
+    ExportBodyStyleL();
+    ExportHTMLBodyStartL();
+    ExportHeaderTablesL();
+    ExportHTMLBodyEndL();    
+    }
+
+void CFreestyleMessageHeaderHTML::ExportHTMLBodyStartL() const
+    {
+    _LIT( KHtmlBodyStart, "<html dir=\"%S\" xmlns=\"http://www.w3.org/1999/xhtml\">\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n<title>Email Header</title>\n<script language=\"javascript\" src=\"header.js\"></script>\n<link rel=\"stylesheet\" type=\"text/css\" href=\"header.css\"/>\n</head>\n<body onLoad = \"init(%d)\">\n" );
+    //_LIT( KHtmlBodyStart, "<html dir=\"%S\" xmlns=\"http://www.w3.org/1999/xhtml\">\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n<title>Email Header</title>\n<script language=\"javascript\" src=\"header.js\"></script>\n<link rel=\"stylesheet\" type=\"text/css\" href=\"header%d.css\"/>\n</head>\n<body onLoad = \"init(%d)\">\n" );
+    const TPtrC direction(  iExportFlags.IsSet( EMirroredLayout ) ? KRtl() : KLtr() );
+    HBufC* formatBuffer = HBufC::NewLC( KHtmlBodyStart().Length() + direction.Length() + 16 );
+    formatBuffer->Des().Format( KHtmlBodyStart(), &direction, iScrollPosition );
+    //formatBuffer->Des().Format( KHtmlBodyStart(), &direction, Math::Random() % 2, iScrollPosition );
+    HBufC8* utf = CnvUtfConverter::ConvertFromUnicodeToUtf8L( *formatBuffer );
+    CleanupStack::PushL( utf );
+    iWriteStream.WriteL( *utf );
+    CleanupStack::PopAndDestroy( 2 ); // formatBuffer, utf    
+    iWriteStream.CommitL();
+    }
+
+void CFreestyleMessageHeaderHTML::ExportInnerTableBeginWithRowBeginL( const TDesC& aTableName, const TInt aColSpan, 
+        const TBool aVisible, const TBitFlags& aFlags ) const
+    {
+    iWriteStream.WriteL( KTableRowBegin() );
+    ExportTableVisibilityParameterL( aTableName, aVisible );
+    ExportInnerTableBeginL( aTableName, aColSpan, aFlags );
+    }
+
+
+void CFreestyleMessageHeaderHTML::ExportInnerTableBeginL( const TDesC& aTableName, const TInt aColSpan, 
+        const TBitFlags& aFlags ) const
+    {
+    _LIT( KHidden, " style=\"display: none;\"");
+    _LIT( KFixed, " class=\"fixed\"");   
+    _LIT( KTableHeader, "<td colspan=\"%d\"><table id=\"%S\" width=\"100%%\"%S%S>\n" );
+    const TPtrC style( aFlags.IsClear( EHidden ) ? KNullDesC() : KHidden() );
+    const TPtrC fixed( aFlags.IsClear( EFixed ) ? KNullDesC() : KFixed() );
+    HBufC* formatBuffer = HBufC::NewLC( KTableHeader().Length() + aTableName.Length() + 16 + style.Length() + fixed.Length() );
+    formatBuffer->Des().Format( KTableHeader(), aColSpan, &aTableName, &style, &fixed );
+    HBufC8* utf = CnvUtfConverter::ConvertFromUnicodeToUtf8L( *formatBuffer );
+    CleanupStack::PushL( utf );
+    iWriteStream.WriteL( *utf );
+    CleanupStack::PopAndDestroy( 2 ); // formatBuffer, utf    
+    }
+
+void CFreestyleMessageHeaderHTML::ExportTableVisibilityParameterL( const TDesC& aTableName, const TBitFlags& aFlags ) const
+    {   
+    ExportTableVisibilityParameterL( aTableName, aFlags.IsClear( EHidden ) );
+    }
+
+void CFreestyleMessageHeaderHTML::ExportTableVisibilityParameterL( const TDesC& aTableName, const TBool aVisible ) const
+    {   
+    _LIT( KTrue, "true" );
+    _LIT( KFalse, "false" );
+    _LIT( KVisibilityParameter, "<script type=\"text/javascript\">var is_%S_visible=%S;</script>" );
+    const TPtrC visible( aVisible ? KTrue() : KFalse() );
+    HBufC* formatBuffer = HBufC::NewLC( KVisibilityParameter().Length() + aTableName.Length() + visible.Length() );
+    formatBuffer->Des().Format( KVisibilityParameter(), &aTableName, &visible );
+    HBufC8* utf = CnvUtfConverter::ConvertFromUnicodeToUtf8L( *formatBuffer );
+    CleanupStack::PushL( utf );
+    iWriteStream.WriteL( *utf );        
+    CleanupStack::PopAndDestroy( 2 ); // formatBuffer, utf
+    }
+
+void CFreestyleMessageHeaderHTML::ExportTableBeginL( const TDesC& aTableName, const TBitFlags& aFlags ) const
+    {   
+    _LIT( KFixed, " class=\"fixed\"");   
+    _LIT( KTableHeader, "<table id=\"%S\" width=\"%dpx\"%S%S>\n" );
+    const TPtrC style( aFlags.IsClear( EHidden ) ? KNullDesC() : KNullDesC() );
+    const TPtrC fixed( aFlags.IsClear( EFixed ) ? KNullDesC() : KFixed() );
+    ExportTableVisibilityParameterL( aTableName, aFlags );   
+    HBufC* formatBuffer = HBufC::NewLC( KTableHeader().Length() + aTableName.Length() + 16 + style.Length() + fixed.Length() );
+    formatBuffer->Des().Format( KTableHeader(), &aTableName, iVisibleWidth, &style, &fixed );
+    HBufC8* utf = CnvUtfConverter::ConvertFromUnicodeToUtf8L( *formatBuffer );
+    CleanupStack::PushL( utf );
+    iWriteStream.WriteL( *utf );
+    CleanupStack::PopAndDestroy( 2 ); // formatBuffer, utf    
+    }
+
+void CFreestyleMessageHeaderHTML::ExportInnerTableEndL() const
+    {
+    ExportTableEndL();
+    iWriteStream.WriteL( KTableCellEnd() );
+    }
+
+void CFreestyleMessageHeaderHTML::ExportInnerTableEndWithRowEndL() const
+    {
+    ExportInnerTableEndL();
+    iWriteStream.WriteL( KTableRowEnd() );
+    }
+
+void CFreestyleMessageHeaderHTML::ExportTableEndL() const
+    {
+    HBufC8* utf = CnvUtfConverter::ConvertFromUnicodeToUtf8L( _L("</table>\n") );
+    CleanupStack::PushL( utf );
+    iWriteStream.WriteL( *utf );
+    CleanupStack::PopAndDestroy(); // utf    
+    }
+
+void CFreestyleMessageHeaderHTML::ExportSenderTableRowL( const TBool aCollapsed ) const
+    {
+    _LIT( KStyleExpand, "expand" );
+    _LIT( KStyleCollapse, "collapse" );
+    _LIT( KExpandFunction, "expandHeader(true)" );
+    _LIT( KCollapseFunction, "collapseHeader(true)" );
+    _LIT( KSenderFormat, "<tr><td align=\"%S\" class=\"sender_name\"><div class=\"truncate\">%S</div></td><td valign=\"top\" rowSpan=\"2\" class=\"button_cell\"><button value=\"submit\" onClick=\"%S\" class=\"%S\"></button></td></tr>\n" );
+    const CFSMailAddress* sender( iMailMessage.GetSender() );
+    TPtrC displayName( sender->GetDisplayName() );
+    if ( !displayName.Length() )
         {
-        iWriteStream.WriteL(_L8(" dir=\"rtl\""));
+        displayName.Set( sender->GetEmailAddress() );
+        }
+    const TPtrC function( aCollapsed ? KExpandFunction() : KCollapseFunction() );
+    const TPtrC style( aCollapsed ? KStyleExpand() : KStyleCollapse() );
+    const TPtrC align(  iExportFlags.IsSet( EMirroredLayout ) ? KAlignRight() : KAlignLeft() );
+    HBufC* formatBuffer = HBufC::NewLC( KSenderFormat().Length() + displayName.Length() + align.Length() + function.Length() + style.Length() );
+    formatBuffer->Des().Format( KSenderFormat(), &align, &displayName, &function, &style );
+    HBufC8* utf = CnvUtfConverter::ConvertFromUnicodeToUtf8L( *formatBuffer );
+    CleanupStack::PushL( utf );
+    iWriteStream.WriteL( *utf );
+    CleanupStack::PopAndDestroy( 2 ); // formatBuffer, utf    
+    }
+
+void CFreestyleMessageHeaderHTML::ExportSenderAddressTableRowL() const
+    {
+    _LIT( KSenderAddressFormat, "<tr><td colspan=\"2\" align=\"%S\"><div class=\"truncate\"><a class=\"sender_address\" href=\"cmail://from/%S\">%S</a></div></td></tr>\n" );
+    const CFSMailAddress* sender( iMailMessage.GetSender() );
+    const TPtrC emailAddress( sender->GetEmailAddress() );
+    const TPtrC align(  iExportFlags.IsSet( EMirroredLayout ) ? KAlignRight() : KAlignLeft() );
+    HBufC* formatBuffer = HBufC::NewLC( KSenderAddressFormat().Length() + emailAddress.Length() * 2 + align.Length() );
+    formatBuffer->Des().Format( KSenderAddressFormat(), &align, &emailAddress, &emailAddress );
+    HBufC8* utf = CnvUtfConverter::ConvertFromUnicodeToUtf8L( *formatBuffer );
+    CleanupStack::PushL( utf );
+    iWriteStream.WriteL( *utf );
+    CleanupStack::PopAndDestroy( 2 ); // formatBuffer, utf    
+    }
+
+void CFreestyleMessageHeaderHTML::ExportLabelTableRowL( const TInt aResourceId, const TInt aColSpan ) const
+    {
+    _LIT( KLabelFormat, "<tr><td align=\"%S\" colspan=\"%d\" class=\"label\">%S</td></tr>\n" );
+    HBufC* labelText = StringLoader::LoadLC( aResourceId );
+    const TPtrC align(  iExportFlags.IsSet( EMirroredLayout ) ? KAlignRight() : KAlignLeft() );
+    HBufC* formatBuffer = HBufC::NewLC( KLabelFormat().Length() + labelText->Length() + align.Length() + 8 );
+    formatBuffer->Des().Format( KLabelFormat(), &align, aColSpan, labelText );
+    HBufC8* utf = CnvUtfConverter::ConvertFromUnicodeToUtf8L( *formatBuffer );
+    CleanupStack::PushL( utf );
+    iWriteStream.WriteL( *utf );
+    CleanupStack::PopAndDestroy( 3 ); // labelText, formatBuffer, utf    
+    }
+
+void  CFreestyleMessageHeaderHTML::ExportFromTableRowL() const
+    {
+    ExportLabelTableRowL( R_FREESTYLE_EMAIL_UI_VIEWER_FROM );
+    ExportSenderAddressTableRowL();
+    }
+
+void  CFreestyleMessageHeaderHTML::ExportExpandRecipientsL( const TDesC& aType, const TInt aCount ) const
+    {
+    _LIT( KExpandRecipientsFormat, "<tr><td align=\"%S\"><a class=\"recipient\" href=\"cmail://expand_%S/\" onclick=\"handleHeaderDisplay('%S_collapsed','%S_expanded')\">%S</a></td></tr>\n" );
+    HBufC* text =  StringLoader::LoadLC( R_FREESTYLE_EMAIL_UI_VIEWER_N_MORE_RECIPIENTS, aCount );
+    const TPtrC align(  iExportFlags.IsSet( EMirroredLayout ) ? KAlignRight() : KAlignLeft() );
+    HBufC* formatBuffer = HBufC::NewLC( KExpandRecipientsFormat().Length() + text->Length() + align.Length() + aType.Length() * 3 );
+    formatBuffer->Des().Format( KExpandRecipientsFormat(), &align, &aType, &aType, &aType, text );
+    HBufC8* utf = CnvUtfConverter::ConvertFromUnicodeToUtf8L( *formatBuffer );
+    CleanupStack::PushL( utf );
+    iWriteStream.WriteL( *utf );
+    CleanupStack::PopAndDestroy( 3 ); // text, formatBuffer, utf    
+    }
+
+void  CFreestyleMessageHeaderHTML::ExportExpandAttachmentsL( const TDesC& aType, const TInt aCount ) const
+    {
+    _LIT( KExpandRecipientsFormat, "<td align=\"%S\" class=\"attachment\"><a href=\"cmail://expand_%S/\" onclick=\"handleHeaderDisplay('%S_collapsed','%S_expanded')\">%S</a></td>" );
+    HBufC* text =  StringLoader::LoadLC( R_FSE_VIEWER_ATTACHMENTS_TEXT, aCount );
+    const TPtrC align(  iExportFlags.IsSet( EMirroredLayout ) ? KAlignRight() : KAlignLeft() );
+    HBufC* formatBuffer = HBufC::NewLC( KExpandRecipientsFormat().Length() + text->Length() + align.Length() + aType.Length() * 3 );
+    formatBuffer->Des().Format( KExpandRecipientsFormat(), &align, &aType, &aType, &aType, text );
+    HBufC8* utf = CnvUtfConverter::ConvertFromUnicodeToUtf8L( *formatBuffer );
+    CleanupStack::PushL( utf );
+    iWriteStream.WriteL( *utf );
+    CleanupStack::PopAndDestroy( 3 ); // text, formatBuffer, utf    
+    }
+
+void  CFreestyleMessageHeaderHTML::ExportRecipientsTableL( const TDesC& aType, const TInt aLabelResourceId, 
+        const RPointerArray<CFSMailAddress>& aRecipients, const TBool aExpanded ) const
+    {  
+    if ( aRecipients.Count() > 0 )
+        { 
+        TBool innerTableExpanded( aExpanded );
+        TBitFlags flags;
+        flags.Assign( EHidden, iExportFlags.IsClear( EHeaderExpanded ) );
+        _LIT( KTableNameFormat, "%S_table" );
+        HBufC* outerTableName = HBufC::NewLC( KTableNameFormat().Length() + aType.Length() );
+        outerTableName->Des().Format( KTableNameFormat(), &aType );
+        ExportTableBeginL( *outerTableName, flags );
+        CleanupStack::PopAndDestroy(); // outerTableName
+        
+        ExportLabelTableRowL( aLabelResourceId, 2 );
+        const TBool showCollapsed( aRecipients.Count() > KMaxRecipientsShown );
+        TBitFlags tableFlags;
+        tableFlags.Set( EFixed );        
+        if ( showCollapsed )
+            {
+            _LIT( KFormatCollapsed, "%S_collapsed" );
+            HBufC* tableName = HBufC::NewLC( KFormatCollapsed().Length() + 8 );
+            tableName->Des().Format( KFormatCollapsed(), &aType );
+            ExportInnerTableBeginWithRowBeginL( *tableName, 2, !innerTableExpanded, tableFlags );
+            CleanupStack::PopAndDestroy(); // tableName
+            ExportExpandRecipientsL( aType, aRecipients.Count() );        
+            ExportInnerTableEndWithRowEndL();
+            tableFlags.Set( EHidden );
+            }
+        else
+            {
+            innerTableExpanded = ETrue;
+            }
+        _LIT( KFormatExpanded, "%S_expanded" );
+        HBufC* tableName = HBufC::NewLC( KFormatExpanded().Length() + 8 );
+        tableName->Des().Format( KFormatExpanded(), &aType );
+        ExportInnerTableBeginWithRowBeginL( *tableName, 2, innerTableExpanded, tableFlags );
+        CleanupStack::PopAndDestroy(); // tableName
+        ExportRecipientsL( aType, aRecipients );
+        ExportInnerTableEndWithRowEndL();        
+        ExportTableEndL();
+        }
+    }
+
+void  CFreestyleMessageHeaderHTML::ExportRecipientsL( const TDesC& aType, 
+        const RPointerArray<CFSMailAddress>& aRecipients) const
+    {
+    _LIT( KRecipientFormat, "<tr><td align=\"%S\"><div class=\"truncate\"><a class=\"recipient\" href=\"cmail://%S/%S\">%S</a></div></td></tr>" );
+    const TPtrC align(  iExportFlags.IsSet( EMirroredLayout ) ? KAlignRight() : KAlignLeft() );
+    for ( TInt i = 0; i < aRecipients.Count(); i++ )
+        {
+        const CFSMailAddress* sender( aRecipients[ i ] );
+        TPtrC displayName( sender->GetDisplayName() );
+        const TPtrC emailAddress( sender->GetEmailAddress() );
+        if ( !displayName.Length() )
+            {
+            displayName.Set( emailAddress );
+            }   
+        HBufC* formatBuffer = HBufC::NewLC( KRecipientFormat().Length() + align.Length() + aType.Length() + emailAddress.Length() + displayName.Length() );
+        formatBuffer->Des().Format( KRecipientFormat(), &align, &aType, &emailAddress, &displayName );
+        HBufC8* utf = CnvUtfConverter::ConvertFromUnicodeToUtf8L( *formatBuffer );
+        CleanupStack::PushL( utf );
+        iWriteStream.WriteL( *utf );
+        CleanupStack::PopAndDestroy( 2 ); // formatBuffer, utf    
+        }
+    }
+
+void  CFreestyleMessageHeaderHTML::ExportToTableL() const
+    {
+    ExportRecipientsTableL( _L("to"), R_FREESTYLE_EMAIL_UI_VIEWER_TO, iMailMessage.GetToRecipients(), iExportFlags.IsSet( EToExpanded ) );
+    }
+
+void  CFreestyleMessageHeaderHTML::ExportCcTableL() const
+    {
+    ExportRecipientsTableL( _L("cc"), R_FREESTYLE_EMAIL_UI_VIEWER_CC, iMailMessage.GetCCRecipients(), iExportFlags.IsSet( ECcExpanded ) );
+    }
+
+void  CFreestyleMessageHeaderHTML::ExportBccTableL() const
+    {
+    ExportRecipientsTableL( _L("bcc"), R_FREESTYLE_EMAIL_UI_VIEWER_BCC, iMailMessage.GetBCCRecipients(), iExportFlags.IsSet( EBccExpanded ) );
+    }
+
+void CFreestyleMessageHeaderHTML::ExportDateTimeTableRowL( const TInt aColSpan ) const
+    {
+    _LIT( KDateTimeFormat, "<tr><td colspan=\"%d\" align=\"%S\" class=\"datetime\">%S%S%S</td></tr>\n" );
+    HBufC* dateText = TFsEmailUiUtility::DateTextFromMsgLC( &iMailMessage );
+    HBufC* timeText = TFsEmailUiUtility::TimeTextFromMsgLC( &iMailMessage );
+    const TPtrC align(  iExportFlags.IsSet( EMirroredLayout ) ? KAlignRight() : KAlignLeft() );
+    HBufC* formatBuffer = HBufC::NewLC( KDateTimeFormat().Length() + dateText->Length() + timeText->Length() +  KSentLineDateAndTimeSeparatorText().Length() + align.Length() + 3 );
+    formatBuffer->Des().Format( KDateTimeFormat(), aColSpan, &align, dateText, &KSentLineDateAndTimeSeparatorText(), timeText );
+    HBufC8* utf = CnvUtfConverter::ConvertFromUnicodeToUtf8L( *formatBuffer );
+    CleanupStack::PushL( utf );
+    iWriteStream.WriteL( *utf );
+    CleanupStack::PopAndDestroy( 4 ); // dateText, timeText, formatBuffer, utf   
+    }
+
+void CFreestyleMessageHeaderHTML::ExportSubjectTableRowL( const TBool aShowLabel ) const
+    {
+    _LIT( KClassSubject, "subject" );
+    TPtrC subjectClass( KClassSubject() );
+    if ( aShowLabel )
+        {
+        _LIT( KClassSubjectIntended, "subject_intended");
+        ExportLabelTableRowL( R_FREESTYLE_EMAIL_UI_VIEWER_SUBJECT, 2 );
+        subjectClass.Set( KClassSubjectIntended() );
+        }
+    _LIT( KSubjectFormat, "<tr><td align=\"%S\" class=\"%S\">%S</td><td align=\"center\" valign=\"bottom\" width=\"1\">");
+    const TPtrC align(  iExportFlags.IsSet( EMirroredLayout ) ? KAlignRight() : KAlignLeft() );
+    HBufC* subject = SubjectLC();
+    HBufC* formatBuffer = HBufC::NewLC( KSubjectFormat().Length() + align.Length() + subject->Length() + subjectClass.Length() );
+    formatBuffer->Des().Format( KSubjectFormat(), &align, &subjectClass, subject );
+    HBufC8* utf = CnvUtfConverter::ConvertFromUnicodeToUtf8L( *formatBuffer );
+    CleanupStack::PushL( utf );
+    iWriteStream.WriteL( *utf );
+    CleanupStack::PopAndDestroy( 3 ); // subject, formatBuffer, utf
+    ExportMessageIconsL();
+    iWriteStream.WriteL( KTableCellEnd() );
+    iWriteStream.WriteL( KTableRowEnd() );
+    }
+
+void CFreestyleMessageHeaderHTML::ExportMessageIconsL() const
+    {
+    _LIT( KPriorityLow, "priority_low" );
+    _LIT( KPriorityHigh, "priority_high" );
+    _LIT( KFollowUp, "follow_up" );
+    _LIT( KFollowUpComplete, "follow_up_complete" );
+    
+    TBool iconShown( EFalse );
+    
+    if ( iMailMessage.IsFlagSet( EFSMsgFlag_Low ) )
+        {
+        ExportIconL( KPriorityLow() );
+        iconShown = ETrue;
+        }
+    else if ( iMailMessage.IsFlagSet( EFSMsgFlag_Important ) )
+        {
+        ExportIconL( KPriorityHigh() );    
+        iconShown = ETrue;
+        }
+    
+    if ( iMailMessage.IsFlagSet( EFSMsgFlag_FollowUp ) )
+        {
+        ExportIconL( KFollowUp() );
+        iconShown = ETrue;
+        }
+    else if ( iMailMessage.IsFlagSet( EFSMsgFlag_FollowUpComplete ) )
+        {
+        ExportIconL( KFollowUpComplete() );    
+        iconShown = ETrue;
+        }
+    if ( iconShown )
+        {
+        iWriteStream.WriteL( _L8("<div class=\"icon_cell\"></div>") );
+        }
+    }
+
+void CFreestyleMessageHeaderHTML::ExportHeaderTablesL() const        
+    {
+    ExportCollapsedHeaderTableL();
+    ExportExpandedHeaderTablesL();
+    ExportAttachmentTablesL();
+    ExportDisplayImagesTableL();
+    }
+
+void CFreestyleMessageHeaderHTML::ExportCollapsedHeaderTableL() const
+    {
+    TBitFlags flags;
+    flags.Set( EFixed );
+    flags.Assign( EHidden, iExportFlags.IsSet( EHeaderExpanded ) );
+    ExportTableBeginL( _L("header_collapsed"), flags );
+    ExportSenderTableRowL( ETrue );
+    ExportDateTimeTableRowL();
+    ExportTableEndL();
+    flags.Clear( EFixed );
+    ExportTableBeginL( _L("header_collapsed_2"), flags );
+    ExportSubjectTableRowL();
+    ExportTableEndL();
+    iWriteStream.CommitL();
+    }
+
+void CFreestyleMessageHeaderHTML::ExportExpandedHeaderTablesL() const
+    {
+    TBitFlags flags;
+    flags.Set( EFixed );
+    flags.Assign( EHidden, iExportFlags.IsClear( EHeaderExpanded ) );
+    ExportTableBeginL( _L("header_expanded"), flags );
+    ExportSenderTableRowL( EFalse );
+    ExportFromTableRowL();
+    ExportTableEndL();
+    ExportToTableL();
+    ExportCcTableL();
+    ExportBccTableL();
+    flags.Clear( EFixed );
+    ExportTableBeginL( _L("header_expanded_2"), flags );
+    ExportDateTimeTableRowL( 2 );
+    ExportSubjectTableRowL();
+    ExportTableEndL();
+    iWriteStream.CommitL();
+    }
+
+void CFreestyleMessageHeaderHTML::ExportAttachmentTablesL() const
+    {
+    const TInt attachmentCount( iAttachments.Count() );
+    if ( attachmentCount )
+        {
+        if ( attachmentCount > 1 )
+            {
+            ExportCollapsedAttachmentTableL( iExportFlags.IsSet( EAttachmentExpanded ) );
+            ExportExpandedAttachmentTableL( iExportFlags.IsClear( EAttachmentExpanded ) );
+            }
+        else
+            {
+            ExportExpandedAttachmentTableL( EFalse );        
+            }
+        }
+    }
+
+void CFreestyleMessageHeaderHTML::ExportAttachmentIconL() const
+    {    
+    _LIT8( KCellBegin, "<td width=\"1\" valign=\"top\" class=\"attachment\">" );
+    iWriteStream.WriteL( KCellBegin() );
+    _LIT( KAttachment, "attachment" );
+    ExportIconL( KAttachment() );
+    iWriteStream.WriteL( KTableCellEnd() );
+    }
+
+void CFreestyleMessageHeaderHTML::ExportCollapsedAttachmentTableL( const TBool aHide ) const
+    {
+    TBitFlags flags;
+    flags.Assign( EHidden, aHide );
+    ExportTableBeginL( _L("attachments_collapsed"), flags );
+    ExportCollapsedAttachmentsTableRowL();
+    ExportTableEndL();
+    }
+
+void CFreestyleMessageHeaderHTML::ExportCollapsedAttachmentsTableRowL() const
+    {
+    iWriteStream.WriteL( KTableRowBegin() );
+    ExportAttachmentIconL();
+    ExportExpandAttachmentsL( _L("attachments"), iAttachments.Count() );
+    iWriteStream.WriteL( KTableRowEnd() );
+    }
+
+void CFreestyleMessageHeaderHTML::ExportExpandedAttachmentTableL( const TBool aHide ) const
+    {    
+    TBitFlags flags;
+    flags.Assign( EHidden, aHide );
+    ExportTableBeginL( _L("attachments_expanded"), flags );
+    ExportExpandedAttachmentsTableRowsL();
+    ExportTableEndL();
+    }
+
+void CFreestyleMessageHeaderHTML::ExportExpandedAttachmentsTableRowsL() const
+    {
+    iWriteStream.WriteL( KTableRowBegin() );
+    ExportAttachmentIconL();
+    ExportAttachmentsL();
+    iWriteStream.WriteL( KTableRowEnd() );
+    }
+
+void CFreestyleMessageHeaderHTML::ExportAttachmentsL() const
+    {
+    ExportInnerTableBeginL( _L("_attachments_expanded"), 1 );
+    for ( TInt i = 0; i < iAttachments.Count(); i++ )
+        {
+        ExportAttachmentL( *iAttachments[ i ] );
+        }
+    ExportInnerTableEndL();
+    }
+
+void CFreestyleMessageHeaderHTML::ExportAttachmentL( CFSMailMessagePart& aAttachment ) const
+    {
+    _LIT( KAttachmentFormat, "<tr><td align=\"%S\" class=\"attachment\"><a href=\"cmail://attachment/%d\">%S (%S)</a></td></tr>\n" );
+    const TPtrC align(  iExportFlags.IsSet( EMirroredLayout ) ? KAlignRight() : KAlignLeft() );
+    HBufC* size = TFsEmailUiUtility::CreateSizeDescLC( aAttachment.ContentSize(), EFalse );
+    const TPtrC attachmentName( aAttachment.AttachmentNameL() );
+    HBufC* formatBuffer = HBufC::NewLC( KAttachmentFormat().Length() + align.Length() + size->Length() + attachmentName.Length() + 16 );
+    formatBuffer->Des().Format( KAttachmentFormat(), &align, aAttachment.GetPartId().Id(), &attachmentName, size );
+    HBufC8* utf = CnvUtfConverter::ConvertFromUnicodeToUtf8L( *formatBuffer );
+    CleanupStack::PushL( utf );
+    iWriteStream.WriteL( *utf );
+    CleanupStack::PopAndDestroy( 3 ); // size, formatBuffer, utf
+    }
+
+void CFreestyleMessageHeaderHTML::ExportIconL( const TDesC& aIconName ) const
+    {
+    _LIT( KMessageIconFormat, "<img src=\"%S.png\" class=\"icon\"/>" );
+    HBufC* formatBuffer = HBufC::NewLC( KMessageIconFormat().Length() + aIconName.Length() );
+    formatBuffer->Des().Format( KMessageIconFormat(), &aIconName );
+    HBufC8* utf = CnvUtfConverter::ConvertFromUnicodeToUtf8L( *formatBuffer );
+    CleanupStack::PushL( utf );
+    iWriteStream.WriteL( *utf );
+    CleanupStack::PopAndDestroy( 2 ); // formatBuffer, utf
+    }
+
+HBufC* CFreestyleMessageHeaderHTML::SubjectLC() const
+    {
+    return CreateLinksLC( iMailMessage.GetSubject(), CFindItemEngine::EFindItemSearchURLBin );
+    }
+
+TInt CFreestyleMessageHeaderHTML::CalculateTotalSpaceRequired( const TDesC& aText, 
+        CFindItemEngine& aItemEngine, TInt& aMaxLength ) const
+    {
+    TInt totalLength( 0 );
+    aMaxLength = KMinTInt;
+    CFindItemEngine::SFoundItem item;
+    aItemEngine.ResetPosition();
+    for ( TBool available( aItemEngine.Item( item ) ); available; available = aItemEngine.NextItem( item ) )
+        {
+        totalLength += item.iLength;
+        if ( item.iItemType == CFindItemEngine::EFindItemSearchURLBin )
+            {
+            const TPtrC url( aText.Mid( item.iStartPos, item.iLength ) );
+            if (  url.FindF( KSchemeSeparator() ) == KErrNotFound )
+                {
+                totalLength += KUrlFormatWithHttp().Length();
+                }
+            else
+                {
+                totalLength += KUrlFormat().Length();        
+                }
+            aMaxLength = ( aMaxLength < item.iLength ) ? item.iLength : aMaxLength;
+            }
+        }
+    aItemEngine.ResetPosition();
+    return totalLength;
+    }
+
+HBufC* CFreestyleMessageHeaderHTML::CreateLinksLC( const TDesC& aText, const TInt aSearchCases ) const
+    {
+    HBufC* result = NULL;
+    CFindItemEngine* itemEngine = CFindItemEngine::NewL( aText, 
+            CFindItemEngine::TFindItemSearchCase( aSearchCases ) );
+    CleanupStack::PushL ( itemEngine );
+    if ( itemEngine->ItemCount() > 0 )
+        {
+        RBuf buf;
+        TInt maxLength;
+        buf.CreateL( CalculateTotalSpaceRequired( aText, *itemEngine, maxLength ) + aText.Length() );
+        buf.CleanupClosePushL();
+        TInt currentReadPosition( 0 );
+        CFindItemEngine::SFoundItem item;
+        HBufC* urlBuffer = HBufC::NewLC( KUrlFormatWithHttp().Length() + maxLength * 2 );
+        for ( TBool available( itemEngine->Item( item ) ); available; available = itemEngine->NextItem( item ) )
+            {
+            // Append characters from currentReadPosition to iStartPos
+            buf.Append( aText.Mid( currentReadPosition, item.iStartPos - currentReadPosition ) );
+            const TPtrC url( aText.Mid( item.iStartPos, item.iLength ) );
+            TPtrC format( KUrlFormat() );
+            if ( url.FindF( KSchemeSeparator() ) == KErrNotFound )
+                {
+                format.Set( KUrlFormatWithHttp() );
+                }
+            urlBuffer->Des().Format( format, &url, &url );
+            buf.Append( *urlBuffer );
+            currentReadPosition = item.iStartPos + item.iLength;
+            }
+        CleanupStack::PopAndDestroy(); // urlBuffer
+        // Append characters that are left in buffer
+        buf.Append( aText.Mid( currentReadPosition ) );
+        result = buf.AllocL();
+        CleanupStack::PopAndDestroy(); // buf.Close()
         }
     else
         {
-        iWriteStream.WriteL(_L8(" dir=\"ltr\""));
+        result = aText.AllocL();
         }
-    iWriteStream.WriteL(_L8(" xmlns=\"http://www.w3.org/1999/xhtml\">\n"));
+    CleanupStack::PopAndDestroy( itemEngine );
+    CleanupStack::PushL( result );
+    return result;
+    }
+
+void CFreestyleMessageHeaderHTML::ExportHTMLBodyEndL() const
+    {
+    iWriteStream.WriteL( _L8("</body>\n</html>\n") );
     iWriteStream.CommitL();
-    }
-
-void CFreestyleMessageHeaderHTML::HTMLEndL() const
-    {
-    iWriteStream.WriteL(_L8("</html>\n"));
-    iWriteStream.CommitL();
-    }
-
-void CFreestyleMessageHeaderHTML::ExportHTMLHeaderL() const
-    {
-    HTMLHeaderStartL();
-    HTMLMetaL();
-    iWriteStream.WriteL( _L8("<title>Email Header</title>\n") );
-    AddJavascriptL();
-    AddStyleSheetL();
-    HTMLHeaderEndL();
-    }
-
-void CFreestyleMessageHeaderHTML::HTMLHeaderStartL() const
-    {
-    iWriteStream.WriteL(_L8("<head>"));
-    iWriteStream.CommitL();
-    }
-
-void CFreestyleMessageHeaderHTML::HTMLMetaL() const
-    {
-    // Html file representing email header fields, is always constructed locally
-    // in the phone, and it is always of charset UTF-8 irrespective of what
-    // the email html-format body is
-    iWriteStream.WriteL( KMetaHeader );
-    iWriteStream.CommitL();
-    }
-
-void CFreestyleMessageHeaderHTML::HTMLHeaderEndL() const
-    {
-    iWriteStream.WriteL(_L8("</head>\n"));
-    iWriteStream.CommitL();
-    }
-
-void CFreestyleMessageHeaderHTML::ExportHTMLBodyL() const
-    {
-    HTMLBodyStartL();
-    ExportCollapsedHeaderTableL();
-    ExportExpandedHeaderTableL();
-    ExportAttachmentsL();
-    ExportDisplayImagesTableL();
-    HTMLBodyEndL();
     }
 
 void CFreestyleMessageHeaderHTML::ExportDisplayImagesTableL() const
     {
-    if (!iAutoLoadImages)
+    _LIT( KDisplayImagesLeftToRight,
+            "<script language=\"javascript\">var g_autoLoadImages = %d;</script><table style=\"display: none\" id=\"displayImagesTable\" width=\"%dpx\"><tr><td align=\"left\">%S</td><td align=\"right\"><button value=\"submit\" class=\"submitBtn\" onClick=\"displayImagesButtonPressed()\"><span><span class=\"buttonText\">%S</span></span></button></td></tr></table>" );
+    
+    _LIT( KDisplayImagesRightToLeft,
+            "<script language=\"javascript\">var g_autoLoadImages = %d;</script><table style=\"display: none\" id=\"displayImagesTable\" width=\"%dpx\"><tr><td align=\"left\"><button value=\"submit\" class=\"submitBtn\" onClick=\"displayImagesButtonPressed()\"><span><span class=\"buttonText\">%S</span></span></button></td><td align=\"right\">%S</td></tr></table>" );
+
+    if ( iExportFlags.IsClear( EAutoLoadImages ) )
         {
-        _LIT8(KDescription, "");
-        //_LIT8(KButton, "Display images");
-        HBufC8* description = KDescription().AllocLC(); //HeadingTextLC(R_FREESTYLE_EMAIL_UI_IMAGES_ARE_NOT_DISPLAYED);
-        HBufC8* button = HeadingTextLC(R_FREESTYLE_EMAIL_UI_DISPLAY_IMAGES); // KButton().AllocLC();
-        HBufC8* formatBuffer = NULL;
-        if (iMirrorLayout)
+        _LIT(KDescription, "");
+        HBufC* description = KDescription().AllocLC(); //StringLoader::LoadLC(R_FREESTYLE_EMAIL_UI_IMAGES_ARE_NOT_DISPLAYED);
+        HBufC* button = StringLoader::LoadLC(R_FREESTYLE_EMAIL_UI_DISPLAY_IMAGES);
+        HBufC* formatBuffer = NULL;
+        if ( iExportFlags.IsSet( EMirroredLayout ) )
             {
-            formatBuffer = HBufC8::NewLC(KDisplayImagesRightToLeft().Length() + description->Length() + button->Length() + 8);
+            formatBuffer = HBufC::NewLC(KDisplayImagesRightToLeft().Length() + description->Length() + button->Length() + 8);
             formatBuffer->Des().Format(
                     KDisplayImagesRightToLeft(),
-                    iAutoLoadImages,
+                    EFalse,
                     iVisibleWidth,
                     button,
                     description);
             }
         else
             {
-            formatBuffer = HBufC8::NewLC(KDisplayImagesLeftToRight().Length() + description->Length() + button->Length() + 8);
+            formatBuffer = HBufC::NewLC(KDisplayImagesLeftToRight().Length() + description->Length() + button->Length() + 8);
             formatBuffer->Des().Format(
                     KDisplayImagesLeftToRight(),
-                    iAutoLoadImages,
+                    EFalse,
                     iVisibleWidth,
                     description,
                     button);
             }
-        iWriteStream.WriteL(*formatBuffer);
-        CleanupStack::PopAndDestroy(3); // description, button, formatBuffer
+        HBufC8* utf = CnvUtfConverter::ConvertFromUnicodeToUtf8L( *formatBuffer );
+        CleanupStack::PushL( utf );
+        iWriteStream.WriteL( *utf );
+        CleanupStack::PopAndDestroy( 4 ); // description, button, formatBuffer, utf
         iWriteStream.CommitL();
         }
     }
 
-void CFreestyleMessageHeaderHTML::HTMLBodyStartL() const
+void CFreestyleMessageHeaderHTML::ExportBodyStyleL() const
     {
-    TBuf8<KFreestyleMessageHeaderHTMLRightMarginInPx> scrollPos;
-    scrollPos.AppendNum(iScrollPosition);
-    iWriteStream.WriteL(_L8("<body onLoad = \"init("));
-    iWriteStream.WriteL(scrollPos);
-    iWriteStream.WriteL(_L8(")\">\n"));
-    iWriteStream.CommitL();
-    }
-
-void CFreestyleMessageHeaderHTML::ExportCollapsedHeaderTableL() const
-    {
-    StartHeaderTableL( KCollapsedHeaderTableName, !iExpanded );
-    ExportTimeAndExpandButtonL();
-    ExportSubjectCollapsedL();
-    EndHeaderTableL();
-    }
-
-void CFreestyleMessageHeaderHTML::ExportExpandedHeaderTableL() const
-    {
-    StartHeaderTableL( KExpandedHeaderTableName, iExpanded );
-    ExportCollapseButtonL();
-    ExportFromL();
-    ExportToL();
-    ExportCcL();
-    ExportBccL();
-    ExportSentTimeL();
-    ExportSubjectL();
-    EndHeaderTableL();
-    }
-
-// -----------------------------------------------------------------------------
-// CFreestyleMessageHeaderHTML::WriteSubjectL
-// Writes the subject to iWriteStream and also
-// takes care of the urls and marks them as hotspots
-// -----------------------------------------------------------------------------
-//
-void CFreestyleMessageHeaderHTML::WriteSubjectL(TDesC& aText ) const
-    {
-    /* 
-    * Add these to searchcases to make it also search 
-    * for emailaddress and phonenumber :
-    * CFindItemEngine::EFindItemSearchMailAddressBin |
-    * CFindItemEngine::EFindItemSearchPhoneNumberBin |
-    */
-    // Search for urls    
-    TInt searchCases = CFindItemEngine::EFindItemSearchURLBin;
-                       
-    CFindItemEngine* itemEngine =
-              CFindItemEngine::NewL ( aText,
-                       ( CFindItemEngine::TFindItemSearchCase ) searchCases );
-    CleanupStack::PushL (itemEngine );
-
-    const CArrayFixFlat<CFindItemEngine::SFoundItem>
-            * foundItems = itemEngine->ItemArray ( );
-    
-    TInt index = 0;
-    // For each found item
-    for (TInt i=0; i<foundItems->Count ( ); ++i )
-        {
-        // iItemType, iStartPos, iLength
-        const CFindItemEngine::SFoundItem& item = foundItems->At (i );
-        HBufC* valueBuf = aText.Mid (item.iStartPos, item.iLength ).AllocL ( );
-        CleanupStack::PushL (valueBuf );
-        // We write the normal text to iWriteStream before and between the links in the header subject field
-        if(item.iStartPos > 0)
-            {
-            TInt itemstart = item.iStartPos;
-            HBufC* normalText = aText.Mid(index, itemstart-index).Alloc();
-            CleanupStack::PushL( normalText );
-            HBufC8* normalText8 = CnvUtfConverter::ConvertFromUnicodeToUtf8L( *normalText );
-            CleanupStack::PushL( normalText8 );
-            iWriteStream.WriteL( *normalText8 );
-            CleanupStack::PopAndDestroy( 2 ); //normalText8m, normalText
-            }        
-        switch (item.iItemType )
-            {
-            /* To make header subjectfield to recognise also phonenumber and emailadress just 
-             * add CFindItemEngine::EFindItemSearchMailAddressBin & 
-             * CFindItemEngine::EFindItemSearchPhoneNumberBin cases here.
-             */
-            case CFindItemEngine::EFindItemSearchURLBin:
-                {
-                HBufC8* url8 = CnvUtfConverter::ConvertFromUnicodeToUtf8L( *valueBuf );
-                CFreestyleMessageHeaderURL *fsurl = FreestyleMessageHeaderURLFactory::CreateEmailSubjectUrlL(*valueBuf);
-                delete fsurl;
-                CleanupStack::PushL( url8 );
-                StartHyperlinkL(*url8);
-                iWriteStream.WriteL(*url8);
-                EndHyperlinkL();
-                CleanupStack::PopAndDestroy( url8 );
-
-                break;
-                }
-            default:
-                {
-                break;
-                }
-            }        
-        index = item.iStartPos+item.iLength;
-        CleanupStack::PopAndDestroy (valueBuf );
-        }
-        //Write the rest of the subject to subject field if we are not 
-        //at the end of the subject already, or if there wasn't any
-        //url items write the whole subject field here
-        if(index < aText.Length() )
-            {
-            HBufC* normalText = aText.Mid(index, aText.Length()-index).Alloc();
-            CleanupStack::PushL( normalText );
-            HBufC8* normalText8 = CnvUtfConverter::ConvertFromUnicodeToUtf8L( *normalText );
-            CleanupStack::PushL( normalText8 );
-            iWriteStream.WriteL( *normalText8 );
-            CleanupStack::PopAndDestroy( 2 ); //normalText8m, normalText
-            }
-    CleanupStack::PopAndDestroy (itemEngine );
-    }
-
-HBufC8* CFreestyleMessageHeaderHTML::HTMLHeaderFollowUpIconLC( TBool aShowText ) const
-    {
-    HBufC8* followUpText8( NULL );
-    HBufC8* followUpCompletedText8( NULL );
-        
-    // Reserve space with worst case scenario in mind. 
-    TInt textLength( 0 );
-    if ( aShowText )
-        {
-        // Follow up completed.
-        HBufC* followUpCompletedText = StringLoader::LoadLC( 
-                R_FREESTYLE_EMAIL_UI_VIEWER_COMPLETED );
-        followUpCompletedText8 = CnvUtfConverter::ConvertFromUnicodeToUtf8L( 
-                *followUpCompletedText );
-        CleanupStack::PopAndDestroy( followUpCompletedText );
-        CleanupStack::PushL( followUpCompletedText8 );
-        
-        // Follow up.
-        HBufC* followUpText = StringLoader::LoadLC( 
-                R_FREESTYLE_EMAIL_UI_VIEWER_FOLLOWUP );
-        followUpText8 = CnvUtfConverter::ConvertFromUnicodeToUtf8L( 
-                *followUpText );
-        CleanupStack::PopAndDestroy( followUpText );
-        CleanupStack::PushL( followUpText8 );
-    
-        textLength += KHTMLImgTagId().Length() +
-                      KFollowUpCompleteImageName().Length() +
-                      KHTMLImgTagSrcBefore().Length() +
-                      KFollowUpCompleteIconFileName().Length() +
-                      KHTMLImgTagSrcAfter().Length() +
-                      ( followUpText8->Length() >= followUpCompletedText8->Length() ?
-                      followUpText8->Length() : followUpCompletedText8->Length() ); 
-        }
-    else
-        {
-        // Plain icon and no text.
-        textLength += KHTMLImgTagId().Length() + 
-                      KFollowUpCompleteImageName().Length() +
-                      KHTMLImgTagSrcBefore().Length() +
-                      KFollowUpCompleteIconFileName().Length() +
-                      KHTMLImgTagSrcAfter().Length();
-        }
-
-    // Allocate space.
-    HBufC8* iconText8 = HBufC8::NewLC( textLength );    
-        
-    // Generate HTML code
-    TPtr8 iconPtr( iconText8->Des() );
-        
-    if ( iMailMessage.IsFlagSet( EFSMsgFlag_FollowUp ) )
-        {
-        iconPtr.Append( KHTMLImgTagId );
-        iconPtr.Append( KFollowUpImageName );
-        iconPtr.Append( KHTMLImgTagSrcBefore );
-        iconPtr.Append( KFollowUpIconFileName );
-        iconPtr.Append( KHTMLImgTagSrcAfter );
-        if ( aShowText && followUpText8 )
-            {
-            iconPtr.Append( followUpText8->Des() );
-            }
-        }
-    else if ( iMailMessage.IsFlagSet( EFSMsgFlag_FollowUpComplete ) )
-        {
-        iconPtr.Append( KHTMLImgTagId );
-        iconPtr.Append( KFollowUpCompleteImageName );
-        iconPtr.Append( KHTMLImgTagSrcBefore );
-        iconPtr.Append( KFollowUpCompleteIconFileName );
-        iconPtr.Append( KHTMLImgTagSrcAfter );
-        if ( aShowText && followUpCompletedText8 )
-            {
-            iconPtr.Append( followUpCompletedText8->Des() );
-            }
-        }
-    else
-        {
-        // No follow up flag set.
-        CleanupStack::PopAndDestroy( iconText8 );
-        iconText8 = NULL;
-        }
-
-    if ( aShowText )
-        {
-        if ( iconText8 )
-            {
-            CleanupStack::Pop( iconText8 );
-            }
-        CleanupStack::PopAndDestroy( followUpText8 );
-        CleanupStack::PopAndDestroy( followUpCompletedText8 );
-        if ( iconText8 )
-            {
-            CleanupStack::PushL( iconText8 );
-            }
-        }
-    
-    return iconText8;
-    }
-
-HBufC8* CFreestyleMessageHeaderHTML::HTMLHeaderPriorityIconLC( TBool aShowText ) const
-    {
-    HBufC8* highPrioText8( NULL );
-    HBufC8* lowPrioText8( NULL );
-        
-    // Reserve space with worst case scenario in mind. 
-    TInt textLength( 0 );
-    if ( aShowText )
-        {
-        // High priority.
-        HBufC* highPrioText = StringLoader::LoadLC( 
-                R_FREESTYLE_EMAIL_UI_VIEWER_HIGH_PRIO );
-        highPrioText8 = CnvUtfConverter::ConvertFromUnicodeToUtf8L( 
-                *highPrioText );
-        CleanupStack::PopAndDestroy( highPrioText );
-        CleanupStack::PushL( highPrioText8 );
-    
-        // Low priority.
-        HBufC* lowPrioText = StringLoader::LoadLC( 
-                R_FREESTYLE_EMAIL_UI_VIEWER_LOW_PRIO );
-        lowPrioText8 = CnvUtfConverter::ConvertFromUnicodeToUtf8L( 
-                *lowPrioText );
-        CleanupStack::PopAndDestroy( lowPrioText );
-        CleanupStack::PushL( lowPrioText8 );
-            
-        textLength += KHTMLImgTagId().Length() +
-                      KPriorityHighImageName().Length() +
-                      KHTMLImgTagSrcBefore().Length() +
-                      KPriorityHighIconFileName().Length() +
-                      KHTMLImgTagSrcAfter().Length() +
-                      ( lowPrioText8->Length() >= highPrioText8->Length() ?
-                      lowPrioText8->Length() : highPrioText8->Length() ); 
-        }
-    else
-        {
-        // Plain icon and no text.
-        textLength += KHTMLImgTagId().Length() + 
-                      KPriorityHighImageName().Length() +
-                      KHTMLImgTagSrcBefore().Length() +
-                      KPriorityHighIconFileName().Length() +
-                      KHTMLImgTagSrcAfter().Length();
-        }
-
-    // Allocate space.
-    HBufC8* iconText8 = HBufC8::NewLC( textLength );    
-        
-    // Generate HTML code
-    TPtr8 iconPtr( iconText8->Des() );
-        
-    if ( iMailMessage.IsFlagSet( EFSMsgFlag_Low ) )
-        {
-        iconPtr.Append( KHTMLImgTagId );
-        iconPtr.Append( KPriorityLowImageName );
-        iconPtr.Append( KHTMLImgTagSrcBefore );
-        iconPtr.Append( KPriorityLowIconFileName );
-        iconPtr.Append( KHTMLImgTagSrcAfter );
-        if ( aShowText && lowPrioText8 )
-            {
-            iconPtr.Append( lowPrioText8->Des() );
-            }
-        }
-    else if ( iMailMessage.IsFlagSet( EFSMsgFlag_Important ) )
-        {
-        iconPtr.Append( KHTMLImgTagId );
-        iconPtr.Append( KPriorityHighImageName );
-        iconPtr.Append( KHTMLImgTagSrcBefore );
-        iconPtr.Append( KPriorityHighIconFileName );
-        iconPtr.Append( KHTMLImgTagSrcAfter );
-        if ( aShowText && highPrioText8 )
-            {
-            iconPtr.Append( highPrioText8->Des() );
-            }
-        }
-    else
-        {
-        // No priority flag set.
-        CleanupStack::PopAndDestroy( iconText8 );
-        iconText8 = NULL;
-        }
-
-    if ( aShowText )
-        {
-        if ( iconText8 )
-            {
-            CleanupStack::Pop( iconText8 );
-            }
-        CleanupStack::PopAndDestroy( lowPrioText8 );
-        CleanupStack::PopAndDestroy( highPrioText8 );
-        if ( iconText8 )
-            {
-            CleanupStack::PushL( iconText8 );
-            }
-        }
-    
-    return iconText8;
-    }
-
-void CFreestyleMessageHeaderHTML::HTMLBodyEndL() const
-    {
-    iWriteStream.WriteL(_L8("</body>\n"));
-    iWriteStream.CommitL();
-    }
-
-void CFreestyleMessageHeaderHTML::ExportCollapseButtonL() const
-    {
-    TBuf8<KFreestyleMessageHeaderHTMLMaxBufferSizeForWidth> tableWidth;
-    tableWidth.AppendNum( iVisibleWidth );
-
-    // Add "Collapse" button as its own table with its own width
-    iWriteStream.WriteL( _L8("<tr><td>\n") );
-    iWriteStream.WriteL( _L8("<table id =\"table_minus_icon\" border=\"0\" width=\"") );
-    iWriteStream.WriteL( tableWidth );
-    iWriteStream.WriteL( _L8("px\">\n") );
-    iWriteStream.WriteL( _L8("<tr>\n") );
-
-    iWriteStream.WriteL( _L8("<td valign=\"top\"") );
-    if ( !iMirrorLayout )
-        {
-        iWriteStream.WriteL( _L8(" align=\"right\"") );
-        iWriteStream.WriteL( _L8(" style=\"padding-right: 10px;\">\n") );
-        }
-    else
-        {
-        iWriteStream.WriteL( _L8(" align=\"left\"") );
-        iWriteStream.WriteL( _L8(" style=\"padding-left: 10px;\">\n") );
-        }
-    iWriteStream.WriteL( _L8("<input type=\"submit\" id=\"collapse\" value=\"\" class=\"collapse\"") );
-    iWriteStream.WriteL( _L8(" onClick=\"collapseHeader(true)\"/>") );
-    iWriteStream.WriteL( _L8("</td>\n") );
-
-    iWriteStream.WriteL( _L8("</tr>\n"));
-    iWriteStream.WriteL( _L8("</table></td></tr>\n"));
-    iWriteStream.CommitL();
-    }
-
-void CFreestyleMessageHeaderHTML::ExportTimeAndExpandButtonL() const
-    {
-    // set the width, using the visible screen width
-    TBuf8<KFreestyleMessageHeaderHTMLMaxBufferSizeForWidth> tableWidth;
-    tableWidth.AppendNum( iVisibleWidth );
-
-    // start first row: table with the sent info and the '+' icon
-    iWriteStream.WriteL(_L8("<tr><td><table id=\"table_sent_and_plus\" border=\"0\" width=\""));
-    iWriteStream.WriteL( tableWidth );
-    iWriteStream.WriteL( _L8("px\">\n"));
-    
-    iWriteStream.WriteL(_L8("<tr>\n"));
-    
-    // add Sent time and date
-    iWriteStream.WriteL(_L8("<td id=\"sent_initial\""));
-
-    if ( !iMirrorLayout )
-        {
-        iWriteStream.WriteL(_L8(" align=\"left\""));
-        }
-    else
-        {
-        iWriteStream.WriteL(_L8(" align=\"right\""));
-        }
-    iWriteStream.WriteL(_L8(" valign=\"bottom\">"));
-    
-    HBufC* dateText = TFsEmailUiUtility::DateTextFromMsgLC( &iMailMessage );
-    HBufC* timeText = TFsEmailUiUtility::TimeTextFromMsgLC( &iMailMessage );
-
-    TInt len = dateText->Length() + KSentLineDateAndTimeSeparatorText().Length() + timeText->Length();
-    HBufC* sentTimeText = HBufC::NewLC( len );
-    TPtr sentTimeTextPtr = sentTimeText->Des();
-    sentTimeTextPtr.Append( *dateText );
-    sentTimeTextPtr.Append( KSentLineDateAndTimeSeparatorText );
-    sentTimeTextPtr.Append( *timeText );
-    HBufC8* sentTimeText8 = CnvUtfConverter::ConvertFromUnicodeToUtf8L( sentTimeTextPtr );
-    CleanupStack::PushL( sentTimeText8 );
-    iWriteStream.WriteL( *sentTimeText8 );
-    CleanupStack::PopAndDestroy( sentTimeText8 );
-    CleanupStack::PopAndDestroy( sentTimeText );
-    CleanupStack::PopAndDestroy( timeText );
-    CleanupStack::PopAndDestroy( dateText );
-    
-    iWriteStream.WriteL(_L8("</td>\n"));
-
-    // Add "expand" button on the same line as Sent time and date
-    iWriteStream.WriteL(_L8("<td valign=\"top\""));
-    if ( !iMirrorLayout )
-        {
-        iWriteStream.WriteL(_L8(" align=\"right\""));
-        iWriteStream.WriteL(_L8(" style=\"padding-right: 10px;\">\n"));
-        }
-    else
-        {
-        iWriteStream.WriteL(_L8(" align=\"left\""));
-        iWriteStream.WriteL(_L8(" style=\"padding-left: 10px;\">\n"));
-        }
-    iWriteStream.WriteL(_L8("<input type=\"submit\" id=\"expand\" value=\"\" class=\"expand\""));
-    iWriteStream.WriteL(_L8(" onClick=\"expandHeader(true)\"/>"));
-    iWriteStream.WriteL(_L8("</td>\n"));
-
-    // finish first row
-    iWriteStream.WriteL(_L8("</tr>\n"));  
-    iWriteStream.WriteL(_L8("</table></td></tr>\n"));
-    iWriteStream.CommitL();
-    }
-
-void CFreestyleMessageHeaderHTML::ExportSubjectL() const
-    {
-    iWriteStream.WriteL( _L8("<tr id=\"") );
-    iWriteStream.WriteL( KSubjectFieldName );
-    iWriteStream.WriteL( _L8("\">") );
-
-
-    iWriteStream.WriteL( _L8("<td width=\"1\">") );
-    iWriteStream.WriteL( _L8("<b>") );
-    HBufC8* subjectHeadingText = HeadingTextLC( R_FREESTYLE_EMAIL_UI_VIEWER_SUBJECT );
-    iWriteStream.WriteL( *subjectHeadingText );
-    CleanupStack::PopAndDestroy( subjectHeadingText );
-    iWriteStream.WriteL( _L8("</b>") );
-    iWriteStream.WriteL( _L8("</td>") );
-    iWriteStream.WriteL( _L8("</tr>\n") );
-    
-    // subject text
-    iWriteStream.WriteL( _L8("<tr>") );
-    iWriteStream.WriteL( _L8("<td>") );
-	HBufC* subject = iMailMessage.GetSubject().Alloc();
-    /*
-     * Writes the subject to iWriteStream and also
-     * takes care of the urls and marks them as hotspots
-     */
-    WriteSubjectL(*subject);
-
-    iWriteStream.WriteL( _L8("</td>") );
-    iWriteStream.WriteL( _L8("</tr>\n") );
-    // Write icons (if necessary).
-    HBufC8* followUp = HTMLHeaderFollowUpIconLC( ETrue );
-    HBufC8* priority = HTMLHeaderPriorityIconLC( ETrue );
-   
-    if ( priority )
-       {
-       iWriteStream.WriteL(_L8("<tr><td>"));
-       iWriteStream.WriteL( *priority );
-       iWriteStream.WriteL(_L8("</td></tr>"));
-       CleanupStack::PopAndDestroy( priority);
-       }
-   
-    if ( followUp )
-       {
-       iWriteStream.WriteL(_L8("<tr><td>"));
-       iWriteStream.WriteL( *followUp );
-       iWriteStream.WriteL(_L8("</td></tr>"));
-       CleanupStack::PopAndDestroy( followUp );
-       }
-
-    iWriteStream.CommitL();
-    }
-
-void CFreestyleMessageHeaderHTML::ExportSubjectCollapsedL() const
-    {
-    iWriteStream.WriteL(_L8("<tr>\n"));
-    iWriteStream.WriteL(_L8("<td id=\"subject_initial\""));
-    if ( !iMirrorLayout )
-        {
-        iWriteStream.WriteL(_L8(" align=\"left\""));
-        }
-    else
-        {
-        iWriteStream.WriteL(_L8(" align=\"right\""));
-        }
-    iWriteStream.WriteL(_L8("><b>"));
-
-    HBufC* subject = iMailMessage.GetSubject().Alloc();
-    /*
-     * Writes the subject to iWriteStream and also
-     * takes care of the urls and marks them as hotspots
-     */
-    WriteSubjectL(*subject);
-
-    iWriteStream.WriteL(_L8("</b>"));
-
-    // Write icons (if necessary).
-    HBufC8* followUp = HTMLHeaderFollowUpIconLC( EFalse );
-    HBufC8* priority = HTMLHeaderPriorityIconLC( EFalse );
-
-    if ( priority )
-        {
-        iWriteStream.WriteL( *priority );
-        CleanupStack::PopAndDestroy( priority);
-        }
-
-    if ( followUp )
-        {
-        iWriteStream.WriteL( *followUp );
-        CleanupStack::PopAndDestroy( followUp );
-        }
-
-    iWriteStream.WriteL(_L8("</td></tr>\n"));  // finish subject row
-    iWriteStream.CommitL();
-    }
-
-void CFreestyleMessageHeaderHTML::ExportFromL() const
-    {
-    RPointerArray<CFSMailAddress> froms;
-    CleanupClosePushL( froms );
-    CFSMailAddress* from = iMailMessage.GetSender();  // ownership not transferred
-    if ( from )
-        {
-        froms.AppendL( from );
-        }
-    ExportEmailAddressesL( FreestyleMessageHeaderURLFactory::EEmailAddressTypeFrom, froms, 
-                           KFromFieldName, KFromTableName, R_FREESTYLE_EMAIL_UI_VIEWER_FROM );
-    CleanupStack::PopAndDestroy( &froms );
-    }
-
-void CFreestyleMessageHeaderHTML::ExportToL() const
-    {
-    RPointerArray<CFSMailAddress>& recipients = iMailMessage.GetToRecipients();
-    ExportEmailAddressesL( FreestyleMessageHeaderURLFactory::EEmailAddressTypeTo, recipients,
-                           KToFieldName, KToTableName, R_FREESTYLE_EMAIL_UI_VIEWER_TO );
-    }
-
-void CFreestyleMessageHeaderHTML::ExportCcL() const
-    {
-    RPointerArray<CFSMailAddress>& recipients = iMailMessage.GetCCRecipients();
-    ExportEmailAddressesL( FreestyleMessageHeaderURLFactory::EEmailAddressTypeCc, recipients,
-                           KCcFieldName, KCcTableName, R_FREESTYLE_EMAIL_UI_VIEWER_CC );
-    }
-
-void CFreestyleMessageHeaderHTML::ExportBccL() const
-    {
-    RPointerArray<CFSMailAddress>& recipients = iMailMessage.GetBCCRecipients();
-    ExportEmailAddressesL( FreestyleMessageHeaderURLFactory::EEmailAddressTypeBcc, recipients,
-                           KBccFieldName, KBccTableName, R_FREESTYLE_EMAIL_UI_VIEWER_BCC );
-    }
-
-void CFreestyleMessageHeaderHTML::ExportSentTimeL() const
-    {
-
-    iWriteStream.WriteL( _L8("<tr id=\"") );
-    iWriteStream.WriteL( KSentFieldName );
-    iWriteStream.WriteL( _L8("\">") );
-
-
-    iWriteStream.WriteL( _L8("<td width=\"1\">") );
-    iWriteStream.WriteL( _L8("<b>") );
-    HBufC8* sentHeadingText = HeadingTextLC( R_FREESTYLE_EMAIL_UI_VIEWER_SENT );
-    iWriteStream.WriteL( *sentHeadingText );
-    CleanupStack::PopAndDestroy( sentHeadingText );
-    iWriteStream.WriteL( _L8("</b>") );
-    iWriteStream.WriteL( _L8("</td>") );
-    iWriteStream.WriteL( _L8("</tr>\n") );
-
-    iWriteStream.WriteL( _L8("<tr>") );
-    iWriteStream.WriteL( _L8("<td>") );
-
-    HBufC* dateText = TFsEmailUiUtility::DateTextFromMsgLC( &iMailMessage );
-    HBufC* timeText = TFsEmailUiUtility::TimeTextFromMsgLC( &iMailMessage );
-
-    TInt len = dateText->Length() + KSentLineDateAndTimeSeparatorText().Length() + timeText->Length();
-    HBufC* sentTimeText = HBufC::NewLC( len );
-    TPtr sentTimeTextPtr = sentTimeText->Des();
-    sentTimeTextPtr.Append( *dateText );
-    sentTimeTextPtr.Append( KSentLineDateAndTimeSeparatorText );
-    sentTimeTextPtr.Append( *timeText );
-    HBufC8* sentTimeText8 = CnvUtfConverter::ConvertFromUnicodeToUtf8L( sentTimeTextPtr );
-    CleanupStack::PushL( sentTimeText8 );
-    iWriteStream.WriteL( *sentTimeText8 );
-    CleanupStack::PopAndDestroy( sentTimeText8 );
-    CleanupStack::PopAndDestroy( sentTimeText );
-    CleanupStack::PopAndDestroy( timeText );
-    CleanupStack::PopAndDestroy( dateText );
-
-    iWriteStream.WriteL( _L8("</td>") );
-
-    iWriteStream.WriteL( _L8("</tr>\n") );
-
-    iWriteStream.CommitL();
-    }
-
-void CFreestyleMessageHeaderHTML::ExportAttachmentsL() const
-    {
-    TInt attachmentsCount (iAttachments.Count());
-    if ( attachmentsCount)
-        {
-        // The attachments table consists of one row that contains 2 cells
-        // first cell contains the attachment icon
-        // second cell contains a table which contains the attachments list
-
-        // start attachments table
-        iWriteStream.WriteL( _L8("<table id=\"") ); 
-        iWriteStream.WriteL( KAttachmentTableName );
-        iWriteStream.WriteL( _L8("\" border=\"0\" width=\"100%\">\n") );  // width is set at 100% intentionally
-        
-        // add attachment icon
-        // start row
-        iWriteStream.WriteL( _L8("<tr>\n") );
-        iWriteStream.WriteL( _L8("<td width=\"1\" valign=\"top\"") );
-        iWriteStream.WriteL(_L8(" align=\"left\""));
-
-        iWriteStream.WriteL( _L8("><image src=\"") );
-        
-        iWriteStream.WriteL( KAttachementIconGeneral );
-        iWriteStream.WriteL( _L8("\" ></td>\n") );
-        // start table of attachments as a table within a cell
-        iWriteStream.WriteL( _L8("<td>\n") );
-        iWriteStream.WriteL(_L8("<table id=\"table_attachments_list\" border=\"0\" width=\"100%\">\n"));
-
-        for (TInt i=0; i < attachmentsCount; i++)
-            {
-            AddAttachmentL( *iAttachments[i] );
-            }
-
-        iWriteStream.WriteL(_L8("</table>\n")); // end table_attachments_list
-        iWriteStream.WriteL( _L8("</td>\n") );
-        
-        iWriteStream.WriteL( _L8("</tr>\n") );
-        iWriteStream.WriteL(_L8("</table>\n")); // end attachments table
-        }
-    }
-
-void CFreestyleMessageHeaderHTML::ExportEmailAddressesL(FreestyleMessageHeaderURLFactory::TEmailAddressType aEmailAddressType, 
-                                                        const RPointerArray<CFSMailAddress>& aEmailAddresses,
-                                                        const TDesC8& aRowId,
-                                                        const TDesC8& /*aTableId*/,
-                                                        TInt aHeaderTextResourceId ) const
-    {
-    if ( aEmailAddresses.Count() )
-        {
-        // begin table row
-        iWriteStream.WriteL( _L8("<tr id=\"")); 
-        iWriteStream.WriteL( aRowId );
-        iWriteStream.WriteL( _L8("\">") );
-        
-        // heading text
-        iWriteStream.WriteL( _L8("<td><b>"));
-        HBufC8* headingText = HeadingTextLC( aHeaderTextResourceId );
-        iWriteStream.WriteL( *headingText );
-        CleanupStack::PopAndDestroy( headingText );
-        iWriteStream.WriteL( _L8("</b></td>"));
-        
-        iWriteStream.WriteL( _L8("</tr>\n") );  // end table row      
-        
-        // add addresses, one address per row
-        TInt count( aEmailAddresses.Count() );
-        for (TInt i = 0; i < count; ++i )
-            {
-            iWriteStream.WriteL( _L8("<tr><td style=\"padding: 0px 0px 7px 0px;\">") );
-            AddEmailAddressL (aEmailAddressType, *aEmailAddresses[i] );
-            iWriteStream.WriteL( _L8("</td></tr>\n") );
-            }
-
-        iWriteStream.CommitL();
-        }
-    }
-
-void CFreestyleMessageHeaderHTML::AddEmailAddressL( FreestyleMessageHeaderURLFactory::TEmailAddressType aEmailAddressType,
-                                                    const CFSMailAddress& aEmailAddress ) const
-    {
-    CFreestyleMessageHeaderURL* emailUrl = FreestyleMessageHeaderURLFactory::CreateEmailAddressUrlL( aEmailAddressType, aEmailAddress );
-    CleanupStack::PushL( emailUrl );
-
-    HBufC* url = emailUrl->ExternalizeL();
-    CleanupStack::PushL( url );
-    HBufC8* url8 = CnvUtfConverter::ConvertFromUnicodeToUtf8L( *url );
-    CleanupStack::PushL( url8 );
-    StartHyperlinkL( *url8 );
-    CleanupStack::PopAndDestroy( url8 );
-    CleanupStack::PopAndDestroy( url );
-
-    HBufC8* displayName8 = NULL;
-    //  ENLN-7ZVBES
-    //  Display name not shown in From:, instead, email address is shown
-    if ( (aEmailAddress.GetDisplayName().Length() > 0) && aEmailAddressType != FreestyleMessageHeaderURLFactory::EEmailAddressTypeFrom )
-        {
-        displayName8 = CnvUtfConverter::ConvertFromUnicodeToUtf8L( aEmailAddress.GetDisplayName() );
-        }
-    else
-        {
-        displayName8 = CnvUtfConverter::ConvertFromUnicodeToUtf8L( aEmailAddress.GetEmailAddress() );
-        }
-    CleanupStack::PushL( displayName8 );
-    iWriteStream.WriteL( *displayName8 );
-    CleanupStack::PopAndDestroy( displayName8 );
-
-    EndHyperlinkL();
-
-    CleanupStack::PopAndDestroy( emailUrl );
-    }
-
-void CFreestyleMessageHeaderHTML::AddAttachmentL( CFSMailMessagePart& aAttachment ) const
-    {
-    iWriteStream.WriteL( _L8("<tr><td style=\"padding: 0px 0px 7px 0px;\">") ); // pad bottom to allow some space between the lines
-
-    TUint id = aAttachment.GetPartId().Id();
-    TBuf<32> itemId;
-    itemId.AppendNum( id );
-    CFreestyleMessageHeaderURL* attnUrl = FreestyleMessageHeaderURLFactory::CreateAttachmentUrlL( itemId );
-    CleanupStack::PushL( attnUrl );
-    HBufC* attnUrlText = attnUrl->ExternalizeL();
-    CleanupStack::PushL( attnUrlText );
-    HBufC8* attnUrlText8 = CnvUtfConverter::ConvertFromUnicodeToUtf8L( *attnUrlText );
-    CleanupStack::PushL( attnUrlText8 );
-    StartHyperlinkL( *attnUrlText8 );
-    CleanupStack::PopAndDestroy( attnUrlText8 );
-    CleanupStack::PopAndDestroy( attnUrlText );
-    CleanupStack::PopAndDestroy( attnUrl );
-
-    TDesC& attnName = aAttachment.AttachmentNameL();
-    HBufC8* attnName8 = CnvUtfConverter::ConvertFromUnicodeToUtf8L( attnName );
-    CleanupStack::PushL( attnName8 );
-    iWriteStream.WriteL( *attnName8 );
-    CleanupStack::PopAndDestroy( attnName8 );
-
-    HBufC* sizeDesc = TFsEmailUiUtility::CreateSizeDescLC(aAttachment.ContentSize(), EFalse);
-
-    TBuf8<48> sizeText;
-    
-    // Add right to left marker as "(" and ")" are messing up the html language markers
-    // and &rlm is only added in mirror layout 
-    if( iMirrorLayout )  
-        {
-    sizeText.Append( KSpace8 );
-    sizeText.Append( _L8( "&rlm;" ) );
-        }
-    
-    sizeText.Append( KSpace8 );
-    sizeText.Append( _L8("(") );
-    HBufC8* sizeDesc8 = CnvUtfConverter::ConvertFromUnicodeToUtf8L( sizeDesc->Des() );
-    CleanupStack::PushL( sizeDesc8 );
-    sizeText.Append( sizeDesc8->Des() );
-    CleanupStack::PopAndDestroy( sizeDesc8 );
-    CleanupStack::PopAndDestroy( sizeDesc );
-    sizeText.Append( _L8(")") );
-    
-    if( iMirrorLayout )
-        {
-    sizeText.Append( KSpace8 );
-    sizeText.Append( _L8( "&rlm;" ) );
-        }
-    
-    iWriteStream.WriteL( sizeText );
-
-    EndHyperlinkL();
-
-    iWriteStream.WriteL( _L8("</td></tr>\n") );
-    iWriteStream.CommitL();
-    }
-
-
-void CFreestyleMessageHeaderHTML::StartHyperlinkL( const TDesC8& aUrl ) const
-    {
-    iWriteStream.WriteL( _L8("<a href=\"") );
-    if ( aUrl.FindF( KProtocolIdentifier() ) == KErrNotFound )
-    	{
-        iWriteStream.WriteL( _L8("http://"));
-    	}
-    iWriteStream.WriteL( aUrl );
-    iWriteStream.WriteL( _L8("\">"));
-    iWriteStream.CommitL();
-    }
-
-void CFreestyleMessageHeaderHTML::EndHyperlinkL() const
-    {
-    iWriteStream.WriteL( _L8("</a>") );
-    iWriteStream.CommitL();
-    }
-
-void CFreestyleMessageHeaderHTML::AddImageL( const TDesC8& aImageUrl ) const
-    {
-    iWriteStream.WriteL( _L8("<image border=\"0\" src=\"") );
-    iWriteStream.WriteL( aImageUrl );
-    iWriteStream.WriteL( _L8("\">"));
-    iWriteStream.CommitL();
-    }
-
-void CFreestyleMessageHeaderHTML::AddImageL( const TDesC8& aImageId,
-                                             const TDesC8& aImageUrl,
-                                             const TDesC8& aImageEvent ) const
-    {
-    iWriteStream.WriteL( _L8("<image id=\"") );
-    iWriteStream.WriteL( aImageId );
-    iWriteStream.WriteL( _L8("\" ") );
-    iWriteStream.WriteL( _L8("border=\"0\" src=\"") );
-    iWriteStream.WriteL( aImageUrl );
-    iWriteStream.WriteL( _L8("\" "));
-    iWriteStream.WriteL( aImageEvent );
-    iWriteStream.WriteL( _L8(">"));
-    iWriteStream.CommitL();
-    }
-
-void CFreestyleMessageHeaderHTML::AddJavascriptL() const
-    {
-    iWriteStream.WriteL( _L8("<script language=\"javascript\" src=\"header.js\"></script>\n"));
-    iWriteStream.CommitL();
-    }
-
-void CFreestyleMessageHeaderHTML::StartHeaderTableL( const TDesC8& aTableId,
-    TBool /*aVisible*/ ) const
-    {
-    iWriteStream.WriteL( _L8("<table id=\"") );
-    iWriteStream.WriteL( aTableId );
-    iWriteStream.WriteL( _L8("\" border=\"0\" width=\"100%\"") );
-    iWriteStream.WriteL( _L8(">\n") );
-    iWriteStream.CommitL();
-    }
-
-void CFreestyleMessageHeaderHTML::EndHeaderTableL() const
-    {
-    EndTableL();
-    }
-
-void CFreestyleMessageHeaderHTML::StartTableL( const TDesC8& aTableId ) const
-    {
-    iWriteStream.WriteL( _L8("<table id=\"") );
-    iWriteStream.WriteL( aTableId );
-    iWriteStream.WriteL( _L8("\" border=\"1\">\n") );
-    iWriteStream.CommitL();
-    }
-
-void CFreestyleMessageHeaderHTML::EndTableL() const
-    {
-    iWriteStream.WriteL( _L8("</table>\n") );
-    iWriteStream.CommitL();
-    }
-
-HBufC8* CFreestyleMessageHeaderHTML::ClickImageEventL( const TDesC8& aImageName ) const
-    {
-    TBuf8<KMaxEventLength> event;
-    if ( aImageName.Compare( KToImageName ) == 0 )
-        {
-        event.Append( _L8("onClick=\"toggleField('") );
-        event.Append( KToTableName );
-        event.Append( _L8("', '") );
-        event.Append( KToImageName );
-        event.Append( _L8("')\"") );
-        }
-    else if ( aImageName.Compare( KCcImageName ) == 0 )
-        {
-        event.Append( _L8("onClick=\"toggleField('") );
-        event.Append( KCcTableName );
-        event.Append( _L8("', '") );
-        event.Append( KCcImageName );
-        event.Append( _L8("')\"") );
-        }
-    else if ( aImageName.Compare( KBccImageName ) == 0 )
-        {
-        event.Append( _L8("onClick=\"toggleField('") );
-        event.Append( KBccTableName );
-        event.Append( _L8("', '") );
-        event.Append( KBccImageName );
-        event.Append( _L8("')\"") );
-        }
-    else if ( aImageName.Compare( KAttachmentImageName ) == 0 )
-        {
-        event.Append( _L8("onClick=\"toggleField('") );
-        event.Append( KAttachmentTableName );
-        event.Append( _L8("', '") );
-        event.Append( KAttachmentImageName );
-        event.Append( _L8("')\"") );
-        }
-    else
-        {
-        User::Leave(KErrNotSupported);
-        }
-    return event.AllocL();
-    }
-
-HBufC8* CFreestyleMessageHeaderHTML::HeadingTextLC( TInt aId ) const
-    {
-    HBufC* headingText = StringLoader::LoadLC( aId );
-    HBufC8* headingText8 = CnvUtfConverter::ConvertFromUnicodeToUtf8L( *headingText );
-    CleanupStack::PopAndDestroy( headingText );
-    CleanupStack::PushL( headingText8 );
-    return headingText8;
-    }
-
-HBufC8* CFreestyleMessageHeaderHTML::HeadingTextLC( TInt aId, TInt aSize ) const
-    {
-    HBufC* headingText = StringLoader::LoadLC( aId, aSize );
-    HBufC8* headingText8 = CnvUtfConverter::ConvertFromUnicodeToUtf8L( *headingText );
-    CleanupStack::PopAndDestroy( headingText );
-    CleanupStack::PushL( headingText8 );
-    return headingText8;
-    }
-
-void CFreestyleMessageHeaderHTML::AddStyleSheetL() const
-    {
-    // Add an internal style sheet
-    // If the style becomes numerous or complicated, consider using an external style sheet
-    
     iWriteStream.WriteL( _L8("<style type=\"text/css\">\n") );
-    
-    // define a div class "header", specifying the background color
-    // for the email header part
-    
 #ifdef __USE_THEME_COLOR_FOR_HEADER    
     MAknsSkinInstance* skin = AknsUtils::SkinInstance();
     TRgb textColor;
@@ -1209,38 +771,11 @@ void CFreestyleMessageHeaderHTML::AddStyleSheetL() const
          CleanupStack::PopAndDestroy(); // formatBuffer
          }
 #else
-     iWriteStream.WriteL( _L8("body { color: black; background-color: lightblue; }\n") );
+     //iWriteStream.WriteL( _L8("body { color: black; background-color: lightblue; }\n") );
+     iWriteStream.WriteL( _L8("body { color: black; background-color: #c5c5c5; }\n") );
 #endif // __USE_THEME_COLOR_FOR_HEADER    
-    
-    // set font size to 75% of the default size
-    // because, at the default size, the header text is too big relative to the text in the email body
-    // Note: since the text in the body is too small at "normal" level, 
-    // we have the text size level in the browser set to "Larger" which is 20% larger than the specified size
-    // the "larger" size affects all text which includes the header.
-    iWriteStream.WriteL( _L8("td { font-family:arial,sans-serif ; font-size:75% }\n") );
-    iWriteStream.WriteL( _L8(".button { background: url('btn_middle.png') repeat-x top left; border: 1px solid #546284; height: 32px; font-size:19px; font-weight: bold; color: #344a6c; font-family:arial,sans-serif; }\n") );
-    iWriteStream.WriteL( _L8("input { color: black; position: relative; border: 0; cursor: pointer; overflow: visible; }\n") );
-    iWriteStream.WriteL( _L8("input.expand { width: 55px; height: 36px; background: transparent url('"));
-    iWriteStream.WriteL( KExpandHeaderIconFileName );
-    iWriteStream.WriteL( _L8("') no-repeat top left; }\n") );
-    iWriteStream.WriteL( _L8("input.collapse { width: 55px; height: 36px; background: transparent url('"));
-    iWriteStream.WriteL( KCollapseHeaderIconFileName );
-    iWriteStream.WriteL( _L8("') no-repeat top left; }\n") );
     iWriteStream.WriteL( _L8("</style>\n") );
     iWriteStream.CommitL();
     }
 
-void CFreestyleMessageHeaderHTML::StartDivL() const
-    {
-    // Add div, using "header" class
-    iWriteStream.WriteL( _L8("<div class=\"header\">\n") );
-    iWriteStream.CommitL();
-    }
-    
-void CFreestyleMessageHeaderHTML::EndDivL() const
-    {
-    iWriteStream.WriteL( _L8("</div>\n") );
-    iWriteStream.CommitL();
-    }
-
-
+                                

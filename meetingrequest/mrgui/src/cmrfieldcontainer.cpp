@@ -24,6 +24,9 @@
 
 namespace { // codescanner::namespace
 
+// Off screen field x coordinate
+const TInt KOffScreenPositionX =  1000;
+
 /**
  * Vertical scroll margin
  */
@@ -79,8 +82,8 @@ CMRFieldContainer::~CMRFieldContainer()
 // CMRFieldContainer::NewL
 // ---------------------------------------------------------------------------
 //
-CMRFieldContainer* CMRFieldContainer::NewL( 
-        MESMRFieldStorage& aFactory, 
+CMRFieldContainer* CMRFieldContainer::NewL(
+        MESMRFieldStorage& aFactory,
         const CCoeControl& aParent )
     {
     FUNC_LOG;
@@ -100,7 +103,7 @@ void CMRFieldContainer::ConstructL( const CCoeControl& aParent )
     FUNC_LOG;
     CCoeControl::SetComponentsToInheritVisibility( ETrue );
     SetContainerWindowL( aParent );
-    
+
     TBool focusSet( EFalse );
     const TInt count( iFactory.Count() );
     for ( TInt i = 0; i < count; i++ )
@@ -114,7 +117,6 @@ void CMRFieldContainer::ConstructL( const CCoeControl& aParent )
 
         // Initialize field
         field->InitializeL();
-        User::LeaveIfError( field->SetParent( this ) );
 
         if ( !focusSet
              && field->IsVisible()
@@ -161,10 +163,10 @@ TKeyResponse CMRFieldContainer::MoveFocusUpL( TBool aHiddenFocus )
     {
     FUNC_LOG;
     /*
-     * Moves focus up after key event. If aHiddenFocus, moves focus 
+     * Moves focus up after key event. If aHiddenFocus, moves focus
      * to the first visible field in the bottom of the viewable area.
      */
-     
+
     if( aHiddenFocus )
         {
         return MoveFocusVisibleL();
@@ -194,17 +196,19 @@ TKeyResponse CMRFieldContainer::MoveFocusUpL( TBool aHiddenFocus )
                         iFocusedFieldIndex = ind;
                         field->SetCurrentItemIndex( iFocusedFieldIndex );
 
-                        // Remove focus from previous position 
+                        // Remove focus from previous position
                         focusedField->SetOutlineFocusL( EFalse );
                         focusedField->SetFocus( EFalse );
-                        
+                        focusedField->MoveToScreen( EFalse );
+
                         // Set focus to new position
                         field->SetOutlineFocusL( ETrue );
                         field->SetFocus( ETrue );
+                        field->MoveToScreen( ETrue );
 
                         // Scrollbar and physics update is done here
                         ScrollControlVisible( iFocusedFieldIndex );
-                        
+
                         DrawDeferred();
                         }
 
@@ -224,10 +228,10 @@ TKeyResponse CMRFieldContainer::MoveFocusDownL( TBool aHiddenFocus )
     {
     FUNC_LOG;
     /*
-     * Moves focus down after key event. If aHiddenFocus, moves focus 
+     * Moves focus down after key event. If aHiddenFocus, moves focus
      * to the first visible field in the top of the viewable area.
      */
-    
+
     if( aHiddenFocus )
         {
         return MoveFocusVisibleL();
@@ -258,17 +262,19 @@ TKeyResponse CMRFieldContainer::MoveFocusDownL( TBool aHiddenFocus )
                     iFocusedFieldIndex = ind;
                     field->SetCurrentItemIndex( iFocusedFieldIndex );
 
-                    // Remove focus from previous position 
+                    // Remove focus from previous position
                     focusedField->SetOutlineFocusL( EFalse );
                     focusedField->SetFocus( EFalse );
-                    
+                    focusedField->MoveToScreen( EFalse );
+
                     // Set focus to new position
                     field->SetOutlineFocusL( ETrue );
                     field->SetFocus( ETrue );
+                    field->MoveToScreen( ETrue );
 
                     // Scrollbar and physics update is done here
                     ScrollControlVisible( iFocusedFieldIndex );
-                    
+
                     DrawDeferred();
                     }
 
@@ -287,13 +293,13 @@ TKeyResponse CMRFieldContainer::MoveFocusVisibleL()
     {
     FUNC_LOG;
     /*
-     * Move focus to first completely visible field in the view, 
+     * Move focus to first completely visible field in the view,
      * if focus was in a field that was not visible in the view.
      * Use case: After pointer scroll focus is hidden. User presses
      * arrow keys -> Focus appears to the first visible field on the upper
      * or bottom part of the viewable area.
      */
-    
+
     TKeyResponse response( EKeyWasNotConsumed );
 
     CESMRField* focusedField = FocusedField();
@@ -355,16 +361,16 @@ TKeyResponse CMRFieldContainer::MoveFocusVisibleL()
         // Remove existing focus
         focusedField->SetOutlineFocusL( EFalse );
         focusedField->SetFocus( EFalse );
-        
+
         // Set focus to new field
         visibleField->SetOutlineFocusL( ETrue );
         visibleField->SetFocus( ETrue );
 
         response = EKeyWasConsumed;
-        
+
         DrawDeferred();
         }
-    
+
     return response;
     }
 
@@ -372,7 +378,7 @@ TKeyResponse CMRFieldContainer::MoveFocusVisibleL()
 // CMRFieldContainer::SetFieldContainerObserver
 // ---------------------------------------------------------------------------
 //
-void CMRFieldContainer::SetFieldContainerObserver( 
+void CMRFieldContainer::SetFieldContainerObserver(
         MMRFieldContainerObserver* aObserver )
     {
     FUNC_LOG;
@@ -386,7 +392,16 @@ void CMRFieldContainer::SetFieldContainerObserver(
 TInt CMRFieldContainer::CountComponentControls() const
     {
     FUNC_LOG;
-    return iFactory.Count();
+
+    // If field container is scrolling, container will draw also children
+    TInt count( 0 );
+
+    if ( !iScrolling )
+        {
+        count = iFactory.Count();
+        }
+
+    return count;
     }
 
 // ---------------------------------------------------------------------------
@@ -409,11 +424,12 @@ TSize CMRFieldContainer::MinimumSize()
     /*
      * Returns the minimum size required by the field container
      */
-    
+
     TSize containerSize;
-    
+
+    // Calculate height as the sum of the heights of the visible fields
     const TInt count( iFactory.Count() );
-    
+
     for ( TInt i(0); i < count; ++i )
         {
         CESMRField* field = iFactory.Field( i );
@@ -423,9 +439,9 @@ TSize CMRFieldContainer::MinimumSize()
             containerSize.iHeight += rect.Height();
             }
         }
-    
+
     containerSize.iWidth = Parent()->Rect().Width();
-    
+
     return containerSize;
     }
 
@@ -436,17 +452,12 @@ TSize CMRFieldContainer::MinimumSize()
 void CMRFieldContainer::SizeChanged()
     {
     FUNC_LOG;
-    
-    // TEST CODE:
-    TRect fieldcontainerRect = Rect();
-    TRect parentRect = Parent()->Rect();
-    
 
-    // For example when orientation changes, we might need to scroll 
+    // For example when orientation changes, we might need to scroll
     // the currently focused control visible again. This handles also
     // scrollbar and physics updates.
-    ScrollControlVisible( KErrNotFound ); 
-    
+    ScrollControlVisible( KErrNotFound );
+
     TPoint tl( Position() );
 
     const TInt count( iFactory.Count() );
@@ -458,10 +469,41 @@ void CMRFieldContainer::SizeChanged()
 
         if ( field->IsVisible() )
             {
-            LayoutField( *field, tl );
+            TPoint pos( tl );
+
+            // If field is not focused, layout it outside screen
+            if ( i != iFocusedFieldIndex )
+                {
+                pos.iX = KOffScreenPositionX;
+                }
+
+            LayoutField( *field, pos );
 
             TInt height = field->Size().iHeight;
             tl.iY += height;
+            }
+        }
+    }
+
+
+// ---------------------------------------------------------------------------
+// CMRFieldContainer::HandlePointerEventL
+// ---------------------------------------------------------------------------
+//
+void CMRFieldContainer::HandlePointerEventL( const TPointerEvent &aPointerEvent )
+    {
+    FUNC_LOG;
+
+    // Find out to which field this pointer event is intended to
+    TInt fieldCount( iFactory.Count() );
+
+    for( TInt i = 0; i < fieldCount; ++i )
+        {
+        CCoeControl* field = iFactory.Field( i );
+        if( field->Rect().Contains( aPointerEvent.iPosition ) &&
+                field->IsVisible() )
+            {
+            field->HandlePointerEventL( aPointerEvent );
             }
         }
     }
@@ -474,8 +516,8 @@ void CMRFieldContainer::ControlSizeChanged( CESMRField* aField )
     {
     FUNC_LOG;
     /*
-     * Called whenever a fields size has changed. Requires always 
-     * relayouting. 
+     * Called whenever a fields size has changed. Requires always
+     * relayouting.
      */
 
     if ( !aField )
@@ -490,7 +532,7 @@ void CMRFieldContainer::ControlSizeChanged( CESMRField* aField )
         if( size != old )
             {
             aField->SetSize( size );
-            
+
             TPoint tl( aField->Position() );
             TInt index = IndexByFieldId( iFactory, aField->FieldId() );
 
@@ -500,19 +542,19 @@ void CMRFieldContainer::ControlSizeChanged( CESMRField* aField )
 
             // Fields have been re-layouted / moved. This requires resetting
             // the size of this field container.
-            SetSize( MinimumSize() );
-            
+            SetSizeWithoutNotification( MinimumSize() );
+
             // Update also scrollbar and physics
             iObserver->UpdateScrollBarAndPhysics();
-            
-            if( index == iFocusedFieldIndex )
+
+            if( index <= iFocusedFieldIndex )
                 {
                 // Scroll this field completely visible, if required.
-                // This updates also scrollbar and physics if scrolling 
+                // This updates also scrollbar and physics if scrolling
                 // is done.
                 ScrollControlVisible( iFocusedFieldIndex );
                 }
-            
+
             DrawDeferred();
             }
         }
@@ -528,7 +570,7 @@ void CMRFieldContainer::ShowControl( TESMREntryFieldId aFieldId )
     /*
      * Inserts field visible and layouts it.
      */
-    
+
     CESMRField* field = iFactory.FieldById( aFieldId );
 
     if ( field && !field->IsVisible() )
@@ -541,8 +583,8 @@ void CMRFieldContainer::ShowControl( TESMREntryFieldId aFieldId )
         TInt prevIndex = index - 1;
 
         // Get previous visible field position
-        // Index 0 must be included in attendee field case, 
-        // to avoid field collision. But in response field, 
+        // Index 0 must be included in attendee field case,
+        // to avoid field collision. But in response field,
         // causes misplacing of area.
         if ( ( prevIndex >= 0 ) && ( aFieldId != EESMRFieldResponseArea ) )
             {
@@ -558,19 +600,21 @@ void CMRFieldContainer::ShowControl( TESMREntryFieldId aFieldId )
 
         // Layout field
         LayoutField( *field, tl);
+        // Move field off screen if it is not focused
+        field->MoveToScreen( index == iFocusedFieldIndex );
 
         // Move following fields
         tl.iY += field->Size().iHeight;
         MoveFields( ++index, tl );
 
-        // Set fieldcontainer size again, because 
+        // Set fieldcontainer size again, because
         // the amount of fields has changed.
-        SetSize( MinimumSize() );
-        
+        SetSizeWithoutNotification( MinimumSize() );
+
         // Scrollbar and physics require updating.
         iObserver->UpdateScrollBarAndPhysics();
         }
-    
+
     DrawDeferred();
     }
 
@@ -583,7 +627,7 @@ void CMRFieldContainer::HideControl( TESMREntryFieldId aFieldId )
     FUNC_LOG;
     /*
      * Sets field non-visible and moves other fields accordingly.
-     * Does not delete the field. 
+     * Does not delete the field.
      */
     CESMRField* field = iFactory.FieldById( aFieldId );
 
@@ -596,19 +640,19 @@ void CMRFieldContainer::HideControl( TESMREntryFieldId aFieldId )
         TPoint pos( field->Position() );
         MoveFields( index, pos );
 
-        // Set fieldcontainer size again, because 
+        // Set fieldcontainer size again, because
         // the amount of fields has changed.
-        SetSize( MinimumSize() );
-        
+        SetSizeWithoutNotification( MinimumSize() );
+
         // Scrollbar and physics require updating.
         iObserver->UpdateScrollBarAndPhysics();
-        
-        if ( focused && !field->IsNonFocusing() )            
+
+        if ( focused && !field->IsNonFocusing() )
             {
-            // Set focus to next field, or if removed field was the last 
+            // Set focus to next field, or if removed field was the last
             // field, then move focus to last visible field
-            TInt lastVisibleFieldIndex( LastVisibleField( aFieldId ) ); 
-            
+            TInt lastVisibleFieldIndex( LastVisibleField( aFieldId ) );
+
             // If field was the last one...
             if( lastVisibleFieldIndex == index )
                 {
@@ -633,10 +677,10 @@ TBool CMRFieldContainer::IsControlVisible( TESMREntryFieldId aField )
     {
     FUNC_LOG;
     /*
-     * Returns ETrue/EFalse if the field with given field id is 
+     * Returns ETrue/EFalse if the field with given field id is
      * visible or not.
      */
-    
+
     TBool ret( EFalse );
 
     CESMRField* field = iFactory.FieldById( aField );
@@ -685,9 +729,9 @@ TBool CMRFieldContainer::IsFocusedControlsBottomVisible()
     {
     FUNC_LOG;
     /*
-     * Checks if focused field is completely visible in the viewable area. 
+     * Checks if focused field is completely visible in the viewable area.
      */
-    
+
     // Fetch the position information about currently focused field:
     CESMRField* field = iFactory.Field( iFocusedFieldIndex );
     TBool ret( EFalse );
@@ -710,7 +754,7 @@ void CMRFieldContainer::ScrollControlVisible( TInt aInd )
     /*
      * Scrolls the field with the given index visible
      */
-    
+
     CESMRField* field = NULL;
     if ( aInd == KErrNotFound )
         {
@@ -722,10 +766,10 @@ void CMRFieldContainer::ScrollControlVisible( TInt aInd )
         }
 
     ASSERT( field );
-    
+
     TRect fieldRect( field->Position(), field->Size() );
     TRect parentRect( Parent()->Rect() );
-    
+
     /*
      * Case 1: Field's height is less than the viewable area height,
      * let's scroll the whole field visible.
@@ -735,17 +779,17 @@ void CMRFieldContainer::ScrollControlVisible( TInt aInd )
         // Scrolling down, let's move fields up
         if( fieldRect.iBr.iY > parentRect.iBr.iY )
             {
-            iObserver->ScrollFieldsUp( 
+            iObserver->ScrollFieldsUp(
                     fieldRect.iBr.iY - parentRect.iBr.iY );
             }
         // scrolling up, let's move field down
         if( fieldRect.iTl.iY < parentRect.iTl.iY )
             {
-            iObserver->ScrollFieldsDown( 
+            iObserver->ScrollFieldsDown(
                     parentRect.iTl.iY - fieldRect.iTl.iY );
             }
         }
-    
+
     /*
      * Case 2: Field's height is more than the viewable area's height.
      */
@@ -757,22 +801,22 @@ void CMRFieldContainer::ScrollControlVisible( TInt aInd )
             // Focus to this field is coming from above
             if( field->PreItemIndex() < field->CurrentItemIndex() )
                 {
-                // Let's scroll the top of the field to the 
+                // Let's scroll the top of the field to the
                 // top of the viewable area
-                iObserver->ScrollFieldsUp( 
+                iObserver->ScrollFieldsUp(
                                    fieldRect.iTl.iY - parentRect.iTl.iY );
-                
+
                 }
             // Focus to this field is coming from below
             if( field->PreItemIndex() > field->CurrentItemIndex() )
                 {
                 // Let's scroll the bottom of the field to the
                 // bottom of the viewable area
-                iObserver->ScrollFieldsDown( 
+                iObserver->ScrollFieldsDown(
                                    parentRect.iBr.iY - fieldRect.iBr.iY );
                 }
             }
-        
+
         // Field is in edit mode
         if( field->FieldMode() == EESMRFieldModeEdit )
             {
@@ -792,14 +836,14 @@ void CMRFieldContainer::ScrollControlVisible( TInt aInd )
                 // move field focus line bottom to view bottom
                 TInt px = focusFieldVisibleBottom - viewHeight;
 
-                
+
                 // if focus on last field: add margin height to
                 // scroll amount.
                 if ( iFocusedFieldIndex == iFactory.Count()-1 )
                     {
                     px += KVerticalScrollMargin;
                     }
-                
+
                 // Scrollbar and physics update is done here
                 iObserver->ScrollFieldsUp( px );
                 }
@@ -820,7 +864,7 @@ void CMRFieldContainer::ScrollControlVisible( TInt aInd )
                     iObserver->ScrollFieldsDown( px );
                     }
                 }
-            }        
+            }
         }
     }
 
@@ -831,7 +875,7 @@ void CMRFieldContainer::ScrollControlVisible( TInt aInd )
 void CMRFieldContainer::RePositionFields( TInt aAmount )
     {
     FUNC_LOG;
-    
+
     // Movement downwards
     if( aAmount >= 0 )
         {
@@ -864,20 +908,20 @@ void CMRFieldContainer::MoveFields( TInt aIndex, TPoint& aTl )
     {
     FUNC_LOG;
     /*
-     * Moves fields from the given index towards the last item. 
+     * Moves fields from the given index towards the last item.
      * This function does not update scrollbar or physics.
      */
-    
+
     const TInt count( iFactory.Count() );
-    
+
     for ( TInt i = aIndex; i < count; ++i )
         {
         CESMRField* field = iFactory.Field( i );
-        
+
         if ( field->IsVisible() )
             {
             field->SetPosition( aTl );
-            
+
             aTl.iY += field->Size().iHeight;
             }
         }
@@ -894,26 +938,25 @@ void CMRFieldContainer::LayoutField( CESMRField& aField, const TPoint& aTl )
      * Layouts given field according to the size required by the field and
      * given TPoint. This function does not update scrollbar or physics.
      */
-    
+
     TSize size( aField.MinimumSize() );
-    aField.SetPosition( aTl );
-    aField.SetSize( size );
+    aField.SetExtent( aTl, size );
     }
 
 // ---------------------------------------------------------------------------
 // CMRFieldContainer::IsLastVisibleField
 // ---------------------------------------------------------------------------
 //
-TInt CMRFieldContainer::LastVisibleField( 
+TInt CMRFieldContainer::LastVisibleField(
         TESMREntryFieldId aFieldId )
     {
     /*
      * Helper function to find out the last visible field in the list.
      */
-    
+
     TInt lastVisibleFieldIndex( 0 );
     TInt count( iFactory.Count() );
-    
+
     // Go through fields from last field towards the first field
     for( TInt i( 1 ); i > count; ++i )
         {
@@ -923,22 +966,22 @@ TInt CMRFieldContainer::LastVisibleField(
             // ... Compare it to the given field index ...
             if( iFactory.Field( count - i )->FieldId() == aFieldId )
                 {
-                // ... And if match is found, given fieldId is the 
+                // ... And if match is found, given fieldId is the
                 // the last visible field.
-                lastVisibleFieldIndex = 
+                lastVisibleFieldIndex =
                     IndexByFieldId( iFactory, aFieldId );
                 }
             else
                 {
                 // Otherwise return the found last visible field.
-                lastVisibleFieldIndex = 
-                    IndexByFieldId( iFactory, 
+                lastVisibleFieldIndex =
+                    IndexByFieldId( iFactory,
                                     iFactory.Field( count - i )->FieldId() );
                 }
             break;
             }
         }
-    
+
     return lastVisibleFieldIndex;
     }
 
@@ -952,7 +995,7 @@ void CMRFieldContainer::DoSetFocusL( TInt aNewFocusIndex )
     /*
      * Sets the focus according to the given index.
      */
-    
+
     TInt count( iFactory.Count() );
     aNewFocusIndex = Max( 0, Min( aNewFocusIndex, count - 1 ) );
 
@@ -963,7 +1006,7 @@ void CMRFieldContainer::DoSetFocusL( TInt aNewFocusIndex )
 
         // Get next focused field
         CESMRField* field = iFactory.Field( aNewFocusIndex );
-        
+
         // Do sanity checks
         while ( aNewFocusIndex < count && !field->IsVisible() )
             {
@@ -980,27 +1023,133 @@ void CMRFieldContainer::DoSetFocusL( TInt aNewFocusIndex )
             }
 
         ASSERT( field->IsVisible() );
-        
+
         // Update current and previous item indexes
         field->SetPreItemIndex( iFocusedFieldIndex );
         iFocusedFieldIndex = aNewFocusIndex;
         field->SetCurrentItemIndex( iFocusedFieldIndex );
-        
+
         // Remove focus from old
         old->SetOutlineFocusL( EFalse );
         old->SetFocus( EFalse );
-        
+        old->MoveToScreen( EFalse );
+
         // update focus index to new index
         field->SetOutlineFocusL( ETrue );
         field->SetFocus( ETrue );
-        
+        field->MoveToScreen( ETrue );
+
         // This handles also scrollbar and physics updating,
         // if view scrolling is done.
-        ScrollControlVisible( iFocusedFieldIndex ); 
-        
+        ScrollControlVisible( iFocusedFieldIndex );
+
         DrawDeferred();
         }
     }
 
+
+// ---------------------------------------------------------------------------
+// CMRFieldContainer::SetScrolling
+// ---------------------------------------------------------------------------
+//
+void CMRFieldContainer::SetScrolling( TBool aScrolling )
+    {
+    FUNC_LOG;
+
+    iScrolling = aScrolling;
+
+    // Move focused field away from screen if container is scrolling.
+    // Otherwise move it to screen.
+    CESMRField* field = iFactory.Field( iFocusedFieldIndex );
+    field->MoveToScreen( !iScrolling );
+    }
+
+
+// ---------------------------------------------------------------------------
+// CMRFieldContainer::Draw
+// ---------------------------------------------------------------------------
+//
+void CMRFieldContainer::Draw( const TRect& aRect ) const
+    {
+    FUNC_LOG;
+
+    // Get visible screen area from parent (list pane)
+    TRect parent( Parent()->Rect() );
+
+    // Current container position used to calculate actual field positions
+    TPoint tl( iPosition );
+
+    // Field index to skip
+    TInt fieldToSkip = KErrNotFound;
+
+    if ( !iScrolling )
+        {
+        // Container is not scrolling. Don't draw focused field from buffer
+        fieldToSkip = iFocusedFieldIndex;
+        }
+
+    // Draw all visible fields which are not on screen
+    TInt count( iFactory.Count() );
+
+    for ( TInt i = 0; i < count; ++i )
+        {
+        CESMRField* field = iFactory.Field( i );
+        if ( field->IsVisible() )
+            {
+            // Calculate actual field rect on screen
+            TRect screenRect( tl, field->Size() );
+
+            // Draw field if it intersects with screen visible area
+            if ( i != fieldToSkip
+                 && screenRect.Intersects( parent ) )
+                {
+                field->Draw( screenRect );
+                }
+            // Move next field top left corner
+            tl.iY += screenRect.Height();
+            }
+        }
+    }
+
+// ---------------------------------------------------------------------------
+// CMRFieldContainer::ScrollContainer
+// ---------------------------------------------------------------------------
+//
+void CMRFieldContainer::ScrollContainer( const TPoint& aTl )
+    {
+    FUNC_LOG;
+
+    // Set scrolling flag and move focused field off screen
+    SetScrolling( ETrue );
+    // Update control position,
+    // but dont propagate the change to component controls
+    iPosition = aTl;
+    }
+
+// ---------------------------------------------------------------------------
+// CMRFieldContainer::Synchronize
+// ---------------------------------------------------------------------------
+//
+void CMRFieldContainer::Synchronize()
+    {
+    FUNC_LOG;
+
+    // Set actual control positions (y-coordinate) to visible fields
+    TPoint tl( iPosition );
+
+    TInt count( iFactory.Count() );
+
+    for ( TInt i = 0; i < count; ++i )
+        {
+        CESMRField* field = iFactory.Field( i );
+        if ( field->IsVisible() )
+            {
+            TPoint pos( field->Position().iX, tl.iY );
+            tl.iY += field->Size().iHeight;
+            field->SetPosition( pos );
+            }
+        }
+    SetScrolling( EFalse );
+    }
 
 // End of file

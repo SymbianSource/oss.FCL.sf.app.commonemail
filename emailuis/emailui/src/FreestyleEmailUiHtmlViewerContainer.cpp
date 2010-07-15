@@ -65,12 +65,12 @@ const TInt KMaxCharsToSearch( 200 );
 _LIT8( KStartTag, "<html" );
 _LIT8( KHeadTag, "<head>");
 _LIT8( KHtmlHeader1, "<html><head><title></title><meta http-equiv=\"Content-Type\" content=\"text/html; charset=");
-_LIT8( KHtmlHeader2, "\"/></head><body>\xD\xA");
+_LIT8( KHtmlHeader2, "\"/></head><body bgcolor=\"#ECECEC\">\xD\xA");
 _LIT8( KHtmlHeader3, "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=%S\">\n");
 _LIT8( KHtmlEndTags, "\xD\xA</body></html>\xD\xA");
 _LIT8( KCharsetTag8, "charset");
 _LIT( KCharsetTag, "charset");
-_LIT8( KHTMLEmptyContent, "<HTML><BODY></BODY></HTML>");
+_LIT8( KHTMLEmptyContent, "<html><body></body></html>");
 _LIT( KHTMLDataScheme, "data:0");
 
 
@@ -86,6 +86,11 @@ _LIT( KURLDisplayImages, "cmail://displayImages/" );
 _LIT( KURLLoadImages, "cmail://loadImages/" );
 _LIT( KURLCollapseHeader, "cmail://collapseHeader/" );
 _LIT( KURLExpandHeader, "cmail://expandHeader/" );
+_LIT( KURLExpandItem, "cmail://expand_" );
+_LIT( KURLItemTo, "to" );
+_LIT( KURLItemCc, "cc" );
+_LIT( KURLItemBcc, "bcc" );
+_LIT( KURLItemAttachments, "attachments" );
 
 const TText KGreaterThan = 0x3e;
 const TText KLessThan = 0x3c;
@@ -101,14 +106,15 @@ const TReal KOverlayButtonSizeP = 0.15; // 15%
 const TReal KOverlayButtonSizeLs = 0.20; // 25%
 
 
-const TInt KStatusIndicatorHeight = 50;
-const TInt KStatusIndicatorXMargin = 50;
+const TInt KStatusIndicatorHeight = 55;
+const TInt KStatusIndicatorXMargin = 58;
+const TInt KStatusIndicatorBottomMargin = 6;
 
 // CONSTANTS
 // Zoom levels available on the UI
 const TInt KZoomLevels[] = { 75, 100, 125, 150 };
 const TInt KZoomLevelCount = sizeof( KZoomLevels ) / sizeof( TInt );
-const TInt KZoomLevelIndex100 = 100; // 100 in array KZoomLevels
+const TInt KZoomLevelIndex100 = 1; // 100 in array KZoomLevels
 
 // CEUiHtmlViewerSettingsKeyListener
 
@@ -653,9 +659,8 @@ void CFsEmailUiHtmlViewerContainer::LoadContentFromMailMessageL(
         }
     const TInt visibleWidth(iAppUi.ClientRect().Width());
     CFreestyleMessageHeaderHTML::ExportL( *iMessage, iFs, headerHtmlFile, visibleWidth, iScrollPosition,
-                                            iViewerSettings->AutoLoadImages() || iAppUi.DisplayImagesCache().Contains(*iMessage),
-                                            iHeaderExpanded );
-
+            iViewerSettings->AutoLoadImages() || iAppUi.DisplayImagesCache().Contains(*iMessage), iFlags );
+    
     // Remove all previously created files from temporary HTML folder
     EmptyTempHtmlFolderL();
 
@@ -713,7 +718,7 @@ void CFsEmailUiHtmlViewerContainer::ResetContent(const TBool aDisconnect)
     iLinkContents.Reset();
     iMessageParts.Reset();
     iMessage = NULL;
-    iHeaderExpanded = EFalse;
+    iFlags.ClearAll();
     iScrollPosition = 0;
     }
 
@@ -946,7 +951,7 @@ void CFsEmailUiHtmlViewerContainer::RequestResponseL( const TFSProgress& aEvent,
             CleanupStack::PushL( part );
             RFile contentFile = part->GetContentFileL();
             CleanupClosePushL( contentFile );
-            HBufC8* content = ReadContentFromFileLC( contentFile );
+            HBufC8* content = ReadContentFromFileLC( contentFile, *part );
             linkContent->HandleResolveComplete(
                 part->GetContentType(), KNullDesC(), content );
             CleanupStack::PopAndDestroy( content );
@@ -1126,7 +1131,7 @@ void CFsEmailUiHtmlViewerContainer::CopyToHtmlFileL( CFSMailMessagePart& aHtmlBo
     CleanupClosePushL( htmlFile );
 
     // Read content from given source file
-    HBufC8* content = ReadContentFromFileLC( htmlFile );
+    HBufC8* content = ReadContentFromFileLC( htmlFile, aHtmlBodyPart );
 
     // Write content to target file
     WriteContentToFileL( *content, targetFileName, aHtmlBodyPart );
@@ -1148,13 +1153,33 @@ void CFsEmailUiHtmlViewerContainer::ConvertToHtmlFileL( CFSMailMessagePart& aTex
     targetFileName.Copy( iTempHtmlFolderPath );
     targetFileName.Append( aHtmlFileName );
 
-    HBufC* content = HBufC::NewLC( aTextBodyPart.FetchedContentSize() );
+    TInt contentsize = aTextBodyPart.FetchedContentSize();
+      
+    TInt limit(0);
+    TInt err = iViewerSettings->Repository().Get( KFreestyleMaxBodySize , limit );
+    limit *= KKilo; // cenrep value is in kB, 0 means unlimited
+
+    if ( limit == 0 || err )
+        {
+        limit = KMaxTInt;
+        }
+    
+    TInt size = Min(limit,contentsize);
+    HBufC* content = HBufC::NewLC( size );
     TPtr contentPtr( content->Des() );
 
     aTextBodyPart.GetContentToBufferL( contentPtr, 0 );
-
+    //When we found EFSMsgFlag_BodyTruncated was set, add "--Message too long--" in the end of plain html view
+    if ( limit < contentsize )
+    	{
+		 HBufC* addingText = StringLoader::LoadLC( R_FREESTYLE_EMAIL_UI_VIEW_ADDITIONAL_INFO );
+		 TInt pos = limit - addingText->Length();
+		 contentPtr.Replace(pos,addingText->Length(),*addingText);
+         CleanupStack::PopAndDestroy( addingText );
+         aTextBodyPart.SetFlag(EFSMsgFlag_BodyTruncated);
+    	}
+    
     ConvertToHTML( *content, targetFileName, aTextBodyPart );
-
     CleanupStack::PopAndDestroy( content );
 
     }
@@ -1163,11 +1188,29 @@ void CFsEmailUiHtmlViewerContainer::ConvertToHtmlFileL( CFSMailMessagePart& aTex
 // Reads given file content to buffer and return pointer to it
 // ---------------------------------------------------------------------------
 //
-HBufC8* CFsEmailUiHtmlViewerContainer::ReadContentFromFileLC( RFile& aFile )
+HBufC8* CFsEmailUiHtmlViewerContainer::ReadContentFromFileLC( RFile& aFile, CFSMailMessagePart& aHtmlBodyPart )
     {
     FUNC_LOG;
-    TInt size = 0;
-    User::LeaveIfError( aFile.Size( size ) );
+    TInt fileSize = 0;
+    
+    TInt limit(0);
+    TInt err = iViewerSettings->Repository().Get( KFreestyleMaxBodySize , limit );
+    limit *= KKilo; // cenrep value is in kB, 0 means unlimited
+
+    User::LeaveIfError( aFile.Size( fileSize ) );
+    if ( limit == 0 || err )
+        {
+        limit = KMaxTInt;
+        }
+
+    TInt size = Min( limit, fileSize ); // read no more than limit bytes..
+
+    
+    if ( size < fileSize )
+        {
+        aHtmlBodyPart.SetFlag( EFSMsgFlag_BodyTruncated );
+        }
+    
     HBufC8* buffer = HBufC8::NewLC( size );
     TPtr8 ptr = buffer->Des();
     User::LeaveIfError( aFile.Read( ptr, size ) );
@@ -1253,9 +1296,18 @@ void CFsEmailUiHtmlViewerContainer::WriteContentToFileL( const TDesC8& aContent,
 
         // Write the original content
         User::LeaveIfError( targetFile.Write( buffer ) );
-
+		//When we found EFSMsgFlag_BodyTruncated was set, add "--Message too long--" in the end of html view
+        if( aHtmlBodyPart.GetFlags()&EFSMsgFlag_BodyTruncated )
+        	{
+			HBufC* addingText = StringLoader::LoadLC( R_FREESTYLE_EMAIL_UI_VIEW_ADDITIONAL_INFO );
+			HBufC8* addingText8 = CnvUtfConverter::ConvertFromUnicodeToUtf8L( *addingText );       
+			CleanupStack::PopAndDestroy( addingText );
+			CleanupStack::PushL( addingText8 );
+			User::LeaveIfError( targetFile.Write( *addingText8 ) );
+			CleanupStack::PopAndDestroy( addingText8 );
+        	}
         // Write ending metadata if needed
-        if ( modificationNeeded )
+        if ( modificationNeeded || (aHtmlBodyPart.GetFlags()&EFSMsgFlag_BodyTruncated) )
             {
             INFO("Add end tags");
             User::LeaveIfError( targetFile.Write( KHtmlEndTags ) );
@@ -1363,7 +1415,7 @@ void CFsEmailUiHtmlViewerContainer::DownloadAttachmentL(
         {
         RFile attachmentFile = aAttachment.GetContentFileL();
         CleanupClosePushL( attachmentFile );
-        HBufC8* content = ReadContentFromFileLC( attachmentFile );
+        HBufC8* content = ReadContentFromFileLC( attachmentFile, aAttachment );
         aEmbeddedLinkContent.HandleResolveComplete(
             aAttachment.GetContentType(), KNullDesC(), content );
         CleanupStack::PopAndDestroy( content );
@@ -1609,9 +1661,9 @@ void CFsEmailUiHtmlViewerContainer::RefreshCurrentMailHeader()
             TRAP_IGNORE( CFreestyleMessageHeaderHTML::ExportL( *iMessage, iFs,
                 headerHtmlFile, iAppUi.ClientRect().Width(), iScrollPosition,
                 iViewerSettings->AutoLoadImages() || iAppUi.DisplayImagesCache().Contains(*iMessage),
-                iHeaderExpanded ) )
-
-
+                iFlags ) )
+        
+        
         if(!iEventHandler->IsMenuVisible())
             {
             TRAP_IGNORE( ReloadPageL() );
@@ -1775,13 +1827,14 @@ void CFsEmailUiHtmlViewerContainer::HideDownloadStatus()
 
 TRect CFsEmailUiHtmlViewerContainer::CalcAttachmentStatusRect()
     {
-    TRect rect = Rect();
+    TRect rect( Rect() );
     TPoint topLeft = rect.iTl;
     TPoint bottomRight = rect.iBr;
-
     TPoint statusTopLeft( topLeft.iX + KStatusIndicatorXMargin, bottomRight.iY - KStatusIndicatorHeight + 1 );
     TPoint statusBottomRight( bottomRight.iX - KStatusIndicatorXMargin, bottomRight.iY );
-    return TRect( statusTopLeft, statusBottomRight );
+    rect = TRect(statusTopLeft, statusBottomRight);
+    rect.Move(0, -KStatusIndicatorBottomMargin);
+    return rect;
     }
 
 void CFsEmailUiHtmlViewerContainer::TouchFeedback()
@@ -1822,16 +1875,35 @@ TBool CFsEmailUiHtmlViewerContainer::IsMessageBodyURLL(const TDesC& aUrl)
         else if (aUrl.Compare(KURLCollapseHeader()) == 0)
             {
             TouchFeedback();
-            iHeaderExpanded = EFalse;
+            iFlags.ClearAll();
             return ETrue;
             }
         else if (aUrl.Compare(KURLExpandHeader()) == 0)
             {
             TouchFeedback();
-            iHeaderExpanded = ETrue;
-            return ETrue;
+            iFlags.Set( CFreestyleMessageHeaderHTML::EHeaderExpanded );
+            return ETrue;        
             }
-        else if (aUrl.Left(index).CompareF(KURLSchemeCmail) == 0)
+        else if ( aUrl.Find( KURLExpandItem() ) == 0 ) {
+            const TPtrC item( aUrl.Mid( KURLExpandItem().Length() ) );
+            if ( item.Find( KURLItemTo() ) == 0 )
+                {
+                iFlags.Assign( CFreestyleMessageHeaderHTML::EToExpanded, ETrue );
+                }
+            else if ( item.Find( KURLItemCc() ) == 0 )
+                {
+                iFlags.Assign( CFreestyleMessageHeaderHTML::ECcExpanded, ETrue );
+                }
+            else if ( item.Find( KURLItemBcc() ) == 0 )
+                {
+                iFlags.Assign( CFreestyleMessageHeaderHTML::EBccExpanded, ETrue );
+                }
+            else if ( item.Find( KURLItemAttachments() ) == 0 )
+                {
+                iFlags.Assign( CFreestyleMessageHeaderHTML::EAttachmentExpanded, ETrue );
+                }            
+            return ETrue;        
+        } else if (aUrl.Left(index).CompareF(KURLSchemeCmail) == 0)
             {
             TInt bodyIndex = aUrl.Find(KURLTypeBody);
             if (bodyIndex == KErrNotFound)
@@ -2010,7 +2082,7 @@ void CFsEmailUiHtmlViewerContainer::DisplayStatusIndicatorL(TInt aDuration)
     HBufC* statusText = NULL;
     statusText = StringLoader::LoadL(R_FREESTYLE_EMAIL_UI_VIEWER_FETCHING_CONTENT_TEXT);
     iAppUi.FsTextureManager()->ProvideBitmapL(EStatusTextureSynchronising, image, imageMask );
-    iStatusIndicator->ShowIndicatorL( image, imageMask, statusText, aDuration );
+    iStatusIndicator->ShowIndicatorL( image, imageMask, statusText, aDuration, ETrue );
     }
 
 void CFsEmailUiHtmlViewerContainer::MailListModelUpdatedL()

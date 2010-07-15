@@ -96,12 +96,10 @@ void CESMRViewerStartDateField::ConstructL()
     {
     FUNC_LOG;
 
-    iLabel = CMRLabel::NewL();
-    iLabel->SetParent( this );
+    iLabel = CMRLabel::NewL( this );
     CESMRField::ConstructL( iLabel ); // ownership transfered
 
-    iIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapDateStart );
-    iIcon->SetParent( this );
+    iIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapDateStart, this );
     }
 
 // -----------------------------------------------------------------------------
@@ -259,8 +257,10 @@ void CESMRViewerStartDateField::LockL()
 
 	delete iLockIcon;
 	iLockIcon = NULL;
-	iLockIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapLockField, ETrue );
-	iLockIcon->SetParent( this );
+	iLockIcon = CMRImage::NewL(
+	        NMRBitmapManager::EMRBitmapLockField,
+	        this,
+	        ETrue );
 	}
 
 // ---------------------------------------------------------------------------

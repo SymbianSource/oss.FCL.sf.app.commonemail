@@ -389,7 +389,15 @@ NONSHARABLE_CLASS(CFSMailClient) : public CExtendableEmail
       * @param aMailboxName new name for the mailbox
       */
      IMPORT_C void SetMailboxName( const TFSMailMsgId aMailboxId, const TDesC& aMailboxName );
-
+     
+     /**
+      * Prepares and sets the MR description by converting HTML body to Plain text
+      *
+      * @param aMailboxId mailbox id
+      * @param aMessageId message id
+      */     
+     IMPORT_C virtual void PrepareMrDescriptionL( const TFSMailMsgId& aMailBoxId,
+                                                  const TFSMailMsgId& aMessageId );
 public: // from  CExtendableEmail
 
     /**

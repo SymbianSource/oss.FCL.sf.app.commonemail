@@ -46,12 +46,12 @@ NONSHARABLE_CLASS( CESMRResponseField ) : public CESMRField
          * @return New response field object.
          */
         static CESMRResponseField* NewL(MESMRResponseObserver* aResponseObserver);
-    
+
         /**
          * C++ Destructor.
          */
         ~CESMRResponseField();
-    
+
     public: // From CCoeControl
         TInt CountComponentControls() const;
         CCoeControl* ComponentControl( TInt aInd ) const;
@@ -59,7 +59,7 @@ NONSHARABLE_CLASS( CESMRResponseField ) : public CESMRField
         TKeyResponse OfferKeyEventL( const TKeyEvent& aKeyEvent,  TEventCode aType );
         void FocusChanged( TDrawNow aDrawNow );
         TSize MinimumSize();
-        
+
     public: // From CESMRField
         void InitializeL();
         void InternalizeL( MESMRCalEntry& aEntry );
@@ -67,7 +67,7 @@ NONSHARABLE_CLASS( CESMRResponseField ) : public CESMRField
         void SetOutlineFocusL( TBool aFocus );
         TBool HandleSingletapEventL( const TPoint& aPosition );
         void HandleLongtapEventL( const TPoint& aPosition );
-        
+
     public: // New methods
         /**
          * Set the response observer for this class.
@@ -75,27 +75,26 @@ NONSHARABLE_CLASS( CESMRResponseField ) : public CESMRField
          * @param aResponseObserver - Response observer
          */
         void AddObserver( MESMRResponseObserver* aResponseObserver );
-    
+
         /**
          * Calls onwards the SetFont() method for all the items in the array
          *
          * @param aFont - Font to be set.
          */
         void SetFont( const CFont* aFont );
-        
+
         /**
          * Selects the current item.
          * @return ETrue if item is selectable
          */
         TBool ItemSelectedL();
-    
+
     private: // Implementation
         CESMRResponseField(MESMRResponseObserver* aResponseObserver);
         void ConstructL();
         void HandleCancelledEventItemsL( MESMRCalEntry& aEntry );
-        CCoeControl* ControlItem( TInt aIndex );
         TBool HandleTapEventL( const TPoint& aPosition );
-    
+
     private:
         /// Own: Conflict popup
         CESMRConflictPopup* iConfPopup ;
@@ -103,7 +102,7 @@ NONSHARABLE_CLASS( CESMRResponseField ) : public CESMRField
         RPointerArray <CESMRResponseItem> iResponseItemArray;
         /// Observer for the response
         MESMRResponseObserver* iResponseObserver;
-        /// Currently selected index 
+        /// Currently selected index
         TInt iSelectionIndex;
         /// Font for the label text
         const CFont* iFont;
@@ -112,18 +111,18 @@ NONSHARABLE_CLASS( CESMRResponseField ) : public CESMRField
         /// iESMRstatic accessed
         TBool iESMRStaticAccessed;
         /// whether a normal response
-        TBool iNormalResponse;  
+        TBool iNormalResponse;
         /// whether a remove response
-        TBool iRemoveResponse;      
+        TBool iRemoveResponse;
         /// Judge if there is any event conflict with current event.
         TBool iConflicted;
         /// Judge whether it has implemented HandleSingletapEventL
         TBool iPointEvent;
-        /// Judge whether the long tap have been consumed. 
+        /// Judge whether the long tap have been consumed.
         /// To avoid the same event be handled by
         /// HandleSingletapEventL() when HandleLongtapEventL().
         TBool iLongTapEventConsumed;
-     
+
     };
 
 

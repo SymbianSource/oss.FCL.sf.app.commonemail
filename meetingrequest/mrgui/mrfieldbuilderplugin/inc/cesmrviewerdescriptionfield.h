@@ -60,7 +60,6 @@ protected: // From CESMRField
 
 public: // From CCoeControl
     TKeyResponse OfferKeyEventL(const TKeyEvent& aEvent, TEventCode aType );
-    void SetContainerWindowL( const CCoeControl& aContainer );
     TSize MinimumSize();
     void SizeChanged();
     TInt CountComponentControls() const;

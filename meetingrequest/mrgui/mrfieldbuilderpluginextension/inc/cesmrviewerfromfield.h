@@ -65,7 +65,6 @@ NONSHARABLE_CLASS( CESMRViewerFromField ) : public CESMRField,
         CCoeControl* ComponentControl( TInt aInd ) const;
         void SizeChanged();
         TSize MinimumSize();
-        void SetContainerWindowL(const CCoeControl& aContainer);
 
     protected: // From MEikEdwinSizeObserver
         TBool HandleEdwinSizeEventL(

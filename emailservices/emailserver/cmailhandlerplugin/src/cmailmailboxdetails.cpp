@@ -55,7 +55,6 @@ CMailMailboxDetails::~CMailMailboxDetails()
     FUNC_LOG;
     delete iMailboxName;
     delete iWidgetInstance;    
-    iMessageDetailsArray.ResetAndDestroy();
     }
 
 // ---------------------------------------------------------

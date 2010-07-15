@@ -56,7 +56,7 @@ class CFsEmailUiHtmlViewerView : public CFsEmailUiViewBase,
 public:
 
     /** Two-phased constructor. */
-    static CFsEmailUiHtmlViewerView* NewL( CAlfEnv& aEnv, 
+    static CFsEmailUiHtmlViewerView* NewL( CAlfEnv& aEnv,
                                            CFreestyleEmailUiAppUi& aAppUi,
                                            CAlfControlGroup& aControlGroup );
 
@@ -72,22 +72,22 @@ public:  // from CAknView
     TUid Id() const;
 
     void HandleStatusPaneSizeChange();
-    
+
     void HandleViewRectChange();
-    
+
     /**
     * HandleCommandL
     * From CAknView, takes care of command handling.
     * @param aCommand Command to be handled
     */
     void HandleCommandL( TInt aCommand );
-    
+
     // Handle accept/decline/tentative/remove commands given for meeting request message directly from list UI.
 	void HandleMrCommandL( TInt aCommandId, TFSMailMsgId aMailboxId, TFSMailMsgId aFolderId, TFSMailMsgId aMessageId );
-    
+
 	void CompletePendingMrCommand();
 	void CancelPendingMrCommandL();
-	
+
     /**
     * ChildDoDeactivate
     * From CFsEmailUiViewBase, deactivate the AknView
@@ -106,32 +106,32 @@ public:  // from CAknView
 
     void SetMskL();
     void PrepareForExit();
-    
+
 public : // for MFSMailRequestObserver
     void RequestResponseL( TFSProgress aEvent, TInt aRequestId );
-    
-public: 
+
+public:
     // from MProgressDialogCallback
     void DialogDismissedL( TInt aButtonId);
-    
+
     CFSMailMessage* CurrentMessage();
     CFSEmailUiAttachmentsListModel* CurrentAttachmentsListModel();
-    
+
     // Return view area that can be used for container
     TRect ContainerRect() const;
 
-public: 
+public:
     void HandleDynamicVariantSwitchL( CFsEmailUiViewBase::TDynamicSwitchType aType );
     void HandleMailBoxEventL( TFSMailEvent aEvent,
                               TFSMailMsgId aMailbox, TAny* aParam1, TAny* /*aParam2*/, TAny* /*aParam3*/ );
-    
-    void HandleEmailAddressCommandL( TInt aCommand, const TDesC& aEmailAddress ); 
+
+    void HandleEmailAddressCommandL( TInt aCommand, const TDesC& aEmailAddress );
     void HandleWebAddressCommandL( TInt aCommand, const TDesC& aUrl );
-    
+
     void DownloadAttachmentL( const TAttachmentData& aAttachment );
     void DownloadAllAttachmentsL();
-    void CancelAttachmentL( const TAttachmentData& aAttachment );    
-    void CancelAllAttachmentsL();    
+    void CancelAttachmentL( const TAttachmentData& aAttachment );
+    void CancelAllAttachmentsL();
     void OpenAttachmentL( const TAttachmentData& aAttachment );
     void SaveAttachmentL( const TAttachmentData& aAttachment );
     void SaveAllAttachmentsL();
@@ -141,8 +141,8 @@ public:
     TBool IsEmbeddedMsgSavingAllowed();
     // Helper funcitons to get viewed message ID and Folder id
     TFSMailMsgId ViewedMessageFolderId();
-    TFSMailMsgId ViewedMessageId(); 
-    
+    TFSMailMsgId ViewedMessageId();
+
     TBool GetAsyncFetchStatus();
     void StartFetchingMessageL();
     void ReloadPageL();
@@ -154,21 +154,21 @@ public: // from MFSEmailUiContactHandlerObserver
 
 public : // from MFSEmailDownloadInformationObserver
     void RequestResponseL( const TFSProgress& aEvent, const TPartData& aPart );
-    
+
 public: // from MFSEmailUiAttachmentsStatusObserver
     void DownloadStatusChangedL( TInt aIndex );
-    
+
 public: // from MESMRIcalViewerCallback
-    void ProcessAsyncCommandL( TESMRIcalViewerOperationType aCommandId,	const CFSMailMessage& aMessage, MESMRIcalViewerObserver* aObserver = NULL );   
-	  void ProcessSyncCommandL( TESMRIcalViewerOperationType aCommandId, const CFSMailMessage& aMessage );   
-    TBool CanProcessCommand( TESMRIcalViewerOperationType aCommandId  ) const;  
-     
+    void ProcessAsyncCommandL( TESMRIcalViewerOperationType aCommandId,	const CFSMailMessage& aMessage, MESMRIcalViewerObserver* aObserver = NULL );
+	  void ProcessSyncCommandL( TESMRIcalViewerOperationType aCommandId, const CFSMailMessage& aMessage );
+    TBool CanProcessCommand( TESMRIcalViewerOperationType aCommandId  ) const;
+
 public: // from MESMRIcalViewerObserver
-    void OperationCompleted( TIcalViewerOperationResult aResult );        
+    void OperationCompleted( TIcalViewerOperationResult aResult );
     void OperationError( TIcalViewerOperationResult aResult );
-	
+
     void FadeOut(TBool aDirectionOut);
-    
+
 private: // from
     /**
      * @see CFsEmailUiViewBase::ChildDoActivateL
@@ -178,31 +178,27 @@ private: // from
                            const TDesC8& aCustomMessage );
 
     /**
-     * @see CFsEmailUiViewBase::ToolbarResourceId
+     * @see CFsEmailUiViewBase::NavigateBackL
      */
-    TInt ToolbarResourceId() const;
-    
-    /**
-     * @see CFsEmailUiViewBase::GetInitiallyDimmedItemsL
-     */
-    virtual void GetInitiallyDimmedItemsL( const TInt aResourceId,
-                RArray<TInt>& aDimmedItems ) const;
+    void NavigateBackL();
 
     /**
-     * @see CFsEmailUiViewBase::OfferToolbarEventL
+     * @see CFsEmailUiViewBase::ChangeMskCommandL
      */
-    void OfferToolbarEventL( TInt aCommand );
-  
+    void ChangeMskCommandL( TInt aLabelResourceId );
+
     /**
-     * @see CFsEmailUiViewBase::NavigateBackL
-     */ 
-    void NavigateBackL();
-    
+     * @see CFsEmailUiViewBase::IsStatusPaneVisible
+     */
+    TBool IsStatusPaneVisible() const;
+
     /**
 	 * @see CFsEmailUiViewBase::SetStatusBarLayout
-	 */ 
+	 */
     void SetStatusBarLayout();
+
 private: // New functions
+
     // list of different types of content
     enum TFetchedType
         {
@@ -229,8 +225,8 @@ private: // New functions
     void OpenContactDetailsL( const TDesC& aEmailAddress );
     void LaunchRemoteLookupL( const TDesC& aEmailAddress );
     void CreateMessageL( const TDesC& aEmailAddress );
-    
-    void UpdateDownloadIndicatorL( const TPartData& aPart, 
+
+    void UpdateDownloadIndicatorL( const TPartData& aPart,
                                    const TFSProgress& aEvent );
     //fetching related API
     TBool MessagePartFullyFetchedL( TFetchedType aFetchedContentType ) const;
@@ -259,22 +255,22 @@ private: // New functions
       // from the move to folder dialog. This is necessary because view swithching is asynchronous.
     static TInt MoveToFolderAndExitL( TAny* aMailViewerVisualiser );
     void FolderSelectedL( TFSMailMsgId aSelectedFolderId,
-                          TFSEmailUiCtrlBarResponse aResponse ); 
-    
+                          TFSEmailUiCtrlBarResponse aResponse );
+
     void UpdateEmailHeaderIndicators();
     TBool IsOpenedInMRViewerL();
     void CopyCurrentToClipBoardL( const TDesC& aArgument) const;
     void OpenLinkInBrowserL( const TDesC& aUrl) const;
     void SaveWebAddressToFavouritesL( const TDesC& aUrl ) const;
     void SetScrollPosition(TInt aPosition);
-    
+
     void CheckMessageBodyL( CFSMailMessage& aMessage, TBool& aMessageBodyStructurePresent, TBool& aMessageBodyContentPresent);
-    
+
 private: // Constructors
-    
+
     void ConstructL();
-    CFsEmailUiHtmlViewerView( CAlfEnv& aEnv, 
-                              CFreestyleEmailUiAppUi& aAppUi, 
+    CFsEmailUiHtmlViewerView( CAlfEnv& aEnv,
+                              CFreestyleEmailUiAppUi& aAppUi,
                               CAlfControlGroup& aControlGroup );
 
 private:
@@ -284,13 +280,13 @@ private:
     THtmlViewerActivationData iActivationData;
     CFSEmailUiAttachmentsListModel* iAttachmentsListModel;
 
-    // Stack of open messages. Messages are owned by this stack. 
+    // Stack of open messages. Messages are owned by this stack.
     CStack<CFSMailMessage, ETrue>* iOpenMessages;
     // Stack of embedded messages. Message are NOT owned by this stack. Similar to iOpenMessages
     // but has NULL pointer in slots which correspond non-embedded messages.
     CStack<CFSMailMessage, EFalse>* iEmbeddedMessages;
     TBool iCreateNewMsgFromEmbeddedMsg;
-        
+
     // <cmail>
     // Temporary mail address for opening editor
     CFSMailAddress* iNewMailTempAddress;
@@ -327,8 +323,8 @@ private: // data for moving message to different folder action
 	TBool iMoveToFolderOngoing;
     TBool iMovingMeetingRequest;
     CAsyncCallBack* iAsyncCallback;
-    
-    TFSMailMsgId iMoveDestinationFolder;  
+
+    TFSMailMsgId iMoveDestinationFolder;
     	// Meeting request observer stuff.
 		// Pointer to observer to inform, not owned.
 		MESMRIcalViewerObserver* iMrObserverToInform;
@@ -338,10 +334,10 @@ private: // data for moving message to different folder action
     // Message pointer to a deleted mail from Mrui
     TFSMailMsgId iDeletedMessageFromMrui;
     // Flag selection handler active object for global note
-    CFlagSelectionNoteHandler* iFlagSelectionHandler;  
+    CFlagSelectionNoteHandler* iFlagSelectionHandler;
     TBool iNextOrPrevMessageSelected;
     TBool iMessageIsDeleted;
-    
+
     // Id of last deleted message
     TFSMailMsgId iLastDeletedMessageID;
     };
@@ -354,20 +350,20 @@ class CFlagSelectionNoteHandler : public CActive
     public:  // Constructors and destructor
         static CFlagSelectionNoteHandler* NewL( CFsEmailUiHtmlViewerView& aViewerVisualiser );
         virtual ~CFlagSelectionNoteHandler();
-        void Cancel();       
-        void LaunchFlagListQueryDialogL();       
-            
-    private: 
-    
-        void RunL();       
-        void DoCancel();       
+        void Cancel();
+        void LaunchFlagListQueryDialogL();
+
+    private:
+
+        void RunL();
+        void DoCancel();
         TInt RunError( TInt aError );
-        
+
     private:
         CFlagSelectionNoteHandler(  CFsEmailUiHtmlViewerView& aVoIPDialogObserver );
 
-        
-    private:      
+
+    private:
         CFsEmailUiHtmlViewerView& iViewerView;
         CAknGlobalListQuery* iGlobalFlagQuery;
         HBufC* iPrompt;

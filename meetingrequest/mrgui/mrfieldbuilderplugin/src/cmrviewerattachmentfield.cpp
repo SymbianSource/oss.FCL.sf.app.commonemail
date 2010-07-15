@@ -133,8 +133,9 @@ void CMRViewerAttachmentsField::ConstructL( )
     FUNC_LOG;
     SetComponentsToInheritVisibility( ETrue );
 
-    iFieldIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapAttachment );
-    iFieldIcon->SetParent( this );
+    iFieldIcon = CMRImage::NewL(
+            NMRBitmapManager::EMRBitmapAttachment,
+            this );
 
     iRichTextViewer = CESMRRichTextViewer::NewL( this );
     CESMRField::ConstructL( iRichTextViewer ); // ownership transferred
@@ -283,9 +284,9 @@ CCoeControl* CMRViewerAttachmentsField::ComponentControl( TInt aInd ) const
     switch ( aInd )
         {
         case 0:
-            return iRichTextViewer;
-        case 1:
             return iFieldIcon;
+        case 1:
+            return iRichTextViewer;
         case 2:
         	return iLockIcon;
         default:
@@ -400,23 +401,6 @@ TKeyResponse CMRViewerAttachmentsField::OfferKeyEventL(
     }
 
 // ---------------------------------------------------------------------------
-// CMRViewerAttachmentsField::SetContainerWindowL()
-// ---------------------------------------------------------------------------
-//
-void CMRViewerAttachmentsField::SetContainerWindowL( const CCoeControl& aControl )
-    {
-    FUNC_LOG;
-    CESMRField::SetContainerWindowL( aControl );
-    iRichTextViewer->SetContainerWindowL( aControl );
-    iRichTextViewer->SetParent( this );
-
-    iFieldIcon->SetContainerWindowL( aControl );
-    iFieldIcon->SetParent( this );
-
-    iButtonGroupContainer = CEikButtonGroupContainer::Current();
-    }
-
-// ---------------------------------------------------------------------------
 // CMRViewerAttachmentsField::HandleEdwinSizeEventL
 // ---------------------------------------------------------------------------
 //
@@ -435,6 +419,11 @@ TBool CMRViewerAttachmentsField::HandleEdwinSizeEventL( CEikEdwin* aEdwin,
            {
            iObserver->ControlSizeChanged( this );
            reDraw = ETrue;
+           
+           if ( !iOutlineFocus )
+               {
+               RecordField();
+               }
            }
         }
 
@@ -642,11 +631,6 @@ void CMRViewerAttachmentsField::UpdateAttachmentsListL()
             iRichTextViewer->SetLineSpacingL( LineSpacing() );
             }
 
-        iRichTextViewer->ApplyLayoutChangesL();
-
-        iRichTextViewer->SetMargins( KMargin ); // What's this?
-        iRichTextViewer->HandleTextChangedL();
-
         while ( attachmentLinks.Count() > 0 )
             {
             CESMRRichTextLink* link = attachmentLinks[0];
@@ -655,6 +639,11 @@ void CMRViewerAttachmentsField::UpdateAttachmentsListL()
             iRichTextViewer->AddLinkL( link );
             CleanupStack::Pop( link );
             }
+
+        iRichTextViewer->ApplyLayoutChangesL();
+
+        iRichTextViewer->SetMargins( KMargin ); // What's this?
+        iRichTextViewer->HandleTextChangedL();
         }
 
     CleanupStack::PopAndDestroy( &attachmentLinks );
@@ -831,8 +820,10 @@ void CMRViewerAttachmentsField::LockL()
 
 	delete iLockIcon;
 	iLockIcon = NULL;
-	iLockIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapLockField, ETrue );
-	iLockIcon->SetParent( this );
+	iLockIcon = CMRImage::NewL(
+	        NMRBitmapManager::EMRBitmapLockField,
+	        this,
+	        ETrue );
 	}
 
 // ---------------------------------------------------------------------------

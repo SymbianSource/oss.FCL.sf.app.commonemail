@@ -25,14 +25,15 @@
 
 // CLASS DECLARATIONS
 
-class CMRLabel : public CEikLabel
+NONSHARABLE_CLASS( CMRLabel ) : public CEikLabel
     {
     public:
         /**
          * Static construtor
+         * @param aParent parent control
          * @return New instance of this class
          */
-        IMPORT_C static CMRLabel* NewL();
+        IMPORT_C static CMRLabel* NewL( const CCoeControl* aParent = NULL );
         /**
          * Destructor
          */
@@ -46,7 +47,7 @@ class CMRLabel : public CEikLabel
         
     private: // Implementation
         CMRLabel();
-        void ConstructL();
+        void ConstructL( const CCoeControl* aParent );
         
     private: // Data
     };

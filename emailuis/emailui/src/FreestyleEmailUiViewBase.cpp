@@ -68,9 +68,11 @@ void CFsEmailUiViewBase::DoActivateL( const TVwsViewId& aPrevViewId,
 	                                  const TDesC8& aCustomMessage )
     {
     FUNC_LOG;
+
     SetViewActive( ETrue );
+    StatusPane()->MakeVisible( IsStatusPaneVisible() );
     SetStatusBarLayout();
-    iAppUi.StatusPane()->DrawNow();
+    StatusPane()->DrawNow();
     iFocusVisible = iAppUi.IsFocusShown();
 
     // fix view stack in case of external activation
@@ -102,7 +104,7 @@ void CFsEmailUiViewBase::DoActivateL( const TVwsViewId& aPrevViewId,
     SetNextTransitionOutLong( EFalse );
 
     // Clear status pane indicators
-    CCustomStatuspaneIndicators* indicators = 
+    CCustomStatuspaneIndicators* indicators =
         iAppUi.GetStatusPaneIndicatorContainer();
     if ( indicators )
         {
@@ -114,7 +116,7 @@ void CFsEmailUiViewBase::DoActivateL( const TVwsViewId& aPrevViewId,
 
     // Make sure Alfred display is of correct size (there is some problems with toolbar)
     iAppUi.AlfEnv().PrimaryDisplay().ForceSetVisibleArea(iAppUi.ClientRect());
-    
+
 
     // Finally call child classes activation method
     TRAPD( error, ChildDoActivateL(aPrevViewId, aCustomMessageId, aCustomMessage) );
@@ -128,7 +130,7 @@ void CFsEmailUiViewBase::DoActivateL( const TVwsViewId& aPrevViewId,
         	}
 
         // View activated succesfully
-        DoTransition( EFalse ); 
+        DoTransition( EFalse );
         if ( !iAppUi.SwitchingToBackground() )
             {
             // Change visible control group
@@ -173,6 +175,10 @@ void CFsEmailUiViewBase::UpdateToolbarL()
                 }
             CleanupStack::PopAndDestroy(); // dimmedItems.Close()
             toolbar->SetToolbarObserver(this);
+ 			if(resourceId == R_FREESTYLE_EMAIL_UI_TOOLBAR_FOLDER_LIST)
+            	{
+            	toolbar->SetToolbarVisibility(EFalse);
+				}
             SetToolbar(toolbar);
             ShowToolbar();
             }
@@ -282,14 +288,14 @@ void CFsEmailUiViewBase::DoDeactivate()
 void CFsEmailUiViewBase::FadeOut( TBool /* aDirectionOut */ )
 	{
 	FUNC_LOG;
-    // should be overriden ( if needed ) to use polymorphism 
+    // should be overriden ( if needed ) to use polymorphism
 	// to hide or show CAlfVisuals used in views
 	}
 
 
 // ---------------------------------------------------------------------------
 // Check if transition effects are enabled and run the effect if needed.
-// if not enabled it calls FadeOut virtual methods only 
+// if not enabled it calls FadeOut virtual methods only
 //
 void CFsEmailUiViewBase::DoTransition( TBool aDirectionOut )
     {
@@ -300,7 +306,7 @@ void CFsEmailUiViewBase::DoTransition( TBool aDirectionOut )
         }
     else
         {
-    	// FadeOut method should be overridden and use by polymorphism only when needed 
+    	// FadeOut method should be overridden and use by polymorphism only when needed
     	FadeOut( aDirectionOut ); // used for hide/show visuals without transition time
     	}
     }
@@ -480,7 +486,7 @@ CAlfControlGroup& CFsEmailUiViewBase::ControlGroup()
 void CFsEmailUiViewBase::HandleAppForegroundEventL( TBool aForeground )
     {
     FUNC_LOG;
-    HandleForegroundEventL(aForeground);    
+    HandleForegroundEventL(aForeground);
     if ( aForeground )
         {
         // Activate control group in case the view was activated when
@@ -629,7 +635,7 @@ void CFsEmailUiViewBase::NavigateBackL()
             // Email app should be hidden once the view gets deactivated. Note that hiding
             // should not happen before control group switching is over because that
             // may cause views of other Alfred apps to get distorted.
-            if( !iAppUi.EmbeddedAppIsPreviousApp() ) // if previous app is embedded app, 
+            if( !iAppUi.EmbeddedAppIsPreviousApp() ) // if previous app is embedded app,
                 //do not need hide FSEmail app when previous app view gets deactivated.
                 {
                 iSendToBackgroundOnDeactivation = ETrue;
@@ -670,6 +676,14 @@ void CFsEmailUiViewBase::ChangeMskCommandL( TInt aLabelResourceId )
                             aLabelResourceId );
         cba->DrawDeferred();
         }
+    }
+
+// -----------------------------------------------------------------------------
+// CFsEmailUiViewBase::IsStatusPaneVisible
+// -----------------------------------------------------------------------------
+TBool CFsEmailUiViewBase::IsStatusPaneVisible() const
+    {
+    return ETrue;
     }
 
 // -----------------------------------------------------------------------------

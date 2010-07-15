@@ -26,19 +26,13 @@
 #include "emailtrace.h"
 
 
-namespace { // codescanner::namespace
-
-const TInt KCustomDragTreshold( 10 );
-
-} // namespace
-
 // ---------------------------------------------------------------------------
 // CMRListPanePhysics::CMRListPanePhysics
 // ---------------------------------------------------------------------------
 //
 CMRListPanePhysics::CMRListPanePhysics(
-        CCoeControl& aParent, 
-        CMRFieldContainer& aViewControl, 
+        CCoeControl& aParent,
+        CMRFieldContainer& aViewControl,
         MMRPhysicsObserver& aPhysicsObserver )
     : iParent( aParent ),
       iViewControl( aViewControl ),
@@ -67,23 +61,23 @@ void CMRListPanePhysics::ConstructL()
 // CMRListPanePhysics::NewL
 // ---------------------------------------------------------------------------
 //
-CMRListPanePhysics* CMRListPanePhysics::NewL( 
-        CCoeControl& aParent, 
+CMRListPanePhysics* CMRListPanePhysics::NewL(
+        CCoeControl& aParent,
         CMRFieldContainer& aViewControl,
         MMRPhysicsObserver& aPhysicsObserver )
     {
     FUNC_LOG;
-    CMRListPanePhysics* self = 
-        new ( ELeave ) CMRListPanePhysics( 
-                aParent, 
-                aViewControl, 
+    CMRListPanePhysics* self =
+        new ( ELeave ) CMRListPanePhysics(
+                aParent,
+                aViewControl,
                 aPhysicsObserver );
     CleanupStack::PushL( self );
     self->ConstructL();
     CleanupStack::Pop( self );
     return self;
     }
-        
+
 // ---------------------------------------------------------------------------
 // CMRListPanePhysics::~CMRListPanePhysics
 // ---------------------------------------------------------------------------
@@ -93,7 +87,7 @@ CMRListPanePhysics::~CMRListPanePhysics()
     FUNC_LOG;
     delete iPhysics;
     }
-        
+
 // ---------------------------------------------------------------------------
 // CMRListPanePhysics::HandlePointerEventL
 // ---------------------------------------------------------------------------
@@ -112,25 +106,28 @@ TBool CMRListPanePhysics::HandlePointerEventL(
     // Down
     if ( aPointerEvent.iType == TPointerEvent::EButton1Down )
         {
+        if ( iPhysics->OngoingPhysicsAction()
+             != CAknPhysics::EAknPhysicsActionNone )
+            {
+            iPhysics->StopPhysics();
+            }
+        
         // Save start time and start point
         iStartTime.HomeTime();
         iStartPoint = aPointerEvent.iPosition;
         iDragPoint = iStartPoint;
         }
-    
+
     // Drag
     else if ( aPointerEvent.iType == TPointerEvent::EDrag )
         {
         // Check how position was changed and report to physics
         TPoint deltaPoint( iDragPoint - aPointerEvent.iPosition );
-        if( Abs( deltaPoint.iY ) < KCustomDragTreshold )
+        if( Abs( deltaPoint.iY ) > iPhysics->DragThreshold() )
         	{
-			deltaPoint.iX = 0;
-			deltaPoint.iY = 0;
+			iDragPoint = aPointerEvent.iPosition;
+			iPhysics->RegisterPanningPosition( deltaPoint );
         	}
-        
-        iDragPoint = aPointerEvent.iPosition;
-        iPhysics->RegisterPanningPosition( deltaPoint );
         }
 
     // Up
@@ -138,16 +135,13 @@ TBool CMRListPanePhysics::HandlePointerEventL(
         {
         // Calculate dragging distance
         TPoint drag( iStartPoint - aPointerEvent.iPosition );
-        
-        if( Abs( drag.iY ) < KCustomDragTreshold )
+
+        if( Abs( drag.iY ) > iPhysics->DragThreshold() )
         	{
-			drag.iX = 0;
-			drag.iY = 0;
+            // Start physics
+            physicsStarted = iPhysics->StartPhysics( drag, iStartTime );
         	}
-        
-        // Start physics
-        physicsStarted = iPhysics->StartPhysics( drag, iStartTime );
-        
+
         if( physicsStarted )
         	{
 			aEventsBlocked = ETrue;
@@ -156,11 +150,11 @@ TBool CMRListPanePhysics::HandlePointerEventL(
         	{
 			aEventsBlocked = EFalse;
         	}
-        }    
-    
+        }
+
     // Record previous pointer event
     iPreviousPointerEvent = aPointerEvent;
-    
+
     return physicsStarted;
     }
 
@@ -174,24 +168,24 @@ void CMRListPanePhysics::InitPhysics()
     if ( !iFeatureEnabled )
         {
         return;
-        }    
+        }
     TRect parentRect( iParent.Rect() );
 
     iWorldSize.iHeight = iViewControl.MinimumSize().iHeight;
     iWorldSize.iWidth = iViewControl.MinimumSize().iWidth;
-    
+
     iViewSize.iHeight = parentRect.Height();
     iViewSize.iWidth = parentRect.Width();
-    
+
     if( iWorldSize.iHeight < iViewSize.iHeight )
         {
     	iWorldSize.iHeight = iViewSize.iHeight;
         }
-    
 
-    
+
+
     iPhysics->ResetFriction();
-    
+
     TRAP_IGNORE( iPhysics->InitPhysicsL( iWorldSize, iViewSize, EFalse ) );
     iPhysics->UpdateViewWindowControl( &iParent );
     }
@@ -206,7 +200,7 @@ void CMRListPanePhysics::SetWorldHeight( TInt aWorldHeight )
     if ( !iFeatureEnabled )
         {
         return;
-        }    
+        }
     iWorldSize.iHeight = aWorldHeight;
     }
 
@@ -230,20 +224,21 @@ void CMRListPanePhysics::ViewPositionChanged( const TPoint& aNewPosition,
         }
 
     iVerScrollIndex = aNewPosition.iY - iViewSize.iHeight / 2;
-    
+
     // Parents position is taken into account, by
     // adding the extra x and y coordinates to field containers
     // new position.
-    iViewControl.SetPosition( TPoint( 
-            iParent.Position().iX, 
-            -iVerScrollIndex + iParent.Position().iY ) );
-    
+    TPoint pos(
+            iParent.Position().iX,
+            -iVerScrollIndex + iParent.Position().iY );
+    iViewControl.ScrollContainer( pos );
+
     // Draw only when drawing is allowed
     if ( aDrawNow )
         {
-        iParent.DrawDeferred();
+        iParent.DrawNow();
         }
-    
+
     // Vertical scroll index has changed, we need to update scroll bar also
     iPhysicsObserver.UpdateScrollBarDuringOngoingPhysics();
     }
@@ -256,6 +251,9 @@ void CMRListPanePhysics::PhysicEmulationEnded()
     {
     FUNC_LOG;
     iPhysicsObserver.PhysicsEmulationEnded();
+    
+    // Synchronize field container position
+    iViewControl.Synchronize();
     }
 
 // ---------------------------------------------------------------------------
@@ -269,12 +267,12 @@ TPoint CMRListPanePhysics::ViewPosition() const
         {
         return TPoint( iParent.Position() );
         }
-    
+
     // This is the default implementation
-    TPoint viewPosition( 
-            iViewSize.iWidth / 2, 
+    TPoint viewPosition(
+            iViewSize.iWidth / 2,
             iViewSize.iHeight / 2 + iVerScrollIndex );
-    
+
     return viewPosition;
     }
 
@@ -287,7 +285,7 @@ void CMRListPanePhysics::UpdateVerticalScrollIndex( TInt aVerScrollIndex )
     FUNC_LOG;
     if ( iFeatureEnabled )
         {
-        // Physics' new position is updated to this member, when field 
+        // Physics' new position is updated to this member, when field
         // container is scrolled by someone else than physics.
         iVerScrollIndex = aVerScrollIndex;
         }

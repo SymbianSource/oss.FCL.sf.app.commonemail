@@ -80,8 +80,7 @@ void CESMRViewerAttendeesField::ConstructL( )
     SetFieldId ( (iRole == CCalAttendee::EReqParticipant) ? EESMRFieldAttendee
             : EESMRFieldOptAttendee );
 
-    iTitle = CMRLabel::NewL();
-    iTitle->SetParent( this );
+    iTitle = CMRLabel::NewL( this );
 
     iRichTextViewer = CESMRRichTextViewer::NewL (this );
     CESMRField::ConstructL( iRichTextViewer ); // ownership transferred
@@ -341,18 +340,6 @@ TKeyResponse CESMRViewerAttendeesField::OfferKeyEventL( const TKeyEvent& aEvent,
     }
 
 // ---------------------------------------------------------------------------
-// CESMRViewerAttendeesField::SetContainerWindowL()
-// ---------------------------------------------------------------------------
-//
-void CESMRViewerAttendeesField::SetContainerWindowL(
-        const CCoeControl& aContainer )
-    {
-    CESMRField::SetContainerWindowL( aContainer );
-    iRichTextViewer->SetContainerWindowL( aContainer );
-    iRichTextViewer->SetParent( this );
-    }
-
-// ---------------------------------------------------------------------------
 // CESMRViewerAttendeesField::MinimumSize()
 // ---------------------------------------------------------------------------
 //
@@ -428,10 +415,17 @@ TBool CESMRViewerAttendeesField::HandleEdwinSizeEventL(CEikEdwin* /*aEdwin*/,
     {
     FUNC_LOG;
     iExpandedSize = aSize;
+    
     if ( iObserver && iDisableRedraw )
         {
         iObserver->ControlSizeChanged ( this );
+        
+        if ( !iOutlineFocus )
+            {
+            RecordField();
+            }
         }
+    
     return iDisableRedraw;
     }
 

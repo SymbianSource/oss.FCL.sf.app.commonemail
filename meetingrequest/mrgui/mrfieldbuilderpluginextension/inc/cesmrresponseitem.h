@@ -49,6 +49,7 @@ NONSHARABLE_CLASS( CESMRResponseItem ) : public CCoeControl
         TInt CountComponentControls() const;
         CCoeControl* ComponentControl( TInt aInd ) const;
         void SizeChanged();
+        void SetContainerWindowL( const CCoeControl& aContainer );
     
     public: // New methods
         /**

@@ -1530,7 +1530,7 @@ void CFsTreeVisualizerBase::SetFlipState( TBool aOpen )
 //
 void CFsTreeVisualizerBase::SetFocusVisibility( TBool aShow )
     {
-    if ( iFocusVisible != aShow )
+    if ( ( iFocusVisible && !aShow ) || ( !iFocusVisible && aShow ) )
         {
         iFocusVisible = aShow;
         TRAP_IGNORE(
@@ -1549,9 +1549,9 @@ TBool CFsTreeVisualizerBase::HandlePointerEventL(const TAlfEvent& aEvent)
     if (iDragHandler && iOwnerControl->ControlGroup()->AcceptInput())
         {
         TPointerEvent::TType type = aEvent.PointerEvent().iType;
-        const TInt id(EventItemId(aEvent));
+        const TFsTreeItemId id(EventItemId(aEvent));
         INFO_1("visual: $%x", aEvent.Visual());
-        if (KErrNotFound != id || type == TPointerEvent::EDrag ||
+        if ( KFsTreeNoneID != id || type == TPointerEvent::EDrag ||
                 type  == TPointerEvent::EButtonRepeat ||
                 type  == TPointerEvent::EButton1Up ||
                 type  == TPointerEvent::EButton1Down)
@@ -1597,6 +1597,7 @@ TBool CFsTreeVisualizerBase::HandlePointerEventL(const TAlfEvent& aEvent)
                         }*/
                     iDragHandler->PointerUp( aEvent.PointerEvent(), id );
                     iFlags.Clear(EIgnorePointerUpAction);
+                    iFlags.Clear( EListPanning );
                     break;
                     }
                 case TPointerEvent::EDrag:
@@ -1684,7 +1685,7 @@ const CAlfVisual* CFsTreeVisualizerBase::FindVisualUnderDrag(
 TFsTreeItemId CFsTreeVisualizerBase::VisualItemId(const CAlfVisual* aVisual) const
     {
     FUNC_LOG;
-    TInt itemId(KErrNotFound);
+    TFsTreeItemId itemId( KFsTreeNoneID );
     if (aVisual)
         {
         aVisual->PropertyFindInteger(KPropertyItemId(), &itemId);
@@ -2887,7 +2888,7 @@ void CFsTreeVisualizerBase::TreeEventL(
 void CFsTreeVisualizerBase::RemoveItemL(TFsTreeItemId aItemId)
     {
     FUNC_LOG;
-    TInt removedindex = iWorld.IndexOfItem(aItemId);
+    const TInt removedindex(iWorld.IndexOfItem(aItemId));
     iWorld.RemoveL(aItemId);
     if (iFocusedItem == aItemId)
         {
@@ -5051,7 +5052,9 @@ void CFsTreeVisualizerBase::ViewPortUpdatedL(TViewPort& aViewPort, TUpdatedByPhy
 void CFsTreeVisualizerBase::SetPanningPosition(const TPoint& aDelta)
     {
     FUNC_LOG;
-    iPhysics->RegisterPanningPosition(aDelta);
+    iPhysics->RegisterPanningPosition(aDelta);    
+    iFlags.Set( EListPanning );
+    SetFocusVisibility( EFalse );
     }
 
 // ---------------------------------------------------------------------------
@@ -5228,7 +5231,7 @@ void CFsTreeVisualizerBase::SetFocusedItemAndSendEventL(
 //
 CFsTreeVisualizerBase::CDragHandler* CFsTreeVisualizerBase::CDragHandler::NewL(
         CFsTreeVisualizerBase& aTree, const TInt aHighlightTimeout,
-        const TBitFlagsT<TUint>& aFlags)
+        const TBitFlags& aFlags)
     {
     FUNC_LOG;
     CDragHandler* self = new (ELeave) CDragHandler(aTree, aHighlightTimeout,
@@ -5427,7 +5430,7 @@ TBool CFsTreeVisualizerBase::CDragHandler::IsFlicking() const
 //
 CFsTreeVisualizerBase::CDragHandler::CDragHandler(
         CFsTreeVisualizerBase& aTree, const TInt aHighlightTimeout,
-        const TBitFlagsT<TUint>& aFlags) :
+        const TBitFlags& aFlags) :
     iTree(aTree), iHighlightTimeout(aHighlightTimeout * 1000),
             iTreeVisualizerFlags(aFlags)
     {
@@ -5462,12 +5465,7 @@ TInt CFsTreeVisualizerBase::CDragHandler::HighlightTimerCallback( TAny* aPtr )
 //
 TBool CFsTreeVisualizerBase::IsFocusShown()
     {
-    if( iTouchPressed || iFocusVisible )
-        {
-        return ETrue;
-        }
-
-    return EFalse;
+    return ( iTouchPressed || iFocusVisible ) && iFlags.IsClear( EListPanning );
     }
 
 

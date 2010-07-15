@@ -30,12 +30,13 @@
 //
 EXPORT_C  CMRImage* CMRImage::NewL(
              NMRBitmapManager::TMRBitmapId aBitmapId, 
+             const CCoeControl* aParent,
              TBool aIsMaskIcon,
              TScaleMode aScaleMode )
     {
     CMRImage* self = new (ELeave) CMRImage( aScaleMode );
     CleanupStack::PushL( self );
-    self->ConstructL( aBitmapId, aIsMaskIcon );
+    self->ConstructL( aBitmapId, aParent, aIsMaskIcon );
     CleanupStack::Pop( self );
     return self;
     }
@@ -74,10 +75,12 @@ CMRImage::CMRImage( TScaleMode aScaleMode )
 // CMRImage::ConstructL
 // ---------------------------------------------------------------------------
 //
-void CMRImage::ConstructL( NMRBitmapManager::TMRBitmapId aBitmapId,
-						   TBool aIsMaskIcon  )
+void CMRImage::ConstructL(
+        NMRBitmapManager::TMRBitmapId aBitmapId,
+        const CCoeControl* aParent,
+        TBool aIsMaskIcon  )
     {
-    if( aIsMaskIcon )
+    if ( aIsMaskIcon )
     	{
     	CreateMaskIconL( aBitmapId );
     	}
@@ -85,6 +88,11 @@ void CMRImage::ConstructL( NMRBitmapManager::TMRBitmapId aBitmapId,
     	{
     	CreateIconL( aBitmapId );
     	}
+    
+    if ( aParent )
+        {
+        SetContainerWindowL( *aParent );
+        }
     }
 
 // ---------------------------------------------------------------------------
