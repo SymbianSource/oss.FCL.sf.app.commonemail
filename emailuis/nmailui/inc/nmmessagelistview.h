@@ -35,6 +35,7 @@ class HbAbstractViewItem;
 class NmActionResponse;
 class NmMessageListModelItem;
 class HbIconItem;
+class HbGroupBox;
 
 class NmMessageListView : public NmBaseView, public NmActionObserver
 {
@@ -45,12 +46,14 @@ public:
         NmUiStartParam *startParam,
         NmUiEngine &uiEngine,
         NmMailboxListModel &mailboxListModel,
-        NmMessageListModel &messageListModel,
+        NmMessageListModel *messageListModel,
         HbDocumentLoader *documentLoader,
         QGraphicsItem *parent = 0);
     ~NmMessageListView();
     NmUiViewId nmailViewId() const;
     void viewReady();
+    NmFolderType folderType();
+    void okToExitView();
     
 public: // From NmActionObserver
     void handleActionCommand(NmActionResponse &menuResponse);
@@ -58,7 +61,6 @@ public: // From NmActionObserver
 public slots:
     void reloadViewContents(NmUiStartParam *startParam);
     void refreshList();
-    void contextButton(NmActionResponse &result);
     
 private slots:
     void showItemContextMenu(HbAbstractViewItem *index, const QPointF &coords);
@@ -68,9 +70,9 @@ private slots:
     void itemsAdded(const QModelIndex &parent, int start, int end);
     void itemsRemoved();
     void showNoMessagesText();
+    void hideNoMessagesText();
     void handleSyncStateEvent(NmSyncState syncState, const NmId & mailboxId);
-    void handleConnectionEvent(NmConnectState connectState, const NmId &mailboxId);
-    void folderSelected(NmId mailbox, NmId folder);
+    void folderSelected();
     
 private:
     void loadViewLayout();
@@ -85,16 +87,21 @@ private:
     QObjectList mWidgetList;
     NmUiEngine &mUiEngine;
     NmMailboxListModel &mMailboxListModel;
-    NmMessageListModel &mMessageListModel;
+    NmMessageListModel *mMessageListModel;  // Not owned
     HbDocumentLoader *mDocumentLoader;      // Owned
     HbMenu *mItemContextMenu;               // Owned
     NmMessageListModelItem *mLongPressedItem;  // Not owned
     HbLabel *mNoMessagesLabel;              // Not owned
-    HbLabel *mFolderLabel;                  // Not owned
+    HbGroupBox *mFolderLabel;               // Not owned
     HbLabel *mSyncIcon;                     // Not owned
     QModelIndex mActivatedIndex;
     bool mViewReady;
     NmFolderType mCurrentFolderType;
+    bool mSettingsLaunched;
+    NmId mSelectedFolderId;
+    NmId mSelectedMailboxId;
+    int mPreviousModelCount;
+    bool mIsFirstSyncInMessageList;
 };
 
 #endif /* NMMESSAGELISTVIEW_H_ */

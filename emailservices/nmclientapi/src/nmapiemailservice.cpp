@@ -15,11 +15,8 @@
  *
  */
 
-#include <nmapiemailservice.h>
-#include "nmapiengine.h"
+#include "nmapiheaders.h"
 
-#include <nmapimailbox.h>
-#include <nmapimessageenvelope.h>
 
 namespace EmailClientApi
 {
@@ -30,7 +27,7 @@ namespace EmailClientApi
 NmApiEmailService::NmApiEmailService(QObject *parent) :
     QObject(parent), mEngine(NULL), mIsRunning(false)
 {
-
+    NM_FUNCTION;
 }
 
 /*!
@@ -38,6 +35,8 @@ NmApiEmailService::NmApiEmailService(QObject *parent) :
  */
 NmApiEmailService::~NmApiEmailService()
 {
+    NM_FUNCTION;
+    
     if (mEngine) {
         uninitialise();
     }
@@ -52,6 +51,8 @@ bool NmApiEmailService::getEnvelope(
     const quint64 envelopeId,
     EmailClientApi::NmApiMessageEnvelope &envelope)
 {
+    NM_FUNCTION;
+    
     if (!mEngine) {
         return false;
     }
@@ -63,6 +64,8 @@ bool NmApiEmailService::getEnvelope(
  */
 bool NmApiEmailService::getMailbox(const quint64 mailboxId, EmailClientApi::NmApiMailbox &mailboxInfo)
 {
+    NM_FUNCTION;
+    
     if (!mEngine) {
         return false;
     }
@@ -75,6 +78,8 @@ bool NmApiEmailService::getMailbox(const quint64 mailboxId, EmailClientApi::NmAp
  */
 void NmApiEmailService::initialise()
 {
+    NM_FUNCTION;
+    
     if (!mEngine) {
         mEngine = NmApiEngine::instance();
     }
@@ -93,6 +98,8 @@ void NmApiEmailService::initialise()
  */
 void NmApiEmailService::uninitialise()
 {
+    NM_FUNCTION;
+    
     NmApiEngine::releaseInstance(mEngine);
     mIsRunning = false;
 }
@@ -102,6 +109,8 @@ void NmApiEmailService::uninitialise()
  */
 bool NmApiEmailService::isRunning() const
 {
+    NM_FUNCTION;
+    
     return mIsRunning;
 }
 

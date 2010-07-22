@@ -55,7 +55,7 @@ private slots:
 
 private:
     HbMainWindow &mMainWindow;
-    QGraphicsPixmapItem *mSendAnimationScreenShot; // Owned
+    QGraphicsPixmapItem *mSendAnimationScreenShot; // Not owned.
     bool mDoSendAnimation;
 };
 

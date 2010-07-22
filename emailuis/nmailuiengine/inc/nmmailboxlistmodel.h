@@ -37,7 +37,7 @@ public:
     virtual ~NmMailboxListModel();
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
     void refresh(QList<NmMailbox*> &mailboxList);
-    void refreshModelItem(const NmId &mailboxId, bool allowEmitDataChanged = true);
+    void refreshModelItem(const NmId &mailboxId);
 
 public slots:
     void handleMailboxEvent(NmMailboxEvent event, const QList<NmId> &mailboxIds);

@@ -20,9 +20,14 @@
 
 #include <nmcommon.h>
 
+class CHWRMVibra;
 class NmMailbox;
 class NmDataPluginFactory;
 class NmDataPluginInterface;
+class HbIndicator;
+class XQSystemToneService;
+class XQSettingsManager;
+class XQSettingsKey;
 
 class NmMailboxInfo
 {
@@ -41,9 +46,11 @@ public:
     QList<NmId> mUnreadMailIdList;
     int mOutboxMails;
     bool mActive;
+    bool mInboxActive;
 
     NmMailboxInfo();
 };
+
 
 class NmMailAgent : public QObject
 {
@@ -66,17 +73,21 @@ public slots:
             NmMessageEvent event,
             const NmId &folderId,
             const QList<NmId> &messageIds,
-            const NmId& mailboxId);
+            const NmId &mailboxId);
 
     void handleSyncStateEvent(
             NmSyncState state,
             const NmOperationCompletionEvent &event);
 
-    void handleConnectionEvent(NmConnectState state, const NmId mailboxId);
+    void handleConnectionEvent(NmConnectState state, const NmId mailboxId, int errorcode);
 
     void delayedStart();
-    
+
     void enableAlertTone();
+
+    void indicatorActivated(const QString &type, const QVariantMap &data);
+
+    void valueChanged(const XQSettingsKey& key, const QVariant& value);
 
 private:
 
@@ -84,18 +95,26 @@ private:
 
     bool updateUnreadCount(const NmId &mailboxId, NmMailboxInfo &mailboxInfo);
 
-    int getOutboxCount(const NmId& mailboxId);
+    int getOutboxCount(const NmId &mailboxId);
 
-    int getIndicatorIndex();
+    NmMailboxInfo *getMailboxByType(const QString &type);
+
+    int getFreeIndicatorIndex();
+
+    int getTotalUnreadCount() const;
+
+    bool updateUnreadIndicator();
+
+    bool updateUnreadIndicator(bool active);
 
     bool updateIndicator(bool active,
         const NmMailboxInfo& mailboxInfo);
 
-    NmMailboxInfo* getMailboxInfo(const NmId &id);
+    NmMailboxInfo *getMailboxInfo(const NmId &id);
 
-    NmMailboxInfo* createMailboxInfo(const NmId &id);
+    NmMailboxInfo *createMailboxInfo(const NmId &id);
 
-    NmMailboxInfo* createMailboxInfo(const NmMailbox &mailbox,
+    NmMailboxInfo *createMailboxInfo(const NmMailbox &mailbox,
         NmDataPluginInterface *plugin);
 
     bool removeMailboxInfo(const NmId &id);
@@ -104,18 +123,34 @@ private:
         bool active, bool refreshAlways);
 
     static QStringList pluginFolders();
-    
-    bool getMessageUnreadInfo(const NmId &folderId, 
+
+    bool getMessageUnreadInfo(const NmId &folderId,
         const NmId &messageId, const NmId &mailboxId, bool &unreadMessage);
+
+    bool playAlertTone();
+
+    void updateSendIndicator();
     
-    void playAlertTone();
+    void storeMailboxActive(const NmId &mailboxId, bool active);
     
+    bool isMailboxActive(const NmId &mailboxId);
+    
+    void deleteStoredMailboxActivity(const NmId &mailboxId);
+
+    bool launchMailbox(quint64 mailboxId);
+
 private: // data
 
+    HbIndicator *mIndicator;
+    XQSystemToneService *mSystemTone;
     NmDataPluginFactory *mPluginFactory;
     QList<NmMailboxInfo*> mMailboxes;
-    bool mSendingState;
+    CHWRMVibra *mVibra; // Owned
     bool mAlertToneAllowed;
+    int mLastOutboxCount;
+    bool mUnreadIndicatorActive;
+    XQSettingsManager *mSettingManager;
+    int mSilenceMode;
 };
 
 

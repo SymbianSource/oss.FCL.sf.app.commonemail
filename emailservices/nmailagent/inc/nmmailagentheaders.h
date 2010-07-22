@@ -17,13 +17,19 @@
 #ifndef NMAILAGENTHEADERS_H
 #define NMAILAGENTHEADERS_H
 
+// Qt
 #include <QDir>
 #include <QPluginLoader>
 #include <QCoreApplication>
 #include <QTimer>
 
+// Hb
 #include <hbindicator.h>
 
+// Symbian
+#include <hwrmvibra.h>
+
+// Nmail
 #include <nmcommon.h>
 #include <nmdatapluginfactory.h>
 #include <nmdataplugininterface.h>

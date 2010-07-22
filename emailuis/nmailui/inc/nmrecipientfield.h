@@ -25,17 +25,13 @@ class HbLabel;
 class NmRecipientLineEdit;
 class HbPushButton;
 class HbIconItem;
+class HbDocumentLoader;
 
-class NmRecipientField : public HbWidget
+class NmRecipientField : public QObject
 {
     Q_OBJECT
 public:
-    NmRecipientField(
-    HbLabel *label,
-    NmRecipientLineEdit *edit,
-    HbPushButton *button,
-    QGraphicsItem *parent = 0);
-    NmRecipientField(const QString &labelString = "", QGraphicsItem *parent = 0);
+    NmRecipientField(QObject *parent, HbDocumentLoader &docLoader, const QString &objPrefix);
     virtual ~NmRecipientField();
     qreal height();
     void createConnections();
@@ -53,17 +49,15 @@ public:
 
 public slots:
     void setText(const QString &text);
-#ifdef Q_OS_SYMBIAN
     void launchContactsPicker();
-#endif
 
 private:
-    QGraphicsLinearLayout *mLayoutHorizontal;
-    HbLabel *mLabel;
-    NmRecipientLineEdit *mRecipientsEditor;
-    HbPushButton *mLaunchContactsPickerButton;
-    HbIconItem *mAddButtonIcon;
-    bool mOwned;
+    HbDocumentLoader &mDocumentLoader;
+    const QString mObjectPrefix;
+    HbWidget *mWidget; // Not owned
+    HbLabel *mLabel; // Not owned
+    NmRecipientLineEdit *mRecipientsEditor; // Not owned
+    HbPushButton *mLaunchContactsPickerButton; // Not owned
 };
 
 #endif   // NMRECIPIENTFIELD_H_

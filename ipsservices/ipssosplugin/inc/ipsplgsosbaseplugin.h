@@ -19,17 +19,16 @@
 #ifndef IPSPLGSOSBASEPLUGIN_H
 #define IPSPLGSOSBASEPLUGIN_H
 
-//<cmail>
 #include "CFSMailPlugin.h"
 #include "MFSMailRequestObserver.h"
-//</cmail>
 #include <rconnmon.h>
-
 #include "ipsplgsosbaseplugin.hrh"
 #include "ipsplgcommon.h"
 #include "ipsplgsingleopwatcher.h"
 #include "ipsplgtimeroperation.h"
-
+//<Qmail>
+#include "ipsstateextension.h"
+//</Qmail>
 class CMsvSession;
 class CIpsPlgTimerOperation;
 class CIpsPlgMsgMapper;
@@ -51,11 +50,21 @@ class CIpsPlgEventHandler;
  */
 NONSHARABLE_CLASS ( CIpsPlgSosBasePlugin ) :
     public CFSMailPlugin,
-                             public MIpsPlgSingleOpWatcher,
-                             public MFSMailRequestObserver, // a dummy observer
-                             public MIpsPlgTimerOperationCallBack
+    public MIpsPlgSingleOpWatcher,
+    public MFSMailRequestObserver, // a dummy observer
+    public MIpsPlgTimerOperationCallBack,
+    public MStateObserverCallback
     {
+//<Qmail>
+public: //from MStateObserverCallback
+    void ActiveFolderChanged(
+        const TFSMailMsgId& aActiveMailboxId,
+        const TFSMailMsgId& aActiveFolderId);
+    
+public://from CExtendableEmail
 
+    CEmailExtension* ExtensionL( const TUid& aInterfaceUid );
+//</Qmail>    
 public:
 
     /**
@@ -63,7 +72,7 @@ public:
     * Destructor
     */
     IMPORT_C virtual ~CIpsPlgSosBasePlugin();
-
+    
 public: //from MIpsPlgSingleOpWatcher
 
     /**
@@ -176,6 +185,15 @@ public: // from CFSMailPlugin
         const TFSMailMsgId& aMailBoxId,
         const TFSMailMsgId& aFolderId,
         const RArray<TFSMailMsgId>& aMessages );
+		
+//<qmail>
+    virtual void DeleteMessagesByUidL(
+        const TFSMailMsgId& aMailBoxId,
+        const TFSMailMsgId& aFolderId,
+        const RArray<TFSMailMsgId>& aMessages,
+        MFSMailRequestObserver& aOperationObserver,
+        const TInt aRequestId);
+//</qmail>
 
     // MESSAGE STORE OPERATIONS
 
@@ -648,6 +666,14 @@ protected:
         const TFSMailMsgId& aSourceFolderId,
         const TFSMailMsgId& aDestinationFolderId );
 
+    //<Qmail>
+    /**
+     * function to handle active folder changed events
+     */
+    virtual void HandleActiveFolderChangeL(
+            const TFSMailMsgId& aActiveMailboxId,
+            const TFSMailMsgId& aActiveFolderId);
+    //</Qmail>
 private:
 
     /**
@@ -809,6 +835,10 @@ protected:
 
     // flag indicates is instance under FSEmail.exe
     TBool iIsUnderUiProcess;
+    
+    //<Qmail>
+    CIpsStateExtension*    iStateExtension;//owned
+    //</Qmail>
 	};
 
 #endif /* IPSPLGSOSBASEPLUGIN_H */

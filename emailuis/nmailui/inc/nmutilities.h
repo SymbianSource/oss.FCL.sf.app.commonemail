@@ -23,10 +23,8 @@
 class NmMessage;
 class NmMessageEnvelope;
 class NmAddress;
-class NmOperationCompletionEvent;
-class QFile;
 class XQSharableFile;
-class NmOperationCompletionEvent;
+class HbMessageBox;
 
 /*!
 	UI utilities class
@@ -36,39 +34,28 @@ class NmUtilities : public QObject
     Q_OBJECT
 public:
     enum NmAddressValidationType {
-        ValidAddress,
-        InvalidAddress,
-        Default
+        NmValidAddress,
+        NmInvalidAddress,
+        NmDefault
     };
-    
     static void getRecipientsFromMessage( const NmMessage &message, 
         QList<NmAddress> &recipients,
-        NmAddressValidationType type = Default );
-    
+        NmAddressValidationType type = NmDefault );
     static bool isValidEmailAddress( const QString &emailAddress );
-    
     static QString addressToDisplayName( const NmAddress &address );
-    
     static bool parseEmailAddress( const QString &emailAddress, NmAddress &address );
-    
     static QString cleanupDisplayName( const QString &displayName );     
-
-    static int openFile(QFile &file);
-    
-    static int openFile(XQSharableFile &file);
-    
+    static int openFile(XQSharableFile &file); 
     static QString truncate( const QString &string, int length );
-
     static QString attachmentSizeString(const int sizeInBytes);
-
     static void displayErrorNote(QString noteText); 
-
-    static bool displayQuestionNote(QString noteText);
-    
-    static void displayWarningNote(QString noteText);
-
-    static bool displayOperationCompletionNote(const NmOperationCompletionEvent &event);
-
+    static HbMessageBox *displayQuestionNote(QString noteText,
+                                             QObject *receiver = 0,
+                                             const char *member = 0);
+   
+    static HbMessageBox *displayWarningNote(QString noteText,
+                                            QObject *receiver = 0,
+                                            const char *member = 0);
     static QString createReplyHeader(const NmMessageEnvelope &env);
 };
 

@@ -15,18 +15,8 @@
  *
  */
 
+#include "nmapiheaders.h"
 
-#include <nmapicommonheader.h>
-
-#include "nmapitypesconverter.h"
-#include "nmdataplugininterface.h"
-#include "nmapidatapluginfactory.h"
-#include "nmapiengine.h"
-
-/*!
-    from nmailbase
-*/
-#include "nmapiprivateheaders.h"
 
 NmApiEngine *NmApiEngine::mInstance = NULL;
 quint32 NmApiEngine::mReferenceCount = 0;
@@ -43,6 +33,8 @@ quint32 NmApiEngine::mReferenceCount = 0;
 NmApiEngine::NmApiEngine() :
     mFactory(NULL)
 {
+    NM_FUNCTION;
+    
     mFactory = NmApiDataPluginFactory::instance();
 }
 
@@ -51,6 +43,8 @@ NmApiEngine::NmApiEngine() :
  */
 NmApiEngine::~NmApiEngine()
 {
+    NM_FUNCTION;
+    
     NmApiDataPluginFactory::releaseInstance(mFactory);
 }
 
@@ -63,6 +57,8 @@ NmApiEngine::~NmApiEngine()
  */
 NmApiEngine *NmApiEngine::instance()
 {
+    NM_FUNCTION;
+    
     if (!mInstance) {
         mInstance = new NmApiEngine();
     }
@@ -75,6 +71,8 @@ NmApiEngine *NmApiEngine::instance()
  */
 void NmApiEngine::startCollectingEvents()
 {
+    NM_FUNCTION;
+    
     QObject *plugin = mFactory->plugin();
     if(plugin){
         connect(plugin, SIGNAL(messageEvent(NmMessageEvent, NmId, QList<NmId> , NmId)), this,
@@ -94,15 +92,25 @@ void NmApiEngine::startCollectingEvents()
  */
 void NmApiEngine::mailboxChangedArrived(NmMailboxEvent mailboxEvent, const QList<NmId> &mailboxIds)
 {
+    NM_FUNCTION;
+    
     NmApiMessage message;
     message.objectType = EMailbox;
     switch (mailboxEvent) {
         case NmMailboxCreated: {
             message.action = ENew;
+            // subscribe all events also for these new mailboxes
+            for(int i=0; i<mailboxIds.count(); i++) {
+                mFactory->interfaceInstance()->subscribeMailboxEvents(mailboxIds[i]);
+            }
         }
             break;
         case NmMailboxDeleted: {
             message.action = EDeleted;
+            // unsubscribe all events from deleted mailboxes
+            for(int i=0; i<mailboxIds.count(); i++) {
+                mFactory->interfaceInstance()->unsubscribeMailboxEvents(mailboxIds[i]);
+            }
         }
             break;
         case NmMailboxChanged: {
@@ -138,6 +146,8 @@ void NmApiEngine::messageChangedArrived(
     const QList<NmId> &messageIds,
     const NmId &mailboxId)
 {
+    NM_FUNCTION;
+    
     NmApiMessage message;
     message.objectType = EMessage;
     switch (messageEvent) {
@@ -175,6 +185,8 @@ void NmApiEngine::messageChangedArrived(
  */
 void NmApiEngine::releaseInstance(NmApiEngine *&instance)
 {
+    NM_FUNCTION;
+    
     //can't have passed out instances if we don't have any
     if (mInstance) {
         if (instance == mInstance) {
@@ -196,6 +208,8 @@ void NmApiEngine::releaseInstance(NmApiEngine *&instance)
  */
 void NmApiEngine::listMailboxes(QList<EmailClientApi::NmApiMailbox> &mailboxList)
 {
+    NM_FUNCTION;
+    
     QList<NmMailbox*> mailboxFromPlugin;
 
     NmDataPluginInterface *instance =  mFactory->interfaceInstance();
@@ -205,7 +219,13 @@ void NmApiEngine::listMailboxes(QList<EmailClientApi::NmApiMailbox> &mailboxList
 
     while (mailboxFromPlugin.isEmpty() == false) {
         NmMailbox* tempNmMailbox = mailboxFromPlugin.takeLast();
+
+        // subscribe all events also for these new mailboxes
+        instance->subscribeMailboxEvents(tempNmMailbox->id());
+
+        // construct mailboxlist to platform api
         mailboxList << NmToApiConverter::NmMailbox2NmApiMailbox(*tempNmMailbox);
+
         delete tempNmMailbox;
     }
 }
@@ -219,6 +239,8 @@ void NmApiEngine::listMailboxes(QList<EmailClientApi::NmApiMailbox> &mailboxList
  */
 void NmApiEngine::listFolders(const quint64 mailboxId, QList<EmailClientApi::NmApiFolder> &folderList)
 {
+    NM_FUNCTION;
+    
     QList<NmFolder*> folderFromPlugin;
     NmDataPluginInterface *instance = mFactory->interfaceInstance();
     if (instance) {
@@ -243,6 +265,8 @@ void NmApiEngine::listFolders(const quint64 mailboxId, QList<EmailClientApi::NmA
 void NmApiEngine::listEnvelopes(const quint64 mailboxId, const quint64 folderId, 
                     QList<EmailClientApi::NmApiMessageEnvelope> &messageEnvelopeList)
 {
+    NM_FUNCTION;
+    
     QList<NmMessage*> messages;
     NmDataPluginInterface *instance = mFactory->interfaceInstance();
     if (instance) {
@@ -287,6 +311,8 @@ bool NmApiEngine::getEnvelopeById(
     const quint64 envelopeId,
     EmailClientApi::NmApiMessageEnvelope &envelope)
 {
+    NM_FUNCTION;
+    
     //flag indicating that envelope with given id was found
     bool found = false;
     NmDataPluginInterface *instance = mFactory->interfaceInstance();
@@ -310,7 +336,6 @@ bool NmApiEngine::getEnvelopeById(
             envelope.setTotalSize(message->size());
 
             found = true;
-            delete plainTextPart;
         }
         delete message;
     }
@@ -327,6 +352,8 @@ bool NmApiEngine::getEnvelopeById(
  */
 bool NmApiEngine::getMailboxById(const quint64 mailboxId, EmailClientApi::NmApiMailbox &mailbox)
 {
+    NM_FUNCTION;
+    
     //flag indicating that mailbox with given id was found
     bool found = false;
     NmDataPluginInterface *instance = mFactory->interfaceInstance();

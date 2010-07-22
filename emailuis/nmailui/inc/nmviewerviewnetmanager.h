@@ -23,18 +23,20 @@
 
 class QNetworkRequest;
 class NmViewerView;
+class NmUiEngine;
 
 class NmViewerViewNetManager : public QNetworkAccessManager
 {
     Q_OBJECT
 public:
-    NmViewerViewNetManager();
+    NmViewerViewNetManager(NmUiEngine &uiEngine);
     ~NmViewerViewNetManager();
     void setView(NmViewerView *viewerView);
     QNetworkReply *createRequest(Operation op, const QNetworkRequest &request,
                                  QIODevice *outgoingData);
 
 private:
+	NmUiEngine &mUiEngine;
 	NmViewerView *mMessageView;    // Not owned
 
 };

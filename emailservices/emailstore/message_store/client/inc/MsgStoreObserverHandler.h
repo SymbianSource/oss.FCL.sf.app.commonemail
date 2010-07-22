@@ -84,6 +84,7 @@ class CMsgStoreObserverHandler : private CActive
 		RArray<MMsgStoreObserver*>                       iObservers;
 		RArray<TMailBoxObserverInfo>                     iMailBoxObservers;
 		TBuf8<sizeof(TMsgStoreEvent)*KEventBufferLength> iEventBuffer;
+		TBool                                            iObjectDeleted;
 		
 		__LOG_DECLARATION
 	

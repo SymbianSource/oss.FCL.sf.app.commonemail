@@ -20,18 +20,20 @@
 
 #include <QObject>
 #include <QVariant>
+#include <QPersistentModelIndex>
+#include <AlwaysOnlineManagerClient.h>
 
 #include "nmsettingsplugininterface.h"
 #include "nmsettingscommon.h"
 
+class QTranslator;
+class QModelIndex;
 class HbDataForm;
 class HbDataFormModel;
 class HbDataFormModelItem;
 class NmId;
 class NmIpsSettingsHelper;
 class NmIpsSettingsManagerBase;
-class QTranslator;
-class QModelIndex;
 
 class NmIpsSettingsPlugin : public QObject, public NmSettingsPluginInterface
 {
@@ -59,7 +61,7 @@ public slots:
 private slots:
 
     void createUserDefinedMode();
-    void showMailInInboxModified(int index);
+    void showMailInInboxModified(QPersistentModelIndex, QVariant value);
 
 private:
 
@@ -68,19 +70,17 @@ private:
     void initReceivingScheduleItems(HbDataFormModelItem &item);
     void initUserInfoItems(HbDataFormModelItem &item) const;
     void initServerInfoItems(HbDataFormModelItem &item) const;
+    void setAlwaysOnlineState(TAlwaysOnlineServerAPICommands command, NmId mailboxId) const;
 
     Q_DISABLE_COPY(NmIpsSettingsPlugin)
 
-private:
+private: // data.
 
-    // Owned.
-    NmIpsSettingsHelper *mSettingsHelper;
-    // Owned.
-    NmIpsSettingsManagerBase *mSettingsManager;
-    // Not owned.
-    HbDataFormModel *mModel;
-    // Not owned.
-    HbDataForm *mForm;
+    NmIpsSettingsHelper *mSettingsHelper;  // Owned.
+    NmIpsSettingsManagerBase *mSettingsManager; // Owned.
+    HbDataFormModel *mModel; // Not owned.
+    HbDataForm *mForm; // Not owned.
+    bool mHiddenItem;
 };
 
 #endif // NMIPSSETTINGS_H

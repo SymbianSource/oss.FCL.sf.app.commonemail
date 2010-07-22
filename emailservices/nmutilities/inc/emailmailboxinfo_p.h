@@ -63,11 +63,6 @@ private:
      */
     QString mTempIcon;
     QString mTempName;
-
-    /*! 
-         information about success or failure during resource file load
-     */
-    bool mIsResourceLoaded;
     
     /*!
          Map of already imported branding keys

@@ -26,11 +26,14 @@
 /*!
     Constructor
 */
-NmBaseView::NmBaseView(NmUiStartParam* startParam,
+NmBaseView::NmBaseView(NmUiStartParam *startParam,
+                       NmApplication &application,
                        QGraphicsItem *parent)
 : HbView(parent),
-mStartParam(startParam)
+mStartParam(startParam),
+mApplication(application)
 {
+    NM_FUNCTION;
 }
 
 /*!
@@ -38,16 +41,21 @@ mStartParam(startParam)
 */
 NmBaseView::~NmBaseView()
 {
+    NM_FUNCTION;
+    
     delete mStartParam;
 }
 
 /*!
-    Is it ok to exit current view. Function is called when exiting the view. 
-    Views can override this function and return false to stay in current view. 
+    Is it ok to exit current view. Function is called when exiting the view.
+    Views can override this function and deside are they going to signal popView
+    or not. For example based on the user query. 
 */
-bool NmBaseView::okToExitView()
+void NmBaseView::okToExitView()
 {
-    return true;
+	NM_FUNCTION;
+	
+	mApplication.popView();
 }
 
 /*!
@@ -57,6 +65,7 @@ bool NmBaseView::okToExitView()
 */
 void NmBaseView::aboutToExitView()
 {
+    NM_FUNCTION;
 }
 
 /*!
@@ -65,7 +74,8 @@ void NmBaseView::aboutToExitView()
     if it makes sense to construct items after main view is shown. 
 */
 void NmBaseView::viewReady()
-{    
+{
+    NM_FUNCTION;
 }
 
 /*!
@@ -74,6 +84,7 @@ void NmBaseView::viewReady()
 */
 void NmBaseView::aboutToChangeOrientation()
 {
+    NM_FUNCTION;
 }
 
 /*!
@@ -82,6 +93,8 @@ void NmBaseView::aboutToChangeOrientation()
 */
 void NmBaseView::orientationChanged(Qt::Orientation orientation)
 {
+    NM_FUNCTION;
+    
     Q_UNUSED(orientation);
 }
 
@@ -91,6 +104,8 @@ void NmBaseView::orientationChanged(Qt::Orientation orientation)
 */
 void NmBaseView::handleMouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
+    NM_FUNCTION;
+    
     Q_UNUSED(event);
 }
 
@@ -100,6 +115,8 @@ void NmBaseView::handleMouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 */
 void NmBaseView::handleMousePressEvent(QGraphicsSceneMouseEvent *event)
 {
+    NM_FUNCTION;
+    
     Q_UNUSED(event);
 }
 
@@ -110,6 +127,8 @@ void NmBaseView::handleMousePressEvent(QGraphicsSceneMouseEvent *event)
 */
 void NmBaseView::handleMouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
+    NM_FUNCTION;
+    
     Q_UNUSED(event);
 }
 

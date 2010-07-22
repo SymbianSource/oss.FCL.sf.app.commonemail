@@ -23,6 +23,7 @@
 NmBaseViewScrollArea::NmBaseViewScrollArea(QGraphicsItem *parentView) :
     HbScrollArea(parentView)
     {
+    NM_FUNCTION;
     }
 
 /*!
@@ -30,6 +31,7 @@ NmBaseViewScrollArea::NmBaseViewScrollArea(QGraphicsItem *parentView) :
 */
 NmBaseViewScrollArea::~NmBaseViewScrollArea()
     {
+    NM_FUNCTION;
     }
 
 /*!
@@ -38,6 +40,8 @@ NmBaseViewScrollArea::~NmBaseViewScrollArea()
 */
 void NmBaseViewScrollArea::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
+    NM_FUNCTION;
+    
     if (event){
         emit handleMousePressEvent(event);
         HbScrollArea::mousePressEvent(event);
@@ -50,6 +54,8 @@ void NmBaseViewScrollArea::mousePressEvent(QGraphicsSceneMouseEvent *event)
 */
 void NmBaseViewScrollArea::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
+    NM_FUNCTION;
+    
     if (event){
         emit handleMouseReleaseEvent(event);
         HbScrollArea::mouseReleaseEvent(event);
@@ -62,6 +68,8 @@ void NmBaseViewScrollArea::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 */
 void NmBaseViewScrollArea::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
+    NM_FUNCTION;
+    
     if (event){
         emit handleMouseMoveEvent(event);
         HbScrollArea::mouseMoveEvent(event);
@@ -73,6 +81,8 @@ void NmBaseViewScrollArea::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 */
 void NmBaseViewScrollArea::longPressGesture(const QPointF &point)
 {
+    NM_FUNCTION;
+    
     emit handleLongPressGesture(point);
 }
 

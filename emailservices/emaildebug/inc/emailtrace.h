@@ -1,309 +1,210 @@
 /*
-* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies). 
-* All rights reserved.
-* This component and the accompanying materials are made available
-* under the terms of "Eclipse Public License v1.0"
-* which accompanies this distribution, and is available
-* at the URL "http://www.eclipse.org/legal/epl-v10.html".
-*
-* Initial Contributors:
-* Nokia Corporation - initial contribution.
-*
-* Contributors:
-*
-* Description:  Header file describing trace utilities for commonemail
-*
-*/
+ * Copyright (c) 2010 Nokia Corporation and/or its subsidiary(-ies).
+ * All rights reserved.
+ * This component and the accompanying materials are made available
+ * under the terms of "Eclipse Public License v1.0"
+ * which accompanies this distribution, and is available
+ * at the URL "http://www.eclipse.org/legal/epl-v10.html".
+ *
+ * Initial Contributors:
+ * Nokia Corporation - initial contribution.
+ *
+ * Contributors:
+ *
+ * Description:
+ *
+ */
 
 #ifndef EMAILTRACE_H
 #define EMAILTRACE_H
 
-#include "emailtraceconfig.hrh"
+#include <QCoreApplication>
+#include <QDebug>
+#include <QFile>
+#include <QThread>
 
-#ifdef TRACE_INTO_FILE
-#include <flogger.h> // RFileLogger
+/*
+ * The macros NM_COMMENT_TRACES, NM_ERROR_TRACES, and NM_FUNCTION_TRACES
+ * control which debug messages are printed. The trace logging is controlled
+ * with the NM_LOG_TO_FILE macro, whereas the NM_LOG_DIRECTORY macro defines
+ * which directory is to be used to store the log files. The print_trace()
+ * helper function implements printing. Log files are named according to
+ * process and thread IDs. If NM_LOG_TO_FILE is zero or a log file cannot be
+ * opened, the messages are printed to qDebug(). The DSC2STR() function can
+ * be used to convert Symbian descriptors to QString objects.
+ */
+#if defined(DEBUG) || defined(_DEBUG)
+
+#define NM_COMMENT_TRACES  0
+#define NM_ERROR_TRACES    0
+#define NM_FUNCTION_TRACES 0
+
+#if NM_COMMENT_TRACES || NM_ERROR_TRACES || NM_FUNCTION_TRACES
+
+#define NM_LOG_TO_FILE   1
+#define NM_LOG_DIRECTORY "c:/data/logs/"
+
+inline void print_trace(const QString& msg)
+{
+    static QFile file(NM_LOG_DIRECTORY+
+                      QString("nmail_p%1_t%2.log").
+                      arg(QCoreApplication::applicationPid()).
+                      arg(QThread::currentThreadId()));
+    if (NM_LOG_TO_FILE && !file.isOpen()) {
+        file.open(QIODevice::Append | QIODevice::Text);
+    }
+    if (file.isWritable()) {
+        QDebug(&file).nospace() << msg << '\n';
+    } else {
+        qDebug().nospace() << "[Nmail] " << msg;
+    }
+}
+
+#endif
+
+inline QString DSC2STR(const TDesC& dsc)
+{
+    return QString::fromRawData(reinterpret_cast<const QChar*>(dsc.Ptr()),
+                                dsc.Length());
+}
+
 #else
-#include <e32debug.h> // RDebug
-#endif
 
-/**
-* Constants
-*/
-#ifdef TRACE_INTO_FILE
+#define DSC2STR(dsc)
 
-    _LIT(  KEmailDir, "email" );
-    _LIT(  KEmailTraceFile, "email.txt" );
+#endif /* DEBUG */
 
-#endif
+/*
+ * The function NM_COMMENT() prints a debug message. The INFO macros and the
+ * NMLOG macro are provided for legacy compatibility. They are deprecated and
+ * should not be used. If sprintf() type of formatting is desired, consider
+ * using QString::arg() or QTextStream.
+ */
+#if NM_COMMENT_TRACES
 
-//-----------------------------------------------------------------------------
-// Error trace macros
-//-----------------------------------------------------------------------------
-//
-#ifdef ERROR_TRACE
+inline void NM_COMMENT(const QString& msg)
+{
+    print_trace("COMMENT : " + msg);
+}
+#define INFO(msg) NM_COMMENT(msg)
+#define INFO_1(msg,arg1)\
+do {\
+    QString __msg;\
+    __msg.sprintf(msg,arg1);\
+    NM_COMMENT(__msg);\
+} while (0)
+#define INFO_2(msg,arg1,arg2)\
+do {\
+    QString __msg;\
+    __msg.sprintf(msg,arg1,arg2);\
+    NM_COMMENT(__msg);\
+} while (0)
+#define INFO_3(msg,arg1,arg2,arg3)\
+do {\
+    QString __msg;\
+    __msg.sprintf(msg,arg1,arg2,arg3);\
+    NM_COMMENT(__msg);\
+} while (0)
+#define NMLOG(msg) NM_COMMENT(msg)
 
-    /**
-    * Error trace definitions. Does not automatically log the error code!
-    */
-    #ifdef TRACE_INTO_FILE
+#else
 
-        #define ERROR( aErr, aMsg )\
-            {\
-            if( aErr != KErrNone )\
-                {\
-                _LIT( KMsg, aMsg );\
-                RFileLogger::Write(  KEmailDir,  KEmailTraceFile, EFileLoggingModeAppend, KMsg );\
-                }\
-            }
-        #define ERROR_1( aErr, aMsg, aP1 )\
-            {\
-            if( aErr != KErrNone )\
-                {\
-                _LIT( KMsg, aMsg );\
-                RFileLogger::WriteFormat(  KEmailDir,  KEmailTraceFile, EFileLoggingModeAppend, KMsg, aP1 );\
-                }\
-            }
-        #define ERROR_2( aErr, aMsg, aP1, aP2 )\
-            {\
-            if( aErr != KErrNone )\
-                {\
-                _LIT( KMsg, aMsg );\
-                RFileLogger::WriteFormat(  KEmailDir,  KEmailTraceFile, EFileLoggingModeAppend, KMsg, aP1, aP2 );\
-                }\
-            }
-        #define ERROR_3( aErr, aMsg, aP1, aP2, aP3 )\
-            {\
-            if( aErr != KErrNone )\
-                {\
-                _LIT( KMsg, aMsg );\
-                RFileLogger::WriteFormat(  KEmailDir,  KEmailTraceFile, EFileLoggingModeAppend, KMsg, aP1, aP2, aP3 );\
-                }\
-            }
-        #define ERROR_GEN( aMsg ) ERROR( KErrGeneral, aMsg )
-        #define ERROR_GEN_1( aMsg, aP1 ) ERROR_1( KErrGeneral, aMsg, aP1 )
+#define NM_COMMENT(msg)
+#define INFO(msg)
+#define INFO_1(msg,arg1)
+#define INFO_2(msg,arg1,arg2)
+#define INFO_3(msg,arg1,arg2,arg3)
+#define NMLOG(msg)
 
-    #else//TRACE_INTO_FILE not defined
+#endif /* NM_COMMENT_TRACES */
 
-        #define ERROR( aErr, aMsg )\
-            {\
-            if( aErr != KErrNone )\
-                {\
-                _LIT( KMsg, aMsg ); RDebug::Print( KMsg );\
-                }\
-            }
-        #define ERROR_1( aErr, aMsg, aP1 )\
-            {\
-            if( aErr != KErrNone )\
-                {\
-                _LIT( KMsg, aMsg ); RDebug::Print( KMsg, aP1 );\
-                }\
-            }
-        #define ERROR_2( aErr, aMsg, aP1, aP2 )\
-            {\
-            if( aErr != KErrNone )\
-                {\
-                _LIT( KMsg, aMsg ); RDebug::Print( KMsg, aP1, aP2 );\
-                }\
-            }
-        #define ERROR_3( aErr, aMsg, aP1, aP2, aP3 )\
-            {\
-            if( aErr != KErrNone )\
-                {\
-                _LIT( KMsg, aMsg ); RDebug::Print( KMsg, aP1, aP2, aP3 );\
-                }\
-            }
-        #define ERROR_GEN( aMsg ) ERROR( KErrGeneral, aMsg )
-        #define ERROR_GEN_1( aMsg, aP1 ) ERROR_1( KErrGeneral, aMsg, aP1 )
+/*
+ * The function NM_ERROR() prints its second argument if the first argument
+ * is non-zero. The ERROR macros are provided for legacy compatibility. They
+ * are deprecated and should not be used. If sprintf() type of formatting is
+ * desired, consider using QString::arg() or QTextStream.
+ */
+#if NM_ERROR_TRACES
 
-    #endif//TRACE_INTO_FILE
+inline void NM_ERROR(int err, const QString& msg)
+{
+    if (err) {
+        print_trace("ERROR : " + msg);
+    }
+}
+#define ERROR(err,msg) NM_ERROR(err,msg)
+#define ERROR_1(err,msg,arg1)\
+do {\
+    QString __msg;\
+    __msg.sprintf(msg,arg1);\
+    NM_ERROR(err,__msg);\
+} while (0)
+#define ERROR_2(err,msg,arg1,arg2)\
+do {\
+    QString __msg;\
+    __msg.sprintf(msg,arg1,arg2);\
+    NM_ERROR(err,__msg);\
+} while(0)
+#define ERROR_3(err,msg,arg1,arg2,arg3)\
+do {\
+    QString __msg;\
+    __msg.sprintf(msg,arg1,arg2,arg3);\
+    NM_ERROR(err,__msg);\
+} while(0)
+#define ERROR_GEN(msg) ERROR(KErrGeneral,msg)
+#define ERROR_GEN_1(msg,arg1) ERROR_1(KErrGeneral,msg,arg1)
 
-#else//ERROR_TRACE not defined
+#else
 
-    #define ERROR( aErr, aMsg )
-    #define ERROR_1( aErr, aMsg, aP1 )
-    #define ERROR_2( aErr, aMsg, aP1, aP2 )
-    #define ERROR_3( aErr, aMsg, aP1, aP2, aP3 )
-    #define ERROR_GEN( aMsg )
-    #define ERROR_GEN_1( aMsg, aP1 )
+#define NM_ERROR(err,msg)
+#define ERROR(err,msg)
+#define ERROR_1(err,msg,arg1)
+#define ERROR_2(err,msg,arg1,arg2)
+#define ERROR_3(err,msg,arg1,arg2,arg3)
+#define ERROR_GEN(msg)
+#define ERROR_GEN_1(msg,arg1)
 
-#endif//ERROR_TRACE
+#endif /* NM_ERROR_TRACES */
 
-//-----------------------------------------------------------------------------
-// Info trace macros
-//-----------------------------------------------------------------------------
-//
-#ifdef INFO_TRACE
+/*
+ * The macro NM_FUNCTION, when used inside a function body, enables tracing
+ * for a function. If used, it should be placed on the first line of the
+ * function body. ENTER and RETURN messages are printed when entering into
+ * and returning from a function, respectively. In case of an exception,
+ * UNWIND (for stack unwinding) is printed instead of RETURN. The FUNC_LOG
+ * macro is provided for legacy compatibility. It is deprecated and should
+ * not be used.
+ */
+#if NM_FUNCTION_TRACES
 
-    /**
-    * Info log message definitions.
-    */
-    #ifdef TRACE_INTO_FILE
+class __ftracer
+{
+public:
+    __ftracer(const QString& _fn)
+    : fn(_fn)
+    {
+        print_trace("ENTER : " + fn);
+    }
+    ~__ftracer()
+    {
+        if (std::uncaught_exception()) {
+            print_trace("UNWIND : " + fn);
+        } else {
+            print_trace("RETURN : " + fn);
+        }
+    }
+private:
+    QString fn;
+};
 
-        #define INFO( aMsg )\
-            {\
-            _LIT( KMsg, aMsg );\
-            RFileLogger::Write(  KEmailDir,  KEmailTraceFile, EFileLoggingModeAppend, KMsg );\
-            }
-        #define INFO_1( aMsg, aP1 )\
-            {\
-            _LIT( KMsg, aMsg );\
-            RFileLogger::WriteFormat(  KEmailDir,  KEmailTraceFile, EFileLoggingModeAppend, KMsg, aP1 );\
-            }
-        #define INFO_2( aMsg, aP1, aP2 )\
-            {\
-            _LIT( KMsg, aMsg );\
-            RFileLogger::WriteFormat(  KEmailDir,  KEmailTraceFile, EFileLoggingModeAppend, KMsg, aP1, aP2 );\
-            }
-        #define INFO_3( aMsg, aP1, aP2, aP3 )\
-            {\
-            _LIT( KMsg, aMsg );\
-            RFileLogger::WriteFormat(  KEmailDir,  KEmailTraceFile, EFileLoggingModeAppend, KMsg, aP1, aP2, aP3 );\
-            }
+#define NM_FUNCTION __ftracer __ft(__PRETTY_FUNCTION__)
+#define FUNC_LOG NM_FUNCTION
 
-    #else//TRACE_INTO_FILE not defined
+#else
 
-        #define INFO( aMsg )\
-            {\
-            _LIT( KMsg, aMsg ); RDebug::Print( KMsg );\
-            }
-        #define INFO_1( aMsg, aP1 )\
-            {\
-            _LIT( KMsg, aMsg ); RDebug::Print( KMsg, aP1 );\
-            }
-        #define INFO_2( aMsg, aP1, aP2 )\
-            {\
-            _LIT( KMsg, aMsg ); RDebug::Print( KMsg, aP1, aP2 );\
-            }
-        #define INFO_3( aMsg, aP1, aP2, aP3 )\
-            {\
-            _LIT( KMsg, aMsg ); RDebug::Print( KMsg, aP1, aP2, aP3 );\
-            }
+#define NM_FUNCTION
+#define FUNC_LOG
 
-    #endif//TRACE_INTO_FILE
+#endif /* NM_FUNCTION_TRACES */
 
-#else//INFO_TRACE not defined
-
-    #define INFO( aMsg )
-    #define INFO_1( aMsg, aP1 )
-    #define INFO_2( aMsg, aP1, aP2 )
-    #define INFO_3( aMsg, aP1, aP2, aP3 )
-
-#endif//INFO_TRACE
-
-//-----------------------------------------------------------------------------
-// Function trace macros
-//-----------------------------------------------------------------------------
-//
-#ifdef FUNC_TRACE
-
-    // Constants
-    _LIT8( KEllipse, "(" );
-
-    /**
-    * Function logging definitions.
-    */
-    #ifdef TRACE_INTO_FILE
-
-        #define FUNC( aMsg, aP1 )\
-            {\
-            _LIT8( KMsg, aMsg ); RFileLogger::WriteFormat(  KEmailDir,  KEmailTraceFile, EFileLoggingModeAppend, KMsg, aP1 );\
-            }\
-
-    #else//TRACE_INTO_FILE not defined
-
-        #define FUNC( aMsg, aP1 )\
-            {\
-            RDebug::Printf( aMsg, aP1 );\
-            }\
-
-    #endif//TRACE_INTO_FILE
-
-    /**
-    * Function trace helper class.
-    */
-    class TFuncLog
-        {
-        public:
-            inline TFuncLog( const char* aFunc ): iFunc( (TUint8*)aFunc )
-                {
-                TInt pos = iFunc.Find( KEllipse );
-                if( pos != KErrNotFound )
-                    {
-                    iFunc.Set( iFunc.Left( iFunc.Find( KEllipse ) ) );
-                    }
-                #ifdef TRACE_INTO_FILE
-
-                    //"CMAIL" string is added in the beginning of every trace
-                    //line for filtering purposes
-                    FUNC( "CMAIL %S <", &iFunc );
-
-                #else//TRACE_INTO_FILE notdefined
-
-                    FUNC( "CMAIL %s <", iFunc.Ptr() );
-
-                #endif//TRACE_INTO_FILE
-                }
-            inline ~TFuncLog()
-                {
-                #ifdef TRACE_INTO_FILE
-
-                    FUNC( "CMAIL %S >", &iFunc );
-
-                #else//TRACE_INTO_FILE not defined
-
-                    FUNC( "CMAIL %s >", iFunc.Ptr() );
-
-                #endif//TRACE_INTO_FILE
-                }
-            TPtrC8 iFunc;
-        };
-
-    #define FUNC_LOG TFuncLog _fl( __PRETTY_FUNCTION__ );
-
-#else//FUNC_TRACE not defined
-
-    #define FUNC_LOG
-
-#endif//FUNC_TRACE
-
-//-----------------------------------------------------------------------------
-// Timestamp trace macros
-//-----------------------------------------------------------------------------
-//
-#ifdef TIMESTAMP_TRACE
-
-    #ifdef TRACE_INTO_FILE
-
-        #define TIMESTAMP( aCaption )\
-            {\
-            TTime t;\
-            t.HomeTime();\
-            TDateTime dt = t.DateTime();\
-            _LIT( KMsg, aCaption );\
-            _LIT( KFormat, "[TIMESTAMP] %S %d:%02d:%02d.%d us");\
-            RFileLogger::WriteFormat(  KEmailDir,  KEmailTraceFile, EFileLoggingModeAppend, KFormat,\
-                &KMsg, dt.Hour(), dt.Minute(), dt.Second(), dt.MicroSecond() );\
-            }
-
-    #else//TRACE_INTO_FILE not defined
-
-        #define TIMESTAMP( aCaption )\
-            {\
-            TTime t;\
-            t.HomeTime();\
-            TDateTime dt = t.DateTime();\
-            _LIT( KMsg, aCaption );\
-            _LIT( KFormat, "[TIMESTAMP] %S %d:%02d:%02d.%d us");\
-            RDebug::Print( KFormat,\
-                &KMsg, dt.Hour(), dt.Minute(), dt.Second(), dt.MicroSecond() );\
-            }
-
-    #endif//TRACE_INTO_FILE
-
-#else//TIMESTAMP_TRACE not defined
-
-    #define TIMESTAMP( aCaption )
-
-#endif//TIMESTAMP_TRACE
-
-#endif // EMAILTRACE_H
+#endif /* EMAILTRACE_H */

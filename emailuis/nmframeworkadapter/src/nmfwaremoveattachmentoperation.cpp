@@ -40,6 +40,8 @@ NmFwaRemoveAttachmentOperation::NmFwaRemoveAttachmentOperation(
         mMessage(message),
         mMailClient(mailClient)
 {
+    NM_FUNCTION;
+    
     // Take a copy because original will be deleted during the operation
     mAttachmentPartId.setId(attachmentPartId.id());
 }
@@ -49,6 +51,8 @@ NmFwaRemoveAttachmentOperation::NmFwaRemoveAttachmentOperation(
  */
 NmFwaRemoveAttachmentOperation::~NmFwaRemoveAttachmentOperation()
 {
+    NM_FUNCTION;
+    
     doCancelOperation();
 }
 
@@ -60,6 +64,8 @@ NmFwaRemoveAttachmentOperation::~NmFwaRemoveAttachmentOperation()
  */
 void NmFwaRemoveAttachmentOperation::doRunAsyncOperation()
 {
+    NM_FUNCTION;
+    
     TRAPD(err, doRunAsyncOperationL());
     if (err != KErrNone) {
         completeOperation(NmGeneralError);
@@ -72,6 +78,8 @@ void NmFwaRemoveAttachmentOperation::doRunAsyncOperation()
  */
 void NmFwaRemoveAttachmentOperation::doRunAsyncOperationL()
 {
+    NM_FUNCTION;
+    
     CFSMailMessage *msg = NULL;
 
     msg = CFSMailMessage::NewL(mMessage);
@@ -110,6 +118,8 @@ void NmFwaRemoveAttachmentOperation::doRunAsyncOperationL()
 void NmFwaRemoveAttachmentOperation::RequestResponseL(TFSProgress aEvent,
                                                       TInt aRequestId)
 {
+    NM_FUNCTION;
+    
     if (aRequestId == mRequestId) {
         TFSProgress::TFSProgressStatus status = aEvent.iProgressStatus;
         if (status == TFSProgress::EFSStatus_RequestComplete) {
@@ -143,6 +153,8 @@ void NmFwaRemoveAttachmentOperation::RequestResponseL(TFSProgress aEvent,
  */
 void NmFwaRemoveAttachmentOperation::doCancelOperation()
 {
+    NM_FUNCTION;
+    
     if (mRequestId >= 0) {
         TRAP_IGNORE(mMailClient.CancelL(mRequestId));
         mRequestId = KErrNotFound;

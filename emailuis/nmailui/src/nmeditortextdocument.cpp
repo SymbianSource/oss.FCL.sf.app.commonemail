@@ -31,6 +31,8 @@ static const char *NMUI_DOC_DEFAULT_IMAGE = ":/trolltech/styles/commonstyle/imag
 NmEditorTextDocument::NmEditorTextDocument(QNetworkAccessManager &manager) :
     mManager(manager)
 {
+    NM_FUNCTION;
+    
     connect(&mManager, SIGNAL(finished(QNetworkReply*)),
         this, SLOT(replyFinished(QNetworkReply*)));
 }
@@ -40,6 +42,8 @@ NmEditorTextDocument::NmEditorTextDocument(QNetworkAccessManager &manager) :
 */
 NmEditorTextDocument::~NmEditorTextDocument()
 {
+    NM_FUNCTION;
+    
     foreach(QNetworkReply *reply, mReplyList) {
         if(reply) {
             reply->abort();
@@ -53,6 +57,8 @@ NmEditorTextDocument::~NmEditorTextDocument()
 */
 void NmEditorTextDocument::replyFinished(QNetworkReply *reply)
 {
+    NM_FUNCTION;
+    
     if(reply) {
         if(reply->error() == QNetworkReply::NoError) {
             QPixmap image;
@@ -61,8 +67,10 @@ void NmEditorTextDocument::replyFinished(QNetworkReply *reply)
                 emit documentLayoutChanged();
             }
         }
-        mReplyList.removeAll(reply);
-        reply->deleteLater();
+        // If this has created the request, then this needs to handle deletion also.
+        if (mReplyList.removeAll(reply)) {
+            reply->deleteLater();
+        }
     }
 }
 
@@ -71,6 +79,8 @@ void NmEditorTextDocument::replyFinished(QNetworkReply *reply)
 */
 QVariant NmEditorTextDocument::loadResource(int type, const QUrl &name)
 {
+    NM_FUNCTION;
+    
     QVariant retVal;
     
     if(type == QTextDocument::ImageResource) {    

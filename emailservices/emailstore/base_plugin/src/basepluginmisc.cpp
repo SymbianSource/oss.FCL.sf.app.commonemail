@@ -266,7 +266,8 @@ void CBasePlugin::GoOnlineL(
 void CBasePlugin::RefreshNowL(
     const TFSMailMsgId& /*aMailBoxId*/,
  	MFSMailRequestObserver& /*aOperationObserver*/,
- 	TInt /*aRequestId*/ )
+ 	TInt /*aRequestId*/,
+ 	const TBool /*aSilentConnection=EFalse*/ )
     {
 
     }
@@ -383,6 +384,23 @@ void CBasePlugin::CancelL( TInt aRequestId )
     		break;
     		}
     	}
+    count = iDelayedOpReqs.Count();
+    for ( TInt i = 0; i < count; i++ )
+        {
+        if ( iDelayedOpReqs[i]->iRequestId == aRequestId )
+            {
+            CDelayedOp* request = iDelayedOpReqs[i];
+            TFSProgress progress = TFSProgress();
+            progress.iProgressStatus = TFSProgress::EFSStatus_RequestCancelled;
+            progress.iCounter = progress.iMaxCount = 1;
+            progress.iError = KErrNone;
+            request->iOperationObserver->RequestResponseL( progress, aRequestId );
+            iDelayedOpsManager->DequeueOp(*request);
+            iDelayedOpReqs.Remove( i );
+            delete request;
+            break;
+            }
+        }
     }
 
 

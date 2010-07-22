@@ -42,6 +42,7 @@ public:
 
     ~NmMailboxSettingView();
 
+    NmId mailboxId();
 
 private slots:
 

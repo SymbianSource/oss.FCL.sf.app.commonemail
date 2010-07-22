@@ -40,6 +40,7 @@ public:
 
 protected:
     void doRunAsyncOperation();
+    void doCompleteOperation();
     void doCancelOperation();
     
 private:

@@ -26,6 +26,7 @@
 class NmUiEngine;
 class NmOperation;
 class NmAttachmentFetchObserver;
+class NmMessage;
 
 class NmAttachmentManager : public QObject
 {
@@ -38,6 +39,15 @@ public:
             const NmId &folderId, 
             const NmId &messageId, 
             const NmId &messagePartId);
+    bool fetchAttachments(
+            const NmId &mailboxId, 
+            const NmId &folderId, 
+            const NmId &messageId,
+            QList<NmId> &messagePartIds);
+    void fetchAllMessageParts(
+            const NmId &mailboxId, 
+            const NmId &folderId, 
+            const NmId &messageId);
     bool isFetching() const;
     NmId partIdUnderFetch() const;
     int progressValue() const;
@@ -47,12 +57,15 @@ public:
     
 private slots:
     void changeProgress(int value);
-    void attachmentFetchCompleted(int result);
-    
+    void completeAttachmentFetch(int result);
+    void completeMessageFetch(int result);
+
 private:
     NmUiEngine &mUiEngine;
     QPointer<NmOperation> mFetchOperation;      // Not owned
+    QPointer<NmOperation> mMsgFetchOperation;      // Not owned
     NmAttachmentFetchObserver *mFetchObserver;  // Not owned
+    NmMessage *mFetchMsg;
     NmId mAttaId;
     int mProgressValue;
     bool mIsFetching;

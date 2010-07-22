@@ -21,6 +21,6 @@
 #include <bldvariant.hrh>
 
 file=ABI_DIR\BUILD_DIR\nmregister.dll                         SHARED_LIB_DIR\nmregister.dll
-data=\epoc32\data\z\resource\qt\plugins\nmregister.qtplugin   resource\qt\plugins\nmregister.qtplugin
+data=ZRESOURCE\qt\plugins\nmregister.qtplugin   RESOURCE_FILES_DIR\qt\plugins\nmregister.qtplugin
 data=ZPRIVATE\2002DD16\nmregister.xml      					  private\2002DD16\nmregister.xml
 #endif  // __NMREGISTER_IBY__

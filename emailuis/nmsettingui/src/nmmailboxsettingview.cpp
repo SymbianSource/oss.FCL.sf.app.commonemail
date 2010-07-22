@@ -56,6 +56,8 @@ NmMailboxSettingView::NmMailboxSettingView(const NmId &mailboxId,
       mModel(NULL),
       mMailboxId(mailboxId.id())
 {
+    NM_FUNCTION;
+    
     setTitle(mailboxName);
 
     HbDocumentLoader documentLoader;
@@ -74,6 +76,9 @@ NmMailboxSettingView::NmMailboxSettingView(const NmId &mailboxId,
     }
 
     if (mForm) {
+        // Fix for dataform item recycling.
+        mForm->setItemRecycling(false);
+
         // Set the form for the view.
         setWidget(mForm);
 
@@ -96,13 +101,9 @@ NmMailboxSettingView::NmMailboxSettingView(const NmId &mailboxId,
 */
 NmMailboxSettingView::~NmMailboxSettingView()
 {
-    NMLOG("NmMailboxSettingView::~NmMailboxSettingView()");
-
-    if (mForm) {
-        mForm->removeAllConnection();
-        delete mForm;
-    }
-
+    NM_FUNCTION;
+    
+    delete mForm;
     delete mModel;
 }
 
@@ -116,6 +117,8 @@ NmMailboxSettingView::~NmMailboxSettingView()
 void NmMailboxSettingView::mailboxListChanged(const NmId &mailboxId,
     NmSettings::MailboxEventType type)
 {
+    NM_FUNCTION;
+    
     Q_UNUSED(mailboxId);
     Q_UNUSED(type);
 
@@ -137,6 +140,8 @@ void NmMailboxSettingView::mailboxPropertyChanged(const NmId &mailboxId,
                                                   QVariant property,
                                                   QVariant value)
 {
+    NM_FUNCTION;
+    
     Q_UNUSED(mailboxId);
 
     switch (property.toInt()) {
@@ -150,5 +155,12 @@ void NmMailboxSettingView::mailboxPropertyChanged(const NmId &mailboxId,
     }
 }
 
+/*!
+    Returns the mailbox id for this mailbox setting view.    
+*/
+NmId NmMailboxSettingView::mailboxId()
+{
+    return mMailboxId;
+}
 
 // End of file.

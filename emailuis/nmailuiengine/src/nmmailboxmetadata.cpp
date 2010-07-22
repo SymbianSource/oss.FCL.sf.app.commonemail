@@ -34,6 +34,7 @@ public:
     QString mName;
     NmId mId;
     NmId mIconId;
+    QString mAddress;
 };
 
 
@@ -42,6 +43,8 @@ public:
 */
 NmMailboxMetaData::NmMailboxMetaData()
 {
+    NM_FUNCTION;
+    
     d = new NmMailboxMetaDataPrivate;
 }
 
@@ -51,6 +54,8 @@ NmMailboxMetaData::NmMailboxMetaData()
 */
 NmMailboxMetaData::~NmMailboxMetaData()
 {
+    NM_FUNCTION;
+    
     delete d;
 }
 
@@ -59,6 +64,8 @@ NmMailboxMetaData::~NmMailboxMetaData()
 */
 QString NmMailboxMetaData::name() const
 {
+    NM_FUNCTION;
+    
     return d->mName;
 }
 
@@ -67,6 +74,8 @@ QString NmMailboxMetaData::name() const
 */
 void NmMailboxMetaData::setName(const QString &name)
 {
+    NM_FUNCTION;
+    
     d->mName = name;
 }
 
@@ -75,6 +84,8 @@ void NmMailboxMetaData::setName(const QString &name)
 */
 NmId NmMailboxMetaData::id() const
 {
+    NM_FUNCTION;
+    
     return d->mId;
 }
 
@@ -83,6 +94,8 @@ NmId NmMailboxMetaData::id() const
 */
 void NmMailboxMetaData::setId(const NmId& id)
 {
+    NM_FUNCTION;
+    
     d->mId = id;
 }
 
@@ -91,6 +104,8 @@ void NmMailboxMetaData::setId(const NmId& id)
 */
 NmId NmMailboxMetaData::IconId() const
 {
+    NM_FUNCTION;
+    
     return d->mIconId;
 }
 
@@ -99,10 +114,27 @@ NmId NmMailboxMetaData::IconId() const
 */
 void NmMailboxMetaData::setIconId(const NmId &id)
 {
+    NM_FUNCTION;
+    
     d->mIconId = id;
 }
 
+/*!
+    Get mailbox address
+*/
+QString NmMailboxMetaData::address() const
+{
+    NM_FUNCTION;
+    
+    return d->mAddress;
+}
 
-
-
-
+/*!
+    Set Mailbox address as \a address
+*/
+void NmMailboxMetaData::setAddress(const QString &address)
+{
+    NM_FUNCTION;
+    
+    d->mAddress = address;
+}

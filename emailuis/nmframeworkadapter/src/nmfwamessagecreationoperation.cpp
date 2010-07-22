@@ -40,6 +40,7 @@ NmFwaMessageCreationOperation::NmFwaMessageCreationOperation(
         mMailClient(mailClient),
         mRequestId(NmNotFoundError)
 {
+    NM_FUNCTION;
 }
 
 /*!
@@ -47,9 +48,10 @@ NmFwaMessageCreationOperation::NmFwaMessageCreationOperation(
  */
 NmFwaMessageCreationOperation::~NmFwaMessageCreationOperation()
 {
+    NM_FUNCTION;
+    
     doCancelOperation();
     delete mMessage;
-    NMLOG("NmFwaMessageCreationOperation::~NmFwaMessageCreationOperation --->");
 }
 
 /*!
@@ -59,6 +61,8 @@ NmFwaMessageCreationOperation::~NmFwaMessageCreationOperation()
  */
 void NmFwaMessageCreationOperation::doRunAsyncOperation()
 {
+    NM_FUNCTION;
+    
     const TFSMailMsgId mailMsgId(mMailboxId.pluginId32(), mMailboxId.id32());
 
     CFSMailBox *mailBox = NULL;
@@ -105,6 +109,8 @@ void NmFwaMessageCreationOperation::doRunAsyncOperation()
  */
 void NmFwaMessageCreationOperation::doCompleteOperation()
 {
+    NM_FUNCTION;
+    
     mRequestId = NmNotFoundError;
 }
 
@@ -113,6 +119,8 @@ void NmFwaMessageCreationOperation::doCompleteOperation()
  */
 void NmFwaMessageCreationOperation::doCancelOperation()
 {
+    NM_FUNCTION;
+    
     if (mRequestId >= 0) {
         TRAP_IGNORE(mMailClient.CancelL(mRequestId));
         mRequestId = NmNotFoundError;
@@ -127,6 +135,8 @@ void NmFwaMessageCreationOperation::doCancelOperation()
  */
 NmMessage *NmFwaMessageCreationOperation::getMessage()
 {
+    NM_FUNCTION;
+    
     // Ownership changes
     NmMessage *ret = mMessage;
     mMessage = NULL;
@@ -141,6 +151,8 @@ NmMessage *NmFwaMessageCreationOperation::getMessage()
  */
 NmId NmFwaMessageCreationOperation::getMessageId()
 {
+    NM_FUNCTION;
+    
     NmId messageId;
     
     if (mMessage) {
@@ -159,6 +171,8 @@ NmId NmFwaMessageCreationOperation::getMessageId()
 void NmFwaMessageCreationOperation::RequestResponseL(TFSProgress aEvent,
                                                      TInt aRequestId)
 {
+    NM_FUNCTION;
+    
     TFSProgress::TFSProgressStatus status = aEvent.iProgressStatus;
 
     if (aRequestId == mRequestId) {

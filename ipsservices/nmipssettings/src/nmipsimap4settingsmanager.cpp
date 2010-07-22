@@ -17,6 +17,7 @@
 
 #include <QVariant>
 #include <imapset.h>
+#include <iapprefs.h>
 #include <cemailaccounts.h>
 #include <xqconversions.h>
 
@@ -32,7 +33,7 @@
 // ======== MEMBER FUNCTIONS ========
 
 /*!
-    Constructor
+    Constructor.
     Creates the CImImap4Settings instance for loading and saving the IMAP4 settings.
     Finds and loads the SMTP account and settings linked to the IMAP4 account.
     \param mailboxId Mailbox identifier.
@@ -53,7 +54,7 @@ NmIpsImap4SettingsManager::NmIpsImap4SettingsManager(const NmId &mailboxId,
 }
 
 /*!
-    Destructor
+    Destructor.
 */
 NmIpsImap4SettingsManager::~NmIpsImap4SettingsManager()
 {
@@ -66,7 +67,8 @@ NmIpsImap4SettingsManager::~NmIpsImap4SettingsManager()
     \param QVariant SettingValue of the found setting value.
     \return <true> when the setting item was found otherwise <false>.
 */
-bool NmIpsImap4SettingsManager::readSetting(IpsServices::SettingItem settingItem, QVariant &settingValue)
+bool NmIpsImap4SettingsManager::readSetting(IpsServices::SettingItem settingItem,
+                                            QVariant &settingValue)
 {
     bool found(false);
     switch (settingItem) {
@@ -101,7 +103,7 @@ bool NmIpsImap4SettingsManager::readSetting(IpsServices::SettingItem settingItem
         case IpsServices::IncomingSSLWrapper:
         	settingValue = mImap4Settings->SSLWrapper();
             found = true;
-            break;  
+            break;
         default:
             found = NmIpsSettingsManagerBase::readSetting(settingItem, settingValue);
             break;
@@ -115,7 +117,8 @@ bool NmIpsImap4SettingsManager::readSetting(IpsServices::SettingItem settingItem
     \param settingValue QVariant of the new setting value.
     \return bool <true> when the setting item was succesfully written, otherwise <false>.
 */
-bool NmIpsImap4SettingsManager::writeSetting(IpsServices::SettingItem settingItem, const QVariant &settingValue)
+bool NmIpsImap4SettingsManager::writeSetting(IpsServices::SettingItem settingItem,
+                                             const QVariant &settingValue)
 {
     HBufC *tmp = 0;
     HBufC8 *tmp8 = 0;
@@ -174,6 +177,9 @@ bool NmIpsImap4SettingsManager::writeSetting(IpsServices::SettingItem settingIte
             mImap4Settings->SetSSLWrapper(settingValue.toBool());
             ret = saveSettings();
             break;  
+        case IpsServices::Connection:
+            ret = saveIAPSettings(settingValue.toUInt());
+            // Fallthrough so SMTP IAP settings are also updated accordingly.
         default:
             ret = NmIpsSettingsManagerBase::writeSetting(settingItem, settingValue);
             break;
@@ -183,7 +189,6 @@ bool NmIpsImap4SettingsManager::writeSetting(IpsServices::SettingItem settingIte
 
 /*!
     Deletes the IMAP4 mailbox.
-
     \return Error code <code>0</code> if mailbox deletion was successful, otherwise error
             code is returned.
 */
@@ -198,6 +203,20 @@ int NmIpsImap4SettingsManager::deleteMailbox()
     return error;
 }
 
+
+/*!
+     Determines the default port for the incoming mail server based on the security settings.
+     \return The port number to use.
+ */
+int NmIpsImap4SettingsManager::determineDefaultIncomingPort()
+{
+    int port(IpsServices::standardImap4Port);
+    if (mImap4Settings->SSLWrapper()) {
+        port = IpsServices::imap4OverSslPort;
+    }        
+    return port;
+}
+
 /*!
     Stores the IMAP4 specific settings.
     \return bool <true> when the IMAP4 settings were succesfully written, otherwise <false>.
@@ -210,18 +229,17 @@ bool NmIpsImap4SettingsManager::saveSettings()
 }
 
 /*!
-     Determine the default port for the incoming mail server based on the security settings
-     
-     \return int the port number to use
- */
-int NmIpsImap4SettingsManager::determineDefaultIncomingPort()
+    Stores the IMAP4 specific IAP settings.
+    \return bool <true> when the IMAP4 IAP settings were succesfully written, otherwise <false>.
+*/
+bool NmIpsImap4SettingsManager::saveIAPSettings(uint snapId)
 {
-    int port = 0;    
-    bool sslTls = mImap4Settings->SSLWrapper();    
-    if (sslTls) {
-        port = IpsServices::imap4OverSslPort;
-    } else {
-        port = IpsServices::standardImap4Port;
-    }        
-    return port;
+    TRAPD(err,
+        CImIAPPreferences *prefs = CImIAPPreferences::NewLC();
+        mAccount->LoadImapIapSettingsL(mImap4Account, *prefs);
+        prefs->SetSNAPL(snapId);
+        mAccount->SaveImapIapSettingsL(mImap4Account, *prefs);
+        CleanupStack::PopAndDestroy(prefs);
+    );
+    return (err==KErrNone);
 }

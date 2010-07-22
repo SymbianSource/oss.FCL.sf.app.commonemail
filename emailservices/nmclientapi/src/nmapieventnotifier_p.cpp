@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+ * Copyright (c) 2009 - 2010 Nokia Corporation and/or its subsidiary(-ies).
  * All rights reserved.
  * This component and the accompanying materials are made available
  * under the terms of "Eclipse Public License v1.0"
@@ -15,20 +15,24 @@
  *
  */
 
-#include "nmapiengine.h"
-#include "nmapieventnotifier_p.h"
-
-#include <QTimer>
+#include "nmapiheaders.h"
 
 namespace EmailClientApi
 {
+const quint32 IntervalEmitingSignals = 10000;
+
 /*!
    Constructor
  */
 NmApiEventNotifierPrivate::NmApiEventNotifierPrivate(QObject *parent) :
     QObject(parent), mEmitSignals(NULL), mEngine(NULL), mIsRunning(false)
 {
-
+    NM_FUNCTION;
+    mEmitSignals = new QTimer(this);
+    mEmitSignals->setInterval(IntervalEmitingSignals);
+    connect(mEmitSignals, SIGNAL(timeout()), this, SIGNAL(
+        timedOut()));
+    mEngine = NmApiEngine::instance();
 }
 
 /*!
@@ -36,38 +40,66 @@ NmApiEventNotifierPrivate::NmApiEventNotifierPrivate(QObject *parent) :
  */
 NmApiEventNotifierPrivate::~NmApiEventNotifierPrivate()
 {
-
+    NM_FUNCTION;
+    mEmitSignals->stop();
+    NmApiEngine::releaseInstance(mEngine);
 }
 
 /*!
-   \brief It initialize engine for email operations. 
-   
-   When use initializeEngine need to remember release it.
-   It return value if initialization go good.
-   \sa releaseEngine 
-   \return Return true if engine works.
+   Returns true if the 
  */
-bool NmApiEventNotifierPrivate::initializeEngine()
+bool NmApiEventNotifierPrivate::isRunning() const
 {
-    if (!mEngine) {
-        mEngine = NmApiEngine::instance();
-    }
-
-    return mEngine ? true : false;
+    return mIsRunning;
 }
 
 /*!
-   \brief It release engine for email operations.
+   Start monitoring email events
    
-   \sa initializeEngine
+   \return Value tells about monitoring system running
  */
-void NmApiEventNotifierPrivate::releaseEngine()
+bool NmApiEventNotifierPrivate::start()
 {
+    NM_FUNCTION;
+    
+    bool result(false);
+
     if (mIsRunning) {
-        cancel();
+        result = true;
     }
     else {
-        NmApiEngine::releaseInstance(mEngine);
+        qRegisterMetaType<QList<quint64> > ("QList<quint64>");
+        qRegisterMetaType<NmApiMessage> ("NmApiMessage");
+
+        connect(mEngine, SIGNAL(emailStoreEvent(NmApiMessage)), this,
+                SLOT(emailStoreEvent(NmApiMessage)));
+            
+        mEngine->startCollectingEvents();
+            
+        mEmitSignals->start();
+        mIsRunning = true;
+        result = true;
+    }
+    return result;
+}
+/*!
+   \brief Stop listening events.
+ */
+void NmApiEventNotifierPrivate::stop()
+{
+    mIsRunning = false;
+    mEmitSignals->stop();
+    disconnect(mEngine, SIGNAL(emailStoreEvent(NmApiMessage)), this,
+            SLOT(emailStoreEvent(NmApiMessage)));
+}
+
+/*!
+    Returns event buffer, after function call the buffer is empty
+ */
+void NmApiEventNotifierPrivate::events(QList<NmApiMessage> &events)
+{
+    while (!mBufferOfEvents.isEmpty()) {
+        events << mBufferOfEvents.takeFirst();
     }
 }
 
@@ -80,11 +112,14 @@ void NmApiEventNotifierPrivate::releaseEngine()
  */
 void NmApiEventNotifierPrivate::emailStoreEvent(const NmApiMessage &events)
 {
+    NM_FUNCTION;
     mBufferOfEvents << events;
 }
 
 void NmApiEventNotifierPrivate::cancel()
 {
+    NM_FUNCTION;
+    
     if (!mIsRunning) {
         return;
     }
@@ -92,12 +127,8 @@ void NmApiEventNotifierPrivate::cancel()
     mIsRunning = false;
     mEmitSignals->stop();
 
-    if (mEngine) {
-        disconnect(mEngine, SIGNAL(emailStoreEvent(NmApiMessage)), this,
+    disconnect(mEngine, SIGNAL(emailStoreEvent(NmApiMessage)), this,
             SLOT(emailStoreEvent(NmApiMessage)));
-    }
-
-    releaseEngine();
 
     mBufferOfEvents.clear();
 }

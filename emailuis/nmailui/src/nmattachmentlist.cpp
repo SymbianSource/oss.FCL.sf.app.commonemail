@@ -28,7 +28,7 @@
 NmAttachmentList::NmAttachmentList(NmAttachmentListWidget &listWidget)
 : mListWidget(listWidget)
 {
-    updateLayout();
+    NM_FUNCTION;
 }
 
 /*!
@@ -36,17 +36,19 @@ NmAttachmentList::NmAttachmentList(NmAttachmentListWidget &listWidget)
 */
 NmAttachmentList::~NmAttachmentList()
 { 
-    clearList();
+    NM_FUNCTION;
 }
 
 /*!
-    Insert new list item. Returns the count of the attachment in list
+    Insert new list item. Returns the index of the attachment in list
 */
 int NmAttachmentList::insertAttachment(
     const QString &fullFileName,
     const QString &fileSize,
     const NmId &attachmentPartId)
 {
+    NM_FUNCTION;
+    
     QString displayName = fullNameToDisplayName(fullFileName);
     mFullFileName.append(fullFileName);
     mDisplayFileName.append(displayName);
@@ -56,7 +58,6 @@ int NmAttachmentList::insertAttachment(
         count() - 1,
         displayName, 
         NmUtilities::attachmentSizeString(fileSize.toDouble()));  
-    updateLayout();
     return count() - 1;
 }
 
@@ -67,6 +68,8 @@ int NmAttachmentList::insertAttachment(
 void NmAttachmentList::setAttachmentPartId(const QString fullFileName, 
                                            const NmId &attachmentPartId)
 {
+    NM_FUNCTION;
+    
     for (int i=0; i<count(); ++i) {
         if (mFullFileName.at(i) == fullFileName && mAttachmentPartId.at(i).id() == 0) {
             mAttachmentPartId.replace(i, attachmentPartId);
@@ -79,6 +82,8 @@ void NmAttachmentList::setAttachmentPartId(const QString fullFileName,
 */
 void NmAttachmentList::setAttachmentSize(const NmId &attachmentPartId, const QString &size)
 {
+    NM_FUNCTION;
+    
     for (int i=0; i<count(); ++i) {
         if (mAttachmentPartId.at(i) == attachmentPartId) {
             mFileSize.replace(i, size);
@@ -88,18 +93,20 @@ void NmAttachmentList::setAttachmentSize(const NmId &attachmentPartId, const QSt
 }
 
 /*!
-    Remove attachment from list position
+    Removes attachment from list position
 */
 void NmAttachmentList::removeAttachment(int arrayIndex)
 {
-    if (arrayIndex < count()) {
+    NM_FUNCTION;
+    
+    if (arrayIndex < count() && 
+        arrayIndex >= 0 ) {
         // Remove UI
         mListWidget.removeAttachment(arrayIndex);
         // Remove from data structure
         mFullFileName.removeAt(arrayIndex);
         mDisplayFileName.removeAt(arrayIndex);
         mAttachmentPartId.removeAt(arrayIndex);
-        updateLayout();
     }
 }
 
@@ -108,6 +115,8 @@ void NmAttachmentList::removeAttachment(int arrayIndex)
 */
 QString NmAttachmentList::getFullFileNameByIndex(int arrayIndex)
 {
+    NM_FUNCTION;
+    
 	QString result;
 	
     if ( arrayIndex >= 0 && arrayIndex < mFullFileName.count() ) {
@@ -121,6 +130,8 @@ QString NmAttachmentList::getFullFileNameByIndex(int arrayIndex)
 */
 void NmAttachmentList::removeAttachment(const QString &fullFileName)
 {
+    NM_FUNCTION;
+    
     for (int i=0; i<count(); ++i) {
         if (mFullFileName.at(i) == fullFileName) {
             removeAttachment(i);
@@ -133,6 +144,8 @@ void NmAttachmentList::removeAttachment(const QString &fullFileName)
 */
 void NmAttachmentList::removeAttachment(const NmId &attachmentPartId)
 {
+    NM_FUNCTION;
+    
     for (int i=0; i<count(); ++i) {
         if (mAttachmentPartId.at(i) == attachmentPartId) {
             removeAttachment(i);
@@ -145,6 +158,8 @@ void NmAttachmentList::removeAttachment(const NmId &attachmentPartId)
 */
 void NmAttachmentList::clearList()
 {
+    NM_FUNCTION;
+    
     for (int i=count()-1; i>=0; --i) {
         // Remove from UI
         mListWidget.removeAttachment(i);
@@ -152,7 +167,6 @@ void NmAttachmentList::clearList()
         mFullFileName.removeAt(i);
         mDisplayFileName.removeAt(i);
         mAttachmentPartId.removeAt(i);
-        updateLayout();
     }
 }
 
@@ -161,6 +175,8 @@ void NmAttachmentList::clearList()
 */
 NmAttachmentListWidget& NmAttachmentList::listWidget()
 {
+    NM_FUNCTION;
+    
     return mListWidget;
 }
 
@@ -169,6 +185,8 @@ NmAttachmentListWidget& NmAttachmentList::listWidget()
 */
 int NmAttachmentList::count()
 {
+    NM_FUNCTION;
+    
     return mFullFileName.count();
 }
 
@@ -177,6 +195,8 @@ int NmAttachmentList::count()
 */
 NmId NmAttachmentList::nmIdByIndex(int listIndex)
 {
+    NM_FUNCTION;
+    
     return mAttachmentPartId.at(listIndex);
 }
 
@@ -185,6 +205,8 @@ NmId NmAttachmentList::nmIdByIndex(int listIndex)
 */
 int NmAttachmentList::indexByNmId(const NmId &id)
 {
+    NM_FUNCTION;
+    
     for (int i=0; i<count(); ++i) {
         if (mAttachmentPartId.at(i) == id) {
             return i;
@@ -198,24 +220,7 @@ int NmAttachmentList::indexByNmId(const NmId &id)
 */
 QString NmAttachmentList::fullNameToDisplayName(const QString &fullName)
 {
+    NM_FUNCTION;
+    
     return fullName.section('\\', -1);
 }
-
-/*!
-    Update the list layout height
-*/
-void NmAttachmentList::updateLayout()
-{
-    // Fix this when progress bar is used
-    mListWidget.setMaximumHeight(count() * 56); 
-    QTimer::singleShot(1, this, SLOT(delayedLayoutChangeInfo()));
-}
-
-/*!
-    Send delayed signal about attachment list layout change
-*/
-void NmAttachmentList::delayedLayoutChangeInfo()
-{
-    emit attachmentListLayoutChanged();
-}
-

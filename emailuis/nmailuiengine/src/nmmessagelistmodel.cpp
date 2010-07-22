@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+* Copyright (c) 2009 - 2010 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -17,6 +17,7 @@
 
 #include "nmuiengineheaders.h"
 
+static const int NmFolderTypeRole = Qt::UserRole+1; 
 
 /*!
     \class NmMessageListModel
@@ -29,81 +30,127 @@
 */
 
 /*!
-	Constructor
- */
-NmMessageListModel::NmMessageListModel(NmDataManager &dataManager, QObject *parent)
-:QStandardItemModel(parent),
-mDataManager(dataManager),
-mDividersActive(false),
-mParentPtr(NULL)
+	Class constructor.
+*/
+NmMessageListModel::NmMessageListModel(NmDataManager &dataManager,
+                                       QObject *parent /* = 0 */)
+: QStandardItemModel(parent),
+  mDataManager(dataManager),
+  mDividersActive(false),
+  mParentPtr(NULL),
+  mCurrentFolderType(NmFolderInbox),
+  mIgnoreFolderIds(false)
 {
+    NM_FUNCTION;
+    
     // Check for setting whether dividers are active
     // mDividersActive = ...
     // update also the test cases
 }
 
+
 /*!
-	Destructor
- */
+	Class destructor.
+*/
 NmMessageListModel::~NmMessageListModel()
 {
+    NM_FUNCTION;
+    
     clear();
 }
+
 
 /*!
     Returns data specified by \a index. Only Qt::DisplayRole is supported in \a role.
     The refresh method must have been called before this method can return any real data.
- */
-
+*/
 QVariant NmMessageListModel::data(const QModelIndex &index, int role) const
 {
+    NM_FUNCTION;
+    
     QVariant qVariant;
-    if (index.isValid() && Qt::DisplayRole == role) {
-    	NmMessageListModelItem *item = static_cast<NmMessageListModelItem*>(itemFromIndex(index));
-        qVariant = QVariant::fromValue(item);
+
+    if (index.isValid()){
+        if (role == Qt::DisplayRole) {
+            NmMessageListModelItem *item =
+                static_cast<NmMessageListModelItem*>(itemFromIndex(index));
+            qVariant = QVariant::fromValue(item);
+        }
+        else if (role == NmFolderTypeRole) {
+            qVariant = QVariant(mCurrentFolderType);
+        }    
     }
+
     return qVariant;
 }
 
+
 /*!
     This refreshes the data of the model.
- */
+
+    \param mailboxId The ID of the mailbox.
+    \param folderId The ID of the folder.
+    \param messageEnvelopeList A list containing the message meta data.
+*/
 void NmMessageListModel::refresh(
-                    const NmId mailboxId, 
-                    const NmId folderId,
-                    const QList<NmMessageEnvelope*> &messageEnvelopeList)
+        const NmId mailboxId, 
+        const NmId folderId,
+        const QList<NmMessageEnvelope*> &messageEnvelopeList)
 {
-    // Store current mailbox and folder id
+    NM_FUNCTION;
+
+    // Store the current mailbox and folder IDs.
     mCurrentMailboxId = mailboxId;
     mCurrentFolderId = folderId;
-    // clear the model
+
+    // Store the type of the currently displayed folder.
+    mCurrentFolderType = mDataManager.folderTypeById(mailboxId, folderId);
+
+    // Clear the model.
     clear();
-    // Add items
+
+    // Add the items from the given list.
     NmMessageEnvelope* insertedMessage(NULL);
     int parentCount(0);
     int childCount(0);
+
     for (int i(0); i < messageEnvelopeList.count(); i++) {
-        NmMessageEnvelope* nextMessage = messageEnvelopeList[i];
-        if (mDividersActive && !messagesBelongUnderSameDivider(
-        		insertedMessage, nextMessage)) {
-            insertDividerIntoModel(nextMessage, parentCount);
-            parentCount++;
-            childCount = 0;
+        NmMessageEnvelope *nextMessage = messageEnvelopeList[i];
+        // imap and pop is using common sent, outbox or draft folder
+        // for all mailboxes, here we want to filter out messages that
+        // are not under this mailbox
+        bool insert(true);
+        if (nextMessage 
+            && (NmFolderSent == mCurrentFolderType
+             || NmFolderOutbox == mCurrentFolderType
+             || NmFolderDrafts == mCurrentFolderType)) {
+            insert = (mCurrentMailboxId == nextMessage->mailboxId());  
         }
-        insertMessageIntoModel(nextMessage, childCount, false);
-        insertedMessage = nextMessage;
-        childCount++;
+        if (insert) {
+            if (mDividersActive &&
+                !messagesBelongUnderSameDivider(insertedMessage, nextMessage)) {
+                insertDividerIntoModel(nextMessage, parentCount);
+                parentCount++;
+                childCount = 0;
+            }
+    
+            insertMessageIntoModel(nextMessage, childCount, false);
+            insertedMessage = nextMessage;
+            childCount++;
+        }
     }
-    //NMLOG(QString("nmailuiengine: model row count = %1").arg(rowCount()));
 }
+
 
 /*!
     insertDividerIntoModel. Function inserts divider into model.
- */
+*/
 void NmMessageListModel::insertDividerIntoModel(
     NmMessageEnvelope *messageForDivider,
     int parentRow)
 {
+    NM_FUNCTION;
+    
     mParentPtr = createTitleDividerItem(messageForDivider);
     insertRow(parentRow,mParentPtr);
     mParentPtr->callEmitDataChanged();
@@ -112,10 +159,12 @@ void NmMessageListModel::insertDividerIntoModel(
 /*!
     Function inserts message into model. Message can be inserted
     either to root or to parent. If parent is zero, item is added into root.
- */
+*/
 void NmMessageListModel::insertMessageIntoModel(
 		NmMessageEnvelope *messageEnvelope, int childRow, bool emitSignal)
 {
+    NM_FUNCTION;
+    
     NmMessageListModelItem *mailItem = createMessageItem(messageEnvelope);
     if (mParentPtr) {
         // Add under parent divider
@@ -133,11 +182,13 @@ void NmMessageListModel::insertMessageIntoModel(
 /*!
     Function checks whether the messages can be drawn under same title divider
     Check is done depending of the current sorting criteria
- */
+*/
 bool NmMessageListModel::messagesBelongUnderSameDivider(
     const NmMessageEnvelope *message1,
     const NmMessageEnvelope *message2) const
 {
+    NM_FUNCTION;
+    
     bool retVal(false);
     // First check pointer validity
     if (message1 && message2) {
@@ -154,59 +205,95 @@ bool NmMessageListModel::messagesBelongUnderSameDivider(
 
 
 /*!
-    Function handles message events
- */
-void NmMessageListModel::handleMessageEvent(
-    NmMessageEvent event,
-    const NmId &folderId,
-    const QList<NmId> &messageIds)
-{
-    NmId mailboxId = mCurrentMailboxId;
+    Handles the message events.
 
-    if (folderId == 0) {
-        // const cast is used here because also the input parameter has to be changed
-        const_cast<NmId&>(folderId) = mDataManager.getStandardFolderId(mailboxId, NmFolderInbox);
-        NmUiStartParam *startParam = new NmUiStartParam(NmUiViewMessageList, mailboxId, folderId);
-        emit setNewParam(startParam);
-    }
-    if (mCurrentFolderId == 0) {
-        // Folder id was not known at time mailbox opened
-        // and we know subscription is valid only for current 
-        // mailbox, because of events.
-        mCurrentFolderId = folderId; 
-    }
-    // Handle events if they concern currently displayed folder
-    if (mCurrentFolderId == folderId) {
-        NMLOG(QString("nmailuiengine: handleMessageEvent"));
-        if (NmMessageChanged == event) {
-            for (int a(0); a < messageIds.count(); a++) {
-                updateMessageEnvelope(mailboxId, folderId,messageIds[a]);
-            }
+    \param event The type of the message event.
+    \param folderId The folder containing the message.
+    \param messageIds A list of message IDs related to the event.
+*/
+void NmMessageListModel::handleMessageEvent(NmMessageEvent event,
+                                            const NmId &folderId,
+                                            const QList<NmId> &messageIds,
+                                            const NmId &mailboxId)
+{
+    NM_FUNCTION;
+    const int idCount = messageIds.count();
+
+    // Folder ID does not concern us if this model instance is used for e.g.
+    // searching messages.
+    if (!mIgnoreFolderIds) {
+        if (folderId == 0) {
+            // Const cast is used here because also the input parameter has to
+            // be changed.
+            const_cast<NmId&>(folderId) =
+                mDataManager.getStandardFolderId(mailboxId, NmFolderInbox);
+            NmUiStartParam *startParam =
+                new NmUiStartParam(NmUiViewMessageList, mailboxId, folderId);
+            emit setNewParam(startParam);
         }
-        else if (NmMessageCreated == event) {
-            for (int a(0); a < messageIds.count(); a++) {
-                if(!itemFromModel(messageIds[a])) {
-                    insertNewMessageIntoModel(mailboxId, folderId, messageIds[a]);
-                }
+
+        if (mCurrentFolderId == 0) {
+            // Folder ID was not known at time when the mailbox opened and we
+            // know that because of events the subscription is valid only for
+            // the current mailbox.
+            mCurrentFolderId = folderId; 
+        }
+        // MailboxId checking here is done because we want to filter out messages
+        // that belongs to other mailboxes in case of imap/pop sent, outbox or draft folder
+        if (mCurrentFolderId != folderId || mCurrentMailboxId != mailboxId) {
+            // The event does not concern the folder currently being displayed.
+            // Thus, ignore it.
+            return;
+        }
+    }
+
+    // Go through the given message IDs and do the appropriate operations
+    // according to the type of the event.
+    for (int i(0); i < idCount; ++i) {
+        switch (event) {
+            case NmMessageChanged: {
+                updateMessageEnvelope(mailboxId, folderId, messageIds[i]);
+                break;
             }
-        } else {
-            for (int a(0); a < messageIds.count(); a++) {
-                removeMessageFromModel(messageIds[a]);
+            case NmMessageCreated: {
+                // mIgnoreFolderIds is true if (and only if) this model is used
+                // for mail search purposes and thus, we do not want the model
+                // to handle "message created" events. Issue to consider:
+                // renaming mIgonreFolderIds => mModelUsedForSearch or something
+                // similar.
+                if (!mIgnoreFolderIds && !itemFromModel(messageIds[i])) {
+                    insertNewMessageIntoModel(mailboxId, folderId, messageIds[i]);
+                }
+                
+                break;
+            }
+            case NmMessageFound: {
+                if (!itemFromModel(messageIds[i])) {
+                    insertNewMessageIntoModel(mailboxId, folderId, messageIds[i]);
+                }
+
+                break;
+            }
+            case NmMessageDeleted: {
+                removeMessageFromModel(messageIds[i]);
+                break;
             }
         }
     }
 }
 
+
 /*!
     Function inserts new message into correct position to model.
     A new title divider is created if it is needed.
- */
+*/
 void NmMessageListModel::insertNewMessageIntoModel(
     const NmId &mailboxId,
     const NmId &folderId,
     const NmId &msgId)
 {
-    NMLOG(QString("NmMessageListModel::insertNewMessageIntoModel"));
+    NM_FUNCTION;
+    
     // envelope ownership is here
     NmMessageEnvelope *newMsgEnve = mDataManager.envelopeById(mailboxId, folderId, msgId);
     if (newMsgEnve) {
@@ -266,11 +353,12 @@ void NmMessageListModel::insertNewMessageIntoModel(
 /*!
     Function check model index in which the new message should be inserted
     with the currently active sort mode.
- */
+*/
 int NmMessageListModel::getInsertionIndex(
     const NmMessageEnvelope &envelope) const
 {
-    // NMLOG(QString("nmailuiengine: getInsertionIndex"));
+    NM_FUNCTION;
+    
     int ret(NmNotFoundError);
     
     // Date+descending sort mode based comparison.
@@ -300,9 +388,11 @@ int NmMessageListModel::getInsertionIndex(
 /*!
     Function finds preceding title divider index and sets the
     mParentPtr variable.
- */
+*/
 int NmMessageListModel::dividerInsertionIndex(int messageIndex)
 {
+    NM_FUNCTION;
+    
     bool found(false);
     int ret(NmNoError);
     QModelIndex index;
@@ -322,10 +412,12 @@ int NmMessageListModel::dividerInsertionIndex(int messageIndex)
 
 /*!
     Create title divider item
- */
+*/
 NmMessageListModelItem *NmMessageListModel::createTitleDividerItem(
 		NmMessageEnvelope *messageForDivider)
 {
+    NM_FUNCTION;
+    
     NmMessageListModelItem *item = new NmMessageListModelItem();
     item->setItemType(NmMessageListModelItem::NmMessageItemTitleDivider);
 
@@ -351,11 +443,12 @@ NmMessageListModelItem *NmMessageListModel::createTitleDividerItem(
 
 /*!
     Create message item
- */
+*/
 NmMessageListModelItem *NmMessageListModel::createMessageItem(
 		NmMessageEnvelope *envelope)
 {
-
+    NM_FUNCTION;
+    
     NmMessageListModelItem *mailItem = new NmMessageListModelItem();
     mailItem->setEnvelope(*envelope);
     mailItem->setItemType(NmMessageListModelItem::NmMessageItemMessage);
@@ -365,45 +458,72 @@ NmMessageListModelItem *NmMessageListModel::createMessageItem(
 
 /*!
     Returns divider state
- */
+*/
 bool NmMessageListModel::dividersActive()
 {
+    NM_FUNCTION;
+    
     return mDividersActive;
 }
 
 /*!
     Set divider state
- */
+*/
 void NmMessageListModel::setDividers(bool active)
 {
+    NM_FUNCTION;
+    
     mDividersActive = active;
 }
 
 /*!
    Change item property if differs
- */
+*/
 void NmMessageListModel::setEnvelopeProperties(
     NmEnvelopeProperties property,
     const QList<NmId> &messageIds)
 {
+    NM_FUNCTION;
+    
     for (int i(0); i < messageIds.count(); i++) {
         updateEnvelope(property, messageIds[i]);
     }
 }
 
+
 /*!
-   Returns the id of the current mailbox
- */
+    Returns the ID of the current mailbox.
+*/
 NmId NmMessageListModel::currentMailboxId()
 {
+    NM_FUNCTION;
+    
     return mCurrentMailboxId;
 }
 
+
+/*!
+    Sets whether the model should ignore the folder IDs or not. The folder IDs
+    should be ignored e.g. when the model is used for searching messages
+    (i.e. used by the search view).
+
+    \param ignore If true, will ignore the folder IDs.
+*/
+void NmMessageListModel::setIgnoreFolderIds(bool ignore)
+{
+    NM_FUNCTION;
+    
+    mIgnoreFolderIds = ignore;
+}
+
+
 /*!
    Remove message from model if message exists in model
- */
+*/
 void NmMessageListModel::removeMessageFromModel(const NmId &msgId)
 {
+    NM_FUNCTION;
+    
     QList<QStandardItem*> items = findItems("*", Qt::MatchWildcard | Qt::MatchRecursive);
     int count(items.count());
     bool found(false);
@@ -453,18 +573,22 @@ void NmMessageListModel::removeMessageFromModel(const NmId &msgId)
 
 /*!
    Helper function to remove row
- */
+*/
 void NmMessageListModel::removeItem(int row, NmMessageListModelItem &item)
 {
+    NM_FUNCTION;
+    
     QStandardItem *parent = item.parent();
     removeRow(row, indexFromItem(parent));
 }
 
 /*!
    Search item from model
- */
+*/
 NmMessageListModelItem *NmMessageListModel::itemFromModel(const NmId &messageId)
 {
+    NM_FUNCTION;
+    
     QList<QStandardItem*> items = findItems("*", Qt::MatchWildcard | Qt::MatchRecursive);
     int count(items.count());
     bool found(false);
@@ -485,19 +609,23 @@ NmMessageListModelItem *NmMessageListModel::itemFromModel(const NmId &messageId)
 
 /*!
    Helper function for envelope comparison
- */
+*/
 bool NmMessageListModel::changed(const NmMessageEnvelope &first, const NmMessageEnvelope &second)
 {
+    NM_FUNCTION;
+    
     return first != second;
 }
 
 /*!
    Updates envelope if something is changed
- */
+*/
 void NmMessageListModel::updateMessageEnvelope(const NmId &mailboxId,
         const NmId &folderId,
         const NmId &msgId)
 {
+    NM_FUNCTION;
+    
     NmMessageListModelItem *item = itemFromModel(msgId);
     // envelope ownership is here
     NmMessageEnvelope *newEnvelope = mDataManager.envelopeById(mailboxId, folderId, msgId);
@@ -514,9 +642,11 @@ void NmMessageListModel::updateMessageEnvelope(const NmId &mailboxId,
 
 /*!
    Update envelope property
- */
+*/
 void NmMessageListModel::updateEnvelope(NmEnvelopeProperties property, const NmId &msgId)
 {
+    NM_FUNCTION;
+    
     NmMessageListModelItem *item = itemFromModel(msgId);
     if (item) {
         bool changed(false);

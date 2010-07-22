@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+* Copyright (c) 2009 - 2010 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -22,6 +22,9 @@
 #include <QString>
 #include <QMetaType>
 #include <QVariant>
+#include <QDateTime>
+
+#include "emailtrace.h"
 
 #define USE_POPIMAP_TESTPLUGIN
 
@@ -52,7 +55,8 @@ enum NmMessageEvent
 {
     NmMessageCreated,
     NmMessageChanged,
-    NmMessageDeleted
+    NmMessageDeleted,
+    NmMessageFound // Search functionality related enumeration.
 };
 Q_DECLARE_METATYPE(NmMessageEvent)
 
@@ -301,52 +305,6 @@ inline void NmId::setPluginId32(quint32 pluginId32)
 {
     mPluginId = pluginId32;
 }
-
-/*!
-     static function for debug prints
- */
-#include <QDebug>
-#include <QFile>
-#include <QDateTime>
-
-static void printToFileAndConsole(QString str, QString filename)
-{    
-    // Print to file
-    QFile debugFile(filename);
-    QIODevice::OpenMode openMode = QIODevice::Text;
-    if (debugFile.exists()) {
-        openMode |= QIODevice::Append;
-    } else {
-        openMode |= QIODevice::WriteOnly;
-    }
-
-    // Create date string
-    QString d = QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss");
-
-    if (debugFile.open(openMode)) {
-        QTextStream debugStream(&debugFile);
-        debugStream << d << "  " << str << endl;
-        debugFile.close();
-    }
-    // Print to console
-    qDebug() << d << str << endl; 
-}
-
-// 
-// NMLOG is used to log QStrings to text file. For example:
-//
-// NMLOG("nmailui: application opened successfully");
-//
-// QString fileName = "mailbox.xml";
-// int error = -12;
-// NMLOG(QString("### cannot open file: err=%1  file='%2' ###").arg(error).arg(fileName));
-//
-#ifdef _DEBUG
-#define NMLOG(a) { printToFileAndConsole(a, "c:/logs/nmail.log"); }
-#else
-#define NMLOG(a)
-#endif
-
 
 /*! email list sort criteria definition */
 class NmMailSortCriteria

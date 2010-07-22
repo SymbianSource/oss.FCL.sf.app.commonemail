@@ -141,7 +141,8 @@ TInt CIpsPlgImap4Plugin::RefreshNowL( )
 void CIpsPlgImap4Plugin::RefreshNowL(
     const TFSMailMsgId& aMailBoxId,
     MFSMailRequestObserver& aOperationObserver,
-    TInt aRequestId )
+    TInt aRequestId,
+    const TBool /*aSilentConnection*/ )
     {
     FUNC_LOG;
     
@@ -165,10 +166,8 @@ void CIpsPlgImap4Plugin::RefreshNowL(
     iOperations.AppendL( watcher );
     CleanupStack::Pop( watcher );
     
-	//<qmail>
     // send part of refresh
-    //EmptyOutboxL( aMailBoxId ); // not used in qmail yet
-	//</qmail>
+    EmptyOutboxL( aMailBoxId );
     }
 
 // ---------------------------------------------------------------------------
@@ -579,15 +578,14 @@ void CIpsPlgImap4Plugin::PopulateNewMailL(
     accounts->GetImapAccountL( aMailboxId.Id(), imapAcc );
     accounts->LoadImapSettingsL( imapAcc, *settings );
     TImImap4GetPartialMailInfo info;
-// <qmail>	
-    info.iPartialMailOptions = ENoSizeLimits;
-    //CIpsSetDataApi::ConstructImapPartialFetchInfo( info, *settings );
+// <qmail> Get TImImap4GetPartialMailInfo based on settings
+    CIpsPlgImap4ConnectOp::ConstructImapPartialFetchInfo( info, *settings );
     CleanupStack::PopAndDestroy( 2, settings );
-    /*
+
     if ( info.iTotalSizeLimit == KIpsSetDataHeadersOnly )
         {
         return;
-        }*/
+        }
 // </qmail>
     
     TPckgBuf<TImImap4GetPartialMailInfo> package(info);

@@ -14,10 +14,9 @@
  * Description:
  *
  */
-#include "nmapiengine.h"
-#include "nmapifolderlisting_p.h"
 
-#include <nmapifolder.h>
+#include "nmapiheaders.h"
+
 
 namespace EmailClientApi
 {
@@ -25,10 +24,15 @@ namespace EmailClientApi
 /*!
    Constructor form NmApiFolderListingPrivate
  */
-NmApiFolderListingPrivate::NmApiFolderListingPrivate(QObject *parent) :
-    QObject(parent), mEngine(NULL)
+NmApiFolderListingPrivate::NmApiFolderListingPrivate(quint64 mailboxId, QObject *parent) 
+:QObject(parent), 
+mMailboxId(mailboxId),
+mEngine(NULL),
+mIsRunning(false)
 {
-
+    NM_FUNCTION;
+    mEngine = NmApiEngine::instance();
+    Q_CHECK_PTR(mEngine);
 }
 
 /*!
@@ -36,53 +40,60 @@ NmApiFolderListingPrivate::NmApiFolderListingPrivate(QObject *parent) :
  */
 NmApiFolderListingPrivate::~NmApiFolderListingPrivate()
 {
-    releaseEngine();
-}
-
-/*!
-   \brief It initialize engine for email operations. 
-   
-   When use initializeEngine need to remember release it.
-   It return value if initialization go good.
-   \sa releaseEngine 
- */
-bool NmApiFolderListingPrivate::initializeEngine()
-{
-    if (!mEngine) {
-        mEngine = NmApiEngine::instance();
-    }
-
-    return mEngine ? true : false;
-}
-
-/*!
-   \brief It release engine for email operations.
-   
-   \sa initializeEngine
- */
-void NmApiFolderListingPrivate::releaseEngine()
-{
+    NM_FUNCTION;
     NmApiEngine::releaseInstance(mEngine);
 }
 
 /*!
-   \brief It grab folders from engine. 
+   \brief Fetch folders from engine. 
    
-   When it start grabing, it release all old.
    Because it uses NmFolder with sharedData we don't need care about release memory.
    
-   \return Count of folders or "-1" if there is no engine initialised
+   \return Count of folders
  */
-qint32 NmApiFolderListingPrivate::grabFolders()
+qint32 NmApiFolderListingPrivate::listFolders()
 {
-    if (!mEngine) {
-        return -1;
-    }
-    
+    NM_FUNCTION;
+    mIsRunning = true;
     mFolders.clear();
     mEngine->listFolders(mMailboxId, mFolders);
     return mFolders.count();
 }
 
+/*! 
+   \brief Returns results after listFolders is called.
+   
+    Caller gets ownership of messages. Returns true if results were available.
+    It clears list of folders after be called.
+    It also at start clear inputlist of NmFolder.
+ */
+bool NmApiFolderListingPrivate::folders(QList<EmailClientApi::NmApiFolder> &folders)
+{
+    NM_FUNCTION;
+    bool ret(mIsRunning);
+    folders.clear();
+    while (!mFolders.isEmpty()) {
+        folders << mFolders.takeFirst();
+    }
+    mIsRunning = false;
+    return ret;
+}
+
+/*!
+   \brief Return info if listing is running
+ */
+bool NmApiFolderListingPrivate::isRunning() const
+{
+    NM_FUNCTION;
+    return mIsRunning;
+}
+/*!
+   \brief Clears list of folders.
+ */
+void NmApiFolderListingPrivate::cancel() 
+{
+    mIsRunning = false;
+    mFolders.clear();
+}
 }
 

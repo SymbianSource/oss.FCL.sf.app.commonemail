@@ -23,10 +23,6 @@ static const QString FILE_PATH_CSS = ":nmattachmentlistitem.css";
 static const int PROGRESSBAR_MIN = 0; 
 static const int PROGRESSBAR_MAX = 100;
 static const int PROGRESSBAR_HIDE_COUNTDOWN = 500;
-static const int LONGPRESS_TIMER = 2000;
-
-// Hardcoded file size length. Maximum (999.9 Mb) fits into size field.
-static const int FILE_SIZE_FIELD_LENGTH = 120;
 
 /*!
  @nmailuiwidgets
@@ -47,12 +43,15 @@ NmAttachmentListItem::NmAttachmentListItem(QGraphicsItem *parent)
     : HbWidget( parent ),
       mFileNameText(NULL),
       mFileSizeText(NULL),
-      mProgressBar(NULL),
-      mTimer(NULL),
-      mButtonPressed(false),
-      mLongPressedPoint(0,0)
+      mProgressBar(NULL)
 {
+    NM_FUNCTION;
+    
     init( );
+	
+    // Informs GestureFramework that NmAttachmentListItem widget is interested 
+    // Tap gesture and TapAndHold gesture.
+    grabGesture(Qt::TapGesture);
 }
 
 /*!
@@ -61,6 +60,8 @@ NmAttachmentListItem::NmAttachmentListItem(QGraphicsItem *parent)
  */
 void NmAttachmentListItem::setTextColor(const QColor color)
 {
+    NM_FUNCTION;
+    
     mTextColor=color;
 }
 
@@ -69,11 +70,10 @@ void NmAttachmentListItem::setTextColor(const QColor color)
  */
 NmAttachmentListItem::~NmAttachmentListItem( )
 {
+    NM_FUNCTION;
+    
     HbStyleLoader::unregisterFilePath(FILE_PATH_WIDGETML);
     HbStyleLoader::unregisterFilePath(FILE_PATH_CSS);
-    
-    delete mTimer;
-    mTimer = NULL; 
 }
 
 /*!
@@ -81,6 +81,8 @@ NmAttachmentListItem::~NmAttachmentListItem( )
  */
 void NmAttachmentListItem::setFileNameText(const QString &fileName)
 {
+    NM_FUNCTION;
+    
     if (mFileNameText){
         if (mTextColor.isValid()){
             mFileNameText->setTextColor(mTextColor);
@@ -95,6 +97,8 @@ void NmAttachmentListItem::setFileNameText(const QString &fileName)
  */
 void NmAttachmentListItem::setFileSizeText(const QString &fileSize)
 {
+    NM_FUNCTION;
+    
     if (mFileSizeText){
         if (mTextColor.isValid()){
             mFileSizeText->setTextColor(mTextColor);
@@ -105,25 +109,12 @@ void NmAttachmentListItem::setFileSizeText(const QString &fileSize)
 }
 
 /*!
-    Set the length of the filename field.
- */
-void NmAttachmentListItem::resetFileNameLength(Qt::Orientation orientation)
-{
-	QSizeF reso = screenSize(orientation);
-	
-	if (orientation == Qt::Horizontal) {
-        mFileNameText->setPreferredWidth(reso.width() / 2 - FILE_SIZE_FIELD_LENGTH);
-	}
-	else {		
-        mFileNameText->setPreferredWidth(reso.width() - FILE_SIZE_FIELD_LENGTH);
-	}
-}
-
-/*!
     Set the download progress bar value (0-100)%, if value is 0 progress bar is hidden
  */
 void NmAttachmentListItem::setProgressBarValue(const int value)
 {
+    NM_FUNCTION;
+    
     //first check if value is 0 or below -> hide progressbar
     if ( 0 >= value ){
         removeProgressBar();
@@ -150,6 +141,8 @@ void NmAttachmentListItem::setProgressBarValue(const int value)
 */
 int NmAttachmentListItem::progressBarValue() const
 {
+    NM_FUNCTION;
+    
     int ret = 0;
     if ( mProgressBar ){
         ret = mProgressBar->progressValue();
@@ -163,6 +156,8 @@ int NmAttachmentListItem::progressBarValue() const
 */
 void NmAttachmentListItem::hideProgressBar()
 {
+    NM_FUNCTION;
+    
     QTimer::singleShot(PROGRESSBAR_HIDE_COUNTDOWN,this, SLOT(removeProgressBar()));
 }
 
@@ -171,16 +166,13 @@ void NmAttachmentListItem::hideProgressBar()
 */
 void NmAttachmentListItem::init( )
 {
+    NM_FUNCTION;
+    
     constructUi();
 
     //set default values
     setFlag(QGraphicsItem::ItemIsFocusable);
     setFlag(QGraphicsItem::ItemIsSelectable);
-
-    //set temporary longpress timer
-    mTimer = new QTimer(this);
-    mTimer->setSingleShot(true);
-    connect(mTimer, SIGNAL(timeout()), this, SLOT(longPressedActivated()));
 }
 
 /*!
@@ -188,6 +180,8 @@ void NmAttachmentListItem::init( )
 */
 void NmAttachmentListItem::constructUi()
 {
+    NM_FUNCTION;
+    
     //construct default ui.    
     HbStyleLoader::registerFilePath(FILE_PATH_WIDGETML);
     HbStyleLoader::registerFilePath(FILE_PATH_CSS);
@@ -205,38 +199,12 @@ void NmAttachmentListItem::constructUi()
 
 
 /*!
-    \reimp
- */
-void NmAttachmentListItem::mousePressEvent( QGraphicsSceneMouseEvent *event )
-{
-    NMLOG("NmAttachmentListItem::mousePressEvent");
-
-    mButtonPressed = true;
-    mLongPressedPoint = event->scenePos();
-    if(mTimer){
-        mTimer->start(LONGPRESS_TIMER);        
-    }
-}
-
-/*!
-    \reimp
- */
-void NmAttachmentListItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
-{
-    Q_UNUSED(event);
-    NMLOG("NmAttachmentListItem::mouseReleasedEvent");
-    if ( mTimer && mButtonPressed ){
-        emit itemActivated();
-        mButtonPressed = false;
-        mTimer->stop();
-    }
-}
-
-/*!
     Hides the download progress bar
  */
 void NmAttachmentListItem::removeProgressBar()
 {
+    NM_FUNCTION;
+    
 	if ( mProgressBar ){
 	    HbStyle::setItemName( mProgressBar, "" );
 	    mProgressBar->deleteLater();
@@ -245,48 +213,36 @@ void NmAttachmentListItem::removeProgressBar()
 	}
 }
 
-/*!
-
- */
-void NmAttachmentListItem::longPressedActivated()
-{
-    //check first if button is not released already
-    if ( mButtonPressed ){
-        NMLOG("NmAttachmentListItem::longPressedActivated");
-        emit itemLongPressed(mLongPressedPoint);
-        mButtonPressed = false;
-    }
-}
 
 /*!
-    This function returns screen size depending on the orientation.
-    Function is copied from NmApplication.
+    This function handles gestures
  */
-QSize NmAttachmentListItem::screenSize(Qt::Orientation orientation)
+void NmAttachmentListItem::gestureEvent(QGestureEvent *event)
 {
-    QSize ret(0,0);
-    HbDeviceProfile currentP = HbDeviceProfile::current();
-    HbDeviceProfile altP(currentP.alternateProfileName());
-    QSize curPSize = currentP.logicalSize();
-    QSize altPSize = altP.logicalSize();
-    if (orientation == Qt::Horizontal) {
-        // Get wide profile size in landscape
-        if (curPSize.width() > altPSize.width()) {
-            ret = curPSize;
-        }
-        else{
-            ret = altPSize;
+    NM_FUNCTION;
+    
+    if (HbTapGesture *tap = qobject_cast<HbTapGesture *>(event->gesture(Qt::TapGesture))) {
+        switch(tap->tapStyleHint()) {
+        case HbTapGesture::Tap:
+            {
+                if (tap->state() == Qt::GestureFinished) {
+                    emit itemActivated();
+                }
+             }
+             break;
+            
+         case HbTapGesture::TapAndHold:
+             {
+                 if (tap->state() == Qt::GestureFinished) {
+                 emit itemLongPressed(event->mapToGraphicsScene(tap->position()));
+                 }
+             }    
+             break;
         }
     }
     else {
-        // Get narrow profile size in portrait
-        if (curPSize.width() < altPSize.width()) {
-            ret = curPSize;
-        }
-        else{
-            ret = altPSize;
-        }
+           HbWidget::gestureEvent(event);
     }
-    return ret;
 }
+
 

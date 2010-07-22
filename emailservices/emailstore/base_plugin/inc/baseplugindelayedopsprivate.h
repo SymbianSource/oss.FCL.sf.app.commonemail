@@ -231,8 +231,6 @@ private:
     TFSMailMsgId iMailBox;
     RPointerArray<CFSMailMessage> iMessages;
     RPointerArray<CFSMailMessagePart> iMessageParts;
-    MFSMailRequestObserver& iOperationObserver;
-    TInt iRequestId;
     TInt iType;
     // Data buffer for async operations
     HBufC8* iDataBuffer;
@@ -273,8 +271,6 @@ private:
 private:
     CBasePlugin& iBasePlugin;
     TFSMailMsgId iMailBox;
-    MFSMailRequestObserver& iOperationObserver;
-    TInt iRequestId;
 
     __LOG_DECLARATION
     };
@@ -342,8 +338,6 @@ private:
     TFSMailMsgId iPartId;
     HBufC* iContentType;
     HBufC* iFilePath;
-    MFSMailRequestObserver& iOperationObserver;
-    TInt iRequestId;
     TInt iActionType;
     __LOG_DECLARATION
     };

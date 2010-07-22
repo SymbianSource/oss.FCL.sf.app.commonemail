@@ -36,6 +36,8 @@ public:
     void setId(const NmId &id);
     NmId IconId() const;
     void setIconId(const NmId &id);
+    QString address() const;
+    void setAddress(const QString &address);
 
 private:
 

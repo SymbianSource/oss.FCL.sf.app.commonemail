@@ -20,16 +20,6 @@
 
 #include <hbwidget.h>
 #include "nmactionresponse.h"
-// Header widget fields
-enum
-{
-    EEditorToLine=0,
-    EEditorGroupBoxRecipient,
-    EEditorCcLine,
-    EEditorBccLine,
-    EEditorSubjectLine,
-    EEditorAttachmentLine
-};
 
 class HbGroupBox;
 class HbLabel;
@@ -38,73 +28,70 @@ class NmHtmlLineEdit;
 class NmRecipientLineEdit;
 class QGraphicsLinearLayout;
 class NmRecipientField;
-class NmAttachmentList;
+class NmAttachmentList; 
 
-class NmEditorHeader : public HbWidget
+class NmEditorHeader : public QObject
 {
 Q_OBJECT
 
 public:
-    NmEditorHeader(HbDocumentLoader *documentLoader, QGraphicsItem *parent=0);
+    NmEditorHeader(QObject *parent, HbDocumentLoader *documentLoader);
     virtual ~NmEditorHeader();
-    int headerHeight() const;
-    NmHtmlLineEdit* subjectField() const;
-    NmRecipientLineEdit* toField() const;
-    NmRecipientLineEdit* ccField() const;
-    NmRecipientLineEdit* bccField() const;
+    qreal headerHeight() const;
+    NmHtmlLineEdit *subjectEdit() const;
+    NmRecipientLineEdit *toEdit() const;
+    NmRecipientLineEdit *ccEdit() const;
+    NmRecipientLineEdit *bccEdit() const;
     void setPriority(NmMessagePriority priority=NmMessagePriorityNormal);
     void setPriority(NmActionResponseCommand prio=NmActionResponseCommandNone);
-    void setGroupBoxCollapsed( bool collapsed );
     void addAttachment(const QString &fileName, const QString &fileSize, const NmId &nmid);
     void removeAttachment(const QString &fileName);
     void removeAttachment(const NmId &nmid);
-    void launchAttachment(const NmId &nmid);
     void setAttachmentParameters(
         const QString &fileName,
         const NmId &msgPartId,
         const QString &fileSize,
         int result);
+    void setFieldVisibility(bool isVisible);
 
 private:
     void loadWidgets();
-    void rescaleHeader();
     void createConnections();
-    HbWidget* createRecipientGroupBoxContentWidget();
 
 signals:
     void headerHeightChanged(int);
     void recipientFieldsHaveContent(bool recipientFieldsHaveContent);
     void attachmentLongPressed(NmId attachmentPartId, QPointF point);
+    void attachmentShortPressed(NmId attachmentId);
 
 public slots:
+	void sendDelayedHeaderHeightChanged();
     void sendHeaderHeightChanged();
     void editorContentChanged();
-    void groupBoxExpandCollapse();
     void attachmentActivated(int arrayIndex);
     void attachmentLongPressed(int arrayIndex, QPointF point);
 
 private:
     HbDocumentLoader* mDocumentLoader;  // Not owned
-    int mHeaderHeight;
-    HbLabel *mSubjectLabel;
-    HbLabel *mPriorityIconLabel;
+    qreal mHeaderHeight;
+    HbLabel *mPriorityIcon; // Not owned
+    HbLabel *mFollowUpIcon; // Not owned
     bool mIconVisible;
-    NmRecipientLineEdit *mToEdit;
-    NmHtmlLineEdit *mSubjectEdit;
+    NmRecipientLineEdit *mToEdit; // Not owned
+    NmRecipientLineEdit *mCcEdit; // Not owned
+    NmRecipientLineEdit *mBccEdit; // Not owned
+    NmHtmlLineEdit *mSubjectEdit; // Not owned
     bool mRecipientFieldsEmpty;
-
-    // Recipient GroupBox related
-    HbGroupBox *mGroupBoxRecipient;          // Owned
-    HbWidget *mGroupBoxRecipientContent;     // Not owned
-    QGraphicsLinearLayout *mGbVerticalLayout;// Not owned
-    QGraphicsLinearLayout *mCcFieldLayout;   // Not owned
-    QGraphicsLinearLayout *mBccFieldLayout;  // Not owned
-
-    NmRecipientField *mToField;    // owned
+    QGraphicsLinearLayout *mLayout; // Not owned
+    NmAttachmentList *mAttachmentList; // Not owned
+    NmRecipientField *mToField;    // Not owned
     NmRecipientField *mCcField;    // Not owned
+    HbWidget *mCcWidget;    // Not owned
     NmRecipientField *mBccField;   // Not owned
-
-    NmAttachmentList *mAttachmentList;
+    HbWidget *mBccWidget;    // Not owned
+    HbWidget *mSubjectWidget;    // Not owned
+    QGraphicsLinearLayout *mSubjectLayout; // Not owned
+    bool mCcBccFieldVisible;
 };
 
 #endif /* NMEDITORHEADER_H_ */

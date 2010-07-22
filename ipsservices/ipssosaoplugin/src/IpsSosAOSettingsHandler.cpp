@@ -155,9 +155,9 @@ IpsServices::TIpsSetDataAoStates
     QVariant state;
     TBool ok = GetSettingValue(IpsServices::ReceptionActiveProfile, state);
     
-    if(ok ){
-        prof = state.toInt();
-        
+    if( ok )
+        {
+        prof = state.toInt();        
         ret = ProfileIntoAOState(prof);
         }   
     
@@ -170,10 +170,12 @@ void CIpsSosAOSettingsHandler::SetAlwaysOnlineState(
     const IpsServices::TIpsSetDataAoStates aAlwaysOnlineState )
     {
     //we're allowed to switch ourselves off, not on.
-    if ( aAlwaysOnlineState == IpsServices::EMailAoOff ){
+    if ( aAlwaysOnlineState == IpsServices::EMailAoOff )
+        {
         if(!SetSettingValue(
                 IpsServices::ReceptionActiveProfile, 
-                IpsServices::EmailSyncProfileManualFetch)){
+                IpsServices::EmailSyncProfileManualFetch))
+            {
         
             CreateKeyValuePair(
                     IpsServices::ReceptionActiveProfile, 
@@ -194,7 +196,8 @@ IpsServices::TIpsSetDataEmnStates
     QVariant state = NULL;
     TBool ok = GetSettingValue(IpsServices::EmailNotificationState, state);
         
-    if(ok){
+    if(ok)
+        {
         ret = static_cast<IpsServices::TIpsSetDataEmnStates>(state.toInt());
         }
     */
@@ -208,7 +211,8 @@ void CIpsSosAOSettingsHandler::SetEmailNotificationState(
     const IpsServices::TIpsSetDataEmnStates /*aEmnState*/ )
     {
     /* Not supported yet
-    if(!SetSettingValue(IpsServices::EmailNotificationState, aEmnState)){
+    if(!SetSettingValue(IpsServices::EmailNotificationState, aEmnState))
+        {
         CreateKeyValuePair(IpsServices::EmailNotificationState, aEmnState);
         }
     */
@@ -224,7 +228,8 @@ TBool CIpsSosAOSettingsHandler::FirstEmnReceived() const
     QVariant state = NULL;
     TBool ok = GetSettingValue(IpsServices::FirstEmnReceived, state);
             
-    if(ok){
+    if(ok)
+        {
         ret = static_cast<TBool>(state.toInt());
         }
     */
@@ -237,7 +242,8 @@ TBool CIpsSosAOSettingsHandler::FirstEmnReceived() const
 void CIpsSosAOSettingsHandler::SetFirstEmnReceived( TBool /*aValue*/ )
     {
     /* Not supported yet
-    if(!SetSettingValue( IpsServices::FirstEmnReceived, aValue )){
+    if(!SetSettingValue( IpsServices::FirstEmnReceived, aValue ))
+        {
         CreateKeyValuePair(IpsServices::FirstEmnReceived, aValue);
         }
     */
@@ -254,7 +260,8 @@ TBool CIpsSosAOSettingsHandler::EmnReceivedButNotSyncedFlag() const
     QVariant state = NULL;
     TBool ok = GetSettingValue(IpsServices::EmnReceivedNotSynced, state);
                 
-    if(ok){
+    if(ok)
+        {
         ret = static_cast<TBool>(state.toInt());
         }
     */
@@ -268,7 +275,8 @@ void CIpsSosAOSettingsHandler::SetEmnReceivedButNotSyncedFlag( TBool /*aFlag*/ )
     {
     /* Not supported yet
     
-    if(!SetSettingValue(IpsServices::EmnReceivedNotSynced, aFlag)){
+    if(!SetSettingValue(IpsServices::EmnReceivedNotSynced, aFlag))
+        {
         CreateKeyValuePair(IpsServices::EmnReceivedNotSynced, aFlag);
         }
     */
@@ -283,7 +291,8 @@ TUint CIpsSosAOSettingsHandler::SelectedWeekDays() const
     QVariant state = NULL;
     TBool ok = GetSettingValue(IpsServices::ReceptionWeekDays, state);
                     
-    if(ok){
+    if(ok)
+        {
         ret = static_cast<TUint>(state.toUInt());
         }
     
@@ -298,7 +307,8 @@ TTime CIpsSosAOSettingsHandler::SelectedTimeStart() const
     TBool ok = GetSettingValue(IpsServices::ReceptionDayStartTime, value);
     TDateTime time;
     
-    if(ok){
+    if(ok)
+        {
         TInt total = value.toInt();
         TInt minutes = total%KAOMinutesInHour;
         TInt hour = total/KAOMinutesInHour;
@@ -318,7 +328,8 @@ TTime CIpsSosAOSettingsHandler::SelectedTimeStop() const
     TBool ok = GetSettingValue(IpsServices::ReceptionDayEndTime, value);
     TDateTime time;
     
-    if(ok){
+    if(ok)
+        {
         TInt total = value.toInt();
         TInt minutes = total%KAOMinutesInHour;
         TInt hour = total/KAOMinutesInHour;
@@ -338,24 +349,28 @@ void CIpsSosAOSettingsHandler::SetLastUpdateInfo(
     TInt high = I64HIGH(aLastUpdateInfo.iLastSuccessfulUpdate.Int64());
     TInt low = I64LOW(aLastUpdateInfo.iLastSuccessfulUpdate.Int64());
    
-    if(!SetSettingValue(IpsServices::AoLastSuccessfulUpdateL, low)){
+    if(!SetSettingValue(IpsServices::AoLastSuccessfulUpdateL, low))
+        {
         CreateKeyValuePair(IpsServices::AoLastSuccessfulUpdateL, low);
         }
         
-    if(!SetSettingValue(IpsServices::AoLastSuccessfulUpdateH, high)){
+    if(!SetSettingValue(IpsServices::AoLastSuccessfulUpdateH, high))
+        {
         CreateKeyValuePair(IpsServices::AoLastSuccessfulUpdateH, high);
         }
         
     if(!SetSettingValue(
             IpsServices::AoLastUpdateFailed, 
-            aLastUpdateInfo.iLastUpdateFailed)){
+            aLastUpdateInfo.iLastUpdateFailed))
+        {
         CreateKeyValuePair(IpsServices::AoLastUpdateFailed, 
                 aLastUpdateInfo.iLastUpdateFailed);
         }
         
     if(!SetSettingValue(
             IpsServices::AoUpdateSuccessfulWithCurSettings, 
-            aLastUpdateInfo.iUpdateSuccessfulWithCurSettings)){
+            aLastUpdateInfo.iUpdateSuccessfulWithCurSettings))
+        {
         CreateKeyValuePair(IpsServices::AoUpdateSuccessfulWithCurSettings, 
                 aLastUpdateInfo.iUpdateSuccessfulWithCurSettings);
         }
@@ -376,22 +391,26 @@ IpsServices::TAOInfo CIpsSosAOSettingsHandler::LastUpdateInfo() const
     QVariant success=NULL;
         
     TBool ok = GetSettingValue(IpsServices::AoLastSuccessfulUpdateH, high);
-    if(ok){
+    if( ok )
+        {
         ok = GetSettingValue(IpsServices::AoLastSuccessfulUpdateL, low);
         }
-     if(ok){
+     if( ok )
+         {
          info.iLastSuccessfulUpdate = MAKE_TINT64( high.toInt(), low.toInt() );
          }
     
     ok = GetSettingValue(IpsServices::AoLastUpdateFailed, fail);
     
-    if(ok){
+    if( ok )
+        {
         info.iLastUpdateFailed = static_cast<TBool>(fail.toInt());
         }
     
     ok = GetSettingValue(IpsServices::AoUpdateSuccessfulWithCurSettings, success);
     
-    if(ok){
+    if( ok )
+        {
         info.iUpdateSuccessfulWithCurSettings = static_cast<TBool>(success.toInt());
         }
     
@@ -404,15 +423,18 @@ TInt CIpsSosAOSettingsHandler::InboxRefreshTime() const
     {
     QVariant value = NULL;
     TBool ok = EFalse;
-    if(IsDaytime()){
+    if( IsDaytime() )
+        {
         ok = GetSettingValue( IpsServices::ReceptionRefreshPeriodDayTime, value);
         }
-    else{
+    else
+        {
         ok = GetSettingValue(IpsServices::ReceptionRefreshPeriodOther, value);
         }    
     
     TInt ret = 0;
-    if(ok){
+    if( ok )
+        {
         ret = value.toInt();
         }
     
@@ -444,7 +466,8 @@ TBool CIpsSosAOSettingsHandler::GetSettingValue(
         QVariant& aValue) const
     {
     bool ret = false;
-    if(iExtMgr){
+    if( iExtMgr )
+        {
         ret = iExtMgr->readSetting(aItem, aValue);
         }
     return ret;
@@ -458,7 +481,8 @@ TBool CIpsSosAOSettingsHandler::SetSettingValue(
     {
     bool ret = false;
     
-    if(iExtMgr){
+    if( iExtMgr )
+        {
         ret = iExtMgr->writeSetting(aItem, aData);
         }
     return ret;
@@ -510,7 +534,8 @@ IpsServices::TIpsSetDataAoStates CIpsSosAOSettingsHandler::ProfileIntoAOState(
     {
     IpsServices::TIpsSetDataAoStates ret = IpsServices::EMailAoOff;
     
-    if ( aProfile != IpsServices::EmailSyncProfileManualFetch ){
+    if ( aProfile != IpsServices::EmailSyncProfileManualFetch )
+        {
         ret = IpsServices::EMailAoAlways;
         }
     

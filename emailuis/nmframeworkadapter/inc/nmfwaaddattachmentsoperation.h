@@ -42,6 +42,7 @@ public: // from MFSMailRequestObserver
     
 protected:
     void doRunAsyncOperation();
+    void doCompleteOperation();
     void doCancelOperation();
 
 private:

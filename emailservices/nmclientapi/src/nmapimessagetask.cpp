@@ -15,7 +15,9 @@
  *
  */
 
-#include <nmapimessagetask.h>
+#include "nmapiheaders.h"
+
+
 
 /*!
    Constructor for NmApiMessageTask
@@ -23,6 +25,7 @@
 NmApiMessageTask::NmApiMessageTask(QObject *parent)
 : QObject(parent)
 {
+    NM_FUNCTION;
 }
 
 /*!
@@ -30,6 +33,6 @@ NmApiMessageTask::NmApiMessageTask(QObject *parent)
  */
 NmApiMessageTask::~NmApiMessageTask()
 {
-
+    NM_FUNCTION;
 }
 

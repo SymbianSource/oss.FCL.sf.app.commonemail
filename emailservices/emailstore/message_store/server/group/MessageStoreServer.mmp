@@ -30,8 +30,8 @@ VENDORID      VID_DEFAULT
 CAPABILITY    CAP_CLIENT_DLL
 //<qmail>
 //VERSION       KEmailBinaryVersionNumber
+//KEmailBinaryDemandPaging
 //</qmail>
-KEmailBinaryDemandPaging
 
 MACRO DEBUG_USE_PROJECT_LOGGING_OPTIONS
 MACRO DEBUG_LOG_OPTION_ENTER

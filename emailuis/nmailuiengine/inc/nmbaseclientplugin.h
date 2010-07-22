@@ -72,12 +72,12 @@ private slots:
 
 protected:
     virtual quint32 pluginId() = 0;
+    void handleRequest(NmActionResponseCommand command, const NmActionRequest &request);
 
 private:
     void createMessageListCommands(const NmActionRequest &request, QList<NmAction*> &actionList);
     void createEditorViewCommands(const NmActionRequest &request, QList<NmAction*> &actionList);
     void createViewerViewCommands(const NmActionRequest &request, QList<NmAction*> &actionList);
-    void handleRequest(NmActionResponseCommand command, const NmActionRequest &request);
     void updateEnvelopeProperty(NmEnvelopeProperties property);
 
 protected:

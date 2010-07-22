@@ -20,12 +20,6 @@
 
 #include <QObject>
 
-#define IMAGE_FETCHER_INTERFACE "Image"
-#define AUDIO_FETCHER_INTERFACE "com.nokia.services.media.Music"
-
-#define IMAGE_FETCHER_OPERATION "fetch(QVariantMap,QVariant)"
-#define AUDIO_FETCHER_OPERATION "fetch(QString)"
-
 class XQAiwRequest;
 
 /**
@@ -37,21 +31,25 @@ class  NmAttachmentPicker : public QObject
     Q_OBJECT
 
 public:
-    NmAttachmentPicker(QObject* parent = 0);
+    NmAttachmentPicker(QObject *parent = 0);
     ~NmAttachmentPicker();
         
 public slots:
     void fetchImage();
     void fetchAudio();    
     void fetchVideo();
-    void fetchOther();       
+    void fetchOther();  
+    void fetchCameraStill();
+    void fetchCameraVideo();
 
 signals:
-    void attachmentsFetchOk(const QVariant& fileNames);
-    void attachmentsFetchError(int errorCode, const QString& errorMessage);
+    void attachmentsFetchOk(const QVariant &fileNames);
+    void attachmentsFetchError(int errorCode, const QString &errorMessage);
     
 private:   
-    void fetch(const QString& interface, const QString& operation); 
+    void fetch(const QString &interface, const QString &operation, 
+                const QList<QVariant> *args = 0); 
+    void fetchFromCamera(int mode);
     
 private:
     XQAiwRequest *mRequest;    

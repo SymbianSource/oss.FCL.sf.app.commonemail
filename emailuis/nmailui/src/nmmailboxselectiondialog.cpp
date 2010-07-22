@@ -42,7 +42,7 @@ NmMailboxSelectionDialog::NmMailboxSelectionDialog(
       mParent(parent),
       mMailboxId(0)
 {
-    // No implementation required.
+    NM_FUNCTION;
 }
 
 
@@ -51,6 +51,8 @@ NmMailboxSelectionDialog::NmMailboxSelectionDialog(
 */
 NmMailboxSelectionDialog::~NmMailboxSelectionDialog()
 {
+    NM_FUNCTION;
+    
     delete mContentItemModel;
     delete mMailboxListView;
     delete mMailboxSelectionDialog;
@@ -63,7 +65,8 @@ NmMailboxSelectionDialog::~NmMailboxSelectionDialog()
 */
 void NmMailboxSelectionDialog::open()
 {
-    NMLOG("NmMailboxSelectionDialog::exec()");
+    NM_FUNCTION;
+    
     mMailboxId = 0;
 
     // Initialize the UI and fetch the mailbox items into the list.
@@ -79,12 +82,14 @@ void NmMailboxSelectionDialog::open()
  */
 void NmMailboxSelectionDialog::dialogClosed(HbAction *action)
 {
+    NM_FUNCTION;
+    
     Q_UNUSED(action);
-    
+
     // Store the ID of the selected mailbox into the given argument.
-    NMLOG(QString("NmMailboxSelectionDialog::dialogClosed() return %1").
+    NM_COMMENT(QString("NmMailboxSelectionDialog::dialogClosed() return %1").
         arg(mMailboxId.id()));
-    
+
     emit selectionDialogClosed(mMailboxId);
 }
 
@@ -96,11 +101,11 @@ void NmMailboxSelectionDialog::dialogClosed(HbAction *action)
 */
 bool NmMailboxSelectionDialog::initializeUi()
 {
-    NMLOG("NmMailboxSelectionDialog::initializeUi()");
-
+    NM_FUNCTION;
+    
     // Use the document loader to load the widgets.
     HbDocumentLoader documentLoader;
-    bool documentLoaded = false;
+    bool documentLoaded(false);
 
     QObjectList objectList;
     objectList.append(this);
@@ -118,7 +123,7 @@ bool NmMailboxSelectionDialog::initializeUi()
     }
 
     if (!mMailboxSelectionDialog || !mMailboxListView) {
-        NMLOG("NmMailboxSelectionDialog::initializeUi(): Failed to load widgets!");
+        NM_ERROR(1,"NmMailboxSelectionDialog::initializeUi(): Failed to load widgets!");
         return false;
     }
 
@@ -153,7 +158,8 @@ bool NmMailboxSelectionDialog::initializeUi()
 */
 bool NmMailboxSelectionDialog::populateListItems()
 {
-    NMLOG("NmMailboxSelectionDialog::populateListItems()");
+    NM_FUNCTION;
+    
     const int count = mMailboxListModel.rowCount();
 
     if (!mContentItemModel || count == 0) {
@@ -164,13 +170,14 @@ bool NmMailboxSelectionDialog::populateListItems()
     NmMailboxMetaData *metaData = NULL;
     QStandardItem *item = NULL;
 
+    EmailMailboxInfo mailboxInfo;
     for (int i = 0; i < count; ++i) {
         metaData = mailboxMetaData(i);
 
         if (metaData) {
-            // Implement the branded icons when possible.
-            const HbIcon &mailboxIcon =
-                NmIcons::getIcon(NmIcons::NmIconDefaultMailbox);
+            QString domainName = metaData->address();
+            QString iconName = mailboxInfo.mailboxIcon(domainName);
+			HbIcon mailboxIcon( iconName );
 
             // Construct the item and append it into the list.
             item = new QStandardItem(mailboxIcon.qicon(), metaData->name());
@@ -190,6 +197,8 @@ bool NmMailboxSelectionDialog::populateListItems()
 */
 NmMailboxMetaData *NmMailboxSelectionDialog::mailboxMetaData(int index) const
 {
+    NM_FUNCTION;
+    
     QVariant mailbox = mMailboxListModel.data(mMailboxListModel.index(index, 0));
     NmMailboxMetaData *mailboxMetaData = mailbox.value<NmMailboxMetaData*>();
     return mailboxMetaData;
@@ -203,6 +212,8 @@ NmMailboxMetaData *NmMailboxSelectionDialog::mailboxMetaData(int index) const
 */
 void NmMailboxSelectionDialog::itemActivated(QModelIndex index)
 {
+    NM_FUNCTION;
+    
     const int rowIndex = index.row();
     NmMailboxMetaData *metaData = mailboxMetaData(rowIndex);
 

@@ -15,7 +15,7 @@
 *
 */
 
-#include <QDebug>
+#include "emailtrace.h"
 #include "nmhswidgetdatetimeobserver.h"
 #include "nmhswidgetdatetimeobserver_p.h"
 
@@ -28,9 +28,8 @@ NmHsWidgetDateTimeObserver::NmHsWidgetDateTimeObserver(QObject *parent) :
     QObject(parent),
     d_ptr(0)
 {
-    qDebug() << "NmHsWidgetDateTimeObserver::NmHsWidgetDateTimeObserver --> IN";
+    NM_FUNCTION;
     d_ptr = new NmHsWidgetDateTimeObserverPrivate(this);
-    qDebug() << "NmHsWidgetDateTimeObserver::NmHsWidgetDateTimeObserver <-- OUT";
 }
 
 /*!
@@ -40,9 +39,8 @@ NmHsWidgetDateTimeObserver::NmHsWidgetDateTimeObserver(QObject *parent) :
 */
 NmHsWidgetDateTimeObserver::~NmHsWidgetDateTimeObserver()
 {
-    qDebug() << "NmHsWidgetDateTimeObserver::~NmHsWidgetDateTimeObserver --> IN";
+    NM_FUNCTION;
     delete d_ptr;
-    qDebug() << "NmHsWidgetDateTimeObserver::~NmHsWidgetDateTimeObserver <-- OUT";
 }
 
 /*!
@@ -52,7 +50,6 @@ NmHsWidgetDateTimeObserver::~NmHsWidgetDateTimeObserver()
 */
 void NmHsWidgetDateTimeObserver::handleCompletion()
 {
-    qDebug() << "NmHsWidgetDateTimeObserver::handleCompletion --> IN";
+    NM_FUNCTION;
     emit dateTimeChanged();
-    qDebug() << "NmHsWidgetDateTimeObserver::handleCompletion <-- OUT";
 }

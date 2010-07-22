@@ -32,7 +32,6 @@
 #include <xqservicerequest.h>
 #include <qtcontacts.h>
 #include <qmobilityglobal.h>
-#include <mobcntmodel.h>
 #include <xqserviceutil.h>
 #include <xqappmgr.h>
 #include <xqserviceipcmarshal.h>
@@ -47,6 +46,7 @@
 #include <hbdocumentloader.h>
 #include <hbinstance.h>
 #include <hbcolorscheme.h>
+#include <hbtapgesture.h>
 
 // nmail
 #include <nmaddress.h>

@@ -52,6 +52,24 @@ NONSHARABLE_CLASS ( CIpsPlgDeleteOperation ) : public CMsvOperation
             CMsvSession& aMsvSession,
             TRequestStatus& aObserverRequestStatus,
             CMsvEntrySelection* aEntriesToDelete );
+        
+        /**
+        * Two-phased constructor
+        * 
+        * @param aMsvSession                client/server session to MsvServer
+        * @param aObserverRequestStatus     operations observer status
+        * @param aEntriesToDelete           Message entries to be deleted from server and locally
+        * @param aOperationObserver         observes the progress of this operation
+        * @param aRequestId                 identifier for this instance of operation, 
+        *                                   assigned by the client
+        * @return CIpsPlgCreateForwardMessageOperation* self pointer                                  
+        */
+        static CIpsPlgDeleteOperation* NewL(
+            CMsvSession& aMsvSession,
+            TRequestStatus& aObserverRequestStatus,
+            CMsvEntrySelection* aEntriesToDelete,
+            MFSMailRequestObserver& aOperationObserver,
+            const TInt aRequestId);
         // </qmail>    
 //<qmail> class renamed + comments removed
         virtual ~CIpsPlgDeleteOperation();
@@ -59,6 +77,11 @@ NONSHARABLE_CLASS ( CIpsPlgDeleteOperation ) : public CMsvOperation
         virtual const TDesC8& ProgressL();
 //</qmail> 
 
+// <qmail>
+    protected:        
+        void SignalFSObserver( TInt aStatus );
+// </qmail>
+        
     private:
         // <qmail>   
         enum TIpsPlgDeleteMessagesState 
@@ -76,7 +99,14 @@ NONSHARABLE_CLASS ( CIpsPlgDeleteOperation ) : public CMsvOperation
         CIpsPlgDeleteOperation(
             CMsvSession& aMsvSession,
             TRequestStatus& aObserverRequestStatus );
-		//</qmail>	
+		//</qmail>
+        //<qmail>
+        CIpsPlgDeleteOperation(
+            CMsvSession& aMsvSession,
+            TRequestStatus& aObserverRequestStatus,
+            MFSMailRequestObserver& aOperationObserver,
+            const TInt aRequestId);
+        //</qmail>
         // <qmail> 
         /**
         * 2nd phase constructor
@@ -128,6 +158,9 @@ NONSHARABLE_CLASS ( CIpsPlgDeleteOperation ) : public CMsvOperation
         CMsvOperation*              iOperation; // owned
         CMsvEntry*                  iEntry; // owned
         CMsvEntrySelection*         iEntrySelection; // owned
+        MFSMailRequestObserver* iOperationObserver;  // not owned
+        TFSProgress iFSProgress;
+        TInt iFSRequestId;
         // <qmail> removed member iEntryCount
         TInt                        iSetFlagIndex;
         CMsvEntry*                  iSetFlagEntry; // owned

@@ -145,20 +145,21 @@ void CIpsPlgPop3FetchOperation::DoConnectL()
 
     iState = EStateConnecting;
     iStatus = KRequestPending;
-    
-    // when connecting for the fetch operation, don't let connect operation to do fetch,
-    // because we do it by ourself. That's why give 0 to connect operation.    
+    // <qmail>
     CIpsPlgPop3ConnectOp* connOp = CIpsPlgPop3ConnectOp::NewL(
         iMsvSession,
         iStatus, 
         iService, 
-        EFalse, 
+        EFalse, // We do fetch by ourselves
         *iActivityTimer,
         iFSMailboxId, 
         iFSOperationObserver, 
         iFSRequestId, 
-        NULL );
+        NULL,
+        EFalse, // Signalling not allowed
+        ETrue ); // Fetch will follow, let connection be open
         
+    // </qmail>    
     delete iSubOperation;
     iSubOperation = connOp;
 
@@ -344,15 +345,19 @@ void CIpsPlgPop3FetchOperation::DoRunL()
                 progress.iErrorCode = err;
                 iFetchErrorProgress = paramPack.AllocL();
                 }
+            DoDisconnectL();
             
-            iState = EStateIdle;
-            CompleteObserver( err );
             if ( iEventHandler )
                 {
 				// <qmail>
                 iEventHandler->SetNewPropertyEvent( iService, KIpsSosEmailSyncCompleted, err );
 				// </qmail>
                 }
+            }
+            break;
+        case EStateDisconnecting:
+            {
+            CompleteObserver( iStatus.Int() );
             }
             break;
             
@@ -408,4 +413,17 @@ TIpsOpType CIpsPlgPop3FetchOperation::IpsOpType() const
     return EIpsOpTypePop3FetchOp;
     }
 // </qmail>
+
+//<qmail> new function
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+void CIpsPlgPop3FetchOperation::DoDisconnectL()
+    {
+    FUNC_LOG;
+    iState = EStateDisconnecting;
+    InvokeClientMtmAsyncFunctionL( KPOP3MTMDisconnect, iService ); // <qmail> 1 param removed
+    SetActive();
+    }
+// </qmail>
+
 

@@ -33,7 +33,6 @@ class NmOperation;
 class NmMessageCreationOperation;
 class NmStoreEnvelopesOperation;
 class NmAddAttachmentsOperation;
-class NmCheckOutboxOperation;
 class NmMessageSendingOperation;
 
 /*!
@@ -60,7 +59,7 @@ public:
     
     virtual int getMailboxById(const NmId &id, NmMailbox *&mailbox) = 0;
     
-    virtual int deleteMailboxById(const NmId &id) = 0;
+    virtual QPointer<NmOperation> deleteMailboxById(const NmId &id) = 0;
     
     virtual int getMessageById(
         const NmId &mailboxId,
@@ -104,6 +103,12 @@ public:
         const NmId &folderId,
         const NmId &messageId,
         const NmId &messagePartId) = 0;
+ 
+     virtual  QPointer<NmOperation> fetchMessageParts( 
+        const NmId &mailboxId,
+        const NmId &folderId,
+        const NmId &messageId,
+        const QList<NmId> &messagePartIds) = 0;
     
     virtual XQSharableFile messagePartFile(
         const NmId &mailboxId,
@@ -171,8 +176,6 @@ public:
         const NmMessage &message,
         const NmId &attachmentPartId) = 0;
 
-    virtual QPointer<NmCheckOutboxOperation> checkOutbox(const NmId &mailboxId) = 0;
-    
     virtual NmSyncState syncState(const NmId& mailboxId) const = 0;
     
     virtual NmConnectState connectionState(const NmId& mailboxId) const = 0;
@@ -181,6 +184,14 @@ public:
         const QStringList &searchStrings) = 0;
 
     virtual int cancelSearch(const NmId &mailboxId) = 0;
+
+    virtual QPointer<NmOperation> removeDraftMessage(NmMessage *message) = 0;
+
+    virtual int copyMessages(
+        const NmId &mailboxId,
+        const QList<quint64> &messageIds, 
+        const NmId &sourceFolderId,
+        const NmId &destinationFolderId) = 0;
 };
 
 Q_DECLARE_INTERFACE(NmDataPluginInterface, "sf.app.commonmail.emailuis.nmailuiengine.NmDataPluginInterface/1.0")

@@ -78,26 +78,12 @@ public:
         TFSMailMsgId aMailBoxId,
         CFSMailMessage& aMessage );
 
-    /**
-     * Creates new email message to message store
-     *
-     * @param aMailBoxId msv entry id to mailbox which setting are used
-     * @param aSession Msv Session
-     * @since FS 1.0
-     * @return pointer created fs message object
-     */
-    CFSMailMessage* CreateNewSmtpMessageL(
-        const TFSMailMsgId& aMailBoxId );
-
-    CFSMailMessage* CreateForwardSmtpMessageL(
-        const TFSMailMsgId& aMailBoxId,
-        const TFSMailMsgId& aOriginalMessageId );
-
-    CFSMailMessage* CreateReplySmtpMessageL(
-        const TFSMailMsgId& aMailBoxId,
-        const TFSMailMsgId& aOriginalMessageId,
-        TBool aReplyToAll );
-
+    // <qmail> removing unused functions
+    // CreateNewSmtpMessageL
+    // CreateForwardSmtpMessageL
+    // CreateReplySmtpMessageL
+    // </qmail>
+            
 // <qmail> moved for public access
     /**
      * Creates proper fs message object and set flags

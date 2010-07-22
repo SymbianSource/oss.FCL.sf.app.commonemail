@@ -23,8 +23,8 @@
 #include "nmbaseview.h"
 #include "nmactionobserver.h"
 #include "nmactionresponse.h"
+#include "nmattachmentfetchobserver.h"
 
-class QGraphicsLinearLayout;
 class HbTextEdit;
 class HbDocumentLoader;
 class HbProgressDialog;
@@ -41,70 +41,75 @@ class NmAction;
 class NmOperation;
 class NmMessageCreationOperation;
 class NmAddAttachmentsOperation;
-class NmCheckOutboxOperation;
 class NmAttachmentPicker;
+class HbMessageBox;
+class NmAttachmentManager;
+class HbVkbHost;
 
-
-class NmEditorView : public NmBaseView, public NmActionObserver
+class NmEditorView : public NmBaseView,
+                     public NmActionObserver,
+                     public NmAttachmentFetchObserver
 {
     Q_OBJECT
 
 public:
-
     NmEditorView(NmApplication &application,
-                 NmUiStartParam* startParam,
+                 NmUiStartParam *startParam,
                  NmUiEngine &uiEngine,
+                 NmAttachmentManager &attaManager,
                  QGraphicsItem *parent = 0);
     ~NmEditorView();
 
 
 public:
-
     void reloadViewContents(NmUiStartParam* startParam);
     NmUiViewId nmailViewId() const;
     HbWidget* scrollAreaContents();
-    bool okToExitView();
+    void okToExitView();
     void aboutToExitView();
     void viewReady();
-
+    void handleActionCommand(NmActionResponse &menuResponse);
+    void progressChanged(int value);
+    void fetchCompleted(int result);
+    
 public slots:
-
     void orientationChanged(Qt::Orientation orientation);
     void createOptionsMenu();
     void setButtonsDimming(bool enabled);
     void attachmentLongPressed(NmId attachmentPartId, QPointF point);
-
-
-public: // From NmActionObserver
-
-    void handleActionCommand(NmActionResponse &menuResponse);
-
+    void invalidAddressQuery(HbAction* action);
+    void okToExitQuery(HbAction* action);
+    void sendProgressDialogCancelled();
+    
+protected:
+    void resizeEvent(QGraphicsSceneResizeEvent *event);
 
 private slots:
-
     void messageCreated(int result);
-    void adjustViewDimensions();
     void oneAttachmentAdded(const QString &fileName,
                             const NmId &msgPartId,
                             int result);
-
     void allAttachmentsAdded(int result);
     void attachmentRemoved(int result);
-    void outboxChecked(int result);
     void removeAttachmentTriggered();
     void handleSendOperationCompleted();
-    void openAttachmentTriggered();  
+    void openAttachmentTriggered( NmId attachmentId );  
     void onAttachmentReqCompleted(const QVariant &value);
+    void onAttachmentsFetchError(int errorCode, const QString& errorMessage);
+    void switchCcBccFieldVisibility();
+	void fetchProgressDialogCancelled();
+	void vkbOpened();
+	void vkbClosed();
 
 private:
-
     void loadViewLayout();
     void setMailboxName();
-    void setMessageData();
-    void startMessageCreation(NmUiEditorStartMode startMode);
+    void fetchProgressDialogShow();
+    void fetchMessageIfNeeded(NmUiStartParam &startParam);
+    void startMessageCreation(NmUiStartParam &startParam);
     void startSending();
+    void finalizeSending();
     void createToolBar();
-    QPointF viewCoordinateToEditCoordinate(QPointF orgPoint);
     void updateMessageWithEditorContents();
     void fillEditorWithMessageContents();
     void initializeVKB();
@@ -114,41 +119,32 @@ private:
     QString addressListToString(const QList<NmAddress*> &list) const;
     QString addressListToString(const QList<NmAddress> &list) const;
     void enableToolBarAttach(bool enable);
+    void showChrome(bool show);
 
-
-public slots:
-
-    void sendMousePressEventToScroll(QGraphicsSceneMouseEvent *event);
-    void sendMouseReleaseEventToScroll(QGraphicsSceneMouseEvent *event);
-    void sendMouseMoveEventToScroll(QGraphicsSceneMouseEvent *event);
-    void sendLongPressGesture(const QPointF &point);
-    void contextButton(NmActionResponse &result);
-
-
+signals:
+    void sizeChanged();
+    
 private: // Data
-
     NmApplication &mApplication;
     NmUiEngine &mUiEngine;
+    NmAttachmentManager  &mAttaManager;
     HbDocumentLoader *mDocumentLoader;  // Owned
     QObjectList mWidgetList;            // Owned
-    NmBaseViewScrollArea *mScrollArea;  // Not owned
-    HbWidget *mScrollAreaContents;      // Not owned
-    NmEditorTextEdit *mEditWidget;      // Not owned
     NmEditorHeader *mHeaderWidget;      // Not owned
     NmMessage *mMessage;                // Owned
-    NmEditorContent *mContentWidget;    // Owned
+    NmEditorContent *mContent;          // Not owned
     HbMenu *mPrioritySubMenu;           // Owned
     HbMenu *mAttachmentListContextMenu; // Owned
     NmId mSelectedAttachment;
-
+    HbVkbHost *mVkbHost;                // Not owned
     QPointer<NmMessageCreationOperation> mMessageCreationOperation;  // Not owned
     QPointer<NmAddAttachmentsOperation> mAddAttachmentOperation;     // Not owned 
     QPointer<NmOperation> mRemoveAttachmentOperation;                // Not owned 
-    QPointer<NmCheckOutboxOperation> mCheckOutboxOperation;          // Not owned 
-
-    HbProgressDialog *mWaitDialog; // Owned.
-    
-    NmAttachmentPicker* mAttachmentPicker;    // Owned    
+    HbProgressDialog *mWaitDialog;         // Owned.    
+    HbMessageBox* mQueryDialog;            // Owned
+    NmAttachmentPicker* mAttachmentPicker; // Owned    
+    bool mCcBccFieldVisible;
+    QPointer<HbProgressDialog> mServiceSendingDialog; // Owned.
 };
 
 

@@ -11,7 +11,7 @@
 *
 * Contributors:
 *
-* Description:
+* Description: NMail viewer view header widget definition
 *
 */
 
@@ -54,7 +54,7 @@ private:
     QString formatRecipientList(const QString &sender,
                                 const QList<NmAddress> &to,
                                 const QList<NmAddress> &cc);
-    QString addressToDisplayInHtml(const NmAddress &addr);
+    QString addressToDisplay(const NmAddress &addr);
     
 private:
     NmMessage *mMessage;                 // Not owned

@@ -17,6 +17,8 @@
 #ifndef NMAPIFOLDERLISTINGPRIVATE_H
 #define NMAPIFOLDERLISTINGPRIVATE_H
 
+#include <QObject>
+
 class NmApiEngine;
 
 namespace EmailClientApi
@@ -26,19 +28,21 @@ class NmApiFolder;
 
 class NmApiFolderListingPrivate : public QObject
 {
+    Q_OBJECT
+    
 public:
 
-    NmApiFolderListingPrivate(QObject *parent = 0);
+    NmApiFolderListingPrivate(quint64 mailboxId, QObject *parent = 0);
     virtual ~NmApiFolderListingPrivate();
-
-    bool initializeEngine();
-    void releaseEngine();
-    qint32 grabFolders();
-
-    QList<EmailClientApi::NmApiFolder> mFolders;//!<List of folders \sa getFolder \sa QSharedData \sa EmailClientApi::NmApiFolder
-    NmApiEngine *mEngine;//!<Pointer to engine instance \sa NmUiEngine
-    bool mIsRunning;//!<Keep info if folder listing is running \sa isRunning
-    quint64 mMailboxId;//!<Keep info about mailbox id for foler
+    qint32 listFolders();
+    bool folders(QList<EmailClientApi::NmApiFolder> &folders);
+    void cancel();
+    bool isRunning() const;
+private:
+	  quint64 mMailboxId;
+    NmApiEngine *mEngine;
+    bool mIsRunning;
+    QList<EmailClientApi::NmApiFolder> mFolders;
 };
 }
 #endif /* NMAPIFOLDERLISTINGPRIVATE_H */

@@ -134,6 +134,11 @@ private:
      */
     inline TInt GetMailboxLogicIndex( TMsvId aMailboxId );
 
+    /**
+     * Removes orphaned logics. (mailbox has been deleted but logic has not been )
+     */
+    void RemoveOrphanLogicsL();
+    
 private:
     
     CMsvSession&                        iSession;

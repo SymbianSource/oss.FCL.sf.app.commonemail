@@ -19,12 +19,13 @@ static const char *NMUI_MESSAGE_LIST_VIEW_XML = ":/docml/nmmessagelistview.docml
 static const char *NMUI_MESSAGE_LIST_VIEW = "NmMessageListView";
 static const char *NMUI_MESSAGE_LIST_TREE_LIST = "MessageTreeList";
 static const char *NMUI_MESSAGE_LIST_NO_MESSAGES = "MessageListNoMessages";
-static const char *NMUI_MESSAGE_LIST_FOLDER_LABEL = "folderLabel";
-static const char *NMUI_MESSAGE_LIST_SYNC_ICON = "syncIcon";
+static const char *NMUI_MESSAGE_LIST_FOLDER_LABEL = "labelGroupBox";
 
 #include "nmuiheaders.h"
 
-/*!
+const QString syncIndicatorName = "com.nokia.nmail.indicatorplugin.sync/1.0";
+
+/*! 
 	\class NmMessageListView
 	\brief Message list view
 */
@@ -37,10 +38,10 @@ NmMessageListView::NmMessageListView(
     NmUiStartParam* startParam,
     NmUiEngine &uiEngine,
     NmMailboxListModel &mailboxListModel,
-    NmMessageListModel &messageListModel,
+    NmMessageListModel *messageListModel,
     HbDocumentLoader *documentLoader,
     QGraphicsItem *parent)
-: NmBaseView(startParam, parent),
+: NmBaseView(startParam, application, parent),
 mApplication(application),
 mMessageListWidget(NULL),
 mUiEngine(uiEngine),
@@ -51,15 +52,18 @@ mItemContextMenu(NULL),
 mLongPressedItem(NULL),
 mNoMessagesLabel(NULL),
 mFolderLabel(NULL),
-mSyncIcon(NULL),
 mViewReady(false),
-mCurrentFolderType(NmFolderInbox)
+mCurrentFolderType(NmFolderInbox),
+mSettingsLaunched(false),
+mPreviousModelCount(0),
+mIsFirstSyncInMessageList(true)
 {
-    // Load view layout
+    NM_FUNCTION;
+
     loadViewLayout();
-    // Init tree view
+    createToolBar();
     initTreeView();
-    // Set folder name
+    setMailboxName();
     setFolderName();
 }
 
@@ -68,6 +72,8 @@ mCurrentFolderType(NmFolderInbox)
 */
 NmMessageListView::~NmMessageListView()
 {
+    NM_FUNCTION;
+
     delete mDocumentLoader;
     mWidgetList.clear();
     if (mItemContextMenu){
@@ -81,8 +87,10 @@ NmMessageListView::~NmMessageListView()
 */
 void NmMessageListView::loadViewLayout()
 {
+    NM_FUNCTION;
+
     // Use document loader to load the view
-    bool ok = false;
+    bool ok(false);
     setObjectName(QString(NMUI_MESSAGE_LIST_VIEW));
     QObjectList objectList;
     objectList.append(this);
@@ -93,54 +101,56 @@ void NmMessageListView::loadViewLayout()
         mWidgetList = mDocumentLoader->load(NMUI_MESSAGE_LIST_VIEW_XML, &ok);
     }
 
-    if (ok == true && mWidgetList.count()) {
+    if (ok) {
         // Get message list widget
         mMessageListWidget = qobject_cast<HbTreeView *>
             (mDocumentLoader->findWidget(NMUI_MESSAGE_LIST_TREE_LIST));
+
         if (mMessageListWidget) {
-            NMLOG("nmailui: List object loaded");
+            NM_COMMENT("nmailui: list object loaded");
+
             // Set item prototype.
             mMessageListWidget->setItemPrototype(new NmMessageListViewItem());
+
+            // Set the list widget properties.
             mMessageListWidget->setItemRecycling(true);
             mMessageListWidget->contentWidget()->setProperty("indentation", 0);
             mMessageListWidget->setScrollDirections(Qt::Vertical);
             mMessageListWidget->setClampingStyle(HbScrollArea::BounceBackClamping);
             mMessageListWidget->setFrictionEnabled(true);
+
+            // Enable animations to display an email as soon as it is added to
+            // the list.
+            mMessageListWidget->setEnabledAnimations(HbAbstractItemView::Appear &
+                                                     HbAbstractItemView::Expand);
         }
         else {
-            NMLOG("nmailui: List object loading failed");
+            NM_ERROR(1,"nmailui: list object loading failed");
         }
+
         mNoMessagesLabel = qobject_cast<HbLabel *>
             (mDocumentLoader->findWidget(NMUI_MESSAGE_LIST_NO_MESSAGES));
         if (mNoMessagesLabel) {
             mNoMessagesLabel->hide();
         }
         else{
-            NMLOG("nmailui: (no messages) object loading failed");
+            NM_ERROR(1,"nmailui: (no messages) object loading failed");
         }
 
-        // Create folder label and set inbox text for it
-        mFolderLabel = qobject_cast<HbLabel *>(mDocumentLoader->findWidget(NMUI_MESSAGE_LIST_FOLDER_LABEL));
-
-        mSyncIcon = qobject_cast<HbLabel *>(mDocumentLoader->findWidget(NMUI_MESSAGE_LIST_SYNC_ICON));
-        if (mSyncIcon) {
-            mSyncIcon->setIcon(NmIcons::getIcon(NmIcons::NmIconOffline));
-        }
+        mFolderLabel = qobject_cast<HbGroupBox *>(mDocumentLoader->findWidget(NMUI_MESSAGE_LIST_FOLDER_LABEL));
 
         // Connect options menu about to show to create options menu function
         QObject::connect(menu(), SIGNAL(aboutToShow()),
                          this, SLOT(createOptionsMenu()));
         QObject::connect(&mUiEngine, SIGNAL(syncStateEvent(NmSyncState, const NmId &)),
                          this, SLOT(handleSyncStateEvent(NmSyncState, const NmId &)));
-        QObject::connect(&mUiEngine, SIGNAL(connectionEvent(NmConnectState, const NmId &)),
-                                        this, SLOT(handleConnectionEvent(NmConnectState, const NmId &)));
 
         // Menu needs one dummy item so that aboutToShow signal is emitted.
         NmAction *dummy = new NmAction(0);
         menu()->addAction(dummy);
     }
     else {
-        NMLOG("nmailui: Resource loading failed");
+        NM_ERROR(1,"nmailui: resource loading failed");
     }
 }
 
@@ -149,14 +159,43 @@ void NmMessageListView::loadViewLayout()
 */
 void NmMessageListView::viewReady()
 {
+    NM_FUNCTION;
+
     if (!mViewReady){
-        // Set mailbox name to title pane
-        setMailboxName();
-        //create toolbar
-        createToolBar();
         // Refresh list
         QMetaObject::invokeMethod(this, "refreshList", Qt::QueuedConnection);
         mViewReady=true;
+    }
+    mSettingsLaunched = false;
+}
+
+/*!
+    Getter for currently displayed folder type
+*/
+NmFolderType NmMessageListView::folderType()
+{
+    NM_FUNCTION;
+
+    return mCurrentFolderType;
+}
+
+/*!
+    okToExitView. Message list view determines whether it is
+    ok to exit view and calls mapplication popview.
+*/
+void NmMessageListView::okToExitView()
+{
+    NM_FUNCTION;
+
+    // Close view if current folder is inbox
+    if (mCurrentFolderType==NmFolderInbox){
+        mApplication.popView();
+    }
+    // Switch to inbox
+    else{
+        mSelectedMailboxId=mStartParam->mailboxId();
+        mSelectedFolderId=mUiEngine.standardFolderId(mSelectedMailboxId,NmFolderInbox);
+        QMetaObject::invokeMethod(this, "folderSelected", Qt::QueuedConnection);
     }
 }
 
@@ -165,6 +204,8 @@ void NmMessageListView::viewReady()
 */
 void NmMessageListView::initTreeView()
 {
+    NM_FUNCTION; 
+
     // Get mailbox widget pointer and set parameters
     if (mMessageListWidget){
         QObject::connect(mMessageListWidget,
@@ -174,7 +215,6 @@ void NmMessageListView::initTreeView()
                 SIGNAL(longPressed(HbAbstractViewItem*, QPointF)), this,
                 SLOT(showItemContextMenu(HbAbstractViewItem*, QPointF)));
         mMessageListWidget->setFocus();
-        mItemContextMenu = new HbMenu();
     }
 }
 
@@ -182,10 +222,12 @@ void NmMessageListView::initTreeView()
 /*!
     Reload view contents with new start parameters
     Typically when view is already open and external view activation occurs
-    for this same view
+    for this same view. Startparam ownership is transferred to this view
 */
 void NmMessageListView::reloadViewContents(NmUiStartParam* startParam)
 {
+    NM_FUNCTION;
+
     // Check start parameter validity, message view cannot
     // be updated if given parameter is zero.
     if (startParam&&startParam->viewId()==NmUiViewMessageList&&
@@ -196,26 +238,26 @@ void NmMessageListView::reloadViewContents(NmUiStartParam* startParam)
         // Store new start parameter data
         mStartParam=startParam;
         // Update the model with new parameters
-        mUiEngine.messageListModel(startParam->mailboxId(), startParam->folderId());
+        mMessageListModel = &mUiEngine.messageListModel(startParam->mailboxId(), startParam->folderId());
         refreshList();
         // Refresh the mailboxname
         setMailboxName();
-        // Show message list if it is hidden
-        mMessageListWidget->show();
     }
     else {
-        NMLOG("nmailui: Invalid message list start parameter");
+        NM_ERROR(1,"nmailui: invalid message list start parameter");
         // Unused start parameter needs to be deleted
         delete startParam;
     }
 }
 
-
+ 
 /*!
     Return view id
 */
 NmUiViewId NmMessageListView::nmailViewId() const
 {
+    NM_FUNCTION;
+
     return NmUiViewMessageList;
 }
 
@@ -224,157 +266,134 @@ NmUiViewId NmMessageListView::nmailViewId() const
 */
 void NmMessageListView::refreshList()
 {
-    NmId mailboxId = mMessageListModel.currentMailboxId();
-    if (mSyncIcon && mailboxId == mMessageListModel.currentMailboxId()) {
-        if (mUiEngine.syncState(mailboxId) == Synchronizing) {
-            mSyncIcon->setIcon(NmIcons::getIcon(NmIcons::NmIconSynching));
-        }
-        else {
-            if (mUiEngine.connectionState(mailboxId) == Connected) {
-                mSyncIcon->setIcon(NmIcons::getIcon(NmIcons::NmIconOnline));
-            }
-            else {
-                mSyncIcon->setIcon(NmIcons::getIcon(NmIcons::NmIconOffline));
-            }
-        }
-    }
+    NM_FUNCTION;
 
-    if (mMessageListWidget) {
-        mMessageListWidget->setModel(static_cast<QStandardItemModel*>(&mMessageListModel));
-        QObject::connect(&mMessageListModel, SIGNAL(rowsInserted(const QModelIndex&,int,int)),
-                this, SLOT(itemsAdded(const QModelIndex&,int,int)));
-        QObject::connect(&mMessageListModel, SIGNAL(rowsRemoved(const QModelIndex&,int,int)),
-                this, SLOT(itemsRemoved()));
-        QObject::connect(&mMessageListModel, SIGNAL(setNewParam(NmUiStartParam*)),
-                this, SLOT(reloadViewContents(NmUiStartParam*)));
-
-        if (mMessageListModel.rowCount()==0){
-            showNoMessagesText();
+    if (mMessageListModel) {
+        NmId mailboxId = mMessageListModel->currentMailboxId();    
+        // In each refresh, e.g. in folder change the UI signals
+        // lower layer about the folder that has been opened.
+        if (mStartParam){
+            mUiEngine.updateActiveFolder(mailboxId, mStartParam->folderId());
+            
+            NmFolderType folderType = mUiEngine.folderTypeById(mStartParam->mailboxId(),
+                                              mStartParam->folderId());
+            if (folderType == NmFolderInbox) { // If the new folder is an inbox, first automatic sync should be shown
+                mIsFirstSyncInMessageList = true; 
+            }
         }
+
+        // Set item model to message list widget
+        if (mMessageListWidget) {
+            mMessageListWidget->setModel(static_cast<QStandardItemModel*>(mMessageListModel));
+            QObject::connect(mMessageListModel, SIGNAL(rowsInserted(const QModelIndex&,int,int)),
+                    this, SLOT(itemsAdded(const QModelIndex&,int,int)));
+            QObject::connect(mMessageListModel, SIGNAL(rowsRemoved(const QModelIndex&,int,int)),
+                    this, SLOT(itemsRemoved()));
+            QObject::connect(mMessageListModel, SIGNAL(setNewParam(NmUiStartParam*)),
+                    this, SLOT(reloadViewContents(NmUiStartParam*)));
+
+            mPreviousModelCount=mMessageListModel->rowCount();
+            if (mPreviousModelCount==0){
+                showNoMessagesText();
+            }
+            else{
+                hideNoMessagesText();
+            }
+        }    
     }
 }
 
+/*!
+    Sync state event handling
+*/
 void NmMessageListView::handleSyncStateEvent(NmSyncState syncState, const NmId & mailboxId)
 {
-    if (mSyncIcon && mailboxId == mMessageListModel.currentMailboxId()) {
+    NM_FUNCTION;
+    if (mMessageListModel && mailboxId == mMessageListModel->currentMailboxId()) {
         if (syncState == Synchronizing) {
-            mSyncIcon->setIcon(NmIcons::getIcon(NmIcons::NmIconSynching));
-        }
-        else {
-            if (mUiEngine.connectionState(mailboxId) == Connected) {
-                mSyncIcon->setIcon(NmIcons::getIcon(NmIcons::NmIconOnline));
+             // before first sync inbox id might be zero
+            if (mStartParam->folderId() == 0) {
+                // after sync inbox id should be updated to correct value
+                NmId folderId = mUiEngine.standardFolderId(
+                    mStartParam->mailboxId(),
+                    NmFolderInbox);
+                mStartParam->setFolderId(folderId);
             }
-            else {
-                mSyncIcon->setIcon(NmIcons::getIcon(NmIcons::NmIconOffline));
+            // Show sync icon only for the first automatic sync after opening message list.
+            // Sync icon for manual sync is shown in NmUiEngine::refreshMailbox, not here.
+            if (mIsFirstSyncInMessageList) {
+                HbIndicator indicator;
+                indicator.activate(syncIndicatorName, QVariant());
+                mIsFirstSyncInMessageList = false;
             }
         }
     }
 }
 
-/*!
-    Connection event handling
-*/
-void NmMessageListView::handleConnectionEvent(NmConnectState connectState, const NmId &mailboxId)
-{
-    if (mSyncIcon && mailboxId == mMessageListModel.currentMailboxId() && mUiEngine.syncState(mailboxId) != Synchronizing) {
-        if (connectState == Connected) {
-            mSyncIcon->setIcon(NmIcons::getIcon(NmIcons::NmIconOnline));
-        }
-        else {
-            mSyncIcon->setIcon(NmIcons::getIcon(NmIcons::NmIconOffline));
-        }
-    }
-}
-
-/*!
+/*! 
     folder selection handling within current mailbox
 */
-void NmMessageListView::folderSelected(NmId mailbox, NmId folder)
+void NmMessageListView::folderSelected()
 {
-    // Reloas view contents with new startparams
-    if (mStartParam){
-        NmUiStartParam* startParam = new NmUiStartParam(NmUiViewMessageList,mailbox,folder);
-        // Hide message lis for redraw
-        mMessageListWidget->hide();
+    NM_FUNCTION;
+
+    // Reload view contents with new startparams if mailbox or folder
+    // id is different than current values.
+    if (mStartParam && (mStartParam->mailboxId()!=mSelectedMailboxId||
+                        mStartParam->folderId()!=mSelectedFolderId)){
+        // Create start params
+        NmUiStartParam* startParam = new NmUiStartParam(NmUiViewMessageList,
+                                                        mSelectedMailboxId,
+                                                        mSelectedFolderId);
+        // Store active folder type
+        mCurrentFolderType = mUiEngine.folderTypeById(startParam->mailboxId(),startParam->folderId());
         // Reload view, ownership of the startparams is passed and old startparams
         // are deleted within reloadViewContents function
         reloadViewContents(startParam);
         //Set folder text to status bar
         setFolderName();
-        // Store active folder type
-        mCurrentFolderType = NmFolderInbox;
     }
 }
 
 
 /*!
-    Long keypress handling
+    Long keypress handling 
 */
 void NmMessageListView::showItemContextMenu(HbAbstractViewItem *listViewItem, const QPointF &coords)
 {
-    // Store long press item for later use with response
-    mLongPressedItem = mMessageListModel.data(
-            listViewItem->modelIndex(), Qt::DisplayRole).value<NmMessageListModelItem*>();
-    if (mItemContextMenu && mLongPressedItem && mLongPressedItem->itemType() ==
-        NmMessageListModelItem::NmMessageItemMessage) {
+    NM_FUNCTION;
+   
+    if (listViewItem) {
+        // Recreate item context menu each time it is called
+        if (mItemContextMenu){
+            mItemContextMenu->clearActions();
+            delete mItemContextMenu;    
+            mItemContextMenu=NULL;
+        }
+        mItemContextMenu = new HbMenu();
+        // Store long press item for later use with response
+        mLongPressedItem = mMessageListModel->data(
+                listViewItem->modelIndex(), Qt::DisplayRole).value<NmMessageListModelItem*>();
+        if (mItemContextMenu && mLongPressedItem && mLongPressedItem->itemType() ==
+            NmMessageListModelItem::NmMessageItemMessage) {
 
-        // Clear previous items from context menu
-        mItemContextMenu->clearActions();
-        NmUiExtensionManager &extMngr = mApplication.extManager();
-        QList<NmAction*> list;
-        // Fetch items from extension based on item
-        NmMessageEnvelope *envelope = mLongPressedItem->envelopePtr();
-        if (envelope){
-            NmActionRequest request(this, NmActionContextMenu, NmActionContextViewMessageList,
-                    NmActionContextDataMessage, mStartParam->mailboxId(), mStartParam->folderId(),
-                    envelope->messageId(),QVariant::fromValue(envelope));
-            extMngr.getActions(request, list);
-        }
-        else{
-            NmActionRequest request(this, NmActionContextMenu, NmActionContextViewMessageList,
-                    NmActionContextDataMessage, mStartParam->mailboxId(), mStartParam->folderId(),
-                    envelope->messageId());
-            extMngr.getActions(request, list);
-        }
-        for (int i=0;i<list.count();i++) {
-            mItemContextMenu->addAction(list[i]);
-        }
-        mItemContextMenu->setPreferredPos(coords);
-        mItemContextMenu->open(this, SLOT(contextButton(NmActionResponse&)));
-    }
-}
-
-/*!
-    Slot. Signaled when menu option is selected
-*/
-void NmMessageListView::contextButton(NmActionResponse &result)
-{
-    // Handle context menu commands here
-    if (result.menuType()==NmActionContextMenu){
-        switch (result.responseCommand()){
-           case NmActionResponseCommandOpen:{
-               if (mLongPressedItem){
-                   NmUiStartParam *startParam = new NmUiStartParam(NmUiViewMessageViewer,
-                       mStartParam->mailboxId(), mStartParam->folderId(),
-                       mLongPressedItem->envelope().messageId());
-                   mApplication.enterNmUiView(startParam);
-                   mLongPressedItem=NULL;
-                   }
-               }
-               break;
-           //temporary solution..
-           case NmActionResponseCommandForward:{
-                if (mLongPressedItem){
-                   NmUiStartParam *startParam = new NmUiStartParam(NmUiViewMessageEditor,
-                       mStartParam->mailboxId(), mStartParam->folderId(),
-                       mLongPressedItem->envelope().messageId());
-                   mApplication.enterNmUiView(startParam);
-                   mLongPressedItem=NULL;
-                   }
-               }
-               break;
-           default:
-               break;
+            // Clear previous items from context menu
+            mItemContextMenu->clearActions();
+            NmUiExtensionManager &extMngr = mApplication.extManager();
+            QList<NmAction*> list;
+            // Fetch items from extension based on item
+            NmMessageEnvelope *envelope = mLongPressedItem->envelopePtr();
+            if (envelope){
+                NmActionRequest request(this, NmActionContextMenu, NmActionContextViewMessageList,
+                        NmActionContextDataMessage, mStartParam->mailboxId(), mStartParam->folderId(),
+                        envelope->messageId(),QVariant::fromValue(envelope));
+                extMngr.getActions(request, list);
+                for (int i=0;i<list.count();i++) {
+                    mItemContextMenu->addAction(list[i]);
+                }
+			    mItemContextMenu->setPreferredPos(coords);
+                mItemContextMenu->open();
+            }
         }
     }
 }
@@ -385,6 +404,8 @@ void NmMessageListView::contextButton(NmActionResponse &result)
 */
 void NmMessageListView::itemActivated(const QModelIndex &index)
 {
+    NM_FUNCTION;
+
     mActivatedIndex = index;
     QMetaObject::invokeMethod(this, "handleSelection", Qt::QueuedConnection);
 }
@@ -395,8 +416,10 @@ void NmMessageListView::itemActivated(const QModelIndex &index)
 */
 void NmMessageListView::handleSelection()
 {
+    NM_FUNCTION;
+
     // Do expand/collapse for title divider items
-    NmMessageListModelItem* modelItem = mMessageListModel.data(
+    NmMessageListModelItem* modelItem = mMessageListModel->data(
             mActivatedIndex, Qt::DisplayRole).value<NmMessageListModelItem*>();
     if (modelItem && modelItem->itemType()==
         NmMessageListModelItem::NmMessageItemTitleDivider) {
@@ -408,8 +431,9 @@ void NmMessageListView::handleSelection()
             mMessageListWidget->setExpanded(mActivatedIndex, false);
             modelItem->setExpanded(false);
         }
-    } 
-    if (modelItem && modelItem->itemType() == NmMessageListModelItem::NmMessageItemMessage)
+    }
+    if (modelItem && modelItem->itemType() == NmMessageListModelItem::NmMessageItemMessage
+        && !mSettingsLaunched)
     {
         NmFolderType folderType = mUiEngine.folderTypeById(mStartParam->mailboxId(),
                                   mStartParam->folderId());
@@ -417,15 +441,15 @@ void NmMessageListView::handleSelection()
             NmUiStartParam *startParam = new NmUiStartParam(NmUiViewMessageEditor,
                 mStartParam->mailboxId(), mStartParam->folderId(),
                 modelItem->envelope().messageId(),NmUiEditorFromDrafts);
-            mApplication.enterNmUiView(startParam);            
+            mApplication.enterNmUiView(startParam);
         }
         else if (folderType!=NmFolderOutbox){
             NmUiStartParam *startParam = new NmUiStartParam(NmUiViewMessageViewer,
                 mStartParam->mailboxId(), mStartParam->folderId(),
                 modelItem->envelope().messageId());
-            mApplication.enterNmUiView(startParam);        
+            mApplication.enterNmUiView(startParam);
         }
-    }    
+    }
 }
 
 
@@ -436,6 +460,8 @@ void NmMessageListView::handleSelection()
 */
 void NmMessageListView::createOptionsMenu()
 {
+    NM_FUNCTION;
+
     menu()->clearActions();
     NmActionRequest request(this, NmActionOptionsMenu, NmActionContextViewMessageList,
     		NmActionContextDataNone, mStartParam->mailboxId(), mStartParam->folderId() );
@@ -453,6 +479,8 @@ void NmMessageListView::createOptionsMenu()
 */
 void NmMessageListView::handleActionCommand(NmActionResponse &actionResponse)
 {
+    NM_FUNCTION;
+
     // Handle context menu commands here
     if (actionResponse.menuType() == NmActionOptionsMenu) {
         switch (actionResponse.responseCommand()) {
@@ -471,11 +499,17 @@ void NmMessageListView::handleActionCommand(NmActionResponse &actionResponse)
                 break;
             }
             case NmActionResponseCommandMailboxDeleted: {
-                mApplication.popView();
+                mApplication.prepareForPopView();
 				break;
             }
             case NmActionResponseCommandSwitchFolder: {
-                folderSelected(actionResponse.mailboxId(), actionResponse.folderId());
+                mSelectedFolderId=actionResponse.folderId();
+                mSelectedMailboxId=actionResponse.mailboxId();
+                QMetaObject::invokeMethod(this, "folderSelected", Qt::QueuedConnection);
+                break;
+            }
+            case NmActionResponseCommandSettings: {
+                mSettingsLaunched = true;
                 break;
             }
             default: {
@@ -483,56 +517,46 @@ void NmMessageListView::handleActionCommand(NmActionResponse &actionResponse)
             }
         }
     }
+
+    // Handle context menu commands here
+    else if (actionResponse.menuType()==NmActionContextMenu){
+        switch (actionResponse.responseCommand()){
+           case NmActionResponseCommandOpen:{
+               if (mLongPressedItem){
+                   NmUiStartParam *startParam = new NmUiStartParam(NmUiViewMessageViewer,
+                       mStartParam->mailboxId(), mStartParam->folderId(),
+                       mLongPressedItem->envelope().messageId());
+                   mApplication.enterNmUiView(startParam);
+                   mLongPressedItem=NULL;
+                   }
+               }
+               break;
+           default:
+               break;
+        }
+    }
+
     // Handle toolbar commands here
     else if ( actionResponse.menuType() == NmActionToolbar ) {
         if ( actionResponse.responseCommand() == NmActionResponseCommandNewMail ) {
             // Check that given start response has mailbox and folder id's
             if (actionResponse.mailboxId()!=0){
-                if (mUiEngine.isSendingMessage()) {
-                    // sending is ongoing so just show a note
-                    QString noteText = hbTrId("txt_mail_dialog_still_sending");
-                    
-                    // get message subject from the message being sent
-                    const NmMessage *message = mUiEngine.messageBeingSent();
-                    if (message) {
-                        noteText = noteText.arg(NmUtilities::truncate(message->envelope().subject(), 20));
-                    }
-                    HbMessageBox::warning(noteText);
-                }
-                else {
-                    NmUiStartParam *startParam = new NmUiStartParam(NmUiViewMessageEditor,
-                            actionResponse.mailboxId(), mStartParam->folderId());
-                    // startParam ownerhips transfers
-                    mApplication.enterNmUiView(startParam);
-                }
+                NmUiStartParam *startParam = new NmUiStartParam(NmUiViewMessageEditor,
+                        actionResponse.mailboxId(), mStartParam->folderId());
+                // startParam ownerhips transfers
+                mApplication.enterNmUiView(startParam);
             }
         }
         if (actionResponse.responseCommand() == NmActionResponseCommandSearch) {
             // Check that the given start response has mailbox and folder IDs.
             if (actionResponse.mailboxId() != 0) {
-                if (mUiEngine.isSendingMessage()) {
-                    // Sending is ongoing so just show a note.
-                    QString noteText = hbTrId("txt_mail_dialog_still_sending");
+                NmUiStartParam *startParam =
+                    new NmUiStartParam(NmUiViewMessageSearchList,
+                                       actionResponse.mailboxId(),
+                                       mStartParam->folderId());
 
-                    // Get the message subject from the message being sent.
-                    const NmMessage *message = mUiEngine.messageBeingSent();
-
-                    if (message) {
-                        noteText = noteText.arg(
-                            NmUtilities::truncate(message->envelope().subject(), 20));
-                    }
-
-                    HbMessageBox::warning(noteText);
-                }
-                else {
-                    NmUiStartParam *startParam =
-                        new NmUiStartParam(NmUiViewMessageSearchList,
-                                           actionResponse.mailboxId(),
-                                           mStartParam->folderId());
-
-                    // startParam ownership transfers.
-                    mApplication.enterNmUiView(startParam);
-                }
+                // startParam ownership transfers.
+                mApplication.enterNmUiView(startParam);
             }
         }
     }
@@ -544,6 +568,8 @@ void NmMessageListView::handleActionCommand(NmActionResponse &actionResponse)
 */
 void NmMessageListView::setMailboxName()
 {
+    NM_FUNCTION;
+
     if (mStartParam){
         NmMailboxMetaData *meta = mUiEngine.mailboxById(mStartParam->mailboxId());
         if (meta){
@@ -559,6 +585,8 @@ void NmMessageListView::setMailboxName()
 */
 void NmMessageListView::createToolBar()
 {
+    NM_FUNCTION;
+
     HbToolBar *tb = toolBar();
     if (!tb) {
         return;
@@ -582,71 +610,100 @@ void NmMessageListView::createToolBar()
 */
 void NmMessageListView::setFolderName()
 {
-    if (mStartParam && mFolderLabel) {
-        switch (mUiEngine.folderTypeById(mStartParam->mailboxId(),
-                mStartParam->folderId())) {
+    NM_FUNCTION;
+
+    if (mStartParam&&mFolderLabel){
+        switch (mCurrentFolderType) {
         case NmFolderOutbox:
             {
-            mFolderLabel->setPlainText(hbTrId("txt_mail_subhead_outbox"));
+            mFolderLabel->setHeading(hbTrId("txt_mail_subhead_outbox"));
             }
             break;
         case NmFolderDrafts:
             {
-            mFolderLabel->setPlainText(hbTrId("txt_mail_subhead_drafts"));
+            mFolderLabel->setHeading(hbTrId("txt_mail_subhead_drafts"));
             }
             break;
         case NmFolderSent:
             {
-            mFolderLabel->setPlainText(hbTrId("txt_mail_subhead_sent_items"));
+            mFolderLabel->setHeading(hbTrId("txt_mail_subhead_sent_items"));
             }
             break;
         case NmFolderDeleted:
             {
-            mFolderLabel->setPlainText(hbTrId("txt_mail_subhead_deleted_items"));
+            mFolderLabel->setHeading(hbTrId("txt_mail_subhead_deleted_items"));
             }
             break;
         case NmFolderInbox:
         default:
             {
-            mFolderLabel->setPlainText(hbTrId("txt_mail_subhead_inbox"));
+            mFolderLabel->setHeading(hbTrId("txt_mail_subhead_inbox"));
             }
             break;
         }
     }
 }
 
+
 /*!
-    Observe items added
+    Handles the addition of a new item. Makes sure the message list widget is
+    visible and keeps the scroll position on the top of the list.
+
+    \param parent Not used.
+    \param start 
+    \param end Not used.
 */
 void NmMessageListView::itemsAdded(const QModelIndex &parent, int start, int end)
 {
-    NMLOG("nmailui: NmMessageListView::itemsAdded");
+    NM_FUNCTION;
+
     Q_UNUSED(parent);
     Q_UNUSED(end);
-    if (mNoMessagesLabel && mNoMessagesLabel->isVisible()) {
-        mNoMessagesLabel->hide();
-        mMessageListWidget->show();
+
+    // Hide no messages if previous model count has been zero
+    // and new items have been added to the list
+    if (mPreviousModelCount==0) {
+        hideNoMessagesText();
     }
-    if (0 == start && mMessageListWidget) {
+
+    // Make sure the top of the list is kept visible by scrolling back to the
+    // top if necessary.
+    if (start == 0 && mMessageListWidget) {
         QList<HbAbstractViewItem*> items = mMessageListWidget->visibleItems();
+
         if (items.count()) {
             QModelIndex index = items.at(0)->modelIndex();
-            if (1 == index.row()) {
-                QModelIndex previous = mMessageListWidget->modelIterator()->previousIndex(index);
+
+            while (index.row() > 0) {
+                QModelIndex previous =
+                    mMessageListWidget->modelIterator()->previousIndex(index);
+
                 if (previous.isValid()) {
                     mMessageListWidget->scrollTo(previous);
                 }
+
+                index = previous;
             }
         }
     }
+    // Store model count
+    if (mMessageListModel){
+        mPreviousModelCount=mMessageListModel->rowCount();    
+    }
 }
+
 
 /*!
     Observe items removed
 */
 void NmMessageListView::itemsRemoved()
 {
-    if (mNoMessagesLabel && mMessageListModel.rowCount() == 0){
+    NM_FUNCTION;
+    // Store model count
+    if (mMessageListModel){
+        mPreviousModelCount=mMessageListModel->rowCount();    
+    }
+    if (mPreviousModelCount == 0){
         showNoMessagesText();
     }
 }
@@ -656,8 +713,24 @@ void NmMessageListView::itemsRemoved()
 */
 void NmMessageListView::showNoMessagesText()
 {
-    if (mNoMessagesLabel) {
+    NM_FUNCTION;
+
+    if (mNoMessagesLabel&&mMessageListWidget) {
         mMessageListWidget->hide();
         mNoMessagesLabel->show();
     }
 }
+
+/*!
+    Hide "(no messages)" text at the middle of the screen.
+*/
+void NmMessageListView::hideNoMessagesText()
+{
+    NM_FUNCTION;
+
+    if (mNoMessagesLabel&&mMessageListWidget) {
+        mNoMessagesLabel->hide();
+        mMessageListWidget->show();
+    }
+}
+

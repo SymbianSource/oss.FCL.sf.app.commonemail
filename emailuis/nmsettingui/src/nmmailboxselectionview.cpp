@@ -51,6 +51,8 @@ NmMailboxSelectionView::NmMailboxSelectionView(
   mSettingsFactory(settingsFactory),
   mRefreshForm(false)
 {
+    NM_FUNCTION;
+    
     QScopedPointer<QSignalMapper> signalMapper(new QSignalMapper());
 
     // Connect the form's activated signal.
@@ -81,6 +83,8 @@ NmMailboxSelectionView::NmMailboxSelectionView(
 */
 NmMailboxSelectionView::~NmMailboxSelectionView()
 {
+    NM_FUNCTION;
+    
     delete mItemDataHelper;
     delete mModel;
     delete mSignalMapper;
@@ -95,7 +99,8 @@ NmMailboxSelectionView::~NmMailboxSelectionView()
 */
 void NmMailboxSelectionView::buttonClick(QObject *item)
 {
-    NMLOG("NmMailboxSelectionView::buttonClick");
+    NM_FUNCTION;
+    
     NmMailboxEntryItem *entryItem = static_cast<NmMailboxEntryItem *>(item);
     const NmId &id = entryItem->id();
     const QString &name = entryItem->text();
@@ -111,7 +116,7 @@ void NmMailboxSelectionView::buttonClick(QObject *item)
 */
 void NmMailboxSelectionView::itemActivate(const QModelIndex &index)
 {
-    NMLOG("NmMailboxSelectionView::itemActivate");
+    NM_FUNCTION;
     
     HbDataForm *form = qobject_cast<HbDataForm*>(widget());
     HbDataFormModel *model = static_cast<HbDataFormModel *>(form->model());
@@ -141,7 +146,8 @@ void NmMailboxSelectionView::itemActivate(const QModelIndex &index)
 */
 void NmMailboxSelectionView::populateDataModel(const QList<NmMailbox *> &mailboxList)
 {
-    NMLOG("NmMailboxSelectionView::populateDataModel");
+    NM_FUNCTION;
+    
     mModel->clear();
     foreach (NmMailbox *mailbox, mailboxList) {
         NmId id = mailbox->id();
@@ -164,8 +170,8 @@ void NmMailboxSelectionView::populateDataModel(const QList<NmMailbox *> &mailbox
 void NmMailboxSelectionView::mailboxListChanged(const NmId &mailboxId,
     NmSettings::MailboxEventType type)
 {
-    NMLOG("NmMailboxSelectionView::mailboxListChanged");
-
+    NM_FUNCTION;
+    
     switch (type) {
         case NmSettings::MailboxDeleted: {
             // Search correct item.
@@ -191,7 +197,6 @@ void NmMailboxSelectionView::mailboxListChanged(const NmId &mailboxId,
             break;
         }
     }
-    NMLOG("NmMailboxSelectionView::mailboxListChanged - OK");
 }
 
 /*!
@@ -204,8 +209,8 @@ void NmMailboxSelectionView::mailboxListChanged(const NmId &mailboxId,
 void NmMailboxSelectionView::mailboxPropertyChanged(const NmId &mailboxId,
     QVariant property, QVariant value)
 {
-    NMLOG("NmMailboxSelectionView::mailboxPropertyChanged");
-
+    NM_FUNCTION;
+    
     // Search correct item.
     NmMailboxEntryItem *entryItem = 0;
     const int itemCount(mModel->rowCount());
@@ -228,6 +233,4 @@ void NmMailboxSelectionView::mailboxPropertyChanged(const NmId &mailboxId,
         default:
             break;
     }
-
-    NMLOG("NmMailboxSelectionView::mailboxPropertyChanged - OK");
 }

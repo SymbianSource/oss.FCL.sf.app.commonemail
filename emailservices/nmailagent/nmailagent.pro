@@ -46,9 +46,20 @@ symbian*: {
     INCLUDEPATH += $$MW_LAYER_SYSTEMINCLUDE
     BLD_INF_RULES.prj_exports += "rom/nmailagent.iby $$CORE_APP_LAYER_IBY_EXPORT_PATH(nmailagent.iby)"
 
+    BLD_INF_RULES.prj_exports += "$${LITERAL_HASH}include <platform_paths.hrh>" \
+                             "conf/2002C326.txt                  /epoc32/release/winscw/udeb/z/private/10202BE9/2002C326.txt" \
+                             "conf/2002C326.txt                  /epoc32/release/winscw/urel/z/private/10202BE9/2002C326.txt" \
+                             "conf/2002C326.txt                  /epoc32/data/z/private/10202BE9/2002C326.txt"
+
+    RSS_RULES += "hidden = KAppIsHidden;"
+
     TARGET.EPOCHEAPSIZE = 0x1000 0x100000 // MAX 1MB
 
     LIBS += -ldomaincli
+    LIBS += -lxqservice
+    LIBS += -lxqsettingsmanager
+    LIBS += -lxqsystemtoneservice
+    LIBS += -lhwrmvibraclient
 
     TARGET.UID2 = 0x100039CE
     TARGET.UID3 = 0x2002C326

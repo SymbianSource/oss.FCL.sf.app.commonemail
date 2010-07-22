@@ -15,18 +15,19 @@
  *
  */
 
-#include <QDebug>
 #include <QGraphicsLinearLayout>
 #include <hbdocumentloader.h>
 #include <hblabel.h>
 #include <hbextendedlocale.h>
-#include <HbFrameDrawer>
-#include <HbFrameItem>
+#include <hbframedrawer.h>
+#include <hbframeitem.h>
+#include <hbcolorscheme.h>
+#include <hbevent.h>
 #include "nmicons.h"
 #include "nmcommon.h"
 #include "nmhswidgetemailrow.h"
 #include "nmhswidgetconsts.h"
-#include "nmmessageenvelope.h"
+#include "emailtrace.h"
 
 NmHsWidgetEmailRow::NmHsWidgetEmailRow(QGraphicsItem *parent, Qt::WindowFlags flags) :
     HbWidget(parent, flags), 
@@ -35,11 +36,10 @@ NmHsWidgetEmailRow::NmHsWidgetEmailRow(QGraphicsItem *parent, Qt::WindowFlags fl
     mTimeLabel(0), 
     mNewMailIcon(0),
     mSeparatorIcon(0), 
-    mMessageId(0)
+    mMessageId(0),
+    mBackgroundLayoutItem(0)
 {
-    qDebug() << "NmHsWidgetEmailRow::NmHsWidgetEmailRow IN -->>";
-
-    qDebug() << "NmHsWidgetEmailRow::NmHsWidgetEmailRow OUT <<--";
+    NM_FUNCTION;
 }
 
 /*!
@@ -47,9 +47,7 @@ NmHsWidgetEmailRow::NmHsWidgetEmailRow(QGraphicsItem *parent, Qt::WindowFlags fl
  */
 NmHsWidgetEmailRow::~NmHsWidgetEmailRow()
 {
-    qDebug() << "NmHsWidgetEmailRow::~NmHsWidgetEmailRow IN -->>";
-
-    qDebug() << "NmHsWidgetEmailRow::~NmHsWidgetEmailRow OUT <<--";
+    NM_FUNCTION;
 }
 
 /*!
@@ -57,29 +55,43 @@ NmHsWidgetEmailRow::~NmHsWidgetEmailRow()
  */
 NmId NmHsWidgetEmailRow::messageId()
 {
-    qDebug() << "NmHsWidgetEmailRow::messageId()";
+    NM_FUNCTION;
     return mMessageId;
 
 }
 
+/*
+ Setup email row ui
+  Must be called after constructor.
+   /return true if loading succeeded, otherwise false. False indicates that object is unusable.
+ */
+bool NmHsWidgetEmailRow::setupUI()
+    {
+    NM_FUNCTION;
+    
+    if(!loadDocML() || !setupGraphics()){
+        return false;
+    }
+    return true;
+    }
+
+
+
 /*!
- Loads layout data and child items from docml file
- Must be called after constructor.
+ Loads layout data and child items from docml file 
   /return true if loading succeeded, otherwise false. False indicates that object is unusable.
  */
 bool NmHsWidgetEmailRow::loadDocML()
 {
-    HbFrameDrawer* backgroundFrameDrawer = 0;
-    HbFrameItem* backgroundLayoutItem = 0;
-    QT_TRY{
-        qDebug() << "NmHsWidgetEmailRow::loadDocML IN -->>";
-    
+    NM_FUNCTION;
+
+    QT_TRY{   
         // Use document loader to load the contents
         HbDocumentLoader loader;
         bool ok(false);
         loader.load(KNmHsWidgetMailRowDocML, &ok);
         if (!ok) {
-            qDebug() << "NmHsWidgetEmailRow::loadDocML fail @ loader <<--";
+            NM_ERROR(1,"NmHsWidgetEmailRow::loadDocML fail @ loader");
             return false;
         }
     
@@ -94,7 +106,7 @@ bool NmHsWidgetEmailRow::loadDocML()
         //find container widget
         QGraphicsWidget *container = loader.findWidget(KNmHsWidgetMailRowContainer);
         if (!container) {
-            qDebug() << "NmHsWidgetEmailRow::loadDocML fail @ container <<--";
+            NM_ERROR(1,"NmHsWidgetEmailRow::loadDocML fail @ container");
             return false;
         }
         layout->addItem(container);
@@ -118,35 +130,62 @@ bool NmHsWidgetEmailRow::loadDocML()
     
         //Verify that items are valid
         if (!mSenderLabel || !mSubjectLabel || !mTimeLabel || !mNewMailIcon || !mSeparatorIcon) {
-            qDebug() << "NmHsWidgetEmailRow::loadDocML fail @ labels & icons <<--";
+            NM_ERROR(1,"NmHsWidgetEmailRow::loadDocML fail @ labels & icons");
             return false;
         }
         //Verify all mStatusIcons
         for (int i = 0; i < mStatusIcons.length(); i++) {
-            if (!mStatusIcons[i]) {
-                qDebug() << "NmHsWidgetEmailRow::loadDocML status icons <<--";
+            if (!mStatusIcons.at(i)) {
                 return false;
             }
         }
+        
+        return true;
+    }
+    QT_CATCH(...){
+        return false;
+    }
+}
+
+/*
+ Setup graphics that cannot be loaded from docml.
+  /return true if loading succeeded, otherwise false. False indicates that object is unusable.
+ */
+bool NmHsWidgetEmailRow::setupGraphics()
+    {
+    NM_FUNCTION;
     
+    HbFrameDrawer* newMailIconFrameDrawer = 0;
+    HbFrameItem* newMailIconFrameItem = 0;
+    HbFrameDrawer* backgroundFrameDrawer = 0;
+    QT_TRY{ 
         //separator icon
         HbIcon separatorIcon("qtg_graf_divider_h_thin");
         mSeparatorIcon->setIcon(separatorIcon);
         
         //new email icon
-        backgroundFrameDrawer = new HbFrameDrawer("qtg_fr_list_new_item",
+        newMailIconFrameDrawer = new HbFrameDrawer("qtg_fr_list_new_item",
             HbFrameDrawer::ThreePiecesVertical);
-        backgroundLayoutItem = new HbFrameItem(backgroundFrameDrawer);
-        mNewMailIcon->setBackgroundItem(backgroundLayoutItem);
-    
+        newMailIconFrameItem = new HbFrameItem(newMailIconFrameDrawer);
+        mNewMailIcon->setBackgroundItem(newMailIconFrameItem);
+        
         //hide all the icons first to avoid blinking
         hideIcons();
     
-        qDebug() << "NmHsWidgetEmailRow::loadDocML OK OUT <<--";
+        //pressed background
+        backgroundFrameDrawer = new HbFrameDrawer("qtg_fr_hsitems_pressed", HbFrameDrawer::NinePieces);
+        mBackgroundLayoutItem = new HbFrameItem( backgroundFrameDrawer );
+        setBackgroundItem( mBackgroundLayoutItem );
+        mBackgroundLayoutItem->hide();
+            
         return true;
     }
     QT_CATCH(...){
-        if(!backgroundLayoutItem && backgroundFrameDrawer){
+        if(!newMailIconFrameItem && newMailIconFrameDrawer){
+            delete newMailIconFrameDrawer;
+            newMailIconFrameDrawer = NULL;
+        }
+        if(!mBackgroundLayoutItem && backgroundFrameDrawer){
             delete backgroundFrameDrawer;
             backgroundFrameDrawer = NULL;
         }
@@ -160,8 +199,10 @@ bool NmHsWidgetEmailRow::loadDocML()
  */
 void NmHsWidgetEmailRow::updateMailData(const NmMessageEnvelope& envelope)
 {
-    qDebug() << "NmHsWidgetEmailRow::updateMailData IN -->>";
+    NM_FUNCTION;
 
+    mEnvelope = NmMessageEnvelope(envelope);
+    
     //hide all icons, so no previous data is messing with the new
     hideIcons();
 
@@ -183,7 +224,10 @@ void NmHsWidgetEmailRow::updateMailData(const NmMessageEnvelope& envelope)
     
     //set new icons to widget based on the data
     setIconsToWidget( envelope );
-    qDebug() << "NmHsWidgetEmailRow::updateMailData OUT <<--";
+    
+    //set fonts color and size
+    setFontsSize(mEnvelope.isRead());
+    setHighlighedFontsColor(false);
     }
 
 /*!
@@ -191,7 +235,7 @@ void NmHsWidgetEmailRow::updateMailData(const NmMessageEnvelope& envelope)
 */
 void NmHsWidgetEmailRow::updateDateTime()
     {
-    qDebug() << "NmHsWidgetEmailRow::updateDateTime IN -->>";
+    NM_FUNCTION;
     //Set Date with locale support
     //Time shown if message is sent today, otherwise show date
     HbExtendedLocale locale = HbExtendedLocale::system();
@@ -207,7 +251,6 @@ void NmHsWidgetEmailRow::updateDateTime()
         QString dateSpec = r_qtn_date_without_year;
         mTimeLabel->setPlainText( locale.format(mMessageSentTime.date(), dateSpec) );
         }
-    qDebug() << "NmHsWidgetEmailRow::updateDateTime OUT <<--";
     }
 
 /*!
@@ -215,12 +258,11 @@ void NmHsWidgetEmailRow::updateDateTime()
  */
 void NmHsWidgetEmailRow::hideIcons()
 {
-    qDebug() << "NmHsWidgetEmailRow::hideIcons IN -->>";
+    NM_FUNCTION;
     for (int i = 0; i < mStatusIcons.count(); i++) {
-        mStatusIcons[i]->hide();
+        mStatusIcons.at(i)->hide();
     }
     mNewMailIcon->hide();
-    qDebug() << "NmHsWidgetEmailRow::hideIcons OUT <<--";
 }
 
 /*!
@@ -228,7 +270,7 @@ void NmHsWidgetEmailRow::hideIcons()
  */
 void NmHsWidgetEmailRow::setIconsToWidget(const NmMessageEnvelope& envelope)
 {
-    qDebug() << "NmHsWidgetEmailRow::setIconsToWidget IN -->>";
+    NM_FUNCTION;
 
     bool unreadMail = !envelope.isRead();
     bool attachment = envelope.hasAttachments();
@@ -264,21 +306,89 @@ void NmHsWidgetEmailRow::setIconsToWidget(const NmMessageEnvelope& envelope)
 
     // Here we show icons added to the iconList in the order they have been added.
     for (int count = 0; count < iconList.count(); count++) {
-        mStatusIcons[count]->setIcon(iconList[count]);
-        mStatusIcons[count]->show();
+        mStatusIcons.at(count)->setIcon(iconList.at(count));
+        mStatusIcons.at(count)->show();
+    }
+}
+
+
+/*!
+    sets fonts size. Unread and read mails are shown differently
+*/
+void NmHsWidgetEmailRow::setFontsSize( bool read )
+    {
+    NM_FUNCTION;
+    HbFontSpec fontSpec;
+    
+    if(!read){
+        fontSpec.setRole(HbFontSpec::Primary);
+        mTimeLabel->fontSpec().setRole(HbFontSpec::Primary);
+    }
+    else{
+        fontSpec.setRole(HbFontSpec::Secondary);
+        mTimeLabel->fontSpec().setRole(HbFontSpec::Secondary);
+    }  
+    
+    HbStyle style;
+    qreal size;
+    bool found = style.parameter(QString("hb-param-text-height-secondary"), size );
+    if (found) {
+        fontSpec.setTextHeight(size);
+    }
+    
+    mSenderLabel->setFontSpec(fontSpec);
+    mSubjectLabel->setFontSpec(fontSpec);
     }
 
-    qDebug() << "NmHsWidgetEmailRow::setIconsToWidget OUT <<--";
-}
+/*!
+    sets fonts color.
+    /param bool pressed indicates if row is pressed down or not
+*/
+void NmHsWidgetEmailRow::setHighlighedFontsColor( bool pressed )
+    {
+    NM_FUNCTION;
+    QColor newFontColor;
+    
+    if(pressed){
+        newFontColor = HbColorScheme::color("qtc_hs_list_item_pressed");
+    }
+    else if(mEnvelope.isRead()){
+        newFontColor = HbColorScheme::color("qtc_hs_list_item_content_normal");
+    }
+    else{
+        newFontColor = HbColorScheme::color("qtc_hs_list_item_title_normal");
+    }
+ 
+    mSenderLabel->setTextColor(newFontColor);
+    mSubjectLabel->setTextColor(newFontColor);
+    mTimeLabel->setTextColor(newFontColor);
+    }
+
+/*!
+    change background highlight
+    /param bool show if true then shown, false hide
+*/
+void NmHsWidgetEmailRow::showHighlight( bool show )
+    {
+    NM_FUNCTION;
+    
+    if(show){
+        mBackgroundLayoutItem->show();
+    }
+    else{
+        mBackgroundLayoutItem->hide();
+    }
+    }
 
 /*!
  mousePressEvent(QGraphicsSceneMouseEvent *event)
  */
 void NmHsWidgetEmailRow::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-    qDebug() << "NmHsWidgetTitleRow::mousePressEvent() IN -->>";
+    NM_FUNCTION;
     Q_UNUSED(event); 
-    qDebug() << "NmHsWidgetTitleRow::mousePressEvent() OUT <<--";
+    setHighlighedFontsColor(true);
+    showHighlight(true);
 }
 
 /*!
@@ -286,8 +396,23 @@ void NmHsWidgetEmailRow::mousePressEvent(QGraphicsSceneMouseEvent *event)
 */
 void NmHsWidgetEmailRow::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
-    qDebug() << "NmHsWidgetTitleRow::mouseReleaseEvent() IN -->>";
+    NM_FUNCTION;
     Q_UNUSED(event);
+    setHighlighedFontsColor(false);
+    showHighlight(false);
     emit mailViewerLaunchTriggered(mMessageId);
-    qDebug() << "NmHsWidgetTitleRow::mouseReleaseEvent() OUT <<--";
+}
+
+/*
+ * NmHsWidgetEmailRow::event()
+ */
+bool NmHsWidgetEmailRow::event( QEvent *event )
+{
+    NM_FUNCTION;
+    QEvent::Type eventType = event->type();
+    if( eventType == HbEvent::ThemeChanged ){
+        setHighlighedFontsColor(false);
+        return true;
+    }
+    return HbWidget::event(event);
 }

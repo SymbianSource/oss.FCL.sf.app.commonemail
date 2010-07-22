@@ -15,6 +15,8 @@
 *
 */
 
+#include "emailtrace.h"
+
 #include <cpsettingformentryitemdataimpl.h>
 #include <HbApplication>
 #include <QTranslator>
@@ -25,7 +27,7 @@
 
 /*!
     \class NmSettingsPlugin
-    \brief The class implements CpPluginPlatInterface which is an interface
+    \brief The class implements CpPluginInterface which is an interface
            for plug-ins that are displayed in the control panel application.
            The class works as an entry point for NMail settings.
 
@@ -39,6 +41,8 @@
 NmSettingsPlugin::NmSettingsPlugin()
 : mTranslator(0)
 {
+    NM_FUNCTION;
+    
     mTranslator = new QTranslator();
     QString lang = QLocale::system().name();
     QString appName = "mail_";
@@ -52,6 +56,8 @@ NmSettingsPlugin::NmSettingsPlugin()
 */
 NmSettingsPlugin::~NmSettingsPlugin()
 {
+    NM_FUNCTION;
+    
     delete mTranslator;
 }
 
@@ -61,17 +67,20 @@ NmSettingsPlugin::~NmSettingsPlugin()
     \param itemDataHelper Helper class that helps control panel plug-ins to
            connect slots to inner widgets of the setting items.
 
-    \return Instance of CpSettingFormItemData.
-            Caller is the owner of the returned instance.
+    \return List of CpSettingFormItemData items.
 */
-CpSettingFormItemData *NmSettingsPlugin::createSettingFormItemData(
+QList<CpSettingFormItemData*> NmSettingsPlugin::createSettingFormItemData(
     CpItemDataHelper &itemDataHelper) const
 {
+    NM_FUNCTION;
+    
     HbIcon icon("qtg_large_email");
+    QList<CpSettingFormItemData*> list;
 
-    return new NmSettingsViewFactory(itemDataHelper,
-        hbTrId("txt_mail_title_control_panel"), "",
-        icon);
+    CpSettingFormItemData* viewFactory = new NmSettingsViewFactory(itemDataHelper,
+        hbTrId("txt_mail_title_control_panel"), "", icon);
+    list.append(viewFactory);
+    return list;
 }
 
 Q_EXPORT_PLUGIN2(nmsettingsplugin, NmSettingsPlugin);

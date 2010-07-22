@@ -19,6 +19,7 @@
 
 #include <bldvariant.hrh>
 
-file=ABI_DIR\BUILD_DIR\nmailagent.exe SHARED_LIB_DIR\nmailagent.exe
+file=ABI_DIR\BUILD_DIR\nmailagent.exe      SHARED_LIB_DIR\nmailagent.exe
+data=DATAZ_\private\10202be9\2002C326.txt  private\10202be9\2002C326.txt
 
 #endif // __NMAILAGENT_IBY__

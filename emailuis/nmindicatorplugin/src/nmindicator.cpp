@@ -27,8 +27,8 @@
 #include <HbStringUtil>
 
 const int NmMailboxInfoItemCount = 8;
-const int NmSendingStateDelay = 2000; // delay for 'send in progress' indicator
 const int NmMaxOutboxCount = 99;
+const int NmActivationDelay = 100; // 0.1s
 
 /*!
     \class NmMailboxInfo
@@ -40,7 +40,8 @@ const int NmMaxOutboxCount = 99;
 */
 NmMailboxInfo::NmMailboxInfo()
 {
-    NMLOG("NmMailboxInfo::NmMailboxInfo");
+    NM_FUNCTION;
+
     mId = 0;
     mSyncState = SyncComplete;
     mConnectState = Disconnected;
@@ -61,10 +62,7 @@ NmIndicator::NmIndicator(const QString &indicatorType)
         HbIndicatorInterface::NotificationCategory,
         InteractionActivated)
 {
-    NMLOG("NmIndicator::NmIndicator");
-    mShowIndicator = false;
-    mSendingState = false;
-    mShowSendProgress = false;
+    NM_FUNCTION;
     mActive = false;
 }
 
@@ -73,7 +71,7 @@ NmIndicator::NmIndicator(const QString &indicatorType)
 */
 NmIndicator::~NmIndicator()
 {
-    NMLOG("NmIndicator::~NmIndicator");
+    NM_FUNCTION;
 }
 
 /*!
@@ -90,25 +88,28 @@ NmIndicator::~NmIndicator()
 */
 bool NmIndicator::handleInteraction(InteractionType type)
 {
-    NMLOG("NmIndicator::handleInteraction");
+    NM_FUNCTION;
+
     bool handled = false;
     if (type == InteractionActivated) {
         mActive = false;
         handled = true;
 
-        // This indicator is responsible showing the status bar icon
-        if (mShowIndicator) {
-            // Do not show any indicators anymore
-            mShowIndicator = false;
-            emit dataChanged();
-
-            // Notify that the icon will be lost now
-            emit indicatorIconLost();
-        }
-        emit mailboxLaunched(mMailbox.mId.id());
-        emit deactivate();
+        QVariantMap data;
+        emit userActivated(data);
+        
+        // The action will be delayed to improve the usability
+        QTimer::singleShot(NmActivationDelay, this, SLOT(delayedAction()));
     }
     return handled;
+}
+
+/*!
+     Deactivate the indicator  
+*/
+void NmIndicator::delayedAction() 
+{
+    emit deactivate();
 }
 
 /*!
@@ -127,28 +128,30 @@ bool NmIndicator::handleInteraction(InteractionType type)
 */
 QVariant NmIndicator::indicatorData(int role) const
 {
-    NMLOG(QString("NmIndicator::indicatorData %1").arg(role));
+    NM_FUNCTION;
+
     switch(role) {
         case PrimaryTextRole:
-            {
-            return mMailbox.mName;
+            if (mActive) {                
+                return mMailbox.mName;
             }
-        case SecondaryTextRole:
-            {
-            if (mMailbox.mOutboxMails>0) {
-                int outboxCount = mMailbox.mOutboxMails;
-                if (outboxCount>NmMaxOutboxCount) {
-                    outboxCount = NmMaxOutboxCount;
-                }
-                QString text = QString(hbTrId("txt_mail_status_menu_waiting_to_send")).
-                    arg(HbStringUtil::convertDigits(QString::number(outboxCount)));
-                return text;
-		    }
-            else if (mMailbox.mUnreadMails>0) {
-                return hbTrId("txt_mail_status_menu_new_mail");
-			}
             break;
+        case SecondaryTextRole:
+            if (mActive) {
+                if (mMailbox.mOutboxMails>0) {
+                    int outboxCount = mMailbox.mOutboxMails;
+                    if (outboxCount>NmMaxOutboxCount) {
+                        outboxCount = NmMaxOutboxCount;
+                    }
+                    QString text = QString(hbTrId("txt_mail_status_menu_waiting_to_send")).
+                        arg(HbStringUtil::convertDigits(QString::number(outboxCount)));
+                    return text;
+                }
+                else if (mMailbox.mUnreadMails>0) {
+                    return hbTrId("txt_mail_status_menu_new_mail");
+                }
             }
+            break;
         case DecorationNameRole:
             {
 			// Icon for the mailbox in the menu
@@ -162,49 +165,10 @@ QVariant NmIndicator::indicatorData(int role) const
             }
             break;
 		    }
-        case MonoDecorationNameRole:
-			if (mShowIndicator) {
-				return QString("qtg_status_new_email");
-			}
-			break;
         default:
         	break;
     }
     return QVariant();
-}
-
-/*!
-    Timer callback for hiding 'send in progress' indicator
-*/
-void NmIndicator::hideSendIndicator()
-{
-    if (mShowSendProgress) {
-        NMLOG("NmIndicator::hideSendIndicator - hide progress state");
-        mShowSendProgress = false;
-        emit dataChanged();
-    }
-}
-
-/*!
-    Checks if any mailbox is in sending state at the moment
-    \return true if any mailbox is in sending state
-*/
-bool NmIndicator::isSending() const
-{
-	return mSendingState;
-}
-
-/*!
-    Return type of the indicator
-    \sa HbIndicatorInterface
-*/
-HbIndicatorInterface::Category NmIndicator::category() const
-{
-	NMLOG("NmIndicatorPlugin::Category");
-    if (mMailbox.mOutboxMails>0 && mShowSendProgress) {
-        return HbIndicatorInterface::ProgressCategory;
-    }
-    return HbIndicatorInterface::NotificationCategory;
 }
 
 /*!
@@ -220,7 +184,8 @@ HbIndicatorInterface::Category NmIndicator::category() const
 bool NmIndicator::handleClientRequest( RequestType type,
         const QVariant &parameter)
 {
-    NMLOG("NmIndicator::handleClientRequest");
+    NM_FUNCTION;
+
     bool handled(false);
     switch (type) {
         case RequestActivate:
@@ -239,12 +204,6 @@ bool NmIndicator::handleClientRequest( RequestType type,
             // also the deactivation may give updated data
 			storeMailboxData(parameter);
 
-            // This indicator was responsible showing the status bar icon
-            if (mShowIndicator) {
-                // Notify that the icon will be lost now
-                emit indicatorIconLost();
-            }
-
             emit deactivate();
             }
             break;
@@ -255,25 +214,12 @@ bool NmIndicator::handleClientRequest( RequestType type,
 }
 
 /*!
-    Start showing the 'send in progress' indicator
- */
-void NmIndicator::showSendProgress()
-{
-    // Activate the progress indicator
-    if (!mShowSendProgress && mActive) {
-        mShowSendProgress = true;
-
-        // Hide the progress state after some delay
-        QTimer::singleShot(NmSendingStateDelay, this, SLOT(hideSendIndicator()));
-    }
-}
-
-/*!
 	Stores mailbox data to member variable mMailbox.
  */
 void NmIndicator::storeMailboxData(QVariant mailboxData)
 {
-    NMLOG("NmIndicator::storeMailboxData");
+    NM_FUNCTION;
+
     QList<QVariant> infoList = mailboxData.toList();
 
     if (infoList.count() >= NmMailboxInfoItemCount) {
@@ -284,33 +230,6 @@ void NmIndicator::storeMailboxData(QVariant mailboxData)
         mMailbox.mConnectState = infoList.at(4).value<NmConnectState>();
         mMailbox.mOutboxMails = infoList.at(5).toInt();
         mMailbox.mMailboxIconName = infoList.at(6).toString();
-
-        bool oldSendingState = mSendingState;
-        mSendingState = infoList.at(7).toInt();
-
-        // Sending state now activated
-        if (!oldSendingState && mSendingState) {
-            showSendProgress();
-        }
-
-        // Notify the global state
-        emit globalStatusChanged(mSendingState);
+        bool sendingState = infoList.at(7).toInt();
     }
 }
-
-/*!
-    Used for asking if this indicator can take status bar icon responsibility.
-    \param sending global sending state
-    \return true if the icon was accepted
- */
-bool NmIndicator::acceptIcon(bool sending)
-{
-    mSendingState = sending;
-
-    if (mActive) {
-        mShowIndicator = true;
-        emit dataChanged();
-    }
-    return mActive;
-}
-

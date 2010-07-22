@@ -28,6 +28,8 @@ class QGraphicsLinearLayout;
 class QTranslator;
 class HbFrameDrawer;
 class NmHsWidgetDateTimeObserver;
+class HbLabel;
+class HbDocumentLoader;
 
 class NmHsWidget : public HbWidget
 {
@@ -40,13 +42,14 @@ class NmHsWidget : public HbWidget
 public:
     NmHsWidget(QGraphicsItem *parent = 0, Qt::WindowFlags flags = 0);
     ~NmHsWidget();
+
+    QPainterPath shape() const;
     
 public slots:
     //from home screen fw
     void onInitialize();
     void onShow();
     void onHide();
-    void onUninitialize();
     //engine
     void updateMailData();
     void onEngineException(const int& exc);
@@ -65,26 +68,34 @@ signals:
     void setPreferences(const QStringList &names);
     void error();
 private:
-    bool setupLocalization();
+    void setupLocalization();
     void setupUi();
+    bool loadDocML(HbDocumentLoader &loader);
     void updateMailRowsVisibility(const int visibleCount);
+    void addNoMailsLabelToLayout();
+    void removeNoMailsLabelFromLayout();
+    void addEmailRowsToLayout();
+    void removeEmailRowsFromLayout();
+    void updateLayout(const int visibleCount);
     void toggleExpansionState();  
 
 protected:
-    void updateMailRowsList(const int mailCount);
+    void createMailRowsList();
     
 private:
     NmHsWidgetEmailEngine* mEngine;
-    QGraphicsLinearLayout *mRowLayout;
-    NmHsWidgetTitleRow* mTitleRow;
-    QList<NmHsWidgetEmailRow*> mMailRows;
-    NmId mAccountId;
-    QString mAccountIconName;
-    QTranslator *mTranslator;
-    HbFrameDrawer* mBackgroundFrameDrawer;
-    bool mIsExpanded;
-    bool mStaticWidget;
-    NmHsWidgetDateTimeObserver* mDateObserver;
+    NmHsWidgetTitleRow* mTitleRow;          
+    QList<NmHsWidgetEmailRow*> mMailRows;   //list including mail row instances
+    NmId mAccountId;                        //mail account id widget is monitoring
+    QString mAccountIconName;               //name of mailbox icon shown in titlerow
+    QTranslator* mTranslator;
+    HbFrameDrawer* mBackgroundFrameDrawer;  //drawer for widget backgound
+    bool mIsExpanded;                       //true when widget expanded, false when collapsed
+    NmHsWidgetDateTimeObserver* mDateObserver;  //observer for time/locale changes
+    HbLabel* mNoMailsLabel;                 //label shown in widget when no mails in inbox
+    HbWidget* mWidgetContainer;             //container including title row and content container
+    HbWidget* mContentContainer;            //container including mail rows and mNoMailsLabel
+    QGraphicsLinearLayout* mContentLayout;  //layout for mail rows
     
 public:    
     friend class TestNmHsWidget;     

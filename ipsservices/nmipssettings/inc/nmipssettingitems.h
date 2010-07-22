@@ -47,7 +47,7 @@ namespace IpsServices {
         OutgoingMailServer,                     // String
         IncomingPort,                           // Integer
         OutgoingPort,                           // Integer
-        FolderPath,                              // String: Empty string means 'Default'
+        FolderPath,                             // String: Empty string means 'Default'
         AlwaysOnlineState,                      // Integer: 0=always,1=homeonly,2=off
         EmailNotificationState,                 // Integer: 0=automatic,1=homeonly,2=off
         FirstEmnReceived,                       // Integer: 0=false,1=true
@@ -62,7 +62,8 @@ namespace IpsServices {
         OutgoingPassword,                       // String
         SMTPAuthentication,                     // Boolean
         OutgoingSecureSockets,                  // Boolean
-        OutgoingSSLWrapper                      // Boolean
+        OutgoingSSLWrapper,                     // Boolean
+        Connection                              // Unsigned integer, Network Destination ID (SNAP)
     }; 
     
     /**

@@ -33,7 +33,6 @@ public: // from HbListViewItem
     HbListViewItem *createItem();
     void updateChildItems();
     bool canSetModelIndex(const QModelIndex &index);
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
 protected:
     void polishEvent();

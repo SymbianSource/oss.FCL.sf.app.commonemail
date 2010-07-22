@@ -11,14 +11,14 @@
 *
 * Contributors:
 *
-* Description:
+* Description: NMail viewer view header widget implementation
 *
 */
 
 
 #include "nmuiheaders.h"
 
-static const qreal nmHeaderLineOpacity = 0.4;
+static const qreal NmHeaderLineOpacity = 0.4;
 
 /*!
     \class NmViewerHeader
@@ -38,7 +38,10 @@ NmViewerHeader::NmViewerHeader(QGraphicsItem *parent) :
     mRecipientsBox(NULL),
     mViewerView(NULL)
 {
+    NM_FUNCTION;
+    
     loadWidgets();
+    setFlag(QGraphicsItem::ItemHasNoContents, false);
 }
 
 /*!
@@ -46,6 +49,7 @@ NmViewerHeader::NmViewerHeader(QGraphicsItem *parent) :
 */
 NmViewerHeader::~NmViewerHeader()
 {
+    NM_FUNCTION;
 }
 
 /*!
@@ -53,6 +57,8 @@ NmViewerHeader::~NmViewerHeader()
 */
 void NmViewerHeader::setView(NmViewerView* view)
 {
+    NM_FUNCTION;
+    
     mViewerView = view;
 }
 
@@ -61,6 +67,8 @@ void NmViewerHeader::setView(NmViewerView* view)
 */
 void NmViewerHeader::loadWidgets()
 {
+    NM_FUNCTION;
+    
     // Scale header widget to screen width
     setSizePolicy(QSizePolicy::Minimum, QSizePolicy::MinimumExpanding); 
 
@@ -105,10 +113,13 @@ void NmViewerHeader::paint(
     const QStyleOptionGraphicsItem *option,
     QWidget *widget)
 {
+    NM_FUNCTION;
+    
     Q_UNUSED(option);
     Q_UNUSED(widget);
     if (painter) {
-        painter->setOpacity(nmHeaderLineOpacity);
+        painter->save();
+        painter->setOpacity(NmHeaderLineOpacity);
         QLineF line1( rect().topLeft().x(), rect().bottomRight().y(),
                      rect().bottomRight().x(), rect().bottomRight().y());
         painter->drawLine(line1);
@@ -117,7 +128,8 @@ void NmViewerHeader::paint(
             QLineF line2( headerBoxGeometry.topLeft().x(), headerBoxGeometry.bottomRight().y(),
                           headerBoxGeometry.bottomRight().x(), headerBoxGeometry.bottomRight().y());
             painter->drawLine(line2);        
-        }       
+        } 
+        painter->restore();      
     }
 }
 
@@ -126,6 +138,8 @@ void NmViewerHeader::paint(
 */
 void NmViewerHeader::setMessage(NmMessage* message)
 {
+    NM_FUNCTION;
+    
     mMessage=message;
     setHeaderData();
 }
@@ -139,12 +153,14 @@ void NmViewerHeader::setMessage(NmMessage* message)
 */
 void NmViewerHeader::updateMessageData(NmMessage* message)
 {
+    NM_FUNCTION;
+    
     if (message){
         mMessage=message;
         // Set recipients to text edit field as html 
         NmAddress sender = mMessage->envelope().sender();      
         if (mRecipientsBox){  
-            mRecipientsBox->setHtml(formatRecipientList(addressToDisplayInHtml(sender),
+            mRecipientsBox->setHtml(formatRecipientList(addressToDisplay(sender),
                                     mMessage->envelope().toRecipients(), 
                                     mMessage->envelope().ccRecipients()));
         }       
@@ -156,6 +172,8 @@ void NmViewerHeader::updateMessageData(NmMessage* message)
 */
 void NmViewerHeader::setHeaderData()
 {
+    NM_FUNCTION;
+    
     if (mMessage) {
         // Background is all white always, so force text color to black
         QColor textColor(Qt::black);
@@ -183,8 +201,9 @@ void NmViewerHeader::setHeaderData()
         }
         if (mSent){
             HbExtendedLocale locale = HbExtendedLocale::system();
-            QTime time = envelope.sentTime().toLocalTime().time();
-            QDate sentLocalDate = envelope.sentTime().toLocalTime().date();
+            QDateTime localTime = envelope.sentTime().addSecs(locale.universalTimeOffset());
+            QTime time = localTime.time();
+            QDate sentLocalDate = localTime.date();
             QString shortDateSpec = r_qtn_date_without_year;
             QString shortTimeSpec = r_qtn_time_usual;
             QString text = locale.format(sentLocalDate, shortDateSpec);
@@ -222,6 +241,8 @@ void NmViewerHeader::setHeaderData()
 */ 
 void NmViewerHeader::rescaleHeader(const QSizeF layoutReso)
 {  
+    NM_FUNCTION;
+    
     setMinimumWidth(layoutReso.width());
     setMaximumWidth(layoutReso.width());
 }
@@ -231,6 +252,8 @@ void NmViewerHeader::rescaleHeader(const QSizeF layoutReso)
 */
 void NmViewerHeader::createExpandableHeader()
 {
+    NM_FUNCTION;
+    
     if (mHeaderBox) {        // Initialize recipient box
         if (!mRecipientsBox){
             mRecipientsBox = new HbTextEdit();
@@ -249,7 +272,7 @@ void NmViewerHeader::createExpandableHeader()
         // Set recipients to text edit field as html 
         NmAddress sender = mMessage->envelope().sender();               
         if (mMessage) {
-            mRecipientsBox->setHtml(formatRecipientList(addressToDisplayInHtml(sender),
+            mRecipientsBox->setHtml(formatRecipientList(addressToDisplay(sender),
                                     mMessage->envelope().toRecipients(), 
                                     mMessage->envelope().ccRecipients()));
         }
@@ -267,10 +290,12 @@ QString NmViewerHeader::formatRecipientList(const QString &sender,
                                             const QList<NmAddress> &to,
                                             const QList<NmAddress> &cc)
 {
+    NM_FUNCTION;
+    
     QString result;
     result.append("<html><body link=\"blue\" topmargin=\"0\" leftmargin=\"0\" marginheight=\"0\"");
-    result.append("marginwidth=\"0\" bgcolor=\"white\" text=\"black\">");    
-    result.append("<font color=\"black\" face=\"");
+    result.append("marginwidth=\"0\">");    
+    result.append("<font face=\"");
     result.append("Nokia Sans");
     result.append("\"size=\"3\">"); 
     // Set text in HTML format based on layout direction
@@ -284,7 +309,7 @@ QString NmViewerHeader::formatRecipientList(const QString &sender,
         result.append(" </b>");
         int reciCount = to.count();
         for (int i=0; i < reciCount; i++) { 
-            result.append(addressToDisplayInHtml(to[i]));
+            result.append(addressToDisplay(to[i]));
             result.append(" ");
         } 
         reciCount = cc.count();
@@ -293,7 +318,7 @@ QString NmViewerHeader::formatRecipientList(const QString &sender,
             result.append(hbTrId("txt_mail_list_cc"));
             result.append(" </b>");
             for (int i=0; i < reciCount; i++) {
-                result.append(addressToDisplayInHtml(cc[i]));
+                result.append(addressToDisplay(cc[i]));
                 result.append(" "); 
             }
         }   
@@ -308,7 +333,7 @@ QString NmViewerHeader::formatRecipientList(const QString &sender,
         result.append(" </b>");
         int reciCount = to.count();
         for (int i=0; i < reciCount; i++) { 
-            result.append(addressToDisplayInHtml(to[i]));
+            result.append(addressToDisplay(to[i]));
             result.append("; ");
         }
         reciCount = cc.count();
@@ -317,7 +342,7 @@ QString NmViewerHeader::formatRecipientList(const QString &sender,
             result.append(hbTrId("txt_mail_list_cc"));
             result.append(" </b>");
             for (int i=0; i < reciCount; i++) {
-                result.append(addressToDisplayInHtml(cc[i]));
+                result.append(addressToDisplay(cc[i]));
                 result.append("; ");
             }
         }   
@@ -330,8 +355,10 @@ QString NmViewerHeader::formatRecipientList(const QString &sender,
     Function retursn address string from NmAddress to
     be displayed in HTML format
 */
-QString NmViewerHeader::addressToDisplayInHtml(const NmAddress &addr)
+QString NmViewerHeader::addressToDisplay(const NmAddress &addr)
 {
+    NM_FUNCTION;
+    
     QString dispName;
     if (addr.displayName().length()!=0){
         dispName.append(NmUtilities::cleanupDisplayName(addr.displayName()));
@@ -353,6 +380,8 @@ QString NmViewerHeader::addressToDisplayInHtml(const NmAddress &addr)
 */
 void NmViewerHeader::cursorPositionChanged(int oldPos, int newPos)
 {
+    NM_FUNCTION;
+    
     Q_UNUSED(oldPos);
     QString string = mRecipientsBox->anchorAt(newPos); 
     if (mViewerView&&string.contains("mailto:",Qt::CaseSensitive)){

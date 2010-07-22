@@ -133,10 +133,13 @@ public: // Methods
      *        will receive progress notifications during the operation.
      * @param aRequestId identifies asynchronous request if parallel
      * requests exist
+     * @param aSilentConnection defines if connection is needed to be 
+     *        silent connection or non-silent one (default).
      */
      virtual void RefreshNowL( const TFSMailMsgId& aMailBoxId,
                                MFSMailRequestObserver& aOperationObserver,
-                               TInt aRequestId ) = 0;
+                               TInt aRequestId,
+                               const TBool aSilentConnection=EFalse ) = 0;
 
     /**
      * Returns last synchronization operation status.
@@ -529,7 +532,25 @@ public: // Methods
      virtual void DeleteMessagesByUidL( const TFSMailMsgId& aMailBoxId,
                                         const TFSMailMsgId& aFolderId,
                                         const RArray<TFSMailMsgId>& aMessages ) = 0;
-
+     
+// <qmail>
+     /**
+      * deletes email defined by message id
+      *
+      * @param aMailBoxId id of the mailbox containing email
+      * @param aFolderId email parent folder id
+      * @param aMessages ids of messages to be deleted
+      * @param aOperationObserver Observer for the operation 
+      * @param aRequestId id of the operation
+      * @return KErrNone if this method is supported, KErrNotSupported if not
+      */
+      virtual void DeleteMessagesByUidL( const TFSMailMsgId& aMailBoxId,
+                                         const TFSMailMsgId& aFolderId,
+                                         const RArray<TFSMailMsgId>& aMessages,
+                                         MFSMailRequestObserver& aOperationObserver,
+                                         const TInt aRequestId );
+// </qmail>
+      
     /**
      * creates new email template into drafts folder
      *

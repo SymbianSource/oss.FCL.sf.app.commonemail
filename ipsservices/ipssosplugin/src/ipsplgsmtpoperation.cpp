@@ -370,14 +370,14 @@ EXPORT_C TInt CIpsPlgSmtpOperation::EmptyOutboxFromPendingMessagesL(
             // is it safe to change flag from suspended to waiting?
             if ( sendState == KMsvSendStateSuspended )
                 {
+                // <qmail> remove activeschedulerwait
                 CMsvEntry* cEntry = CMsvEntry::NewL(
                     iMsvSession, entry.Id(), TMsvSelectionOrdering() );
                 CleanupStack::PushL( cEntry );
-                CIpsPlgOperationWait* wait = CIpsPlgOperationWait::NewLC( );
                 entry.SetSendingState( KMsvSendStateWaiting );
-                cEntry->ChangeL( entry, wait->iStatus );
-                wait->Start();
-                CleanupStack::PopAndDestroy(2, cEntry ); // wait, cEntry
+                cEntry->ChangeL( entry );
+                CleanupStack::PopAndDestroy( cEntry ); // cEntry
+                // </qmail>
                 }
             // add to send list
             iSelection->AppendL( entry.Id() );

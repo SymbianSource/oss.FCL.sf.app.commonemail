@@ -32,24 +32,23 @@ class NmIpsImap4SettingsManager : public NmIpsSettingsManagerBase
 
 public:
         
-    NmIpsImap4SettingsManager(const NmId &mailboxId, CEmailAccounts *account, TImapAccount imapAccount);
-
+    NmIpsImap4SettingsManager(const NmId &mailboxId,
+                              CEmailAccounts *account,
+                              TImapAccount imapAccount);
     virtual ~NmIpsImap4SettingsManager();
-    
     bool readSetting(IpsServices::SettingItem settingItem, QVariant &settingValue);
     bool writeSetting(IpsServices::SettingItem settingItem, const QVariant &settingValue);
-    
     int deleteMailbox();    
     int determineDefaultIncomingPort();
 
 private:    
 
     bool saveSettings();
+    bool saveIAPSettings(uint snapId);
     
 private: // data
 
     CImImap4Settings *mImap4Settings;   // Owned.
-
     TImapAccount mImap4Account;
 };
 

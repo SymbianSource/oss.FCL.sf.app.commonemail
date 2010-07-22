@@ -1,19 +1,19 @@
 /*
-* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
-* All rights reserved.
-* This component and the accompanying materials are made available
-* under the terms of "Eclipse Public License v1.0"
-* which accompanies this distribution, and is available
-* at the URL "http://www.eclipse.org/legal/epl-v10.html".
-*
-* Initial Contributors:
-* Nokia Corporation - initial contribution.
-*
-* Contributors:
-*
-* Description:
-*
-*/
+ * Copyright (c) 2009-2010 Nokia Corporation and/or its subsidiary(-ies).
+ * All rights reserved.
+ * This component and the accompanying materials are made available
+ * under the terms of "Eclipse Public License v1.0"
+ * which accompanies this distribution, and is available
+ * at the URL "http://www.eclipse.org/legal/epl-v10.html".
+ *
+ * Initial Contributors:
+ * Nokia Corporation - initial contribution.
+ *
+ * Contributors:
+ *
+ * Description:
+ *
+ */
 
 #ifndef NMVIEWERVIEW_H_
 #define NMVIEWERVIEW_H_
@@ -24,18 +24,17 @@
 #include "nmactionobserver.h"
 #include "nmattachmentfetchobserver.h"
 
-class QGraphicsLinearLayout;
 class QWebPage;
 
 class HbWidget;
 class HbMainWindow;
+class HbScrollArea;
 
 class NmApplication;
 class NmUiEngine;
 class NmUiStartParam;
 class NmMailViewerWK;
 class NmMessage;
-class NmBaseViewScrollArea;
 class NmViewerViewNetManager;
 class NmViewerHeader;
 class NmMailViewerWK;
@@ -44,6 +43,8 @@ class NmOperation;
 class HbProgressDialog;
 class NmAttachmentListWidget;
 class NmAttachmentManager;
+class HbMessageBox;
+class NmMessagePart;
 
 class NmViewerView : public NmBaseView, public NmActionObserver, public NmAttachmentFetchObserver
 {
@@ -54,13 +55,14 @@ public:
 				NmUiStartParam* startParam,
 				NmUiEngine &uiEngine,
 				HbMainWindow *mainWindow,
-            NmAttachmentManager &attaManager,
-            bool toolbar = false,
+				NmAttachmentManager &attaManager,
+				bool toolbar = false,
 				QGraphicsItem *parent = NULL);
     ~NmViewerView();
     void reloadViewContents(NmUiStartParam* startParam);
     NmUiViewId nmailViewId() const;
     NmMailViewerWK* webView();
+    NmMessage* message();
     void viewReady();
     void aboutToExitView();
     
@@ -72,12 +74,9 @@ public slots:
     void adjustViewDimensions();
     void linkClicked(const QUrl& link);
     void contentScrollPositionChanged(const QPointF &newPosition);
-    void handleMouseReleaseEvent(QGraphicsSceneMouseEvent *event);
-    void handleMousePressEvent(QGraphicsSceneMouseEvent *event);
     void fetchMessage();
     void openAttachment(int index);
 	void createOptionsMenu();
-	void deleteButton(HbAction* result);
 
 private slots:
     void setMessageData();
@@ -96,47 +95,48 @@ public: // From NmAttachmentFetchObserver
     void fetchCompleted(int result);
 
 private:
+    void deleteMessage();
     void loadMessage();
     void loadViewLayout();
     QString formatMessage();
+    QString formatHtmlMessage(NmMessagePart *html);
+    QString formatPlainTextMessage(NmMessagePart *plain);
     bool eventOnTopOfHeaderArea(QGraphicsSceneMouseEvent *event);
     void changeMessageReadStatus(bool read);
     void setMailboxName();
     void createToolBar();
     void setAttachmentList();
+    void createAndShowWaitDialog();
 
 private:
     NmApplication &mApplication;
     NmUiEngine &mUiEngine;
-    HbMainWindow *mMainWindow;               // Not owned
+    HbMainWindow *mMainWindow;                       // Not owned
     NmAttachmentManager  &mAttaManager;
-    bool mToolbarEnabled;					 // is toolbar or options menu in use
-    NmMessage* mMessage;                     // Owned
-    NmBaseViewScrollArea *mScrollArea;       // Not owned
-    HbWidget *mViewerContent;                // Not owned
-    NmMailViewerWK *mWebView;                // Not owned
-    NmViewerHeader *mHeaderWidget;           // Not owned
-    NmAttachmentListWidget *mAttaListWidget;  // Not owned
+    bool mToolbarEnabled;					         // is toolbar or options menu in use
+    NmMessage* mMessage;                             // Owned
+    HbScrollArea *mScrollArea;                       // Not owned
+    HbWidget *mViewerContent;                        // Not owned
+    NmMailViewerWK *mWebView;                        // Not owned
+    NmViewerHeader *mHeaderWidget;                   // Not owned
+    NmAttachmentListWidget *mAttaListWidget;         // Not owned
     QPointF mHeaderStartScenePos;
-    QGraphicsLinearLayout *mViewerContentLayout; // Not owned
-    QPointer<NmOperation> mMessageFetchingOperation;   // Not owned 
+    QPointer<NmOperation> mMessageFetchingOperation; // Not owned 
     QPointF mLatestScrollPos;
     bool mDisplayingPlainText;
     QObjectList mWidgetList;
-    NmUiDocumentLoader *mDocumentLoader;
-    HbWidget *mScrollAreaContents;
-    HbWidget *mViewerHeaderContainer;
+    NmUiDocumentLoader *mDocumentLoader;             // Owned
+    HbWidget *mScrollAreaContents;                   // Not owned
     QSize mScreenSize;
-    HbProgressDialog *mWaitDialog;            // owned
+    HbProgressDialog *mWaitDialog;                   // Owned
     bool webFrameloadingCompleted;
     QSize mLatestLoadingSize;
     QList<NmId> mAttaIdList;
     int mAttaIndexUnderFetch;
-    NmAttachmentListWidget *mAttaWidget;      // Not owned
+    NmAttachmentListWidget *mAttaWidget;             // Not owned
     bool mViewReady;
     bool mWaitNoteCancelled;
-    HbAction* mOkAction;                        //owned
-    HbAction* mCancelAction;                    //owned
+    HbMessageBox *mErrorNote;                       // Owned
 };
 
 #endif /* NMVIEWERVIEW_H_ */

@@ -52,7 +52,8 @@ public: // From CFSMailPlugin
     void RefreshNowL(
         const TFSMailMsgId& aMailBoxId,
         MFSMailRequestObserver& aOperationObserver,
-        TInt aRequestId );
+        TInt aRequestId,
+        const TBool aSilentConnection=EFalse );
 
     void ListFoldersL(
         const TFSMailMsgId& aMailBoxId,

@@ -30,10 +30,11 @@
 /*!
     Constructor
  */
-NmMailboxListModel::NmMailboxListModel(NmDataManager &dataManager, QObject *parent) 
+NmMailboxListModel::NmMailboxListModel(NmDataManager &dataManager, QObject *parent)
 :QStandardItemModel(parent),
 mDataManager(dataManager)
 {
+    NM_FUNCTION;
 }
 
 /*!
@@ -41,6 +42,8 @@ mDataManager(dataManager)
  */
 NmMailboxListModel::~NmMailboxListModel()
 {
+    NM_FUNCTION;
+    
     clear();
 }
 
@@ -50,6 +53,8 @@ NmMailboxListModel::~NmMailboxListModel()
  */
 QVariant NmMailboxListModel::data(const QModelIndex &index, int role) const
 {
+    NM_FUNCTION;
+    
     QVariant qVariant;
     if (index.isValid() && Qt::DisplayRole == role) {
         NmMailboxListModelItem *item = static_cast<NmMailboxListModelItem*>(itemFromIndex(index));
@@ -65,7 +70,8 @@ QVariant NmMailboxListModel::data(const QModelIndex &index, int role) const
 void NmMailboxListModel::refresh(
         QList<NmMailbox*> &mailboxList)
 {
-    NMLOG("nmuiengine: mailbox list model refresh");
+    NM_FUNCTION;
+    
     clear();
     for (int i(0); i < mailboxList.count(); i++) {
         NmMailbox *mailbox = mailboxList[i];
@@ -79,13 +85,11 @@ void NmMailboxListModel::refresh(
 /*!
     Updates specific model item.
     \param mailboxId Mailbox id.
-    \param allowEmitDataChanged If <code>true</code> data changed signal
-           is emitted \sa QStandardItem, otherwise signal is not send.
  */
-void NmMailboxListModel::refreshModelItem(const NmId &mailboxId, bool allowEmitDataChanged)
+void NmMailboxListModel::refreshModelItem(const NmId &mailboxId)
 {
-    NMLOG("NmMailboxListModel::refreshModelItem");
-
+    NM_FUNCTION;
+    
     // Get correct mailbox data.
     NmMailbox* mailbox = mDataManager.mailbox(mailboxId);
     NmMailboxListModelItem *entryItem(NULL);
@@ -102,21 +106,13 @@ void NmMailboxListModel::refreshModelItem(const NmId &mailboxId, bool allowEmitD
 
     // Update entry item's data.
     if (mailbox && entryItem) {
-        if (allowEmitDataChanged) {
-            // Changes data and emits datachanged.
-            NmMailboxMetaData *metaData = new NmMailboxMetaData;
-            metaData->setId(mailbox->id());
-            metaData->setName(mailbox->name());
-            entryItem->setItemMetaData(metaData);
-        } else {
-            // Only changes meta data information (mailbox name).
-            // No need for updating mailbox id.
-            // Do not call emitDataChanged, because it seems that if
-            // emitDataChanged is called twice, it leads to KERN-EXEC 3 Panic.
-            entryItem->itemMetaData()->setName(mailbox->name());
-       }
+        // Changes data and emits datachanged.
+        NmMailboxMetaData *metaData = new NmMailboxMetaData;
+        metaData->setId(mailbox->id());
+        metaData->setName(mailbox->name());
+        metaData->setAddress(mailbox->address().address());
+        entryItem->setItemMetaData(metaData);
     }
-    NMLOG("NmMailboxListModel::refreshModelItem - OK");
 }
 
 /*!
@@ -124,7 +120,8 @@ void NmMailboxListModel::refreshModelItem(const NmId &mailboxId, bool allowEmitD
  */
 void NmMailboxListModel::handleMailboxEvent(NmMailboxEvent event, const QList<NmId> &mailboxIds)
 {
-    NMLOG("NmMailboxListModel::handleMailboxEvent");
+    NM_FUNCTION;
+    
     for (int a(0); a < mailboxIds.count(); a++) {
         NmId mailboxId = mailboxIds[a];
         switch (event) {
@@ -174,9 +171,12 @@ void NmMailboxListModel::handleMailboxEvent(NmMailboxEvent event, const QList<Nm
  */
 NmMailboxListModelItem *NmMailboxListModel::createMailboxItem(const NmMailbox *mailbox)
 {
+    NM_FUNCTION;
+    
     NmMailboxMetaData *newMeta = new NmMailboxMetaData();
     newMeta->setId(mailbox->id());
     newMeta->setName(mailbox->name());
+    newMeta->setAddress(mailbox->address().address());
 
     NmMailboxListModelItem *item = new NmMailboxListModelItem();
     item->setItemMetaData(newMeta);

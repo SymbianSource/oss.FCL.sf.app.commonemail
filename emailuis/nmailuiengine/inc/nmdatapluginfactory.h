@@ -22,6 +22,7 @@
 #include "nmuienginedef.h"
 
 class NmDataPluginInterface;
+class NmApplicationStateInterface;
 class QDir;
 class QPluginLoader;
 
@@ -37,12 +38,14 @@ public:
     static void releaseInstance(NmDataPluginFactory *&instance);
     NmDataPluginInterface *interfaceInstance(QObject *plugin);
     NmDataPluginInterface *interfaceInstance(NmId mailboxId);
+    NmApplicationStateInterface *applicationStateInterfaceInstance(NmId mailboxId);
     QObject *pluginInstance(NmId mailboxId);
     QList<QObject*> *pluginInstances();
     QObject *loadPlugin(
         const QDir &pluginDir,
         const QString& pluginName);
 private:
+    NmApplicationStateInterface *applicationStateInterfaceInstance(QObject *plugin);
     NmDataPluginFactory();
     virtual ~NmDataPluginFactory();
     static NmDataPluginFactory   *mInstance;         // owned

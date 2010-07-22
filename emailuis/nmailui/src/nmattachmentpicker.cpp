@@ -17,6 +17,8 @@
 
 #include "nmuiheaders.h"
 
+static const int NmAttachmentPickerStillMode = 0;
+static const int NmAttachmentPickerVideoMode = 1;
 
 /*!
     \class NmAttachmentPicker
@@ -26,10 +28,11 @@
 /*!
     Constructor
 */
-NmAttachmentPicker::NmAttachmentPicker(QObject* parent):
+NmAttachmentPicker::NmAttachmentPicker(QObject *parent):
     QObject(parent),
     mRequest(NULL)
 {
+    NM_FUNCTION;
 }
 
 /*!
@@ -37,6 +40,8 @@ NmAttachmentPicker::NmAttachmentPicker(QObject* parent):
 */
 NmAttachmentPicker::~NmAttachmentPicker()
 {
+    NM_FUNCTION;
+    
     delete mRequest;
 }
 
@@ -45,7 +50,9 @@ NmAttachmentPicker::~NmAttachmentPicker()
 */
 void NmAttachmentPicker::fetchImage()
 {
-    fetch(IMAGE_FETCHER_INTERFACE, IMAGE_FETCHER_OPERATION);
+    NM_FUNCTION;
+    
+    fetch(XQI_IMAGE_FETCH, XQOP_IMAGE_FETCH);
 }
 
 /*!
@@ -53,7 +60,9 @@ void NmAttachmentPicker::fetchImage()
 */
 void NmAttachmentPicker::fetchAudio()
 {
-    fetch(AUDIO_FETCHER_INTERFACE, AUDIO_FETCHER_OPERATION);    
+    NM_FUNCTION;
+    
+    fetch(XQI_MUSIC_FETCH, XQOP_MUSIC_FETCH);    
 }
 
 /*!
@@ -61,7 +70,8 @@ void NmAttachmentPicker::fetchAudio()
 */
 void NmAttachmentPicker::fetchVideo()
 {
-
+    NM_FUNCTION;
+    fetch(XQI_VIDEO_FETCH, XQOP_VIDEO_FETCH);
 }
 
 /*!
@@ -69,22 +79,82 @@ void NmAttachmentPicker::fetchVideo()
 */
 void NmAttachmentPicker::fetchOther()
 {
-
+    NM_FUNCTION;
+    
+    QString path;
+    path = FmFileDialog::getSaveFileName(0, hbTrId("txt_mail_dialog_select_file"));
+    
+    if (!path.isEmpty()) {
+        QString temp = QDir::toNativeSeparators(path);
+        emit attachmentsFetchOk(QVariant(temp));    
+    }
 }
 
 /*!
-    Construct & send appmgr request to start appropriate picker   
+    Send request to retrieve image from camera
 */
-void NmAttachmentPicker::fetch(const QString& interface, 
-    const QString& operation)
+void NmAttachmentPicker::fetchCameraStill()
 {
+    NM_FUNCTION;
+    fetchFromCamera(NmAttachmentPickerStillMode);
+}
+
+/*!
+    Send request to retrieve video from camera
+*/
+void NmAttachmentPicker::fetchCameraVideo()
+{
+    NM_FUNCTION;
+    fetchFromCamera(NmAttachmentPickerVideoMode);
+}
+
+/*!
+    Send request to retrieve image/video from camera
+*/
+void NmAttachmentPicker::fetchFromCamera(int mode)
+{
+    NM_FUNCTION;
+
+    int cameraIndex(0);            //primary camera
+    int quality(0);                //default
+    bool allowModeSwitch(false);   //not allowed to change
+    bool allowCameraSwitch(true);  //allow changes
+    bool allowQualityChange(true); //allow changes
+    
+    QVariantMap parameters;
+    parameters.insert(XQCAMERA_INDEX, cameraIndex);
+    parameters.insert(XQCAMERA_QUALITY, quality);
+    parameters.insert(XQCAMERA_MODE_SWITCH, allowModeSwitch);
+    parameters.insert(XQCAMERA_INDEX_SWITCH, allowCameraSwitch);
+    parameters.insert(XQCAMERA_QUALITY_CHANGE, allowQualityChange); 
+ 
+    QList<QVariant> args;
+    args << mode;
+    args << parameters;
+    
+    fetch(XQI_CAMERA_CAPTURE, "capture(int,QVariantMap)", &args);
+}
+/*!
+    Construct & send appmgr request to start appropriate picker   
+    param <interface> the interface to be connected to
+    param <operation> the operation of the interface
+    param <args> the arguments that needed by the operation
+*/
+void NmAttachmentPicker::fetch(const QString &interface, 
+    const QString &operation, const QList<QVariant> *args)
+{
+    NM_FUNCTION;
+    
     delete mRequest;
     mRequest = NULL;
     XQApplicationManager appMgr;
     mRequest = appMgr.create(interface, operation, true);
-
+   
     if (mRequest) {
         mRequest->setSynchronous(false);
+        if (args) {
+            mRequest->setArguments(*args);
+        }
         connect(mRequest, SIGNAL(requestOk(const QVariant&)),
                 this, SIGNAL(attachmentsFetchOk(const QVariant&)));
 

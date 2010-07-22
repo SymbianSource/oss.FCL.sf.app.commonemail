@@ -39,6 +39,8 @@ NmFwaAddAttachmentsOperation::NmFwaAddAttachmentsOperation(
     CFSMailClient &mailClient) :
         mMailClient(mailClient)
 {
+    NM_FUNCTION;
+    
     // Take own copy of the file list.
     mFileList.clear();
     for (int i=0; i<fileList.count(); ++i) {
@@ -53,6 +55,8 @@ NmFwaAddAttachmentsOperation::NmFwaAddAttachmentsOperation(
  */
 NmFwaAddAttachmentsOperation::~NmFwaAddAttachmentsOperation()
 {
+    NM_FUNCTION;
+    
     // Cancel all running operations.
     doCancelOperation();
     mFileList.clear(); 
@@ -67,6 +71,8 @@ NmFwaAddAttachmentsOperation::~NmFwaAddAttachmentsOperation()
  */
 void NmFwaAddAttachmentsOperation::doRunAsyncOperation()
 {
+    NM_FUNCTION;
+    
     TRAPD(err, doRunAsyncOperationL());
     // Trap harness catches an error.
     if (err != KErrNone) {
@@ -104,6 +110,8 @@ void NmFwaAddAttachmentsOperation::doRunAsyncOperation()
  */
 void NmFwaAddAttachmentsOperation::doRunAsyncOperationL()
 {
+    NM_FUNCTION;
+    
     if (mFileList.count() > 0) {
         // Add new attachment from first file in the list.
         HBufC *fileName = NmConverter::qstringToHBufCLC(mFileList.first());
@@ -124,6 +132,8 @@ void NmFwaAddAttachmentsOperation::doRunAsyncOperationL()
 void NmFwaAddAttachmentsOperation::RequestResponseL(TFSProgress aEvent,
                                                     TInt aRequestId)
 {
+    NM_FUNCTION;
+    
     int err = NmNoError;
 
     // Request id should always be valid. If not,
@@ -192,12 +202,24 @@ void NmFwaAddAttachmentsOperation::RequestResponseL(TFSProgress aEvent,
 }
 
 /*!
+ * Complete the operation
+ */
+void NmFwaAddAttachmentsOperation::doCompleteOperation()
+{
+    NM_FUNCTION;
+    
+    mRequestId = NmNotFoundError;
+}
+
+/*!
     Cancels the async operation. \sa NmOperation
  */
 void NmFwaAddAttachmentsOperation::doCancelOperation()
 {
-    if (mRequestId != KErrNotFound) {
+    NM_FUNCTION;
+    
+    if (mRequestId >= 0) {
         TRAP_IGNORE(mMailClient.CancelL(mRequestId));
+        mRequestId = NmNotFoundError;
     }
-    mRequestId = NmCancelError;
 }

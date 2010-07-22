@@ -15,14 +15,7 @@
  *
  */
 
-#include <nmapimailboxlisting.h>
-
-#include <QObject>
-
-#include <nmapimailbox.h>
-#include "nmapiengine.h"
-#include "nmapimailboxlisting_p.h"
-
+#include "nmapiheaders.h"
 
 namespace EmailClientApi
 {
@@ -37,6 +30,8 @@ namespace EmailClientApi
 NmApiMailboxListing::NmApiMailboxListing(QObject *parent) :
     NmApiMessageTask(parent)
 {
+    NM_FUNCTION;
+    
     mNmApiMailboxListingPrivate = new NmApiMailboxListingPrivate(this);
     mNmApiMailboxListingPrivate->mIsRunning = false;
 }
@@ -46,6 +41,8 @@ NmApiMailboxListing::NmApiMailboxListing(QObject *parent) :
  */
 NmApiMailboxListing::~NmApiMailboxListing()
 {
+    NM_FUNCTION;
+    
     if (mNmApiMailboxListingPrivate->mIsRunning) {
         mNmApiMailboxListingPrivate->releaseEngine();
     }
@@ -63,6 +60,8 @@ NmApiMailboxListing::~NmApiMailboxListing()
  */
 bool NmApiMailboxListing::getMailboxes(QList<EmailClientApi::NmApiMailbox> &mailboxes)
 {
+    NM_FUNCTION;
+    
     mailboxes.clear();
 
     bool result = false;
@@ -101,6 +100,8 @@ bool NmApiMailboxListing::getMailboxes(QList<EmailClientApi::NmApiMailbox> &mail
  */
 bool NmApiMailboxListing::start()
 {
+    NM_FUNCTION;
+    
     bool result = false;
     if (mNmApiMailboxListingPrivate->mIsRunning) {
         result = true;
@@ -133,6 +134,8 @@ bool NmApiMailboxListing::start()
  */
 void NmApiMailboxListing::cancel()
 {
+    NM_FUNCTION;
+    
     if (mNmApiMailboxListingPrivate->mIsRunning) {
 
         mNmApiMailboxListingPrivate->mIsRunning = false;
@@ -150,9 +153,10 @@ void NmApiMailboxListing::cancel()
  */
 bool NmApiMailboxListing::isRunning() const
 {
+    NM_FUNCTION;
+    
     return mNmApiMailboxListingPrivate->mIsRunning;
 }
 
 }
 
-#include "moc_nmapimailboxlisting.cpp"

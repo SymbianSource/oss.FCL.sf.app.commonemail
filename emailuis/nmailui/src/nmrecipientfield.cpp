@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+* Copyright (c) 2009 - 2010 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -17,87 +17,55 @@
 
 #include "nmuiheaders.h"
 
-static const double Un = 6.66;
-static const double Margin = 2 * Un;
-static const int MaxRows = 10000;
-static const double LabelFieldWidth = 10 * Un + Un;
-static const double ButtonWidth = 9.5 * Un;
-static const double FieldHeight = 5 * Un;
-static const char *ContactsServiceName = "com.nokia.services.phonebookservices";
-static const char *ContactsInterfaceName = "Fetch";
-static const char *ContactsOperationName = "fetch(QString,QString,QString)";
+static const QString NmContactsServiceName = "com.nokia.services.phonebookservices";
+static const QString NmContactsInterfaceName = "Fetch";
+static const QString NmContactsOperationName = "fetch(QString,QString,QString)";
+
+static const int NmMaxRows = 10000;
 
 /*!
-   Constructor
-*/
-NmRecipientField::NmRecipientField(
-    HbLabel *label,
-    NmRecipientLineEdit *edit,
-    HbPushButton *button,
-    QGraphicsItem *parent):
-    HbWidget(parent),
-    mLabel(label),
-    mRecipientsEditor(edit),
-    mLaunchContactsPickerButton(button),
-    mOwned(false)
-{
-    mLaunchContactsPickerButton->setIcon(NmIcons::getIcon(NmIcons::NmIconContacts));
-    createConnections();
-}
-
-
-/*!
-   Constructor for 'Cc:' and 'Bcc:' fields. This can be removed when groupBox content
    widget is created using AD/docml
 */
-NmRecipientField::NmRecipientField(const QString &labelString, QGraphicsItem *parent):
-    HbWidget(parent),
+NmRecipientField::NmRecipientField(
+        QObject *parent, HbDocumentLoader &docLoader, const QString &objPrefix):
+    QObject(parent),
+    mDocumentLoader(docLoader),
+    mObjectPrefix(objPrefix),
     mLabel(NULL),
     mRecipientsEditor(NULL),
-    mLaunchContactsPickerButton(NULL),
-    mOwned(true)
+    mLaunchContactsPickerButton(NULL)
 {
-    mLayoutHorizontal = new QGraphicsLinearLayout(Qt::Horizontal, this);
+    NM_FUNCTION;
+    
+    // Load the widgets from nmeditorview.docml. The names match to the definitions in that docml.
+    mWidget = qobject_cast<HbWidget *>
+        (mDocumentLoader.findWidget(mObjectPrefix + "Field"));
 
-    mLabel = new HbLabel(labelString);
-    if (mLabel) {
-        mLayoutHorizontal->addItem(mLabel);
-        mLabel->setPreferredWidth(LabelFieldWidth);
-        mLabel->setFontSpec(HbFontSpec(HbFontSpec::Secondary));
-        mLabel->setAlignment(Qt::AlignTop);
-    }
+    mLabel = qobject_cast<HbLabel *>
+        (mDocumentLoader.findWidget(mObjectPrefix + "Label"));
 
-    mRecipientsEditor = new NmRecipientLineEdit();
+    mRecipientsEditor = qobject_cast<NmRecipientLineEdit *>
+        (mDocumentLoader.findWidget(mObjectPrefix + "Edit"));
     if (mRecipientsEditor) {
-    	mLayoutHorizontal->addItem(mRecipientsEditor);
-        mRecipientsEditor->setMaxRows(MaxRows);
-        mRecipientsEditor->setPreferredHeight(FieldHeight);
-        mRecipientsEditor->setMinimumHeight(FieldHeight);
-        mRecipientsEditor->setFontSpec(HbFontSpec(HbFontSpec::Secondary));
+        mRecipientsEditor->setMaxRows(NmMaxRows);    
     }
 
-    mLaunchContactsPickerButton = new HbPushButton();
+    mLaunchContactsPickerButton = qobject_cast<HbPushButton *>
+        (mDocumentLoader.findWidget(mObjectPrefix + "Button"));
     if (mLaunchContactsPickerButton) {
-    	mLayoutHorizontal->addItem(mLaunchContactsPickerButton);
-    	mLayoutHorizontal->setAlignment(mLaunchContactsPickerButton, Qt::AlignTop);
-        mLaunchContactsPickerButton->setPreferredHeight(FieldHeight);
-        mLaunchContactsPickerButton->setPreferredWidth(ButtonWidth);
-        mLaunchContactsPickerButton->setMaximumHeight(FieldHeight);
-
-        mLaunchContactsPickerButton->setIcon(NmIcons::getIcon(NmIcons::NmIconContacts));
+        mLaunchContactsPickerButton->setIcon(NmIcons::getIcon(NmIcons::NmIconContacts));    
     }
-
-    mLayoutHorizontal->setContentsMargins(0, 0, 0, 0);
-    // Set the spacing between the line edit  and the Add button to
-    mLayoutHorizontal->setItemSpacing(1, Un);
-    // Set the spacing between the label and the line edit to 0.0
-    mLayoutHorizontal->setItemSpacing(0, 0.0);
 
     createConnections();
 }
 
+/*!
+   Creates connections for this class items
+*/
 void NmRecipientField::createConnections()
 {
+    NM_FUNCTION;
+    
     connect(mRecipientsEditor, SIGNAL(textChanged(const QString &)),
         this, SIGNAL(textChanged(const QString &)));
     connect(mRecipientsEditor, SIGNAL(cursorPositionChanged(int, int)),
@@ -108,10 +76,8 @@ void NmRecipientField::createConnections()
         this, SIGNAL(selectionChanged()));
     connect(mLaunchContactsPickerButton, SIGNAL(pressed()),
             this, SIGNAL(launchContactsPickerButtonClicked()));
-
-#ifdef Q_OS_SYMBIAN
-    connect(mLaunchContactsPickerButton, SIGNAL(pressed()), this, SLOT(launchContactsPicker()));
-#endif
+    connect(mLaunchContactsPickerButton, SIGNAL(pressed()), 
+            this, SLOT(launchContactsPicker()));
 }
 
 
@@ -120,21 +86,7 @@ void NmRecipientField::createConnections()
 */
 NmRecipientField::~NmRecipientField()
 {
-    if (mOwned)
-    {
-        if (mLaunchContactsPickerButton) {
-            delete mLaunchContactsPickerButton;
-            mLaunchContactsPickerButton = 0;
-        }
-        if (mRecipientsEditor) {
-            delete mRecipientsEditor;
-            mRecipientsEditor = 0;
-        }
-        if (mLabel) {
-            delete mLabel;
-            mLabel = 0;
-        }
-    }
+    NM_FUNCTION;
 }
 
 /*!
@@ -142,7 +94,9 @@ NmRecipientField::~NmRecipientField()
 */
 qreal NmRecipientField::height()
 {
-    return mRecipientsEditor->geometry().height() + Margin;
+    NM_FUNCTION;
+    
+    return mWidget->geometry().height();
 }
 
 /*!
@@ -150,6 +104,8 @@ qreal NmRecipientField::height()
 */
 NmRecipientLineEdit *NmRecipientField::editor() const
 {
+    NM_FUNCTION;
+    
     return mRecipientsEditor;
 }
 
@@ -159,6 +115,8 @@ NmRecipientLineEdit *NmRecipientField::editor() const
 */
 const QString NmRecipientField::text() const
 {
+    NM_FUNCTION;
+    
     return mRecipientsEditor->text();
 }
 
@@ -168,6 +126,8 @@ const QString NmRecipientField::text() const
 */
 void NmRecipientField::setText(const QString &newText)
 {
+    NM_FUNCTION;
+    
     if (newText != mRecipientsEditor->text()) {
         mRecipientsEditor->setText(newText);
         emit textChanged(newText);
@@ -175,36 +135,42 @@ void NmRecipientField::setText(const QString &newText)
 }
 
 
-#ifdef Q_OS_SYMBIAN
 /*!
    This Slot launches the contacts-picker
 */
 void NmRecipientField::launchContactsPicker()
 {
+    NM_FUNCTION;
+    
     XQApplicationManager mAppmgr;
     XQAiwRequest *launchContactsPickerRequest;
     
     bool isEmbeded = true;
-    launchContactsPickerRequest = mAppmgr.create(ContactsServiceName, ContactsInterfaceName, 
-                                                 ContactsOperationName, isEmbeded);
+    launchContactsPickerRequest = mAppmgr.create(NmContactsServiceName, NmContactsInterfaceName, 
+                                                 NmContactsOperationName, isEmbeded);
     
     if (launchContactsPickerRequest) {
         connect(launchContactsPickerRequest, SIGNAL(requestOk(QVariant)),
-                mRecipientsEditor, SLOT(insertSelectedContacts(QVariant)));
+                mRecipientsEditor, SLOT(addSelectedContacts(QVariant)));
     }
     else {
         // Failed creating request 
-        NMLOG("XQApplicationManager: failed creating fecth contactspicker request.");
+        NM_ERROR(1,"XQApplicationManager: failed creating fecth contactspicker request");
 	    return;
     }
 
+    QVariantList args; 
+    args << hbTrId("txt_mail_select_contacts");
+    args << KCntActionEmail; 
+    args << KCntFilterDisplayAll; 
+    launchContactsPickerRequest->setArguments(args); 
+    
     // Send request
     if (!launchContactsPickerRequest->send()) {
        //Failed sending request 
-       NMLOG("XQApplicationManager: failed sending request.");
+       NM_ERROR(1,"XQApplicationManager: failed sending request");
     }
         
     delete launchContactsPickerRequest;
-    launchContactsPickerRequest = 0;
+    launchContactsPickerRequest = NULL;
 }
-#endif

@@ -15,12 +15,8 @@
  *
  */
 
+#include "nmapiheaders.h"
 
-#include <nmapifolderlisting.h>
-#include "nmapifolderlisting_p.h"
-
-#include <nmapimailbox.h>
-#include <nmapifolder.h>
 
 namespace EmailClientApi
 {
@@ -32,12 +28,11 @@ namespace EmailClientApi
 /*!
    Constructor of class. It set start values.
  */
-NmApiFolderListing::NmApiFolderListing(QObject *parent, const quint64 &nmMailboxId) :
+NmApiFolderListing::NmApiFolderListing(QObject *parent, const quint64 &mailboxId) :
     NmApiMessageTask(parent)
 {
-    mFolderListing = new NmApiFolderListingPrivate(this);
-    mFolderListing->mIsRunning = false;
-    mFolderListing->mMailboxId = nmMailboxId;
+    NM_FUNCTION;
+    mFolderListing = new NmApiFolderListingPrivate(mailboxId, this);
 }
 
 /*!
@@ -45,9 +40,7 @@ NmApiFolderListing::NmApiFolderListing(QObject *parent, const quint64 &nmMailbox
  */
 NmApiFolderListing::~NmApiFolderListing()
 {
-    if (mFolderListing->mIsRunning) {
-        mFolderListing->releaseEngine();
-    }
+    NM_FUNCTION;
 }
 
 /*! 
@@ -59,13 +52,8 @@ NmApiFolderListing::~NmApiFolderListing()
  */
 bool NmApiFolderListing::getFolders(QList<EmailClientApi::NmApiFolder> &folders)
 {
-    folders.clear();
-    if (!mFolderListing->mIsRunning || mFolderListing->mFolders.isEmpty()) {
-        return false;
-    }
-    folders = mFolderListing->mFolders;
-    mFolderListing->mFolders.clear();
-    return true;
+    NM_FUNCTION;
+    return mFolderListing->folders(folders);
 }
 
 /*!
@@ -83,19 +71,8 @@ bool NmApiFolderListing::getFolders(QList<EmailClientApi::NmApiFolder> &folders)
  */
 bool NmApiFolderListing::start()
 {
-    if (mFolderListing->mIsRunning) {
-        return true;
-    }
-
-    if (!mFolderListing->initializeEngine()) {
-        QMetaObject::invokeMethod(this, "foldersListed", Qt::QueuedConnection, Q_ARG(qint32,
-            (qint32) FolderListingFailed));
-        return false;
-    }
-
-    qint32 folderCount = mFolderListing->grabFolders();
-
-    mFolderListing->mIsRunning = true;
+    NM_FUNCTION;
+    qint32 folderCount = mFolderListing->listFolders();
     QMetaObject::invokeMethod(this, "foldersListed", Qt::QueuedConnection,
         Q_ARG(qint32, folderCount));
 
@@ -111,14 +88,9 @@ bool NmApiFolderListing::start()
  */
 void NmApiFolderListing::cancel()
 {
-    if (!mFolderListing->mIsRunning) {
-        return;
-    }
-
-    mFolderListing->mIsRunning = false;
-    mFolderListing->releaseEngine();
-    mFolderListing->mFolders.clear();
-
+    NM_FUNCTION;
+    
+    mFolderListing->cancel(); 
     emit canceled();
 }
 
@@ -127,9 +99,10 @@ void NmApiFolderListing::cancel()
  */
 bool NmApiFolderListing::isRunning() const
 {
-    return mFolderListing->mIsRunning;
+    NM_FUNCTION;
+    return mFolderListing->isRunning();
 }
 
 }
 
-#include "moc_nmapifolderlisting.cpp"
+

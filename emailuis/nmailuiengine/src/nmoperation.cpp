@@ -25,6 +25,8 @@ NmOperation::NmOperation()
 : mProgress(0),
   mIsRunning(true)
 {
+    NM_FUNCTION;
+    
     QMetaObject::invokeMethod(this, "runAsyncOperation", Qt::QueuedConnection);
 }
 
@@ -33,6 +35,8 @@ NmOperation::NmOperation()
  */
 NmOperation::~NmOperation()
 {
+    NM_FUNCTION;
+    
     while (!mPreliminaryOperations.isEmpty()) {
         QPointer<NmOperation> operation = mPreliminaryOperations.takeLast();
         if (operation && operation->isRunning()) {
@@ -46,6 +50,8 @@ NmOperation::~NmOperation()
  */
 bool NmOperation::isRunning() const
 {
+    NM_FUNCTION;
+    
     return mIsRunning;
 }
 
@@ -54,13 +60,19 @@ bool NmOperation::isRunning() const
  */
 void NmOperation::addPreliminaryOperation(NmOperation *operation)
 {
-    connect(operation, SIGNAL(operationCompleted()), this,
-        SLOT(handlePreliminaryOperationFinished()));
-
-    connect(operation, SIGNAL(operationCancelled()), this,
-        SLOT(handlePreliminaryOperationFinished()));
-
-    mPreliminaryOperations.append(operation);
+    NM_FUNCTION;
+    
+    // if the preliminary operation is already completed
+    // the input parameter can be null
+    if (operation && operation->isRunning()) {
+        connect(operation, SIGNAL(operationCompleted()), this,
+            SLOT(handlePreliminaryOperationFinished()));
+    
+        connect(operation, SIGNAL(operationCancelled()), this,
+            SLOT(handlePreliminaryOperationFinished()));
+    
+        mPreliminaryOperations.append(operation);
+    }
 }
 
 /*!
@@ -71,6 +83,8 @@ void NmOperation::addPreliminaryOperation(NmOperation *operation)
  */
 void NmOperation::completeOperation(int result)
 {
+    NM_FUNCTION;
+    
     mIsRunning = false;
     // Operation is completed, emit the signal
     doCompleteOperation();
@@ -85,6 +99,8 @@ void NmOperation::completeOperation(int result)
  */
 void NmOperation::cancelOperation()
 {
+    NM_FUNCTION;
+    
     mIsRunning = false;
     // Operation is canceled, emit the signal
     this->doCancelOperation();
@@ -98,6 +114,8 @@ void NmOperation::cancelOperation()
  */
 void NmOperation::updateOperationProgress(int progress)
 {
+    NM_FUNCTION;
+    
     mProgress = progress;
     this->doUpdateOperationProgress();
     emit this->operationProgressChanged(mProgress);
@@ -111,6 +129,8 @@ void NmOperation::updateOperationProgress(int progress)
  */
 void NmOperation::runAsyncOperation()
 {
+    NM_FUNCTION;
+    
     int count = mPreliminaryOperations.count();
     int ready = 0;
     // go through preliminary operations
@@ -133,6 +153,8 @@ void NmOperation::runAsyncOperation()
  */
 void NmOperation::handlePreliminaryOperationFinished()
 {
+    NM_FUNCTION;
+    
     QMetaObject::invokeMethod(this, "runAsyncOperation", Qt::QueuedConnection);
 }
 
@@ -144,7 +166,7 @@ void NmOperation::handlePreliminaryOperationFinished()
  */ 
 void NmOperation::doCompleteOperation()
 {
-    
+    NM_FUNCTION;
 }
 
 /*!
@@ -155,6 +177,7 @@ void NmOperation::doCompleteOperation()
  */
 void NmOperation::doCancelOperation()
 {
+    NM_FUNCTION;
 }
 
 /*!
@@ -165,6 +188,7 @@ void NmOperation::doCancelOperation()
  */
 void NmOperation::doUpdateOperationProgress()
 {
+    NM_FUNCTION;
 }
 
 /*!
@@ -174,6 +198,8 @@ void NmOperation::doUpdateOperationProgress()
  */
 void NmOperation::deleteOperation()
 {
+    NM_FUNCTION;
+    
     this->deleteLater();   
 }
 

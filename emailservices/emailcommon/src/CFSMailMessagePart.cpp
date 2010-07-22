@@ -15,11 +15,12 @@
 *
 */
 
+#include "emailtrace.h"
+
 //<qmail>
 #include <nmcommonheaders.h>
 //</qmail>
 
-#include "emailtrace.h"
 #include <apgcli.h>
 #include <apmrec.h>
 #include <mmf/common/mmfcontrollerpluginresolver.h> // CleanupResetAndDestroy
@@ -44,11 +45,12 @@
 EXPORT_C CFSMailMessagePart* CFSMailMessagePart::NewLC( TFSMailMsgId aMessageId,
 														TFSMailMsgId aMessagePartId )
 {
-    FUNC_LOG;
-  CFSMailMessagePart* adr = new (ELeave) CFSMailMessagePart();
-  CleanupStack::PushL(adr);
-  adr->ConstructL( aMessageId, aMessagePartId );
-  return adr;
+    NM_FUNCTION;
+    
+    CFSMailMessagePart* adr = new (ELeave) CFSMailMessagePart();
+    CleanupStack::PushL(adr);
+    adr->ConstructL( aMessageId, aMessagePartId );
+    return adr;
 } 
 
 // -----------------------------------------------------------------------------
@@ -57,10 +59,11 @@ EXPORT_C CFSMailMessagePart* CFSMailMessagePart::NewLC( TFSMailMsgId aMessageId,
 EXPORT_C CFSMailMessagePart* CFSMailMessagePart::NewL(	TFSMailMsgId aMessageId,
 														TFSMailMsgId aMessagePartId )
 {
-    FUNC_LOG;
-  CFSMailMessagePart* adr =  CFSMailMessagePart::NewLC( aMessageId, aMessagePartId );
-  CleanupStack::Pop(adr);
-  return adr;
+    NM_FUNCTION;
+    
+    CFSMailMessagePart* adr =  CFSMailMessagePart::NewLC( aMessageId, aMessagePartId );
+    CleanupStack::Pop(adr);
+    return adr;
 }
 
 //<qmail>
@@ -70,7 +73,8 @@ EXPORT_C CFSMailMessagePart* CFSMailMessagePart::NewL(	TFSMailMsgId aMessageId,
 EXPORT_C CFSMailMessagePart* CFSMailMessagePart::NewLC(const NmId &aNmMessageId,
     const NmMessagePart& aNmMessage )
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 	CFSMailMessagePart* self = new (ELeave) CFSMailMessagePart();
 	CleanupStack::PushL(self);
 	self->ConstructL( aNmMessageId,aNmMessage );
@@ -84,7 +88,8 @@ EXPORT_C CFSMailMessagePart* CFSMailMessagePart::NewLC(const NmId &aNmMessageId,
 void CFSMailMessagePart::ConstructL( TFSMailMsgId aMessageId,
                                      TFSMailMsgId aMessagePartId )
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 //<qmail>
 	// Base class initialization
     CFSMailMessageBase::ConstructL(aMessageId);
@@ -107,7 +112,8 @@ void CFSMailMessagePart::ConstructL( TFSMailMsgId aMessageId,
 // -----------------------------------------------------------------------------
 void CFSMailMessagePart::ConstructL( const NmId &aNmMessageId,const NmMessagePart& aNmMessage )
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
     // Base class initialization
     CFSMailMessageBase::ConstructL(TFSMailMsgId(aNmMessageId));
     
@@ -129,7 +135,8 @@ void CFSMailMessagePart::ConstructL(
     const NmMessagePart& aNmMessage,
     const NmMessageEnvelope& aNmMessageEnvelope)
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
     // Base class initialization
     CFSMailMessageBase::ConstructL(aNmMessageEnvelope);
     
@@ -148,7 +155,8 @@ void CFSMailMessagePart::ConstructL(
 // -----------------------------------------------------------------------------
 EXPORT_C CFSMailMessagePart::~CFSMailMessagePart()
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 //<qmail> iContentType, iContentDescription, iContentDisposition, iContentID removed </qmail>
 	if(iAttachmentName)
 	{
@@ -187,7 +195,7 @@ EXPORT_C CFSMailMessagePart::~CFSMailMessagePart()
 // -----------------------------------------------------------------------------
 CFSMailMessagePart::CFSMailMessagePart() : CFSMailMessageBase()
 {
-    FUNC_LOG;
+    NM_FUNCTION;
 	
 //<qmail> iContentType, iContentDescription, iContentDisposition, iContentID removed </qmail>
 	iContentClass = HBufC::New(1);
@@ -204,7 +212,8 @@ CFSMailMessagePart::CFSMailMessagePart() : CFSMailMessageBase()
 // -----------------------------------------------------------------------------
 EXPORT_C const TDesC& CFSMailMessagePart::GetContentType() const
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 //<qmail>
     iContentTypePtr.Set(reinterpret_cast<const TUint16*> (iNmPrivateMessagePart->mContentType.utf16()),
     		iNmPrivateMessagePart->mContentType.length());
@@ -217,7 +226,8 @@ EXPORT_C const TDesC& CFSMailMessagePart::GetContentType() const
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailMessagePart::SetContentType(const TDesC& aContentType)
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 //<qmail>
     QString qtContentType = QString::fromUtf16(aContentType.Ptr(), aContentType.Length());
     iNmPrivateMessagePart->mContentType = qtContentType;
@@ -229,7 +239,8 @@ EXPORT_C void CFSMailMessagePart::SetContentType(const TDesC& aContentType)
 // -----------------------------------------------------------------------------
 EXPORT_C TFSMailMsgId CFSMailMessagePart::GetPartId() const
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 //<qmail>
     return TFSMailMsgId(iNmPrivateMessagePart->mPartId);
 //</qmail>	
@@ -242,7 +253,7 @@ EXPORT_C TFSMailMsgId CFSMailMessagePart::GetPartId() const
 EXPORT_C void CFSMailMessagePart::ChildPartsL( RPointerArray<CFSMailMessagePart>& aParts,
     TFSMailMessagePartDataSource aDataSource)
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
 
     if (aDataSource == EDataSourceMessageStore)
         {
@@ -272,7 +283,7 @@ EXPORT_C void CFSMailMessagePart::ChildPartsL( RPointerArray<CFSMailMessagePart>
 // -----------------------------------------------------------------------------
 EXPORT_C CFSMailMessagePart* CFSMailMessagePart::ChildPartL(TFSMailMsgId aPartId)
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
 	
 	CFSMailMessagePart* part = NULL;
 	if(CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetMessageId()))
@@ -290,7 +301,7 @@ EXPORT_C CFSMailMessagePart* CFSMailMessagePart::ChildPartL(TFSMailMsgId aPartId
 // -----------------------------------------------------------------------------
 EXPORT_C TBool CFSMailMessagePart::IsMessageL() const
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
 
 	TBuf<KMaxDataTypeLength> ptr;
 //<qmail>
@@ -318,7 +329,7 @@ EXPORT_C TBool CFSMailMessagePart::IsMessageL() const
 EXPORT_C CFSMailMessagePart* CFSMailMessagePart::NewChildPartL( const TFSMailMsgId aInsertBefore,
 																const TDesC& aContentType )
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
 
 	CFSMailMessagePart* part = NULL;
 	
@@ -335,7 +346,8 @@ EXPORT_C CFSMailMessagePart* CFSMailMessagePart::NewChildPartL( const TFSMailMsg
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailMessagePart::RemoveChildPartL(TFSMailMsgId aPartId)
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 	// get plugin pointer
 	TFSMailMsgId id = GetPartId();
 	if(id.IsNullId())
@@ -357,7 +369,8 @@ EXPORT_C void CFSMailMessagePart::RemoveChildPartL(TFSMailMsgId aPartId)
 EXPORT_C TInt CFSMailMessagePart::RemoveChildPartL( TFSMailMsgId aPartId,
                                                     MFSMailRequestObserver& aOperationObserver)
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
     TFSPendingRequest request;
     // get plugin pointer
     TFSMailMsgId id = GetPartId();
@@ -402,7 +415,8 @@ EXPORT_C TInt CFSMailMessagePart::RemoveChildPartL( TFSMailMsgId aPartId,
 // -----------------------------------------------------------------------------
 EXPORT_C const TDesC& CFSMailMessagePart::GetContentClass()
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 		return *iContentClass;
 	}
 
@@ -411,7 +425,7 @@ EXPORT_C const TDesC& CFSMailMessagePart::GetContentClass()
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailMessagePart::SetContentClass( const TDesC& aContentClass )
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
 
 	// 
 	HBufC* contentClass = HBufC::New(aContentClass.Length());
@@ -435,7 +449,8 @@ EXPORT_C void CFSMailMessagePart::SetContentClass( const TDesC& aContentClass )
 // -----------------------------------------------------------------------------
 EXPORT_C TUint CFSMailMessagePart::ContentSize() const
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 //<qmail>
     return (TUint)iNmPrivateMessagePart->mSize;
 //</qmail>
@@ -446,7 +461,8 @@ EXPORT_C TUint CFSMailMessagePart::ContentSize() const
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailMessagePart::SetContentSize( TUint aContentSize )
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 //<qmail>
     iNmPrivateMessagePart->mSize = quint32(aContentSize);
 //</qmail>
@@ -457,7 +473,8 @@ EXPORT_C void CFSMailMessagePart::SetContentSize( TUint aContentSize )
 // -----------------------------------------------------------------------------
 EXPORT_C const TDesC& CFSMailMessagePart::ContentID()
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 //<qmail>	
     iContentIDPtr.Set(reinterpret_cast<const TUint16*> (iNmPrivateMessagePart->mContentId.utf16()),
     		iNmPrivateMessagePart->mContentId.length());
@@ -470,7 +487,8 @@ EXPORT_C const TDesC& CFSMailMessagePart::ContentID()
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailMessagePart::SetContentIDL(const TDesC& aContentID)
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 //<qmail>
     QString qtContentID = QString::fromUtf16(aContentID.Ptr(), aContentID.Length());
     iNmPrivateMessagePart->mContentId = qtContentID;    
@@ -484,7 +502,7 @@ EXPORT_C CFSMailMessagePart* CFSMailMessagePart::CopyMessageAsChildPartL(
 													TFSMailMsgId aInsertBefore,
 													CFSMailMessage* aMessage)
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
 	
 	CFSMailMessagePart* part = NULL;
 	if(CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetPartId()))
@@ -500,7 +518,7 @@ EXPORT_C CFSMailMessagePart* CFSMailMessagePart::CopyMessageAsChildPartL(
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailMessagePart::RemoveContentL()
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
 	
 	CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetPartId());
 	if(plugin == NULL)
@@ -511,16 +529,19 @@ EXPORT_C void CFSMailMessagePart::RemoveContentL()
 	if(plugin != NULL)
 		{
 		RPointerArray<CFSMailMessagePart> parts;
-		RArray<TFSMailMsgId> partIds;
-    	plugin->ChildPartsL(GetMailBoxId(),GetFolderId(),GetMessageId(),GetPartId(),parts);
+        CleanupResetAndDestroyPushL( parts );
+        plugin->ChildPartsL(GetMailBoxId(),GetFolderId(),GetMessageId(),GetPartId(),parts);
+        RArray<TFSMailMsgId> partIds;
+        CleanupClosePushL( partIds );
+        partIds.ReserveL( 1 + parts.Count() );
 		for(TInt i=0;i<parts.Count();i++)
 			{
-			partIds.Append(parts[i]->GetMessageId());
+			partIds.AppendL( parts[i]->GetMessageId() );
 			}
-        partIds.Append(GetPartId());
+        partIds.AppendL( GetPartId() );
 		plugin->RemovePartContentL(GetMailBoxId(), GetFolderId(), GetMessageId(), partIds);
-        parts.ResetAndDestroy();
-		partIds.Reset();
+        CleanupStack::PopAndDestroy( &partIds );
+        CleanupStack::PopAndDestroy( &parts );
 		}
 	}
 
@@ -529,7 +550,7 @@ EXPORT_C void CFSMailMessagePart::RemoveContentL()
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailMessagePart::RemoveDownLoadedAttachmentsL()
     {
-    FUNC_LOG;
+    NM_FUNCTION;
         
     CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetPartId());
     if(plugin == NULL)
@@ -541,12 +562,12 @@ EXPORT_C void CFSMailMessagePart::RemoveDownLoadedAttachmentsL()
         {
         // get attachment list
         RPointerArray<CFSMailMessagePart> attachments;
-        attachments.Reset();
+        CleanupResetAndDestroyPushL( attachments );
         DoAttachmentListL(attachments);
 
         // copy attachment part ids
         RArray<TFSMailMsgId> ids;
-        ids.Reset();
+        CleanupClosePushL( ids ); 
         for(TInt i=0;i<attachments.Count();i++)
             {
             ids.Append(attachments[i]->GetPartId());
@@ -559,8 +580,8 @@ EXPORT_C void CFSMailMessagePart::RemoveDownLoadedAttachmentsL()
             }
         
         // clean tables
-        attachments.ResetAndDestroy();
-        ids.Reset();
+        CleanupStack::PopAndDestroy( &ids );
+        CleanupStack::PopAndDestroy( &attachments );
         }
     }
 
@@ -569,7 +590,7 @@ EXPORT_C void CFSMailMessagePart::RemoveDownLoadedAttachmentsL()
 // -----------------------------------------------------------------------------
 EXPORT_C RFile CFSMailMessagePart::GetContentFileL()
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
 	
 	if(CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetPartId()))
 		{
@@ -596,7 +617,8 @@ EXPORT_C RFile CFSMailMessagePart::GetContentFileL()
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailMessagePart::SetContentFromFileL(const TDesC& aFilePath)
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 	if(CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetPartId()))
 		{
 		plugin->SetPartContentFromFileL(GetMailBoxId(), GetFolderId(),
@@ -609,7 +631,8 @@ EXPORT_C void CFSMailMessagePart::SetContentFromFileL(const TDesC& aFilePath)
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailMessagePart::CopyContentFileL( const TDesC& aFilePath )
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 	if(CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetPartId()))
 		{
 		plugin->CopyMessagePartFileL( GetMailBoxId(), GetFolderId(),
@@ -622,7 +645,8 @@ EXPORT_C void CFSMailMessagePart::CopyContentFileL( const TDesC& aFilePath )
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailMessagePart::GetContentToBufferL(TDes16& aBuffer, TUint aStartOffset)
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 	if(CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetPartId()))
 		{
 		plugin->GetContentToBufferL( GetMailBoxId(), GetFolderId(), GetMessageId(),
@@ -635,7 +659,8 @@ EXPORT_C void CFSMailMessagePart::GetContentToBufferL(TDes16& aBuffer, TUint aSt
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailMessagePart::SetContent( TDes16& aBuffer )
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 	if(CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetPartId()))
 		{
 // <qmail>
@@ -650,7 +675,8 @@ EXPORT_C void CFSMailMessagePart::SetContent( TDes16& aBuffer )
 // -----------------------------------------------------------------------------
 EXPORT_C const TDesC& CFSMailMessagePart::ContentDescription()
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 //<qmail>
     iContentDescriptionPtr.Set(reinterpret_cast<const TUint16*> (
             iNmPrivateMessagePart->mContentDescription.utf16()),
@@ -665,7 +691,8 @@ EXPORT_C const TDesC& CFSMailMessagePart::ContentDescription()
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailMessagePart::SetContentDescription( const TDesC& aContentDescription )
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 //<qmail>
     QString qtContentDescription = QString::fromUtf16(
             aContentDescription.Ptr(), aContentDescription.Length());
@@ -677,7 +704,8 @@ EXPORT_C void CFSMailMessagePart::SetContentDescription( const TDesC& aContentDe
 // -----------------------------------------------------------------------------
 EXPORT_C const TDesC& CFSMailMessagePart::ContentDisposition()
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 //<qmail>
 	iContentDispositionPtr.Set(reinterpret_cast<const TUint16*> (
 	        iNmPrivateMessagePart->mContentDisposition.utf16()),
@@ -691,7 +719,8 @@ EXPORT_C const TDesC& CFSMailMessagePart::ContentDisposition()
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailMessagePart::SetContentDisposition( const TDesC& aContentDisposition )
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 //<qmail>
     QString qtContentDisposition = QString::fromUtf16(
             aContentDisposition.Ptr(), aContentDisposition.Length());
@@ -704,7 +733,8 @@ EXPORT_C void CFSMailMessagePart::SetContentDisposition( const TDesC& aContentDi
 // -----------------------------------------------------------------------------
 EXPORT_C CDesCArray& CFSMailMessagePart::ContentTypeParameters()
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 //<qmail>	
     if (iNmPrivateMessagePart->mContentType.isNull())
 		{
@@ -801,7 +831,7 @@ EXPORT_C CDesCArray& CFSMailMessagePart::ContentTypeParameters()
 // -----------------------------------------------------------------------------
 EXPORT_C CDesCArray& CFSMailMessagePart::ContentDispositionParameters()
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
 	
 //<qmail>
     const TDesC& contentDisposition = ContentDisposition();
@@ -935,7 +965,8 @@ EXPORT_C CDesCArray& CFSMailMessagePart::ContentDispositionParameters()
 // -----------------------------------------------------------------------------
 EXPORT_C MMRInfoObject& CFSMailMessagePart::GetMRInfo()
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 	return *iMeetingRequest;
 }
 
@@ -944,7 +975,8 @@ EXPORT_C MMRInfoObject& CFSMailMessagePart::GetMRInfo()
 // -----------------------------------------------------------------------------
 EXPORT_C TBool CFSMailMessagePart::IsMRInfoSet()
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 	if(iMeetingRequest)
 		{
 		return ETrue;
@@ -960,7 +992,8 @@ EXPORT_C TBool CFSMailMessagePart::IsMRInfoSet()
 // -----------------------------------------------------------------------------	
 EXPORT_C void CFSMailMessagePart::SetMRInfo(MMRInfoObject* aMeetingRequest)
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 	if(iMeetingRequest)
 	{
 		delete iMeetingRequest;
@@ -973,7 +1006,8 @@ EXPORT_C void CFSMailMessagePart::SetMRInfo(MMRInfoObject* aMeetingRequest)
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailMessagePart::SaveL()
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 	if(CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetPartId()))
 		{
 		plugin->StoreMessagePartL( GetMailBoxId(), GetFolderId(), GetMessageId(), *this );		
@@ -986,7 +1020,8 @@ EXPORT_C void CFSMailMessagePart::SaveL()
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailMessagePart::SetAttachmentNameL(const TDesC& aFilePath)
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 	    // Parse file name in case full path is given
 		TPtrC name;
 		for(TInt i=0;i<aFilePath.Length();)
@@ -1057,7 +1092,8 @@ EXPORT_C void CFSMailMessagePart::SetAttachmentNameL(const TDesC& aFilePath)
 // -----------------------------------------------------------------------------
 EXPORT_C TDesC& CFSMailMessagePart::AttachmentNameL()
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 //<qmail>
     // Look first from Content-Type param "name"
 	TInt ptr = GetContentType().Find(KFSMailContentTypeParamName);
@@ -1109,7 +1145,7 @@ EXPORT_C CFSMailMessagePart* CFSMailMessagePart::FindBodyPartL(
         const TDesC& aContentType, 
         TFSMailMessagePartDataSource aDataSource)
     {
-    FUNC_LOG;
+    NM_FUNCTION;
 
     TBuf<KMaxDataTypeLength> ptr;
     if (!iNmPrivateMessagePart->mContentType.isNull())
@@ -1216,7 +1252,7 @@ EXPORT_C CFSMailMessagePart* CFSMailMessagePart::FindBodyPartL(
 // -----------------------------------------------------------------------------
 EXPORT_C TBool CFSMailMessagePart::ContentTypeMatches( const TDesC& aContentType )
 {
-    FUNC_LOG;
+    NM_FUNCTION;
 
 	TBuf<KMaxDataTypeLength> ptr;
 	TBool result(EFalse);
@@ -1246,7 +1282,8 @@ EXPORT_C TBool CFSMailMessagePart::ContentTypeMatches( const TDesC& aContentType
 EXPORT_C void CFSMailMessagePart::AppendAttachmentsL(
     RPointerArray<CFSMailMessagePart>& aParts)
     {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
     CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid( GetMessageId() );
     if ( plugin )
         {
@@ -1283,7 +1320,8 @@ EXPORT_C void CFSMailMessagePart::AppendAttachmentsL(
 // -----------------------------------------------------------------------------
 EXPORT_C TUint CFSMailMessagePart::FetchedContentSize() const
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 //<qmail>
     return (TUint)iNmPrivateMessagePart->mFetchedSize;
 //</qmail>
@@ -1294,7 +1332,8 @@ EXPORT_C TUint CFSMailMessagePart::FetchedContentSize() const
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailMessagePart::SetFetchedContentSize(TUint aContentSize)
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 //<qmail>
     iNmPrivateMessagePart->mFetchedSize = quint32(aContentSize);
 //</qmail>
@@ -1305,7 +1344,8 @@ EXPORT_C void CFSMailMessagePart::SetFetchedContentSize(TUint aContentSize)
 // -----------------------------------------------------------------------------
 EXPORT_C TFSPartFetchState CFSMailMessagePart::FetchLoadState() const
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 //<qmail>
 	 if(iMessagePartsStatus != EFSDefault)
 		{
@@ -1337,7 +1377,7 @@ EXPORT_C TInt CFSMailMessagePart::FetchMessagePartL( 	const TFSMailMsgId /*aMess
         										  		MFSMailRequestObserver& aOperationObserver,
         												const TUint aPreferredByteCount)
     {
-    FUNC_LOG;
+    NM_FUNCTION;
     
 	TInt requestId(0);
 	if(CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetPartId()))
@@ -1379,7 +1419,7 @@ EXPORT_C TInt CFSMailMessagePart::FetchMessagesPartsL(
         							MFSMailRequestObserver& aOperationObserver,
         							const TUint aPreferredByteCount)
     {
-    FUNC_LOG;
+    NM_FUNCTION;
 
 	TInt requestId(0);
     
@@ -1421,7 +1461,8 @@ EXPORT_C TInt CFSMailMessagePart::FetchMessagesPartsL(
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailMessagePart::SetMessagePartsStatus(TFSPartFetchState aMessagePartStatus)
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 	iMessagePartsStatus = aMessagePartStatus;
 	}
 
@@ -1432,7 +1473,8 @@ EXPORT_C CFSMailMessagePart* CFSMailMessagePart::AddNewAttachmentL(	const TDesC&
 																const TFSMailMsgId /*aInsertBefore*/,
 																const TDesC& aContentType )
     {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
     CFSMailMessagePart* newPart = NULL;
 
     CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid( GetMessageId() );
@@ -1464,7 +1506,8 @@ EXPORT_C CFSMailMessagePart* CFSMailMessagePart::AddNewAttachmentL(	const TDesC&
 // -----------------------------------------------------------------------------
 EXPORT_C TUint CFSMailMessagePart::ReadOnlyPartSize() const
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
     return iReadOnlyPartSize;
 }
 
@@ -1473,7 +1516,8 @@ EXPORT_C TUint CFSMailMessagePart::ReadOnlyPartSize() const
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailMessagePart::SetReadOnlyPartSize(const TUint aReadOnlyPartSize)
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
     iReadOnlyPartSize = aReadOnlyPartSize;
 }
 
@@ -1482,7 +1526,7 @@ EXPORT_C void CFSMailMessagePart::SetReadOnlyPartSize(const TUint aReadOnlyPartS
 // -----------------------------------------------------------------------------
 void CFSMailMessagePart::DoAttachmentListL( RPointerArray<CFSMailMessagePart>& /*aParts*/ )
 {
-    FUNC_LOG;
+    NM_FUNCTION;
 }
 
 //<qmail>
@@ -1491,7 +1535,8 @@ void CFSMailMessagePart::DoAttachmentListL( RPointerArray<CFSMailMessagePart>& /
 // -----------------------------------------------------------------------------
 EXPORT_C NmMessagePart* CFSMailMessagePart::GetNmMessagePart()
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
     return new NmMessagePart(iNmPrivateMessagePart);
 }
 //</qmail>
@@ -1502,7 +1547,8 @@ EXPORT_C NmMessagePart* CFSMailMessagePart::GetNmMessagePart()
 // -----------------------------------------------------------------------------
 EXPORT_C HBufC* CFSMailMessagePart::GetLocalTextContentLC()
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
     return NmConverter::qstringToHBufCLC(iNmPrivateMessagePart->mTextContent);
 }
 //</qmail>

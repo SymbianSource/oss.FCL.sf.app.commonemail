@@ -53,7 +53,7 @@ inc/ipsplgcreateforwardmessageoperation.h \
 inc/ipsplgcreatereplymessageoperation.h \
 inc/ipsplgnewchildpartfromfileoperation.h \
 inc/ipsplgremovechildpartoperation.h \
-inc/ipsplgoperationwait.h \
+# <qmail> inc/ipsplgoperationwait.h \ removed
 inc/ipsplgpop3connectop.h \
 inc/ipsplgpop3fetchoperation.h \
 inc/ipsplgpop3plugin.h \
@@ -73,7 +73,9 @@ inc/ipsplgsyncstatehandler.h \
 inc/ipsplgsosbaseplugin.hrh \
 inc/ipsplgmailstoreroperation.h \
 inc/mipsplgmailstorerobserver.h \
-inc/ipsplgmessagepartstoreroperation.h
+inc/ipsplgmessagepartstoreroperation.h \
+inc/ipsstateextension.h \
+inc/ipssosextendedsettingsmanager.h
 
     
 SOURCES   += src/ipsplgbaseoperation.cpp \
@@ -98,7 +100,7 @@ src/ipsplgcreateforwardmessageoperation.cpp \
 src/ipsplgcreatereplymessageoperation.cpp \
 src/ipsplgnewchildpartfromfileoperation.cpp \
 src/ipsplgremovechildpartoperation.cpp \
-src/ipsplgoperationwait.cpp \
+# <qmail> removed src/ipsplgoperationwait.cpp \
 src/ipsplgpop3connectop.cpp \
 src/ipsplgpop3fetchoperation.cpp \
 src/ipsplgpop3plugin.cpp \
@@ -118,7 +120,9 @@ src/ipsplgsyncstatehandler.cpp \
 inc/ipsplgsearch.inl \
 inc/ipsplgmsgmapper.inl \
 src/ipsplgmailstoreroperation.cpp \
-src/ipsplgmessagepartstoreroperation.cpp
+src/ipsplgmessagepartstoreroperation.cpp \
+src/ipsstateextension.cpp \
+src/ipssosextendedsettingsmanager.cpp
 
 RESOURCES +=
 
@@ -161,8 +165,6 @@ symbian*: {
     -lmsgs \
     -letext \
     -limcm \
-    -lgsecomplugin \
-    -lgsframework \
     -lfsmailframework \
     -lfsfwcommonlib \
     -lbafl \
@@ -172,7 +174,8 @@ symbian*: {
     -lConnMon \
     -lflogger \
     -lfeatmgr \
-    -lmessagestoreclient
+    -lmessagestoreclient \
+    -lxqsettingsmanager
 
     BLD_INF_RULES.prj_exports += \
       "inc/ipsplgsmtpoperation.h |../inc/ipsplgsmtpoperation.h" \

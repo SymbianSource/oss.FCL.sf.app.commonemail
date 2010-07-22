@@ -19,7 +19,7 @@
 #ifndef NMEDITORTEXTDOCUMENT_H_
 #define NMEDITORTEXTDOCUMENT_H_
 
-#include <qtextdocument>
+#include <QTextDocument>
 
 class QNetworkAccessManager;
 class QNetworkReply;

@@ -26,6 +26,7 @@ class NmDataPluginFactory;
 class NmDataPluginInterface;
 class QPluginLoader;
 class QTimer;
+class XQAiwRequest;
 
 //Three seconds
 const int NmHsWidgetEmailEngineUpdateTimerValue = 3000;
@@ -48,6 +49,7 @@ public:
     int getEnvelopes(QList<NmMessageEnvelope> &list, int maxEnvelopeAmount);
     int unreadCount();
     QString accountName();
+    void deleteAiwRequest();
         
 public slots:
     void handleMessageEvent( 
@@ -64,6 +66,9 @@ public slots:
     void launchMailAppInboxView();
     void launchMailAppMailViewer(const NmId &messageId);
     void handleUpdateTimeout();
+    
+    void aiwRequestOk(const QVariant& result);
+    void aiwRequestError(int errorCode, const QString& errorMessage);
     
 signals:
     void mailDataChanged();    
@@ -90,6 +95,7 @@ private:
     bool mMessageEventReceivedWhenSuspended;
     bool mSuspended; 
     QTimer* mUpdateTimer;
+    XQAiwRequest* mAiwRequest;
     };
 
 #endif /* NMHSWIDGETEMAILENGINE_H_ */

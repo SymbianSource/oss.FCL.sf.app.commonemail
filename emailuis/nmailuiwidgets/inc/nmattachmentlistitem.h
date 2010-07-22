@@ -24,7 +24,7 @@
 
 class HbProgressBar;
 class HbTextItem;
-class QTimer;
+class HbTapGesture;
 
 class NMAILUIWIDGETS_EXPORT NmAttachmentListItem : public HbWidget
 {
@@ -36,18 +36,15 @@ public:
     void setTextColor(const QColor color);
     void setFileNameText(const QString &fileName);
     void setFileSizeText(const QString &fileSize);
-    void resetFileNameLength(Qt::Orientation orientation);
     void setProgressBarValue(const int value);
     int progressBarValue() const;
     void hideProgressBar();
 
 protected: 
-    void mousePressEvent( QGraphicsSceneMouseEvent *event );
-    void mouseReleaseEvent( QGraphicsSceneMouseEvent *event );
+    virtual void gestureEvent(QGestureEvent *event);
     
 private slots:
     void removeProgressBar();
-    void longPressedActivated();
 
 signals: 
     void itemActivated();
@@ -56,16 +53,12 @@ signals:
 private: 
     void init( );
     void constructUi();
-    QSize screenSize(Qt::Orientation orientation);
     
 private:
     Q_DISABLE_COPY(NmAttachmentListItem)
     HbTextItem *mFileNameText; //owned
     HbTextItem *mFileSizeText; //owned
     HbProgressBar *mProgressBar; //owned
-    QTimer *mTimer; //owned
-    bool mButtonPressed;
-    QPointF mLongPressedPoint;
     QColor mTextColor;
 };
 

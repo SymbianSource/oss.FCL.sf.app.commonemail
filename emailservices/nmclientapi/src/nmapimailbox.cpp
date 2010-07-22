@@ -15,10 +15,7 @@
  *
  */
 
-#include <nmapimailbox.h>
-#include "nmapimailbox_p.h"
-
-#include <QString>
+#include "nmapiheaders.h"
 
 namespace EmailClientApi
 {
@@ -28,6 +25,8 @@ namespace EmailClientApi
  */
 NmApiMailbox::NmApiMailbox()
 {
+    NM_FUNCTION;
+    
     d = new NmApiMailboxPrivate();
 }
 
@@ -37,7 +36,7 @@ NmApiMailbox::NmApiMailbox()
 NmApiMailbox::NmApiMailbox(const NmApiMailbox &nmApiMailbox)
 : d(nmApiMailbox.d)
 {
-    
+    NM_FUNCTION;
 }
 
 /*!
@@ -45,7 +44,7 @@ NmApiMailbox::NmApiMailbox(const NmApiMailbox &nmApiMailbox)
  */
 NmApiMailbox::~NmApiMailbox()
 {
-
+    NM_FUNCTION;
 }
 
 /*!
@@ -53,6 +52,8 @@ NmApiMailbox::~NmApiMailbox()
  */
 NmApiMailbox &NmApiMailbox::operator=(const NmApiMailbox &mailbox)
 {
+    NM_FUNCTION;
+    
     if (this != &mailbox) {
         d = mailbox.d;
     }
@@ -64,6 +65,8 @@ NmApiMailbox &NmApiMailbox::operator=(const NmApiMailbox &mailbox)
  */
 bool NmApiMailbox::operator==(const NmApiMailbox &mailbox)
 {
+    NM_FUNCTION;
+    
     bool returnValue = false;
     if (d == mailbox.d) {
         returnValue = true;
@@ -76,6 +79,8 @@ bool NmApiMailbox::operator==(const NmApiMailbox &mailbox)
  */
 quint64 NmApiMailbox::id() const
 {
+    NM_FUNCTION;
+    
     return d->id;
 }
 
@@ -84,6 +89,8 @@ quint64 NmApiMailbox::id() const
  */
 QString NmApiMailbox::address() const
 {
+    NM_FUNCTION;
+    
     return d->address;
 }
 
@@ -92,6 +99,8 @@ QString NmApiMailbox::address() const
  */
 QString NmApiMailbox::name() const
 {
+    NM_FUNCTION;
+    
     return d->name;
 }
 
@@ -100,6 +109,8 @@ QString NmApiMailbox::name() const
  */
 void NmApiMailbox::setId(quint64 id)
 {
+    NM_FUNCTION;
+    
     d->id = id;
 }
 
@@ -108,6 +119,8 @@ void NmApiMailbox::setId(quint64 id)
  */
 void NmApiMailbox::setAddress(const QString &address)
 {
+    NM_FUNCTION;
+    
     d->address = address;
 }
 
@@ -116,6 +129,8 @@ void NmApiMailbox::setAddress(const QString &address)
  */
 void NmApiMailbox::setName(const QString &name)
 {
+    NM_FUNCTION;
+    
     d->name = name;
 }
 

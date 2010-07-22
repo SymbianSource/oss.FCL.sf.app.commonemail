@@ -31,18 +31,12 @@
 NmViewerServiceInterface::NmViewerServiceInterface(QObject *parent,
         NmApplication *application,
         NmUiEngine &uiEngine)
-#ifndef NM_WINS_ENV
     : XQServiceProvider(emailFullServiceNameMessage, parent),
-#else
-    : QObject(parent),
-#endif
       mApplication(application),
       mUiEngine(uiEngine),
       mAsyncReqId(0)
 {
-#ifndef NM_WINS_ENV
     publishAll();
-#endif
 }
 
 
@@ -51,6 +45,7 @@ NmViewerServiceInterface::NmViewerServiceInterface(QObject *parent,
 */
 NmViewerServiceInterface::~NmViewerServiceInterface()
 {
+    NM_FUNCTION;
 }
 
 
@@ -59,20 +54,37 @@ NmViewerServiceInterface::~NmViewerServiceInterface()
  */
 void NmViewerServiceInterface::viewMessage(QVariant mailboxId, QVariant folderId, QVariant messageId)
 {
-    NMLOG("NmViewerServiceInterface::viewMessage()");
-#ifndef NM_WINS_ENV
+    NM_FUNCTION;
+
     mAsyncReqId = setCurrentRequestAsync();
 
     NmId mailboxNmId(mailboxId.toULongLong());
     NmId messageNmId(messageId.toULongLong());
     NmId folderNmId(folderId.toULongLong());
 
+	// Make sure the app stays background if user presses back in viewer view
+	bool visible = mApplication->updateVisibilityState();
+
     NmMessage *message = mUiEngine.message( mailboxNmId, folderNmId, messageNmId );
     if (message) {
         // bring application to foreground
         XQServiceUtil::toBackground(false);
+        HbMainWindow *mainWindow = mApplication->mainWindow();
+        mainWindow->show();
 
         // Launch the message list view.
+        NmUiStartParam *startParam1 = 
+            new NmUiStartParam(NmUiViewMessageList,
+                               mailboxNmId,
+                               folderNmId, // folder id
+                               messageNmId, // message id
+                               NmUiEditorCreateNew, // editor start mode
+                               NULL, // address list
+                               NULL, // attachment list
+                               true); // start as service
+        mApplication->enterNmUiView(startParam1);
+        
+        // Launch the message view.
         NmUiStartParam *startParam =
             new NmUiStartParam(NmUiViewMessageViewer,
                                mailboxNmId,
@@ -81,7 +93,7 @@ void NmViewerServiceInterface::viewMessage(QVariant mailboxId, QVariant folderId
                                NmUiEditorCreateNew, // editor start mode
                                NULL, // address list
                                NULL, // attachment list
-                               true); // start as service
+                               false); // not started as service
         mApplication->enterNmUiView(startParam);
 
         completeRequest(mAsyncReqId,0);
@@ -90,7 +102,7 @@ void NmViewerServiceInterface::viewMessage(QVariant mailboxId, QVariant folderId
         // Message was not found
 
         // if started as embedded, do not hide the app
-		if (!XQServiceUtil::isEmbedded()) {
+		if (!XQServiceUtil::isEmbedded() && !visible) {
 			XQServiceUtil::toBackground(true);
 		}
 
@@ -103,7 +115,6 @@ void NmViewerServiceInterface::viewMessage(QVariant mailboxId, QVariant folderId
                     mApplication, SLOT(delayedExitApplication()));
         }
     }
-#endif
 }
 
 // End of file.

@@ -26,8 +26,9 @@ CONFIG += mobility
 MOBILITY += systeminfo
 
 INCLUDEPATH += inc \
+               ../../inc \
                ../../../inc \
-               $$MW_LAYER_SYSTEMINCLUDE 
+               $$MW_LAYER_SYSTEMINCLUDE
 
 DEPENDPATH += src \
               inc \
@@ -73,12 +74,28 @@ win32 {
 }
 
 #creating rcc file from qrc
-system(rcc -binary data/email_brand.qrc -o data/email_brand.rcc)
+#system(rcc -binary data/email_brand.qrc -o data/email_brand.rcc)
+#RESOURCES += data/email_brand.qrc
+#"data/email_brand.rcc                  /epoc32/data/Z/resource/apps/email_brand.rcc" \
 
 # Build.inf rules  
 BLD_INF_RULES.prj_exports += "$${LITERAL_HASH}include <platform_paths.hrh>" \
                              "rom/nmutilities.iby $$CORE_APP_LAYER_IBY_EXPORT_PATH(nmutilities.iby)" \
-                             "data/email_brand.rcc                  /epoc32/data/Z/resource/apps/email_brand.rcc" \
+                             "data/icons/gmail.svg                  /epoc32/release/winscw/udeb/z/resource/apps/gmail.svg" \
+                             "data/icons/gmail.svg                  /epoc32/release/winscw/urel/z/resource/apps/gmail.svg" \
+                             "data/icons/gmail.svg                  /epoc32/data/z/resource/apps/gmail.svg" \
+                             "data/icons/microsoft.svg              /epoc32/release/winscw/udeb/z/resource/apps/microsoft.svg" \
+                             "data/icons/microsoft.svg              /epoc32/release/winscw/urel/z/resource/apps/microsoft.svg" \
+                             "data/icons/microsoft.svg              /epoc32/data/z/resource/apps/microsoft.svg" \
+                             "data/icons/ovi.svg                    /epoc32/release/winscw/udeb/z/resource/apps/ovi.svg" \
+                             "data/icons/ovi.svg                    /epoc32/release/winscw/urel/z/resource/apps/ovi.svg" \
+                             "data/icons/ovi.svg                    /epoc32/data/z/resource/apps/ovi.svg" \
+                             "data/icons/yahoo.svg                  /epoc32/release/winscw/udeb/z/resource/apps/yahoo.svg" \
+                             "data/icons/yahoo.svg                  /epoc32/release/winscw/urel/z/resource/apps/yahoo.svg" \
+                             "data/icons/yahoo.svg                  /epoc32/data/z/resource/apps/yahoo.svg" \
+                             "data/icons/aol.svg                    /epoc32/release/winscw/udeb/z/resource/apps/aol.svg" \
+                             "data/icons/aol.svg                    /epoc32/release/winscw/urel/z/resource/apps/aol.svg" \
+                             "data/icons/aol.svg                    /epoc32/data/z/resource/apps/aol.svg" \
                              "data/2001E277.txt                     /epoc32/release/winscw/udeb/z/private/10202be9/2001E277.txt" \
                              "data/2001E277.txt                     /epoc32/release/winscw/urel/z/private/10202be9/2001E277.txt" \
                              "data/2001E277.txt                     /epoc32/data/z/private/10202be9/2001E277.txt" \

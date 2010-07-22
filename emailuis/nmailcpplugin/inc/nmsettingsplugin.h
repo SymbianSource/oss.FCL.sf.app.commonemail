@@ -18,17 +18,17 @@
 #ifndef NMSETTINGSPLUGIN_H
 #define NMSETTINGSPLUGIN_H
 
-#include <cppluginplatinterface.h>
+#include <cpplugininterface.h>
 #include <qobject.h>
 
 class CpSettingFormItemData;
 class CpItemDataHelper;
 class QTranslator;
 
-class NmSettingsPlugin : public QObject, public CpPluginPlatInterface
+class NmSettingsPlugin : public QObject, public CpPluginInterface
     {
     Q_OBJECT
-    Q_INTERFACES(CpPluginPlatInterface)
+    Q_INTERFACES(CpPluginInterface)
 
 public:
 
@@ -36,7 +36,7 @@ public:
 
     virtual ~NmSettingsPlugin();
 
-    virtual CpSettingFormItemData *createSettingFormItemData(
+    virtual QList<CpSettingFormItemData*> createSettingFormItemData(
         CpItemDataHelper &itemDataHelper) const;
 
 private:

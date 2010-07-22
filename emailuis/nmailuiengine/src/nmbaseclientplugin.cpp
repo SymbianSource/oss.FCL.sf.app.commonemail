@@ -104,9 +104,9 @@ mEditorToolBarRequest(NULL),
 mViewerToolBarRequest(NULL),
 mViewerViewRequest(NULL)
 {
-    NMLOG("NmBaseClientPlugin::NmBaseClientPlugin()-->");
+    NM_FUNCTION;
+    
     mUiEngine = NmUiEngine::instance();
-    NMLOG("<--NmBaseClientPlugin::NmBaseClientPlugin()");
 }
 
 /*!
@@ -114,27 +114,29 @@ mViewerViewRequest(NULL)
 */
 NmBaseClientPlugin::~NmBaseClientPlugin()
 {
-    NMLOG("NmBaseClientPlugin::~NmBaseClientPlugin()-->");
+    NM_FUNCTION;
+    
     NmUiEngine::releaseInstance(mUiEngine);
     mUiEngine = NULL;
-    NMLOG("<--NmBaseClientPlugin::~NmBaseClientPlugin()");
 }
 
+
 /*!
-    Provides list of supported NmActions.
+    Provides a list of supported NmActions.
     Implementation of NmUiExtensionInterface.
+
     Parameter \a request controls list of request services.
     Parameter \a actionList is updated by supported NmActions.
 */
-void NmBaseClientPlugin::getActions(
-      const NmActionRequest &request,
-      QList<NmAction *> &actionList)
+void NmBaseClientPlugin::getActions(const NmActionRequest &request,
+                                    QList<NmAction *> &actionList)
 {
-    NMLOG("NmBaseClientPlugin::getActions()-->");
-
+    NM_FUNCTION;
+    
     if (request.observer()) {
         switch (request.contextView()) {
             case NmActionContextViewMessageList:
+            case NmActionContextViewMessageSearchList:
             {
                 createMessageListCommands(request, actionList);
                 break;
@@ -151,13 +153,13 @@ void NmBaseClientPlugin::getActions(
             }
             default:
             {
-                NMLOG(QString("NmBaseClientPlugin::getActions(): Unknown contextView()=%1").arg(request.contextView()));
+                NM_COMMENT(QString("NmBaseClientPlugin::getActions(): unknown contextView()=%1").arg(request.contextView()));
                 break;
             }
         }
     }
-    NMLOG("<--NmBaseClientPlugin::getActions()");
 }
+
 
 /*!
     Public slot connected to options menu refresh NmAction.
@@ -165,16 +167,14 @@ void NmBaseClientPlugin::getActions(
 */
 void NmBaseClientPlugin::refresh()
 {
-    NMLOG("NmBaseClientPlugin::refresh()-->");
-
+    NM_FUNCTION;
+    
     int err = mUiEngine->refreshMailbox(mMenuRequest.mailboxId());
 
     if (NmNoError != err) {
         // Failed to refresh the mailbox!
-        NMLOG(QString("NmBaseClientPlugin::refresh(): failed err=%1").arg(err));
+        NM_ERROR(1,QString("NmBaseClientPlugin::refresh(): failed err=%1").arg(err));
     }
-
-    NMLOG("<--NmBaseClientPlugin::refresh()");
 }
 
 /*!
@@ -183,6 +183,8 @@ void NmBaseClientPlugin::refresh()
 */
 void NmBaseClientPlugin::openMessage()
 {
+    NM_FUNCTION;
+    
     handleRequest(NmActionResponseCommandOpen, mMenuRequest);
 }
 
@@ -191,8 +193,8 @@ void NmBaseClientPlugin::openMessage()
 */
 void NmBaseClientPlugin::deleteMessage()
 {
-    NMLOG("NmBaseClientPlugin::deleteMessage()-->");
-
+    NM_FUNCTION;
+    
     QList<NmId> messageList;
     messageList.append(mMenuRequest.messageId());
 
@@ -201,10 +203,9 @@ void NmBaseClientPlugin::deleteMessage()
                                         messageList);
     if (NmNoError != err) {
         // Failed to delete the messages!
-        NMLOG(QString("NmBaseClientPlugin::deleteMessage(): failed err=%1").arg(err));
+        NM_ERROR(1,QString("NmBaseClientPlugin::deleteMessage(): failed err=%1").arg(err));
     }
     messageList.clear();
-    NMLOG("<--NmBaseClientPlugin::deleteMessage()");
 }
 
 /*!
@@ -213,6 +214,8 @@ void NmBaseClientPlugin::deleteMessage()
 */
 void NmBaseClientPlugin::deleteMessageFromViewerView()
 {
+    NM_FUNCTION;
+    
     handleRequest(NmActionResponseCommandDeleteMail, mViewerViewRequest);
 }
 
@@ -222,6 +225,8 @@ void NmBaseClientPlugin::deleteMessageFromViewerView()
 */
 void NmBaseClientPlugin::createNewMailViewerToolBar()
 {
+    NM_FUNCTION;
+    
     handleRequest(NmActionResponseCommandNewMail, mViewerToolBarRequest);
 }
 
@@ -231,6 +236,8 @@ void NmBaseClientPlugin::createNewMailViewerToolBar()
 */
 void NmBaseClientPlugin::createNewMail()
 {
+    NM_FUNCTION;
+    
     handleRequest(NmActionResponseCommandNewMail, mMenuRequest);
 }
 
@@ -240,6 +247,9 @@ void NmBaseClientPlugin::createNewMail()
 */
 void NmBaseClientPlugin::settings()
 {
+    NM_FUNCTION;
+    
+    handleRequest(NmActionResponseCommandSettings, mMenuRequest);
 }
 
 /*!
@@ -248,6 +258,8 @@ void NmBaseClientPlugin::settings()
 */
 void NmBaseClientPlugin::sendMail()
 {
+    NM_FUNCTION;
+    
     handleRequest(NmActionResponseCommandSendMail, mEditorToolBarRequest);
 }
 
@@ -258,6 +270,8 @@ void NmBaseClientPlugin::sendMail()
 
 void NmBaseClientPlugin::replyMail()
 {
+    NM_FUNCTION;
+    
     handleRequest(NmActionResponseCommandReply, mViewerViewRequest);
 }
 
@@ -268,6 +282,8 @@ void NmBaseClientPlugin::replyMail()
 
 void NmBaseClientPlugin::replyAllMail()
 {
+    NM_FUNCTION;
+    
     handleRequest(NmActionResponseCommandReplyAll, mViewerViewRequest);
 }
 
@@ -277,6 +293,8 @@ void NmBaseClientPlugin::replyAllMail()
 */
 void NmBaseClientPlugin::forwardMail()
 {
+    NM_FUNCTION;
+    
     handleRequest(NmActionResponseCommandForward, mViewerViewRequest);
 }
 
@@ -285,6 +303,8 @@ void NmBaseClientPlugin::forwardMail()
 */
 void NmBaseClientPlugin::setPriorityHigh()
 {
+    NM_FUNCTION;
+    
     handleRequest(NmActionResponseCommandPriorityHigh, mMenuRequest);
 }
 
@@ -293,6 +313,8 @@ void NmBaseClientPlugin::setPriorityHigh()
 */
 void NmBaseClientPlugin::setPriorityNormal()
 {
+    NM_FUNCTION;
+    
     handleRequest(NmActionResponseCommandNone, mMenuRequest);
 }
 
@@ -301,6 +323,8 @@ void NmBaseClientPlugin::setPriorityNormal()
 */
 void NmBaseClientPlugin::setPriorityLow()
 {
+    NM_FUNCTION;
+    
     handleRequest(NmActionResponseCommandPriorityLow, mMenuRequest);
 }
 
@@ -309,6 +333,8 @@ void NmBaseClientPlugin::setPriorityLow()
 */
 void NmBaseClientPlugin::attach()
 {
+    NM_FUNCTION;
+    
     handleRequest(NmActionResponseCommandAttach, mEditorToolBarRequest);
 }
 
@@ -317,6 +343,8 @@ void NmBaseClientPlugin::attach()
 */
 void NmBaseClientPlugin::removeAttachment()
 {
+    NM_FUNCTION;
+    
     handleRequest(NmActionResponseCommandRemoveAttachment, mMenuRequest);
 }
 
@@ -325,6 +353,8 @@ void NmBaseClientPlugin::removeAttachment()
 */
 void NmBaseClientPlugin::openAttachment()
 {
+    NM_FUNCTION;
+    
     handleRequest(NmActionResponseCommandOpenAttachment, mMenuRequest);
 }
 
@@ -334,6 +364,8 @@ void NmBaseClientPlugin::openAttachment()
 */
 void NmBaseClientPlugin::search()
 {
+    NM_FUNCTION;
+    
     handleRequest(NmActionResponseCommandSearch, mViewerToolBarRequest);
 }
 
@@ -346,6 +378,8 @@ void NmBaseClientPlugin::search()
 void NmBaseClientPlugin::mailboxListChanged(const NmId &mailboxId,
     NmSettings::MailboxEventType type)
 {
+    NM_FUNCTION;
+    
     Q_UNUSED(mailboxId)
     Q_UNUSED(type)
     handleRequest(NmActionResponseCommandMailboxDeleted, mMenuRequest);
@@ -361,15 +395,15 @@ void NmBaseClientPlugin::mailboxListChanged(const NmId &mailboxId,
 void NmBaseClientPlugin::mailboxPropertyChanged(const NmId &mailboxId, QVariant property,
     QVariant value)
 {
+    NM_FUNCTION;
+    
     Q_UNUSED(property)
     Q_UNUSED(value)
 
     NmActionObserver *observer = mMenuRequest.observer();
     if (observer) {
         // Force model item to be updated, because framework adapter sends it too slowly.
-        // Data changed signal is not emitted by this change, it is send when ever famework adapter
-        // calls data model's handleMailboxEvent method.
-        mUiEngine->mailboxListModel().refreshModelItem(mailboxId, false);
+        mUiEngine->mailboxListModel().refreshModelItem(mailboxId);
 
         // Notify view of changes.
         NmActionResponse response(NmActionResponseCommandUpdateMailboxName, mMenuRequest);
@@ -383,6 +417,8 @@ void NmBaseClientPlugin::mailboxPropertyChanged(const NmId &mailboxId, QVariant 
 */
 void NmBaseClientPlugin::goOnline(const NmId &mailboxId)
 {
+    NM_FUNCTION;
+    
 		(void) mUiEngine->refreshMailbox(mailboxId);
 }
 /*!
@@ -391,6 +427,8 @@ void NmBaseClientPlugin::goOnline(const NmId &mailboxId)
 */
 void NmBaseClientPlugin::goOffline(const NmId &mailboxId)
 {
+    NM_FUNCTION;
+    
         mUiEngine->goOffline(mailboxId);
 }
 
@@ -404,8 +442,8 @@ void NmBaseClientPlugin::createMessageListCommands(
     const NmActionRequest &request,
     QList<NmAction *> &actionList)
 {
-    NMLOG("NmBaseClientPlugin::createMessageListCommands()-->");
-
+    NM_FUNCTION;
+    
     switch (request.menuType()) {
         case NmActionOptionsMenu:
         {
@@ -477,7 +515,7 @@ void NmBaseClientPlugin::createMessageListCommands(
                         request.requestData().value<NmMessageEnvelope*>();    
                     if (envelope){
                         if (envelope->isRead()){
-                            NMLOG("nmailui: envelope is read");
+                            NM_COMMENT("nmailui: envelope is read");
                             NmAction* unreadAction = new NmAction(0);
                             unreadAction->setObjectName("baseclientplugin_unreadaction");
                             unreadAction->setText(hbTrId("txt_mail_menu_mark_as_unread"));
@@ -490,7 +528,7 @@ void NmBaseClientPlugin::createMessageListCommands(
                             actionList.append(unreadAction);
                         }
                         else {
-                            NMLOG("nmailui: envelope is unread");
+                            NM_COMMENT("nmailui: envelope is unread");
                             NmAction* readAction = new NmAction(0);
                             readAction->setObjectName("baseclientplugin_readaction");
                             readAction->setText(hbTrId("txt_mail_menu_mark_as_read"));
@@ -509,11 +547,10 @@ void NmBaseClientPlugin::createMessageListCommands(
         }
         default:
         {
-            NMLOG(QString("NmBaseClientPlugin::createMessageListCommands(): Unknown menuType()=%1").arg(request.menuType()));
+            NM_COMMENT(QString("NmBaseClientPlugin::createMessageListCommands(): unknown menuType()=%1").arg(request.menuType()));
             break;
         }
     }
-    NMLOG("<--NmBaseClientPlugin::createMessageListCommands()");
 }
 
 /*!
@@ -526,8 +563,8 @@ void NmBaseClientPlugin::createViewerViewCommands(
     const NmActionRequest &request,
     QList<NmAction *> &actionList)
 {
-    NMLOG("NmBaseClientPlugin::createViewerViewCommands()-->");
-
+    NM_FUNCTION;
+    
     switch (request.menuType()) {
     	case NmActionOptionsMenu:
 		{
@@ -620,7 +657,7 @@ void NmBaseClientPlugin::createViewerViewCommands(
         }
         default:
         {
-            NMLOG(QString("NmBaseClientPlugin::createViewerViewCommands(): Unknown menuType()=%1").arg(request.menuType()));
+            NM_COMMENT(QString("NmBaseClientPlugin::createViewerViewCommands(): unknown menuType()=%1").arg(request.menuType()));
             break;
         }
     }
@@ -637,8 +674,8 @@ void NmBaseClientPlugin::createEditorViewCommands(
     const NmActionRequest &request,
     QList<NmAction *> &actionList)
 {
-    NMLOG("NmBaseClientPlugin::createEditorViewCommands()-->");
-
+    NM_FUNCTION;
+    
     switch (request.menuType()) {
         case NmActionToolbar:
         {
@@ -722,12 +759,10 @@ void NmBaseClientPlugin::createEditorViewCommands(
         }
         default:
         {
-            NMLOG(QString("NmBaseClientPlugin::createEditorViewCommands(): Unknown menuType()=%1").arg(request.menuType()));
+            NM_COMMENT(QString("NmBaseClientPlugin::createEditorViewCommands(): unknown menuType()=%1").arg(request.menuType()));
             break;
         }
     }
-
-    NMLOG("<--NmBaseClientPlugin::createEditorViewCommands()");
 }
 
 /*!
@@ -735,9 +770,9 @@ void NmBaseClientPlugin::createEditorViewCommands(
 */
 void NmBaseClientPlugin::markAsRead()
 {
-    NMLOG("NmBaseClientPlugin::markAsRead()-->");
+    NM_FUNCTION;
+    
     updateEnvelopeProperty(MarkAsRead);
-    NMLOG("<--NmBaseClientPlugin::markAsRead()");
 }
 
 /*!
@@ -745,9 +780,9 @@ void NmBaseClientPlugin::markAsRead()
 */
 void NmBaseClientPlugin::markAsUnread()
 {
-    NMLOG("NmBaseClientPlugin::markAsUnread()-->");
+    NM_FUNCTION;
+    
     updateEnvelopeProperty(MarkAsUnread);
-    NMLOG("<--NmBaseClientPlugin::markAsUnread()");
 }
 
 /*!
@@ -755,6 +790,8 @@ void NmBaseClientPlugin::markAsUnread()
 */
 void NmBaseClientPlugin::handleRequest(NmActionResponseCommand command, const NmActionRequest &request)
 {
+    NM_FUNCTION;
+    
     NmActionObserver *observer = request.observer();
     if (observer) {
         NmActionResponse response(command, request);
@@ -766,8 +803,8 @@ void NmBaseClientPlugin::handleRequest(NmActionResponseCommand command, const Nm
 */
 void NmBaseClientPlugin::updateEnvelopeProperty(NmEnvelopeProperties property)
 {
-    NMLOG("NmBaseClientPlugin::updateEnvelopeProperty()-->");
-
+    NM_FUNCTION;
+    
     QList<const NmMessageEnvelope*> envelopeList;
     NmMessageEnvelope *envelope =
             mMenuRequest.requestData().value<NmMessageEnvelope*>();
@@ -782,5 +819,4 @@ void NmBaseClientPlugin::updateEnvelopeProperty(NmEnvelopeProperties property)
                                         envelopeList);
     }
     envelopeList.clear();
-    NMLOG("<--NmBaseClientPlugin::updateEnvelopeProperty()");
 }

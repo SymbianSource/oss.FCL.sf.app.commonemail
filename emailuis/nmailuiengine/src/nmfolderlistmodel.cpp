@@ -37,10 +37,13 @@ public:
 
 NmFolderListModelPrivate::NmFolderListModelPrivate()
 {
+    NM_FUNCTION;
 }
 
 NmFolderListModelPrivate::~NmFolderListModelPrivate()
 {
+    NM_FUNCTION;
+    
     while (!mMetaDataList.isEmpty()) {
         delete mMetaDataList.takeLast();
     }
@@ -53,6 +56,8 @@ NmFolderListModel::NmFolderListModel(NmDataManager &dataManager, QObject *parent
 :QAbstractListModel(parent),
 mDataManager(dataManager)
 {
+    NM_FUNCTION;
+    
     d = new NmFolderListModelPrivate;
 }
 
@@ -61,6 +66,8 @@ mDataManager(dataManager)
  */
 NmFolderListModel::~NmFolderListModel()
 {
+    NM_FUNCTION;
+    
     delete d;
 }
 
@@ -69,6 +76,8 @@ NmFolderListModel::~NmFolderListModel()
  */
 QModelIndex NmFolderListModel::parent(const QModelIndex &child) const
 {
+    NM_FUNCTION;
+    
     Q_UNUSED(child);
     return QModelIndex();
 }
@@ -78,6 +87,8 @@ QModelIndex NmFolderListModel::parent(const QModelIndex &child) const
  */
 int NmFolderListModel::rowCount(const QModelIndex &parent) const
 {
+    NM_FUNCTION;
+    
     Q_UNUSED(parent);
     return d->mMetaDataList.size();
 }
@@ -87,6 +98,8 @@ int NmFolderListModel::rowCount(const QModelIndex &parent) const
  */
 int NmFolderListModel::columnCount(const QModelIndex &parent) const
 {
+    NM_FUNCTION;
+    
     Q_UNUSED(parent);
 	return 1;
 }
@@ -97,6 +110,8 @@ int NmFolderListModel::columnCount(const QModelIndex &parent) const
  */
 QVariant NmFolderListModel::data(const QModelIndex &index, int role) const
 {
+    NM_FUNCTION;
+    
     if (!index.isValid())
         return QVariant();
 
@@ -120,7 +135,8 @@ QVariant NmFolderListModel::data(const QModelIndex &index, int role) const
 void NmFolderListModel::refresh(
         QList<NmFolder*>& folderList)
 {
-    NMLOG("nmuiengine: folder list model refresh");
+    NM_FUNCTION;
+    
     while (!d->mMetaDataList.isEmpty()) {
         delete d->mMetaDataList.takeLast();
     }

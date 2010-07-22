@@ -21,52 +21,60 @@
 #include <hbwidget.h>
 #include "nmuiviewids.h"
 
-enum MessageBodyType { PlainText, HTMLText };
-
 class HbAnchorLayout;
 class HbTextEdit;
 class HbDocumentLoader;
 class NmBaseViewScrollArea;
-class NmEditorView;
 class NmMessage;
 class NmMessageEnvelope;
 class NmEditorHeader;
 class NmEditorTextEdit;
 class QNetworkAccessManager;
+class NmApplication;
 
-class NmEditorContent : public HbWidget
+class NmEditorContent : public QObject
 {
 Q_OBJECT
 
 public:
-    NmEditorContent(QGraphicsItem *parent,
-                    NmEditorView *parentView,
+    NmEditorContent(QObject *parent,
                     HbDocumentLoader *documentLoader,
-                    QNetworkAccessManager &manager);
+                    QNetworkAccessManager &manager,
+                    NmApplication &application);
+
     virtual ~NmEditorContent();
 
-    void setMessageData(const NmMessage &message, 
-                        NmMessageEnvelope *replyMsgEnvelope=0);
-    NmEditorTextEdit* editor() const;
-    NmEditorHeader* header() const;
+    void setMessageData(const NmMessage &originalMessage,
+                        NmUiEditorStartMode &editorStartMode);
 
+    NmEditorTextEdit* editor() const;
+
+    NmEditorHeader* header() const;
+    
 private:
     void createConnections();
+    void removeEmbeddedImages(QString &bodyContent);
 
 signals:
     void setPlainText(const QString&);
+
     void setHtml(const QString&);
 
 public slots:
     void setEditorContentHeight();
+    void ensureCursorVisibility();
 
 private:
-    NmEditorHeader *mHeaderWidget;   // Owned
-    NmEditorView *mParentView;       // Not owned
-    HbAnchorLayout *mEditorLayout;   // Not owned
+    enum MessageBodyType { NmPlainText, NmHTMLText };
+
+private:
+    NmEditorHeader *mHeader; // Not owned
     MessageBodyType mMessageBodyType;
     NmEditorTextEdit *mEditorWidget; // Not owned
-    NmBaseViewScrollArea *mBackgroundScrollArea;
+    NmBaseViewScrollArea *mScrollArea; // Not owned
+    HbWidget *mScrollAreaContents; // Not owned
+    QPointF mScrollPosition;
+    NmApplication &mApplication;
 };
 
 #endif /* NMEDITORCONTENT_H_ */

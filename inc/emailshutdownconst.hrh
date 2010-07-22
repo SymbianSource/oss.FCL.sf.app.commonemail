@@ -16,4 +16,16 @@
 *
 */
 
-#include "../emailservices/emailservermonitor/inc/emailshutdownconst.hrh"
+#ifndef EMAILSHUTDOWNCONST_HRH
+#define EMAILSHUTDOWNCONST_HRH
+
+
+// Publish & Subscribe category for Cmail shutdown events, needs to be the
+// same as UID of the process that implements the shutdown functionality
+#define KEmailShutdownUidAsTInt 0x20025FAD
+
+// Executable name of the process that implements the shutdown functionality
+#define KEmailShutdownProcessExeName emailservermonitor.exe
+
+
+#endif // EMAILSHUTDOWNCONST_HRH

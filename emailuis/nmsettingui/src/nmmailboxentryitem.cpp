@@ -44,6 +44,7 @@ NmMailboxEntryItem::NmMailboxEntryItem(
 : CpSettingFormEntryItemData(itemDataHelper, mailboxName, mailboxDescription, mailboxIcon, parent),
   mMailboxId(mailboxId.id())
 {
+    NM_FUNCTION;
 }
 
 /*!
@@ -51,6 +52,7 @@ NmMailboxEntryItem::NmMailboxEntryItem(
 */
 NmMailboxEntryItem::~NmMailboxEntryItem()
 {
+    NM_FUNCTION;
 }
 
 /*!
@@ -58,7 +60,8 @@ NmMailboxEntryItem::~NmMailboxEntryItem()
 */
 CpBaseSettingView *NmMailboxEntryItem::createSettingView() const
 {
-	NMLOG("NmMailboxEntryItem::createSettingView");
+    NM_FUNCTION;
+    
     return 0;
 }
 
@@ -67,5 +70,7 @@ CpBaseSettingView *NmMailboxEntryItem::createSettingView() const
 */
 const NmId &NmMailboxEntryItem::id() const
 {
+    NM_FUNCTION;
+    
     return mMailboxId;
 }

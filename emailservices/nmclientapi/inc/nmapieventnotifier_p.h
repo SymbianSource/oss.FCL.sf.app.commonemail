@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies). 
+ * Copyright (c) 2009 - 2010 Nokia Corporation and/or its subsidiary(-ies). 
  * All rights reserved.
  * This component and the accompanying materials are made available
  * under the terms of "Eclipse Public License v1.0"
@@ -18,6 +18,7 @@
 #ifndef NMAPIEVENTNOTIFIERPRIVATE_H
 #define NMAPIEVENTNOTIFIERPRIVATE_H
 
+#include <QObject>
 #include "nmapiprivateclasses.h"
 #include <nmapicommon.h>
 
@@ -34,18 +35,22 @@ public:
     NmApiEventNotifierPrivate(QObject *parent = 0);
     virtual ~NmApiEventNotifierPrivate();
 
-    bool initializeEngine();
-    void releaseEngine();
     void cancel();
-
+    bool isRunning() const;
+    bool start();
+    void stop();
+    void events(QList<NmApiMessage> &events);
 public slots:
     void emailStoreEvent(const NmApiMessage &events);
 
-public:
+signals:
+    void timedOut();
+
+private:
     QTimer *mEmitSignals;
     NmApiEngine *mEngine;
-    QList<NmApiMessage> mBufferOfEvents;
     bool mIsRunning;
+    QList<NmApiMessage> mBufferOfEvents;
 };
 
 }

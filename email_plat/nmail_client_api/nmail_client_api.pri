@@ -30,5 +30,6 @@ symbian*: {
             "nmail_client_api/nmapimailboxlisting.h    APP_LAYER_PLATFORM_EXPORT_PATH(nmapimailboxlisting.h)" \
             "nmail_client_api/nmapimessagebody.h       APP_LAYER_PLATFORM_EXPORT_PATH(nmapimessagebody.h)" \
             "nmail_client_api/nmapimessageenvelope.h   APP_LAYER_PLATFORM_EXPORT_PATH(nmapimessageenvelope.h)" \
-            "nmail_client_api/nmapimessagetask.h       APP_LAYER_PLATFORM_EXPORT_PATH(nmapimessagetask.h)"
+            "nmail_client_api/nmapimessagetask.h       APP_LAYER_PLATFORM_EXPORT_PATH(nmapimessagetask.h)" \
+            "nmail_client_api/nmapimessagemanager.h    APP_LAYER_PLATFORM_EXPORT_PATH(nmapimessagemanager.h)"
 }

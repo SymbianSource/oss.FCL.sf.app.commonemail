@@ -15,12 +15,13 @@
 *
 */
 
+#include "emailtrace.h"
+
 // <qmail>
 // Exports removed because entire class is exported from DLL
 #include <nmcommonheaders.h>
 // </qmail>
 
-#include "emailtrace.h"
 #include "CFSMailRequestHandler.h"
 #include "CFSMailRequestObserver.h"
 
@@ -31,7 +32,7 @@
 // -----------------------------------------------------------------------------
  CFSMailRequestHandler::CFSMailRequestHandler() : iRequestId(0)
 {
-    FUNC_LOG;
+    NM_FUNCTION;
 
     // store pointer to TLS
     TInt err = Dll::SetTls(static_cast<TAny*>(this));
@@ -48,7 +49,8 @@
 // -----------------------------------------------------------------------------
  CFSMailRequestHandler::~CFSMailRequestHandler()
     {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
     TRAP_IGNORE( CancelAllRequestsL() );
     RemoveAllRequests();
     iPendingRequests.Reset();
@@ -72,11 +74,12 @@
                                     RPointerArray<CImplementationInformation>& aPluginInfo,
                                     RPointerArray<CFSMailPlugin>& aPlugins )
 {
-    FUNC_LOG;
-  CFSMailRequestHandler* pluginHandler = new (ELeave) CFSMailRequestHandler();
-  CleanupStack:: PushL(pluginHandler);
-  pluginHandler->ConstructL( aPluginInfo, aPlugins );
-  return pluginHandler;
+    NM_FUNCTION;
+    
+    CFSMailRequestHandler* pluginHandler = new (ELeave) CFSMailRequestHandler();
+    CleanupStack:: PushL(pluginHandler);
+    pluginHandler->ConstructL( aPluginInfo, aPlugins );
+    return pluginHandler;
 } 
 
 // -----------------------------------------------------------------------------
@@ -86,11 +89,12 @@
                                     RPointerArray<CImplementationInformation>& aPluginInfo,
                                     RPointerArray<CFSMailPlugin>& aPlugins )
 {
-    FUNC_LOG;
-  CFSMailRequestHandler* pluginHandler =  
-                CFSMailRequestHandler::NewLC( aPluginInfo, aPlugins );
-  CleanupStack:: Pop(pluginHandler);
-  return pluginHandler;
+    NM_FUNCTION;
+    
+    CFSMailRequestHandler* pluginHandler =  
+        CFSMailRequestHandler::NewLC( aPluginInfo, aPlugins );
+    CleanupStack:: Pop(pluginHandler);
+    return pluginHandler;
 }
 
 // -----------------------------------------------------------------------------
@@ -100,9 +104,7 @@ void CFSMailRequestHandler::ConstructL(
                                 RPointerArray<CImplementationInformation> /*aPluginInfo*/,
                                 RPointerArray<CFSMailPlugin> /*aPlugins*/ )
 {
-    FUNC_LOG;
-
-
+    NM_FUNCTION;
 }
 
 // -----------------------------------------------------------------------------
@@ -110,7 +112,7 @@ void CFSMailRequestHandler::ConstructL(
 // -----------------------------------------------------------------------------
  CFSMailPlugin* CFSMailRequestHandler::GetPluginByUid( TFSMailMsgId aObjectId )
     {
-    FUNC_LOG;
+    NM_FUNCTION;
 
     for(TInt i=0;i<iPluginList.Count();i++)
         {
@@ -131,7 +133,8 @@ void CFSMailRequestHandler::ConstructL(
                                                     TUid aPluginId,
                                                     MFSMailRequestObserver& aOperationObserver)
     {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
         TFSPendingRequest newRequest;
         for(TInt i=0;i<iPendingRequests.Count();i++)
             {
@@ -161,7 +164,8 @@ void CFSMailRequestHandler::ConstructL(
 // -----------------------------------------------------------------------------
  void CFSMailRequestHandler::CompleteRequest( TInt aRequestId )
     {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
         for(TInt i=0;i<iPendingRequests.Count();i++)
         {
         if(iPendingRequests[i].iRequestId == aRequestId)
@@ -178,7 +182,8 @@ void CFSMailRequestHandler::ConstructL(
 // -----------------------------------------------------------------------------
  void CFSMailRequestHandler::CancelRequestL( TInt aRequestId )
     {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
         for(TInt i=0;i<iPendingRequests.Count();i++)
         {
         if(iPendingRequests[i].iRequestId == aRequestId &&
@@ -200,7 +205,8 @@ void CFSMailRequestHandler::ConstructL(
 // -----------------------------------------------------------------------------
  void CFSMailRequestHandler::CancelAllRequestsL( )
     {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
         for(TInt i=0;i<iPendingRequests.Count();i++)
         {
             if(iPendingRequests[i].iRequestStatus == TFSPendingRequest::EFSRequestPending)
@@ -220,7 +226,7 @@ void CFSMailRequestHandler::ConstructL(
 // -----------------------------------------------------------------------------
  void CFSMailRequestHandler::AddPluginL( TUid aPluginId, CFSMailPlugin* aPlugin )
     {
-    FUNC_LOG;
+    NM_FUNCTION;
 
     CFSMailPluginData* pluginData = new (ELeave) CFSMailPluginData;
     pluginData->iPluginId = aPluginId;
@@ -234,7 +240,8 @@ void CFSMailRequestHandler::ConstructL(
 // -----------------------------------------------------------------------------
 void CFSMailRequestHandler::RemoveAllRequests()
     {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
     for(TInt i=0;i<iPendingRequests.Count();i++)
         {
         delete iPendingRequests[i].iObserver;
@@ -247,7 +254,7 @@ void CFSMailRequestHandler::RemoveAllRequests()
 // -----------------------------------------------------------------------------
  RFile CFSMailRequestHandler::GetTempFileL( TFSMailMsgId aContentId, TFileName aFileName )
 {
-    FUNC_LOG;
+    NM_FUNCTION;
     
     // get temp dir path
     if(iTempDirName == NULL)
@@ -274,7 +281,7 @@ void CFSMailRequestHandler::RemoveAllRequests()
 // -----------------------------------------------------------------------------
  void CFSMailRequestHandler::CleanTempDirL( )
     {
-    FUNC_LOG;
+    NM_FUNCTION;
     }
 
 // -----------------------------------------------------------------------------
@@ -282,7 +289,8 @@ void CFSMailRequestHandler::RemoveAllRequests()
 // -----------------------------------------------------------------------------
  TDesC& CFSMailRequestHandler::GetTempDirL( )
     {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
     return *iTempDirName;
     }
 

@@ -59,11 +59,9 @@ void NmSettingsViewLauncher::launchSettingsView(
     const NmId &mailboxId,
     const QString &mailboxName)
 {
-    NMLOG(QString("NmSettingsViewLauncher::launchSettingsView"));
-
+    NM_FUNCTION;
+    
     mSettingsViewFactory->launchSettingView(mailboxId, mailboxName);
-
-    NMLOG(QString("NmSettingsViewLauncher::launchSettingsView - OK"));
 }
 
 // End of file.

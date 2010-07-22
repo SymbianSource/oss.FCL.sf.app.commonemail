@@ -35,7 +35,7 @@ NmFwaMessagePartFetchingOperation::NmFwaMessagePartFetchingOperation(
     mRequestId(0)
 
 {
-    
+    NM_FUNCTION;
 }
 
 /*!
@@ -43,8 +43,9 @@ NmFwaMessagePartFetchingOperation::NmFwaMessagePartFetchingOperation(
  */
 NmFwaMessagePartFetchingOperation::~NmFwaMessagePartFetchingOperation()
 {
+    NM_FUNCTION;
+    
     doCancelOperation();
-    NMLOG("NmFwaMessagePartFetchingOperation::~NmFwaMessagePartFetchingOperation --->");
 }
 
 /*!
@@ -52,6 +53,8 @@ NmFwaMessagePartFetchingOperation::~NmFwaMessagePartFetchingOperation()
  */
 void NmFwaMessagePartFetchingOperation::RequestResponseL(TFSProgress aEvent, TInt aRequestId)
 {
+    NM_FUNCTION;
+    
     if (aRequestId == mRequestId) {
         if (aEvent.iProgressStatus == TFSProgress::EFSStatus_RequestComplete ) {
             completeOperation(aEvent.iError);
@@ -81,6 +84,8 @@ void NmFwaMessagePartFetchingOperation::RequestResponseL(TFSProgress aEvent, TIn
  */
 void NmFwaMessagePartFetchingOperation::doRunAsyncOperation()
 {
+    NM_FUNCTION;
+    
     TRAPD(err, doRunAsyncOperationL());
     if (err != KErrNone) {
         completeOperation(NmGeneralError);
@@ -92,6 +97,8 @@ void NmFwaMessagePartFetchingOperation::doRunAsyncOperation()
  */
 void NmFwaMessagePartFetchingOperation::doRunAsyncOperationL()
 {
+    NM_FUNCTION;
+    
     const TFSMailMsgId mailboxId(mMailboxId.pluginId32(), mMailboxId.id32());
     const TFSMailMsgId folderId(mFolderId.pluginId32(), mFolderId.id32());
     const TFSMailMsgId messageId(mMessageId.pluginId32(), mMessageId.id32());
@@ -119,9 +126,24 @@ void NmFwaMessagePartFetchingOperation::doRunAsyncOperationL()
 }
 
 /*!
+ * Complete the operation
+ */
+void NmFwaMessagePartFetchingOperation::doCompleteOperation()
+{
+    NM_FUNCTION;
+    
+    mRequestId = NmNotFoundError;
+}
 
+/*!
+    Cancels the async operation. \sa NmOperation
  */
 void NmFwaMessagePartFetchingOperation::doCancelOperation()
 {
-    TRAP_IGNORE(mMailClient.CancelL(mRequestId));
+    NM_FUNCTION;
+    
+    if (mRequestId >= 0) {
+        TRAP_IGNORE(mMailClient.CancelL(mRequestId));
+        mRequestId = NmNotFoundError;
+    }
 }

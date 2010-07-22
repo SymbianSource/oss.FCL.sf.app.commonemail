@@ -14,22 +14,21 @@
  * Description:
  *
  */
-#include "nmapiengine.h"
-#include "nmapimailboxlisting_p.h"
 
-#include <nmapimailbox.h>
+#include "nmapiheaders.h"
+
 
 namespace EmailClientApi
 {
 NmApiMailboxListingPrivate::NmApiMailboxListingPrivate(QObject *parent) :
     QObject(parent), mNmApiEngine(NULL)
 {
-
+    NM_FUNCTION;
 }
 
 NmApiMailboxListingPrivate::~NmApiMailboxListingPrivate()
 {
-
+    NM_FUNCTION;
 }
 
 /*!
@@ -42,6 +41,8 @@ NmApiMailboxListingPrivate::~NmApiMailboxListingPrivate()
  */
 bool NmApiMailboxListingPrivate::initializeEngine()
 {
+    NM_FUNCTION;
+    
     if (!mNmApiEngine) {
         mNmApiEngine = NmApiEngine::instance();
     }
@@ -56,6 +57,8 @@ bool NmApiMailboxListingPrivate::initializeEngine()
  */
 void NmApiMailboxListingPrivate::releaseEngine()
 {
+    NM_FUNCTION;
+    
     NmApiEngine::releaseInstance(mNmApiEngine);
 }
 
@@ -69,6 +72,8 @@ void NmApiMailboxListingPrivate::releaseEngine()
  */
 qint32 NmApiMailboxListingPrivate::grabMailboxes()
 {
+    NM_FUNCTION;
+    
     if (!mNmApiEngine) {
         return -1;
     }

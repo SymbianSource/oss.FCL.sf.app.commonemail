@@ -72,6 +72,16 @@
     
     //self-destroy.
     iManager->DequeueOp( *this );
+    
+    //Remove this from iDelayedOpReqs as well.
+    for ( TInt i = 0; i < iPlugin->iDelayedOpReqs.Count(); i++ )
+        {
+        if ( iPlugin->iDelayedOpReqs[i] == this )
+            {
+            iPlugin->iDelayedOpReqs.Remove( i );
+            break;
+            }
+        }
     delete this;
     }
     
@@ -241,6 +251,8 @@ CDelayedOpsManager* CDelayedOpsManager::NewL( CBasePlugin& aPlugin )
     __LOG_ENTER( "DeleteMessagesInChunksL" );
     TBool done=EFalse;
     TInt endIndex;
+//<qmail>
+    TInt result(KErrNone);
     if( aStartIndex + KSizeOfChunk < iMessages.Count() )
         {
             endIndex = aStartIndex + KSizeOfChunk;
@@ -260,18 +272,30 @@ CDelayedOpsManager* CDelayedOpsManager::NewL( CBasePlugin& aPlugin )
         
         if ( EFalse == iImmediateDelete )
             {
-            //try to find the message in the deleted items folder.
+            //try to find the message
             CMsgStoreMessage* theMessage = NULL;
-            TRAP_IGNORE( theMessage = mailBox.FetchMessageL(
-              msgId, mailBoxInfo.iRootFolders.iFolders[EFSDeleted] ) );
-            
-            if ( NULL == theMessage )
+            theMessage = mailBox.FetchMessageL(
+                                      msgId, KMsgStoreInvalidId ) ;
+            //save parentId
+            TMsgStoreId msgParentId;
+            msgParentId =theMessage->ParentId();
+            //check if message is in deleted folder or not.
+            if ( msgParentId != mailBoxInfo.iRootFolders.iFolders[EFSDeleted] )
                 {
-                //if not in deleted items then move it there.
+            	//if not in deleted items then move it there.
                 __LOG_WRITE8_FORMAT1_INFO("Moving message 0x%X to the deleted items.", msgId );
-                mailBox.MoveMessageL(
+                TRAP(result,mailBox.MoveMessageL(
                    msgId, KMsgStoreInvalidId,
-                   mailBoxInfo.iRootFolders.iFolders[EFSDeleted] );
+                   mailBoxInfo.iRootFolders.iFolders[EFSDeleted] ));
+                if(result == KErrNone)
+                    {
+                    GetPlugin().NotifyEventL( iMailBoxId, msgId, KMsgStoreInvalidId , TFSEventMailMoved, msgParentId);
+                    }
+                else
+                    {
+                    User::Leave(result);
+                    }
+                
                 }
             else
                 {
@@ -279,13 +303,30 @@ CDelayedOpsManager* CDelayedOpsManager::NewL( CBasePlugin& aPlugin )
                 __LOG_WRITE8_FORMAT1_INFO( "Deleting message 0x%X.", msgId );
 
                 delete theMessage;
-                mailBox.DeleteMessageL( msgId, iFolderId );
+                TRAP(result,mailBox.DeleteMessageL( msgId, iFolderId ));
+                if(result == KErrNone)
+                    {
+                    GetPlugin().NotifyEventL( iMailBoxId, msgId, KMsgStoreInvalidId, TFSEventMailDeleted, iFolderId );
+                    }
+                else
+                    {
+                    User::Leave(result);
+                    }
                 }
             }
         else
-            {
-            mailBox.DeleteMessageL( msgId, iFolderId );
+            {        
+            TRAP(result,mailBox.DeleteMessageL( msgId, iFolderId ));
+            if(result == KErrNone)
+                {  
+                GetPlugin().NotifyEventL( iMailBoxId, msgId, KMsgStoreInvalidId, TFSEventMailDeleted, iFolderId );
+                }
+            else
+                {
+                User::Leave(result);
+                }
             }
+//</qmail>
         }
     __LOG_EXIT;
     return done;    
@@ -582,10 +623,12 @@ void CDelayedMessageStorerOp::ConstructL( )
     MFSMailRequestObserver& aOperationObserver,
     const TInt aRequestId)
     : iMailBox( aMailBox ), 
-      iOperationObserver( aOperationObserver ),
-      iRequestId( aRequestId ),
       iType(EHeaders)
     {
+    
+    CDelayedOp::iOperationObserver = &aOperationObserver ;
+    CDelayedOp::iRequestId =  aRequestId ;
+       
     for(TInt i=0; i < messages.Count(); i++)
         {
         iMessages.Append(messages[i]);
@@ -599,10 +642,12 @@ void CDelayedMessageStorerOp::ConstructL( )
     RPointerArray<CFSMailMessagePart>& aMessageParts,
     MFSMailRequestObserver& aOperationObserver,
     const TInt aRequestId)
-    :iOperationObserver( aOperationObserver ),
-    iRequestId( aRequestId ),
-    iType(EParts)
+    :iType(EParts)
     {
+    
+    CDelayedOp::iOperationObserver = &aOperationObserver ;
+    CDelayedOp::iRequestId =  aRequestId ;
+    
     for(TInt i=0; i < aMessageParts.Count(); i++)
         {
         iMessageParts.Append(aMessageParts[i]);
@@ -673,8 +718,12 @@ void CDelayedMessageStorerOp::ConstructL( )
         progress.iError = KErrNone;
         progress.iProgressStatus = TFSProgress::EFSStatus_RequestComplete;
         }
-
-    iOperationObserver.RequestResponseL( progress, iRequestId );
+		
+		if(iOperationObserver)
+			{
+				iOperationObserver->RequestResponseL( progress, iRequestId );
+			}
+    
     
     __LOG_EXIT;
     }
@@ -683,35 +732,39 @@ void CDelayedMessageStorerOp::ConstructL( )
 /**
  * 
  */
-void CDelayedMessageStorerOp::StorePartL(
-        CFSMailMessagePart* aPart)
+void CDelayedMessageStorerOp::StorePartL(CFSMailMessagePart* aPart)
     {
     User::LeaveIfNull(aPart);
-    
+
     // Text buffer for html text content
     HBufC* data16 = aPart->GetLocalTextContentLC();
 
-    TPtrC8 ptr8(reinterpret_cast<const TUint8*>( data16->Ptr() ),
-            data16->Size() );
-    
+    // Convert from 16 to 8 bit data -
+    HBufC8* dataBuffer = HBufC8::NewLC((data16->Length() * 2) + 1);
+    TPtr8 ptr8(dataBuffer->Des());
+    CnvUtfConverter::ConvertFromUnicodeToUtf8(ptr8, *data16);
+
     //get msgstore part
-    CMailboxInfo& mailBox = GetPlugin().GetMailboxInfoL( aPart->GetMailBoxId().Id() );
-    
+    CMailboxInfo& mailBox = GetPlugin().GetMailboxInfoL(
+            aPart->GetMailBoxId().Id());
+
     CMsgStoreMessage* msg = mailBox().FetchMessageL(
-            aPart->GetMessageId().Id(), KMsgStoreInvalidId );
-    CleanupStack::PushL( msg );
-    
-    CMsgStoreMessagePart* part= msg->ChildPartL( aPart->GetPartId().Id(), ETrue );
-    
-    CleanupStack::PopAndDestroy( msg );
-    CleanupStack::PushL( part );
+            aPart->GetMessageId().Id(), KMsgStoreInvalidId);
+    CleanupStack::PushL(msg);
+
+    CMsgStoreMessagePart* part = msg->ChildPartL(aPart->GetPartId().Id(),
+            ETrue);
+
+    CleanupStack::PopAndDestroy(msg);
+    CleanupStack::PushL(part);
 
     //replace content
     part->ReplaceContentL(ptr8);
-    
-    CleanupStack::PopAndDestroy( part );
-    CleanupStack::PopAndDestroy( data16 );
-       
+
+    CleanupStack::PopAndDestroy(part);
+    CleanupStack::PopAndDestroy(dataBuffer);
+    CleanupStack::PopAndDestroy(data16);
+
     }
 
 
@@ -763,10 +816,11 @@ void CDelayedMessageToSendOp::ConstructL( )
     MFSMailRequestObserver& aOperationObserver,
     const TInt aRequestId)
     : iBasePlugin(aPlugin), 
-      iMailBox( aMailBox ), 
-      iOperationObserver( aOperationObserver ),
-      iRequestId( aRequestId )
+      iMailBox( aMailBox )
     {
+    
+    CDelayedOp::iOperationObserver = &aOperationObserver ;
+    CDelayedOp::iRequestId =  aRequestId ;
 
     }
 
@@ -790,7 +844,10 @@ void CDelayedMessageToSendOp::ConstructL( )
         progress.iProgressStatus = TFSProgress::EFSStatus_RequestComplete;
         }
 
-    iOperationObserver.RequestResponseL( progress, iRequestId );
+		if(iOperationObserver)
+			{
+				iOperationObserver->RequestResponseL( progress, iRequestId );
+			}
     
     __LOG_EXIT;
     }
@@ -854,10 +911,10 @@ void CDelayedMessageToSendOp::ConstructL( )
     iParentFolderId( aParentFolderId ),
     iMessageId( aMessageId ),
     iParentPartId( aParentPartId ),
-    iOperationObserver( aOperationObserver ),
-    iRequestId( aRequestId ),
     iActionType( AddNewChild)
     {
+    CDelayedOp::iOperationObserver = &aOperationObserver ;
+    CDelayedOp::iRequestId =  aRequestId ;
     }
 
 /**
@@ -876,10 +933,10 @@ void CDelayedMessageToSendOp::ConstructL( )
     iMessageId( aMessageId ),
     iParentPartId( aParentPartId ),
     iPartId( aPartId ),
-    iOperationObserver( aOperationObserver ),
-    iRequestId( aRequestId ),
     iActionType( RemoveChild)
     {
+    CDelayedOp::iOperationObserver = &aOperationObserver ;
+    CDelayedOp::iRequestId =  aRequestId ;
     }
 
 /**
@@ -947,7 +1004,10 @@ void CDelayedAddNewOrRemoveChildPartOp::ConstructL( const TDesC& aContentType, c
         progress.iProgressStatus = TFSProgress::EFSStatus_RequestComplete;
         }
 		
-    iOperationObserver.RequestResponseL( progress, iRequestId );
+		if(iOperationObserver)
+			{
+				iOperationObserver->RequestResponseL( progress, iRequestId );
+			}
     
     __LOG_EXIT;
     }

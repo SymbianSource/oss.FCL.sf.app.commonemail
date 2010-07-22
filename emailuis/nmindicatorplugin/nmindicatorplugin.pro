@@ -26,9 +26,15 @@ INCLUDEPATH += $$APP_LAYER_SYSTEMINCLUDE
 INCLUDEPATH += ../../inc
 
 HEADERS += inc/nmindicatorplugin.h \
-           inc/nmindicator.h
+           inc/nmindicator.h \
+           inc/nmsendingindicator.h \
+           inc/nmsyncindicator.h \
+           inc/nmunreadindicator.h
 SOURCES += src/nmindicatorplugin.cpp \
-           src/nmindicator.cpp
+           src/nmindicator.cpp \
+           src/nmsendingindicator.cpp \
+           src/nmsyncindicator.cpp \
+           src/nmunreadindicator.cpp
 
 symbian {
     TARGET.EPOCALLOWDLLDATA=1

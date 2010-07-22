@@ -15,12 +15,45 @@
 *
 */
 
+#include "emailtrace.h"
 #include "nmmailagentheaders.h"
 #include "nmmailagent.h"
+
+#include <xqaiwdeclplat.h>
+#include <xqapplicationmanager.h>
+#include <xqaiwrequest.h>
+
+#include <xqsettingsmanager.h>
+#include <xqcentralrepositoryutils.h>
+#include <xqsystemtoneservice.h>
+#include <xqsettingskey.h>
+#include <ProfileEngineInternalCRKeys.h>
 
 // CONSTS
 const int NmAgentIndicatorNotSet = -1;
 const int NmAgentAlertToneTimer = 60000; // 60s
+const int NmAgentDefaultVibraDuration = 1000; // 1 second
+static const quint32 NmRepositoryId = 0x2002C326;
+static const QString NmMailboxIndicatorType = "com.nokia.nmail.indicatorplugin_%1/1.0";
+static const QString NmSendIndicatorName = "com.nokia.nmail.indicatorplugin.send/1.0";
+static const QString NmUnreadIndicatorName = "com.nokia.nmail.indicatorplugin.unread/1.0";
+const XQCentralRepositorySettingsKey NmSilenceModeKey(KCRUidProfileEngine.iUid, KProEngSilenceMode);
+const int NmSilenceModeOn = 1;
+
+/*!
+    Helper method for finding out if XQSettingsKey and XQCentralRepositorySettingsKey points to
+    same key.
+
+    @param settingKey XQSettingsKey
+    @param cenrepSettingKey XQCentralRepositorySettingsKey
+    @return <code>true</code> if target, uid and key matches otherwise returns <code>false</code>
+*/
+bool keysEqual(const XQSettingsKey& settingKey, const XQCentralRepositorySettingsKey& cenrepSettingKey)
+{
+    return ((settingKey.target() == cenrepSettingKey.target()) &&
+            (settingKey.uid() == cenrepSettingKey.uid()) &&
+            (settingKey.key() == cenrepSettingKey.key()));
+}
 
 
 /*!
@@ -31,6 +64,8 @@ const int NmAgentAlertToneTimer = 60000; // 60s
 
 NmMailboxInfo::NmMailboxInfo()
 {
+    NM_FUNCTION;
+
     mId = 0;
     mIndicatorIndex = NmAgentIndicatorNotSet;
     mSyncState = SyncComplete;
@@ -42,14 +77,21 @@ NmMailboxInfo::NmMailboxInfo()
     mInboxChangedMessages = 0;
     mInboxDeletedMessages = 0;
     mActive = false;
+    mInboxActive = false;
 }
 
 NmMailAgent::NmMailAgent() :
+ mIndicator(NULL),
+ mSystemTone(NULL),
  mPluginFactory(NULL),
- mSendingState(false),
- mAlertToneAllowed(true)
+ mVibra(NULL),
+ mAlertToneAllowed(true),
+ mLastOutboxCount(0),
+ mUnreadIndicatorActive(false),
+ mSettingManager(NULL),
+ mSilenceMode(NmSilenceModeOn)  // by default silent mode is on
 {
-    NMLOG("NmMailAgent::NmMailAgent");
+    NM_FUNCTION;
 }
 
 /*!
@@ -57,7 +99,8 @@ NmMailAgent::NmMailAgent() :
 */
 void NmMailAgent::delayedStart()
 {
-	NMLOG("NmMailAgent::delayedStart");
+    NM_FUNCTION;
+
 	if (!init()) {
 		// Initialisation failed. Quit the agent.
 		QCoreApplication::exit(1);
@@ -69,12 +112,45 @@ void NmMailAgent::delayedStart()
 */
 bool NmMailAgent::init()
 {
-	NMLOG("NmMailAgent::init");
+    NM_FUNCTION;
+
     mPluginFactory = NmDataPluginFactory::instance();
     if (!mPluginFactory) {
-        NMLOG("NmMailAgent::init PluginFactory not created");
+        NM_ERROR(1,"NmMailAgent::init(): PluginFactory not created");
         return false;
     }
+
+    // Check status of silent mode.
+    delete mSettingManager;
+    mSettingManager = NULL;
+    mSettingManager = new XQSettingsManager();
+    QVariant silenceMode = mSettingManager->readItemValue(NmSilenceModeKey,
+        XQSettingsManager::TypeInt);
+    mSilenceMode = silenceMode.toInt();
+
+    // Start monitoring silence mode key.
+    bool monitoring(mSettingManager->startMonitoring(NmSilenceModeKey, XQSettingsManager::TypeInt));
+    monitoring &= connect(mSettingManager,
+                          SIGNAL(valueChanged(const XQSettingsKey&, const QVariant&)),
+                          this,
+                          SLOT(valueChanged(const XQSettingsKey&, const QVariant&)),
+                          Qt::UniqueConnection);
+
+    // If silence mode monitoring can't be started, then change silence mode on to be sure
+    // that no tone is played if silence mode is turned on at somepoint.
+    if (!monitoring) {
+        mSilenceMode = NmSilenceModeOn;
+    }
+
+    delete mSystemTone;
+    mSystemTone = NULL;
+    mSystemTone = new XQSystemToneService();
+
+    delete mIndicator;
+    mIndicator = NULL;
+    mIndicator = new HbIndicator();
+    connect(mIndicator,SIGNAL(userActivated(const QString &, const QVariantMap&)),
+        this, SLOT(indicatorActivated(const QString&, const QVariantMap&)));
 
     QList<QObject*> *plugins = mPluginFactory->pluginInstances();
 
@@ -95,11 +171,16 @@ bool NmMailAgent::init()
 				this, SLOT(handleSyncStateEvent(NmSyncState, const NmOperationCompletionEvent&)),
 				Qt::UniqueConnection);
 
-			connect(plugin, SIGNAL(connectionEvent(NmConnectState, const NmId)),
-				this, SLOT(handleConnectionEvent(NmConnectState, const NmId)),
+			connect(plugin, SIGNAL(connectionEvent(NmConnectState, const NmId, int)),
+				this, SLOT(handleConnectionEvent(NmConnectState, const NmId, int)),
 				Qt::UniqueConnection);
     	}
     }
+
+    // Construct the vibra interface instance.
+    delete mVibra;
+    mVibra = NULL;
+    TRAP_IGNORE(mVibra = CHWRMVibra::NewL());
 
     // load all current mailboxes
     initMailboxStatus();
@@ -109,7 +190,16 @@ bool NmMailAgent::init()
 
 NmMailAgent::~NmMailAgent()
 {
+    NM_FUNCTION;
+
+    delete mVibra;
+    delete mSystemTone;
+    if (mSettingManager) {
+        mSettingManager->stopMonitoring(NmSilenceModeKey);
+        delete mSettingManager;
+    }
     qDeleteAll(mMailboxes);
+
     NmDataPluginFactory::releaseInstance(mPluginFactory);
 }
 
@@ -118,7 +208,8 @@ NmMailAgent::~NmMailAgent()
 */
 void NmMailAgent::initMailboxStatus()
 {
-    NMLOG("NmMailAgent::initMailboxStatus");
+    NM_FUNCTION;
+
     QList<NmMailbox*> mailboxes;
     QList<QObject*> *plugins = mPluginFactory->pluginInstances();
 
@@ -140,19 +231,32 @@ void NmMailAgent::initMailboxStatus()
                 NmMailboxInfo *mailboxInfo = createMailboxInfo(*mailbox,plugin);
                 if (mailboxInfo) {
                     bool activate = updateUnreadCount(mailbox->id(), *mailboxInfo);
+                    bool wasActive = isMailboxActive(mailbox->id());
+                    if (activate) {
+                        if(!wasActive) {
+                            // do not activate the mailbox if it was left as hidden last time
+                            activate = false;
+                        }
+                        else {
+                            // otherwise, activate the mailbox and show inbox state
+                            mailboxInfo->mInboxActive = true;
+                        }
+                    }
+
                     mailboxInfo->mOutboxMails = getOutboxCount(mailbox->id());
-                    if (mailboxInfo->mOutboxMails > 0) {
+                    if (mailboxInfo->mOutboxMails > 0 && wasActive) {
                         activate = true;
                     }
 
-                    // Create indicator for visible mailboxes
-                    updateMailboxState(mailbox->id(),
-                        activate, false);
+	                // Create indicator for visible mailboxes
+    	            updateMailboxState(mailbox->id(), activate, false);
                 }
             }
         }
         qDeleteAll(mailboxes);
     }
+    updateUnreadIndicator();
+    updateSendIndicator();
 }
 
 /*!
@@ -163,7 +267,8 @@ void NmMailAgent::initMailboxStatus()
 */
 bool NmMailAgent::updateUnreadCount(const NmId &mailboxId, NmMailboxInfo &mailboxInfo)
 {
-    NMLOG("NmMailAgent::getUnreadCount");
+    NM_FUNCTION;
+
     int newUnreadMessages(0);
 
     NmDataPluginInterface *plugin = mPluginFactory->interfaceInstance(mailboxId);
@@ -202,8 +307,8 @@ bool NmMailAgent::updateUnreadCount(const NmId &mailboxId, NmMailboxInfo &mailbo
 		// Save updated list of unread message IDs
         mailboxInfo.mUnreadMailIdList = newUnreadMessageIdList;
     }
-	NMLOG(QString("NmMailAgent::getUnreadCount count=%1 new=%2").
-	    arg(mailboxInfo.mUnreadMailIdList.count()).arg(newUnreadMessages));
+    NM_COMMENT(QString("NmMailAgent::getUnreadCount(): count=%1, new=%2").
+        arg(mailboxInfo.mUnreadMailIdList.count()).arg(newUnreadMessages));
 
     return (newUnreadMessages > 0);
 }
@@ -216,7 +321,8 @@ bool NmMailAgent::updateUnreadCount(const NmId &mailboxId, NmMailboxInfo &mailbo
 */
 int NmMailAgent::getOutboxCount(const NmId &mailboxId)
 {
-    NMLOG("NmMailAgent::getOutboxCount");
+    NM_FUNCTION;
+
     int count(0);
 
     NmDataPluginInterface *plugin = mPluginFactory->interfaceInstance(mailboxId);
@@ -231,9 +337,38 @@ int NmMailAgent::getOutboxCount(const NmId &mailboxId)
 		count = messageList.count();
 		qDeleteAll(messageList);
     }
-    NMLOG(QString("NmMailAgent::getOutboxCount count=%1").arg(count));
+    NM_COMMENT(QString("NmMailAgent::getOutboxCount(): count=%1").arg(count));
 
     return count;
+}
+
+/*!
+    Get list of unread counts in active mailboxes
+	\returns total number of unread mails
+*/
+int NmMailAgent::getTotalUnreadCount() const
+{
+    NM_FUNCTION;
+
+    int unreads = 0;
+    foreach (const NmMailboxInfo *mailbox, mMailboxes) {
+        if (mailbox->mActive && mailbox->mInboxActive) {
+            unreads += mailbox->mUnreadMailIdList.count();
+        }
+    }
+    return unreads;
+}
+
+/*!
+    Update the "@" indicator state according to unread state
+    \return true if the indicator was activated
+*/
+bool NmMailAgent::updateUnreadIndicator()
+{
+    NM_FUNCTION;
+
+    int unreads = getTotalUnreadCount();
+    return updateUnreadIndicator(unreads>0);
 }
 
 /*!
@@ -246,25 +381,22 @@ int NmMailAgent::getOutboxCount(const NmId &mailboxId)
 bool NmMailAgent::updateMailboxState(const NmId &mailboxId,
     bool active, bool refreshAlways)
 {
-    // Update the global sending state
-    mSendingState = false;
-    foreach (NmMailboxInfo *mailboxInfo, mMailboxes) {
-        if (mailboxInfo->mOutboxMails>0) {
-            mSendingState = true;
-            break;
-        }
-    }
+    NM_FUNCTION;
 
     NmMailboxInfo *mailboxInfo = getMailboxInfo(mailboxId);
     bool changed = false;
     if (mailboxInfo->mActive != active ||
         refreshAlways) {
+
+		// store the new state to permanent storage
+        storeMailboxActive(mailboxId, active);
+
         mailboxInfo->mActive = active;
         changed = true;
         if (active) {
             // Mailbox is not yet assigned to any indicator
             if (mailboxInfo->mIndicatorIndex < 0) {
-                mailboxInfo->mIndicatorIndex = getIndicatorIndex();
+                mailboxInfo->mIndicatorIndex = getFreeIndicatorIndex();
             }
 
             updateIndicator(true,*mailboxInfo);
@@ -290,11 +422,12 @@ bool NmMailAgent::updateMailboxState(const NmId &mailboxId,
 bool NmMailAgent::updateIndicator(bool active,
     const NmMailboxInfo& mailboxInfo)
 {
-    NMLOG(QString("NmMailAgent::updateIndicator index=%1 active=%2").
+    NM_FUNCTION;
+    NM_COMMENT(QString("NmMailAgent::updateIndicator(): index=%1, active=%2").
         arg(mailboxInfo.mIndicatorIndex).arg(active));
 
     bool ok = false;
-    QString name = QString("com.nokia.nmail.indicatorplugin_%1/1.0").
+    QString name = QString(NmMailboxIndicatorType).
         arg(mailboxInfo.mIndicatorIndex);
 
     QList<QVariant> list;
@@ -305,14 +438,64 @@ bool NmMailAgent::updateIndicator(bool active,
     list.append(mailboxInfo.mConnectState);
     list.append(mailboxInfo.mOutboxMails);
     list.append(mailboxInfo.mIconName);
-    list.append(mSendingState);
+    list.append(mLastOutboxCount);
 
-    HbIndicator indicator;
     if (active) {
-        ok = indicator.activate(name,list);
+        ok = mIndicator->activate(name,list);
     }
     else {
-        ok = indicator.deactivate(name,list);
+        ok = mIndicator->deactivate(name,list);
+    }
+
+    updateUnreadIndicator();
+
+    return ok;
+}
+
+/*!
+    update the unread indicator state
+    \return true if the indicator was activated
+*/
+bool NmMailAgent::updateUnreadIndicator(bool active)
+{
+    NM_FUNCTION;
+
+    bool activated = false;
+    if (active != mUnreadIndicatorActive) {
+        if (active) {
+            mIndicator->activate(NmUnreadIndicatorName);
+            activated = true;
+        }
+        else {
+            mIndicator->deactivate(NmUnreadIndicatorName);
+        }
+        mUnreadIndicatorActive = active;
+    }
+
+    return activated;
+}
+
+/*!
+    Opens inbox view to specific mailbox
+    \return true if inbox is succesfully opened
+*/
+bool NmMailAgent::launchMailbox(quint64 mailboxId)
+{
+    NM_FUNCTION;
+
+    bool ok(false);
+    XQApplicationManager appManager;
+    XQAiwRequest *request = appManager.create(
+        XQI_EMAIL_INBOX_VIEW, XQOP_EMAIL_INBOX_VIEW, false);
+    // Instance might be NULL if the service is not available.
+    if (request) {
+        QList<QVariant> list;
+        list.append(QVariant(mailboxId));
+        request->setArguments(list);
+
+        ok = request->send();
+        NM_COMMENT(QString("Launch ok=%1 error=%2").arg(ok).arg(request->lastError()));
+        delete request;
     }
     return ok;
 }
@@ -321,8 +504,10 @@ bool NmMailAgent::updateIndicator(bool active,
     Get next free indicator index, starting from 0
     @return index of the indicator that is available
  */
-int NmMailAgent::getIndicatorIndex()
+int NmMailAgent::getFreeIndicatorIndex()
 {
+    NM_FUNCTION;
+
     int index = 0;
     bool found(false);
     do {
@@ -345,12 +530,16 @@ int NmMailAgent::getIndicatorIndex()
 */
 void NmMailAgent::handleMailboxEvent(NmMailboxEvent event, const QList<NmId> &mailboxIds)
 {
-    NMLOG(QString("NmMailAgent::handleMailboxEvent %1").arg(event));
+    NM_FUNCTION;
+    NM_COMMENT(QString("NmMailAgent::handleMailboxEvent(): event=%1").arg(event));
 
     switch(event) {
         case NmMailboxCreated:
             foreach (NmId mailboxId, mailboxIds) {
                 getMailboxInfo(mailboxId); // create a new mailbox if needed
+
+                // make sure the mailbox activity data is reseted
+                deleteStoredMailboxActivity(mailboxId);
             }
             break;
         case NmMailboxChanged:
@@ -380,10 +569,74 @@ void NmMailAgent::handleMailboxEvent(NmMailboxEvent event, const QList<NmId> &ma
             foreach (NmId mailboxId, mailboxIds) {
                 // Will hide also the indicator
                 removeMailboxInfo(mailboxId);
+
+                // make sure the mailbox activity data is deleted
+                deleteStoredMailboxActivity(mailboxId);
             }
+            updateUnreadIndicator();
             break;
         default:
             break;
+    }
+}
+
+/*!
+   Map the type name to mailbox info
+    \return NULL if no mailbox match the type
+*/
+NmMailboxInfo *NmMailAgent::getMailboxByType(const QString &type)
+{
+    NM_FUNCTION;
+
+    foreach (NmMailboxInfo *mailbox, mMailboxes) {
+        // mailbox is shown in indicators
+        if (mailbox->mIndicatorIndex >= 0 && mailbox->mActive) {
+            QString typeName = QString(NmMailboxIndicatorType).arg(mailbox->mIndicatorIndex);
+
+            // type names match(!)
+            if(type==typeName) {
+                return mailbox;
+            }
+        }
+    }
+    return NULL;
+}
+
+/*!
+    Called when indicator is clicked from the indicator menu
+    - indicator will be hide from the menu
+    - mailbox will be launched
+*/
+void NmMailAgent::indicatorActivated(const QString &type, const QVariantMap &data)
+{
+    NM_FUNCTION;
+    Q_UNUSED(data);
+
+    // map the indicator type to mailbox
+    NmMailboxInfo *info = getMailboxByType(type);
+    if (info) {
+        info->mActive = false; // indicator is no longer active
+        info->mInboxActive = false; // also inbox does not activate the indicator
+        storeMailboxActive(info->mId, false);
+        updateUnreadIndicator();
+
+        launchMailbox(info->mId.id());
+    }
+}
+
+/*!
+    Called when cenrep key value has been changed.
+    - only silence mode key handled
+
+    @param key changed key
+    @param value value for a key.
+*/
+void NmMailAgent::valueChanged(const XQSettingsKey& key, const QVariant& value)
+{
+    NM_FUNCTION;
+
+    if(keysEqual(key, NmSilenceModeKey)) {
+        mSilenceMode = value.toInt();
     }
 }
 
@@ -397,50 +650,70 @@ void NmMailAgent::handleMessageEvent(
             const QList<NmId> &messageIds,
             const NmId& mailboxId)
 {
-    NMLOG(QString("NmMailAgent::handleMessageEvent %1 %2").arg(event).arg(mailboxId.id()));
+    NM_FUNCTION;
+
+    NM_COMMENT(QString("NmMailAgent::handleMessageEvent(): event=%1, id=%2").
+        arg(event).arg(mailboxId.id()));
+
     bool updateNeeded = false;
     bool activate = false;
 
     switch (event) {
         case NmMessageCreated: {
-            NmMailboxInfo *mailboxInfo = getMailboxInfo(mailboxId);
-
             // Check the new messages to make the indicator appear earlier
-            if (mailboxInfo->mSyncState == Synchronizing &&
-                mailboxInfo->mUnreadMailIdList.count()==0) {
+            NmMailboxInfo *mailboxInfo = getMailboxInfo(mailboxId);
+            
+            // Inbox folder ID may be still unknown
+            if (mailboxInfo->mInboxFolderId.id() == 0) {
+                NmDataPluginInterface *plugin =
+                    mPluginFactory->interfaceInstance(mailboxId);
 
-                // Inbox folder ID may be still unknown
-                if (mailboxInfo->mInboxFolderId.id()==0) {
-                    NmDataPluginInterface *plugin = mPluginFactory->interfaceInstance(mailboxId);
-                    if (plugin) {
-                        mailboxInfo->mInboxFolderId =
-                            plugin->getStandardFolderId(mailboxId, NmFolderInbox);
-                    }
+                if (plugin) {
+                    mailboxInfo->mInboxFolderId =
+                        plugin->getStandardFolderId(mailboxId, NmFolderInbox);
                 }
+            }
 
-                if (folderId == mailboxInfo->mInboxFolderId) {
+            if (folderId == mailboxInfo->mInboxFolderId) {
+                foreach (NmId messageId, messageIds) {
                     bool messageUnread = false;
-                    foreach (NmId messageId, messageIds) {
+
+                    // Check the message if we can either play a tone or if the "@" is
+                    // not visible at the moment
+                    if (mAlertToneAllowed || !mUnreadIndicatorActive) {
                         if (getMessageUnreadInfo(folderId, messageId, mailboxId, messageUnread)) {
                             if (messageUnread) {
                                 mailboxInfo->mUnreadMailIdList.append(messageId);
+                                mailboxInfo->mInboxActive = true;
                                 updateMailboxState(mailboxId, true, false);
+
+                                // make the "@" appear immediatelly
+                                updateUnreadIndicator(true);
+
+                                // Play the tone as well
+                                playAlertTone();
                             }
                         }
                     }
                 }
             }
+
             if (folderId==mailboxInfo->mInboxFolderId) {
-                mailboxInfo->mInboxCreatedMessages++;
+                mailboxInfo->mInboxCreatedMessages += messageIds.count();
             }
 
             // When created a new mail in the outbox, we are in sending state
             if (mailboxInfo->mOutboxFolderId == folderId) {
                 // The first mail created in the outbox
                 if (mailboxInfo->mOutboxMails <= 0) {
-                    updateNeeded = true;
+					NM_COMMENT("NmMailAgent: first mail in outbox");
                 }
+                // Always activate the indicator
+                activate = true;
+                updateNeeded = true;
+
                 mailboxInfo->mOutboxMails += messageIds.count();
+				updateSendIndicator();
             }
             break;
         }
@@ -458,8 +731,8 @@ void NmMailAgent::handleMessageEvent(
                 int oldCount = mailboxInfo->mUnreadMailIdList.count();
                 activate = updateUnreadCount(mailboxId, *mailboxInfo);
 
-                // new unread mails found or no more unread mails in the mailbox
-                if (activate || (oldCount>0 && mailboxInfo->mUnreadMailIdList.count()==0)) {
+                // new unread mails found or no more unread mails in the inbox
+                if (oldCount>0 && mailboxInfo->mUnreadMailIdList.count()==0) {
                     updateNeeded = true;
                 }
             }
@@ -483,10 +756,23 @@ void NmMailAgent::handleMessageEvent(
 
                 // The last mail was now deleted
                 if (mailboxInfo->mOutboxMails == 0) {
-                    // Keep it active if there is unread mails
-                    activate = mailboxInfo->mUnreadMailIdList.count() > 0;
-                    updateNeeded = true;
-                }
+					NM_COMMENT("NmMailAgent: last mail deleted from outbox");
+					updateNeeded = true;
+
+	                // Keep it active if there is unread mails and inbox is still active
+ 				    if (mailboxInfo->mInboxActive &&
+					    mailboxInfo->mUnreadMailIdList.count() > 0) {
+					    activate = true;
+	                }
+				}
+				else {
+	                // Also update the indicator status if it is already shown
+    	            if (mailboxInfo->mActive) {
+						activate = true;
+            	        updateNeeded = true;
+					}
+				}
+				updateSendIndicator();
             }
             break;
         }
@@ -495,6 +781,8 @@ void NmMailAgent::handleMessageEvent(
     }
 
     if (updateNeeded) {
+        updateUnreadIndicator();
+
         NmMailboxInfo *mailboxInfo = getMailboxInfo(mailboxId);
         updateMailboxState(mailboxId,
             activate, true /* force refresh */);
@@ -509,7 +797,10 @@ void NmMailAgent::handleSyncStateEvent(
             NmSyncState state,
             const NmOperationCompletionEvent &event)
 {
-    NMLOG(QString("NmMailAgent::handleSyncStateEvent %1 %2").arg(state).arg(event.mMailboxId.id()));
+    NM_FUNCTION;
+    NM_COMMENT(QString("NmMailAgent::handleSyncStateEvent(): state=%1, id=%2").
+        arg(state).arg(event.mMailboxId.id()));
+
     NmMailboxInfo *info = getMailboxInfo(event.mMailboxId);
     if (info) {
         info->mSyncState = state;
@@ -533,11 +824,14 @@ void NmMailAgent::handleSyncStateEvent(
                 info->mOutboxMails;
 
             // Refresh the indicator if messages created or changed
-            NMLOG(QString(" created=%1, changed=%2, deleted=%3").
+            NM_COMMENT(QString("NmMailAgent::handleSyncStateEvent(): "
+                "created=%1, changed=%2, deleted=%3").
                 arg(info->mInboxCreatedMessages).
                 arg(info->mInboxChangedMessages).
                 arg(info->mInboxDeletedMessages));
             bool refresh = (info->mInboxCreatedMessages > 0) || (info->mInboxChangedMessages > 0);
+
+            updateUnreadIndicator();
 
             if (activate) {
                 updateMailboxState(event.mMailboxId, active, refresh);
@@ -550,9 +844,13 @@ void NmMailAgent::handleSyncStateEvent(
     Received from NmFrameworkAdapter connectionState signal
     \sa NmFrameworkAdapter
 */
-void NmMailAgent::handleConnectionEvent(NmConnectState state, const NmId mailboxId)
+void NmMailAgent::handleConnectionEvent(NmConnectState state, const NmId mailboxId, int errorcode)
 {
-    NMLOG(QString("NmMailAgent::handleConnectionEvent %1 %2").arg(state).arg(mailboxId.id()));
+    NM_FUNCTION;
+    NM_COMMENT(QString("NmMailAgent::handleConnectionEvent(): state=%1, id=%2").
+        arg(state).arg(mailboxId.id()));
+    Q_UNUSED(errorcode);
+
     NmMailboxInfo *mailboxInfo = getMailboxInfo(mailboxId);
     if (mailboxInfo) {
         // Connecting, Connected, Disconnecting, Disconnected
@@ -566,6 +864,8 @@ void NmMailAgent::handleConnectionEvent(NmConnectState state, const NmId mailbox
 */
 bool NmMailAgent::removeMailboxInfo(const NmId &id)
 {
+    NM_FUNCTION;
+
     bool found = false;
     foreach (NmMailboxInfo *mailbox, mMailboxes) {
         if (mailbox->mId == id) {
@@ -587,6 +887,8 @@ bool NmMailAgent::removeMailboxInfo(const NmId &id)
 */
 NmMailboxInfo *NmMailAgent::createMailboxInfo(const NmId &id)
 {
+    NM_FUNCTION;
+
     // get information of the mailbox
     NmMailbox *mailbox = NULL;
     NmMailboxInfo *info = NULL;
@@ -607,6 +909,8 @@ NmMailboxInfo *NmMailAgent::createMailboxInfo(const NmId &id)
 */
 NmMailboxInfo *NmMailAgent::createMailboxInfo(const NmMailbox &mailbox, NmDataPluginInterface *plugin)
 {
+    NM_FUNCTION;
+
     NmMailboxInfo *mailboxInfo = new NmMailboxInfo();
     mailboxInfo->mId = mailbox.id();
     mailboxInfo->mName = mailbox.name();
@@ -627,15 +931,10 @@ NmMailboxInfo *NmMailAgent::createMailboxInfo(const NmMailbox &mailbox, NmDataPl
     // Get branded mailbox icon
     NmMailbox mailbox2( mailbox );
     QString domainName = mailbox2.address().address();
-    int delimIndex = domainName.indexOf('@');
-    if( delimIndex >= 0 ) {
-        domainName = domainName.mid(delimIndex+1);
-        NMLOG(QString("Mailbox domain name: %1").arg(domainName));
-    }
     EmailMailboxInfo emailMailboxInfo;
     mailboxInfo->mIconName =
         emailMailboxInfo.mailboxIcon(domainName);
-    
+
     return mailboxInfo;
 }
 
@@ -645,6 +944,8 @@ NmMailboxInfo *NmMailAgent::createMailboxInfo(const NmMailbox &mailbox, NmDataPl
 */
 NmMailboxInfo *NmMailAgent::getMailboxInfo(const NmId &id)
 {
+    NM_FUNCTION;
+
     foreach (NmMailboxInfo *mailbox, mMailboxes) {
         if (mailbox->mId == id) {
             return mailbox;
@@ -666,7 +967,7 @@ NmMailboxInfo *NmMailAgent::getMailboxInfo(const NmId &id)
 bool NmMailAgent::getMessageUnreadInfo(const NmId &folderId,
     const NmId &messageId, const NmId &mailboxId, bool &unreadMessage)
 {
-    NMLOG("NmMailAgent::messageInfo");
+    NM_FUNCTION;
 
     NmDataPluginInterface *plugin = mPluginFactory->interfaceInstance(mailboxId);
     bool ok = false;
@@ -687,15 +988,33 @@ bool NmMailAgent::getMessageUnreadInfo(const NmId &folderId,
 }
 
 /*!
-    Plays email alert tune when new messages arrive
+    Plays email alert tone when new messages arrive
+	\returns true if the tone was played
 */
-void NmMailAgent::playAlertTone()
+bool NmMailAgent::playAlertTone()
 {
+    NM_FUNCTION;
+	bool played(false);
+
     if (mAlertToneAllowed) {
-        // play alert
+        // Play tone only if system tone service is available and
+        // phone is not in silence mode.
+        if (mSystemTone && !mSilenceMode) {
+            mSystemTone->playTone(XQSystemToneService::EmailAlertTone);
+        }
+
+        // Execute the vibra effect.
+        if (mVibra) {
+            TRAP_IGNORE(mVibra->StartVibraL(NmAgentDefaultVibraDuration));
+        }
+
+        // play alert only once per minute
         mAlertToneAllowed = false;
         QTimer::singleShot(NmAgentAlertToneTimer, this, SLOT(enableAlertTone()));
+		played = true;
     }
+
+	return played;
 }
 
 /*!
@@ -703,8 +1022,91 @@ void NmMailAgent::playAlertTone()
 */
 void NmMailAgent::enableAlertTone()
 {
+    NM_FUNCTION;
+
     mAlertToneAllowed = true;
 }
 
-// End of file
+/*!
+    update send indicator according to outbox state
+*/
+void NmMailAgent::updateSendIndicator()
+{
+    NM_FUNCTION;
 
+    // Get number of mails in outboxes
+    int outboxMails = 0;
+    foreach (NmMailboxInfo *mailboxInfo, mMailboxes) {
+        outboxMails += mailboxInfo->mOutboxMails;
+    }
+
+    if( outboxMails == 0 ) {
+        mIndicator->deactivate(NmSendIndicatorName);
+    }
+    else if (outboxMails > mLastOutboxCount) {
+        // New mails detected in outbox
+
+    	// indicator will disappear automatically after a delay
+        mIndicator->activate(NmSendIndicatorName);
+	}
+
+	mLastOutboxCount = outboxMails;
+}
+
+/*!
+    Store the mailbox active information to permanent storage
+    \param mailboxId id of the mailbox
+    \param active true if the mailbox is active
+*/
+void NmMailAgent::storeMailboxActive(const NmId &mailboxId, bool active)
+{
+    NM_FUNCTION;
+
+    if (mSettingManager) {
+        XQCentralRepositorySettingsKey key(NmRepositoryId, mailboxId.id());
+        XQCentralRepositoryUtils utils(*mSettingManager);
+
+        if (active) {
+            // when mailbox is active, key can be deleted
+            utils.deleteKey(key);
+        }
+        else {
+            utils.createKey(key,(int)active);
+        }
+    }
+}
+
+/*!
+    Get the mailbox activity state.
+    \param mailboxId id of the mailbox
+    \return true if the mailbox is active or no information was stored earlier
+*/
+bool NmMailAgent::isMailboxActive(const NmId &mailboxId)
+{
+    NM_FUNCTION;
+
+    bool mailboxActive(true);
+    if (mSettingManager) {
+        XQCentralRepositorySettingsKey key(NmRepositoryId, mailboxId.id());
+        QVariant value = mSettingManager->readItemValue(key, XQSettingsManager::TypeInt);
+        if (value.isValid()) {
+            NM_COMMENT(QString("NmMailAgent::isMailboxActive - value=%1").arg(value.toInt()));
+            mailboxActive = value.toInt();
+        }
+    }
+    return mailboxActive;
+}
+
+/*!
+    Delete all stored activity information for the mailbox id
+    \param mailboxId id of the mailbox
+*/
+void NmMailAgent::deleteStoredMailboxActivity(const NmId &mailboxId)
+{
+    NM_FUNCTION;
+
+    // deactivation delete the key too
+    storeMailboxActive(mailboxId,false);
+}
+
+// End of file

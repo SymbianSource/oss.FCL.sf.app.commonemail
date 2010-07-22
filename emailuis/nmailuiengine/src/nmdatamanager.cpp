@@ -31,6 +31,8 @@
 NmDataManager::NmDataManager() 
 :mFactory(NULL)
 {
+    NM_FUNCTION;
+    
     mFactory = NmDataPluginFactory::instance();
 }
 
@@ -39,6 +41,8 @@ NmDataManager::NmDataManager()
 */
 NmDataManager::~NmDataManager()
 {
+    NM_FUNCTION;
+    
     NmDataPluginFactory::releaseInstance(mFactory);
 }
 
@@ -47,6 +51,8 @@ NmDataManager::~NmDataManager()
 */
 void NmDataManager::listMailboxIds(QList<NmId> &mailboxIdList)
 {
+    NM_FUNCTION;
+    
     int count(mFactory->pluginInstances()->count());
     for (int i(0); i < count; i++) {
         NmDataPluginInterface *instance =
@@ -63,6 +69,8 @@ void NmDataManager::listMailboxIds(QList<NmId> &mailboxIdList)
 */
 void NmDataManager::listMailboxes(QList<NmMailbox*> &mailboxList)
 {
+    NM_FUNCTION;
+    
     int count = mFactory->pluginInstances()->count();
     for (int i(0); i < count; i++) {
         NmDataPluginInterface *instance =
@@ -80,6 +88,8 @@ void NmDataManager::listMailboxes(QList<NmMailbox*> &mailboxList)
 */
 void NmDataManager::listFolders(const NmId mailboxId, QList<NmFolder*> &folderList)
 {
+    NM_FUNCTION;
+    
     NmDataPluginInterface *instance = mFactory->interfaceInstance(mailboxId);
     if (instance) {
         instance->listFolders(mailboxId, folderList);
@@ -96,6 +106,8 @@ void NmDataManager::listMessages(
         const NmId &folderId,
         QList<NmMessageEnvelope*> &messageEnvelopeList)
 {
+    NM_FUNCTION;
+    
     NmDataPluginInterface *instance = mFactory->interfaceInstance(folderId);
     if (instance) {
         instance->listMessages(mailboxId, folderId, messageEnvelopeList);
@@ -111,7 +123,8 @@ NmFolderMetaData *NmDataManager::folderById(
     const NmId &mailboxId,
     const NmId &folderId)
 {
-    NMLOG("nmuiengine: getFolderById");
+    NM_FUNCTION;
+    
     NmFolderMetaData *folderMetaData(NULL);
     QList<NmFolder*> folderList;
     listFolders(mailboxId, folderList);
@@ -135,7 +148,8 @@ NmFolderMetaData *NmDataManager::folderById(
 */
 NmMailboxMetaData *NmDataManager::mailboxById(const NmId &mailboxId)
 {
-    NMLOG("nmuiengine: getMailboxById");
+    NM_FUNCTION;
+    
     NmMailboxMetaData *mailboxMetaData(NULL);
     NmMailbox* mbox = mailbox(mailboxId);
 
@@ -161,8 +175,8 @@ NmMessageEnvelope *NmDataManager::envelopeById(
     const NmId &folderId,
     const NmId &messageId)
 {
-    NMLOG("nmuiengine: getMessageById");
-
+    NM_FUNCTION;
+    
     NmMessageEnvelope *msgEnvelope(NULL);
     NmMessage* msg = message(mailboxId, folderId, messageId);
 
@@ -180,6 +194,8 @@ NmMessageEnvelope *NmDataManager::envelopeById(
 */
 NmMailbox *NmDataManager::mailbox(const NmId &mailboxId)
 {
+    NM_FUNCTION;
+    
     NmMailbox *newMailboxObject(NULL);
     NmDataPluginInterface *instance = mFactory->interfaceInstance(mailboxId);
     int retVal(NmNotFoundError);
@@ -204,6 +220,8 @@ NmFolder *NmDataManager::folder(
     const NmId &mailboxId,
     const NmId &folderId)
 {
+    NM_FUNCTION;
+    
     NmFolder* newFolderObject(NULL);
     QList<NmFolder*> folderList;
     listFolders(mailboxId, folderList);
@@ -227,6 +245,8 @@ NmMessage *NmDataManager::message(
     const NmId &folderId,
     const NmId &messageId)
 {
+    NM_FUNCTION;
+    
     NmMessage *newMessageObject(NULL);
     NmDataPluginInterface *instance = mFactory->interfaceInstance(mailboxId);
 
@@ -254,6 +274,8 @@ int NmDataManager::contentToMessagePart(
     const NmId &messageId,
     NmMessagePart &messagePart)
 {
+    NM_FUNCTION;
+    
     int retVal(NmNotFoundError);
     NmDataPluginInterface *instance = mFactory->interfaceInstance(mailboxId);
     if (instance) {
@@ -270,6 +292,8 @@ NmId NmDataManager::getStandardFolderId(
         const NmId &mailboxId,
         NmFolderType folderType )
 {
+    NM_FUNCTION;
+    
     NmId folderId;
     NmDataPluginInterface *instance = mFactory->interfaceInstance(mailboxId);
     if (instance) {
@@ -280,4 +304,34 @@ NmId NmDataManager::getStandardFolderId(
 }
 
 
+/*!
+    Returns folder type by id
 
+    \param mailboxId The ID of the mailbox containing the folder
+
+    \param folderId The ID of the folder 
+
+    \return Folder type
+*/
+NmFolderType NmDataManager::folderTypeById(NmId mailboxId, NmId folderId)
+{
+    NM_FUNCTION;
+    
+    NmFolderType folderType(NmFolderOther);
+    if (getStandardFolderId(mailboxId,NmFolderInbox)==folderId){
+        folderType=NmFolderInbox;
+    }
+    else if (getStandardFolderId(mailboxId,NmFolderOutbox)==folderId){
+        folderType=NmFolderOutbox; 
+    }
+    else if (getStandardFolderId(mailboxId,NmFolderDrafts)==folderId){
+        folderType=NmFolderDrafts;
+    }
+    else if (getStandardFolderId(mailboxId,NmFolderSent)==folderId){
+        folderType=NmFolderSent; 
+    }    
+    else if (getStandardFolderId(mailboxId,NmFolderDeleted)==folderId){
+        folderType=NmFolderDeleted;  
+    }    
+    return folderType;
+}

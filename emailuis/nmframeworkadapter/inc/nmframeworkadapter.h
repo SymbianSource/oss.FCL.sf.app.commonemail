@@ -20,6 +20,7 @@
 
 #include <nmcommon.h>
 #include <nmdataplugininterface.h>
+#include <nmapplicationstateinterface.h>
 #include <CFSMailCommon.h>
 #include <MFSMailEventObserver.h>
 
@@ -33,22 +34,25 @@ class NmMessagePart;
 class NmOperation;
 class NmMessageCreationOperation;
 class CFSMailClient;
+class CFSMailBox;
+class CFSMailFolder;
 class CFSMailMessage;
 class CFSMailMessagePart;
 class NmStoreEnvelopesOperation;
 class NmAddAttachmentsOperation;
-class NmCheckOutboxOperation;
 class NmMailboxSearchObserver;
 class NmMessageSendingOperation;
+class CEmailExtension;
 
 
 class NmFrameworkAdapter :
     public QObject,
     public NmDataPluginInterface,
+    public NmApplicationStateInterface,
     public MFSMailEventObserver
 {
     Q_OBJECT
-    Q_INTERFACES(NmDataPluginInterface)
+    Q_INTERFACES(NmDataPluginInterface NmApplicationStateInterface)
 
 public:
 
@@ -62,7 +66,7 @@ public:
 
     int getMailboxById(const NmId& id, NmMailbox*& mailbox);
 
-    int deleteMailboxById(const NmId& id);
+    QPointer<NmOperation> deleteMailboxById(const NmId& id);
 
     int getMessageById(
             const NmId& mailboxId,
@@ -78,7 +82,13 @@ public:
             const NmId& mailboxId,
             const NmId& folderId,
             QList<NmMessageEnvelope*> &messageMetaDataList);
-    
+
+    int listMessages(
+            const NmId& mailboxId,
+            const NmId& folderId,
+            QList<NmMessageEnvelope*> &messageMetaDataList,
+            const int maxAmountOfEnvelopes);
+
     int listMessages(
             const NmId& mailboxId,
             const NmId& folderId,
@@ -95,6 +105,12 @@ public:
             const NmId &folderId,
             const NmId &messageId,
             const NmId &messagePartId);
+			
+    QPointer<NmOperation> fetchMessageParts( 
+        const NmId &mailboxId,
+        const NmId &folderId,
+        const NmId &messageId,
+        const QList<NmId> &messagePartIds);
     
     XQSharableFile messagePartFile(
             const NmId &mailboxId,
@@ -167,8 +183,6 @@ public:
             const NmMessage &message, 
             const NmId &attachmentPartId);
 
-    QPointer<NmCheckOutboxOperation> checkOutbox(const NmId& mailboxId);
-    
     NmSyncState syncState(const NmId& mailboxId) const;
     
     NmConnectState connectionState(const NmId& mailboxId) const;
@@ -177,19 +191,22 @@ public:
             const NmId &mailboxId, 
             const NmId &folderId, 
             NmFolder *&folder );
-			
-	int listMessages(
-            const NmId& mailboxId,
-            const NmId& folderId,
-            QList<NmMessageEnvelope*> &messageMetaDataList,
-            const int maxAmountOfEnvelopes);
 
     int search(const NmId &mailboxId,
                const QStringList &searchStrings);
 
     int cancelSearch(const NmId &mailboxId);
 
-
+    void updateActiveFolder(const NmId &mailboxId, const NmId &folderId);
+    
+    QPointer<NmOperation> removeDraftMessage(NmMessage *message);
+	
+	int copyMessages(
+        const NmId &mailboxId,
+        const QList<quint64> &messageIds,
+        const NmId &sourceFolderId,
+        const NmId &destinationFolderId);
+    
 signals:
 
     void mailboxEvent(NmMailboxEvent event, const QList<NmId> &mailboxIds);
@@ -206,7 +223,7 @@ signals:
     
     void connectionEvent(NmConnectState state, const NmId mailboxId, int errorCode);
 
-    void matchFound(const NmId &messageId);
+    void matchFound(const NmId &messageId, const NmId &folderId);
 
     void searchComplete();
 
@@ -224,7 +241,11 @@ private:
             const NmId &folderId,
             const NmId &messageId,
             NmMessagePart &messagePart);
-        
+
+    void getMessagesFromFolderL(CFSMailFolder *folder,
+                                QList<NmMessageEnvelope*> &messageEnvelopeList,
+                                const int maxEnvelopeCount);
+
     void listMessagesL(  
             const NmId &mailboxId,
             const NmId &folderId,
@@ -273,16 +294,32 @@ private:
     
     void handleSyncstateEvent(TAny* param1, TFSMailMsgId mailbox);
     
-	void getFolderByIdL(
+    void getFolderByIdL(
             const NmId& mailboxId, 
             const NmId& folderId, 
             NmFolder*& unreadCount );
+    
+    void doUpdateActiveFolderL(const NmId &mailboxId, const NmId &folderId);
+    
+    CEmailExtension* getEMailStateExtensionL();  
+	
+    void copyMessagesL(
+        const NmId &mailboxId, 
+        const QList<quint64> &messageIds,
+        const NmId &sourceFolderId,
+        const NmId &destinationFolderId);
+	
+	void deleteMailboxByIdL(const NmId &mailboxId);    
 
 
 private: // Data
 
     CFSMailClient* mFSfw; // Singleton, not owned
     NmMailboxSearchObserver *mSearchObserver; // Owned
+    CFSMailBox* mCurrentMailBox; // Owned
+    CEmailExtension* mStateExtension; // not owned
+
+
 };
 
 

@@ -27,15 +27,23 @@
 NmUiEngine *NmUiEngine::mInstance;
 int NmUiEngine::mReferenceCount;
 
+const QString syncIndicatorName = "com.nokia.nmail.indicatorplugin.sync/1.0";
+
 /*!
     Constructor
 */
 NmUiEngine::NmUiEngine() 
 : mMailboxListModel(NULL),
+  mInboxListModel(NULL),
   mMessageListModel(NULL),
   mMessageSearchListModel(NULL),
-  mSendOperation(NULL)
+  mSendOperation(NULL),
+  mRemoveDraftOperation(NULL),
+  mSaveDraftOperation(NULL),
+  mDraftMessage(NULL)
 {
+    NM_FUNCTION;
+    
     mPluginFactory = NmDataPluginFactory::instance();
     mDataManager = new NmDataManager();
     // Connect to the plugins to receive change notifications
@@ -74,46 +82,86 @@ NmUiEngine::NmUiEngine()
 
 
 /*!
-    Destructor
+    Class destructor.
 */
 NmUiEngine::~NmUiEngine()
 {
+    NM_FUNCTION;
+    
+    HbIndicator indicator;
+    indicator.deactivate(syncIndicatorName, QVariant());
+    
     if (mMessageSearchListModel) {
         delete mMessageSearchListModel;
         mMessageSearchListModel = NULL;
+    }
+
+    if (mInboxListModel) {
+        delete mInboxListModel;
+        mInboxListModel = NULL;
     }
 
     if (mMessageListModel) {
         delete mMessageListModel;
         mMessageListModel = NULL;
     }
+
     if (mMailboxListModel) {
         delete mMailboxListModel;
         mMailboxListModel = NULL;
     }
-    // do the unsubscriptions
+
+    // Do the unsubscriptions.
     QList<NmId> mailboxIdList;
     mDataManager->listMailboxIds(mailboxIdList);
+
     for (int i(0); i < mailboxIdList.count(); i++) {
         NmId id = mailboxIdList[i];
-        NmDataPluginInterface *pluginInterface = mPluginFactory->interfaceInstance(id);
+        NmDataPluginInterface *pluginInterface =
+            mPluginFactory->interfaceInstance(id);
+
         if (pluginInterface) {
             pluginInterface->unsubscribeMailboxEvents(id);
         }
     }
+
     mailboxIdList.clear();
+
     NmDataPluginFactory::releaseInstance(mPluginFactory);
+
     delete mDataManager;
+
+    // Cancel all operations.
     if (mSendOperation && mSendOperation->isRunning()) {
         mSendOperation->cancelOperation();
     }
+
+    if (mRemoveDraftOperation && mRemoveDraftOperation->isRunning()) {
+        mRemoveDraftOperation->cancelOperation();        
+    }
+
+    if (mSaveDraftOperation && mSaveDraftOperation->isRunning()) {
+        mSaveDraftOperation->cancelOperation();
+    }
+
+    // Call processEvents() to ensure that the cancelled operations get the time
+    // they need to destroy themselves.
+    qApp->processEvents();
+
+    if(mDraftMessage) {
+        delete mDraftMessage;
+        mDraftMessage = NULL;
+    }
 }
+
 
 /*!
 
 */
 NmUiEngine *NmUiEngine::instance()
 {
+    NM_FUNCTION;
+    
     if (!mInstance) {
     	mInstance = new NmUiEngine();
     }
@@ -126,6 +174,8 @@ NmUiEngine *NmUiEngine::instance()
 */
 void NmUiEngine::releaseInstance(NmUiEngine *&instance)
 {
+    NM_FUNCTION;
+    
     //can't have passed out instances if we don't have any
     if (mInstance) {
         if(instance == mInstance) {
@@ -145,6 +195,8 @@ void NmUiEngine::releaseInstance(NmUiEngine *&instance)
 */
 NmMailboxListModel &NmUiEngine::mailboxListModel()
 {
+    NM_FUNCTION;
+    
     if (!mMailboxListModel) {
         refreshMailboxListModel(); // creates the model too
     }
@@ -158,6 +210,8 @@ NmMailboxListModel &NmUiEngine::mailboxListModel()
 */
 void NmUiEngine::refreshMailboxListModel()
 {
+    NM_FUNCTION;
+    
     if (!mMailboxListModel) {
         mMailboxListModel = new NmMailboxListModel(*mDataManager);
         
@@ -182,59 +236,129 @@ void NmUiEngine::refreshMailboxListModel()
     }
 }
 
-/*!
-    Returns a message list model for a folder identified by \a mailboxId and \a folderId.
-    The model is updated dynamically. The ownership of the model object is not moved to the caller.
-*/
-NmMessageListModel &NmUiEngine::messageListModel(const NmId &mailboxId, const NmId &folderId)
-{
-    if (!mMessageListModel){
-        mMessageListModel = new NmMessageListModel(*mDataManager);
-    }
-    else{
-        mMessageListModel->clear();
-    }
-    QObject *plugin =
-        mPluginFactory->pluginInstance(mailboxId);
-    if (plugin) {
-        QObject::connect(plugin,
-            SIGNAL(messageEvent(NmMessageEvent, const NmId &, const QList<NmId> &, const NmId&)),
-        mMessageListModel,
-            SLOT(handleMessageEvent(NmMessageEvent, const NmId &, const QList<NmId> &)),
-            Qt::UniqueConnection );
 
+/*!
+    Returns a message list model for a folder identified by \a mailboxId and 
+    \a folderId. The model is updated dynamically. The ownership of the model
+    object is not moved to the caller.
+*/
+NmMessageListModel &NmUiEngine::messageListModel(const NmId &mailboxId,
+                                                 const NmId &folderId)
+{
+    NM_FUNCTION;
+
+    QObject *plugin = mPluginFactory->pluginInstance(mailboxId);
+    bool isInbox(false);
+    if (standardFolderId(mailboxId,NmFolderInbox)==folderId){
+        isInbox=true;
+    }
+    if (plugin) { 
+        // Connect plugin message events to handler slot messageEventForListModel
+        QObject::connect(plugin, SIGNAL(messageEvent(NmMessageEvent, const NmId &, 
+                                const QList<NmId> &, const NmId&)),
+                                this, SLOT(messageEventForListModel(NmMessageEvent, 
+                                const NmId &, const QList<NmId> &, const NmId&)), Qt::UniqueConnection );
+        // Create inbox list model only once when entering to inbox for the first time
+        // or re-create inbox list model when mailbox has changed    
+        if ((!mInboxListModel&&isInbox)||
+            (mInboxListModel&&isInbox&&mailboxId!=mInboxListModel->currentMailboxId())){
+            // Delete previous model and set to NULL. Deleting model will also
+            // delete all items in model. 
+            if (mInboxListModel){
+                delete mInboxListModel;
+                mInboxListModel=NULL;
+            }
+            // Create new inbox model 
+            mInboxListModel = new NmMessageListModel(*mDataManager);
+            // Initial fill up of inbox list model, otherwise updated in the background
+            QList<NmMessageEnvelope*> messageEnvelopeList;
+            mDataManager->listMessages(mailboxId, folderId, messageEnvelopeList);
+            mInboxListModel->refresh(mailboxId, folderId, messageEnvelopeList);
+
+            while (!messageEnvelopeList.isEmpty()) {
+                delete messageEnvelopeList.takeFirst();
+            }
+        }
+        // Selected folder is not inbox folder for the mailbox
+        else if (!isInbox){
+            // Recreate model for other folders when needed, previous model
+            // items are deleted from the memory with the old model
+            if (mMessageListModel){
+                delete mMessageListModel;
+                mMessageListModel=NULL;
+            }
+            mMessageListModel = new NmMessageListModel(*mDataManager);
+    
+            // Fill up other model 
+            QList<NmMessageEnvelope*> messageEnvelopeList;
+            mDataManager->listMessages(mailboxId, folderId, messageEnvelopeList);
+            mMessageListModel->refresh(mailboxId, folderId, messageEnvelopeList);
+
+            while (!messageEnvelopeList.isEmpty()) {
+                delete messageEnvelopeList.takeFirst(); 
+            }             
+        }    
+    }
+     
+    // Connect sync state changed
+    if (plugin){
         QObject::connect(
             plugin, SIGNAL(syncStateEvent(NmSyncState, const NmOperationCompletionEvent &)),
             this, SLOT(handleSyncStateEvent(NmSyncState, const NmOperationCompletionEvent &)),
-            Qt::UniqueConnection);        
-        // no need for mailbox event subscription here, already done in constructor
+            Qt::UniqueConnection);
     }
-    QList<NmMessageEnvelope*> messageEnvelopeList;
-    mDataManager->listMessages(mailboxId, folderId, messageEnvelopeList);
-    mMessageListModel->refresh(mailboxId, folderId, messageEnvelopeList);
-    while (!messageEnvelopeList.isEmpty()) {
-        delete messageEnvelopeList.takeFirst();
+    NmMessageListModel* ret(NULL);
+    if (isInbox){
+        ret = mInboxListModel;    
+        // Inbox list model is queried, other model is not
+        // needed anymore and memory should be freeded
+        if (mMessageListModel){
+            delete mMessageListModel;
+            mMessageListModel=NULL;
+        }
     }
-    return *mMessageListModel;
+    else {
+        ret = mMessageListModel;    
+    }
+    return *ret;
 }
 
 
 /*!
-    Returns a reference of the message search list model. If the model does not
-    exist yet, one is constructed.
+    Returns a message list model used in the search view.
 
-    \param sourceModel The source model for the search list model.
+    \param mailboxId The ID of the mailbox to search messages from.
 
-    \return The message search list model.
+    \return A message list model.
 */
-NmMessageSearchListModel &NmUiEngine::messageSearchListModel(
-    QAbstractItemModel *sourceModel)
+NmMessageListModel &NmUiEngine::messageListModelForSearch(const NmId &mailboxId)
 {
+    NM_FUNCTION;
+    
+    Q_UNUSED(mailboxId);
+
     if (!mMessageSearchListModel) {
-        mMessageSearchListModel = new NmMessageSearchListModel();
+        mMessageSearchListModel = new NmMessageListModel(*mDataManager);
+        mMessageSearchListModel->setIgnoreFolderIds(true);
+    }
+    else {
+        mMessageSearchListModel->clear();
     }
 
-    mMessageSearchListModel->setSourceModel(sourceModel);
+    QObject *plugin = mPluginFactory->pluginInstance(mailboxId);
+
+    if (plugin) {
+        QObject::connect(plugin,
+            SIGNAL(messageEvent(NmMessageEvent, const NmId &, const QList<NmId> &, const NmId &)),
+            mMessageSearchListModel,
+            SLOT(handleMessageEvent(NmMessageEvent, const NmId &, const QList<NmId> &, const NmId &)),
+            Qt::UniqueConnection);
+    }
+
+    // Refresh to set the mailbox ID.
+    QList<NmMessageEnvelope*> messageEnvelopeList;
+    mMessageSearchListModel->refresh(mailboxId, 0, messageEnvelopeList);
+
     return *mMessageSearchListModel;
 }
 
@@ -247,6 +371,8 @@ NmId NmUiEngine::standardFolderId(
     const NmId &mailboxId,
     NmFolderType folderType)
 {
+    NM_FUNCTION;
+    
     NmId value;
     if (folderType != NmFolderOther) {
         NmDataPluginInterface *plugin =
@@ -267,6 +393,8 @@ NmMessage *NmUiEngine::message(const NmId &mailboxId,
                       const NmId &folderId,
                       const NmId &messageId)
 {
+    NM_FUNCTION;
+    
     NmMessage *message = mDataManager->message(mailboxId, folderId, messageId);
     return message;
 }
@@ -278,7 +406,8 @@ QPointer<NmOperation> NmUiEngine::fetchMessage( const NmId &mailboxId,
     const NmId &folderId,
     const NmId &messageId )
 {
-    NMLOG("NmUiEngine::fetchMessage() <---");
+    NM_FUNCTION;
+    
     QPointer<NmOperation> value(NULL);
     NmDataPluginInterface *plugin =
         mPluginFactory->interfaceInstance(mailboxId);
@@ -297,12 +426,33 @@ QPointer<NmOperation> NmUiEngine::fetchMessagePart(
     const NmId &messageId,
     const NmId &messagePartId)
 {
-    NMLOG("NmUiEngine::fetchMessagePart() <---");
+    NM_FUNCTION;
+    
     QPointer<NmOperation> value(NULL);
     NmDataPluginInterface *plugin =
         mPluginFactory->interfaceInstance(mailboxId);
     if (plugin) {
         value = plugin->fetchMessagePart(mailboxId, folderId, messageId, messagePartId);
+    }
+    return value;
+}
+
+/*!
+
+*/
+QPointer<NmOperation> NmUiEngine::fetchMessageParts(
+    const NmId &mailboxId,
+    const NmId &folderId,
+    const NmId &messageId,
+    const QList<NmId> &messagePartIds)
+{
+    NM_FUNCTION;
+    
+    QPointer<NmOperation> value(NULL);
+    NmDataPluginInterface *plugin =
+        mPluginFactory->interfaceInstance(mailboxId);
+    if (plugin) {
+        value = plugin->fetchMessageParts(mailboxId, folderId, messageId, messagePartIds);
     }
     return value;
 }
@@ -316,6 +466,8 @@ XQSharableFile NmUiEngine::messagePartFile(
         const NmId &messageId,
         const NmId &messagePartId)
 {
+    NM_FUNCTION;
+    
     NmDataPluginInterface *plugin =
         mPluginFactory->interfaceInstance(mailboxId);
     if (plugin) {
@@ -335,33 +487,70 @@ int NmUiEngine::contentToMessagePart(
     const NmId &messageId,
     NmMessagePart &messagePart)
 {
+    NM_FUNCTION;
+    
     return mDataManager->contentToMessagePart(mailboxId, folderId, messageId, messagePart);
 }
 
+
 /*!
-    Deletes messages from model and routes call to plugin
+    Deletes messages from the model and forwards the call to plugin.
+
+    \param mailboxId The ID of the mailbox which contains the deleted message(s).
+    \param folderId The ID of the folder which contains the deleted message(s).
+    \param messageIdList A list containing the IDs of the message to be deleted.
+
+    \return A possible error code (returned by the plugin).
 */
-int NmUiEngine::deleteMessages(
-	const NmId &mailboxId,
-	const NmId &folderId,
-	const QList<NmId> &messageIdList)
+int NmUiEngine::deleteMessages(const NmId &mailboxId,
+                               const NmId &folderId,
+                               const QList<NmId> &messageIdList)
 {
+    NM_FUNCTION;
+    
     int result(NmNotFoundError);
-	if (mMessageListModel) {
-	    mMessageListModel->handleMessageEvent(NmMessageDeleted, folderId, messageIdList);
+    
+    bool isInbox(false);
+    if (standardFolderId(mailboxId,NmFolderInbox)==folderId){
+        isInbox=true;
+    } 
+    if (isInbox&&mInboxListModel){
+        mInboxListModel->handleMessageEvent(NmMessageDeleted, folderId,
+                                               messageIdList, mailboxId);   
+    }   
+    else if (mMessageListModel) {
+	    mMessageListModel->handleMessageEvent(NmMessageDeleted, folderId,
+                                              messageIdList, mailboxId);
 	}
+
+	// If the search list model exists and contains message, remove the
+	// message from it too.
+	if (mMessageSearchListModel && mMessageSearchListModel->rowCount()) {
+        mMessageSearchListModel->handleMessageEvent(NmMessageDeleted, folderId,
+                                                    messageIdList, mailboxId);
+	}
+
     NmDataPluginInterface *plugin =
-            mPluginFactory->interfaceInstance(mailboxId);
+        mPluginFactory->interfaceInstance(mailboxId);
+
     if (plugin) {
-          result = plugin->deleteMessages(
-	            mailboxId, folderId, messageIdList);
+          result = plugin->deleteMessages(mailboxId, folderId, messageIdList);
     }
+
 	return result;
 }
 
+
 /*!
-    Sets envelope property given in argument.
-    Operation is automatically deleted after completion or cancelling.
+    Sets the envelope property for the given envelopes.
+    The operation is automatically deleted after the completion or cancelling.
+
+    \param mailboxId The ID of the mailbox containing the envelope(s).
+    \param folderId The ID of the folder containing the envelope(s).
+    \param property The property to set.
+    \param envelopeList The list containing the envelopes.
+
+    \return The constructed operation.
 */
 QPointer<NmStoreEnvelopesOperation> NmUiEngine::setEnvelopes(
         const NmId &mailboxId,
@@ -369,26 +558,42 @@ QPointer<NmStoreEnvelopesOperation> NmUiEngine::setEnvelopes(
         NmEnvelopeProperties property,
         const QList<const NmMessageEnvelope*> &envelopeList)
 {
-    NMLOG("NmUiEngine::setEnvelopes() <---");
+    NM_FUNCTION;
+    
     QPointer<NmStoreEnvelopesOperation> operation(NULL);
-    if (mMessageListModel && envelopeList.count()) {
+    NmMessageListModel *theMessageListModel = mMessageListModel;
+
+    if (!theMessageListModel) {
+        theMessageListModel = &messageListModel(mailboxId, folderId);
+    }
+
+    if (theMessageListModel && envelopeList.count()) {
         QList<NmId> messageIdList;
         
         for (int i(0); i < envelopeList.count(); i++){
             messageIdList.append(envelopeList[i]->messageId());
         }
-        mMessageListModel->setEnvelopeProperties(
-                           property, messageIdList);
-        // Store new envelopes to plugin
+
+        theMessageListModel->setEnvelopeProperties(property, messageIdList);
+
+        if (mMessageSearchListModel && mMessageSearchListModel->rowCount()) {
+            // Update the envelopes in the search list model as well.
+            mMessageSearchListModel->setEnvelopeProperties(property,
+                                                           messageIdList);
+        }
+
+        // Store the new envelopes to plugin.
         NmDataPluginInterface *plugin =
             mPluginFactory->interfaceInstance(mailboxId);
+
         if (plugin) {
-            operation = plugin->storeEnvelopes(
-                    mailboxId, folderId, envelopeList);
+            operation =
+                plugin->storeEnvelopes(mailboxId, folderId, envelopeList);
         }
+
         messageIdList.clear();
-    }  
-    NMLOG("NmUiEngine::setEnvelopes() --->");
+    }
+
     return operation;
 }
 
@@ -422,7 +627,8 @@ NmMailboxMetaData *NmUiEngine::mailboxById(const NmId &mailboxId)
 */
 QPointer<NmMessageCreationOperation> NmUiEngine::createNewMessage(const NmId &mailboxId)
 {
-    NMLOG("NmUiEngine::createNewMessage() <---");
+    NM_FUNCTION;
+    
     QPointer<NmMessageCreationOperation> value(NULL);
     NmDataPluginInterface *plugin =
         mPluginFactory->interfaceInstance(mailboxId);
@@ -440,7 +646,8 @@ QPointer<NmMessageCreationOperation> NmUiEngine::createForwardMessage(
         const NmId &mailboxId,
         const NmId &originalMessageId)
 {
-    NMLOG("NmUiEngine::createForwardMessage() <---");
+    NM_FUNCTION;
+    
     QPointer<NmMessageCreationOperation> value(NULL);
     NmDataPluginInterface *plugin =
         mPluginFactory->interfaceInstance(mailboxId);
@@ -459,7 +666,8 @@ QPointer<NmMessageCreationOperation> NmUiEngine::createReplyMessage(
         const NmId &originalMessageId,
         bool replyAll)
 {
-    NMLOG("NmUiEngine::createReplyMessage() <---");
+    NM_FUNCTION;
+    
     QPointer<NmMessageCreationOperation> value(NULL);
     NmDataPluginInterface *plugin =
         mPluginFactory->interfaceInstance(mailboxId);
@@ -474,6 +682,8 @@ QPointer<NmMessageCreationOperation> NmUiEngine::createReplyMessage(
 */
 int NmUiEngine::saveMessage(const NmMessage &message)
 {
+    NM_FUNCTION;
+    
     const NmId &mailboxId = message.envelope().mailboxId();
     int ret(NmNotFoundError);
     NmDataPluginInterface *plugin =
@@ -489,11 +699,17 @@ int NmUiEngine::saveMessage(const NmMessage &message)
 */
 int NmUiEngine::refreshMailbox(const NmId &mailboxId )
 {
+    NM_FUNCTION;
+    
     int ret(NmNotFoundError);
     NmDataPluginInterface *plugin =
         mPluginFactory->interfaceInstance(mailboxId);
     if (plugin) {
         ret = plugin->refreshMailbox(mailboxId);
+        if (NmNoError == ret) {
+            HbIndicator indicator;
+            indicator.activate(syncIndicatorName, QVariant());
+        }
     }
     return ret;
 }
@@ -503,6 +719,8 @@ int NmUiEngine::refreshMailbox(const NmId &mailboxId )
 */
 int NmUiEngine::goOnline(const NmId &mailboxId )
 {
+    NM_FUNCTION;
+    
     int ret(NmNotFoundError);
     NmDataPluginInterface *plugin =
         mPluginFactory->interfaceInstance(mailboxId);
@@ -517,6 +735,8 @@ int NmUiEngine::goOnline(const NmId &mailboxId )
 */
 int NmUiEngine::goOffline(const NmId &mailboxId )
 {
+    NM_FUNCTION;
+    
     int ret(NmNotFoundError);
     NmDataPluginInterface *plugin =
         mPluginFactory->interfaceInstance(mailboxId);
@@ -535,6 +755,8 @@ int NmUiEngine::removeMessage(
     const NmId &folderId,
     const NmId &messageId)
 {
+    NM_FUNCTION;
+    
     int result(NmNotFoundError);
     NmDataPluginInterface *plugin =
             mPluginFactory->interfaceInstance(mailboxId);
@@ -546,10 +768,89 @@ int NmUiEngine::removeMessage(
 
 
 /*!
+  Handles draft message deletion after editor has closed, takes ownership of message. 
+ */
+void NmUiEngine::removeDraftMessage(NmMessage *message)
+{
+    NM_FUNCTION;
+
+    if (message) {
+        NmDataPluginInterface *plugin =
+            mPluginFactory->interfaceInstance(message->envelope().mailboxId());
+        
+        if (plugin) {
+            // to be on the safer side:
+            // we shouldn't even be here if mRemoveDraftOperation != NULL
+            if (mRemoveDraftOperation && mRemoveDraftOperation->isRunning()) {
+                mRemoveDraftOperation->cancelOperation();
+            }
+            // ownership of message changes
+            mRemoveDraftOperation = plugin->removeDraftMessage(message);
+            
+            if (mRemoveDraftOperation) {
+                connect(mRemoveDraftOperation, 
+                        SIGNAL(operationCompleted(int)), 
+                        this, 
+                        SLOT(handleCompletedRemoveDraftOperation()));
+            }
+        }
+    }    
+}
+
+/*!
+    Handles draft message saving after editor has closed, takes ownership of message.
+ */
+void NmUiEngine::saveDraftMessage(NmMessage *message,
+                                  const QList<NmOperation*> &preliminaryOperations)
+{
+    NM_FUNCTION;
+    
+    if (message) {
+        NmDataPluginInterface *plugin =
+            mPluginFactory->interfaceInstance(message->envelope().mailboxId());
+        
+        if (plugin) {
+            // to be on the safer side:
+            // we shouldn't even be here if mSaveDraftOperation != NULL
+            if (mSaveDraftOperation && mSaveDraftOperation->isRunning()) {
+                mSaveDraftOperation->cancelOperation();
+            }
+            
+            mSaveDraftOperation = plugin->saveMessageWithSubparts(*message);
+            
+            if (mSaveDraftOperation) {
+                // Ownership of message changes but saveMessageWithSubparts operation only makes a 
+                // copy so we handle the msg object deletion in engine. mDraftMessage is deleted
+                // in handleCompletedSaveDraftOperation once operation finishes. 
+                if(mDraftMessage) {
+                    delete mDraftMessage;
+                    mDraftMessage = NULL;
+                }
+                mDraftMessage = message;
+                message = NULL;
+                
+                for (int i(0); i < preliminaryOperations.count(); i++ ) {
+                    QPointer<NmOperation> op = preliminaryOperations[i];
+                    mSaveDraftOperation->addPreliminaryOperation(op);
+                }
+                
+                connect(mSaveDraftOperation, 
+                        SIGNAL(operationCompleted(int)), 
+                        this, 
+                        SLOT(handleCompletedSaveDraftOperation()));
+                
+            }
+        }
+    }
+}
+
+/*!
     Sends the given message.
  */
 void NmUiEngine::sendMessage(NmMessage *message, const QList<NmOperation *> &preliminaryOperations)
 {
+    NM_FUNCTION;
+    
     //First trigger message storing
     if (message) {
         NmDataPluginInterface *plugin =
@@ -585,6 +886,8 @@ void NmUiEngine::sendMessage(NmMessage *message, const QList<NmOperation *> &pre
  */
 bool NmUiEngine::isSendingMessage() const
 {
+    NM_FUNCTION;
+    
     int ret(false);
     if (mSendOperation && mSendOperation->isRunning()) {
         ret = true;
@@ -597,6 +900,8 @@ bool NmUiEngine::isSendingMessage() const
  */
 const NmMessage *NmUiEngine::messageBeingSent() const
 {
+    NM_FUNCTION;
+    
     const NmMessage *message = NULL;
     
     if (mSendOperation != NULL) {
@@ -614,7 +919,8 @@ QPointer<NmAddAttachmentsOperation> NmUiEngine::addAttachments(
     const NmMessage &message,
     const QList<QString> &fileList)
 {
-    NMLOG("NmUiEngine::addAttachments() <---");
+    NM_FUNCTION;
+    
     NmDataPluginInterface *plugin =
         mPluginFactory->interfaceInstance(message.envelope().mailboxId());
     
@@ -633,7 +939,8 @@ QPointer<NmOperation> NmUiEngine::removeAttachment(
     const NmMessage &message,
     const NmId &attachmentPartId)
 {
-    NMLOG("NmUiEngine::removeAttachments() <---");
+    NM_FUNCTION;
+    
     NmDataPluginInterface *plugin =
         mPluginFactory->interfaceInstance(message.envelope().mailboxId());
     
@@ -645,26 +952,12 @@ QPointer<NmOperation> NmUiEngine::removeAttachment(
 }
 
 /*!
-    Operation is automatically deleted after completion or cancelling.
- */
-QPointer<NmCheckOutboxOperation> NmUiEngine::checkOutbox(const NmId &mailboxId)
-{
-    NMLOG("NmUiEngine::checkOutbox() <---");
-    NmDataPluginInterface *plugin =
-        mPluginFactory->interfaceInstance(mailboxId);
-
-    QPointer<NmCheckOutboxOperation> ret(NULL); 
-    if (plugin) {
-        ret = plugin->checkOutbox(mailboxId);
-    }  
-    return ret;
-}
-
-/*!
     Returns the current sync state of the mailbox
  */
 NmSyncState NmUiEngine::syncState(const NmId& mailboxId)
 {
+    NM_FUNCTION;
+    
     NmDataPluginInterface *plugin =
                 mPluginFactory->interfaceInstance(mailboxId);
     if (plugin) {
@@ -680,6 +973,8 @@ NmSyncState NmUiEngine::syncState(const NmId& mailboxId)
  */
 NmConnectState NmUiEngine::connectionState(const NmId& mailboxId)
 {
+    NM_FUNCTION;
+    
     NmDataPluginInterface *plugin =
                 mPluginFactory->interfaceInstance(mailboxId);
     if (plugin) {
@@ -702,18 +997,24 @@ NmConnectState NmUiEngine::connectionState(const NmId& mailboxId)
 int NmUiEngine::search(const NmId &mailboxId,
                        const QStringList &searchStrings)
 {
+    NM_FUNCTION;
+    
     // Get the plugin instance.
     QObject *pluginInstance = mPluginFactory->pluginInstance(mailboxId);
 
     if (pluginInstance) {
         // Make sure the required signals are connected.
-        connect(pluginInstance, SIGNAL(matchFound(const NmId &)),
-                this, SIGNAL(matchFound(const NmId &)), Qt::UniqueConnection);    
-        connect(pluginInstance, SIGNAL(matchFound(const NmId &)),
-                mMessageSearchListModel, SLOT(addSearchResult(const NmId &)),
-                Qt::UniqueConnection);    
+        connect(pluginInstance, SIGNAL(matchFound(const NmId &, const NmId &)),
+                this, SIGNAL(matchFound(const NmId &, const NmId &)),
+                Qt::UniqueConnection);
+
+        connect(pluginInstance, SIGNAL(matchFound(const NmId &, const NmId &)),
+                this, SLOT(handleMatchFound(const NmId &, const NmId &)),
+                Qt::UniqueConnection); 
+
         connect(pluginInstance, SIGNAL(searchComplete()),
-                this, SIGNAL(searchComplete()), Qt::UniqueConnection);    
+                this, SIGNAL(searchComplete()),
+                Qt::UniqueConnection);    
     }
 
     int retVal(NmNoError);
@@ -740,6 +1041,8 @@ int NmUiEngine::search(const NmId &mailboxId,
 */
 int NmUiEngine::cancelSearch(const NmId &mailboxId)
 {
+    NM_FUNCTION;
+    
     int retVal(NmNoError);
 
     // Get the plugin interface.
@@ -754,41 +1057,67 @@ int NmUiEngine::cancelSearch(const NmId &mailboxId)
 }
 
 /*!
-    Cancels the search operation if one is ongoing.
-
-    \param mailboxId The ID of the mailbox containing the folder
-
-    \param folderId The ID of the folder 
-
     \return Folder type
 */
 NmFolderType NmUiEngine::folderTypeById(NmId mailboxId, NmId folderId)
 {
-    NmFolderType folderType(NmFolderOther);
-    if (standardFolderId(mailboxId,NmFolderInbox)==folderId){
-        folderType=NmFolderInbox;
+    NM_FUNCTION;
+    
+    NmFolderType ret(NmFolderInbox);
+    if (mDataManager){
+        ret = mDataManager->folderTypeById(mailboxId,folderId);    
     }
-    else if (standardFolderId(mailboxId,NmFolderOutbox)==folderId){
-        folderType=NmFolderOutbox; 
-    }
-    else if (standardFolderId(mailboxId,NmFolderDrafts)==folderId){
-        folderType=NmFolderDrafts;
-    }
-    else if (standardFolderId(mailboxId,NmFolderSent)==folderId){
-        folderType=NmFolderSent; 
-    }    
-    else if (standardFolderId(mailboxId,NmFolderDeleted)==folderId){
-        folderType=NmFolderDeleted;  
-    }    
-    return folderType;
+    return ret;
 }
+
+/*!
+    Indicates application state information to protocol plugin
+    \param mailboxId Id of active mailbox, 0 if application is closed.
+    \param folderId Id of active folder, 0 if application is closed.
+*/
+void NmUiEngine::updateActiveFolder(const NmId &mailboxId, const NmId &folderId)
+{
+    NM_FUNCTION;
+    
+    NmApplicationStateInterface *interface = 
+        mPluginFactory->applicationStateInterfaceInstance(mailboxId);
+    if (interface) {
+        interface->updateActiveFolder(mailboxId, folderId);
+    }
+}
+
 /*!
     Handle completed send operation.
 */
 void NmUiEngine::handleCompletedSendOperation()
 {
-    NMLOG("NmUiEngine::handleCompletedSendOperation()");
+    NM_FUNCTION;
+    
     emit sendOperationCompleted();
+}
+
+/*!
+    Handle completed remove draft operation.
+*/
+void NmUiEngine::handleCompletedRemoveDraftOperation()
+{
+    NM_FUNCTION;
+    
+    // draft message deletion observing not yet implemented...
+}
+
+/*!
+    Handle completed save draft operation.
+*/
+void NmUiEngine::handleCompletedSaveDraftOperation()
+{
+    NM_FUNCTION;
+    
+    // delete message object since it's not needed anymore
+    if(mDraftMessage) {
+        delete mDraftMessage;
+        mDraftMessage = NULL;
+    }
 }
 
 /*!
@@ -796,11 +1125,13 @@ void NmUiEngine::handleCompletedSendOperation()
  */
 void NmUiEngine::handleSyncStateEvent(NmSyncState syncState, const NmOperationCompletionEvent &event)
 {
-    NMLOG("NmUiEngine::handleSyncStateEvent()");
-
+    NM_FUNCTION;
+    
     if ( syncState == SyncComplete ) {
         // signal for reporting about (sync) operation completion status
         emit operationCompleted(event);
+        HbIndicator indicator;
+        indicator.deactivate(syncIndicatorName, QVariant());
     }
 
     // signal for handling sync state icons
@@ -816,6 +1147,8 @@ void NmUiEngine::handleMessageEvent(NmMessageEvent event,
                                     const QList<NmId> &messageIds, 
                                     const NmId& mailboxId)
 {
+    NM_FUNCTION;
+    
     switch (event) {
         case NmMessageDeleted:
         {
@@ -836,6 +1169,8 @@ void NmUiEngine::handleMessageEvent(NmMessageEvent event,
 void NmUiEngine::handleMailboxEvent(NmMailboxEvent event,
                                     const QList<NmId> &mailboxIds)
 {
+    NM_FUNCTION;
+    
     switch (event) {
         case NmMailboxDeleted:
         {
@@ -849,11 +1184,68 @@ void NmUiEngine::handleMailboxEvent(NmMailboxEvent event,
     }
 }
 
+
+/*!
+    Adds the found message into the search model.
+
+    \param messageId The ID of the found message.
+    \param folderId The ID of the folder where the message is located.
+*/
+void NmUiEngine::handleMatchFound(const NmId &messageId, const NmId &folderId)
+{
+    NM_FUNCTION;
+    
+    if (!mMessageSearchListModel) {
+        // No search list model!
+        return;
+    }
+
+    // Resolve the folder type.
+    NmId mailboxId = mMessageSearchListModel->currentMailboxId();
+    NmFolderType folderType = folderTypeById(mailboxId, folderId);
+
+    // Do not display matches from outbox or draft folders.
+    if (folderType != NmFolderOutbox && folderType != NmFolderDrafts) {
+        // Add the found message into the search model.
+        QList<NmId> messageIdList;
+        messageIdList.append(messageId);
+
+        mMessageSearchListModel->handleMessageEvent(NmMessageFound, folderId,
+                                                    messageIdList, mailboxId);
+    }
+}
+
+/*!
+    Function sens events from plugin to both models. Inbox model for
+    active mailbox is always alove whereas mMessageListModel can represent
+    other folder in the device (sent, outbox, drafts, etc.)
+*/
+void NmUiEngine::messageEventForListModel(NmMessageEvent event,
+                        const NmId &folderId,
+                        const QList<NmId> &messageIds, 
+                        const NmId& mailboxId)
+{
+    NM_FUNCTION;
+    
+    // Forward event to both list models. Models will take care of checking
+    // whether event really belongs to current mailbox & folder
+    if (mInboxListModel){
+        mInboxListModel->handleMessageEvent(event, folderId,
+                                            messageIds, mailboxId);   
+    }
+    if (mMessageListModel){
+        mMessageListModel->handleMessageEvent(event, folderId,
+                                              messageIds, mailboxId);    
+    }  
+}
+
 /*!
     receives events when going online, and offline.
 */
 void NmUiEngine::handleConnectEvent(NmConnectState connectState, const NmId &mailboxId, const int errorCode)
 {
+    NM_FUNCTION;
+    
     // signal for connection state icon handling
     emit connectionEvent(connectState, mailboxId);
 
@@ -862,4 +1254,24 @@ void NmUiEngine::handleConnectEvent(NmConnectState connectState, const NmId &mai
         NmOperationCompletionEvent event={NoOp, errorCode, mailboxId, 0, 0}; 
         emit operationCompleted(event);
     }
+}
+
+/*!
+    returns full mailbox id from plain account id
+*/
+NmId NmUiEngine::getPluginIdByMailboxId(quint32 accountId)
+{
+    NM_FUNCTION;
+    
+    NmId fullId = NULL;
+    fullId.setId32(accountId);
+    QList<NmId> mailboxList;
+    if(mDataManager){
+        mDataManager->listMailboxIds(mailboxList);
+        for(int i=0;i<mailboxList.count();i++){
+            if(mailboxList.at(i).id32() == accountId)
+                fullId.setPluginId32(mailboxList.at(i).pluginId32());
+            }
+        }
+    return fullId;
 }

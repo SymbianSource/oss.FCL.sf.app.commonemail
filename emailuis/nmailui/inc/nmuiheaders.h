@@ -1,19 +1,19 @@
 /*
-* Copyright (c) 2009 - 2010 Nokia Corporation and/or its subsidiary(-ies).
-* All rights reserved.
-* This component and the accompanying materials are made available
-* under the terms of "Eclipse Public License v1.0"
-* which accompanies this distribution, and is available
-* at the URL "http://www.eclipse.org/legal/epl-v10.html".
-*
-* Initial Contributors:
-* Nokia Corporation - initial contribution.
-*
-* Contributors:
-*
-* Description:
-*
-*/
+ * Copyright (c) 2009-2010 Nokia Corporation and/or its subsidiary(-ies).
+ * All rights reserved.
+ * This component and the accompanying materials are made available
+ * under the terms of "Eclipse Public License v1.0"
+ * which accompanies this distribution, and is available
+ * at the URL "http://www.eclipse.org/legal/epl-v10.html".
+ *
+ * Initial Contributors:
+ * Nokia Corporation - initial contribution.
+ *
+ * Contributors:
+ *
+ * Description:
+ *
+ */
 
 #ifndef NMUIHEADERS_H_
 #define NMUIHEADERS_H_
@@ -42,6 +42,9 @@
 #include <QNetworkDiskCache>
 #include <QWebSettings>
 #include <QPointer>
+#include <QTapGesture>
+#include <QPinchGesture>
+#include <QInputContext>
 
 // Orbit
 #include <hbapplication.h>
@@ -84,18 +87,22 @@
 #include <hbinstance.h>
 #include <hbeffect.h>
 #include <hbmodeliterator.h>
+#include <hbscrollarea.h>
+#include <hbinputvkbhost.h>
+#include <hbindicator.h>
+#include <hbformatdialog.h>
+#include <hbshrinkingvkbhost.h>
 
-#ifdef Q_OS_SYMBIAN
 #include <cntservicescontact.h>
 #include <xqservicerequest.h>
 #include <qtcontacts.h>
 #include <qmobilityglobal.h>
-#include <mobcntmodel.h>
 #include <xqserviceutil.h>
 #include <xqappmgr.h>
 #include <xqserviceipcmarshal.h>
 #include <xqsharablefile.h>
-#endif
+#include <fmfiledialog.h>
+#include <xqaiwdecl.h>
 
 #include <nmcommon.h>
 
@@ -106,16 +113,17 @@
 #include <nmmailboxlistmodel.h>
 #include <nmmessagelistmodel.h>
 #include <nmmessagelistmodelitem.h>
-#include <nmmessagesearchlistmodel.h>
 #include <nmmessage.h>
 #include <nmaddress.h>
 #include <nmoperation.h>
 #include <nmmessagecreationoperation.h>
 #include <nmaddattachmentsoperation.h>
 #include <nmicons.h>
-#include <nmcheckoutboxoperation.h>
 #include <emailmailboxinfo.h>
 #include <email_services_api.h>
+
+// other
+#include <math.h>
 
 // nmailui
 #include "nmhtmllineedit.h"
@@ -147,6 +155,7 @@
 #include "nmrecipientlineedit.h"
 #include "nmstoreenvelopesoperation.h"
 #include "nmsendserviceinterface.h"
+#include "nmuriserviceinterface.h"
 #include "nmmailboxselectiondialog.h"
 #include "nmuidocumentloader.h"
 #include "nmmailboxserviceinterface.h"

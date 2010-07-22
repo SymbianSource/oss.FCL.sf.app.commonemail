@@ -38,7 +38,7 @@ static const int INTERFACEPLUGININDEX = 1;
  */
 NmDataPluginFactory::NmDataPluginFactory()
 {
-
+    NM_FUNCTION;
 }
 
 /*!
@@ -46,6 +46,8 @@ NmDataPluginFactory::NmDataPluginFactory()
  */
 NmDataPluginFactory::~NmDataPluginFactory()
 {
+    NM_FUNCTION;
+    
     if (mPluginArray) {
         qDeleteAll(mPluginArray->begin(), mPluginArray->end());
         mPluginArray->clear();
@@ -62,6 +64,8 @@ NmDataPluginFactory::~NmDataPluginFactory()
  */
 NmDataPluginFactory *NmDataPluginFactory::instance()
 {
+    NM_FUNCTION;
+    
     if (!mInstance) {
         mInstance = new NmDataPluginFactory();
     }
@@ -74,6 +78,8 @@ NmDataPluginFactory *NmDataPluginFactory::instance()
  */
 void NmDataPluginFactory::releaseInstance(NmDataPluginFactory *&instance)
     {
+    NM_FUNCTION;
+    
     //can't have passed out instances if we don't have any
     if (mInstance) {
         if (instance == mInstance) {
@@ -92,6 +98,8 @@ void NmDataPluginFactory::releaseInstance(NmDataPluginFactory *&instance)
  */
 NmDataPluginInterface *NmDataPluginFactory::interfaceInstance(QObject *plugin)
 {
+    NM_FUNCTION;
+    
     NmDataPluginInterface *pluginInterface = NULL;
     if (plugin) {
         pluginInterface= qobject_cast<NmDataPluginInterface*>(plugin);
@@ -104,7 +112,33 @@ NmDataPluginInterface *NmDataPluginFactory::interfaceInstance(QObject *plugin)
  */
 NmDataPluginInterface *NmDataPluginFactory::interfaceInstance(NmId mailboxId)
 {
+    NM_FUNCTION;
+    
     return interfaceInstance(pluginInstance(mailboxId));
+}
+
+/*!
+
+ */
+NmApplicationStateInterface *NmDataPluginFactory::applicationStateInterfaceInstance(QObject *plugin)
+{
+    NM_FUNCTION;
+    
+    NmApplicationStateInterface *pluginInterface = NULL;
+    if (plugin) {
+        pluginInterface= qobject_cast<NmApplicationStateInterface*>(plugin);
+        }
+    return pluginInterface;
+}
+
+/*!
+
+ */
+NmApplicationStateInterface *NmDataPluginFactory::applicationStateInterfaceInstance(NmId mailboxId)
+{
+    NM_FUNCTION;
+    
+    return applicationStateInterfaceInstance(pluginInstance(mailboxId));
 }
 
 /*!
@@ -112,6 +146,8 @@ NmDataPluginInterface *NmDataPluginFactory::interfaceInstance(NmId mailboxId)
  */
 QObject *NmDataPluginFactory::pluginInstance(NmId mailboxId)
 {
+    NM_FUNCTION;
+    
     QObject *value(NULL);
 
     quint64 tmp = mailboxId.id();
@@ -138,6 +174,8 @@ QObject *NmDataPluginFactory::pluginInstance(NmId mailboxId)
  */
 QList<QObject*> *NmDataPluginFactory::pluginInstances()
 {
+    NM_FUNCTION;
+    
     //if plugins have not been already created, do it now.
     if (!mPluginArray) {
         mPluginArray = new QList<QObject*>();
@@ -174,6 +212,8 @@ QObject *NmDataPluginFactory::loadPlugin(
     const QDir &pluginDir,
     const QString &pluginName )
 {
+    NM_FUNCTION;
+    
     /*!
         This creates plugin entity.
      */

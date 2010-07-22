@@ -308,8 +308,8 @@ TBool CIpsPlgMsgMapper::ChangeTEntryFlagsL(
     TBool unread( aEmlEntry.Unread() );
 
 // <qmail>
-    if ( !LogicalXor( unread, msgFlags & EFSMsgFlag_Read ) ||
-         !LogicalXor( unread, msgFlags & EFSMsgFlag_Read_Locally ))
+    if ( LogicalXor( unread, msgFlags & EFSMsgFlag_Read ) ||
+         LogicalXor( unread, msgFlags & EFSMsgFlag_Read_Locally ))
 // </qmail>
         {
         aEmlEntry.SetUnread( !unread );
@@ -408,15 +408,14 @@ void CIpsPlgMsgMapper::UpdateMessageFlagsL(
 
     TMsvEmailEntry tEntry( cEntry->Entry() );
     TBool isModified = ChangeTEntryFlagsL( tEntry, aMessage );
-
+    // <qmail>
     if ( isModified )
         {
-// <qmail> Function called sync in Qmail
         cEntry->ChangeL( tEntry );
-// </qmail>
         }
 
     CleanupStack::PopAndDestroy( cEntry );
+    // </qmail>
     }
 
 // ---------------------------------------------------------------------------
@@ -714,8 +713,7 @@ void CIpsPlgMsgMapper::SetFlags(
 							{
 							// Only text/calendar part included as attachment
 							aMsg.ResetFlag( EFSMsgFlag_Attachments );
-							//Set Attachment flag for CMsvEntry (needed for sorting)
-							TRAP_IGNORE( SetAttachmentFlagL( aEntry, EFalse ) );
+							// <qmail> remove call to SetAttachmentFlagL(), because shouln't be needed any more
 							}
                 		}
                 	delete cEntry;
@@ -1510,24 +1508,21 @@ void CIpsPlgMsgMapper::AttaCheckForIncompleteMsgL(
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 // <cmail>
-void CIpsPlgMsgMapper::SetAttachmentFlagL( const TMsvEmailEntry& aEntry,
-										   TBool aHasAttachment )
+void CIpsPlgMsgMapper::SetAttachmentFlagL( const TMsvEmailEntry& /*aEntry*/,
+										   TBool /*aHasAttachment*/ )
 	{
 	FUNC_LOG;
-	CMsvEntry* cEntry = iSession.GetEntryL( aEntry.Id() );
+	// <qmail> commented out, causing freeze in message list
+	/*CMsvEntry* cEntry = iSession.GetEntryL( aEntry.Id() );
 	CleanupStack::PushL( cEntry );
 	// Only text/calendar part included as attachment
 	TMsvEmailEntry entryToBeChanged( aEntry );
 	entryToBeChanged.SetAttachment( aHasAttachment );
 
-// <qmail> Function called sync in Qmail
 	cEntry->ChangeL( entryToBeChanged );
-	CleanupStack::PopAndDestroy( cEntry );
+	CleanupStack::PopAndDestroy( cEntry );*/
 // </qmail>
 	}
-// </cmail>
-
-// <cmail>
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 void CIpsPlgMsgMapper::GetCharsetParameterL(

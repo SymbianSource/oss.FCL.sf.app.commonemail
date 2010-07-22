@@ -14,67 +14,77 @@
  * Description:
  *
  */
-#include "nmapiengine.h"
-#include "nmapienvelopelisting_p.h"
 
-#include <nmapimailbox.h>
-#include <nmapimessageenvelope.h>
+#include "nmapiheaders.h"
 
 
 
 namespace EmailClientApi
 {
-NmApiEnvelopeListingPrivate::NmApiEnvelopeListingPrivate(QObject *parent) :
-    QObject(parent), mEngine(NULL)
+NmApiEnvelopeListingPrivate::NmApiEnvelopeListingPrivate(const quint64 folderId, const quint64 mailboxId, QObject *parent)
+:QObject(parent),
+mFolderId(folderId), 
+mMailboxId(mailboxId), 
+mIsRunning(false),
+mEngine(NULL)
 {
-
+    NM_FUNCTION;
+    mEngine = NmApiEngine::instance();
+    Q_CHECK_PTR(mEngine);
 }
 
 NmApiEnvelopeListingPrivate::~NmApiEnvelopeListingPrivate()
 {
-    releaseEngine();
-}
-
-/*!
-   \brief It initialize engine for email operations. 
-   
-   When use initializeEngine need to remember release it.
-   It return value if initialization go good.
-   \sa releaseEngine 
- */
-bool NmApiEnvelopeListingPrivate::initializeEngine()
-{
-    mEngine = NmApiEngine::instance();
-    return mEngine ? true : false;
-}
-
-/*!
-   \brief It release engine for email operations.
-   
-   \sa initializeEngine
- */
-void NmApiEnvelopeListingPrivate::releaseEngine()
-{
+    NM_FUNCTION;
     NmApiEngine::releaseInstance(mEngine);
 }
 
-/*!
-   \brief It grab envelopes from engine. 
+/*! 
+   \brief Fills envelopes to the input parameter.
    
-   When it start grabing, it release all old.
+    Caller gets ownership of envelopes. Returns true if results were available.
+ */
+bool NmApiEnvelopeListingPrivate::envelopes(QList<EmailClientApi::NmApiMessageEnvelope> &envelopes)
+{
+    NM_FUNCTION;
+    bool ret(mIsRunning);
+    envelopes.clear();
+    while (!mEnvelopes.isEmpty()) {
+        envelopes << mEnvelopes.takeFirst();
+    }
+    mIsRunning = false;
+    return ret;
+}
+
+/*!
+   \brief It fetches envelopes from engine. 
+   
    Because it uses NmApiMessageEnvelope with sharedData we don't need care about release memory.
    
-   \return Count of envelopes or "-1" if there is no engine initialised
+   \return Count of envelopes 
  */
-qint32 NmApiEnvelopeListingPrivate::grabEnvelopes()
+qint32 NmApiEnvelopeListingPrivate::listEnvelopes()
 {
-    if(!mEngine){
-        return -1;
-    }
-    
+    NM_FUNCTION;
+    mIsRunning = true;
     mEnvelopes.clear();
-    mEngine->listEnvelopes(mailboxId, folderId, mEnvelopes);
+    mEngine->listEnvelopes(mMailboxId, mFolderId, mEnvelopes);
     return mEnvelopes.count();
+}
+/*!
+   \brief Return info if listing is running
+ */
+bool NmApiEnvelopeListingPrivate::isRunning() const
+{
+    return mIsRunning;
+}
+/*!
+   \brief Clears list of envelopes.
+ */
+void NmApiEnvelopeListingPrivate::cancel() 
+{
+    mIsRunning = false;
+    mEnvelopes.clear();
 }
 }
 

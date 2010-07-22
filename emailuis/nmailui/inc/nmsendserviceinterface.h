@@ -23,11 +23,7 @@
 #include <QObject>
 #include <QVariant>
 
-#ifdef Q_OS_SYMBIAN
 #include <xqserviceprovider.h>
-#else
-#define NM_WINS_ENV
-#endif
 
 //  FORWARD DECLARATIONS
 class NmDataManager;
@@ -41,11 +37,7 @@ class HbView;
 
 
 class NmSendServiceInterface
-#ifndef NM_WINS_ENV
     : public XQServiceProvider
-#else
-    : public QObject
-#endif
 {
     Q_OBJECT
 
@@ -69,11 +61,11 @@ private:
 
 private: // Data
 
-    NmApplication *mApplication; // Not owned
+    NmApplication *mApplication;    // Not owned
     NmUiEngine &mUiEngine;
     int mAsyncReqId;
-    NmUiStartParam *mStartParam;
-    NmMailboxSelectionDialog *mSelectionDialog;
+    NmUiStartParam *mStartParam;    // Owned
+    NmMailboxSelectionDialog *mSelectionDialog; // Owned
     HbView *mCurrentView;
 };
 

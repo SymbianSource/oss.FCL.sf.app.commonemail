@@ -17,6 +17,9 @@
 
 #include "nmuiheaders.h"
 
+const QString NmMailboxListViewItemIcon = "MailboxListViewMailboxIcon";
+const QString NmMailboxListViewItemName = "MailboxListViewMailboxName";
+
 /*!
     \class NmMailboxListViewItem
     \brief Mailbox list view item inherited from HbListViewItem
@@ -29,6 +32,7 @@ NmMailboxListViewItem::NmMailboxListViewItem(QGraphicsItem *parent)
 : HbListViewItem(parent),
 mLayout(NULL)
 {
+    NM_FUNCTION;
 }
 
 /*!
@@ -36,6 +40,7 @@ mLayout(NULL)
 */
 NmMailboxListViewItem::~NmMailboxListViewItem()
 {
+    NM_FUNCTION;
 }
 
 /*!
@@ -43,6 +48,8 @@ NmMailboxListViewItem::~NmMailboxListViewItem()
 */
 HbListViewItem* NmMailboxListViewItem::createItem()
 {
+    NM_FUNCTION;
+    
     return new NmMailboxListViewItem(*this);
 }
 
@@ -51,22 +58,35 @@ HbListViewItem* NmMailboxListViewItem::createItem()
 */
 void NmMailboxListViewItem::updateChildItems()
 {
+    NM_FUNCTION;
+    
     // To create primitives
     HbListViewItem::updateChildItems();
 
+    EmailMailboxInfo mailboxInfo;
+    
     NmMailboxMetaData *mailbox =
             modelIndex().data(Qt::DisplayRole).value<NmMailboxMetaData*>();
-    if (mailbox){
+    
+    HbLabel *textLabel = findChild<HbLabel *>(NmMailboxListViewItemName);
+    HbLabel *icon = findChild<HbLabel *>(NmMailboxListViewItemIcon);
+    
+    if (mailbox && !textLabel && !icon){
         mLayout = new QGraphicsLinearLayout(Qt::Horizontal, 0);
         mLayout->setContentsMargins(0,0,0,0);
 
         HbLabel *mbIcon = new HbLabel();
-        mbIcon->setObjectName("MailboxListViewMailboxIcon");
-        mbIcon->setIcon(NmIcons::getIcon(NmIcons::NmIconDefaultMailbox));
+        mbIcon->setParent(this);
+        mbIcon->setObjectName(NmMailboxListViewItemIcon);
+        
+        QString domainName = mailbox->address();
+        QString iconName = mailboxInfo.mailboxIcon(domainName);
+        mbIcon->setIcon(HbIcon(iconName));
         mbIcon->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
 
         HbLabel *mbName = new HbLabel();
-        mbName->setObjectName("MailboxListViewMailboxName");
+        mbName->setParent(this);
+        mbName->setObjectName(NmMailboxListViewItemName);
         mbName->setPlainText(mailbox->name());
         mbName->setAlignment(Qt::AlignVCenter);
         mbName->setFontSpec(HbFontSpec(HbFontSpec::Primary));
@@ -77,6 +97,17 @@ void NmMailboxListViewItem::updateChildItems()
         mLayout->setItemSpacing(0,0);
 
         setLayout(mLayout); // Ownership is transferred
+    } else if (mailbox) {
+        
+        if (textLabel) {
+            textLabel->setPlainText(mailbox->name());
+        }
+        
+        QString iconName = mailboxInfo.mailboxIcon(mailbox->address());
+        if (icon && !iconName.isEmpty()) {
+            icon->setIcon(HbIcon(iconName));
+        }
+        
     }
 }
 
@@ -85,6 +116,8 @@ void NmMailboxListViewItem::updateChildItems()
 */
 bool NmMailboxListViewItem::canSetModelIndex(const QModelIndex &index)
 {
+    NM_FUNCTION;
+    
     Q_UNUSED(index);
     return true;
 }
@@ -94,18 +127,8 @@ bool NmMailboxListViewItem::canSetModelIndex(const QModelIndex &index)
 */
 void NmMailboxListViewItem::polishEvent()
 {
+    NM_FUNCTION;
+    
     QGraphicsWidget::polishEvent();
 }
 
-/*!
-    paint. Paint function for line painting.
-*/
-void NmMailboxListViewItem::paint(
-    QPainter *painter,
-    const QStyleOptionGraphicsItem *option,
-    QWidget *widget)
-{
-    Q_UNUSED(option);
-    Q_UNUSED(widget);
-    Q_UNUSED(painter);
-}

@@ -33,18 +33,12 @@
 NmMailboxServiceInterface::NmMailboxServiceInterface(QObject *parent,
         NmUiEngine &uiEngine,
         NmApplication *application)
-#ifndef NM_WINS_ENV
     : XQServiceProvider(emailFullServiceNameMailbox, parent),
-#else
-    : QObject(parent),
-#endif
       mUiEngine(uiEngine),
       mApplication(application),
       mAsyncReqId(0)
 {
-#ifndef NM_WINS_ENV
     publishAll();
-#endif
 }
 
 
@@ -53,6 +47,7 @@ NmMailboxServiceInterface::NmMailboxServiceInterface(QObject *parent,
 */
 NmMailboxServiceInterface::~NmMailboxServiceInterface()
 {
+    NM_FUNCTION;
 }
 
 
@@ -63,14 +58,16 @@ NmMailboxServiceInterface::~NmMailboxServiceInterface()
 */
 void NmMailboxServiceInterface::displayInboxByMailboxId(QVariant data)
 {
-    NMLOG("NmMailboxServiceInterface::displayInboxByMailboxId()");
+    NM_FUNCTION;
 
-#ifndef NM_WINS_ENV
 
     // Get the given ID and convert it into NmId type.
     NmId mailboxNmId(data.toULongLong());
 
     mAsyncReqId = setCurrentRequestAsync();
+
+    // Make sure that app stays background if user presses back in message list view
+    bool visible = mApplication->updateVisibilityState();
 
     // Verify that the ID matches one of the existing mailboxes.
     if (mailboxExistsById(mailboxNmId)) {
@@ -80,26 +77,30 @@ void NmMailboxServiceInterface::displayInboxByMailboxId(QVariant data)
 
         // Bring the application to the foreground.
         XQServiceUtil::toBackground(false);
+        if (mApplication) {
+            HbMainWindow *mainWindow = mApplication->mainWindow();
+            mainWindow->show();
 
-        // Launch the message list view.
-        NmUiStartParam *startParam =
-            new NmUiStartParam(NmUiViewMessageList,
-                               mailboxNmId,
-                               inboxId, // folder id
-                               0, // message id
-                               NmUiEditorCreateNew, // editor start mode
-                               NULL, // address list
-                               NULL, // attachment list
-                               true); // start as service
-        mApplication->enterNmUiView(startParam);
-
+            // Launch the message list view.
+            NmUiStartParam *startParam =
+                new NmUiStartParam(NmUiViewMessageList,
+                                   mailboxNmId,
+                                   inboxId, // folder id
+                                   0, // message id
+                                   NmUiEditorCreateNew, // editor start mode
+                                   NULL, // address list
+                                   NULL, // attachment list
+                                   true); // start as service
+            mApplication->enterNmUiView(startParam);
+        }
+       
         completeRequest(mAsyncReqId, 0);
     }
     else {
         // No mailbox found with the given ID.
 
         // if started as embedded, do not hide the app
-		if (!XQServiceUtil::isEmbedded()) {
+		if (!XQServiceUtil::isEmbedded() && !visible) {
 			XQServiceUtil::toBackground(true);
 		}
 
@@ -111,7 +112,6 @@ void NmMailboxServiceInterface::displayInboxByMailboxId(QVariant data)
                     mApplication, SLOT(delayedExitApplication()));
         }
     }
-#endif
 }
 
 
@@ -122,7 +122,7 @@ void NmMailboxServiceInterface::displayInboxByMailboxId(QVariant data)
 */
 bool NmMailboxServiceInterface::mailboxExistsById(const NmId &mailboxId) const
 {
-    NMLOG("NmMailboxServiceInterface::mailboxExistsById()");
+    NM_FUNCTION;
 
     const NmMailboxListModel& mailboxListModel = mUiEngine.mailboxListModel();
     int mailboxCount = mailboxListModel.rowCount();
@@ -137,7 +137,9 @@ bool NmMailboxServiceInterface::mailboxExistsById(const NmId &mailboxId) const
         modelIndex = mailboxListModel.index(i, 0);
         mailbox = mailboxListModel.data(modelIndex);
         mailboxMetaData = mailbox.value<NmMailboxMetaData*>();
-        currentId = mailboxMetaData->id();
+        if (mailboxMetaData) {
+            currentId = mailboxMetaData->id();        
+        }
 
         if (currentId.id() == mailboxId.id()) {
             // Found a mailbox with the matching ID.

@@ -29,7 +29,7 @@
 */
 NmMailboxSearchObserver::NmMailboxSearchObserver()
 {
-    
+    NM_FUNCTION;
 }
 
 
@@ -38,7 +38,7 @@ NmMailboxSearchObserver::NmMailboxSearchObserver()
 */
 NmMailboxSearchObserver::~NmMailboxSearchObserver()
 {
-    
+    NM_FUNCTION;
 }
 
 
@@ -52,11 +52,14 @@ NmMailboxSearchObserver::~NmMailboxSearchObserver()
 */
 void NmMailboxSearchObserver::MatchFoundL(CFSMailMessage *aMatchMessage)
 {
+    NM_FUNCTION;
+    
     if (aMatchMessage) {
         NmMessage *message = aMatchMessage->GetNmMessage();
 
         if (message) {
-            emit matchFound(message->envelope().messageId());
+            NmMessageEnvelope messageEnvelope = message->envelope();
+            emit matchFound(messageEnvelope.messageId(), messageEnvelope.folderId());
             delete message;
         }
     }
@@ -69,6 +72,8 @@ void NmMailboxSearchObserver::MatchFoundL(CFSMailMessage *aMatchMessage)
 */
 void NmMailboxSearchObserver::SearchCompletedL()
 {
+    NM_FUNCTION;
+    
     emit searchComplete();
 }
 
@@ -80,6 +85,8 @@ void NmMailboxSearchObserver::SearchCompletedL()
 void NmMailboxSearchObserver::ClientRequiredSearchPriority(
     TInt *apRequiredSearchPriority)
 {
+    NM_FUNCTION;
+    
     Q_UNUSED(apRequiredSearchPriority);
 }
 

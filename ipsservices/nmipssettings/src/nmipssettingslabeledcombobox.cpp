@@ -56,9 +56,6 @@ NmIpsSettingsLabeledComboBox::NmIpsSettingsLabeledComboBox(
     // Connect signals and slots.
     connect(mComboBox, SIGNAL(currentIndexChanged(int)),
         this, SLOT(comboBoxIndexChanged(int)), Qt::UniqueConnection);
-
-    connect(mComboBox, SIGNAL(currentIndexChanged(int)),
-        this, SIGNAL(currentIndexChanged(int)), Qt::UniqueConnection);
 }
 
 /*!
@@ -134,4 +131,8 @@ void NmIpsSettingsLabeledComboBox::comboBoxIndexChanged(int index)
 {
     QString label(mLabelTexts.value(index));
     mLabel->setPlainText(label);
+    QMap<QString, QVariant> properties;
+    properties.insert("currentIndex", index);
+    emit propertyChanged(properties);
+    emit currentIndexChanged(index);
 }

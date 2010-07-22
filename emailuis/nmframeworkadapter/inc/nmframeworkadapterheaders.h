@@ -35,10 +35,11 @@
 // nmailuiengine 
 #include <nmoperation.h>
 #include <nmstoreenvelopesoperation.h>
-#include <nmcheckoutboxoperation.h>
 #include <nmmessagesendingoperation.h>
 #include <nmaddattachmentsoperation.h>
 #include <nmmessagecreationoperation.h>
+#include <nmdataplugininterface.h>
+#include <nmapplicationstateinterface.h>
 
 // nmailbase
 #include <nmmailbox.h>
@@ -49,21 +50,24 @@
 
 // emailcommon
 #include <nmcleanuputils.h>
+#include <cmailboxstateext.h>
 
 // nmframeworkadapter
 #include "nmframeworkadapter.h"
 #include "nmfwaaddattachmentsoperation.h"
 #include "nmfwaremoveattachmentoperation.h"
-#include "nmfwacheckoutboxoperation.h"
 #include "nmfwamessagecreationoperation.h"
 #include "nmfwaforwardmessagecreationoperation.h"
 #include "nmfwareplymessagecreationoperation.h"
 #include "nmfwamessagefetchingoperation.h"
 #include "nmfwamessagepartfetchingoperation.h"
+#include "nmfwamessagepartsfetchingoperation.h"
 #include "nmfwamessagesendingoperation.h"
 #include "nmfwastoreenvelopesoperation.h"
 #include "nmfwastoremessageoperation.h"
 #include "nmmailboxsearchobserver.h"
+#include "nmfwaremovedraftmessageoperation.h"
+#include "nmfwadeletemailboxoperation.h"
 
 // fs email
 #include <CFSMailCommon.h>
