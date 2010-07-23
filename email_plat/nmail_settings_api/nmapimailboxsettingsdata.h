@@ -45,6 +45,11 @@ const QString NmApiSaveEnergy = "Save-Energy";
 const QString NmApiFetchManually = "Manual-Fetch";
 const QString NmApiUserDefined = "User-Defined";
 
+const QString EmailProfileOffsetKUTD = "KUTD";
+const QString EmailProfileOffsetSE = "SE";
+const QString EmailProfileOffsetMF = "MF";
+const QString EmailProfileOffsetUD = "UD";
+
 enum NmApiWeekDays
 {
     Mon = 0x01, Tue = 0x02, Wed = 0x04, Thu = 0x08, Fri = 0x10,

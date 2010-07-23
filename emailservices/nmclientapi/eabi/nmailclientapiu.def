@@ -251,21 +251,27 @@ EXPORTS
 	_ZN14EmailClientApi20NmApiMailboxSettingsD0Ev @ 250 NONAME
 	_ZN14EmailClientApi20NmApiMailboxSettingsD1Ev @ 251 NONAME
 	_ZN14EmailClientApi20NmApiMailboxSettingsD2Ev @ 252 NONAME
-	_ZN14EmailClientApi24NmApiMailboxSettingsData12setMailboxIdEy @ 253 NONAME
-	_ZN14EmailClientApi24NmApiMailboxSettingsData13clearSettingsEv @ 254 NONAME
-	_ZN14EmailClientApi24NmApiMailboxSettingsData8setValueEiRK8QVariant @ 255 NONAME
-	_ZN14EmailClientApi24NmApiMailboxSettingsDataC1Ev @ 256 NONAME
-	_ZN14EmailClientApi24NmApiMailboxSettingsDataC2Ev @ 257 NONAME
-	_ZN14EmailClientApi24NmApiMailboxSettingsDataD1Ev @ 258 NONAME
-	_ZN14EmailClientApi24NmApiMailboxSettingsDataD2Ev @ 259 NONAME
-	_ZNK14EmailClientApi19NmApiMessageManager10metaObjectEv @ 260 NONAME
-	_ZNK14EmailClientApi20NmApiMailboxSettings10metaObjectEv @ 261 NONAME
-	_ZNK14EmailClientApi24NmApiMailboxSettingsData12listSettingsEv @ 262 NONAME
-	_ZNK14EmailClientApi24NmApiMailboxSettingsData12validateDataEv @ 263 NONAME
-	_ZNK14EmailClientApi24NmApiMailboxSettingsData8getValueEiR8QVariant @ 264 NONAME
-	_ZNK14EmailClientApi24NmApiMailboxSettingsData9mailboxIdEv @ 265 NONAME
-	_ZTIN14EmailClientApi19NmApiMessageManagerE @ 266 NONAME
-	_ZTIN14EmailClientApi20NmApiMailboxSettingsE @ 267 NONAME
-	_ZTVN14EmailClientApi19NmApiMessageManagerE @ 268 NONAME
-	_ZTVN14EmailClientApi20NmApiMailboxSettingsE @ 269 NONAME
+	_ZN14EmailClientApi20NmApiSettingsManager4loadEyRNS_24NmApiMailboxSettingsDataE @ 253 NONAME
+	_ZN14EmailClientApi20NmApiSettingsManager4saveERKNS_24NmApiMailboxSettingsDataE @ 254 NONAME
+	_ZN14EmailClientApi20NmApiSettingsManagerC1Ey @ 255 NONAME
+	_ZN14EmailClientApi20NmApiSettingsManagerC2Ey @ 256 NONAME
+	_ZN14EmailClientApi20NmApiSettingsManagerD1Ev @ 257 NONAME
+	_ZN14EmailClientApi20NmApiSettingsManagerD2Ev @ 258 NONAME
+	_ZN14EmailClientApi24NmApiMailboxSettingsData12setMailboxIdEy @ 259 NONAME
+	_ZN14EmailClientApi24NmApiMailboxSettingsData13clearSettingsEv @ 260 NONAME
+	_ZN14EmailClientApi24NmApiMailboxSettingsData8setValueEiRK8QVariant @ 261 NONAME
+	_ZN14EmailClientApi24NmApiMailboxSettingsDataC1Ev @ 262 NONAME
+	_ZN14EmailClientApi24NmApiMailboxSettingsDataC2Ev @ 263 NONAME
+	_ZN14EmailClientApi24NmApiMailboxSettingsDataD1Ev @ 264 NONAME
+	_ZN14EmailClientApi24NmApiMailboxSettingsDataD2Ev @ 265 NONAME
+	_ZNK14EmailClientApi19NmApiMessageManager10metaObjectEv @ 266 NONAME
+	_ZNK14EmailClientApi20NmApiMailboxSettings10metaObjectEv @ 267 NONAME
+	_ZNK14EmailClientApi24NmApiMailboxSettingsData12listSettingsEv @ 268 NONAME
+	_ZNK14EmailClientApi24NmApiMailboxSettingsData12validateDataEv @ 269 NONAME
+	_ZNK14EmailClientApi24NmApiMailboxSettingsData8getValueEiR8QVariant @ 270 NONAME
+	_ZNK14EmailClientApi24NmApiMailboxSettingsData9mailboxIdEv @ 271 NONAME
+	_ZTIN14EmailClientApi19NmApiMessageManagerE @ 272 NONAME
+	_ZTIN14EmailClientApi20NmApiMailboxSettingsE @ 273 NONAME
+	_ZTVN14EmailClientApi19NmApiMessageManagerE @ 274 NONAME
+	_ZTVN14EmailClientApi20NmApiMailboxSettingsE @ 275 NONAME
 

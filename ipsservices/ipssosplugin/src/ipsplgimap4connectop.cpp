@@ -339,6 +339,7 @@ void CIpsPlgImap4ConnectOp::DoConnectOpL()
     if ( iDoPlainConnect && !Connected() )
         {
         TBuf8<1> parameter;
+        NM_COMMENT("CIpsPlgImap4ConnectOp: do plain connect");
         // connect and synchronise starts background sync or idle
         iSubOperation = iBaseMtm->InvokeAsyncFunctionL(
             KIMAP4MTMConnect, *iSelection, parameter, iStatus);
@@ -348,12 +349,14 @@ void CIpsPlgImap4ConnectOp::DoConnectOpL()
         // in this point cant use "connect and do something" commands,
         // use regular sync, when new mails is populated elsewhere.
         TBuf8<1> parameter;
+        NM_COMMENT("CIpsPlgImap4ConnectOp: full sync starting");
         iSubOperation = iBaseMtm->InvokeAsyncFunctionL(
             KIMAP4MTMFullSync, *iSelection, parameter, iStatus);
         }
     else
         {
         // the used command requires an observer to be given even though we're not using it
+        NM_COMMENT("CIpsPlgImap4ConnectOp: connect and sync");
         TPckg<MMsvImapConnectionObserver*> parameter( NULL );
         iSubOperation = iBaseMtm->InvokeAsyncFunctionL(
             KIMAP4MTMConnectAndSyncCompleteAfterFullSync, 
@@ -372,6 +375,7 @@ void CIpsPlgImap4ConnectOp::DoPopulateAllL()
     {
     FUNC_LOG;
     
+    NM_COMMENT("CIpsPlgImap4ConnectOp: populate all");
     // construct partial fetch info according to imap settings
     // <qmail> new function to wrap settings loading
     CImImap4Settings* settings = GetImapSettingsLC();

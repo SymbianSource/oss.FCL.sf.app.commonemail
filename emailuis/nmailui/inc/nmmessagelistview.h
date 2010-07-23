@@ -80,6 +80,7 @@ private:
     void setMailboxName();
     void createToolBar();
     void setFolderName();
+    void updateSyncIcon();
 
 private:
     NmApplication &mApplication;
@@ -93,7 +94,6 @@ private:
     NmMessageListModelItem *mLongPressedItem;  // Not owned
     HbLabel *mNoMessagesLabel;              // Not owned
     HbGroupBox *mFolderLabel;               // Not owned
-    HbLabel *mSyncIcon;                     // Not owned
     QModelIndex mActivatedIndex;
     bool mViewReady;
     NmFolderType mCurrentFolderType;

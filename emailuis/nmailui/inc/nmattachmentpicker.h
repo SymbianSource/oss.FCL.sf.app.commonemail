@@ -21,6 +21,7 @@
 #include <QObject>
 
 class XQAiwRequest;
+class HbListWidgetItem;
 
 /**
  * This class manages launching of different attachment pickers 
@@ -41,7 +42,9 @@ public slots:
     void fetchOther();  
     void fetchCameraStill();
     void fetchCameraVideo();
-
+    void selectFetcher(HbListWidgetItem *listItem);
+        
+    
 signals:
     void attachmentsFetchOk(const QVariant &fileNames);
     void attachmentsFetchError(int errorCode, const QString &errorMessage);

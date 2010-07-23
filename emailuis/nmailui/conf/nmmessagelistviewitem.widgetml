@@ -4,11 +4,11 @@
       <meshitem src="sender" srcEdge="TOP" dst="" dstEdge="TOP" spacing="-var(hb-param-margin-gene-top)"/>
       <meshitem src="sender" srcEdge="LEFT" dst="" dstEdge="LEFT" spacing="-var(hb-param-margin-gene-left)"/>
       <meshitem src="sender" srcEdge="BOTTOM" dst="subject" dstEdge="TOP" spacing="var(hb-param-margin-gene-bottom)"/> 
-                 
-      <meshitem src="time" srcEdge="CENTERV" dst="sender" dstEdge="CENTERV"/>
+             
       <meshitem src="time" srcEdge="LEFT" dst="sender" dstEdge="RIGHT" spacing="-var(hb-param-margin-gene-middle-horizontal)"/>
       <meshitem src="time" srcEdge="RIGHT" dst="" dstEdge="RIGHT" spacing="var(hb-param-margin-gene-right)"/>
-       
+      <meshitem src="time" srcEdge="BOTTOM" dst="sender" dstEdge="BOTTOM" spacing="0"/> 
+             
       <meshitem src="subject" srcEdge="LEFT" dst="" dstEdge="LEFT" spacing="-var(hb-param-margin-gene-left)"/>
       <meshitem src="subject" srcEdge="BOTTOM" dst="" dstEdge="BOTTOM" spacing="var(hb-param-margin-gene-bottom)"/>
       

@@ -130,12 +130,12 @@ CBasePlugin::~CBasePlugin()
 
     iReqs.ResetAndDestroy();
     iReqs.Close();
-
+//<qmail>
     // Note that all the ops in iDelayedOpReqs array (if any) have already been
     // deleted in the destructor of CDelayedOpsManager class.
     iDelayedOpReqs.Reset();
     iDelayedOpReqs.Close();
-
+//</qmail>
     ResetCache();
 
     __LOG_DESTRUCT
@@ -1253,6 +1253,15 @@ void CBasePlugin::DoListFoldersL(
     CleanupStack::PopAndDestroy( &folders );
     }
 
+/**
+ * This methoed must be called before destruction of 
+ * CBasePlugin derived class. To fix bug EIZU-7XVF2Z.
+ */
+void CBasePlugin::DeleteDelayedOpsManager()
+    {
+    delete iDelayedOpsManager;
+    iDelayedOpsManager = NULL;
+    }
 
 /**
  *

@@ -60,7 +60,6 @@ private:
     HbIconItem *mIcon2;                    // Owned
     qreal mPrimarySize;
     qreal mSecondarySize;
-    qreal mTinySize;
 };
 
 

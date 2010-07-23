@@ -207,6 +207,7 @@ void CIpsSosAOImapAgent::RunL()
          case EStateFetchOnHold:
              break;
          case EStateDisconnect:
+             NM_COMMENT("CIpsSosAOImapAgent: disconnecting");
              if ( !iDoNotDisconnect )
                  {
                  CancelAllAndDisconnectL();
@@ -218,6 +219,7 @@ void CIpsSosAOImapAgent::RunL()
                  }
              break;
          case EStateCompleted:
+             NM_COMMENT("CIpsSosAOImapAgent: completed");
              TRAP_IGNORE( iOpResponse.OperationCompletedL( iError ) );
              SignalSyncCompleted( iServiceId, iError );
              iError = KErrNone;
@@ -330,6 +332,7 @@ void CIpsSosAOImapAgent::StartSyncL()
     LoadSettingsL( );
     if ( !IsConnected() )
         {
+        NM_COMMENT("CIpsSosAOImapAgent: starting sync");
         TPckg<MMsvImapConnectionObserver*> parameter(this);
         // connect and synchronise starts background sync or idle
         CMsvEntrySelection* sel = new ( ELeave ) CMsvEntrySelection();
@@ -345,10 +348,11 @@ void CIpsSosAOImapAgent::StartSyncL()
         }
     else
         {
+        NM_COMMENT("CIpsSosAOImapAgent: already connected do not sync");
         // do not do anything if we are connected, especially do never
         // try to sync if sync is is already started (ex. from ips plugin)
         // that cause problems with imap flags etc.
-        iError = KErrNone;
+        iError = KErrCancel;
         iState = EStateCompleted;
         SetActiveAndCompleteThis();
         }

@@ -673,6 +673,14 @@ void NmMessageSearchListView::toggleSearch()
 
         mUiEngine.search(mStartParam->mailboxId(), searchStrings);
 
+        // Hide the virtual keyboard
+        QInputContext *ic = qApp->inputContext();
+        if (ic) {
+            QEvent *closeEvent = new QEvent(QEvent::CloseSoftwareInputPanel);
+            ic->filterEvent(closeEvent);
+            delete closeEvent;
+        }
+        
         // Hide the "no messages" label if visible and dim the search input.
         noMessagesLabelVisibility(false);
         setSearchInputMode(NmDimmedMode);

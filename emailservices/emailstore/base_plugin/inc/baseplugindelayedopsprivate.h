@@ -19,7 +19,6 @@
 
 
 #include "baseplugindelayedops.h"
-#include "nestedao.h"
 
 /**
  * Lets the user enqueue and dequeue asynchronous jobs for handling
@@ -70,7 +69,7 @@ private:
 /**
  * 
  */
-NONSHARABLE_CLASS( CDelayedDeleteMessagesOp ) : public CDelayedOp, public MDeletionHandler
+NONSHARABLE_CLASS( CDelayedDeleteMessagesOp ) : public CDelayedOp
     {
 
 public:
@@ -88,12 +87,8 @@ public:
     virtual ~CDelayedDeleteMessagesOp();
 
     //CDelayedOp::ExecuteOpL
-    virtual void ExecuteOpL();
-    
-    //From MDeletionHandler
-    //Used to delete messages in chunks starting from aStartIndex
-    TBool DeleteMessagesInChunksL( TInt aStartIndex );
-    
+    virtual TBool ExecuteOpL();
+
 private:
 
     void ConstructL( const RArray<TFSMailMsgId>& aMessages );
@@ -112,7 +107,7 @@ private:
     TMsgStoreId iFolderId;
     RArray<TMsgStoreId> iMessages;
     TBool iImmediateDelete;
-    TState iState;
+    TInt iIndex;
     __LOG_DECLARATION
     };
 
@@ -142,7 +137,7 @@ public:
     virtual ~CDelayedSetContentOp();
 
     //CDelayedOp::ExecuteOpL
-    virtual void ExecuteOpL();
+    virtual TBool ExecuteOpL();
     
 private:
 
@@ -200,7 +195,7 @@ public:
     virtual ~CDelayedMessageStorerOp();
 
     //CDelayedOp::ExecuteOpL
-    virtual void ExecuteOpL();
+    virtual TBool ExecuteOpL();
     
 private:
 
@@ -254,7 +249,7 @@ public:
     virtual ~CDelayedMessageToSendOp();
 
     //CDelayedOp::ExecuteOpL
-    virtual void ExecuteOpL();
+    virtual TBool ExecuteOpL();
     
 private:
 
@@ -302,7 +297,7 @@ public:
     virtual ~CDelayedAddNewOrRemoveChildPartOp();
 
     //CDelayedOp::ExecuteOpL
-    virtual void ExecuteOpL();
+    virtual TBool ExecuteOpL();
     
 private:
 

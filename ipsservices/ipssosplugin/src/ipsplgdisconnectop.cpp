@@ -203,7 +203,7 @@ void CIpsPlgDisconnectOp::DoDisconnectL()
     {
     FUNC_LOG;
     iStatus = KRequestPending;
-    
+    NM_COMMENT("CIpsPlgDisconnectOp: doing disconnect");
     TInt cmd = (iTEntry.iMtm == KUidMsgTypePOP3) ? KPOP3MTMDisconnect : KIMAP4MTMDisconnect;
     InvokeClientMtmAsyncFunctionL( cmd, iService ); // <qmail> 1 param removed
     SetActive();

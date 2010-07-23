@@ -21,6 +21,12 @@
 
 static const QString NmSendServiceName = "nmail.com.nokia.symbian.IFileShare";
 
+// Delay before a screenshot is taken after view activation so that view has time to draw itself,
+// testing seems to indicate 500ms to be a good value
+static const int NmActivityUpdateDelayMs = 500;
+
+static const QString NmActivityName = "EmailInboxView";
+
 /*!
     \class NmApplication
     \brief Application class, creates main window and handles view switching.
@@ -45,7 +51,8 @@ NmApplication::NmApplication(QObject *parent, quint32 accountId)
   mSettingsViewLauncher(NULL),
   mViewReady(false),
   mQueryDialog(NULL),
-  mBackButtonPressed(false)
+  mBackButtonPressed(false),
+  mActivityUpdateNeeded(false)
 {
     TRAP_IGNORE(mUiEngine = NmUiEngine::instance());
     
@@ -209,6 +216,9 @@ void NmApplication::createMainWindow()
         // NmAttachmentListWidget::paint().
         mMainWindow->setOptimizationFlag(QGraphicsView::DontSavePainterState);    
     }
+    
+	// installed to get ApplicationActivate/Deactivate events
+    QCoreApplication::instance()->installEventFilter(this);
 }
 
 /*!
@@ -240,6 +250,21 @@ bool NmApplication::eventFilter(QObject *obj, QEvent *event)
             // End key, the "red" key.
             // Exit application if no pending operations are on-going.
         }
+    }
+    else if (event->type()==QEvent::ApplicationActivate) {
+        NM_COMMENT("NmApplication::eventFilter ApplicationActivate");
+		
+		// Activity thumbnails must be shown again
+		if (mActivityUpdateNeeded) {
+			mActivityUpdateNeeded = false;
+            updateActivity();
+		}
+    }
+    else if (event->type()==QEvent::ApplicationDeactivate) {
+        NM_COMMENT("NmApplication::eventFilter ApplicationDeactivate");
+                
+        // hide the sync indicator when app goes to background
+        mUiEngine->enableSyncIndicator(false);
     }
     
     if (!consumed) {
@@ -288,6 +313,7 @@ void NmApplication::pushView(NmBaseView *newView)
         if (hideView) {
             mMainWindow->removeView(hideView);
         }
+        QTimer::singleShot(NmActivityUpdateDelayMs, this, SLOT(updateActivity()));
     }
 }
 
@@ -330,6 +356,19 @@ void NmApplication::hideApplication()
 
     // hide the sync indicator as well
     mUiEngine->enableSyncIndicator(false);
+    
+    // Hide the mail from the task switcher 
+    TsTaskSettings taskSettings;
+    taskSettings.setVisibility(false);
+    
+    // Remove also the mailbox item from the task switcher
+    HbApplication* hbApp = dynamic_cast<HbApplication*>(parent());
+    if (hbApp) {
+        hbApp->activityManager()->removeActivity(NmActivityName);
+    }
+	
+	// Update the activity when needed
+	mActivityUpdateNeeded = true;
 }
 
 /*!
@@ -386,6 +425,7 @@ void NmApplication::popView()
                 mActiveViewId=showView->nmailViewId();
                 // Perform send animation if requested.
                 mEffects->startEffect(NmUiEffects::NmEditorSendMessageAnimation);
+                QTimer::singleShot(NmActivityUpdateDelayMs, this, SLOT(updateActivity()));
             }
             
             delete view;
@@ -442,6 +482,8 @@ void NmApplication::enterNmUiView(NmUiStartParam *startParam)
     
     // Check the validity of start parameter object.
     if (startParam) {
+    
+        mCurrentMailboxId = startParam->mailboxId();
         
         if (startParam->service() && mMainWindow) {
 			// When the message list is started as a service previous views
@@ -551,6 +593,9 @@ void NmApplication::enterNmUiView(NmUiStartParam *startParam)
 void NmApplication::exitApplication()
 {
     NM_FUNCTION;
+    
+    HbApplication* hbApp = dynamic_cast<HbApplication*>(parent());
+    hbApp->activityManager()->removeActivity("EmailInboxView");
     
     delete mSendServiceInterface;
     mSendServiceInterface = NULL;
@@ -679,6 +724,7 @@ void NmApplication::launchSettings(HbAction* action)
         if( mailboxMetaData ) {
             // Launch.
             mSettingsViewLauncher->launchSettingsView(mLastOperationMailbox, mailboxMetaData->name());
+            QTimer::singleShot(NmActivityUpdateDelayMs, this, SLOT(updateActivity()));
         }
     }
 }
@@ -694,4 +740,30 @@ bool NmApplication::updateVisibilityState()
 	mForegroundService = (surface != 0);
 	NM_COMMENT(QString("NmApplication::updateVisibilityState() : mForegroundService == %1").arg(mForegroundService));
 	return mForegroundService;
+}
+
+/*!
+    Update the thumbnail in the task switcher
+*/
+void NmApplication::updateActivity()
+{
+    NmMailboxMetaData *meta = mUiEngine->mailboxById(mCurrentMailboxId);
+    HbApplication* hbApp = dynamic_cast<HbApplication*>(parent());
+    if (hbApp) {
+        if (meta) {
+            TsTaskSettings tasksettings;
+            tasksettings.setVisibility(false);
+            QVariantHash metadata;
+            metadata.insert(ActivityScreenshotKeyword, QPixmap::grabWidget(mainWindow(), mainWindow()->rect()));
+            metadata.insert(ActivityApplicationName, meta->name());
+            metadata.insert(ActivityVisibility, true);
+            hbApp->activityManager()->removeActivity(NmActivityName);
+            hbApp->activityManager()->addActivity(NmActivityName, QVariant(), metadata);
+        }
+        else {
+            hbApp->activityManager()->removeActivity(NmActivityName);
+            TsTaskSettings tasksettings;
+            tasksettings.setVisibility(true);
+        }
+    }
 }

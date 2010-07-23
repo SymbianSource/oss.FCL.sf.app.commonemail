@@ -22,9 +22,9 @@
 #include "ssastartupwatcher.h"
 
 #ifdef __WINSCW__
-const int NmStartupDelay = 14000; // 14s
-#else
 const int NmStartupDelay = 4000; // 4s
+#else
+const int NmStartupDelay = 1000; // 1s
 #endif
 
 NmMailAgent *agent = NULL;
@@ -36,7 +36,7 @@ static void startupCallback(int status)
 {
     NM_FUNCTION;
     NM_COMMENT(QString("nmailagent: startupCallback(): status=%1").arg(status));
-    
+
     Q_UNUSED(status);
 
     // either it is an error or 'non critical startup' state has been reached
@@ -50,7 +50,7 @@ static void startupCallback(int status)
 int main(int argc, char *argv[])
 {
     NM_FUNCTION;
-    
+
     QCoreApplication app(argc, argv);
 
     agent = new NmMailAgent;

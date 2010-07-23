@@ -18,7 +18,10 @@
 
 // Layout file and view
 static const char *NMUI_EDITOR_VIEW_XML = ":/docml/nmeditorview.docml";
-static const char *NMUI_EDITOR_VIEW= "editorview";
+static const char *NMUI_EDITOR_VIEW = "editorview";
+
+// extension list item frame.
+static const QString NmPopupListFrame = "qtg_fr_popup_list_normal";
 
 static const QString NmDelimiter("; ");
 
@@ -52,7 +55,8 @@ NmEditorView::NmEditorView(
       mQueryDialog(NULL),
       mAttachmentPicker(NULL),
       mCcBccFieldVisible(false),
-      mServiceSendingDialog(NULL)
+      mServiceSendingDialog(NULL),
+      mIsNotFetchedBefore(true)
 {
     NM_FUNCTION;
     
@@ -393,20 +397,23 @@ void NmEditorView::fetchMessageIfNeeded(NmUiStartParam &startParam)
 {
     NM_FUNCTION;
     
-    if (startParam.editorStartMode() == NmUiEditorForward
-        || startParam.editorStartMode()== NmUiEditorReply
-        || startParam.editorStartMode() == NmUiEditorReplyAll) {
+    if (mIsNotFetchedBefore == true) {
+        if (startParam.editorStartMode() == NmUiEditorForward
+            || startParam.editorStartMode()== NmUiEditorReply
+            || startParam.editorStartMode() == NmUiEditorReplyAll) {
         
-        fetchProgressDialogShow();
-        mAttaManager.clearObserver();
-        mAttaManager.setObserver(this);
-        mAttaManager.fetchAllMessageParts(
-            startParam.mailboxId(),
-            startParam.folderId(),
-            startParam.messageId());
-    }
-    else {
-        startMessageCreation(startParam);
+            fetchProgressDialogShow();
+            mAttaManager.clearObserver();
+            mAttaManager.setObserver(this);
+            mAttaManager.fetchAllMessageParts(
+                startParam.mailboxId(),
+                startParam.folderId(),
+                startParam.messageId());
+			mIsNotFetchedBefore = false;
+        }
+        else {
+            startMessageCreation(startParam);
+        }
     }
 }
 
@@ -891,32 +898,30 @@ void NmEditorView::createToolBar()
                 if (extension && mAttachmentPicker) {
                     connect(mAttachmentPicker, SIGNAL(attachmentsFetchOk(const QVariant &)),
                         this, SLOT(onAttachmentReqCompleted(const QVariant &)));            
-                                                
-                    HbAction* actionPhoto = 
-                        extension->addAction(hbTrId("txt_mail_list_photo"), extension, SLOT(close()));
-                    connect(actionPhoto, SIGNAL(triggered()), mAttachmentPicker, SLOT(fetchImage()));
                     
-                    HbAction* actionMusic = 
-                        extension->addAction(hbTrId("txt_mail_list_music"), extension, SLOT(close()));
-                    connect(actionMusic, SIGNAL(triggered()), mAttachmentPicker, SLOT(fetchAudio()));
-                    
-                    HbAction* actionVideo = 
-                        extension->addAction(hbTrId("txt_mail_list_video"), extension, SLOT(close()));
-                    connect(actionVideo, SIGNAL(triggered()), mAttachmentPicker, SLOT(fetchVideo()));
-                    
-                    HbAction* actionOther = 
-                        extension->addAction(hbTrId("txt_mail_list_other"), extension, SLOT(close()));
-                    connect(actionOther, SIGNAL(triggered()), mAttachmentPicker, SLOT(fetchOther()));
-                    
-                    HbAction* actionCameraStill = 
-                       extension->addAction(hbTrId("txt_mail_list_new_photo"), extension, SLOT(close()));
-                    connect(actionCameraStill, SIGNAL(triggered()), mAttachmentPicker, SLOT(fetchCameraStill()));
-            
-                    HbAction* actionCameraVideo = 
-                        extension->addAction(hbTrId("txt_mail_list_new_video"), extension, SLOT(close()));
-                    connect(actionCameraVideo, SIGNAL(triggered()), mAttachmentPicker, SLOT(fetchCameraVideo()));
-                                        
                     list[i]->setToolBarExtension(extension);
+                    
+                    //content widget to get the items to a list
+                    mTBExtnContentWidget = new HbListWidget();
+                    mTBExtnContentWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+                    
+                    mTBExtnContentWidget->addItem(hbTrId("txt_mail_list_photo"));
+                    mTBExtnContentWidget->addItem(hbTrId("txt_mail_list_music"));
+                    mTBExtnContentWidget->addItem(hbTrId("txt_mail_list_video"));
+                    mTBExtnContentWidget->addItem(hbTrId("txt_mail_list_other"));
+                    mTBExtnContentWidget->addItem(hbTrId("txt_mail_list_new_photo"));
+                    mTBExtnContentWidget->addItem(hbTrId("txt_mail_list_new_video"));
+                    HbListViewItem *listView = mTBExtnContentWidget->listItemPrototype();
+                    HbFrameBackground frame(NmPopupListFrame, HbFrameDrawer::NinePieces);
+                    listView->setDefaultFrame(frame);
+                    
+                    connect(mTBExtnContentWidget, SIGNAL(activated(HbListWidgetItem*)), 
+                    		mAttachmentPicker, SLOT (selectFetcher(HbListWidgetItem*)));
+            
+                    connect(mTBExtnContentWidget, SIGNAL(activated(HbListWidgetItem*)),
+                            extension, SLOT(close()));
+                                        
+                    extension->setContentWidget(mTBExtnContentWidget);
                 }
             }            
         }        

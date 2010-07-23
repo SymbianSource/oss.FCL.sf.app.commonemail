@@ -134,6 +134,12 @@ symbian*: {
 		"OPTION HEADERFILE yahoo_brand_graphics.mbg" \
 		"OPTION SOURCEDIR data" \
 		"OPTION SOURCES -c16,8 yahoo.svg" \
+		"END" \
+		"START EXTENSION s60/mifconv" \
+		"OPTION TARGETFILE mail_for_exchange_brand_graphics.mif" \
+		"OPTION HEADERFILE mail_for_exchange_brand_graphics.mbg" \
+		"OPTION SOURCEDIR data" \
+		"OPTION SOURCES -c16,8 mail_for_exchange.svg" \
 		"END"
 }
 

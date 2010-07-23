@@ -33,6 +33,7 @@ LIBS += -lnmailuiengine
 LIBS += -lnmailuiwidgets
 LIBS += -lnmsettingui
 LIBS += -lnmutilities
+LIBS += -ltstaskmonitorclient
 
 symbian*: {
     INCLUDEPATH += $$APP_LAYER_SYSTEMINCLUDE

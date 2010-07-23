@@ -14,19 +14,21 @@ EXPORTS
 	_ZN13CFSMailClient16GetMailBoxByUidLE12TFSMailMsgId @ 13 NONAME
 	_ZN13CFSMailClient16GetMessageByUidLE12TFSMailMsgIdS0_S0_14TFSMailDetails @ 14 NONAME
 	_ZN13CFSMailClient16ReleaseExtensionEP15CEmailExtension @ 15 NONAME
-	_ZN13CFSMailClient17IncReferenceCountEv @ 16 NONAME
-	_ZN13CFSMailClient19DeleteMailBoxByUidLE12TFSMailMsgIdR22MFSMailRequestObserver @ 17 NONAME
-	_ZN13CFSMailClient20DeleteMessagesByUidLE12TFSMailMsgIdS0_RK6RArrayIS0_E @ 18 NONAME
-	_ZN13CFSMailClient20WizardDataAvailableLEv @ 19 NONAME
-	_ZN13CFSMailClient23SubscribeMailboxEventsLE12TFSMailMsgIdR20MFSMailEventObserver @ 20 NONAME
-	_ZN13CFSMailClient24UnsubscribeMailboxEventsE12TFSMailMsgIdR20MFSMailEventObserver @ 21 NONAME
-	_ZN13CFSMailClient25UnregisterRequestObserverEi @ 22 NONAME
-	_ZN13CFSMailClient4NewLEi @ 23 NONAME
-	_ZN13CFSMailClient4NewLEv @ 24 NONAME
-	_ZN13CFSMailClient5CloseEv @ 25 NONAME
-	_ZN13CFSMailClient5NewLCEi @ 26 NONAME
-	_ZN13CFSMailClient7CancelLEi @ 27 NONAME
-	_ZN13CFSMailClientD0Ev @ 28 NONAME
-	_ZN13CFSMailClientD1Ev @ 29 NONAME
-	_ZN13CFSMailClientD2Ev @ 30 NONAME
+	_ZN13CFSMailClient17GetMailBoxByUidLCE12TFSMailMsgId @ 16 NONAME
+	_ZN13CFSMailClient17IncReferenceCountEv @ 17 NONAME
+	_ZN13CFSMailClient19DeleteMailBoxByUidLE12TFSMailMsgIdR22MFSMailRequestObserver @ 18 NONAME
+	_ZN13CFSMailClient20DeleteMessagesByUidLE12TFSMailMsgIdS0_RK6RArrayIS0_E @ 19 NONAME
+	_ZN13CFSMailClient20WizardDataAvailableLEv @ 20 NONAME
+	_ZN13CFSMailClient21PrepareMrDescriptionLERK12TFSMailMsgIdS2_ @ 21 NONAME
+	_ZN13CFSMailClient23SubscribeMailboxEventsLE12TFSMailMsgIdR20MFSMailEventObserver @ 22 NONAME
+	_ZN13CFSMailClient24UnsubscribeMailboxEventsE12TFSMailMsgIdR20MFSMailEventObserver @ 23 NONAME
+	_ZN13CFSMailClient25UnregisterRequestObserverEi @ 24 NONAME
+	_ZN13CFSMailClient4NewLEi @ 25 NONAME
+	_ZN13CFSMailClient4NewLEv @ 26 NONAME
+	_ZN13CFSMailClient5CloseEv @ 27 NONAME
+	_ZN13CFSMailClient5NewLCEi @ 28 NONAME
+	_ZN13CFSMailClient7CancelLEi @ 29 NONAME
+	_ZN13CFSMailClientD0Ev @ 30 NONAME
+	_ZN13CFSMailClientD1Ev @ 31 NONAME
+	_ZN13CFSMailClientD2Ev @ 32 NONAME
 

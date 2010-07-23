@@ -11,7 +11,7 @@
       </module>
 <!-- Internal code -->
       <module name="nmail_tools">
-        <unit unitID="nmail.tools" mrp="" bldFile="&layer_real_source_path;\emailuis\nmailuiengine\tsrc\tools" name="qtdemos" proFile="tools.pro" qmakeArgs="-r" filter="nmail_tools"/>
+        <unit unitID="nmail.tools" mrp="" bldFile="&layer_real_source_path;\ipsservices\nmipssettings\tsrc\tools\extendedkeygen" name="qtdemos" proFile="extendedkeygenerator.pro" qmakeArgs="-r" filter="nmail_tools"/>
      </module>
 <!-- Internal code widget-->
 <!-- temporary built from nmail.pro as a workaround to ServiceFW bug on service regisrtations, fix expected on wk18 MCL

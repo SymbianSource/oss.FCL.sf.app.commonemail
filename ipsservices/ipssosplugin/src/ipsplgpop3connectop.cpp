@@ -336,6 +336,7 @@ void CIpsPlgPop3ConnectOp::DoConnectL()
     {
     FUNC_LOG;
     // <qmail> unnecessary: iStatus = KRequestPending;
+    NM_COMMENT("CIpsPlgPop3ConnectOp: connecting");
     InvokeClientMtmAsyncFunctionL( KPOP3MTMConnect, iService ); // <qmail> 1 param removed
     SetActive();
 
@@ -354,6 +355,7 @@ void CIpsPlgPop3ConnectOp::DoConnectL()
 void CIpsPlgPop3ConnectOp::DoPopulateL()
     {
     FUNC_LOG;
+    NM_COMMENT("CIpsPlgPop3ConnectOp: populating");
     // <qmail> unnecessary: iStatus = KRequestPending;
 
     // Prepare parameters and include filtering
@@ -420,6 +422,7 @@ void CIpsPlgPop3ConnectOp::DoDisconnectL()
     {
     FUNC_LOG;
     // <qmail> unnecessary: iStatus = KRequestPending;
+    NM_COMMENT("CIpsPlgPop3ConnectOp: disconnecting");
     InvokeClientMtmAsyncFunctionL( KPOP3MTMDisconnect, iService ); // <qmail> 1 param removed
     SetActive();
     }

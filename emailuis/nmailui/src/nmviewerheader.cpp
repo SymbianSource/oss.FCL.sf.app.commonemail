@@ -19,6 +19,7 @@
 #include "nmuiheaders.h"
 
 static const qreal NmHeaderLineOpacity = 0.4;
+static const int NmTextWrapWordOrAnywhere = 4;
 
 /*!
     \class NmViewerHeader
@@ -256,19 +257,12 @@ void NmViewerHeader::createExpandableHeader()
     
     if (mHeaderBox) {        // Initialize recipient box
         if (!mRecipientsBox){
-            mRecipientsBox = new HbTextEdit();
+            mRecipientsBox = new HbLabel();
             HbStyle::setItemName(mRecipientsBox, "recipients");
-            mRecipientsBox->setContextMenuFlags(0);
-            mRecipientsBox->setReadOnly(true);
             mRecipientsBox->setFontSpec(HbFontSpec(HbFontSpec::Secondary)); 
-            // Set text wrapping for from/to/cc address fields using text document
-            QTextOption textOption = mRecipientsBox->document()->defaultTextOption();
-            textOption.setWrapMode(QTextOption::WrapAtWordBoundaryOrAnywhere);
-            mRecipientsBox->document()->setDefaultTextOption(textOption);
+            mRecipientsBox->setTextWrapping((Hb::TextWrapping)NmTextWrapWordOrAnywhere);
         }
-        connect(mRecipientsBox, SIGNAL(cursorPositionChanged(int, int)),
-                this, SLOT(cursorPositionChanged(int, int)));
-                
+               
         // Set recipients to text edit field as html 
         NmAddress sender = mMessage->envelope().sender();               
         if (mMessage) {
@@ -276,7 +270,6 @@ void NmViewerHeader::createExpandableHeader()
                                     mMessage->envelope().toRecipients(), 
                                     mMessage->envelope().ccRecipients()));
         }
-        mRecipientsBox->setCursorVisibility(Hb::TextCursorHidden);
         mHeaderBox->setContentWidget(mRecipientsBox);
         // Set box collapsed as default
         mHeaderBox->setCollapsed(true);
@@ -295,7 +288,7 @@ QString NmViewerHeader::formatRecipientList(const QString &sender,
     QString result;
     result.append("<html><body link=\"blue\" topmargin=\"0\" leftmargin=\"0\" marginheight=\"0\"");
     result.append("marginwidth=\"0\">");    
-    result.append("<font face=\"");
+    result.append("<font color=\"black\" face=\"");
     result.append("Nokia Sans");
     result.append("\"size=\"3\">"); 
     // Set text in HTML format based on layout direction
@@ -310,7 +303,9 @@ QString NmViewerHeader::formatRecipientList(const QString &sender,
         int reciCount = to.count();
         for (int i=0; i < reciCount; i++) { 
             result.append(addressToDisplay(to[i]));
-            result.append(" ");
+            if (i!=reciCount-1) {
+                result.append(" ");
+            }
         } 
         reciCount = cc.count();
         if (reciCount) {
@@ -319,7 +314,9 @@ QString NmViewerHeader::formatRecipientList(const QString &sender,
             result.append(" </b>");
             for (int i=0; i < reciCount; i++) {
                 result.append(addressToDisplay(cc[i]));
-                result.append(" "); 
+                if (i!=reciCount-1) {
+                    result.append(" ");
+                }                
             }
         }   
     }
@@ -334,7 +331,9 @@ QString NmViewerHeader::formatRecipientList(const QString &sender,
         int reciCount = to.count();
         for (int i=0; i < reciCount; i++) { 
             result.append(addressToDisplay(to[i]));
-            result.append("; ");
+            if (i!=reciCount-1) {
+                result.append("; ");
+            }
         }
         reciCount = cc.count();
         if (reciCount) {
@@ -343,7 +342,9 @@ QString NmViewerHeader::formatRecipientList(const QString &sender,
             result.append(" </b>");
             for (int i=0; i < reciCount; i++) {
                 result.append(addressToDisplay(cc[i]));
-                result.append("; ");
+                if (i!=reciCount-1) {
+                    result.append("; ");
+                }
             }
         }   
     } 
@@ -372,21 +373,5 @@ QString NmViewerHeader::addressToDisplay(const NmAddress &addr)
     ret.append(dispName);
     ret.append("</a>");
     return ret;
-}
-
-/*!
-    Function handles cursor position changes in header group box.
-    E.g link handler.
-*/
-void NmViewerHeader::cursorPositionChanged(int oldPos, int newPos)
-{
-    NM_FUNCTION;
-    
-    Q_UNUSED(oldPos);
-    QString string = mRecipientsBox->anchorAt(newPos); 
-    if (mViewerView&&string.contains("mailto:",Qt::CaseSensitive)){
-        QUrl url(string);     
-        mViewerView->linkClicked(url);
-    }
 }
 

@@ -79,7 +79,7 @@ NmMailboxInfo::NmMailboxInfo()
   mActive(false),
   mInboxActive(false)
   {
-    NM_FUNCTION;
+      NM_FUNCTION;
   }
 
 /*!
@@ -98,7 +98,7 @@ NmMailAgent::NmMailAgent() :
      mSettingManager(NULL),
      mSilenceMode(NmSilenceModeOn)  // by default silent mode is on
      {
-    NM_FUNCTION;
+     NM_FUNCTION;
      }
 
 /*!
@@ -599,30 +599,48 @@ void NmMailAgent::handleMessageCreatedEvent(const NmId &folderId, const QList<Nm
     \sa updateUnreadCount
 
     \param folderId Id of the folder that includes the message
+    \param messageIds Message ids that are checked
     \param mailboxId Id of the mailbox that includes the message
     \param updateNeeded Set to <code>true</code> if update needed otherwise not touched
     \param activate Set result value of updateUnreadCount method
  */
-void NmMailAgent::handleMessageChangedEvent(const NmId &folderId, const NmId &mailboxId,
+void NmMailAgent::handleMessageChangedEvent(const NmId &folderId, 
+    const QList<NmId> &messageIds,
+    const NmId &mailboxId,
     bool &updateNeeded, bool &activate)
 {
     NmMailboxInfo *mailboxInfo = getMailboxInfo(mailboxId);
 
+    // we are interested only about changes in the inbox
     if (folderId == mailboxInfo->mInboxFolderId) {
         mailboxInfo->mInboxChangedMessages++;
-    }
 
-    // If not currently syncronizing the mailbox, this may mean
-    // that a message was read/unread
-    if (mailboxInfo && mailboxInfo->mSyncState == SyncComplete) {
+        // If not currently syncronizing the mailbox, this may mean
+        // that a message was read/unread
+        if (mailboxInfo && mailboxInfo->mSyncState == SyncComplete) {
+            // If there was no unread mails in the list, do nothing
+            int oldCount(mailboxInfo->mUnreadMailIdList.count());
+            if (oldCount>0) {
+                // Check how many messages were unread earlier
+                int unreadMessages = 0;
+                foreach (NmId messageId, messageIds) {
+                    if (mailboxInfo->mUnreadMailIdList.indexOf(messageId)>=0) {
+                        unreadMessages++;
+                    }
+                }
 
-        // check the unread status again
-        int oldCount(mailboxInfo->mUnreadMailIdList.count());
-        activate = updateUnreadCount(mailboxId, *mailboxInfo);
+                // Could lead the count drop to 0 => mailbox will be hidden
+                if (unreadMessages > 0) {
+                    // check the unread status again
+                    activate = updateUnreadCount(mailboxId, *mailboxInfo);
 
-        // new unread mails found or no more unread mails in the inbox
-        if (oldCount>0 && mailboxInfo->mUnreadMailIdList.count()==0) {
-            updateNeeded = true;
+                    // no more unread mails in the inbox
+                    if (mailboxInfo->mUnreadMailIdList.count()==0) {
+                        NM_COMMENT("NmMailAgent:handleMessageChangedEvent - no more unread msgs");
+                        updateNeeded = true;
+                    }
+                }
+            }
         }
     }
 }
@@ -720,7 +738,7 @@ void NmMailAgent::handleMailboxEvent(NmMailboxEvent event, const QList<NmId> &ma
                 if (!mailboxInfo) {
                     // Unable to initialise the mailbox. Try again later.
                     NM_COMMENT("Cannot initialise mailbox");
-                    
+
                     qRegisterMetaType<NmId>("NmId");
                     QMetaObject::invokeMethod(this, "delayedMailboxCreated",
                         Qt::QueuedConnection, Q_ARG(NmId,mailboxId));
@@ -769,9 +787,9 @@ void NmMailAgent::handleMailboxEvent(NmMailboxEvent event, const QList<NmId> &ma
 }
 
 /*!
-    Called when mailbox is initialised with a delay. This may happen at least when 
+    Called when mailbox is initialised with a delay. This may happen at least when
     NmMailboxCreated event is received.
-    
+
     \param mailboxId id of the mailbox
 */
 void NmMailAgent::delayedMailboxCreated(const NmId mailboxId)
@@ -877,7 +895,7 @@ void NmMailAgent::handleMessageEvent(
             break;
         }
         case NmMessageChanged: {
-            handleMessageChangedEvent(folderId, mailboxId, updateNeeded, activate);
+            handleMessageChangedEvent(folderId, messageIds, mailboxId, updateNeeded, activate);
             break;
         }
         case NmMessageDeleted: {

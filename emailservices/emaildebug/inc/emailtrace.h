@@ -22,6 +22,7 @@
 #include <QDebug>
 #include <QFile>
 #include <QThread>
+#include <QDateTime>
 
 /*
  * The macros NM_COMMENT_TRACES, NM_ERROR_TRACES, and NM_FUNCTION_TRACES
@@ -33,11 +34,19 @@
  * opened, the messages are printed to qDebug(). The DSC2STR() function can
  * be used to convert Symbian descriptors to QString objects.
  */
-#if defined(DEBUG) || defined(_DEBUG)
+#if defined(DEBUG) || defined(_DEBUG) || NM_COMMENT_TRACES || NM_ERROR_TRACES || NM_FUNCTION_TRACES
 
+#ifndef NM_COMMENT_TRACES
 #define NM_COMMENT_TRACES  0
+#endif
+
+#ifndef NM_ERROR_TRACES
 #define NM_ERROR_TRACES    0
+#endif
+
+#ifndef NM_FUNCTION_TRACES
 #define NM_FUNCTION_TRACES 0
+#endif
 
 #if NM_COMMENT_TRACES || NM_ERROR_TRACES || NM_FUNCTION_TRACES
 
@@ -53,8 +62,9 @@ inline void print_trace(const QString& msg)
     if (NM_LOG_TO_FILE && !file.isOpen()) {
         file.open(QIODevice::Append | QIODevice::Text);
     }
+    QDateTime dt = QDateTime::currentDateTime ();
     if (file.isWritable()) {
-        QDebug(&file).nospace() << msg << '\n';
+        QDebug(&file).nospace() << dt.toString(Qt::ISODate) << " " << msg << '\n';
     } else {
         qDebug().nospace() << "[Nmail] " << msg;
     }

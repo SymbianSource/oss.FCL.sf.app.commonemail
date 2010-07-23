@@ -19,6 +19,7 @@
 
 static const QString FILE_PATH_DOCML = ":nmattachmentlistwidget.docml";
 static const QString ATTACHMENT_WIDGET = "nmattachmentlistwidget";
+static const QString NmAttachmentTextColor = "qtc_default_main_pane_normal";
 
 static const qreal NmItemLineOpacity = 0.4;
 
@@ -156,9 +157,7 @@ void NmAttachmentListWidget::insertAttachment(
     connect(item, SIGNAL(itemLongPressed(QPointF)), this, SLOT(handleLongPressed(QPointF)));
 
     //set texts
-    if (mTextColor.isValid()){
-        item->setTextColor(mTextColor);    
-    }
+    item->setTextColor(checkColor());      
     item->setFileNameText(fileName);
     item->setFileSizeText(fileSize);
 
@@ -264,15 +263,7 @@ void NmAttachmentListWidget::paint(
         
         // Use text color as a line color if set, otherwise use theme
         // normal list content color.
-        if (mTextColor.isValid()){
-            painter->setPen(mTextColor);
-        }
-        else{
-            QColor col = HbColorScheme::color("list_item_content_normal");
-            if (col.isValid()) {
-                painter->setPen(col);
-            }
-        }
+        painter->setPen(checkColor());
         painter->setOpacity(NmItemLineOpacity);
         // Draw line after each item
         int rowCount = mLayout->rowCount();
@@ -467,7 +458,7 @@ void NmAttachmentListWidget::rearrangeLayout()
         NM_ERROR(1,"NmAttachmentListWidget::rearrangeLayout: Layout loading failed!");
         return;
     }
-
+    
     //remove all items from the layout
     int count(mLayout->count());
     for(int i = count - 1; i >= 0; --i){
@@ -475,7 +466,41 @@ void NmAttachmentListWidget::rearrangeLayout()
     }
 
     //then add them back
+    QColor textColor = checkColor();    
     foreach(NmAttachmentListItem *item, mItemList){
+        item->setTextColor(textColor);
         insertItemToLayout(item);
     }
+}
+
+/*!
+    Helper function to set text color
+*/
+QColor NmAttachmentListWidget::checkColor()
+{
+    NM_FUNCTION;
+    
+    QColor retColor;
+
+    if (mTextColor.isValid()){
+        retColor = mTextColor;
+    }
+    else {    
+        retColor =  HbColorScheme::color(NmAttachmentTextColor);
+    }
+    return retColor;
+}
+
+/*!
+    \reimp
+*/
+
+void NmAttachmentListWidget::changeEvent(QEvent *event)
+{
+    NM_FUNCTION;
+
+    if (event->type() == HbEvent::ThemeChanged) {
+        rearrangeLayout();    
+    }
+    return HbWidgetBase::changeEvent(event);
 }

@@ -146,6 +146,8 @@ void NmMessageListView::loadViewLayout()
         // Menu needs one dummy item so that aboutToShow signal is emitted.
         NmAction *dummy = new NmAction(0);
         menu()->addAction(dummy);
+        // Set sync icon if needed
+        updateSyncIcon();
     }
     else {
         NM_ERROR(1,"nmailui: resource loading failed");
@@ -228,13 +230,13 @@ void NmMessageListView::reloadViewContents(NmUiStartParam* startParam)
 
     // Check start parameter validity, message view cannot
     // be updated if given parameter is zero.
-    if (startParam&&startParam->viewId()==NmUiViewMessageList&&
+    if (startParam&&startParam->viewId()==NmUiViewMessageList &&
         startParam->folderId()!=0) {
         // Delete existing start parameter data
         delete mStartParam;
-        mStartParam=NULL;
+        mStartParam = NULL;
         // Store new start parameter data
-        mStartParam=startParam;
+        mStartParam = startParam;
         // Disconnect signals from previous model
         QObject::disconnect(mMessageListModel, SIGNAL(rowsInserted(const QModelIndex&,int,int)),
                 this, SLOT(itemsAdded(const QModelIndex&,int,int)));
@@ -244,9 +246,20 @@ void NmMessageListView::reloadViewContents(NmUiStartParam* startParam)
                 this, SLOT(reloadViewContents(NmUiStartParam*)));
         // Update model pointer and refresh mailbox with new model
         mMessageListModel = &mUiEngine.messageListModel(startParam->mailboxId(), startParam->folderId());
+        
         refreshList();
-        // Refresh the mailboxname
+        
+        // Refresh the mailbox name
         setMailboxName();
+        
+        // Store active folder type
+        mCurrentFolderType = mUiEngine.folderTypeById(startParam->mailboxId(),startParam->folderId());
+
+        // Update folder name
+        setFolderName();
+        
+        // Set sync icon if needed
+        updateSyncIcon();
     }
     else {
         NM_ERROR(1,"nmailui: invalid message list start parameter");
@@ -354,7 +367,7 @@ void NmMessageListView::folderSelected()
         // Reload view, ownership of the startparams is passed and old startparams
         // are deleted within reloadViewContents function
         reloadViewContents(startParam);
-        //Set folder text to status bar
+        // Set folder text to status bar
         setFolderName();
     }
 }
@@ -616,7 +629,7 @@ void NmMessageListView::setFolderName()
 {
     NM_FUNCTION;
 
-    if (mStartParam&&mFolderLabel){
+    if (mStartParam && mFolderLabel){
         switch (mCurrentFolderType) {
         case NmFolderOutbox:
             {
@@ -735,6 +748,22 @@ void NmMessageListView::hideNoMessagesText()
     if (mNoMessagesLabel&&mMessageListWidget) {
         mNoMessagesLabel->hide();
         mMessageListWidget->show();
+    }
+}
+
+/*!
+    Updates sync icon based on sync status from the plugin.
+*/
+void NmMessageListView::updateSyncIcon()
+{
+    if (mStartParam) {
+        NmSyncState syncState = mUiEngine.syncState(mStartParam->mailboxId());
+        if (syncState==Synchronizing) {
+            mUiEngine.enableSyncIndicator(true);
+        } 
+        else {
+            mUiEngine.enableSyncIndicator(false);
+        }
     }
 }
 

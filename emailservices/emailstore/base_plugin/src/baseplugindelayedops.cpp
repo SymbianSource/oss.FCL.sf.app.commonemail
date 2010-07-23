@@ -23,7 +23,6 @@
 
 #include "baseplugindelayedops.h"
 #include "baseplugindelayedopsprivate.h"
-#include "nestedao.h"
 
 ///////////////////////////////////////////////////
 // CDelayedOp                                    //
@@ -51,9 +50,17 @@
 /**
  * 
  */
+/*public*/  void CDelayedOp::StartOp()
+    {
+    iStatus = KRequestPending;
+    SetActive();
+    TRequestStatus* pStatus = &iStatus;
+    User::RequestComplete( pStatus, KErrNone );
+    } 
 /*protected*/  CDelayedOp::CDelayedOp()
-    : CAsyncOneShot( CActive::EPriorityIdle )
+    : CActive( CActive::EPriorityIdle )
     {    
+    CActiveScheduler::Add( this );
     }
     
 /**
@@ -62,7 +69,9 @@
 /*private virtual*/  void CDelayedOp::RunL()
     {
     __LOG_ENTER_SUPPRESS( "Run" );
-    TRAPD( err, ExecuteOpL() );
+    TBool again( EFalse );
+    
+    TRAPD( err, again = ExecuteOpL() );
     
     if ( KErrNone != err )
         {
@@ -70,19 +79,27 @@
             "Error while executing delayed operation: %d.", err );
         }
     
-    //self-destroy.
-    iManager->DequeueOp( *this );
-    
-    //Remove this from iDelayedOpReqs as well.
-    for ( TInt i = 0; i < iPlugin->iDelayedOpReqs.Count(); i++ )
+    if ( again )
         {
-        if ( iPlugin->iDelayedOpReqs[i] == this )
-            {
-            iPlugin->iDelayedOpReqs.Remove( i );
-            break;
-            }
+        StartOp();
         }
-    delete this;
+    else
+        {
+        //self-destroy.
+        iManager->DequeueOp( *this );
+//<qmail>		
+		    //Remove this from iDelayedOpReqs as well.
+	    for ( TInt i = 0; i < iPlugin->iDelayedOpReqs.Count(); i++ )
+	        {
+	        if ( iPlugin->iDelayedOpReqs[i] == this )
+	            {
+	            iPlugin->iDelayedOpReqs.Remove( i );
+	            break;
+	            }
+	        }
+//</qmail>			
+        delete this;
+        }
     }
     
 /**
@@ -138,7 +155,7 @@ CDelayedOpsManager* CDelayedOpsManager::NewL( CBasePlugin& aPlugin )
     {
     iDelayedOps.AppendL( aOp );
     aOp->SetContext( iPlugin, *this );        
-    aOp->Call();
+    aOp->StartOp();
     }
     
 /**
@@ -246,94 +263,6 @@ CDelayedOpsManager* CDelayedOpsManager::NewL( CBasePlugin& aPlugin )
 /**
  * 
  */
-/*public virtual*/TBool CDelayedDeleteMessagesOp::DeleteMessagesInChunksL( TInt aStartIndex )
-    {
-    __LOG_ENTER( "DeleteMessagesInChunksL" );
-    TBool done=EFalse;
-    TInt endIndex;
-//<qmail>
-    TInt result(KErrNone);
-    if( aStartIndex + KSizeOfChunk < iMessages.Count() )
-        {
-            endIndex = aStartIndex + KSizeOfChunk;
-        }
-    else
-        {
-        endIndex = iMessages.Count();   
-        done=ETrue;
-        }
-    CMailboxInfo& mailBoxInfo
-        = GetPlugin().GetMailboxInfoL( iMailBoxId );
-    CMsgStoreMailBox& mailBox = mailBoxInfo();
-
-    for ( TInt i = aStartIndex; i < endIndex; ++i )
-        {
-        TMsgStoreId msgId = iMessages[i];
-        
-        if ( EFalse == iImmediateDelete )
-            {
-            //try to find the message
-            CMsgStoreMessage* theMessage = NULL;
-            theMessage = mailBox.FetchMessageL(
-                                      msgId, KMsgStoreInvalidId ) ;
-            //save parentId
-            TMsgStoreId msgParentId;
-            msgParentId =theMessage->ParentId();
-            //check if message is in deleted folder or not.
-            if ( msgParentId != mailBoxInfo.iRootFolders.iFolders[EFSDeleted] )
-                {
-            	//if not in deleted items then move it there.
-                __LOG_WRITE8_FORMAT1_INFO("Moving message 0x%X to the deleted items.", msgId );
-                TRAP(result,mailBox.MoveMessageL(
-                   msgId, KMsgStoreInvalidId,
-                   mailBoxInfo.iRootFolders.iFolders[EFSDeleted] ));
-                if(result == KErrNone)
-                    {
-                    GetPlugin().NotifyEventL( iMailBoxId, msgId, KMsgStoreInvalidId , TFSEventMailMoved, msgParentId);
-                    }
-                else
-                    {
-                    User::Leave(result);
-                    }
-                
-                }
-            else
-                {
-                //in deleted items, really delete it.
-                __LOG_WRITE8_FORMAT1_INFO( "Deleting message 0x%X.", msgId );
-
-                delete theMessage;
-                TRAP(result,mailBox.DeleteMessageL( msgId, iFolderId ));
-                if(result == KErrNone)
-                    {
-                    GetPlugin().NotifyEventL( iMailBoxId, msgId, KMsgStoreInvalidId, TFSEventMailDeleted, iFolderId );
-                    }
-                else
-                    {
-                    User::Leave(result);
-                    }
-                }
-            }
-        else
-            {        
-            TRAP(result,mailBox.DeleteMessageL( msgId, iFolderId ));
-            if(result == KErrNone)
-                {  
-                GetPlugin().NotifyEventL( iMailBoxId, msgId, KMsgStoreInvalidId, TFSEventMailDeleted, iFolderId );
-                }
-            else
-                {
-                User::Leave(result);
-                }
-            }
-//</qmail>
-        }
-    __LOG_EXIT;
-    return done;    
-    }
-/**
- * 
- */
 /*private*/
 void CDelayedDeleteMessagesOp::ConstructL(
     const RArray<TFSMailMsgId>& aMessages )
@@ -366,33 +295,103 @@ void CDelayedDeleteMessagesOp::ConstructL(
     TMsgStoreId aMailBoxId,
     TMsgStoreId aFolderId )
     :
-    iMailBoxId( aMailBoxId ), iFolderId( aFolderId ),
-    iImmediateDelete( EFalse ), iState ( EFree )
+    iMailBoxId( aMailBoxId ), iFolderId( aFolderId )
     {
     }
 
 /**
  * 
  */
-/*private*/ void CDelayedDeleteMessagesOp::ExecuteOpL()
+/*private*/ TBool CDelayedDeleteMessagesOp::ExecuteOpL()
     {
     __LOG_ENTER( "ExecuteOpL" );
-    if ( iState != EFree )
+
+    //Maximum number of messages deleted in one go
+    const TInt KNumOfDeletesBeforeYield = 30;
+
+    //<qmail>
+    TInt result(KErrNone);
+
+    TBool runAgain = ETrue;
+    TInt endIndex = iIndex + KNumOfDeletesBeforeYield;
+
+    if (endIndex >= iMessages.Count())
         {
-        //this code becomes re-entrant now because we use nested AS.
-        // so if we are already authenticating, return right away.
-        return;
+        endIndex = iMessages.Count();
+        runAgain = EFalse; // last time, no need to run again.
         }
-    iState=EInProgress;
-    CNestedAO* nestedAO = CNestedAO::NewL( *this );
-    //this is a blocking call with nested active scheduler
-    //This method makes a callback periodically to DeleteMessagesInChunks
-    //to delete the messages one chunk at a time
-    nestedAO->DeleteMessagesAsync();
-    //continue execution here
-    delete nestedAO;
-    iState = EFree;
-    __LOG_EXIT;
+
+    CMailboxInfo& mailBoxInfo = GetPlugin().GetMailboxInfoL(iMailBoxId);
+    CMsgStoreMailBox& mailBox = mailBoxInfo();
+
+    for (; iIndex < endIndex; iIndex++)
+        {
+        TMsgStoreId msgId = iMessages[iIndex];
+
+        if (EFalse == iImmediateDelete)
+            {
+            //try to find the message
+            CMsgStoreMessage* theMessage = NULL;
+            theMessage = mailBox.FetchMessageL(msgId, KMsgStoreInvalidId);
+            //save parentId
+            TMsgStoreId msgParentId;
+            msgParentId = theMessage->ParentId();
+            //check if message is in deleted folder or not.
+            if (msgParentId != mailBoxInfo.iRootFolders.iFolders[EFSDeleted])
+                {
+                //if not in deleted items then move it there.
+                __LOG_WRITE8_FORMAT1_INFO("Moving message 0x%X to the deleted items.", msgId );
+                TRAP(result,mailBox.MoveMessageL(
+                                msgId, KMsgStoreInvalidId,
+                                mailBoxInfo.iRootFolders.iFolders[EFSDeleted] ));
+                if (result == KErrNone)
+                    {
+                    GetPlugin().NotifyEventL(iMailBoxId, msgId,
+                            KMsgStoreInvalidId, TFSEventMailMoved,
+                            msgParentId);
+                    }
+                else
+                    {
+                    User::Leave(result);
+                    }
+
+                }
+            else
+                {
+                //in deleted items, really delete it.
+                __LOG_WRITE8_FORMAT1_INFO( "Deleting message 0x%X.", msgId );
+
+                delete theMessage;
+                TRAP(result,mailBox.DeleteMessageL( msgId, iFolderId ));
+                if (result == KErrNone)
+                    {
+                    GetPlugin().NotifyEventL(iMailBoxId, msgId,
+                            KMsgStoreInvalidId, TFSEventMailDeleted,
+                            iFolderId);
+                    }
+                else
+                    {
+                    User::Leave(result);
+                    }
+                }
+            }
+        else
+            {
+            TRAP(result,mailBox.DeleteMessageL( msgId, iFolderId ));
+            if (result == KErrNone)
+                {
+                GetPlugin().NotifyEventL(iMailBoxId, msgId,
+                        KMsgStoreInvalidId, TFSEventMailDeleted, iFolderId);
+                }
+            else
+                {
+                User::Leave(result);
+                }
+            }
+        //</qmail>
+        } 
+		__LOG_EXIT;
+    return runAgain;
     }
 
 
@@ -465,7 +464,7 @@ CDelayedSetContentOp* CDelayedSetContentOp::NewLC(
 /**
  * CDelayedOp::ExecuteOpL
  */
-/*public virtual*/ void CDelayedSetContentOp::ExecuteOpL()
+/*public virtual*/ TBool CDelayedSetContentOp::ExecuteOpL()
     {
     __LOG_ENTER( "ExecuteOpL" )
 
@@ -494,6 +493,7 @@ CDelayedSetContentOp* CDelayedSetContentOp::NewLC(
     
     CleanupStack::PopAndDestroy( part );    
     __LOG_EXIT
+    return EFalse;
     }
 
 /**
@@ -657,7 +657,7 @@ void CDelayedMessageStorerOp::ConstructL( )
 /**
  * 
  */
-/*private*/ void CDelayedMessageStorerOp::ExecuteOpL()
+/*private*/ TBool CDelayedMessageStorerOp::ExecuteOpL()
     {
     __LOG_ENTER( "ExecuteOpL" );
    
@@ -726,6 +726,7 @@ void CDelayedMessageStorerOp::ConstructL( )
     
     
     __LOG_EXIT;
+	return EFalse;
     }
 
 
@@ -828,7 +829,7 @@ void CDelayedMessageToSendOp::ConstructL( )
 /**
  * 
  */
-/*private*/ void CDelayedMessageToSendOp::ExecuteOpL()
+/*private*/ TBool CDelayedMessageToSendOp::ExecuteOpL()
     {
     __LOG_ENTER( "ExecuteOpL" );
    
@@ -850,6 +851,7 @@ void CDelayedMessageToSendOp::ConstructL( )
 			}
     
     __LOG_EXIT;
+	return EFalse;
     }
 
 
@@ -969,7 +971,7 @@ void CDelayedAddNewOrRemoveChildPartOp::ConstructL( const TDesC& aContentType, c
 /**
  * 
  */
-/*private*/ void CDelayedAddNewOrRemoveChildPartOp::ExecuteOpL()
+/*private*/ TBool CDelayedAddNewOrRemoveChildPartOp::ExecuteOpL()
     {
     __LOG_ENTER( "ExecuteOpL" );
     
@@ -1010,5 +1012,6 @@ void CDelayedAddNewOrRemoveChildPartOp::ConstructL( const TDesC& aContentType, c
 			}
     
     __LOG_EXIT;
+    return EFalse;
     }
 //</qmail>

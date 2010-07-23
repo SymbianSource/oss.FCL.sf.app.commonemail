@@ -70,6 +70,6 @@ symbian: {
 
 TARGET.CAPABILITY = All -TCB
 plugin.sources = nmailcpplugin.dll
-plugin.path = \resource\qt\plugins\controlpanel
+plugin.path = /resource/qt/plugins/controlpanel
 DEPLOYMENT += plugin
 

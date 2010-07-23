@@ -36,8 +36,7 @@ NmMessageListViewItem::NmMessageListViewItem(QGraphicsItem *parent):
     mIcon1(NULL),
     mIcon2(NULL),
     mPrimarySize(0),
-    mSecondarySize(0),
-    mTinySize(0)    
+    mSecondarySize(0)   
 {
     NM_FUNCTION;
 }
@@ -276,10 +275,6 @@ void  NmMessageListViewItem::getFontSizes()
     if (found) {
         mSecondarySize = currentSize;
     }        
-    found = style()->parameter(QString("hb-param-text-height-tiny"), currentSize );
-    if (found) {
-        mTinySize = currentSize;
-    } 
 }
 
 /*!
@@ -304,10 +299,6 @@ void  NmMessageListViewItem::setFonts(const QColor &colorRole,
         }        
         mSubject->setFontSpec(fontSpec);
         mSubject->setTextColor(colorRole);
-
-        if (mTinySize) {
-            fontSpec.setTextHeight(mTinySize);
-        } 
         mTime->setFontSpec(fontSpec);        
         mTime->setTextColor(colorRole);
     }

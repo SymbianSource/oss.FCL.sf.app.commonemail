@@ -384,6 +384,7 @@ void CBasePlugin::CancelL( TInt aRequestId )
     		break;
     		}
     	}
+//<qmail>		
     count = iDelayedOpReqs.Count();
     for ( TInt i = 0; i < count; i++ )
         {
@@ -401,6 +402,7 @@ void CBasePlugin::CancelL( TInt aRequestId )
             break;
             }
         }
+//</qmail>		
     }
 
 

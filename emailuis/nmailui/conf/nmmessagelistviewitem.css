@@ -11,8 +11,8 @@ NmMessageListViewItem::sender{
   text-align: left;
 }
 NmMessageListViewItem::time {
-  pref-height: var(hb-param-text-height-tiny);
-  pref-width: 13un;
+  pref-height: var(hb-param-text-height-secondary);
+  pref-width: 12un;
   size-policy: fixed, fixed;
   text-align: right;
 }
@@ -21,12 +21,12 @@ NmMessageListViewItem::subject{
   text-align: left;
 }
 NmMessageListViewItem::icon1::icon{
-  pref-height: var(hb-param-graphic-size-secondary);
-  pref-width: var(hb-param-graphic-size-secondary); 
+  pref-height: var(hb-param-graphic-size-primary-small);
+  pref-width: var(hb-param-graphic-size-primary-small); 
   size-policy: fixed fixed;   
 }
 NmMessageListViewItem::icon2::icon{
-  pref-height: var(hb-param-graphic-size-secondary);
-  pref-width: var(hb-param-graphic-size-secondary);
+  pref-height: var(hb-param-graphic-size-primary-small);
+  pref-width: var(hb-param-graphic-size-primary-small);
   size-policy: fixed fixed;    
 }

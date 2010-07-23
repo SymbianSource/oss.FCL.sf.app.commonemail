@@ -10,7 +10,7 @@
       
       <meshitem src="subject" srcEdge="LEFT" dst="" dstEdge="LEFT" spacing="-var(hb-param-margin-gene-left)"/>
       <meshitem src="subject" srcEdge="RIGHT" dst="" dstEdge="RIGHT" spacing="var(hb-param-margin-gene-right)"/> 
-      <meshitem src="subject" srcEdge="TOP" dst="sent" dstEdge="BOTTOM" spacing="var(hb-param-margin-gene-middle-vertical)"/>
+      <meshitem src="subject" srcEdge="TOP" dst="sent" dstEdge="BOTTOM" spacing="-var(hb-param-margin-gene-middle-vertical)"/>
       <meshitem src="subject" srcEdge="BOTTOM" dst="" dstEdge="BOTTOM" spacing="var(hb-param-margin-gene-bottom)"/>
       
       <meshitem src="prioicon" srcEdge="CENTERV" dst="sent" dstEdge="CENTERV"/>      

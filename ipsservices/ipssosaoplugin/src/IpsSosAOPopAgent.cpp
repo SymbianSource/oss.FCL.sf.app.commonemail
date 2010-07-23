@@ -147,6 +147,7 @@ void CIpsSosAOPopAgent::RunL()
          case EStateFetchOnHold:
              break;
          case EStateDisconnect:
+             NM_COMMENT("CIpsSosAOPopAgent: disconnecting");
              if ( !iDoNotDisconnect )
                  {
                  CancelAllAndDisconnectL();
@@ -158,6 +159,7 @@ void CIpsSosAOPopAgent::RunL()
                  }
              break;
          case EStateCompleted:
+             NM_COMMENT("CIpsSosAOImapAgent: completed");
              TRAP_IGNORE( iOpResponse.OperationCompletedL( iError ) );
              SignalSyncCompleted( iServiceId, iError );
              ClearSignaledFlags();
@@ -270,6 +272,7 @@ void CIpsSosAOPopAgent::StartSyncL()
     LoadSettingsL( );
     if ( !IsConnected() )
         {
+        NM_COMMENT("CIpsSosAOPopAgent: starting sync");
         TBuf8<1> dummy;
         // connect and synchronise starts background sync or idle
         iSelection->ResizeL(0);
@@ -282,6 +285,7 @@ void CIpsSosAOPopAgent::StartSyncL()
         }
     else
         {
+        NM_COMMENT("CIpsSosAOPopAgent: already connected do not sync");
         iState = EStateCompleted;
         iError = KErrCancel;
         SetActiveAndCompleteThis();

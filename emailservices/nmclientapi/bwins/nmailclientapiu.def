@@ -242,4 +242,8 @@ EXPORTS
 	?getStaticMetaObject@NmApiMessageManager@EmailClientApi@@SAABUQMetaObject@@XZ @ 241 NONAME ; struct QMetaObject const & EmailClientApi::NmApiMessageManager::getStaticMetaObject(void)
 	?staticMetaObject@NmApiMessageManager@EmailClientApi@@2UQMetaObject@@B @ 242 NONAME ; struct QMetaObject const EmailClientApi::NmApiMessageManager::staticMetaObject
 	?qt_metacall@NmApiMailboxSettings@EmailClientApi@@UAEHW4Call@QMetaObject@@HPAPAX@Z @ 243 NONAME ; int EmailClientApi::NmApiMailboxSettings::qt_metacall(enum QMetaObject::Call, int, void * *)
+	??0NmApiSettingsManager@EmailClientApi@@QAE@_K@Z @ 244 NONAME ; EmailClientApi::NmApiSettingsManager::NmApiSettingsManager(unsigned long long)
+	?save@NmApiSettingsManager@EmailClientApi@@QAE_NABVNmApiMailboxSettingsData@2@@Z @ 245 NONAME ; bool EmailClientApi::NmApiSettingsManager::save(class EmailClientApi::NmApiMailboxSettingsData const &)
+	?load@NmApiSettingsManager@EmailClientApi@@QAE_N_KAAVNmApiMailboxSettingsData@2@@Z @ 246 NONAME ; bool EmailClientApi::NmApiSettingsManager::load(unsigned long long, class EmailClientApi::NmApiMailboxSettingsData &)
+	??1NmApiSettingsManager@EmailClientApi@@QAE@XZ @ 247 NONAME ; EmailClientApi::NmApiSettingsManager::~NmApiSettingsManager(void)
 

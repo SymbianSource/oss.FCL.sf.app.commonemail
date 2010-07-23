@@ -63,6 +63,9 @@ void NmAttachmentListItem::setTextColor(const QColor color)
     NM_FUNCTION;
     
     mTextColor=color;
+    if (mTextColor.isValid() && mFileNameText){
+        mFileNameText->setTextColor(mTextColor);
+    }    
 }
 
 /*!

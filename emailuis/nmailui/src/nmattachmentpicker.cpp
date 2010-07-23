@@ -41,32 +41,32 @@ NmAttachmentPicker::NmAttachmentPicker(QObject *parent):
 NmAttachmentPicker::~NmAttachmentPicker()
 {
     NM_FUNCTION;
-    
+
     delete mRequest;
 }
 
 /*!
-    Send request to start Photo picker 
+    Send request to start Photo picker
 */
 void NmAttachmentPicker::fetchImage()
 {
     NM_FUNCTION;
-    
+
     fetch(XQI_IMAGE_FETCH, XQOP_IMAGE_FETCH);
 }
 
 /*!
-    Send request to start Music picker 
+    Send request to start Music picker
 */
 void NmAttachmentPicker::fetchAudio()
 {
     NM_FUNCTION;
-    
-    fetch(XQI_MUSIC_FETCH, XQOP_MUSIC_FETCH);    
+
+    fetch(XQI_MUSIC_FETCH, XQOP_MUSIC_FETCH);
 }
 
 /*!
-    Send request to start Video picker 
+    Send request to start Video picker
 */
 void NmAttachmentPicker::fetchVideo()
 {
@@ -75,19 +75,17 @@ void NmAttachmentPicker::fetchVideo()
 }
 
 /*!
-    Send request to start general file picker 
+    Send request to start general file picker
 */
 void NmAttachmentPicker::fetchOther()
 {
     NM_FUNCTION;
-    
+
     QString path;
-    path = FmFileDialog::getSaveFileName(0, hbTrId("txt_mail_dialog_select_file"));
-    
-    if (!path.isEmpty()) {
-        QString temp = QDir::toNativeSeparators(path);
-        emit attachmentsFetchOk(QVariant(temp));    
-    }
+    path = FmFileDialog::getOpenFileName(0, hbTrId("txt_mail_dialog_select_file"));
+
+    QString temp = QDir::toNativeSeparators(path);
+    emit attachmentsFetchOk(QVariant(temp));
 }
 
 /*!
@@ -120,36 +118,36 @@ void NmAttachmentPicker::fetchFromCamera(int mode)
     bool allowModeSwitch(false);   //not allowed to change
     bool allowCameraSwitch(true);  //allow changes
     bool allowQualityChange(true); //allow changes
-    
+
     QVariantMap parameters;
     parameters.insert(XQCAMERA_INDEX, cameraIndex);
     parameters.insert(XQCAMERA_QUALITY, quality);
     parameters.insert(XQCAMERA_MODE_SWITCH, allowModeSwitch);
     parameters.insert(XQCAMERA_INDEX_SWITCH, allowCameraSwitch);
-    parameters.insert(XQCAMERA_QUALITY_CHANGE, allowQualityChange); 
- 
+    parameters.insert(XQCAMERA_QUALITY_CHANGE, allowQualityChange);
+
     QList<QVariant> args;
     args << mode;
     args << parameters;
-    
+
     fetch(XQI_CAMERA_CAPTURE, "capture(int,QVariantMap)", &args);
 }
 /*!
-    Construct & send appmgr request to start appropriate picker   
+    Construct & send appmgr request to start appropriate picker
     param <interface> the interface to be connected to
     param <operation> the operation of the interface
     param <args> the arguments that needed by the operation
 */
-void NmAttachmentPicker::fetch(const QString &interface, 
+void NmAttachmentPicker::fetch(const QString &interface,
     const QString &operation, const QList<QVariant> *args)
 {
     NM_FUNCTION;
-    
+
     delete mRequest;
     mRequest = NULL;
     XQApplicationManager appMgr;
     mRequest = appMgr.create(interface, operation, true);
-   
+
     if (mRequest) {
         mRequest->setSynchronous(false);
         if (args) {
@@ -160,7 +158,30 @@ void NmAttachmentPicker::fetch(const QString &interface,
 
         connect(mRequest, SIGNAL(requestError(int, const QString&)),
                 this, SIGNAL(attachmentsFetchError(int, const QString&)));
-        
+
         mRequest->send();
-    } 
+    }
+}
+
+/*!
+	Launch the correct fetcher based on the clicked list item.
+*/
+void NmAttachmentPicker::selectFetcher(HbListWidgetItem *listItem)
+{
+	QString itemText = listItem->text();
+    if (itemText == hbTrId("txt_mail_list_photo")) {
+        fetchImage();
+    }
+    else if (itemText == hbTrId("txt_mail_list_music")) {
+        fetchAudio();
+	}
+    else if (itemText == hbTrId("txt_mail_list_video")) {
+        fetchVideo();
+	}
+    else if (itemText == hbTrId("txt_mail_list_other")) {
+        QMetaObject::invokeMethod(this, "fetchOther", Qt::QueuedConnection);
+	}
+    else if (itemText == hbTrId("txt_mail_list_new_photo")) {
+        fetchCameraStill();
+	}
 }

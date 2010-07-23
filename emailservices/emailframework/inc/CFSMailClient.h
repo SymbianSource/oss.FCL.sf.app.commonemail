@@ -213,10 +213,27 @@ NONSHARABLE_CLASS(CFSMailClient) : public CExtendableEmail
      * returns email mailbox object related to given mailbox id
      *
      * @param aMailBoxId mailbox id
-     * @return mailbox object ( CFSMailBox ), ownership is transferred to user
+     * @return mailbox object ( CFSMailBox )
+     *         or NULL if no matching mailbox found. 
+     *         Ownership is transferred to user!
      */
      IMPORT_C CFSMailBox* GetMailBoxByUidL( const TFSMailMsgId aMailBoxId);
-                
+      	  		
+
+    /**
+     * returns email mailbox object related to given mailbox id. Otherwise 
+     * identical to GetMailBoxByUidL but mailbox object is stored to cleanup 
+     * stack.
+     *
+     * @param aMailBoxId mailbox id
+     * @return mailbox object ( CFSMailBox )
+     *         or NULL if no matching mailbox found.
+     *         CFSMailBox pointer is stored to cleanup stack (even if NULL). 
+     *         Ownership is transferred to user! 
+     */
+     IMPORT_C CFSMailBox* GetMailBoxByUidLC( const TFSMailMsgId aMailBoxId);
+
+     
     /**
      * returns email folder object related to given folder id
      *
@@ -374,6 +391,7 @@ NONSHARABLE_CLASS(CFSMailClient) : public CExtendableEmail
       */
      IMPORT_C void SetMailboxName( const TFSMailMsgId aMailboxId, const TDesC& aMailboxName );
 
+
 //<qmail>
      /**
       * increments reference count to framework singleton
@@ -381,7 +399,16 @@ NONSHARABLE_CLASS(CFSMailClient) : public CExtendableEmail
       */
      IMPORT_C TInt IncReferenceCount();
 //</qmail>
-
+     
+	 
+     /**
+      * Prepares and sets the MR description by converting HTML body to Plain text
+      *
+      * @param aMailboxId mailbox id
+      * @param aMessageId message id
+      */     
+     IMPORT_C virtual void PrepareMrDescriptionL( const TFSMailMsgId& aMailBoxId,
+                                                  const TFSMailMsgId& aMessageId );
 public: // from  CExtendableEmail
 
     /**

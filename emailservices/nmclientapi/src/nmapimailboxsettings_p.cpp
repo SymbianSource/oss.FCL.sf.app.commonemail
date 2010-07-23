@@ -16,6 +16,7 @@
  */
 
 #include "nmapiheaders.h"
+#include <nmapisettingsmanager.h>
 
 
 namespace EmailClientApi
@@ -64,16 +65,15 @@ bool NmApiMailboxSettingsPrivate::listMailboxIds(QList<quint64> &idList)
 bool NmApiMailboxSettingsPrivate::loadSettings(quint64 mailboxId, NmApiMailboxSettingsData &data)
 {
     NM_FUNCTION;
-    Q_UNUSED(mailboxId);
-    Q_UNUSED(data);
-    return false;
+    QScopedPointer<NmApiSettingsManager> settingsManager(new NmApiSettingsManager(mailboxId));  
+    return settingsManager->load(mailboxId, data);
 }
 
 bool NmApiMailboxSettingsPrivate::saveSettings(const NmApiMailboxSettingsData &data)
 {
     NM_FUNCTION;
-    Q_UNUSED(data);
-    return false;
+    QScopedPointer<NmApiSettingsManager> settingsManager(new NmApiSettingsManager(data.mailboxId()));  
+    return settingsManager->save(data);
 }
 
 bool NmApiMailboxSettingsPrivate::createMailbox(

@@ -319,11 +319,14 @@ void CIpsSosAOMBoxLogic::HandleEventAndSwitchStateL(
           ( (iIsRoaming && CanConnectIfRoamingL())||
              !iIsRoaming ) )
         {
+        NM_COMMENT("CIpsSosAOMBoxLogic: event: EEventStart");
         event = EEventNop;
         iAgent->LoadSettingsL();
         iTimer->Cancel();
+        INFO_1("CIpsSosAOMBoxLogic: timer scheduled: %d", KIpsSosAOStartDelaySeconds);
         iTimer->After( KIpsSosAOStartDelaySeconds );
         iState = EStateWaitSyncStart;
+        NM_COMMENT("CIpsSosAOMBoxLogic: switching state: EStateWaitSyncStart");
         }
     
     while ( event != EEventNop && iState != EStateError )
@@ -331,14 +334,17 @@ void CIpsSosAOMBoxLogic::HandleEventAndSwitchStateL(
         switch ( event )
             {
             case EEventTimerFired:
+                NM_COMMENT("CIpsSosAOMBoxLogic: event: EEventTimerFired");
                 event = HandleTimerFiredL();
               break;
             case EEventStartSync:
+                NM_COMMENT("CIpsSosAOMBoxLogic: event: EEventStartSync");
                 if ( iState == EStateWaitSyncStart )
                     {         
                     iError = KErrNone;
                     iAgent->StartSyncL();
                     iState = EStateSyncOngoing;
+                    NM_COMMENT("CIpsSosAOMBoxLogic: switching state: EStateSyncOngoing");
                     }
                 else if ( iState == EStateIdleAndWaitCommands )
                     {
@@ -360,7 +366,9 @@ void CIpsSosAOMBoxLogic::HandleEventAndSwitchStateL(
 					//</QMail>
                     if ( type == EAOCConnectAfter )
                         {
+                        NM_COMMENT("CIpsSosAOMBoxLogic: switching state: EStateWaitSyncStart");
                         iState = EStateWaitSyncStart;
+                        INFO_1("CIpsSosAOMBoxLogic: timer scheduled: %d", seconds);
                         iTimer->After( seconds );
                         
                         SetEmnReceivedFlagL( ETrue );
@@ -370,6 +378,7 @@ void CIpsSosAOMBoxLogic::HandleEventAndSwitchStateL(
                         iError = KErrNone;
                         iAgent->StartSyncL();
                         iState = EStateSyncOngoing;
+                        NM_COMMENT("CIpsSosAOMBoxLogic: switching state: EStateSyncOngoing");
                         }
 					//<QMail>
                     CleanupStack::PopAndDestroy( 2, settings );
@@ -379,6 +388,7 @@ void CIpsSosAOMBoxLogic::HandleEventAndSwitchStateL(
                 event = EEventNop;
                 break;
             case EEventFetchMessages:
+                NM_COMMENT("CIpsSosAOMBoxLogic: event: EEventFetchMessages");
                 if ( ( iState == EStateWaitSyncStart || 
                        iState == EStateIdleAndWaitCommands ) &&
                         iFetchMsgArray.Count() > 0 )
@@ -386,6 +396,7 @@ void CIpsSosAOMBoxLogic::HandleEventAndSwitchStateL(
                     iError = KErrNone;
                     iAgent->StartFetchMessagesL( iFetchMsgArray );
                     iFetchMsgArray.Reset();
+                    NM_COMMENT("CIpsSosAOMBoxLogic: switching state: EStateFetchOngoing");
                     iState = EStateFetchOngoing;
                     }
                 else 
@@ -396,16 +407,20 @@ void CIpsSosAOMBoxLogic::HandleEventAndSwitchStateL(
                 event = EEventNop;
                 break;
             case EEventOperationCompleted:
+                NM_COMMENT("CIpsSosAOMBoxLogic: event: EEventOperationCompleted");
                 event = HandleOperationCompletionL();
                 break;
             case EEventSuspendOperations:
+                NM_COMMENT("CIpsSosAOMBoxLogic: event: EEventSuspendOperations");
                 SuspendOperations();
                 iState = EStateSuspended;
                 event = EEventNop;
                 break;
             case EEventContinueOperations:
+                NM_COMMENT("CIpsSosAOMBoxLogic: event: EEventContinueOperations");
                 if ( iState == EStateSuspended )
                     {
+                    INFO_1("CIpsSosAOMBoxLogic: timer scheduled: %d", KIpsSosAOContinueWaitTime);
                     iTimer->After( KIpsSosAOContinueWaitTime );
                     }
                 else
@@ -415,9 +430,11 @@ void CIpsSosAOMBoxLogic::HandleEventAndSwitchStateL(
                 // ignore if in other states
                 break;
             case EEventStopAndRemoveOps:
+                NM_COMMENT("CIpsSosAOMBoxLogic: event: EEventStopAndRemoveOps");
                 // notify deletion
                 iAgent->CancelAllAndDisconnectL();
                 iTimer->Cancel();
+                NM_COMMENT("CIpsSosAOMBoxLogic: switching state: EStateError");
                 iState = EStateError;
                 event = EEventNop;
                 break;
@@ -475,12 +492,14 @@ TInt CIpsSosAOMBoxLogic::HandleTimerFiredL()
           agentState == CIpsSosAOBaseAgent::EStatePopulateOnHold ) )
         {
         iAgent->ContinueHoldOperations();
+        NM_COMMENT("CIpsSosAOMBoxLogic: switching state: EStateSyncOngoing");
         iState = EStateSyncOngoing;
         }
     else if ( iState == EStateSuspended && 
             agentState == CIpsSosAOBaseAgent::EStateFetchOnHold )
         {
         iAgent->ContinueHoldOperations();
+        NM_COMMENT("CIpsSosAOMBoxLogic: switching state: EStateFetchOngoing");
         iState = EStateFetchOngoing;
         }
     else
@@ -506,12 +525,18 @@ TInt CIpsSosAOMBoxLogic::HandleOperationCompletionL()
 	//</Qmail>     
     if ( iState == EStateSyncOngoing )
         {
+        INFO_1("CIpsSosAOMBoxLogic: operation completed error: %d", iError);
+        bool doSaveSyncTime = EFalse;
         if ( !( iError == KErrNone || iError == KErrCancel ) )
             {
             ++iErrorCounter;
             }
         else
             {
+            if (iError == KErrNone)
+                {
+                doSaveSyncTime = ETrue;
+                }
             iError = KErrNone;
             iErrorCounter = 0;
             }
@@ -529,6 +554,7 @@ TInt CIpsSosAOMBoxLogic::HandleOperationCompletionL()
             
             settings->SetEmnReceivedButNotSyncedFlag( EFalse );
             //</QMail>
+            NM_COMMENT("CIpsSosAOMBoxLogic: switching state: EStateError");
             iState = EStateError;
             iErrorCounter = 0;
             }
@@ -542,14 +568,17 @@ TInt CIpsSosAOMBoxLogic::HandleOperationCompletionL()
             
             if ( state == IpsServices::EMailAoOff )
                 {
+                NM_COMMENT("CIpsSosAOMBoxLogic: switching state: EStateIdleAndWaitCommands");
                 iState = EStateIdleAndWaitCommands;
                 }
             else
                 {
                 if( !iTimer->IsActive() )
                     {
+                    INFO_1("CIpsSosAOMBoxLogic: timer scheduled: %d", KIpsSosAOReTryInterval);
                     iTimer->After( KIpsSosAOReTryInterval );
                     }
+                NM_COMMENT("CIpsSosAOMBoxLogic: switching state: EStateWaitSyncStart");
                 iState = EStateWaitSyncStart;
                 }
 
@@ -567,7 +596,10 @@ TInt CIpsSosAOMBoxLogic::HandleOperationCompletionL()
             {
             // no errors
             // update successfull sync time to settings
-            SaveSuccessfulSyncTimeL();
+            if (doSaveSyncTime)
+                {
+                SaveSuccessfulSyncTimeL();
+                }
             // and adjust timer to sync interval
             CalculateToNextIntervalL();
             }
@@ -577,6 +609,7 @@ TInt CIpsSosAOMBoxLogic::HandleOperationCompletionL()
         iError = KErrNone;
         if ( iTimer->IsActive() )
             {
+            NM_COMMENT("CIpsSosAOMBoxLogic: switching state: EStateWaitSyncStart");
             iState = EStateWaitSyncStart;
             }
         else
@@ -600,11 +633,13 @@ void CIpsSosAOMBoxLogic::SuspendOperations()
         {
         iAgent->HoldOperations();
         }
+    NM_COMMENT("CIpsSosAOMBoxLogic: switching state: EStateSuspended");
     iState = EStateSuspended;
     // set suspend watchdog, if clien not continue this
     // ensure ao logic to continue
     if ( !iTimer->IsActive() )
         {
+        INFO_1("CIpsSosAOMBoxLogic: timer scheduled: %d", KIpsSosAOSuspendWatchdogTime);
         iTimer->After( KIpsSosAOSuspendWatchdogTime );
         }
     }
@@ -649,7 +684,7 @@ CIpsSosAOMBoxLogic::TMBoxLogicEvent
     {
 	//<Qmail>
     FUNC_LOG;
-     iTimer->Cancel();
+    iTimer->Cancel();
     TMBoxLogicEvent event = EEventNop;
     TTimeIntervalSeconds secondsToConnect = CalculateScheduledSyncTimeL();
     
@@ -679,7 +714,10 @@ CIpsSosAOMBoxLogic::TMBoxLogicEvent
                     secsFromLastSync.Int() < interval ) )
                 {
                 // adjust timer to correct sync time
-                iTimer->After(interval - secsFromLastSync.Int());        
+                TInt syncAfter = interval - secsFromLastSync.Int();
+                INFO_1("CIpsSosAOMBoxLogic: timer scheduled: %d", syncAfter);
+                iTimer->After(syncAfter); 
+                NM_COMMENT("CIpsSosAOMBoxLogic: switching state: EStateWaitSyncStart");
                 iState = EStateWaitSyncStart;
                 }
             else
@@ -692,6 +730,7 @@ CIpsSosAOMBoxLogic::TMBoxLogicEvent
     else if ( secondsToConnect.Int() == KErrNotFound )
         {
         // means that ao is not on (but emn is)
+        NM_COMMENT("CIpsSosAOMBoxLogic: switching state: EStateIdleAndWaitCommands");
         iState = EStateIdleAndWaitCommands;
       
         if ( settings->EmnReceivedButNotSyncedFlag() )
@@ -702,7 +741,9 @@ CIpsSosAOMBoxLogic::TMBoxLogicEvent
         }
     else
         {
+        INFO_1("CIpsSosAOMBoxLogic: timer scheduled: %d", secondsToConnect);
         iTimer->After( secondsToConnect );
+        NM_COMMENT("CIpsSosAOMBoxLogic: switching state: EStateWaitSyncStart");
         iState = EStateWaitSyncStart;
         
 
@@ -734,19 +775,24 @@ void CIpsSosAOMBoxLogic::CalculateToNextIntervalL()
         CIpsSosAOSettingsHandler* settings = 
                  CIpsSosAOSettingsHandler::NewL(iSession, iMailboxId);
         CleanupStack::PushL(settings);
-        iTimer->After( 
-                settings->InboxRefreshTime() * KAOSecondsInMinute );
+        TInt secs = settings->InboxRefreshTime() * KAOSecondsInMinute;
+        INFO_1("CIpsSosAOMBoxLogic: timer scheduled: %d", secs);
+        iTimer->After(secs);
         CleanupStack::PopAndDestroy(settings);
 	   //</QMail>
+        NM_COMMENT("CIpsSosAOMBoxLogic: switching state: EStateWaitSyncStart");
         iState = EStateWaitSyncStart;
         }
     else if ( interval.Int() > 0 )
         {
+        INFO_1("CIpsSosAOMBoxLogic: timer scheduled: %d", interval);
         iTimer->After( interval );
+        NM_COMMENT("CIpsSosAOMBoxLogic: switching state: EStateWaitSyncStart");
         iState = EStateWaitSyncStart;
         }
     else 
         {
+        NM_COMMENT("CIpsSosAOMBoxLogic: switching state: EStateIdleAndWaitCommands");
         iState = EStateIdleAndWaitCommands;
         }
     

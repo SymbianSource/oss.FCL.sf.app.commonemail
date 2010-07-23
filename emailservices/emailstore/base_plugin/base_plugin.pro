@@ -36,8 +36,8 @@ HEADERS += inc/BaseMrInfoObject.h \
            inc/Map.h \
            inc/SafePointerArray.h \
            inc/Map.inl \
-           inc/baseplugindef.h \
-	   inc/nestedao.h
+           inc/baseplugindef.h 
+           
 SOURCES += src/BaseMrInfoObject.cpp \
            src/BasePlugin.cpp \
            src/baseplugindelayedops.cpp \
@@ -48,8 +48,7 @@ SOURCES += src/BaseMrInfoObject.cpp \
            src/basepluginparts.cpp \
            src/baseplugintranslator.cpp \
            src/MailIterator.cpp \
-	   src/basepluginresourceloader.cpp \
-	   src/nestedao.cpp
+	   src/basepluginresourceloader.cpp 
 
 LIBS += -leuser \
 		-lecom \

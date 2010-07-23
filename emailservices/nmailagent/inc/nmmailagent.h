@@ -144,8 +144,8 @@ private:
     void handleMessageCreatedEvent(const NmId &folderId, const QList<NmId> &messageIds,
         const NmId &mailboxId, bool &updateNeeded, bool &activate);
 
-    void handleMessageChangedEvent(const NmId &folderId, const NmId &mailboxId,
-        bool &updateNeeded, bool &activate);
+    void handleMessageChangedEvent(const NmId &folderId, const QList<NmId> &messageIds,
+        const NmId &mailboxId, bool &updateNeeded, bool &activate);
 
     void handleMessageDeletedEvent(const NmId &folderId, const QList<NmId> &messageIds,
         const NmId &mailboxId, bool &updateNeeded, bool &activate);

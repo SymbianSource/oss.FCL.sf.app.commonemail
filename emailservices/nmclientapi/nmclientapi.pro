@@ -50,6 +50,7 @@ HEADERS += nmapicommon.h \
            nmapimessageenvelope.h \
            nmapimessagetask.h \
            nmapimessagemanager.h \
+           nmapisettingsmanager.h \
            nmapimailboxsettings.h
 
 # private headers 
@@ -67,6 +68,7 @@ HEADERS += inc/nmapidatapluginfactory.h \
            inc/nmapimessagebody_p.h \
            inc/nmapimessageenvelope_p.h \
            inc/nmapimessagemanager_p.h \
+	   inc/nmapisettingsmanager_p.h \
            inc/nmapipopimapsettingsmanager.h \
            inc/nmapiprivateclasses.h \
            inc/nmapitypesconverter.h \
@@ -96,6 +98,8 @@ SOURCES += src/nmapidatapluginfactory.cpp \
            src/nmapipopimapsettingsmanager.cpp \
 	         src/nmapimessagemanager_p.cpp \
 			     src/nmapimessagemanager.cpp \
+	   src/nmapisettingsmanager_p.cpp \
+	   src/nmapisettingsmanager.cpp \
            src/nmapitypesconverter.cpp 
 
 

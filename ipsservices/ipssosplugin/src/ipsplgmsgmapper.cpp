@@ -1542,11 +1542,11 @@ void CIpsPlgMsgMapper::GetCharsetParameterL(
             mimeHeader->RestoreL( *store );
 
             TInt count = mimeHeader->ContentTypeParams().MdcaCount();
-            INFO_1("# of CT params: %d", count);
+            //INFO_1("# of CT params: %d", count);
             for ( TInt i = 0; i < count; i++ )
                 {
                 TPtrC8 key8 = mimeHeader->ContentTypeParams().MdcaPoint( i );
-                INFO_1("%S", &key8);
+                //INFO_1("%S", &key8);
                 TPtr16 keyUppercase16 = HBufC::NewLC( key8.Length() )->Des();
                 keyUppercase16.Copy( key8 );
                 keyUppercase16.UpperCase();

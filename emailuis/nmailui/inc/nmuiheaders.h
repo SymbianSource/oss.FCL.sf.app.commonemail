@@ -92,6 +92,8 @@
 #include <hbindicator.h>
 #include <hbformatdialog.h>
 #include <hbshrinkingvkbhost.h>
+#include <hbactivitymanager.h>
+#include <hbframebackground.h>
 
 #include <cntservicescontact.h>
 #include <xqservicerequest.h>
@@ -103,6 +105,8 @@
 #include <xqsharablefile.h>
 #include <fmfiledialog.h>
 #include <xqaiwdecl.h>
+#include <afstorageglobals.h>
+#include <tstasksettings.h>
 
 #include <nmcommon.h>
 

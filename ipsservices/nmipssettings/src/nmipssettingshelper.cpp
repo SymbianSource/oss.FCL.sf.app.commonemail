@@ -23,6 +23,7 @@
 #include <HbGlobal>
 #include <HbMessageBox>
 #include <HbProgressDialog>
+#include <HbNotificationDialog>
 #include <HbInputDialog>
 #include <HbDataFormModel>
 #include <HbExtendedLocale>
@@ -92,7 +93,6 @@ NmIpsSettingsHelper::NmIpsSettingsHelper(NmIpsSettingsManagerBase &settingsManag
   mDataForm(dataForm),
   mDataFormModel(dataFormModel),
   mDeleteConfirmationDialog(0),
-  mDeleteInformationDialog(0),
   mIncomingPortInputDialog(0),
   mIncomingPortInputValidator(0),
   mFolderPathInputDialog(0),
@@ -111,7 +111,6 @@ NmIpsSettingsHelper::~NmIpsSettingsHelper()
 {
     mContentItems.clear();
     delete mDeleteConfirmationDialog;
-    delete mDeleteInformationDialog;
     delete mIncomingPortInputDialog;
     delete mIncomingPortInputValidator;
     delete mFolderPathInputDialog;
@@ -635,15 +634,11 @@ void NmIpsSettingsHelper::handleMailboxDelete(HbAction *action)
             // Hide the progress note and display the "mailbox deleted" dialog.
             progressNote.close();
 
-            if (!mDeleteInformationDialog) {
-                mDeleteInformationDialog =
-                    new HbMessageBox(HbMessageBox::MessageTypeInformation);
-                mDeleteInformationDialog->setText(
-                    hbTrId("txt_mail_dpophead _1_deleted").arg(mailboxName.toString()));
-                mDeleteInformationDialog->setTimeout(HbMessageBox::NoTimeout);
-            }
-            mDeleteInformationDialog->open(this, SLOT(handleMailboxDeleteUpdate(HbAction *)));
-
+            HbNotificationDialog *note = new HbNotificationDialog();
+            QString noteText = hbTrId("txt_mail_dpophead_1_deleted").arg(mailboxName.toString());
+            note->setTitle(noteText);
+            note->setAttribute(Qt::WA_DeleteOnClose);
+            note->open(this, SLOT(handleMailboxDeleteUpdate(HbAction *)));
         } else {
             // Failed to delete the mailbox!
             progressNote.close();

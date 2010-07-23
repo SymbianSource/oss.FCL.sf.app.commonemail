@@ -68,6 +68,9 @@ private:
     void pushView(NmBaseView *view);
     void resetViewStack();
     void hideApplication();
+    
+private slots:
+    void updateActivity();
 
 signals:
 	void applicationReady();
@@ -95,6 +98,8 @@ private:
     NmId mLastOperationMailbox;
     HbMessageBox *mQueryDialog;             // Owned
     bool mBackButtonPressed;
+    NmId mCurrentMailboxId;
+    bool mActivityUpdateNeeded;
 };
 
 #endif // NMAPPLICATION_H

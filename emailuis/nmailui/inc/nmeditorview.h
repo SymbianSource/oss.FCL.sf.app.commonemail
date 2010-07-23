@@ -45,6 +45,7 @@ class NmAttachmentPicker;
 class HbMessageBox;
 class NmAttachmentManager;
 class HbVkbHost;
+class HbListWidget;
 
 class NmEditorView : public NmBaseView,
                      public NmActionObserver,
@@ -145,6 +146,8 @@ private: // Data
     NmAttachmentPicker* mAttachmentPicker; // Owned    
     bool mCcBccFieldVisible;
     QPointer<HbProgressDialog> mServiceSendingDialog; // Owned.
+    bool mIsNotFetchedBefore;
+	HbListWidget *mTBExtnContentWidget;		// Owned
 };
 
 

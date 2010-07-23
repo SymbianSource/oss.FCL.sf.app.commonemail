@@ -406,11 +406,12 @@ void NmEditorHeader::addAttachment(
 {
     NM_FUNCTION;
     
+    mAttachmentList->insertAttachment(fileName, fileSize, nmid);
+    
     if (!mAttachmentList->listWidget().isVisible()) {
         mAttachmentList->listWidget().show();
     }
 
-    mAttachmentList->insertAttachment(fileName, fileSize, nmid);
     sendHeaderHeightChanged();
 }
 

@@ -127,6 +127,7 @@ void CIpsPlgOnlineOperation::RunL()
 void CIpsPlgOnlineOperation::CompleteObserver( TInt aStatus )
     {
     FUNC_LOG;
+    NM_COMMENT("CIpsPlgOnlineOperation::CompleteObserver");
     TRequestStatus* status = &iObserverRequestStatus;
     if (status && status->Int() == KRequestPending)
         {
@@ -136,6 +137,7 @@ void CIpsPlgOnlineOperation::CompleteObserver( TInt aStatus )
         //if connected, reset activitytimer. if not, there is no reason to.
         if ( Connected() )
             {
+            NM_COMMENT("CIpsPlgOnlineOperation::reseting activitytimer");
             iActivityTimer->ResetTimerOperation();
             }
         else

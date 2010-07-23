@@ -83,11 +83,10 @@ void CBaseMrInfoObject::ConstructL(
     iSequenceNumber = aMrInfo.MRSequenceNumberL();
     iPriority = aMrInfo.PriorityL();
 
-    iOrganizer = CBaseMrAttendee::NewL();
+    iOrganizer = CBaseMrAttendee::NewL( aMrInfo.MROrganizerL() );
 //<qmail> Commented out in 10.1
-    /*iOrganizer = CBaseMrAttendee::NewL( aMrInfo.MROrganizerL() );
     
-    RPointerArray<MMRAttendee>& attendees = aMrInfo.AttendeesL();
+    /*RPointerArray<MMRAttendee>& attendees = aMrInfo.AttendeesL();
     TInt count = attendees.Count();
     for ( TInt i = 0; i < count; i++ )
         {
@@ -96,6 +95,7 @@ void CBaseMrInfoObject::ConstructL(
         iAttendees.AppendL( attendee );
         CleanupStack::Pop( attendee );
         }*/
+
 //</qmail>
     
     iRrule = CBaseMrRecurrenceRule::NewL( aMrInfo.RecurrenceRuleL() );

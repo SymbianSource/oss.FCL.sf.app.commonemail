@@ -156,7 +156,6 @@ private: // data
 	HbDataForm &mDataForm;
 	HbDataFormModel &mDataFormModel;
 	HbMessageBox *mDeleteConfirmationDialog; // Owned.
-	HbMessageBox *mDeleteInformationDialog; // Owned.
 	HbInputDialog *mIncomingPortInputDialog; // Owned.
 	HbValidator *mIncomingPortInputValidator; // Owned.
     HbInputDialog *mFolderPathInputDialog; // Owned.

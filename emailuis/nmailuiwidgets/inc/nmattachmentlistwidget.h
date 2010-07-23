@@ -50,6 +50,9 @@ private slots:
     void handleLongPressed(QPointF point);
     void handleItemActivated();
     void orientationChanged(Qt::Orientation);
+   
+protected:
+    virtual void changeEvent(QEvent *event);
 
 signals:
     void itemActivated(int index);
@@ -61,6 +64,7 @@ private:
     int findItem(const QObject *obj);
     void insertItemToLayout(NmAttachmentListItem* item);
     void rearrangeLayout();
+    QColor checkColor();
         
 private:
     Q_DISABLE_COPY(NmAttachmentListWidget)
