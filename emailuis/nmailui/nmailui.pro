@@ -125,3 +125,10 @@ RESOURCES += nmailui.qrc
 RESOURCES += nmmessagelistviewitem.qrc
 RESOURCES += nmviewerheader.qrc
 TRANSLATIONS = mail.ts
+
+DOCML += conf/nmeditorview.docml \
+         conf/nmmailboxlistview.docml \
+         conf/nmmailboxselectiondialog.docml \
+         conf/nmmailviewer.docml \
+         conf/nmmessagelistview.docml \
+         conf/nmmessagesearchlistview.docml

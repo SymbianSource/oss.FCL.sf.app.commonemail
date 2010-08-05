@@ -62,7 +62,6 @@ private slots:
 
     void createUserDefinedMode();
     void showMailInInboxModified(QPersistentModelIndex, QVariant value);
-    void itemPress(const QModelIndex &index);
 
 private:
 

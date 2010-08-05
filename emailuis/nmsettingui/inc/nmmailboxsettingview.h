@@ -22,10 +22,11 @@
 #include <nmcommon.h>
 #include "nmsettingscommon.h"
 
+class QModelIndex;
+class QGraphicsItem;
 class HbDataForm;
 class HbDataFormModel;
 class NmMailboxSettingsManager;
-class QGraphicsItem;
 class NmId;
 
 
@@ -50,6 +51,7 @@ private slots:
 
     void mailboxPropertyChanged(const NmId &mailboxId, QVariant property, QVariant value);
 
+    void itemPress(const QModelIndex &index);
 
 private:
 

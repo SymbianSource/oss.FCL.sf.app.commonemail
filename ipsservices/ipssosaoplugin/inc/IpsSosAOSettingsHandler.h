@@ -21,7 +21,6 @@
 #define IPSSOSAOSETTINGSHANDLER_H_
 
 #include <e32base.h> 
-#include <imapset.h>
 
 #include "ipsplgcommon.h"
 #include "nmipssettingitems.h"

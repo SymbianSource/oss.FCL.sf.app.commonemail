@@ -29,7 +29,7 @@ NmMailViewerWK::NmMailViewerWK()
     grabGesture(Qt::TapGesture);
     grabGesture(Qt::PinchGesture);
     // Prevent this widget from accepting focus.
-    setFocusPolicy(Qt::NoFocus);
+    setFocusPolicy(Qt::NoFocus); 
 }
 
 /*!

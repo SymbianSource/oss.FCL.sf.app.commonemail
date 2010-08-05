@@ -16,21 +16,11 @@
 *
 */
 
-//<Qmail>
-#include <cmmanager.h>
-//</Qmail>
-
-#include "emailtrace.h"
-#include "IpsSosAOMboxLogic.h"
-//<QMail>
-#include "IpsSosAOSettingsHandler.h"
-//</QMail>
-#include "IpsSosAOSchedulerUtils.h"
-#include "IpsSosAOPlugin.hrh"
-#include "IpsSosAOImapPopLogic.h"
+#include "ipssosaopluginheaders.h"
 
 //<QMail>
 const TInt KAOSecondsInMinute = 60;
+const TInt KAODefaultInboxSyncTimeSecs = 3600;
 //</QMail>
 const TInt KIpsSosAOMboxLogicMinGra = 1;
 
@@ -775,9 +765,21 @@ void CIpsSosAOMBoxLogic::CalculateToNextIntervalL()
         CIpsSosAOSettingsHandler* settings = 
                  CIpsSosAOSettingsHandler::NewL(iSession, iMailboxId);
         CleanupStack::PushL(settings);
-        TInt secs = settings->InboxRefreshTime() * KAOSecondsInMinute;
+        TInt inboxRefreshTime = settings->InboxRefreshTime();
+        TInt secs = inboxRefreshTime * KAOSecondsInMinute;
+        INFO_1("CIpsSosAOMBoxLogic: inboxRefreshTime: %d", inboxRefreshTime);
         INFO_1("CIpsSosAOMBoxLogic: timer scheduled: %d", secs);
-        iTimer->After(secs);
+        if (secs > 0) 
+            {
+            iTimer->After(TTimeIntervalSeconds(secs));
+            }
+        else 
+            {
+            // panic at this point when we get zero time from settings
+            __ASSERT_DEBUG( EFalse, User::Panic( KIpsSosAOPanicLit, KErrGeneral) );
+            iTimer->After(TTimeIntervalSeconds(KAODefaultInboxSyncTimeSecs));
+            }
+            
         CleanupStack::PopAndDestroy(settings);
 	   //</QMail>
         NM_COMMENT("CIpsSosAOMBoxLogic: switching state: EStateWaitSyncStart");

@@ -1,32 +1,38 @@
-NmMessageListViewItem:portrait{
+NmMessageListViewItem:portrait {
   layout:portrait;
 }
 
-NmMessageListViewItem:landscape{
+NmMessageListViewItem:landscape {
   layout:landscape;
 }
 
-NmMessageListViewItem::sender{
-  fixed-height: var(hb-param-text-height-primary);    
+NmMessageListViewItem::sender {
+  fixed-height: var(hb-param-text-height-primary);
   text-align: left;
+  text-wrap-mode: no-wrap;
 }
+
 NmMessageListViewItem::time {
-  pref-height: var(hb-param-text-height-secondary);
-  pref-width: 12un;
-  size-policy: fixed, fixed;
+  fixed-height: var(hb-param-text-height-secondary);
+  fixed-width: 12un;
   text-align: right;
+  text-wrap-mode: no-wrap;
 }
-NmMessageListViewItem::subject{
-  fixed-height: var(hb-param-text-height-secondary);    
+
+NmMessageListViewItem::subject {
+  fixed-height: var(hb-param-text-height-secondary);
   text-align: left;
+  text-wrap-mode: no-wrap;
 }
-NmMessageListViewItem::icon1::icon{
-  pref-height: var(hb-param-graphic-size-primary-small);
-  pref-width: var(hb-param-graphic-size-primary-small); 
-  size-policy: fixed fixed;   
+
+NmMessageListViewItem::icon1::icon {
+  alignment: right;
+  fixed-height: var(hb-param-graphic-size-primary-small);
+  fixed-width: var(hb-param-graphic-size-primary-small);
 }
-NmMessageListViewItem::icon2::icon{
-  pref-height: var(hb-param-graphic-size-primary-small);
-  pref-width: var(hb-param-graphic-size-primary-small);
-  size-policy: fixed fixed;    
+
+NmMessageListViewItem::icon2::icon {
+  alignment: right;
+  fixed-height: var(hb-param-graphic-size-primary-small);
+  fixed-width: var(hb-param-graphic-size-primary-small);
 }

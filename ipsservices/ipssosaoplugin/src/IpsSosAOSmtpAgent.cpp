@@ -16,18 +16,7 @@
 *
 */
 
-#include "emailtrace.h"
-#include <e32base.h>
-
-//<QMail>
-#include "CFSMailCommon.h"
-//</QMail>
-#include "IpsSosAOSmtpAgent.h"
-#include "ipsplgsmtpoperation.h"
-//<QMail>
-
-//</QMail>
-
+#include "ipssosaopluginheaders.h"
 
 #ifdef _DEBUG
 _LIT( KIpsSosAOSmtpLogicPanicLit, "AOsmtp");

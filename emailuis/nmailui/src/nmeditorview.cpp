@@ -22,8 +22,10 @@ static const char *NMUI_EDITOR_VIEW = "editorview";
 
 // extension list item frame.
 static const QString NmPopupListFrame = "qtg_fr_popup_list_normal";
-
 static const QString NmDelimiter("; ");
+static const QString NmPriorityLow("low");
+static const QString NmPriorityNormal("normal");
+static const QString NmPriorityHigh("high");
 
 /*!
 	\class NmEditorView
@@ -56,7 +58,8 @@ NmEditorView::NmEditorView(
       mAttachmentPicker(NULL),
       mCcBccFieldVisible(false),
       mServiceSendingDialog(NULL),
-      mIsNotFetchedBefore(true)
+      mIsNotFetchedBefore(true),
+      mHiddenPriorityName(NmPriorityNormal)
 {
     NM_FUNCTION;
     
@@ -409,11 +412,12 @@ void NmEditorView::fetchMessageIfNeeded(NmUiStartParam &startParam)
                 startParam.mailboxId(),
                 startParam.folderId(),
                 startParam.messageId());
-			mIsNotFetchedBefore = false;
         }
         else {
             startMessageCreation(startParam);
         }
+        
+        mIsNotFetchedBefore = false;
     }
 }
 
@@ -958,7 +962,10 @@ void NmEditorView::createOptionsMenu()
     QList<NmAction*> list;
     extMngr.getActions(request, list);
     for (int i = 0; i < list.count(); i++) {
-        mPrioritySubMenu->addAction(list[i]);
+        // check what priority has already been selected and hide it from options menu
+        if (!list[i]->objectName().contains(mHiddenPriorityName)) {
+            mPrioritySubMenu->addAction(list[i]);
+        }
     }
     mPrioritySubMenu->setObjectName("editorPrioritySubMenu");
     mPrioritySubMenu->setTitle(hbTrId("txt_mail_opt_add_priority"));
@@ -1371,12 +1378,15 @@ void NmEditorView::setPriority(NmActionResponseCommand priority)
 
     if (mMessage) {
         NmMessagePriority messagePriority = NmMessagePriorityNormal;
+        mHiddenPriorityName = NmPriorityNormal;
         
         if (priority == NmActionResponseCommandPriorityHigh) {
             messagePriority = NmMessagePriorityHigh;
+            mHiddenPriorityName = NmPriorityHigh;
         }
         else if (priority == NmActionResponseCommandPriorityLow) {
             messagePriority = NmMessagePriorityLow;
+            mHiddenPriorityName = NmPriorityLow;
         }
         mMessage->envelope().setPriority(messagePriority);
     }

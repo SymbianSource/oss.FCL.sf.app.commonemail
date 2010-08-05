@@ -61,3 +61,5 @@ win32 {
 }
        
 RESOURCES += nmailuiwidgets.qrc
+
+DOCML += resources/nmattachmentlistwidget.docml

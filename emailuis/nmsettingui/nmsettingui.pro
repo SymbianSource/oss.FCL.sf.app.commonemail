@@ -86,4 +86,6 @@ TARGET.CAPABILITY = All -TCB
 
 RESOURCES += nmsettingui.qrc
 
+DOCML += conf/nmmailboxsettingview.docml
+
 # End of file.

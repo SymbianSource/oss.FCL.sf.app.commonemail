@@ -21,10 +21,6 @@
 
 static const QString NmSendServiceName = "nmail.com.nokia.symbian.IFileShare";
 
-// Delay before a screenshot is taken after view activation so that view has time to draw itself,
-// testing seems to indicate 500ms to be a good value
-static const int NmActivityUpdateDelayMs = 500;
-
 static const QString NmActivityName = "EmailInboxView";
 
 /*!
@@ -32,10 +28,11 @@ static const QString NmActivityName = "EmailInboxView";
     \brief Application class, creates main window and handles view switching.
 */
 
+
 /*!
     Constructor.
 */
-NmApplication::NmApplication(QObject *parent, quint32 accountId)
+NmApplication::NmApplication(QObject *parent, quint64 accountId)
 : QObject(parent),
   mMainWindow(NULL),
   mViewStack(NULL),
@@ -51,8 +48,7 @@ NmApplication::NmApplication(QObject *parent, quint32 accountId)
   mSettingsViewLauncher(NULL),
   mViewReady(false),
   mQueryDialog(NULL),
-  mBackButtonPressed(false),
-  mActivityUpdateNeeded(false)
+  mBackButtonPressed(false)
 {
     TRAP_IGNORE(mUiEngine = NmUiEngine::instance());
     
@@ -82,18 +78,25 @@ NmApplication::NmApplication(QObject *parent, quint32 accountId)
     
     if(accountId != 0) {
         QVariant mailbox;
-        mailbox.setValue(mUiEngine->getPluginIdByMailboxId(accountId).id());
+        mailbox.setValue(accountId);
         mMailboxServiceInterface->displayInboxByMailboxId(mailbox);
     }
     
     mEffects = new NmUiEffects(*mMainWindow);
+    
+    QObject::connect(parent, SIGNAL(activate()), this, SLOT(activityActivated()));
 }
+
 
 /*!
     Destructor.
 */
 NmApplication::~NmApplication()
 {
+    // Remove the event filter early since catching application activated/
+    // deactivated events now may cause a crash.
+    QCoreApplication::instance()->removeEventFilter(this);
+
     if (mQueryDialog) {
         delete mQueryDialog;
         mQueryDialog = NULL;
@@ -109,6 +112,7 @@ NmApplication::~NmApplication()
     delete mViewStack;
     
     NmIcons::freeIcons();
+
     NmUiEngine::releaseInstance(mUiEngine);
     mUiEngine = NULL;
     
@@ -129,8 +133,9 @@ NmApplication::~NmApplication()
         if (mNetManager->cache()) {
             mNetManager->cache()->clear();
         }
-    delete mNetManager;
-    mNetManager = NULL;
+
+        delete mNetManager;
+        mNetManager = NULL;
     }
     
     // Effects need to be deleted before MainWindow.
@@ -139,6 +144,7 @@ NmApplication::~NmApplication()
     delete mAttaManager;
     delete mSettingsViewLauncher;
 }
+
 
 /*!
     Main application window creation.
@@ -217,9 +223,11 @@ void NmApplication::createMainWindow()
         mMainWindow->setOptimizationFlag(QGraphicsView::DontSavePainterState);    
     }
     
-	// installed to get ApplicationActivate/Deactivate events
+	// Install the event filter in order to receive ApplicationActivate/Deactivate
+    // events.
     QCoreApplication::instance()->installEventFilter(this);
 }
+
 
 /*!
     Slot. React to view ready signal and call current view method.
@@ -227,8 +235,10 @@ void NmApplication::createMainWindow()
 void NmApplication::viewReady()
 {
     mViewReady = true;
+
     if (mViewStack && !mViewStack->isEmpty()) {
     	NmBaseView *currentView = mViewStack->top();
+
         if (currentView) {
             currentView->viewReady();
             emit applicationReady();
@@ -236,14 +246,15 @@ void NmApplication::viewReady()
     }
 }
 
+
 /*!
-    Event filter. End key is filtered from the main window and either the
-    view takes case of the or the app is exited by default.
+    Event filter. End key is filtered from the main window and either the view
+    takes case or the app is exited by default.
 */
 bool NmApplication::eventFilter(QObject *obj, QEvent *event)
 {
     bool consumed(false);
-    
+
     if (obj && obj == mMainWindow && event && event->type() == QEvent::KeyPress) {
         QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
         if (keyEvent->key() == Qt::Key_No) {
@@ -251,18 +262,15 @@ bool NmApplication::eventFilter(QObject *obj, QEvent *event)
             // Exit application if no pending operations are on-going.
         }
     }
-    else if (event->type()==QEvent::ApplicationActivate) {
+    else if (event && event->type() == QEvent::ApplicationActivate) {
         NM_COMMENT("NmApplication::eventFilter ApplicationActivate");
-		
-		// Activity thumbnails must be shown again
-		if (mActivityUpdateNeeded) {
-			mActivityUpdateNeeded = false;
-            updateActivity();
-		}
+		// Update task switcher name & screenshot, we could have activated into some other mailbox
+        updateActivity();
     }
-    else if (event->type()==QEvent::ApplicationDeactivate) {
+    else if (event && event->type() == QEvent::ApplicationDeactivate) {
         NM_COMMENT("NmApplication::eventFilter ApplicationDeactivate");
-                
+        // Update the screenshot in the taskswitcher to represent current state
+        updateActivity();
         // hide the sync indicator when app goes to background
         mUiEngine->enableSyncIndicator(false);
     }
@@ -273,6 +281,7 @@ bool NmApplication::eventFilter(QObject *obj, QEvent *event)
     
     return consumed;
 }
+
 
 /*!
     Push view to view stack.
@@ -313,7 +322,6 @@ void NmApplication::pushView(NmBaseView *newView)
         if (hideView) {
             mMainWindow->removeView(hideView);
         }
-        QTimer::singleShot(NmActivityUpdateDelayMs, this, SLOT(updateActivity()));
     }
 }
 
@@ -346,6 +354,7 @@ void NmApplication::prepareForPopView()
     }
 }
 
+
 /*!
      Hide the application
 */
@@ -366,10 +375,8 @@ void NmApplication::hideApplication()
     if (hbApp) {
         hbApp->activityManager()->removeActivity(NmActivityName);
     }
-	
-	// Update the activity when needed
-	mActivityUpdateNeeded = true;
 }
+
 
 /*!
     Pop view from view stack. View object is deleted.
@@ -425,7 +432,6 @@ void NmApplication::popView()
                 mActiveViewId=showView->nmailViewId();
                 // Perform send animation if requested.
                 mEffects->startEffect(NmUiEffects::NmEditorSendMessageAnimation);
-                QTimer::singleShot(NmActivityUpdateDelayMs, this, SLOT(updateActivity()));
             }
             
             delete view;
@@ -454,6 +460,7 @@ void NmApplication::popView()
     }
 }
 
+
 /*!
     Reset view stack. Remove and destroy view objects.
 */
@@ -470,6 +477,7 @@ void NmApplication::resetViewStack()
 	    mActiveViewId = NmUiViewNone;
     }
 }
+
 
 /*!
     Function activates view based on viewId parameter. If requested view is
@@ -586,6 +594,7 @@ void NmApplication::enterNmUiView(NmUiStartParam *startParam)
     }
 }
 
+
 /*!
     Function can be used from views to exit the application. View stack is
     cleared. Views can connect exit menu selection to this slot.
@@ -611,6 +620,7 @@ void NmApplication::exitApplication()
     qApp->quit();
 }
 
+
 /*!
    Exit the application in the next event loop.
 */
@@ -620,6 +630,7 @@ void NmApplication::delayedExitApplication()
     QMetaObject::invokeMethod(this, "exitApplication", Qt::QueuedConnection);
 }
 
+
 /*!
     Getter for main window instance.
 */
@@ -627,6 +638,7 @@ HbMainWindow *NmApplication::mainWindow()
 {
     return mMainWindow;
 }
+
 
 /*!
     Getter for main UI extension manager.
@@ -636,6 +648,7 @@ NmUiExtensionManager &NmApplication::extManager()
     return *mExtensionManager;
 }
 
+
 /*!
     Getter for network access manager.
 */
@@ -643,6 +656,7 @@ NmViewerViewNetManager &NmApplication::networkAccessManager()
 {
     return *mNetManager;
 }
+
 
 /*!
     Get the screen size. Function returns curtent screen size.
@@ -677,6 +691,7 @@ QSize NmApplication::screenSize()
     return ret;
 }
 
+
 /*!
     Handles all asynchronous operation's completions at UI level.
 */
@@ -708,6 +723,7 @@ void NmApplication::handleOperationCompleted(const NmOperationCompletionEvent &e
     }
 }
 
+
 /*!
     Launches settings view of the specified mailbox.
 */
@@ -724,10 +740,10 @@ void NmApplication::launchSettings(HbAction* action)
         if( mailboxMetaData ) {
             // Launch.
             mSettingsViewLauncher->launchSettingsView(mLastOperationMailbox, mailboxMetaData->name());
-            QTimer::singleShot(NmActivityUpdateDelayMs, this, SLOT(updateActivity()));
         }
     }
 }
+
 
 /*!
 	Stores the visibility state, e.g. when the service was launched.
@@ -742,13 +758,15 @@ bool NmApplication::updateVisibilityState()
 	return mForegroundService;
 }
 
+
 /*!
-    Update the thumbnail in the task switcher
+    Update the thumbnail in the task switcher.
 */
 void NmApplication::updateActivity()
 {
     NmMailboxMetaData *meta = mUiEngine->mailboxById(mCurrentMailboxId);
     HbApplication* hbApp = dynamic_cast<HbApplication*>(parent());
+
     if (hbApp) {
         if (meta) {
             TsTaskSettings tasksettings;
@@ -767,3 +785,25 @@ void NmApplication::updateActivity()
         }
     }
 }
+
+
+/*!
+	Switch to activated mailbox
+*/
+void NmApplication::activityActivated()
+{
+    HbApplication* hbApp = dynamic_cast<HbApplication*>(parent());
+    if (hbApp) {
+        quint64 accountId(0);
+        QString activateId = hbApp->activateId();
+        if (hbApp->activateReason() == Hb::ActivationReasonActivity &&
+                activateId.startsWith(NmActivityName) ) {
+            QString accountIdString = activateId.mid(NmActivityName.length());
+            accountId = accountIdString.toULongLong();
+            QVariant mailbox;
+            mailbox.setValue(accountId);
+            mMailboxServiceInterface->displayInboxByMailboxId(mailbox);
+        }
+    }
+}
+

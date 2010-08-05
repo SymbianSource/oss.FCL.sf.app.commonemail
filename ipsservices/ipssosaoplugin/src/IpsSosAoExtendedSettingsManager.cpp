@@ -15,15 +15,7 @@
 *
 */
 
-#include <xqsettingsmanager.h>
-#include <xqcentralrepositoryutils.h>
-#include <xqcentralrepositorysearchcriteria.h>
-#include <qlist.h>
-
-#include "IpsSosAoExtendedSettingsManager.h"
-#include "nmipssettingitems.h"
-#include "ipssettingkeys.h"
-#include "nmcommon.h"
+#include "ipssosaopluginheaders.h"
 
 /*!
     \class NmIpsSosAoExtendedSettingsManager

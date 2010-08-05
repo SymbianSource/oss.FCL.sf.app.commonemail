@@ -124,6 +124,7 @@ void NmEditorHeader::loadWidgets()
         mAttachmentList = new NmAttachmentList(*mAttachmentListWidget);
         mAttachmentList->setParent(this); // ownership changes
         mAttachmentListWidget->hide();
+        mLayout->removeItem(&mAttachmentList->listWidget());
     
         // Add priority icon
         mPriorityIcon = qobject_cast<HbLabel *>
@@ -409,6 +410,8 @@ void NmEditorHeader::addAttachment(
     mAttachmentList->insertAttachment(fileName, fileSize, nmid);
     
     if (!mAttachmentList->listWidget().isVisible()) {
+        // attachment list is inserted just before the body widget (see docml).
+        mLayout->insertItem(mLayout->count() - 1, &mAttachmentList->listWidget());
         mAttachmentList->listWidget().show();
     }
 

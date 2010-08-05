@@ -130,4 +130,6 @@ EXPORTS
 	?tr@NmHtmlLineEdit@@SA?AVQString@@PBD0@Z @ 129 NONAME ; class QString NmHtmlLineEdit::tr(char const *, char const *)
 	?qt_metacall@NmHtmlLineEdit@@UAEHW4Call@QMetaObject@@HPAPAX@Z @ 130 NONAME ; int NmHtmlLineEdit::qt_metacall(enum QMetaObject::Call, int, void * *)
 	?qt_metacall@NmBaseViewScrollArea@@UAEHW4Call@QMetaObject@@HPAPAX@Z @ 131 NONAME ; int NmBaseViewScrollArea::qt_metacall(enum QMetaObject::Call, int, void * *)
+	?checkColor@NmAttachmentListWidget@@AAE?AVQColor@@XZ @ 132 NONAME ; class QColor NmAttachmentListWidget::checkColor(void)
+	?changeEvent@NmAttachmentListWidget@@MAEXPAVQEvent@@@Z @ 133 NONAME ; void NmAttachmentListWidget::changeEvent(class QEvent *)
 

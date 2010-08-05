@@ -73,3 +73,6 @@ INCLUDEPATH += ./inc \
     
 DEPENDPATH += .
 TRANSLATIONS = mailwidget.ts
+
+DOCML += conf/nmhswidgetmail.docml \
+         conf/nmhswidget.docml

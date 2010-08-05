@@ -16,29 +16,7 @@
 *
 */
 
-
-#include "emailtrace.h"
-#include <cemailaccounts.h>
-#include <imapcmds.h>
-#include <miutset.h>
-#include <impcmtm.h>
-#include <msvapi.h>
-#include <AlwaysOnlineManagerCommon.h>
-#include "CFSMailCommon.h"
-
-#include "IpsSosAOImapAgent.h"
-#include "IpsSosAOImapPopLogic.h"
-
-
-//<QMail>
-#include "IpsSosAOSettingsHandler.h"
-
-//<qmail> removed
-//</QMail>
-
-// from ipsplugin
-#include "ipsplgimap4populateop.h"
-#include "ipsplgcommon.h"
+#include "ipssosaopluginheaders.h"
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------

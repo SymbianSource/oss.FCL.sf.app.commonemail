@@ -16,14 +16,7 @@
 *
 */
 
-#include "emailtrace.h"
-#include <e32property.h>
-
-#include "ipsplgsosbaseplugin.hrh"
-
-#include "IpsSosAOBaseAgent.h"
-#include "IpsSosAOImapAgent.h"
-#include "IpsSosAOPopAgent.h"
+#include "ipssosaopluginheaders.h"
 
 _LIT( KIpsAOPlgPanicLit, "IpsAOPlg");
 // ----------------------------------------------------------------------------

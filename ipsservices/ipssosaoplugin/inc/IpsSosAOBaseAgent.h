@@ -22,9 +22,6 @@
 
 #include <e32base.h> 
 #include <msvapi.h>
-#include <SendUiConsts.h>
-
-#include "ipsplgcommon.h"
 
 class CIpsSetDataApi;
 class CIpsSosAOImapSyncOp;

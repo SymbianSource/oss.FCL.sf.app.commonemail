@@ -37,11 +37,11 @@ int main(int argc, char *argv[])
     app.setApplicationName(hbTrId("txt_mail_title_mail"));
     
     NmApplication *nmApplication = NULL;
-    quint32 accountId = 0;
+    quint64 accountId = 0;
+    QString activateId = app.activateId();
     if (app.activateReason() == Hb::ActivationReasonActivity &&
-        app.activateId() == NmActivityName) {
-        QVariant data = app.activateParams().take("accountId");
-        QString accountIdString = data.toString();
+            activateId.startsWith(NmActivityName) ) {
+        QString accountIdString = activateId.mid(NmActivityName.length());
         accountId = accountIdString.toULongLong();
         nmApplication = new NmApplication(&app,accountId);
     } else {

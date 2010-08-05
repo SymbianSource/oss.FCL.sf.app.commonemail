@@ -17,9 +17,9 @@
 
 #include "nmuiheaders.h"
 
-static const QString NmContactsServiceName = "com.nokia.services.phonebookservices";
-static const QString NmContactsInterfaceName = "Fetch";
-static const QString NmContactsOperationName = "fetch(QString,QString,QString)";
+static const QString NmContactsServiceName = "phonebookservices";
+static const QString NmContactsInterfaceName = "com.nokia.symbian.IContactsFetch";
+static const QString NmContactsOperationName = "multiFetch(QString,QString)";
 
 static const int NmMaxRows = 10000;
 
@@ -36,7 +36,7 @@ NmRecipientField::NmRecipientField(
     mLaunchContactsPickerButton(NULL)
 {
     NM_FUNCTION;
-    
+
     // Load the widgets from nmeditorview.docml. The names match to the definitions in that docml.
     mWidget = qobject_cast<HbWidget *>
         (mDocumentLoader.findWidget(mObjectPrefix + "Field"));
@@ -47,13 +47,13 @@ NmRecipientField::NmRecipientField(
     mRecipientsEditor = qobject_cast<NmRecipientLineEdit *>
         (mDocumentLoader.findWidget(mObjectPrefix + "Edit"));
     if (mRecipientsEditor) {
-        mRecipientsEditor->setMaxRows(NmMaxRows);    
+        mRecipientsEditor->setMaxRows(NmMaxRows);
     }
 
     mLaunchContactsPickerButton = qobject_cast<HbPushButton *>
         (mDocumentLoader.findWidget(mObjectPrefix + "Button"));
     if (mLaunchContactsPickerButton) {
-        mLaunchContactsPickerButton->setIcon(NmIcons::getIcon(NmIcons::NmIconContacts));    
+        mLaunchContactsPickerButton->setIcon(NmIcons::getIcon(NmIcons::NmIconContacts));
     }
 
     createConnections();
@@ -65,7 +65,7 @@ NmRecipientField::NmRecipientField(
 void NmRecipientField::createConnections()
 {
     NM_FUNCTION;
-    
+
     connect(mRecipientsEditor, SIGNAL(textChanged(const QString &)),
         this, SIGNAL(textChanged(const QString &)));
     connect(mRecipientsEditor, SIGNAL(cursorPositionChanged(int, int)),
@@ -76,7 +76,7 @@ void NmRecipientField::createConnections()
         this, SIGNAL(selectionChanged()));
     connect(mLaunchContactsPickerButton, SIGNAL(pressed()),
             this, SIGNAL(launchContactsPickerButtonClicked()));
-    connect(mLaunchContactsPickerButton, SIGNAL(pressed()), 
+    connect(mLaunchContactsPickerButton, SIGNAL(pressed()),
             this, SLOT(launchContactsPicker()));
 }
 
@@ -95,7 +95,7 @@ NmRecipientField::~NmRecipientField()
 qreal NmRecipientField::height()
 {
     NM_FUNCTION;
-    
+
     return mWidget->geometry().height();
 }
 
@@ -105,7 +105,7 @@ qreal NmRecipientField::height()
 NmRecipientLineEdit *NmRecipientField::editor() const
 {
     NM_FUNCTION;
-    
+
     return mRecipientsEditor;
 }
 
@@ -116,7 +116,7 @@ NmRecipientLineEdit *NmRecipientField::editor() const
 const QString NmRecipientField::text() const
 {
     NM_FUNCTION;
-    
+
     return mRecipientsEditor->text();
 }
 
@@ -127,7 +127,7 @@ const QString NmRecipientField::text() const
 void NmRecipientField::setText(const QString &newText)
 {
     NM_FUNCTION;
-    
+
     if (newText != mRecipientsEditor->text()) {
         mRecipientsEditor->setText(newText);
         emit textChanged(newText);
@@ -141,36 +141,35 @@ void NmRecipientField::setText(const QString &newText)
 void NmRecipientField::launchContactsPicker()
 {
     NM_FUNCTION;
-    
+
     XQApplicationManager mAppmgr;
     XQAiwRequest *launchContactsPickerRequest;
-    
+
     bool isEmbeded = true;
-    launchContactsPickerRequest = mAppmgr.create(NmContactsServiceName, NmContactsInterfaceName, 
+    launchContactsPickerRequest = mAppmgr.create(NmContactsServiceName, NmContactsInterfaceName,
                                                  NmContactsOperationName, isEmbeded);
-    
+
     if (launchContactsPickerRequest) {
         connect(launchContactsPickerRequest, SIGNAL(requestOk(QVariant)),
                 mRecipientsEditor, SLOT(addSelectedContacts(QVariant)));
     }
     else {
-        // Failed creating request 
+        // Failed creating request
         NM_ERROR(1,"XQApplicationManager: failed creating fecth contactspicker request");
 	    return;
     }
 
-    QVariantList args; 
+    QVariantList args;
     args << hbTrId("txt_mail_select_contacts");
-    args << KCntActionEmail; 
-    args << KCntFilterDisplayAll; 
-    launchContactsPickerRequest->setArguments(args); 
-    
+    args << KCntActionEmail;
+    launchContactsPickerRequest->setArguments(args);
+
     // Send request
     if (!launchContactsPickerRequest->send()) {
-       //Failed sending request 
+       //Failed sending request
        NM_ERROR(1,"XQApplicationManager: failed sending request");
     }
-        
+
     delete launchContactsPickerRequest;
     launchContactsPickerRequest = NULL;
 }

@@ -34,6 +34,9 @@ static const QString NmHttpLinkScheme = "http";
 static const QString NmHttpsLinkScheme = "https";
 static const QString NmMailtoLinkScheme = "mailto";
 
+// Local constants
+const qreal NmZoomFactor = 1.5;
+
 /*!
 	\class NmViewerView
 	\brief Mail viewer class
@@ -194,7 +197,7 @@ void NmViewerView::loadViewLayout()
                 QWebSettings *settings = mWebView->settings();
                 if (settings) {
                     settings->setAttribute(QWebSettings::AutoLoadImages, true);
-                    settings->setAttribute(QWebSettings::PrivateBrowsingEnabled, true);   
+                    settings->setAttribute(QWebSettings::PrivateBrowsingEnabled, true);
                 }
                 QWebPage *page = mWebView->page();
                 if (page) {
@@ -202,6 +205,7 @@ void NmViewerView::loadViewLayout()
                     if (frame) {
                         frame->setScrollBarPolicy(Qt::Vertical,Qt::ScrollBarAlwaysOff);
                         frame->setScrollBarPolicy(Qt::Horizontal, Qt::ScrollBarAlwaysOff);
+                        frame->setTextSizeMultiplier(NmZoomFactor);
                         connect(mWebView->page()->mainFrame(),
                                 SIGNAL(contentsSizeChanged(const QSize&)),
                             this, SLOT(scaleWebViewWhenLoading(const QSize&)));  
@@ -688,7 +692,7 @@ void NmViewerView::scaleWebViewWhenLoading(const QSize &size)
             else {
                 mWebView->setPreferredWidth(width);
             }
-            mWebView->setPreferredHeight(height);        
+            mWebView->setMinimumHeight(height);
         }
     }
     mLatestLoadingSize = size;
@@ -702,12 +706,9 @@ void NmViewerView::scaleWebViewWhenLoaded()
     QRectF myGeometry = geometry();
     QWebPage *page = mWebView->page();
     if (mWebView && page) {
-        page->setViewportSize(myGeometry.size().toSize());
+        page->setPreferredContentsSize(myGeometry.size().toSize());
         QSizeF contentSize = page->mainFrame()->contentsSize();
-        int width = (int)contentSize.width();
-        int height = (int)contentSize.height();  
-        mWebView->setPreferredWidth(width);
-        mWebView->setPreferredHeight(height);
+        mWebView->setPreferredSize(contentSize);
     }
 }
 

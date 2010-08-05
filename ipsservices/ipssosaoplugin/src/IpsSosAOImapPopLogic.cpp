@@ -16,30 +16,7 @@
 *
 */
 
-
-#include "emailtrace.h"
-#include <AlwaysOnlineManagerClient.h>
-#include <SendUiConsts.h>
-#include <msvids.h>
-#include <msvuids.h>
-
-
-// becuase of RD_IPS_AO_PLUGIN flag, can be removed
-// when flag is removed
-#include "ipsplgsosbaseplugin.hrh"
-
-#include "IpsSosAOImapPopLogic.h"
-#include "IpsSosAOMboxLogic.h"
-#include "IpsSosAOEMNResolver.h"
-//<QMail>
-
-#include "IpsSosAOSettingsHandler.h"
-#include "IpsSosAoExtendedSettingsManager.h"
-//</QMail>
-
-
-
-#include "ipsplgcommon.h"
+#include "ipssosaopluginheaders.h"
 
 //const TInt KAOSmtpStartDelaySeconds = 310;
 const TInt KIpsSosAOImapPopLogicDefGra = 1;

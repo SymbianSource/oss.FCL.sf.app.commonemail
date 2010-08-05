@@ -16,13 +16,7 @@
 *
 */
 
-
-#include "emailtrace.h"
-#include "IpsSosAOSchedulerUtils.h"
-//<QMail>
-#include "IpsSosAOSettingsHandler.h"
-//</QMail>
-
+#include "ipssosaopluginheaders.h"
 
 const TInt KAOSecondsIn24Hours = 86400;
 //const TUint KAOEveryDayMask = 0x7f;

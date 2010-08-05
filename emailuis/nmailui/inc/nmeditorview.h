@@ -148,6 +148,7 @@ private: // Data
     QPointer<HbProgressDialog> mServiceSendingDialog; // Owned.
     bool mIsNotFetchedBefore;
 	HbListWidget *mTBExtnContentWidget;		// Owned
+	QString mHiddenPriorityName;
 };
 
 

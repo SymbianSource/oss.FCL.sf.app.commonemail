@@ -54,7 +54,7 @@ const QString NmHsWidget("nmhswidget");
 
 //parameter values
 const QString NmPublisherName("NmMailboxRegisterInterface");
-const QString NmLaunchUri("appto://0x200255BA?activityname=EmailInboxView&accountId=");
+const QString NmLaunchUri("appto://0x200255BA?activityname=EmailInboxView");
 //URI for the defined service
 const QLatin1String interfaceUri("com.nokia.symbian.IEmailRegisterAccount");
 

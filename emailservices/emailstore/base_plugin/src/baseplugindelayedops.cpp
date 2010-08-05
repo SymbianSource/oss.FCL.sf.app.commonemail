@@ -336,8 +336,9 @@ void CDelayedDeleteMessagesOp::ConstructL(
             //save parentId
             TMsgStoreId msgParentId;
             msgParentId = theMessage->ParentId();
-            //check if message is in deleted folder or not.
-            if (msgParentId != mailBoxInfo.iRootFolders.iFolders[EFSDeleted])
+            //check if message is in deleted or drafts folder or not.
+            if (msgParentId != mailBoxInfo.iRootFolders.iFolders[EFSDeleted] &&
+                msgParentId != mailBoxInfo.iRootFolders.iFolders[EFSDraftsFolder])
                 {
                 //if not in deleted items then move it there.
                 __LOG_WRITE8_FORMAT1_INFO("Moving message 0x%X to the deleted items.", msgId );

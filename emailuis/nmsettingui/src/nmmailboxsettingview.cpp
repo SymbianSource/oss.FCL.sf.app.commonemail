@@ -15,6 +15,8 @@
 *
 */
 
+#include <qinputcontext.h>
+
 #include <hbinstance.h>
 #include <hbmainwindow.h>
 #include <hbaction.h>
@@ -76,6 +78,10 @@ NmMailboxSettingView::NmMailboxSettingView(const NmId &mailboxId,
     }
 
     if (mForm) {
+        
+        connect(mForm, SIGNAL(pressed(QModelIndex)),
+                this, SLOT(itemPress(QModelIndex)));
+        
         // Fix for dataform item recycling.
         mForm->setItemRecycling(false);
 
@@ -163,4 +169,39 @@ NmId NmMailboxSettingView::mailboxId()
     return mMailboxId;
 }
 
+/*!
+    Called when item is pressed on the view.
+
+    \param index Index to the pressed item.
+*/
+void NmMailboxSettingView::itemPress(const QModelIndex &index)
+{
+    NM_FUNCTION;
+    
+    int type(index.data(HbDataFormModelItem::ItemTypeRole).toInt());
+    
+    if (type == HbDataFormModelItem::GroupItem) {
+        // Scroll the groupitem to top if needed.
+        HbDataFormViewItem *item = static_cast<HbDataFormViewItem *>(mForm->itemByIndex(index));
+        
+        if (!item->isExpanded()) {
+            mForm->scrollTo(index, HbAbstractItemView::PositionAtTop);
+        }else {
+            // Hide the virtual keyboard
+            QInputContext *ic = qApp->inputContext();
+            if (ic) {
+                QEvent *closeEvent = new QEvent(QEvent::CloseSoftwareInputPanel);
+                ic->filterEvent(closeEvent);
+                delete closeEvent;
+            }
+        }
+    }
+    
+    if (type == HbDataFormModelItem::TextItem) {
+        // Turn off predictive input for line-edit.
+        HbDataFormViewItem *item = static_cast<HbDataFormViewItem *>(mForm->itemByIndex(index));
+        HbWidget *widget = item->dataItemContentWidget();
+        widget->setInputMethodHints(Qt::ImhNoPredictiveText);
+    }
+}
 // End of file.

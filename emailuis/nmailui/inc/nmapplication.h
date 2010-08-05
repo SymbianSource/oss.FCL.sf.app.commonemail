@@ -44,7 +44,7 @@ class NmApplication : public QObject
 {
     Q_OBJECT
 public:
-    NmApplication(QObject *parent, quint32 accountId=0);
+    NmApplication(QObject *parent, quint64 accountId=0);
     ~NmApplication();
     void enterNmUiView(NmUiStartParam *startParam);
     HbMainWindow* mainWindow();
@@ -68,9 +68,10 @@ private:
     void pushView(NmBaseView *view);
     void resetViewStack();
     void hideApplication();
+    void updateActivity();
     
 private slots:
-    void updateActivity();
+    void activityActivated();
 
 signals:
 	void applicationReady();
@@ -99,7 +100,6 @@ private:
     HbMessageBox *mQueryDialog;             // Owned
     bool mBackButtonPressed;
     NmId mCurrentMailboxId;
-    bool mActivityUpdateNeeded;
 };
 
 #endif // NMAPPLICATION_H

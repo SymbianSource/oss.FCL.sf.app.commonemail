@@ -16,18 +16,7 @@
 *
 */
 
-
-
-#include "emailtrace.h"
-#include <cemailaccounts.h>
-#include <pop3cmds.h>
-#include <miutset.h>
-#include <popcmtm.h>
-#include <AlwaysOnlineManagerCommon.h>
-
-#include "IpsSosAOPopAgent.h"
-#include "IpsSosAOImapPopLogic.h"
-
+#include "ipssosaopluginheaders.h"
 
 // from settings
 //<QMail>

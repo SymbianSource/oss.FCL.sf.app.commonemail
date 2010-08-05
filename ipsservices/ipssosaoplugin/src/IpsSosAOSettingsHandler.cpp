@@ -15,15 +15,8 @@
 *     
 *
 */
-#include "IpsSosAOSettingsHandler.h"
-#include "IpsSosAoExtendedSettingsManager.h"
-#include "nmipssettingitems.h"
-#include "ipssettingkeys.h"
-#include <SendUiConsts.h>
-#include <msvapi.h>
-#include <cemailaccounts.h>
-#include <smtpset.h>
-#include <nmcommon.h>
+
+#include "ipssosaopluginheaders.h"
 
 const TInt KAOMinutesInHour = 60;
 

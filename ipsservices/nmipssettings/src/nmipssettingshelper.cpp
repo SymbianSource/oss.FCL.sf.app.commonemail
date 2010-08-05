@@ -635,7 +635,7 @@ void NmIpsSettingsHelper::handleMailboxDelete(HbAction *action)
             progressNote.close();
 
             HbNotificationDialog *note = new HbNotificationDialog();
-            QString noteText = hbTrId("txt_mail_dpophead_1_deleted").arg(mailboxName.toString());
+            QString noteText = hbTrId("txt_mail_dialog_1_deleted").arg(mailboxName.toString());
             note->setTitle(noteText);
             note->setAttribute(Qt::WA_DeleteOnClose);
             note->open(this, SLOT(handleMailboxDeleteUpdate(HbAction *)));
