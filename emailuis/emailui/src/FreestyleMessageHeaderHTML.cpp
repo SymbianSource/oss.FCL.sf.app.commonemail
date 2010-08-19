@@ -47,6 +47,8 @@ _LIT( KSchemeSeparator, "://" );
 _LIT( KUrlFormat, "<a href=\"%S\">%S</a>" );
 _LIT( KUrlFormatWithHttp, "<a href=\"http://%S\">%S</a>" );
 
+_LIT( KEmpty, "" );
+
 // Define this to allow theme colorin for the header
 #define __USE_THEME_COLOR_FOR_HEADER    
 
@@ -251,11 +253,21 @@ void CFreestyleMessageHeaderHTML::ExportSenderTableRowL( const TBool aCollapsed 
     _LIT( KCollapseFunction, "collapseHeader(true)" );
     _LIT( KSenderFormat, "<tr><td align=\"%S\" class=\"sender_name\"><div class=\"truncate\">%S</div></td><td valign=\"top\" rowSpan=\"2\" class=\"button_cell\"><button value=\"submit\" onClick=\"%S\" class=\"%S\"></button></td></tr>\n" );
     const CFSMailAddress* sender( iMailMessage.GetSender() );
-    TPtrC displayName( sender->GetDisplayName() );
-    if ( !displayName.Length() )
+    
+    TPtrC displayName;    
+    if ( sender )
         {
-        displayName.Set( sender->GetEmailAddress() );
+        displayName.Set( sender->GetDisplayName() );
+        if ( !displayName.Length() )
+            {
+            displayName.Set( sender->GetEmailAddress() );
+            }
         }
+    else
+        {        
+        displayName.Set( KEmpty );
+        }
+    
     const TPtrC function( aCollapsed ? KExpandFunction() : KCollapseFunction() );
     const TPtrC style( aCollapsed ? KStyleExpand() : KStyleCollapse() );
     const TPtrC align(  iExportFlags.IsSet( EMirroredLayout ) ? KAlignRight() : KAlignLeft() );
@@ -271,7 +283,17 @@ void CFreestyleMessageHeaderHTML::ExportSenderAddressTableRowL() const
     {
     _LIT( KSenderAddressFormat, "<tr><td colspan=\"2\" align=\"%S\"><div class=\"truncate\"><a class=\"sender_address\" href=\"cmail://from/%S\">%S</a></div></td></tr>\n" );
     const CFSMailAddress* sender( iMailMessage.GetSender() );
-    const TPtrC emailAddress( sender->GetEmailAddress() );
+
+    TPtrC emailAddress;
+    if ( sender )
+        {
+        emailAddress.Set( sender->GetEmailAddress() );
+        }
+    else
+        {
+        emailAddress.Set( KEmpty );
+        }
+
     const TPtrC align(  iExportFlags.IsSet( EMirroredLayout ) ? KAlignRight() : KAlignLeft() );
     HBufC* formatBuffer = HBufC::NewLC( KSenderAddressFormat().Length() + emailAddress.Length() * 2 + align.Length() );
     formatBuffer->Des().Format( KSenderAddressFormat(), &align, &emailAddress, &emailAddress );

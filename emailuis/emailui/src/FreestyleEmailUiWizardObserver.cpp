@@ -410,12 +410,18 @@ void CFSEmailUiWizardObserver::DialogDismissedL( TInt aButtonId )
                 tmp.iFolderId = inboxFolderId; 
                 tmp.iMailBoxId = iNewlyCreatedMailboxId; 
                 const TPckgBuf<TMailListActivationData> pkgOut( tmp );
+                // The App might have been, say, in Attachments list of some 
+                // other mailbox but we should not return there with 'Back' 
+                // button - it should go to the launcher grid.  So first
+                // switch to launcher grid (which should unwind the history
+                // back to the launcher grid, which should be the view at
+                // the bottom of the stack) and then erase the history just
+                // to make sure it's really all gone.
+                iAppUi->EnterFsEmailViewL( AppGridId );
+                iAppUi->EraseViewHistory();
+                // Now switch to the mail list.
                 iAppUi->EnterFsEmailViewL( MailListId, KStartListWithFolderId, 
                         pkgOut );
-                // the App might have been, say, in Attachments list of some 
-                // other mailbox but we should not return there with 'Back' 
-                // button
-                iAppUi->EraseViewHistory();
                 }
                 
             CleanupStack::PopAndDestroy( mailBox );

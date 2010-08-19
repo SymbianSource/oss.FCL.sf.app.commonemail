@@ -2325,6 +2325,8 @@ void CIpsPlgSosBasePlugin::DisconnectL(
     TMsvEntry tEntry;
     TMsvId serv;
     iSession->GetEntry( service, serv, tEntry );
+    
+    CancelSyncL( aMailBoxId );
 
     if ( tEntry.Connected() )
         {

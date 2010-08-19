@@ -158,6 +158,10 @@ public: // from CFsEmailUiViewBase
     */
     void HandleDynamicVariantSwitchL( 
             CFsEmailUiViewBase::TDynamicSwitchType aType );
+    /**  
+    * to hide or show CAlfVisuals ( used for activation or deactivation )
+    */             
+    virtual void FadeOut( TBool aDirectionOut );
         
 public: // from MAlfActionObserver
     	
@@ -522,6 +526,7 @@ private: // new functions
     // Gets button from toolbar extension.
     CAknButton* Button( TInt aCmdId, 
         CAknToolbarExtension* aExtension = NULL );
+    TBool WLANConnectionActive();
 
 private:   // Constructors and destructor
 

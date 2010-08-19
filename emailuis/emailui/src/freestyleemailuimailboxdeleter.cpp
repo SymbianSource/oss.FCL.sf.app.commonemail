@@ -300,7 +300,7 @@ void CFSEmailUiMailboxDeleter::DoDeleteSelectedMailboxesL()
     
     // Start wait note.
     iWaitDialog = new ( ELeave ) CAknWaitDialog(
-        ( REINTERPRET_CAST( CEikDialog**, &iWaitDialog ) ), EFalse );
+        ( REINTERPRET_CAST( CEikDialog**, &iWaitDialog ) ), ETrue );
     iWaitDialog->PrepareLC( R_FS_WAIT_NOTE_REMOVING_MAILBOX );
     iWaitDialog->SetCallback( this );
     iWaitDialog->RunLD();
@@ -463,24 +463,21 @@ void CFSEmailUiMailboxDeleter::RequestResponseL( TFSProgress aEvent,
         case TFSProgress::EFSStatus_RequestComplete:
         case TFSProgress::EFSStatus_RequestCancelled:
             {
-            if( aRequestId == iMailboxDeleteOperationId )
-                {
-                if( iMailboxesToDelete.Count() > 0 )
+            if( iMailboxesToDelete.Count() > 0 )
+            	{
+                // Delete next mailbox in queue.
+                iIdle->Cancel();
+                iIdle->Start(TCallBack(IdleCallbackL,this));
+            	}
+            else
+            	{
+                if( iWaitDialog )
                     {
-                    // Delete next mailbox in queue.
-            	    iIdle->Cancel();
-            		iIdle->Start(TCallBack(IdleCallbackL,this));
+                    iWaitDialog->ProcessFinishedL();
                     }
-                else
-                    {
-                    if( iWaitDialog )
-                        {
-                        iWaitDialog->ProcessFinishedL();
-                        }
-                    // Notify observer that the deletion is complete. 
-                    iObserver.MailboxDeletionComplete();
-                    }
-                }            
+                // Notify observer that the deletion is complete. 
+                iObserver.MailboxDeletionComplete();
+            	}          
             break;
             }
         default:

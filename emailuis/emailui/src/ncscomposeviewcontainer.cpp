@@ -274,6 +274,7 @@ void CNcsComposeViewContainer::HandlePointerEventL(
         const TPointerEvent& aPointerEvent )
     {
     FUNC_LOG;
+	TBool clearSelection(EFalse);
     if ( aPointerEvent.iType != TPointerEvent::EButton1Down &&
          iHeader->NeedsLongTapL( aPointerEvent.iPosition ) )
         {
@@ -352,7 +353,11 @@ void CNcsComposeViewContainer::HandlePointerEventL(
                     }
                 else
                     {
-                    iMessageField->ClearSelectionL();
+				    // Changes made in predictive input mode can be approved
+					// only if ClearSelection is called AFTER
+					// CCoeControl::HandlePointerEventL,
+					// so iMessageField->ClearSelection() has been moved
+					clearSelection = ETrue;
                     }
                 }
 
@@ -443,6 +448,10 @@ void CNcsComposeViewContainer::HandlePointerEventL(
         }
 
     CCoeControl::HandlePointerEventL( aPointerEvent );
+	if (clearSelection)
+		{
+		iMessageField->ClearSelectionL();
+		}
     }
 
 // -----------------------------------------------------------------------------
@@ -763,6 +772,7 @@ void CNcsComposeViewContainer::SizeChanged()
     NcsUtility::LayoutBodyEdwin( 
             iMessageField, cmailPaneRect, iHeader->LayoutLineCount(), 
             iMessageField->LineCount(), iSeparatorLineYPos );
+    iMessageField->SetAlignment( EAknEditorAlignBidi );
     
     // we don't need format again when format was already done
     // during creation of forward/reply message
@@ -781,6 +791,7 @@ void CNcsComposeViewContainer::SizeChanged()
                 iReadOnlyQuoteField, cmailPaneRect, 
                 iHeader->LayoutLineCount() + iMessageField->LineCount(), 
                 iReadOnlyQuoteField->LineCount(), dummySeparatorPos );
+        iReadOnlyQuoteField->SetAlignment( EAknEditorAlignBidi );
         // we don't need format again when format was already done
 		// during creation of forward/reply message
         if ( !iSwitchOffFormattingText )
@@ -952,7 +963,8 @@ void CNcsComposeViewContainer::FormatAllTextComplete()
 			NcsUtility::LayoutBodyEdwin( iReadOnlyQuoteField, iCmailPaneRect, 
 					iHeader->LayoutLineCount() + iMessageField->LineCount(),
 					iReadOnlyQuoteField->LineCount(), dummySeparatorPos );
-	
+            iReadOnlyQuoteField->SetAlignment( EAknEditorAlignBidi );
+            
 			RMemReadStream inputStream;
             inputStream.Open( iReadOnlyQuote->Ptr(), iReadOnlyQuote->Size() );
             TRAP_IGNORE( iReadOnlyQuoteField->RichText()->ImportTextL( 0, inputStream,

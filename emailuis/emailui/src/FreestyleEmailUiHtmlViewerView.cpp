@@ -72,7 +72,8 @@ CFsEmailUiHtmlViewerView* CFsEmailUiHtmlViewerView::NewL(
     CAlfControlGroup& aControlGroup )
     {
     FUNC_LOG;
-    CFsEmailUiHtmlViewerView* self = new ( ELeave ) CFsEmailUiHtmlViewerView( aEnv, aAppUi, aControlGroup );
+    CFsEmailUiHtmlViewerView* self = new ( ELeave ) CFsEmailUiHtmlViewerView(
+        aEnv, aAppUi, aControlGroup );
     CleanupStack::PushL( self );
     self->ConstructL();
     CleanupStack::Pop( self );
@@ -1042,12 +1043,6 @@ void CFsEmailUiHtmlViewerView::HandleMrCommandL(
         }
     }
 
-void CFsEmailUiHtmlViewerView::HandleStatusPaneSizeChange()
-    {
-    CFsEmailUiViewBase::HandleStatusPaneSizeChange();
-
-	HandleViewRectChange();
-    }
 
 void CFsEmailUiHtmlViewerView::HandleViewRectChange()
     {
@@ -2190,30 +2185,29 @@ void CFsEmailUiHtmlViewerView::RequestResponseL( TFSProgress aEvent, TInt aReque
                 }
             }
         }
-    if(iContainer)
+
+    if ( iContainer )
         {
         iContainer->HideDownloadStatus();
         }
+
     if ( reloadContent )
         {
-
-        if (  iContainer )
+        if ( iContainer )
             {
-            iContainer->ResetContent();
-            if( iMessage )
+            iContainer->ResetContent( EFalse, EFalse );
+            if ( iMessage )
                 {
-                LoadContentFromMailMessageL( iMessage , EFalse);
+                LoadContentFromMailMessageL( iMessage , EFalse );
                 SetMskL();
                 }
             }
         }
 
-
-    if(iAsyncProcessComplete && iWaitDialog && iDialogNotDismissed)
+    if ( iAsyncProcessComplete && iWaitDialog && iDialogNotDismissed )
         {
         iWaitDialog->ProcessFinishedL(); // deletes the dialog
         }
-
     }
 
 // -----------------------------------------------------------------------------
@@ -2975,13 +2969,27 @@ void CFsEmailUiHtmlViewerView::OpenLinkInBrowserL( const TDesC& aUrl ) const
     TUid uid;
     TDataType dataType( _L8( "text/html" ) );
     session.AppForDataType( dataType, uid );
-
-    // Runs the default application using the dataType
-    TThreadId threadId;
-    User::LeaveIfError( session.StartDocument( aUrl , dataType, threadId ) );
-
-    CleanupStack::PopAndDestroy(); // session
-}
+    
+    if (uid != TUid::Uid(0) ) //only open link when default browser exist.
+    	{
+        TApaTaskList taskList( iEikonEnv->WsSession() );
+        TApaTask task = taskList.FindApp( uid );
+        if ( task.Exists() )
+            {
+            HBufC8 * param8 = HBufC8::NewLC( aUrl.Length() );
+            param8->Des().Append( aUrl );
+            task.SendMessage( TUid::Uid( 0 ), *param8 );
+            CleanupStack::PopAndDestroy( param8 );
+            }
+        else
+            {
+            // Runs the default application using the dataType
+            TThreadId threadId;
+            User::LeaveIfError( session.StartDocument( aUrl , dataType, threadId ) );
+            }
+    	}
+    CleanupStack::PopAndDestroy( &session );
+    }
 
 // --------------------------------------------------------------------------------
 // CFsEmailUiHtmlViewerView::SaveWebAddressToFavouritesL

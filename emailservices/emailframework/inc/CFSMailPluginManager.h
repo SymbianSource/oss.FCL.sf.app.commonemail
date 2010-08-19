@@ -108,7 +108,13 @@ public:
      */  
 	 void ListImplementationsL( RPointerArray<CFSMailPlugin>& aImplementations,
 	                            RPointerArray<CImplementationInformation>& aInfo );
-									 
+	
+     /**
+      * recheck existing plugins
+      *
+      */                 								 
+     void CFSMailPluginManager::RecheckPlugins( );
+     
 protected:
 
     /**

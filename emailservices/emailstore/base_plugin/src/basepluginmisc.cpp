@@ -204,6 +204,9 @@ EXPORT_C void CBasePlugin::SearchL(
     criteria.AddResultPropertyL( KMsgStorePropertySize );
     criteria.AddResultPropertyL( KMsgStorePropertyFrom );
     criteria.AddResultPropertyL( KMsgStorePropertySubject );
+    criteria.AddResultPropertyL( KMsgStorePropertyTo );
+    criteria.AddResultPropertyL( KMsgStorePropertyCc );
+    criteria.AddResultPropertyL( KMsgStorePropertyBcc );
 
     /**@ figure the lifecycle mgmnt of the handler.*/
     CSearchHandler* searchHandler = new (ELeave) CSearchHandler( aSearchObserver, *this, aMailBoxId );

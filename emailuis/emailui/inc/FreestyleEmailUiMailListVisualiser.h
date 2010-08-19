@@ -294,6 +294,17 @@ private:
 	        // Focus to the beginning.
 	        EFocusChangeNeeded
 	        };
+	    
+	    // states for sorting timer
+	    enum TSortState
+	    	{
+	    	ESortNone,
+	    	ESortRequested,
+	    	ESortStarted,
+	    	ESortPostponed,
+	    	ESortCompleted,
+	    	ESortStartError
+	    	};
 public:
 	static CFSEmailUiMailListVisualiser* NewL(CAlfEnv& aEnv, CFreestyleEmailUiAppUi* aAppUi, CAlfControlGroup& aMailListControlGroup);
 	static CFSEmailUiMailListVisualiser* NewLC(CAlfEnv& aEnv, CFreestyleEmailUiAppUi* aAppUi, CAlfControlGroup& aMailListControlGroup);
@@ -936,9 +947,15 @@ private: // Private objects
 	TPoint iMarkingModeTextPos;
 	TSize iMarkingModeTextSize;
 	TRect iMarkingModeTextRect;
+	// sorting info dialog
     CAknWaitDialog* iSortWaitNote;
+    //sorting timer
+    CFSEmailUiGenericTimer* iSortTimer;
+    TSortState iSortState; //states of the sorting timer
+    TInt iSortTryCount;   // number of tries that it will make to retry start sorting
     // timer generates events for inserting new mails into mail list
     CFSEmailUiGenericTimer* iNewMailTimer;
+    
     // array keeps IDs of new mails which should be added into mail list 
     RArray<TFSMailMsgId> iNewMailIds;
 

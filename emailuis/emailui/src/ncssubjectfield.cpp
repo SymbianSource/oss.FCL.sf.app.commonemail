@@ -192,14 +192,16 @@ void CNcsSubjectField::SizeChanged()
         {
         iLabel->SetAlignment( EHLeftVCenter );
         iLabel->SetLabelAlignment( ELayoutAlignLeft );
-        iTextEditor->SetAlignment( EAknEditorAlignRight );
         }
     else
         {
         iLabel->SetAlignment( EHRightVCenter );
         iLabel->SetLabelAlignment( ELayoutAlignRight );
-        iTextEditor->SetAlignment( EAknEditorAlignLeft );
         }
+    
+    // this needs to be bidi as in mirrored layout 
+    // writing language left to right can be set 
+    iTextEditor->SetAlignment( EAknEditorAlignBidi );
     
 	UpdateFontSize();
 

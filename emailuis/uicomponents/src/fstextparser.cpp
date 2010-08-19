@@ -25,7 +25,7 @@
 #include <alf/alftextstylemanager.h>
 // </cmail>
 #include <eikenv.h>
-#include <imagedata.h>
+#include <icl/imagedata.h>
 // <cmail>
 #include <AknUtils.h>
 // </cmail>

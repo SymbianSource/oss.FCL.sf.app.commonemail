@@ -67,7 +67,7 @@ TInt CFsTreeNode::InsertChild( CFsTreeItem* aItem, const TInt aIndex )
     FUNC_LOG;
     TInt childIndex = 0;
 
-    if ( aIndex == KFsTreeChildIndexLast )
+    if ( aIndex >= iChildren.Count() || aIndex == KFsTreeChildIndexLast )
         {
         childIndex = iChildren.Append( aItem );
         }

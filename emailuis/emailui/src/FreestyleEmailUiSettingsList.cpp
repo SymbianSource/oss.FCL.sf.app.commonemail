@@ -1586,7 +1586,7 @@ TBool CFsEmailSettingsList::RemoveAccountL()
             {
             // start wait note
             iWaitDialog = new (ELeave) CAknWaitDialog(
-                    (REINTERPRET_CAST(CEikDialog**, &iWaitDialog)), EFalse );
+                    (REINTERPRET_CAST(CEikDialog**, &iWaitDialog)), ETrue );
             iWaitDialog->PrepareLC( R_FS_WAIT_NOTE_REMOVING_MAILBOX );
             iWaitDialog->SetCallback( this );
             iWaitDialog->RunLD();

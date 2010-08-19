@@ -30,6 +30,8 @@
 class CEikMenuPane;
 class CPtiEngine;
 class CPtiKeyMappings;
+class CPtiQwertyKeyMappings;
+class CPtiHalfQwertyKeyMappings;
 
 
 // CLASS DECLARATION
@@ -160,8 +162,8 @@ private: // data
 	
     RProperty iKbLayoutProperty;
 
-    CPtiKeyMappings* iQwertyMappings; // owned by iPtiEngine
-    CPtiKeyMappings* iHalfQwertyMappings; // owned by iPtiEngine
+    CPtiQwertyKeyMappings* iQwertyMappings; // owned by iPtiEngine
+    CPtiHalfQwertyKeyMappings* iHalfQwertyMappings; // owned by iPtiEngine
     };
     
 #endif // __FS_EMAIL_UI_SHORTCUT_BINDING_H

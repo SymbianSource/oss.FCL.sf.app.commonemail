@@ -90,6 +90,10 @@
 //</cmail>
 #include <layoutmetadata.cdl.h>         // for Layout_Meta_Data
 
+#include <AknPriv.hrh>
+#include "freestyleemailcenrepkeys.h"
+#include <centralrepository.h>
+
 // INTERNAL INCLUDE FILES
 #include "FreestyleEmailUiContactHandler.h"
 #include "FreestyleEmailUiAppui.h"
@@ -371,6 +375,7 @@ CFreestyleEmailUiAppUi::CFreestyleEmailUiAppUi( CAlfEnv& aEnv )
     {
     FUNC_LOG;
     iEnv = &aEnv;
+    iHtmlViewerViewId = TUid::Null();
     TIMESTAMP( "Application starting" );
     }
 
@@ -543,6 +548,7 @@ void CFreestyleEmailUiAppUi::ConstructL()
     iHtmlViewerControlGroup = &iEnv->NewControlGroupL( KHtmlViewerDisplayGroup );
     iHtmlViewerView = CFsEmailUiHtmlViewerView::NewL( *iEnv, *this, *iHtmlViewerControlGroup );
     AddViewL( iHtmlViewerView );
+    iHtmlViewerViewId = iHtmlViewerView->Id(); 
 
 	// Create mail list
     iMailListVisualiser = CFSEmailUiMailListVisualiser::NewL(*iEnv, this, *iMailListControlGroup );
@@ -736,6 +742,8 @@ CFreestyleEmailUiAppUi::~CFreestyleEmailUiAppUi()
 
  	TFsEmailUiUtility::DeleteStaticData();
 
+	// Cannot rely on framework to delete HTMLVierView as it de-registers from CFSEmailDownloadInfoMediator
+	RemoveView(iHtmlViewerViewId);
     // destroys the Download Information mediator
     // Destruction must be done here as other Tls data depends on it.
     CFSEmailDownloadInfoMediator::Destroy();
@@ -853,7 +861,12 @@ void CFreestyleEmailUiAppUi::ReturnFromPluginSettingsView()
             {
             // Activate grid view if the view history stack is empty. This happens only
             // if something has gone wrong.
+            // Note that the grid view may need to be re-drawn, e.g. if the
+            // current orientation is different from the last time it was
+            // displayed.  This is because it will not have received dynamic
+            // variant switch notifications while it was not in the history.
             iCurrentActiveView = static_cast<CFsEmailUiViewBase*>( View(AppGridId) );
+            iMainUiGridVisualiser->SetRefreshNeeded();
             }
         else
             {
@@ -881,6 +894,10 @@ void CFreestyleEmailUiAppUi::ViewActivatedExternallyL( TUid aViewId )
     // Do nothing if the externally activated view was already active
     if ( iCurrentActiveView->Id() != aViewId )
         {
+        // this function removes setting view from view stack so 
+        // it cannot be active any more
+        iSettingsViewActive = EFalse;
+        
         iPreviousActiveView = iCurrentActiveView;
 
         // Check if the view is in the history stack. In that case, we don't
@@ -947,7 +964,12 @@ TUid CFreestyleEmailUiAppUi::ReturnToPreviousViewL( const TDesC8& aCustomMessage
         {
         // Activate grid view if the view history stack is empty. This happens only
         // if something has gone wrong.
+        // Note that the grid view may need to be re-drawn, e.g. if the
+        // current orientation is different from the last time it was
+        // displayed.  This is because it will not have received dynamic
+        // variant switch notifications while it was not in the history.
         iCurrentActiveView = static_cast<CFsEmailUiViewBase*>( View(AppGridId) );
+        iMainUiGridVisualiser->SetRefreshNeeded();
         }
     else
         {
@@ -1046,9 +1068,14 @@ void CFreestyleEmailUiAppUi::ReturnToViewL( TUid aViewId,
         }
 
     // Return to grid in case the desired view was not found
-    if ( iCurrentActiveView->Id() != aViewId )
+    if ( iCurrentActiveView->Id() != aViewId && iCurrentActiveView->Id() != AppGridId )
         {
+        // For some reason the launcher grid wasn't at the bottom of the
+        // stack.  Activate it now, but also tell it to refresh itself in
+        // case it wasn't in the stack at all and missed (e.g.) an
+        // orientation change notification.
         iCurrentActiveView = static_cast<CFsEmailUiViewBase*>( View(AppGridId) );
+        iMainUiGridVisualiser->SetRefreshNeeded();
         }
 
     if ( aCustomMessageId != TUid::Null() || aCustomMessage.Length() )
@@ -1318,8 +1345,13 @@ void CFreestyleEmailUiAppUi::HandleWsEventL(const TWsEvent &aEvent, CCoeControl*
         {
         TAdvancedPointerEvent* pointerEvent(aEvent.Pointer());
         iLastPointerPosition = pointerEvent->iParentPosition;
+        iLastWsEventType = EEventPointer;
         }
 
+    if (aEvent.Type() == EEventKey)
+        {
+        iLastWsEventType = EEventKey;
+        }
 	TInt key = aEvent.Key()->iScanCode;
     // <cmail>
     // to disable voice commands during creating new mail message
@@ -1465,6 +1497,15 @@ void CFreestyleEmailUiAppUi::HandleResourceChangeL( TInt aType )
     // </cmail>
     CAknAppUi::HandleResourceChangeL( aType );
 
+    if ( aType == KAknSplitInputEnabled || aType == KAknSplitInputDisabled ) 
+        { 
+        StatusPane()->MakeVisible( aType == KAknSplitInputDisabled );       
+        if ( iCurrentActiveView != NULL )
+            {
+            iCurrentActiveView->HandleStatusPaneSizeChange(); 
+            } 
+        }
+
     // Refresh mode is changed to manual to avoid any flickering during
     // resource change handling in list views. Trap any leaves so that we set
     // the automatic refresh mode back on even in case of error.
@@ -1494,7 +1535,8 @@ void CFreestyleEmailUiAppUi::DoHandleResourceChangeL( TInt aType )
     //    CAlfEnv::Static()->NotifySkinChangedL();
     //    }
 
-    if ( aType == KEikDynamicLayoutVariantSwitch )
+    if( aType == KEikDynamicLayoutVariantSwitch
+        || aType == KAknSplitInputEnabled || aType == KAknSplitInputDisabled )
     	{
         // Changing layout for status pane (just in case it is not switched
         // correctly), fix for HMNN-82BAGR error
@@ -1521,7 +1563,7 @@ void CFreestyleEmailUiAppUi::DoHandleResourceChangeL( TInt aType )
         {
 
 	  	TRect screenRect;
-	 	AknLayoutUtils::LayoutMetricsRect( AknLayoutUtils::EMainPane, screenRect );
+        screenRect = ClientRect();
   		StatusPane()->DrawNow();
         if(iEnv)
             {
@@ -1539,6 +1581,8 @@ void CFreestyleEmailUiAppUi::DoHandleResourceChangeL( TInt aType )
             case KAknsMessageSkinChange:
                 type = CFsEmailUiViewBase::ESkinChanged;
                 break;
+            case KAknSplitInputEnabled:  // fall though
+            case KAknSplitInputDisabled: // fall though
             case KEikDynamicLayoutVariantSwitch:
                 type = CFsEmailUiViewBase::EScreenLayoutChanged;
                 break;
@@ -2978,6 +3022,12 @@ const TPoint& CFreestyleEmailUiAppUi::LastSeenPointerPosition() const
     }
 
 // -----------------------------------------------------------------------------
+// CFreestyleEmailUiAppUi::LastSeenWsEventType
+// -----------------------------------------------------------------------------
+TInt CFreestyleEmailUiAppUi::LastSeenWsEventType()
+    {
+    return iLastWsEventType;
+    }
 // CFreestyleEmailUiAppUi::RunFakeSyncAnimL
 // -----------------------------------------------------------------------------
 void CFreestyleEmailUiAppUi::RunFakeSyncAnimL()
@@ -3098,7 +3148,7 @@ void CFreestyleEmailUiAppUi::TimerEventL( CFSEmailUiGenericTimer* aTriggeredTime
                     (CAknTitlePane*)StatusPane()->ControlL( titlePaneUid ) );
 
                 TSize iconSize = LayoutHandler()->statusPaneIconSize();
-                iConnectionStatusIconAngle -= KConnectionStatusIconRotationAmount;
+                iConnectionStatusIconAngle += KConnectionStatusIconRotationAmount;
                 AknIconUtils::SetSizeAndRotation(iConnectionIconBitmap, iconSize, EAspectRatioNotPreserved, iConnectionStatusIconAngle);
                 titlePane->DrawNow();
                 iConnectionStatusIconAnimTimer->Start(KConnectionStatusIconRotationInterval);

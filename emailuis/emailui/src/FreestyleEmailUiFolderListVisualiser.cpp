@@ -2655,11 +2655,11 @@ void CFSEmailUiFolderListVisualiser::UpdateListSizeAttributes()
 	 	
 		if(!Layout_Meta_Data::IsLandscapeOrientation())
 			{
-			iScreenRect.SetRect( 0, 0, iScreenRect.Width(),iScreenRect.Height() + noToolbar.Height()  );
+			iScreenRect.SetRect( 0, 0, iScreenRect.Width(), iScreenRect.Height() );
 			}
 		else
 			{
-			iScreenRect.SetRect( 0, 0, noToolbar.Width(),iScreenRect.Height());
+			iScreenRect.SetRect( 0, 0, noToolbar.Width(), iScreenRect.Height() );
 			}
         }
 	else

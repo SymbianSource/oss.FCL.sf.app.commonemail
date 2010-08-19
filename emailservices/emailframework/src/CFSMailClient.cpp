@@ -118,19 +118,28 @@ EXPORT_C CFSMailClient::~CFSMailClient()
 // CFSMailClient::GetMailBoxByUidL
 // -----------------------------------------------------------------------------
 EXPORT_C CFSMailBox* CFSMailClient::GetMailBoxByUidL(const TFSMailMsgId aMailBoxId)
-{
+    {
     FUNC_LOG;
 	// select plugin
 	CFSMailBox* mailBox = NULL;
 	CFSMailPlugin* plugin = iFWImplementation->GetPluginManager().GetPluginByUid(aMailBoxId);
 	if(plugin)
-	{
+	    {
 		// get mailbox from plugin
 		mailBox = plugin->GetMailBoxByUidL(aMailBoxId);
-	}
-
+	    }
+	else
+	    {
+        iFWImplementation->GetPluginManager().RecheckPlugins();
+        plugin = iFWImplementation->GetPluginManager().GetPluginByUid(aMailBoxId);
+        if(plugin)
+            {
+            // get mailbox from plugin
+            mailBox = plugin->GetMailBoxByUidL(aMailBoxId);
+            }
+	    }
 	return mailBox;
-}
+    }
 
 // -----------------------------------------------------------------------------
 // CFSMailClient::GetMailBoxByUidLC
@@ -241,6 +250,8 @@ EXPORT_C TInt CFSMailClient::ListMailBoxes(const TFSMailMsgId aPlugin,
     // <cmail>	
 	CFSMailBox *mailBox = NULL;	
     // </cmail>	
+	
+	iFWImplementation->GetPluginManager().RecheckPlugins();
 	
 	if(aPlugin.IsNullId())
 	{

@@ -139,5 +139,42 @@ TUint CFSMailPluginManager::GetPluginCount( )
 	return iPluginList.Count();
 	}
 	
+// -----------------------------------------------------------------------------
+// CFSMailPluginManager::RecheckPlugins
+// -----------------------------------------------------------------------------
 
-
+void CFSMailPluginManager::RecheckPlugins( )
+    {
+    FUNC_LOG;
+    
+    CFSMailPlugin* plugin = NULL;
+    
+    TInt tempCount = iPluginInfo.Count();
+    
+    for ( TInt i = 0; i < tempCount; i++ )
+        {
+        TUid id = iPluginInfo[i]->ImplementationUid();
+        TBool found = false;
+        
+        // check if plugin is already in plugin list
+        for ( TInt j = 0; j < iPluginList.Count(); j++)
+            {
+            
+            if ( iPluginList[j]->iPluginId == id )
+                {
+                found = true;
+                break;
+                }
+            }
+        // if plugin is not found try to create it and add it to plugin list.
+        if ( !found )
+            {
+            TRAPD(err,plugin = CFSMailPlugin::NewL( id ));
+            CFSMailPlugin::Close();
+            if ( err == KErrNone && plugin != NULL )
+                {
+                AddPluginL(id,plugin);
+                }
+            }
+        }
+    }

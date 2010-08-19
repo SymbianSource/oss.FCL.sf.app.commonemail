@@ -295,6 +295,12 @@ void CFSEmailUiLauncherGridVisualiser::HandleButtonReleaseEvent()
 void CFSEmailUiLauncherGridVisualiser::ResizeItemIcon( TBool aReduce )
     {
     TInt selectedItem( iCurrentLevel.iSelected );
+    TInt count = iCurrentLevel.iItemVisualData.Count();
+    if ( selectedItem < 0 || selectedItem >= count )
+        {
+        return;  // incorrect index
+        }
+    
     if( selectedItem >= 0 )
         {
         TReal transition( KScaleNotSelected );
@@ -1226,14 +1232,8 @@ TBool CFSEmailUiLauncherGridVisualiser::HandlePointerEventL(
                 if (Abs(iTotalDragging) >= iPhysics->DragThreshold() || iIsDragging )
                     {
                     // Hide focus always when dragging.
-                    iAppUi.SetFocusVisibility( EFalse );
-                    if ( iSelector )
-                        {
-                        TAlfTimedValue selectorOpacity;
-                        selectorOpacity.SetValueNow( 0 );
-                        iSelector->SetOpacity( selectorOpacity );
-                        }
-
+                    HandleButtonReleaseEvent();
+ 
                     iIsDragging = ETrue;
                 
                     iPhysics->RegisterPanningPosition( delta );
@@ -1438,6 +1438,12 @@ void CFSEmailUiLauncherGridVisualiser::HandleRowMovement( TDirection aDir, TInt 
 void CFSEmailUiLauncherGridVisualiser::MoveSelectorToCurrentItem( TDirection aDir )
     {
     FUNC_LOG;
+    TInt count = iCurrentLevel.iItemVisualData.Count();
+    if ( iCurrentLevel.iSelected < 0 || iCurrentLevel.iSelected >= count )
+        {
+        return;  // incorrect index
+        }
+    
     TAlfRealPoint curPos = iSelector->Pos().ValueNow(); // this is the wrapped value of the current position
     iSelector->SetPos( curPos, 0 ); // wrap position now
 
@@ -1607,7 +1613,7 @@ void CFSEmailUiLauncherGridVisualiser::PopulateL( TLevel& aLevel )
 	    gridIconRect.LayoutRect(itemrc, AknLayoutScalable_Apps::cell_cmail_l_pane_g1(var));
 
 	    TAknLayoutText gridText;
-	    gridText.LayoutText(itemrc, AknLayoutScalable_Apps::cell_cmail_l_pane_t1(var));
+	    gridText.LayoutText(itemrc, AknLayoutScalable_Apps::cell_cmail_l_pane_t1(0));
 
         if ( aLevel.iParent >= 0 )
             {
@@ -1678,7 +1684,22 @@ void CFSEmailUiLauncherGridVisualiser::PopulateL( TLevel& aLevel )
 
                 newItem.iText->SetTextStyle( iAppUi.LayoutHandler()->FSTextStyleFromLayoutL(AknLayoutScalable_Apps::cell_cmail_l_pane_t1(var)).Id() );//FSTextStyleFromIdL( EFSFontTypeSmall )->Id() );
                 newItem.iText->SetWrapping( CAlfTextVisual::ELineWrapTruncate );
-                newItem.iText->SetAlign( EAlfAlignHCenter, EAlfAlignVTop );
+                TAlfAlignHorizontal alfAlign;
+                switch( gridText.Align() )
+                    {
+                    case ELeft: 
+                        alfAlign = EAlfAlignHLeft;
+                        break;
+                    case ECenter:
+                        alfAlign = EAlfAlignHCenter;
+                        break;
+                    case ERight:
+                        alfAlign = EAlfAlignHRight;
+                        break;
+                    default:
+                        alfAlign = EAlfAlignHCenter;
+                    }
+                newItem.iText->SetAlign( alfAlign, EAlfAlignVCenter );
 
                 newItem.iImage = CAlfImageVisual::AddNewL( *iControl, newItem.iBase );
                 newItem.iImage->SetScaleMode( CAlfImageVisual::EScaleFit );
@@ -2753,6 +2774,17 @@ TPoint CFSEmailUiLauncherGridVisualiser::ViewPosition() const
 void CFSEmailUiLauncherGridVisualiser::LaunchStylusPopupMenu(
 	const TInt aItemId )
 	{
+    TInt count = iCurrentLevel.iItemVisualData.Count();
+    if ( aItemId < 0 || aItemId >= count )
+        {
+        return;  // incorrect index
+        }
+    
+    count = iCurrentLevel.iItems.Count();
+    if ( aItemId < 0 || aItemId >= count )
+        {
+        return;  // incorrect index
+        }
 	// Get the ID of the mailbox in case the user wants to delete it.
 	iMailboxToDelete = iCurrentLevel.iItems[aItemId].iMailBoxId;
 

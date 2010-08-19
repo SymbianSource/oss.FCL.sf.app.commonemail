@@ -24,7 +24,7 @@
 #include <u32std.h>
 #include <MemoryManager.h>
 
-#define __USE_FAST_ALLOCATOR
+//#define __USE_FAST_ALLOCATOR
 
 CApaDocument* CFreestyleEmailUiApplication::CreateDocumentL()
     {

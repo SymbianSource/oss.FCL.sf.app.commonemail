@@ -37,6 +37,7 @@
 #include <freestyleemailui.mbg>
 #include <aknstyluspopupmenu.h>
 
+#include <wlaninternalpskeys.h>
 #include "ncscomposeview.h"
 #include "ncscomposeviewcontainer.h"
 #include "ncsconstants.h"
@@ -959,7 +960,7 @@ void CNcsComposeView::HandleCommandL( TInt aCommand )
                     {
                     // Sending successful
                     HBufC* confMessage = NULL;
-                    if ( !TFsEmailUiUtility::IsOfflineModeL() )
+                    if ( !TFsEmailUiUtility::IsOfflineModeL() || WLANConnectionActive() )
                         {
                         // when sync status is currently ONLINE
                         confMessage = StringLoader::LoadLC( 
@@ -1796,6 +1797,23 @@ void CNcsComposeView::HandleDynamicVariantSwitchL(
 
 	}
 
+// ---------------------------------------------------------------------------
+// CNcsComposeView::FadeOut()
+// enables hiding toolbar on different view -> DoActivate()  
+// which is earlier than -> CFsEmailUiViewBase::DoDeactivate() 
+// -----------------------------------------------------------------------------
+//
+void CNcsComposeView::FadeOut( TBool aDirectionOut )
+    {
+    if ( aDirectionOut && Toolbar()->IsShown() )
+        {
+        HideToolbar();
+        }
+    else if ( ! ( aDirectionOut || Toolbar()->IsShown() ) )
+        {
+        ShowToolbar();
+        }
+    }
 // -----------------------------------------------------------------------------
 // CNcsComposeView::InitReplyFieldsL()
 // Initialises the reply fields from the reply message created by the plug-in.
@@ -3400,6 +3418,30 @@ CAknButton* CNcsComposeView::Button( TInt aCmdId,
 
     return button;
     }
+
+// ---------------------------------------------------------------------------
+// Returns ETrue if WLAN connection is active.
+// ---------------------------------------------------------------------------
+//
+TBool CNcsComposeView::WLANConnectionActive()    
+    {
+    TBool ret = EFalse;
+    
+    TInt wlanState;
+    TInt err = RProperty::Get( KPSUidWlan, KPSWlanIndicator, wlanState );
+
+    if ( err == KErrNone )
+        {
+        if ( wlanState == EPSWlanIndicatorActive ||
+             wlanState == EPSWlanIndicatorActiveSecure )
+            {
+            ret = ETrue;
+            }
+        }
+    
+    return ret;    
+    }
+
 
 // ---------------------------------------------------------------------------
 // CActiveHelper::NewL()

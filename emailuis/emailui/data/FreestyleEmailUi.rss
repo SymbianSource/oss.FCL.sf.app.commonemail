@@ -1580,6 +1580,7 @@ RESOURCE MENU_PANE r_fsemailui_maillist_menupane
           MENU_ITEM { command = EFsEmailUiCmdActionsForward; txt = qtn_fse_message_list_options_forward; },
           MENU_ITEM { command = EFsEmailUiCmdMailActions; txt = qtn_cmail_message_list_options_actions; cascade=r_fsemailui_maillist_submenu_mail_actions;},
           MENU_ITEM { command = EFsEmailUiCmdSync; txt = qtn_cmail_message_list_options_send_receive; },
+          MENU_ITEM { command = EFsEmailUiCmdCancelSync; txt = qtn_fse_launcher_options_cancel_sync; }, 
           MENU_ITEM { command = EFsEmailUiCmdMarkingMode; txt = qtn_fse_message_list_options_mark; },
           MENU_ITEM { command = EFsEmailUiCmdSettings; txt = qtn_fse_message_list_options_settings; },
           MENU_ITEM { command = EFsEmailUiCmdHelp; txt = qtn_options_help; },

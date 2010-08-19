@@ -90,6 +90,9 @@ const TUint32 KEmailLocalVariationFlags         = {0x0000FFFE};
 // Values: 1 = hide, 0 = show.
 const TUint32 KEmailHideFS205UIFeature          = {0x0000FFFF};
 const TUint32 KEmailHideFSHiLightUIFeature          = {0x0000FFFF};
+// PS2 variation
+// one centrep key for every feature, 0 means disabled
+const TUint32 KEmailFeatureSplitScreen                  = {0x00001001};
 
 //
 // TP Wizard repository in the central repository

@@ -176,9 +176,9 @@ void CEUiHtmlViewerSettingsKeyListener::DoCancel()
 CEUiHtmlViewerSettings* CEUiHtmlViewerSettings::NewL( MObserver& aObserver )
     {
     CEUiHtmlViewerSettings* self = new (ELeave) CEUiHtmlViewerSettings(aObserver);
-    CleanupStack::PushL(self);
+    CleanupStack::PushL( self );
     self->ConstructL();
-    CleanupStack::Pop(); // self
+    CleanupStack::Pop( self );
     return self;
     }
 
@@ -216,11 +216,12 @@ void CEUiHtmlViewerSettings::ConstructL()
 //
 void CEUiHtmlViewerSettings::AddKeyListenerL( TUint32 aKey )
     {
-    CEUiHtmlViewerSettingsKeyListener* listener = new (ELeave) CEUiHtmlViewerSettingsKeyListener(*this, aKey);
-    CleanupStack::PushL(listener);
-    iKeyListeners.AppendL(listener);
-    CleanupStack::Pop(); // listener
-    UpdateValue(aKey);
+    CEUiHtmlViewerSettingsKeyListener* listener = 
+        new (ELeave) CEUiHtmlViewerSettingsKeyListener( *this, aKey );
+    CleanupStack::PushL( listener );
+    iKeyListeners.AppendL( listener );
+    CleanupStack::Pop( listener );
+    UpdateValue( aKey );
     }
 
 // ---------------------------------------------------------------------------
@@ -446,8 +447,9 @@ void CFsEmailUiHtmlViewerContainer::CreateBrowserControlInterfaceL()
 
     if ( iBrCtlInterface )
         {
-        delete iBrCtlInterface;
-        iBrCtlInterface = NULL;
+       	SetZoomLevelL(100);
+		iBrCtlInterface->SetBrowserSettingL( TBrCtlDefs::ESettingsAutoLoadImages, iViewerSettings->AutoLoadImages() );
+       	return;
         }
 
     TUint brCtlCapabilities = TBrCtlDefs::ECapabilityClientResolveEmbeddedURL |
@@ -502,9 +504,6 @@ void CFsEmailUiHtmlViewerContainer::ConstructL()
 #endif 
 
     
-    SetRect( iView.ContainerRect() );
-    CreateBrowserControlInterfaceL();
-
     iEventHandler = CFreestyleMessageHeaderURLEventHandler::NewL( iAppUi, iView );
 
     TRect nextButtonRect = OverlayButtonRect( EFalse );
@@ -521,6 +520,9 @@ void CFsEmailUiHtmlViewerContainer::ConstructL()
 
     iTouchFeedBack = MTouchFeedback::Instance();
     iTouchFeedBack->EnableFeedbackForControl(this, ETrue);
+
+    CreateBrowserControlInterfaceL();
+    SetRect( iView.ContainerRect() );
 
     ActivateL();
     }
@@ -699,7 +701,8 @@ void CFsEmailUiHtmlViewerContainer::LoadContentFromMailMessageL(
 // Reset content
 // ---------------------------------------------------------------------------
 //
-void CFsEmailUiHtmlViewerContainer::ResetContent(const TBool aDisconnect)
+void CFsEmailUiHtmlViewerContainer::ResetContent( TBool aDisconnect,
+    TBool aClearFlags )
     {
     FUNC_LOG;
     if ( iBrCtlInterface )
@@ -718,7 +721,10 @@ void CFsEmailUiHtmlViewerContainer::ResetContent(const TBool aDisconnect)
     iLinkContents.Reset();
     iMessageParts.Reset();
     iMessage = NULL;
-    iFlags.ClearAll();
+    if ( aClearFlags )
+        {
+        iFlags.ClearAll();
+        }
     iScrollPosition = 0;
     }
 
@@ -1171,49 +1177,65 @@ void CFsEmailUiHtmlViewerContainer::ConvertToHtmlFileL( CFSMailMessagePart& aTex
     aTextBodyPart.GetContentToBufferL( contentPtr, 0 );
     //When we found EFSMsgFlag_BodyTruncated was set, add "--Message too long--" in the end of plain html view
     if ( limit < contentsize )
-    	{
-		 HBufC* addingText = StringLoader::LoadLC( R_FREESTYLE_EMAIL_UI_VIEW_ADDITIONAL_INFO );
-		 TInt pos = limit - addingText->Length();
-		 contentPtr.Replace(pos,addingText->Length(),*addingText);
-         CleanupStack::PopAndDestroy( addingText );
+        {
+        // Disable this is PS1 until we have translations available             
+//		 HBufC* addingText = StringLoader::LoadLC( R_FREESTYLE_EMAIL_UI_VIEW_ADDITIONAL_INFO , limit/KKilo );
+//		 TInt pos = contentPtr.Length() - addingText->Length();
+//		 contentPtr.Replace(pos,addingText->Length(),*addingText);
+//         CleanupStack::PopAndDestroy( addingText );
          aTextBodyPart.SetFlag(EFSMsgFlag_BodyTruncated);
-    	}
+        }
     
     ConvertToHTML( *content, targetFileName, aTextBodyPart );
     CleanupStack::PopAndDestroy( content );
-
     }
 
 // ---------------------------------------------------------------------------
 // Reads given file content to buffer and return pointer to it
 // ---------------------------------------------------------------------------
 //
-HBufC8* CFsEmailUiHtmlViewerContainer::ReadContentFromFileLC( RFile& aFile, CFSMailMessagePart& aHtmlBodyPart )
+HBufC8* CFsEmailUiHtmlViewerContainer::ReadContentFromFileLC( RFile& aFile, 
+   CFSMailMessagePart& aBodyPart )
     {
     FUNC_LOG;
     TInt fileSize = 0;
-    
-    TInt limit(0);
-    TInt err = iViewerSettings->Repository().Get( KFreestyleMaxBodySize , limit );
-    limit *= KKilo; // cenrep value is in kB, 0 means unlimited
-
     User::LeaveIfError( aFile.Size( fileSize ) );
-    if ( limit == 0 || err )
+ 
+    HBufC* contentType = aBodyPart.GetContentType().AllocLC();
+    TInt length = contentType->Locate(';');
+    if( length >= 0 )
         {
-        limit = KMaxTInt;
+        contentType->Des().SetLength( length );
         }
-
-    TInt size = Min( limit, fileSize ); // read no more than limit bytes..
-
+    TBool body = KFSMailContentTypeTextPlain().CompareF( contentType->Des() ) == 0 ||
+                 KFSMailContentTypeTextHtml().CompareF( contentType->Des() ) == 0; 
+    CleanupStack::PopAndDestroy( contentType );
     
-    if ( size < fileSize )
+    if ( body )
         {
-        aHtmlBodyPart.SetFlag( EFSMsgFlag_BodyTruncated );
+        // limit message size if not done already by plugins
+        TInt limit(0);
+        TInt err = iViewerSettings->Repository().Get( KFreestyleMaxBodySize , limit );
+        limit *= KKilo; // cenrep value is in kB, 0 means unlimited
+ 
+        if ( limit == 0 || err )
+           {
+           limit = KMaxTInt;
+           }
+        fileSize = Min( limit, fileSize ); // read no more than limit bytes..
+     
+        TInt contentSize = aBodyPart.ContentSize();
+        TInt fetchedSize = aBodyPart.FetchedContentSize();
+        
+        if ( ( limit!=KMaxTInt && fileSize < contentSize ) 
+          || ( fetchedSize < contentSize ) ) 
+            {
+            aBodyPart.SetFlag( EFSMsgFlag_BodyTruncated );
+            }
         }
-    
-    HBufC8* buffer = HBufC8::NewLC( size );
+    HBufC8* buffer = HBufC8::NewLC( fileSize );
     TPtr8 ptr = buffer->Des();
-    User::LeaveIfError( aFile.Read( ptr, size ) );
+    User::LeaveIfError( aFile.Read( ptr, fileSize ) );
     return buffer;
     }
 
@@ -1296,15 +1318,24 @@ void CFsEmailUiHtmlViewerContainer::WriteContentToFileL( const TDesC8& aContent,
 
         // Write the original content
         User::LeaveIfError( targetFile.Write( buffer ) );
-		//When we found EFSMsgFlag_BodyTruncated was set, add "--Message too long--" in the end of html view
-        if( aHtmlBodyPart.GetFlags()&EFSMsgFlag_BodyTruncated )
+        if( aHtmlBodyPart.GetFlags() & EFSMsgFlag_BodyTruncated )
         	{
-			HBufC* addingText = StringLoader::LoadLC( R_FREESTYLE_EMAIL_UI_VIEW_ADDITIONAL_INFO );
-			HBufC8* addingText8 = CnvUtfConverter::ConvertFromUnicodeToUtf8L( *addingText );       
-			CleanupStack::PopAndDestroy( addingText );
-			CleanupStack::PushL( addingText8 );
-			User::LeaveIfError( targetFile.Write( *addingText8 ) );
-			CleanupStack::PopAndDestroy( addingText8 );
+            //When we found EFSMsgFlag_BodyTruncated was set, add "--- Message limited to %N kB ---" in the end of html view
+             TInt limit(0);
+             TInt err = iViewerSettings->Repository().Get( KFreestyleMaxBodySize , limit );
+             limit *= KKilo; // cenrep value is in kB, 0 means unlimited
+             if ( limit == 0 || err )
+                 {
+                 limit = KMaxTInt;
+                 }
+
+// Disable this is PS1 until we have translations available             
+//          HBufC* addingText = StringLoader::LoadLC( R_FREESTYLE_EMAIL_UI_VIEW_ADDITIONAL_INFO, limit/KKilo );
+//			HBufC8* addingText8 = CnvUtfConverter::ConvertFromUnicodeToUtf8L( *addingText );       
+//			CleanupStack::PopAndDestroy( addingText );
+//			CleanupStack::PushL( addingText8 );
+//			User::LeaveIfError( targetFile.Write( *addingText8 ) );
+//			CleanupStack::PopAndDestroy( addingText8 );
         	}
         // Write ending metadata if needed
         if ( modificationNeeded || (aHtmlBodyPart.GetFlags()&EFSMsgFlag_BodyTruncated) )

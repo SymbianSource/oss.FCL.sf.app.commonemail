@@ -70,10 +70,13 @@ protected:
 private:
     const TAttachmentData& FindAttachmentL( const CFreestyleMessageHeaderURL& aAttachmentUrl );
     void LaunchAttachmentMenuL( const TAttachmentData& aAttachment );
+    TBool LaunchAttachmentMenuHWKeyL( const TAttachmentData& aAttachment );
     void HandAttachmentActionMenuCommandL( TActionMenuCustomItemId aSelectedActionMenuItem,
                                            const TAttachmentData& aAttachment );    
     void LaunchEmailAddressMenuL( );
+    TBool LaunchEmailAddressMenuHWKeyL();
     void LaunchWebAddressMenuL( );
+    TBool LaunchWebAddressMenuHWKeyL( );    
     
 private:
     CFreestyleMessageHeaderURL*     iMessageHeaderURL;
@@ -89,5 +92,50 @@ private:
     TBool                           iPendingReload;
     CFSHtmlReloadAO*                iHTMLReloadAO; 
     };
+
+
+/******************************************************************************
+ * class TPopupMenuItem
+ ******************************************************************************/
+
+NONSHARABLE_CLASS (TPopupMenuItem) 
+    {
+public:        
+    TInt iCommandId;
+    TBuf<KMaxName> iText;
+    TBool iDimmed;
+    TInt iListIndex;
+    };
+
+
+/******************************************************************************
+ * class CFreestylePopupMenu
+ ******************************************************************************/
+
+NONSHARABLE_CLASS  (CFreestylePopupMenu) : public CBase 
+    {
+public:
+    static CFreestylePopupMenu* NewL( TInt aResourceId ); 
+    ~CFreestylePopupMenu();
+    
+private:
+    CFreestylePopupMenu( TInt aResourceId );
+    void ConstructL();
+    
+public:
+    TInt LaunchPopupMenuL();  // returns command id or KErrCancel
+    void SetDimmed( TInt aCommandId, TBool aDimmed );
+    
+private:
+    TInt CommandIdFromListIndex( TInt aListIndex );
+    void ConstructFromResourceL( TResourceReader& aReader );
+    void StrCopy( TDes& aTarget, const TDesC& aSource );
+    
+private:
+    TInt iResourceId;
+    
+    RArray<TPopupMenuItem> iItemList;
+    };
+
 
 #endif //__CFREESTYLE_MESSAGE_HEADER_EVENTHANDLER_URL_H__

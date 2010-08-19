@@ -97,6 +97,8 @@ const TInt KControlBarTransitionTime = 250;
 const TInt KMaxPreviewPaneLength = 60;
 const TInt KMsgUpdaterTimerDelay = 2500000; // Time to update list, 2,5sec
 const TInt KNewMailTimerDelay = 20; // sleeping timer to start processing new messages
+const TInt KSortTimerDelay = 40;    // sleeping timer to start sorting ( delay should be longer than abowe )
+const TInt KSortCountdown = 5;      // number how many times will be tried do start sorting when it's forbidden
 const TInt KNewMailMaxBatch = 7;    // number of new mails inserted into list at once
 static const TInt KMsgDeletionWaitNoteAmount = 5;
 _LIT( KMissingPreviewDataMarker, "..." );
@@ -486,6 +488,8 @@ void CFSEmailUiMailListVisualiser::ConstructL()
     iDeleteTask = new (ELeave) TDeleteTask<CFSEmailUiMailListVisualiser> (*this, HandleDeleteTaskL);
 
     iNewMailTimer = CFSEmailUiGenericTimer::NewL( this );
+    iSortTimer = CFSEmailUiGenericTimer::NewL( this );
+    iSortState = ESortNone;
 
 	iTouchFeedBack = MTouchFeedback::Instance();
  	}
@@ -648,6 +652,7 @@ CFSEmailUiMailListVisualiser::~CFSEmailUiMailListVisualiser()
     delete iDeleteTask;
     DeleteSortWaitNote();
     delete iNewMailTimer;
+    delete iSortTimer;
     iNewMailIds.Close();
     }
 
@@ -693,6 +698,12 @@ void CFSEmailUiMailListVisualiser::PrepareForExit()
         SafeDelete( iNewMailTimer );
         }
 
+    if ( iSortTimer )
+        {
+        // delete also cancels timer
+        SafeDelete( iSortTimer );
+        }
+    
     SafeDelete(iMailFolder);
     iTreeItemArray.Reset();
 	// Reset, not delete to avoid NULL checks.
@@ -765,7 +776,7 @@ void CFSEmailUiMailListVisualiser::UpdateCompleteL()
         sorting = ETrue;
         }
     DeleteSortWaitNote();
-    
+
     if ( !iModel->Count() )
         {
         iFocusedControl = EControlBarComponent;
@@ -821,11 +832,10 @@ void CFSEmailUiMailListVisualiser::DeleteSortWaitNote()
 void CFSEmailUiMailListVisualiser::SortMailListModelAsyncL()
     {
     FUNC_LOG;
-   
+
     DeleteSortWaitNote();
   
     TBool ret = UpdateMailListModelAsyncL( KCMsgBlockSort );
-    
     if ( ret )
         {
         TFsEmailUiUtility::ShowWaitNoteL( iSortWaitNote, R_FSE_WAIT_SORTING_TEXT, EFalse, ETrue );
@@ -1236,8 +1246,9 @@ void CFSEmailUiMailListVisualiser::InsertNewMessagesL( const RArray<TFSMailMsgId
         //   timer isn`t already active
         //   there are new mails in the array
         //   timer event isn`t processing
+        //   sorting timer isn't running
         if ( !iNewMailTimer->IsActive() && iNewMailIds.Count() && 
-             iNewMailTimer->iStatus != KErrInUse )
+             iNewMailTimer->iStatus != KErrInUse  && iSortState == ESortNone )
             {
             iNewMailTimer->Start( KNewMailTimerDelay );
             }
@@ -1250,44 +1261,152 @@ void CFSEmailUiMailListVisualiser::InsertNewMessagesL( const RArray<TFSMailMsgId
 //
 // ---------------------------------------------------------------------------
 //
-void CFSEmailUiMailListVisualiser::TimerEventL( CFSEmailUiGenericTimer* /*aTriggeredTimer*/ )
+void CFSEmailUiMailListVisualiser::TimerEventL( CFSEmailUiGenericTimer* aTriggeredTimer )
     {
-    TInt count = Min( KNewMailMaxBatch, iNewMailIds.Count() );
-    CFSMailClient* mailClient = iAppUi.GetMailClient();
-
-    // Enter critical section
-    // Because CFSMailClient::GetMessageByUidL can use CActiveSchedulerWait
-    // to ensure that only one TimerEventL method is processed at time
-    // CFSEmailUiGenericTimer`s iStatus will be used as mutex
-    iNewMailTimer->iStatus = KErrInUse;
-
-    for ( TInt i = 0; i < count; i++ )
+	
+    if( aTriggeredTimer == iSortTimer )
         {
-        CFSMailMessage* msgPtr = mailClient->GetMessageByUidL( iAppUi.GetActiveMailboxId(),
+        switch ( iSortState )
+            {
+            case ESortNone:
+                {
+                iSortTryCount = 0;
+                iSortState = ESortRequested;
+                break;
+                }
+            case ESortRequested:
+                {
+                if( !iNewMailTimer->IsActive() && iNewMailTimer->iStatus != KErrInUse )
+        	{
+                    // Size sorting does not use nodes, so disable those, otherwise check from CR
+                    iNodesInUse = iAppUi.GetCRHandler()->TitleDividers();
+                    SetSortButtonTextAndIconL();
+
+                    iFocusedControl = EControlBarComponent;
+                    iMailList->SetFocusedL( EFalse );
+                    iControlBarControl->SetFocusByIdL( iSortButtonId );
+
+                    SortMailListModelAsyncL();  // sort can take long time    
+                    SetMskL();
+                    iSortState = ESortStarted;
+                    }
+                else
+                    {
+                    iSortTryCount = 0;
+                    iSortState = ESortPostponed;
+                    iNewMailTimer->Stop(); // stop mail timer
+                    }
+                break;
+                }
+            case ESortPostponed:
+                {
+                if ( !iNewMailTimer->IsActive() && iNewMailTimer->iStatus != KErrInUse )
+                    {
+                    iSortState = ESortRequested; // start request again
+                    }
+                else
+                    {
+                    iSortTryCount++;
+                    }
+                if( iSortTryCount >= KSortCountdown )// repeat a few times
+                    {
+                    iSortTryCount = 0; // reset
+                    iSortState = ESortStartError; // can't start sorting  some error
+                    }
+                break;
+                }
+            case ESortStarted:
+                {
+                if ( !iSortWaitNote )// it will restart the timer elsewhere (see below)
+                    {
+                    iSortState = ESortCompleted;
+                    }
+                break;
+                }
+            case ESortStartError:
+            case ESortCompleted:
+                {
+            	if( !iNewMailTimer->IsActive() )
+            	    {
+            	    // refresh the whole mail list if list was sorted
+            	    if(iSortState != ESortStartError )
+            	    	{
+            	        RefreshL();
+            	    	}
+            	    // stop sorting process
+                    iSortState = ESortNone;
+                    iSortTimer->Stop();
+            	    // restart if more messages available
+            	    if ( iNewMailIds.Count() )
+                    {
+                    iNewMailTimer->Start( KNewMailTimerDelay );
+                    }
+                return;
+            		}
+                iNewMailTimer->Stop();
+            	break;
+                }
+            default :
+                {
+                // do nothing
+                }
+            }
+        // start timer again
+        if ( !iSortTimer->IsActive() )
+            {
+            iSortTimer->Start( KSortTimerDelay );
+            }
+        }
+    
+    if( aTriggeredTimer == iNewMailTimer )
+        {
+        TInt count = Min( KNewMailMaxBatch, iNewMailIds.Count() );
+        CFSMailClient* mailClient = iAppUi.GetMailClient();
+
+        // Enter critical section
+        // Because CFSMailClient::GetMessageByUidL can use CActiveSchedulerWait
+        // to ensure that only one TimerEventL method is processed at time
+        // CFSEmailUiGenericTimer`s iStatus will be used as mutex
+        iNewMailTimer->iStatus = KErrInUse;
+        iModel->SetSortCriteria(iCurrentSortCriteria);
+
+        for ( TInt i = 0; i < count; i++ )
+            {
+            // stop synchronization if mail list is being sorted
+            if( iSortState != ESortNone || iSortWaitNote )
+                {
+                iNewMailTimer->iStatus = KErrNone;
+                iNewMailTimer->Stop();
+                return; // leave  method
+                }
+    
+            CFSMailMessage* msgPtr = mailClient->GetMessageByUidL( iAppUi.GetActiveMailboxId(),
                                                                iMailFolder->GetFolderId(),
                                                                iNewMailIds[ 0 ],
                                                                EFSMsgDataEnvelope );
-        if ( msgPtr != NULL )
-            {
-            CleanupStack::PushL( msgPtr );
-            //first item - show scrollbar
-            //last item - update scrollbar
-            TBool allowRefresh = ( i == 0 || i == count - 1 );
-            InsertNewMessageL( msgPtr, allowRefresh );
-            CleanupStack::Pop( msgPtr ); // ownership transferred to model
+            if ( msgPtr != NULL )
+ {
+                __ASSERT_DEBUG( FolderId() == msgPtr->GetFolderId(), User::Invariant() );
+                CleanupStack::PushL( msgPtr );
+                //first item - show scrollbar
+                //last item - update scrollbar
+                TBool allowRefresh = ( i == 0 || i == count - 1 );
+                InsertNewMessageL( msgPtr, allowRefresh );
+                CleanupStack::Pop( msgPtr ); // ownership transferred to model
+                }
+            // pop processed id from the queue, this is single thread operation
+            iNewMailIds.Remove( 0 ); 
             }
-        // pop processed id from the queue, this is single thread operation
-        iNewMailIds.Remove( 0 ); 
-        }
+            
+        // End critical section
+        iNewMailTimer->iStatus = KErrNone;
 
-    // End critical section
-    iNewMailTimer->iStatus = KErrNone;
-
-    // if timer stoped then restart if more messages available
-    if ( iNewMailIds.Count() && ! iNewMailTimer->IsActive() )
-        {
-        iNewMailTimer->Start( KNewMailTimerDelay );
-        }
+        // if timer stoped then restart if more messages available
+        if ( iNewMailIds.Count() && ! iNewMailTimer->IsActive() && iSortState == ESortNone )
+            {
+            iNewMailTimer->Start( KNewMailTimerDelay );
+            }
+        }//iNewMailTimer
     }
 
 // ---------------------------------------------------------------------------
@@ -1560,8 +1679,17 @@ void CFSEmailUiMailListVisualiser::ChildDoActivateL(const TVwsViewId& aPrevViewI
     //if the view is already active don't update the icons so they won't "blink" 
     //when the view is activated.
     if(!iThisViewActive)
-        { 
+        {     
         ScaleControlBarL();
+        
+        // Set icons on toolbar
+        iAppUi.FsTextureManager()->ClearTextureByIndex( EListControlBarMailboxDefaultIcon );
+        iFolderListButton->SetIconL( iAppUi.FsTextureManager()->TextureByIndex( EListControlBarMailboxDefaultIcon ) );
+        iAppUi.FsTextureManager()->ClearTextureByIndex( EListTextureCreateNewMessageIcon );
+        iNewEmailButton->SetIconL( iAppUi.FsTextureManager()->TextureByIndex( EListTextureCreateNewMessageIcon ) );
+        iAppUi.FsTextureManager()->ClearTextureByIndex( GetSortButtonTextureIndex() );
+        iSortButton->SetIconL( iAppUi.FsTextureManager()->TextureByIndex( GetSortButtonTextureIndex() ) );
+
         SetListAndCtrlBarFocusL();
         }
 
@@ -1716,6 +1844,7 @@ void CFSEmailUiMailListVisualiser::ChildDoActivateL(const TVwsViewId& aPrevViewI
     if ( activationData.iMailBoxId != prevMailBoxId )
         {
         iNewMailTimer->Cancel();
+        iSortTimer->Cancel(); // stop sorting timer
         iNewMailIds.Reset();
         }
 
@@ -1757,7 +1886,7 @@ void CFSEmailUiMailListVisualiser::ChildDoActivateL(const TVwsViewId& aPrevViewI
     // Set branded watermark and mailbox icon
     SetBrandedListWatermarkL();
     SetBrandedMailBoxIconL();
-
+    
     // Check sync icon timer and sync status
     ConnectionIconHandling();
 
@@ -2069,7 +2198,21 @@ void CFSEmailUiMailListVisualiser::DynInitMenuPaneL(TInt aResourceId, CEikMenuPa
 	        {
 	        aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsEmptyDeleted, ETrue );
 	        }
-		}
+	    
+	    CConnectionStatusQueryExtension::TConnectionStatus connetionStatus;
+        iAppUi.GetConnectionStatusL( connetionStatus );
+        if ( connetionStatus == CConnectionStatusQueryExtension::ESynchronizing )
+            {
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdSync, ETrue );
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdCancelSync, EFalse );
+            }
+        else
+            {
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdSync, EFalse );
+            aMenuPane->SetItemDimmed( EFsEmailUiCmdCancelSync, ETrue );
+            }
+	    }
+	
     // MAIN MENU ***************************************************************************
 
 
@@ -3271,15 +3414,6 @@ void CFSEmailUiMailListVisualiser::HandleDynamicVariantSwitchOnBackgroundL(
     else if ( aType == EScreenLayoutChanged )
         {
         UpdateButtonTextsL();
-        
-        iAppUi.FsTextureManager()->ClearTextureByIndex( EListControlBarMailboxDefaultIcon );
-        iFolderListButton->SetIconL( iAppUi.FsTextureManager()->TextureByIndex( EListControlBarMailboxDefaultIcon ) );
-        iAppUi.FsTextureManager()->ClearTextureByIndex( EListTextureCreateNewMessageIcon );
-        iNewEmailButton->SetIconL( iAppUi.FsTextureManager()->TextureByIndex( EListTextureCreateNewMessageIcon ) );
-        iAppUi.FsTextureManager()->ClearTextureByIndex( GetSortButtonTextureIndex() );
-        iSortButton->SetIconL( iAppUi.FsTextureManager()->TextureByIndex( GetSortButtonTextureIndex() ) );
-
-        ScaleControlBarL();
         }
     }
 
@@ -4075,12 +4209,17 @@ void CFSEmailUiMailListVisualiser::HandleCommandL( TInt aCommand )
                 }
             }
             break;
-		case EFsEmailUiCmdCompose:
-			{
-			TIMESTAMP( "Create new message selected from message list" );
-			CreateNewMsgL();
-			}
-			break;
+        case EFsEmailUiCmdCompose:
+            {
+            // Switching to another view can take some time and this view
+            // can still receive some commands - so ignore them.
+            if ( iAppUi.CurrentActiveView() == this )
+                {
+                TIMESTAMP( "Create new message selected from message list" );
+                CreateNewMsgL();
+                }
+            }
+            break;
        	case EFsEmailUiCmdMessageDetails:
 			{
             // Message details can be viewed only when there's exactly one message marked or in focus
@@ -4278,6 +4417,14 @@ void CFSEmailUiMailListVisualiser::HandleCommandL( TInt aCommand )
 				}
 			}
 			break;
+       	case EFsEmailUiCmdCancelSync:
+       	    {
+       	    if ( GetLatestSyncState() )
+       	        {
+                iAppUi.StopActiveMailBoxSyncL();
+       	        }
+       	    }
+       	    break;
        	case EFsEmailUiCmdGoOffline:
         	{
     	   	iAppUi.GetActiveMailbox()->GoOfflineL();
@@ -5283,9 +5430,9 @@ void CFSEmailUiMailListVisualiser::DoHandleListItemOpenL()
                     }
 			    }
 			}
-		else
-			{
-		
+        else if ( iAppUi.CurrentActiveView() == this )
+            {
+
 			// MAIL ITEM; OPEN MAIL
 			if ( item && item->ModelItemType() == ETypeMailItem )
 				{
@@ -5340,7 +5487,8 @@ void CFSEmailUiMailListVisualiser::DoHandleControlBarOpenL( TInt aControlBarButt
             {
             folderType = EFSInbox;
             }
-        if ( iModel->Count() )
+        // we can't show sort list when sorting is active
+        if ( iModel->Count() && iSortState == ESortNone )
             {
             //Set touchmanager not active for preventing getting events.
             DisableMailList(ETrue);
@@ -6218,35 +6366,37 @@ void CFSEmailUiMailListVisualiser::UpdateItemAtIndexL( TInt aIndex )
                                                                                      iMailFolder->GetFolderId(),
                                                                                      modelItem->MessagePtr().GetMessageId() ,
                                                                                      EFSMsgDataEnvelope ) );
-            if ( confirmedMsgPtr )
+            if( aIndex < iTreeItemArray.Count() )
                 {
-                // Replace message pointer in model with newly fetched one
-                Model()->ReplaceMessagePtr( aIndex, confirmedMsgPtr );
-
-                const SMailListItem& item = iTreeItemArray[aIndex];
-
-                // Update the list item contents and formating to match the message pointer
-                CFsTreePlainTwoLineItemData* itemData =
-                    static_cast<CFsTreePlainTwoLineItemData*>( item.iTreeItemData );
-                CFsTreePlainTwoLineItemVisualizer* itemVis =
-                    static_cast<CFsTreePlainTwoLineItemVisualizer*>( item.iTreeItemVisualiser );
-
-                UpdateItemDataL( itemData, confirmedMsgPtr );
-                UpdatePreviewPaneTextForItemL( itemData, confirmedMsgPtr );
-                UpdateMsgIconAndBoldingL( itemData, itemVis, confirmedMsgPtr );
-                iMailTreeListVisualizer->UpdateItemL( item.iListItemId );
-                }
-            else
-                {
-                // No confirmed message for highlighted, remove from list also
-                iMailList->RemoveL( iTreeItemArray[aIndex].iListItemId ); // remove from list
-                iTreeItemArray.Remove( aIndex ); // remove from internal array.
-                iModel->RemoveAndDestroy( aIndex ); // Remove from model
-                if ( iNodesInUse )
+                if ( confirmedMsgPtr )
                     {
-                    RemoveUnnecessaryNodesL();
+                    const SMailListItem& item = iTreeItemArray[aIndex];
+                    // Replace message pointer in model with newly fetched one
+                    Model()->ReplaceMessagePtr( aIndex, confirmedMsgPtr );
+
+                    // Update the list item contents and formating to match the message pointer
+                    CFsTreePlainTwoLineItemData* itemData =
+                        static_cast<CFsTreePlainTwoLineItemData*>( item.iTreeItemData );
+                    CFsTreePlainTwoLineItemVisualizer* itemVis =
+                        static_cast<CFsTreePlainTwoLineItemVisualizer*>( item.iTreeItemVisualiser );
+
+                    UpdateItemDataL( itemData, confirmedMsgPtr );
+                    UpdatePreviewPaneTextForItemL( itemData, confirmedMsgPtr );
+                    UpdateMsgIconAndBoldingL( itemData, itemVis, confirmedMsgPtr );
+                    iMailTreeListVisualizer->UpdateItemL( item.iListItemId );
                     }
-                }
+                else
+                    {
+                    // No confirmed message for highlighted, remove from list also
+                    iMailList->RemoveL( iTreeItemArray[aIndex].iListItemId ); // remove from list
+                    iTreeItemArray.Remove( aIndex ); // remove from internal array.
+                    iModel->RemoveAndDestroy( aIndex ); // Remove from model
+                    if ( iNodesInUse )
+                        {
+                        RemoveUnnecessaryNodesL();
+                        }
+                    }
+            	}
             }
         }
     }
@@ -6600,13 +6750,21 @@ void CFSEmailUiMailListVisualiser::HandleDeleteTaskLeavingCodeL( const RFsTreeIt
     TFSMailMsgId mailBox = iAppUi.GetActiveMailboxId();
     RArray<TFSMailMsgId> msgIds;
     CleanupClosePushL( msgIds );
-    for ( TInt i = 0; i < aEntries.Count(); i++ )
+    for ( TInt i = aEntries.Count() - 1; i >= 0; i-- )
         {
         msgIds.AppendL( MsgIdFromListId( aEntries[i] ) );
         }
+
+    // Clear the focused item to avoid repeated selection of a new focused
+    // item, unnecessary scrolling of the viewport, etc.
+    iMailTreeListVisualizer->SetFocusedItemL( KFsTreeNoneID );
+
+    iMailList->BeginUpdate();
     iAppUi.GetMailClient()->DeleteMessagesByUidL( mailBox, folderId, msgIds );
     // Remove from mail list if not already removed by mailbox events
     RemoveMsgItemsFromListIfFoundL( msgIds );
+    iMailList->EndUpdateL();
+
     CleanupStack::PopAndDestroy(); // msgIds.Close()
     }
 
@@ -7037,6 +7195,8 @@ void CFSEmailUiMailListVisualiser::FolderSelectedL(
 		if ( !iMailFolder || ( iMailFolder && iMailFolder->GetFolderId() != aSelectedFolderId ) )
 		    {
 		    iMailListModelUpdater->Cancel();
+		    iNewMailTimer->Cancel();
+		    iNewMailIds.Reset();
 		    SafeDelete(iMailFolder);
             iMailFolder = iAppUi.GetMailClient()->GetFolderByUidL( iAppUi.GetActiveMailboxId(), aSelectedFolderId );
 
@@ -7189,24 +7349,12 @@ void CFSEmailUiMailListVisualiser::SortOrderChangedL(
 		}
 
 	iCurrentSortCriteria.iField = aSortField;
+	iModel->SetSortCriteria(iCurrentSortCriteria);
 
-	// Size sorting does not use nodes, so disable those, otherwise check from CR
-	iNodesInUse = iAppUi.GetCRHandler()->TitleDividers();
-	SetSortButtonTextAndIconL();
-
-	iFocusedControl = EControlBarComponent;
-	iMailList->SetFocusedL( EFalse );
-    iControlBarControl->SetFocusByIdL( iSortButtonId );
-
-    SortMailListModelAsyncL();  // sort can take long time
-    // <cmail>
-	//if ( iMailListUpdater )
-	//    {
-    	// Start updating mail list with sorting parameter.
-    //	iMailListUpdater->StartL( ETrue );
-	//    }
-    // </cmail>
-	SetMskL();
+	// rest of the code moved to TimerEventL ( iSortTimer part )
+	// used also in DoHandleControlBarOpenL to prevent SortList reopening
+	iSortState = ESortRequested; 
+	iSortTimer->Start( KSortTimerDelay );	
 	}
 
 // ---------------------------------------------------------------------------

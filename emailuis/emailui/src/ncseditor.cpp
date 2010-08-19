@@ -28,11 +28,13 @@
 #include <AknsSkinInstance.h>
 #include <aknedsts.h>
 #include <AknsBasicBackgroundControlContext.h>
+#include <centralrepository.h>
 
 #include "ncseditor.h"
 #include "ncsutility.h"
 #include "ncscustomdraw.h"
 #include "ncseditorcustomdraw.h"
+#include "freestyleemailcenrepkeys.h"
 
 // ========================= MEMBER FUNCTIONS ==================================
 
@@ -71,6 +73,19 @@ void CNcsEditor::ConstructL( const CCoeControl* aParent,
             CEikEdwin::ENoAutoSelection | CEikEdwin::EInclusiveSizeFixed |
             CEikEdwin::ENoHorizScrolling | CEikRichTextEditor::EPasteAsPlainText );
     
+    CRepository* repository = NULL;
+    TRAPD( err, repository = CRepository::NewL( KFreestyleEmailCenRep ) );
+    if ( !err )
+        {
+        TInt value( 0 );
+        err = repository->Get( KEmailFeatureSplitScreen, value );
+        if( !err && value )
+            {
+            SetAknEditorFlags( AknEditorFlags() | EAknEditorFlagEnablePartialScreen );  
+            }
+        }
+    delete repository;
+    repository = NULL;
     iGlobalCharFormat = CCharFormatLayer::NewL();
     iGlobalCharFormat->SetBase( GlobalText()->GlobalCharFormatLayer() );
     GlobalText()->SetGlobalCharFormat( iGlobalCharFormat );

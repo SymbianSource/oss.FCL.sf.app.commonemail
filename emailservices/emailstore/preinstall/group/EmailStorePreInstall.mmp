@@ -41,16 +41,17 @@ MACRO DEBUG_LOG_OPTION_EXIT
 MACRO DEBUG_LOG_OPTION_ERRORS
 MACRO DEBUG_LOG_OPTION_INFO
 
-SOURCEPATH		../src
+SOURCEPATH      ../src
 SOURCE          EmailStorePreInstall.cpp ProcessTimer.cpp
 
 USERINCLUDE     ../inc
 USERINCLUDE     ../../inc
+USERINCLUDE     ../../../../inc   
+
 
 APP_LAYER_SYSTEMINCLUDE
-SYSTEMINCLUDE   ../../../../inc   
 
-LIBRARY   		euser.lib 
+LIBRARY         euser.lib 
 LIBRARY         efsrv.lib
 LIBRARY         ws32.lib
 LIBRARY         apparc.lib      //TApaAppInfo

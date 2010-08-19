@@ -2892,11 +2892,11 @@ void CFsTreeVisualizerBase::RemoveItemL(TFsTreeItemId aItemId)
     iWorld.RemoveL(aItemId);
     if (iFocusedItem == aItemId)
         {
-        if (iWorld.ItemCount() > removedindex)
+        if ( iWorld.ItemCount() > removedindex && removedindex != KErrNotFound )
             {
             SetFocusedItemL(iWorld.Item(removedindex), EFalse);
             }
-        else if (iWorld.ItemCount() > 0)
+        else if ( iWorld.ItemCount() > 0 && removedindex != KErrNotFound )
             {
             SetFocusedItemL(iWorld.Item(removedindex - 1), EFalse);
             }

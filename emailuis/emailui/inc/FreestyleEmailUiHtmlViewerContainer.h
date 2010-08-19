@@ -197,14 +197,12 @@ public:
     void LoadContentFromFileL( RFile& aFile );
     void LoadContentFromUrlL( const TDesC& aUrl );
     void LoadContentFromMailMessageL( CFSMailMessage* aMailMessage, TBool aResetScrollPos=ETrue );
-    void ResetContent(const TBool aDisconnect = EFalse);
+    void ResetContent( TBool aDisconnect = EFalse, TBool aClearFlags = ETrue );
     void CancelFetch();
     void ClearCacheAndLoadEmptyContent();
-    // <cmail>
     void PrepareForExit();
     void PrepareForMessageNavigation();
-    // </cmail>
-    
+
 // from base class CCoeControl
 
     CCoeControl* ComponentControl( TInt aIndex ) const;
@@ -303,7 +301,7 @@ private:
     void ConvertToHtmlFileL( CFSMailMessagePart& aTextBodyPart, const TDesC& aHtmlFileName );
 
     // Reads given file content to buffer and return pointer to it
-    HBufC8* ReadContentFromFileLC( RFile& aFile, CFSMailMessagePart& aHtmlBodyPart );
+    HBufC8* ReadContentFromFileLC( RFile& aFile, CFSMailMessagePart& aBodyPart );
     // Writes buffer to given file
     void WriteContentToFileL( const TDesC8& aContent, const TDesC& aFileName, CFSMailMessagePart& aHtmlBodyPart );
 

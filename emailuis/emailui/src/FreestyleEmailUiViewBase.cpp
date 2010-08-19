@@ -175,10 +175,10 @@ void CFsEmailUiViewBase::UpdateToolbarL()
                 }
             CleanupStack::PopAndDestroy(); // dimmedItems.Close()
             toolbar->SetToolbarObserver(this);
- 			if(resourceId == R_FREESTYLE_EMAIL_UI_TOOLBAR_FOLDER_LIST)
-            	{
-            	toolbar->SetToolbarVisibility(EFalse);
-				}
+
+            TBool toolbarVisible = ( resourceId != R_FREESTYLE_EMAIL_UI_TOOLBAR_FOLDER_LIST ); 
+            toolbar->SetToolbarVisibility( toolbarVisible ); 
+
             SetToolbar(toolbar);
             ShowToolbar();
             }
@@ -208,7 +208,6 @@ void CFsEmailUiViewBase::HideToolbar()
         CAknToolbar* toolbar(Toolbar());
         if (toolbar)
             {
-            // toolbar->SetToolbarVisibility(EFalse);
             toolbar->MakeVisible(EFalse);
             }
         }
@@ -224,8 +223,7 @@ void CFsEmailUiViewBase::ShowToolbar()
         CAknToolbar* toolbar(Toolbar());
         if (toolbar)
             {
-            // toolbar->SetToolbarVisibility(ETrue);
-            toolbar->MakeVisible(ETrue);
+            toolbar->MakeVisible( ETrue );
             }
         }
     }
@@ -269,13 +267,13 @@ void CFsEmailUiViewBase::DoDeactivate()
         TApaTaskList taskList( iEikonEnv->WsSession() );
         TApaTask prevAppTask = taskList.FindApp( iPreviousAppUid );
         TApaTask fsEmailTask = taskList.FindApp( KFSEmailUiUid );
-        if ( prevAppTask.Exists() )
-            {
-            prevAppTask.BringToForeground();
-            }
         if ( fsEmailTask.Exists() && iPreviousAppUid != KMessageReaderUid )
             {
             fsEmailTask.SendToBackground();
+            }
+        if ( prevAppTask.Exists() )
+            {
+            prevAppTask.BringToForeground();
             }
 
         iAppUi.SetSwitchingToBackground( EFalse );

@@ -253,6 +253,7 @@ TInt CFSEmailUiShortcutBinding::CommandForShortcutKey( const TKeyEvent& aKey,
 #endif // RD_INTELLIGENT_TEXT_INPUT
         if ( iQwertyMappings )
             {
+            iQwertyMappings->SetKeyboardType( static_cast<TPtiKeyboardType>( kbType ) );
             iQwertyMappings->GetDataForKey( static_cast<TPtiKey>(aKey.iScanCode), 
                     keyData, caseMode );
             }
@@ -263,7 +264,8 @@ TInt CFSEmailUiShortcutBinding::CommandForShortcutKey( const TKeyEvent& aKey,
         // Map the key to the corresponding character in the Fn mode
         if ( iHalfQwertyMappings )
             {
-#ifdef RD_INTELLIGENT_TEXT_INPUT        
+#ifdef RD_INTELLIGENT_TEXT_INPUT 
+            iQwertyMappings->SetKeyboardType( static_cast<TPtiKeyboardType>( kbType ) );
             iHalfQwertyMappings->GetDataForKey( static_cast<TPtiKey>(aKey.iScanCode), 
                     keyData, EPtiCaseFnLower );
 #endif // RD_INTELLIGENT_TEXT_INPUT
@@ -420,9 +422,9 @@ void CFSEmailUiShortcutBinding::ConstructL()
         static_cast<CPtiCoreLanguage*>( iPtiEngine->GetLanguage( ELangEnglish ) );
     if (lang)
         {
-        iQwertyMappings = static_cast<CPtiKeyMappings*>( lang->GetQwertyKeymappings() );
+        iQwertyMappings = static_cast<CPtiQwertyKeyMappings*>( lang->GetQwertyKeymappings() );
 #ifdef RD_INTELLIGENT_TEXT_INPUT        
-        iHalfQwertyMappings = static_cast<CPtiKeyMappings*>( lang->GetHalfQwertyKeymappings() );
+        iHalfQwertyMappings = static_cast<CPtiHalfQwertyKeyMappings*>( lang->GetHalfQwertyKeymappings() );
 #endif // RD_INTELLIGENT_TEXT_INPUT        
         }
     lang = NULL; // owned by iPtiEngine

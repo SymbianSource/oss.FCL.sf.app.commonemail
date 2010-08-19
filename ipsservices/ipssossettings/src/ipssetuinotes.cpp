@@ -172,14 +172,10 @@ TInt CIpsSetUiNotes::ShowQueryL(
     const CAknQueryDialog::TTone aTone )
     {
     FUNC_LOG;
-    CAknLocalScreenClearer* localScreenClearer =
-        CAknLocalScreenClearer::NewL( EFalse );
-    CleanupStack::PushL( localScreenClearer );
 
     // Create dialog and execute the dialog
     CAknQueryDialog* dlg = CAknQueryDialog::NewL( aTone );
     TInt button = dlg->ExecuteLD( aDialogResource, aText );
-    CleanupStack::PopAndDestroy( localScreenClearer );
 
     return button;
     }

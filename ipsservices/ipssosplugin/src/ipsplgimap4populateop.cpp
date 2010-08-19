@@ -92,6 +92,8 @@ CIpsPlgImap4PopulateOp::CIpsPlgImap4PopulateOp(
 CIpsPlgImap4PopulateOp::~CIpsPlgImap4PopulateOp()
     {
     FUNC_LOG;
+    
+    Cancel();
     iSelection.Close();
 
     if ( iTempSelection )
@@ -216,7 +218,19 @@ void CIpsPlgImap4PopulateOp::DoRunL()
             }
         case EStateInfoEntryChange:
             {
-            DoPopulateL();
+            TMsvEntry tentry;
+            TMsvId service;
+            iMsvSession.GetEntry( iService, service, tentry );
+          
+            if( err == KErrNone && tentry.Connected() )
+            	{
+            	DoPopulateL();  
+            	}  
+            else
+            	{
+            	iState = EStateIdle;
+            	CompleteObserver( err );
+            	}            
             break;
             }
         case EStateIdle:

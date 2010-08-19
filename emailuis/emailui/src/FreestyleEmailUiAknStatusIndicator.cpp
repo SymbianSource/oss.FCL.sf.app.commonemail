@@ -185,7 +185,7 @@ void CFreestyleEmailUiAknStatusIndicator::TimerEventL( CFSEmailUiGenericTimer* /
     if ( iAnimate && ( iHideTimeout == KMaxTInt || iHideTimeout-- > 0 ) )
         {
         StartTimer( KAnimationDelayMs );
-        iAngle -= 360 / (KAnimationFps * KSecondsPerFullRotation);
+        iAngle += 360 / (KAnimationFps * KSecondsPerFullRotation);
         ScaleImage();
         DrawDeferred();
         }

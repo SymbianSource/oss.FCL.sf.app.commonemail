@@ -359,6 +359,11 @@ TBool CIpsPlgMsgMapper::ChangeTEntryFlagsL(
     // EFSMsgFlag_Answered: supported only with IMAP4 (see below)
 
     // EFSMsgFlag_Forwarded: no counterpart in Symbian message in S60 3.1
+    if ( LogicalXor( aEmlEntry.Forwarded(), msgFlags & EFSMsgFlag_Forwarded ) )
+        {
+        aEmlEntry.SetForwarded( !aEmlEntry.Forwarded() );
+        modified = ETrue;
+        }
 
     // EFSMsgFlag_OnlyToMe: no counterpart in Symbian message
 
@@ -749,7 +754,14 @@ void CIpsPlgMsgMapper::SetFlags(
     aMsg.ResetFlag( EFSMsgFlag_Answered );
 
     // EFSMsgFlag_Forwarded: not supported in S60 3.1
-    aMsg.ResetFlag( EFSMsgFlag_Forwarded );
+    if ( aEntry.Forwarded() )
+        {
+        aMsg.SetFlag( EFSMsgFlag_Forwarded );
+        }
+    else
+        {
+        aMsg.ResetFlag( EFSMsgFlag_Forwarded );
+        }
 
     // EFSMsgFlag_OnlyToMe: like EFSMsgFlag_Multiple
 

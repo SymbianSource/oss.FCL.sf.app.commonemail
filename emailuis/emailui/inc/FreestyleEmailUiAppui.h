@@ -493,6 +493,9 @@ public:
 
     // returns last seen pointer position
     const TPoint& LastSeenPointerPosition() const;
+    
+    // returns last seen ws event type
+    TInt LastSeenWsEventType();
 
     // Runs fake sync animation (needed for better user experience as
     // otherwise in some connection/sync states pressing "send & receive"
@@ -678,6 +681,7 @@ private:
 
 	// Html viewer view
 	CFsEmailUiHtmlViewerView* iHtmlViewerView;
+	TUid iHtmlViewerViewId;  
 
 	// Message details view
 	CFSEmailUiMsgDetailsVisualiser* iMsgDetailsVisualiser;
@@ -835,6 +839,7 @@ private:
     TBool iEditorStartedFromEmbeddedApp;
 
     TPoint iLastPointerPosition;
+    TInt iLastWsEventType; // EEventPointer or EEventKey    
     };
 
 

@@ -50,19 +50,13 @@ DEPENDS ipssostestapp.rsg
 TARGETPATH /private/10003a3f/apps
 END
 
-// <cmail>
 APP_LAYER_SYSTEMINCLUDE
-// </cmail>
+
 USERINCLUDE ../inc
 USERINCLUDE ../../../inc
 USERINCLUDE ..\..\..\..\..\..\ODSUtility\inc
 
-SYSTEMINCLUDE   /epoc32/include
-//<cmail>
-//<cmail>
 USERINCLUDE ../../../../../inc
-//</cmail>
-//</cmail>
 
 LIBRARY euser.lib
 LIBRARY apparc.lib

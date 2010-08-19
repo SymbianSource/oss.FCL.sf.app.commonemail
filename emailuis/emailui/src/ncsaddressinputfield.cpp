@@ -33,6 +33,7 @@
 #include <AknUtils.h>
 #include <FreestyleEmailUi.rsg>
 #include <aknphysics.h>
+#include <centralrepository.h>
 
 #include "FreestyleEmailUiAppui.h"
 #include "FreestyleEmailUiLayoutData.h"
@@ -44,6 +45,7 @@
 #include "ncsutility.h"
 #include "ncsheadercontainer.h"
 #include "txtrich.h"
+#include "freestyleemailcenrepkeys.h"
 
 // ---------------------------------------------------------------------------
 // constructor
@@ -198,6 +200,21 @@ void CNcsAddressInputField::SetContainerWindowL( const CCoeControl& aContainer )
     iTextEditor->SetBorder( TGulBorder::ENone );
 	iTextEditor->SetAknEditorInputMode( EAknEditorTextInputMode );
 	iTextEditor->SetAknEditorFlags( EAknEditorFlagNoT9 | EAknEditorFlagUseSCTNumericCharmap );
+
+     CRepository* repository = NULL;
+     TRAPD( err, repository = CRepository::NewL( KFreestyleEmailCenRep ) );
+     if ( !err )
+         {
+         TInt value( 0 );
+         err = repository->Get( KEmailFeatureSplitScreen, value );
+         if( !err && value )
+            {
+             iTextEditor->SetAknEditorFlags( iTextEditor->AknEditorFlags() | EAknEditorFlagEnablePartialScreen );
+             }
+         }
+    delete repository;
+    repository = NULL;
+    
 	iTextEditor->SetAknEditorCurrentCase( EAknEditorLowerCase );
 	iTextEditor->CreateScrollBarFrameL()->SetScrollBarVisibilityL( CEikScrollBarFrame::EOff, CEikScrollBarFrame::EOff );
     iTextEditor->SetEdwinSizeObserver( this );
@@ -211,15 +228,16 @@ void CNcsAddressInputField::SetContainerWindowL( const CCoeControl& aContainer )
         {
         if( iLabel )
             iLabel->SetAlignment( EHRightVCenter );
-        iTextEditor->SetAlignment( EAknEditorAlignRight );
         }
     else
         {
         if( iLabel )
             iLabel->SetAlignment( EHLeftVCenter );
-        iTextEditor->SetAlignment( EAknEditorAlignLeft );
         }
-
+    
+    // this needs to be bidi as in mirrored layout 
+    // writing language left to right can be set 
+    iTextEditor->SetAlignment( EAknEditorAlignBidi );
     }
 
 // -----------------------------------------------------------------------------
@@ -261,6 +279,11 @@ void CNcsAddressInputField::SizeChanged()
    	    {
    	    LayoutNonTouch();
    	    }
+
+    // This needs to be bidi as in mirrored layout 
+    // writing language left to right can be set. 
+    // Need to set here as layout sets it also to left or right.
+    iTextEditor->SetAlignment( EAknEditorAlignBidi );
    	    
     UpdateFontSize();
     

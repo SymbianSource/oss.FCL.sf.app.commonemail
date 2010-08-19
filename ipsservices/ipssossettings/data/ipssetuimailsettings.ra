@@ -383,7 +383,7 @@ RESOURCE IPS_SET_ARRAY r_ips_set_menu_outgoing_settings
             itemlabel = qtn_fse_settings_mail_user_name;
             itemid = EIpsSetUiOutgoingUserName;
             itemtype = EIpsSetUiItemText;
-            itemmaxlength = KIpsSetUiMaxSettingsTextLength;
+            itemmaxlength = KIPsSetUiMaxSettingsUsrNameLength;
             itemflags = KIpsSetUiFlagLatinOnly;
             },
         // User password

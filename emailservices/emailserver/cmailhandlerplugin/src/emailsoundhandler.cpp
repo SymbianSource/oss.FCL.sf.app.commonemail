@@ -231,7 +231,7 @@ void CFSMailSoundHandler::RecreateAudioPlayerL()
     TInt preference = KAudioPrefNewSpecialMessage;
     if ( !mailVibraEnabled )
         {
-        preference = EMdaPriorityPreferenceQuality;
+        preference = KAudioPrefNewEmail; // Used in TB.92 only! In 10.X adaptation will manage vibra setting itself.
         }
 
     if (IsBeepOnceSetL(*profile))
@@ -255,12 +255,12 @@ void CFSMailSoundHandler::RecreateAudioPlayerL()
             {
             // Play the silent tone with KAudioPrefNewSpecialMessage
             // in order to avoid the distortion
-			// KAudioPrefNewSpecialMessage does not play vibra if KProfileSilentTone is played
+            // KAudioPrefNewSpecialMessage does not play vibra if KProfileSilentTone is played
             preference = KAudioPrefNewSpecialMessage;
             }
         RFs fs;
         TInt err = fs.Connect();
-		CleanupClosePushL( fs );
+        CleanupClosePushL( fs );
             
         if ( err == KErrNone )
             {
@@ -283,7 +283,7 @@ void CFSMailSoundHandler::RecreateAudioPlayerL()
                 fileToPlay.Append( KDefaultEmailTone );
                 }
             
-		    CleanupStack::PopAndDestroy( &fs );
+            CleanupStack::PopAndDestroy( &fs );
             }
         
         iAudioPlayer = CMdaAudioPlayerUtility::NewFilePlayerL( 

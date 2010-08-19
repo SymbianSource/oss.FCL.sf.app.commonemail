@@ -371,12 +371,6 @@ void CFsTreePlainOneLineNodeVisualizer::UpdateLayout(
                 mainIconMetrics,
                 rect,
                 mainIconVariety );
-    // WORKAROUND FIX FOR LAYOUT PROBLEM -- RETURN THIS TO NORMAL WHEN LAYOUT'S ARE OK
-    if (rect.iTl.iY < 15)
-        {
-        rect.Move(0, 15 - rect.iTl.iY);    
-        }
-    // WORKAROUND FIX FOR LAYOUT PROBLEM -- RETURN THIS TO NORMAL WHEN LAYOUT'S ARE OK   
     tpMainIconTl.SetTarget(TAlfRealPoint(rect.iTl));
     tpMainIconBr.SetTarget(TAlfRealPoint(rect.iBr));
 
@@ -385,12 +379,6 @@ void CFsTreePlainOneLineNodeVisualizer::UpdateLayout(
             markIconMetrics,
             rect,
             markIconVariety );
-    // WORKAROUND FIX FOR LAYOUT PROBLEM -- RETURN THIS TO NORMAL WHEN LAYOUT'S ARE OK
-    if (rect.iTl.iY < 15)
-        {
-        rect.Move(0, 15 - rect.iTl.iY);    
-        }
-    // WORKAROUND FIX FOR LAYOUT PROBLEM -- RETURN THIS TO NORMAL WHEN LAYOUT'S ARE OK   
     tpMarkIconTl.SetTarget(TAlfRealPoint(rect.iTl));
     tpMarkIconBr.SetTarget(TAlfRealPoint(rect.iBr));
 
@@ -399,12 +387,6 @@ void CFsTreePlainOneLineNodeVisualizer::UpdateLayout(
             menuIconMetrics,
             rect,
             menuIconVariety );
-    // WORKAROUND FIX FOR LAYOUT PROBLEM -- RETURN THIS TO NORMAL WHEN LAYOUT'S ARE OK
-    if (rect.iTl.iY < 15)
-        {
-        rect.Move(0, 15 - rect.iTl.iY);    
-        }
-    // WORKAROUND FIX FOR LAYOUT PROBLEM -- RETURN THIS TO NORMAL WHEN LAYOUT'S ARE OK   
     tpMenuIconTl.SetTarget(TAlfRealPoint(rect.iTl));
     tpMenuIconBr.SetTarget(TAlfRealPoint(rect.iBr));
 
@@ -421,12 +403,6 @@ void CFsTreePlainOneLineNodeVisualizer::UpdateLayout(
     CFsLayoutManager::TFsText textInfo;
     CFsLayoutManager::LayoutMetricsText(textRect,
             textMetrics, textInfo, textPaneVariety);
-    // WORKAROUND FIX FOR LAYOUT PROBLEM -- RETURN THIS TO NORMAL WHEN LAYOUT'S ARE OK
-    if (textInfo.iTextRect.iTl.iY < 15)
-        {
-        textInfo.iTextRect.Move(0, 15 - textInfo.iTextRect.iTl.iY);    
-        }
-    // WORKAROUND FIX FOR LAYOUT PROBLEM -- RETURN THIS TO NORMAL WHEN LAYOUT'S ARE OK
     tpTextTl.SetTarget(TAlfRealPoint(textInfo.iTextRect.iTl)); 
     tpTextBr.SetTarget(TAlfRealPoint(textInfo.iTextRect.iBr));
 
@@ -557,7 +533,7 @@ void CFsTreePlainOneLineNodeVisualizer::ShowL( CAlfLayout& aParentLayout,
         if (!iIconVisual)
             {
             iIconVisual = CAlfImageVisual::AddNewL(iOwnerControl,iLayout);
-            iIconVisual->SetScaleMode( CAlfImageVisual::EScaleNormal );
+            iIconVisual->SetScaleMode( CAlfImageVisual::EScaleFitInside);
             iIconVisual->SetFlag( EAlfVisualFlagIgnorePointer );
             }
 
@@ -579,7 +555,7 @@ void CFsTreePlainOneLineNodeVisualizer::ShowL( CAlfLayout& aParentLayout,
         if (!iIconMarked)
             {
             iIconMarked = CAlfImageVisual::AddNewL( iOwnerControl, iLayout );
-            iIconMarked->SetScaleMode( CAlfImageVisual::EScaleNormal);
+            iIconMarked->SetScaleMode( CAlfImageVisual::EScaleFitInside);
             iIconMarked->SetFlag( EAlfVisualFlagIgnorePointer );
             }
 
@@ -587,7 +563,7 @@ void CFsTreePlainOneLineNodeVisualizer::ShowL( CAlfLayout& aParentLayout,
             {
             iIconMenu =
                         CAlfImageVisual::AddNewL(iOwnerControl, iLayout);
-            iIconMenu->SetScaleMode( CAlfImageVisual::EScaleNormal);
+            iIconMenu->SetScaleMode( CAlfImageVisual::EScaleFitInside);
             iIconMenu->SetFlag( EAlfVisualFlagIgnorePointer );
             }
 

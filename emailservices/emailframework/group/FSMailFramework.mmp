@@ -33,7 +33,6 @@ KEmailBinaryDemandPaging
 
 USERINCLUDE ../../../inc
 APP_LAYER_SYSTEMINCLUDE
-SYSTEMINCLUDE   /epoc32/include/variant
 
 
 USERINCLUDE     ../inc
