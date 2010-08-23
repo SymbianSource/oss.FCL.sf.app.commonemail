@@ -56,6 +56,7 @@ public:
         int result);
     void setFieldVisibility(bool isVisible);
     void adjustHeaderWidth();
+    void repositHeader(const QTransform &transform);
 
 private:
     void loadWidgets();
@@ -73,7 +74,6 @@ public slots:
     void editorContentChanged();
     void attachmentActivated(int arrayIndex);
     void attachmentLongPressed(int arrayIndex, QPointF point);
-    void repositHeader(const QPointF &scrollPosition);
 
 private:
     NmApplication &mApplication;

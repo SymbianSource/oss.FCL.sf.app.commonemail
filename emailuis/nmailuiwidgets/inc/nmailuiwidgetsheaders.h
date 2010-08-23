@@ -38,6 +38,9 @@
 #endif
 
 // Orbit
+#include <HbInstantFeedback>
+#include <HbFrameItem>
+#include <HbEffect>
 #include <hbmessagebox.h>
 #include <hbscrollarea.h>
 #include <hbstyleloader.h>
@@ -48,6 +51,7 @@
 #include <hbcolorscheme.h>
 #include <hbtapgesture.h>
 #include <hbevent.h>
+
 
 // nmail
 #include <nmaddress.h>

@@ -19,7 +19,7 @@
 #define EMAILMESSAGE_H
 
 #include <memailmessage.h>
-#include "cfsmailcommon.h"
+#include "CFSMailCommon.h"
 #include "emailapiutils.h"
 #include "MFSMailRequestObserver.h"
 #include <QEventLoop>

@@ -32,7 +32,6 @@
 #include "CFSMailAddress.h"
 // </qmail>
 
-const TInt KMaxMruEntries( 150 );
 
 // ================= MEMBER FUNCTIONS ==========================================
 // -----------------------------------------------------------------------------
@@ -208,7 +207,7 @@ EXPORT_C CFSMailMessage* CFSMailBox::CreateMessageToSend( )
 {
     NM_FUNCTION;
     
-    CFSMailMessage* message = NULL;
+    CFSMailMessage* message(NULL);
     if(CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetId()))
         {
         TRAPD(err,message = plugin->CreateMessageToSendL( GetId() ));
@@ -309,7 +308,7 @@ EXPORT_C CFSMailMessage* CFSMailBox::CreateForwardMessage(  TFSMailMsgId aOrigin
 {
     NM_FUNCTION;
     
-    CFSMailMessage* message = NULL;
+    CFSMailMessage* message(NULL);
     if(CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetId()))
         {
         TRAPD(err,message = plugin->CreateForwardMessageL( GetId(), 
@@ -615,17 +614,6 @@ EXPORT_C void CFSMailBox::CopyMessagesL( const RArray<TFSMailMsgId>& aMessageIds
                                 aSourceFolderId, aDestinationFolderId );    
         }
 }
-
-// -----------------------------------------------------------------------------
-// CFSMailBox::SearchL
-// -----------------------------------------------------------------------------
-EXPORT_C void CFSMailBox::SearchL( const RPointerArray<TDesC>& /*aSearchStrings*/,
-                                   const TFSMailSortCriteria&  /*aSortCriteria*/,
-                                   MFSMailBoxSearchObserver&   /*aSearchObserver*/,
-                                   const RArray<TFSMailMsgId>  /*aFolderIds */ )
-    {
-    NM_FUNCTION;
-    }
     
 // -----------------------------------------------------------------------------
 // CFSMailBox::SearchL
@@ -691,22 +679,6 @@ EXPORT_C void CFSMailBox::ClearSearchResultCache()
     }
 
 // -----------------------------------------------------------------------------
-// CFSMailBox::ListMrusL
-// -----------------------------------------------------------------------------
-EXPORT_C MDesCArray* CFSMailBox::ListMrusL() const
-    {
-    NM_FUNCTION;
-    
-    MDesCArray* mruList(0);
-    if ( CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetId() ) )
-        {
-        mruList = plugin->GetMrusL( GetId() );
-        }
-    return mruList;
-    }
-
-
-// -----------------------------------------------------------------------------
 // CFSMailBox::CurrentSyncState
 // -----------------------------------------------------------------------------
 EXPORT_C TSSMailSyncState CFSMailBox::CurrentSyncState() const
@@ -721,24 +693,6 @@ EXPORT_C TSSMailSyncState CFSMailBox::CurrentSyncState() const
     return syncState;
     }
 
-// -----------------------------------------------------------------------------
-// CFSMailBox::HasCapability
-// -----------------------------------------------------------------------------
-EXPORT_C TBool CFSMailBox::HasCapability( const TFSMailBoxCapabilities aCapability ) const
-{
-    NM_FUNCTION;
-    
-    TBool capability = EFalse;
-    if ( CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid( GetId() ) )
-        {
-        TRAPD( err,capability = plugin->MailboxHasCapabilityL( aCapability,GetId() )) ;
-        if ( err != KErrNone )
-            {
-            capability = EFalse;
-            }
-        }
-    return capability;
-}
 
 // -----------------------------------------------------------------------------
 // CFSMailBox::GetMailBoxStatus
@@ -755,309 +709,7 @@ EXPORT_C TFSMailBoxStatus CFSMailBox::GetMailBoxStatus()
     return status;
 }
 
-// -----------------------------------------------------------------------------
-// CFSMailBox::SetCredentialsL
-// -----------------------------------------------------------------------------
-EXPORT_C void CFSMailBox::SetCredentialsL( const TDesC& aUsername, const TDesC& aPassword )
-    {
-    NM_FUNCTION;
-    
-    if ( CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetId() ) )
-        {
-        plugin->SetCredentialsL( GetId(), aUsername, aPassword );
-        }
-    }
 
-// -----------------------------------------------------------------------------
-// CFSMailBox::RemoveDownLoadedAttachmentsL
-// -----------------------------------------------------------------------------
-EXPORT_C void CFSMailBox::RemoveDownLoadedAttachmentsL()
-    {
-    NM_FUNCTION;
-    
-    CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid( GetId() );
-    if ( plugin )
-        {
-        // get inbox folder from plugin
-        TFSMailMsgId folderId = GetStandardFolderId( EFSInbox );
-        CFSMailFolder* folder = plugin->GetFolderByUidL( GetId(), folderId );
-        if ( folder )
-            {
-            folder->RemoveDownLoadedAttachmentsL();
-            delete folder;
-            }
-        }
-    }
-
-// -----------------------------------------------------------------------------
-// CFSMailBox::GetConnectionId
-// -----------------------------------------------------------------------------
-EXPORT_C TInt CFSMailBox::GetConnectionId( TUint32& aConnectionId )
-    {
-    NM_FUNCTION;
-    
-    TInt rcode = KErrNotSupported;
-    if ( CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid( GetId() ) )
-        {
-        rcode = plugin->GetConnectionId( GetId(), aConnectionId );
-        }
-    return rcode;
-    }
-
-// -----------------------------------------------------------------------------
-// CFSMailBox::IsConnectionAllowedWhenRoaming
-// -----------------------------------------------------------------------------
-EXPORT_C TInt CFSMailBox::IsConnectionAllowedWhenRoaming( TBool& aConnectionAllowed )
-    {
-    NM_FUNCTION;
-    
-    TInt rcode = KErrNotSupported;
-    if ( CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid( GetId() ) )
-        {
-        rcode = plugin->IsConnectionAllowedWhenRoaming( GetId(), aConnectionAllowed );
-        }
-    return rcode;
-    }
-
-// -----------------------------------------------------------------------------
-// CFSMailBox::CreateMessageFromFileL
-// -----------------------------------------------------------------------------
-EXPORT_C CFSMailMessage* CFSMailBox::CreateMessageFromFileL( const RFile& aFile )
-{
-    NM_FUNCTION;
-    
-    CFSMailMessage* message = NULL;
-    if(CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetId()))
-    {
-		message = plugin->CreateMessageFromFileL( GetId(), aFile );
-    }
-    return message;
-}
-
-// -----------------------------------------------------------------------------
-// CFSMailBox::UpdateMrusL
-// -----------------------------------------------------------------------------
-void CFSMailBox::UpdateMrusL(
-    const RPointerArray<CFSMailAddress>& aRecipients,
-    const RPointerArray<CFSMailAddress>& aCCRecipients,
-    const RPointerArray<CFSMailAddress>& aBCCRecipients ) const
-    {
-    NM_FUNCTION;
-    
-    // First lets make a copy of the current mru list
-    // whose content we can later alter as we wish
-    MDesCArray* currentMruList( NULL );
-
-    CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetId());
-    if ( !plugin )
-        {
-        User::Leave( KErrGeneral );
-        }
-    currentMruList = plugin->GetMrusL( GetId() );
-    if ( !currentMruList )
-        {
-        // This should not happen because previous function
-        // should leave in error cases and if there are no
-        // entries then the pointer should still be pointing
-        // to valid array.
-        User::Leave( KErrGeneral );
-        }
-    
-    CDesCArraySeg* newMruList( NULL );
-    TRAPD( error, newMruList = CopyArrayL( *currentMruList ) );
-        
-    delete currentMruList;
-       
-    if ( error != KErrNone )
-        {
-        User::Leave( error );
-        }
-        
-    CleanupStack::PushL( newMruList );
-        
-    // Now check that all given recipients are found from the
-    // mru list.
-
-    // Notice that the order here has a meaning. For example
-    // if the latest used address is appended to the end, then
-    // the aRecipients' addresses are found from the end because
-    // they are updated after cc and bcc recipients.
-    UpdateMruListL( *newMruList, aBCCRecipients );
-    UpdateMruListL( *newMruList, aCCRecipients );
-    UpdateMruListL( *newMruList, aRecipients );
-    
-    // Finally update the new mru list to the plugin
-    plugin->SetMrusL( GetId(), newMruList );
-    
-    CleanupStack::PopAndDestroy( newMruList );
-    }
-
-// -----------------------------------------------------------------------------
-// CFSMailBox::CopyArrayL
-// -----------------------------------------------------------------------------    
-CDesCArraySeg* CFSMailBox::CopyArrayL( MDesCArray& aArrayToBeCopied ) const
-    {
-    NM_FUNCTION;
-    
-    CDesCArraySeg* newArray = new (ELeave) CDesCArraySeg( 10 );
-    CleanupStack::PushL( newArray );
-    
-    TInt itemCount( aArrayToBeCopied.MdcaCount() );
-    TInt index( 0 );
-    while ( index < itemCount )
-        {        
-        newArray->AppendL( aArrayToBeCopied.MdcaPoint( index ) );
-        ++index;
-        }
-    
-    CleanupStack::Pop( newArray );
-    return newArray;
-    }
-
-// -----------------------------------------------------------------------------
-// CFSMailBox::UpdateMruListL
-// -----------------------------------------------------------------------------
-void CFSMailBox::UpdateMruListL(
-    CDesCArraySeg& aMruList,
-    const RPointerArray<CFSMailAddress>& aNewRecentlyUsedOnes ) const
-    {
-    NM_FUNCTION;
-    
-    TUint newCount( aNewRecentlyUsedOnes.Count() );
-    TUint newIndexer( 0 );
-    
-    while ( newIndexer < newCount )
-        {
-        if ( aNewRecentlyUsedOnes[newIndexer] )
-            {
-            // The address is used as a search string because every
-            // address does not have a display name
-            TDesC& searchedAddress(
-                aNewRecentlyUsedOnes[newIndexer]->GetEmailAddress() );
-            TInt position( -1 );
-            
-            TInt found(
-                FindAddressFromMruList( aMruList, searchedAddress, position ) );
-            
-            if ( found != 0 )
-                {
-                AddAndRemoveExcessMruL( aMruList,
-                                        *aNewRecentlyUsedOnes[newIndexer] );
-                }
-            else
-                {
-                SetAsMostRecentMruL( aMruList,
-                                     position,
-                                     *aNewRecentlyUsedOnes[newIndexer] );
-                }
-            }        
-        
-        ++newIndexer;
-        }
-    }
-
-// -----------------------------------------------------------------------------
-// CFSMailBox::FindAddressFromMruList
-// -----------------------------------------------------------------------------
-TInt CFSMailBox::FindAddressFromMruList( CDesCArraySeg& aMruList,
-                                         TDesC& searchedAddress,
-                                         TInt& aPos ) const
-    {
-    NM_FUNCTION;
-    
-    // CDesCArray::Find() is not used here because there is
-    // possibility that we have to go through the whole array
-    // and return the index for one specific match. Find() returns
-    // only the index of the first match and searching for the rest
-    // using Find() would cause undesired complexity.
-    
-    
-    const TInt KMruListCount( aMruList.Count() );
-    // Start indexing from 1 because the first
-    // address is on that index if it exists.
-    TInt mruListIndexer( 1 );
-    while( mruListIndexer < KMruListCount )
-        {
-        TPtrC address( aMruList[mruListIndexer] );
-        if ( address == searchedAddress )
-            {
-            aPos = mruListIndexer;
-            return 0;
-            }
-        
-        // We are only interested of the addresses so let's
-        // check only every other descriptor.
-        // (the addresses)
-        mruListIndexer = mruListIndexer + 2;
-        }
-    
-    aPos = aMruList.Count();
-    return 1;
-    }
-
-
-
-
-// -----------------------------------------------------------------------------
-// CFSMailBox::AddAndRemoveExcessMruL
-// -----------------------------------------------------------------------------
-void CFSMailBox::AddAndRemoveExcessMruL( CDesCArraySeg& aMruList,
-                                         CFSMailAddress& aToBeAdded ) const
-    {
-    NM_FUNCTION;
-    
-    if ( aMruList.Count() == KMaxMruEntries )
-        {
-        // Remove the oldest entry pair from the beginning
-        aMruList.Delete( 0, 2 );
-        }
-    // Latest address is always found from the end.
-    AppendMruItemL( aMruList, aToBeAdded );
-    }
-
-// -----------------------------------------------------------------------------
-// CFSMailBox::SetAsMostRecentMruL
-// -----------------------------------------------------------------------------
-void CFSMailBox::SetAsMostRecentMruL( CDesCArraySeg& aMruList,
-                                      TInt aPosition,
-                                      CFSMailAddress& aMostRecent ) const
-    {
-    NM_FUNCTION;
-    
-    // Position of the address is given so the possible display name is
-    // in the previous slot. Delete both.
-    aMruList.Delete( aPosition - 1, 2 );
-    // Latest address is always found from the end.
-    AppendMruItemL( aMruList, aMostRecent );
-    }
-
-// -----------------------------------------------------------------------------
-// CFSMailBox::AppendMruItemL
-// -----------------------------------------------------------------------------
-void CFSMailBox::AppendMruItemL( CDesCArraySeg& aMruList,
-                                 CFSMailAddress& aToBeAppended ) const
-    {
-    NM_FUNCTION;
-    
-    // In the array, display name is always the first and then comes
-    // the actual address.
-    
-    // <cmail> avoid setting email address as display name so it won't 
-    // be displayed twice in the list
-    TDesC* displayName  = &aToBeAppended.GetDisplayName();    
-    TDesC* emailAddress = &aToBeAppended.GetEmailAddress();
-
-    if( displayName->Length() > 0 && displayName->Compare(*emailAddress) == 0 )
-    {
-        aMruList.AppendL( KNullDesC );
-    }
-    else
-    {
-        aMruList.AppendL( *displayName );                
-    }
-    
-    aMruList.AppendL( *emailAddress );    
-    }
 
 // -----------------------------------------------------------------------------
 // CFSMailBox::ReleaseExtension
@@ -1085,7 +737,7 @@ EXPORT_C CEmailExtension* CFSMailBox::ExtensionL( const TUid& aInterfaceUid )
     if ( aInterfaceUid == KMailboxExtMrCalInfo )
         {
 // </qmail>        
-        if ( extension == NULL )
+        if ( !extension )
             {
             extension = new ( ELeave ) CMRCalendarInfoImpl();
             CleanupStack::PushL( extension );

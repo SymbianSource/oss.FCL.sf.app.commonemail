@@ -593,6 +593,27 @@ EXPORT_C void CFSMailClient::PrepareMrDescriptionL(  const TFSMailMsgId& aMailBo
         }  
     }
 
+// <qmail>
+// -----------------------------------------------------------------------------
+// CFSMailClient::GetSignatureL
+// -----------------------------------------------------------------------------
+EXPORT_C HBufC* CFSMailClient::GetSignatureL( const TFSMailMsgId& aMailBoxId )
+    {
+    NM_FUNCTION;
+    HBufC* ret = NULL;
+    
+    // select plugin
+    CFSMailPlugin* plugin =
+        iFWImplementation->GetPluginManager().GetPluginByUid( aMailBoxId );
+    if ( plugin )
+        {
+        ret = plugin->GetSignatureL( aMailBoxId );
+        }
+
+    return ret;
+    }
+// </qmail>
+
 // -----------------------------------------------------------------------------
 // CFSMailClient::Close
 // -----------------------------------------------------------------------------

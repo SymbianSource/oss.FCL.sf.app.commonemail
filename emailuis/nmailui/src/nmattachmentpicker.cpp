@@ -71,6 +71,7 @@ void NmAttachmentPicker::fetchAudio()
 void NmAttachmentPicker::fetchVideo()
 {
     NM_FUNCTION;
+
     fetch(XQI_VIDEO_FETCH, XQOP_VIDEO_FETCH);
 }
 
@@ -94,6 +95,7 @@ void NmAttachmentPicker::fetchOther()
 void NmAttachmentPicker::fetchCameraStill()
 {
     NM_FUNCTION;
+
     fetchFromCamera(NmAttachmentPickerStillMode);
 }
 
@@ -103,6 +105,7 @@ void NmAttachmentPicker::fetchCameraStill()
 void NmAttachmentPicker::fetchCameraVideo()
 {
     NM_FUNCTION;
+
     fetchFromCamera(NmAttachmentPickerVideoMode);
 }
 
@@ -153,6 +156,13 @@ void NmAttachmentPicker::fetch(const QString &interface,
         if (args) {
             mRequest->setArguments(*args);
         }
+        // Set the title for the picker window
+        // Title setting disabled
+        //QVariant title(mTitle);
+        //XQRequestInfo info;
+        //info.setInfo(XQINFO_KEY_WINDOW_TITLE, title);
+        //mRequest->setInfo(info);
+
         connect(mRequest, SIGNAL(requestOk(const QVariant&)),
                 this, SIGNAL(attachmentsFetchOk(const QVariant&)));
 
@@ -168,7 +178,9 @@ void NmAttachmentPicker::fetch(const QString &interface,
 */
 void NmAttachmentPicker::selectFetcher(HbListWidgetItem *listItem)
 {
-	QString itemText = listItem->text();
+    NM_FUNCTION;
+
+    QString itemText = listItem->text();
     if (itemText == hbTrId("txt_mail_list_photo")) {
         fetchImage();
     }
@@ -184,4 +196,17 @@ void NmAttachmentPicker::selectFetcher(HbListWidgetItem *listItem)
     else if (itemText == hbTrId("txt_mail_list_new_photo")) {
         fetchCameraStill();
 	}
+    else if (itemText == hbTrId("txt_mail_list_new_video")) {
+        fetchCameraVideo();
+    }
+}
+
+/*!
+    Sets the title used in the picker views
+*/
+void NmAttachmentPicker::setTitle(const QString &title)
+{
+    NM_FUNCTION;
+    
+    mTitle = title;
 }

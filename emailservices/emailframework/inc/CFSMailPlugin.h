@@ -1211,6 +1211,15 @@ public: // Methods
                                         const TFSMailMsgId& /*aMessageId*/ )
                                         { return; };
 
+
+    /**
+     * Gets the signature for the given mailbox. Returns NULL if there is no signature defined for
+     * the given mailbox.
+     *
+     * @param aMailboxId mailbox id
+     */     
+    virtual HBufC* GetSignatureL( const TFSMailMsgId& aMailBoxId );
+    
 protected:
 
     /**

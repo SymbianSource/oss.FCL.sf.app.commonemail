@@ -144,14 +144,6 @@ NONSHARABLE_CLASS ( CFSMailMessage ) : public CFSMailMessagePart
                     EDataSourceMessageStore);
 // </qmail>
 
-    /**
-     * Returns ETrue if this part is actually a message.
-     * In that case it shoud safe to cast this part to CFSMailMessage
-     * 
-     * @return true if this message part is a message
-     */        
-     IMPORT_C TBool IsMessageL() const;
-
      /**
      * Returns a flat list of message parts that can be handled as attachments.
      * Excludes message parts that are multipart and parts that are considered

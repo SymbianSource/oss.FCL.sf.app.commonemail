@@ -68,20 +68,6 @@ NONSHARABLE_CLASS ( CFSMailMessageBase ) : public CExtendableEmail
      */
      IMPORT_C TFSMailMsgId GetMessageId() const;
      
-    /**
-     * if email is related to another email, for example due reply / forward,
-     * related email id is returned
-     *
-     * @return related email id
-     */
-     IMPORT_C TFSMailMsgId IsRelatedTo() const;
-
-    /**
-     * set email related to another email, for example due reply / forward
-     *
-     * @param aMessageId related email id
-     */
-     IMPORT_C void SetRelatedTo( const TFSMailMsgId aMessageId );
 
     /**
      * email parent folder id accessor
@@ -327,12 +313,6 @@ protected:	// data
 //</qmail>
 
  private: // data
-
-    /**
-     * id of another email or part this object is related to
-     * due some reason, like in reply or forward email use cases
-     */
-     TFSMailMsgId    iRelatedTo;
 
     /**
      * email mailbox id

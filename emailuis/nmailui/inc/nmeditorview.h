@@ -81,6 +81,7 @@ public slots:
     void invalidAddressQuery(HbAction* action);
     void okToExitQuery(HbAction* action);
     void sendProgressDialogCancelled();
+    void safeToDraft();
     
 protected:
     void resizeEvent(QGraphicsSceneResizeEvent *event);
@@ -146,9 +147,8 @@ private: // Data
     NmAttachmentPicker* mAttachmentPicker; // Owned    
     bool mCcBccFieldVisible;
     QPointer<HbProgressDialog> mServiceSendingDialog; // Owned.
-    bool mIsNotFetchedBefore;
-	HbListWidget *mTBExtnContentWidget;		// Owned
-	QString mHiddenPriorityName;
+    HbListWidget *mTBExtnContentWidget;		// Owned
+    QString mHiddenPriorityName;
 };
 
 

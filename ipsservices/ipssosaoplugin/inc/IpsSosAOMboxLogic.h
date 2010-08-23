@@ -46,8 +46,8 @@ class CIpsSosAOImapPopLogic;
 NONSHARABLE_CLASS (CIpsSosAOMBoxLogic) : 
 //</Qmail>
     public CBase, 
-                           public MIpsSosAOPluginTimerCallBack,
-                           public MIpsSosAOAgentOperationResponse
+    public MIpsSosAOPluginTimerCallBack,
+    public MIpsSosAOAgentOperationResponse
     {
 
 public:

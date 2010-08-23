@@ -69,14 +69,13 @@ void NmMailboxServiceInterface::displayInboxByMailboxId(QVariant data)
     // Make sure that app stays background if user presses back in message list view
     bool visible = mApplication->updateVisibilityState();
 
-    // Verify that the ID matches one of the existing mailboxes.
     if (mailboxExistsById(mailboxNmId)) {
-
-        // Get standard folder inbox id.
-        const NmId inboxId = mUiEngine.standardFolderId(mailboxNmId, NmFolderInbox);
-
+        // Fetch inbox id
+        NmId inboxId = mUiEngine.standardFolderId(mailboxNmId, NmFolderInbox);
         // Bring the application to the foreground.
-        XQServiceUtil::toBackground(false);
+        if (!XQServiceUtil::isEmbedded()) {
+            XQServiceUtil::toBackground(false);
+        }
         if (mApplication) {
             HbMainWindow *mainWindow = mApplication->mainWindow();
             mainWindow->show();
@@ -93,11 +92,11 @@ void NmMailboxServiceInterface::displayInboxByMailboxId(QVariant data)
                                    true); // start as service
             mApplication->enterNmUiView(startParam);
         }
-       
+
         completeRequest(mAsyncReqId, 0);
     }
     else {
-        // No mailbox found with the given ID.
+        // No mailbox found with the given ID or Inbox ID is not known
 
         // if started as embedded, do not hide the app
 		if (!XQServiceUtil::isEmbedded() && !visible) {
@@ -138,7 +137,7 @@ bool NmMailboxServiceInterface::mailboxExistsById(const NmId &mailboxId) const
         mailbox = mailboxListModel.data(modelIndex);
         mailboxMetaData = mailbox.value<NmMailboxMetaData*>();
         if (mailboxMetaData) {
-            currentId = mailboxMetaData->id();        
+            currentId = mailboxMetaData->id();
         }
 
         if (currentId.id() == mailboxId.id()) {

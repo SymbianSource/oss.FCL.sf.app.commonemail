@@ -31,14 +31,14 @@
 #include "emailfolder.h"
 #include "emailmessage.h"
 #include "emailmessagesearch.h"
-#include "cfsmailclient.h"
+#include "CFSMailClient.h"
 #include "emailclientapiimpl.h"
-#include "cfsmailplugin.h"
-#include "cfsmailbox.h"
-#include "cfsmailfolder.h"
+#include "CFSMailPlugin.h"
+#include "CFSMailBox.h"
+#include "CFSMailFolder.h"
 #include "emailclientapi.hrh"
 
-#include <XQServiceRequest.h>
+#include <xqservicerequest.h>
 #include "email_services_api.h"
 
 // Constants

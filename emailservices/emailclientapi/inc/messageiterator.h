@@ -20,7 +20,7 @@
                                                                              
 #include <mmessageiterator.h>                                                                             
 #include "emailapidefs.h"
-#include "cfsmailcommon.h"
+#include "CFSMailCommon.h"
 
 using namespace EmailInterface;
 

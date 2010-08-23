@@ -379,10 +379,6 @@ NONSHARABLE_CLASS ( CFSMailBox ) : public CFSMailBoxBase
 						    const TFSMailSortCriteria& aSortCriteria,
 					 	    MFSMailBoxSearchObserver& aSearchObserver );
 
-	 IMPORT_C void SearchL( const RPointerArray<TDesC>& aSearchStrings,
-						    const TFSMailSortCriteria& aSortCriteria,
-					 	    MFSMailBoxSearchObserver& aSearchObserver,
-                            RArray<TFSMailMsgId> aFolderIds );
     /**
      * Cancels current search. Does nothing if there is not any search ongoing.
      * The search client will not be called back after this function is called.
@@ -411,19 +407,6 @@ NONSHARABLE_CLASS ( CFSMailBox ) : public CFSMailBoxBase
      */    
 	 IMPORT_C void AddObserver(const TFSMailMsgId aFolderId, MFSMailEventObserver& aObserver);
 
-    /** 
-     *  Get a list of most recently used addresses of this mailbox.
-     *  Each MRU entry consists of two descriptors placed sequentially
-     *  in the array. First one is the display name and the second
-     *  one is the actual email address. If for example some entry does
-     *  not contain a name at all then a KNullDesC is found in place of
-     *  the name.
-     *        
-     * @return Array of descriptors containing MRUs. Ownership
-     *         is transferred. Empty if no entries are found.
-     */
-     IMPORT_C MDesCArray* ListMrusL() const;
-
     /**
      * Returns the current synchronizing state of this mailbox.
      *
@@ -432,58 +415,12 @@ NONSHARABLE_CLASS ( CFSMailBox ) : public CFSMailBoxBase
      IMPORT_C TSSMailSyncState CurrentSyncState() const;
 
     /**
-     * mailbox capability check for user
-     *
-     * @param aCapa mailbox capability to be checked
-     */
-	 IMPORT_C TBool HasCapability(const TFSMailBoxCapabilities aCapability) const; 
-
-    /**
      * mailbox connection status accessor
      *
      * @return connection status, online / offline
      */
-	 IMPORT_C TFSMailBoxStatus GetMailBoxStatus( );
+	    IMPORT_C TFSMailBoxStatus GetMailBoxStatus( );
 
-    /**
-     * mailbox authentication data mutator
-     *
-     * @param aUsername account user name
-     * @param aPassword account password
-     */
-     IMPORT_C void SetCredentialsL( const TDesC& aUsername, const TDesC& aPassword );
-
-     /**
-      * removes downloaded attachments from local/terminal memory 
-      */
-     IMPORT_C void RemoveDownLoadedAttachmentsL();
-	 
-     /**
-      * reads connection id from plugin
-      *
-      * @param  aConnectionId reference to connection id
-      * @return KErrNone or error code
-      */
-     IMPORT_C TInt GetConnectionId( TUint32& aConnectionId );
-
-     /**
-      * checks from plugin if connection is allowed when roaming
-      *
-      * @param  aConnectionAllowed 
-      * @return KErrNone or error code
-      */
-     IMPORT_C TInt IsConnectionAllowedWhenRoaming( TBool& aConnectionAllowed) ;
-
-     /**
-      * creates email from RFC822 format data stream located
-      * in given attachment file
-      *
-      * @param  aFile access to file containing data stream contents
-      *         given by user
-      *
-      * return new email object, ownership is transferred to user
-      */
-      IMPORT_C CFSMailMessage* CreateMessageFromFileL( const RFile& aFile );
 
 public: // from  CExtendableEmail
 
@@ -512,102 +449,6 @@ private:
      */
   	 CFSMailBox();
 
-    /**
-     * Function used internally to inform that Mru list related to this
-     * mailbox should now be updated using the given recipient info. In
-     * other words this function makes sure that the given recipients are
-     * found from the mru list in which the mrus of this mailbox are stored.
-     * Mrus are stored in the plugin.
-     *
-     * @param aRecipients email recipients in TO-field
-     * @param aCCRecipients email recipients in CC-field
-     * @param aBCCRecipients email recipients in BCC-field
-     */
-    void UpdateMrusL(
-        const RPointerArray<CFSMailAddress>& aRecipients,
-        const RPointerArray<CFSMailAddress>& aCCRecipients,
-        const RPointerArray<CFSMailAddress>& aBCCRecipients ) const;
-    
-    /**
-     * Function used to copy array contents to another array.
-     *
-     * @param aArrayToBeCopied Array that should be copied. 
-     * @return Copy of the given array.
-     */
-    CDesCArraySeg* CopyArrayL( MDesCArray& aArrayToBeCopied ) const;
-
-
-    /**
-     * Function used to update given mru list with
-     * recently used address info. If this info is already found
-     * from the mru list then it is moved to the end of the mru list.
-     * This way the most recent ones are found from the end
-     * of the list.
-     *
-     * @param aMruList Mru list that should be updated.
-     * @param aNewRecentlyUsedOnes Addresses that should be used
-     *                             to update the given mru list.
-     */
-    void UpdateMruListL(
-        CDesCArraySeg& aMruList,
-        const RPointerArray<CFSMailAddress>& aNewRecentlyUsedOnes ) const;
-
-
-    /**
-     * Function used to search an address from given mru list.
-     * Fucntion goes through the addresses in the mru list
-     * and returns the first one matching the given address.
-     *
-     * @param aMruList Mru list that is searched through.
-     * @param searchedAddress Address that is searched from the
-     *                        given mru list.
-     * @param aPos Reference parameter used to return the position
-     *             of a matching address if such was found.
-     * @return Integer value to indicate whether the searched address
-     *         was found or not. Zero is returned if the address was found.
-     *         Otherwise 1 is returned.
-     */
-    TInt FindAddressFromMruList( CDesCArraySeg& aMruList,
-                             TDesC& searchedAddress,
-                             TInt& aPos ) const;
-
-    /**
-     * Removes the oldest entry from the mru list and adds
-     * given address info to the mru list. 
-     *
-     * @param aMruList Mru list.
-     * @param aToBeAdded Address info to be added into the mru list.
-     */
-    void AddAndRemoveExcessMruL( CDesCArraySeg& aMruList,
-                                 CFSMailAddress& aToBeAdded ) const;
-
-    /**
-     * Function to append mru entry to the mru list. This implementation
-     * adds display name and then the address in this order into the
-     * mru list.
-     *
-     * @param aMruList Mru list.
-     * @param aToBeAdded Address info to be added into the mru list.
-     */
-    void AppendMruItemL( CDesCArraySeg& aMruList,
-                         CFSMailAddress& aToBeAppended ) const;
-
-    /**
-     * Function to set the already existing entry in the mru list
-     * as the most recent one.
-     *
-     * @param aMruList Mru list that should be edited.
-     * @param aPosition Position where from the address element of
-     *                  the most recent address is found. The display
-     *                  name of the address is found with index one less
-     *                  from the mru list.
-     * @param aMostRecent After removal of the mru entry with given index,
-     *                    this entry is added into the mru list as the
-     *                    most recently used one.
-     */
-    void SetAsMostRecentMruL( CDesCArraySeg& aMruList,
-                              TInt aPosition,
-                              CFSMailAddress& aMostRecent ) const;
 
  private: // data
  

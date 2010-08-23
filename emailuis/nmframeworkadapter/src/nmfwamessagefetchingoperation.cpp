@@ -47,15 +47,15 @@ void NmFwaMessageFetchingOperation::doRunAsyncOperation()
     const TFSMailMsgId folderId(mFolderId.pluginId32(), mFolderId.id32());
     const TFSMailMsgId messageId(mMessageId.pluginId32(), mMessageId.id32());
 
-    CFSMailFolder *folder( NULL );
+    CFSMailFolder *folder(NULL);
     TRAP_IGNORE(folder = mMailClient.GetFolderByUidL(mailboxId, folderId));
    
     if (folder) {
         RArray<TFSMailMsgId> messageIds; // Cleanupstack not needed
-        messageIds.Append( messageId );
-        TRAPD(err, mRequestId = folder->FetchMessagesL( messageIds, EFSMsgDataStructure, *this ));
+        messageIds.Append(messageId);
+        TRAPD(err, mRequestId = folder->FetchMessagesL(messageIds, EFSMsgDataStructure, *this));
         messageIds.Close();
-        if (err != KErrNone) {
+        if (KErrNone != err) {
             completeOperation(NmGeneralError);
         }
         delete folder;
@@ -100,10 +100,9 @@ void NmFwaMessageFetchingOperation::RequestResponseL(TFSProgress aEvent, TInt aR
     NM_FUNCTION;
     
     if (aRequestId == mRequestId) {
-        if (aEvent.iProgressStatus == TFSProgress::EFSStatus_RequestComplete ) {
+        if (aEvent.iProgressStatus == TFSProgress::EFSStatus_RequestComplete) {
             completeOperation(NmNoError);
-        }
-        else if (aEvent.iProgressStatus == TFSProgress::EFSStatus_RequestCancelled) {
+        } else if (aEvent.iProgressStatus == TFSProgress::EFSStatus_RequestCancelled) {
             completeOperation(NmCancelError); 
         }
     }

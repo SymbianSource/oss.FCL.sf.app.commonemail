@@ -238,7 +238,8 @@ void NmMessageSearchListView::loadViewLayout()
             mMessageListWidget->setScrollDirections(Qt::Vertical);
             mMessageListWidget->setClampingStyle(HbScrollArea::BounceBackClamping);
             mMessageListWidget->setFrictionEnabled(true);
-
+            mMessageListWidget->setItemPixmapCacheEnabled(true);
+            
             // We want the search results to appear one by one.
             mMessageListWidget->setEnabledAnimations(HbAbstractItemView::Appear &
                                                      HbAbstractItemView::Expand);
@@ -349,7 +350,7 @@ void NmMessageSearchListView::updateSearchResultCountInfo()
     if (resultCount) {
         if (mInfoLabel) {
             // Display the result count on the info label.
-            QString resultsString(hbTrId("txt_mail_list_search_results").arg(resultCount));
+            QString resultsString(hbTrId("txt_mail_list_search_results",resultCount));
             mInfoLabel->setHeading(resultsString);
 
             if (!mInfoLabel->isVisible()) {

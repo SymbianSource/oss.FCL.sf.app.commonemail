@@ -160,4 +160,7 @@ EXPORTS
 	_ZThn8_N22NmAttachmentListWidget5paintEP8QPainterPK24QStyleOptionGraphicsItemP7QWidget @ 159 NONAME
 	_ZThn8_N22NmAttachmentListWidgetD0Ev @ 160 NONAME
 	_ZThn8_N22NmAttachmentListWidgetD1Ev @ 161 NONAME
+	_ZN20NmAttachmentListItem10setPressedEb @ 162 NONAME
+	_ZN22NmAttachmentListWidget10checkColorEv @ 163 NONAME
+	_ZN22NmAttachmentListWidget11changeEventEP6QEvent @ 164 NONAME
 

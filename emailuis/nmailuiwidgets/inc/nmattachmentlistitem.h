@@ -25,6 +25,7 @@
 class HbProgressBar;
 class HbTextItem;
 class HbTapGesture;
+class HbFrameItem;
 
 class NMAILUIWIDGETS_EXPORT NmAttachmentListItem : public HbWidget
 {
@@ -39,9 +40,10 @@ public:
     void setProgressBarValue(const int value);
     int progressBarValue() const;
     void hideProgressBar();
+    void setPressed(bool pressed);
 
 protected: 
-    virtual void gestureEvent(QGestureEvent *event);
+   virtual void gestureEvent(QGestureEvent *event);
     
 private slots:
     void removeProgressBar();
@@ -60,6 +62,7 @@ private:
     HbTextItem *mFileSizeText; //owned
     HbProgressBar *mProgressBar; //owned
     QColor mTextColor;
+    HbFrameItem *mBackGround; //not owned
 };
 
 #endif /* NMATTACHMENTLISTITEM_H_ */

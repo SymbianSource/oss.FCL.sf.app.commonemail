@@ -24,6 +24,8 @@
 #include <hbevent.h>
 #include <hbframedrawer.h>
 #include <hbframeitem.h>
+#include <hbtapgesture.h>
+#include <hbinstantfeedback.h>
 #include "nmicons.h"
 #include "nmhswidgettitlerow.h"
 #include "nmhswidgetconsts.h"
@@ -31,6 +33,7 @@
 
 NmHsWidgetTitleRow::NmHsWidgetTitleRow(QGraphicsItem *parent, Qt::WindowFlags flags) :
     HbWidget(parent, flags), 
+    mContainer(0),
     mMailboxIcon(0), 
     mMailboxInfo(0), 
     mUnreadCountLabel(0),
@@ -40,6 +43,7 @@ NmHsWidgetTitleRow::NmHsWidgetTitleRow(QGraphicsItem *parent, Qt::WindowFlags fl
     mBackgroundLayoutItem(0)
 {
     NM_FUNCTION;
+    grabGesture(Qt::TapGesture);
 }
 
 /*!
@@ -64,12 +68,26 @@ QPainterPath NmHsWidgetTitleRow::shape() const
     
     QPainterPath path;
     path.setFillRule(Qt::WindingFill);
-    
-    path.addRect(this->geometry());
+    if (mContainer){
+        path.addRect(mContainer->geometry());
+    }
     if (mMailboxIcon){
         path.addRect(mMailboxIcon->geometry());
     }    
     return path.simplified();
+}
+
+/*!
+ \fn qreal NmHsWidgetTitleRow::containerHeight()
+
+ /return qreal defining title row container height in pixels
+ */
+qreal NmHsWidgetTitleRow::containerHeight()
+{
+    if (mContainer){
+        return mContainer->preferredHeight();
+    }
+    return 0;
 }
 
 /*
@@ -95,21 +113,12 @@ bool NmHsWidgetTitleRow::loadDocML(HbDocumentLoader &loader)
 {
     NM_FUNCTION;
     QT_TRY{
-        //Create layout
-        QGraphicsLinearLayout *layout = new QGraphicsLinearLayout(Qt::Vertical);
-    
-        layout->setContentsMargins(KNmHsWidgetContentsMargin, KNmHsWidgetContentsMargin,
-            KNmHsWidgetContentsMargin, KNmHsWidgetContentsMargin);
-        layout->setSpacing(KNmHsWidgetContentsMargin);
-        setLayout(layout); //pass the ownership
-    
         // find container widget
-        QGraphicsWidget *container = loader.findWidget(KNmHsWidgetTitleRowContainer);
-        if (!container) {
+        mContainer = static_cast<HbWidget*> (loader.findWidget(KNmHsWidgetTitleRowContainer));
+        if (!mContainer) {
             NM_ERROR(1,"NmHsWidgetTitleRow::loadDocML Fail @ container");
             return false;
         }
-        layout->addItem(container);
     
         //child items possible to update
         mMailboxIcon = static_cast<HbLabel*> (loader.findWidget(KNmHsWidgetTitleRowMailboxIcon));
@@ -147,12 +156,15 @@ bool NmHsWidgetTitleRow::setupGraphics()
         //pressed background
         backgroundFrameDrawer = new HbFrameDrawer("qtg_fr_hsitems_pressed", HbFrameDrawer::NinePieces);
         mBackgroundLayoutItem = new HbFrameItem( backgroundFrameDrawer );
-        setBackgroundItem( mBackgroundLayoutItem );
+        mContainer->setBackgroundItem( mBackgroundLayoutItem );
 		mBackgroundLayoutItem->hide();
         
         //set fonts color
 		setHighlighedFontsColor(false);
-
+		
+		//to get gestures
+		setGeometry(mContainer->childrenBoundingRect());
+		
         return true;
     }
     QT_CATCH(...){
@@ -165,7 +177,6 @@ bool NmHsWidgetTitleRow::setupGraphics()
     }
     
 }
-
 
 /*!
  Slot for updating account name, calls updateData to update ui.
@@ -270,37 +281,46 @@ void NmHsWidgetTitleRow::showHighlight( bool show )
     }
     }
 
-/*!
- mousePressEvent(QGraphicsSceneMouseEvent *event)
+/*
+ * NmHsWidgetTitleRow::gestureEvent(QGestureEvent *event)
  */
-void NmHsWidgetTitleRow::mousePressEvent(QGraphicsSceneMouseEvent *event)
+void NmHsWidgetTitleRow::gestureEvent(QGestureEvent *event)
 {
     NM_FUNCTION;
-	
-	//to avoid opening email account mistakenly  when tabbing expand/collapse button
-	//we dont handle events that are on the top, down or right side of the button
-    if(event->pos().x() < mUnreadCountLabel->geometry().right())
-        {
-        setHighlighedFontsColor(true);
-        showHighlight(true);
+    
+    if(!event){
+        return;
+    }    
+    HbTapGesture *gesture = qobject_cast<HbTapGesture *>(event->gesture(Qt::TapGesture));
+    if(!gesture){
+        return;
+    }
+    //to avoid opening email account mistakenly  when tabbing expand/collapse button
+    //we dont handle events that are on the top, down or right side of the button
+    QPointF posFromScene = mapFromScene(event->mapToGraphicsScene(gesture->position()));
+    if(posFromScene.x() < mUnreadCountLabel->geometry().right())
+        {    
+        switch (gesture->state()) {
+            case Qt::GestureStarted:
+                setHighlighedFontsColor(true);
+                showHighlight(true);
+            break;
+            case Qt::GestureCanceled:
+                setHighlighedFontsColor(false);
+                showHighlight(false);
+            break;
+            case Qt::GestureFinished:
+                setHighlighedFontsColor(false);
+                showHighlight(false);
+                if (gesture->tapStyleHint() == HbTapGesture::Tap) {
+                    HbInstantFeedback::play(HbFeedback::BasicItem);
+                    emit mailboxLaunchTriggered();
+                }
+            break;
+        default: 
+            break;
         }
-}
-
-/*!
-    mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
-*/
-void NmHsWidgetTitleRow::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
-{
-    NM_FUNCTION;
-	
-	//to avoid opening email account mistakenly when tabbing expand/collapse button
-	//we dont handle events that are on the top, down or right side of the button
-    if(event->pos().x() < mUnreadCountLabel->geometry().right())
-        {
-        setHighlighedFontsColor(false);
-        showHighlight(false);
-        emit mailboxLaunchTriggered();
-        }
+    }
 }
 
 /*

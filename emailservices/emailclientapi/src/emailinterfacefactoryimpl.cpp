@@ -20,7 +20,7 @@
 
 #include "emailinterfacefactoryimpl.h"
 #include "emailcontent.h"
-#include "cfsmailclient.h"
+#include "CFSMailClient.h"
 #include "emailclientapiimpldefs.h"
 #include "emailclientapiimpl.h"
 #include "emailaddress.h"

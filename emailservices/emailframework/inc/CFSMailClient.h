@@ -409,6 +409,15 @@ NONSHARABLE_CLASS(CFSMailClient) : public CExtendableEmail
       */     
      IMPORT_C virtual void PrepareMrDescriptionL( const TFSMailMsgId& aMailBoxId,
                                                   const TFSMailMsgId& aMessageId );
+// <qmail>
+     /**
+      * Gets the signature for the given mailbox.
+      * 
+      * @param aMailBoxId mailbox id
+      */
+     IMPORT_C HBufC* GetSignatureL( const TFSMailMsgId& aMailBoxId );
+// </qmail>
+ 
 public: // from  CExtendableEmail
 
     /**

@@ -83,19 +83,23 @@ protected:
     void createMailRowsList();
     
 private:
-    NmHsWidgetEmailEngine* mEngine;
-    NmHsWidgetTitleRow* mTitleRow;          
+    //UI components
+    HbWidget* mMainContainer;               //container including all UI components
+    HbWidget* mEmptySpaceContainer;         //container for empty space above mWidgetContainer
+    HbWidget* mWidgetContainer;             //container including title row and mContentContainer
+    NmHsWidgetTitleRow* mTitleRow;          //mailbox icon, name, unread count and expand button 
+    HbWidget* mContentContainer;            //container for mail rows or mNoMailsLabel
     QList<NmHsWidgetEmailRow*> mMailRows;   //list including mail row instances
+    HbLabel* mNoMailsLabel;                 //label shown in mContentContainer when no mails in inbox
+    QGraphicsLinearLayout* mContentLayout;  //layout used in mContentContainer    
+    HbFrameDrawer* mBackgroundFrameDrawer;  //drawer for widget background shown in mWidgetContainer
+    QTranslator* mTranslator;
+    
+    NmHsWidgetEmailEngine* mEngine;
     NmId mAccountId;                        //mail account id widget is monitoring
     QString mAccountIconName;               //name of mailbox icon shown in titlerow
-    QTranslator* mTranslator;
-    HbFrameDrawer* mBackgroundFrameDrawer;  //drawer for widget backgound
-    bool mIsExpanded;                       //true when widget expanded, false when collapsed
-    NmHsWidgetDateTimeObserver* mDateObserver;  //observer for time/locale changes
-    HbLabel* mNoMailsLabel;                 //label shown in widget when no mails in inbox
-    HbWidget* mWidgetContainer;             //container including title row and content container
-    HbWidget* mContentContainer;            //container including mail rows and mNoMailsLabel
-    QGraphicsLinearLayout* mContentLayout;  //layout for mail rows
+    NmHsWidgetDateTimeObserver* mDateObserver;  //observer for time/locale changes    
+    bool mIsExpanded;                       //true when widget expanded, false when collapsed  
     
 public:    
     friend class TestNmHsWidget;     

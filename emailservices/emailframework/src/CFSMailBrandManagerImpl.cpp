@@ -21,7 +21,7 @@
 #include <nmcommonheaders.h>
 //</qmail>
 
-#include <FSMAILBRANDMANAGER.rsg>
+#include <fsmailbrandmanager.rsg>
 #include <barsread.h>
 #include <bautils.h>
 #include <mmf/common/mmfcontrollerpluginresolver.h> // CleanupResetAndDestroy

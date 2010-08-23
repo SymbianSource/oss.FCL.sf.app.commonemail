@@ -80,17 +80,7 @@ void NmFwaDeleteMailboxOperation::doCompleteOperation()
     
     mRequestId = NmNotFoundError;
 }
-
-/*!
-    
- */
-void NmFwaDeleteMailboxOperation::doCancelOperation()
-{
-    NM_FUNCTION;
-
-    // delete mailbox operation is not cancellable
-}
-    
+   
 /*!
     Asynchronous request response message.
     

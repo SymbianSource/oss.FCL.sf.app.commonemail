@@ -18,7 +18,7 @@
 
 
 
-#include "basemrinfoobject.h"
+#include "BaseMrInfoObject.h"
 #include "BasePlugin.h"
 
 

@@ -12,7 +12,7 @@
 * Contributors:
 *
 * Description: 
-*     Contains mailbox specified always online logic
+*     
 *
 */
 

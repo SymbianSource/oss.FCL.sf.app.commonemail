@@ -26,6 +26,7 @@
 #include <HbDataFormModel>
 #include <HbDataFormModelItem>
 #include <HbLineEdit>
+#include <HbAction>
 
 #include <cpsettingformitemdata.h>
 
@@ -60,7 +61,8 @@ const int NmIpsSettingsReceptionUserDefinedProfileEnabled(1);
 NmIpsSettingsPlugin::NmIpsSettingsPlugin()
 : mSettingsHelper(0),
   mSettingsManager(0),
-  mHiddenItem(false)
+  mHiddenItem(false),
+  mCurrentInboxIndex(-1)
 {
     QString lang = QLocale::system().name();
     QString path = "Z:/resource/qt/translations/";
@@ -336,10 +338,11 @@ void NmIpsSettingsPlugin::initReceivingScheduleItems(HbDataFormModelItem &item)
     // Active sync profile connection
     mForm->addConnection(infoItem, SIGNAL(currentIndexChanged(int)),
         mSettingsHelper, SLOT(receivingScheduleChange(int)));
-
-    mForm->addConnection(showMailInInboxItem, SIGNAL(valueChanged(QPersistentModelIndex, QVariant)),
-        this, SLOT(showMailInInboxModified(QPersistentModelIndex, QVariant)));
-
+    mForm->addConnection(showMailInInboxItem, SIGNAL(finished(HbAction *)),
+           this, SLOT(showMailInInboxModified(HbAction *)));
+    mForm->addConnection(showMailInInboxItem, SIGNAL(itemSelected(int)),
+           this, SLOT(inboxSelectionModified(int)));
+    
     // Must be called manually here, because the signal->slot connection set above using
     // HbDataForm::addConnection() is actually established AFTER the properties have first been
     // set to the widget, causing the first currentIndexChanged signal not to reach
@@ -634,25 +637,40 @@ void NmIpsSettingsPlugin::createUserDefinedMode()
 }
 
 /*!
-    Handles mail in inbox modifications.
+Handles mail in inbox modifications.
 
-    \param value Selected value as a text.
+\param action Action that determines whether user clicked OK or cancel.
 */
-void NmIpsSettingsPlugin::showMailInInboxModified(QPersistentModelIndex, QVariant value)
+void NmIpsSettingsPlugin::showMailInInboxModified(HbAction *action)
 {
-    QMap<QString, int> conversionTable;
-    conversionTable[HbStringUtil::convertDigits("50")] = 50;
-    conversionTable[HbStringUtil::convertDigits("100")] = 100;
-    conversionTable[HbStringUtil::convertDigits("500")] = 500;
-    conversionTable[hbTrId("txt_mailips_setlabel_val_all")] = 0;
-
-    int selectedValue(conversionTable.value(value.toString()));
-    QVariant previouslySelectedValue;
-    mSettingsManager->readSetting(IpsServices::ReceptionInboxSyncWindow, previouslySelectedValue);
-    if (previouslySelectedValue.toInt() != selectedValue) {
-        mSettingsHelper->handleReceivingScheduleSettingChange(
-            IpsServices::ReceptionInboxSyncWindow, selectedValue);
+    if ((action->text() == hbTrId("txt_common_button_ok"))
+            && (mCurrentInboxIndex >=0 && mCurrentInboxIndex <=3)) {
+        int conversionTable[] = { 50, 100, 500, 0 };
+        int selectedValue(conversionTable[mCurrentInboxIndex]);
+        
+        QVariant previouslySelectedValue;
+        mSettingsManager->readSetting(IpsServices::ReceptionInboxSyncWindow, previouslySelectedValue);
+        if (previouslySelectedValue.toInt() != selectedValue) {
+            mSettingsHelper->handleReceivingScheduleSettingChange(
+                IpsServices::ReceptionInboxSyncWindow, selectedValue);
+        }
     }
+    mCurrentInboxIndex = -1;
+}
+/*!
+Handles mail in inbox modifications.
+
+Index   Value
+0       50
+1       100
+2       500
+3       All
+
+\param index The index value of the selection.
+*/
+void NmIpsSettingsPlugin::inboxSelectionModified(int index)
+{
+    mCurrentInboxIndex = index;
 }
 
 Q_EXPORT_PLUGIN2(nmipssettings, NmIpsSettingsPlugin);

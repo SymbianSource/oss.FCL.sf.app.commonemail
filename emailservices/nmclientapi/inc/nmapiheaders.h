@@ -40,7 +40,7 @@
 #include <cemailaccounts.h>
 
 
-#include <SMTPSET.H>
+#include <smtpset.h>
 
 #include <xqconversions.h>
 

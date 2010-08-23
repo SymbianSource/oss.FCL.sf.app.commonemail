@@ -20,7 +20,6 @@
 
 //<QMail>
 const TInt KAOSecondsInMinute = 60;
-const TInt KAODefaultInboxSyncTimeSecs = 3600;
 //</QMail>
 const TInt KIpsSosAOMboxLogicMinGra = 1;
 
@@ -413,10 +412,7 @@ void CIpsSosAOMBoxLogic::HandleEventAndSwitchStateL(
                     INFO_1("CIpsSosAOMBoxLogic: timer scheduled: %d", KIpsSosAOContinueWaitTime);
                     iTimer->After( KIpsSosAOContinueWaitTime );
                     }
-                else
-                    {
-                    event = EEventNop;
-                    }
+                event = EEventNop;
                 // ignore if in other states
                 break;
             case EEventStopAndRemoveOps:
@@ -481,6 +477,7 @@ TInt CIpsSosAOMBoxLogic::HandleTimerFiredL()
         ( agentState == CIpsSosAOBaseAgent::EStateConnectAndSyncOnHold || 
           agentState == CIpsSosAOBaseAgent::EStatePopulateOnHold ) )
         {
+        iTimer->Cancel();
         iAgent->ContinueHoldOperations();
         NM_COMMENT("CIpsSosAOMBoxLogic: switching state: EStateSyncOngoing");
         iState = EStateSyncOngoing;
@@ -488,6 +485,7 @@ TInt CIpsSosAOMBoxLogic::HandleTimerFiredL()
     else if ( iState == EStateSuspended && 
             agentState == CIpsSosAOBaseAgent::EStateFetchOnHold )
         {
+        iTimer->Cancel();
         iAgent->ContinueHoldOperations();
         NM_COMMENT("CIpsSosAOMBoxLogic: switching state: EStateFetchOngoing");
         iState = EStateFetchOngoing;
@@ -623,15 +621,15 @@ void CIpsSosAOMBoxLogic::SuspendOperations()
         {
         iAgent->HoldOperations();
         }
-    NM_COMMENT("CIpsSosAOMBoxLogic: switching state: EStateSuspended");
-    iState = EStateSuspended;
     // set suspend watchdog, if clien not continue this
     // ensure ao logic to continue
-    if ( !iTimer->IsActive() )
+    if ( !iTimer->IsActive() || iState == EStateSyncOngoing || iState == EStateFetchOngoing)
         {
         INFO_1("CIpsSosAOMBoxLogic: timer scheduled: %d", KIpsSosAOSuspendWatchdogTime);
         iTimer->After( KIpsSosAOSuspendWatchdogTime );
         }
+    NM_COMMENT("CIpsSosAOMBoxLogic: switching state: EStateSuspended");
+    iState = EStateSuspended;
     }
 
 // ----------------------------------------------------------------------------

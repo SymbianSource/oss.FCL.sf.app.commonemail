@@ -19,15 +19,16 @@
 #define NMMAILAGENT_H
 
 #include <nmcommon.h>
+#include <nmuieventsnotifier.h>
 
 class CHWRMVibra;
 class NmMailbox;
 class NmDataPluginFactory;
 class NmDataPluginInterface;
 class HbIndicator;
-class XQSystemToneService;
 class XQSettingsManager;
 class XQSettingsKey;
+
 
 class NmMailboxInfo
 {
@@ -43,10 +44,10 @@ public:
     int mInboxCreatedMessages;
     int mInboxChangedMessages;
     int mInboxDeletedMessages;
-    QList<NmId> mUnreadMailIdList;
+    QList<NmId> mMailIdList; // all messages
+    QList<NmId> mNewUnreadMailIdList; // new unread messages
     int mOutboxMails;
     bool mActive;
-    bool mInboxActive;
 
     NmMailboxInfo();
 };
@@ -91,6 +92,10 @@ public slots:
 
     void delayedMailboxCreated(const NmId mailboxId);
     
+    void handleViewStateChangedEvent(const NmUiEventsNotifier::NmUiEventType eventType,
+                                     const NmUiViewId viewId,
+                                     const NmId mailboxId);
+
 private:
 
     void initMailboxStatus();
@@ -121,6 +126,8 @@ private:
 
     bool removeMailboxInfo(const NmId &id);
 
+    bool updateMailboxState(const NmId &mailboxId);
+    
     bool updateMailboxState(const NmId &mailboxId,
         bool active, bool refreshAlways);
 
@@ -133,34 +140,36 @@ private:
 
     void updateSendIndicator();
     
+    void resetMailboxState(NmMailboxInfo *info); 
+
     void storeMailboxActive(const NmId &mailboxId, bool active);
-    
+
     bool isMailboxActive(const NmId &mailboxId);
-    
+
     void deleteStoredMailboxActivity(const NmId &mailboxId);
 
     bool launchMailbox(quint64 mailboxId);
 
     void handleMessageCreatedEvent(const NmId &folderId, const QList<NmId> &messageIds,
-        const NmId &mailboxId, bool &updateNeeded, bool &activate);
+        const NmId &mailboxId);
 
     void handleMessageChangedEvent(const NmId &folderId, const QList<NmId> &messageIds,
-        const NmId &mailboxId, bool &updateNeeded, bool &activate);
+        const NmId &mailboxId);
 
     void handleMessageDeletedEvent(const NmId &folderId, const QList<NmId> &messageIds,
-        const NmId &mailboxId, bool &updateNeeded, bool &activate);
+        const NmId &mailboxId);
 
 private: // data
 
     HbIndicator *mIndicator; // Owned;
-    XQSystemToneService *mSystemTone; // Owned.
     NmDataPluginFactory *mPluginFactory; // Not owned (singleton).
     QList<NmMailboxInfo*> mMailboxes;
     CHWRMVibra *mVibra; // Owned.
+    XQSettingsManager *mSettingManager; // Owned.
+    NmUiEventsNotifier *mUiEventsNotifier; // Owned.
     bool mAlertToneAllowed;
     int mLastOutboxCount;
     bool mUnreadIndicatorActive;
-    XQSettingsManager *mSettingManager; // Owned.
     int mSilenceMode;
 };
 

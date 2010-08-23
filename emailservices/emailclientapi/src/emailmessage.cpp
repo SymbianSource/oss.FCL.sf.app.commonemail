@@ -33,10 +33,10 @@
 #include "emailtextcontent.h"
 #include "emailmultipart.h"
 #include "emailattachment.h"
-#include "cfsmailplugin.h"
-#include "cfsmailclient.h"
+#include "CFSMailPlugin.h"
+#include "CFSMailClient.h"
 
-#include <XQServiceRequest.h>
+#include <xqservicerequest.h>
 #include "email_services_api.h"
 
 const TInt KSendMessageRequestId = 100;

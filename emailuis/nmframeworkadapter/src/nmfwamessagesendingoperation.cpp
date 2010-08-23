@@ -214,11 +214,10 @@ int NmFwaMessageSendingOperation::sendMessageL()
         TFSMailMsgId mailboxId = NmConverter::nmIdToMailMsgId(mMessage->envelope().mailboxId());
         CFSMailBox *currentMailbox( NULL );
         currentMailbox = mMailClient.GetMailBoxByUidL(mailboxId);
-        CleanupStack::PushL(currentMailbox);
         if (!currentMailbox) {
             User::Leave( KErrNotFound );
         }
-    
+        CleanupStack::PushL(currentMailbox);
         CFSMailMessage *msg = CFSMailMessage::NewL(*mMessage); // no leave -> msg != NULL
         CleanupStack::PushL(msg);
         

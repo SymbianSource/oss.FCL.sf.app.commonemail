@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2008 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -42,10 +42,10 @@ EXPORT_C CFSMailMessage * CFSMailMessage::NewLC(TFSMailMsgId aMessageId)
 {
     NM_FUNCTION;
     
-  	CFSMailMessage* message = new (ELeave) CFSMailMessage();
-  	CleanupStack:: PushL(message);
-  	message->ConstructL( aMessageId );
-  	return message;
+    CFSMailMessage* message = new (ELeave) CFSMailMessage();
+    CleanupStack:: PushL(message);
+    message->ConstructL( aMessageId );
+    return message;
 } 
 
 // -----------------------------------------------------------------------------
@@ -55,9 +55,9 @@ EXPORT_C CFSMailMessage * CFSMailMessage::NewL(TFSMailMsgId aMessageId)
 {
     NM_FUNCTION;
     
-  	CFSMailMessage* message =  CFSMailMessage::NewLC(aMessageId);
-  	CleanupStack:: Pop(message);
-  	return message;
+    CFSMailMessage* message =  CFSMailMessage::NewLC(aMessageId);
+    CleanupStack:: Pop(message);
+    return message;
 }
 
 // <qmail>
@@ -144,20 +144,32 @@ EXPORT_C TInt CFSMailMessage::SaveMessageL( MFSMailRequestObserver& aOperationOb
 {
     NM_FUNCTION;
 
-    CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetMessageId());
-    TFSPendingRequest request = iRequestHandler->InitAsyncRequestL(
-            GetMessageId().PluginId(), aOperationObserver);
-    MFSMailRequestObserver* observer = request.iObserver;
-    if (plugin)
+    
+
+
+    TFSPendingRequest request;
+    request.iRequestId = 0;
+    if (CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetMessageId()))
         {
+        request = iRequestHandler->InitAsyncRequestL(GetMessageId().PluginId(), 
+                                                        aOperationObserver);
+        MFSMailRequestObserver* observer = request.iObserver;
         iMessageBufferForAsyncOp.Reset();
         iMessageBufferForAsyncOp.AppendL(this);
         // It saves only message header - notice that iMessageBufferForAsyncOp ownership is not transferred
         // to plugin - array contains 'self' pointer so it should not be destroy by plugin
-        plugin->StoreMessagesL(GetMailBoxId(), iMessageBufferForAsyncOp,
-                *observer, request.iRequestId);
+        TRAPD(err, plugin->StoreMessagesL(GetMailBoxId(), iMessageBufferForAsyncOp,
+                *observer, request.iRequestId));
+        if(err != KErrNone)
+            {
+            iRequestHandler->CompleteRequest(request.iRequestId);
+            User::Leave(err);
+            }
         }
-
+    else
+        {
+        User::Leave(KErrNotFound);
+        }
     return request.iRequestId;
 }
 //</qmail>
@@ -172,15 +184,7 @@ EXPORT_C TInt CFSMailMessage::SaveMessagePartsL( MFSMailRequestObserver& aOperat
 
     RPointerArray<CFSMailMessagePart> messageParts;
     CleanupResetAndDestroyPushL(messageParts);
-
-    CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetMessageId());
-    TFSPendingRequest request = iRequestHandler->InitAsyncRequestL(
-            GetMessageId().PluginId(), aOperationObserver);
-    MFSMailRequestObserver* observer = request.iObserver;
-
-    //Message part storer can be used to store attachements as well
-    //AttachmentListL(messageParts);
-
+    
     CFSMailMessagePart *plainTextPart = PlainTextBodyPartL(EDataSourceLocal);
     if (plainTextPart)
         {
@@ -191,12 +195,22 @@ EXPORT_C TInt CFSMailMessage::SaveMessagePartsL( MFSMailRequestObserver& aOperat
         {
         messageParts.AppendL(htmlPart);
         }
-
-    if (plugin)
+        
+    TFSPendingRequest request;
+    request.iRequestId = 0;
+    if (CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetMessageId()))
         {
+        request = iRequestHandler->InitAsyncRequestL(
+                         GetMessageId().PluginId(), aOperationObserver);
+        MFSMailRequestObserver* observer = request.iObserver;
         // Ownership of parts array is transferred to plugin - it will take care about reseting them
-        plugin->StoreMessagePartsL(messageParts, *observer,
-                request.iRequestId);
+        TRAPD(err, plugin->StoreMessagePartsL(messageParts, *observer,
+                request.iRequestId));
+        if(err != KErrNone)
+            {
+            iRequestHandler->CompleteRequest(request.iRequestId);
+            User::Leave(err);
+            }
         // message parts array removed from CleanupStack (not destroyed)
         CleanupStack::Pop(1, &messageParts);
         }
@@ -204,6 +218,7 @@ EXPORT_C TInt CFSMailMessage::SaveMessagePartsL( MFSMailRequestObserver& aOperat
         {
         // message parts array removed from CleanupStack and destroyed
         CleanupStack::PopAndDestroy(1, &messageParts);
+        User::Leave(KErrNotFound);
         }
 
     return request.iRequestId;
@@ -217,8 +232,7 @@ EXPORT_C CFSMailMessagePart* CFSMailMessage::AddNewAttachmentL( RFile& aFile,
                                                                 const TDesC8& aMimeType )
     {
     NM_FUNCTION;
-    
-    CFSMailMessagePart* newPart = NULL;
+    CFSMailMessagePart* newPart(NULL);
     if(CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetMessageId()))
         {
         TBuf<KMaxDataTypeLength> contentType;
@@ -237,11 +251,9 @@ EXPORT_C CFSMailMessagePart* CFSMailMessage::AddNewAttachmentL( RFile& aFile,
             apaSession.Close();
             contentType.Copy(dataType.iDataType.Des());
             }
-        
         // get file name
         TFileName fileName;
         aFile.FullName( fileName );
-
         // get new part from plugin
         newPart = plugin->NewChildPartFromFileL(    GetMailBoxId(),
                                                     GetFolderId(),
@@ -249,14 +261,17 @@ EXPORT_C CFSMailMessagePart* CFSMailMessage::AddNewAttachmentL( RFile& aFile,
                                                     GetPartId(),
                                                     contentType,
                                                     aFile );
-        // set attachment name
-        newPart->SetAttachmentNameL(fileName);
-
-        // store new message part
-        newPart->SaveL();
-        
-        // set flag
-        SetFlag(EFSMsgFlag_Attachments);
+        if (newPart)
+            {
+            CleanupStack::PushL(newPart);
+            // set attachment name
+            newPart->SetAttachmentNameL(fileName);
+            // store new message part
+            newPart->SaveL();
+            // set flag
+            SetFlag(EFSMsgFlag_Attachments);
+            CleanupStack::Pop(newPart);
+            }
         }
     return newPart;
     }
@@ -269,39 +284,39 @@ EXPORT_C CFSMailMessagePart* CFSMailMessage::AddNewAttachmentL(	const TDesC& aFi
     {
     NM_FUNCTION;
 
-	CFSMailMessagePart* newPart = NULL;
-	
-	if(CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetMessageId()))
-		{
-	    // use recognizer to find out ContentType 
-	    RApaLsSession apaSession;
-		TDataRecognitionResult dataType;
-		TBufC8<KMaxDataTypeLength> buf;
-	    User::LeaveIfError(apaSession.Connect());
-	    User::LeaveIfError(apaSession.RecognizeData(aFilePath, buf, dataType));
-	    apaSession.Close();
+    CFSMailMessagePart* newPart(NULL);
+  
+    if(CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetMessageId()))
+        {
+        // use recognizer to find out ContentType 
+        RApaLsSession apaSession;
+        TDataRecognitionResult dataType;
+        TBufC8<KMaxDataTypeLength> buf;
+        User::LeaveIfError(apaSession.Connect());
+        User::LeaveIfError(apaSession.RecognizeData(aFilePath, buf, dataType));
+        apaSession.Close();
 
-	    // Create new message part with correct Content-Type
-		TBuf<KMaxDataTypeLength> contentType;
-		contentType.Copy(dataType.iDataType.Des());
-	    newPart = plugin->NewChildPartFromFileL( 	GetMailBoxId(),
-	    											GetFolderId(),
-	    											GetMessageId(),
-	    											GetPartId(),
-	    											contentType,
-	    											aFilePath );
-
-		
-	    // Set attachment name
-	    newPart->SetAttachmentNameL(aFilePath);
-
-		// store message part
-		newPart->SaveL();
-
-		// set flag
-        SetFlag(EFSMsgFlag_Attachments);
-		}
-		
+        // Create new message part with correct Content-Type
+        TBuf<KMaxDataTypeLength> contentType;
+        contentType.Copy(dataType.iDataType.Des());
+        newPart = plugin->NewChildPartFromFileL(  GetMailBoxId(),
+                            GetFolderId(),
+                            GetMessageId(),
+                            GetPartId(),
+                            contentType,
+                            aFilePath );
+        if (newPart)
+            {
+            CleanupStack::PushL(newPart);
+            // set attachment name
+            newPart->SetAttachmentNameL(aFilePath);
+            // store new message part
+            newPart->SaveL();
+            // set flag
+            SetFlag(EFSMsgFlag_Attachments);
+            CleanupStack::Pop(newPart);
+            }
+        }
     return newPart;
 }
 
@@ -367,11 +382,11 @@ EXPORT_C TInt CFSMailMessage::AddNewAttachmentL( const TDesC& aFilePath,
 EXPORT_C void CFSMailMessage::AttachmentListL(
     RPointerArray<CFSMailMessagePart>& aParts )
     {
+    // First list all message parts
+    AppendAttachmentsL( aParts );
+    
     NM_FUNCTION;
     
-    // First list all message parts
-    AppendAttachmentsL( aParts ); 
-
     // special case, if single part content type is not given,
     // default type is text/plain
     if ( aParts.Count() == 1 && aParts[0]->GetContentType().Length() == 0)
@@ -435,13 +450,13 @@ EXPORT_C CFSMailMessagePart* CFSMailMessage::PlainTextBodyPartL(
     CFSMailMessagePart* part = FindBodyPartL(KFSMailContentTypeTextPlain, aDataSource);
     
     // special case, single part content type is not given
-    if(part == NULL && iMessageParts.Count() == 1 && iMessageParts[0]->GetContentType().Length() == 0)
-    	{
-    	part = iMessageParts[0];
-    	iMessageParts.Remove(0);
-    	}
+    if (!part && iMessageParts.Count() == 1 && iMessageParts[0]->GetContentType().Length() == 0)
+      {
+      part = iMessageParts[0];
+      iMessageParts.Remove(0);
+      }
     iMessageParts.ResetAndDestroy();
-	iReadMessageParts = ETrue;
+    iReadMessageParts = ETrue;
     return part;
 }
 // </qmail>
@@ -460,18 +475,6 @@ EXPORT_C CFSMailMessagePart* CFSMailMessage::HtmlBodyPartL(
 	iReadMessageParts = ETrue;
     return part;
 }
-// </qmail>
-
-// <qmail>
-// -----------------------------------------------------------------------------
-// CFSMailMessage::IsMessageL
-// -----------------------------------------------------------------------------
-EXPORT_C TBool CFSMailMessage::IsMessageL() const
-	{
-    NM_FUNCTION;
-    
-    return CFSMailMessagePart::IsMessageL();
-	}
 // </qmail>
 
 // -----------------------------------------------------------------------------

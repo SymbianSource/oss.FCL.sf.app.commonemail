@@ -44,8 +44,9 @@ public:
 
     virtual ~NmEditorContent();
 
-    void setMessageData(const NmMessage &originalMessage,
-                        NmUiEditorStartMode &editorStartMode);
+    void setBodyContent(NmUiEditorStartMode editorStartMode,
+                        const NmMessage *originalMessage,
+                        const QString *signature);
 
     NmEditorTextEdit* editor() const;
 
@@ -64,13 +65,10 @@ public slots:
     void setEditorContentHeight();
     void setEditorContentWidth();
     void ensureCursorVisibility();
-
-private:
-    enum MessageBodyType { NmPlainText, NmHTMLText };
+    void repositHeader(const QPointF &scrollPosition);
 
 private:
     NmEditorHeader *mHeader; // Not owned
-    MessageBodyType mMessageBodyType;
     NmEditorTextEdit *mEditorWidget; // Not owned
     NmBaseViewScrollArea *mScrollArea; // Not owned
     HbWidget *mScrollAreaContents; // Not owned

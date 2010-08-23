@@ -375,6 +375,10 @@ void NmSendServiceInterface::send(QVariant data)
                     new NmMailboxSelectionDialog(mUiEngine.mailboxListModel());
             }
 
+            if (!XQServiceUtil::isEmbedded()) {
+                XQServiceUtil::toBackground(false);
+            }
+            
             connect(mSelectionDialog, SIGNAL(selectionDialogClosed(NmId&)),
                     this, SLOT(selectionDialogClosed(NmId&)));
             mSelectionDialog->open();
@@ -400,6 +404,11 @@ void NmSendServiceInterface::launchEditorView(NmId mailboxId)
     }
 
     if (mStartParam) {
+        // Make sure the NMail application is in the foreground
+        if (!XQServiceUtil::isEmbedded()) {
+            XQServiceUtil::toBackground(false);    
+        }
+        
         mStartParam->setMailboxId(mailboxId);
         mApplication->enterNmUiView(mStartParam);
         mStartParam = NULL; // ownership passed

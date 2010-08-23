@@ -21,7 +21,7 @@
 #include <QObject>
 #include <nmapimessagemanager.h>
 #include <nmapifolder.h>
-#include <NmApiDataPluginFactory.h>
+#include <nmapidatapluginfactory.h>
 #include <nmcommon.h>
 #include <nmapifolder.h>
 #include <nmapiprivateclasses.h>

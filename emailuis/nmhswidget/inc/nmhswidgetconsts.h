@@ -33,7 +33,11 @@ const int KMaxUnreadCount = 999;
 /**  docml file including UI definitions */
 const QString KNmHsWidgetDocML = ":/docml/nmhswidget.docml";
 /** container widget including all UI components */
+const QString KNmHsWidgetMainContainer = "mainContainer";
+/** container widget including title row and content container */
 const QString KNmHsWidgetContainer = "nmhswidgetContainer";
+/** container widget including content (mail rows / no mails label */
+const QString KNmHsWidgetEmptySpaceContainer = "emptySpaceContainer";
 /** container widget including content (mail rows / no mails label */
 const QString KNmHsWidgetContentContainer = "mailRowContainer";
 /** no mails label - shown when inbox is empty */

@@ -942,17 +942,24 @@ TPtrC CIpsPlgMsgMapper::ConvertMultipartMimeType(
 // ---------------------------------------------------------------------------
 // <cmail>
 TInt CIpsPlgMsgMapper::ConvertBodyPartMimeType(
-    const TUid& aEntryType,
+    const TMsvEmailEntry& aEntry,
     TDes& aMimeType )
     {
     FUNC_LOG;
     TInt result( KErrNone );
 
-    switch ( aEntryType.iUid )
+    switch ( aEntry.iType.iUid )
     {
     case KUidMsvEmailTextEntryValue:
         {
+        if( aEntry.ICalendar() )
+            {
+            aMimeType.Append( KFSMailContentTypeTextCalendar );
+            }
+        else
+            {
             aMimeType.Append( KMimeTypeTextPlain );
+            }
         break;
         }
     case KUidMsvEmailHtmlEntryValue:
@@ -1164,11 +1171,11 @@ CFSMailMessagePart* CIpsPlgMsgMapper::ConvertBodyEntry2MessagePartL(
     FUNC_LOG;
     CFSMailMessagePart* result( NULL );
     TInt status;
-// <cmail>
     HBufC* buf = HBufC::NewLC( KMaxContentTypeLength );
     TPtr contentType = buf->Des();
 
-    status = ConvertBodyPartMimeType( aEntry.iType, contentType );
+    status = ConvertBodyPartMimeType( aEntry, contentType );
+    
     __ASSERT_DEBUG( ( status == KErrNone ),
         User::Panic( KIpsPlgPanicCategory, EIpsPlgInvalidEntry ) );
     if ( status == KErrNone )
@@ -1181,7 +1188,6 @@ CFSMailMessagePart* CIpsPlgMsgMapper::ConvertBodyEntry2MessagePartL(
             {
             GetCharsetParameterL( aEntry, contentType );
             }
-// </cmail>
         result->SetContentType( contentType );
         result->SetMailBoxId( aMailBoxId );
 

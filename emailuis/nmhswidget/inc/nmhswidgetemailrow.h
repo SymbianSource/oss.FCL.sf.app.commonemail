@@ -37,6 +37,7 @@ public:
     ~NmHsWidgetEmailRow();
     NmId messageId();
     bool setupUI();
+    void gestureEvent(QGestureEvent *event);
 
 public slots:
     void updateMailData( const NmMessageEnvelope& envelope );
@@ -55,15 +56,13 @@ private:
     void showHighlight( bool pressed );
     
 protected:
-    void mousePressEvent(QGraphicsSceneMouseEvent *event);
-    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
     bool event( QEvent *event );
     
 private:
     HbLabel *mSenderLabel;
     HbLabel *mSubjectLabel;
     HbLabel *mTimeLabel;
-    HbLabel *mNewMailIcon;
+    HbWidget *mNewMailIcon;
     HbLabel *mSeparatorIcon;
     NmId mMessageId;
     QDateTime mMessageSentTime;

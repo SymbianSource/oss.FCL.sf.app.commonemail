@@ -20,7 +20,7 @@
 
 #include <memailcontent.h>
 
-#include "cfsmailclient.h"
+#include "CFSMailClient.h"
 #include "emailapiutils.h"
 
 using namespace EmailInterface;

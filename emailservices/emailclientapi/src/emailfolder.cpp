@@ -20,8 +20,8 @@
 #include "emailapiutils.h"
 #include "messageiterator.h"
 #include "emailsorting.h"
-#include "cfsmailfolder.h"
-#include "cfsmailplugin.h"
+#include "CFSMailFolder.h"
+#include "CFSMailPlugin.h"
 #include "emailclientapi.hrh"
 #include "emailclientapiimpldefs.h"
 

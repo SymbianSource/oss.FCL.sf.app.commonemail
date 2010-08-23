@@ -34,9 +34,11 @@ public:
     NmHsWidgetTitleRow(QGraphicsItem *parent = 0, Qt::WindowFlags flags = 0);
     ~NmHsWidgetTitleRow();
     QPainterPath shape() const;
+    qreal containerHeight();
     bool setupUI(HbDocumentLoader &loader); 
     void setAccountIcon(const QString& accountIconName );
     void setExpandCollapseIcon(const bool& expand);
+    void gestureEvent(QGestureEvent *event);
     
 private:
     bool loadDocML(HbDocumentLoader &loader);
@@ -54,11 +56,10 @@ signals:
     void mailboxLaunchTriggered();
     
 protected:
-    void mousePressEvent(QGraphicsSceneMouseEvent *event);
-    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
     bool event( QEvent *event );
     
 private:
+    HbWidget *mContainer;
     HbLabel *mMailboxIcon;
     HbLabel *mMailboxInfo;
     HbLabel *mUnreadCountLabel;

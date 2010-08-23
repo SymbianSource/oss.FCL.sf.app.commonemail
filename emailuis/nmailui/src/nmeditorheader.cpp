@@ -490,20 +490,18 @@ void NmEditorHeader::attachmentLongPressed(int arrayIndex, QPointF point)
 }
 
 /*!
-    This slot is called when scroll position has been changed.
-    Function set new positions for header fields so that header stays visible
-    when body is scrolled horizontally.
+    This function is called when scroll position has been changed.
+    Function performs the pre calculated translation to set new positions for header fields
+    so that header stays visible when body is scrolled horizontally.
  */
-void NmEditorHeader::repositHeader(const QPointF &scrollPosition)
+void NmEditorHeader::repositHeader(const QTransform &transform)
 {
     NM_FUNCTION;
     
-    QTransform tr;
-    tr.translate(scrollPosition.x(),0);
-    mToWidget->setTransform(tr);
-    mCcWidget->setTransform(tr);
-    mBccWidget->setTransform(tr);
-    mSubjectWidget->setTransform(tr);
-    mAttachmentListWidget->setTransform(tr);
+    mToWidget->setTransform(transform);
+    mCcWidget->setTransform(transform);
+    mBccWidget->setTransform(transform);
+    mSubjectWidget->setTransform(transform);
+    mAttachmentListWidget->setTransform(transform);
 }
 

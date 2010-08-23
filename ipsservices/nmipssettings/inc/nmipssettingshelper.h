@@ -117,13 +117,14 @@ private slots:
     void receivingWeekdaysModified();
     void startTimeModified(QTime time);
     void endTimeModified(QTime time);
-    void refreshPeriodModified(QPersistentModelIndex, QVariant);
+    void refreshPeriodModified(HbAction *action);
     void handleMailboxDelete(HbAction *action);
     void handleMailboxDeleteUpdate(HbAction *action);
     void handleUserDefinedIncomingPortInput(HbAction *action);
     void handleUserDefinedFolderPathInput(HbAction *action);
     void handleUserDefinedOutgoingPortInput(HbAction *action);
     void handleConnectionSelected(uint status);
+    void refreshIndexModified(int index);
     
 private:
 
@@ -164,6 +165,7 @@ private: // data
     CmApplSettingsUi *mDestinationDialog; // Owned.
     bool mServerInfoDynamicItemsVisible;
     bool mAbortDynamicRSItemHandling;
+    int mCurrentRefreshIndex;
 };
 
 #endif // NMIPSSETTINGSHELPER_H

@@ -55,8 +55,6 @@ public:
 
     void refreshMailboxListModel();
 
-    NmId getPluginIdByMailboxId(quint32 accountId);
-
     NmMessageListModel &messageListModel(const NmId &mailboxId,
                                          const NmId &folderId);
 
@@ -172,6 +170,8 @@ public:
     void updateActiveFolder(const NmId &mailboxId, const NmId &folderId);
 
     void enableSyncIndicator(bool enabled);
+
+    int getSignature(const NmId &mailboxId, QString *&signature);
 
 public slots:
 

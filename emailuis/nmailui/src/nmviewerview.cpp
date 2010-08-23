@@ -710,6 +710,8 @@ void NmViewerView::scaleWebViewWhenLoaded()
         QSizeF contentSize = page->mainFrame()->contentsSize();
         mWebView->setPreferredSize(contentSize);
     }
+    // Workaround for scrolling problem
+    scene()->setProperty("overridingGesture",QVariant());
 }
 
 /*!

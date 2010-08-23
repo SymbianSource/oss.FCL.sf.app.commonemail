@@ -134,8 +134,11 @@ void NmMessageListViewItem::createMessageItemLayout()
 }
 
 /*!
-    Set item text label contents, icons, etc.
-    Function does not take ownership of model or model item.
+    Sets the item text label contents, icons, etc. The method does not take
+    ownership of model or model item.
+
+    \param envelope The message envelope.
+    \param dividersActive 
 */
 void NmMessageListViewItem::setContentsToMessageItem(const NmMessageEnvelope &envelope, 
                                                      bool dividersActive)
@@ -143,11 +146,13 @@ void NmMessageListViewItem::setContentsToMessageItem(const NmMessageEnvelope &en
     // Member variables are created in previous function.
     // Sender.
     mSender->setText(senderFieldText(envelope));
+
     // Time.
     HbExtendedLocale locale = HbExtendedLocale::system();
     QDateTime localTime = envelope.sentTime().addSecs(locale.universalTimeOffset());
     QDate sentLocalDate = localTime.date();
     QDate currentdate = QDate::currentDate();
+
     if (dividersActive || sentLocalDate == currentdate) {
         QString shortTimeSpec = r_qtn_time_usual;
         QTime time = localTime.time();
@@ -156,46 +161,66 @@ void NmMessageListViewItem::setContentsToMessageItem(const NmMessageEnvelope &en
         QString shortDateSpec = r_qtn_date_without_year;
         mTime->setText(locale.format(sentLocalDate, shortDateSpec));
     }
+
     // Subject.
     QString subjectText = envelope.subject();
+
     if (subjectText.length()) {
         mSubject->setText(subjectText);
     } else {
         mSubject->setText(hbTrId("txt_mail_dblist_val_no_subject"));
     }
+
     // Priority.
     bool priorityIs(false);
+
+    mIcon1->setIcon(HbIcon());
+    mIcon1->setObjectName(QString());
     mIcon1->hide();
+    mIcon2->setIcon(HbIcon());
+    mIcon2->setObjectName(QString());
     mIcon2->hide();
+
     switch (envelope.priority()) {
-        case NmMessagePriorityLow:
+        case NmMessagePriorityLow: {
             priorityIs = true;
             mIcon1->setObjectName("ListViewItemMessageIconPriorityLow");
             mIcon1->setIcon(NmIcons::getIcon(NmIcons::NmIconPriorityLow));
             mIcon1->show();
             break;
-        case NmMessagePriorityHigh:
+        }
+        case NmMessagePriorityHigh: {
             priorityIs = true;
             mIcon1->setObjectName("ListViewItemMessageIconPriorityHigh");
             mIcon1->setIcon(NmIcons::getIcon(NmIcons::NmIconPriorityHigh));
             mIcon1->show();
             break;
-        case NmMessagePriorityNormal:
+        }
+        case NmMessagePriorityNormal: {
+            break;
+        }
         default:
             break;
     }
     // Attachments.
     HbIconItem *attaIcon = (priorityIs ? mIcon2 : mIcon1);
+
     if (envelope.hasAttachments()) {
         HbIcon &icon = NmIcons::getIcon(NmIcons::NmIconAttachment);
         attaIcon->setIcon(icon);
         attaIcon->setObjectName("ListViewItemMessageIconAttachment");
         attaIcon->show();
     }
+    else {
+        attaIcon->setIcon(HbIcon());
+        attaIcon->setObjectName(QString());
+    }
+
     // Message read status.
     bool msgReadStatus(envelope.isRead());
     HbFrameDrawer *drawer(NULL);
     HbStyle::setItemName(mNewMsgIcon, "msgicon");
+
     if (!msgReadStatus) {
         setFontsUnread();
         mNewMsgIcon->setObjectName("ListViewItemMessageIconUnread");

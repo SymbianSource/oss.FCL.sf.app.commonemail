@@ -43,6 +43,7 @@ public slots:
     void fetchCameraStill();
     void fetchCameraVideo();
     void selectFetcher(HbListWidgetItem *listItem);
+    void setTitle(const QString &title);
         
     
 signals:
@@ -55,7 +56,8 @@ private:
     void fetchFromCamera(int mode);
     
 private:
-    XQAiwRequest *mRequest;    
+    XQAiwRequest *mRequest;
+    QString mTitle;
 };
 
 #endif // NMATTACHMENTPICKER_H_

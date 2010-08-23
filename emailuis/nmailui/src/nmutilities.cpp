@@ -294,6 +294,8 @@ QString NmUtilities::createReplyHeader(const NmMessageEnvelope &env)
     NM_FUNCTION;
 
     QString ret = "<html><body>";
+    // Two empty lines before reply header.
+    ret+="<br><br>";
     // Append "----- Original message ----" text
     ret+=hbTrId("txt_mail_editor_reply_original_msg");
     // Append sender

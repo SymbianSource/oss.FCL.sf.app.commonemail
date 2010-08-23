@@ -81,23 +81,6 @@ NONSHARABLE_CLASS ( CFSMailBoxBase ) : public CExtendableEmail
      * @param aMailBoxName mailbox name
      */
      IMPORT_C void SetName( const TDesC& aMailBoxName );
-	 		
-    /**
-     * retuns mailbox status accessor
-     *
-     * @return mailbox status
-     */
-     IMPORT_C TFSMailBoxStatus GetStatus( ) const;
-
-    /**
-     * mailbox status mutator
-     *
-     * @param aStatus mailbox status
-     */
-     //<cmail>
-     //function definition is empty, we need to remove it if not needed
-     //</cmail>
-     IMPORT_C void SetStatus( const TFSMailBoxStatus aStatus );
 
 	/*
 	 * Function to set context of Remote Contact Lookup service for
@@ -108,53 +91,19 @@ NONSHARABLE_CLASS ( CFSMailBoxBase ) : public CExtendableEmail
 	 * @param aMailBoxId mailbox id in plugin
 	 */
      IMPORT_C void SetRCLInfo(const TUid aProtocolUid, const TUint aMailBoxId);
- 
-	/*
-     * Function to retrieve Remote Contact Lookup service context for
-     * this mailbox.
-     *
-     * @param aProtocolUid specifies Ecom implementation UID of
-     *        "Remote Contact Lookup Protocol Adaptation API" to use.
-     * @param aMailBoxId mailbox id in plugin
-     */
-     IMPORT_C void GetRCLInfo(TUid& aProtocolUid, TUint& aAccountUid);
 
-    /**
-     * returns settings view id for mailbox
-     *
-     * @return settings view id
-     */
-     IMPORT_C const TUid GetSettingsUid();
-
-    /**
+    /*
      * sets settings view id for mailbox
      *
      * @param aUid settings view id
      */
      IMPORT_C void SetSettingsUid(const TUid aUid);
-
-	/**
-	 * Returns a meeting request info processor, which is used for replying
-	 * to meeting request received as MMRInfoObjet
-	 *
-	 * @return meeting info Processor, NULL if not supported by plugin
-	 *         ownership not transferred
-	 */ 
-     IMPORT_C MMRInfoProcessor& MRInfoProcessorL();
-
-    /**
-     * method to cheack if MRInfoProcessor is set
-     *
-     * @return
-     */
-	 IMPORT_C TBool IsMRInfoProcessorSet();
-
 	/**
 	 * Meeting request info processor mutator
 	 *
 	 * @param aMrInfoProcessor meeting info Processor, ownership transferred
 	 */ 
-	 IMPORT_C void SetMRInfoProcessorL(MMRInfoProcessor* aMrInfoProcessor);
+	   IMPORT_C void SetMRInfoProcessorL(MMRInfoProcessor* aMrInfoProcessor);
 
     /**
      * mailbox own address accessor

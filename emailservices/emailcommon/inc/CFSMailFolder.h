@@ -109,23 +109,11 @@ NONSHARABLE_CLASS ( CFSMailFolder ) : public CFSMailFolderBase
                                     TFSMailDetails aDetails,
                                     MFSMailRequestObserver& aObserver );
     /**
-     * method to check if this folder allows copying from given folder type
-     *
-     * @param aFolderType folder type
-     */
-     IMPORT_C TBool SupportsCopyFromL( TFSFolderType aFolderType );
-
-    /**
      * method to check if this folder allows moving from given folder type
      *
      * @param aFolderType folder type
      */
      IMPORT_C TBool SupportsMoveFromL( TFSFolderType aFolderType );
-
-     /**
-      * removes downloaded attachments from local/terminal memory 
-      */
-     IMPORT_C void RemoveDownLoadedAttachmentsL();
      
 public: // from  CExtendableEmail
 

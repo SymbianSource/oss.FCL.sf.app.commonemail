@@ -38,7 +38,7 @@ void NmFwaForwardMessageCreationOperation::doRunAsyncOperation()
     
     const TFSMailMsgId mailMsgId(mMailboxId.pluginId32(), mMailboxId.id32());
 
-    CFSMailBox *mailBox = NULL;
+    CFSMailBox *mailBox(NULL);
     TRAP_IGNORE(mailBox = mMailClient.GetMailBoxByUidL(mailMsgId));
     
     if (mailBox) {
@@ -46,22 +46,21 @@ void NmFwaForwardMessageCreationOperation::doRunAsyncOperation()
 
         if (err == KErrFSMailPluginNotSupported) {
             CFSMailMessage *fsMessage = mailBox->CreateForwardMessage(mOriginalMessageId);
- 
-            mMessage = fsMessage->GetNmMessage();
-            
-            delete fsMessage;
-            fsMessage = NULL;
-            
-            completeOperation(NmNoError);
+            if (fsMessage) {
+                mMessage = fsMessage->GetNmMessage();
+                delete fsMessage;
+                fsMessage = NULL;
+                completeOperation(NmNoError);
+            } else {
+                completeOperation(NmGeneralError);
+            }
         }
         else if (err != KErrNone) {
             completeOperation(NmGeneralError);
         }
-        
         delete mailBox;
         mailBox = NULL;
-    }
-    else {
+    } else {
         completeOperation(NmNotFoundError);
     }
 }

@@ -18,10 +18,10 @@
 #include "emailmessage.h"
 #include "messageiterator.h"
 #include "emailapiutils.h"
-#include "cfsmailplugin.h"
+#include "CFSMailPlugin.h"
 #include "emailapiutils.h"
 #include "emailclientapi.hrh"
-#include "mfsmailiterator.h"
+#include "MFSMailIterator.h"
 
 // number of messages in chunk to retrive from protocol plugin. Actual chunk
 // size is one less because last element is used for reference to next chunk

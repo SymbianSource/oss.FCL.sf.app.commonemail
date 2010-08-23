@@ -239,18 +239,6 @@ NONSHARABLE_CLASS ( CFSMailMessagePart ) : public CFSMailMessageBase
                                                  const TDesC& aContentType );
 
     /**
-     * Copies given email object as new child part of this email part or email.
-     *
-     * @param aInsertBefore defines place of where new child part is created,
-     * if aInsertBefore is NULL id then new part is added as last.
-     * @param aMessage message to be copied as child part
-     *
-     * @return new child part, ownership is transferred to user
-     */        
-     IMPORT_C CFSMailMessagePart* CopyMessageAsChildPartL( TFSMailMsgId aInsertBefore,
-                                                           CFSMailMessage* aMessage);
-
-    /**
      * Removes child part (and it's children, if any) from this email part
      * 
      * @param aPartId part id of the email part to be removed
@@ -278,33 +266,7 @@ NONSHARABLE_CLASS ( CFSMailMessagePart ) : public CFSMailMessageBase
      * @return content file handle 
      */
      IMPORT_C RFile GetContentFileL();
-        
-    /**
-     * copies contents of this message part to given file
-     *
-     * @param aContentLocation defines file location as 
-     * a) directory, when plugin finds out corresponding file name
-     *    related to this part id, in this case last character should
-     *    be '/'
-     * b) directory & filename, when both directory and file name
-     *    are given by user
-     * 
-     */        
-     IMPORT_C void CopyContentFileL(const TDesC& aContentLocation);
-
-    /**
-     * Sets email part contents from given file, possible old contents are replaced.
-     *
-     * @param aFilePath defines the target file
-     */
-     IMPORT_C void SetContentFromFileL(const TDesC& aFilePath);
-
-    /**
-     * Removes from message store fetched contents of this part
-     * and possible child parts
-     *
-     */  
-     IMPORT_C void RemoveContentL();
+       
     
     /**
      * returns email part full content size (in bytes)
@@ -331,20 +293,6 @@ NONSHARABLE_CLASS ( CFSMailMessagePart ) : public CFSMailMessageBase
      * @param aContentSize content size to be set
      */
      IMPORT_C void SetFetchedContentSize(TUint aContentSize);
-
-    /**
-     * returns email part content current fetch state
-     * Intended as utility function for UI.
-     * If (0 == FetchedContentSize())
-     *    return EFSNone;
-     * else if (FetchedContentSize() < ContentSize()) then
-     *    return EFSPartial
-     * else
-     *    return EFSFull
-     *
-     * @return email fetch state (EFSNone / EFSPartial / EFSFull)
-     */
-     IMPORT_C TFSPartFetchState FetchLoadState() const;
 
     /**
      * copies email part contents to buffer given by user
@@ -410,15 +358,6 @@ NONSHARABLE_CLASS ( CFSMailMessagePart ) : public CFSMailMessageBase
      IMPORT_C CFSMailMessagePart* FindBodyPartL(const TDesC& aContentType,
          TFSMailMessagePartDataSource aDataSource = EDataSourceMessageStore);
 // </qmail>
-
-    /**
-     * Checks that content type matches given.
-     * 
-     * @param aContentType body part content type to be checked
-     *
-     * @return ETrue if content type of message part matches tto given
-     */
-     IMPORT_C TBool ContentTypeMatches( const TDesC& aContentType );
 
     /**
      * starts email part fetching from email server
@@ -493,12 +432,6 @@ NONSHARABLE_CLASS ( CFSMailMessagePart ) : public CFSMailMessageBase
      * (character or byte count)
      */
      IMPORT_C void SetReadOnlyPartSize(const TUint aReadOnlyPartSize);
-     
-     /**
-      * removes attachment downloaded contents from local/terminal memory
-      *
-      */
-     IMPORT_C void RemoveDownLoadedAttachmentsL();
      
 // <qmail>
      /**

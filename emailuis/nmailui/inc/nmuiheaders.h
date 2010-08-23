@@ -94,6 +94,7 @@
 #include <hbshrinkingvkbhost.h>
 #include <hbactivitymanager.h>
 #include <hbframebackground.h>
+#include <hbparameterlengthlimiter.h>
 
 #include <cntservicescontact.h>
 #include <xqservicerequest.h>
@@ -109,6 +110,9 @@
 #include <tstasksettings.h>
 
 #include <nmcommon.h>
+
+// emailservices/nmutilities
+#include <nmuieventsnotifier.h>
 
 // nmailuiengine
 #include <nmuiengine.h>

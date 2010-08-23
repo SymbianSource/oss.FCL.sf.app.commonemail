@@ -132,4 +132,5 @@ EXPORTS
 	?qt_metacall@NmBaseViewScrollArea@@UAEHW4Call@QMetaObject@@HPAPAX@Z @ 131 NONAME ; int NmBaseViewScrollArea::qt_metacall(enum QMetaObject::Call, int, void * *)
 	?checkColor@NmAttachmentListWidget@@AAE?AVQColor@@XZ @ 132 NONAME ; class QColor NmAttachmentListWidget::checkColor(void)
 	?changeEvent@NmAttachmentListWidget@@MAEXPAVQEvent@@@Z @ 133 NONAME ; void NmAttachmentListWidget::changeEvent(class QEvent *)
+	?setPressed@NmAttachmentListItem@@QAEX_N@Z @ 134 NONAME ; void NmAttachmentListItem::setPressed(bool)
 

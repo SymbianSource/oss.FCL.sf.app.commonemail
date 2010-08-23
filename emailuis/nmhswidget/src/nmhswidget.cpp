@@ -34,18 +34,20 @@
 
 NmHsWidget::NmHsWidget(QGraphicsItem *parent, Qt::WindowFlags flags)
     : HbWidget(parent, flags), 
-      mEngine(0),
+      mMainContainer(0),
+      mEmptySpaceContainer(0),
+      mWidgetContainer(0),
       mTitleRow(0),
+      mContentContainer(0),
+      mNoMailsLabel(0),
+      mContentLayout(0),              
+      mBackgroundFrameDrawer(0),
+      mTranslator(0),
+      mEngine(0),      
       mAccountId(0),
       mAccountIconName(),
-      mTranslator(0),
-      mBackgroundFrameDrawer(0),
-      mIsExpanded(false),
       mDateObserver(0),
-      mNoMailsLabel(0),
-      mWidgetContainer(0),
-      mContentContainer(0),
-      mContentLayout(0)
+      mIsExpanded(false)
 {
     NM_FUNCTION;
 }
@@ -84,11 +86,21 @@ QPainterPath NmHsWidget::shape() const
     
     QPainterPath path;
     path.setFillRule(Qt::WindingFill);
-    
-    path.addRect(this->rect());
-    if (mTitleRow){
-        path.addPath(mTitleRow->shape());
+    if (mWidgetContainer){
+        //add mWidgetContainer using geometry to get
+        //correct point for top-left-corner
+        QRectF widgetRect = mWidgetContainer->geometry();
+        path.addRect(widgetRect); 
+        
+        //then fetch shape from title row 
+        QPainterPath titlepath;
+        titlepath.addPath(mTitleRow->shape());
+        //translate it's location to be inside mWidgetContainer
+        titlepath.translate(widgetRect.topLeft());
+        //and finally add it to path
+        path.addPath(titlepath);    
     }
+    //simplified path, i.e. only outlines
     return path.simplified();
 }
 
@@ -132,10 +144,13 @@ bool NmHsWidget::loadDocML(HbDocumentLoader &loader)
     loader.load(KNmHsWidgetDocML, &ok);
     
     if(ok) {
-        mWidgetContainer = static_cast<HbWidget*> (loader.findWidget(KNmHsWidgetContainer));        
+        mMainContainer = static_cast<HbWidget*> (loader.findWidget(KNmHsWidgetMainContainer));  
+        mWidgetContainer = static_cast<HbWidget*> (loader.findWidget(KNmHsWidgetContainer));
         mContentContainer = static_cast<HbWidget*> (loader.findWidget(KNmHsWidgetContentContainer));
+        mEmptySpaceContainer = static_cast<HbWidget*> (loader.findWidget(KNmHsWidgetEmptySpaceContainer));
         mNoMailsLabel = static_cast<HbLabel*> (loader.findWidget(KNmHsWidgetNoMailsLabel));
-        if (!mWidgetContainer || !mContentContainer || !mNoMailsLabel) {
+        if (!mMainContainer || !mWidgetContainer || !mContentContainer 
+                || !mEmptySpaceContainer || !mNoMailsLabel ) {
             //something failed in documentloader, no point to continue
             NM_ERROR(1,"NmHsWidget::loadDocML fail @ containers or label");
             ok = false;
@@ -172,7 +187,7 @@ void NmHsWidget::setupUi()
     widgetLayout->setContentsMargins(KNmHsWidgetContentsMargin, KNmHsWidgetContentsMargin,
             KNmHsWidgetContentsMargin, KNmHsWidgetContentsMargin);
     widgetLayout->setSpacing(KNmHsWidgetContentsMargin);
-    widgetLayout->addItem(mWidgetContainer);
+    widgetLayout->addItem(mMainContainer);
     this->setLayout(widgetLayout);
 
     //fetch pointer to content container layout
@@ -193,9 +208,8 @@ void NmHsWidget::setupUi()
     HbFrameItem* backgroundLayoutItem = new HbFrameItem(mBackgroundFrameDrawer);
     //set to NULL to indicate that ownership transferred
     mBackgroundFrameDrawer = NULL;
-    setBackgroundItem(backgroundLayoutItem);   
+    mWidgetContainer->setBackgroundItem(backgroundLayoutItem);
 }
-
 
 /*!
  Initializes the widget.
@@ -205,11 +219,12 @@ void NmHsWidget::setupUi()
 void NmHsWidget::onInitialize()
 {
     NM_FUNCTION;
-
+    
     QT_TRY {
-        
 	    // Use document loader to load the contents
 	    HbDocumentLoader loader;
+		//setup localization before docml loading
+	    setupLocalization();
 		
 	    //load containers and mNoMailsLabel
         if (!loadDocML(loader)) {
@@ -228,7 +243,6 @@ void NmHsWidget::onInitialize()
         }
 				
         setupUi();
-        setupLocalization();
 
         //Engine construction is 2 phased. 
         mEngine = new NmHsWidgetEmailEngine(mAccountId);
@@ -242,7 +256,6 @@ void NmHsWidget::onInitialize()
             emit error();
             return;
         }
-
 
         mTitleRow->updateAccountName(mEngine->accountName());
 
@@ -274,14 +287,14 @@ void NmHsWidget::onInitialize()
 	    connect(mTitleRow, SIGNAL( expandCollapseButtonPressed() )
 	            ,this, SLOT( handleExpandCollapseEvent() ) );
 	    
-	    setMinimumSize(mTitleRow->minimumSize());
+	    setMinimumSize(mTitleRow->minimumWidth(), 
+	            mEmptySpaceContainer->minimumHeight() + mTitleRow->minimumHeight());
     }
     QT_CATCH(...) {
         NM_ERROR(1,"NmHsWidget::onInitialize fail @ catch");
         emit error();
     }
 }
-
 
 /*!
  updateMailData slot
@@ -471,11 +484,15 @@ void NmHsWidget::updateLayout(const int mailCount)
     }
 
     //resize the widget to new layout size
-    qreal totalHeight = mTitleRow->preferredHeight() + mContentContainer->maximumHeight();
-    //set maximum size, otherwise widget will stay huge also when collapsed
-    this->setMaximumHeight(totalHeight);
+    qreal totalHeight = mEmptySpaceContainer->preferredHeight() + mTitleRow->containerHeight() + mContentContainer->maximumHeight();
+    //set maximum sizes, otherwise widget will stay huge also when collapsed
+    setMaximumHeight(totalHeight);
+    mMainContainer->setMaximumHeight(totalHeight);
+    mWidgetContainer->setMaximumHeight(totalHeight - mEmptySpaceContainer->preferredHeight());
     //resize here or widget cannot draw mail rows when expanding
-    this->resize(mTitleRow->preferredWidth(), totalHeight);
+    resize(mTitleRow->maximumWidth(), totalHeight);
+    mMainContainer->resize(mTitleRow->maximumWidth(), totalHeight);
+    mWidgetContainer->resize(mTitleRow->maximumWidth(), totalHeight - mEmptySpaceContainer->preferredHeight());
 
     updateMailRowsVisibility(mailCount);
 }

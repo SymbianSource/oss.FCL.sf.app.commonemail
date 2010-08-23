@@ -34,6 +34,7 @@ class HbDataFormModelItem;
 class NmId;
 class NmIpsSettingsHelper;
 class NmIpsSettingsManagerBase;
+class HbAction;
 
 class NmIpsSettingsPlugin : public QObject, public NmSettingsPluginInterface
 {
@@ -61,7 +62,8 @@ public slots:
 private slots:
 
     void createUserDefinedMode();
-    void showMailInInboxModified(QPersistentModelIndex, QVariant value);
+    void showMailInInboxModified(HbAction*);
+    void inboxSelectionModified(int index);
 
 private:
 
@@ -81,6 +83,7 @@ private: // data.
     HbDataFormModel *mModel; // Not owned.
     HbDataForm *mForm; // Not owned.
     bool mHiddenItem;
+    int mCurrentInboxIndex;
 };
 
 #endif // NMIPSSETTINGS_H

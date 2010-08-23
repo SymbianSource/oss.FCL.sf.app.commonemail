@@ -152,16 +152,6 @@
     <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
-<message numerus="no" id="txt_common_button_send">
-    <comment>Toolbar button for sending the mail</comment>        
-    <source>Send</source>
-    <translation variants="yes" type="unfinished"></translation>
-    <extra-loc-layout_id>qtl_toolbar_tiny_2</extra-loc-layout_id>    
-    <extra-loc-viewid>mail_004</extra-loc-viewid>
-    <extra-loc-positionid>button</extra-loc-positionid>
-    <extra-loc-feature>mail</extra-loc-feature>
-    <extra-loc-blank>False</extra-loc-blank>
-</message>
 <message numerus="no" id="txt_mail_dialog_cannot_download_attachment_1">
     <comment>Error note. If the user tries to open / save an attachment but downloading it for server fails for some reason. %[]1 is replaced with the name of the attachment.</comment>        
     <source>Cannot download attachment: %[]1 </source>
@@ -232,16 +222,6 @@
     <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
-<message numerus="no" id="txt_common_opt_settings">
-    <comment>Options menu item for opening settings.</comment>        
-    <source>Settings</source>
-    <translation variants="no" type="unfinished"></translation>
-    <extra-loc-layout_id>qtl_menu_pri</extra-loc-layout_id>    
-    <extra-loc-viewid>mail_001_a</extra-loc-viewid>
-    <extra-loc-positionid>opt</extra-loc-positionid>
-    <extra-loc-feature>mail</extra-loc-feature>
-    <extra-loc-blank>False</extra-loc-blank>
-</message>
 <message numerus="no" id="txt_mail_button_new_mail">
     <comment>Toolbar button for creating a new mail.</comment>        
     <source>New</source>
@@ -309,16 +289,6 @@
     <extra-loc-layout_id>qtl_dialog_pri5</extra-loc-layout_id>    
     <extra-loc-viewid>mail</extra-loc-viewid>
     <extra-loc-positionid>dialog</extra-loc-positionid>
-    <extra-loc-feature>mail</extra-loc-feature>
-    <extra-loc-blank>False</extra-loc-blank>
-</message>
-<message numerus="no" id="txt_common_menu_delete">
-    <comment>Item specific option for deleting the highlighted mail</comment>        
-    <source>Delete</source>
-    <translation variants="no" type="unfinished"></translation>
-    <extra-loc-layout_id>qtl_menu_sec</extra-loc-layout_id>    
-    <extra-loc-viewid>mail_001_c</extra-loc-viewid>
-    <extra-loc-positionid>menu</extra-loc-positionid>
     <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
@@ -492,6 +462,16 @@
     <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
+<message numerus="no" id="txt_mail_list_search">
+    <comment>Toolbar button for opening the search view</comment>        
+    <source>Search</source>
+    <translation variants="yes" type="unfinished"></translation>
+    <extra-loc-layout_id>qtl_toolbar_tiny_2</extra-loc-layout_id>    
+    <extra-loc-viewid>mail_001</extra-loc-viewid>
+    <extra-loc-positionid>button</extra-loc-positionid>
+    <extra-loc-feature>mail</extra-loc-feature>
+    <extra-loc-blank>False</extra-loc-blank>
+</message>
 <message numerus="no" id="txt_mail_status_menu_unset">
     <comment>Primary text for status menu item: indicates that there are unsent messages in outbox. %[]1 is account name. The number of unsent mails is not going to be shown here.</comment>        
     <source>%[]1: Unsent</source>
@@ -544,7 +524,7 @@
 </message>
 <message numerus="no" id="txt_mail_list_new_video">
     <comment>Attach toolbar extension item in the editor, opens camera for taking a new video</comment>        
-    <source>New video</source>
+    <source>Camcorder</source>
     <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_list_pri</extra-loc-layout_id>    
     <extra-loc-viewid>mail_004_b</extra-loc-viewid>
@@ -565,20 +545,10 @@
 <message numerus="no" id="txt_mail_dialog_select_file">
     <comment>Title text in file picker view. File picker view is opened when the user selects &quot;Other&quot; option from attachment list. For attaching files to mail messages. Underneath a list of selectable files is displayed.</comment>        
     <source>Select file</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dialog_pri_heading</extra-loc-layout_id>    
     <extra-loc-viewid>mail_007</extra-loc-viewid>
     <extra-loc-positionid>dpophead</extra-loc-positionid>
-    <extra-loc-feature>mail</extra-loc-feature>
-    <extra-loc-blank>False</extra-loc-blank>
-</message>
-<message numerus="no" id="txt_common_menu_open">
-    <comment>Item specific option for opening the highlighted mail. </comment>        
-    <source>Open</source>
-    <translation variants="no" type="unfinished"></translation>
-    <extra-loc-layout_id>qtl_menu_sec</extra-loc-layout_id>    
-    <extra-loc-viewid>mail_001_c</extra-loc-viewid>
-    <extra-loc-positionid>menu</extra-loc-positionid>
     <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
@@ -685,7 +655,7 @@
 <message numerus="no" id="txt_mail_dialog_send_via">
     <comment>Title for send via dialog. This dialog lists all mailboxes the user has. Underneath the title, a list of mailboxes is displayed. </comment>        
     <source>Send via</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dialog_pri_heading</extra-loc-layout_id>    
     <extra-loc-viewid>mail</extra-loc-viewid>
     <extra-loc-positionid>dialog</extra-loc-positionid>
@@ -722,16 +692,6 @@
     <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
-<message numerus="no" id="txt_mail_dpophead_1_deleted">
-    <comment>Confirmation note shown after the mailbox is deleted succesfully.</comment>        
-    <source>Mailbox deleted. </source>
-    <translation variants="no" type="unfinished"></translation>
-    <extra-loc-layout_id>qtl_notifdialog_pri2</extra-loc-layout_id>    
-    <extra-loc-viewid>mail_006</extra-loc-viewid>
-    <extra-loc-positionid>dialog</extra-loc-positionid>
-    <extra-loc-feature>mail</extra-loc-feature>
-    <extra-loc-blank>False</extra-loc-blank>
-</message>
 <message numerus="no" id="txt_mail_editor_reply_original_msg">
     <comment>Original message header data in the editor. Separates the original mail message from the edit area of the new message the user is typing.</comment>        
     <source>---- Original message ----</source>
@@ -739,16 +699,6 @@
     <extra-loc-layout_id>none</extra-loc-layout_id>    
     <extra-loc-viewid>mail_004_c</extra-loc-viewid>
     <extra-loc-positionid>list</extra-loc-positionid>
-    <extra-loc-feature>mail</extra-loc-feature>
-    <extra-loc-blank>False</extra-loc-blank>
-</message>
-<message numerus="no" id="txt_common_menu_remove">
-    <comment>Item specific menu item for removing the focused attachment in mail editor</comment>        
-    <source>Remove</source>
-    <translation variants="no" type="unfinished"></translation>
-    <extra-loc-layout_id>qtl_menu_sec</extra-loc-layout_id>    
-    <extra-loc-viewid>mail_004</extra-loc-viewid>
-    <extra-loc-positionid>menu</extra-loc-positionid>
     <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
@@ -765,7 +715,7 @@
 <message numerus="no" id="txt_mail_select_contacts">
     <comment>Title text shown in status pane when contacts are fetched from Phonebook.</comment>        
     <source>Select contacts</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dialog_pri_heading</extra-loc-layout_id>    
     <extra-loc-viewid>mail</extra-loc-viewid>
     <extra-loc-positionid>dpophead</extra-loc-positionid>
@@ -895,7 +845,7 @@
 <message numerus="no" id="txt_mail_button_download_rest">
     <comment>Button that is shown if all the message content is not downloaded while message is opened.</comment>        
     <source>Download rest</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_002_b</extra-loc-viewid>
     <extra-loc-positionid>button</extra-loc-positionid>
@@ -1064,7 +1014,7 @@
 </message>
 <message numerus="no" id="txt_mail_list_new_photo">
     <comment>Attach toolbar extension item in the editor, opens camera for taking a new photo</comment>        
-    <source>New photo</source>
+    <source>Camera</source>
     <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_list_pri</extra-loc-layout_id>    
     <extra-loc-viewid>mail_004_b</extra-loc-viewid>

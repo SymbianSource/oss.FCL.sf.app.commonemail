@@ -116,7 +116,8 @@ void NmMessageListView::loadViewLayout()
             mMessageListWidget->setScrollDirections(Qt::Vertical);
             mMessageListWidget->setClampingStyle(HbScrollArea::BounceBackClamping);
             mMessageListWidget->setFrictionEnabled(true);
-
+            mMessageListWidget->setItemPixmapCacheEnabled(true);
+            
             // Enable animations to display an email as soon as it is added to
             // the list.
             mMessageListWidget->setEnabledAnimations(HbAbstractItemView::Appear &
@@ -231,7 +232,7 @@ void NmMessageListView::reloadViewContents(NmUiStartParam* startParam)
     // Check start parameter validity, message view cannot
     // be updated if given parameter is zero.
     if (startParam&&startParam->viewId()==NmUiViewMessageList &&
-        startParam->folderId()!=0) {
+        startParam->mailboxId() != 0 ) {
         // Delete existing start parameter data
         delete mStartParam;
         mStartParam = NULL;
@@ -253,13 +254,20 @@ void NmMessageListView::reloadViewContents(NmUiStartParam* startParam)
         setMailboxName();
         
         // Store active folder type
-        mCurrentFolderType = mUiEngine.folderTypeById(startParam->mailboxId(),startParam->folderId());
+        mCurrentFolderType=NmFolderInbox;
+        if (startParam->folderId()!=0){
+            mCurrentFolderType = mUiEngine.folderTypeById(startParam->mailboxId(),startParam->folderId());        
+        }
 
         // Update folder name
         setFolderName();
         
         // Set sync icon if needed
         updateSyncIcon();
+        
+        // Reconstruct the tool bar. This needed because, for example, the
+        // search button needs the new mailbox ID.
+        createToolBar();
     }
     else {
         NM_ERROR(1,"nmailui: invalid message list start parameter");
@@ -279,23 +287,30 @@ NmUiViewId NmMessageListView::nmailViewId() const
     return NmUiViewMessageList;
 }
 
+
 /*!
-    Refresh list
+    Refresh the message list.
 */
 void NmMessageListView::refreshList()
 {
     NM_FUNCTION;
 
     if (mMessageListModel) {
-        NmId mailboxId = mMessageListModel->currentMailboxId();
-        // In each refresh, e.g. in folder change the UI signals
-        // lower layer about the folder that has been opened.
+        NmId mailboxId = mStartParam->mailboxId();
+
+        // In each refresh, e.g. in folder change the UI signals lower layer
+        // about the folder that has been opened.
         if (mStartParam){
             mUiEngine.updateActiveFolder(mailboxId, mStartParam->folderId());
 
-            NmFolderType folderType = mUiEngine.folderTypeById(mStartParam->mailboxId(),
-                                              mStartParam->folderId());
-            if (folderType == NmFolderInbox) { // If the new folder is an inbox, first automatic sync should be shown
+            NmFolderType folderType(NmFolderInbox);
+            if (mStartParam->folderId()!= 0){
+                folderType = mUiEngine.folderTypeById(mStartParam->mailboxId(),
+                             mStartParam->folderId());
+            }
+
+            // If the new folder is an inbox, first automatic sync should be shown
+            if (folderType == NmFolderInbox) {
                 mIsFirstSyncInMessageList = true;
             }
         }
@@ -303,23 +318,31 @@ void NmMessageListView::refreshList()
         // Set item model to message list widget
         if (mMessageListWidget) {
             mMessageListWidget->setModel(static_cast<QStandardItemModel*>(mMessageListModel));
+
             QObject::connect(mMessageListModel, SIGNAL(rowsInserted(const QModelIndex&,int,int)),
-                    this, SLOT(itemsAdded(const QModelIndex&,int,int)),Qt::UniqueConnection);
+                this, SLOT(itemsAdded(const QModelIndex&,int,int)),Qt::UniqueConnection);
             QObject::connect(mMessageListModel, SIGNAL(rowsRemoved(const QModelIndex&,int,int)),
-                    this, SLOT(itemsRemoved()),Qt::UniqueConnection);
+                this, SLOT(itemsRemoved()),Qt::UniqueConnection);
             QObject::connect(mMessageListModel, SIGNAL(setNewParam(NmUiStartParam*)),
-                    this, SLOT(reloadViewContents(NmUiStartParam*)),Qt::UniqueConnection);
+                this, SLOT(reloadViewContents(NmUiStartParam*)),Qt::UniqueConnection);
 
             mPreviousModelCount=mMessageListModel->rowCount();
-            if (mPreviousModelCount==0){
+
+            if (mPreviousModelCount == 0) {
                 showNoMessagesText();
             }
-            else{
+            else {
                 hideNoMessagesText();
             }
         }
+
+        // Notify the mail agent. 
+        NmUiEventsNotifier::notifyViewStateChanged(NmUiEventsNotifier::NmViewShownEvent,
+                                                   NmUiViewMessageList,
+                                                   mStartParam->mailboxId());
     }
 }
+
 
 /*!
     Sync state event handling
@@ -340,7 +363,10 @@ void NmMessageListView::handleSyncStateEvent(NmSyncState syncState, const NmId &
             // Show sync icon only for the first automatic sync after opening message list.
             // Sync icon for manual sync is shown in NmUiEngine::refreshMailbox, not here.
             if (mIsFirstSyncInMessageList) {
-				mUiEngine.enableSyncIndicator(true);
+                // Show the indicator only if the application is in the foreground
+                if (mApplication.isForeground()) {
+                    mUiEngine.enableSyncIndicator(true);
+                }
                 mIsFirstSyncInMessageList = false;
             }
         }
@@ -363,7 +389,10 @@ void NmMessageListView::folderSelected()
                                                         mSelectedMailboxId,
                                                         mSelectedFolderId);
         // Store active folder type
-        mCurrentFolderType = mUiEngine.folderTypeById(startParam->mailboxId(),startParam->folderId());
+        mCurrentFolderType=NmFolderInbox;
+        if (startParam->folderId()!=0){
+            mCurrentFolderType = mUiEngine.folderTypeById(startParam->mailboxId(),startParam->folderId());        
+        }
         // Reload view, ownership of the startparams is passed and old startparams
         // are deleted within reloadViewContents function
         reloadViewContents(startParam);

@@ -19,6 +19,7 @@ TEMPLATE = lib
 CONFIG += plugin hb mobility qtservice
 QTSERVICE.DESCRIPTOR = resources/nmhswidget.xml
 MOBILITY = serviceframework
+HB += hbfeedback
 TARGET = nmhswidget
 QT += core
 RESOURCES += nmhswidget.qrc

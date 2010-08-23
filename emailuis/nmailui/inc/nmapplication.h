@@ -53,6 +53,7 @@ public:
     QSize screenSize();
     bool eventFilter(QObject *obj, QEvent *event);
     bool updateVisibilityState();
+    bool isForeground() const;
 
 public slots:
     void prepareForPopView();
@@ -100,6 +101,7 @@ private:
     HbMessageBox *mQueryDialog;             // Owned
     bool mBackButtonPressed;
     NmId mCurrentMailboxId;
+    bool mApplicationHidden;
 };
 
 #endif // NMAPPLICATION_H

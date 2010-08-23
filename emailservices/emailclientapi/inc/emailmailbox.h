@@ -18,10 +18,10 @@
 #ifndef EMAILMAILBOX_H
 #define EMAILMAILBOX_H
 
-#include "cfsmailcommon.h"
+#include "CFSMailCommon.h"
 #include <memailmailbox.h>
-#include "mfsmaileventobserver.h"
-#include "mfsmailrequestobserver.h"
+#include "MFSMailEventObserver.h"
+#include "MFSMailRequestObserver.h"
 #include "mmailboxcontentobserver.h"
 
 using namespace EmailInterface;

@@ -21,7 +21,7 @@
 //  INCLUDES
 #include <e32std.h>
 #include <e32base.h>
-#include "cfsmailcommon.h"
+#include "CFSMailCommon.h"
 
 class MIpsPlgMailStorerObserver
  	{

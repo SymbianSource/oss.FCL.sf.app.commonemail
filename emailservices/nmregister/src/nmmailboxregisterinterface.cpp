@@ -28,6 +28,7 @@
 
 //mandatory keys 
 const QString hsItemName("item:name");
+const QString hsItemLocName("item:locname");
 const QString hsitemLaunchUri("item:launchuri");
 const QString hsitemPublisherId("item:publisherId");
 //not mandatory 
@@ -195,11 +196,11 @@ bool NmMailboxRegisterInterfacePrivate::registerNewMailbox(
 
     QMap<QString, QVariant> map;
     //------------------------------
-    map[hsItemName] = accountName;
+    map[hsItemLocName] = "loc://" + KNmRegisterLocFileName + "/txt_mailwdgt_dblist_mail";
     map[hsitemLaunchUri] = formLaunchUri(accountId);
     map[hsitemPublisherId] = NmPublisherName;
     map[hsItemWidgetUri] = NmHsWidget;
-    map[hsItemLocDescription] = "loc://" + KNmRegisterLocFileName + "/txt_mail_widget_dblist_preview_of_recent_mail";
+    map[hsItemDescription] = accountName;
     map[hsIconFileName] = accountIconName;
     // to add widget params that are mapped to widgets properties
     map[NmHsWidgetParamAccountId] = QString::number(accountId);
@@ -247,7 +248,7 @@ bool NmMailboxRegisterInterfacePrivate::updateMailboxName(quint64 accountId, QSt
     //Normally there should be only one instance, but just in case
     while (!list.isEmpty()) {
         //update the account name
-        list.first()[hsItemName] = newName;
+        list.first()[hsItemDescription] = newName;
         //commit changes
         ret = QMetaObject::invokeMethod( mService,"add",
             Qt::DirectConnection,

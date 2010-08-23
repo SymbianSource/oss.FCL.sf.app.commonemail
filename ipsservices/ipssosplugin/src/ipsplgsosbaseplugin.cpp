@@ -2500,7 +2500,10 @@ void CIpsPlgSosBasePlugin::HandleActiveFolderChangeL(
     
     //currently, no actions unless this is inbox
     //also, if id is '0', it means inbox before first sync...it doesn't really exist yet
-    if( folder.iDetails.CompareF( KIpsPlgInbox ) == 0 || folder.Id() == 0 )
+    if( folder.iDetails.CompareF( KIpsPlgInbox ) == 0 || folder.Id() == 0 || 
+            ( folder.iMtm == KSenduiMtmPop3Uid ) &&
+            ( folder.iType == KUidMsvServiceEntry ) &&
+            ( folder.iServiceId == aActiveFolderId.Id() ) )
         {
         //folder is inbox
         if ( iSyncStateHandler->GetMailboxIpsState( aActiveMailboxId.Id() )

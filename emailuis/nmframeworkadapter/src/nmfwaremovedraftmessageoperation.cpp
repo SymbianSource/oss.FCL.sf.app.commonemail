@@ -51,8 +51,7 @@ NmFwaRemoveDraftMessageOperation::NmFwaRemoveDraftMessageOperation(
 NmFwaRemoveDraftMessageOperation::~NmFwaRemoveDraftMessageOperation()
 {
     NM_FUNCTION;
-    
-    doCancelOperation();
+   
     mMailClient.Close(); // decrease ref count
     delete mMessage;
     mMessage = NULL;
@@ -68,7 +67,7 @@ void NmFwaRemoveDraftMessageOperation::doRunAsyncOperation()
 {
     NM_FUNCTION;
     
-    TRAPD( err, removeMessageL() );
+    TRAPD(err, removeMessageL());
         
     if (err != KErrNone) {
         completeOperation(NmGeneralError);
@@ -85,16 +84,6 @@ void NmFwaRemoveDraftMessageOperation::doCompleteOperation()
     mRequestId = NmNotFoundError;
 }
 
-/*!
-    
- */
-void NmFwaRemoveDraftMessageOperation::doCancelOperation()
-{
-    NM_FUNCTION;
-
-    // remove draft operation is not cancellable
-}
-    
 /*!
     Asynchronous request response message.
     
@@ -125,26 +114,26 @@ void NmFwaRemoveDraftMessageOperation::removeMessageL()
 {
     NM_FUNCTION;
     
-    TFSMailMsgId mailboxId( mMessage->envelope().mailboxId() );
-    TFSMailMsgId folderId( mMessage->envelope().folderId() );
-    TFSMailMsgId messageId( mMessage->envelope().messageId() );
+    TFSMailMsgId mailboxId(mMessage->envelope().mailboxId());
+    TFSMailMsgId folderId(mMessage->envelope().folderId());
+    TFSMailMsgId messageId(mMessage->envelope().messageId());
     
-    CFSMailFolder* folder = mMailClient.GetFolderByUidL( mailboxId, folderId );
+    CFSMailFolder *folder = mMailClient.GetFolderByUidL(mailboxId, folderId);
     CleanupStack::PushL(folder);
-    if ( folder ) {
+    if (folder) {
         // try to use the asynchronous version first
-        TRAPD(err, mRequestId = folder->RemoveMessageL( messageId, *this ));
+        TRAPD(err, mRequestId = folder->RemoveMessageL(messageId, *this));
         
         if(err == KErrFSMailPluginNotSupported) {
             // async version not supported, use sync version
-            folder->RemoveMessageL( messageId );
+            folder->RemoveMessageL(messageId);
             completeOperation(NmNoError);
         } else if (KErrNone != err) {
             completeOperation(NmGeneralError);
         }
     }
     else {
-        User::Leave( KErrNotFound );
+        User::Leave(KErrNotFound);
     }
     CleanupStack::PopAndDestroy(folder);
 }

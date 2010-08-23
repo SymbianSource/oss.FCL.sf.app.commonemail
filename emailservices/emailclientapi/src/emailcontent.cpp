@@ -18,7 +18,7 @@
 #include <apmstd.h>
 
 #include "emailcontent.h"
-#include "cfsmailclient.h"
+#include "CFSMailClient.h"
 #include "emailclientapi.hrh"
 #include "emailapiutils.h"
 

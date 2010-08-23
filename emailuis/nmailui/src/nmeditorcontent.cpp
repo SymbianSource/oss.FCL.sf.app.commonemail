@@ -35,7 +35,6 @@ NmEditorContent::NmEditorContent(QObject *parent,
                                  NmApplication &application) :
     QObject(parent),
     mHeader(NULL),
-    mMessageBodyType(NmPlainText),
     mEditorWidget(NULL),
     mScrollArea(NULL),
     mScrollAreaContents(NULL),
@@ -89,55 +88,61 @@ NmEditorContent::~NmEditorContent()
 }
 
 /*!
-    Fill message data into header and body fileds. If reply envelopw is
-    present, reply header is generated and set to editor. Reply
-    envelope ownership is not transferred here.
+    Sets the body content. If reply envelopw is present, reply header is generated and set to 
+    editor. Reply envelope ownership is not transferred here.
  */
-void NmEditorContent::setMessageData(const NmMessage &originalMessage, 
-                                     NmUiEditorStartMode &editorStartMode)
+void NmEditorContent::setBodyContent(NmUiEditorStartMode editorStartMode,
+                                     const NmMessage *originalMessage, 
+                                     const QString *signature)
 {
     NM_FUNCTION;
     
     QString bodyContent;
+    
+    // first insert the signature
+    if (signature) {
+        bodyContent.append("<html><body><br><br>");
+        bodyContent.append(*signature);
+        bodyContent.append("<br></body></html>");
+    }
+    
 	QTextCursor cursor(mEditorWidget->document());
     
     // Create the "reply" header (also for forward message)
-    if (editorStartMode==NmUiEditorReply || editorStartMode==NmUiEditorReplyAll || 
-        editorStartMode==NmUiEditorForward) {
+	// sets the font color of the reply header and the original body text to black
+    if ((editorStartMode==NmUiEditorReply || editorStartMode==NmUiEditorReplyAll || 
+        editorStartMode==NmUiEditorForward) && originalMessage) {
 		bodyContent.append(QString("<style type=\"text/css\">* { color: black; }</style>"));
-        bodyContent.append(NmUtilities::createReplyHeader(originalMessage.envelope()));
+        bodyContent.append(NmUtilities::createReplyHeader(originalMessage->envelope()));
     }
     
     // Check which part is present. Html or plain text part. We use the original message parts.
-    const NmMessagePart *htmlPart = originalMessage.htmlBodyPart();
-    const NmMessagePart *plainPart = originalMessage.plainTextBodyPart();
+    const NmMessagePart *htmlPart = NULL;
+    const NmMessagePart *plainPart = NULL;
+    if (originalMessage) {
+        htmlPart = originalMessage->htmlBodyPart();
+        plainPart = originalMessage->plainTextBodyPart();
+    }
  
     if (htmlPart) {
         bodyContent.append(htmlPart->textContent());
         if(editorStartMode==NmUiEditorReply || editorStartMode==NmUiEditorReplyAll ) {
             removeEmbeddedImages(bodyContent);
         }
-        cursor.insertHtml(bodyContent);
-        mMessageBodyType = NmHTMLText;
     }
     else if (plainPart) {
-        // Plain text part was present, set it to HbTextEdit
+        // Plain text part was present, set it to HbTextEdit as HTML
+        bodyContent.append(QString("<html><body><p>"));
         bodyContent.append(plainPart->textContent());
-        cursor.insertText(bodyContent);
-        mMessageBodyType = NmPlainText;
-        
-		// Next we set text color for black for all current content
-        QTextCharFormat blackForeground;
-    	blackForeground = cursor.charFormat();
-    	blackForeground.setForeground(Qt::black);
-    	cursor.select(QTextCursor::Document);
-    	cursor.mergeCharFormat(blackForeground);
+        bodyContent.append(QString("</p></body></html>"));
     }
+    cursor.insertHtml(bodyContent);
+
     // Update of the body width is done when next contentChanged signal comes from the body.
     mNeedForWidthAdjustment = true;
 	cursor.clearSelection();
 	cursor.setPosition(0);
-	cursor.insertHtml(QString("<html><body><br><br></body></html>"));
+	cursor.insertHtml(QString("<html><body></body></html>"));
 }  
 
 /*!
@@ -181,8 +186,8 @@ void NmEditorContent::createConnections()
 
     // Listen scroll posion change signals for header reposition.
     connect(mScrollArea, SIGNAL(scrollPositionChanged(QPointF)),
-    		mHeader, SLOT(repositHeader(QPointF)));
-
+       		this, SLOT(repositHeader(QPointF)));
+    
     // Listen content change signal for body widget width adjustment.
     connect(mEditorWidget->document(), SIGNAL(contentsChanged()), this, 
         SLOT(setEditorContentWidth()), Qt::QueuedConnection);
@@ -313,3 +318,40 @@ void NmEditorContent::removeEmbeddedImages(QString &bodyContent)
     QRegExp regExp(NMUI_EDITOR_REMOVE_EMBD_IMAGES_REG, Qt::CaseInsensitive);
     bodyContent.remove(regExp);
 }
+
+/*!
+    This slot is called when scroll position has been changed.
+    Function create translation object which is used to set new position for
+    header so that header stays visible when body is scrolled horizontally.
+ */
+void NmEditorContent::repositHeader(const QPointF &scrollPosition)
+{
+    NM_FUNCTION;
+    
+    // Get the layout's left margin
+    qreal margin = 0;
+    HbStyle().parameter("hb-param-margin-gene-left", margin);
+    
+    // Calculate header width. (Screen width minus left and right margins.
+    qreal headerWidth = mApplication.screenSize().width() - margin - margin;
+
+    // Create translation object for header position adjustment.
+    QRectF editorBodyRect = mEditorWidget->geometry();
+    QTransform tr;
+    qreal leftMovementThreshold(editorBodyRect.width() - headerWidth);
+    if (scrollPosition.x() < 0) {
+        // Left side positioning. Allow left side baunch effect.
+        tr.translate(editorBodyRect.topLeft().x() - margin ,0);
+    }
+    else if (scrollPosition.x() >= 0 && scrollPosition.x() < leftMovementThreshold) {
+        // Middle area positioning
+        tr.translate(scrollPosition.x() ,0);
+    }
+    else {
+        // Right side positioning. Allow right side baunch effect.
+        tr.translate(editorBodyRect.topLeft().x() + leftMovementThreshold - margin ,0);
+    }
+    // Call header to perform the translation which moves hader to new position.
+    mHeader->repositHeader(tr);
+}
+

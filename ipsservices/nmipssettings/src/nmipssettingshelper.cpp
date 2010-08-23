@@ -100,7 +100,8 @@ NmIpsSettingsHelper::NmIpsSettingsHelper(NmIpsSettingsManagerBase &settingsManag
   mOutgoingPortInputValidator(0),
   mDestinationDialog(0),
   mServerInfoDynamicItemsVisible(false),
-  mAbortDynamicRSItemHandling(false)
+  mAbortDynamicRSItemHandling(false),
+  mCurrentRefreshIndex(-1)
 {
 }
 
@@ -315,9 +316,12 @@ void NmIpsSettingsHelper::createOrUpdateReceivingScheduleGroupDynamicItem(
                                      << HbStringUtil::convertDigits(hbTrId("txt_mailips_setlabel_val_every_1_hour"))
                                      << HbStringUtil::convertDigits(hbTrId("txt_mailips_setlabel_val_every_4_hours"));
                     formItemData->setContentWidgetData("items", refreshMailItems);
-                    mDataForm.addConnection(
-                        formItemData, SIGNAL(valueChanged(QPersistentModelIndex, QVariant)),
-                        this, SLOT(refreshPeriodModified(QPersistentModelIndex, QVariant)));
+                    
+                    mDataForm.addConnection(formItemData, SIGNAL(finished(HbAction *)),
+                           this, SLOT(refreshPeriodModified(HbAction *)));
+                    
+                    mDataForm.addConnection(formItemData, SIGNAL(itemSelected(int)),
+                           this, SLOT(refreshIndexModified(int)));
                 }
 
                 // Update data
@@ -1095,28 +1099,6 @@ void NmIpsSettingsHelper::startTimeModified(QTime time)
 }
 
 /*!
-    Handles refresh period modifications.
-    \param value Selected value as a text.
-*/
-void NmIpsSettingsHelper::refreshPeriodModified(QPersistentModelIndex, QVariant value)
-{
-    QMap<QString, int> conversionTable;
-    conversionTable[HbStringUtil::convertDigits(hbTrId("txt_mailips_setlabel_val_keep_uptodate"))] = 5;
-    conversionTable[HbStringUtil::convertDigits(hbTrId("txt_mailips_setlabel_val_every_15_minutes"))] = 15;
-    conversionTable[HbStringUtil::convertDigits(hbTrId("txt_mailips_setlabel_val_every_1_hour"))] = 60;
-    conversionTable[HbStringUtil::convertDigits(hbTrId("txt_mailips_setlabel_val_every_4_hours"))] = 240;
-
-    int selectedValue(conversionTable.value(value.toString()));
-    QVariant previouslySelectedValue;
-    mSettingsManager.readSetting(IpsServices::ReceptionRefreshPeriodDayTime,
-        previouslySelectedValue);
-    if (selectedValue != previouslySelectedValue.toInt()) {
-        handleReceivingScheduleSettingChange(IpsServices::ReceptionRefreshPeriodDayTime,
-            selectedValue);
-    }
-}
-
-/*!
     Handles end time modifications.
     \param time Modified start time.
 */
@@ -1520,4 +1502,41 @@ void NmIpsSettingsHelper::connectionButtonPress()
 
     // Open the dialog.
     mDestinationDialog->open();
+}
+
+/*!
+Handles refresh period modifications.
+
+Index   Value
+0       5 minutes
+1       15 minutes
+2       60 minutes
+3       240 minutes
+
+\param index The index value of the selection.
+*/
+void NmIpsSettingsHelper::refreshIndexModified(int index)
+{
+    mCurrentRefreshIndex = index;
+}
+
+/*!
+    Handles refresh period modifications.
+    \param action Action that determines whether user clicked OK or cancel.
+*/
+void NmIpsSettingsHelper::refreshPeriodModified(HbAction *action)
+{
+    if ((action->text() == hbTrId("txt_common_button_ok")
+            && (mCurrentRefreshIndex >=0 && mCurrentRefreshIndex <=3))) {
+        int conversionTable[] = { 5, 15, 60, 240 };
+        int selectedValue(conversionTable[mCurrentRefreshIndex]);
+        QVariant previouslySelectedValue;
+        mSettingsManager.readSetting(IpsServices::ReceptionRefreshPeriodDayTime,
+            previouslySelectedValue);
+        if (selectedValue != previouslySelectedValue.toInt()) {
+            handleReceivingScheduleSettingChange(IpsServices::ReceptionRefreshPeriodDayTime,
+                selectedValue);
+        }
+    }
+    mCurrentRefreshIndex = -1;
 }

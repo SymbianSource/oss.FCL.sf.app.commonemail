@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -63,8 +63,8 @@ CFSMailMessageBase::CFSMailMessageBase(): iSender(NULL)
     NM_FUNCTION;
     
 // <qmail> unnecessary member initialization removed: iSubject, iFlags </qmail>
-  	// set request handler pointer
-	iRequestHandler = static_cast<CFSMailRequestHandler*>(Dll::Tls());
+    // set request handler pointer
+  iRequestHandler = static_cast<CFSMailRequestHandler*>(Dll::Tls());
 }
 
 // -----------------------------------------------------------------------------
@@ -78,13 +78,13 @@ EXPORT_C void CFSMailMessageBase::ConstructL( TFSMailMsgId aMessageId )
     // Construction of shared data object
     iNmPrivateMessageEnvelope = new NmMessageEnvelopePrivate();
 
-	// typedef long int TInt32 -> typedef unsigned int quint32
+  // typedef long int TInt32 -> typedef unsigned int quint32
     iNmPrivateMessageEnvelope->mMessageId.setId32((quint32)aMessageId.Id() );
 
-	// typedef unsigned int TUint -> typedef unsigned int quint32
+  // typedef unsigned int TUint -> typedef unsigned int quint32
     iNmPrivateMessageEnvelope->mMessageId.setPluginId32((quint32)aMessageId.PluginId().iUid);
 
-    // construct the CFSMailAddress object and connect it with NmAddress private data
+    // construct the CFSMailAddress object and connect it with NmAddress private data 
     iSender = CFSMailAddress::NewL(iNmPrivateMessageEnvelope->mSender);
 // </qmail>
 }
@@ -109,11 +109,11 @@ EXPORT_C CFSMailMessageBase::~CFSMailMessageBase()
 {
     NM_FUNCTION;
     
-	if(iSender)
-		{
-		delete iSender;
-		iSender = NULL;
-		}
+  if(iSender)
+    {
+    delete iSender;
+    iSender = NULL;
+    }
 // <qmail> unnecessary member destruction removed: iSubject, iToRecipients, iCcRecipients, iBccRecipients </qmail>
 }
 
@@ -132,7 +132,7 @@ EXPORT_C TFSMailMsgId CFSMailMessageBase::GetMessageId(  ) const
     if(id.IsNullId()){
         id = TFSMailMsgId(iNmPrivateMessageEnvelope->mFolderId);
     }
-	
+  
     return id;
 // </qmail>
 }
@@ -210,13 +210,20 @@ EXPORT_C void CFSMailMessageBase::SetSender(CFSMailAddress* aSender)
     NM_FUNCTION;
     
 // <qmail>
-	// store sender
-	if (iSender)
-		{
-		delete iSender;
+    // store sender
+    if (iSender)
+        {
+        delete iSender;
         iSender = NULL;
-		}
-	iSender = aSender;
+        }
+    if (!aSender) 
+        {
+        TRAP_IGNORE(iSender = CFSMailAddress::NewL());
+        }
+    else 
+        {
+        iSender = aSender;
+        }   
     iNmPrivateMessageEnvelope->mSender = iSender->GetNmAddress();
 // </qmail>
 }
@@ -228,7 +235,7 @@ EXPORT_C CFSMailAddress* CFSMailMessageBase::GetSender() const
 {
     NM_FUNCTION;
     
-	return iSender;
+  return iSender;
 }
 
 // -----------------------------------------------------------------------------
@@ -278,8 +285,10 @@ EXPORT_C void CFSMailMessageBase::AppendToRecipient(CFSMailAddress* aRecipient)
     NM_FUNCTION;
     
 // <qmail>
-    iNmPrivateMessageEnvelope->mToRecipients.append(
-        aRecipient->GetNmAddress());
+    if (aRecipient) 
+        {
+        iNmPrivateMessageEnvelope->mToRecipients.append(aRecipient->GetNmAddress());
+        }
 // </qmail>
 }
 
@@ -291,8 +300,11 @@ EXPORT_C void CFSMailMessageBase::AppendCCRecipient(CFSMailAddress* aRecipient )
     NM_FUNCTION;
     
 // <qmail>
-    iNmPrivateMessageEnvelope->mCcRecipients.append(
-        aRecipient->GetNmAddress());
+    if (aRecipient) 
+        {
+        iNmPrivateMessageEnvelope->mCcRecipients.append(
+            aRecipient->GetNmAddress());
+        }
 // </qmail>
 }
 
@@ -304,8 +316,11 @@ EXPORT_C void CFSMailMessageBase::AppendBCCRecipient( CFSMailAddress* aRecipient
     NM_FUNCTION;
     
 // <qmail>
-    iNmPrivateMessageEnvelope->mBccRecipients.append(
-        aRecipient->GetNmAddress());
+    if (aRecipient)
+        {
+        iNmPrivateMessageEnvelope->mBccRecipients.append(
+            aRecipient->GetNmAddress());
+        }
 // </qmail>      
 }
 
@@ -313,37 +328,37 @@ EXPORT_C void CFSMailMessageBase::AppendBCCRecipient( CFSMailAddress* aRecipient
 // CFSMailMessageBase::ClearToRecipients
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailMessageBase::ClearToRecipients( )
-	{
+{
     NM_FUNCTION;
     
 // <qmail>
     iNmPrivateMessageEnvelope->mToRecipients.clear();
 // </qmail>
-	}
+}
 
 // -----------------------------------------------------------------------------
 // CFSMailMessageBase::ClearCcRecipients
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailMessageBase::ClearCcRecipients( )
-	{
+{
     NM_FUNCTION;
     
 // <qmail>
     iNmPrivateMessageEnvelope->mCcRecipients.clear();
 // </qmail>
-	}
+}
 
 // -----------------------------------------------------------------------------
 // CFSMailMessageBase::ClearBccRecipients
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailMessageBase::ClearBccRecipients( )
-	{
+{
     NM_FUNCTION;
     
 // <qmail>
     iNmPrivateMessageEnvelope->mBccRecipients.clear();
 // </qmail>
-	}
+}
 
 //<qmail>
 // -----------------------------------------------------------------------------
@@ -451,38 +466,18 @@ EXPORT_C TBool CFSMailMessageBase::IsFlagSet(const TInt aFlag) const
 }
 
 // -----------------------------------------------------------------------------
-// CFSMailMessageBase::IsRelatedTo
-// -----------------------------------------------------------------------------
-EXPORT_C TFSMailMsgId CFSMailMessageBase::IsRelatedTo() const
-	{
-    NM_FUNCTION;
-    
-	return iRelatedTo;
-	}
-
-// -----------------------------------------------------------------------------
-// CFSMailMessageBase::SetRelatedTo
-// -----------------------------------------------------------------------------
-EXPORT_C void CFSMailMessageBase::SetRelatedTo( const TFSMailMsgId aMessageId )
-	{
-    NM_FUNCTION;
-    
-	iRelatedTo = aMessageId;
-	}
-
-// -----------------------------------------------------------------------------
 // CFSMailMessageBase::SetReplyToAddress
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailMessageBase::SetReplyToAddress(CFSMailAddress* aReplyToAddress)
 {
     NM_FUNCTION;
     
-	// store sender
-	if (iReplyTo)
-		{
-		delete iReplyTo;
-		}
-	iReplyTo = aReplyToAddress;
+  // store sender
+  if (iReplyTo)
+    {
+    delete iReplyTo;
+    }
+  iReplyTo = aReplyToAddress;
 
 }
 
@@ -493,14 +488,14 @@ EXPORT_C const CFSMailAddress& CFSMailMessageBase::GetReplyToAddress()
 {
     NM_FUNCTION;
     
-	return *iReplyTo;
+    return *iReplyTo;
 }
 
 EXPORT_C CFSMailRequestHandler& CFSMailMessageBase::RequestHandler( )
 {
     NM_FUNCTION;
     
-	return *iRequestHandler;
+    return *iRequestHandler;
 }
 
 // <qmail>

@@ -254,8 +254,6 @@ bool NmUriServiceInterface::view(const QString& uri)
         cancelService();
     }
     else { // count > 0
-        // Make sure the NMail application is in the foreground.
-        XQServiceUtil::toBackground(false);
         if (mainWindow) {
             mainWindow->show();        
         }
@@ -287,6 +285,11 @@ bool NmUriServiceInterface::view(const QString& uri)
                 mSelectionDialog =
                     new NmMailboxSelectionDialog(mUiEngine.mailboxListModel());
             }
+            
+            if (!XQServiceUtil::isEmbedded()) {
+                XQServiceUtil::toBackground(false);
+            }
+            
             connect(mSelectionDialog,SIGNAL(selectionDialogClosed(NmId&)),
                 this,SLOT(selectionDialogClosed(NmId&)));
             mSelectionDialog->open();
@@ -314,6 +317,11 @@ void NmUriServiceInterface::launchEditorView(NmId mailboxId)
     }
 
     if (mStartParam) {
+        // Make sure the NMail application is in the foreground
+        if (!XQServiceUtil::isEmbedded()) {
+            XQServiceUtil::toBackground(false);    
+        }
+        
         mStartParam->setMailboxId(mailboxId);
         mApplication->enterNmUiView(mStartParam);
         mStartParam = NULL; // ownership passed

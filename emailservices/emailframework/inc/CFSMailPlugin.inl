@@ -177,3 +177,13 @@ inline void CFSMailPlugin::DeleteMessagesByUidL( const TFSMailMsgId& /*aMailBoxI
     User::Leave( KErrFSMailPluginNotSupported );
     }
 // </qmail>
+
+// <qmail>
+// -----------------------------------------------------------------------------
+// CFSMailPlugin::GetSignatureL
+// -----------------------------------------------------------------------------
+inline HBufC* CFSMailPlugin::GetSignatureL( const TFSMailMsgId& /*aMailBoxId*/ )
+    {
+    return NULL;
+    }
+// </qmail>

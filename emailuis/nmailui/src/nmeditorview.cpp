@@ -58,7 +58,6 @@ NmEditorView::NmEditorView(
       mAttachmentPicker(NULL),
       mCcBccFieldVisible(false),
       mServiceSendingDialog(NULL),
-      mIsNotFetchedBefore(true),
       mHiddenPriorityName(NmPriorityNormal)
 {
     NM_FUNCTION;
@@ -66,8 +65,6 @@ NmEditorView::NmEditorView(
     mDocumentLoader	= new HbDocumentLoader();
     // Set object name
     setObjectName("NmEditorView");
-    // Set mailbox name to title pane
-    setMailboxName();
     // call the createToolBar on load view layout
     createToolBar();
     // Load view layout
@@ -301,29 +298,36 @@ void NmEditorView::okToExitQuery(HbAction *action)
     HbMessageBox *dlg = static_cast<HbMessageBox*>(sender());
     // The first action in dialogs action list is for the "Yes"-button.
     if (action == dlg->actions().at(0)) {
-        
-        // Update draft message with content.
-        updateMessageWithEditorContents();
-
-        // Save message to drafts
-        QList<NmOperation *> preliminaryOperations;
-        if (mAddAttachmentOperation && mAddAttachmentOperation->isRunning()) {
-            preliminaryOperations.append(mAddAttachmentOperation);
-        }
-        if (mRemoveAttachmentOperation && mRemoveAttachmentOperation->isRunning()) {
-            preliminaryOperations.append(mRemoveAttachmentOperation);
-        }
-        // ownership of mMessage is transferred
-        // NmOperations are automatically deleted after completion
-        mUiEngine.saveDraftMessage(mMessage, preliminaryOperations);
-        mMessage = NULL;
-        preliminaryOperations.clear();
+        safeToDraft();
     }    
     
     // Close the view
     QMetaObject::invokeMethod(&mApplication,
                               "popView",
                               Qt::QueuedConnection);
+}
+
+/*!
+    Public slot to handle draft saving.
+*/
+void NmEditorView::safeToDraft()
+{
+    // Update draft message with content.
+    updateMessageWithEditorContents();
+
+    // Save message to drafts
+    QList<NmOperation *> preliminaryOperations;
+    if (mAddAttachmentOperation && mAddAttachmentOperation->isRunning()) {
+        preliminaryOperations.append(mAddAttachmentOperation);
+    }
+    if (mRemoveAttachmentOperation && mRemoveAttachmentOperation->isRunning()) {
+        preliminaryOperations.append(mRemoveAttachmentOperation);
+    }
+    // ownership of mMessage is transferred
+    // NmOperations are automatically deleted after completion
+    mUiEngine.saveDraftMessage(mMessage, preliminaryOperations);
+    mMessage = NULL;
+    preliminaryOperations.clear();
 }
 
 /*!
@@ -356,6 +360,9 @@ void NmEditorView::aboutToExitView()
 void NmEditorView::viewReady()
 {
     NM_FUNCTION;
+
+    // Set mailbox name to title pane
+    setMailboxName();
     
     // Connect options menu about to show to create options menu function
     // Menu needs to be create "just-in-time"
@@ -389,6 +396,9 @@ void NmEditorView::viewReady()
     else { // execution cannot proceed without start param 
         QMetaObject::invokeMethod(&mApplication, "popView", Qt::QueuedConnection);
     }
+    
+    // Adjust the header width according to the current screen width.
+    mHeaderWidget->adjustHeaderWidth(); 
 }
 
 /*!
@@ -400,24 +410,20 @@ void NmEditorView::fetchMessageIfNeeded(NmUiStartParam &startParam)
 {
     NM_FUNCTION;
     
-    if (mIsNotFetchedBefore == true) {
-        if (startParam.editorStartMode() == NmUiEditorForward
-            || startParam.editorStartMode()== NmUiEditorReply
-            || startParam.editorStartMode() == NmUiEditorReplyAll) {
-        
-            fetchProgressDialogShow();
-            mAttaManager.clearObserver();
-            mAttaManager.setObserver(this);
-            mAttaManager.fetchAllMessageParts(
-                startParam.mailboxId(),
-                startParam.folderId(),
-                startParam.messageId());
-        }
-        else {
-            startMessageCreation(startParam);
-        }
-        
-        mIsNotFetchedBefore = false;
+    if (startParam.editorStartMode() == NmUiEditorForward
+        || startParam.editorStartMode()== NmUiEditorReply
+        || startParam.editorStartMode() == NmUiEditorReplyAll) {
+    
+        fetchProgressDialogShow();
+        mAttaManager.clearObserver();
+        mAttaManager.setObserver(this);
+        mAttaManager.fetchAllMessageParts(
+            startParam.mailboxId(),
+            startParam.folderId(),
+            startParam.messageId());
+    }
+    else {
+        startMessageCreation(startParam);
     }
 }
 
@@ -443,34 +449,30 @@ void NmEditorView::fetchCompleted(int result)
         startMessageCreation(*mStartParam);
     }
     else {
-        // Show the fetching failed note only when
-        // the error is not Device/System errors, 
+        // Close "Loading mail content" dialog
+        mWaitDialog->close();
+        
+        // Show a fetching failed note when the failure is not caused by a Device/System failure.
         if (result != NmNoError && 
             result != NmNotFoundError &&
             result != NmGeneralError &&
             result != NmCancelError &&
             result != NmAuthenticationError &&
             result != NmServerConnectionError &&
-            result != NmConnectionError) {
-            
-            HbNotificationDialog *note = new HbNotificationDialog(); 
-            
+            result != NmConnectionError) {         
+            HbNotificationDialog *note = new HbNotificationDialog();            
             bool enalbeAttribute(true);
-            note->setAttribute(Qt::WA_DeleteOnClose, enalbeAttribute);
-            
-            note->setIcon(HbIcon(QLatin1String("note_warning")));
-            
+            note->setAttribute(Qt::WA_DeleteOnClose, enalbeAttribute);           
+            note->setIcon(HbIcon(QLatin1String("note_warning")));        
             note->setTitle(hbTrId("txt_mail_dpopinfo_loading_failed"));
-            note->setTitleTextWrapping(Hb::TextWordWrap);
-            
+            note->setTitleTextWrapping(Hb::TextWordWrap);      
             note->setDismissPolicy(HbNotificationDialog::TapAnywhere);
-            note->setTimeout(HbNotificationDialog::StandardTimeout);
-            
+            note->setTimeout(HbNotificationDialog::StandardTimeout);       
             note->setSequentialShow(true);
             note->show();
         }
         
-        mWaitDialog->close();         
+        // Go back to Viewer view
         QMetaObject::invokeMethod(&mApplication, "popView", Qt::QueuedConnection);
     }
 }
@@ -498,11 +500,15 @@ void NmEditorView::fetchProgressDialogCancelled()
 {
     NM_FUNCTION;
     
-    if (mAttaManager.isFetching()) {
+    if (mAttaManager.isFetching()) { 
         mAttaManager.cancelFetch();
         mAttaManager.clearObserver();
     }
-    QMetaObject::invokeMethod(&mApplication, "popView", Qt::QueuedConnection);
+    else {   
+        // For those email has no attachment or attachment has fetched.
+        // Go back to Viewer view.
+        QMetaObject::invokeMethod(&mApplication, "popView", Qt::QueuedConnection);
+    }
 }
 
 void NmEditorView::startMessageCreation(NmUiStartParam &startParam)
@@ -566,10 +572,12 @@ void NmEditorView::startSending()
     
     if (invalidAddresses.count() > 0) {
         
-        // invalid addresses found, verify send from user
-        QString noteText = hbTrId("txt_mail_dialog_invalid_mail_address_send");
-        // set the first failing address to the note
-        noteText = noteText.arg(invalidAddresses.at(0).address());
+        // Invalid addresses found, verify send from user.
+        // Set the first failing address to the note.
+        QString noteText = 
+            HbParameterLengthLimiter(
+                "txt_mail_dialog_invalid_mail_address_send"
+                ).arg(invalidAddresses.at(0).address());
         
         if (mQueryDialog) {
             delete mQueryDialog;
@@ -790,7 +798,8 @@ void NmEditorView::fillEditorWithMessageContents()
     if (ccAddressesString.length() || bccAddressesString.length()) {
         // Since cc or/and bcc recipients exist, expand the group box to display
         // the addresses by expanding the group box.
-        mContent->header()->setFieldVisibility(true);
+        mCcBccFieldVisible = true;
+        mHeaderWidget->setFieldVisibility(mCcBccFieldVisible);
     }
 
     // Set subject.
@@ -814,6 +823,8 @@ void NmEditorView::fillEditorWithMessageContents()
     }
     mHeaderWidget->setPriority(messageEnvelope.priority());
     
+    NmMessage *originalMessage = NULL;
+    
     // Set the message body.
     if (editorStartMode==NmUiEditorReply||
         editorStartMode==NmUiEditorReplyAll||
@@ -821,9 +832,9 @@ void NmEditorView::fillEditorWithMessageContents()
         editorStartMode==NmUiEditorFromDrafts){
 
         // Use the body from the original message.
-        NmMessage *originalMessage = mUiEngine.message(mStartParam->mailboxId(), 
-                                                       mStartParam->folderId(), 
-                                                       mStartParam->messageId());
+        originalMessage = mUiEngine.message(mStartParam->mailboxId(), 
+                                            mStartParam->folderId(), 
+                                            mStartParam->messageId());
 
         if (originalMessage) {
             NmMessagePart *plainPart = originalMessage->plainTextBodyPart();
@@ -844,13 +855,22 @@ void NmEditorView::fillEditorWithMessageContents()
                                                *htmlPart);
             }
 
-		mContent->setMessageData(*originalMessage, editorStartMode);
         }
 
-        delete originalMessage;
-        originalMessage = NULL;
     }
     
+    QString *signature = NULL;
+    // return value is not relevant here
+    mUiEngine.getSignature(mStartParam->mailboxId(), signature);
+    
+    mContent->setBodyContent(editorStartMode, originalMessage, signature);
+
+    delete signature;
+    signature = NULL;
+
+    delete originalMessage;
+    originalMessage = NULL;
+
     // Get list of attachments from the message and set those into UI attachment list
     QList<NmMessagePart*> attachments;
     mMessage->attachmentList(attachments);
@@ -901,8 +921,11 @@ void NmEditorView::createToolBar()
                 
                 if (extension && mAttachmentPicker) {
                     connect(mAttachmentPicker, SIGNAL(attachmentsFetchOk(const QVariant &)),
-                        this, SLOT(onAttachmentReqCompleted(const QVariant &)));            
+                        this, SLOT(onAttachmentReqCompleted(const QVariant &)));
                     
+                    connect(this, SIGNAL(titleChanged(QString)), mAttachmentPicker,
+                        SLOT(setTitle(QString)));
+
                     list[i]->setToolBarExtension(extension);
                     
                     //content widget to get the items to a list
@@ -1545,6 +1568,11 @@ void NmEditorView::enableToolBarAttach(bool enable)
             NmAction *action = static_cast<NmAction *>(toolbarList[i]);
             if (action->availabilityCondition() == NmAction::NmAttachable) {
                 action->setEnabled(enable);
+                if (enable) {
+                    // For some reason 'Add attachment' toolbar button stays dimmed sometimes,
+                    // showItems will fix the situation.
+                    showItems(Hb::ToolBarItem);
+                }
             }
         }
     }

@@ -23,7 +23,7 @@
 #include <e32std.h>
 #include <e32base.h>
 
-#include "cfsmailclient.h"
+#include "CFSMailClient.h"
 #include <memailcontent.h>
 #include "emailapiutils.h"
 

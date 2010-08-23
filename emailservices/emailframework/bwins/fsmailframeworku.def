@@ -29,4 +29,5 @@ EXPORTS
 	?NewL@CFSMailClient@@SAPAV1@XZ @ 28 NONAME ; class CFSMailClient * CFSMailClient::NewL(void)
 	?AddObserverL@CFSMailClient@@QAEXAAVMFSMailEventObserver@@@Z @ 29 NONAME ; void CFSMailClient::AddObserverL(class MFSMailEventObserver &)
 	?IncReferenceCount@CFSMailClient@@QAEHXZ @ 30 NONAME ; int CFSMailClient::IncReferenceCount(void)
+	?GetSignatureL@CFSMailClient@@QAEPAVHBufC16@@ABVTFSMailMsgId@@@Z @ 31 NONAME ; class HBufC16 * CFSMailClient::GetSignatureL(class TFSMailMsgId const &)
 

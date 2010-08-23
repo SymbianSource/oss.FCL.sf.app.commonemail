@@ -18,7 +18,7 @@
 #ifndef MEMAILPLUGINMANAGER_H_
 #define MEMAILPLUGINMANAGER_H_
 
-#include "cfsmailcommon.h"
+#include "CFSMailCommon.h"
 
 class MEmailClientPluginManager
     {

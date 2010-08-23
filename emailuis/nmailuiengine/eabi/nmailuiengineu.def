@@ -39,11 +39,11 @@ EXPORTS
 	_ZN10NmUiEngine18operationCompletedERK26NmOperationCompletionEvent @ 38 NONAME
 	_ZN10NmUiEngine18removeDraftMessageEP9NmMessage @ 39 NONAME
 	_ZN10NmUiEngine18updateActiveFolderERK4NmIdS2_ @ 40 NONAME
-	_ZN10NmUiEngine19getStaticMetaObjectEv @ 41 NONAME
-	_ZN10NmUiEngine20contentToMessagePartERK4NmIdS2_S2_R13NmMessagePart @ 42 NONAME
-	_ZN10NmUiEngine20createForwardMessageERK4NmIdS2_ @ 43 NONAME
-	_ZN10NmUiEngine20handleSyncStateEventE11NmSyncStateRK26NmOperationCompletionEvent @ 44 NONAME
-	_ZN10NmUiEngine22getPluginIdByMailboxIdEj @ 45 NONAME
+	_ZN10NmUiEngine19enableSyncIndicatorEb @ 41 NONAME
+	_ZN10NmUiEngine19getStaticMetaObjectEv @ 42 NONAME
+	_ZN10NmUiEngine20contentToMessagePartERK4NmIdS2_S2_R13NmMessagePart @ 43 NONAME
+	_ZN10NmUiEngine20createForwardMessageERK4NmIdS2_ @ 44 NONAME
+	_ZN10NmUiEngine20handleSyncStateEventE11NmSyncStateRK26NmOperationCompletionEvent @ 45 NONAME
 	_ZN10NmUiEngine22sendOperationCompletedEv @ 46 NONAME
 	_ZN10NmUiEngine23refreshMailboxListModelEv @ 47 NONAME
 	_ZN10NmUiEngine24messageEventForListModelE14NmMessageEventRK4NmIdRK5QListIS1_ES3_ @ 48 NONAME
@@ -319,5 +319,5 @@ EXPORTS
 	_ZThn8_N18NmBaseClientPlugin10getActionsERK15NmActionRequestR5QListIP8NmActionE @ 318 NONAME
 	_ZThn8_N18NmBaseClientPluginD0Ev @ 319 NONAME
 	_ZThn8_N18NmBaseClientPluginD1Ev @ 320 NONAME
-	_ZN10NmUiEngine19enableSyncIndicatorEb @ 321 NONAME
+	_ZN10NmUiEngine12getSignatureERK4NmIdRP7QString @ 321 NONAME
 

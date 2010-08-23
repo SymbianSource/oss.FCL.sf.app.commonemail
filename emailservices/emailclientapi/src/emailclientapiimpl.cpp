@@ -29,8 +29,8 @@
 #include "emailapiutils.h"
 #include "emailmailbox.h"
 #include <memailaddress.h>
-#include "cfsmailplugin.h"
-#include "cfsmailclient.h"
+#include "CFSMailPlugin.h"
+#include "CFSMailClient.h"
 #include "emailclientapiimpldefs.h"
 #include "emailmailboxcache.h"
 #include "emailclientapi.hrh"

@@ -19,7 +19,7 @@
 #define EMAILAPIUTILS_H
 
 #include <e32base.h>
-#include "cfsmailcommon.h"
+#include "CFSMailCommon.h"
 #include <emailapidefs.h>
 
 //using namespace EmailInterface;

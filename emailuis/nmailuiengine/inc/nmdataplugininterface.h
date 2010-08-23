@@ -192,6 +192,8 @@ public:
         const QList<quint64> &messageIds, 
         const NmId &sourceFolderId,
         const NmId &destinationFolderId) = 0;
+
+    virtual int getSignature(const NmId &mailboxId, QString *&signature) = 0;
 };
 
 Q_DECLARE_INTERFACE(NmDataPluginInterface, "sf.app.commonmail.emailuis.nmailuiengine.NmDataPluginInterface/1.0")

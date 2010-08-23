@@ -1157,6 +1157,28 @@ void NmUiEngine::enableSyncIndicator(bool enabled)
 	}
 }
 
+/*!
+    Gets the signature for the given mailbox.
+
+    \param mailboxId The mailbox id whose signature is asked.
+	\param signature The reference to the signature string pointer. NULL if no signature.
+*/
+int NmUiEngine::getSignature(const NmId &mailboxId, QString *&signature)
+{
+    NM_FUNCTION;
+    
+    int retVal(NmNoError);
+    
+    // Get the plugin interface.
+    NmDataPluginInterface *pluginInterface =
+        mPluginFactory->interfaceInstance(mailboxId);
+
+    if (pluginInterface) {
+        retVal = pluginInterface->getSignature(mailboxId, signature);
+    }
+    
+    return retVal;
+}
 
 /*!
     Emits signals based on message events coming from plugins.
@@ -1274,24 +1296,4 @@ void NmUiEngine::handleConnectEvent(NmConnectState connectState, const NmId &mai
         NmOperationCompletionEvent event={NoOp, errorCode, mailboxId, 0, 0};
         emit operationCompleted(event);
     }
-}
-
-/*!
-    returns full mailbox id from plain account id
-*/
-NmId NmUiEngine::getPluginIdByMailboxId(quint32 accountId)
-{
-    NM_FUNCTION;
-
-    NmId fullId = NULL;
-    fullId.setId32(accountId);
-    QList<NmId> mailboxList;
-    if(mDataManager){
-        mDataManager->listMailboxIds(mailboxList);
-        for(int i=0;i<mailboxList.count();i++){
-            if(mailboxList.at(i).id32() == accountId)
-                fullId.setPluginId32(mailboxList.at(i).pluginId32());
-            }
-        }
-    return fullId;
 }

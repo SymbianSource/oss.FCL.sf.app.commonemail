@@ -70,7 +70,9 @@ void NmViewerServiceInterface::viewMessage(QVariant mailboxId, QVariant folderId
     NmMessage *message = mUiEngine.message( mailboxNmId, folderNmId, messageNmId );
     if (message) {
         // bring application to foreground
-        XQServiceUtil::toBackground(false);
+        if (!XQServiceUtil::isEmbedded()) {
+            XQServiceUtil::toBackground(false);
+        }
         HbMainWindow *mainWindow = mApplication->mainWindow();
         mainWindow->show();
 

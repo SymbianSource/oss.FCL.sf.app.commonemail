@@ -21,8 +21,8 @@
 
 #include <implementationinformation.h> 
 #include "emailapiutils.h"
-#include "cfsmailcommon.h"
-#include "mfsmaileventobserver.h"    
+#include "CFSMailCommon.h"
+#include "MFSMailEventObserver.h"    
 #include <memailclientapi.h>
 #include "emailclientpluginmanager.h"
 

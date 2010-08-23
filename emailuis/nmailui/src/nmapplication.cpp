@@ -48,7 +48,8 @@ NmApplication::NmApplication(QObject *parent, quint64 accountId)
   mSettingsViewLauncher(NULL),
   mViewReady(false),
   mQueryDialog(NULL),
-  mBackButtonPressed(false)
+  mBackButtonPressed(false),
+  mApplicationHidden(false)
 {
     TRAP_IGNORE(mUiEngine = NmUiEngine::instance());
     
@@ -197,16 +198,7 @@ void NmApplication::createMainWindow()
     
     mMbListModel = &mUiEngine->mailboxListModel();
     
-    // ----------------------------------------------------------------------
-    // TODO: Remove or comment out the following code block when the mail
-    //       wizard starts to work with Mfe.
-    // ----------------------------------------------------------------------
-    // Start application to mailbox view. If started as service, there is no
-    // need to create views.
-    if (!service) {
-        NmUiStartParam *startParam = new NmUiStartParam(NmUiViewMailboxList);
-        enterNmUiView(startParam);
-    }
+
     // ----------------------------------------------------------------------
     
     if (mMainWindow) {
@@ -264,13 +256,16 @@ bool NmApplication::eventFilter(QObject *obj, QEvent *event)
     }
     else if (event && event->type() == QEvent::ApplicationActivate) {
         NM_COMMENT("NmApplication::eventFilter ApplicationActivate");
+        mApplicationHidden = false;
 		// Update task switcher name & screenshot, we could have activated into some other mailbox
         updateActivity();
     }
     else if (event && event->type() == QEvent::ApplicationDeactivate) {
         NM_COMMENT("NmApplication::eventFilter ApplicationDeactivate");
         // Update the screenshot in the taskswitcher to represent current state
-        updateActivity();
+        if (!mApplicationHidden) {
+            updateActivity();
+        }
         // hide the sync indicator when app goes to background
         mUiEngine->enableSyncIndicator(false);
     }
@@ -284,18 +279,24 @@ bool NmApplication::eventFilter(QObject *obj, QEvent *event)
 
 
 /*!
-    Push view to view stack.
+    Pushes the given view into the view stack. The new view is also activated
+    and shown. If the view stack contains other views, the one on the top is
+    hidden.
+
+    \param newView The view to push into the stack.
 */
 void NmApplication::pushView(NmBaseView *newView)
 {
     if (newView && mViewStack) {
-        NM_COMMENT("NmApplication::pushView() : view exists.");
+        NM_COMMENT("NmApplication::pushView(): The given view is valid.");
         newView->setNavigationAction(mBackAction);
         
-        // Store view to be hidden.
-        NmBaseView *hideView(NULL);
+        // Store the view to be hidden.
+        NmBaseView *viewToHide(NULL);
+
         if (!mViewStack->isEmpty()) {
-            hideView = mViewStack->top();
+            // The stack contains at least one other view.
+            viewToHide = mViewStack->top();
         }
 		else {
 			// viewReady should be informed immediately.
@@ -304,23 +305,26 @@ void NmApplication::pushView(NmBaseView *newView)
 			}
 		}
         
-        // Activate new view.
-    	NM_COMMENT("NmApplication::pushView() : add view.");
+        // Activate the new view.
+    	NM_COMMENT("NmApplication::pushView(): Adding the view into the stack.");
+
         mMainWindow->addView(newView);
         mViewStack->push(newView);
         mMainWindow->setCurrentView(newView);
-        mActiveViewId=newView->nmailViewId();
+        mActiveViewId = newView->nmailViewId();
         
-        // Set toolbars orientation.
+        // Set the orientation of the toolbar.
         HbToolBar *tb = newView->toolBar();
+
         if (tb) {
             tb->setOrientation(Qt::Horizontal);
         }
         
-        // Hide old view.
-        NM_COMMENT("NmApplication::pushView() : remove view.");
-        if (hideView) {
-            mMainWindow->removeView(hideView);
+        // Hide the old view.
+        NM_COMMENT("NmApplication::pushView(): Removing the previous view.");
+
+        if (viewToHide) {
+            mMainWindow->removeView(viewToHide);
         }
     }
 }
@@ -360,6 +364,8 @@ void NmApplication::prepareForPopView()
 */
 void NmApplication::hideApplication()
 {
+    mApplicationHidden = true;
+    
     // Hide the application
     XQServiceUtil::toBackground(true);
 
@@ -495,7 +501,7 @@ void NmApplication::enterNmUiView(NmUiStartParam *startParam)
         
         if (startParam->service() && mMainWindow) {
 			// When the message list is started as a service previous views
-            // are removed from the stack. Open editors are not closed. Also
+            // are removed from the stack. Open editors are closed. Also
             // if the view is same than the new one, keep it open (reload the
             // content).
             
@@ -538,27 +544,37 @@ void NmApplication::enterNmUiView(NmUiStartParam *startParam)
                 break;
                 case NmUiViewMessageList:
                 {
-                    // Check the topmost view. If it is an editor, do not open
-                    // a new mail list view.
-                    if (startParam->service() && !mViewStack->isEmpty() &&
+                    // Check the topmost view. If it is an editor, save to draft and close it.
+                    if (startParam->service() && !mViewStack->isEmpty() && 
                         mViewStack->top()->nmailViewId()==NmUiViewMessageEditor) {
-                        break;
+                        QMetaObject::invokeMethod(mViewStack->top(),
+                            "safeToDraft", Qt::DirectConnection);
+                        popView();
                     }
-                    NmMessageListModel *messageListModel = &mUiEngine->messageListModel(
-                                                startParam->mailboxId(), startParam->folderId());
-                    NmMessageListView *msgList =new NmMessageListView(
-                    		*this, startParam, *mUiEngine, *mMbListModel, messageListModel,
-                    		new HbDocumentLoader(mMainWindow));
+
+                    NmMessageListModel *messageListModel =
+                        &mUiEngine->messageListModel(startParam->mailboxId(),
+                                                     startParam->folderId());
+                    NmMessageListView *msgList =
+                        new NmMessageListView(*this, startParam, *mUiEngine,
+                                              *mMbListModel, messageListModel,
+                                              new HbDocumentLoader(mMainWindow));
                     pushView(msgList);
+                    
+                    // Inform other processes about this event.
+                    NmUiEventsNotifier::notifyViewStateChanged(NmUiEventsNotifier::NmViewShownEvent,
+                                                               NmUiViewMessageList,
+                                                               startParam->mailboxId());
                 }
                 break;
                 case NmUiViewMessageSearchList:
                 {
-                    // Check the topmost view. If it is an editor, do not open
-                    // a new mail search list view.
-                    if (startParam->service() && !mViewStack->isEmpty() &&
-                        mViewStack->top()->nmailViewId() == NmUiViewMessageEditor) {
-                        break;
+                    // Check the topmost view. If it is an editor, save to draft and close it.
+                    if (startParam->service() && !mViewStack->isEmpty() && 
+                        mViewStack->top()->nmailViewId()==NmUiViewMessageEditor) {
+                        QMetaObject::invokeMethod(mViewStack->top(),
+                            "safeToDraft", Qt::DirectConnection);
+                        popView();
                     }
                     
                     NmMessageListModel &model =
@@ -576,6 +592,13 @@ void NmApplication::enterNmUiView(NmUiStartParam *startParam)
                             mMainWindow, *mAttaManager));
                     break;
                 case NmUiViewMessageEditor:
+                    // Check the topmost view. If it is an editor, save to draft and close it.
+                    if (startParam->service() && !mViewStack->isEmpty() && 
+                        mViewStack->top()->nmailViewId()==NmUiViewMessageEditor) {
+                        QMetaObject::invokeMethod(mViewStack->top(),
+                            "safeToDraft", Qt::DirectConnection);
+                        popView();
+                    }
                     pushView(new NmEditorView(*this, startParam, *mUiEngine, *mAttaManager));
                     break;
                 default:
@@ -746,14 +769,23 @@ void NmApplication::launchSettings(HbAction* action)
 
 
 /*!
+   Check the foreground status of the application 
+   \return true if the application is in the foreground
+*/
+bool NmApplication::isForeground() const
+{
+    // At the moment there is no good way to check the foreground state.
+    QWindowSurface *surface = mMainWindow->windowSurface();
+    return (surface != 0);
+}
+
+/*!
 	Stores the visibility state, e.g. when the service was launched.
 	\return true if the app was visible.
 */
 bool NmApplication::updateVisibilityState()
 {
-    // At the moment there is no good way to check the foreground state.
-    QWindowSurface *surface = mMainWindow->windowSurface();
-	mForegroundService = (surface != 0);
+	mForegroundService = isForeground();
 	NM_COMMENT(QString("NmApplication::updateVisibilityState() : mForegroundService == %1").arg(mForegroundService));
 	return mForegroundService;
 }
@@ -768,24 +800,28 @@ void NmApplication::updateActivity()
     HbApplication* hbApp = dynamic_cast<HbApplication*>(parent());
 
     if (hbApp) {
-        if (meta) {
-            TsTaskSettings tasksettings;
-            tasksettings.setVisibility(false);
-            QVariantHash metadata;
-            metadata.insert(ActivityScreenshotKeyword, QPixmap::grabWidget(mainWindow(), mainWindow()->rect()));
-            metadata.insert(ActivityApplicationName, meta->name());
-            metadata.insert(ActivityVisibility, true);
-            hbApp->activityManager()->removeActivity(NmActivityName);
-            hbApp->activityManager()->addActivity(NmActivityName, QVariant(), metadata);
-        }
-        else {
-            hbApp->activityManager()->removeActivity(NmActivityName);
-            TsTaskSettings tasksettings;
-            tasksettings.setVisibility(true);
+        // This will ensure that when service is started as a embedded service and a mail 
+        // process already exists the task activity will show the embedded service inside the 
+        // calling processes activity and the already running mail process in its own activity.
+        if(!XQServiceUtil::isService() || !XQServiceUtil::isEmbedded()) {
+            if (meta) {
+                TsTaskSettings tasksettings;
+                tasksettings.setVisibility(false);
+                QVariantHash metadata;
+                metadata.insert(ActivityScreenshotKeyword, QPixmap::grabWidget(mainWindow(), mainWindow()->rect()));
+                metadata.insert(ActivityApplicationName, meta->name());
+                metadata.insert(ActivityVisibility, true);
+                hbApp->activityManager()->removeActivity(NmActivityName);
+                hbApp->activityManager()->addActivity(NmActivityName, QVariant(), metadata);
+            }
+            else {
+                hbApp->activityManager()->removeActivity(NmActivityName);
+                TsTaskSettings tasksettings;
+                tasksettings.setVisibility(true);
+            }
         }
     }
 }
-
 
 /*!
 	Switch to activated mailbox

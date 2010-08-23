@@ -23,6 +23,8 @@
 #include <hbframeitem.h>
 #include <hbcolorscheme.h>
 #include <hbevent.h>
+#include <hbtapgesture.h>
+#include <hbinstantfeedback.h>
 #include "nmicons.h"
 #include "nmcommon.h"
 #include "nmhswidgetemailrow.h"
@@ -40,6 +42,7 @@ NmHsWidgetEmailRow::NmHsWidgetEmailRow(QGraphicsItem *parent, Qt::WindowFlags fl
     mBackgroundLayoutItem(0)
 {
     NM_FUNCTION;
+    grabGesture(Qt::TapGesture);
 }
 
 /*!
@@ -121,7 +124,7 @@ bool NmHsWidgetEmailRow::loadDocML()
         mTimeLabel = static_cast<HbLabel*> (loader.findWidget(KNmHsWidgetMailRowTimeLabel));
     
         //icons
-        mNewMailIcon = static_cast<HbLabel*> (loader.findWidget(KNmHsWidgetMailRowNewMailIcon));
+        mNewMailIcon = static_cast<HbWidget*> (loader.findWidget(KNmHsWidgetMailRowNewMailIcon));
         // KNmHsWidgetMailRowLeftIcon is not yet used, because followup information is not shown in client side
         // and thus it is not wanted to be shown in widget side
         mStatusIcons.append(static_cast<HbLabel*> (loader.findWidget(KNmHsWidgetMailRowRightIcon)));
@@ -240,16 +243,18 @@ void NmHsWidgetEmailRow::updateDateTime()
     //Time shown if message is sent today, otherwise show date
     HbExtendedLocale locale = HbExtendedLocale::system();
     QDateTime now = QDateTime::currentDateTime();
-    if ( mMessageSentTime.date() == now.date() )
+    //change time to locale time. mMessageSentTime is always in GMT
+    QDateTime localTime = mMessageSentTime.addSecs(locale.universalTimeOffset());
+    if ( localTime.date() == now.date() )
         {
         //time format specification
         QString timeSpec = r_qtn_time_usual;
-        mTimeLabel->setPlainText( locale.format(mMessageSentTime.time(), timeSpec) );
+        mTimeLabel->setPlainText( locale.format(localTime.time(), timeSpec) );
         }
     else
         {
         QString dateSpec = r_qtn_date_without_year;
-        mTimeLabel->setPlainText( locale.format(mMessageSentTime.date(), dateSpec) );
+        mTimeLabel->setPlainText( locale.format(localTime.date(), dateSpec) );
         }
     }
 
@@ -380,27 +385,39 @@ void NmHsWidgetEmailRow::showHighlight( bool show )
     }
     }
 
-/*!
- mousePressEvent(QGraphicsSceneMouseEvent *event)
+/*
+ * NmHsWidgetEmailRow::gestureEvent(QGestureEvent *event)
  */
-void NmHsWidgetEmailRow::mousePressEvent(QGraphicsSceneMouseEvent *event)
+void NmHsWidgetEmailRow::gestureEvent(QGestureEvent *event)
 {
     NM_FUNCTION;
-    Q_UNUSED(event); 
-    setHighlighedFontsColor(true);
-    showHighlight(true);
-}
-
-/*!
-    mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
-*/
-void NmHsWidgetEmailRow::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
-{
-    NM_FUNCTION;
-    Q_UNUSED(event);
-    setHighlighedFontsColor(false);
-    showHighlight(false);
-    emit mailViewerLaunchTriggered(mMessageId);
+    if(!event){
+        return;
+    }
+    HbTapGesture *gesture = qobject_cast<HbTapGesture *>(event->gesture(Qt::TapGesture));
+    if(!gesture){
+        return;
+    }
+    switch (gesture->state()) {
+        case Qt::GestureStarted:
+            setHighlighedFontsColor(true);
+            showHighlight(true);
+        break;
+        case Qt::GestureCanceled:
+            setHighlighedFontsColor(false);
+            showHighlight(false);
+        break;
+        case Qt::GestureFinished:
+            setHighlighedFontsColor(false);
+            showHighlight(false);
+            if (gesture->tapStyleHint() == HbTapGesture::Tap) {
+                HbInstantFeedback::play(HbFeedback::BasicItem);
+                emit mailViewerLaunchTriggered(mMessageId);
+            }
+        break;
+    default: 
+        break;
+    }
 }
 
 /*

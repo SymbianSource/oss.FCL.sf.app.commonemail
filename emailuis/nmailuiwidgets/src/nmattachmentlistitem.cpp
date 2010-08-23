@@ -19,6 +19,8 @@
 
 static const QString FILE_PATH_WIDGETML = ":nmattachmentlistitem.widgetml";
 static const QString FILE_PATH_CSS = ":nmattachmentlistitem.css";
+static const QString LIST_ITEM_BG_FRAME_NORMAL ("qtg_fr_list_normal");
+static const QString LIST_ITEM_BG_FRAME_PRESSED("qtg_fr_list_pressed");
 
 static const int PROGRESSBAR_MIN = 0; 
 static const int PROGRESSBAR_MAX = 100;
@@ -43,7 +45,8 @@ NmAttachmentListItem::NmAttachmentListItem(QGraphicsItem *parent)
     : HbWidget( parent ),
       mFileNameText(NULL),
       mFileSizeText(NULL),
-      mProgressBar(NULL)
+      mProgressBar(NULL),
+      mBackGround(NULL)
 {
     NM_FUNCTION;
     
@@ -52,6 +55,8 @@ NmAttachmentListItem::NmAttachmentListItem(QGraphicsItem *parent)
     // Informs GestureFramework that NmAttachmentListItem widget is interested 
     // Tap gesture and TapAndHold gesture.
     grabGesture(Qt::TapGesture);
+    HbEffect::add("mailAttachmentWidget", "listviewitem_press", "pressed");
+    HbEffect::add("mailAttachmentWidget", "listviewitem_release", "released");
 }
 
 /*!
@@ -185,19 +190,34 @@ void NmAttachmentListItem::constructUi()
 {
     NM_FUNCTION;
     
+    //background
+    QScopedPointer<HbFrameItem> backGround(new HbFrameItem(this));
+    backGround->frameDrawer().setFrameGraphicsName(LIST_ITEM_BG_FRAME_NORMAL);
+    backGround->frameDrawer().setFrameType(HbFrameDrawer::NinePieces);
+    setBackgroundItem(backGround.data());
+    // ownership was transferred to base class
+    mBackGround = backGround.take();
+    
+    
     //construct default ui.    
     HbStyleLoader::registerFilePath(FILE_PATH_WIDGETML);
     HbStyleLoader::registerFilePath(FILE_PATH_CSS);
     
-    mFileNameText = new HbTextItem(this); 
-    mFileNameText->setObjectName("nmattachmentlistitem_filenametext");
-    HbStyle::setItemName( mFileNameText, "filename" );    
-    mFileNameText->setElideMode(Qt::ElideRight);
-
-    mFileSizeText = new HbTextItem(this); 
-    mFileSizeText->setObjectName("nmattachmentlistitem_filenamesize");
-    HbStyle::setItemName( mFileSizeText, "filesize" );
-    mFileSizeText->setElideMode(Qt::ElideNone);
+    
+    QScopedPointer<HbTextItem> fileNameText(new HbTextItem(this));
+    fileNameText->setObjectName("nmattachmentlistitem_filenametext");
+    HbStyle::setItemName( fileNameText.data(), "filename" );  
+    fileNameText->setElideMode(Qt::ElideRight);
+    
+    
+    QScopedPointer<HbTextItem> fileSizeText(new HbTextItem(this));
+    fileSizeText->setObjectName("nmattachmentlistitem_filenamesize");
+    HbStyle::setItemName( fileSizeText.data(), "filesize" );
+    fileSizeText->setElideMode(Qt::ElideNone);
+    
+    // ownership transferred to this object
+    mFileSizeText = fileSizeText.take(); 
+    mFileNameText = fileNameText.take();
 }
 
 
@@ -220,25 +240,32 @@ void NmAttachmentListItem::removeProgressBar()
 /*!
     This function handles gestures
  */
+
 void NmAttachmentListItem::gestureEvent(QGestureEvent *event)
 {
     NM_FUNCTION;
     
     if (HbTapGesture *tap = qobject_cast<HbTapGesture *>(event->gesture(Qt::TapGesture))) {
         switch(tap->tapStyleHint()) {
-        case HbTapGesture::Tap:
+        case HbTapGesture::Tap: 
             {
-                if (tap->state() == Qt::GestureFinished) {
+                Qt::GestureState state = tap->state();
+                HbInstantFeedback::play(HbFeedback::Basic);
+                setPressed(true);
+                if (state == Qt::GestureFinished) {
                     emit itemActivated();
+                    setPressed(false);
+                }
+                else if (state == Qt::GestureCanceled) {
+                    setPressed(false);
                 }
              }
              break;
             
          case HbTapGesture::TapAndHold:
              {
-                 if (tap->state() == Qt::GestureFinished) {
                  emit itemLongPressed(event->mapToGraphicsScene(tap->position()));
-                 }
+                 setPressed(false);
              }    
              break;
         }
@@ -248,4 +275,22 @@ void NmAttachmentListItem::gestureEvent(QGestureEvent *event)
     }
 }
 
+/*!
+    Sets the effect of the item when tapping it
+*/
+void NmAttachmentListItem::setPressed(bool pressed)
+{
+    if (pressed) {
+        setProperty("state", "pressed");
+        mBackGround->frameDrawer().setFrameGraphicsName(LIST_ITEM_BG_FRAME_PRESSED);
+        HbEffect::cancel(mBackGround, "released");
+        HbEffect::start(mBackGround, "mailAttachmentWidget", "pressed");
 
+    }
+    else {
+        setProperty("state", "normal");
+        mBackGround->frameDrawer().setFrameGraphicsName(LIST_ITEM_BG_FRAME_NORMAL);
+        HbEffect::cancel(mBackGround, "pressed");
+        HbEffect::start(mBackGround, "mailAttachmentWidget", "released");
+    }    
+}

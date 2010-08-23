@@ -12,6 +12,7 @@
 TEMPLATE = lib
 TARGET = nmailuiwidgets
 CONFIG += hb
+HB += hbfeedback
 DEFINES += BUILD_NMAILUIWIDGETS_DLL
 INCLUDEPATH += ./inc \
   ../../inc

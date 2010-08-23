@@ -37,13 +37,15 @@ DEPENDPATH += src \
 MOC_DIR = tmp
 
 HEADERS   += nmcenrepkeys.h \
-			 emailutilitiesdef.h \
-			 emailmailboxinfo_p.h \
-			 emailmailboxinfo.h \
-			 nmutilitiescommonheaders.h
+             emailutilitiesdef.h \
+             emailmailboxinfo_p.h \
+             emailmailboxinfo.h \
+             nmuieventsnotifier.h \
+             nmutilitiescommonheaders.h
              
 SOURCES   += emailmailboxinfo_p.cpp \
-			 emailmailboxinfo.cpp
+             emailmailboxinfo.cpp \
+             nmuieventsnotifier.cpp
 
 symbian*: { 
     TARGET.EPOCALLOWDLLDATA = 1
@@ -58,15 +60,15 @@ symbian*: {
     defBlock = \      
       "$${LITERAL_HASH}if defined(MARM)" \
       "DEFFILE  eabi/nmutilities.def" \
-	  "$${LITERAL_HASH}else" \
+      "$${LITERAL_HASH}else" \
       "DEFFILE  bwins/nmutilities.def" \
       "$${LITERAL_HASH}endif"
     
     MMP_RULES += defBlock
     
-	LIBS +=	-lcentralrepository 
-	LIBS +=	-ltimezonelocalization 
-	LIBS +=	-lxqsettingsmanager 
+    LIBS += -lcentralrepository 
+    LIBS += -ltimezonelocalization 
+    LIBS += -lxqsettingsmanager 
 }
 
 win32 {
@@ -99,11 +101,10 @@ BLD_INF_RULES.prj_exports += "$${LITERAL_HASH}include <platform_paths.hrh>" \
                              "data/2001E277.txt                     /epoc32/release/winscw/udeb/z/private/10202be9/2001E277.txt" \
                              "data/2001E277.txt                     /epoc32/release/winscw/urel/z/private/10202be9/2001E277.txt" \
                              "data/2001E277.txt                     /epoc32/data/z/private/10202be9/2001E277.txt" \
-                             "data/nmutilities.confml            	APP_LAYER_CONFML(nmutilities.confml)" \
-                             "data/nmutilities_200255BA.crml      	APP_LAYER_CRML(nmutilities_200255BA.crml)" \
-                             "inc/emailmailboxinfo.h				APP_LAYER_PLATFORM_EXPORT_PATH(emailmailboxinfo.h)" \
-                             "inc/nmutilitiescommonheaders.h      	APP_LAYER_PLATFORM_EXPORT_PATH(nmutilitiescommonheaders.h)" \
+                             "data/nmutilities.confml               APP_LAYER_CONFML(nmutilities.confml)" \
+                             "data/nmutilities_200255BA.crml        APP_LAYER_CRML(nmutilities_200255BA.crml)" \
+                             "inc/emailmailboxinfo.h                APP_LAYER_PLATFORM_EXPORT_PATH(emailmailboxinfo.h)" \
+                             "inc/nmutilitiescommonheaders.h        APP_LAYER_PLATFORM_EXPORT_PATH(nmutilitiescommonheaders.h)" \
                              "inc/emailutilitiesdef.h               APP_LAYER_PLATFORM_EXPORT_PATH(emailutilitiesdef.h)" \
-                             "inc/nmcenrepkeys.h                    APP_LAYER_PLATFORM_EXPORT_PATH(nmcenrepkeys.h)" 
-                             
-
+                             "inc/nmcenrepkeys.h                    APP_LAYER_PLATFORM_EXPORT_PATH(nmcenrepkeys.h)" \ 
+                             "inc/nmuieventsnotifier.h              APP_LAYER_PLATFORM_EXPORT_PATH(nmuieventsnotifier.h)"

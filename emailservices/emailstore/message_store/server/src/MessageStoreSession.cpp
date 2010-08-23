@@ -117,7 +117,14 @@ void CMessageStoreSession::CreateL()
     // This could leave if a session is created while the store is unavailable.
     TRAPD( err, iServer.MessageStoreL().ObserveL( this ) );
     
-    if( err != KErrNone )
+    // We need to leave the Session active in the case of KErrInUse.  This is
+    // because if the observer is dropped during KErrInUse, they cannot
+    // re-establish connection, and they will not know when MS in no longer busy.
+    // As a result, they will retry for many seconds to connect, then permanently
+    // give up.  This is avoided by trapping KErrInUse.
+    // Thus, only dropSession and Leave for other errors
+    
+    if( err != KErrNone && err != KErrInUse )
     {
         iServer.DropSession( this );
         User::Leave( err );

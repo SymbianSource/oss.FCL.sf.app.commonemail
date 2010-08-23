@@ -38,7 +38,7 @@
 #include "baseplugindef.h"
 //</qmail>
 
-#include "basemrinfoobject.h"
+#include "BaseMrInfoObject.h"
 #include "Map.h"
 
 

@@ -16,7 +16,7 @@
 */
 
 #include "emailaddress.h"
-#include "cfsmailclient.h"
+#include "CFSMailClient.h"
 #include "emailclientapi.hrh"
 
 // -----------------------------------------------------------------------------

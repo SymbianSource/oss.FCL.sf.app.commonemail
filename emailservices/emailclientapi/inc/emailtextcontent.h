@@ -20,7 +20,7 @@
 #define EMAILTEXTCONTENT_H_
 
 // INCLUDES
-#include "cfsmailclient.h"
+#include "CFSMailClient.h"
 #include <memailcontent.h>
 #include "emailapiutils.h"
 

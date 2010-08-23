@@ -201,12 +201,14 @@ public:
     
     QPointer<NmOperation> removeDraftMessage(NmMessage *message);
 	
-	int copyMessages(
+    int copyMessages(
         const NmId &mailboxId,
         const QList<quint64> &messageIds,
         const NmId &sourceFolderId,
         const NmId &destinationFolderId);
     
+    int getSignature(const NmId &mailboxId, QString *&signature);
+
 signals:
 
     void mailboxEvent(NmMailboxEvent event, const QList<NmId> &mailboxIds);
@@ -263,8 +265,6 @@ private:
                  const QStringList &searchStrings,
                  NmMailboxSearchObserver &searchObserver);
 
-    NmId getMailboxIdByMailMsgId(TFSMailMsgId mailbox);
-
     void removeMessageL(const NmId& mailboxId,
                         const NmId& folderId,
                         const NmId& messageId);
@@ -311,6 +311,7 @@ private:
 	
 	void deleteMailboxByIdL(const NmId &mailboxId);    
 
+    void getSignatureL(const NmId &mailboxId, QString *&signature);
 
 private: // Data
 
