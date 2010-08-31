@@ -25,17 +25,17 @@
 #include <s32mem.h>
 //#include <MessageStoreClient.h>
 //<cmail>
-#include "msgstoretypes.h"
-#include "debuglogmacros.h"
+#include "MsgStoreTypes.h"
+#include "DebugLogMacros.h"
 //</cmail>
 
 #include "MessageStoreClientServer.h"
 #include "emailstoreuids.hrh"
 #include "PropertiesSerializer.h"
-#include "msgstorefolder.h"
-#include "msgstoreobserver.h"
-#include "msgstorepropertycontainerwithcontent.h"
-#include "msgstoresessioncontext.h"
+#include "MsgStoreFolder.h"
+#include "MsgStoreObserver.h"
+#include "MsgStorePropertyContainerWithContent.h"
+#include "MsgStoreSessionContext.h"
 
 // =========
 // CONSTANTS

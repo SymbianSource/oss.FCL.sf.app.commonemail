@@ -52,7 +52,7 @@
 //  PRINTING: (NOTE: The following is just a reference example)
 //
 //      // Include the debug logging header file
-//      #include "debuglogmacros.h"
+//      #include "DebugLogMacros.h"
 //
 //      class CTestClass
 //          {
@@ -181,7 +181,7 @@
     // DEBUG BUILD
     // ===========
 
-    #include "debuglogconst.h"
+    #include "DebugLogConst.h"
 
     // =====================================================================
     // Utility Logging Macros
@@ -457,5 +457,5 @@
 
 #endif  // _DEBUG_LOG_MACROS_H_
 
-// END FILE debuglogmacros.h
+// END FILE DebugLogMacros.h
 

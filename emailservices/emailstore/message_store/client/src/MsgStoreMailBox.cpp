@@ -18,19 +18,19 @@
 
 
 //<cmail>
-#include "msgstoremailbox.h"
-#include "debuglogmacros.h"
-#include "rmessagestoresession.h"
-#include "msgstoresessioncontext.h"
-#include "msgstorefolder.h"
-#include "msgstoremessage.h"
-#include "msgstorepropertykeys.h"
-#include "msgstoreobserverhandler.h"
-#include "msgstorepropertycontainersarray.h"
-#include "msgstoresortcriteria.h"
-#include "msgstoresortresultiterator.h"
-#include "msgstoresearchhandler.h"
-#include "msgstoresearchcriteria.h"
+#include "MsgStoreMailBox.h"
+#include "DebugLogMacros.h"
+#include "RMessageStoreSession.h"
+#include "MsgStoreSessionContext.h"
+#include "MsgStoreFolder.h"
+#include "MsgStoreMessage.h"
+#include "MsgStorePropertyKeys.h"
+#include "MsgStoreObserverHandler.h"
+#include "MsgStorePropertyContainersArray.h"
+#include "MsgStoreSortCriteria.h"
+#include "MsgStoreSortResultIterator.h"
+#include "MsgStoreSearchHandler.h"
+#include "MsgStoreSearchCriteria.h"
 //#include "IsMsgStorePropertyKeys.h"
 //</cmail>
 

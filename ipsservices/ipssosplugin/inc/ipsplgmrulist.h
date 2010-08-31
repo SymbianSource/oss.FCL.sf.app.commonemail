@@ -50,7 +50,8 @@ const TUid KCRUidIpsSosMru = { 0x20010128 };
  *  @lib ipssosplugin.lib
  *  @since
  */
-class CIpsPlgMruList : public CBase
+NONSHARABLE_CLASS( CIpsPlgMruList )
+    : public CBase
     {
 public:
     /**

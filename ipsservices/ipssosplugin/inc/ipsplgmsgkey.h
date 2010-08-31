@@ -21,7 +21,7 @@
 
 #include <e32base.h>          // TKey
 //<cmail>
-#include "cfsmailcommon.h"    // tfsmailsortcriteria
+#include "CFSMailCommon.h"    // tfsmailsortcriteria
 //</cmail>
 
 class CMsvEntry;
@@ -37,7 +37,7 @@ const TInt KMaxSubjectPrefixSeparatorLength = 8;
  *  @lib ipssosplugin.lib
  *  @since 
  */
-class TIpsPlgMsgKey : public TKey
+NONSHARABLE_CLASS( TIpsPlgMsgKey ) : public TKey
     {
 
 public:

@@ -18,16 +18,16 @@
 
 
 //<cmail>
-#include "msgstore.h"
-#include "msgstoremailbox.h"
-#include "msgstoreaccount.h"
-#include "msgstoreobserver.h"
-#include "msgstorepropertycontainer.h"
-#include "msgstorepropertykeys.h"
+#include "MsgStore.h"
+#include "MsgStoreMailBox.h"
+#include "MsgStoreAccount.h"
+#include "MsgStoreObserver.h"
+#include "MsgStorePropertyContainer.h"
+#include "MsgStorePropertyKeys.h"
 //</cmail>
 
-#include "msgstoresessioncontext.h"
-#include "msgstoreobserverhandler.h"
+#include "MsgStoreSessionContext.h"
+#include "MsgStoreObserverHandler.h"
 //<cmail>
 //#include "IsMsgStorePropertyKeys.h"
 //</cmail>
@@ -282,7 +282,7 @@ EXPORT_C TMsgStoreId CMsgStore::DefaultMailboxL()
     for ( TInt i = 0 ; i < accounts.Count() && defaultMailboxId == KMsgStoreInvalidId ; i++ )
         {
         CMsgStoreMailBox* mb = OpenAccountL( *accounts[i] );
-        mailBoxes.Append( mb );
+        mailBoxes.AppendL( mb );
         if ( mb->IsDefaultMailbox() )
             {
             defaultMailboxId = mb->Id();

@@ -18,16 +18,21 @@
 #ifndef CFSFWMAILPLUGIN_H
 #define CFSFWMAILPLUGIN_H
 
-#include <ecom/ecom.h>
+#include <ecom.h>
 
-#include "mfsmailrequestobserver.h"
-#include "mfsmaileventobserver.h"
-#include "cfsmailbox.h"
-#include "cfsmailplugin.hrh"
+//<cmail>
+#include "MFSMailRequestObserver.h"
+#include "MFSMailEventObserver.h"
+#include "CFSMailBox.h"
+#include "CFSMailPlugin.hrh"
 #include "cemailextensionbase.h"
+//</cmail>
+
 // constants
 const TUid KFSMailPluginInterface = { FSMAILPLUGININTERFACE };
 _LIT8( KFSPluginInterfaceImplementationType, "Plug-In Interface / Freestyle Email Framework");
+
+class MFSMailIterator;
 
 /**
  *  Freestyle Email Framework Plugin Interface
@@ -36,13 +41,13 @@ _LIT8( KFSPluginInterfaceImplementationType, "Plug-In Interface / Freestyle Emai
  *  and implemented by plugin implementor.
  *
  *  Plugin implementor inherits from class CFSMailPlugin,
- *  but plugin load medhods are provided by framework in file cfsmailplugin.inl
- *  CFSMailPlugin,cfsmailplugin.inl are exported by framework
+ *  but plugin load medhods are provided by framework in file CFSMailPlugin.inl
+ *  CFSMailPlugin,CFSMailPlugin.inl are exported by framework
  *
  *  @lib FSFWCommonLib
  *
  */
-class CFSMailPlugin : public CExtendableEmail
+NONSHARABLE_CLASS ( CFSMailPlugin ) : public CExtendableEmail
     {
 
 public: // Methods
@@ -128,10 +133,13 @@ public: // Methods
      *        will receive progress notifications during the operation.
      * @param aRequestId identifies asynchronous request if parallel
      * requests exist
+     * @param aSilentConnection defines if connection is needed to be 
+     *        silent connection or non-silent one (default).
      */
      virtual void RefreshNowL( const TFSMailMsgId& aMailBoxId,
                                MFSMailRequestObserver& aOperationObserver,
-                               TInt aRequestId ) = 0;
+                               TInt aRequestId,
+                               const TBool aSilentConnection=EFalse ) = 0;
 
     /**
      * Returns last synchronization operation status.
@@ -524,7 +532,25 @@ public: // Methods
      virtual void DeleteMessagesByUidL( const TFSMailMsgId& aMailBoxId,
                                         const TFSMailMsgId& aFolderId,
                                         const RArray<TFSMailMsgId>& aMessages ) = 0;
-
+     
+// <qmail>
+     /**
+      * deletes email defined by message id
+      *
+      * @param aMailBoxId id of the mailbox containing email
+      * @param aFolderId email parent folder id
+      * @param aMessages ids of messages to be deleted
+      * @param aOperationObserver Observer for the operation 
+      * @param aRequestId id of the operation
+      * @return KErrNone if this method is supported, KErrNotSupported if not
+      */
+      virtual void DeleteMessagesByUidL( const TFSMailMsgId& aMailBoxId,
+                                         const TFSMailMsgId& aFolderId,
+                                         const RArray<TFSMailMsgId>& aMessages,
+                                         MFSMailRequestObserver& aOperationObserver,
+                                         const TInt aRequestId );
+// </qmail>
+      
     /**
      * creates new email template into drafts folder
      *
@@ -532,6 +558,28 @@ public: // Methods
      * @return email object to be modified by user, ownership is transferred to user
      */
      virtual CFSMailMessage* CreateMessageToSendL( const TFSMailMsgId& aMailBoxId ) = 0;
+
+// <qmail>
+     /**
+      * Asynchronous creation of new email template into drafts folder. When the operation
+      * finishes, RequestResponseL is called on the observer and the created message is 
+      * passed along with the TFSProgress data. It is not necessary for a plugin to 
+	  * implement this method if using the synchronous version does not cause performance
+	  * problems for the UI or general problems for the application. UI uses these methods
+	  * via an operation class NmMessageCreationOperation (see NmailUiEngine). If a plugin
+	  * doesn't implement this method the operation class automatically selects the
+	  * synchronous version.
+      *
+      * @param aMailBoxId id of the mailbox where new email is created
+      * @param aOperationObserver Observer for the operation 
+      * @param aRequestId id of the operation
+	  * @return KErrNone if this method is supported, KErrNotSupported if not
+      */
+     virtual void CreateMessageToSendL(
+	     const TFSMailMsgId& aMailBoxId,
+         MFSMailRequestObserver& aOperationObserver,
+         const TInt aRequestId );
+// </qmail>
 
     /**
      * creates new email template to drafts folder to be forwarded
@@ -543,6 +591,27 @@ public: // Methods
      virtual CFSMailMessage* CreateForwardMessageL( const TFSMailMsgId& aMailBoxId,
                                                     const TFSMailMsgId& aOriginalMessageId,
                                                     const TDesC& aHeaderDescriptor = KNullDesC ) = 0;
+	 
+// <qmail>
+     /**
+      * Asynchronous creation of new forwarded email into drafts folder. When the operation
+      * finishes, RequestResponseL is called on the observer and the created message is 
+      * passed along with the TFSProgress data.
+      *
+      * @param aMailBoxId id of the mailbox where new email is created
+      * @param aOriginalMessageId if of the (original) message,which is forwarded
+      * @param aOperationObserver Observer for the operation 
+      * @param aRequestId id of the operation
+      * @param aHeaderDescriptor user can give quote headers data to plugin as
+      *  parameter if needed
+      * @return email object to be modified by user, ownership is transferred to user
+      */
+      virtual void CreateForwardMessageL( const TFSMailMsgId& aMailBoxId,
+                                          const TFSMailMsgId& aOriginalMessageId,
+                                          MFSMailRequestObserver& aOperationObserver,
+                                          const TInt aRequestId,
+                                          const TDesC& aHeaderDescriptor = KNullDesC );
+// </qmail>
 
     /**
      * creates new email template to drafts folder to be replied
@@ -560,6 +629,30 @@ public: // Methods
                                                   const TBool aReplyToAll,
                                                   const TDesC& aHeaderDescriptor = KNullDesC) = 0;
 
+// <qmail>	 
+     /**
+      * Asynchronous creation of new mail template to drafts folder to be replied. When the operation
+      * finishes, RequestResponseL is called on the observer and the created message is 
+      * passed along with the TFSProgress data.
+      *
+      * @param aMailBoxId id of the mailbox where new email is created
+      * @param aOriginalMessageId id of original email,which is replied to
+      * @param aReplyToAll true if reply to all is wanted
+      * @param aOperationObserver Observer for the operation 
+      * @param aRequestId id of the operation
+      * @param aHeaderDescriptor user can give quote headers data to plugin as
+      *        parameter if needed
+      *
+      * @return email object to be modified by user, ownership is transferred to user
+      */
+     virtual void CreateReplyMessageL( const TFSMailMsgId& aMailBoxId,
+                                       const TFSMailMsgId& aOriginalMessageId,
+                                       const TBool aReplyToAll,
+                                       MFSMailRequestObserver& aOperationObserver,
+                                       const TInt aRequestId,
+                                       const TDesC& aHeaderDescriptor = KNullDesC);
+// </qmail>	 
+
     /**
      * stores email object data to message store after modifications (commit)
      *
@@ -569,6 +662,22 @@ public: // Methods
      virtual void StoreMessageL( const TFSMailMsgId& aMailBoxId,
                                  CFSMailMessage& aMessage ) = 0;
 
+
+    // <qmail>
+    /**
+    * Asynchronous message storing
+    *
+    * @param aMailBoxId id of the mailbox where the messages are
+    * @param aOperationObserver Observer for the operation 
+    * @param aRequestId id of the operation
+    */
+    virtual void StoreMessagesL(
+        const TFSMailMsgId& aMailBoxId,
+        RPointerArray<CFSMailMessage> &messages,
+        MFSMailRequestObserver& aOperationObserver,
+        const TInt aRequestId ) = 0;
+    // </qmail>
+    
     /**
      * starts email fetching from email server
      *
@@ -698,28 +807,54 @@ public: // Methods
                                                         const TDesC& aContentType,
                                                         const TDesC& aFilePath) = 0;
 
-
-     /**
-      * Creates and adds a new child part from file to given email part.
-      *
-      * @param aMailBoxId id of the mailbox where parent part is located
-      * @param aParentFolderId id of the parent folder where email is located
-      * @param aMessageId id of the email parent part belongs to
-      * @param aParentPartId id of the parent part of the new part
-      * @param aInsertBefore id of existing part that new part should precede.
-      * If aInsertBefore is NULL id then new part is added as last.
-      * @param aContentType content type of the new message part
-      * @param aFile access to file containing new child part contents,
-      *  ownership is transferred
-      *
-      * return new child part object, ownership is transferred to user
-      */
-      virtual CFSMailMessagePart* NewChildPartFromFileL( const TFSMailMsgId& aMailBoxId,
-                                                         const TFSMailMsgId& aParentFolderId,
-                                                         const TFSMailMsgId& aMessageId,
-                                                         const TFSMailMsgId& aParentPartId,
-                                                         const TDesC& aContentType,
-                                                         RFile& aFile ) = 0;
+// <qmail>
+	    /**
+	     * Creates and adds a new child part from file to given email part.
+	     * 
+	     * @param aMailBoxId id of the mailbox where parent part is located
+	     * @param aParentFolderId id of the parent folder where email is located
+	     * @param aMessageId id of the email parent part belongs to
+	     * @param aParentPartId id of the parent part of the new part
+	     * @param aInsertBefore id of existing part that new part should precede.
+	     * If aInsertBefore is NULL id then new part is added as last.
+	     * @param aContentType content type of the new message part
+	     * @param aFilePath file containing new child part contents
+         * @param aOperationObserver Observer for the operation 
+         * @param aRequestId id of the operation
+	     *
+	     * return new child part object, ownership is transferred to user
+	     */        
+        virtual void NewChildPartFromFileL( const TFSMailMsgId& aMailBoxId,
+	                                        const TFSMailMsgId& aParentFolderId,
+	                                        const TFSMailMsgId& aMessageId,
+	                                        const TFSMailMsgId& aParentPartId,
+	                                        const TDesC& aContentType,
+	                                        const TDesC& aFilePath,
+	                                        MFSMailRequestObserver& aOperationObserver,
+	                                        const TInt aRequestId );
+// </qmail>
+	 
+	 /**
+	  * Creates and adds a new child part from file to given email part.
+	  * 
+	  * @param aMailBoxId id of the mailbox where parent part is located
+	  * @param aParentFolderId id of the parent folder where email is located
+	  * @param aMessageId id of the email parent part belongs to
+	  * @param aParentPartId id of the parent part of the new part
+	  * @param aInsertBefore id of existing part that new part should precede.
+	  * If aInsertBefore is NULL id then new part is added as last.
+	  * @param aContentType content type of the new message part
+	  * @param aFile access to file containing new child part contents,
+	  *  ownership is transferred
+	  *
+	  * return new child part object, ownership is transferred to user
+	  */        
+	  virtual CFSMailMessagePart* NewChildPartFromFileL( const TFSMailMsgId& aMailBoxId, 
+	                                                     const TFSMailMsgId& aParentFolderId, 
+	                                                     const TFSMailMsgId& aMessageId, 
+	                                                     const TFSMailMsgId& aParentPartId, 
+	                                                     const TDesC& aContentType, 
+	                                                     RFile& aFile ) = 0; 
 
 
     /**
@@ -757,6 +892,27 @@ public: // Methods
                                     const TFSMailMsgId& aParentPartId,
                                     const TFSMailMsgId& aPartId) = 0;
 
+// <qmail>
+     /**
+      * Removes child part (and its children, if any) from given email part
+      * 
+      * @param aMailBoxId id of the mailbox where email is located
+      * @param aParentFolderId id of the parent folder where email is located
+      * @param aMessageId id of the email parent part belongs to
+      * @param aParentPartId id of the parent of the part
+      * @param aPartId id of the part to removed
+      * @param aOperationObserver Observer for the operation 
+      * @param aRequestId id of the operation
+      */        
+      virtual void RemoveChildPartL( const TFSMailMsgId& aMailBoxId,
+                                     const TFSMailMsgId& aParentFolderId,
+                                     const TFSMailMsgId& aMessageId,
+                                     const TFSMailMsgId& aParentPartId,
+                                     const TFSMailMsgId& aPartId,
+                                     MFSMailRequestObserver& aOperationObserver,
+                                     const TInt aRequestId);
+// </qmail>
+      
     /**
      * Returns given message part. Ownership of object is transferred to caller.
      *
@@ -884,6 +1040,19 @@ public: // Methods
                                      const TFSMailMsgId& aParentFolderId,
                                      const TFSMailMsgId& aMessageId,
                                      CFSMailMessagePart& aMessagePart) = 0;
+     
+    // <qmail>
+    /**
+     * Asynchronous message parts storing
+     *
+     * @param aMessagePart email parts data to be stored
+     * @param aOperationObserver Observer for the operation 
+     * @param aRequestId id of the operation
+     */
+    virtual void StoreMessagePartsL( RPointerArray<CFSMailMessagePart>& aMessagePart,
+                                    MFSMailRequestObserver& aOperationObserver,
+                                    const TInt aRequestId ) = 0;
+    // <//qmail>
 
     /**
      * unregisters request observer to cancel pending events
@@ -899,6 +1068,18 @@ public: // Methods
      * @param aMessage email to be sent
      */
      virtual void SendMessageL( CFSMailMessage& aMessage ) = 0;
+
+// <qmail>
+    /**
+     * Launches email sending in plugin,
+     * @param aMessage email to be sent
+     * @param aOperationObserver Operation observer
+     * @param aRequestId Request id
+     */
+     virtual void SendMessageL( CFSMailMessage& aMessage,
+                                MFSMailRequestObserver& aOperationObserver,
+                                const TInt aRequestId );
+// </qmail>
 
     /**
      * Returns pending asynchronous request status, request is identified
@@ -1030,6 +1211,15 @@ public: // Methods
                                         const TFSMailMsgId& /*aMessageId*/ )
                                         { return; };
 
+
+    /**
+     * Gets the signature for the given mailbox. Returns NULL if there is no signature defined for
+     * the given mailbox.
+     *
+     * @param aMailboxId mailbox id
+     */     
+    virtual HBufC* GetSignatureL( const TFSMailMsgId& aMailBoxId );
+    
 protected:
 
     /**
@@ -1054,7 +1244,7 @@ private: // data
     };
 
 //<cmail>
-#include "cfsmailplugin.inl"
+#include "CFSMailPlugin.inl"
 //</cmail>
 
 #endif // CFSFW_MAIL_PLUGIN_H

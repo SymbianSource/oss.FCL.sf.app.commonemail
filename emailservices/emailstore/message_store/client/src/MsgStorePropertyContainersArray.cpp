@@ -17,9 +17,9 @@
 
 
 
-#include "msgstorepropertycontainersarray.h"
+#include "MsgStorePropertyContainersArray.h"
 //<cmail>
-#include "msgstorepropertycontainer.h"
+#include "MsgStorePropertyContainer.h"
 //</cmail>
 
 // ------------------------        

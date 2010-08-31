@@ -26,12 +26,12 @@
 #include <e32property.h>
 
 //<cmail>
-#include "debuglogmacros.h"
+#include "DebugLogMacros.h"
 //</cmail>
 
 class MImsPointsecObserver;
 
-class CImsPointsecMonitor : public CActive
+NONSHARABLE_CLASS ( CImsPointsecMonitor ) : public CActive
     {
     public:
         IMPORT_C static CImsPointsecMonitor* NewL( MImsPointsecObserver&  aObserver );

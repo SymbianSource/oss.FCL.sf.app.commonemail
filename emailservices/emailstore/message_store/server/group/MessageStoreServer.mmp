@@ -17,9 +17,10 @@
 
 
 #include <platform_paths.hrh>
-
-#include "../../../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
-#include "../../../inc/emailstoreuids.hrh"
+//<qmail>
+//#include "../../../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
+//</qmail>
+#include "../../../inc/EmailStoreUids.hrh"
 
 TARGET        MessageStoreServer.dll
 TARGETTYPE    dll
@@ -27,9 +28,10 @@ UID           KUidSharedLibrary KUidMessageStoreServer
 SECUREID      KUidMessageStoreServer
 VENDORID      VID_DEFAULT
 CAPABILITY    CAP_CLIENT_DLL
-
-VERSION       KEmailBinaryVersionNumber
-KEmailBinaryDemandPaging
+//<qmail>
+//VERSION       KEmailBinaryVersionNumber
+//KEmailBinaryDemandPaging
+//</qmail>
 
 MACRO DEBUG_USE_PROJECT_LOGGING_OPTIONS
 MACRO DEBUG_LOG_OPTION_ENTER
@@ -38,6 +40,10 @@ MACRO DEBUG_LOG_OPTION_ERRORS
 //MACRO DEBUG_LOG_OPTION_INFO
 
 // COMMENT OUT THESE 4 LINES TO BYPASS THE CRYPTO API
+//SYSTEMINCLUDE /epoc32/include/libc
+//USERINCLUDE   /epoc32/include/certicom
+//USERINCLUDE   /epoc32/include/CryptoApi
+//LIBRARY       cryptoapi.lib
 
 USERINCLUDE   ../inc
 USERINCLUDE   ../../client/api
@@ -82,7 +88,7 @@ SOURCE        psintpropertyobserver.cpp
 LIBRARY euser.lib 
 LIBRARY estor.lib
 LIBRARY efsrv.lib
-LIBRARY bafl.lib
+LIBRARY	bafl.lib
 LIBRARY edbms.lib
 LIBRARY sysutil.lib
 LIBRARY charconv.lib

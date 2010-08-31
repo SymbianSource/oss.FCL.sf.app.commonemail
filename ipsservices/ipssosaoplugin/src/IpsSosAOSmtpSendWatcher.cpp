@@ -16,14 +16,7 @@
 *
 */
 
-//#include <e32math.h>
-#include "emailtrace.h"
-#include <msvapi.h>
-
-#include "IpsSosAOSmtpSendWatcher.h"
-#include "IpsSosAOSmtpAgent.h"
-
-#include "ipsplgcommon.h"
+#include "ipssosaopluginheaders.h"
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------

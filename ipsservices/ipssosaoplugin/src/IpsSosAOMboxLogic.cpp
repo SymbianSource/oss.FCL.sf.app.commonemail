@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2008 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -16,23 +16,11 @@
 *
 */
 
+#include "ipssosaopluginheaders.h"
 
-//<cmail> internal dependency removed
-/*#ifdef _DEBUG
-#include "../../internal/IpsSosAOPluginTester/inc/IpsSosAOPluginTester.hrh"
-#endif // _DEBUG*/
-//</cmail>
-
-#include <cmmanager.h>
-
-#include "emailtrace.h"
-#include "IpsSosAOMboxLogic.h"
-#include "ipssetdataapi.h"
-#include "IpsSosAOSchedulerUtils.h"
-#include "IpsSosAOPlugin.hrh"
-#include "IpsSosAOImapPopLogic.h"
-
+//<QMail>
 const TInt KAOSecondsInMinute = 60;
+//</QMail>
 const TInt KIpsSosAOMboxLogicMinGra = 1;
 
 // ----------------------------------------------------------------------------
@@ -43,8 +31,10 @@ CIpsSosAOMBoxLogic::CIpsSosAOMBoxLogic(
         TMsvId aMailboxId ) :
     iSession( aSession ), iMailboxId( aMailboxId ), iState( EStateError ),
     iErrorCounter( 0 ), iError( KErrNone ), iTimer( NULL ),
-    iFetchMsgArray( KIpsSosAOMboxLogicMinGra ), iDataApi( NULL ), iAgent( NULL ),
-    iExtendedSettings( NULL ), iIsRoaming( EFalse )
+	//<QMail>
+    iFetchMsgArray( KIpsSosAOMboxLogicMinGra ), iAgent( NULL ),
+    iIsRoaming( EFalse )
+	//</QMail>
     {
     FUNC_LOG;
     }
@@ -56,8 +46,8 @@ CIpsSosAOMBoxLogic::~CIpsSosAOMBoxLogic()
     {
     FUNC_LOG;
     delete iTimer;
-    delete iDataApi;
-    delete iExtendedSettings;
+	//<QMail>
+	//</QMail>
     delete iAgent;
     iFetchMsgArray.Close();
     }
@@ -85,9 +75,12 @@ void CIpsSosAOMBoxLogic::ConstructL()
     {
     FUNC_LOG;
     iTimer = CIpsSosAOPluginTimer::NewL( CActive::EPriorityStandard, *this );
-    iDataApi = CIpsSetDataApi::NewL( iSession );
+	//<QMail>
+
+	
     iAgent = CIpsSosAOBaseAgent::CreateAgentL( iSession, *this, iMailboxId );
-    LoadSettingsL();
+    
+    //</QMail>
     }
 
 // ----------------------------------------------------------------------------
@@ -177,7 +170,9 @@ void CIpsSosAOMBoxLogic::SendCommandL( TInt aCommand )
 void CIpsSosAOMBoxLogic::FetchMessagesL( const RArray<TMsvId> aArray )
     {
     FUNC_LOG;
-    LoadSettingsL();
+    //<Qmail>
+    
+    //</Qmail>
     for ( TInt i = 0; i < aArray.Count(); i++ )
         {
         iFetchMsgArray.AppendL( aArray[i] );
@@ -210,55 +205,86 @@ TBool CIpsSosAOMBoxLogic::IsEmnOn() const
     {
     FUNC_LOG;
     TBool ret = ETrue;
-    TIpsSetDataEmnStates state = EMailEmnOff;
-    if ( iExtendedSettings )
+	//<QMail>
+    CIpsSosAOSettingsHandler* settings = NULL;
+    TRAP_IGNORE( settings = 
+            CIpsSosAOSettingsHandler::NewL(iSession, iMailboxId));
+    
+    if( settings )
         {
-        state = iExtendedSettings->EmailNotificationState();
+        IpsServices::TIpsSetDataEmnStates state = IpsServices::EMailEmnOff;
+        state = settings->EmailNotificationState();
+        
+        if ( state == IpsServices::EMailEmnOff )
+            {
+            ret = EFalse;
+            }
+        
+        delete settings;
         }
-    if ( state == EMailEmnOff )
-        {
-        ret = EFalse;
-        }
+    
+	//</QMail>
     return ret;
     }
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
 // 
+//<QMail>
 void CIpsSosAOMBoxLogic::GetEmailAddress(  
     TBuf<KIpsSosAOTextBufferSize>& aEmailAddress ) const
     {
     FUNC_LOG;
-    const TDesC& addr = iExtendedSettings->EmailAddress();
-    __ASSERT_DEBUG( ( 
-            addr.Length() <= KIpsSosAOTextBufferSize ), 
-            User::Panic( KIpsSosAOPanicLit, KErrGeneral) );
+    CIpsSosAOSettingsHandler* settings = NULL;
+
+    TRAPD( err, settings = CIpsSosAOSettingsHandler::NewL(
+            iSession, iMailboxId) );
     
-    if ( addr.Length() <= KIpsSosAOTextBufferSize )
+    if( settings )
         {
-        aEmailAddress.Copy( addr );
+        HBufC* addr = NULL;
+        TRAP(err, addr = settings->EmailAddressL());
+        
+        if( addr )
+            {
+            __ASSERT_DEBUG( ( 
+                    addr->Length() <= KIpsSosAOTextBufferSize ), 
+                    User::Panic( KIpsSosAOPanicLit, KErrGeneral) );
+            
+            if ( addr->Length() <= KIpsSosAOTextBufferSize )
+                {
+                aEmailAddress.Copy( *addr );
+                }
+            delete addr;
+            }   
+        
+        delete settings;
         }
+    
+	//<QMail>
     }
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-//  
-//<cmail>
+//<QMail>
 void CIpsSosAOMBoxLogic::SetEmnReceivedFlagL( TBool aNewValue )
-//</cmail>
     {
-    LoadSettingsL();
-    iExtendedSettings->SetEmnReceivedButNotSyncedFlag( aNewValue );
-    iDataApi->SaveExtendedSettingsL(
-        *iExtendedSettings );
+    
+    CIpsSosAOSettingsHandler* settings = 
+            CIpsSosAOSettingsHandler::NewL(
+                iSession, iMailboxId );
+    CleanupStack::PushL(settings);
+    
+    settings->SetEmnReceivedButNotSyncedFlag( aNewValue );
+    
+    CleanupStack::PopAndDestroy(settings);
+	//</QMail>
     }
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
 //
-//<cmail>
 TBool CIpsSosAOMBoxLogic::IsMailboxRoamingStoppedL()
-//</cmail>
     {
     TBool ret = EFalse;
     if ( iIsRoaming && !CanConnectIfRoamingL() )
@@ -279,64 +305,79 @@ void CIpsSosAOMBoxLogic::HandleEventAndSwitchStateL(
     TInt cycles = 0;
     
     if ( event == EEventStart && iState == EStateError && 
-            CanConnectIfRoamingL() )
+          ( (iIsRoaming && CanConnectIfRoamingL())||
+             !iIsRoaming ) )
         {
+        NM_COMMENT("CIpsSosAOMBoxLogic: event: EEventStart");
         event = EEventNop;
         iAgent->LoadSettingsL();
         iTimer->Cancel();
+        INFO_1("CIpsSosAOMBoxLogic: timer scheduled: %d", KIpsSosAOStartDelaySeconds);
         iTimer->After( KIpsSosAOStartDelaySeconds );
         iState = EStateWaitSyncStart;
+        NM_COMMENT("CIpsSosAOMBoxLogic: switching state: EStateWaitSyncStart");
         }
     
     while ( event != EEventNop && iState != EStateError )
         {
-//<cmail> removing flags    
-/*#ifdef IPSSOSIMAPPOLOGGING_ON
-        WriteDebugData( event );
-#endif*/
-//</cmail>
         switch ( event )
             {
             case EEventTimerFired:
+                NM_COMMENT("CIpsSosAOMBoxLogic: event: EEventTimerFired");
                 event = HandleTimerFiredL();
               break;
             case EEventStartSync:
+                NM_COMMENT("CIpsSosAOMBoxLogic: event: EEventStartSync");
                 if ( iState == EStateWaitSyncStart )
                     {         
                     iError = KErrNone;
                     iAgent->StartSyncL();
                     iState = EStateSyncOngoing;
+                    NM_COMMENT("CIpsSosAOMBoxLogic: switching state: EStateSyncOngoing");
                     }
                 else if ( iState == EStateIdleAndWaitCommands )
                     {
                     // start sync command in idle state is currently 
                     // received when emn arrives, checking scheduling 
                     // if user have selected week days / hours in setting
+					//<QMail>
+                    CIpsSosAOSettingsHandler* settings = 
+                             CIpsSosAOSettingsHandler::NewL(iSession, iMailboxId);
+                    CleanupStack::PushL(settings);
+                    
                     CIpsSosAOSchedulerUtils* scheduler = 
-                        CIpsSosAOSchedulerUtils::NewLC( *iExtendedSettings );
+                        CIpsSosAOSchedulerUtils::NewLC( *settings );
+                        
                     TTimeIntervalSeconds seconds;
                     TIpsSosAOConnectionType type = 
-                        scheduler->SecondsToNextMark( seconds );
+                            scheduler->SecondsToNextMark( seconds );
+                    
+					//</QMail>
                     if ( type == EAOCConnectAfter )
                         {
+                        NM_COMMENT("CIpsSosAOMBoxLogic: switching state: EStateWaitSyncStart");
                         iState = EStateWaitSyncStart;
+                        INFO_1("CIpsSosAOMBoxLogic: timer scheduled: %d", seconds);
                         iTimer->After( seconds );
-                        //<cmail>
+                        
                         SetEmnReceivedFlagL( ETrue );
-                        //</cmail>
                         }
                     else
                         {
                         iError = KErrNone;
                         iAgent->StartSyncL();
                         iState = EStateSyncOngoing;
+                        NM_COMMENT("CIpsSosAOMBoxLogic: switching state: EStateSyncOngoing");
                         }
-                    CleanupStack::PopAndDestroy( scheduler );
+					//<QMail>
+                    CleanupStack::PopAndDestroy( 2, settings );
+					//</QMail>
                     }
                 // ignore in other states
                 event = EEventNop;
                 break;
             case EEventFetchMessages:
+                NM_COMMENT("CIpsSosAOMBoxLogic: event: EEventFetchMessages");
                 if ( ( iState == EStateWaitSyncStart || 
                        iState == EStateIdleAndWaitCommands ) &&
                         iFetchMsgArray.Count() > 0 )
@@ -344,6 +385,7 @@ void CIpsSosAOMBoxLogic::HandleEventAndSwitchStateL(
                     iError = KErrNone;
                     iAgent->StartFetchMessagesL( iFetchMsgArray );
                     iFetchMsgArray.Reset();
+                    NM_COMMENT("CIpsSosAOMBoxLogic: switching state: EStateFetchOngoing");
                     iState = EStateFetchOngoing;
                     }
                 else 
@@ -354,28 +396,31 @@ void CIpsSosAOMBoxLogic::HandleEventAndSwitchStateL(
                 event = EEventNop;
                 break;
             case EEventOperationCompleted:
+                NM_COMMENT("CIpsSosAOMBoxLogic: event: EEventOperationCompleted");
                 event = HandleOperationCompletionL();
                 break;
             case EEventSuspendOperations:
+                NM_COMMENT("CIpsSosAOMBoxLogic: event: EEventSuspendOperations");
                 SuspendOperations();
                 iState = EStateSuspended;
                 event = EEventNop;
                 break;
             case EEventContinueOperations:
+                NM_COMMENT("CIpsSosAOMBoxLogic: event: EEventContinueOperations");
                 if ( iState == EStateSuspended )
                     {
+                    INFO_1("CIpsSosAOMBoxLogic: timer scheduled: %d", KIpsSosAOContinueWaitTime);
                     iTimer->After( KIpsSosAOContinueWaitTime );
                     }
-                else
-                    {
-                    event = EEventNop;
-                    }
+                event = EEventNop;
                 // ignore if in other states
                 break;
             case EEventStopAndRemoveOps:
+                NM_COMMENT("CIpsSosAOMBoxLogic: event: EEventStopAndRemoveOps");
                 // notify deletion
                 iAgent->CancelAllAndDisconnectL();
                 iTimer->Cancel();
+                NM_COMMENT("CIpsSosAOMBoxLogic: switching state: EStateError");
                 iState = EStateError;
                 event = EEventNop;
                 break;
@@ -432,13 +477,17 @@ TInt CIpsSosAOMBoxLogic::HandleTimerFiredL()
         ( agentState == CIpsSosAOBaseAgent::EStateConnectAndSyncOnHold || 
           agentState == CIpsSosAOBaseAgent::EStatePopulateOnHold ) )
         {
+        iTimer->Cancel();
         iAgent->ContinueHoldOperations();
+        NM_COMMENT("CIpsSosAOMBoxLogic: switching state: EStateSyncOngoing");
         iState = EStateSyncOngoing;
         }
     else if ( iState == EStateSuspended && 
             agentState == CIpsSosAOBaseAgent::EStateFetchOnHold )
         {
+        iTimer->Cancel();
         iAgent->ContinueHoldOperations();
+        NM_COMMENT("CIpsSosAOMBoxLogic: switching state: EStateFetchOngoing");
         iState = EStateFetchOngoing;
         }
     else
@@ -457,30 +506,43 @@ TInt CIpsSosAOMBoxLogic::HandleOperationCompletionL()
     {
     FUNC_LOG;
     TInt event = EEventNop;
+	//<Qmail>
+    CIpsSosAOSettingsHandler* settings = 
+             CIpsSosAOSettingsHandler::NewL(iSession, iMailboxId);
+    CleanupStack::PushL(settings);
+	//</Qmail>     
     if ( iState == EStateSyncOngoing )
         {
+        INFO_1("CIpsSosAOMBoxLogic: operation completed error: %d", iError);
+        bool doSaveSyncTime = EFalse;
         if ( !( iError == KErrNone || iError == KErrCancel ) )
             {
             ++iErrorCounter;
             }
         else
             {
+            if (iError == KErrNone)
+                {
+                doSaveSyncTime = ETrue;
+                }
             iError = KErrNone;
             iErrorCounter = 0;
             }
-        //<cmail>
+        
         if ( iError != KErrNone && 
                 IsErrorFatalL( iError ) )
-        //</cmail>
             {
             iAgent->CancelAllAndDisconnectL();
             // switch ao off
-            iExtendedSettings->SetAlwaysOnlineState( EMailAoOff );
+			//<QMail>
+            
+            settings->SetAlwaysOnlineState( IpsServices::EMailAoOff );
             // emn not swithced of if its going to be "always on" in
             // future
-            iExtendedSettings->SetEmnReceivedButNotSyncedFlag( EFalse );
-            iDataApi->SaveExtendedSettingsL(
-                *iExtendedSettings );
+            
+            settings->SetEmnReceivedButNotSyncedFlag( EFalse );
+            //</QMail>
+            NM_COMMENT("CIpsSosAOMBoxLogic: switching state: EStateError");
             iState = EStateError;
             iErrorCounter = 0;
             }
@@ -488,26 +550,33 @@ TInt CIpsSosAOMBoxLogic::HandleOperationCompletionL()
                 iErrorCounter < KIpsSosAOMaxReTryTimes )
             {
             // not fatal error
-            TIpsSetDataAoStates state = iExtendedSettings->AlwaysOnlineState();
-            if ( state == EMailAoOff )
+			//<QMail>
+            IpsServices::TIpsSetDataAoStates state = 
+                    settings->AlwaysOnlineState();
+            
+            if ( state == IpsServices::EMailAoOff )
                 {
+                NM_COMMENT("CIpsSosAOMBoxLogic: switching state: EStateIdleAndWaitCommands");
                 iState = EStateIdleAndWaitCommands;
                 }
             else
                 {
                 if( !iTimer->IsActive() )
                     {
-                iTimer->After( KIpsSosAOReTryInterval );
+                    INFO_1("CIpsSosAOMBoxLogic: timer scheduled: %d", KIpsSosAOReTryInterval);
+                    iTimer->After( KIpsSosAOReTryInterval );
                     }
+                NM_COMMENT("CIpsSosAOMBoxLogic: switching state: EStateWaitSyncStart");
                 iState = EStateWaitSyncStart;
                 }
+
+			//</QMail>
             }
         else if ( iError != KErrNone && 
                 iErrorCounter >= KIpsSosAOMaxReTryTimes )
             {
-            //<cmail>
+            
             SetEmnReceivedFlagL( EFalse );
-            //</cmail>
             // not fatal, but all re trys are gone
             CalculateToNextIntervalL();
             }
@@ -515,7 +584,10 @@ TInt CIpsSosAOMBoxLogic::HandleOperationCompletionL()
             {
             // no errors
             // update successfull sync time to settings
-            SaveSuccessfulSyncTimeL();
+            if (doSaveSyncTime)
+                {
+                SaveSuccessfulSyncTimeL();
+                }
             // and adjust timer to sync interval
             CalculateToNextIntervalL();
             }
@@ -525,6 +597,7 @@ TInt CIpsSosAOMBoxLogic::HandleOperationCompletionL()
         iError = KErrNone;
         if ( iTimer->IsActive() )
             {
+            NM_COMMENT("CIpsSosAOMBoxLogic: switching state: EStateWaitSyncStart");
             iState = EStateWaitSyncStart;
             }
         else
@@ -532,6 +605,9 @@ TInt CIpsSosAOMBoxLogic::HandleOperationCompletionL()
             event = CheckSchedulingAndSwitchStateL();          
             }
         }
+		//<Qmail>
+    CleanupStack::PopAndDestroy(settings);
+	//</Qmail>
     return event;
     }
 
@@ -545,35 +621,46 @@ void CIpsSosAOMBoxLogic::SuspendOperations()
         {
         iAgent->HoldOperations();
         }
-    iState = EStateSuspended;
     // set suspend watchdog, if clien not continue this
     // ensure ao logic to continue
-    if ( !iTimer->IsActive() )
+    if ( !iTimer->IsActive() || iState == EStateSyncOngoing || iState == EStateFetchOngoing)
         {
+        INFO_1("CIpsSosAOMBoxLogic: timer scheduled: %d", KIpsSosAOSuspendWatchdogTime);
         iTimer->After( KIpsSosAOSuspendWatchdogTime );
         }
+    NM_COMMENT("CIpsSosAOMBoxLogic: switching state: EStateSuspended");
+    iState = EStateSuspended;
     }
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-//
-//<cmail>
+//<QMail>
+
 TBool CIpsSosAOMBoxLogic::IsErrorFatalL( TInt aError )
-//</cmail>
     {
     FUNC_LOG;
     // error can be fatal only if we haven't got successful connect
     // in mailbox ever and error is something else than KErrNone or
     // KErrCancel, and retry interval is reached
     TBool ret = EFalse;
-    LoadSettingsL();
-    TAOInfo info = iExtendedSettings->LastUpdateInfo();
+    //<Qmail>
+    
+    //</Qmail>
+    
+    CIpsSosAOSettingsHandler* settings = 
+             CIpsSosAOSettingsHandler::NewL(iSession, iMailboxId);
+    CleanupStack::PushL(settings);
+    
+    IpsServices::TAOInfo info = settings->LastUpdateInfo();
     if ( aError != KErrNone && aError != KErrCancel 
             && !info.iUpdateSuccessfulWithCurSettings
             && iErrorCounter >= KIpsSosAOMaxReTryTimes )
         {
         ret = ETrue;
         }
+    
+    CleanupStack::PopAndDestroy(settings);
+    //</QMail>
     return ret;
     }
 
@@ -583,15 +670,22 @@ TBool CIpsSosAOMBoxLogic::IsErrorFatalL( TInt aError )
 CIpsSosAOMBoxLogic::TMBoxLogicEvent 
     CIpsSosAOMBoxLogic::CheckSchedulingAndSwitchStateL()
     {
-     //<cmail> logs removed </cmail>
+	//<Qmail>
+    FUNC_LOG;
     iTimer->Cancel();
     TMBoxLogicEvent event = EEventNop;
     TTimeIntervalSeconds secondsToConnect = CalculateScheduledSyncTimeL();
-    //<cmail> logs removed </cmail>
+    
+    CIpsSosAOSettingsHandler* settings = 
+             CIpsSosAOSettingsHandler::NewL(iSession, iMailboxId);
+    CleanupStack::PushL(settings);
+      
     if ( secondsToConnect.Int() == 0 )
         {
         //check last successfull sync time and check is interval reached
-        TAOInfo info = iExtendedSettings->LastUpdateInfo();
+
+    
+        IpsServices::TAOInfo info = settings->LastUpdateInfo();
         if ( !info.iUpdateSuccessfulWithCurSettings )
             {
             event = EEventStartSync;
@@ -601,14 +695,17 @@ CIpsSosAOMBoxLogic::TMBoxLogicEvent
             TTime now;
             now.HomeTime();
             TInt interval = 
-                iExtendedSettings->InboxRefreshTime() * KAOSecondsInMinute;
+                    settings->InboxRefreshTime() * KAOSecondsInMinute;
             TTimeIntervalSeconds secsFromLastSync;
             now.SecondsFrom( info.iLastSuccessfulUpdate, secsFromLastSync );
             if ( (secsFromLastSync.Int() > 0) && ( 
                     secsFromLastSync.Int() < interval ) )
                 {
                 // adjust timer to correct sync time
-                iTimer->After(interval - secsFromLastSync.Int());        
+                TInt syncAfter = interval - secsFromLastSync.Int();
+                INFO_1("CIpsSosAOMBoxLogic: timer scheduled: %d", syncAfter);
+                iTimer->After(syncAfter); 
+                NM_COMMENT("CIpsSosAOMBoxLogic: switching state: EStateWaitSyncStart");
                 iState = EStateWaitSyncStart;
                 }
             else
@@ -616,12 +713,15 @@ CIpsSosAOMBoxLogic::TMBoxLogicEvent
                 event = EEventStartSync;
                 }
             }
+        
         }
     else if ( secondsToConnect.Int() == KErrNotFound )
         {
         // means that ao is not on (but emn is)
+        NM_COMMENT("CIpsSosAOMBoxLogic: switching state: EStateIdleAndWaitCommands");
         iState = EStateIdleAndWaitCommands;
-        if ( iExtendedSettings->EmnReceivedButNotSyncedFlag() )
+      
+        if ( settings->EmnReceivedButNotSyncedFlag() )
             {
             // got emn when logic was stopped
             event = EEventStartSync;
@@ -629,10 +729,15 @@ CIpsSosAOMBoxLogic::TMBoxLogicEvent
         }
     else
         {
+        INFO_1("CIpsSosAOMBoxLogic: timer scheduled: %d", secondsToConnect);
         iTimer->After( secondsToConnect );
+        NM_COMMENT("CIpsSosAOMBoxLogic: switching state: EStateWaitSyncStart");
         iState = EStateWaitSyncStart;
+        
+
         }
-    
+    CleanupStack::PopAndDestroy(settings);
+    //</Qmail>
     return event;
     }
 
@@ -642,28 +747,52 @@ CIpsSosAOMBoxLogic::TMBoxLogicEvent
 void CIpsSosAOMBoxLogic::CalculateToNextIntervalL()
     {
     FUNC_LOG;
-    //<cmail> logs removed </cmail>
+    
     iTimer->Cancel();
     TTimeIntervalSeconds interval;
     // first check and calculate scheduling function also loads settings
     interval = CalculateScheduledSyncTimeL();
-    //<cmail> logs removed </cmail>
+    
     if ( interval.Int() == 0 )
         {
         // add next interval, if interval is grater than 0 it means
         // that off-line time is going, user have selected days / times from
         // settings
-        iTimer->After( 
-                iExtendedSettings->InboxRefreshTime() * KAOSecondsInMinute );
+		
+		//<QMail>
+        CIpsSosAOSettingsHandler* settings = 
+                 CIpsSosAOSettingsHandler::NewL(iSession, iMailboxId);
+        CleanupStack::PushL(settings);
+        TInt inboxRefreshTime = settings->InboxRefreshTime();
+        TInt secs = inboxRefreshTime * KAOSecondsInMinute;
+        INFO_1("CIpsSosAOMBoxLogic: inboxRefreshTime: %d", inboxRefreshTime);
+        INFO_1("CIpsSosAOMBoxLogic: timer scheduled: %d", secs);
+        if (secs > 0) 
+            {
+            iTimer->After(TTimeIntervalSeconds(secs));
+            }
+        else 
+            {
+            // panic at this point when we get zero time from settings
+            __ASSERT_DEBUG( EFalse, User::Panic( KIpsSosAOPanicLit, KErrGeneral) );
+            iTimer->After(TTimeIntervalSeconds(KAODefaultInboxSyncTimeSecs));
+            }
+            
+        CleanupStack::PopAndDestroy(settings);
+	   //</QMail>
+        NM_COMMENT("CIpsSosAOMBoxLogic: switching state: EStateWaitSyncStart");
         iState = EStateWaitSyncStart;
         }
     else if ( interval.Int() > 0 )
         {
+        INFO_1("CIpsSosAOMBoxLogic: timer scheduled: %d", interval);
         iTimer->After( interval );
+        NM_COMMENT("CIpsSosAOMBoxLogic: switching state: EStateWaitSyncStart");
         iState = EStateWaitSyncStart;
         }
     else 
         {
+        NM_COMMENT("CIpsSosAOMBoxLogic: switching state: EStateIdleAndWaitCommands");
         iState = EStateIdleAndWaitCommands;
         }
     
@@ -674,29 +803,36 @@ void CIpsSosAOMBoxLogic::CalculateToNextIntervalL()
 //
 TTimeIntervalSeconds CIpsSosAOMBoxLogic::CalculateScheduledSyncTimeL()
     {
-    FUNC_LOG;
-    //<cmail> logs removed </cmail> 
-    LoadSettingsL();
-    TTimeIntervalSeconds seconds;
+    FUNC_LOG;    
+	//<Qmail>
     
+    TTimeIntervalSeconds seconds=KErrNotFound;
+	
+    
+    CIpsSosAOSettingsHandler* settings = 
+             CIpsSosAOSettingsHandler::NewL(iSession, iMailboxId);
+    CleanupStack::PushL(settings);
+            
     // first check is ao or emn on at all
-    if ( (iExtendedSettings->AlwaysOnlineState() == EMailAoOff && 
-            iExtendedSettings->EmailNotificationState() == EMailEmnOff  )||
-        iExtendedSettings->SelectedWeekDays() == 0 ) // no week days chosen
+    if ( (settings->AlwaysOnlineState() == IpsServices::EMailAoOff && 
+            settings->EmailNotificationState() == IpsServices::EMailEmnOff  )||
+            settings->SelectedWeekDays() == 0 ) // no week days chosen
         {
         // no timed sync on
+        CleanupStack::PopAndDestroy(settings);    
         return KErrNotFound;
         }
     
-    if ( iExtendedSettings->EmailNotificationState() != EMailEmnOff && 
-         !iExtendedSettings->EmnReceivedButNotSyncedFlag()   )
+    if ( settings->EmailNotificationState() != IpsServices::EMailEmnOff && 
+         !settings->EmnReceivedButNotSyncedFlag()   )
         {
+        CleanupStack::PopAndDestroy(settings);
         return KErrNotFound;
         }
     
     
     CIpsSosAOSchedulerUtils* scheduler = CIpsSosAOSchedulerUtils::NewLC(
-        *iExtendedSettings );
+        *settings );
 
     TIpsSosAOConnectionType type = scheduler->SecondsToNextMark( seconds );
     if ( type == EAOCDisconnectAfter ) 
@@ -712,7 +848,9 @@ TTimeIntervalSeconds CIpsSosAOMBoxLogic::CalculateScheduledSyncTimeL()
         // this means that user have choosed time/day schedule at 
         // timed sync and now we have to wait sync time
         }
-    CleanupStack::PopAndDestroy( scheduler );
+    CleanupStack::PopAndDestroy( 2, settings );
+    
+	//</QMail>
     return seconds;
     }
 
@@ -722,12 +860,9 @@ TTimeIntervalSeconds CIpsSosAOMBoxLogic::CalculateScheduledSyncTimeL()
 void CIpsSosAOMBoxLogic::LoadSettingsL()
     {
     FUNC_LOG;
-    //<cmail> logs removed </cmail> 
-    delete iExtendedSettings;
-    iExtendedSettings = NULL;
-    iExtendedSettings = CIpsSetDataExtension::NewL();
-    iDataApi->LoadExtendedSettingsL( iMailboxId, *iExtendedSettings );
-    //<cmail> logs removed </cmail>
+    //<QMail>
+    //removed loading
+	//</QMail>
     }
 
 // ----------------------------------------------------------------------------
@@ -738,16 +873,22 @@ void CIpsSosAOMBoxLogic::SaveSuccessfulSyncTimeL()
     FUNC_LOG;
     TTime now;
     now.HomeTime();
-    LoadSettingsL();
-    TAOInfo info;
+    //<QMail>
+    
+	
+    CIpsSosAOSettingsHandler* settings = 
+             CIpsSosAOSettingsHandler::NewL(iSession, iMailboxId);
+    CleanupStack::PushL(settings);
+        
+    IpsServices::TAOInfo info;
     info.iLastSuccessfulUpdate = now;
     info.iUpdateSuccessfulWithCurSettings = ETrue;
-    info.iLastUpdateFailed=EFalse;
-    iExtendedSettings->SetLastUpdateInfo( info );
+    settings->SetLastUpdateInfo( info );
     // clear flag
-    iExtendedSettings->SetEmnReceivedButNotSyncedFlag( EFalse );
-    iDataApi->SaveExtendedSettingsL(
-            *iExtendedSettings );
+    settings->SetEmnReceivedButNotSyncedFlag( EFalse );
+            
+    CleanupStack::PopAndDestroy(settings);
+	//</QMail>
     }
 
 // ----------------------------------------------------------------------------
@@ -755,21 +896,28 @@ void CIpsSosAOMBoxLogic::SaveSuccessfulSyncTimeL()
 TBool CIpsSosAOMBoxLogic::CanConnectIfRoamingL()
     {
     FUNC_LOG;
-    TBool ret = ETrue;
-
-    RCmManager cmManager;
-    cmManager.OpenLC();
-    TCmGenConnSettings OccSettings;
+    TBool ret = EFalse;
+    //<Qmail>
+    RCmManager mgr;
+    CleanupClosePushL(mgr);
+    TRAPD(err, mgr.OpenL());
     
-    //ask roaming settings from occ
-    cmManager.ReadGenConnSettingsL(OccSettings);
-    if(OccSettings.iCellularDataUsageVisitor == ECmCellularDataUsageDisabled && iIsRoaming)
-        {
-        ret = EFalse;
+    TCmGenConnSettings set;
+    if(err==KErrNone){
+        TRAP(err, mgr.ReadGenConnSettingsL(set));
         }
     
-    CleanupStack::PopAndDestroy(&cmManager); // cmManager
+    CleanupStack::PopAndDestroy(&mgr);
     
+    if( err==KErrNone && 
+            set.iCellularDataUsageVisitor == ECmCellularDataUsageAutomatic){
+        ret = ETrue;
+        }
+    else{
+        ret = EFalse;
+        }
+   
+    //</QMail>
     return ret;          
     }
 
@@ -777,80 +925,48 @@ TBool CIpsSosAOMBoxLogic::CanConnectIfRoamingL()
 // ----------------------------------------------------------------------------
 TBool CIpsSosAOMBoxLogic::FirstEMNReceived()
     {
-    return iExtendedSettings->FirstEmnReceived();
+	//<QMail>
+    CIpsSosAOSettingsHandler* settings = NULL;
+    TBool ret = EFalse;
+    TRAP_IGNORE(CIpsSosAOSettingsHandler::NewL(iSession, iMailboxId));
+    if(settings){
+        ret = settings->FirstEmnReceived();
+        delete settings;
+        }
+    
+    return ret;
+    
+	//</QMail>
     }
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
 void CIpsSosAOMBoxLogic::SetFirstEMNReceived()
     {
-    TRAP_IGNORE( LoadSettingsL() );
-    iExtendedSettings->SetFirstEmnReceived( ETrue );
+    //<QMail>
     
-    //if alwaysonline was allowed to roam, so will EMN be.
-    iExtendedSettings->SetEmailNotificationState( EMailEmnAutomatic );
+    CIpsSosAOSettingsHandler* settings = NULL;
+    TRAP_IGNORE( settings = 
+            CIpsSosAOSettingsHandler::NewL(iSession, iMailboxId));
     
+    if(settings){
+        settings->SetFirstEmnReceived( ETrue );
+        
     
-    // set always online state off when emn is on
-    iExtendedSettings->SetAlwaysOnlineState( EMailAoOff );    
-    iExtendedSettings->SetInboxRefreshTime( KErrNotFound );
-    
-    TRAP_IGNORE( iDataApi->SaveExtendedSettingsL(
-       *iExtendedSettings ) );    
-    
-    }
-//<cmail> removing flags
-/*
-#ifdef IPSSOSIMAPPOLOGGING_ON
-// ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
-//
-void CIpsSosAOMBoxLogic::WriteDebugData( TInt aEvent )
-    {
-    switch ( aEvent )
-        {
-        case EEventTimerFired:
-            break;
-        case EEventStartSync:
-            break;
-        case EEventFetchMessages:
-            break;
-        case EEventOperationCompleted:
-            break;
-        case EEventSuspendOperations:
-            break;
-        case EEventContinueOperations:
-            break;
-        case EEventStart:
-            break;
-        case EEventStopAndRemoveOps:
-            break;
-        case EEventNop:
-            break;
-        default:
-            break;
+        //if alwaysonline was allowed to roam, so will EMN be.
+        settings->SetEmailNotificationState(
+            settings->AlwaysOnlineState() == 
+            IpsServices::EMailAoAlways ? 
+                IpsServices::EMailEmnAutomatic : IpsServices::EMailEmnHomeOnly );
+        
+        
+        // set always online state off when emn is on
+        settings->SetAlwaysOnlineState( IpsServices::EMailAoOff );
+        delete settings;
         }
-
-    switch ( iState )
-        {
-        case EStateWaitSyncStart:
-            break;
-        case EStateSyncOngoing:
-            break;
-        case EStateFetchOngoing:
-            break;
-        case EStateSuspended:
-            break;
-        case EStateIdleAndWaitCommands:
-            break;
-        case EStateError:
-            break;
-        default:
-            break;
-        };
+    
+	//</QMail>
     }
-#endif // IPSSMTPLOGGING_ON*/
-//</cmail>    
 
 // End of file
 

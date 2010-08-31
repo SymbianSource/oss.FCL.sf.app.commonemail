@@ -17,9 +17,9 @@
 
 
 
-#include "msgstoresortresultiterator.h"
-#include "msgstoresessioncontext.h"
-#include "msgstorepropertycontainersarray.h"
+#include "MsgStoreSortResultIterator.h"
+#include "MsgStoreSessionContext.h"
+#include "MsgStorePropertyContainersArray.h"
 
 // ----------------------------------
 // CMsgStoreSortResultIterator

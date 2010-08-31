@@ -18,13 +18,13 @@
 
 
 //<cmail>
-#include "msgstoremessagepart.h"
-#include "msgstorepropertykeys.h"
+#include "MsgStoreMessagePart.h"
+#include "MsgStorePropertyKeys.h"
 //</cmail>
-#include "msgstoresessioncontext.h"
-#include "rmessagestoresession.h"
+#include "MsgStoreSessionContext.h"
+#include "RMessageStoreSession.h"
 #include "MessageStoreClientServer.h"
-#include "msgstoremessage.h"
+#include "MsgStoreMessage.h"
 
 //_LIT( KTextPlain, "text/plain" );
 //_LIT( KTextHTML, "text/html" );
@@ -269,7 +269,7 @@ EXPORT_C void CMsgStoreMessagePart::ChildPartsL( RPointerArray<CMsgStoreMessageP
 							{
 							//body is not the first child, move it to the first place
 							aParts.Remove(i);
-							aParts.Insert( part, 0 );
+							aParts.InsertL( part, 0 );
 							}
 						break;
 					}

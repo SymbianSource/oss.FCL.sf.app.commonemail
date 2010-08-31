@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2010 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -33,9 +33,13 @@
 #include "emailtextcontent.h"
 #include "emailmultipart.h"
 #include "emailattachment.h"
-#include "cfsmailplugin.h"
-#include "FreestyleEmailUiConstants.h"
-#include "cfsmailclient.h"
+#include "CFSMailPlugin.h"
+#include "CFSMailClient.h"
+
+#include <xqservicerequest.h>
+#include "email_services_api.h"
+
+const TInt KSendMessageRequestId = 100;
 
 // -----------------------------------------------------------------------------
 // 
@@ -47,14 +51,14 @@ CEmailMessage* CEmailMessage::NewL( CPluginData& aPluginData,
     CEmailMessage* message = new ( ELeave ) CEmailMessage( aPluginData, aFsMessage, aOwner );
     CleanupStack::PushL( message );
     message->ConstructL();
-    CleanupStack::Pop();
+    CleanupStack::Pop( message );
     return message;
     }
-    
+
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
-CEmailMessage::CEmailMessage( 
+CEmailMessage::CEmailMessage(
         CPluginData& aPluginData,
         CFSMailMessage *aFsMessage,
         const TDataOwner aOwner)
@@ -66,7 +70,8 @@ CEmailMessage::CEmailMessage(
 // 
 // -----------------------------------------------------------------------------
 void CEmailMessage::ConstructL()
-    {    
+    {
+    User::LeaveIfNull( iPluginMessage );
     iPlugin = iPluginData.ClaimInstanceL();
     if ( iPluginMessage )
         {
@@ -74,7 +79,7 @@ void CEmailMessage::ConstructL()
             iPluginMessage->GetMessageId().Id(),
             iPluginMessage->GetFolderId().Id(), 
             iPluginMessage->GetMailBoxId().Id() );
-        
+
         // Copy the message flags
         InitializeFlagValues();
         }
@@ -85,7 +90,7 @@ void CEmailMessage::ConstructL()
 // -----------------------------------------------------------------------------
 CEmailMessage::~CEmailMessage()
     {
-    delete iPluginMessage;    
+    delete iPluginMessage;
     delete iSender;
     delete iReplyTo;
     delete iTextContent;
@@ -109,10 +114,10 @@ void CEmailMessage::Release()
     {
     if ( iOwner == EClientOwns )
         {
-        delete this;        
+        delete this;
         }
     }
-    
+
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
@@ -120,16 +125,18 @@ const TMessageId& CEmailMessage::MessageId() const
     {
     return iMessageId;
     }
-    
+
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
 MEmailAddress* CEmailMessage::SenderAddressL() const
     {
+    User::LeaveIfNull( iPluginMessage );
+
     CFSMailAddress* fsAddress = iPluginMessage->GetSender();
-    if (fsAddress)
+    if ( fsAddress )
         {
-        if (!iSender)
+        if ( !iSender )
             {
             iSender = CEmailAddress::NewL( MEmailAddress::ESender, EAPIOwns );
             }
@@ -144,16 +151,18 @@ MEmailAddress* CEmailMessage::SenderAddressL() const
         }
     return iSender;
     }
-    
+
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
 MEmailAddress* CEmailMessage::ReplyToAddressL() const
     {
+    User::LeaveIfNull( iPluginMessage );
+
     const CFSMailAddress& fsAddress = iPluginMessage->GetReplyToAddress();
     if ( &fsAddress )
         {
-        if (!iReplyTo)
+        if ( !iReplyTo )
             {
             iReplyTo = CEmailAddress::NewL( MEmailAddress::EReplyTo, EAPIOwns );
             }
@@ -167,16 +176,18 @@ MEmailAddress* CEmailMessage::ReplyToAddressL() const
         }
     return iReplyTo;
     }
-    
+
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
 void CEmailMessage::SetReplyToAddressL( const MEmailAddress& aSender )
     {
+    User::LeaveIfNull( iPluginMessage );
+    
     CFSMailAddress *fsAddress = CFSMailAddress::NewLC();
-    if (!iReplyTo)
+    if ( !iReplyTo )
         {
-        iReplyTo = CEmailAddress::NewL( MEmailAddress::EReplyTo, EAPIOwns);
+        iReplyTo = CEmailAddress::NewL( MEmailAddress::EReplyTo, EAPIOwns );
         }
     fsAddress->SetDisplayName( aSender.DisplayName() );
     fsAddress->SetEmailAddress( aSender.Address() );
@@ -184,8 +195,8 @@ void CEmailMessage::SetReplyToAddressL( const MEmailAddress& aSender )
     iReplyTo->SetAddressL( fsAddress->GetEmailAddress() );
     iReplyTo->SetDisplayNameL( fsAddress->GetDisplayName() );
     CleanupStack::Pop();
-    }       
-    
+    }
+
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
@@ -193,16 +204,18 @@ TInt CEmailMessage::GetRecipientsL( const MEmailAddress::TRole aRole,
         REmailAddressArray& aRecipients ) const
     {
     if( aRole == MEmailAddress::EReplyTo ||
-        aRole == MEmailAddress::ESender    )
+        aRole == MEmailAddress::ESender )
         {
         User::Leave( KErrArgument );
         }
-    else
+    else 
         {
+        User::LeaveIfNull( iPluginMessage );
+        
         if( aRole == MEmailAddress::ETo || 
             aRole == MEmailAddress::EUndefined )
             {
-            RPointerArray<CFSMailAddress>& toRecipients = 
+            const RPointerArray<CFSMailAddress>& toRecipients =
                 iPluginMessage->GetToRecipients();
             ConvertAddressArrayL( 
                     MEmailAddress::ETo, 
@@ -211,7 +224,7 @@ TInt CEmailMessage::GetRecipientsL( const MEmailAddress::TRole aRole,
         if( aRole == MEmailAddress::ECc || 
             aRole == MEmailAddress::EUndefined )
             {
-            RPointerArray<CFSMailAddress>& ccRecipients = 
+            const RPointerArray<CFSMailAddress>& ccRecipients =
                 iPluginMessage->GetCCRecipients();
             ConvertAddressArrayL( 
                     MEmailAddress::ECc, 
@@ -220,7 +233,7 @@ TInt CEmailMessage::GetRecipientsL( const MEmailAddress::TRole aRole,
         if( aRole == MEmailAddress::EBcc || 
             aRole == MEmailAddress::EUndefined )
             {
-            RPointerArray<CFSMailAddress>& bccRecipients = 
+            const RPointerArray<CFSMailAddress>& bccRecipients =
                 iPluginMessage->GetBCCRecipients();
             ConvertAddressArrayL( 
                     MEmailAddress::EBcc, 
@@ -228,22 +241,24 @@ TInt CEmailMessage::GetRecipientsL( const MEmailAddress::TRole aRole,
             }
         }
     return aRecipients.Count();
-    }            
+    }
     
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
-void CEmailMessage::SetRecipientsL( const MEmailAddress::TRole aRole, 
+void CEmailMessage::SetRecipientsL( const MEmailAddress::TRole aRole,
         REmailAddressArray& aRecipients )
     {
     TInt count( aRecipients.Count() );
-    
+
     for( TInt i=0;i<count;i++ )
         {
         const MEmailAddress* address = aRecipients[i];
         CFSMailAddress* fsAddress = CFSMailAddress::NewLC();
         fsAddress->SetEmailAddress( address->Address() );
         fsAddress->SetDisplayName( address->DisplayName() );
+        
+        User::LeaveIfNull( iPluginMessage );
         
         if( aRole == MEmailAddress::ETo )
             {
@@ -264,65 +279,46 @@ void CEmailMessage::SetRecipientsL( const MEmailAddress::TRole aRole,
         CleanupStack::Pop( fsAddress );
         }
     }
-    
+
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
-void CEmailMessage::RemoveRecipientL( const MEmailAddress& aRecipient )
+void CEmailMessage::RemoveRecipientL( const MEmailAddress& /*aRecipient*/ )
     {
-    TInt err( KErrNotFound );
-    RPointerArray<CFSMailAddress>* recipients = NULL;
-
-    switch (aRecipient.Role())
-        {
-        case MEmailAddress::ETo:
-            recipients = &iPluginMessage->GetToRecipients();
-            break;
-        case MEmailAddress::ECc:
-            recipients = &iPluginMessage->GetCCRecipients();
-            break;
-        case MEmailAddress::EBcc:
-            recipients = &iPluginMessage->GetBCCRecipients();
-            break;
-        default:
-            User::Leave( KErrArgument );
-            break;
-        }
-    
-    for( TInt i = 0; i < recipients->Count(); i++ )
-        {
-        if ( !aRecipient.Address().Compare( (*recipients)[i]->GetEmailAddress() ) )
-            {
-            recipients->Remove(i);
-            err = KErrNone;
-            // We could break now. But let's loop if there are several entries
-            }
-        }
-    User::LeaveIfError( err );
+    User::Leave( KErrNotSupported );
     }
-    
+
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
 TPtrC CEmailMessage::Subject() const
     {
+    if ( !iPluginMessage )
+        return KNullDesC();
     return iPluginMessage->GetSubject();
     }
 
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
-void  CEmailMessage::SetSubjectL( const TPtrC& aSubject)
+void  CEmailMessage::SetSubjectL( const TPtrC& aSubject )
     {
+    User::LeaveIfNull( iPluginMessage );
     iPluginMessage->SetSubject( aSubject );
     }
-    
+
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
 TTime CEmailMessage::Date() const
     {
-    return iPluginMessage->GetDate();
+    TTime time;
+
+    if ( iPluginMessage ) {
+        time = iPluginMessage->GetDate();
+    }
+
+    return time;
     }
 
 // -----------------------------------------------------------------------------
@@ -340,9 +336,10 @@ void CEmailMessage::SetFlag( const TUint aFlag )
     {
     iFlags |= aFlag;
     TUint flag = MapFlags( aFlag );
-    iPluginMessage->SetFlag( flag );
+    if ( iPluginMessage )
+        iPluginMessage->SetFlag( flag );
     }
-    
+
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
@@ -350,7 +347,8 @@ void CEmailMessage::ResetFlag( const TUint aFlag )
     {
     iFlags &= ~aFlag;
     TUint flag = MapFlags( aFlag );
-    iPluginMessage->ResetFlag( flag );
+    if ( iPluginMessage )
+        iPluginMessage->ResetFlag( flag );
     }
 
 // -----------------------------------------------------------------------------
@@ -358,6 +356,8 @@ void CEmailMessage::ResetFlag( const TUint aFlag )
 // -----------------------------------------------------------------------------
 void CEmailMessage::InitializeFlagValues()
     {
+    if ( !iPluginMessage )
+        return;
     // 1st reset member value, then start copying different flags
     iFlags = 0;
     
@@ -494,15 +494,17 @@ void CEmailMessage::InitializeFlagValues()
 // -----------------------------------------------------------------------------
 MEmailMessageContent* CEmailMessage::ContentL() const
     {
-    if (iTextContent)
+    if ( iTextContent )
         {
-        return iTextContent;        
+        return iTextContent;
         }
-    if (iContent)
+    if ( iContent )
         {
         return iContent;
         }
 
+    User::LeaveIfNull( iPluginMessage );
+    
     RPointerArray<CFSMailMessagePart> parts;
     CleanupResetAndDestroyPushL( parts );
     iPluginMessage->ChildPartsL( parts );
@@ -514,14 +516,14 @@ MEmailMessageContent* CEmailMessage::ContentL() const
         return NULL;
         }
     CFSMailMessagePart* part = parts[0];
-    TContentType contentType( part->GetContentType() ); 
-    TMessageContentId msgContentId = TMessageContentId( 
+    TContentType contentType( part->GetContentType() );
+    TMessageContentId msgContentId = TMessageContentId(
                         part->GetPartId().Id(),
                         iMessageId.iId,
                         iMessageId.iFolderId.iId,
-                        iMessageId.iFolderId.iMailboxId ); 
+                        iMessageId.iFolderId.iMailboxId );
 
-    if ( contentType.Equals( KFSMailContentTypeTextPlain ) || 
+    if ( contentType.Equals( KFSMailContentTypeTextPlain ) ||
         contentType.Equals( KFSMailContentTypeTextHtml ) )
         {                                
         iTextContent = CEmailTextContent::NewL(iPluginData, msgContentId, part, EAPIOwns );
@@ -538,10 +540,10 @@ MEmailMessageContent* CEmailMessage::ContentL() const
         }
 
     CleanupStack::PopAndDestroy( &parts ); // parts
-    
+
     if (iTextContent)
         {
-        return iTextContent;        
+        return iTextContent;
         }
     return iContent;
     }
@@ -551,69 +553,69 @@ MEmailMessageContent* CEmailMessage::ContentL() const
 // -----------------------------------------------------------------------------
 void CEmailMessage::SetContentL( const MEmailMessageContent*  aContent )
     {
+    User::LeaveIfNull( aContent );
     MEmailTextContent* textContent = aContent->AsTextContentOrNull();
-    if (textContent)
+    if ( textContent )
         {
-        if (iTextContent)
+        if ( iTextContent )
             {
             delete iTextContent; // Destroy old content
             }
-        iTextContent = dynamic_cast<CEmailTextContent*>(textContent);
-		if ( iTextContent )
-			{
-			iTextContent->SetOwner( EAPIOwns );
-			}
+        iTextContent = dynamic_cast<CEmailTextContent*>( textContent );
+        if ( iTextContent )
+            {
+            iTextContent->SetOwner( EAPIOwns );
+            }
         return;
         }
     MEmailMultipart* mPart = aContent->AsMultipartOrNull();
-    if (mPart)
+    if ( mPart )
         {
-        if (iContent)
+        if ( iContent )
             {
             delete iContent;
             }
-        iContent = dynamic_cast<CEmailMultipart*>(mPart);
-		if ( iContent )
-			{
-			iContent->SetOwner( EAPIOwns );
-			}
+        iContent = dynamic_cast<CEmailMultipart*>( mPart );
+        if ( iContent )
+            {
+            iContent->SetOwner( EAPIOwns );
+            }
         }    
     }
-    
+
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
 void CEmailMessage::SetPlainTextBodyL( const TDesC& aPlainText )
     {
-    if (iTextContent)
+    if ( iTextContent )
         {
         iTextContent->SetTextL( MEmailTextContent::EPlainText, aPlainText );
         return;
         }
+
+    User::LeaveIfNull( iPluginMessage );
+
     CFSMailMessagePart* msgTextPart = iPluginMessage->PlainTextBodyPartL();
     
     if( !msgTextPart )
         {
-        msgTextPart = iPluginMessage->NewChildPartL( TFSMailMsgId(), KFSMailContentTypeTextPlain );        
+        msgTextPart = iPluginMessage->NewChildPartL( TFSMailMsgId(), KFSMailContentTypeTextPlain );
         }
     CleanupStack::PushL( msgTextPart );
-    
-    TMessageContentId msgContentId = TMessageContentId( 
-                        msgTextPart->GetPartId().Id(),
-                        iMessageId.iId,
-                        iMessageId.iFolderId.iId,
-                        iMessageId.iFolderId.iMailboxId );
-    
-    msgTextPart->SetContentType( KFSMailContentTypeTextPlain );    
+
+    TMessageContentId msgContentId = MessageContentId( msgTextPart->GetPartId().Id() );
+
+    msgTextPart->SetContentType( KFSMailContentTypeTextPlain );
     iTextContent = CEmailTextContent::NewL( iPluginData, msgContentId, msgTextPart, EAPIOwns );
     if (iTextContent)
         {
         iTextContent->SetTextL( MEmailTextContent::EPlainText, aPlainText );
         }
-    CleanupStack::Pop(); // msgTextPart
-    
+    CleanupStack::Pop( msgTextPart );
+
     return;
-    
+
     }
 
 // -----------------------------------------------------------------------------
@@ -621,28 +623,31 @@ void CEmailMessage::SetPlainTextBodyL( const TDesC& aPlainText )
 // -----------------------------------------------------------------------------
 MEmailAttachment* CEmailMessage::AddAttachmentL( const TDesC& aFullPath )
     {
-    CFSMailMessagePart* part = iPluginMessage->AddNewAttachmentL(aFullPath, TFSMailMsgId());
+    User::LeaveIfNull( iPluginMessage );
+
+    CFSMailMessagePart* part = iPluginMessage->AddNewAttachmentL( aFullPath, TFSMailMsgId() );
     CleanupStack::PushL( part );    
-    CEmailAttachment* att = CEmailAttachment::NewLC(iPluginData, iMsgContentId, part, EAPIOwns);
+    CEmailAttachment* att = CEmailAttachment::NewLC( iPluginData, iMsgContentId, part, EAPIOwns );
     iAttachments.AppendL( att );
-    CleanupStack::Pop(2); // part, att
-    
+    CleanupStack::Pop( 2, part );
+
     return att;
     }
-    
+
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
-
 MEmailAttachment* CEmailMessage::AddAttachmentL( RFile& aFile )
     {
+    User::LeaveIfNull( iPluginMessage );
     TBufC8 <1> mime;
-    CFSMailMessagePart* part = iPluginMessage->AddNewAttachmentL(aFile, mime);
+    CFSMailMessagePart* part = iPluginMessage->AddNewAttachmentL( aFile, mime );
     CleanupStack::PushL( part );
-    CEmailAttachment* att = CEmailAttachment::NewLC(iPluginData, iMsgContentId, part, EAPIOwns);
+    CEmailAttachment* att = CEmailAttachment::NewLC( iPluginData, iMsgContentId, part, EAPIOwns );
     iAttachments.AppendL( att );
-    CleanupStack::Pop(2); // part, att
-    
+
+    CleanupStack::Pop( 2, part );
+
     return att;
     }
 
@@ -651,32 +656,31 @@ MEmailAttachment* CEmailMessage::AddAttachmentL( RFile& aFile )
 // -----------------------------------------------------------------------------
 TInt CEmailMessage::GetAttachmentsL( REmailAttachmentArray& aAttachments )
     {
+    User::LeaveIfNull( iPluginMessage );
+
     RPointerArray<CFSMailMessagePart> attachments;
     CleanupResetAndDestroyPushL( attachments );
-    iPluginMessage->AttachmentListL(attachments);
+    iPluginMessage->AttachmentListL( attachments );
     const TInt count( attachments.Count() );
     for (TInt i = 0; i < count; i++)
         {
-            TMessageContentId msgContentId = TMessageContentId( 
-                            attachments[i]->GetPartId().Id(),
-                            iMessageId.iId,
-                            iMessageId.iFolderId.iId,
-                            iMessageId.iFolderId.iMailboxId ); 
+        TMessageContentId msgContentId = MessageContentId( attachments[i]->GetPartId().Id() );
 
-            CEmailAttachment* att = CEmailAttachment::NewL(iPluginData, msgContentId, attachments[i], EClientOwns);
-            
-            aAttachments.AppendL(att);
+        CEmailAttachment* att = CEmailAttachment::NewL( 
+            iPluginData, msgContentId, attachments[i], EClientOwns );
+
+        aAttachments.AppendL( att );
         }
-    CleanupStack::Pop(); // attachments
-    return count;    
+    CleanupStack::Pop( &attachments );
+    return count;
     }
-    
+
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
-void CEmailMessage::RemoveAttachmentL( const MEmailAttachment& aAttachment  )
+void CEmailMessage::RemoveAttachmentL( const MEmailAttachment& /*aAttachment*/ )
     {
-    iPluginMessage->RemoveChildPartL(FsMsgId( iPluginData, aAttachment.Id()));
+    User::Leave( KErrNotSupported );
     }
 
 // -----------------------------------------------------------------------------
@@ -692,6 +696,8 @@ const TFolderId& CEmailMessage::ParentFolderId() const
 // -----------------------------------------------------------------------------
 void CEmailMessage::SaveChangesL()
     {
+    User::LeaveIfNull( iPluginMessage );
+    
     TFSMailMsgId mailboxId( 
             FsMsgId( iPluginData, iMessageId.iFolderId.iMailboxId ) );
     
@@ -703,16 +709,37 @@ void CEmailMessage::SaveChangesL()
 // -----------------------------------------------------------------------------
 void CEmailMessage::SendL()
     {
+    User::LeaveIfNull( iPluginMessage );
+    
+    if ( iEventLoop.isRunning() )
+        User::Leave( KErrInUse );
+    
     SaveChangesL();
-    iPlugin->SendMessageL( *iPluginMessage );
+    iError = KErrNone;
+    iPlugin->SendMessageL( *iPluginMessage, *this, KSendMessageRequestId );
+    iEventLoop.exec();
+
+    User::LeaveIfError( iError );
     }
 
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
-void CEmailMessage::ConvertAddressArrayL( 
+void CEmailMessage::RequestResponseL( TFSProgress aEvent, TInt aRequestId )
+    {
+    iError = aEvent.iError;
+
+    if ( aRequestId == KSendMessageRequestId &&
+            aEvent.iProgressStatus == TFSProgress::EFSStatus_RequestComplete )
+        iEventLoop.quit();
+    }
+
+// -----------------------------------------------------------------------------
+// 
+// -----------------------------------------------------------------------------
+void CEmailMessage::ConvertAddressArrayL(
         const MEmailAddress::TRole aRole,
-        RPointerArray<CFSMailAddress>& aSrc, 
+        const RPointerArray<CFSMailAddress>& aSrc,
         REmailAddressArray& aDst ) const
     {
     for ( TInt i=0; i<aSrc.Count(); i++ )
@@ -726,8 +753,7 @@ void CEmailMessage::ConvertAddressArrayL(
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-//
-CEmailAddress* CEmailMessage::CreateAddressLC( 
+CEmailAddress* CEmailMessage::CreateAddressLC(
         const MEmailAddress::TRole aRole, 
         CFSMailAddress& aFsAddress ) const
     {
@@ -748,7 +774,6 @@ CEmailAddress* CEmailMessage::CreateAddressLC(
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-//
 TUint CEmailMessage::MapFlags( const TUint& aFlag )
     {
     TUint flag = 0;
@@ -802,63 +827,66 @@ TUint CEmailMessage::MapFlags( const TUint& aFlag )
     return flag;
     }
 
-void CEmailMessage::ShowMessageViewerL( )
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+void CEmailMessage::ShowMessageViewerL()
     {   
-    THtmlViewerActivationData htmlData;
-    htmlData.iActivationDataType = THtmlViewerActivationData::EMailMessage;
-    htmlData.iMailBoxId = FsMsgId(iPluginData, iMessageId.iFolderId.iMailboxId);
-    htmlData.iFolderId = FsMsgId(iPluginData, iMessageId.iFolderId);
-    htmlData.iMessageId = FsMsgId(iPluginData, iMessageId);
-    TPckgBuf<THtmlViewerActivationData> pckgData( htmlData );
-    CVwsSessionWrapper* viewSrvSession = CVwsSessionWrapper::NewLC();
-    viewSrvSession->ActivateView(TVwsViewId(KFSEmailUiUid, HtmlViewerId), KHtmlViewerOpenNew, pckgData);
-    CleanupStack::PopAndDestroy();
-    }    
+    bool syncronous;
 
-/** 
- * Launches Email application and new reply message in editor. 
- * The method follows "fire and forget" pattern, returns immediately.
- */
-void CEmailMessage::ReplyToMessageL( const TBool aReplyToAll )
-    {
-    TEditorLaunchParams editorLaunchData;
-    editorLaunchData.iExtra = NULL;
-    editorLaunchData.iMailboxId = FsMsgId(iPluginData, iMessageId.iFolderId.iMailboxId);
-    editorLaunchData.iFolderId = FsMsgId(iPluginData, iMessageId.iFolderId);
-    editorLaunchData.iMsgId = FsMsgId(iPluginData, iMessageId);
-    editorLaunchData.iActivatedExternally = ETrue; 
-    
-    TPckgBuf<TEditorLaunchParams> pckgData( editorLaunchData );
-    CVwsSessionWrapper* viewSrvSession = CVwsSessionWrapper::NewLC();
-    TUid command = TUid::Uid(KEditorCmdReplyAll);
-    if ( !aReplyToAll )
-        {
-        command = TUid::Uid(KEditorCmdReply);
-        }
-    viewSrvSession->ActivateView(TVwsViewId(KFSEmailUiUid, MailEditorId), command, pckgData);
-    CleanupStack::PopAndDestroy();   
+    XQServiceRequest request(
+       emailInterfaceNameMessage,
+       emailOperationViewMessage,
+       syncronous );
+
+    TFSMailMsgId mailboxId = FsMsgId( iPluginData, iMessageId.iFolderId.iMailboxId );
+    TFSMailMsgId folderId = FsMsgId( iPluginData, iMessageId.iFolderId );
+    TFSMailMsgId messageId = FsMsgId( iPluginData, iMessageId );
+
+    QList<QVariant> list;
+    list.append( mailboxId.Id() );
+    list.append( folderId.Id() );
+    list.append( messageId.Id() );
+    request.setArguments( list );
+
+    QVariant returnValue;
+    if ( !request.send( returnValue ) )
+        User::Leave( KErrGeneral );
     }
 
+// -----------------------------------------------------------------------------
+// Launches Email application and new reply message in editor. 
+// The method follows "fire and forget" pattern, returns immediately.
+// -----------------------------------------------------------------------------
+void CEmailMessage::ReplyToMessageL( const TBool /*aReplyToAll*/ )
+    {
+    User::Leave( KErrNotSupported );
+    }
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
 void CEmailMessage::ForwardMessageL()
     {
-    TEditorLaunchParams editorLaunchData;
-    editorLaunchData.iExtra = NULL;
-    editorLaunchData.iMailboxId = FsMsgId(iPluginData, iMessageId.iFolderId.iMailboxId);
-    editorLaunchData.iFolderId = FsMsgId(iPluginData, iMessageId.iFolderId);
-    editorLaunchData.iMsgId = FsMsgId(iPluginData, iMessageId);
-    editorLaunchData.iActivatedExternally = ETrue; 
-    
-    TPckgBuf<TEditorLaunchParams> pckgData( editorLaunchData );
-    CVwsSessionWrapper* viewSrvSession = CVwsSessionWrapper::NewLC();
-    TUid command = TUid::Uid(KEditorCmdForward);
-    viewSrvSession->ActivateView(TVwsViewId(KFSEmailUiUid, MailEditorId), command, pckgData);
-    CleanupStack::PopAndDestroy();   
+    User::Leave( KErrNotSupported );
     }
 
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
+TMessageContentId CEmailMessage::MessageContentId( TEntryId aContentId ) const
+    {
+    TMessageContentId msgContentId = TMessageContentId( 
+                    aContentId,
+                    iMessageId.iId,
+                    iMessageId.iFolderId.iId,
+                    iMessageId.iFolderId.iMailboxId );
+    return msgContentId;
+    }
+
+// -----------------------------------------------------------------------------
 //
+// -----------------------------------------------------------------------------
 TContentType::TContentType( const TDesC& aContentType ) : iContentType( aContentType )
     {
     _LIT( KSeparator, ";" );
@@ -872,14 +900,13 @@ TContentType::TContentType( const TDesC& aContentType ) : iContentType( aContent
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-//
 TBool TContentType::Equals( const TDesC& aContentType )
     {
-	TBool ret = iContentType.CompareF( aContentType );
+    TBool ret = iContentType.CompareF( aContentType );
     if ( ret == 0  )
-    	return ETrue;
+        return ETrue;
     else
-    	return EFalse;
+        return EFalse;
     }
 
-// End of file.
+// End of file

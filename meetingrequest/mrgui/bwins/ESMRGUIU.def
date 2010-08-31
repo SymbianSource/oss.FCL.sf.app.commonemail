@@ -1,9 +1,0 @@
-EXPORTS
-	?NewL@CESMREditorDialog@@SAPAV1@AAVMMRInfoProvider@@AAVMAgnEntryUiCallback@@@Z @ 1 NONAME ; class CESMREditorDialog * CESMREditorDialog::NewL(class MMRInfoProvider &, class MAgnEntryUiCallback &)
-	?ExecuteDlgLD@CESMRResponseDialog@@QAEHXZ @ 2 NONAME ; int CESMRResponseDialog::ExecuteDlgLD(void)
-	?NewL@CESMRUiFactory@@SAPAV1@XZ @ 3 NONAME ; class CESMRUiFactory * CESMRUiFactory::NewL(void)
-	?NewL@CESMRViewerDialog@@SAPAV1@AAVMMRInfoProvider@@AAVMAgnEntryUiCallback@@@Z @ 4 NONAME ; class CESMRViewerDialog * CESMRViewerDialog::NewL(class MMRInfoProvider &, class MAgnEntryUiCallback &)
-	?NewL@CESMRResponseDialog@@SAPAV1@AAPAVHBufC16@@@Z @ 5 NONAME ; class CESMRResponseDialog * CESMRResponseDialog::NewL(class HBufC16 * &)
-	?CreateUIL@CESMRUiFactory@@UAEPAVMESMRUiBase@@AAVMMRInfoProvider@@AAVMAgnEntryUiCallback@@@Z @ 6 NONAME ; class MESMRUiBase * CESMRUiFactory::CreateUIL(class MMRInfoProvider &, class MAgnEntryUiCallback &)
-	??1CESMRUiFactory@@UAE@XZ @ 7 NONAME ; CESMRUiFactory::~CESMRUiFactory(void)
-

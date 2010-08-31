@@ -16,21 +16,25 @@
 *
 */
 
-#ifndef __IPSSOSAOSMTPAGENT_H__
-#define __IPSSOSAOSMTPAGENT_H__
+#ifndef __IPSSOSAOSMTPAGENT_H
+#define __IPSSOSAOSMTPAGENT_H
 
 
 #include <e32base.h>    // CBase
 #include <msvapi.h>
 
 class CIpsPlgSmtpOperation;
-class CIpsSetDataApi;
+//<QMail>
+
+//</QMail>
 
 /**
 * class CIpsSosAOSmtpAgent;
 *
 */
-class CIpsSosAOSmtpAgent : 
+//<Qmail>
+NONSHARABLE_CLASS (CIpsSosAOSmtpAgent) : 
+//</Qmail>
     public CActive
     {
     public:
@@ -53,16 +57,25 @@ class CIpsSosAOSmtpAgent :
         */
         virtual ~CIpsSosAOSmtpAgent();
         
-        virtual void DoCancel();
-        virtual void RunL();
         
+        virtual void DoCancel();
+        
+        virtual void RunL();
+        //<Qmail>
+        /**
+         * CMsvSession event callback 
+         */
         void HandleSessionEventL(    
             MMsvSessionObserver::TMsvSessionEvent aEvent,
             TAny* aArg1, 
             TAny* aArg2, 
             TAny* aArg3 );
             
+        /**
+         * Tries to send messages from outbox
+         */
         void EmptyOutboxNowL( TMsvId aMessage );
+		//</Qmail>
         
     private:
         /**
@@ -76,10 +89,17 @@ class CIpsSosAOSmtpAgent :
         * Second phase constructor
         */
         void ConstructL();    
-
+		//<Qmail>
+        /**
+         * Creates needed internal data
+         */
         void CreateInternalDataL( );
         
+        /**
+         * Releases internal resources
+         */
         void ReleaseInternalData( );
+		//</Qmail>
         
         
     private:
@@ -89,14 +109,14 @@ class CIpsSosAOSmtpAgent :
     private:
 
        CMsvSession& iSession;
-	
-       CIpsPlgSmtpOperation* iOperation;
+		//<Qmail>
+       CIpsPlgSmtpOperation* iOperation;//owned
+	  
 
-       CIpsSetDataApi* iSettingsApi;
-       
+       //</QMail>
        TInt iError;
        
     };
 
-#endif /* __IPSSOSAOSMTPAGENT_H__ */
+#endif /* __IPSSOSAOSMTPAGENT_H*/
 //EOF

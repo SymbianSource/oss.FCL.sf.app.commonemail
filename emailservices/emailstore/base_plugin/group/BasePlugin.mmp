@@ -19,9 +19,12 @@
 
 #include <platform_paths.hrh>
 
-#include "../../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
+//<qmail>
+// Removed from 10.1
+//#include "../../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
+//</qmail>
 #include "../../../../inc/emailtraceconfig.hrh"
-#include "../../inc/emailstoreuids.hrh"
+#include "../../inc/EmailStoreUids.hrh"
 
 TARGET            baseplugin.dll
 TARGETTYPE        dll
@@ -29,7 +32,10 @@ UID KUidSharedLibrary KUidBasePlugin
 CAPABILITY        CAP_GENERAL_DLL
 VENDORID          VID_DEFAULT
 
-VERSION           KEmailBinaryVersionNumber
+//<qmail>
+// Removed from 10.1
+//VERSION           KEmailBinaryVersionNumber
+//</qmail>
 KEmailBinaryDemandPaging
 
 
@@ -46,6 +52,7 @@ MACRO DEBUG_LOG_OPTION_INFO
 USERINCLUDE ../inc
 
 USERINCLUDE ../../../../inc
+SYSTEMINCLUDE /epoc32/include/ecom
 
 APP_LAYER_SYSTEMINCLUDE
 
@@ -61,7 +68,7 @@ SOURCE BaseMrInfoObject.cpp
 SOURCE basepluginfetch.cpp
 SOURCE baseplugindelayedops.cpp
 SOURCE basepluginresourceloader.cpp
-
+SOURCE nestedao.cpp
 
 // *************************************
 // OTHER STUFF

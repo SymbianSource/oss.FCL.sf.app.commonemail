@@ -29,7 +29,7 @@
 #include <d32dbms.h>  // database
 #include <s32file.h>  // stream store 
 //<cmail>
-#include "debuglogmacros.h"
+#include "DebugLogMacros.h"
 //</cmail>
 
 // ====================

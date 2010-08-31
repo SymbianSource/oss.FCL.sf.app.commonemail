@@ -42,11 +42,20 @@ CIpsPlgDeleteLocal::CIpsPlgDeleteLocal(
 // ----------------------------------------------------------------------------
 // 
 void CIpsPlgDeleteLocal::ConstructL(
-    CMsvEntrySelection& aMessageSelection )
+    CMsvEntrySelection* aMessageSelection )
     {
     FUNC_LOG;
+    //<qmail>
+    // Start cache manager to prune messages
+    //</qmail>
     CImCacheManager::ConstructL();
-    iMessageSelection = aMessageSelection.CopyL();
+    //<qmail>
+    iMessageSelection = new (ELeave) CMsvEntrySelection();
+    for ( TInt i=0; i<aMessageSelection->Count(); i++ )
+        {
+        iMessageSelection->AppendL( aMessageSelection->At(i) );
+        }
+    //</qmail>
     StartL( *iMessageSelection, iObserverRequestStatus );
     }
 
@@ -55,7 +64,7 @@ void CIpsPlgDeleteLocal::ConstructL(
 // ----------------------------------------------------------------------------
 // 
 CIpsPlgDeleteLocal* CIpsPlgDeleteLocal::NewL(
-    CMsvEntrySelection& aMessageSelection,
+    CMsvEntrySelection* aMessageSelection,
     CMsvSession& aMsvSession,
     TRequestStatus& aObserverRequestStatus)
     {
@@ -89,11 +98,13 @@ CIpsPlgDeleteLocal::~CIpsPlgDeleteLocal()
 TBool CIpsPlgDeleteLocal::Filter() const
     {
     FUNC_LOG;
-    if ( iMessageSelection->Find( iCurrentEntry->Entry().Id() )
-        > KErrNotFound )
+    //<qmail> 
+    if ( iMessageSelection->Find( 
+            iCurrentEntry->Entry().Id() ) == KErrNone )
         {
         return ETrue;
         }
+    //</qmail>
     return EFalse;
     }
 

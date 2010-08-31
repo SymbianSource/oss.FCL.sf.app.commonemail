@@ -16,13 +16,7 @@
 *
 */
 
-#include "emailtrace.h"
-#include <e32base.h>
-
-#include "IpsSosAOSmtpAgent.h"
-#include "ipsplgsmtpoperation.h"
-#include "ipssetdataapi.h"
-
+#include "ipssosaopluginheaders.h"
 
 #ifdef _DEBUG
 _LIT( KIpsSosAOSmtpLogicPanicLit, "AOsmtp");
@@ -133,14 +127,12 @@ void CIpsSosAOSmtpAgent::CreateInternalDataL( )
     FUNC_LOG;
     if ( !iOperation )
         {
+		//<QMail>
         iOperation = CIpsPlgSmtpOperation::NewL(
-            iSession, EPriorityStandard, iStatus , EFalse );
+            iSession, iStatus  );
         }
-        
-    if ( !iSettingsApi )
-        {
-        iSettingsApi = CIpsSetDataApi::NewL( iSession );
-        }
+    
+	//</QMail>
     }
 
 // ----------------------------------------------------------------------------
@@ -158,9 +150,9 @@ void CIpsSosAOSmtpAgent::ReleaseInternalData( )
         delete iOperation;
         iOperation = NULL;
         }
-    
-    delete iSettingsApi;
-    iSettingsApi = NULL;
+	//<QMail>
+
+    //</QMail>
     }
 
 

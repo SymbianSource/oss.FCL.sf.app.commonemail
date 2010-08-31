@@ -1,6 +1,4 @@
 EXPORTS
 	_ZN19CImsPointsecMonitor4NewLER20MImsPointsecObserver @ 1 NONAME
 	_ZNK19CImsPointsecMonitor16IsServiceAllowedEv @ 2 NONAME
-	_ZTI19CImsPointsecMonitor @ 3 NONAME ; #<TI>#
-	_ZTV19CImsPointsecMonitor @ 4 NONAME ; #<VT>#
 

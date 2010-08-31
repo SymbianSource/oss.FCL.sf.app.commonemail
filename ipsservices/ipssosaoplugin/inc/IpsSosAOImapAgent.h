@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2008 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -23,15 +23,14 @@
 #include <imapconnectionobserver.h>
 #include <imapset.h>
 #include <mtclreg.h>
-//<cmail>
-#include "mfsmailrequestobserver.h"
-//</cmail>
+#include "MFSMailRequestObserver.h"
 
 #include "IpsSosAOBaseAgent.h"
 
 class CImap4ClientMtm;
-class CIpsSetDataApi;
+//<QMail>
 
+//</QMail>
 /**
 * class CIpsSosAOImapAgent;
 *
@@ -39,7 +38,9 @@ class CIpsSetDataApi;
 * virtual functions.
 *
 */
-class CIpsSosAOImapAgent : public CIpsSosAOBaseAgent,
+//<Qmail>
+NONSHARABLE_CLASS (CIpsSosAOImapAgent) : public CIpsSosAOBaseAgent,
+//</Qmail>
                            public MMsvImapConnectionObserver,
                            public MFSMailRequestObserver
     {
@@ -60,35 +61,77 @@ public:
     virtual ~CIpsSosAOImapAgent();
     
 public: // from CIpsSosAOBaseAgent
-    
+    //<Qmail>
+    /**
+     * GetServerAddress
+     * @param a return parameter
+     */
     virtual void GetServerAddress( 
             TBuf<KIpsSosAOTextBufferSize>& aIncomingServer ) const;
     
+    /**
+     * GetUsername
+     * @param a return parameter
+     */
     virtual void GetUsername( 
             TBuf8<KIpsSosAOTextBufferSize>& aUsername ) const;
     
+    /**
+     * checks is does mailbox have connection open
+     * @return is connected or not
+     */
     virtual TBool IsConnected() const;
     
+    /**
+     * Starts email sync
+     */
     virtual void StartSyncL();
     
+    /**
+     * starts fetching messages
+     */
     virtual void StartFetchMessagesL( const RArray<TMsvId>& aFetchMsgArray );
     
+    /**
+     * cancels all ongoing suboperations and disconnects
+     */
     virtual void CancelAllAndDisconnectL();
     
+    /**
+     * cancels all suboperations
+     */
     virtual void CancelAllAndDoNotDisconnect();
     
+    /**
+     * sets iDoNotDisconnect as ETrue
+     */
     virtual void DoNotDisconnect();
     
+    /**
+     * sets iDoNotDisconnect as EFalse
+     */
     virtual void ClearDoNotDisconnect();
     
+    /**
+     * pauses ongoing operations
+     */
     virtual void HoldOperations();
 
+    /**
+     * resumes paused operations
+     */
     virtual void ContinueHoldOperations();
     
+    /**
+     * @return current iState
+     */
     virtual CIpsSosAOBaseAgent::TAgentState GetState() const;
     
+    /**
+     * Loads CImImap4Settings object
+     */
     virtual void LoadSettingsL();
-    
+    //</Qmail>
 public: // MMsvImapConnectionObserver  
     
     /**
@@ -118,17 +161,32 @@ private:
     * Second phase constructor
     */
     void ConstructL();
-    
+    //<Qmail>
+    /**
+     * called when cancelled
+     */
     virtual void DoCancel();
     
+    /**
+     * from CActive
+     */
     virtual void RunL();
     
+    /**
+     * from CActive
+     */
     virtual TInt RunError( TInt aError );
 
+    /**
+     * fetches the content of all synced messages
+     */
     void PopulateAllL();
     
+    /**
+     * triggers async statemachine
+     */
     inline void SetActiveAndCompleteThis();
-
+	//</Qmail>
 private:
     
     CMsvSession&                        iSession;
@@ -136,16 +194,19 @@ private:
     TMsvId                              iServiceId;
     TAgentState                         iState;
     TBool                               iDoNotDisconnect;
-    CImImap4Settings*                   iImapSettings;
-    CMsvOperation*                      iOngoingOp;
+	//<Qmail>
+    CImImap4Settings*                   iImapSettings;//owned
+    CMsvOperation*                      iOngoingOp;//owned
 
     TPckgBuf<TImap4CompoundProgress>    iProgressBuf;
     TInt                                iError;
-    CImap4ClientMtm*                    iImapClientMtm;
-    CClientMtmRegistry*                 iMtmReg;
-    RArray<TMsvId>                      iFoldersArray;
-    CIpsSetDataApi*                     iDataApi;
-    
+    CImap4ClientMtm*                    iImapClientMtm;//owned
+    CClientMtmRegistry*                 iMtmReg;//owned
+    RArray<TMsvId>                      iFoldersArray;//owned
+	//<Qmail>
+	//<QMail>
+
+    //</QMail>
     };
 
 #endif /*IPSSOSAOIMAPAGENT_H_*/

@@ -23,7 +23,7 @@
 
 #include <bautils.h>
 
-#include "msgstoretypes.h"
+#include "MsgStoreTypes.h"
 #include "ContainerStore.h"
 #include "ContainerStoreContainersTable.h"
 #include "ContainerStoreContentManager.h"
@@ -40,7 +40,7 @@
 #include "ContainerStoreSearchResultTable.h"
 #include "MessageStoreEncryptHandler.h"
 #include "ContainerStoreMRUAddressTable.h"
-#include "msgstorepropertykeys.h"
+#include "MsgStorePropertyKeys.h"
 
 // =========
 // CONSTANTS
@@ -1800,7 +1800,7 @@ TContainerId CContainerStore::StartSortingL( TMsgStoreSortCriteria& aSortCriteri
     session.iSessionId = iNextSortSessionId++;
     session.iResultRowSet = resultRowSet ;
     
-    iSortSessions.Append( session );
+    iSortSessions.AppendL( session );
     
     CleanupStack::Pop( resultRowSet );
     

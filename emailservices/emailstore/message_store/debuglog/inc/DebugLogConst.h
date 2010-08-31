@@ -25,7 +25,7 @@
 
 #include <e32std.h>
 #include <e32def.h>
-#include "debuglog.h"
+#include "DebugLog.h"
 
 // ========
 // LITERALS
@@ -162,7 +162,7 @@ _LIT8( KStLogDestruct, "--(0x%x)" );
 	#endif // __DEBUG_LOGGING_OPTIONS
 
 	// Finally, allow the logging options to be overriden at the global level.
-	#include "globaldebugloggingoptions.h"
+	#include "GlobalDebugLoggingOptions.h"
 
 #endif // DEBUG_USE_PROJECT_LOGGING_OPTIONS
 
@@ -171,7 +171,7 @@ _LIT8( KStLogDestruct, "--(0x%x)" );
 #define DEBUG_USE_VAR(var) if ( &var ) {};
 
 // These are the basic logging macros - they are NOT intended to be called directly.
-// Instead use the logging MACROS defined in debuglogmacros.h
+// Instead use the logging MACROS defined in DebugLogMacros.h
 #define __INTERNAL_LOG_DECLARATION  RDebugLog iLogger;
 
 #define __INTERNAL_LOG_CLOSE_BETWEEN_WRITES  \
@@ -620,4 +620,4 @@ _LIT8( KStLogDestruct, "--(0x%x)" );
 
 #endif // _DEBUG_LOG_CONST_H_
 
-// END FILE debuglogconst.h
+// END FILE DebugLogConst.h

@@ -9,67 +9,14 @@ EXPORTS
 	_ZN20CIpsPlgSmtpOperation10StartSendLEl @ 8 NONAME
 	_ZN20CIpsPlgSmtpOperation19GetOutboxChildrensLEv @ 9 NONAME
 	_ZN20CIpsPlgSmtpOperation31EmptyOutboxFromPendingMessagesLEl @ 10 NONAME
-	_ZN20CIpsPlgSmtpOperation4NewLER11CMsvSessioniR14TRequestStatusi @ 11 NONAME
-	_ZN20CIpsPlgSmtpOperation5NewLCER11CMsvSessioniR14TRequestStatusi @ 12 NONAME
-	_ZN22CIpsPlgImap4PopulateOp4NewLER11CMsvSessionR14TRequestStatusilR21CIpsPlgTimerOperationRK26TImImap4GetPartialMailInfoRK18CMsvEntrySelection12TFSMailMsgIdR22MFSMailRequestObserveriP19CIpsPlgEventHandleri @ 13 NONAME
+	_ZN20CIpsPlgSmtpOperation4NewLER11CMsvSessionR14TRequestStatusP22MFSMailRequestObserveri @ 11 NONAME
+	_ZN20CIpsPlgSmtpOperation5NewLCER11CMsvSessionR14TRequestStatusP22MFSMailRequestObserveri @ 12 NONAME
+	_ZN22CIpsPlgImap4PopulateOp4NewLER11CMsvSessionR14TRequestStatuslR21CIpsPlgTimerOperationRK26TImImap4GetPartialMailInfoRK18CMsvEntrySelection12TFSMailMsgIdP22MFSMailRequestObserveriP19CIpsPlgEventHandleri @ 13 NONAME
 	_ZN22CIpsPlgSingleOpWatcher12SetOperationEP13CMsvOperation @ 14 NONAME
 	_ZN22CIpsPlgSingleOpWatcher4NewLER22MIpsPlgSingleOpWatcher @ 15 NONAME
 	_ZN22CIpsPlgSingleOpWatcher5NewLCER22MIpsPlgSingleOpWatcher @ 16 NONAME
 	_ZN22CIpsPlgSingleOpWatcherD0Ev @ 17 NONAME
 	_ZN22CIpsPlgSingleOpWatcherD1Ev @ 18 NONAME
 	_ZN22CIpsPlgSingleOpWatcherD2Ev @ 19 NONAME
-	_ZN34CIpsPlgConnectAndRefreshFolderList4NewLER11CMsvSessioniR14TRequestStatuslR12TFSMailMsgIdR18CMsvEntrySelectionR22MFSMailRequestObserverR21CIpsPlgTimerOperation @ 20 NONAME
-	_ZNK22CIpsPlgSingleOpWatcher9OperationEv @ 21 NONAME
-	_ZTI13TIpsPlgMsgKey @ 22 NONAME
-	_ZTI14CIpsPlgMruList @ 23 NONAME
-	_ZTI14TIpsPlgMsgSwap @ 24 NONAME
-	_ZTI15CIPSAccountInfo @ 25 NONAME
-	_ZTI17CIpsPlgEventTimer @ 26 NONAME
-	_ZTI17CIpsPlgPop3Plugin @ 27 NONAME
-	_ZTI18CIpsPlgDeleteLocal @ 28 NONAME
-	_ZTI18CIpsPlgImap4Plugin @ 29 NONAME
-	_ZTI19CIpsFetchProgReport @ 30 NONAME
-	_ZTI19CIpsPlgDeleteRemote @ 31 NONAME
-	_ZTI19CIpsPlgDisconnectOp @ 32 NONAME
-	_ZTI19CIpsPlgEventHandler @ 33 NONAME
-	_ZTI20CIpsPlgBaseOperation @ 34 NONAME
-	_ZTI20CIpsPlgPop3ConnectOp @ 35 NONAME
-	_ZTI20CIpsPlgSosBasePlugin @ 36 NONAME
-	_ZTI21CIpsPlgImap4ConnectOp @ 37 NONAME
-	_ZTI21CIpsPlgTimerOperation @ 38 NONAME
-	_ZTI22CIpsPlgImap4PopulateOp @ 39 NONAME
-	_ZTI22CIpsPlgOnlineOperation @ 40 NONAME
-	_ZTI22CIpsPlgPropertyWatcher @ 41 NONAME
-	_ZTI22CIpsPlgSingleOpWatcher @ 42 NONAME
-	_ZTI23CIpsPlgSettingsObserver @ 43 NONAME
-	_ZTI24CIpsPlgImap4MoveRemoteOp @ 44 NONAME
-	_ZTI25CIpsPlgPop3FetchOperation @ 45 NONAME
-	_ZTI29CIpsPlgImap4FetchAttachmentOp @ 46 NONAME
-	_ZTI34CIpsPlgConnectAndRefreshFolderList @ 47 NONAME
-	_ZTV13TIpsPlgMsgKey @ 48 NONAME
-	_ZTV14CIpsPlgMruList @ 49 NONAME
-	_ZTV14TIpsPlgMsgSwap @ 50 NONAME
-	_ZTV15CIPSAccountInfo @ 51 NONAME
-	_ZTV17CIpsPlgEventTimer @ 52 NONAME
-	_ZTV17CIpsPlgPop3Plugin @ 53 NONAME
-	_ZTV18CIpsPlgDeleteLocal @ 54 NONAME
-	_ZTV18CIpsPlgImap4Plugin @ 55 NONAME
-	_ZTV19CIpsFetchProgReport @ 56 NONAME
-	_ZTV19CIpsPlgDeleteRemote @ 57 NONAME
-	_ZTV19CIpsPlgDisconnectOp @ 58 NONAME
-	_ZTV19CIpsPlgEventHandler @ 59 NONAME
-	_ZTV20CIpsPlgBaseOperation @ 60 NONAME
-	_ZTV20CIpsPlgPop3ConnectOp @ 61 NONAME
-	_ZTV20CIpsPlgSosBasePlugin @ 62 NONAME
-	_ZTV21CIpsPlgImap4ConnectOp @ 63 NONAME
-	_ZTV21CIpsPlgTimerOperation @ 64 NONAME
-	_ZTV22CIpsPlgImap4PopulateOp @ 65 NONAME
-	_ZTV22CIpsPlgOnlineOperation @ 66 NONAME
-	_ZTV22CIpsPlgPropertyWatcher @ 67 NONAME
-	_ZTV22CIpsPlgSingleOpWatcher @ 68 NONAME
-	_ZTV23CIpsPlgSettingsObserver @ 69 NONAME
-	_ZTV24CIpsPlgImap4MoveRemoteOp @ 70 NONAME
-	_ZTV25CIpsPlgPop3FetchOperation @ 71 NONAME
-	_ZTV29CIpsPlgImap4FetchAttachmentOp @ 72 NONAME
-	_ZTV34CIpsPlgConnectAndRefreshFolderList @ 73 NONAME
+	_ZNK22CIpsPlgSingleOpWatcher9OperationEv @ 20 NONAME
 

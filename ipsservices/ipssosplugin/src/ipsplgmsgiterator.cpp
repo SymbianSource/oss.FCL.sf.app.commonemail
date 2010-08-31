@@ -225,12 +225,11 @@ TBool CIpsPlgMsgIterator::PreviousL(
     TInt status;
     TInt baseIndex;
     
-    if ( !iMessages )
-        {
-        // Messages are sorted before first reading the messages 
-        Sort();
-        iMessages = FilterMessagesL();
-        }
+    // Messages are sorted always before reading the messages 
+    Sort();
+
+    CMsvEntrySelection* messages = FilterMessagesL();
+    CleanupStack::PushL( messages );
 
     status = SearchL( iMessages, aStartWith, baseIndex );
     
@@ -267,7 +266,7 @@ TBool CIpsPlgMsgIterator::NextL(
             {
             fsMsg = iMsgMapper->GetMailMessageL( iMailboxId, entry, 
                 iRequestedDetails );
-            aMessages.Append( fsMsg );
+            aMessages.AppendL( fsMsg );
             counter++;
             }
         i++;
@@ -307,7 +306,7 @@ TBool CIpsPlgMsgIterator::PreviousL(
             {
             fsMsg = iMsgMapper->GetMailMessageL( iMailboxId, entry, 
                 iRequestedDetails );
-            aMessages.Insert( fsMsg, 0 );
+            aMessages.InsertL( fsMsg, 0 );
             counter++;
             }
         i--;

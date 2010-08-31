@@ -20,7 +20,7 @@
 #define __BASEMRINFOOBJECT_H__
 
 #include <e32std.h>
-#include "cfsmailcommon.h"
+#include "CFSMailCommon.h"
 #include "mmrinfoobject.h"
 #include "mmrorganizer.h"
 #include "mmrattendee.h"
@@ -38,7 +38,7 @@ const TUint KIcalNormalPriority = 5;
 /**
  * Use where you need an attendee and/or an organizer.
  */
-class CBaseMrAttendee :
+NONSHARABLE_CLASS ( CBaseMrAttendee ) :
     public CBase,
     public MMRAttendee
     {
@@ -103,7 +103,7 @@ class CBaseMrAttendee :
 /**
  *
  */
-class CBaseMrRecurrenceRule :
+NONSHARABLE_CLASS ( CBaseMrRecurrenceRule ) :
     public CBase,
     public MRRecurrenceRule
     {
@@ -189,7 +189,7 @@ class CBaseMrRecurrenceRule :
 /**
  *
  */
-class CBaseMrInfoObject :
+NONSHARABLE_CLASS ( CBaseMrInfoObject ) :
     public CBase,
     public MMRInfoObject
 
@@ -330,7 +330,7 @@ class CBaseMrInfoObject :
 /**
  *
  */
-class CBaseMrInfoProcessor :
+NONSHARABLE_CLASS(  CBaseMrInfoProcessor ) :
     public CBase,
     public MMRInfoProcessor
     {

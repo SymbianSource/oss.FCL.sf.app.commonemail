@@ -21,7 +21,7 @@
 #define __MSG_STORE_SORT_CRITERIA_H__
 
 //<cmail>
-#include "msgstoretypes.h"
+#include "MsgStoreTypes.h"
 //</cmail>
 
 /** This class represents the criteria for a sorting request

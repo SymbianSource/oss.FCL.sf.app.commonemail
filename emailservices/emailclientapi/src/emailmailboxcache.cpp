@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2010 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -23,7 +23,6 @@ static const TInt KCacheGranularity = 2;
 // ---------------------------------------------------------------------------
 // 
 // ---------------------------------------------------------------------------
-//
 CEmailMailboxCache* CEmailMailboxCache::NewL()
     {
     CEmailMailboxCache* cache = new ( ELeave ) CEmailMailboxCache();
@@ -33,7 +32,6 @@ CEmailMailboxCache* CEmailMailboxCache::NewL()
 // ---------------------------------------------------------------------------
 // 
 // ---------------------------------------------------------------------------
-//
 CEmailMailboxCache::~CEmailMailboxCache()
     {
     iEntries.Close();
@@ -42,7 +40,6 @@ CEmailMailboxCache::~CEmailMailboxCache()
 // ---------------------------------------------------------------------------
 // Start of cache transaction with clenanup support
 // ---------------------------------------------------------------------------
-//
 void CEmailMailboxCache::StartCachingPushL()
     {
     TCleanupItem item( &CEmailMailboxCache::CleanupOp, this );
@@ -50,11 +47,10 @@ void CEmailMailboxCache::StartCachingPushL()
     iState = ECaching;
     iEntries.Reset();
     }
-    
+
 // ---------------------------------------------------------------------------
 //  End of cache transaction
 // ---------------------------------------------------------------------------
-//
 void CEmailMailboxCache::EndCachingPop()
     {
     iState = EComplete;
@@ -64,7 +60,6 @@ void CEmailMailboxCache::EndCachingPop()
 // ---------------------------------------------------------------------------
 // 
 // ---------------------------------------------------------------------------
-//
 TBool CEmailMailboxCache::IsCached() const
     {
     return iState == EComplete;
@@ -73,7 +68,6 @@ TBool CEmailMailboxCache::IsCached() const
 // ---------------------------------------------------------------------------
 // 
 // ---------------------------------------------------------------------------
-//
 void CEmailMailboxCache::AddMailboxL( 
     CPluginData& aPluginData, 
     const TMailboxId& aMailboxId )
@@ -92,7 +86,6 @@ void CEmailMailboxCache::AddMailboxL(
 // ---------------------------------------------------------------------------
 // 
 // ---------------------------------------------------------------------------
-//
 CPluginData* CEmailMailboxCache::PluginDataL( const TMailboxId& aMailboxId ) const
     {
     CPluginData* pdata = NULL;
@@ -108,7 +101,6 @@ CPluginData* CEmailMailboxCache::PluginDataL( const TMailboxId& aMailboxId ) con
 // ---------------------------------------------------------------------------
 // 
 // ---------------------------------------------------------------------------
-//
 CPluginData* CEmailMailboxCache::PluginDataL( const TUid& aPluginId ) const
     {
     CPluginData* pdata = NULL;
@@ -117,14 +109,13 @@ CPluginData* CEmailMailboxCache::PluginDataL( const TUid& aPluginId ) const
         {
         const TCacheEntry& entry = iEntries[ index ];
         pdata = entry.iPluginData;
-        }    
+        }
     return pdata;
     }
 
 // ---------------------------------------------------------------------------
 // 
 // ---------------------------------------------------------------------------
-//
 void CEmailMailboxCache::GetIdsL( REmailMailboxIdArray& aIdArray ) const
     {
     if ( iState != EComplete )
@@ -142,11 +133,10 @@ void CEmailMailboxCache::GetIdsL( REmailMailboxIdArray& aIdArray ) const
 // ---------------------------------------------------------------------------
 // 
 // ---------------------------------------------------------------------------
-//
 TInt CEmailMailboxCache::FindById( const TMailboxId& aMailboxId ) const
     {
     TIdentityRelation<TCacheEntry> rel( CEmailMailboxCache::Equals );
-    
+
     // don't care about plugin data because this is seach key only and
     // mailbox id is used for search
     TCacheEntry entry( NULL, aMailboxId );
@@ -156,7 +146,6 @@ TInt CEmailMailboxCache::FindById( const TMailboxId& aMailboxId ) const
 // ---------------------------------------------------------------------------
 // 
 // ---------------------------------------------------------------------------
-//
 TInt CEmailMailboxCache::FindByPluginIdL( const TUid& aPluginId ) const
     {
     TIdentityRelation<TCacheEntry> rel( CEmailMailboxCache::PluginEquals );
@@ -170,7 +159,6 @@ TInt CEmailMailboxCache::FindByPluginIdL( const TUid& aPluginId ) const
 // ---------------------------------------------------------------------------
 // 
 // ---------------------------------------------------------------------------
-//
 TBool CEmailMailboxCache::Equals( const TCacheEntry& a1, const TCacheEntry& a2 )
     {
     return ( a1.iMailboxId == a2.iMailboxId );
@@ -179,7 +167,6 @@ TBool CEmailMailboxCache::Equals( const TCacheEntry& a1, const TCacheEntry& a2 )
 // ---------------------------------------------------------------------------
 // 
 // ---------------------------------------------------------------------------
-//
 TBool CEmailMailboxCache::PluginEquals( const TCacheEntry& a1, const TCacheEntry& a2 )
     {
     return ( a1.iPluginData->Uid() == a2.iPluginData->Uid() );
@@ -188,7 +175,6 @@ TBool CEmailMailboxCache::PluginEquals( const TCacheEntry& a1, const TCacheEntry
 // ---------------------------------------------------------------------------
 // Cleanup 
 // ---------------------------------------------------------------------------
-//
 void CEmailMailboxCache::CleanupOp( TAny* aAny )
     {
     CEmailMailboxCache* cache = reinterpret_cast<CEmailMailboxCache*>( aAny );
@@ -199,11 +185,10 @@ void CEmailMailboxCache::CleanupOp( TAny* aAny )
 // ---------------------------------------------------------------------------
 // 
 // ---------------------------------------------------------------------------
-//
 CEmailMailboxCache::CEmailMailboxCache() : 
     iState( EEmpty ), 
     iEntries( KCacheGranularity )
     {
     }
 
-// End of file.
+// End of file

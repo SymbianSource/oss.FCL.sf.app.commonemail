@@ -17,8 +17,8 @@
 */
 
 
-#ifndef IPSSOSAOEMNRESOLVER_H_
-#define IPSSOSAOEMNRESOLVER_H_
+#ifndef IPSSOSAOEMNRESOLVER_H
+#define IPSSOSAOEMNRESOLVER_H
 
 // INCLUDES
 #include <e32base.h>
@@ -29,7 +29,9 @@ class CIpsSosAOMBoxLogic;
 *  This class handles OMA Email Notification messages.
 *
 */
-class CIpsSosAOEMNResolver : public CBase
+//<Qmail>
+NONSHARABLE_CLASS (CIpsSosAOEMNResolver) : public CBase
+//</Qmail>
     {
     public: 
 
@@ -45,12 +47,12 @@ class CIpsSosAOEMNResolver : public CBase
         * @return, Constructed object
         */
         static CIpsSosAOEMNResolver* NewL();
-
+		//<Qmail>
         /**
-        * 
+        * destructor
         */
         virtual ~CIpsSosAOEMNResolver();
-
+		//</Qmail>
     public: 
     
         /**
@@ -72,17 +74,17 @@ class CIpsSosAOEMNResolver : public CBase
             TEMNElement& aElement ) const;
 
     private:
-
+		//<Qmail>
         /**
-        * 
+        * constructor
         */
         CIpsSosAOEMNResolver();
 
         /**
-        *
+        * 2nd phase constructor
         */
         void ConstructL();
-
+		//</Qmail>
     private: 
         
         /**
@@ -123,4 +125,4 @@ class CIpsSosAOEMNResolver : public CBase
             
     };
 
-#endif /*IPSSOSAOEMNRESOLVER_H_*/
+#endif /*IPSSOSAOEMNRESOLVER_H*/

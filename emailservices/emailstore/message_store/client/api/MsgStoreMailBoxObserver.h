@@ -21,7 +21,7 @@
 #define __MSG_STORE_MAILBOX_OBSERVER_H__
 
 //<cmail>
-#include "msgstoretypes.h"
+#include "MsgStoreTypes.h"
 //</cmail>
 
 class CMsgStoreObserverHandler;

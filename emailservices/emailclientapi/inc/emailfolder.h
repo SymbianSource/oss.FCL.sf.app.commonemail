@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2010 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -19,9 +19,9 @@
 #define CEMAILFOLDER_H
 
 #include <emailapidefs.h>
-#include "cfsmailcommon.h"
+#include "CFSMailCommon.h"
 #include <memailfolder.h>
-#include "mfsmaileventobserver.h"
+#include "MFSMailEventObserver.h"
 
 using namespace EmailInterface;
 
@@ -49,30 +49,30 @@ public:
     ~CEmailFolder();           
 
 public: // from MEmailInterface
-    virtual TEmailTypeId InterfaceId() const;
+    TEmailTypeId InterfaceId() const;
     
-    virtual void Release();
+    void Release();
     
 public:    // from MEmailFolder
-    virtual TFolderId FolderId() const;
+    TFolderId FolderId() const;
     
-    virtual TFolderId ParentFolderId() const;
+    TFolderId ParentFolderId() const;
     
-    virtual TFolderType FolderType() const;    
+    TFolderType FolderType() const;    
 
-    virtual TPtrC Name() const;
+    TPtrC Name() const;
 
     /**
     * Returns direct childs of this folder, i.e. this is not recursive.
     * @return number of subfolders or an error code
     */    
-    virtual TInt GetSubfoldersL( 
+    TInt GetSubfoldersL( 
         RFolderArray& aSubfolders ) const;
 
-    virtual EmailInterface::MMessageIterator* MessagesL( 
+    EmailInterface::MMessageIterator* MessagesL( 
         const RSortCriteriaArray& aCriteria );
     
-    virtual void DeleteMessagesL( const REmailMessageIdArray& aMessageIds );
+    void DeleteMessagesL( const REmailMessageIdArray& aMessageIds );
     
 private: // constructors
     CEmailFolder( CPluginData& aPluginData, const TFolderId& aFolderId, CFSMailFolder *aFolder );

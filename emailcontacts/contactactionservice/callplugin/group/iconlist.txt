@@ -1,4 +1,0 @@
--c16,8 qgn_prop_cmail_action_call.svg
--c16,8 qgn_prop_cmail_action_call_video.svg
--c16,8 qgn_prop_cmail_action_voip.svg
--c16,8 qgn_prop_cmail_action_conf_service.svg

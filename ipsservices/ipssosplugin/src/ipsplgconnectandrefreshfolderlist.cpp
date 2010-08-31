@@ -17,66 +17,66 @@
 */
 
 
-#include <aknmessagequerydialog.h>
+// <qmail> aknmessagequerydialog include removed
 
 #include "emailtrace.h"
 #include "ipsplgheaders.h"
 
-#include <ipssossettings.rsg>
-#include <fsmailserver.rsg>     // For R_FS_MSERVER_*
+// <qmail> ipssossettings rsg removed
+// <qmail> fsmailserver rsg removed
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-EXPORT_C CIpsPlgConnectAndRefreshFolderList* 
-            CIpsPlgConnectAndRefreshFolderList::NewL(
-                    CMsvSession& aSession, 
-                    TInt aPriority, 
-                    TRequestStatus& aObserverRequestStatus,
-                    TMsvId aService, 
-                    TFSMailMsgId& aMailboxId, 
-                    CMsvEntrySelection& aMsvEntry, 
-                    MFSMailRequestObserver& aFSObserver, 
-                    CIpsPlgTimerOperation& aTimer )
+// <qmail> priority parameter removed, aSelection moved from ConstructL -> constructor
+// <qmail> MFSMailRequestObserver& changed to pointer
+// <qmail> renamed selection parameter
+CIpsPlgConnectAndRefreshFolderList* CIpsPlgConnectAndRefreshFolderList::NewL(
+    CMsvSession& aSession, 
+    TRequestStatus& aObserverRequestStatus,
+    TMsvId aService, 
+    TFSMailMsgId& aMailboxId, 
+    CMsvEntrySelection* aSelection, 
+    MFSMailRequestObserver* aFSObserver, 
+    CIpsPlgTimerOperation& aTimer )
     {
     FUNC_LOG;
-    CIpsPlgConnectAndRefreshFolderList* self=
-        new (ELeave) CIpsPlgConnectAndRefreshFolderList( 
-                aSession, 
-                aPriority, 
-                aObserverRequestStatus, 
-                aService, 
-                aMailboxId, 
-                aFSObserver, 
-                aTimer );
+    CIpsPlgConnectAndRefreshFolderList* self = new (ELeave) CIpsPlgConnectAndRefreshFolderList( 
+        aSession, 
+        aObserverRequestStatus, 
+        aService, 
+        aMailboxId, 
+        aSelection,
+        aFSObserver, 
+        aTimer );
     CleanupStack::PushL( self );
-    self->ConstructL( aMsvEntry );
+    self->ConstructL();
     CleanupStack::Pop( self );
     return self;
     }
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
+// <qmail> priority parameter removed, aSelection moved from ConstructL -> constructor
+// <qmail> MFSMailRequestObserver& changed to pointer
+// <qmail> renamed selection parameter
 CIpsPlgConnectAndRefreshFolderList::CIpsPlgConnectAndRefreshFolderList(
     CMsvSession& aSession, 
-    TInt aPriority, 
     TRequestStatus& aObserverRequestStatus,
     TMsvId aService, 
     TFSMailMsgId& aMailboxId, 
-    MFSMailRequestObserver& aFSObserver,
+    CMsvEntrySelection* aSelection,
+    MFSMailRequestObserver* aFSObserver,
     CIpsPlgTimerOperation& aTimer )
-    :
-    CIpsPlgOnlineOperation(
-            aSession,
-            aPriority,
-            aObserverRequestStatus,
-            aTimer,
-            aMailboxId,
-            aFSObserver,
-            0, // FSRequestId
-            EFalse), // SignallingAllowed
-    iState( EIdle ),
-    iTimer( NULL ),
-    iMsvEntry( NULL )
+	:
+	CIpsPlgOnlineOperation(
+        aSession,
+        aObserverRequestStatus,
+        aTimer,
+        aMailboxId,
+        aFSObserver,
+        0 ), // requestId
+	iState( EIdle ),
+    iSelection( aSelection )
     {
     FUNC_LOG;
     iService = aService;
@@ -84,12 +84,11 @@ CIpsPlgConnectAndRefreshFolderList::CIpsPlgConnectAndRefreshFolderList(
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-void CIpsPlgConnectAndRefreshFolderList::ConstructL( 
-        CMsvEntrySelection& aMsvEntry )
+// <qmail> aMsvEntry removed
+void CIpsPlgConnectAndRefreshFolderList::ConstructL()
     {
     FUNC_LOG;
     BaseConstructL( KSenduiMtmImap4Uid );
-    iMsvEntry = aMsvEntry.CopyL();    
     iState = EStartConnect;
     DoRunL();
     }
@@ -100,38 +99,10 @@ CIpsPlgConnectAndRefreshFolderList::~CIpsPlgConnectAndRefreshFolderList()
     {
     FUNC_LOG;
     Cancel();
-    delete iMsvEntry;
+    delete iSelection;
     }
 
-// ---------------------------------------------------------------------------
-// ---------------------------------------------------------------------------
-//
-void CIpsPlgConnectAndRefreshFolderList::StepL()
-    {
-    FUNC_LOG;
-    }
-
-// ---------------------------------------------------------------------------
-// ---------------------------------------------------------------------------
-//
-TBool CIpsPlgConnectAndRefreshFolderList::IsProcessDone() const
-    {
-    FUNC_LOG;
-    TBool ret = EFalse;
-    if ( iState == ECompleted )
-        {
-        ret = ETrue;
-        }
-    return ret;
-    }
-
-// ---------------------------------------------------------------------------
-// ---------------------------------------------------------------------------
-//
-void CIpsPlgConnectAndRefreshFolderList::DialogDismissedL(TInt /*aButtonId*/) 
-    {
-    FUNC_LOG;
-    }
+// <qmail> removed 3 functions from MAknBackgroundProcess
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
@@ -143,8 +114,7 @@ const TDesC8& CIpsPlgConnectAndRefreshFolderList::ProgressL()
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-const TDesC8& CIpsPlgConnectAndRefreshFolderList::GetErrorProgressL( 
-        TInt aError )
+const TDesC8& CIpsPlgConnectAndRefreshFolderList::GetErrorProgressL( TInt aError )
     {
     FUNC_LOG;
     TImap4CompoundProgress& prog = iProgressBuf();
@@ -166,120 +136,95 @@ TFSProgress CIpsPlgConnectAndRefreshFolderList::GetFSProgressL() const
 void CIpsPlgConnectAndRefreshFolderList::DoRunL()
     {
     FUNC_LOG;
-    MFSMailRequestObserver* observer = NULL;
-    int err = iStatus.Int();
     
-    if ( err != KErrNone )
+    if( iStatus.Int() != KErrNone )
+// </qmail>
         {
         iState = ECompleted;
-        if( err == KErrImapBadLogon )
-            {
-            DisplayLoginFailedDialogL();
-            RunError(err);
-            }
-        else
-            {
-            CompleteObserver();
-            }
+// <qmail> DisplayLoginFailedDialogL removed
+        CompleteObserver();
         return;
-        }   
+        }
     
-    TBuf8<1> dummyParam;
-    switch( iState )
+    switch(iState)
         {
         case EStartConnect:
-            delete iOperation;
-            iOperation = NULL;
-            InvokeClientMtmAsyncFunctionL( 
-                            KIMAP4MTMConnect, 
-                            *iMsvEntry,
-                            iService,
-                            dummyParam );
+            delete iSubOperation;
+            iSubOperation = NULL;
+            // <qmail> priority parameter has been removed
+            iSubOperation = CIpsPlgImap4ConnectOp::NewL(
+                iMsvSession,
+                iStatus,
+                iService,
+                *iActivityTimer,
+                iFSMailboxId,
+                NULL, // no observer for suboperations
+                0, // no requestId needed
+                NULL, // Event handler
+                ETrue ); // Plain connect
             iState = EConnecting;
             SetActive();
             break;
-        case EConnecting:
-            {
-            //  We have successfully completed connecting
-            
-            delete iOperation;
-            iOperation = NULL;
-            InvokeClientMtmAsyncFunctionL( 
-                        KIMAP4MTMSyncTree, 
-                        *iMsvEntry,
-                        iService,
-                        dummyParam ); 
-            iState = ERefreshing;
-            SetActive();
-            }
-            break;
-        case ERefreshing:
-            //  We have successfully completed refreshing the folder list
-            delete iOperation;
-            iOperation = NULL;
-            iOperation = CIpsPlgDisconnectOp::NewL( 
-            		        iMsvSession, 
-                            iStatus, 
-                            iService, 
-                            *iTimer,
-                            iFSMailboxId, 
-                            *observer, 
-                            NULL );
-            iState = EDisconnecting;
-            SetActive();
-            break;
-        case EDisconnecting:
-            iState = ECompleted;
-            CompleteObserver();
-            break;
-        default:
-            User::Panic( KIpsPlgPanicCategory, EIpsPlgNoParameters );
-            break;
+	    case EConnecting:
+	        {
+	        //  We have successfully completed connecting
+	        TBuf8<1> dummyParam;
+	        delete iSubOperation;
+	        iSubOperation = NULL;
+	        InvokeClientMtmAsyncFunctionL( KIMAP4MTMSyncTree, *iSelection, dummyParam ); // <qmail> 1 param removed 
+	        iState = ERefreshing;
+	        SetActive();
+	        }
+	        break;
+	    case ERefreshing:
+	        //  We have successfully completed refreshing the folder list
+	        delete iSubOperation;
+	        iSubOperation = NULL;
+	        iSubOperation = CIpsPlgDisconnectOp::NewL( 
+                iMsvSession, 
+                iStatus, 
+                iService, 
+                *iActivityTimer,
+                iFSMailboxId, 
+                NULL, // no observer for suboperations
+                0 ); // no requestId needed
+	        iState = EDisconnecting;
+	        SetActive();
+	        break;
+	    case EDisconnecting:
+	        iState = ECompleted;
+	        CompleteObserver();
+	        break;
+	    default:
+	        User::Panic( KIpsPlgPanicCategory, EIpsPlgNoParameters );
+	    	break;
         }
     }
 
 // ----------------------------------------------------------------------------
-// CIpsPlgOnlineOperation::DoCancel()
 // ----------------------------------------------------------------------------
 //
 void CIpsPlgConnectAndRefreshFolderList::DoCancel()
     {
     FUNC_LOG;
-    if( iOperation )
+    if( iSubOperation )
         {
-        iOperation->Cancel();
+        iSubOperation->Cancel();
         }
     CompleteObserver( KErrCancel );
     iState = ECompleted;
     }
 
+
+// <qmail> removed in Qmail
+//void CIpsPlgConnectAndRefreshFolderList::DisplayLoginFailedDialogL()
+// </qmail>
+
+// <qmail> new func to this op
 // ----------------------------------------------------------------------------
-// CIpsPlgConnectAndRefreshFolderList::DisplayLoginFailedDialogL()
-// ----------------------------------------------------------------------------
-//
-void CIpsPlgConnectAndRefreshFolderList::DisplayLoginFailedDialogL()
+// ----------------------------------------------------------------------------    
+TIpsOpType CIpsPlgConnectAndRefreshFolderList::IpsOpType() const
     {
-    // Get the TMsvEntry for the mailbox, which we use to get its name.
-    TMsvId serviceId;
-    TMsvEntry mailboxServiceEntry;
-    User::LeaveIfError( iMsvSession.GetEntry( iFSMailboxId.Id(), serviceId, mailboxServiceEntry ) );
-
-    // Load/construct the strings for the dialog.
-    HBufC* headerText( NULL );
-    headerText = StringLoader::LoadLC( R_FS_MSERVER_MAILBOX_NAME, mailboxServiceEntry.iDetails );
-    HBufC* text( NULL );
-    text = StringLoader::LoadLC( R_FS_MSERVER_TEXT_LOGIN_FAILED );
-
-    // Create and display the dialog.
-    CAknMessageQueryDialog *dlg = new (ELeave) CAknMessageQueryDialog;
-    dlg->PrepareLC( R_FS_MSERVER_DIALOG_MESSAGE_QUERY );
-    dlg->SetHeaderTextL( headerText->Des() );
-    dlg->SetMessageTextL( text->Des() );
-    dlg->RunLD();
-
-    CleanupStack::PopAndDestroy( text );
-    CleanupStack::PopAndDestroy( headerText );
+    FUNC_LOG;
+    return EIpsOpTypeConnectAndRefreshFolderListOp;
     }
-
-// End of File
-

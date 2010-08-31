@@ -15,9 +15,11 @@
 *
 */
 
+// <qmail> Are AknUtils available in 10.1?
 // <cmail>
 #include <AknUtils.h>
 // </cmail>
+// </qmail>
 
 #include "emailtrace.h"
 #include "ipsplgheaders.h"
@@ -28,7 +30,9 @@ const TInt KEqual = 0;
 
 _LIT(KDefaultSubjectPrefixSeparator,": ");
 // <cmail>
-_LIT( KCharsToReplace, "\r\n\t\x2028\x2029" );
+// <qmail> Cmail bugfix uses AknUtils (available in 10.1?) - commented out until it is clear
+//_LIT( KCharsToReplace, "\r\n\t\x2028\x2029" );
+// <qmail>
 // </cmail>
 
 // ---------------------------------------------------------------------------
@@ -212,31 +216,38 @@ TInt TIpsPlgMsgKey::CompareSubjects(
     {
     FUNC_LOG;
     TInt  result( KEqual );
-    const TInt leftOffset = FindSubjectStart( aLeft );
-    const TInt rightOffset = FindSubjectStart( aRight );
-    TPtrC leftPtr( aLeft.Ptr() + leftOffset, aLeft.Length() - leftOffset );
-    TPtrC rightPtr( aRight.Ptr() + rightOffset, aRight.Length() - rightOffset );
- 
-    // for unifying with UI - remove all white spaces
-    HBufC* croppedLeft = leftPtr.Alloc();
-    HBufC* croppedRight = rightPtr.Alloc();
- 
-    // Comparison is done only when allocation succeeds
-    if ( croppedLeft && croppedRight )
-        {
-        TPtr croppedLeftPtr = croppedLeft->Des();
-        TPtr croppedRightPtr = croppedRight->Des();
- 
-        AknTextUtils::ReplaceCharacters( croppedLeftPtr, KCharsToReplace, ' ' );
-        croppedLeftPtr.TrimAll();
-        AknTextUtils::ReplaceCharacters( croppedRightPtr, KCharsToReplace, ' ' );
-        croppedRightPtr.TrimAll();
- 
-        result = croppedLeftPtr.CompareC( croppedRightPtr );
-        }
- 
-    delete croppedRight;
-    delete croppedLeft;
+    TPtrC leftPtr( aLeft );
+    TPtrC rightPtr( aRight );
+    TInt  leftOffset( FindSubjectStart( aLeft ) );
+    TInt  rightOffset( FindSubjectStart( aRight ) );
+    
+    leftPtr.Set( 
+        leftPtr.Ptr() + leftOffset, leftPtr.Length() - leftOffset );
+    rightPtr.Set( 
+        rightPtr.Ptr() + rightOffset, rightPtr.Length() - rightOffset );
+    
+// <qmail> Are AknUtils available in 10.1?
+    // <cmail> for unifying with UI - remove all white spaces
+    /*HBufC* croppedLeft = leftPtr.AllocLC();
+    TPtr croppedLeftPtr = croppedLeft->Des();
+    HBufC* croppedRight = rightPtr.AllocLC();
+    TPtr croppedRightPtr = croppedRight->Des();
+        
+    AknTextUtils::ReplaceCharacters( croppedLeftPtr, KCharsToReplace, ' ' );
+    croppedLeftPtr.TrimAll();
+    AknTextUtils::ReplaceCharacters( croppedRightPtr, KCharsToReplace, ' ' );
+    croppedRightPtr.TrimAll();
+    
+    result = croppedLeftPtr.CompareC( croppedRightPtr );
+    
+    CleanupStack::PopAndDestroy( croppedRight );
+    CleanupStack::PopAndDestroy( croppedLeft );*/
+    // </cmail>
+// </qmail>
+
+// <qmail> Remove line if above code is valid in 10.1
+	result = leftPtr.CompareC( rightPtr );
+// </qmail>
         
     return result;
     }

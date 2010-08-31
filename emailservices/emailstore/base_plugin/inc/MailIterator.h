@@ -20,19 +20,19 @@
 #define __MAILITERATOR_H__
 
 //<cmail>
-#include "mfsmailiterator.h"
-#include "msgstoresortresultiterator.h"
-#include "debuglogmacros.h"
+#include "MFSMailIterator.h"
+#include "MsgStoreSortResultIterator.h"
+#include "DebugLogMacros.h"
 //</cmail>
 
-#include "baseplugin.h"
+#include "BasePlugin.h"
 
 
 /**
  * A wrapper of the msgstore iterator that translates the msgstore messages to the Freestyle
  * object model.
  */
-class HMailIterator : public MFSMailIterator
+NONSHARABLE_CLASS ( HMailIterator )  : public MFSMailIterator
     {
 
     public:

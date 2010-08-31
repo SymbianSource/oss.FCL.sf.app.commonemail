@@ -18,7 +18,7 @@
 
 
 //<cmail>
-#include "msgstoreaccount.h"
+#include "MsgStoreAccount.h"
 //</cmail>
 
 EXPORT_C CMsgStoreAccount* CMsgStoreAccount::NewL( const TInt32 aOwnerUid, const TDesC& aName )

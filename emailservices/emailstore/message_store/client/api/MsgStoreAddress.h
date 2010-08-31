@@ -21,7 +21,9 @@
 #define __MSG_STORE_ADDRESS_H__
 
 #include <e32base.h>
-#include "msgstoretypes.h"
+//<cmail>
+#include "MsgStoreTypes.h"
+//</cmail>
 
 /** Simple convinent on-stack class to encapsulate the {email address, display name} pair used
  *  as address fields (From, Sender, To, Cc, Bcc) in a message.

@@ -1,8 +1,0 @@
-EXPORTS
-	_ZN12CFsMtmClient4NewLER17CRegisteredMtmDllR11CMsvSession @ 1 NONAME
-	_ZTI12CFsMtmClient @ 2 NONAME ; #<TI>#
-	_ZTV12CFsMtmClient @ 3 NONAME ; #<VT>#
-	_ZN12CFsMtmClient21AddEmailAsAttachmentLERKjRK7TDesC16Rl @ 4 NONAME
-	_ZN12CFsMtmClient24DeleteEmailAsAttachmentLEl @ 5 NONAME
-	_ZN12CFsMtmClient24RemoveRedundantAccountsLER6RArrayI12TFSMailMsgIdE @ 6 NONAME
-

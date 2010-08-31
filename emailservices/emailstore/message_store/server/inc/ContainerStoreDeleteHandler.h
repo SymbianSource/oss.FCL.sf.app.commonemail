@@ -27,7 +27,7 @@
 #include <e32base.h>
 #include <d32dbms.h>  // database
 //<cmail>
-#include "debuglogmacros.h"
+#include "DebugLogMacros.h"
 //</cmail>
 
 #include "ContainerStore.h"

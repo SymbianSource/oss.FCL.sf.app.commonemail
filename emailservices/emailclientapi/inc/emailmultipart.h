@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2010 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -19,7 +19,7 @@
 #ifndef EMAILMULTIPART_H_
 #define EMAILMULTIPART_H_
 // INCLUDES
-#include "cfsmailclient.h"
+#include "CFSMailClient.h"
 #include <memailcontent.h>
 #include "emailapiutils.h"
 
@@ -42,62 +42,62 @@ public:
     ~CEmailMultipart();
     
 public: // from MEmailInterface
-    virtual TEmailTypeId InterfaceId() const;
+    TEmailTypeId InterfaceId() const;
     
-    virtual void Release();
+    void Release();
 
 public: // from MEmailMessageContent
     
-    virtual TMessageContentId Id() const;
+    TMessageContentId Id() const;
 
-    virtual TPtrC ContentType() const;
+    TPtrC ContentType() const;
 
-    virtual void SetContentType( const TDesC& aContentType );
+    void SetContentType( const TDesC& aContentType );
 
-    virtual TPtrC ContentId() const;
+    TPtrC ContentId() const;
 
-    virtual void SetContentId( const TDesC& aContentId );
+    void SetContentId( const TDesC& aContentId );
 
-    virtual TPtrC ContentDescription() const;
+    TPtrC ContentDescription() const;
 
-    virtual void SetContentDescription( const TDesC& aContentDescription );
+    void SetContentDescription( const TDesC& aContentDescription );
 
-    virtual TPtrC ContentDisposition() const;
+    TPtrC ContentDisposition() const;
 
-    virtual void SetContentDisposition( const TDesC& aContentDisposition );
+    void SetContentDisposition( const TDesC& aContentDisposition );
 
-    virtual TPtrC ContentClass() const;
+    TPtrC ContentClass() const;
 
-    virtual void SetContentClass( const TDesC& aContentClass );
+    void SetContentClass( const TDesC& aContentClass );
 
-    virtual TInt AvailableSize() const;
+    TInt AvailableSize() const;
 
-    virtual TInt TotalSize() const;
+    TInt TotalSize() const;
 
-    virtual TPtrC ContentL() const;
+    TPtrC ContentL() const;
 
-    virtual void SetContentL( const TDesC& aContent );
+    void SetContentL( const TDesC& aContent );
 
-    virtual void FetchL( MEmailFetchObserver& aObserver );
+    void FetchL( MEmailFetchObserver& aObserver );
 
-    virtual void CancelFetch();
+    void CancelFetch();
 
-    virtual void SaveToFileL( const TDesC& aPath );
+    void SaveToFileL( const TDesC& aPath );
 
-    virtual MEmailMultipart* AsMultipartOrNull() const;
+    MEmailMultipart* AsMultipartOrNull() const;
     
-    virtual MEmailTextContent* AsTextContentOrNull() const;
+    MEmailTextContent* AsTextContentOrNull() const;
 
-    virtual MEmailAttachment* AsAttachmentOrNull() const;
+    MEmailAttachment* AsAttachmentOrNull() const;
     
 public: // from MEmailMultipart
-    virtual TInt PartCountL();
+    TInt PartCountL();
 
-    virtual MEmailMessageContent* PartByIndexL( const TUint aIndex ) const;
+    MEmailMessageContent* PartByIndexL( const TUint aIndex ) const;
 
-    virtual void DeletePartL( const TUint aIndex );
+    void DeletePartL( const TUint aIndex );
 
-    virtual void AddPartL(
+    void AddPartL(
         const MEmailMessageContent& aPart,
         const TUint aPos );
     
@@ -108,7 +108,7 @@ public: // for internal usage
 private:
     CEmailMultipart( const TDataOwner aOwner );
     
-    void ConstructL( CPluginData& aPluginData, const TMessageContentId& aMsgContentId, CFSMailMessagePart* aPart);
+    void ConstructL( CPluginData& aPluginData, const TMessageContentId& aMsgContentId, CFSMailMessagePart* aPart );
     
 private: // Private data        
     CEmailMessageContent* iEmailMsgContent;
@@ -117,4 +117,7 @@ private: // Private data
     TDataOwner iOwner;
 };
 
-#endif /* EMAILMULTIPART_H_ */
+#endif // EMAILMULTIPART_H_
+
+// End of file
+

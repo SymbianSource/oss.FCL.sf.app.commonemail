@@ -23,7 +23,7 @@
 #include <e32base.h>
 #include <barsc.h>
 
-#include "mfsmailbrandmanager.h"
+#include "MFSMailBrandManager.h"
 
 // FORWARD DECLARATIONS
 class TResourceReader;
@@ -37,7 +37,7 @@ class CFSMailBrand;
  *  @lib FSFWCommonLib
  *  @since S60 v3.1
  */
-class CFSMailBrandManagerImpl : public CBase, public MFSMailBrandManager
+NONSHARABLE_CLASS ( CFSMailBrandManagerImpl ) : public CBase, public MFSMailBrandManager
 	{
 		public:
 			

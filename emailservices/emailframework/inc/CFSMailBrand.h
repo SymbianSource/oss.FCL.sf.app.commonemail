@@ -20,7 +20,7 @@
 #define CFSMAILBRAND_H
 
 // INCLUDES
-#include "mailbrandmanager.hrh"		// TFSBrandElement
+#include "MailBrandManager.hrh"		// TFSBrandElement
 #include <gdi.h>
 #include <badesca.h>
 
@@ -34,7 +34,7 @@ class CGulIcon;
  *  @lib FSFWCommonLib
  *  @since S60 v3.1
  */
-class CFSMailBrand : public CBase
+NONSHARABLE_CLASS ( CFSMailBrand ): public CBase
 	{
 
 public:

@@ -95,7 +95,7 @@ public:
     * @param aMailbox  id of mailbox to be append
     * @param aState state to be updated or added to mailbox
     */
-    void AppendMailboxToSyncingMailbox( TMsvId aMailbox, TInt aState );
+    void AppendMailboxToSyncingMailboxL( TMsvId aMailbox, TInt aState );
     
     TInt GetMailboxIpsState( TMsvId aMailbox );
     

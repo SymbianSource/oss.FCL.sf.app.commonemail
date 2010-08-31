@@ -16,25 +16,7 @@
 *
 */
 
-
-#include "emailtrace.h"
-#include <AlwaysOnlineManagerClient.h>
-#include <SendUiConsts.h>
-#include <msvids.h>
-#include <msvuids.h>
-
-// becuase of RD_IPS_AO_PLUGIN flag, can be removed
-// when flag is removed
-#include "ipsplgsosbaseplugin.hrh"
-
-#include "IpsSosAOImapPopLogic.h"
-#include "IpsSosAOMboxLogic.h"
-#include "IpsSosAOEMNResolver.h"
-#include "ipssetdataapi.h"
-
-
-
-#include "ipsplgcommon.h"
+#include "ipssosaopluginheaders.h"
 
 //const TInt KAOSmtpStartDelaySeconds = 310;
 const TInt KIpsSosAOImapPopLogicDefGra = 1;
@@ -60,7 +42,9 @@ CIpsSosAOImapPopLogic::~CIpsSosAOImapPopLogic()
     iMailboxLogics.ResetAndDestroy();
    // iActiveEvents.ResetAndDestroy();
     delete iEmnResolver;
-    delete iDataApi;
+	//<QMail>
+
+	//</QMail>
     }
 
 // ----------------------------------------------------------------------------
@@ -84,7 +68,9 @@ void CIpsSosAOImapPopLogic::ConstructL()
     {
     FUNC_LOG;
     iEmnResolver = CIpsSosAOEMNResolver::NewL();
-    iDataApi = CIpsSetDataApi::NewL( iSession );
+	//<QMail>
+
+	//</QMail>
     }
 
 // ----------------------------------------------------------------------------
@@ -216,9 +202,6 @@ TInt CIpsSosAOImapPopLogic::HandleAOServerCommandL(
             result = KErrNotSupported;
             break;
         }
-   
-    
-    // </cmail>
     return result;
     }
 
@@ -226,7 +209,6 @@ TInt CIpsSosAOImapPopLogic::HandleAOServerCommandL(
 // ----------------------------------------------------------------------------
 // 
 void CIpsSosAOImapPopLogic::HandleMsvSessionEventL(
-// <cmail> RD_IPS_AO_PLUGIN flag removed
      MMsvSessionObserver::TMsvSessionEvent aEvent, 
      TAny* aArg1, TAny* aArg2, TAny* /*aArg3*/ )
     {
@@ -238,7 +220,7 @@ void CIpsSosAOImapPopLogic::HandleMsvSessionEventL(
         case MMsvSessionObserver::EMsvEntriesChanged:
             {
             TMsvId parent = (*(TMsvId*) (aArg2));
-            //we check that parent is the root. if not, it cannot be a 
+            //we check that parent is the root. if not, it cannot be an 
             //event from service, thus can't be from connection change..
             if ( parent == KMsvRootIndexEntryId )
                 {
@@ -262,14 +244,20 @@ void CIpsSosAOImapPopLogic::HandleMsvSessionEventL(
             }
             break;
         case MMsvSessionObserver::EMsvEntriesDeleted:
-            // NOTE: if mailbox is deleted somewhere else than ips plugin
-            // in here need to put logic for removing corresponding 
-            // mailboxlogic object
+            {
+            TMsvId parent = (*(TMsvId*) (aArg2));
+            //we check that parent is the root. if not, it cannot be an 
+            //event indicating deleted mailbox entry
+            if ( parent == KMsvRootIndexEntryId )
+                {
+                RemoveOrphanLogicsL();
+                }
+            }
+            break;
         case MMsvSessionObserver::EMsvEntriesMoved:
         default:
             break;
         };
-    // </cmail>
     }
 
 // ----------------------------------------------------------------------------
@@ -337,14 +325,13 @@ void CIpsSosAOImapPopLogic::HandleEMNMessageL(
         if ( index != KErrNotFound )
             {
             CIpsSosAOMBoxLogic* logic = iMailboxLogics[index];
-            //<cmail>
+            
 			if ( !logic->FirstEMNReceived() )
                 {
                 logic->SetFirstEMNReceived();
                 }
             if ( !iNoNWOpsAllowed && 
                  !logic->IsMailboxRoamingStoppedL() )
-            //</cmail>
                 {
                 SendCommandToSpecificMailboxL( 
                     logic->GetMailboxId(), // faulty CS warning
@@ -352,17 +339,11 @@ void CIpsSosAOImapPopLogic::HandleEMNMessageL(
                 }
             else
                 {
-                //<cmail>
-                logic->SetEmnReceivedFlagL( ETrue );
-                //</cmail>
+                logic->SetEmnReceivedFlagL( ETrue );                
                 }
             logic = NULL;
             }
-/*<cmail>
-        else
-            {
-            }
-</cmail>*/
+
         }
     }
 
@@ -405,32 +386,39 @@ void CIpsSosAOImapPopLogic::UpdateLogicArrayL(
                 found = ETrue;
                 }
             }
-        
-        CIpsSetDataExtension* extSet = CIpsSetDataExtension::NewLC();
-        TRAPD( error, iDataApi->LoadExtendedSettingsL( 
-                mboxId, *extSet ) );
-        if ( error == KErrNone  )
+		//<QMail>
+        CIpsSosAOSettingsHandler* settings = 
+                 CIpsSosAOSettingsHandler::NewL(iSession, mboxId);
+        CleanupStack::PushL(settings);
+         
+        if ( !found  && ( settings->AlwaysOnlineState() 
+                != IpsServices::EMailAoOff || 
+                    settings->EmailNotificationState() 
+                != IpsServices::EMailEmnOff || 
+                    !settings->FirstEmnReceived() )
+                 )
             {
-            if ( !found  && ( extSet->AlwaysOnlineState() != EMailAoOff || 
-                    extSet->EmailNotificationState() != EMailEmnOff || 
-                    !extSet->FirstEmnReceived() )
-                     )
-                {
-                CIpsSosAOMBoxLogic* newLogic = CIpsSosAOMBoxLogic::NewL( 
-                        iSession, mboxId );
-                CleanupStack::PushL( newLogic );
-                iMailboxLogics.AppendL( newLogic );
-                CleanupStack::Pop( newLogic );
-                }
-            else if ( found && extSet->AlwaysOnlineState() == EMailAoOff &&
-                    extSet->EmailNotificationState() == EMailEmnOff &&
-                    extSet->FirstEmnReceived() )
-                {
-                StopAndRemoveMailboxL( mboxId );
-                }
+            CIpsSosAOMBoxLogic* newLogic = CIpsSosAOMBoxLogic::NewL( 
+                    iSession, mboxId );
+            CleanupStack::PushL( newLogic );
+            iMailboxLogics.AppendL( newLogic );
+            CleanupStack::Pop( newLogic );
             }
-        CleanupStack::PopAndDestroy( extSet );
+        else if ( found && settings->AlwaysOnlineState() 
+                == IpsServices::EMailAoOff &&
+                    settings->EmailNotificationState() 
+                == IpsServices::EMailEmnOff &&
+                    settings->FirstEmnReceived() )
+            {
+            StopAndRemoveMailboxL( mboxId );
+            }
+        
+        CleanupStack::PopAndDestroy(settings);
+		//</QMail>
         }
+    
+    //finally, check for orphans ( mailbox has been deleted )
+    RemoveOrphanLogicsL();
     }
 
 // ----------------------------------------------------------------------------
@@ -495,5 +483,33 @@ TInt CIpsSosAOImapPopLogic::GetMailboxLogicIndex( TMsvId aMailboxId )
     return index;
     }
 
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+//
+void CIpsSosAOImapPopLogic::RemoveOrphanLogicsL()
+    {
+    CMsvEntry* cEntry = iSession.GetEntryL( KMsvRootIndexEntryId );
+    CleanupStack::PushL( cEntry );
+    
+    CMsvEntrySelection* popEntries = cEntry->ChildrenWithMtmL( KSenduiMtmPop3Uid );
+    CleanupStack::PushL( popEntries );
+    
+    CMsvEntrySelection* imapEntries = cEntry->ChildrenWithMtmL( KSenduiMtmImap4Uid );
+    CleanupStack::PushL( imapEntries );
+        
+        
+    TInt count = iMailboxLogics.Count();
+    
+    for(TInt i=count-1; i>-1;i--)
+        {
+        if( popEntries->Find(iMailboxLogics[i]->GetMailboxId()) == KErrNotFound &&
+            imapEntries->Find(iMailboxLogics[i]->GetMailboxId()) == KErrNotFound)
+            {
+            StopAndRemoveMailboxL( iMailboxLogics[i]->GetMailboxId() );
+            }
+        }
+    
+    CleanupStack::PopAndDestroy( 3, cEntry );
+    }
 // End of file
 

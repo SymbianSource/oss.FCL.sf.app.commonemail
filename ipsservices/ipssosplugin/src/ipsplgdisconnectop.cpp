@@ -15,37 +15,35 @@
 *
 */
 
-
-
 #include "emailtrace.h"
 #include "ipsplgheaders.h"
 
-// Constants and defines
-const TInt KConnectOpPriority = CActive::EPriorityStandard;
+// <qmail> remove priority const
 
 // ----------------------------------------------------------------------------
 // CIpsPlgDisconnectOp::NewL()
 // ----------------------------------------------------------------------------
-//
+// <qmail> aDoRemoveAfterDisconnect parameter removed
+// <qmail> MFSMailRequestObserver& changed to pointer
 CIpsPlgDisconnectOp* CIpsPlgDisconnectOp::NewL(
     CMsvSession& aMsvSession,
-                                           TRequestStatus& aObserverRequestStatus,
-                                           TMsvId aService,
-                                           CIpsPlgTimerOperation& aActivityTimer,
-                                           TFSMailMsgId aFSMailBoxId,
-                                           MFSMailRequestObserver& aFSOperationObserver,
-                                           TInt aFSRequestId,
-                                           TBool aDoRemoveAfterDisconnect )
+    TRequestStatus& aObserverRequestStatus,
+    TMsvId aService,
+    CIpsPlgTimerOperation& aActivityTimer,
+    TFSMailMsgId aFSMailBoxId,
+    MFSMailRequestObserver* aFSOperationObserver,
+    TInt aFSRequestId )
     {
     FUNC_LOG;
-    CIpsPlgDisconnectOp* op = new(ELeave) CIpsPlgDisconnectOp(aMsvSession,
+// <qmail> aDoRemoveAfterDisconnect removed
+    CIpsPlgDisconnectOp* op = new(ELeave) CIpsPlgDisconnectOp(
+        aMsvSession,
         aObserverRequestStatus,
         aService,
         aActivityTimer,
         aFSMailBoxId,
         aFSOperationObserver,
-        aFSRequestId,
-        aDoRemoveAfterDisconnect );
+        aFSRequestId );
         
     CleanupStack::PushL(op);
     op->ConstructL();
@@ -87,9 +85,9 @@ const TDesC8& CIpsPlgDisconnectOp::GetErrorProgressL(TInt aError)
     {
     FUNC_LOG;
     iError = aError;
-    if ( iOperation && iError == KErrNone )
+    if ( iSubOperation && iError == KErrNone )
         {
-        return iOperation->ProgressL();
+        return iSubOperation->ProgressL();
         }
     
     if ( iTEntry.iMtm == KUidMsgTypePOP3 )
@@ -123,44 +121,25 @@ TFSProgress CIpsPlgDisconnectOp::GetFSProgressL() const
     return result;
     }
 
-// ----------------------------------------------------------------------------
-// CIpsPlgDisconnectOp::Connected()
-// ----------------------------------------------------------------------------
-//
-TBool CIpsPlgDisconnectOp::Connected() const
-    {
-    FUNC_LOG;
-    return iTEntry.Connected();
-    }
+// <qmail> Connected() moved to base class
 
 // ----------------------------------------------------------------------------
+
 // CIpsPlgDisconnectOp::DoRunL()
 // ----------------------------------------------------------------------------
 //
 void CIpsPlgDisconnectOp::DoRunL()
     {
     FUNC_LOG;
-    if( !iDisconnected )
+// <qmail>
+    if( Connected() )
         {        
         DoDisconnectL();
-        iDisconnected = ETrue;
+// </qmail>
         }
     else
         {                
-        if ( iDoRemoveAfterDisconnect )
-            {
-            CIpsSetDataApi* settings = CIpsSetDataApi::NewL( iMsvSession );
-            CleanupStack::PushL( settings );
-            settings->RemoveAccountL( iTEntry, iMsvSession );
-            CleanupStack::PopAndDestroy( settings );
-
-            // delete the activitytimer here and set it to null so we don't try 
-            // to use it in CompleteObserver. This is a special case that 
-            // relates to deleting a connected mailbox.
-            delete iActivityTimer;
-            iActivityTimer = NULL;
-            }
-
+        // <qmail> iDoRemoveAfterDisconnect feature from this op has been removed
         CompleteObserver( KErrNone );
         }
     }
@@ -168,26 +147,24 @@ void CIpsPlgDisconnectOp::DoRunL()
 // ----------------------------------------------------------------------------
 // CIpsPlgDisconnectOp::CIpsPlgDisconnectOp()
 // ----------------------------------------------------------------------------
-//
+// <qmail> aDoRemoveAfterDisconnect removed
+// <qmail> MFSMailRequestObserver& changed to pointer
 CIpsPlgDisconnectOp::CIpsPlgDisconnectOp(
     CMsvSession& aMsvSession,
     TRequestStatus& aObserverRequestStatus,
     TMsvId aServiceId,
     CIpsPlgTimerOperation& aActivityTimer,
     TFSMailMsgId aFSMailBoxId,
-    MFSMailRequestObserver& aFSOperationObserver,
-    TInt aFSRequestId,
-    TBool aDoRemoveAfterDisconnect )
+    MFSMailRequestObserver* aFSOperationObserver,
+    TInt aFSRequestId )
     :
     CIpsPlgOnlineOperation(
-    aMsvSession,
-    KConnectOpPriority,
-    aObserverRequestStatus,
-    aActivityTimer,
-    aFSMailBoxId,
-    aFSOperationObserver, 
-    aFSRequestId),
-    iDoRemoveAfterDisconnect( aDoRemoveAfterDisconnect )
+        aMsvSession,
+        aObserverRequestStatus,
+        aActivityTimer,
+        aFSMailBoxId,
+        aFSOperationObserver, 
+        aFSRequestId )
     {
     iService = aServiceId;
     }
@@ -199,7 +176,7 @@ CIpsPlgDisconnectOp::CIpsPlgDisconnectOp(
 void CIpsPlgDisconnectOp::ConstructL()
     {    
     FUNC_LOG;
-    iDisconnected = EFalse;
+// <qmail> iDisconnected removed
     TMsvId service;
     
     iMsvSession.GetEntry( iService, service, iTEntry );
@@ -214,7 +191,7 @@ void CIpsPlgDisconnectOp::ConstructL()
         User::Leave( KErrNotSupported );
         }
     
-    SetActive();
+    // <qmail> SetActive(); moved inside CompleteThis();
     CompleteThis();
     }
     
@@ -226,10 +203,27 @@ void CIpsPlgDisconnectOp::DoDisconnectL()
     {
     FUNC_LOG;
     iStatus = KRequestPending;
-    
+    NM_COMMENT("CIpsPlgDisconnectOp: doing disconnect");
     TInt cmd = (iTEntry.iMtm == KUidMsgTypePOP3) ? KPOP3MTMDisconnect : KIMAP4MTMDisconnect;
-    
-    InvokeClientMtmAsyncFunctionL(cmd, iService, iService);
+    InvokeClientMtmAsyncFunctionL( cmd, iService ); // <qmail> 1 param removed
     SetActive();
     }
+
+// <qmail> adding this func
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+//
+TIpsOpType CIpsPlgDisconnectOp::IpsOpType() const
+    {
+    FUNC_LOG;
+    if ( iTEntry.iMtm == KUidMsgTypePOP3 )
+        {
+        return EIpsOpTypePop3Disconnect;
+        }
+    else
+        {
+        return EIpsOpTypeImap4Disconnect;
+        }
+    }
+// </qmail>
 

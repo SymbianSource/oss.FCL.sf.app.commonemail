@@ -21,32 +21,24 @@
 
 #include <smtcmtm.h>
 #include "ipsplgcommon.h"
-#include "ipsplgonlineoperation.h" // for MIpsPlgConnectOpCallback
+// <qmail>
+#include "ipsplgbaseoperation.h"
 
 class CClientMtmRegistry;
+class MFSMailRequestObserver;
+// </qmail>
 
 /**
  *  Class for smtp related operations
  *
- *  This class encapsulates SMTP send new message and send pending messages
- *  operations.
- *
- *  This class requires CIpsPlgEventHandler for QueryUsrPassL method
- *  for handling login problems. Because this class is exported and
- *  CIpsPlgEventHandler isn`t, to avoid problems, iEventHandler is passed
- *  as TAny* and can be set only from ipssosplugin.
- *
  *  @lib ipssosplugin.lib
  *  @since FS 1.0
  */
-//should this class inherited from online operation
-NONSHARABLE_CLASS( CIpsPlgSmtpOperation ) :
-    public CMsvOperation,
-    public MIpsPlgConnectOpCallback
+// <qmail> base class changed: CMsvOperation -> CIpsPlgBaseOperation, MIpsPlgConnectOpCallback removed
+NONSHARABLE_CLASS( CIpsPlgSmtpOperation ) : public CIpsPlgBaseOperation
     {
-public: //from MIpsPlgConnectOpCallback
 
-    void CredientialsSetL( TInt aEvent );
+// <qmail> CredientialsSetL removed 
 
 public:
 
@@ -56,11 +48,12 @@ public:
      * @since FS 1.0
      * @return None
      */
+    // <qmail> aPriority, aUsePublishSubscribe parameters removed, aFSOperationObserver, aFSRequestId added
     IMPORT_C static CIpsPlgSmtpOperation* NewL( 
         CMsvSession& aMsvSession, 
-        TInt aPriority, 
         TRequestStatus& aObserverRequestStatus,
-        TBool aUsePublishSubscribe );
+        MFSMailRequestObserver* aFSOperationObserver = NULL,
+        TInt aFSRequestId = KErrNotFound );
 
     /**
      * Symbian 2nd phase construcror
@@ -68,11 +61,12 @@ public:
      * @since FS 1.0
      * @return None
      */
+    // <qmail> aPriority, aUsePublishSubscribe parameters removed, aFSOperationObserver, aFSRequestId added
     IMPORT_C static CIpsPlgSmtpOperation* NewLC(
         CMsvSession& aMsvSession, 
-        TInt aPriority, 
         TRequestStatus& aObserverRequestStatus,
-        TBool aUsePublishSubscribe );
+        MFSMailRequestObserver* aOperationObserver = NULL,
+        TInt aFSRequestId = KErrNotFound );
 
     /**
      * Class destructor
@@ -87,6 +81,19 @@ public:
      */ 
     virtual const TDesC8& ProgressL();
     
+// <qmail>
+    virtual const TDesC8& GetErrorProgressL( TInt aError );
+
+    virtual TFSProgress GetFSProgressL() const;
+// </qmail>
+
+// <qmail> change ret val type
+    /**
+     * Returns operation type
+     */
+    TIpsOpType IpsOpType() const;
+// </qmail>
+
     /**
      * Stard sending operation
      *
@@ -113,10 +120,12 @@ protected:
      * @since FS 1.0
      * @return None
      */
+    // <qmail> aPriority parameter removed, aFSOperationObserver, aFSRequestId added
     CIpsPlgSmtpOperation( 
         CMsvSession& aMsvSession, 
-        TInt aPriority, 
-        TRequestStatus& aObserverRequestStatus );
+        TRequestStatus& aObserverRequestStatus,
+        MFSMailRequestObserver* aFSOperationObserver,
+        TInt aFSRequestId );
     
     /**
      * Constructor for leaving methods
@@ -143,9 +152,8 @@ private: // From CActive
         {
         EIdle,
         EMovingOutbox,          // moving mail to OutBox folder
-        ESending,               // sending mail
-        EQueryingDetails,       // querying for password
-        EQueryingDetailsBusy,   // another operation is querying for details
+        ESending                // sending mail
+		// <qmail> EQueryingDetails, EQueryingDetailsBusy removed
         };
 
     /**
@@ -154,6 +162,11 @@ private: // From CActive
      * @since FS 1.0
      */
     void RunL( );
+
+// <qmail>
+    TInt RunError( TInt aError );
+// </qmail>
+
     void DoCancel( );
     
     /**
@@ -182,22 +195,21 @@ private: // From CActive
      */
     void ValidateAddressArrayL( const CDesCArray& aRecipients );
 
-    /**
-     * Send user password query request to CIpsPlgEventHandler
-     * @return ETrue - if query send
-     */
-    TBool QueryUserPassL();
-
+	// <qmail> QueryUserPassL() function removed
 private:
 
-    CSmtpClientMtm*     iSmtpMtm;
-    CMsvOperation*      iOperation;
-    CMsvEntrySelection* iSelection;
-    CClientMtmRegistry* iMtmRegistry;
-    TInt                iState;
-    TMsvId              iSmtpService;
-    // not owned
-    TAny*               iEventHandler; // pointer to CIpsPlgEventHandler
+    CSmtpClientMtm*         iSmtpMtm;
+    CMsvOperation*          iOperation;
+    CMsvEntrySelection*     iSelection;
+    CClientMtmRegistry*     iMtmRegistry;
+    TInt                    iState;
+    TMsvId                  iSmtpService;
+// <qmail>
+    MFSMailRequestObserver* iFSOperationObserver;
+    TFSProgress             iFSProgress;
+// </qmail>
+	// not owned
+    TAny*               	iEventHandler; // pointer to CIpsPlgEventHandler
     };
 
 #endif /* IPSPLGSENDOPERATION_H */

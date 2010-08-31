@@ -16,21 +16,12 @@
 *
 */
 
-
-
-#include "emailtrace.h"
-#include <cemailaccounts.h>
-#include <pop3cmds.h>
-#include <miutset.h>
-#include <popcmtm.h>
-#include <AlwaysOnlineManagerCommon.h>
-
-#include "IpsSosAOPopAgent.h"
-#include "IpsSosAOImapPopLogic.h"
-
+#include "ipssosaopluginheaders.h"
 
 // from settings
-#include "ipssetutilsconsts.h"
+//<QMail>
+
+//</QMail>
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
@@ -145,6 +136,7 @@ void CIpsSosAOPopAgent::RunL()
          case EStateFetchOnHold:
              break;
          case EStateDisconnect:
+             NM_COMMENT("CIpsSosAOPopAgent: disconnecting");
              if ( !iDoNotDisconnect )
                  {
                  CancelAllAndDisconnectL();
@@ -156,6 +148,7 @@ void CIpsSosAOPopAgent::RunL()
                  }
              break;
          case EStateCompleted:
+             NM_COMMENT("CIpsSosAOImapAgent: completed");
              TRAP_IGNORE( iOpResponse.OperationCompletedL( iError ) );
              SignalSyncCompleted( iServiceId, iError );
              ClearSignaledFlags();
@@ -268,6 +261,7 @@ void CIpsSosAOPopAgent::StartSyncL()
     LoadSettingsL( );
     if ( !IsConnected() )
         {
+        NM_COMMENT("CIpsSosAOPopAgent: starting sync");
         TBuf8<1> dummy;
         // connect and synchronise starts background sync or idle
         iSelection->ResizeL(0);
@@ -280,6 +274,7 @@ void CIpsSosAOPopAgent::StartSyncL()
         }
     else
         {
+        NM_COMMENT("CIpsSosAOPopAgent: already connected do not sync");
         iState = EStateCompleted;
         iError = KErrCancel;
         SetActiveAndCompleteThis();
@@ -300,6 +295,13 @@ void CIpsSosAOPopAgent::StartFetchMessagesL(
 void CIpsSosAOPopAgent::CancelAllAndDisconnectL()
     {
     FUNC_LOG;
+    // if we are already idle state, do nothing
+    // completing in idle state might cause unvanted events to ui
+    if (iState == EStateIdle) 
+        {
+        return;
+        }
+    
     iDoNotDisconnect = EFalse;
     iState = EStateCompleted;
     if ( IsActive() )
@@ -457,10 +459,9 @@ void CIpsSosAOPopAgent::LoadSettingsL( )
         {
         iPopulateLimit = ( iPopulateLimit * 1024 ) / 75;
         }
-    else if ( iPopulateLimit == KIpsSetDataHeadersOnly )    
-        {
-        iPopulateLimit = 0;
-        }
+	//<QMail>
+    
+	//</QMail>
     else
         {
         iPopulateLimit = KMaxTInt;

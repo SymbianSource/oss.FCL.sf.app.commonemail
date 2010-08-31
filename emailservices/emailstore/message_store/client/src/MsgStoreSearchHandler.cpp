@@ -17,12 +17,12 @@
 
 
 
-#include "msgstoresearchhandler.h"
+#include "MsgStoreSearchHandler.h"
 //<cmail>
-#include "msgstoretypes.h"
-#include "msgstoremailbox.h"
+#include "MsgStoreTypes.h"
+#include "MsgStoreMailBox.h"
 //</cmail>
-#include "rmessagestoresession.h"
+#include "RMessageStoreSession.h"
 
 const TInt KInitialPropertiesTransferBufferLength = 10000;
 

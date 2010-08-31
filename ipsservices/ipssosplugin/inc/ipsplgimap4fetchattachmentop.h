@@ -15,228 +15,165 @@
 *
 */
 
-#ifndef __IPSPLGIMAP4FETCHATTACHMENTOP_H__
-#define __IPSPLGIMAP4FETCHATTACHMENTOP_H__
-
+#ifndef IPSPLGIMAP4FETCHATTACHMENTOP_H
+#define IPSPLGIMAP4FETCHATTACHMENTOP_H
 
 class CIpsPlgImap4FetchAttachmentOp;
 
 /**
-* class CIpsPlgImap4FetchAttachmentOp
-*
+* CIpsFetchProgReport
+* helper class for the operation
+* implements a timer which initiates periodical progress updating
 */
-class CIpsFetchProgReport : public CActive
+NONSHARABLE_CLASS ( CIpsFetchProgReport ) : public CActive
     {
-    public:
-        /**
-        *
-        */
-        static CIpsFetchProgReport* NewL( 
-            CIpsPlgImap4FetchAttachmentOp& aAttaOp );
+public:
+    /**
+    * @param aAttaOp (callback) reference to fetch operation that created us
+    */
+    static CIpsFetchProgReport* NewL( CIpsPlgImap4FetchAttachmentOp& aAttaOp );
 
-        /**
-        *
-        */    
-        ~CIpsFetchProgReport();
+	// <qmail> destructor made virtual
+    virtual ~CIpsFetchProgReport();
 
-        /**
-        *
-        */    
-        virtual void DoCancel();
+protected: // From CActive
 
-        /**
-        *
-        */	
-	    virtual void RunL();
+    virtual void DoCancel();
 	
-	private:
+    virtual void RunL();
 
-        /**
-        *
-        */	
-	    CIpsFetchProgReport( 
-	        CIpsPlgImap4FetchAttachmentOp& aAttaOp );
-        
-        /**
-        *
-        */	    
-	    void ConstructL();
+private:
+    CIpsFetchProgReport( CIpsPlgImap4FetchAttachmentOp& aAttaOp );
+    void ConstructL();
+    void AdjustTimer();
 
-        /**
-        *
-        */	
-	    void AdjustTimer();
-	
-	private:
-	
-	    RTimer iTimer;
-	    
-	    CIpsPlgImap4FetchAttachmentOp& iAttaOp;
-	
+private: // members
+    RTimer iTimer;
+    // reference to our "parent" op
+    CIpsPlgImap4FetchAttachmentOp& iAttaOp; 
     };
 
 /**
 * class CIpsPlgImap4FetchAttachmentOp
-*
+* fetches messageparts
 */
-class CIpsPlgImap4FetchAttachmentOp :
+NONSHARABLE_CLASS ( CIpsPlgImap4FetchAttachmentOp ) :
     public CIpsPlgOnlineOperation
     {
-    public:
+public:
 
-        /**
-        * NewL()
-        * Basic factory function - creates dialog with standard title resource
-        * @param CMsvSession& 
-        *
-        *
-        *
-        *
-        *
-        *
-        * @return CIpsPlgImap4FetchAttachmentOp* self pointer
-        */
+    /**
+    * NewL()
+    * @param CMsvSession& client/server session to MsvServer
+    * @param aObserverRequestStatus operation's observer's status
+    * @param aService serviceId of this mailbox
+    * @param aActivityTimer mailbox specific activity timer
+    * @param aSelection selection of message part ids, ownership moves
+    * @param aFSMailBoxId specifies mailbox
+    * @param aFSOperationObserver observes the progress of this operation
+    * @param aFSRequestId identifier for this instance of operation, assigned by the client
+    * @return CIpsPlgImap4FetchAttachmentOp* self pointer
+    */
+	// <qmail> CMsvEntrySelection& changed to pointer, aFunctionId removed
+	// <qmail> MFSMailRequestObserver& changed to pointer
+    static CIpsPlgImap4FetchAttachmentOp* NewL(
+        CMsvSession& aMsvSession,
+        TRequestStatus& aObserverRequestStatus,
+        TMsvId aService,
+        CIpsPlgTimerOperation& aActivityTimer,
+        const CMsvEntrySelection* aSelection,
+        TFSMailMsgId aFSMailBoxId,
+        MFSMailRequestObserver* aFSOperationObserver,
+        TInt aFSRequestId );
 
-        static CIpsPlgImap4FetchAttachmentOp* NewL(
-            CMsvSession& aMsvSession,
-            TRequestStatus& aObserverRequestStatus,
-            TInt aFunctionId,
-            TMsvId aService,
-            CIpsPlgTimerOperation& aActivityTimer,
-            const TImImap4GetMailInfo& aGetMailInfo,
-            const CMsvEntrySelection& aSel,
-            TFSMailMsgId aFSMailBoxId,
-            MFSMailRequestObserver& aFSOperationObserver,
-            TInt aFSRequestId );
+    /**
+    * ~CIpsPlgImap4FetchAttachmentOp()
+    * destructor
+    */
+    virtual ~CIpsPlgImap4FetchAttachmentOp();
 
-        /**
-        * ~CIpsPlgImap4FetchAttachmentOp()
-        * destructor
-        */
+    /**
+    * From MsvOperation
+    * Gets information on the progress of the operation
+    * (see MsvOperation header)
+    */
+    const TDesC8& ProgressL();
 
-        virtual ~CIpsPlgImap4FetchAttachmentOp();
-
-        /**
-        *
-        */
-        const TDesC8& ProgressL();
-
-        
-        /**
-        *
-        */
-        const TDesC8& GetErrorProgressL( TInt aError );
-        
-        /**
-        * 
-        */
-        TFSProgress GetFSProgressL() const;
-        
-        
-    private:
-
-
-        /**
-        * CIpsPlgImap4PopulateOp()
-        * @param 
-        *
-        *
-        *
-        *
-        *
-        *
-        
-        */
-
-        CIpsPlgImap4FetchAttachmentOp(
-            CMsvSession& aMsvSession,
-            TRequestStatus& aObserverRequestStatus,
-            TInt aFunctionId,
-            TMsvId aService,
-            CIpsPlgTimerOperation& aActivityTimer,
-            const TImImap4GetMailInfo& aGetMailInfo,
-            TFSMailMsgId aFSMailBoxId,
-            MFSMailRequestObserver& aFSOperationObserver,
-            TInt aFSRequestId );
-
-        /**
-        * ConstructL()
-        */
-
-        void ConstructL( const CMsvEntrySelection& aSel );
-
-
-        /**
-        * RunL()
-        */
-
-        void RunL();
-
-        /**
-        * DoRunL()
-        */
-
-        void DoRunL();
-
-        /**
-        * DoCancel()
-        */
-
-        //virtual void DoCancel();
-
-        /**
-        * Complete()
-        */
-
-        void Complete();
-        
-        /**
-        *
-        */
-        void DoConnectL();
-        
-        /**
-        * 
-        */
-        void ReportProgressL();  
-
-    protected:
-        
-        /**
-        * From CIpsPlgOnlineoperation
-        */
-        TInt GetEngineProgress( const TDesC8& aProgress );
-        
-        /**
-        *
-        */
-        void DoFetchAttachmentL( );
-        
-        enum TFetchState {
-            EStateIdle,
-            EStateConnecting,
-            EStateFetching,
-            EStateWaiting,
-            EStateDisconnecting };
-        TFetchState iState;
-        
-    private: //Data
+    /**
+    * From CIpsPlgBaseOperation
+    * For reporting if DoRunL leaves
+    */
+    const TDesC8& GetErrorProgressL( TInt aError );
     
-        // because use of ReportProgressL()
-        friend class CIpsFetchProgReport;
-            
-        CMsvEntrySelection*                     iSelection;
-        TDesC8*                                 iFetchErrorProgress;
-        TImImap4GetMailInfo                     iGetMailInfo;
-        TInt                                    iFunctionId;
-        TPckgBuf<TImap4CompoundProgress>        iProgress;
-        TBool                                   iPopulated;
-        CIpsFetchProgReport*                    iProgReport;
-        // Temporary fix for handling KErrServerBusy errors from the
-        // messaging service.  Remove these once the appropriate observer
-        // mechanism has been implemented in the messaging service.
-        TInt                                    iRetryCount;
-        RTimer                                  iRetryTimer;
+    TFSProgress GetFSProgressL() const;
+    
+private:
+	// <qmail> CMsvEntrySelection& changed to pointer, aFunctionId removed
+	// <qmail> MFSMailRequestObserver& changed to pointer
+    CIpsPlgImap4FetchAttachmentOp(
+        CMsvSession& aMsvSession,
+        TRequestStatus& aObserverRequestStatus,
+        TMsvId aService,
+        CIpsPlgTimerOperation& aActivityTimer,
+        const CMsvEntrySelection* aSelection,
+        TFSMailMsgId aFSMailBoxId,
+        MFSMailRequestObserver* aFSOperationObserver,
+        TInt aFSRequestId );
+
+    void ConstructL();
+
+    void RunL();
+
+    void DoRunL();
+
+    //virtual void DoCancel();
+
+    void Complete();
+    
+    void DoConnectL();
+    
+    /**
+     * Called periodically by CIpsFetchProgReport during active fetching
+     * Leads to sending progress report to plugin's client
+     */
+    void ReportProgressL();  
+    
+    // <qmail> new func to this op
+    /**
+     * Returns operation type
+     */
+    TIpsOpType IpsOpType() const;
+    
+protected:
+    
+	// <qmail> GetEngineProgress removed
+    void DoFetchAttachmentL( );
+        
+// <qmail>
+private: //Data
+    friend class CIpsFetchProgReport;
+// <qmail>
+
+    // internal state of this statemachine
+    enum TFetchState {
+        EStateIdle,
+        EStateConnecting,
+        EStateFetching,
+		EStateWaiting,
+        EStateDisconnecting };
+    TFetchState iState;
+        
+    const CMsvEntrySelection*               iSelection;
+    TDesC8*                                 iFetchErrorProgress;
+	// <qmail> iGetMailInfo, iFunctionId removed
+    TPckgBuf<TImap4CompoundProgress>        iProgress;
+	// <qmail> iService, iPopulated removed
+    CIpsFetchProgReport*                    iProgReport;
+    // Temporary fix for handling KErrServerBusy errors from the
+    // messaging service.  Remove these once the appropriate observer
+    // mechanism has been implemented in the messaging service.
+    TInt                                    iRetryCount;
+    RTimer                                  iRetryTimer;
     };
 
-#endif //__IPSPLGIMAP4FETCHATTACHMENTOP_H__
+#endif // IPSPLGIMAP4FETCHATTACHMENTOP_H

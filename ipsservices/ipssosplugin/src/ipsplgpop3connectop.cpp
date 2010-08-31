@@ -15,20 +15,23 @@
 *
 */
 
-
 #include "emailtrace.h"
 #include "ipsplgheaders.h"
 
-// Constants and defines
-const TInt KConnectOpPriority = CActive::EPriorityStandard;
-const TInt KIpsPlgPop3PopulateLimitInitValue = 50;
 
-_LIT( KIpsPlgPopConnectPanic, "PopConnectOp" );
+// Constants and defines
+// <qmail> rename const
+const TInt KDefaultPopulateLimit( 50 );
+const TInt KPopulateAlgorithmBytesInKilo( 1024 );
+const TInt KPopulateAlgorithmRowLength( 75 );
+
 
 // ----------------------------------------------------------------------------
 // CIpsPlgPop3ConnectOp::NewL()
 // ----------------------------------------------------------------------------
-//
+// <qmail> MFSMailRequestObserver& changed to pointer
+// <qmail> aSignallingAllowed parameter added
+// <qmail> aFetchWillFollow parameter added
 CIpsPlgPop3ConnectOp* CIpsPlgPop3ConnectOp::NewL(
     CMsvSession& aMsvSession,                           
     TRequestStatus& aObserverRequestStatus,
@@ -36,18 +39,26 @@ CIpsPlgPop3ConnectOp* CIpsPlgPop3ConnectOp::NewL(
     TBool aForcePopulate,
     CIpsPlgTimerOperation& aActivityTimer,
     TFSMailMsgId aFSMailBoxId,
-    MFSMailRequestObserver& aFSOperationObserver,
+    MFSMailRequestObserver* aFSOperationObserver,
     TInt aFSRequestId,
     CIpsPlgEventHandler* aEventHandler,
-    TBool aSignallingAllowed )
+    TBool aSignallingAllowed,
+    TBool aFetchWillFollow )
     {
     FUNC_LOG;
-    CIpsPlgPop3ConnectOp* op = 
-        new(ELeave) CIpsPlgPop3ConnectOp( aMsvSession, aObserverRequestStatus, 
-            aService, aForcePopulate, aActivityTimer, aFSMailBoxId,
-            aFSOperationObserver, aFSRequestId, 
-            aEventHandler, aSignallingAllowed );
-        
+    CIpsPlgPop3ConnectOp* op = new(ELeave) CIpsPlgPop3ConnectOp(
+        aMsvSession,
+        aObserverRequestStatus,
+        aService,
+        aForcePopulate,
+        aActivityTimer,
+        aFSMailBoxId,
+        aFSOperationObserver,
+        aFSRequestId,
+        aEventHandler,
+        aSignallingAllowed,
+        aFetchWillFollow );
+
     CleanupStack::PushL( op );
     op->ConstructL();
     CleanupStack::Pop( op );
@@ -61,10 +72,9 @@ CIpsPlgPop3ConnectOp* CIpsPlgPop3ConnectOp::NewL(
 CIpsPlgPop3ConnectOp::~CIpsPlgPop3ConnectOp()
     {
     FUNC_LOG;
-    delete iEntry;
-    delete iSelection;
-
-    iState = EIdle;
+    // <qmail> removed iEntry;
+    // <qmail> removed iSelection;
+    // <qmail> removed state setting
     }
 
 // ----------------------------------------------------------------------------
@@ -78,9 +88,9 @@ const TDesC8& CIpsPlgPop3ConnectOp::ProgressL()
         {
         return GetErrorProgressL( iError );
         }
-    else if( iOperation )
+    else if( iSubOperation )
         {
-        return iOperation->ProgressL();
+        return iSubOperation->ProgressL();
         }
     
     iProgress().iErrorCode = KErrNone;
@@ -93,9 +103,9 @@ const TDesC8& CIpsPlgPop3ConnectOp::ProgressL()
 void CIpsPlgPop3ConnectOp::DoCancel()
     {
     FUNC_LOG;
-    if( iOperation )
+    if( iSubOperation )
         {
-        iOperation->Cancel();
+        iSubOperation->Cancel();
         }
     CompleteObserver( KErrCancel );
     }
@@ -107,73 +117,52 @@ void CIpsPlgPop3ConnectOp::DoCancel()
 void CIpsPlgPop3ConnectOp::DoRunL()
     {
     FUNC_LOG;
-    // handle these error situations properly, 
-    // and report somehow back to framework
-    TInt err  = KErrNone;
- 
-    if ( iState == EQueryingDetails )
+    TInt err( KErrNone );
+
+    // <qmail> remove EQueryingDetails state
+    if ( iState == EStartConnect )
         {
-        // Retry connect.
-        DoConnectL();
-        iState = EConnected;
-        }       
-    else if ( iState == EStartConnect )
-        {
-        
-        if ( iOperation )
+        if ( iSubOperation )
             {
             // operation exist and it means 
             // disconnect operation was ongoing.
-            // How handle errors
-            delete iOperation;
-            iOperation = NULL;
+            delete iSubOperation;
+            iSubOperation = NULL;
             }
         
-        if ( ValidateL() )
-            {
-            // Begin Connect.
-            DoConnectL();
-            iState = EConnected;
-            }
-        else
-            {
-            User::Leave( KErrCancel );    // User cancelled.
-            }
+// <qmail> ValidateL removed
+        // Begin Connect.
+        DoConnectL();
+        iState = EConnected;
         }
     else if ( iState == EConnected )
         {
-        // Connect completed.
+        // Connect completed
+        // <qmail> Login details checking removed
         err = GetOperationErrorCodeL( );
-            
-        if ( ( err == KPop3InvalidUser ) ||
-             ( err == KPop3InvalidLogin )  ||
-             ( err == KPop3InvalidApopLogin ) )
+        User::LeaveIfError( err );
+
+        if ( iForcePopulate && Connected() )
             {
-            // Login details are wrong. Trying to ask for password
-            if ( !QueryUserPassL() )
-                {
-                CompleteObserver( err );
-                }
+            iState = EPopulate;
+            DoPopulateL();
             }
-        else if ( err == KErrNone )
+        // <qmail>
+        else if( iFetchWillFollow && Connected() )
             {
-            if ( iForcePopulate && Connected() )
-                {
-                iState = EPopulate;
-                DoPopulateL();
-                }
-            else
-                {
-                iState = EIdle;
-                CompleteObserver( KErrNone );
-                }
+            // Leave connection open to make fetch
+            // operation possible
+            iState = EIdle;
+            CompleteObserver( KErrNone );
             }
+        // </qmail>
         else
             {
-            // We can't do this before, because 
-            // we want to handle KPop3InvalidUser,
-            // KPop3InvalidLogin and KPop3InvalidApopLogin separately.
-            User::Leave( err );
+            // <qmail>
+            // start disconnecting
+            iState = EDisconnecting;
+            DoDisconnectL();
+            // </qmail>
             }
         }
     else if ( iState == EPopulate )
@@ -181,18 +170,28 @@ void CIpsPlgPop3ConnectOp::DoRunL()
         err = GetOperationErrorCodeL( );
         if ( iEventHandler )
             {
-            iEventHandler->SetNewPropertyEvent( 
-                    iService, KIpsSosEmailSyncCompleted, err );
+            iEventHandler->SetNewPropertyEvent( iService, KIpsSosEmailSyncCompleted, err );
             }
-        CIpsPlgSyncStateHandler::SaveSuccessfulSyncTimeL(
-                iMsvSession, iService );
-        CompleteObserver( err ); 
+        CIpsPlgSyncStateHandler::SaveSuccessfulSyncTimeL( iMsvSession, iService );
+
+        // <qmail>
+        // start disconnecting
+        iState = EDisconnecting;
+        DoDisconnectL();
+        // </qmail>
         }
+    // <qmail>
+    else if ( iState == EDisconnecting )
+        {
+        // we're done here
+        CompleteObserver( KErrNone );
+        }
+    // </qmail>
+    // <qmail> removed state EErrInvalidDetails
     else
         {
         User::Panic( KIpsPlgPopConnectPanic ,KErrNotFound);
         }
-    
     }
 
 // ----------------------------------------------------------------------------
@@ -203,9 +202,9 @@ const TDesC8& CIpsPlgPop3ConnectOp::GetErrorProgressL( TInt aError )
     {
     FUNC_LOG;
     iError = aError;
-    if ( iOperation && iError == KErrNone )
+    if ( iSubOperation && iError == KErrNone )
         {
-        return iOperation->ProgressL();
+        return iSubOperation->ProgressL();
         }
     TPop3Progress& progress = iProgress();
     progress.iPop3Progress = TPop3Progress::EPopConnecting;
@@ -226,15 +225,10 @@ const TDesC8& CIpsPlgPop3ConnectOp::GetErrorProgressL( TInt aError )
 TFSProgress CIpsPlgPop3ConnectOp::GetFSProgressL() const
     {
     FUNC_LOG;
-    // might not never called, but gives something reasonable if called
     TFSProgress result = { TFSProgress::EFSStatus_Waiting, 0, 0, KErrNone };
-    result.iError = KErrNone;
     switch( iState )
         {
-        case EQueryingDetails:
-        case EQueryingDetailsBusy:
-            result.iProgressStatus = TFSProgress::EFSStatus_Authenticating;
-            break;
+        // <qmail> removed queryingdetails cases
         case EStartConnect:
         case EConnected:
             result.iProgressStatus = TFSProgress::EFSStatus_Connecting;
@@ -260,6 +254,11 @@ TFSProgress CIpsPlgPop3ConnectOp::GetFSProgressL() const
 // CIpsPlgPop3ConnectOp::CIpsPlgPop3ConnectOp
 // ----------------------------------------------------------------------------
 //
+// <qmail> priority parameter has been removed
+// <qmail> MFSMailRequestObserver& changed to pointer
+// <qmail> aSignallingAllowed parameter added
+// <qmail> aFetchWillFollow parameter added
+// <qmail> iAlreadyConnected removed
 CIpsPlgPop3ConnectOp::CIpsPlgPop3ConnectOp(
     CMsvSession& aMsvSession,
     TRequestStatus& aObserverRequestStatus,
@@ -267,21 +266,24 @@ CIpsPlgPop3ConnectOp::CIpsPlgPop3ConnectOp(
     TBool aForcePopulate,
     CIpsPlgTimerOperation& aActivityTimer,
     TFSMailMsgId aFSMailBoxId,
-    MFSMailRequestObserver& aFSOperationObserver,
+    MFSMailRequestObserver* aFSOperationObserver,
     TInt aFSRequestId,
     CIpsPlgEventHandler* aEventHandler,
-    TBool aSignallingAllowed )
+    TBool aSignallingAllowed,
+    TBool aFetchWillFollow )
     :
-    CIpsPlgOnlineOperation( aMsvSession, KConnectOpPriority,
-        aObserverRequestStatus, aActivityTimer, aFSMailBoxId,
-        aFSOperationObserver, aFSRequestId, aSignallingAllowed ),
+    CIpsPlgOnlineOperation(
+        aMsvSession,
+        aObserverRequestStatus, 
+        aActivityTimer, 
+        aFSMailBoxId,
+        aFSOperationObserver, 
+        aFSRequestId,
+        aSignallingAllowed ),
     iState( EIdle ),
-    iEntry( NULL ),
-    iPopulateLimit( KIpsPlgPop3PopulateLimitInitValue ),
     iForcePopulate( aForcePopulate ),
-    iSelection( NULL ),
     iEventHandler( aEventHandler ),
-    iAlreadyConnected( EFalse )
+    iFetchWillFollow( aFetchWillFollow )
     {
     iService = aServiceId; 
     }
@@ -294,57 +296,36 @@ void CIpsPlgPop3ConnectOp::ConstructL()
     {
     FUNC_LOG;
     BaseConstructL( KUidMsgTypePOP3 );
-   	
-    iEntry = iMsvSession.GetEntryL( iService );
-    if ( !iEntry )
-        {
-        User::Leave( KErrGeneral );
-        }
-    iSelection = new(ELeave) CMsvEntrySelection;
-    const TMsvEntry& tentry = iEntry->Entry();
-    
+
+    // <qmail> iSelection construction has been removed
+
+    CMsvEntry* cEntry = iMsvSession.GetEntryL( iService );
+    User::LeaveIfNull( cEntry );
+    // NOTE: Not using cleanupStack as it is not needed in this situation:
+    const TMsvEntry tentry = cEntry->Entry();
+    delete cEntry;
+    cEntry = NULL;
+
     if ( tentry.iType.iUid != KUidMsvServiceEntryValue )
         {
         // should we panic with own codes?
         User::Leave( KErrNotSupported );
         }
+
+    // <qmail> no need to have population limit as member variable
+    // <qmail> it is read from settings when needed
     
-    // get correct populate and sync limet values from settings
-    CImPop3Settings* settings = new(ELeave) CImPop3Settings();
-    CleanupStack::PushL( settings );
-    TPopAccount popAccountId;
-    CEmailAccounts* accounts = CEmailAccounts::NewLC();
-    accounts->GetPopAccountL( iService , popAccountId );
-    accounts->LoadPopSettingsL( popAccountId, *settings );
-    iPopulateLimit = settings->PopulationLimit();
-    if ( iPopulateLimit > 0 )
-        {
-        iPopulateLimit = ( iPopulateLimit * 1024 ) / 75;
-        }
-    else if ( iPopulateLimit == KIpsSetDataHeadersOnly )    
-        {
-        iPopulateLimit = 0;
-        }
-    else
-        {
-        iPopulateLimit = KMaxTInt;
-        }
-    
-    CleanupStack::PopAndDestroy( 2, settings );
-       
     if ( tentry.Connected() )
         {      
-        iState = EConnected; 
-        iAlreadyConnected = ETrue;
-        SetActive();
-        CompleteThis();
+        iState = EConnected;
+        // <qmail> iAlreadyConnected removed
         }
     else
         {
-        iState = EStartConnect; 
-        SetActive();
-        CompleteThis();
-        }    
+        iState = EStartConnect;
+        }
+    // <qmail> SetActive(); moved inside CompleteThis();
+    CompleteThis();
     }
 
 // ----------------------------------------------------------------------------
@@ -354,9 +335,17 @@ void CIpsPlgPop3ConnectOp::ConstructL()
 void CIpsPlgPop3ConnectOp::DoConnectL()
     {
     FUNC_LOG;
-    iStatus = KRequestPending;
-    InvokeClientMtmAsyncFunctionL( KPOP3MTMConnect, iService, iService );
+    // <qmail> unnecessary: iStatus = KRequestPending;
+    NM_COMMENT("CIpsPlgPop3ConnectOp: connecting");
+    InvokeClientMtmAsyncFunctionL( KPOP3MTMConnect, iService ); // <qmail> 1 param removed
     SetActive();
+
+// <qmail>
+    if ( iEventHandler )
+        {
+        iEventHandler->SetNewPropertyEvent( iService, KIpsSosEmailSyncStarted, KErrNone );
+        }
+// </qmail>
     }
 
 // ----------------------------------------------------------------------------
@@ -366,149 +355,99 @@ void CIpsPlgPop3ConnectOp::DoConnectL()
 void CIpsPlgPop3ConnectOp::DoPopulateL()
     {
     FUNC_LOG;
-    iStatus = KRequestPending;
+    NM_COMMENT("CIpsPlgPop3ConnectOp: populating");
+    // <qmail> unnecessary: iStatus = KRequestPending;
 
     // Prepare parameters and include filtering
     TImPop3PopulateOptions pop3GetMailInfo;
     pop3GetMailInfo.SetMaxEmailSize( KMaxTInt32 );
-    pop3GetMailInfo.SetPopulationLimit( iPopulateLimit );
+// <qmail>
+    pop3GetMailInfo.SetPopulationLimit( GetPopulateLimitFromSettingsL() );
     TPckgBuf<TImPop3PopulateOptions> params( pop3GetMailInfo );
 
-    iSelection->InsertL(0, iService);
+    // <qmail> selection is no longer a member variable
+    CMsvEntrySelection* selection = new(ELeave) CMsvEntrySelection;
+    CleanupStack::PushL( selection );
+    selection->InsertL( 0, iService );
     iBaseMtm->SwitchCurrentEntryL( iService );
     // Start the fetch operation
-    InvokeClientMtmAsyncFunctionL( KPOP3MTMPopulateAll, *iSelection,
-        iService, params);
-
+    InvokeClientMtmAsyncFunctionL( KPOP3MTMPopulateAll, *selection, params ); // <qmail> 1 param removed
     SetActive();
-
-    if ( iEventHandler )
-        {
-        iEventHandler->SetNewPropertyEvent( 
-                iService, KIpsSosEmailSyncStarted, KErrNone );
-        } 
+    CleanupStack::PopAndDestroy( selection );
+// <qmail> iEventHandler->SetNewPropertyEvent call removed from here
+// </qmail>
     }
-// ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
-//
-TBool CIpsPlgPop3ConnectOp::Connected() const
-    {
-    FUNC_LOG;
-    TMsvEntry tentry;
-    TMsvId service;
-    iMsvSession.GetEntry(iService, service, tentry );
-    return tentry.Connected();
-    }
+// <qmail> Connected() moved to baseclass
 
 // ----------------------------------------------------------------------------
-// CIpsPlgImap4ConnectOp::IpsOpType()
 // ----------------------------------------------------------------------------
-// 
-TInt CIpsPlgPop3ConnectOp::IpsOpType() const
+// <qmail> return type
+TIpsOpType CIpsPlgPop3ConnectOp::IpsOpType() const
     {
     FUNC_LOG;
     return EIpsOpTypePop3SyncOp;
     }
 
+// <qmail> removed QueryUsrPassL() from here as unneeded
+// <qmail> removed ValidateL() (did nothing)
 
 // ----------------------------------------------------------------------------
-// CIpsPlgPop3ConnectOp::ValidateL()
-// ----------------------------------------------------------------------------
-//
-TBool CIpsPlgPop3ConnectOp::ValidateL()
-    {
-    // do proper validation. OR: not needed?
-    return ETrue;
-    }
-
-// ----------------------------------------------------------------------------
-// CIpsPlgPop3ConnectOp::QueryUserPassL()
-// ----------------------------------------------------------------------------
-//
-TBool CIpsPlgPop3ConnectOp::QueryUserPassL()
-    {
-    FUNC_LOG;
-
-    if ( iEventHandler )
-        {
-        // ask for credentials for pop3 account and wait for callback
-        if ( iEventHandler->QueryUsrPassL( iEntry->EntryId(), this ) )
-            {
-            iState = EQueryingDetails;
-            }
-        else
-            {
-            // another operation is waiting for password
-            iState = EQueryingDetailsBusy;
-            }
-
-        return ETrue;
-        }
-
-    return EFalse;
-    }
-
-
-// ----------------------------------------------------------------------------
-// CIpsPlgPop3ConnectOp::GetOperationErrorCodeL()
 // ----------------------------------------------------------------------------    
 // 
 TInt CIpsPlgPop3ConnectOp::GetOperationErrorCodeL( )
     {
     FUNC_LOG;
-    
-    if ( iAlreadyConnected )
-        {
-        // Connected state was set in CIpsPlgPop3ConnectOp::ConstructL()
-        // so iOperation is null
-        return KErrNone;
-        }
-        
-    if ( !iOperation )
+    if ( !iSubOperation )
         {
         return KErrNotFound;
         }
-    if ( !iOperation->IsActive() && iOperation->iStatus.Int() != KErrNone )
+    if ( !iSubOperation->IsActive() && iSubOperation->iStatus.Int() != KErrNone )
         {
-        return iOperation->iStatus.Int();
+        return iSubOperation->iStatus.Int();
         }
     
     TPckgBuf<TPop3Progress> paramPack;
-    paramPack.Copy( iOperation->ProgressL() );
+    paramPack.Copy( iSubOperation->ProgressL() );
     const TPop3Progress& progress = paramPack();
     
     return progress.iErrorCode;
     }
 
+// <qmail> removed CIpsPlgImap4ConnectOp::CredientialsSetL
+
+//<qmail> new functions
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-void CIpsPlgPop3ConnectOp::CredientialsSetL( TInt aEvent )
+void CIpsPlgPop3ConnectOp::DoDisconnectL()
     {
     FUNC_LOG;
-
-    if ( iState == EQueryingDetails )
-        {
-        // response for our operation`s query
-        if ( aEvent == EIPSSosCredientialsCancelled )
-            {
-            // user canceled operation
-            CompleteObserver( KErrCancel );
-            }
-
-        // password has been set, continue with operation
-        SetActive();
-        CompleteThis();
-        }
-    else if ( iState == EQueryingDetailsBusy )
-        {
-        // response for other operation`s query
-        // we could try to ask for password now,
-        // but decision was made to cancel operation
-        CompleteObserver( KErrCancel );
-        SetActive();
-        CompleteThis();
-        }
+    // <qmail> unnecessary: iStatus = KRequestPending;
+    NM_COMMENT("CIpsPlgPop3ConnectOp: disconnecting");
+    InvokeClientMtmAsyncFunctionL( KPOP3MTMDisconnect, iService ); // <qmail> 1 param removed
+    SetActive();
     }
-//EOF
 
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+TInt CIpsPlgPop3ConnectOp::GetPopulateLimitFromSettingsL()
+    {
+    FUNC_LOG;
+    TInt limit( KDefaultPopulateLimit );
+        
+    CImPop3Settings* settings = new(ELeave) CImPop3Settings();
+    CleanupStack::PushL( settings );
+    TPopAccount popAccountId;
+    CEmailAccounts* accounts = CEmailAccounts::NewLC();
+    accounts->GetPopAccountL( iService , popAccountId );
+    accounts->LoadPopSettingsL( popAccountId, *settings );
+    limit = settings->PopulationLimit();
+    if ( limit > 0 )
+        {
+        // basically doing a _very_rough_ conversion from kilobyte value to number-of-rows
+        limit = ( limit * KPopulateAlgorithmBytesInKilo ) / KPopulateAlgorithmRowLength;
+        }
+    CleanupStack::PopAndDestroy( 2, settings );
+    return limit;
+    }
 
+//</qmail>

@@ -18,8 +18,7 @@
 #define PROCESSTIMER_H_
 
 #include <e32base.h>
-
-#include "debuglogmacros.h"
+#include <DebugLogMacros.h>
 
 /**
  * Timeout observer interface.

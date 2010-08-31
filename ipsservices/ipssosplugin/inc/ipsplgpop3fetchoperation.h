@@ -20,32 +20,41 @@
 
 #include "ipsplgonlineoperation.h"
 
-//class CMsvEmailConnectionProgressProvider;
-
 /**
 * CIpsPlgPop3FetchOperation
 * Fetch message(s) operation, using client MTM Get Mail API.
 */
-class CIpsPlgPop3FetchOperation :
+NONSHARABLE_CLASS ( CIpsPlgPop3FetchOperation ) :
     public CIpsPlgOnlineOperation
     {
     public:
 
-        /**
-        *
-        */
-        static CIpsPlgPop3FetchOperation* NewL(
-            CMsvSession& aMsvSession,
-            TRequestStatus& aObserverRequestStatus,
-            TInt aFunctionId,
-            TMsvId aService,
-            CIpsPlgTimerOperation& aActivityTimer,
-            const TImPop3GetMailInfo& aGetMailInfo,
-            const CMsvEntrySelection& aSel,
-            TFSMailMsgId aFSMailBoxId,
-            MFSMailRequestObserver& aFSOperationObserver,
-            TInt aFSRequestId,
-            CIpsPlgEventHandler* aEventHandler );
+	    /**
+	    * NewL
+	    * @param aMsvSession client/server session to MsvServer
+	    * @param aObserverRequestStatus client status
+	    * @param aService serviceId of mailbox
+	    * @param aActivityTimer mailbox specific activity timer
+	    * @param aGetMailInfo parameters set for actual MsvServer command
+	    * @param aSelection selection of entries to fetch
+	    * @param aFSMailBoxId mailbox identifier
+	    * @param aFSOperationObserver observer of this operation
+	    * @param aFSRequestId client assigned identifier for this operation instance
+	    * @param aEventHandler event handler for sending sync status events
+	    * @return operation instance
+	    */
+		// <qmail> MFSMailRequestObserver& changed to pointer
+	    static CIpsPlgPop3FetchOperation* NewL(
+	        CMsvSession& aMsvSession,
+	        TRequestStatus& aObserverRequestStatus,
+	        TMsvId aService,
+	        CIpsPlgTimerOperation& aActivityTimer,
+	        const TImPop3GetMailInfo& aGetMailInfo,
+	        CMsvEntrySelection* aSelection,
+	        TFSMailMsgId aFSMailBoxId,
+	        MFSMailRequestObserver* aFSOperationObserver,
+	        TInt aFSRequestId,
+	        CIpsPlgEventHandler* aEventHandler );
 
        
         /**
@@ -54,13 +63,16 @@ class CIpsPlgPop3FetchOperation :
         virtual ~CIpsPlgPop3FetchOperation();
 
         /**
-        *
+	    * From MsvOperation
+	    * Gets information on the progress of the operation
+	    * (see MsvOperation header)
         */
         virtual const TDesC8& ProgressL();
 
         /**
-        *
-        */
+	    * From CIpsPlgBaseOperation
+	    * For reporting if DoRunL leaves
+	    */
         virtual const TDesC8& GetErrorProgressL( TInt aError );
         
         /**
@@ -68,33 +80,36 @@ class CIpsPlgPop3FetchOperation :
         */
         virtual TFSProgress GetFSProgressL() const;
         
+// <qmail> new func to this op
         /**
-        *
-        */
-        virtual TInt IpsOpType() const;
+         * Returns operation type
+         */
+        TIpsOpType IpsOpType() const;
+// </qmail>
         
     protected:
 
         /**
         *
         */
-        CIpsPlgPop3FetchOperation(
-            CMsvSession& aMsvSession,
-            TRequestStatus& aObserverRequestStatus,
-            TInt aFunctionId,
-            TMsvId aService,
-            CIpsPlgTimerOperation& aActivityTimer,
-            const TImPop3GetMailInfo& aGetMailInfo,
-            TFSMailMsgId aFSMailBoxId,
-            MFSMailRequestObserver& aFSOperationObserver,
-            TInt aFSRequestId,
-            CIpsPlgEventHandler* aEventHandler);
+		// <qmail> MFSMailRequestObserver& changed to pointer
+	    CIpsPlgPop3FetchOperation(
+	        CMsvSession& aMsvSession,
+	        TRequestStatus& aObserverRequestStatus,
+	        TMsvId aService,
+	        CIpsPlgTimerOperation& aActivityTimer,
+	        const TImPop3GetMailInfo& aGetMailInfo,
+	        CMsvEntrySelection* aSelection,
+	        TFSMailMsgId aFSMailBoxId,
+	        MFSMailRequestObserver* aFSOperationObserver,
+	        TInt aFSRequestId,
+	        CIpsPlgEventHandler* aEventHandler);
 
             
         /**
         *
         */
-        void ConstructL( const CMsvEntrySelection& aSel );
+        void ConstructL();
 
         /**
         * From CActive
@@ -126,7 +141,8 @@ class CIpsPlgPop3FetchOperation :
         */
         void DoDisconnectL();
 
-    protected:
+	// <qmail> protected to private
+	private:
 
         enum TFetchState {
             EStateIdle,
@@ -134,12 +150,11 @@ class CIpsPlgPop3FetchOperation :
             EStateClearCompleteFlag,
             EStateFetching,
             EStateDisconnecting };
+    	// internal state of the operation
         TFetchState iState;
-
-    protected:
-        
+        // <qmail> protected to private
         TDesC8* iFetchErrorProgress;
-        TInt iFunctionId;
+    	// <qmail> removed iFunctionId;
         TImPop3GetMailInfo iGetMailInfo;
         TPckgBuf<TPop3Progress> iProgressBuf;
         CMsvEntrySelection* iSelection;

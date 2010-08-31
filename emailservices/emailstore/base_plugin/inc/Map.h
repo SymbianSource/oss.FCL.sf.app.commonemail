@@ -36,7 +36,7 @@ static void InsertEntryL(RMap<TInt64, TInt64>& aMap, const TInt aKey,const TInt 
 }
 ****************************************************************/
 
-#include "safepointerarray.h"
+#include "SafePointerArray.h"
 
 template <class Tkey, class Tvalue>
 class RMap
@@ -168,6 +168,6 @@ protected:
 
 */
 
-#include "map.inl"
+#include "Map.inl"
 
 #endif //__MAP_H__

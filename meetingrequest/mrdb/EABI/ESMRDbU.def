@@ -1,5 +1,0 @@
-EXPORTS
-	_ZN13CESMRCalDbMgr4NewLER11CCalSessionR16MMRUtilsObserver @ 1 NONAME
-	_ZTI14CESMRCalDbBase @ 2 NONAME ; #<TI>#
-	_ZTV14CESMRCalDbBase @ 3 NONAME ; #<VT>#
-

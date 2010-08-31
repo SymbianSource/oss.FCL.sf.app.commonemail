@@ -15,7 +15,7 @@
 *
 */
 
-#include "msgstoresearchcriteria.h"
+#include "MsgStoreSearchCriteria.h"
 
 // --------------------------
 // RMsgStoreAddress

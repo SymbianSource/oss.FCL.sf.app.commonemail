@@ -21,10 +21,10 @@ PRJ_PLATFORMS
 // Support all platforms for now
 
 PRJ_EXPORTS
-../inc/debuglogmacros.h            |../../../../../inc/debuglogmacros.h
-../inc/debuglogconst.h             |../../../../../inc/debuglogconst.h
-../inc/debuglog.h                  |../../../../../inc/debuglog.h
-../inc/globaldebugloggingoptions.h |../../../../../inc/globaldebugloggingoptions.h
+../inc/DebugLogMacros.h            |../../../../../inc/DebugLogMacros.h
+../inc/DebugLogConst.h             |../../../../../inc/DebugLogConst.h
+../inc/DebugLog.h                  |../../../../../inc/DebugLog.h
+../inc/GlobalDebugLoggingOptions.h |../../../../../inc/GlobalDebugLoggingOptions.h
 
 PRJ_MMPFILES
 DebugLog.mmp

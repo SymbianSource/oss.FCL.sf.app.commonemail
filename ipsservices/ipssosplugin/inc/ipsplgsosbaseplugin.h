@@ -19,17 +19,16 @@
 #ifndef IPSPLGSOSBASEPLUGIN_H
 #define IPSPLGSOSBASEPLUGIN_H
 
-//<cmail>
-#include "cfsmailplugin.h"
-#include "mfsmailrequestobserver.h"
-//</cmail>
+#include "CFSMailPlugin.h"
+#include "MFSMailRequestObserver.h"
 #include <rconnmon.h>
-
 #include "ipsplgsosbaseplugin.hrh"
 #include "ipsplgcommon.h"
 #include "ipsplgsingleopwatcher.h"
 #include "ipsplgtimeroperation.h"
-
+//<Qmail>
+#include "ipsstateextension.h"
+//</Qmail>
 class CMsvSession;
 class CIpsPlgTimerOperation;
 class CIpsPlgMsgMapper;
@@ -38,11 +37,10 @@ class CIpsPlgMruList;
 class CIpsPlgSettingsObserver;
 class CRepository;
 class CIpsPlgSearch;
-class CIpsSetDataApi;
+// <qmail> CIpsSetDataApi removed
 class CIpsPlgSmtpService;
 class CIpsPlgSyncStateHandler;
 class CIpsPlgEventHandler;
-class CIpsPlgOperationWait;
 
 /**
  *  FreestyleIpsServices plugin class
@@ -50,13 +48,23 @@ class CIpsPlgOperationWait;
  *  @lib ipssosplugin.lib
  *  @since FSEmail 2.0
  */
-class CIpsPlgSosBasePlugin :
+NONSHARABLE_CLASS ( CIpsPlgSosBasePlugin ) :
     public CFSMailPlugin,
-                             public MIpsPlgSingleOpWatcher,
-                             public MFSMailRequestObserver, // a dummy observer
-                             public MIpsPlgTimerOperationCallBack
+    public MIpsPlgSingleOpWatcher,
+    public MFSMailRequestObserver, // a dummy observer
+    public MIpsPlgTimerOperationCallBack,
+    public MStateObserverCallback
     {
+//<Qmail>
+public: //from MStateObserverCallback
+    void ActiveFolderChanged(
+        const TFSMailMsgId& aActiveMailboxId,
+        const TFSMailMsgId& aActiveFolderId);
+    
+public://from CExtendableEmail
 
+    CEmailExtension* ExtensionL( const TUid& aInterfaceUid );
+//</Qmail>    
 public:
 
     /**
@@ -64,7 +72,7 @@ public:
     * Destructor
     */
     IMPORT_C virtual ~CIpsPlgSosBasePlugin();
-
+    
 public: //from MIpsPlgSingleOpWatcher
 
     /**
@@ -177,16 +185,56 @@ public: // from CFSMailPlugin
         const TFSMailMsgId& aMailBoxId,
         const TFSMailMsgId& aFolderId,
         const RArray<TFSMailMsgId>& aMessages );
+		
+//<qmail>
+    virtual void DeleteMessagesByUidL(
+        const TFSMailMsgId& aMailBoxId,
+        const TFSMailMsgId& aFolderId,
+        const RArray<TFSMailMsgId>& aMessages,
+        MFSMailRequestObserver& aOperationObserver,
+        const TInt aRequestId);
+//</qmail>
 
     // MESSAGE STORE OPERATIONS
 
     virtual CFSMailMessage* CreateMessageToSendL(
         const TFSMailMsgId& aMailBoxId );
+    
+// <qmail>
+    /**
+     * Creates new email message to message store asynchronously
+     *
+     * @param aMailBoxId msv entry id to mailbox which setting are used
+     * @param aOperationObserver Observer for the operation
+     * @param aRequestId Id of the operation
+     */
+    virtual void CreateMessageToSendL(
+	    const TFSMailMsgId& aMailBoxId,
+        MFSMailRequestObserver& aOperationObserver,
+        const TInt aRequestId );
+// </qmail>
 
     virtual CFSMailMessage* CreateForwardMessageL(
         const TFSMailMsgId& aMailBoxId,
         const TFSMailMsgId& aOriginalMessageId,
         const TDesC& aHeaderDescriptor );
+
+// <qmail>
+    /**
+     * Creates a forward email message to message store asynchronously
+     *
+     * @param aMailBoxId msv entry id to mailbox which setting are used
+     * @param aOriginalMessageId id of the forwarded message
+     * @param aOperationObserver Observer for the operation
+     * @param aRequestId Id of the operation
+     */
+    virtual void CreateForwardMessageL( 
+        const TFSMailMsgId& aMailBoxId,
+        const TFSMailMsgId& aOriginalMessageId,
+        MFSMailRequestObserver& aOperationObserver,
+        const TInt aRequestId,
+        const TDesC& aHeaderDescriptor = KNullDesC );
+// </qmail>
 
     virtual CFSMailMessage* CreateReplyMessageL(
         const TFSMailMsgId& aMailBoxId,
@@ -194,10 +242,38 @@ public: // from CFSMailPlugin
         const TBool aReplyToAll,
         const TDesC& aHeaderDescriptor );
 
+// <qmail>
+    /**
+     * Creates new reply message to message store asynchronously
+     *
+     * @param aMailBoxId msv entry id to mailbox which setting are used
+     * @param aOriginalMessageId id of the replied message
+     * @param aReplyToAll reply to all recipients
+     * @param aOperationObserver Observer for the operation
+     * @param aRequestId Id of the operation
+     */
+    virtual void CreateReplyMessageL( 
+        const TFSMailMsgId& aMailBoxId, 
+        const TFSMailMsgId& aOriginalMessageId,
+        const TBool aReplyToAll,
+        MFSMailRequestObserver& aOperationObserver,
+        const TInt aRequestId,
+        const TDesC& aHeaderDescriptor );
+// </qmail>
+       
     virtual void StoreMessageL(
         const TFSMailMsgId& aMailBoxId,
         CFSMailMessage& aMessage );
 
+
+    // <qmail>
+    virtual void StoreMessagesL(
+            const TFSMailMsgId& aMailBoxId,
+            RPointerArray<CFSMailMessage> &messages,
+            MFSMailRequestObserver& aOperationObserver,
+            const TInt aRequestId );
+    // </qmail>
+            
     virtual void GetMessagesL(
         const TFSMailMsgId& aMailBoxId,
         const TFSMailMsgId& aFolderId,
@@ -227,6 +303,18 @@ public: // from CFSMailPlugin
         const TFSMailMsgId& aParentPartId,
         const TDesC& aContentType,
         const TDesC& aFilePath );
+    
+    // <qmail>
+    virtual void NewChildPartFromFileL(
+        const TFSMailMsgId& aMailBoxId,
+        const TFSMailMsgId& aParentFolderId,
+        const TFSMailMsgId& aMessageId,
+        const TFSMailMsgId& aParentPartId,
+        const TDesC& aContentType,
+        const TDesC& aFilePath, 
+        MFSMailRequestObserver& aOperationObserver,
+        const TInt aRequestId );
+    // </qmail>
 
     /**
      * Creates attachment based on file handle
@@ -259,7 +347,18 @@ public: // from CFSMailPlugin
         const TFSMailMsgId& aMessageId,
         const TFSMailMsgId& aParentPartId,
         const TFSMailMsgId& aPartId);
-
+    
+    // <qmail>
+    virtual void RemoveChildPartL(
+        const TFSMailMsgId& aMailBoxId,
+        const TFSMailMsgId& aParentFolderId,
+        const TFSMailMsgId& aMessageId,
+        const TFSMailMsgId& aParentPartId,
+        const TFSMailMsgId& aPartId,
+        MFSMailRequestObserver& aOperationObserver,
+        const TInt aRequestId );
+    // </qmail>
+        
     virtual CFSMailMessagePart* MessagePartL(
         const TFSMailMsgId& aMailBoxId,
         const TFSMailMsgId& aParentFolderId,
@@ -314,6 +413,13 @@ public: // from CFSMailPlugin
         const TFSMailMsgId& aMessageId,
         CFSMailMessagePart& aMessagePart);
 
+    //<qmail>
+    virtual void StoreMessagePartsL(
+        RPointerArray<CFSMailMessagePart>& aMessagePart,
+        MFSMailRequestObserver& aOperationObserver,
+        const TInt aRequestId );
+    //<qmail>
+
     virtual void UnregisterRequestObserver( TInt aRequestId );
 
     // MESSAGE SENDING
@@ -321,6 +427,11 @@ public: // from CFSMailPlugin
     virtual void SendL(TFSMailMsgId aMessageId );
 
     virtual void SendMessageL( CFSMailMessage& aMessage );
+
+    virtual void SendMessageL(
+        CFSMailMessage& aMessage,
+        MFSMailRequestObserver& aOperationObserver,
+        const TInt aRequestId );
 
     // OPERATION HANDLING
 
@@ -387,8 +498,6 @@ public: // from CFSMailPlugin
        const TFSMailMsgId& aMailBoxId,
        const TDesC& aUsername,
        const TDesC& aPassword );
-    
-    virtual CEmailExtension* ExtensionL( const TUid& aInterfaceUid );
 
 public:
 
@@ -486,6 +595,14 @@ public:
      */
     TBool IsUnderUiProcess();
 
+    // <qmail> new function
+    /*
+     * Checks whether given mailbox has ongoing operations or not
+     * @param aMailboxId
+     * @return true/false
+     */
+    TBool HasOperations( const TFSMailMsgId& aMailboxId );
+    // </qmail>
 protected:
 
     /*
@@ -549,6 +666,14 @@ protected:
         const TFSMailMsgId& aSourceFolderId,
         const TFSMailMsgId& aDestinationFolderId );
 
+    //<Qmail>
+    /**
+     * function to handle active folder changed events
+     */
+    virtual void HandleActiveFolderChangeL(
+            const TFSMailMsgId& aActiveMailboxId,
+            const TFSMailMsgId& aActiveFolderId);
+    //</Qmail>
 private:
 
     /**
@@ -614,15 +739,8 @@ private:
             const TFSMailMsgId& aMailBoxId,
             const TFSMailMsgId& aOriginalMessageId,
             const TDesC& aHeaderDescriptor );
-
-    /**
-     * Resolves the possible signature text to be added to message body.
-     * 
-     * @return Pointer to the descriptor containing the signature text, or
-     *         NULL if signature adding is not set or signature text is
-     *         of zero length. Ownership to caller.
-     */
-    HBufC* ResolveSignatureTextL( const TFSMailMsgId& aMailBoxId );
+    
+private:
 
     /**
     * Maps symbian msv api's folder type to fs folder type
@@ -696,8 +814,7 @@ protected:
     // Search Engine
     CIpsPlgSearch*  iSearch;
 
-    // interface to mailbox settings
-    CIpsSetDataApi*     iSettingsApi;
+    // <qmail> iSettingsApi removed
 
     // maps symbian events to fs events
     CIpsPlgEventHandler*    iEventHandler;
@@ -718,14 +835,10 @@ protected:
 
     // flag indicates is instance under FSEmail.exe
     TBool iIsUnderUiProcess;
-
-    // <cmail> delete draft synchronously
-    CActiveSchedulerWait iWait;
-	// </cmail>
     
-    CIpsPlgOperationWait* iWaitDeleteMessage;
-    CMsvEntry* icEntry;
-    CMsvOperation* iMsvOpDeleteMessage;
+    //<Qmail>
+    CIpsStateExtension*    iStateExtension;//owned
+    //</Qmail>
 	};
 
 #endif /* IPSPLGSOSBASEPLUGIN_H */

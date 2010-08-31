@@ -16,15 +16,7 @@
 *
 */
 
-
-#include "emailtrace.h"
-#include "IpsSosAOPluginTimer.h"
-
-//<cmail> //internal dependency removed
-/*#ifdef _DEBUG
-#include "../../internal/IpsSosAOPluginTester/inc/IpsSosAOPluginTester.hrh"
-#endif // _DEBUG*/
-//</cmail>
+#include "ipssosaopluginheaders.h"
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
@@ -84,12 +76,6 @@ void CIpsSosAOPluginTimer::After(const TTimeIntervalSeconds& aSeconds)
     time = time + aSeconds;
     iTimer.At( iStatus, time );
     SetActive();
-    
-//<cmail> removing flags
-/*#ifdef IPSAOPLUGINTESTER_MBOXLOGICTEST   
-    iTestActivationTime = time;
-#endif // IPSAOPLUGINTESTER_MBOXLOGICTEST*/
-//</cmail>    
     }
     
 // ----------------------------------------------------------------------------
@@ -120,27 +106,6 @@ TInt CIpsSosAOPluginTimer::RunError( TInt /* aError */ )
     return KErrNone;            
     }
 
-//<cmail> removing flags
-/*#ifdef IPSAOPLUGINTESTER_MBOXLOGICTEST
-// ----------------------------------------------------------------------------
-// TEST USAGE
-// ----------------------------------------------------------------------------
-//
-TInt CIpsSosAOPluginTimer::GetSecondsToTrick()
-    {
-    if ( !IsActive() )
-        {
-        return KErrNotFound;
-        }
-    
-    TTime now;
-    now.HomeTime();
-    TTimeIntervalSeconds secs;
-    iTestActivationTime.SecondsFrom( now, secs );
-    return secs.Int();
-    }
-#endif // IPSAOPLUGINTESTER_MBOXLOGICTEST*/
-//</cmail>    
 
 //EOF
 

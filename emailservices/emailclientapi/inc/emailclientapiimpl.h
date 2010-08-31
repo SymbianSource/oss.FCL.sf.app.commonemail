@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2010 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -19,10 +19,10 @@
 #define EMAILCLIENTAPIIMPL_H
 
 
-#include <ecom/implementationinformation.h> 
+#include <implementationinformation.h> 
 #include "emailapiutils.h"
-#include "cfsmailcommon.h"
-#include "mfsmaileventobserver.h"    
+#include "CFSMailCommon.h"
+#include "MFSMailEventObserver.h"    
 #include <memailclientapi.h>
 #include "emailclientpluginmanager.h"
 
@@ -35,13 +35,13 @@ class CVwsSessionWrapper;
 class CFSMailPlugin;
 class TFSMailMsgId;
 class CEmailMailboxCache;
-class CFSClientAPI;
+class CFSMailClient;
 
 /**
 *  "Framework" class including plugin management
 * @since S60 v5.2
 */
-NONSHARABLE_CLASS( CEmailClientApi ) : public CBase, public MEmailClientApi, public MEmailClientPluginManager
+NONSHARABLE_CLASS( CEmailClientApi ) : public CBase, public MEmailClientApi
 {
 public:
     /**
@@ -56,30 +56,27 @@ public:
      CEmailClientApi();       
 
 public: // from MEmailInterface
-    virtual TEmailTypeId InterfaceId() const;
+    TEmailTypeId InterfaceId() const;
     
-    virtual void Release();
+    void Release();
     
 public: // from MEmailClientApi
 
     /** @see MEmailClientApi */   
-    virtual MEmailMailbox* MailboxL( const TMailboxId& aId );
+    MEmailMailbox* MailboxL( const TMailboxId& aId );
    
     /** @see MEmailClientApi */   
-    virtual MEmailMailbox* MailboxL( const TPtrC& aAddress );
+    MEmailMailbox* MailboxL( const TPtrC& aAddress );
            
     /**
     * Gets all mailboxes in pointer array. It is recommended to free other
     * mailboxes besides needed one to optimise memory usage.
     */    
-    virtual TInt GetMailboxesL( RMailboxPtrArray& aMailboxes );
+    TInt GetMailboxesL( RMailboxPtrArray& aMailboxes );
     
     /**
     */
-    virtual void LaunchEmailL( const TLaunchPolicy aPolicy );
-    
-public: // from MEmailPluginManager
-    virtual CFSMailPlugin* GetPluginByUid(TUid aUid);    
+    void LaunchEmailL( const TLaunchPolicy aPolicy );
 
 public: // new methods
 
@@ -186,67 +183,6 @@ private:
         // current iterator index
         TInt iIndex;
     };
-#if 0 // Not supported    
-    /**
-     * Internal helper class for handling events related to mailboxes
-     *(adding/removal/rename).
-     */
-    class CObserverHandler : public CBase, public MFSMailEventObserver
-    {
-    public:
-        static CObserverHandler* NewL( const RPluginDataArray& aArray  );
-        ~CObserverHandler();
-        CObserverHandler( const RPluginDataArray& aArray );
-        void ConstructL();
-        void AddObserverL( MMailboxEventObserver& aObserver );
-        void RemoveObserver( MMailboxEventObserver& aObserver );
-        
-    public: // from MFSMailEventObserver
-
-        virtual void EventL(TFSMailEvent aEvent, TFSMailMsgId aMailbox, TAny* aParam1, TAny* aParam2, TAny* aParam3);
-    
-    private: // new methods
-        
-        // used for finding oberver
-        static TBool Equals( const MMailboxEventObserver& a1, const MMailboxEventObserver& a2 );
-        
-        // Plugins needed when first observer subscribes events
-        void ClaimPluginsAndStartObservingL();
-        
-        // plugins can be released when last observer removed
-        void ReleasePlugins();
-                
-    private: // data
-
-        // Plugin refCount is incremented by one while any observer is 
-        // registered. This prevents plugin unloading if no other entity uses 
-        // the plugin. 
-        class TEntry
-        {
-        public:
-            inline TEntry( CPluginData& aData ) : iData( aData ), iPlugin( NULL ) {}
-            CPluginData& iData;    
-            
-            // claimed from same object where iData refers to
-            CFSMailPlugin* iPlugin;
-        };
-        
-        // plugin entry array
-        RArray<CObserverHandler::TEntry>     iEntryArray;
-        
-        // reference to CEmailClientApi::iPluginDataArray
-        const RPluginDataArray&              iPluginDataArray;
-        
-        // registered observers
-        RPointerArray<MMailboxEventObserver> iMailboxObservers;
-    };
-#endif    
-    /**
-     * Returns reference to observer handler.
-     */
-#if 0 // Not supported    
-    CEmailClientApi::CObserverHandler& ObserverHandlerL();
-#endif    
     
 private:
     // plugin data array for all protocol plugins
@@ -257,18 +193,12 @@ private:
     
     // book keeping of loaded plugins
     RArray<TPluginData> iLoadedPluginsArray;
-    
-#if 0 // Not supported    
-    // orchestrates event monitoring and related plugin references
-    CEmailClientApi::CObserverHandler*   iObserverHandler;
-    
-#endif
-    
+       
     // Mailbox ids are cached when first time listed. Related plugin uid
     // is include in the cache.
     CEmailMailboxCache* iMailboxCache;
 
-    CFSClientAPI* iClientAPI;
+    CFSMailClient* iMailClient;
     
 };
 
@@ -299,4 +229,4 @@ private:
 
 #endif // EMAILCLIENTAPIIMPL_H
 
-// End of file.
+// End of file

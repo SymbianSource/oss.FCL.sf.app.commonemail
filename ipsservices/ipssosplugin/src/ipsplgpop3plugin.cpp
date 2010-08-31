@@ -19,6 +19,7 @@
 #include "emailtrace.h"
 #include "ipsplgheaders.h"
 
+//<qmail> removed
 
 // ---------------------------------------------------------------------------
 // CIpsPlgPop3Plugin::CIpsPlgPop3Plugin
@@ -138,7 +139,8 @@ TInt CIpsPlgPop3Plugin::RefreshNowL( )
 void CIpsPlgPop3Plugin::RefreshNowL(
     const TFSMailMsgId& aMailBoxId,
     MFSMailRequestObserver& aOperationObserver,
-    TInt aRequestId )
+    TInt aRequestId,
+    const TBool /*aSilentConnection*/ )
     {
     FUNC_LOG;
     TMsvId service = aMailBoxId.Id();
@@ -163,10 +165,12 @@ void CIpsPlgPop3Plugin::RefreshNowL(
     TInt populationLimit( settings->PopulationLimit() );
     CleanupStack::PopAndDestroy( 2, settings );   // >>> settings, accounts
     TBool forcePopulate( EFalse );
+// <qmail> back to use
     if( populationLimit != KIpsSetDataHeadersOnly )
         {
         forcePopulate = ETrue;
         }
+// </qmail>
     
     CIpsPlgBaseOperation* op = CIpsPlgPop3ConnectOp::NewL( 
         *iSession, 
@@ -175,7 +179,7 @@ void CIpsPlgPop3Plugin::RefreshNowL(
         forcePopulate,
         ActivityTimerL( aMailBoxId ),
         aMailBoxId, 
-        aOperationObserver,
+        &aOperationObserver,
         aRequestId,
         iEventHandler );
     
@@ -184,8 +188,8 @@ void CIpsPlgPop3Plugin::RefreshNowL(
     
     iOperations.AppendL( watcher );
     CleanupStack::Pop( watcher );   // >> watcher
-    
-    // send part
+    	
+    // send part of refresh
     EmptyOutboxL( aMailBoxId );
     }
 
@@ -195,17 +199,14 @@ void CIpsPlgPop3Plugin::RefreshNowL(
 //  
 void CIpsPlgPop3Plugin::ListFoldersL(
     const TFSMailMsgId& aMailBoxId,
-    const TFSMailMsgId& aFolderId,
+    const TFSMailMsgId& /*aFolderId*/,
     RPointerArray<CFSMailFolder>& aFolderList)
-    {
+	{
     FUNC_LOG;
-    // Pop3 can return only folders on the root level, so folders are not
-    // listed when the given folder ID is not null ID.
-    if ( aFolderId.IsNullId() )
-        {
-        ListFoldersL( aMailBoxId, aFolderList );
-        }
-    }
+	// Pop3 returns always the root level, so ignore folder id even
+	// it is given.
+	ListFoldersL( aMailBoxId, aFolderList );
+	}
 
 // ---------------------------------------------------------------------------
 // CIpsPlgPop3Plugin::ListFoldersL
@@ -271,14 +272,13 @@ TFSMailMsgId CIpsPlgPop3Plugin::GetStandardFolderIdL(
  	
  	if( aFolderType==EFSInbox )
         {
-        //in case of pop3, mailbox id == service id == inbox id
-        CMsvEntry* cEntry = iSession->GetEntryL( aMailBoxId.Id() );
-        CleanupStack::PushL( cEntry );
-        if ( cEntry->Count() != 0 )
-            {
-            result.SetId( aMailBoxId.Id() );
-            }
-        CleanupStack::PopAndDestroy( cEntry );
+        //<qmail> removed CMsvEntry conversion 
+ 	
+        // In case of pop3, mailbox id == service id == inbox id,
+        // so no need to create CMsvEntry from mailbox id to
+        // dig if any children exists.
+        result.SetId( aMailBoxId.Id() );
+        //</qmail>
         }
     else if( aFolderType==EFSOutbox )
         {
@@ -336,22 +336,22 @@ void CIpsPlgPop3Plugin::FetchMessagesL(
     TImPop3GetMailInfo info;
     info.iMaxEmailSize = KMaxTInt32;
     info.iDestinationFolder = aMailBoxId.Id();
-    
+    // <qmail> ownership of selection is moved to the operation
     CIpsPlgBaseOperation* op = CIpsPlgPop3FetchOperation::NewL( 
         *iSession, 
         watcher->iStatus,
-        KPOP3MTMCopyMailSelectionWhenAlreadyConnected,
         aMailBoxId.Id(), 
         ActivityTimerL( aMailBoxId ), 
         info, 
-        *sel, 
+        sel, 
         aMailBoxId, 
-        aObserver, 
+        &aObserver, 
         aRequestId,
         iEventHandler );
     
     watcher->SetOperation( op );
-    CleanupStack::PopAndDestroy( sel );
+	// <qmail> change PopAndDestroy to Pop
+    CleanupStack::Pop( sel );
     CleanupStack::Pop( watcher );
     
     iOperations.AppendL( watcher );	

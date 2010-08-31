@@ -74,6 +74,4 @@ inline void CleanupResetAndDestroyPushL( T& aRef )
     {
     CleanupResetAndDestroy<T>::PushL( aRef );
     }
-
-
 #endif

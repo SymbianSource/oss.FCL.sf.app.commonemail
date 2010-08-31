@@ -21,8 +21,8 @@
 #define __MSG_STORE_OBSERVER_H__
 
 //<cmail>
-#include "msgstoretypes.h"
-#include "msgstoreaccount.h"
+#include "MsgStoreTypes.h"
+#include "MsgStoreAccount.h"
 //</cmail>
 
 /** This class defines the message store observation API.

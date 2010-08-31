@@ -22,8 +22,8 @@
 
 #include <e32base.h>
 //<cmail>
-#include "msgstoretypes.h"
-#include "msgstoreaddress.h"
+#include "MsgStoreTypes.h"
+#include "MsgStoreAddress.h"
 //</cmail>
 
 /**

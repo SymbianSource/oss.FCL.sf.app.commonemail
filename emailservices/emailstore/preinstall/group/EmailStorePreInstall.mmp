@@ -17,9 +17,10 @@
 
 #include <data_caging_paths.hrh>
 #include <platform_paths.hrh> //needed for APP_LAYER_SYSTEMINCLUDE
-
-#include "../../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
-#include "../../inc/emailstoreuids.hrh"
+//<qmail>
+//#include "../../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
+//</qmail>
+#include "../../inc/EmailStoreUids.hrh"
 
 TARGET          EmailStorePreInstall.exe
 TARGETTYPE      exe
@@ -28,8 +29,9 @@ UID             0x00000000 KUidEmailStorePreInstallExe
 CAPABILITY      WriteUserData ReadDeviceData WriteDeviceData PowerMgmt
 
 VENDORID        VID_DEFAULT
-
-VERSION         KEmailBinaryVersionNumber
+//<qmail>
+//VERSION         KEmailBinaryVersionNumber
+//</qmail>
 KEmailBinaryDemandPaging
 
 EPOCPROCESSPRIORITY background
@@ -41,17 +43,16 @@ MACRO DEBUG_LOG_OPTION_EXIT
 MACRO DEBUG_LOG_OPTION_ERRORS
 MACRO DEBUG_LOG_OPTION_INFO
 
-SOURCEPATH      ../src
+SOURCEPATH		../src
 SOURCE          EmailStorePreInstall.cpp ProcessTimer.cpp
 
 USERINCLUDE     ../inc
 USERINCLUDE     ../../inc
-USERINCLUDE     ../../../../inc   
-
 
 APP_LAYER_SYSTEMINCLUDE
+SYSTEMINCLUDE   ../../../../inc   
 
-LIBRARY         euser.lib 
+LIBRARY   		euser.lib 
 LIBRARY         efsrv.lib
 LIBRARY         ws32.lib
 LIBRARY         apparc.lib      //TApaAppInfo

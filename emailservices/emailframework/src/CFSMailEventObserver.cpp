@@ -15,8 +15,12 @@
 *
 */
 
-
 #include "emailtrace.h"
+
+//<qmail>
+#include <nmcommonheaders.h>
+//</qmail>
+
 #include "CFSClientRequestObserver.h"
 
 // ================= MEMBER FUNCTIONS ==========================================
@@ -25,8 +29,7 @@
 // -----------------------------------------------------------------------------
 CFSClientRequestObserver::CFSClientRequestObserver()
 {
-    FUNC_LOG;
-
+    NM_FUNCTION;
 }
 
 // -----------------------------------------------------------------------------
@@ -34,19 +37,19 @@ CFSClientRequestObserver::CFSClientRequestObserver()
 // -----------------------------------------------------------------------------
 CFSClientRequestObserver::~CFSClientRequestObserver()
 {
-    FUNC_LOG;
-
+    NM_FUNCTION;
 }
 // -----------------------------------------------------------------------------
 // CFSClientRequestObserver::NewLC
 // -----------------------------------------------------------------------------
 CFSClientRequestObserver* CFSClientRequestObserver::NewLC()
 {
-    FUNC_LOG;
-  CFSClientRequestObserver* obs = new (ELeave) CFSClientRequestObserver();
-  CleanupStack:: PushL(obs);
-  obs->ConstructL();
-  return obs;
+    NM_FUNCTION;
+    
+    CFSClientRequestObserver* obs = new (ELeave) CFSClientRequestObserver();
+    CleanupStack:: PushL(obs);
+    obs->ConstructL();
+    return obs;
 } 
 
 // -----------------------------------------------------------------------------
@@ -54,10 +57,11 @@ CFSClientRequestObserver* CFSClientRequestObserver::NewLC()
 // -----------------------------------------------------------------------------
 CFSClientRequestObserver* CFSClientRequestObserver::NewL()
 {
-    FUNC_LOG;
-  CFSClientRequestObserver* obs =  CFSClientRequestObserver::NewLC();
-  CleanupStack:: Pop(obs);
-  return obs;
+    NM_FUNCTION;
+    
+    CFSClientRequestObserver* obs =  CFSClientRequestObserver::NewLC();
+    CleanupStack:: Pop(obs);
+    return obs;
 }
 
 // -----------------------------------------------------------------------------
@@ -65,8 +69,7 @@ CFSClientRequestObserver* CFSClientRequestObserver::NewL()
 // -----------------------------------------------------------------------------
 void CFSClientRequestObserver::ConstructL()
 {
-    FUNC_LOG;
-
+    NM_FUNCTION;
 }
 
 // -----------------------------------------------------------------------------
@@ -74,8 +77,7 @@ void CFSClientRequestObserver::ConstructL()
 // -----------------------------------------------------------------------------
 void CFSClientRequestObserver::ListMessagesResponse( RPointerArray<CFSMailMessage>& aMessages )
 {
-    FUNC_LOG;
-	
+    NM_FUNCTION;
 }
 
 

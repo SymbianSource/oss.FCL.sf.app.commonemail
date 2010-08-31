@@ -17,17 +17,12 @@
 */
 
 
-#ifndef __CIPSSOSSMTPPLUGINTIMER_H__
-#define __CIPSSOSSMTPPLUGINTIMER_H__
+#ifndef IPSSOSSMTPPLUGINTIMER_H
+#define IPSSOSSMTPPLUGINTIMER_H
 
 
 #include <e32base.h>    // CBase
 
-//<cmail> //internal dependency removed
-/*#ifdef _DEBUG
-#include "../../internal/IpsSosAOPluginTester/inc/IpsSosAOPluginTester.hrh"
-#endif // _DEBUG*/
-//</cmail>
 
 /**
 * class MIpsSosAOPluginTimerCallBack
@@ -48,7 +43,9 @@ public:
 * 
 * @lib ipssosaoplugin.lib
 */
-class CIpsSosAOPluginTimer : 
+//<Qmail>
+NONSHARABLE_CLASS (CIpsSosAOPluginTimer) : 
+//</Qmail>
     public CActive
     {
     
@@ -92,13 +89,6 @@ public:
         */
 		void After( const TTimeIntervalSeconds& aSeconds );
 
-//<cmail> //internal dependency removed
-/*#ifdef _DEBUG		
-#ifdef IPSAOPLUGINTESTER_MBOXLOGICTEST
-        // test usage
-        TInt GetSecondsToTrick();
-#endif // IPSAOPLUGINTESTER_MBOXLOGICTEST*/
-//</cmail>
 
 protected:
 
@@ -125,15 +115,8 @@ protected: // Data
 		RTimer                        iTimer;
 		MIpsSosAOPluginTimerCallBack& iCallBack;
 
-//<cmail> //internal dependency removed
-/*#ifdef _DEBUG				
-#ifdef IPSAOPLUGINTESTER_MBOXLOGICTEST
-        // test usage
-        TTime                          iTestActivationTime;
-#endif // IPSAOPLUGINTESTER_MBOXLOGICTEST*/
-//</cmail>
     };
     
-#endif /* __CIPSSOSSMTPPLUGINTIMER_H__ */
+#endif //IPSSOSSMTPPLUGINTIMER_H
 
 //EOF

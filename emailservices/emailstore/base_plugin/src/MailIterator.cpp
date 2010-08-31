@@ -20,7 +20,7 @@
 #include <e32std.h>
 
 #include "baseplugincommonutils.h"
-#include "mailiterator.h"
+#include "MailIterator.h"
 
 
 /**
@@ -134,7 +134,7 @@ TBool HMailIterator::DoNextL(
         
         iPlugin.TranslateMsgStorePropsL( iMailBox, *msMsgs[i], *fsMsg );
 
-        aMessages.Append( fsMsg );
+        aMessages.AppendL( fsMsg );
         CleanupStack::Pop( fsMsg );
         }
 
@@ -184,7 +184,7 @@ TBool HMailIterator::DoPreviousL(
 
         iPlugin.TranslateMsgStorePropsL( iMailBox, *msMsgs[i], *fsMsg );
 
-        aMessages.Append( fsMsg );
+        aMessages.AppendL( fsMsg );
         CleanupStack::Pop( fsMsg );
         }
 

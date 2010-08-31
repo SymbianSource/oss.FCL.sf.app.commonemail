@@ -15,8 +15,12 @@
 *
 */
 
+
 #ifndef IPSSOSPLUGIN_HRH_
 #define IPSSOSPLUGIN_HRH_
+
+#define RD_101_EMAIL
+
 
 #define IPSSOSPLUGIN_DLL_UID                 0x2000E53D
 #define IPSSOSIMAP4PLUGIN_IMPLEMENTATION_UID 0x2000E53F
@@ -30,9 +34,10 @@
 #undef RD_IPS_AO_PLUGIN
 // </cmail>
 
-// <cmail> S60 UID update
-#define IPS_PROPERTY_CAT_UID                 0x2001E277
-// </cmail> S60 UID update
+// <qmail>
+//this needs to be the same as application id (nmailui)
+#define IPS_PROPERTY_CAT_UID                 0x200255BA
+// </qmail>
 
 #define IPS_EXTENDED_SETTINGS_UID            0x102071F1
 // <cmail> S60 UID update
@@ -55,8 +60,8 @@ enum TIpsPropertyEvents
     EIPSSosSettingsChanged,
     KIPSSosSmtpSendStartedSignal,
     KIPSSosSmtpSendEndedSignal,
-    KIPSSosSmtpEmptyOutboxNow,
-    EIPSSosSmtpPswErr
+    KIPSSosSmtpEmptyOutboxNow
+// <qmail> EIPSSosSmtpPswErr removed
     };
 
 enum TIpsOpType
@@ -66,6 +71,19 @@ enum TIpsOpType
     EIpsOpTypePop3SyncOp,
     EIpsOpTypeOnlineOp,
     EIpsOpTypeImap4PopulateOp,
-    EIpsOpTypePop3PopulateOp
+    EIpsOpTypeSmtp,
+// <qmail> new op types
+    EIpsOpTypeImap4Disconnect,
+    EIpsOpTypePop3Disconnect,
+    EIpsOpTypeFetchAttachmentOp,
+    EIpsOpTypeMoveRemoteOp,
+    EIpsOpTypePop3FetchOp,
+    EIpsOpTypeConnectAndRefreshFolderListOp,
+    EIpsOpTypeCreateMessageOp,
+    EIpsOpTypeMailStorerOp,
+    EIpsOpTypeMessagePartStorerOp,
+    EIpsOpTypeNewChildPartFromFile,
+    EIpsOpTypeRemoveChildPart
+// </qmail>
     };
 #endif /*IPSSOSPLUGIN_HRH_*/

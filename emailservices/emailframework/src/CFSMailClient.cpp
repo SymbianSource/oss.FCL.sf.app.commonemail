@@ -15,14 +15,18 @@
 *
 */
 
-
 #include "emailtrace.h"
-#include "cfsmailclient.h"
-#include "cfsfwimplementation.h"
-#include "cfsmailpluginmanager.h"
-#include "cfsmailrequestobserver.h"
-#include "cfsmailiterator.h"
-#include "cfsmailbrandmanagerimpl.h"
+
+//<qmail>
+#include <nmcommonheaders.h>
+//</qmail>
+
+#include "CFSMailClient.h"
+#include "CFSFWImplementation.h"
+#include "CFSMailPluginManager.h"
+#include "CFSMailRequestObserver.h"
+#include "CFSMailIterator.h"
+#include "CFSMailBrandManagerImpl.h"
 
 
 // ================= MEMBER FUNCTIONS ==========================================
@@ -31,7 +35,7 @@
 // -----------------------------------------------------------------------------
 EXPORT_C CFSMailClient* CFSMailClient::NewLC(TInt aConfiguration)
 {
-    FUNC_LOG;
+    NM_FUNCTION;
 
     CFSMailClient* client = Instance();
     if( !client )
@@ -62,10 +66,11 @@ EXPORT_C CFSMailClient* CFSMailClient::NewLC(TInt aConfiguration)
 // -----------------------------------------------------------------------------
 EXPORT_C CFSMailClient* CFSMailClient::NewL()
 {
-    FUNC_LOG;
-  CFSMailClient* client =  CFSMailClient::NewLC(EFSLoadPlugins);
-  CleanupStack:: Pop(client);
-  return client;
+    NM_FUNCTION;
+    
+    CFSMailClient* client =  CFSMailClient::NewLC(EFSLoadPlugins);
+    CleanupStack:: Pop(client);
+    return client;
 }
 
 // -----------------------------------------------------------------------------
@@ -73,11 +78,11 @@ EXPORT_C CFSMailClient* CFSMailClient::NewL()
 // -----------------------------------------------------------------------------
 EXPORT_C CFSMailClient* CFSMailClient::NewL(TInt aConfiguration)
 {
-    FUNC_LOG;
-
-  CFSMailClient* client =  CFSMailClient::NewLC(aConfiguration);
-  CleanupStack:: Pop(client);
-  return client;
+    NM_FUNCTION;
+    
+    CFSMailClient* client =  CFSMailClient::NewLC(aConfiguration);
+    CleanupStack:: Pop(client);
+    return client;
 }
 
 // -----------------------------------------------------------------------------
@@ -85,7 +90,8 @@ EXPORT_C CFSMailClient* CFSMailClient::NewL(TInt aConfiguration)
 // -----------------------------------------------------------------------------
 void CFSMailClient::ConstructL(TInt aConfiguration)
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 	iFWImplementation = CFSFWImplementation::NewL(aConfiguration);
 }
 
@@ -94,7 +100,8 @@ void CFSMailClient::ConstructL(TInt aConfiguration)
 // -----------------------------------------------------------------------------
 CFSMailClient::CFSMailClient()
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 	// clear pointers
 	iFWImplementation = NULL;
 	iBrandManager = NULL;
@@ -106,7 +113,8 @@ CFSMailClient::CFSMailClient()
 // -----------------------------------------------------------------------------
 EXPORT_C CFSMailClient::~CFSMailClient()
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 	if(iBrandManager)
 		{
 		delete iBrandManager;
@@ -118,35 +126,27 @@ EXPORT_C CFSMailClient::~CFSMailClient()
 // CFSMailClient::GetMailBoxByUidL
 // -----------------------------------------------------------------------------
 EXPORT_C CFSMailBox* CFSMailClient::GetMailBoxByUidL(const TFSMailMsgId aMailBoxId)
-    {
-    FUNC_LOG;
+{
+    NM_FUNCTION;
+    
 	// select plugin
 	CFSMailBox* mailBox = NULL;
 	CFSMailPlugin* plugin = iFWImplementation->GetPluginManager().GetPluginByUid(aMailBoxId);
 	if(plugin)
-	    {
+	{
 		// get mailbox from plugin
 		mailBox = plugin->GetMailBoxByUidL(aMailBoxId);
-	    }
-	else
-	    {
-        iFWImplementation->GetPluginManager().RecheckPlugins();
-        plugin = iFWImplementation->GetPluginManager().GetPluginByUid(aMailBoxId);
-        if(plugin)
-            {
-            // get mailbox from plugin
-            mailBox = plugin->GetMailBoxByUidL(aMailBoxId);
-            }
-	    }
+	}
+
 	return mailBox;
-    }
+}
 
 // -----------------------------------------------------------------------------
 // CFSMailClient::GetMailBoxByUidLC
 // -----------------------------------------------------------------------------
 EXPORT_C CFSMailBox* CFSMailClient::GetMailBoxByUidLC(const TFSMailMsgId aMailBoxId)
 {
-    FUNC_LOG;
+    NM_FUNCTION;
     CFSMailBox* mailBox = GetMailBoxByUidL( aMailBoxId );
     CleanupStack::PushL( mailBox );
     return mailBox;
@@ -160,7 +160,8 @@ EXPORT_C CFSMailBox* CFSMailClient::GetMailBoxByUidLC(const TFSMailMsgId aMailBo
 EXPORT_C CFSMailFolder* CFSMailClient::GetFolderByUidL( const TFSMailMsgId aMailBoxId,
 													   const TFSMailMsgId aFolderId )
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 	CFSMailFolder* folder = NULL;
 	
 	// select plugin
@@ -181,7 +182,8 @@ EXPORT_C CFSMailMessage* CFSMailClient::GetMessageByUidL( const TFSMailMsgId aMa
 														 const TFSMailMsgId aMessageId,
 														 const TFSMailDetails aDetails)
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 	CFSMailMessage* message = NULL;
     // select plugin
     CFSMailPlugin* plugin = iFWImplementation->GetPluginManager().GetPluginByUid(aMessageId);
@@ -201,8 +203,9 @@ EXPORT_C void CFSMailClient::DeleteMessagesByUidL( const TFSMailMsgId aMailBoxId
 												   const TFSMailMsgId aFolderId,
 											 	   const RArray<TFSMailMsgId>& aMessages )
 {
-    FUNC_LOG;
-	CFSMailPlugin* plugin = iFWImplementation->GetPluginManager().GetPluginByUid(aFolderId);
+    NM_FUNCTION;
+    
+	CFSMailPlugin* plugin = iFWImplementation->GetPluginManager().GetPluginByUid(aMailBoxId);
 	if(plugin)
 	{
 		plugin->DeleteMessagesByUidL(aMailBoxId,aFolderId,aMessages);
@@ -215,7 +218,8 @@ EXPORT_C void CFSMailClient::DeleteMessagesByUidL( const TFSMailMsgId aMailBoxId
 EXPORT_C TInt CFSMailClient::DeleteMailBoxByUidL( const TFSMailMsgId aMailBoxId,
  								  MFSMailRequestObserver& aOperationObserver )
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 	// select plugin
 	CFSMailPlugin* plugin = iFWImplementation->GetPluginManager().GetPluginByUid(aMailBoxId);
 	if(plugin)
@@ -241,7 +245,7 @@ EXPORT_C TInt CFSMailClient::DeleteMailBoxByUidL( const TFSMailMsgId aMailBoxId,
 EXPORT_C TInt CFSMailClient::ListMailBoxes(const TFSMailMsgId aPlugin,
 											 RPointerArray<CFSMailBox>& aMailBoxes)
 {
-    FUNC_LOG;
+    NM_FUNCTION;
 
 	RArray<TFSMailMsgId> mailBoxList;
 	mailBoxList.Reset();
@@ -250,8 +254,6 @@ EXPORT_C TInt CFSMailClient::ListMailBoxes(const TFSMailMsgId aPlugin,
     // <cmail>	
 	CFSMailBox *mailBox = NULL;	
     // </cmail>	
-	
-	iFWImplementation->GetPluginManager().RecheckPlugins();
 	
 	if(aPlugin.IsNullId())
 	{
@@ -269,7 +271,7 @@ EXPORT_C TInt CFSMailClient::ListMailBoxes(const TFSMailMsgId aPlugin,
                         mailBox = plugin->GetMailBoxByUidL(mailBoxList[ii]) );
 				    if ( mailBox )
     				    {
-                        aMailBoxes.Append( mailBox );
+                        err = aMailBoxes.Append( mailBox );
                         }
 				// </cmail>
 					if(err != KErrNone)
@@ -309,7 +311,7 @@ EXPORT_C TInt CFSMailClient::ListMailBoxes(const TFSMailMsgId aPlugin,
                         mailBox = plugin->GetMailBoxByUidL(mailBoxList[i]) );
                     if ( mailBox )
                         {
-                        aMailBoxes.Append( mailBox );
+                        err = aMailBoxes.Append( mailBox );
                         }
                 // </cmail>				
 				if(err != KErrNone)
@@ -336,7 +338,7 @@ EXPORT_C MFSMailIterator* CFSMailClient::ListMessages(const TFSMailMsgId aMailBo
         						const TFSMailMsgId aFolderId, const TFSMailDetails aDetails,
         						const RArray<TFSMailSortCriteria>& aSorting)
 {
-    FUNC_LOG;
+    NM_FUNCTION;
 
 	MFSMailIterator* iterator = NULL;
 	MFSMailIterator* pluginIterator = NULL;
@@ -364,7 +366,7 @@ EXPORT_C MFSMailIterator* CFSMailClient::ListMessages(const TFSMailMsgId aMailBo
 // -----------------------------------------------------------------------------
 EXPORT_C MFSMailBrandManager& CFSMailClient::GetBrandManagerL( void )
 {
-    FUNC_LOG;
+    NM_FUNCTION;
 
 	if(iBrandManager == NULL)
 		{
@@ -385,7 +387,8 @@ EXPORT_C MFSMailBrandManager& CFSMailClient::GetBrandManagerL( void )
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailClient::AddObserverL(MFSMailEventObserver& aObserver)
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 	for(TInt i=0;i<iFWImplementation->GetPluginManager().GetPluginCount();i++)
 		{
 		CFSMailPlugin* plugin = iFWImplementation->GetPluginManager().GetPluginByIndex(i);
@@ -401,7 +404,8 @@ EXPORT_C void CFSMailClient::AddObserverL(MFSMailEventObserver& aObserver)
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailClient::RemoveObserver(MFSMailEventObserver& aObserver)
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 	for(TInt i=0;i<iFWImplementation->GetPluginManager().GetPluginCount();i++)
 	{
 		CFSMailPlugin* plugin = iFWImplementation->GetPluginManager().GetPluginByIndex(i);
@@ -417,7 +421,8 @@ EXPORT_C void CFSMailClient::RemoveObserver(MFSMailEventObserver& aObserver)
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailClient::UnregisterRequestObserver(TInt aRequestId)
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 	for(TInt i=0;i<iFWImplementation->GetPluginManager().GetPluginCount();i++)
 	{
 		if(CFSMailPlugin* plugin = iFWImplementation->GetPluginManager().GetPluginByIndex(i))
@@ -434,7 +439,8 @@ EXPORT_C void CFSMailClient::UnregisterRequestObserver(TInt aRequestId)
 EXPORT_C void CFSMailClient::SubscribeMailboxEventsL(TFSMailMsgId aMailBoxId,
 													 	MFSMailEventObserver& aObserver)
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 	// select plugin
 	if(CFSMailPlugin* plugin = iFWImplementation->GetPluginManager().GetPluginByUid(aMailBoxId))
 		{
@@ -449,7 +455,8 @@ EXPORT_C void CFSMailClient::SubscribeMailboxEventsL(TFSMailMsgId aMailBoxId,
 EXPORT_C void CFSMailClient::UnsubscribeMailboxEvents(TFSMailMsgId aMailBoxId,
 														MFSMailEventObserver& aObserver)
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 	// select plugin
 	if(CFSMailPlugin* plugin = iFWImplementation->GetPluginManager().GetPluginByUid(aMailBoxId))
 		{
@@ -463,7 +470,7 @@ EXPORT_C void CFSMailClient::UnsubscribeMailboxEvents(TFSMailMsgId aMailBoxId,
 // -----------------------------------------------------------------------------
 EXPORT_C TInt CFSMailClient::WizardDataAvailableL()
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
 	
 	TInt ret = KErrNone;
 	for(TInt i=0;i<iFWImplementation->GetPluginManager().GetPluginCount();i++)
@@ -490,7 +497,7 @@ EXPORT_C TInt CFSMailClient::WizardDataAvailableL()
 // -----------------------------------------------------------------------------
 EXPORT_C TInt CFSMailClient::AuthenticateL(MFSMailRequestObserver& aOperationObserver)
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
 
 	TInt requestId(0);
 	
@@ -521,7 +528,8 @@ EXPORT_C TInt CFSMailClient::AuthenticateL(MFSMailRequestObserver& aOperationObs
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailClient::CleanTempDirL( )
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
+    
     iFWImplementation->GetPluginManager().CleanTempDirL();	
 	}
 
@@ -530,7 +538,8 @@ EXPORT_C void CFSMailClient::CleanTempDirL( )
 // -----------------------------------------------------------------------------
 EXPORT_C TDesC& CFSMailClient::GetTempDirL( )
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 	return iFWImplementation->GetPluginManager().GetTempDirL();
 	}
 
@@ -539,7 +548,8 @@ EXPORT_C TDesC& CFSMailClient::GetTempDirL( )
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailClient::CancelL( const TInt aRequestId )
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 	iFWImplementation->GetPluginManager().CancelRequestL(aRequestId);
 	}
 
@@ -548,7 +558,8 @@ EXPORT_C void CFSMailClient::CancelL( const TInt aRequestId )
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailClient::CancelAllL( )
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 		iFWImplementation->GetPluginManager().CancelAllRequestsL();
 	}
 
@@ -557,7 +568,8 @@ EXPORT_C void CFSMailClient::CancelAllL( )
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailClient::SetMailboxName( const TFSMailMsgId aMailboxId, const TDesC& aMailboxName )
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 	CFSMailPlugin* plugin = iFWImplementation->GetPluginManager().GetPluginByUid( aMailboxId );
 	if ( plugin )
 		{
@@ -571,8 +583,7 @@ EXPORT_C void CFSMailClient::SetMailboxName( const TFSMailMsgId aMailboxId, cons
 EXPORT_C void CFSMailClient::PrepareMrDescriptionL(  const TFSMailMsgId& aMailBoxId,
                                                      const TFSMailMsgId& aMessageId )
     {
-    FUNC_LOG;
-    CFSMailMessage* message = NULL;
+    NM_FUNCTION;
     // select plugin
     CFSMailPlugin* plugin = iFWImplementation->GetPluginManager().GetPluginByUid( aMessageId );
     if ( plugin )
@@ -582,12 +593,34 @@ EXPORT_C void CFSMailClient::PrepareMrDescriptionL(  const TFSMailMsgId& aMailBo
         }  
     }
 
+// <qmail>
+// -----------------------------------------------------------------------------
+// CFSMailClient::GetSignatureL
+// -----------------------------------------------------------------------------
+EXPORT_C HBufC* CFSMailClient::GetSignatureL( const TFSMailMsgId& aMailBoxId )
+    {
+    NM_FUNCTION;
+    HBufC* ret = NULL;
+    
+    // select plugin
+    CFSMailPlugin* plugin =
+        iFWImplementation->GetPluginManager().GetPluginByUid( aMailBoxId );
+    if ( plugin )
+        {
+        ret = plugin->GetSignatureL( aMailBoxId );
+        }
+
+    return ret;
+    }
+// </qmail>
+
 // -----------------------------------------------------------------------------
 // CFSMailClient::Close
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailClient::Close()
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 	CFSMailClient* instance = Instance();
 	if(!instance)
 	{
@@ -611,16 +644,18 @@ EXPORT_C void CFSMailClient::Close()
 // -----------------------------------------------------------------------------
 CFSMailClient* CFSMailClient::Instance()
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 	return static_cast<CFSMailClient*>(Dll::Tls());
 }
 
 // -----------------------------------------------------------------------------
 // CFSMailClient::IncReferenceCount
 // -----------------------------------------------------------------------------
-TInt CFSMailClient::IncReferenceCount()
+EXPORT_C TInt CFSMailClient::IncReferenceCount()
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 	return ++iReferenceCount;
 }
 
@@ -629,7 +664,8 @@ TInt CFSMailClient::IncReferenceCount()
 // -----------------------------------------------------------------------------
 TInt CFSMailClient::DecReferenceCount()
 {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 	return --iReferenceCount;
 }
 
@@ -638,6 +674,8 @@ TInt CFSMailClient::DecReferenceCount()
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailClient::ReleaseExtension( CEmailExtension* aExtension )
     {
+    NM_FUNCTION;
+    
     CExtendableEmail::ReleaseExtension( aExtension );
     }
 
@@ -646,6 +684,8 @@ EXPORT_C void CFSMailClient::ReleaseExtension( CEmailExtension* aExtension )
 // -----------------------------------------------------------------------------
 EXPORT_C CEmailExtension* CFSMailClient::ExtensionL( const TUid& aInterfaceUid )
     {
+    NM_FUNCTION;
+    
     return CExtendableEmail::ExtensionL( aInterfaceUid );
     }
     

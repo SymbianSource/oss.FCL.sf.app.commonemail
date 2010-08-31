@@ -260,7 +260,7 @@ private:
      * Converts entry type field UID as a MIME type
      */
     TInt ConvertBodyPartMimeType( 
-        const TUid& aEntryType, 
+        const TMsvEmailEntry& aEntry, 
         TDes& aMimeType );
 
     /**

@@ -396,7 +396,7 @@ TInt CMsgStoreSortResultRowSet::GroupCountL( RArray<TUint>& aItemsInGroup )
             {
             ++count;
             curTotal += itemsInPreviousGroup;
-            aItemsInGroup.Append( itemsInPreviousGroup );
+            aItemsInGroup.AppendL( itemsInPreviousGroup );
             }
         } while ( hasMore );        
     
@@ -406,7 +406,7 @@ TInt CMsgStoreSortResultRowSet::GroupCountL( RArray<TUint>& aItemsInGroup )
     if ( lastGroupCount > 0 )
         {
         ++count;
-        aItemsInGroup.Append( lastGroupCount );
+        aItemsInGroup.AppendL( lastGroupCount );
         }
     
     return count;
@@ -424,7 +424,7 @@ void CMsgStoreSortResultRowSet::SortedIdsL( RArray<TContainerId>& aIdArray )
 	for ( TInt i = 0 ; i < count ; i++  )
 		{
 		iDbView.NextL();
-		aIdArray.Append( GetRowL() );
+		aIdArray.AppendL( GetRowL() );
 		}
 	}
 
@@ -462,7 +462,7 @@ void CMsgStoreSortResultRowSet::SetPropertyNamesL( RPointerArray<HBufC8>& aPrope
     iPropertyNames.ResetAndDestroy();
     for ( int i = 0 ; i < aPropertyNames.Count() ; i++ )
         {
-        iPropertyNames.Append( aPropertyNames[i]->Des().AllocL() );
+        iPropertyNames.AppendL( aPropertyNames[i]->Des().AllocL() );
         }
     }
 

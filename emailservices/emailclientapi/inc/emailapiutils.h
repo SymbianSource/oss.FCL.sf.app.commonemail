@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2010 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -19,7 +19,7 @@
 #define EMAILAPIUTILS_H
 
 #include <e32base.h>
-#include "cfsmailcommon.h"
+#include "CFSMailCommon.h"
 #include <emailapidefs.h>
 
 //using namespace EmailInterface;

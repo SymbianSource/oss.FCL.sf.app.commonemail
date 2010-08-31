@@ -17,9 +17,10 @@
 
 
 #include <platform_paths.hrh>
-
-#include "../../../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
-#include "../../../inc/emailstoreuids.hrh"
+//<qmail>
+//#include "../../../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
+//</qmail>
+#include "../../../inc/EmailStoreUids.hrh"
 
 TARGET        MessageStoreClient.dll
 TARGETTYPE    dll
@@ -28,7 +29,9 @@ SECUREID      KUidMessageStoreClient
 CAPABILITY    CAP_CLIENT_DLL
 VENDORID      VID_DEFAULT
 
-VERSION       KEmailBinaryVersionNumber
+//<qmail>
+//VERSION       KEmailBinaryVersionNumber
+//</qmail>
 KEmailBinaryDemandPaging
 
 MACRO DEBUG_USE_PROJECT_LOGGING_OPTIONS
@@ -42,7 +45,7 @@ USERINCLUDE   ../inc
 USERINCLUDE   ../../../inc
 USERINCLUDE   ../../common/inc
 
-// TEMPORARY MOVED STUFF FROM IsMsgStorePropertyKeys.h USED BY MSGSTORE TO msgstorepropertykeys.h
+// TEMPORARY MOVED STUFF FROM IsMsgStorePropertyKeys.h USED BY MSGSTORE TO MsgStorePropertyKeys.h
 //because of the IsMsgStorePropertyKeys.h there is now dependency and I'd rather keep it in its
 //original location because of the merges and the fact that it logically belongs there.
 //USERINCLUDE   ../../../../Intellisyncengine/client_symbian_s60_freestyle/sync/inc

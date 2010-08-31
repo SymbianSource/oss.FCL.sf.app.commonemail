@@ -17,7 +17,7 @@
 
 
 
-#include "baseplugin.h"
+#include "BasePlugin.h"
 
 
 /**

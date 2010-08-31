@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2010 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -25,7 +25,6 @@
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
-//
 CEmailTextContent* CEmailTextContent::NewL( 
         CPluginData& aPluginData,
         const TMessageContentId& aMsgContentId,
@@ -35,14 +34,13 @@ CEmailTextContent* CEmailTextContent::NewL(
     CEmailTextContent* self = new ( ELeave ) CEmailTextContent( aOwner );
     CleanupStack::PushL( self );
     self->ConstructL( aPluginData, aMsgContentId, aPart );
-    CleanupStack::Pop();
+    CleanupStack::Pop( self );
     return self;
     }
 
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
-//
 void CEmailTextContent::ConstructL(
         CPluginData& aPluginData,
         const TMessageContentId& aMsgContentId,
@@ -52,32 +50,30 @@ void CEmailTextContent::ConstructL(
     TContentType contentType( aPart->GetContentType() );
     if ( contentType.Equals( KFSMailContentTypeTextHtml ) )
         {
-        iTextType = EHtmlText;        
+        iTextType = EHtmlText;
         }
     }
 
-
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
-//
 CEmailTextContent::~CEmailTextContent()
-    {    
-    delete iEmailMsgContent;    
+    {
+    delete iEmailMsgContent;
     }
 
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
-//
-CEmailTextContent::CEmailTextContent( TDataOwner aOwner ) : iTextType(EPlainText), iOwner( aOwner )        
+CEmailTextContent::CEmailTextContent( TDataOwner aOwner ) : 
+    iTextType( EPlainText ), 
+    iOwner( aOwner )
     {
     }
 
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
-//
 TEmailTypeId CEmailTextContent::InterfaceId() const
     {
     return KEmailIFUidTextContent;
@@ -86,11 +82,10 @@ TEmailTypeId CEmailTextContent::InterfaceId() const
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
-//
 void CEmailTextContent::Release()
     {
     if ( iOwner == EClientOwns )
-        {    
+        {
         delete this;
         }
     }
@@ -98,22 +93,20 @@ void CEmailTextContent::Release()
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
-//
 MEmailTextContent::TTextType CEmailTextContent::TextType() const
-    {    
+    {
     return iTextType;
     }
 
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
-//
 void CEmailTextContent::SetTextL(
             const TTextType aPlainOrHtml,
             const TDesC& aText )
     {    
     iTextType = aPlainOrHtml;
-    
+
     if( aPlainOrHtml == EPlainText )
         {
         SetContentType( KContentTypeTextPlain );
@@ -128,7 +121,6 @@ void CEmailTextContent::SetTextL(
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
-//
 TMessageContentId CEmailTextContent::Id() const
     {
     return iEmailMsgContent->Id(); 
@@ -137,7 +129,6 @@ TMessageContentId CEmailTextContent::Id() const
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
-//
 TPtrC CEmailTextContent::ContentType() const
     {
     return iEmailMsgContent->ContentType();
@@ -146,7 +137,6 @@ TPtrC CEmailTextContent::ContentType() const
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
-//
 void CEmailTextContent::SetContentType( const TDesC& aContentType )
     {
     iEmailMsgContent->SetContentType( aContentType );
@@ -155,43 +145,38 @@ void CEmailTextContent::SetContentType( const TDesC& aContentType )
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
-//
 TPtrC CEmailTextContent::ContentId() const
     {
-    return iEmailMsgContent->ContentId();    
+    return iEmailMsgContent->ContentId();
     }
 
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
-//
 void CEmailTextContent::SetContentId( const TDesC& aContentId )
     {
-    iEmailMsgContent->SetContentId(aContentId);
+    iEmailMsgContent->SetContentId( aContentId );
     }
 
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
-//
 TPtrC CEmailTextContent::ContentDescription() const
     {
-    return iEmailMsgContent->ContentDescription();    
+    return iEmailMsgContent->ContentDescription();
     }
 
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
-//
 void CEmailTextContent::SetContentDescription( const TDesC& aContentDescription )
     {
-    iEmailMsgContent->SetContentDescription(aContentDescription);
+    iEmailMsgContent->SetContentDescription( aContentDescription );
     }
 
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
-//
 TPtrC CEmailTextContent::ContentDisposition() const
     {
     return iEmailMsgContent->ContentDisposition();
@@ -200,16 +185,14 @@ TPtrC CEmailTextContent::ContentDisposition() const
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
-//
 void CEmailTextContent::SetContentDisposition( const TDesC& aContentDisposition )
     {
-    iEmailMsgContent->SetContentDisposition(aContentDisposition);
+    iEmailMsgContent->SetContentDisposition( aContentDisposition );
     }
 
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
-//
 TPtrC CEmailTextContent::ContentClass() const
     {
     return iEmailMsgContent->ContentClass();
@@ -218,16 +201,14 @@ TPtrC CEmailTextContent::ContentClass() const
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
-//
 void CEmailTextContent::SetContentClass( const TDesC& aContentClass )
     {
-    iEmailMsgContent->SetContentClass(aContentClass);
+    iEmailMsgContent->SetContentClass( aContentClass );
     }
 
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
-//
 TInt CEmailTextContent::AvailableSize() const
     {
     return iEmailMsgContent->AvailableSize();
@@ -236,7 +217,6 @@ TInt CEmailTextContent::AvailableSize() const
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
-//
 TInt CEmailTextContent::TotalSize() const
     {
     return iEmailMsgContent->TotalSize();
@@ -245,7 +225,6 @@ TInt CEmailTextContent::TotalSize() const
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
-//
 TPtrC CEmailTextContent::ContentL() const
     {
     return iEmailMsgContent->ContentL();
@@ -254,7 +233,6 @@ TPtrC CEmailTextContent::ContentL() const
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
-//
 void CEmailTextContent::SetContentL( const TDesC& aContent )
     {
     iEmailMsgContent->SetContentL( aContent );
@@ -263,16 +241,14 @@ void CEmailTextContent::SetContentL( const TDesC& aContent )
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
-//
 void CEmailTextContent::FetchL( MEmailFetchObserver& aObserver )
     {
-    iEmailMsgContent->FetchL(aObserver);
+    iEmailMsgContent->FetchL( aObserver );
     }
 
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
-//
 void CEmailTextContent::CancelFetch()
     {
     iEmailMsgContent->CancelFetch();
@@ -281,17 +257,15 @@ void CEmailTextContent::CancelFetch()
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
-//
 void CEmailTextContent::SaveToFileL( const TDesC& aPath )
     {
-    iEmailMsgContent->SaveToFileL(aPath);
+    iEmailMsgContent->SaveToFileL( aPath );
     }
 
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
-//
-MEmailMultipart* CEmailTextContent::AsMultipartOrNull() const  
+MEmailMultipart* CEmailTextContent::AsMultipartOrNull() const
     {    
     return NULL;
     }
@@ -299,8 +273,7 @@ MEmailMultipart* CEmailTextContent::AsMultipartOrNull() const
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
-//
-MEmailTextContent* CEmailTextContent::AsTextContentOrNull() const 
+MEmailTextContent* CEmailTextContent::AsTextContentOrNull() const
     {
     const MEmailTextContent* ptr = this;
     return const_cast<MEmailTextContent *>(ptr);
@@ -309,18 +282,17 @@ MEmailTextContent* CEmailTextContent::AsTextContentOrNull() const
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
-//
 MEmailAttachment* CEmailTextContent::AsAttachmentOrNull() const
     {
     return NULL;
     }
 
-
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
-//
 void CEmailTextContent::SetOwner( const TDataOwner aOwner )
     {
     iOwner = aOwner;
     }
+
+// End of file

@@ -24,7 +24,7 @@
 #include <w32std.h>
 #include <apgtask.h>
 #include <e32property.h>
-#include <debuglogmacros.h>
+#include <DebugLogMacros.h>
 #include "ProcessTimer.h"
 
 // ========
@@ -35,7 +35,7 @@ LOCAL_C void DoPreInstallL( );
 /**
  * Pre Install helper class.
  */
-class CEmailStorePreInstall : public CTimer , public MObserverPreInstall
+NONSHARABLE_CLASS ( CEmailStorePreInstall ) : public CTimer , public MObserverPreInstall
     {
     public:
         /**

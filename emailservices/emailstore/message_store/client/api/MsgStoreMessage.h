@@ -21,7 +21,7 @@
 #define __MSG_STORE_MESSAGE_H__
 
 //<cmail>
-#include "msgstoremessagepart.h"
+#include "MsgStoreMessagePart.h"
 //</cmail>
 
 /** This class represents a message in the message store.

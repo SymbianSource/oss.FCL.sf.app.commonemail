@@ -15,20 +15,30 @@
 *
 */
 
-
 #include "emailtrace.h"
+
+//<qmail>
+#include <nmcommonheaders.h>
+//</qmail>
+
 #include <barsread.h>
-#include <AknIconUtils.h>
+//<qmail> Commented out in Qmail
+//#include <AknIconUtils.h>
+//</qmail>
 #include <gulicon.h>
 #include <centralrepository.h>
 //<cmail>
-#include "freestyleemailcenrepkeys.h"
+//<qmail> Commented out in Qmail
+//#include "freestyleemailcenrepkeys.h"
+//</qmail>
 //</cmail>
 
-#include "cfsmailbrand.h"
+#include "CFSMailBrand.h"
 
 const TInt KElementArrayGranularity = 5;
-const TInt KMaxStringLenFromCenrep = 256;
+//<qmail> Commented out in Qmail
+//const TInt KMaxStringLenFromCenrep = 256;
+//</qmail>
 const TInt KMaxDesLen = 256;
 _LIT(KSpace, " ");
 // -----------------------------------------------------------------------------
@@ -36,7 +46,8 @@ _LIT(KSpace, " ");
 // -----------------------------------------------------------------------------
 CFSMailBrand* CFSMailBrand::NewL( TResourceReader& aReader, TBool aIsWhiteLabel )
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 	CFSMailBrand* brManager =  CFSMailBrand::NewLC(aReader, aIsWhiteLabel);
   	CleanupStack:: Pop(brManager);
   	return brManager;
@@ -47,7 +58,8 @@ CFSMailBrand* CFSMailBrand::NewL( TResourceReader& aReader, TBool aIsWhiteLabel 
 // -----------------------------------------------------------------------------
 CFSMailBrand* CFSMailBrand::NewLC( TResourceReader& aReader, TBool aIsWhiteLabel )
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
+    
     CFSMailBrand* self = new ( ELeave ) CFSMailBrand();
     CleanupStack::PushL( self );
     if ( aIsWhiteLabel )
@@ -67,8 +79,9 @@ CFSMailBrand* CFSMailBrand::NewLC( TResourceReader& aReader, TBool aIsWhiteLabel
 // -----------------------------------------------------------------------------
 void CFSMailBrand::ConstructFromCenrepL( )
     {
-    FUNC_LOG;
+    NM_FUNCTION;
     
+	/*
     TBuf<KMaxStringLenFromCenrep> tBuf; // Temporary buffer
     HBufC*    mailboxName;
 
@@ -126,6 +139,7 @@ void CFSMailBrand::ConstructFromCenrepL( )
         CleanupStack::PopAndDestroy( mailboxName );
         CleanupStack::PopAndDestroy( repository );
         }
+		*/
    }
 
 // -----------------------------------------------------------------------------
@@ -133,7 +147,7 @@ void CFSMailBrand::ConstructFromCenrepL( )
 // -----------------------------------------------------------------------------
 void CFSMailBrand::ConstructFromResourceL( TResourceReader& aReader )
     {
-    FUNC_LOG;
+    NM_FUNCTION;
 
     // read icon filepath
     iIconFilePath = aReader.ReadHBufCL();
@@ -195,7 +209,8 @@ void CFSMailBrand::ConstructFromResourceL( TResourceReader& aReader )
 // -----------------------------------------------------------------------------
 CFSMailBrand::~CFSMailBrand()
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 	iBrandMatchStrings.ResetAndDestroy();
 	delete iIconFilePath;
 	delete iGraphicElements;
@@ -210,7 +225,8 @@ CFSMailBrand::~CFSMailBrand()
 // -----------------------------------------------------------------------------
 CFSMailBrand::CFSMailBrand()
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 		// prepare null empty descriptor
 	iEmpty = HBufC::New(1);
 	iEmpty->Des().Copy(KNullDesC());
@@ -222,7 +238,7 @@ CFSMailBrand::CFSMailBrand()
 // -----------------------------------------------------------------------------
 TBool CFSMailBrand::IsMatching( const TDesC& aBrandId )
     {
-    FUNC_LOG;
+    NM_FUNCTION;
     const TChar KStar = '*';
     TBool ret = EFalse;
     TInt intRet = 0; 
@@ -256,7 +272,8 @@ TBool CFSMailBrand::IsMatching( const TDesC& aBrandId )
 // -----------------------------------------------------------------------------
 TDesC& CFSMailBrand::GetText( TFSBrandElement aElementId )
     {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
     TInt textCount( iTextElements->Count() );
 
     for ( TInt i( 0 ); i < textCount; i++ )
@@ -275,7 +292,8 @@ TDesC& CFSMailBrand::GetText( TFSBrandElement aElementId )
 // -----------------------------------------------------------------------------
 TInt CFSMailBrand::GetColor( TFSBrandElement aElementId, TRgb& aColor )
     {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
     TInt colorCount( iColorElements->Count() );
 
     for ( TInt i( 0 ); i < colorCount; i++ )
@@ -295,7 +313,8 @@ TInt CFSMailBrand::GetColor( TFSBrandElement aElementId, TRgb& aColor )
 // -----------------------------------------------------------------------------
 CGulIcon* CFSMailBrand::GetGraphicL( TFSBrandElement aElementId )
     {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
     TInt graphicsCount( iGraphicElements->Count() );
 
     for ( TInt i( 0 ); i < graphicsCount; i++ )
@@ -319,13 +338,15 @@ CGulIcon* CFSMailBrand::GetGraphicL( TFSBrandElement aElementId )
 		 	TParse parse;
 		    User::LeaveIfError( parse.Set( *iIconFilePath, &dllFileName, NULL) );
 		    TFileName iconFileName( parse.FullName() );
-                
-                
-            AknIconUtils::CreateIconLC( icon,
+             
+//<qmail>
+            // Get icon and mask with above info
+            /*AknIconUtils::CreateIconLC( icon,
                                         mask,
                                         iconFileName,
                                         element.iIconId,
-                                        element.iMaskId );
+                                        element.iMaskId );*/
+//</qmail>
             CGulIcon* gulIcon = CGulIcon::NewL( icon, mask );
 
             CleanupStack::Pop( 2 ); // icon, mask
@@ -343,7 +364,7 @@ CGulIcon* CFSMailBrand::GetGraphicL( TFSBrandElement aElementId )
 TInt CFSMailBrand::GetGraphicIdsL( TFSBrandElement aElementId,
                                    TDes& aIconIds)
     {
-    FUNC_LOG;
+    NM_FUNCTION;
     
     aIconIds.Zero();
     TInt graphicsCount( iGraphicElements->Count() );

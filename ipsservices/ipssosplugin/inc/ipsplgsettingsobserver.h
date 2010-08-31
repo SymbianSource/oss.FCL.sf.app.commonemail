@@ -42,7 +42,7 @@ public:
 /**
 * CIpsPlgSettingsObserver
 */
-class CIpsPlgSettingsObserver : public CActive
+NONSHARABLE_CLASS ( CIpsPlgSettingsObserver ) : public CActive
     {
 public:  // Constructors and destructor
     

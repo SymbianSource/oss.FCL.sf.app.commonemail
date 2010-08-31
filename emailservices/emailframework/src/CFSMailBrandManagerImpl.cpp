@@ -15,8 +15,12 @@
 *
 */
 
-
 #include "emailtrace.h"
+
+//<qmail>
+#include <nmcommonheaders.h>
+//</qmail>
+
 #include <fsmailbrandmanager.rsg>
 #include <barsread.h>
 #include <bautils.h>
@@ -29,11 +33,11 @@
 #include <centralrepository.h>
 // </gmail_brand_issue>
 //<cmail>
-#include "cfsmailclient.h"
+#include "CFSMailClient.h"
 //</cmail>
 
-#include "cfsmailbrandmanagerimpl.h"
-#include "cfsmailbrand.h"
+#include "CFSMailBrandManagerImpl.h"
+#include "CFSMailBrand.h"
 
 
 const TInt KBrandArrayGranularity = 5;
@@ -58,6 +62,8 @@ const TInt KMCCValueMaxLength = 3;
 #ifdef __WINS__
 LOCAL_C void RetrieveNextToken( TDes8& aContent, TDes& aToken )	
 	{
+    NM_FUNCTION;
+    
 	_LIT8( KComma, "," );
 	TInt pos = aContent.Find( KComma );
 	if ( pos != KErrNotFound ) 
@@ -77,8 +83,7 @@ CFSMailBrandManagerImpl::CFSMailBrandManagerImpl(
     CFSMailClient& aMailClient ) :
     iMailClient( aMailClient )
 	{
-    FUNC_LOG;
-
+    NM_FUNCTION;
 	}
 
 // -----------------------------------------------------------------------------
@@ -86,7 +91,7 @@ CFSMailBrandManagerImpl::CFSMailBrandManagerImpl(
 // -----------------------------------------------------------------------------
 void CFSMailBrandManagerImpl::ConstructL()
     {
-    FUNC_LOG;
+    NM_FUNCTION;
 
     // Read resource file, get the drive letter according to the DLL drive
     TFileName dllFileName;
@@ -123,7 +128,7 @@ void CFSMailBrandManagerImpl::ConstructL()
 // -----------------------------------------------------------------------------
 CFSMailBrandManagerImpl::~CFSMailBrandManagerImpl()
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
 	
 	iResourceFile.Close();
     iFsSession.Close();
@@ -141,7 +146,8 @@ CFSMailBrandManagerImpl::~CFSMailBrandManagerImpl()
 CFSMailBrandManagerImpl* CFSMailBrandManagerImpl::NewL(
     CFSMailClient& aMailClient )
     {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
     CFSMailBrandManagerImpl* self =
         CFSMailBrandManagerImpl::NewLC( aMailClient );
     CleanupStack::Pop( self );
@@ -154,7 +160,8 @@ CFSMailBrandManagerImpl* CFSMailBrandManagerImpl::NewL(
 CFSMailBrandManagerImpl* CFSMailBrandManagerImpl::NewLC(
     CFSMailClient& aMailClient )
     {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
     CFSMailBrandManagerImpl* self =
         new( ELeave ) CFSMailBrandManagerImpl( aMailClient );
     CleanupStack::PushL( self );
@@ -167,7 +174,7 @@ CFSMailBrandManagerImpl* CFSMailBrandManagerImpl::NewLC(
 // -----------------------------------------------------------------------------
 void CFSMailBrandManagerImpl::UpdateMailboxNamesL( const TFSMailMsgId aMailBoxId )
     {
-    FUNC_LOG;
+    NM_FUNCTION;
     
     // list all mailboxes
     RPointerArray<CFSMailBox> mailBoxes;
@@ -217,7 +224,8 @@ CGulIcon* CFSMailBrandManagerImpl::GetGraphicL(
     TFSBrandElement aElement, 
 	const TFSMailMsgId& aMailboxId )
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 	CFSMailBox* mailBox( NULL );
 	TRAPD( mailboxError,
 	       mailBox = iMailClient.GetMailBoxByUidL( aMailboxId ) );
@@ -247,7 +255,8 @@ CGulIcon* CFSMailBrandManagerImpl::GetGraphicL(
     TFSBrandElement aElement, 
     const TDesC& aBrandId )
     {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
     CFSMailBrand* brand = FindMatchingBrandL( aBrandId );
     if ( brand == NULL )
         {
@@ -264,7 +273,8 @@ TInt CFSMailBrandManagerImpl::GetGraphicIdsL(
 	const TFSMailMsgId& aMailboxId,
     TDes& aIconIds  )
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 	CFSMailBox* mailBox( NULL );
 	TRAPD( mailboxError,
 	       mailBox = iMailClient.GetMailBoxByUidL( aMailboxId ) );
@@ -295,7 +305,7 @@ TInt CFSMailBrandManagerImpl::GetGraphicIdsL(
     const TDesC& aBrandId,
     TDes& aIconIds  )
     {
-    FUNC_LOG;
+    NM_FUNCTION;
 
     CFSMailBrand* brand = FindMatchingBrandL( aBrandId );
     if ( brand == NULL )
@@ -312,7 +322,8 @@ TPtrC CFSMailBrandManagerImpl::GetTextL(
     TFSBrandElement aElement,
     const TFSMailMsgId& aMailboxId )
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 	CFSMailBox* mailBox( NULL );
 	TRAPD( mailboxError,
 	       mailBox = iMailClient.GetMailBoxByUidL( aMailboxId ) );
@@ -342,7 +353,7 @@ TPtrC CFSMailBrandManagerImpl::GetTextL(
 	TFSBrandElement aElement,
 	const TDesC& aBrandId )
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
 
 	CFSMailBrand* brand = FindMatchingBrandL( aBrandId );
 	if ( brand == NULL )
@@ -361,7 +372,8 @@ TInt CFSMailBrandManagerImpl::GetColorL(
     const TFSMailMsgId& aMailboxId,
     TRgb& aColor )
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 	CFSMailBox* mailBox = iMailClient.GetMailBoxByUidL( aMailboxId );
 	User::LeaveIfNull( mailBox );
     CleanupStack::PushL( mailBox );    
@@ -382,7 +394,8 @@ TInt CFSMailBrandManagerImpl::GetColorL(
 // -----------------------------------------------------------------------------
 void CFSMailBrandManagerImpl::ConstructFromResourceL( TResourceReader& aReader )
 	{
-    FUNC_LOG;
+    NM_FUNCTION;
+    
 	iBrands = new ( ELeave )
 				CArrayPtrSeg< CFSMailBrand >( KBrandArrayGranularity );
 						
@@ -408,7 +421,8 @@ void CFSMailBrandManagerImpl::ConstructFromResourceL( TResourceReader& aReader )
 // -----------------------------------------------------------------------------
 CFSMailBrand* CFSMailBrandManagerImpl::FindMatchingBrandL( const TDesC& aBrandId )
     {
-    FUNC_LOG;
+    NM_FUNCTION;
+    
     if( aBrandId.Length() )
         {
         TInt brandCount( iBrands->Count() );
@@ -427,6 +441,8 @@ CFSMailBrand* CFSMailBrandManagerImpl::FindMatchingBrandL( const TDesC& aBrandId
 CFSMailBox* CFSMailBrandManagerImpl::MailboxMatchingBrandIdL(
     const TDesC& aBrandId ) const
     {    
+    NM_FUNCTION;
+    
     RPointerArray<CFSMailBox> mailboxes;
 
     CleanupResetAndDestroyPushL( mailboxes );
@@ -468,6 +484,8 @@ CFSMailBox* CFSMailBrandManagerImpl::MailboxMatchingBrandIdL(
 // -----------------------------------------------------------------------------
 void CFSMailBrandManagerImpl::GetMCCValueL( TDes& aMcc ) const
     {
+    NM_FUNCTION;
+    
     aMcc.Zero();
     
     TInt err = KErrNone;
@@ -558,6 +576,8 @@ void CFSMailBrandManagerImpl::GetMCCValueL( TDes& aMcc ) const
 // 
 void CFSMailBrandManagerImpl::GetMCCValueFromSIML( TDes& aMcc ) const
     {
+    NM_FUNCTION;
+    
     RTelServer telServer;
 
     CleanupClosePushL( telServer );
@@ -598,6 +618,8 @@ void CFSMailBrandManagerImpl::GetMCCValueFromSIML( TDes& aMcc ) const
 // 
 TUint8 CFSMailBrandManagerImpl::GetCurrentCountryL() const
     {
+    NM_FUNCTION;
+    
     CTzLocalizer* localizer = CTzLocalizer::NewLC();
 
     CTzLocalizedCity* city = localizer->GetFrequentlyUsedZoneCityL(
@@ -624,6 +646,8 @@ TUint8 CFSMailBrandManagerImpl::GetCurrentCountryL() const
 void CFSMailBrandManagerImpl::VerifyMailAccountName(
         TPtrC& aBrandedName ) const
     {
+    NM_FUNCTION;
+    
     // Due to legal reasons we don't show brand name "Gmail" in Germany and UK
     if ( !aBrandedName.CompareF( KBrandNameGmail ) )
         {

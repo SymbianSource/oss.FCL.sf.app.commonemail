@@ -21,7 +21,7 @@
 #define __MSG_STORE_WRITABLE_PROPERTY_CONTAINER_H__
 
 //<cmail>
-#include "msgstorepropertycontainer.h"
+#include "MsgStorePropertyContainer.h"
 //</cmail>
 
 class CMsgStoreSessionContext;

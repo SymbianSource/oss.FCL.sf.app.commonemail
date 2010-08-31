@@ -30,7 +30,8 @@ VENDORID VID_DEFAULT
 
 VERSION       KRfsMsgStoreMMPVersionNumber
 
-APP_LAYER_SYSTEMINCLUDE
+MW_LAYER_SYSTEMINCLUDE
+SYSTEMINCLUDE   /epoc32/include/ecom
 
 USERINCLUDE  ../inc
 USERINCLUDE  ../data
@@ -54,7 +55,7 @@ LIBRARY    euser.lib
 LIBRARY    ecom.lib
 LIBRARY    efsrv.lib
 LIBRARY    platformenv.lib
-LIBRARY    bafl.lib
+LIBRARY	   bafl.lib
 LIBRARY    estor.lib
 
 // END FILE RfsMsgStorePlugin.mmp

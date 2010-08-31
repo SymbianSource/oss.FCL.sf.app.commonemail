@@ -17,9 +17,10 @@
 
 
 #include <platform_paths.hrh>
-
-#include "../../../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
-#include "../../../inc/emailstoreuids.hrh"
+//<qmail>
+//#include "../../../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
+//</qmail>
+#include "../../../inc/EmailStoreUids.hrh"
 
 TARGET			ImsPointSecMonitor.dll
 TARGETTYPE		dll
@@ -27,8 +28,9 @@ TARGETTYPE		dll
 UID		        KUidSharedLibrary KUidImsPointSecMonitor
 
 CAPABILITY 		ALL -TCB
-
-VERSION         KEmailBinaryVersionNumber
+//<qmail>
+//VERSION         KEmailBinaryVersionNumber
+//</qmail>
 KEmailBinaryDemandPaging
 
 SOURCEPATH		../Src
